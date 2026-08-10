@@ -1519,7 +1519,7 @@ int clusterRedirectBlockedClientIfNeeded(client *c) {
             /* if the client is read-only and attempting to access key that our
              * replica can handle, allow it. */
             if ((c->flags & CLIENT_READONLY) &&
-                !(c->lastcmd->flags & CMD_WRITE) &&
+                !(clientTail(c)->lastcmd->flags & CMD_WRITE) &&
                 clusterNodeIsSlave(myself) && clusterNodeGetSlaveof(myself) == node)
             {
                 node = myself;

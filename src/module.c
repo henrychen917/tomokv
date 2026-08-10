@@ -659,15 +659,15 @@ void initClientModuleData(client *c) {
 }
 
 void freeClientModuleData(client *c) {
-    if (!c->cold) return;
+    if (!clientTail(c)->cold) return;
     /* Free the RedisModuleBlockedClient retained for auth reprocessing if it
      * was not consumed already. The remaining fields are non-owning. */
-    zfree(c->cold->module_blocked_client);
-    c->cold->module_blocked_client = NULL;
-    c->cold->module_auth_ctx = NULL;
-    c->cold->auth_callback = NULL;
-    c->cold->auth_callback_privdata = NULL;
-    c->cold->auth_module = NULL;
+    zfree(clientTail(c)->cold->module_blocked_client);
+    clientTail(c)->cold->module_blocked_client = NULL;
+    clientTail(c)->cold->module_auth_ctx = NULL;
+    clientTail(c)->cold->auth_callback = NULL;
+    clientTail(c)->cold->auth_callback_privdata = NULL;
+    clientTail(c)->cold->auth_module = NULL;
 }
 
 static void freeRedisModuleAsyncRMCallPromise(RedisModuleAsyncRMCallPromise *promise) {
@@ -688,13 +688,13 @@ void moduleReleaseTempClient(client *c) {
     clearClientConnectionState(c);
     listEmpty(c->reply);
     c->reply_bytes = 0;
-    c->duration = 0;
+    clientTail(c)->duration = 0;
     resetClient(c, -1);
     serverAssert(c->all_argv_len_sum == 0);
     c->bufpos = 0;
     c->flags = CLIENT_MODULE;
     c->user = NULL; /* Root user */
-    c->cmd = c->lastcmd = c->realcmd = NULL;
+    c->cmd = clientTail(c)->lastcmd = clientTail(c)->realcmd = NULL;
     blockingState *bs = clientBlockingState(c);
     if (bs && bs->async_rm_call_handle) {
         RedisModuleAsyncRMCallPromise *promise = bs->async_rm_call_handle;
@@ -879,8 +879,8 @@ static CallReply *moduleParseReply(client *c, RedisModuleCtx *ctx) {
         proto = sdscatlen(proto,o->buf,o->used);
         listDelNode(c->reply,listFirst(c->reply));
     }
-    CallReply *reply = callReplyCreate(proto, c->deferred_reply_errors, ctx);
-    c->deferred_reply_errors = NULL; /* now the responsibility of the reply object. */
+    CallReply *reply = callReplyCreate(proto, clientTail(c)->deferred_reply_errors, ctx);
+    clientTail(c)->deferred_reply_errors = NULL; /* now the responsibility of the reply object. */
     return reply;
 }
 
@@ -3709,7 +3709,7 @@ int RM_ReplicateVerbatim(RedisModuleCtx *ctx) {
  */
 unsigned long long RM_GetClientId(RedisModuleCtx *ctx) {
     if (ctx->client == NULL) return 0;
-    return ctx->client->id;
+    return clientTail(ctx->client)->id;
 }
 
 /* Return the ACL user name used by the client with the specified client ID.
@@ -3763,7 +3763,7 @@ int modulePopulateClientInfoStructure(void *ci, client *client, int structver) {
     connAddrPeerName(client->conn,ci1->addr,sizeof(ci1->addr),&port);
     ci1->port = port;
     ci1->db = client->db->id;
-    ci1->id = client->id;
+    ci1->id = clientTail(client)->id;
     return REDISMODULE_OK;
 }
 
@@ -3846,8 +3846,8 @@ int RM_GetClientInfoById(void *ci, uint64_t id) {
  * it, NULL is returned. */
 RedisModuleString *RM_GetClientNameById(RedisModuleCtx *ctx, uint64_t id) {
     client *client = lookupClientByID(id);
-    if (client == NULL || client->name == NULL) return NULL;
-    robj *name = client->name;
+    if (client == NULL || clientTail(client)->name == NULL) return NULL;
+    robj *name = clientTail(client)->name;
     incrRefCount(name);
     autoMemoryAdd(ctx, REDISMODULE_AM_STRING, name);
     return name;
@@ -6907,7 +6907,7 @@ RedisModuleCallReply *RM_Call(RedisModuleCtx *ctx, const char *cmdname, const ch
     /* Lookup command now, after filters had a chance to make modifications
      * if necessary.
      */
-    c->cmd = c->lastcmd = c->realcmd = lookupCommand(c->argv,c->argc);
+    c->cmd = clientTail(c)->lastcmd = clientTail(c)->realcmd = lookupCommand(c->argv,c->argc);
 
     /* We nullify the command if it is not supposed to be seen by the client,
      * such that it will be rejected like an unknown command. */
@@ -6916,7 +6916,7 @@ RedisModuleCallReply *RM_Call(RedisModuleCtx *ctx, const char *cmdname, const ch
         (flags & REDISMODULE_ARGV_RUN_AS_USER) &&
         !((ctx->client->flags & CLIENT_INTERNAL) || mustObeyClient(ctx->client)))
     {
-        c->cmd = c->lastcmd = c->realcmd = NULL;
+        c->cmd = clientTail(c)->lastcmd = clientTail(c)->realcmd = NULL;
     }
 
     sds err;
@@ -8493,7 +8493,7 @@ void moduleUnregisterAuthCBs(RedisModule *module) {
 /* Search for & attempt next module auth callback after skipping the ones already attempted.
  * Returns the result of the module auth callback. */
 int attemptNextAuthCb(client *c, robj *username, robj *password, robj **err) {
-    int handle_next_callback = !c->cold || c->cold->module_auth_ctx == NULL;
+    int handle_next_callback = !clientTail(c)->cold || clientTail(c)->cold->module_auth_ctx == NULL;
     RedisModuleAuthCtx *cur_auth_ctx = NULL;
     listNode *ln;
     listIter li;
@@ -8503,7 +8503,7 @@ int attemptNextAuthCb(client *c, robj *username, robj *password, robj **err) {
         cur_auth_ctx = listNodeValue(ln);
         /* Skip over the previously attempted auth contexts. */
         if (!handle_next_callback) {
-            handle_next_callback = cur_auth_ctx == c->cold->module_auth_ctx;
+            handle_next_callback = cur_auth_ctx == clientTail(c)->cold->module_auth_ctx;
             continue;
         }
         /* Remove the module auth complete flag before we attempt the next cb. */
@@ -8513,7 +8513,7 @@ int attemptNextAuthCb(client *c, robj *username, robj *password, robj **err) {
         ctx.client = c;
         *err = NULL;
         initClientModuleData(c);
-        c->cold->module_auth_ctx = cur_auth_ctx;
+        clientTail(c)->cold->module_auth_ctx = cur_auth_ctx;
         result = cur_auth_ctx->auth_cb(&ctx, username, password, err);
         moduleFreeContext(&ctx);
         if (result == REDISMODULE_AUTH_HANDLED) break;
@@ -8529,8 +8529,8 @@ int attemptNextAuthCb(client *c, robj *username, robj *password, robj **err) {
  * return the result of the reply callback. */
 int attemptBlockedAuthReplyCallback(client *c, robj *username, robj *password, robj **err) {
     int result = REDISMODULE_AUTH_NOT_HANDLED;
-    if (!c->cold || !c->cold->module_blocked_client) return result;
-    RedisModuleBlockedClient *bc = (RedisModuleBlockedClient *) c->cold->module_blocked_client;
+    if (!clientTail(c)->cold || !clientTail(c)->cold->module_blocked_client) return result;
+    RedisModuleBlockedClient *bc = (RedisModuleBlockedClient *) clientTail(c)->cold->module_blocked_client;
     bc->client = c;
     if (bc->auth_reply_cb) {
         RedisModuleCtx ctx;
@@ -8543,8 +8543,8 @@ int attemptBlockedAuthReplyCallback(client *c, robj *username, robj *password, r
         moduleFreeContext(&ctx);
     }
     moduleInvokeFreePrivDataCallback(c, bc);
-    c->cold->module_blocked_client = NULL;
-    tomoCmdStatAddUsec(c->lastcmd, bc->background_duration);   /* ee451 (#B2): per-thread shard */
+    clientTail(c)->cold->module_blocked_client = NULL;
+    tomoCmdStatAddUsec(clientTail(c)->lastcmd, bc->background_duration);   /* ee451 (#B2): per-thread shard */
     bc->module->blocked_clients--;
     zfree(bc);
     return result;
@@ -8571,7 +8571,7 @@ int checkModuleAuthentication(client *c, robj *username, robj *password, robj **
         serverAssert(result == REDISMODULE_AUTH_HANDLED);
         return AUTH_BLOCKED;
     }
-    if (c->cold) c->cold->module_auth_ctx = NULL;
+    if (clientTail(c)->cold) clientTail(c)->cold->module_auth_ctx = NULL;
     if (result == REDISMODULE_AUTH_NOT_HANDLED) {
         c->flags &= ~CLIENT_MODULE_AUTH_HAS_RESULT;
         return AUTH_NOT_HANDLED;
@@ -8909,7 +8909,7 @@ void moduleHandleBlockedClients(void) {
         /* Hold onto the blocked client if module auth is in progress. The reply callback is invoked
          * when the client is reprocessed. */
         if (c && clientHasModuleAuthInProgress(c)) {
-            c->cold->module_blocked_client = bc;
+            clientTail(c)->cold->module_blocked_client = bc;
         } else {
             /* Free privdata if any. */
             moduleInvokeFreePrivDataCallback(c, bc);
@@ -8943,7 +8943,7 @@ void moduleHandleBlockedClients(void) {
 
             /* Update the wait offset, we don't know if this blocked client propagated anything,
              * currently we rather not add any API for that, so we just assume it did. */
-            c->woff = server.master_repl_offset;
+            clientTail(c)->woff = server.master_repl_offset;
 
             /* Put the client in the list of clients that need to write
              * if there are pending replies here. This is needed since
@@ -8952,7 +8952,7 @@ void moduleHandleBlockedClients(void) {
                 !(c->flags & CLIENT_PENDING_WRITE) && c->conn)
             {
                 c->flags |= CLIENT_PENDING_WRITE;
-                listLinkNodeHead(server.clients_pending_write[iotid], &c->clients_pending_write_node);
+                listLinkNodeHead(server.clients_pending_write[iotid], &clientTail(c)->clients_pending_write_node);
             }
         }
 
@@ -9104,7 +9104,7 @@ RedisModuleCtx *RM_GetThreadSafeContext(RedisModuleBlockedClient *bc) {
         ctx->client = bc->thread_safe_ctx_client;
         selectDb(ctx->client,bc->dbid);
         if (bc->client) {
-            ctx->client->id = bc->client->id;
+            clientTail(ctx->client)->id = clientTail(bc->client)->id;
             ctx->client->resp = bc->client->resp;
         }
     }
@@ -9367,6 +9367,23 @@ int moduleHasSubscribersForKeyspaceEvent(int type) {
     while((ln = listNext(&li))) {
         RedisModuleKeyspaceSubscriber *sub = ln->value;
         if (sub->event_mask & type) return 1;
+    }
+    return 0;
+}
+
+/* A core-only execution client cannot be exposed to a synchronous module
+ * callback: supported callback APIs may inspect the ambient current client. */
+int moduleHasKeyspaceChangeCallbacks(int type) {
+    if (moduleKeyspaceSubscribers && listLength(moduleKeyspaceSubscribers) &&
+        moduleHasSubscribersForKeyspaceEvent(type)) return 1;
+    if (!RedisModule_EventListeners || !listLength(RedisModule_EventListeners)) return 0;
+
+    listIter li;
+    listNode *ln;
+    listRewind(RedisModule_EventListeners,&li);
+    while((ln = listNext(&li))) {
+        RedisModuleEventListener *el = ln->value;
+        if (el->event.id == REDISMODULE_EVENT_KEY) return 1;
     }
     return 0;
 }
@@ -10317,15 +10334,15 @@ static void eventLoopHandleOneShotEvents(void) {
  * A client's user can be changed through the AUTH command, module
  * authentication, and when a client is freed. */
 void moduleNotifyUserChanged(client *c) {
-    if (!c->cold || !c->cold->auth_callback) return;
-    c->cold->auth_callback(c->id, c->cold->auth_callback_privdata);
+    if (!clientTail(c)->cold || !clientTail(c)->cold->auth_callback) return;
+    clientTail(c)->cold->auth_callback(clientTail(c)->id, clientTail(c)->cold->auth_callback_privdata);
 
     /* The callback will fire exactly once, even if the user remains
      * the same. It is expected to completely clean up the state
      * so all references are cleared here. */
-    c->cold->auth_callback = NULL;
-    c->cold->auth_callback_privdata = NULL;
-    c->cold->auth_module = NULL;
+    clientTail(c)->cold->auth_callback = NULL;
+    clientTail(c)->cold->auth_callback_privdata = NULL;
+    clientTail(c)->cold->auth_module = NULL;
 }
 
 void revokeClientAuthentication(client *c) {
@@ -10348,9 +10365,9 @@ static void moduleFreeAuthenticatedClients(RedisModule *module) {
     listRewind(server.clients[iotid],&li);
     while ((ln = listNext(&li)) != NULL) {
         client *c = listNodeValue(ln);
-        if (!c->cold || !c->cold->auth_module) continue;
+        if (!clientTail(c)->cold || !clientTail(c)->cold->auth_module) continue;
 
-        RedisModule *auth_module = (RedisModule *) c->cold->auth_module;
+        RedisModule *auth_module = (RedisModule *) clientTail(c)->cold->auth_module;
         if (auth_module == module) {
             revokeClientAuthentication(c);
         }
@@ -10703,13 +10720,13 @@ static int authenticateClientWithUser(RedisModuleCtx *ctx, user *user, RedisModu
 
     if (callback) {
         initClientModuleData(ctx->client);
-        ctx->client->cold->auth_callback = callback;
-        ctx->client->cold->auth_callback_privdata = privdata;
-        ctx->client->cold->auth_module = ctx->module;
+        clientTail(ctx->client)->cold->auth_callback = callback;
+        clientTail(ctx->client)->cold->auth_callback_privdata = privdata;
+        clientTail(ctx->client)->cold->auth_module = ctx->module;
     }
 
     if (client_id) {
-        *client_id = ctx->client->id;
+        *client_id = clientTail(ctx->client)->id;
     }
 
     return REDISMODULE_OK;
@@ -11649,7 +11666,7 @@ void moduleCallCommandFilters(client *c) {
 
     /* If the filter sets a new command, including command or subcommand,
      * the command looked up will be invalid. */
-    c->lookedcmd = NULL;
+    clientTail(c)->lookedcmd = NULL;
 
     c->argv = filter.argv;
     c->argv_len = filter.argv_len;
@@ -11746,7 +11763,7 @@ int RM_CommandFilterArgDelete(RedisModuleCommandFilterCtx *fctx, int pos)
 
 /* Get Client ID for client that issued the command we are filtering */
 unsigned long long RM_CommandFilterGetClientId(RedisModuleCommandFilterCtx *fctx) {
-    return fctx->c->id;
+    return clientTail(fctx->c)->id;
 }
 
 /* For a given pointer allocated via RedisModule_Alloc() or

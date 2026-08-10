@@ -51,6 +51,8 @@ int ProcessingEventsWhileBlocked = 0; /* See processEventsWhileBlocked(). */
  * rather than assuming it did — a run that never nests cannot say anything about #44, pass or
  * fail. Incremented only on the rare nested branch; the predicate is a value we already loaded. */
 _Atomic unsigned long long tomo_nested_cmd_frames = 0;
+_Atomic unsigned long long tomo_fake_core_allocs = 0;
+_Atomic unsigned long long tomo_fake_tail_promotions = 0;
 __thread sds thread_reusable_qb = NULL;
 __thread int thread_reusable_qb_used = 0; /* Avoid multiple clients using reusable query
                                          * buffer due to nested command execution. */
@@ -104,8 +106,8 @@ void linkClient(client *c) {
     /* Note that we remember the linked list node where the client is stored,
      * this way removing the client in unlinkClient() will not require
      * a linear scan, but just a constant time operation. */
-    c->client_list_node = listLast(server.clients[iotid]);
-    uint64_t id = htonu64(c->id);
+    clientTail(c)->client_list_node = listLast(server.clients[iotid]);
+    uint64_t id = htonu64(clientTail(c)->id);
     raxInsert(server.clients_index[iotid],(unsigned char*)&id,sizeof(id),c,NULL);
 }
 
@@ -134,14 +136,16 @@ int authRequired(client *c) {
  * create their dictionaries on demand. zcalloc provides all normal cold-state
  * defaults; executing_cmd is the sole non-zero default. */
 clientCold *getClientCold(client *c) {
-    if (likely(c->cold != NULL)) return c->cold;
-    c->cold = zcalloc(sizeof(*c->cold));
-    c->cold->mstate.executing_cmd = -1;
-    return c->cold;
+    serverAssert(c->has_exec_tail);
+    if (likely(clientTail(c)->cold != NULL)) return clientTail(c)->cold;
+    clientTail(c)->cold = zcalloc(sizeof(*clientTail(c)->cold));
+    clientTail(c)->cold->mstate.executing_cmd = -1;
+    return clientTail(c)->cold;
 }
 
 void freeClientCold(client *c) {
-    if (!c->cold) return;
+    if (!c->has_exec_tail) return;
+    if (!clientTail(c)->cold) return;
 
     /* Callers must detach blocked and replication-list state before freeing
      * the sidecar. The remaining subsystem teardown is safe for a partially
@@ -152,11 +156,11 @@ void freeClientCold(client *c) {
     freeClientPubSubData(c);
     freeClientBlockingState(c);
     freeClientModuleData(c);
-    serverAssert(c->cold->ref_repl_buf_node == NULL);
-    sdsfree(c->cold->replpreamble);
-    sdsfree(c->cold->slave_addr);
-    zfree(c->cold);
-    c->cold = NULL;
+    serverAssert(clientTail(c)->cold->ref_repl_buf_node == NULL);
+    sdsfree(clientTail(c)->cold->replpreamble);
+    sdsfree(clientTail(c)->cold->slave_addr);
+    zfree(clientTail(c)->cold);
+    clientTail(c)->cold = NULL;
 }
 //ee451
 //ee451
@@ -167,59 +171,60 @@ void freeClientCold(client *c) {
  * Caller guarantees c->buf is allocated (size in c->buf_usable_size) and c->reply is an EMPTY
  * list with its free/dup methods already set. */
 static void resetFakeClientState(client *c, client *parent) {
+    serverAssert(c->has_exec_tail);
     /* A pooled fake must never inherit subscriptions, transaction errors, or
      * any other cold state from its previous command. Fresh fakes set cold to
      * NULL before entering here, so this is safe on every construction path. */
     freeClientCold(c);
-    c->cold = NULL;
+    clientTail(c)->cold = NULL;
 
     /* Fake-specific identity */
     c->isFake = 1;
-    c->reply_cdb = NULL;          /* #75: fakes never own reply buses; they signal parent->reply_cdb */
+    clientTail(c)->reply_cdb = NULL;          /* #75: fakes never own reply buses; they signal clientTail(parent)->reply_cdb */
     c->parent = parent;
-    c->uring = NULL;
-    memset(c->fakeClients, 0, sizeof(c->fakeClients));
-    c->dispatchid = 0;
-    c->flushid = 0;
+    clientTail(c)->uring = NULL;
+    memset(clientTail(c)->fakeClients, 0, sizeof(clientTail(c)->fakeClients));
+    clientTail(c)->dispatchid = 0;
+    clientTail(c)->flushid = 0;
 
     /* ee451 (v7): cross-shard scatter-gather state. zmalloc leaves these as
      * garbage, so initialize: a fake is neither a group head (csgroup) nor a
      * per-key sub (csparent) until dispatchCrossShard sets it. */
     c->csgroup = NULL;
     c->csparent = NULL;
-    c->mset_pub = NULL;   /* R1 FIFO state is real-client-only; never leave a fake a stale pointer */
-    c->cssub_idx = 0;
-    c->is_flush = 0;
-    c->flush_bar = NULL;   /* ee451 (shared-kv S0.2b): per-node flush barrier, set only on shared-mode sentinels */
+    clientTail(c)->mset_pub = NULL;   /* R1 FIFO state is real-client-only; never leave a fake a stale pointer */
+    clientTail(c)->cssub_idx = 0;
+    clientTail(c)->is_flush = 0;
+    clientTail(c)->flush_bar = NULL;   /* ee451 (shared-kv S0.2b): per-node flush barrier, set only on shared-mode sentinels */
     c->tomo_bkt_ptr = NULL;    /* ee451 (hash-carry): no carried bucket until dispatch stamps one */
     c->tomo_local_worker = -1;
     atomicSet(c->tomo_watch_worker, -1);
     atomicSet(c->tomo_dirty_cas, 0);
     c->tomo_script_gate = 0;
-    c->drain_ack = NULL;
-    c->mig_parked_node = NULL;   /* ee451 (H2 handover): not parked by the cutover range-hold */
-    c->mig_parked_tid = 0;
-    c->atomic_window_parked_node = NULL;
-    c->atomic_window_parked_tid = 0;
+    clientTail(c)->drain_ack = NULL;
+    clientTail(c)->mig_parked_node = NULL;   /* ee451 (H2 handover): not parked by the cutover range-hold */
+    clientTail(c)->mig_parked_tid = 0;
+    clientTail(c)->atomic_window_parked_node = NULL;
+    clientTail(c)->atomic_window_parked_tid = 0;
     c->tomo_read_snapshot = 0;
     c->tomo_read_snapshot_pinned = 0;
 
     /* Output buffer fields (the buffer itself is cached/allocated by the caller). */
     c->bufpos = 0;
     c->buf_peak = c->buf_usable_size;
-    c->buf_peak_last_reset_time = server.unixtime;
+    clientTail(c)->buf_peak_last_reset_time = server.unixtime;
     c->buf_encoded = 0;
     c->last_header = NULL;
 
     /* Reply list (the list object is cached/created by the caller; assumed empty here). */
     c->reply_bytes = 0;
-    c->deferred_reply_errors = NULL;
+    clientTail(c)->deferred_reply_errors = NULL;
     c->sentlen = 0;
 
     /* Identity — borrow id space; parent's id is authoritative for logs */
     uint64_t client_id;
     atomicGetIncr(server.next_client_id, client_id, 1);
-    c->id = client_id;
+    clientTail(c)->id = client_id;
 
     /* Threading — fake runs on the same IO thread as its parent */
     c->tid = parent->tid;
@@ -227,7 +232,7 @@ static void resetFakeClientState(client *c, client *parent) {
     /* fake_slot is stamped by the preallocation caller after createFakeClient
      * returns; default to 0 here so early error paths see a defined value. */
     c->fake_slot = 0;
-    atomicSet(c->pending_read, 0);
+    atomicSet(clientTail(c)->pending_read, 0);
 
     /* No connection at init — dispatch borrows parent->conn */
     c->conn = NULL;
@@ -241,15 +246,15 @@ static void resetFakeClientState(client *c, client *parent) {
 #endif
 
     /* Name / lib info — not used on fake */
-    c->name = NULL;
-    c->lib_name = NULL;
-    c->lib_ver = NULL;
+    clientTail(c)->name = NULL;
+    clientTail(c)->lib_name = NULL;
+    clientTail(c)->lib_ver = NULL;
 
     /* Query buffer — fake never reads from socket */
-    c->querybuf = NULL;
-    c->qb_pos = 0;
-    c->querybuf_peak = 0;
-    c->reqtype = 0;
+    clientTail(c)->querybuf = NULL;
+    clientTail(c)->qb_pos = 0;
+    clientTail(c)->querybuf_peak = 0;
+    clientTail(c)->reqtype = 0;
 
     /* Execution state — populated at dispatch time */
     c->argc = 0;
@@ -259,22 +264,22 @@ static void resetFakeClientState(client *c, client *parent) {
     c->pending_cmds.head = c->pending_cmds.tail = NULL;
     c->pending_cmds.len = c->pending_cmds.ready_len = 0;
     c->current_pending_cmd = NULL;
-    c->original_argc = 0;
-    c->original_argv = NULL;
-    c->cmd = c->lastcmd = c->realcmd = c->lookedcmd = NULL;
-    c->cur_script = NULL;
-    c->multibulklen = 0;
-    c->bulklen = -1;
+    clientTail(c)->original_argc = 0;
+    clientTail(c)->original_argv = NULL;
+    c->cmd = clientTail(c)->lastcmd = clientTail(c)->realcmd = clientTail(c)->lookedcmd = NULL;
+    clientTail(c)->cur_script = NULL;
+    clientTail(c)->multibulklen = 0;
+    clientTail(c)->bulklen = -1;
 
     /* A fake never runs MULTI. replaceClientCommandVector treats a NULL cold
      * sidecar exactly like executing_cmd == -1, without allocating here. */
 
     /* Deferred objects — fake has its own */
-    c->deferred_objects = NULL;
-    c->deferred_objects_num = 0;
-    c->io_deferred_objects = NULL;
-    c->io_deferred_objects_num = 0;
-    c->io_deferred_objects_size = 0;
+    clientTail(c)->deferred_objects = NULL;
+    clientTail(c)->deferred_objects_num = 0;
+    clientTail(c)->io_deferred_objects = NULL;
+    clientTail(c)->io_deferred_objects_num = 0;
+    clientTail(c)->io_deferred_objects_size = 0;
 
     /* DB — overwritten at dispatch to match worker-owned DB or parent->db */
     selectDb(c, 0);
@@ -282,24 +287,24 @@ static void resetFakeClientState(client *c, client *parent) {
     /* Flags — fake starts clean; dispatch copies a subset from parent */
     c->flags = 0;
     c->io_flags = CLIENT_IO_READ_ENABLED | CLIENT_IO_WRITE_ENABLED;
-    c->read_error = 0;
+    clientTail(c)->read_error = 0;
     c->slot = -1;
     c->cluster_compatibility_check_slot = -2;
 
     /* Time tracking */
-    c->ctime = c->lastinteraction = server.unixtime;
-    c->io_lastinteraction = 0;
-    c->duration = 0;
-    c->obuf_soft_limit_reached_time = 0;
-    c->io_last_client_cron = 0;
+    clientTail(c)->ctime = clientTail(c)->lastinteraction = server.unixtime;
+    clientTail(c)->io_lastinteraction = 0;
+    clientTail(c)->duration = 0;
+    clientTail(c)->obuf_soft_limit_reached_time = 0;
+    clientTail(c)->io_last_client_cron = 0;
 
     /* Auth — inherit parent's user at dispatch time; leave NULL for now */
     c->user = NULL;
     c->authenticated = 0;
 
     /* Replication — fake is never a replica or master. The replica-only state
-     * remains absent; reploff_next is command-path state and stays inline. */
-    c->reploff_next = 0;
+     * remains absent; reploff_next is generic command-path state. */
+    clientTail(c)->reploff_next = 0;
 
     /* NOT initialized on fake (fake never uses these):
      *   - blocking state (initClientBlockingState)
@@ -308,31 +313,32 @@ static void resetFakeClientState(client *c, client *parent) {
      *   - client_list_node / io_thread_client_list_node
      *   - task / node_id
      */
-    c->peerid = NULL;
-    c->sockname = NULL;
-    c->client_list_node = NULL;
-    c->io_thread_client_list_node = NULL;
-    c->last_memory_usage = 0;
-    c->last_memory_type = CLIENT_TYPE_NORMAL;
-    c->task = NULL;
-    c->node_id = NULL;
+    clientTail(c)->peerid = NULL;
+    clientTail(c)->sockname = NULL;
+    clientTail(c)->client_list_node = NULL;
+    clientTail(c)->io_thread_client_list_node = NULL;
+    clientTail(c)->last_memory_usage = 0;
+    clientTail(c)->last_memory_type = CLIENT_TYPE_NORMAL;
+    clientTail(c)->task = NULL;
+    clientTail(c)->node_id = NULL;
 
     /* Intrusive list nodes */
-    listInitNode(&c->clients_pending_ex_node, c);
-    listInitNode(&c->clients_pending_write_node, c);
-    listInitNode(&c->pending_ref_reply_node, c);
+    listInitNode(&clientTail(c)->clients_pending_ex_node, c);
+    listInitNode(&clientTail(c)->clients_pending_write_node, c);
+    listInitNode(&clientTail(c)->pending_ref_reply_node, c);
 
     /* Stats — fake-local; fold back to parent post-flush if desired */
-    c->net_input_bytes = 0;
-    c->net_output_bytes = 0;
+    clientTail(c)->net_input_bytes = 0;
+    clientTail(c)->net_output_bytes = 0;
     c->net_input_bytes_curr_cmd = 0;
     c->net_output_bytes_curr_cmd = 0;
     c->commands_processed = 0;
 }
 
 client *createFakeClient(client *parent) {
-    client *c = zmalloc(sizeof(client));
-    c->cold = NULL;
+    client *c = zmalloc(CLIENT_FULL_SIZE);
+    c->has_exec_tail = 1;
+    clientTail(c)->cold = NULL;
     /* Cached heap, reused across pooled recycles: output buffer + reply list. */
     /* 2s-auto D1: start small and demand-grow at the spill site. tomokv-fake-buf is retired at
      * AUTO, so the fixed-N and legacy-16KB widths are gone. */
@@ -342,6 +348,96 @@ client *createFakeClient(client *parent) {
     listSetDupMethod(c->reply, dupClientReplyValue);
     resetFakeClientState(c, parent);
     return c;
+}
+
+/* Allocate the execution-only ring form. It owns the same cached reply
+ * allocations as a full fake, but no command outside the express lane may
+ * observe it before promoteFakeClient adds the tail. */
+client *createCoreFakeClient(client *parent) {
+    client *c = zmalloc(sizeof(client));
+
+    c->isFake = 1;
+    c->tid = parent->tid;
+    c->running_tid = parent->running_tid;
+    c->io_flags = CLIENT_IO_READ_ENABLED | CLIENT_IO_WRITE_ENABLED;
+    c->buf_encoded = 0;
+    c->parent = parent;
+    c->flags = 0;
+    c->conn = NULL;
+    c->db = parent->db;
+    c->user = NULL;
+    c->cmd = NULL;
+    c->argv = NULL;
+
+    c->reply = listCreate();
+    listSetFreeMethod(c->reply, freeClientReplyValue);
+    listSetDupMethod(c->reply, dupClientReplyValue);
+    c->buf = zmalloc_usable(FAKE_BUF_START_BYTES, &c->buf_usable_size);
+    c->pending_cmds.head = c->pending_cmds.tail = NULL;
+    c->pending_cmds.len = c->pending_cmds.ready_len = 0;
+    c->current_pending_cmd = NULL;
+    c->csgroup = NULL;
+    c->csparent = NULL;
+
+    c->last_header = NULL;
+    c->prefetch_key_hash = 0;
+    c->prefetch_dict = NULL;
+    c->prefetch_bucket_idx = 0;
+    c->tomo_bkt_ptr = NULL;
+    c->tomo_key_h = 0;
+    c->tomo_read_snapshot = 0;
+    c->all_argv_len_sum = 0;
+
+    c->reply_bytes = 0;
+    c->sentlen = 0;
+    c->net_input_bytes_curr_cmd = 0;
+    c->net_output_bytes_curr_cmd = 0;
+    c->buf_peak = c->buf_usable_size;
+    c->bufpos = 0;
+    c->commands_processed = 0;
+
+    c->tomo_read_snapshot_pinned = 0;
+    c->fake_slot = 0;
+    c->cdb = 0;
+    c->prefetch_key_hash_valid = 0;
+    c->resp = 2;
+    c->argc = 0;
+    c->argv_len = 0;
+    c->authenticated = 0;
+    c->slot = -1;
+    c->cluster_compatibility_check_slot = -2;
+    c->tomo_bkt = 0;
+    c->tomo_local_worker = -1;
+    atomicSet(c->tomo_watch_worker, -1);
+    atomicSet(c->tomo_dirty_cas, 0);
+    c->tomo_script_gate = 0;
+    c->has_exec_tail = 0;
+
+    atomic_fetch_add_explicit(&tomo_fake_core_allocs, 1, memory_order_relaxed);
+    return c;
+}
+
+/* A ring slot is resized only at its reset/quiescent reuse point. Once a slot
+ * needs generic state, keep the tail for its remaining lifetime. */
+client *promoteFakeClient(client *c) {
+    serverAssert(!c->has_exec_tail);
+    serverAssert(c->isFake && c->current_pending_cmd == NULL && c->cmd == NULL);
+    serverAssert(c->pending_cmds.len == 0 && c->all_argv_len_sum == 0);
+    serverAssert(c->argc == 0 && c->argv == NULL);
+    serverAssert(c->bufpos == 0 && c->reply_bytes == 0 && listLength(c->reply) == 0);
+    serverAssert(!(c->flags & CLIENT_EX_PENDING) && !c->tomo_read_snapshot_pinned);
+
+    unsigned int fake_slot = c->fake_slot;
+    client *full = zmalloc(CLIENT_FULL_SIZE);
+    memcpy(full, c, sizeof(client));
+    memset(clientTail(full), 0, sizeof(clientExecTail));
+    full->has_exec_tail = 1;
+    resetFakeClientState(full, full->parent);
+    full->fake_slot = fake_slot;
+    zfree(c);
+
+    atomic_fetch_add_explicit(&tomo_fake_tail_promotions, 1, memory_order_relaxed);
+    return full;
 }
 
 /* ee451 (v11): per-IO-thread pool of recyclable fake clients for the CROSS-SHARD SUB path.
@@ -383,14 +479,14 @@ void freePooledFakeClient(client *c) {
      * freeFakeClient would free, but KEEP the struct + buf + reply-list object for reuse. */
     if (t >= 0 && t <= TOMO_IO_THREADS_MAX && xsubPoolN[t].n < XSUB_POOL_CAP &&
         c->buf && c->reply && isFakeBufPoolable(c)) {
-        if (c->querybuf) { sdsfree(c->querybuf); c->querybuf = NULL; }
+        if (clientTail(c)->querybuf) { sdsfree(clientTail(c)->querybuf); clientTail(c)->querybuf = NULL; }
         releaseAllBufReferences(c);
         listEmpty(c->reply);                 /* free reply blocks, keep the list object */
         freeClientOriginalArgv(c);
         freeClientDeferredObjects(c, 1);
         freeClientIODeferredObjects(c, 1);
-        if (c->deferred_reply_errors) { listRelease(c->deferred_reply_errors); c->deferred_reply_errors = NULL; }
-        if (c->name) { decrRefCount(c->name); c->name = NULL; }
+        if (clientTail(c)->deferred_reply_errors) { listRelease(clientTail(c)->deferred_reply_errors); clientTail(c)->deferred_reply_errors = NULL; }
+        if (clientTail(c)->name) { decrRefCount(clientTail(c)->name); clientTail(c)->name = NULL; }
         freeClientCold(c);
 #ifdef LOG_REQ_RES
         reqresReset(c, 1);
@@ -403,12 +499,13 @@ void freePooledFakeClient(client *c) {
 }
 
 client *createClient(connection *conn) {
-    client *c = zmalloc(sizeof(client));
+    client *c = zmalloc(CLIENT_FULL_SIZE);
+    c->has_exec_tail = 1;
     /* Must precede selectDb() and every early-init client use (Lua/functions). */
-    c->cold = NULL;
-    c->uring = NULL;
+    clientTail(c)->cold = NULL;
+    clientTail(c)->uring = NULL;
 
-    /* ee451 (#75): the per-CDB reply slots are a HEAP array (c->reply_cdb), aligned to
+    /* ee451 (#75): the per-CDB reply slots are a HEAP array (clientTail(c)->reply_cdb), aligned to
      * CACHE_LINE_SIZE in the CDB-init block below — so the worker-cores-vs-IO-thread false-sharing
      * isolation no longer depends on the client struct's own alignment, and the old inline-array +
      * jemalloc-luck self-check is retired. */
@@ -416,9 +513,9 @@ client *createClient(connection *conn) {
     /* Pipeline fields — real client owns the ring */
     c->isFake = 0;
     c->parent = NULL;
-    memset(c->fakeClients, 0, sizeof(c->fakeClients));
-    c->dispatchid = 0;
-    c->flushid = 0;
+    memset(clientTail(c)->fakeClients, 0, sizeof(clientTail(c)->fakeClients));
+    clientTail(c)->dispatchid = 0;
+    clientTail(c)->flushid = 0;
 
     /* passing NULL as conn it is possible to create a non connected client.
      * This is useful since all the commands needs to be executed
@@ -439,7 +536,7 @@ client *createClient(connection *conn) {
     selectDb(c,0);
     uint64_t client_id;
     atomicGetIncr(server.next_client_id, client_id, 1);
-    c->id = client_id;
+    clientTail(c)->id = client_id;
     c->tid = iotid;
     c->running_tid = IOTHREAD_MAIN_THREAD_ID;
     if (conn) server.io_threads_clients_num[c->tid]++;
@@ -450,18 +547,18 @@ client *createClient(connection *conn) {
     c->resp = 2;
 #endif
     c->conn = conn;
-    c->name = NULL;
-    c->lib_name = NULL;
-    c->lib_ver = NULL;
+    clientTail(c)->name = NULL;
+    clientTail(c)->lib_name = NULL;
+    clientTail(c)->lib_ver = NULL;
     c->bufpos = 0;
     c->buf_peak = c->buf_usable_size;
-    c->buf_peak_last_reset_time = server.unixtime;
+    clientTail(c)->buf_peak_last_reset_time = server.unixtime;
     c->buf_encoded = 0;
     c->last_header = NULL;
-    c->qb_pos = 0;
-    c->querybuf = NULL;
-    c->querybuf_peak = 0;
-    c->reqtype = 0;
+    clientTail(c)->qb_pos = 0;
+    clientTail(c)->querybuf = NULL;
+    clientTail(c)->querybuf_peak = 0;
+    clientTail(c)->reqtype = 0;
     c->argc = 0;
     c->argv = NULL;
     c->argv_len = 0;
@@ -469,45 +566,45 @@ client *createClient(connection *conn) {
     c->pending_cmds.head = c->pending_cmds.tail = NULL;
     c->pending_cmds.len = c->pending_cmds.ready_len = 0;
     c->current_pending_cmd = NULL;
-    c->original_argc = 0;
-    c->original_argv = NULL;
-    c->deferred_objects = NULL;
-    c->deferred_objects_num = 0;
-    c->io_deferred_objects = NULL;
-    c->io_deferred_objects_num = 0;
-    c->io_deferred_objects_size = 0;
-    c->cmd = c->lastcmd = c->realcmd = c->lookedcmd = NULL;
-    c->cur_script = NULL;
-    c->multibulklen = 0;
-    c->bulklen = -1;
+    clientTail(c)->original_argc = 0;
+    clientTail(c)->original_argv = NULL;
+    clientTail(c)->deferred_objects = NULL;
+    clientTail(c)->deferred_objects_num = 0;
+    clientTail(c)->io_deferred_objects = NULL;
+    clientTail(c)->io_deferred_objects_num = 0;
+    clientTail(c)->io_deferred_objects_size = 0;
+    c->cmd = clientTail(c)->lastcmd = clientTail(c)->realcmd = clientTail(c)->lookedcmd = NULL;
+    clientTail(c)->cur_script = NULL;
+    clientTail(c)->multibulklen = 0;
+    clientTail(c)->bulklen = -1;
     c->sentlen = 0;
     c->flags = 0;
     c->io_flags = CLIENT_IO_READ_ENABLED | CLIENT_IO_WRITE_ENABLED;
-    c->read_error = 0;
+    clientTail(c)->read_error = 0;
     c->slot = -1;
     c->cluster_compatibility_check_slot = -2;
-    c->ctime = c->lastinteraction = server.unixtime;
-    c->io_lastinteraction = 0;
-    c->duration = 0;
+    clientTail(c)->ctime = clientTail(c)->lastinteraction = server.unixtime;
+    clientTail(c)->io_lastinteraction = 0;
+    clientTail(c)->duration = 0;
     clientSetDefaultAuth(c);
-    c->reploff_next = 0;
+    clientTail(c)->reploff_next = 0;
     c->reply = listCreate();
-    c->deferred_reply_errors = NULL;
+    clientTail(c)->deferred_reply_errors = NULL;
     c->reply_bytes = 0;
-    c->obuf_soft_limit_reached_time = 0;
+    clientTail(c)->obuf_soft_limit_reached_time = 0;
     listSetFreeMethod(c->reply,freeClientReplyValue);
     listSetDupMethod(c->reply,dupClientReplyValue);
-    c->woff = 0;
-    c->peerid = NULL;
-    c->sockname = NULL;
-    c->client_list_node = NULL;
-    c->io_thread_client_list_node = NULL;
-    c->io_last_client_cron = 0;
-    c->last_memory_usage = 0;
-    c->last_memory_type = CLIENT_TYPE_NORMAL;
-    listInitNode(&c->clients_pending_ex_node, c);
-    listInitNode(&c->clients_pending_write_node, c);
-    listInitNode(&c->pending_ref_reply_node, c);
+    clientTail(c)->woff = 0;
+    clientTail(c)->peerid = NULL;
+    clientTail(c)->sockname = NULL;
+    clientTail(c)->client_list_node = NULL;
+    clientTail(c)->io_thread_client_list_node = NULL;
+    clientTail(c)->io_last_client_cron = 0;
+    clientTail(c)->last_memory_usage = 0;
+    clientTail(c)->last_memory_type = CLIENT_TYPE_NORMAL;
+    listInitNode(&clientTail(c)->clients_pending_ex_node, c);
+    listInitNode(&clientTail(c)->clients_pending_write_node, c);
+    listInitNode(&clientTail(c)->pending_ref_reply_node, c);
     c->net_input_bytes_curr_cmd = 0;
     c->net_output_bytes_curr_cmd = 0;
     if (conn) linkClient(c);
@@ -519,27 +616,27 @@ client *createClient(connection *conn) {
     c->tomo_script_gate = 0;
     atomicSet(c->tomo_watch_worker, -1);
     atomicSet(c->tomo_dirty_cas, 0);
-    c->net_input_bytes = 0;
-    c->net_output_bytes = 0;
+    clientTail(c)->net_input_bytes = 0;
+    clientTail(c)->net_output_bytes = 0;
     c->commands_processed = 0;
-    c->task = NULL;
-    c->node_id = NULL;
-    atomicSet(c->pending_read, 0);
+    clientTail(c)->task = NULL;
+    clientTail(c)->node_id = NULL;
+    atomicSet(clientTail(c)->pending_read, 0);
 
     /* ee451 (#75/atomics): allocate exactly num_cdb cache-line-isolated reply buses for this real client.
      * zmalloc gives no alignment guarantee, so over-allocate and align the base up to CACHE_LINE_SIZE,
      * stashing the raw zmalloc pointer just below the aligned base so zfree can recover it
      * (accounting-correct; no poisoned libc free/aligned_alloc). num_cdb is fixed at init so the size
-     * never changes (freed in freeClient). Fakes leave reply_cdb NULL and signal parent->reply_cdb. */
+     * never changes (freed in freeClient). Fakes leave reply_cdb NULL and signal clientTail(parent)->reply_cdb. */
     {
         int ncdb = server.num_cdb > 0 ? server.num_cdb : 1;
         void *raw = zmalloc(sizeof(cdbSlots) * (size_t)ncdb + CACHE_LINE_SIZE + sizeof(void *));
         uintptr_t aligned = ((uintptr_t)raw + sizeof(void *) + (CACHE_LINE_SIZE - 1)) & ~(uintptr_t)(CACHE_LINE_SIZE - 1);
         ((void **)aligned)[-1] = raw;
-        c->reply_cdb = (cdbSlots *)aligned;
+        clientTail(c)->reply_cdb = (cdbSlots *)aligned;
         for (int cc = 0; cc < ncdb; cc++)
             for (int slot = 0; slot < TOMO_PIPELINE_DEPTH_MAX; slot++)
-                atomic_store_explicit(&c->reply_cdb[cc].ready[slot], 0,
+                atomic_store_explicit(&clientTail(c)->reply_cdb[cc].ready[slot], 0,
                                       memory_order_relaxed);
     }
     c->cdb = 0;
@@ -558,16 +655,16 @@ client *createClient(connection *conn) {
         if (want < 1) want = 1;
         unsigned int p2 = 1; while (p2 < want) p2 <<= 1;                   /* mask needs a power of two */
         if (p2 > (unsigned int)server.pipeline_ring_depth) p2 = (unsigned int)server.pipeline_ring_depth;
-        c->ring_size = p2; c->ring_mask = p2 - 1; c->ring_want_grow = 0;
+        clientTail(c)->ring_size = p2; clientTail(c)->ring_mask = p2 - 1; clientTail(c)->ring_want_grow = 0;
     }
-    c->cs_barrier = 0;   /* ORDER-2: no multi-hop group in flight on a fresh client */
-    atomic_store_explicit(&c->mset_pending_lock, 0, memory_order_relaxed);
-    atomic_store_explicit(&c->mset_drain_latch, 0, memory_order_relaxed);
-    atomic_store_explicit(&c->mset_pending_count, 0, memory_order_relaxed);
-    atomic_store_explicit(&c->mset_read_waiting, 0, memory_order_relaxed);
-    c->mset_pending_head = NULL;
-    c->mset_pending_tail = NULL;
-    c->mset_pub = NULL;   /* armed lazily by this connection's first csMsetRegister */
+    clientTail(c)->cs_barrier = 0;   /* ORDER-2: no multi-hop group in flight on a fresh client */
+    atomic_store_explicit(&clientTail(c)->mset_pending_lock, 0, memory_order_relaxed);
+    atomic_store_explicit(&clientTail(c)->mset_drain_latch, 0, memory_order_relaxed);
+    atomic_store_explicit(&clientTail(c)->mset_pending_count, 0, memory_order_relaxed);
+    atomic_store_explicit(&clientTail(c)->mset_read_waiting, 0, memory_order_relaxed);
+    clientTail(c)->mset_pending_head = NULL;
+    clientTail(c)->mset_pending_tail = NULL;
+    clientTail(c)->mset_pub = NULL;   /* armed lazily by this connection's first csMsetRegister */
     c->tomo_read_snapshot = 0;
     c->tomo_read_snapshot_pinned = 0;
     /* ee451 (H2 handover): createClient zmallocs the struct, so every field it does not name
@@ -578,14 +675,14 @@ client *createClient(connection *conn) {
      * read as zero, so this only bites once the allocator starts recycling: low-churn suites pass
      * and a 200-connection load cell SEGVs every time (measured 4/4 on the first h2-fence merge,
      * 21013fded, which is what got it reverted). Initialize both, here, like cs_barrier above. */
-    c->mig_parked_node = NULL;
-    c->mig_parked_tid  = 0;
-    c->atomic_window_parked_node = NULL;
-    c->atomic_window_parked_tid  = 0;
-    c->fake_ring_cur_depth  = 0;
-    c->fake_ring_decay_skip = 0;
-    c->fake_ring_hwm_ewma   = 0.0;
-    c->fake_ring_hwm_win    = 0;
+    clientTail(c)->mig_parked_node = NULL;
+    clientTail(c)->mig_parked_tid  = 0;
+    clientTail(c)->atomic_window_parked_node = NULL;
+    clientTail(c)->atomic_window_parked_tid  = 0;
+    clientTail(c)->fake_ring_cur_depth  = 0;
+    clientTail(c)->fake_ring_decay_skip = 0;
+    clientTail(c)->fake_ring_hwm_ewma   = 0.0;
+    clientTail(c)->fake_ring_hwm_win    = 0;
 
     return c;
 }
@@ -626,7 +723,7 @@ void putClientInPendingWriteQueue(client *c) {
     uint64_t flags = c->flags;
     clientCold *repl = NULL;
     if (!(flags & CLIENT_PENDING_WRITE) &&
-        (likely(!(flags & CLIENT_SLAVE) && c->id != CLIENT_ID_AOF) ||
+        (likely(!(flags & CLIENT_SLAVE) && clientTail(c)->id != CLIENT_ID_AOF) ||
          ((repl = clientReplicationData(c)) != NULL &&
           (repl->replstate == REPL_STATE_NONE ||
            repl->replstate == SLAVE_STATE_SEND_BULK_AND_STREAM ||
@@ -639,7 +736,7 @@ void putClientInPendingWriteQueue(client *c) {
          * a system call. We'll only really install the write handler if
          * we'll not be able to write the whole reply at once. */
         c->flags |= CLIENT_PENDING_WRITE;
-        listLinkNodeHead(server.clients_pending_write[iotid], &c->clients_pending_write_node);
+        listLinkNodeHead(server.clients_pending_write[iotid], &clientTail(c)->clients_pending_write_node);
     }
 }
 
@@ -836,7 +933,7 @@ void _addReplyToBufferOrList(client *c, const char *s, size_t len) {
      * Note this is the simplest way to check a command added a response. Replication links are used to write data but
      * not for responses, so we should normally never get here on a replica client. */
     if (unlikely(clientTypeIsSlave(c))) {
-        sds cmdname = c->lastcmd ? c->lastcmd->fullname : NULL;
+        sds cmdname = clientTail(c)->lastcmd ? clientTail(c)->lastcmd->fullname : NULL;
         logInvalidUseAndFreeClientAsync(c, "Replica generated a reply to command '%s'",
                                         cmdname ? cmdname : "<unknown>");
         return;
@@ -897,9 +994,9 @@ static inline int clientIsInPendingRefReplyList(client *c) {
      * in the worker range, so the listFirst([iotid]) clause below would read out
      * of bounds. Returning false for fakes keeps this and the unlink path safe. */
     if (c->isFake) return 0;
-    return listNextNode(&c->pending_ref_reply_node) != NULL ||
-           listPrevNode(&c->pending_ref_reply_node) != NULL ||
-           listFirst(server.clients_with_pending_ref_reply[iotid]) == &c->pending_ref_reply_node;
+    return listNextNode(&clientTail(c)->pending_ref_reply_node) != NULL ||
+           listPrevNode(&clientTail(c)->pending_ref_reply_node) != NULL ||
+           listFirst(server.clients_with_pending_ref_reply[iotid]) == &clientTail(c)->pending_ref_reply_node;
 }
 
 /* Increment reference to object and add pointer to object and
@@ -953,7 +1050,7 @@ static void _addBulkStrRefToBufferOrList(client *c, robj *obj, size_t len) {
      * is held alive by the +1 ref taken above and released on the owning worker
      * via the free-back ring, so a concurrent flushdb can't free it early. */
     if (str_ref.owner_ex < 0 && !clientIsInPendingRefReplyList(c)) {
-        listLinkNodeTail(server.clients_with_pending_ref_reply[iotid], &c->pending_ref_reply_node);
+        listLinkNodeTail(server.clients_with_pending_ref_reply[iotid], &clientTail(c)->pending_ref_reply_node);
     }
 }
 
@@ -1029,12 +1126,12 @@ void afterErrorReply(client *c, const char *s, size_t len, int flags) {
     /* Module clients fall into two categories:
      * Calls to RM_Call, in which case the error isn't being returned to a client, so should not be counted.
      * Module thread safe context calls to RM_ReplyWithError, which will be added to a real client by the main thread later. */
-    if (c->flags & CLIENT_MODULE) {
-        if (!c->deferred_reply_errors) {
-            c->deferred_reply_errors = listCreate();
-            listSetFreeMethod(c->deferred_reply_errors, sdsfreegeneric);
+    if (c->has_exec_tail && (c->flags & CLIENT_MODULE)) {
+        if (!clientTail(c)->deferred_reply_errors) {
+            clientTail(c)->deferred_reply_errors = listCreate();
+            listSetFreeMethod(clientTail(c)->deferred_reply_errors, sdsfreegeneric);
         }
-        listAddNodeTail(c->deferred_reply_errors, sdsnewlen(s, len));
+        listAddNodeTail(clientTail(c)->deferred_reply_errors, sdsnewlen(s, len));
         return;
     }
 
@@ -1062,10 +1159,15 @@ void afterErrorReply(client *c, const char *s, size_t len, int flags) {
     } else {
         /* stat_total_error_replies will not be updated, which means that
          * the cmd stats will not be updated as well, we still want this command
-         * to be counted as failed so we update it here. We update c->realcmd in
+         * to be counted as failed so we update it here. We update clientTail(c)->realcmd in
          * case c->cmd was changed (like in GEOADD). */
-        tomoCmdStatAddErr(c->realcmd, 0, 1);   /* ee451 (#B2): per-thread shard */
+        struct redisCommand *statcmd = c->has_exec_tail ? clientTail(c)->realcmd : c->cmd;
+        tomoCmdStatAddErr(statcmd, 0, 1);   /* ee451 (#B2): per-thread shard */
     }
+
+    /* Express fakes have no identity/logging tail. Their error and command
+     * counters above are the only post-reply work applicable to them. */
+    if (unlikely(!c->has_exec_tail)) return;
 
     /* Sometimes it could be normal that a slave replies to a master with
      * an error and this function gets called. Actually the error will never
@@ -1078,10 +1180,10 @@ void afterErrorReply(client *c, const char *s, size_t len, int flags) {
      * will produce an error. However it is useful to log such events since
      * they are rare and may hint at errors in a script or a bug in Redis. */
     int ctype = getClientType(c);
-    if (ctype == CLIENT_TYPE_MASTER || ctype == CLIENT_TYPE_SLAVE || c->id == CLIENT_ID_AOF) {
+    if (ctype == CLIENT_TYPE_MASTER || ctype == CLIENT_TYPE_SLAVE || clientTail(c)->id == CLIENT_ID_AOF) {
         char *to, *from;
 
-        if (c->id == CLIENT_ID_AOF) {
+        if (clientTail(c)->id == CLIENT_ID_AOF) {
             to = "AOF-loading-client";
             from = "server";
         } else if (ctype == CLIENT_TYPE_MASTER) {
@@ -1098,7 +1200,7 @@ void afterErrorReply(client *c, const char *s, size_t len, int flags) {
         }
 
         if (len > 4096) len = 4096;
-        sds cmdname = c->lastcmd ? c->lastcmd->fullname : NULL;
+        sds cmdname = clientTail(c)->lastcmd ? clientTail(c)->lastcmd->fullname : NULL;
         serverLog(LL_WARNING,"== CRITICAL == This %s is sending an error "
                              "to its %s: '%.*s' after processing the command "
                              "'%s'", from, to, (int)len, s, cmdname ? cmdname : "<unknown>");
@@ -1116,7 +1218,7 @@ void afterErrorReply(client *c, const char *s, size_t len, int flags) {
         int panic_in_replicas = (ctype == CLIENT_TYPE_MASTER && server.repl_slave_ro)
             && (server.propagation_error_behavior == PROPAGATION_ERR_BEHAVIOR_PANIC ||
             server.propagation_error_behavior == PROPAGATION_ERR_BEHAVIOR_PANIC_ON_REPLICAS);
-        int panic_in_aof = c->id == CLIENT_ID_AOF 
+        int panic_in_aof = clientTail(c)->id == CLIENT_ID_AOF
             && server.propagation_error_behavior == PROPAGATION_ERR_BEHAVIOR_PANIC;
         if (panic_in_replicas || panic_in_aof) {
             serverPanic("This %s panicked sending an error to its %s"
@@ -1299,7 +1401,7 @@ void *addReplyDeferredLen(client *c) {
      * Note this is the simplest way to check a command added a response. Replication links are used to write data but
      * not for responses, so we should normally never get here on a replica client. */
     if (unlikely(clientTypeIsSlave(c))) {
-        sds cmdname = c->lastcmd ? c->lastcmd->fullname : NULL;
+        sds cmdname = clientTail(c)->lastcmd ? clientTail(c)->lastcmd->fullname : NULL;
         logInvalidUseAndFreeClientAsync(c, "Replica generated a reply to command '%s'",
                                         cmdname ? cmdname : "<unknown>");
         return NULL;
@@ -1979,10 +2081,10 @@ void AddReplyFromClient(client *dst, client *src) {
     src->reply_bytes = 0;
     src->bufpos = 0;
 
-    if (src->deferred_reply_errors) {
-        deferredAfterErrorReply(dst, src->deferred_reply_errors);
-        listRelease(src->deferred_reply_errors);
-        src->deferred_reply_errors = NULL;
+    if (src->has_exec_tail && clientTail(src)->deferred_reply_errors) {
+        deferredAfterErrorReply(dst, clientTail(src)->deferred_reply_errors);
+        listRelease(clientTail(src)->deferred_reply_errors);
+        clientTail(src)->deferred_reply_errors = NULL;
     }
 
     /* Check output buffer limits */
@@ -2004,7 +2106,7 @@ void deferredAfterErrorReply(client *c, list *errors) {
 /* Logically copy 'src' replica client buffers info to 'dst' replica.
  * Basically increase referenced buffer block node reference count. */
 void copyReplicaOutputBuffer(client *dst, client *src) {
-    serverAssert(src->bufpos == 0 && listLength(src->reply) == 0); 
+    serverAssert(src->bufpos == 0 && listLength(src->reply) == 0);
     serverAssert(src->running_tid == IOTHREAD_MAIN_THREAD_ID &&
                  dst->running_tid == IOTHREAD_MAIN_THREAD_ID);
     clientCold *src_repl = clientReplicationData(src);
@@ -2135,7 +2237,7 @@ void clientAcceptHandler(connection *conn) {
             serverLog(LL_WARNING,
                       "FATAL: failed to attach accepted TCP client %llu to "
                       "requested io_uring owner %d",
-                      (unsigned long long)c->id, iotid);
+                      (unsigned long long)clientTail(c)->id, iotid);
             exit(1);
         }
     }
@@ -2231,16 +2333,16 @@ static void freeDeferredObject(client *c, int type, void *ptr) {
  * we know the object is allocated in the IO thread, to avoid memory arena contention,
  * and also reducing the load of the main thread. */
 void tryDeferFreeClientObject(client *c, int type, void *ptr) {
-    if (!c || c->tid == IOTHREAD_MAIN_THREAD_ID) {
+    if (!c || !c->has_exec_tail || c->tid == IOTHREAD_MAIN_THREAD_ID) {
         freeDeferredObject(c, type, ptr);
         return;
     }
 
     /* Put the object in the deferred objects array. */
-    if (c->deferred_objects && c->deferred_objects_num < CLIENT_MAX_DEFERRED_OBJECTS) {
-        c->deferred_objects[c->deferred_objects_num].type = type;
-        c->deferred_objects[c->deferred_objects_num].ptr = ptr;
-        c->deferred_objects_num++;
+    if (clientTail(c)->deferred_objects && clientTail(c)->deferred_objects_num < CLIENT_MAX_DEFERRED_OBJECTS) {
+        clientTail(c)->deferred_objects[clientTail(c)->deferred_objects_num].type = type;
+        clientTail(c)->deferred_objects[clientTail(c)->deferred_objects_num].ptr = ptr;
+        clientTail(c)->deferred_objects_num++;
     } else {
         freeDeferredObject(c, type, ptr);
     }
@@ -2249,15 +2351,15 @@ void tryDeferFreeClientObject(client *c, int type, void *ptr) {
 /* Free the objects in the deferred_pending_cmds array. If free_array is true
  * then free the array itself as well. */
 void freeClientDeferredObjects(client *c, int free_array) {
-    for (int j = 0; j < c->deferred_objects_num; j++) {
-        deferredObject *obj = &c->deferred_objects[j];
+    for (int j = 0; j < clientTail(c)->deferred_objects_num; j++) {
+        deferredObject *obj = &clientTail(c)->deferred_objects[j];
         freeDeferredObject(c, obj->type, obj->ptr);
     }
-    c->deferred_objects_num = 0;
+    clientTail(c)->deferred_objects_num = 0;
 
     if (free_array) {
-        zfree(c->deferred_objects);
-        c->deferred_objects = NULL;
+        zfree(clientTail(c)->deferred_objects);
+        clientTail(c)->deferred_objects = NULL;
     }
 }
 
@@ -2265,13 +2367,13 @@ void freeClientDeferredObjects(client *c, int free_array) {
  * This is used in IO thread write path to avoid refcount race conditions. */
 #define IO_DEFERRED_OBJECTS_INIT_SIZE 8
 void ioDeferFreeRobj(client *c, robj *obj) {
-    if (c->io_deferred_objects_num >= c->io_deferred_objects_size) {
-        int new_size = !c->io_deferred_objects_size ?
-            IO_DEFERRED_OBJECTS_INIT_SIZE : c->io_deferred_objects_size * 2;
-        c->io_deferred_objects = zrealloc(c->io_deferred_objects, new_size * sizeof(robj *));
-        c->io_deferred_objects_size = new_size;
+    if (clientTail(c)->io_deferred_objects_num >= clientTail(c)->io_deferred_objects_size) {
+        int new_size = !clientTail(c)->io_deferred_objects_size ?
+            IO_DEFERRED_OBJECTS_INIT_SIZE : clientTail(c)->io_deferred_objects_size * 2;
+        clientTail(c)->io_deferred_objects = zrealloc(clientTail(c)->io_deferred_objects, new_size * sizeof(robj *));
+        clientTail(c)->io_deferred_objects_size = new_size;
     }
-    c->io_deferred_objects[c->io_deferred_objects_num++] = obj;
+    clientTail(c)->io_deferred_objects[clientTail(c)->io_deferred_objects_num++] = obj;
 }
 
 /* Free all objects queued by IO thread for deferred freeing.
@@ -2280,38 +2382,38 @@ void ioDeferFreeRobj(client *c, robj *obj) {
 void freeClientIODeferredObjects(client *c, int free_array) {
     if (!c->conn) return;
 
-    for (int i = 0; i < c->io_deferred_objects_num; i++) {
-        robj *obj = c->io_deferred_objects[i];
+    for (int i = 0; i < clientTail(c)->io_deferred_objects_num; i++) {
+        robj *obj = clientTail(c)->io_deferred_objects[i];
         decrRefCount(obj);
     }
 
     if (!free_array) {
         /* If the utilization rate is less than 1/4, reduce the size to 1/2 to avoid thrashing */
-        if (c->io_deferred_objects_size > IO_DEFERRED_OBJECTS_INIT_SIZE &&
-            c->io_deferred_objects_num * 4 < c->io_deferred_objects_size)
+        if (clientTail(c)->io_deferred_objects_size > IO_DEFERRED_OBJECTS_INIT_SIZE &&
+            clientTail(c)->io_deferred_objects_num * 4 < clientTail(c)->io_deferred_objects_size)
         {
-            int new_size = c->io_deferred_objects_size / 2;
-            c->io_deferred_objects = zrealloc(c->io_deferred_objects, new_size * sizeof(robj *));
-            c->io_deferred_objects_size = new_size;
+            int new_size = clientTail(c)->io_deferred_objects_size / 2;
+            clientTail(c)->io_deferred_objects = zrealloc(clientTail(c)->io_deferred_objects, new_size * sizeof(robj *));
+            clientTail(c)->io_deferred_objects_size = new_size;
         }
-        c->io_deferred_objects_num = 0;
+        clientTail(c)->io_deferred_objects_num = 0;
     } else {
-        zfree(c->io_deferred_objects);
-        c->io_deferred_objects = NULL;
-        c->io_deferred_objects_num = 0;
-        c->io_deferred_objects_size = 0;
+        zfree(clientTail(c)->io_deferred_objects);
+        clientTail(c)->io_deferred_objects = NULL;
+        clientTail(c)->io_deferred_objects_num = 0;
+        clientTail(c)->io_deferred_objects_size = 0;
     }
 }
 
 void freeClientOriginalArgv(client *c) {
     /* We didn't rewrite this client */
-    if (!c->original_argv) return;
+    if (!clientTail(c)->original_argv) return;
 
-    for (int j = 0; j < c->original_argc; j++)
-        decrRefCount(c->original_argv[j]);
-    zfree(c->original_argv);
-    c->original_argv = NULL;
-    c->original_argc = 0;
+    for (int j = 0; j < clientTail(c)->original_argc; j++)
+        decrRefCount(clientTail(c)->original_argv[j]);
+    zfree(clientTail(c)->original_argv);
+    clientTail(c)->original_argv = NULL;
+    clientTail(c)->original_argc = 0;
 }
 
 static inline void freeClientArgvInternal(client *c, int free_argv) {
@@ -2320,7 +2422,7 @@ static inline void freeClientArgvInternal(client *c, int free_argv) {
         decrRefCount(c->argv[j]);
     c->argc = 0;
     c->cmd = NULL;
-    c->lookedcmd = NULL;
+    if (c->has_exec_tail) clientTail(c)->lookedcmd = NULL;
     if (free_argv) {
         c->argv_len = 0;
         zfree(c->argv);
@@ -2385,10 +2487,10 @@ void unlinkClient(client *c) {
      * has an EMPTY pipeline ring and no in-flight fake, so none of the other unlink paths below
      * reference it — the park list would be the only holder of the pointer, and a stale entry there
      * is a use-after-free the next time the range changes hands. Cheap: one NULL test. */
-    if (__builtin_expect(c->mig_parked_node != NULL, 0)) migUnparkClient(c);
+    if (__builtin_expect(clientTail(c)->mig_parked_node != NULL, 0)) migUnparkClient(c);
     /* An admission-stalled command owns no fake-ring slot, so its wait-list entry is the only
      * out-of-client reference. Remove it before pending_cmds is reclaimed. */
-    if (__builtin_expect(c->atomic_window_parked_node != NULL, 0))
+    if (__builtin_expect(clientTail(c)->atomic_window_parked_node != NULL, 0))
         tomoAtomicUnstallClient(c);
 
     /* If this is marked as current client unset it. */
@@ -2399,11 +2501,11 @@ void unlinkClient(client *c) {
      * conn is already set to NULL. */
     if (c->conn) {
         /* Remove from the list of active clients. */
-        if (c->client_list_node) {
-            uint64_t id = htonu64(c->id);
+        if (clientTail(c)->client_list_node) {
+            uint64_t id = htonu64(clientTail(c)->id);
             raxRemove(server.clients_index[iotid],(unsigned char*)&id,sizeof(id),NULL);
-            listDelNode(server.clients[iotid],c->client_list_node);
-            c->client_list_node = NULL;
+            listDelNode(server.clients[iotid],clientTail(c)->client_list_node);
+            clientTail(c)->client_list_node = NULL;
         }
 
         /* Check if this is a replica waiting for diskless replication (rdb pipe),
@@ -2438,9 +2540,9 @@ void unlinkClient(client *c) {
 
     /* Remove from the list of pending writes if needed. */
     if (c->flags & CLIENT_PENDING_WRITE) {
-        serverAssert(&c->clients_pending_write_node.next != NULL || 
-                     &c->clients_pending_write_node.prev != NULL);
-        listUnlinkNode(server.clients_pending_write[iotid], &c->clients_pending_write_node);
+        serverAssert(&clientTail(c)->clients_pending_write_node.next != NULL ||
+                     &clientTail(c)->clients_pending_write_node.prev != NULL);
+        listUnlinkNode(server.clients_pending_write[iotid], &clientTail(c)->clients_pending_write_node);
         c->flags &= ~CLIENT_PENDING_WRITE;
     }
 
@@ -2472,7 +2574,7 @@ void unlinkClient(client *c) {
  * contain any referenced robj. */
 void tryUnlinkClientFromPendingRefReply(client *c, int force) {
     if (clientIsInPendingRefReplyList(c) && (force || !clientHasPendingReplies(c))) {
-        listUnlinkNode(server.clients_with_pending_ref_reply[iotid], &c->pending_ref_reply_node);
+        listUnlinkNode(server.clients_with_pending_ref_reply[iotid], &clientTail(c)->pending_ref_reply_node);
     }
 }
 
@@ -2506,14 +2608,14 @@ void clearClientConnectionState(client *c) {
     discardTransaction(c);
     freeClientPubSubData(c);
 
-    if (c->name) {
-        decrRefCount(c->name);
-        c->name = NULL;
+    if (clientTail(c)->name) {
+        decrRefCount(clientTail(c)->name);
+        clientTail(c)->name = NULL;
     }
 
     /* Note: lib_name and lib_ver are not reset since they still
      * represent the client library behind the connection. */
-    
+
     /* Selectively clear state flags not covered above */
     c->flags &= ~(CLIENT_ASKING|CLIENT_READONLY|CLIENT_REPLY_OFF|
                   CLIENT_REPLY_SKIP_NEXT|CLIENT_NO_TOUCH|CLIENT_NO_EVICT);
@@ -2536,16 +2638,16 @@ void deauthenticateAndCloseClient(client *c) {
  * and a new empty buffer will be allocated for the reusable buffer. */
 static void resetReusableQueryBuf(client *c) {
     serverAssert(c->io_flags & CLIENT_IO_REUSABLE_QUERYBUFFER);
-    if (c->querybuf != thread_reusable_qb || sdslen(c->querybuf) > c->qb_pos) {
+    if (clientTail(c)->querybuf != thread_reusable_qb || sdslen(clientTail(c)->querybuf) > clientTail(c)->qb_pos) {
         /* If querybuf has been reallocated or there is still data left,
          * let the client take ownership of the reusable buffer. */
         thread_reusable_qb = NULL;
     } else {
         /* It is safe to dereference and reuse the reusable query buffer. */
-        c->querybuf = NULL;
-        c->qb_pos = 0;
+        clientTail(c)->querybuf = NULL;
+        clientTail(c)->qb_pos = 0;
         sdsclear(thread_reusable_qb);
-    } 
+    }
 
     /* Mark that the client is no longer using the reusable query buffer
      * and indicate that it is no longer used by any client. */
@@ -2609,9 +2711,19 @@ void freeFakeClient(client *c) {
      * their own), client_list_node, or io_thread_client_list_node. Cold state is
      * normally absent, but freeClientCold owns any defensively allocated component. */
 
+    if (!c->has_exec_tail) {
+        releaseAllBufReferences(c);
+        listRelease(c->reply);
+        zfree(c->buf);
+        serverAssert(c->all_argv_len_sum == 0);
+        serverAssert(c->pending_cmds.len == 0);
+        zfree(c);
+        return;
+    }
+
     /* Free the query buffer (fake shouldn't have one, but be defensive) */
-    sdsfree(c->querybuf);
-    c->querybuf = NULL;
+    sdsfree(clientTail(c)->querybuf);
+    clientTail(c)->querybuf = NULL;
 
     /* Release reply buffer storage. */
     releaseAllBufReferences(c);
@@ -2623,8 +2735,8 @@ void freeFakeClient(client *c) {
     freeClientDeferredObjects(c, 1);
     freeClientIODeferredObjects(c, 1);
 
-    if (c->deferred_reply_errors)
-        listRelease(c->deferred_reply_errors);
+    if (clientTail(c)->deferred_reply_errors)
+        listRelease(clientTail(c)->deferred_reply_errors);
 
 #ifdef LOG_REQ_RES
     reqresReset(c, 1);
@@ -2632,9 +2744,9 @@ void freeFakeClient(client *c) {
 
     /* name/lib_name/lib_ver should never be set on a fake (CLIENT SETNAME
      * runs on real), but decrRefCount tolerates NULL. */
-    if (c->name) decrRefCount(c->name);
-    if (c->lib_name) decrRefCount(c->lib_name);
-    if (c->lib_ver) decrRefCount(c->lib_ver);
+    if (clientTail(c)->name) decrRefCount(clientTail(c)->name);
+    if (clientTail(c)->lib_name) decrRefCount(clientTail(c)->lib_name);
+    if (clientTail(c)->lib_ver) decrRefCount(clientTail(c)->lib_ver);
 
     serverAssert(c->all_argv_len_sum == 0);
     serverAssert(c->pending_cmds.len == 0);
@@ -2652,7 +2764,11 @@ void freeFakeClient(client *c) {
 
 void freeClient(client *c) {
     //fprintf(stderr, "[%s:%d] freeClient called on %s id=%llu\n",
-        // __FILE__, __LINE__, c->isFake ? "fake" : "real", (unsigned long long)c->id);
+        // __FILE__, __LINE__, c->isFake ? "fake" : "real", (unsigned long long)clientTail(c)->id);
+    if (c->isFake && !c->has_exec_tail) {
+        freeFakeClient(c);
+        return;
+    }
     if (c->isFake && unlikely(c->tomo_local_worker >= 0)) {
         freeClientAsync(c->parent);
         return;
@@ -2688,7 +2804,7 @@ void freeClient(client *c) {
      * succeed when the ring drains). We do NOT mutate the per-IO-thread
      * pending_worker lists here because freeClient can be called from a
      * different thread than the one that owns c->tid's list. */
-    if (!c->isFake && c->dispatchid != c->flushid) {
+    if (!c->isFake && clientTail(c)->dispatchid != clientTail(c)->flushid) {
         freeClientAsync(c);
         return;
     }
@@ -2703,16 +2819,16 @@ void freeClient(client *c) {
      * allocated and are NULL. */
     if (!c->isFake) {
         for (int i = 0; i < TOMO_PIPELINE_DEPTH_MAX; i++) {
-            if (c->fakeClients[i]) {
-                freeFakeClient(c->fakeClients[i]);
-                c->fakeClients[i] = NULL;
+            if (clientTail(c)->fakeClients[i]) {
+                freeFakeClient(clientTail(c)->fakeClients[i]);
+                clientTail(c)->fakeClients[i] = NULL;
             }
         }
-        if (c->reply_cdb) { zfree(((void **)c->reply_cdb)[-1]); c->reply_cdb = NULL; }   /* #75: free heap reply buses */
+        if (clientTail(c)->reply_cdb) { zfree(((void **)clientTail(c)->reply_cdb)[-1]); clientTail(c)->reply_cdb = NULL; }   /* #75: free heap reply buses */
         /* R1 own-read publishing records. Freed HERE and not earlier, for the same reason as the
          * reply buses: a worker retiring a group touches both (csMsetPubRetire, cdbSlotPublish),
          * and the ring-in-flight deferral above is what guarantees no worker still can. */
-        if (c->mset_pub) { zfree(c->mset_pub); c->mset_pub = NULL; }
+        if (clientTail(c)->mset_pub) { zfree(clientTail(c)->mset_pub); clientTail(c)->mset_pub = NULL; }
     }
 
     /* We need to unbind connection of client from io thread event loop first. */
@@ -2761,11 +2877,11 @@ void freeClient(client *c) {
     /* Free the query buffer */
     if (c->io_flags & CLIENT_IO_REUSABLE_QUERYBUFFER)
         resetReusableQueryBuf(c);
-    sdsfree(c->querybuf);
-    c->querybuf = NULL;
+    sdsfree(clientTail(c)->querybuf);
+    clientTail(c)->querybuf = NULL;
     /* Deallocate structures used to block on blocking ops. */
     /* If there is any in-flight command, we don't record their duration. */
-    c->duration = 0;
+    clientTail(c)->duration = 0;
     if (c->flags & CLIENT_BLOCKED) unblockClient(c, 1);
     freeClientBlockingState(c);
     unwatchAllKeys(c);
@@ -2779,8 +2895,8 @@ void freeClient(client *c) {
     freeClientDeferredObjects(c, 1);
     freeClientIODeferredObjects(c, 1);
     tryUnlinkClientFromPendingRefReply(c, 1);
-    if (c->deferred_reply_errors)
-        listRelease(c->deferred_reply_errors);
+    if (clientTail(c)->deferred_reply_errors)
+        listRelease(clientTail(c)->deferred_reply_errors);
 #ifdef LOG_REQ_RES
     reqresReset(c, 1);
 #endif
@@ -2790,8 +2906,8 @@ void freeClient(client *c) {
      * identities account their own clients into the same global counters
      * (see updateClientMemoryUsage). */
     if (c->conn)
-        __atomic_fetch_sub(&server.stat_clients_type_memory[c->last_memory_type],
-                           c->last_memory_usage, __ATOMIC_RELAXED);
+        __atomic_fetch_sub(&server.stat_clients_type_memory[clientTail(c)->last_memory_type],
+                           clientTail(c)->last_memory_usage, __ATOMIC_RELAXED);
     /* Unlink the client: this will close the socket, remove the I/O
      * handlers, and remove references of the client from different
      * places where active clients may be referenced.
@@ -2849,13 +2965,13 @@ void freeClient(client *c) {
     if (c->flags & CLIENT_MASTER) replicationHandleMasterDisconnection();
     /* Release other dynamically allocated client structure fields,
      * and finally release the client structure itself. */
-    if (c->name) decrRefCount(c->name);
-    if (c->lib_name) decrRefCount(c->lib_name);
-    if (c->lib_ver) decrRefCount(c->lib_ver);
+    if (clientTail(c)->name) decrRefCount(clientTail(c)->name);
+    if (clientTail(c)->lib_name) decrRefCount(clientTail(c)->lib_name);
+    if (clientTail(c)->lib_ver) decrRefCount(clientTail(c)->lib_ver);
     serverAssert(c->all_argv_len_sum == 0);
-    sdsfree(c->peerid);
-    sdsfree(c->sockname);
-    sdsfree(c->node_id);
+    sdsfree(clientTail(c)->peerid);
+    sdsfree(clientTail(c)->sockname);
+    sdsfree(clientTail(c)->node_id);
     freeClientCold(c);
     zfree(c);
 }
@@ -2866,7 +2982,7 @@ void freeClient(client *c) {
  * should be valid for the continuation of the flow of the program. */
 void freeClientAsync(client *c) {
     //fprintf(stderr, "[%s:%d] freeClientAsync called on %s id=%llu flags=0x%llx\n",
-        // __FILE__, __LINE__, c->isFake ? "fake" : "real", (unsigned long long)c->id,
+        // __FILE__, __LINE__, c->isFake ? "fake" : "real", (unsigned long long)clientTail(c)->id,
         // (unsigned long long)c->flags);
     if (c->isFake) {
         freeClientAsync(c->parent);
@@ -2985,7 +3101,7 @@ int freeClientsInAsyncFreeQueue(void) {
          * PROTECTED and EX_PENDING are skipped -- leave it queued with CLOSE_ASAP still SET (so
          * the re-entry guard stays armed) and retry on a later pass, once handleWorkerReplies()
          * has advanced flushid. Mirrors freeClient()'s own condition; keep the two in step. */
-        if (!c->isFake && c->dispatchid != c->flushid) {
+        if (!c->isFake && clientTail(c)->dispatchid != clientTail(c)->flushid) {
             atomic_fetch_add_explicit(&tomo_close_deferred_ring, 1, memory_order_relaxed);
             continue;
         }
@@ -3487,7 +3603,7 @@ int writeToClient(client *c, int handler_installed) {
         }
         tomoRelaxedBump(server.netstat[iotid].out, totwritten);   /* ee451 (#A2, v13): hardwired */
     }
-    c->net_output_bytes += totwritten;
+    clientTail(c)->net_output_bytes += totwritten;
 
     if (nwritten == -1) {
         if (connGetState(c->conn) != CONN_STATE_CONNECTED) {
@@ -3502,7 +3618,7 @@ int writeToClient(client *c, int handler_installed) {
          * as an interaction, since we always send REPLCONF ACK commands
          * that take some time to just fill the socket output buffer.
          * We just rely on data / pings received for timeout detection. */
-        if (!(c->flags & CLIENT_MASTER)) c->lastinteraction = server.unixtime;
+        if (!(c->flags & CLIENT_MASTER)) clientTail(c)->lastinteraction = server.unixtime;
     }
     if (!clientHasPendingReplies(c)) {
         c->sentlen = 0;
@@ -3594,7 +3710,7 @@ int handleClientsWithPendingWrites(void) {
         /* Try to write buffers to the client socket. */
         if (writeToClient(c,0) == C_ERR) continue;
 
-        
+
         /* If after the synchronous writes above we still have data to
          * output to the client, we need to install the writable handler. */
         if (clientHasPendingReplies(c)) {
@@ -3606,12 +3722,60 @@ int handleClientsWithPendingWrites(void) {
 
 /* Prepare the client for the parsing of the next command. */
 void resetClientQbufState(client *c) {
-    c->reqtype = 0;
-    c->multibulklen = 0;
-    c->bulklen = -1;
+    clientTail(c)->reqtype = 0;
+    clientTail(c)->multibulklen = 0;
+    clientTail(c)->bulklen = -1;
+}
+
+static inline void resetCoreClientInternal(client *c, int num_pcmds_to_free) {
+    serverAssert(c->isFake && !c->has_exec_tail);
+    serverAssert(num_pcmds_to_free == 1);
+    serverAssert(c->current_pending_cmd != NULL && c->pending_cmds.len == 1);
+
+    /* A silenced parent rejects AddReplyFromClient before it consumes the
+     * fake output. Retire that rare reply here so the idle slot is promotable
+     * and no encoded value reference survives into its next command. */
+    if (unlikely(c->bufpos || c->reply_bytes || c->buf_encoded ||
+                 c->last_header || listLength(c->reply))) {
+        releaseAllBufReferences(c);
+        listEmpty(c->reply);
+        c->bufpos = 0;
+        c->reply_bytes = 0;
+        c->buf_encoded = 0;
+        c->last_header = NULL;
+        c->sentlen = 0;
+    }
+
+    pendingCommand *pcmd = popPendingCommandFromHead(&c->pending_cmds);
+    serverAssert(pcmd == c->current_pending_cmd);
+    c->current_pending_cmd = NULL;
+    freePendingCommand(c, pcmd);
+    serverAssert(c->pending_cmds.len == 0 && c->all_argv_len_sum == 0);
+
+    c->argc = 0;
+    c->cmd = NULL;
+    c->argv_len = 0;
+    c->argv = NULL;
+    c->slot = -1;
+    c->cluster_compatibility_check_slot = -2;
+    c->tomo_local_worker = -1;
+    atomicSet(c->tomo_watch_worker, -1);
+    atomicSet(c->tomo_dirty_cas, 0);
+    c->tomo_script_gate = 0;
+    c->flags = 0;
+    c->net_input_bytes_curr_cmd = 0;
+    c->net_output_bytes_curr_cmd = 0;
+    c->prefetch_key_hash_valid = 0;
+    c->prefetch_dict = NULL;
+    c->tomo_bkt_ptr = NULL;
 }
 
 static inline void resetClientInternal(client *c, int num_pcmds_to_free) {
+    if (unlikely(!c->has_exec_tail)) {
+        resetCoreClientInternal(c, num_pcmds_to_free);
+        return;
+    }
+
     redisCommandProc *prevcmd = c->cmd ? c->cmd->proc : NULL;
 
     /* We may get here with no pending commands but with an argv that needs freeing.
@@ -3632,7 +3796,7 @@ static inline void resetClientInternal(client *c, int num_pcmds_to_free) {
     c->cmd = NULL;
     c->argv_len = 0;
     c->argv = NULL;
-    c->cur_script = NULL;
+    clientTail(c)->cur_script = NULL;
     c->slot = -1;
     c->cluster_compatibility_check_slot = -2;
     /* Ring fakes are reused in place without resetFakeClientState(). T6 ownership is strictly
@@ -3649,14 +3813,14 @@ static inline void resetClientInternal(client *c, int num_pcmds_to_free) {
     c->flags &= ~CLIENT_EXECUTING_COMMAND;
 
     /* Make sure the duration has been recorded to some command. */
-    serverAssert(c->duration == 0);
+    serverAssert(clientTail(c)->duration == 0);
 #ifdef LOG_REQ_RES
     reqresReset(c, 1);
 #endif
 
-    if (c->deferred_reply_errors)
-        listRelease(c->deferred_reply_errors);
-    c->deferred_reply_errors = NULL;
+    if (clientTail(c)->deferred_reply_errors)
+        listRelease(clientTail(c)->deferred_reply_errors);
+    clientTail(c)->deferred_reply_errors = NULL;
 
     /* ee451 (v14, W3-T3): composite rare-flag test. None of these four flags is set for
      * normal GET/SET traffic, so one predicted-not-taken branch replaces four separate
@@ -3762,23 +3926,23 @@ int processInlineBuffer(client *c, pendingCommand *pcmd) {
     size_t querylen;
 
     /* Search for end of line */
-    newline = strchr(c->querybuf+c->qb_pos,'\n');
+    newline = strchr(clientTail(c)->querybuf+clientTail(c)->qb_pos,'\n');
 
     /* Nothing to do without a \r\n */
     if (newline == NULL) {
-        if (sdslen(c->querybuf)-c->qb_pos > PROTO_INLINE_MAX_SIZE) {
+        if (sdslen(clientTail(c)->querybuf)-clientTail(c)->qb_pos > PROTO_INLINE_MAX_SIZE) {
             pcmd->read_error = CLIENT_READ_TOO_BIG_INLINE_REQUEST;
         }
         return C_ERR;
     }
 
     /* Handle the \r\n case. */
-    if (newline != c->querybuf+c->qb_pos && *(newline-1) == '\r')
+    if (newline != clientTail(c)->querybuf+clientTail(c)->qb_pos && *(newline-1) == '\r')
         newline--, linefeed_chars++;
 
     /* Split the input buffer up to the \r\n */
-    querylen = newline-(c->querybuf+c->qb_pos);
-    aux = sdsnewlen(c->querybuf+c->qb_pos,querylen);
+    querylen = newline-(clientTail(c)->querybuf+clientTail(c)->qb_pos);
+    aux = sdsnewlen(clientTail(c)->querybuf+clientTail(c)->qb_pos,querylen);
     argv = sdssplitargs(aux,&argc);
     sdsfree(aux);
     if (argv == NULL) {
@@ -3816,7 +3980,7 @@ int processInlineBuffer(client *c, pendingCommand *pcmd) {
     }
 
     /* Move querybuffer position to the next query in the buffer. */
-    c->qb_pos += querylen+linefeed_chars;
+    clientTail(c)->qb_pos += querylen+linefeed_chars;
 
     /* Setup argv array on client structure */
     if (argc) {
@@ -3867,14 +4031,14 @@ static void setProtocolError(const char *errstr, client *c) {
         /* Sample some protocol to given an idea about what was inside. */
         char buf[256];
         if (server.hide_user_data_from_log) {
-            snprintf(buf,sizeof(buf),"Query buffer during protocol error: '*redacted*'");  
-        } else if (sdslen(c->querybuf)-c->qb_pos < PROTO_DUMP_LEN) {
-            snprintf(buf,sizeof(buf),"Query buffer during protocol error: '%s'", c->querybuf+c->qb_pos);  
+            snprintf(buf,sizeof(buf),"Query buffer during protocol error: '*redacted*'");
+        } else if (sdslen(clientTail(c)->querybuf)-clientTail(c)->qb_pos < PROTO_DUMP_LEN) {
+            snprintf(buf,sizeof(buf),"Query buffer during protocol error: '%s'", clientTail(c)->querybuf+clientTail(c)->qb_pos);
         } else {
-            snprintf(buf,sizeof(buf),"Query buffer during protocol error: '%.*s' (... more %zu bytes ...) '%.*s'", PROTO_DUMP_LEN/2, c->querybuf+c->qb_pos, sdslen(c->querybuf)-c->qb_pos-PROTO_DUMP_LEN, PROTO_DUMP_LEN/2, c->querybuf+sdslen(c->querybuf)-PROTO_DUMP_LEN/2);  
+            snprintf(buf,sizeof(buf),"Query buffer during protocol error: '%.*s' (... more %zu bytes ...) '%.*s'", PROTO_DUMP_LEN/2, clientTail(c)->querybuf+clientTail(c)->qb_pos, sdslen(clientTail(c)->querybuf)-clientTail(c)->qb_pos-PROTO_DUMP_LEN, PROTO_DUMP_LEN/2, clientTail(c)->querybuf+sdslen(clientTail(c)->querybuf)-PROTO_DUMP_LEN/2);
         }
 
-        /* Remove non printable chars. */  
+        /* Remove non printable chars. */
         if (!server.hide_user_data_from_log) {
             char *p = buf;
             while (*p != '\0') {
@@ -3943,35 +4107,35 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
     char *newline = NULL;
     int ok;
     long long ll;
-    size_t querybuf_len = sdslen(c->querybuf); /* Cache sdslen */
+    size_t querybuf_len = sdslen(clientTail(c)->querybuf); /* Cache sdslen */
     /* ee451 (shave): per-command invariant, hoisted out of the per-arg loop.
      * No callee below mutates c->flags, but the intervening opaque calls
      * (memchr/string2ll/createStringObject) stop the compiler from CSE'ing
      * this load, so it was re-read once per ARGUMENT. */
     const int is_master = (c->flags & CLIENT_MASTER) != 0;
 
-    if (c->multibulklen == 0) {
+    if (clientTail(c)->multibulklen == 0) {
         /* The pending command should have been reset */
         serverAssertWithInfo(c,NULL,pcmd->argc == 0);
 
         /* Multi bulk length cannot be read without a \r\n */
-        newline = strchr(c->querybuf+c->qb_pos,'\r');
+        newline = strchr(clientTail(c)->querybuf+clientTail(c)->qb_pos,'\r');
         if (newline == NULL) {
-            if (querybuf_len-c->qb_pos > PROTO_INLINE_MAX_SIZE) {
+            if (querybuf_len-clientTail(c)->qb_pos > PROTO_INLINE_MAX_SIZE) {
                 pcmd->read_error = CLIENT_READ_TOO_BIG_MBULK_COUNT_STRING;
             }
             return C_ERR;
         }
 
         /* Buffer should also contain \n */
-        if (newline-(c->querybuf+c->qb_pos) > (ssize_t)(querybuf_len-c->qb_pos-2))
+        if (newline-(clientTail(c)->querybuf+clientTail(c)->qb_pos) > (ssize_t)(querybuf_len-clientTail(c)->qb_pos-2))
             return C_ERR;
 
         /* We know for sure there is a whole line since newline != NULL,
          * so go ahead and find out the multi bulk length. */
-        serverAssertWithInfo(c,NULL,c->querybuf[c->qb_pos] == '*');
-        size_t multibulklen_slen = newline - (c->querybuf + 1 + c->qb_pos);
-        ok = string2ll(c->querybuf+1+c->qb_pos,newline-(c->querybuf+1+c->qb_pos),&ll);
+        serverAssertWithInfo(c,NULL,clientTail(c)->querybuf[clientTail(c)->qb_pos] == '*');
+        size_t multibulklen_slen = newline - (clientTail(c)->querybuf + 1 + clientTail(c)->qb_pos);
+        ok = string2ll(clientTail(c)->querybuf+1+clientTail(c)->qb_pos,newline-(clientTail(c)->querybuf+1+clientTail(c)->qb_pos),&ll);
         if (!ok || ll > INT_MAX) {
             pcmd->read_error = CLIENT_READ_INVALID_MULTIBUCK_LENGTH;
             return C_ERR;
@@ -3980,18 +4144,18 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
             return C_ERR;
         }
 
-        c->qb_pos = (newline-c->querybuf)+2;
+        clientTail(c)->qb_pos = (newline-clientTail(c)->querybuf)+2;
 
         if (ll <= 0) return C_OK;
 
-        c->multibulklen = ll;
-        c->bulklen = -1;
+        clientTail(c)->multibulklen = ll;
+        clientTail(c)->bulklen = -1;
 
         /* Setup argv array on pending command structure.
          * Reallocate argv array when the requested size is greater than current size. */
-        if (c->multibulklen > pcmd->argv_len) {
+        if (clientTail(c)->multibulklen > pcmd->argv_len) {
             zfree(pcmd->argv);
-            pcmd->argv_len = min(c->multibulklen, 1024);
+            pcmd->argv_len = min(clientTail(c)->multibulklen, 1024);
             pcmd->argv = zmalloc(sizeof(robj*)*(pcmd->argv_len));
             pcmd->argv_len_sum = 0;
         }
@@ -4030,15 +4194,15 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
         pcmd->input_bytes += (multibulklen_slen + 3);
     }
 
-    serverAssertWithInfo(c,NULL,c->multibulklen > 0);
-    while(c->multibulklen) {
+    serverAssertWithInfo(c,NULL,clientTail(c)->multibulklen > 0);
+    while(clientTail(c)->multibulklen) {
         /* Read bulk length if unknown */
-        if (c->bulklen == -1) {
+        if (clientTail(c)->bulklen == -1) {
             /* ee451 (shave): querybuf_len is maintained at every querybuf
              * mutation in this function — no need to re-derive sdslen here. */
-            newline = memchr(c->querybuf+c->qb_pos,'\r',querybuf_len - c->qb_pos);
+            newline = memchr(clientTail(c)->querybuf+clientTail(c)->qb_pos,'\r',querybuf_len - clientTail(c)->qb_pos);
             if (newline == NULL) {
-                if (querybuf_len-c->qb_pos > PROTO_INLINE_MAX_SIZE) {
+                if (querybuf_len-clientTail(c)->qb_pos > PROTO_INLINE_MAX_SIZE) {
                     pcmd->read_error = CLIENT_READ_TOO_BIG_BUCK_COUNT_STRING;
                     return C_ERR;
                 }
@@ -4046,16 +4210,16 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
             }
 
             /* Buffer should also contain \n */
-            if (newline-(c->querybuf+c->qb_pos) > (ssize_t)(querybuf_len-c->qb_pos-2))
+            if (newline-(clientTail(c)->querybuf+clientTail(c)->qb_pos) > (ssize_t)(querybuf_len-clientTail(c)->qb_pos-2))
                 break;
 
-            if (c->querybuf[c->qb_pos] != '$') {
+            if (clientTail(c)->querybuf[clientTail(c)->qb_pos] != '$') {
                 pcmd->read_error = CLIENT_READ_EXPECTED_DOLLAR;
                 return C_ERR;
             }
 
-            size_t bulklen_slen = newline - (c->querybuf + c->qb_pos + 1);
-            ok = string2ll(c->querybuf+c->qb_pos+1,newline-(c->querybuf+c->qb_pos+1),&ll);
+            size_t bulklen_slen = newline - (clientTail(c)->querybuf + clientTail(c)->qb_pos + 1);
+            ok = string2ll(clientTail(c)->querybuf+clientTail(c)->qb_pos+1,newline-(clientTail(c)->querybuf+clientTail(c)->qb_pos+1),&ll);
             if (!ok || ll < 0 ||
                 (!is_master && ll > server.proto_max_bulk_len)) {
                 pcmd->read_error = CLIENT_READ_INVALID_BUCK_LENGTH;
@@ -4065,14 +4229,14 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
                 return C_ERR;
             }
 
-            c->qb_pos = newline-c->querybuf+2;
+            clientTail(c)->qb_pos = newline-clientTail(c)->querybuf+2;
             if (!is_master && ll >= PROTO_MBULK_BIG_ARG) {
                 /* When the client is not a master client (because master
                  * client's querybuf can only be trimmed after data applied
                  * and sent to replicas).
                  *
                  * If we are going to read a large object from network
-                 * try to make it likely that it will start at c->querybuf
+                 * try to make it likely that it will start at clientTail(c)->querybuf
                  * boundary so that we can optimize object creation
                  * avoiding a large copy of data.
                  *
@@ -4080,20 +4244,20 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
                  * or equal to ll+2. If the data length is greater than
                  * ll+2, trimming querybuf is just a waste of time, because
                  * at this time the querybuf contains not only our bulk. */
-                if (querybuf_len-c->qb_pos <= (size_t)ll+2) {
-                    sdsrange(c->querybuf,c->qb_pos,-1);
-                    querybuf_len = sdslen(c->querybuf);
-                    c->qb_pos = 0;
+                if (querybuf_len-clientTail(c)->qb_pos <= (size_t)ll+2) {
+                    sdsrange(clientTail(c)->querybuf,clientTail(c)->qb_pos,-1);
+                    querybuf_len = sdslen(clientTail(c)->querybuf);
+                    clientTail(c)->qb_pos = 0;
                     /* Hint the sds library about the amount of bytes this string is
                      * going to contain. */
-                    c->querybuf = sdsMakeRoomForNonGreedy(c->querybuf,ll+2-querybuf_len);
+                    clientTail(c)->querybuf = sdsMakeRoomForNonGreedy(clientTail(c)->querybuf,ll+2-querybuf_len);
                     /* We later set the peak to the used portion of the buffer, but here we over
                      * allocated because we know what we need, make sure it'll not be shrunk before used. */
-                    if (c->querybuf_peak < (size_t)ll + 2) c->querybuf_peak = ll + 2;
-                    querybuf_len = sdslen(c->querybuf); /* Update cached length */
+                    if (clientTail(c)->querybuf_peak < (size_t)ll + 2) clientTail(c)->querybuf_peak = ll + 2;
+                    querybuf_len = sdslen(clientTail(c)->querybuf); /* Update cached length */
                 }
             }
-            c->bulklen = ll;
+            clientTail(c)->bulklen = ll;
             /* Per-slot network bytes-in calculation, 2nd component. */
             pcmd->input_bytes += (bulklen_slen + 3);
         } else {
@@ -4101,12 +4265,12 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
         }
 
         /* Read bulk argument */
-        if (querybuf_len-c->qb_pos < (size_t)(c->bulklen+2)) {
+        if (querybuf_len-clientTail(c)->qb_pos < (size_t)(clientTail(c)->bulklen+2)) {
             break;
         } else {
             /* Check if we have space in argv, grow if needed */
             if (pcmd->argc >= pcmd->argv_len) {
-                pcmd->argv_len = min(pcmd->argv_len < INT_MAX/2 ? (pcmd->argv_len)*2 : INT_MAX, pcmd->argc+c->multibulklen);
+                pcmd->argv_len = min(pcmd->argv_len < INT_MAX/2 ? (pcmd->argv_len)*2 : INT_MAX, pcmd->argc+clientTail(c)->multibulklen);
                 pcmd->argv = zrealloc(pcmd->argv, sizeof(robj*)*(pcmd->argv_len));
             }
 
@@ -4114,42 +4278,42 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
              * instead of creating a new object by *copying* the sds we
              * just use the current sds string. */
             if (!is_master &&
-                c->qb_pos == 0 &&
-                c->bulklen >= PROTO_MBULK_BIG_ARG &&
-                querybuf_len == (size_t)(c->bulklen+2))
+                clientTail(c)->qb_pos == 0 &&
+                clientTail(c)->bulklen >= PROTO_MBULK_BIG_ARG &&
+                querybuf_len == (size_t)(clientTail(c)->bulklen+2))
             {
-                (pcmd->argv)[(pcmd->argc)++] = createObject(OBJ_STRING,c->querybuf);
-                pcmd->argv_len_sum += c->bulklen;
-                c->all_argv_len_sum += c->bulklen;
-                sdsIncrLen(c->querybuf,-2); /* remove CRLF */
+                (pcmd->argv)[(pcmd->argc)++] = createObject(OBJ_STRING,clientTail(c)->querybuf);
+                pcmd->argv_len_sum += clientTail(c)->bulklen;
+                c->all_argv_len_sum += clientTail(c)->bulklen;
+                sdsIncrLen(clientTail(c)->querybuf,-2); /* remove CRLF */
                 /* Assume that if we saw a fat argument we'll see another one likely...
                  * But only if that fat argument is not too big compared to the memory limit. */
-                if (!server.maxmemory || (size_t)c->bulklen < server.maxmemory / 32) {
-                    c->querybuf = sdsnewlen(SDS_NOINIT,c->bulklen+2);
+                if (!server.maxmemory || (size_t)clientTail(c)->bulklen < server.maxmemory / 32) {
+                    clientTail(c)->querybuf = sdsnewlen(SDS_NOINIT,clientTail(c)->bulklen+2);
                 } else {
-                    c->querybuf = sdsnewlen(SDS_NOINIT, PROTO_IOBUF_LEN);
+                    clientTail(c)->querybuf = sdsnewlen(SDS_NOINIT, PROTO_IOBUF_LEN);
                 }
-                sdsclear(c->querybuf);
-                querybuf_len = sdslen(c->querybuf); /* Update cached length */
+                sdsclear(clientTail(c)->querybuf);
+                querybuf_len = sdslen(clientTail(c)->querybuf); /* Update cached length */
             } else {
                 robj *arg = NULL;
                 /* ee451 (v14): intern argv[0] (the command token) — reuse a shared robj, no alloc. */
                 if (pcmd->argc == 0)
-                    arg = commandNameIntern(c->querybuf+c->qb_pos, c->bulklen);
+                    arg = commandNameIntern(clientTail(c)->querybuf+clientTail(c)->qb_pos, clientTail(c)->bulklen);
                 if (arg == NULL)
-                    arg = createStringObject(c->querybuf+c->qb_pos,c->bulklen);
+                    arg = createStringObject(clientTail(c)->querybuf+clientTail(c)->qb_pos,clientTail(c)->bulklen);
                 (pcmd->argv)[(pcmd->argc)++] = arg;
-                pcmd->argv_len_sum += c->bulklen;
-                c->all_argv_len_sum += c->bulklen;
-                c->qb_pos += c->bulklen+2;
+                pcmd->argv_len_sum += clientTail(c)->bulklen;
+                c->all_argv_len_sum += clientTail(c)->bulklen;
+                clientTail(c)->qb_pos += clientTail(c)->bulklen+2;
             }
-            c->bulklen = -1;
-            c->multibulklen--;
+            clientTail(c)->bulklen = -1;
+            clientTail(c)->multibulklen--;
         }
     }
 
     /* We're done when c->multibulk == 0 */
-    if (c->multibulklen == 0) {
+    if (clientTail(c)->multibulklen == 0) {
         /* Per-slot network bytes-in calculation, 3rd and 4th components. */
         pcmd->input_bytes += (pcmd->argv_len_sum + (pcmd->argc * 2));
         pcmd->flags &= ~PENDING_CMD_FLAG_INCOMPLETE;
@@ -4204,8 +4368,8 @@ void commandProcessed(client *c) {
     long long prev_offset = repl->reploff;
     if (!(c->flags & CLIENT_MULTI)) {
         /* Update the applied replication offset of our master. */
-        serverAssert(c->reploff_next > 0);
-        repl->reploff = c->reploff_next;
+        serverAssert(clientTail(c)->reploff_next > 0);
+        repl->reploff = clientTail(c)->reploff_next;
     }
 
     /* If the client is a master we need to compute the difference
@@ -4216,12 +4380,12 @@ void commandProcessed(client *c) {
      * sub-replicas and to the replication backlog. */
     long long applied = repl->reploff - prev_offset;
     if (applied) {
-        replicationFeedStreamFromMasterStream(c->querybuf+repl->repl_applied,applied);
+        replicationFeedStreamFromMasterStream(clientTail(c)->querybuf+repl->repl_applied,applied);
         repl->repl_applied += applied;
 
         /* Update the atomic slot migration task's applied bytes. */
         if (c->flags & CLIENT_ASM_IMPORTING)
-            asmImportIncrAppliedBytes(c->task, applied);
+            asmImportIncrAppliedBytes(clientTail(c)->task, applied);
     }
 }
 
@@ -4278,14 +4442,14 @@ int processPendingCommandAndInputBuffer(client *c) {
      * Note: when a master client steps into this function,
      * it can always satisfy this condition, because its querybuf
      * contains data not applied. */
-    if ((c->querybuf && sdslen(c->querybuf) > 0) || c->pending_cmds.ready_len > 0) {
+    if ((clientTail(c)->querybuf && sdslen(clientTail(c)->querybuf) > 0) || c->pending_cmds.ready_len > 0) {
         return processInputBuffer(c);
     }
     return C_OK;
 }
 
 void handleClientReadError(client *c) {
-    switch (c->read_error) {
+    switch (clientTail(c)->read_error) {
         case CLIENT_READ_TOO_BIG_INLINE_REQUEST:
             addReplyError(c,"Protocol error: too big inline request");
             setProtocolError("too big inline request",c);
@@ -4309,7 +4473,7 @@ void handleClientReadError(client *c) {
         case CLIENT_READ_EXPECTED_DOLLAR:
             addReplyErrorFormat(c,
                 "Protocol error: expected '$', got '%c'",
-                c->querybuf[c->qb_pos]);
+                clientTail(c)->querybuf[clientTail(c)->qb_pos]);
             setProtocolError("expected $ but got something else",c);
             break;
         case CLIENT_READ_INVALID_BUCK_LENGTH:
@@ -4340,14 +4504,14 @@ void handleClientReadError(client *c) {
             break;
         case CLIENT_READ_REACHED_MAX_QUERYBUF: {
             sds ci = catClientInfoString(sdsempty(),c), bytes = sdsempty();
-            bytes = sdscatrepr(bytes,c->querybuf,64);
+            bytes = sdscatrepr(bytes,clientTail(c)->querybuf,64);
             serverLog(LL_WARNING,"Closing client that reached max query buffer length: %s (qbuf initial bytes: %s)", ci, bytes);
             sdsfree(ci);
             sdsfree(bytes);
             break;
         }
         default:
-            serverPanic("Unknown client read error: %d", c->read_error);
+            serverPanic("Unknown client read error: %d", clientTail(c)->read_error);
             break;
     }
 }
@@ -4355,10 +4519,10 @@ void handleClientReadError(client *c) {
 
 /* Helper function to check if a read error is fatal (should stop processing) */
 int isClientReadErrorFatal(client *c) {
-    return c->read_error != 0 &&
-           c->read_error != CLIENT_READ_COMMAND_NOT_FOUND &&
-           c->read_error != CLIENT_READ_BAD_ARITY &&
-           c->read_error != CLIENT_READ_CROSS_SLOT;
+    return clientTail(c)->read_error != 0 &&
+           clientTail(c)->read_error != CLIENT_READ_COMMAND_NOT_FOUND &&
+           clientTail(c)->read_error != CLIENT_READ_BAD_ARITY &&
+           clientTail(c)->read_error != CLIENT_READ_CROSS_SLOT;
 }
 
 /* This function is called every time, in the client structure 'c', there is
@@ -4375,7 +4539,7 @@ int processInputBuffer(client *c) {
     const int lookahead = authRequired(c) ? 1 : server.lookahead;
 
     /* Keep processing while there is something in the input buffer */
-    while ((c->querybuf && c->qb_pos < sdslen(c->querybuf)) ||
+    while ((clientTail(c)->querybuf && clientTail(c)->qb_pos < sdslen(clientTail(c)->querybuf)) ||
            c->pending_cmds.ready_len > 0)
     {
         /* Immediately abort if the client is in the middle of something. */
@@ -4404,19 +4568,19 @@ int processInputBuffer(client *c) {
 
         /* Parse up to lookahead commands only if we don't have enough ready commands */
         while (parse_more && c->pending_cmds.ready_len < lookahead &&
-               c->querybuf && c->qb_pos < sdslen(c->querybuf))
+               clientTail(c)->querybuf && clientTail(c)->qb_pos < sdslen(clientTail(c)->querybuf))
         {
             /* Determine request type when unknown. */
-            if (!c->reqtype) {
-                if (c->querybuf[c->qb_pos] == '*') {
-                    c->reqtype = PROTO_REQ_MULTIBULK;
+            if (!clientTail(c)->reqtype) {
+                if (clientTail(c)->querybuf[clientTail(c)->qb_pos] == '*') {
+                    clientTail(c)->reqtype = PROTO_REQ_MULTIBULK;
                 } else {
-                    c->reqtype = PROTO_REQ_INLINE;
+                    clientTail(c)->reqtype = PROTO_REQ_INLINE;
                 }
             }
 
             pendingCommand *pcmd = NULL;
-            if (c->reqtype == PROTO_REQ_INLINE) {
+            if (clientTail(c)->reqtype == PROTO_REQ_INLINE) {
                 pcmd = acquirePendingCommand();
                 if (processInlineBuffer(c, pcmd) == C_ERR && !pcmd->read_error) {
                     /* If it fails but there are no errors, it means that it might just be
@@ -4424,7 +4588,7 @@ int processInputBuffer(client *c) {
                     freePendingCommand(c, pcmd);
                     break;
                 }
-            } else if (c->reqtype == PROTO_REQ_MULTIBULK) {
+            } else if (clientTail(c)->reqtype == PROTO_REQ_MULTIBULK) {
                 int incomplete = (c->pending_cmds.len != c->pending_cmds.ready_len);
                 if (unlikely(incomplete)) {
                     pcmd = popPendingCommandFromTail(&c->pending_cmds);
@@ -4453,7 +4617,7 @@ int processInputBuffer(client *c) {
                 read_reploff = c->running_tid == IOTHREAD_MAIN_THREAD_ID ?
                                repl->read_reploff : repl->io_read_reploff;
             }
-            pcmd->reploff = read_reploff - sdslen(c->querybuf) + c->qb_pos;
+            pcmd->reploff = read_reploff - sdslen(clientTail(c)->querybuf) + clientTail(c)->qb_pos;
 
             preprocessCommand(c, pcmd);
             pcmd->flags |= PENDING_CMD_FLAG_PREPROCESSED;
@@ -4470,10 +4634,10 @@ int processInputBuffer(client *c) {
         c->argv = curcmd->argv;
         c->argv_len = curcmd->argv_len;
         c->net_input_bytes_curr_cmd += curcmd->input_bytes;
-        c->reploff_next = curcmd->reploff;
+        clientTail(c)->reploff_next = curcmd->reploff;
         c->slot = curcmd->slot;
-        c->lookedcmd = curcmd->cmd;
-        c->read_error = curcmd->read_error;
+        clientTail(c)->lookedcmd = curcmd->cmd;
+        clientTail(c)->read_error = curcmd->read_error;
         c->current_pending_cmd = curcmd;
 
         /* Upstream command-prefetch batch (memory_prefetch.c) removed.
@@ -4520,7 +4684,7 @@ int processInputBuffer(client *c) {
              * querybuf trim and resetReusableQueryBuf() — so the client kept a non-zero qb_pos
              * AND the thread's reusable query buffer. The next read on that client that leaves
              * through an early `goto done` (EAGAIN, or nread==0 when it disconnects) then tripped
-             * serverAssert(c->qb_pos == 0). Same blast radius for the other processInputBuffer()
+             * serverAssert(clientTail(c)->qb_pos == 0). Same blast radius for the other processInputBuffer()
              * callers, which read C_ERR as "client gone" and drop it. */
             client *prev_current = server.current_client[iotid].p;
             if (unlikely(prev_current != NULL))     /* the #44 window — see the counter's comment */
@@ -4558,15 +4722,15 @@ int processInputBuffer(client *c) {
          * or the beginning of next command, and the current command is not applied yet,
          * so the repl_applied is not equal to qb_pos. */
         if (clientReplicationData(c)->repl_applied) {
-            sdsrange(c->querybuf,clientReplicationData(c)->repl_applied,-1);
-            serverAssert(c->qb_pos >= (size_t)clientReplicationData(c)->repl_applied);
-            c->qb_pos -= clientReplicationData(c)->repl_applied;
+            sdsrange(clientTail(c)->querybuf,clientReplicationData(c)->repl_applied,-1);
+            serverAssert(clientTail(c)->qb_pos >= (size_t)clientReplicationData(c)->repl_applied);
+            clientTail(c)->qb_pos -= clientReplicationData(c)->repl_applied;
             clientReplicationData(c)->repl_applied = 0;
         }
-    } else if (c->qb_pos) {
+    } else if (clientTail(c)->qb_pos) {
         /* Trim to pos */
-        sdsrange(c->querybuf,c->qb_pos,-1);
-        c->qb_pos = 0;
+        sdsrange(clientTail(c)->querybuf,clientTail(c)->qb_pos,-1);
+        clientTail(c)->qb_pos = 0;
     }
 
     /* ee451 (#E1): publish this parse-batch's staged worker jobs NOW, instead of deferring to the
@@ -4589,18 +4753,18 @@ int processInputBuffer(client *c) {
 int appendClientInputFromUring(client *c, const void *buf, size_t len) {
     if (!c || !len || (c->flags & CLIENT_CLOSE_ASAP)) return C_ERR;
 
-    c->read_error = 0;
+    clientTail(c)->read_error = 0;
     server.stat_io_reads_processed[iotid] += 1;
-    if (c->querybuf == NULL) c->querybuf = sdsempty();
-    c->querybuf = sdscatlen(c->querybuf, buf, len);
-    size_t qblen = sdslen(c->querybuf);
-    if (c->querybuf_peak < qblen) c->querybuf_peak = qblen;
+    if (clientTail(c)->querybuf == NULL) clientTail(c)->querybuf = sdsempty();
+    clientTail(c)->querybuf = sdscatlen(clientTail(c)->querybuf, buf, len);
+    size_t qblen = sdslen(clientTail(c)->querybuf);
+    if (clientTail(c)->querybuf_peak < qblen) clientTail(c)->querybuf_peak = qblen;
 
     if (!(c->flags & CLIENT_MASTER) ||
         c->running_tid == IOTHREAD_MAIN_THREAD_ID)
-        c->lastinteraction = server.unixtime;
+        clientTail(c)->lastinteraction = server.unixtime;
     else
-        c->io_lastinteraction = server.unixtime;
+        clientTail(c)->io_lastinteraction = server.unixtime;
 
     if (c->flags & CLIENT_MASTER) {
         if (c->running_tid == IOTHREAD_MAIN_THREAD_ID)
@@ -4611,7 +4775,7 @@ int appendClientInputFromUring(client *c, const void *buf, size_t len) {
     } else {
         tomoRelaxedBump(server.netstat[iotid].in, len);
     }
-    c->net_input_bytes += len;
+    clientTail(c)->net_input_bytes += len;
 
     size_t qb_memory = qblen;
     if (unlikely(c->flags & CLIENT_MULTI))
@@ -4619,7 +4783,7 @@ int appendClientInputFromUring(client *c, const void *buf, size_t len) {
     if (!(c->flags & CLIENT_MASTER) &&
         (qb_memory > server.client_max_querybuf_len ||
          (qb_memory > 1024*1024 && authRequired(c)))) {
-        c->read_error = CLIENT_READ_REACHED_MAX_QUERYBUF;
+        clientTail(c)->read_error = CLIENT_READ_REACHED_MAX_QUERYBUF;
         atomicIncr(server.stat_client_qbuf_limit_disconnections, 1);
         freeClientAsync(c);
         return C_ERR;
@@ -4640,13 +4804,13 @@ int processClientInputFromUring(client *c) {
     }
     if (c->flags & CLIENT_EX_PENDING) return C_OK;
     if (!(c->io_flags & CLIENT_IO_READ_ENABLED)) {
-        atomicSetWithSync(c->pending_read, 1);
+        atomicSetWithSync(clientTail(c)->pending_read, 1);
         return C_OK;
     }
     if (server.io_threads_num > 1)
-        atomicSetWithSync(c->pending_read, 0);
+        atomicSetWithSync(clientTail(c)->pending_read, 0);
 
-    if (c->querybuf && sdslen(c->querybuf) > c->qb_pos) {
+    if (clientTail(c)->querybuf && sdslen(clientTail(c)->querybuf) > clientTail(c)->qb_pos) {
         if (processInputBuffer(c) == C_ERR) return C_ERR;
     }
     if (isClientReadErrorFatal(c)) {
@@ -4665,13 +4829,13 @@ void readQueryFromClient(connection *conn) {
     size_t qblen, readlen;
 
     if (!(c->io_flags & CLIENT_IO_READ_ENABLED)) {
-        atomicSetWithSync(c->pending_read, 1);
+        atomicSetWithSync(clientTail(c)->pending_read, 1);
         return;
     } else if (server.io_threads_num > 1) {
-        atomicSetWithSync(c->pending_read, 0);
+        atomicSetWithSync(clientTail(c)->pending_read, 0);
     }
 
-    c->read_error = 0;
+    clientTail(c)->read_error = 0;
 
     /* Update the number of reads of io threads on server */
     atomicIncr(server.stat_io_reads_processed[iotid], 1);
@@ -4683,15 +4847,15 @@ void readQueryFromClient(connection *conn) {
      * at the risk of requiring more read(2) calls. This way the function
      * processMultiBulkBuffer() can avoid copying buffers to create the
      * Redis Object representing the argument. */
-    if (c->reqtype == PROTO_REQ_MULTIBULK && c->multibulklen && c->bulklen != -1
-        && c->bulklen >= PROTO_MBULK_BIG_ARG)
+    if (clientTail(c)->reqtype == PROTO_REQ_MULTIBULK && clientTail(c)->multibulklen && clientTail(c)->bulklen != -1
+        && clientTail(c)->bulklen >= PROTO_MBULK_BIG_ARG)
     {
         /* For big argv, the client always uses its private query buffer.
          * Using the reusable query buffer would eventually expand it beyond 32k,
          * causing the client to take ownership of the reusable query buffer. */
-        if (!c->querybuf) c->querybuf = sdsempty();
+        if (!clientTail(c)->querybuf) clientTail(c)->querybuf = sdsempty();
 
-        ssize_t remaining = (size_t)(c->bulklen+2)-(sdslen(c->querybuf)-c->qb_pos);
+        ssize_t remaining = (size_t)(clientTail(c)->bulklen+2)-(sdslen(clientTail(c)->querybuf)-clientTail(c)->qb_pos);
         big_arg = 1;
 
         /* Note that the 'remaining' variable may be zero in some edge case,
@@ -4702,13 +4866,13 @@ void readQueryFromClient(connection *conn) {
          * but doesn't need align to the next arg, we can read more data. */
         if (c->flags & CLIENT_MASTER && readlen < PROTO_IOBUF_LEN)
             readlen = PROTO_IOBUF_LEN;
-    } else if (c->querybuf == NULL) {
+    } else if (clientTail(c)->querybuf == NULL) {
         if (unlikely(thread_reusable_qb_used)) {
             /* The reusable query buffer is already used by another client,
              * switch to using the client's private query buffer. This only
              * occurs when commands are executed nested via processEventsWhileBlocked(). */
-            c->querybuf = sdsnewlen(NULL, PROTO_IOBUF_LEN);
-            sdsclear(c->querybuf);
+            clientTail(c)->querybuf = sdsnewlen(NULL, PROTO_IOBUF_LEN);
+            sdsclear(clientTail(c)->querybuf);
         } else {
             /* Create the reusable query buffer if it doesn't exist. */
             if (!thread_reusable_qb) {
@@ -4718,73 +4882,73 @@ void readQueryFromClient(connection *conn) {
 
             /* Assign the reusable query buffer to the client and mark it as in use. */
             serverAssert(sdslen(thread_reusable_qb) == 0);
-            c->querybuf = thread_reusable_qb;
+            clientTail(c)->querybuf = thread_reusable_qb;
             c->io_flags |= CLIENT_IO_REUSABLE_QUERYBUFFER;
             thread_reusable_qb_used = 1;
         }
     }
 
-    qblen = sdslen(c->querybuf);
+    qblen = sdslen(clientTail(c)->querybuf);
     if (!(c->flags & CLIENT_MASTER) && // master client's querybuf can grow greedy.
-        (big_arg || sdsalloc(c->querybuf) < PROTO_IOBUF_LEN)) {
+        (big_arg || sdsalloc(clientTail(c)->querybuf) < PROTO_IOBUF_LEN)) {
         /* When reading a BIG_ARG we won't be reading more than that one arg
          * into the query buffer, so we don't need to pre-allocate more than we
          * need, so using the non-greedy growing. For an initial allocation of
          * the query buffer, we also don't wanna use the greedy growth, in order
          * to avoid collision with the RESIZE_THRESHOLD mechanism. */
-        c->querybuf = sdsMakeRoomForNonGreedy(c->querybuf, readlen);
+        clientTail(c)->querybuf = sdsMakeRoomForNonGreedy(clientTail(c)->querybuf, readlen);
         /* We later set the peak to the used portion of the buffer, but here we over
          * allocated because we know what we need, make sure it'll not be shrunk before used. */
-        if (c->querybuf_peak < qblen + readlen) c->querybuf_peak = qblen + readlen;
+        if (clientTail(c)->querybuf_peak < qblen + readlen) clientTail(c)->querybuf_peak = qblen + readlen;
     } else {
-        c->querybuf = sdsMakeRoomFor(c->querybuf, readlen);
+        clientTail(c)->querybuf = sdsMakeRoomFor(clientTail(c)->querybuf, readlen);
 
         /* Read as much as possible from the socket to save read(2) system calls. */
-        readlen = sdsavail(c->querybuf);
+        readlen = sdsavail(clientTail(c)->querybuf);
     }
-    nread = connRead(c->conn, c->querybuf+qblen, readlen);
+    nread = connRead(c->conn, clientTail(c)->querybuf+qblen, readlen);
     if (nread == -1) {
         if (connGetState(conn) == CONN_STATE_CONNECTED) {
             goto done;
         } else {
-            c->read_error = CLIENT_READ_CONN_DISCONNECTED;
+            clientTail(c)->read_error = CLIENT_READ_CONN_DISCONNECTED;
             freeClientAsync(c);
             goto done;
         }
     } else if (nread == 0) {
-        c->read_error = CLIENT_READ_CONN_CLOSED;
+        clientTail(c)->read_error = CLIENT_READ_CONN_CLOSED;
         freeClientAsync(c);
         goto done;
     }
 
-    sdsIncrLen(c->querybuf,nread);
+    sdsIncrLen(clientTail(c)->querybuf,nread);
     /* Owner demand signal: this read drained what QUEUED since the last service of this conn. */
     tomoIoDrainNote((unsigned int)nread);
-    qblen = sdslen(c->querybuf);
-    if (c->querybuf_peak < qblen) c->querybuf_peak = qblen;
+    qblen = sdslen(clientTail(c)->querybuf);
+    if (clientTail(c)->querybuf_peak < qblen) clientTail(c)->querybuf_peak = qblen;
 
     if (!(c->flags & CLIENT_MASTER) || c->running_tid == IOTHREAD_MAIN_THREAD_ID)
-        c->lastinteraction = server.unixtime;
+        clientTail(c)->lastinteraction = server.unixtime;
     else
         /* Avoid contention with genRedisInfoString as it can access master
          * client's data. If this is a master running in IO thread the value of
-         * c->lastinteraction will be updated during processClientsFromIOThread */
-        c->io_lastinteraction = server.unixtime;
+         * clientTail(c)->lastinteraction will be updated during processClientsFromIOThread */
+        clientTail(c)->io_lastinteraction = server.unixtime;
 
     if (c->flags & CLIENT_MASTER) {
         if (c->running_tid == IOTHREAD_MAIN_THREAD_ID) {
             clientReplicationData(c)->read_reploff += nread;
         } else {
-            /* Same comment as for c->io_lastinteraction */
+            /* Same comment as for clientTail(c)->io_lastinteraction */
             clientReplicationData(c)->io_read_reploff += nread;
         }
         atomicIncr(server.stat_net_repl_input_bytes, nread);
     } else {
         tomoRelaxedBump(server.netstat[iotid].in, nread);         /* ee451 (#A2, v13): hardwired */
     }
-    c->net_input_bytes += nread;
+    clientTail(c)->net_input_bytes += nread;
 
-    size_t qb_memory = sdslen(c->querybuf);
+    size_t qb_memory = sdslen(clientTail(c)->querybuf);
     if (unlikely(c->flags & CLIENT_MULTI))
         qb_memory += clientMultiState(c)->argv_len_sums;
     if (!(c->flags & CLIENT_MASTER) &&
@@ -4795,7 +4959,7 @@ void readQueryFromClient(connection *conn) {
         (qb_memory > server.client_max_querybuf_len ||
          (qb_memory > 1024*1024 && authRequired(c))))
     {
-        c->read_error = CLIENT_READ_REACHED_MAX_QUERYBUF;
+        clientTail(c)->read_error = CLIENT_READ_REACHED_MAX_QUERYBUF;
         freeClientAsync(c);
         atomicIncr(server.stat_client_qbuf_limit_disconnections, 1);
         goto done;
@@ -4814,7 +4978,7 @@ done:
     }
 
     if (c && (c->io_flags & CLIENT_IO_REUSABLE_QUERYBUFFER)) {
-        serverAssert(c->qb_pos == 0); /* Ensure the client's query buffer is trimmed in processInputBuffer */
+        serverAssert(clientTail(c)->qb_pos == 0); /* Ensure the client's query buffer is trimmed in processInputBuffer */
         resetReusableQueryBuf(c);
     }
     beforeNextClient(c);
@@ -4843,31 +5007,31 @@ void genClientAddrString(client *client, char *addr,
 }
 
 /* This function returns the client peer id, by creating and caching it
- * if client->peerid is NULL, otherwise returning the cached value.
+ * if clientTail(client)->peerid is NULL, otherwise returning the cached value.
  * The Peer ID never changes during the life of the client, however it
  * is expensive to compute. */
 char *getClientPeerId(client *c) {
     char peerid[NET_ADDR_STR_LEN] = {0};
 
-    if (c->peerid == NULL) {
+    if (clientTail(c)->peerid == NULL) {
         genClientAddrString(c,peerid,sizeof(peerid),1);
-        c->peerid = sdsnew(peerid);
+        clientTail(c)->peerid = sdsnew(peerid);
     }
-    return c->peerid;
+    return clientTail(c)->peerid;
 }
 
 /* This function returns the client bound socket name, by creating and caching
- * it if client->sockname is NULL, otherwise returning the cached value.
+ * it if clientTail(client)->sockname is NULL, otherwise returning the cached value.
  * The Socket Name never changes during the life of the client, however it
  * is expensive to compute. */
 char *getClientSockname(client *c) {
     char sockname[NET_ADDR_STR_LEN] = {0};
 
-    if (c->sockname == NULL) {
+    if (clientTail(c)->sockname == NULL) {
         genClientAddrString(c,sockname,sizeof(sockname),0);
-        c->sockname = sdsnew(sockname);
+        clientTail(c)->sockname = sdsnew(sockname);
     }
-    return c->sockname;
+    return clientTail(c)->sockname;
 }
 
 static inline int isCrashing(void) {
@@ -4948,13 +5112,13 @@ sds catClientInfoString(sds s, client *client) {
     }
 
     sds ret = sdscatfmt(s, FMTARGS(
-        "id=%U", (unsigned long long) client->id,
+        "id=%U", (unsigned long long) clientTail(client)->id,
         " addr=%s", getClientPeerId(client),
         " laddr=%s", getClientSockname(client),
         " %s", connGetInfo(client->conn, conninfo, sizeof(conninfo)),
-        " name=%s", client->name ? (char*)client->name->ptr : "",
-        " age=%I", (long long)(commandTimeSnapshot() / 1000 - client->ctime),
-        " idle=%I", (long long)(server.unixtime - client->lastinteraction),
+        " name=%s", clientTail(client)->name ? (char*)clientTail(client)->name->ptr : "",
+        " age=%I", (long long)(commandTimeSnapshot() / 1000 - clientTail(client)->ctime),
+        " idle=%I", (long long)(server.unixtime - clientTail(client)->lastinteraction),
         " flags=%s", flags,
         " db=%i", client->db->id,
         " sub=%i", pubsub ? (int) dictSize(pubsub->pubsub_channels) : 0,
@@ -4962,8 +5126,8 @@ sds catClientInfoString(sds s, client *client) {
         " ssub=%i", pubsub ? (int) dictSize(pubsub->pubsubshard_channels) : 0,
         " multi=%i", (client->flags & CLIENT_MULTI) ? ms->count : -1,
         " watch=%i", ms ? (int) listLength(&ms->watched_keys) : 0,
-        " qbuf=%U", client->querybuf ? (unsigned long long) sdslen(client->querybuf) : 0,
-        " qbuf-free=%U", client->querybuf ? (unsigned long long) sdsavail(client->querybuf) : 0,
+        " qbuf=%U", clientTail(client)->querybuf ? (unsigned long long) sdslen(clientTail(client)->querybuf) : 0,
+        " qbuf-free=%U", clientTail(client)->querybuf ? (unsigned long long) sdsavail(clientTail(client)->querybuf) : 0,
         " argv-mem=%U", (unsigned long long) client->all_argv_len_sum,
         " multi-mem=%U", ms ? (unsigned long long) ms->argv_len_sums : 0,
         " rbs=%U", (unsigned long long) client->buf_usable_size,
@@ -4973,15 +5137,15 @@ sds catClientInfoString(sds s, client *client) {
         " omem=%U", (unsigned long long) obufmem, /* should not include client->buf since we want to see 0 for static clients. */
         " tot-mem=%U", (unsigned long long) total_mem,
         " events=%s", events,
-        " cmd=%s", client->lastcmd ? client->lastcmd->fullname : "NULL",
+        " cmd=%s", clientTail(client)->lastcmd ? clientTail(client)->lastcmd->fullname : "NULL",
         " user=%s", client->user ? client->user->name : "(superuser)",
         " redir=%I", (client->flags & CLIENT_TRACKING) ? (long long) pubsub->client_tracking_redirection : -1,
         " resp=%i", client->resp,
-        " lib-name=%s", client->lib_name ? (char*)client->lib_name->ptr : "",
-        " lib-ver=%s", client->lib_ver ? (char*)client->lib_ver->ptr : "",
+        " lib-name=%s", clientTail(client)->lib_name ? (char*)clientTail(client)->lib_name->ptr : "",
+        " lib-ver=%s", clientTail(client)->lib_ver ? (char*)clientTail(client)->lib_ver->ptr : "",
         " io-thread=%i", client->tid,
-        " tot-net-in=%U", client->net_input_bytes,
-        " tot-net-out=%U", client->net_output_bytes,
+        " tot-net-in=%U", clientTail(client)->net_input_bytes,
+        " tot-net-out=%U", clientTail(client)->net_output_bytes,
         " tot-cmds=%U", client->commands_processed));
 
     if (paused) resumeIOThread(client->running_tid);
@@ -5054,12 +5218,12 @@ int clientSetName(client *c, robj *name, const char **err) {
     /* Setting the client name to an empty string actually removes
      * the current name. */
     if (len == 0) {
-        if (c->name) decrRefCount(c->name);
-        c->name = NULL;
+        if (clientTail(c)->name) decrRefCount(clientTail(c)->name);
+        clientTail(c)->name = NULL;
         return C_OK;
     }
-    if (c->name) decrRefCount(c->name);
-    c->name = name;
+    if (clientTail(c)->name) decrRefCount(clientTail(c)->name);
+    clientTail(c)->name = name;
     incrRefCount(name);
     return C_OK;
 }
@@ -5089,9 +5253,9 @@ void clientSetinfoCommand(client *c) {
     sds val = valob->ptr;
     robj **destvar = NULL;
     if (!strcasecmp(attr,"lib-name")) {
-        destvar = &c->lib_name;
+        destvar = &clientTail(c)->lib_name;
     } else if (!strcasecmp(attr,"lib-ver")) {
-        destvar = &c->lib_ver;
+        destvar = &clientTail(c)->lib_ver;
     } else {
         addReplyErrorFormat(c,"Unrecognized option '%s'", attr);
         return;
@@ -5201,7 +5365,7 @@ NULL
         addReplyHelp(c, help);
     } else if (!strcasecmp(c->argv[1]->ptr,"id") && c->argc == 2) {
         /* CLIENT ID */
-        addReplyLongLong(c,c->id);
+        addReplyLongLong(c,clientTail(c)->id);
     } else if (!strcasecmp(c->argv[1]->ptr,"info") && c->argc == 2) {
         /* CLIENT INFO */
         sds o = catClientInfoString(sdsempty(), c);
@@ -5358,10 +5522,10 @@ NULL
             if (addr && strcmp(getClientPeerId(client),addr) != 0) continue;
             if (laddr && strcmp(getClientSockname(client),laddr) != 0) continue;
             if (type != -1 && getClientType(client) != type) continue;
-            if (id != 0 && client->id != id) continue;
+            if (id != 0 && clientTail(client)->id != id) continue;
             if (user && client->user != user) continue;
             if (c == client && skipme) continue;
-            if (max_age != 0 && (long long)(commandTimeSnapshot() / 1000 - client->ctime) < max_age) continue;
+            if (max_age != 0 && (long long)(commandTimeSnapshot() / 1000 - clientTail(client)->ctime) < max_age) continue;
 
             /* Kill it. */
             if (c == client) {
@@ -5428,8 +5592,8 @@ NULL
             addReply(c,shared.ok);
     } else if (!strcasecmp(c->argv[1]->ptr,"getname") && c->argc == 2) {
         /* CLIENT GETNAME */
-        if (c->name)
-            addReplyBulk(c,c->name);
+        if (clientTail(c)->name)
+            addReplyBulk(c,clientTail(c)->name);
         else
             addReplyNull(c);
     } else if (!strcasecmp(c->argv[1]->ptr,"unpause") && c->argc == 2) {
@@ -5447,8 +5611,8 @@ NULL
                 isPauseClientAll = 0;
             } else if (strcasecmp(c->argv[3]->ptr,"all")) {
                 addReplyError(c,
-                    "CLIENT PAUSE mode must be WRITE or ALL");  
-                return;       
+                    "CLIENT PAUSE mode must be WRITE or ALL");
+                return;
             }
         }
 
@@ -5635,7 +5799,7 @@ NULL
             numflags++;
             if (c->flags & CLIENT_TRACKING_CACHING) {
                 addReplyBulkCString(c,"caching-yes");
-                numflags++;        
+                numflags++;
             }
         }
         if (c->flags & CLIENT_TRACKING_OPTOUT) {
@@ -5643,7 +5807,7 @@ NULL
             numflags++;
             if (c->flags & CLIENT_TRACKING_CACHING) {
                 addReplyBulkCString(c,"caching-no");
-                numflags++;        
+                numflags++;
             }
         }
         if (c->flags & CLIENT_TRACKING_NOLOOP) {
@@ -5779,7 +5943,7 @@ void helloCommand(client *c) {
     addReplyLongLong(c,c->resp);
 
     ADD_REPLY_BULK_CBUFFER_STRING_CONSTANT(c,"id");
-    addReplyLongLong(c,c->id);
+    addReplyLongLong(c,clientTail(c)->id);
 
     ADD_REPLY_BULK_CBUFFER_STRING_CONSTANT(c,"mode");
     if (server.sentinel_mode) addReplyBulkCString(c,"sentinel");
@@ -5825,11 +5989,11 @@ void securityWarningCommand(client *c) {
  * an accurate slowlog entry after the command has been executed. */
 static void retainOriginalCommandVector(client *c) {
     /* We already rewrote this command, so don't rewrite it again */
-    if (c->original_argv) return;
-    c->original_argc = c->argc;
-    c->original_argv = zmalloc(sizeof(robj*)*(c->argc));
+    if (clientTail(c)->original_argv) return;
+    clientTail(c)->original_argc = c->argc;
+    clientTail(c)->original_argv = zmalloc(sizeof(robj*)*(c->argc));
     for (int j = 0; j < c->argc; j++) {
-        c->original_argv[j] = c->argv[j];
+        clientTail(c)->original_argv[j] = c->argv[j];
         incrRefCount(c->argv[j]);
     }
 }
@@ -5839,12 +6003,12 @@ static void retainOriginalCommandVector(client *c) {
  * original_argv array. */
 void redactClientCommandArgument(client *c, int argc) {
     retainOriginalCommandVector(c);
-    if (c->original_argv[argc] == shared.redacted) {
+    if (clientTail(c)->original_argv[argc] == shared.redacted) {
         /* This argument has already been redacted */
         return;
     }
-    decrRefCount(c->original_argv[argc]);
-    c->original_argv[argc] = shared.redacted;
+    decrRefCount(clientTail(c)->original_argv[argc]);
+    clientTail(c)->original_argv[argc] = shared.redacted;
 }
 
 /* Rewrite the command vector of the client. All the new objects ref count
@@ -5885,7 +6049,7 @@ void replaceClientCommandVector(client *c, int argc, robj **argv) {
      * argv-len bookkeeping that fakes don't use. ASAN-validated (GEOADD + churn). */
     if (c->isFake) {
         pendingCommand *fpcmd = NULL;
-        multiState *ms = clientMultiState(c);
+        multiState *ms = c->has_exec_tail ? clientMultiState(c) : NULL;
         if (!ms || ms->executing_cmd < 0) {
             if (c->pending_cmds.ready_len > 0) fpcmd = c->pending_cmds.head;
         } else if (ms->executing_cmd < ms->count) {
@@ -6045,7 +6209,7 @@ size_t getClientOutputBufferMemoryUsage(client *c) {
             repl_node_num = last->id - cur->id + 1;
         }
         return repl_buf_size + (repl_node_size*repl_node_num);
-    } else { 
+    } else {
         size_t list_item_size = sizeof(listNode) + sizeof(clientReplyBlock);
         return c->reply_bytes + (list_item_size*listLength(c->reply));
     }
@@ -6067,9 +6231,9 @@ size_t getClientMemoryUsage(client *c, size_t *output_buffer_mem_usage) {
 
     if (output_buffer_mem_usage != NULL)
         *output_buffer_mem_usage = mem;
-    mem += c->querybuf ? sdsZmallocSize(c->querybuf) : 0;
+    mem += clientTail(c)->querybuf ? sdsZmallocSize(clientTail(c)->querybuf) : 0;
     mem += zmalloc_size(c);
-    mem += c->cold ? zmalloc_size(c->cold) : 0;
+    mem += clientTail(c)->cold ? zmalloc_size(clientTail(c)->cold) : 0;
     mem += c->buf_usable_size;
     /* For efficiency (less work keeping track of the argv memory), it doesn't include the used memory
      * i.e. unused sds space and internal fragmentation, just the string length. but this is enough to
@@ -6178,11 +6342,11 @@ int checkClientOutputBufferLimits(client *c) {
     /* We need to check if the soft limit is reached continuously for the
      * specified amount of seconds. */
     if (soft) {
-        if (c->obuf_soft_limit_reached_time == 0) {
-            c->obuf_soft_limit_reached_time = server.unixtime;
+        if (clientTail(c)->obuf_soft_limit_reached_time == 0) {
+            clientTail(c)->obuf_soft_limit_reached_time = server.unixtime;
             soft = 0; /* First time we see the soft limit reached */
         } else {
-            time_t elapsed = server.unixtime - c->obuf_soft_limit_reached_time;
+            time_t elapsed = server.unixtime - clientTail(c)->obuf_soft_limit_reached_time;
 
             if (elapsed <=
                 server.client_obuf_limits[class].soft_limit_seconds) {
@@ -6192,7 +6356,7 @@ int checkClientOutputBufferLimits(client *c) {
             }
         }
     } else {
-        c->obuf_soft_limit_reached_time = 0;
+        clientTail(c)->obuf_soft_limit_reached_time = 0;
     }
     return soft || hard;
 }
@@ -6209,7 +6373,12 @@ int checkClientOutputBufferLimits(client *c) {
  *
  * Returns 1 if client was (flagged) closed. */
 int closeClientOnOutputBufferLimitReached(client *c, int async) {
-    if (!c->conn) return 0; /* It is unsafe to free fake clients. */
+    /* Worker fakes are spliced into their real client, which performs this
+     * same check immediately afterwards. A fake cannot be closed here (the
+     * connection is borrowed), and an execution-only fake has no soft-limit
+     * timestamp or client-info tail. */
+    if (c->isFake) return 0;
+    if (!c->conn) return 0; /* It is unsafe to free non-connected clients. */
     serverAssert(c->reply_bytes < SIZE_MAX-(1024*64));
     /* Note that c->reply_bytes is irrelevant for replica clients
      * (they use the global repl buffers). */
@@ -6349,7 +6518,7 @@ static void pauseClientsByClient(mstime_t endTime, int isPauseClientAll) {
  * A main use case of this function is to allow pausing replication traffic
  * so that a failover without data loss to occur. Replicas will continue to receive
  * traffic to facilitate this functionality.
- * 
+ *
  * This function is also internally used by Redis Cluster for the manual
  * failover procedure implemented by CLUSTER FAILOVER.
  *
@@ -6499,12 +6668,12 @@ static int tryExpandPendingCommandPool(void) {
     if (server.cmd_pool.size < server.cmd_pool.capacity) {
         return 1; /* No expansion needed */
     }
-    
+
     /* Check if we can expand further */
     if (server.cmd_pool.capacity >= PENDING_COMMAND_POOL_MAX_SIZE) {
         return 0; /* Already at maximum capacity */
     }
-    
+
     /* Expand the pending command pool capacity by doubling it, up to the maximum size */
     int new_capacity = server.cmd_pool.capacity * 2;
     if (new_capacity > PENDING_COMMAND_POOL_MAX_SIZE)

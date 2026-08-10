@@ -775,7 +775,7 @@ static void tomoUringMarkTerminal(struct tomoUringClient *uc) {
 
 static void tomoUringApplyPendingReadError(struct tomoUringClient *uc) {
     if (!uc->pending_read_error) return;
-    uc->c->read_error = uc->pending_read_error;
+    clientTail(uc->c)->read_error = uc->pending_read_error;
     uc->pending_read_error = 0;
     handleClientReadError(uc->c);
     freeClientAsync(uc->c);
@@ -971,8 +971,8 @@ static void tomoUringAccountSendBytes(tomoUringThread *st,
     URING_STAT_BUMP(st, send_bytes, n);
     server.stat_io_writes_processed[iotid] += 1;
     tomoRelaxedBump(server.netstat[iotid].out, n);
-    c->net_output_bytes += n;
-    if (!(c->flags & CLIENT_MASTER)) c->lastinteraction = server.unixtime;
+    clientTail(c)->net_output_bytes += n;
+    if (!(c->flags & CLIENT_MASTER)) clientTail(c)->lastinteraction = server.unixtime;
 }
 
 static void tomoUringApplySendResult(tomoUringThread *st,
@@ -1002,7 +1002,7 @@ static void tomoUringApplySendResult(tomoUringThread *st,
         URING_STAT_BUMP(st, send_errors, 1);
         serverLog(LL_VERBOSE,
                   "Error writing to io_uring client %llu: %s",
-                  (unsigned long long)uc->c->id,
+                  (unsigned long long)clientTail(uc->c)->id,
                   res == 0 ? "connection closed" :
                   strerror(res < 0 ? -res : EIO));
     }
@@ -1118,7 +1118,7 @@ static int tomoUringProcessReady(tomoUringThread *st, int process_file_events) {
             processed++;
             continue;
         }
-        if (uc->c->read_error && isClientReadErrorFatal(uc->c)) {
+        if (clientTail(uc->c)->read_error && isClientReadErrorFatal(uc->c)) {
             uc->in_callback = 1;
             (void)processClientInputFromUring(uc->c);
             uc->in_callback = 0;
@@ -1507,17 +1507,17 @@ int tomoUringThreadEnabled(int tid) {
 }
 
 int tomoUringClientAttached(const client *c) {
-    return c && c->uring != NULL;
+    return c && clientTail(c)->uring != NULL;
 }
 
 int tomoUringClientSendPending(const client *c) {
-    const struct tomoUringClient *uc = c ? c->uring : NULL;
+    const struct tomoUringClient *uc = c ? clientTail(c)->uring : NULL;
     return uc && (uc->send_active || uc->send_queued ||
                   uc->send_cancel_queued || uc->send_cancel_submitted);
 }
 
 int tomoUringClientQueueWrite(client *c) {
-    struct tomoUringClient *uc = c ? c->uring : NULL;
+    struct tomoUringClient *uc = c ? clientTail(c)->uring : NULL;
     if (!uc) return C_ERR;
     tomoUringAssertOwner(uc);
     if (uc->send_active || uc->send_queued) return C_OK;
@@ -1532,7 +1532,7 @@ int tomoUringClientQueueWrite(client *c) {
 
 int tomoUringClientAttach(client *c) {
     tomoUringThread *st = tomoUringCurrent();
-    if (!st || !c || c->uring || !c->conn ||
+    if (!st || !c || clientTail(c)->uring || !c->conn ||
         c->conn->type != connectionTypeTcp() ||
         connGetState(c->conn) != CONN_STATE_CONNECTED ||
         c->tid != iotid ||
@@ -1562,13 +1562,13 @@ int tomoUringClientAttach(client *c) {
         zfree(uc);
         return C_ERR;
     }
-    c->uring = uc;
+    clientTail(c)->uring = uc;
     tomoUringArmPush(st, uc);
     return C_OK;
 }
 
 void tomoUringClientStartMigration(client *c) {
-    struct tomoUringClient *uc = c ? c->uring : NULL;
+    struct tomoUringClient *uc = c ? clientTail(c)->uring : NULL;
     if (!uc) return;
     tomoUringAssertOwner(uc);
     uc->mode = TOMO_URING_CLIENT_MIGRATE;
@@ -1576,7 +1576,7 @@ void tomoUringClientStartMigration(client *c) {
 }
 
 int tomoUringClientMigrationReady(const client *c) {
-    const struct tomoUringClient *uc = c ? c->uring : NULL;
+    const struct tomoUringClient *uc = c ? clientTail(c)->uring : NULL;
     if (!uc) return 1;
     tomoUringAssertOwner(uc);
     return uc->mode == TOMO_URING_CLIENT_MIGRATE &&
@@ -1589,7 +1589,7 @@ int tomoUringClientMigrationReady(const client *c) {
 }
 
 int tomoUringClientAbortMigration(client *c) {
-    struct tomoUringClient *uc = c ? c->uring : NULL;
+    struct tomoUringClient *uc = c ? clientTail(c)->uring : NULL;
     if (!uc) return 1;
     tomoUringAssertOwner(uc);
     if (uc->mode != TOMO_URING_CLIENT_MIGRATE)
@@ -1599,7 +1599,7 @@ int tomoUringClientAbortMigration(client *c) {
 }
 
 void tomoUringClientPublishTransit(client *c) {
-    struct tomoUringClient *uc = c ? c->uring : NULL;
+    struct tomoUringClient *uc = c ? clientTail(c)->uring : NULL;
     if (!uc) return;
     tomoUringAssertOwner(uc);
     serverAssert(tomoUringClientMigrationReady(c));
@@ -1610,7 +1610,7 @@ void tomoUringClientPublishTransit(client *c) {
 }
 
 int tomoUringClientAdopt(client *c) {
-    struct tomoUringClient *uc = c ? c->uring : NULL;
+    struct tomoUringClient *uc = c ? clientTail(c)->uring : NULL;
     tomoUringThread *st = tomoUringCurrent();
     if (!uc || !st || uc->mode != TOMO_URING_CLIENT_TRANSIT ||
         uc->owner != NULL || uc->recv_state != TOMO_URING_RECV_IDLE ||
@@ -1625,7 +1625,7 @@ int tomoUringClientAdopt(client *c) {
 }
 
 void tomoUringClientPause(client *c) {
-    struct tomoUringClient *uc = c ? c->uring : NULL;
+    struct tomoUringClient *uc = c ? clientTail(c)->uring : NULL;
     if (!uc) return;
     tomoUringAssertOwner(uc);
     if (uc->mode == TOMO_URING_CLIENT_CLOSE ||
@@ -1639,7 +1639,7 @@ void tomoUringClientPause(client *c) {
 }
 
 void tomoUringClientResume(client *c) {
-    struct tomoUringClient *uc = c ? c->uring : NULL;
+    struct tomoUringClient *uc = c ? clientTail(c)->uring : NULL;
     if (!uc) return;
     tomoUringAssertOwner(uc);
     if (uc->mode == TOMO_URING_CLIENT_TRANSIT) return;
@@ -1689,7 +1689,7 @@ void tomoUringClientResume(client *c) {
 }
 
 void tomoUringClientRequestClose(client *c) {
-    struct tomoUringClient *uc = c ? c->uring : NULL;
+    struct tomoUringClient *uc = c ? clientTail(c)->uring : NULL;
     if (!uc) return;
     tomoUringAssertOwner(uc);
     uc->mode = TOMO_URING_CLIENT_CLOSE;
@@ -1698,7 +1698,7 @@ void tomoUringClientRequestClose(client *c) {
 }
 
 int tomoUringClientCloseReady(const client *c) {
-    const struct tomoUringClient *uc = c ? c->uring : NULL;
+    const struct tomoUringClient *uc = c ? clientTail(c)->uring : NULL;
     if (!uc) return 1;
     tomoUringAssertOwner(uc);
     return uc->mode == TOMO_URING_CLIENT_CLOSE &&
@@ -1711,11 +1711,11 @@ int tomoUringClientCloseReady(const client *c) {
 }
 
 void tomoUringClientRelease(client *c) {
-    struct tomoUringClient *uc = c ? c->uring : NULL;
+    struct tomoUringClient *uc = c ? clientTail(c)->uring : NULL;
     if (!uc) return;
     tomoUringAssertOwner(uc);
     serverAssert(tomoUringClientCloseReady(c));
-    c->uring = NULL;
+    clientTail(c)->uring = NULL;
     zfree(uc->send_sg);
     zfree(uc);
 }

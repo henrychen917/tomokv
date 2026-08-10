@@ -1098,9 +1098,9 @@ void asmImportSetFailed(asmTask *task) {
      * close the client that was created for the RDB channel. */
     if (task->rdb_channel_conn && task->rdb_channel_state == ASM_RDBCHANNEL_TRANSFER) {
         client *c = connGetPrivateData(task->rdb_channel_conn);
-        serverAssert(c->task == task);
+        serverAssert(clientTail(c)->task == task);
         task->rdb_channel_conn = NULL;
-        c->task = NULL;
+        clientTail(c)->task = NULL;
         c->flags &= ~CLIENT_MASTER;
         freeClientAsync(c);
     }
@@ -1111,9 +1111,9 @@ void asmImportSetFailed(asmTask *task) {
         (task->state == ASM_STREAMING_BUF || task->state == ASM_WAIT_STREAM_EOF))
     {
         client *c = connGetPrivateData(task->main_channel_conn);
-        serverAssert(c->task == task);
+        serverAssert(clientTail(c)->task == task);
         task->main_channel_conn = NULL;
-        c->task = NULL;
+        clientTail(c)->task = NULL;
         c->flags &= ~CLIENT_MASTER;
         freeClientAsync(c);
     }
@@ -1142,12 +1142,12 @@ void asmMigrateSetFailed(asmTask *task) {
 
     /* Close the RDB and main channel clients*/
     if (task->rdb_channel_client) {
-        task->rdb_channel_client->task = NULL;
+        clientTail(task->rdb_channel_client)->task = NULL;
         freeClientAsync(task->rdb_channel_client);
         task->rdb_channel_client = NULL;
     }
     if (task->main_channel_client) {
-        task->main_channel_client->task = NULL;
+        clientTail(task->main_channel_client)->task = NULL;
         freeClientAsync(task->main_channel_client);
         task->main_channel_client = NULL;
     }
@@ -1223,7 +1223,7 @@ void asmImportTakeover(asmTask *task) {
     /* Free the main channel connection since it is no longer needed. */
     serverAssert(task->main_channel_conn != NULL);
     client *c = connGetPrivateData(task->main_channel_conn);
-    c->task = NULL;
+    clientTail(c)->task = NULL;
     c->flags &= ~CLIENT_MASTER;
     freeClientAsync(c);
     task->main_channel_conn = NULL;
@@ -1234,7 +1234,7 @@ void asmImportTakeover(asmTask *task) {
 }
 
 void asmCallbackOnFreeClient(client *c) {
-    asmTask *task = c->task;
+    asmTask *task = clientTail(c)->task;
     if (!task) return;
 
     /* If the RDB channel connection is closed, mark the task as failed. */
@@ -1381,10 +1381,10 @@ void asmRdbChannelSyncWithSource(connection *conn) {
             client *c = createClient(conn);
             initClientReplicationData(c);
             c->flags |= (CLIENT_MASTER | CLIENT_INTERNAL | CLIENT_ASM_IMPORTING);
-            c->querybuf = sdsempty();
+            clientTail(c)->querybuf = sdsempty();
             c->authenticated = 1;
             c->user = NULL;
-            c->task = task;
+            clientTail(c)->task = task;
             serverLog(LL_NOTICE,
                 "Source node replied to SLOTSSNAPSHOT, syncing slots snapshot can continue...");
         } else {
@@ -1653,7 +1653,7 @@ void asmSlotSnapshotSucceed(struct asmTask *task) {
     /* The destination starts sending ACKs to keep the main channel alive after
      * receiving the snapshot, so here we need to update the last interaction
      * time to avoid false timeout. */
-    task->main_channel_client->lastinteraction = server.unixtime;
+    clientTail(task->main_channel_client)->lastinteraction = server.unixtime;
 
     task->state = ASM_SEND_STREAM;
     task->rdb_channel_state = ASM_COMPLETED;
@@ -1672,7 +1672,7 @@ void asmSlotSnapshotFailed(struct asmTask *task) {
  * that the slots snapshot has ended. */
 void clusterSyncSlotsSnapshotEOF(client *c) {
     /* This client is RDB channel connection. */
-    asmTask *task = c->task;
+    asmTask *task = clientTail(c)->task;
     if (!task || task->rdb_channel_state != ASM_RDBCHANNEL_TRANSFER ||
         c->conn != task->rdb_channel_conn)
     {
@@ -1696,7 +1696,7 @@ void clusterSyncSlotsSnapshotEOF(client *c) {
     serverLog(LL_NOTICE, "RDB channel snapshot transfer completed for the import task.");
 
     /* Free the RDB channel connection. */
-    c->task = NULL;
+    clientTail(c)->task = NULL;
     c->flags &= ~CLIENT_MASTER;
     freeClientAsync(c);
 
@@ -1713,7 +1713,7 @@ void clusterSyncSlotsSnapshotEOF(client *c) {
  * This command is sent by the source node to the destination node to indicate
  * that the slot sync stream has ended and the slots can be handed off. */
 void clusterSyncSlotsStreamEOF(client *c) {
-    asmTask *task = c->task;
+    asmTask *task = clientTail(c)->task;
 
     if (!task || task->operation != ASM_IMPORT) {
         serverLog(LL_WARNING, "Unexpected CLUSTER SYNCSLOTS STREAM-EOF command");
@@ -1880,10 +1880,10 @@ void clusterSyncSlotsCommand(client *c) {
         }
 
         /* Verify the destination node is known and is a master. */
-        if (c->node_id) {
-            clusterNode *dest = clusterLookupNode(c->node_id, CLUSTER_NAMELEN);
+        if (clientTail(c)->node_id) {
+            clusterNode *dest = clusterLookupNode(clientTail(c)->node_id, CLUSTER_NAMELEN);
             if (dest == NULL || !clusterNodeIsMaster(dest)) {
-                addReplyErrorFormat(c, "Destination node %.40s is not a master", c->node_id);
+                addReplyErrorFormat(c, "Destination node %.40s is not a master", clientTail(c)->node_id);
                 slotRangeArrayFree(slots);
                 return;
             }
@@ -1912,7 +1912,7 @@ void clusterSyncSlotsCommand(client *c) {
         if (task && !strcmp(task->id, task_id) &&
             task->operation == ASM_MIGRATE && task->state == ASM_FAILED &&
             slotRangeArrayIsEqual(slots, task->slots) &&
-            memcmp(task->dest, c->node_id, CLUSTER_NAMELEN) == 0)
+            memcmp(task->dest, clientTail(c)->node_id, CLUSTER_NAMELEN) == 0)
         {
             /* Reuse the failed task */
             asmTaskReset(task);
@@ -1943,10 +1943,10 @@ void clusterSyncSlotsCommand(client *c) {
         task->slots = slots;
         task->operation = ASM_MIGRATE;
         memcpy(task->source, clusterNodeGetName(getMyClusterNode()), CLUSTER_NAMELEN);
-        if (c->node_id) memcpy(task->dest, c->node_id, CLUSTER_NAMELEN);
+        if (clientTail(c)->node_id) memcpy(task->dest, clientTail(c)->node_id, CLUSTER_NAMELEN);
 
         task->main_channel_client = c;
-        c->task = task;
+        clientTail(c)->task = task;
 
         /* We mark the main channel client as a replica, so this client is limited
          * by the client output buffer settings for replicas. The replstate has
@@ -2025,7 +2025,7 @@ void clusterSyncSlotsCommand(client *c) {
         task->state = ASM_WAIT_BGSAVE_START;
         task->rdb_channel_state = ASM_WAIT_BGSAVE_START;
         task->rdb_channel_client = c;
-        c->task = task;
+        clientTail(c)->task = task;
 
         /* Keep the client in the main thread to avoid data races between the
          * connWrite call in startBgsaveForReplication and the client's event
@@ -2059,9 +2059,9 @@ void clusterSyncSlotsCommand(client *c) {
         if ((getLongLongFromObject(c->argv[4], &offset) != C_OK))
             return;
 
-        if (c->task && c->task->operation == ASM_MIGRATE) {
+        if (clientTail(c)->task && clientTail(c)->task->operation == ASM_MIGRATE) {
             /* Update the state and ACKed offset from destination. */
-            asmTask *task = c->task;
+            asmTask *task = clientTail(c)->task;
             task->dest_state = dest_state;
             if (task->dest_offset > (unsigned long long) offset) {
                 serverLog(LL_WARNING, "CLUSTER SYNCSLOTS ACK received, dest state: %s, "
@@ -2122,8 +2122,8 @@ void clusterSyncSlotsCommand(client *c) {
                     return;
                 }
 
-                if (c->node_id) sdsfree(c->node_id);
-                c->node_id = sdsdup(node_id);
+                if (clientTail(c)->node_id) sdsfree(clientTail(c)->node_id);
+                clientTail(c)->node_id = sdsdup(node_id);
             } else if (!strcasecmp(c->argv[j]->ptr, "slot-info")) {
                 /* slot-info slot:key_size:expire_size */
                 int count;
@@ -2444,10 +2444,10 @@ void asmSyncBufferStreamToDb(asmTask *task) {
     client *c = createClient(task->main_channel_conn);
     initClientReplicationData(c);
     c->flags |= (CLIENT_MASTER | CLIENT_INTERNAL | CLIENT_ASM_IMPORTING);
-    c->querybuf = sdsempty();
+    clientTail(c)->querybuf = sdsempty();
     c->authenticated = 1;
     c->user = NULL;
-    c->task = task;
+    clientTail(c)->task = task;
 
     /* Mark the peek buffer block count. We'll use it to verify we consume
      * faster than we read from the source side. */
@@ -2527,14 +2527,14 @@ void asmSendStreamEofIfDrained(asmTask *task) {
          * sending ACKs over this connection. Instead, we leave it to the
          * destination to close it. We just clear the task and client
          * references */
-        task->main_channel_client->task = NULL;
+        clientTail(task->main_channel_client)->task = NULL;
         task->main_channel_client = NULL;
 
         /* There may be a delay to handle the disconnection of RDB channel,
          * so we clear the task and client references here. */
         if (task->rdb_channel_client != NULL) {
             task->rdb_channel_state = ASM_COMPLETED;
-            task->rdb_channel_client->task = NULL;
+            clientTail(task->rdb_channel_client)->task = NULL;
             freeClientAsync(task->rdb_channel_client);
             task->rdb_channel_client = NULL;
         }
@@ -2608,16 +2608,16 @@ void asmCron(void) {
 
             /* Check if the main channel is timed out */
             client *c = connGetPrivateData(task->main_channel_conn);
-            serverAssert(c->task == task);
-            if (server.unixtime - c->lastinteraction > server.repl_timeout)
+            serverAssert(clientTail(c)->task == task);
+            if (server.unixtime - clientTail(c)->lastinteraction > server.repl_timeout)
                 asmTaskSetFailed(task, "Main channel - Connection timeout");
         } else if (task->state == ASM_ACCUMULATE_BUF &&
                    task->rdb_channel_state == ASM_RDBCHANNEL_TRANSFER)
         {
             /* Check if the RDB channel is timed out */
             client *c = connGetPrivateData(task->rdb_channel_conn);
-            serverAssert(c->task == task);
-            if (server.unixtime - c->lastinteraction > server.repl_timeout)
+            serverAssert(clientTail(c)->task == task);
+            if (server.unixtime - clientTail(c)->lastinteraction > server.repl_timeout)
                 asmTaskSetFailed(task, "RDB channel - Connection timeout");
         } else if (task->state == ASM_SEND_SYNCSLOTS) {
             /* Rare case: the source node replied to SYNCSLOTS with -NOTREADY
@@ -2632,7 +2632,7 @@ void asmCron(void) {
             /* Currently, we only need to check the main channel timeout when sending streams.
              * For RDB channel connections, the timeout is handled by the socket itself
              * during writes in slotSnapshotSaveRio. */
-            if (server.unixtime - task->main_channel_client->lastinteraction > server.repl_timeout)
+            if (server.unixtime - clientTail(task->main_channel_client)->lastinteraction > server.repl_timeout)
                 asmTaskSetFailed(task, "Main channel - Connection timeout");
 
             /* After the destination applies the accumulated buffer, the source continues
@@ -3296,7 +3296,7 @@ void trimslotsCommand(client *c) {
     slotRangeArray *slots = parseSlotRangesOrReply(c, c->argc, 3);
     if (!slots) return;
 
-    if (c->id == CLIENT_ID_AOF) {
+    if (clientTail(c)->id == CLIENT_ID_AOF) {
         serverAssert(server.loading);
         /* If we are loading the AOF, we can't trigger active trim because next
          * command may have an update for the same key that is supposed to be

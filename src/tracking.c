@@ -237,7 +237,8 @@ void trackingRememberKeys(client *tracking, client *executing) {
         } else {
             ids = result;
         }
-        if (raxTryInsert(ids,(unsigned char*)&tracking->id,sizeof(tracking->id),NULL,NULL))
+        if (raxTryInsert(ids,(unsigned char*)&clientTail(tracking)->id,
+                         sizeof(clientTail(tracking)->id),NULL,NULL))
             TrackingTableTotalItems++;
     }
     getKeysFreeResult(&result);

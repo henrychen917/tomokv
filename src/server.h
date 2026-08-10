@@ -1066,7 +1066,8 @@ struct RedisModuleDigest {
 } while(0)
 
 /* Macro to check if the client is in the middle of module based authentication. */
-#define clientHasModuleAuthInProgress(c) ((c)->cold && (c)->cold->module_auth_ctx != NULL)
+#define clientHasModuleAuthInProgress(c) \
+    ((c)->has_exec_tail && clientTail(c)->cold && clientTail(c)->cold->module_auth_ctx != NULL)
 
 /* The string name for an object's type as listed above
  * Native types are checked against the OBJ_STRING, OBJ_LIST, OBJ_* defines,
@@ -1769,279 +1770,220 @@ typedef struct clientCold {
     listNode *postponed_list_node;
 } clientCold;
 
-typedef struct client {
-    int isFake;
-    client *parent;
-    client *fakeClients[TOMO_PIPELINE_DEPTH_MAX];
-    unsigned int dispatchid;
-    unsigned int flushid;
-    /* 2s-auto: per-connection controller state (IO-thread single-writer, freed with client). */
-    unsigned int fake_ring_cur_depth;   /* live fake count; lazy-grows to ring_size */
-    /* UNIFIED per-connection ring (it merged tomokv-pipeline-depth with tomokv-fake-ring-depth:
-     * they described the same physical ring and disagreed — the in-flight gate used the GLOBAL depth
-     * while the depth controller only set an initial prealloc COUNT, so a static N never actually
-     * capped anything and slot indices cycled over all MAX slots, lazily creating every one).
-     * ring_size is the effective depth AND the slot modulus.
-     * tomokv-fake-ring-depth was then retired at AUTO and folded away (2026-07-28), so there is one
-     * behaviour: open at the tomokv-pipeline-depth maximum, create slots on demand, and DECAY toward
-     * measured demand in cron. The OFF (size 1) and STATIC-N (no grow, no decay) modes are gone.
-     * Resizing only ever happens at an EMPTY-ring checkpoint (dispatchid == flushid), because the
-     * mask remaps slots; growth is applied there (fast), decay in cron (slow). */
-    unsigned int ring_size;             /* power of two, <= TOMO_PIPELINE_DEPTH_MAX */
-    unsigned int ring_mask;             /* ring_size - 1 */
-    unsigned int ring_want_grow;        /* set on a ring-full stall; applied at the next empty ring */
-    /* ORDER-2 (multi-hop pipeline barrier). Pipelined ordering under sharding rests on ONE
-     * invariant: same key => same owner queue => FIFO, because every sub is pushed from the
-     * dispatch loop in client order. MULTI-STAGE cross-shard groups break it — their later
-     * subs (HOP2 write/src-op, merge-exec gather/probe stages) are pushed from the DRAIN
-     * thread, long after this client's SUBSEQUENT commands were already queued on the very
-     * same per-key queues. Those later commands then execute against pre-HOP2 state (verified:
-     * xshard SMOVE/RENAME/COPY/LMOVE/SINTERSTORE/MSETNX + merge-exec SINTER/SINTERCARD).
-     * Set at dispatch when such a group is armed; the next command from this client stalls
-     * until the ring drains (the stateful-drain idiom). Real clients only, IO-thread only. */
-    unsigned int cs_barrier;
-    /* CURE2 R1 + I7. Only real clients use the completion FIFO/latch. A
-     * command-scoped read pin belongs to a ring fake until a cross-shard group
-     * takes it over; the snapshot is drawn before its owner jobs are queued. */
-    redisAtomic int mset_pending_lock;
-    redisAtomic int mset_drain_latch;
-    redisAtomic unsigned int mset_pending_count; /* registered groups not yet commit-published */
-    redisAtomic int mset_read_waiting;           /* worker-to-owner-event-loop wake handshake */
-    struct csGroup *mset_pending_head;
-    struct csGroup *mset_pending_tail;
-    /* Key sets of this connection's groups that have left the FIFO but not yet decremented
-     * mset_pending_count (see csMsetPub). NULL until this connection registers its first atomic
-     * group; freed with reply_cdb in freeClient, and protected by the same in-flight deferral. */
-    struct csMsetPub *mset_pub;
-    uint64_t tomo_read_snapshot;
-    unsigned int tomo_read_snapshot_pinned;
-    unsigned int fake_ring_decay_skip;  /* hysteresis: hold N empty-cycles before shrink */
-    double       fake_ring_hwm_ewma;    /* EWMA of (dispatchid-flushid) high-water */
-    unsigned int fake_ring_hwm_win;     /* true window max of in-flight, dispatch-updated;
-                                         * consumed+reset by the cron fold (ee451 review: the
-                                         * 1Hz point sample read 0 for every sub-second burst,
-                                         * so the "hwm" EWMA decayed to ~1 and the ring was
-                                         * freed + rebuilt every ~3s even for busy clients) */
-    /* Real-client per-CDB reply-ready slots. reply_cdb[c].ready[N] == 1 means
-     * ring slot N completed on CDB c. Each CDB is cache-line isolated; each slot
-     * is a distinct atomic object, so the one-bit SPSC publication uses a release
-     * store instead of a word-wide RMW. */
-    cdbSlots *reply_cdb;    /* heap array of exactly server.num_cdb cache-line-isolated reply buses
-                             * (real clients; aligned via zmalloc+offset in createClient, freed in freeClient).
-                             * Fakes leave this NULL and signal completions into parent->reply_cdb. */
-    /* Fake-client: fixed index in parent->fakeClients (0..PIPELINE_DEPTH-1),
-     * stamped once at preallocation. Unused on real clients. */
-    unsigned int fake_slot;
-    /* ee451 (S5): the CDB index this fake's completion slot is routed to, captured
-     * once at dispatch from its owning worker. The worker signals
-     * reply_cdb[cdb].ready[fake_slot] and the drain clears that same byte. */
-    int cdb;
-    /* ee451 (v7 cross-shard): set on a ring-slot fake that is a multi-key (MGET/MSET/
-     * DEL/EXISTS) GROUP HEAD (NULL otherwise); and on a SUB-FAKE, csparent points back
-     * to its group so completion decrements the group counter instead of signaling. */
-    struct csGroup *csgroup;
-    struct csGroup *csparent;
-    int cssub_idx;   /* sub-fake: its index (= original key position) within its group */
-    /* ee451 (v7): FLUSH SENTINEL fake. FLUSHALL/FLUSHDB queues one of these per worker THROUGH
-     * the SPSC ring (so it is FIFO-ordered behind that connection's earlier commands, not
-     * jumped ahead); the owning worker empties its OWN shard DBs (single-writer) when it pops
-     * the sentinel, then frees it. dbid/async carried on the fake itself (no shared barrier —
-     * the reply is sent immediately, fire-and-forget). is_flush==0 on every non-sentinel. */
-    int is_flush;
-    int flush_dbid;            /* -1 = all logical DBs (FLUSHALL); else specific (FLUSHDB) */
-    int flush_async;
-    /* ee451 (v8d): cutover drain-fence sentinel. When non-NULL this fake carries no command.
-     * CONTRACT (corrected 2026-07-28 — the old comment described a barrier that does not exist:
-     * it claimed worker A "decrements *drain_ack", while the code stores 1 into
-     * server.migration.fence_acked[queue index]. There is no counter and nothing is decremented;
-     * this field is a NON-NULL MARKER ONLY, deliberately pointing at fence_acked[0] so it is
-     * never a dangling pointer. Do not dereference it.)
-     * Worker A reaches the sentinel in its EXECUTE loop in queue order (H2), which proves every
-     * command this producer pushed BEFORE it has already executed — not merely been popped —
-     * and stores 1 into fence_acked[the slot the sentinel came up]. That store is the ONLY
-     * sound drain proof the cutover has; see reshardCoordinatorTick C.2. */
-    _Atomic int *drain_ack;
-    /* ee451 (H2 handover): this client is parked by the cutover range-hold; the node is its entry in
-     * clients_mig_parked[its io thread]. Kept on the client so unlinkClient can remove it in O(1)
-     * when the connection dies mid-hold (a parked client has an EMPTY ring, so nothing else would
-     * ever notice it and the stale list entry would be a use-after-free). NULL = not parked. */
-    listNode *mig_parked_node;
-    int mig_parked_tid;        /* the io slot whose clients_mig_parked list holds mig_parked_node */
-    /* Atomic-MSET admission wait membership. Disconnect removes this owning-IO list entry before
-     * freeing the pending command; NULL means the client is not waiting for the global window. */
-    listNode *atomic_window_parked_node;
-    int atomic_window_parked_tid;
-    uint64_t arrival_us;       /* strict-order: monotonic-us stamp at enqueue (only when
-                                * tomokv-strict-order != 0). Within a queue it is monotonic
-                                * (single producer), so the head is that queue's oldest; the
-                                * worker merges queues by picking the globally-oldest head. */
-    /* ee451: SipHash of argv[1] (the dispatched single key), computed once by
-     * the worker prefetch stage (exPrefetchBatch) and reused at command
-     * execution via dictArmHashHint() to avoid hashing the key twice. Valid
-     * only for the window between prefetch and proc() for this fake. */
-    uint64_t prefetch_key_hash;
-    int prefetch_key_hash_valid;
-    dict *prefetch_dict;              /* #3: this fake's resolved shard dict (set in exPrefetchBatch pass-2) */
-    unsigned long prefetch_bucket_idx;/* #3: ht_table[0] slot for the key -> exec-loop next-op look-ahead */
-    uint64_t id;            /* Client incremental unique ID. */
-    uint64_t flags;         /* Client flags: CLIENT_* macros. */
-    connection *conn;
-    uint8_t tid;            /* Thread assigned ID this client is bound to. */
-    uint8_t running_tid;    /* Thread assigned ID this client is running on. */
-    uint8_t io_flags;       /* Accessed by both main and IO threads, but not modified concurrently */
-    uint8_t read_error;     /* Client read error: CLIENT_READ_* macros. */
-    int resp;               /* RESP protocol version. Can be 2 or 3. */
-    redisDb *db;            /* Pointer to currently SELECTed DB. */
-    robj *name;             /* As set by CLIENT SETNAME. */
-    robj *lib_name;         /* The client library name as set by CLIENT SETINFO. */
-    robj *lib_ver;          /* The client library version as set by CLIENT SETINFO. */
-    sds querybuf;           /* Buffer we use to accumulate client queries. */
-    size_t qb_pos;          /* The position we have read in querybuf. */
-    size_t querybuf_peak;   /* Recent (100ms or more) peak of querybuf size. */
-    int argc;               /* Num of arguments of current command. */
-    robj **argv;            /* Arguments of current command. */
-    int argv_len;           /* Size of argv array (may be more than argc) */
-    int original_argc;      /* Num of arguments of original command if arguments were rewritten. */
-    robj **original_argv;   /* Arguments of original command if arguments were rewritten. */
-    size_t all_argv_len_sum;    /* Sum of lengths of objects in all pendingCommand argv lists */
-    pendingCommandList pending_cmds;  /* List of parsed pending commands */
-    pendingCommand *current_pending_cmd;
-    deferredObject *deferred_objects; /* Array of deferred objects to free. */
-    int deferred_objects_num;   /* Number of deferred objects to free. */
-    robj **io_deferred_objects;    /* Objects to be freed by main thread, queued by IO thread */
-    int io_deferred_objects_num;   /* Number of objects in io_deferred_objects */
-    int io_deferred_objects_size;  /* Allocated size of io_deferred_objects */
-    struct redisCommand *cmd, *lastcmd;  /* Last command executed. */
-    struct redisCommand *lookedcmd; /* Command looked up in lookahead. */
-    struct redisCommand *realcmd; /* The original command that was executed by the client,
-                                     Used to update error stats in case the c->cmd was modified
-                                     during the command invocation (like on GEOADD for example). */
-    user *user;             /* User associated with this connection. If the
-                               user is set to NULL the connection can do
-                               anything (admin). */
-    int reqtype;            /* Request protocol type: PROTO_REQ_* */
-    int multibulklen;       /* Number of multi bulk arguments left to read. */
-    long bulklen;           /* Length of bulk argument in multi bulk request. */
-    list *reply;            /* List of reply objects to send to the client. */
-    unsigned long long reply_bytes; /* Tot bytes of objects in reply list. */
-    list *deferred_reply_errors;    /* Used for module thread safe contexts. */
-    size_t sentlen;         /* Amount of bytes already sent in the current
-                               buffer or object being sent. */
-    time_t ctime;           /* Client creation time. */
-    long duration;          /* Current command duration. Used for measuring latency of blocking/non-blocking cmds */
-    int slot;               /* The slot the client is executing against. Set to -1 if no slot is being used */
-    int cluster_compatibility_check_slot; /* The slot the client is executing against for cluster compatibility check.
-                                           * -2 means we don't need to check slot violation, or we already found
-                                           * a violation, reported it and don't need to continue checking.
-                                           * -1 means we're looking for the slot number and didn't find it yet.
-                                           * any positive number means we found a slot and no violation yet. */
-    dictEntry *cur_script;  /* Cached pointer to the dictEntry of the script being executed. */
-    time_t lastinteraction; /* Time of the last interaction, used for timeout */
-    time_t io_lastinteraction; /* Time of the last interaction as seen from
-                                * IO thread. When the client is moved to main
-                                * it updates its `lastinteraction` value from
-                                * this. */
-    time_t obuf_soft_limit_reached_time;
-    mstime_t io_last_client_cron;  /* Timestamp of last invocation of client
-                                    * cron if client is running in IO thread */
-    int authenticated;      /* Needed when the default user requires auth. */
-    long long reploff_next; /* Next value to set for reploff when a command finishes executing */
-    long long woff;         /* Last write global replication offset. */
-    sds peerid;             /* Cached peer ID. */
-    sds sockname;           /* Cached connection target address. */
-    listNode *client_list_node; /* list node in client list */
-    listNode *io_thread_client_list_node; /* list node in io thread client list */
-    /* In updateClientMemoryUsage() we track the memory usage of
-     * each client and add it to the sum of all the clients of a given type,
-     * however we need to remember what was the old contribution of each
-     * client, and in which category the client was, in order to remove it
-     * before adding it the new value. */
-    size_t last_memory_usage;
-    int last_memory_type;
-
-    /* Replication buffer cursors live in clientCold. */
-
-    /* list node in clients_pending_ex list */
-    listNode clients_pending_ex_node;
-    /* list node in clients_pending_write list */
-    listNode clients_pending_write_node;
-    /* list node in clients_with_pending_ref_reply list */
-    listNode pending_ref_reply_node;
-    /* Statistics and metrics */
-    size_t net_input_bytes_curr_cmd; /* Total network input bytes read for the
-                                      * execution of this client's current command. */
-    size_t net_output_bytes_curr_cmd; /* Total network output bytes sent to this
-                                       * client, by the current command. */
-    /* Response buffer */
-    size_t buf_peak; /* Peak used size of buffer in last 5 sec interval. */
-    mstime_t buf_peak_last_reset_time; /* keeps the last time the buffer peak value was reset */
-    size_t bufpos;
-    size_t buf_usable_size; /* Usable size of buffer. */
-    char *buf;
-    uint8_t buf_encoded; /* True if c->buf content is encoded (e.g. for copy avoidance) */
-    payloadHeader *last_header; /* Pointer to the last header in a buffer when using copy avoidance */
 #ifdef LOG_REQ_RES
-    clientReqResInfo reqres;
+#define CLIENT_EXEC_TAIL_BYTES 904
+#else
+#define CLIENT_EXEC_TAIL_BYTES 840
 #endif
-    unsigned long long net_input_bytes;    /* Total network input bytes read from this client. */
-    unsigned long long net_output_bytes;   /* Total network output bytes sent to this client. */
-    unsigned long long commands_processed; /* Total count of commands this client executed. */
-    struct asmTask *task;       /* Atomic slot migration task */
-    char *node_id;              /* Node ID to connect to for atomic slot migration */
 
-    redisAtomic int pending_read; /* Flag indicating an IO thread client residing
-                                   * in main thread has received a read event. */
-    /* ee451 (struct-layout fix): the three shared-kv additions below were originally inserted
-     * mid-struct (after flush_async), shifting every downstream exec-hot field +24B and splitting
-     * the reply-control cluster across two cachelines (+1 cross-core transfer per op at the IO
-     * drain, +1 RFO on the worker's next reply build — measured ~2-5%%). Parked at the TAIL so the
-     * pre-shared-kv hot-field offsets are restored; these fields are dispatch/exec-warm anyway and
-     * ride whatever line the tail gives them. */
-    const void *tomo_bkt_ptr;  /* ee451 (hash-carry): sds ptr whose bucket/full hash were carried;
-                                * getKeySlot/dbFindByLink consume on POINTER match (same sds, alive
-                                * for the exec window), collapsing redundant xxh64 calls. */
-    int tomo_bkt;              /* the carried bucket (dict index) for tomo_bkt_ptr */
-    uint64_t tomo_key_h;       /* ee451 D: the routing xxh64, kept whole. The reorder's dependency
-                                * guard compares these (same key => same h => always caught; a
-                                * 2^-64 collision lands on the safe fence side) and derives bucket
-                                * equality from the low bits for locality grouping. One u64 store
-                                * per keyed dispatch, at the site that computed the hash anyway. */
-    struct tomoFlushBar *flush_bar; /* ee451 (shared-kv S0.2b): per-node flush barrier — the node's
-                                * workers rendezvous at their sentinels; the LAST arrival empties the
-                                * shared node kvstore while the others spin (µs), preserving the
-                                * per-connection FIFO flush semantics without concurrent kvstoreEmpty
-                                * races. NULL = sharing off (private per-worker db): empty directly. */
-    /* T6 single-shard transaction/script routing. Cold tail fields keep the GET/SET
-     * execution/reply cache lines above unchanged. tomo_local_worker >= 0 means this fake
-     * represents one whole EXEC/WATCH/EVAL/FCALL unit routed to that owner worker. */
-    int tomo_local_worker;
-    redisAtomic int tomo_watch_worker; /* sole owner of this client's active WATCH set, or -1 */
-    redisAtomic unsigned int tomo_dirty_cas; /* owner-worker WATCH invalidation handoff */
-    uint8_t tomo_script_gate;       /* fake owns the script fence until its proc returns */
-    /* Allocated only for an accepted TCP client while tomokv-io-uring=1/2.
-     * Kept at the cold tail so the default epoll path does not perturb the
-     * request/reply cache-line layout. */
-    clientCold *cold;       /* Rare state, allocated on first cold-subsystem use. */
-    struct tomoUringClient *uring;
+/* State which is never required by the plain GET/SET execution lane. The byte
+ * member fixes the allocation contract; grouping by alignment leaves reserve
+ * for field growth without moving the 320-byte execution core. */
+typedef union clientExecTail {
+    struct {
+        /* Keep the CDB pointer at full-client offset 320. Its pointee remains
+         * cache-line isolated; this split must not add a dependent load to the
+         * EX->IO completion publication path. */
+        cdbSlots *reply_cdb;
+        /* Connection-owned controller state. A fake never owns another fake
+         * ring, which is the four-line hole removed by the core allocation. */
+        client *fakeClients[TOMO_PIPELINE_DEPTH_MAX];
+        struct csGroup *mset_pending_head;
+        struct csGroup *mset_pending_tail;
+        struct csMsetPub *mset_pub;
+        double fake_ring_hwm_ewma;
+        _Atomic int *drain_ack;
+        listNode *mig_parked_node;
+        listNode *atomic_window_parked_node;
+        uint64_t id;
+        robj *name;
+        robj *lib_name;
+        robj *lib_ver;
+        sds querybuf;
+        size_t qb_pos;
+        size_t querybuf_peak;
+        robj **original_argv;
+        deferredObject *deferred_objects;
+        robj **io_deferred_objects;
+        struct redisCommand *lastcmd;
+        struct redisCommand *lookedcmd;
+        struct redisCommand *realcmd;
+        long bulklen;
+        list *deferred_reply_errors;
+        time_t ctime;
+        long duration;
+        dictEntry *cur_script;
+        time_t lastinteraction;
+        time_t io_lastinteraction;
+        time_t obuf_soft_limit_reached_time;
+        mstime_t io_last_client_cron;
+        long long reploff_next;
+        long long woff;
+        sds peerid;
+        sds sockname;
+        listNode *client_list_node;
+        listNode *io_thread_client_list_node;
+        size_t last_memory_usage;
+        listNode clients_pending_ex_node;
+        listNode clients_pending_write_node;
+        listNode pending_ref_reply_node;
+        mstime_t buf_peak_last_reset_time;
+        unsigned long long net_input_bytes;
+        unsigned long long net_output_bytes;
+        struct asmTask *task;
+        char *node_id;
+        struct tomoFlushBar *flush_bar;
+        clientCold *cold;
+        struct tomoUringClient *uring;
+#ifdef LOG_REQ_RES
+        clientReqResInfo reqres;
+#endif
+
+        unsigned int dispatchid;
+        unsigned int flushid;
+        unsigned int fake_ring_cur_depth;
+        unsigned int ring_size;
+        unsigned int ring_mask;
+        unsigned int ring_want_grow;
+        unsigned int cs_barrier;
+        redisAtomic int mset_pending_lock;
+        redisAtomic int mset_drain_latch;
+        redisAtomic unsigned int mset_pending_count;
+        redisAtomic int mset_read_waiting;
+        unsigned int fake_ring_decay_skip;
+        unsigned int fake_ring_hwm_win;
+        int cssub_idx;
+        int is_flush;
+        int flush_dbid;
+        int flush_async;
+        int mig_parked_tid;
+        int atomic_window_parked_tid;
+        int original_argc;
+        int deferred_objects_num;
+        int io_deferred_objects_num;
+        int io_deferred_objects_size;
+        int reqtype;
+        int multibulklen;
+        int last_memory_type;
+        redisAtomic int pending_read;
+        uint8_t read_error;
+    };
+    unsigned char _layout[CLIENT_EXEC_TAIL_BYTES];
+    uint64_t _align;
+} clientExecTail;
+
+/* The worker/IO handoff object is exactly five 64-byte layout regions. A full
+ * client appends one tail in the same allocation; an express fake omits it. */
+typedef struct client {
+    union {
+        struct {
+            int isFake;
+            uint8_t tid;
+            uint8_t running_tid;
+            uint8_t io_flags;
+            uint8_t buf_encoded;
+            client *parent;
+            uint64_t flags;
+            connection *conn;
+            redisDb *db;
+            user *user;
+            struct redisCommand *cmd;
+            robj **argv;
+
+            list *reply;
+            char *buf;
+            pendingCommandList pending_cmds;
+            pendingCommand *current_pending_cmd;
+            struct csGroup *csgroup;
+            struct csGroup *csparent;
+
+            payloadHeader *last_header;
+            uint64_t prefetch_key_hash;
+            dict *prefetch_dict;
+            /* Strict-order consumes arrival_us before the prefetch pass writes
+             * its bucket look-ahead. The two values cannot be live together. */
+            union {
+                unsigned long prefetch_bucket_idx;
+                uint64_t arrival_us;
+            };
+            const void *tomo_bkt_ptr;
+            uint64_t tomo_key_h;
+            uint64_t tomo_read_snapshot;
+            size_t all_argv_len_sum;
+
+            unsigned long long reply_bytes;
+            size_t sentlen;
+            size_t net_input_bytes_curr_cmd;
+            size_t net_output_bytes_curr_cmd;
+            size_t buf_peak;
+            size_t bufpos;
+            size_t buf_usable_size;
+            unsigned long long commands_processed;
+
+            unsigned int tomo_read_snapshot_pinned;
+            unsigned int fake_slot;
+            int cdb;
+            int prefetch_key_hash_valid;
+            int resp;
+            int argc;
+            int argv_len;
+            int authenticated;
+            int slot;
+            int cluster_compatibility_check_slot;
+            int tomo_bkt;
+            int tomo_local_worker;
+            redisAtomic int tomo_watch_worker;
+            redisAtomic unsigned int tomo_dirty_cas;
+            uint8_t tomo_script_gate;
+            /* Tail lvalues must only be formed after this test. Ring-slot
+             * promotion happens while the slot is idle, before publication. */
+            uint8_t has_exec_tail;
+        };
+        unsigned char _exec_core_layout[320];
+        uint64_t _exec_core_align;
+    };
+    clientExecTail exec_tail[];
 } client;
+
+#define CLIENT_FULL_SIZE (sizeof(client) + sizeof(clientExecTail))
+
+#define clientTail(c) ((c)->exec_tail)
+
+_Static_assert(sizeof(client) == 320, "client execution core must stay 320 bytes");
+_Static_assert(offsetof(client, exec_tail) == 320, "client tail must follow the execution core");
+_Static_assert(sizeof(clientExecTail) == CLIENT_EXEC_TAIL_BYTES, "client execution tail size changed");
+_Static_assert(offsetof(clientExecTail, reply_cdb) == 0, "CDB pointer must remain a direct offset load");
+#ifndef LOG_REQ_RES
+_Static_assert(CLIENT_FULL_SIZE == 1160, "full client must stay within the audited byte budget");
+#endif
+#if UINTPTR_MAX == UINT64_MAX
+_Static_assert(offsetof(client, flags) == 16, "client flags left hot line 0");
+_Static_assert(offsetof(client, reply) == 64, "client reply left hot line 1");
+_Static_assert(offsetof(client, prefetch_key_hash) == 136, "client prefetch state left hot line 2");
+_Static_assert(offsetof(client, reply_bytes) == 192, "client reply accounting left hot line 3");
+_Static_assert(offsetof(client, argc) == 276, "client argv state left hot line 4");
+#endif
 
 /* Non-allocating cold-state readers. Call the subsystem initializer before a
  * write; these helpers deliberately return NULL for never-used state. */
 static inline multiState *clientMultiState(client *c) {
-    return c->cold ? &c->cold->mstate : NULL;
+    clientCold *cold = c->has_exec_tail ? clientTail(c)->cold : NULL;
+    return cold ? &cold->mstate : NULL;
 }
 
 static inline blockingState *clientBlockingState(client *c) {
-    return c->cold && (c->cold->initialized & CLIENT_COLD_BLOCKED) ?
-           &c->cold->bstate : NULL;
+    clientCold *cold = c->has_exec_tail ? clientTail(c)->cold : NULL;
+    return cold && (cold->initialized & CLIENT_COLD_BLOCKED) ? &cold->bstate : NULL;
 }
 
 static inline clientCold *clientPubSubData(client *c) {
-    return c->cold && (c->cold->initialized & CLIENT_COLD_PUBSUB) ? c->cold : NULL;
+    clientCold *cold = c->has_exec_tail ? clientTail(c)->cold : NULL;
+    return cold && (cold->initialized & CLIENT_COLD_PUBSUB) ? cold : NULL;
 }
 
 static inline clientCold *clientReplicationData(client *c) {
-    return c->cold && (c->cold->initialized & CLIENT_COLD_REPL) ? c->cold : NULL;
+    clientCold *cold = c->has_exec_tail ? clientTail(c)->cold : NULL;
+    return cold && (cold->initialized & CLIENT_COLD_REPL) ? cold : NULL;
 }
 
 /* ee451 (v7): cross-shard scatter-gather group. Lives on the GROUP HEAD fake (the ring
@@ -4985,6 +4927,7 @@ void moduleDefragEnd(void);
 void *moduleGetHandleByName(char *modulename);
 int moduleIsModuleCommand(void *module_handle, struct redisCommand *cmd);
 int moduleHasSubscribersForKeyspaceEvent(int type);
+int moduleHasKeyspaceChangeCallbacks(int type);
 
 /* pcmd */
 void initPendingCommand(pendingCommand *pcmd);
@@ -6544,9 +6487,13 @@ int exIndexForKey(const void *keyptr, size_t len);  /* ee451: key->shard (dispat
 int tomoCommandSingleWorker(struct redisCommand *cmd, robj **argv, int argc, int hold_migration);
 int tomoKeyBucket(const void *keyptr, size_t len);  /* ee451 (S0.2a): key->bucket == kvstore dict index (db.c getKeySlot) */
 client *createFakeClient(client *parent);               /* ee451 (v7): for cross-shard sub-fakes */
+client *createCoreFakeClient(client *parent);           /* 320-byte plain GET/SET ring fake */
+client *promoteFakeClient(client *c);                   /* idle ring-slot promotion */
 client *createPooledFakeClient(client *parent);         /* ee451 (v11): pooled cross-shard sub-fake */
 void freePooledFakeClient(client *c);                   /* ee451 (v11): return sub-fake to per-iotid pool */
 void freeFakeClient(client *c);
+extern _Atomic unsigned long long tomo_fake_core_allocs;
+extern _Atomic unsigned long long tomo_fake_tail_promotions;
 void *polyThreadMain(void *arg);   /* ee451 (thread-modes v1, step 2): unified mode-dispatching main (arg = polyThreadCtx*) */
 /* ee451 (thread-modes v1.6): connection migration. */
 extern tmMigMailbox tm_mig_mbox[TOMO_IO_THREADS_MAX + 1];  /* one per io-capable slot (0..io_threads); main=0 unused */

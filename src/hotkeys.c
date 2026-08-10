@@ -84,11 +84,11 @@ static inline int isSlotSelected(hotkeyStats *hotkeys, int slot) {
 void hotkeyStatsPreCurrentCmd(hotkeyStats *hotkeys, client *c) {
     if (!hotkeys || !hotkeys->active) return;
 
-    robj **argv = c->original_argv ? c->original_argv : c->argv;
-    int argc = c->original_argv ? c->original_argc : c->argc;
+    robj **argv = clientTail(c)->original_argv ? clientTail(c)->original_argv : c->argv;
+    int argc = clientTail(c)->original_argv ? clientTail(c)->original_argc : c->argc;
 
     hotkeys->keys_result = (getKeysResult)GETKEYS_RESULT_INIT;
-    if (getKeysFromCommandWithSpecs(c->realcmd, argv, argc, GET_KEYSPEC_DEFAULT,
+    if (getKeysFromCommandWithSpecs(clientTail(c)->realcmd, argv, argc, GET_KEYSPEC_DEFAULT,
                                     &hotkeys->keys_result) == 0)
     {
         return;
@@ -149,7 +149,7 @@ void hotkeyStatsUpdateCurrentCmd(hotkeyStats *hotkeys, hotkeyMetrics metrics) {
     /* Keys we've cached in the keys_result only track positions in the client's
      * argv array so we must fetch it. */
     client *c = hotkeys->current_client;
-    robj **argv = c->original_argv ? c->original_argv : c->argv;
+    robj **argv = clientTail(c)->original_argv ? clientTail(c)->original_argv : c->argv;
 
     /* Add all keys to topK structure */
     for (int i = 0; i < numkeys; ++i) {
