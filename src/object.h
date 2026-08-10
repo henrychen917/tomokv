@@ -123,6 +123,9 @@ typedef enum tomoStampState {
 typedef enum tomoRetireState {
     TOMO_RETIRE_ACTIVE = 0,
     TOMO_RETIRE_PRUNE_GRACE,
+    /* A newer frontier unlinked this object while its own prune callback was
+     * still queued. The table ref is gone; the callback pin preserves it. */
+    TOMO_RETIRE_PRUNE_UNLINKED,
     TOMO_RETIRE_PHYSICAL,
 } tomoRetireState;
 
@@ -153,13 +156,16 @@ struct tomoVerMeta {
     uint8_t lifecycle_ref_held;
     /* Owner-published read state. MERGE NOTE (dev x onever): lifecycle_ref_held took the first
      * of the three padding bytes that preceded owner_ops_pending, so this takes the second —
-     * tomoVerMeta still does not grow and owner_ops_pending does not move (both asserted below).
+     * the packed prefix does not grow and owner_ops_pending does not move (both asserted below).
      * COMMITTED licenses the read fast path. SUPERSEDED permanently prevents a late prune op
      * from relicensing an object after a successor was installed. */
     _Atomic uint8_t single_state;
     _Atomic unsigned int owner_ops_pending;
     struct redisObject *version_prev;
     struct redisObject *committed_prev;
+    /* Owner-only reverse link for O(1) committed-chain unlink. Readers use
+     * committed_prev exclusively; lifecycle and RYOW fields remain untouched. */
+    struct redisObject *committed_next;
     struct _kvstore *version_kvs;
     struct redisDb *version_db;
     void *reservation_owner;

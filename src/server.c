@@ -9880,6 +9880,12 @@ static uint64_t *csGroupKeyHashReserve(csGroup *g, int nkeys);
  * sequence draw and can remain locally UNCOMMITTED until this owner's stamp
  * lane runs; the owner-local identity also covers that gap.
  *
+ * LIFETIME: every supported call that can see a real version bag runs under
+ * that key owner's tomoWkrLock (ordinary/T6 worker or cross-shard sub); inline
+ * clients see the empty decoy DB. Retirement relies on that serialization when
+ * it repairs version_prev and directly drops lower members after their QSBR
+ * grace. Do not expose this physical walk from an unlocked real-DB path.
+ *
  * Correctness map:
  *  1. The maximum own install_order is C's latest installed write to this key.
  *  2. Only a locally UNCOMMITTED version qualifies, so its eventual monotone
@@ -9913,7 +9919,8 @@ static kvobj *csMsetOwnVersionAt(kvobj *head, client *real, int *found) {
 
 /* I2: the physical chain remains an install-ordered bag. Its head metadata
  * carries the per-key committed maximum, whose separate predecessor links are
- * ordered by descending (seq,install_order).
+ * ordered by descending (seq,install_order). An owner-only committed_next
+ * reverse edge supports retire-side unlink; readers never load it.
  *
  * Committed walk with OWN-WIDENING: after the own-uncommitted branch, the
  * cursor accepts the first version with seq <= snapshot — OR the first
@@ -21412,20 +21419,27 @@ static inline void exExecFake(client *fake) {
              * "the borrow is gone". */
             int mlk_wkr = -1;
             /* Review fix: argv[1] is only a KEY when the command declares firstkey==1. The
-             * whitelist is mostly single-key-at-argv[1], but top-level SCAN is also worker-routed
-             * (shared_node_dbs) and its argv[1] is a CURSOR — hashing it took an
-             * essentially arbitrary worker's lock around a cross-node scan, which both fails to
-             * protect anything and risks lock-order inversion against the locks the scan itself
-             * takes. Commands with no key at argv[1] take no S2 lock. */
+             * whitelist is mostly single-key-at-argv[1], but OBJECT and MEMORY USAGE carry their
+             * key at argv[2]; lock that same routed owner so their version resolution cannot race
+             * prune's owner-only physical walk. Top-level SCAN is also worker-routed
+             * (shared_node_dbs) and its argv[1] is a CURSOR — hashing it took an essentially
+             * arbitrary worker's lock around a cross-node scan, which both fails to protect
+             * anything and risks lock-order inversion against the locks the scan itself takes.
+             * Commands with neither keyed shape take no S2 lock. */
+            robj *lock_key = NULL;
             if (fake->cmd &&
                 fake->cmd->legacy_range_key_spec.bs.index.pos == 1 &&
-                fake->argc >= 2 && fake->argv && fake->argv[1]) {
+                fake->argc >= 2 && fake->argv && fake->argv[1])
+                lock_key = fake->argv[1];
+            else if (tomoKeyAtArgv2(fake))
+                lock_key = fake->argv[2];
+            if (lock_key) {
                 /* dispatch already hashed this key and stamped the bucket on the fake (hash-carry);
                  * re-hashing here was a 3rd xxh64 of the same bytes. Pointer-match guard as in
                  * db.c getKeySlot; the ex_bucket_table load stays FRESH (reshard-safe). */
-                int b = (fake->tomo_bkt_ptr == (const void *)fake->argv[1]->ptr)
+                int b = (fake->tomo_bkt_ptr == (const void *)lock_key->ptr)
                             ? fake->tomo_bkt
-                            : tomoBktBucket(fake->argv[1]->ptr, sdslen(fake->argv[1]->ptr));
+                            : tomoBktBucket(lock_key->ptr, sdslen(lock_key->ptr));
                 mlk_wkr = (int)server.ex_bucket_table[b];
                 tomoWkrLock(mlk_wkr);
             }
