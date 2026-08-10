@@ -4129,7 +4129,7 @@ struct redisServer {
                                 * strict_order (reorder defers). default 0. */
     int opt_mset_move;         /* tomokv-mset-move: cross-shard MSET moves value robjs to the owning worker (argv_released_mask ownership handoff) instead of a dupStringObject copy. 1=move; 0=per-value copy (DEFAULT — no gain was ever measured or claimed; restored 2026-07-28 as an experiment lever for large-value/NUMA regimes this box cannot answer). */
     int tomo_atomic;           /* tomokv-atomic: epoch-versioned MSET/MGET atomicity. default off. */
-    int tomo_atomic_window;    /* max admitted atomic MSET groups; 0 = unlimited. default 512. */
+    int tomo_atomic_window;    /* max admitted atomic MSET groups; 0 = unlimited. default 64: smaller in-flight populations keep version piles shallow and the whole atomic pipeline cache-hot — measured better than 512 in EVERY regime (64-key adversarial AND 2M realistic, 1:1 AND 9:1). */
     /* (no xshard_inline_* field: the inline region is sized per command by csInlineWant) */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
     char *pin_io_spec;         /* tomokv-pin-io: per-role-per-node cpu spec, e.g.
