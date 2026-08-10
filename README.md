@@ -84,42 +84,32 @@ work was reordered, exactly as a program cannot tell its instructions were.
 
 ### PURE-IO ceiling rig
 
-`DEBUG TOMO-PURE-IO <duration-ms>` measures the ingress hot path without socket or queue-wait stalls. Each
-fixed io owner cycles four deterministic, pre-generated 50/50 RESP SET/GET segments as command-aligned
-prefixes sized to the same adaptive 16–64 KiB budget as socket reads. The production 1 Hz controller keeps
-advancing during the run, so its ordinary read-budget and dispatch-window geometry remains active. Parsing,
-key routing, staged SPSC publication,
-`WORKER_POP_BATCH` pops, the worker prefetch state machine, command execution, per-connection CDB completion,
-in-order reply splicing, and reply formatting are all the production paths. The only transport substitute is
-an in-memory connection: reads copy the pre-generated batch, while writes consume and reset the real reply
-buffers. A full worker lane drops only that failed synthetic enqueue and publishes a synthetic ready byte
-through the selected CDB slot;
-the io owner never waits for space. The delta from an otherwise matching external load therefore exposes
-network and queue-stall cost.
+`DEBUG TOMO-PURE-IO <duration-ms>` measures the TomoKV IO-owner hot-path ceiling with every external
+stall removed. Each fixed IO owner builds one deterministic, in-thread 50/50 RESP SET/GET batch and cycles
+it for the requested wall-clock duration through the production parser, command admission, key hash/worker
+route, `exDispatchPush()`, and `exQueuePush()`. During this DEBUG-only run the ordinary TLS lane cache points
+at an aligned thread-private queue. The real enqueue succeeds into that private sink, but its tail is never
+published to a worker; the batch is reset at that enqueue boundary. GET and SET then use the real bulk and
+`+OK` reply formatters on their ring fakes, and those reply buffers are reset locally.
 
-The rig is absent from normal operation: it allocates only for this blocking DEBUG invocation, requires a
-static unshifted io/worker split, epoll input, an empty `notify-keyspace-events`, no module command filters,
-and an isolated standalone primary whose fresh, stateless, non-pipelined Unix-socket DEBUG client is the only
-connection. A minimal measurement boot and invocation are:
+No worker, CDB, notifier, epoll wait, `recv`, `send`, or socket write participates in the measured loop.
+This is intentionally a measurement actuator rather than a server mode: a normal boot allocates nothing for
+it, and the normal parse/route/dispatch hot path has no rig-enabled branch. Activation rejects live clients
+or lane work, dynamic role changes, command filters, random cluster-compatibility sampling, maxmemory,
+tracking, notifications, and routing modes that would contaminate the ceiling.
+
+Run it on an otherwise idle, static standalone primary with `enable-debug-command local`, epoll input,
+upstream `io-threads 1`, a power-of-two `tomokv-pipeline-depth >= 2`, and the default-off atomic/reorder/
+strict-order knobs. Use the Unix socket so the blocking command lands on owner 0:
 
 ```sh
-./src/redis-server tomokv.conf --tomokv-thread-io 4 --tomokv-thread-ex 4 \
-  --tomokv-thread-mode static --tomokv-io-uring 0 --io-threads 1 \
-  --enable-debug-command local --port 0 \
-  --unixsocket /tmp/tomokv-pureio.sock --save "" --appendonly no
-
 ./src/redis-cli -s /tmp/tomokv-pureio.sock DEBUG TOMO-PURE-IO 30000
 ```
 
-Use a short discovery invocation to collect the stable `PURE-IO owner io=N tid=TID` log lines, attach
-`perf stat` to those owner TIDs, then issue a long enough duration run to amortize its untimed setup and
-final safe-retirement phases. The measured interval itself never waits for a worker, queue slot, or CDB
-completion: every owner pass drains what is ready, submits at most one read-sized batch, and moves on.
-Healthy output has `status=OK` on every owner
-and in the total line, with `offered=dispatched=drained`,
-`worker_completed+queue_drops=dispatched`, nonzero `worker_completed` and `sink_bytes`, and
-`residual=0 errors=0`. `queue_drops=0` is healthy; the counter exists to prove that any actual full-lane
-events were discarded without synchronizing the io owner.
+Use a short discovery run to collect the stable `PURE-IO owner io=N tid=TID` log lines, attach `perf stat`
+to those owner TIDs externally, then invoke the desired duration. Healthy output reports `status=OK` for
+every owner and the total, with `ops=parsed=routed=dropped=replies`, `get=set`, nonzero `reply_bytes`, and
+`residual=0 errors=0`.
 
 ---
 

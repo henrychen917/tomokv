@@ -5077,7 +5077,6 @@ int appendClientInputFromUring(client *c, const void *buf, size_t len);
 int processClientInputFromUring(client *c);
 void acceptCommonHandler(connection *conn, int flags, char *ip);
 void readQueryFromClient(connection *conn);
-void resetReusableQueryBuf(client *c);
 int prepareClientToWrite(client *c);
 int clientPrepareReplyIOV(client *c, struct iovec *iov, int iovmax,
                           size_t byte_limit, size_t *iov_bytes_len);
