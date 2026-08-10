@@ -19737,6 +19737,7 @@ void usage(void) {
     fprintf(stderr,"       ./redis-server -h or --help\n");
     fprintf(stderr,"       ./redis-server --test-memory <megabytes>\n");
     fprintf(stderr,"       ./redis-server --check-system\n");
+    fprintf(stderr,"       ./redis-server --pure-worker-rig <seconds> [options]\n");
     fprintf(stderr,"\n");
     fprintf(stderr,"Examples:\n");
     fprintf(stderr,"       ./redis-server (run the server with default conf)\n");
@@ -21349,6 +21350,52 @@ static inline void exExecFake(client *fake) {
     }
 }
 
+/* The ordinary-command part of a popped batch is shared with the pure-worker
+ * rig below. Keep these helpers always-inlined: a normal server must retain the
+ * exact hot-path shape and must not pay a rig-mode branch. */
+static inline __attribute__((always_inline)) void exBatchPrefetchNext(
+        client **batch, int n, int j)
+{
+    /* ee451 (#3): next-op dict-bucket look-ahead. While this op executes (a few hundred
+     * cycles), warm the bucket line of the fake TOMO_PF_W_NEXTOP ahead so its lookup doesn't
+     * eat the full DRAM miss -- a rolling, execution-adjacent software-pipelined prefetch.
+     * FLAT batches retain the production AUTO geometry: la == j+n, so this is selected but
+     * its la<n guard does not fire. */
+    if (TOMO_PF_W_NEXTOP) {
+        int la = j + (TOMO_PF_W_NEXTOP == TOMO_PFW_NEXTOP_AUTO ? n : TOMO_PF_W_NEXTOP);
+        if (la < n) {
+            client *nf = batch[la];
+            if (nf->prefetch_key_hash_valid && nf->prefetch_dict && nf->prefetch_dict->ht_table[0])
+                redis_prefetch_read(&nf->prefetch_dict->ht_table[0][nf->prefetch_bucket_idx]);
+        }
+    }
+}
+
+static inline __attribute__((always_inline)) void exExecOrdinaryFake(
+        exThread *worker, client *fake)
+{
+    exExecFake(fake);
+
+    /* ee451 (flatstore lb): attribute this op to its bucket's coarse group (single-key ops;
+     * multi-key sub-ops are counted in their own csSubExec path if needed later). One L1
+     * increment to the owner's private array -- the minimal-move balancer's load signal. */
+    if (fake->argc >= 2) {
+        unsigned bkt = (unsigned)fake->tomo_bkt;
+        worker->lb_grp_ops[TOMO_LB_GROUP(bkt)]++;
+        uint64_t win = atomic_load_explicit(&worker->lb_fine_win, memory_order_relaxed);
+        unsigned fo = bkt - (uint32_t)win;
+        if (fo < (uint32_t)(win >> 32)) worker->lb_fine_ops[fo]++;
+    }
+
+    /* ee451 (gem5): feed the value-size EWMA from op_0's reply (approximately value bytes for a
+     * read), sampled before the batch-end CDB signal so the IO drain has not reset bufpos. */
+    if (fake->cmd && (fake->cmd->flags & CMD_READONLY)) {
+        int cur = (int)worker->w_ewma_vsize;
+        cur += (((int)fake->bufpos + (int)fake->reply_bytes) - cur) >> 4;
+        worker->w_ewma_vsize = cur < 0 ? 0 : (unsigned int)cur;
+    }
+}
+
 
 
 
@@ -21745,25 +21792,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
         for (int j = 0; j < n; ) {
             client *fake = ctx->batch[j];
 
-            /* ee451 (#3): next-op dict-bucket look-ahead. While this op executes (a few hundred
-             * cycles), warm the bucket line of the fake TOMO_PF_W_NEXTOP ahead so its lookup doesn't
-             * eat the full DRAM miss — a rolling, execution-adjacent software-pipelined prefetch
-             * (the pass-2 batch prefetch may have been evicted by the time deep fakes run). Reuses
-             * pass-2's (dict,idx); a stale idx after a rehash only mis-warms a line (prefetch never
-             * faults). Targets the big-DB cache-miss regime; 0 = off. */
-            /* ee451 (2026-07-28): tomokv-pf-w-nextop RETIRED, and unlike the other nine this one
-             * CHANGES BEHAVIOUR: it shipped at 0 = OFF and is now hardwired to AUTO (= ON), on the
-             * owner's explicit ruling. It only actually fires at ONE worker per node, though —
-             * with >= 2 the node db is KVSTORE_FLAT, whose SLOT/KVOBJ branch deliberately never
-             * sets the DICT-only prefetch_key_hash_valid. See TOMO_PF_W_NEXTOP in server.h. */
-            if (TOMO_PF_W_NEXTOP) {   /* -1 = AUTO (lookahead = current batch n), N = strict, 0 = off */
-                int la = j + (TOMO_PF_W_NEXTOP == TOMO_PFW_NEXTOP_AUTO ? n : TOMO_PF_W_NEXTOP);
-                if (la < n) {
-                    client *nf = ctx->batch[la];
-                    if (nf->prefetch_key_hash_valid && nf->prefetch_dict && nf->prefetch_dict->ht_table[0])
-                        redis_prefetch_read(&nf->prefetch_dict->ht_table[0][nf->prefetch_bucket_idx]);
-                }
-            }
+            exBatchPrefetchNext(ctx->batch, n, j);
 
             /* ee451 (v8d): CUTOVER DRAIN SENTINEL — processed in queue order. Reaching it proves
              * every range primary this producer dispatched before it has executed on A; decrement
@@ -21871,36 +21900,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                 continue;
             }
 
-            exExecFake(fake);
-
-            /* ee451 (flatstore lb): attribute this op to its bucket's coarse group (single-key ops;
-             * multi-key sub-ops are counted in their own csSubExec path if needed later). One L1
-             * increment to the owner's private array — the minimal-move balancer's load signal.
-             *
-             * SECOND LEVEL (2026-07-28): if the balancer has armed a per-bucket window on this
-             * worker, also count the exact bucket. Disarmed (len==0, the default and the state
-             * whenever tomokv-key-lb-fine is 0) this is one relaxed 64-bit load off an already-hot
-             * line plus a never-taken branch; armed it is one extra L1 increment for the ~1/64 of
-             * this shard's ops that land in the window. The whole point of the window is that the
-             * always-on working set stays at the 1KB group array instead of the 64KB a full
-             * per-bucket table would cost — see TOMO_LB_FINE_WIN. */
-            if (fake->argc >= 2) {
-                unsigned bkt = (unsigned)fake->tomo_bkt;
-                worker->lb_grp_ops[TOMO_LB_GROUP(bkt)]++;
-                uint64_t win = atomic_load_explicit(&worker->lb_fine_win, memory_order_relaxed);
-                unsigned fo = bkt - (uint32_t)win;
-                if (fo < (uint32_t)(win >> 32)) worker->lb_fine_ops[fo]++;
-            }
-
-            /* ee451 (gem5): feed the value-size EWMA from op_0's reply (≈ value bytes for a
-             * read), sampled before the batch-end CDB signal so the IO drain hasn't reset
-             * bufpos. Reads only — a write reply is tiny (+OK) and would bias the estimate
-             * downward. Drives the value-size-adaptive pf-w-value width. */
-            if (fake->cmd && (fake->cmd->flags & CMD_READONLY)) {   /* feeds auto-gate + width (always on) */
-                int cur = (int)worker->w_ewma_vsize;
-                cur += (((int)fake->bufpos + (int)fake->reply_bytes) - cur) >> 4;
-                worker->w_ewma_vsize = cur < 0 ? 0 : (unsigned int)cur;
-            }
+            exExecOrdinaryFake(worker, fake);
 
             sig_parents[sig_n] = fake->parent;
             sig_slots[sig_n] = (uint8_t)fake->fake_slot;
@@ -22396,6 +22396,728 @@ static void pinExToCore(pthread_t thread, int ex_id) {
     int node = ex_id / epn, idx = ex_id % epn;
     pinThreadToCoreN(thread, what, tomoLogicalCore(TOMO_PIN_ROLE_EX, node, idx),
                      TOMO_PIN_ROLE_EX, node, idx);
+}
+
+/* ---- PURE-WORKER batch rig -------------------------------------------------
+ *
+ * This is a one-shot developer measurement selected before normal thread
+ * initialization. It owns no dispatch/freeback rings, CDB, listener, or IO
+ * thread, and its workers never touch the main slot's startup notifier. The
+ * timed body is the production WORKER_POP_BATCH
+ * prefetch/execute shape fed by pre-generated fake clients:
+ *
+ *   exPrefetchBatch(full batch) -> ordinary fake execution in issue order
+ *   -> reset each fake's already-allocated inline reply buffer
+ *
+ * There is no rig predicate in exSlice, exPrefetchBatch, or exExecFake. A zero
+ * duration never enters this code and allocates none of these structures. */
+#define PURE_WORKER_RIG_BATCHES 4
+#define PURE_WORKER_RIG_ENTRIES (PURE_WORKER_RIG_BATCHES * WORKER_POP_BATCH)
+#define PURE_WORKER_RIG_CLOCK_BATCHES 256
+#define PURE_WORKER_RIG_ATTACH_DELAY_US 2000000
+#define PURE_WORKER_RIG_KEY_TRIES 1000000ULL
+#define PURE_WORKER_RIG_MAX_SECONDS (24LL * 60 * 60)
+#define PURE_WORKER_RIG_VALUE "0123456789abcdef"
+#define PURE_WORKER_RIG_REPLY "$16\r\n" PURE_WORKER_RIG_VALUE "\r\n"
+#define PURE_WORKER_RIG_REPLY_BYTES (sizeof(PURE_WORKER_RIG_REPLY) - 1)
+
+_Static_assert((PURE_WORKER_RIG_BATCHES & (PURE_WORKER_RIG_BATCHES - 1)) == 0,
+               "pure-worker rig batch ring must be a power of two");
+_Static_assert(PURE_WORKER_RIG_REPLY_BYTES == 23,
+               "pure-worker rig reply must remain 23 bytes");
+
+typedef struct pureWorkerRig pureWorkerRig;
+
+typedef struct pureWorkerRigBarrier {
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+    unsigned participants;
+    unsigned arrived;
+    unsigned generation;
+} pureWorkerRigBarrier;
+
+typedef struct pureWorkerRigEntry {
+    client *fake;
+    robj *argv[2];
+    pendingCommand pcmd;
+    uint64_t hash;
+    int bucket;
+} pureWorkerRigEntry;
+
+typedef struct pureWorkerRigWorker {
+    pureWorkerRig *rig;
+    exThread *worker;
+    client parent;
+    pureWorkerRigEntry entries[PURE_WORKER_RIG_ENTRIES];
+    client *batch[PURE_WORKER_RIG_BATCHES][WORKER_POP_BATCH];
+    pthread_t thread;
+    pid_t linux_tid;
+    int id;
+    int warmup_errors;
+    int pipeline_errors;
+    uint64_t reply_checksum;
+    uint64_t batches;
+    uint64_t ops;
+    uint64_t elapsed_us;
+    uint64_t ops_total;
+    unsigned long long commands;
+    unsigned long long hits;
+    unsigned long long misses;
+    unsigned long long atomic_fast;
+    unsigned long long atomic_slow;
+    unsigned long long pf_batches;
+    unsigned long long pf_gated;
+    unsigned long long pf_issued;
+    unsigned long long pf_issued_slot;
+    unsigned long long pf_issued_kvobj;
+} pureWorkerRigWorker;
+
+struct pureWorkerRig {
+    pureWorkerRigBarrier barrier;
+    connection dummy_conn;       /* non-NULL sentinel; EX_PENDING prevents dereference */
+    pureWorkerRigWorker **workers;
+    struct redisCommand *get;
+    uint64_t duration_us;
+    uint64_t start_us;
+    uint64_t deadline_us;
+    uint64_t version_seq;
+    int start_ok;
+};
+
+static int pureWorkerRigBarrierInit(pureWorkerRigBarrier *barrier,
+                                    unsigned participants)
+{
+    int rc;
+    memset(barrier, 0, sizeof(*barrier));
+    barrier->participants = participants;
+    if ((rc = pthread_mutex_init(&barrier->mutex, NULL)) != 0) return rc;
+    if ((rc = pthread_cond_init(&barrier->cond, NULL)) != 0) {
+        pthread_mutex_destroy(&barrier->mutex);
+        return rc;
+    }
+    return 0;
+}
+
+static void pureWorkerRigBarrierWait(pureWorkerRigBarrier *barrier) {
+    serverAssert(pthread_mutex_lock(&barrier->mutex) == 0);
+    unsigned generation = barrier->generation;
+    if (++barrier->arrived == barrier->participants) {
+        barrier->arrived = 0;
+        barrier->generation++;
+        serverAssert(pthread_cond_broadcast(&barrier->cond) == 0);
+    } else {
+        while (generation == barrier->generation)
+            serverAssert(pthread_cond_wait(&barrier->cond, &barrier->mutex) == 0);
+    }
+    serverAssert(pthread_mutex_unlock(&barrier->mutex) == 0);
+}
+
+static void pureWorkerRigBarrierDestroy(pureWorkerRigBarrier *barrier) {
+    serverAssert(pthread_cond_destroy(&barrier->cond) == 0);
+    serverAssert(pthread_mutex_destroy(&barrier->mutex) == 0);
+}
+
+static uint64_t pureWorkerRigChecksum(const char *p, size_t n) {
+    uint64_t h = 1469598103934665603ULL;
+    while (n--) {
+        h ^= (unsigned char)*p++;
+        h *= 1099511628211ULL;
+    }
+    return h;
+}
+
+static inline __attribute__((always_inline)) void pureWorkerRigResetFake(client *fake) {
+    /* This is the IO drain's reusable-buffer end state, without copying to a
+     * real client, publishing a completion byte, or touching a socket. */
+    fake->bufpos = 0;
+    fake->sentlen = 0;
+    fake->reply_bytes = 0;
+    fake->net_output_bytes_curr_cmd = 0;
+    fake->commands_processed = 0;
+    fake->buf_encoded = 0;
+    fake->last_header = NULL;
+    /* exExecFake clears this stale-hint guard after every command. A real IO
+     * dispatch stamps it again; the pre-generated entry does the same here. */
+    fake->tomo_bkt_ptr = fake->argv[1]->ptr;
+}
+
+static inline __attribute__((always_inline)) void pureWorkerRigExecuteBatch(
+        pureWorkerRigWorker *rw, client **batch)
+{
+    exPrefetchBatch(batch, WORKER_POP_BATCH);
+    tomoRelaxedBump(rw->worker->ops_total, (uint64_t)WORKER_POP_BATCH);
+
+    /* This scalar issue-order loop is nested under one full batch prefetch,
+     * exactly like exSlice. The scoreboard above advances all 16 entries
+     * together; this is not a scalar lookup rig. */
+    for (int j = 0; j < WORKER_POP_BATCH; ) {
+        client *fake = batch[j];
+        exBatchPrefetchNext(batch, WORKER_POP_BATCH, j);
+
+        /* Preserve the ordinary fake's three production classification tests.
+         * Synthetic entries can never enter their cold bodies. */
+        if (fake->drain_ack) {
+            rw->pipeline_errors++;
+            j++;
+            continue;
+        }
+        if (fake->is_flush) {
+            rw->pipeline_errors++;
+            j++;
+            continue;
+        }
+        if (fake->csparent) {
+            rw->pipeline_errors++;
+            j++;
+            continue;
+        }
+
+        exExecOrdinaryFake(rw->worker, fake);
+        j++;
+    }
+}
+
+static void pureWorkerRigWarmBatch(pureWorkerRigWorker *rw, client **batch) {
+    static const char expected[] = PURE_WORKER_RIG_REPLY;
+    const size_t expected_len = sizeof(expected) - 1;
+
+    pureWorkerRigExecuteBatch(rw, batch);
+    for (int j = 0; j < WORKER_POP_BATCH; j++) {
+        client *fake = batch[j];
+        if (fake->bufpos != expected_len ||
+            fake->net_output_bytes_curr_cmd != expected_len ||
+            fake->commands_processed != 1 ||
+            fake->buf_encoded || fake->sentlen || fake->reply_bytes ||
+            fake->last_header || listLength(fake->reply) != 0 ||
+            fake->deferred_reply_errors ||
+            !fake->current_pending_cmd ||
+            fake->current_pending_cmd->argv_released_mask != 0 ||
+            memcmp(fake->buf, expected, expected_len) != 0)
+        {
+            rw->warmup_errors++;
+        } else {
+            uint64_t sum = pureWorkerRigChecksum(fake->buf, fake->bufpos);
+            if (rw->reply_checksum && rw->reply_checksum != sum)
+                rw->warmup_errors++;
+            rw->reply_checksum = sum;
+        }
+        pureWorkerRigResetFake(fake);
+    }
+}
+
+static void pureWorkerRigCaptureResults(
+        pureWorkerRigWorker *rw,
+        unsigned long long commands0,
+        unsigned long long hits0, unsigned long long misses0,
+        unsigned long long fast0, unsigned long long slow0,
+        unsigned long long pfb0, unsigned long long pfg0,
+        unsigned long long pfi0, unsigned long long pfs0,
+        unsigned long long pfk0)
+{
+    int statid = TOMO_IO_THREADS_MAX + 1 + rw->id;
+    rw->ops = rw->batches * WORKER_POP_BATCH;
+    rw->ops_total = tomoRelaxedRead(rw->worker->ops_total);
+    rw->commands = tomoRelaxedRead(server.cmdstat[statid].n) - commands0;
+    rw->hits = tomoRelaxedRead(server.kstat[statid].hits) - hits0;
+    rw->misses = tomoRelaxedRead(server.kstat[statid].misses) - misses0;
+    rw->atomic_fast =
+        tomoRelaxedRead(server.kstat[statid].atomic_read_fast) - fast0;
+    rw->atomic_slow =
+        tomoRelaxedRead(server.kstat[statid].atomic_read_slow) - slow0;
+    rw->pf_batches = rw->worker->pf_batches - pfb0;
+    rw->pf_gated = rw->worker->pf_gated - pfg0;
+    rw->pf_issued = rw->worker->pf_issued - pfi0;
+    rw->pf_issued_slot = rw->worker->pf_issued_slot - pfs0;
+    rw->pf_issued_kvobj = rw->worker->pf_issued_kvobj - pfk0;
+}
+
+static void *pureWorkerRigThreadMain(void *arg) {
+    pureWorkerRigWorker *rw = arg;
+    pureWorkerRig *rig = rw->rig;
+    exThread *worker = rw->worker;
+    int statid = TOMO_IO_THREADS_MAX + 1 + rw->id;
+    char thread_name[32];
+
+    iotid = statid;
+    snprintf(thread_name, sizeof(thread_name), "pure_ex%d", rw->id);
+    zmalloc_thread_stats_register(thread_name);
+    flatRegisterWorker();
+    tm_cur_ex = worker;
+    flat_local_sink = &worker->flat_retire_local;
+#ifdef __linux__
+    rw->linux_tid = (pid_t)syscall(SYS_gettid);
+#else
+    rw->linux_tid = (pid_t)0;
+#endif
+
+    /* Main pins every created thread before releasing this barrier. */
+    pureWorkerRigBarrierWait(&rig->barrier);
+    exBindNumaLocal(rw->id);
+    atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
+
+    /* Warm every generated entry through the complete batch pipeline. Besides
+     * validating the reply, this moves lazy stats allocations out of timing. */
+    for (int b = 0; b < PURE_WORKER_RIG_BATCHES; b++)
+        pureWorkerRigWarmBatch(rw, rw->batch[b]);
+
+    unsigned long long commands0 = tomoRelaxedRead(server.cmdstat[statid].n);
+    unsigned long long hits0 = tomoRelaxedRead(server.kstat[statid].hits);
+    unsigned long long misses0 = tomoRelaxedRead(server.kstat[statid].misses);
+    unsigned long long fast0 =
+        tomoRelaxedRead(server.kstat[statid].atomic_read_fast);
+    unsigned long long slow0 =
+        tomoRelaxedRead(server.kstat[statid].atomic_read_slow);
+    unsigned long long pfb0 = worker->pf_batches;
+    unsigned long long pfg0 = worker->pf_gated;
+    unsigned long long pfi0 = worker->pf_issued;
+    unsigned long long pfs0 = worker->pf_issued_slot;
+    unsigned long long pfk0 = worker->pf_issued_kvobj;
+    tomoRelaxedSet(worker->ops_total, 0);
+
+    pureWorkerRigBarrierWait(&rig->barrier); /* warmup complete */
+    pureWorkerRigBarrierWait(&rig->barrier); /* external perf attach window complete */
+
+    if (rig->start_ok) {
+        uint64_t started = getMonotonicUs();
+        uint64_t deadline = rig->deadline_us;
+        unsigned batch_cursor = 0;
+
+        while (started < deadline) {
+            for (int k = 0; k < PURE_WORKER_RIG_CLOCK_BATCHES; k++) {
+                client **batch = rw->batch[batch_cursor];
+                pureWorkerRigExecuteBatch(rw, batch);
+                for (int j = 0; j < WORKER_POP_BATCH; j++)
+                    pureWorkerRigResetFake(batch[j]);
+                batch_cursor =
+                    (batch_cursor + 1) & (PURE_WORKER_RIG_BATCHES - 1);
+                rw->batches++;
+            }
+            if (getMonotonicUs() >= deadline) break;
+        }
+        rw->elapsed_us = getMonotonicUs() - started;
+    }
+
+    pureWorkerRigCaptureResults(rw, commands0, hits0, misses0, fast0, slow0,
+                                pfb0, pfg0, pfi0, pfs0, pfk0);
+    atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
+    flat_local_sink = NULL;
+    tm_cur_ex = NULL;
+    return NULL;
+}
+
+static int pureWorkerRigPrepareEntry(pureWorkerRig *rig, pureWorkerRigWorker *rw,
+                                     int batch, int pos,
+                                     unsigned long long *candidate)
+{
+    char keybuf[64];
+    uint64_t h = 0;
+    int keylen = 0;
+    unsigned long long tries;
+    flatTable *table = kvstoreFlatTable(rw->worker->db[0].keys);
+
+    if (!table || !table->slots) return C_ERR;
+    for (tries = 0; tries < PURE_WORKER_RIG_KEY_TRIES; tries++) {
+        keylen = snprintf(keybuf, sizeof(keybuf), "pure-w%03d-k%010llu",
+                          rw->id, (*candidate)++);
+        if (keylen <= 0 || (size_t)keylen >= sizeof(keybuf)) return C_ERR;
+        h = tomoKeyHash(keybuf, (size_t)keylen);
+        if ((int)server.ex_bucket_table[h & TOMO_BUCKET_MASK] != rw->id)
+            continue;
+        /* Keep every synthetic key in its home slot. This makes the level-3
+         * FLAT KVOBJ stage deterministic rather than collision-dependent. */
+        if (FLAT_IS_EMPTY(atomic_load_explicit(
+                &table->slots[h & table->mask].w, memory_order_relaxed)))
+            break;
+    }
+    if (tries == PURE_WORKER_RIG_KEY_TRIES) return C_ERR;
+
+    pureWorkerRigEntry *entry =
+        &rw->entries[batch * WORKER_POP_BATCH + pos];
+    entry->argv[0] = createStringObject("GET", 3);
+    entry->argv[1] = createStringObject(keybuf, (size_t)keylen);
+    entry->hash = h;
+    entry->bucket = (int)(h & TOMO_BUCKET_MASK);
+    initPendingCommand(&entry->pcmd);
+    entry->pcmd.argc = 2;
+    entry->pcmd.argv_len = 2;
+    entry->pcmd.argv = entry->argv;
+    entry->pcmd.cmd = rig->get;
+
+    robj *value = createStringObject(PURE_WORKER_RIG_VALUE,
+                                     sizeof(PURE_WORKER_RIG_VALUE) - 1);
+    uint64_t seed_version =
+        server.tomo_atomic ? TOMO_VERSION_UNCOMMITTED : 0;
+    kvobj *installed = dbAddPureWorkerRig(&rw->worker->db[0],
+                                          entry->argv[1]->ptr,
+                                          &value, seed_version);
+    if (!installed) {
+        decrRefCount(entry->argv[0]);
+        decrRefCount(entry->argv[1]);
+        entry->argv[0] = entry->argv[1] = NULL;
+        decrRefCount(value);
+        return C_ERR;
+    }
+    if (server.tomo_atomic) {
+        tomoAtomicLifecycleAcquire(installed, rw->id);
+        tomoApplyVersionStamp(installed, rig->version_seq);
+    }
+
+    uint64_t home = atomic_load_explicit(
+        &table->slots[h & table->mask].w, memory_order_acquire);
+    if (!FLAT_IS_LIVE(home) || dictGetKV(flat_word_ptr(home)) != installed)
+        return C_ERR;
+
+    client *fake = createFakeClient(&rw->parent);
+    fake->conn = &rig->dummy_conn;
+    fake->flags |= CLIENT_EX_PENDING;
+    fake->db = &rw->worker->db[0];
+    fake->resp = 2;
+    fake->argc = fake->argv_len = 2;
+    fake->argv = entry->argv;
+    fake->current_pending_cmd = &entry->pcmd;
+    fake->cmd = fake->lastcmd = rig->get;
+    fake->realcmd = fake->lookedcmd = rig->get;
+    fake->tomo_key_h = h;
+    fake->tomo_bkt = entry->bucket;
+    fake->tomo_bkt_ptr = entry->argv[1]->ptr;
+    entry->fake = fake;
+    rw->batch[batch][pos] = fake;
+    return C_OK;
+}
+
+static void pureWorkerRigFreeEntries(pureWorkerRig *rig) {
+    if (!rig || !rig->workers) return;
+    for (int w = 0; w < server.num_workers; w++) {
+        pureWorkerRigWorker *rw = rig->workers[w];
+        if (!rw) continue;
+        for (int i = 0; i < PURE_WORKER_RIG_ENTRIES; i++) {
+            pureWorkerRigEntry *entry = &rw->entries[i];
+            client *fake = entry->fake;
+            if (fake) {
+                fake->current_pending_cmd = NULL;
+                fake->argc = fake->argv_len = 0;
+                fake->argv = NULL;
+                fake->cmd = fake->lastcmd = NULL;
+                fake->realcmd = fake->lookedcmd = NULL;
+                fake->conn = NULL;
+                freeFakeClient(fake);
+            }
+            if (entry->argv[0]) decrRefCount(entry->argv[0]);
+            if (entry->argv[1]) decrRefCount(entry->argv[1]);
+        }
+    }
+}
+
+static unsigned long long pureWorkerRigRate(uint64_t ops, uint64_t elapsed_us) {
+    if (!elapsed_us) return 0;
+    return (unsigned long long)((long double)ops * 1000000.0L /
+                                (long double)elapsed_us);
+}
+
+static int runPureWorkerRig(long long duration_seconds) {
+    pureWorkerRig rig = {0};
+    int status = C_OK;
+    int barrier_initialized = 0;
+
+    if (server.thread_mode != TOMO_THREAD_MODE_STATIC || server.thread_auto) {
+        fprintf(stderr, "PURE-WORKER-RIG ERROR reason=thread-mode-not-static\n");
+        return 1;
+    }
+    if (!server.shared_node_dbs || server.ex_per_node < 2) {
+        fprintf(stderr,
+                "PURE-WORKER-RIG ERROR reason=flat-storage-requires-at-least-two-ex-per-node\n");
+        return 1;
+    }
+    if (duration_seconds <= 0 || duration_seconds > PURE_WORKER_RIG_MAX_SECONDS) {
+        fprintf(stderr, "PURE-WORKER-RIG ERROR reason=invalid-duration\n");
+        return 1;
+    }
+    if (server.maxmemory_policy & MAXMEMORY_FLAG_LFU) {
+        fprintf(stderr,
+                "PURE-WORKER-RIG ERROR reason=lfu-policy-uses-rand-in-get-loop\n");
+        return 1;
+    }
+    if (server.memory_tracking_enabled) {
+        fprintf(stderr,
+                "PURE-WORKER-RIG ERROR reason=key-memory-tracking-enabled\n");
+        return 1;
+    }
+
+    rig.duration_us = (uint64_t)duration_seconds * 1000000ULL;
+    rig.start_ok = 1;
+    rig.get = lookupCommandByCString("get");
+    if (!rig.get || rig.get->proc != getCommand) {
+        fprintf(stderr, "PURE-WORKER-RIG ERROR reason=get-command-unavailable\n");
+        return 1;
+    }
+    rig.workers = zcalloc(sizeof(*rig.workers) * (size_t)server.num_workers);
+
+    /* This exclusive process has no normal EX allocation. In particular, no
+     * queue/freeback lanes or CDB-facing state are allocated. */
+    server.tm_qs_multiword = (server.io_threads + server.num_workers >= 64);
+    flat_batch_slots = server.io_threads + server.num_workers + 1;
+    flat_batch_mask_words = (flat_batch_slots + 63) / 64;
+    server.exThreads = zcalloc(sizeof(exThread) * (size_t)server.num_workers);
+    for (int w = 0; w < server.num_workers; w++) {
+        server.exThreads[w].id = w;
+        server.exThreads[w].db = server.ex_dbs[w];
+    }
+
+    if (server.tomo_atomic) {
+        uint64_t committed =
+            atomic_load_explicit(&commit_seq, memory_order_acquire);
+        uint64_t next = atomic_load_explicit(&next_seq, memory_order_acquire);
+        if (next != committed) {
+            fprintf(stderr,
+                    "PURE-WORKER-RIG ERROR reason=atomic-frontier-not-quiescent\n");
+            status = C_ERR;
+            goto cleanup;
+        }
+        tomoAtomicLifecycleEnsure();
+        rig.version_seq =
+            atomic_fetch_add_explicit(&next_seq, 1, memory_order_relaxed) + 1;
+    }
+
+    /* Pre-size each physical node table once, before readers exist. This keeps
+     * the rig below the resize watermark without a coordinator thread. */
+    for (int n = 0; n < server.n_node_dbs; n++) {
+        redisDb *db = &server.node_dbs[n][0];
+        uint64_t node_entries = 0;
+        if (!dbIsInitialized(db) || !kvstoreIsFlat(db->keys) || dbSize(db) != 0) {
+            fprintf(stderr,
+                    "PURE-WORKER-RIG ERROR reason=node-db-not-empty-flat node=%d\n",
+                    n);
+            status = C_ERR;
+            goto cleanup;
+        }
+        for (int w = 0; w < server.num_workers; w++)
+            if (server.ex_dbs[w] == server.node_dbs[n])
+                node_entries += PURE_WORKER_RIG_ENTRIES;
+        if (node_entries == 0 ||
+            !kvstoreExpand(db->keys, node_entries, 0, NULL))
+        {
+            fprintf(stderr,
+                    "PURE-WORKER-RIG ERROR reason=flat-presize-failed node=%d\n",
+                    n);
+            status = C_ERR;
+            goto cleanup;
+        }
+    }
+
+    /* The hot synthetic table is intentionally cache-resident, but the rig is
+     * measuring the full scoreboard instruction path. Model a 64-byte L3 share
+     * per worker so the unchanged production residency controller opens. */
+    server.detected_l3_domains = 1;
+    server.detected_l3_bytes =
+        64UL * (unsigned long)server.num_workers;
+    server.prefetch_ex_level = 3;
+
+    for (int w = 0; w < server.num_workers; w++) {
+        pureWorkerRigWorker *rw = zcalloc(sizeof(*rw));
+        unsigned long long candidate = 0;
+        rig.workers[w] = rw;
+        rw->rig = &rig;
+        rw->worker = &server.exThreads[w];
+        rw->id = w;
+        rw->parent.tid = 0;
+        rw->parent.running_tid = 0;
+        for (int b = 0; b < PURE_WORKER_RIG_BATCHES; b++) {
+            for (int j = 0; j < WORKER_POP_BATCH; j++) {
+                if (pureWorkerRigPrepareEntry(
+                        &rig, rw, b, j, &candidate) != C_OK)
+                {
+                    fprintf(stderr,
+                            "PURE-WORKER-RIG ERROR reason=key-generation-failed worker=%d\n",
+                            w);
+                    status = C_ERR;
+                    goto cleanup;
+                }
+            }
+        }
+    }
+    if (server.tomo_atomic)
+        atomic_store_explicit(&commit_seq, rig.version_seq,
+                              memory_order_release);
+
+    {
+        int rc = pureWorkerRigBarrierInit(
+            &rig.barrier, (unsigned)server.num_workers + 1);
+        if (rc != 0) {
+            fprintf(stderr,
+                    "PURE-WORKER-RIG ERROR reason=barrier-init detail=%s\n",
+                    strerror(rc));
+            status = C_ERR;
+            goto cleanup;
+        }
+        barrier_initialized = 1;
+    }
+
+    for (int w = 0; w < server.num_workers; w++) {
+        pureWorkerRigWorker *rw = rig.workers[w];
+        int rc = pthread_create(
+            &rw->thread, NULL, pureWorkerRigThreadMain, rw);
+        if (rc != 0) {
+            fprintf(stderr,
+                    "PURE-WORKER-RIG ERROR reason=thread-create worker=%d detail=%s\n",
+                    w, strerror(rc));
+            /* Returning from main terminates any already-created waiters. */
+            return 1;
+        }
+        rw->worker->thread = rw->thread;
+        pinExToCore(rw->thread, w);
+    }
+
+    pureWorkerRigBarrierWait(&rig.barrier); /* every worker exists and is pinned */
+    pureWorkerRigBarrierWait(&rig.barrier); /* every entry warmed and validated */
+
+    uint64_t expected_checksum =
+        pureWorkerRigChecksum(PURE_WORKER_RIG_REPLY,
+                              PURE_WORKER_RIG_REPLY_BYTES);
+    for (int w = 0; w < server.num_workers; w++) {
+        pureWorkerRigWorker *rw = rig.workers[w];
+        int statid = TOMO_IO_THREADS_MAX + 1 + w;
+        if (rw->warmup_errors || rw->pipeline_errors ||
+            rw->reply_checksum != expected_checksum ||
+            tomoRelaxedRead(server.cmdstat[statid].n) !=
+                PURE_WORKER_RIG_ENTRIES ||
+            tomoRelaxedRead(server.kstat[statid].hits) !=
+                PURE_WORKER_RIG_ENTRIES ||
+            tomoRelaxedRead(server.kstat[statid].misses) != 0 ||
+            tomoRelaxedRead(server.kstat[statid].atomic_read_fast) != 0 ||
+            tomoRelaxedRead(server.kstat[statid].atomic_read_slow) !=
+                (server.tomo_atomic ? PURE_WORKER_RIG_ENTRIES : 0) ||
+            rw->worker->pf_batches != PURE_WORKER_RIG_BATCHES ||
+            rw->worker->pf_gated != 0 || rw->worker->pf_issued == 0 ||
+            rw->worker->pf_issued_slot != PURE_WORKER_RIG_ENTRIES ||
+            rw->worker->pf_issued_kvobj != PURE_WORKER_RIG_ENTRIES)
+            rig.start_ok = 0;
+    }
+
+    if (rig.start_ok) {
+        printf("PURE-WORKER-RIG READY pid=%ld tids=", (long)getpid());
+        for (int w = 0; w < server.num_workers; w++)
+            printf("%s%ld", w ? "," : "",
+                   (long)rig.workers[w]->linux_tid);
+        printf(" workers=%d duration_s=%lld batch=%d entries_per_worker=%d "
+               "command=GET storage=flat atomic=%s prefetch=level3 "
+               "gate=synthetic-open attach_delay_ms=%d\n",
+               server.num_workers, duration_seconds, WORKER_POP_BATCH,
+               PURE_WORKER_RIG_ENTRIES,
+               server.tomo_atomic ? "on" : "off",
+               PURE_WORKER_RIG_ATTACH_DELAY_US / 1000);
+        fflush(stdout);
+        struct timespec attach_delay = {
+            .tv_sec = PURE_WORKER_RIG_ATTACH_DELAY_US / 1000000,
+            .tv_nsec = (PURE_WORKER_RIG_ATTACH_DELAY_US % 1000000) * 1000
+        };
+        while (nanosleep(&attach_delay, &attach_delay) == -1 && errno == EINTR) {}
+        rig.start_us = getMonotonicUs();
+        rig.deadline_us = rig.start_us + rig.duration_us;
+        printf("PURE-WORKER-RIG START start_us=%llu deadline_us=%llu\n",
+               (unsigned long long)rig.start_us,
+               (unsigned long long)rig.deadline_us);
+        fflush(stdout);
+    } else {
+        fprintf(stderr,
+                "PURE-WORKER-RIG ERROR reason=warmup-validation\n");
+        status = C_ERR;
+    }
+    pureWorkerRigBarrierWait(&rig.barrier); /* release or cancel timed interval */
+
+    for (int w = 0; w < server.num_workers; w++)
+        pthread_join(rig.workers[w]->thread, NULL);
+
+    if (rig.start_ok) {
+        unsigned long long total_ops = 0, total_batches = 0;
+        unsigned long long total_commands = 0;
+        unsigned long long total_hits = 0, total_misses = 0;
+        unsigned long long total_fast = 0, total_slow = 0;
+        unsigned long long total_pfb = 0, total_pfg = 0;
+        unsigned long long total_pfi = 0, total_pfs = 0, total_pfk = 0;
+        uint64_t max_elapsed = 0;
+        int healthy = 1;
+
+        for (int w = 0; w < server.num_workers; w++) {
+            pureWorkerRigWorker *rw = rig.workers[w];
+            unsigned long long reply_resets = rw->ops;
+            unsigned long long reply_bytes =
+                rw->ops * PURE_WORKER_RIG_REPLY_BYTES;
+            int worker_ok =
+                rw->batches != 0 &&
+                rw->warmup_errors == 0 && rw->pipeline_errors == 0 &&
+                rw->ops % WORKER_POP_BATCH == 0 &&
+                rw->ops_total == rw->ops && rw->commands == rw->ops &&
+                rw->hits == rw->ops && rw->misses == 0 &&
+                rw->atomic_fast == 0 &&
+                rw->atomic_slow == (server.tomo_atomic ? rw->ops : 0) &&
+                rw->pf_batches == rw->batches && rw->pf_gated == 0 &&
+                rw->pf_issued != 0 &&
+                rw->pf_issued_slot == rw->ops &&
+                rw->pf_issued_kvobj == rw->ops &&
+                rw->reply_checksum == expected_checksum;
+            if (!worker_ok) healthy = 0;
+            printf("PURE-WORKER-RIG WORKER id=%d tid=%ld status=%s "
+                   "ops=%llu batches=%llu elapsed_us=%llu ops_per_sec=%llu "
+                   "commands=%llu reply_resets=%llu reply_bytes=%llu "
+                   "hits=%llu misses=%llu atomic_fast=%llu "
+                   "atomic_resolves=%llu pf_batches=%llu pf_gated=%llu "
+                   "pf_issued=%llu pf_slot=%llu pf_kvobj=%llu "
+                   "reply_checksum=%016llx\n",
+                   w, (long)rw->linux_tid,
+                   worker_ok ? "ok" : "error",
+                   (unsigned long long)rw->ops,
+                   (unsigned long long)rw->batches,
+                   (unsigned long long)rw->elapsed_us,
+                   pureWorkerRigRate(rw->ops, rw->elapsed_us),
+                   rw->commands, reply_resets, reply_bytes,
+                   rw->hits, rw->misses, rw->atomic_fast, rw->atomic_slow,
+                   rw->pf_batches, rw->pf_gated, rw->pf_issued,
+                   rw->pf_issued_slot, rw->pf_issued_kvobj,
+                   (unsigned long long)rw->reply_checksum);
+            total_ops += rw->ops;
+            total_batches += rw->batches;
+            total_commands += rw->commands;
+            total_hits += rw->hits;
+            total_misses += rw->misses;
+            total_fast += rw->atomic_fast;
+            total_slow += rw->atomic_slow;
+            total_pfb += rw->pf_batches;
+            total_pfg += rw->pf_gated;
+            total_pfi += rw->pf_issued;
+            total_pfs += rw->pf_issued_slot;
+            total_pfk += rw->pf_issued_kvobj;
+            if (rw->elapsed_us > max_elapsed)
+                max_elapsed = rw->elapsed_us;
+        }
+
+        printf("PURE-WORKER-RIG RESULT status=%s workers=%d ops=%llu "
+               "batches=%llu elapsed_us=%llu ops_per_sec=%llu commands=%llu "
+               "reply_resets=%llu reply_bytes=%llu hits=%llu misses=%llu "
+               "atomic_fast=%llu atomic_resolves=%llu pf_batches=%llu "
+               "pf_gated=%llu pf_issued=%llu pf_slot=%llu pf_kvobj=%llu "
+               "full_batches=yes ring_pops=0 cdb_notifications=0 io_threads=0\n",
+               healthy ? "ok" : "error", server.num_workers,
+               total_ops, total_batches,
+               (unsigned long long)max_elapsed,
+               pureWorkerRigRate(total_ops, max_elapsed), total_commands,
+               total_ops,
+               total_ops * PURE_WORKER_RIG_REPLY_BYTES,
+               total_hits, total_misses, total_fast, total_slow,
+               total_pfb, total_pfg, total_pfi, total_pfs, total_pfk);
+        fflush(stdout);
+        if (!healthy) status = C_ERR;
+    }
+
+cleanup:
+    if (barrier_initialized)
+        pureWorkerRigBarrierDestroy(&rig.barrier);
+    pureWorkerRigFreeEntries(&rig);
+    if (rig.workers) {
+        for (int w = 0; w < server.num_workers; w++)
+            zfree(rig.workers[w]);
+        zfree(rig.workers);
+    }
+    return status == C_OK ? 0 : 1;
 }
 
 /* IO thread id 0 == main thread. */
@@ -27120,6 +27842,8 @@ int main(int argc, char **argv) {
     struct timeval tv;
     int j;
     char config_from_stdin = 0;
+    int pure_worker_rig_requested = 0;
+    long long pure_worker_rig_seconds = 0;
 
 #ifdef REDIS_TEST
     monotonicInit(); /* Required for dict tests, that are relying on monotime during dict rehashing. */
@@ -27226,6 +27950,25 @@ int main(int argc, char **argv) {
         j = 1; /* First option to parse in argv[] */
         sds options = sdsempty();
 
+        /* One-shot source-only measurement mode. It must be the first option
+         * so the generic config parser never sees the private switch. A zero
+         * duration consumes only these two argv entries and boots normally. */
+        if (strcmp(argv[1], "--pure-worker-rig") == 0) {
+            pure_worker_rig_requested = 1;
+            if (argc < 3 ||
+                !string2ll(argv[2], strlen(argv[2]),
+                           &pure_worker_rig_seconds) ||
+                pure_worker_rig_seconds < 0 ||
+                pure_worker_rig_seconds > PURE_WORKER_RIG_MAX_SECONDS)
+            {
+                fprintf(stderr,
+                        "--pure-worker-rig requires a duration of 0..%lld seconds\n",
+                        PURE_WORKER_RIG_MAX_SECONDS);
+                exit(1);
+            }
+            j = 3;
+        }
+
         /* Handle special options --help and --version */
         if (strcmp(argv[1], "-v") == 0 ||
             strcmp(argv[1], "--version") == 0)
@@ -27253,7 +27996,7 @@ int main(int argc, char **argv) {
          * Precedence wise, File, stdin, explicit options -- last config is the one that matters.
          *
          * First argument is the config file name? */
-        if (argv[1][0] != '-') {
+        if (!pure_worker_rig_requested && argv[1][0] != '-') {
             /* Replace the config file in server.exec_argv with its absolute path. */
             server.configfile = getAbsolutePath(argv[1]);
             zfree(server.exec_argv[1]);
@@ -27341,7 +28084,22 @@ int main(int argc, char **argv) {
         if (server.sentinel_mode) loadSentinelConfigFromQueue();
         sdsfree(options);
     }
+    if (pure_worker_rig_seconds > 0 && server.sentinel_mode) {
+        fprintf(stderr,
+                "PURE-WORKER-RIG ERROR reason=sentinel-mode-not-supported\n");
+        return 1;
+    }
     if (server.sentinel_mode) sentinelCheckConfigFile();
+
+    /* Positive rig runs are foreground, static-topology processes. Set these
+     * before supervised/daemon state is derived and before initServer resolves
+     * AUTO into a different provisioned topology. The zero case changes none
+     * of this state. */
+    if (pure_worker_rig_seconds > 0) {
+        server.thread_mode = TOMO_THREAD_MODE_STATIC;
+        server.daemonize = 0;
+        server.supervised_mode = SUPERVISED_NONE;
+    }
 
     /* Do system checks */
 #ifdef __linux__
@@ -27391,6 +28149,8 @@ int main(int argc, char **argv) {
 
     zmalloc_thread_stats_register("main");   /* DEBUG TOMO-JESTATS (one mallctl, once) */
     initServer();
+    if (pure_worker_rig_seconds > 0)
+        return runPureWorkerRig(pure_worker_rig_seconds);
     initIOThreads();
     if (background || server.pidfile) createPidFile();
     if (server.set_proc_title) redisSetProcTitle(NULL);

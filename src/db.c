@@ -668,6 +668,30 @@ kvobj *dbAddRDBLoad(redisDb *db, sds key, robj **valref, const KeyMetaSpec *keyM
     return *valref = kv;
 }
 
+/* PURE-WORKER setup needs the loader's deliberately quiet insertion semantics:
+ * no ready-key signal, keyspace event, dirty count, or propagation. Keeping the
+ * version metadata construction here also makes atomic-mode synthetic GETs run
+ * the real resolver instead of silently measuring the raw-value fast path. */
+kvobj *dbAddPureWorkerRig(redisDb *db, sds key, robj **valref,
+                          uint64_t version_seq) {
+    serverAssert(!server.memory_tracking_enabled);
+    int slot = getKeySlot(key);
+    dictEntryLink bucket;
+    dictEntryLink link = kvstoreDictFindLink(db->keys, slot, key, &bucket);
+    if (link != NULL) return NULL;
+
+    robj *val = *valref;
+    kvobj *kv = kvobjSetEx(key, val, 0, KVOBJ_SET_EMBED_RAW);
+    if (version_seq)
+        kvobjSetVmeta(kv, tomoVerMetaNew(db, version_seq, NULL));
+    initObjectLRUOrLFU(kv);
+    /* Publish only after vmeta is attached. Even an accidental reader outside
+     * the rig gate can therefore never observe an atomic seed as a raw head. */
+    kvstoreDictSetAtLink(db->keys, slot, kv, &bucket, 1);
+    updateKeysizesHist(db, slot, kv->type, -1, (int64_t)getObjectLength(kv));
+    return *valref = kv;
+}
+
 /**
  * Overwrite an existing key's value in db with a new value.
  *

@@ -5908,6 +5908,10 @@ kvobj *dbAddByLink(redisDb *db, robj *key, robj **valref, dictEntryLink *link);
 kvobj *dbAddInternal(redisDb *db, robj *key, robj **valref, dictEntryLink *link, const KeyMetaSpec *m,
                      int embedRawOk);
 kvobj *dbAddRDBLoad(redisDb *db, sds key, robj **valref, const KeyMetaSpec *keyMetaSpec);
+/* Measurement-rig-only no-notify loader. A non-zero version_seq attaches
+ * version metadata; TOMO_VERSION_UNCOMMITTED can then be completed through
+ * tomoApplyVersionStamp before the rig opens its read window. */
+kvobj *dbAddPureWorkerRig(redisDb *db, sds key, robj **valref, uint64_t version_seq);
 void dbReplaceValue(redisDb *db, robj *key, kvobj **ioKeyVal, int updateKeySizes);
 void dbReplaceValueWithLink(redisDb *db, robj *key, robj **val, dictEntryLink link);
 

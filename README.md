@@ -430,6 +430,10 @@ make -j
 Tomo KV builds and runs like stock Redis and speaks unmodified RESP2/RESP3, so existing clients,
 `redis-cli`, and `memtier_benchmark` work as‑is. jemalloc is the recommended allocator (bundled).
 
+For source-level worker ceiling measurements, see the
+**[PURE-WORKER batched rig](PURE-WORKER-RIG.md)**. It executes the real 16-wide EX prefetch and
+ordinary-command pipeline without dispatch rings, completion notification, listeners, or IO threads.
+
 ---
 
 ## Compatibility & scope
