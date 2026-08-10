@@ -4173,6 +4173,8 @@ struct redisServer {
     char *locale_collate;
     int dbg_assert_keysizes;       /* Assert keysizes histogram after each command */
     int dbg_assert_alloc_per_slot; /* Assert per-slot alloc_size after each command */
+    int tomo_sim_xnode;        /* measurement-only cross-CCX touch-cost emulation. 0 = OFF;
+                                * 1 = producer CLFLUSHOPT after each worker-ring publication. */
 };
 
 /* we use 6 so that all getKeyResult fits a cacheline */

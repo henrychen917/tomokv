@@ -313,9 +313,10 @@ means *off* · **`0` = AUTO** where off is meaningless · explicit `N` = strict.
 | `tomokv-thread-ex` | **mandatory** ≥ 1, **any count**, **per node** | Execution workers (one shard each) per node, and the STARTING split. Sharding is the point of this server: `0` is rejected at boot — use upstream Redis for a single-executor deployment. |
 | `tomokv-thread-mode` | `auto` (default) · `static` | Whether the flip controller may move the io/ex split away from the boot values. `static` holds it for the whole run — use it for reproducible measurement, since a run that starts at a different split spends its window converging. |
 | `tomokv-pin-mode` | `float` · `ccd` (default) · `numa` · `static` | `float`: no pinning, the scheduler decides. `ccd`: pack threads onto shared‑L3 (CCD) groups. `numa`: pack them per NUMA node. `static`: exact placement from `tomokv-pin-io` / `tomokv-pin-ex`. Every pinning mode also binds a worker's shard memory to its core's NUMA node; all of them respect taskset/cgroup affinity. |
-| `tomokv-pin-io` / `tomokv-pin-ex` | e.g. `"node0=0-3 node1=8,9,10,11"` | Per‑role‑per‑node cpu specs, used **only** with `tomokv-pin-mode static`. Grammar: whitespace‑separated `node<N>=<cpu-list>` tokens; a cpu list is comma‑separated ids and/or `lo-hi` ranges. A malformed token is rejected at boot with the offending token named; setting these with any other pin‑mode, or `static` without them, is also fatal — they are never silently ignored. |
+| `tomokv-pin-io` / `tomokv-pin-ex` | e.g. `"node0=0-3 node1=8,9,10,11"` | Per-role-per-node cpu specs, used **only** with `tomokv-pin-mode static`. Grammar: whitespace‑separated `node<N>=<cpu-list>` tokens; a cpu list is comma‑separated ids and/or `lo-hi` ranges. A malformed token is rejected at boot with the offending token named; setting these with any other pin‑mode, or `static` without them, is also fatal — they are never silently ignored. |
 | `tomokv-pipeline-depth` | `-1` auto (default) · `0` off · pow2 ≤ 32 | Per‑connection in‑flight ring. Auto resolves to the max (32); `0` disables pipelining entirely (depth 1) — a deeper ring never hurts shallow clients, it only costs idle memory, and the per‑connection demand‑grow/decay controller (`tomokv-fake-ring-depth`) trims the live slots back down. |
 | `tomokv-ex-queue-depth` | `-1` auto (default) · pow2 ≤ 2048 | io→worker SPSC queue size. Auto derives `4 × (io_threads+1) × pipeline_depth`, floored at 2048 and clamped to the 2048 maximum (`jobs[]` is a static array at that size, per (worker, io) pair). `0` is invalid — the queue *is* the dispatch path — and is rejected with a warning. Watch `INFO tomokv_ex_queue_full` for undersizing. |
+| `tomokv-sim-xnode` | `0` off (default) · `1` emulate | Measurement-only cross-CCX first-touch emulator. The armed server CLFLUSHOPTs each newly published worker-ring line after the release-store; the optional carried-header flush is deliberately omitted. The ordinary server automatically re-execs its compile-specialized `-xnode-sim` sibling, so `0` has no publish hook, hot branch, or side allocation. Requires x86 CLFLUSHOPT. |
 
 ### Batching, spin & prefetch — no knobs, by design
 
@@ -429,6 +430,29 @@ make -j
 
 Tomo KV builds and runs like stock Redis and speaks unmodified RESP2/RESP3, so existing clients,
 `redis-cli`, and `memtier_benchmark` work as‑is. jemalloc is the recommended allocator (bundled).
+
+### Cross-CCX touch-cost emulation
+
+Use identical topology, workload, affinity and duration in both cells; add only the simulator knob
+to the second invocation. The specialized sibling is built and selected automatically. Because
+selection re-reads configuration after `exec`, use a file or command-line options rather than a
+consumed stdin (`-`) configuration.
+
+```sh
+# Baseline.
+./src/redis-server --port 6380 --tomokv-thread-io 6 --tomokv-thread-ex 4 \
+    --tomokv-thread-mode static
+
+# Same cell with producer-side ring-line eviction after every publication.
+./src/redis-server --port 6380 --tomokv-thread-io 6 --tomokv-thread-ex 4 \
+    --tomokv-thread-mode static --tomokv-sim-xnode 1
+
+# The armed cell is engaged only if this counter advances.
+./src/redis-cli -p 6380 INFO stats | grep '^tomokv_sim_xnode_lines_flushed:'
+```
+
+`tomokv_sim_xnode_lines_flushed` counts distinct published ring cache lines passed to
+CLFLUSHOPT. CLFLUSHOPT is left asynchronous: the producer does not fence or wait for eviction.
 
 ---
 

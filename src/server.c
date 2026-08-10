@@ -37,6 +37,15 @@
 #include "uring.h"
 #include "uring2.h"
 
+/* tomokv-sim-xnode selects a separately compiled server object. In the
+ * ordinary object every publish hook below is preprocessed away, so an off
+ * boot retains the historical ring path without a branch or side storage. */
+#ifdef TOMO_XNODE_FLUSH_BUILD
+#define TOMO_XNODE_FLUSH_ACTIVE 1
+#else
+#define TOMO_XNODE_FLUSH_ACTIVE 0
+#endif
+
 #include <time.h>
 #include <signal.h>
 #include <sys/wait.h>
@@ -103,6 +112,67 @@ static void tmFlipAccountingRollback(const char *reason);
 /* Read by INFO from IO threads while the actuator/coordinator increments it, hence atomic even
  * though it is deliberately a plain file-global rather than hot server state. */
 static _Atomic unsigned long long tomo_flip_recoveries;
+
+static int tomoXnodeClflushoptSupported(void) {
+#if (defined(__i386__) || defined(__x86_64__)) && \
+    (defined(__GNUC__) || defined(__clang__))
+    return __builtin_cpu_supports("clflushopt");
+#else
+    return 0;
+#endif
+}
+
+#if TOMO_XNODE_FLUSH_ACTIVE
+extern __thread int iotid;
+typedef struct tomoXnodeCounter {
+    _Atomic unsigned long long value;
+    char _pad[CACHE_LINE_SIZE - sizeof(_Atomic unsigned long long)];
+} __attribute__((aligned(CACHE_LINE_SIZE))) tomoXnodeCounter;
+_Static_assert(sizeof(tomoXnodeCounter) == CACHE_LINE_SIZE,
+               "cross-node simulator counter must occupy one cache line");
+static tomoXnodeCounter tomo_xnode_lines_flushed[TOMO_STAT_SLOTS];
+
+static inline void tomoXnodeClflushopt(const void *line) {
+#if defined(__i386__) || defined(__x86_64__)
+    __asm__ __volatile__("clflushopt (%0)" :: "r"(line) : "memory");
+#else
+    UNUSED(line);
+    serverPanic("unreachable CLFLUSHOPT on a non-x86 target");
+#endif
+}
+
+/* The release-store happens first at every call site. Flush each distinct
+ * cache line in the newly published ring prefix once; CLFLUSHOPT remains
+ * asynchronous, so the emulator adds no producer wait. */
+static inline void tomoXnodeFlushPublished(exQueue *q, unsigned int published,
+                                           unsigned int staged) {
+    uintptr_t previous = UINTPTR_MAX;
+    unsigned long long lines = 0;
+    while (published != staged) {
+        uintptr_t line = (uintptr_t)&q->jobs[published] &
+                         ~(uintptr_t)(CACHE_LINE_SIZE - 1);
+        if (line != previous) {
+            tomoXnodeClflushopt((const void *)line);
+            previous = line;
+            lines++;
+        }
+        published = (published + 1) & server.ex_queue_mask;
+    }
+    if (lines) tomoRelaxedBump(tomo_xnode_lines_flushed[iotid].value, lines);
+}
+
+static unsigned long long tomoXnodeLinesFlushed(void) {
+    unsigned long long total = 0;
+    for (int i = 0; i < TOMO_STAT_SLOTS; i++)
+        total += atomic_load_explicit(&tomo_xnode_lines_flushed[i].value,
+                                      memory_order_relaxed);
+    return total;
+}
+#else
+static unsigned long long tomoXnodeLinesFlushed(void) {
+    return 0;
+}
+#endif
 
 /* Grow-back's IO owner and the main-thread watchdog arbitrate the commit edge with this state.
  * In particular, DRAINING may become COMMITTED or CANCEL_REQUESTED, never both. */
@@ -3716,7 +3786,13 @@ static void exDispatchDirect(int ex_id, client *fake) {
     uint64_t _stall0 = getMonotonicUs();   /* ring-stall = EX backlog seen from IO; see tmIoSignal */
     tmIoWaitBegin();
     do {
+#if TOMO_XNODE_FLUSH_ACTIVE
+        unsigned int xnode_published = atomic_load_explicit(&q->tail, memory_order_relaxed);
+#endif
         atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);  /* let the worker drain */
+#if TOMO_XNODE_FLUSH_ACTIVE
+        tomoXnodeFlushPublished(q, xnode_published, q->staged_tail);
+#endif
         exHandoffAdvertise(&server.exThreads[ex_id]);
         /* ee451 (A3, 2026-08-02): PUBLISH EVERYTHING STAGED, not just the ring we are stuck on.
          * Republishing `q` alone lets the worker we are waiting for drain, but leaves any work this
@@ -3733,7 +3809,13 @@ static void exDispatchDirect(int ex_id, client *fake) {
     } while (exQueuePush(q, fake) != 0);
     tmIoWaitEnd();
     tm_io_sig[iotid].tm_ring_stall_us += (unsigned int)(getMonotonicUs() - _stall0);
+#if TOMO_XNODE_FLUSH_ACTIVE
+    unsigned int xnode_published = atomic_load_explicit(&q->tail, memory_order_relaxed);
+#endif
     atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);       /* publish the just-pushed fake now */
+#if TOMO_XNODE_FLUSH_ACTIVE
+    tomoXnodeFlushPublished(q, xnode_published, q->staged_tail);
+#endif
     exHandoffAdvertise(&server.exThreads[ex_id]);
 }
 
@@ -9705,7 +9787,13 @@ static void csStampPush(int owner, tomoOwnerOp *op) {
             full_counted = 1;
         }
         if (!waiting) { tmIoWaitBegin(); waiting = 1; }
+#if TOMO_XNODE_FLUSH_ACTIVE
+        unsigned int xnode_published = atomic_load_explicit(&q->tail, memory_order_relaxed);
+#endif
         atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
+#if TOMO_XNODE_FLUSH_ACTIVE
+        tomoXnodeFlushPublished(q, xnode_published, q->staged_tail);
+#endif
         exHandoffAdvertiseLane(worker, (unsigned)csStampLane());
         if (current_owner == owner)
             csStampDrain(worker);
@@ -9716,7 +9804,13 @@ static void csStampPush(int owner, tomoOwnerOp *op) {
     }
     if (waiting) tmIoWaitEnd();
     atomic_fetch_add_explicit(&worker->stamp_pending, 1, memory_order_release);
+#if TOMO_XNODE_FLUSH_ACTIVE
+    unsigned int xnode_published = atomic_load_explicit(&q->tail, memory_order_relaxed);
+#endif
     atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
+#if TOMO_XNODE_FLUSH_ACTIVE
+    tomoXnodeFlushPublished(q, xnode_published, q->staged_tail);
+#endif
     exHandoffAdvertiseLane(worker, (unsigned)csStampLane());
 }
 
@@ -12234,7 +12328,13 @@ static void csPushSpin(int w, client *sub) {
             counted = 1;
         }
         /* Full: ensure everything staged so far is visible so the worker drains. */
+#if TOMO_XNODE_FLUSH_ACTIVE
+        unsigned int xnode_published = atomic_load_explicit(&q->tail, memory_order_relaxed);
+#endif
         atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
+#if TOMO_XNODE_FLUSH_ACTIVE
+        tomoXnodeFlushPublished(q, xnode_published, q->staged_tail);
+#endif
         exHandoffAdvertise(&server.exThreads[w]);
         /* ee451 (A3, 2026-08-02): PUBLISH EVERYTHING STAGED, not just the ring we are stuck on.
          * Republishing `q` alone lets the worker we are waiting for drain, but leaves any work this
@@ -12254,7 +12354,13 @@ static void csPushSpin(int w, client *sub) {
         tm_io_sig[iotid].tm_ring_stall_us += (unsigned int)(getMonotonicUs() - _stall0);
     }
     /* Publish this sub now (covers the opt_batch_push staging-only case). */
+#if TOMO_XNODE_FLUSH_ACTIVE
+    unsigned int xnode_published = atomic_load_explicit(&q->tail, memory_order_relaxed);
+#endif
     atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
+#if TOMO_XNODE_FLUSH_ACTIVE
+    tomoXnodeFlushPublished(q, xnode_published, q->staged_tail);
+#endif
     exHandoffAdvertise(&server.exThreads[w]);
 }
 
@@ -19050,6 +19156,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_fake_tail_promotions:%llu\r\n",
             atomic_load_explicit(&tomo_fake_core_allocs, memory_order_relaxed),
             atomic_load_explicit(&tomo_fake_tail_promotions, memory_order_relaxed));
+        info = sdscatprintf(info, "tomokv_sim_xnode_lines_flushed:%llu\r\n",
+                            tomoXnodeLinesFlushed());
         /* Keep the lifecycle witnesses outside the already-large FMTARGS block. ref_waits is the
          * non-vacuous proof: it increments only when group completion reached zero but old-owner
          * STAMP/PRUNE/grace work for the migrating range was still outstanding. Both stale-owner
@@ -20668,6 +20776,9 @@ void flushExQueues(void) {
         unsigned int published = atomic_load_explicit(&q->tail, memory_order_relaxed);
         if (q->staged_tail != published) {
             atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
+#if TOMO_XNODE_FLUSH_ACTIVE
+            tomoXnodeFlushPublished(q, published, q->staged_tail);
+#endif
             exHandoffAdvertise(&ex[w]);   /* AFTER the tail store -- see exThread.q_summary */
         }
       }
@@ -27176,11 +27287,74 @@ static int tomoGrowBackNode(int node, const char **err) {
     return tomoGrowBackSlot(pick, err);
 }
 
+/* The ordinary server never carries the flush hook through its hot path. Once
+ * configuration is known, an armed boot restarts in the compile-specialized
+ * sibling; that sibling refuses an unarmed direct invocation. */
+static void tomoSelectXnodeFlushBuild(const char *startup_cwd,
+                                      int config_from_stdin) {
+#if TOMO_XNODE_FLUSH_ACTIVE
+    UNUSED(startup_cwd);
+    UNUSED(config_from_stdin);
+    if (server.sentinel_mode) {
+        fprintf(stderr, "FATAL: redis-server-xnode-sim is not valid in sentinel mode\n");
+        exit(1);
+    }
+    if (!server.tomo_sim_xnode) {
+        fprintf(stderr, "FATAL: redis-server-xnode-sim requires tomokv-sim-xnode 1\n");
+        exit(1);
+    }
+    if (!tomoXnodeClflushoptSupported()) {
+        fprintf(stderr, "FATAL: tomokv-sim-xnode requires CPU CLFLUSHOPT support\n");
+        exit(1);
+    }
+#else
+    if (!server.tomo_sim_xnode) return;
+    if (server.sentinel_mode) {
+        fprintf(stderr, "FATAL: tomokv-sim-xnode is not supported in sentinel mode\n");
+        exit(1);
+    }
+    if (config_from_stdin) {
+        fprintf(stderr, "FATAL: tomokv-sim-xnode cannot re-read configuration from stdin\n");
+        exit(1);
+    }
+    if (!tomoXnodeClflushoptSupported()) {
+        fprintf(stderr, "FATAL: tomokv-sim-xnode requires CPU CLFLUSHOPT support\n");
+        exit(1);
+    }
+    if (!startup_cwd[0]) {
+        fprintf(stderr, "FATAL: tomokv-sim-xnode could not capture the startup directory\n");
+        exit(1);
+    }
+    if (chdir(startup_cwd) == -1) {
+        fprintf(stderr, "FATAL: tomokv-sim-xnode could not restore the startup directory: %s\n",
+                strerror(errno));
+        exit(1);
+    }
+
+    char self_path[PATH_MAX + 1];
+    ssize_t self_len = readlink("/proc/self/exe", self_path, sizeof(self_path) - 1);
+    if (self_len <= 0 || (size_t)self_len >= sizeof(self_path) - 1) {
+        fprintf(stderr, "FATAL: could not resolve an untruncated /proc/self/exe%s%s\n",
+                self_len <= 0 ? ": " : "", self_len <= 0 ? strerror(errno) : "");
+        exit(1);
+    }
+    self_path[self_len] = '\0';
+    sds executable = sdscatprintf(sdsempty(), "%s-xnode-sim", self_path);
+    zfree(server.exec_argv[0]);
+    server.exec_argv[0] = zstrdup(executable);
+    execv(executable, server.exec_argv);
+    fprintf(stderr, "FATAL: could not execute %s: %s\n", executable, strerror(errno));
+    sdsfree(executable);
+    exit(1);
+#endif
+}
+
 //ee451
 int main(int argc, char **argv) {
     struct timeval tv;
     int j;
     char config_from_stdin = 0;
+    char startup_cwd[PATH_MAX + 1] = {0};
 
 #ifdef REDIS_TEST
     monotonicInit(); /* Required for dict tests, that are relying on monotime during dict rehashing. */
@@ -27310,6 +27484,10 @@ int main(int argc, char **argv) {
         } if (strcmp(argv[1], "--check-system") == 0) {
             exit(syscheck() ? 0 : 1);
         }
+        /* loadServerConfig applies `dir` immediately. Preserve the parse
+         * origin so an armed second parse resolves relative paths alike. */
+        if (getcwd(startup_cwd, sizeof(startup_cwd)) == NULL)
+            startup_cwd[0] = '\0';
         /* Parse command line options
          * Precedence wise, File, stdin, explicit options -- last config is the one that matters.
          *
@@ -27403,6 +27581,7 @@ int main(int argc, char **argv) {
         sdsfree(options);
     }
     if (server.sentinel_mode) sentinelCheckConfigFile();
+    tomoSelectXnodeFlushBuild(startup_cwd, config_from_stdin);
 
     /* Do system checks */
 #ifdef __linux__

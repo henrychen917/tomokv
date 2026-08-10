@@ -3227,6 +3227,9 @@ standardConfig static_configs[] = {
     createIntConfig("tomokv-prefetch-ex", NULL, MODIFIABLE_CONFIG, 0, 3, server.prefetch_ex_level, 3, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-nodes",                  NULL, IMMUTABLE_CONFIG, 1, TOMO_NODES_MAX, server.topo_nodes, 1, INTEGER_CONFIG, NULL, NULL), /* CCD count or NUMA-node count — tomokv-pin-mode decides which */
     createIntConfig("tomokv-cores-per-node",         NULL, IMMUTABLE_CONFIG, 0, TOMO_IO_THREADS_MAX + TOMO_EX_THREADS_MAX, server.cores_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* 0 = derive as thread-io + thread-ex (i.e. no reserved cores) */
+    /* Measurement-only cross-CCX first-touch emulator. Non-zero selects a
+     * separately compiled publish specialization; zero has no hot-path hook. */
+    createIntConfig("tomokv-sim-xnode",              NULL, DEBUG_CONFIG | IMMUTABLE_CONFIG, 0, 1, server.tomo_sim_xnode, 0, INTEGER_CONFIG, NULL, NULL),
 
     /* ================= FRONT/BACK SPLIT ====================================================
      * thread-io / thread-ex are the STARTING split, PER NODE, in BOTH modes. Under `auto` the
