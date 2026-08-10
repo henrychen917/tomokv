@@ -22978,6 +22978,17 @@ static int ioSlice(ioThreadArgs *t, int idle_wait_us) {
  *
  * Birth is UNSET->preset (IO or EX) at the first checkpoint. Any other target — WB (no
  * WB slice in the 2s fork), a mode whose binding is NULL, or 0/UNSET — is refused. */
+static void setPolyThreadName(const polyThreadCtx *ctx, int mode) {
+    char name[16];
+
+    serverAssert(mode == TOMO_MODE_IO || mode == TOMO_MODE_EX);
+    if (mode == TOMO_MODE_IO)
+        snprintf(name, sizeof(name), "tomo-io%d", ctx->io_slot);
+    else
+        snprintf(name, sizeof(name), "tomo-ex%d", ctx->ex_slot);
+    redis_set_thread_title(name);
+}
+
 void *polyThreadMain(void *arg) {
     polyThreadCtx *ctx = (polyThreadCtx *)arg;
     int cur = TOMO_MODE_UNSET; /* no mode entered yet */
@@ -22987,6 +22998,8 @@ void *polyThreadMain(void *arg) {
     unsigned int dormant_ex_probe_passes = 0; /* amortize empty probes while IO stays busy */
     int io_events;
     int refused = 0;           /* last refused target (0 = none; 0 is not a mode), to log once */
+    int initial_mode = atomic_load_explicit(&ctx->target_mode, memory_order_acquire);
+    setPolyThreadName(ctx, initial_mode);
     {   /* DEBUG TOMO-JESTATS: one registration per OS thread (identity may change mode later;
          * the jemalloc counters are per-thread, so the name is the birth identity pair). */
         char n[24]; snprintf(n, sizeof(n), "poly_io%d_ex%d", ctx->io_slot, ctx->ex_slot);
@@ -23190,7 +23203,9 @@ void *polyThreadMain(void *arg) {
                 break;
             }
             if (ok) {
+                int role_changed = cur != TOMO_MODE_UNSET;
                 cur = want;
+                if (role_changed) setPolyThreadName(ctx, cur); /* conversion edge, never a slice hot path */
                 atomic_store_explicit(&ctx->mode, cur, memory_order_release);
                 refused = 0;                            /* a successful shift re-arms rejection logging */
             } else if (refused != want) {
@@ -27263,6 +27278,11 @@ int main(int argc, char **argv) {
     struct timeval tv;
     int j;
     char config_from_stdin = 0;
+
+    /* Deliberately NOT renamed: pthread_setname on the main thread rewrites /proc/PID/comm,
+     * which every harness that matches or pkill -x's "redis-server" depends on (21 preflight
+     * scripts + the leaked-server hygiene patterns). The per-role IO/EX names carry the whole
+     * profiling value; main stays identifiable as the process itself. */
 
 #ifdef REDIS_TEST
     monotonicInit(); /* Required for dict tests, that are relying on monotime during dict rehashing. */
