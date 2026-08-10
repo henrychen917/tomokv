@@ -3766,8 +3766,6 @@ static inline int tomoArgvClass(client *fake) {
 static inline void exDispatchPush(int ex_id, client *fake) {
     if (server.tomo_reorder > 0 && !tomo_rord.draining && server.strict_order == 0 &&
         fake->cmd && !fake->csparent &&
-        (!fake->has_exec_tail ||
-         (!clientTail(fake)->is_flush && !clientTail(fake)->drain_ack)) &&
         !(fake->cmd->tomo_route & TOMO_R_CROSS)) {
         int i = tomo_rord.n;
         /* D age clock: ONE rdtsc per window (at open), shared by every command in it. The age
@@ -8105,7 +8103,7 @@ int processCommand(client *c) {
 
     /* The 320-byte form is exact-shape only: SET options rewrite argv, synchronous module
      * callbacks can inspect the ambient client, and request/response logging needs tail state.
-     * Counters are bumped only when a slot is allocated or promoted, never per command. */
+     * Lifecycle counters move only on allocation, promotion, or the first tail bypass per slot. */
     int core_eligible = c->cmd && (c->cmd->tomo_route & TOMO_R_EXPRESS) &&
         ((c->cmd->proc == getCommand && c->argc == 2) ||
          (c->cmd->proc == setCommand && c->argc == 3));
@@ -8117,17 +8115,24 @@ int processCommand(client *c) {
             NOTIFY_OVERWRITTEN | NOTIFY_TYPE_CHANGED))
         core_eligible = 0;
     unsigned int fslot = ct->dispatchid & ct->ring_mask;
-    /* 2s-auto D3: lazy-create the ring slot on first use (createClient leaves every slot NULL).
-     * fake_slot is restamped after a resize because the allocation may move. */
+    /* 2s-auto D3: lazy-create the ring slot on first use (createClient leaves every slot NULL). */
     client *fake = ct->fakeClients[fslot];
     if (fake == NULL) {
         fake = core_eligible ? createCoreFakeClient(c) : createFakeClient(c);
+        fake->fake_slot = fslot;
+        ct->fakeClients[fslot] = fake;
         if (fslot + 1 > ct->fake_ring_cur_depth) ct->fake_ring_cur_depth = fslot + 1;
     } else if (!core_eligible && !fake->has_exec_tail) {
         fake = promoteFakeClient(fake);
+        ct->fakeClients[fslot] = fake;
     }
-    ct->fakeClients[fslot] = fake;
-    fake->fake_slot = fslot;
+    if (fake->exec_core != core_eligible) {
+        fake->exec_core = core_eligible;
+        if (core_eligible && fake->has_exec_tail && !fake->exec_core_seen) {
+            fake->exec_core_seen = 1;
+            atomic_fetch_add_explicit(&tomo_fake_tail_bypass_slots, 1, memory_order_relaxed);
+        }
+    }
     /* 2s-auto T3: express-slim — GET/SET are never MULTI-queued under sharding, so
      * lookedcmd/realcmd/reploff_next/read_error are unused by them. Gate reads c->cmd
      * PRE-move (moveExecutionState clears real->cmd after); express test at ~5237 reads
@@ -19045,11 +19050,15 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 atomic_load_explicit(&tomo_atomic_commit_wait_drains, memory_order_relaxed),
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
+        /* A non-zero bypass count proves an already-full ring slot entered
+         * the five-region core lane instead of its resident tail path. */
         info = sdscatprintf(info,
             "tomokv_fake_core_allocs:%llu\r\n"
-            "tomokv_fake_tail_promotions:%llu\r\n",
+            "tomokv_fake_tail_promotions:%llu\r\n"
+            "tomokv_fake_tail_bypass_slots:%llu\r\n",
             atomic_load_explicit(&tomo_fake_core_allocs, memory_order_relaxed),
-            atomic_load_explicit(&tomo_fake_tail_promotions, memory_order_relaxed));
+            atomic_load_explicit(&tomo_fake_tail_promotions, memory_order_relaxed),
+            atomic_load_explicit(&tomo_fake_tail_bypass_slots, memory_order_relaxed));
         /* Keep the lifecycle witnesses outside the already-large FMTARGS block. ref_waits is the
          * non-vacuous proof: it increments only when group completion reached zero but old-owner
          * STAMP/PRUNE/grace work for the migrating range was still outstanding. Both stale-owner
@@ -20495,10 +20504,9 @@ static inline int isStatefulCommand(struct redisCommand *cmd) {
 }
 
 /* 2s-auto T3 express-slim: a trimmed moveExecutionState for the express lane (GET/SET).
- * Skips ONLY lookedcmd/realcmd/reploff_next/read_error (unused by express commands —
- * sharding rejects MULTI/WATCH so these clients never reach here mid-transaction). It STILL
- * moves the pending command + argv accounting: commandProcessed(fake) frees the pcmd via
- * fake->pending_cmds, so skipping it would leak/double-free. */
+ * Tail-only command fields are unused, and the preceding drain already emptied the output.
+ * It STILL moves the pending command + argv accounting: commandProcessed(fake) frees the pcmd
+ * via fake->pending_cmds, so skipping it would leak/double-free. */
 static void moveExecutionStateSlim(client *real, client *fake) {
     fake->argc     = real->argc;
     fake->argv     = real->argv;
@@ -20510,6 +20518,7 @@ static void moveExecutionStateSlim(client *real, client *fake) {
     /* pcmd MUST still move — commandProcessed(fake) frees it; skipping leaks/double-frees. */
     pendingCommand *pcmd = popPendingCommandFromHead(&real->pending_cmds);
     serverAssert(pcmd == real->current_pending_cmd);
+    serverAssert(pcmd->argv == fake->argv && pcmd->argc == fake->argc);
     fake->current_pending_cmd = pcmd;
     addPendingCommand(&fake->pending_cmds, pcmd);
     real->current_pending_cmd = NULL;
@@ -20524,9 +20533,13 @@ static void moveExecutionStateSlim(client *real, client *fake) {
     fake->db            = real->db;
     fake->flags = real->flags & (CLIENT_INTERNAL | CLIENT_ASKING |
                                   CLIENT_READONLY | CLIENT_DENY_BLOCKING);
-    fake->bufpos      = 0;
-    fake->sentlen     = 0;
-    fake->reply_bytes = 0;
+    /* The preceding drain emptied the slot. resetCoreClientInternal also
+     * retires output left by close/error paths before the slot can return. */
+    if (!fake->exec_core) {
+        fake->bufpos = 0;
+        fake->sentlen = 0;
+        fake->reply_bytes = 0;
+    }
     /* skipped (express-safe): lookedcmd, realcmd, reploff_next and read_error are unread by
      * getCommand/setCommand's ->proc (the worker calls proc directly, NOT call()). slot stays
      * command-scoped because commandProcessed() uses it for cluster slot accounting. */
@@ -21390,17 +21403,32 @@ static inline void exExecFake(client *fake) {
          * inside one shared kvstore, so a range write needs no post-image. */
         tomoCmdClockExit();
     }
-    pendingCommand *wpcmd = fake->current_pending_cmd;
-    if (wpcmd && wpcmd->argv) {
-        wpcmd->argv_released_mask = 0;
-        for (int a = 0; a < wpcmd->argc; a++) {
-            robj *o = wpcmd->argv[a];
+    if (fake->exec_core) {
+        uint64_t released = 0;
+        serverAssert(fake->argv != NULL && fake->argc <= 64);
+        for (int a = 0; a < fake->argc; a++) {
+            robj *o = fake->argv[a];
             /* ee451 (v14): skip interned/shared robjs (argv[0] command token) — they're never freed,
              * so no release needed; avoids a redundant no-op decref + mask bit. */
             if (o && o->refcount > 1 && o->refcount != OBJ_SHARED_REFCOUNT) {
-                decrRefCount(o);                                  /* worker: sole shard-refcount mutator */
-                if (a < 64) wpcmd->argv_released_mask |= (1ULL << a);  /* signal WITHOUT touching io array */
-                else wpcmd->argv[a] = NULL;                       /* >64 args: fall back to NULL sentinel */
+                decrRefCount(o);                         /* worker: sole shard-refcount mutator */
+                released |= 1ULL << a;
+            }
+        }
+        /* tomo_key_h is dead after the proc; return ownership bits without
+         * following current_pending_cmd or dirtying its IO-owned tail line. */
+        fake->argv_released_mask = released;
+    } else {
+        pendingCommand *wpcmd = fake->current_pending_cmd;
+        if (wpcmd && wpcmd->argv) {
+            wpcmd->argv_released_mask = 0;
+            for (int a = 0; a < wpcmd->argc; a++) {
+                robj *o = wpcmd->argv[a];
+                if (o && o->refcount > 1 && o->refcount != OBJ_SHARED_REFCOUNT) {
+                    decrRefCount(o);
+                    if (a < 64) wpcmd->argv_released_mask |= 1ULL << a;
+                    else wpcmd->argv[a] = NULL;
+                }
             }
         }
     }
@@ -21825,7 +21853,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
             /* ee451 (v8d): CUTOVER DRAIN SENTINEL — processed in queue order. Reaching it proves
              * every range primary this producer dispatched before it has executed on A; decrement
              * the per-cutover barrier and free. No reply. */
-            if (fake->has_exec_tail && clientTail(fake)->drain_ack) {
+            if (unlikely(fake->cmd == NULL) && fake->has_exec_tail && clientTail(fake)->drain_ack) {
                 /* This sentinel came up queue slot `i`; mark that producer slot drained. */
                 atomic_store_explicit(&server.migration.fence_acked[i], 1, memory_order_release);
                 freeFakeClient(fake);
@@ -21836,7 +21864,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
             /* ee451 (v7): FLUSH SENTINEL — processed in queue order (FIFO behind this
              * connection's earlier commands). Empty this worker's OWN shard DBs and free
              * the fake. Fire-and-forget: no reply, no barrier. */
-            if (fake->has_exec_tail && clientTail(fake)->is_flush) {
+            if (unlikely(fake->cmd == NULL) && fake->has_exec_tail && clientTail(fake)->is_flush) {
                 clientExecTail *ft = clientTail(fake);
                 int dblo = ft->flush_dbid < 0 ? 0 : ft->flush_dbid;
                 int dbhi = ft->flush_dbid < 0 ? server.dbnum - 1 : ft->flush_dbid;

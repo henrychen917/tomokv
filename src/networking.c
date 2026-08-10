@@ -39,6 +39,7 @@ static inline int _writeToClientNonSlave(client *c, ssize_t *nwritten);
 static inline int _writeToClientSlave(client *c, ssize_t *nwritten);
 static pendingCommand *acquirePendingCommand(void);
 static void reclaimPendingCommand(client *c, pendingCommand *pcmd);
+static void freePendingCommandWithMask(client *c, pendingCommand *pcmd, uint64_t released_mask);
 static void releaseAllBufReferences(client *c);   /* ee451 (v11): used by freePooledFakeClient (defined later) */
 
 int ProcessingEventsWhileBlocked = 0; /* See processEventsWhileBlocked(). */
@@ -53,6 +54,7 @@ int ProcessingEventsWhileBlocked = 0; /* See processEventsWhileBlocked(). */
 _Atomic unsigned long long tomo_nested_cmd_frames = 0;
 _Atomic unsigned long long tomo_fake_core_allocs = 0;
 _Atomic unsigned long long tomo_fake_tail_promotions = 0;
+_Atomic unsigned long long tomo_fake_tail_bypass_slots = 0;
 __thread sds thread_reusable_qb = NULL;
 __thread int thread_reusable_qb_used = 0; /* Avoid multiple clients using reusable query
                                          * buffer due to nested command execution. */
@@ -164,14 +166,16 @@ void freeClientCold(client *c) {
 }
 //ee451
 //ee451
-/* ee451 (v11): reset ALL per-call fields of a fake client to the pristine post-create state,
- * WITHOUT touching the cached heap allocations (c->buf and the c->reply list object).
+/* ee451 (v11): reset executable per-call fields of a fake client to the pristine post-create
+ * state, WITHOUT touching cached heap or real-client-only fake-ring storage.
  * createFakeClient and the pooled-reuse path (createPooledFakeClient) BOTH call this, so a fresh
- * fake and a recycled fake are byte-identical in every field — no field can be missed on reuse.
+ * fake and a recycled fake present identical command state — no live field can be missed on reuse.
  * Caller guarantees c->buf is allocated (size in c->buf_usable_size) and c->reply is an EMPTY
  * list with its free/dup methods already set. */
 static void resetFakeClientState(client *c, client *parent) {
     serverAssert(c->has_exec_tail);
+    c->exec_core = 0;
+    c->exec_core_seen = 0;
     /* A pooled fake must never inherit subscriptions, transaction errors, or
      * any other cold state from its previous command. Fresh fakes set cold to
      * NULL before entering here, so this is safe on every construction path. */
@@ -183,7 +187,7 @@ static void resetFakeClientState(client *c, client *parent) {
     clientTail(c)->reply_cdb = NULL;          /* #75: fakes never own reply buses; they signal clientTail(parent)->reply_cdb */
     c->parent = parent;
     clientTail(c)->uring = NULL;
-    memset(clientTail(c)->fakeClients, 0, sizeof(clientTail(c)->fakeClients));
+    /* fakeClients is real-client-only and is never read from a fake. */
     clientTail(c)->dispatchid = 0;
     clientTail(c)->flushid = 0;
 
@@ -412,6 +416,8 @@ client *createCoreFakeClient(client *parent) {
     atomicSet(c->tomo_dirty_cas, 0);
     c->tomo_script_gate = 0;
     c->has_exec_tail = 0;
+    c->exec_core = 1;
+    c->exec_core_seen = 0;
 
     atomic_fetch_add_explicit(&tomo_fake_core_allocs, 1, memory_order_relaxed);
     return c;
@@ -501,6 +507,8 @@ void freePooledFakeClient(client *c) {
 client *createClient(connection *conn) {
     client *c = zmalloc(CLIENT_FULL_SIZE);
     c->has_exec_tail = 1;
+    c->exec_core = 0;
+    c->exec_core_seen = 0;
     /* Must precede selectDb() and every early-init client use (Lua/functions). */
     clientTail(c)->cold = NULL;
     clientTail(c)->uring = NULL;
@@ -1126,7 +1134,7 @@ void afterErrorReply(client *c, const char *s, size_t len, int flags) {
     /* Module clients fall into two categories:
      * Calls to RM_Call, in which case the error isn't being returned to a client, so should not be counted.
      * Module thread safe context calls to RM_ReplyWithError, which will be added to a real client by the main thread later. */
-    if (c->has_exec_tail && (c->flags & CLIENT_MODULE)) {
+    if (!c->exec_core && c->has_exec_tail && (c->flags & CLIENT_MODULE)) {
         if (!clientTail(c)->deferred_reply_errors) {
             clientTail(c)->deferred_reply_errors = listCreate();
             listSetFreeMethod(clientTail(c)->deferred_reply_errors, sdsfreegeneric);
@@ -1161,13 +1169,14 @@ void afterErrorReply(client *c, const char *s, size_t len, int flags) {
          * the cmd stats will not be updated as well, we still want this command
          * to be counted as failed so we update it here. We update clientTail(c)->realcmd in
          * case c->cmd was changed (like in GEOADD). */
-        struct redisCommand *statcmd = c->has_exec_tail ? clientTail(c)->realcmd : c->cmd;
+        struct redisCommand *statcmd =
+            (!c->exec_core && c->has_exec_tail) ? clientTail(c)->realcmd : c->cmd;
         tomoCmdStatAddErr(statcmd, 0, 1);   /* ee451 (#B2): per-thread shard */
     }
 
     /* Express fakes have no identity/logging tail. Their error and command
      * counters above are the only post-reply work applicable to them. */
-    if (unlikely(!c->has_exec_tail)) return;
+    if (unlikely(c->exec_core || !c->has_exec_tail)) return;
 
     /* Sometimes it could be normal that a slave replies to a master with
      * an error and this function gets called. Actually the error will never
@@ -2081,7 +2090,7 @@ void AddReplyFromClient(client *dst, client *src) {
     src->reply_bytes = 0;
     src->bufpos = 0;
 
-    if (src->has_exec_tail && clientTail(src)->deferred_reply_errors) {
+    if (!src->exec_core && src->has_exec_tail && clientTail(src)->deferred_reply_errors) {
         deferredAfterErrorReply(dst, clientTail(src)->deferred_reply_errors);
         listRelease(clientTail(src)->deferred_reply_errors);
         clientTail(src)->deferred_reply_errors = NULL;
@@ -2333,7 +2342,7 @@ static void freeDeferredObject(client *c, int type, void *ptr) {
  * we know the object is allocated in the IO thread, to avoid memory arena contention,
  * and also reducing the load of the main thread. */
 void tryDeferFreeClientObject(client *c, int type, void *ptr) {
-    if (!c || !c->has_exec_tail || c->tid == IOTHREAD_MAIN_THREAD_ID) {
+    if (!c || c->exec_core || !c->has_exec_tail || c->tid == IOTHREAD_MAIN_THREAD_ID) {
         freeDeferredObject(c, type, ptr);
         return;
     }
@@ -3728,7 +3737,7 @@ void resetClientQbufState(client *c) {
 }
 
 static inline void resetCoreClientInternal(client *c, int num_pcmds_to_free) {
-    serverAssert(c->isFake && !c->has_exec_tail);
+    serverAssert(c->isFake && c->exec_core);
     serverAssert(num_pcmds_to_free == 1);
     serverAssert(c->current_pending_cmd != NULL && c->pending_cmds.len == 1);
 
@@ -3749,7 +3758,7 @@ static inline void resetCoreClientInternal(client *c, int num_pcmds_to_free) {
     pendingCommand *pcmd = popPendingCommandFromHead(&c->pending_cmds);
     serverAssert(pcmd == c->current_pending_cmd);
     c->current_pending_cmd = NULL;
-    freePendingCommand(c, pcmd);
+    freePendingCommandWithMask(c, pcmd, c->argv_released_mask);
     serverAssert(c->pending_cmds.len == 0 && c->all_argv_len_sum == 0);
 
     c->argc = 0;
@@ -3757,24 +3766,20 @@ static inline void resetCoreClientInternal(client *c, int num_pcmds_to_free) {
     c->argv_len = 0;
     c->argv = NULL;
     c->slot = -1;
-    c->cluster_compatibility_check_slot = -2;
-    c->tomo_local_worker = -1;
-    atomicSet(c->tomo_watch_worker, -1);
-    atomicSet(c->tomo_dirty_cas, 0);
-    c->tomo_script_gate = 0;
+    /* Exact GET/SET never dirties the transaction/script/cluster-compatibility
+     * fields. Routing overwrites its hash/pointers; EX already disarmed the
+     * bucket pointer. Reset only state the completed command leaves live. */
     c->flags = 0;
-    c->net_input_bytes_curr_cmd = 0;
     c->net_output_bytes_curr_cmd = 0;
     c->prefetch_key_hash_valid = 0;
-    c->prefetch_dict = NULL;
-    c->tomo_bkt_ptr = NULL;
 }
 
 static inline void resetClientInternal(client *c, int num_pcmds_to_free) {
-    if (unlikely(!c->has_exec_tail)) {
+    if (c->exec_core) {
         resetCoreClientInternal(c, num_pcmds_to_free);
         return;
     }
+    serverAssert(c->has_exec_tail);
 
     redisCommandProc *prevcmd = c->cmd ? c->cmd->proc : NULL;
 
@@ -6758,6 +6763,12 @@ void initPendingCommand(pendingCommand *pcmd) {
 }
 
 void freePendingCommand(client *c, pendingCommand *pcmd) {
+    freePendingCommandWithMask(c, pcmd, pcmd ? pcmd->argv_released_mask : 0);
+}
+
+/* Core-only dispatch returns its worker release result in the client core so
+ * the worker never acquires the IO-owned pending-command tail line. */
+static void freePendingCommandWithMask(client *c, pendingCommand *pcmd, uint64_t released_mask) {
     if (!pcmd)
         return;
 
@@ -6766,7 +6777,7 @@ void freePendingCommand(client *c, pendingCommand *pcmd) {
     if (pcmd->argv) {
         /* ee451 (v14 deepint): skip slots the worker already released (argv_released_mask) — the worker
          * decref'd them WITHOUT NULLing the io array, so freeing here would double-free. */
-        uint64_t rel = pcmd->argv_released_mask;
+        uint64_t rel = released_mask;
         for (int j = 0; j < pcmd->argc; j++) { if (j < 64 && (rel & (1ULL<<j))) continue; robj *o = pcmd->argv[j]; if (o) decrRefCount(o); }
 
         /* c may be NULL when called from reclaimPendingCommand */

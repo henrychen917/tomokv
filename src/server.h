@@ -1907,7 +1907,12 @@ typedef struct client {
                 uint64_t arrival_us;
             };
             const void *tomo_bkt_ptr;
-            uint64_t tomo_key_h;
+            /* Exact GET/SET consumes the route hash before its post-proc argv
+             * release scan, then returns that scan's mask in the same word. */
+            union {
+                uint64_t tomo_key_h;
+                uint64_t argv_released_mask;
+            };
             uint64_t tomo_read_snapshot;
             size_t all_argv_len_sum;
 
@@ -1935,6 +1940,10 @@ typedef struct client {
             redisAtomic int tomo_watch_worker;
             redisAtomic unsigned int tomo_dirty_cas;
             uint8_t tomo_script_gate;
+            /* This dispatch is proven not to access exec_tail. Allocation
+             * shape remains separately described by has_exec_tail. */
+            uint8_t exec_core;
+            uint8_t exec_core_seen; /* full ring slot has taken the tail-bypass lane */
             /* Tail lvalues must only be formed after this test. Ring-slot
              * promotion happens while the slot is idle, before publication. */
             uint8_t has_exec_tail;
@@ -6494,6 +6503,7 @@ void freePooledFakeClient(client *c);                   /* ee451 (v11): return s
 void freeFakeClient(client *c);
 extern _Atomic unsigned long long tomo_fake_core_allocs;
 extern _Atomic unsigned long long tomo_fake_tail_promotions;
+extern _Atomic unsigned long long tomo_fake_tail_bypass_slots;
 void *polyThreadMain(void *arg);   /* ee451 (thread-modes v1, step 2): unified mode-dispatching main (arg = polyThreadCtx*) */
 /* ee451 (thread-modes v1.6): connection migration. */
 extern tmMigMailbox tm_mig_mbox[TOMO_IO_THREADS_MAX + 1];  /* one per io-capable slot (0..io_threads); main=0 unused */
