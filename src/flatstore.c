@@ -81,6 +81,7 @@ flatTable *flatTableNew(uint64_t want_size) {
     t->gen = 0;
     atomic_store_explicit(&t->retire_stack, NULL, memory_order_relaxed);
     t->batches = NULL;
+    t->batches_tail = NULL;
     return t;
 }
 
@@ -119,7 +120,7 @@ void flatTableFree(flatTable *t) {
 }
 
 /* QSBR retire: lock-free Treiber push of a retired value onto the table's pending stack. Called by
- * the owning worker on delete/overwrite; the main thread closes + reclaims (flatReclaimTable). */
+ * the owning worker on delete/overwrite; the main thread closes + reclaims (flatReclaimAll). */
 __thread flatRetireNode **flat_local_sink = NULL;   /* see flatstore.h: worker-local retire sink */
 
 /* Retire-node recycling.

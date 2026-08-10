@@ -2650,7 +2650,7 @@ typedef struct exThread {
      * list of spent batch headers. Written ONLY by this worker (via flat_local_sink), never by any
      * other thread, so they need no atomics — that is what makes the retire path atomic-free, and it
      * is why main must NOT steal them (a non-live worker can still enter exSlice and push; see the
-     * NOTE above flatReclaimTable in server.c). The worker frees its own values once the grace
+     * NOTE above flatReclaimTableClose in server.c). The worker frees its own values once the grace
      * passes: same jemalloc arena as the allocation, on a thread that has the cycles.
      * PLACEMENT: appended at the very END of the struct on purpose. Inserting them mid-struct shifted
      * the carefully-tuned hot block (the `db`/tm_* line the F1 false-sharing fix established) and
