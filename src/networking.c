@@ -53,6 +53,7 @@ int ProcessingEventsWhileBlocked = 0; /* See processEventsWhileBlocked(). */
 _Atomic unsigned long long tomo_nested_cmd_frames = 0;
 _Atomic unsigned long long tomo_fake_core_allocs = 0;
 _Atomic unsigned long long tomo_fake_tail_promotions = 0;
+static __thread char reply_stage[CACHE_LINE_SIZE] __attribute__((aligned(CACHE_LINE_SIZE)));
 __thread sds thread_reusable_qb = NULL;
 __thread int thread_reusable_qb_used = 0; /* Avoid multiple clients using reusable query
                                          * buffer due to nested command execution. */
@@ -1825,6 +1826,53 @@ static int tryReferenceOwnedBulkSds(client *c, sds s) {
     return C_OK;
 }
 
+/* A standalone copied bulk reply that fits in one cache line is assembled on
+ * the worker's private line, then overwrites one aligned fake-buffer line. A
+ * 32-byte GET therefore replaces the header/value/CRLF destination appends
+ * with one full-line overwrite. Larger and aggregate replies retain their paths. */
+static inline int tryAddReplyBulkStaged(client *c, const void *p, size_t len) {
+    if (!c->isFake || iotid <= TOMO_IO_THREADS_MAX) return C_ERR;
+    const uint64_t flags = c->flags;
+    if (!(flags & CLIENT_EX_PENDING) || c->bufpos != 0 || len > CACHE_LINE_SIZE ||
+        (flags & (CLIENT_CLOSE_AFTER_REPLY | CLIENT_PUSHING | CLIENT_SLAVE)))
+        return C_ERR;
+    if (!c->parent || c->csparent || c->buf_encoded || c->last_header ||
+        listLength(c->reply) != 0)
+        return C_ERR;
+
+    size_t hdr_len = len < 10 ? 4 : len < 100 ? 5 : len < 1000 ? 6 : 0;
+    if (hdr_len == 0) return C_ERR;
+    size_t reply_len = hdr_len + len + 2;
+    if (reply_len > CACHE_LINE_SIZE || c->buf_usable_size < CACHE_LINE_SIZE ||
+        ((uintptr_t)c->buf & (CACHE_LINE_SIZE - 1)) != 0)
+        return C_ERR;
+
+    reply_stage[0] = '$';
+    if (hdr_len == 4) {
+        reply_stage[1] = '0' + (char)len;
+    } else if (hdr_len == 5) {
+        reply_stage[1] = '0' + (char)(len / 10);
+        reply_stage[2] = '0' + (char)(len % 10);
+    } else {
+        reply_stage[1] = '0' + (char)(len / 100);
+        reply_stage[2] = '0' + (char)((len / 10) % 10);
+        reply_stage[3] = '0' + (char)(len % 10);
+    }
+    reply_stage[hdr_len - 2] = '\r';
+    reply_stage[hdr_len - 1] = '\n';
+    if (len) memcpy(reply_stage + hdr_len, p, len);
+    reply_stage[hdr_len + len] = '\r';
+    reply_stage[hdr_len + len + 1] = '\n';
+
+    c->net_output_bytes_curr_cmd += reply_len;
+    reqresSaveClientReplyOffset(c);
+    memcpy(c->buf, reply_stage, CACHE_LINE_SIZE);
+    c->bufpos = reply_len;
+    if (c->buf_peak < reply_len) c->buf_peak = reply_len;
+    tomoRelaxedBump(server.cmdstat[iotid].reply_stage_flushes, 1);
+    return C_OK;
+}
+
 /* Add a Redis Object as a bulk reply.
  * If avoid_copy is non-zero, attempt to use copy avoidance optimization. */
 void addReplyBulkWithFlag(client *c, robj *obj, int avoid_copy) {
@@ -1833,6 +1881,8 @@ void addReplyBulkWithFlag(client *c, robj *obj, int avoid_copy) {
     if (sdsEncodedObject(obj)) {
         const size_t len = sdslen(obj->ptr);
         if (avoid_copy && tryAvoidBulkStrCopyToReply(c, obj, len) == C_OK)
+            return;
+        if (tryAddReplyBulkStaged(c, obj->ptr, len) == C_OK)
             return;
         _addReplyLongLongBulk(c, len);
         _addReplyToBufferOrList(c,obj->ptr,len);
@@ -1845,6 +1895,8 @@ void addReplyBulkWithFlag(client *c, robj *obj, int avoid_copy) {
         size_t len = ll2string(buf,sizeof(buf),(long)obj->ptr);
         buf[len] = '\r';
         buf[len+1] = '\n';
+        if (tryAddReplyBulkStaged(c, buf, len) == C_OK)
+            return;
         _addReplyLongLongBulk(c, len);
         _addReplyToBufferOrList(c,buf,len+2);
     } else {
@@ -1860,6 +1912,7 @@ void addReplyBulk(client *c, robj *obj) {
 /* Add a C buffer as bulk reply */
 void addReplyBulkCBuffer(client *c, const void *p, size_t len) {
     if (_prepareClientToWrite(c) != C_OK) return;
+    if (tryAddReplyBulkStaged(c, p, len) == C_OK) return;
     _addReplyLongLongBulk(c, len);
     _addReplyToBufferOrList(c, p, len);
     _addReplyToBufferOrList(c, "\r\n", 2);
@@ -1873,6 +1926,10 @@ void addReplyBulkSds(client *c, sds s) {
     }
     if (tryReferenceOwnedBulkSds(c, s) == C_OK)
         return;
+    if (tryAddReplyBulkStaged(c, s, sdslen(s)) == C_OK) {
+        sdsfree(s);
+        return;
+    }
     _addReplyLongLongWithPrefix(c, sdslen(s), '$');
     _addReplyToBufferOrList(c, s, sdslen(s));
     sdsfree(s);

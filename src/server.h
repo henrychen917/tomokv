@@ -3578,7 +3578,8 @@ struct redisServer {
      *                   scatter sub: an 8-key MGET is one command the client sent, not 4. */
     struct {
         _Atomic long long n;        /* single-writer per slot; tomoRelaxedBump/Read/Set */
-        char _pad[CACHE_LINE_SIZE - sizeof(long long)];
+        _Atomic unsigned long long reply_stage_flushes; /* aligned full-line bulk overwrites */
+        char _pad[CACHE_LINE_SIZE - 2 * sizeof(long long)];
     } cmdstat[TOMO_STAT_SLOTS] __attribute__((aligned(CACHE_LINE_SIZE)));
     /* ee451 (#B2): per-thread PER-COMMAND stats — the commandstats/latencystats half of #B1.
      * cmd->calls / ->microseconds / ->rejected_calls / ->failed_calls / ->latency_histogram were

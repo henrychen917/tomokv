@@ -5075,10 +5075,12 @@ void resetServerStats(void) {
     int j;
 
     server.stat_numcommands = 0;
-    /* ee451 (#B1): zero the per-thread executed-command counters too, else CONFIG RESETSTAT
-     * would only clear the (normally zero) fold baseline and INFO would keep the old total. */
-    for (int i = 0; i < TOMO_STAT_SLOTS; i++)
+    /* ee451 (#B1): zero the per-thread command/reply counters too, else CONFIG RESETSTAT
+     * would only clear the (normally zero) fold baseline and INFO would keep the old totals. */
+    for (int i = 0; i < TOMO_STAT_SLOTS; i++) {
         tomoRelaxedSet(server.cmdstat[i].n, 0);
+        tomoRelaxedSet(server.cmdstat[i].reply_stage_flushes, 0);
+    }
     server.stat_numconnections = 0;
     server.stat_expiredkeys = 0;
     server.stat_expiredkeys_active = 0;
@@ -18959,9 +18961,11 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
          * atomic mode was enabled. Raw values and misses are deliberately not
          * called fast: a large fast count therefore proves the new gate fired. */
         unsigned long long atomic_read_fast = 0, atomic_read_slow = 0;
+        unsigned long long reply_stage_flushes = 0;
         for (int _t = 0; _t < TOMO_STAT_SLOTS; _t++) {
             atomic_read_fast += tomoRelaxedRead(server.kstat[_t].atomic_read_fast);
             atomic_read_slow += tomoRelaxedRead(server.kstat[_t].atomic_read_slow);
+            reply_stage_flushes += tomoRelaxedRead(server.cmdstat[_t].reply_stage_flushes);
         }
         info = sdscatprintf(info, "# Stats\r\n" FMTARGS(
             "tomokv_flat_batches_closed:%lu\r\n", atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed),
@@ -19047,9 +19051,11 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
         info = sdscatprintf(info,
             "tomokv_fake_core_allocs:%llu\r\n"
-            "tomokv_fake_tail_promotions:%llu\r\n",
+            "tomokv_fake_tail_promotions:%llu\r\n"
+            "tomokv_reply_stage_flushes:%llu\r\n",
             atomic_load_explicit(&tomo_fake_core_allocs, memory_order_relaxed),
-            atomic_load_explicit(&tomo_fake_tail_promotions, memory_order_relaxed));
+            atomic_load_explicit(&tomo_fake_tail_promotions, memory_order_relaxed),
+            reply_stage_flushes);
         /* Keep the lifecycle witnesses outside the already-large FMTARGS block. ref_waits is the
          * non-vacuous proof: it increments only when group completion reached zero but old-owner
          * STAMP/PRUNE/grace work for the migrating range was still outstanding. Both stale-owner
