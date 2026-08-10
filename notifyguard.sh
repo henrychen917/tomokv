@@ -1,0 +1,83 @@
+#!/bin/bash
+# NOTIFY / CDB / DISPATCH INVARIANT GUARD.
+#
+# OWNER RULE (2026-08-09): message-passing, cache-residency and memory-residency work must NOT revert
+# anything that makes CDB or the IO->EX / EX->IO notification slow, or that makes it scale badly with
+# core count.
+#
+# Cheap enough to run on every candidate branch before it is built. No server, no box, ~1 second.
+set -u
+n=0
+T=${1:-$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)}
+H=$T/src/server.h; C=$T/src/server.c
+fail=0
+chk(){ # description file pattern
+  n=$((n+1))
+  if grep -qE "$3" "$2" 2>/dev/null; then printf '  OK   %s\n' "$1"
+  else printf '  LOST %s\n' "$1"; fail=$((fail+1)); fi; }
+chk_exqueue_split(){
+  n=$((n+1))
+  if awk '
+      /^typedef struct exQueue \{/ {inside=1}
+      inside && /redisAtomic unsigned int head __attribute__\(\(aligned\(CACHE_LINE_SIZE\)\)\)/ {head=1}
+      inside && /redisAtomic unsigned int tail __attribute__\(\(aligned\(CACHE_LINE_SIZE\)\)\)/ {tail=1}
+      inside && /^} exQueue;/ {closed=1; exit !(head && tail)}
+      END {if (!inside || !closed || !head || !tail) exit 1}
+    ' "$H" 2>/dev/null; then printf '  OK   %s\n' "exQueue head/tail are cache-line separated"
+  else printf '  LOST %s\n' "exQueue head/tail are cache-line separated"; fail=$((fail+1)); fi
+}
+chk_notifier_drain(){
+  n=$((n+1))
+  if awk '
+      /^static void tmMigNotifierHandler\(/ {inside=1; next}
+      inside && /^}/ {closed=1; exit !drain}
+      inside && /^[[:space:]]*$/ {next}
+      inside && /^[[:space:]]*UNUSED\(el\); UNUSED\(fd\); UNUSED\(mask\);[[:space:]]*$/ {next}
+      inside && /^[[:space:]]*handleEventNotifier\(\(eventNotifier \*\)clientData\);[[:space:]]*$/ {drain=1; next}
+      inside {extra=1}
+      END {if (!inside || !closed || !drain || extra) exit 1}
+    ' "$C" 2>/dev/null; then printf '  OK   %s\n' "notifier fd handler only DRAINS (work in beforeSleep)"
+  else printf '  LOST %s\n' "notifier fd handler only DRAINS (work in beforeSleep)"; fail=$((fail+1)); fi
+}
+
+echo "NOTIFY/CDB INVARIANT GUARD on $T"
+echo
+echo "--- EX->IO completion bus (CDB) ---"
+# Each CDB is one cache line so two workers on different CDBs never share a completion line. Without
+# this, every reply publication invalidates a line another core is polling -- cost grows with cores.
+chk "cdbSlots is exactly one cache line (static assert)" "$H" '_Static_assert\(sizeof\(cdbSlots\) == CACHE_LINE_SIZE'
+chk "cdbSlots is cache-line ALIGNED"                     "$H" "aligned\(CACHE_LINE_SIZE\)\)\) cdbSlots"
+chk "cdbSlots carries explicit padding"                  "$H" 'char _pad\[CACHE_LINE_SIZE'
+# Byte atomics mean publication is a release STORE, not a read-modify-write on a shared word. An RMW
+# would serialise all completers on that line.
+chk "reply-ready slots are ONE BYTE atomics (assert)"    "$H" '_Static_assert\(sizeof\(redisAtomic uint8_t\) == 1'
+chk "byte atomics are lock-free (assert)"                "$H" 'ATOMIC_CHAR_LOCK_FREE == 2'
+# The identity mapping exists purely to keep an integer division off the per-dispatch path.
+chk "cdbIndexFor has the idiv-free identity fast path"   "$C" 'if \(ex_id < server\.num_cdb\) return ex_id'
+chk "cdbIndexFor short-circuits the single-CDB case"     "$C" 'if \(server\.num_cdb == 1\) return 0'
+
+echo
+echo "--- IO->EX dispatch ring ---"
+# Producer and consumer indices must live on DIFFERENT lines. If they share, every push invalidates
+# the consumer's line and vice versa -- the classic ping-pong that worsens with thread count.
+chk_exqueue_split
+chk "commit_seq is on its own padded line"               "$C" 'commit_seq_line __attribute__\(\(aligned\(CACHE_LINE_SIZE\)\)\)'
+chk "atomic inflight counter is line-isolated"           "$C" 'tomo_atomic_inflight_line __attribute__'
+
+echo
+echo "--- notification batching (must stay amortised, never per-command) ---"
+# A wake per command would put a syscall on the fast path; the notifier is deliberately an edge that
+# beforeSleepIO consumes.
+chk_notifier_drain
+
+echo
+if [ $fail -eq 0 ]; then
+  echo "RESULT: PASS -- all $n protections intact."
+else
+  echo "RESULT: FAIL -- $fail of $n protection(s) MISSING."
+  echo "Do NOT merge. Each of these is a core-count-scaling optimisation that a footprint-shrinking"
+  echo "change can remove while looking like a simplification. If a removal is deliberate, it needs a"
+  echo "measurement showing per-worker throughput is FLAT as worker count rises -- not just that"
+  echo "total throughput held at one thread config."
+fi
+exit $fail

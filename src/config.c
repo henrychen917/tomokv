@@ -3374,6 +3374,10 @@ standardConfig static_configs[] = {
      * connection and the per-client ring memory. -1 = auto (max 32, decays toward measured demand),
      * 0 = off (depth 1), N = static (rounded up to a power of two; the slot index is masked). */
     createIntConfig("tomokv-pipeline-depth",         NULL, IMMUTABLE_CONFIG, -1, TOMO_PIPELINE_DEPTH_MAX, server.pipeline_ring_depth, -1, INTEGER_CONFIG, NULL, NULL),
+    /* Cross-L3 latency measurement rig. Delay is enforced at consumers as
+     * delayed visibility; producers never wait for this timer. Immutable
+     * because nonzero allocates timestamp sidecars beside the rings/CDBs. */
+    createULongLongConfig("tomokv-sim-hop-ns",       NULL, IMMUTABLE_CONFIG, 0, 1000000000ULL, server.tomo_sim_hop_ns, 0, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-zerocopy-min-value",     NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.zerocopy_min_value, 1024, INTEGER_CONFIG, NULL, NULL), /* forward values >= N bytes zero-copy; measured +20-24% at 16-64KB. 0 = never. */
     createBoolConfig("tomokv-reply-buffer-transfer", NULL, MODIFIABLE_CONFIG, server.reply_buffer_transfer_enabled, 0, NULL, NULL), /* exchange equal-capacity EX/IO reply scratch for completed plain replies >= 8KB. Default OFF: reviewed-correct but large-reply win unmeasured on this HW; opt-in knob, A/B before default-on. */
     createBoolConfig("tomokv-reply-iovec",           NULL, MODIFIABLE_CONFIG, server.reply_iovec_enabled, 0, NULL, NULL), /* retain large owned reply values and submit stable scatter/gather sends; zerocopy-min-value is the byte threshold. Default OFF: completion-lifetime experiment. */

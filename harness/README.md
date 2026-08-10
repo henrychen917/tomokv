@@ -11,7 +11,8 @@ running `redis-server` from the THredis tree; start it with `--enable-debug-comm
 | Path | What it is |
 |------|------------|
 | `keys.py` | **Bit-exact replica of THredis's seedless xxh64** (`server.c`), so a key can be mapped to its bucket/worker *off the server*. Foundational for worker-targeted load and key placement. Verified against `DEBUG RESHARD FIND` (`python3 keys.py 7800`). |
-| `loadgen/cload.c` | **Fast C load generator** (raw-socket RESP + deep pipelining + N threads) that **saturates** the server and **targets one worker's keys** via an embedded bit-exact xxh64. Modes GET/SET/BITCOUNT/mixed. `gcc -O3 -o cload cload.c -lpthread`. This is the saturating client; the Python gens are client-bound. |
+| `loadgen/cload.c` | **Fast deterministic C load generator** (raw-socket RESP + deep pipelining + N threads) that **saturates** the server and **targets one worker's keys** via an embedded bit-exact xxh64. Modes GET/SET/BITCOUNT/mixed. `gcc -O3 -o cload cload.c -lpthread`. A fixed seed gives every client a reproducible command/key stream; `-d` is a monotonic wall-clock scoring window. |
+| `bench_hop_sweep.sh` | Cross-L3 delayed-visibility measurement driver. It gates a pre-connected `cload`, attaches `perf stat` to a coordinator-supplied server PID, and writes throughput/IPC curve inputs for hop values 0/50/100/200/400. It never starts or stops a server unless the caller explicitly supplies a lifecycle hook. |
 | `loadgen/get_loadgen.py` | Pipelined GET load (reads a key list from `/tmp/hot.txt`). |
 | `loadgen/bitcount_loadgen.py` | Worker-CPU-heavy load (BITCOUNT over large values). |
 | `loadgen/single_key_skew.py` | Hammers a few hot keys — unbalanceable skew (exercises the LB no-progress guard). |
@@ -53,6 +54,59 @@ that every stress harness here MUST follow (a bare `wait` once turned a transien
   (per the paper); the EWMA load-balancer only raises throughput in the **worker-bound** regime.
 - **Load-gen ceiling:** these Python generators can become **client-bound** (~1.5M ops/s on this
   box). For saturating throughput numbers use `memtier_benchmark` or a hiredis-based C generator.
+
+## Cross-L3 delayed-visibility sweep
+
+Build `harness/loadgen/cload` separately, then let the coordinator boot and populate the server.
+For one already-running server configured with `tomokv-sim-hop-ns 100`, run a 30-second scored
+window as follows (the hop value is metadata and must match the server configuration):
+
+```sh
+./harness/bench_hop_sweep.sh \
+  --duration 30 --variant header-base --hops 100 \
+  --server-pid "$SERVER_PID" --port 7800 \
+  --threads 8 --pipeline 64 --command get
+```
+
+The simulation knob is immutable, so a complete sweep needs a coordinator-owned restart hook:
+
+```sh
+./harness/bench_hop_sweep.sh \
+  --duration 30 --variant header-base \
+  --hops 0,50,100,200,400 --rounds 3 \
+  --prepare ./coordinator/prepare-hop \
+  --port 7800 --threads 8 --pipeline 64 --command get
+```
+
+The executable hook receives `HOP_NS VARIANT ROUND PID_FILE`. It must start the intended binary
+with that hop value, wait until it is ready, populate outside the scored window, and write the
+server PID to the fresh per-point `PID_FILE` supplied by the driver. The driver itself contains no
+`redis-server` or shutdown command and never sends a nonzero signal to the supplied server PID.
+Run the same sweep with `--variant header-shrunk` against the shrink binary; join the two TSVs on
+`hop_ns,round,workload_id` to price the header change at equal injected latency.
+
+`cload` finishes connection/key-pool setup before printing `CLOAD_READY`. The driver then starts
+`perf stat -p SERVER_PID` with counters disabled, waits for perf's control-FD enable acknowledgement,
+and only then releases the start gate. It disables the counters after the same wall-clock duration.
+Each client follows a fixed per-thread key order, and mixed mode uses a fixed-seed integer sequence
+(`--seed`, default 1), never `rand()` or a time/address seed. At the deadline, it stops issuing,
+drains the already-issued pipeline with a bounded socket timeout, and reports only batches
+completed within the scoring window as `scored_ops`. Raw load and perf records plus a joinable
+`curve.tsv` are retained in the output directory. Use `--no-perf` only when a higher-level
+coordinator attached perf before invoking this driver.
+
+Healthy stdout is machine-readable:
+
+```text
+HOP_POINT variant=header-base hop_ns=100 round=1 healthy=yes ops_per_sec=6139882.400 ipc=1.428571 load_rc=0 perf_rc=0
+HOP_SWEEP_RESULT variant=header-base healthy=yes curve=hop-results-header-base-.../curve.tsv
+```
+
+The corresponding `CLOAD_HEALTH` record must have `healthy=yes`, zero errors, and
+`outstanding=0`; the curve row must have numeric cycles, instructions, and IPC when perf is
+enabled. Throughput is `scored_ops / duration`, IPC is `instructions / cycles`, and the useful
+comparisons are throughput and IPC relative to hop 0 plus the shrunk/base throughput ratio at the
+same hop.
 
 ## Caveats
 Hardcoded `127.0.0.1:7800` and `/tmp/hot.txt` in several scripts; tune per run. Built against

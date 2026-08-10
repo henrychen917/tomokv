@@ -8,9 +8,11 @@
  *   gcc -O3 -o cload cload.c -lpthread
  *   ./cload -p 7800 -t 8 -P 64 -d 10 -c get -w 2 -W 8 -n 300000      # GET, keys on worker 2 of 8
  *   ./cload -p 7800 -t 8 -P 64 -d 10 -c bitcount -w 2 -W 8 -n 20000  # worker-CPU-heavy
- *   ./cload -p 7800 -t 8 -P 32 -d 10 -c mixed -r 0.5 -w -1 -W 8 -n 1000000 -v 64   # 1:1, all workers
+ *   ./cload -p 7800 -t 8 -P 32 -d 10 -c mixed -r 0.5 -s 1 -w -1 -W 8 -n 1000000 -v 64
  *
  * -w -1 spreads across all workers (uniform). -c mixed uses -r as the SET fraction (0.1 => 1:9).
+ * The command/key stream is deterministic for a fixed option set and seed. Output is key=value so
+ * benchmark coordinators can join it with an externally attached `perf stat` window.
  */
 #define _GNU_SOURCE
 #include <stdio.h>
@@ -24,6 +26,10 @@
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <time.h>
+#include <errno.h>
+#include <sys/time.h>
+#include <ctype.h>
+#include <limits.h>
 
 /* ---- xxh64 (seedless), byte-identical to THredis server.c ---- */
 #define P1 0x9E3779B185EBCA87ULL
@@ -54,28 +60,72 @@ static uint64_t xxh64(const void*in,size_t len){
 static int key_worker(const char*k,int W){ return (int)((xxh64(k,strlen(k))&(BUCKETS-1)) * W / BUCKETS); }
 
 /* ---- config ---- */
-static char  g_host[64]="127.0.0.1";
-static int   g_port=7800, g_threads=8, g_pipe=64, g_dur=10, g_W=8, g_target=-1;
+static char  g_host[64]="127.0.0.1", g_variant[64]="unspecified", g_start_gate[PATH_MAX]="";
+static int   g_port=7800, g_threads=8, g_pipe=64, g_W=8, g_target=-1, g_io_timeout=5;
+static double g_dur=10.0;
 static long  g_keyspace=1000000; static int g_valsize=64; static double g_setfrac=0.0;
 enum {C_GET,C_SET,C_BITCOUNT,C_MIXED,C_MGET,C_MSET}; static int g_cmd=C_GET;
 static int g_mkeys=8;   /* keys per multi-key (MGET/MSET) command */
 static int g_session=0; /* per-client locality: each connection (thread) uses its OWN keyspace ("c<tid>_<n>")
                          * — models pub/sub publishers / session apps; tests the client-aware predictor. */
-static volatile int g_stop=0;
-static _Atomic long long g_ops=0;
+static unsigned g_seed=1;
+static unsigned g_set_threshold=0;
+static long long g_hop_ns=-1;
+static _Atomic int g_stop=0;
+static _Atomic long long g_issued=0, g_completed=0, g_scored=0;
+static _Atomic long long g_connect_errors=0, g_io_errors=0, g_server_errors=0, g_thread_errors=0;
+static uint64_t g_deadline_ns=0;
+static size_t g_output_capacity=0;
+static pthread_mutex_t g_gate_mu=PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t g_gate_cv=PTHREAD_COND_INITIALIZER;
+static int g_ready=0, g_go=0;
+
+static uint64_t monotonic_ns(void) {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC,&ts);
+    return (uint64_t)ts.tv_sec*1000000000ULL+(uint64_t)ts.tv_nsec;
+}
+
+static void gate_ready_and_wait(void) {
+    pthread_mutex_lock(&g_gate_mu);
+    g_ready++;
+    pthread_cond_broadcast(&g_gate_cv);
+    while(!g_go) pthread_cond_wait(&g_gate_cv,&g_gate_mu);
+    pthread_mutex_unlock(&g_gate_mu);
+}
+
+static const char *command_name(void) {
+    static const char *names[]={"get","set","bitcount","mixed","mget","mset"};
+    return names[g_cmd];
+}
+
+/* Key names are at most 47 bytes. Leave generous RESP framing headroom per key and reject
+ * configurations whose complete pipeline would not fit the single send buffer. */
+static int set_output_capacity(void) {
+    uint64_t per_command=128;
+    if(g_cmd==C_SET||g_cmd==C_MIXED) per_command+=(uint64_t)g_valsize;
+    else if(g_cmd==C_MGET) per_command+=(uint64_t)g_mkeys*128;
+    else if(g_cmd==C_MSET) per_command+=(uint64_t)g_mkeys*((uint64_t)g_valsize+128);
+    uint64_t total=per_command*(uint64_t)g_pipe+1;
+    if(total>512ULL*1024*1024||total>(uint64_t)INT_MAX) return 0;
+    g_output_capacity=(size_t)total;
+    return 1;
+}
 
 /* build a per-thread pool of keys that hash to g_target (or any key if target<0).
  * session mode: keys are namespaced by thread id ("c<tid>_<n>") so each connection has its OWN set. */
 static char**build_pool(int *out_n,int tid){
     int cap = (g_target<0)? 4096 : 8192, n=0;
     char**pool=malloc(sizeof(char*)*cap);
-    long i=0;
-    while(n<cap){
+    if(!pool){*out_n=0;return NULL;}
+    long i=0, search_limit=g_keyspace<40000000L?g_keyspace:40000000L;
+    while(n<cap&&i<search_limit){
         char buf[48]; int len = g_session ? snprintf(buf,sizeof buf,"c%d_%ld",tid,i)
                                            : snprintf(buf,sizeof buf,"k%ld",i); i++;
         if(g_target>=0 && key_worker(buf,g_W)!=g_target) continue;
-        pool[n]=malloc(len+1); memcpy(pool[n],buf,len+1); n++;
-        if(i>40000000L) break;
+        pool[n]=malloc(len+1);
+        if(!pool[n]){for(int j=0;j<n;j++)free(pool[j]);free(pool);*out_n=0;return NULL;}
+        memcpy(pool[n],buf,len+1); n++;
     }
     *out_n=n; return pool;
 }
@@ -83,8 +133,11 @@ static char**build_pool(int *out_n,int tid){
 static int connect_srv(void){
     int fd=socket(AF_INET,SOCK_STREAM,0); if(fd<0)return -1;
     int one=1; setsockopt(fd,IPPROTO_TCP,TCP_NODELAY,&one,sizeof one);
+    struct timeval tv={.tv_sec=g_io_timeout,.tv_usec=0};
+    setsockopt(fd,SOL_SOCKET,SO_RCVTIMEO,&tv,sizeof tv);
+    setsockopt(fd,SOL_SOCKET,SO_SNDTIMEO,&tv,sizeof tv);
     struct sockaddr_in a={0}; a.sin_family=AF_INET; a.sin_port=htons(g_port);
-    inet_pton(AF_INET,g_host,&a.sin_addr);
+    if(inet_pton(AF_INET,g_host,&a.sin_addr)!=1){close(fd);return -1;}
     if(connect(fd,(struct sockaddr*)&a,sizeof a)<0){close(fd);return -1;}
     return fd;
 }
@@ -106,18 +159,42 @@ static int rskip(struct rdr*r,long n){ /* consume n+2 bytes (bulk body+crlf) */
 static int read_reply(struct rdr*r){
     int t=rbyte(r); if(t<0)return -1; long v;
     if(t=='$'){ if(rline(r,&v))return -1; if(v>=0) return rskip(r,v); return 0; }
-    if(t=='*'){ if(rline(r,&v))return -1; for(long i=0;i<v;i++) if(read_reply(r))return -1; return 0; }
-    return rline(r,&v); /* +, -, : */
+    if(t=='*'){
+        if(rline(r,&v))return -1;
+        for(long i=0;i<v;i++){int rc=read_reply(r);if(rc)return rc;}
+        return 0;
+    }
+    if(t=='-') return rline(r,&v)?-1:1; /* valid RESP error reply */
+    if(t=='+'||t==':') return rline(r,&v);
+    return -1;
 }
 
 static void*worker(void*arg){
-    int tid=(int)(intptr_t)arg; int fd=connect_srv(); if(fd<0){fprintf(stderr,"connect failed\n");return 0;}
-    int np; char**pool=build_pool(&np,tid);
-    if(getenv("CLOAD_DEBUG")) fprintf(stderr,"[dbg] connected fd=%d np=%d firstkey=%s\n",fd,np,np?pool[0]:"NONE");
-    char*val=malloc(g_valsize>1?g_valsize:1); memset(val,'x',g_valsize>1?g_valsize:1);
+    int tid=(int)(intptr_t)arg; int fd=connect_srv();
+    if(fd<0){
+        __atomic_fetch_add(&g_connect_errors,1,__ATOMIC_RELAXED);
+        __atomic_store_n(&g_stop,1,__ATOMIC_RELEASE);
+        gate_ready_and_wait();
+        return 0;
+    }
+    int np=0; char**pool=build_pool(&np,tid);
+    char*val=malloc(g_valsize>1?g_valsize:1);
     struct rdr r={.fd=fd};
-    char*ob=malloc(1<<20); long ops=0; unsigned ki=0; unsigned rng=(unsigned)(uintptr_t)pool;
-    while(!g_stop){
+    char*ob=malloc(g_output_capacity); unsigned ki=0;
+    unsigned rng=g_seed^(0x9e3779b9u*(unsigned)(tid+1));
+    if(!pool||np<=0||!val||!ob){
+        __atomic_fetch_add(&g_thread_errors,1,__ATOMIC_RELAXED);
+        __atomic_store_n(&g_stop,1,__ATOMIC_RELEASE);
+        gate_ready_and_wait();
+        if(pool){for(int i=0;i<np;i++)free(pool[i]);free(pool);}
+        free(val); free(ob);
+        close(fd);
+        return 0;
+    }
+    memset(val,'x',g_valsize>1?g_valsize:1);
+    if(getenv("CLOAD_DEBUG")) fprintf(stderr,"[dbg] connected fd=%d np=%d firstkey=%s\n",fd,np,pool[0]);
+    gate_ready_and_wait();
+    while(!__atomic_load_n(&g_stop,__ATOMIC_ACQUIRE)&&monotonic_ns()<g_deadline_ns){
         int olen=0;
         for(int i=0;i<g_pipe;i++){
             const char*k=pool[ki++ % np];
@@ -131,7 +208,8 @@ static void*worker(void*arg){
                 for(int j=0;j<g_mkeys;j++){const char*mk=pool[ki++ % np];olen+=sprintf(ob+olen,"$%zu\r\n%s\r\n$%d\r\n",strlen(mk),mk,g_valsize);memcpy(ob+olen,val,g_valsize);olen+=g_valsize;olen+=sprintf(ob+olen,"\r\n");}
                 continue;
             }
-            int isset = (g_cmd==C_SET) || (g_cmd==C_MIXED && ((rng=rng*1103515245u+12345u)>>8)*1.0/(1u<<24) < g_setfrac);
+            int isset = (g_cmd==C_SET) ||
+                (g_cmd==C_MIXED && ((rng=rng*1103515245u+12345u)>>8)<g_set_threshold);
             if(isset)
                 olen+=sprintf(ob+olen,"*3\r\n$3\r\nSET\r\n$%zu\r\n%s\r\n$%d\r\n",strlen(k),k,g_valsize),
                 memcpy(ob+olen,val,g_valsize), olen+=g_valsize, olen+=sprintf(ob+olen,"\r\n");
@@ -140,41 +218,176 @@ static void*worker(void*arg){
             else
                 olen+=sprintf(ob+olen,"*2\r\n$3\r\nGET\r\n$%zu\r\n%s\r\n",strlen(k),k);
         }
-        int off=0; while(off<olen){int w=send(fd,ob+off,olen-off,0); if(w<=0){g_stop=1;break;} off+=w;}
-        if(ops==0 && getenv("CLOAD_DEBUG")) fprintf(stderr,"[dbg] sent olen=%d off=%d\n",olen,off);
-        for(int i=0;i<g_pipe;i++){ if(read_reply(&r)){if(ops==0&&getenv("CLOAD_DEBUG"))fprintf(stderr,"[dbg] read_reply failed at i=%d\n",i);g_stop=1;break;} }
-        ops+=g_pipe;
+        int off=0;
+        while(off<olen){
+            int w=send(fd,ob+off,olen-off,MSG_NOSIGNAL);
+            if(w<=0){
+                __atomic_fetch_add(&g_io_errors,1,__ATOMIC_RELAXED);
+                __atomic_store_n(&g_stop,1,__ATOMIC_RELEASE);
+                break;
+            }
+            off+=w;
+        }
+        if(off!=olen) break;
+        __atomic_fetch_add(&g_issued,g_pipe,__ATOMIC_RELAXED);
+        if(__atomic_load_n(&g_completed,__ATOMIC_RELAXED)==0 && getenv("CLOAD_DEBUG"))
+            fprintf(stderr,"[dbg] sent olen=%d off=%d\n",olen,off);
+        int done=0;
+        for(int i=0;i<g_pipe;i++){
+            int rc=read_reply(&r);
+            if(rc<0){
+                if(__atomic_load_n(&g_completed,__ATOMIC_RELAXED)==0&&getenv("CLOAD_DEBUG"))
+                    fprintf(stderr,"[dbg] read_reply failed at i=%d\n",i);
+                __atomic_fetch_add(&g_io_errors,1,__ATOMIC_RELAXED);
+                __atomic_store_n(&g_stop,1,__ATOMIC_RELEASE);
+                break;
+            }
+            done++;
+            if(rc>0){
+                __atomic_fetch_add(&g_server_errors,1,__ATOMIC_RELAXED);
+                __atomic_store_n(&g_stop,1,__ATOMIC_RELEASE);
+                break;
+            }
+        }
+        __atomic_fetch_add(&g_completed,done,__ATOMIC_RELAXED);
+        if(monotonic_ns()<=g_deadline_ns)
+            __atomic_fetch_add(&g_scored,done,__ATOMIC_RELAXED);
+        if(done!=g_pipe) break;
     }
-    __atomic_fetch_add(&g_ops,ops,__ATOMIC_RELAXED); close(fd); return 0;
+    for(int i=0;i<np;i++) free(pool[i]);
+    free(pool); free(val); free(ob); close(fd); return 0;
+}
+
+static void usage(FILE *out,const char *prog) {
+    fprintf(out,
+        "usage: %s [-h host] [-p port] [-t threads] [-P pipeline] [-d seconds]\n"
+        "          [-c get|set|bitcount|mixed|mget|mset] [-r set_fraction]\n"
+        "          [-w target_worker] [-W workers] [-n key_search_limit] [-v value_bytes]\n"
+        "          [-k multi_keys] [-S] [-s seed] [-T io_timeout_seconds]\n"
+        "          [-G start_gate_file] [-H simulated_hop_ns] [-V variant]\n",prog);
+}
+
+static const char *option_value(int argc,char **argv,int *index) {
+    if(*index+1>=argc){
+        fprintf(stderr,"missing value for %s\n",argv[*index]);
+        usage(stderr,argv[0]);
+        exit(2);
+    }
+    return argv[++*index];
+}
+
+static int safe_label(const char *s) {
+    if(!*s)return 0;
+    for(;*s;s++) if(!(isalnum((unsigned char)*s)||*s=='_'||*s=='-'||*s=='.')) return 0;
+    return 1;
 }
 
 int main(int argc,char**argv){
-    for(int i=1;i<argc-1;i++){
-        if(!strcmp(argv[i],"-h"))strncpy(g_host,argv[++i],63);
-        else if(!strcmp(argv[i],"-p"))g_port=atoi(argv[++i]);
-        else if(!strcmp(argv[i],"-t"))g_threads=atoi(argv[++i]);
-        else if(!strcmp(argv[i],"-P"))g_pipe=atoi(argv[++i]);
-        else if(!strcmp(argv[i],"-d"))g_dur=atoi(argv[++i]);
-        else if(!strcmp(argv[i],"-w"))g_target=atoi(argv[++i]);
-        else if(!strcmp(argv[i],"-W"))g_W=atoi(argv[++i]);
-        else if(!strcmp(argv[i],"-n"))g_keyspace=atol(argv[++i]);
-        else if(!strcmp(argv[i],"-v"))g_valsize=atoi(argv[++i]);
-        else if(!strcmp(argv[i],"-r"))g_setfrac=atof(argv[++i]);
-        else if(!strcmp(argv[i],"-k"))g_mkeys=atoi(argv[++i]);
-        else if(!strcmp(argv[i],"-S"))g_session=1;   /* per-client locality (don't place last) */
-        else if(!strcmp(argv[i],"-c")){const char*c=argv[++i];
-            g_cmd = !strcmp(c,"set")?C_SET : !strcmp(c,"bitcount")?C_BITCOUNT : !strcmp(c,"mixed")?C_MIXED
-                  : !strcmp(c,"mget")?C_MGET : !strcmp(c,"mset")?C_MSET : C_GET;}
+    for(int i=1;i<argc;i++){
+        if(!strcmp(argv[i],"--help")){usage(stdout,argv[0]);return 0;}
+        else if(!strcmp(argv[i],"-h"))snprintf(g_host,sizeof g_host,"%s",option_value(argc,argv,&i));
+        else if(!strcmp(argv[i],"-p"))g_port=atoi(option_value(argc,argv,&i));
+        else if(!strcmp(argv[i],"-t"))g_threads=atoi(option_value(argc,argv,&i));
+        else if(!strcmp(argv[i],"-P"))g_pipe=atoi(option_value(argc,argv,&i));
+        else if(!strcmp(argv[i],"-d"))g_dur=strtod(option_value(argc,argv,&i),NULL);
+        else if(!strcmp(argv[i],"-w"))g_target=atoi(option_value(argc,argv,&i));
+        else if(!strcmp(argv[i],"-W"))g_W=atoi(option_value(argc,argv,&i));
+        else if(!strcmp(argv[i],"-n"))g_keyspace=atol(option_value(argc,argv,&i));
+        else if(!strcmp(argv[i],"-v"))g_valsize=atoi(option_value(argc,argv,&i));
+        else if(!strcmp(argv[i],"-r"))g_setfrac=strtod(option_value(argc,argv,&i),NULL);
+        else if(!strcmp(argv[i],"-k"))g_mkeys=atoi(option_value(argc,argv,&i));
+        else if(!strcmp(argv[i],"-s"))g_seed=(unsigned)strtoul(option_value(argc,argv,&i),NULL,0);
+        else if(!strcmp(argv[i],"-T"))g_io_timeout=atoi(option_value(argc,argv,&i));
+        else if(!strcmp(argv[i],"-G")){
+            const char *gate=option_value(argc,argv,&i);
+            if(snprintf(g_start_gate,sizeof g_start_gate,"%s",gate)>=(int)sizeof g_start_gate){
+                fprintf(stderr,"start gate path is too long\n");return 2;
+            }
+        }
+        else if(!strcmp(argv[i],"-H"))g_hop_ns=strtoll(option_value(argc,argv,&i),NULL,0);
+        else if(!strcmp(argv[i],"-V"))snprintf(g_variant,sizeof g_variant,"%s",option_value(argc,argv,&i));
+        else if(!strcmp(argv[i],"-S"))g_session=1;
+        else if(!strcmp(argv[i],"-c")){
+            const char*c=option_value(argc,argv,&i);
+            if(!strcmp(c,"get"))g_cmd=C_GET;
+            else if(!strcmp(c,"set"))g_cmd=C_SET;
+            else if(!strcmp(c,"bitcount"))g_cmd=C_BITCOUNT;
+            else if(!strcmp(c,"mixed"))g_cmd=C_MIXED;
+            else if(!strcmp(c,"mget"))g_cmd=C_MGET;
+            else if(!strcmp(c,"mset"))g_cmd=C_MSET;
+            else {fprintf(stderr,"unknown command mode: %s\n",c);return 2;}
+        } else {fprintf(stderr,"unknown option: %s\n",argv[i]);usage(stderr,argv[0]);return 2;}
     }
-    pthread_t th[1024];
-    struct timespec t0,t1; clock_gettime(CLOCK_MONOTONIC,&t0);
-    for(int i=0;i<g_threads;i++) pthread_create(&th[i],0,worker,(void*)(intptr_t)i);
-    struct timespec ts={g_dur,0}; nanosleep(&ts,0); g_stop=1;
-    for(int i=0;i<g_threads;i++) pthread_join(th[i],0);
-    clock_gettime(CLOCK_MONOTONIC,&t1);
-    double sec=(t1.tv_sec-t0.tv_sec)+(t1.tv_nsec-t0.tv_nsec)/1e9;
-    long long ops=__atomic_load_n(&g_ops,__ATOMIC_RELAXED);
-    printf("%lld ops in %.1fs = %.0f ops/sec (%d threads, pipeline %d, cmd %d, worker %d/%d)\n",
-           ops,sec,ops/sec,g_threads,g_pipe,g_cmd,g_target,g_W);
-    return 0;
+    if(g_port<=0||g_port>65535||g_threads<=0||g_threads>1024||g_pipe<=0||g_pipe>4096||
+       g_dur<=0||g_dur!=g_dur||g_dur>86400||g_W<=0||g_target>=g_W||g_target<-1||
+       g_keyspace<=0||g_valsize<0||g_setfrac!=g_setfrac||g_setfrac<0||g_setfrac>1||
+       g_mkeys<=0||g_mkeys>4096||g_io_timeout<=0||g_hop_ns<-1||
+       !safe_label(g_variant)||!set_output_capacity()){
+        fprintf(stderr,"invalid option value\n");usage(stderr,argv[0]);return 2;
+    }
+    g_set_threshold=g_setfrac>=1.0?(1u<<24):(unsigned)(g_setfrac*(double)(1u<<24));
+
+    pthread_t th[1024]; int created=0;
+    for(int i=0;i<g_threads;i++){
+        if(pthread_create(&th[created],0,worker,(void*)(intptr_t)i)==0) created++;
+        else __atomic_fetch_add(&g_thread_errors,1,__ATOMIC_RELAXED);
+    }
+
+    pthread_mutex_lock(&g_gate_mu);
+    while(g_ready<created) pthread_cond_wait(&g_gate_cv,&g_gate_mu);
+    uint64_t duration_ns=(uint64_t)(g_dur*1000000000.0);
+    long long setup_errors=__atomic_load_n(&g_connect_errors,__ATOMIC_RELAXED)+
+                           __atomic_load_n(&g_thread_errors,__ATOMIC_RELAXED);
+    printf("CLOAD_READY variant=%s hop_ns=%lld seed=%u deterministic=yes gate=%s requested_threads=%d ready_threads=%d setup_errors=%lld\n",
+           g_variant,g_hop_ns,g_seed,*g_start_gate?"enabled":"disabled",g_threads,g_ready,setup_errors);
+    fflush(stdout);
+    if(*g_start_gate){
+        uint64_t gate_deadline=monotonic_ns()+60000000000ULL;
+        while(access(g_start_gate,F_OK)!=0&&monotonic_ns()<gate_deadline){
+            struct timespec pause={.tv_sec=0,.tv_nsec=100000};
+            nanosleep(&pause,NULL);
+        }
+        if(access(g_start_gate,F_OK)!=0){
+            __atomic_fetch_add(&g_thread_errors,1,__ATOMIC_RELAXED);
+            __atomic_store_n(&g_stop,1,__ATOMIC_RELEASE);
+            setup_errors++;
+        }
+    }
+    uint64_t start_ns=monotonic_ns();
+    g_deadline_ns=start_ns+duration_ns;
+    g_go=1;
+    pthread_cond_broadcast(&g_gate_cv);
+    pthread_mutex_unlock(&g_gate_mu);
+
+    if(setup_errors==0){
+        struct timespec until={.tv_sec=(time_t)(g_deadline_ns/1000000000ULL),
+                               .tv_nsec=(long)(g_deadline_ns%1000000000ULL)};
+        while(clock_nanosleep(CLOCK_MONOTONIC,TIMER_ABSTIME,&until,NULL)==EINTR){}
+    }
+    __atomic_store_n(&g_stop,1,__ATOMIC_RELEASE);
+    for(int i=0;i<created;i++) pthread_join(th[i],0);
+    uint64_t end_ns=monotonic_ns();
+
+    long long issued=__atomic_load_n(&g_issued,__ATOMIC_RELAXED);
+    long long completed=__atomic_load_n(&g_completed,__ATOMIC_RELAXED);
+    long long scored=__atomic_load_n(&g_scored,__ATOMIC_RELAXED);
+    long long connect_errors=__atomic_load_n(&g_connect_errors,__ATOMIC_RELAXED);
+    long long io_errors=__atomic_load_n(&g_io_errors,__ATOMIC_RELAXED);
+    long long server_errors=__atomic_load_n(&g_server_errors,__ATOMIC_RELAXED);
+    long long thread_errors=__atomic_load_n(&g_thread_errors,__ATOMIC_RELAXED);
+    long long errors=connect_errors+io_errors+server_errors+thread_errors;
+    long long outstanding=issued-completed;
+    uint64_t elapsed_ns=end_ns-start_ns;
+    uint64_t drain_ns=elapsed_ns>duration_ns?elapsed_ns-duration_ns:0;
+    double ops_per_sec=(double)scored/g_dur;
+    int healthy=errors==0&&outstanding==0&&scored>0&&created==g_threads;
+    printf("CLOAD_RESULT variant=%s hop_ns=%lld seed=%u command=%s set_fraction=%.6f duration_ns=%llu elapsed_ns=%llu drain_ns=%llu host=%s port=%d threads=%d pipeline=%d target_worker=%d workers=%d key_search_limit=%ld value_bytes=%d session=%s scored_ops=%lld issued=%lld completed=%lld outstanding=%lld ops_per_sec=%.3f\n",
+           g_variant,g_hop_ns,g_seed,command_name(),
+           g_setfrac,
+           (unsigned long long)duration_ns,(unsigned long long)elapsed_ns,(unsigned long long)drain_ns,
+           g_host,g_port,g_threads,g_pipe,g_target,g_W,g_keyspace,g_valsize,g_session?"yes":"no",
+           scored,issued,completed,outstanding,ops_per_sec);
+    printf("CLOAD_HEALTH healthy=%s errors=%lld connect_errors=%lld io_errors=%lld server_errors=%lld thread_errors=%lld outstanding=%lld\n",
+           healthy?"yes":"no",errors,connect_errors,io_errors,server_errors,thread_errors,outstanding);
+    return healthy?0:1;
 }
