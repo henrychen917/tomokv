@@ -1264,8 +1264,17 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
      * their own grace protection in tomoRetireDetachedBag. */
     if (committed == 1 && uncommitted == 0 && sole_committed) {
         struct tomoVerMeta *vmeta = kvobjVmeta(sole_committed);
+        /* PRUNE_GRACE with no lifecycle ref is a resize/teardown-DISCARDED callback: quiescent
+         * discard supplied its grace and no callback remains, so a later sibling's prune is this
+         * tombstone's only deletion path. Without this arm the state skipped the delete here and
+         * then satisfied the promotion test below (!lifecycle_ref_held), promoting a TOMBSTONE
+         * into a raw live table value — a deleted key resurrecting after a resize discard. */
+        int discarded_prune = vmeta &&
+            vmeta->retire_state == TOMO_RETIRE_PRUNE_GRACE &&
+            !vmeta->lifecycle_ref_held;
         if (vmeta && vmeta->version_tombstone &&
-            (sole_committed == anchor || vmeta->retire_state == TOMO_RETIRE_ACTIVE)) {
+            (sole_committed == anchor || vmeta->retire_state == TOMO_RETIRE_ACTIVE ||
+             discarded_prune)) {
             redisDb *db = vmeta->version_db;
             serverAssert(db != NULL && db->keys == kvs);
             if (vmeta->retire_state == TOMO_RETIRE_PRUNE_GRACE)
@@ -1289,7 +1298,8 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
         /* Do not detach another version's install-owner identity while its own prune callback is
          * still queued. That callback must retain metadata for its entry-time stale-owner check and
          * must itself retire the lifecycle reference. Its own callback may promote it normally. */
-        if (vmeta && (sole_committed == anchor || !vmeta->lifecycle_ref_held)) {
+        if (vmeta && !vmeta->version_tombstone &&
+            (sole_committed == anchor || !vmeta->lifecycle_ref_held)) {
             serverAssert(vmeta->stamp_state == TOMO_STAMP_APPLIED);
             serverAssert(atomic_load_explicit(&vmeta->owner_ops_pending,
                                               memory_order_acquire) == 0);
