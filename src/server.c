@@ -9975,9 +9975,32 @@ kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot, client *reader_connection) {
         real = reader_connection->isFake ? reader_connection->parent
                                          : reader_connection;
 
+    /* Stage-1 relevance gate. The raw-bag own-scan is O(pending pile) per read and the pile is
+     * ~window-deep under saturated atomic writes, which made this walk the top cycle consumer on
+     * read-heavy mixes. It can find something only if this connection still has an UNCOMMITTED
+     * install in some bag, and two local loads bound that exactly:
+     *   - mset_pending_count != 0: a registered group of mine has not yet published;
+     *   - stamp_pending != 0 on THIS worker: a published group's stamp/cancel may not have applied
+     *     (count-- follows the csStampPush calls in program order, so by the time this acquire
+     *     load returns 0, every increment for my groups is visible here — and client reads resolve
+     *     on the key's owner, which is exactly the lane those ops sit in).
+     * Both zero => every install of mine is stamped or canceled, stage-2's committed cursor (with
+     * its own-widening) is complete, and the pile scan is provably empty for me. Non-worker
+     * resolve contexts keep the unconditional walk. */
     int own_found;
-    kvobj *own = csMsetOwnVersionAt(kv, real, &own_found);
-    if (own_found) return own;
+    int need_own_scan = real != NULL;
+    if (need_own_scan &&
+        atomic_load_explicit(&clientTail(real)->mset_pending_count,
+                             memory_order_acquire) == 0) {
+        int w = iotid - (TOMO_IO_THREADS_MAX + 1);
+        if (w >= 0 && w < server.num_workers)
+            need_own_scan = atomic_load_explicit(&server.exThreads[w].stamp_pending,
+                                                 memory_order_acquire) != 0;
+    }
+    if (need_own_scan) {
+        kvobj *own = csMsetOwnVersionAt(kv, real, &own_found);
+        if (own_found) return own;
+    }
 
     uint64_t reader_id = real ? clientTail(real)->id : 0;
     kv = atomic_load_explicit(&head_meta->committed_head,
