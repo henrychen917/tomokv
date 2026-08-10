@@ -1,87 +1,86 @@
-# Cross-L3 delayed-visibility rig
+# CROSS-L3 IO/EX latency rig
 
-`tomokv-sim-hop-ns` emulates the latency of an asynchronous message crossing an L3/CCD boundary.
-It does not stall either producer. The model is delayed visibility:
+This measurement-only rig predicts the penalty of moving Tomo's IO and EX roles onto different
+L3/CCD domains. It inserts a calibrated producer-side wait at the two coherence publications in
+one request/reply circuit:
 
-- an IO producer stages its normal `client *` entries, stamps the newly published FIFO range once,
-  release-publishes the existing tail, advertises the existing batched handoff, and returns;
-- a worker pops only the visible FIFO prefix (up to `WORKER_POP_BATCH`). A delayed head stays in the
-  ring as occupancy; the worker rotates to other producer lanes and feeds only visible entries to
-  the existing prefetch state machine;
-- a worker stamps a completion before the existing ready-byte release store; and
-- an IO drain treats a ready-but-immature completion exactly like not-ready for that connection,
-  then continues its outer pending-connection walk.
+1. after the IO producer writes the real EX ring slot and before it release-publishes `tail`;
+2. after the EX producer writes the reply and before it release-publishes the real CDB ready byte.
 
-No sleep, pause loop, notification, or synchronous handoff is added at publication. Existing queue
-and CDB acquire/release edges remain the memory-ordering mechanism; the invariant TSC only decides
-when a consumer may first touch the published message. Per-lane and per-connection FIFO ordering is
-unchanged.
+The wait is a `PAUSE` loop against RDTSCP. A non-zero `tomokv-sim-hop-ns` verifies invariant TSC
+and RDTSCP support and calibrates TSC frequency against `CLOCK_MONOTONIC_RAW` once at startup. If
+the thread migrates during a wait, the full interval restarts. Unsupported or unstable timing is
+a boot error rather than a silently miscalibrated experiment.
 
-## Off-state contract
+## Isolation and the off arm
 
-The default is `0`. In that state the queue allocation remains `queues + freeback`, client CDBs
-remain exactly `num_cdb * 64` bytes (plus their pre-existing alignment overhead), and no timestamp
-sidecar is appended. `exQueue`, `cdbSlots`, and `client` do not gain timestamp fields or pointers.
-The 11 notification/CDB protections in `./notifyguard.sh` remain the merge guard.
+This is not a production workload feature. At the default `tomokv-sim-hop-ns 0`, startup performs
+no calibration and allocates no rig state. Normal IO->EX dispatch and EX->IO completion contain no
+test of the knob. The worker recognizes rig messages only inside its pre-existing migration
+sentinel arm, which ordinary messages do not enter. Invoking the DEBUG command explicitly creates
+the synthetic cycle even for the zero-latency control.
 
-The build emits `redis-server` and its sibling `redis-server-sim`. Simulator hooks are compiled out
-of the ordinary server and networking objects, so hop 0 has neither a timestamp allocation nor a hot
-mode test. After immutable configuration is parsed—but before threads, clients, or server-side
-allocations exist—an armed `redis-server` invocation `exec`s the sibling specialization with the
-same PID and arguments. The coordinator always invokes `redis-server`; this selection is transparent.
-Because a consumed stdin configuration cannot be replayed across that `exec`, armed measurements
-must use a config file or command-line options.
+Run the rig on an otherwise idle instance. It refuses dynamic thread mode, key balancing, strict
+ordering, an active role flip/migration/resize, or a partially live EX pool.
 
-Nonzero mode appends two private sidecars without changing protected message layouts:
+## Invocation
 
-- `[worker][producer lane][EX queue slot]` publish-TSC records (the last slot in a tail-published
-  batch owns the TSC; earlier slots carry a compact reference to it, and that descriptor slot cannot
-  be reused until the FIFO retires the whole batch); and
-- `[client][CDB][pipeline slot]` completion publish TSCs.
-
-The server refuses armed mode unless Linux reports `constant_tsc` and `nonstop_tsc`. At armed boot it
-calibrates raw TSC ticks once against `CLOCK_MONOTONIC_RAW`; whole-microsecond server clocks are not
-used for 50–400 ns deadlines. The intended multi-CCD target is one socket with synchronized TSCs.
-For a multi-socket run, the coordinator must first establish that the platform keeps TSC offsets
-synchronized across every IO/EX CPU pair; the CPUID flags alone do not prove that property.
-
-## Coordinator sweep
-
-Restart for each immutable hop value and hold the IO/EX split static:
-
-```sh
-for hop in 0 50 100 200 400; do
-  ./src/redis-server --save '' --appendonly no \
-    --tomokv-thread-mode static \
-    --tomokv-thread-io 4 --tomokv-thread-ex 4 \
-    --tomokv-pipeline-depth 32 \
-    --tomokv-key-lb 0 --tomokv-client-lb no \
-    --tomokv-sim-hop-ns "$hop"
-done
-```
-
-`harness/bench_hop_sweep.sh` is the coordinator-side wrapper. It never starts, stops, or reconfigures
-a server: point it at the already-running cell and give it a wall-clock duration. The deterministic
-`cload` loop uses fixed per-thread sequences and no time-, address-, or `rand()`-derived choice.
-
-```sh
-./harness/bench_hop_sweep.sh \
-  --duration 30 --variant header-base --hops 100 \
-  --server-pid "$SERVER_PID" --port 7800 \
-  --threads 8 --pipeline 64 --command get
-```
-
-The wrapper attaches `perf stat` as a separate observer of `SERVER_PID`; pass `--no-perf` when the
-coordinator attaches it instead. Workload and counter output stay separate so IPC
-(`instructions/cycles`) and throughput can be joined by hop value and variant. Healthy workload
-output has a positive operation rate and zero connect/protocol errors. Compare the baseline and
-message-header-shrink branches at every hop, not only at zero: the difference between their curves
-prices bytes/dependencies saved under the transfer latency expected on a multi-CCD target.
-
-Expected server log when armed:
+Start one isolated server for each sweep point. The relevant options are:
 
 ```text
-tomokv cross-L3 visibility simulator armed: hop=100ns ticks=... tsc_hz=... (producer paths remain non-blocking; timestamp sidecars enabled)
+./src/redis-server ./tomokv.conf \
+  --enable-debug-command yes \
+  --tomokv-thread-io 4 \
+  --tomokv-thread-ex 4 \
+  --tomokv-thread-mode static \
+  --tomokv-key-lb 0 \
+  --tomokv-strict-order 0 \
+  --tomokv-sim-hop-ns 100
 ```
 
-Expected load-driver records are documented beside `bench_hop_sweep.sh` in `harness/README.md`.
+Attach `perf stat` to the server PID from another shell, then ask Redis to run for a wall-clock
+interval. For example, the following command requests 30 seconds:
+
+```text
+redis-cli DEBUG TOMO-SIM-HOP 30000
+```
+
+Sweep `tomokv-sim-hop-ns` through `0, 50, 100, 200, 400`, restarting between points because the
+knob is immutable. The DEBUG argument is milliseconds; it is deliberately wall time rather than a
+self-measured cycle budget, so the coordinator owns the `perf stat` event set and interval.
+
+## Workload and output
+
+Before starting the clock, the command allocates and routes a fixed cycle of 32 synthetic
+GET/EXISTS-shaped messages with keys `tomo-sim-hop:key:00` through `:31`. There is no `rand()`, key
+formatting, allocation, command parsing, or routing hash in the timed loop. The synthetic command
+does not access the database; it emits a deterministic integer reply (whose expected RESP bytes are
+pre-generated) while retaining the real client header, ring, worker batch, handoff, and CDB
+mechanics under measurement.
+
+A healthy reply has this shape:
+
+```text
+status=ok
+hop_ns=100
+requested_ms=30000
+elapsed_ms=30000
+calibration=invariant-tsc
+tsc_hz=<non-zero>
+cycle_len=32
+cycle_hash=<stable 16-hex value>
+operations=<non-zero>
+io_to_ex=<same as operations>
+ex_to_io=<same as operations>
+errors=0
+```
+
+`elapsed_ms` may exceed the request by at most one 32-message issue cycle plus the final drain: the
+command checks wall time once per fixed cycle and never abandons an in-flight header. Use
+`1000 * operations / elapsed_ms` for the command's achieved operations/second, and keep external
+`perf stat` attached through the reply so its interval includes that same drain. The zero control
+reports `calibration=off` and
+`tsc_hz=0`. A healthy sweep keeps `cycle_hash` identical and has
+`operations == io_to_ex == ex_to_io`, with `errors=0` at every point. Plot operations/second and
+external IPC against the two injected hop delays; compare header-size variants using the same
+cycle, duration, placement and perf event set.

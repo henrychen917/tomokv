@@ -28,16 +28,6 @@
 #include "threads_mngr.h"
 #include "fmtargs.h"
 #include "mstr.h"
-
-/* The normal server object is compiled with every simulator hook erased. A
- * nonzero immutable knob re-execs the sibling server-sim binary before init;
- * that object is compiled with the hooks unconditional. This build-time
- * specialization is what makes hop=0 genuinely free of hot runtime gates. */
-#ifdef TOMO_SIM_HOP_BUILD
-#define TOMO_SIM_ACTIVE 1
-#else
-#define TOMO_SIM_ACTIVE 0
-#endif
 #include "ebuckets.h"
 #include "cluster_asm.h"
 #include "fwtree.h"
@@ -72,6 +62,10 @@
 #ifdef __linux__
 #include <sys/mman.h>
 #include <sched.h>     /* cpu_set_t, CPU_SET, pthread_setaffinity_np */
+#endif
+
+#if defined(__linux__) && (defined(__i386__) || defined(__x86_64__))
+#include <cpuid.h>
 #endif
 
 #if defined(HAVE_SYSCTL_KIPC_SOMAXCONN) || defined(HAVE_SYSCTL_KERN_SOMAXCONN)
@@ -113,6 +107,106 @@ static void tmFlipAccountingRollback(const char *reason);
 /* Read by INFO from IO threads while the actuator/coordinator increments it, hence atomic even
  * though it is deliberately a plain file-global rather than hot server state. */
 static _Atomic unsigned long long tomo_flip_recoveries;
+
+/* CROSS-L3 latency measurement rig. These scalars are initialized only when
+ * tomokv-sim-hop-ns is non-zero. In particular, the off arm allocates nothing
+ * and installs no hook in an ordinary dispatch or completion path. */
+static uint64_t tomo_sim_tsc_hz;
+static uint64_t tomo_sim_hop_ticks;
+static _Atomic int tomo_sim_debug_running;
+
+#if defined(__linux__) && (defined(__i386__) || defined(__x86_64__))
+static inline uint64_t tomoSimRdtscp(unsigned int *aux) {
+    unsigned int lo, hi, cpu;
+    __asm__ __volatile__("rdtscp" : "=a"(lo), "=d"(hi), "=c"(cpu) :: "memory");
+    __asm__ __volatile__("lfence" ::: "memory");
+    *aux = cpu;
+    return ((uint64_t)hi << 32) | lo;
+}
+
+static uint64_t tomoSimTimespecNs(const struct timespec *ts) {
+    return (uint64_t)ts->tv_sec * 1000000000ULL + (uint64_t)ts->tv_nsec;
+}
+
+/* Bracket CLOCK_MONOTONIC_RAW with RDTSCP and use the TSC midpoint. Reject a
+ * sample if the scheduler moved us while either timestamp was being taken. */
+static int tomoSimClockSample(uint64_t *ns, uint64_t *tsc, unsigned int *aux) {
+    struct timespec wall;
+    unsigned int a0, a1;
+    uint64_t t0 = tomoSimRdtscp(&a0);
+    if (clock_gettime(CLOCK_MONOTONIC_RAW, &wall) != 0) return 0;
+    uint64_t t1 = tomoSimRdtscp(&a1);
+    if (a0 != a1 || t1 < t0) return 0;
+    *ns = tomoSimTimespecNs(&wall);
+    *tsc = t0 + ((t1 - t0) >> 1);
+    *aux = a0;
+    return 1;
+}
+
+static void tomoSimHopCalibrateOrDie(void) {
+    unsigned int eax, ebx, ecx, edx;
+    unsigned int basic_max = __get_cpuid_max(0, NULL);
+    unsigned int ext_max = __get_cpuid_max(0x80000000, NULL);
+    int have_tsc = basic_max >= 1 && __get_cpuid(1, &eax, &ebx, &ecx, &edx) && (edx & (1u << 4));
+    int have_rdtscp = ext_max >= 0x80000001 &&
+                      __get_cpuid(0x80000001, &eax, &ebx, &ecx, &edx) && (edx & (1u << 27));
+    int invariant = ext_max >= 0x80000007 &&
+                    __get_cpuid(0x80000007, &eax, &ebx, &ecx, &edx) && (edx & (1u << 8));
+    if (!have_tsc || !have_rdtscp || !invariant) {
+        serverLog(LL_WARNING, "FATAL: tomokv-sim-hop-ns requires invariant TSC and RDTSCP");
+        exit(1);
+    }
+
+    for (int attempt = 0; attempt < 8; attempt++) {
+        uint64_t ns0, ns1, tsc0, tsc1;
+        unsigned int aux0, aux1;
+        struct timespec pause = {.tv_sec = 0, .tv_nsec = 100000000};
+        if (!tomoSimClockSample(&ns0, &tsc0, &aux0)) continue;
+        while (nanosleep(&pause, &pause) != 0 && errno == EINTR) {}
+        if (!tomoSimClockSample(&ns1, &tsc1, &aux1)) continue;
+        if (aux0 != aux1 || ns1 <= ns0 || tsc1 <= tsc0 || ns1 - ns0 < 50000000ULL) continue;
+
+        __uint128_t scaled = (__uint128_t)(tsc1 - tsc0) * 1000000000ULL;
+        tomo_sim_tsc_hz = (uint64_t)((scaled + ((ns1 - ns0) >> 1)) / (ns1 - ns0));
+        if (tomo_sim_tsc_hz == 0) continue;
+        tomo_sim_hop_ticks = (uint64_t)(((__uint128_t)(unsigned)server.tomokv_sim_hop_ns *
+                                         tomo_sim_tsc_hz + 999999999ULL) / 1000000000ULL);
+        if (tomo_sim_hop_ticks == 0) tomo_sim_hop_ticks = 1;
+        serverLog(LL_NOTICE,
+                  "tomokv CROSS-L3 rig: invariant TSC calibrated at %llu Hz; hop=%d ns (%llu ticks)",
+                  (unsigned long long)tomo_sim_tsc_hz, server.tomokv_sim_hop_ns,
+                  (unsigned long long)tomo_sim_hop_ticks);
+        return;
+    }
+    serverLog(LL_WARNING, "FATAL: tomokv-sim-hop-ns could not obtain a migration-free TSC sample");
+    exit(1);
+}
+
+/* Called only by explicitly tagged rig messages. A migration restarts the
+ * complete interval so a discontinuous TSC_AUX observation cannot shorten it. */
+static inline void tomoSimHopWait(void) {
+    for (;;) {
+        unsigned int aux0, aux1;
+        uint64_t start = tomoSimRdtscp(&aux0);
+        uint64_t deadline = start + tomo_sim_hop_ticks;
+        uint64_t now;
+        do {
+            __builtin_ia32_pause();
+            now = tomoSimRdtscp(&aux1);
+            if (aux1 != aux0) break;
+        } while ((int64_t)(now - deadline) < 0);
+        if (aux1 == aux0) return;
+    }
+}
+#else
+static void tomoSimHopCalibrateOrDie(void) {
+    serverLog(LL_WARNING, "FATAL: tomokv-sim-hop-ns is supported only on x86 Linux");
+    exit(1);
+}
+static inline void tomoSimHopWait(void) {
+    serverPanic("unreachable CROSS-L3 delay on a platform without RDTSCP");
+}
+#endif
 
 /* Grow-back's IO owner and the main-thread watchdog arbitrate the commit edge with this state.
  * In particular, DRAINING may become COMMITTED or CANCEL_REQUESTED, never both. */
@@ -242,11 +336,6 @@ static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it
 static inline void tomoPollingYield(void);
 static int exQueuePushOwnerOp(exQueue *q, tomoOwnerOp *op);
 static int csStampDrain(exThread *worker);
-#if TOMO_SIM_ACTIVE
-static int exQueuePopBatchSim(exThread *worker, unsigned lane, exQueue *q,
-                              client **out, int max, uint64_t now,
-                              int *delayed);
-#endif
 
 #define TOMO_EX_OWNER_OP_TAG ((uintptr_t)1)
 static inline client *exOwnerOpEncode(tomoOwnerOp *op) {
@@ -3022,21 +3111,6 @@ static inline int cdbIndexFor(int ex_id) {
     return (ex_id % server.num_cdb);
 }
 
-#if TOMO_SIM_ACTIVE
-/* Armed-only completion timestamp sidecar. It follows the protected cdbSlots
- * array in the same client allocation (networking.c), so no pointer or padding
- * is added to client/cdbSlots. The ready-byte acquire must happen before this
- * plain load; the matching release publishes both the timestamp and reply. */
-static inline uint64_t *cdbSimPublishTsc(client *real) {
-    return (uint64_t *)(real->reply_cdb + server.num_cdb);
-}
-
-static inline int tomoSimTimestampVisible(uint64_t now, uint64_t published) {
-    if (published == 0) return 1; /* same-role/control publication: no cross-L3 hop */
-    return (int64_t)(now - published) >= (int64_t)server.tomo_sim_hop_ticks;
-}
-#endif
-
 /* ee451 (atomics): a reply completion is one SPSC flag, not a shared bitmap
  * update. The worker is the sole 0->1 publisher for this fake generation and
  * the owning IO thread is the sole 1->0 clearer. A ring slot cannot be reused
@@ -3047,49 +3121,13 @@ static inline int tomoSimTimestampVisible(uint64_t now, uint64_t published) {
  * payload, and every reuse is subsequently published through an SPSC queue
  * release store. Keeping the byte atomic also forces every poll to reload it. */
 static inline int cdbSlotReady(client *real, int cdb, unsigned int slot) {
-    if (atomic_load_explicit(&real->reply_cdb[cdb].ready[slot],
-                             memory_order_acquire) == 0)
-        return 0;
-#if TOMO_SIM_ACTIVE
-    {
-        uint64_t published =
-            cdbSimPublishTsc(real)[(size_t)cdb * TOMO_PIPELINE_DEPTH_MAX + slot];
-        if (!tomoSimTimestampVisible(monotonicRawClock(), published)) return 0;
-    }
-#endif
-    return 1;
+    return atomic_load_explicit(&real->reply_cdb[cdb].ready[slot],
+                                memory_order_acquire) != 0;
 }
 static inline void cdbSlotPublish(client *real, int cdb, unsigned int slot) {
-#if TOMO_SIM_ACTIVE
-    /* The ring slot can be reused by an IO-local completion after an EX
-     * completion occupied it. Clear that generation's timestamp before the
-     * release store so an immediate publication never inherits a recent hop
-     * deadline from the recycled sidecar slot. */
-    cdbSimPublishTsc(real)[(size_t)cdb * TOMO_PIPELINE_DEPTH_MAX + slot] = 0;
-#endif
     atomic_store_explicit(&real->reply_cdb[cdb].ready[slot], 1,
                           memory_order_release);
 }
-#if TOMO_SIM_ACTIVE
-static inline void cdbSlotPublishExSim(client *real, int cdb,
-                                       unsigned int slot) {
-    cdbSimPublishTsc(real)[(size_t)cdb * TOMO_PIPELINE_DEPTH_MAX + slot] =
-        monotonicRawClock();
-    atomic_store_explicit(&real->reply_cdb[cdb].ready[slot], 1,
-                          memory_order_release);
-}
-#endif
-#if TOMO_SIM_ACTIVE
-static inline void cdbSlotPublishEx(client *real, int cdb, unsigned int slot) {
-    /* Call-site provenance is load-bearing. A converted EX thread may run its
-     * dormant worker slice while iotid names its IO role, so TLS role identity
-     * cannot decide whether this is an EX->IO publication. Cross-shard single
-     * publications use this selector; the ordinary batch loop hoists it once. */
-    cdbSlotPublishExSim(real, cdb, slot);
-}
-#else
-#define cdbSlotPublishEx cdbSlotPublish
-#endif
 static inline void cdbSlotClear(client *real, int cdb, unsigned int slot) {
     atomic_store_explicit(&real->reply_cdb[cdb].ready[slot], 0,
                           memory_order_relaxed);
@@ -3393,62 +3431,6 @@ static inline void exHandoffAdvertiseLane(exThread *ex, unsigned t) {
 static inline void exHandoffAdvertise(exThread *ex) {
     exHandoffAdvertiseLane(ex, (unsigned)iotid);
 }
-
-#define TOMO_SIM_TSC_BATCH_REF (1ULL << 63)
-
-#if TOMO_SIM_ACTIVE
-/* IO->EX publish timestamps live after this worker's queue+freeback block.
- * Nothing points at the sidecar: deriving the address keeps exQueue and
- * exThread's hot header unchanged, and initExThreads appends no bytes at all
- * when hop=0. A batched tail publication stamps its whole newly-visible FIFO
- * range with one ordered invariant-TSC read. */
-static inline uint64_t *exQueueSimPublishTsc(exThread *ex, unsigned lane) {
-    uint64_t *base = (uint64_t *)(ex->freeback + ex->nlanes);
-    return base + (size_t)lane * (size_t)server.ex_queue_size;
-}
-
-static inline void exQueueSimStampPublish(exThread *ex, unsigned lane,
-                                          unsigned int published,
-                                          unsigned int publish_to,
-                                          int delayed_visibility) {
-    if (published == publish_to) return;
-    uint64_t *timestamps = exQueueSimPublishTsc(ex, lane);
-    unsigned int last = (publish_to - 1) & server.ex_queue_mask;
-
-    if (!delayed_visibility) {
-        /* A same-role owner-op can reuse a slot previously carrying a delayed
-         * record. Clear the complete range before the tail release so zero
-         * continues to mean immediately visible. */
-        while (published != publish_to) {
-            timestamps[published] = 0;
-            published = (published + 1) & server.ex_queue_mask;
-        }
-        return;
-    }
-
-    /* Point every earlier entry at the batch's last occupied slot. That slot
-     * cannot be reused until the consumer has retired the whole batch, so it
-     * is a safe in-ring timestamp descriptor. Taking/storing the TSC only
-     * after these references leaves the timestamp immediately adjacent to
-     * the release-tail publication instead of making a 50ns hop shorter by
-     * the time needed to stamp a large range. */
-    while (published != last) {
-        timestamps[published] = TOMO_SIM_TSC_BATCH_REF | (uint64_t)last;
-        published = (published + 1) & server.ex_queue_mask;
-    }
-    timestamps[last] = monotonicRawClock();
-}
-static inline uint64_t exQueueSimEntryPublishTsc(exThread *ex, unsigned lane,
-                                                  unsigned int slot) {
-    uint64_t *timestamps = exQueueSimPublishTsc(ex, lane);
-    uint64_t published = timestamps[slot];
-    if (published & TOMO_SIM_TSC_BATCH_REF)
-        published = timestamps[published & server.ex_queue_mask];
-    return published;
-}
-#else
-#define exQueueSimStampPublish(...) ((void)0)
-#endif
 
 /* ee451 (A2, 2026-08-02): the producer's dirty-worker set for THIS thread's flush.
  *
@@ -3832,11 +3814,6 @@ static void exDispatchDirect(int ex_id, client *fake) {
     uint64_t _stall0 = getMonotonicUs();   /* ring-stall = EX backlog seen from IO; see tmIoSignal */
     tmIoWaitBegin();
     do {
-#if TOMO_SIM_ACTIVE
-        unsigned int published = atomic_load_explicit(&q->tail, memory_order_relaxed);
-        exQueueSimStampPublish(&server.exThreads[ex_id], (unsigned)iotid,
-                               published, q->staged_tail, 1);
-#endif
         atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);  /* let the worker drain */
         exHandoffAdvertise(&server.exThreads[ex_id]);
         /* ee451 (A3, 2026-08-02): PUBLISH EVERYTHING STAGED, not just the ring we are stuck on.
@@ -3854,11 +3831,6 @@ static void exDispatchDirect(int ex_id, client *fake) {
     } while (exQueuePush(q, fake) != 0);
     tmIoWaitEnd();
     tm_io_sig[iotid].tm_ring_stall_us += (unsigned int)(getMonotonicUs() - _stall0);
-#if TOMO_SIM_ACTIVE
-    unsigned int published = atomic_load_explicit(&q->tail, memory_order_relaxed);
-    exQueueSimStampPublish(&server.exThreads[ex_id], (unsigned)iotid,
-                           published, q->staged_tail, 1);
-#endif
     atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);       /* publish the just-pushed fake now */
     exHandoffAdvertise(&server.exThreads[ex_id]);
 }
@@ -5819,35 +5791,7 @@ void initServer(void) {
     adjustOpenFilesLimit();
     const char *clk_msg = monotonicInit();
     serverLog(LL_NOTICE, "monotonic clock: %s", clk_msg);
-    server.tomo_sim_hop_ticks = 0;
-    if (server.tomo_sim_hop_ns != 0) {
-        if (!monotonicRawClockInit()) {
-            serverLog(LL_WARNING,
-                "FATAL: tomokv-sim-hop-ns requires Linux x86-64 with constant_tsc + nonstop_tsc");
-            exit(1);
-        }
-        server.tomo_sim_hop_ticks =
-            monotonicRawClockTicksFromNs(server.tomo_sim_hop_ns);
-        if (server.tomo_sim_hop_ticks == 0) {
-            serverLog(LL_WARNING,
-                "FATAL: tomokv-sim-hop-ns=%llu could not be converted to invariant-TSC ticks",
-                server.tomo_sim_hop_ns);
-            exit(1);
-        }
-        uint64_t raw_now = monotonicRawClock();
-        if (raw_now & TOMO_SIM_TSC_BATCH_REF ||
-            raw_now > TOMO_SIM_TSC_BATCH_REF - server.tomo_sim_hop_ticks) {
-            serverLog(LL_WARNING,
-                "FATAL: invariant TSC value/offset uses the simulator's batch-reference tag bit");
-            exit(1);
-        }
-        serverLog(LL_NOTICE,
-            "tomokv cross-L3 visibility simulator armed: hop=%lluns ticks=%llu tsc_hz=%llu "
-            "(producer paths remain non-blocking; timestamp sidecars enabled)",
-            server.tomo_sim_hop_ns,
-            (unsigned long long)server.tomo_sim_hop_ticks,
-            (unsigned long long)monotonicRawClockHz());
-    }
+    if (server.tomokv_sim_hop_ns != 0) tomoSimHopCalibrateOrDie();
     server.el = aeCreateEventLoop(server.maxclients + CONFIG_FDSET_INCR);
     if (server.el == NULL) {
         serverLog(LL_WARNING,
@@ -9744,10 +9688,8 @@ static inline int csStampLane(void) {
 
 /* Owner-op consumption is the only place a version is stamped or canceled.
  * All op kinds are embedded in vmeta, so group reply publication cannot
- * invalidate a queued job. Ordinarily the drain runs to empty; the simulator
- * stops at an immature prefix head and revisits it without waiting. Stamp
- * order within this multi-producer lane is unspecified and correctness does
- * not depend on it. */
+ * invalidate a queued job. The drain runs to empty: stamp order within this
+ * multi-producer lane is unspecified and correctness does not depend on it. */
 static int csStampDrain(exThread *worker) {
     if (atomic_load_explicit(&worker->stamp_pending, memory_order_acquire) == 0)
         return 0;
@@ -9755,13 +9697,7 @@ static int csStampDrain(exThread *worker) {
     client *jobs[WORKER_POP_BATCH];
     int total = 0;
     for (;;) {
-#if TOMO_SIM_ACTIVE
-        int delayed = 0;
-        int n = exQueuePopBatchSim(worker, (unsigned)csStampLane(), q, jobs,
-                                   WORKER_POP_BATCH, monotonicRawClock(), &delayed);
-#else
         int n = exQueuePopBatch(q, jobs, WORKER_POP_BATCH);
-#endif
         if (!n) break;
         struct tomoVerMeta *release_after_unlock[WORKER_POP_BATCH] = {0};
         tomoWkrLock(worker->id);
@@ -9827,11 +9763,11 @@ static int csStampDrain(exThread *worker) {
     return total;
 }
 
-static void csStampPush(int owner, tomoOwnerOp *op, int publisher_worker) {
+static void csStampPush(int owner, tomoOwnerOp *op) {
     serverAssert(owner >= 0 && owner < server.num_workers);
     exThread *worker = &server.exThreads[owner];
     exQueue *q = &worker->queues[csStampLane()];
-    int current_owner = publisher_worker;
+    int current_owner = iotid - (TOMO_IO_THREADS_MAX + 1);
     int spins = 0;
     int full_counted = 0;
     int waiting = 0;
@@ -9841,11 +9777,6 @@ static void csStampPush(int owner, tomoOwnerOp *op, int publisher_worker) {
             full_counted = 1;
         }
         if (!waiting) { tmIoWaitBegin(); waiting = 1; }
-#if TOMO_SIM_ACTIVE
-        unsigned int published = atomic_load_explicit(&q->tail, memory_order_relaxed);
-        exQueueSimStampPublish(worker, (unsigned)csStampLane(), published,
-                               q->staged_tail, publisher_worker < 0);
-#endif
         atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
         exHandoffAdvertiseLane(worker, (unsigned)csStampLane());
         if (current_owner == owner)
@@ -9857,11 +9788,6 @@ static void csStampPush(int owner, tomoOwnerOp *op, int publisher_worker) {
     }
     if (waiting) tmIoWaitEnd();
     atomic_fetch_add_explicit(&worker->stamp_pending, 1, memory_order_release);
-#if TOMO_SIM_ACTIVE
-    unsigned int published = atomic_load_explicit(&q->tail, memory_order_relaxed);
-    exQueueSimStampPublish(worker, (unsigned)csStampLane(), published,
-                           q->staged_tail, publisher_worker < 0);
-#endif
     atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
     exHandoffAdvertiseLane(worker, (unsigned)csStampLane());
 }
@@ -10123,7 +10049,7 @@ static csGroup *csMsetPopComplete(client *real) {
 /* I1/I3/I5: draw at R1-approved completion, then enqueue every owner stamp
  * before the group is allowed to advance commit_seq. Records are traversed in
  * install-order so same-key duplicates reach their one owner in that order. */
-static void csMsetStampAndAppend(csGroup *g, int publisher_worker) {
+static void csMsetStampAndAppend(csGroup *g) {
     int ninstalled = atomic_load_explicit(&g->mset_install_count, memory_order_relaxed);
     int cancel = g->version_abort;
     if (g->ctype == CS_MSETNX) {
@@ -10156,7 +10082,7 @@ static void csMsetStampAndAppend(csGroup *g, int publisher_worker) {
                                            cancel ? TOMO_OWNER_OP_CANCEL : TOMO_OWNER_OP_STAMP};
         if (!cancel)
             vmeta->owner_op[1] = (tomoOwnerOp){kv, seq, TOMO_OWNER_OP_PRUNE};
-        csStampPush(install->owner, &vmeta->owner_op[0], publisher_worker);
+        csStampPush(install->owner, &vmeta->owner_op[0]);
     }
     g->commit_next = NULL;
     if (commit_tail) commit_tail->commit_next = g;
@@ -10164,15 +10090,10 @@ static void csMsetStampAndAppend(csGroup *g, int publisher_worker) {
     commit_tail = g;
 }
 
-static void csMsetInstallDone(csGroup *g, int publisher_worker) {
+static void csMsetInstallDone(csGroup *g) {
     client *real = g->mset_client;
     serverAssert(real != NULL);
-#if TOMO_SIM_ACTIVE
-    atomic_store_explicit(&g->mset_complete, publisher_worker >= 0 ? 2 : 1,
-                          memory_order_release);
-#else
     atomic_store_explicit(&g->mset_complete, 1, memory_order_release);
-#endif
 
     int expected = 0;
     if (!atomic_compare_exchange_strong_explicit(&real->mset_drain_latch, &expected, 1,
@@ -10184,7 +10105,7 @@ static void csMsetInstallDone(csGroup *g, int publisher_worker) {
     for (;;) {
         csGroup *done;
         while ((done = csMsetPopComplete(real)) != NULL)
-            csMsetStampAndAppend(done, publisher_worker);
+            csMsetStampAndAppend(done);
         atomic_store_explicit(&real->mset_drain_latch, 0, memory_order_release);
         if (!csMsetHeadComplete(real)) break;
         expected = 0;
@@ -10212,7 +10133,7 @@ static void csMsetInstallDone(csGroup *g, int publisher_worker) {
             csMsetInstall *install = &done->mset_installs[i];
             if (!canceled) {
                 struct tomoVerMeta *vmeta = kvobjVmeta(install->kv);
-                csStampPush(install->owner, &vmeta->owner_op[1], publisher_worker);
+                csStampPush(install->owner, &vmeta->owner_op[1]);
             }
             install->kv = NULL;
             install->owner = -1;
@@ -10225,16 +10146,6 @@ static void csMsetInstallDone(csGroup *g, int publisher_worker) {
          * alive: the slot publication below hands it to hp's IO thread, which may csReassemble
          * (and zfree) it immediately. Everything after that store touches hp only. */
         uintptr_t gtag = (uintptr_t)done;
-        /* The latch winner can publish several completed groups, including
-         * groups completed by a different role. Use each group's logical
-         * completion provenance, acquired through mset_complete, rather than
-         * the role of whichever caller happened to win the drain latch. */
-#if TOMO_SIM_ACTIVE
-        if (atomic_load_explicit(&done->mset_complete,
-                                 memory_order_acquire) == 2)
-            cdbSlotPublishEx(hp, done->head->cdb, done->head->fake_slot);
-        else
-#endif
         cdbSlotPublish(hp, done->head->cdb, done->head->fake_slot);
         /* This is the FIFO's semantic drain point, not csMsetPopComplete:
          * the release decrement follows commit_seq publication and therefore
@@ -10262,7 +10173,7 @@ static int csAtomicAbortIncomplete(csGroup *g) {
     g->version_abort = 1;
     if (cdbSlotReady(g->head->parent,g->head->cdb,g->head->fake_slot))
         cdbSlotClear(g->head->parent,g->head->cdb,g->head->fake_slot);
-    csMsetInstallDone(g, -1);
+    csMsetInstallDone(g);
     return 1;
 }
 
@@ -12389,11 +12300,6 @@ static void csPushSpin(int w, client *sub) {
             counted = 1;
         }
         /* Full: ensure everything staged so far is visible so the worker drains. */
-#if TOMO_SIM_ACTIVE
-        unsigned int published = atomic_load_explicit(&q->tail, memory_order_relaxed);
-        exQueueSimStampPublish(&server.exThreads[w], (unsigned)iotid,
-                               published, q->staged_tail, 1);
-#endif
         atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
         exHandoffAdvertise(&server.exThreads[w]);
         /* ee451 (A3, 2026-08-02): PUBLISH EVERYTHING STAGED, not just the ring we are stuck on.
@@ -12414,11 +12320,6 @@ static void csPushSpin(int w, client *sub) {
         tm_io_sig[iotid].tm_ring_stall_us += (unsigned int)(getMonotonicUs() - _stall0);
     }
     /* Publish this sub now (covers the opt_batch_push staging-only case). */
-#if TOMO_SIM_ACTIVE
-    unsigned int published = atomic_load_explicit(&q->tail, memory_order_relaxed);
-    exQueueSimStampPublish(&server.exThreads[w], (unsigned)iotid,
-                           published, q->staged_tail, 1);
-#endif
     atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
     exHandoffAdvertise(&server.exThreads[w]);
 }
@@ -12708,7 +12609,7 @@ static int csAtomicNxAdvance(csGroup *g) {
         g->version_abort = 1;
         g->version_nx_reserving = 0;
         cdbSlotClear(head->parent,head->cdb,head->fake_slot);
-        csMsetInstallDone(g, -1);
+        csMsetInstallDone(g);
         return 1;
     }
 
@@ -20814,8 +20715,6 @@ void flushExQueues(void) {
         exQueue *q = &ex[w].queues[iotid];
         unsigned int published = atomic_load_explicit(&q->tail, memory_order_relaxed);
         if (q->staged_tail != published) {
-            exQueueSimStampPublish(&ex[w], (unsigned)iotid,
-                                   published, q->staged_tail, 1);
             atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
             exHandoffAdvertise(&ex[w]);   /* AFTER the tail store -- see exThread.q_summary */
         }
@@ -20985,95 +20884,6 @@ int exQueuePopBatch(exQueue *q, client **out, int max) {
                           memory_order_release);
     return n;
 }
-
-#if TOMO_SIM_ACTIVE
-/* Visibility-sim counterparts. These are reached only while the rig is armed;
- * the historical pop functions above remain the hop=0 path. Publication still
- * uses the same release tail and the same FIFO. We merely cap the returned run
- * at the first timestamp whose hop has not elapsed. In particular, jobs[] is
- * never read or prefetched before its timestamp is visible. */
-static inline int exQueuePeekArrivalSim(exThread *worker, unsigned lane,
-                                        exQueue *q, uint64_t now,
-                                        uint64_t *arr, int *delayed) {
-    unsigned int h = atomic_load_explicit(&q->head, memory_order_relaxed);
-    if (((q->cached_tail - h) & server.ex_queue_mask) == 0) {
-        q->cached_tail = atomic_load_explicit(&q->tail, memory_order_acquire);
-        if (((q->cached_tail - h) & server.ex_queue_mask) == 0) return 0;
-    }
-    uint64_t published = exQueueSimEntryPublishTsc(worker, lane, h);
-    if (!tomoSimTimestampVisible(now, published)) {
-        *delayed = 1;
-        return 0;
-    }
-    *arr = q->jobs[h]->arrival_us;
-    return 1;
-}
-
-static int exQueuePopOrderedSim(exThread *worker, unsigned lane, exQueue *q,
-                                client **out, int max, uint64_t ceil,
-                                uint64_t now, int *delayed) {
-    unsigned int h = atomic_load_explicit(&q->head, memory_order_relaxed);
-    unsigned int avail = (q->cached_tail - h) & server.ex_queue_mask;
-    if (avail == 0) {
-        q->cached_tail = atomic_load_explicit(&q->tail, memory_order_acquire);
-        avail = (q->cached_tail - h) & server.ex_queue_mask;
-        if (avail == 0) return 0;
-    }
-    int n = 0;
-    while (n < max && (unsigned)n < avail) {
-        unsigned int slot = (h + (unsigned int)n) & server.ex_queue_mask;
-        if (!tomoSimTimestampVisible(now,
-                                     exQueueSimEntryPublishTsc(worker, lane, slot))) {
-            *delayed = 1;
-            break;
-        }
-        client *c = q->jobs[slot];
-        if (c->arrival_us > ceil) break;
-        out[n++] = c;
-    }
-    if (n) atomic_store_explicit(&q->head,
-                                 (h + (unsigned int)n) & server.ex_queue_mask,
-                                 memory_order_release);
-    return n;
-}
-
-static int exQueuePopBatchSim(exThread *worker, unsigned lane, exQueue *q,
-                              client **out, int max, uint64_t now,
-                              int *delayed) {
-    unsigned int h = atomic_load_explicit(&q->head, memory_order_relaxed);
-    unsigned int avail = (q->cached_tail - h) & server.ex_queue_mask;
-    if (avail == 0) {
-        q->cached_tail = atomic_load_explicit(&q->tail, memory_order_acquire);
-        avail = (q->cached_tail - h) & server.ex_queue_mask;
-        if (avail == 0) return 0;
-    }
-
-    int limit = (int)avail < max ? (int)avail : max;
-    int n = 0;
-    while (n < limit) {
-        unsigned int slot = (h + (unsigned int)n) & server.ex_queue_mask;
-        if (!tomoSimTimestampVisible(now,
-                                     exQueueSimEntryPublishTsc(worker, lane, slot))) {
-            *delayed = 1;
-            break;
-        }
-        n++;
-    }
-    if (n == 0) return 0;
-
-    unsigned int size = server.ex_queue_mask + 1;
-    unsigned int first = size - h;
-    if ((unsigned int)n <= first) {
-        memcpy(out, &q->jobs[h], (size_t)n * sizeof(*out));
-    } else {
-        memcpy(out, &q->jobs[h], (size_t)first * sizeof(*out));
-        memcpy(out + first, &q->jobs[0], (size_t)(n - first) * sizeof(*out));
-    }
-    atomic_store_explicit(&q->head, (h + (unsigned int)n) & server.ex_queue_mask,
-                          memory_order_release);
-    return n;
-}
-#endif
 
 
 
@@ -21930,16 +21740,8 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
      * measured heap == inline. WQ covers every worker->queues[] use in this function (the retire
      * loop below included); worker is never reassigned. */
     exQueue *const WQ = worker->queues;
-    /* hop=0 takes the historical pop functions. Armed mode refreshes once per
-     * lane-selection iteration below: executing an earlier batch can outlast a
-     * 50ns hop, so one timestamp for the whole pass would incorrectly hide
-    * work that became visible before we reached its lane. */
     for (int k = 0; k < ctx->nq; k++) {
         int i, n;
-#if TOMO_SIM_ACTIVE
-        int delayed = 0;
-        uint64_t sim_now = monotonicRawClock();
-#endif
         if (__builtin_expect(so != 0, 0)) {
             /* strict-order: execute the GLOBALLY-oldest queued command first, so a fresh op on
              * one IO thread's queue can't jump ahead of older ones on another's. Pick the
@@ -21949,42 +21751,17 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
             uint64_t best = 0; i = -1;
             for (int q = 0; q < ctx->nq; q++) {
                 uint64_t a;
-#if TOMO_SIM_ACTIVE
-                int visible = exQueuePeekArrivalSim(worker, (unsigned)q,
-                                                     &WQ[q], sim_now,
-                                                     &a, &delayed);
-#else
-                int visible = exQueuePeekArrival(&WQ[q], &a);
-#endif
-                if (visible && (i < 0 || a < best)) { i = q; best = a; }
+                if (exQueuePeekArrival(&WQ[q], &a) && (i < 0 || a < best)) { i = q; best = a; }
             }
             if (i < 0) break;   /* all queues drained this pass */
-#if TOMO_SIM_ACTIVE
-            n = exQueuePopOrderedSim(worker, (unsigned)i, &WQ[i], ctx->batch,
-                                     popmax, best + (uint64_t)(so - 1),
-                                     monotonicRawClock(), &delayed);
-#else
-            n = exQueuePopOrdered(&WQ[i], ctx->batch, popmax,
-                                  best + (uint64_t)(so - 1));
-#endif
+            n = exQueuePopOrdered(&WQ[i], ctx->batch, popmax, best + (uint64_t)(so - 1));
         } else {
             i = ctx->scan_start + k; if (i >= ctx->nq) i -= ctx->nq;
             /* was: bit = (i < 64) ? 1<<i : 0 — lanes >= 64 could NEVER be advertised and were
              * probed only on the 1/64 dense sweeps: a silent 64x dispatch-delay cliff, not a cap. */
             uint64_t bit = 1ull << ((unsigned)i & 63);
             if (!dense && !(advertised[(unsigned)i >> 6] & bit)) continue;   /* not advertised */
-#if TOMO_SIM_ACTIVE
-            n = exQueuePopBatchSim(worker, (unsigned)i, &WQ[i], ctx->batch,
-                                   popmax, sim_now, &delayed);
-#else
             n = exQueuePopBatch(&WQ[i], ctx->batch, popmax);
-#endif
-            /* A delayed FIFO head is still standing work. Re-advertise it and
-             * continue rotating: no wait/spin here, so visible lanes later in
-             * this pass execute normally. */
-#if TOMO_SIM_ACTIVE
-            if (delayed) residual[(unsigned)i >> 6] |= bit;
-#endif
             if (n != 0) {
                 /* Could not be fully drained within popmax, or more arrived: re-advertise. */
                 residual[(unsigned)i >> 6] |= bit;
@@ -22004,15 +21781,12 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
         if (n == 0) continue;
 
         /* I3 cross-lane fence. A reader acquires snapshot S before publishing
-         * its normal owner job, while every stamp <= S was release-published to
-         * the reserved lane before commit_seq made S visible. In simulator
-         * mode that stamp's TSC therefore precedes the reader job's TSC; equal
-         * hop offsets guarantee the required prefix is visible by the time the
-         * normal job is visible. Drain that prefix before dereferencing the
-         * batch. A later unrelated stamp may remain delayed without imposing
-         * artificial head-of-line latency here. Intra-lane stamp order is
-         * irrelevant; cursor insertion restores per-key tuple order. Coalesced
-         * MGET subs arrive on these same normal owner queues. */
+         * its normal owner job, while every stamp <= S was published to the
+         * reserved lane before S became visible. The owner drains that whole
+         * lane before executing any popped normal batch, so all such stamps are
+         * applied before the reader can dereference its head. Their intra-lane
+         * order is irrelevant; cursor insertion restores per-key tuple order.
+         * Coalesced MGET subs arrive on these same normal owner queues. */
         if (atomic_load_explicit(&worker->stamp_pending, memory_order_acquire)) {
             if (!any) ctx->tm_mark = getMonotonicUs();
             if (csStampDrain(worker)) any = 1;
@@ -22100,6 +21874,22 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
              * every range primary this producer dispatched before it has executed on A; decrement
              * the per-cutover barrier and free. No reply. */
             if (fake->drain_ack) {
+                /* DEBUG TOMO-SIM-HOP uses the existing drain-sentinel arm so
+                 * ordinary messages gain no test, load, or call. Its private
+                 * marker identifies the synthetic message; is_flush carries
+                 * the delayed arm and is consumed before the real flush arm.
+                 * The wait models the worker producer's EX->IO coherence hop
+                 * just before the existing release publication. */
+                if (fake->drain_ack == &tomo_sim_debug_running) {
+                    exExecFake(fake);
+                    if (fake->is_flush) tomoSimHopWait();
+                    /* Publish immediately after this message's delay. Putting
+                     * all rig fakes into the batch-end signal array would make
+                     * the first completion pay N waits when N were popped. */
+                    cdbSlotPublish(fake->parent, fake->cdb, fake->fake_slot);
+                    j++;
+                    continue;
+                }
                 /* This sentinel came up queue slot `i`; mark that producer slot drained. */
                 atomic_store_explicit(&server.migration.fence_acked[i], 1, memory_order_release);
                 freeFakeClient(fake);
@@ -22189,13 +21979,13 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                             stage_only = 1;
                         if (stage_only) {
                             client *hp = g->head->parent;
-                            cdbSlotPublishEx(hp, g->head->cdb, g->head->fake_slot);
+                            cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
                         } else {
-                            csMsetInstallDone(g, worker->id);
+                            csMsetInstallDone(g);
                         }
                     } else {
                         client *hp = g->head->parent;
-                        cdbSlotPublishEx(hp, g->head->cdb, g->head->fake_slot);
+                        cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
                     }
                 }
                 j++;
@@ -22242,13 +22032,8 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
         /* Each release store publishes its fake's reply writes. This loop is
          * the worker's final access to each saved parent; after a store, the
          * IO owner may immediately retire that slot. */
-#if TOMO_SIM_ACTIVE
-        for (int s = 0; s < sig_n; s++)
-            cdbSlotPublishExSim(sig_parents[s], ctx->wcdb, sig_slots[s]);
-#else
         for (int s = 0; s < sig_n; s++)
             cdbSlotPublish(sig_parents[s], ctx->wcdb, sig_slots[s]);
-#endif
 
         /* ee451 (H2, reshard drain fence): publish this queue's EXECUTION frontier. The pop above
          * advanced `head` before any of these commands ran, so `head` alone cannot distinguish
@@ -22361,6 +22146,271 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
      * this single return, so this covers every exit path). */
     atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
     return any;
+}
+
+/* -------------------- DEBUG TOMO-SIM-HOP measurement driver --------------------
+ *
+ * This is deliberately a private workload rather than a branch in production
+ * dispatch. It pre-generates a fixed key/command cycle, pushes the same client
+ * headers through the real SPSC rings, and receives completions through the
+ * real CDB bytes. The only worker-loop change is nested inside the pre-existing
+ * drain-sentinel arm, which normal commands never enter. */
+#define TOMO_SIM_CYCLE 32
+#define TOMO_SIM_CLOCK_CHECK TOMO_SIM_CYCLE
+
+typedef void (*tomoSimAfterPushFn)(void);
+
+static void tomoSimReplyA(client *c) {
+    addReplyLongLong(c, 1000 + (long long)c->fake_slot * 2);
+}
+
+static void tomoSimReplyB(client *c) {
+    addReplyLongLong(c, 1001 + (long long)c->fake_slot * 2);
+}
+
+static void tomoSimAfterPushNow(void) {
+}
+
+static void tomoSimAfterPushDelayed(void) {
+    /* IO producer has filled jobs[]; delay before the normal batch release
+     * makes the message visible to EX. This is coherence hop one. */
+    tomoSimHopWait();
+}
+
+static uint64_t tomoSimFnv1a(uint64_t h, const void *buf, size_t len) {
+    const unsigned char *p = buf;
+    while (len--) {
+        h ^= *p++;
+        h *= 1099511628211ULL;
+    }
+    return h;
+}
+
+static uint64_t tomoSimWallNs(void) {
+    struct timespec ts;
+    if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0)
+        serverPanic("CLOCK_MONOTONIC failed during TOMO-SIM-HOP: %s", strerror(errno));
+    return (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
+}
+
+static void tomoSimDispatch(client *fake, int worker_id,
+                            tomoSimAfterPushFn after_push) {
+    /* exExecFake clears this carried hint after every execution. Rearm the
+     * already-computed deterministic routing metadata without hashing again. */
+    fake->tomo_bkt_ptr = fake->argv[1]->ptr;
+    fake->prefetch_key_hash_valid = 0;
+
+    exQueue *q;
+    for (;;) {
+        /* exQueueFor also marks this worker dirty. Reacquire it on every
+         * retry because flushExQueues consumes that marker while making room;
+         * the successful retry must leave a fresh marker for the caller's
+         * batch publication. */
+        q = exQueueFor(worker_id);
+        if (exQueuePush(q, fake) == 0) break;
+        /* Match normal ring backpressure: make this lane's already-staged
+         * prefix visible, then wait for consumer progress. */
+        flushExQueues();
+        exPauseCpu();
+    }
+    after_push();
+}
+
+void tomoSimHopDebug(client *c, long long duration_ms) {
+    int expected_running = 0;
+    if (!atomic_compare_exchange_strong_explicit(&tomo_sim_debug_running,
+                                                  &expected_running, 1,
+                                                  memory_order_acq_rel,
+                                                  memory_order_acquire)) {
+        addReplyError(c, "a TOMO-SIM-HOP measurement is already running");
+        return;
+    }
+
+    if (server.thread_mode != TOMO_THREAD_MODE_STATIC || server.reshard_min_ops != 0 ||
+        server.strict_order != 0 || !server.exThreads || server.num_workers < 1 ||
+        !c->conn || iotid < 0 || iotid > TOMO_IO_THREADS_MAX || tmFlipActive() ||
+        atomic_load_explicit(&server.migration_active, memory_order_acquire) ||
+        atomic_load_explicit(&server.flat_resize_active, memory_order_acquire) ||
+        atomic_load_explicit(&server.num_workers_live, memory_order_acquire) != server.num_workers) {
+        atomic_store_explicit(&tomo_sim_debug_running, 0, memory_order_release);
+        addReplyError(c, "TOMO-SIM-HOP requires a static split, tomokv-key-lb 0, tomokv-strict-order 0, and all EX workers live");
+        return;
+    }
+
+    /* DEBUG can be parsed behind earlier commands in the same input buffer.
+     * Publish any existing reorder/staged prefix before checking that this
+     * producer lane is empty, so it cannot be folded into the rig's first hop. */
+    flushExQueues();
+    for (int w = 0; w < server.num_workers; w++) {
+        exQueue *q = &server.exThreads[w].queues[iotid];
+        unsigned int t = atomic_load_explicit(&q->tail, memory_order_acquire);
+        unsigned int retired = atomic_load_explicit(&q->retired, memory_order_acquire);
+        if (retired != t || q->staged_tail != t) {
+            atomic_store_explicit(&tomo_sim_debug_running, 0, memory_order_release);
+            addReplyError(c, "TOMO-SIM-HOP requires the invoking IO lane to be drained; retry on an isolated instance");
+            return;
+        }
+    }
+
+    client *parent = createClient(NULL);
+    parent->flags |= CLIENT_SCRIPT;
+    client *fakes[TOMO_SIM_CYCLE];
+    struct redisCommand commands[TOMO_SIM_CYCLE];
+    int workers[TOMO_SIM_CYCLE];
+    int reply_len[TOMO_SIM_CYCLE];
+    char expected_reply[TOMO_SIM_CYCLE][32];
+    uint64_t cycle_hash = 14695981039346656037ULL;
+
+    /* All allocation, command construction, formatting, routing and hashing
+     * happen before the measurement clock starts. The timed loop only rotates
+     * this immutable cycle. */
+    for (int i = 0; i < TOMO_SIM_CYCLE; i++) {
+        static const char *names[2] = {"GET", "EXISTS"};
+        char key[40];
+        int key_len = snprintf(key, sizeof(key), "tomo-sim-hop:key:%02d", i);
+        serverAssert(key_len > 0 && key_len < (int)sizeof(key));
+
+        memset(&commands[i], 0, sizeof(commands[i]));
+        commands[i].declared_name = names[i & 1];
+        commands[i].proc = (i & 1) ? tomoSimReplyB : tomoSimReplyA;
+        commands[i].flags = CMD_READONLY | CMD_FAST;
+        commands[i].id = -1; /* measurement commands never enter INFO commandstats */
+
+        client *fake = createFakeClient(parent);
+        fakes[i] = fake;
+        parent->fakeClients[i] = fake;
+        fake->fake_slot = (unsigned)i;
+        fake->flags = CLIENT_EX_PENDING;
+        /* Match an ordinary worker fake: the conn is borrowed only so
+         * _prepareClientToWrite reaches the EX_PENDING buffer exemption.
+         * freeFakeClient deliberately never closes this shared pointer. */
+        fake->conn = c->conn;
+        fake->argc = fake->argv_len = 2;
+        fake->argv = zmalloc(sizeof(robj *) * 2);
+        fake->argv[0] = createStringObject(names[i & 1], strlen(names[i & 1]));
+        fake->argv[1] = createStringObject(key, (size_t)key_len);
+        fake->cmd = fake->lastcmd = fake->realcmd = fake->lookedcmd = &commands[i];
+
+        workers[i] = getWorkerForCommand(fake);
+        serverAssert(workers[i] >= 0 && workers[i] < server.num_workers);
+        fake->cdb = cdbIndexFor(workers[i]);
+        fake->db = &server.exThreads[workers[i]].db[0];
+        (void)exQueueFor(workers[i]); /* prewarm TLS queue bases before the clock */
+        fake->drain_ack = &tomo_sim_debug_running;
+        fake->is_flush = server.tomokv_sim_hop_ns != 0;
+        /* Keys and command tokens remain immutable routing fixtures, but the
+         * synthetic proc intentionally does no DB lookup. argc=0 also keeps
+         * the EX prefetch FSM focused on the message header itself. */
+        fake->argc = 0;
+
+        long long value = 1000 + (long long)i * 2 + (i & 1);
+        reply_len[i] = snprintf(expected_reply[i], sizeof(expected_reply[i]),
+                                ":%lld\r\n", value);
+        serverAssert(reply_len[i] > 0 && reply_len[i] < (int)sizeof(expected_reply[i]));
+        cycle_hash = tomoSimFnv1a(cycle_hash, names[i & 1], strlen(names[i & 1]));
+        cycle_hash = tomoSimFnv1a(cycle_hash, key, (size_t)key_len);
+        cycle_hash = tomoSimFnv1a(cycle_hash, expected_reply[i], (size_t)reply_len[i]);
+    }
+
+    /* Clear the dirty bits set while prewarming queue bases. No rig message is
+     * staged yet, so this is a publication no-op. */
+    flushExQueues();
+    tomoSimAfterPushFn after_push = server.tomokv_sim_hop_ns ?
+                                    tomoSimAfterPushDelayed : tomoSimAfterPushNow;
+    uint64_t started_ns = tomoSimWallNs();
+    uint64_t deadline_ns = started_ns + (uint64_t)duration_ms * 1000000ULL;
+    uint64_t operations = 0, io_to_ex = 0, ex_to_io = 0, errors = 0;
+    uint64_t next_clock_check = TOMO_SIM_CLOCK_CHECK;
+    int head = 0, outstanding = 0, accepting = 1;
+
+    /* Prime at most one immutable message per cycle slot. Include priming in
+     * the requested wall interval; short runs therefore do not hide setup. */
+    for (int i = 0; i < TOMO_SIM_CYCLE; i++) {
+        if (tomoSimWallNs() >= deadline_ns) { accepting = 0; break; }
+        tomoSimDispatch(fakes[i], workers[i], after_push);
+        io_to_ex++;
+        outstanding++;
+    }
+    flushExQueues();
+
+    while (outstanding > 0) {
+        client *fake = fakes[head];
+        while (!cdbSlotReady(parent, fake->cdb, fake->fake_slot)) exPauseCpu();
+
+        if ((int)fake->bufpos != reply_len[head] || listLength(fake->reply) != 0 ||
+            memcmp(fake->buf, expected_reply[head], (size_t)reply_len[head]) != 0)
+            errors++;
+        cdbSlotClear(parent, fake->cdb, fake->fake_slot);
+        fake->bufpos = 0;
+        fake->reply_bytes = 0;
+        fake->sentlen = 0;
+        fake->last_header = NULL;
+        fake->commands_processed = 0;
+        fake->net_input_bytes_curr_cmd = 0;
+        fake->net_output_bytes_curr_cmd = 0;
+        operations++;
+        ex_to_io++;
+
+        int stopped_now = 0;
+        if (accepting && operations >= next_clock_check) {
+            accepting = tomoSimWallNs() < deadline_ns;
+            stopped_now = !accepting;
+            next_clock_check += TOMO_SIM_CLOCK_CHECK;
+        }
+        if (accepting) {
+            tomoSimDispatch(fake, workers[head], after_push);
+            io_to_ex++;
+        } else {
+            outstanding--;
+        }
+        if (head == TOMO_SIM_CYCLE - 1 || stopped_now) flushExQueues();
+        head = (head + 1) % TOMO_SIM_CYCLE;
+    }
+
+    uint64_t finished_ns = tomoSimWallNs();
+    if (operations == 0 || io_to_ex != operations || ex_to_io != operations) errors++;
+
+    /* No worker can retain a reference after its completion byte was acquired
+     * and every outstanding slot above was drained. Restore ordinary pointers
+     * before the standard client destructors reclaim the pre-generated cycle. */
+    for (int i = 0; i < TOMO_SIM_CYCLE; i++) {
+        client *fake = fakes[i];
+        fake->drain_ack = NULL;
+        fake->is_flush = 0;
+        fake->flags = 0;
+        fake->cmd = fake->lastcmd = fake->realcmd = fake->lookedcmd = NULL;
+        fake->argc = fake->argv_len = 0;
+        decrRefCount(fake->argv[0]);
+        decrRefCount(fake->argv[1]);
+        zfree(fake->argv);
+        fake->argv = NULL;
+    }
+    freeClient(parent);
+
+    sds report = sdsempty();
+    report = sdscatprintf(report,
+        "status=%s\n"
+        "hop_ns=%d\n"
+        "requested_ms=%lld\n"
+        "elapsed_ms=%llu\n"
+        "calibration=%s\n"
+        "tsc_hz=%llu\n"
+        "cycle_len=%d\n"
+        "cycle_hash=%016llx\n"
+        "operations=%llu\n"
+        "io_to_ex=%llu\n"
+        "ex_to_io=%llu\n"
+        "errors=%llu\n",
+        errors ? "error" : "ok", server.tomokv_sim_hop_ns, duration_ms,
+        (unsigned long long)((finished_ns - started_ns) / 1000000ULL),
+        server.tomokv_sim_hop_ns ? "invariant-tsc" : "off",
+        (unsigned long long)tomo_sim_tsc_hz, TOMO_SIM_CYCLE,
+        (unsigned long long)cycle_hash, (unsigned long long)operations,
+        (unsigned long long)io_to_ex, (unsigned long long)ex_to_io,
+        (unsigned long long)errors);
+    atomic_store_explicit(&tomo_sim_debug_running, 0, memory_order_release);
+    addReplyVerbatim(c, report, sdslen(report), "txt");
+    sdsfree(report);
 }
 
 /* Pin a worker's pthread to a single core so its per-shard DB stays
@@ -22834,11 +22884,7 @@ void initExThreads(void) {
      * directly after the lanes — the same adjacency the inline arrays had (a split alloc measured
      * p32 GET -3.7%: the reply path recycles through freeback, which wants the lanes' locality).
      * sizeof(exQueue) is a CACHE_LINE multiple, so the freeback base stays line-aligned; the
-     * asserts make that loud rather than a silent false-share if an allocator change breaks it.
-     *
-     * When (and only when) tomokv-sim-hop-ns is armed, a uint64_t publish-TSC sidecar follows the
-     * freeback array: [nlanes][ex_queue_size]. Its base is derived from freeback+nlanes, so the
-     * protected exQueue layout and exThread header do not grow. hop=0 adds exactly zero bytes. */
+     * asserts make that loud rather than a silent false-share if an allocator change breaks it. */
     {
         int nlanes = server.io_threads + server.num_workers + 1;
         if (nlanes > TOMO_IO_THREADS_MAX + 1) nlanes = TOMO_IO_THREADS_MAX + 1;
@@ -22847,14 +22893,12 @@ void initExThreads(void) {
             et->nlanes = nlanes;
             size_t qbytes  = sizeof(exQueue) * (size_t)nlanes;
             size_t fbbytes = sizeof(freebackRing) * (size_t)nlanes;
-            size_t simbytes = server.tomo_sim_hop_ticks ?
-                sizeof(uint64_t) * (size_t)nlanes * (size_t)server.ex_queue_size : 0;
-            et->queues   = zcalloc(qbytes + fbbytes + simbytes);
+            et->queues   = zcalloc(qbytes + fbbytes);
             et->freeback = (freebackRing *)((char *)et->queues + qbytes);
             serverAssert(((uintptr_t)et->queues   & (CACHE_LINE_SIZE - 1)) == 0);
             serverAssert(((uintptr_t)et->freeback & (CACHE_LINE_SIZE - 1)) == 0);
 #ifdef MADV_HUGEPAGE
-            if (server.os_opts) madvise(et->queues, qbytes + fbbytes + simbytes, MADV_HUGEPAGE);
+            if (server.os_opts) madvise(et->queues, qbytes + fbbytes, MADV_HUGEPAGE);
 #endif
         }
     }
@@ -27462,7 +27506,6 @@ int main(int argc, char **argv) {
     struct timeval tv;
     int j;
     char config_from_stdin = 0;
-    char startup_cwd[PATH_MAX + 1] = {0};
 
 #ifdef REDIS_TEST
     monotonicInit(); /* Required for dict tests, that are relying on monotime during dict rehashing. */
@@ -27592,12 +27635,6 @@ int main(int argc, char **argv) {
         } if (strcmp(argv[1], "--check-system") == 0) {
             exit(syscheck() ? 0 : 1);
         }
-        /* loadServerConfig applies `dir` immediately. Preserve the parse
-         * origin so an armed second parse resolves relative includes exactly
-         * as the first one did. A failed capture is irrelevant at hop 0 and
-         * becomes a clear armed-mode error below. */
-        if (getcwd(startup_cwd, sizeof(startup_cwd)) == NULL)
-            startup_cwd[0] = '\0';
         /* Parse command line options
          * Precedence wise, File, stdin, explicit options -- last config is the one that matters.
          *
@@ -27691,60 +27728,6 @@ int main(int argc, char **argv) {
         sdsfree(options);
     }
     if (server.sentinel_mode) sentinelCheckConfigFile();
-
-    /* Keep the ordinary executable's generated hot code byte-for-byte free of
-     * simulator gates. The immutable config is known now, but no server
-     * threads, clients, rings, or sidecars exist yet, so an armed invocation
-     * can replace itself with the separately specialized object without
-     * changing its PID, arguments, or lifecycle ownership. */
-#if TOMO_SIM_ACTIVE
-    if (server.sentinel_mode) {
-        fprintf(stderr, "redis-server-sim is not valid in sentinel mode\n");
-        exit(1);
-    }
-    if (server.tomo_sim_hop_ns == 0) {
-        fprintf(stderr,
-            "redis-server-sim requires a nonzero tomokv-sim-hop-ns; use redis-server for hop 0\n");
-        exit(1);
-    }
-#else
-    if (server.tomo_sim_hop_ns != 0) {
-        if (server.sentinel_mode) {
-            fprintf(stderr, "tomokv-sim-hop-ns is not valid in sentinel mode\n");
-            exit(1);
-        }
-        if (config_from_stdin) {
-            fprintf(stderr,
-                "tomokv-sim-hop-ns cannot re-exec from a consumed stdin config; "
-                "use a config file or command-line options\n");
-            exit(1);
-        }
-        if (startup_cwd[0] == '\0' || chdir(startup_cwd) != 0) {
-            fprintf(stderr,
-                "cannot restore the initial working directory for cross-L3 simulator: %s\n",
-                startup_cwd[0] == '\0' ? "getcwd failed before config parsing" : strerror(errno));
-            exit(1);
-        }
-        char self_path[PATH_MAX + 1];
-        ssize_t self_len = readlink("/proc/self/exe", self_path,
-                                    sizeof(self_path) - 1);
-        if (self_len <= 0 || (size_t)self_len >= sizeof(self_path) - 1) {
-            fprintf(stderr, "cannot resolve an untruncated /proc/self/exe for cross-L3 simulator%s%s\n",
-                    self_len <= 0 ? ": " : "",
-                    self_len <= 0 ? strerror(errno) : "");
-            exit(1);
-        }
-        self_path[self_len] = '\0';
-        sds sim_executable = sdscatprintf(sdsempty(), "%s-sim", self_path);
-        zfree(server.exec_argv[0]);
-        server.exec_argv[0] = zstrdup(sim_executable);
-        execv(sim_executable, server.exec_argv);
-        fprintf(stderr, "failed to exec cross-L3 simulator %s: %s\n",
-                sim_executable, strerror(errno));
-        sdsfree(sim_executable);
-        exit(1);
-    }
-#endif
 
     /* Do system checks */
 #ifdef __linux__

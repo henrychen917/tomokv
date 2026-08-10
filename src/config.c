@@ -3187,6 +3187,9 @@ standardConfig static_configs[] = {
      * knob here could only make it wrong. To A/B the mechanism, build with CS_INLINE_MAX_BYTES 0
      * — that turns every csgAlloc into a plain zmalloc. */
     createIntConfig("tomokv-strict-order", NULL, MODIFIABLE_CONFIG, 0, 100000, server.strict_order, 0, INTEGER_CONFIG, NULL, NULL), /* cross-IO strict ordering: 0=off, 1=strict, N=eps(N-1)us */
+    /* Measurement rig, not a production feature. The delay is consumed only by
+     * DEBUG TOMO-SIM-HOP; zero does not calibrate the TSC or touch hot paths. */
+    createIntConfig("tomokv-sim-hop-ns", NULL, DEBUG_CONFIG | IMMUTABLE_CONFIG, 0, 1000000, server.tomokv_sim_hop_ns, 0, INTEGER_CONFIG, NULL, NULL),
     /* MSET-MOVE — cross-shard MSET hands each value robj to the owning worker (the
      * argv_released_mask ownership handoff) instead of giving the sub a dupStringObject copy.
      * DEFAULT OFF and it stays off: no gain was ever measured or even claimed for it, and every
@@ -3374,10 +3377,6 @@ standardConfig static_configs[] = {
      * connection and the per-client ring memory. -1 = auto (max 32, decays toward measured demand),
      * 0 = off (depth 1), N = static (rounded up to a power of two; the slot index is masked). */
     createIntConfig("tomokv-pipeline-depth",         NULL, IMMUTABLE_CONFIG, -1, TOMO_PIPELINE_DEPTH_MAX, server.pipeline_ring_depth, -1, INTEGER_CONFIG, NULL, NULL),
-    /* Cross-L3 latency measurement rig. Delay is enforced at consumers as
-     * delayed visibility; producers never wait for this timer. Immutable
-     * because nonzero allocates timestamp sidecars beside the rings/CDBs. */
-    createULongLongConfig("tomokv-sim-hop-ns",       NULL, IMMUTABLE_CONFIG, 0, 1000000000ULL, server.tomo_sim_hop_ns, 0, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-zerocopy-min-value",     NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.zerocopy_min_value, 1024, INTEGER_CONFIG, NULL, NULL), /* forward values >= N bytes zero-copy; measured +20-24% at 16-64KB. 0 = never. */
     createBoolConfig("tomokv-reply-buffer-transfer", NULL, MODIFIABLE_CONFIG, server.reply_buffer_transfer_enabled, 0, NULL, NULL), /* exchange equal-capacity EX/IO reply scratch for completed plain replies >= 8KB. Default OFF: reviewed-correct but large-reply win unmeasured on this HW; opt-in knob, A/B before default-on. */
     createBoolConfig("tomokv-reply-iovec",           NULL, MODIFIABLE_CONFIG, server.reply_iovec_enabled, 0, NULL, NULL), /* retain large owned reply values and submit stable scatter/gather sends; zerocopy-min-value is the byte threshold. Default OFF: completion-lifetime experiment. */

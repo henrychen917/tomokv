@@ -452,6 +452,8 @@ void debugCommand(client *c) {
 "    Create a memory leak of the input string.",
 "LOG <message>",
 "    Write <message> to the server log.",
+"TOMO-SIM-HOP <duration-ms>",
+"    Run the deterministic IO->EX->IO CROSS-L3 latency rig for wall-clock milliseconds.",
 "HTSTATS <dbid> [full]",
 "    Return hash table statistics of the specified Redis database.",
 "HTSTATS-KEY <key> [full]",
@@ -956,6 +958,19 @@ NULL
         addReply(c,shared.ok);
     } else if (!strcasecmp(c->argv[1]->ptr,"reshard")) {
         reshardDebug(c);   /* ee451 (v8d): online-resharding manual trigger + status/verify */
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-sim-hop")) {
+        long long duration_ms;
+        if (c->argc != 3) {
+            addReplyErrorArity(c);
+            return;
+        }
+        if (getLongLongFromObjectOrReply(c, c->argv[2], &duration_ms, NULL) != C_OK)
+            return;
+        if (duration_ms < 1 || duration_ms > 3600000) {
+            addReplyError(c, "duration-ms must be in the range 1..3600000");
+            return;
+        }
+        tomoSimHopDebug(c, duration_ms);
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-ioload")) {
         /* ee451 (client-lb unify): per-io-thread live conn counts (+ mode), to validate that flips
          * spread conns load-aware. Only IO-mode slots serve conns. */

@@ -130,7 +130,7 @@ older in-flight replies and reorders the connection.
 
 ---
 
-## 3. Runtime knobs (26 registered)
+## 3. Runtime knobs
 
 Authoritative: `src/config.c` `static_configs[]`. **`src/server.h` field comments state the wrong
 default for four reshard knobs** (they say −1; the real default is 0) — for `cool-margin-pct` that
@@ -168,8 +168,8 @@ for the balancer is spelled `tomokv-key-lb 0`.
 | knob | default | note |
 |---|---|---|
 | `tomokv-strict-order` | 0 off | cross-IO ordering; non-zero forces a dense lane sweep. Per-queue FIFO holds either way |
+| `tomokv-sim-hop-ns` | 0 off | DEBUG-only two-hop CROSS-L3 delay; non-zero calibrates invariant TSC at boot, while zero leaves production paths untouched |
 | `tomokv-pipeline-depth` | -1 → **32** | in-flight per connection + fake ring size |
-| `tomokv-sim-hop-ns` | **0 off** | immutable measurement rig; consumer-side delayed IO↔EX visibility in nanoseconds. Nonzero transparently selects the `redis-server-sim` specialization and allocates timestamp sidecars; producers never delay |
 | `tomokv-prefetch-ex` | 1 | monotonic: 0 off, 1 operands, 2 + FLAT SLOT, 3 + tag-gated FLAT KVOBJ |
 | `tomokv-zerocopy-min-value` | 1024 | **effective floor is 16384** — see §5 |
 | `tomokv-mset-move` | **no** | ownership handoff for xshard MSET values. Correct, never shown to pay |

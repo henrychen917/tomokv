@@ -5,20 +5,11 @@
 #include <time.h>
 #include "redisassert.h"
 #include <string.h>
-#include <errno.h>
-#if defined(__x86_64__) && defined(__linux__)
-#include <x86intrin.h>
-#endif
 
 /* The function pointer for clock retrieval.  */
 monotime (*getMonotonicUs)(void) = NULL;
 
 static char monotonic_info_string[32];
-
-/* Armed only by tomokv-sim-hop-ns. Keeping this calibration out of
- * monotonicInit() makes the normal boot and all ordinary clock users exactly
- * unchanged. */
-static uint64_t raw_clock_hz;
 
 
 /* Using the processor clock (aka TSC on x86) can provide improved performance
@@ -41,6 +32,7 @@ static uint64_t raw_clock_hz;
 
 #if defined(USE_PROCESSOR_CLOCK) && defined(__x86_64__) && defined(__linux__)
 #include <regex.h>
+#include <x86intrin.h>
 
 static long mono_ticksPerMicrosecond = 0;
 
@@ -105,101 +97,6 @@ static void monotonicInit_x86linux(void) {
     getMonotonicUs = getMonotonicUs_x86;
 }
 #endif
-
-/* The latency simulator requires a cross-core clock with sub-microsecond
- * resolution. Linux exposes the architectural invariant-TSC promise through
- * constant_tsc + nonstop_tsc. Check both independently of the legacy
- * getMonotonicUs() model-name parser above: current AMD model strings do not
- * contain an "@ N.GHz" suffix, but still provide a valid invariant TSC. */
-#if defined(__x86_64__) && defined(__linux__)
-static int x86HasInvariantTsc(void) {
-    char buf[4096];
-    FILE *cpuinfo = fopen("/proc/cpuinfo", "r");
-    if (!cpuinfo) return 0;
-    int invariant = 0;
-    while (fgets(buf, sizeof(buf), cpuinfo) != NULL) {
-        if (strncmp(buf, "flags", 5) != 0) continue;
-        int constant = strstr(buf, " constant_tsc") != NULL;
-        int nonstop = strstr(buf, " nonstop_tsc") != NULL;
-        invariant = constant && nonstop;
-        break;
-    }
-    fclose(cpuinfo);
-    return invariant;
-}
-
-static inline uint64_t x86ReadTscOrdered(void) {
-    /* LFENCE/RDTSC/LFENCE gives an execution-ordered timestamp on the x86
-     * targets this simulator models. The surrounding C function call is also
-     * a compiler barrier at every server.c call site. */
-    _mm_lfence();
-    uint64_t value = __rdtsc();
-    _mm_lfence();
-    return value;
-}
-#endif
-
-int monotonicRawClockInit(void) {
-    if (raw_clock_hz != 0) return 1;
-#if defined(__x86_64__) && defined(__linux__)
-    if (!x86HasInvariantTsc()) return 0;
-
-    /* Sim-only startup calibration. A 20ms interval makes the two vDSO clock
-     * reads negligible relative to the interval while keeping startup impact
-     * invisible outside an explicitly armed measurement run. */
-    struct timespec start, end;
-    struct timespec pause = {.tv_sec = 0, .tv_nsec = 20 * 1000 * 1000};
-    if (clock_gettime(CLOCK_MONOTONIC_RAW, &start) != 0) return 0;
-    uint64_t tick_start = x86ReadTscOrdered();
-    while (nanosleep(&pause, &pause) != 0) {
-        if (errno != EINTR) return 0;
-    }
-    uint64_t tick_end = x86ReadTscOrdered();
-    if (clock_gettime(CLOCK_MONOTONIC_RAW, &end) != 0) return 0;
-
-    uint64_t elapsed_ns = (uint64_t)(end.tv_sec - start.tv_sec) * 1000000000ULL;
-    if (end.tv_nsec >= start.tv_nsec)
-        elapsed_ns += (uint64_t)(end.tv_nsec - start.tv_nsec);
-    else
-        elapsed_ns -= (uint64_t)(start.tv_nsec - end.tv_nsec);
-    if (elapsed_ns == 0 || tick_end <= tick_start) return 0;
-
-#if defined(__SIZEOF_INT128__)
-    __uint128_t scaled = (__uint128_t)(tick_end - tick_start) * 1000000000ULL;
-    raw_clock_hz = (uint64_t)((scaled + elapsed_ns / 2) / elapsed_ns);
-#else
-    /* The simulator is optional; keep default-off builds portable instead of
-     * requiring a nonstandard wide integer merely to compile the server. */
-    return 0;
-#endif
-    return raw_clock_hz != 0;
-#else
-    return 0;
-#endif
-}
-
-uint64_t monotonicRawClock(void) {
-#if defined(__x86_64__) && defined(__linux__)
-    return x86ReadTscOrdered();
-#else
-    return 0;
-#endif
-}
-
-uint64_t monotonicRawClockTicksFromNs(uint64_t nanoseconds) {
-    if (raw_clock_hz == 0 || nanoseconds == 0) return 0;
-#if defined(__SIZEOF_INT128__)
-    __uint128_t scaled = (__uint128_t)nanoseconds * raw_clock_hz;
-    /* Round up: an emulated hop must never become shorter than requested. */
-    return (uint64_t)((scaled + 999999999ULL) / 1000000000ULL);
-#else
-    return 0;
-#endif
-}
-
-uint64_t monotonicRawClockHz(void) {
-    return raw_clock_hz;
-}
 
 #if defined(__aarch64__)
 static long mono_ticksPerMicrosecond = 0;

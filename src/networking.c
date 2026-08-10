@@ -530,21 +530,10 @@ client *createClient(connection *conn) {
      * zmalloc gives no alignment guarantee, so over-allocate and align the base up to CACHE_LINE_SIZE,
      * stashing the raw zmalloc pointer just below the aligned base so zfree can recover it
      * (accounting-correct; no poisoned libc free/aligned_alloc). num_cdb is fixed at init so the size
-     * never changes (freed in freeClient). Fakes leave reply_cdb NULL and signal parent->reply_cdb.
-     *
-     * The latency rig appends one uint64_t publish-TSC per (CDB,slot) to THIS allocation. The base is
-     * derived as reply_cdb+num_cdb, so cdbSlots remains exactly one protected cache line and client
-     * gains no pointer. With hop=0 sim_bytes is exactly zero: normal clients allocate the historical
-     * byte count and touch no timestamp storage. */
+     * never changes (freed in freeClient). Fakes leave reply_cdb NULL and signal parent->reply_cdb. */
     {
         int ncdb = server.num_cdb > 0 ? server.num_cdb : 1;
-        size_t cdb_bytes = sizeof(cdbSlots) * (size_t)ncdb;
-#ifdef TOMO_SIM_HOP_BUILD
-        size_t sim_bytes = sizeof(uint64_t) * (size_t)ncdb * TOMO_PIPELINE_DEPTH_MAX;
-#else
-        size_t sim_bytes = 0;
-#endif
-        void *raw = zmalloc(cdb_bytes + sim_bytes + CACHE_LINE_SIZE + sizeof(void *));
+        void *raw = zmalloc(sizeof(cdbSlots) * (size_t)ncdb + CACHE_LINE_SIZE + sizeof(void *));
         uintptr_t aligned = ((uintptr_t)raw + sizeof(void *) + (CACHE_LINE_SIZE - 1)) & ~(uintptr_t)(CACHE_LINE_SIZE - 1);
         ((void **)aligned)[-1] = raw;
         c->reply_cdb = (cdbSlots *)aligned;
@@ -552,7 +541,6 @@ client *createClient(connection *conn) {
             for (int slot = 0; slot < TOMO_PIPELINE_DEPTH_MAX; slot++)
                 atomic_store_explicit(&c->reply_cdb[cc].ready[slot], 0,
                                       memory_order_relaxed);
-        if (sim_bytes) memset((char *)c->reply_cdb + cdb_bytes, 0, sim_bytes);
     }
     c->cdb = 0;
 

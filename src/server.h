@@ -2192,7 +2192,7 @@ typedef struct csGroup {
     client *mset_client;         /* real-client owner of the R1 pending FIFO */
     struct csGroup *mset_pending_prev;
     struct csGroup *mset_pending_next;
-    redisAtomic int mset_complete;      /* 0 pending, 1 complete on IO, 2 complete in an EX slice */
+    redisAtomic int mset_complete;      /* every owner installed this group */
     redisAtomic int mset_install_count;
     csMsetInstall *mset_installs;       /* [version_install_expected], atomic-write arm only */
     int versioned_write;         /* this group is an atomic version-bag write */
@@ -4157,9 +4157,6 @@ struct redisServer {
                               * retained by reference and io_uring keeps every iovec/object pinned
                               * through its terminal data/notification CQE. Default OFF. */
     int num_cdb;               /* S5: resolved at init = one bus per worker when the box has >1 L3 domain, else 1 */
-    unsigned long long tomo_sim_hop_ns; /* immutable measurement rig: delayed IO<->EX visibility;
-                                         * 0 = structurally off, no timestamp sidecars */
-    uint64_t tomo_sim_hop_ticks;        /* boot-calibrated invariant-TSC delay; 0 iff rig is off */
     /* Per-STAGE prefetch width fields DELETED 2026-07-28 with the eight tomokv-pf-w-* knobs
      * (struct/argv/keyobj/keybytes/hash/entry/value/nextop). THE STAGES THEMSELVES ARE UNTOUCHED
      * — see exPrefetchBatch in server.c and the constants next to WORKER_POP_BATCH above. The
@@ -4233,6 +4230,9 @@ struct redisServer {
     char *locale_collate;
     int dbg_assert_keysizes;       /* Assert keysizes histogram after each command */
     int dbg_assert_alloc_per_slot; /* Assert per-slot alloc_size after each command */
+    /* Measurement-only CROSS-L3 rig. Appended so the normal server layout ahead of
+     * this point is unchanged. Zero performs no calibration or allocation. */
+    int tomokv_sim_hop_ns;
 };
 
 /* we use 6 so that all getKeyResult fits a cacheline */
@@ -6549,6 +6549,7 @@ client *createFakeClient(client *parent);               /* ee451 (v7): for cross
 client *createPooledFakeClient(client *parent);         /* ee451 (v11): pooled cross-shard sub-fake */
 void freePooledFakeClient(client *c);                   /* ee451 (v11): return sub-fake to per-iotid pool */
 void freeFakeClient(client *c);
+void tomoSimHopDebug(client *c, long long duration_ms);
 void *polyThreadMain(void *arg);   /* ee451 (thread-modes v1, step 2): unified mode-dispatching main (arg = polyThreadCtx*) */
 /* ee451 (thread-modes v1.6): connection migration. */
 extern tmMigMailbox tm_mig_mbox[TOMO_IO_THREADS_MAX + 1];  /* one per io-capable slot (0..io_threads); main=0 unused */

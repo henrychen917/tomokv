@@ -41,21 +41,6 @@ const char *monotonicInfoString(void);
 /* Return the type of monotonic clock being used. */
 monotonic_clock_type monotonicGetType(void);
 
-/* High-resolution clock used by the opt-in cross-L3 visibility simulator.
- *
- * This is deliberately separate from getMonotonicUs(): sub-microsecond hop
- * delays cannot survive that interface's conversion to whole microseconds.
- * monotonicRawClockInit() validates that x86 advertises an invariant TSC and
- * calibrates it against CLOCK_MONOTONIC_RAW. It is called only when the
- * simulator is enabled, so a normal boot performs no calibration or raw-clock
- * reads. The ordered read prevents message loads from crossing the visibility
- * deadline check; it is timing only, not a replacement for queue/CDB
- * acquire/release ordering. */
-int monotonicRawClockInit(void);
-uint64_t monotonicRawClock(void);
-uint64_t monotonicRawClockTicksFromNs(uint64_t nanoseconds);
-uint64_t monotonicRawClockHz(void);
-
 /* Functions to measure elapsed time.  Example:
  *     monotime myTimer;
  *     elapsedStart(&myTimer);

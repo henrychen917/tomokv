@@ -165,6 +165,18 @@ echo "=== convention A: -1 = auto ===" >> $OUT
 
   try tomokv-strict-order 0
 
+  must_refuse tomokv-sim-hop-ns -1 "below the declared minimum -- 0 means the measurement rig is completely off"
+  must_refuse tomokv-sim-hop-ns 1000001 "above the one-millisecond-per-hop measurement ceiling"
+
+  try tomokv-sim-hop-ns 0 "OFF: no invariant-TSC calibration and no production hot-path hook"
+  if [ "$(uname -m)" = x86_64 ] && grep -qm1 -w constant_tsc /proc/cpuinfo 2>/dev/null \
+     && grep -qm1 -w nonstop_tsc /proc/cpuinfo 2>/dev/null \
+     && grep -qm1 -w rdtscp /proc/cpuinfo 2>/dev/null; then
+    try tomokv-sim-hop-ns 50 "measurement arm: verify invariant-TSC startup calibration"
+  else
+    echo "  NOTE tomokv-sim-hop-ns 50 skipped: host does not advertise x86 invariant TSC + RDTSCP" >> $OUT
+  fi
+
   must_refuse tomokv-zerocopy-min-value -1 "below the declared minimum -- this knob spells auto as 0"
 
   try tomokv-zerocopy-min-value 0
