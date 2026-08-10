@@ -144,7 +144,7 @@ void updateKeysizesHist(redisDb *db, int didx, uint32_t type, int64_t oldLen, in
     updateSlotHist(kvstoreMeta->keysizes_hist, dictMeta ? dictMeta->keysizes_hist : NULL, type, oldLen, newLen);
 }
 
-void updateSlotAllocSize(redisDb *db, int didx, kvobj *kv, int64_t oldsize, int64_t newsize) {
+void __attribute__((cold,noinline)) updateSlotAllocSize(redisDb *db, int didx, kvobj *kv, int64_t oldsize, int64_t newsize) {
     debugServerAssert(server.memory_tracking_enabled);
     kvstoreMetadata *kvstoreMeta = kvstoreGetMetadata(db->keys);
     kvstoreDictMetadata *dictMeta = kvstoreGetDictMeta(db->keys, didx, 0);
@@ -167,8 +167,8 @@ void updateSlotAllocSize(redisDb *db, int didx, kvobj *kv, int64_t oldsize, int6
     updateSlotHist(kvstoreMeta->allocsizes_hist, NULL, kv->type, oldsize, newsize);
 }
 
-static void dbgAssertHist(kvstore *kvs, keysizesHist hist,
-                          size_t (*fn)(kvobj *), const char *name) {
+static void __attribute__((cold,noinline)) dbgAssertHist(kvstore *kvs, keysizesHist hist,
+                                                        size_t (*fn)(kvobj *), const char *name) {
     /* Scan DB and build expected histogram by scanning all keys */
     int64_t scanHist[MAX_KEYSIZES_TYPES][MAX_KEYSIZES_BINS] = {{0}};
     dictEntry *de;
@@ -209,7 +209,7 @@ static void dbgAssertHist(kvstore *kvs, keysizesHist hist,
  *
  * Triggered by DEBUG KEYSIZES-HIST-ASSERT 1 and tested after each command.
  */
-void dbgAssertKeysizesHist(redisDb *db) {
+void __attribute__((cold,noinline)) dbgAssertKeysizesHist(redisDb *db) {
     kvstoreMetadata *meta = kvstoreGetMetadata(db->keys);
     dbgAssertHist(db->keys, meta->keysizes_hist, getObjectLength, "dbgAssertKeysizesHist");
     if (server.memory_tracking_enabled)
@@ -220,7 +220,7 @@ void dbgAssertKeysizesHist(redisDb *db) {
  *
  * Triggered by DEBUG ALLOCSIZE-SLOTS-ASSERT 1 and tested after each command.
  */
-void dbgAssertAllocSizePerSlot(redisDb *db) {
+void __attribute__((cold,noinline)) dbgAssertAllocSizePerSlot(redisDb *db) {
     if (!server.memory_tracking_enabled) return;
     size_t slot_sizes[CLUSTER_SLOTS] = {0};
     dictEntry *de;
@@ -349,6 +349,35 @@ kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
  * knobs were already inert (F4 took the 2 TLS loads + 2 compares off lookupKeyReadWithFlags);
  * this removes the last dead helpers. Rationale preserved in docs/BUGS.md and the paper. */
 
+static kvobj *lookupKeyReadVersioned(kvobj *kv, struct tomoVerMeta *vmeta)
+                                       __attribute__((cold,noinline));
+static kvobj *lookupKeyReadVersioned(kvobj *kv, struct tomoVerMeta *vmeta) {
+    /* REPLAY (onever x ownread): the single-committed fast license runs FIRST — a reader
+     * with its own uncommitted write on this key cannot see SingleCommitted, so every
+     * own-origin case falls through to the client-aware resolver and the license never
+     * hides an own write. */
+    if (__builtin_expect(server.tomo_atomic != 0, 1)) {
+        if (likely(kvobjSingleCommitted(vmeta))) {
+            uint64_t pinned_snapshot;
+            if (!tomoPinnedReadSnapshot(&pinned_snapshot) ||
+                atomic_load_explicit(&vmeta->version_seq,
+                                     memory_order_acquire) <= pinned_snapshot) {
+                tomoRelaxedBump(server.kstat[iotid].atomic_read_fast, 1);
+                return kv;
+            }
+            /* This sole version committed after an already-pinned cut.
+             * Preserve the slow path's absent result without re-reading
+             * the pin or the global frontier. */
+            tomoRelaxedBump(server.kstat[iotid].atomic_read_slow, 1);
+            return kvobjVersionAt(kv, pinned_snapshot,
+                                  server.current_client[iotid].p);
+        }
+        tomoRelaxedBump(server.kstat[iotid].atomic_read_slow, 1);
+    }
+    return kvobjVersionAt(kv, tomoCurrentReadSnapshot(),
+                          server.current_client[iotid].p);
+}
+
 /* Lookup a key for read operations, or return NULL if the key is not found
  * in the specified DB.
  *
@@ -368,32 +397,7 @@ kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
      * present. Raw heads retain the exact base return path: in particular,
      * they neither read atomic mode nor test the new metadata hint. */
     struct tomoVerMeta *vmeta = kv ? kvobjVmeta(kv) : NULL;
-    if (unlikely(vmeta)) {
-        /* REPLAY (onever x ownread): the single-committed fast license runs FIRST — a reader
-         * with its own uncommitted write on this key cannot see SingleCommitted, so every
-         * own-origin case falls through to the client-aware resolver and the license never
-         * hides an own write. */
-        if (__builtin_expect(server.tomo_atomic != 0, 1)) {
-            if (likely(kvobjSingleCommitted(vmeta))) {
-                uint64_t pinned_snapshot;
-                if (!tomoPinnedReadSnapshot(&pinned_snapshot) ||
-                    atomic_load_explicit(&vmeta->version_seq,
-                                         memory_order_acquire) <= pinned_snapshot) {
-                    tomoRelaxedBump(server.kstat[iotid].atomic_read_fast, 1);
-                    return kv;
-                }
-                /* This sole version committed after an already-pinned cut.
-                 * Preserve the slow path's absent result without re-reading
-                 * the pin or the global frontier. */
-                tomoRelaxedBump(server.kstat[iotid].atomic_read_slow, 1);
-                return kvobjVersionAt(kv, pinned_snapshot,
-                                      server.current_client[iotid].p);
-            }
-            tomoRelaxedBump(server.kstat[iotid].atomic_read_slow, 1);
-        }
-        kv = kvobjVersionAt(kv, tomoCurrentReadSnapshot(),
-                            server.current_client[iotid].p);
-    }
+    if (unlikely(vmeta)) return lookupKeyReadVersioned(kv, vmeta);
     return kv;
 }
 
@@ -466,8 +470,10 @@ kvobj *lookupKeyWriteOrReply(client *c, robj *key, robj *reply) {
  *           caller's extra reference on *valref is a pure lifetime pin
  *           (renameGenericCommand under FLATSTORE — see there).
  */
-static inline struct tomoVerMeta *tomoVerMetaNew(redisDb *db, uint64_t version_seq,
-                                                 kvobj *version_prev) {
+static struct tomoVerMeta *tomoVerMetaNew(redisDb *db, uint64_t version_seq,
+                                          kvobj *version_prev) __attribute__((cold,noinline));
+static struct tomoVerMeta *tomoVerMetaNew(redisDb *db, uint64_t version_seq,
+                                          kvobj *version_prev) {
     struct tomoVerMeta *vmeta = zcalloc(sizeof(*vmeta));
     atomic_store_explicit(&vmeta->version_seq, version_seq, memory_order_relaxed);
     atomic_store_explicit(&vmeta->single_state, TOMO_SINGLE_NONE,
@@ -510,7 +516,7 @@ static inline __attribute__((always_inline)) kvobj *dbAddInternalVersion(redisDb
     if (link == NULL) link = &tmp;
     robj *val = *valref;
     kvobj *kv = kvobjSetEx(key->ptr, val, keymeta->metabits, flags);
-    if (version_seq)
+    if (unlikely(version_seq))
         kvobjSetVmeta(kv, tomoVerMetaNew(db, version_seq, NULL));
     initObjectLRUOrLFU(kv);
     kvstoreDictSetAtLink(db->keys, slot, kv, link, 1);
@@ -1412,7 +1418,7 @@ static void dbSetValue(redisDb *db, robj *key, robj **valref, dictEntryLink link
     }
 
     if (kvstoreIsFlat(db->keys)) {
-        if (kvobjVmeta(old))
+        if (unlikely(kvobjVmeta(old)))
             tomoRetireDetachedBag(db->keys, old);
         else
             kvstoreFlatRetireRaw(db->keys, old);
@@ -1984,9 +1990,8 @@ redisDb *initTempDb(void) {
 
 /* Temporary RDB databases also retain contiguous shells, but unlike the main
  * DB group they have no per-node aliases and can be initialized independently. */
-void ensureTempDbInitialized(redisDb *db) {
-    if (dbIsInitialized(db)) return;
-
+static void ensureTempDbInitializedCold(redisDb *db) __attribute__((cold,noinline));
+static void ensureTempDbInitializedCold(redisDb *db) {
     int slot_count_bits = 0;
     int flags = KVSTORE_ALLOCATE_DICTS_ON_DEMAND;
     if (server.cluster_enabled) {
@@ -2002,6 +2007,11 @@ void ensureTempDbInitialized(redisDb *db) {
     db->subexpires = estoreCreate(&subexpiresBucketsType, slot_count_bits);
     db->stream_idmp_keys = dictCreate(&objectKeyPointerValueDictType);
     atomicSetWithSync(db->initialized, 1);
+}
+
+void ensureTempDbInitialized(redisDb *db) {
+    if (likely(dbIsInitialized(db))) return;
+    ensureTempDbInitializedCold(db);
 }
 
 /* Discard tempDb, this can be slow (similar to FLUSHALL), but it's always async. */
@@ -3907,7 +3917,7 @@ long long getExpire(redisDb *db, sds key, kvobj *kv) {
  *
  * key_mem_freed is an out parameter which contains the estimated
  * amount of memory freed due to the trimming (may be NULL) */
-static void deleteKeyAndPropagate(redisDb *db, robj *keyobj, int notify_type, long long *key_mem_freed) {
+static void __attribute__((cold,noinline)) deleteKeyAndPropagate(redisDb *db, robj *keyobj, int notify_type, long long *key_mem_freed) {
     mstime_t latency;
     int del_flag = notify_type == NOTIFY_EXPIRED ? DB_FLAG_KEY_EXPIRED : DB_FLAG_KEY_EVICTED;
     int lazy_flag = notify_type == NOTIFY_EXPIRED ? server.lazyfree_lazy_expire : server.lazyfree_lazy_eviction;
@@ -4167,7 +4177,7 @@ static int dbExpandSkipSlot(int slot) {
  * `DICT_OK` response is for successful expansion. However ,`DICT_ERR` response signifies failure in allocation in
  * `dictTryExpand` call and in case of `dictExpand` call it signifies no expansion was performed.
  */
-static int dbExpandGeneric(kvstore *kvs, uint64_t db_size, int try_expand) {
+static int __attribute__((cold,noinline)) dbExpandGeneric(kvstore *kvs, uint64_t db_size, int try_expand) {
     int ret;
     if (server.cluster_enabled) {
         /* We don't know exact number of keys that would fall into each slot, but we can
