@@ -53,10 +53,11 @@ typedef struct flatSlot {
 
 /* QSBR reclamation (Stage 1): a retired value can't be freed while a lock-free reader may still
  * hold its pointer. Retire pushes it (Treiber, lock-free) onto retire_stack (or the worker-local
- * sink); workers and main CLOSE lists into batches stamped with BOTH every worker's loop_seq AND
- * every io identity's flat_epoch (only the identities inside a region at close — io_pin_mask). A
- * batch frees once every stamped constituency has either advanced past its stamp or left the region
- * it was in at close. One stamp per batch amortizes the snapshot over many deletes. */
+ * sink); workers and main CLOSE lists into batches stamped with every worker's loop_seq and
+ * every io identity's flat_epoch (only the identities inside an inline region at close —
+ * io_pin_mask), plus the global close generation for dispatch-lifetime group pins. A batch frees
+ * once every stamped constituency has passed its grace or is outside a protected section. One
+ * stamp per batch amortizes the snapshot over many deletes. */
 typedef struct flatRetireNode { dictEntry *masked_kv; struct flatRetireNode *next; } flatRetireNode;
 #define FLAT_BATCH_SPARE_MAX 8   /* cap the per-worker recycled batch-header free list */
 #define FLAT_QSBR_MARGIN 2   /* WORKER clause only: loop_seq must advance this far past the
@@ -90,6 +91,7 @@ void flatNodePoolTrim(void);
  *     arr[2*slots .. +mask_words) io_pin_mask[] bit t set iff io_snap[t] was ODD at close */
 typedef struct flatBatch {
     flatRetireNode *head;
+    uint64_t close_gen;
     int nworkers;
     struct flatBatch *next;
     uint64_t arr[];                            /* flexible; see FB_* in server.c */

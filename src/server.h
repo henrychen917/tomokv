@@ -1906,7 +1906,7 @@ typedef struct client {
             const void *tomo_bkt_ptr;
             uint64_t tomo_key_h;
             uint64_t tomo_read_snapshot;
-            size_t all_argv_len_sum;
+            uint64_t tomo_read_snapshot_gen;   /* dispatch group-pin close generation */
 
             unsigned long long reply_bytes;
             size_t sentlen;
@@ -1928,13 +1928,14 @@ typedef struct client {
             int slot;
             int cluster_compatibility_check_slot;
             int tomo_bkt;
-            int tomo_local_worker;
-            redisAtomic int tomo_watch_worker;
-            redisAtomic unsigned int tomo_dirty_cas;
+            int16_t tomo_local_worker;
             uint8_t tomo_script_gate;
             /* Tail lvalues must only be formed after this test. Ring-slot
              * promotion happens while the slot is idle, before publication. */
             uint8_t has_exec_tail;
+            redisAtomic int tomo_watch_worker;
+            redisAtomic unsigned int tomo_dirty_cas;
+            size_t all_argv_len_sum;
         };
         unsigned char _exec_core_layout[320];
         uint64_t _exec_core_align;
@@ -1948,6 +1949,7 @@ typedef struct client {
 
 _Static_assert(sizeof(client) == 320, "client execution core must stay 320 bytes");
 _Static_assert(offsetof(client, exec_tail) == 320, "client tail must follow the execution core");
+_Static_assert(TOMO_EX_THREADS_MAX <= INT16_MAX, "client worker id no longer fits its core field");
 _Static_assert(sizeof(clientExecTail) == CLIENT_EXEC_TAIL_BYTES, "client execution tail size changed");
 _Static_assert(offsetof(clientExecTail, reply_cdb) == 0, "CDB pointer must remain a direct offset load");
 #ifndef LOG_REQ_RES
@@ -2143,7 +2145,7 @@ typedef struct csGroup {
     int version_nx_reserving;    /* current wave is acquiring that destination reservation */
     redisAtomic int msetnx_retry;       /* reservations blocked by an earlier pending owner */
     uint8_t *msetnx_state;              /* [nkeys], coordinator-visible reservation verdict */
-    int snapshot_pinned;       /* snapshot-reading group owns its dispatch IO QSBR region */
+    int snapshot_pinned;       /* snapshot-reading group uses its head's dispatch pin */
     /* (results[]/result_ex[] DELETED 2026-07-28: the robj-per-position MGET result carrier was
      * replaced by mget_vals[] — sds copies, no cross-thread refcount — and the pair had been
      * NULL-initialised-and-never-read ever since.) */
