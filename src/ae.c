@@ -541,10 +541,23 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
 
     return processed; /* return the number of processed file/time events */
 }
-int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us) {
+int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us,
+                      aeIOAccounting *accounting) {
     int processed = 0, numevents;
-    if (eventLoop->maxfd == -1 && eventLoop->uring_enter == NULL) return 0;
+    aeIOAccounting a = {0};
+    if (eventLoop->maxfd == -1 && eventLoop->uring_enter == NULL) {
+        a.end_us = getMonotonicUs();
+        if (accounting) *accounting = a;
+        return 0;
+    }
 
+    /* PRODUCTIVE PREFIX. On epoll this is the reply-retire/write path in beforeSleepIO. On
+     * io_uring, reap first also harvests CQEs and runs ready parser callbacks, so the one bracket
+     * deliberately covers reap + beforeSleepIO as a contiguous work interval. These are the two
+     * new vDSO reads paid by every IO pass. The final endpoint below moves ioSlice's pre-existing
+     * per-pass clock read into this function, while the event-work start reuses the poll-return
+     * timestamp on epoll. */
+    uint64_t work_start = getMonotonicUs();
     int uring_ready = 0;
     if (eventLoop->uring_reap) {
         int rr = eventLoop->uring_reap(eventLoop, 1);
@@ -554,6 +567,8 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us) {
 
     if (eventLoop->beforesleep != NULL)
         eventLoop->beforesleep(eventLoop);
+    a.end_us = getMonotonicUs();
+    a.work_us += a.end_us - work_start;
     /* ee451 (AE-1): sleep policy. replyWorking==0 normally blocks until an fd event
      * (tvp NULL). A non-negative idle_wait_us gives converted IO threads a bounded
      * idle wait so they can service work published to their dormant EX binding.
@@ -599,6 +614,14 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us) {
      * wedged worker (replyWorking stuck) makes no progress => the loop exits => syscall poll. */
     if (replyWorking > 0 && eventLoop->beforesleep != NULL && drain_mode == 1) {
         int rw0 = replyWorking;
+        /* The PAUSE prefix is waiting for a worker reply, but beforesleep performs useful reply
+         * completion work and must not be charged as wait. Accumulate the whole prefix span and
+         * subtract the individually bracketed work calls so sub-microsecond PAUSE batches are not
+         * lost independently to getMonotonicUs() resolution. Productive beforesleep work is
+         * published on every backend. Only the surrounding WAIT subtraction is epoll-only:
+         * DEFER_TASKRUN leaves io_uring without a clean wall-clock wait boundary. */
+        uint64_t spin_start = 0, spin_work_us = 0;
+        if (eventLoop->uring_enter == NULL) spin_start = getMonotonicUs();
         for (int u = 0; u < AE_IO_DRAIN_USERPOLL_MAX; u++) {
             for (int p = 0; p < 16; p++) {
 #if defined(__i386__) || defined(__x86_64__)
@@ -607,8 +630,16 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us) {
                 __asm__ __volatile__("" ::: "memory");
 #endif
             }
+            uint64_t spin_work_start = getMonotonicUs();
             eventLoop->beforesleep(eventLoop);
+            a.end_us = getMonotonicUs();
+            spin_work_us += a.end_us - spin_work_start;
             if (replyWorking < rw0) break;
+        }
+        a.work_us += spin_work_us;
+        if (spin_start) {
+            uint64_t spin_us = getMonotonicUs() - spin_start;
+            if (spin_us > spin_work_us) a.wait_us += spin_us - spin_work_us;
         }
     }
     struct timeval tv, *tvp = NULL;
@@ -637,28 +668,40 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us) {
         tvp = &tv;
     }
 
-    /* No busy accounting here. It used to live in this function as CLOCK_MONOTONIC active-wall
-     * spans with "potentially blocking" poll time subtracted, which io_uring makes unfixable:
-     * DEFER_TASKRUN runs completion work INSIDE io_uring_enter, so the interval this model must
-     * treat as sleep is exactly where the CPU goes. The IO utilization numerator is now sampled
-     * scheduled thread CPU, published by ioSlice() in server.c -- correct under both backends,
-     * and it costs a gated syscall per 16ms instead of 2-3 vDSO clock reads per pass. */
+    /* WAIT accounting is intentionally NOT wrapped around this call. DEFER_TASKRUN runs useful
+     * completion taskwork inside io_uring_enter, so elapsed wall time cannot distinguish sleeping
+     * from working (the recorded failure read io_sat=0.17 on a 99.5%-CPU thread). The new wait
+     * counter is therefore explicitly epoll-only rather than publishing a partial uring signal. */
     if (eventLoop->uring_enter) {
         (void)eventLoop->uring_enter(eventLoop, tvp);
+        /* uring has no clean poll-return timestamp: take one boundary after the indivisible enter
+         * so CQ harvest/parser work below is counted but enter sleep/taskwork is not. */
+        uint64_t event_work_start = getMonotonicUs();
         int rr = eventLoop->uring_reap ? eventLoop->uring_reap(eventLoop, 1) : 0;
         processed += rr & AE_URING_COUNT_MASK;
         uring_ready |= rr & AE_URING_EPOLL_READY;
         if (uring_ready) {
             struct timeval nowait = {0};
+            /* This native-backend probe is part of the ready-CQ handoff, not an empty drain poll:
+             * it runs only after the ring reports AE_URING_EPOLL_READY and cannot block. Keep it
+             * in the contiguous post-enter work span with the callbacks it discovers. */
             numevents = aeApiPoll(eventLoop, &nowait);
             if (eventLoop->uring_epoll_drained)
                 eventLoop->uring_epoll_drained(eventLoop);
         } else {
             numevents = 0;
         }
+        a.end_us = event_work_start;
     } else {
+        /* epoll/select/kqueue callbacks run only after aeApiPoll returns. The syscall boundary is
+         * consequently a clean measure of time spent waiting/polling, including zero-timeout
+         * drain passes, without charging event handling as wait. */
+        uint64_t wait_start = getMonotonicUs();
         numevents = aeApiPoll(eventLoop, tvp);
+        a.end_us = getMonotonicUs();
+        a.wait_us += a.end_us - wait_start;
     }
+    uint64_t event_work_start = a.end_us;
     if (numevents) drainPasses = 0; /* fd progress: refresh the drain budget */
 
     for (int j = 0; j < numevents; j++) {
@@ -683,8 +726,16 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us) {
 
         processed++;
     }
-
-
+    /* PRODUCTIVE TAIL. Epoll's boundary is the already-required poll endpoint. The end clock is
+     * ioSlice's former per-pass timestamp, moved here so it closes read/parse/dispatch and
+     * writable callbacks without adding another read. Uring also includes its post-enter CQ reap
+     * and ready-only native-backend handoff in this tail; it needs the extra start boundary above
+     * because enter itself is indivisible. */
+    if (eventLoop->uring_enter || numevents) {
+        a.end_us = getMonotonicUs();
+        a.work_us += a.end_us - event_work_start;
+    }
+    if (accounting) *accounting = a;
     return processed;
 }
 

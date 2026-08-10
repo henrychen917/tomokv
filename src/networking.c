@@ -4758,6 +4758,8 @@ void readQueryFromClient(connection *conn) {
     }
 
     sdsIncrLen(c->querybuf,nread);
+    /* Owner demand signal: this read drained what QUEUED since the last service of this conn. */
+    tomoIoDrainNote((unsigned int)nread);
     qblen = sdslen(c->querybuf);
     if (c->querybuf_peak < qblen) c->querybuf_peak = qblen;
 
