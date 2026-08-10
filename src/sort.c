@@ -920,6 +920,28 @@ unsigned int sortXShardOutputLen(const struct sortXShardCtx *ctx) {
     return ctx->outputlen;
 }
 
+/* Expose only the two private SDS vectors the IO-side SORT reply consumes;
+ * the context layout remains owned here. Part 0 is the selected elements,
+ * part 1 the optional GET projection cells. */
+const void *sortXShardReplyCarrierField(const struct sortXShardCtx *ctx, int part) {
+    return part == 0 ? (const void *)&ctx->elems : (const void *)&ctx->get_values;
+}
+
+int sortXShardReplyCarrier(const struct sortXShardCtx *ctx, int part,
+                           sds **values, long *count) {
+    if (part == 0 && ctx->elems && ctx->elem_count > 0) {
+        *values = ctx->elems;
+        *count = ctx->elem_count;
+        return 1;
+    }
+    if (part == 1 && ctx->get_values && ctx->elem_count > 0 && ctx->get_count > 0) {
+        *values = ctx->get_values;
+        *count = (long)((size_t)ctx->elem_count * (size_t)ctx->get_count);
+        return 1;
+    }
+    return 0;
+}
+
 static robj *sortXShardProjectedObject(const struct sortXShardCtx *ctx, int elem, int get) {
     sds value = NULL;
     if (sortXShardIdentityPattern(ctx->get_patterns[get])) {

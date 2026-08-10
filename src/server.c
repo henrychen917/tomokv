@@ -37,13 +37,18 @@
 #include "uring.h"
 #include "uring2.h"
 
-/* tomokv-sim-xnode selects a separately compiled server object. In the
- * ordinary object every publish hook below is preprocessed away, so an off
- * boot retains the historical ring path without a branch or side storage. */
+/* Cross-node measurement/topology paths select separately compiled server
+ * objects. In the ordinary object every hook below is preprocessed away, so
+ * an off boot retains the historical paths without a branch or side storage. */
 #ifdef TOMO_XNODE_FLUSH_BUILD
 #define TOMO_XNODE_FLUSH_ACTIVE 1
 #else
 #define TOMO_XNODE_FLUSH_ACTIVE 0
+#endif
+#ifdef TOMO_XNODE_PREFETCH_BUILD
+#define TOMO_XNODE_PREFETCH_ACTIVE 1
+#else
+#define TOMO_XNODE_PREFETCH_ACTIVE 0
 #endif
 
 #include <time.h>
@@ -122,14 +127,17 @@ static int tomoXnodeClflushoptSupported(void) {
 #endif
 }
 
-#if TOMO_XNODE_FLUSH_ACTIVE
+#if TOMO_XNODE_FLUSH_ACTIVE || TOMO_XNODE_PREFETCH_ACTIVE
 extern __thread int iotid;
 typedef struct tomoXnodeCounter {
     _Atomic unsigned long long value;
     char _pad[CACHE_LINE_SIZE - sizeof(_Atomic unsigned long long)];
 } __attribute__((aligned(CACHE_LINE_SIZE))) tomoXnodeCounter;
 _Static_assert(sizeof(tomoXnodeCounter) == CACHE_LINE_SIZE,
-               "cross-node simulator counter must occupy one cache line");
+               "cross-node engagement counter must occupy one cache line");
+#endif
+
+#if TOMO_XNODE_FLUSH_ACTIVE
 static tomoXnodeCounter tomo_xnode_lines_flushed[TOMO_STAT_SLOTS];
 
 static inline void tomoXnodeClflushopt(const void *line) {
@@ -173,6 +181,107 @@ static unsigned long long tomoXnodeLinesFlushed(void) {
     return 0;
 }
 #endif
+
+#if TOMO_XNODE_PREFETCH_ACTIVE
+_Static_assert(TOMO_PIPELINE_DEPTH_MAX <= 32,
+               "cross-node reply-slot mask must cover every pipeline slot");
+_Static_assert(NUM_CDB_MAX <= UINT8_MAX + 1,
+               "cross-node CDB carrier must cover every CDB index");
+static uint64_t tomo_xnode_remote_lanes[TOMO_EX_THREADS_MAX][TOMO_QS_WORDS];
+static tomoXnodeCounter tomo_xnode_message_prefetches[TOMO_STAT_SLOTS];
+static tomoXnodeCounter tomo_xnode_reply_descriptor_prefetches[TOMO_STAT_SLOTS];
+static tomoXnodeCounter tomo_xnode_reply_payload_prefetches[TOMO_STAT_SLOTS];
+_Static_assert(sizeof(struct sdshdr64) <= CACHE_LINE_SIZE,
+               "largest SDS header must span at most two cache lines");
+
+static inline void tomoXnodeDescriptorPrefetch(const void *addr) {
+    if (!addr) return;
+    redis_prefetch_read(addr);
+    tomoRelaxedBump(tomo_xnode_reply_descriptor_prefetches[iotid].value, 1);
+}
+
+static inline void tomoXnodeDescriptorPrefetchRange(const void *base, size_t len) {
+    if (!base || !len) return;
+    /* Used for the exact SDS header width: at most one boundary crossing. */
+    uintptr_t first = (uintptr_t)base & ~(uintptr_t)(CACHE_LINE_SIZE - 1);
+    uintptr_t last = ((uintptr_t)base + len - 1) & ~(uintptr_t)(CACHE_LINE_SIZE - 1);
+    redis_prefetch_read((const void *)first);
+    unsigned long long lines = 1;
+    if (last != first) {
+        redis_prefetch_read((const void *)last);
+        lines = 2;
+    }
+    tomoRelaxedBump(tomo_xnode_reply_descriptor_prefetches[iotid].value, lines);
+}
+
+static inline int tomoXnodeLaneRemote(int worker, int lane) {
+    return (tomo_xnode_remote_lanes[worker][(unsigned)lane >> 6] >>
+            ((unsigned)lane & 63)) & 1u;
+}
+
+/* One immutable row per worker, with one bit for each producer lane. The test
+ * mask makes a worker remote from every producer; real pinned topology uses
+ * the same node relation as dispatch and role-flip placement. */
+static void tomoXnodeBuildTopology(void) {
+    if (server.num_workers < 64 &&
+        (server.tomo_sim_xnode_mask >> server.num_workers) != 0) {
+        serverLog(LL_WARNING,
+            "FATAL: tomokv-sim-xnode-mask names a worker outside the configured %d slots",
+            server.num_workers);
+        exit(1);
+    }
+    int lanes = server.io_threads + server.tm_ngrow_io;
+    for (int w = 0; w < server.num_workers; w++) {
+        int simulated = w < 64 &&
+                        ((server.tomo_sim_xnode_mask >> w) & 1ull);
+        int worker_node = server.ex_per_node > 0 ? w / server.ex_per_node : 0;
+        for (int t = 0; t < lanes; t++) {
+            int io_node = 0;
+            if (t < server.io_threads) {
+                io_node = server.io_per_node > 0 ? t / server.io_per_node : 0;
+            } else {
+                int source = (server.num_workers - 1) - (t - server.io_threads);
+                io_node = server.ex_per_node > 0 ? source / server.ex_per_node : 0;
+            }
+            int topological = !server.tomo_sim_xnode &&
+                              server.pin_mode != TOMO_PIN_FLOAT &&
+                              server.topo_nodes > 1 && io_node != worker_node;
+            if (simulated || topological)
+                tomo_xnode_remote_lanes[w][(unsigned)t >> 6] |=
+                    1ull << ((unsigned)t & 63);
+        }
+    }
+}
+
+static unsigned long long tomoXnodeCounterTotal(tomoXnodeCounter *counter) {
+    unsigned long long total = 0;
+    for (int i = 0; i < TOMO_STAT_SLOTS; i++)
+        total += atomic_load_explicit(&counter[i].value, memory_order_relaxed);
+    return total;
+}
+#endif
+
+static unsigned long long tomoXnodeMessagePrefetches(void) {
+#if TOMO_XNODE_PREFETCH_ACTIVE
+    return tomoXnodeCounterTotal(tomo_xnode_message_prefetches);
+#else
+    return 0;
+#endif
+}
+static unsigned long long tomoXnodeReplyDescriptorPrefetches(void) {
+#if TOMO_XNODE_PREFETCH_ACTIVE
+    return tomoXnodeCounterTotal(tomo_xnode_reply_descriptor_prefetches);
+#else
+    return 0;
+#endif
+}
+static unsigned long long tomoXnodeReplyPayloadPrefetches(void) {
+#if TOMO_XNODE_PREFETCH_ACTIVE
+    return tomoXnodeCounterTotal(tomo_xnode_reply_payload_prefetches);
+#else
+    return 0;
+#endif
+}
 
 /* Grow-back's IO owner and the main-thread watchdog arbitrate the commit edge with this state.
  * In particular, DRAINING may become COMMITTED or CANCEL_REQUESTED, never both. */
@@ -3762,6 +3871,19 @@ static inline exQueue *exQueueFor(int ex_id) {
 
 static void exDispatchDirect(int ex_id, client *fake) {
     exQueue *q = exQueueFor(ex_id);
+#if TOMO_XNODE_PREFETCH_ACTIVE
+    if ((fake->flags & CLIENT_EX_PENDING) && fake->parent &&
+        fake->parent->has_exec_tail) {
+        clientExecTail *rt = clientTail(fake->parent);
+        unsigned int slot = fake->fake_slot;
+        uint32_t bit = 1u << slot;
+        rt->tomo_xnode_cdb[slot] = (uint8_t)fake->cdb;
+        if (tomoXnodeLaneRemote(ex_id, iotid))
+            rt->tomo_xnode_remote_slots |= bit;
+        else
+            rt->tomo_xnode_remote_slots &= ~bit;
+    }
+#endif
     if (!tomo_rord.draining) tm_io_sig[iotid].disp_cnt++;   /* staged path counted at stage time */
     if (__builtin_expect(exQueuePush(q, fake) == 0, 1)) {
         /* D mechanism A: EARLY FLUSH once W dispatches are staged. W=0 = law silent = pass-end
@@ -3907,6 +4029,531 @@ static inline void tomoReleaseReadSnapshot(client *fake) {
     flatQsbrRegionExit();
 }
 
+#if TOMO_XNODE_PREFETCH_ACTIVE
+typedef enum tomoXnodeReplyStage {
+    TOMO_XR_DONE = 0,
+    TOMO_XR_CDB,
+    TOMO_XR_GROUP,
+    TOMO_XR_SORT,
+    TOMO_XR_VALUE_PTR,
+    TOMO_XR_ROW_PTR,
+    TOMO_XR_SUB_PTR,
+    TOMO_XR_SUB,
+    TOMO_XR_ENCODED,
+    TOMO_XR_OBJ,
+    TOMO_XR_SDS_HEADER,
+    TOMO_XR_SDS,
+    TOMO_XR_PAYLOAD,
+    TOMO_XR_LIST,
+    TOMO_XR_NODE,
+    TOMO_XR_BLOCK,
+    TOMO_XR_BLOCK_DONE
+} tomoXnodeReplyStage;
+
+typedef struct tomoXnodeReplyCandidate {
+    unsigned int seq;
+    uint8_t cdb;
+    uint8_t stage;
+    uint8_t source_done;
+    uint8_t encoded_done;
+    uint8_t sds_done;
+    uint8_t payload_done;
+    uint8_t values_done;
+    client *fake;
+    client *source;
+    csGroup *group;
+    struct sortXShardCtx *sort_ctx;
+    int sort_part;
+    client **subs;
+    int nsub;
+    int sub;
+    list *reply;
+    listNode *node;
+    listNode *next_node;
+    clientReplyBlock *block;
+    char *encoded;
+    size_t encoded_used;
+    size_t encoded_off;
+    robj *obj;
+    sds value;
+    sds *values;
+    long value_count;
+    long value_index;
+    sds **rows;
+    long *row_counts;
+    int row_count;
+    int row;
+    uintptr_t payload_line;
+    uintptr_t payload_last;
+} tomoXnodeReplyCandidate;
+
+typedef struct tomoXnodeReplyPrefetch {
+    clientExecTail *tail;
+    int count;
+    tomoXnodeReplyCandidate candidates[WORKER_POP_BATCH];
+} tomoXnodeReplyPrefetch;
+
+static inline void tomoXnodeReplyHintFake(client *fake) {
+    tomoXnodeDescriptorPrefetch(fake);
+    tomoXnodeDescriptorPrefetch(&fake->reply);
+    tomoXnodeDescriptorPrefetch(&fake->reply_bytes);
+}
+
+/* Once the fake descriptor is warm, every address here is simple group-base
+ * arithmetic. Warm the possible reply carriers together; the next rotation
+ * selects the one this completed group will actually consume. */
+static inline void tomoXnodeReplyHintGroup(csGroup *group) {
+    tomoXnodeDescriptorPrefetch(group);
+    tomoXnodeDescriptorPrefetch(&group->subs);
+    tomoXnodeDescriptorPrefetch(&group->setmem);
+    tomoXnodeDescriptorPrefetch(&group->mget_vals);
+    tomoXnodeDescriptorPrefetch(&group->xread_out);
+    tomoXnodeDescriptorPrefetch(&group->h2_payload);
+    tomoXnodeDescriptorPrefetch(&group->sort_ctx);
+    tomoXnodeDescriptorPrefetch(&group->pipe_stage);
+    tomoXnodeDescriptorPrefetch(&group->pipe_cand);
+    tomoXnodeDescriptorPrefetch(&group->pipe_part);
+    tomoXnodeDescriptorPrefetch(&group->pipe_partcnt);
+}
+
+#define TOMO_XNODE_PAYLOAD_BURST 4
+
+/* A scoreboard turn may issue only a fixed number of payload hints. Large
+ * replies therefore keep rotating beside ordinary drain work instead of
+ * becoming a new synchronous O(reply-size) stage. */
+static inline void tomoXnodeReplyPayloadContinue(tomoXnodeReplyCandidate *pf) {
+    unsigned int lines = 0;
+    while (lines < TOMO_XNODE_PAYLOAD_BURST) {
+        redis_prefetch_read((const void *)pf->payload_line);
+        lines++;
+        if (pf->payload_line == pf->payload_last) {
+            pf->payload_line = pf->payload_last = 0;
+            break;
+        }
+        pf->payload_line += CACHE_LINE_SIZE;
+    }
+    tomoRelaxedBump(tomo_xnode_reply_payload_prefetches[iotid].value, lines);
+    pf->stage = pf->payload_line ? TOMO_XR_PAYLOAD : pf->payload_done;
+}
+
+static inline void tomoXnodeReplyPayloadStart(tomoXnodeReplyCandidate *pf,
+                                              const void *base, size_t len,
+                                              int after_first, uint8_t done) {
+    pf->payload_done = done;
+    if (!base || !len) {
+        pf->payload_line = pf->payload_last = 0;
+        pf->stage = done;
+        return;
+    }
+    uintptr_t first = (uintptr_t)base & ~(uintptr_t)(CACHE_LINE_SIZE - 1);
+    uintptr_t last = ((uintptr_t)base + len - 1) &
+                     ~(uintptr_t)(CACHE_LINE_SIZE - 1);
+    if (after_first) {
+        if (first == last) {
+            pf->payload_line = pf->payload_last = 0;
+            pf->stage = done;
+            return;
+        }
+        first += CACHE_LINE_SIZE;
+    }
+    pf->payload_line = first;
+    pf->payload_last = last;
+    tomoXnodeReplyPayloadContinue(pf);
+}
+
+static inline void tomoXnodeReplyFinishSource(tomoXnodeReplyCandidate *pf) {
+    pf->source = NULL;
+    pf->reply = NULL;
+    pf->node = pf->next_node = NULL;
+    pf->block = NULL;
+    pf->payload_line = pf->payload_last = 0;
+    if (pf->source_done == TOMO_XR_SUB_PTR && pf->sub < pf->nsub) {
+        tomoXnodeDescriptorPrefetch(&pf->subs[pf->sub]);
+        pf->stage = TOMO_XR_SUB_PTR;
+    } else {
+        pf->stage = TOMO_XR_DONE;
+    }
+}
+
+/* The fake descriptor lines are warm before this runs. Issue all independent
+ * first-level payload/list hints together, then chase either one level later. */
+static inline void tomoXnodeReplyBeginSource(tomoXnodeReplyCandidate *pf,
+                                             client *source, uint8_t done) {
+    pf->source = source;
+    pf->source_done = done;
+    pf->reply = source->reply;
+    pf->node = pf->next_node = NULL;
+    pf->block = NULL;
+    if (pf->reply)
+        tomoXnodeDescriptorPrefetch(pf->reply);
+    if (source->buf_encoded && source->bufpos) {
+        pf->encoded = source->buf;
+        pf->encoded_used = source->bufpos;
+        pf->encoded_off = 0;
+        pf->encoded_done = TOMO_XR_LIST;
+    }
+    tomoXnodeReplyPayloadStart(pf, source->buf, source->bufpos, 0,
+        source->buf_encoded && source->bufpos ? TOMO_XR_ENCODED : TOMO_XR_LIST);
+}
+
+static inline void tomoXnodeReplyEncodedDone(tomoXnodeReplyCandidate *pf) {
+    uint8_t done = pf->encoded_done;
+    pf->encoded = NULL;
+    pf->encoded_used = pf->encoded_off = 0;
+    pf->obj = NULL;
+    pf->value = NULL;
+    if (done == TOMO_XR_NODE) {
+        if (pf->next_node) {
+            pf->node = pf->next_node;
+            pf->stage = TOMO_XR_NODE;
+        } else {
+            tomoXnodeReplyFinishSource(pf);
+        }
+    } else {
+        pf->stage = TOMO_XR_LIST;
+    }
+}
+
+/* Encoded-buffer bytes were hinted on the preceding rotation. Walk only warm
+ * headers here; every BULK_STR_REF then gets robj -> SDS stages of its own. */
+static inline void tomoXnodeReplyFindEncodedRef(tomoXnodeReplyCandidate *pf) {
+    int scanned = 0;
+    while (pf->encoded_off < pf->encoded_used &&
+           scanned < TOMO_XNODE_PAYLOAD_BURST) {
+        scanned++;
+        size_t remain = pf->encoded_used - pf->encoded_off;
+        if (remain < sizeof(payloadHeader)) break;
+        payloadHeader *header = (payloadHeader *)(pf->encoded + pf->encoded_off);
+        size_t payload_len = header->payload_len;
+        if (payload_len > remain - sizeof(payloadHeader)) break;
+        pf->encoded_off += sizeof(payloadHeader) + payload_len;
+        if (header->payload_type != BULK_STR_REF ||
+            payload_len < sizeof(bulkStrRef))
+            continue;
+        bulkStrRef *ref = (bulkStrRef *)((char *)header + sizeof(payloadHeader));
+        if (!ref->obj) continue;
+        pf->obj = ref->obj;
+        tomoXnodeDescriptorPrefetch(pf->obj);
+        pf->stage = TOMO_XR_OBJ;
+        return;
+    }
+    if (pf->encoded_off < pf->encoded_used &&
+        scanned == TOMO_XNODE_PAYLOAD_BURST)
+        return;
+    tomoXnodeReplyEncodedDone(pf);
+}
+
+static inline void tomoXnodeReplyPrefetchValues(tomoXnodeReplyCandidate *pf,
+                                                sds *values, long count,
+                                                uint8_t done) {
+    pf->values = values;
+    pf->value_count = count;
+    pf->value_index = 0;
+    pf->values_done = done;
+    if (values && count > 0) {
+        tomoXnodeDescriptorPrefetch(&values[0]);
+        pf->stage = TOMO_XR_VALUE_PTR;
+    } else {
+        pf->stage = done;
+    }
+}
+
+static inline void tomoXnodeReplyPrefetchRows(tomoXnodeReplyCandidate *pf,
+                                              sds **rows, long *counts,
+                                              int count) {
+    pf->rows = rows;
+    pf->row_counts = counts;
+    pf->row_count = count;
+    pf->row = 0;
+    if (rows && counts && count > 0) {
+        tomoXnodeDescriptorPrefetch(&rows[0]);
+        tomoXnodeDescriptorPrefetch(&counts[0]);
+        pf->stage = TOMO_XR_ROW_PTR;
+    } else {
+        pf->stage = TOMO_XR_DONE;
+    }
+}
+
+static inline void tomoXnodeReplyPrefetchSources(tomoXnodeReplyCandidate *pf,
+                                                 client **sources, int count) {
+    pf->subs = sources;
+    pf->nsub = count;
+    pf->sub = 0;
+    if (sources && count > 0) {
+        tomoXnodeDescriptorPrefetch(&sources[0]);
+        pf->stage = TOMO_XR_SUB_PTR;
+    } else {
+        pf->stage = TOMO_XR_DONE;
+    }
+}
+
+static inline void tomoXnodeReplyPrefetchSort(tomoXnodeReplyCandidate *pf) {
+    while (pf->sort_part < 2) {
+        sds *values = NULL;
+        long count = 0;
+        int part = pf->sort_part++;
+        if (sortXShardReplyCarrier(pf->sort_ctx, part, &values, &count)) {
+            tomoXnodeReplyPrefetchValues(pf, values, count, TOMO_XR_SORT);
+            return;
+        }
+    }
+    pf->stage = TOMO_XR_DONE;
+}
+
+static inline void tomoXnodeReplyPrepareSort(tomoXnodeReplyCandidate *pf,
+                                             struct sortXShardCtx *ctx) {
+    pf->sort_ctx = ctx;
+    pf->sort_part = 0;
+    tomoXnodeDescriptorPrefetch(ctx);
+    tomoXnodeDescriptorPrefetch(sortXShardReplyCarrierField(ctx, 0));
+    tomoXnodeDescriptorPrefetch(sortXShardReplyCarrierField(ctx, 1));
+}
+
+static inline void tomoXnodeReplyAdvanceBlock(tomoXnodeReplyCandidate *pf) {
+    if (pf->next_node) {
+        pf->node = pf->next_node;
+        pf->stage = TOMO_XR_NODE;
+    } else {
+        tomoXnodeReplyFinishSource(pf);
+    }
+}
+
+static inline void tomoXnodeReplyPrefetchOne(tomoXnodeReplyPrefetch *state,
+                                             tomoXnodeReplyCandidate *pf) {
+    switch (pf->stage) {
+    case TOMO_XR_CDB: {
+        unsigned int slot = pf->seq & state->tail->ring_mask;
+        if (!atomic_load_explicit(
+                &state->tail->reply_cdb[pf->cdb].ready[slot],
+                memory_order_acquire))
+            return;
+        if (pf->fake->csgroup) {
+            pf->group = pf->fake->csgroup;
+            tomoXnodeReplyHintGroup(pf->group);
+            pf->stage = TOMO_XR_GROUP;
+        } else {
+            tomoXnodeReplyBeginSource(pf, pf->fake, TOMO_XR_DONE);
+        }
+        return;
+    }
+    case TOMO_XR_GROUP: {
+        csGroup *g = pf->group;
+        int reply_sort = g->sort_ctx && !g->has_hop2;
+        if (reply_sort) tomoXnodeReplyPrepareSort(pf, g->sort_ctx);
+        /* Select the carrier the coordinator will consume. The common
+         * coalesced and pipeline forms bypass subs[] entirely. */
+        if (g->pipe_stage && g->pipe_cand && g->pipe_ncand > 0) {
+            tomoXnodeReplyPrefetchValues(pf, g->pipe_cand,
+                                         g->pipe_ncand, TOMO_XR_DONE);
+        } else if (g->pipe_stage && g->pipe_part && g->pipe_partcnt &&
+                   g->pipe_npart > 0) {
+            tomoXnodeReplyPrefetchRows(pf, g->pipe_part, g->pipe_partcnt,
+                                       g->pipe_npart);
+        } else if (g->mget_vals && g->nkeys > 0) {
+            tomoXnodeReplyPrefetchValues(pf, g->mget_vals,
+                                         g->nkeys,
+                                         reply_sort ? TOMO_XR_SORT : TOMO_XR_DONE);
+        } else if (reply_sort) {
+            pf->stage = TOMO_XR_SORT;
+        } else if (g->ctype == CS_XREAD && g->xread_out) {
+            tomoXnodeReplyPrefetchSources(pf, g->xread_out, g->nkeys);
+        } else if (g->ctype == CS_LMOVE && g->has_hop2 && g->h2_payload) {
+            pf->value = g->h2_payload;
+            pf->sds_done = TOMO_XR_DONE;
+            tomoXnodeDescriptorPrefetch(pf->value - 1);
+            pf->stage = TOMO_XR_SDS_HEADER;
+        } else if (g->setmem && g->setcnt && g->nkeys > 0) {
+            tomoXnodeReplyPrefetchRows(pf, g->setmem, g->setcnt, g->nkeys);
+        } else {
+            tomoXnodeReplyPrefetchSources(pf, g->subs, g->nsub);
+        }
+        return;
+    }
+    case TOMO_XR_SORT:
+        tomoXnodeReplyPrefetchSort(pf);
+        return;
+    case TOMO_XR_VALUE_PTR:
+        if (pf->value_index >= pf->value_count) {
+            if (pf->values_done == TOMO_XR_ROW_PTR && pf->row < pf->row_count) {
+                tomoXnodeDescriptorPrefetch(&pf->rows[pf->row]);
+                tomoXnodeDescriptorPrefetch(&pf->row_counts[pf->row]);
+            }
+            pf->stage = pf->values_done;
+            return;
+        }
+        pf->value = pf->values[pf->value_index++];
+        if (pf->value_index < pf->value_count)
+            tomoXnodeDescriptorPrefetch(&pf->values[pf->value_index]);
+        if (pf->value) {
+            pf->sds_done = TOMO_XR_VALUE_PTR;
+            tomoXnodeDescriptorPrefetch(pf->value - 1);
+            pf->stage = TOMO_XR_SDS_HEADER;
+        }
+        return;
+    case TOMO_XR_ROW_PTR: {
+        if (pf->row >= pf->row_count) {
+            pf->stage = TOMO_XR_DONE;
+            return;
+        }
+        sds *values = pf->rows[pf->row];
+        long value_count = pf->row_counts[pf->row];
+        pf->row++;
+        tomoXnodeReplyPrefetchValues(pf, values, value_count, TOMO_XR_ROW_PTR);
+        if (pf->stage == TOMO_XR_ROW_PTR && pf->row < pf->row_count) {
+            tomoXnodeDescriptorPrefetch(&pf->rows[pf->row]);
+            tomoXnodeDescriptorPrefetch(&pf->row_counts[pf->row]);
+        }
+        return;
+    }
+    case TOMO_XR_SUB_PTR:
+        if (pf->sub >= pf->nsub) {
+            pf->stage = TOMO_XR_DONE;
+            return;
+        }
+        pf->source = pf->subs[pf->sub++];
+        if (!pf->source) {
+            if (pf->sub < pf->nsub)
+                tomoXnodeDescriptorPrefetch(&pf->subs[pf->sub]);
+            else
+                pf->stage = TOMO_XR_DONE;
+            return;
+        }
+        tomoXnodeReplyHintFake(pf->source);
+        pf->stage = TOMO_XR_SUB;
+        return;
+    case TOMO_XR_SUB:
+        tomoXnodeReplyBeginSource(pf, pf->source, TOMO_XR_SUB_PTR);
+        return;
+    case TOMO_XR_ENCODED:
+        tomoXnodeReplyFindEncodedRef(pf);
+        return;
+    case TOMO_XR_OBJ:
+        pf->value = pf->obj ? pf->obj->ptr : NULL;
+        if (pf->value) {
+            /* The flags byte selects the variable SDS header width. Warm it
+             * before using that width to hint the remaining header bytes. */
+            pf->sds_done = TOMO_XR_ENCODED;
+            tomoXnodeDescriptorPrefetch(pf->value - 1);
+            pf->stage = TOMO_XR_SDS_HEADER;
+        } else {
+            pf->stage = TOMO_XR_ENCODED;
+        }
+        return;
+    case TOMO_XR_SDS_HEADER: {
+        size_t header_len;
+        switch (sdsType(pf->value)) {
+        case SDS_TYPE_5:  header_len = sizeof(struct sdshdr5);  break;
+        case SDS_TYPE_8:  header_len = sizeof(struct sdshdr8);  break;
+        case SDS_TYPE_16: header_len = sizeof(struct sdshdr16); break;
+        case SDS_TYPE_32: header_len = sizeof(struct sdshdr32); break;
+        default:          header_len = sizeof(struct sdshdr64); break;
+        }
+        tomoXnodeDescriptorPrefetchRange(pf->value - header_len, header_len);
+        tomoXnodeReplyPayloadStart(pf, pf->value, 1, 0, TOMO_XR_SDS);
+        return;
+    }
+    case TOMO_XR_SDS:
+        tomoXnodeReplyPayloadStart(pf, pf->value, sdslen(pf->value),
+                                   1, pf->sds_done);
+        return;
+    case TOMO_XR_PAYLOAD:
+        tomoXnodeReplyPayloadContinue(pf);
+        return;
+    case TOMO_XR_LIST:
+        if (!pf->reply || !pf->reply->head) {
+            tomoXnodeReplyFinishSource(pf);
+            return;
+        }
+        pf->node = pf->reply->head;
+        tomoXnodeDescriptorPrefetch(pf->node);
+        pf->stage = TOMO_XR_NODE;
+        return;
+    case TOMO_XR_NODE:
+        pf->block = listNodeValue(pf->node);
+        pf->next_node = listNextNode(pf->node);
+        if (pf->next_node)
+            tomoXnodeDescriptorPrefetch(pf->next_node);
+        if (!pf->block) {
+            tomoXnodeReplyAdvanceBlock(pf);
+            return;
+        }
+        tomoXnodeDescriptorPrefetch(pf->block);
+        pf->stage = TOMO_XR_BLOCK;
+        return;
+    case TOMO_XR_BLOCK:
+        if (pf->block->buf_encoded && pf->block->used) {
+            pf->encoded = pf->block->buf;
+            pf->encoded_used = pf->block->used;
+            pf->encoded_off = 0;
+            pf->encoded_done = TOMO_XR_NODE;
+        }
+        tomoXnodeReplyPayloadStart(pf, pf->block->buf, pf->block->used, 0,
+            pf->block->buf_encoded && pf->block->used ?
+                TOMO_XR_ENCODED : TOMO_XR_BLOCK_DONE);
+        return;
+    case TOMO_XR_BLOCK_DONE:
+        tomoXnodeReplyAdvanceBlock(pf);
+        return;
+    case TOMO_XR_DONE:
+        return;
+    }
+}
+
+/* Start one slot beyond the completion consumed now. The routing metadata is
+ * IO-owned and arithmetic-addressable, so the first hint never chases a cold
+ * fake pointer and the 64-byte CDB layout remains untouched. */
+static inline void tomoXnodeReplyPrefetchInit(tomoXnodeReplyPrefetch *state,
+                                              clientExecTail *tail) {
+    state->tail = tail;
+    state->count = 0;
+    if (!tail->tomo_xnode_remote_slots) return;
+    unsigned int future = tail->dispatchid - tail->flushid - 1;
+    if ((int)future > WORKER_POP_BATCH) future = WORKER_POP_BATCH;
+    for (unsigned int off = 1; off <= future; off++) {
+        unsigned int seq = tail->flushid + off;
+        unsigned int slot = seq & tail->ring_mask;
+        if (!(tail->tomo_xnode_remote_slots & (1u << slot))) continue;
+        tomoXnodeReplyCandidate *pf = &state->candidates[state->count++];
+        memset(pf, 0, sizeof(*pf));
+        pf->seq = seq;
+        pf->cdb = tail->tomo_xnode_cdb[slot];
+        pf->stage = TOMO_XR_CDB;
+        tomoXnodeDescriptorPrefetch(
+            &tail->reply_cdb[pf->cdb].ready[slot]);
+        tomoXnodeDescriptorPrefetch(&tail->fakeClients[slot]);
+    }
+    /* The IO-owned fake-pointer slots were hinted arithmetically above. The
+     * ring keeps each loaded pointer stable until its sequence retires. */
+    for (int i = 0; i < state->count; i++) {
+        tomoXnodeReplyCandidate *pf = &state->candidates[i];
+        unsigned int slot = pf->seq & tail->ring_mask;
+        pf->fake = tail->fakeClients[slot];
+        tomoXnodeReplyHintFake(pf->fake);
+    }
+    /* Match exPrefetchBatch's pass separation: after every CDB, pointer-slot
+     * and fake hint is out, advance ready candidates once before N's copy. */
+    for (int i = 0; i < state->count; i++)
+        tomoXnodeReplyPrefetchOne(state, &state->candidates[i]);
+}
+
+static inline void tomoXnodeReplyPrefetchStep(tomoXnodeReplyPrefetch *state) {
+    for (int i = 0; i < state->count; i++)
+        tomoXnodeReplyPrefetchOne(state, &state->candidates[i]);
+}
+
+/* AddReplyFromClient and csReassemble can move buffers and free group/sub
+ * storage. Stop every cursor for this generation before either can run. */
+static inline void tomoXnodeReplyPrefetchRetire(tomoXnodeReplyPrefetch *state,
+                                                unsigned int seq) {
+    for (int i = 0; i < state->count; i++) {
+        tomoXnodeReplyCandidate *pf = &state->candidates[i];
+        if (pf->seq != seq) continue;
+        memset(pf, 0, sizeof(*pf));
+        return;
+    }
+}
+#endif
+
 void handleWorkerReplies(void) {
     /* ee451 (S4): publish all jobs staged since the last drain BEFORE we wait on
      * any reply. This is the single guaranteed pre-drain / pre-sleep point
@@ -4008,20 +4655,20 @@ void handleWorkerReplies(void) {
             continue;
         }
 
+#if TOMO_XNODE_PREFETCH_ACTIVE
+        tomoXnodeReplyPrefetch xnode_replies;
+        tomoXnodeReplyPrefetchInit(&xnode_replies, rt);
+#endif
+
         /* Splice ready fakes (in ring order) onto real's output, accumulating
          * a single writeToClient call at the end. */
         int spliced = 0;
         int close_asap = 0;
 
-        /* ee451: pipelined drain prefetch — "prefetch finished fc -> prefetch
-         * reply -> send response". The ready fakes were last written on a
-         * worker core, so they are cold in this IO thread's cache. Pass 1 warms
-         * the fake structs; pass 2 (structs now warm) prefetches each fake's
-         * reply payload (static buf + overflow list head), so the splice loop
-         * below copies hot memory. We walk the same ready prefix the splice
-         * loop will, stopping at the first not-ready slot. */
-        /* ee451 (v13): io-side drain prefetch DELETED (knob retired hard-OFF — measured net-
-         * negative in v11, ≈noise in every eval since; duplicated the splice loop's walk). */
+        /* Cross-node specialization: the scoreboard starts with arithmetic
+         * CDB and fake-pointer-slot addresses. Each turn advances one
+         * dependent level while this loop copies the current reply; local
+         * completions create no candidate and retain the existing splice. */
 
         while (rt->flushid != rt->dispatchid) {
             unsigned int slot = rt->flushid & rt->ring_mask;
@@ -4029,6 +4676,12 @@ void handleWorkerReplies(void) {
             /* Acquire pairs with this slot's worker release publication. A
              * stale zero only postpones the prefix until the next poll. */
             if (!cdbSlotReady(real, fake->cdb, slot)) break;
+#if TOMO_XNODE_PREFETCH_ACTIVE
+            if (xnode_replies.count) {
+                tomoXnodeReplyPrefetchStep(&xnode_replies);
+                tomoXnodeReplyPrefetchRetire(&xnode_replies, rt->flushid);
+            }
+#endif
             int was_ex_dispatched = (fake->flags & CLIENT_EX_PENDING) != 0;
             /* ee451 (v7): a cross-shard head is NOT CLIENT_EX_PENDING but DID bump
              * replyWorking at dispatch (its subs are in flight), so it must decrement here
@@ -4087,12 +4740,20 @@ void handleWorkerReplies(void) {
             } else {
                 AddReplyFromClient(real, fake);
             }
+#if TOMO_XNODE_PREFETCH_ACTIVE
+            if (xnode_replies.count && !(real->flags & CLIENT_CLOSE_ASAP))
+                tomoXnodeReplyPrefetchStep(&xnode_replies);
+#endif
             /* SELECT queued inside EXEC changes the connection's selected DB. The worker fake
              * uses the matching shard DB while executing; publish the final DB id back on the
              * owning IO thread before any command stalled behind cs_barrier is re-driven. */
             if (fake->tomo_local_worker >= 0 && fake->cmd && fake->cmd->proc == execCommand)
                 real->db = &server.db[fake->db->id];
             foldClientCommandsProcessed(real, fake);   /* ee451 (#B2) — covers BOTH retire paths below */
+#if TOMO_XNODE_PREFETCH_ACTIVE
+            if (xnode_replies.count && !(real->flags & CLIENT_CLOSE_ASAP))
+                tomoXnodeReplyPrefetchStep(&xnode_replies);
+#endif
             spliced = 1;
 
             if (real->flags & CLIENT_CLOSE_ASAP) {
@@ -4113,8 +4774,16 @@ void handleWorkerReplies(void) {
              * ready byte before retiring/reusing this fake-ring slot. */
             cdbSlotClear(real, fake->cdb, slot);
             tomoReleaseReadSnapshot(fake);
+#if TOMO_XNODE_PREFETCH_ACTIVE
+            if (xnode_replies.count)
+                tomoXnodeReplyPrefetchStep(&xnode_replies);
+#endif
             commandProcessed(fake);
 
+#if TOMO_XNODE_PREFETCH_ACTIVE
+            if (xnode_replies.count)
+                tomoXnodeReplyPrefetchStep(&xnode_replies);
+#endif
             if (was_ex_dispatched || was_cs) replyWorking--;
             rt->flushid++;
         }
@@ -5809,6 +6478,9 @@ void initServer(void) {
     }
 
     server.num_workers = server.ex_threads;
+#if TOMO_XNODE_PREFETCH_ACTIVE
+    tomoXnodeBuildTopology();
+#endif
     /* ee451 (auto symmetric pool): the LIVE worker set is the boot split's prefix, not every
      * provisioned slot. Static mode: tm_boot_w_live == num_workers, i.e. unchanged.
      * (num_workers_alloc is GONE with the spare — there is no dormant slot to over-provision
@@ -8210,6 +8882,12 @@ int processCommand(client *c) {
     }
     ct->fakeClients[fslot] = fake;
     fake->fake_slot = fslot;
+#if TOMO_XNODE_PREFETCH_ACTIVE
+    /* Per-generation routing lives in the real client's fixed tail reserve.
+     * Clear before any direct or scatter path can stamp this ring slot. */
+    ct->tomo_xnode_remote_slots &= ~(1u << fslot);
+    ct->tomo_xnode_cdb[fslot] = 0;
+#endif
     /* 2s-auto T3: express-slim — GET/SET are never MULTI-queued under sharding, so
      * lookedcmd/realcmd/reploff_next/read_error are unused by them. Gate reads c->cmd
      * PRE-move (moveExecutionState clears real->cmd after); express test at ~5237 reads
@@ -12315,6 +12993,20 @@ static void csFreeSub(client *sub) {
  * driven by CONCURRENT commands (many pipelined scatters from one io thread to one worker),
  * not by one wide command — which is what tools/preflight/ex_backpressure.sh has to reproduce. */
 static void csPushSpin(int w, client *sub) {
+#if TOMO_XNODE_PREFETCH_ACTIVE
+    /* A group has one completion slot even when several workers contribute
+     * reply carriers. OR the slot remote if any contributing lane crosses the
+     * topology boundary; the drain then treats that aggregate completion as
+     * the unit selected by the same gate as a direct worker reply. */
+    if (tomoXnodeLaneRemote(w, iotid) && sub->csparent) {
+        client *head = sub->csparent->head;
+        if (head && head->parent && head->parent->has_exec_tail) {
+            clientExecTail *rt = clientTail(head->parent);
+            rt->tomo_xnode_cdb[head->fake_slot] = (uint8_t)head->cdb;
+            rt->tomo_xnode_remote_slots |= 1u << head->fake_slot;
+        }
+    }
+#endif
     exQueue *q = exQueueFor(w);
     int spins = 0;
     int counted = 0;
@@ -19158,6 +19850,13 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             atomic_load_explicit(&tomo_fake_tail_promotions, memory_order_relaxed));
         info = sdscatprintf(info, "tomokv_sim_xnode_lines_flushed:%llu\r\n",
                             tomoXnodeLinesFlushed());
+        info = sdscatprintf(info,
+            "tomokv_xnode_message_prefetches:%llu\r\n"
+            "tomokv_xnode_reply_descriptor_prefetches:%llu\r\n"
+            "tomokv_xnode_reply_payload_prefetches:%llu\r\n",
+            tomoXnodeMessagePrefetches(),
+            tomoXnodeReplyDescriptorPrefetches(),
+            tomoXnodeReplyPayloadPrefetches());
         /* Keep the lifecycle witnesses outside the already-large FMTARGS block. ref_waits is the
          * non-vacuous proof: it increments only when group completion reached zero but old-owner
          * STAMP/PRUNE/grace work for the migrating range was still outstanding. Both stale-owner
@@ -20948,6 +21647,43 @@ int exQueuePopBatch(exQueue *q, client **out, int max) {
     return n;
 }
 
+#if TOMO_XNODE_PREFETCH_ACTIVE
+typedef struct tomoXnodeMessagePrefetch {
+    exQueue *q;
+    unsigned int slot;
+    int remaining;
+} tomoXnodeMessagePrefetch;
+
+/* The bulk pop has necessarily touched the current prefix. Prime the next
+ * cache-visible prefix's ring lines now; exPrefetchBatch supplies the gap
+ * before those warmed slots yield carried fakes, and current-batch execution
+ * supplies the gap before the next pop consumes their headers. */
+static inline void tomoXnodeMessagePrefetchInit(tomoXnodeMessagePrefetch *pf,
+                                                exQueue *q, int width) {
+    unsigned int head = atomic_load_explicit(&q->head, memory_order_relaxed);
+    unsigned int future = (q->cached_tail - head) & server.ex_queue_mask;
+    pf->q = q;
+    pf->slot = head;
+    pf->remaining = (int)future < width ? (int)future : width;
+    for (int off = 0; off < pf->remaining; off++)
+        redis_prefetch_read(&q->jobs[(head + (unsigned int)off) &
+                                    server.ex_queue_mask]);
+}
+
+static inline void tomoXnodeMessagePrefetchCarriers(tomoXnodeMessagePrefetch *pf) {
+    int issued = pf->remaining;
+    while (pf->remaining) {
+        client *future = pf->q->jobs[pf->slot];
+        redis_prefetch_read(future);
+        pf->slot = (pf->slot + 1) & server.ex_queue_mask;
+        pf->remaining--;
+    }
+    if (issued)
+        tomoRelaxedBump(tomo_xnode_message_prefetches[iotid].value,
+                        (unsigned long long)issued);
+}
+#endif
+
 
 
 /* ee451 (v13, audit #9): dead queueToWorker() deleted — no callers (live dispatch uses
@@ -21893,7 +22629,18 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
         any = 1;
 
         /* Warm the cache before executing the batch. */
+#if TOMO_XNODE_PREFETCH_ACTIVE
+        if (tomoXnodeLaneRemote(worker->id, i)) {
+            tomoXnodeMessagePrefetch xnode_messages;
+            tomoXnodeMessagePrefetchInit(&xnode_messages, &WQ[i], n);
+            exPrefetchBatch(ctx->batch, n);
+            tomoXnodeMessagePrefetchCarriers(&xnode_messages);
+        } else {
+            exPrefetchBatch(ctx->batch, n);
+        }
+#else
         exPrefetchBatch(ctx->batch, n);
+#endif
 
         tomoRelaxedBump(worker->ops_total, (uint64_t)n);   /* ee451 (v8d): monotonic load signal for the EWMA balancer (numa: _Atomic single-writer idiom) */
 
@@ -27287,46 +28034,53 @@ static int tomoGrowBackNode(int node, const char **err) {
     return tomoGrowBackSlot(pick, err);
 }
 
-/* The ordinary server never carries the flush hook through its hot path. Once
- * configuration is known, an armed boot restarts in the compile-specialized
- * sibling; that sibling refuses an unarmed direct invocation. */
-static void tomoSelectXnodeFlushBuild(const char *startup_cwd,
-                                      int config_from_stdin) {
-#if TOMO_XNODE_FLUSH_ACTIVE
+/* The ordinary server carries neither cross-node hook through its hot paths.
+ * Once configuration is known it selects the exact compile specialization;
+ * a specialized sibling refuses every mismatched direct invocation. */
+static void tomoSelectXnodeBuild(const char *startup_cwd,
+                                 int config_from_stdin) {
+    int want_flush = server.tomo_sim_xnode != 0;
+    int real_topology = server.topo_nodes > 1 &&
+                        server.pin_mode != TOMO_PIN_FLOAT;
+    int want_prefetch = server.tomo_sim_xnode_mask != 0 ||
+                        (!want_flush && real_topology);
+#if TOMO_XNODE_FLUSH_ACTIVE || TOMO_XNODE_PREFETCH_ACTIVE
     UNUSED(startup_cwd);
     UNUSED(config_from_stdin);
+    if (want_flush != TOMO_XNODE_FLUSH_ACTIVE ||
+        want_prefetch != TOMO_XNODE_PREFETCH_ACTIVE) {
+        fprintf(stderr,
+            "FATAL: cross-node server specialization does not match the requested configuration\n");
+        exit(1);
+    }
     if (server.sentinel_mode) {
-        fprintf(stderr, "FATAL: redis-server-xnode-sim is not valid in sentinel mode\n");
+        fprintf(stderr, "FATAL: cross-node server specializations are not valid in sentinel mode\n");
         exit(1);
     }
-    if (!server.tomo_sim_xnode) {
-        fprintf(stderr, "FATAL: redis-server-xnode-sim requires tomokv-sim-xnode 1\n");
-        exit(1);
-    }
-    if (!tomoXnodeClflushoptSupported()) {
+    if (want_flush && !tomoXnodeClflushoptSupported()) {
         fprintf(stderr, "FATAL: tomokv-sim-xnode requires CPU CLFLUSHOPT support\n");
         exit(1);
     }
 #else
-    if (!server.tomo_sim_xnode) return;
+    if (!want_flush && !want_prefetch) return;
     if (server.sentinel_mode) {
-        fprintf(stderr, "FATAL: tomokv-sim-xnode is not supported in sentinel mode\n");
+        fprintf(stderr, "FATAL: cross-node server specializations are not supported in sentinel mode\n");
         exit(1);
     }
     if (config_from_stdin) {
-        fprintf(stderr, "FATAL: tomokv-sim-xnode cannot re-read configuration from stdin\n");
+        fprintf(stderr, "FATAL: cross-node specialization cannot re-read configuration from stdin\n");
         exit(1);
     }
-    if (!tomoXnodeClflushoptSupported()) {
+    if (want_flush && !tomoXnodeClflushoptSupported()) {
         fprintf(stderr, "FATAL: tomokv-sim-xnode requires CPU CLFLUSHOPT support\n");
         exit(1);
     }
     if (!startup_cwd[0]) {
-        fprintf(stderr, "FATAL: tomokv-sim-xnode could not capture the startup directory\n");
+        fprintf(stderr, "FATAL: cross-node specialization could not capture the startup directory\n");
         exit(1);
     }
     if (chdir(startup_cwd) == -1) {
-        fprintf(stderr, "FATAL: tomokv-sim-xnode could not restore the startup directory: %s\n",
+        fprintf(stderr, "FATAL: cross-node specialization could not restore the startup directory: %s\n",
                 strerror(errno));
         exit(1);
     }
@@ -27339,7 +28093,10 @@ static void tomoSelectXnodeFlushBuild(const char *startup_cwd,
         exit(1);
     }
     self_path[self_len] = '\0';
-    sds executable = sdscatprintf(sdsempty(), "%s-xnode-sim", self_path);
+    const char *suffix = want_flush ?
+        (want_prefetch ? "-xnode-sim-prefetch" : "-xnode-sim") :
+        "-xnode-prefetch";
+    sds executable = sdscatprintf(sdsempty(), "%s%s", self_path, suffix);
     zfree(server.exec_argv[0]);
     server.exec_argv[0] = zstrdup(executable);
     execv(executable, server.exec_argv);
@@ -27581,7 +28338,7 @@ int main(int argc, char **argv) {
         sdsfree(options);
     }
     if (server.sentinel_mode) sentinelCheckConfigFile();
-    tomoSelectXnodeFlushBuild(startup_cwd, config_from_stdin);
+    tomoSelectXnodeBuild(startup_cwd, config_from_stdin);
 
     /* Do system checks */
 #ifdef __linux__

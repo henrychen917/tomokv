@@ -3230,6 +3230,8 @@ standardConfig static_configs[] = {
     /* Measurement-only cross-CCX first-touch emulator. Non-zero selects a
      * separately compiled publish specialization; zero has no hot-path hook. */
     createIntConfig("tomokv-sim-xnode",              NULL, DEBUG_CONFIG | IMMUTABLE_CONFIG, 0, 1, server.tomo_sim_xnode, 0, INTEGER_CONFIG, NULL, NULL),
+    /* Worker bits for the compile-specialized consumer-prefetch test path. */
+    createULongLongConfig("tomokv-sim-xnode-mask",  NULL, DEBUG_CONFIG | IMMUTABLE_CONFIG, 0, ULLONG_MAX, server.tomo_sim_xnode_mask, 0, INTEGER_CONFIG, NULL, NULL),
 
     /* ================= FRONT/BACK SPLIT ====================================================
      * thread-io / thread-ex are the STARTING split, PER NODE, in BOTH modes. Under `auto` the

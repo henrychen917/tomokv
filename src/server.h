@@ -1867,6 +1867,12 @@ typedef union clientExecTail {
         int last_memory_type;
         redisAtomic int pending_read;
         uint8_t read_error;
+#ifdef TOMO_XNODE_PREFETCH_BUILD
+        /* Compile-specialized reply-prefetch routing. These occupy the audited
+         * tail reserve without changing its fixed allocation size. */
+        uint32_t tomo_xnode_remote_slots;
+        uint8_t tomo_xnode_cdb[TOMO_PIPELINE_DEPTH_MAX];
+#endif
     };
     unsigned char _layout[CLIENT_EXEC_TAIL_BYTES];
     uint64_t _align;
@@ -4175,6 +4181,7 @@ struct redisServer {
     int dbg_assert_alloc_per_slot; /* Assert per-slot alloc_size after each command */
     int tomo_sim_xnode;        /* measurement-only cross-CCX touch-cost emulation. 0 = OFF;
                                 * 1 = producer CLFLUSHOPT after each worker-ring publication. */
+    unsigned long long tomo_sim_xnode_mask; /* measurement-only remote-worker mask. 0 = OFF. */
 };
 
 /* we use 6 so that all getKeyResult fits a cacheline */
@@ -6226,6 +6233,9 @@ int sortXShardBuildGetDeref(struct sortXShardCtx *ctx, robj ***keys, sds **field
 void sortXShardApplyGet(struct sortXShardCtx *ctx, sds *values);
 int sortXShardHasStore(const struct sortXShardCtx *ctx);
 unsigned int sortXShardOutputLen(const struct sortXShardCtx *ctx);
+const void *sortXShardReplyCarrierField(const struct sortXShardCtx *ctx, int part);
+int sortXShardReplyCarrier(const struct sortXShardCtx *ctx, int part,
+                           sds **values, long *count);
 robj *sortXShardStoreResultObject(const struct sortXShardCtx *ctx);
 void sortXShardReply(client *c, const struct sortXShardCtx *ctx);
 void sortXShardFree(struct sortXShardCtx *ctx);

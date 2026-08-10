@@ -317,6 +317,7 @@ means *off* · **`0` = AUTO** where off is meaningless · explicit `N` = strict.
 | `tomokv-pipeline-depth` | `-1` auto (default) · `0` off · pow2 ≤ 32 | Per‑connection in‑flight ring. Auto resolves to the max (32); `0` disables pipelining entirely (depth 1) — a deeper ring never hurts shallow clients, it only costs idle memory, and the per‑connection demand‑grow/decay controller (`tomokv-fake-ring-depth`) trims the live slots back down. |
 | `tomokv-ex-queue-depth` | `-1` auto (default) · pow2 ≤ 2048 | io→worker SPSC queue size. Auto derives `4 × (io_threads+1) × pipeline_depth`, floored at 2048 and clamped to the 2048 maximum (`jobs[]` is a static array at that size, per (worker, io) pair). `0` is invalid — the queue *is* the dispatch path — and is rejected with a warning. Watch `INFO tomokv_ex_queue_full` for undersizing. |
 | `tomokv-sim-xnode` | `0` off (default) · `1` emulate | Measurement-only cross-CCX first-touch emulator. The armed server CLFLUSHOPTs each newly published worker-ring line after the release-store; the optional carried-header flush is deliberately omitted. The ordinary server automatically re-execs its compile-specialized `-xnode-sim` sibling, so `0` has no publish hook, hot branch, or side allocation. Requires x86 CLFLUSHOPT. |
+| `tomokv-sim-xnode-mask` | `0` off (default) · decimal worker bitmask | Measurement-only consumer topology override: bit `w` marks worker `w` remote from every producer. A nonzero mask selects the compile-specialized message/reply prefetch path; zero leaves the exact producer-only simulator when `tomokv-sim-xnode` is `1`. Bits outside the configured worker slots are rejected. |
 
 ### Batching, spin & prefetch — no knobs, by design
 
@@ -431,7 +432,7 @@ make -j
 Tomo KV builds and runs like stock Redis and speaks unmodified RESP2/RESP3, so existing clients,
 `redis-cli`, and `memtier_benchmark` work as‑is. jemalloc is the recommended allocator (bundled).
 
-### Cross-CCX touch-cost emulation
+### Cross-node touch-cost emulation and prefetch
 
 Use identical topology, workload, affinity and duration in both cells; add only the simulator knob
 to the second invocation. The specialized sibling is built and selected automatically. Because
@@ -447,12 +448,24 @@ consumed stdin (`-`) configuration.
 ./src/redis-server --port 6380 --tomokv-thread-io 6 --tomokv-thread-ex 4 \
     --tomokv-thread-mode static --tomokv-sim-xnode 1
 
-# The armed cell is engaged only if this counter advances.
-./src/redis-cli -p 6380 INFO stats | grep '^tomokv_sim_xnode_lines_flushed:'
+# Same eviction cell plus consumer prefetch for workers 0..3 (decimal mask 15).
+./src/redis-server --port 6380 --tomokv-thread-io 6 --tomokv-thread-ex 4 \
+    --tomokv-thread-mode static --tomokv-sim-xnode 1 \
+    --tomokv-sim-xnode-mask 15
+
+# The cells are engaged only if their counters advance.
+./src/redis-cli -p 6380 INFO stats | grep -E \
+    '^tomokv_(sim_xnode_lines_flushed|xnode_message_prefetches|xnode_reply_descriptor_prefetches|xnode_reply_payload_prefetches):'
 ```
 
 `tomokv_sim_xnode_lines_flushed` counts distinct published ring cache lines passed to
 CLFLUSHOPT. CLFLUSHOPT is left asynchronous: the producer does not fence or wait for eviction.
+`tomokv_xnode_message_prefetches` counts completed worker-side ring/header prefetch pairs;
+`tomokv_xnode_reply_descriptor_prefetches` and `tomokv_xnode_reply_payload_prefetches` count
+the actual IO-side descriptor and payload-line hints issued. With simulation off, pinned
+multi-node boots select the same consumer specialization automatically and derive the gate from
+the configured IO/worker node relation; `tomokv-pin-mode float` has no exact topology relation and
+therefore does not engage it.
 
 ---
 
