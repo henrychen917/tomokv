@@ -3412,6 +3412,7 @@ static __thread int rord_dep_pos[TOMO_RORD_HSET];
 static __thread uint32_t rord_hset_curgen;
 
 static void exDispatchDirect(int ex_id, client *fake);   /* the pre-D push path, defined below */
+static int tomoPureIODropAtQueueBoundary(client *fake, int ex_id);
 
 /* D trace helper (armed-only, off the hot path): reproduce the emission order of ONE run into a
  * string without dispatching. Mirrors tomoReorderDrain's head-pass + chunked class-SJF + bucket
@@ -3706,6 +3707,9 @@ static void exDispatchDirect(int ex_id, client *fake) {
      * increment on a per-io-identity line: this thread is its only writer, and it is off the fast
      * path by construction (we are already about to spin). */
     tm_io_sig[iotid].q_full_events++;
+    /* The rig drops only after this real enqueue has failed.  Its synthetic
+     * completion is consumed by the normal next-pass CDB drain. */
+    if (tomoPureIODropAtQueueBoundary(fake, ex_id)) return;
     int spins = 0;
     uint64_t _stall0 = getMonotonicUs();   /* ring-stall = EX backlog seen from IO; see tmIoSignal */
     tmIoWaitBegin();
@@ -23937,6 +23941,795 @@ static int tmMigExpelInbox(int id) {
     return 1;
 }
 
+/* --------------------------------------------------------------------------
+ * DEBUG TOMO-PURE-IO: stall-free, fully asynchronous IO-path measurement.
+ *
+ * The actuator is cold: an ordinary boot allocates nothing and successful
+ * dispatch does not test a rig flag.  When armed, each fixed IO owner drives
+ * one unlinked client through readQueryFromClient() with command-aligned,
+ * pre-generated RESP prefixes that consume the real 16--64 KiB read budget.
+ *
+ * Successful commands take the production path unchanged:
+ *
+ *   parse -> route -> staged SPSC publish -> WORKER_POP_BATCH pop
+ *   -> exPrefetchBatch/exExecFake -> per-connection CDB publish
+ *   -> next owner pass -> AddReplyFromClient -> writeToClient
+ *
+ * The connection's write/writev methods accept and discard the formatted
+ * bytes, so the ordinary reply-consumption code resets the buffers.  A full
+ * worker lane is the sole exceptional seam: the already-failed enqueue is
+ * formatted and release-publishes a synthetic ready byte in its selected CDB
+ * slot.  The owner still retires it in order on its next pass; it never waits
+ * for queue space. */
+#define TOMO_PURE_IO_VALUE "0123456789abcdef"
+#define TOMO_PURE_IO_VALUE_LEN (sizeof(TOMO_PURE_IO_VALUE) - 1)
+#define TOMO_PURE_IO_SEGMENTS 4
+
+typedef struct tomoPureIOResult {
+    pid_t tid;
+    uint64_t passes;
+    uint64_t drain_passes;
+    uint64_t read_calls;
+    uint64_t read_bytes;
+    uint64_t offered;
+    uint64_t dispatched;
+    uint64_t worker_completions;
+    uint64_t queue_drops;
+    uint64_t drained;
+    uint64_t sink_calls;
+    uint64_t sink_bytes;
+    uint64_t residual;
+    uint64_t errors;
+} tomoPureIOResult;
+
+typedef struct tomoPureIORun {
+    long long duration_ms;
+    int io_threads;
+    int resp;
+    int dbid;
+    user *acl_user;
+    int authenticated;
+    uint64_t deadline_us;          /* published by the release-store to go */
+    _Atomic int ready;
+    _Atomic int setup_errors;
+    _Atomic int go;
+    _Atomic int done;
+    _Atomic int cleanup_go;
+    _Atomic int departed;
+    tomoPureIOResult result[TOMO_IO_THREADS_MAX + 1];
+} tomoPureIORun;
+
+typedef struct tomoPureIOConn {
+    connection conn;               /* must be first */
+    sds input;
+    size_t segment_off[TOMO_PURE_IO_SEGMENTS];
+    size_t segment_len[TOMO_PURE_IO_SEGMENTS];
+    unsigned int segment_ops[TOMO_PURE_IO_SEGMENTS];
+    unsigned int next_segment;
+    int warm_segment;              /* -1 = read-sized prefix; 0..3 = setup */
+    int measuring;
+    tomoPureIOResult *result;
+} tomoPureIOConn;
+
+static _Atomic(tomoPureIORun *) tomo_pure_io_run = NULL;
+static ConnectionType tomo_pure_io_conn_type;
+
+static const char *tomoPureIOConnGetType(connection *conn) {
+    UNUSED(conn);
+    return "pure-io";
+}
+
+static int tomoPureIOConnAddr(connection *conn, char *ip, size_t ip_len,
+                              int *port, int remote)
+{
+    UNUSED(conn);
+    UNUSED(remote);
+    if (ip_len) strlcpy(ip, "pure-io", ip_len);
+    if (port) *port = 0;
+    return C_OK;
+}
+
+static int tomoPureIOConnIsLocal(connection *conn) {
+    UNUSED(conn);
+    return 1;
+}
+
+static void tomoPureIOConnShutdown(connection *conn) {
+    UNUSED(conn);
+}
+
+static void tomoPureIOConnClose(connection *conn) {
+    tomoPureIOConn *pc = (tomoPureIOConn *)conn;
+    serverAssert(conn->refs == 0);
+    sdsfree(pc->input);
+    zfree(pc);
+}
+
+static int tomoPureIOConnSetReadHandler(connection *conn,
+                                         ConnectionCallbackFunc handler)
+{
+    conn->read_handler = handler;
+    return C_OK;
+}
+
+static int tomoPureIOConnSetWriteHandler(connection *conn,
+                                          ConnectionCallbackFunc handler,
+                                          int barrier)
+{
+    conn->write_handler = handler;
+    if (barrier)
+        conn->flags |= CONN_FLAG_WRITE_BARRIER;
+    else
+        conn->flags &= ~CONN_FLAG_WRITE_BARRIER;
+    return C_OK;
+}
+
+static const char *tomoPureIOConnLastError(connection *conn) {
+    UNUSED(conn);
+    return "PURE-IO memory connection error";
+}
+
+/* Return one whole RESP prefix.  Each of the four pre-generated segments is
+ * just under PROTO_IOBUF_LEN and ends after a GET, so 1x..4x reads consume the
+ * production read budget without manufacturing a partial final command. */
+static int tomoPureIOConnRead(connection *conn, void *buf, size_t buf_len) {
+    tomoPureIOConn *pc = (tomoPureIOConn *)conn;
+    size_t len = 0;
+    unsigned int ops = 0;
+
+    if (pc->warm_segment >= 0) {
+        int s = pc->warm_segment;
+        serverAssert(s < TOMO_PURE_IO_SEGMENTS);
+        len = pc->segment_len[s];
+        ops = pc->segment_ops[s];
+        serverAssert(len > 0 && len <= buf_len && len <= INT_MAX);
+        memcpy(buf, pc->input + pc->segment_off[s], len);
+    } else {
+        unsigned int start = pc->next_segment;
+        unsigned int segments = 0;
+        for (unsigned int s = 0; s < TOMO_PURE_IO_SEGMENTS; s++) {
+            unsigned int idx = (start + s) % TOMO_PURE_IO_SEGMENTS;
+            size_t slen = pc->segment_len[idx];
+            if (slen > buf_len - len) break;
+            len += slen;
+            ops += pc->segment_ops[idx];
+            segments++;
+        }
+        serverAssert(segments > 0 && len <= INT_MAX);
+        size_t copied = 0;
+        for (unsigned int s = 0; s < segments; s++) {
+            unsigned int idx = (start + s) % TOMO_PURE_IO_SEGMENTS;
+            memcpy((char *)buf + copied,
+                   pc->input + pc->segment_off[idx],
+                   pc->segment_len[idx]);
+            copied += pc->segment_len[idx];
+        }
+        serverAssert(copied == len);
+        pc->next_segment = (start + segments) % TOMO_PURE_IO_SEGMENTS;
+    }
+
+    if (pc->measuring) {
+        pc->result->read_calls++;
+        pc->result->read_bytes += len;
+        pc->result->offered += ops;
+    }
+    return (int)len;
+}
+
+static int tomoPureIOConnWrite(connection *conn, const void *data,
+                                size_t data_len)
+{
+    tomoPureIOConn *pc = (tomoPureIOConn *)conn;
+    UNUSED(data);
+    serverAssert(data_len > 0 && data_len <= INT_MAX);
+    if (pc->measuring) {
+        pc->result->sink_calls++;
+        pc->result->sink_bytes += data_len;
+    }
+    return (int)data_len;
+}
+
+static int tomoPureIOConnWritev(connection *conn, const struct iovec *iov,
+                                 int iovcnt)
+{
+    tomoPureIOConn *pc = (tomoPureIOConn *)conn;
+    size_t total = 0;
+    for (int i = 0; i < iovcnt; i++) total += iov[i].iov_len;
+    serverAssert(total > 0 && total <= INT_MAX);
+    if (pc->measuring) {
+        pc->result->sink_calls++;
+        pc->result->sink_bytes += total;
+    }
+    return (int)total;
+}
+
+static ConnectionType tomo_pure_io_conn_type = {
+    .get_type = tomoPureIOConnGetType,
+    .addr = tomoPureIOConnAddr,
+    .is_local = tomoPureIOConnIsLocal,
+    .shutdown = tomoPureIOConnShutdown,
+    .close = tomoPureIOConnClose,
+    .write = tomoPureIOConnWrite,
+    .writev = tomoPureIOConnWritev,
+    .read = tomoPureIOConnRead,
+    .set_write_handler = tomoPureIOConnSetWriteHandler,
+    .set_read_handler = tomoPureIOConnSetReadHandler,
+    .get_last_error = tomoPureIOConnLastError,
+};
+
+/* Build four command-aligned ~16 KiB segments.  SET/GET pairs share a key,
+ * keys are unique per owner/segment, and neither setup nor the measured loop
+ * uses a random source. */
+static tomoPureIOConn *tomoPureIOConnCreate(int io_id,
+                                             tomoPureIOResult *result)
+{
+    tomoPureIOConn *pc = zcalloc(sizeof(*pc));
+    pc->conn.type = &tomo_pure_io_conn_type;
+    pc->conn.state = CONN_STATE_CONNECTED;
+    pc->conn.fd = -1;
+    pc->conn.iovcnt = IOV_MAX;
+    pc->warm_segment = -1;
+    pc->result = result;
+    pc->input = sdsempty();
+
+    for (int s = 0; s < TOMO_PURE_IO_SEGMENTS; s++) {
+        pc->segment_off[s] = sdslen(pc->input);
+        size_t segment_start = sdslen(pc->input);
+        unsigned int pairs = 0;
+
+        for (;;) {
+            char key[64];
+            int keylen = snprintf(key, sizeof(key),
+                                  "__pure_io:%02d:%d:%05u",
+                                  io_id, s, pairs);
+            serverAssert(keylen > 0 && keylen < (int)sizeof(key));
+            sds pair = sdscatprintf(sdsempty(),
+                "*3\r\n$3\r\nSET\r\n$%d\r\n%s\r\n$%zu\r\n%s\r\n"
+                "*2\r\n$3\r\nGET\r\n$%d\r\n%s\r\n",
+                keylen, key, (size_t)TOMO_PURE_IO_VALUE_LEN,
+                TOMO_PURE_IO_VALUE, keylen, key);
+            size_t pairlen = sdslen(pair);
+            size_t used = sdslen(pc->input) - segment_start;
+            if (used && used + pairlen > PROTO_IOBUF_LEN) {
+                sdsfree(pair);
+                break;
+            }
+            pc->input = sdscatsds(pc->input, pair);
+            sdsfree(pair);
+            pairs++;
+        }
+
+        pc->segment_len[s] = sdslen(pc->input) - segment_start;
+        pc->segment_ops[s] = pairs * 2;
+        serverAssert(pc->segment_len[s] > 0 &&
+                     pc->segment_len[s] <= PROTO_IOBUF_LEN &&
+                     pc->segment_ops[s] > 0);
+    }
+    return pc;
+}
+
+/* This hook is reached only after exQueuePush has already reported a full
+ * lane.  Successful rig commands and every ordinary command never call it. */
+static int tomoPureIODropAtQueueBoundary(client *fake, int ex_id) {
+    client *real = fake ? fake->parent : NULL;
+    if (!real || !real->conn || real->conn->type != &tomo_pure_io_conn_type)
+        return 0;
+
+    tomoPureIOConn *pc = (tomoPureIOConn *)real->conn;
+    if (fake->cmd && fake->cmd->proc == getCommand) {
+        addReplyBulkCBuffer(fake, TOMO_PURE_IO_VALUE,
+                           TOMO_PURE_IO_VALUE_LEN);
+    } else if (fake->cmd && fake->cmd->proc == setCommand) {
+        addReply(fake, shared.ok);
+    } else {
+        addReplyError(fake, "PURE-IO queue drop saw a non-GET/SET command");
+        if (pc->measuring) pc->result->errors++;
+    }
+
+    if (pc->measuring) pc->result->queue_drops++;
+    UNUSED(ex_id);
+    /* Preserve CLIENT_EX_PENDING/replyWorking/command ownership.  The caller
+     * increments dispatchid after we return, and the next owner pass performs
+     * the ordinary ordered splice, CDB clear, commandProcessed and flushid++. */
+    cdbSlotPublish(real, fake->cdb, fake->fake_slot);
+    return 1;
+}
+
+static int tomoPureIOCanRead(client *real) {
+    return real->pending_cmds.len == 0 &&
+           (!real->querybuf || sdslen(real->querybuf) == 0) &&
+           !(real->flags & (CLIENT_CLOSE_ASAP | CLIENT_CLOSE_AFTER_REPLY));
+}
+
+static int tomoPureIOInputDrained(client *real) {
+    return real->dispatchid == real->flushid &&
+           real->pending_cmds.len == 0 &&
+           (!real->querybuf || sdslen(real->querybuf) == 0) &&
+           !clientHasPendingReplies(real) &&
+           !(real->flags & CLIENT_PENDING_WRITE);
+}
+
+/* The core ordering mirrors an IO event-loop turn without recursively entering
+ * beforeSleepIO from its own mailbox service frame: prior CDBs are drained and
+ * sink-written first, then at most one socket-sized read is parsed/published. */
+static void tomoPureIOOwnerPass(client *real, connection *conn, int allow_read) {
+    handleWorkerReplies();
+    tomoAtomicReleaseStalledClients();
+    handleClientsWithPendingWrites();
+    if (allow_read && tomoPureIOCanRead(real))
+        readQueryFromClient(conn);
+}
+
+static uint64_t tomoPureIOResidual(client *real) {
+    uint64_t residual = 0;
+    if (real->dispatchid != real->flushid) residual++;
+    residual += real->pending_cmds.len;
+    if (real->querybuf) residual += sdslen(real->querybuf);
+    if (clientHasPendingReplies(real)) residual++;
+    if (real->flags & (CLIENT_PENDING_WRITE | CLIENT_PIPELINE_STALLED |
+                       CLIENT_CLOSE_ASAP | CLIENT_CLOSE_AFTER_REPLY))
+        residual++;
+    if (listSearchKey(server.clients_pending_ex[iotid], real)) residual++;
+    if (listSearchKey(server.clients_pending_write[iotid], real)) residual++;
+    int ncdb = server.num_cdb > 0 ? server.num_cdb : 1;
+    for (int cdb = 0; cdb < ncdb; cdb++)
+        for (int slot = 0; slot < TOMO_PIPELINE_DEPTH_MAX; slot++)
+            if (atomic_load_explicit(&real->reply_cdb[cdb].ready[slot],
+                                     memory_order_relaxed))
+                residual++;
+    return residual;
+}
+
+/* Setup warms all four deterministic key segments through the same real
+ * worker/CDB path.  It is outside the common go edge and excluded from the
+ * reported counters. */
+static int tomoPureIOWarm(tomoPureIOConn *pc, client *real,
+                           int reply_working0)
+{
+    unsigned int dispatch0 = real->dispatchid;
+    unsigned int flush0 = real->flushid;
+    memset(pc->result, 0, sizeof(*pc->result));
+    pc->measuring = 1;
+
+    for (int s = 0; s < TOMO_PURE_IO_SEGMENTS; s++) {
+        pc->warm_segment = s;
+        readQueryFromClient(&pc->conn);
+        while (!tomoPureIOInputDrained(real))
+            tomoPureIOOwnerPass(real, &pc->conn, 0);
+    }
+    pc->warm_segment = -1;
+    tomoPureIOOwnerPass(real, &pc->conn, 0);
+
+    uint64_t dispatched = (unsigned int)(real->dispatchid - dispatch0);
+    uint64_t drained = (unsigned int)(real->flushid - flush0);
+    int ok = pc->result->errors == 0 &&
+             pc->result->read_calls == TOMO_PURE_IO_SEGMENTS &&
+             pc->result->offered == dispatched &&
+             dispatched == drained &&
+             pc->result->sink_calls > 0 &&
+             pc->result->sink_bytes > 0 &&
+             replyWorking == reply_working0 &&
+             tomoPureIOResidual(real) == 0;
+    pc->measuring = 0;
+    return ok ? C_OK : C_ERR;
+}
+
+/* One invocation per fixed IO owner.  The timed loop never waits for a worker,
+ * lane or CDB slot: it drains what completed, issues one eligible read-sized
+ * parse batch, and immediately starts the next owner pass. */
+static void tomoPureIORunThread(tomoPureIORun *run) {
+    int id = iotid;
+    tomoPureIOResult result = {0};
+    pid_t os_tid = (pid_t)syscall(SYS_gettid);
+    int reply_working0 = replyWorking;
+    client *real = createClient(NULL);
+    tomoPureIOConn *pc = tomoPureIOConnCreate(id, &result);
+    connection *conn = &pc->conn;
+
+    serverAssert(id >= 0 && id < run->io_threads);
+    real->conn = conn;
+    real->resp = run->resp;
+    real->user = run->acl_user;
+    real->authenticated = run->authenticated;
+    serverAssert(selectDb(real, run->dbid) == C_OK);
+    connSetPrivateData(conn, real);
+    connSetReadHandler(conn, readQueryFromClient);
+
+    int setup_error =
+        tomoPureIOWarm(pc, real, reply_working0) != C_OK;
+    memset(&result, 0, sizeof(result));
+    result.tid = os_tid;
+    pc->result = &result;
+    if (setup_error)
+        atomic_fetch_add_explicit(&run->setup_errors, 1,
+                                  memory_order_release);
+
+    run->result[id].tid = os_tid;
+    /* The acq_rel RMWs form an explicit barrier chain: the last participant
+     * carries every earlier owner's published setup/result state. */
+    atomic_fetch_add_explicit(&run->ready, 1, memory_order_acq_rel);
+
+    if (id == 0) {
+        while (atomic_load_explicit(&run->ready, memory_order_acquire) !=
+               run->io_threads)
+            exPauseCpu();
+        serverLog(atomic_load_explicit(&run->setup_errors,
+                                      memory_order_acquire) ?
+                  LL_WARNING : LL_NOTICE,
+                  "PURE-IO READY: duration_ms=%lld io_threads=%d "
+                  "read_geometry=1..4x%dB pattern=SET/GET; perf must already "
+                  "be attached (use a short discovery run to obtain tids)",
+                  run->duration_ms, run->io_threads, PROTO_IOBUF_LEN);
+        for (int t = 0; t < run->io_threads; t++)
+            serverLog(LL_NOTICE, "PURE-IO owner io=%d tid=%ld", t,
+                      (long)run->result[t].tid);
+        run->deadline_us =
+            getMonotonicUs() + (uint64_t)run->duration_ms * 1000;
+        atomic_store_explicit(&run->go, 1, memory_order_release);
+    } else {
+        while (!atomic_load_explicit(&run->go, memory_order_acquire))
+            exPauseCpu();
+    }
+
+    unsigned int dispatch0 = real->dispatchid;
+    unsigned int flush0 = real->flushid;
+    pc->measuring = 1;
+    if (atomic_load_explicit(&run->setup_errors, memory_order_acquire) == 0) {
+        uint64_t next_svc_tick = getMonotonicUs() + 1000000;
+        do {
+            result.passes++;
+            tomoPureIOOwnerPass(real, conn, 1);
+            uint64_t now = getMonotonicUs();
+            if (now >= run->deadline_us) break;
+            /* This is the production 1 Hz controller that selects the socket
+             * read budget and dispatch window.  serverCron is blocked by the
+             * DEBUG command, so owner 0 advances the same controller here. */
+            if (id == 0 && now >= next_svc_tick) {
+                tomoSvcTick();
+                do next_svc_tick += 1000000;
+                while (next_svc_tick <= now);
+            }
+        } while (1);
+    } else {
+        while (getMonotonicUs() < run->deadline_us) exPauseCpu();
+        result.errors++;
+    }
+
+    /* Stop creating input at the wall-clock edge.  Continue taking ordinary
+     * nonblocking owner passes until the last accepted read batch and all of
+     * its asynchronously dispatched fakes have retired in order. */
+    while (!tomoPureIOInputDrained(real)) {
+        result.drain_passes++;
+        tomoPureIOOwnerPass(real, conn, 0);
+    }
+    tomoPureIOOwnerPass(real, conn, 0);
+    pc->measuring = 0;
+
+    result.dispatched = (unsigned int)(real->dispatchid - dispatch0);
+    result.drained = (unsigned int)(real->flushid - flush0);
+    if (result.queue_drops <= result.dispatched)
+        result.worker_completions =
+            result.dispatched - result.queue_drops;
+    else
+        result.errors++;
+    result.residual = tomoPureIOResidual(real);
+    if (result.offered != result.dispatched ||
+        result.dispatched != result.drained ||
+        result.worker_completions + result.queue_drops != result.dispatched ||
+        replyWorking != reply_working0 || result.residual != 0)
+        result.errors++;
+
+    run->result[id] = result;
+    atomic_fetch_add_explicit(&run->done, 1, memory_order_acq_rel);
+
+    if (id == 0) {
+        while (atomic_load_explicit(&run->done, memory_order_acquire) !=
+               run->io_threads)
+            exPauseCpu();
+        atomic_store_explicit(&run->cleanup_go, 1, memory_order_release);
+    } else {
+        while (!atomic_load_explicit(&run->cleanup_go, memory_order_acquire))
+            exPauseCpu();
+    }
+
+    connSetReadHandler(conn, NULL);
+    connSetWriteHandler(conn, NULL);
+    connSetPrivateData(conn, NULL);
+    real->conn = NULL;
+    freeClient(real);
+    connClose(conn);
+    atomic_fetch_add_explicit(&run->departed, 1, memory_order_acq_rel);
+
+    if (id == 0)
+        while (atomic_load_explicit(&run->departed, memory_order_acquire) !=
+               run->io_threads)
+            exPauseCpu();
+}
+
+/* Main-owner control plane for DEBUG TOMO-PURE-IO <duration-ms>.  A fixed,
+ * otherwise empty server makes the owner set and the no-external-stall claim
+ * explicit.  The Unix listener deterministically places DEBUG on owner 0. */
+void tomoPureIOCommand(client *c, long long duration_ms) {
+    if (iotid != 0) {
+        addReplyError(c, "TOMO-PURE-IO must run on IO owner 0; issue DEBUG over the configured Unix socket");
+        return;
+    }
+    /* DEBUG is deliberately a normal non-stateful command, so it reaches us
+     * in the currently executing ring fake.  Requiring that shape both proves
+     * the actuator itself used the production parser/command pipeline and lets
+     * us suspend its provisional parent-list node while the nested rig drains
+     * the owner-global completion list. */
+    client *outer_real = c->parent;
+    if (!c->isFake || !outer_real || !(c->flags & CLIENT_EX_PENDING)) {
+        addReplyError(c, "TOMO-PURE-IO must be invoked as a normal client command through the TomoKV pipeline");
+        return;
+    }
+    if (server.thread_auto) {
+        addReplyError(c, "TOMO-PURE-IO requires tomokv-thread-mode static");
+        return;
+    }
+    if (atomic_load_explicit(&server.io_threads_live, memory_order_acquire) !=
+            server.io_threads ||
+        atomic_load_explicit(&server.num_workers_live, memory_order_acquire) !=
+            server.num_workers)
+    {
+        addReplyError(c, "TOMO-PURE-IO requires the unshifted static IO/worker split");
+        return;
+    }
+    if (server.num_workers < 1) {
+        addReplyError(c, "TOMO-PURE-IO requires at least one execution worker");
+        return;
+    }
+    if (duration_ms <= 0 || duration_ms > 3600000) {
+        addReplyError(c, "TOMO-PURE-IO duration-ms must be in the range 1..3600000");
+        return;
+    }
+    if (server.io_uring) {
+        addReplyError(c, "TOMO-PURE-IO requires io_uring disabled so readQueryFromClient is the real socket frontend");
+        return;
+    }
+    if (server.io_threads_num != 1) {
+        addReplyError(c, "TOMO-PURE-IO requires the upstream io-threads setting to remain 1");
+        return;
+    }
+    if (server.cluster_enabled || server.sentinel_mode || server.masterhost) {
+        addReplyError(c, "TOMO-PURE-IO requires a standalone primary (no cluster, Sentinel, or replica role)");
+        return;
+    }
+    if (server.loading || server.async_loading ||
+        isPausedActions(PAUSE_ACTION_CLIENT_ALL) ||
+        isPausedActions(PAUSE_ACTION_CLIENT_WRITE))
+    {
+        addReplyError(c, "TOMO-PURE-IO requires a fully loaded, unpaused server");
+        return;
+    }
+    if (server.pipeline_ring_depth < 2 ||
+        (server.pipeline_ring_depth & (server.pipeline_ring_depth - 1)))
+    {
+        addReplyError(c, "TOMO-PURE-IO requires a power-of-two tomokv-pipeline-depth >= 2");
+        return;
+    }
+    if (atomic_load_explicit(&server.migration_active, memory_order_acquire) ||
+        tmFlipActive())
+    {
+        addReplyError(c, "TOMO-PURE-IO requires no migration or role flip in progress");
+        return;
+    }
+    if (moduleCommandFilterCount() != 0) {
+        addReplyError(c, "TOMO-PURE-IO requires no module command filters");
+        return;
+    }
+    if (server.notify_keyspace_events != 0) {
+        addReplyError(c, "TOMO-PURE-IO requires notify-keyspace-events to be empty");
+        return;
+    }
+
+    unsigned int outer_slot = outer_real->dispatchid & outer_real->ring_mask;
+    listNode *outer_ex_node =
+        listSearchKey(server.clients_pending_ex[0], outer_real);
+    multiState *outer_ms = clientMultiState(outer_real);
+    clientCold *outer_pubsub = clientPubSubData(outer_real);
+    uint64_t bad_outer_flags =
+        CLIENT_CLOSE_ASAP | CLIENT_CLOSE_AFTER_REPLY | CLIENT_PROTECTED |
+        CLIENT_MULTI | CLIENT_BLOCKED | CLIENT_UNBLOCKED | CLIENT_PUBSUB |
+        CLIENT_MONITOR | CLIENT_MASTER | CLIENT_SLAVE | CLIENT_TRACKING |
+        CLIENT_LUA_DEBUG | CLIENT_LUA_DEBUG_SYNC | CLIENT_ASM_MIGRATING |
+        CLIENT_ASM_IMPORTING | CLIENT_INTERNAL | CLIENT_REPLY_OFF |
+        CLIENT_REPLY_SKIP | CLIENT_REPLY_SKIP_NEXT;
+    if (outer_real->dispatchid != 0 || outer_real->flushid != 0 ||
+        outer_real->fakeClients[outer_slot] != c ||
+        outer_real->pending_cmds.len != 0 ||
+        !(outer_real->io_flags & CLIENT_IO_REUSABLE_QUERYBUFFER) ||
+        !outer_real->querybuf ||
+        outer_real->qb_pos != sdslen(outer_real->querybuf) ||
+        (outer_real->flags & bad_outer_flags) ||
+        (outer_ms && listLength(&outer_ms->watched_keys)) ||
+        (outer_pubsub &&
+         (dictSize(outer_pubsub->pubsub_channels) ||
+          dictSize(outer_pubsub->pubsub_patterns) ||
+          dictSize(outer_pubsub->pubsubshard_channels))) ||
+        clientHasPendingReplies(outer_real) ||
+        (outer_real->flags & CLIENT_PENDING_WRITE) ||
+        listSearchKey(server.clients_pending_write[0], outer_real) ||
+        !outer_ex_node)
+    {
+        addReplyError(c, "TOMO-PURE-IO requires a fresh, stateless connection and a non-pipelined DEBUG request");
+        return;
+    }
+
+    long clients = 0;
+    for (int t = 0; t < server.io_threads; t++)
+        clients += tmIoThreadLoad(t);
+    if (clients != 1) {
+        addReplyErrorFormat(c,
+            "TOMO-PURE-IO requires an isolated server with only its DEBUG connection (found %ld clients)",
+            clients);
+        return;
+    }
+
+    for (int t = 0; t < server.io_threads; t++) {
+        unsigned long expected_ex = t == 0 ? 1 : 0;
+        if (listLength(server.clients_pending_ex[t]) != expected_ex ||
+            listLength(server.clients_pending_write[t]) != 0 ||
+            listLength(server.clients_to_close[t]) != 0)
+        {
+            addReplyErrorFormat(c,
+                "TOMO-PURE-IO: IO owner %d has residual client work", t);
+            return;
+        }
+    }
+
+    for (int t = 1; t < server.io_threads; t++) {
+        polyThreadCtx *ctx = tmCtxForIotid(t);
+        tmMigMailbox *mb = &tm_mig_mbox[t];
+        if (!ctx ||
+            atomic_load_explicit(&ctx->mode, memory_order_acquire) !=
+                TOMO_MODE_IO ||
+            atomic_load_explicit(&ctx->target_mode, memory_order_acquire) !=
+                TOMO_MODE_IO ||
+            atomic_load_explicit(&mb->req_pending, memory_order_acquire) ||
+            atomic_load_explicit(&mb->io_exiting, memory_order_relaxed) ||
+            listLength(mb->migrating_out) != 0 || !mb->notifier)
+        {
+            addReplyErrorFormat(c,
+                "TOMO-PURE-IO: IO owner %d is not idle in static IO mode", t);
+            return;
+        }
+    }
+
+    tomoPureIORun *run = zcalloc(sizeof(*run));
+    run->duration_ms = duration_ms;
+    run->io_threads = server.io_threads;
+    run->resp = c->resp;
+    run->dbid = c->db->id;
+    run->acl_user = c->user;
+    run->authenticated = c->authenticated;
+    tomoPureIORun *expected = NULL;
+    if (!atomic_compare_exchange_strong_explicit(
+            &tomo_pure_io_run, &expected, run,
+            memory_order_release, memory_order_acquire))
+    {
+        zfree(run);
+        addReplyError(c, "TOMO-PURE-IO is already running");
+        return;
+    }
+
+    /* The current DEBUG fake is enrolled but its dispatchid and ready byte are
+     * intentionally not published until this command returns.  Hide only that
+     * provisional parent node so the rig's owner-global CDB drain cannot
+     * unlink it as an apparently empty client, then restore it before return. */
+    resetReusableQueryBuf(outer_real);
+    listUnlinkNode(server.clients_pending_ex[0], outer_ex_node);
+
+    for (int t = 1; t < run->io_threads; t++) {
+        tmMigMailbox *mb = &tm_mig_mbox[t];
+        tmMigPublishReq(mb, TM_MIGREQ_PURE_IO, -1, 0, 0);
+        triggerEventNotifier(mb->notifier);
+    }
+
+    client *outer_current = server.current_client[0].p;
+    server.current_client[0].p = NULL;
+    tomoPureIORunThread(run);
+    server.current_client[0].p = outer_current;
+    listLinkNodeTail(server.clients_pending_ex[0], outer_ex_node);
+    atomic_store_explicit(&tomo_pure_io_run, NULL, memory_order_release);
+
+    sds report = sdsempty();
+    int healthy = 1;
+    uint64_t passes = 0, drain_passes = 0, reads = 0, read_bytes = 0;
+    uint64_t offered = 0, dispatched = 0, workers = 0, drops = 0;
+    uint64_t drained = 0, sink_calls = 0, sink_bytes = 0;
+    uint64_t residual = 0, errors = 0;
+
+    report = sdscatprintf(report,
+        "PURE-IO duration_ms=%lld io_threads=%d read_geometry=1..4x%dB\n"
+        "path=readQueryFromClient->processInputBuffer->route->real-worker-ring"
+        "->WORKER_POP_BATCH/exPrefetchBatch->CDB->AddReplyFromClient"
+        "->writeToClient(memory-reset-sink)\n",
+        run->duration_ms, run->io_threads, PROTO_IOBUF_LEN);
+
+    for (int t = 0; t < run->io_threads; t++) {
+        tomoPureIOResult *r = &run->result[t];
+        int ok = r->errors == 0 && r->passes > 0 &&
+                 r->read_calls > 0 && r->read_bytes > 0 &&
+                 r->offered == r->dispatched &&
+                 r->dispatched == r->drained &&
+                 r->worker_completions > 0 &&
+                 r->worker_completions + r->queue_drops == r->dispatched &&
+                 r->sink_calls > 0 && r->sink_bytes > 0 &&
+                 r->residual == 0;
+        if (!ok) healthy = 0;
+        report = sdscatprintf(report,
+            "io=%d tid=%ld passes=%llu drain_passes=%llu reads=%llu "
+            "read_bytes=%llu offered=%llu dispatched=%llu "
+            "worker_completed=%llu queue_drops=%llu drained=%llu "
+            "sink_calls=%llu sink_bytes=%llu residual=%llu errors=%llu "
+            "status=%s\n",
+            t, (long)r->tid,
+            (unsigned long long)r->passes,
+            (unsigned long long)r->drain_passes,
+            (unsigned long long)r->read_calls,
+            (unsigned long long)r->read_bytes,
+            (unsigned long long)r->offered,
+            (unsigned long long)r->dispatched,
+            (unsigned long long)r->worker_completions,
+            (unsigned long long)r->queue_drops,
+            (unsigned long long)r->drained,
+            (unsigned long long)r->sink_calls,
+            (unsigned long long)r->sink_bytes,
+            (unsigned long long)r->residual,
+            (unsigned long long)r->errors,
+            ok ? "OK" : "ERROR");
+        passes += r->passes;
+        drain_passes += r->drain_passes;
+        reads += r->read_calls;
+        read_bytes += r->read_bytes;
+        offered += r->offered;
+        dispatched += r->dispatched;
+        workers += r->worker_completions;
+        drops += r->queue_drops;
+        drained += r->drained;
+        sink_calls += r->sink_calls;
+        sink_bytes += r->sink_bytes;
+        residual += r->residual;
+        errors += r->errors;
+    }
+
+    report = sdscatprintf(report,
+        "total passes=%llu drain_passes=%llu reads=%llu read_bytes=%llu "
+        "offered=%llu dispatched=%llu worker_completed=%llu "
+        "queue_drops=%llu drained=%llu sink_calls=%llu sink_bytes=%llu "
+        "residual=%llu errors=%llu status=%s\n"
+        "healthy means command-aligned RESP prefixes at the real read budget, "
+        "dispatched=drained, "
+        "worker_completed+queue_drops=dispatched, worker_completed>0, "
+        "sink_bytes>0, residual=0, errors=0 on every IO owner\n",
+        (unsigned long long)passes,
+        (unsigned long long)drain_passes,
+        (unsigned long long)reads,
+        (unsigned long long)read_bytes,
+        (unsigned long long)offered,
+        (unsigned long long)dispatched,
+        (unsigned long long)workers,
+        (unsigned long long)drops,
+        (unsigned long long)drained,
+        (unsigned long long)sink_calls,
+        (unsigned long long)sink_bytes,
+        (unsigned long long)residual,
+        (unsigned long long)errors,
+        healthy ? "OK" : "ERROR");
+
+    serverLog(healthy ? LL_NOTICE : LL_WARNING,
+        "PURE-IO COMPLETE: duration_ms=%lld dispatched=%llu "
+        "worker_completed=%llu queue_drops=%llu errors=%llu status=%s",
+        run->duration_ms, (unsigned long long)dispatched,
+        (unsigned long long)workers, (unsigned long long)drops,
+        (unsigned long long)errors, healthy ? "OK" : "ERROR");
+    addReplyVerbatim(c, report, sdslen(report), "txt");
+    sdsfree(report);
+    zfree(run);
+}
+
 /* SOURCE side, called each pass from beforeSleepIO: pick up a control-plane request, keep
  * marking migratable clients while exiting, complete quiesced handoffs, and request the EX role
  * when an IO-EXIT has drained the last client. */
@@ -24001,6 +24794,14 @@ void tmMigServiceOut(void) {
                     TM_FLIP_GB_CANCEL_REQUESTED)
                 atomic_store_explicit(&server.tm_flip_gb_state, TM_FLIP_GB_ROLLED_BACK,
                                       memory_order_release);
+        } else if (kind == TM_MIGREQ_PURE_IO) {
+            /* The notifier callback remains drain-only.  This owner-local work
+             * runs here, behind the mailbox's already-taken req_pending arm,
+             * so an unarmed server gains no event-loop or dispatch branch. */
+            tomoPureIORun *run = atomic_load_explicit(&tomo_pure_io_run,
+                                                       memory_order_acquire);
+            if (run && id > 0 && id < run->io_threads)
+                tomoPureIORunThread(run);
         }
     }
 

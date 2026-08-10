@@ -519,6 +519,14 @@ void debugCommand(client *c) {
 "    Enables or disables checksum checks for RDB files and RESTORE's payload.",
 "SLEEP <seconds>",
 "    Stop the server for <seconds>. Decimals allowed.",
+"TOMO-PURE-IO <duration-ms>",
+"    Run isolated read-sized RESP batches through real worker rings, prefetch and CDB drains",
+"    on every TomoKV IO owner. Full queues drop only the failed synthetic entry.",
+"    Enable with enable-debug-command local and invoke through",
+"    redis-cli -s <unix-socket>. Requires static epoll mode, upstream io-threads=1,",
+"    a standalone primary,",
+"    no other clients, and a fresh stateless non-pipelined DEBUG connection.",
+"    Attach perf to the stable owner tids before issuing this blocking DEBUG command.",
 "STRINGMATCH-TEST",
 "    Run a fuzz tester against the stringmatchlen() function.",
 "STRUCTSIZE",
@@ -956,6 +964,14 @@ NULL
         addReply(c,shared.ok);
     } else if (!strcasecmp(c->argv[1]->ptr,"reshard")) {
         reshardDebug(c);   /* ee451 (v8d): online-resharding manual trigger + status/verify */
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-pure-io") && c->argc == 3) {
+        /* Measurement-only actuator.  The implementation allocates and enters
+         * the rig only for this DEBUG invocation; the normal IO/parser/dispatch
+         * paths do not poll an enable flag. */
+        long long duration_ms;
+        if (getLongLongFromObjectOrReply(c, c->argv[2], &duration_ms, NULL) != C_OK)
+            return;
+        tomoPureIOCommand(c, duration_ms);
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-ioload")) {
         /* ee451 (client-lb unify): per-io-thread live conn counts (+ mode), to validate that flips
          * spread conns load-aware. Only IO-mode slots serve conns. */

@@ -3152,7 +3152,8 @@ typedef enum {
     TM_MIGREQ_REBALANCE,     /* move req_data's count conns to req_data's dest (no mode change) */
     TM_MIGREQ_IOEXIT,        /* leave accept group, move ALL migratable conns out; then take the
                               * EX role iff req_data's then_ex (grow-back), else stay IO and idle */
-    TM_MIGREQ_IOEXIT_CANCEL  /* abort an in-flight IO-EXIT: re-join the accept group, stay IO (flip give-up) */
+    TM_MIGREQ_IOEXIT_CANCEL, /* abort an in-flight IO-EXIT: re-join the accept group, stay IO (flip give-up) */
+    TM_MIGREQ_PURE_IO        /* DEBUG TOMO-PURE-IO: run the owner-local parse/route/reply sink */
 } tmMigReqKind;
 
 typedef struct tmMigMailbox {
@@ -4959,6 +4960,7 @@ void moduleReleaseGIL(void);
 void moduleNotifyKeyspaceEvent(int type, const char *event, robj *key, int dbid);
 void firePostExecutionUnitJobs(void);
 void moduleCallCommandFilters(client *c);
+size_t moduleCommandFilterCount(void);
 void modulePostExecutionUnitOperations(void);
 void ModuleForkDoneHandler(int exitcode, int bysignal);
 int TerminateModuleForkChild(int child_pid, int wait);
@@ -5075,6 +5077,7 @@ int appendClientInputFromUring(client *c, const void *buf, size_t len);
 int processClientInputFromUring(client *c);
 void acceptCommonHandler(connection *conn, int flags, char *ip);
 void readQueryFromClient(connection *conn);
+void resetReusableQueryBuf(client *c);
 int prepareClientToWrite(client *c);
 int clientPrepareReplyIOV(client *c, struct iovec *iov, int iovmax,
                           size_t byte_limit, size_t *iov_bytes_len);
@@ -6531,6 +6534,7 @@ void initIOThreads(void);
 void exQueueInit(exQueue *q);
 int exQueuePush(exQueue *q, client *c);
 int exQueuePopBatch(exQueue *q, client **out, int max);
+void tomoPureIOCommand(client *c, long long duration_ms);
 void flushExQueues(void);   /* ee451 (S4): publish staged pushes for this iotid */
 void migUnparkClient(client *c);  /* ee451 (H2 handover): drop a dying client from the range-hold park list */
 void freebackPush(int ex_id, robj *obj);   /* ee451 (S8): IO->worker value free-back */

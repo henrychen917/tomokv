@@ -2533,8 +2533,11 @@ void deauthenticateAndCloseClient(client *c) {
 
 /* Resets the reusable query buffer used by the given client.
  * If any data remained in the buffer, the client will take ownership of the buffer
- * and a new empty buffer will be allocated for the reusable buffer. */
-static void resetReusableQueryBuf(client *c) {
+ * and a new empty buffer will be allocated for the reusable buffer.  PURE-IO
+ * also uses this after proving its outer DEBUG request is fully consumed, so
+ * the nested owner-0 reader takes the same reusable-buffer path as every
+ * other IO owner. */
+void resetReusableQueryBuf(client *c) {
     serverAssert(c->io_flags & CLIENT_IO_REUSABLE_QUERYBUFFER);
     if (c->querybuf != thread_reusable_qb || sdslen(c->querybuf) > c->qb_pos) {
         /* If querybuf has been reallocated or there is still data left,

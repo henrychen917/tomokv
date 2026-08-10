@@ -82,6 +82,45 @@ the *same* key (or one connection) are serialized and committed to the socket in
 sent them. **Linearizability per key and FIFO per connection are preserved** — the client cannot tell the
 work was reordered, exactly as a program cannot tell its instructions were.
 
+### PURE-IO ceiling rig
+
+`DEBUG TOMO-PURE-IO <duration-ms>` measures the ingress hot path without socket or queue-wait stalls. Each
+fixed io owner cycles four deterministic, pre-generated 50/50 RESP SET/GET segments as command-aligned
+prefixes sized to the same adaptive 16–64 KiB budget as socket reads. The production 1 Hz controller keeps
+advancing during the run, so its ordinary read-budget and dispatch-window geometry remains active. Parsing,
+key routing, staged SPSC publication,
+`WORKER_POP_BATCH` pops, the worker prefetch state machine, command execution, per-connection CDB completion,
+in-order reply splicing, and reply formatting are all the production paths. The only transport substitute is
+an in-memory connection: reads copy the pre-generated batch, while writes consume and reset the real reply
+buffers. A full worker lane drops only that failed synthetic enqueue and publishes a synthetic ready byte
+through the selected CDB slot;
+the io owner never waits for space. The delta from an otherwise matching external load therefore exposes
+network and queue-stall cost.
+
+The rig is absent from normal operation: it allocates only for this blocking DEBUG invocation, requires a
+static unshifted io/worker split, epoll input, an empty `notify-keyspace-events`, no module command filters,
+and an isolated standalone primary whose fresh, stateless, non-pipelined Unix-socket DEBUG client is the only
+connection. A minimal measurement boot and invocation are:
+
+```sh
+./src/redis-server tomokv.conf --tomokv-thread-io 4 --tomokv-thread-ex 4 \
+  --tomokv-thread-mode static --tomokv-io-uring 0 --io-threads 1 \
+  --enable-debug-command local --port 0 \
+  --unixsocket /tmp/tomokv-pureio.sock --save "" --appendonly no
+
+./src/redis-cli -s /tmp/tomokv-pureio.sock DEBUG TOMO-PURE-IO 30000
+```
+
+Use a short discovery invocation to collect the stable `PURE-IO owner io=N tid=TID` log lines, attach
+`perf stat` to those owner TIDs, then issue a long enough duration run to amortize its untimed setup and
+final safe-retirement phases. The measured interval itself never waits for a worker, queue slot, or CDB
+completion: every owner pass drains what is ready, submits at most one read-sized batch, and moves on.
+Healthy output has `status=OK` on every owner
+and in the total line, with `offered=dispatched=drained`,
+`worker_completed+queue_drops=dispatched`, nonzero `worker_completed` and `sink_bytes`, and
+`residual=0 errors=0`. `queue_drops=0` is healthy; the counter exists to prove that any actual full-lane
+events were discarded without synchronizing the io owner.
+
 ---
 
 ## Performance

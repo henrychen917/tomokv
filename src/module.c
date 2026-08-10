@@ -11671,6 +11671,12 @@ void moduleCallCommandFilters(client *c) {
     }
 }
 
+/* Measurement/debug actuators that feed fixed core commands must be able to
+ * reject argv-rewriting filters before constructing an unlinked client. */
+size_t moduleCommandFilterCount(void) {
+    return listLength(moduleCommandFilters);
+}
+
 /* Return the number of arguments a filtered command has.  The number of
  * arguments include the command itself.
  */
