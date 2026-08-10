@@ -939,6 +939,14 @@ void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
     }
 
     kvobjSetCommittedPrev(kv, committed_next);
+    /* Readers follow only committed_prev. The owner-maintained reverse edge
+     * lets retirement unlink this member during the physical-bag walk instead
+     * of filtering the committed chain in a second pass. */
+    vmeta->committed_next = committed_previous;
+    if (committed_next) {
+        struct tomoVerMeta *next_meta = kvobjVmeta(committed_next);
+        if (next_meta) next_meta->committed_next = kv; /* raw seq-0 tail has no vmeta */
+    }
     atomic_store_explicit(&vmeta->version_seq, version_seq, memory_order_release);
     vmeta->stamp_state = TOMO_STAMP_APPLIED;
     vmeta->version_reservation = 0;

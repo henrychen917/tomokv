@@ -47,13 +47,18 @@ void flatRetirePayloadReady(dictEntry *payload) {
     } else if (p & (uintptr_t)FLAT_RETIRE_VMETA_BIT) {
         zfree(flatRetireSpecialPayload(payload));
     } else {
-        tomoVersionPruneAfterGrace((kvobj *)flatRetireSpecialPayload(payload));
+        kvobj *anchor = (kvobj *)flatRetireSpecialPayload(payload);
+        tomoVersionPruneAfterGrace(anchor);
+        /* The callback released the install-owner lifecycle ref; release the
+         * prune record's separate object pin only after its metadata use ends. */
+        decrRefCount(anchor);
     }
 }
 
 /* Table teardown/resize is already quiescent. A prune anchor is still a live
- * value in the table copied/destroyed by the caller, so discard that callback;
- * a detached metadata block still belongs to this retire record. */
+ * value in the table copied/destroyed by the caller, or was unlinked by a newer
+ * prune and is kept alive solely by this record. A detached metadata block
+ * still belongs to its retire record. */
 void flatRetirePayloadDiscard(dictEntry *payload) {
     uintptr_t p = (uintptr_t)payload;
     if (!(p & (uintptr_t)FLAT_RETIRE_SPECIAL_BIT))
@@ -65,6 +70,7 @@ void flatRetirePayloadDiscard(dictEntry *payload) {
          * reference here, at the point which proves no callback can later mutate the bag. */
         kvobj *anchor = flatRetireSpecialPayload(payload);
         tomoAtomicLifecycleRelease(kvobjVmeta(anchor));
+        decrRefCount(anchor);
     }
 }
 
@@ -181,6 +187,12 @@ void flatRetire(flatTable *t, dictEntry *masked_kv) {
 }
 
 void flatRetireVersionPrune(flatTable *t, void *rawkv) {
+    /* A newer frontier may unlink rawkv before this record becomes ready. Own
+     * a real object reference until ready dispatch or quiescent discard; both
+     * paths also retire the distinct install-owner lifecycle reference. The
+     * budgeted FIFO drain eventually dispatches it because its 2*closed+4
+     * service rate exceeds new batch production; resize/teardown discards it. */
+    incrRefCount((robj *)rawkv);
     flatRetirePayload(t, flatRetireSpecial(rawkv, 0));
 }
 

@@ -9783,7 +9783,8 @@ static kvobj *csMsetOwnVersionAt(kvobj *head, client *real, int *found) {
 
 /* I2: the physical chain remains an install-ordered bag. Its head metadata
  * carries the per-key committed maximum, whose separate predecessor links are
- * ordered by descending (seq,install_order).
+ * ordered by descending (seq,install_order). An owner-only committed_next
+ * reverse edge supports retire-side unlink; readers never load it.
  *
  * Committed walk with OWN-WIDENING: after the own-uncommitted branch, the
  * cursor accepts the first version with seq <= snapshot — OR the first
