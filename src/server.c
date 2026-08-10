@@ -23284,6 +23284,13 @@ typedef struct {
     int      floor_out_dir;  /* direction of the current out-of-FLOOR run, settled ticks only */
     int      floor_out_run;  /* its Schmitt counter — feeds the anchor/episode DROPS, which the
                               * trigger's lr_out_run cannot (floor_probe_used forces that to 0) */
+    int      episode_revert_run; /* consecutive clean-REVERT sweep finishes at revert_run_io; each
+                                  * one doubles the sat-drop band (<<, capped at 3 like the climb's
+                                  * veto shift): N same-verdict re-verifications are evidence the
+                                  * rate motion does NOT move the optimum, so a monotone warmup
+                                  * tide stops being re-probed. KEEP, a floor-drop, or finishing
+                                  * at a different split resets it. */
+    int      revert_run_io;
     int      idle_stable;    /* consecutive ticks the EWMA mean has CAUGHT UP to the live rate (start gate) */
     double   best_rate;      /* best throughput MEASURED in the current climb (the walk-back target) */
     int      best_dist;      /* thread moves since best_rate was set (0 = standing on the best) */
@@ -23590,7 +23597,9 @@ static int tmFlipSweepWorkloadChanged(flipCtlState *fc, int ni, int ne,
         /* Rate-band judgement, same reasoning as the anchor drop above: capped u compresses
          * sigma_u below the box's ordinary drift, and a magnitude shift matters exactly when
          * the measured optimum might differ — which the sweeps measure in rate. */
-        double band = fmax(2.0 * rate_sigma, 0.02 * fc->floor_probe_check_rate);
+        double band = fmax(2.0 * rate_sigma, 0.02 * fc->floor_probe_check_rate) *
+                      (double)(1 << (fc->episode_revert_run > 3 ? 3
+                                     : fc->episode_revert_run));
         sat = !isfinite(u_io) || !isfinite(u_ex) ||
               fabs(fc->mean - fc->floor_probe_check_rate) > band;
     }
@@ -23859,17 +23868,20 @@ static void tmFlipSweepFinish(flipCtlState *fc, int node, int current_io) {
         if (keep) {
             outcomes = atomic_fetch_add_explicit(
                 &tomo_flip_in_floor_probe_keeps, 1, memory_order_relaxed) + 1;
+            fc->episode_revert_run = 0;
         } else {
             outcomes = atomic_fetch_add_explicit(
                 &tomo_flip_in_floor_probe_reverts, 1, memory_order_relaxed) + 1;
+            if (current_io == fc->revert_run_io) fc->episode_revert_run++;
+            else { fc->revert_run_io = current_io; fc->episode_revert_run = 1; }
         }
         tmFlipAcceptBestRate(fc, fc->best_rate);
         serverLog(LL_NOTICE, "[flip-ctl n%d] IN-FLOOR-SWEEP FINISH visited=%d/%d "
                   "blocked=%d entry=io%d best=io%d final=io%d rate=%.0f "
-                  "outcome=%s outcome#=%lu",
+                  "outcome=%s outcome#=%lu damp=%d",
                   node, fc->floor_probe_visited, fc->floor_probe_planned, blocked,
                   fc->floor_probe_entry_io, intended_best, current_io, fc->best_rate,
-                  keep ? "KEEP" : "REVERT", outcomes);
+                  keep ? "KEEP" : "REVERT", outcomes, fc->episode_revert_run);
         if (keep) fc->veto_run = 0;
     }
     /* RE-BASE the episode's coordinates onto the split the sweep actually FINISHED at
@@ -24607,7 +24619,9 @@ static void tomoFlipController(void) {
              * REVERT). A magnitude shift matters exactly when the measured optimum might differ,
              * and the sweep judges optima in rate with fmax(2 sigma, 2%) — so the drop uses the
              * SAME band against the rate snapshotted at capture. The u operands stay in the log. */
-            double drop_band = fmax(2.0 * sigma, 0.02 * fc->anchor_rate_cap);
+            double drop_band = fmax(2.0 * sigma, 0.02 * fc->anchor_rate_cap) *
+                               (double)(1 << (fc->episode_revert_run > 3 ? 3
+                                              : fc->episode_revert_run));
             int drop_sat = sat_sample_ready && !fc->anchor_sat_rebase &&
                            (!isfinite(u_io) || !isfinite(u_ex) ||
                             fabs(fc->mean - fc->anchor_rate_cap) > drop_band);
@@ -24630,9 +24644,10 @@ static void tomoFlipController(void) {
                     fc->floor_probe_best_io = 0;
                     fc->floor_probe_return_blocked = 0;
                 }
-                if (drop_floor)
+                if (drop_floor) {
                     atomic_fetch_add_explicit(&tomo_flip_anchor_drop_floor, 1, memory_order_relaxed);
-                else
+                    fc->episode_revert_run = 0;   /* the MIX moved: re-verification damping over */
+                } else
                     atomic_fetch_add_explicit(&tomo_flip_anchor_drop_sat, 1, memory_order_relaxed);
                 serverLog(LL_NOTICE, "[flip-ctl n%d] ANCHOR-DROP %s lr=%+.3f floor=%.3f "
                           "rate=%.0f/%.0f band=%.0f u_io=%.3f/%.3f u_ex=%.3f/%.3f -> UNSET",
@@ -24705,10 +24720,11 @@ static void tomoFlipController(void) {
                                            sigma,
                                            1 /* sat arm live: sweep inactive by gate above */,
                                            &sweep_drop_floor, &sweep_lr_equiv)) {
-                if (sweep_drop_floor)
+                if (sweep_drop_floor) {
                     atomic_fetch_add_explicit(&tomo_flip_anchor_drop_floor, 1,
                                               memory_order_relaxed);
-                else
+                    fc->episode_revert_run = 0;   /* mix moved: damping over */
+                } else
                     atomic_fetch_add_explicit(&tomo_flip_anchor_drop_sat, 1,
                                               memory_order_relaxed);
                 {
