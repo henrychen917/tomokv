@@ -21,6 +21,12 @@ int getGenericCommand(client *c);
  * String Commands
  *----------------------------------------------------------------------------*/
 
+static int stringLengthError(client *c) __attribute__((cold,noinline));
+static int stringLengthError(client *c) {
+    addReplyError(c,"string exceeds maximum allowed size (proto-max-bulk-len)");
+    return C_ERR;
+}
+
 static int checkStringLength(client *c, long long size, long long append) {
     if (mustObeyClient(c))
         return C_OK;
@@ -28,10 +34,8 @@ static int checkStringLength(client *c, long long size, long long append) {
     long long total = (uint64_t)size + append;
     /* Test configured max-bulk-len representing a limit of the biggest string object,
      * and also test for overflow. */
-    if (total > server.proto_max_bulk_len || total < size || total < append) {
-        addReplyError(c,"string exceeds maximum allowed size (proto-max-bulk-len)");
-        return C_ERR;
-    }
+    if (unlikely(total > server.proto_max_bulk_len || total < size || total < append))
+        return stringLengthError(c);
     return C_OK;
 }
 
@@ -89,7 +93,7 @@ void setGenericCommand(client *c, int flags, robj *key, robj **valref, robj *exp
     int found = 0;
     int setkey_flags = 0;
 
-    if (expire && getExpireMillisecondsOrReply(c, expire, flags, unit, &milliseconds) != C_OK) {
+    if (unlikely(expire && getExpireMillisecondsOrReply(c, expire, flags, unit, &milliseconds) != C_OK)) {
         return;
     }
 
@@ -230,11 +234,11 @@ void setGenericCommand(client *c, int flags, robj *key, robj **valref, robj *exp
  */
 static int getExpireMillisecondsOrReply(client *c, robj *expire, int flags, int unit, long long *milliseconds) {
     int ret = getLongLongFromObjectOrReply(c, expire, milliseconds, NULL);
-    if (ret != C_OK) {
+    if (unlikely(ret != C_OK)) {
         return ret;
     }
 
-    if (*milliseconds <= 0 || (unit == UNIT_SECONDS && *milliseconds > LLONG_MAX / 1000)) {
+    if (unlikely(*milliseconds <= 0 || (unit == UNIT_SECONDS && *milliseconds > LLONG_MAX / 1000))) {
         /* Negative value provided or multiplication is gonna overflow. */
         addReplyErrorExpireTime(c);
         return C_ERR;
@@ -246,7 +250,7 @@ static int getExpireMillisecondsOrReply(client *c, robj *expire, int flags, int 
         *milliseconds += commandTimeSnapshot();
     }
 
-    if (*milliseconds <= 0) {
+    if (unlikely(*milliseconds <= 0)) {
         /* Overflow detected. */
         addReplyErrorExpireTime(c);
         return C_ERR;
@@ -422,7 +426,7 @@ int parseExtendedStringArgumentsOrReply(client *c, int start_pos, extendedString
 void setCommand(client *c) {
     extendedStringArgs args;
 
-    if (parseExtendedStringArgumentsOrReply(c, 3, &args, COMMAND_SET) != C_OK) {
+    if (unlikely(parseExtendedStringArgumentsOrReply(c, 3, &args, COMMAND_SET) != C_OK)) {
         return;
     }
 
@@ -486,7 +490,7 @@ void getCommand(client *c) {
 void getexCommand(client *c) {
     extendedStringArgs args;
 
-    if (parseExtendedStringArgumentsOrReply(c, 2, &args, COMMAND_GET) != C_OK) {
+    if (unlikely(parseExtendedStringArgumentsOrReply(c, 2, &args, COMMAND_GET) != C_OK)) {
         return;
     }
 
@@ -572,7 +576,7 @@ void setrangeCommand(client *c) {
     if (getLongFromObjectOrReply(c,c->argv[2],&offset,NULL) != C_OK)
         return;
 
-    if (offset < 0) {
+    if (unlikely(offset < 0)) {
         addReplyError(c,"offset is out of range");
         return;
     }
@@ -820,8 +824,8 @@ void incrDecrCommand(client *c, long long incr) {
     if (getLongLongFromObjectOrReply(c,o,&value,NULL) != C_OK) return;
 
     oldvalue = value;
-    if ((incr < 0 && oldvalue < 0 && incr < (LLONG_MIN-oldvalue)) ||
-        (incr > 0 && oldvalue > 0 && incr > (LLONG_MAX-oldvalue))) {
+    if (unlikely((incr < 0 && oldvalue < 0 && incr < (LLONG_MIN-oldvalue)) ||
+        (incr > 0 && oldvalue > 0 && incr > (LLONG_MAX-oldvalue)))) {
         addReplyError(c,"increment or decrement would overflow");
         return;
     }
@@ -876,7 +880,7 @@ void decrbyCommand(client *c) {
 
     if (getLongLongFromObjectOrReply(c, c->argv[2], &incr, NULL) != C_OK) return;
     /* Overflow check: negating LLONG_MIN will cause an overflow */
-    if (incr == LLONG_MIN) {
+    if (unlikely(incr == LLONG_MIN)) {
         addReplyError(c, "decrement would overflow");
         return;
     }
@@ -894,7 +898,7 @@ void incrbyfloatCommand(client *c) {
         return;
 
     value += incr;
-    if (isnan(value) || isinf(value)) {
+    if (unlikely(isnan(value) || isinf(value))) {
         addReplyError(c,"increment would produce NaN or Infinity");
         return;
     }
@@ -973,8 +977,8 @@ void lcsCommandGeneric(client *c, robj *obja, robj *objb, robj **argv, int argc)
     sds a = NULL, b = NULL;
     int getlen = 0, getidx = 0, withmatchlen = 0;
 
-    if ((obja && obja->type != OBJ_STRING) ||
-        (objb && objb->type != OBJ_STRING))
+    if (unlikely((obja && obja->type != OBJ_STRING) ||
+        (objb && objb->type != OBJ_STRING)))
     {
         addReplyError(c,
             "The specified keys must contain string values");
@@ -1011,14 +1015,14 @@ void lcsCommandGeneric(client *c, robj *obja, robj *objb, robj **argv, int argc)
     }
 
     /* Complain if the user passed ambiguous parameters. */
-    if (getlen && getidx) {
+    if (unlikely(getlen && getidx)) {
         addReplyError(c,
             "If you want both the length and indexes, please just use IDX.");
         goto cleanup;
     }
 
     /* Detect string truncation or later overflows. */
-    if (sdslen(a) >= UINT32_MAX-1 || sdslen(b) >= UINT32_MAX-1) {
+    if (unlikely(sdslen(a) >= UINT32_MAX-1 || sdslen(b) >= UINT32_MAX-1)) {
         addReplyError(c, "String too long for LCS");
         goto cleanup;
     }
@@ -1038,13 +1042,13 @@ void lcsCommandGeneric(client *c, robj *obja, robj *objb, robj **argv, int argc)
     unsigned long long lcsalloc = lcssize * sizeof(uint32_t);
     uint32_t *lcs = NULL;
     if (lcsalloc < SIZE_MAX && lcsalloc / lcssize == sizeof(uint32_t)) {
-        if (lcsalloc > (size_t)server.proto_max_bulk_len) {
+        if (unlikely(lcsalloc > (size_t)server.proto_max_bulk_len)) {
             addReplyError(c, "Insufficient memory, transient memory for LCS exceeds proto-max-bulk-len");
             goto cleanup;
         }
         lcs = ztrymalloc(lcsalloc);
     }
-    if (!lcs) {
+    if (unlikely(!lcs)) {
         addReplyError(c, "Insufficient memory, failed allocating transient memory for LCS");
         goto cleanup;
     }
@@ -1191,7 +1195,7 @@ void lcsCommand(client *c) {
  * Returns C_OK if length is correct, C_ERR otherwise. */
 int validateHexDigest(client *c, const sds digest) {
     size_t len = sdslen(digest);
-    if (len != DIGEST_HEX_LENGTH) {
+    if (unlikely(len != DIGEST_HEX_LENGTH)) {
         addReplyErrorFormat(c, "must be exactly %d hexadecimal characters", DIGEST_HEX_LENGTH);
         return C_ERR;
     }

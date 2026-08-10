@@ -450,7 +450,7 @@ robj *createStringObject(const char *ptr, size_t len) {
 /* Same as CreateRawStringObject, can return NULL if allocation fails */
 robj *tryCreateRawStringObject(const char *ptr, size_t len) {
     sds str = sdstrynewlen(ptr,len);
-    if (!str) return NULL;
+    if (unlikely(!str)) return NULL;
     return createObject(OBJ_STRING, str);
 }
 
@@ -922,12 +922,14 @@ void dismissObject(robj *o, size_t size_hint) {
 #endif
 }
 
+static int __attribute__((cold,noinline)) objectTypeError(client *c) {
+    addReplyErrorObject(c,shared.wrongtypeerr);
+    return 1;
+}
+
 int checkType(client *c, robj *o, int type) {
     /* A NULL is considered an empty key */
-    if (o && o->type != type) {
-        addReplyErrorObject(c,shared.wrongtypeerr);
-        return 1;
-    }
+    if (unlikely(o && o->type != type)) return objectTypeError(c);
     return 0;
 }
 
@@ -1157,6 +1159,19 @@ size_t stringObjectAllocSize(const robj *o) {
     }
 }
 
+static int __attribute__((cold,noinline)) objectReplyError(client *c, const char *msg,
+                                                           const char *fallback) {
+    addReplyError(c,msg ? msg : fallback);
+    return C_ERR;
+}
+
+static int __attribute__((cold,noinline)) objectRangeReplyError(client *c, const char *msg,
+                                                                long min, long max) {
+    if (msg) addReplyError(c,msg);
+    else addReplyErrorFormat(c,"value is out of range, value must between %ld and %ld", min, max);
+    return C_ERR;
+}
+
 int getDoubleFromObject(const robj *o, double *target) {
     double value;
 
@@ -1165,7 +1180,7 @@ int getDoubleFromObject(const robj *o, double *target) {
     } else {
         serverAssertWithInfo(NULL,o,o->type == OBJ_STRING);
         if (sdsEncodedObject(o)) {
-            if (!string2d(o->ptr, sdslen(o->ptr), &value))
+            if (unlikely(!string2d(o->ptr, sdslen(o->ptr), &value)))
                 return C_ERR;
         } else if (o->encoding == OBJ_ENCODING_INT) {
             value = (long)o->ptr;
@@ -1179,14 +1194,8 @@ int getDoubleFromObject(const robj *o, double *target) {
 
 int getDoubleFromObjectOrReply(client *c, robj *o, double *target, const char *msg) {
     double value;
-    if (getDoubleFromObject(o, &value) != C_OK) {
-        if (msg != NULL) {
-            addReplyError(c,(char*)msg);
-        } else {
-            addReplyError(c,"value is not a valid float");
-        }
-        return C_ERR;
-    }
+    if (unlikely(getDoubleFromObject(o, &value) != C_OK))
+        return objectReplyError(c, msg, "value is not a valid float");
     *target = value;
     return C_OK;
 }
@@ -1199,7 +1208,7 @@ int getLongDoubleFromObject(robj *o, long double *target) {
     } else {
         serverAssertWithInfo(NULL,o,o->type == OBJ_STRING);
         if (sdsEncodedObject(o)) {
-            if (!string2ld(o->ptr, sdslen(o->ptr), &value))
+            if (unlikely(!string2ld(o->ptr, sdslen(o->ptr), &value)))
                 return C_ERR;
         } else if (o->encoding == OBJ_ENCODING_INT) {
             value = (long)o->ptr;
@@ -1213,14 +1222,8 @@ int getLongDoubleFromObject(robj *o, long double *target) {
 
 int getLongDoubleFromObjectOrReply(client *c, robj *o, long double *target, const char *msg) {
     long double value;
-    if (getLongDoubleFromObject(o, &value) != C_OK) {
-        if (msg != NULL) {
-            addReplyError(c,(char*)msg);
-        } else {
-            addReplyError(c,"value is not a valid float");
-        }
-        return C_ERR;
-    }
+    if (unlikely(getLongDoubleFromObject(o, &value) != C_OK))
+        return objectReplyError(c, msg, "value is not a valid float");
     *target = value;
     return C_OK;
 }
@@ -1233,7 +1236,7 @@ int getLongLongFromObject(robj *o, long long *target) {
     } else {
         serverAssertWithInfo(NULL,o,o->type == OBJ_STRING);
         if (sdsEncodedObject(o)) {
-            if (string2ll(o->ptr,sdslen(o->ptr),&value) == 0) return C_ERR;
+            if (unlikely(string2ll(o->ptr,sdslen(o->ptr),&value) == 0)) return C_ERR;
         } else if (o->encoding == OBJ_ENCODING_INT) {
             value = (long)o->ptr;
         } else {
@@ -1246,14 +1249,8 @@ int getLongLongFromObject(robj *o, long long *target) {
 
 int getLongLongFromObjectOrReply(client *c, robj *o, long long *target, const char *msg) {
     long long value;
-    if (getLongLongFromObject(o, &value) != C_OK) {
-        if (msg != NULL) {
-            addReplyError(c,(char*)msg);
-        } else {
-            addReplyError(c,"value is not an integer or out of range");
-        }
-        return C_ERR;
-    }
+    if (unlikely(getLongLongFromObject(o, &value) != C_OK))
+        return objectReplyError(c, msg, "value is not an integer or out of range");
     *target = value;
     return C_OK;
 }
@@ -1261,29 +1258,17 @@ int getLongLongFromObjectOrReply(client *c, robj *o, long long *target, const ch
 int getLongFromObjectOrReply(client *c, robj *o, long *target, const char *msg) {
     long long value;
 
-    if (getLongLongFromObjectOrReply(c, o, &value, msg) != C_OK) return C_ERR;
-    if (value < LONG_MIN || value > LONG_MAX) {
-        if (msg != NULL) {
-            addReplyError(c,(char*)msg);
-        } else {
-            addReplyError(c,"value is out of range");
-        }
-        return C_ERR;
-    }
+    if (unlikely(getLongLongFromObjectOrReply(c, o, &value, msg) != C_OK)) return C_ERR;
+    if (unlikely(value < LONG_MIN || value > LONG_MAX))
+        return objectReplyError(c, msg, "value is out of range");
     *target = value;
     return C_OK;
 }
 
 int getRangeLongFromObjectOrReply(client *c, robj *o, long min, long max, long *target, const char *msg) {
-    if (getLongFromObjectOrReply(c, o, target, msg) != C_OK) return C_ERR;
-    if (*target < min || *target > max) {
-        if (msg != NULL) {
-            addReplyError(c,(char*)msg);
-        } else {
-            addReplyErrorFormat(c,"value is out of range, value must between %ld and %ld", min, max);
-        }
-        return C_ERR;
-    }
+    if (unlikely(getLongFromObjectOrReply(c, o, target, msg) != C_OK)) return C_ERR;
+    if (unlikely(*target < min || *target > max))
+        return objectRangeReplyError(c, msg, min, max);
     return C_OK;
 }
 
@@ -1298,7 +1283,7 @@ int getPositiveLongFromObjectOrReply(client *c, robj *o, long *target, const cha
 int getIntFromObjectOrReply(client *c, robj *o, int *target, const char *msg) {
     long value;
 
-    if (getRangeLongFromObjectOrReply(c, o, INT_MIN, INT_MAX, &value, msg) != C_OK)
+    if (unlikely(getRangeLongFromObjectOrReply(c, o, INT_MIN, INT_MAX, &value, msg) != C_OK))
         return C_ERR;
 
     *target = value;
