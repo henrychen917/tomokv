@@ -8583,6 +8583,7 @@ uint64_t tomoKeyHash(const void *key, size_t len) { return xxh64(key, len); }
  * progress; RSS is a poor proxy because jemalloc retains freed spans. Exposed as
  * INFO tomokv_flat_batches_{closed,freed,pending} per this tree's "expose the state" rule. */
 static _Atomic unsigned long flat_batches_closed_n, flat_batches_freed_n;
+static _Atomic unsigned long flat_reclaim_budget_trips_n;
 
 /* ee451 #83: runtime size of a flatBatch's QSBR snapshot block. slots = io_threads + num_workers + 1
  * = the largest io_hi a flip can reach (tm_ngrow_io <= num_workers) + 1, which is also >= num_workers
@@ -8714,19 +8715,30 @@ static void flatBatchFree(flatBatch *b, flatBatch **spare, int *spare_n) {
     else zfree(b);
 }
 
-/* Free every batch in *pp whose grace has passed (list surgery in place).
- * MONOTONICITY makes a head-first prefix drain sound for BOTH clauses now: for FIFO batches B1
- * closed before B2, snap1 <= snap2 per worker (loop_seq monotone) and io_snap1[t] <= io_snap2[t]
- * per io slot (flat_epoch strictly increasing), so B2 ready => B1 ready. Under the old FLAG the io
- * clause was order-independent: one pinned flag made the head not-ready forever while the list grew
- * unbounded behind it — the degenerate case this change removes. */
-static void flatDrainReadyBatches(flatBatch **pp, flatBatch **spare, int *spare_n) {
-    while (*pp) {
-        flatBatch *b = *pp;
-        if (!flatBatchReady(b)) { pp = &b->next; continue; }
-        *pp = b->next;
+/* Each pass drains twice the batches closed from work produced since its previous pass, plus four.
+ * Once a backlog is ready, production adds `closed` while reclaim removes 2*closed+4, so the backlog
+ * shrinks by closed+4 per pass. The overflow case is unreachable for the table/thread counts, but
+ * fails safe by deferring reclaim rather than making the drain unbounded. */
+static unsigned long flatReclaimBudget(unsigned long closed) {
+    if (closed > (ULONG_MAX - 4UL) / 2UL) return 0;
+    return 2UL * closed + 4UL;
+}
+
+/* Drain at most *budget batches from the ready FIFO prefix. MONOTONICITY makes stopping at the first
+ * non-ready head sound: for FIFO batches B1 closed before B2, snap1 <= snap2 per worker and
+ * io_snap1[t] <= io_snap2[t] per io slot, so B2 ready => B1 ready. Return true only when the budget
+ * blocks a ready head, which is the exact event exposed by tomokv_flat_reclaim_budget_trips. */
+static int flatDrainReadyBatches(flatBatch **head, flatBatch **tail, flatBatch **spare, int *spare_n,
+                                 unsigned long *budget) {
+    while (*head && flatBatchReady(*head)) {
+        if (!*budget) return 1;
+        flatBatch *b = *head;
+        *head = b->next;
+        if (!*head) *tail = NULL;
         flatBatchFree(b, spare, spare_n);
+        (*budget)--;
     }
+    return 0;
 }
 
 /* PER-WORKER QSBR reclaim (ee451 reclaim-capacity fix) — runs on the worker thread, once per exSlice
@@ -8735,6 +8747,7 @@ static void flatDrainReadyBatches(flatBatch **pp, flatBatch **spare, int *spare_
  * allocated the value (jemalloc tcache, same arena) and one that has spare cycles, instead of the
  * saturated main thread doing cross-arena frees. Cheap when nothing is pending. */
 static void flatWorkerReclaim(exThread *worker) {
+    unsigned long closed = 0;
     if (worker->flat_retire_local) {
         /* APPEND (FIFO). Every close snapshots the CURRENT seqs, which only ever grow, so an older
          * batch always becomes ready no later than a newer one. Keeping the list oldest-first lets the
@@ -8746,14 +8759,12 @@ static void flatWorkerReclaim(exThread *worker) {
         if (worker->flat_batches_tail) worker->flat_batches_tail->next = b;
         else worker->flat_batches_local = b;
         worker->flat_batches_tail = b;
+        closed = 1;
     }
-    /* Drain the ready PREFIX: the first non-ready batch means every newer one is non-ready too. */
-    while (worker->flat_batches_local && flatBatchReady(worker->flat_batches_local)) {
-        flatBatch *b = worker->flat_batches_local;
-        worker->flat_batches_local = b->next;
-        if (!worker->flat_batches_local) worker->flat_batches_tail = NULL;
-        flatBatchFree(b, &worker->flat_batch_spare, &worker->flat_batch_spare_n);
-    }
+    unsigned long budget = flatReclaimBudget(closed);
+    if (flatDrainReadyBatches(&worker->flat_batches_local, &worker->flat_batches_tail,
+                              &worker->flat_batch_spare, &worker->flat_batch_spare_n, &budget))
+        atomic_fetch_add_explicit(&flat_reclaim_budget_trips_n, 1, memory_order_relaxed);
 }
 
 /* NOTE (deliberate non-feature): main does NOT adopt a non-live worker's pending local retires.
@@ -8803,24 +8814,58 @@ static void flatRetiredTablesTryFree(void) {
     flat_retired_n = 0;
 }
 
-static void flatReclaimTable(flatTable *t) {
+static int flatReclaimTableClose(flatTable *t) {
     /* review [efficiency]: peek before the RMW — with the worker path taking every retire from a
      * worker thread, this shared stack is empty on the vast majority of calls (only non-worker
      * threads land here), so an unconditional `lock xchg` would dirty the line for nothing. */
     if (atomic_load_explicit(&t->retire_stack, memory_order_relaxed)) {
         flatRetireNode *pend = atomic_exchange_explicit(&t->retire_stack, NULL, memory_order_acquire);
-        if (pend) t->batches = flatBatchClose(pend, t->batches, NULL, NULL);
+        if (pend) {
+            flatBatch *b = flatBatchClose(pend, NULL, NULL, NULL);
+            if (t->batches_tail) t->batches_tail->next = b;
+            else t->batches = b;
+            t->batches_tail = b;
+            return 1;
+        }
     }
-    if (t->batches) flatDrainReadyBatches(&t->batches, NULL, NULL);
+    return 0;
 }
 void flatReclaimAll(void) {
     if (!server.shared_node_dbs || !server.node_dbs) return;
+    unsigned long closed = 0;
+    int have_batches = 0;
     for (int n = 0; n < server.n_node_dbs; n++)
         for (int j = 0; j < server.dbnum; j++) {
             if (!dbIsInitialized(&server.node_dbs[n][j])) continue;
             flatTable *t = kvstoreFlatTable(server.node_dbs[n][j].keys);
-            if (t) flatReclaimTable(t);
+            if (t) {
+                if (flatReclaimTableClose(t) && closed != ULONG_MAX) closed++;
+                if (t->batches) have_batches = 1;
+            }
         }
+    if (!have_batches) return;
+    unsigned long budget = flatReclaimBudget(closed);
+    for (int n = 0; n < server.n_node_dbs; n++)
+        for (int j = 0; j < server.dbnum; j++) {
+            if (!dbIsInitialized(&server.node_dbs[n][j])) continue;
+            flatTable *t = kvstoreFlatTable(server.node_dbs[n][j].keys);
+            if (t && flatDrainReadyBatches(&t->batches, &t->batches_tail, NULL, NULL, &budget)) {
+                atomic_fetch_add_explicit(&flat_reclaim_budget_trips_n, 1, memory_order_relaxed);
+                return;
+            }
+        }
+    /* A head skipped above can become ready while a later table consumes the last budget. Recheck
+     * heads once so every pass that actually defers ready work records the witness. */
+    if (!budget)
+        for (int n = 0; n < server.n_node_dbs; n++)
+            for (int j = 0; j < server.dbnum; j++) {
+                if (!dbIsInitialized(&server.node_dbs[n][j])) continue;
+                flatTable *t = kvstoreFlatTable(server.node_dbs[n][j].keys);
+                if (t && t->batches && flatBatchReady(t->batches)) {
+                    atomic_fetch_add_explicit(&flat_reclaim_budget_trips_n, 1, memory_order_relaxed);
+                    return;
+                }
+            }
 }
 
 static _Atomic int mig_arm_lock;      /* fwd decl (real def below near reshard) */
@@ -18857,6 +18902,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_flat_batches_pending:%lu\r\n",
                 atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed) -
                 atomic_load_explicit(&flat_batches_freed_n, memory_order_relaxed),
+            "tomokv_flat_reclaim_budget_trips:%lu\r\n",
+                atomic_load_explicit(&flat_reclaim_budget_trips_n, memory_order_relaxed),
             "tomokv_flat_io_pinned:%d\r\n", flatIoPinnedCount(),
             "tomokv_flat_foreign_pins:%d\r\n", atomic_load_explicit(&flat_foreign_active, memory_order_relaxed),
             "tomokv_flat_hash_reuses:%lld\r\n", flatHashReusesTotal(),

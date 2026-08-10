@@ -103,7 +103,8 @@ typedef struct flatTable {
     _Atomic uint64_t tombs;        /* TOMB slot count (approx; relaxed) */
     uint64_t  gen;                 /* bumped on a rebuild (Stage 2); a cursor carrying gen restarts on change */
     _Atomic(flatRetireNode *) retire_stack;  /* QSBR: lock-free push of retired values */
-    flatBatch *batches;            /* QSBR: closed batches (main-thread only) */
+    flatBatch *batches;            /* QSBR: FIFO head, oldest closed batch (main-thread only) */
+    flatBatch *batches_tail;       /* QSBR: FIFO append point (main-thread only) */
     _Atomic int resize_needed;     /* set by insert at high load; the main-thread coordinator grows it */
 } flatTable;
 
