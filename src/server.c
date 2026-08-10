@@ -208,11 +208,11 @@ static int tomoMultiSingleWorker(client *c, int hold_migration);
 static int tomoExecHasScript(client *c);
 /* ee451 (v8d) resharding cutover hooks: defined in the engine module, used earlier (dispatch
  * hold @4990, fence-push @beforeSleep/beforeSleepIO). Gated by a relaxed migration_active load. */
-static void migHoldKeyIfDraining(robj *key);
-static void migPushFenceIfNeeded(void);
+static void migHoldKeyIfDraining(robj *key) __attribute__((cold,noinline));
+static void migPushFenceIfNeeded(void) __attribute__((cold,noinline));
 /* ee451 (H2 handover): the range hold parks the CLIENT that asked for the migrating range and the
  * sweep re-drives it once the range has changed hands. Both are used well above their definitions. */
-static int migHoldClientIfDraining(client *c);
+static int migHoldClientIfDraining(client *c) __attribute__((cold,noinline));
 static void migReleaseParkedClients(void);
 /* ee451 (H2): the cutover fence needs to know whether a producer SLOT currently has a thread
  * pumping it (a parked/never-live slot can never push a sentinel, so waiting on one is a hang),
@@ -305,10 +305,8 @@ static struct { _Atomic int v; char pad[CACHE_LINE_SIZE - sizeof(_Atomic int)]; 
     tomo_atomic_unsealed_line __attribute__((aligned(CACHE_LINE_SIZE)));
 #define tomo_atomic_unsealed (tomo_atomic_unsealed_line.v)
 
-void tomoAtomicLifecycleEnsure(void) {
-    if (server.num_workers <= 0 ||
-        atomic_load_explicit(&tomo_atomic_lifecycle_refs, memory_order_acquire) != NULL)
-        return;
+static void tomoAtomicLifecycleEnsureCold(void) __attribute__((cold,noinline));
+static void tomoAtomicLifecycleEnsureCold(void) {
     while (atomic_flag_test_and_set_explicit(&tomo_atomic_lifecycle_init_lock,
                                              memory_order_acquire))
         exPauseCpu();
@@ -319,6 +317,13 @@ void tomoAtomicLifecycleEnsure(void) {
         atomic_store_explicit(&tomo_atomic_lifecycle_refs, refs, memory_order_release);
     }
     atomic_flag_clear_explicit(&tomo_atomic_lifecycle_init_lock, memory_order_release);
+}
+
+void tomoAtomicLifecycleEnsure(void) {
+    if (server.num_workers <= 0 ||
+        atomic_load_explicit(&tomo_atomic_lifecycle_refs, memory_order_acquire) != NULL)
+        return;
+    tomoAtomicLifecycleEnsureCold();
 }
 
 static inline tomoAtomicLifecycleRef *tomoAtomicLifecycleSlot(
@@ -440,7 +445,7 @@ static int tomoAtomicMsetTryReserve(int window) {
     return 0;
 }
 
-static void tomoAtomicDropWaiter(client *c) {
+static void __attribute__((cold,noinline)) tomoAtomicDropWaiter(client *c) {
     clientExecTail *ct = clientTail(c);
     serverAssert(ct->atomic_window_parked_node != NULL);
     int tid = ct->atomic_window_parked_tid;
@@ -451,14 +456,14 @@ static void tomoAtomicDropWaiter(client *c) {
     serverAssert(old > 0);
 }
 
-void tomoAtomicUnstallClient(client *c) {
+void __attribute__((cold,noinline)) tomoAtomicUnstallClient(client *c) {
     clientExecTail *ct = clientTail(c);
     if (!ct->atomic_window_parked_node) return;
     tomoAtomicDropWaiter(c);
     c->flags &= ~(CLIENT_ATOMIC_WINDOW_STALLED | CLIENT_PIPELINE_STALLED);
 }
 
-static void tomoAtomicEnrollWaiter(client *c) {
+static void __attribute__((cold,noinline)) tomoAtomicEnrollWaiter(client *c) {
     clientExecTail *ct = clientTail(c);
     if (!ct->atomic_window_parked_node) {
         ct->atomic_window_parked_tid = iotid;
@@ -469,7 +474,7 @@ static void tomoAtomicEnrollWaiter(client *c) {
     }
 }
 
-static void tomoAtomicParkWindowClient(client *c) {
+static void __attribute__((cold,noinline)) tomoAtomicParkWindowClient(client *c) {
     tomoAtomicEnrollWaiter(c);
     c->flags |= CLIENT_ATOMIC_WINDOW_STALLED | CLIENT_PIPELINE_STALLED;
     /* Closes the retire-vs-park missed-wakeup race: if a group retired just before waiter
@@ -478,7 +483,7 @@ static void tomoAtomicParkWindowClient(client *c) {
     tomoAtomicWakeProducer(iotid);
 }
 
-static void tomoAtomicParkCutoverClient(client *c) {
+static void __attribute__((cold,noinline)) tomoAtomicParkCutoverClient(client *c) {
     tomoAtomicEnrollWaiter(c);
     c->flags |= CLIENT_ATOMIC_WINDOW_STALLED | CLIENT_PIPELINE_STALLED;
     /* Close clear-before-enroll: the coordinator wakes after its release store, while a waiter
@@ -490,9 +495,8 @@ static void tomoAtomicParkCutoverClient(client *c) {
 /* Reservation/recheck half of the cutover admission handshake. With seq_cst ordering, either the
  * coordinator observes this reservation after closing the gate, or this recheck observes the closed
  * gate and removes it; the cutover cannot observe zero while an admitted group appears afterward. */
-static int tomoAtomicCutoverRaceAfterReserve(client *c) {
-    if (atomic_load_explicit(&tomo_atomic_cutover_gate, memory_order_seq_cst) == 0)
-        return 0;
+static int tomoAtomicCutoverRaceAfterReserveCold(client *c) __attribute__((cold,noinline));
+static int tomoAtomicCutoverRaceAfterReserveCold(client *c) {
     int old_unsealed =
         atomic_fetch_sub_explicit(&tomo_atomic_unsealed, 1, memory_order_seq_cst);
     int old_inflight =
@@ -500,6 +504,12 @@ static int tomoAtomicCutoverRaceAfterReserve(client *c) {
     serverAssert(old_unsealed > 0 && old_inflight > 0);
     tomoAtomicParkCutoverClient(c);
     return 1;
+}
+
+static int tomoAtomicCutoverRaceAfterReserve(client *c) {
+    if (atomic_load_explicit(&tomo_atomic_cutover_gate, memory_order_seq_cst) == 0)
+        return 0;
+    return tomoAtomicCutoverRaceAfterReserveCold(c);
 }
 
 static void tomoAtomicLifecycleGroupSealed(void) {
@@ -512,12 +522,12 @@ static void tomoAtomicLifecycleGroupSealed(void) {
  * pending command. Admission waits recheck the global CAS window; own-write read waits recheck
  * their post-publication per-client count. A retry may immediately park again, so re-evaluate the
  * shared list after every client. */
-static void tomoAtomicReleaseStalledClients(void) {
+static void tomoAtomicReleaseStalledClientsCold(void) __attribute__((cold,noinline));
+static void tomoAtomicReleaseStalledClientsCold(void) {
     /* beforeSleep/beforeSleepIO call this unconditionally after reply drain.
      * Thus a pure WINDOW_STALLED population needs no pending-read state to be
      * discoverable: completion wakes its owning producer, retirement WakeAlls
      * the parked producers, and each owner consumes only its own list here. */
-    if (atomic_load_explicit(&tomo_atomic_waiters, memory_order_relaxed) == 0) return;
     list *l = server.clients_atomic_window_parked[iotid];
     while (l && listLength(l) != 0) {
         int window = 0;
@@ -547,6 +557,11 @@ static void tomoAtomicReleaseStalledClients(void) {
          * have returned. processInputBuffer may free c, so do not touch it after this call. */
         processInputBuffer(c);
     }
+}
+
+static void tomoAtomicReleaseStalledClients(void) {
+    if (atomic_load_explicit(&tomo_atomic_waiters, memory_order_relaxed) == 0) return;
+    tomoAtomicReleaseStalledClientsCold();
 }
 
 /* The atomic knob deliberately selects whole command shapes, not generic writes: every row
@@ -5184,8 +5199,8 @@ static int detectL3Domains(void) {
  * so an acquire load that observes it also observes every physical DB. */
 static pthread_mutex_t logical_db_init_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-static void initializeDatabase(redisDb *db, int id, int slot_count_bits,
-                               int key_flags, int expires_flags)
+static void __attribute__((cold,noinline)) initializeDatabase(redisDb *db, int id, int slot_count_bits,
+                                                              int key_flags, int expires_flags)
 {
     serverAssert(!dbIsInitialized(db));
     db->keys = kvstoreCreate(&kvstoreExType, &dbDictType, slot_count_bits, key_flags);
@@ -5203,10 +5218,8 @@ static void initializeDatabase(redisDb *db, int id, int slot_count_bits,
     atomicSetWithSync(db->initialized, 1);
 }
 
-void ensureLogicalDbInitialized(int id) {
-    serverAssert(id >= 0 && id < server.dbnum);
-    if (dbIsInitialized(&server.db[id])) return;
-
+static void ensureLogicalDbInitializedCold(int id) __attribute__((cold,noinline));
+static void ensureLogicalDbInitializedCold(int id) {
     pthread_mutex_lock(&logical_db_init_mutex);
     if (!dbIsInitialized(&server.db[id])) {
         const int slot_count_bits = TOMO_BUCKET_BITS;
@@ -5230,6 +5243,12 @@ void ensureLogicalDbInitialized(int id) {
         initializeDatabase(&server.db[id], id, slot_count_bits, flags, flags);
     }
     pthread_mutex_unlock(&logical_db_init_mutex);
+}
+
+void ensureLogicalDbInitialized(int id) {
+    serverAssert(id >= 0 && id < server.dbnum);
+    if (likely(dbIsInitialized(&server.db[id]))) return;
+    ensureLogicalDbInitializedCold(id);
 }
 
 void initServer(void) {
@@ -6930,7 +6949,7 @@ void call(client *c, int flags) {
 
     /* Update failed command calls if required. */
 
-    if (!incrCommandStatsOnError(real_cmd, ERROR_COMMAND_FAILED) && ct->deferred_reply_errors) {
+    if (unlikely(!incrCommandStatsOnError(real_cmd, ERROR_COMMAND_FAILED) && ct->deferred_reply_errors)) {
         /* When call is used from a module client, error stats, and total_error_replies
          * isn't updated since these errors, if handled by the module, are internal,
          * and not reflected to users. however, the commandstats does show these calls
@@ -6940,7 +6959,7 @@ void call(client *c, int flags) {
 
     /* After executing command, we will close the client after writing entire
      * reply if it is set 'CLIENT_CLOSE_AFTER_COMMAND' flag. */
-    if (c->flags & CLIENT_CLOSE_AFTER_COMMAND) {
+    if (unlikely(c->flags & CLIENT_CLOSE_AFTER_COMMAND)) {
         c->flags &= ~CLIENT_CLOSE_AFTER_COMMAND;
         c->flags |= CLIENT_CLOSE_AFTER_REPLY;
     }
@@ -7129,7 +7148,7 @@ void call(client *c, int flags) {
  * it aborts the transaction.
  * The duration is reset, since we reject the command, and it did not record.
  * Note: 'reply' is expected to end with \r\n */
-void rejectCommand(client *c, robj *reply) {
+void __attribute__((cold,noinline)) rejectCommand(client *c, robj *reply) {
     flagTransaction(c);
     clientTail(c)->duration = 0;
     if (c->cmd) c->cmd->rejected_calls++;
@@ -7141,7 +7160,7 @@ void rejectCommand(client *c, robj *reply) {
     }
 }
 
-void rejectCommandSds(client *c, sds s) {
+void __attribute__((cold,noinline)) rejectCommandSds(client *c, sds s) {
     flagTransaction(c);
     clientTail(c)->duration = 0;
     if (c->cmd) c->cmd->rejected_calls++;
@@ -7154,7 +7173,7 @@ void rejectCommandSds(client *c, sds s) {
     }
 }
 
-void rejectCommandFormat(client *c, const char *fmt, ...) {
+void __attribute__((cold,noinline)) rejectCommandFormat(client *c, const char *fmt, ...) {
     va_list ap;
     va_start(ap,fmt);
     sds s = sdscatvprintf(sdsempty(),fmt,ap);
@@ -7357,13 +7376,13 @@ void preprocessCommand(client *c, pendingCommand *pcmd) {
     else
         pcmd->cmd = lookupCommand(pcmd->argv, pcmd->argc);
 
-    if (!pcmd->cmd) {
+    if (unlikely(!pcmd->cmd)) {
         pcmd->read_error = CLIENT_READ_COMMAND_NOT_FOUND;
         return;
     }
 
-    if ((pcmd->cmd->arity > 0 && pcmd->cmd->arity != pcmd->argc) ||
-        (pcmd->argc < -pcmd->cmd->arity))
+    if (unlikely((pcmd->cmd->arity > 0 && pcmd->cmd->arity != pcmd->argc) ||
+        (pcmd->argc < -pcmd->cmd->arity)))
     {
         pcmd->read_error = CLIENT_READ_BAD_ARITY;
         return;
@@ -7372,7 +7391,7 @@ void preprocessCommand(client *c, pendingCommand *pcmd) {
     pcmd->keys_result = (getKeysResult)GETKEYS_RESULT_INIT;
     int num_keys = extractKeysAndSlot(pcmd->cmd, pcmd->argv, pcmd->argc,
                                       &pcmd->keys_result, &pcmd->slot);
-    if (num_keys < 0) {
+    if (unlikely(num_keys < 0)) {
         /* We skip the checks below since We expect the command to be rejected in this case */
         return;
     } else if (num_keys > 0) {
@@ -7383,6 +7402,21 @@ void preprocessCommand(client *c, pendingCommand *pcmd) {
         }
     }
     pcmd->flags |= PENDING_CMD_KEYS_RESULT_VALID;
+}
+
+static client *processCommandPrepareFake(client *c, clientExecTail *ct,
+                                         unsigned int fslot, client *fake,
+                                         int core_eligible) __attribute__((cold,noinline));
+static client *processCommandPrepareFake(client *c, clientExecTail *ct,
+                                         unsigned int fslot, client *fake,
+                                         int core_eligible) {
+    if (fake == NULL) {
+        fake = core_eligible ? createCoreFakeClient(c) : createFakeClient(c);
+        if (fslot + 1 > ct->fake_ring_cur_depth) ct->fake_ring_cur_depth = fslot + 1;
+    } else if (!core_eligible && !fake->has_exec_tail) {
+        fake = promoteFakeClient(fake);
+    }
+    return fake;
 }
 
 /* If this function gets called we already read a whole
@@ -7481,11 +7515,11 @@ int processCommand(client *c) {
 
         c->cmd = ct->lastcmd = ct->realcmd = cmd;
         sds err;
-        if (!commandCheckExistence(c, &err)) {
+        if (unlikely(!commandCheckExistence(c, &err))) {
             rejectCommandSds(c, err);
             return C_OK;
         }
-        if (!commandCheckArity(c->cmd, c->argc, &err)) {
+        if (unlikely(!commandCheckArity(c->cmd, c->argc, &err))) {
             rejectCommandSds(c, err);
             return C_OK;
         }
@@ -7591,7 +7625,7 @@ int processCommand(client *c) {
      * ACLs. */
     int acl_errpos;
     int acl_retval = ACLCheckAllPerm(c,&acl_errpos);
-    if (acl_retval != ACL_OK) {
+    if (unlikely(acl_retval != ACL_OK)) {
         addACLLogEntry(c,acl_retval,(c->flags & CLIENT_MULTI) ? ACL_LOG_CTX_MULTI : ACL_LOG_CTX_TOPLEVEL,acl_errpos,NULL,NULL);
         sds msg = getAclErrorMessage(acl_retval, c->user, c->cmd, c->argv[acl_errpos]->ptr, 0);
         rejectCommandFormat(c, "-NOPERM %s", msg);
@@ -7878,9 +7912,9 @@ int processCommand(client *c) {
      * row carries the bit only for its guarded forms. The SAFE-GATE is unconditional
      * (tomokv-xshard-guard was hardwired ON in 77174fa4a: its OFF arm was a reproduced data-loss
      * path, not an optimisation). */
-    if (server.num_workers > 0 &&   /* xshard-guard: always on (correctness gate, not a preference) */
+    if (__builtin_expect(server.num_workers > 0 &&   /* xshard-guard: always on (correctness gate, not a preference) */
         !(c->flags & CLIENT_MULTI) && /* queued commands are validated as one T6 unit at EXEC */
-        (c->cmd->tomo_route & TOMO_R_XGUARD) && csGateReject(c)) {
+        (c->cmd->tomo_route & TOMO_R_XGUARD) && csGateReject(c), 0)) {
         rejectCommandFormat(c, "%s is not yet supported with tomokv sharding (tomokv-thread-ex=%d): "
             "it spans multiple shards and would execute against the empty decoy DB (silent data loss). "
             "Use single-key equivalents or upstream Redis", c->cmd->fullname, server.num_workers);
@@ -8063,12 +8097,8 @@ int processCommand(client *c) {
     /* 2s-auto D3: lazy-create the ring slot on first use (createClient leaves every slot NULL).
      * fake_slot is restamped after a resize because the allocation may move. */
     client *fake = ct->fakeClients[fslot];
-    if (fake == NULL) {
-        fake = core_eligible ? createCoreFakeClient(c) : createFakeClient(c);
-        if (fslot + 1 > ct->fake_ring_cur_depth) ct->fake_ring_cur_depth = fslot + 1;
-    } else if (!core_eligible && !fake->has_exec_tail) {
-        fake = promoteFakeClient(fake);
-    }
+    if (__builtin_expect(fake == NULL || (!core_eligible && !fake->has_exec_tail), 0))
+        fake = processCommandPrepareFake(c, ct, fslot, fake, core_eligible);
     ct->fakeClients[fslot] = fake;
     fake->fake_slot = fslot;
     /* 2s-auto T3: express-slim — GET/SET are never MULTI-queued under sharding, so
@@ -8928,7 +8958,7 @@ int flatResizeState(void) { return atomic_load_explicit(&flat_rz_state, memory_o
  * use-after-free (the old table must stay immutable for the whole rebuild), which is why the CAS
  * refuses any state that is not QUIESCING. The resize is not lost — resize_needed is still set, so
  * the next coordinator pass re-arms it. */
-static int flatResizeAbortQuiesce(void) {
+static int __attribute__((cold,noinline)) flatResizeAbortQuiesce(void) {
     int expected = FLAT_RZ_QUIESCING;
     if (!atomic_compare_exchange_strong_explicit(&flat_rz_state, &expected, FLAT_RZ_IDLE,
                                                  memory_order_acq_rel, memory_order_acquire))
@@ -8944,7 +8974,7 @@ static int flatResizeAbortQuiesce(void) {
  * Counter (not just a log line) because the J4 diagnosis turned on 'zero FLATSTORE resize: lines in
  * the log' — a gate that never opens must be observable. */
 _Atomic unsigned long long flat_rz_watchdog_aborts;   /* INFO: times the watchdog had to unpark the world */
-void flatResizeWatchdog(void) {
+void __attribute__((cold,noinline)) flatResizeWatchdog(void) {
     if (!atomic_load_explicit(&server.flat_resize_active, memory_order_acquire)) return;
     if (atomic_load_explicit(&flat_rz_state, memory_order_acquire) != FLAT_RZ_QUIESCING) return;
     monotime arm = atomic_load_explicit(&flat_rz_arm_us, memory_order_acquire);
@@ -9297,11 +9327,14 @@ static inline int tomoWkrTrylock(int w) {
     return atomic_compare_exchange_strong_explicit(&tomo_wkr_lock[w].v, &expected, 1,
                                                    memory_order_acquire, memory_order_relaxed);
 }
-static inline void tomoWkrLock(int w) {
-    if (tomoWkrTrylock(w)) return;
+static void __attribute__((cold,noinline)) tomoWkrLockContended(int w) {
     tmIoWaitBegin();
     do { exPauseCpu(); } while (!tomoWkrTrylock(w));
     tmIoWaitEnd();
+}
+static inline void tomoWkrLock(int w) {
+    if (tomoWkrTrylock(w)) return;
+    tomoWkrLockContended(w);
 }
 static inline void tomoWkrUnlock(int w) {
     atomic_store_explicit(&tomo_wkr_lock[w].v, 0, memory_order_release);
@@ -9457,12 +9490,15 @@ static inline void csCommitUnlock(void) {
     atomic_flag_clear_explicit(&commit_lock, memory_order_release);
 }
 
-static inline void csMsetPendingLock(client *c) {
-    if (!atomic_exchange_explicit(&clientTail(c)->mset_pending_lock, 1, memory_order_acquire)) return;
+static void __attribute__((cold,noinline)) csMsetPendingLockContended(client *c) {
     tmIoWaitBegin();
     do { exPauseCpu(); }
     while (atomic_exchange_explicit(&clientTail(c)->mset_pending_lock, 1, memory_order_acquire));
     tmIoWaitEnd();
+}
+static inline void csMsetPendingLock(client *c) {
+    if (!atomic_exchange_explicit(&clientTail(c)->mset_pending_lock, 1, memory_order_acquire)) return;
+    csMsetPendingLockContended(c);
 }
 
 static inline void csMsetPendingUnlock(client *c) {
@@ -15320,7 +15356,7 @@ static void migPushFenceIfNeeded(void) {
  * MSET/DEL/MGET whose FIRST key is out of range but whose third is in it must park too, or that
  * sub would be scattered to the old owner behind its own drain sentinel. Only reached while a
  * migration is armed. */
-static int migAnyKeyInRange(client *c) {
+static int __attribute__((cold,noinline)) migAnyKeyInRange(client *c) {
     if (!c->cmd || !c->argv) return 0;
     if (c->cmd->legacy_range_key_spec.bs.index.pos == 1 && c->argc >= 2 && c->argv[1])
         return migBucketInRange(migKeyBucket(c->argv[1]->ptr, sdslen(c->argv[1]->ptr)));
@@ -15364,10 +15400,8 @@ static int migHoldClientIfDraining(client *c) {
  * other work still gets here. The release condition is simply "phase is no longer DRAINING", which
  * is also true after the watchdog abort — an abandoned cutover releases its parked clients to the
  * unchanged owner rather than stranding them. */
-static void migReleaseParkedClients(void) {
-    list *l = server.clients_mig_parked[iotid];
-    if (!l || listLength(l) == 0) return;
-    if (atomic_load_explicit(&server.migration.phase, memory_order_acquire) == MIG_DRAINING) return;
+static void migReleaseParkedClientsCold(list *l) __attribute__((cold,noinline));
+static void migReleaseParkedClientsCold(list *l) {
     listNode *ln;
     while ((ln = listFirst(l)) != NULL) {
         client *c = listNodeValue(ln);
@@ -15377,6 +15411,13 @@ static void migReleaseParkedClients(void) {
         /* processInputBuffer may free c (its C_ERR path); we already dropped our reference. */
         processInputBuffer(c);
     }
+}
+
+static void migReleaseParkedClients(void) {
+    list *l = server.clients_mig_parked[iotid];
+    if (!l || listLength(l) == 0) return;
+    if (atomic_load_explicit(&server.migration.phase, memory_order_acquire) == MIG_DRAINING) return;
+    migReleaseParkedClientsCold(l);
 }
 
 /* ee451 (H2 handover): drop a dying client from its park list. A parked client has an empty ring
@@ -21395,7 +21436,7 @@ typedef enum exSliceIdlePolicy {
 
 /* ee451 (thread-modes v1, step 1): initialize a worker's EX slice state at
  * thread-start timing (num_cdb and io_threads are both immutable after startup). */
-static void exSliceInit(exThread *worker, exSliceCtx *ctx) {
+static void __attribute__((cold,noinline)) exSliceInit(exThread *worker, exSliceCtx *ctx) {
     ctx->wcdb = cdbIndexFor(worker->id);
     /* flip: scan the flip growth producer slots too (a converted worker running as an IO thread
      * dispatches from io_slot in [io_threads, io_threads+tm_ngrow_io)). Their queues are allocated
@@ -21450,6 +21491,52 @@ static inline int exDormantSliceNeeded(exThread *worker,
     return 0;
 }
 
+static void __attribute__((cold,noinline)) exSliceWaitForResize(exThread *worker) {
+    atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);  /* back out so the coordinator can drain */
+    /* ee451 (J4): a parked worker is the LAST line of defence against a coordinator that has
+     * stopped running (main is io slot 0, and only io slot 0 drives it). Throttled to once per
+     * 1024 yields so the common case — a healthy 200us quiesce — costs no clock reads at all. */
+    tmIoWaitBegin();
+    for (unsigned spins = 0;
+         atomic_load_explicit(&server.flat_resize_active, memory_order_acquire);
+         spins++) {
+        if ((spins & 1023) == 1023) flatResizeWatchdog();
+        sched_yield();
+    }
+    tmIoWaitEnd();
+    atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);  /* re-enter, re-check */
+}
+
+static void __attribute__((cold,noinline)) exSliceFlushSentinel(exThread *worker, client *fake) {
+    clientExecTail *ft = clientTail(fake);
+    int dblo = ft->flush_dbid < 0 ? 0 : ft->flush_dbid;
+    int dbhi = ft->flush_dbid < 0 ? server.dbnum - 1 : ft->flush_dbid;
+    tomoWkrLock(worker->id);
+    for (int dbid = dblo; dbid <= dbhi; dbid++)
+        tomoTouchWatchedKeysOnFlush(&worker->db[dbid], worker->id);
+    tomoWkrUnlock(worker->id);
+    if (ft->flush_bar) {
+        /* ee451 (shared-kv S0.2b): per-node rendezvous — the LAST node worker to reach
+         * its sentinel performs the ONE kvstoreEmpty of the shared node db (all siblings
+         * provably past their pre-flush commands = quiesced at this barrier); the others
+         * spin (µs). Last participant overall frees the barrier array. */
+        tomoFlushBar *bar = ft->flush_bar;
+        if (atomic_fetch_sub_explicit(&bar->pending, 1, memory_order_acq_rel) == 1) {
+            emptyDbStructure(worker->db, ft->flush_dbid, ft->flush_async, NULL);
+            atomic_store_explicit(&bar->done, 1, memory_order_release);
+        } else {
+            while (!atomic_load_explicit(&bar->done, memory_order_acquire)) exPauseCpu();
+        }
+        if (atomic_fetch_sub_explicit(&bar->base->refs, 1, memory_order_acq_rel) == 1) {
+            zfree(bar->base);
+            atomic_store_explicit(&tomo_flush_gate, 0, memory_order_release);  /* [2] release */
+        }
+    } else {
+        emptyDbStructure(worker->db, ft->flush_dbid, ft->flush_async, NULL);
+    }
+    freeFakeClient(fake);
+}
+
 /* ee451 (thread-modes v1, step 1): ONE pass of the EX loop — freeback drain,
  * migration duties, one full rotated producer-queue scan + batch exec + reply
  * signals, then the adaptive idle-spin decision. Returns 1 if this pass popped
@@ -21502,19 +21589,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
      * other, so the coordinator can never free the table between our check and our first table access. */
     atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
     while (__builtin_expect(atomic_load_explicit(&server.flat_resize_active, memory_order_seq_cst), 0)) {
-        atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);  /* back out so the coordinator can drain */
-        /* ee451 (J4): a parked worker is the LAST line of defence against a coordinator that has
-         * stopped running (main is io slot 0, and only io slot 0 drives it). Throttled to once per
-         * 1024 yields so the common case — a healthy 200us quiesce — costs no clock reads at all. */
-        tmIoWaitBegin();
-        for (unsigned spins = 0;
-             atomic_load_explicit(&server.flat_resize_active, memory_order_acquire);
-             spins++) {
-            if ((spins & 1023) == 1023) flatResizeWatchdog();
-            sched_yield();
-        }
-        tmIoWaitEnd();
-        atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);  /* re-enter, re-check */
+        exSliceWaitForResize(worker);
     }
 
     /* ee451 (v8d): the per-worker online-resharding duties (B replaying the ordered effect log,
@@ -21760,7 +21835,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
             /* ee451 (v8d): CUTOVER DRAIN SENTINEL — processed in queue order. Reaching it proves
              * every range primary this producer dispatched before it has executed on A; decrement
              * the per-cutover barrier and free. No reply. */
-            if (fake->has_exec_tail && clientTail(fake)->drain_ack) {
+            if (__builtin_expect(fake->has_exec_tail && clientTail(fake)->drain_ack, 0)) {
                 /* This sentinel came up queue slot `i`; mark that producer slot drained. */
                 atomic_store_explicit(&server.migration.fence_acked[i], 1, memory_order_release);
                 freeFakeClient(fake);
@@ -21771,34 +21846,8 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
             /* ee451 (v7): FLUSH SENTINEL — processed in queue order (FIFO behind this
              * connection's earlier commands). Empty this worker's OWN shard DBs and free
              * the fake. Fire-and-forget: no reply, no barrier. */
-            if (fake->has_exec_tail && clientTail(fake)->is_flush) {
-                clientExecTail *ft = clientTail(fake);
-                int dblo = ft->flush_dbid < 0 ? 0 : ft->flush_dbid;
-                int dbhi = ft->flush_dbid < 0 ? server.dbnum - 1 : ft->flush_dbid;
-                tomoWkrLock(worker->id);
-                for (int dbid = dblo; dbid <= dbhi; dbid++)
-                    tomoTouchWatchedKeysOnFlush(&worker->db[dbid], worker->id);
-                tomoWkrUnlock(worker->id);
-                if (ft->flush_bar) {
-                    /* ee451 (shared-kv S0.2b): per-node rendezvous — the LAST node worker to reach
-                     * its sentinel performs the ONE kvstoreEmpty of the shared node db (all siblings
-                     * provably past their pre-flush commands = quiesced at this barrier); the others
-                     * spin (µs). Last participant overall frees the barrier array. */
-                    tomoFlushBar *bar = ft->flush_bar;
-                    if (atomic_fetch_sub_explicit(&bar->pending, 1, memory_order_acq_rel) == 1) {
-                        emptyDbStructure(worker->db, ft->flush_dbid, ft->flush_async, NULL);
-                        atomic_store_explicit(&bar->done, 1, memory_order_release);
-                    } else {
-                        while (!atomic_load_explicit(&bar->done, memory_order_acquire)) exPauseCpu();
-                    }
-                    if (atomic_fetch_sub_explicit(&bar->base->refs, 1, memory_order_acq_rel) == 1) {
-                        zfree(bar->base);
-                        atomic_store_explicit(&tomo_flush_gate, 0, memory_order_release);  /* [2] release */
-                    }
-                } else {
-                    emptyDbStructure(worker->db, ft->flush_dbid, ft->flush_async, NULL);
-                }
-                freeFakeClient(fake);
+            if (__builtin_expect(fake->has_exec_tail && clientTail(fake)->is_flush, 0)) {
+                exSliceFlushSentinel(worker, fake);
                 j++;
                 continue;
             }
