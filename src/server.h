@@ -1785,73 +1785,86 @@ typedef union clientExecTail {
          * cache-line isolated; this split must not add a dependent load to the
          * EX->IO completion publication path. */
         cdbSlots *reply_cdb;
+        /* Keep the completion address-source layout region read-mostly. Ring size and
+         * mask change only while empty; the other anchors change outside the
+         * ordinary dispatch/completion overlap. */
+        uint64_t id;
+        struct tomoUringClient *uring;
+        listNode *atomic_window_parked_node;
+        long duration;
+        unsigned int ring_size;
+        unsigned int ring_mask;
+        listNode *client_list_node;
+        time_t ctime;
         /* Connection-owned controller state. A fake never owns another fake
-         * ring, which is the four-line hole removed by the core allocation. */
+         * ring, which is the four-line hole removed by the core allocation.
+         * Its per-dispatch pointer store starts after the CDB pointer region. */
         client *fakeClients[TOMO_PIPELINE_DEPTH_MAX];
+
+        /* Real-client IO hot pass: receive, parse, dispatch, reply drain. */
+        sds querybuf;
+        size_t qb_pos;
+        size_t querybuf_peak;
+        struct redisCommand *lastcmd;
+        struct redisCommand *lookedcmd;
+        struct redisCommand *realcmd;
+        long bulklen;
+        list *deferred_reply_errors;
+        dictEntry *cur_script;
+        time_t lastinteraction;
+        long long reploff_next;
+        unsigned long long net_input_bytes;
+        unsigned long long net_output_bytes;
+        listNode clients_pending_ex_node;
+        listNode clients_pending_write_node;
+        unsigned int dispatchid;
+        unsigned int flushid;
+        unsigned int fake_ring_cur_depth;
+        unsigned int ring_want_grow;
+        unsigned int cs_barrier;
+        unsigned int fake_ring_hwm_win;
+        int reqtype;
+        int multibulklen;
+        redisAtomic int pending_read;
+        uint8_t read_error;
+        unsigned char _io_hot_layout_pad[3];
+
+        /* State outside the ordinary real-client IO walk. */
         struct csGroup *mset_pending_head;
         struct csGroup *mset_pending_tail;
         struct csMsetPub *mset_pub;
         double fake_ring_hwm_ewma;
         _Atomic int *drain_ack;
         listNode *mig_parked_node;
-        listNode *atomic_window_parked_node;
-        uint64_t id;
         robj *name;
         robj *lib_name;
         robj *lib_ver;
-        sds querybuf;
-        size_t qb_pos;
-        size_t querybuf_peak;
         robj **original_argv;
         deferredObject *deferred_objects;
         robj **io_deferred_objects;
-        struct redisCommand *lastcmd;
-        struct redisCommand *lookedcmd;
-        struct redisCommand *realcmd;
-        long bulklen;
-        list *deferred_reply_errors;
-        time_t ctime;
-        long duration;
-        dictEntry *cur_script;
-        time_t lastinteraction;
+        listNode *io_thread_client_list_node;
         time_t io_lastinteraction;
         time_t obuf_soft_limit_reached_time;
         mstime_t io_last_client_cron;
-        long long reploff_next;
         long long woff;
         sds peerid;
         sds sockname;
-        listNode *client_list_node;
-        listNode *io_thread_client_list_node;
         size_t last_memory_usage;
-        listNode clients_pending_ex_node;
-        listNode clients_pending_write_node;
         listNode pending_ref_reply_node;
         mstime_t buf_peak_last_reset_time;
-        unsigned long long net_input_bytes;
-        unsigned long long net_output_bytes;
         struct asmTask *task;
         char *node_id;
         struct tomoFlushBar *flush_bar;
         clientCold *cold;
-        struct tomoUringClient *uring;
 #ifdef LOG_REQ_RES
         clientReqResInfo reqres;
 #endif
 
-        unsigned int dispatchid;
-        unsigned int flushid;
-        unsigned int fake_ring_cur_depth;
-        unsigned int ring_size;
-        unsigned int ring_mask;
-        unsigned int ring_want_grow;
-        unsigned int cs_barrier;
         redisAtomic int mset_pending_lock;
         redisAtomic int mset_drain_latch;
         redisAtomic unsigned int mset_pending_count;
         redisAtomic int mset_read_waiting;
         unsigned int fake_ring_decay_skip;
-        unsigned int fake_ring_hwm_win;
         int cssub_idx;
         int is_flush;
         int flush_dbid;
@@ -1862,11 +1875,7 @@ typedef union clientExecTail {
         int deferred_objects_num;
         int io_deferred_objects_num;
         int io_deferred_objects_size;
-        int reqtype;
-        int multibulklen;
         int last_memory_type;
-        redisAtomic int pending_read;
-        uint8_t read_error;
     };
     unsigned char _layout[CLIENT_EXEC_TAIL_BYTES];
     uint64_t _align;
@@ -1949,6 +1958,13 @@ typedef struct client {
 
 #define clientTail(c) ((c)->exec_tail)
 
+/* Offset regions are an audit measure; client allocations need not be line-aligned. */
+#define CLIENT_IO_LAYOUT_REGION_BYTES 64
+#define CLIENT_IO_HOT_LAYOUT_BYTES \
+    (offsetof(client, exec_tail) + offsetof(clientExecTail, mset_pending_head))
+#define CLIENT_IO_HOT_LAYOUT_REGIONS \
+    ((CLIENT_IO_HOT_LAYOUT_BYTES + CLIENT_IO_LAYOUT_REGION_BYTES - 1) / CLIENT_IO_LAYOUT_REGION_BYTES)
+
 _Static_assert(sizeof(client) == 320, "client execution core must stay 320 bytes");
 _Static_assert(offsetof(client, exec_tail) == 320, "client tail must follow the execution core");
 _Static_assert(sizeof(clientExecTail) == CLIENT_EXEC_TAIL_BYTES, "client execution tail size changed");
@@ -1962,6 +1978,13 @@ _Static_assert(offsetof(client, reply) == 64, "client reply left hot line 1");
 _Static_assert(offsetof(client, prefetch_key_hash) == 136, "client prefetch state left hot line 2");
 _Static_assert(offsetof(client, reply_bytes) == 192, "client reply accounting left hot line 3");
 _Static_assert(offsetof(client, argc) == 276, "client argv state left hot line 4");
+_Static_assert(offsetof(clientExecTail, ring_size) == 40, "CDB address-source anchors changed");
+_Static_assert(offsetof(clientExecTail, fakeClients) == 64, "fake ring entered the CDB pointer region");
+_Static_assert(offsetof(clientExecTail, querybuf) == 320, "real-client IO state left its hot prefix");
+_Static_assert(offsetof(clientExecTail, dispatchid) == 472, "ring cursors left the IO hot prefix");
+_Static_assert(offsetof(clientExecTail, mset_pending_head) == 512, "cold tail overlaps the IO hot prefix");
+_Static_assert(CLIENT_IO_HOT_LAYOUT_BYTES == 832, "real-client IO hot span changed");
+_Static_assert(CLIENT_IO_HOT_LAYOUT_REGIONS == 13, "real-client IO layout-region count changed");
 #endif
 
 /* Non-allocating cold-state readers. Call the subsystem initializer before a

@@ -1147,6 +1147,9 @@ NULL
         sizes = sdscatprintf(sizes,"sdshdr16:%d ",(int)sizeof(struct sdshdr16));
         sizes = sdscatprintf(sizes,"sdshdr32:%d ",(int)sizeof(struct sdshdr32));
         sizes = sdscatprintf(sizes,"sdshdr64:%d ",(int)sizeof(struct sdshdr64));
+        sizes = sdscatprintf(sizes,"clientcore:%d clientfull:%d clientiohotspan:%d clientiohotregions:%d ",
+                (int)sizeof(client), (int)CLIENT_FULL_SIZE, (int)CLIENT_IO_HOT_LAYOUT_BYTES,
+                (int)CLIENT_IO_HOT_LAYOUT_REGIONS);
         addReplyBulkSds(c,sizes);
     } else if (!strcasecmp(c->argv[1]->ptr,"htstats") && c->argc >= 3) {
         long dbid;
