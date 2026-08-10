@@ -110,7 +110,7 @@ int replicaFromIOThreadHasPendingRead(client *c) {
     serverAssert(c->tid != IOTHREAD_MAIN_THREAD_ID);
 
     int pending_read;
-    atomicGetWithSync(c->pending_read, pending_read);
+    atomicGetWithSync(clientTail(c)->pending_read, pending_read);
     return pending_read;
 }
 
@@ -170,7 +170,7 @@ int replicationCronRunMasterClient(void) {
 
     /* Timed out master when we are an already connected slave? */
     if (server.repl_state == REPL_STATE_CONNECTED &&
-        (time(NULL)-server.master->lastinteraction) > server.repl_timeout)
+        (time(NULL)-clientTail(server.master)->lastinteraction) > server.repl_timeout)
     {
         serverLog(LL_WARNING,"MASTER timeout: no data nor PING received...");
         freeClient(server.master);
@@ -214,7 +214,7 @@ char *replicationGetSlaveName(client *c) {
             snprintf(buf,sizeof(buf),"%s:<unknown-replica-port>",addr);
     } else {
         snprintf(buf,sizeof(buf),"client id #%llu",
-            (unsigned long long) c->id);
+            (unsigned long long) clientTail(c)->id);
     }
     return buf;
 }
@@ -784,7 +784,7 @@ void replicationFeedMonitors(client *c, list *monitors, int dictid, robj **argv,
     while((ln = listNext(&li))) {
         client *monitor = ln->value;
         /* Do not show internal commands to non-internal clients. */
-        if (c->realcmd && (c->realcmd->flags & CMD_INTERNAL) && !(monitor->flags & CLIENT_INTERNAL)) {
+        if (clientTail(c)->realcmd && (clientTail(c)->realcmd->flags & CMD_INTERNAL) && !(monitor->flags & CLIENT_INTERNAL)) {
             continue;
         }
         addReply(monitor,cmdobj);
@@ -903,7 +903,7 @@ int replicationSetupSlaveForFullResync(client *slave, long long offset) {
         clientReplicationData(slave)->slave_req & SLAVE_REQ_SLOTS_SNAPSHOT)
     {
         /* Start to deliver the commands stream on migrating slots. */
-        asmSlotSnapshotAndStreamStart(slave->task);
+        asmSlotSnapshotAndStreamStart(clientTail(slave)->task);
 
         buflen = snprintf(buf, sizeof(buf), "+SLOTSSNAPSHOT\r\n");
         if (connWrite(slave->conn, buf, buflen) != buflen) {
@@ -1276,7 +1276,7 @@ void syncCommand(client *c) {
 
                 /* Send +RDBCHANNELSYNC with client id so we can associate replica connections on master.*/
                 len = snprintf(buf, sizeof(buf), "+RDBCHANNELSYNC %llu\r\n",
-                               (unsigned long long) c->id);
+                               (unsigned long long) clientTail(c)->id);
                 if (connWrite(c->conn, buf, strlen(buf)) != len)
                     freeClientAsync(c);
 
@@ -1948,7 +1948,7 @@ void updateSlavesWaitingBgsave(int bgsaveerr, int type) {
             if (bgsaveerr == C_OK) {
                 /* Notify the task that the snapshot bulk delivery is done */
                 if (slave->flags & CLIENT_ASM_MIGRATING)
-                    asmSlotSnapshotSucceed(slave->task);
+                    asmSlotSnapshotSucceed(clientTail(slave)->task);
                 replicaPutOnline(slave);
             } else {
                 freeClientAsync(slave);
@@ -1959,7 +1959,7 @@ void updateSlavesWaitingBgsave(int bgsaveerr, int type) {
             if (bgsaveerr != C_OK) {
                 /* Notify the task that the snapshot bulk delivery failed */
                 if (slave->flags & CLIENT_ASM_MIGRATING)
-                    asmSlotSnapshotFailed(slave->task);
+                    asmSlotSnapshotFailed(clientTail(slave)->task);
                 freeClientAsync(slave);
                 serverLog(LL_WARNING,"SYNC failed. BGSAVE child returned an error");
                 continue;
@@ -2156,7 +2156,7 @@ void replicationCreateMasterClient(connection *conn, int dbid) {
 
     /* Allocate a private query buffer for the master client instead of using the reusable query buffer.
      * This is done because the master's query buffer data needs to be preserved for my sub-replicas to use. */
-    server.master->querybuf = sdsempty();
+    clientTail(server.master)->querybuf = sdsempty();
     server.master->authenticated = 1;
     clientReplicationData(server.master)->reploff = server.master_initial_offset;
     clientReplicationData(server.master)->read_reploff = clientReplicationData(server.master)->reploff;
@@ -4094,9 +4094,9 @@ int replDataBufStreamToDb(replDataBuf *buf, replDataBufToDbCtx *ctx) {
         size_t processed = 0;
         while (processed < o->used) {
             size_t bytes = min(PROTO_IOBUF_LEN, o->used - processed);
-            c->querybuf = sdscatlen(c->querybuf, &o->buf[processed], bytes);
+            clientTail(c)->querybuf = sdscatlen(clientTail(c)->querybuf, &o->buf[processed], bytes);
             clientReplicationData(c)->read_reploff += (long long int) bytes;
-            c->lastinteraction = server.unixtime;
+            clientTail(c)->lastinteraction = server.unixtime;
 
             /* We don't expect error return value but just in case. */
             ret = processInputBuffer(c);
@@ -4484,11 +4484,11 @@ void replicationCacheMaster(client *c) {
      * we want to discard the non processed query buffers and non processed
      * offsets, including pending transactions, already populated arguments,
      * pending outputs to the master. */
-    sdsclear(server.master->querybuf);
-    server.master->qb_pos = 0;
+    sdsclear(clientTail(server.master)->querybuf);
+    clientTail(server.master)->qb_pos = 0;
     clientReplicationData(server.master)->repl_applied = 0;
     clientReplicationData(server.master)->read_reploff = clientReplicationData(server.master)->reploff;
-    server.master->reploff_next = 0;
+    clientTail(server.master)->reploff_next = 0;
     if (c->flags & CLIENT_MULTI) discardTransaction(c);
     listEmpty(c->reply);
     c->sentlen = 0;
@@ -4502,14 +4502,14 @@ void replicationCacheMaster(client *c) {
     server.cached_master = server.master;
 
     /* Invalidate the Peer ID cache. */
-    if (c->peerid) {
-        sdsfree(c->peerid);
-        c->peerid = NULL;
+    if (clientTail(c)->peerid) {
+        sdsfree(clientTail(c)->peerid);
+        clientTail(c)->peerid = NULL;
     }
     /* Invalidate the Sock Name cache. */
-    if (c->sockname) {
-        sdsfree(c->sockname);
-        c->sockname = NULL;
+    if (clientTail(c)->sockname) {
+        sdsfree(clientTail(c)->sockname);
+        clientTail(c)->sockname = NULL;
     }
 
     /* Caching the master happens instead of the actual freeClient() call,
@@ -4578,7 +4578,7 @@ void replicationResurrectCachedMaster(connection *conn) {
     connSetPrivateData(server.master->conn, server.master);
     server.master->flags &= ~(CLIENT_CLOSE_AFTER_REPLY|CLIENT_CLOSE_ASAP);
     server.master->authenticated = 1;
-    server.master->lastinteraction = server.unixtime;
+    clientTail(server.master)->lastinteraction = server.unixtime;
     server.repl_state = REPL_STATE_CONNECTED;
     server.repl_down_since = 0;
     server.repl_up_since = server.unixtime;
@@ -4713,7 +4713,7 @@ int replicationCountAOFAcksByOffset(long long offset) {
 void waitCommand(client *c) {
     mstime_t timeout;
     long numreplicas, ackreplicas;
-    long long offset = c->woff;
+    long long offset = clientTail(c)->woff;
 
     if (server.masterhost) {
         addReplyError(c,"WAIT cannot be used with replica instances. Please also note that since Redis 4.0 if a replica is configured to be writable (which is not the default) writes to replicas are just local and are not propagated.");
@@ -4727,7 +4727,7 @@ void waitCommand(client *c) {
         != C_OK) return;
 
     /* First try without blocking at all. */
-    ackreplicas = replicationCountAcksByOffset(c->woff);
+    ackreplicas = replicationCountAcksByOffset(clientTail(c)->woff);
     if (ackreplicas >= numreplicas || c->flags & CLIENT_DENY_BLOCKING) {
         addReplyLongLong(c,ackreplicas);
         return;
@@ -4766,8 +4766,8 @@ void waitaofCommand(client *c) {
     }
 
     /* First try without blocking at all. */
-    ackreplicas = replicationCountAOFAcksByOffset(c->woff);
-    acklocal = server.fsynced_reploff >= c->woff;
+    ackreplicas = replicationCountAOFAcksByOffset(clientTail(c)->woff);
+    acklocal = server.fsynced_reploff >= clientTail(c)->woff;
     if ((ackreplicas >= numreplicas && acklocal >= numlocal) || c->flags & CLIENT_DENY_BLOCKING) {
         addReplyArrayLen(c,2);
         addReplyLongLong(c,acklocal);
@@ -4777,7 +4777,7 @@ void waitaofCommand(client *c) {
 
     /* Otherwise block the client and put it into our list of clients
      * waiting for ack from slaves. */
-    blockForAofFsync(c,timeout,c->woff,numlocal,numreplicas);
+    blockForAofFsync(c,timeout,clientTail(c)->woff,numlocal,numreplicas);
 
     /* Make sure that the server will send an ACK request to all the slaves
      * before returning to the event loop. */
@@ -5104,7 +5104,7 @@ int shouldStartChildReplication(int *mincapa_out, int *req_out) {
                     /* Skip slaves that don't match */
                     continue;
                 }
-                idle = server.unixtime - slave->lastinteraction;
+                idle = server.unixtime - clientTail(slave)->lastinteraction;
                 /* If the slave requests a slots snapshot, we should start BGSAVE
                  * immediately since it can't share the RDB with other slaves. */
                 if (clientReplicationData(slave)->slave_req & SLAVE_REQ_SLOTS_SNAPSHOT)

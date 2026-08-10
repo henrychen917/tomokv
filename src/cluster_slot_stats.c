@@ -236,7 +236,7 @@ void clusterSlotStatResetAll(void) {
 }
 
 /* For cpu-usec accumulation, nested commands within EXEC, EVAL, FCALL are skipped.
- * This is due to their unique callstack, where the c->duration for
+ * This is due to their unique callstack, where the clientTail(c)->duration for
  * EXEC, EVAL and FCALL already includes all of its nested commands.
  * Meaning, the accumulation of cpu-usec for these nested commands
  * would equate to repeating the same calculation twice.
@@ -245,7 +245,7 @@ static int canAddCpuDuration(client *c) {
     return clusterSlotStatsEnabled(CLUSTER_SLOT_STATS_CPU) && /* CPU tracking should be enabled. */
            c->slot != INVALID_CLUSTER_SLOT &&    /* Command should be slot specific. */
            (!execution_nesting ||                /* Either command should not be nested, */
-            (c->realcmd->flags & CMD_BLOCKING)); /* or it must be due to unblocking. */
+            (clientTail(c)->realcmd->flags & CMD_BLOCKING)); /* or it must be due to unblocking. */
 }
 
 void clusterSlotStatsAddCpuDuration(client *c, ustime_t duration) {

@@ -212,7 +212,7 @@ static tomoUring2Thread tomo_uring2[TOMO_IO_THREADS_MAX + 1]
     tomoRelaxedBump((st)->stats.field, (uint64_t)(amount))
 
 static tomoUring2Client *tomoUring2ClientOf(const client *c) {
-    return c ? (tomoUring2Client *)(void *)c->uring : NULL;
+    return c ? (tomoUring2Client *)(void *)clientTail(c)->uring : NULL;
 }
 
 static void __attribute__((noreturn))
@@ -732,7 +732,7 @@ static void tomoUring2QueueRecvIfRunning(tomoUring2Client *uc) {
 
 static void tomoUring2ApplyPendingReadError(tomoUring2Client *uc) {
     if (!uc->pending_read_error) return;
-    uc->c->read_error = uc->pending_read_error;
+    clientTail(uc->c)->read_error = uc->pending_read_error;
     uc->pending_read_error = 0;
     handleClientReadError(uc->c);
     freeClientAsync(uc->c);
@@ -913,8 +913,8 @@ static void tomoUring2AccountSendBytes(tomoUring2Thread *st,
     URING2_STAT_BUMP(st, send_bytes, n);
     server.stat_io_writes_processed[iotid] += 1;
     tomoRelaxedBump(server.netstat[iotid].out, n);
-    c->net_output_bytes += n;
-    if (!(c->flags & CLIENT_MASTER)) c->lastinteraction = server.unixtime;
+    clientTail(c)->net_output_bytes += n;
+    if (!(c->flags & CLIENT_MASTER)) clientTail(c)->lastinteraction = server.unixtime;
 }
 
 static void tomoUring2ApplySendResult(tomoUring2Thread *st,
@@ -937,7 +937,7 @@ static void tomoUring2ApplySendResult(tomoUring2Thread *st,
         URING2_STAT_BUMP(st, send_errors, 1);
         serverLog(LL_VERBOSE,
                   "Error writing to io_uring mode-2 client %llu: %s",
-                  (unsigned long long)uc->c->id,
+                  (unsigned long long)clientTail(uc->c)->id,
                   res == 0 ? "connection closed" :
                   strerror(res < 0 ? -res : EIO));
     }
@@ -1028,7 +1028,7 @@ static int tomoUring2ProcessReady(tomoUring2Thread *st,
             processed++;
             continue;
         }
-        if (uc->c->read_error && isClientReadErrorFatal(uc->c)) {
+        if (clientTail(uc->c)->read_error && isClientReadErrorFatal(uc->c)) {
             uc->in_callback = 1;
             (void)processClientInputFromUring(uc->c);
             uc->in_callback = 0;
@@ -1477,7 +1477,7 @@ static int tomoUring2ThreadEnabled(int tid) {
 }
 
 static int tomoUring2ClientAttached(const client *c) {
-    return c && c->uring != NULL;
+    return c && clientTail(c)->uring != NULL;
 }
 
 static int tomoUring2ClientSendPending(const client *c) {
@@ -1502,7 +1502,7 @@ static int tomoUring2ClientQueueWrite(client *c) {
 
 static int tomoUring2ClientAttach(client *c) {
     tomoUring2Thread *st = tomoUring2Current();
-    if (!st || !c || c->uring || !c->conn ||
+    if (!st || !c || clientTail(c)->uring || !c->conn ||
         c->conn->type != connectionTypeTcp() ||
         connGetState(c->conn) != CONN_STATE_CONNECTED || c->tid != iotid ||
         (c->flags & (CLIENT_MASTER | CLIENT_SLAVE | CLIENT_INTERNAL |
@@ -1525,7 +1525,7 @@ static int tomoUring2ClientAttach(client *c) {
         zfree(uc);
         return C_ERR;
     }
-    c->uring = (struct tomoUringClient *)(void *)uc;
+    clientTail(c)->uring = (struct tomoUringClient *)(void *)uc;
     tomoUring2ArmPush(st, uc);
     return C_OK;
 }
@@ -1671,7 +1671,7 @@ static void tomoUring2ClientRelease(client *c) {
     if (!uc) return;
     tomoUring2AssertOwner(uc);
     serverAssert(tomoUring2ClientCloseReady(c));
-    c->uring = NULL;
+    clientTail(c)->uring = NULL;
     zfree(uc->recv_buf);
     zfree(uc->send_scratch);
     zfree(uc);

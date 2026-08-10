@@ -451,28 +451,31 @@ static int tomoAtomicMsetTryReserve(int window) {
 }
 
 static void tomoAtomicDropWaiter(client *c) {
-    serverAssert(c->atomic_window_parked_node != NULL);
-    int tid = c->atomic_window_parked_tid;
+    clientExecTail *ct = clientTail(c);
+    serverAssert(ct->atomic_window_parked_node != NULL);
+    int tid = ct->atomic_window_parked_tid;
     serverAssert(tid >= 0 && tid <= TOMO_IO_THREADS_MAX);
-    listDelNode(server.clients_atomic_window_parked[tid], c->atomic_window_parked_node);
-    c->atomic_window_parked_node = NULL;
+    listDelNode(server.clients_atomic_window_parked[tid], ct->atomic_window_parked_node);
+    ct->atomic_window_parked_node = NULL;
     int old = atomic_fetch_sub_explicit(&tomo_atomic_waiters, 1, memory_order_relaxed);
     serverAssert(old > 0);
 }
 
 void tomoAtomicUnstallClient(client *c) {
-    if (!c->atomic_window_parked_node) return;
+    clientExecTail *ct = clientTail(c);
+    if (!ct->atomic_window_parked_node) return;
     tomoAtomicDropWaiter(c);
-    atomic_store_explicit(&c->mset_read_waiting, 0, memory_order_release);
+    atomic_store_explicit(&ct->mset_read_waiting, 0, memory_order_release);
     c->flags &= ~(CLIENT_ATOMIC_WINDOW_STALLED | CLIENT_ATOMIC_PENDING_STALLED |
                   CLIENT_PIPELINE_STALLED);
 }
 
 static void tomoAtomicEnrollWaiter(client *c) {
-    if (!c->atomic_window_parked_node) {
-        c->atomic_window_parked_tid = iotid;
+    clientExecTail *ct = clientTail(c);
+    if (!ct->atomic_window_parked_node) {
+        ct->atomic_window_parked_tid = iotid;
         listAddNodeTail(server.clients_atomic_window_parked[iotid], c);
-        c->atomic_window_parked_node =
+        ct->atomic_window_parked_node =
             listLast(server.clients_atomic_window_parked[iotid]);
         atomic_fetch_add_explicit(&tomo_atomic_waiters, 1, memory_order_relaxed);
     }
@@ -522,7 +525,7 @@ static void tomoAtomicParkPendingRead(client *c) {
     /* The hold-side post-enrollment overlap check closes the selective-wait missed-wakeup race.
      * Keep the original zero-count self-wake too: it is a cheap fast confirmation when the last
      * pending group retired between the pre-park check and waiter enrollment. */
-    if (atomic_load_explicit(&c->mset_pending_count, memory_order_acquire) == 0)
+    if (atomic_load_explicit(&clientTail(c)->mset_pending_count, memory_order_acquire) == 0)
         tomoAtomicWakeProducer(iotid);
 }
 
@@ -554,7 +557,7 @@ static void tomoAtomicReleaseStalledClients(void) {
                 /* A publishing group clears this marker and wakes the producer. Re-drive the
                  * command even if disjoint groups remain: the overlap filter, not total FIFO
                  * emptiness, decides whether this particular read must park again. */
-                if (atomic_load_explicit(&candidate->mset_read_waiting,
+                if (atomic_load_explicit(&clientTail(candidate)->mset_read_waiting,
                                          memory_order_acquire) == 0) {
                     c = candidate;
                     break;
@@ -568,7 +571,7 @@ static void tomoAtomicReleaseStalledClients(void) {
         if (!c) return;
 
         tomoAtomicDropWaiter(c);
-        atomic_store_explicit(&c->mset_read_waiting, 0, memory_order_release);
+        atomic_store_explicit(&clientTail(c)->mset_read_waiting, 0, memory_order_release);
         c->flags &= ~(CLIENT_ATOMIC_WINDOW_STALLED | CLIENT_ATOMIC_PENDING_STALLED |
                       CLIENT_PIPELINE_STALLED);
         /* This is a later event-loop pass: the admission processCommand/processInputBuffer frames
@@ -1167,7 +1170,7 @@ static inline int isCommandReusable(struct redisCommand *cmd, robj *commandArg) 
 
 /* This macro tells if we are in the context of loading an AOF. */
 #define isAOFLoadingContext() \
-    ((server.current_client[iotid].p && server.current_client[iotid].p->id == CLIENT_ID_AOF) ? 1 : 0)
+    ((server.current_client[iotid].p && clientTail(server.current_client[iotid].p)->id == CLIENT_ID_AOF) ? 1 : 0)
 
 /* We use a private localtime implementation which is fork-safe. The logging
  * function of Redis may be called from other threads. */
@@ -1558,13 +1561,13 @@ uint64_t dictCStrCaseHash(const void *key) {
 
 /* Dict hash function for client */
 uint64_t dictClientHash(const void *key) {
-    return ((client *)key)->id;
+    return clientTail((client *)key)->id;
 }
 
 /* Dict compare function for client */
 int dictClientKeyCompare(dictCmpCache *cache, const void *key1, const void *key2) {
     UNUSED(cache);
-    return ((client *)key1)->id == ((client *)key2)->id;
+    return clientTail((client *)key1)->id == clientTail((client *)key2)->id;
 }
 
 /* Dict compare function for null terminated string */
@@ -1991,48 +1994,49 @@ long long getInstantaneousMetric(int metric) {
  *
  * The function always returns 0 as it never terminates the client. */
 int clientsCronResizeQueryBuffer(client *c) {
+    clientExecTail *ct = clientTail(c);
     /* If the client query buffer is NULL, it is using the reusable query buffer and there is nothing to do. */
-    if (c->querybuf == NULL) return 0;
-    size_t querybuf_size = sdsalloc(c->querybuf);
-    time_t idletime = server.unixtime - c->lastinteraction;
+    if (ct->querybuf == NULL) return 0;
+    size_t querybuf_size = sdsalloc(ct->querybuf);
+    time_t idletime = server.unixtime - ct->lastinteraction;
 
     /* Only resize the query buffer if the buffer is actually wasting at least a
      * few kbytes */
-    if (sdsavail(c->querybuf) > 1024*4) {
+    if (sdsavail(ct->querybuf) > 1024*4) {
         /* There are two conditions to resize the query buffer: */
         if (idletime > 2) {
             /* 1) Query is idle for a long time. */
-            size_t remaining = sdslen(c->querybuf) - c->qb_pos;
+            size_t remaining = sdslen(ct->querybuf) - ct->qb_pos;
             if (!(c->flags & CLIENT_MASTER) && !remaining) {
                 /* If the client is not a master and no data is pending,
                  * The client can safely use the reusable query buffer in the next read - free the client's querybuf. */
-                sdsfree(c->querybuf);
+                sdsfree(ct->querybuf);
                 /* By setting the querybuf to NULL, the client will use the reusable query buffer in the next read.
                  * We don't move the client to the reusable query buffer immediately, because if we allocated a private
                  * query buffer for the client, it's likely that the client will use it again soon. */
-                c->querybuf = NULL;
+                ct->querybuf = NULL;
             } else {
-                c->querybuf = sdsRemoveFreeSpace(c->querybuf, 1);
+                ct->querybuf = sdsRemoveFreeSpace(ct->querybuf, 1);
             }
-        } else if (querybuf_size > PROTO_RESIZE_THRESHOLD && querybuf_size/2 > c->querybuf_peak) {
+        } else if (querybuf_size > PROTO_RESIZE_THRESHOLD && querybuf_size/2 > ct->querybuf_peak) {
             /* 2) Query buffer is too big for latest peak and is larger than
              *    resize threshold. Trim excess space but only up to a limit,
              *    not below the recent peak and current c->querybuf (which will
              *    be soon get used). If we're in the middle of a bulk then make
              *    sure not to resize to less than the bulk length. */
-            size_t resize = sdslen(c->querybuf);
-            if (resize < c->querybuf_peak) resize = c->querybuf_peak;
-            if (c->bulklen != -1 && resize < (size_t)c->bulklen + 2) resize = c->bulklen + 2;
-            c->querybuf = sdsResize(c->querybuf, resize, 1);
+            size_t resize = sdslen(ct->querybuf);
+            if (resize < ct->querybuf_peak) resize = ct->querybuf_peak;
+            if (ct->bulklen != -1 && resize < (size_t)ct->bulklen + 2) resize = ct->bulklen + 2;
+            ct->querybuf = sdsResize(ct->querybuf, resize, 1);
         }
     }
 
     /* Reset the peak again to capture the peak memory usage in the next
      * cycle. */
-    c->querybuf_peak = c->querybuf ? sdslen(c->querybuf) : 0;
+    ct->querybuf_peak = ct->querybuf ? sdslen(ct->querybuf) : 0;
     /* We reset to either the current used, or currently processed bulk size,
      * which ever is bigger. */
-    if (c->bulklen != -1 && (size_t)c->bulklen + 2 > c->querybuf_peak) c->querybuf_peak = c->bulklen + 2;
+    if (ct->bulklen != -1 && (size_t)ct->bulklen + 2 > ct->querybuf_peak) ct->querybuf_peak = ct->bulklen + 2;
     return 0;
 }
 
@@ -2085,10 +2089,10 @@ int clientsCronResizeOutputBuffer(client *c, mstime_t now_ms) {
      * it will start to shrink.
      */
     if (server.reply_buffer_peak_reset_time >=0 &&
-        now_ms - c->buf_peak_last_reset_time >= server.reply_buffer_peak_reset_time)
+        now_ms - clientTail(c)->buf_peak_last_reset_time >= server.reply_buffer_peak_reset_time)
     {
         c->buf_peak = c->bufpos;
-        c->buf_peak_last_reset_time = now_ms;
+        clientTail(c)->buf_peak_last_reset_time = now_ms;
     }
 
     if (new_buffer_size) {
@@ -2118,7 +2122,8 @@ size_t ClientsPeakMemOutput[CLIENTS_PEAK_MEM_USAGE_SLOTS] = {0};
 int CurrentPeakMemUsageSlot = 0;
 
 int clientsCronTrackExpansiveClients(client *c) {
-    size_t qb_size = c->querybuf ? sdsZmallocSize(c->querybuf) : 0;
+    clientExecTail *ct = clientTail(c);
+    size_t qb_size = ct->querybuf ? sdsZmallocSize(ct->querybuf) : 0;
     size_t argv_size = c->argv ? zmalloc_size(c->argv) : 0;
     size_t in_usage = qb_size + c->all_argv_len_sum + argv_size;
     size_t out_usage = getClientOutputBufferMemoryUsage(c);
@@ -2154,13 +2159,14 @@ void updateClientMemoryUsage(client *c) {
      * subtracts on the owning identity), so these global per-type counters
      * see concurrent RMWs from several threads — make them lock-free atomic
      * adds instead of plain +=/-= (torn updates drift permanently). */
-    __atomic_fetch_sub(&server.stat_clients_type_memory[c->last_memory_type],
-                       c->last_memory_usage, __ATOMIC_RELAXED);
+    clientExecTail *ct = clientTail(c);
+    __atomic_fetch_sub(&server.stat_clients_type_memory[ct->last_memory_type],
+                       ct->last_memory_usage, __ATOMIC_RELAXED);
     __atomic_fetch_add(&server.stat_clients_type_memory[type], mem,
                        __ATOMIC_RELAXED);
     /* Remember what we added and where, to remove it next time. */
-    c->last_memory_type = type;
-    c->last_memory_usage = mem;
+    ct->last_memory_type = type;
+    ct->last_memory_usage = mem;
 }
 
 /* Return the max samples in the memory usage of clients tracked by
@@ -3025,15 +3031,15 @@ static inline int cdbIndexFor(int ex_id) {
  * payload, and every reuse is subsequently published through an SPSC queue
  * release store. Keeping the byte atomic also forces every poll to reload it. */
 static inline int cdbSlotReady(client *real, int cdb, unsigned int slot) {
-    return atomic_load_explicit(&real->reply_cdb[cdb].ready[slot],
+    return atomic_load_explicit(&clientTail(real)->reply_cdb[cdb].ready[slot],
                                 memory_order_acquire) != 0;
 }
 static inline void cdbSlotPublish(client *real, int cdb, unsigned int slot) {
-    atomic_store_explicit(&real->reply_cdb[cdb].ready[slot], 1,
+    atomic_store_explicit(&clientTail(real)->reply_cdb[cdb].ready[slot], 1,
                           memory_order_release);
 }
 static inline void cdbSlotClear(client *real, int cdb, unsigned int slot) {
-    atomic_store_explicit(&real->reply_cdb[cdb].ready[slot], 0,
+    atomic_store_explicit(&clientTail(real)->reply_cdb[cdb].ready[slot], 0,
                           memory_order_relaxed);
 }
 
@@ -3767,7 +3773,9 @@ static inline int tomoArgvClass(client *fake) {
  * path BEHIND a drain barrier so cross-boundary arrival order is preserved. */
 static inline void exDispatchPush(int ex_id, client *fake) {
     if (server.tomo_reorder > 0 && !tomo_rord.draining && server.strict_order == 0 &&
-        fake->cmd && !fake->csparent && !fake->is_flush && !fake->drain_ack &&
+        fake->cmd && !fake->csparent &&
+        (!fake->has_exec_tail ||
+         (!clientTail(fake)->is_flush && !clientTail(fake)->drain_ack)) &&
         !(fake->cmd->tomo_route & TOMO_R_CROSS)) {
         int i = tomo_rord.n;
         /* D age clock: ONE rdtsc per window (at open), shared by every command in it. The age
@@ -3781,7 +3789,8 @@ static inline void exDispatchPush(int ex_id, client *fake) {
         tomo_rord.ex[i]  = (uint8_t)ex_id;
         /* head-of-pipe: this dispatch is the client's oldest un-flushed (ring was empty when it
          * entered). dispatchid was incremented at stage; head iff it is now flushid+1. */
-        uint8_t hd = (fake->parent && fake->parent->dispatchid == fake->parent->flushid + 1) ? 0x80 : 0;
+        uint8_t hd = (fake->parent &&
+                      clientTail(fake->parent)->dispatchid == clientTail(fake->parent)->flushid + 1) ? 0x80 : 0;
         tomo_rord.cls[i] = (uint8_t)(tomoArgvClass(fake) & TOMO_CLS_MASK) | hd;
         tomo_rord.n = i + 1;
         tm_io_sig[iotid].disp_cnt++;
@@ -3835,6 +3844,7 @@ void handleWorkerReplies(void) {
     listRewind(server.clients_pending_ex[iotid], &li);
     while ((ln = listNext(&li))) {
         client *real = listNodeValue(ln);
+        clientExecTail *rt = clientTail(real);
 
         /* Guard: real might have been torn down (connection closed,
          * output-buffer-limit overflow, etc.) between dispatch and now.
@@ -3852,9 +3862,9 @@ void handleWorkerReplies(void) {
          * real from the pending_worker list; freeClient will reclaim on the
          * next async-free pass. */
         if ((real->flags & CLIENT_CLOSE_ASAP) || !real->conn) {
-            while (real->flushid != real->dispatchid) {
-                unsigned int slot = real->flushid & real->ring_mask;
-                client *fake = real->fakeClients[slot];
+            while (rt->flushid != rt->dispatchid) {
+                unsigned int slot = rt->flushid & rt->ring_mask;
+                client *fake = rt->fakeClients[slot];
                 if (!cdbSlotReady(real, fake->cdb, slot)) break;  /* wait for worker */
                 int was_ex_dispatched = (fake->flags & CLIENT_EX_PENDING) != 0;
                 int was_cs = (fake->csgroup != NULL);
@@ -3910,16 +3920,16 @@ void handleWorkerReplies(void) {
                 tomoReleaseReadSnapshot(fake);
                 commandProcessed(fake);
                 if (was_ex_dispatched || was_cs) replyWorking--;
-                real->flushid++;
+                rt->flushid++;
             }
-            if (real->flushid == real->dispatchid) {
+            if (rt->flushid == rt->dispatchid) {
                 listUnlinkNode(server.clients_pending_ex[iotid], ln);
             }
             continue;
         }
 
         /* Nothing in flight: drop off the flush list before deriving a slot. */
-        if (real->flushid == real->dispatchid) {
+        if (rt->flushid == rt->dispatchid) {
             listUnlinkNode(server.clients_pending_ex[iotid], ln);
             continue;
         }
@@ -3939,9 +3949,9 @@ void handleWorkerReplies(void) {
         /* ee451 (v13): io-side drain prefetch DELETED (knob retired hard-OFF — measured net-
          * negative in v11, ≈noise in every eval since; duplicated the splice loop's walk). */
 
-        while (real->flushid != real->dispatchid) {
-            unsigned int slot = real->flushid & real->ring_mask;
-            client *fake = real->fakeClients[slot];
+        while (rt->flushid != rt->dispatchid) {
+            unsigned int slot = rt->flushid & rt->ring_mask;
+            client *fake = rt->fakeClients[slot];
             /* Acquire pairs with this slot's worker release publication. A
              * stale zero only postpones the prefix until the next poll. */
             if (!cdbSlotReady(real, fake->cdb, slot)) break;
@@ -4020,7 +4030,7 @@ void handleWorkerReplies(void) {
                 tomoReleaseReadSnapshot(fake);
                 commandProcessed(fake);
                 if (was_ex_dispatched || was_cs) replyWorking--;
-                real->flushid++;
+                rt->flushid++;
                 close_asap = 1;
                 break;
             }
@@ -4032,7 +4042,7 @@ void handleWorkerReplies(void) {
             commandProcessed(fake);
 
             if (was_ex_dispatched || was_cs) replyWorking--;
-            real->flushid++;
+            rt->flushid++;
         }
 
         /* With io_uring, queue one client write after splicing so it joins the
@@ -4050,7 +4060,7 @@ void handleWorkerReplies(void) {
 
         /* Ring fully drained and all ready slots consumed — drop off the
          * flush-walk list. */
-        if (real->flushid == real->dispatchid) {
+        if (rt->flushid == rt->dispatchid) {
             listUnlinkNode(server.clients_pending_ex[iotid], ln);
         }
 
@@ -4069,8 +4079,8 @@ void handleWorkerReplies(void) {
         if ((real->flags & CLIENT_PIPELINE_STALLED) &&
             !(real->flags & (CLIENT_ATOMIC_WINDOW_STALLED |
                              CLIENT_ATOMIC_PENDING_STALLED)) &&
-            (real->cs_barrier ? (real->dispatchid == real->flushid)
-                              : ((real->dispatchid - real->flushid) < real->ring_size)))
+            (rt->cs_barrier ? (rt->dispatchid == rt->flushid)
+                            : ((rt->dispatchid - rt->flushid) < rt->ring_size)))
         {
             real->flags &= ~CLIENT_PIPELINE_STALLED;
             processInputBuffer(real);
@@ -6607,7 +6617,7 @@ struct redisCommand *lookupCommandOrOriginal(robj **argv ,int argc) {
 
 /* Commands arriving from the master client or AOF client, should never be rejected. */
 int mustObeyClient(client *c) {
-    return c->id == CLIENT_ID_AOF || c->flags & CLIENT_MASTER;
+    return clientTail(c)->id == CLIENT_ID_AOF || c->flags & CLIENT_MASTER;
 }
 
 static int shouldPropagate(int target) {
@@ -6718,8 +6728,9 @@ void slowlogPushCurrentCommand(client *c, struct redisCommand *cmd, ustime_t dur
 
     /* If command argument vector was rewritten, use the original
      * arguments. */
-    robj **argv = c->original_argv ? c->original_argv : c->argv;
-    int argc = c->original_argv ? c->original_argc : c->argc;
+    clientExecTail *ct = clientTail(c);
+    robj **argv = ct->original_argv ? ct->original_argv : c->argv;
+    int argc = ct->original_argv ? ct->original_argc : c->argc;
     slowlogPushEntryIfNeeded(c,argv,argc,duration);
 }
 
@@ -6884,9 +6895,10 @@ static bool commandVisibleForClient(client *c, struct redisCommand *cmd) {
  */
 void call(client *c, int flags) {
     FLAT_EXTERN_REGION();   /* FLATSTORE QSBR: main may hold raw flat pointers for this command */
+    clientExecTail *ct = clientTail(c);
     long long dirty;
     uint64_t client_old_flags = c->flags;
-    struct redisCommand *real_cmd = c->realcmd;
+    struct redisCommand *real_cmd = ct->realcmd;
     client *prev_client = server.executing_client[iotid].p;
     server.executing_client[iotid].p = c;
 
@@ -6965,13 +6977,13 @@ void call(client *c, int flags) {
     else
         duration = ustime() - call_timer;
 
-    c->duration += duration;
+    ct->duration += duration;
     dirty = DIRTY_LOCAL-dirty;
     if (dirty < 0) dirty = 0;
 
     /* Update failed command calls if required. */
 
-    if (!incrCommandStatsOnError(real_cmd, ERROR_COMMAND_FAILED) && c->deferred_reply_errors) {
+    if (!incrCommandStatsOnError(real_cmd, ERROR_COMMAND_FAILED) && ct->deferred_reply_errors) {
         /* When call is used from a module client, error stats, and total_error_replies
          * isn't updated since these errors, if handled by the module, are internal,
          * and not reflected to users. however, the commandstats does show these calls
@@ -7004,7 +7016,7 @@ void call(client *c, int flags) {
     /* Log the command into the Slow log if needed.
      * If the client is blocked we will handle slowlog when it is unblocked. */
     if (update_command_stats && !(c->flags & CLIENT_BLOCKED))
-        slowlogPushCurrentCommand(c, real_cmd, c->duration);
+        slowlogPushCurrentCommand(c, real_cmd, ct->duration);
 
     /* Send the command to clients in MONITOR mode if applicable,
      * since some administrative commands are considered too dangerous to be shown.
@@ -7013,8 +7025,8 @@ void call(client *c, int flags) {
     if (update_command_stats && !reprocessing_command &&
         !(c->cmd->flags & (CMD_SKIP_MONITOR|CMD_ADMIN)))
     {
-        robj **argv = c->original_argv ? c->original_argv : c->argv;
-        int argc = c->original_argv ? c->original_argc : c->argc;
+        robj **argv = ct->original_argv ? ct->original_argv : c->argv;
+        int argc = ct->original_argv ? ct->original_argc : c->argc;
         replicationFeedMonitors(c,server.monitors,c->db->id,argv,argc);
     }
 
@@ -7024,10 +7036,10 @@ void call(client *c, int flags) {
         /* ee451 (#B2): per-thread shards. call() runs on the main thread AND on every IO thread,
          * so the three lines this replaces were concurrent non-atomic RMWs on one shared
          * redisCommand — lost updates on top of the worker-path undercount. */
-        tomoCmdStatAddCall(real_cmd, c->duration, 0);
+        tomoCmdStatAddCall(real_cmd, ct->duration, 0);
         if (server.latency_tracking_enabled && !(c->flags & CLIENT_BLOCKED))
-            tomoCmdLatRecord(real_cmd, c->duration);
-        clusterSlotStatsAddCpuDuration(c, c->duration);
+            tomoCmdLatRecord(real_cmd, ct->duration);
+        clusterSlotStatsAddCpuDuration(c, ct->duration);
     }
 
     /* Populate the per-key hotkey stats. Before updating stats for a command
@@ -7044,14 +7056,14 @@ void call(client *c, int flags) {
         hotkeyStatsPreCurrentCmd(server.hotkeys, c);
 
         /* Update the current cmd's keys with the commands duration */
-        hotkeyMetrics metrics = {c->duration, 0};
+        hotkeyMetrics metrics = {ct->duration, 0};
         hotkeyStatsUpdateCurrentCmd(server.hotkeys, metrics);
     }
 
     /* The duration needs to be reset after each call except for a blocked command,
      * which is expected to record and reset the duration after unblocking. */
     if (!(c->flags & CLIENT_BLOCKED)) {
-        c->duration = 0;
+        ct->duration = 0;
     }
 
     /* Propagate the command into the AOF and replication link.
@@ -7153,7 +7165,7 @@ void call(client *c, int flags) {
     /* Remember the replication offset of the client, right after its last
      * command that resulted in propagation. */
     if (old_master_repl_offset != server.master_repl_offset)
-        c->woff = server.master_repl_offset;
+        ct->woff = server.master_repl_offset;
 
     /* Client pause takes effect after a transaction has finished. This needs
      * to be located after everything is propagated. */
@@ -7172,7 +7184,7 @@ void call(client *c, int flags) {
  * Note: 'reply' is expected to end with \r\n */
 void rejectCommand(client *c, robj *reply) {
     flagTransaction(c);
-    c->duration = 0;
+    clientTail(c)->duration = 0;
     if (c->cmd) c->cmd->rejected_calls++;
     if (c->cmd && c->cmd->proc == execCommand) {
         execCommandAbort(c, reply->ptr);
@@ -7184,7 +7196,7 @@ void rejectCommand(client *c, robj *reply) {
 
 void rejectCommandSds(client *c, sds s) {
     flagTransaction(c);
-    c->duration = 0;
+    clientTail(c)->duration = 0;
     if (c->cmd) c->cmd->rejected_calls++;
     if (c->cmd && c->cmd->proc == execCommand) {
         execCommandAbort(c, s);
@@ -7391,7 +7403,7 @@ void preprocessCommand(client *c, pendingCommand *pcmd) {
 
     /* Check if we can reuse the previous command instead of looking it up.
      * The previous command is either the penultimate pending command (if it exists), or c->lastcmd. */
-    struct redisCommand *last_cmd = pcmd->prev ? pcmd->prev->cmd : c->lastcmd;
+    struct redisCommand *last_cmd = pcmd->prev ? pcmd->prev->cmd : clientTail(c)->lastcmd;
 
     if (isCommandReusable(last_cmd, pcmd->argv[0]))
         pcmd->cmd = last_cmd;
@@ -7443,6 +7455,7 @@ void preprocessCommand(client *c, pendingCommand *pcmd) {
  * other operations can be performed by the caller. Otherwise
  * if C_ERR is returned the client was destroyed (i.e. after QUIT). */
 int processCommand(client *c) {
+    clientExecTail *ct = clientTail(c);
 
     /* Script-fence release guard: fires on EVERY return of THIS invocation; no-op unless the
      * family block below acquired the gate. See tomoStwGuardEnd. */
@@ -7494,13 +7507,13 @@ int processCommand(client *c) {
      * we do not have to repeat the same checks */
     if (!client_reprocessing_command) {
         /* check if we can reuse the last command instead of looking up if we already have that info */
-        struct redisCommand *cmd = c->lookedcmd;
+        struct redisCommand *cmd = ct->lookedcmd;
 
         /* The command may have been modified by modules (e.g., in CommandFilters callbacks),
          * so we need to look it up again. */
         if (!cmd) {
-            if (isCommandReusable(c->lastcmd, c->argv[0]))
-                cmd = c->lastcmd;
+            if (isCommandReusable(ct->lastcmd, c->argv[0]))
+                cmd = ct->lastcmd;
             else
                 cmd = lookupCommand(c->argv, c->argc);
         }
@@ -7519,7 +7532,7 @@ int processCommand(client *c) {
             cmd = NULL;
         }
 
-        c->cmd = c->lastcmd = c->realcmd = cmd;
+        c->cmd = ct->lastcmd = ct->realcmd = cmd;
         sds err;
         if (!commandCheckExistence(c, &err)) {
             rejectCommandSds(c, err);
@@ -7578,7 +7591,7 @@ int processCommand(client *c) {
             return C_OK;
         }
         /* FREE: acquire with an EMPTY ring (the stateful drain idiom). */
-        if (c->dispatchid != c->flushid) {
+        if (ct->dispatchid != ct->flushid) {
             c->flags |= CLIENT_PIPELINE_STALLED;
             return C_OK;
         }
@@ -7650,7 +7663,7 @@ int processCommand(client *c) {
     {
         int error_code;
         clusterNode *n = getNodeByQuery(c,c->cmd,c->argv,c->argc,
-            &c->slot,getClientCachedKeyResult(c),c->read_error,cmd_flags,&error_code);
+            &c->slot,getClientCachedKeyResult(c),ct->read_error,cmd_flags,&error_code);
         if (n == NULL || !clusterNodeIsMyself(n)) {
             if (c->cmd->proc == execCommand) {
                 discardTransaction(c);
@@ -7658,7 +7671,7 @@ int processCommand(client *c) {
                 flagTransaction(c);
             }
             clusterRedirectClient(c,n,c->slot,error_code);
-            c->duration = 0;
+            ct->duration = 0;
             c->cmd->rejected_calls++;
             return C_OK;
         }
@@ -7886,7 +7899,7 @@ int processCommand(client *c) {
         t6_worker = TOMO_SW_NONE;
         t6_kind = TOMO_T6_NONE;
     }
-    if (isStatefulCommand(c->cmd) && c->dispatchid != c->flushid) {
+    if (isStatefulCommand(c->cmd) && ct->dispatchid != ct->flushid) {
         c->flags |= CLIENT_PIPELINE_STALLED;
         return C_OK;
     }
@@ -7895,7 +7908,7 @@ int processCommand(client *c) {
             /* Redis Cluster-style EXEC rejection: the queue is discarded, but the reply itself
              * stays CROSSSLOT rather than being rewritten to EXECABORT by rejectCommand(). */
             discardTransaction(c);
-            c->duration = 0;
+            ct->duration = 0;
             c->cmd->rejected_calls++;
             addReplyError(c, "-CROSSSLOT Keys in request don't hash to the same worker shard");
         } else {
@@ -7937,7 +7950,7 @@ int processCommand(client *c) {
         c->cmd->proc != quitCommand &&
         c->cmd->proc != resetCommand)
     {
-        if (c->dispatchid != c->flushid) {
+        if (ct->dispatchid != ct->flushid) {
             c->flags |= CLIENT_PIPELINE_STALLED;
             return C_OK;
         }
@@ -7980,28 +7993,28 @@ int processCommand(client *c) {
      * Fix: once such a group is armed, no further command from this client is dispatched
      * until the ring drains — the same drain idiom the stateful commands above use. Only
      * cross-shard multi-hop commands pay it; every 1-hop path is untouched. */
-    if (__builtin_expect(c->cs_barrier != 0, 0)) {
-        if (c->dispatchid != c->flushid) {
+    if (__builtin_expect(ct->cs_barrier != 0, 0)) {
+        if (ct->dispatchid != ct->flushid) {
             /* A held gate is released by the invocation guard on this return; the drain wakes
              * us (CLIENT_PIPELINE_STALLED) as slots retire and we re-evaluate. */
             c->flags |= CLIENT_PIPELINE_STALLED;
             return C_OK;
         }
-        c->cs_barrier = 0;   /* ring empty => the multi-hop group has fully retired */
+        ct->cs_barrier = 0;   /* ring empty => the multi-hop group has fully retired */
     }
     /* Apply a pending GROW here: the ring is empty, so remapping slots is a no-op. Growth is fast
      * (every drain is a checkpoint); decay is slow (cron). One predictable compare on the hot path. */
-    if (__builtin_expect(c->ring_want_grow && c->dispatchid == c->flushid, 0)) {
+    if (__builtin_expect(ct->ring_want_grow && ct->dispatchid == ct->flushid, 0)) {
         /* tomokv-fake-ring-depth retired at AUTO, so growth is unconditional up to the configured
          * pipeline depth (which is still the cap — that is the bug this unification fixed). */
-        if (c->ring_size < (unsigned int)server.pipeline_ring_depth) {
-            c->ring_size <<= 1; c->ring_mask = c->ring_size - 1;
+        if (ct->ring_size < (unsigned int)server.pipeline_ring_depth) {
+            ct->ring_size <<= 1; ct->ring_mask = ct->ring_size - 1;
         }
-        c->ring_want_grow = 0;
+        ct->ring_want_grow = 0;
     }
-    if (c->dispatchid - c->flushid == c->ring_size) {
+    if (ct->dispatchid - ct->flushid == ct->ring_size) {
         /* (script fence: a held gate is released by the invocation guard on this return) */
-        c->ring_want_grow = 1;   /* demand signal: this client wants a deeper ring */
+        ct->ring_want_grow = 1;   /* demand signal: this client wants a deeper ring */
         c->flags |= CLIENT_PIPELINE_STALLED;
         static __thread monotime last_stall_us = 0;
         monotime now_us = getMonotonicUs();
@@ -8084,7 +8097,7 @@ int processCommand(client *c) {
      * double-queued MULTI writes. Invariant restored here: reaching this point means every gate
      * above admitted the command, so "parked" is over — drop the enrollment and flags exactly as
      * the walker would have. */
-    if (__builtin_expect(c->atomic_window_parked_node != NULL, 0))
+    if (__builtin_expect(ct->atomic_window_parked_node != NULL, 0))
         tomoAtomicUnstallClient(c);
 
     /* 2s-auto D3 (ee451 review): record the TRUE in-flight high-water for the decay
@@ -8092,26 +8105,42 @@ int processCommand(client *c) {
      * under a second — i.e. every loopback client, including saturating ones — so the "hwm"
      * EWMA decayed to ~1 and the cron freed + the next burst re-created 15/16 of the ring
      * every ~3s (pure alloc/free churn). One compare on state this path already dirties. */
-    unsigned int inflight_now = c->dispatchid - c->flushid + 1;   /* incl. this dispatch */
-    if (inflight_now > c->fake_ring_hwm_win) c->fake_ring_hwm_win = inflight_now;
+    unsigned int inflight_now = ct->dispatchid - ct->flushid + 1;   /* incl. this dispatch */
+    if (inflight_now > ct->fake_ring_hwm_win) ct->fake_ring_hwm_win = inflight_now;
 
-    unsigned int fslot = c->dispatchid & c->ring_mask;
+    /* The 320-byte form is exact-shape only: SET options rewrite argv, synchronous module
+     * callbacks can inspect the ambient client, and request/response logging needs tail state.
+     * Counters are bumped only when a slot is allocated or promoted, never per command. */
+    int core_eligible = c->cmd && (c->cmd->tomo_route & TOMO_R_EXPRESS) &&
+        ((c->cmd->proc == getCommand && c->argc == 2) ||
+         (c->cmd->proc == setCommand && c->argc == 3));
+#ifdef LOG_REQ_RES
+    core_eligible = 0;
+#endif
+    if (core_eligible && moduleHasKeyspaceChangeCallbacks(
+            NOTIFY_KEY_MISS | NOTIFY_EXPIRED | NOTIFY_STRING | NOTIFY_NEW |
+            NOTIFY_OVERWRITTEN | NOTIFY_TYPE_CHANGED))
+        core_eligible = 0;
+    unsigned int fslot = ct->dispatchid & ct->ring_mask;
     /* 2s-auto D3: lazy-create the ring slot on first use (createClient leaves every slot NULL).
-     * fake_slot is stamped once and never changes. */
-    if (c->fakeClients[fslot] == NULL) {
-        c->fakeClients[fslot] = createFakeClient(c);
-        c->fakeClients[fslot]->fake_slot = fslot;
-        if (fslot + 1 > c->fake_ring_cur_depth) c->fake_ring_cur_depth = fslot + 1;
+     * fake_slot is restamped after a resize because the allocation may move. */
+    client *fake = ct->fakeClients[fslot];
+    if (fake == NULL) {
+        fake = core_eligible ? createCoreFakeClient(c) : createFakeClient(c);
+        if (fslot + 1 > ct->fake_ring_cur_depth) ct->fake_ring_cur_depth = fslot + 1;
+    } else if (!core_eligible && !fake->has_exec_tail) {
+        fake = promoteFakeClient(fake);
     }
-    client *fake = c->fakeClients[fslot];
+    ct->fakeClients[fslot] = fake;
+    fake->fake_slot = fslot;
     /* 2s-auto T3: express-slim — GET/SET are never MULTI-queued under sharding, so
-     * lookedcmd/realcmd/slot/reploff_next/read_error are unused by them. Gate reads c->cmd
+     * lookedcmd/realcmd/reploff_next/read_error are unused by them. Gate reads c->cmd
      * PRE-move (moveExecutionState clears real->cmd after); express test at ~5237 reads
      * fake->cmd POST-move — both resolve to the same command. */
-    /* tomokv-express-slim retired at AUTO: the OFF arm and the fixed-percentage arm are both
-     * gone, so the EWMA Schmitt decision below is the only one. */
-    int use_slim = 0;
-    if (c->cmd && (c->cmd->tomo_route & TOMO_R_EXPRESS)) {
+    /* A core fake must take the tail-free slim move. Full express fakes retain the existing
+     * EWMA Schmitt choice (tomokv-express-slim remains retired at AUTO). */
+    int use_slim = core_eligible;
+    if (!use_slim && c->cmd && (c->cmd->tomo_route & TOMO_R_EXPRESS)) {
         /* ee451 review: load the cross-thread EWMA ONCE — the old double read could observe two
          * different values inside one Schmitt comparison (and was a plain-load data race). */
         double ehw = tomoRelaxedRead(server.express_hit_ewma);
@@ -8137,8 +8166,8 @@ int processCommand(client *c) {
     }
 
     /* First in-flight fake for this real — enroll in flush-walk list. */
-    if (c->dispatchid == c->flushid) {
-        listLinkNodeTail(server.clients_pending_ex[iotid], &c->clients_pending_ex_node);
+    if (ct->dispatchid == ct->flushid) {
+        listLinkNodeTail(server.clients_pending_ex[iotid], &ct->clients_pending_ex_node);
     }
 
     /* ee451 (v7): cross-shard split. A multi-key command (MGET) is fanned out into
@@ -8180,12 +8209,12 @@ int processCommand(client *c) {
         fake->tomo_bkt_ptr = NULL;   /* the outer argv is not necessarily a key (EXEC/EVAL) */
         fake->tomo_key_h = 0;
         fake->flags |= CLIENT_EX_PENDING;
-        c->cs_barrier = 1;              /* following client commands wait for the unit to retire */
+        ct->cs_barrier = 1;              /* following client commands wait for the unit to retire */
 
         if (t6_kind == TOMO_T6_SCRIPT) {
             /* getCommandFlags cached this entry on the real client under the script fence. */
-            fake->cur_script = c->cur_script;
-            c->cur_script = NULL;
+            clientTail(fake)->cur_script = ct->cur_script;
+            ct->cur_script = NULL;
         }
         if (t6_kind == TOMO_T6_EXEC || t6_kind == TOMO_T6_DISCARD) {
             /* MERGE(T6 x sidecar): move ONLY the queued-command fields to the fake's sidecar.
@@ -8307,7 +8336,7 @@ int processCommand(client *c) {
     }
     }   /* end express/T6/general routing */
 
-    c->dispatchid++;
+    ct->dispatchid++;
     return C_OK;
 }
 
@@ -9439,15 +9468,15 @@ static inline void csCommitUnlock(void) {
 }
 
 static inline void csMsetPendingLock(client *c) {
-    if (!atomic_exchange_explicit(&c->mset_pending_lock, 1, memory_order_acquire)) return;
+    if (!atomic_exchange_explicit(&clientTail(c)->mset_pending_lock, 1, memory_order_acquire)) return;
     tmIoWaitBegin();
     do { exPauseCpu(); }
-    while (atomic_exchange_explicit(&c->mset_pending_lock, 1, memory_order_acquire));
+    while (atomic_exchange_explicit(&clientTail(c)->mset_pending_lock, 1, memory_order_acquire));
     tmIoWaitEnd();
 }
 
 static inline void csMsetPendingUnlock(client *c) {
-    atomic_store_explicit(&c->mset_pending_lock, 0, memory_order_release);
+    atomic_store_explicit(&clientTail(c)->mset_pending_lock, 0, memory_order_release);
 }
 
 /* ---- R1 own-read gate: the DETACHED-HEAD (publishing) window ----------------------------
@@ -9488,7 +9517,7 @@ static inline void csMsetPendingUnlock(client *c) {
  * held, in the same hold as the FIFO unlink, so (linked + recorded) never dips below `pending`
  * as far as any walk can observe. */
 static inline void csMsetPubRecordLocked(client *real, csGroup *g) {
-    csMsetPub *pub = real->mset_pub;
+    csMsetPub *pub = clientTail(real)->mset_pub;
     if (!pub || (unsigned int)(pub->tail - pub->head) > pub->mask)
         return;                        /* no record => the conservative arm holds; see above */
     csPubRec *r = &pub->rec[pub->tail & pub->mask];
@@ -9509,8 +9538,9 @@ static inline void csMsetPubRecordLocked(client *real, csGroup *g) {
  * while the fake ring is in flight (dispatchid != flushid), which is the same guarantee that
  * lets the caller dereference hp->reply_cdb one line earlier. */
 static void csMsetPubRetire(client *real, uintptr_t tag) {
+    clientExecTail *rt = clientTail(real);
     csMsetPendingLock(real);
-    csMsetPub *pub = real->mset_pub;
+    csMsetPub *pub = rt->mset_pub;
     if (pub && pub->head != pub->tail) {
         /* FIFO discipline (see the block comment). A mismatch would mean pops and publishes had
          * interleaved, i.e. this record belongs to another group — retiring it would then clear
@@ -9518,7 +9548,7 @@ static void csMsetPubRetire(client *real, uintptr_t tag) {
         serverAssert(pub->rec[pub->head & pub->mask].tag == tag);
         pub->head++;
     }
-    unsigned int before = atomic_fetch_sub_explicit(&real->mset_pending_count, 1,
+    unsigned int before = atomic_fetch_sub_explicit(&rt->mset_pending_count, 1,
                                                     memory_order_release);
     csMsetPendingUnlock(real);
     serverAssert(before > 0);
@@ -9527,6 +9557,7 @@ static void csMsetPubRetire(client *real, uintptr_t tag) {
 /* I5/R1 registration is ticket-free and precedes every owner publish. */
 static void csMsetRegister(csGroup *g) {
     client *real = g->head->parent;
+    clientExecTail *rt = clientTail(real);
     g->versioned_write = 1;
     g->version_seq = TOMO_VERSION_UNCOMMITTED;
     g->mset_client = real;
@@ -9545,38 +9576,39 @@ static void csMsetRegister(csGroup *g) {
      * IMMUTABLE_CONFIG. Rounded UP to a power of two so the cursors can mask, and derived rather
      * than picked, so no traffic shape can overflow it and the conservative arm below becomes
      * unreachable instead of merely unlikely. */
-    if (__builtin_expect(real->mset_pub == NULL, 0)) {
+    if (__builtin_expect(rt->mset_pub == NULL, 0)) {
         unsigned int cap = 1;
         while (cap < (unsigned int)server.pipeline_ring_depth) cap <<= 1;
         csMsetPub *pub = zcalloc(sizeof(*pub) + (size_t)cap * sizeof(csPubRec));
         pub->mask = cap - 1;
         csMsetPendingLock(real);
-        real->mset_pub = pub;
+        rt->mset_pub = pub;
         csMsetPendingUnlock(real);
     }
 
     csMsetPendingLock(real);
-    g->mset_pending_prev = real->mset_pending_tail;
+    g->mset_pending_prev = rt->mset_pending_tail;
     g->mset_pending_next = NULL;
-    if (real->mset_pending_tail) real->mset_pending_tail->mset_pending_next = g;
-    else real->mset_pending_head = g;
-    real->mset_pending_tail = g;
-    atomic_fetch_add_explicit(&real->mset_pending_count, 1, memory_order_release);
+    if (rt->mset_pending_tail) rt->mset_pending_tail->mset_pending_next = g;
+    else rt->mset_pending_head = g;
+    rt->mset_pending_tail = g;
+    atomic_fetch_add_explicit(&rt->mset_pending_count, 1, memory_order_release);
     csMsetPendingUnlock(real);
 }
 
 static void csMsetPendingRemove(csGroup *g) {
     client *real = g->mset_client;
     if (!real) return;
+    clientExecTail *rt = clientTail(real);
     csMsetPendingLock(real);
     if (g->mset_client == real) {
         if (g->mset_pending_prev) g->mset_pending_prev->mset_pending_next = g->mset_pending_next;
-        else real->mset_pending_head = g->mset_pending_next;
+        else rt->mset_pending_head = g->mset_pending_next;
         if (g->mset_pending_next) g->mset_pending_next->mset_pending_prev = g->mset_pending_prev;
-        else real->mset_pending_tail = g->mset_pending_prev;
+        else rt->mset_pending_tail = g->mset_pending_prev;
         g->mset_pending_prev = g->mset_pending_next = NULL;
         g->mset_client = NULL;
-        unsigned int before = atomic_fetch_sub_explicit(&real->mset_pending_count, 1,
+        unsigned int before = atomic_fetch_sub_explicit(&rt->mset_pending_count, 1,
                                                         memory_order_release);
         serverAssert(before > 0);
     }
@@ -9695,7 +9727,7 @@ static void csStampPush(int owner, tomoOwnerOp *op) {
 
 static inline int csMsetHeadComplete(client *real) {
     csMsetPendingLock(real);
-    csGroup *head = real->mset_pending_head;
+    csGroup *head = clientTail(real)->mset_pending_head;
     int complete = head && atomic_load_explicit(&head->mset_complete, memory_order_acquire);
     csMsetPendingUnlock(real);
     return complete;
@@ -9829,10 +9861,11 @@ static int csKeysCollide(const csReadKeys *rk, const uint64_t *kh, int kh_n, uin
 #define CS_WALK_PUBREC  (1<<1)   /* the walk reached at least one publishing record, i.e. the
                                   * detached-head window was open when this read arrived */
 static int csMsetReadIntersects(client *real, const csReadKeys *rk, int *flags) {
+    clientExecTail *rt = clientTail(real);
     unsigned int accounted = 0;
     int intersects = 0, f = 0;
     csMsetPendingLock(real);
-    for (csGroup *g = real->mset_pending_head; g; g = g->mset_pending_next) {
+    for (csGroup *g = rt->mset_pending_head; g; g = g->mset_pending_next) {
         accounted++;
         uint64_t hit = rk->sig & g->key_sig;
         if (!hit) continue;                          /* filter miss: definitively disjoint */
@@ -9842,7 +9875,7 @@ static int csMsetReadIntersects(client *real, const csReadKeys *rk, int *flags) 
         }
         if (csKeysCollide(rk, g->key_h, g->key_h_n, hit)) { intersects = 1; break; }
     }
-    csMsetPub *pub = real->mset_pub;
+    csMsetPub *pub = rt->mset_pub;
     if (!intersects && pub && pub->head != pub->tail) {
         f |= CS_WALK_PUBREC;
         for (unsigned int i = pub->head; i != pub->tail; i++) {
@@ -9857,7 +9890,7 @@ static int csMsetReadIntersects(client *real, const csReadKeys *rk, int *flags) 
             if (csKeysCollide(rk, r->key_h, r->key_h_n, hit)) { intersects = 1; break; }
         }
     }
-    unsigned int pending = atomic_load_explicit(&real->mset_pending_count,
+    unsigned int pending = atomic_load_explicit(&rt->mset_pending_count,
                                                  memory_order_acquire);
     csMsetPendingUnlock(real);
     /* Backstop, and the one place a write this walk could not see is caught: every registered
@@ -9884,6 +9917,7 @@ static int csMsetReadIntersects(client *real, const csReadKeys *rk, int *flags) 
  * charges disp_cnt/rord_runs to, so a caller that could corrupt a neighbour's slot here would
  * already be corrupting it there. */
 static __attribute__((noinline)) int csMsetHoldOwnReadPending(client *real) {
+    clientExecTail *rt = clientTail(real);
     tm_io_sig[iotid].ownread_pending++;
     csReadKeys rk;
     csOwnReadSignature(real, &rk);
@@ -9898,9 +9932,9 @@ static __attribute__((noinline)) int csMsetHoldOwnReadPending(client *real) {
     if (flags & CS_WALK_PUBREC) tm_io_sig[iotid].ownread_detach++;
     if (!hold) return 0;
 
-    atomic_store_explicit(&real->mset_read_waiting, 1, memory_order_release);
+    atomic_store_explicit(&rt->mset_read_waiting, 1, memory_order_release);
     if (!csMsetReadIntersects(real, &rk, &flags)) {
-        atomic_store_explicit(&real->mset_read_waiting, 0, memory_order_release);
+        atomic_store_explicit(&rt->mset_read_waiting, 0, memory_order_release);
         return 0;
     }
     /* Classify against the scan that DECIDED the park (the confirming one), before the third scan
@@ -9913,7 +9947,7 @@ static __attribute__((noinline)) int csMsetHoldOwnReadPending(client *real) {
     if (flags & CS_WALK_CONSERV) tm_io_sig[iotid].ownread_conserv++;
     tomoAtomicParkPendingRead(real);
     if (!csMsetReadIntersects(real, &rk, &flags)) {
-        atomic_store_explicit(&real->mset_read_waiting, 0, memory_order_release);
+        atomic_store_explicit(&rt->mset_read_waiting, 0, memory_order_release);
         tomoAtomicWakeProducer(real->tid);
     }
     return 1;
@@ -9921,7 +9955,7 @@ static __attribute__((noinline)) int csMsetHoldOwnReadPending(client *real) {
 
 static int csMsetHoldOwnRead(client *real) {
     tm_io_sig[iotid].ownread_reads++;
-    if (atomic_load_explicit(&real->mset_pending_count, memory_order_acquire) == 0)
+    if (atomic_load_explicit(&clientTail(real)->mset_pending_count, memory_order_acquire) == 0)
         return 0;
     return csMsetHoldOwnReadPending(real);
 }
@@ -9931,15 +9965,16 @@ static int csMsetHoldOwnRead(client *real) {
  * connection's publishing ring. Without that copy the walk cannot see this group at all and can
  * only hold, which the census measured as 98% of every remaining hold. */
 static csGroup *csMsetPopComplete(client *real) {
+    clientExecTail *rt = clientTail(real);
     csMsetPendingLock(real);
-    csGroup *g = real->mset_pending_head;
+    csGroup *g = rt->mset_pending_head;
     if (!g || !atomic_load_explicit(&g->mset_complete, memory_order_acquire)) {
         csMsetPendingUnlock(real);
         return NULL;
     }
-    real->mset_pending_head = g->mset_pending_next;
-    if (real->mset_pending_head) real->mset_pending_head->mset_pending_prev = NULL;
-    else real->mset_pending_tail = NULL;
+    rt->mset_pending_head = g->mset_pending_next;
+    if (rt->mset_pending_head) rt->mset_pending_head->mset_pending_prev = NULL;
+    else rt->mset_pending_tail = NULL;
     g->mset_pending_prev = g->mset_pending_next = NULL;
     g->mset_client = NULL;
     csMsetPubRecordLocked(real, g);
@@ -9994,10 +10029,11 @@ static void csMsetStampAndAppend(csGroup *g) {
 static void csMsetInstallDone(csGroup *g) {
     client *real = g->mset_client;
     serverAssert(real != NULL);
+    clientExecTail *rt = clientTail(real);
     atomic_store_explicit(&g->mset_complete, 1, memory_order_release);
 
     int expected = 0;
-    if (!atomic_compare_exchange_strong_explicit(&real->mset_drain_latch, &expected, 1,
+    if (!atomic_compare_exchange_strong_explicit(&rt->mset_drain_latch, &expected, 1,
                                                   memory_order_acquire,
                                                   memory_order_relaxed))
         return;
@@ -10007,10 +10043,10 @@ static void csMsetInstallDone(csGroup *g) {
         csGroup *done;
         while ((done = csMsetPopComplete(real)) != NULL)
             csMsetStampAndAppend(done);
-        atomic_store_explicit(&real->mset_drain_latch, 0, memory_order_release);
+        atomic_store_explicit(&rt->mset_drain_latch, 0, memory_order_release);
         if (!csMsetHeadComplete(real)) break;
         expected = 0;
-        if (!atomic_compare_exchange_strong_explicit(&real->mset_drain_latch, &expected, 1,
+        if (!atomic_compare_exchange_strong_explicit(&rt->mset_drain_latch, &expected, 1,
                                                       memory_order_acquire,
                                                       memory_order_relaxed))
             break;
@@ -10057,7 +10093,7 @@ static void csMsetInstallDone(csGroup *g) {
         csMsetPubRetire(hp, gtag);
         /* A selective read may become runnable while unrelated groups remain. Wake on every
          * publication; processCommand's FIFO signature scan decides whether it must park again. */
-        if (atomic_exchange_explicit(&hp->mset_read_waiting, 0,
+        if (atomic_exchange_explicit(&clientTail(hp)->mset_read_waiting, 0,
                                      memory_order_acq_rel))
             tomoAtomicWakeProducer(hp->tid);
     }
@@ -10081,7 +10117,7 @@ static int csAtomicAbortIncomplete(csGroup *g) {
 /* Tripwire helper: every drain-thread stage launcher calls this on entry. The teardown caller
  * (client being freed) passes a head whose parent is mid-teardown but still allocated. */
 static inline void csAssertBarriered(client *head) {
-    if (__builtin_expect(head->parent != NULL && head->parent->cs_barrier == 0, 0))
+    if (__builtin_expect(head->parent != NULL && clientTail(head->parent)->cs_barrier == 0, 0))
         atomic_fetch_add_explicit(&tomo_xshard_hop2_unbarriered_n, 1, memory_order_relaxed);
 }
 
@@ -11058,7 +11094,7 @@ static inline void csSubStatAccum(csGroup *g, monotime t0, long long e0) {
  * Missing keys, wrong external types, and missing fields all remain NULL (nil for GET, zero/NULL
  * weight for BY), exactly like lookupKeyByPattern. */
 static void csSortDerefExec(client *sub, csGroup *g) {
-    int *pos = g->mget_pos[sub->cssub_idx];
+    int *pos = g->mget_pos[clientTail(sub)->cssub_idx];
     for (int a = 1; a < sub->argc; a++) {
         int idx = pos[a - 1];
         robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
@@ -11123,7 +11159,7 @@ static int csMsetnxHasPendingPosition(csGroup *g) {
 }
 
 static void csMsetnxSubExecVersioned(client *sub, csGroup *g) {
-    int *pos = g->mget_pos[sub->cssub_idx];
+    int *pos = g->mget_pos[clientTail(sub)->cssub_idx];
     int pair = 0;
     for (int a = 1; a + 1 < sub->argc; a += 2, pair++) {
         int orig = pos[pair];
@@ -11276,7 +11312,7 @@ static void csSubExec(client *sub) {
             /* xshard OPT-1: COALESCED — this sub carries all of one shard's keys. Write each value
              * as a private sds COPY (refcount-free, like setmem => safe to free on the coordinator)
              * into its ORIGINAL position slot; NULL slot => nil. Positions from mget_pos[cssub_idx]. */
-            int *pos = g->mget_pos[sub->cssub_idx];
+            int *pos = g->mget_pos[clientTail(sub)->cssub_idx];
             /* xshard OPT-2 (level 2): two-pass in-sub prefetch. Coalescing lost the per-key batch
              * prefetch (exPrefetchBatch only prefetches argv[1]); the coalesced path is now dict-
              * lookup-bound (profile: lookupKey/dictFindLinkInternal dominate). Pass 1 computes each
@@ -11298,7 +11334,7 @@ static void csSubExec(client *sub) {
             if (o == NULL || o->type != OBJ_STRING) addReplyNull(sub);
             else addReplyBulk(sub, o);
         } else if (g->mget_vals) {
-            int *pos = g->mget_pos[sub->cssub_idx];
+            int *pos = g->mget_pos[clientTail(sub)->cssub_idx];
             for (int a = 1; a < sub->argc; a++) {
                 robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
                 if (o != NULL && o->type == OBJ_STRING)
@@ -11473,7 +11509,7 @@ static void csSubExec(client *sub) {
              * sibling workers' dicts cross-thread (rehash race). Iterate ONLY this worker's own
              * bucket range; the fan's per-worker subs then tile the keyspace exactly once.
              * cssub_idx == the worker id on the FANALL path. */
-            int w = sub->cssub_idx;
+            int w = clientTail(sub)->cssub_idx;
             int blo = w ? server.ex_bucket_end[w - 1] : 0;
             int bhi = server.ex_bucket_end[w];
             if (kvstoreIsFlat(sub->db->keys)) {
@@ -11520,7 +11556,7 @@ static void csSubExec(client *sub) {
     case CS_XREAD: {
         /* argv is [XREAD key id key id ...] for this owner. Each result client contains no
          * top-level aggregate header, only one stream element, so fragments remain reorderable. */
-        int *pos = g->xread_pos[sub->cssub_idx];
+        int *pos = g->xread_pos[clientTail(sub)->cssub_idx];
         for (int a = 1, j = 0; a + 1 < sub->argc; a += 2, j++) {
             int idx = pos[j];
             client *out = g->xread_out[idx];
@@ -11566,9 +11602,9 @@ static void csSubExec(client *sub) {
          * private (refcount-free) => coordinator frees them after the barrier.
          * xshard OPT: COALESCED (setop_pos != NULL) — sub carries all of one shard's keys; slot =
          * setop_pos[cssub_idx][j]. LEGACY (setop_pos == NULL) — one key per sub; slot = cssub_idx. */
-        int *pos = g->setop_pos ? g->setop_pos[sub->cssub_idx] : NULL;
+        int *pos = g->setop_pos ? g->setop_pos[clientTail(sub)->cssub_idx] : NULL;
         for (int a = 1; a < sub->argc; a++) {
-            int idx = pos ? pos[a - 1] : sub->cssub_idx;
+            int idx = pos ? pos[a - 1] : clientTail(sub)->cssub_idx;
             robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
             if (o == NULL) { g->setmem[idx] = NULL; g->setcnt[idx] = 0; continue; }
             if (o->type != OBJ_SET) {
@@ -11659,9 +11695,9 @@ static void csSubExec(client *sub) {
          * their real scores (listpack or skiplist encoding walked directly — worker owns the
          * object); a plain SET source contributes score 1.0 (stock); missing => empty; any
          * other type => WRONGTYPE. Slot logic identical to the set gather above. */
-        int *pos = g->setop_pos ? g->setop_pos[sub->cssub_idx] : NULL;
+        int *pos = g->setop_pos ? g->setop_pos[clientTail(sub)->cssub_idx] : NULL;
         for (int a = 1; a < sub->argc; a++) {
-            int idx = pos ? pos[a - 1] : sub->cssub_idx;
+            int idx = pos ? pos[a - 1] : clientTail(sub)->cssub_idx;
             robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
             g->setmem[idx] = NULL; g->setcnt[idx] = 0; g->zscore[idx] = NULL;
             if (o == NULL) continue;
@@ -11750,7 +11786,7 @@ static void csSubExec(client *sub) {
          * NULL slot (empty). Non-string => type error (the reassembler selects LCS's custom
          * stock text versus BITOP/PF's shared WRONGTYPE). HLL header validation remains
          * coordinator-side (prep/reassemble) with stock's distinct error texts. */
-        int *pos = g->mget_pos[sub->cssub_idx];
+        int *pos = g->mget_pos[clientTail(sub)->cssub_idx];
         for (int a = 1; a < sub->argc; a++) {
             robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
             if (o == NULL) continue;
@@ -11774,7 +11810,7 @@ static void csSubExec(client *sub) {
             csH1DumpKey(sub, g, g->versioned_write ? -1 : 1);
         } else {
             if (g->versioned_write &&
-                g->h2sub[sub->cssub_idx].action == CS_H2A_SRCOP) {
+                g->h2sub[clientTail(sub)->cssub_idx].action == CS_H2A_SRCOP) {
                 csInstallVersionTombstone(sub,g,NOTIFY_GENERIC,"rename_from");
             } else if (g->versioned_write) {
                 csH2RestoreKeyVersioned(sub,g,NOTIFY_GENERIC,"rename_to",0);
@@ -11790,7 +11826,7 @@ static void csSubExec(client *sub) {
         } else if (g->versioned_write && g->version_nx_reserving) {
             csNxDestReserveVersioned(sub,g,NOTIFY_GENERIC,"rename_to");
         } else if (g->phase == CS_PH_HOP1) {
-            if (sub->cssub_idx == 0) {
+            if (clientTail(sub)->cssub_idx == 0) {
                 /* src shard: dump WITHOUT delete — a failing NX must leave src intact (H4). */
                 csH1DumpKey(sub, g, g->versioned_write ? -1 : 0);
             } else {
@@ -11800,7 +11836,7 @@ static void csSubExec(client *sub) {
             }
         } else if (g->versioned_write) {
             csInstallVersionTombstone(sub,g,NOTIFY_GENERIC,"rename_from");
-        } else if (g->h2sub[sub->cssub_idx].action == CS_H2A_WRITE) {
+        } else if (g->h2sub[clientTail(sub)->cssub_idx].action == CS_H2A_WRITE) {
             /* Probe said absent; a dst appearing in the barrier->write window is overwritten
              * (documented bounded TOCTOU — the delete-sub is already committed this barrier). */
             csH2RestoreKey(sub, g, NOTIFY_GENERIC, "rename_to");
@@ -11841,9 +11877,9 @@ static void csSubExec(client *sub) {
         if (g->phase == CS_PH_HOP1) {
             /* Ordered-pop HOP1: per-key type+length report into the ORIGINAL-position lanes.
              * ktype: 0 = missing, 1 = expected type, 2 = wrong type. */
-            int *pos = g->setop_pos ? g->setop_pos[sub->cssub_idx] : NULL;
+            int *pos = g->setop_pos ? g->setop_pos[clientTail(sub)->cssub_idx] : NULL;
             for (int a = 1; a < sub->argc; a++) {
-                int idx = pos ? pos[a - 1] : sub->cssub_idx;
+                int idx = pos ? pos[a - 1] : clientTail(sub)->cssub_idx;
                 robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
                 if (o == NULL) { g->ktype[idx] = 0; g->klen[idx] = 0; }
                 else if (o->type != exp_type) { g->ktype[idx] = 2; g->klen[idx] = 0; }
@@ -11884,7 +11920,7 @@ static void csSubExec(client *sub) {
                 lmoveCommand(sub);
             }
         } else if (g->phase == CS_PH_HOP1) {
-            if (sub->cssub_idx == 0) {
+            if (clientTail(sub)->cssub_idx == 0) {
                 /* src shard: PEEK the FROM-end element WITHOUT popping (H3: a failing dst
                  * verdict must not lose the element). Empty list == missing (stock nil). */
                 robj *o = lookupKeyWrite(sub->db, sub->argv[1]);
@@ -11913,7 +11949,7 @@ static void csSubExec(client *sub) {
                 if (o != NULL && o->type != OBJ_LIST)
                     atomic_fetch_or_explicit(&g->probe, CS_PR_DST_WRONGTYPE, memory_order_relaxed);
             }
-        } else if (g->h2sub[sub->cssub_idx].action == CS_H2A_WRITE) {
+        } else if (g->h2sub[clientTail(sub)->cssub_idx].action == CS_H2A_WRITE) {
             /* dst shard: push the moved element (create the list if missing, stock). */
             int toleft = (g->h2_flags & CS_H2F_TO_LEFT) != 0;
             robj *o = lookupKeyWrite(sub->db, sub->argv[1]);
@@ -11953,7 +11989,7 @@ static void csSubExec(client *sub) {
         if (!g->has_hop2) {
             smoveCommand(sub);              /* same-shard: real proc (samekey/no-op handled) */
         } else if (g->phase == CS_PH_HOP1) {
-            if (sub->cssub_idx == 0) {
+            if (clientTail(sub)->cssub_idx == 0) {
                 /* src shard, argv = [SMOVE src member]: existence/type/membership verdict. */
                 robj *o = lookupKeyWrite(sub->db, sub->argv[1]);
                 long long bits = 0;
@@ -11970,7 +12006,7 @@ static void csSubExec(client *sub) {
                     atomic_fetch_or_explicit(&g->probe, bits, memory_order_relaxed);
                 }
             }
-        } else if (g->h2sub[sub->cssub_idx].action == CS_H2A_WRITE) {
+        } else if (g->h2sub[clientTail(sub)->cssub_idx].action == CS_H2A_WRITE) {
             /* dst shard: SADD member (h2_payload = coordinator's private member copy). */
             robj *o = lookupKeyWrite(sub->db, sub->argv[1]);
             if (o == NULL) {
@@ -12352,7 +12388,7 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
     for (int w = 0; w < nw; w++) {
         if (!cnt[w]) continue;
         client *sub = createPooledFakeClient(head->parent);
-        sub->csparent = g; sub->cssub_idx = si; sub->cmd = head->cmd;
+        sub->csparent = g; clientTail(sub)->cssub_idx = si; sub->cmd = head->cmd;
         sub->resp = head->resp;
         sub->conn = head->conn;
         sub->flags |= CLIENT_EX_PENDING;
@@ -12439,7 +12475,7 @@ static int csMsetnxAdvanceReservations(csGroup *g) {
     g->posmap_nsub = 1;
     client *sub = createPooledFakeClient(g->head->parent);
     sub->csparent = g;
-    sub->cssub_idx = 0;
+    clientTail(sub)->cssub_idx = 0;
     sub->cmd = g->head->cmd;
     sub->resp = g->head->resp;
     sub->conn = g->head->conn;
@@ -12473,7 +12509,7 @@ static int csMsetnxAdvanceReservations(csGroup *g) {
 static client *csMakeSub(csGroup *g, int idx, int shard, int dbid) {
     client *head = g->head;
     client *sub = createPooledFakeClient(head->parent);
-    sub->csparent = g; sub->cssub_idx = idx; sub->cmd = head->cmd;
+    sub->csparent = g; clientTail(sub)->cssub_idx = idx; sub->cmd = head->cmd;
     sub->resp = head->resp;                  /* element nil/bulk must match real's RESP */
     /* The sub serializes its reply into its OWN buffer on the worker; spliced at
      * reassembly, never written to the socket directly (CLIENT_EX_PENDING + borrowed conn). */
@@ -12638,7 +12674,7 @@ static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int fi
     g->pipe_stage = s->setop == CS_SETOP_INTER ? CS_PIPE_SIZES :
                     s->setop == CS_SETOP_UNION ? CS_PIPE_LOCAL_UNION : CS_PIPE_LOCAL_DIFF;
     g->pipe_base_part = -1;
-    head->parent->cs_barrier = 1;   /* ORDER-2: later stages push from the drain thread */
+    clientTail(head->parent)->cs_barrier = 1;   /* ORDER-2: later stages push from the drain thread */
     for (int i = 0; i < nkeys; i++) {
         robj *k = head->argv[first + i * s->key_stride];
         if (__builtin_expect(atomic_load_explicit(&server.migration_active,
@@ -12861,7 +12897,7 @@ static void csPipeRecordZunionSource(csGroup *g, int keyidx, int part, robj *src
 }
 
 static void csPipeLocalReduce(client *sub, csGroup *g, int *pos, int isz) {
-    int part = sub->cssub_idx;
+    int part = clientTail(sub)->cssub_idx;
     if (g->setop == CS_SETOP_UNION && isz) {
         csPipeUniq uniq; csPipeUniqInit(&uniq);
         for (int a = 1; a < sub->argc; a++) {
@@ -12929,7 +12965,7 @@ static void csPipeLocalReduce(client *sub, csGroup *g, int *pos, int isz) {
 }
 
 static void csPipeSubExec(client *sub, csGroup *g) {
-    int *pos = g->setop_pos ? g->setop_pos[sub->cssub_idx] : NULL;
+    int *pos = g->setop_pos ? g->setop_pos[clientTail(sub)->cssub_idx] : NULL;
     int isz = (g->ctype == CS_ZOP || g->ctype == CS_ZSTORE || g->ctype == CS_ZCARD);
                                                             /* Z family: zsets + sets (score 1) */
     switch (g->pipe_stage) {
@@ -12939,7 +12975,7 @@ static void csPipeSubExec(client *sub, csGroup *g) {
         break;
     case CS_PIPE_SIZES:
         for (int a = 1; a < sub->argc; a++) {
-            int idx = pos ? pos[a - 1] : sub->cssub_idx;
+            int idx = pos ? pos[a - 1] : clientTail(sub)->cssub_idx;
             /* the ONE accounted lookup of this key for this command (see CS_PIPE_REREAD) */
             robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
             long sz = 0;
@@ -13368,14 +13404,14 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
      * all set has_hop2, and this is the ONLY place the ORDER-2 cs_barrier is raised for them. */
     if (s->has_hop2 && !atomic_msetnx) {
         g->has_hop2 = 1; g->phase = CS_PH_HOP1;
-        head->parent->cs_barrier = 1;   /* ORDER-2: HOP2 subs push from the drain thread */
+        clientTail(head->parent)->cs_barrier = 1;   /* ORDER-2: HOP2 subs push from the drain thread */
         g->h2_op = s->h2_op; g->cs2_kind = s->cs2_kind; g->h2_nsub = 0;
         if (s->dst_argi)   g->h2sub[g->h2_nsub++] = (csH2Sub){CS_H2A_WRITE, s->dst_argi};
         if (s->h2_del_src) g->h2sub[g->h2_nsub++] = (csH2Sub){CS_H2A_SRCOP, s->src_argi};
         atomic_store_explicit(&g->err, CS_ERR_NONE, memory_order_relaxed);
     }
     if (atomic_msetnx)
-        head->parent->cs_barrier = 1;   /* later owner waves also launch from the drain thread */
+        clientTail(head->parent)->cs_barrier = 1;   /* later owner waves also launch from the drain thread */
     if (!coalesce) {
         serverAssert(!atomic_bag);  /* all three bag rows are CS_CO_ALWAYS */
         /* THE one copy of the legacy per-key loop (was duplicated verbatim in
@@ -13451,7 +13487,7 @@ static void dispatchFanAll(client *head) {
     for (int i = 0; i < nw; i++) {
         int w = lw[i];
         client *sub = createPooledFakeClient(head->parent);
-        sub->csparent = g; sub->cssub_idx = w; sub->cmd = head->cmd;
+        sub->csparent = g; clientTail(sub)->cssub_idx = w; sub->cmd = head->cmd;
         sub->resp = head->resp;
         sub->conn = head->conn;
         sub->flags |= CLIENT_EX_PENDING;
@@ -14023,7 +14059,7 @@ static void dispatchSortByGet(client *head, const csCmdSpec *s, int atomic_admis
         csAtomicSetDestinationSignature(g, head->argv[dst_argi]);
         csMsetRegister(g);
     }
-    head->parent->cs_barrier = 1;
+    clientTail(head->parent)->cs_barrier = 1;
     client *sub = csMakeSub(g,0,shard,dbid);
     csSubCopyFullArgv(sub,head);
     sub->user = head->user;
@@ -14182,7 +14218,7 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admissio
     /* cross-shard: stamp the HOP2 PLAN from the ROW; HOP1 sub 0 carries only [CMD src]
      * (+ sub 1 = [CMD dst] probe when h1_probe_dst, step 4+ — verdict lands in g->probe). */
     g->has_hop2 = 1; g->phase = CS_PH_HOP1;
-    head->parent->cs_barrier = 1;   /* ORDER-2: HOP2 subs push from the drain thread */
+    clientTail(head->parent)->cs_barrier = 1;   /* ORDER-2: HOP2 subs push from the drain thread */
     g->h2_op = s->h2_op; g->cs2_kind = s->cs2_kind; g->h2_nsub = 0;
     if (atomic_admission && s->ctype == CS_RENAME)
         g->h2sub[g->h2_nsub++] = (csH2Sub){ .action = CS_H2A_SRCOP,
@@ -15114,10 +15150,11 @@ void flushAllShards(client *c, int dbid, int async) {
                 int blo = w ? server.ex_bucket_end[w - 1] : 0;
                 if (blo >= server.ex_bucket_end[w]) continue;
                 client *sentinel = createFakeClient(c);
-                sentinel->is_flush = 1;
-                sentinel->flush_dbid = dbid;
-                sentinel->flush_async = 0;
-                sentinel->flush_bar = &bars[w / wpn];
+                clientExecTail *st = clientTail(sentinel);
+                st->is_flush = 1;
+                st->flush_dbid = dbid;
+                st->flush_async = 0;
+                st->flush_bar = &bars[w / wpn];
                 csPushSpin(w, sentinel);
             }
         }
@@ -15127,12 +15164,13 @@ void flushAllShards(client *c, int dbid, int async) {
     }
     for (int w = 0; w < nflush; w++) {
         client *sentinel = createFakeClient(c);   /* argc=0/argv=NULL: prefetch guards skip it */
-        sentinel->is_flush = 1;
-        sentinel->flush_dbid = dbid;
+        clientExecTail *st = clientTail(sentinel);
+        st->is_flush = 1;
+        st->flush_dbid = dbid;
         /* SYNC free only: emptyDbAsync (lazyfree) from a worker thread crashes — it touches
          * shared BIO/lazyfree state that assumes the main/IO thread. The worker frees its own
          * shard inline (single-writer), which is fast for normal shards. */
-        sentinel->flush_async = 0; (void)async;
+        st->flush_async = 0; (void)async;
         csPushSpin(w, sentinel);
     }
     /* Empty the IO-side DBs too (single-key data lives in shards, but stay thorough). */
@@ -15310,7 +15348,7 @@ static void migPushFenceIfNeeded(void) {
     uint64_t fg = atomic_load_explicit(&server.migration.fence_gen, memory_order_acquire);
     if (fg == 0 || mig_local_fence_gen == fg) return;        /* already fenced this cutover */
     client *sentinel = createFakeClient(&mig_fence_parent);
-    sentinel->drain_ack = &server.migration.fence_acked[0]; /* non-NULL marker; A acks by queue index */
+    clientTail(sentinel)->drain_ack = &server.migration.fence_acked[0]; /* non-NULL marker; A acks by queue index */
     csPushSpin(server.migration.src, sentinel);              /* -> workers[A].queues[iotid] */
     mig_local_fence_gen = fg;
 }
@@ -15375,10 +15413,11 @@ static int migHoldClientIfDraining(client *c) {
      * iteration has to prove the producer's earlier range work has retired — and the fence we are
      * waiting on is exactly that proof. Idempotent per cutover. */
     migPushFenceIfNeeded();
-    if (!c->mig_parked_node) {
-        c->mig_parked_tid = iotid;
+    clientExecTail *ct = clientTail(c);
+    if (!ct->mig_parked_node) {
+        ct->mig_parked_tid = iotid;
         listAddNodeTail(server.clients_mig_parked[iotid], c);
-        c->mig_parked_node = listLast(server.clients_mig_parked[iotid]);
+        ct->mig_parked_node = listLast(server.clients_mig_parked[iotid]);
     }
     c->flags |= CLIENT_PIPELINE_STALLED;
     return 1;
@@ -15402,7 +15441,7 @@ static void migReleaseParkedClients(void) {
     while ((ln = listFirst(l)) != NULL) {
         client *c = listNodeValue(ln);
         listDelNode(l, ln);
-        c->mig_parked_node = NULL;
+        clientTail(c)->mig_parked_node = NULL;
         c->flags &= ~CLIENT_PIPELINE_STALLED;
         /* processInputBuffer may free c (its C_ERR path); we already dropped our reference. */
         processInputBuffer(c);
@@ -15413,9 +15452,10 @@ static void migReleaseParkedClients(void) {
  * and no in-flight fake, so nothing else in the system holds a reference that would notice it —
  * without this the list would keep a freed pointer. Called from unlinkClient. */
 void migUnparkClient(client *c) {
-    if (!c->mig_parked_node) return;
-    listDelNode(server.clients_mig_parked[c->mig_parked_tid], c->mig_parked_node);
-    c->mig_parked_node = NULL;
+    clientExecTail *ct = clientTail(c);
+    if (!ct->mig_parked_node) return;
+    listDelNode(server.clients_mig_parked[ct->mig_parked_tid], ct->mig_parked_node);
+    ct->mig_parked_node = NULL;
 }
 
 /* Per-KEY hold for cross-shard writes — now a RESIDUAL SAFETY NET, not the working path.
@@ -16290,6 +16330,7 @@ void fakeRingAutoTune(void) {
  * skipped this cron for the fixed/eager/legacy modes is gone with them. */
 void fakeRingClientCron(client *c) {
     if (c->isFake || !c->conn) return;
+    clientExecTail *ct = clientTail(c);
     /* D3 depth decay: shrink toward the EWMA of the TRUE per-window high-water (dispatch-
      * updated fake_ring_hwm_win, consumed+reset here) when the ring has been idle. Folding
      * the instantaneous gap alone read 0 for sub-second bursts => decay-to-1 => recurring
@@ -16297,30 +16338,30 @@ void fakeRingClientCron(client *c) {
      * (=> target stays 16+, zero churn); a genuinely idle client folds 0s and still decays
      * to 1 within a few windows, preserving D3's memory-reclaim purpose. */
     {
-        unsigned int inflight = c->dispatchid - c->flushid;
-        unsigned int hwm = c->fake_ring_hwm_win > inflight ? c->fake_ring_hwm_win : inflight;
-        c->fake_ring_hwm_win = 0;
+        unsigned int inflight = ct->dispatchid - ct->flushid;
+        unsigned int hwm = ct->fake_ring_hwm_win > inflight ? ct->fake_ring_hwm_win : inflight;
+        ct->fake_ring_hwm_win = 0;
         double a = 0.3;
-        c->fake_ring_hwm_ewma = a*(double)hwm + (1.0-a)*c->fake_ring_hwm_ewma;
-        unsigned int target = (unsigned int)(c->fake_ring_hwm_ewma * 1.25) + 1;
+        ct->fake_ring_hwm_ewma = a*(double)hwm + (1.0-a)*ct->fake_ring_hwm_ewma;
+        unsigned int target = (unsigned int)(ct->fake_ring_hwm_ewma * 1.25) + 1;
         if (target < 1) target = 1;
-        if (target > c->ring_size) target = c->ring_size;
-        if (inflight == 0 && target < c->fake_ring_cur_depth) {
-            if (c->fake_ring_decay_skip > 0) { c->fake_ring_decay_skip--; }
+        if (target > ct->ring_size) target = ct->ring_size;
+        if (inflight == 0 && target < ct->fake_ring_cur_depth) {
+            if (ct->fake_ring_decay_skip > 0) { ct->fake_ring_decay_skip--; }
             else {
                 /* Round UP to the ring's power-of-two modulus FIRST, then free only what falls
                  * outside it. Freeing from `target` while shrinking to p2 >= target left slots
                  * [target, p2) freed but still inside the modulus, so the next trip around the ring
                  * recreated every one of them — the shrink/re-grow churn this decay exists to avoid. */
                 unsigned int p2 = 1; while (p2 < target) p2 <<= 1;
-                for (unsigned int slot = p2; slot < c->fake_ring_cur_depth; slot++) {
-                    if (c->fakeClients[slot]) { freeFakeClient(c->fakeClients[slot]); c->fakeClients[slot] = NULL; }
+                for (unsigned int slot = p2; slot < ct->fake_ring_cur_depth; slot++) {
+                    if (ct->fakeClients[slot]) { freeFakeClient(ct->fakeClients[slot]); ct->fakeClients[slot] = NULL; }
                 }
-                c->fake_ring_cur_depth = p2 < c->fake_ring_cur_depth ? p2 : c->fake_ring_cur_depth;
+                ct->fake_ring_cur_depth = p2 < ct->fake_ring_cur_depth ? p2 : ct->fake_ring_cur_depth;
                 /* Safe here: inflight == 0, so no slot is live and remapping the mask cannot strand
                  * an in-flight reply. */
-                if (p2 < c->ring_size) { c->ring_size = p2; c->ring_mask = p2 - 1; }
-                c->fake_ring_decay_skip = 2;
+                if (p2 < ct->ring_size) { ct->ring_size = p2; ct->ring_mask = p2 - 1; }
+                ct->fake_ring_decay_skip = 2;
             }
         }
     }
@@ -18990,6 +19031,11 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 atomic_load_explicit(&tomo_atomic_commit_wait_drains, memory_order_relaxed),
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
+        info = sdscatprintf(info,
+            "tomokv_fake_core_allocs:%llu\r\n"
+            "tomokv_fake_tail_promotions:%llu\r\n",
+            atomic_load_explicit(&tomo_fake_core_allocs, memory_order_relaxed),
+            atomic_load_explicit(&tomo_fake_tail_promotions, memory_order_relaxed));
         /* Keep the lifecycle witnesses outside the already-large FMTARGS block. ref_waits is the
          * non-vacuous proof: it increments only when group completion reached zero but old-owner
          * STAMP/PRUNE/grace work for the migrating range was still outstanding. Both stale-owner
@@ -19300,7 +19346,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "master_host:%s\r\n", server.masterhost,
                 "master_port:%d\r\n", server.masterport,
                 "master_link_status:%s\r\n", (server.repl_state == REPL_STATE_CONNECTED) ? "up" : "down",
-                "master_last_io_seconds_ago:%d\r\n", server.master ? ((int)(server.unixtime-server.master->lastinteraction)) : -1,
+                "master_last_io_seconds_ago:%d\r\n", server.master ? ((int)(server.unixtime-clientTail(server.master)->lastinteraction)) : -1,
                 "master_sync_in_progress:%d\r\n", server.repl_state == REPL_STATE_TRANSFER,
                 "slave_read_repl_offset:%lld\r\n", slave_read_repl_offset,
                 "slave_repl_offset:%lld\r\n", slave_repl_offset,
@@ -20039,7 +20085,7 @@ void dismissMemory(void* ptr, size_t size_hint) {
 void dismissClientMemory(client *c) {
     /* Dismiss client query buffer and static reply buffer. */
     dismissMemory(c->buf, c->buf_usable_size);
-    if (c->querybuf) dismissSds(c->querybuf);
+    if (clientTail(c)->querybuf) dismissSds(clientTail(c)->querybuf);
     /* Dismiss argv array only if we estimate it contains a big buffer. */
     if (c->argc && c->all_argv_len_sum/c->argc >= server.page_size) {
         for (int i = 0; i < c->argc; i++) {
@@ -20435,7 +20481,7 @@ static inline int isStatefulCommand(struct redisCommand *cmd) {
 }
 
 /* 2s-auto T3 express-slim: a trimmed moveExecutionState for the express lane (GET/SET).
- * Skips ONLY lookedcmd/realcmd/slot/reploff_next/read_error (unused by express commands —
+ * Skips ONLY lookedcmd/realcmd/reploff_next/read_error (unused by express commands —
  * sharding rejects MULTI/WATCH so these clients never reach here mid-transaction). It STILL
  * moves the pending command + argv accounting: commandProcessed(fake) frees the pcmd via
  * fake->pending_cmds, so skipping it would leak/double-free. */
@@ -20444,6 +20490,7 @@ static void moveExecutionStateSlim(client *real, client *fake) {
     fake->argv     = real->argv;
     fake->argv_len = real->argv_len;
     fake->cmd      = real->cmd;
+    fake->slot     = real->slot;
     fake->net_input_bytes_curr_cmd = real->net_input_bytes_curr_cmd;
 
     /* pcmd MUST still move — commandProcessed(fake) frees it; skipping leaks/double-frees. */
@@ -20466,31 +20513,31 @@ static void moveExecutionStateSlim(client *real, client *fake) {
     fake->bufpos      = 0;
     fake->sentlen     = 0;
     fake->reply_bytes = 0;
-    /* skipped (express-safe): lookedcmd, realcmd, reploff_next, read_error are unread by
-     * getCommand/setCommand's ->proc (the worker calls proc directly, NOT call()). slot IS
-     * touched by the worker prefetch (exPrefetchBatch: kvstoreGetDict(..., slot>0?slot:0)) and
-     * by getKeySlot's cache, so reset it to INVALID rather than leaving a stale value — cheap
-     * store, forces dict 0 selection (correct in the non-cluster sharding regime). */
-    fake->slot = -1;
+    /* skipped (express-safe): lookedcmd, realcmd, reploff_next and read_error are unread by
+     * getCommand/setCommand's ->proc (the worker calls proc directly, NOT call()). slot stays
+     * command-scoped because commandProcessed() uses it for cluster slot accounting. */
 
     real->argc     = 0;
     real->argv     = NULL;
     real->argv_len = 0;
     real->cmd      = NULL;
+    real->slot     = -1;
     real->net_input_bytes_curr_cmd = 0;
 }
 
 static void moveExecutionState(client *real, client *fake) {
+    clientExecTail *rt = clientTail(real);
+    clientExecTail *ft = clientTail(fake);
     /* Execution state — moved (ownership transfers to fake). */
     fake->argc                      = real->argc;
     fake->argv                      = real->argv;
     fake->argv_len                  = real->argv_len;
     fake->cmd                       = real->cmd;
-    fake->lookedcmd                 = real->lookedcmd;
-    fake->realcmd                   = real->realcmd;
+    ft->lookedcmd                   = rt->lookedcmd;
+    ft->realcmd                     = rt->realcmd;
     fake->slot                      = real->slot;
-    fake->reploff_next              = real->reploff_next;
-    fake->read_error                = real->read_error;
+    ft->reploff_next                = rt->reploff_next;
+    ft->read_error                  = rt->read_error;
     fake->net_input_bytes_curr_cmd  = real->net_input_bytes_curr_cmd;
 
     /* Move the pending command from real's list to fake's list so that
@@ -20530,11 +20577,11 @@ static void moveExecutionState(client *real, client *fake) {
     real->argv                     = NULL;
     real->argv_len                 = 0;
     real->cmd                      = NULL;
-    real->lookedcmd                = NULL;
-    real->realcmd                  = NULL;
+    rt->lookedcmd                  = NULL;
+    rt->realcmd                    = NULL;
     real->slot                     = -1;
     real->net_input_bytes_curr_cmd = 0;
-    real->read_error               = 0;
+    rt->read_error                 = 0;
 }
 
 
@@ -21764,7 +21811,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
             /* ee451 (v8d): CUTOVER DRAIN SENTINEL — processed in queue order. Reaching it proves
              * every range primary this producer dispatched before it has executed on A; decrement
              * the per-cutover barrier and free. No reply. */
-            if (fake->drain_ack) {
+            if (fake->has_exec_tail && clientTail(fake)->drain_ack) {
                 /* This sentinel came up queue slot `i`; mark that producer slot drained. */
                 atomic_store_explicit(&server.migration.fence_acked[i], 1, memory_order_release);
                 freeFakeClient(fake);
@@ -21775,21 +21822,22 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
             /* ee451 (v7): FLUSH SENTINEL — processed in queue order (FIFO behind this
              * connection's earlier commands). Empty this worker's OWN shard DBs and free
              * the fake. Fire-and-forget: no reply, no barrier. */
-            if (fake->is_flush) {
-                int dblo = fake->flush_dbid < 0 ? 0 : fake->flush_dbid;
-                int dbhi = fake->flush_dbid < 0 ? server.dbnum - 1 : fake->flush_dbid;
+            if (fake->has_exec_tail && clientTail(fake)->is_flush) {
+                clientExecTail *ft = clientTail(fake);
+                int dblo = ft->flush_dbid < 0 ? 0 : ft->flush_dbid;
+                int dbhi = ft->flush_dbid < 0 ? server.dbnum - 1 : ft->flush_dbid;
                 tomoWkrLock(worker->id);
                 for (int dbid = dblo; dbid <= dbhi; dbid++)
                     tomoTouchWatchedKeysOnFlush(&worker->db[dbid], worker->id);
                 tomoWkrUnlock(worker->id);
-                if (fake->flush_bar) {
+                if (ft->flush_bar) {
                     /* ee451 (shared-kv S0.2b): per-node rendezvous — the LAST node worker to reach
                      * its sentinel performs the ONE kvstoreEmpty of the shared node db (all siblings
                      * provably past their pre-flush commands = quiesced at this barrier); the others
                      * spin (µs). Last participant overall frees the barrier array. */
-                    tomoFlushBar *bar = fake->flush_bar;
+                    tomoFlushBar *bar = ft->flush_bar;
                     if (atomic_fetch_sub_explicit(&bar->pending, 1, memory_order_acq_rel) == 1) {
-                        emptyDbStructure(worker->db, fake->flush_dbid, fake->flush_async, NULL);
+                        emptyDbStructure(worker->db, ft->flush_dbid, ft->flush_async, NULL);
                         atomic_store_explicit(&bar->done, 1, memory_order_release);
                     } else {
                         while (!atomic_load_explicit(&bar->done, memory_order_acquire)) exPauseCpu();
@@ -21799,7 +21847,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                         atomic_store_explicit(&tomo_flush_gate, 0, memory_order_release);  /* [2] release */
                     }
                 } else {
-                    emptyDbStructure(worker->db, fake->flush_dbid, fake->flush_async, NULL);
+                    emptyDbStructure(worker->db, ft->flush_dbid, ft->flush_async, NULL);
                 }
                 freeFakeClient(fake);
                 j++;
@@ -23514,14 +23562,15 @@ void tmFlipTick(void) {
  * master/monitor links, tracking, ASM, closing/protected, and non-TCP conns. */
 static int tmClientMigratable(client *c) {
     if (!c->conn) return 0;
+    clientExecTail *ct = clientTail(c);
     /* ee451 (H2 handover): a client PARKED by the cutover range-hold must not change io threads.
      * Its park list entry is per-io-thread and is released by that thread's beforeSleep sweep; move
      * it and the entry is stranded on the old thread (which would then re-drive a client it no
      * longer owns, while the new thread never releases it). A park lasts one cutover window, and
      * the quiesce fence below would otherwise consider it migratable precisely BECAUSE its ring is
      * empty — which is exactly what parking guarantees. */
-    if (c->mig_parked_node) return 0;
-    if (c->atomic_window_parked_node) return 0;
+    if (ct->mig_parked_node) return 0;
+    if (ct->atomic_window_parked_node) return 0;
     if (c->conn->type != connectionTypeTcp()) return 0;    /* v1: TCP only (TLS/unix later) */
     if (c->flags & (CLIENT_CLOSE_ASAP | CLIENT_CLOSE_AFTER_REPLY | CLIENT_PROTECTED |
                     CLIENT_MULTI | CLIENT_BLOCKED | CLIENT_UNBLOCKED | CLIENT_PUBSUB |
@@ -23540,7 +23589,8 @@ static int tmClientMigratable(client *c) {
 
 /* The per-conn quiesce fence (see the file header). */
 static int tmClientQuiesced(client *c) {
-    if (c->dispatchid != c->flushid) return 0;             /* ring not empty (in-flight fakes) */
+    clientExecTail *ct = clientTail(c);
+    if (ct->dispatchid != ct->flushid) return 0;             /* ring not empty (in-flight fakes) */
     if (clientHasPendingReplies(c)) return 0;              /* static buf / reply list not empty */
     if (c->flags & CLIENT_PENDING_WRITE) return 0;         /* queued for a socket write */
     if (c->sentlen != 0) return 0;                         /* a partial socket write is in progress */
@@ -23781,7 +23831,7 @@ static int tmMigAbortClient(client *c) {
     }
     serverLog(LL_NOTICE, "ee451 thread-modes v1.6: migration of client %llu ABORTED — became "
                          "non-migratable during drain; left on io thread %d",
-              (unsigned long long)c->id, iotid);
+              (unsigned long long)clientTail(c)->id, iotid);
     return 1;
 }
 
@@ -23873,11 +23923,12 @@ static void tmMigHandoff(client *c, int dest) {
 
     /* 2. Unlink from the source's per-iotid client structures (NOT a full unlinkClient —
      * the conn lives on). */
-    if (c->client_list_node) {
-        uint64_t idk = htonu64(c->id);
+    clientExecTail *ct = clientTail(c);
+    if (ct->client_list_node) {
+        uint64_t idk = htonu64(ct->id);
         raxRemove(server.clients_index[iotid], (unsigned char *)&idk, sizeof(idk), NULL);
-        listDelNode(server.clients[iotid], c->client_list_node);
-        c->client_list_node = NULL;
+        listDelNode(server.clients[iotid], ct->client_list_node);
+        ct->client_list_node = NULL;
     }
     if (server.current_client[iotid].p == c) server.current_client[iotid].p = NULL;
     /* (the live count is server.clients[iotid], already shrunk by the listDelNode above) */
@@ -24058,7 +24109,7 @@ void tmMigServiceOut(void) {
         }
         listDelNode(mb->migrating_out, ln);
         serverLog(LL_VERBOSE, "ee451 thread-modes v1.6: io thread %d -> %d handed off client %llu",
-                  id, dest, (unsigned long long)c->id);
+                  id, dest, (unsigned long long)clientTail(c)->id);
         tmMigHandoff(c, dest);
     }
 
@@ -24201,7 +24252,7 @@ void tmMigDrainInbox(void) {
                 serverLog(LL_WARNING,
                           "FATAL: io_uring destination %d could not adopt "
                           "migrated client %llu",
-                          id, (unsigned long long)c->id);
+                          id, (unsigned long long)clientTail(c)->id);
                 exit(1);
             }
             c->flags &= ~CLIENT_MIGRATING;
@@ -24212,7 +24263,7 @@ void tmMigDrainInbox(void) {
         }
         if (clientHasPendingReplies(c)) putClientInPendingWriteQueue(c);   /* defensive: nothing should be pending at quiesce */
         serverLog(LL_VERBOSE, "ee451 thread-modes v1.6: io thread %d ADOPTED migrated client %llu",
-                  id, (unsigned long long)c->id);
+                  id, (unsigned long long)clientTail(c)->id);
     }
 }
 

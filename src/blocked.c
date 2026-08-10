@@ -76,7 +76,7 @@ void freeClientBlockingState(client *c) {
     if (!bs) return;
     dictRelease(bs->keys);
     memset(bs, 0, sizeof(*bs));
-    c->cold->initialized &= ~CLIENT_COLD_BLOCKED;
+    clientTail(c)->cold->initialized &= ~CLIENT_COLD_BLOCKED;
 }
 
 /* Block a client for the specific operation type. Once the CLIENT_BLOCKED
@@ -104,18 +104,18 @@ void blockClient(client *c, int btype) {
  * the command will not be reprocessed and we need to make stats update.
  * This function will make updates to the commandstats, slowlog and monitors.*/
 void updateStatsOnUnblock(client *c, long blocked_us, long reply_us, int had_errors){
-    const ustime_t total_cmd_duration = c->duration + blocked_us + reply_us;
+    const ustime_t total_cmd_duration = clientTail(c)->duration + blocked_us + reply_us;
     clusterSlotStatsAddCpuDuration(c, total_cmd_duration);
     /* ee451 (#B2): per-thread shards — this runs on whichever io thread hosts c, so the plain
      * RMWs on the shared redisCommand raced every other io thread's call(). */
-    tomoCmdStatAddCall(c->lastcmd, total_cmd_duration, had_errors);
+    tomoCmdStatAddCall(clientTail(c)->lastcmd, total_cmd_duration, had_errors);
     c->commands_processed++;
     numCommandsBump();   /* ee451 (#B1): per-thread; this runs on whichever io thread hosts c */
     if (server.latency_tracking_enabled)
-        tomoCmdLatRecord(c->lastcmd, total_cmd_duration);
+        tomoCmdLatRecord(clientTail(c)->lastcmd, total_cmd_duration);
     /* Log the command into the Slow log if needed. */
-    slowlogPushCurrentCommand(c, c->lastcmd, total_cmd_duration);
-    c->duration = 0;
+    slowlogPushCurrentCommand(c, clientTail(c)->lastcmd, total_cmd_duration);
+    clientTail(c)->duration = 0;
     /* Log the reply duration event. */
     latencyAddSampleIfNeeded("command-unblocking",reply_us/1000);
 }
@@ -203,8 +203,8 @@ void unblockClient(client *c, int queue_for_reprocessing) {
         if (moduleClientIsBlockedOnKeys(c)) unblockClientWaitingData(c);
         unblockClientFromModule(c);
     } else if (clientBlockingState(c)->btype == BLOCKED_POSTPONE || clientBlockingState(c)->btype == BLOCKED_POSTPONE_TRIM) {
-        listDelNode(server.postponed_clients,c->cold->postponed_list_node);
-        c->cold->postponed_list_node = NULL;
+        listDelNode(server.postponed_clients,clientTail(c)->cold->postponed_list_node);
+        clientTail(c)->cold->postponed_list_node = NULL;
     } else if (clientBlockingState(c)->btype == BLOCKED_SHUTDOWN) {
         /* No special cleanup. */
     } else if (clientBlockingState(c)->btype == BLOCKED_LAZYFREE) {
@@ -277,7 +277,7 @@ void replyToClientsBlockedOnShutdown(void) {
     while((ln = listNext(&li))) {
         client *c = listNodeValue(ln);
         if (c->flags & CLIENT_BLOCKED && clientBlockingState(c)->btype == BLOCKED_SHUTDOWN) {
-            c->duration = 0;
+            clientTail(c)->duration = 0;
             addReplyError(c, "Errors trying to SHUTDOWN. Check logs.");
             unblockClient(c, 1);
         }
@@ -660,7 +660,7 @@ void blockPostponeClientWithType(client *c, int btype) {
     clientBlockingState(c)->timeout = 0;
     blockClient(c, btype);
     listAddNodeTail(server.postponed_clients, c);
-    c->cold->postponed_list_node = listLast(server.postponed_clients);
+    clientTail(c)->cold->postponed_list_node = listLast(server.postponed_clients);
     /* Mark this client to execute its command */
     c->flags |= CLIENT_PENDING_COMMAND;
 }

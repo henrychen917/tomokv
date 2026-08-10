@@ -41,7 +41,7 @@
 
 /* This macro tells if we are in the context of a RESTORE command, and not loading an RDB or AOF. */
 #define isRestoreContext() \
-    ((server.current_client[iotid].p == NULL || server.current_client[iotid].p->id == CLIENT_ID_AOF) ? 0 : 1)
+    ((server.current_client[iotid].p == NULL || clientTail(server.current_client[iotid].p)->id == CLIENT_ID_AOF) ? 0 : 1)
 
 char* rdbFileBeingLoaded = NULL; /* used for rdb checking on read error */
 extern int rdbCheckMode;

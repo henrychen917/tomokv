@@ -241,14 +241,14 @@ void execCommand(client *c) {
     c->all_argv_len_sum = ms->argv_len_sums;
 
     /* Skip ACL check for the AOF client while server loading. */
-    int skip_acl_check = server.loading && c->id == CLIENT_ID_AOF;
+    int skip_acl_check = server.loading && clientTail(c)->id == CLIENT_ID_AOF;
 
     addReplyArrayLen(c,ms->count);
     for (j = 0; j < ms->count; j++) {
         c->argc = ms->commands[j]->argc;
         c->argv = ms->commands[j]->argv;
         c->argv_len = ms->commands[j]->argv_len;
-        c->cmd = c->realcmd = ms->commands[j]->cmd;
+        c->cmd = clientTail(c)->realcmd = ms->commands[j]->cmd;
 
         /* ACL permissions are also checked at the time of execution in case
          * they were changed after the commands were queued. */
@@ -282,7 +282,7 @@ void execCommand(client *c) {
                 "following reason: %s", reason);
         } else {
             ms->executing_cmd = j;
-            if (c->id == CLIENT_ID_AOF)
+            if (clientTail(c)->id == CLIENT_ID_AOF)
                 call(c,CMD_CALL_NONE);
             else
                 call(c,CMD_CALL_FULL);
@@ -304,7 +304,7 @@ void execCommand(client *c) {
     c->argv = orig_argv;
     c->argv_len = orig_argv_len;
     c->argc = orig_argc;
-    c->cmd = c->realcmd = orig_cmd;
+    c->cmd = clientTail(c)->realcmd = orig_cmd;
     c->all_argv_len_sum = orig_all_argv_len_sum;
     discardTransaction(c);
 

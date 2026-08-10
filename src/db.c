@@ -2156,7 +2156,7 @@ int flushCommandCommon(client *c, int type, int flags, slotRangeArray *slots) {
          * avoid command from being reset during unblock. */
         c->flags |= CLIENT_PENDING_COMMAND;
         blockClient(c,BLOCKED_LAZYFREE);
-        bioCreateCompRq(BIO_WORKER_LAZY_FREE, flushallSyncBgDone, c->id, slots);
+        bioCreateCompRq(BIO_WORKER_LAZY_FREE, flushallSyncBgDone, clientTail(c)->id, slots);
     }
 
 #if defined(USE_JEMALLOC)

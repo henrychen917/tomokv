@@ -1456,7 +1456,7 @@ void feedAppendOnlyFile(int dictid, robj **argv, int argc) {
 struct client *createAOFClient(void) {
     struct client *c = createClient(NULL);
 
-    c->id = CLIENT_ID_AOF; /* So modules can identify it's the AOF client. */
+    clientTail(c)->id = CLIENT_ID_AOF; /* So modules can identify it's the AOF client. */
 
     /*
      * The AOF client should never be blocked (unlike master
@@ -1661,7 +1661,7 @@ int loadSingleAppendOnlyFile(char *filename) {
         if (cmd->proc == multiCommand) valid_before_multi = valid_up_to;
 
         /* Run the command in the context of a fake client */
-        fakeClient->cmd = fakeClient->lastcmd = cmd;
+        fakeClient->cmd = clientTail(fakeClient)->lastcmd = cmd;
         if (fakeClient->flags & CLIENT_MULTI &&
             fakeClient->cmd->proc != execCommand)
         {

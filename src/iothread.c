@@ -58,9 +58,9 @@ void updateClientDataFromIOThread(client *c) {
         serverAssert(c->flags & CLIENT_SLAVE);
         clientReplicationData(c)->repl_ack_time = clientReplicationData(c)->io_repl_ack_time;
     }
-    if (c->io_lastinteraction > c->lastinteraction) {
+    if (clientTail(c)->io_lastinteraction > clientTail(c)->lastinteraction) {
         serverAssert(c->flags & CLIENT_MASTER);
-        c->lastinteraction = c->io_lastinteraction;
+        clientTail(c)->lastinteraction = clientTail(c)->io_lastinteraction;
     }
     if (clientReplicationData(c)->io_read_reploff > clientReplicationData(c)->read_reploff) {
         serverAssert(c->flags & CLIENT_MASTER);
@@ -91,10 +91,10 @@ int runClientCronFromIOThread(client *c) {
     }
 
     /* Run client cron task for the client per second or it is marked as pending cron. */
-    if (c->io_last_client_cron + 1000 <= server.mstime ||
+    if (clientTail(c)->io_last_client_cron + 1000 <= server.mstime ||
         c->io_flags & CLIENT_IO_PENDING_CRON)
     {
-        c->io_last_client_cron = server.mstime;
+        clientTail(c)->io_last_client_cron = server.mstime;
         if (clientsCronRunClient(c)) return 1;
     }
 
@@ -109,7 +109,7 @@ void enqueuePendingClientsToMainThread(client *c, int unbind) {
      * unbind client from event loop, so main thread doesn't need to do it costly. */
     if (unbind) connUnbindEventLoop(c->conn);
     /* Just skip if it already is transferred. */
-    if (c->io_thread_client_list_node) {
+    if (clientTail(c)->io_thread_client_list_node) {
         IOThread *t = &IOThreads[c->tid];
         /* If there are several clients to process, let the main thread handle them ASAP.
          * Since the client being added to the queue may still need to be processed by
@@ -119,9 +119,9 @@ void enqueuePendingClientsToMainThread(client *c, int unbind) {
         /* Disable read and write to avoid race when main thread processes. */
         c->io_flags &= ~(CLIENT_IO_READ_ENABLED | CLIENT_IO_WRITE_ENABLED);
         /* Remove the client from IO thread, add it to main thread's pending list. */
-        listUnlinkNode(t->clients, c->io_thread_client_list_node);
-        listLinkNodeTail(t->pending_clients_to_main_thread, c->io_thread_client_list_node);
-        c->io_thread_client_list_node = NULL;
+        listUnlinkNode(t->clients, clientTail(c)->io_thread_client_list_node);
+        listLinkNodeTail(t->pending_clients_to_main_thread, clientTail(c)->io_thread_client_list_node);
+        clientTail(c)->io_thread_client_list_node = NULL;
     }
 }
 
@@ -131,7 +131,7 @@ void enqueuePendingClienstToIOThreads(client *c) {
 
     if (c->flags & CLIENT_PENDING_WRITE) {
         c->flags &= ~CLIENT_PENDING_WRITE;
-        listUnlinkNode(server.clients_pending_write[iotid], &c->clients_pending_write_node);
+        listUnlinkNode(server.clients_pending_write[iotid], &clientTail(c)->clients_pending_write_node);
     }
     if (c->flags & CLIENT_SLAVE) {
         serverAssert(clientReplicationData(c)->ref_repl_buf_node != NULL);
@@ -144,7 +144,7 @@ void enqueuePendingClienstToIOThreads(client *c) {
     }
     if (c->flags & CLIENT_MASTER) {
         clientReplicationData(c)->io_read_reploff = clientReplicationData(c)->read_reploff;
-        c->io_lastinteraction = c->lastinteraction;
+        clientTail(c)->io_lastinteraction = clientTail(c)->lastinteraction;
     }
 
     c->running_tid = c->tid;
@@ -205,9 +205,9 @@ void fetchClientFromIOThread(client *c) {
                  c->running_tid != IOTHREAD_MAIN_THREAD_ID);
     pauseIOThread(c->tid);
     /* Remove the client from clients list of IO thread or main thread. */
-    if (c->io_thread_client_list_node) {
-        listDelNode(IOThreads[c->tid].clients, c->io_thread_client_list_node);
-        c->io_thread_client_list_node = NULL;
+    if (clientTail(c)->io_thread_client_list_node) {
+        listDelNode(IOThreads[c->tid].clients, clientTail(c)->io_thread_client_list_node);
+        clientTail(c)->io_thread_client_list_node = NULL;
     } else {
         list *clients[5] = {
             IOThreads[c->tid].pending_clients,
@@ -306,7 +306,7 @@ void assignClientToIOThread(client *c) {
     server.io_threads_clients_num[min_id]++;
 
     /* The client running in IO thread needs to have deferred objects array. */
-    c->deferred_objects = zmalloc(sizeof(deferredObject) * CLIENT_MAX_DEFERRED_OBJECTS);
+    clientTail(c)->deferred_objects = zmalloc(sizeof(deferredObject) * CLIENT_MAX_DEFERRED_OBJECTS);
 
     /* Unbind connection of client from main thread event loop, disable read and
      * write, and then put it in the list, main thread will send these clients
@@ -644,7 +644,7 @@ int processClientsFromIOThread(IOThread *t) {
          * And some clients may do not have reply if CLIENT REPLY OFF/SKIP. */
         if (c->flags & CLIENT_PENDING_WRITE) {
             c->flags &= ~CLIENT_PENDING_WRITE;
-            listUnlinkNode(server.clients_pending_write[iotid], &c->clients_pending_write_node);
+            listUnlinkNode(server.clients_pending_write[iotid], &clientTail(c)->clients_pending_write_node);
         }
         c->running_tid = c->tid;
         listLinkNodeHead(mainThreadPendingClientsToIOThreads[c->tid], node);
@@ -740,10 +740,10 @@ int processClientsFromMainThread(IOThread *t) {
         serverAssert(!(c->flags & CLIENT_CLOSE_ASAP));
 
         /* Link client in IO thread clients list first. */
-        serverAssert(c->io_thread_client_list_node == NULL);
+        serverAssert(clientTail(c)->io_thread_client_list_node == NULL);
         listUnlinkNode(t->processing_clients, ln);
         listLinkNodeTail(t->clients, ln);
-        c->io_thread_client_list_node = listLast(t->clients);
+        clientTail(c)->io_thread_client_list_node = listLast(t->clients);
 
         /* The client now is in the IO thread, let's free deferred objects. */
         freeClientDeferredObjects(c, 0);
