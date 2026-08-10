@@ -57,6 +57,112 @@ __thread sds thread_reusable_qb = NULL;
 __thread int thread_reusable_qb_used = 0; /* Avoid multiple clients using reusable query
                                          * buffer due to nested command execution. */
 
+#ifdef DEBUG_ASSERTIONS
+/* DEBUG-only witness for the physical client lines reached by one dispatched
+ * plain GET/SET. Actual field-address markers accumulate across IO -> EX -> IO;
+ * clientTail() is wrapped separately so an unmarked tail lvalue still makes
+ * the sample invalid. */
+#define CLIENT_DEBUG_LINE_ACTIVE (1U << 0)
+#define CLIENT_DEBUG_LINE_SET    (1U << 1)
+#define CLIENT_DEBUG_LINE_FULL   (1U << 2)
+#define CLIENT_DEBUG_LINE_TAIL   (1U << 3)
+#define CLIENT_DEBUG_LINE_BINS   21
+
+static _Atomic unsigned long long client_debug_line_hist[2][CLIENT_DEBUG_LINE_BINS];
+static _Atomic unsigned long long client_debug_line_full[2];
+static _Atomic unsigned long long client_debug_line_tail[2];
+
+static __thread struct {
+    client *c;
+    uint32_t lines;
+    uint8_t trace;
+} client_debug_line_reset;
+
+static void debugClientLineMarkMask(uint32_t *mask, client *c, const void *addr, size_t len) {
+    uintptr_t base = (uintptr_t)c;
+    uintptr_t first = (uintptr_t)addr;
+    uintptr_t last = first + len - 1;
+    serverAssert(len != 0 && first >= base && last < base + CLIENT_FULL_SIZE);
+    unsigned int lo = (unsigned int)((first >> 6) - (base >> 6));
+    unsigned int hi = (unsigned int)((last >> 6) - (base >> 6));
+    serverAssert(hi < CLIENT_DEBUG_LINE_BINS - 1);
+    for (unsigned int line = lo; line <= hi; line++) *mask |= 1U << line;
+}
+
+static void debugClientLineMark(client *c, const void *addr, size_t len) {
+    if (client_debug_line_reset.c == c) {
+        debugClientLineMarkMask(&client_debug_line_reset.lines, c, addr, len);
+        return;
+    }
+    pendingCommand *pcmd = c->current_pending_cmd;
+    if (pcmd && (c->_debug_line_trace & CLIENT_DEBUG_LINE_ACTIVE))
+        debugClientLineMarkMask(&pcmd->debug_client_lines, c, addr, len);
+}
+
+clientExecTail *debugClientTail(client *c) {
+    if (c->_debug_line_trace & CLIENT_DEBUG_LINE_ACTIVE)
+        c->_debug_line_trace |= CLIENT_DEBUG_LINE_TAIL;
+    return c->exec_tail;
+}
+
+void debugClientLineBegin(client *c, pendingCommand *pcmd) {
+    serverAssert(pcmd != NULL && pcmd->cmd != NULL);
+    uint8_t trace = CLIENT_DEBUG_LINE_ACTIVE;
+    if (pcmd->cmd->proc == setCommand) trace |= CLIENT_DEBUG_LINE_SET;
+    if (c->has_exec_tail) trace |= CLIENT_DEBUG_LINE_FULL;
+    pcmd->debug_client_lines = 0;
+    c->_debug_line_trace = trace;
+}
+
+void debugClientLineTouch(client *c, const void *addr, size_t len) {
+    if (c->_debug_line_trace & CLIENT_DEBUG_LINE_ACTIVE)
+        debugClientLineMark(c, addr, len);
+}
+
+void debugClientLineResetBegin(client *c) {
+    if (!(c->_debug_line_trace & CLIENT_DEBUG_LINE_ACTIVE)) return;
+    serverAssert(client_debug_line_reset.c == NULL);
+    serverAssert(c->current_pending_cmd != NULL);
+    client_debug_line_reset.c = c;
+    client_debug_line_reset.lines = c->current_pending_cmd->debug_client_lines;
+    client_debug_line_reset.trace = c->_debug_line_trace;
+}
+
+void debugClientLineFinish(client *c) {
+    if (client_debug_line_reset.c != c) return;
+    unsigned int kind = (client_debug_line_reset.trace & CLIENT_DEBUG_LINE_SET) != 0;
+    unsigned int lines = (unsigned int)__builtin_popcount(client_debug_line_reset.lines);
+    serverAssert(lines < CLIENT_DEBUG_LINE_BINS);
+    atomic_fetch_add_explicit(&client_debug_line_hist[kind][lines], 1, memory_order_relaxed);
+    if (client_debug_line_reset.trace & CLIENT_DEBUG_LINE_FULL)
+        atomic_fetch_add_explicit(&client_debug_line_full[kind], 1, memory_order_relaxed);
+    if (c->_debug_line_trace & CLIENT_DEBUG_LINE_TAIL)
+        atomic_fetch_add_explicit(&client_debug_line_tail[kind], 1, memory_order_relaxed);
+    c->_debug_line_trace = 0;
+    client_debug_line_reset.c = NULL;
+}
+
+sds debugClientLineStats(void) {
+    sds out = sdsempty();
+    for (unsigned int kind = 0; kind < 2; kind++) {
+        unsigned long long samples = 0, lines5 = 0, lines6 = 0;
+        for (unsigned int lines = 0; lines < CLIENT_DEBUG_LINE_BINS; lines++) {
+            unsigned long long count = atomic_load_explicit(
+                &client_debug_line_hist[kind][lines], memory_order_relaxed);
+            samples += count;
+            if (lines == 5) lines5 = count;
+            if (lines == 6) lines6 = count;
+        }
+        unsigned long long full = atomic_load_explicit(&client_debug_line_full[kind], memory_order_relaxed);
+        unsigned long long tail = atomic_load_explicit(&client_debug_line_tail[kind], memory_order_relaxed);
+        out = sdscatprintf(out, "%s samples=%llu full=%llu tail=%llu lines5=%llu lines6=%llu other=%llu\n",
+                           kind ? "set" : "get", samples, full, tail, lines5, lines6,
+                           samples - lines5 - lines6);
+    }
+    return out;
+}
+#endif
+
 /* Return the size consumed from the allocator, for the specified SDS string,
  * including internal fragmentation. This function is used in order to compute
  * the client output buffer size. */
@@ -140,6 +246,7 @@ clientCold *getClientCold(client *c) {
     if (likely(clientTail(c)->cold != NULL)) return clientTail(c)->cold;
     clientTail(c)->cold = zcalloc(sizeof(*clientTail(c)->cold));
     clientTail(c)->cold->mstate.executing_cmd = -1;
+    if (c->isFake) c->exec_tail_state |= CLIENT_EXEC_TAIL_DIRTY_COLD;
     return clientTail(c)->cold;
 }
 
@@ -161,47 +268,44 @@ void freeClientCold(client *c) {
     sdsfree(clientTail(c)->cold->slave_addr);
     zfree(clientTail(c)->cold);
     clientTail(c)->cold = NULL;
+    if (c->isFake) c->exec_tail_state &= ~CLIENT_EXEC_TAIL_DIRTY_COLD;
 }
 //ee451
 //ee451
-/* ee451 (v11): reset ALL per-call fields of a fake client to the pristine post-create state,
- * WITHOUT touching the cached heap allocations (c->buf and the c->reply list object).
+/* ee451 (v11): reset executable per-call fields of a fake client to the pristine post-create
+ * state, WITHOUT touching cached heap or real-client-only fake-ring storage.
  * createFakeClient and the pooled-reuse path (createPooledFakeClient) BOTH call this, so a fresh
- * fake and a recycled fake are byte-identical in every field — no field can be missed on reuse.
+ * fake and a recycled fake present identical command state — no live field can be missed on reuse.
  * Caller guarantees c->buf is allocated (size in c->buf_usable_size) and c->reply is an EMPTY
  * list with its free/dup methods already set. */
 static void resetFakeClientState(client *c, client *parent) {
     serverAssert(c->has_exec_tail);
+#ifdef DEBUG_ASSERTIONS
+    c->_debug_line_trace = 0;
+#endif
     /* A pooled fake must never inherit subscriptions, transaction errors, or
      * any other cold state from its previous command. Fresh fakes set cold to
      * NULL before entering here, so this is safe on every construction path. */
     freeClientCold(c);
-    clientTail(c)->cold = NULL;
+    c->exec_tail_state = 0;
 
     /* Fake-specific identity */
     c->isFake = 1;
-    clientTail(c)->reply_cdb = NULL;          /* #75: fakes never own reply buses; they signal clientTail(parent)->reply_cdb */
     c->parent = parent;
     clientTail(c)->uring = NULL;
-    memset(clientTail(c)->fakeClients, 0, sizeof(clientTail(c)->fakeClients));
-    clientTail(c)->dispatchid = 0;
-    clientTail(c)->flushid = 0;
+    /* reply_cdb, fakeClients and the ring cursors are real-client-only. */
 
     /* ee451 (v7): cross-shard scatter-gather state. zmalloc leaves these as
      * garbage, so initialize: a fake is neither a group head (csgroup) nor a
      * per-key sub (csparent) until dispatchCrossShard sets it. */
     c->csgroup = NULL;
     c->csparent = NULL;
-    clientTail(c)->mset_pub = NULL;   /* R1 FIFO state is real-client-only; never leave a fake a stale pointer */
     clientTail(c)->cssub_idx = 0;
-    clientTail(c)->is_flush = 0;
-    clientTail(c)->flush_bar = NULL;   /* ee451 (shared-kv S0.2b): per-node flush barrier, set only on shared-mode sentinels */
     c->tomo_bkt_ptr = NULL;    /* ee451 (hash-carry): no carried bucket until dispatch stamps one */
     c->tomo_local_worker = -1;
     atomicSet(c->tomo_watch_worker, -1);
     atomicSet(c->tomo_dirty_cas, 0);
     c->tomo_script_gate = 0;
-    clientTail(c)->drain_ack = NULL;
     clientTail(c)->mig_parked_node = NULL;   /* ee451 (H2 handover): not parked by the cutover range-hold */
     clientTail(c)->mig_parked_tid = 0;
     clientTail(c)->atomic_window_parked_node = NULL;
@@ -338,6 +442,10 @@ static void resetFakeClientState(client *c, client *parent) {
 client *createFakeClient(client *parent) {
     client *c = zmalloc(CLIENT_FULL_SIZE);
     c->has_exec_tail = 1;
+#ifdef DEBUG_ASSERTIONS
+    c->_debug_line_trace = 0;
+#endif
+    c->exec_tail_state = 0;
     clientTail(c)->cold = NULL;
     /* Cached heap, reused across pooled recycles: output buffer + reply list. */
     /* 2s-auto D1: start small and demand-grow at the spill site. tomokv-fake-buf is retired at
@@ -412,6 +520,10 @@ client *createCoreFakeClient(client *parent) {
     atomicSet(c->tomo_dirty_cas, 0);
     c->tomo_script_gate = 0;
     c->has_exec_tail = 0;
+#ifdef DEBUG_ASSERTIONS
+    c->_debug_line_trace = 0;
+#endif
+    c->exec_tail_state = 0;
 
     atomic_fetch_add_explicit(&tomo_fake_core_allocs, 1, memory_order_relaxed);
     return c;
@@ -430,6 +542,9 @@ client *promoteFakeClient(client *c) {
     unsigned int fake_slot = c->fake_slot;
     client *full = zmalloc(CLIENT_FULL_SIZE);
     memcpy(full, c, sizeof(client));
+#ifdef DEBUG_ASSERTIONS
+    full->_debug_line_trace = 0;
+#endif
     memset(clientTail(full), 0, sizeof(clientExecTail));
     full->has_exec_tail = 1;
     resetFakeClientState(full, full->parent);
@@ -501,6 +616,10 @@ void freePooledFakeClient(client *c) {
 client *createClient(connection *conn) {
     client *c = zmalloc(CLIENT_FULL_SIZE);
     c->has_exec_tail = 1;
+#ifdef DEBUG_ASSERTIONS
+    c->_debug_line_trace = 0;
+#endif
+    c->exec_tail_state = 0;
     /* Must precede selectDb() and every early-init client use (Lua/functions). */
     clientTail(c)->cold = NULL;
     clientTail(c)->uring = NULL;
@@ -627,7 +746,8 @@ client *createClient(connection *conn) {
      * zmalloc gives no alignment guarantee, so over-allocate and align the base up to CACHE_LINE_SIZE,
      * stashing the raw zmalloc pointer just below the aligned base so zfree can recover it
      * (accounting-correct; no poisoned libc free/aligned_alloc). num_cdb is fixed at init so the size
-     * never changes (freed in freeClient). Fakes leave reply_cdb NULL and signal clientTail(parent)->reply_cdb. */
+     * never changes (freed in freeClient). Fakes never own or read reply_cdb; they signal
+     * clientTail(parent)->reply_cdb. */
     {
         int ncdb = server.num_cdb > 0 ? server.num_cdb : 1;
         void *raw = zmalloc(sizeof(cdbSlots) * (size_t)ncdb + CACHE_LINE_SIZE + sizeof(void *));
@@ -1126,7 +1246,8 @@ void afterErrorReply(client *c, const char *s, size_t len, int flags) {
     /* Module clients fall into two categories:
      * Calls to RM_Call, in which case the error isn't being returned to a client, so should not be counted.
      * Module thread safe context calls to RM_ReplyWithError, which will be added to a real client by the main thread later. */
-    if (c->has_exec_tail && (c->flags & CLIENT_MODULE)) {
+    if ((c->flags & CLIENT_MODULE) && c->has_exec_tail) {
+        if (c->isFake) c->exec_tail_state |= CLIENT_EXEC_TAIL_DIRTY_ERRORS;
         if (!clientTail(c)->deferred_reply_errors) {
             clientTail(c)->deferred_reply_errors = listCreate();
             listSetFreeMethod(clientTail(c)->deferred_reply_errors, sdsfreegeneric);
@@ -1165,9 +1286,10 @@ void afterErrorReply(client *c, const char *s, size_t len, int flags) {
         tomoCmdStatAddErr(statcmd, 0, 1);   /* ee451 (#B2): per-thread shard */
     }
 
-    /* Express fakes have no identity/logging tail. Their error and command
-     * counters above are the only post-reply work applicable to them. */
-    if (unlikely(!c->has_exec_tail)) return;
+    /* Worker fakes borrow their parent's identity and can never be a master,
+     * replica, or AOF client. Their counters above are the only applicable
+     * post-reply work, whether or not a promoted slot retains a tail. */
+    if (unlikely(c->isFake || !c->has_exec_tail)) return;
 
     /* Sometimes it could be normal that a slave replies to a master with
      * an error and this function gets called. Actually the error will never
@@ -2075,16 +2197,25 @@ void AddReplyFromClient(client *dst, client *src) {
     if (dst->flags & CLIENT_CLOSE_AFTER_REPLY) return;
 
     /* Concatenate the reply list into the dest */
+#ifdef DEBUG_ASSERTIONS
+    debugClientLineTouch(src, &src->reply, sizeof(src->reply));
+#endif
     if (listLength(src->reply))
         listJoin(dst->reply,src->reply);
     dst->reply_bytes += src->reply_bytes;
     src->reply_bytes = 0;
     src->bufpos = 0;
 
-    if (src->has_exec_tail && clientTail(src)->deferred_reply_errors) {
+    int has_deferred_errors =
+        (src->exec_tail_state & CLIENT_EXEC_TAIL_DIRTY_ERRORS) != 0;
+    if (!has_deferred_errors && !src->isFake && src->has_exec_tail)
+        has_deferred_errors = clientTail(src)->deferred_reply_errors != NULL;
+    if (has_deferred_errors) {
+        debugServerAssert(src->has_exec_tail && clientTail(src)->deferred_reply_errors != NULL);
         deferredAfterErrorReply(dst, clientTail(src)->deferred_reply_errors);
         listRelease(clientTail(src)->deferred_reply_errors);
         clientTail(src)->deferred_reply_errors = NULL;
+        if (src->isFake) src->exec_tail_state &= ~CLIENT_EXEC_TAIL_DIRTY_ERRORS;
     }
 
     /* Check output buffer limits */
@@ -2333,13 +2464,15 @@ static void freeDeferredObject(client *c, int type, void *ptr) {
  * we know the object is allocated in the IO thread, to avoid memory arena contention,
  * and also reducing the load of the main thread. */
 void tryDeferFreeClientObject(client *c, int type, void *ptr) {
-    if (!c || !c->has_exec_tail || c->tid == IOTHREAD_MAIN_THREAD_ID) {
+    if (!c || c->tid == IOTHREAD_MAIN_THREAD_ID ||
+        !(c->exec_tail_state & CLIENT_EXEC_TAIL_DEFERRED_OBJECTS)) {
         freeDeferredObject(c, type, ptr);
         return;
     }
 
     /* Put the object in the deferred objects array. */
-    if (clientTail(c)->deferred_objects && clientTail(c)->deferred_objects_num < CLIENT_MAX_DEFERRED_OBJECTS) {
+    debugServerAssert(c->has_exec_tail && clientTail(c)->deferred_objects != NULL);
+    if (clientTail(c)->deferred_objects_num < CLIENT_MAX_DEFERRED_OBJECTS) {
         clientTail(c)->deferred_objects[clientTail(c)->deferred_objects_num].type = type;
         clientTail(c)->deferred_objects[clientTail(c)->deferred_objects_num].ptr = ptr;
         clientTail(c)->deferred_objects_num++;
@@ -2360,6 +2493,7 @@ void freeClientDeferredObjects(client *c, int free_array) {
     if (free_array) {
         zfree(clientTail(c)->deferred_objects);
         clientTail(c)->deferred_objects = NULL;
+        c->exec_tail_state &= ~CLIENT_EXEC_TAIL_DEFERRED_OBJECTS;
     }
 }
 
@@ -3771,11 +3905,16 @@ static inline void resetCoreClientInternal(client *c, int num_pcmds_to_free) {
 }
 
 static inline void resetClientInternal(client *c, int num_pcmds_to_free) {
+#ifdef DEBUG_ASSERTIONS
+    debugClientLineTouch(c, &c->has_exec_tail, sizeof(c->has_exec_tail));
+#endif
     if (unlikely(!c->has_exec_tail)) {
         resetCoreClientInternal(c, num_pcmds_to_free);
         return;
     }
 
+    unsigned int fake_tail_dirty = c->isFake ?
+        c->exec_tail_state & CLIENT_EXEC_TAIL_DIRTY_MASK : 0;
     redisCommandProc *prevcmd = c->cmd ? c->cmd->proc : NULL;
 
     /* We may get here with no pending commands but with an argv that needs freeing.
@@ -3796,13 +3935,14 @@ static inline void resetClientInternal(client *c, int num_pcmds_to_free) {
     c->cmd = NULL;
     c->argv_len = 0;
     c->argv = NULL;
-    clientTail(c)->cur_script = NULL;
+    if (!c->isFake || (fake_tail_dirty & CLIENT_EXEC_TAIL_DIRTY_T6))
+        clientTail(c)->cur_script = NULL;
     c->slot = -1;
     c->cluster_compatibility_check_slot = -2;
     /* Ring fakes are reused in place without resetFakeClientState(). T6 ownership is strictly
      * per-dispatch; letting it survive retirement would make a later express command enter the
      * full-call transaction path (and possibly assert on the stale worker id). */
-    if (c->isFake) {
+    if (fake_tail_dirty & CLIENT_EXEC_TAIL_DIRTY_T6) {
         c->tomo_local_worker = -1;
         atomicSet(c->tomo_watch_worker, -1);
         atomicSet(c->tomo_dirty_cas, 0);
@@ -3813,14 +3953,21 @@ static inline void resetClientInternal(client *c, int num_pcmds_to_free) {
     c->flags &= ~CLIENT_EXECUTING_COMMAND;
 
     /* Make sure the duration has been recorded to some command. */
-    serverAssert(clientTail(c)->duration == 0);
+    if (!c->isFake || (fake_tail_dirty & CLIENT_EXEC_TAIL_DIRTY_T6))
+        serverAssert(clientTail(c)->duration == 0);
 #ifdef LOG_REQ_RES
     reqresReset(c, 1);
 #endif
 
-    if (clientTail(c)->deferred_reply_errors)
+    if (!c->isFake && clientTail(c)->deferred_reply_errors)
         listRelease(clientTail(c)->deferred_reply_errors);
-    clientTail(c)->deferred_reply_errors = NULL;
+    if (!c->isFake) {
+        clientTail(c)->deferred_reply_errors = NULL;
+    } else if (fake_tail_dirty & CLIENT_EXEC_TAIL_DIRTY_ERRORS) {
+        debugServerAssert(clientTail(c)->deferred_reply_errors != NULL);
+        listRelease(clientTail(c)->deferred_reply_errors);
+        clientTail(c)->deferred_reply_errors = NULL;
+    }
 
     /* ee451 (v14, W3-T3): composite rare-flag test. None of these four flags is set for
      * normal GET/SET traffic, so one predicted-not-taken branch replaces four separate
@@ -3861,9 +4008,10 @@ static inline void resetClientInternal(client *c, int num_pcmds_to_free) {
     c->net_input_bytes_curr_cmd = 0;
     c->net_output_bytes_curr_cmd = 0;
 
-    /* Ring and pooled fakes are command-scoped. Never let a cold allocation
-     * made by one execution survive into the next owner's state. */
-    if (c->isFake) freeClientCold(c);
+    /* Ring and pooled fakes are command-scoped. Only the rare writer which
+     * armed a tail component pays to clean it. */
+    if (fake_tail_dirty & CLIENT_EXEC_TAIL_DIRTY_COLD) freeClientCold(c);
+    if (fake_tail_dirty) c->exec_tail_state &= ~fake_tail_dirty;
 }
 
 /* resetClient prepare the client to process the next command */
@@ -4333,12 +4481,18 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
  * 4. Update the cluster slot stats, if necessary.
  */
 void prepareForNextCommand(client *c, int update_slot_stats) {
+#ifdef DEBUG_ASSERTIONS
+    debugClientLineResetBegin(c);
+#endif
     reqresAppendResponse(c);
     if (update_slot_stats) {
         /* We should do this before reset client. */
         clusterSlotStatsAddNetworkBytesInForUserClient(c);
     }
     resetClientInternal(c, 1);
+#ifdef DEBUG_ASSERTIONS
+    debugClientLineFinish(c);
+#endif
 }
 
 /* Perform necessary tasks after a command was executed:

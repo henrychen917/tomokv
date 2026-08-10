@@ -307,6 +307,7 @@ void assignClientToIOThread(client *c) {
 
     /* The client running in IO thread needs to have deferred objects array. */
     clientTail(c)->deferred_objects = zmalloc(sizeof(deferredObject) * CLIENT_MAX_DEFERRED_OBJECTS);
+    c->exec_tail_state |= CLIENT_EXEC_TAIL_DEFERRED_OBJECTS;
 
     /* Unbind connection of client from main thread event loop, disable read and
      * write, and then put it in the list, main thread will send these clients

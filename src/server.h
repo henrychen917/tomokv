@@ -1711,6 +1711,16 @@ typedef struct client client;
 #define CLIENT_COLD_REPL    (1U << 1)
 #define CLIENT_COLD_BLOCKED (1U << 2)
 
+/* Tail state is armed only by the rare writer which makes the corresponding
+ * cleanup necessary. A plain GET/SET never changes this word. */
+#define CLIENT_EXEC_TAIL_DEFERRED_OBJECTS (1U << 0)
+#define CLIENT_EXEC_TAIL_DIRTY_COLD       (1U << 1)
+#define CLIENT_EXEC_TAIL_DIRTY_ERRORS     (1U << 2)
+#define CLIENT_EXEC_TAIL_DIRTY_T6         (1U << 3)
+#define CLIENT_EXEC_TAIL_DIRTY_MASK       (CLIENT_EXEC_TAIL_DIRTY_COLD | \
+                                           CLIENT_EXEC_TAIL_DIRTY_ERRORS | \
+                                           CLIENT_EXEC_TAIL_DIRTY_T6)
+
 typedef struct clientCold {
     unsigned int initialized;
 
@@ -1938,6 +1948,12 @@ typedef struct client {
             /* Tail lvalues must only be formed after this test. Ring-slot
              * promotion happens while the slot is idle, before publication. */
             uint8_t has_exec_tail;
+#ifdef DEBUG_ASSERTIONS
+            uint8_t _debug_line_trace;
+#endif
+            /* Fits the audited core reserve at offset 316. Rare writers arm
+             * cleanup; reset never probes an unarmed tail field. */
+            unsigned int exec_tail_state;
         };
         unsigned char _exec_core_layout[320];
         uint64_t _exec_core_align;
@@ -1947,7 +1963,12 @@ typedef struct client {
 
 #define CLIENT_FULL_SIZE (sizeof(client) + sizeof(clientExecTail))
 
+#ifdef DEBUG_ASSERTIONS
+clientExecTail *debugClientTail(client *c);
+#define clientTail(c) debugClientTail(c)
+#else
 #define clientTail(c) ((c)->exec_tail)
+#endif
 
 _Static_assert(sizeof(client) == 320, "client execution core must stay 320 bytes");
 _Static_assert(offsetof(client, exec_tail) == 320, "client tail must follow the execution core");
@@ -1957,11 +1978,17 @@ _Static_assert(offsetof(clientExecTail, reply_cdb) == 0, "CDB pointer must remai
 _Static_assert(CLIENT_FULL_SIZE == 1160, "full client must stay within the audited byte budget");
 #endif
 #if UINTPTR_MAX == UINT64_MAX
+_Static_assert(offsetof(client, isFake) == 0, "client kind left witness line 0");
 _Static_assert(offsetof(client, flags) == 16, "client flags left hot line 0");
 _Static_assert(offsetof(client, reply) == 64, "client reply left hot line 1");
+_Static_assert(offsetof(client, csparent) == 120, "client sub parent left witness line 1");
 _Static_assert(offsetof(client, prefetch_key_hash) == 136, "client prefetch state left hot line 2");
+_Static_assert(offsetof(client, all_argv_len_sum) == 184, "client argv sum left witness line 2");
 _Static_assert(offsetof(client, reply_bytes) == 192, "client reply accounting left hot line 3");
+_Static_assert(offsetof(client, commands_processed) == 248, "client command count left witness line 3");
 _Static_assert(offsetof(client, argc) == 276, "client argv state left hot line 4");
+_Static_assert(offsetof(client, has_exec_tail) == 313, "client tail gate left witness line 4");
+_Static_assert(offsetof(client, exec_tail_state) == 316, "client tail state left core reserve");
 #endif
 
 /* Non-allocating cold-state readers. Call the subsystem initializer before a
@@ -4270,6 +4297,9 @@ struct pendingCommand {
     uint64_t argv_released_mask; /* ee451 (v14 deepint): bit j set = worker released argv[j] (DB-aliased
                                   * ref); freePendingCommand skips it. Lets the worker signal releases
                                   * WITHOUT writing the io-owned argv[] array (the decref bounce). */
+#ifdef DEBUG_ASSERTIONS
+    uint32_t debug_client_lines; /* physical client lines marked across IO -> EX -> IO */
+#endif
 
     struct pendingCommand *next;
     struct pendingCommand *prev;
@@ -6494,6 +6524,13 @@ void freePooledFakeClient(client *c);                   /* ee451 (v11): return s
 void freeFakeClient(client *c);
 extern _Atomic unsigned long long tomo_fake_core_allocs;
 extern _Atomic unsigned long long tomo_fake_tail_promotions;
+#ifdef DEBUG_ASSERTIONS
+void debugClientLineBegin(client *c, pendingCommand *pcmd);
+void debugClientLineTouch(client *c, const void *addr, size_t len);
+void debugClientLineResetBegin(client *c);
+void debugClientLineFinish(client *c);
+sds debugClientLineStats(void);
+#endif
 void *polyThreadMain(void *arg);   /* ee451 (thread-modes v1, step 2): unified mode-dispatching main (arg = polyThreadCtx*) */
 /* ee451 (thread-modes v1.6): connection migration. */
 extern tmMigMailbox tm_mig_mbox[TOMO_IO_THREADS_MAX + 1];  /* one per io-capable slot (0..io_threads); main=0 unused */

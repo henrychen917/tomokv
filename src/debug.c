@@ -989,6 +989,17 @@ NULL
         }
         addReplyVerbatim(c, o, sdslen(o), "txt");
         sdsfree(o);
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-clientlines") && c->argc == 2) {
+        /* DEBUG TOMO-CLIENTLINES -- physical client-line witness for dispatched exact GET/SET.
+         * A promoted/full sample is valid only when tail=0; allocator placement determines
+         * whether the five 64-byte core regions occupy five or six physical lines. */
+#ifdef DEBUG_ASSERTIONS
+        sds o = debugClientLineStats();
+        addReplyVerbatim(c, o, sdslen(o), "txt");
+        sdsfree(o);
+#else
+        addReplyError(c,"TOMO-CLIENTLINES requires DEBUG_ASSERTIONS");
+#endif
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-fliptrace") && c->argc == 3) {
         /* DEBUG TOMO-FLIPTRACE <0|1> -- dense per-tick flip-controller trace. Test hook, same
          * class as TOMO-MODESHIFT: no default, no steady-state behaviour, just turns the firehose

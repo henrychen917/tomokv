@@ -3766,8 +3766,6 @@ static inline int tomoArgvClass(client *fake) {
 static inline void exDispatchPush(int ex_id, client *fake) {
     if (server.tomo_reorder > 0 && !tomo_rord.draining && server.strict_order == 0 &&
         fake->cmd && !fake->csparent &&
-        (!fake->has_exec_tail ||
-         (!clientTail(fake)->is_flush && !clientTail(fake)->drain_ack)) &&
         !(fake->cmd->tomo_route & TOMO_R_CROSS)) {
         int i = tomo_rord.n;
         /* D age clock: ONE rdtsc per window (at open), shared by every command in it. The age
@@ -3813,6 +3811,9 @@ static inline void exDispatchPush(int ex_id, client *fake) {
  *
  * Idempotent: it clears the fake's counter, and fakes are recycled without re-init. */
 static inline void foldClientCommandsProcessed(client *real, client *fake) {
+#ifdef DEBUG_ASSERTIONS
+    debugClientLineTouch(fake, &fake->commands_processed, sizeof(fake->commands_processed));
+#endif
     if (fake->commands_processed) {
         real->commands_processed += fake->commands_processed;
         fake->commands_processed = 0;
@@ -8118,16 +8119,17 @@ int processCommand(client *c) {
         core_eligible = 0;
     unsigned int fslot = ct->dispatchid & ct->ring_mask;
     /* 2s-auto D3: lazy-create the ring slot on first use (createClient leaves every slot NULL).
-     * fake_slot is restamped after a resize because the allocation may move. */
+     * Slot identity is stable until that allocation is promoted or freed. */
     client *fake = ct->fakeClients[fslot];
     if (fake == NULL) {
         fake = core_eligible ? createCoreFakeClient(c) : createFakeClient(c);
+        fake->fake_slot = fslot;
+        ct->fakeClients[fslot] = fake;
         if (fslot + 1 > ct->fake_ring_cur_depth) ct->fake_ring_cur_depth = fslot + 1;
     } else if (!core_eligible && !fake->has_exec_tail) {
         fake = promoteFakeClient(fake);
+        ct->fakeClients[fslot] = fake;
     }
-    ct->fakeClients[fslot] = fake;
-    fake->fake_slot = fslot;
     /* 2s-auto T3: express-slim — GET/SET are never MULTI-queued under sharding, so
      * lookedcmd/realcmd/reploff_next/read_error are unused by them. Gate reads c->cmd
      * PRE-move (moveExecutionState clears real->cmd after); express test at ~5237 reads
@@ -8143,6 +8145,9 @@ int processCommand(client *c) {
         double thr = last_slim ? 0.60 : 0.80;
         use_slim = last_slim = (ehw > thr) ? 1 : (ehw < 0.60 ? 0 : last_slim);
     }
+#ifdef DEBUG_ASSERTIONS
+    if (core_eligible) debugClientLineBegin(fake, c->current_pending_cmd);
+#endif
     if (use_slim) moveExecutionStateSlim(c, fake); else moveExecutionState(c, fake);
 
     /* I7: only a cross-shard read needs a dispatch-to-reassembly pin so all of
@@ -8197,6 +8202,7 @@ int processCommand(client *c) {
     } else if (t6_worker >= 0) {
         /* One indivisible unit, one owner queue, one owner lock. The ring head itself is the
          * worker job (no scatter sub/group), so its stock reply is spliced verbatim. */
+        fake->exec_tail_state |= CLIENT_EXEC_TAIL_DIRTY_T6;
         fake->tomo_local_worker = t6_worker;
         fake->db = &server.exThreads[t6_worker].db[fake->db->id];
         fake->cdb = cdbIndexFor(t6_worker);
@@ -15149,6 +15155,7 @@ void flushAllShards(client *c, int dbid, int async) {
                 if (blo >= server.ex_bucket_end[w]) continue;
                 client *sentinel = createFakeClient(c);
                 clientExecTail *st = clientTail(sentinel);
+                st->drain_ack = NULL;
                 st->is_flush = 1;
                 st->flush_dbid = dbid;
                 st->flush_async = 0;
@@ -15163,12 +15170,13 @@ void flushAllShards(client *c, int dbid, int async) {
     for (int w = 0; w < nflush; w++) {
         client *sentinel = createFakeClient(c);   /* argc=0/argv=NULL: prefetch guards skip it */
         clientExecTail *st = clientTail(sentinel);
+        st->drain_ack = NULL;
         st->is_flush = 1;
         st->flush_dbid = dbid;
         /* SYNC free only: emptyDbAsync (lazyfree) from a worker thread crashes — it touches
          * shared BIO/lazyfree state that assumes the main/IO thread. The worker frees its own
          * shard inline (single-writer), which is fast for normal shards. */
-        st->flush_async = 0; (void)async;
+        st->flush_async = 0; st->flush_bar = NULL; (void)async;
         csPushSpin(w, sentinel);
     }
     /* Empty the IO-side DBs too (single-key data lives in shards, but stay thorough). */
@@ -15346,6 +15354,7 @@ static void migPushFenceIfNeeded(void) {
     uint64_t fg = atomic_load_explicit(&server.migration.fence_gen, memory_order_acquire);
     if (fg == 0 || mig_local_fence_gen == fg) return;        /* already fenced this cutover */
     client *sentinel = createFakeClient(&mig_fence_parent);
+    clientTail(sentinel)->is_flush = 0;
     clientTail(sentinel)->drain_ack = &server.migration.fence_acked[0]; /* non-NULL marker; A acks by queue index */
     csPushSpin(server.migration.src, sentinel);              /* -> workers[A].queues[iotid] */
     mig_local_fence_gen = fg;
@@ -20516,6 +20525,9 @@ static void moveExecutionStateSlim(client *real, client *fake) {
     serverAssert(real->all_argv_len_sum >= pcmd->argv_len_sum);
     real->all_argv_len_sum -= pcmd->argv_len_sum;
     fake->all_argv_len_sum  = pcmd->argv_len_sum;
+#ifdef DEBUG_ASSERTIONS
+    debugClientLineTouch(fake, &fake->all_argv_len_sum, sizeof(fake->all_argv_len_sum));
+#endif
 
     fake->resp          = real->resp;
     fake->user          = real->user;
@@ -21229,6 +21241,9 @@ static __thread exThread *tm_cur_ex;
 
 static inline void exExecFake(client *fake) {
     serverAssert(fake->isFake);
+#ifdef DEBUG_ASSERTIONS
+    debugClientLineTouch(fake, &fake->isFake, sizeof(fake->isFake));
+#endif
     if (fake->cmd) {
         server.current_client[iotid].p = fake;
         server.executing_client[iotid].p = fake;
@@ -21822,22 +21837,27 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                 }
             }
 
-            /* ee451 (v8d): CUTOVER DRAIN SENTINEL — processed in queue order. Reaching it proves
-             * every range primary this producer dispatched before it has executed on A; decrement
-             * the per-cutover barrier and free. No reply. */
-            if (fake->has_exec_tail && clientTail(fake)->drain_ack) {
-                /* This sentinel came up queue slot `i`; mark that producer slot drained. */
-                atomic_store_explicit(&server.migration.fence_acked[i], 1, memory_order_release);
-                freeFakeClient(fake);
-                j++;
-                continue;
-            }
-
-            /* ee451 (v7): FLUSH SENTINEL — processed in queue order (FIFO behind this
-             * connection's earlier commands). Empty this worker's OWN shard DBs and free
-             * the fake. Fire-and-forget: no reply, no barrier. */
-            if (fake->has_exec_tail && clientTail(fake)->is_flush) {
+            /* Commandless jobs are the two control sentinels. Ordinary jobs,
+             * including promoted full fakes, never form a tail lvalue here. */
+            if (unlikely(fake->cmd == NULL)) {
+                serverAssert(fake->has_exec_tail);
                 clientExecTail *ft = clientTail(fake);
+
+                /* ee451 (v8d): CUTOVER DRAIN SENTINEL — processed in queue order. Reaching it proves
+                 * every range primary this producer dispatched before it has executed on A; decrement
+                 * the per-cutover barrier and free. No reply. */
+                if (ft->drain_ack) {
+                    /* This sentinel came up queue slot `i`; mark that producer slot drained. */
+                    atomic_store_explicit(&server.migration.fence_acked[i], 1, memory_order_release);
+                    freeFakeClient(fake);
+                    j++;
+                    continue;
+                }
+
+                /* ee451 (v7): FLUSH SENTINEL — processed in queue order (FIFO behind this
+                 * connection's earlier commands). Empty this worker's OWN shard DBs and free
+                 * the fake. Fire-and-forget: no reply, no barrier. */
+                serverAssert(ft->is_flush);
                 int dblo = ft->flush_dbid < 0 ? 0 : ft->flush_dbid;
                 int dbhi = ft->flush_dbid < 0 ? server.dbnum - 1 : ft->flush_dbid;
                 tomoWkrLock(worker->id);
@@ -21873,6 +21893,9 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
              * last sub publish every sibling's output. A one-sub stage has no
              * sibling writer, so its pending decrement is an owner-local relaxed
              * store rather than an accidental locked RMW. */
+#ifdef DEBUG_ASSERTIONS
+            debugClientLineTouch(fake, &fake->csparent, sizeof(fake->csparent));
+#endif
             if (fake->csparent) {
                 csGroup *g = fake->csparent;
                 /* mcmd-lock: every scatter sub that touches this worker's slice of the SHARED node
