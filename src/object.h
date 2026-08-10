@@ -136,11 +136,17 @@ typedef enum tomoRetireState {
 struct tomoVerMeta {
     _Atomic uint64_t version_seq;
     _Atomic(struct redisObject *) committed_head;
+    uint64_t install_order;
+    uint64_t origin_client_id; /* installing (real) connection id; written once
+                                * at install, IMMUTABLE until physical retire:
+                                * the RYOW resolver keys off it after the stamp
+                                * (kvobjVersionAt own-widening) */
     uint32_t version_order;
     int16_t install_owner;
     uint16_t install_bucket;
     uint8_t version_tombstone;
     uint8_t version_reservation;
+    _Atomic uint8_t version_canceled;
     uint8_t stamp_state;
     uint8_t retire_state;
     uint8_t detached;
@@ -163,8 +169,12 @@ struct tomoVerMeta {
 _Static_assert(offsetof(struct tomoVerMeta, single_state) ==
                offsetof(struct tomoVerMeta, detached) + 2 * sizeof(uint8_t),
                "single-version state must consume vmeta padding");
+/* REPLAY NOTE (dev x ownread): install_order/origin_client_id/version_canceled inserted above
+ * shift detached to an odd offset, so the aligned slot after the packed byte run is detached+3,
+ * not +4. The INTENT is unchanged and asserted in that form: owner_ops_pending sits at the very
+ * next 4-byte-aligned position after single_state — the byte-packing consumed padding only. */
 _Static_assert(offsetof(struct tomoVerMeta, owner_ops_pending) ==
-               offsetof(struct tomoVerMeta, detached) + 4,
+               ((offsetof(struct tomoVerMeta, single_state) + 1 + 3) & ~(size_t)3),
                "single-version state must not move owner_ops_pending");
 
 #define TOMO_VERSION_UNCOMMITTED UINT64_MAX
@@ -244,33 +254,11 @@ static inline void kvobjSetCommittedPrev(kvobj *kv, kvobj *prev) {
     __atomic_store_n(&vmeta->committed_prev, prev, __ATOMIC_RELEASE);
 }
 
-/* I2: the physical chain remains an install-ordered bag. Its head metadata
- * carries the per-key committed maximum, whose separate predecessor links are
- * ordered by descending (seq,install_order). Stamp arrival order is irrelevant:
- * a newer stamp advances this cursor and an older stamp is inserted into the
- * history chain. The cursor's acquire pairs with the owner's release after
- * stamp application, so a current snapshot returns its winner without visiting
- * the uncommitted physical prefix. Only an old snapshot walks down the
- * committed-order chain. A vmeta-free member is the pre-epoch value (implicit
- * seq 0); no winner, or a tombstone winner, means absent. */
-static inline kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot) {
-    struct tomoVerMeta *head_meta = kvobjVmeta(kv);
-    if (!head_meta) return kv;
-
-    kv = atomic_load_explicit(&head_meta->committed_head,
-                              memory_order_acquire);
-    struct tomoVerMeta *vmeta = NULL;
-    while (kv) {
-        vmeta = kvobjVmeta(kv);
-        if (!vmeta) break;
-        uint64_t seq = atomic_load_explicit(&vmeta->version_seq,
-                                            memory_order_acquire);
-        if (seq <= snapshot) break;
-        kv = __atomic_load_n(&vmeta->committed_prev, __ATOMIC_ACQUIRE);
-    }
-    if (kv && vmeta && vmeta->version_tombstone) return NULL;
-    return kv;
-}
+/* Resolve a version bag for reader_connection at snapshot. The implementation
+ * lives beside the connection's pending R1 FIFO in server.c. Passing NULL is
+ * the write-side/internal committed-only resolver. */
+kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot,
+                      struct client *reader_connection);
 
 /* Redis object implementation */
 void decrRefCount(robj *o);

@@ -369,8 +369,10 @@ kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
      * they neither read atomic mode nor test the new metadata hint. */
     struct tomoVerMeta *vmeta = kv ? kvobjVmeta(kv) : NULL;
     if (unlikely(vmeta)) {
-        /* A live CONFIG transition may leave bags after atomic mode is turned
-         * off. Such reads keep the old resolver and do not test the new hint. */
+        /* REPLAY (onever x ownread): the single-committed fast license runs FIRST — a reader
+         * with its own uncommitted write on this key cannot see SingleCommitted, so every
+         * own-origin case falls through to the client-aware resolver and the license never
+         * hides an own write. */
         if (__builtin_expect(server.tomo_atomic != 0, 1)) {
             if (likely(kvobjSingleCommitted(vmeta))) {
                 uint64_t pinned_snapshot;
@@ -384,11 +386,13 @@ kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
                  * Preserve the slow path's absent result without re-reading
                  * the pin or the global frontier. */
                 tomoRelaxedBump(server.kstat[iotid].atomic_read_slow, 1);
-                return kvobjVersionAt(kv, pinned_snapshot);
+                return kvobjVersionAt(kv, pinned_snapshot,
+                                      server.current_client[iotid].p);
             }
             tomoRelaxedBump(server.kstat[iotid].atomic_read_slow, 1);
         }
-        kv = kvobjVersionAt(kv, tomoCurrentReadSnapshot());
+        kv = kvobjVersionAt(kv, tomoCurrentReadSnapshot(),
+                            server.current_client[iotid].p);
     }
     return kv;
 }
@@ -468,6 +472,7 @@ static inline struct tomoVerMeta *tomoVerMetaNew(redisDb *db, uint64_t version_s
     atomic_store_explicit(&vmeta->version_seq, version_seq, memory_order_relaxed);
     atomic_store_explicit(&vmeta->single_state, TOMO_SINGLE_NONE,
                           memory_order_relaxed);
+    atomic_store_explicit(&vmeta->version_canceled, 0, memory_order_relaxed);
     kvobj *committed_head = NULL;
     if (version_prev) {
         struct tomoVerMeta *prev_meta = kvobjVmeta(version_prev);
@@ -948,6 +953,17 @@ void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
             atomic_store_explicit(&head_meta->committed_head, kv,
                                   memory_order_release);
     }
+    /* origin_client_id is deliberately NOT cleared: it is written once at
+     * install and must survive the stamp. This lane runs BEFORE commit_seq
+     * advances to this sequence (csMsetStampAndAppend pushes stamp ops, then
+     * csMsetInstallDone publishes), so the installing connection's own read
+     * can meet this version already stamped while still holding a snapshot
+     * below it — a cross-shard read pins S at dispatch, and even a lazily
+     * resolved GET can draw commit_seq inside that window. kvobjVersionAt
+     * then recognizes the version as the reader's own by this identity and
+     * widens the snapshot upward to it; clearing the id here made the own
+     * branch miss and the strict cursor step past the connection's own
+     * atomic write (the torn-own-read P0). */
 }
 
 /* Canceled atomic-group versions use the same owner lane as stamping. A canceled
@@ -964,6 +980,10 @@ void tomoCancelVersion(kvobj *kv) {
     vmeta->stamp_state = TOMO_STAMP_CANCELED;
     vmeta->version_reservation = 0;
     vmeta->reservation_owner = NULL;
+    /* origin_client_id stays: the field is write-once at install (see
+     * tomoApplyVersionStamp). A canceled version is excluded from the own
+     * branch by version_canceled and never enters the committed chain, so
+     * the surviving identity is inert here. */
     if (vmeta->detached) {
         tomoSchedulePhysicalRetire(vmeta->version_kvs, kv);
         return;

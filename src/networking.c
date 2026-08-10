@@ -665,6 +665,7 @@ client *createClient(connection *conn) {
     clientTail(c)->mset_pending_head = NULL;
     clientTail(c)->mset_pending_tail = NULL;
     clientTail(c)->mset_pub = NULL;   /* armed lazily by this connection's first csMsetRegister */
+    clientTail(c)->mset_next_install_order = 0;   /* ownread: connection-global R1 order */
     c->tomo_read_snapshot = 0;
     c->tomo_read_snapshot_pinned = 0;
     /* ee451 (H2 handover): createClient zmallocs the struct, so every field it does not name
