@@ -27279,7 +27279,10 @@ int main(int argc, char **argv) {
     int j;
     char config_from_stdin = 0;
 
-    redis_set_thread_title("tomo-main");
+    /* Deliberately NOT renamed: pthread_setname on the main thread rewrites /proc/PID/comm,
+     * which every harness that matches or pkill -x's "redis-server" depends on (21 preflight
+     * scripts + the leaked-server hygiene patterns). The per-role IO/EX names carry the whole
+     * profiling value; main stays identifiable as the process itself. */
 
 #ifdef REDIS_TEST
     monotonicInit(); /* Required for dict tests, that are relying on monotime during dict rehashing. */
