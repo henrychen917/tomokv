@@ -156,7 +156,7 @@ struct tomoVerMeta {
     uint8_t lifecycle_ref_held;
     /* Owner-published read state. MERGE NOTE (dev x onever): lifecycle_ref_held took the first
      * of the three padding bytes that preceded owner_ops_pending, so this takes the second —
-     * tomoVerMeta still does not grow and owner_ops_pending does not move (both asserted below).
+     * the packed prefix does not grow and owner_ops_pending does not move (both asserted below).
      * COMMITTED licenses the read fast path. SUPERSEDED permanently prevents a late prune op
      * from relicensing an object after a successor was installed. */
     _Atomic uint8_t single_state;
