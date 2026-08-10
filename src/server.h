@@ -1663,7 +1663,7 @@ _Static_assert(sizeof(cdbSlots) == CACHE_LINE_SIZE,
  * decremented (csMsetPubRetire). Between those two points the group is invisible to the FIFO
  * walk while it still counts as pending, and the walk used to have no choice but to hold; this
  * record is what lets it answer exactly instead. It is a COPY, not a pointer: csReassemble
- * frees the group (and csgFree()s g->key_h) as soon as the head's reply slot is published,
+ * frees the group (and csgFree()s g->ext->key_h) as soon as the head's reply slot is published,
  * which happens INSIDE that window.
  *
  * `tag` is the group's address, kept for identity only — the record is retired in FIFO order
@@ -1671,8 +1671,8 @@ _Static_assert(sizeof(cdbSlots) == CACHE_LINE_SIZE,
 typedef struct csPubRec {
     uintptr_t tag;                    /* the csGroup this record stands for; compare, never deref */
     uint64_t key_sig;                 /* copy of csGroup.key_sig */
-    int key_h_n;                      /* copy of csGroup.key_h_n; 0 => filter-only (conservative) */
-    uint64_t key_h[CS_EXACT_KEYS_MAX];/* copy of csGroup.key_h[0..key_h_n) */
+    int key_h_n;                      /* copy of csGroupExt.key_h_n; 0 => filter-only (conservative) */
+    uint64_t key_h[CS_EXACT_KEYS_MAX];/* copy of csGroupExt.key_h[0..key_h_n) */
 } csPubRec;
 
 /* FIFO ring of the above, one per connection that has ever registered an atomic group (lazily
@@ -2085,16 +2085,16 @@ struct sortXShardCtx;
 int isHLLObject(robj *o);
 uint64_t hllCountMulti(robj **hlls, int n, int *err);
 robj *hllMergeObjects(robj **hlls, int n, int *err);
-/* HOP2 launcher shape (registry row -> g->h2_op). Worker-side SEMANTICS stay in csSubExec's
+/* HOP2 launcher shape (registry row -> g->ext->h2_op). Worker-side SEMANTICS stay in csSubExec's
  * ctype switch; this only tells csLaunchHop2 HOW to build the second wave. */
 #define CS_H2_NONE         0
-#define CS_H2_PLAN         1   /* launch the g->h2sub[] plan (dest write +/- src-side op) */
+#define CS_H2_PLAN         1   /* launch the g->ext->h2sub[] plan (dest write +/- src-side op) */
 #define CS_H2_SCATTER      2   /* step 8 (MSETNX): re-run the coalesced write wave */
-/* HOP2 per-sub roles (g->h2sub[cssub_idx].action). */
+/* HOP2 per-sub roles (g->ext->h2sub[cssub_idx].action). */
 #define CS_H2A_WRITE       1   /* dest-side op: RESTORE / SET / SADD / PUSH per ctype */
 #define CS_H2A_SRCOP       2   /* src-side op: DEL / SREM / POP per ctype */
 #define CS_H2_MAX          3   /* dest-write + src-op + spare (probe subs live in HOP1) */
-/* HOP2 flags (g->h2_flags, from options parsed at dispatch/prep). */
+/* HOP2 flags (g->ext->h2_flags, from options parsed at dispatch/prep). */
 #define CS_H2F_REPLACE     1   /* COPY REPLACE: overwrite dst instead of NX-failing */
 #define CS_H2F_FROM_LEFT   2   /* LMOVE family: pop src from LEFT (else RIGHT) */
 #define CS_H2F_TO_LEFT     4   /* LMOVE family: push dst on LEFT (else RIGHT) */
@@ -2127,15 +2127,15 @@ robj *hllMergeObjects(robj **hlls, int n, int *err);
 /* ---- result slots dispatchGather allocates ---- */
 #define CS_RES_NONE        0
 #define CS_RES_MGETVALS    1   /* g->mget_vals[nkeys] — ONLY on the coalesced path (as today) */
-#define CS_RES_SETMEM      2   /* g->setmem/setcnt[nkeys] — ALWAYS (legacy + coalesced) */
-#define CS_RES_KEYREPORT   3   /* g->klen/ktype[nkeys] (ordered MPOP/BPOP probes) */
+#define CS_RES_SETMEM      2   /* g->ext->setmem/setcnt[nkeys] — ALWAYS (legacy + coalesced) */
+#define CS_RES_KEYREPORT   3   /* g->ext->klen/ktype[nkeys] (ordered MPOP/BPOP probes) */
 #define CS_RES_ZSETMEM     4   /* setmem/setcnt + parallel zscore[nkeys] (step 6 Z-ops) */
-#define CS_RES_XREAD       5   /* g->xread_out/status[nkeys] — ordered stream reply fragments */
+#define CS_RES_XREAD       5   /* g->ext->xread_out/status[nkeys] — ordered stream reply fragments */
 /* ---- posmap selector for csBuildCoalescedSubs ---- */
 #define CS_POS_NONE        0
 #define CS_POS_MGET        1   /* &g->mget_pos  */
-#define CS_POS_SETOP       2   /* &g->setop_pos */
-#define CS_POS_XREAD       3   /* &g->xread_pos */
+#define CS_POS_SETOP       2   /* &g->ext->setop_pos */
+#define CS_POS_XREAD       3   /* &g->ext->xread_pos */
 /* ---- coalesce gate ----
  * The tomokv-mget-coalesce / -setop-coalesce knobs were retired (coalescing is unconditional),
  * but the k>=3 THRESHOLD is NOT the knob's off-state: it is the live gate for every 2-key
@@ -2148,7 +2148,7 @@ robj *hllMergeObjects(robj **hlls, int n, int *err);
 #define csFirstKeyArg(s) ((s)->firstkey_argi ? (int)(s)->firstkey_argi : 1)
 
 typedef struct csH2Sub {
-    uint8_t action;    /* CS_H2A_* — read as g->h2sub[sub->cssub_idx].action from step 4 on */
+    uint8_t action;    /* CS_H2A_* — read as g->ext->h2sub[sub->cssub_idx].action from step 4 on */
     int32_t key_argi;  /* head->argv index of this sub's key. int32 NOT int16 (review #3): an
                         * ordered-pop prep rewrites it to firstkey+winner, and argc can reach the
                         * ~1M multibulk limit, so int16 (max 32767) truncated to a negative index
@@ -2161,96 +2161,152 @@ typedef struct csMsetInstall {
     uint32_t install_order;      /* per-key install-order tie break for duplicate keys */
 } csMsetInstall;
 
+typedef struct csGroupExt csGroupExt;
+
+/* Three cache-line handoff header. Worker-mutated completion/accounting state is isolated on line
+ * zero; common routing/result state occupies line one; lifecycle and extension addressing live on
+ * line two. Mode-specific state, when needed, follows in one adjacent csGroupExt allocation. */
 typedef struct csGroup {
-    redisAtomic int pending;   /* sub-fakes not yet complete; last decrementer signals slot */
-    int nsub;                  /* number of sub-fakes = nkeys (one sub per key) */
-    csCmdType ctype;
-    int nkeys;                 /* original key count */
-    client **subs;             /* [nsub] sub-fakes (freed at drain) */
-    client *head;              /* the group-head fake (the ring slot) */
-    uint64_t key_sig;          /* OR of 1ULL << (tomo key hash & 63) for every written key */
-    /* R1 own-read gate, EXACT arm. key_sig is one bit per key, so at 8 written keys two
-     * disjoint 8-key sets already alias ~66% of the time and the filter almost never proves
-     * disjointness. key_h carries the FULL hash of every key that contributed to key_sig, so a
-     * filter "maybe" can be settled exactly. Deliberately adjacent to key_sig: the FIFO walk
-     * reads all three from one cache line.
-     *   key_h_n == 0  =>  no vector (too many keys, or a shape that never built one): the walk
-     *                     cannot prove disjointness and must HOLD (charged to ownread_conserv).
-     *   key_h_n  > 0  =>  key_h[0..key_h_n) is COMPLETE w.r.t. key_sig. Publishing key_h_n is
-     *                     the commit point; it is written only after every slot is filled, so a
-     *                     half-built vector reads as "no vector" (hold) and never as "disjoint".
-     * Storage lives in this group's own allocation (inline bump region, heap only if it spilled)
-     * and is written once, on the head's IO thread, before csMsetRegister publishes g. It is
-     * therefore reachable exactly as long as the group is LINKED in the FIFO: csMsetPopComplete
-     * copies key_sig/key_h into a connection-owned csPubRec on the way out, because past that
-     * point csReassemble may free this whole allocation at any moment. */
+    union {
+        struct {
+            redisAtomic int pending;   /* sub-fakes not yet complete; last decrementer signals slot */
+            redisAtomic int mset_complete;      /* every owner installed this group */
+            redisAtomic int mset_install_count;
+            redisAtomic int msetnx_retry;       /* reservations blocked by an earlier pending owner */
+            redisAtomic long rcount;   /* DEL/EXISTS: summed integer result */
+            redisAtomic int err;       /* CS_SETOP: a sub saw a non-set (WRONGTYPE) key */
+            redisAtomic int had_err;     /* a sub emitted an error reply => failed_calls */
+            /* ee451 (#B2): commandstats accounting for the GROUP. A cross-shard command is one command the
+             * client sent, fanned into one sub per owning shard, so it must contribute exactly one `calls`
+             * — counted at csReassemble, the group's single completion point, exactly like #B1's
+             * numCommandsBump. `usec` is the SUM of the subs' proc times (the work the command cost the
+             * server), not the group's wall clock, which would fold in queueing and scatter latency that
+             * stock's per-command `usec` never contains. Multi-sub stages update it concurrently and retain
+             * an atomic RMW; a singleton stage uses the owner-local atomic load/store idiom. */
+            redisAtomic long long usec;  /* summed sub proc time, microseconds */
+            redisAtomic long long probe; /* dst-probe lane: exists/type verdict (step 4+) */
+        };
+        char _mutable_line[CACHE_LINE_SIZE];
+    };
+    union {
+        struct {
+            int nsub;                  /* number of sub-fakes = nkeys (one sub per key) */
+            csCmdType ctype;
+            int nkeys;                 /* original key count */
+            int setop;                 /* CS_SETOP_{INTER,UNION,DIFF} */
+            client **subs;             /* [nsub] sub-fakes (freed at drain) */
+            client *head;              /* the group-head fake (the ring slot) */
+            const struct csCmdSpec *spec; /* registry row, stamped at dispatch on GATHER/TWOHOP groups
+                                            * (NULL on FANALL); COLD reads only (launch/reassemble) */
+            /* ee451 (xshard OPT-1): COALESCED MGET. Instead of one sub-fake PER KEY (k allocs / k argv /
+             * 2k refcounts / k cross-thread pushes / k reply-buffer page-faults, all serial on the
+             * coordinator), issue one sub PER DISTINCT SHARD carrying all that shard's keys, and preserve
+             * original key ORDER via position-indexed value slots: worker writes each value as a private
+             * sds COPY (refcount-free, like setmem => safe to free on the coordinator) into mget_vals[pos];
+             * coordinator emits mget_vals[0..nkeys-1] in order (NULL slot => nil). mget_pos[si] carries the
+             * original positions of sub si's keys (worker maps its local key j -> mget_pos[cssub_idx][j-1]).
+             * NULL mget_vals => legacy per-key path (knob off) => reassemble via per-sub reply-buffer splice. */
+            sds *mget_vals;            /* CS_MGET coalesced: [nkeys] value copies, position-indexed (NULL=nil) */
+            int **mget_pos;            /* CS_MGET coalesced: [nsub] per-sub original-position lists */
+            int posmap_nsub;           /* ROW COUNT of mget_pos/setop_pos, captured when they were built.
+                                         * NOT g->nsub: nsub is repurposed by every later pipeline stage
+                                         * (HOP2 plan, per-key fan-out, SIZES->apply), so freeing a posmap
+                                         * with the CURRENT nsub under-frees (leak) or over-walks (OOB).
+                                         * Only one build's posmaps are live at a time -- the HOP1 teardown
+                                         * frees and NULLs both before HOP2 rebuilds. */
+            int h2_dbid;               /* COPY DB option; dispatch inits to head->db->id */
+        };
+        char _routing_line[CACHE_LINE_SIZE];
+    };
+    union {
+        struct {
+            csGroupExt *ext;
+            uint64_t read_seq;         /* command snapshot S while version_seq remains the write ticket */
+            uint64_t version_seq;      /* UNCOMMITTED while installing, then the group commit ticket */
+            /* R1 own-read gate, EXACT arm. key_sig is one bit per key, so at 8 written keys two
+             * disjoint 8-key sets already alias ~66% of the time and the filter almost never proves
+             * disjointness. key_h carries the FULL hash of every key that contributed to key_sig, so a
+             * filter "maybe" can be settled exactly. Publishing key_h_n is the commit point; it is
+             * written only after every slot is filled, so a half-built vector reads as "no vector"
+             * (hold) and never as "disjoint". */
+            uint64_t key_sig;          /* OR of 1ULL << (tomo key hash & 63) for every written key */
+            int snapshot_pinned;       /* snapshot-reading group owns its dispatch IO QSBR region */
+            int versioned_write;       /* this group is an atomic version-bag write */
+            int phase;                 /* CS_PH_HOP1 (0) | CS_PH_HOP2 */
+            int has_hop2;              /* 1 => drain launches HOP2 after the HOP1 barrier (else reassemble+reply) */
+            int pipe_stage;            /* 0=off, CS_PIPE_* otherwise */
+            int sort_stage;
+            int version_nx;            /* RENAMENX/COPY NX destination reservation */
+            /* ---- INLINE (small-size) storage for this group's coordinator-owned arrays. ----
+             * The exactly-sized, 8-aligned bump region follows the adjacent extension in the same
+             * allocation. Overflow spills to zmalloc (csgAlloc/csgFree), so nkeys/nsub gain no new
+             * limit and each command still pays only for its own csInlineWant-derived shape. */
+            uint16_t inl_cap;           /* bytes of inline storage allocated (0 => every array on the heap) */
+            uint16_t inl_used;          /* bump cursor; monotone, NEVER rewound (see csgAlloc) */
+        };
+        char _lifecycle_line[CACHE_LINE_SIZE];
+    };
+} __attribute__((aligned(CACHE_LINE_SIZE))) csGroup;
+
+_Static_assert(sizeof(csGroup) == 3 * CACHE_LINE_SIZE,
+               "csGroup handoff header must occupy exactly three cache lines");
+_Static_assert(_Alignof(csGroup) == CACHE_LINE_SIZE,
+               "csGroup handoff header must be cache-line aligned");
+_Static_assert(offsetof(csGroup, pending) == 0,
+               "csGroup mutable state must begin on line zero");
+_Static_assert(offsetof(csGroup, probe) + sizeof(((csGroup *)0)->probe) <= CACHE_LINE_SIZE,
+               "csGroup worker-mutated state must stay within line zero");
+_Static_assert(offsetof(csGroup, nsub) == CACHE_LINE_SIZE,
+               "csGroup routing state must begin on line one");
+_Static_assert(offsetof(csGroup, h2_dbid) + sizeof(((csGroup *)0)->h2_dbid) <= 2 * CACHE_LINE_SIZE,
+               "csGroup routing state must stay within line one");
+_Static_assert(offsetof(csGroup, ext) == 2 * CACHE_LINE_SIZE,
+               "csGroup lifecycle state must begin on line two");
+_Static_assert(offsetof(csGroup, inl_used) + sizeof(((csGroup *)0)->inl_used) <= 3 * CACHE_LINE_SIZE,
+               "csGroup lifecycle state must stay within line two");
+
+/* Mode-specific state is monolithic so combinations such as merge-pipeline + HOP2 remain fully
+ * representable. Complex groups append one extension; no fields are overlaid by mode. */
+struct csGroupExt {
+    /* key_h_n == 0 means no vector (too many keys, or a shape that never built one): the walk cannot
+     * prove disjointness and must HOLD. key_h_n > 0 means key_h[0..key_h_n) is complete w.r.t.
+     * key_sig. Storage uses the group's bump region or its normal spill path and remains reachable
+     * while linked in the FIFO; csMsetPopComplete copies it before csReassemble frees the group. */
     uint64_t *key_h;           /* [key_h_n] full tomo key hashes of the written keys */
     int key_h_n;               /* 0 => filter-only (conservative); see above */
-    uint64_t version_seq;      /* UNCOMMITTED while installing, then the group commit ticket */
-    uint64_t read_seq;         /* command snapshot S while version_seq remains the write ticket */
     struct csGroup *commit_next; /* CS_MSET global ticket-order queue link */
     client *mset_client;         /* real-client owner of the R1 pending FIFO */
     struct csGroup *mset_pending_prev;
     struct csGroup *mset_pending_next;
-    redisAtomic int mset_complete;      /* every owner installed this group */
-    redisAtomic int mset_install_count;
     csMsetInstall *mset_installs;       /* [version_install_expected], atomic-write arm only */
-    int versioned_write;         /* this group is an atomic version-bag write */
     int version_install_expected; /* successful group's exact whole-value install count */
     int version_commit_ready;    /* current worker wave is the final install wave */
     int version_abort;           /* semantic no-op/error: cancel reservations, publish no ticket */
-    int version_nx;              /* RENAMENX/COPY NX destination reservation */
     int version_nx_reserving;    /* current wave is acquiring that destination reservation */
-    redisAtomic int msetnx_retry;       /* reservations blocked by an earlier pending owner */
-    uint8_t *msetnx_state;              /* [nkeys], coordinator-visible reservation verdict */
-    int snapshot_pinned;       /* snapshot-reading group owns its dispatch IO QSBR region */
+    uint8_t *msetnx_state;       /* [nkeys], coordinator-visible reservation verdict */
     /* (results[]/result_ex[] DELETED 2026-07-28: the robj-per-position MGET result carrier was
      * replaced by mget_vals[] — sds copies, no cross-thread refcount — and the pair had been
      * NULL-initialised-and-never-read ever since.) */
-    redisAtomic long rcount;   /* DEL/EXISTS: summed integer result */
     /* ee451 (v11-F): cross-shard set-ops (SINTER/SUNION/SDIFF). Each per-key sub gathers its
      * set's members as freshly-allocated sds COPIES (private, refcount-free => safe to free on
      * the coordinator after the pending barrier — no freeback ring needed, unlike MGET's shared
      * values). The coordinator computes union/inter/diff over setmem[] and replies. */
-    int setop;                 /* CS_SETOP_{INTER,UNION,DIFF} */
-    redisAtomic int err;       /* CS_SETOP: a sub saw a non-set (WRONGTYPE) key */
     sds **setmem;              /* CS_SETOP: [nsub] arrays of member-sds copies (worker-alloc) */
     long *setcnt;              /* CS_SETOP: [nsub] member count for setmem[i] (0 if missing key) */
     double **zscore;           /* CS_Z*: [nkeys] per-key score arrays parallel to setmem
                                 * (worker-alloc; a plain-set source contributes 1.0 per stock) */
-    /* ee451 (xshard OPT-1): COALESCED MGET. Instead of one sub-fake PER KEY (k allocs / k argv /
-     * 2k refcounts / k cross-thread pushes / k reply-buffer page-faults, all serial on the
-     * coordinator), issue one sub PER DISTINCT SHARD carrying all that shard's keys, and preserve
-     * original key ORDER via position-indexed value slots: worker writes each value as a private
-     * sds COPY (refcount-free, like setmem => safe to free on the coordinator) into mget_vals[pos];
-     * coordinator emits mget_vals[0..nkeys-1] in order (NULL slot => nil). mget_pos[si] carries the
-     * original positions of sub si's keys (worker maps its local key j -> mget_pos[cssub_idx][j-1]).
-     * NULL mget_vals => legacy per-key path (knob off) => reassemble via per-sub reply-buffer splice. */
-    sds  *mget_vals;           /* CS_MGET coalesced: [nkeys] value copies, position-indexed (NULL=nil) */
-    int **mget_pos;            /* CS_MGET coalesced: [nsub] per-sub original-position lists */
     int **setop_pos;           /* CS_SETOP coalesced: [nsub] per-sub original-key-position lists (NULL=legacy per-key subs). setmem/setcnt stay indexed by ORIGINAL key position. */
     client **xread_out;        /* CS_XREAD: [nkeys] bare [key,entries] reply fragments */
     uint8_t *xread_status;     /* CS_XREAD: per-position empty / hit / error verdict */
     int **xread_pos;           /* CS_XREAD: sub-local stream -> original request position */
     long long xread_count;     /* parsed COUNT (0 means unlimited, matching stock XREAD) */
-    int  posmap_nsub;          /* ROW COUNT of mget_pos/setop_pos, captured when they were built.
-                                * NOT g->nsub: nsub is repurposed by every later pipeline stage
-                                * (HOP2 plan, per-key fan-out, SIZES->apply), so freeing a posmap
-                                * with the CURRENT nsub under-frees (leak) or over-walks (OOB).
-                                * Only one build's posmaps are live at a time -- the HOP1 teardown
-                                * frees and NULLs both before HOP2 rebuilds. */
     /* cs_node_lock DELETED 2026-07-27 with the node-local borrow: CS_LOCAL is now always a
      * single-OWNER localfast (all keys on one worker), so its sub needs only that worker's lock. */
     /* ee451 (universal xshard) 2-HOP phase machine — all zero-default (=> inert 1-hop group). */
-    int phase;                 /* CS_PH_HOP1 (0) | CS_PH_HOP2 */
-    int has_hop2;              /* 1 => drain launches HOP2 after the HOP1 barrier (else reassemble+reply) */
     int h2_op;                 /* CS_H2_* launcher shape (from the registry row) */
-    const struct csCmdSpec *spec; /* registry row, stamped at dispatch on GATHER/TWOHOP groups
-                                * (NULL on FANALL); COLD reads only (launch/reassemble) */
     csH2Sub h2sub[CS_H2_MAX];  /* HOP2 plan, stamped at dispatch from the row; the csLaunchHop2
                                 * prep case may rewrite it (ordered-pop winner) */
     int h2_nsub;               /* planned HOP2 subs; 0 on all 1-hop groups */
-    int h2_dbid;               /* COPY DB option; dispatch inits to head->db->id */
     int h2_flags;              /* CS_H2F_* (COPY REPLACE), parsed at dispatch */
     sds h2_payload;            /* serialized value blob (DUMP/raw) — private, refcount-free, freed at teardown */
     long long h2_pexpireat;    /* absolute expire ms for the restored key (-1 = none) */
@@ -2263,16 +2319,15 @@ typedef struct csGroup {
      * normal destination HOP2. All source stages remain lock-free reads.
      * pipe_cand is coordinator-written BEFORE the stage sub is pushed (SPSC release/acquire
      * publishes it); pipe_verdict is worker-written, drain-acquired via the completion byte. */
-    int pipe_stage;            /* 0=off, CS_PIPE_* otherwise */
     int pipe_next;             /* next index into pipe_order for the PROBE chain */
     int pipe_nshard;           /* distinct shards */
     long *pipe_scard;          /* [nkeys] per-key size (INTER SIZES / local ZUNION occurrences) */
-    int  *pipe_order;          /* [nshard] shard visit order for PROBE (ascending min-key-size) */
-    sds  *pipe_cand;           /* [pipe_ncand] candidate members (coordinator-owned copies) */
-    long  pipe_ncand;          /* live candidates (compacted between stages) */
+    int *pipe_order;           /* [nshard] shard visit order for PROBE (ascending min-key-size) */
+    sds *pipe_cand;            /* [pipe_ncand] candidate members (coordinator-owned copies) */
+    long pipe_ncand;           /* live candidates (compacted between stages) */
     uint8_t *pipe_verdict;     /* [pipe_ncand] worker-written per-candidate survive flags */
-    int  *pipe_shard_of;       /* [nkeys] key -> worker (stamped at dispatch) */
-    int   pipe_smallest;       /* key position of the globally smallest set */
+    int *pipe_shard_of;        /* [nkeys] key -> worker (stamped at dispatch) */
+    int pipe_smallest;         /* key position of the globally smallest set */
     /* Z INTER extension: cand-major per-key contribution matrix (CS_ZOP/CS_ZSTORE; NULL for counts).
      * pipe_cscore[c*nkeys + k] = raw score of candidate c in key k (weights applied at the
      * reassemble fold, in stock cardinality-ascending key order). Rows compact with cand. */
@@ -2296,40 +2351,19 @@ typedef struct csGroup {
     long long cs2_intreply;    /* integer reply accumulator (e.g. *STORE cardinality) */
     /* ---- HOP1 verdict storage (written from step 4/9 on; declared now so future rows are
      * provably implementable without a shape change): ---- */
-    /* ee451 (#B2): commandstats accounting for the GROUP. A cross-shard command is one command the
-     * client sent, fanned into one sub per owning shard, so it must contribute exactly one `calls`
-     * — counted at csReassemble, the group's single completion point, exactly like #B1's
-     * numCommandsBump. `usec` is the SUM of the subs' proc times (the work the command cost the
-     * server), not the group's wall clock, which would fold in queueing and scatter latency that
-     * stock's per-command `usec` never contains. Multi-sub stages update it concurrently and retain
-     * an atomic RMW; a singleton stage uses the owner-local atomic load/store idiom. */
-    redisAtomic long long usec;  /* summed sub proc time, microseconds */
-    redisAtomic int had_err;     /* a sub emitted an error reply => failed_calls */
-    redisAtomic long long probe; /* dst-probe lane: exists/type verdict (step 4+) */
-    long *klen; uint8_t *ktype;  /* [nkeys] per-original-key len/type reports (step 9) */
+    long *klen;
+    uint8_t *ktype;            /* [nkeys] per-original-key len/type reports (step 9) */
     /* T3 SORT BY/GET pipeline. The source worker constructs an opaque, refcount-free SORT
      * context; later owner-bucketed dereference waves fill mget_vals and use sort_fields to
      * distinguish string lookups from hash-field lookups. All three fields are private to
      * this command path and are released at its coordinator teardown. */
     struct sortXShardCtx *sort_ctx;
-    int sort_stage;
-    sds *sort_fields;            /* [nkeys], NULL = external string key, non-NULL = hash field */
-    /* ---- INLINE (small-size) storage for this group's coordinator-owned arrays. ----
-     * Standard inline-then-spill container storage: LLVM SmallVector, folly::small_vector,
-     * absl::InlinedVector, std::string SSO. A cross-shard command is SMALL and SHORT-LIVED --
-     * MGET(4) over 4 shards used to make and destroy TWELVE separate heap blocks (this struct,
-     * subs[], mget_vals[], mget_pos[], one int[] per sub, and one argv[] per sub) for a working
-     * set of ~192 bytes.
-     * Those arrays are now carved out of a bump region that lives INSIDE this allocation, so the
-     * common case costs ONE allocation and the arrays share cache lines with the header.
-     * Overflow spills to zmalloc (csgAlloc/csgFree), so nkeys/nsub gain no new limit.
-     * inl is a FLEXIBLE array: each group is sized at creation from ITS OWN command shape
-     * (csInlineWant), so a command that needs one 32-byte array pays for 32 bytes and not for
-     * the largest shape any command might have. There is no knob — see csGroupNew. */
-    uint16_t inl_cap;            /* bytes of inl[] actually allocated (0 => every array on the heap) */
-    uint16_t inl_used;           /* bump cursor; monotone, NEVER rewound (see csgAlloc) */
-    long long inl[];             /* 8-aligned bump region, zeroed at creation */
-} csGroup;
+    sds *sort_fields;          /* [nkeys], NULL = external string key, non-NULL = hash field */
+};
+
+_Static_assert(sizeof(csGroupExt) % sizeof(uint64_t) == 0,
+               "csGroup extension must keep the inline tail 8-byte aligned");
+
 /* Ceiling on the per-group inline region: above this the arrays spill to the heap, which is
  * always correct (csgAlloc/csgFree). It bounds the memset and the cache footprint a single
  * pathological command (a 1M-key MGET) can impose on the group allocation. The reference

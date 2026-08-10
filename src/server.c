@@ -9461,8 +9461,8 @@ static inline void csMsetPendingUnlock(client *c) {
  * key overlaps in 5.8M pending reads.
  *
  * Closing it means the walk must still be able to test the departing group's keys, and it must
- * NOT do that by keeping a pointer to the group. csReassemble frees the group — zfree(g), and
- * csgFree(g, g->key_h) immediately above it — as soon as the head's reply slot is published, and
+ * NOT do that by keeping a pointer to the group. csReassemble frees the group allocation, and
+ * csgFree(g, g->ext->key_h) immediately above it — as soon as the head's reply slot is published, and
  * that publication happens INSIDE this window (cdbSlotPublish precedes the count decrement by
  * design: the decrement is what licenses a held read to draw a snapshot containing the group).
  * So the group's key set is COPIED, at the pop, into a connection-owned record, and nothing on
@@ -9494,8 +9494,8 @@ static inline void csMsetPubRecordLocked(client *real, csGroup *g) {
     csPubRec *r = &pub->rec[pub->tail & pub->mask];
     r->tag = (uintptr_t)g;
     r->key_sig = g->key_sig;
-    int n = g->key_h_n;
-    for (int i = 0; i < n; i++) r->key_h[i] = g->key_h[i];
+    int n = g->ext->key_h_n;
+    for (int i = 0; i < n; i++) r->key_h[i] = g->ext->key_h[i];
     r->key_h_n = n;                    /* after the slots, mirroring the group's own commit rule */
     pub->tail++;
 }
@@ -9529,8 +9529,8 @@ static void csMsetRegister(csGroup *g) {
     client *real = g->head->parent;
     g->versioned_write = 1;
     g->version_seq = TOMO_VERSION_UNCOMMITTED;
-    g->mset_client = real;
-    serverAssert(g->mset_installs != NULL && g->version_install_expected > 0 &&
+    g->ext->mset_client = real;
+    serverAssert(g->ext->mset_installs != NULL && g->ext->version_install_expected > 0 &&
                  g->key_sig != 0);
 
     /* Lazily arm the publishing ring: only a connection that actually registers an atomic group
@@ -9556,9 +9556,9 @@ static void csMsetRegister(csGroup *g) {
     }
 
     csMsetPendingLock(real);
-    g->mset_pending_prev = real->mset_pending_tail;
-    g->mset_pending_next = NULL;
-    if (real->mset_pending_tail) real->mset_pending_tail->mset_pending_next = g;
+    g->ext->mset_pending_prev = real->mset_pending_tail;
+    g->ext->mset_pending_next = NULL;
+    if (real->mset_pending_tail) real->mset_pending_tail->ext->mset_pending_next = g;
     else real->mset_pending_head = g;
     real->mset_pending_tail = g;
     atomic_fetch_add_explicit(&real->mset_pending_count, 1, memory_order_release);
@@ -9566,16 +9566,18 @@ static void csMsetRegister(csGroup *g) {
 }
 
 static void csMsetPendingRemove(csGroup *g) {
-    client *real = g->mset_client;
+    client *real = g->ext->mset_client;
     if (!real) return;
     csMsetPendingLock(real);
-    if (g->mset_client == real) {
-        if (g->mset_pending_prev) g->mset_pending_prev->mset_pending_next = g->mset_pending_next;
-        else real->mset_pending_head = g->mset_pending_next;
-        if (g->mset_pending_next) g->mset_pending_next->mset_pending_prev = g->mset_pending_prev;
-        else real->mset_pending_tail = g->mset_pending_prev;
-        g->mset_pending_prev = g->mset_pending_next = NULL;
-        g->mset_client = NULL;
+    if (g->ext->mset_client == real) {
+        if (g->ext->mset_pending_prev)
+            g->ext->mset_pending_prev->ext->mset_pending_next = g->ext->mset_pending_next;
+        else real->mset_pending_head = g->ext->mset_pending_next;
+        if (g->ext->mset_pending_next)
+            g->ext->mset_pending_next->ext->mset_pending_prev = g->ext->mset_pending_prev;
+        else real->mset_pending_tail = g->ext->mset_pending_prev;
+        g->ext->mset_pending_prev = g->ext->mset_pending_next = NULL;
+        g->ext->mset_client = NULL;
         unsigned int before = atomic_fetch_sub_explicit(&real->mset_pending_count, 1,
                                                         memory_order_release);
         serverAssert(before > 0);
@@ -9739,7 +9741,7 @@ static void csAtomicSetDestinationSignature(csGroup *g, robj *dst) {
     uint64_t h = tomoKeyHash(dst->ptr, sdslen(dst->ptr));
     g->key_sig = csHashSignature(h);
     uint64_t *kh = csGroupKeyHashReserve(g, 1);
-    if (kh) { kh[0] = h; g->key_h_n = 1; }   /* publish only once the slot is written */
+    if (kh) { kh[0] = h; g->ext->key_h_n = 1; }   /* publish only once the slot is written */
     g->head->tomo_key_h = h;
     g->head->tomo_bkt = (int)(h & TOMO_BUCKET_MASK);
     g->head->tomo_bkt_ptr = dst->ptr;
@@ -9807,11 +9809,11 @@ static int csKeysCollide(const csReadKeys *rk, const uint64_t *kh, int kh_n, uin
  * (3) filter hit with both vectors present => the exact key-hash test decides.
  *
  * LIFETIME of what (3) dereferences.
- *   - FIFO entries: g->key_h lives in g's OWN allocation (the inline bump region, or a csgFree()d
+ *   - FIFO entries: g->ext->key_h lives in g's OWN allocation (the inline bump region, or a csgFree()d
  *     spill), is written once on the head's IO thread before csMsetRegister publishes g into this
  *     FIFO, and is never rewritten. csReassemble — the group's single terminal point and the only
- *     caller of zfree(g) — calls csMsetPendingRemove(g) as its FIRST statement, before any
- *     csgFree/zfree. So g->key_h is reachable exactly as long as g->key_sig is, which is the
+ *     terminal group-free path — calls csMsetPendingRemove(g) as its FIRST statement, before any
+ *     csgFree/zfree. So g->ext->key_h is reachable exactly as long as g->key_sig is, which is the
  *     lifetime this walk already depended on. That is precisely what g->subs[] would NOT give:
  *     csPipeFreeStageSubs() frees and NULLs g->subs between pipeline stages, and
  *     csMsetnxAdvanceReservations() frees every sub before rebuilding the wave, both while the
@@ -9832,15 +9834,15 @@ static int csMsetReadIntersects(client *real, const csReadKeys *rk, int *flags) 
     unsigned int accounted = 0;
     int intersects = 0, f = 0;
     csMsetPendingLock(real);
-    for (csGroup *g = real->mset_pending_head; g; g = g->mset_pending_next) {
+    for (csGroup *g = real->mset_pending_head; g; g = g->ext->mset_pending_next) {
         accounted++;
         uint64_t hit = rk->sig & g->key_sig;
         if (!hit) continue;                          /* filter miss: definitively disjoint */
-        if (rk->n < 0 || g->key_h_n == 0) {          /* cannot prove either way: hold */
+        if (rk->n < 0 || g->ext->key_h_n == 0) {          /* cannot prove either way: hold */
             intersects = 1; f |= CS_WALK_CONSERV;
             break;
         }
-        if (csKeysCollide(rk, g->key_h, g->key_h_n, hit)) { intersects = 1; break; }
+        if (csKeysCollide(rk, g->ext->key_h, g->ext->key_h_n, hit)) { intersects = 1; break; }
     }
     csMsetPub *pub = real->mset_pub;
     if (!intersects && pub && pub->head != pub->tail) {
@@ -9937,11 +9939,11 @@ static csGroup *csMsetPopComplete(client *real) {
         csMsetPendingUnlock(real);
         return NULL;
     }
-    real->mset_pending_head = g->mset_pending_next;
-    if (real->mset_pending_head) real->mset_pending_head->mset_pending_prev = NULL;
+    real->mset_pending_head = g->ext->mset_pending_next;
+    if (real->mset_pending_head) real->mset_pending_head->ext->mset_pending_prev = NULL;
     else real->mset_pending_tail = NULL;
-    g->mset_pending_prev = g->mset_pending_next = NULL;
-    g->mset_client = NULL;
+    g->ext->mset_pending_prev = g->ext->mset_pending_next = NULL;
+    g->ext->mset_client = NULL;
     csMsetPubRecordLocked(real, g);
     csMsetPendingUnlock(real);
     return g;
@@ -9952,10 +9954,10 @@ static csGroup *csMsetPopComplete(client *real) {
  * install-order so same-key duplicates reach their one owner in that order. */
 static void csMsetStampAndAppend(csGroup *g) {
     int ninstalled = atomic_load_explicit(&g->mset_install_count, memory_order_relaxed);
-    int cancel = g->version_abort;
+    int cancel = g->ext->version_abort;
     if (g->ctype == CS_MSETNX) {
         for (int i = 0; i < g->nkeys; i++)
-            if (g->msetnx_state[i] == CS_MSETNX_PRESENT) {
+            if (g->ext->msetnx_state[i] == CS_MSETNX_PRESENT) {
                 cancel = 1;
                 break;
             }
@@ -9965,12 +9967,12 @@ static void csMsetStampAndAppend(csGroup *g) {
         if (g->ctype == CS_MSETNX)
             atomic_store_explicit(&g->err, CS_ERR_NX_EXISTS, memory_order_relaxed);
     } else {
-        serverAssert(ninstalled == g->version_install_expected);
+        serverAssert(ninstalled == g->ext->version_install_expected);
         seq = atomic_fetch_add_explicit(&next_seq, 1, memory_order_relaxed) + 1;
     }
     g->version_seq = seq;
     for (int i = 0; i < ninstalled; i++) {
-        csMsetInstall *install = &g->mset_installs[i];
+        csMsetInstall *install = &g->ext->mset_installs[i];
         kvobj *kv = install->kv;
         struct tomoVerMeta *vmeta = kvobjVmeta(kv);
         serverAssert(kv != NULL && vmeta != NULL);
@@ -9985,14 +9987,14 @@ static void csMsetStampAndAppend(csGroup *g) {
             vmeta->owner_op[1] = (tomoOwnerOp){kv, seq, TOMO_OWNER_OP_PRUNE};
         csStampPush(install->owner, &vmeta->owner_op[0]);
     }
-    g->commit_next = NULL;
-    if (commit_tail) commit_tail->commit_next = g;
+    g->ext->commit_next = NULL;
+    if (commit_tail) commit_tail->ext->commit_next = g;
     else commit_head = g;
     commit_tail = g;
 }
 
 static void csMsetInstallDone(csGroup *g) {
-    client *real = g->mset_client;
+    client *real = g->ext->mset_client;
     serverAssert(real != NULL);
     atomic_store_explicit(&g->mset_complete, 1, memory_order_release);
 
@@ -10018,7 +10020,7 @@ static void csMsetInstallDone(csGroup *g) {
 
     while (commit_head) {
         csGroup *done = commit_head;
-        commit_head = done->commit_next;
+        commit_head = done->ext->commit_next;
         if (!commit_head) commit_tail = NULL;
 
         int canceled = done->version_seq == 0;
@@ -10031,7 +10033,7 @@ static void csMsetInstallDone(csGroup *g) {
         if (!canceled)
             atomic_store_explicit(&commit_seq, done->version_seq, memory_order_release);
         for (int i = 0; i < ninstalled; i++) {
-            csMsetInstall *install = &done->mset_installs[i];
+            csMsetInstall *install = &done->ext->mset_installs[i];
             if (!canceled) {
                 struct tomoVerMeta *vmeta = kvobjVmeta(install->kv);
                 csStampPush(install->owner, &vmeta->owner_op[1]);
@@ -10071,7 +10073,7 @@ static int csAtomicAbortIncomplete(csGroup *g) {
     if (!g->versioned_write ||
         atomic_load_explicit(&g->mset_complete,memory_order_acquire))
         return 0;
-    g->version_abort = 1;
+    g->ext->version_abort = 1;
     if (cdbSlotReady(g->head->parent,g->head->cdb,g->head->fake_slot))
         cdbSlotClear(g->head->parent,g->head->cdb,g->head->fake_slot);
     csMsetInstallDone(g);
@@ -10831,7 +10833,7 @@ static const csCmdSpec *csClassify(client *c) {
 }
 
 /* universal xshard HOP1 source-side dump (worker, single-writer): serialize the key's RDB
- * post-image + abs TTL into g->h2_payload / g->h2_pexpireat (private refcount-free sds =>
+ * post-image + abs TTL into g->ext->h2_payload / g->ext->h2_pexpireat (private refcount-free sds =>
  * S8-safe to cross threads). del: 1 = delete src after dump (RENAME — always overwrites, so
  * the transient state is MISSING never DUPLICATE); 0 = dump only (conditional moves: a failing
  * NX verdict must leave src intact, the H4 guard); -1 = read-only lookup, no delete (COPY —
@@ -10848,10 +10850,10 @@ static void csH1DumpKey(client *sub, csGroup *g, int del) {
     rio r; rioInitWithBuffer(&r, sdsempty());
     rdbSaveObjectType(&r, o);
     rdbSaveObject(&r, o, sub->argv[1], sub->db->id);
-    g->h2_payload = r.io.buffer.ptr;
+    g->ext->h2_payload = r.io.buffer.ptr;
     long long ex = g->versioned_write ? getExpire(sub->db, sub->argv[1]->ptr, o) :
                                        getExpire(sub->db, sub->argv[1]->ptr, NULL);
-    g->h2_pexpireat = (ex == -1) ? -1 : ex;
+    g->ext->h2_pexpireat = (ex == -1) ? -1 : ex;
     if (del > 0) {
         dbSyncDelete(sub->db, sub->argv[1]);
         notifyKeyspaceEvent(NOTIFY_GENERIC, "rename_from", sub->argv[1], sub->db->id);
@@ -10882,12 +10884,12 @@ static void csH1StoreSelect(client *sub, csGroup *g) {
         return;
     }
     unsigned long card = g->ctype == CS_SORTSTORE ? listTypeLength(res) : zsetLength(res);
-    g->cs2_intreply = (long long)card;
+    g->ext->cs2_intreply = (long long)card;
     if (card > 0) {
         rio r; rioInitWithBuffer(&r, sdsempty());
         rdbSaveObjectType(&r, res);
-        rdbSaveObject(&r, res, sub->argv[g->h2sub[0].key_argi], sub->db->id);
-        g->h2_payload = r.io.buffer.ptr;
+        rdbSaveObject(&r, res, sub->argv[g->ext->h2sub[0].key_argi], sub->db->id);
+        g->ext->h2_payload = r.io.buffer.ptr;
     }
     decrRefCount(res);
 }
@@ -10900,7 +10902,7 @@ static void csH1StoreSelect(client *sub, csGroup *g) {
  * notification (NOTIFY_GENERIC "rename_to"/"copy_to"; NOTIFY_SET "sinterstore"/...). */
 static void csH2RestoreKey(client *sub, csGroup *g, int nclass, const char *event) {
     robj *dstkey = sub->argv[1];
-    rio r; rioInitWithBuffer(&r, g->h2_payload);
+    rio r; rioInitWithBuffer(&r, g->ext->h2_payload);
     int type = rdbLoadObjectType(&r);
     int rerr = 0;
     robj *val = rdbLoadObject(type, &r, dstkey->ptr, sub->db->id, &rerr);
@@ -10913,7 +10915,7 @@ static void csH2RestoreKey(client *sub, csGroup *g, int nclass, const char *even
             int has_idmp = (vtype == OBJ_STREAM && ((stream *)val->ptr)->idmp_producers != NULL);
             dbSyncDelete(sub->db, dstkey);          /* overwrite any existing dst */
             dbAdd(sub->db, dstkey, &val);
-            if (g->h2_pexpireat >= 0) setExpire(NULL, sub->db, dstkey, g->h2_pexpireat);
+            if (g->ext->h2_pexpireat >= 0) setExpire(NULL, sub->db, dstkey, g->ext->h2_pexpireat);
             if (hmn != EB_EXPIRE_TIME_INVALID) {
                 robj *inst = lookupKeyReadWithFlags(sub->db, dstkey, LOOKUP_NOEFFECTS);
                 if (inst) estoreAdd(sub->db->subexpires, getKeySlot(dstkey->ptr), inst, hmn);
@@ -10923,7 +10925,7 @@ static void csH2RestoreKey(client *sub, csGroup *g, int nclass, const char *even
         }
         notifyKeyspaceEvent(nclass, event, dstkey, sub->db->id);
         markDirty((g->ctype == CS_SORTSTORE || g->ctype == CS_GEOSTORE) ?
-                  g->cs2_intreply : 1);
+                  g->ext->cs2_intreply : 1);
     } else {
         /* our own freshly-serialized blob failed to load (near-impossible) — reply an error
          * rather than a false success; dst is left untouched. */
@@ -10937,13 +10939,13 @@ static void csH2RestoreKey(client *sub, csGroup *g, int nclass, const char *even
 static int csH2RestoreKeyVersioned(client *sub, csGroup *g, int nclass,
                                    const char *event, int reservation) {
     robj *dstkey = sub->argv[1];
-    rio r; rioInitWithBuffer(&r, g->h2_payload);
+    rio r; rioInitWithBuffer(&r, g->ext->h2_payload);
     int type = rdbLoadObjectType(&r);
     int rerr = 0;
     robj *val = rdbLoadObject(type, &r, dstkey->ptr, sub->db->id, &rerr);
     if (!val) {
         atomic_store_explicit(&g->err, CS_ERR_EMPTY, memory_order_relaxed);
-        g->version_abort = 1;
+        g->ext->version_abort = 1;
         return 0;
     }
 
@@ -10951,7 +10953,7 @@ static int csH2RestoreKeyVersioned(client *sub, csGroup *g, int nclass,
     uint64_t hmn = vtype == OBJ_HASH ? hashTypeGetMinExpire(val,1) : EB_EXPIRE_TIME_INVALID;
     int has_idmp = vtype == OBJ_STREAM && ((stream *)val->ptr)->idmp_producers != NULL;
     kvobj *installed = setKeyVersioned(sub,sub->db,dstkey,&val,0,g->version_seq,
-                                       g->h2_pexpireat);
+                                       g->ext->h2_pexpireat);
     struct tomoVerMeta *vmeta = kvobjVmeta(installed);
     serverAssert(vmeta && vmeta->stamp_state == TOMO_STAMP_PENDING);
     if (reservation) {
@@ -10966,7 +10968,7 @@ static int csH2RestoreKeyVersioned(client *sub, csGroup *g, int nclass,
         incrRefCount(dstkey);
     notifyKeyspaceEvent(nclass,event,dstkey,sub->db->id);
     markDirty((g->ctype == CS_SORTSTORE || g->ctype == CS_GEOSTORE) ?
-              g->cs2_intreply : 1);
+              g->ext->cs2_intreply : 1);
     return 1;
 }
 
@@ -11000,14 +11002,14 @@ static void csNxDestReserveVersioned(client *sub, csGroup *g, int nclass,
         return;
     }
     if (head && kvobjVersionAt(head,tomoCommittedSeq())) {
-        g->msetnx_state[0] = CS_MSETNX_PRESENT;
+        g->ext->msetnx_state[0] = CS_MSETNX_PRESENT;
         return;
     }
     if (!csH2RestoreKeyVersioned(sub,g,nclass,event,1)) {
-        g->msetnx_state[0] = CS_MSETNX_PRESENT; /* terminal error, not a retry */
+        g->ext->msetnx_state[0] = CS_MSETNX_PRESENT; /* terminal error, not a retry */
         return;
     }
-    g->msetnx_state[0] = CS_MSETNX_RESERVED;
+    g->ext->msetnx_state[0] = CS_MSETNX_RESERVED;
 }
 
 /* Run on the owning worker for one sub-fake: look up its single key and serialize the MGET
@@ -11063,10 +11065,10 @@ static void csSortDerefExec(client *sub, csGroup *g) {
         int idx = pos[a - 1];
         robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
         robj *val = NULL;
-        if (g->sort_fields[idx]) {
+        if (g->ext->sort_fields[idx]) {
             if (o && o->type == OBJ_HASH) {
                 int hash_deleted = 0;
-                hashTypeGetValueObject(sub->db,o,g->sort_fields[idx],HFE_LAZY_EXPIRE,
+                hashTypeGetValueObject(sub->db,o,g->ext->sort_fields[idx],HFE_LAZY_EXPIRE,
                                        &val,NULL,&hash_deleted);
                 if (hash_deleted) val = NULL;
             }
@@ -11085,7 +11087,7 @@ static inline void csMsetRecordInstall(client *sub, csGroup *g, kvobj *installed
     struct tomoVerMeta *vmeta = kvobjVmeta(installed);
     serverAssert(vmeta != NULL && kvobjVersionSeq(installed) == TOMO_VERSION_UNCOMMITTED);
     int ii = atomic_fetch_add_explicit(&g->mset_install_count, 1, memory_order_relaxed);
-    serverAssert(ii < g->version_install_expected);
+    serverAssert(ii < g->ext->version_install_expected);
     int owner = iotid - (TOMO_IO_THREADS_MAX + 1);
     serverAssert(owner >= 0 && owner < server.num_workers);
     serverAssert(vmeta->version_kvs == sub->db->keys);
@@ -11094,9 +11096,9 @@ static inline void csMsetRecordInstall(client *sub, csGroup *g, kvobj *installed
      * which the version exists but the cutover can regard its owner-affine lifecycle as drained. */
     tomoAtomicLifecycleAcquire(installed, owner);
     vmeta->version_order = (uint32_t)ii;
-    g->mset_installs[ii].kv = installed;
-    g->mset_installs[ii].owner = owner;
-    g->mset_installs[ii].install_order = (uint32_t)ii;
+    g->ext->mset_installs[ii].kv = installed;
+    g->ext->mset_installs[ii].owner = owner;
+    g->ext->mset_installs[ii].install_order = (uint32_t)ii;
 }
 
 /* Reservations are visible to owner-side conflict detection while they remain
@@ -11118,7 +11120,7 @@ static int csMsetnxHasOtherReservation(kvobj *head, csGroup *g) {
 
 static int csMsetnxHasPendingPosition(csGroup *g) {
     for (int i = 0; i < g->nkeys; i++)
-        if (g->msetnx_state[i] == CS_MSETNX_PENDING) return 1;
+        if (g->ext->msetnx_state[i] == CS_MSETNX_PENDING) return 1;
     return 0;
 }
 
@@ -11127,7 +11129,7 @@ static void csMsetnxSubExecVersioned(client *sub, csGroup *g) {
     int pair = 0;
     for (int a = 1; a + 1 < sub->argc; a += 2, pair++) {
         int orig = pos[pair];
-        if (g->msetnx_state[orig] != CS_MSETNX_PENDING) continue;
+        if (g->ext->msetnx_state[orig] != CS_MSETNX_PENDING) continue;
         robj *keyo = sub->argv[a];
         kvobj *head = lookupKeyWrite(sub->db, keyo);
         if (head && csMsetnxHasOtherReservation(head, g)) {
@@ -11136,7 +11138,7 @@ static void csMsetnxSubExecVersioned(client *sub, csGroup *g) {
         }
         kvobj *live = head ? kvobjVersionAt(head, tomoCommittedSeq()) : NULL;
         if (live) {
-            g->msetnx_state[orig] = CS_MSETNX_PRESENT;
+            g->ext->msetnx_state[orig] = CS_MSETNX_PRESENT;
             continue;
         }
 
@@ -11149,7 +11151,7 @@ static void csMsetnxSubExecVersioned(client *sub, csGroup *g) {
         vmeta->version_reservation = TOMO_RESERVATION_SIGNAL_SET;
         vmeta->reservation_owner = g;
         csMsetRecordInstall(sub, g, installed);
-        g->msetnx_state[orig] = CS_MSETNX_RESERVED;
+        g->ext->msetnx_state[orig] = CS_MSETNX_RESERVED;
         sub->argv[a+1] = NULL;
     }
 }
@@ -11520,13 +11522,13 @@ static void csSubExec(client *sub) {
     case CS_XREAD: {
         /* argv is [XREAD key id key id ...] for this owner. Each result client contains no
          * top-level aggregate header, only one stream element, so fragments remain reorderable. */
-        int *pos = g->xread_pos[sub->cssub_idx];
+        int *pos = g->ext->xread_pos[sub->cssub_idx];
         for (int a = 1, j = 0; a + 1 < sub->argc; a += 2, j++) {
             int idx = pos[j];
-            client *out = g->xread_out[idx];
+            client *out = g->ext->xread_out[idx];
             out->db = sub->db;
-            int rc = xreadCommandReadOne(out,sub->argv[a],sub->argv[a+1],g->xread_count);
-            g->xread_status[idx] = rc < 0 ? CS_XREAD_ERR :
+            int rc = xreadCommandReadOne(out,sub->argv[a],sub->argv[a+1],g->ext->xread_count);
+            g->ext->xread_status[idx] = rc < 0 ? CS_XREAD_ERR :
                                     rc > 0 ? CS_XREAD_HIT : CS_XREAD_EMPTY;
         }
         break;
@@ -11539,11 +11541,11 @@ static void csSubExec(client *sub) {
             if (g->versioned_write) {
                 const char *ev = (g->setop == CS_SETOP_UNION) ? "sunionstore" :
                                  (g->setop == CS_SETOP_DIFF)  ? "sdiffstore"  : "sinterstore";
-                if (g->h2_payload == NULL)
+                if (g->ext->h2_payload == NULL)
                     csInstallVersionTombstone(sub,g,NOTIFY_GENERIC,"del");
                 else
                     csH2RestoreKeyVersioned(sub,g,NOTIFY_SET,ev,0);
-            } else if (g->h2_payload == NULL) {
+            } else if (g->ext->h2_payload == NULL) {
                 if (dbSyncDelete(sub->db, sub->argv[1])) {
                     notifyKeyspaceEvent(NOTIFY_GENERIC, "del", sub->argv[1], sub->db->id);
                     markDirty(1);
@@ -11566,14 +11568,14 @@ static void csSubExec(client *sub) {
          * private (refcount-free) => coordinator frees them after the barrier.
          * xshard OPT: COALESCED (setop_pos != NULL) — sub carries all of one shard's keys; slot =
          * setop_pos[cssub_idx][j]. LEGACY (setop_pos == NULL) — one key per sub; slot = cssub_idx. */
-        int *pos = g->setop_pos ? g->setop_pos[sub->cssub_idx] : NULL;
+        int *pos = g->ext->setop_pos ? g->ext->setop_pos[sub->cssub_idx] : NULL;
         for (int a = 1; a < sub->argc; a++) {
             int idx = pos ? pos[a - 1] : sub->cssub_idx;
             robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
-            if (o == NULL) { g->setmem[idx] = NULL; g->setcnt[idx] = 0; continue; }
+            if (o == NULL) { g->ext->setmem[idx] = NULL; g->ext->setcnt[idx] = 0; continue; }
             if (o->type != OBJ_SET) {
                 atomic_store_explicit(&g->err, 1, memory_order_relaxed);
-                g->setmem[idx] = NULL; g->setcnt[idx] = 0;
+                g->ext->setmem[idx] = NULL; g->ext->setcnt[idx] = 0;
                 continue;
             }
             unsigned long sz = setTypeSize(o);
@@ -11582,7 +11584,7 @@ static void csSubExec(client *sub) {
             setTypeIterator si; setTypeInitIterator(&si, o);
             sds ele;
             while ((ele = setTypeNextObject(&si)) != NULL) arr[m++] = ele;  /* fresh owned sds */
-            g->setmem[idx] = arr; g->setcnt[idx] = m;
+            g->ext->setmem[idx] = arr; g->ext->setcnt[idx] = m;
         }
         break;
     }
@@ -11593,8 +11595,8 @@ static void csSubExec(client *sub) {
             /* Full argv is parsed on the source owner. Copy the head's ACL identity because SORT's
              * BY/GET parser requires unrestricted key access in addition to normal command ACLs. */
             sub->user = g->head->user;
-            g->sort_ctx = sortXShardPrepare(sub,g->spec->proc == sortroCommand);
-            if (!g->sort_ctx)
+            g->ext->sort_ctx = sortXShardPrepare(sub,g->spec->proc == sortroCommand);
+            if (!g->ext->sort_ctx)
                 atomic_store_explicit(&g->err, CS_ERR_SUBREPLY, memory_order_relaxed);
         } else if (g->ctype == CS_SORTSTORE &&
                    (g->sort_stage == CS_SORT_BY || g->sort_stage == CS_SORT_GET)) {
@@ -11608,11 +11610,11 @@ static void csSubExec(client *sub) {
             int nclass = g->ctype == CS_SORTSTORE ? NOTIFY_LIST : NOTIFY_ZSET;
             const char *event = g->ctype == CS_ZRANGESTORE ? "zrangestore" :
                                 g->ctype == CS_SORTSTORE ? "sortstore" : "geosearchstore";
-            if (g->h2_payload == NULL)
+            if (g->ext->h2_payload == NULL)
                 csInstallVersionTombstone(sub,g,NOTIFY_GENERIC,"del");
             else
                 csH2RestoreKeyVersioned(sub,g,nclass,event,0);
-        } else if (g->h2_payload == NULL) {
+        } else if (g->ext->h2_payload == NULL) {
             if (dbSyncDelete(sub->db, sub->argv[1])) {
                 keyModified(sub, sub->db, sub->argv[1], NULL, 1);
                 notifyKeyspaceEvent(NOTIFY_GENERIC, "del", sub->argv[1], sub->db->id);
@@ -11634,11 +11636,11 @@ static void csSubExec(client *sub) {
             if (g->versioned_write) {
                 const char *ev = (g->setop == CS_SETOP_UNION) ? "zunionstore" :
                                  (g->setop == CS_SETOP_DIFF)  ? "zdiffstore"  : "zinterstore";
-                if (g->h2_payload == NULL)
+                if (g->ext->h2_payload == NULL)
                     csInstallVersionTombstone(sub,g,NOTIFY_GENERIC,"del");
                 else
                     csH2RestoreKeyVersioned(sub,g,NOTIFY_ZSET,ev,0);
-            } else if (g->h2_payload == NULL) {
+            } else if (g->ext->h2_payload == NULL) {
                 if (dbSyncDelete(sub->db, sub->argv[1])) {
                     notifyKeyspaceEvent(NOTIFY_GENERIC, "del", sub->argv[1], sub->db->id);
                     markDirty(1);
@@ -11659,11 +11661,11 @@ static void csSubExec(client *sub) {
          * their real scores (listpack or skiplist encoding walked directly — worker owns the
          * object); a plain SET source contributes score 1.0 (stock); missing => empty; any
          * other type => WRONGTYPE. Slot logic identical to the set gather above. */
-        int *pos = g->setop_pos ? g->setop_pos[sub->cssub_idx] : NULL;
+        int *pos = g->ext->setop_pos ? g->ext->setop_pos[sub->cssub_idx] : NULL;
         for (int a = 1; a < sub->argc; a++) {
             int idx = pos ? pos[a - 1] : sub->cssub_idx;
             robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
-            g->setmem[idx] = NULL; g->setcnt[idx] = 0; g->zscore[idx] = NULL;
+            g->ext->setmem[idx] = NULL; g->ext->setcnt[idx] = 0; g->ext->zscore[idx] = NULL;
             if (o == NULL) continue;
             if (o->type == OBJ_ZSET) {
                 unsigned long sz = zsetLength(o);
@@ -11694,7 +11696,7 @@ static void csSubExec(client *sub) {
                         zn = zn->level[0].forward;
                     }
                 }
-                g->setmem[idx] = arr; g->setcnt[idx] = m; g->zscore[idx] = sc;
+                g->ext->setmem[idx] = arr; g->ext->setcnt[idx] = m; g->ext->zscore[idx] = sc;
             } else if (o->type == OBJ_SET) {
                 unsigned long sz = setTypeSize(o);
                 if (!sz) continue;
@@ -11704,7 +11706,7 @@ static void csSubExec(client *sub) {
                 setTypeIterator si; setTypeInitIterator(&si, o);
                 sds ele;
                 while ((ele = setTypeNextObject(&si)) != NULL) { arr[m] = ele; sc[m] = 1.0; m++; }
-                g->setmem[idx] = arr; g->setcnt[idx] = m; g->zscore[idx] = sc;
+                g->ext->setmem[idx] = arr; g->ext->setcnt[idx] = m; g->ext->zscore[idx] = sc;
             } else {
                 atomic_store_explicit(&g->err, CS_ERR_WRONGTYPE, memory_order_relaxed);
             }
@@ -11716,11 +11718,11 @@ static void csSubExec(client *sub) {
             /* step 7 WRITE: payload NULL => all sources empty/missing => delete dst + :0
              * (stock); else the coordinator-folded string overwrites dst. */
             if (g->versioned_write) {
-                if (g->h2_payload == NULL)
+                if (g->ext->h2_payload == NULL)
                     csInstallVersionTombstone(sub,g,NOTIFY_GENERIC,"del");
                 else
                     csH2RestoreKeyVersioned(sub,g,NOTIFY_STRING,"set",0);
-            } else if (g->h2_payload == NULL) {
+            } else if (g->ext->h2_payload == NULL) {
                 if (dbSyncDelete(sub->db, sub->argv[1])) {
                     notifyKeyspaceEvent(NOTIFY_GENERIC, "del", sub->argv[1], sub->db->id);
                     markDirty(1);
@@ -11774,7 +11776,7 @@ static void csSubExec(client *sub) {
             csH1DumpKey(sub, g, g->versioned_write ? -1 : 1);
         } else {
             if (g->versioned_write &&
-                g->h2sub[sub->cssub_idx].action == CS_H2A_SRCOP) {
+                g->ext->h2sub[sub->cssub_idx].action == CS_H2A_SRCOP) {
                 csInstallVersionTombstone(sub,g,NOTIFY_GENERIC,"rename_from");
             } else if (g->versioned_write) {
                 csH2RestoreKeyVersioned(sub,g,NOTIFY_GENERIC,"rename_to",0);
@@ -11787,7 +11789,7 @@ static void csSubExec(client *sub) {
     case CS_RENAMENX: {
         if (!g->has_hop2) {
             renameGenericCommand(sub, 1);   /* same-shard: real proc (samekey/NX handled) */
-        } else if (g->versioned_write && g->version_nx_reserving) {
+        } else if (g->versioned_write && g->ext->version_nx_reserving) {
             csNxDestReserveVersioned(sub,g,NOTIFY_GENERIC,"rename_to");
         } else if (g->phase == CS_PH_HOP1) {
             if (sub->cssub_idx == 0) {
@@ -11800,7 +11802,7 @@ static void csSubExec(client *sub) {
             }
         } else if (g->versioned_write) {
             csInstallVersionTombstone(sub,g,NOTIFY_GENERIC,"rename_from");
-        } else if (g->h2sub[sub->cssub_idx].action == CS_H2A_WRITE) {
+        } else if (g->ext->h2sub[sub->cssub_idx].action == CS_H2A_WRITE) {
             /* Probe said absent; a dst appearing in the barrier->write window is overwritten
              * (documented bounded TOCTOU — the delete-sub is already committed this barrier). */
             csH2RestoreKey(sub, g, NOTIFY_GENERIC, "rename_to");
@@ -11816,7 +11818,7 @@ static void csSubExec(client *sub) {
     case CS_COPY: {
         if (!g->has_hop2) {
             copyCommand(sub);               /* same-shard, no DB option: real proc */
-        } else if (g->versioned_write && g->version_nx_reserving) {
+        } else if (g->versioned_write && g->ext->version_nx_reserving) {
             csNxDestReserveVersioned(sub,g,NOTIFY_GENERIC,"copy_to");
         } else if (g->phase == CS_PH_HOP1) {
             /* src shard: read-only dump (COPY never touches src). Stock uses lookupKeyRead. */
@@ -11825,7 +11827,7 @@ static void csSubExec(client *sub) {
             csH2RestoreKeyVersioned(sub,g,NOTIFY_GENERIC,"copy_to",0);
         } else {
             /* dst shard/db: NX decided HERE atomically (single-writer) — no probe, no TOCTOU. */
-            if (!(g->h2_flags & CS_H2F_REPLACE) && lookupKeyRead(sub->db, sub->argv[1]) != NULL) {
+            if (!(g->ext->h2_flags & CS_H2F_REPLACE) && lookupKeyRead(sub->db, sub->argv[1]) != NULL) {
                 atomic_store_explicit(&g->err, CS_ERR_NX_EXISTS, memory_order_relaxed);
             } else {
                 csH2RestoreKey(sub, g, NOTIFY_GENERIC, "copy_to");
@@ -11841,15 +11843,15 @@ static void csSubExec(client *sub) {
         if (g->phase == CS_PH_HOP1) {
             /* Ordered-pop HOP1: per-key type+length report into the ORIGINAL-position lanes.
              * ktype: 0 = missing, 1 = expected type, 2 = wrong type. */
-            int *pos = g->setop_pos ? g->setop_pos[sub->cssub_idx] : NULL;
+            int *pos = g->ext->setop_pos ? g->ext->setop_pos[sub->cssub_idx] : NULL;
             for (int a = 1; a < sub->argc; a++) {
                 int idx = pos ? pos[a - 1] : sub->cssub_idx;
                 robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
-                if (o == NULL) { g->ktype[idx] = 0; g->klen[idx] = 0; }
-                else if (o->type != exp_type) { g->ktype[idx] = 2; g->klen[idx] = 0; }
+                if (o == NULL) { g->ext->ktype[idx] = 0; g->ext->klen[idx] = 0; }
+                else if (o->type != exp_type) { g->ext->ktype[idx] = 2; g->ext->klen[idx] = 0; }
                 else {
-                    g->ktype[idx] = 1;
-                    g->klen[idx] = (long)(exp_type == OBJ_LIST ? listTypeLength(o) : zsetLength(o));
+                    g->ext->ktype[idx] = 1;
+                    g->ext->klen[idx] = (long)(exp_type == OBJ_LIST ? listTypeLength(o) : zsetLength(o));
                 }
             }
         } else if (csIsMpopType(g->ctype)) {
@@ -11893,14 +11895,14 @@ static void csSubExec(client *sub) {
                 else if (o->type != OBJ_LIST) bits |= CS_PR_SRC_WRONGTYPE;
                 else if (listTypeLength(o) == 0) bits |= CS_PR_SRC_MISSING;
                 else {
-                    int fromleft = (g->h2_flags & CS_H2F_FROM_LEFT) != 0;
+                    int fromleft = (g->ext->h2_flags & CS_H2F_FROM_LEFT) != 0;
                     listTypeIterator li; listTypeEntry entry;
                     listTypeInitIterator(&li, o, fromleft ? 0 : -1,
                                          fromleft ? LIST_TAIL : LIST_HEAD);
                     if (listTypeNext(&li, &entry)) {
                         size_t vlen; long long vll;
                         unsigned char *vstr = listTypeGetValue(&entry, &vlen, &vll);
-                        g->h2_payload = vstr ? sdsnewlen((char *)vstr, vlen)
+                        g->ext->h2_payload = vstr ? sdsnewlen((char *)vstr, vlen)
                                              : sdsfromlonglong(vll);
                     } else {
                         bits |= CS_PR_SRC_MISSING;   /* defensive: iterator found nothing */
@@ -11913,11 +11915,11 @@ static void csSubExec(client *sub) {
                 if (o != NULL && o->type != OBJ_LIST)
                     atomic_fetch_or_explicit(&g->probe, CS_PR_DST_WRONGTYPE, memory_order_relaxed);
             }
-        } else if (g->h2sub[sub->cssub_idx].action == CS_H2A_WRITE) {
+        } else if (g->ext->h2sub[sub->cssub_idx].action == CS_H2A_WRITE) {
             /* dst shard: push the moved element (create the list if missing, stock). */
-            int toleft = (g->h2_flags & CS_H2F_TO_LEFT) != 0;
+            int toleft = (g->ext->h2_flags & CS_H2F_TO_LEFT) != 0;
             robj *o = lookupKeyWrite(sub->db, sub->argv[1]);
-            robj *val = createStringObject(g->h2_payload, sdslen(g->h2_payload));
+            robj *val = createStringObject(g->ext->h2_payload, sdslen(g->ext->h2_payload));
             if (o == NULL) {
                 robj *nl = createListListpackObject();
                 listTypePush(nl, val, toleft ? LIST_HEAD : LIST_TAIL);
@@ -11932,7 +11934,7 @@ static void csSubExec(client *sub) {
             decrRefCount(val);
         } else {
             /* SRCOP: pop the FROM end; delete the key when emptied (stock). */
-            int fromleft = (g->h2_flags & CS_H2F_FROM_LEFT) != 0;
+            int fromleft = (g->ext->h2_flags & CS_H2F_FROM_LEFT) != 0;
             robj *o = lookupKeyWrite(sub->db, sub->argv[1]);
             if (o != NULL && o->type == OBJ_LIST) {
                 robj *popped = listTypePop(o, fromleft ? LIST_HEAD : LIST_TAIL);
@@ -11970,17 +11972,17 @@ static void csSubExec(client *sub) {
                     atomic_fetch_or_explicit(&g->probe, bits, memory_order_relaxed);
                 }
             }
-        } else if (g->h2sub[sub->cssub_idx].action == CS_H2A_WRITE) {
+        } else if (g->ext->h2sub[sub->cssub_idx].action == CS_H2A_WRITE) {
             /* dst shard: SADD member (h2_payload = coordinator's private member copy). */
             robj *o = lookupKeyWrite(sub->db, sub->argv[1]);
             if (o == NULL) {
-                robj *ns = setTypeCreate(g->h2_payload, 1);
-                setTypeAdd(ns, g->h2_payload);
+                robj *ns = setTypeCreate(g->ext->h2_payload, 1);
+                setTypeAdd(ns, g->ext->h2_payload);
                 dbAdd(sub->db, sub->argv[1], &ns);
                 notifyKeyspaceEvent(NOTIFY_SET, "sadd", sub->argv[1], sub->db->id);
                 markDirty(1);
             } else if (o->type == OBJ_SET) {   /* type-conflict race => skip (bounded) */
-                if (setTypeAdd(o, g->h2_payload)) {
+                if (setTypeAdd(o, g->ext->h2_payload)) {
                     notifyKeyspaceEvent(NOTIFY_SET, "sadd", sub->argv[1], sub->db->id);
                     markDirty(1);
                 }
@@ -11989,7 +11991,7 @@ static void csSubExec(client *sub) {
             /* SRCOP: SREM member from src; delete src when emptied (stock behavior). */
             robj *o = lookupKeyWrite(sub->db, sub->argv[1]);
             if (o != NULL && o->type == OBJ_SET) {
-                if (setTypeRemove(o, g->h2_payload)) {
+                if (setTypeRemove(o, g->ext->h2_payload)) {
                     notifyKeyspaceEvent(NOTIFY_SET, "srem", sub->argv[1], sub->db->id);
                     if (setTypeSize(o) == 0) {
                         dbSyncDelete(sub->db, sub->argv[1]);
@@ -12044,6 +12046,7 @@ static void csSubExec(client *sub) {
 static struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     unsigned long long inline_hits;     /* arrays served from the inline region */
     unsigned long long heap_fallbacks;  /* arrays that spilled to zmalloc */
+    unsigned long long compact_groups;  /* groups that need only the three-line common header */
 } csg_alloc_ctr[TOMO_IO_THREADS_MAX + TOMO_EX_THREADS_MAX + 2];
 
 /* The region is sized PER COMMAND from the command's own shape, not from a knob and not from a
@@ -12061,14 +12064,24 @@ static struct __attribute__((aligned(CACHE_LINE_SIZE))) {
  *
  * Under-estimating is SAFE by construction: anything that does not fit spills to zmalloc, i.e.
  * an arithmetic slip degrades to the pre-inline behaviour, never to a bug. */
-static csGroup *csGroupNew(size_t want) {
+static csGroup *csGroupNew(size_t want, int with_ext) {
     if (want > CS_INLINE_MAX_BYTES) want = CS_INLINE_MAX_BYTES;   /* tail spills; see csgAlloc */
     want = (want + 7) & ~(size_t)7;          /* keep the region 8-aligned end to end */
-    size_t n = sizeof(csGroup) + want;       /* want==0 => exactly the pre-inline allocation */
-    csGroup *g = zmalloc(n);
-    memset(g, 0, n);                         /* header AND region: invariant 1 depends on this */
+    size_t n = sizeof(csGroup) + (with_ext ? sizeof(csGroupExt) : 0) + want;
+    void *raw = zmalloc(n + CACHE_LINE_SIZE + sizeof(void *));
+    uintptr_t aligned = ((uintptr_t)raw + sizeof(void *) + (CACHE_LINE_SIZE - 1)) &
+                        ~(uintptr_t)(CACHE_LINE_SIZE - 1);
+    ((void **)aligned)[-1] = raw;
+    csGroup *g = (csGroup *)aligned;
+    memset(g, 0, n);                 /* header, optional extension, and region: invariant 1 */
+    g->ext = with_ext ? (csGroupExt *)(g + 1) : NULL;
     g->inl_cap = (uint16_t)want;
+    if (!with_ext) csg_alloc_ctr[iotid].compact_groups++;
     return g;
+}
+
+static inline char *csgInlineBase(csGroup *g) {
+    return (char *)(g + 1) + (g->ext ? sizeof(*g->ext) : 0);
 }
 
 /* Inline demand of a GATHER/PIPELINE group, from the row + the key count + the fan-out bound.
@@ -12111,7 +12124,7 @@ static size_t csInlineWant(const csCmdSpec *s, int nkeys, int nsub, int posmap) 
 static inline void *csgAlloc(csGroup *g, size_t n) {
     n = (n + 7) & ~(size_t)7;
     if ((size_t)g->inl_used + n <= (size_t)g->inl_cap) {
-        void *p = (char *)g->inl + g->inl_used;
+        void *p = csgInlineBase(g) + g->inl_used;
         g->inl_used = (uint16_t)(g->inl_used + n);
         csg_alloc_ctr[iotid].inline_hits++;
         return p;
@@ -12132,12 +12145,12 @@ static inline void *csgCalloc(csGroup *g, size_t n) {
 
 static inline void csgFree(csGroup *g, void *p) {
     if (!p) return;
-    char *b = (char *)g->inl;
+    char *b = csgInlineBase(g);
     if ((char *)p >= b && (char *)p < b + g->inl_cap) return;   /* inline: dies with the group */
     zfree(p);
 }
 
-/* Reserve this group's written-key hash vector (see csGroup.key_h and csMsetReadIntersects).
+/* Reserve this group's written-key hash vector (see csGroupExt.key_h and csMsetReadIntersects).
  * From the group's OWN region, deliberately: that is what makes its lifetime identical to
  * key_sig's, which is the only lifetime the R1 walk may assume. Every caller sizes the region
  * with csKeyHashWant(), so the common shapes are served inline and this adds no allocation.
@@ -12153,8 +12166,8 @@ static inline void csgFree(csGroup *g, void *p) {
 static uint64_t *csGroupKeyHashReserve(csGroup *g, int nkeys) {
     size_t want = csKeyHashWant(nkeys);
     if (!want) return NULL;
-    g->key_h = csgAlloc(g, want);
-    return g->key_h;
+    g->ext->key_h = csgAlloc(g, want);
+    return g->ext->key_h;
 }
 
 static void csFreeSub(client *sub) {
@@ -12241,7 +12254,7 @@ typedef struct csCoalesceSpec {
     /* (cs_write DELETED 2026-07-28: task #48 widened migHoldKeyIfDraining to reads — see the FIX
      * comment in csBuildCoalescedSubs — which left this copy of the flag with no reader. The
      * csCmdSpec.cs_write it was copied from is still live: dispatchGather reads it.) */
-    int ***posmap;       /* if non-NULL (&g->mget_pos / &g->setop_pos): helper zcallocs *posmap[nsub] and fills per-sub position lists */
+    int ***posmap;       /* if non-NULL (&g->mget_pos / &g->ext->setop_pos): helper zcallocs *posmap[nsub] and fills per-sub position lists */
 } csCoalesceSpec;
 
 /* MSET value append — the S8-critical value-ownership logic, factored VERBATIM so the move/mask
@@ -12306,7 +12319,7 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
     memset(cnt, 0, sizeof(int) * nw);
     int wof_stk[128];
     int *wof = (nkeys <= 128) ? wof_stk : zmalloc(sizeof(int) * nkeys);   /* owning worker for key i */
-    int register_bag = g->mset_installs && !g->versioned_write &&
+    int register_bag = g->ext && g->ext->mset_installs && !g->versioned_write &&
                        (g->ctype == CS_MSET || g->ctype == CS_DEL ||
                         g->ctype == CS_MSETNX);
     /* Reserved BEFORE the routing pass so the pass that computes each key's hash for routing also
@@ -12335,7 +12348,7 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
         }
         wof[i] = w; cnt[w]++;
     }
-    if (key_h) g->key_h_n = nkeys;   /* commit: every slot above is now written */
+    if (key_h) g->ext->key_h_n = nkeys;   /* commit: every slot above is now written */
     int nsub = 0;
     for (int w = 0; w < nw; w++) if (cnt[w]) nsub++;
     g->nsub = nsub;
@@ -12384,7 +12397,7 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
  * stamp/cancel arrives on the already-existing owner lane and is drained
  * before the retried normal job. */
 static int csMsetnxAdvanceReservations(csGroup *g) {
-    if (!g->mset_installs || g->ctype != CS_MSETNX ||
+    if (!g->ext || !g->ext->mset_installs || g->ctype != CS_MSETNX ||
         !csMsetnxHasPendingPosition(g))
         return 0;
 
@@ -12396,7 +12409,7 @@ static int csMsetnxAdvanceReservations(csGroup *g) {
     int register_group = !g->versioned_write;
 
     /* NOTE for the R1 walk's lifetime argument: these subs are freed while the group is still
-     * linked in the pending FIFO. That is why the exact test reads g->key_h (inside g) and never
+     * linked in the pending FIFO. That is why the exact test reads g->ext->key_h (inside g) and never
      * g->subs[i]. */
     if (g->subs) {
         for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
@@ -12418,7 +12431,7 @@ static int csMsetnxAdvanceReservations(csGroup *g) {
     int target = server.num_workers;
     for (int i = 0; i < g->nkeys; i++) {
         owners[i] = -1;
-        if (g->msetnx_state[i] != CS_MSETNX_PENDING) continue;
+        if (g->ext->msetnx_state[i] != CS_MSETNX_PENDING) continue;
         robj *key = g->head->argv[1 + 2*i];
         if (__builtin_expect(atomic_load_explicit(&server.migration_active,
                                                   memory_order_relaxed), 0))
@@ -12500,32 +12513,32 @@ static void csSubCopyFullArgv(client *sub, client *head) {           /* same-sha
  * destination, a final source-tombstone wave completes its two-install group; COPY's reserved
  * destination is already its only final install. */
 static int csAtomicNxAdvance(csGroup *g) {
-    if (!g->versioned_write || !g->version_nx || !g->version_nx_reserving)
+    if (!g->versioned_write || !g->version_nx || !g->ext->version_nx_reserving)
         return 0;
 
     client *head = g->head;
-    if (g->msetnx_state[0] == CS_MSETNX_PRESENT) {
+    if (g->ext->msetnx_state[0] == CS_MSETNX_PRESENT) {
         if (atomic_load_explicit(&g->err,memory_order_relaxed) == CS_ERR_NONE)
             atomic_store_explicit(&g->err,CS_ERR_NX_EXISTS,memory_order_relaxed);
-        g->version_abort = 1;
-        g->version_nx_reserving = 0;
+        g->ext->version_abort = 1;
+        g->ext->version_nx_reserving = 0;
         cdbSlotClear(head->parent,head->cdb,head->fake_slot);
         csMsetInstallDone(g);
         return 1;
     }
 
     if (atomic_load_explicit(&g->msetnx_retry,memory_order_acquire) != 0 ||
-        g->msetnx_state[0] == CS_MSETNX_PENDING) {
+        g->ext->msetnx_state[0] == CS_MSETNX_PENDING) {
         for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
         csgFree(g,g->subs);
         atomic_store_explicit(&g->msetnx_retry,0,memory_order_relaxed);
         cdbSlotClear(head->parent,head->cdb,head->fake_slot);
 
         int wi = -1;
-        for (int i = 0; i < g->h2_nsub; i++)
-            if (g->h2sub[i].action == CS_H2A_WRITE) { wi = i; break; }
+        for (int i = 0; i < g->ext->h2_nsub; i++)
+            if (g->ext->h2sub[i].action == CS_H2A_WRITE) { wi = i; break; }
         serverAssert(wi >= 0);
-        robj *key = head->argv[g->h2sub[wi].key_argi];
+        robj *key = head->argv[g->ext->h2sub[wi].key_argi];
         if (__builtin_expect(atomic_load_explicit(&server.migration_active,
                                                   memory_order_relaxed),0))
             migHoldKeyIfDraining(key);
@@ -12540,8 +12553,8 @@ static int csAtomicNxAdvance(csGroup *g) {
         return 1;
     }
 
-    serverAssert(g->msetnx_state[0] == CS_MSETNX_RESERVED);
-    g->version_nx_reserving = 0;
+    serverAssert(g->ext->msetnx_state[0] == CS_MSETNX_RESERVED);
+    g->ext->version_nx_reserving = 0;
     if (g->ctype == CS_COPY) return 0;       /* R1 already published COPY's one install. */
 
     serverAssert(g->ctype == CS_RENAMENX);
@@ -12552,12 +12565,12 @@ static int csAtomicNxAdvance(csGroup *g) {
     if (__builtin_expect(atomic_load_explicit(&server.migration_active,memory_order_relaxed),0))
         migHoldKeyIfDraining(src);
     int shard = exIndexForKey(src->ptr,sdslen(src->ptr));
-    g->h2_nsub = 1;
-    g->h2sub[0] = (csH2Sub){CS_H2A_SRCOP,g->spec->src_argi};
+    g->ext->h2_nsub = 1;
+    g->ext->h2sub[0] = (csH2Sub){CS_H2A_SRCOP,g->spec->src_argi};
     g->nsub = 1;
     g->subs = csgAlloc(g,sizeof(client *));
     atomic_store_explicit(&g->pending,1,memory_order_relaxed);
-    g->version_commit_ready = 1;
+    g->ext->version_commit_ready = 1;
     client *sub = csMakeSub(g,0,shard,g->h2_dbid);
     csSubSetKeyArgv(sub,head,src);
     csPushSpin(shard,sub);
@@ -12615,9 +12628,9 @@ static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int fi
     csGroup *g = csGroupNew(csInlineWant(s, nkeys, nsub_hi, 1) +
                             12 * (size_t)nkeys +
                             8 * ((size_t)nkeys + 2 * (size_t)nsub_hi + 2) +
-                            (atomic_admission ? sizeof(csMsetInstall) + csKeyHashWant(1) : 0));
+                            (atomic_admission ? sizeof(csMsetInstall) + csKeyHashWant(1) : 0), 1);
     g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
-    g->spec = s; g->h2_dbid = dbid; g->h2_pexpireat = -1;
+    g->spec = s; g->h2_dbid = dbid; g->ext->h2_pexpireat = -1;
     head->csgroup = g;
     head->cdb = 0;
     if (head->tomo_read_snapshot_pinned) {
@@ -12627,51 +12640,51 @@ static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int fi
     }
     if (atomic_admission) {
         serverAssert(atomic_admission == 1);
-        g->version_install_expected = 1;
-        g->mset_installs = csgCalloc(g, sizeof(*g->mset_installs));
+        g->ext->version_install_expected = 1;
+        g->ext->mset_installs = csgCalloc(g, sizeof(*g->ext->mset_installs));
         serverAssert(s->dst_argi > 0);
         csAtomicSetDestinationSignature(g, head->argv[(int)s->dst_argi]);
         csMsetRegister(g);       /* R1 registration precedes the first source-read wave. */
     }
-    g->pipe_scard = csgCalloc(g, sizeof(long) * nkeys);
-    g->pipe_shard_of = csgAlloc(g, sizeof(int) * nkeys);
+    g->ext->pipe_scard = csgCalloc(g, sizeof(long) * nkeys);
+    g->ext->pipe_shard_of = csgAlloc(g, sizeof(int) * nkeys);
     g->pipe_stage = s->setop == CS_SETOP_INTER ? CS_PIPE_SIZES :
                     s->setop == CS_SETOP_UNION ? CS_PIPE_LOCAL_UNION : CS_PIPE_LOCAL_DIFF;
-    g->pipe_base_part = -1;
+    g->ext->pipe_base_part = -1;
     head->parent->cs_barrier = 1;   /* ORDER-2: later stages push from the drain thread */
     for (int i = 0; i < nkeys; i++) {
         robj *k = head->argv[first + i * s->key_stride];
         if (__builtin_expect(atomic_load_explicit(&server.migration_active,
                                                   memory_order_relaxed), 0))
             migHoldKeyIfDraining(k);
-        g->pipe_shard_of[i] = exIndexForKey(k->ptr, sdslen(k->ptr));
+        g->ext->pipe_shard_of[i] = exIndexForKey(k->ptr, sdslen(k->ptr));
     }
     if (s->setop != CS_SETOP_INTER) {
         /* Sized to the fan-out upper bound before the builder pushes anything. Workers publish
          * into their cssub_idx slot; pipe_npart is captured from the builder for drain cleanup. */
-        g->pipe_part = csgCalloc(g, sizeof(sds*) * nsub_hi);
-        g->pipe_partcnt = csgCalloc(g, sizeof(long) * nsub_hi);
-        g->pipe_partscore = csgCalloc(g, sizeof(double*) * nsub_hi);
+        g->ext->pipe_part = csgCalloc(g, sizeof(sds*) * nsub_hi);
+        g->ext->pipe_partcnt = csgCalloc(g, sizeof(long) * nsub_hi);
+        g->ext->pipe_partscore = csgCalloc(g, sizeof(double*) * nsub_hi);
         if ((s->ctype == CS_ZOP || s->ctype == CS_ZSTORE) &&
             s->setop == CS_SETOP_UNION) {
-            g->pipe_midx = csgCalloc(g, sizeof(long*) * nkeys);
-            g->pipe_zraw = csgCalloc(g, sizeof(double*) * nkeys);
-            g->pipe_key_part = csgAlloc(g, sizeof(int) * nkeys);
+            g->ext->pipe_midx = csgCalloc(g, sizeof(long*) * nkeys);
+            g->ext->pipe_zraw = csgCalloc(g, sizeof(double*) * nkeys);
+            g->ext->pipe_key_part = csgAlloc(g, sizeof(int) * nkeys);
         }
     }
     if (s->has_hop2) {
         g->has_hop2 = 1; g->phase = CS_PH_HOP1;
-        g->h2_op = s->h2_op; g->cs2_kind = s->cs2_kind;
-        g->h2sub[0] = (csH2Sub){CS_H2A_WRITE, s->dst_argi};
-        g->h2_nsub = 1;
+        g->ext->h2_op = s->h2_op; g->ext->cs2_kind = s->cs2_kind;
+        g->ext->h2sub[0] = (csH2Sub){CS_H2A_WRITE, s->dst_argi};
+        g->ext->h2_nsub = 1;
     }
     atomic_store_explicit(&g->err, CS_ERR_NONE, memory_order_relaxed);
     /* SIZES subs via the shared coalesced builder (one sub per distinct shard; posmap maps
      * each sub-local key back to its ORIGINAL position for pipe_scard writes). */
     csCoalesceSpec cs = { .first_argi = first, .key_stride = s->key_stride,
-                          .posmap = &g->setop_pos };
+                          .posmap = &g->ext->setop_pos };
     int initial_nsub = csBuildCoalescedSubs(head, g, nkeys, dbid, &cs, NULL);
-    if (s->setop != CS_SETOP_INTER) g->pipe_npart = initial_nsub;
+    if (s->setop != CS_SETOP_INTER) g->ext->pipe_npart = initial_nsub;
 }
 
 /* ee451 (F-pipeline): ONE logical read == ONE accounted lookup.
@@ -12854,10 +12867,10 @@ static void csPipeRecordZunionSource(csGroup *g, int keyidx, int part, robj *src
             raw[w] = zn->score; w++;
         }
     }
-    g->pipe_scard[keyidx] = w;
-    g->pipe_key_part[keyidx] = part;
-    g->pipe_midx[keyidx] = midx;
-    g->pipe_zraw[keyidx] = raw;
+    g->ext->pipe_scard[keyidx] = w;
+    g->ext->pipe_key_part[keyidx] = part;
+    g->ext->pipe_midx[keyidx] = midx;
+    g->ext->pipe_zraw[keyidx] = raw;
 }
 
 static void csPipeLocalReduce(client *sub, csGroup *g, int *pos, int isz) {
@@ -12866,19 +12879,19 @@ static void csPipeLocalReduce(client *sub, csGroup *g, int *pos, int isz) {
         csPipeUniq uniq; csPipeUniqInit(&uniq);
         for (int a = 1; a < sub->argc; a++) {
             int idx = pos ? pos[a - 1] : part;
-            g->pipe_key_part[idx] = part;
+            g->ext->pipe_key_part[idx] = part;
             robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
-            if (!o) { g->pipe_scard[idx] = 0; continue; }
+            if (!o) { g->ext->pipe_scard[idx] = 0; continue; }
             if (o->type != OBJ_SET && o->type != OBJ_ZSET) {
                 atomic_store_explicit(&g->err, CS_ERR_WRONGTYPE, memory_order_relaxed);
-                g->pipe_scard[idx] = 0;
+                g->ext->pipe_scard[idx] = 0;
                 continue;
             }
             csPipeRecordZunionSource(g, idx, part, o, &uniq);
         }
         dictRelease(uniq.map);             /* no key destructor: member array owns the SDSes */
-        g->pipe_part[part] = uniq.members;
-        g->pipe_partcnt[part] = uniq.count;
+        g->ext->pipe_part[part] = uniq.members;
+        g->ext->pipe_partcnt[part] = uniq.count;
         return;
     }
 
@@ -12892,18 +12905,18 @@ static void csPipeLocalReduce(client *sub, csGroup *g, int *pos, int isz) {
         for (int a = 1; a < sub->argc; a++) {
             int idx = pos ? pos[a - 1] : part;
             robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
-            if (!o) { g->pipe_scard[idx] = 0; continue; }
+            if (!o) { g->ext->pipe_scard[idx] = 0; continue; }
             if (o->type != OBJ_SET && o->type != OBJ_ZSET) {
                 atomic_store_explicit(&g->err, CS_ERR_WRONGTYPE, memory_order_relaxed);
-                g->pipe_scard[idx] = 0;
+                g->ext->pipe_scard[idx] = 0;
                 continue;
             }
-            g->pipe_scard[idx] = o->type == OBJ_SET ? (long)setTypeSize(o) : (long)zsetLength(o);
+            g->ext->pipe_scard[idx] = o->type == OBJ_SET ? (long)setTypeSize(o) : (long)zsetLength(o);
             csPipeZsetApplySource(local, o, idx != 0);
         }
-        g->pipe_base_part = part;
-        csPipeExportZset(local, &g->pipe_part[part], &g->pipe_partscore[part],
-                        &g->pipe_partcnt[part]);
+        g->ext->pipe_base_part = part;
+        csPipeExportZset(local, &g->ext->pipe_part[part], &g->ext->pipe_partscore[part],
+                        &g->ext->pipe_partcnt[part]);
         decrRefCount(local);
         return;
     }
@@ -12912,24 +12925,24 @@ static void csPipeLocalReduce(client *sub, csGroup *g, int *pos, int isz) {
     for (int a = 1; a < sub->argc; a++) {
         int idx = pos ? pos[a - 1] : part;
         robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
-        if (!o) { g->pipe_scard[idx] = 0; continue; }
+        if (!o) { g->ext->pipe_scard[idx] = 0; continue; }
         if ((!isz && o->type != OBJ_SET) ||
             (isz && o->type != OBJ_SET && o->type != OBJ_ZSET)) {
             atomic_store_explicit(&g->err, CS_ERR_WRONGTYPE, memory_order_relaxed);
-            g->pipe_scard[idx] = 0;
+            g->ext->pipe_scard[idx] = 0;
             continue;
         }
-        g->pipe_scard[idx] = o->type == OBJ_SET ? (long)setTypeSize(o) : (long)zsetLength(o);
+        g->ext->pipe_scard[idx] = o->type == OBJ_SET ? (long)setTypeSize(o) : (long)zsetLength(o);
         int remove = g->setop == CS_SETOP_DIFF && hasbase && idx != 0;
         csPipeSetApplySource(local, o, remove);
     }
-    if (g->setop == CS_SETOP_DIFF && hasbase) g->pipe_base_part = part;
-    csPipeExportSet(local, &g->pipe_part[part], &g->pipe_partcnt[part]);
+    if (g->setop == CS_SETOP_DIFF && hasbase) g->ext->pipe_base_part = part;
+    csPipeExportSet(local, &g->ext->pipe_part[part], &g->ext->pipe_partcnt[part]);
     decrRefCount(local);
 }
 
 static void csPipeSubExec(client *sub, csGroup *g) {
-    int *pos = g->setop_pos ? g->setop_pos[sub->cssub_idx] : NULL;
+    int *pos = g->ext->setop_pos ? g->ext->setop_pos[sub->cssub_idx] : NULL;
     int isz = (g->ctype == CS_ZOP || g->ctype == CS_ZSTORE || g->ctype == CS_ZCARD);
                                                             /* Z family: zsets + sets (score 1) */
     switch (g->pipe_stage) {
@@ -12948,7 +12961,7 @@ static void csPipeSubExec(client *sub, csGroup *g) {
                 else if (isz && o->type == OBJ_ZSET) sz = (long)zsetLength(o);
                 else atomic_store_explicit(&g->err, CS_ERR_WRONGTYPE, memory_order_relaxed);
             }
-            g->pipe_scard[idx] = sz;
+            g->ext->pipe_scard[idx] = sz;
         }
         break;
     case CS_PIPE_GATHER1: {
@@ -13003,11 +13016,11 @@ static void csPipeSubExec(client *sub, csGroup *g) {
             atomic_store_explicit(&g->err, CS_ERR_WRONGTYPE, memory_order_relaxed);
             break;
         }
-        g->pipe_cand = arr; g->pipe_ncand = w;
+        g->ext->pipe_cand = arr; g->ext->pipe_ncand = w;
         if (gsc) {                                     /* CS_ZOP: matrix column [smallest] */
-            g->pipe_cscore = zcalloc(sizeof(double) * (size_t)w * g->nkeys);
+            g->ext->pipe_cscore = zcalloc(sizeof(double) * (size_t)w * g->nkeys);
             for (long c = 0; c < w; c++)
-                g->pipe_cscore[c * g->nkeys + g->pipe_smallest] = gsc[c];
+                g->ext->pipe_cscore[c * g->nkeys + g->ext->pipe_smallest] = gsc[c];
             zfree(gsc);
         }
         break;
@@ -13018,20 +13031,20 @@ static void csPipeSubExec(client *sub, csGroup *g) {
          * argv slot -> original key position; coordinator-written pre-push). */
         for (int a = 1; a < sub->argc; a++) {
             robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], CS_PIPE_REREAD);
-            if (o == NULL) { memset(g->pipe_verdict, 0, g->pipe_ncand); return; }
-            int kpos = (a - 1 < g->pipe_probe_nk) ? g->pipe_probe_pos[a - 1] : 0;
+            if (o == NULL) { memset(g->ext->pipe_verdict, 0, g->ext->pipe_ncand); return; }
+            int kpos = (a - 1 < g->ext->pipe_probe_nk) ? g->ext->pipe_probe_pos[a - 1] : 0;
             if (o->type == OBJ_SET) {
-                for (long c = 0; c < g->pipe_ncand; c++) {
-                    if (!g->pipe_verdict[c]) continue;
-                    if (!setTypeIsMember(o, g->pipe_cand[c])) g->pipe_verdict[c] = 0;
-                    else if (g->pipe_cscore) g->pipe_cscore[c * g->nkeys + kpos] = 1.0;
+                for (long c = 0; c < g->ext->pipe_ncand; c++) {
+                    if (!g->ext->pipe_verdict[c]) continue;
+                    if (!setTypeIsMember(o, g->ext->pipe_cand[c])) g->ext->pipe_verdict[c] = 0;
+                    else if (g->ext->pipe_cscore) g->ext->pipe_cscore[c * g->nkeys + kpos] = 1.0;
                 }
             } else if (isz && o->type == OBJ_ZSET) {
-                for (long c = 0; c < g->pipe_ncand; c++) {
+                for (long c = 0; c < g->ext->pipe_ncand; c++) {
                     double s;
-                    if (!g->pipe_verdict[c]) continue;
-                    if (zsetScore(o, g->pipe_cand[c], &s) != C_OK) g->pipe_verdict[c] = 0;
-                    else if (g->pipe_cscore) g->pipe_cscore[c * g->nkeys + kpos] = s;
+                    if (!g->ext->pipe_verdict[c]) continue;
+                    if (zsetScore(o, g->ext->pipe_cand[c], &s) != C_OK) g->ext->pipe_verdict[c] = 0;
+                    else if (g->ext->pipe_cscore) g->ext->pipe_cscore[c * g->nkeys + kpos] = s;
                 }
             } else {
                 atomic_store_explicit(&g->err, CS_ERR_WRONGTYPE, memory_order_relaxed);
@@ -13059,35 +13072,35 @@ static int csPipeAdvance(csGroup *g) {
     if (g->pipe_stage == CS_PIPE_SIZES) {
         int sm = 0;
         for (int i = 1; i < g->nkeys; i++)
-            if (g->pipe_scard[i] < g->pipe_scard[sm]) sm = i;
-        g->pipe_smallest = sm;
-        if (g->pipe_scard[sm] == 0) return 0;          /* empty input => empty intersection */
+            if (g->ext->pipe_scard[i] < g->ext->pipe_scard[sm]) sm = i;
+        g->ext->pipe_smallest = sm;
+        if (g->ext->pipe_scard[sm] == 0) return 0;          /* empty input => empty intersection */
         /* Distinct-shard visit order for PROBE, ascending by that shard's smallest key size
          * (cheapest eliminators first => candidates shrink earliest). */
-        g->pipe_order = zmalloc(sizeof(int) * g->nkeys);
+        g->ext->pipe_order = zmalloc(sizeof(int) * g->nkeys);
         int ns = 0;
         for (int i = 0; i < g->nkeys; i++) {
-            int w = g->pipe_shard_of[i], seen = 0;
-            for (int j = 0; j < ns; j++) if (g->pipe_order[j] == w) { seen = 1; break; }
-            if (!seen) g->pipe_order[ns++] = w;
+            int w = g->ext->pipe_shard_of[i], seen = 0;
+            for (int j = 0; j < ns; j++) if (g->ext->pipe_order[j] == w) { seen = 1; break; }
+            if (!seen) g->ext->pipe_order[ns++] = w;
         }
         for (int i = 1; i < ns; i++) {                 /* insertion sort by shard-min size */
-            int v = g->pipe_order[i], j = i - 1;
+            int v = g->ext->pipe_order[i], j = i - 1;
             long vmin = -1, jmin;
             for (int k2 = 0; k2 < g->nkeys; k2++)
-                if (g->pipe_shard_of[k2] == v && (vmin < 0 || g->pipe_scard[k2] < vmin))
-                    vmin = g->pipe_scard[k2];
+                if (g->ext->pipe_shard_of[k2] == v && (vmin < 0 || g->ext->pipe_scard[k2] < vmin))
+                    vmin = g->ext->pipe_scard[k2];
             while (j >= 0) {
                 jmin = -1;
                 for (int k2 = 0; k2 < g->nkeys; k2++)
-                    if (g->pipe_shard_of[k2] == g->pipe_order[j] &&
-                        (jmin < 0 || g->pipe_scard[k2] < jmin)) jmin = g->pipe_scard[k2];
+                    if (g->ext->pipe_shard_of[k2] == g->ext->pipe_order[j] &&
+                        (jmin < 0 || g->ext->pipe_scard[k2] < jmin)) jmin = g->ext->pipe_scard[k2];
                 if (jmin <= vmin) break;
-                g->pipe_order[j+1] = g->pipe_order[j]; j--;
+                g->ext->pipe_order[j+1] = g->ext->pipe_order[j]; j--;
             }
-            g->pipe_order[j+1] = v;
+            g->ext->pipe_order[j+1] = v;
         }
-        g->pipe_nshard = ns; g->pipe_next = 0;
+        g->ext->pipe_nshard = ns; g->ext->pipe_next = 0;
         /* re-arm: GATHER1 single sub for the smallest key (re-route: bucket may have flipped) */
         csPipeFreeStageSubs(g);
         cdbSlotClear(head->parent, head->cdb, head->fake_slot);
@@ -13103,33 +13116,33 @@ static int csPipeAdvance(csGroup *g) {
     }
 
     if (g->pipe_stage == CS_PIPE_GATHER1) {
-        if (g->pipe_ncand == 0) return 0;              /* raced-empty => empty result */
-        g->pipe_verdict = zmalloc((size_t)g->pipe_ncand);
-        memset(g->pipe_verdict, 1, (size_t)g->pipe_ncand);
+        if (g->ext->pipe_ncand == 0) return 0;              /* raced-empty => empty result */
+        g->ext->pipe_verdict = zmalloc((size_t)g->ext->pipe_ncand);
+        memset(g->ext->pipe_verdict, 1, (size_t)g->ext->pipe_ncand);
     } else {                                            /* a PROBE hop completed: compact */
         long w = 0;
-        for (long c = 0; c < g->pipe_ncand; c++) {
-            if (g->pipe_verdict[c]) {
+        for (long c = 0; c < g->ext->pipe_ncand; c++) {
+            if (g->ext->pipe_verdict[c]) {
                 if (w != c) {
-                    g->pipe_cand[w] = g->pipe_cand[c];
-                    if (g->pipe_cscore)                /* matrix rows travel with candidates */
-                        memmove(&g->pipe_cscore[w * g->nkeys],
-                                &g->pipe_cscore[c * g->nkeys], sizeof(double) * g->nkeys);
+                    g->ext->pipe_cand[w] = g->ext->pipe_cand[c];
+                    if (g->ext->pipe_cscore)                /* matrix rows travel with candidates */
+                        memmove(&g->ext->pipe_cscore[w * g->nkeys],
+                                &g->ext->pipe_cscore[c * g->nkeys], sizeof(double) * g->nkeys);
                 }
-                g->pipe_verdict[w] = 1; w++;
-            } else sdsfree(g->pipe_cand[c]);
+                g->ext->pipe_verdict[w] = 1; w++;
+            } else sdsfree(g->ext->pipe_cand[c]);
         }
-        g->pipe_ncand = w;
+        g->ext->pipe_ncand = w;
         if (w == 0) return 0;                          /* nothing survives => done */
     }
 
     /* Launch the next PROBE hop: this shard's keys, excluding the smallest key itself. */
-    while (g->pipe_next < g->pipe_nshard) {
-        int shard = g->pipe_order[g->pipe_next++];
+    while (g->ext->pipe_next < g->ext->pipe_nshard) {
+        int shard = g->ext->pipe_order[g->ext->pipe_next++];
         int *kidx = zmalloc(sizeof(*kidx) * (size_t)g->nkeys);
         int nk = 0;
         for (int i = 0; i < g->nkeys; i++)
-            if (g->pipe_shard_of[i] == shard && i != g->pipe_smallest) kidx[nk++] = i;
+            if (g->ext->pipe_shard_of[i] == shard && i != g->ext->pipe_smallest) kidx[nk++] = i;
         if (nk == 0) { zfree(kidx); continue; }        /* only the smallest key lived here */
         csPipeFreeStageSubs(g);
         cdbSlotClear(head->parent, head->cdb, head->fake_slot);
@@ -13142,15 +13155,15 @@ static int csPipeAdvance(csGroup *g) {
         client *sub = csMakeSub(g, 0, w, dbid);
         sub->argv = csgAlloc(g, sizeof(robj*) * (nk + 1));
         sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
-        zfree(g->pipe_probe_pos);
-        g->pipe_probe_pos = zmalloc(sizeof(*g->pipe_probe_pos) * (size_t)nk);
+        zfree(g->ext->pipe_probe_pos);
+        g->ext->pipe_probe_pos = zmalloc(sizeof(*g->ext->pipe_probe_pos) * (size_t)nk);
         for (int i = 0; i < nk; i++) {
             robj *k = head->argv[first + kidx[i] * s->key_stride];
             sub->argv[i+1] = k; incrRefCount(k);
-            g->pipe_probe_pos[i] = kidx[i];            /* argv slot -> original key position */
+            g->ext->pipe_probe_pos[i] = kidx[i];            /* argv slot -> original key position */
         }
         zfree(kidx);
-        g->pipe_probe_nk = nk;
+        g->ext->pipe_probe_nk = nk;
         sub->argc = nk + 1;
         csPushSpin(w, sub);
         return 1;
@@ -13167,7 +13180,7 @@ static int csPipeAdvance(csGroup *g) {
  * migration semantics are identical to the gather subs they replace (same worker, same window).
  * Real-proc error/reply semantics are stock by construction. */
 static void dispatchLocalReal(client *head, int w, int dbid) {
-    csGroup *g = csGroupNew(sizeof(client *) * (size_t)(1 + head->argc));
+    csGroup *g = csGroupNew(sizeof(client *) * (size_t)(1 + head->argc), 1);
     g->ctype = CS_LOCAL; g->nkeys = 1; g->nsub = 1; g->head = head;
     g->subs = csgAlloc(g, sizeof(client*));
     atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
@@ -13297,10 +13310,14 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
                         * this is meant to remove for an allocation. */
                        csKeyHashWant(atomic_bag ? nkeys : 1);
     if (atomic_msetnx) inline_want += (size_t)nkeys;
-    csGroup *g = csGroupNew(inline_want);
+    int with_ext = atomic_write ||
+                   (s->ctype != CS_MGET && s->ctype != CS_MSET &&
+                    s->ctype != CS_DEL && s->ctype != CS_EXISTS);
+    csGroup *g = csGroupNew(inline_want, with_ext);
     g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
     g->spec = s; g->h2_dbid = dbid;
-    g->h2_pexpireat = -1;   /* 0 would mean "expire at epoch" if a hop2 restore ever ran */
+    if (g->ext)
+        g->ext->h2_pexpireat = -1;   /* 0 would mean "expire at epoch" if a hop2 restore ever ran */
     head->csgroup = g;
     head->cdb = 0;   /* group-head completion byte routes to CDB 0 (matches drain's clear) */
 
@@ -13315,12 +13332,12 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
         /* The pre-ring admission gate reserved exactly one inflight slot and rechecked the cutover
          * gate before this group could be constructed or publish an owner sub. */
         serverAssert(atomic_admission == 1);
-        g->version_install_expected = version_expected;
-        g->version_commit_ready = s->ctype == CS_MSET || s->ctype == CS_DEL;
-        g->mset_installs = csgCalloc(g, sizeof(*g->mset_installs) *
+        g->ext->version_install_expected = version_expected;
+        g->ext->version_commit_ready = s->ctype == CS_MSET || s->ctype == CS_DEL;
+        g->ext->mset_installs = csgCalloc(g, sizeof(*g->ext->mset_installs) *
                                        (size_t)version_expected);
         if (atomic_msetnx)
-            g->msetnx_state = csgCalloc(g, (size_t)nkeys);
+            g->ext->msetnx_state = csgCalloc(g, (size_t)nkeys);
         /* MSET/DEL/MSETNX accumulate their signature in the same routing-hash pass that builds
          * the first owner wave, then register immediately before its first push. Every other
          * atomic GATHER shape writes only the declared store destination. */
@@ -13336,23 +13353,23 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
     /* result slots — SETMEM on BOTH paths (as dispatchSetOp did); MGETVALS only when
      * coalesced (legacy per-key MGET splices sub buffers, no slots — as before). */
     if (s->res_kind == CS_RES_SETMEM || s->res_kind == CS_RES_ZSETMEM) {
-        g->setmem = csgCalloc(g, sizeof(sds*) * nkeys);   /* indexed by ORIGINAL key position */
-        g->setcnt = csgCalloc(g, sizeof(long) * nkeys);
+        g->ext->setmem = csgCalloc(g, sizeof(sds*) * nkeys);   /* indexed by ORIGINAL key position */
+        g->ext->setcnt = csgCalloc(g, sizeof(long) * nkeys);
         if (s->res_kind == CS_RES_ZSETMEM)
-            g->zscore = csgCalloc(g, sizeof(double*) * nkeys);  /* parallel score arrays */
+            g->ext->zscore = csgCalloc(g, sizeof(double*) * nkeys);  /* parallel score arrays */
     }
     if (s->res_kind == CS_RES_MGETVALS && coalesce)
         g->mget_vals = csgCalloc(g, sizeof(sds) * nkeys); /* position-indexed value slots (NULL = nil) */
     if (s->res_kind == CS_RES_KEYREPORT) {           /* LIVE: ordered MPOP/BPOP rows set it */
-        g->klen  = csgCalloc(g, sizeof(long) * nkeys);
-        g->ktype = csgCalloc(g, sizeof(uint8_t) * nkeys);
+        g->ext->klen  = csgCalloc(g, sizeof(long) * nkeys);
+        g->ext->ktype = csgCalloc(g, sizeof(uint8_t) * nkeys);
     }
     if (s->res_kind == CS_RES_XREAD) {
         /* Each owner sub writes only its assigned output clients. The pending barrier publishes
          * those private buffers before the coordinator splices them in original key order. */
-        g->xread_out = csgCalloc(g, sizeof(client*) * nkeys);
-        g->xread_status = csgCalloc(g, sizeof(uint8_t) * nkeys);
-        serverAssert(csXreadParse(head,NULL,NULL,&g->xread_count));
+        g->ext->xread_out = csgCalloc(g, sizeof(client*) * nkeys);
+        g->ext->xread_status = csgCalloc(g, sizeof(uint8_t) * nkeys);
+        serverAssert(csXreadParse(head,NULL,NULL,&g->ext->xread_count));
         for (int i = 0; i < nkeys; i++) {
             client *out = createPooledFakeClient(head->parent);
             out->csparent = g;
@@ -13360,7 +13377,7 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
             out->resp = head->resp;
             out->conn = head->conn;
             out->flags |= CLIENT_EX_PENDING;
-            g->xread_out[i] = out;
+            g->ext->xread_out[i] = out;
         }
     }
     /* LIVE ARM — do NOT remove on the strength of the old "dead at Step R (boot-asserted)"
@@ -13369,9 +13386,9 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
     if (s->has_hop2 && !atomic_msetnx) {
         g->has_hop2 = 1; g->phase = CS_PH_HOP1;
         head->parent->cs_barrier = 1;   /* ORDER-2: HOP2 subs push from the drain thread */
-        g->h2_op = s->h2_op; g->cs2_kind = s->cs2_kind; g->h2_nsub = 0;
-        if (s->dst_argi)   g->h2sub[g->h2_nsub++] = (csH2Sub){CS_H2A_WRITE, s->dst_argi};
-        if (s->h2_del_src) g->h2sub[g->h2_nsub++] = (csH2Sub){CS_H2A_SRCOP, s->src_argi};
+        g->ext->h2_op = s->h2_op; g->ext->cs2_kind = s->cs2_kind; g->ext->h2_nsub = 0;
+        if (s->dst_argi)   g->ext->h2sub[g->ext->h2_nsub++] = (csH2Sub){CS_H2A_WRITE, s->dst_argi};
+        if (s->h2_del_src) g->ext->h2sub[g->ext->h2_nsub++] = (csH2Sub){CS_H2A_SRCOP, s->src_argi};
         atomic_store_explicit(&g->err, CS_ERR_NONE, memory_order_relaxed);
     }
     if (atomic_msetnx)
@@ -13405,8 +13422,8 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
         .per_key_extra = atomic_msetnx ? 1 : s->per_key_extra,
         .posmap = atomic_msetnx ? &g->mget_pos :
                   (s->pos_kind == CS_POS_MGET)  ? &g->mget_pos  :
-                  (s->pos_kind == CS_POS_SETOP) ? &g->setop_pos :
-                  (s->pos_kind == CS_POS_XREAD) ? &g->xread_pos : NULL };
+                  (s->pos_kind == CS_POS_SETOP) ? &g->ext->setop_pos :
+                  (s->pos_kind == CS_POS_XREAD) ? &g->ext->xread_pos : NULL };
     csBuildCoalescedSubs(head, g, nkeys, dbid, &cs,
                          atomic_msetnx ? csAppendMsetnxReservationValue : s->append_extra);
 }
@@ -13440,7 +13457,7 @@ static void dispatchFanAll(client *head) {
     int nw = 0;
     for (int w = 0; w < server.num_workers; w++)
         if (tmWorkerLive(w)) lw[nw++] = w;
-    csGroup *g = csGroupNew(sizeof(client *) * (size_t)nw * (size_t)(1 + head->argc));
+    csGroup *g = csGroupNew(sizeof(client *) * (size_t)nw * (size_t)(1 + head->argc), 1);
     g->ctype = CS_KEYS; g->nkeys = nw; g->nsub = nw; g->head = head;
     g->subs = csgAlloc(g, sizeof(client*) * nw);
     atomic_store_explicit(&g->pending, nw, memory_order_relaxed);
@@ -13476,14 +13493,14 @@ static robj *csSetOpResultSet(csGroup *g) {
     if (g->setop == CS_SETOP_UNION) {
         robj *res = createIntsetObject();   /* setTypeAdd auto-upgrades encoding as needed */
         for (int i = 0; i < n; i++)
-            for (long k = 0; k < g->setcnt[i]; k++) setTypeAdd(res, g->setmem[i][k]);
+            for (long k = 0; k < g->ext->setcnt[i]; k++) setTypeAdd(res, g->ext->setmem[i][k]);
         return res;
     }
     if (g->setop == CS_SETOP_INTER) {
         /* Any missing/empty input => empty intersection (matches Redis, which returns ASAP on
          * an empty input) — and lets us skip EVERY temp-set build below. */
         for (int i = 0; i < n; i++)
-            if (g->setcnt[i] == 0) return createIntsetObject();
+            if (g->ext->setcnt[i] == 0) return createIntsetObject();
         /* ee451 review: drive the scan off the LARGEST input and build membership probes only
          * for the others. Per-member temp-set INSERTION costs more than a membership PROBE
          * (measured ~1.4x for sets, ~5x for zset skiplists), so exclude the biggest build —
@@ -13493,19 +13510,19 @@ static robj *csSetOpResultSet(csGroup *g) {
          * set reply order is unspecified (oracles sort). Same probe idiom as
          * csInterCardLimited — keep them consistent (SINTER never disagrees with SINTERCARD). */
         int d = 0;
-        for (int i = 1; i < n; i++) if (g->setcnt[i] > g->setcnt[d]) d = i;
+        for (int i = 1; i < n; i++) if (g->ext->setcnt[i] > g->ext->setcnt[d]) d = i;
         robj **S = zcalloc(sizeof(robj*) * n);   /* S[d] unused: raw array drives the scan */
         for (int i = 0; i < n; i++) {
             if (i == d) continue;
             S[i] = createIntsetObject();
-            for (long k = 0; k < g->setcnt[i]; k++) setTypeAdd(S[i], g->setmem[i][k]);
+            for (long k = 0; k < g->ext->setcnt[i]; k++) setTypeAdd(S[i], g->ext->setmem[i][k]);
         }
         robj *res = createIntsetObject();
-        for (long k = 0; k < g->setcnt[d]; k++) {
+        for (long k = 0; k < g->ext->setcnt[d]; k++) {
             int in_all = 1;
             for (int j = 0; j < n; j++)
-                if (j != d && !setTypeIsMember(S[j], g->setmem[d][k])) { in_all = 0; break; }
-            if (in_all) setTypeAdd(res, g->setmem[d][k]);
+                if (j != d && !setTypeIsMember(S[j], g->ext->setmem[d][k])) { in_all = 0; break; }
+            if (in_all) setTypeAdd(res, g->ext->setmem[d][k]);
         }
         for (int i = 0; i < n; i++) if (S[i]) decrRefCount(S[i]);
         zfree(S);
@@ -13516,16 +13533,16 @@ static robj *csSetOpResultSet(csGroup *g) {
      * array (one key's members are already distinct) and probe temp sets built for 1..n-1.
      * Empty base => empty result, skip all builds. */
     robj *res = createIntsetObject();
-    if (g->setcnt[0] == 0) return res;
+    if (g->ext->setcnt[0] == 0) return res;
     robj **S = zcalloc(sizeof(robj*) * n);       /* S[0] unused */
     for (int i = 1; i < n; i++) {
         S[i] = createIntsetObject();
-        for (long k = 0; k < g->setcnt[i]; k++) setTypeAdd(S[i], g->setmem[i][k]);
+        for (long k = 0; k < g->ext->setcnt[i]; k++) setTypeAdd(S[i], g->ext->setmem[i][k]);
     }
-    for (long k = 0; k < g->setcnt[0]; k++) {
+    for (long k = 0; k < g->ext->setcnt[0]; k++) {
         int in_others = 0;
-        for (int j = 1; j < n; j++) if (setTypeIsMember(S[j], g->setmem[0][k])) { in_others = 1; break; }
-        if (!in_others) setTypeAdd(res, g->setmem[0][k]);
+        for (int j = 1; j < n; j++) if (setTypeIsMember(S[j], g->ext->setmem[0][k])) { in_others = 1; break; }
+        if (!in_others) setTypeAdd(res, g->ext->setmem[0][k]);
     }
     for (int i = 1; i < n; i++) decrRefCount(S[i]);
     zfree(S);
@@ -13544,19 +13561,19 @@ static long long csInterCardLimited(csGroup *g, long long limit) {
     int n = g->nkeys;
     /* base = the smallest set: fewest candidates to scan (and if it is empty, the answer is 0). */
     int base = 0;
-    for (int i = 1; i < n; i++) if (g->setcnt[i] < g->setcnt[base]) base = i;
-    if (g->setcnt[base] == 0) return 0;      /* empty input => 0; skip all probe builds */
+    for (int i = 1; i < n; i++) if (g->ext->setcnt[i] < g->ext->setcnt[base]) base = i;
+    if (g->ext->setcnt[base] == 0) return 0;      /* empty input => 0; skip all probe builds */
     robj **S = zcalloc(sizeof(robj*) * n);   /* S[base] unused; the rest are membership probes */
     for (int i = 0; i < n; i++) {
         if (i == base) continue;
         S[i] = createIntsetObject();
-        for (long k = 0; k < g->setcnt[i]; k++) setTypeAdd(S[i], g->setmem[i][k]);
+        for (long k = 0; k < g->ext->setcnt[i]; k++) setTypeAdd(S[i], g->ext->setmem[i][k]);
     }
     long long card = 0;
-    for (long k = 0; k < g->setcnt[base]; k++) {
+    for (long k = 0; k < g->ext->setcnt[base]; k++) {
         int in_all = 1;
         for (int j = 0; j < n; j++)
-            if (j != base && !setTypeIsMember(S[j], g->setmem[base][k])) { in_all = 0; break; }
+            if (j != base && !setTypeIsMember(S[j], g->ext->setmem[base][k])) { in_all = 0; break; }
         if (in_all && ++card == limit && limit > 0) break;   /* early stop at LIMIT */
     }
     for (int i = 0; i < n; i++) if (S[i]) decrRefCount(S[i]);
@@ -13609,23 +13626,23 @@ static int csZParseOpts(client *head, int nkeys, double *weights) {
 static robj *csPipeResultSet(csGroup *g) {
     robj *res = createIntsetObject();
     if (g->setop == CS_SETOP_INTER) {
-        for (long i = 0; i < g->pipe_ncand; i++) setTypeAdd(res, g->pipe_cand[i]);
+        for (long i = 0; i < g->ext->pipe_ncand; i++) setTypeAdd(res, g->ext->pipe_cand[i]);
         return res;
     }
     if (g->setop == CS_SETOP_UNION) {
-        for (int p = 0; p < g->pipe_npart; p++)
-            for (long i = 0; i < g->pipe_partcnt[p]; i++)
-                setTypeAdd(res, g->pipe_part[p][i]);
+        for (int p = 0; p < g->ext->pipe_npart; p++)
+            for (long i = 0; i < g->ext->pipe_partcnt[p]; i++)
+                setTypeAdd(res, g->ext->pipe_part[p][i]);
         return res;
     }
-    if (g->pipe_base_part >= 0) {
-        int base = g->pipe_base_part;
-        for (long i = 0; i < g->pipe_partcnt[base]; i++)
-            setTypeAdd(res, g->pipe_part[base][i]);
-        for (int p = 0; p < g->pipe_npart; p++) {
+    if (g->ext->pipe_base_part >= 0) {
+        int base = g->ext->pipe_base_part;
+        for (long i = 0; i < g->ext->pipe_partcnt[base]; i++)
+            setTypeAdd(res, g->ext->pipe_part[base][i]);
+        for (int p = 0; p < g->ext->pipe_npart; p++) {
             if (p == base) continue;
-            for (long i = 0; i < g->pipe_partcnt[p]; i++)
-                setTypeRemove(res, g->pipe_part[p][i]);
+            for (long i = 0; i < g->ext->pipe_partcnt[p]; i++)
+                setTypeRemove(res, g->ext->pipe_part[p][i]);
         }
     }
     return res;
@@ -13646,18 +13663,18 @@ static robj *csPipeResultZset(csGroup *g) {
         for (int i = 0; i < n; i++) ord[i] = i;
         for (int i = 1; i < n; i++) {
             int v = ord[i], j = i - 1;
-            while (j >= 0 && (g->pipe_scard[ord[j]] > g->pipe_scard[v] ||
-                   (g->pipe_scard[ord[j]] == g->pipe_scard[v] && ord[j] > v))) {
+            while (j >= 0 && (g->ext->pipe_scard[ord[j]] > g->ext->pipe_scard[v] ||
+                   (g->ext->pipe_scard[ord[j]] == g->ext->pipe_scard[v] && ord[j] > v))) {
                 ord[j+1] = ord[j]; j--;
             }
             ord[j+1] = v;
         }
-        for (long c = 0; c < g->pipe_ncand; c++) {
-            double score = weights[ord[0]] * g->pipe_cscore[c * n + ord[0]];
+        for (long c = 0; c < g->ext->pipe_ncand; c++) {
+            double score = weights[ord[0]] * g->ext->pipe_cscore[c * n + ord[0]];
             if (isnan(score)) score = 0;
             for (int i = 1; i < n; i++)
-                csZAggr(&score, weights[ord[i]] * g->pipe_cscore[c * n + ord[i]], aggregate);
-            zsetAdd(res, score, g->pipe_cand[c], ZADD_IN_NONE, &out_flags, NULL);
+                csZAggr(&score, weights[ord[i]] * g->ext->pipe_cscore[c * n + ord[i]], aggregate);
+            zsetAdd(res, score, g->ext->pipe_cand[c], ZADD_IN_NONE, &out_flags, NULL);
         }
         zfree(ord); zfree(weights);
         return res;
@@ -13667,11 +13684,11 @@ static robj *csPipeResultZset(csGroup *g) {
         double *weights = zmalloc(sizeof(double) * (size_t)n);
         int aggregate = csZParseOpts(g->head, n, weights);
         for (int i = 0; i < n; i++) {
-            int part = g->pipe_key_part[i];
-            for (long k = 0; k < g->pipe_scard[i]; k++) {
-                long mi = g->pipe_midx[i][k];
-                sds member = g->pipe_part[part][mi];
-                double score = weights[i] * g->pipe_zraw[i][k];
+            int part = g->ext->pipe_key_part[i];
+            for (long k = 0; k < g->ext->pipe_scard[i]; k++) {
+                long mi = g->ext->pipe_midx[i][k];
+                sds member = g->ext->pipe_part[part][mi];
+                double score = weights[i] * g->ext->pipe_zraw[i][k];
                 if (isnan(score)) score = 0;
                 double old;
                 if (zsetScore(res, member, &old) == C_OK) {
@@ -13685,14 +13702,14 @@ static robj *csPipeResultZset(csGroup *g) {
         zfree(weights);
         return res;
     }
-    if (g->pipe_base_part >= 0) {
-        int base = g->pipe_base_part;
-        for (long i = 0; i < g->pipe_partcnt[base]; i++)
-            zsetAdd(res, g->pipe_partscore[base][i], g->pipe_part[base][i],
+    if (g->ext->pipe_base_part >= 0) {
+        int base = g->ext->pipe_base_part;
+        for (long i = 0; i < g->ext->pipe_partcnt[base]; i++)
+            zsetAdd(res, g->ext->pipe_partscore[base][i], g->ext->pipe_part[base][i],
                     ZADD_IN_NONE, &out_flags, NULL);
-        for (int p = 0; p < g->pipe_npart; p++) {
+        for (int p = 0; p < g->ext->pipe_npart; p++) {
             if (p == base) continue;
-            for (long i = 0; i < g->pipe_partcnt[p]; i++) zsetDel(res, g->pipe_part[p][i]);
+            for (long i = 0; i < g->ext->pipe_partcnt[p]; i++) zsetDel(res, g->ext->pipe_part[p][i]);
         }
     }
     return res;
@@ -13702,41 +13719,41 @@ static robj *csPipeResultZset(csGroup *g) {
  * STORE calls this after serializing the reduced result but before csLaunchHop2 repurposes the
  * group; read-only reassembly calls it before the generic group teardown. */
 static void csPipeFreeData(csGroup *g) {
-    if (g->pipe_cand) {
-        for (long i = 0; i < g->pipe_ncand; i++) sdsfree(g->pipe_cand[i]);
-        zfree(g->pipe_cand);
+    if (g->ext->pipe_cand) {
+        for (long i = 0; i < g->ext->pipe_ncand; i++) sdsfree(g->ext->pipe_cand[i]);
+        zfree(g->ext->pipe_cand);
     }
-    if (g->pipe_part) {
-        for (int p = 0; p < g->pipe_npart; p++) {
-            for (long i = 0; i < g->pipe_partcnt[p]; i++) sdsfree(g->pipe_part[p][i]);
-            zfree(g->pipe_part[p]);
-            zfree(g->pipe_partscore[p]);
+    if (g->ext->pipe_part) {
+        for (int p = 0; p < g->ext->pipe_npart; p++) {
+            for (long i = 0; i < g->ext->pipe_partcnt[p]; i++) sdsfree(g->ext->pipe_part[p][i]);
+            zfree(g->ext->pipe_part[p]);
+            zfree(g->ext->pipe_partscore[p]);
         }
-        csgFree(g, g->pipe_part);
-        csgFree(g, g->pipe_partcnt);
-        csgFree(g, g->pipe_partscore);
+        csgFree(g, g->ext->pipe_part);
+        csgFree(g, g->ext->pipe_partcnt);
+        csgFree(g, g->ext->pipe_partscore);
     }
-    if (g->pipe_midx) {
+    if (g->ext->pipe_midx) {
         for (int i = 0; i < g->nkeys; i++) {
-            zfree(g->pipe_midx[i]);
-            zfree(g->pipe_zraw[i]);
+            zfree(g->ext->pipe_midx[i]);
+            zfree(g->ext->pipe_zraw[i]);
         }
-        csgFree(g, g->pipe_midx);
-        csgFree(g, g->pipe_zraw);
-        csgFree(g, g->pipe_key_part);
+        csgFree(g, g->ext->pipe_midx);
+        csgFree(g, g->ext->pipe_zraw);
+        csgFree(g, g->ext->pipe_key_part);
     }
-    zfree(g->pipe_verdict);
-    zfree(g->pipe_cscore);
-    zfree(g->pipe_probe_pos);
-    zfree(g->pipe_order);
-    csgFree(g, g->pipe_scard);
-    csgFree(g, g->pipe_shard_of);
-    g->pipe_cand = NULL; g->pipe_ncand = 0;
-    g->pipe_part = NULL; g->pipe_partcnt = NULL; g->pipe_partscore = NULL;
-    g->pipe_midx = NULL; g->pipe_zraw = NULL; g->pipe_key_part = NULL;
-    g->pipe_verdict = NULL; g->pipe_cscore = NULL; g->pipe_probe_pos = NULL;
-    g->pipe_order = NULL; g->pipe_scard = NULL; g->pipe_shard_of = NULL;
-    g->pipe_npart = 0; g->pipe_stage = 0;
+    zfree(g->ext->pipe_verdict);
+    zfree(g->ext->pipe_cscore);
+    zfree(g->ext->pipe_probe_pos);
+    zfree(g->ext->pipe_order);
+    csgFree(g, g->ext->pipe_scard);
+    csgFree(g, g->ext->pipe_shard_of);
+    g->ext->pipe_cand = NULL; g->ext->pipe_ncand = 0;
+    g->ext->pipe_part = NULL; g->ext->pipe_partcnt = NULL; g->ext->pipe_partscore = NULL;
+    g->ext->pipe_midx = NULL; g->ext->pipe_zraw = NULL; g->ext->pipe_key_part = NULL;
+    g->ext->pipe_verdict = NULL; g->ext->pipe_cscore = NULL; g->ext->pipe_probe_pos = NULL;
+    g->ext->pipe_order = NULL; g->ext->pipe_scard = NULL; g->ext->pipe_shard_of = NULL;
+    g->ext->pipe_npart = 0; g->pipe_stage = 0;
 }
 
 /* Build the weighted UNION/INTER/DIFF result as a temp OBJ_ZSET (skiplist encoding => rank
@@ -13749,22 +13766,22 @@ static robj *csZSetOpResultZset(csGroup *g) {
     if (g->setop == CS_SETOP_UNION) {
         /* stock zeroes EVERY NaN contribution before aggregating */
         for (int i = 0; i < n; i++) {
-            for (long k = 0; k < g->setcnt[i]; k++) {
-                double sc = weights[i] * g->zscore[i][k];
+            for (long k = 0; k < g->ext->setcnt[i]; k++) {
+                double sc = weights[i] * g->ext->zscore[i][k];
                 if (isnan(sc)) sc = 0;
                 double old;
-                if (zsetScore(res, g->setmem[i][k], &old) == C_OK) {
+                if (zsetScore(res, g->ext->setmem[i][k], &old) == C_OK) {
                     csZAggr(&old, sc, aggregate);
-                    zsetAdd(res, old, g->setmem[i][k], ZADD_IN_NONE, &out_flags, NULL);
+                    zsetAdd(res, old, g->ext->setmem[i][k], ZADD_IN_NONE, &out_flags, NULL);
                 } else {
-                    zsetAdd(res, sc, g->setmem[i][k], ZADD_IN_NONE, &out_flags, NULL);
+                    zsetAdd(res, sc, g->ext->setmem[i][k], ZADD_IN_NONE, &out_flags, NULL);
                 }
             }
         }
     } else if (g->setop == CS_SETOP_INTER) {
         /* Any empty input => empty intersection; skip every temp-zset build. */
         int has_empty = 0;
-        for (int i = 0; i < n; i++) if (g->setcnt[i] == 0) { has_empty = 1; break; }
+        for (int i = 0; i < n; i++) if (g->ext->setcnt[i] == 0) { has_empty = 1; break; }
         if (!has_empty) {
             /* ee451 review: drive the scan off the LARGEST input and build temp zsets only for
              * the others. The old code always scanned input 0 raw and REBUILT every other input
@@ -13777,27 +13794,27 @@ static robj *csZSetOpResultZset(csGroup *g) {
              * input 0's NaN, so ZINTER 2 big small WEIGHTS 1 inf returned 0 where stock (small
              * sorts first, inf*score NaN->0, then SUM big's contribution) returns the score. */
             int d = 0;
-            for (int i = 1; i < n; i++) if (g->setcnt[i] > g->setcnt[d]) d = i;
+            for (int i = 1; i < n; i++) if (g->ext->setcnt[i] > g->ext->setcnt[d]) d = i;
             int *ord = zmalloc(sizeof(int) * n);   /* fold order: (setcnt, index) ascending */
             for (int i = 0; i < n; i++) ord[i] = i;
             for (int i = 1; i < n; i++) {          /* insertion sort — n is small */
                 int v = ord[i], j = i - 1;
-                while (j >= 0 && (g->setcnt[ord[j]] > g->setcnt[v] ||
-                       (g->setcnt[ord[j]] == g->setcnt[v] && ord[j] > v))) { ord[j+1] = ord[j]; j--; }
+                while (j >= 0 && (g->ext->setcnt[ord[j]] > g->ext->setcnt[v] ||
+                       (g->ext->setcnt[ord[j]] == g->ext->setcnt[v] && ord[j] > v))) { ord[j+1] = ord[j]; j--; }
                 ord[j+1] = v;
             }
             robj **Z = zcalloc(sizeof(robj*) * n); /* Z[d] unused: raw arrays drive the scan */
             for (int i = 0; i < n; i++) {
                 if (i == d) continue;
                 Z[i] = createZsetObject();
-                for (long k = 0; k < g->setcnt[i]; k++)
-                    zsetAdd(Z[i], g->zscore[i][k], g->setmem[i][k], ZADD_IN_NONE, &out_flags, NULL);
+                for (long k = 0; k < g->ext->setcnt[i]; k++)
+                    zsetAdd(Z[i], g->ext->zscore[i][k], g->ext->setmem[i][k], ZADD_IN_NONE, &out_flags, NULL);
             }
             double *contrib = zmalloc(sizeof(double) * n);
-            for (long k = 0; k < g->setcnt[d]; k++) {
-                sds m = g->setmem[d][k];
+            for (long k = 0; k < g->ext->setcnt[d]; k++) {
+                sds m = g->ext->setmem[d][k];
                 int in_all = 1;
-                contrib[d] = weights[d] * g->zscore[d][k];
+                contrib[d] = weights[d] * g->ext->zscore[d][k];
                 for (int i = 0; i < n; i++) {
                     if (i == d) continue;
                     double si;
@@ -13817,20 +13834,20 @@ static robj *csZSetOpResultZset(csGroup *g) {
     } else {
         /* DIFF: key0 members absent everywhere else, raw key0 scores. Driver MUST stay input 0
          * (asymmetric); temp zsets only for 1..n-1 (as before). Empty base => empty result. */
-        if (g->setcnt[0] > 0) {
+        if (g->ext->setcnt[0] > 0) {
             robj **Z = zmalloc(sizeof(robj*) * n);
             for (int i = 1; i < n; i++) {
                 Z[i] = createZsetObject();
-                for (long k = 0; k < g->setcnt[i]; k++)
-                    zsetAdd(Z[i], g->zscore[i][k], g->setmem[i][k], ZADD_IN_NONE, &out_flags, NULL);
+                for (long k = 0; k < g->ext->setcnt[i]; k++)
+                    zsetAdd(Z[i], g->ext->zscore[i][k], g->ext->setmem[i][k], ZADD_IN_NONE, &out_flags, NULL);
             }
-            for (long k = 0; k < g->setcnt[0]; k++) {
-                sds m = g->setmem[0][k];
+            for (long k = 0; k < g->ext->setcnt[0]; k++) {
+                sds m = g->ext->setmem[0][k];
                 int in_others = 0;
                 double si;
                 for (int i = 1; i < n; i++)
                     if (zsetScore(Z[i], m, &si) == C_OK) { in_others = 1; break; }
-                if (!in_others) zsetAdd(res, g->zscore[0][k], m, ZADD_IN_NONE, &out_flags, NULL);
+                if (!in_others) zsetAdd(res, g->ext->zscore[0][k], m, ZADD_IN_NONE, &out_flags, NULL);
             }
             for (int i = 1; i < n; i++) decrRefCount(Z[i]);
             zfree(Z);
@@ -13871,10 +13888,10 @@ static void csSortReleaseStage(csGroup *g) {
         csgFree(g,g->mget_vals);
         g->mget_vals = NULL;
     }
-    if (g->sort_fields) {
-        for (int i = 0; i < g->nkeys; i++) sdsfree(g->sort_fields[i]);
-        zfree(g->sort_fields);
-        g->sort_fields = NULL;
+    if (g->ext->sort_fields) {
+        for (int i = 0; i < g->nkeys; i++) sdsfree(g->ext->sort_fields[i]);
+        zfree(g->ext->sort_fields);
+        g->ext->sort_fields = NULL;
     }
     g->nkeys = 0;
 }
@@ -13889,7 +13906,7 @@ static int csSortStartDeref(csGroup *g, int stage, robj **keys, sds *fields, int
     csSortReleaseStage(g);
     g->sort_stage = stage;
     g->nkeys = nkeys;
-    g->sort_fields = fields;
+    g->ext->sort_fields = fields;
     g->mget_vals = csgCalloc(g,sizeof(sds) * (size_t)nkeys);
 
     robj **argv = zmalloc(sizeof(*argv) * (size_t)(nkeys + 1));
@@ -13916,32 +13933,32 @@ static int csSortStartDeref(csGroup *g, int stage, robj **keys, sds *fields, int
  * list, matching stock's STORE representation. */
 static void csSortFinish(csGroup *g) {
     client *head = g->head;
-    if (!sortXShardHasStore(g->sort_ctx)) {
+    if (!sortXShardHasStore(g->ext->sort_ctx)) {
         csSortReleaseStage(g);
         g->sort_stage = CS_SORT_DONE;
         return;
     }
 
-    robj *res = sortXShardStoreResultObject(g->sort_ctx);
-    g->cs2_intreply = (long long)sortXShardOutputLen(g->sort_ctx);
+    robj *res = sortXShardStoreResultObject(g->ext->sort_ctx);
+    g->ext->cs2_intreply = (long long)sortXShardOutputLen(g->ext->sort_ctx);
     int dst_argi = csSortStoreDstArgi(head);
     serverAssert(dst_argi > 0 && dst_argi < head->argc);
-    if (g->cs2_intreply > 0) {
+    if (g->ext->cs2_intreply > 0) {
         rio r;
         rioInitWithBuffer(&r,sdsempty());
         rdbSaveObjectType(&r,res);
         rdbSaveObject(&r,res,head->argv[dst_argi],g->h2_dbid);
-        g->h2_payload = r.io.buffer.ptr;
+        g->ext->h2_payload = r.io.buffer.ptr;
     }
     decrRefCount(res);
     csSortReleaseStage(g);
     g->sort_stage = 0;
     g->has_hop2 = 1;
     g->phase = CS_PH_HOP1;
-    g->h2_op = CS_H2_PLAN;
-    g->cs2_kind = CS2_INT;
-    g->h2_nsub = 1;
-    g->h2sub[0] = (csH2Sub){ .action = CS_H2A_WRITE, .key_argi = dst_argi };
+    g->ext->h2_op = CS_H2_PLAN;
+    g->ext->cs2_kind = CS2_INT;
+    g->ext->h2_nsub = 1;
+    g->ext->h2sub[0] = (csH2Sub){ .action = CS_H2A_WRITE, .key_argi = dst_argi };
 }
 
 /* Drain-thread T3 driver:
@@ -13956,33 +13973,33 @@ static int csSortAdvance(csGroup *g) {
 
     if (g->sort_stage == CS_SORT_SOURCE) {
         if (atomic_load_explicit(&g->err,memory_order_relaxed) != CS_ERR_NONE) return 0;
-        serverAssert(g->sort_ctx != NULL);
-        if (sortXShardNeedsBy(g->sort_ctx)) {
-            n = sortXShardBuildByDeref(g->sort_ctx,&keys,&fields);
+        serverAssert(g->ext->sort_ctx != NULL);
+        if (sortXShardNeedsBy(g->ext->sort_ctx)) {
+            n = sortXShardBuildByDeref(g->ext->sort_ctx,&keys,&fields);
             serverAssert(n > 0);
             return csSortStartDeref(g,CS_SORT_BY,keys,fields,n);
         }
-        n = sortXShardBuildGetDeref(g->sort_ctx,&keys,&fields);
+        n = sortXShardBuildGetDeref(g->ext->sort_ctx,&keys,&fields);
         if (n > 0) return csSortStartDeref(g,CS_SORT_GET,keys,fields,n);
         csSortFinish(g);
         return 0;
     }
 
     if (g->sort_stage == CS_SORT_BY) {
-        if (sortXShardApplyBy(g->sort_ctx,g->mget_vals) != C_OK) {
+        if (sortXShardApplyBy(g->ext->sort_ctx,g->mget_vals) != C_OK) {
             atomic_store_explicit(&g->err,CS_ERR_SORTNUM,memory_order_relaxed);
             csSortReleaseStage(g);
             g->sort_stage = CS_SORT_DONE;
             return 0;
         }
-        n = sortXShardBuildGetDeref(g->sort_ctx,&keys,&fields);
+        n = sortXShardBuildGetDeref(g->ext->sort_ctx,&keys,&fields);
         if (n > 0) return csSortStartDeref(g,CS_SORT_GET,keys,fields,n);
         csSortFinish(g);
         return 0;
     }
 
     if (g->sort_stage == CS_SORT_GET) {
-        sortXShardApplyGet(g->sort_ctx,g->mget_vals);
+        sortXShardApplyGet(g->ext->sort_ctx,g->mget_vals);
         csSortFinish(g);
         return 0;
     }
@@ -13995,14 +14012,14 @@ static void dispatchSortByGet(client *head, const csCmdSpec *s, int atomic_admis
     if (__builtin_expect(atomic_load_explicit(&server.migration_active,memory_order_relaxed),0))
         migHoldKeyIfDraining(src);
     int shard = exIndexForKey(src->ptr,sdslen(src->ptr));
-    csGroup *g = csGroupNew(CS_INLINE_MAX_BYTES);
+    csGroup *g = csGroupNew(CS_INLINE_MAX_BYTES, 1);
     g->ctype = CS_SORTSTORE;
     g->nkeys = 1;
     g->nsub = 1;
     g->head = head;
     g->spec = s;
     g->h2_dbid = dbid;
-    g->h2_pexpireat = -1;
+    g->ext->h2_pexpireat = -1;
     g->sort_stage = CS_SORT_SOURCE;
     g->subs = csgAlloc(g,sizeof(client *));
     atomic_store_explicit(&g->pending,1,memory_order_relaxed);
@@ -14016,8 +14033,8 @@ static void dispatchSortByGet(client *head, const csCmdSpec *s, int atomic_admis
     }
     if (atomic_admission) {
         serverAssert(atomic_admission == 1);
-        g->version_install_expected = 1;
-        g->mset_installs = csgCalloc(g,sizeof(*g->mset_installs));
+        g->ext->version_install_expected = 1;
+        g->ext->mset_installs = csgCalloc(g,sizeof(*g->ext->mset_installs));
         int dst_argi = s->dynamic_dst_argi(head);
         serverAssert(dst_argi > 0 && dst_argi < head->argc);
         csAtomicSetDestinationSignature(g, head->argv[dst_argi]);
@@ -14041,7 +14058,7 @@ static void dispatchSortByGet(client *head, const csCmdSpec *s, int atomic_admis
 /* universal xshard: 2-hop dispatcher (registry route CS_RT_TWOHOP; RENAME, ZRANGESTORE, and
  * conditional moves). Same-shard => ONE sub carries the FULL original argv and the worker runs the
  * real proc (typed/normal; reply spliced at reassemble). Cross-shard => HOP1 gather sub(s) on the
- * src shard (+ a dst probe sub when the row asks, step 4+); the drain launches the g->h2sub[]
+ * src shard (+ a dst probe sub when the row asks, step 4+); the drain launches the g->ext->h2sub[]
  * plan stamped HERE from the row — csLaunchHop2 never reads head->argv positions directly. For
  * RENAME the HOP1 sub reads+serializes+deletes src (or flags NOKEY) and HOP2 RESTOREs on dst;
  * delete-in-HOP1 is safe because RENAME always overwrites (transient state is MISSING). */
@@ -14077,9 +14094,9 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admissio
                         (size_t)head->argc : h1_argv + h2_argv;
     csGroup *g = csGroupNew(sizeof(client *) * ((size_t)(2 + CS_H2_MAX) + argv_slots) +
                             /* R1 exact-overlap vector: dst, plus src on the two-write shapes. */
-                            (atomic_admission ? csKeyHashWant(2) : 0));
+                            (atomic_admission ? csKeyHashWant(2) : 0), 1);
     g->ctype = s->ctype; g->nkeys = 1; g->head = head; g->spec = s;
-    g->h2_pexpireat = -1; g->h2_dbid = dbid;
+    g->ext->h2_pexpireat = -1; g->h2_dbid = dbid;
     head->csgroup = g; head->cdb = 0;
     atomic_store_explicit(&g->err, CS_ERR_NONE, memory_order_relaxed);
     if (head->tomo_read_snapshot_pinned) {
@@ -14096,7 +14113,7 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admissio
          * loss, review finding #2). Flag it => forced through the 2-hop path, which binds
          * exThreads[w].db[dbid] on both hops. */
         for (int j = 3; j < head->argc; j++) {
-            if (!strcasecmp(head->argv[j]->ptr, "replace")) { g->h2_flags |= CS_H2F_REPLACE; continue; }
+            if (!strcasecmp(head->argv[j]->ptr, "replace")) { g->ext->h2_flags |= CS_H2F_REPLACE; continue; }
             long long n;                                     /* "db n" (validated) */
             getLongLongFromObject(head->argv[j+1], &n); g->h2_dbid = (int)n; j++;
             copy_has_db = 1;
@@ -14110,19 +14127,19 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admissio
             fromleft = !strcasecmp(head->argv[3]->ptr, "left");
             toleft   = !strcasecmp(head->argv[4]->ptr, "left");
         }
-        if (fromleft) g->h2_flags |= CS_H2F_FROM_LEFT;
-        if (toleft)   g->h2_flags |= CS_H2F_TO_LEFT;
+        if (fromleft) g->ext->h2_flags |= CS_H2F_FROM_LEFT;
+        if (toleft)   g->ext->h2_flags |= CS_H2F_TO_LEFT;
     }
 
     if (atomic_admission) {
         serverAssert(atomic_admission == 1);
-        g->version_install_expected =
+        g->ext->version_install_expected =
             (s->ctype == CS_RENAME || s->ctype == CS_RENAMENX) ? 2 : 1;
         g->version_nx = s->ctype == CS_RENAMENX ||
-                        (s->ctype == CS_COPY && !(g->h2_flags & CS_H2F_REPLACE));
-        g->mset_installs = csgCalloc(g,sizeof(*g->mset_installs) *
-                                       (size_t)g->version_install_expected);
-        if (g->version_nx) g->msetnx_state = csgCalloc(g,1);
+                        (s->ctype == CS_COPY && !(g->ext->h2_flags & CS_H2F_REPLACE));
+        g->ext->mset_installs = csgCalloc(g,sizeof(*g->ext->mset_installs) *
+                                       (size_t)g->ext->version_install_expected);
+        if (g->version_nx) g->ext->msetnx_state = csgCalloc(g,1);
         /* COPY and whole-value stores write only dst. RENAME/RENAMENX additionally install a
          * source tombstone. Reuse the two routing hashes already computed above — the signature
          * is unchanged (csHashSignature reads the low 6 bits, which the bucket mask preserves),
@@ -14134,7 +14151,7 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admissio
         if (kh) {
             kh[0] = dst_h;
             if (nwrite == 2) kh[1] = src_h;
-            g->key_h_n = nwrite;      /* publish only once every slot is written */
+            g->ext->key_h_n = nwrite;      /* publish only once every slot is written */
         }
         head->tomo_bkt = dst_bkt;
         head->tomo_bkt_ptr = dst->ptr;
@@ -14183,13 +14200,13 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admissio
      * (+ sub 1 = [CMD dst] probe when h1_probe_dst, step 4+ — verdict lands in g->probe). */
     g->has_hop2 = 1; g->phase = CS_PH_HOP1;
     head->parent->cs_barrier = 1;   /* ORDER-2: HOP2 subs push from the drain thread */
-    g->h2_op = s->h2_op; g->cs2_kind = s->cs2_kind; g->h2_nsub = 0;
+    g->ext->h2_op = s->h2_op; g->ext->cs2_kind = s->cs2_kind; g->ext->h2_nsub = 0;
     if (atomic_admission && s->ctype == CS_RENAME)
-        g->h2sub[g->h2_nsub++] = (csH2Sub){ .action = CS_H2A_SRCOP,
+        g->ext->h2sub[g->ext->h2_nsub++] = (csH2Sub){ .action = CS_H2A_SRCOP,
                                             .key_argi = s->src_argi };
-    g->h2sub[g->h2_nsub++] = (csH2Sub){ .action = CS_H2A_WRITE, .key_argi = dst_argi };
+    g->ext->h2sub[g->ext->h2_nsub++] = (csH2Sub){ .action = CS_H2A_WRITE, .key_argi = dst_argi };
     if ((!atomic_admission && s->h2_del_src))
-        g->h2sub[g->h2_nsub++] = (csH2Sub){ .action = CS_H2A_SRCOP, .key_argi = s->src_argi };
+        g->ext->h2sub[g->ext->h2_nsub++] = (csH2Sub){ .action = CS_H2A_SRCOP, .key_argi = s->src_argi };
     if (mig) {
         /* hold BOTH keys THEN re-read shards (finding #1: HOP1 subs were routed with pre-hold
          * shard values, so a dst-probe could land on the stale owner after a DRAINING flip). */
@@ -14235,7 +14252,7 @@ static void csHopCommit(csGroup *g, int nsub, int phase, const int *shards) {
 }
 
 /* universal xshard: HOP2 launcher — runs on the IO DRAIN thread after the HOP1 barrier (a worker
- * cannot push to an SPSC queue). Generalized off the registry-stamped g->h2sub[] plan: per-ctype
+ * cannot push to an SPSC queue). Generalized off the registry-stamped g->ext->h2sub[] plan: per-ctype
  * PREP (may consume probe verdicts / build h2_payload / rewrite the plan), then free the HOP1
  * subs and launch the plan via csHopCommit. Returns 1 iff HOP2 sub(s) were pushed (head stays in
  * flight: no retire / flushid++ / replyWorking--). Returns 0 with HOP1 subs INTACT => the caller
@@ -14248,8 +14265,8 @@ static int csLaunchHop2(csGroup *g) {
 
     /* --- per-ctype HOP2 PREP (deliberately a switch — S8 audit locality). Runs BEFORE HOP1
      * subs are freed so it may read probe results. May set g->err (=> return 0), rewrite
-     * g->h2sub[] (step 9 MPOP winner), or serialize a coordinator-computed payload into
-     * g->h2_payload (steps 5-7). RENAME needs nothing (HOP1's worker built the payload). --- */
+     * g->ext->h2sub[] (step 9 MPOP winner), or serialize a coordinator-computed payload into
+     * g->ext->h2_payload (steps 5-7). RENAME needs nothing (HOP1's worker built the payload). --- */
     switch (g->ctype) {
     case CS_RENAME: break;
     case CS_ZRANGESTORE:
@@ -14291,11 +14308,11 @@ static int csLaunchHop2(csGroup *g) {
          * empty result is nil; T4 BPOP instead fail-safe-rejects because it would block. */
         int winner = -1;
         for (int i = 0; i < g->nkeys; i++) {
-            if (g->ktype[i] == 2) {
+            if (g->ext->ktype[i] == 2) {
                 atomic_store_explicit(&g->err, CS_ERR_WRONGTYPE, memory_order_relaxed);
                 break;
             }
-            if (g->klen[i] > 0) { winner = i; break; }
+            if (g->ext->klen[i] > 0) { winner = i; break; }
         }
         if (atomic_load_explicit(&g->err, memory_order_relaxed) == CS_ERR_NONE) {
             if (winner < 0) {
@@ -14303,9 +14320,9 @@ static int csLaunchHop2(csGroup *g) {
                                       csIsBpopType(g->ctype) ? CS_ERR_WOULDBLOCK : CS_ERR_NOKEY,
                                       memory_order_relaxed);
             } else {
-                g->h2sub[0] = (csH2Sub){ .action = CS_H2A_SRCOP,
+                g->ext->h2sub[0] = (csH2Sub){ .action = CS_H2A_SRCOP,
                                          .key_argi = csFirstKeyArg(g->spec) + winner };
-                g->h2_nsub = 1;
+                g->ext->h2_nsub = 1;
             }
         }
         break;
@@ -14317,12 +14334,12 @@ static int csLaunchHop2(csGroup *g) {
         int reduced = g->pipe_stage != 0;
         robj *res = reduced ? csPipeResultSet(g) : csSetOpResultSet(g);
         long long card = (long long)setTypeSize(res);
-        g->cs2_intreply = card;
+        g->ext->cs2_intreply = card;
         if (card > 0) {
             rio r; rioInitWithBuffer(&r, sdsempty());
             rdbSaveObjectType(&r, res);
             rdbSaveObject(&r, res, head->argv[(int)g->spec->dst_argi], g->h2_dbid);
-            g->h2_payload = r.io.buffer.ptr;
+            g->ext->h2_payload = r.io.buffer.ptr;
         }
         decrRefCount(res);
         if (reduced) csPipeFreeData(g);
@@ -14347,7 +14364,7 @@ static int csLaunchHop2(csGroup *g) {
             sl[i] = sp[i] ? sdslen(g->mget_vals[i]) : 0;
             if (sl[i] > maxlen) maxlen = sl[i];
         }
-        g->cs2_intreply = (long long)maxlen;
+        g->ext->cs2_intreply = (long long)maxlen;
         if (maxlen == 0) { zfree(sp); zfree(sl); break; }
         sds out = sdsnewlen(NULL, maxlen);
         for (size_t b = 0; b < maxlen; b++) {
@@ -14367,7 +14384,7 @@ static int csLaunchHop2(csGroup *g) {
         rio r; rioInitWithBuffer(&r, sdsempty());
         rdbSaveObjectType(&r, res);
         rdbSaveObject(&r, res, head->argv[(int)g->spec->dst_argi], g->h2_dbid);
-        g->h2_payload = r.io.buffer.ptr;
+        g->ext->h2_payload = r.io.buffer.ptr;
         decrRefCount(res);
         break;
     }
@@ -14393,7 +14410,7 @@ static int csLaunchHop2(csGroup *g) {
         rio r; rioInitWithBuffer(&r, sdsempty());
         rdbSaveObjectType(&r, res);
         rdbSaveObject(&r, res, head->argv[(int)g->spec->dst_argi], g->h2_dbid);
-        g->h2_payload = r.io.buffer.ptr;
+        g->ext->h2_payload = r.io.buffer.ptr;
         decrRefCount(res);
         break;
     }
@@ -14404,7 +14421,7 @@ static int csLaunchHop2(csGroup *g) {
         int reduced = g->pipe_stage != 0;
         robj *res = reduced ? csPipeResultZset(g) : csZSetOpResultZset(g);
         long long card = (long long)zsetLength(res);
-        g->cs2_intreply = card;
+        g->ext->cs2_intreply = card;
         if (card > 0) {
             size_t maxelelen = 0, totelelen = 0;
             zset *zs = res->ptr;
@@ -14420,7 +14437,7 @@ static int csLaunchHop2(csGroup *g) {
             rio r; rioInitWithBuffer(&r, sdsempty());
             rdbSaveObjectType(&r, res);
             rdbSaveObject(&r, res, head->argv[(int)g->spec->dst_argi], g->h2_dbid);
-            g->h2_payload = r.io.buffer.ptr;
+            g->ext->h2_payload = r.io.buffer.ptr;
         }
         decrRefCount(res);
         if (reduced) csPipeFreeData(g);
@@ -14438,7 +14455,7 @@ static int csLaunchHop2(csGroup *g) {
             atomic_store_explicit(&g->err, CS_ERR_NOKEY, memory_order_relaxed);
         else
             /* private member copy for the HOP2 workers (coordinator-side dup; argv stable). */
-            g->h2_payload = sdsdup(head->argv[3]->ptr);
+            g->ext->h2_payload = sdsdup(head->argv[3]->ptr);
         break;
     }
     default: break;
@@ -14449,16 +14466,16 @@ static int csLaunchHop2(csGroup *g) {
         if (g->version_nx) {
             /* The final destination value itself is the reservation. RENAMENX still needs a
              * later source-tombstone wave; COPY is complete as soon as this reservation lands. */
-            g->version_nx_reserving = 1;
-            g->version_commit_ready = g->ctype == CS_COPY;
+            g->ext->version_nx_reserving = 1;
+            g->ext->version_commit_ready = g->ctype == CS_COPY;
             int wi = -1;
-            for (int i = 0; i < g->h2_nsub; i++)
-                if (g->h2sub[i].action == CS_H2A_WRITE) { wi = i; break; }
+            for (int i = 0; i < g->ext->h2_nsub; i++)
+                if (g->ext->h2sub[i].action == CS_H2A_WRITE) { wi = i; break; }
             serverAssert(wi >= 0);
-            g->h2sub[0] = g->h2sub[wi];
-            g->h2_nsub = 1;
+            g->ext->h2sub[0] = g->ext->h2sub[wi];
+            g->ext->h2_nsub = 1;
         } else {
-            g->version_commit_ready = 1;
+            g->ext->version_commit_ready = 1;
         }
     }
 
@@ -14466,11 +14483,11 @@ static int csLaunchHop2(csGroup *g) {
     csgFree(g, g->subs); g->subs = NULL;
     /* posmaps are sized by the HOP1 sub count — free them NOW, before nsub is repurposed for
      * the HOP2 plan (the generic teardown would walk them with the wrong bound => leak). */
-    if (g->setop_pos) { for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->setop_pos[i]); csgFree(g, g->setop_pos); g->setop_pos = NULL; }
+    if (g->ext->setop_pos) { for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->ext->setop_pos[i]); csgFree(g, g->ext->setop_pos); g->ext->setop_pos = NULL; }
     if (g->mget_pos)  { for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->mget_pos[i]);  csgFree(g, g->mget_pos);  g->mget_pos  = NULL; }
     g->posmap_nsub = 0;
 
-    if (g->h2_op == CS_H2_SCATTER) {
+    if (g->ext->h2_op == CS_H2_SCATTER) {
         /* step 8 (MSETNX): phase + bit-clear FIRST (sole-clearer rule), then the SAME builder
          * re-runs the MSET write wave — values still live in head->argv (head is in flight;
          * the value-ownership discipline in csAppendMsetValue applies verbatim). csBuildCoalescedSubs
@@ -14481,15 +14498,15 @@ static int csLaunchHop2(csGroup *g) {
         csBuildCoalescedSubs(head, g, (head->argc - 1) / 2, dbid, &cs, csAppendMsetValue);
         return 1;
     }
-    /* --- generic plan launch: one sub per g->h2sub[] entry; cssub_idx IS the plan index, so
-     * csSubExec's ctype HOP2 cases read g->h2sub[sub->cssub_idx].action (step 4+). --- */
-    int n = g->h2_nsub, shards[CS_H2_MAX];
+    /* --- generic plan launch: one sub per g->ext->h2sub[] entry; cssub_idx IS the plan index, so
+     * csSubExec's ctype HOP2 cases read g->ext->h2sub[sub->cssub_idx].action (step 4+). --- */
+    int n = g->ext->h2_nsub, shards[CS_H2_MAX];
     serverAssert(n > 0 && n <= CS_H2_MAX);
     int mig = __builtin_expect(
         atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0);
     g->nsub = n; g->subs = csgAlloc(g, sizeof(client*) * n);
     for (int i = 0; i < n; i++) {
-        robj *key = head->argv[g->h2sub[i].key_argi];
+        robj *key = head->argv[g->ext->h2sub[i].key_argi];
         if (mig) migHoldKeyIfDraining(key);                       /* v8d: hold FIRST */
         /* Destination-only atomic registrations already hashed their written key to build
          * key_sig. Reuse the carried bucket and only re-read its owner after the hold. */
@@ -14565,7 +14582,7 @@ static void csReassemble(client *dst, client *head) {
                 getLongLongFromObject(head->argv[1], &nk);
                 int tail = 2 + (int)nk;
                 if (tail + 1 < head->argc) getLongLongFromObject(head->argv[tail+1], &lim);
-                long long card = g->pipe_ncand;
+                long long card = g->ext->pipe_ncand;
                 if (lim > 0 && card > lim) card = lim;
                 addReplyLongLong(dst, card);
             } else if (g->ctype == CS_ZCARD) {
@@ -14573,7 +14590,7 @@ static void csReassemble(client *dst, client *head) {
                 getLongLongFromObject(head->argv[1], &nk);
                 int tail = 2 + (int)nk;
                 if (tail + 1 < head->argc) getLongLongFromObject(head->argv[tail+1], &lim);
-                long long card = g->pipe_ncand;
+                long long card = g->ext->pipe_ncand;
                 if (lim > 0 && card > lim) card = lim;
                 addReplyLongLong(dst, card);
             } else if (g->ctype == CS_ZOP) {
@@ -14657,19 +14674,19 @@ static void csReassemble(client *dst, client *head) {
              * the original STREAMS-key order. */
             int first_err = -1, hits = 0;
             for (int i = 0; i < g->nkeys; i++) {
-                if (g->xread_status[i] == CS_XREAD_ERR && first_err < 0) first_err = i;
-                else if (g->xread_status[i] == CS_XREAD_HIT) hits++;
+                if (g->ext->xread_status[i] == CS_XREAD_ERR && first_err < 0) first_err = i;
+                else if (g->ext->xread_status[i] == CS_XREAD_HIT) hits++;
             }
             if (first_err >= 0) {
-                AddReplyFromClient(dst,g->xread_out[first_err]);
+                AddReplyFromClient(dst,g->ext->xread_out[first_err]);
             } else if (hits == 0) {
                 addReplyNullArray(dst);
             } else {
                 if (dst->resp == 2) addReplyArrayLen(dst,hits);
                 else addReplyMapLen(dst,hits);
                 for (int i = 0; i < g->nkeys; i++)
-                    if (g->xread_status[i] == CS_XREAD_HIT)
-                        AddReplyFromClient(dst,g->xread_out[i]);
+                    if (g->ext->xread_status[i] == CS_XREAD_HIT)
+                        AddReplyFromClient(dst,g->ext->xread_out[i]);
             }
             break;
         }
@@ -14720,7 +14737,7 @@ static void csReassemble(client *dst, client *head) {
             int e = atomic_load_explicit(&g->err, memory_order_relaxed);
             if (e == CS_ERR_WRONGTYPE) addReplyErrorObject(dst, shared.wrongtypeerr);
             else if (e != CS_ERR_NONE) addReplyError(dst, "cross-shard set-store failed");
-            else addReplyLongLong(dst, g->cs2_intreply);   /* stored cardinality (0 = deleted dst) */
+            else addReplyLongLong(dst, g->ext->cs2_intreply);   /* stored cardinality (0 = deleted dst) */
             break;
         }
         case CS_SETCARD: {
@@ -14769,20 +14786,20 @@ static void csReassemble(client *dst, client *head) {
             int e = atomic_load_explicit(&g->err, memory_order_relaxed);
             if (e == CS_ERR_WRONGTYPE) addReplyErrorObject(dst, shared.wrongtypeerr);
             else if (e != CS_ERR_NONE) addReplyError(dst, "cross-shard zset-store failed");
-            else addReplyLongLong(dst, g->cs2_intreply);
+            else addReplyLongLong(dst, g->ext->cs2_intreply);
             break;
         }
         case CS_SORTSTORE:
-            if (g->sort_ctx) {
+            if (g->ext->sort_ctx) {
                 int e = atomic_load_explicit(&g->err,memory_order_relaxed);
                 if (e == CS_ERR_SORTNUM)
                     addReplyError(dst,"One or more scores can't be converted into double");
                 else if (e != CS_ERR_NONE)
                     addReplyError(dst,"cross-shard SORT failed");
                 else if (g->has_hop2)
-                    addReplyLongLong(dst,g->cs2_intreply);
+                    addReplyLongLong(dst,g->ext->cs2_intreply);
                 else
-                    sortXShardReply(dst,g->sort_ctx);
+                    sortXShardReply(dst,g->ext->sort_ctx);
                 break;
             }
             /* Plain SORT STORE uses the pre-existing T1 reply path below. A T3 source parse /
@@ -14800,7 +14817,7 @@ static void csReassemble(client *dst, client *head) {
                                    "cross-shard SORT STORE failed" :
                                    "cross-shard GEO store failed");
             else
-                addReplyLongLong(dst, g->cs2_intreply);
+                addReplyLongLong(dst, g->ext->cs2_intreply);
             break;
         }
         case CS_ZCARD: {
@@ -14861,7 +14878,7 @@ static void csReassemble(client *dst, client *head) {
             int e = atomic_load_explicit(&g->err, memory_order_relaxed);
             if (e == CS_ERR_WRONGTYPE) addReplyErrorObject(dst, shared.wrongtypeerr);
             else if (e != CS_ERR_NONE) addReplyError(dst, "cross-shard BITOP failed");
-            else addReplyLongLong(dst, g->cs2_intreply);   /* result length (0 = deleted dst) */
+            else addReplyLongLong(dst, g->ext->cs2_intreply);   /* result length (0 = deleted dst) */
             break;
         }
         case CS_PFMERGE: {
@@ -14881,7 +14898,7 @@ static void csReassemble(client *dst, client *head) {
             else if (e == CS_ERR_WRONGTYPE) addReplyErrorObject(dst, shared.wrongtypeerr);
             else if (e == CS_ERR_NOKEY) addReplyNull(dst);  /* empty src / would-block form */
             else if (e != CS_ERR_NONE) addReplyError(dst, "cross-shard LMOVE failed");
-            else addReplyBulkCBuffer(dst, g->h2_payload, sdslen(g->h2_payload));
+            else addReplyBulkCBuffer(dst, g->ext->h2_payload, sdslen(g->ext->h2_payload));
             break;
         }
         case CS_MSETNX: {
@@ -14916,21 +14933,23 @@ static void csReassemble(client *dst, client *head) {
         default: break;
         }
     }
-    /* ee451 v11-F: free the gathered member copies (allocated on worker threads; freed here on the
-     * coordinator — private refcount-free sds, safe to free cross-thread). Done whether or not dst
-     * was set (the teardown path with dst==NULL still allocated them). */
-    if (g->setmem) {   /* CS_SETOP + step-5/6 SSTORE/SETCARD/Z* all gather into setmem */
-        for (int i = 0; i < g->nkeys; i++) {   /* setmem indexed by original key position */
-            if (g->setmem[i]) {
-                for (long k = 0; k < g->setcnt[i]; k++) sdsfree(g->setmem[i][k]);
-                zfree(g->setmem[i]);           /* WORKER-allocated payload — never inline */
+    if (g->ext) {
+        /* ee451 v11-F: free the gathered member copies (allocated on worker threads; freed here on
+         * the coordinator — private refcount-free sds, safe to free cross-thread). Done whether or
+         * not dst was set (the teardown path with dst==NULL still allocated them). */
+        if (g->ext->setmem) {   /* CS_SETOP + step-5/6 SSTORE/SETCARD/Z* all gather into setmem */
+            for (int i = 0; i < g->nkeys; i++) {   /* setmem indexed by original key position */
+                if (g->ext->setmem[i]) {
+                    for (long k = 0; k < g->ext->setcnt[i]; k++) sdsfree(g->ext->setmem[i][k]);
+                    zfree(g->ext->setmem[i]);       /* WORKER-allocated payload — never inline */
+                }
+                if (g->ext->zscore && g->ext->zscore[i]) zfree(g->ext->zscore[i]); /* likewise */
             }
-            if (g->zscore && g->zscore[i]) zfree(g->zscore[i]);   /* likewise worker-allocated */
+            csgFree(g, g->ext->setmem); csgFree(g, g->ext->setcnt); csgFree(g, g->ext->zscore);
         }
-        csgFree(g, g->setmem); csgFree(g, g->setcnt); csgFree(g, g->zscore);
+        if (g->ext->setop_pos) { for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->ext->setop_pos[i]); csgFree(g, g->ext->setop_pos); }
+        if (g->ext->xread_pos) { for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->ext->xread_pos[i]); csgFree(g, g->ext->xread_pos); }
     }
-    if (g->setop_pos) { for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->setop_pos[i]); csgFree(g, g->setop_pos); }
-    if (g->xread_pos) { for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->xread_pos[i]); csgFree(g, g->xread_pos); }
     /* xshard OPT-1: free any value slots not consumed by reassembly (the dst==NULL teardown path
      * never emitted them) + the position arrays. Reassembly NULLs each slot as it consumes it.
      * (MGET + the string-image gathers BITOP/PFCOUNT/PFMERGE/LCS all use these slots.) */
@@ -14942,22 +14961,24 @@ static void csReassemble(client *dst, client *head) {
         for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->mget_pos[i]);
         csgFree(g, g->mget_pos);
     }
-    if (g->xread_out) {
-        for (int i = 0; i < g->nkeys; i++) csFreeSub(g->xread_out[i]);
-        csgFree(g, g->xread_out);
-        csgFree(g, g->xread_status);
+    if (g->ext) {
+        if (g->ext->xread_out) {
+            for (int i = 0; i < g->nkeys; i++) csFreeSub(g->ext->xread_out[i]);
+            csgFree(g, g->ext->xread_out);
+            csgFree(g, g->ext->xread_status);
+        }
+        if (g->ext->sort_fields) {                     /* defensive: normal T3 stages release eagerly */
+            for (int i = 0; i < g->nkeys; i++) sdsfree(g->ext->sort_fields[i]);
+            zfree(g->ext->sort_fields);
+        }
+        sortXShardFree(g->ext->sort_ctx);
+        /* universal xshard: free the HOP2 serialized payload blob (private sds) + the step-9
+         * probe-report lanes (zfree(NULL) is a no-op). */
+        if (g->ext->h2_payload) sdsfree(g->ext->h2_payload);
+        csgFree(g, g->ext->klen); csgFree(g, g->ext->ktype);
     }
-    if (g->sort_fields) {                         /* defensive: normal T3 stages release eagerly */
-        for (int i = 0; i < g->nkeys; i++) sdsfree(g->sort_fields[i]);
-        zfree(g->sort_fields);
-    }
-    sortXShardFree(g->sort_ctx);
-    /* universal xshard: free the HOP2 serialized payload blob (private sds) + the step-9
-     * probe-report lanes (zfree(NULL) is a no-op). */
-    if (g->h2_payload) sdsfree(g->h2_payload);
-    csgFree(g, g->klen); csgFree(g, g->ktype);
     /* ee451 (#B2): ONE commandstats call for the whole group, with the SUMMED sub proc time (see
-     * csGroup.usec). Must be read before zfree(g) below. */
+     * csGroup.usec). Must be read before the raw allocation is freed below. */
     if (cs_cmd) {
         long long cs_usec = atomic_load_explicit(&g->usec, memory_order_relaxed);
         int cs_failed = atomic_load_explicit(&g->had_err, memory_order_relaxed) ||
@@ -14967,16 +14988,18 @@ static void csReassemble(client *dst, client *head) {
     }
     for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
     csgFree(g, g->subs);
-    if (g->mset_installs) {
-        for (int i = 0; i < g->version_install_expected; i++)
-            serverAssert(g->mset_installs[i].kv == NULL);
-        csgFree(g, g->mset_installs);
+    if (g->ext) {
+        if (g->ext->mset_installs) {
+            for (int i = 0; i < g->ext->version_install_expected; i++)
+                serverAssert(g->ext->mset_installs[i].kv == NULL);
+            csgFree(g, g->ext->mset_installs);
+        }
+        csgFree(g, g->ext->msetnx_state);
+        /* Written-key hash vector. Inline in the common case (nothing to do); this releases the
+         * spill. Safe here and nowhere earlier: csMsetPendingRemove(g) at the top of this function
+         * already unlinked the group, so no R1 walk can still reach it. */
+        csgFree(g, g->ext->key_h);
     }
-    csgFree(g, g->msetnx_state);
-    /* Written-key hash vector. Inline in the common case (nothing to do); this releases the spill.
-     * Safe here and nowhere earlier: csMsetPendingRemove(g) at the top of this function already
-     * unlinked the group, so no R1 walk can still reach it. */
-    csgFree(g, g->key_h);
     if (g->snapshot_pinned) {
         g->snapshot_pinned = 0;
         flatQsbrRegionExit();
@@ -15000,7 +15023,7 @@ static void csReassemble(client *dst, client *head) {
             tomoAtomicWakeAll();
     }
     head->tomo_bkt_ptr = NULL;  /* group heads do not pass through exExecFake's stale-hint clear */
-    zfree(g);   /* MUST be last: every inline array above lives inside this block */
+    zfree(((void **)g)[-1]);   /* MUST be last: g is aligned within this allocation */
     head->csgroup = NULL;
 }
 
@@ -18886,11 +18909,13 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
          * CS_INLINE_MAX_BYTES 0 must report every array as a heap fallback, and a normal build
          * must report the common case as inline hits. An A/B whose counters read the same on both
          * arms is measuring nothing. They also make the spill rate observable in production:
-         * heap_fallbacks climbing means real traffic is exceeding the derived sizing. */
-        unsigned long long csg_inl = 0, csg_heap = 0;
+         * heap_fallbacks climbing means real traffic is exceeding the derived sizing. A non-zero
+         * compact_groups proves traffic selected the extension-free three-line header. */
+        unsigned long long csg_inl = 0, csg_heap = 0, csg_compact = 0;
         for (size_t _t = 0; _t < sizeof(csg_alloc_ctr)/sizeof(csg_alloc_ctr[0]); _t++) {
             csg_inl += csg_alloc_ctr[_t].inline_hits;
             csg_heap += csg_alloc_ctr[_t].heap_fallbacks;
+            csg_compact += csg_alloc_ctr[_t].compact_groups;
         }
         /* Atomic-mode RYOW overlap census. held/pending is the rate at which a read that COULD
          * conflict with its own uncommitted writes actually does — the workload property the read
@@ -18964,6 +18989,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 atomic_load_explicit(&tomo_xshard_multikey_split_n, memory_order_relaxed),
             "tomokv_xshard_inline_hits:%llu\r\n", csg_inl,
             "tomokv_xshard_heap_fallbacks:%llu\r\n", csg_heap,
+            "tomokv_xshard_compact_groups:%llu\r\n", csg_compact,
             "tomokv_xshard_hop2_unbarriered:%llu\r\n",
                 atomic_load_explicit(&tomo_xshard_hop2_unbarriered_n, memory_order_relaxed),
             /* reshard teardown-window instrumentation: > 0 means a migration was armed with no
@@ -21843,14 +21869,14 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                 }
                 if (last) {
                     if (g->versioned_write) {
-                        int stage_only = !g->version_commit_ready;
+                        int stage_only = !g->ext->version_commit_ready;
                         if (g->ctype == CS_MSETNX)
                             stage_only =
                                 atomic_load_explicit(&g->msetnx_retry,memory_order_acquire) != 0 ||
                                 csMsetnxHasPendingPosition(g);
-                        if (g->version_nx && g->version_nx_reserving &&
+                        if (g->version_nx && g->ext->version_nx_reserving &&
                             (atomic_load_explicit(&g->msetnx_retry,memory_order_acquire) != 0 ||
-                             g->msetnx_state[0] != CS_MSETNX_RESERVED))
+                             g->ext->msetnx_state[0] != CS_MSETNX_RESERVED))
                             stage_only = 1;
                         if (stage_only) {
                             client *hp = g->head->parent;
