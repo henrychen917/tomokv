@@ -23291,6 +23291,15 @@ typedef struct {
                                   * tide stops being re-probed. KEEP, a floor-drop, or finishing
                                   * at a different split resets it. */
     int      revert_run_io;
+    double   lr_mean, lr_var;    /* settled-tick EWMA of lr, same estimator shape as u noise;
+                                  * sqrt(lr_var) frozen at capture is the anchor band's sigma */
+    double   anchor_lr_sigma;    /* sigma_lr snapshotted AT capture — the deviation under test
+                                  * must never widen its own allowance */
+    int      anchor_out_dir;     /* Schmitt pair for |lr - lr_anchor| > 2 sigma: the owner's FINE
+                                  * drop arm inside the floor. The anchor is FROZEN at capture
+                                  * (the running-mean fold is deleted) — a tracking anchor is how
+                                  * the original band trigger froze. */
+    int      anchor_out_run;
     int      idle_stable;    /* consecutive ticks the EWMA mean has CAUGHT UP to the live rate (start gate) */
     double   best_rate;      /* best throughput MEASURED in the current climb (the walk-back target) */
     int      best_dist;      /* thread moves since best_rate was set (0 = standing on the best) */
@@ -23646,17 +23655,28 @@ static void tmFlipSweepBegin(flipCtlState *fc, int node, int ni, int ne, int bas
             if (io > admitted_hi) admitted_hi = io;
         }
     }
-    /* The entry passed the identical strict floor gate. Keep the invariant explicit even if a
-     * poisoned arithmetic result above self-heals to the only safe one-config sweep. */
+    /* DIRECTIONAL EPISODE (2026-08-09, owner design: "we don't have to walk the entire admits
+     * section — progressively higher, overshoot, come back, anchor"). The admitted span above is
+     * kept only for the START log; the walk itself is the momentum law applied inside the floor:
+     * ONE direction, chosen by lr's sign (the heavier side is where adding a thread helps), one
+     * step at a time, each significant GAIN extending the frontier one more step, first
+     * non-significant step spending coast, overshoot walking back to best. On the measured curves
+     * this is strictly cheaper (2 transits typical vs 3-4) and skips far-side losers the
+     * exhaustive sweep still visited (entry io5 on get_p32 never touches io6, -37%). The accepted
+     * trade — a local top across a >coast dip hides the global one — is the same trade the
+     * out-of-floor climb law already makes, and every measured static curve is unimodal. */
     if (ni > 0 && ni < cap) {
-        fc->floor_probe_candidates[ni] = 1;
         if (admitted_lo == 0 || ni < admitted_lo) admitted_lo = ni;
         if (ni > admitted_hi) admitted_hi = ni;
     }
-    if (admitted_lo > legal_lo) fc->floor_probe_candidates[admitted_lo - 1] = 1;
-    if (admitted_hi < legal_hi) fc->floor_probe_candidates[admitted_hi + 1] = 1;
+    memset(fc->floor_probe_candidates, 0, sizeof(fc->floor_probe_candidates));
+    int ep_dir = (isfinite(fc->lr_ewma) && fc->lr_ewma < 0.0) ? -1 : +1;
+    int first = ni + ep_dir;
+    if (first < legal_lo || first > legal_hi) { ep_dir = -ep_dir; first = ni + ep_dir; }
+    if (first >= legal_lo && first <= legal_hi && first != ni)
+        fc->floor_probe_candidates[first] = 1;
 
-    int planned = 0;
+    int planned = 1;                                    /* the entry itself */
     for (int io = legal_lo; io <= legal_hi; io++)
         if (fc->floor_probe_candidates[io]) planned++;
     fc->floor_probe_candidates[ni] = 2;                 /* settled entry is measurement number one */
@@ -23676,7 +23696,7 @@ static void tmFlipSweepBegin(flipCtlState *fc, int node, int ni, int ne, int bas
     fc->floor_probe_best_io = ni;
     fc->floor_probe_planned = planned;
     fc->floor_probe_visited = 1;
-    fc->floor_probe_scan_dir = -1;                      /* measure the lower side first */
+    fc->floor_probe_scan_dir = ep_dir;                  /* the episode's single direction */
     fc->floor_probe_idle_run = 0;
     fc->floor_probe_wsig = wsig;
     fc->floor_probe_entry_lr = fc->lr_ewma;
@@ -24121,8 +24141,23 @@ static void tomoFlipController(void) {
         int s0 = (nnodes == 1) ? 0 : node * server.ex_per_node;
         int s1 = (nnodes == 1) ? server.num_workers : (node + 1) * server.ex_per_node;
         uint64_t node_ops = 0;
-        for (int w = s0; w < s1 && w < server.num_workers; w++)
-            node_ops += tomoRelaxedRead(server.exThreads[w].ops_total);
+        /* THE THROUGHPUT JUDGE MUST COUNT CLIENT-VISIBLE COMMANDS (2026-08-09). ops_total counts
+         * per-worker dispatch groups, and for multi-key commands that count SCALES WITH THE WORKER
+         * COUNT: an 8-key MGET scatters into ~min(8, workers) coalesced groups, so io4->io5
+         * (4 workers -> 3) deflates the counter ~17% while true MGET throughput RISES ~18%.
+         * Measured on the mget8 park cell: baseline read io4=1.66M "ops" > io5=1.63M while
+         * memtier measured io4=486k < io5=576k — the judge vetoed every correct grow, twice, and
+         * the same bias stopped the io2/io3 walks at io5. Single-key workloads divide out (1 group
+         * per command) which is why get/zrange landings were never wrong. getNumCommands() counts
+         * exactly once per client command wherever it completes (cmdstat COUNTING RULE) — a
+         * server-wide fold, legal precisely when the node IS the server. numa>1 keeps the group
+         * sum until a per-node client-command counter exists; its judge carries this bias there. */
+        if (nnodes == 1) {
+            node_ops = (uint64_t)getNumCommands();
+        } else {
+            for (int w = s0; w < s1 && w < server.num_workers; w++)
+                node_ops += tomoRelaxedRead(server.exThreads[w].ops_total);
+        }
 
         /* --- node-local signals: workers [w0,w1), io slots owned by this node --- */
         int w0, w1;
@@ -24589,6 +24624,24 @@ static void tomoFlipController(void) {
                 fc->floor_out_dir = fo_ticking ? fo : 0;
                 fc->floor_out_run = (fo_ticking && fo) ? 1 : 0;
             } else if (fc->floor_out_run < INT_MAX) fc->floor_out_run++;
+            /* ANCHOR BAND — the owner's FINE drop arm (2026-08-09): the floor is the coarse SET
+             * of legal configs, the frozen anchor is the precise reference INSIDE it. lr drifting
+             * a sustained 2-sigma off the anchor while still inside the floor is a mix change the
+             * floor cannot see. Same Schmitt, same damping shift as the other arms; sigma_lr is
+             * snapshotted at capture so the deviation cannot widen its own allowance. */
+            int ao = 0;
+            if (fc->anchor_n > 0 && isfinite(fc->lr_ewma) && isfinite(fc->lr_anchor) &&
+                fc->anchor_lr_sigma > 0.0) {
+                double dev = fc->lr_ewma - fc->lr_anchor;
+                double aband = 2.0 * fc->anchor_lr_sigma *
+                               (double)(1 << (fc->episode_revert_run > 3 ? 3
+                                              : fc->episode_revert_run));
+                if (fabs(dev) > aband) ao = dev > 0 ? 1 : -1;
+            }
+            if (!fo_ticking || ao == 0 || ao != fc->anchor_out_dir) {
+                fc->anchor_out_dir = fo_ticking ? ao : 0;
+                fc->anchor_out_run = (fo_ticking && ao) ? 1 : 0;
+            } else if (fc->anchor_out_run < INT_MAX) fc->anchor_out_run++;
         }
         if (fc->anchor_n > 0) {
             int same_split = (ni == fc->anchor_io_live && ne == fc->anchor_ex_live);
@@ -24625,7 +24678,8 @@ static void tomoFlipController(void) {
             int drop_sat = sat_sample_ready && !fc->anchor_sat_rebase &&
                            (!isfinite(u_io) || !isfinite(u_ex) ||
                             fabs(fc->mean - fc->anchor_rate_cap) > drop_band);
-            if (drop_floor || drop_sat) {
+            int drop_anchor = fc->anchor_out_run >= FLIP_SUSTAIN;
+            if (drop_floor || drop_anchor || drop_sat) {
                 fc->anchor_n = 0;
                 fc->lr_anchor = 0.0;                    /* UNSET: no stale centre remains usable */
                 fc->anchor_sat_rebase = 0;
@@ -24636,6 +24690,8 @@ static void tomoFlipController(void) {
                 fc->lr_out_run = 0;
                 fc->floor_out_dir = 0;
                 fc->floor_out_run = 0;
+                fc->anchor_out_dir = 0;
+                fc->anchor_out_run = 0;
                 fc->u_noise_primed = 0;
                 /* A workload/saturation change at the captured split starts a new settled
                  * episode. A sweep move, final walk-back and cache re-settle must NOT re-arm it. */
@@ -24647,12 +24703,18 @@ static void tomoFlipController(void) {
                 if (drop_floor) {
                     atomic_fetch_add_explicit(&tomo_flip_anchor_drop_floor, 1, memory_order_relaxed);
                     fc->episode_revert_run = 0;   /* the MIX moved: re-verification damping over */
+                } else if (drop_anchor) {
+                    atomic_fetch_add_explicit(&tomo_flip_anchor_drop_floor, 1, memory_order_relaxed);
+                    fc->episode_revert_run = 0;   /* anchor-band = mix moved inside the floor */
                 } else
                     atomic_fetch_add_explicit(&tomo_flip_anchor_drop_sat, 1, memory_order_relaxed);
-                serverLog(LL_NOTICE, "[flip-ctl n%d] ANCHOR-DROP %s lr=%+.3f floor=%.3f "
-                          "rate=%.0f/%.0f band=%.0f u_io=%.3f/%.3f u_ex=%.3f/%.3f -> UNSET",
-                          node, drop_floor ? "floor-exit" : "sat-magnitude",
-                          fc->lr_ewma, gfloor, fc->mean, fc->anchor_rate_cap, drop_band,
+                serverLog(LL_NOTICE, "[flip-ctl n%d] ANCHOR-DROP %s lr=%+.3f/%+.3f floor=%.3f "
+                          "lr_sigma=%.4f rate=%.0f/%.0f band=%.0f u_io=%.3f/%.3f u_ex=%.3f/%.3f "
+                          "-> UNSET",
+                          node, drop_floor ? "floor-exit"
+                               : drop_anchor ? "anchor-band" : "sat-magnitude",
+                          fc->lr_ewma, fc->lr_anchor, gfloor, fc->anchor_lr_sigma,
+                          fc->mean, fc->anchor_rate_cap, drop_band,
                           u_io, fc->anchor_u_io, u_ex, fc->anchor_u_ex);
             }
         }
@@ -24663,14 +24725,18 @@ static void tomoFlipController(void) {
             if (!fc->u_noise_primed) {
                 fc->u_io_mean = u_io; fc->u_io_var = 0.0;
                 fc->u_ex_mean = u_ex; fc->u_ex_var = 0.0;
+                fc->lr_mean = fc->lr_ewma; fc->lr_var = 0.0;
                 fc->u_noise_primed = 1;
             } else {
                 double d_io = u_io - fc->u_io_mean;
                 double d_ex = u_ex - fc->u_ex_mean;
+                double d_lr = fc->lr_ewma - fc->lr_mean;
                 fc->u_io_mean += FESC_ALPHA * d_io;
                 fc->u_io_var += FESC_ALPHA * (d_io*d_io - fc->u_io_var);
                 fc->u_ex_mean += FESC_ALPHA * d_ex;
                 fc->u_ex_var += FESC_ALPHA * (d_ex*d_ex - fc->u_ex_var);
+                fc->lr_mean += FESC_ALPHA * d_lr;
+                fc->lr_var += FESC_ALPHA * (d_lr*d_lr - fc->lr_var);
             }
             tmFlipRatePlateauUpdate(fc->mean, sigma, &fc->anchor_rate_prev,
                                     &fc->anchor_rate_run);
@@ -25067,6 +25133,17 @@ static void tomoFlipController(void) {
                 } else {
                     fc->best_dist = abs(ni - fc->floor_probe_best_io);
                 }
+                /* Directional frontier: a significant gain earns exactly one more step in the
+                 * episode's direction. Non-significant steps spend coast and extend nothing, so
+                 * the walk ends within COAST+1 of the peak — same bound as the climb. */
+                if (significant) {
+                    int nxt = ni + fc->floor_probe_scan_dir;
+                    if (nxt >= fc->floor_probe_legal_lo && nxt <= fc->floor_probe_legal_hi &&
+                        fc->floor_probe_candidates[nxt] == 0) {
+                        fc->floor_probe_candidates[nxt] = 1;
+                        fc->floor_probe_planned++;
+                    }
+                }
                 const char *verdict;
                 if (significant) {
                     fc->coast_used = 0;
@@ -25292,6 +25369,9 @@ static void tomoFlipController(void) {
             fc->anchor_u_io = u_io;
             fc->anchor_u_ex = u_ex;
             fc->anchor_rate_cap = fc->mean;
+            fc->anchor_lr_sigma = sqrt(fc->lr_var > 0.0 ? fc->lr_var : 0.0);
+            fc->anchor_out_dir = 0;
+            fc->anchor_out_run = 0;
             fc->anchor_io_live = ni;
             fc->anchor_ex_live = ne;
             fc->anchor_sat_rebase = 0;
@@ -25301,13 +25381,12 @@ static void tomoFlipController(void) {
                       "%s_quiet=%d rate_plateau=%d u_io=%.3f u_ex=%.3f io=%d/ex=%d",
                       node, captures, fc->lr_ewma, gfloor, sig_lc, fc->lr_quiet_run,
                       fc->anchor_rate_run, u_io, u_ex, ni, ne);
-        } else if (settled_in_floor && fc->anchor_n > 0 &&
-                   isfinite(fc->lr_ewma) && isfinite(fc->lr_anchor)) {
-            /* Every fold obeys the same three capture gates. Thus the running mean cannot smuggle
-             * an illegal sample into an otherwise legal anchor. */
-            if (fc->anchor_n < INT_MAX) fc->anchor_n++;
-            fc->lr_anchor += (fc->lr_ewma - fc->lr_anchor) / (double)fc->anchor_n;
         }
+        /* NO FOLD (2026-08-09, owner design). The anchor is a FROZEN snapshot: a running-mean
+         * anchor tracks whatever lr does and blinds the |lr - anchor| band — that tracking is
+         * exactly how the original band trigger froze, and under a slow tide a folding anchor
+         * re-creates it in slow motion. The anchor updates only by explicit re-capture (drop ->
+         * fresh settle, or a sweep finishing at a new split re-seeks with anchor_n reset). */
         if (fully_settled && fc->floor_probe_used && !fc->floor_probe_active &&
             !fc->floor_probe_revert_pending)
             fc->floor_probe_await_settle = 0;
