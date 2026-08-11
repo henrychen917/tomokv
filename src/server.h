@@ -4109,7 +4109,6 @@ struct redisServer {
                                 * path), 1=worker partition (structural), 2=+class SJF + same-key
                                 * guard + same-bucket grouping. Mutually exclusive with
                                 * strict_order (reorder defers). default 0. */
-    int opt_mset_move;         /* tomokv-mset-move: cross-shard MSET moves value robjs to the owning worker (argv_released_mask ownership handoff) instead of a dupStringObject copy. 1=move; 0=per-value copy (DEFAULT — no gain was ever measured or claimed; restored 2026-07-28 as an experiment lever for large-value/NUMA regimes this box cannot answer). */
     int tomo_atomic;           /* tomokv-atomic: epoch-versioned MSET/MGET atomicity. default off. */
     int tomo_atomic_window;    /* max admitted atomic MSET groups; 0 = unlimited. default 64: smaller in-flight populations keep version piles shallow and the whole atomic pipeline cache-hot — measured better than 512 in EVERY regime (64-key adversarial AND 2M realistic, 1:1 AND 9:1). */
     /* (no xshard_inline_* field: the inline region is sized per command by csInlineWant) */
@@ -4454,7 +4453,7 @@ typedef struct csCmdSpec {
     uint8_t block_reject;     /* blocking variant: never run a parking proc on a worker fake;
                                * the ctype decides whether would-block is nil or a safe error */
     /* -- callbacks (the ONLY code-bearing fields) -- */
-    void (*append_extra)(client *head, client *sub, int origpos); /* MSET value ownership */
+    void (*append_extra)(client *head, client *sub, int origpos); /* MSET value append */
     int  (*unsafe_check)(client *c);  /* UNPORTED or hybrid PORTED rows: nonzero => reject form */
     int16_t safe_max_argc;    /* UNPORTED rows without a hook: argc <= this falls through
                                * (PFCOUNT: 2); 0 = always reject */

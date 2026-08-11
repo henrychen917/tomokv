@@ -8178,12 +8178,6 @@ static inline int tomoHfeProc(redisCommandProc *p) {
  *                   (the exact class of divergence 6e9a31304 fixed). Nonzero = ordering bug. */
 static _Atomic unsigned long long tomo_xshard_multikey_split_n;
 static _Atomic unsigned long long tomo_xshard_hop2_unbarriered_n;
-/*   mset_moved — GATE-OPENED PROOF for tomokv-mset-move. The knob's ON arm hands a value robj
- *                across a thread boundary, so a test of it that never actually took the arm (every
- *                MSET landing on one shard, say, or the knob not applying) reports "0 corruptions"
- *                and means nothing. This counter must be NONZERO for such a run to count as
- *                evidence, and reads 0 with the knob off. */
-static _Atomic unsigned long long tomo_xshard_mset_moved_n;
 
 /* Tripwire helper: every drain-thread stage launcher calls this on entry. The teardown caller
  * (client being freed) passes a head whose parent is mid-teardown but still allocated. */
@@ -8244,7 +8238,7 @@ static int csEvalUnsafeCheck(client *c) {
     if (getLongLongFromObject(c->argv[2], &nk) != C_OK) return 0;
     return nk != 0;
 }
-static void csAppendMsetValue(client *head, client *sub, int origpos);  /* fwd; S8 logic verbatim */
+static void csAppendMsetValue(client *head, client *sub, int origpos);  /* fwd; private value copy */
 
 /* step 6 Z-op tail validator: after the keys, accept only the flag set the stock form allows
  * (WEIGHTS setnum-floats / AGGREGATE SUM|MIN|MAX / WITHSCORES / LIMIT n). Malformed => 0 =>
@@ -9622,42 +9616,11 @@ typedef struct csCoalesceSpec {
     int ***posmap;       /* if non-NULL (&g->mget_pos / &g->setop_pos): helper zcallocs *posmap[nsub] and fills per-sub position lists */
 } csCoalesceSpec;
 
-/* MSET value append — the S8-critical value-ownership logic, factored VERBATIM so the move/mask
- * discipline is untouched (see the dispatchCrossShard commentary this replaced). */
+/* Give each cross-shard MSET sub a private value copy. */
 static void csAppendMsetValue(client *head, client *sub, int origpos) {
     int vpos = 2 + 2*origpos;
     robj *val = head->argv[vpos];
-    /* ee451 2026-07-28 (restored): the MOVE arm (tomokv-mset-move) is back as a live knob, DEFAULT
-     * OFF. It was gutted in 77174fa4a because it was unreachable and has no measured gain; the owner
-     * wants it available for experimentation (large values / NUMA, where the copy is the cost), the
-     * same call already made for prefetch. It ships off precisely because no gain was ever claimed.
-     *
-     * OWNERSHIP CONTRACT (why this is safe when enabled). The value robj is handed to the sub WITHOUT
-     * a refcount bump, so exactly one owner exists at every instant:
-     *   1. head->argv[vpos] is relinquished HERE, before the sub is pushed: either via
-     *      current_pending_cmd->argv_released_mask (freePendingCommand skips masked slots — see
-     *      networking.c:6707/6737/6773) or, with no pending cmd behind this client, by NULLing the
-     *      slot (both freeClientArgv and the pool teardown skip NULLs).
-     *   2. The worker's CS_MSET apply loop CONSUMES the ref in setKey/kvobjSet and then NULLs
-     *      sub->argv[] on the worker, so csFreeSub's IO-thread decref never touches it. That NULL is
-     *      the S8 rule (non-atomic refcounts must not be mutated from two threads) and it is what
-     *      makes the move legal at all.
-     *   3. csAppendMsetValue runs exactly ONCE per value: MSET builds its subs once, and MSETNX's
-     *      HOP1 wave carries keys only (per_key_extra=0 in its spec) — only the HOP2 SCATTER wave
-     *      re-runs the k/v build. A second call on a released slot would be a use-after-free, so that
-     *      invariant is load-bearing; see the csCoalesceSpec comment on the msetnx registry row.
-     * The bit index is bounded by 64 because argv_released_mask is a uint64_t; beyond that (an MSET
-     * with >31 pairs) fall back to NULLing the head slot, which is equally complete. */
-    if (server.opt_mset_move) {
-        atomic_fetch_add_explicit(&tomo_xshard_mset_moved_n, 1, memory_order_relaxed);
-        sub->argv[sub->argc++] = val;
-        if (head->current_pending_cmd && vpos < 64)
-            head->current_pending_cmd->argv_released_mask |= (1ULL << vpos);
-        else
-            head->argv[vpos] = NULL;
-    } else {
-        sub->argv[sub->argc++] = dupStringObject(val);   /* private refcount-1 copy */
-    }
+    sub->argv[sub->argc++] = dupStringObject(val);   /* private refcount-1 copy */
 }
 
 static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
@@ -9760,7 +9723,7 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s);  /* fwd (defined b
 /* xshard registry: the ONE gather dispatcher — replaces dispatchMgetCoalesced /
  * dispatchCrossShard / dispatchSetOp. All per-command variation comes from the row: result
  * slots (res_kind), posmap (pos_kind), coalesce gate (co_gate), key geometry (firstkey_argi/
- * key_stride/per_key_extra), MSET value ownership (append_extra). */
+ * key_stride/per_key_extra), MSET value append (append_extra). */
 /* ==== ee451 MERGE-EXECUTION pipeline (v1: SINTER/SINTERCARD; unconditional since 77174fa4a) ====
  * Naming per design: TIERED-TRANSLATION routing (bucket -> node -> worker, page-table-like) +
  * MERGE-EXECUTION multi-key (merge-sort-like: local work where the data lives, then a merge of
@@ -10887,9 +10850,8 @@ static int csLaunchHop2(csGroup *g) {
 
     if (g->h2_op == CS_H2_SCATTER) {
         /* step 8 (MSETNX): phase + bit-clear FIRST (sole-clearer rule), then the SAME builder
-         * re-runs the MSET write wave — values still live in head->argv (head is in flight;
-         * the value-ownership discipline in csAppendMsetValue applies verbatim). csBuildCoalescedSubs
-         * arms pending before its own pushes. */
+         * re-runs the MSET write wave with private copies of the values still live in head->argv.
+         * csBuildCoalescedSubs arms pending before its own pushes. */
         g->phase = CS_PH_HOP2;
         cdbSlotClear(head->parent, head->cdb, head->fake_slot);
         csCoalesceSpec cs = { .first_argi = 1, .key_stride = 2, .per_key_extra = 1 };
@@ -15155,8 +15117,6 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
              * coordinator, i.e. migration_active is now stuck for the life of the process. */
             "tomokv_reshard_cutover_no_coord:%llu\r\n",
                 (unsigned long long)atomic_load_explicit(&tomo_reshard_cutover_no_coord, memory_order_relaxed),
-            "tomokv_xshard_mset_moved:%llu\r\n",
-                atomic_load_explicit(&tomo_xshard_mset_moved_n, memory_order_relaxed),
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
         /* Raw per-role busy accumulators, so the io/ex saturation the flip controller decides on
@@ -15247,9 +15207,9 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_uring_send_cancel_cqes:%llu\r\n", (unsigned long long)ust.send_cancel_cqes));
         /* MERGE 2026-07-28: the fork-local counters and upstream's Stats block use
          * separate sdscatprintf calls because a single FMTARGS() takes at most 160 arguments
-         * (fmtargs.h, generated) and this block had reached the ceiling: the active-expiry merge
-         * and the mset-move merge each appended one pair and together overflowed it, which fails
-         * as an unreadable token-pasting error on COMPACT_FMT_, not as "too many arguments".
+         * (fmtargs.h, generated) and this block had reached the ceiling after fork-local counters
+         * were appended, which fails as an unreadable token-pasting error on COMPACT_FMT_, not as
+         * "too many arguments".
          * Splitting is byte-identical in output — sdscatprintf appends — and leaves headroom on
          * both halves. Do NOT re-merge them. */
         info = sdscatprintf(info, FMTARGS(

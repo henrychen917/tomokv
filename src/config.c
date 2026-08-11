@@ -3180,15 +3180,6 @@ standardConfig static_configs[] = {
      * knob here could only make it wrong. To A/B the mechanism, build with CS_INLINE_MAX_BYTES 0
      * — that turns every csgAlloc into a plain zmalloc. */
     createIntConfig("tomokv-strict-order", NULL, MODIFIABLE_CONFIG, 0, 100000, server.strict_order, 0, INTEGER_CONFIG, NULL, NULL), /* cross-IO strict ordering: 0=off, 1=strict, N=eps(N-1)us */
-    /* MSET-MOVE — cross-shard MSET hands each value robj to the owning worker (the
-     * argv_released_mask ownership handoff) instead of giving the sub a dupStringObject copy.
-     * DEFAULT OFF and it stays off: no gain was ever measured or even claimed for it, and every
-     * historical note about it recorded a concern. It is restored (2026-07-28) as an experiment
-     * lever, the same call already made for prefetch — the regime where a copy could matter is
-     * large values and/or cross-NUMA, which this box cannot answer. Turning it on is a real
-     * ownership change, not a tuning parameter: see csAppendMsetValue for the three-step contract
-     * that keeps exactly one owner of the value at every instant. */
-    createBoolConfig("tomokv-mset-move",             NULL, MODIFIABLE_CONFIG, server.opt_mset_move, 0, NULL, NULL),
     createBoolConfig("tomokv-atomic",                NULL, MODIFIABLE_CONFIG, server.tomo_atomic, 0, NULL, applyTomoAtomicAdmission),
     createIntConfig("tomokv-atomic-window",          NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.tomo_atomic_window, 64, INTEGER_CONFIG, NULL, applyTomoAtomicAdmission),
     /* tomokv-worker-direct-send (v12-K) DELETED: foundation removed, see 2s-auto v1.6 for the real
