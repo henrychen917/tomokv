@@ -4749,8 +4749,9 @@ long long getNumCommands(void);
 
 /* ---- ee451 (#B2): per-thread per-command stats (INFO commandstats / latencystats) ------------
  *
- * Hot-path cost of the whole apparatus, per worker-executed command: ONE extra getMonotonicUs()
- * (the enter-side read is the one tomoCmdClockEnter already does), two relaxed loads of this
+ * Hot-path cost of the whole apparatus, per worker-executed command: ONE extra raw counter read
+ * plus one delta conversion (the enter-side raw read is the one tomoCmdClockEnter already does),
+ * two relaxed loads of this
  * thread's own errstat line, one acquire load of a read-only pointer, one bounds compare, and
  * 2-3 relaxed stores into a cache line no other thread touches. No atomic RMW, no shared line,
  * no allocation after the first command a thread runs. That is exactly the pair of clock reads

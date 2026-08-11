@@ -1445,7 +1445,7 @@ mstime_t mstime(void) {
  * have been a no-op that looked like a fix.
  *
  * THE FIX. Latch a thread-local at worker command entry from a clock that is actually current.
- * Cost is one getMonotonicUs() per command — the same RDTSC-class read call() already does for
+ * Cost is one raw counter read per command — the same RDTSC-class read call() already does for
  * its duration timer — and a real gettimeofday only when the monotonic clock says the latch could
  * be as much as half a millisecond old. So the latch is accurate to well under the 1ms unit it is
  * expressed in, at a few thousand wall-clock reads per second per worker rather than one per
@@ -1455,25 +1455,35 @@ mstime_t mstime(void) {
  * reading the global exactly as before. */
 static __thread mstime_t tomo_cmd_time;        /* the latched per-command clock */
 static __thread int      tomo_cmd_time_depth;  /* 0 => this thread is not in a worker command */
-static __thread monotime tomo_cmd_time_mono;   /* monotonic us when tomo_cmd_time was sampled */
+static __thread monotonic_raw tomo_cmd_time_raw;       /* native stamp of the wall-clock sample */
+static __thread monotonic_raw tomo_cmd_resample_raw;   /* 500 us in native clock units */
+
+typedef struct tomoCmdClockStamp {
+    monotonic_raw raw;
+    int timed;
+} tomoCmdClockStamp;
 
 /* Half a millisecond: the largest re-sample interval that cannot cost us a whole millisecond of
  * accuracy in a value whose unit IS the millisecond. */
 #define TOMO_CMD_CLOCK_RESAMPLE_US 500
 
-/* Returns the monotonic microsecond stamp it latched, or 0 when nested (the outer latch owns the
- * time, and the outer frame is also the one that will time the command).
+/* Returns the native counter stamp it latched. A nested entry is marked untimed because the outer
+ * latch owns both time and duration; the explicit bit avoids treating a valid raw zero as nested.
  * ee451 (#B2): the return value is what makes commandstats' `usec` free on the enter side — this
  * read already existed, so timing a worker command costs ONE extra clock read, at the exit, which
  * is exactly the pair call() takes for every command it runs. */
-static inline monotime tomoCmdClockEnter(void) {
-    if (tomo_cmd_time_depth++ != 0) return 0;   /* nested: the outermost latch owns the time */
-    monotime now = getMonotonicUs();
-    if (now - tomo_cmd_time_mono >= TOMO_CMD_CLOCK_RESAMPLE_US) {
-        tomo_cmd_time_mono = now;
+static inline tomoCmdClockStamp tomoCmdClockEnter(void) {
+    tomoCmdClockStamp stamp = {0, 0};
+    if (tomo_cmd_time_depth++ != 0) return stamp;
+    stamp.raw = getMonotonicRaw();
+    stamp.timed = 1;
+    if (__builtin_expect(tomo_cmd_resample_raw == 0, 0))
+        tomo_cmd_resample_raw = monotonicUsToRaw(TOMO_CMD_CLOCK_RESAMPLE_US);
+    if (stamp.raw - tomo_cmd_time_raw >= tomo_cmd_resample_raw) {
+        tomo_cmd_time_raw = stamp.raw;
         tomo_cmd_time = ustime() / 1000;
     }
-    return now;
+    return stamp;
 }
 
 static inline void tomoCmdClockExit(void) {
@@ -11362,9 +11372,9 @@ static void keysFlatCB(dictEntry *masked, void *priv) {
  * one group run CONCURRENTLY on different workers, so both fields are atomic — relaxed is enough:
  * the group's `pending` barrier (acq_rel) is what publishes them to the reassembling drain thread,
  * and nothing branches on these values. Called on every csSubExec exit path. */
-static inline void csSubStatAccum(csGroup *g, monotime t0, long long e0) {
-    if (__builtin_expect(t0 == 0, 0)) return;   /* nested latch: an outer frame owns the timing */
-    long long delta = (long long)(getMonotonicUs() - t0);
+static inline void csSubStatAccum(csGroup *g, tomoCmdClockStamp clock, long long e0) {
+    if (__builtin_expect(!clock.timed, 0)) return;   /* nested latch: outer frame owns timing */
+    long long delta = (long long)monotonicRawToUs(getMonotonicRaw() - clock.raw);
     /* A singleton stage has exactly one writer. Later singleton stages are
      * serialized through ready publication/drain and the next SPSC push, so
      * the owner-local load/add/store cannot lose a concurrent update. */
@@ -11592,7 +11602,7 @@ static void csSubExec(client *sub) {
      * cmd->proc (CS_LOCAL) or open-code the per-key semantics, and either way they reach
      * lookupKey / expireIfNeeded without ever entering an execution unit. Latch here so every key
      * this sub touches sees ONE instant. Paired with a release at both exits below. */
-    monotime cs_t0 = tomoCmdClockEnter();
+    tomoCmdClockStamp cs_clock = tomoCmdClockEnter();
     /* ee451 (#B2): a scatter sub is a FRACTION of one client command, so it contributes work to
      * the group's accounting and is never counted as a call of its own — csReassemble does that
      * once, for the whole group (same rule #B1 established for the command counter). Capture the
@@ -11601,7 +11611,7 @@ static void csSubExec(client *sub) {
     if (g->pipe_stage) {                    /* merge-exec pipeline stage op (reads only) */
         csPipeSubExec(sub, g);
         server.current_client[iotid].p = saved;
-        csSubStatAccum(g, cs_t0, cs_e0);
+        csSubStatAccum(g, cs_clock, cs_e0);
         tomoCmdClockExit();
         return;
     }
@@ -12342,7 +12352,7 @@ static void csSubExec(client *sub) {
     default: break;
     }
     server.current_client[iotid].p = saved;
-    csSubStatAccum(g, cs_t0, cs_e0);   /* ee451 (#B2): this sub's work joins the group's totals */
+    csSubStatAccum(g, cs_clock, cs_e0);   /* ee451 (#B2): this sub's work joins the group's totals */
     tomoCmdClockExit();   /* ee451 (F-clock): pairs with the latch at entry */
     /* ee451 (v8d/v11): cross-shard WRITE effect capture (MSET/DEL) for online resharding now happens
      * PER KEY inside the CS_MSET/CS_DEL loops above (coalesced subs carry multiple keys), so there is
@@ -21468,7 +21478,7 @@ static inline void exExecFake(client *fake) {
         /* ee451 (F-clock): this is a worker's call()-equivalent, so it is where the command
          * latches its clock. Covers BOTH proc call sites below (the HFE all-node-locks branch
          * and the ordinary single-key one) and every lookup they make. */
-        monotime cs_t0 = tomoCmdClockEnter();
+        tomoCmdClockStamp cs_clock = tomoCmdClockEnter();
         /* ee451 (#B1): ...and for the same reason it is where ordinary direct-proc commands are
          * COUNTED. T6 uses full call() below; without either path the worker-routed majority of
          * traffic is invisible to total_commands_processed. Own cache line, no atomic RMW. */
@@ -21480,8 +21490,8 @@ static inline void exExecFake(client *fake) {
         if (!t6_full_call) numCommandsBump();
         /* ee451 (#B2): ...and where its PER-COMMAND stats are taken, for the same reason. Two
          * things are captured up front:
-         *   cs_t0    the clock the latch above already read (0 only if nested) — so `usec` costs
-         *            one extra read at the exit, not two;
+         *   cs_clock the clock the latch above already read (untimed only if nested) — so `usec`
+         *            costs one extra read at the exit, not two;
          *   cs_cmd   the command to attribute to. NOT fake->realcmd: the express path
          *            (moveExecutionStateSlim) deliberately does not move realcmd, so it holds a
          *            STALE pointer from whatever previously used this ring slot. c->cmd is the
@@ -21585,15 +21595,17 @@ static inline void exExecFake(client *fake) {
         }
         /* ee451 (#B2): the command is DONE — take the exit clock here, immediately after the proc,
          * so `usec` measures the same thing call() measures (the proc, not the ring bookkeeping or
-         * the migration effect capture below). One getMonotonicUs; everything else is a store into
+         * the migration effect capture below). One raw counter read and one delta conversion;
+         * everything else is a store into
          * this thread's private shard line.
          *
          * The per-client counter is bumped on the FAKE, not on fake->parent: the parent is owned
          * by an IO thread that concurrently writes the same field from call() on its own inline
          * commands. The drain folds fake->commands_processed into the real client when it retires
          * the ring slot, under the release/acquire the completion byte already provides. */
-        if (__builtin_expect(cs_t0 != 0, 1)) {
-            long long cs_usec = (long long)(getMonotonicUs() - cs_t0);
+        if (__builtin_expect(cs_clock.timed, 1)) {
+            long long cs_usec =
+                (long long)monotonicRawToUs(getMonotonicRaw() - cs_clock.raw);
             /* D svc plane: two adds, duration already in hand. Clamp keeps a pathological
              * multi-second command from wrapping the u32 row between 1 Hz sweeps. */
             if (tm_cur_ex) {
