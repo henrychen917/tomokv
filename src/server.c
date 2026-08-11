@@ -10078,7 +10078,7 @@ static int csStampDrain(exThread *worker) {
     if (atomic_load_explicit(&worker->stamp_pending, memory_order_acquire) == 0)
         return 0;
     exQueue *q = &worker->queues[csStampLane()];
-    client *jobs[WORKER_POP_BATCH];
+    exQueueEntry jobs[WORKER_POP_BATCH];
     int total = 0;
     for (;;) {
         int n = exQueuePopBatch(q, jobs, WORKER_POP_BATCH);
@@ -10086,7 +10086,8 @@ static int csStampDrain(exThread *worker) {
         struct tomoVerMeta *release_after_unlock[WORKER_POP_BATCH] = {0};
         tomoWkrLock(worker->id);
         for (int i = 0; i < n; i++) {
-            tomoOwnerOp *op = exOwnerOpDecode(jobs[i]);
+            serverAssert(exEntryKind(&jobs[i]) == TOMO_EX_ENTRY_OWNER);
+            tomoOwnerOp *op = exOwnerOpDecode(jobs[i].client_id);
             kvobj *kv = op->kv;
             struct tomoVerMeta *vmeta = kvobjVmeta(kv);
             serverAssert(vmeta != NULL);
@@ -21238,10 +21239,13 @@ static inline void tomoMessagePrefetchInit(tomoMessagePrefetch *pf,
 }
 
 static inline void tomoMessagePrefetchCarriers(tomoMessagePrefetch *pf) {
-    int issued = pf->remaining;
+    int issued = 0;
     while (pf->remaining) {
-        client *future = pf->q->jobs[pf->slot];
-        redis_prefetch_read(future);
+        exQueueEntry *entry = &pf->q->jobs[pf->slot];
+        if (exEntryKind(entry) == TOMO_EX_ENTRY_POINTER) {
+            redis_prefetch_read(entry->client_id);
+            issued++;
+        }
         pf->slot = (pf->slot + 1) & server.ex_queue_mask;
         pf->remaining--;
     }
@@ -21816,6 +21820,193 @@ static inline void exExecFake(client *fake) {
     }
 }
 
+typedef struct exFastInlineSds {
+    uint8_t len;
+    uint8_t alloc;
+    uint8_t flags;
+    char buf[TOMO_EX_FAST_GET_INLINE_MAX + 1];
+} __attribute__((packed)) exFastInlineSds;
+
+static inline sds exFastKeyProbe(const exQueueEntry *entry,
+                                 exFastInlineSds *storage) {
+    exQueueEntryKind kind = exEntryKind(entry);
+    if (kind == TOMO_EX_ENTRY_FAST_GET_PTR ||
+        kind == TOMO_EX_ENTRY_FAST_SET_PTR) {
+        sds key = (sds)entry->payload.ptr.key;
+        debugServerAssert(sdslen(key) == entry->payload.ptr.key_len);
+        return key;
+    }
+
+    size_t len;
+    const unsigned char *key;
+    if (kind == TOMO_EX_ENTRY_FAST_GET_INLINE) {
+        len = entry->payload.get_inline.key_len;
+        key = entry->payload.get_inline.key;
+    } else {
+        serverAssert(kind == TOMO_EX_ENTRY_FAST_SET_INLINE);
+        len = entry->payload.set_inline.key_len;
+        key = entry->payload.set_inline.key;
+    }
+    storage->len = storage->alloc = (uint8_t)len;
+    storage->flags = SDS_TYPE_8;
+    memcpy(storage->buf, key, len);
+    storage->buf[len] = '\0';
+    return storage->buf;
+}
+
+/* Worker-private ambient command state for helpers which consult
+ * server.current_client. Reusing the zero-initialized TLS object avoids
+ * clearing a full client-sized stack object for every FAST entry. */
+static __thread client ex_fast_exec;
+
+/* First fake-core touch for a FAST command. All keyspace work is already done;
+ * from here on the fake is only the familiar reply and retirement carrier. */
+static client *exFastAttachReply(const exQueueEntry *entry, redisDb *db) {
+    client *fake = entry->client_id;
+    serverAssert(fake != NULL && fake->isFake);
+    client *real = fake->parent;
+    pendingCommand *pcmd = entry->pending;
+    unsigned int slot = exEntrySlot(entry);
+    serverAssert(real != NULL && real->has_exec_tail);
+    serverAssert(clientTail(real)->fakeClients[slot] == fake);
+    serverAssert(pcmd != NULL && pcmd->argv != NULL && pcmd->argc >= 2);
+    serverAssert(fake->current_pending_cmd == NULL && fake->pending_cmds.len == 0);
+
+    fake->argc = pcmd->argc;
+    fake->argv = pcmd->argv;
+    fake->argv_len = pcmd->argv_len;
+    fake->cmd = pcmd->cmd;
+    fake->slot = pcmd->slot;
+    fake->net_input_bytes_curr_cmd = pcmd->input_bytes;
+    fake->current_pending_cmd = pcmd;
+    addPendingCommand(&fake->pending_cmds, pcmd);
+    fake->all_argv_len_sum = pcmd->argv_len_sum;
+
+    fake->resp = pcmd->fast_reply_resp;
+    fake->user = NULL;
+    fake->authenticated = 0;
+    fake->conn = pcmd->fast_reply_conn;
+    fake->db = db;
+    /* GET/SET keyspace work already completed on the worker-private context.
+     * Reply construction needs only the snapshotted protocol/connection and
+     * the fake exemption; reading mutable real-client flags here would race
+     * the IO-side command reset that follows dispatch. */
+    fake->flags = CLIENT_EX_PENDING;
+    fake->fake_slot = slot;
+    fake->cdb = (int)exEntryCdb(entry);
+    fake->tomo_bkt = (int)exEntryBucket(entry);
+    fake->tomo_key_h = entry->key_hash;
+    fake->tomo_bkt_ptr = NULL;
+    fake->prefetch_key_hash_valid = 0;
+    fake->bufpos = 0;
+    fake->sentlen = 0;
+    fake->reply_bytes = 0;
+    server.current_client[iotid].p = fake;
+    server.executing_client[iotid].p = fake;
+    return fake;
+}
+
+static inline client *exExecFast(const exQueueEntry *entry, exThread *worker) {
+    serverAssert(exEntryIsFast(entry));
+    unsigned int dbid = exEntryDbid(entry);
+    unsigned int bucket = exEntryBucket(entry);
+    serverAssert(dbid < (unsigned int)server.dbnum);
+    redisDb *db = &worker->db[dbid];
+
+    exFastInlineSds key_storage;
+    sds probe = exFastKeyProbe(entry, &key_storage);
+    robj semantic_key;
+    initStaticStringObject(semantic_key, probe);
+
+    client *exec = &ex_fast_exec;
+    exec->isFake = 1;
+    exec->has_exec_tail = 0;
+    exec->parent = NULL;
+    exec->csparent = NULL;
+    exec->flags = CLIENT_EX_PENDING;
+    exec->db = db;
+    exec->cmd = NULL;
+    exec->slot = -1;
+    exec->tomo_local_worker = -1;
+    exec->tomo_bkt = (int)bucket;
+    exec->tomo_key_h = entry->key_hash;
+    exec->tomo_bkt_ptr = probe;
+    exec->tomo_read_snapshot_pinned = 0;
+
+    server.current_client[iotid].p = exec;
+    server.executing_client[iotid].p = exec;
+    monotime cs_t0 = tomoCmdClockEnter();
+    numCommandsBump();
+    long long cs_e0 = tomoErrRepliesLocal();
+
+    int lock_owner = (int)server.ex_bucket_table[bucket];
+    tomoWkrLock(lock_owner);
+    exQueueEntryKind kind = exEntryKind(entry);
+    client *fake;
+    if (kind == TOMO_EX_ENTRY_FAST_GET_INLINE ||
+        kind == TOMO_EX_ENTRY_FAST_GET_PTR) {
+        kvobj *value = tomoLookupKeyReadFast(db, &semantic_key, probe,
+                                             entry->key_hash, (int)bucket,
+                                             LOOKUP_NONE, entry->pending);
+        fake = exFastAttachReply(entry, db);
+        if (value == NULL)
+            addReplyOrErrorObject(fake, shared.null[fake->resp]);
+        else if (value->type != OBJ_STRING)
+            addReplyErrorObject(fake, shared.wrongtypeerr);
+        else
+            addReplyBulk(fake, value);
+    } else {
+        robj *value = kind == TOMO_EX_ENTRY_FAST_SET_INLINE ?
+            entry->payload.set_inline.value : entry->payload.ptr.value;
+        serverAssert(value != NULL);
+        /* Preserve the real client's tracking identity without handing the
+         * untouched fake carrier into keyspace work. */
+        tomoSetPlainStringApply(entry->pending->fast_reader, db,
+                                &semantic_key, probe,
+                                entry->key_hash, (int)bucket, entry->pending,
+                                &value);
+        fake = exFastAttachReply(entry, db);
+        serverAssert(fake->argc == 3);
+        fake->argv[2] = value;
+        addReply(fake, shared.ok);
+    }
+    tomoWkrUnlock(lock_owner);
+
+    pendingCommand *pcmd = fake->current_pending_cmd;
+    struct redisCommand *cmd = fake->cmd;
+    if (__builtin_expect(cs_t0 != 0, 1)) {
+        long long cs_usec = (long long)(getMonotonicUs() - cs_t0);
+        if (tm_cur_ex) {
+            unsigned cls = cmd->tomo_cls & TOMO_CLS_MASK;
+            tm_cur_ex->svc_us[cls] +=
+                (cs_usec > 1000000LL) ? 1000000u : (unsigned)cs_usec;
+            tm_cur_ex->svc_ops[cls]++;
+        }
+        int cs_failed = tomoErrRepliesLocal() != cs_e0;
+        tomoCmdStatAddCall(cmd, cs_usec, cs_failed);
+        if (server.latency_tracking_enabled) tomoCmdLatRecord(cmd, cs_usec);
+    }
+    fake->commands_processed++;
+    fake->tomo_bkt_ptr = NULL;
+
+    pcmd->argv_released_mask = 0;
+    for (int a = 0; a < pcmd->argc; a++) {
+        robj *o = pcmd->argv[a];
+        if (o && o->refcount > 1 && o->refcount != OBJ_SHARED_REFCOUNT) {
+            decrRefCount(o);
+            if (a < 64) pcmd->argv_released_mask |= 1ULL << a;
+            else pcmd->argv[a] = NULL;
+        }
+    }
+    server.current_client[iotid].p = NULL;
+    server.executing_client[iotid].p = NULL;
+    exec->flags = 0;
+    exec->db = NULL;
+    exec->tomo_bkt_ptr = NULL;
+    tomoCmdClockExit();
+    return fake;
+}
+
 
 
 
@@ -21830,9 +22021,8 @@ static inline void exExecFake(client *fake) {
  * atomically at the mode-transition checkpoint. */
 typedef struct exSliceCtx {
     /* ee451 (S5): this worker's CDB index, fixed for its lifetime (num_cdb is
-     * IMMUTABLE). Every fake this worker handles was dispatched to it, so each
-     * such fake->cdb == wcdb; the worker signals all its completions into this
-     * one CDB line, which the drain clears via the same captured fake->cdb. */
+     * IMMUTABLE). POINTER jobs use it directly; FAST entries also carry it so
+     * the IO-owned route byte and the worker publication name one generation. */
     int wcdb;
     int nq;             /* ee451 (v14): io_threads+1 — loop-invariant (immutable after startup), hoisted */
     int scan_start;     /* worker-local producer-scan rotation cursor */
@@ -21858,7 +22048,7 @@ typedef struct exSliceCtx {
     uint64_t tm_idle_mark;
     /* pop/execute scratch. Contents never persist across passes; it lives here
      * (not on the slice stack) only so the slice body is the verbatim old loop. */
-    client *batch[WORKER_POP_BATCH];
+    exQueueEntry batch[WORKER_POP_BATCH];
 } exSliceCtx;
 
 typedef enum exSliceIdlePolicy {
@@ -22173,8 +22363,11 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
          * the IO scheduler's predicted displacement-time bound. batch[0] is the oldest arrival in
          * this lane, and tm_mark is the existing work-pass clock, so this adds no clock read; it is
          * 0 when reorder is off (arrival_us is then unstamped). */
-        if (server.tomo_reorder > 0 && n > 0 && ctx->batch[0]->arrival_us) {
-            uint64_t age = (uint64_t)(ctx->tm_mark - ctx->batch[0]->arrival_us);
+        if (server.tomo_reorder > 0 && n > 0) {
+            client *oldest = exEntryKind(&ctx->batch[0]) == TOMO_EX_ENTRY_POINTER ?
+                ctx->batch[0].client_id : NULL;
+            uint64_t age = oldest && oldest->arrival_us ?
+                (uint64_t)(ctx->tm_mark - oldest->arrival_us) : 0;
             if (age < 100000000ULL && age > worker->rord_worst_age_us)
                 worker->rord_worst_age_us = (unsigned int)age;
         }
@@ -22190,15 +22383,21 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
         }
         any = 1;
 
-        /* Warm the cache before executing the batch. */
+        /* Warm POINTER carriers before execution. FAST descriptors already
+         * contain their key/class/hash and must not prefetch the fake core. */
         int prefetch_mode = server.prefetch_ex_level;
+        client *pointer_batch[WORKER_POP_BATCH];
+        int pointer_n = 0;
+        for (int p = 0; p < n; p++)
+            if (exEntryKind(&ctx->batch[p]) == TOMO_EX_ENTRY_POINTER)
+                pointer_batch[pointer_n++] = ctx->batch[p].client_id;
         if (prefetch_mode == 2 && tomoCrossNode(i, worker->id)) {
             tomoMessagePrefetch messages;
             tomoMessagePrefetchInit(&messages, &WQ[i], n);
-            exPrefetchBatch(ctx->batch, n, prefetch_mode);
+            if (pointer_n) exPrefetchBatch(pointer_batch, pointer_n, prefetch_mode);
             tomoMessagePrefetchCarriers(&messages);
         } else {
-            exPrefetchBatch(ctx->batch, n, prefetch_mode);
+            if (pointer_n) exPrefetchBatch(pointer_batch, pointer_n, prefetch_mode);
         }
 
         tomoRelaxedBump(worker->ops_total, (uint64_t)n);   /* ee451 (v8d): monotonic load signal for the EWMA balancer (numa: _Atomic single-writer idiom) */
@@ -22209,6 +22408,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
          * the IO owner may recycle a fake as soon as its slot is published. */
         client *sig_parents[WORKER_POP_BATCH];
         uint8_t sig_slots[WORKER_POP_BATCH];
+        uint8_t sig_cdbs[WORKER_POP_BATCH];
         int sig_n = 0;
 
         /* Execute the batch in issue (queue) order — plain, one op at a time.
@@ -22217,7 +22417,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
          * runs — mean run 1.008; it cost per-op learn + write-rate hooks and 15 knobs).
          * The record/replay helpers in db.c remain dormant for the paper's artifact. */
         for (int j = 0; j < n; ) {
-            client *fake = ctx->batch[j];
+            exQueueEntry *job = &ctx->batch[j];
 
             /* ee451 (#3): next-op dict-bucket look-ahead. While this op executes (a few hundred
              * cycles), warm the bucket line of the fake TOMO_PF_W_NEXTOP ahead so its lookup doesn't
@@ -22233,11 +22433,40 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
             if (TOMO_PF_W_NEXTOP) {   /* -1 = AUTO (lookahead = current batch n), N = strict, 0 = off */
                 int la = j + (TOMO_PF_W_NEXTOP == TOMO_PFW_NEXTOP_AUTO ? n : TOMO_PF_W_NEXTOP);
                 if (la < n) {
-                    client *nf = ctx->batch[la];
-                    if (nf->prefetch_key_hash_valid && nf->prefetch_dict && nf->prefetch_dict->ht_table[0])
+                    exQueueEntry *next_job = &ctx->batch[la];
+                    client *nf = exEntryKind(next_job) == TOMO_EX_ENTRY_POINTER ?
+                        next_job->client_id : NULL;
+                    if (nf && nf->prefetch_key_hash_valid && nf->prefetch_dict && nf->prefetch_dict->ht_table[0])
                         redis_prefetch_read(&nf->prefetch_dict->ht_table[0][nf->prefetch_bucket_idx]);
                 }
             }
+
+            if (exEntryIsFast(job)) {
+                client *fake = exExecFast(job, worker);
+                unsigned bkt = exEntryBucket(job);
+                worker->lb_grp_ops[TOMO_LB_GROUP(bkt)]++;
+                uint64_t win = atomic_load_explicit(&worker->lb_fine_win,
+                                                     memory_order_relaxed);
+                unsigned fo = bkt - (uint32_t)win;
+                if (fo < (uint32_t)(win >> 32)) worker->lb_fine_ops[fo]++;
+
+                exQueueEntryKind kind = exEntryKind(job);
+                if (kind == TOMO_EX_ENTRY_FAST_GET_INLINE ||
+                    kind == TOMO_EX_ENTRY_FAST_GET_PTR) {
+                    int cur = (int)worker->w_ewma_vsize;
+                    cur += (((int)fake->bufpos + (int)fake->reply_bytes) - cur) >> 4;
+                    worker->w_ewma_vsize = cur < 0 ? 0 : (unsigned int)cur;
+                }
+                sig_parents[sig_n] = fake->parent;
+                sig_slots[sig_n] = (uint8_t)exEntrySlot(job);
+                sig_cdbs[sig_n] = (uint8_t)exEntryCdb(job);
+                sig_n++;
+                j++;
+                continue;
+            }
+
+            serverAssert(exEntryKind(job) == TOMO_EX_ENTRY_POINTER);
+            client *fake = job->client_id;
 
             /* ee451 (v8d): CUTOVER DRAIN SENTINEL — processed in queue order. Reaching it proves
              * every range primary this producer dispatched before it has executed on A; decrement
@@ -22378,6 +22607,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
 
             sig_parents[sig_n] = fake->parent;
             sig_slots[sig_n] = (uint8_t)fake->fake_slot;
+            sig_cdbs[sig_n] = (uint8_t)ctx->wcdb;
             sig_n++;
             j++;
         }
@@ -22386,7 +22616,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
          * the worker's final access to each saved parent; after a store, the
          * IO owner may immediately retire that slot. */
         for (int s = 0; s < sig_n; s++)
-            cdbSlotPublish(sig_parents[s], ctx->wcdb, sig_slots[s]);
+            cdbSlotPublish(sig_parents[s], sig_cdbs[s], sig_slots[s]);
 
         /* ee451 (H2, reshard drain fence): publish this queue's EXECUTION frontier. The pop above
          * advanced `head` before any of these commands ran, so `head` alone cannot distinguish
