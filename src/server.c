@@ -658,6 +658,8 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
      * the same reason tmMigMailbox.io_exiting is: it is read cross-thread, and a plain int would be
      * a C11 data race even though the load is non-torn in practice. */
     _Atomic int pinned_nonmig;
+    unsigned int rord_age_pins; /* reorder entries made non-displaceable by the derived time bound;
+                                 * occupies the alignment hole before q_full_events */
     unsigned long q_full_events;  /* worker-queue exhaustion count (owner-written, racy read by INFO) */
     /* ee451 (A3 acceptance, 2026-08-02): the SAME exhaustion counted separately for the cross-shard
      * scatter (csPushSpin) and the single-key dispatch (exDispatchPush). They are different call
@@ -3455,25 +3457,23 @@ _Atomic int tomo_recv_readlen = PROTO_IOBUF_LEN;
 /* ===================== ee451 D: the reorder (mechanism B — KNOB tomokv-reorder) ==============
  * A permutation of the CURRENT WINDOW's dispatches, decided at the admission point before any
  * ring slot is written. SPSC untouched; ring order = scheduled order; nothing from a later
- * window can pass anything already pushed, so the starvation bound is structural: a demoted
- * command is passed only by members of its OWN window (< W dispatches, and W is clamped).
+ * window can pass anything already pushed. Within the window, predicted displacement time is
+ * bounded from the existing arrival stamps and measured class-service EWMAs below.
  *
- * Scratch is TLS, compile-capped: if the published window exceeds the cap, the drain fires at
- * the cap (an early flush) — the guard's O(r^2) pass is only cheap because r is small, and this
- * cap is what keeps that true no matter what the window law publishes.
+ * Scratch is TLS, compile-capped: if the published window exceeds its storage cap, the drain
+ * fires early. That capacity bound keeps stack/TLS work finite; it is not the displacement bound.
  *
- * Emission order per worker run: heads (arrival-stable) then classes C0..C3 (arrival-stable,
+ * Emission order per worker run: heads (arrival-stable) then classes C0..C5 (arrival-stable,
  * same-bucket entries grouped adjacent behind the first of their bucket). The dependency guard
  * runs during emission: a same-key collision (h equality) FENCES the remainder of that run —
  * emitted in arrival order — rather than risking a same-connection same-key swap.
  * Levels: 0 = path compiled around (no scratch write, direct push); 1 = partition + heads;
  * 2 = + class SJF + bucket grouping. Mutually exclusive with strict-order (so != 0). */
 #define TOMO_RORD_CAP 64
-/* D5 aging: reorder happens within consecutive arrival CHUNKS of this size, so no command is
- * displaced more than AGE_BOUND slots from arrival. Stated bound (spec sec 6): extra wait <=
- * AGE_BOUND * shortest-class-service. Sized to cap the long-class tail while leaving enough
- * within-chunk mix for the short-class SJF win; a run shorter than this is one chunk = full SJF. */
-#define TOMO_RORD_AGE_BOUND 32
+/* D5 aging: retain the accepted old displacement budget (32) only as a multiplier over measured
+ * TIME. The actual bound is AGE_EWMAS * the slowest published class-service EWMA, so it follows the
+ * workload instead of assuming that 32 displaced commands have a stable latency cost. */
+#define TOMO_RORD_AGE_EWMAS 32
 static __thread struct {
     client  *fk[TOMO_RORD_CAP];
     uint64_t h[TOMO_RORD_CAP];
@@ -3483,6 +3483,79 @@ static __thread struct {
     int      draining;             /* re-entrancy latch: full-ring fallback inside the drain */
     uint64_t win_us;               /* D age clock: stamped once when the window opens (n:0->1) */
 } tomo_rord;
+
+/* Published by the service signal plane below. The reorder snapshots it only while enabled. */
+extern _Atomic uint32_t tomo_svc_q8[TOMO_SVC_CLASSES];
+
+typedef struct tomoRordAge {
+    uint32_t svc_q8[TOMO_SVC_CLASSES];
+    uint32_t slow_q8;
+    uint64_t bound_q8;
+    uint64_t latest_us;
+    uint64_t elapsed_q8;
+} tomoRordAge;
+
+/* Snapshot the six existing Q8-us service EWMAs once per drain. An unseen class is charged at the
+ * slowest observed service so missing data can never buy extra displacement; before the plane has
+ * any data, bound_q8==0 and every entry is conservatively pinned. */
+static void tomoReorderAgeSnapshot(tomoRordAge *age) {
+    age->slow_q8 = 0;
+    for (int c = 0; c < TOMO_SVC_CLASSES; c++) {
+        age->svc_q8[c] = atomic_load_explicit(&tomo_svc_q8[c], memory_order_relaxed);
+        if (age->svc_q8[c] > age->slow_q8) age->slow_q8 = age->svc_q8[c];
+    }
+    if (age->slow_q8)
+        for (int c = 0; c < TOMO_SVC_CLASSES; c++)
+            if (age->svc_q8[c] == 0) age->svc_q8[c] = age->slow_q8;
+    age->bound_q8 = (uint64_t)TOMO_RORD_AGE_EWMAS * age->slow_q8;
+    age->latest_us = age->elapsed_q8 = 0;
+}
+
+static void tomoReorderAgeStartRun(tomoRordAge *age, const int *ord, int r) {
+    age->latest_us = 0;
+    age->elapsed_q8 = 0;
+    for (int a = 0; a < r; a++) {
+        uint64_t stamp = tomo_rord.fk[ord[a]]->arrival_us;
+        if (stamp > age->latest_us) age->latest_us = stamp;
+    }
+}
+
+static uint64_t tomoReorderAgeQ8(const tomoRordAge *age, int idx) {
+    uint64_t stamp = tomo_rord.fk[idx]->arrival_us;
+    uint64_t delta = age->latest_us >= stamp ? age->latest_us - stamp : 0;
+    uint64_t arrival_q8 = delta <= (UINT64_MAX >> 8) ? delta << 8 : UINT64_MAX;
+    return age->elapsed_q8 <= UINT64_MAX - arrival_q8 ?
+           arrival_q8 + age->elapsed_q8 : UINT64_MAX;
+}
+
+/* Return one consecutive arrival slice whose predicted service fits before the oldest entry's
+ * displacement deadline. The latest existing arrival stamp starts the logical schedule; earlier
+ * slices advance it by their measured service. This deliberately bounds time added by reordering,
+ * while rord_worst_age_us separately observes full stage-to-execution wall age. Once the oldest
+ * entry has no displacement budget left, a singleton slice makes it non-displaceable. Every entry
+ * is visited once across a run, retaining the old O(r * classes) emit cost rather than the rejected
+ * O(r^2) per-emission aging scan. */
+static int tomoReorderAgeSlice(tomoRordAge *age, const int *ord, int a0, int an, int *pinned) {
+    uint64_t waited_q8 = tomoReorderAgeQ8(age, ord[a0]);
+    uint64_t budget_q8 = waited_q8 < age->bound_q8 ? age->bound_q8 - waited_q8 : 0;
+    uint64_t service_q8 = 0;
+    int a1 = a0;
+
+    *pinned = age->bound_q8 == 0 || waited_q8 >= age->bound_q8;
+    while (a1 < an) {
+        int cls = tomo_rord.cls[ord[a1]] & TOMO_CLS_MASK;
+        uint64_t cost_q8 = age->svc_q8[cls];
+        if (a1 > a0 && (cost_q8 > budget_q8 || service_q8 > budget_q8 - cost_q8)) break;
+        service_q8 = service_q8 <= UINT64_MAX - cost_q8 ? service_q8 + cost_q8 : UINT64_MAX;
+        a1++;
+        if (*pinned || service_q8 > budget_q8) break;
+    }
+    if (a1 == a0) a1++;   /* zero-data bootstrap and saturated arithmetic still make progress */
+    if (!*pinned && a1 == a0 + 1 && a1 < an) *pinned = 1;
+    age->elapsed_q8 = age->elapsed_q8 <= UINT64_MAX - service_q8 ?
+                      age->elapsed_q8 + service_q8 : UINT64_MAX;
+    return a1;
+}
 
 /* O(r) same-key dependency detection for the drain's per-run fence, replacing the O(r^2) all-pairs
  * hash scan (pure waste for the all-distinct case, e.g. GET over random keys). Generation-stamped
@@ -3499,11 +3572,14 @@ static __thread uint32_t rord_hset_curgen;
 static void exDispatchDirect(int ex_id, client *fake);   /* the pre-D push path, defined below */
 
 /* D trace helper (armed-only, off the hot path): reproduce the emission order of ONE run into a
- * string without dispatching. Mirrors tomoReorderDrain's head-pass + chunked class-SJF + bucket
- * grouping exactly. cls char = class digit, upper=head, | separates the fenced tail. */
-static void tomoReorderTraceRun(int w, int r, const int *ridx, int fence_at, int lvl) {
+ * string without dispatching. Mirrors tomoReorderDrain's time slices, per-slice head pass, class-SJF
+ * and bucket grouping exactly. cls char = class digit, upper=head, | separates the fenced tail. */
+static void tomoReorderTraceRun(int w, int r, const int *ridx, int fence_at, int lvl,
+                                const tomoRordAge *age_base) {
     char arr[80], emt[80]; int ai = 0, ei = 0;
     uint8_t used[TOMO_RORD_CAP]; for (int i = 0; i < r && i < TOMO_RORD_CAP; i++) used[i] = 0;
+    tomoRordAge age = *age_base;
+    tomoReorderAgeStartRun(&age, ridx, r);
     for (int i = 0; i < r && ai < 78; i++) {
         int c = tomo_rord.cls[ridx[i]] & TOMO_CLS_MASK;
         arr[ai++] = (tomo_rord.cls[ridx[i]] & 0x80) ? ('A' + c) : ('0' + c);
@@ -3512,9 +3588,10 @@ static void tomoReorderTraceRun(int w, int r, const int *ridx, int fence_at, int
     arr[ai] = 0;
     #define EMITC(K) do { if (ei < 78) { int _c = tomo_rord.cls[ridx[K]] & TOMO_CLS_MASK; \
         emt[ei++] = (tomo_rord.cls[ridx[K]] & 0x80) ? ('A'+_c) : ('0'+_c); used[K] = 1; } } while(0)
-    for (int i = 0; i < fence_at; i++) if (tomo_rord.cls[ridx[i]] & 0x80) EMITC(i);
-    for (int c0 = 0; c0 < fence_at; c0 += TOMO_RORD_AGE_BOUND) {
-        int c1 = c0 + TOMO_RORD_AGE_BOUND; if (c1 > fence_at) c1 = fence_at;
+    for (int c0 = 0; c0 < fence_at; ) {
+        int pinned;
+        int c1 = tomoReorderAgeSlice(&age, ridx, c0, fence_at, &pinned);
+        for (int i = c0; i < c1; i++) if (tomo_rord.cls[ridx[i]] & 0x80) EMITC(i);
         for (int cl = 0; cl < TOMO_SVC_CLASSES; cl++)
             for (int i = c0; i < c1; i++) {
                 if (used[i] || (tomo_rord.cls[ridx[i]] & TOMO_CLS_MASK) != cl) continue;
@@ -3524,6 +3601,7 @@ static void tomoReorderTraceRun(int w, int r, const int *ridx, int fence_at, int
                         if (!used[j] && (tomo_rord.cls[ridx[j]] & TOMO_CLS_MASK) == cl &&
                             (tomo_rord.h[ridx[j]] & TOMO_BUCKET_MASK) == bkt) EMITC(j); }
             }
+        c0 = c1;
     }
     if (fence_at < r && ei < 78) emt[ei++] = '|';
     for (int i = fence_at; i < r; i++) if (!used[i]) EMITC(i);
@@ -3533,12 +3611,12 @@ static void tomoReorderTraceRun(int w, int r, const int *ridx, int fence_at, int
     tm_rord_trace = 0;   /* one-shot */
 }
 
-/* Shinjuku-style per-run emit (reorder mode 3): dependency-aware SJF. Emits the run [ord, ord+r)
+/* Shinjuku-style slice emit (reorder mode 3): dependency-aware SJF. Emits the run [ord, ord+r)
  * (indices into tomo_rord, already arrival-order, all for worker w). A command may only be emitted
  * after its same-(owning-connection, key-hash) predecessor -- Redis guarantees order only within a
- * connection, so cross-client same-key is free to reorder. Among ready commands, pick max(wait/SLO)
- * = shortest class first (within one window wait is ~uniform, so this is class-SJF; the wait term is
- * kept so cross-window aging is a later drop-in). EXACT (not chunk-bounded). r <= TOMO_RORD_CAP. */
+ * connection, so cross-client same-key is free to reorder. Among ready commands, pick shortest
+ * class first. The caller supplies consecutive time-bounded slices; dependencies spanning slices
+ * are already satisfied because slices emit in arrival order. r <= TOMO_RORD_CAP. */
 static void tomoReorderEmitShinjuku(int w, const int *ord, int r) {
     uint8_t blocked[TOMO_RORD_CAP];
     int     succ[TOMO_RORD_CAP];
@@ -3586,6 +3664,8 @@ void tomoReorderDrain(void) {
     tomo_rord.draining = 1;
     int n = tomo_rord.n;
     int lvl = server.tomo_reorder;
+    tomoRordAge age_base;
+    tomoReorderAgeSnapshot(&age_base);
     /* stable counting-scatter by worker: order[] holds indices grouped by ex id. Bounded by the
      * MAX worker id present in this window (mx), NOT TOMO_EX_THREADS_MAX: a window touches only a
      * few live workers, so zeroing+scanning all 128 buckets was a fixed O(TOMO_EX_THREADS_MAX) tax
@@ -3619,7 +3699,15 @@ void tomoReorderDrain(void) {
             for (int i = s0; i < s1; i++) exDispatchDirect(w, tomo_rord.fk[order[i]]);
         } else if (lvl == 3) {
             tm_io_sig[iotid].rord_runs++;
-            tomoReorderEmitShinjuku(w, order + s0, r);
+            tomoRordAge age = age_base;
+            tomoReorderAgeStartRun(&age, order + s0, r);
+            for (int c0 = 0; c0 < r; ) {
+                int pinned;
+                int c1 = tomoReorderAgeSlice(&age, order + s0, c0, r, &pinned);
+                if (pinned) tm_io_sig[iotid].rord_age_pins++;
+                tomoReorderEmitShinjuku(w, order + s0 + c0, c1 - c0);
+                c0 = c1;
+            }
         } else {
             tm_io_sig[iotid].rord_runs++;
             /* dependency guard: any same-key pair in this run fences the run from its FIRST
@@ -3653,28 +3741,29 @@ void tomoReorderDrain(void) {
              * and log, WITHOUT touching the real emit below. Guarded by the one-shot flag so the
              * millions-of-emits hot path never pays a per-emit branch. */
             if (__builtin_expect(tm_rord_trace && r >= 4 && r < 70, 0))
-                tomoReorderTraceRun(w, r, order + s0, fence_at, lvl);
-            /* pass 1: heads, arrival order (never demoted; promotion only) */
+                tomoReorderTraceRun(w, r, order + s0, fence_at, lvl, &age_base);
             int emitted = 0;
-            for (int i = 0; i < fence_at; i++) {
-                int idx = order[s0 + i];
-                if (tomo_rord.cls[idx] & 0x80) {
-                    exDispatchDirect(w, tomo_rord.fk[idx]);
-                    tomo_rord.cls[idx] = 0xFF;               /* consumed */
-                    emitted++; tm_io_sig[iotid].rord_heads++;
+            /* D5 time aging. Consecutive slices carry no more predicted service than remains in
+             * the oldest entry's derived deadline. SJF, head promotion and bucket pulls stay inside
+             * that boundary; after accumulated wait exhausts it, a singleton slice pins the entry.
+             * Unlike the retired 32-entry chunks, the displacement allowance now contracts/expands
+             * with measured command cost while retaining O(r * nclasses) emission. */
+            tomoRordAge age = age_base;
+            tomoReorderAgeStartRun(&age, order + s0, r);
+            for (int c0 = 0; c0 < fence_at; ) {
+                int pinned;
+                int c1 = tomoReorderAgeSlice(&age, order + s0, c0, fence_at, &pinned);
+                if (pinned) tm_io_sig[iotid].rord_age_pins++;
+                /* pass 1: heads, arrival order inside this time boundary (never demoted) */
+                for (int i = c0; i < c1; i++) {
+                    int idx = order[s0 + i];
+                    if (tomo_rord.cls[idx] & 0x80) {
+                        exDispatchDirect(w, tomo_rord.fk[idx]);
+                        tomo_rord.cls[idx] = 0xFF;               /* consumed */
+                        emitted++; tm_io_sig[iotid].rord_heads++;
+                    }
                 }
-            }
-            /* pass 2: CHUNKED class SJF — the D5 aging bound built into the loop structure, not
-             * bolted on. The run is cut into consecutive arrival-order CHUNKS of at most
-             * TOMO_RORD_AGE_BOUND; SJF (+ same-bucket grouping at lvl>=2) reorders WITHIN a chunk,
-             * chunks emit in arrival order. So no command is displaced past its chunk boundary =>
-             * extra wait <= AGE_BOUND * shortest-class-service. Stated integer bound (spec sec 6),
-             * and it keeps the emit O(r * nclasses) — the un-chunked "scan for lowest class per
-             * emit" was O(r^2), catastrophic at the saturated window (POP_BATCH*w_live) and it
-             * both regressed throughput AND destroyed the SJF win (measured, reverted). Heads were
-             * already emitted across the whole run above (never demoted); this orders the rest. */
-            for (int c0 = 0; c0 < fence_at; c0 += TOMO_RORD_AGE_BOUND) {
-                int c1 = c0 + TOMO_RORD_AGE_BOUND; if (c1 > fence_at) c1 = fence_at;
+                /* pass 2: class SJF; same-bucket grouping cannot cross the time boundary */
                 for (int cl = 0; cl < TOMO_SVC_CLASSES; cl++) {
                     for (int i = c0; i < c1; i++) {
                         int idx = order[s0 + i];
@@ -3683,7 +3772,7 @@ void tomoReorderDrain(void) {
                         tomo_rord.cls[idx] = 0xFF; emitted++;
                         if (lvl >= 2) {
                             uint64_t bkt = tomo_rord.h[idx] & TOMO_BUCKET_MASK;
-                            for (int j = i + 1; j < c1; j++) {   /* grouping stays within the chunk */
+                            for (int j = i + 1; j < c1; j++) {
                                 int jdx = order[s0 + j];
                                 if (tomo_rord.cls[jdx] == cl &&
                                     (tomo_rord.h[jdx] & TOMO_BUCKET_MASK) == bkt) {
@@ -3695,6 +3784,7 @@ void tomoReorderDrain(void) {
                         }
                     }
                 }
+                c0 = c1;
             }
             /* fenced tail (and anything the passes above marked consumed is skipped) */
             for (int i = fence_at; i < r; i++) {
@@ -19198,9 +19288,11 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             unsigned long long io_work = 0, io_busy = 0, ex_busy = 0;
             unsigned long long io_idle = 0, io_wait = 0, ex_idle = 0;
             unsigned long long rord_runs_sum=0, rord_heads_sum=0, rord_grouped_sum=0, rord_fences_sum=0;
+            unsigned long long rord_age_pins_sum=0;
             for (int _t = 0; _t <= TOMO_IO_THREADS_MAX; _t++) {
                 rord_runs_sum += tm_io_sig[_t].rord_runs; rord_heads_sum += tm_io_sig[_t].rord_heads;
                 rord_grouped_sum += tm_io_sig[_t].rord_grouped; rord_fences_sum += tm_io_sig[_t].rord_fences;
+                rord_age_pins_sum += tm_io_sig[_t].rord_age_pins;
             }
             int io_hi = server.io_threads + server.tm_ngrow_io, nio = 0;
             for (int t = 1; t <= io_hi && t <= TOMO_IO_THREADS_MAX; t++) {
@@ -19241,6 +19333,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "tomokv_rord_heads:%llu\r\n", (unsigned long long)rord_heads_sum,
                 "tomokv_rord_grouped:%llu\r\n", (unsigned long long)rord_grouped_sum,
                 "tomokv_rord_fences:%llu\r\n", (unsigned long long)rord_fences_sum,
+                "tomokv_reorder_age_pins:%llu\r\n", (unsigned long long)rord_age_pins_sum,
                 "tomokv_rord_worst_age_us:%u\r\n", ({ unsigned _m=0; for (int _w=0;_w<server.num_workers && _w<TOMO_EX_THREADS_MAX;_w++) if (server.exThreads[_w].rord_worst_age_us>_m) _m=server.exThreads[_w].rord_worst_age_us; _m; }),
                 "tomokv_io_threads_counted:%d\r\n", nio,
                 "tomokv_ex_threads_counted:%d\r\n", wlive));
@@ -21841,11 +21934,10 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
          * U_ex of 133x, 172x, and a NEGATIVE reading once the unsigned counter wrapped.
          * One vDSO read, only on the first pop of a pass. */
         if (!any) ctx->tm_mark = getMonotonicUs();
-        /* D worst-age (reorder verdict aid): the STRUCTURAL bound says a demoted command is passed
-         * only within its own window (< W dispatches), so its wait cannot exceed one window's
-         * service. Measure it: age of the OLDEST-arrival fake in this batch (batch is
-         * arrival-monotone within a lane, so batch[0] is oldest). One reuse of tm_mark, no extra
-         * clock read; 0 when reorder off (arrival_us unstamped => age clamps to 0). */
+        /* D worst-age (reorder verdict aid): measure full stage->execution age independently of
+         * the IO scheduler's predicted displacement-time bound. batch[0] is the oldest arrival in
+         * this lane, and tm_mark is the existing work-pass clock, so this adds no clock read; it is
+         * 0 when reorder is off (arrival_us is then unstamped). */
         if (server.tomo_reorder > 0 && n > 0 && ctx->batch[0]->arrival_us) {
             uint64_t age = (uint64_t)(ctx->tm_mark - ctx->batch[0]->arrival_us);
             if (age < 100000000ULL && age > worker->rord_worst_age_us)
