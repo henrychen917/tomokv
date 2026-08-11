@@ -578,12 +578,12 @@ c1_flip() {
   for pr in 1 2 3 4 5; do
     fprobe=$(flips)
     # shellcheck disable=SC2086
-    mt "flip_auto_p1probe$pr" $W_P1GET --test-time=10 >/dev/null
+    mt "flip_auto_p1probe$pr" $W_P1GET --test-time=40 >/dev/null   # 40s >= one oscillation period; a 10s probe certified quiet from the gap BETWEEN flips
     [ "$(flips)" = "$fprobe" ] && { settledA=1; break; }
   done
   convA=$(( $(date +%s) - ta0 ))
   tsv 1-flip convergence-p1 "p1 stimulus start -> first 0-flip 10s probe window" \
-      "settled=$settledA convergence_time=${convA}s" "settle within $((T_CONV1 + 50))s (5-probe ladder)" \
+      "settled=$settledA convergence_time=${convA}s" "settle within $((T_CONV1 + 200))s (5x40s-probe ladder)" \
       "$( [ "$settledA" = 1 ] && echo PASS || echo FAIL )"
   # settled p1: flips must STOP during the measure windows (deadzone pins) — these 3
   # consecutive windows on the UNCHANGED workload are the flip ANTI-THRASH check.
@@ -644,12 +644,12 @@ c1_flip() {
   for pr in 1 2 3 4 5; do
     fprobe=$(flips)
     # shellcheck disable=SC2086
-    mt "flip_auto_p32probe$pr" $W_P32SET --test-time=10 >/dev/null
+    mt "flip_auto_p32probe$pr" $W_P32SET --test-time=40 >/dev/null  # 40s >= one oscillation period (long-hold documents 30-40s); 10s was structurally vacuous
     [ "$(flips)" = "$fprobe" ] && { settledB=1; break; }
   done
   convB=$(( $(date +%s) - tb0 ))
   tsv 1-flip convergence-p32 "p32 stimulus start -> first 0-flip 10s probe window" \
-      "settled=$settledB convergence_time=${convB}s" "settle within $((T_CONV2 + 50))s (5-probe ladder)" \
+      "settled=$settledB convergence_time=${convB}s" "settle within $((T_CONV2 + 200))s (5x40s-probe ladder)" \
       "$( [ "$settledB" = 1 ] && echo PASS || echo FAIL )"
   # settled p32 + anti-thrash + AUTO==STATIC io4ex4
   f_pre=$(flips)
