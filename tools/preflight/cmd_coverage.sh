@@ -8,7 +8,7 @@
 # catches the "command stashes per-invocation state in a process global" class across worker threads.
 # Runs at reorder=0 AND reorder=2 (the drain path must not corrupt results either).
 # io_uring mode-2 note: this broad command-family sweep intentionally remains on the default network
-# mode. Its dedicated correctness cell must build USE_URING=yes and boot --tomokv-io-uring 2; the
+# mode. Its dedicated correctness cell must build USE_URING=yes and boot --tomokv-io-uring 1; the
 # discriminating assertions are no stalled completions under DEFER_TASKRUN and byte-exact FIFO replies
 # for pipelined/large responses (GET/SET coverage by itself does not distinguish the enter/order bugs).
 #

@@ -34,7 +34,6 @@
 #include "estore.h"
 #include "listpack.h"   /* xshard step 6: worker-side zset-listpack (member,score) gather */
 #include "chk.h"
-#include "uring.h"
 #include "uring2.h"
 
 #include <time.h>
@@ -19245,46 +19244,11 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "tomokv_io_threads_counted:%d\r\n", nio,
                 "tomokv_ex_threads_counted:%d\r\n", wlive));
         }
-        tomoUringStats ust;
-        tomoUringGetStats(&ust);
         info = sdscatprintf(info, FMTARGS(
-            "tomokv_uring_enabled:%d\r\n", server.io_uring,
-            "tomokv_uring_rings_ready:%llu\r\n", (unsigned long long)ust.rings_ready,
-            "tomokv_uring_enters:%llu\r\n", (unsigned long long)ust.enters,
-            "tomokv_uring_sqes_submitted:%llu\r\n", (unsigned long long)ust.sqes_submitted,
-            "tomokv_uring_sqes_max_batch:%llu\r\n", (unsigned long long)ust.sqes_max_batch,
-            "tomokv_uring_cqes:%llu\r\n", (unsigned long long)ust.cqes,
-            "tomokv_uring_epoll_wakes:%llu\r\n", (unsigned long long)ust.epoll_wakes,
-            "tomokv_uring_init_failures:%llu\r\n", (unsigned long long)ust.init_failures,
-            "tomokv_uring_recv_arms:%llu\r\n", (unsigned long long)ust.recv_arms,
-            "tomokv_uring_recv_rearms:%llu\r\n", (unsigned long long)ust.recv_rearms,
-            "tomokv_uring_recv_cqes:%llu\r\n", (unsigned long long)ust.recv_cqes,
-            "tomokv_uring_recv_bytes:%llu\r\n", (unsigned long long)ust.recv_bytes,
-            "tomokv_uring_recv_enobufs:%llu\r\n", (unsigned long long)ust.recv_enobufs,
-            "tomokv_uring_recv_buffers_returned:%llu\r\n", (unsigned long long)ust.recv_buffers_returned,
-            "tomokv_uring_recv_cancel_queued:%llu\r\n", (unsigned long long)ust.recv_cancel_queued,
-            "tomokv_uring_recv_cancel_cqes:%llu\r\n", (unsigned long long)ust.recv_cancel_cqes,
-            "tomokv_uring_recv_cancel_enoent:%llu\r\n", (unsigned long long)ust.recv_cancel_enoent,
-            "tomokv_uring_recv_cancel_ealready:%llu\r\n", (unsigned long long)ust.recv_cancel_ealready,
-            "tomokv_uring_recv_terminal_waits:%llu\r\n", (unsigned long long)ust.recv_terminal_waits,
-            "tomokv_uring_recv_migration_acks:%llu\r\n", (unsigned long long)ust.recv_migration_acks,
-            "tomokv_uring_send_queued:%llu\r\n", (unsigned long long)ust.send_queued,
-            "tomokv_uring_send_submitted:%llu\r\n", (unsigned long long)ust.send_submitted,
-            "tomokv_uring_send_cqes:%llu\r\n", (unsigned long long)ust.send_cqes,
-            "tomokv_uring_send_bytes:%llu\r\n", (unsigned long long)ust.send_bytes,
-            "tomokv_uring_send_partial:%llu\r\n", (unsigned long long)ust.send_partial,
-            "tomokv_uring_send_errors:%llu\r\n", (unsigned long long)ust.send_errors,
-            "tomokv_uring_send_buffer_exhaustions:%llu\r\n", (unsigned long long)ust.send_buffer_exhaustions,
-            "tomokv_uring_send_buffers_recycled:%llu\r\n", (unsigned long long)ust.send_buffers_recycled,
-            "tomokv_uring_send_zc_submitted:%llu\r\n", (unsigned long long)ust.send_zc_submitted,
-            "tomokv_uring_send_zc_notifications:%llu\r\n", (unsigned long long)ust.send_zc_notifications,
-            "tomokv_uring_send_zc_copied:%llu\r\n", (unsigned long long)ust.send_zc_copied,
-            "tomokv_uring_send_zc_fallbacks:%llu\r\n", (unsigned long long)ust.send_zc_fallbacks,
-            "tomokv_uring_send_cancel_queued:%llu\r\n", (unsigned long long)ust.send_cancel_queued,
-            "tomokv_uring_send_cancel_cqes:%llu\r\n", (unsigned long long)ust.send_cancel_cqes));
-        /* Keep modes 0/1 INFO byte-for-byte unchanged.  The additive mode-2
-         * instrumentation is emitted only for the selected backend. */
-        if (server.io_uring == 2) {
+            "tomokv_uring_enabled:%d\r\n", server.io_uring));
+        /* mode-1 (the old unified ring) was DELETED 2026-08-10; its tomokv_uring_* stat block
+         * went with it. Any nonzero backend is the Helio-style ring below. */
+        if (server.io_uring != 0) {
             tomoUring2Stats u2st;
             tomoUring2GetStats(&u2st);
             long long u2_commands = getNumCommands();
@@ -19295,7 +19259,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             double u2_sqes_per_enter = u2st.enter_calls ?
                 (double)u2st.sqes_submitted / (double)u2st.enter_calls : 0.0;
             info = sdscatprintf(info, FMTARGS(
-                "tomokv_uring2_enabled:%d\r\n", server.io_uring == 2,
+                "tomokv_uring2_enabled:%d\r\n", server.io_uring != 0,
                 "tomokv_uring2_rings_ready:%llu\r\n", (unsigned long long)u2st.rings_ready,
                 "tomokv_uring2_setup_submit_all:%llu\r\n", (unsigned long long)u2st.setup_submit_all,
                 "tomokv_uring2_setup_defer_taskrun:%llu\r\n", (unsigned long long)u2st.setup_defer_taskrun,
@@ -24583,7 +24547,7 @@ typedef struct {
     int      u_noise_primed;
     int      just_settled;   /* a climb just ended => finish bookkeeping, then seek a legal anchor */
     /* ratio band (see FLIP_R_BAND). log space, so ONE band covers both directions. */
-    /* ONE VARIABLE CARRIES WHICHEVER SIGNAL tomokv-flip-signal SELECTS (see FLIP_SIG_*), and that
+    /* ONE VARIABLE CARRIES THE PRODUCTIVE-WORK SIGNAL (the only signal since 2026-08-10), and that
      * is deliberate rather than incidental. The anchor, the deadzone, the per-tick quiet test that
      * gates a START, the post-climb quiet test that gates the ANCHOR CAPTURE, and the same-wave
      * latch's veto_lr are all defined on lr_*; routing the alternative signal through the SAME
@@ -24774,89 +24738,9 @@ static flipCtlState fctl[TM_MAXNODE];
                                 * can do is halve the worker side (w=2 -> w=1) on a fully
                                 * worker-bound load, ~2x. Beyond 3x, re-baseline (#74). */
 
-/* ===== tomokv-flip-signal: WHICH QUANTITY THE TRIGGER READS (owner directive 2026-08-08) =======
- * "keep the general idea for flip the same... try basing it off pure worker idleness against its
- * queue depth and getting rid of io side signals, pin and deadzone worker idle/qdepth settle".
- *
- * ONLY THE TRIGGER'S INPUT CHANGES. The momentum hill-climb, the throughput judge and its
- * max(2*sigma, 0.02*best) band, the walk-back, the look-ahead/coast budget, the settle sequencing,
- * the load-change re-baseline and the client-bound terminal condition are shared across all modes
- * — this knob answers "which quantity drives the imbalance", nothing else.
- *
- * RATIO MODES NOW COMPARE THE SAME KIND OF QUANTITY. IO scheduled CPU, IO non-waiting time and
- * zero-event occupancy all counted some polling as work; EX already publishes the actual
- * first-pop..work-pass-end clock. Ratio modes therefore use only explicitly bracketed productive
- * work divided by the same wall x live-thread denominator on both roles. Empty poll/drain spin is
- * outside every IO work bracket and cannot move the numerator.
- *
- * THE WORKER SIGNAL, AND WHY IT IS ONE NUMBER. ex_sat is already "output vs input" for the worker
- * station (see the SATURATION comment): sat = U + Q/QCAP, U the fraction of wall time with work
- * available (i.e. 1 - idleness, from tm_idle_us) and Q/QCAP the standing backlog as a fraction of
- * the queue's own capacity (from tm_qdepth_ewma_q4, at full Q4 precision — the >>4 floor that
- * pinned sub-1 backlogs at exactly zero is what made this term dead before).
- *      sat < 1  service outruns arrivals  => workers IDLE       => starved from upstream
- *      sat = 1  service == arrivals       => output == input    => the owner's balance point
- *      sat > 1  arrivals outrun service   => a queue STANDS     => the workers are the bottleneck
- * The owner's three-way rule is that one number, and the two terms cannot both be large: a worker
- * with a standing queue is not idle, and an idle worker has no queue. So the sum is the two
- * branches written as one continuous quantity, which is what lets it reuse the band/anchor/sustain
- * machinery instead of needing a new discrete rule.
- *
- *      lr_worker = -log(ex_sat)
- *
- * puts it in the SAME LOG SPACE and SAME SIGN CONVENTION as the ratio it replaces: > 0 => workers
- * have slack => the bottleneck is upstream => GROW-FRONT (ex->io); < 0 => standing queue => the
- * workers are the bottleneck => GROW-BACK (io->ex); ~ 0 => HOLD. Every downstream reader of
- * lr_ewma (anchor, band, sustain, veto/same-wave latch, the `pressure` reads in the pool-edge and
- * refusal branches, FLIP_R_FAR, FLIP_R_QUIET) is therefore untouched and keeps its calibration.
- *
- * SCALE-FREE BY CONSTRUCTION — THERE IS NO ABSOLUTE IDLE THRESHOLD. Under closed-loop load workers
- * are almost never at 0% idle (measured at each workload's OWN optimum: p32 SET io4ex4 u_ex 0.834,
- * p32 ZRANGE io4ex4 0.90, p1 GET io7ex1 0.32), so a constant like "flip when idle > 10%" would fire
- * for ever in one direction and never converge. What triggers is DEPARTURE FROM THE ANCHOR — this
- * same signal captured at the last SETTLED operating point — by more than the band, plus the
- * granularity floor, exactly as the ratio is treated today.
- *
- * MODES:
- *   FLIP_SIG_RATIO (0)  DEPRECATED compatibility alias for mode 5. It selects the same productive
- *                       ratio and never selects zero-event occupancy.
- *   FLIP_SIG_WORKER (1) worker-only DIRECTION; the server/client-bound gate is retained.
- *   FLIP_SIG_WORKER_PURE (2) that gate is dropped too — see the gate site for what this gives up
- *                       and what damps it.
- *   FLIP_SIG_WORKER_CLIP (3) = mode 2 PLUS the clip repair at the granularity floor. See the
- *                       floor site; the reason it exists is below.
- *   FLIP_SIG_PRODUCTIVE_RATIO (5) U_IO=io_work/(wall*n_io),
- *                       U_EX=ex_work/(wall*n_ex), r=U_IO/U_EX. This is the default. Mode 0 is the
- *                       same branch; there is no remaining legacy ratio branch.
- *
- * THE WORKER SIGNAL'S ONE STRUCTURAL BLIND SPOT, and why mode 3 exists. u_ex is hard-clipped at
- * 1.0, so once the workers are saturated the ONLY thing that can still express "and how far
- * behind" is the backlog term qd_mean/QCAP. QCAP is 2048 on every configuration, and under
- * CLOSED-LOOP load the total in-flight work is bounded by conns x pipeline — so the queue's
- * dynamic range is set by the CLIENT, not the server. At p32/200 conns the depth reaches the
- * hundreds-to-thousands (the ex_sat comment records 5.75 -> 2227 across configs) and the term
- * works. At p1/200 conns the entire server holds at most ~200 commands, so qd_mean cannot exceed
- * ~0.098 of QCAP and the signal is compressed to near zero EXACTLY WHEN THE WORKERS ARE MOST
- * OVERLOADED. Worked example, ZRANGE(100) at p1 sitting at io7/ex1 (the state a preceding p1 GET
- * phase leaves behind, which is the sequence the frozen controller was accepted on):
- *      u_ex ~ 1.0, qd_mean <= ~200  =>  ex_sat <= 1.098  =>  lr_worker >= -0.093
- *      granularity floor at ne=1, grow-back = ln(2/1)/2 = 0.347   =>  |signal| < floor => HOLD
- * i.e. modes 1/2 can sit at io7/ex1 (270087 ops/s) while the optimum is io4/ex4 (447904). The
- * ratio signal escapes that state easily, because the io side still carries magnitude when the
- * worker side has clipped (io_sat ~0.4 vs ex_sat ~1.1 => lr ~ -1.0 against a 0.577 floor).
- * This is the same "utilization clips at 1.0 and then carries no further information" failure the
- * S = U + Q design was written to fix; the fix works at p32 and does not at p1, for a reason that
- * has nothing to do with which signal is chosen.
- * MODE 3'S REPAIR is not a new threshold: when the worker occupancy has clipped, the true
- * magnitude is UNMEASURABLE, not small, so the granularity floor's premise ("the measured
- * imbalance is smaller than one thread-move can fix") is unverifiable and must not veto. It
- * decides nothing on its own — direction, band, sustain, and the throughput veto all still gate. */
-#define FLIP_SIG_RATIO        0
-#define FLIP_SIG_WORKER       1
-#define FLIP_SIG_WORKER_PURE  2
-#define FLIP_SIG_WORKER_CLIP  3
-/* 4 is FLIP_SIG_WORKER_MAX on the adjacent worker-skew branch. */
-#define FLIP_SIG_PRODUCTIVE_RATIO 5
+/* tomokv-flip-signal and the FLIP_SIG_* modes were DELETED 2026-08-10 (owner decision): the
+ * productive-work ratio is the only signal (old modes: 0 was its alias; 1-3 were worker-only
+ * experiments, refuted; 4 was reserved for a branch that never merged). */
 
 /* Try the flip in `dir` (+1 front / -1 back) for `node`. Returns 1 on success. topo_nodes==1 uses
  * the global actuators (node 0 == whole server); >1 uses the node-scoped ones (built in Phase C). */
@@ -25088,7 +24972,7 @@ static void tmFlipSweepBegin(flipCtlState *fc, int node, int ni, int ne, int bas
               "legal=%d..%d derive=%s-cumulative-gstep baseline=%.0f",
               node, sweeps, ni, ne, fc->lr_ewma, fc->floor_probe_entry_gfloor,
               admitted_lo, admitted_hi, planned, legal_lo, legal_hi,
-              wsig ? "worker" : "ratio", fc->best_rate);
+              "ratio", fc->best_rate);
 }
 
 /* Deterministic no-repeat order: walk outward below entry, then cross already-measured configs
@@ -25475,16 +25359,13 @@ static void tomoFlipController(void) {
     /* Read the modifiable knob once per tick. Modes 0 and 5 intentionally need no selector: every
      * non-worker mode falls through the one productive-work ratio path, making the deprecated 0
      * spelling behaviorally identical to the default 5 spelling. */
-    const int flip_signal = server.flip_signal;
-    /* The upper endpoint includes the adjacent worker-max mode 4. It is rejected by this branch's
-     * config validator until that implementation combines, but spelling the classification here
-     * preserves its worker/pure/clip semantics when the branches meet. */
-    const int wsig  = (flip_signal >= FLIP_SIG_WORKER && flip_signal <= 4);
-    const int wpure = (flip_signal >= FLIP_SIG_WORKER_PURE && flip_signal <= 4);
-    const int wclip = (flip_signal == FLIP_SIG_WORKER_CLIP || flip_signal == 4);
-    /* Names for the log lines, so a mode-1/2/3/4 run does not call the worker signal a ratio. */
-    const char *sig_lc = wsig ? "worker-signal" : "productive-ratio";
-    const char *sig_uc = wsig ? "WORKER-SIGNAL" : "PRODUCTIVE-RATIO";
+    /* tomokv-flip-signal DELETED 2026-08-10 (owner): the productive-work ratio (the old mode-5
+     * spelling; 0 was an alias) is THE signal. The worker-only experiment modes 1-3 and the
+     * reserved 4 are gone with their arms. wsig stays as a compile-time zero because the frozen
+     * controller math threads it through shared helpers — the default path is bit-identical. */
+    const int wsig = 0;
+    const char *sig_lc = "productive-ratio";
+    const char *sig_uc = "PRODUCTIVE-RATIO";
 
     for (int node = 0; node < nnodes && node < TM_MAXNODE; node++) {
         flipCtlState *fc = &fctl[node];   /* zero-init is the correct PID start (I=0, bias=0, unprimed) */
@@ -25737,11 +25618,10 @@ static void tomoFlipController(void) {
          * never ratio inputs. */
         double u_io_idle = (double)fc->io_occ_smooth / 100.0;
         double u_io_wait = fc->io_wait_u_smooth;
-        double u_ex_idle = (double)fc->ex_occ_smooth / 100.0;
         double u_io_work = fc->io_work_u_smooth;
         double u_ex_work = fc->ex_work_u_smooth;
-        double u_io = wsig ? u_io_idle : u_io_work;
-        double u_ex = wsig ? u_ex_idle : u_ex_work;
+        double u_io = u_io_work;
+        double u_ex = u_ex_work;
         if (u_io > 1.0) u_io = 1.0;
         if (u_io_wait > 1.0) u_io_wait = 1.0;
         if (u_ex > 1.0) u_ex = 1.0;
@@ -25816,7 +25696,7 @@ static void tomoFlipController(void) {
          * p1. That is not a tuning error and it is not fixable by rescaling QCAP: normalising by
          * WORKER_POP_BATCH instead was tried and is a REJECTED design (it pushed ex_sat to 1.21
          * against io_sat 0.927 at the p32 SET optimum and ran the config to io=2 with 203 flips).
-         * Consequences are recorded at the u_ex clip above and in the FLIP_SIG_* blind-spot
+         * Consequences are recorded at the u_ex clip above and in the deleted-modes tombstone
          * paragraph; flip-signal 3 is the repair for the trigger side of it. */
         /* OWNER EQUATION (2026-08-09, derived from the 30-cell signal census, not composed):
          *     io_sat = u_io = EWMA(productive IO work / wall), capped at 1
@@ -25879,25 +25759,10 @@ static void tomoFlipController(void) {
          * being structurally unable to ever flip again. Observed as anchor=-nan, grow-back never
          * firing, and p32 SET stuck at io7ex1 for 3.09M against static's 7.50M (-58.8%).
          * Flooring both sides bounds the ratio to [1e-3, 1e3] so the log is always finite. */
-        double ratio = wsig
-                     ? fmax(io_sat, 1e-3) / fmax(ex_sat, 1e-3) /* legacy worker-mode log only */
-                     : fmax(u_io, 1e-3) / fmax(u_ex, 1e-3);
+        double ratio = fmax(u_io, 1e-3) / fmax(u_ex, 1e-3);
         double lr = log(ratio);
         if (!isfinite(lr)) lr = 0.0;                       /* belt and braces: never poison the EWMA */
-        /* WORKER-ONLY TRIGGER INPUT (tomokv-flip-signal 1/2/3; see the FLIP_SIG_* block). The io side
-         * leaves the DIRECTION decision here and nowhere else: same log space, same sign
-         * convention, same variable, so every downstream gate keeps its calibration and — the part
-         * that matters — the quantity that is ANCHORED is by construction the same quantity the
-         * quiet tests watch. In a worker mode `ratio` retains its legacy saturation-ratio log
-         * value only; no ratio controls a decision there.
-         * The same 1e-3 floor as the ratio: ex_sat is >= 0, so this bounds the signal to <= 6.9 and
-         * an idle-tick zero can never put an infinity into the EWMA (the -inf/NaN failure recorded
-         * just above disabled the actuator for the life of the process). */
-        if (wsig) {
-            double lr_w = -log(fmax(ex_sat, 1e-3));
-            lr = isfinite(lr_w) ? lr_w : 0.0;
-        }
-        if (!node_idle && (wsig || work_sample_primed)) {
+        if (!node_idle && work_sample_primed) {
             if (!fc->lr_init) {
                 /* Seed the signal from the first loaded sample, but leave anchor_n==0 (UNSET).
                  * That is what lets a cold outside-floor boot climb; capturing here instead would
@@ -26189,16 +26054,8 @@ static void tomoFlipController(void) {
          * EWMA, and the anchor it is being compared against. Ratio modes print both raw counter
          * fractions and their matched EWMAs, plus legacy idle/wait observations for comparison. */
         char wsig_log[384]; wsig_log[0] = '\0';
-        if (wsig)
-            snprintf(wsig_log, sizeof(wsig_log),
-                     " | W(sig=%d idle=%.3f u_ex=%.3f qd=%.2f/%.0f s_ex=%.3f lrw=%+.3f ewma=%+.3f anchor=%+.3f quiet=%d)",
-                     flip_signal, 1.0 - u_ex, u_ex, qd_mean, (server.ex_queue_size > 0 ? (double)server.ex_queue_size : 4096.0),
-                     ex_sat, lr, fc->lr_ewma,
-                     fc->lr_anchor, fc->lr_quiet_run);
-        else
-            snprintf(wsig_log, sizeof(wsig_log),
-                     " | PW(sig=%d io=%llu/%llu ex=%llu/%llu raw=%.3f/%.3f u=%.3f/%.3f r=%.3f idle_io=%.3f wait_io=%.3f wait_us=%llu)",
-                     flip_signal,
+        snprintf(wsig_log, sizeof(wsig_log),
+                     " | PW(io=%llu/%llu ex=%llu/%llu raw=%.3f/%.3f u=%.3f/%.3f r=%.3f idle_io=%.3f wait_io=%.3f wait_us=%llu)",
                      (unsigned long long)io_work_delta_sum,
                      (unsigned long long)node_wall_ms * 1000ULL * (unsigned long long)io_occ_cnt,
                      (unsigned long long)ex_work_delta_sum,
@@ -27026,41 +26883,12 @@ static void tomoFlipController(void) {
          * stale. Measured: anchor 4.02 left over from a different workload, live r=2.04 with
          * io_sat 0.98 vs ex_sat 0.48 — IO twice as saturated — and the controller grew BACK,
          * because 2.04 sits below 4.02. It walked the config to io=2 and lost ~25%.
-         *
-         * SAME LINE, SAME FIXED POINT, AT flip-signal 1/2/3. There the signal is -log(ex_sat) and the
-         * target is still 1 — ex_sat=1 is the owner's "output == input" for the worker station, so
-         * lr>0 reads "workers have slack, the constraint is upstream => grow-front" and lr<0 reads
-         * "a queue stands on the workers => grow-back". The anchor still only decides WHETHER, never
-         * WHICH WAY, for exactly the reason recorded above. */
-        /* CLIP REPAIR (flip-signal 3 only). See the blind-spot paragraph in the FLIP_SIG_* block:
-         * when the worker occupancy has CLIPPED, ex_sat stops being a measure of how far behind the
-         * workers are and becomes a lower bound, so the granularity floor is being asked a question
-         * its input can no longer answer. Bypass the FLOOR — and only the floor, and only in the
-         * grow-back direction — leaving the band, the sustain, the same-wave latch and the
-         * throughput veto exactly as they are.
-         *
-         * BOTH OPERANDS ARE EWMA(FESC_ALPHA)-SMOOTHED, deliberately. A raw per-tick "is there a
-         * queue" term would flicker, and a flickering term here does not merely decline to act: it
-         * flips `out` to 0, which RESETS lr_out_run, so one bad tick in eight makes the
-         * FLIP_SUSTAIN run of 8 unreachable for ever and silently (that is the measured failure
-         * recorded at FLIP_BOUND_SAT, and it is why the bound test itself is filtered). lr_ewma < 0
-         * already IMPLIES a persistent standing queue given u_ex <= 1 — ex_sat can only exceed 1
-         * through the backlog term — so no separate queue test is needed or wanted.
-         *
-         * THE CLIP POINT IS NOT 100, AND THIS IS A REAL PROPERTY OF THE FILTER, NOT A FUDGE.
-         * ex_occ_smooth is an INTEGER EWMA:  s += (int)(FESC_ALPHA * (occ - s)). With alpha 0.25
-         * the increment truncates to zero once |occ - s| < 4, so the filter STALLS 3 units short:
-         * a worker at a true 100% occupancy converges to 97 and stops (96 -> +1 -> 97 -> +0).
-         * u_ex therefore reads at most 0.97 no matter how saturated the role is, and testing for
-         * 1.0 would make this branch dead code. The stall band is 1/alpha - 1 units, so the clip
-         * point is derived from the filter's own quantisation rather than hand-set.
-         * (Note the same quantisation puts a +/-3-unit dead zone around EVERY occupancy reading,
-         * and hence a systematic ~+0.03 offset on lr_worker at true balance. It is harmless for
-         * triggering because the ANCHOR is captured from the same biased signal and the band test
-         * is a difference — but it is worth knowing before anyone reads u_ex as ground truth.) */
-        const int occ_clip = 100 - ((int)(1.0 / FESC_ALPHA) - 1);   /* = 97 at alpha 0.25 */
-        int floor_blind = (wclip && fc->lr_ewma < 0.0 && fc->ex_occ_smooth >= occ_clip);
-        int beyond_floor = (fabs(fc->lr_ewma) >= gfloor || floor_blind);
+         */
+        /* (The flip-signal-3 CLIP REPAIR arm was deleted with the knob 2026-08-10. The integer-EWMA
+         * quantisation fact it documented — ex_occ_smooth stalls 1/alpha-1 units short, so u_ex
+         * tops out at 0.97 — stays recorded at the u_ex clip note above and in session memory;
+         * the productive-work signal needs no floor bypass.) */
+        int beyond_floor = (fabs(fc->lr_ewma) >= gfloor);
         /* Direction (a): floor exit has already made anchor_n=0/UNSET above. An unset anchor has
          * no hysteresis vote, so EVERY actionable outside-floor magnitude reaches sustain —
          * including zrange_p1's |lr|=0.520 between its 0.255 floor and FLIP_R_FAR=0.69. The old
@@ -27117,7 +26945,7 @@ static void tomoFlipController(void) {
          * i.e. it protects precisely the regime the worker signal exists to read. sat_total /
          * sat_smooth also stay COMPUTED and LOGGED at mode 2 so an A/B can see what the gate would
          * have said; they simply decide nothing. */
-        if (!server_bound && !wpure) { out = 0; fc->lr_out_dir = 0; fc->lr_out_run = 0; }
+        if (!server_bound) { out = 0; fc->lr_out_dir = 0; fc->lr_out_run = 0; }
         /* A completed exhaustive episode owns this workload even when throughput selected a +/-1
          * neighbour outside the literal floor. A blocked return likewise owns its measured target:
          * only the full-settle RETURN-REARM path may move toward it, so an ordinary climb cannot

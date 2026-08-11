@@ -22,7 +22,6 @@
 #include "cluster_asm.h"
 #include "memory_prefetch.h"
 #include "connection.h"
-#include "uring.h"
 #include "uring2.h"
 #include <sys/socket.h>
 #include <sys/uio.h>

@@ -12,7 +12,6 @@
  */
 
 #include "server.h"
-#include "uring.h"
 #include "uring2.h"
 
 #include <errno.h>
@@ -1334,7 +1333,7 @@ static void tomoUring2FreeAe(aeEventLoop *el) {
 }
 
 static int tomoUring2InitThread(int tid, aeEventLoop *el) {
-    if (server.io_uring != 2) return C_OK;
+    if (server.io_uring == 0) return C_OK;
     if (tid < 0 || tid > TOMO_IO_THREADS_MAX || tid != iotid || el == NULL)
         return C_ERR;
 
@@ -1766,89 +1765,73 @@ void tomoUring2GetStats(tomoUring2Stats *out) { memset(out, 0, sizeof(*out)); }
 
 #endif /* HAVE_LIBURING */
 
-/* Immutable runtime dispatch.  Keeping this outside uring.c means mode 1's
- * implementation is not compiled through macros and is not edited at all. */
+/* Immutable runtime dispatch. The old mode-1 unified SI|DTR ring was DELETED 2026-08-10
+ * (owner decision; the Helio-style ring beat it 9/9 across p1/p32/mixed): any nonzero
+ * tomokv-io-uring now selects this backend. */
 int tomoUringBackendInitThread(int tid, aeEventLoop *el) {
-    return server.io_uring == 2 ? tomoUring2InitThread(tid, el) :
-                                 tomoUringInitThread(tid, el);
+    return tomoUring2InitThread(tid, el);
 }
 
 int tomoUringBackendThreadEnabled(int tid) {
-    return server.io_uring == 2 ? tomoUring2ThreadEnabled(tid) :
-                                 tomoUringThreadEnabled(tid);
+    return tomoUring2ThreadEnabled(tid);
 }
 
 void tomoUringBackendAfterForkChild(void) {
-    if (server.io_uring == 2) tomoUring2AfterForkChild();
-    else tomoUringAfterForkChild();
+    tomoUring2AfterForkChild();
 }
 
 int tomoUringBackendClientAttach(client *c) {
-    return server.io_uring == 2 ? tomoUring2ClientAttach(c) :
-                                 tomoUringClientAttach(c);
+    return tomoUring2ClientAttach(c);
 }
 
 int tomoUringBackendClientAttached(const client *c) {
-    return server.io_uring == 2 ? tomoUring2ClientAttached(c) :
-                                 tomoUringClientAttached(c);
+    return tomoUring2ClientAttached(c);
 }
 
 void tomoUringBackendClientStartMigration(client *c) {
-    if (server.io_uring == 2) tomoUring2ClientStartMigration(c);
-    else tomoUringClientStartMigration(c);
+    tomoUring2ClientStartMigration(c);
 }
 
 int tomoUringBackendClientMigrationReady(const client *c) {
-    return server.io_uring == 2 ? tomoUring2ClientMigrationReady(c) :
-                                 tomoUringClientMigrationReady(c);
+    return tomoUring2ClientMigrationReady(c);
 }
 
 int tomoUringBackendClientAbortMigration(client *c) {
-    return server.io_uring == 2 ? tomoUring2ClientAbortMigration(c) :
-                                 tomoUringClientAbortMigration(c);
+    return tomoUring2ClientAbortMigration(c);
 }
 
 void tomoUringBackendClientPublishTransit(client *c) {
-    if (server.io_uring == 2) tomoUring2ClientPublishTransit(c);
-    else tomoUringClientPublishTransit(c);
+    tomoUring2ClientPublishTransit(c);
 }
 
 int tomoUringBackendClientAdopt(client *c) {
-    return server.io_uring == 2 ? tomoUring2ClientAdopt(c) :
-                                 tomoUringClientAdopt(c);
+    return tomoUring2ClientAdopt(c);
 }
 
 void tomoUringBackendClientPause(client *c) {
-    if (server.io_uring == 2) tomoUring2ClientPause(c);
-    else tomoUringClientPause(c);
+    tomoUring2ClientPause(c);
 }
 
 void tomoUringBackendClientResume(client *c) {
-    if (server.io_uring == 2) tomoUring2ClientResume(c);
-    else tomoUringClientResume(c);
+    tomoUring2ClientResume(c);
 }
 
 int tomoUringBackendClientQueueWrite(client *c) {
-    return server.io_uring == 2 ? tomoUring2ClientQueueWrite(c) :
-                                 tomoUringClientQueueWrite(c);
+    return tomoUring2ClientQueueWrite(c);
 }
 
 int tomoUringBackendClientSendPending(const client *c) {
-    return server.io_uring == 2 ? tomoUring2ClientSendPending(c) :
-                                 tomoUringClientSendPending(c);
+    return tomoUring2ClientSendPending(c);
 }
 
 void tomoUringBackendClientRequestClose(client *c) {
-    if (server.io_uring == 2) tomoUring2ClientRequestClose(c);
-    else tomoUringClientRequestClose(c);
+    tomoUring2ClientRequestClose(c);
 }
 
 int tomoUringBackendClientCloseReady(const client *c) {
-    return server.io_uring == 2 ? tomoUring2ClientCloseReady(c) :
-                                 tomoUringClientCloseReady(c);
+    return tomoUring2ClientCloseReady(c);
 }
 
 void tomoUringBackendClientRelease(client *c) {
-    if (server.io_uring == 2) tomoUring2ClientRelease(c);
-    else tomoUringClientRelease(c);
+    tomoUring2ClientRelease(c);
 }

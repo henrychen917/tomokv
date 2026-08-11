@@ -2552,13 +2552,6 @@ static int isValidTomokvPinSpec(char *val, const char **err) {
 /* Signal 4 is owned by the adjacent worker-skew experiment. This branch predates that commit, so
  * preserve its current rejection rather than silently assigning it a different meaning; the two
  * branches combine by admitting 4 (worker-max) beside productive-ratio mode 5. */
-static int isValidTomokvFlipSignal(long long val, const char **err) {
-    if (val >= 0 && val <= 3) return 1;
-    if (val == 5) return 1;
-    *err = "tomokv-flip-signal 4 is reserved for the worker-max signal; use 0-3 or 5 on this branch";
-    return 0;
-}
-
 static int updateJemallocBgThread(const char **err) {
     UNUSED(err);
     set_jemalloc_bg_thread(server.jemalloc_bg_thread);
@@ -3247,7 +3240,7 @@ standardConfig static_configs[] = {
      *       saturated at all" gate is retained as a don't-bother filter.
      *   2 = PURE worker-only: that gate is dropped too, so no IO-side MEASUREMENT enters any
      *       decision. Probes and walks back under client-bound load; the veto/net-zero backoff is
-     *       what damps it (see the FLIP_SIG_* comment in server.c).
+     *       what damps it (see the deleted-modes tombstone comment in server.c).
      *   3 = mode 2 plus the CLIP REPAIR: when worker occupancy has clipped, the granularity floor
      *       is being asked a question its input can no longer answer, so it does not veto a
      *       grow-back. This is the repair for the p1 blind spot documented in server.c — modes 1/2
@@ -3260,10 +3253,9 @@ standardConfig static_configs[] = {
      * everywhere, the IO-side
      * saturation signal can be deleted outright; if only 3 clears ZRANGE p1 entered from a settled
      * io7/ex1, the clip repair is load-bearing and belongs in whichever worker mode ships. */
-    createIntConfig("tomokv-flip-signal",            NULL, MODIFIABLE_CONFIG, 0, 5, server.flip_signal, 5, INTEGER_CONFIG, isValidTomokvFlipSignal, NULL),
     createIntConfig("tomokv-thread-io",              NULL, IMMUTABLE_CONFIG, 0, TOMO_IO_THREADS_MAX, server.io_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: IO threads per node; 0 = unset -> fatal at boot */
     createIntConfig("tomokv-thread-ex",              NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_THREADS_MAX, server.ex_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: EX workers per node; 0 = unset -> fatal at boot */
-    createIntConfig("tomokv-io-uring",               NULL, IMMUTABLE_CONFIG, 0, 2, server.io_uring, 0, INTEGER_CONFIG, NULL, NULL), /* 0=epoll; 1=existing unified SI|DTR ring; 2=Helio-style staged/taskrun-aware ring */
+    createIntConfig("tomokv-io-uring",               NULL, IMMUTABLE_CONFIG, 0, 2, server.io_uring, 0, INTEGER_CONFIG, NULL, NULL), /* 0=epoll; nonzero=the Helio-style staged/taskrun-aware ring (1 canonical, 2 = compat spelling). The old mode-1 unified SI|DTR ring was DELETED 2026-08-10 after losing 9/9 interleaved cells to this one. */
 
     /* ================= PINNING =============================================================
      * pin-io / pin-ex are PER ROLE PER NODE and are used ONLY with pin-mode static. Setting

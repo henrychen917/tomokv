@@ -9,7 +9,6 @@
  */
 
 #include "server.h"
-#include "uring.h"
 #include "uring2.h"
 
 /* IO threads. */
