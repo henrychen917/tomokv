@@ -633,7 +633,8 @@ client *createClient(connection *conn) {
      * never changes (freed in freeClient). Fakes leave reply_cdb NULL and signal clientTail(parent)->reply_cdb. */
     {
         int ncdb = server.num_cdb > 0 ? server.num_cdb : 1;
-        void *raw = zmalloc(sizeof(cdbSlots) * (size_t)ncdb + CACHE_LINE_SIZE + sizeof(void *));
+        void *raw = zmalloc(sizeof(cdbSlots) * (size_t)ncdb +
+                            sizeof(cdbRouteSlots) + CACHE_LINE_SIZE + sizeof(void *));
         uintptr_t aligned = ((uintptr_t)raw + sizeof(void *) + (CACHE_LINE_SIZE - 1)) & ~(uintptr_t)(CACHE_LINE_SIZE - 1);
         ((void **)aligned)[-1] = raw;
         clientTail(c)->reply_cdb = (cdbSlots *)aligned;
@@ -641,6 +642,9 @@ client *createClient(connection *conn) {
             for (int slot = 0; slot < TOMO_PIPELINE_DEPTH_MAX; slot++)
                 atomic_store_explicit(&clientTail(c)->reply_cdb[cc].ready[slot], 0,
                                       memory_order_relaxed);
+        cdbRouteSlots *routes =
+            (cdbRouteSlots *)&clientTail(c)->reply_cdb[ncdb];
+        memset(routes, 0, sizeof(*routes));
     }
     c->cdb = 0;
 
