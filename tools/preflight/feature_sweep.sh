@@ -761,9 +761,20 @@ section_A() {
             row $sec "known-reject-$name" "$cfg" FAIL "expected [$exp], got: $(printf '%s' "$out" | head -c 120)"
         fi
     }
-    known_probe multi          "$MULTI_MSG" MULTI
-    known_probe watch          "$MULTI_MSG" WATCH somekey
-    known_probe eval-keyed     "$GUARD_MSG" EVAL "return 1" 1 k1
+    # MULTI/WATCH/keyed-EVAL are SUPPORTED since the single-shard MULTI/EVAL merges (#92, 2026-08)
+    # — verified live 2026-08-11 (MULTI->OK, WATCH->OK, keyed EVAL executes, EXEC applies). Their
+    # old known-reject probes below are replaced with FUNCTIONAL probes per this file's own
+    # precedent for ported commands.
+    out=$(printf 'MULTI\nSET __fsq_tx a\nEXEC\n' | "$CLI" -p "$FORK_PORT" 2>&1; tcli "$FORK_PORT" GET __fsq_tx)
+    if printf '%s' "$out" | grep -q "a$"; then row $sec multi-exec-applies "$cfg" PASS "MULTI/EXEC SET visible"
+    else row $sec multi-exec-applies "$cfg" FAIL "got: $(printf '%s' "$out" | head -c 100)"; fi
+    out=$(tcli "$FORK_PORT" WATCH __fsq_tx)
+    if [ "$out" = "OK" ]; then row $sec watch-accepted "$cfg" PASS "WATCH OK"
+    else row $sec watch-accepted "$cfg" FAIL "got: $(printf '%s' "$out" | head -c 100)"; fi
+    tcli "$FORK_PORT" UNWATCH >/dev/null 2>&1
+    out=$(tcli "$FORK_PORT" EVAL 'redis.call("SET", KEYS[1], "ev") return redis.call("GET", KEYS[1])' 1 __fsq_ek)
+    if [ "$out" = "ev" ]; then row $sec keyed-eval-executes "$cfg" PASS "keyed EVAL write round-trips"
+    else row $sec keyed-eval-executes "$cfg" FAIL "got: $(printf '%s' "$out" | head -c 100)"; fi
     # LCS, ZRANGESTORE, BLPOP/BRPOP, XREAD, GEORADIUS, GEOSEARCHSTORE, SORT BY/GET are now PORTED
     # across shards (validated by cmd_coverage: byte-exact output vs expected). Their old known-reject
     # probes are removed — the probes only asserted "is it rejected", which is no longer true and never
@@ -1245,10 +1256,10 @@ section_EG() {
         || { row $sec boot "$cfg" FAIL "boot failed; E+G skipped"; return; }
     fpid=$BOOT_PID; flog=$LAST_SRV_LOG
 
-    # E1: keyed EVAL rejected with the xshard message
+    # E1: keyed EVAL executes (supported since the single-shard EVAL merge; was a reject probe)
     out=$(tcli "$FORK_PORT" EVAL "return 1" 1 k1)
-    if printf '%s' "$out" | grep -qF "$GUARD_MSG"; then row $sec keyed-eval-reject "$cfg" PASS "expected guard message"
-    else row $sec keyed-eval-reject "$cfg" FAIL "got: $(printf '%s' "$out" | head -c 100)"; fi
+    if [ "$out" = "1" ]; then row $sec keyed-eval-executes "$cfg" PASS "keyed EVAL returns"
+    else row $sec keyed-eval-executes "$cfg" FAIL "got: $(printf '%s' "$out" | head -c 100)"; fi
 
     # E2: sequential evals, no gate leak (epoch-monotone regression)
     local seq_ok=1
