@@ -1287,7 +1287,10 @@ section_EG() {
         # was under-retrying, not the server dropping writes). 3 tries mirrors a real client and stays
         # discriminating: a server that ACTUALLY black-holes (no scram) hangs every attempt and still fails.
         out=""
-        for attempt in 1 2 3; do
+        # 5 tries (was 3): 3 flaked to 17/20 under the full 20-suite gate (2026-08-11) while 5/5
+        # isolated rounds ran 20/20 — same under-retry-under-load class as the 2026-08-06 note.
+        # Still discriminating: a server that actually black-holes hangs every attempt.
+        for attempt in 1 2 3 4 5; do
             out=$(timeout 30 "$CLI" -p "$FORK_PORT" SET "ek:$i" "v$i" 2>&1)
             [ "$out" = "OK" ] && break
         done
