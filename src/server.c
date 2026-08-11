@@ -167,6 +167,8 @@ static _Atomic uint64_t cross_node[TOMO_IO_THREADS_MAX + 1][TOMO_EX_MASK_WORDS];
 static _Atomic unsigned char cross_node_any[TOMO_IO_THREADS_MAX + 1];
 static tomoPrefetchCounter prefetch_ex_xnode_issued[TOMO_STAT_SLOTS];
 static tomoPrefetchCounter prefetch_io_xnode_issued[TOMO_STAT_SLOTS];
+static tomoPrefetchCounter tomo_ring_fast_entries[TOMO_STAT_SLOTS];
+static tomoPrefetchCounter tomo_ring_ptr_entries[TOMO_STAT_SLOTS];
 
 static inline int tomoCrossNode(int io_slot, int worker) {
     if (!atomic_load_explicit(&cross_node_any[io_slot], memory_order_acquire))
@@ -5484,6 +5486,8 @@ void resetServerStats(void) {
         tomoRelaxedSet(server.cmdstat[i].n, 0);
         tomoRelaxedSet(prefetch_ex_xnode_issued[i].value, 0);
         tomoRelaxedSet(prefetch_io_xnode_issued[i].value, 0);
+        tomoRelaxedSet(tomo_ring_fast_entries[i].value, 0);
+        tomoRelaxedSet(tomo_ring_ptr_entries[i].value, 0);
     }
     server.stat_numconnections = 0;
     server.stat_expiredkeys = 0;
@@ -19676,9 +19680,13 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "instantaneous_eventloop_duration_usec:%llu\r\n", getInstantaneousMetric(STATS_METRIC_EL_DURATION)));
         info = sdscatprintf(info,
             "tomokv_prefetch_ex_xnode_issued:%llu\r\n"
-            "tomokv_prefetch_io_xnode_issued:%llu\r\n",
+            "tomokv_prefetch_io_xnode_issued:%llu\r\n"
+            "tomokv_ring_fast_entries:%llu\r\n"
+            "tomokv_ring_ptr_entries:%llu\r\n",
             tomoPrefetchCounterTotal(prefetch_ex_xnode_issued),
-            tomoPrefetchCounterTotal(prefetch_io_xnode_issued));
+            tomoPrefetchCounterTotal(prefetch_io_xnode_issued),
+            tomoPrefetchCounterTotal(tomo_ring_fast_entries),
+            tomoPrefetchCounterTotal(tomo_ring_ptr_entries));
         info = genRedisInfoStringACLStats(info);
         if (!server.cluster_enabled && server.cluster_compatibility_sample_ratio) {
             info = sdscatprintf(info, "cluster_incompatible_ops:%lld\r\n", server.stat_cluster_incompatible_ops);
@@ -21160,6 +21168,11 @@ int exQueuePushEntry(exQueue *q, const exQueueEntry *entry) {
      * ee451 (v4): with batch-push disabled, publish immediately — one release-
      * store of tail per push (flushExQueues then no-ops). */
     q->staged_tail = next_t;
+    exQueueEntryKind kind = exEntryKind(entry);
+    if (kind >= TOMO_EX_ENTRY_FAST_GET_INLINE)
+        tomoRelaxedBump(tomo_ring_fast_entries[iotid].value, 1);
+    else if (kind == TOMO_EX_ENTRY_POINTER)
+        tomoRelaxedBump(tomo_ring_ptr_entries[iotid].value, 1);
     /* ee451 (v13): batch-push HARDWIRED (knob retired) — publish happens per parse-batch
      * (#E1 eager, end of processInputBuffer) and at beforeSleep's flushExQueues. */
     return 0;
