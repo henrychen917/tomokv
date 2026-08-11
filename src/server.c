@@ -151,6 +151,42 @@ static inline void tmFlipRelease(void) {
 }
 /* thread vars */
 __thread int iotid = 0;
+typedef struct tomoPrefetchCounter {
+    _Atomic unsigned long long value;
+    char _pad[CACHE_LINE_SIZE - sizeof(_Atomic unsigned long long)];
+} __attribute__((aligned(CACHE_LINE_SIZE))) tomoPrefetchCounter;
+_Static_assert(sizeof(tomoPrefetchCounter) == CACHE_LINE_SIZE,
+               "prefetch engagement counter must occupy one cache line");
+_Static_assert(TOMO_PIPELINE_DEPTH_MAX <= 32,
+               "cross-node reply bitmap must cover every pipeline slot");
+
+/* Boot-derived producer/consumer topology. Row io_slot contains one bit per
+ * worker; words are atomic because role checkpoints republish the table while
+ * other pool threads may still be reading it. */
+static _Atomic uint64_t cross_node[TOMO_IO_THREADS_MAX + 1][TOMO_EX_MASK_WORDS];
+static _Atomic unsigned char cross_node_any[TOMO_IO_THREADS_MAX + 1];
+static tomoPrefetchCounter prefetch_ex_xnode_issued[TOMO_STAT_SLOTS];
+static tomoPrefetchCounter prefetch_io_xnode_issued[TOMO_STAT_SLOTS];
+
+static inline int tomoCrossNode(int io_slot, int worker) {
+    if (!atomic_load_explicit(&cross_node_any[io_slot], memory_order_acquire))
+        return 0;
+    uint64_t word = atomic_load_explicit(
+        &cross_node[io_slot][(unsigned)worker >> 6], memory_order_relaxed);
+    return (word >> ((unsigned)worker & 63)) & 1u;
+}
+
+static inline void tomoPrefetchCounterBump(tomoPrefetchCounter *counter,
+                                           unsigned long long issued) {
+    if (issued) tomoRelaxedBump(counter[iotid].value, issued);
+}
+
+static unsigned long long tomoPrefetchCounterTotal(tomoPrefetchCounter *counter) {
+    unsigned long long total = 0;
+    for (int i = 0; i < TOMO_STAT_SLOTS; i++)
+        total += atomic_load_explicit(&counter[i].value, memory_order_relaxed);
+    return total;
+}
 /* ee451 (F-clock family): per-execution-context "read expired/trimmed keys" guards. See the
  * comment on their declaration in server.h — these were globals that every worker raced. */
 __thread int tomo_access_expired = 0;
@@ -218,6 +254,7 @@ static void migReleaseParkedClients(void);
  * and needs to be able to WAKE one that is asleep in epoll. Both live in the poly-thread module
  * far below; declared here because the coordinator is defined first. */
 static struct polyThreadCtx *tmCtxForIotid(int id);
+static void tomoRebuildCrossNodeTopology(void);
 static inline int migBucketInRange(int b);            /* v8d: bucket in migrating [lo,hi) */
 static inline int migKeyBucket(const void *p, size_t len);  /* v8d: key -> bucket id (one xxh64) */
 void exBindNumaLocal(int ex_id);   /* v8d: NUMA-local shard alloc (any pinning pin-mode); defined late */
@@ -3609,7 +3646,7 @@ void tomoReorderDrain(void) {
          * so its ring tail is a cold line this io thread has not touched this pass. Warm it while
          * we emit the current run — the write lands in THIS io thread's cache (unlike a
          * cross-thread data prefetch, which would be useless). One prefetch per run. Default off. */
-        if (server.tomo_io_prefetch && s1 < n) {
+        if (server.prefetch_io_level && s1 < n) {
             int nw = tomo_rord.ex[order[s1]];
             exQueue *nq = &server.exThreads[nw].queues[iotid];
             redis_prefetch_write(&nq->jobs[nq->staged_tail & server.ex_queue_mask]);
@@ -3770,6 +3807,12 @@ static inline exQueue *exQueueFor(int ex_id) {
 
 static void exDispatchDirect(int ex_id, client *fake) {
     exQueue *q = exQueueFor(ex_id);
+    if (__builtin_expect(server.prefetch_io_level == 2, 0) &&
+        tomoCrossNode(iotid, ex_id) &&
+        (fake->flags & CLIENT_EX_PENDING) && fake->parent &&
+        fake->parent->has_exec_tail)
+        clientTail(fake->parent)->prefetch_io_xnode_slots |=
+            1u << fake->fake_slot;
     if (!tomo_rord.draining) tm_io_sig[iotid].disp_cnt++;   /* staged path counted at stage time */
     if (__builtin_expect(exQueuePush(q, fake) == 0, 1)) {
         /* D mechanism A: EARLY FLUSH once W dispatches are staged. W=0 = law silent = pass-end
@@ -3903,6 +3946,75 @@ static inline void tomoReleaseReadSnapshot(client *fake) {
     flatGroupPinExit(fake);
 }
 
+static inline unsigned long long tomoPrefetchReplyRange(const void *base,
+                                                        size_t len) {
+    if (!base || !len) return 0;
+    uintptr_t line = (uintptr_t)base & ~(uintptr_t)(CACHE_LINE_SIZE - 1);
+    uintptr_t last = ((uintptr_t)base + len - 1) &
+                     ~(uintptr_t)(CACHE_LINE_SIZE - 1);
+    unsigned long long issued = 0;
+    for (;;) {
+        redis_prefetch_read((const void *)line);
+        issued++;
+        if (line == last) break;
+        line += CACHE_LINE_SIZE;
+    }
+    return issued;
+}
+
+/* The completion acquire precedes this helper, so every worker-written reply
+ * pointer and length is stable. Cover the plain buffer plus every list-backed
+ * output block that the drain joins and the immediate write path consumes. */
+static unsigned long long tomoPrefetchClientReplyBuffers(client *source) {
+    if (!source) return 0;
+    unsigned long long issued =
+        tomoPrefetchReplyRange(source->buf, source->bufpos);
+    if (!source->reply || !listLength(source->reply)) return issued;
+
+    listIter li;
+    listNode *ln;
+    listRewind(source->reply, &li);
+    while ((ln = listNext(&li))) {
+        clientReplyBlock *block = listNodeValue(ln);
+        if (!block) continue;
+        redis_prefetch_read(block);
+        issued++;
+        issued += tomoPrefetchReplyRange(block->buf, block->used);
+    }
+    return issued;
+}
+
+/* Cross-shard heads carry completion state rather than a stock reply buffer.
+ * When a group uses stock-client replies, its carriers live in these vectors;
+ * warm those buffers under the same aggregate remote-generation bit. */
+static unsigned long long tomoPrefetchReplyBuffers(client *fake) {
+    unsigned long long issued = tomoPrefetchClientReplyBuffers(fake);
+    csGroup *g = fake->csgroup;
+    if (!g) return issued;
+
+    redis_prefetch_read(g);
+    issued++;
+    if (g->subs) {
+        for (int i = 0; i < g->nsub; i++)
+            if (g->subs[i]) {
+                redis_prefetch_read(g->subs[i]);
+                issued++;
+            }
+        for (int i = 0; i < g->nsub; i++)
+            issued += tomoPrefetchClientReplyBuffers(g->subs[i]);
+    }
+    if (g->xread_out && g->xread_out != g->subs) {
+        for (int i = 0; i < g->nkeys; i++)
+            if (g->xread_out[i]) {
+                redis_prefetch_read(g->xread_out[i]);
+                issued++;
+            }
+        for (int i = 0; i < g->nkeys; i++)
+            issued += tomoPrefetchClientReplyBuffers(g->xread_out[i]);
+    }
+    return issued;
+}
+
 void handleWorkerReplies(void) {
     /* ee451 (S4): publish all jobs staged since the last drain BEFORE we wait on
      * any reply. This is the single guaranteed pre-drain / pre-sleep point
@@ -4016,8 +4128,8 @@ void handleWorkerReplies(void) {
          * reply payload (static buf + overflow list head), so the splice loop
          * below copies hot memory. We walk the same ready prefix the splice
          * loop will, stopping at the first not-ready slot. */
-        /* ee451 (v13): io-side drain prefetch DELETED (knob retired hard-OFF — measured net-
-         * negative in v11, ≈noise in every eval since; duplicated the splice loop's walk). */
+        /* The old topology-blind two-pass drain walk remains deleted. Mode 2
+         * below warms only a completed generation proven cross-node. */
 
         while (rt->flushid != rt->dispatchid) {
             unsigned int slot = rt->flushid & rt->ring_mask;
@@ -4025,6 +4137,20 @@ void handleWorkerReplies(void) {
             /* Acquire pairs with this slot's worker release publication. A
              * stale zero only postpones the prefix until the next poll. */
             if (!cdbSlotReady(real, fake->cdb, slot)) break;
+            if (__builtin_expect(atomic_load_explicit(&cross_node_any[iotid],
+                                                       memory_order_acquire), 0)) {
+                uint32_t xnode_bit = 1u << slot;
+                int xnode_reply =
+                    (rt->prefetch_io_xnode_slots & xnode_bit) != 0;
+                /* Retire provenance with the CDB generation even while mode 2
+                 * is disabled, so a later transition cannot reuse a stale bit. */
+                if (xnode_reply) {
+                    rt->prefetch_io_xnode_slots &= ~xnode_bit;
+                    if (__builtin_expect(server.prefetch_io_level == 2, 0))
+                        tomoPrefetchCounterBump(prefetch_io_xnode_issued,
+                                                tomoPrefetchReplyBuffers(fake));
+                }
+            }
             int was_ex_dispatched = (fake->flags & CLIENT_EX_PENDING) != 0;
             /* ee451 (v7): a cross-shard head is NOT CLIENT_EX_PENDING but DID bump
              * replyWorking at dispatch (its subs are in flight), so it must decrement here
@@ -5155,8 +5281,11 @@ void resetServerStats(void) {
     server.stat_numcommands = 0;
     /* ee451 (#B1): zero the per-thread executed-command counters too, else CONFIG RESETSTAT
      * would only clear the (normally zero) fold baseline and INFO would keep the old total. */
-    for (int i = 0; i < TOMO_STAT_SLOTS; i++)
+    for (int i = 0; i < TOMO_STAT_SLOTS; i++) {
         tomoRelaxedSet(server.cmdstat[i].n, 0);
+        tomoRelaxedSet(prefetch_ex_xnode_issued[i].value, 0);
+        tomoRelaxedSet(prefetch_io_xnode_issued[i].value, 0);
+    }
     server.stat_numconnections = 0;
     server.stat_expiredkeys = 0;
     server.stat_expiredkeys_active = 0;
@@ -12304,6 +12433,13 @@ static void csFreeSub(client *sub) {
  * driven by CONCURRENT commands (many pipelined scatters from one io thread to one worker),
  * not by one wide command — which is what tools/preflight/ex_backpressure.sh has to reproduce. */
 static void csPushSpin(int w, client *sub) {
+    if (__builtin_expect(server.prefetch_io_level == 2, 0) &&
+        tomoCrossNode(iotid, w) && sub->csparent) {
+        client *head = sub->csparent->head;
+        if (head && head->parent && head->parent->has_exec_tail)
+            clientTail(head->parent)->prefetch_io_xnode_slots |=
+                1u << head->fake_slot;
+    }
     exQueue *q = exQueueFor(w);
     int spins = 0;
     int counted = 0;
@@ -19375,6 +19511,11 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "eventloop_duration_cmd_sum:%llu\r\n", server.duration_stats[EL_DURATION_TYPE_CMD].sum,
             "instantaneous_eventloop_cycles_per_sec:%llu\r\n", getInstantaneousMetric(STATS_METRIC_EL_CYCLE),
             "instantaneous_eventloop_duration_usec:%llu\r\n", getInstantaneousMetric(STATS_METRIC_EL_DURATION)));
+        info = sdscatprintf(info,
+            "tomokv_prefetch_ex_xnode_issued:%llu\r\n"
+            "tomokv_prefetch_io_xnode_issued:%llu\r\n",
+            tomoPrefetchCounterTotal(prefetch_ex_xnode_issued),
+            tomoPrefetchCounterTotal(prefetch_io_xnode_issued));
         info = genRedisInfoStringACLStats(info);
         if (!server.cluster_enabled && server.cluster_compatibility_sample_ratio) {
             info = sdscatprintf(info, "cluster_incompatible_ops:%lld\r\n", server.stat_cluster_incompatible_ops);
@@ -20883,6 +21024,40 @@ int exQueuePopBatch(exQueue *q, client **out, int max) {
     return n;
 }
 
+typedef struct tomoMessagePrefetch {
+    exQueue *q;
+    unsigned int slot;
+    int remaining;
+} tomoMessagePrefetch;
+
+/* The pop has already touched the current prefix. Prime the next acquired
+ * prefix's ring lines now; the ordinary storage pipeline provides distance
+ * before the carried fake headers are read, and execution of this batch
+ * provides distance before the next pop consumes those headers. */
+static inline void tomoMessagePrefetchInit(tomoMessagePrefetch *pf,
+                                           exQueue *q, int width) {
+    unsigned int head = atomic_load_explicit(&q->head, memory_order_relaxed);
+    unsigned int future = (q->cached_tail - head) & server.ex_queue_mask;
+    pf->q = q;
+    pf->slot = head;
+    pf->remaining = (int)future < width ? (int)future : width;
+    for (int off = 0; off < pf->remaining; off++)
+        redis_prefetch_read(&q->jobs[(head + (unsigned int)off) &
+                                    server.ex_queue_mask]);
+}
+
+static inline void tomoMessagePrefetchCarriers(tomoMessagePrefetch *pf) {
+    int issued = pf->remaining;
+    while (pf->remaining) {
+        client *future = pf->q->jobs[pf->slot];
+        redis_prefetch_read(future);
+        pf->slot = (pf->slot + 1) & server.ex_queue_mask;
+        pf->remaining--;
+    }
+    tomoPrefetchCounterBump(prefetch_ex_xnode_issued,
+                            (unsigned long long)issued);
+}
+
 
 
 /* ee451 (v13, audit #9): dead queueToWorker() deleted — no callers (live dispatch uses
@@ -20912,8 +21087,8 @@ int exQueuePopBatch(exQueue *q, client **out, int max) {
  * fake->db was already pointed at the worker's shard during dispatch. Scratch arrays are bounded
  * by WORKER_POP_BATCH (n <= WORKER_POP_BATCH). All derefs are NULL-guarded; a stale slot word or
  * stale prefetch address is harmless, and execution always performs the authoritative lookup. */
-static inline void exPrefetchBatch(client **batch, int n) {
-    /* ee451 (B1, 2026-08-02): LEVEL 0 == the machinery does not exist on this path.
+static inline void exPrefetchBatch(client **batch, int n, int prefetch_mode) {
+    /* ee451 (B1, 2026-08-02): MODE 0 == the machinery does not exist on this path.
      *
      * This feature has never had a trustworthy measurement. Its residency gate is exactly 100%
      * SHUT at 2M x 32B -- the standard apparatus and the one every previous prefetch A/B used --
@@ -20922,11 +21097,10 @@ static inline void exPrefetchBatch(client **batch, int n) {
      * way to compare engaged-against-absent at all, which is why nobody could attribute a number
      * to this code.
      *
-     * Returning here BEFORE pf_batches++ is deliberate: at level 0 the counters must not move
+     * Returning here BEFORE pf_batches++ is deliberate: in mode 0 the counters must not move
      * either, so a gated run and a disabled run are distinguishable in INFO rather than both
-     * reading as zero issues. Levels are monotonic supersets so a sweep stays one-dimensional. */
-    int prefetch_level = server.prefetch_ex_level;   /* one batch snapshot; CONFIG can change it live */
-    if (__builtin_expect(prefetch_level == 0, 0)) return;
+     * reading as zero issues. Both enabled modes run this same shipped storage path. */
+    if (__builtin_expect(prefetch_mode == 0, 0)) return;
     union {
         dict *d;
         flatSlot *slot;
@@ -21065,9 +21239,9 @@ static inline void exPrefetchBatch(client **batch, int n) {
      *   DICT:   HASH(bucket) -> ENTRY -> VALUE(kvobj) -> DONE
      *   FLAT:   SLOT -> KVOBJ -> DONE
      * The group stages issue across the full batch; only the adaptive VALUE width can
-     * stop the DICT entry-to-value chase early. FLAT level 2 stops after SLOT; level 3 lets
-     * READONLY commands consume the warmed slot one rotation later and hint its tag-matched
-     * KVOBJ. The FUNCTIONAL work (SipHash + hash/dict/bucket stash, consumed by hash-carry,
+     * stop the DICT entry-to-value chase early. FLAT READONLY commands consume the warmed
+     * slot one rotation later and hint its tag-matched KVOBJ. The FUNCTIONAL work
+     * (SipHash + hash/dict/bucket stash, consumed by hash-carry,
      * #3 nextop, and the predictors) always runs for all n.
      * pf-cmd stays deleted (command table is permanently L1-hot). */
     enum { PFS_STRUCT = 0, PFS_ARGV, PFS_KEYOBJ, PFS_KEYBYTES, PFS_HASH,
@@ -21126,21 +21300,21 @@ static inline void exPrefetchBatch(client **batch, int n) {
                 /* Storage split. Normal keyed dispatch has already computed tomoKeyHash's exact
                  * xxh64 into tomo_key_h. The pointer match proves argv[1] is that routed key, so
                  * this owner may touch its FLAT table without re-reading/hash-walking key bytes.
-                 * Level 2 issues the home SLOT line. Level 3 schedules the tag-gated KVOBJ read a
-                 * full cursor rotation later. Writes stop at SLOT: they install a new value and
+                 * The shipped path issues the home SLOT line, then schedules the tag-gated KVOBJ
+                 * read a full cursor rotation later. Writes stop at SLOT: they install a new value and
                  * never read the old payload. The live table cannot swap during this exSlice's
                  * in_flat_section; a stale atomic slot word remains only a harmless hint. */
                 kvstore *kvs = fake->db->keys;
                 robj *key = fake->argv[1];
-                if (prefetch_level >= 2 && fake->tomo_bkt_ptr == (const void *)key->ptr) {
+                if (fake->tomo_bkt_ptr == (const void *)key->ptr) {
                     flatTable *t = kvstoreFlatTable(kvs);
                     if (t && t->slots) {
                         uint64_t h = fake->tomo_key_h;
                         flatSlot *slot = &t->slots[h & t->mask];
                         storage[j].slot = slot;
                         idxs[j] = (unsigned long)flat_tag_of(h);
-                        st[j] = (prefetch_level >= 3 && fake->cmd &&
-                                 (fake->cmd->flags & CMD_READONLY)) ? PFS_FLAT_KVOBJ : PFS_DONE;
+                        st[j] = (fake->cmd && (fake->cmd->flags & CMD_READONLY)) ?
+                                PFS_FLAT_KVOBJ : PFS_DONE;
                         redis_prefetch_read(slot);   /* 8B slots: home line also warms 7 neighbours */
                         issued_slot++;
                         issued = 1;
@@ -21148,8 +21322,7 @@ static inline void exPrefetchBatch(client **batch, int n) {
                     }
                 }
 
-                /* DICT branch remains independent. In particular, a level-1 FLAT lookup still
-                 * reaches and retires at the original NULL-dict guard below. */
+                /* DICT branch remains independent and retains its original NULL-dict guard. */
                 /* FUNCTIONAL stage — always runs (feeds hash-carry, #3 nextop, and the
                  * predictors); key bytes are warm from KEYBYTES/KEYOBJ.
                  * ee451 (shared-kv S0.2a): dict index == argv[1]'s bucket now (was the single
@@ -21828,7 +22001,15 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
         any = 1;
 
         /* Warm the cache before executing the batch. */
-        exPrefetchBatch(ctx->batch, n);
+        int prefetch_mode = server.prefetch_ex_level;
+        if (prefetch_mode == 2 && tomoCrossNode(i, worker->id)) {
+            tomoMessagePrefetch messages;
+            tomoMessagePrefetchInit(&messages, &WQ[i], n);
+            exPrefetchBatch(ctx->batch, n, prefetch_mode);
+            tomoMessagePrefetchCarriers(&messages);
+        } else {
+            exPrefetchBatch(ctx->batch, n, prefetch_mode);
+        }
 
         tomoRelaxedBump(worker->ops_total, (uint64_t)n);   /* ee451 (v8d): monotonic load signal for the EWMA balancer (numa: _Atomic single-writer idiom) */
 
@@ -22680,6 +22861,10 @@ void initExThreads(void) {
         if (born_io)
             serverLog(LL_NOTICE, "ee451 flip: boot split — worker %d born as IO thread %d "
                                  "(symmetric pool; convertible back by grow-back)", i, ctx->io_slot);
+        /* Publish this worker's pair relations before its first slice can run.
+         * Later iterations overwrite still-dormant growth rows as their fixed
+         * contexts become available; the final boot rebuild seals the table. */
+        tomoRebuildCrossNodeTopology();
         if (pthread_create(&ctx->thread, NULL, polyThreadMain, ctx) != 0) {
             serverLog(LL_WARNING, "Failed creating poly EX thread %d: %s", i, strerror(errno));
             exit(1);
@@ -23169,7 +23354,10 @@ void *polyThreadMain(void *arg) {
             if (ok) {
                 int role_changed = cur != TOMO_MODE_UNSET;
                 cur = want;
-                if (role_changed) setPolyThreadName(ctx, cur); /* conversion edge, never a slice hot path */
+                if (role_changed) {
+                    setPolyThreadName(ctx, cur); /* conversion edge, never a slice hot path */
+                    tomoRebuildCrossNodeTopology();
+                }
                 atomic_store_explicit(&ctx->mode, cur, memory_order_release);
                 refused = 0;                            /* a successful shift re-arms rejection logging */
             } else if (refused != want) {
@@ -24467,6 +24655,39 @@ static int tmNodeOfIoSlot(int io_slot) {
     polyThreadCtx *ctx = tmCtxForIotid(io_slot);
     if (ctx && ctx->ex) return tmNodeOfWorker(ctx->ex->id);
     return 0;
+}
+
+/* Publish the complete boot-fixed producer/consumer relation. A floating pool
+ * has no stable physical node membership, so mode 2 deliberately degenerates
+ * to mode 1 there just as it does for a one-node boot. Overwrite every word:
+ * role conversions must never retain a bit from an older identity snapshot. */
+static void tomoRebuildCrossNodeTopology(void) {
+    int io_slots = server.io_threads + server.tm_ngrow_io;
+    if (io_slots > TOMO_IO_THREADS_MAX + 1)
+        io_slots = TOMO_IO_THREADS_MAX + 1;
+
+    for (int io = 0; io <= TOMO_IO_THREADS_MAX; io++) {
+        int any = 0;
+        for (int word = 0; word < TOMO_EX_MASK_WORDS; word++) {
+            uint64_t bits = 0;
+            if (io < io_slots && server.pin_mode != TOMO_PIN_FLOAT &&
+                tmNumNodes() > 1) {
+                int first = word * 64;
+                int last = first + 64;
+                if (last > server.num_workers) last = server.num_workers;
+                int io_node = tmNodeOfIoSlot(io);
+                for (int worker = first; worker < last; worker++) {
+                    if (io_node != tmNodeOfWorker(worker))
+                        bits |= 1ull << ((unsigned)worker & 63);
+                }
+            }
+            atomic_store_explicit(&cross_node[io][word], bits,
+                                  memory_order_relaxed);
+            any |= bits != 0;
+        }
+        atomic_store_explicit(&cross_node_any[io], (unsigned char)any,
+                              memory_order_release);
+    }
 }
 
 /* ---- PID-style per-node flip controller (2026-07-22 user directive). Per node, it eagerly flips
@@ -27397,6 +27618,7 @@ int main(int argc, char **argv) {
     InitServerLast();
     if (!server.sentinel_mode) {
         initExThreads();
+        tomoRebuildCrossNodeTopology();
     }
 
     if (!server.sentinel_mode) {

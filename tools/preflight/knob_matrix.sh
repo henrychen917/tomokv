@@ -228,13 +228,15 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   must_refuse tomokv-io-uring 3 "above the declared maximum -- valid modes are 0, 1, and 2"
 
   try tomokv-prefetch-ex 0
-  try tomokv-prefetch-ex 3
+  try tomokv-prefetch-ex 1 "shipped storage prefetch"
+  try tomokv-prefetch-ex 2 "storage plus cross-node message prefetch"
   must_refuse tomokv-prefetch-ex -1 "below the declared minimum -- this knob spells auto as 0"
+  must_refuse tomokv-prefetch-ex 3 "above the declared maximum -- valid modes are 0, 1, and 2"
 
   try tomokv-reshard-fence-timeout 0
   must_refuse tomokv-reshard-fence-timeout -1 "below the declared minimum -- this knob spells auto as 0"
 
-  # ee451 2026-08-06: D-feature knobs (SEDA reorder + io-side prefetch + socket->io recv batch) were
+  # ee451 2026-08-06: D-feature knobs (SEDA reorder + IO-side prefetch + socket->io recv batch) were
   # LIVE BUT UNTESTED after #82's landing. Each is numeric, 0=off, and the three the owner keeps
   # ("prefetch on/off, ordering on/off"). Drive off + on so the drift guard accounts them and a broken
   # knob surfaces here, not in a bench.
@@ -243,9 +245,11 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   try tomokv-reorder 2 "full SJF class ordering (range [0,2])"
   must_refuse tomokv-reorder -1 "below the declared minimum -- 0=off"
 
-  try tomokv-io-prefetch 0 "OFF: no io-side prefetch"
-  try tomokv-io-prefetch 8 "max prefetch depth (range [0,8])"
-  must_refuse tomokv-io-prefetch -1 "below the declared minimum -- 0=off"
+  try tomokv-prefetch-io 0 "OFF: no IO-side prefetch"
+  try tomokv-prefetch-io 1 "next-run ring-tail write warm"
+  try tomokv-prefetch-io 2 "ring-tail warm plus cross-node reply prefetch"
+  must_refuse tomokv-prefetch-io -1 "below the declared minimum -- 0=off"
+  must_refuse tomokv-prefetch-io 3 "above the declared maximum -- valid modes are 0, 1, and 2"
 
   try tomokv-recv-batch 0 "OFF: single recv per pass"
   try tomokv-recv-batch 1 "batched socket->io recv (range [0,1])"
@@ -258,6 +262,7 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   reject tomokv-xshard-guard yes
   reject tomokv-worker-pop-batch 8
   reject tomokv-mget-coalesce legacy
+  reject tomokv-io-prefetch 1
 
 # PREFETCH knobs, retired 2026-07-28. The prefetch MACHINERY is untouched and under active work
 # (io-side prefetch is next); what went away is the operator's ability to set a width, a budget or

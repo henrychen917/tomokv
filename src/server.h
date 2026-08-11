@@ -1864,6 +1864,9 @@ typedef union clientExecTail {
         int last_memory_type;
         redisAtomic int pending_read;
         uint8_t read_error;
+        /* IO-owned provenance for mode-2 cross-node reply prefetch. A bit is
+         * set when any worker producing this ring generation is remote. */
+        uint32_t prefetch_io_xnode_slots;
     };
     unsigned char _layout[CLIENT_EXEC_TAIL_BYTES];
     uint64_t _align;
@@ -2400,7 +2403,7 @@ typedef enum { MIG_IDLE=0, MIG_COPYING=1, MIG_DRAINING=2, MIG_FLIPPED=3, MIG_DON
  * it wrong once already forced a revert (a "these stages are dead, delete them" conclusion that
  * was false at ex=1):
  *   ex >= 2 workers per node  -> shared_node_dbs, so the keyspace kvstore carries KVSTORE_FLAT.
- *                                The level-2/3 flat branch issues SLOT/KVOBJ hints but deliberately
+ *                                The enabled storage path issues SLOT/KVOBJ hints but deliberately
  *                                leaves the DICT-only prefetch_key_hash_valid at 0. That is exactly
  *                                the input this DICT look-ahead is gated on, so on a flat store it
  *                                still CANNOT fire, knob or no knob. No change.
@@ -3342,7 +3345,7 @@ struct redisServer {
      * fully active (no reserve thread). io_per_node + ex_per_node <= cores_per_node. io_threads /
      * ex_threads are DERIVED (nodes * per-node). thread_mode=static fixes the split; auto lets the
      * controller flip the io/ex boundary WITHIN each node's core budget. */
-    int prefetch_ex_level;   /* ee451 (B1): 0 = EX prefetch machinery not entered; levels monotonic */
+    int prefetch_ex_level;   /* tomokv-prefetch-ex: 0=off, 1=storage, 2=storage+xnode messages */
     int topo_nodes;            /* tomokv-nodes: node count. NOT necessarily a NUMA node — it is a
                                 * CCD (shared-L3 domain) when tomokv-pin-mode is `ccd` and a NUMA
                                 * node when it is `numa`. Hence topo_ (topology), not numa_. */
@@ -4111,10 +4114,8 @@ struct redisServer {
                                 * the dispatch window (deep pipeline => bigger reads => fewer recv
                                 * syscalls), driven by the same 1 Hz controller as the flush window.
                                 * Trades query-buffer memory for recv-syscall amortization. */
-    int tomo_io_prefetch;      /* ee451 D-C: IO-side dispatch prefetch. 0=off (default; the value
-                                * is multi-CCD, expect nothing single-CCD, per the C spec). N>0 =
-                                * warm the next run's scattered ring-tail line while emitting this
-                                * run, hiding the cross-worker write miss. */
+    int prefetch_io_level;     /* tomokv-prefetch-io: 0=off, 1=next-run ring-tail write warm,
+                                * 2=mode 1 plus topology-gated cross-node reply prefetch. */
     int tomo_reorder;          /* ee451 D: admission reorder level. 0=off (no machinery on the
                                 * path), 1=worker partition (structural), 2=+class SJF + same-key
                                 * guard + same-bucket grouping. Mutually exclusive with

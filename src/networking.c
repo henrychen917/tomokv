@@ -185,6 +185,7 @@ static void resetFakeClientState(client *c, client *parent) {
     memset(clientTail(c)->fakeClients, 0, sizeof(clientTail(c)->fakeClients));
     clientTail(c)->dispatchid = 0;
     clientTail(c)->flushid = 0;
+    clientTail(c)->prefetch_io_xnode_slots = 0;
 
     /* ee451 (v7): cross-shard scatter-gather state. zmalloc leaves these as
      * garbage, so initialize: a fake is neither a group head (csgroup) nor a
@@ -517,6 +518,7 @@ client *createClient(connection *conn) {
     memset(clientTail(c)->fakeClients, 0, sizeof(clientTail(c)->fakeClients));
     clientTail(c)->dispatchid = 0;
     clientTail(c)->flushid = 0;
+    clientTail(c)->prefetch_io_xnode_slots = 0;
 
     /* passing NULL as conn it is possible to create a non connected client.
      * This is useful since all the commands needs to be executed
