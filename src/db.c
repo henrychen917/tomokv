@@ -1232,8 +1232,37 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
                               memory_order_release);
     else
         serverAssert(committed_head == newhead);
-    if (newhead != head)
+    if (newhead != head) {
         kvstoreDictSetAtLink(kvs, slot, newhead, &link, 0);
+        /* EXPIRY-INDEX TRANSITION (review finding, 2026-08-10). db->expires and the HFE
+         * subexpiry store the PHYSICAL HEAD OBJECT, not the logical key: expires is a
+         * no_value dict whose entry IS the kvobj, and subexpiry embeds the owning object's
+         * metadata. Swapping the table head without transitioning them leaves entries
+         * pointing at the retired head — whole-key expiry then deletes/dereferences a
+         * freed or superseded version, and HFE mutates the wrong object. Mirror the stock
+         * overwrite transition (dbSetValue): re-point, delete, or add per the NEW head's
+         * own per-version expiry state. */
+        redisDb *exdb = anchor_meta->version_db;
+        serverAssert(exdb != NULL && exdb->keys == kvs);
+        long long old_ex = kvobjGetExpire(head);
+        long long new_ex = kvobjGetExpire(newhead);
+        if (old_ex != -1 && new_ex != -1) {
+            dictEntryLink exLink = kvstoreDictFindLink(exdb->expires, slot, key, NULL);
+            serverAssert(exLink != NULL);
+            kvstoreDictSetAtLink(exdb->expires, slot, newhead, &exLink, 0);
+        } else if (old_ex != -1) {
+            kvstoreDictDelete(exdb->expires, slot, key);
+        } else if (new_ex != -1) {
+            kvstoreDictAddRaw(exdb->expires, slot, newhead, NULL);
+        }
+        if (head->type == OBJ_HASH)
+            estoreRemove(exdb->subexpires, slot, head);
+        if (newhead->type == OBJ_HASH) {
+            uint64_t hmn = hashTypeGetMinExpire(newhead, 1);
+            if (hmn != EB_EXPIRE_TIME_INVALID)
+                estoreAdd(exdb->subexpires, slot, newhead, hmn);
+        }
+    }
 
     int committed = 0, uncommitted = 0;
     kvobj *sole_committed = NULL;
