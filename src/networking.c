@@ -508,9 +508,9 @@ client *createClient(connection *conn) {
     clientTail(c)->uring = NULL;
 
     /* ee451 (#75): the per-CDB reply slots are a HEAP array (clientTail(c)->reply_cdb), aligned to
-     * CACHE_LINE_SIZE in the CDB-init block below — so the worker-cores-vs-IO-thread false-sharing
-     * isolation no longer depends on the client struct's own alignment, and the old inline-array +
-     * jemalloc-luck self-check is retired. */
+     * CACHE_LINE_SIZE in the CDB-init block below. Every (CDB,ring-slot) owns one line, so the
+     * worker-cores-vs-IO-thread false-sharing isolation no longer depends on the client struct's
+     * own alignment, and the old inline-array + jemalloc-luck self-check is retired. */
 
     /* Pipeline fields — real client owns the ring */
     c->isFake = 0;
@@ -626,20 +626,29 @@ client *createClient(connection *conn) {
     clientTail(c)->node_id = NULL;
     atomicSet(clientTail(c)->pending_read, 0);
 
-    /* ee451 (#75/atomics): allocate exactly num_cdb cache-line-isolated reply buses for this real client.
-     * zmalloc gives no alignment guarantee, so over-allocate and align the base up to CACHE_LINE_SIZE,
-     * stashing the raw zmalloc pointer just below the aligned base so zfree can recover it
-     * (accounting-correct; no poisoned libc free/aligned_alloc). num_cdb is fixed at init so the size
-     * never changes (freed in freeClient). Fakes leave reply_cdb NULL and signal clientTail(parent)->reply_cdb. */
+    /* ee451 (#75/atomics): allocate a flat [num_cdb][TOMO_PIPELINE_DEPTH_MAX] array of
+     * cache-line-isolated reply slots for this real client. At the target 64-byte line size this
+     * is 2 KiB per CDB (32 lines), versus the old padded 64-byte CDB; a single-CDB client pays
+     * 2 KiB and a 128-worker bus-per-worker client pays 256 KiB. On a platform with a wider
+     * CACHE_LINE_SIZE the expression below scales to that actual ownership unit.
+     *
+     * zmalloc gives no alignment guarantee, so over-allocate and align the base up to
+     * CACHE_LINE_SIZE, stashing the raw zmalloc pointer just below the aligned base so zfree can
+     * recover it (accounting-correct; no poisoned libc free/aligned_alloc). num_cdb is fixed at
+     * init so the size never changes (freed in freeClient). Fakes leave reply_cdb NULL and signal
+     * clientTail(parent)->reply_cdb. */
     {
         int ncdb = server.num_cdb > 0 ? server.num_cdb : 1;
-        void *raw = zmalloc(sizeof(cdbSlots) * (size_t)ncdb + CACHE_LINE_SIZE + sizeof(void *));
+        size_t nslots = (size_t)ncdb * TOMO_PIPELINE_DEPTH_MAX;
+        void *raw = zmalloc(sizeof(cdbSlots) * nslots + CACHE_LINE_SIZE + sizeof(void *));
         uintptr_t aligned = ((uintptr_t)raw + sizeof(void *) + (CACHE_LINE_SIZE - 1)) & ~(uintptr_t)(CACHE_LINE_SIZE - 1);
         ((void **)aligned)[-1] = raw;
         clientTail(c)->reply_cdb = (cdbSlots *)aligned;
         for (int cc = 0; cc < ncdb; cc++)
             for (int slot = 0; slot < TOMO_PIPELINE_DEPTH_MAX; slot++)
-                atomic_store_explicit(&clientTail(c)->reply_cdb[cc].ready[slot], 0,
+                atomic_store_explicit(&clientTail(c)->reply_cdb[
+                                          (size_t)cc * TOMO_PIPELINE_DEPTH_MAX + slot].status,
+                                      CDB_SLOT_EMPTY,
                                       memory_order_relaxed);
     }
     c->cdb = 0;
@@ -1951,6 +1960,32 @@ void addReplySubcommandSyntaxError(client *c) {
         "unknown subcommand or wrong number of arguments for '%.128s'. Try %s HELP.",
         (char*)c->argv[1]->ptr,cmd);
     sdsfree(cmd);
+}
+
+/* Copy a completed inline CDB payload into the destination. Inline eligibility
+ * guarantees there is no source-side close, encoded/list output, or deferred
+ * error state to transfer, so this is AddReplyFromClient's exact plain-buffer
+ * subset. Keep both prepare checks and the final output-limit check in sync
+ * with that function. */
+void AddReplyFromCdb(client *dst, client *src, const char *payload, size_t len) {
+    debugServerAssert(!(src->flags & CLIENT_CLOSE_ASAP));
+    debugServerAssert(!src->buf_encoded && src->last_header == NULL &&
+                      src->bufpos == len && src->reply_bytes == 0 &&
+                      listLength(src->reply) == 0 &&
+                      (!src->has_exec_tail ||
+                       clientTail(src)->deferred_reply_errors == NULL));
+
+    if (_prepareClientToWrite(dst) != C_OK)
+        return;
+    _addReplyToBufferOrList(dst, payload, len);
+
+    if (_prepareClientToWrite(dst) != C_OK)
+        return;
+    if (dst->flags & CLIENT_CLOSE_AFTER_REPLY) return;
+
+    src->reply_bytes = 0;
+    src->bufpos = 0;
+    closeClientOnOutputBufferLimitReached(dst, 1);
 }
 
 /* Append 'src' client output buffers into 'dst' client output buffers.

@@ -1624,29 +1624,44 @@ static const uint32_t TOMO_CLS_SLO[TOMO_SVC_CLASSES] = { 1, 1, 4, 64, 1024, 1638
 #define PIPELINE_DEPTH 16 /* default; runtime value lives in server.pipeline_ring_depth */
 #define PIPELINE_QUEUE_MASK (PIPELINE_DEPTH - 1) /* kept for back-compat; prefer c->ring_mask */
 /* ee451 (S5/atomics): multi-CDB reply signaling. Each CDB owns one independent
- * atomic byte per fake-ring slot and occupies exactly one cache line. A worker
- * release-stores 1 to the captured (cdb,slot); the owning IO thread acquire-loads
- * that exact byte and relaxed-stores 0 after consuming it.
+ * cache line per fake-ring slot. The first byte is the slot's status/form tag;
+ * the remaining hot bytes can carry a small completed reply. A worker writes
+ * payload+len, then release-stores the status byte; the owning IO thread
+ * acquire-loads that exact byte before reading either field and relaxed-stores
+ * EMPTY after consuming it. The status byte is the ONLY synchronization point.
  *
  * The old representation packed all slots into one uint32_t. Setting or clearing
  * one logical bit then required a locked fetch_or/fetch_and because other workers
  * could concurrently change other bits in the word. Separate atomic objects make
  * the real ownership visible: for one slot there is one completer and one drainer,
- * and slot reuse cannot begin until that drainer has cleared it. CDB cache-line
- * partitioning remains, so workers mapped to different CDBs still avoid sharing a
- * completion line. */
+ * and slot reuse cannot begin until that drainer has cleared it. Workers mapped
+ * to different CDBs still never publish into the same completion line.
+ *
+ * Footprint: an active slot grows from one byte to one cache line. At the target
+ * 64-byte line size, one per-(worker,IO-client) CDB therefore grows from the old
+ * padded 64 bytes to 32 * 64 = 2 KiB (TOMO_PIPELINE_DEPTH_MAX lines). */
 #define NUM_CDB_MAX 256
+#define CDB_INLINE_REPLY_MAX 48
+#define CDB_SLOT_EMPTY 0
+#define CDB_SLOT_PTR 1
+#define CDB_SLOT_INLINE 2
+/* Legacy type name: one cdbSlots object is now one (cdb,ring-slot) line;
+ * reply_cdb is a flat [num_cdb][TOMO_PIPELINE_DEPTH_MAX] array of them. */
 typedef struct cdbSlots {
-    redisAtomic uint8_t ready[TOMO_PIPELINE_DEPTH_MAX];
-    char _pad[CACHE_LINE_SIZE -
-              sizeof(redisAtomic uint8_t) * TOMO_PIPELINE_DEPTH_MAX];
+    redisAtomic uint8_t status;
+    uint8_t len;
+    char payload[CDB_INLINE_REPLY_MAX];
+    char _pad[CACHE_LINE_SIZE - sizeof(redisAtomic uint8_t) - sizeof(uint8_t) -
+              CDB_INLINE_REPLY_MAX];
 } __attribute__((aligned(CACHE_LINE_SIZE))) cdbSlots;
 _Static_assert(sizeof(redisAtomic uint8_t) == 1,
                "reply-ready atomics must occupy one byte");
 _Static_assert(ATOMIC_CHAR_LOCK_FREE == 2,
                "reply-ready byte atomics must always be lock-free");
+_Static_assert(offsetof(cdbSlots, status) == 0,
+               "reply status must remain the slot publication byte");
 _Static_assert(sizeof(cdbSlots) == CACHE_LINE_SIZE,
-               "each reply CDB must occupy exactly one cache line");
+               "each reply slot must occupy exactly one cache line");
 
 /* ---- R1 own-read gate: exact key sets ---------------------------------------------------
  * Per-group / per-read key hashes retained for the EXACT disjointness test (csKeysCollide).
@@ -4995,6 +5010,7 @@ void addReplyNullArray(client *c);
 void addReplyBool(client *c, int b);
 void addReplyVerbatim(client *c, const char *s, size_t len, const char *ext);
 void addReplyProto(client *c, const char *s, size_t len);
+void AddReplyFromCdb(client *c, client *src, const char *s, size_t len);
 void AddReplyFromClient(client *c, client *src);
 void addReplyBulk(client *c, robj *obj);
 void addReplyBulkWithFlag(client *c, robj *obj, int avoid_copy);

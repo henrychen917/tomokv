@@ -24,11 +24,12 @@ chk(){ # description file pattern
 echo "NOTIFY/CDB INVARIANT GUARD on $T"
 echo
 echo "--- EX->IO completion bus (CDB) ---"
-# Each CDB is one cache line so two workers on different CDBs never share a completion line. Without
-# this, every reply publication invalidates a line another core is polling -- cost grows with cores.
-chk "cdbSlots is exactly one cache line (static assert)" "$H" '_Static_assert\(sizeof\(cdbSlots\) == CACHE_LINE_SIZE'
-chk "cdbSlots is cache-line ALIGNED"                     "$H" "aligned\(CACHE_LINE_SIZE\)\)\) cdbSlots"
-chk "cdbSlots carries explicit padding"                  "$H" 'char _pad\[CACHE_LINE_SIZE'
+# Each (CDB,ring-slot) is one cache line, so two workers on different CDBs never share a
+# completion line. Without this, every reply publication invalidates a line another core is
+# polling -- cost grows with cores. cdbSlots is the legacy name of that one-slot line type.
+chk "each cdbSlots completion slot is exactly one cache line (static assert)" "$H" '_Static_assert\(sizeof\(cdbSlots\) == CACHE_LINE_SIZE'
+chk "cdbSlots completion slots are cache-line ALIGNED"                      "$H" "aligned\(CACHE_LINE_SIZE\)\)\) cdbSlots"
+chk "cdbSlots completion slots carry explicit padding"                       "$H" 'char _pad\[CACHE_LINE_SIZE'
 # Byte atomics mean publication is a release STORE, not a read-modify-write on a shared word. An RMW
 # would serialise all completers on that line.
 chk "reply-ready slots are ONE BYTE atomics (assert)"    "$H" '_Static_assert\(sizeof\(redisAtomic uint8_t\) == 1'
