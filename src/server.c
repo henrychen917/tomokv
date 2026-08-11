@@ -3179,14 +3179,18 @@ static inline void cdbSlotPublish(client *real, int cdb, unsigned int slot) {
  * are ordinary stores; cdbSlotPublishPrepared's later RELEASE status store is
  * their sole publication edge. The drain consumes fake->bufpos only after the
  * same destination checks AddReplyFromClient performs. */
+static inline int cdbSlotReplyEligible(client *fake) {
+    return fake->csgroup == NULL &&
+           !(fake->flags & CLIENT_CLOSE_ASAP) &&
+           !fake->buf_encoded && fake->last_header == NULL &&
+           fake->bufpos <= CDB_INLINE_REPLY_MAX &&
+           fake->reply_bytes == 0 && listLength(fake->reply) == 0 &&
+           (!fake->has_exec_tail ||
+            clientTail(fake)->deferred_reply_errors == NULL);
+}
+
 static inline uint8_t cdbSlotPrepareReply(client *fake, int cdb) {
-    if (likely(fake->csgroup == NULL &&
-               !(fake->flags & CLIENT_CLOSE_ASAP) &&
-               !fake->buf_encoded && fake->last_header == NULL &&
-               fake->bufpos <= CDB_INLINE_REPLY_MAX &&
-               fake->reply_bytes == 0 && listLength(fake->reply) == 0 &&
-               (!fake->has_exec_tail ||
-                clientTail(fake)->deferred_reply_errors == NULL))) {
+    if (likely(cdbSlotReplyEligible(fake))) {
         cdbReplyPayload *completion =
             cdbPayloadFor(fake->parent, cdb, fake->fake_slot);
         uint8_t len = (uint8_t)fake->bufpos;
@@ -3201,6 +3205,17 @@ static inline void cdbSlotPublishReply(client *fake, int cdb) {
     debugServerAssert(fake->cdb == cdb);
     uint8_t form = cdbSlotPrepareReply(fake, cdb);
     cdbSlotPublishPrepared(fake->parent, cdb, fake->fake_slot, form);
+}
+
+/* A full worker pop publishes every ordinary completion as POINTER without
+ * touching its payload line. Recheck the unchanged eligibility predicate only
+ * to witness replies the batch-level slack gate would otherwise have inlined;
+ * the caller folds the returned count once for the whole batch. */
+static inline int cdbSlotPublishReplyBusy(client *fake, int cdb) {
+    debugServerAssert(fake->cdb == cdb);
+    int skipped = likely(cdbSlotReplyEligible(fake));
+    cdbSlotPublishPrepared(fake->parent, cdb, fake->fake_slot, CDB_SLOT_PTR);
+    return skipped;
 }
 
 static inline void cdbSlotClear(client *real, int cdb, unsigned int slot) {
@@ -5480,6 +5495,7 @@ void resetServerStats(void) {
         tomoRelaxedSet(server.kstat[i].flat_hash_reuses, 0);
         tomoRelaxedSet(server.kstat[i].cdb_inline_replies, 0);
         tomoRelaxedSet(server.kstat[i].cdb_ptr_replies, 0);
+        tomoRelaxedSet(server.kstat[i].cdb_inline_skipped_busy, 0);
     }
     server.stat_active_defrag_hits = 0;
     server.stat_active_defrag_misses = 0;
@@ -19237,11 +19253,14 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
          * called fast: a large fast count therefore proves the new gate fired. */
         unsigned long long atomic_read_fast = 0, atomic_read_slow = 0;
         unsigned long long cdb_inline_replies = 0, cdb_ptr_replies = 0;
+        unsigned long long cdb_inline_skipped_busy = 0;
         for (int _t = 0; _t < TOMO_STAT_SLOTS; _t++) {
             atomic_read_fast += tomoRelaxedRead(server.kstat[_t].atomic_read_fast);
             atomic_read_slow += tomoRelaxedRead(server.kstat[_t].atomic_read_slow);
             cdb_inline_replies += tomoRelaxedRead(server.kstat[_t].cdb_inline_replies);
             cdb_ptr_replies += tomoRelaxedRead(server.kstat[_t].cdb_ptr_replies);
+            cdb_inline_skipped_busy +=
+                tomoRelaxedRead(server.kstat[_t].cdb_inline_skipped_busy);
         }
         info = sdscatprintf(info, "# Stats\r\n" FMTARGS(
             "tomokv_flat_batches_closed:%llu\r\n", (unsigned long long)atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed),
@@ -19330,10 +19349,12 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         info = sdscatprintf(info,
             "tomokv_cdb_inline_replies:%llu\r\n"
             "tomokv_cdb_ptr_replies:%llu\r\n"
+            "tomokv_cdb_inline_skipped_busy:%llu\r\n"
             "tomokv_fake_core_allocs:%llu\r\n"
             "tomokv_fake_tail_promotions:%llu\r\n",
             cdb_inline_replies,
             cdb_ptr_replies,
+            cdb_inline_skipped_busy,
             atomic_load_explicit(&tomo_fake_core_allocs, memory_order_relaxed),
             atomic_load_explicit(&tomo_fake_tail_promotions, memory_order_relaxed));
         /* Keep the lifecycle witnesses outside the already-large FMTARGS block. ref_waits is the
@@ -22262,11 +22283,21 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
             j++;
         }
 
-        /* Each packed-status release store publishes either the fake reply-
-         * buffer pointer form or the separate len+payload stores made
-         * immediately before it. This is the worker's final fake access. */
-        for (int s = 0; s < sig_n; s++)
-            cdbSlotPublishReply(sig_fakes[s], ctx->wcdb);
+        /* A full pop is the self-derived worker-saturation signal: choose once
+         * for the whole batch and skip every reply copy. A short pop drained
+         * the queue, so the worker has slack for ordinary INLINE preparation.
+         * Each packed-status release store is the final access to that fake. */
+        if (n == WORKER_POP_BATCH) {
+            int skipped_busy = 0;
+            for (int s = 0; s < sig_n; s++)
+                skipped_busy += cdbSlotPublishReplyBusy(sig_fakes[s], ctx->wcdb);
+            if (skipped_busy)
+                tomoRelaxedBump(server.kstat[iotid].cdb_inline_skipped_busy,
+                                (unsigned long long)skipped_busy);
+        } else {
+            for (int s = 0; s < sig_n; s++)
+                cdbSlotPublishReply(sig_fakes[s], ctx->wcdb);
+        }
 
         /* ee451 (H2, reshard drain fence): publish this queue's EXECUTION frontier. The pop above
          * advanced `head` before any of these commands ran, so `head` alone cannot distinguish
