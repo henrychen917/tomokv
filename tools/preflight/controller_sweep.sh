@@ -502,8 +502,81 @@ trap cleanup EXIT INT TERM
 #    GROW-BACK (ex-ward, reclaims the grown slots). Settle: 0 flips across the
 #    settled measure windows. AUTO==STATIC: settled AUTO vs best static arm.
 # =============================================================================
+# ---- OPPOSITE-OPTIMUM: the only cell here that cannot be passed by accident ------------------
+# Same boot config (io4ex4), two workloads whose measured best config points OPPOSITE ways:
+#     p32 SET : io4ex4 7.28M > io5ex3 6.58M > io6ex2 4.26M   => best IS the boot config => HOLD
+#     p32 GET : io6ex2 9.71M > io5ex3 9.40M > io4ex4 8.18M   => best is 2 grow-fronts away => CLIMB
+# (static, -t8 -c25, d32, epoll). A controller that always holds passes SET and fails GET; one
+# that always climbs does the reverse; a locked-out one fails GET. Every other cell in this
+# suite can be satisfied by a controller that never moves.
+#
+# It caught two real defects the other 11 cells missed: a deadzone centred on r=1 instead of on
+# the settle point (correctly-rejected climbs restarted for ever -- 103 flips, -24% on SET), and
+# a saturation signal that meant "75% busy" rather than "input == output".
+oo_cell() {
+  for _oo in 1; do
+    local oset oget sset=0 sget=0 fq _pr
+    stopsrv                     # a caller may leave its server up; boot refuses on count=2
+    boot flip_oo_set --tomokv-thread-mode auto --tomokv-thread-io 4 --tomokv-thread-ex 4 || { stopsrv; break; }
+    fill flip_oo_set_fill
+    oset=$(mt flip_oo_set_meas $W_P32SET --test-time="$T_MEAS")
+    # CERTIFIED LANDING (2026-08-11): iolive below reads the LAST flip line in the log, and
+    # T_MEAS (20s) is inside ONE probe period (30-40s) and 12x short of the measured 240s
+    # convergence — so the old instant scrape read MID-EPISODE state: a climb apex (4->5->6,
+    # rejection pending) recorded as "the landing". Evidence: the one failing run scored 6.55M —
+    # an io4/io5-mix number, while a server actually SETTLED at io6 measures 4.26M static — and
+    # the identical binary passed the other run. Same certification as anti-thrash/convergence:
+    # keep the stimulus up in 40s probe windows until one is flip-quiet, THEN read the resting
+    # config. A probe cycle that correctly returns to 4 now reads 4; a controller that truly
+    # settles wrong still reads wrong and FAILs — the default cannot mask a real miss.
+    for _pr in 1 2 3 4 5; do
+      fq=$(flips)
+      # shellcheck disable=SC2086
+      mt "flip_oo_set_settle$_pr" $W_P32SET --test-time=40 >/dev/null
+      [ "$(flips)" = "$fq" ] && { sset=1; break; }
+    done
+    # iolive scrapes io_threads_live= from the log, which is ONLY written on a FLIP. A controller
+    # that correctly HOLDS for SET (the expected behavior here) never flips, so it logs no such line
+    # and iolive is empty -> the ${ioset:-0} gate below then read 0 and FALSE-FAILED a controller
+    # doing exactly the right thing. Empty <=> no flip <=> still at the boot config (io 4 here); a
+    # wrong flip WOULD log a line, so this default cannot mask a real miss.
+    local ioset; ioset=$(iolive); : "${ioset:=4}"
+    stopsrv
+    boot flip_oo_get --tomokv-thread-mode auto --tomokv-thread-io 4 --tomokv-thread-ex 4 || { stopsrv; break; }
+    fill flip_oo_get_fill
+    oget=$(mt flip_oo_get_meas $W_P32GET --test-time="$T_MEAS")
+    for _pr in 1 2 3 4 5; do    # same certification, GET side: the climb must FINISH before we read
+      fq=$(flips)
+      # shellcheck disable=SC2086
+      mt "flip_oo_get_settle$_pr" $W_P32GET --test-time=40 >/dev/null
+      [ "$(flips)" = "$fq" ] && { sget=1; break; }
+    done
+    local ioget; ioget=$(iolive)
+    stopsrv
+    # SET must stay at the boot config (io_threads_live 4); GET must grow to 6.
+    local vv=PASS
+    [ "${ioset:-0}" = 4 ] || vv=FAIL
+    # GET expects io5, not io6 (2026-08-05): the full-populate fill (task #77) moved the TRUE
+    # optimum — at 100% hit rate io5ex3 measures 9.00M vs io6ex2 6.94M; the old io6 expectation
+    # encoded the partial-fill curve where most GETs were cheap misses. Gate-observed: the
+    # controller lands io5 at 8.23M. io6 stays accepted (one step, within the flat top).
+    case "${ioget:-0}" in 5|6) : ;; *) vv=FAIL ;; esac
+    # An uncertified read (settled=0 after 5 ladders) is reported, not silently graded: a
+    # controller still flipping after 200s of steady stimulus is an anti-thrash failure, not a
+    # landing failure — grade it SUSPECT here and let anti-thrash-p32 own the FAIL.
+    [ "$sset" = 1 ] && [ "$sget" = 1 ] || { [ "$vv" = PASS ] && vv=SUSPECT; }
+    tsv 1-flip OPPOSITE-OPTIMUM "same boot, opposite best config (p32 SET vs GET)" \
+        "SET io_live=${ioset:-?} ops=${oset:-?} settled=$sset | GET io_live=${ioget:-?} ops=${oget:-?} settled=$sget" \
+        "SET holds at 4, GET climbs to 5-6 (full-fill optimum io5ex3); read after certified settle" "$vv"
+  done
+}
+
 c1_flip() {
   say "=== [1] tomoFlipController ==="
+  if [ "${OO_ONLY:-0}" = 1 ]; then
+    say "  (OO_ONLY=1: opposite-optimum cell only — certified-landing rerun, binary unchanged)"
+    oo_cell; return
+  fi
   local cfg pass ops
   declare -A P1 P32
   P1[4_4]=""; P1[6_2]=""; P1[7_1]=""; P32[4_4]=""
@@ -684,47 +757,7 @@ c1_flip() {
   else
     tsv 1-flip AUTO==STATIC-p32 "settled auto vs static" "implausible ($msettle/$m44w)" "plausible" SUSPECT
   fi
-  # ---- OPPOSITE-OPTIMUM: the only cell here that cannot be passed by accident ----------------
-  # Same boot config (io4ex4), two workloads whose measured best config points OPPOSITE ways:
-  #     p32 SET : io4ex4 7.28M > io5ex3 6.58M > io6ex2 4.26M   => best IS the boot config => HOLD
-  #     p32 GET : io6ex2 9.71M > io5ex3 9.40M > io4ex4 8.18M   => best is 2 grow-fronts away => CLIMB
-  # (static, -t8 -c25, d32, epoll). A controller that always holds passes SET and fails GET; one
-  # that always climbs does the reverse; a locked-out one fails GET. Every other cell in this
-  # suite can be satisfied by a controller that never moves.
-  #
-  # It caught two real defects the other 11 cells missed: a deadzone centred on r=1 instead of on
-  # the settle point (correctly-rejected climbs restarted for ever -- 103 flips, -24% on SET), and
-  # a saturation signal that meant "75% busy" rather than "input == output".
-  for _oo in 1; do
-    local oset oget
-    stopsrv                     # the p32 phase above leaves its server up; boot refuses on count=2
-    boot flip_oo_set --tomokv-thread-mode auto --tomokv-thread-io 4 --tomokv-thread-ex 4 || { stopsrv; break; }
-    fill flip_oo_set_fill
-    oset=$(mt flip_oo_set_meas $W_P32SET --test-time="$T_MEAS")
-    # iolive scrapes io_threads_live= from the log, which is ONLY written on a FLIP. A controller
-    # that correctly HOLDS for SET (the expected behavior here) never flips, so it logs no such line
-    # and iolive is empty -> the ${ioset:-0} gate below then read 0 and FALSE-FAILED a controller
-    # doing exactly the right thing. Empty <=> no flip <=> still at the boot config (io 4 here); a
-    # wrong flip WOULD log a line, so this default cannot mask a real miss.
-    local ioset; ioset=$(iolive); : "${ioset:=4}"
-    stopsrv
-    boot flip_oo_get --tomokv-thread-mode auto --tomokv-thread-io 4 --tomokv-thread-ex 4 || { stopsrv; break; }
-    fill flip_oo_get_fill
-    oget=$(mt flip_oo_get_meas $W_P32GET --test-time="$T_MEAS")
-    local ioget; ioget=$(iolive)
-    stopsrv
-    # SET must stay at the boot config (io_threads_live 4); GET must grow to 6.
-    local vv=PASS
-    [ "${ioset:-0}" = 4 ] || vv=FAIL
-    # GET expects io5, not io6 (2026-08-05): the full-populate fill (task #77) moved the TRUE
-    # optimum — at 100% hit rate io5ex3 measures 9.00M vs io6ex2 6.94M; the old io6 expectation
-    # encoded the partial-fill curve where most GETs were cheap misses. Gate-observed: the
-    # controller lands io5 at 8.23M. io6 stays accepted (one step, within the flat top).
-    case "${ioget:-0}" in 5|6) : ;; *) vv=FAIL ;; esac
-    tsv 1-flip OPPOSITE-OPTIMUM "same boot, opposite best config (p32 SET vs GET)" \
-        "SET io_live=${ioset:-?} ops=${oset:-?} | GET io_live=${ioget:-?} ops=${oget:-?}" \
-        "SET holds at 4, GET climbs to 5-6 (full-fill optimum io5ex3)" "$vv"
-  done
+  oo_cell
   # ---- EX-BOUND (2026-08-05, task #78): every workload above is IO-heavy or balanced, so half
   # the actuator's travel (io4 -> io2) was never gate-tested — the p1GET<->ZRANGE harness found
   # two wedges there (unbounded structural-refusal retry; oscillating bound gate). ZRANGE does
