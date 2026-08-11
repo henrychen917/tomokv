@@ -574,15 +574,21 @@ def partA():
     eq(c(ps,pf,'UNSUBSCRIBE','cov:cold'),[b'unsubscribe',b'cov:cold',0],'UNSUBSCRIBE cold cleanup')
     ps.close()
 
-    # ---- transactions ---- THredis rejects MULTI under sharding (would hit the decoy DB); must fail-SAFE.
+    # ---- transactions ---- MULTI/EXEC are SUPPORTED since the single-shard MULTI merge (#92,
+    # 2026-08; the old reject-under-sharding contract is retired). Functional probe: a queued SET
+    # must apply at EXEC and the transaction state must fully clear afterwards.
     exec_err=c(s,f,'EXEC')
     ck(rejected(exec_err) and 'EXEC without MULTI' in str(exec_err),
        'EXEC without MULTI must reject cleanly: %r'%exec_err)
-    multi_err=c(s,f,'MULTI')
-    ck(rejected(multi_err),'MULTI must reject cleanly under sharding (fail-safe, not silent loss)')
-    exec_after_multi_error=c(s,f,'EXEC')
-    ck(rejected(exec_after_multi_error) and 'EXEC without MULTI' in str(exec_after_multi_error),
-       'MULTI rejection must not leave transaction state: %r'%exec_after_multi_error)
+    eq(c(s,f,'MULTI'),b'OK','MULTI accepted (supported since #92)')
+    eq(c(s,f,'SET','cov:tx','txv'),b'QUEUED','MULTI queues')
+    exec_res=c(s,f,'EXEC')
+    ck(isinstance(exec_res,list) and exec_res and exec_res[0]==b'OK',
+       'EXEC applies the queued SET: %r'%exec_res)
+    eq(c(s,f,'GET','cov:tx'),b'txv','transactional SET visible after EXEC')
+    exec_after=c(s,f,'EXEC')
+    ck(rejected(exec_after) and 'EXEC without MULTI' in str(exec_after),
+       'transaction state fully cleared after EXEC: %r'%exec_after)
     # ---- server/conn ----
     eq(c(s,f,'PING'),b'PONG','PING'); eq(c(s,f,'ECHO','hi'),b'hi','ECHO')
     s.close()
