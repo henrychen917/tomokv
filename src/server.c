@@ -1445,14 +1445,15 @@ mstime_t mstime(void) {
  * have been a no-op that looked like a fix.
  *
  * THE FIX. Latch a thread-local at worker command entry from a clock that is actually current.
- * Cost is one raw counter read per command — the same RDTSC-class read call() already does for
- * its duration timer — and a real gettimeofday only when the monotonic clock says the latch could
- * be as much as half a millisecond old. So the latch is accurate to well under the 1ms unit it is
- * expressed in, at a few thousand wall-clock reads per second per worker rather than one per
- * command. The depth counter is what tells commandTimeSnapshot() that a worker command owns the
- * clock; it also makes the latch nest correctly, so a command that re-enters keeps the OUTER
- * time, which is the upstream invariant. Non-worker threads never raise the depth and so keep
- * reading the global exactly as before. */
+ * Ordinary commands chain the preceding command's raw exit into the next entry, so an all-ordinary
+ * pop batch costs one initial counter read plus one exit read per command. Scatter subs take their
+ * own raw entry and exit. A real gettimeofday is needed only when the raw clock says the latch
+ * could be as much as half a millisecond old. The latch remains sub-millisecond apart from the
+ * accepted inter-command bookkeeping skew, at a few thousand wall-clock reads per second per
+ * worker rather than one per command. The depth counter is what tells commandTimeSnapshot() that
+ * a worker command owns the clock; it also makes the latch nest correctly, so a command that
+ * re-enters keeps the OUTER time, which is the upstream invariant. Non-worker threads never raise
+ * the depth and so keep reading the global exactly as before. */
 static __thread mstime_t tomo_cmd_time;        /* the latched per-command clock */
 static __thread int      tomo_cmd_time_depth;  /* 0 => this thread is not in a worker command */
 static __thread monotonic_raw tomo_cmd_time_raw;       /* native stamp of the wall-clock sample */
@@ -1467,15 +1468,14 @@ typedef struct tomoCmdClockStamp {
  * accuracy in a value whose unit IS the millisecond. */
 #define TOMO_CMD_CLOCK_RESAMPLE_US 500
 
-/* Returns the native counter stamp it latched. A nested entry is marked untimed because the outer
+/* Latch a supplied native-counter boundary. A nested entry is marked untimed because the outer
  * latch owns both time and duration; the explicit bit avoids treating a valid raw zero as nested.
  * ee451 (#B2): the return value is what makes commandstats' `usec` free on the enter side — this
- * read already existed, so timing a worker command costs ONE extra clock read, at the exit, which
- * is exactly the pair call() takes for every command it runs. */
-static inline tomoCmdClockStamp tomoCmdClockEnter(void) {
-    tomoCmdClockStamp stamp = {0, 0};
+ * boundary is either a fresh read or the preceding command's exit, so only the exit read remains
+ * per ordinary command. */
+static inline tomoCmdClockStamp tomoCmdClockEnterAt(monotonic_raw raw) {
+    tomoCmdClockStamp stamp = {raw, 0};
     if (tomo_cmd_time_depth++ != 0) return stamp;
-    stamp.raw = getMonotonicRaw();
     stamp.timed = 1;
     if (__builtin_expect(tomo_cmd_resample_raw == 0, 0))
         tomo_cmd_resample_raw = monotonicUsToRaw(TOMO_CMD_CLOCK_RESAMPLE_US);
@@ -1484,6 +1484,12 @@ static inline tomoCmdClockStamp tomoCmdClockEnter(void) {
         tomo_cmd_time = ustime() / 1000;
     }
     return stamp;
+}
+
+/* Scatter subs are independently timed. Avoid the raw read when nested, just as before. */
+static inline tomoCmdClockStamp tomoCmdClockEnter(void) {
+    if (tomo_cmd_time_depth != 0) return tomoCmdClockEnterAt(0);
+    return tomoCmdClockEnterAt(getMonotonicRaw());
 }
 
 static inline void tomoCmdClockExit(void) {
@@ -21470,7 +21476,8 @@ static inline void tomoPollingYield(void) {
  * pass), read at the exExecFake exit. exExecFake has no worker parameter and grows none. */
 static __thread exThread *tm_cur_ex;
 
-static inline void exExecFake(client *fake) {
+static inline tomoCmdClockStamp exExecFake(client *fake, monotonic_raw entry_raw) {
+    tomoCmdClockStamp exit_clock = {0, 0};
     serverAssert(fake->isFake);
     if (fake->cmd) {
         server.current_client[iotid].p = fake;
@@ -21478,7 +21485,7 @@ static inline void exExecFake(client *fake) {
         /* ee451 (F-clock): this is a worker's call()-equivalent, so it is where the command
          * latches its clock. Covers BOTH proc call sites below (the HFE all-node-locks branch
          * and the ordinary single-key one) and every lookup they make. */
-        tomoCmdClockStamp cs_clock = tomoCmdClockEnter();
+        tomoCmdClockStamp cs_clock = tomoCmdClockEnterAt(entry_raw);
         /* ee451 (#B1): ...and for the same reason it is where ordinary direct-proc commands are
          * COUNTED. T6 uses full call() below; without either path the worker-routed majority of
          * traffic is invisible to total_commands_processed. Own cache line, no atomic RMW. */
@@ -21604,8 +21611,14 @@ static inline void exExecFake(client *fake) {
          * commands. The drain folds fake->commands_processed into the real client when it retires
          * the ring slot, under the release/acquire the completion byte already provides. */
         if (__builtin_expect(cs_clock.timed, 1)) {
-            long long cs_usec =
-                (long long)monotonicRawToUs(getMonotonicRaw() - cs_clock.raw);
+            exit_clock.raw = getMonotonicRaw();
+            exit_clock.timed = 1;
+            long long cs_usec = (long long)monotonicRawToUs(exit_clock.raw - cs_clock.raw);
+            /* This chained boundary charges the small amount of worker bookkeeping between two
+             * ordinary procs to the latter. svc_us and the direct-path commandstats/latency
+             * histogram intentionally consume that honest batch skew; call/error counts remain
+             * exact. T6 uses call()'s independent clocks for commandstats and the slowlog
+             * threshold, while direct worker procs never enter the slowlog. */
             /* D svc plane: two adds, duration already in hand. Clamp keeps a pathological
              * multi-second command from wrapping the u32 row between 1 Hz sweeps. */
             if (tm_cur_ex) {
@@ -21649,6 +21662,7 @@ static inline void exExecFake(client *fake) {
             }
         }
     }
+    return exit_clock;
 }
 
 
@@ -22046,6 +22060,11 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
         uint8_t sig_slots[WORKER_POP_BATCH];
         int sig_n = 0;
 
+        /* One independent raw boundary per contiguous run of ordinary commands. Each proc's exit
+         * becomes its successor's entry, reducing an all-ordinary N-command batch from 2N clock
+         * reads to N+1. Never borrow ctx->tm_mark: it feeds frozen flip-controller accounting. */
+        tomoCmdClockStamp cmd_boundary = {0, 0};
+
         /* Execute the batch in issue (queue) order — plain, one op at a time.
          * ee451 (v13): the value-forwarding run-detect/record-replay apparatus was REMOVED
          * (paper negative result: neutral in every regime, real workloads lack same-key
@@ -22081,6 +22100,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                 /* This sentinel came up queue slot `i`; mark that producer slot drained. */
                 atomic_store_explicit(&server.migration.fence_acked[i], 1, memory_order_release);
                 freeFakeClient(fake);
+                cmd_boundary.timed = 0;
                 j++;
                 continue;
             }
@@ -22116,6 +22136,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                     emptyDbStructure(worker->db, ft->flush_dbid, ft->flush_async, NULL);
                 }
                 freeFakeClient(fake);
+                cmd_boundary.timed = 0;
                 j++;
                 continue;
             }
@@ -22177,11 +22198,18 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                         cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
                     }
                 }
+                /* csSubExec times its own proc, but completion/commit work after that exit may be
+                 * unbounded. Start a fresh ordinary boundary after the entire control path. */
+                cmd_boundary.timed = 0;
                 j++;
                 continue;
             }
 
-            exExecFake(fake);
+            if (!cmd_boundary.timed) {
+                cmd_boundary.raw = getMonotonicRaw();
+                cmd_boundary.timed = 1;
+            }
+            cmd_boundary = exExecFake(fake, cmd_boundary.raw);
 
             /* ee451 (flatstore lb): attribute this op to its bucket's coarse group (single-key ops;
              * multi-key sub-ops are counted in their own csSubExec path if needed later). One L1

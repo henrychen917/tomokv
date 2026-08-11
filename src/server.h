@@ -4749,13 +4749,13 @@ long long getNumCommands(void);
 
 /* ---- ee451 (#B2): per-thread per-command stats (INFO commandstats / latencystats) ------------
  *
- * Hot-path cost of the whole apparatus, per worker-executed command: ONE extra raw counter read
- * plus one delta conversion (the enter-side raw read is the one tomoCmdClockEnter already does),
- * two relaxed loads of this
+ * Hot-path cost of the whole apparatus, per ordinary direct worker command: ONE raw exit-counter
+ * read plus one delta conversion; the enter boundary is amortized across the pop batch by reusing
+ * the preceding command's exit. Then two relaxed loads of this
  * thread's own errstat line, one acquire load of a read-only pointer, one bounds compare, and
  * 2-3 relaxed stores into a cache line no other thread touches. No atomic RMW, no shared line,
- * no allocation after the first command a thread runs. That is exactly the pair of clock reads
- * and the handful of adds stock Redis pays inside call() for every command. */
+ * no allocation after the first command a thread runs. Batch reuse makes the timing side cheaper
+ * than the pair of clock reads stock Redis pays inside call() for every command. */
 
 /* Declared early (its stock prototype is much further down) — tomoCmdLatRecord needs it here. */
 void updateCommandLatencyHistogram(struct hdr_histogram** latency_histogram, int64_t duration_hist);
