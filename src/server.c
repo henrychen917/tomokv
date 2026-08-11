@@ -21311,6 +21311,17 @@ static inline void tomoMessagePrefetchCarriers(tomoMessagePrefetch *pf) {
                             (unsigned long long)issued);
 }
 
+static inline flatSlot *exPrefetchFastFlatSlot(exThread *worker,
+                                               const exQueueEntry *entry) {
+    unsigned int dbid = exEntryDbid(entry);
+    if (dbid >= (unsigned int)server.dbnum) return NULL;
+    flatTable *t = kvstoreFlatTable(worker->db[dbid].keys);
+    if (!t || !t->slots) return NULL;
+    flatSlot *slot = &t->slots[entry->key_hash & t->mask];
+    redis_prefetch_read(slot);
+    return slot;
+}
+
 
 
 /* ee451 (v13, audit #9): dead queueToWorker() deleted — no callers (live dispatch uses
@@ -21337,10 +21348,13 @@ static inline void tomoMessagePrefetchCarriers(tomoMessagePrefetch *pf) {
  *      DICT computes/stashes SipHash and prefetches bucket -> entry -> kvobj;
  *      FLAT uses the dispatch-carried tomoKeyHash result and prefetches SLOT -> KVOBJ
  *
- * fake->db was already pointed at the worker's shard during dispatch. Scratch arrays are bounded
- * by WORKER_POP_BATCH (n <= WORKER_POP_BATCH). All derefs are NULL-guarded; a stale slot word or
+ * A POINTER fake's db was already pointed at the worker's shard during dispatch; a FAST entry's
+ * dbid selects the same worker-local db directly. Scratch arrays are bounded by WORKER_POP_BATCH
+ * (n and job_n are each <= WORKER_POP_BATCH). All derefs are NULL-guarded; a stale slot word or
  * stale prefetch address is harmless, and execution always performs the authoritative lookup. */
-static inline void exPrefetchBatch(client **batch, int n, int prefetch_mode) {
+static inline int exPrefetchBatch(client **batch, int n,
+                                  const exQueueEntry *jobs, int job_n,
+                                  exThread *worker, int prefetch_mode) {
     /* ee451 (B1, 2026-08-02): MODE 0 == the machinery does not exist on this path.
      *
      * This feature has never had a trustworthy measurement. Its residency gate is exactly 100%
@@ -21353,7 +21367,7 @@ static inline void exPrefetchBatch(client **batch, int n, int prefetch_mode) {
      * Returning here BEFORE pf_batches++ is deliberate: in mode 0 the counters must not move
      * either, so a gated run and a disabled run are distinguishable in INFO rather than both
      * reading as zero issues. Both enabled modes run this same shipped storage path. */
-    if (__builtin_expect(prefetch_mode == 0, 0)) return;
+    if (__builtin_expect(prefetch_mode == 0, 0)) return 0;
     union {
         dict *d;
         flatSlot *slot;
@@ -21366,8 +21380,9 @@ static inline void exPrefetchBatch(client **batch, int n, int prefetch_mode) {
 
     /* ee451 v11 (#58): DB-size-ADAPTIVE worker prefetch. The v9 sweep showed worker-prefetch HURTS
      * when the shard dict is L3-resident (-4-5%) and only pays when it's DRAM-cold (~10M keys, +1.2%).
-     * So skip prefetch on small shards (the common cache-friendly case). batch[0]->db is this worker's
-     * shard db (set at dispatch); dbSize is a cheap counter read. min_keys=0 disables the gate. */
+     * So skip prefetch on small shards (the common cache-friendly case). The first POINTER fake's db,
+     * or the first FAST entry's worker-local db, selects the shard; dbSize is a cheap counter read.
+     * min_keys=0 disables the gate. */
     /* v13 (knob philosophy): -1 = AUTO — derive the gate from SELF-MEASURED quantities instead
      * of a hardware-encoding constant: open prefetch once the shard's estimated footprint
      * (dbSize x (96B dict/robj overhead + EWMA value size)) clearly exceeds the machine's own
@@ -21375,7 +21390,7 @@ static inline void exPrefetchBatch(client **batch, int n, int prefetch_mode) {
      * largely cache-resident and prefetch measurably hurt (-4-5%). 0 = gate off (always
      * prefetch); N = explicit key-count override. Transfers across machines with no tuning. */
     /* ee451 (#20/#21 + v13 auto-gate): this worker — predictors + self-measured vsize EWMA. */
-    exThread *pfw = &server.exThreads[iotid - (TOMO_IO_THREADS_MAX + 1)];
+    exThread *pfw = worker;
     pfw->pf_batches++;                         /* L0: entries, denominator for gated/issued */
     /* ee451 (v14): gate knob DELETED — the L3-derived controller is THE gate, recomputed
      * per batch from self-measured vsize (continuous; a workload shift re-tunes it at once). */
@@ -21419,8 +21434,18 @@ static inline void exPrefetchBatch(client **batch, int n, int prefetch_mode) {
             }
             auto_min = pfw->pf_cached_min;                             /* 0 = auto (L3-derived, cached) */
         }
-        if (n > 0 && batch[0]->db) {
-            unsigned long long est = dbSize(batch[0]->db);
+        redisDb *gate_db = n > 0 ? batch[0]->db : NULL;
+        if (n == 0) {
+            for (int j = 0; j < job_n; j++) {
+                if (!exEntryIsFast(&jobs[j])) continue;
+                unsigned int dbid = exEntryDbid(&jobs[j]);
+                if (dbid < (unsigned int)server.dbnum)
+                    gate_db = &worker->db[dbid];
+                break;
+            }
+        }
+        if (gate_db) {
+            unsigned long long est = dbSize(gate_db);
             /* shared node-db: dbSize is the NODE aggregate, but this worker only ever touches its
              * own bucket range — its resident set is aggregate * range/16384. Gating on the raw
              * aggregate opened the prefetch FSM at 4x the true per-worker set (2.0M node vs 500k
@@ -21445,7 +21470,7 @@ static inline void exPrefetchBatch(client **batch, int n, int prefetch_mode) {
             if (est < auto_min) {
                 pfw->pf_gated++;                       /* L0: prove whether the gate is shut */
                 for (int j = 0; j < n; j++) batch[j]->prefetch_key_hash_valid = 0;
-                return;
+                return 0;
             }
         }
     }
@@ -21645,9 +21670,69 @@ static inline void exPrefetchBatch(client **batch, int n, int prefetch_mode) {
         pfw->pf_issued += (unsigned)issued;   /* L0: prefetch stages actually issued */
         if (st[j] == PFS_DONE) remaining--;
     }
+
+    /* FAST descriptors already carry the routed xxh64, so their storage-only
+     * scoreboard starts at the flat home slot without touching the fake or key
+     * bytes. GET advances one rotation to the same tag-gated KVOBJ hint used
+     * above; SET retires after its write-slot hint. */
+    enum { PFF_SLOT = 0, PFF_KVOBJ, PFF_DONE };
+    remaining = 0;
+    for (int j = 0; j < job_n; j++) {
+        if (exEntryIsFast(&jobs[j])) {
+            st[j] = PFF_SLOT;
+            remaining++;
+        } else {
+            st[j] = PFF_DONE;
+        }
+    }
+    cur = 0;
+    while (remaining > 0) {
+        int j = cur;
+        cur = (cur + 1 == job_n) ? 0 : cur + 1;
+        if (st[j] == PFF_DONE) continue;
+        const exQueueEntry *entry = &jobs[j];
+        int issued = 0;
+        while (!issued && st[j] != PFF_DONE) {
+            switch (st[j]) {
+            case PFF_SLOT: {
+                flatSlot *slot = exPrefetchFastFlatSlot(worker, entry);
+                if (!slot) { st[j] = PFF_DONE; break; }
+                storage[j].slot = slot;
+                idxs[j] = (unsigned long)flat_tag_of(entry->key_hash);
+                exQueueEntryKind kind = exEntryKind(entry);
+                st[j] = (kind == TOMO_EX_ENTRY_FAST_GET_INLINE ||
+                         kind == TOMO_EX_ENTRY_FAST_GET_PTR) ?
+                        PFF_KVOBJ : PFF_DONE;
+                issued_slot++;
+                issued = 1;
+                break;
+            }
+            case PFF_KVOBJ: {
+                uint64_t w = atomic_load_explicit(&storage[j].slot->w,
+                                                  memory_order_acquire);
+                st[j] = PFF_DONE;
+                if (FLAT_IS_LIVE(w) && flat_word_tag(w) == idxs[j]) {
+                    kvobj *kv = dictGetKV(flat_word_ptr(w));
+                    if (kv) {
+                        redis_prefetch_read(kv);
+                        issued_kvobj++;
+                        issued = 1;
+                    }
+                }
+                break;
+            }
+            default:
+                st[j] = PFF_DONE;
+                break;
+            }
+        }
+        pfw->pf_issued += (unsigned)issued;
+        if (st[j] == PFF_DONE) remaining--;
+    }
     /* Fold once per batch so proof instrumentation adds no per-key worker-counter stores. */
     if (issued_slot) pfw->pf_issued_slot += issued_slot;
     if (issued_kvobj) pfw->pf_issued_kvobj += issued_kvobj;
+    return 1;
 }
 
 /* Portable CPU-pause hint. On x86 emits the PAUSE instruction (hints
@@ -22003,7 +22088,10 @@ static inline client *exExecFast(const exQueueEntry *entry, exThread *worker) {
 
     server.current_client[iotid].p = exec;
     server.executing_client[iotid].p = exec;
-    monotime cs_t0 = tomoCmdClockEnter();
+    /* Raw-stamp clock idiom (clock diet): FAST entries currently pay their own enter/exit raw
+     * reads; threading the pop loop's batch-boundary raw through here (as exExecFake does via
+     * tomoCmdClockEnterAt) is a recorded follow-up, not done in this fix-forward. */
+    tomoCmdClockStamp cs_clock = tomoCmdClockEnter();
     numCommandsBump();
     long long cs_e0 = tomoErrRepliesLocal();
 
@@ -22042,8 +22130,8 @@ static inline client *exExecFast(const exQueueEntry *entry, exThread *worker) {
 
     pendingCommand *pcmd = fake->current_pending_cmd;
     struct redisCommand *cmd = fake->cmd;
-    if (__builtin_expect(cs_t0 != 0, 1)) {
-        long long cs_usec = (long long)(getMonotonicUs() - cs_t0);
+    if (__builtin_expect(cs_clock.timed, 1)) {
+        long long cs_usec = (long long)monotonicRawToUs(getMonotonicRaw() - cs_clock.raw);
         if (tm_cur_ex) {
             unsigned cls = cmd->tomo_cls & TOMO_CLS_MASK;
             tm_cur_ex->svc_us[cls] +=
@@ -22451,21 +22539,42 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
         }
         any = 1;
 
-        /* Warm POINTER carriers before execution. FAST descriptors already
-         * contain their key/class/hash and must not prefetch the fake core. */
+        /* Warm POINTER carriers and the storage lines addressed directly by
+         * flat FAST descriptors before execution. FAST must not touch its
+         * fake core here. */
         int prefetch_mode = server.prefetch_ex_level;
         client *pointer_batch[WORKER_POP_BATCH];
         int pointer_n = 0;
-        for (int p = 0; p < n; p++)
-            if (exEntryKind(&ctx->batch[p]) == TOMO_EX_ENTRY_POINTER)
-                pointer_batch[pointer_n++] = ctx->batch[p].client_id;
+        int fast_n = 0;
+        if (server.shared_node_dbs) {
+            for (int p = 0; p < n; p++) {
+                exQueueEntry *entry = &ctx->batch[p];
+                if (exEntryKind(entry) == TOMO_EX_ENTRY_POINTER)
+                    pointer_batch[pointer_n++] = entry->client_id;
+                else if (exEntryIsFast(entry))
+                    fast_n++;
+            }
+        } else {
+            for (int p = 0; p < n; p++)
+                if (exEntryKind(&ctx->batch[p]) == TOMO_EX_ENTRY_POINTER)
+                    pointer_batch[pointer_n++] = ctx->batch[p].client_id;
+        }
+        int prefetch_engaged = 0;
         if (prefetch_mode == 2 && tomoCrossNode(i, worker->id)) {
             tomoMessagePrefetch messages;
             tomoMessagePrefetchInit(&messages, &WQ[i], n);
-            if (pointer_n) exPrefetchBatch(pointer_batch, pointer_n, prefetch_mode);
+            if (pointer_n || fast_n)
+                prefetch_engaged = exPrefetchBatch(pointer_batch, pointer_n,
+                                                    fast_n ? ctx->batch : NULL,
+                                                    fast_n ? n : 0,
+                                                    worker, prefetch_mode);
             tomoMessagePrefetchCarriers(&messages);
         } else {
-            if (pointer_n) exPrefetchBatch(pointer_batch, pointer_n, prefetch_mode);
+            if (pointer_n || fast_n)
+                prefetch_engaged = exPrefetchBatch(pointer_batch, pointer_n,
+                                                    fast_n ? ctx->batch : NULL,
+                                                    fast_n ? n : 0,
+                                                    worker, prefetch_mode);
         }
 
         tomoRelaxedBump(worker->ops_total, (uint64_t)n);   /* ee451 (v8d): monotonic load signal for the EWMA balancer (numa: _Atomic single-writer idiom) */
@@ -22492,17 +22601,17 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
         for (int j = 0; j < n; ) {
             exQueueEntry *job = &ctx->batch[j];
 
-            /* ee451 (#3): next-op dict-bucket look-ahead. While this op executes (a few hundred
-             * cycles), warm the bucket line of the fake TOMO_PF_W_NEXTOP ahead so its lookup doesn't
-             * eat the full DRAM miss — a rolling, execution-adjacent software-pipelined prefetch
-             * (the pass-2 batch prefetch may have been evicted by the time deep fakes run). Reuses
-             * pass-2's (dict,idx); a stale idx after a rehash only mis-warms a line (prefetch never
-             * faults). Targets the big-DB cache-miss regime; 0 = off. */
+            /* ee451 (#3): next-op storage look-ahead. While this op executes (a few hundred
+             * cycles), warm the DICT bucket or FAST flat-slot line TOMO_PF_W_NEXTOP ahead so its
+             * lookup doesn't eat the full DRAM miss — a rolling, execution-adjacent software-
+             * pipelined prefetch (the batch prefetch may have been evicted by the time deep jobs
+             * run). DICT reuses pass-2's (dict,idx); a stale hint only mis-warms a line (prefetch
+             * never faults). Targets the big-DB cache-miss regime; 0 = off. */
             /* ee451 (2026-07-28): tomokv-pf-w-nextop RETIRED, and unlike the other nine this one
              * CHANGES BEHAVIOUR: it shipped at 0 = OFF and is now hardwired to AUTO (= ON), on the
-             * owner's explicit ruling. It only actually fires at ONE worker per node, though —
-             * with >= 2 the node db is KVSTORE_FLAT, whose SLOT/KVOBJ branch deliberately never
-             * sets the DICT-only prefetch_key_hash_valid. See TOMO_PF_W_NEXTOP in server.h. */
+             * owner's explicit ruling. POINTER jobs reuse their DICT stash at one worker per node;
+             * FAST jobs reuse their flat home-slot helper at two or more. See TOMO_PF_W_NEXTOP in
+             * server.h for the still-dormant AUTO distance. */
             if (TOMO_PF_W_NEXTOP) {   /* -1 = AUTO (lookahead = current batch n), N = strict, 0 = off */
                 int la = j + (TOMO_PF_W_NEXTOP == TOMO_PFW_NEXTOP_AUTO ? n : TOMO_PF_W_NEXTOP);
                 if (la < n) {
@@ -22511,6 +22620,8 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                         next_job->client_id : NULL;
                     if (nf && nf->prefetch_key_hash_valid && nf->prefetch_dict && nf->prefetch_dict->ht_table[0])
                         redis_prefetch_read(&nf->prefetch_dict->ht_table[0][nf->prefetch_bucket_idx]);
+                    if (prefetch_engaged && fast_n && exEntryIsFast(next_job))
+                        exPrefetchFastFlatSlot(worker, next_job);
                 }
             }
 
