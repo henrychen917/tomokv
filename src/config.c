@@ -3203,12 +3203,9 @@ standardConfig static_configs[] = {
      * a NUMA node. Which partitioning is better for the target hardware is NOT yet known — it
      * is a measurement to run on the EPYC/Threadripper box, which is why it is one knob and not
      * a compile-time assumption. */
-    /* ee451 (B1): EX-side prefetch, as monotonic LEVELS so a sweep is one-dimensional.
-     * 0 = the machinery is not entered at all (counters stay still, so "disabled" and "gated"
-     * are distinguishable in INFO). 1 = the existing operand/key pipeline, 2 adds the FLAT home
-     * SLOT line, and 3 adds the dependent tag-gated FLAT KVOBJ line. Default 1 preserves the
-     * operand-only control; the higher arms exist so storage residency can be measured. */
-    createIntConfig("tomokv-prefetch-ex", NULL, MODIFIABLE_CONFIG, 0, 3, server.prefetch_ex_level, 3, INTEGER_CONFIG, NULL, NULL),
+    /* Symmetric prefetch modes: 0 = off, 1 = the shipped storage pipeline,
+     * 2 = mode 1 plus topology-gated cross-node message prefetch. */
+    createIntConfig("tomokv-prefetch-ex", NULL, MODIFIABLE_CONFIG, 0, 2, server.prefetch_ex_level, 1, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-nodes",                  NULL, IMMUTABLE_CONFIG, 1, TOMO_NODES_MAX, server.topo_nodes, 1, INTEGER_CONFIG, NULL, NULL), /* CCD count or NUMA-node count — tomokv-pin-mode decides which */
     createIntConfig("tomokv-cores-per-node",         NULL, IMMUTABLE_CONFIG, 0, TOMO_IO_THREADS_MAX + TOMO_EX_THREADS_MAX, server.cores_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* 0 = derive as thread-io + thread-ex (i.e. no reserved cores) */
 
@@ -3217,7 +3214,7 @@ standardConfig static_configs[] = {
      * flip controller may move away from it; under `static` it is held for the whole run. The
      * starting point matters for measurement reproducibility: a benchmark that starts at a
      * different split spends its window converging instead of measuring. */
-    createIntConfig("tomokv-io-prefetch", NULL, MODIFIABLE_CONFIG, 0, 8, server.tomo_io_prefetch, 0, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-prefetch-io", NULL, MODIFIABLE_CONFIG, 0, 2, server.prefetch_io_level, 0, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-reorder", NULL, MODIFIABLE_CONFIG, 0, 3, server.tomo_reorder, 0, INTEGER_CONFIG, NULL, NULL),
     createEnumConfig("tomokv-thread-mode",           NULL, IMMUTABLE_CONFIG, tomokv_thread_mode_enum, server.thread_mode, TOMO_THREAD_MODE_AUTO, NULL, NULL),
     /* WHICH quantity the flip controller's TRIGGER reads. Levels, so a sweep is one-dimensional;

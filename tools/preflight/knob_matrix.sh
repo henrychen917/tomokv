@@ -307,6 +307,8 @@ echo "=== convention A: -1 = auto ===" >> $OUT
 
   must_refuse tomokv-reshard-sustain-ticks -1 "directive deleted; sustain duration is automatic"
 
+  must_refuse tomokv-recv-batch 0 "directive deleted; socket reads use one recv per pass"
+
   must_refuse tomokv-strict-order -1 "below the declared minimum -- this knob spells auto as 0"
 
   try tomokv-strict-order 0  "OFF: ordinary cross-IO completion ordering"
@@ -343,13 +345,15 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   must_refuse tomokv-io-uring 3 "above the declared maximum -- valid modes are 0, 1, and 2"
 
   try tomokv-prefetch-ex 0
-  try tomokv-prefetch-ex 3
+  try tomokv-prefetch-ex 1 "shipped storage prefetch"
+  try tomokv-prefetch-ex 2 "storage plus cross-node message prefetch"
   must_refuse tomokv-prefetch-ex -1 "below the declared minimum -- this knob spells auto as 0"
+  must_refuse tomokv-prefetch-ex 3 "above the declared maximum -- valid modes are 0, 1, and 2"
 
   try tomokv-reshard-fence-timeout 0
   must_refuse tomokv-reshard-fence-timeout -1 "below the declared minimum -- this knob spells auto as 0"
 
-  # Surviving D-feature knobs: SEDA reorder and io-side prefetch.
+  # Surviving D-feature knobs: SEDA reorder and the symmetric IO-side prefetch.
   try tomokv-reorder 0 "OFF: admission-time reorder inert, no scratch write"
   try tomokv-reorder 1 "partition-by-worker only"
   try tomokv-reorder 2 "chunk-bounded SJF class ordering + bucket grouping"
@@ -358,11 +362,12 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   # RYOW behavior is owned by client_correctness.py as invoked by gauntlet_ownread.sh: reorder 0
   # and 3, each with and without same-key churn. Those are job harnesses, not checked-in suites.
 
-  try tomokv-io-prefetch 0 "OFF: no io-side prefetch"
-  try tomokv-io-prefetch 8 "max prefetch depth (range [0,8])"
-  must_refuse tomokv-io-prefetch -1 "below the declared minimum -- 0=off"
+  try tomokv-prefetch-io 0 "OFF: no IO-side prefetch"
+  try tomokv-prefetch-io 1 "next-run ring-tail write warm"
+  try tomokv-prefetch-io 2 "ring-tail warm plus cross-node reply prefetch"
+  must_refuse tomokv-prefetch-io -1 "below the declared minimum -- 0=off"
+  must_refuse tomokv-prefetch-io 3 "above the declared maximum -- valid modes are 0, 1, and 2"
 
-  must_refuse tomokv-recv-batch 0 "directive deleted; socket reads use one recv per pass"
 
 # RETIRED knobs must be REJECTED, not silently accepted. A retired name that still boots means
 # either the knob was not really retired or a shim is swallowing it -- both hide a config error
@@ -371,6 +376,7 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   reject tomokv-xshard-guard yes
   reject tomokv-worker-pop-batch 8
   reject tomokv-mget-coalesce legacy
+  reject tomokv-io-prefetch 1
 
 # PREFETCH knobs, retired 2026-07-28. The prefetch MACHINERY is untouched and under active work
 # (io-side prefetch is next); what went away is the operator's ability to set a width, a budget or
