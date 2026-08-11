@@ -14,6 +14,8 @@
 #   2. reclaim_correctness.sh  FLATSTORE/QSBR data correctness
 #   3. numa2_validate.sh       2-simnode correctness
 #   3b. simnode2_features.sh   2-simnode ENGAGEMENT gate for the 2026-08 features (prefetch
+#   3c. atomic_correctness.sh  nodes-1 atomic visibility gauntlet (torn/RYOW/monotonic/msetnx +
+#                              completion-wedge drain), promoted from the job harness
 #                              mode-2 arms fire, atomics correct, everything-on soak)
 #   4. fence_suite.sh          script fence: crash repro, -BUSY, KILL, no leak
 #   5. correctness_suite.sh   ordering/boundary invariants (each check exists
@@ -130,8 +132,14 @@ run_suite(){ # $1 script  $2 result-file  $3 fail-regex  $4 suspect-regex
   say "RUN   $name ..."
   rm -f "$2"          # never grade a STALE result file from a previous run
   local rc=0
-  TOMO_RESULT_FILE="$2" TOMO_BIN="$BIN" SMOKE=$SMOKE "$1" >> $PF/preflight_${name}.log 2>&1 || rc=$?
+  TOMO_RESULT_FILE="$2" TOMO_BIN="$BIN" SMOKE=$SMOKE "$1" 9>&- >> $PF/preflight_${name}.log 2>&1 || rc=$?   # 9>&-: children must NOT inherit the singleton lock fd (a leaked suite child held it across a killed run, 2026-08-11)
   reap_ours "$name"   # a leak here is what aborted the NEXT suite and got mis-filed as its failure
+  # QUIET GATE (2026-08-11): reaped != drained. Wait (bounded) until no listener remains on the
+  # suite port range before grading/continuing, so the next suite never boots into a dying server.
+  for _q in $(seq 1 20); do
+    ss -ltn 2>/dev/null | grep -qE ':(797[0-9])\s' || break
+    sleep 0.5
+  done
   local f=0 s=0
   # review fix: the old code graded a MISSING result file as 0 failures => PASS, so a suite that
   # crashed, timed out, or never wrote its output still contributed to a GO verdict.
@@ -165,6 +173,7 @@ run_suite $SD/knob_matrix.sh         $PF/knob_matrix.out          '  FAIL'
 run_suite $SD/reclaim_correctness.sh $PF/reclaim_correctness.out  'FAIL:'
 run_suite $SD/numa2_validate.sh      $PF/numa2_validate.out       'FAIL'
 run_suite $SD/simnode2_features.sh   $PF/simnode2_features.out    'FAIL'
+run_suite $SD/atomic_correctness.sh  $PF/atomic_correctness.out   'FAIL'
 run_suite $SD/fence_suite.sh         $PF/fence_suite.out          'FAIL'
 # correctness output is per invocation. Passing the exact unique path through TOMO_RESULT_FILE
 # lets run_suite grade the file produced by this run without a shared correctness_suite.out that a
