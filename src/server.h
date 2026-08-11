@@ -4119,8 +4119,6 @@ struct redisServer {
     int reshard_min_ops;         /* tomokv-key-lb: 0 = balancer OFF (nothing runs, nothing is
                                   * allocated); N = min mean shard ops/sec before a shard is a
                                   * migration candidate. Default 20000. */
-    int reshard_imbalance_pct; /* <=0 = auto mean+k*sigma outlier bar (default -1); N = fixed pct of mean */
-    int reshard_chunk;         /* <=0 = auto load-aware split point (default -1); N = explicit buckets */
     /* 2s-auto T2/T3/D1/D3 mode fields DELETED 2026-07-28 (drain-tail-skip / express-slim /
      * fake-buf / fake-ring-depth) and l3_kb with them: all are unconditionally in their AUTO
      * arm now. The controllers themselves are untouched -- only the mode selectors are gone. */
@@ -4129,10 +4127,6 @@ struct redisServer {
                                         * dispatch hot path — tomoRelaxedRead ONCE per decision
                                         * (the old double-read Schmitt gate could act on two
                                         * different values) */
-    int reshard_progress_ratio;  /* <=0 = auto 0.85 (a migration must cut the peak >=15%; default -1);
-                                  * N = required %-of-prior-peak ceiling */
-    int reshard_cool_margin_pct; /* -1 = auto: destination must be < 0.85*mean [default];
-                                  * 0 = legacy (< mean); N = destination < mean*(1-N/100) */
     /* prefetch_min_keys / pf_value_budget_kb DELETED 2026-07-28 with tomokv-prefetch-min-keys and
      * tomokv-pf-value-budget-kb. Both shipped in their AUTO arm and both AUTO derivations are now
      * unconditional in exPrefetchBatch: the residency gate is 8 x (detected L3 / workers-per-L3

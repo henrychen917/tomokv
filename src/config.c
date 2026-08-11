@@ -3285,15 +3285,6 @@ standardConfig static_configs[] = {
      * keyspace stays DICT-backed, and io7/ex1 is a standard test config). Nothing is deleted here
      * except operator-facing names. */
 
-
-    /* ================= RESHARD TRIGGER HARDENING — restored for SAFETY. With these at 0 the balancer runs its legacy
-     * single-tick trigger: the hysteresis dead-band and the SUSTAIN gate are unreachable and
-     * mig_hot_streak[] can never be nonzero. That makes auto-reshard MORE trigger-happy than
-     * designed, at exactly the moment its cutover fence (H2) is known fail-open. */
-    createIntConfig("tomokv-reshard-chunk", NULL, MODIFIABLE_CONFIG, 0, TOMO_BUCKETS, server.reshard_chunk, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto buckets/(16W); N=explicit granule. A granule of 0 buckets is not a state; "off" is tomokv-reshard-min-ops 0. */
-    createIntConfig("tomokv-reshard-cool-margin-pct", NULL, MODIFIABLE_CONFIG, -1, 100,     server.reshard_cool_margin_pct, 0, INTEGER_CONFIG, NULL, NULL), /* 0=legacy (<mean); -1=auto 15% (<0.85*mean); N=neighbor < mean*(1-N/100) */
-    createIntConfig("tomokv-reshard-imbalance-pct", NULL, MODIFIABLE_CONFIG, 0, 100000, server.reshard_imbalance_pct, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto outlier bar; N=fixed pct-of-mean. Like l3-kb this OVERRIDES a derived threshold — "off" is spelled tomokv-reshard-min-ops 0, so 0 is auto here. */
-    createIntConfig("tomokv-reshard-progress-ratio",  NULL, MODIFIABLE_CONFIG,  0, 100,     server.reshard_progress_ratio,  0, INTEGER_CONFIG, NULL, NULL), /* 0=legacy 0.85; N=required %-of-prior-peak ceiling (e.g. 70 => 30%/step drop) */
     /* ================= OS DEPLOYMENT FEATURES — restored. Hardwiring these to their 0 defaults
      * made TCP_QUICKACK, MADV_HUGEPAGE and SO_BUSY_POLL permanently off. That is disabling a
      * feature to simplify a config surface, which is not the same as retiring a knob. */

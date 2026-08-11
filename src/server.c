@@ -16469,7 +16469,7 @@ static void reshardDiffusionPass(double mean, double alpha) {
     if (bw < 0) { mig_diff_peak = 0; return; }
     /* no-progress guard (same idea as the outlier path): if the last diffusion move didn't cut the
      * pair peak, the boundary hosts an unbalanceable hot key — stop chasing until the pattern moves. */
-    double prog = server.reshard_progress_ratio > 0 ? server.reshard_progress_ratio / 100.0 : 0.85;
+    double prog = 0.85;
     if (mig_diff_peak > 0 && bhi > mig_diff_peak * prog) return;
     int K = migSustainK(alpha);
     if (++mig_diff_streak[bw] < K) return;                 /* not sustained yet */
@@ -16665,12 +16665,6 @@ void reshardAutoTune(void) {
      * migrations). All dimensionless, recomputed every tick. */
     double mean = sum_ewma / W, mean_fast = sum_fast / W;
     double hot_bar, hot_bar_fast;
-    if (server.reshard_imbalance_pct > 0) {
-        /* ee451 (v14): explicit override — fixed bar at pct of mean (e.g. 150 = 1.5x). */
-        double eff = server.reshard_imbalance_pct / 100.0;
-        hot_bar = eff * mean;
-        hot_bar_fast = eff * mean_fast;
-    } else {
     double var = 0, var_fast = 0;
     for (int w = 0; w < wmax; w++) {
         if (!tmWorkerLive(w)) continue;                /* ee451 (per-node flip): live set only */
@@ -16683,7 +16677,6 @@ void reshardAutoTune(void) {
     hot_bar = mean + (margin > floor_m ? margin : floor_m);
     double margin_f = k * sqrt(var_fast / W), floor_f = 0.25 * mean_fast;
     hot_bar_fast = mean_fast + (margin_f > floor_f ? margin_f : floor_f);
-    }
 
     /* balanced (or too quiet) => clear convergence state and stay responsive.
      * ee451 (reshard-better §1.3a): two-threshold Schmitt band. hot_bar (above) stays the FIRE
@@ -16712,14 +16705,9 @@ void reshardAutoTune(void) {
     /* Settle: let the EWMA absorb the last migration before judging — the window IS the
      * EWMA's own time constant (ceil(1/alpha)+1 ticks), so it self-scales with the decay. */
     if (mig_settle > 0) { mig_settle--; mig_trig.settle++; return; }
-    /* NO-PROGRESS guard: if the last migration didn't cut the peak enough, the hotspot is
-     * unbalanceable (a single hot key just relocates) — stop chasing. Self-resets via the balanced
-     * path when the pattern changes.
-     * ee451 (reshard-better §1.3c): progress ratio is now a knob. 0 => legacy fixed 0.85 (>15% drop
-     * required); N (e.g. 70) => require an N% ceiling (stricter: halt sooner on unbalanceable
-     * single-key hotspots). A LOOSER ratio (e.g. 90) lets Fork A walk multiple chunks over multiple
-     * ticks (§1.4). When the knob is 0 this evaluates to * 0.85 => bit-for-bit legacy. */
-    double prog = server.reshard_progress_ratio > 0 ? server.reshard_progress_ratio / 100.0 : 0.85;
+    /* NO-PROGRESS guard: require the last migration to cut the peak by more than 15%; a single
+     * hot key merely relocates, so stop chasing until the balanced path observes a change. */
+    double prog = 0.85;
     if (mig_peak_pre > 0 && hotv > mig_peak_pre * prog) { mig_trig.noprog++; return; }
 
     /* #89 dual-rate: the FAST EWMA must ALSO see this worker hot — a hotspot that just died
@@ -16754,11 +16742,8 @@ void reshardAutoTune(void) {
     if (lok && rok) B = (mig_load_ewma[left] < mig_load_ewma[right]) ? left : right;
     else if (lok)   B = left;
     else if (rok)   B = right;
-    /* ee451 (reshard-better §1.3d): cool-margin hardening. Neighbor must be BELOW a cool bar.
-     * 0 => legacy (< mean, bit-for-bit); -1 => auto 15% (< 0.85*mean, neighbor must be substantially
-     * cool — prevents ping-pong of a chunk between two near-mean neighbors); N => < mean*(1-N/100). */
-    double cm = (double)server.reshard_cool_margin_pct;
-    double cool_bar = (cm == 0) ? mean : (cm < 0 ? mean * 0.85 : mean * (1.0 - cm / 100.0));
+    /* The adjacent neighbor must be strictly cooler than the workload mean. */
+    double cool_bar = mean;
     if (B < 0 || mig_load_ewma[B] >= cool_bar) { mig_trig.noneigh++; reshardDiffusionPass(mean, alpha); return; }
 
     /* Shift a chunk of buckets at the hot|B boundary, keeping ranges contiguous and never emptying
@@ -16768,58 +16753,51 @@ void reshardAutoTune(void) {
      * by a worthwhile margin. The old code assumed a uniform per-bucket rate Lh/R and therefore
      * always believed a move would help — which is how a hot KEY got treated as a hot BUCKET and
      * ping-ponged between neighbours. The uniform estimate survives as the fallback for workloads
-     * the per-group counters do not sample (see migPlanChunk). tomokv-reshard-chunk (retired,
-     * hardwired -1) still overrides with a fixed granule if it is ever re-exposed. */
+     * the per-group counters do not sample (see migPlanChunk). */
     int hot_lo = (hot == 0 ? 0 : server.ex_bucket_end[hot - 1]);
     int hot_hi = server.ex_bucket_end[hot];
     int hrange = hot_hi - hot_lo;
     int chunk, used_prof = 0; double pred = 0, moved = 0;
-    if (server.reshard_chunk > 0) {
-        chunk = server.reshard_chunk;                                  /* explicit operator granule */
-        int cap = hrange / 2; if (cap < 1) cap = hrange - 1;
-        if (chunk > cap) chunk = cap;
-    } else {
-        /* Worth-it margin: a quarter of the hysteresis band. Scale-free (the band is itself
-         * mean + k*sigma), and it means a migration must buy more than a quarter of the distance
-         * that made the shard an outlier in the first place. */
-        double need = 0.25 * (hot_bar - mean);
-        int used_fine = 0;
-        chunk = migPlanChunk(hot, B, mig_load_ewma[hot], mig_load_ewma[B], hot_lo, hot_hi,
-                             need, 1, &used_prof, &pred, &moved, &used_fine);
-        if (used_fine) mig_trig.fine_used++;
-        if (chunk < 1) {
-            /* UNBALANCEABLE at bucket granularity: every candidate range either carries almost
-             * none of the heat (moving it does not cool the shard) or almost all of it (moving it
-             * makes the destination the new outlier). That is the hot-KEY signature, and the
-             * correct action is to do nothing — see docs/lb-imbalance-model.md §4. The consumed
-             * sustain streak above already provides the K-tick backoff before the next attempt. */
-            mig_trig.unbal++;
-            /* SHADOW PLAN — the anti-vacuous check. Re-plan at GROUP resolution only. If that arm
-             * would have moved buckets, the per-bucket window is what produced this refusal, and
-             * unbal_fine records it; if it also refuses, the refusal was reachable without level 2
-             * and unbal_grp records that instead. This runs once per refusal at 1 Hz on the main
-             * thread. Without it, "unbal>0" is compatible with the window doing nothing at all,
-             * which is exactly the shape of the non-checks docs/BUGS.md catalogues. */
-            int sh_prof = 0, sh_fine = 0; double sh_pred = 0, sh_moved = 0;
-            int shadow = used_fine
-                       ? migPlanChunk(hot, B, mig_load_ewma[hot], mig_load_ewma[B], hot_lo, hot_hi,
-                                      need, 0, &sh_prof, &sh_pred, &sh_moved, &sh_fine)
-                       : 0;
-            if (shadow >= 1) mig_trig.unbal_fine++; else mig_trig.unbal_grp++;
-            static int unbal_log_hold = 0;
-            if (unbal_log_hold == 0) {
-                serverLog(LL_NOTICE, "ee451 reshard HOLD: w%d hot (%.0f ops vs mean %.0f) but no bucket "
-                          "range improves the peak (best predicted %.0f, profile=%s, resolution=%s%s) — "
-                          "hot KEY, not hot BUCKET: a move would relocate it, not divide it. Not migrating.",
-                          hot, hotv, mean, pred, used_prof ? "measured" : "uniform",
-                          used_fine ? "per-bucket" : "per-group",
-                          shadow >= 1 ? ", per-group would have moved" : "");
-                unbal_log_hold = 60;
-            } else unbal_log_hold--;
-            return;
-        }
-        if (used_prof) mig_trig.prof++; else mig_trig.uniform++;
+    /* Worth-it margin: a quarter of the hysteresis band. Scale-free (the band is itself
+     * mean + k*sigma), and it means a migration must buy more than a quarter of the distance
+     * that made the shard an outlier in the first place. */
+    double need = 0.25 * (hot_bar - mean);
+    int used_fine = 0;
+    chunk = migPlanChunk(hot, B, mig_load_ewma[hot], mig_load_ewma[B], hot_lo, hot_hi,
+                         need, 1, &used_prof, &pred, &moved, &used_fine);
+    if (used_fine) mig_trig.fine_used++;
+    if (chunk < 1) {
+        /* UNBALANCEABLE at bucket granularity: every candidate range either carries almost
+         * none of the heat (moving it does not cool the shard) or almost all of it (moving it
+         * makes the destination the new outlier). That is the hot-KEY signature, and the
+         * correct action is to do nothing — see docs/lb-imbalance-model.md §4. The consumed
+         * sustain streak above already provides the K-tick backoff before the next attempt. */
+        mig_trig.unbal++;
+        /* SHADOW PLAN — the anti-vacuous check. Re-plan at GROUP resolution only. If that arm
+         * would have moved buckets, the per-bucket window is what produced this refusal, and
+         * unbal_fine records it; if it also refuses, the refusal was reachable without level 2
+         * and unbal_grp records that instead. This runs once per refusal at 1 Hz on the main
+         * thread. Without it, "unbal>0" is compatible with the window doing nothing at all,
+         * which is exactly the shape of the non-checks docs/BUGS.md catalogues. */
+        int sh_prof = 0, sh_fine = 0; double sh_pred = 0, sh_moved = 0;
+        int shadow = used_fine
+                   ? migPlanChunk(hot, B, mig_load_ewma[hot], mig_load_ewma[B], hot_lo, hot_hi,
+                                  need, 0, &sh_prof, &sh_pred, &sh_moved, &sh_fine)
+                   : 0;
+        if (shadow >= 1) mig_trig.unbal_fine++; else mig_trig.unbal_grp++;
+        static int unbal_log_hold = 0;
+        if (unbal_log_hold == 0) {
+            serverLog(LL_NOTICE, "ee451 reshard HOLD: w%d hot (%.0f ops vs mean %.0f) but no bucket "
+                      "range improves the peak (best predicted %.0f, profile=%s, resolution=%s%s) — "
+                      "hot KEY, not hot BUCKET: a move would relocate it, not divide it. Not migrating.",
+                      hot, hotv, mean, pred, used_prof ? "measured" : "uniform",
+                      used_fine ? "per-bucket" : "per-group",
+                      shadow >= 1 ? ", per-group would have moved" : "");
+            unbal_log_hold = 60;
+        } else unbal_log_hold--;
+        return;
     }
+    if (used_prof) mig_trig.prof++; else mig_trig.uniform++;
     if (hrange <= chunk || chunk < 1) return;
     int lo, hi;
     if (B == hot + 1) { lo = hot_hi - chunk; hi = hot_hi; }
