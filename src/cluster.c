@@ -1254,6 +1254,7 @@ clusterNode *getNodeByQuery(client *c, struct redisCommand *cmd, robj **argv, in
         keyReference *keyindex;
 
         pendingCommand *pcmd = ms->commands[i];
+        debugAssertPendingCommandMetadata(pcmd, 0);
 
         mcmd = pcmd->cmd;
         margc = pcmd->argc;
@@ -1270,10 +1271,12 @@ clusterNode *getNodeByQuery(client *c, struct redisCommand *cmd, robj **argv, in
          * Otherwise, extract keys result. */
         int use_cache_keys_result = pcmd->flags & PENDING_CMD_KEYS_RESULT_VALID;
         getKeysResult result = GETKEYS_RESULT_INIT;
-        if (use_cache_keys_result)
+        if (use_cache_keys_result) {
+            debugAssertPendingCommandKeysResult(pcmd);
             result = pcmd->keys_result;
-        else
+        } else {
             getKeysFromCommand(mcmd,margv,margc,&result);
+        }
         keyindex = result.keys;
 
         for (j = 0; j < result.numkeys; j++) {

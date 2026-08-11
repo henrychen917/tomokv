@@ -7606,6 +7606,7 @@ static int tomoExecHasScript(client *c) {
     multiState *ms = clientMultiState(c);   /* MERGE: sidecar storage; CLIENT_MULTI implies it exists */
     if (!ms) return 0;
     for (int i = 0; i < ms->count; i++) {
+        debugAssertPendingCommandMetadata(ms->commands[i], 0);
         struct redisCommand *cmd = ms->commands[i]->cmd;
         if (cmd && (cmd->tomo_route & TOMO_R_SCRIPTFAM)) return 1;
     }
@@ -7623,6 +7624,7 @@ static int tomoMultiSingleWorker(client *c, int hold_migration) {
     multiState *ms = clientMultiState(c);   /* MERGE: sidecar storage; NULL => no queued commands */
     for (int i = 0; ms && i < ms->count; i++) {
         pendingCommand *pcmd = ms->commands[i];
+        debugAssertPendingCommandMetadata(pcmd, 0);
         int w = tomoCommandSingleWorker(pcmd->cmd, pcmd->argv, pcmd->argc, hold_migration);
         if (w == TOMO_SW_INVALID || w == TOMO_SW_NONE) continue;
         if (w == TOMO_SW_CROSS) return TOMO_SW_CROSS;
@@ -7673,17 +7675,24 @@ static int tomoT6Route(client *c, int hold_migration, int *kind) {
 
 void preprocessCommand(client *c, pendingCommand *pcmd) {
     pcmd->slot = INVALID_CLUSTER_SLOT;
-    if (pcmd->argc == 0)
+    pendingCommandDebugMark(pcmd, PENDING_CMD_DEBUG_SLOT_INITIALIZED);
+    if (pcmd->argc == 0) {
+        pcmd->cmd = NULL;
+        pendingCommandDebugMark(pcmd, PENDING_CMD_DEBUG_CMD_INITIALIZED);
         return;
+    }
 
     /* Check if we can reuse the previous command instead of looking it up.
      * The previous command is either the penultimate pending command (if it exists), or c->lastcmd. */
+    if (pcmd->prev)
+        debugServerAssert(pcmd->prev->flags & PENDING_CMD_DEBUG_CMD_INITIALIZED);
     struct redisCommand *last_cmd = pcmd->prev ? pcmd->prev->cmd : clientTail(c)->lastcmd;
 
     if (isCommandReusable(last_cmd, pcmd->argv[0]))
         pcmd->cmd = last_cmd;
     else
         pcmd->cmd = lookupCommand(pcmd->argv, pcmd->argc);
+    pendingCommandDebugMark(pcmd, PENDING_CMD_DEBUG_CMD_INITIALIZED);
 
     if (!pcmd->cmd) {
         pcmd->read_error = CLIENT_READ_COMMAND_NOT_FOUND;
@@ -7697,9 +7706,16 @@ void preprocessCommand(client *c, pendingCommand *pcmd) {
         return;
     }
 
-    pcmd->keys_result = (getKeysResult)GETKEYS_RESULT_INIT;
+    /* keysbuf is populated before publication and only entries below numkeys
+     * are read. Initialize just the scalar header; after extraction, record
+     * heap ownership even on an error return so terminal cleanup is exact. */
+    pcmd->keys_result.numkeys = 0;
+    pcmd->keys_result.size = MAX_KEYS_BUFFER;
+    pcmd->keys_result.keys = NULL;
     int num_keys = extractKeysAndSlot(pcmd->cmd, pcmd->argv, pcmd->argc,
                                       &pcmd->keys_result, &pcmd->slot);
+    if (pcmd->keys_result.keys && pcmd->keys_result.keys != pcmd->keys_result.keysbuf)
+        pcmd->flags |= PENDING_CMD_KEYS_RESULT_ALLOCATED;
     if (num_keys < 0) {
         /* We skip the checks below since We expect the command to be rejected in this case */
         return;
@@ -7711,6 +7727,7 @@ void preprocessCommand(client *c, pendingCommand *pcmd) {
         }
     }
     pcmd->flags |= PENDING_CMD_KEYS_RESULT_VALID;
+    debugAssertPendingCommandKeysResult(pcmd);
 }
 
 /* If this function gets called we already read a whole
@@ -17202,6 +17219,7 @@ int areCommandKeysInSameSlot(client *c, int *hashslot) {
     /* If client is in multi-exec, we need to check the slot of all keys
      * in the transaction. */
     for (int i = 0; i < (ms ? ms->count : 1); i++) {
+        if (ms) debugAssertPendingCommandMetadata(ms->commands[i], 0);
         struct redisCommand *cmd = ms ? ms->commands[i]->cmd : c->cmd;
         robj **argv = ms ? ms->commands[i]->argv : c->argv;
         int argc = ms ? ms->commands[i]->argc : c->argc;

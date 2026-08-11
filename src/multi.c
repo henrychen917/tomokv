@@ -245,6 +245,7 @@ void execCommand(client *c) {
 
     addReplyArrayLen(c,ms->count);
     for (j = 0; j < ms->count; j++) {
+        debugAssertPendingCommandMetadata(ms->commands[j], 0);
         c->argc = ms->commands[j]->argc;
         c->argv = ms->commands[j]->argv;
         c->argv_len = ms->commands[j]->argv_len;

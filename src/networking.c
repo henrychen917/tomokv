@@ -3924,6 +3924,7 @@ int processInlineBuffer(client *c, pendingCommand *pcmd) {
      * Inline) SET key value\r\n
      */
     pcmd->input_bytes = (pcmd->argv_len_sum + (pcmd->argc - 1) + 2);
+    pendingCommandDebugMark(pcmd, PENDING_CMD_DEBUG_INPUT_INITIALIZED);
 
     return C_OK;
 }
@@ -3998,18 +3999,49 @@ static void setProtocolError(const char *errstr, client *c) {
  * saw a cross-thread operand -- but the stated design basis was wrong, which is its own reason
  * not to leave the knob sitting there inviting someone to switch it on. */
 
-/* R1 (alloc census): per-io-thread pendingCommand freelist. Thread-locality argument: acquire
- * (parse) and the terminal freePendingCommand both run on the client's owning io thread, so
- * pcmdPool[iotid] is single-threaded by construction. NOTE this recycles the pcmd STRUCT and its
- * argv ARRAY -- not the argv element objects, which is what the deleted operand pool got wrong;
- * skipping an array realloc is not the same trade as re-encoding every string as RAW.
- * argv stays ATTACHED to a pooled pcmd, so a hit also skips the per-command argv realloc (the `multibulklen > argv_len` gate
- * sees the preserved capacity). Bounded: CAP structs x ~160B + their argv arrays (<64 ptrs each) =
- * <=80KB per io thread, populated only under load. */
+/* pendingCommand per-command write census (the reset diet's liveness proof):
+ *
+ *   recycle:   argc, argv_len_sum, flags, read_error, argv_released_mask
+ *   parse:     argc, argv[0..argc), argv_len_sum, input_bytes; argv/argv_len
+ *              only when retained capacity is insufficient
+ *   preprocess: cmd, slot, reploff for masters, flags, and the live scalar
+ *               header plus populated entries of keys_result
+ *   queue:     next and prev
+ *   activate:  client argc/argv/argv_len, input bytes, cmd, slot, read_error,
+ *              current_pending_cmd, and reploff_next for masters
+ *
+ * argv and argv_len stay attached across recycle. cmd, slot, reploff, input_bytes,
+ * keys_result, and the links are overwritten before their next read, so release
+ * builds do not clear them. There is no contiguous fully-dead struct section to
+ * memset: every candidate span contains retained or lazy state. DEBUG_ASSERTIONS
+ * marks each lazy scalar at its writer and checks the marks at activation.
+ *
+ * The freelist is indexed by the client's pinned IO owner rather than stored in
+ * the client itself. Acquire and terminal free therefore touch one owner-local
+ * LIFO with no synchronization; its common hit is a single array pointer bump.
+ * This also follows a pending command when ownership moves through a worker fake
+ * or MULTI, where a literal per-client cache would not.
+ *
+ * NOTE this recycles the pcmd STRUCT and its argv ARRAY -- not the argv element
+ * objects, which is what the deleted operand pool got wrong. Bounded: CAP structs
+ * x ~160B + their argv arrays (<64 ptrs each) = <=80KB per IO owner. */
 #define PCMD_POOL_CAP 128
 #define PCMD_POOL_MAX_ARGV 64          /* don't hoard oversized argv arrays */
 static pendingCommand *pcmdPool[TOMO_IO_THREADS_MAX + 1][PCMD_POOL_CAP];
 static ioLocalPoolCount pcmdPoolN[TOMO_IO_THREADS_MAX + 1];
+
+/* Terminal recycle only. Partial/deferred cleanup must retain every field until
+ * the owning IO thread performs the terminal free. */
+static inline void resetPendingCommandForPool(pendingCommand *pcmd) {
+    debugServerAssert(pcmd->next == NULL && pcmd->prev == NULL);
+    debugServerAssert(pcmd->argv_len >= 0);
+    debugServerAssert((pcmd->argv == NULL) == (pcmd->argv_len == 0));
+    pcmd->argc = 0;
+    pcmd->argv_len_sum = 0;
+    pcmd->flags = 0;
+    pcmd->read_error = 0;
+    pcmd->argv_released_mask = 0;
+}
 
 static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
     char *newline = NULL;
@@ -4054,7 +4086,11 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
 
         clientTail(c)->qb_pos = (newline-clientTail(c)->querybuf)+2;
 
-        if (ll <= 0) return C_OK;
+        if (ll <= 0) {
+            pcmd->input_bytes = 0;
+            pendingCommandDebugMark(pcmd, PENDING_CMD_DEBUG_INPUT_INITIALIZED);
+            return C_OK;
+        }
 
         clientTail(c)->multibulklen = ll;
         clientTail(c)->bulklen = -1;
@@ -4099,7 +4135,8 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
          *
          * The 1st component is calculated within the below line.
          * */
-        pcmd->input_bytes += (multibulklen_slen + 3);
+        pcmd->input_bytes = (multibulklen_slen + 3);
+        pendingCommandDebugMark(pcmd, PENDING_CMD_DEBUG_INPUT_INITIALIZED);
     }
 
     serverAssertWithInfo(c,NULL,clientTail(c)->multibulklen > 0);
@@ -4514,18 +4551,40 @@ int processInputBuffer(client *c) {
                 serverPanic("Unknown request type");
             }
 
+            /* Parser errors bypass preprocessing. Materialize only the lazy
+             * fields that the error consumer will read. A multibulk parser
+             * that got past its first header already initialized input_bytes
+             * and may have accumulated a partial command, so preserve it. */
+            if (unlikely(pcmd->read_error)) {
+                if (clientTail(c)->reqtype == PROTO_REQ_INLINE ||
+                    clientTail(c)->multibulklen == 0)
+                {
+                    pcmd->input_bytes = 0;
+                    pendingCommandDebugMark(pcmd, PENDING_CMD_DEBUG_INPUT_INITIALIZED);
+                }
+                pcmd->cmd = NULL;
+                pcmd->slot = INVALID_CLUSTER_SLOT;
+                pendingCommandDebugMark(pcmd, PENDING_CMD_DEBUG_CMD_INITIALIZED |
+                                               PENDING_CMD_DEBUG_SLOT_INITIALIZED);
+                if (c->flags & CLIENT_MASTER) {
+                    pcmd->reploff = 0;
+                    pendingCommandDebugMark(pcmd, PENDING_CMD_DEBUG_REPLOFF_INITIALIZED);
+                }
+            }
+
             addPendingCommand(&c->pending_cmds, pcmd);
             if (unlikely(pcmd->read_error || (pcmd->flags & PENDING_CMD_FLAG_INCOMPLETE)))
                 break;
 
-            long long read_reploff = 0;
             if (unlikely(c->flags & CLIENT_MASTER)) {
                 clientCold *repl = clientReplicationData(c);
                 serverAssert(repl != NULL);
-                read_reploff = c->running_tid == IOTHREAD_MAIN_THREAD_ID ?
-                               repl->read_reploff : repl->io_read_reploff;
+                long long read_reploff = c->running_tid == IOTHREAD_MAIN_THREAD_ID ?
+                                         repl->read_reploff : repl->io_read_reploff;
+                pcmd->reploff = read_reploff - sdslen(clientTail(c)->querybuf) +
+                                clientTail(c)->qb_pos;
+                pendingCommandDebugMark(pcmd, PENDING_CMD_DEBUG_REPLOFF_INITIALIZED);
             }
-            pcmd->reploff = read_reploff - sdslen(clientTail(c)->querybuf) + clientTail(c)->qb_pos;
 
             preprocessCommand(c, pcmd);
             pcmd->flags |= PENDING_CMD_FLAG_PREPROCESSED;
@@ -4536,13 +4595,15 @@ int processInputBuffer(client *c) {
         if (!c->pending_cmds.ready_len)
             break;
         pendingCommand *curcmd = c->pending_cmds.head;
+        const int is_master = (c->flags & CLIENT_MASTER) != 0;
+        debugAssertPendingCommandMetadata(curcmd, is_master);
 
         /* We populate the old client fields so we don't have to modify all existing logic to work with pendingCommands */
         c->argc = curcmd->argc;
         c->argv = curcmd->argv;
         c->argv_len = curcmd->argv_len;
-        c->net_input_bytes_curr_cmd += curcmd->input_bytes;
-        clientTail(c)->reploff_next = curcmd->reploff;
+        c->net_input_bytes_curr_cmd = curcmd->input_bytes;
+        if (is_master) clientTail(c)->reploff_next = curcmd->reploff;
         c->slot = curcmd->slot;
         clientTail(c)->lookedcmd = curcmd->cmd;
         clientTail(c)->read_error = curcmd->read_error;
@@ -6536,27 +6597,28 @@ void processEventsWhileBlocked(void) {
  * Uses the shared pool when available (only when IO threads are inactive),
  * otherwise allocates a new pending command structure. */
 static pendingCommand *acquirePendingCommand(void) {
-    /* Ensure pool is empty when IO threads are active to avoid race conditions */
-    serverAssert(server.io_threads_active == 0 || server.cmd_pool.size == 0);
-
     pendingCommand *pcmd = NULL;
-    /* R1: per-io-thread freelist (see pcmdPool above). argv/argv_len survive recycling, so a hit
-     * skips both the struct alloc and the argv realloc. The memset mirrors initPendingCommand —
-     * every OTHER field must come back zero (argv_released_mask, keys_result, flags, links). */
+    /* Owner-local hit: the terminal recycler already restored the five live
+     * defaults, so acquisition itself is just the freelist pointer bump. */
     if (iotid <= TOMO_IO_THREADS_MAX && pcmdPoolN[iotid].n > 0) {
         pcmd = pcmdPool[iotid][--pcmdPoolN[iotid].n];
-        robj **argv = pcmd->argv;
-        int argv_len = pcmd->argv_len;
-        memset(pcmd, 0, sizeof(pendingCommand));
-        pcmd->argv = argv;
-        pcmd->argv_len = argv_len;
-        pcmd->slot = INVALID_CLUSTER_SLOT;
+        debugServerAssert(pcmd->argc == 0 && pcmd->argv_len_sum == 0);
+        debugServerAssert(pcmd->flags == 0 && pcmd->read_error == 0);
+        debugServerAssert(pcmd->argv_released_mask == 0);
+        debugServerAssert(pcmd->next == NULL && pcmd->prev == NULL);
         return pcmd;
     }
+
+    /* Keep the shared-pool race invariant off the common owner-local hit. */
+    serverAssert(server.io_threads_active == 0 || server.cmd_pool.size == 0);
     if (server.cmd_pool.size > 0) {
         /* Shared pool is available. */
         pcmd = server.cmd_pool.pool[--server.cmd_pool.size];
         server.cmd_pool.pool[server.cmd_pool.size] = NULL;
+        debugServerAssert(pcmd->argc == 0 && pcmd->argv_len_sum == 0);
+        debugServerAssert(pcmd->flags == 0 && pcmd->read_error == 0);
+        debugServerAssert(pcmd->argv_released_mask == 0);
+        debugServerAssert(pcmd->next == NULL && pcmd->prev == NULL);
 
         /* Track minimum pool size for utilization calculation */
         if (server.cmd_pool.size < server.cmd_pool.min_size)
@@ -6612,21 +6674,15 @@ static void reclaimPendingCommand(client *c, pendingCommand *pcmd) {
                 if (pcmd->argv[j]) decrRefCount(pcmd->argv[j]);
             }
 
-            getKeysFreeResult(&pcmd->keys_result);
+            if (pcmd->flags & PENDING_CMD_KEYS_RESULT_ALLOCATED)
+                getKeysFreeResult(&pcmd->keys_result);
 
             if (c) {
                 serverAssert(c->all_argv_len_sum >= pcmd->argv_len_sum); /* assert this doesn't try to go negative */
                 c->all_argv_len_sum -= pcmd->argv_len_sum;
-                pcmd->argv_len_sum = 0;
             }
 
-            /* Reset the pending command while preserving the argv array for shared pool reuse */
-            robj **argv = pcmd->argv;
-            int argv_len = pcmd->argv_len;
-            memset(pcmd, 0, sizeof(pendingCommand));
-            pcmd->argv = argv;
-            pcmd->argv_len = argv_len;
-            pcmd->slot = INVALID_CLUSTER_SLOT;
+            resetPendingCommandForPool(pcmd);
 
             server.cmd_pool.pool[server.cmd_pool.size++] = pcmd;
             return; /* Successfully added to shared pool for reuse */
@@ -6663,13 +6719,18 @@ free_command:
 void initPendingCommand(pendingCommand *pcmd) {
     memset(pcmd, 0, sizeof(pendingCommand));
     pcmd->slot = INVALID_CLUSTER_SLOT;
+    pendingCommandDebugMark(pcmd, PENDING_CMD_DEBUG_INPUT_INITIALIZED |
+                                   PENDING_CMD_DEBUG_CMD_INITIALIZED |
+                                   PENDING_CMD_DEBUG_REPLOFF_INITIALIZED |
+                                   PENDING_CMD_DEBUG_SLOT_INITIALIZED);
 }
 
 void freePendingCommand(client *c, pendingCommand *pcmd) {
     if (!pcmd)
         return;
 
-    getKeysFreeResult(&pcmd->keys_result);
+    if (pcmd->flags & PENDING_CMD_KEYS_RESULT_ALLOCATED)
+        getKeysFreeResult(&pcmd->keys_result);
 
     if (pcmd->argv) {
         /* ee451 (v14 deepint): skip slots the worker already released (argv_released_mask) — the worker
@@ -6688,12 +6749,14 @@ void freePendingCommand(client *c, pendingCommand *pcmd) {
         if (iotid <= TOMO_IO_THREADS_MAX && pcmdPoolN[iotid].n < PCMD_POOL_CAP &&
             pcmd->argv_len <= PCMD_POOL_MAX_ARGV)
         {
+            resetPendingCommandForPool(pcmd);
             pcmdPool[iotid][pcmdPoolN[iotid].n++] = pcmd;
             return;
         }
         zfree(pcmd->argv);
     } else if (iotid <= TOMO_IO_THREADS_MAX && pcmdPoolN[iotid].n < PCMD_POOL_CAP) {
         /* argv-less pcmd (parse aborted early): still worth recycling the struct. */
+        resetPendingCommandForPool(pcmd);
         pcmdPool[iotid][pcmdPoolN[iotid].n++] = pcmd;
         return;
     }
@@ -6769,8 +6832,10 @@ getKeysResult *getClientCachedKeyResult(client *c) {
         }
 
         /* Return cached result if available */
-        if (pcmd->flags & PENDING_CMD_KEYS_RESULT_VALID)
+        if (pcmd->flags & PENDING_CMD_KEYS_RESULT_VALID) {
+            debugAssertPendingCommandKeysResult(pcmd);
             return &c->current_pending_cmd->keys_result;
+        }
     }
     return NULL;
 }
@@ -6788,7 +6853,7 @@ void shrinkPendingCommandPool(void) {
             /* RAW free — the shrink's whole purpose is RELEASING memory; freePendingCommand would
              * re-pool the pcmd (with its argv) into pcmdPool[0] and retain it (review finding 15).
              * Shared-pool entries are already reset (argc==0, no live argv refs, keys_result
-             * cleared at reclaim), so the raw frees are sufficient. */
+             * ownership released at reclaim), so the raw frees are sufficient. */
             zfree(cmd->argv);
             zfree(cmd);
             server.cmd_pool.pool[server.cmd_pool.size] = NULL;

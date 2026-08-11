@@ -4218,6 +4218,13 @@ enum {
     PENDING_CMD_FLAG_INCOMPLETE = 1 << 0,     /* Command parsing is incomplete, still waiting for more data */
     PENDING_CMD_FLAG_PREPROCESSED = 1 << 1,   /* This command has passed pre-processing */
     PENDING_CMD_KEYS_RESULT_VALID = 1 << 2,   /* Command's keys_result is valid and cached */
+    PENDING_CMD_KEYS_RESULT_ALLOCATED = 1 << 3, /* keys_result owns a heap array that must be released */
+#ifdef DEBUG_ASSERTIONS
+    PENDING_CMD_DEBUG_INPUT_INITIALIZED = 1 << 27,
+    PENDING_CMD_DEBUG_CMD_INITIALIZED = 1 << 28,
+    PENDING_CMD_DEBUG_REPLOFF_INITIALIZED = 1 << 29,
+    PENDING_CMD_DEBUG_SLOT_INITIALIZED = 1 << 30,
+#endif
 };
 
 /* Parser state and parse result of a command from a client's input buffer. */
@@ -4241,6 +4248,32 @@ struct pendingCommand {
     struct pendingCommand *next;
     struct pendingCommand *prev;
 };
+
+#ifdef DEBUG_ASSERTIONS
+#define pendingCommandDebugMark(_pcmd, _bits) ((_pcmd)->flags |= (_bits))
+
+static inline void debugAssertPendingCommandMetadata(const pendingCommand *pcmd, int reploff_is_read) {
+    debugServerAssert(pcmd->flags & PENDING_CMD_DEBUG_INPUT_INITIALIZED);
+    debugServerAssert(pcmd->flags & PENDING_CMD_DEBUG_CMD_INITIALIZED);
+    debugServerAssert(pcmd->flags & PENDING_CMD_DEBUG_SLOT_INITIALIZED);
+    if (reploff_is_read)
+        debugServerAssert(pcmd->flags & PENDING_CMD_DEBUG_REPLOFF_INITIALIZED);
+}
+
+static inline void debugAssertPendingCommandKeysResult(const pendingCommand *pcmd) {
+    debugServerAssert(pcmd->flags & PENDING_CMD_KEYS_RESULT_VALID);
+    debugServerAssert(pcmd->keys_result.numkeys >= 0);
+    debugServerAssert(pcmd->keys_result.numkeys <= pcmd->keys_result.size);
+    debugServerAssert(pcmd->keys_result.numkeys == 0 || pcmd->keys_result.keys != NULL);
+    for (int i = 0; i < pcmd->keys_result.numkeys; i++)
+        debugServerAssert(pcmd->keys_result.keys[i].pos >= 0 &&
+                          pcmd->keys_result.keys[i].pos < pcmd->argc);
+}
+#else
+#define pendingCommandDebugMark(_pcmd, _bits) ((void)0)
+#define debugAssertPendingCommandMetadata(_pcmd, _reploff_is_read) ((void)0)
+#define debugAssertPendingCommandKeysResult(_pcmd) ((void)0)
+#endif
 
 /* Key specs definitions.
  *
