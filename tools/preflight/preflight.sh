@@ -13,6 +13,8 @@
 #   1. knob_matrix.sh          every knob x {-1,0,N}: boots, echoes, serves
 #   2. reclaim_correctness.sh  FLATSTORE/QSBR data correctness
 #   3. numa2_validate.sh       2-simnode correctness
+#   3b. simnode2_features.sh   2-simnode ENGAGEMENT gate for the 2026-08 features (prefetch
+#                              mode-2 arms fire, atomics correct, everything-on soak)
 #   4. fence_suite.sh          script fence: crash repro, -BUSY, KILL, no leak
 #   5. correctness_suite.sh   ordering/boundary invariants (each check exists
 #                              because a real bug got past a weaker one)
@@ -162,6 +164,7 @@ run_suite(){ # $1 script  $2 result-file  $3 fail-regex  $4 suspect-regex
 run_suite $SD/knob_matrix.sh         $PF/knob_matrix.out          '  FAIL'
 run_suite $SD/reclaim_correctness.sh $PF/reclaim_correctness.out  'FAIL:'
 run_suite $SD/numa2_validate.sh      $PF/numa2_validate.out       'FAIL'
+run_suite $SD/simnode2_features.sh   $PF/simnode2_features.out    'FAIL'
 run_suite $SD/fence_suite.sh         $PF/fence_suite.out          'FAIL'
 # correctness output is per invocation. Passing the exact unique path through TOMO_RESULT_FILE
 # lets run_suite grade the file produced by this run without a shared correctness_suite.out that a
