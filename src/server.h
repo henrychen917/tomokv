@@ -1623,28 +1623,43 @@ static const uint32_t TOMO_CLS_SLO[TOMO_SVC_CLASSES] = { 1, 1, 4, 64, 1024, 1638
 
 #define PIPELINE_DEPTH 16 /* default; runtime value lives in server.pipeline_ring_depth */
 #define PIPELINE_QUEUE_MASK (PIPELINE_DEPTH - 1) /* kept for back-compat; prefer c->ring_mask */
-/* ee451 (S5/atomics): multi-CDB reply signaling. Each CDB owns one independent
- * atomic byte per fake-ring slot and occupies exactly one cache line. A worker
- * release-stores 1 to the captured (cdb,slot); the owning IO thread acquire-loads
- * that exact byte and relaxed-stores 0 after consuming it.
+/* ee451 (S5/CDB batching): one cache-line reply bus per worker, plus one
+ * reserved direct bus for inline and cross-shard completions. Ordinary worker
+ * buses have exactly one publisher and one drainer. The worker relaxed-stores all
+ * ready bytes for one (real,batch), then release-stores one slot-parity summary to
+ * published; the IO owner acquire-loads published and relaxed-loads a ring-head
+ * byte only when that exact slot differs from its consumed parity. Direct
+ * completions retain the original per-slot release/acquire protocol because their
+ * final publisher is not tied to one worker.
  *
- * The old representation packed all slots into one uint32_t. Setting or clearing
- * one logical bit then required a locked fetch_or/fetch_and because other workers
- * could concurrently change other bits in the word. Separate atomic objects make
- * the real ownership visible: for one slot there is one completer and one drainer,
- * and slot reuse cannot begin until that drainer has cleared it. CDB cache-line
- * partitioning remains, so workers mapped to different CDBs still avoid sharing a
- * completion line. */
+ * published and consumed deliberately occupy the old padding in the SAME line as
+ * ready[]. A changed summary already transfers this line to the drainer, so an
+ * adjacent summary line would require a second cross-core transfer per batch.
+ * Each CDB remains a separately aligned line, and the reserved direct CDB keeps
+ * arbitrary cross-shard publishers off every single-writer worker line. The byte
+ * atomics remain lock-free: batched accesses are relaxed (ordinary load/store
+ * instructions, never RMWs), while the direct bus still uses byte release/acquire.
+ * Slot clear remains a relaxed byte store, and reuse cannot begin until the sole
+ * IO drainer has performed it. */
 #define NUM_CDB_MAX 256
 typedef struct cdbSlots {
     redisAtomic uint8_t ready[TOMO_PIPELINE_DEPTH_MAX];
+    redisAtomic uint32_t published; /* worker-only release publisher; one toggle per completed slot */
+    uint32_t consumed;              /* IO-owner-only parity; toggled only at final ring retirement */
     char _pad[CACHE_LINE_SIZE -
-              sizeof(redisAtomic uint8_t) * TOMO_PIPELINE_DEPTH_MAX];
+              sizeof(redisAtomic uint8_t) * TOMO_PIPELINE_DEPTH_MAX -
+              sizeof(redisAtomic uint32_t) - sizeof(uint32_t)];
 } __attribute__((aligned(CACHE_LINE_SIZE))) cdbSlots;
 _Static_assert(sizeof(redisAtomic uint8_t) == 1,
                "reply-ready atomics must occupy one byte");
 _Static_assert(ATOMIC_CHAR_LOCK_FREE == 2,
                "reply-ready byte atomics must always be lock-free");
+_Static_assert(sizeof(redisAtomic uint32_t) == sizeof(uint32_t),
+               "CDB summary atomic must retain its packed width");
+_Static_assert(ATOMIC_INT_LOCK_FREE == 2,
+               "CDB summary stores must always be lock-free");
+_Static_assert(TOMO_EX_THREADS_MAX + 1 <= NUM_CDB_MAX,
+               "worker CDBs plus the reserved direct CDB must fit");
 _Static_assert(sizeof(cdbSlots) == CACHE_LINE_SIZE,
                "each reply CDB must occupy exactly one cache line");
 
@@ -3556,7 +3571,12 @@ struct redisServer {
         _Atomic unsigned long long atomic_read_fast;
         _Atomic unsigned long long atomic_read_slow;
         _Atomic long long flat_hash_reuses; /* guarded tomo_key_h consumed by a FLAT lookup */
-        char _pad[CACHE_LINE_SIZE - 5 * sizeof(long long)];
+        /* CDB batch witness. The worker's fixed stat slot is its sole writer even
+         * while that worker is temporarily serving an IO role. `items/events` is
+         * the weighted average number of ready bytes behind one summary store. */
+        _Atomic unsigned long long cdb_batched_publish_events;
+        _Atomic unsigned long long cdb_batched_publish_items;
+        char _pad[CACHE_LINE_SIZE - 7 * sizeof(long long)];
     } kstat[TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
     /* ee451 (#B1): per-thread executed-command counters. stat_numcommands lived only in call(),
      * which worker threads never enter (they run cmd->proc directly from exExecFake, and the
@@ -4089,7 +4109,7 @@ struct redisServer {
     int zerocopy_min_value;    /* v8: zero-copy reply forwarding gated by value size. 0 = OFF;
                                 * N = use copy-avoidance only for values >= N bytes (it pays on
                                 * large values, +20-24% at 16-64KB; neutral below ~1KB). */
-    int num_cdb;               /* S5: resolved at init = one bus per worker when the box has >1 L3 domain, else 1 */
+    int num_cdb;               /* one single-writer bus per worker plus one direct-completion bus */
     /* Per-STAGE prefetch width fields DELETED 2026-07-28 with the eight tomokv-pf-w-* knobs
      * (struct/argv/keyobj/keybytes/hash/entry/value/nextop). THE STAGES THEMSELVES ARE UNTOUCHED
      * — see exPrefetchBatch in server.c and the constants next to WORKER_POP_BATCH above. The

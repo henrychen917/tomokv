@@ -3156,9 +3156,9 @@ standardConfig static_configs[] = {
     createBoolConfig("always-show-logo", NULL, IMMUTABLE_CONFIG, server.always_show_logo, 0, NULL, NULL),
     createBoolConfig("protected-mode", NULL, MODIFIABLE_CONFIG, server.protected_mode, 1, NULL, NULL),
     /* ee451 (v4): per-optimization runtime toggles for the ablation sweep. */
-    /* ee451 (S5): multi-CDB is IMMUTABLE (startup-only). A live flip would desync the
-     * worker's captured CDB index from the drain's combined-read bound — see the
-     * design review. num_cdb is resolved once at init from this. Default OFF. */
+    /* ee451 (CDB batching): num_cdb is immutable and structural (one bus per
+     * provisioned worker plus the direct-completion bus). A live resize would
+     * invalidate every captured fake->cdb and the per-client heap allocation. */
     /* ee451 (gem5): per-stage prefetch window widths. Default 64 = full (no cap).
      * Runtime-safe (prefetch hints only), so MODIFIABLE for live coordinate-descent sweeps. */
     /* ee451: independent batch + value-forward trigger knobs (runtime-safe). */

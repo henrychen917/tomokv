@@ -626,21 +626,27 @@ client *createClient(connection *conn) {
     clientTail(c)->node_id = NULL;
     atomicSet(clientTail(c)->pending_read, 0);
 
-    /* ee451 (#75/atomics): allocate exactly num_cdb cache-line-isolated reply buses for this real client.
+    /* ee451 (#75/CDB batching): allocate exactly num_cdb cache-line-isolated reply buses for this real client.
      * zmalloc gives no alignment guarantee, so over-allocate and align the base up to CACHE_LINE_SIZE,
      * stashing the raw zmalloc pointer just below the aligned base so zfree can recover it
      * (accounting-correct; no poisoned libc free/aligned_alloc). num_cdb is fixed at init so the size
-     * never changes (freed in freeClient). Fakes leave reply_cdb NULL and signal clientTail(parent)->reply_cdb. */
+     * never changes (freed in freeClient). The last line is the reserved direct-completion bus; all
+     * preceding lines are single-writer worker buses. Fakes leave reply_cdb NULL and signal
+     * clientTail(parent)->reply_cdb. */
     {
         int ncdb = server.num_cdb > 0 ? server.num_cdb : 1;
         void *raw = zmalloc(sizeof(cdbSlots) * (size_t)ncdb + CACHE_LINE_SIZE + sizeof(void *));
         uintptr_t aligned = ((uintptr_t)raw + sizeof(void *) + (CACHE_LINE_SIZE - 1)) & ~(uintptr_t)(CACHE_LINE_SIZE - 1);
         ((void **)aligned)[-1] = raw;
         clientTail(c)->reply_cdb = (cdbSlots *)aligned;
-        for (int cc = 0; cc < ncdb; cc++)
+        for (int cc = 0; cc < ncdb; cc++) {
+            atomic_store_explicit(&clientTail(c)->reply_cdb[cc].published, 0,
+                                  memory_order_relaxed);
+            clientTail(c)->reply_cdb[cc].consumed = 0;
             for (int slot = 0; slot < TOMO_PIPELINE_DEPTH_MAX; slot++)
                 atomic_store_explicit(&clientTail(c)->reply_cdb[cc].ready[slot], 0,
                                       memory_order_relaxed);
+        }
     }
     c->cdb = 0;
 
