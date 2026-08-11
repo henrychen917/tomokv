@@ -1496,9 +1496,9 @@ mstime_t mstime(void) {
  * have been a no-op that looked like a fix.
  *
  * THE FIX. Latch a thread-local at worker command entry from a clock that is actually current.
- * Ordinary commands chain the preceding command's raw exit into the next entry, so an all-ordinary
- * pop batch costs one initial counter read plus one exit read per command. Scatter subs take their
- * own raw entry and exit. A real gettimeofday is needed only when the raw clock says the latch
+ * Ordinary and FAST commands chain the preceding command's raw exit into the next entry, so a
+ * direct-command pop batch costs one initial counter read plus one exit read per command. Scatter
+ * subs take their own raw entry and exit. A real gettimeofday is needed only when the raw clock says the latch
  * could be as much as half a millisecond old. The latch remains sub-millisecond apart from the
  * accepted inter-command bookkeeping skew, at a few thousand wall-clock reads per second per
  * worker rather than one per command. The depth counter is what tells commandTimeSnapshot() that
@@ -21673,8 +21673,8 @@ static inline int exPrefetchBatch(client **batch, int n,
 
     /* FAST descriptors already carry the routed xxh64, so their storage-only
      * scoreboard starts at the flat home slot without touching the fake or key
-     * bytes. GET advances one rotation to the same tag-gated KVOBJ hint used
-     * above; SET retires after its write-slot hint. */
+     * bytes. Every operation advances one rotation to the same tag-gated KVOBJ
+     * hint used above; writes also dereference a matching candidate to compare its key. */
     enum { PFF_SLOT = 0, PFF_KVOBJ, PFF_DONE };
     remaining = 0;
     for (int j = 0; j < job_n; j++) {
@@ -21699,10 +21699,7 @@ static inline int exPrefetchBatch(client **batch, int n,
                 if (!slot) { st[j] = PFF_DONE; break; }
                 storage[j].slot = slot;
                 idxs[j] = (unsigned long)flat_tag_of(entry->key_hash);
-                exQueueEntryKind kind = exEntryKind(entry);
-                st[j] = (kind == TOMO_EX_ENTRY_FAST_GET_INLINE ||
-                         kind == TOMO_EX_ENTRY_FAST_GET_PTR) ?
-                        PFF_KVOBJ : PFF_DONE;
+                st[j] = PFF_KVOBJ;
                 issued_slot++;
                 issued = 1;
                 break;
@@ -22059,7 +22056,10 @@ static client *exFastAttachReply(const exQueueEntry *entry, redisDb *db) {
     return fake;
 }
 
-static inline client *exExecFast(const exQueueEntry *entry, exThread *worker) {
+static inline client *exExecFast(const exQueueEntry *entry, exThread *worker,
+                                 monotonic_raw entry_raw,
+                                 tomoCmdClockStamp *exit_clock) {
+    *exit_clock = (tomoCmdClockStamp){0, 0};
     serverAssert(exEntryIsFast(entry));
     unsigned int dbid = exEntryDbid(entry);
     unsigned int bucket = exEntryBucket(entry);
@@ -22088,10 +22088,8 @@ static inline client *exExecFast(const exQueueEntry *entry, exThread *worker) {
 
     server.current_client[iotid].p = exec;
     server.executing_client[iotid].p = exec;
-    /* Raw-stamp clock idiom (clock diet): FAST entries currently pay their own enter/exit raw
-     * reads; threading the pop loop's batch-boundary raw through here (as exExecFake does via
-     * tomoCmdClockEnterAt) is a recorded follow-up, not done in this fix-forward. */
-    tomoCmdClockStamp cs_clock = tomoCmdClockEnter();
+    /* Reuse the pop loop's chained boundary, exactly as exExecFake does. */
+    tomoCmdClockStamp cs_clock = tomoCmdClockEnterAt(entry_raw);
     numCommandsBump();
     long long cs_e0 = tomoErrRepliesLocal();
 
@@ -22131,7 +22129,9 @@ static inline client *exExecFast(const exQueueEntry *entry, exThread *worker) {
     pendingCommand *pcmd = fake->current_pending_cmd;
     struct redisCommand *cmd = fake->cmd;
     if (__builtin_expect(cs_clock.timed, 1)) {
-        long long cs_usec = (long long)monotonicRawToUs(getMonotonicRaw() - cs_clock.raw);
+        exit_clock->raw = getMonotonicRaw();
+        exit_clock->timed = 1;
+        long long cs_usec = (long long)monotonicRawToUs(exit_clock->raw - cs_clock.raw);
         if (tm_cur_ex) {
             unsigned cls = cmd->tomo_cls & TOMO_CLS_MASK;
             tm_cur_ex->svc_us[cls] +=
@@ -22588,9 +22588,9 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
         uint8_t sig_cdbs[WORKER_POP_BATCH];
         int sig_n = 0;
 
-        /* One independent raw boundary per contiguous run of ordinary commands. Each proc's exit
-         * becomes its successor's entry, reducing an all-ordinary N-command batch from 2N clock
-         * reads to N+1. Never borrow ctx->tm_mark: it feeds frozen flip-controller accounting. */
+        /* One independent raw boundary per contiguous run of direct commands. Each command's exit
+         * becomes its successor's entry, reducing an N-command batch from 2N clock reads to N+1.
+         * Never borrow ctx->tm_mark: it feeds frozen flip-controller accounting. */
         tomoCmdClockStamp cmd_boundary = {0, 0};
 
         /* Execute the batch in issue (queue) order — plain, one op at a time.
@@ -22626,7 +22626,12 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
             }
 
             if (exEntryIsFast(job)) {
-                client *fake = exExecFast(job, worker);
+                if (!cmd_boundary.timed) {
+                    cmd_boundary.raw = getMonotonicRaw();
+                    cmd_boundary.timed = 1;
+                }
+                client *fake = exExecFast(job, worker, cmd_boundary.raw,
+                                          &cmd_boundary);
                 unsigned bkt = exEntryBucket(job);
                 worker->lb_grp_ops[TOMO_LB_GROUP(bkt)]++;
                 uint64_t win = atomic_load_explicit(&worker->lb_fine_win,
