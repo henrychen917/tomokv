@@ -20,8 +20,7 @@ static dict **tomo_watched_by_worker[TOMO_EX_THREADS_MAX];
 static redisAtomic unsigned long tomo_watched_key_count;
 
 static inline int tomoCurrentWorker(void) {
-    int w = iotid - (TOMO_IO_THREADS_MAX + 1);
-    return (w >= 0 && w < server.num_workers) ? w : -1;
+    return tomoWkrCurrentWorker();
 }
 
 static inline client *tomoWatchOwner(client *c) {
@@ -481,12 +480,13 @@ void unwatchAllKeys(client *c) {
     watchedKey *first = listNodeValue(listFirst(&ms->watched_keys));
     int worker = first->worker;
     int locked = 0;
-    if (server.num_workers > 0 && tomoCurrentWorker() != worker) {
-        tomoWkrLockPub(worker);
+    int current_worker = tomoCurrentWorker();
+    if (server.num_workers > 0 && current_worker != worker) {
+        tomoWkrForeignLockRangePub(worker, worker + 1);
         locked = 1;
     }
     unwatchAllKeysLocked(owner, worker);
-    if (locked) tomoWkrUnlockPub(worker);
+    if (locked) tomoWkrForeignUnlockRangePub(worker, worker + 1);
 }
 
 /* Iterates over the watched_keys list and looks for an expired key. Keys which

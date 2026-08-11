@@ -158,8 +158,12 @@ def partA():
     hm_want=[hm_values.get(name) for name in hm_req]
     eq(lst(c(s,f,'HMGET','hmget-lp',*hm_req)),hm_want,'HMGET-listpack-one-pass/order/missing/duplicate')
     # hash field expiry (THredis HFE)
+    owner_foreign0=info_int(s,f,'tomokv_owner_lock_foreign_engagements')
     c(s,f,'HSET','he','x','1'); r=c(s,f,'HEXPIRE','he','100','FIELDS','1','x'); ck(isinstance(r,list) and r[0]==1,'HEXPIRE %r'%r)
     r=c(s,f,'HTTL','he','FIELDS','1','x'); ck(isinstance(r,list) and 0<int(r[0])<=100,'HTTL %r'%r)
+    owner_foreign1=info_int(s,f,'tomokv_owner_lock_foreign_engagements')
+    ck(owner_foreign1>owner_foreign0,
+       'HFE did not engage owner-lock foreign intent (%d -> %d)'%(owner_foreign0,owner_foreign1))
     # ---- lists ----
     c(s,f,'DEL','l'); eq(c(s,f,'RPUSH','l','a','b','c'),3,'RPUSH'); eq(c(s,f,'LPUSH','l','z'),4,'LPUSH')
     eq(lst(c(s,f,'LRANGE','l','0','-1')),['z','a','b','c'],'LRANGE'); eq(c(s,f,'LLEN','l'),4,'LLEN')

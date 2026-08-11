@@ -3556,7 +3556,13 @@ struct redisServer {
         _Atomic unsigned long long atomic_read_fast;
         _Atomic unsigned long long atomic_read_slow;
         _Atomic long long flat_hash_reuses; /* guarded tomo_key_h consumed by a FLAT lookup */
-        char _pad[CACHE_LINE_SIZE - 5 * sizeof(long long)];
+        /* Owner-lock witnesses share the executing identity's already-private
+         * kstat line. A foreign caller must never bump the target's slot: more
+         * than one caller can target it, which would destroy the single-writer
+         * property that makes tomoRelaxedBump a plain load/store pair. */
+        _Atomic unsigned long long owner_lock_foreign_engagements;
+        _Atomic unsigned long long owner_lock_slow_takes;
+        char _pad[CACHE_LINE_SIZE - 7 * sizeof(long long)];
     } kstat[TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
     /* ee451 (#B1): per-thread executed-command counters. stat_numcommands lived only in call(),
      * which worker threads never enter (they run cmd->proc directly from exExecFake, and the
@@ -6472,8 +6478,12 @@ int tomoGrowBack(const char **err);
 void tmFlipTick(void);
 int tomoMigrateTest(int val, const char **err);       /* control plane: DEBUG TOMO-MODESHIFT 5 (io-exit) / 6 (rebalance) */
 int tomoNodeFlipTest(int val, const char **err);      /* per-node flip: DEBUG TOMO-MODESHIFT 70+n / 80+n */
-void tomoWkrLockPub(int w);                            /* per-worker mcmd lock (db.c RANDOMKEY expire) */
-void tomoWkrUnlockPub(int w);
+int tomoWkrCurrentWorker(void);
+void tomoWkrOwnerLockPub(int w);                       /* owner-biased per-worker db lock */
+void tomoWkrOwnerRecheckPub(int w);                    /* insert-full republish handshake */
+void tomoWkrOwnerUnlockPub(int w);
+void tomoWkrForeignLockRangePub(int first, int last);
+void tomoWkrForeignUnlockRangePub(int first, int last);
 /* tomokv-pin-io / tomokv-pin-ex spec parser. Grammar (whitespace-separated tokens):
  *     node<N>=<cpu>[,<cpu>|<lo>-<hi>]...        e.g. "node0=0-3 node1=8,9,10,11"
  * Returns 1 on success. On failure returns 0 and points *err at a static buffer naming the

@@ -289,17 +289,16 @@ void exActiveExpireCycle(exThread *worker) {
         atomic_load_explicit(&server.migration_active, memory_order_relaxed))
         goto update_stats;
 
-    /* The delete mutates this node's shared kvstore, so it must exclude the paths that reach this
-     * node db from OFF this worker: an HFE command on a sibling worker (which holds ALL the node's
-     * worker locks across its estore walk) and the reshard apply/scan. Held across the whole pass
-     * rather than per key — the pass is time-bounded, and this is the same shape migServiceScanA
-     * uses for its bounded scan. We take only our OWN lock, so no lock cycle is possible.
+    /* The delete mutates this node's shared kvstore, so it must exclude paths that reach this node
+     * db from OFF this worker: all-node HFE scopes and off-owner UNWATCH cleanup. Held across the
+     * whole pass rather than per key; the pass is time-bounded. We take only our OWN lock, so no
+     * lock cycle is possible.
      * DO NOT move the exActiveSubexpiresCycle() call above inside this lock. tomo_wkr_lock is a
-     * NON-RECURSIVE CAS spinlock and that pass takes the whole node's lock set (which includes
-     * OUR lock) — nesting it here is an instant self-deadlock, not a contention problem. It runs
+     * NON-RECURSIVE owner lock and that pass takes the whole node's lock set (which includes OUR
+     * lock) — nesting it here is an instant self-deadlock, not a contention problem. It runs
      * before this acquire and fully releases before returning, which is what keeps the two
      * halves' lock disciplines independent. */
-    tomoWkrLockPub(wid);
+    tomoWkrOwnerLockPub(wid);
 
     for (;;) {
         /* A migration that arms mid-pass invalidates the range we are sweeping — stop immediately.
@@ -362,7 +361,7 @@ void exActiveExpireCycle(exThread *worker) {
         if ((++iteration & 0xf) == 0 && ustime() - start > timelimit) break;
     }
 
-    tomoWkrUnlockPub(wid);
+    tomoWkrOwnerUnlockPub(wid);
 
 update_stats:
     worker->aexp_dbid = dbid;
@@ -504,7 +503,11 @@ static uint64_t exActiveSubexpiresCycle(exThread *worker, int blo, int bhi,
     int whi = wlo + wpn;
     if (whi > server.num_workers) whi = server.num_workers;
 
-    for (int w = wlo; w < whi; w++) tomoWkrLockPub(w);
+    int foreign = whi - wlo > 1;
+    if (foreign)
+        tomoWkrForeignLockRangePub(wlo, whi);
+    else
+        tomoWkrOwnerLockPub(wid);
 
     uint64_t totalExpired = 0;
 
@@ -609,7 +612,10 @@ static uint64_t exActiveSubexpiresCycle(exThread *worker, int blo, int bhi,
     worker->asubexp_bucket = b;
 
 done:
-    for (int w = whi - 1; w >= wlo; w--) tomoWkrUnlockPub(w);
+    if (foreign)
+        tomoWkrForeignUnlockRangePub(wlo, whi);
+    else
+        tomoWkrOwnerUnlockPub(wid);
     return totalExpired;
 }
 

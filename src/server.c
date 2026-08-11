@@ -151,6 +151,14 @@ static inline void tmFlipRelease(void) {
 }
 /* thread vars */
 __thread int iotid = 0;
+/* The active EX binding cannot be recovered from iotid during a dormant slice:
+ * a grown-front thread keeps its IO identity while draining that binding. */
+static __thread exThread *tm_cur_ex;
+#ifdef DEBUG_ASSERTIONS
+static __thread int tomo_wkr_owner_held = -1;
+#endif
+static __thread int tomo_wkr_foreign_depth;
+static __thread int tomo_wkr_foreign_caller = -1;
 typedef struct tomoPrefetchCounter {
     _Atomic unsigned long long value;
     char _pad[CACHE_LINE_SIZE - sizeof(_Atomic unsigned long long)];
@@ -5401,6 +5409,8 @@ void resetServerStats(void) {
         tomoRelaxedSet(server.kstat[i].atomic_read_fast, 0);
         tomoRelaxedSet(server.kstat[i].atomic_read_slow, 0);
         tomoRelaxedSet(server.kstat[i].flat_hash_reuses, 0);
+        tomoRelaxedSet(server.kstat[i].owner_lock_foreign_engagements, 0);
+        tomoRelaxedSet(server.kstat[i].owner_lock_slow_takes, 0);
     }
     server.stat_active_defrag_hits = 0;
     server.stat_active_defrag_misses = 0;
@@ -9618,37 +9628,210 @@ static int tmWorkerLive(int w) {
  * coarse (all of a worker's keys share one lock); finer granularity would need per-range locks
  * inside the flat table. ALWAYS ON — tomokv-mcmd-lock was deleted 2026-07-27; there is no
  * lock-free configuration.
- * WHO TAKES IT off-worker, now that the node-local read BORROW is deleted (2026-07-27):
- *   - HFE commands (HEXPIRE/HGETEX/HTTL/...) — one worker, ALL of its node's locks, because they
- *     mutate the db-level estore shared by the whole node. This is the load-bearing case.
- *   - RANDOMKEY's expireIfNeeded delete (db.c), which is not covered by the S2 single-key path.
+ * WHO TAKES IT off-owner, now that the node-local read BORROW is deleted (2026-07-27):
+ *   - HFE commands (HEXPIRE/HGETEX/HTTL/...) and active HFE expiry — one worker takes ALL of its
+ *     node's locks because they access the db-level estore shared by the whole node.
+ *   - UNWATCH cleanup when it runs outside the worker that owns the watched key.
  * The deleted borrow was one client of this lock, never its only reason. */
-/* One PADDED cacheline per worker: the lock bytes were 65 contiguous bytes on ONE 64B line, so with
- * mcmd-lock on, every worker's per-op CAS+store ping-ponged that line across all EX cores (~2 remote
- * RFOs per op at ZERO logical contention — single-key ops lock their OWN byte). Padding makes the
- * steady-state cost a local uncontended CAS (~20cy); cross-worker traffic only on real contention. */
-static struct { _Atomic uint8_t v; uint8_t pad[63]; }
-    __attribute__((aligned(64))) tomo_wkr_lock[TOMO_EX_THREADS_MAX + 1];
+/* The owner side is biased: the common path publishes owner_active with a plain store, probes one
+ * read-mostly per-node intent word, and release-clears owner_active. The real CAS byte is separate;
+ * a plain owner store must never be able to overwrite a foreign holder's CAS state. */
+typedef struct tomoWkrLockState {
+    _Atomic uint8_t real;
+    _Atomic uint8_t owner_active;
+    _Atomic uint8_t quiescent_participant;
+    _Atomic uint8_t wait_quiescent;
+    uint8_t node;                       /* immutable after initExThreads */
+    uint8_t _align_ack[3];
+    _Atomic uint64_t owner_ack_gen;
+    uint8_t _pad[CACHE_LINE_SIZE - 16];
+} __attribute__((aligned(CACHE_LINE_SIZE))) tomoWkrLockState;
+
+typedef struct tomoWkrNodeIntent {
+    _Atomic uint32_t count;
+    uint32_t _align_gen;
+    _Atomic uint64_t request_gen;
+    uint8_t _pad[CACHE_LINE_SIZE - 16];
+} __attribute__((aligned(CACHE_LINE_SIZE))) tomoWkrNodeIntent;
+
+_Static_assert(sizeof(tomoWkrLockState) == CACHE_LINE_SIZE,
+               "owner lock state must occupy one cache line");
+_Static_assert(sizeof(tomoWkrNodeIntent) == CACHE_LINE_SIZE,
+               "owner lock intent must occupy one cache line");
+
+static tomoWkrLockState tomo_wkr_lock[TOMO_EX_THREADS_MAX + 1];
+static tomoWkrNodeIntent tomo_wkr_intent[TOMO_NODES_MAX];
+
 static inline int tomoBktBucket(const void *keyptr, size_t len) {
     return (int)(xxh64(keyptr, len) & TOMO_BUCKET_MASK);
 }
-static inline int tomoWkrTrylock(int w) {
+
+static inline int tomoWkrNodeFor(int w) {
+    return tomo_wkr_lock[w].node;
+}
+
+int tomoWkrCurrentWorker(void) {
+    if (tm_cur_ex) return tm_cur_ex->id;
+    int w = iotid - (TOMO_IO_THREADS_MAX + 1);
+    return (w >= 0 && w < server.num_workers) ? w : -1;
+}
+
+/* A worker may publish this only while it holds no owner lock and will not touch the protected db
+ * before clearing it. SC publication makes it a safe substitute for a whole-slice quiescent point
+ * at the few waits whose dependency graph can include another worker. */
+static inline void tomoWkrWaitQuiescentSet(int w, int value) {
+    debugServerAssert(w >= 0 && w < server.num_workers);
+    debugServerAssert(tomo_wkr_owner_held == -1);
+    atomic_store_explicit(&tomo_wkr_lock[w].wait_quiescent, value,
+                          memory_order_seq_cst);
+}
+
+static inline int tomoWkrRealTrylock(int w) {
     uint8_t expected = 0;
-    return atomic_compare_exchange_strong_explicit(&tomo_wkr_lock[w].v, &expected, 1,
+    return atomic_compare_exchange_strong_explicit(&tomo_wkr_lock[w].real, &expected, 1,
                                                    memory_order_acquire, memory_order_relaxed);
 }
-static inline void tomoWkrLock(int w) {
-    if (tomoWkrTrylock(w)) return;
+static inline void tomoWkrRealLock(int w) {
+    if (tomoWkrRealTrylock(w)) return;
     tmIoWaitBegin();
-    do { exPauseCpu(); } while (!tomoWkrTrylock(w));
+    do { exPauseCpu(); } while (!tomoWkrRealTrylock(w));
     tmIoWaitEnd();
 }
-static inline void tomoWkrUnlock(int w) {
-    atomic_store_explicit(&tomo_wkr_lock[w].v, 0, memory_order_release);
+static inline void tomoWkrRealUnlock(int w) {
+    atomic_store_explicit(&tomo_wkr_lock[w].real, 0, memory_order_release);
 }
-/* public wrappers (db.c RANDOMKEY expire-delete, review [5]) */
-void tomoWkrLockPub(int w) { tomoWkrLock(w); }
-void tomoWkrUnlockPub(int w) { tomoWkrUnlock(w); }
+
+static inline void tomoWkrOwnerTakeReal(int w, int node) {
+    tomoWkrLockState *ls = &tomo_wkr_lock[w];
+    atomic_store_explicit(&ls->owner_active, 0, memory_order_release);
+    /* count is already non-zero. Acknowledging the newest request before the CAS is safe: the
+     * foreign side proceeds only to this same real lock, so exactly one of us can enter. */
+    uint64_t gen = atomic_load_explicit(&tomo_wkr_intent[node].request_gen,
+                                        memory_order_seq_cst);
+    atomic_store_explicit(&ls->owner_ack_gen, gen, memory_order_release);
+    tomoWkrRealLock(w);
+    int slot = TOMO_IO_THREADS_MAX + 1 + w;
+    tomoRelaxedBump(server.kstat[slot].owner_lock_slow_takes, 1);
+}
+
+static inline void tomoWkrOwnerLock(int w) {
+    debugServerAssert(tomo_wkr_owner_held == -1 && tomo_wkr_foreign_depth == 0);
+    debugServerAssert(tomoWkrCurrentWorker() == w);
+    int node = tomoWkrNodeFor(w);
+    tomoWkrLockState *ls = &tomo_wkr_lock[w];
+    atomic_store_explicit(&ls->owner_active, 1, memory_order_relaxed);
+
+    /* One acquire-capable load of the read-mostly node intent is the entire common-path gate. SC
+     * keeps the store/check handshake with in_flat_section in one total order, while remaining a
+     * plain load (MOV on x86, LDAR on AArch64), never an RMW. */
+    if (__builtin_expect(atomic_load_explicit(&tomo_wkr_intent[node].count,
+                                               memory_order_seq_cst) != 0, 0))
+        tomoWkrOwnerTakeReal(w, node);
+#ifdef DEBUG_ASSERTIONS
+    tomo_wkr_owner_held = w;
+#endif
+}
+
+/* dbFlatInsertWait reacquires while its flat-section marker is down, then republishes the marker.
+ * Recheck after that publication so an intent which landed in between either upgrades this owner
+ * to the real lock or observes the republished section and waits. Cold insert-full path only. */
+static inline void tomoWkrOwnerRecheck(int w) {
+    debugServerAssert(tomo_wkr_owner_held == w);
+    tomoWkrLockState *ls = &tomo_wkr_lock[w];
+    if (!atomic_load_explicit(&ls->owner_active, memory_order_relaxed)) return;
+    int node = tomoWkrNodeFor(w);
+    if (atomic_load_explicit(&tomo_wkr_intent[node].count, memory_order_seq_cst) != 0)
+        tomoWkrOwnerTakeReal(w, node);
+}
+
+static inline void tomoWkrOwnerUnlock(int w) {
+    debugServerAssert(tomo_wkr_owner_held == w);
+    tomoWkrLockState *ls = &tomo_wkr_lock[w];
+    if (atomic_load_explicit(&ls->owner_active, memory_order_relaxed))
+        atomic_store_explicit(&ls->owner_active, 0, memory_order_release);
+    else
+        tomoWkrRealUnlock(w);
+#ifdef DEBUG_ASSERTIONS
+    tomo_wkr_owner_held = -1;
+#endif
+}
+
+/* Wait until worker w has crossed a post-intent owner-operation quiescent point. owner_active is
+ * deliberately NOT scanned here: its relaxed entry store can remain buffered, and even an
+ * observed old 1->0 transition does not exclude a newer fast entry whose intent load SC-orders
+ * before ours. Ticketed ack, persistent participants, and the SC in_flat_section handshake are
+ * the proofs. Foreign workers publish as participants before waiting, so simultaneous all-node
+ * HFE callers meet under the ascending real-lock protocol. */
+static void tomoWkrForeignWaitOwner(int w, uint64_t ticket) {
+    tomoWkrLockState *ls = &tomo_wkr_lock[w];
+    int waiting = 0;
+    for (;;) {
+        if (atomic_load_explicit(&ls->quiescent_participant, memory_order_seq_cst)) break;
+        if (atomic_load_explicit(&ls->wait_quiescent, memory_order_seq_cst)) break;
+        if (atomic_load_explicit(&ls->owner_ack_gen, memory_order_acquire) >= ticket) break;
+        if (!atomic_load_explicit(&server.exThreads[w].in_flat_section,
+                                  memory_order_seq_cst)) break;
+        if (!waiting) { tmIoWaitBegin(); waiting = 1; }
+        exPauseCpu();
+    }
+    if (waiting) tmIoWaitEnd();
+}
+
+static void tomoWkrForeignLockRange(int first, int last) {
+    serverAssert(first >= 0 && first < last && last <= server.num_workers);
+    int node = tomoWkrNodeFor(first);
+    serverAssert(tomoWkrNodeFor(last - 1) == node);
+    debugServerAssert(tomo_wkr_owner_held == -1);
+    serverAssert(tomo_wkr_foreign_depth == 0);
+    tomo_wkr_foreign_depth = 1;
+    int caller_worker = tomoWkrCurrentWorker();
+    tomo_wkr_foreign_caller = caller_worker;
+
+    /* COUNT FIRST is load-bearing. Once an owner can acknowledge this ticket, our intent must
+     * already keep every later owner on the real lock; the reverse order admits an ack, a count==0
+     * fast owner, and then our CAS concurrently with that fast owner. */
+    atomic_fetch_add_explicit(&tomo_wkr_intent[node].count, 1, memory_order_seq_cst);
+    uint64_t ticket = atomic_fetch_add_explicit(&tomo_wkr_intent[node].request_gen, 1,
+                                                 memory_order_seq_cst) + 1;
+    if (caller_worker >= 0)
+        atomic_store_explicit(&tomo_wkr_lock[caller_worker].quiescent_participant, 1,
+                              memory_order_seq_cst);
+
+    int slot = caller_worker >= 0 ? TOMO_IO_THREADS_MAX + 1 + caller_worker : iotid;
+    serverAssert(slot >= 0 && slot < TOMO_STAT_SLOTS);
+    tomoRelaxedBump(server.kstat[slot].owner_lock_foreign_engagements, 1);
+
+    for (int w = first; w < last; w++) tomoWkrForeignWaitOwner(w, ticket);
+    for (int w = first; w < last; w++) tomoWkrRealLock(w);
+}
+
+static void tomoWkrForeignUnlockRange(int first, int last) {
+    serverAssert(first >= 0 && first < last && last <= server.num_workers);
+    int node = tomoWkrNodeFor(first);
+    serverAssert(tomoWkrNodeFor(last - 1) == node);
+    serverAssert(tomo_wkr_foreign_depth == 1);
+    int caller_worker = tomo_wkr_foreign_caller;
+    for (int w = last - 1; w >= first; w--) tomoWkrRealUnlock(w);
+    if (caller_worker >= 0)
+        atomic_store_explicit(&tomo_wkr_lock[caller_worker].quiescent_participant, 0,
+                              memory_order_seq_cst);
+    unsigned int before = atomic_fetch_sub_explicit(&tomo_wkr_intent[node].count, 1,
+                                                     memory_order_seq_cst);
+    serverAssert(before > 0);
+    tomo_wkr_foreign_caller = -1;
+    tomo_wkr_foreign_depth = 0;
+}
+/* Public owner wrappers cover db.c/expire.c owner-local paths. Foreign callers must use a whole
+ * range scope so intent surrounds both the quiescence handshake and every real lock. */
+void tomoWkrOwnerLockPub(int w) { tomoWkrOwnerLock(w); }
+void tomoWkrOwnerRecheckPub(int w) { tomoWkrOwnerRecheck(w); }
+void tomoWkrOwnerUnlockPub(int w) { tomoWkrOwnerUnlock(w); }
+void tomoWkrForeignLockRangePub(int first, int last) {
+    tomoWkrForeignLockRange(first, last);
+}
+void tomoWkrForeignUnlockRangePub(int first, int last) {
+    tomoWkrForeignUnlockRange(first, last);
+}
 
 /* review [3]: the hash-field-TTL family (estore writers AND readers — estore internals are
  * single-writer, so racy reads are unsafe too). */
@@ -9761,7 +9944,7 @@ static _Atomic unsigned long long tomo_xshard_hop2_unbarriered_n;
  *   worker B: csCommitLock() -> waits for A -> never returns to exSlice to drain that lane
  *
  * Make lock waiting work-conserving for worker callers. csMsetInstallDone reaches this point only
- * after exSlice released the worker's tomoWkrLock, so consuming the same worker's owner-op lane is
+ * after exSlice released the worker's owner lock, so consuming the same worker's owner-op lane is
  * legal here; IO-thread callers have no worker identity and retain the old PAUSE loop. Applying a
  * STAMP before its commit_seq publication was already allowed (the owner normally drains as soon
  * as csStampPush publishes it), and PRUNE is only enqueued after commit_seq, so helping preserves
@@ -9772,20 +9955,24 @@ static inline void csCommitLock(void) {
     /* MERGE (dev x 2s-flip-final): the self-drain body is the deadlock cure and OWNS the loop;
      * the flip line's wait brackets wrap it whole. Drain iterations are thus billed as WAIT —
      * conservative for u_io (drains fire only under contention, and briefly). */
-    int owner = iotid - (TOMO_IO_THREADS_MAX + 1);
+    int owner = tomoWkrCurrentWorker();
     exThread *self = (owner >= 0 && owner < server.num_workers) ?
                      &server.exThreads[owner] : NULL;
+    if (self) tomoWkrWaitQuiescentSet(owner, 1);
     tmIoWaitBegin();
     do {
-        if (self && atomic_load_explicit(&self->stamp_pending, memory_order_acquire) != 0 &&
-            csStampDrain(self) != 0) {
-            atomic_fetch_add_explicit(&tomo_atomic_commit_wait_drains, 1,
-                                      memory_order_relaxed);
+        if (self && atomic_load_explicit(&self->stamp_pending, memory_order_acquire) != 0) {
+            tomoWkrWaitQuiescentSet(owner, 0);
+            if (csStampDrain(self) != 0)
+                atomic_fetch_add_explicit(&tomo_atomic_commit_wait_drains, 1,
+                                          memory_order_relaxed);
+            tomoWkrWaitQuiescentSet(owner, 1);
         } else {
             exPauseCpu();
         }
     } while (atomic_flag_test_and_set_explicit(&commit_lock, memory_order_acquire));
     tmIoWaitEnd();
+    if (self) tomoWkrWaitQuiescentSet(owner, 0);
 }
 static inline void csCommitUnlock(void) {
     atomic_flag_clear_explicit(&commit_lock, memory_order_release);
@@ -9961,7 +10148,7 @@ static int csStampDrain(exThread *worker) {
         int n = exQueuePopBatch(q, jobs, WORKER_POP_BATCH);
         if (!n) break;
         struct tomoVerMeta *release_after_unlock[WORKER_POP_BATCH] = {0};
-        tomoWkrLock(worker->id);
+        tomoWkrOwnerLock(worker->id);
         for (int i = 0; i < n; i++) {
             tomoOwnerOp *op = exOwnerOpDecode(jobs[i]);
             kvobj *kv = op->kv;
@@ -10005,7 +10192,7 @@ static int csStampDrain(exThread *worker) {
             op->kv = NULL;
             op->seq = 0;
         }
-        tomoWkrUnlock(worker->id);
+        tomoWkrOwnerUnlock(worker->id);
         /* A detached bag arms no prune callback. Its owner-op return is therefore the final
          * owner-affine step, and the reference drops only after the worker lock is out. */
         for (int i = 0; i < n; i++)
@@ -10028,16 +10215,21 @@ static void csStampPush(int owner, tomoOwnerOp *op) {
     serverAssert(owner >= 0 && owner < server.num_workers);
     exThread *worker = &server.exThreads[owner];
     exQueue *q = &worker->queues[csStampLane()];
-    int current_owner = iotid - (TOMO_IO_THREADS_MAX + 1);
+    int current_owner = tomoWkrCurrentWorker();
     int spins = 0;
     int full_counted = 0;
     int waiting = 0;
+    int publish_quiescent = current_owner >= 0 && current_owner != owner;
     while (exQueuePushOwnerOp(q, op) != 0) {
         if (!full_counted) {
             atomic_fetch_add_explicit(&tomo_atomic_stamp_full, 1, memory_order_relaxed);
             full_counted = 1;
         }
-        if (!waiting) { tmIoWaitBegin(); waiting = 1; }
+        if (!waiting) {
+            if (publish_quiescent) tomoWkrWaitQuiescentSet(current_owner, 1);
+            tmIoWaitBegin();
+            waiting = 1;
+        }
         atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
         exHandoffAdvertiseLane(worker, (unsigned)csStampLane());
         if (current_owner == owner)
@@ -10047,7 +10239,10 @@ static void csStampPush(int owner, tomoOwnerOp *op) {
             if ((++spins & 4095) == 0) tomoPollingYield();
         }
     }
-    if (waiting) tmIoWaitEnd();
+    if (waiting) {
+        tmIoWaitEnd();
+        if (publish_quiescent) tomoWkrWaitQuiescentSet(current_owner, 0);
+    }
     atomic_fetch_add_explicit(&worker->stamp_pending, 1, memory_order_release);
     atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
     exHandoffAdvertiseLane(worker, (unsigned)csStampLane());
@@ -19165,9 +19360,15 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
          * atomic mode was enabled. Raw values and misses are deliberately not
          * called fast: a large fast count therefore proves the new gate fired. */
         unsigned long long atomic_read_fast = 0, atomic_read_slow = 0;
+        unsigned long long owner_lock_foreign_engagements = 0;
+        unsigned long long owner_lock_slow_takes = 0;
         for (int _t = 0; _t < TOMO_STAT_SLOTS; _t++) {
             atomic_read_fast += tomoRelaxedRead(server.kstat[_t].atomic_read_fast);
             atomic_read_slow += tomoRelaxedRead(server.kstat[_t].atomic_read_slow);
+            owner_lock_foreign_engagements +=
+                tomoRelaxedRead(server.kstat[_t].owner_lock_foreign_engagements);
+            owner_lock_slow_takes +=
+                tomoRelaxedRead(server.kstat[_t].owner_lock_slow_takes);
         }
         info = sdscatprintf(info, "# Stats\r\n" FMTARGS(
             "tomokv_flat_batches_closed:%llu\r\n", (unsigned long long)atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed),
@@ -19255,6 +19456,11 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 atomic_load_explicit(&tomo_atomic_commit_wait_drains, memory_order_relaxed),
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
+        info = sdscatprintf(info,
+            "tomokv_owner_lock_foreign_engagements:%llu\r\n"
+            "tomokv_owner_lock_slow_takes:%llu\r\n",
+            owner_lock_foreign_engagements,
+            owner_lock_slow_takes);
         info = sdscatprintf(info,
             "tomokv_fake_core_allocs:%llu\r\n"
             "tomokv_fake_tail_promotions:%llu\r\n",
@@ -21438,10 +21644,6 @@ static inline void tomoPollingYield(void) {
  * deleted with the value-forwarding apparatus (see the note in db.c). */
 
 
-/* ee451 D: the executing worker, for svc attribution — set at slice entry (one TLS store per
- * pass), read at the exExecFake exit. exExecFake has no worker parameter and grows none. */
-static __thread exThread *tm_cur_ex;
-
 static inline void exExecFake(client *fake) {
     serverAssert(fake->isFake);
     if (fake->cmd) {
@@ -21485,13 +21687,13 @@ static inline void exExecFake(client *fake) {
          * mutates/rehashes the bucket while another thread is reading it. Single-key hot path only:
          * argv[1] is the sole key of GET/SET/single-key subs; coalesced multi-key subs take the
          * whole worker's lock in the cross-shard branch below. No deadlock — the worker holds
-         * exactly ONE bucket and every off-worker path locks in a fixed order.
+         * exactly ONE worker lock and every off-owner path locks in a fixed order.
          * ALWAYS ON (tomokv-mcmd-lock deleted 2026-07-27): the lock IS what makes a shared node db
          * safe against sibling workers, so there is no lock-free arm to fall back to. */
         if (__builtin_expect(t6_full_call, 0)) {
             int w = fake->tomo_local_worker;
-            serverAssert(iotid == TOMO_IO_THREADS_MAX + 1 + w);
-            tomoWkrLock(w);
+            serverAssert(tm_cur_ex && tm_cur_ex->id == w);
+            tomoWkrOwnerLock(w);
 
             if (fake->tomo_script_gate) {
                 tomo_stw_held = 1;
@@ -21516,7 +21718,7 @@ static inline void exExecFake(client *fake) {
                 tomoScriptGateReleaseCurrent();
                 fake->tomo_script_gate = 0;
             }
-            tomoWkrUnlock(w);
+            tomoWkrOwnerUnlock(w);
         } else if (__builtin_expect(server.shared_node_dbs, 1)  /* TRUE in every supported multi-worker config */ && tomoHfeProc(fake->cmd->proc)) {
             /* review [3]: hash-field-TTL commands mutate/read the db-level estore, whose internals
              * are single-writer — on a SHARED node db, concurrent HFE from sibling workers races
@@ -21528,21 +21730,28 @@ static inline void exExecFake(client *fake) {
              * it is the one surviving path that touches node-level shared state from a single
              * worker. The node-local borrow (deleted 2026-07-27) used the same all-node-locks
              * discipline; its removal does not make any of these locks redundant. */
-            int wid = iotid - (TOMO_IO_THREADS_MAX + 1);
+            serverAssert(tm_cur_ex != NULL);
+            int wid = tm_cur_ex->id;
             int wpn = server.ex_per_node > 0 ? server.ex_per_node : server.num_workers;
-            int node = (wid >= 0 && wpn > 0) ? wid / wpn : 0;
+            int node = tomoWkrNodeFor(wid);
             int wlo = node * wpn, whi = wlo + wpn;
             if (whi > server.num_workers) whi = server.num_workers;
-            for (int lw = wlo; lw < whi; lw++) tomoWkrLock(lw);
-            fake->cmd->proc(fake);
-            for (int lw = whi - 1; lw >= wlo; lw--) tomoWkrUnlock(lw);
+            if (whi - wlo == 1) {
+                tomoWkrOwnerLock(wid);
+                fake->cmd->proc(fake);
+                tomoWkrOwnerUnlock(wid);
+            } else {
+                tomoWkrForeignLockRange(wlo, whi);
+                fake->cmd->proc(fake);
+                tomoWkrForeignUnlockRange(wlo, whi);
+            }
         } else {
             /* S2: single-key hot path takes this key's owner-worker lock across the proc so it
              * never mutates/rehashes a bucket that another thread is reading. The readers it
-             * excludes are the HFE branch above (a sibling worker holding ALL the node's locks),
-             * the resharding apply/scan, and RANDOMKEY's expireIfNeeded delete — NOT the node
-             * borrow, which was deleted 2026-07-27. Do not delete this lock on the grounds that
-             * "the borrow is gone". */
+             * excludes are every all-node HFE scope and off-owner UNWATCH cleanup — NOT the node
+             * borrow, which was deleted 2026-07-27. RANDOMKEY and active whole-key expiry use the
+             * same owner side directly. Do not delete this lock on the grounds that "the borrow
+             * is gone". */
             int mlk_wkr = -1;
             /* Review fix: argv[1] is only a KEY when the command declares firstkey==1. The
              * whitelist is mostly single-key-at-argv[1], but top-level SCAN is also worker-routed
@@ -21560,10 +21769,14 @@ static inline void exExecFake(client *fake) {
                             ? fake->tomo_bkt
                             : tomoBktBucket(fake->argv[1]->ptr, sdslen(fake->argv[1]->ptr));
                 mlk_wkr = (int)server.ex_bucket_table[b];
-                tomoWkrLock(mlk_wkr);
+                /* Dispatch and the reshard drain fence make this the active EX binding's owner.
+                 * Fail loudly if that invariant ever drifts; silently taking a foreign fast path
+                 * would invalidate the single-writer premise of the asymmetric lock. */
+                serverAssert(tm_cur_ex && mlk_wkr == tm_cur_ex->id);
+                tomoWkrOwnerLock(mlk_wkr);
             }
             fake->cmd->proc(fake);
-            if (mlk_wkr >= 0) tomoWkrUnlock(mlk_wkr);
+            if (mlk_wkr >= 0) tomoWkrOwnerUnlock(mlk_wkr);
         }
         /* ee451 (#B2): the command is DONE — take the exit clock here, immediately after the proc,
          * so `usec` measures the same thing call() measures (the proc, not the ring bookkeeping or
@@ -22062,10 +22275,10 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                 clientExecTail *ft = clientTail(fake);
                 int dblo = ft->flush_dbid < 0 ? 0 : ft->flush_dbid;
                 int dbhi = ft->flush_dbid < 0 ? server.dbnum - 1 : ft->flush_dbid;
-                tomoWkrLock(worker->id);
+                tomoWkrOwnerLock(worker->id);
                 for (int dbid = dblo; dbid <= dbhi; dbid++)
                     tomoTouchWatchedKeysOnFlush(&worker->db[dbid], worker->id);
-                tomoWkrUnlock(worker->id);
+                tomoWkrOwnerUnlock(worker->id);
                 if (ft->flush_bar) {
                     /* ee451 (shared-kv S0.2b): per-node rendezvous — the LAST node worker to reach
                      * its sentinel performs the ONE kvstoreEmpty of the shared node db (all siblings
@@ -22076,7 +22289,13 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                         emptyDbStructure(worker->db, ft->flush_dbid, ft->flush_async, NULL);
                         atomic_store_explicit(&bar->done, 1, memory_order_release);
                     } else {
+                        /* We hold no owner lock while waiting for the lagging workers. Publish that
+                         * exact quiescent state so a pre-sentinel foreign locker on one of them
+                         * cannot form A-waits-for-us / we-wait-for-A. The last participant does not
+                         * publish while it performs the unlocked all-workers-quiesced empty. */
+                        tomoWkrWaitQuiescentSet(worker->id, 1);
                         while (!atomic_load_explicit(&bar->done, memory_order_acquire)) exPauseCpu();
+                        tomoWkrWaitQuiescentSet(worker->id, 0);
                     }
                     if (atomic_fetch_sub_explicit(&bar->base->refs, 1, memory_order_acq_rel) == 1) {
                         zfree(bar->base);
@@ -22114,9 +22333,9 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                  * The sub runs ON its owner worker (scattered by shard), so worker->id IS the db it
                  * mutates/reads. (tomokv-mcmd-lock was deleted 2026-07-27: always-lock IS the
                  * design, so this is unconditional.) */
-                tomoWkrLock(worker->id);
+                tomoWkrOwnerLock(worker->id);
                 csSubExec(fake);
-                tomoWkrUnlock(worker->id);
+                tomoWkrOwnerUnlock(worker->id);
                 int last;
                 if (g->nsub == 1) {
                     atomic_store_explicit(&g->pending, 0, memory_order_relaxed);
@@ -22303,6 +22522,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
     /* leave the flat section — the coordinator's drain-to-zero can now observe us idle (exSlice has
      * this single return, so this covers every exit path). */
     atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
+    tm_cur_ex = NULL;
     return any;
 }
 
@@ -22767,6 +22987,16 @@ void initExThreads(void) {
     flat_batch_slots = server.io_threads + server.num_workers + 1;
     flat_batch_mask_words = (flat_batch_slots + 63) / 64;
     server.exThreads = zcalloc(sizeof(exThread) * server.num_workers);
+    /* Keep worker->node division out of the owner lock taken by every single-key command. */
+    {
+        int wpn = server.ex_per_node > 0 ? server.ex_per_node : server.num_workers;
+        serverAssert(wpn > 0);
+        for (int w = 0; w < server.num_workers; w++) {
+            int node = w / wpn;
+            serverAssert(node >= 0 && node < TOMO_NODES_MAX);
+            tomo_wkr_lock[w].node = node;
+        }
+    }
     if (server.tomo_atomic) tomoAtomicLifecycleEnsure();
     /* ee451 #83 (2026-08-05): per-worker lane arrays, HEAP-sized to the RUNTIME pool (not the
      * compile cap). nlanes covers slot 0 (main) + boot io slots + every growth slot a converting

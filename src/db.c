@@ -510,7 +510,7 @@ static inline struct tomoVerMeta *tomoVerMetaNew(redisDb *db, uint64_t version_s
  * current table. This is the same store/check exclusion handshake used by exSlice and the version
  * prune callback. */
 static void dbFlatInsertWait(exThread *worker) {
-    tomoWkrUnlockPub(worker->id);
+    tomoWkrOwnerUnlockPub(worker->id);
     for (;;) {
         atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
         /* If the urgent request has not been armed yet, give main's beforeSleep coordinator a
@@ -519,10 +519,11 @@ static void dbFlatInsertWait(exThread *worker) {
         tomoFlatResizeQuiesce();
 
         /* The command may not touch the refreshed table until it holds both protections again. */
-        tomoWkrLockPub(worker->id);
+        tomoWkrOwnerLockPub(worker->id);
         atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
+        tomoWkrOwnerRecheckPub(worker->id);
         if (!atomic_load_explicit(&server.flat_resize_active, memory_order_seq_cst)) return;
-        tomoWkrUnlockPub(worker->id);
+        tomoWkrOwnerUnlockPub(worker->id);
     }
 }
 
@@ -546,7 +547,7 @@ static void dbSetAtLinkWithFlatRetry(kvstore *kvs, int slot, kvobj *kv,
                         "(used=%llu tombs=%llu size=%llu wait_rounds=%u)",
                         used, tombs, size, wait_rounds);
 
-        int owner = iotid - (TOMO_IO_THREADS_MAX + 1);
+        int owner = tomoWkrCurrentWorker();
         serverAssert(owner >= 0 && owner < server.num_workers);
         atomic_fetch_add_explicit(&flat_insert_full_waits, 1, memory_order_relaxed);
         dbFlatInsertWait(&server.exThreads[owner]);
@@ -1133,7 +1134,7 @@ void tomoRetireDetachedBag(kvstore *kvs, kvobj *head) {
 
 static void tomoVersionPruneFinish(int owner, exThread *worker,
                                    struct tomoVerMeta *callback_meta) {
-    tomoWkrUnlockPub(owner);
+    tomoWkrOwnerUnlockPub(owner);
     /* Drop only after every live-bag mutation and the executing worker's lock are finished, but
      * before leaving the flat section: promotion may already have QSBR-retired this metadata
      * block, and this pin keeps it valid through the counter update. */
@@ -1145,7 +1146,7 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
     /* Check at callback ENTRY, before taking any lock or touching the bag. Checking only when the
      * callback was armed misses exactly an old-owner callback which matures after a cutover. */
     struct tomoVerMeta *callback_meta = kvobjVmeta(anchor);
-    int owner = iotid - (TOMO_IO_THREADS_MAX + 1);
+    int owner = tomoWkrCurrentWorker();
     tomoAtomicOwnerCheck(callback_meta, owner, 1);
     serverAssert(owner >= 0 && owner < server.num_workers);
     exThread *worker = &server.exThreads[owner];
@@ -1160,7 +1161,7 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
         tomoFlatResizeQuiesce();
         atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
     }
-    tomoWkrLockPub(owner);
+    tomoWkrOwnerLockPub(owner);
 
     struct tomoVerMeta *anchor_meta = callback_meta;
     if (!anchor_meta || anchor_meta->retire_state == TOMO_RETIRE_PHYSICAL) {
@@ -1696,7 +1697,7 @@ robj *dbRandomKey(redisDb *db) {
      * Distribution: fair within the worker's range; across workers it follows the router's
      * weighting — same two-level shape as before sharing. */
     if (server.shared_node_dbs && server.num_workers > 0) {
-        int wid = iotid - (TOMO_IO_THREADS_MAX + 1);
+        int wid = tomoWkrCurrentWorker();
         if (wid >= 0 && wid < server.num_workers && db == &server.exThreads[wid].db[db->id]) {
             int blo = wid ? server.ex_bucket_end[wid - 1] : 0;
             int bhi = server.ex_bucket_end[wid];
@@ -1706,9 +1707,9 @@ robj *dbRandomKey(redisDb *db) {
                     if (!kv) return NULL;
                     sds key = kvobjGetKey(kv);
                     robj *keyobj = createStringObject(key, sdslen(key));
-                    tomoWkrLockPub(wid);
+                    tomoWkrOwnerLockPub(wid);
                     int kvalid = expireIfNeeded(db, keyobj, kv, 0);
-                    tomoWkrUnlockPub(wid);
+                    tomoWkrOwnerUnlockPub(wid);
                     if (kvalid != KEY_VALID) { decrRefCount(keyobj); continue; }
                     return keyobj;
                 }
@@ -1740,13 +1741,13 @@ robj *dbRandomKey(redisDb *db) {
                  * whole node's workers share. Take our own worker lock so that delete is excluded
                  * against the paths that reach this node db from OFF this worker: an HFE command
                  * (HEXPIRE/HGETEX/... ) running on a sibling worker holds ALL the node's worker
-                 * locks across its estore walk, and the resharding apply/scan takes the owner's
+                 * locks across its estore walk, and off-owner UNWATCH cleanup takes the owner's
                  * lock too. argc==1, so the S2 single-key path never covered us.
                  * (The node-local BORROW was deleted 2026-07-27; it was one such off-worker
                  * reader, not the only one — this lock is still required.) */
-                tomoWkrLockPub(wid);
+                tomoWkrOwnerLockPub(wid);
                 int kvalid = expireIfNeeded(db, keyobj, kv, 0);
-                tomoWkrUnlockPub(wid);
+                tomoWkrOwnerUnlockPub(wid);
                 if (kvalid != KEY_VALID) {
                     decrRefCount(keyobj);
                     continue;                                /* expired: search for another key */
