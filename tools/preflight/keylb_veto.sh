@@ -8,7 +8,7 @@
 # target always exists. Measured runs showed exactly that: unbal=0 while the balancer chased a
 # single hot key, and what finally stopped it was the no-progress guard, one wasted migration later.
 #
-# The per-bucket window (tomokv-key-lb-fine) is the fix. This script is the discriminating test for
+# The automatic per-bucket window is the fix. This script is the discriminating test for
 # it, and it is deliberately built to fail the two vacuous shapes this project has shipped before:
 #   * "unbal=0 and no migration happened" proves nothing — a detector that never armed produces the
 #     same output. So arm=1 (fire/band/sustain counters moving) is asserted separately.
@@ -16,8 +16,6 @@
 #     So the server computes a SHADOW plan at group resolution on every refusal and reports
 #     unbal_fine = "refused on per-bucket data AND group data would have moved". That is the counter
 #     this test requires to be non-zero.
-# Arm C re-runs the identical hot-key workload with the window switched OFF on the same binary; it
-# must show the veto NOT engaging, which is what makes arm A attributable to the window.
 set -u
 # PORT-SAFETY: SO_REUSEPORT lets a leaked/foreign server on $PORT silently share this
 # suite's accept group, blending two binaries into one measurement (the split is invisible
@@ -30,11 +28,10 @@ PORT=${KEYLB_PORT:-7897}
 SECS=${KEYLB_SECS:-30}
 CLI="$(dirname $BIN)/redis-cli"
 
-# LEAK GUARD: this is a MULTI-BOOT suite (arms A/B/C each boot on $PORT). Without a trap,
+# LEAK GUARD: this is a MULTI-BOOT suite (arms A/B each boot on $PORT). Without a trap,
 # any early exit — a failed arm, an interrupt, an unset var under `set -u` — leaves the
 # current arm's server alive on $PORT, and the NEXT thing to boot there is silently split
-# with it. Kill our recorded pid on every exit path AND sweep the private name at end-of-run
-# (arm C's server in particular is otherwise only torn down on the happy path).
+# with it. Kill our recorded pid on every exit path AND sweep the private name at end-of-run.
 VETO_PID=""
 cleanup_veto(){
   if [ -n "${VETO_PID:-}" ]; then
@@ -51,8 +48,8 @@ trap 'exit 143' TERM
 trap 'exit 130' INT
 trap 'exit 129' HUP
 
-run_arm() {   # $1 = arm name, $2 = workload (hotkey|spread), $3 = extra server args
-  local arm=$1 wl=$2 xtra=$3
+run_arm() {   # $1 = arm name, $2 = workload (hotkey|spread)
+  local arm=$1 wl=$2
   pkill -9 -x redis-veto 2>/dev/null; sleep 1
   cp "$BIN" $J/redis-veto; rm -rf $J/vetodata; mkdir -p $J/vetodata; : > $J/veto_$arm.log
   # PORT-SAFETY: refuse to boot while any listener still holds $PORT — otherwise it joins
@@ -60,7 +57,7 @@ run_arm() {   # $1 = arm name, $2 = workload (hotkey|spread), $3 = extra server 
   wait_port_free "$PORT" || { echo "$arm-port-busy	FAIL	:$PORT still has a listener before boot (SO_REUSEPORT split risk)" >> $OUT; return 1; }
   taskset -c 0-7 $J/redis-veto --port $PORT --dir $J/vetodata --tomokv-nodes 1 \
     --tomokv-thread-io 4 --tomokv-thread-ex 4 --save '' --appendonly no --protected-mode no \
-    --enable-debug-command yes --logfile $J/veto_$arm.log $xtra >/dev/null 2>&1 &
+    --enable-debug-command yes --logfile $J/veto_$arm.log >/dev/null 2>&1 &
   VETO_PID=$!
   sleep 3
   # IDENTITY: N fresh INFO conns must all land on OUR pid. A second listener on $PORT would
@@ -171,7 +168,7 @@ d = {k: t1.get(k, 0) - t0.get(k, 0) for k in ("ticks","quiet","balanced","band",
      "fastcold","sustain","noneigh","unbal","fire","unbal_fine","unbal_grp","fine_used","fine_arm",
      "fine_ticks")}
 sig = {k: t1.get(k, 0) for k in ("hot","hotv","mean","hot_bar","fine_grp","fine_top","fine_peak",
-                                 "K","fine_knob")}
+                                 "K")}
 with open(out, "a") as f:
     f.write(f"# ARM {arm} ({wl}) hot_key_bucket={hot_bkt} owner_w={hot_w} spread_target_w={target}\n")
     f.write("# delta " + " ".join(f"{k}={v}" for k, v in d.items()) + "\n")
@@ -190,12 +187,6 @@ with open(out, "a") as f:
     if arm == "B":
         f.write(f"B-multibucket-still-migrates\t{'PASS' if d['fire'] > 0 else 'FAIL'}\t"
                 f"fire={d['fire']} unbal={d['unbal']} unbal_fine={d['unbal_fine']}\n")
-    if arm == "C":
-        # Same workload, window OFF: the veto must NOT engage on per-bucket grounds. If it did, the
-        # window is not what arm A's refusal came from and arm A proves nothing.
-        f.write(f"C-window-off-no-fine-veto\t{'PASS' if d['unbal_fine'] == 0 and d['fine_used'] == 0 else 'FAIL'}\t"
-                f"unbal_fine={d['unbal_fine']} fine_used={d['fine_used']} unbal={d['unbal']} "
-                f"fire={d['fire']} noprog={d['noprog']}\n")
 PY
   $CLI -p $PORT shutdown nosave >/dev/null 2>&1; sleep 1
   pkill -9 -x redis-veto 2>/dev/null
@@ -204,9 +195,8 @@ PY
   [ "$cm" = 0 ] && echo "$arm-crash-markers	PASS	0" >> $OUT || echo "$arm-crash-markers	FAIL	$cm" >> $OUT
 }
 
-run_arm A hotkey ""
-run_arm B spread ""
-run_arm C hotkey "--tomokv-key-lb-fine 0"
+run_arm A hotkey
+run_arm B spread
 
 echo "RESULT: $(grep -cw PASS $OUT) passed, $(grep -cw FAIL $OUT) failed" >> $OUT
 cat $OUT
