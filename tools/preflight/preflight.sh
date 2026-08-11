@@ -17,6 +17,9 @@
 #   3c. atomic_correctness.sh  nodes-1 atomic visibility gauntlet (torn/RYOW/monotonic/msetnx +
 #                              completion-wedge drain), promoted from the job harness
 #                              mode-2 arms fire, atomics correct, everything-on soak)
+#   3d. satfill_stress.sh      N x saturating 40M uniform fill: flat resize-storm crash guard
+#                              (task #117, ~10%/fill pre-fix), promoted per the owner rule —
+#                              a harness that catches a bug joins the gate
 #   4. fence_suite.sh          script fence: crash repro, -BUSY, KILL, no leak
 #   5. correctness_suite.sh   ordering/boundary invariants (each check exists
 #                              because a real bug got past a weaker one)
@@ -174,6 +177,7 @@ run_suite $SD/reclaim_correctness.sh $PF/reclaim_correctness.out  'FAIL:'
 run_suite $SD/numa2_validate.sh      $PF/numa2_validate.out       'FAIL'
 run_suite $SD/simnode2_features.sh   $PF/simnode2_features.out    'FAIL'
 run_suite $SD/atomic_correctness.sh  $PF/atomic_correctness.out   'FAIL'
+run_suite $SD/satfill_stress.sh      $PF/satfill_stress.out       'FAIL'
 run_suite $SD/fence_suite.sh         $PF/fence_suite.out          'FAIL'
 # correctness output is per invocation. Passing the exact unique path through TOMO_RESULT_FILE
 # lets run_suite grade the file produced by this run without a shared correctness_suite.out that a
