@@ -47,7 +47,8 @@ typedef enum {
     KEY_TRIMMED  /* Logically trimmed but not yet deleted. */
 } keyStatus;
 
-static keyStatus expireIfNeeded(redisDb *db, robj *key, kvobj *kv, int flags);
+static keyStatus expireIfNeeded(redisDb *db, robj *key, kvobj *kv, int flags,
+                                pendingCommand *fast_pending);
 
 /* Update LFU when an object is accessed.
  * Firstly, decrement the counter if the decrement time is reached.
@@ -275,9 +276,32 @@ void dbgAssertAllocSizePerSlot(redisDb *db) {
  * Even if the key expiry is master-driven, we can correctly report a key is
  * expired on replicas even if the master is lagging expiring our key via DELs
  * in the replication link. */
-kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
+static kvobj *dbFindByFastProbe(redisDb *db, sds probe, uint64_t hash,
+                                int bucket_index, dictEntryLink *plink) {
+    dictEntryLink link, bucket;
+    if (kvstoreIsFlat(db->keys)) {
+        link = kvstoreFlatFindLinkWithHash(db->keys, hash, probe, &bucket);
+        tomoRelaxedBump(server.kstat[iotid].flat_hash_reuses, 1);
+    } else {
+        int slot = server.cluster_enabled ? getKeySlot(probe) : bucket_index;
+        link = kvstoreDictFindLink(db->keys, slot, probe, &bucket);
+    }
+    if (link == NULL) {
+        if (plink) *plink = bucket;
+        return NULL;
+    }
+    if (plink) *plink = link;
+    return dictGetKV(*link);
+}
 
-    kvobj *val = dbFindByLink(db, key->ptr, link);
+static kvobj *lookupKeyGeneric(redisDb *db, robj *key, int flags,
+                               dictEntryLink *link, sds probe,
+                               uint64_t probe_hash, int probe_bucket,
+                               pendingCommand *fast_pending) {
+
+    kvobj *val = probe ?
+        dbFindByFastProbe(db, probe, probe_hash, probe_bucket, link) :
+        dbFindByLink(db, key->ptr, link);
 
     if (val) {
         /* Forcing deletion of expired keys on a replica makes the replica
@@ -298,7 +322,7 @@ kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
             expire_flags |= EXPIRE_ALLOW_ACCESS_EXPIRED;
         if (flags & LOOKUP_ACCESS_TRIMMED)
             expire_flags |= EXPIRE_ALLOW_ACCESS_TRIMMED;
-        if (expireIfNeeded(db, key, val, expire_flags) != KEY_VALID) {
+        if (expireIfNeeded(db, key, val, expire_flags, fast_pending) != KEY_VALID) {
             /* The key is no longer valid. */
             val = NULL;
             if (link) *link = NULL;
@@ -340,6 +364,21 @@ kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
     return val;
 }
 
+kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
+    return lookupKeyGeneric(db, key, flags, link, NULL, 0, 0, NULL);
+}
+
+/* Use the cache-line key bytes for the table probe. `fast_pending` is opaque on
+ * the common path: only an actual lazy-expire deletion recovers argv[1], since
+ * deletion side effects are allowed to retain the semantic key object. */
+kvobj *tomoLookupKeyFast(redisDb *db, robj *key, sds probe,
+                         uint64_t hash, int bucket, int flags,
+                         dictEntryLink *link, pendingCommand *fast_pending) {
+    serverAssert(probe != NULL && bucket >= 0 && bucket < TOMO_BUCKETS);
+    return lookupKeyGeneric(db, key, flags, link, probe, hash, bucket,
+                            fast_pending);
+}
+
 /* ee451: read-run value forwarding (Tomasulo CDB analog) was REMOVED 2026-07-28.
  * Permanently abandoned as a paper NEGATIVE RESULT, not a regression: measured a wash in every
  * tested regime (small/large GET, complex LRANGE, even a maximal single-hot-key + zerocopy
@@ -358,17 +397,16 @@ kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
  * This function is equivalent to lookupKey(). The point of using this function
  * rather than lookupKey() directly is to indicate that the purpose is to read
  * the key. */
-kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
-    serverAssert(!(flags & LOOKUP_WRITE));
-    /* ee451 (F4, 2026-07-27): the value-forwarding record/replay branches used to run per read op
-     * here -- 2 TLS loads + 2 compares + 2 branches on the hottest read function in the server --
-     * for a feature with no live setters. Removed then; the helpers themselves removed 2026-07-28. */
-    kvobj *kv = lookupKey(db, key, flags, NULL);
+static kvobj *lookupKeyReadResolve(kvobj *kv,
+                                   pendingCommand *fast_pending) {
     /* I7: the table slot is only the entry point while a transient bag is
      * present. Raw heads retain the exact base return path: in particular,
      * they neither read atomic mode nor test the new metadata hint. */
     struct tomoVerMeta *vmeta = kv ? kvobjVmeta(kv) : NULL;
     if (unlikely(vmeta)) {
+        client *reader = fast_pending ? fast_pending->fast_reader
+                                      : server.current_client[iotid].p;
+        serverAssert(fast_pending == NULL || reader != NULL);
         /* REPLAY (onever x ownread): the single-committed fast license runs FIRST — a reader
          * with its own uncommitted write on this key cannot see SingleCommitted, so every
          * own-origin case falls through to the client-aware resolver and the license never
@@ -386,15 +424,30 @@ kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
                  * Preserve the slow path's absent result without re-reading
                  * the pin or the global frontier. */
                 tomoRelaxedBump(server.kstat[iotid].atomic_read_slow, 1);
-                return kvobjVersionAt(kv, pinned_snapshot,
-                                      server.current_client[iotid].p);
+                return kvobjVersionAt(kv, pinned_snapshot, reader);
             }
             tomoRelaxedBump(server.kstat[iotid].atomic_read_slow, 1);
         }
-        kv = kvobjVersionAt(kv, tomoCurrentReadSnapshot(),
-                            server.current_client[iotid].p);
+        kv = kvobjVersionAt(kv, tomoCurrentReadSnapshot(), reader);
     }
     return kv;
+}
+
+kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
+    serverAssert(!(flags & LOOKUP_WRITE));
+    /* ee451 (F4, 2026-07-27): the value-forwarding record/replay branches used to run per read op
+     * here -- 2 TLS loads + 2 compares + 2 branches on the hottest read function in the server --
+     * for a feature with no live setters. Removed then; the helpers themselves removed 2026-07-28. */
+    return lookupKeyReadResolve(lookupKey(db, key, flags, NULL), NULL);
+}
+
+kvobj *tomoLookupKeyReadFast(redisDb *db, robj *key, sds probe,
+                             uint64_t hash, int bucket, int flags,
+                             pendingCommand *fast_pending) {
+    serverAssert(!(flags & LOOKUP_WRITE));
+    return lookupKeyReadResolve(
+        tomoLookupKeyFast(db, key, probe, hash, bucket, flags, NULL,
+                          fast_pending), fast_pending);
 }
 
 /* Like lookupKeyReadWithFlags(), but does not use any flag, which is the
@@ -1707,7 +1760,7 @@ robj *dbRandomKey(redisDb *db) {
                     sds key = kvobjGetKey(kv);
                     robj *keyobj = createStringObject(key, sdslen(key));
                     tomoWkrLockPub(wid);
-                    int kvalid = expireIfNeeded(db, keyobj, kv, 0);
+                    int kvalid = expireIfNeeded(db, keyobj, kv, 0, NULL);
                     tomoWkrUnlockPub(wid);
                     if (kvalid != KEY_VALID) { decrRefCount(keyobj); continue; }
                     return keyobj;
@@ -1745,7 +1798,7 @@ robj *dbRandomKey(redisDb *db) {
                  * (The node-local BORROW was deleted 2026-07-27; it was one such off-worker
                  * reader, not the only one — this lock is still required.) */
                 tomoWkrLockPub(wid);
-                int kvalid = expireIfNeeded(db, keyobj, kv, 0);
+                int kvalid = expireIfNeeded(db, keyobj, kv, 0, NULL);
                 tomoWkrUnlockPub(wid);
                 if (kvalid != KEY_VALID) {
                     decrRefCount(keyobj);
@@ -1778,7 +1831,7 @@ robj *dbRandomKey(redisDb *db) {
              * return a key name that may be already expired. */
             return keyobj;
         }
-        if (expireIfNeeded(db, keyobj, kv, 0) != KEY_VALID) {
+        if (expireIfNeeded(db, keyobj, kv, 0, NULL) != KEY_VALID) {
             decrRefCount(keyobj);
             continue; /* search for another key. This expired. */
         }
@@ -2427,7 +2480,7 @@ void delGenericCommand(client *c, int lazy) {
     int numdel = 0, j;
 
     for (j = 1; j < c->argc; j++) {
-        if (expireIfNeeded(c->db, c->argv[j], NULL, 0) == KEY_DELETED)
+        if (expireIfNeeded(c->db, c->argv[j], NULL, 0, NULL) == KEY_DELETED)
             continue;
         int deleted  = lazy ? dbAsyncDelete(c->db,c->argv[j]) :
                               dbSyncDelete(c->db,c->argv[j]);
@@ -2720,7 +2773,9 @@ void scanCallback(void *privdata, const dictEntry *de, dictEntryLink plink) {
          * physically expire a key it doesn't own (that flatDelete would race the real owner's writes
          * -> single-writer violation / double-retire, and cross-node it propagates a phantom DEL).
          * AVOID_DELETE filters the expired key from the reply and leaves reaping to its owner. */
-        if (expireIfNeeded(data->db, NULL, kv, data->avoid_expire_del ? EXPIRE_AVOID_DELETE_EXPIRED : 0) != KEY_VALID)
+        if (expireIfNeeded(data->db, NULL, kv,
+                           data->avoid_expire_del ? EXPIRE_AVOID_DELETE_EXPIRED : 0,
+                           NULL) != KEY_VALID)
             return;
 
         /* Type filtering - only for database keyspace scanning */
@@ -4165,7 +4220,8 @@ int confAllowsExpireDel(void) {
  *
  * You can optionally pass `kv` to save a lookup.
  */
-keyStatus expireIfNeeded(redisDb *db, robj *key, kvobj *kv, int flags) {
+keyStatus expireIfNeeded(redisDb *db, robj *key, kvobj *kv, int flags,
+                         pendingCommand *fast_pending) {
     debugAssert(key != NULL || kv != NULL);
 
     /* NOTE: Keys in slots scheduled for trimming can still exist for a while.
@@ -4232,9 +4288,17 @@ keyStatus expireIfNeeded(redisDb *db, robj *key, kvobj *kv, int flags) {
         migSuppressLazyExpire(db, key ? key->ptr : kvobjGetKey(kv)))
         return KEY_EXPIRED;
 
-    /* Perform deletion */
+    /* Perform deletion. A FAST probe normally uses a stack semantic object
+     * backed directly by its ring entry. Recover the parsed argv key only now,
+     * on the uncommon path where delete callbacks or blocked-key wakeups may
+     * retain the object beyond this lookup. */
     if (key) {
-        deleteExpiredKeyAndPropagate(db, key);
+        robj *delete_key = key;
+        if (fast_pending) {
+            serverAssert(fast_pending->argv != NULL && fast_pending->argc >= 2);
+            delete_key = fast_pending->argv[1];
+        }
+        deleteExpiredKeyAndPropagate(db, delete_key);
     } else {
         sds keyname = kvobjGetKey(kv);
         robj *tmpkey = createStringObject(keyname, sdslen(keyname));

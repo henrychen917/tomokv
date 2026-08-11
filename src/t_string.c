@@ -430,6 +430,40 @@ void setCommand(client *c) {
     setGenericCommand(c, args.flags, c->argv[1], &(c->argv[2]), args.expire, args.unit, args.match_value, NULL, NULL);
 }
 
+/* The one exact SET shape carried by a FAST dispatch entry. Ambient command
+ * state stays worker-local; `actor` is the stable real-client identity used
+ * opaquely by tracking. The reply is deliberately emitted later, after the
+ * reply carrier becomes the worker's first fake-client touch. */
+void tomoSetPlainStringApply(client *actor, redisDb *db, robj *key, sds probe,
+                             uint64_t hash, int bucket,
+                             pendingCommand *fast_pending, robj **valref) {
+    *valref = tryObjectEncoding(*valref);
+
+    dictEntryLink link = NULL;
+    kvobj *old = tomoLookupKeyFast(db, key, probe, hash, bucket,
+                                   LOOKUP_WRITE, &link, fast_pending);
+    int found = old != NULL;
+    robj *effect_key = key;
+    /* Most string overwrites consume the entry-local semantic object
+     * synchronously. Non-string/module-metadata replacement can invoke
+     * unlink hooks or blocked-key wakeups which retain the key, so recover
+     * the pending command's stable argv object only for that uncommon case. */
+    if (old && (old->type != OBJ_STRING || getModuleMetaBits(old->metabits))) {
+        serverAssert(fast_pending != NULL && fast_pending->argv != NULL &&
+                     fast_pending->argc >= 2);
+        effect_key = fast_pending->argv[1];
+    }
+    int setkey_flags = SETKEY_EMBED_RAW |
+        (found ? SETKEY_ALREADY_EXIST : SETKEY_DOESNT_EXIST);
+    setKeyByLink(actor, db, effect_key, valref, setkey_flags, &link);
+
+    /* The pending argv and the database each retain one reference until the
+     * ordinary worker-side argv release below the fast executor. */
+    incrRefCount(*valref);
+    markDirty(1);
+    notifyKeyspaceEvent(NOTIFY_STRING, "set", effect_key, db->id);
+}
+
 void setnxCommand(client *c) {
     c->argv[2] = tryObjectEncoding(c->argv[2]);
     setGenericCommand(c, OBJ_SET_NX, c->argv[1], &(c->argv[2]), NULL, 0, NULL, shared.cone, shared.czero);
