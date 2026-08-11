@@ -4129,20 +4129,10 @@ struct redisServer {
                                         * dispatch hot path — tomoRelaxedRead ONCE per decision
                                         * (the old double-read Schmitt gate could act on two
                                         * different values) */
-    /* Reshard TRIGGER parameters retain full -1/0/N semantics; see config.c for the exposed
-     * operator controls and their defaults. */
-    int reshard_sustain_ticks;   /* tomokv-key-lb-sustain: -1=auto max(3,ceil(1/alpha)) [default];
-                                  * 0=debounce OFF, fire on the first violating tick (A/B arm);
-                                  * N=require N consecutive outlier ticks */
     int reshard_progress_ratio;  /* <=0 = auto 0.85 (a migration must cut the peak >=15%; default -1);
                                   * N = required %-of-prior-peak ceiling */
     int reshard_cool_margin_pct; /* -1 = auto: destination must be < 0.85*mean [default];
                                   * 0 = legacy (< mean); N = destination < mean*(1-N/100) */
-    int reshard_fine_pct;        /* tomokv-key-lb-fine: level-2 per-BUCKET window that gives the
-                                  * hot-KEY veto its resolution. -1=auto arming bar [default];
-                                  * 0=OFF (no allocation, every window disarmed, the data path back
-                                  * to one never-taken branch, planner back to group resolution);
-                                  * N=arm when the shard's top group holds >= N% of its rate. */
     /* prefetch_min_keys / pf_value_budget_kb DELETED 2026-07-28 with tomokv-prefetch-min-keys and
      * tomokv-pf-value-budget-kb. Both shipped in their AUTO arm and both AUTO derivations are now
      * unconditional in exPrefetchBatch: the residency gate is 8 x (detected L3 / workers-per-L3

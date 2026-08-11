@@ -3302,34 +3302,6 @@ standardConfig static_configs[] = {
 
 
     createIntConfig("tomokv-key-lb",                 NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.reshard_min_ops, 20000, INTEGER_CONFIG, NULL, NULL), /* bucket/key balancer: 0 = off, N = min ops/s before a shard is a candidate. Was tomokv-reshard-min-ops. */
-    /* SUSTAIN — the one trigger parameter with a genuine workload-dependent trade-off, and the A/B
-     * lever for the whole detector. reshardAutoTune fires only after the hot shard has been a
-     * statistical outlier for K CONSECUTIVE 1 Hz ticks (standard "N consecutive violations" debounce:
-     * Nagios max_check_attempts, Prometheus alert `for:`, k8s HPA stabilization windows).
-     *   -1 = auto: K = one EWMA time constant, ceil(1/alpha), floored at 3 ticks
-     *    0 = OFF: no debounce, fire on the first violating tick (the pre-2026-07-28 behaviour;
-     *             kept ONLY so the two detectors can be A/B'd on the same binary)
-     *    N = require N consecutive violating ticks
-     * Everything else in the detector self-derives from the signal and needs no operator input:
-     * the outlier bar (mean + k*sigma), the Schmitt release bar, the cooldown, the progress bar and
-     * the chunk size. Their fields still carry full -1/0/N semantics for anyone who needs to
-     * re-expose one; they are simply not decisions an operator should have to make. Disable the
-     * whole balancer with tomokv-key-lb 0. */
-    createIntConfig("tomokv-key-lb-sustain",         "tomokv-reshard-sustain-ticks", MODIFIABLE_CONFIG, -1, 3600, server.reshard_sustain_ticks, -1, INTEGER_CONFIG, NULL, NULL),
-    /* FINE — the second level of the load profile, and the reason the hot-KEY veto can engage at
-     * all. Level 1 counts ops per 64-bucket GROUP (1KB/worker, L1-resident, already on the exec
-     * path). That is too coarse for the veto: a hot key is one BUCKET, and averaged over its 64
-     * group-mates it looks like 64 mildly-warm buckets, i.e. like something a bucket flip could
-     * divide. Level 2 is a 64-counter window the balancer points at each worker's hottest group,
-     * armed only when that group is genuinely concentrated.
-     *   -1 = auto (default): arm at max(4x the uniform per-group share, 5% of the shard's rate)
-     *    0 = OFF: nothing allocated, every window disarmed, the exec path pays one never-taken
-     *             branch and the planner is back to group resolution. This is the A/B arm both for
-     *             the <=3%-throughput budget and for proving the veto's refusals came from level 2.
-     *    N = arm when the top group holds >= N% of the shard's rate
-     * A full 16384-counter-per-worker table was rejected on the budget: same one instruction, but a
-     * 64x always-on working-set growth for a question that is local to one group. */
-    createIntConfig("tomokv-key-lb-fine",            NULL, MODIFIABLE_CONFIG, -1, 100, server.reshard_fine_pct, -1, INTEGER_CONFIG, NULL, NULL),
     /* ee451 (H2): cutover drain-fence watchdog. The fence now waits for PROOF that every producer
      * has retired its in-flight range commands (worker A executing that producer's sentinel), which
      * is the only sound drain test — but a proof that never arrives is a hang, and a hung cutover

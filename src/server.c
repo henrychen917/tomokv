@@ -16060,7 +16060,7 @@ static inline double migBucketRate(const migProfile *p, int b) {
 /* Level 2, once per 1 Hz tick, main thread: FOLD each armed window's counters into its per-bucket
  * EWMA, then RE-POINT each worker's window at its currently hottest group.
  *
- * ARMING RULE (tomokv-key-lb-fine). A window is armed only when the shard's top group is genuinely
+ * ARMING RULE. A window is armed only when the shard's top group is genuinely
  * CONCENTRATED, because that is the only situation in which per-bucket resolution can change an
  * answer — if the groups are flat there is no hot key to veto and the group profile is already the
  * truth. auto (-1) requires BOTH:
@@ -16073,27 +16073,12 @@ static inline double migBucketRate(const migProfile *p, int b) {
  *     the decision if it carries at least ~0.0625*mean, and a hot shard has Lh >= 1.25*mean. Below
  *     that share, treating the group as uniform cannot change what the planner decides, so there is
  *     nothing to buy by arming.
- * An explicit N means exactly "arm at N% of the shard's rate" and drops the noise guard — explicit
- * is explicit. 0 disarms everything and frees nothing to disarm (level 2 is never allocated).
- *
  * RE-POINTING invalidates the counters' meaning (slot i is a different bucket), so the window is
  * published FIRST, the raw snapshot is taken after it, and the next fold is a seed rather than a
  * blend (mig_fine_warm). Ops in flight across the publish are misattributed for well under a
  * millisecond of a 1 Hz statistic. */
 static void migFineTick(int wmax, int hot, double alpha) {
     mig_trig.fine_grp = -1; mig_trig.fine_top = 0; mig_trig.fine_peak = 0;
-    if (server.reshard_fine_pct == 0) {
-        /* OFF means OFF: disarm every window (back to a never-taken branch on the exec path) and
-         * give the memory back, so a runtime flip to 0 lands in the same state as booting at 0. */
-        for (int w = 0; w < wmax; w++)
-            atomic_store_explicit(&server.exThreads[w].lb_fine_win, 0, memory_order_relaxed);
-        if (mig_fine_ewma) {
-            zfree(mig_fine_ewma); zfree(mig_fine_last); zfree(mig_fine_grp); zfree(mig_fine_warm);
-            mig_fine_ewma = NULL; mig_fine_last = NULL; mig_fine_grp = NULL; mig_fine_warm = NULL;
-            mig_fine_rows = 0;
-        }
-        return;
-    }
     if (!mig_fine_ewma || mig_fine_rows < wmax) return;   /* allocation failed: level 1 only */
     int any_armed = 0;
     for (int w = 0; w < wmax; w++) {
@@ -16127,13 +16112,8 @@ static void migFineTick(int wmax, int hot, double alpha) {
                 }
                 top = grow[gtop];
                 double nG = (double)(g1 - g0 + 1);
-                double bar;
-                if (server.reshard_fine_pct > 0) {
-                    bar = (server.reshard_fine_pct / 100.0) * gsum;
-                } else {
-                    double noise = 4.0 * gsum / nG, floor_share = 0.05 * gsum;
-                    bar = noise > floor_share ? noise : floor_share;
-                }
+                double noise = 4.0 * gsum / nG, floor_share = 0.05 * gsum;
+                double bar = noise > floor_share ? noise : floor_share;
                 if (gsum > 0 && top >= bar) want = gtop;
                 /* STICKINESS. Re-pointing throws away a tick of resolution (the counters' meaning
                  * changes), so it must not happen because two near-equal groups traded the argmax.
@@ -16264,12 +16244,11 @@ static int migPlanChunk(int hot, int B, double Lh, double Lc, int hot_lo, int ho
     return best_n;
 }
 
-/* Sustain length K. -1 = auto: one EWMA time constant, floored at 3 ticks so that a one-tick
- * dispatch spike and a two-tick blip can NEVER fire regardless of how fast the EWMA is running.
- * An explicit N is honoured exactly (including N=1), and 0 disables the debounce. */
+/* Sustain length K: one EWMA time constant, floored at 3 ticks so that a one-tick dispatch spike
+ * and a two-tick blip can NEVER fire regardless of how fast the EWMA is running. */
 static int migSustainK(double alpha) {
-    int K = server.reshard_sustain_ticks;
-    if (K < 0) { K = (int)ceil(1.0 / alpha); if (K < 3) K = 3; }
+    int K = (int)ceil(1.0 / alpha);
+    if (K < 3) K = 3;
     return K;
 }
 
@@ -16493,7 +16472,6 @@ static void reshardDiffusionPass(double mean, double alpha) {
     double prog = server.reshard_progress_ratio > 0 ? server.reshard_progress_ratio / 100.0 : 0.85;
     if (mig_diff_peak > 0 && bhi > mig_diff_peak * prog) return;
     int K = migSustainK(alpha);
-    if (K < 1) K = (int)ceil(1.0 / alpha);                /* diffusion always debounces (see migSustainK) */
     if (++mig_diff_streak[bw] < K) return;                 /* not sustained yet */
     mig_diff_streak[bw] = 0;
     int hot = mig_load_ewma[bw] > mig_load_ewma[bw + 1] ? bw : bw + 1;
@@ -16546,8 +16524,8 @@ void reshardAutoTune(void) {
      *   7. SPLIT BY LOAD   the chunk is chosen from the MEASURED per-bucket-group profile and only
      *                      if it strictly improves the predicted maximum (migPlanChunk above) —
      *                      which is also how a hot KEY is told apart from a hot BUCKET.
-     * Operator surface: tomokv-key-lb (floor / off) and tomokv-key-lb-sustain (K). Everything else
-     * self-derives from the signal. Every gate above is counted: DEBUG RESHARD TRIGGER. */
+     * Operator surface: tomokv-key-lb (floor / off). Everything else self-derives from the signal.
+     * Every gate above is counted: DEBUG RESHARD TRIGGER. */
     if (server.reshard_min_ops <= 0 || !server.exThreads) {
         /* Master switch off. The level-2 windows are armed from HERE, so if the balancer is
          * switched off at runtime while a window is armed, nothing would ever disarm it and the
@@ -16618,10 +16596,8 @@ void reshardAutoTune(void) {
             zfree(e); zfree(l);
         }
     }
-    /* Level 2 is allocated separately and only while tomokv-key-lb-fine is non-zero, so 0 really
-     * does mean "no machinery": nothing allocated, every window disarmed, and the data path back to
-     * a single never-taken branch. Turning the knob off at runtime disarms below. */
-    if (server.reshard_fine_pct != 0 && mig_fine_rows < wmax) {
+    /* Level 2 is allocated separately; allocation failure leaves the planner at group resolution. */
+    if (mig_fine_rows < wmax) {
         size_t n = (size_t)wmax * TOMO_LB_GROUP_BUCKETS;
         float *fe = ztrycalloc(n * sizeof(float));
         uint32_t *fl = ztrycalloc(n * sizeof(uint32_t));
@@ -16713,23 +16689,22 @@ void reshardAutoTune(void) {
      * ee451 (reshard-better §1.3a): two-threshold Schmitt band. hot_bar (above) stays the FIRE
      * bar; release_bar (halfway to mean) is the RELEASE bar. Between them is a hysteresis dead-band:
      * hold (don't fire, don't reset the streak) so a worker that has already begun sustaining an
-     * outlier doesn't get its streak wiped by a single dip into the band. When sustain_ticks==0 the
-     * dead-band collapses back to the single legacy bar (hot_bar), i.e. BIT-FOR-BIT legacy. */
+     * outlier doesn't get its streak wiped by a single dip into the band. */
     double release_bar = mean + 0.5 * (hot_bar - mean);   /* Schmitt: release halfway to mean */
     mig_trig.mean = mean; mig_trig.hot_bar = hot_bar; mig_trig.release_bar = release_bar;
     mig_trig.streak = mig_hot_streak[hot];
     /* Too quiet to judge: clear convergence state (as the balanced path does) and wait. The
      * diffusion pass is not called — its own first line is the same floor test. */
     if (mean < (double)server.reshard_min_ops) { mig_trig.quiet++; mig_peak_pre = 0; mig_settle = 0; return; }
-    if (hotv <= (server.reshard_sustain_ticks != 0 ? release_bar : hot_bar)) {
+    if (hotv <= release_bar) {
         mig_trig.balanced++;
         mig_peak_pre = 0; mig_settle = 0;
         /* below the RELEASE bar => disarmed. Decay rather than reset, for the same AIMD reason. */
-        if (server.reshard_sustain_ticks != 0 && mig_hot_streak[hot] > 0) mig_hot_streak[hot]--;
+        if (mig_hot_streak[hot] > 0) mig_hot_streak[hot]--;
         reshardDiffusionPass(mean, alpha);       /* bimodal skews read as "balanced" here */
         return;
     }
-    if (server.reshard_sustain_ticks != 0 && hotv <= hot_bar) {
+    if (hotv <= hot_bar) {
         /* in the hysteresis dead-band: hold — don't fire, don't reset the streak. */
         mig_trig.band++;
         return;
@@ -16753,20 +16728,17 @@ void reshardAutoTune(void) {
 
     /* ee451 (reshard-better §1.3b): SUSTAIN gate. Only fire when the hot worker has been an
      * outlier for K consecutive ticks — kills one-tick dispatch-spike false positives that inflate
-     * the slow EWMA for a tick but can't survive K ticks of hash-scattered Gaussian load. K=-1 auto
-     * = one EWMA time constant ceil(1/alpha), floored at 3. Gate the streak on the FAST EWMA (still
-     * hot). Knob 0 skips the block entirely => the pre-2026-07-28 single-tick trigger, for A/B.
+     * the slow EWMA for a tick but can't survive K ticks of hash-scattered Gaussian load. K is one
+     * EWMA time constant ceil(1/alpha), floored at 3. Gate the streak on the FAST EWMA (still hot).
      * The streak is CONSUMED here, before neighbour selection and chunk planning, which is
      * deliberate: if either of those then refuses (no cool neighbour, or nothing worth moving) the
      * shard must re-earn K ticks before asking again. That is the backoff that keeps an
      * unbalanceable hotspot from re-testing every single tick. */
-    if (server.reshard_sustain_ticks != 0) {
-        int K = migSustainK(alpha);
-        if (mig_load_ewma_fast[hot] <= hot_bar_fast) { mig_hot_streak[hot] = 0; mig_trig.fastcold++; return; }
-        if (++mig_hot_streak[hot] < K) { mig_trig.sustain++; mig_trig.streak = mig_hot_streak[hot]; return; }
-        mig_hot_streak[hot] = 0;                         /* consume; re-earn for the next fire */
-        mig_trig.streak = 0;
-    }
+    int K = migSustainK(alpha);
+    if (mig_load_ewma_fast[hot] <= hot_bar_fast) { mig_hot_streak[hot] = 0; mig_trig.fastcold++; return; }
+    if (++mig_hot_streak[hot] < K) { mig_trig.sustain++; mig_trig.streak = mig_hot_streak[hot]; return; }
+    mig_hot_streak[hot] = 0;                         /* consume; re-earn for the next fire */
+    mig_trig.streak = 0;
 
     /* Cooler adjacent neighbour with genuinely-below-mean load. WITHIN-NODE ONLY (2026-07-22 user
      * directive: no EWMA balancing across nodes — cross-node is the expensive copy tier, not this
@@ -16935,15 +16907,14 @@ void reshardDebug(client *c) {
             "unbal_fine=%llu unbal_grp=%llu fine_used=%llu fine_arm=%llu fine_ticks=%llu "
             "fine_grp=%d fine_top=%.0f fine_peak=%.0f "
             "K=%d streak=%d hot=%d alpha=%.4f hotv=%.0f mean=%.0f release_bar=%.0f hot_bar=%.0f "
-            "sustain_knob=%d min_ops=%d fine_knob=%d",
+            "min_ops=%d",
             mig_trig.ticks, mig_trig.quiet, mig_trig.balanced, mig_trig.band, mig_trig.settle,
             mig_trig.noprog, mig_trig.fastcold, mig_trig.sustain, mig_trig.noneigh, mig_trig.unbal,
             mig_trig.fire, mig_trig.prof, mig_trig.uniform,
             mig_trig.unbal_fine, mig_trig.unbal_grp, mig_trig.fine_used, mig_trig.fine_arm,
             mig_trig.fine_ticks, mig_trig.fine_grp, mig_trig.fine_top, mig_trig.fine_peak,
             mig_trig.K, mig_trig.streak, mig_trig.hot, mig_trig.alpha, mig_trig.hotv,
-            mig_trig.mean, mig_trig.release_bar, mig_trig.hot_bar,
-            server.reshard_sustain_ticks, server.reshard_min_ops, server.reshard_fine_pct);
+            mig_trig.mean, mig_trig.release_bar, mig_trig.hot_bar, server.reshard_min_ops);
     } else if (c->argc >= 3 && !strcasecmp(c->argv[2]->ptr, "lbgroups")) {
         /* Per-group SMOOTHED load for one worker (the balancer's own view, as opposed to
          * DEBUG TOMO-LBGROUPS which dumps the raw monotonic counters). */
@@ -16964,7 +16935,7 @@ void reshardDebug(client *c) {
          * single dominant line here is the signature that makes it refuse. */
         int w = (c->argc >= 4) ? atoi(c->argv[3]->ptr) : 0;
         if (w < 0 || w >= mig_fine_rows || !mig_fine_ewma)
-            { addReplyError(c, "no per-bucket window for that worker (tomokv-key-lb-fine 0?)"); return; }
+            { addReplyError(c, "no per-bucket window for that worker"); return; }
         sds o = sdsempty();
         int g = mig_fine_grp[w];
         o = sdscatprintf(o, "worker %d group %d warm %d win %llu\n", w, g, (int)mig_fine_warm[w],
@@ -21925,10 +21896,9 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
              * increment to the owner's private array — the minimal-move balancer's load signal.
              *
              * SECOND LEVEL (2026-07-28): if the balancer has armed a per-bucket window on this
-             * worker, also count the exact bucket. Disarmed (len==0, the default and the state
-             * whenever tomokv-key-lb-fine is 0) this is one relaxed 64-bit load off an already-hot
-             * line plus a never-taken branch; armed it is one extra L1 increment for the ~1/64 of
-             * this shard's ops that land in the window. The whole point of the window is that the
+             * worker, also count the exact bucket. Disarmed (len==0) this is one relaxed 64-bit
+             * load off an already-hot line plus a never-taken branch; armed it is one extra L1
+             * increment for the ~1/64 of this shard's ops that land in the window. The whole point of the window is that the
              * always-on working set stays at the 1KB group array instead of the 64KB a full
              * per-bucket table would cost — see TOMO_LB_FINE_WIN. */
             if (fake->argc >= 2) {
