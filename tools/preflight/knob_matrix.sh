@@ -41,12 +41,9 @@ reject(){ # $1 knob $2 value -- a RETIRED knob must make the server refuse to bo
   if [ "$up" = 1 ]; then bad "retired knob $knob=$val STILL ACCEPTED (boots)"; else ok "retired $knob rejected"; fi
 }
 
-# ee451 2026-07-29: a knob may need COMPANION flags to be a legal configuration. `try` sets exactly
-# ONE knob, so a sub-knob whose master switch is off boots into a configuration the server
-# deliberately refuses -- and the suite then scores that correct refusal as "DID NOT BOOT". The
-# product is working as designed; the TEST is wrong. $4 carries the companion flags so such a cell
-# exercises a legal configuration instead.
-must_refuse(){ # $1 = knob, $2 = value, $3 = why this value is illegal
+# Assert that an invalid value or deleted directive is boot-fatal. Deleted directives use a value
+# that was formerly legal, so accepting an obsolete deployment setting cannot pass silently.
+must_refuse(){ # $1 = knob, $2 = value, $3 = why boot must fail
   local knob=$1 val=$2 why=$3
   kb_kill; sleep 1
   taskset -c 0-7 $KB --port $PORT --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4 \
@@ -57,19 +54,6 @@ must_refuse(){ # $1 = knob, $2 = value, $3 = why this value is illegal
   if [ "$up" = 1 ]; then bad "$knob=$val WAS ACCEPTED but must be refused ($why)"
   else ok "$knob=$val refused as designed ($why)"; fi
 }
-
-# ee451 2026-08-03: TWO auto conventions coexist and this suite's CELLS did not follow its own
-# header. A knob declared with min -1 spells auto as -1 (tomokv-pipeline-depth, -key-lb-sustain,
-# -reshard-cool-margin-pct, -reshard-sustain-ticks). A knob declared with min 0 spells auto/off as
-# 0 and its own config.c comment says so -- "0=auto buckets/(16W)", "0=auto outlier bar",
-# "0=legacy 0.85", "0=off, 1=strict". For those, -1 is BELOW the declared minimum and the server is
-# RIGHT to refuse it, so `try <knob> -1` was asserting that an out-of-range value must BOOT. Six
-# cells failed on that alone. They now use must_refuse(), which is the stronger assertion: silently
-# accepting a below-minimum value is the defect worth catching, because a config that boots on
-# nonsense is how a typo'd sweep cell becomes a bogus measurement.
-#
-# OWNER NOTE: the -1-vs-0 split is a real inconsistency in the knob surface, not a test detail
-# (task #31, unify adaptive sizing). This documents the split rather than hiding it.
 
 atomic_mixed_smoke(){
   # MSET8/MGET8 over 64 keys: enough pipelined overlap to enter atomic completion, but still a
@@ -129,19 +113,12 @@ try(){ # $1 = knob, $2 = value, $3 = note, $4 = companion flags, $5 = extra smok
 }
 
 echo "=== convention A: -1 = auto ===" >> $OUT
-# key-LB trigger debounce. -1 auto (K = one EWMA time constant, floored at 3 ticks), 0 OFF
-# (fire on the first violating tick — the pre-2026-07-28 trigger, kept as the A/B arm), N ticks.
 # ee451 2026-07-28: cells are DERIVED FROM THE LIVE CONFIG SURFACE, not hand-listed. The knob
 # retirement cut 55 knobs to ~36 and left this suite "testing" 44 names that no longer exist --
 # with the deprecation shim in place every one of those passed trivially, which is coverage
 # theatre. Regenerate this block from config.c whenever the surface changes.
   try tomokv-client-lb yes
-# Level-2 per-bucket window for the hot-KEY veto. -1 auto (arm at max(4x uniform per-group share,
-# 5% of shard rate)), 0 OFF (nothing allocated, windows disarmed, planner back to group resolution
-# — also the A/B arm for the <=3% budget), N = arm at N% of the shard's rate.
-  try tomokv-key-lb-fine -1 "auto: arm on a genuinely concentrated group"
-  try tomokv-key-lb-fine 0  "OFF: no allocation, exec path back to a never-taken branch"
-  try tomokv-key-lb-fine 1  "static 1%: window armed continuously (worst-case data-path arm)"
+  must_refuse tomokv-key-lb-fine -1 "directive deleted; per-bucket arming is automatic"
 
   try tomokv-client-lb no
 
@@ -164,33 +141,21 @@ echo "=== convention A: -1 = auto ===" >> $OUT
 
   try tomokv-key-lb 20000 "default: min mean ops/s before a shard is a migration candidate"
 
-  try tomokv-key-lb-sustain -1
-
-  try tomokv-key-lb-sustain 0
+  must_refuse tomokv-key-lb-sustain -1 "directive deleted; sustain duration is automatic"
 
   try tomokv-pipeline-depth -1
 
   try tomokv-pipeline-depth 0
 
-  must_refuse tomokv-reshard-chunk -1 "below the declared minimum -- this knob spells auto as 0"
+  must_refuse tomokv-reshard-chunk 0 "directive deleted; chunk planning is automatic"
 
-  try tomokv-reshard-chunk 0
+  must_refuse tomokv-reshard-cool-margin-pct 0 "directive deleted; the legacy mean threshold is fixed"
 
-  try tomokv-reshard-cool-margin-pct -1
+  must_refuse tomokv-reshard-imbalance-pct 0 "directive deleted; the outlier threshold is automatic"
 
-  try tomokv-reshard-cool-margin-pct 0
+  must_refuse tomokv-reshard-progress-ratio 0 "directive deleted; the progress ceiling is fixed at 0.85"
 
-  must_refuse tomokv-reshard-imbalance-pct -1 "below the declared minimum -- this knob spells auto as 0"
-
-  try tomokv-reshard-imbalance-pct 0
-
-  must_refuse tomokv-reshard-progress-ratio -1 "below the declared minimum -- this knob spells auto as 0"
-
-  try tomokv-reshard-progress-ratio 0
-
-  try tomokv-reshard-sustain-ticks -1
-
-  try tomokv-reshard-sustain-ticks 0
+  must_refuse tomokv-reshard-sustain-ticks -1 "directive deleted; sustain duration is automatic"
 
   must_refuse tomokv-strict-order -1 "below the declared minimum -- this knob spells auto as 0"
 
@@ -200,16 +165,9 @@ echo "=== convention A: -1 = auto ===" >> $OUT
 
   try tomokv-zerocopy-min-value 0
 
-  # ee451 2026-08-06: reply-buffer-transfer (reply fork) — bool (createBoolConfig), default OFF ships
-  # inert. Drive off + on so the drift guard accounts it and a broken transfer surfaces here, not in a
-  # bench. (Bool config takes yes/no, not 0/1.)
-  try tomokv-reply-buffer-transfer no
-  try tomokv-reply-buffer-transfer yes
+  must_refuse tomokv-reply-buffer-transfer no "directive deleted; reply buffers are copied"
 
-  # Lifetime-aware scatter/gather is independently default-OFF. Exercise both bool spellings;
-  # tomokv-zerocopy-min-value above remains its size/disable threshold.
-  try tomokv-reply-iovec no
-  try tomokv-reply-iovec yes
+  must_refuse tomokv-reply-iovec no "directive deleted; reply iovecs are disabled"
 
   # ee451 2026-08-08: flip controller TRIGGER INPUT, as levels. Every arm must boot and serve;
   # WHICH arm converges best is the conformance suite's question, not this one. These cells run
@@ -217,7 +175,7 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   # actually entered rather than compiled-and-skipped.
   # tomokv-flip-signal DELETED 2026-08-10 (owner): productive-work ratio is the only signal.
   # Booting with the old knob must now fail as an unknown directive.
-  must_refuse tomokv-flip-signal 5 "knob deleted 2026-08-10; the productive-work ratio is hardcoded"
+  must_refuse tomokv-flip-signal 5 "directive deleted 2026-08-10; the productive-work ratio is hardcoded"
 
   # ee451 2026-08-03: added because the drift guard flagged these three as LIVE BUT UNTESTED.
   # tomokv-io-uring is IMMUTABLE 0..2 (nonzero = the Helio ring; old mode-1 backend DELETED
@@ -234,10 +192,7 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   try tomokv-reshard-fence-timeout 0
   must_refuse tomokv-reshard-fence-timeout -1 "below the declared minimum -- this knob spells auto as 0"
 
-  # ee451 2026-08-06: D-feature knobs (SEDA reorder + io-side prefetch + socket->io recv batch) were
-  # LIVE BUT UNTESTED after #82's landing. Each is numeric, 0=off, and the three the owner keeps
-  # ("prefetch on/off, ordering on/off"). Drive off + on so the drift guard accounts them and a broken
-  # knob surfaces here, not in a bench.
+  # Surviving D-feature knobs: SEDA reorder and io-side prefetch.
   try tomokv-reorder 0 "OFF: admission-time reorder inert, no scratch write"
   try tomokv-reorder 1 "partition-by-worker only"
   try tomokv-reorder 2 "full SJF class ordering (range [0,2])"
@@ -247,9 +202,7 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   try tomokv-io-prefetch 8 "max prefetch depth (range [0,8])"
   must_refuse tomokv-io-prefetch -1 "below the declared minimum -- 0=off"
 
-  try tomokv-recv-batch 0 "OFF: single recv per pass"
-  try tomokv-recv-batch 1 "batched socket->io recv (range [0,1])"
-  must_refuse tomokv-recv-batch -1 "below the declared minimum -- 0=off"
+  must_refuse tomokv-recv-batch 0 "directive deleted; socket reads use one recv per pass"
 
 # RETIRED knobs must be REJECTED, not silently accepted. A retired name that still boots means
 # either the knob was not really retired or a shim is swallowing it -- both hide a config error
@@ -275,12 +228,8 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   reject tomokv-pf-value-budget-kb -1
   reject tomokv-prefetch-min-keys -1
 
-echo "=== boolean levers (default off, restored for experimentation) ===" >> $OUT
-# mset-move ships OFF and has no measured gain; both arms are exercised because ON is an ownership
-# change (the value robj is handed to the worker rather than copied), so a mistake there is a
-# use-after-free rather than a wrong answer, and a knob nothing ever boots is a knob nothing tests.
-  try tomokv-mset-move no  "default: cross-shard MSET gives each sub a private value copy"
-  try tomokv-mset-move yes "MOVE arm: value robj handed to the worker via argv_released_mask"
+echo "=== boolean levers ===" >> $OUT
+  must_refuse tomokv-mset-move no "directive deleted; cross-shard MSET copies values"
 
 # Atomic visibility ships OFF. Enabled cells add a bounded mixed MSET8/MGET8 pipeline and require
 # the admission census to return to zero after the pipe drains; a pinned non-zero inflight count is
@@ -308,17 +257,16 @@ drift_guard(){
   if [ "$up" != 1 ]; then bad "drift-guard: server would not boot"; return; fi
   $CLI config get 'tomokv-*' 2>/dev/null | awk 'NR%2==1' | tr -d '\r' | sort -u > $J/knob_live.txt
   kb_kill
-  # names this suite actually drives (try cells), and names it asserts are gone (reject cells)
+  # Names this suite drives, names retired through reject(), and deleted directives asserted through
+  # a tagged must_refuse() cell. Untagged must_refuse cells remain range checks for live knobs.
   grep -oE '^\s*try [a-z0-9-]+'    "$0" | awk '{print $2}' | sort -u > $J/knob_tried.txt
   grep -oE '^\s*reject [a-z0-9-]+' "$0" | awk '{print $2}' | sort -u > $J/knob_rejected.txt
   grep -oE '^\s*must_refuse [a-z0-9-]+' "$0" | awk '{print $2}' | sort -u > $J/knob_refused.txt
-  # must_refuse is NOT counted as coverage below, on purpose: it only proves the knob rejects an
-  # out-of-range value, never that it BOOTS, so a knob with only a must_refuse cell SHOULD read as
-  # untested. But it needs its own liveness check, because must_refuse and a DELETED knob are
-  # indistinguishable -- the server refuses an unknown parameter exactly as it refuses a
-  # below-minimum one. So a must_refuse cell left behind by a retirement passes forever, asserting
-  # nothing, and neither existing direction can see it (it is not in knob_tried, so the `ghost`
-  # check never looks at it).
+  awk '$1 == "must_refuse" && /directive deleted/ {print $2}' "$0" | sort -u \
+    > $J/knob_deleted_refused.txt
+  comm -23 $J/knob_refused.txt $J/knob_deleted_refused.txt > $J/knob_range_refused.txt
+  # must_refuse is not positive coverage: an untagged cell only proves that a live knob rejects an
+  # out-of-range value. Tagged deletion cells invert that liveness assertion and must remain absent.
   # EXEMPT: knobs this harness PINS on every cell, so a `try` cell for them would fight the
   # fixture (try() hardcodes --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4, and every
   # cell runs under a fixed taskset cpuset). Each is listed with where it IS varied instead; an
@@ -336,15 +284,18 @@ drift_guard(){
   local untested=$(comm -23 $J/knob_live.txt $J/knob_accounted.txt | tr '\n' ' ')
   local ghost=$(comm -13 $J/knob_live.txt $J/knob_tried.txt | tr '\n' ' ')
   local zombie=$(comm -12 $J/knob_live.txt $J/knob_rejected.txt | tr '\n' ' ')
-  local refghost=$(comm -13 $J/knob_live.txt $J/knob_refused.txt | tr '\n' ' ')
+  local deleted_live=$(comm -12 $J/knob_live.txt $J/knob_deleted_refused.txt | tr '\n' ' ')
+  local refghost=$(comm -13 $J/knob_live.txt $J/knob_range_refused.txt | tr '\n' ' ')
   [ -z "$untested" ] && ok "drift-guard: every live tomokv-* knob has a cell" \
                      || bad "drift-guard: LIVE BUT UNTESTED -> $untested"
   [ -z "$ghost" ]    && ok "drift-guard: no cell drives a knob that no longer exists" \
                      || bad "drift-guard: CELL FOR MISSING KNOB -> $ghost"
   [ -z "$zombie" ]   && ok "drift-guard: no retired name is still live" \
                      || bad "drift-guard: RETIRED BUT STILL LIVE -> $zombie"
-  [ -z "$refghost" ] && ok "drift-guard: every must_refuse cell names a live knob" \
-                     || bad "drift-guard: must_refuse CELL FOR MISSING KNOB (passes vacuously) -> $refghost"
+  [ -z "$deleted_live" ] && ok "drift-guard: every deleted directive remains absent" \
+                          || bad "drift-guard: DELETED DIRECTIVE IS LIVE -> $deleted_live"
+  [ -z "$refghost" ] && ok "drift-guard: every range-refusal cell names a live knob" \
+                     || bad "drift-guard: RANGE-REFUSAL CELL FOR MISSING KNOB -> $refghost"
 }
 drift_guard
 

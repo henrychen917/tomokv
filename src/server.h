@@ -4085,12 +4085,6 @@ struct redisServer {
     int zerocopy_min_value;    /* v8: zero-copy reply forwarding gated by value size. 0 = OFF;
                                 * N = use copy-avoidance only for values >= N bytes (it pays on
                                 * large values, +20-24% at 16-64KB; neutral below ~1KB). */
-    int reply_buffer_transfer_enabled; /* Transfer a completed fake's large plain reply buffer to
-                                        * its IO-owned real client when equal-capacity scratch can
-                                        * be exchanged. Gated independently for hot-path A/B. */
-    int reply_iovec_enabled; /* Lifetime-aware reply scatter/gather. Large owned values may be
-                              * retained by reference and io_uring keeps every iovec/object pinned
-                              * through its terminal data/notification CQE. Default OFF. */
     int num_cdb;               /* S5: resolved at init = one bus per worker when the box has >1 L3 domain, else 1 */
     /* Per-STAGE prefetch width fields DELETED 2026-07-28 with the eight tomokv-pf-w-* knobs
      * (struct/argv/keyobj/keybytes/hash/entry/value/nextop). THE STAGES THEMSELVES ARE UNTOUCHED
@@ -4107,10 +4101,6 @@ struct redisServer {
      * xshard-guard / -pipeline / -localfast / mcmd-lock): every one of them is now an
      * unconditional property of the fork, folded into the code at its use sites. */
     int strict_order;          /* cross-IO-thread strict ordering: 0=off (batched rotation), 1=strict (global-oldest first), N>=2=eps of (N-1)us to retain batching. default 0. */
-    int tomo_recv_batch;       /* ee451 D-recv: 0=off (default). 1=scale the per-recv read size by
-                                * the dispatch window (deep pipeline => bigger reads => fewer recv
-                                * syscalls), driven by the same 1 Hz controller as the flush window.
-                                * Trades query-buffer memory for recv-syscall amortization. */
     int tomo_io_prefetch;      /* ee451 D-C: IO-side dispatch prefetch. 0=off (default; the value
                                 * is multi-CCD, expect nothing single-CCD, per the C spec). N>0 =
                                 * warm the next run's scattered ring-tail line while emitting this
@@ -4119,7 +4109,6 @@ struct redisServer {
                                 * path), 1=worker partition (structural), 2=+class SJF + same-key
                                 * guard + same-bucket grouping. Mutually exclusive with
                                 * strict_order (reorder defers). default 0. */
-    int opt_mset_move;         /* tomokv-mset-move: cross-shard MSET moves value robjs to the owning worker (argv_released_mask ownership handoff) instead of a dupStringObject copy. 1=move; 0=per-value copy (DEFAULT — no gain was ever measured or claimed; restored 2026-07-28 as an experiment lever for large-value/NUMA regimes this box cannot answer). */
     int tomo_atomic;           /* tomokv-atomic: epoch-versioned MSET/MGET atomicity. default off. */
     int tomo_atomic_window;    /* max admitted atomic MSET groups; 0 = unlimited. default 64: smaller in-flight populations keep version piles shallow and the whole atomic pipeline cache-hot — measured better than 512 in EVERY regime (64-key adversarial AND 2M realistic, 1:1 AND 9:1). */
     /* (no xshard_inline_* field: the inline region is sized per command by csInlineWant) */
@@ -4130,8 +4119,6 @@ struct redisServer {
     int reshard_min_ops;         /* tomokv-key-lb: 0 = balancer OFF (nothing runs, nothing is
                                   * allocated); N = min mean shard ops/sec before a shard is a
                                   * migration candidate. Default 20000. */
-    int reshard_imbalance_pct; /* <=0 = auto mean+k*sigma outlier bar (default -1); N = fixed pct of mean */
-    int reshard_chunk;         /* <=0 = auto load-aware split point (default -1); N = explicit buckets */
     /* 2s-auto T2/T3/D1/D3 mode fields DELETED 2026-07-28 (drain-tail-skip / express-slim /
      * fake-buf / fake-ring-depth) and l3_kb with them: all are unconditionally in their AUTO
      * arm now. The controllers themselves are untouched -- only the mode selectors are gone. */
@@ -4140,20 +4127,6 @@ struct redisServer {
                                         * dispatch hot path — tomoRelaxedRead ONCE per decision
                                         * (the old double-read Schmitt gate could act on two
                                         * different values) */
-    /* Reshard TRIGGER parameters retain full -1/0/N semantics; see config.c for the exposed
-     * operator controls and their defaults. */
-    int reshard_sustain_ticks;   /* tomokv-key-lb-sustain: -1=auto max(3,ceil(1/alpha)) [default];
-                                  * 0=debounce OFF, fire on the first violating tick (A/B arm);
-                                  * N=require N consecutive outlier ticks */
-    int reshard_progress_ratio;  /* <=0 = auto 0.85 (a migration must cut the peak >=15%; default -1);
-                                  * N = required %-of-prior-peak ceiling */
-    int reshard_cool_margin_pct; /* -1 = auto: destination must be < 0.85*mean [default];
-                                  * 0 = legacy (< mean); N = destination < mean*(1-N/100) */
-    int reshard_fine_pct;        /* tomokv-key-lb-fine: level-2 per-BUCKET window that gives the
-                                  * hot-KEY veto its resolution. -1=auto arming bar [default];
-                                  * 0=OFF (no allocation, every window disarmed, the data path back
-                                  * to one never-taken branch, planner back to group resolution);
-                                  * N=arm when the shard's top group holds >= N% of its rate. */
     /* prefetch_min_keys / pf_value_budget_kb DELETED 2026-07-28 with tomokv-prefetch-min-keys and
      * tomokv-pf-value-budget-kb. Both shipped in their AUTO arm and both AUTO derivations are now
      * unconditional in exPrefetchBatch: the residency gate is 8 x (detected L3 / workers-per-L3
@@ -4464,7 +4437,7 @@ typedef struct csCmdSpec {
     uint8_t block_reject;     /* blocking variant: never run a parking proc on a worker fake;
                                * the ctype decides whether would-block is nil or a safe error */
     /* -- callbacks (the ONLY code-bearing fields) -- */
-    void (*append_extra)(client *head, client *sub, int origpos); /* MSET value ownership */
+    void (*append_extra)(client *head, client *sub, int origpos); /* MSET value append */
     int  (*unsafe_check)(client *c);  /* UNPORTED or hybrid PORTED rows: nonzero => reject form */
     int16_t safe_max_argc;    /* UNPORTED rows without a hook: argc <= this falls through
                                * (PFCOUNT: 2); 0 = always reject */
@@ -6241,7 +6214,6 @@ void replicaofCommand(client *c);
 void roleCommand(client *c);
 extern int tm_flip_trace;
 extern int tm_rord_trace;
-extern _Atomic int tomo_recv_readlen;   /* ee451 D-recv: published per-recv read size */
 void debugCommand(client *c);
 void msetCommand(client *c);
 void msetnxCommand(client *c);

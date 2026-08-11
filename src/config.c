@@ -3180,15 +3180,6 @@ standardConfig static_configs[] = {
      * knob here could only make it wrong. To A/B the mechanism, build with CS_INLINE_MAX_BYTES 0
      * — that turns every csgAlloc into a plain zmalloc. */
     createIntConfig("tomokv-strict-order", NULL, MODIFIABLE_CONFIG, 0, 100000, server.strict_order, 0, INTEGER_CONFIG, NULL, NULL), /* cross-IO strict ordering: 0=off, 1=strict, N=eps(N-1)us */
-    /* MSET-MOVE — cross-shard MSET hands each value robj to the owning worker (the
-     * argv_released_mask ownership handoff) instead of giving the sub a dupStringObject copy.
-     * DEFAULT OFF and it stays off: no gain was ever measured or even claimed for it, and every
-     * historical note about it recorded a concern. It is restored (2026-07-28) as an experiment
-     * lever, the same call already made for prefetch — the regime where a copy could matter is
-     * large values and/or cross-NUMA, which this box cannot answer. Turning it on is a real
-     * ownership change, not a tuning parameter: see csAppendMsetValue for the three-step contract
-     * that keeps exactly one owner of the value at every instant. */
-    createBoolConfig("tomokv-mset-move",             NULL, MODIFIABLE_CONFIG, server.opt_mset_move, 0, NULL, NULL),
     createBoolConfig("tomokv-atomic",                NULL, MODIFIABLE_CONFIG, server.tomo_atomic, 0, NULL, applyTomoAtomicAdmission),
     createIntConfig("tomokv-atomic-window",          NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.tomo_atomic_window, 64, INTEGER_CONFIG, NULL, applyTomoAtomicAdmission),
     /* tomokv-worker-direct-send (v12-K) DELETED: foundation removed, see 2s-auto v1.6 for the real
@@ -3226,7 +3217,6 @@ standardConfig static_configs[] = {
      * flip controller may move away from it; under `static` it is held for the whole run. The
      * starting point matters for measurement reproducibility: a benchmark that starts at a
      * different split spends its window converging instead of measuring. */
-    createIntConfig("tomokv-recv-batch", NULL, MODIFIABLE_CONFIG, 0, 1, server.tomo_recv_batch, 0, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-io-prefetch", NULL, MODIFIABLE_CONFIG, 0, 8, server.tomo_io_prefetch, 0, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-reorder", NULL, MODIFIABLE_CONFIG, 0, 3, server.tomo_reorder, 0, INTEGER_CONFIG, NULL, NULL),
     createEnumConfig("tomokv-thread-mode",           NULL, IMMUTABLE_CONFIG, tomokv_thread_mode_enum, server.thread_mode, TOMO_THREAD_MODE_AUTO, NULL, NULL),
@@ -3295,15 +3285,6 @@ standardConfig static_configs[] = {
      * keyspace stays DICT-backed, and io7/ex1 is a standard test config). Nothing is deleted here
      * except operator-facing names. */
 
-
-    /* ================= RESHARD TRIGGER HARDENING — restored for SAFETY. With these at 0 the balancer runs its legacy
-     * single-tick trigger: the hysteresis dead-band and the SUSTAIN gate are unreachable and
-     * mig_hot_streak[] can never be nonzero. That makes auto-reshard MORE trigger-happy than
-     * designed, at exactly the moment its cutover fence (H2) is known fail-open. */
-    createIntConfig("tomokv-reshard-chunk", NULL, MODIFIABLE_CONFIG, 0, TOMO_BUCKETS, server.reshard_chunk, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto buckets/(16W); N=explicit granule. A granule of 0 buckets is not a state; "off" is tomokv-reshard-min-ops 0. */
-    createIntConfig("tomokv-reshard-cool-margin-pct", NULL, MODIFIABLE_CONFIG, -1, 100,     server.reshard_cool_margin_pct, 0, INTEGER_CONFIG, NULL, NULL), /* 0=legacy (<mean); -1=auto 15% (<0.85*mean); N=neighbor < mean*(1-N/100) */
-    createIntConfig("tomokv-reshard-imbalance-pct", NULL, MODIFIABLE_CONFIG, 0, 100000, server.reshard_imbalance_pct, 0, INTEGER_CONFIG, NULL, NULL), /* 0=auto outlier bar; N=fixed pct-of-mean. Like l3-kb this OVERRIDES a derived threshold — "off" is spelled tomokv-reshard-min-ops 0, so 0 is auto here. */
-    createIntConfig("tomokv-reshard-progress-ratio",  NULL, MODIFIABLE_CONFIG,  0, 100,     server.reshard_progress_ratio,  0, INTEGER_CONFIG, NULL, NULL), /* 0=legacy 0.85; N=required %-of-prior-peak ceiling (e.g. 70 => 30%/step drop) */
     /* ================= OS DEPLOYMENT FEATURES — restored. Hardwiring these to their 0 defaults
      * made TCP_QUICKACK, MADV_HUGEPAGE and SO_BUSY_POLL permanently off. That is disabling a
      * feature to simplify a config surface, which is not the same as retiring a knob. */
@@ -3312,34 +3293,6 @@ standardConfig static_configs[] = {
 
 
     createIntConfig("tomokv-key-lb",                 NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.reshard_min_ops, 20000, INTEGER_CONFIG, NULL, NULL), /* bucket/key balancer: 0 = off, N = min ops/s before a shard is a candidate. Was tomokv-reshard-min-ops. */
-    /* SUSTAIN — the one trigger parameter with a genuine workload-dependent trade-off, and the A/B
-     * lever for the whole detector. reshardAutoTune fires only after the hot shard has been a
-     * statistical outlier for K CONSECUTIVE 1 Hz ticks (standard "N consecutive violations" debounce:
-     * Nagios max_check_attempts, Prometheus alert `for:`, k8s HPA stabilization windows).
-     *   -1 = auto: K = one EWMA time constant, ceil(1/alpha), floored at 3 ticks
-     *    0 = OFF: no debounce, fire on the first violating tick (the pre-2026-07-28 behaviour;
-     *             kept ONLY so the two detectors can be A/B'd on the same binary)
-     *    N = require N consecutive violating ticks
-     * Everything else in the detector self-derives from the signal and needs no operator input:
-     * the outlier bar (mean + k*sigma), the Schmitt release bar, the cooldown, the progress bar and
-     * the chunk size. Their fields still carry full -1/0/N semantics for anyone who needs to
-     * re-expose one; they are simply not decisions an operator should have to make. Disable the
-     * whole balancer with tomokv-key-lb 0. */
-    createIntConfig("tomokv-key-lb-sustain",         "tomokv-reshard-sustain-ticks", MODIFIABLE_CONFIG, -1, 3600, server.reshard_sustain_ticks, -1, INTEGER_CONFIG, NULL, NULL),
-    /* FINE — the second level of the load profile, and the reason the hot-KEY veto can engage at
-     * all. Level 1 counts ops per 64-bucket GROUP (1KB/worker, L1-resident, already on the exec
-     * path). That is too coarse for the veto: a hot key is one BUCKET, and averaged over its 64
-     * group-mates it looks like 64 mildly-warm buckets, i.e. like something a bucket flip could
-     * divide. Level 2 is a 64-counter window the balancer points at each worker's hottest group,
-     * armed only when that group is genuinely concentrated.
-     *   -1 = auto (default): arm at max(4x the uniform per-group share, 5% of the shard's rate)
-     *    0 = OFF: nothing allocated, every window disarmed, the exec path pays one never-taken
-     *             branch and the planner is back to group resolution. This is the A/B arm both for
-     *             the <=3%-throughput budget and for proving the veto's refusals came from level 2.
-     *    N = arm when the top group holds >= N% of the shard's rate
-     * A full 16384-counter-per-worker table was rejected on the budget: same one instruction, but a
-     * 64x always-on working-set growth for a question that is local to one group. */
-    createIntConfig("tomokv-key-lb-fine",            NULL, MODIFIABLE_CONFIG, -1, 100, server.reshard_fine_pct, -1, INTEGER_CONFIG, NULL, NULL),
     /* ee451 (H2): cutover drain-fence watchdog. The fence now waits for PROOF that every producer
      * has retired its in-flight range commands (worker A executing that producer's sentinel), which
      * is the only sound drain test — but a proof that never arrives is a hang, and a hung cutover
@@ -3367,8 +3320,6 @@ standardConfig static_configs[] = {
      * 0 = off (depth 1), N = static (rounded up to a power of two; the slot index is masked). */
     createIntConfig("tomokv-pipeline-depth",         NULL, IMMUTABLE_CONFIG, -1, TOMO_PIPELINE_DEPTH_MAX, server.pipeline_ring_depth, -1, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-zerocopy-min-value",     NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.zerocopy_min_value, 1024, INTEGER_CONFIG, NULL, NULL), /* forward values >= N bytes zero-copy; measured +20-24% at 16-64KB. 0 = never. */
-    createBoolConfig("tomokv-reply-buffer-transfer", NULL, MODIFIABLE_CONFIG, server.reply_buffer_transfer_enabled, 0, NULL, NULL), /* exchange equal-capacity EX/IO reply scratch for completed plain replies >= 8KB. Default OFF: reviewed-correct but large-reply win unmeasured on this HW; opt-in knob, A/B before default-on. */
-    createBoolConfig("tomokv-reply-iovec",           NULL, MODIFIABLE_CONFIG, server.reply_iovec_enabled, 0, NULL, NULL), /* retain large owned reply values and submit stable scatter/gather sends; zerocopy-min-value is the byte threshold. Default OFF: completion-lifetime experiment. */
 
     createBoolConfig("rdbcompression", NULL, MODIFIABLE_CONFIG, server.rdb_compression, 1, NULL, NULL),
     createBoolConfig("rdb-del-sync-files", NULL, MODIFIABLE_CONFIG, server.rdb_del_sync_files, 0, NULL, NULL),
@@ -3477,7 +3428,6 @@ standardConfig static_configs[] = {
      * The old flat tomokv-thread-io / tomokv-thread-ex were REMOVED 2026-07-27: they were a
      * second way to say the same thing. With tomokv-nodes 1 (the default) the new per-node
      * knobs ARE the old flat counts. */
-    /* ee451 (reshard-better §1.1): trigger-hardening knobs — every default 0 reproduces legacy behavior bit-for-bit (clean A/B baseline). */
     createIntConfig("prefetch-batch-max-size", NULL, MODIFIABLE_CONFIG | HIDDEN_CONFIG, 0, PREFETCH_BATCH_MAX_SIZE, server.prefetch_batch_max_size, 16, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("auto-aof-rewrite-percentage", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.aof_rewrite_perc, 100, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("cluster-replica-validity-factor", "cluster-slave-validity-factor", MODIFIABLE_CONFIG, 0, INT_MAX, server.cluster_slave_validity_factor, 10, INTEGER_CONFIG, NULL, NULL), /* Slave max data age factor. */

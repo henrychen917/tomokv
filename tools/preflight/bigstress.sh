@@ -1428,15 +1428,6 @@ run_migration_variant() { # key label io ex mode expected-engine
         stop_server
         return
     fi
-    if ! run_cli "$WORK/$label.keylb.sustain" \
-        "$WORK/$label.keylb.sustain.err" \
-        CONFIG SET tomokv-key-lb-sustain 1; then
-        case_result "$label" FAIL \
-            "could not configure key-balancer sustain ($WORK/$label.keylb.sustain.err)"
-        stop_server
-        return
-    fi
-
     baseline_lines=$(wc -l <"$ACTIVE_LOG" | tr -d ' ')
     abort0=$(grep -cE \
         'reshard ABORT|GROW-(FRONT|BACK) ABORTED' \
