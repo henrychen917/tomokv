@@ -1345,14 +1345,16 @@ section_EG() {
 
     # ---------------- SECTION G (same default boot) ----------------
     sec=G
+    # MULTI/WATCH are SUPPORTED since the single-shard MULTI merge (#92); the reject-message
+    # tracking cells flipped to acceptance tracking 2026-08-11 (same retirement as section A).
     out=$(tcli "$FORK_PORT" MULTI)
-    printf '%s' "$out" | grep -qF "$MULTI_MSG" \
-        && row $sec multi-reject-message "$cfg" KNOWN "documented reject message intact" \
-        || row $sec multi-reject-message "$cfg" FAIL "MULTI reply changed: $(printf '%s' "$out" | head -c 100)"
+    if [ "$out" = "OK" ]; then row $sec multi-accepted "$cfg" KNOWN "MULTI supported (OK)"
+    else row $sec multi-accepted "$cfg" FAIL "MULTI reply: $(printf '%s' "$out" | head -c 100)"; fi
+    tcli "$FORK_PORT" DISCARD >/dev/null 2>&1
     out=$(tcli "$FORK_PORT" WATCH wk)
-    printf '%s' "$out" | grep -qF "$MULTI_MSG" \
-        && row $sec watch-reject-message "$cfg" KNOWN "documented reject message intact" \
-        || row $sec watch-reject-message "$cfg" FAIL "WATCH reply changed: $(printf '%s' "$out" | head -c 100)"
+    if [ "$out" = "OK" ]; then row $sec watch-accepted "$cfg" KNOWN "WATCH supported (OK)"
+    else row $sec watch-accepted "$cfg" FAIL "WATCH reply: $(printf '%s' "$out" | head -c 100)"; fi
+    tcli "$FORK_PORT" UNWATCH >/dev/null 2>&1
     tcli "$FORK_PORT" SET gskey shardval >/dev/null
     local direct inner
     direct=$(tcli "$FORK_PORT" GET gskey)
