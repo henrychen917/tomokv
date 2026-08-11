@@ -187,7 +187,7 @@ start_server {tags {"protocol network"}} {
     r readraw 0
     r deferred 0
 
-    test {large worker reply-buffer transfer preserves exact RESP bytes} {
+    test {large worker reply copy preserves exact RESP bytes} {
         r del reply-buffer-transfer
         set value [string repeat x 64]
         set values [lrepeat 128 $value]
@@ -195,39 +195,29 @@ start_server {tags {"protocol network"}} {
 
         set element "\$64\r\n${value}\r\n"
         set expected "*128\r\n[string repeat $element 128]"
-        set old_transfer [lindex [r config get tomokv-reply-buffer-transfer] 1]
         set rc [redis_client]
 
-        r config set tomokv-reply-buffer-transfer no
         $rc readraw 1
-        set disabled "[$rc lrange reply-buffer-transfer 0 -1]\r\n"
-        append disabled [$rc rawread [expr {[string length $expected] - [string length $disabled]}]]
-        $rc readraw 0
-
-        r config set tomokv-reply-buffer-transfer yes
-        $rc readraw 1
-        set enabled "[$rc lrange reply-buffer-transfer 0 -1]\r\n"
-        append enabled [$rc rawread [expr {[string length $expected] - [string length $enabled]}]]
+        set actual "[$rc lrange reply-buffer-transfer 0 -1]\r\n"
+        append actual [$rc rawread [expr {[string length $expected] - [string length $actual]}]]
         $rc readraw 0
         $rc close
-        r config set tomokv-reply-buffer-transfer $old_transfer
 
-        assert_equal $expected $disabled
-        assert_equal $disabled $enabled
+        assert_equal $expected $actual
     }
 
-    test {reply iovec preserves large, aggregate, and pipelined RESP bytes} {
+    test {zero-copy forwarding preserves large, aggregate, and pipelined RESP bytes} {
         # Encode requests and expected bulk replies ourselves so this test
         # compares the complete byte stream, including every length/header and
         # CRLF, rather than trusting the client library's RESP decoder.
-        proc reply_iovec_command {args} {
+        proc zero_copy_command {args} {
             set out "*[llength $args]\r\n"
             foreach arg $args {
                 append out "\$[string length $arg]\r\n$arg\r\n"
             }
             return $out
         }
-        proc reply_iovec_bulk {value} {
+        proc zero_copy_bulk {value} {
             return "\$[string length $value]\r\n$value\r\n"
         }
 
@@ -255,16 +245,11 @@ start_server {tags {"protocol network"}} {
         r sadd $ks $v16k
         r sadd $kspop $v16k
         # Count > cardinality takes ZRANDMEMBER's deterministic full-scan
-        # branch. For a skiplist-encoded large member that branch hands a new,
-        # owned SDS to addReplyBulkSds, directly exercising the new adoption.
+        # branch. This interleaves a copied, owned SDS reply with retained GETs.
         r zadd $kzrand 1 $v16k
 
-        set old_iovec [lindex [r config get tomokv-reply-iovec] 1]
         set old_zc [lindex [r config get tomokv-zerocopy-min-value] 1]
-        set old_transfer [lindex [r config get tomokv-reply-buffer-transfer] 1]
         r config set tomokv-zerocopy-min-value 1024
-        r config set tomokv-reply-buffer-transfer yes
-        r config set tomokv-reply-iovec yes
 
         set rc [redis_client]
 
@@ -272,8 +257,8 @@ start_server {tags {"protocol network"}} {
         set request ""
         set expected ""
         foreach {key value} [list $k1 $v1k $k16 $v16k $k64 $v64k] {
-            append request [reply_iovec_command GET $key]
-            append expected [reply_iovec_bulk $value]
+            append request [zero_copy_command GET $key]
+            append expected [zero_copy_bulk $value]
         }
         $rc write $request
         $rc flush
@@ -282,10 +267,10 @@ start_server {tags {"protocol network"}} {
 
         # Large multi-bulk list/hash/set elements. One-element hash/set replies
         # make their otherwise-unspecified iteration order byte-deterministic.
-        set list_reply "*3\r\n[reply_iovec_bulk $small][reply_iovec_bulk $v16k][reply_iovec_bulk $v64k]"
-        set hash_reply "*2\r\n[reply_iovec_bulk $v16k][reply_iovec_bulk $v64k]"
-        set set_reply "*1\r\n[reply_iovec_bulk $v16k]"
-        set request "[reply_iovec_command LRANGE $kl 0 -1][reply_iovec_command HGETALL $kh][reply_iovec_command SMEMBERS $ks]"
+        set list_reply "*3\r\n[zero_copy_bulk $small][zero_copy_bulk $v16k][zero_copy_bulk $v64k]"
+        set hash_reply "*2\r\n[zero_copy_bulk $v16k][zero_copy_bulk $v64k]"
+        set set_reply "*1\r\n[zero_copy_bulk $v16k]"
+        set request "[zero_copy_command LRANGE $kl 0 -1][zero_copy_command HGETALL $kh][zero_copy_command SMEMBERS $ks]"
         set expected "$list_reply$hash_reply$set_reply"
         $rc write $request
         $rc flush
@@ -297,23 +282,23 @@ start_server {tags {"protocol network"}} {
         # COW the pinned 16 KiB value, so the earlier GET cannot tear/change.
         set appended "${v16k}tail"
         set request ""
-        append request [reply_iovec_command GET $ksmall]
-        append request [reply_iovec_command GET $k64]
-        append request [reply_iovec_command PING]
-        append request [reply_iovec_command SPOP $kspop]
-        append request [reply_iovec_command ZRANDMEMBER $kzrand 2]
-        append request [reply_iovec_command GET $k16]
-        append request [reply_iovec_command APPEND $k16 tail]
-        append request [reply_iovec_command GET $k16]
-        append request [reply_iovec_command GET $k1]
+        append request [zero_copy_command GET $ksmall]
+        append request [zero_copy_command GET $k64]
+        append request [zero_copy_command PING]
+        append request [zero_copy_command SPOP $kspop]
+        append request [zero_copy_command ZRANDMEMBER $kzrand 2]
+        append request [zero_copy_command GET $k16]
+        append request [zero_copy_command APPEND $k16 tail]
+        append request [zero_copy_command GET $k16]
+        append request [zero_copy_command GET $k1]
 
-        set expected "[reply_iovec_bulk $small][reply_iovec_bulk $v64k]+PONG\r\n"
-        append expected [reply_iovec_bulk $v16k]
-        append expected "*1\r\n[reply_iovec_bulk $v16k]"
-        append expected [reply_iovec_bulk $v16k]
+        set expected "[zero_copy_bulk $small][zero_copy_bulk $v64k]+PONG\r\n"
+        append expected [zero_copy_bulk $v16k]
+        append expected "*1\r\n[zero_copy_bulk $v16k]"
+        append expected [zero_copy_bulk $v16k]
         append expected ":[string length $appended]\r\n"
-        append expected [reply_iovec_bulk $appended]
-        append expected [reply_iovec_bulk $v1k]
+        append expected [zero_copy_bulk $appended]
+        append expected [zero_copy_bulk $v1k]
 
         $rc write $request
         $rc flush
@@ -321,11 +306,9 @@ start_server {tags {"protocol network"}} {
         assert {[string equal $actual $expected]}
         $rc close
 
-        r config set tomokv-reply-iovec $old_iovec
-        r config set tomokv-reply-buffer-transfer $old_transfer
         r config set tomokv-zerocopy-min-value $old_zc
-        rename reply_iovec_command {}
-        rename reply_iovec_bulk {}
+        rename zero_copy_command {}
+        rename zero_copy_bulk {}
     }
 
     # check the connection still works

@@ -1792,42 +1792,6 @@ static int tryAvoidBulkStrCopyToReply(client *c, robj *obj, size_t len) {
     return C_OK;
 }
 
-/* Dragonfly's reply builder copies values through 32 bytes into its retained
- * scratch.  Below that point an iovec plus a retained object costs more than
- * the memcpy and, more importantly, needlessly lengthens an object's life. */
-#define REPLY_IOVEC_INLINE_MAX 32
-
-/* Adopt an SDS whose caller already transfers ownership to the reply.
- *
- * This is the only new raw-memory reference introduced by tomokv-reply-iovec.
- * We deliberately do not borrow addReplyBulkCBuffer() input: listpack/hash/set
- * element pointers can be invalidated by a later command on the owning worker.
- * An addReplyBulkSds() input, in contrast, is already detached and exclusively
- * owned by this call.  Wrapping it in a RAW robj lets the existing BULK_STR_REF
- * machinery carry the lifetime pin through EX -> IO -> transport completion.
- * The wrapper's sole surviving reference is retired through owner_ex/freeback,
- * so the SDS itself is freed on its producing worker rather than on an IO CPU.
- *
- * zerocopy-min-value remains the single byte threshold and 0 remains a hard
- * disable. Restricting this adoption to worker fakes keeps non-sharded/module
- * reply behavior unchanged and gives every retained object a valid owner_ex. */
-static int tryReferenceOwnedBulkSds(client *c, sds s) {
-    size_t len = sdslen(s);
-    if (!server.reply_iovec_enabled || server.zerocopy_min_value <= 0 ||
-        len <= REPLY_IOVEC_INLINE_MAX ||
-        len < (size_t)server.zerocopy_min_value ||
-        !c->isFake || iotid <= TOMO_IO_THREADS_MAX ||
-        (c->flags & CLIENT_CLOSE_AFTER_REPLY))
-    {
-        return C_ERR;
-    }
-
-    robj *owned = createObject(OBJ_STRING, s); /* adopts s, refcount = 1 */
-    _addBulkStrRefToBufferOrList(c, owned, len); /* reply pin: refcount = 2 */
-    decrRefCount(owned); /* drop local owner; reply pin remains */
-    return C_OK;
-}
-
 /* Add a Redis Object as a bulk reply.
  * If avoid_copy is non-zero, attempt to use copy avoidance optimization. */
 void addReplyBulkWithFlag(client *c, robj *obj, int avoid_copy) {
@@ -1874,8 +1838,6 @@ void addReplyBulkSds(client *c, sds s) {
         sdsfree(s);
         return;
     }
-    if (tryReferenceOwnedBulkSds(c, s) == C_OK)
-        return;
     _addReplyLongLongWithPrefix(c, sdslen(s), '$');
     _addReplyToBufferOrList(c, s, sdslen(s));
     sdsfree(s);
@@ -1989,56 +1951,6 @@ void addReplySubcommandSyntaxError(client *c) {
     sdsfree(cmd);
 }
 
-/* A buffer exchange is deliberately restricted to replies large enough that avoiding
- * the copy clearly dominates the ownership bookkeeping. It also keeps the express
- * GET/SET reply path on the existing copy/reference decisions. */
-#define REPLY_BUFFER_TRANSFER_MIN_BYTES (PROTO_REPLY_CHUNK_BYTES / 2)
-
-/* Transfer a completed worker fake's plain inline reply to its IO-owned real
- * client by exchanging equal-capacity scratch allocations.
- *
- * The completion byte is acquire-loaded before AddReplyFromClient is called, so
- * EX has published every byte and is done touching src. The empty buffer moving
- * in the other direction lets commandProcessed recycle src immediately. dst is
- * then the sole owner of the completed buffer: epoll write/writev never retains
- * its pointer after the syscall returns (partial bytes remain dst-owned), while
- * the io_uring sidecar either snapshots it into a completion-owned registered
- * buffer or keeps dst->buf immutable through the data CQE and any promised
- * zero-copy notification. No pointer remains borrowed from EX.
- *
- * Equal capacities are load-bearing: exchanging them leaves reply-buffer memory
- * accounting, resize behavior, output-limit treatment, and allocator pressure
- * exactly as if _addReplyToBufferOrList had copied into dst's existing buffer. */
-static int tryTransferReplyBuffer(client *dst, client *src) {
-    size_t len = src->bufpos;
-
-    if (!server.reply_buffer_transfer_enabled ||
-        !src->isFake || dst->isFake || src->parent != dst ||
-        src->buf_encoded || src->sentlen != 0 || src->last_header != NULL ||
-        listLength(src->reply) != 0 || src->reply_bytes != 0 ||
-        dst->bufpos != 0 || dst->sentlen != 0 || dst->buf_encoded ||
-        dst->last_header != NULL || listLength(dst->reply) != 0 ||
-        src->buf_usable_size != dst->buf_usable_size ||
-        (dst->flags & (CLIENT_CLOSE_AFTER_REPLY | CLIENT_PUSHING)) ||
-        clientTypeIsSlave(dst))
-    {
-        return 0;
-    }
-
-    /* Match _addReplyToBufferOrList's accounting/LOG_REQ_RES side effects,
-     * then exchange ownership instead of copying bytes. */
-    dst->net_output_bytes_curr_cmd += len;
-    reqresSaveClientReplyOffset(dst);
-
-    char *empty = dst->buf;
-    dst->buf = src->buf;
-    src->buf = empty;
-    dst->bufpos = len;
-    src->bufpos = 0;
-    if (dst->buf_peak < len) dst->buf_peak = len;
-    return 1;
-}
-
 /* Append 'src' client output buffers into 'dst' client output buffers.
  * This function clears the output buffers of 'src' */
 void AddReplyFromClient(client *dst, client *src) {
@@ -2055,21 +1967,12 @@ void AddReplyFromClient(client *dst, client *src) {
         return;
     }
 
-    /* First add the static buffer (either by transferring its ownership, or
-     * into the static buffer/reply list through the existing copy path). */
+    /* First add the static buffer into the destination's buffer or reply list. */
     if (_prepareClientToWrite(dst) != C_OK)
         return;
-    /* Short-circuit here, outside the rare helper, so the small GET/SET path
-     * adds only one predicted-not-taken comparison and no function call or
-     * configuration load. */
-    if (likely(src->bufpos < REPLY_BUFFER_TRANSFER_MIN_BYTES) ||
-        !tryTransferReplyBuffer(dst, src))
-    {
-        _addReplyToBufferOrList(dst, src->buf, src->bufpos);
-    }
+    _addReplyToBufferOrList(dst, src->buf, src->bufpos);
 
-    /* Check again because appending/transferring may have changed something
-     * (like CLIENT_CLOSE_ASAP). */
+    /* Check again because appending may have changed something (like CLIENT_CLOSE_ASAP). */
     if (_prepareClientToWrite(dst) != C_OK)
         return;
 
