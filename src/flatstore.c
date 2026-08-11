@@ -130,6 +130,7 @@ void flatTableFree(flatTable *t) {
 /* QSBR retire: lock-free Treiber push of a retired value onto the table's pending stack. Called by
  * the owning worker on delete/overwrite; the main thread closes + reclaims (flatReclaimAll). */
 __thread flatRetireNode **flat_local_sink = NULL;   /* see flatstore.h: worker-local retire sink */
+__thread unsigned flat_local_retire_n = 0;          /* exact open-batch size trigger */
 
 /* Retire-node recycling.
  *
@@ -177,7 +178,12 @@ static void flatRetirePayload(flatTable *t, dictEntry *payload) {
     n->masked_kv = payload;
     /* Worker thread: push onto its OWN list (no CAS) — that worker closes the batch and frees it
      * same-arena once the QSBR grace passes (flatWorkerReclaim). */
-    if (flat_local_sink) { n->next = *flat_local_sink; *flat_local_sink = n; return; }
+    if (flat_local_sink) {
+        n->next = *flat_local_sink;
+        *flat_local_sink = n;
+        flat_local_retire_n++;
+        return;
+    }
     flatRetireNode *head = atomic_load_explicit(&t->retire_stack, memory_order_relaxed);
     do { n->next = head; }
     while (!atomic_compare_exchange_weak_explicit(&t->retire_stack, &head, n,

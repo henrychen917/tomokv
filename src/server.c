@@ -87,6 +87,8 @@ double R_Zero, R_PosInf, R_NegInf, R_Nan;
 
 /* Global vars */
 struct redisServer server; /* Server global state */
+_Static_assert(sizeof(server.kstat[0]) == CACHE_LINE_SIZE,
+               "per-thread kstat shards must remain one cache line");
 /* LB-3: tm_flip_ctx is both the flip-in-progress gate and the publication edge for
  * the winner's plain phase fields. The marker keeps tmFlipTick from consuming those
  * fields between the successful claim and the release-publication of the real ctx. */
@@ -5417,6 +5419,9 @@ void resetServerStats(void) {
         tomoRelaxedSet(server.kstat[i].atomic_read_fast, 0);
         tomoRelaxedSet(server.kstat[i].atomic_read_slow, 0);
         tomoRelaxedSet(server.kstat[i].flat_hash_reuses, 0);
+        tomoRelaxedSet(server.kstat[i].flat_retire_passes, 0);
+        tomoRelaxedSet(server.kstat[i].flat_retire_pass_samples, 0);
+        tomoRelaxedSet(server.kstat[i].flat_retire_pass_cycles, 0);
     }
     server.stat_active_defrag_hits = 0;
     server.stat_active_defrag_misses = 0;
@@ -8935,8 +8940,8 @@ uint64_t tomoKeyHash(const void *key, size_t len) { return xxh64(key, len); }
 
 /* Close a retire list into a grace batch: allocate its group-pin generation, then snapshot every
  * worker's loop_seq and every io identity's inline-region epoch right now.
- * `spare` (optional) is a recycle list of spent headers — a batch is ~816B and the worker closes one
- * per pass under write load, so recycling keeps the steady state allocation-free. */
+ * `spare` (optional) is a recycle list of spent headers — a batch is ~816B, so recycling keeps the
+ * size-amortized close path allocation-free in steady state. */
 /* (flat_batches_closed_n/freed_n moved beside the group-pin slots above: closed doubles as the
  * monotone close generation.) */
 static _Atomic unsigned long flat_reclaim_budget_trips_n;
@@ -9109,26 +9114,93 @@ static int flatDrainReadyBatches(flatBatch **head, flatBatch **tail, flatBatch *
  * pass. The worker closes its own retire list into a batch and frees batches whose grace has passed.
  * Identical grace rule to the main-thread path; the win is WHERE the free happens: same thread that
  * allocated the value (jemalloc tcache, same arena) and one that has spare cycles, instead of the
- * saturated main thread doing cross-arena frees. Cheap when nothing is pending. */
+ * saturated main thread doing cross-arena frees. Cheap when nothing is pending.
+ *
+ * A close is the expensive fixed unit: its StoreLoad fence, close-generation RMW and complete
+ * worker/io snapshot used to run after every nonempty slice. Build an open list to 64 retires
+ * instead. The age ceiling closes sparse tails without a clock read. Closed batches remain a FIFO
+ * and their ready head is still checked every active pass; this is deliberately not the rejected
+ * single-outstanding-batch/check-every-N design, which delays same-arena frees behind one pin. A
+ * later close is conservative: the unlink precedes it, so a reader that can still hold the old
+ * pointer is either captured by the later snapshot or has already quiesced. */
+static __thread unsigned flat_local_retire_age;
+
+/* Sample a serialized hardware cycle counter sparsely: timing every roughly-300ns reclaim pass
+ * would recreate a material part of the tax being measured. 1009 is coprime to the 64-retire
+ * cadence, so the samples walk every close phase instead of aliasing one of them. The target p32
+ * machines are x86-64; unsupported architectures honestly report zero samples/cycles. */
+#define FLAT_RETIRE_CYCLE_SAMPLE_EVERY 1009ULL
+#if defined(__x86_64__)
+#define FLAT_RETIRE_CYCLE_COUNTER_AVAILABLE 1
+static inline uint64_t flatRetireCycleNow(void) {
+    uint32_t lo, hi;
+    __asm__ volatile("lfence\n\trdtsc" : "=a"(lo), "=d"(hi) : : "memory");
+    return ((uint64_t)hi << 32) | lo;
+}
+#else
+#define FLAT_RETIRE_CYCLE_COUNTER_AVAILABLE 0
+static inline uint64_t flatRetireCycleNow(void) { return 0; }
+#endif
+static __thread unsigned long long flat_retire_cycle_next = 1;
+
+static void flatWorkerCloseRetires(exThread *worker) {
+    debugServerAssert(worker->flat_retire_local != NULL && flat_local_retire_n != 0);
+    flatBatch *b = flatBatchClose(worker->flat_retire_local, NULL,
+                                  &worker->flat_batch_spare,
+                                  &worker->flat_batch_spare_n);
+    worker->flat_retire_local = NULL;
+    flat_local_retire_n = 0;
+    flat_local_retire_age = 0;
+    if (worker->flat_batches_tail) worker->flat_batches_tail->next = b;
+    else worker->flat_batches_local = b;
+    worker->flat_batches_tail = b;
+}
+
 static void flatWorkerReclaim(exThread *worker) {
+    if (!worker->flat_retire_local && !worker->flat_batches_local) return;
+
+    /* A converted worker can service this dormant EX binding while iotid names its IO role. Use
+     * the binding's fixed worker slot so this remains a genuinely single-writer kstat shard. */
+    int stat_slot = TOMO_IO_THREADS_MAX + 1 + worker->id;
+    unsigned long long pass = tomoRelaxedRead(server.kstat[stat_slot].flat_retire_passes) + 1;
+    tomoRelaxedSet(server.kstat[stat_slot].flat_retire_passes, pass);
+    int cycle_sample = 0;
+    uint64_t cycle_start = 0;
+    if (FLAT_RETIRE_CYCLE_COUNTER_AVAILABLE &&
+        (pass == 1 || pass >= flat_retire_cycle_next)) {
+        flat_retire_cycle_next = pass + FLAT_RETIRE_CYCLE_SAMPLE_EVERY;
+        cycle_start = flatRetireCycleNow();
+        cycle_sample = 1;
+    }
+
     unsigned long closed = 0;
-    if (worker->flat_retire_local) {
+    if (worker->flat_retire_local &&
+        (flat_local_retire_n >= FLAT_RETIRE_BATCH_TARGET ||
+         ++flat_local_retire_age >= FLAT_RETIRE_BATCH_MAX_AGE)) {
         /* APPEND (FIFO). Every close snapshots the CURRENT seqs, which only ever grow, so an older
-         * batch always becomes ready no later than a newer one. Keeping the list oldest-first lets the
-         * drain below stop at the first non-ready head. That matters: a worker closes a batch per pass
-         * (~1e5/s) while main only bumps its grace counter once per event loop, so the list can hold
-         * hundreds of batches — and a full walk per pass (measured) cost ~16% of p32 SET. */
-        flatBatch *b = flatBatchClose(worker->flat_retire_local, NULL, &worker->flat_batch_spare, &worker->flat_batch_spare_n);
-        worker->flat_retire_local = NULL;
-        if (worker->flat_batches_tail) worker->flat_batches_tail->next = b;
-        else worker->flat_batches_local = b;
-        worker->flat_batches_tail = b;
+         * batch always becomes ready no later than a newer one. Keeping the list oldest-first lets
+         * the drain below stop at the first non-ready head. */
+        flatWorkerCloseRetires(worker);
         closed = 1;
     }
     unsigned long budget = flatReclaimBudget(closed);
-    if (flatDrainReadyBatches(&worker->flat_batches_local, &worker->flat_batches_tail,
+    if (worker->flat_batches_local &&
+        flatDrainReadyBatches(&worker->flat_batches_local, &worker->flat_batches_tail,
                               &worker->flat_batch_spare, &worker->flat_batch_spare_n, &budget))
         atomic_fetch_add_explicit(&flat_reclaim_budget_trips_n, 1, memory_order_relaxed);
+
+    /* A first-grace prune callback can enqueue a distinct wave of post-unlink physical/vmeta
+     * records while the ready prefix is freed. Give a threshold-sized wave its own fresh close
+     * snapshot to start grace two now, but never drain it in this invocation: the next pass is the
+     * earliest readiness check and supplies its own 2*closed+4 budget. */
+    if (worker->flat_retire_local && flat_local_retire_n >= FLAT_RETIRE_BATCH_TARGET)
+        flatWorkerCloseRetires(worker);
+
+    if (cycle_sample) {
+        uint64_t cycles = flatRetireCycleNow() - cycle_start;
+        tomoRelaxedBump(server.kstat[stat_slot].flat_retire_pass_samples, 1);
+        tomoRelaxedBump(server.kstat[stat_slot].flat_retire_pass_cycles, cycles);
+    }
 }
 
 /* NOTE (deliberate non-feature): main does NOT adopt a non-live worker's pending local retires.
@@ -9137,11 +9209,13 @@ static void flatWorkerReclaim(exThread *worker) {
  *     creates no new retires;
  *   - a converted EX->IO worker still reaches exSlice to drain stragglers, so it keeps running
  *     flatWorkerReclaim and frees its own list;
- * so a stopped worker holds at most the retires of its final pass (plus <=2 un-graced batches),
- * all freed the moment it runs again. It would also be UNSAFE: main cannot steal the list race-free
- * while a non-live worker can still enter exSlice and push (the steal and the push interleave into a
- * lost node whose ->next dangles onto a freed one => double free). Keeping the list strictly
- * worker-private is what makes the hot path atomic-free. */
+ * so a stopped worker holds at most one underfull target-sized list plus its final slice's bounded
+ * overshoot and already-closed batches. The dormant-work predicate sees both kinds of state; once
+ * the owner runs, the age ceiling closes a sparse list and every pass probes the ready FIFO head.
+ * It would also be UNSAFE for main to steal the list race-free while a non-live worker can still
+ * enter exSlice and push (the steal and the push interleave into a lost node whose ->next dangles
+ * onto a freed one => double free). Keeping the list strictly worker-private is what makes the hot
+ * path atomic-free. */
 
 
 /* ---- RCU retirement of a REPLACED table -------------------------------------------------------
@@ -18738,6 +18812,20 @@ static long long flatHashReusesTotal(void) {
     return s;
 }
 
+/* Fold only the fixed worker shards. A converted worker keeps writing its EX binding's slot while
+ * dormant, so role changes neither lose nor double-count a reclaim pass. COLD INFO path only. */
+static void flatRetirePassStats(unsigned long long *passes,
+                                unsigned long long *samples,
+                                unsigned long long *cycles) {
+    *passes = *samples = *cycles = 0;
+    for (int w = 0; w < server.num_workers; w++) {
+        int slot = TOMO_IO_THREADS_MAX + 1 + w;
+        *passes += tomoRelaxedRead(server.kstat[slot].flat_retire_passes);
+        *samples += tomoRelaxedRead(server.kstat[slot].flat_retire_pass_samples);
+        *cycles += tomoRelaxedRead(server.kstat[slot].flat_retire_pass_cycles);
+    }
+}
+
 /* ee451 (bug #42): same shape — expired_keys_active must count the WORKER cycles too, otherwise
  * the one instrument that distinguishes active from lazy expiry reads 0 on a sharded server and
  * the defect is unfalsifiable from the outside. Each worker's counter is single-writer (its own
@@ -19203,6 +19291,9 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             atomic_read_fast += tomoRelaxedRead(server.kstat[_t].atomic_read_fast);
             atomic_read_slow += tomoRelaxedRead(server.kstat[_t].atomic_read_slow);
         }
+        unsigned long long flat_retire_passes, flat_retire_pass_samples, flat_retire_pass_cycles;
+        flatRetirePassStats(&flat_retire_passes, &flat_retire_pass_samples,
+                            &flat_retire_pass_cycles);
         info = sdscatprintf(info, "# Stats\r\n" FMTARGS(
             "tomokv_flat_batches_closed:%llu\r\n", (unsigned long long)atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed),
             "tomokv_flat_batches_freed:%llu\r\n", (unsigned long long)atomic_load_explicit(&flat_batches_freed_n, memory_order_relaxed),
@@ -19211,6 +19302,9 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                                      atomic_load_explicit(&flat_batches_freed_n, memory_order_relaxed)),
             "tomokv_flat_reclaim_budget_trips:%lu\r\n",
                 atomic_load_explicit(&flat_reclaim_budget_trips_n, memory_order_relaxed),
+            "tomokv_flat_retire_passes:%llu\r\n", flat_retire_passes,
+            "tomokv_flat_retire_pass_samples:%llu\r\n", flat_retire_pass_samples,
+            "tomokv_flat_retire_pass_cycles:%llu\r\n", flat_retire_pass_cycles,
             "tomokv_flat_io_pinned:%d\r\n", flatIoPinnedCount(),
             "tomokv_flat_pin_backlog:%llu\r\n", (unsigned long long)flatPinBacklog(),
             "tomokv_flat_pin_wrap_blocks:%llu\r\n", atomic_load_explicit(&flat_pin_wrap_blocks, memory_order_relaxed),

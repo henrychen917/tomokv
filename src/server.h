@@ -2668,7 +2668,7 @@ typedef struct exThread {
      * enforces it — an earlier "move to the end of the struct" did NOT actually separate them), and
      * a write on every retire would ping-pong a line every other worker polls in flatBatchReady. */
     char flat_pad[CACHE_LINE_SIZE];
-    struct flatRetireNode *flat_retire_local;
+    struct flatRetireNode *flat_retire_local;  /* bounded size/age batch builder; see flatstore.h */
     struct flatBatch *flat_batches_local;   /* FIFO head = oldest */
     struct flatBatch *flat_batches_tail;    /* FIFO tail = newest (append point) */
     struct flatBatch *flat_batch_spare;     /* recycled batch headers (a batch is ~544B) */
@@ -3556,7 +3556,11 @@ struct redisServer {
         _Atomic unsigned long long atomic_read_fast;
         _Atomic unsigned long long atomic_read_slow;
         _Atomic long long flat_hash_reuses; /* guarded tomo_key_h consumed by a FLAT lookup */
-        char _pad[CACHE_LINE_SIZE - 5 * sizeof(long long)];
+        /* QSBR diet witness. Only the fixed owner worker writes these relaxed shards; INFO folds
+         * them. Cycles is the raw sum over samples, so cycles/samples is the measured pass cost. */
+        _Atomic unsigned long long flat_retire_passes;
+        _Atomic unsigned long long flat_retire_pass_samples;
+        _Atomic unsigned long long flat_retire_pass_cycles;
     } kstat[TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
     /* ee451 (#B1): per-thread executed-command counters. stat_numcommands lived only in call(),
      * which worker threads never enter (they run cmd->proc directly from exExecFake, and the
