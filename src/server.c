@@ -3130,11 +3130,11 @@ static inline int cdbIndexFor(int ex_id) {
     return (ex_id % server.num_cdb);
 }
 
-/* ee451 (atomics): a reply completion is one SPSC status byte, not a shared
- * bitmap update. The worker is the sole EMPTY->ready publisher for this fake
- * generation and the owning IO thread is the sole ready->EMPTY clearer. A ring
- * slot cannot be reused (or re-armed for a later cross-shard stage) until that
- * IO thread clears it.
+/* ee451 (atomics): a reply completion is one SPSC byte in its CDB's packed
+ * status line, not a shared bitmap update. The worker is the sole EMPTY->ready
+ * publisher for this fake generation and the owning IO thread is the sole
+ * ready->EMPTY clearer. A ring slot cannot be reused (or re-armed for a later
+ * cross-shard stage) until that IO thread clears it.
  *
  * Release/acquire is load-bearing and the status byte is the ONLY
  * synchronization point. For INLINE, the worker's ordinary payload and len
@@ -3142,15 +3142,16 @@ static inline int cdbIndexFor(int ex_id) {
  * acquire-loads status BEFORE reading len or payload. POINTER publishes the
  * fake/group state under the same edge. Only the clear is relaxed; it publishes
  * no payload, and every reuse is subsequently handed to a worker through an
- * SPSC queue release store. Keeping status byte-atomic also forces every poll
- * to reload it. */
-static inline cdbSlots *cdbSlotFor(client *real, int cdb, unsigned int slot) {
-    return &clientTail(real)->reply_cdb[
+ * SPSC queue release store. Keeping each packed status byte atomic also forces
+ * every poll to reload it. POINTER never touches the separate payload array. */
+static inline cdbReplyPayload *cdbPayloadFor(client *real, int cdb,
+                                             unsigned int slot) {
+    return &clientTail(real)->reply_cdb_payload[
         (size_t)cdb * TOMO_PIPELINE_DEPTH_MAX + slot];
 }
 
 static inline int cdbSlotReady(client *real, int cdb, unsigned int slot) {
-    return atomic_load_explicit(&cdbSlotFor(real, cdb, slot)->status,
+    return atomic_load_explicit(&clientTail(real)->reply_cdb[cdb].status[slot],
                                 memory_order_acquire);
 }
 
@@ -3161,7 +3162,7 @@ static inline void cdbSlotPublishPrepared(client *real, int cdb,
         tomoRelaxedBump(server.kstat[iotid].cdb_inline_replies, 1);
     else
         tomoRelaxedBump(server.kstat[iotid].cdb_ptr_replies, 1);
-    atomic_store_explicit(&cdbSlotFor(real, cdb, slot)->status, form,
+    atomic_store_explicit(&clientTail(real)->reply_cdb[cdb].status[slot], form,
                           memory_order_release);
 }
 
@@ -3186,8 +3187,8 @@ static inline uint8_t cdbSlotPrepareReply(client *fake, int cdb) {
                fake->reply_bytes == 0 && listLength(fake->reply) == 0 &&
                (!fake->has_exec_tail ||
                 clientTail(fake)->deferred_reply_errors == NULL))) {
-        cdbSlots *completion =
-            cdbSlotFor(fake->parent, cdb, fake->fake_slot);
+        cdbReplyPayload *completion =
+            cdbPayloadFor(fake->parent, cdb, fake->fake_slot);
         uint8_t len = (uint8_t)fake->bufpos;
         if (len) memcpy(completion->payload, fake->buf, len);
         completion->len = len;
@@ -3203,7 +3204,8 @@ static inline void cdbSlotPublishReply(client *fake, int cdb) {
 }
 
 static inline void cdbSlotClear(client *real, int cdb, unsigned int slot) {
-    atomic_store_explicit(&cdbSlotFor(real, cdb, slot)->status, CDB_SLOT_EMPTY,
+    atomic_store_explicit(&clientTail(real)->reply_cdb[cdb].status[slot],
+                          CDB_SLOT_EMPTY,
                           memory_order_relaxed);
 }
 
@@ -4293,9 +4295,9 @@ void handleWorkerReplies(void) {
                  * is disabled, so a later transition cannot reuse a stale bit. */
                 if (xnode_reply) {
                     rt->prefetch_io_xnode_slots &= ~xnode_bit;
-                    /* INLINE payload is already on the acquired CDB line.
-                     * Prefetching fake->buf here would recreate the second
-                     * cross-core fill this form removes. */
+                    /* INLINE reads its separate CDB payload line below.
+                     * Prefetching fake->buf here would add back the remote
+                     * reply-buffer fill this form removes. */
                     if (completion_form == CDB_SLOT_PTR &&
                         __builtin_expect(server.prefetch_io_level == 2, 0))
                         tomoPrefetchCounterBump(prefetch_io_xnode_issued,
@@ -4314,10 +4316,10 @@ void handleWorkerReplies(void) {
             fake->flags &= ~CLIENT_EX_PENDING;
 
             /* Splice fake's reply onto real's output. CDB-inline bytes copy
-             * straight from the acquired completion line; pointer-form inline
-             * bytes use the existing copy path and reply-list blocks are
-             * listJoined (O(1)). May mark real CLIENT_CLOSE_ASAP on
-             * output-buffer-limit overflow. */
+             * from the payload line ordered by the acquired status byte;
+             * pointer-form inline bytes use the existing copy path and
+             * reply-list blocks are listJoined (O(1)). May mark real
+             * CLIENT_CLOSE_ASAP on output-buffer-limit overflow. */
             /* ee451 (v7): a cross-shard group head carries no reply of its own. Build the
              * reassembled reply directly onto real (array header + spliced sub elements) and
              * skip the normal head splice. commandProcessed(fake) below still retires the
@@ -4358,10 +4360,11 @@ void handleWorkerReplies(void) {
                 }
                 csReassemble(real, fake);
             } else if (completion_form == CDB_SLOT_INLINE) {
-                /* The acquire-read of status above precedes these plain
-                 * len/payload reads. Copy directly from the completion line;
-                 * no fake reply-buffer payload is read here. */
-                cdbSlots *completion = cdbSlotFor(real, fake->cdb, slot);
+                /* The acquire-read of packed status above precedes these plain
+                 * reads from the separate payload line. No fake reply-buffer
+                 * payload is read here. */
+                cdbReplyPayload *completion =
+                    cdbPayloadFor(real, fake->cdb, slot);
                 AddReplyFromCdb(real, fake, completion->payload, completion->len);
             } else {
                 serverAssert(completion_form == CDB_SLOT_PTR);
@@ -8634,10 +8637,10 @@ int processCommand(client *c) {
     } else if (canDispatchToWorker(fake)) {
         int ex_id = getWorkerForCommand(fake);
         /* ee451 (S5): capture the CDB index ONCE here. The owning worker signals
-         * the flattened reply_cdb[fake->cdb][fake_slot] status and the drain
-         * clears that byte — one captured value, published to the worker via the
-         * SPSC queue's release store (exQueuePush below), so writer and clearer
-         * never disagree. */
+         * packed reply_cdb[fake->cdb].status[fake_slot] and the drain clears
+         * that byte — one captured value, published to the worker via the SPSC
+         * queue's release store (exQueuePush below), so writer and clearer never
+         * disagree. */
         fake->cdb = cdbIndexFor(ex_id);
         fake->db = &server.exThreads[ex_id].db[fake->db->id];
         fake->flags |= CLIENT_EX_PENDING;
@@ -8678,9 +8681,9 @@ int processCommand(client *c) {
          * guard with acquired=0 (review findings 1/9/12/13). */
         if (listLength(server.ready_keys) && !isInsideYieldingLongCommand())
             handleClientsBlockedOnKeys();
-        /* Signal completion in this fake's independent slot. A small plain
-         * reply moves into that line; otherwise POINTER form publishes the
-         * fake's reply-buffer writes. The drain acquires the status byte. */
+        /* Signal completion in this fake's independent status byte. A small
+         * plain reply moves into its separate payload line; otherwise POINTER
+         * publishes the fake's reply-buffer writes. The drain acquires status. */
         cdbSlotPublishReply(fake, fake->cdb);
     }
     }   /* end express/T6/general routing */
@@ -21709,9 +21712,9 @@ static inline void exExecFake(client *fake) {
 typedef struct exSliceCtx {
     /* ee451 (S5): this worker's CDB index, fixed for its lifetime (num_cdb is
      * IMMUTABLE). Every fake this worker handles was dispatched to it, so each
-     * such fake->cdb == wcdb; the worker signals all its completions into this
-     * worker-owned CDB region, with one isolated line per ring slot. The drain
-     * clears via the same captured fake->cdb. */
+     * such fake->cdb == wcdb; the worker signals all its completions in its
+     * selected packed CDB status line. INLINE payload slots are separate. The
+     * drain clears via the same captured fake->cdb. */
     int wcdb;
     int nq;             /* ee451 (v14): io_threads+1 — loop-invariant (immutable after startup), hoisted */
     int scan_start;     /* worker-local producer-scan rotation cursor */
@@ -22084,9 +22087,9 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
 
         /* Delay ready publication until the whole batch has finished, as before.
          * Retain the independent fakes so the final loop can copy a small reply
-         * immediately before publishing its status. After publishing one entry
-         * the loop never touches that fake again: the IO owner may immediately
-         * retire/recycle it. */
+         * into its separate payload line immediately before publishing packed
+         * status. After publishing one entry the loop never touches that fake
+         * again: the IO owner may immediately retire/recycle it. */
         client *sig_fakes[WORKER_POP_BATCH];
         int sig_n = 0;
 
@@ -22259,9 +22262,9 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
             j++;
         }
 
-        /* Each release store publishes either the fake reply-buffer pointer
-         * form or the len+payload stores made immediately before it. This is
-         * the worker's final access to each fake. */
+        /* Each packed-status release store publishes either the fake reply-
+         * buffer pointer form or the separate len+payload stores made
+         * immediately before it. This is the worker's final fake access. */
         for (int s = 0; s < sig_n; s++)
             cdbSlotPublishReply(sig_fakes[s], ctx->wcdb);
 

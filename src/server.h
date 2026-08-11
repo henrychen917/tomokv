@@ -1623,45 +1623,53 @@ static const uint32_t TOMO_CLS_SLO[TOMO_SVC_CLASSES] = { 1, 1, 4, 64, 1024, 1638
 
 #define PIPELINE_DEPTH 16 /* default; runtime value lives in server.pipeline_ring_depth */
 #define PIPELINE_QUEUE_MASK (PIPELINE_DEPTH - 1) /* kept for back-compat; prefer c->ring_mask */
-/* ee451 (S5/atomics): multi-CDB reply signaling. Each CDB owns one independent
- * cache line per fake-ring slot. The first byte is the slot's status/form tag;
- * the remaining hot bytes can carry a small completed reply. A worker writes
- * payload+len, then release-stores the status byte; the owning IO thread
- * acquire-loads that exact byte before reading either field and relaxed-stores
- * EMPTY after consuming it. The status byte is the ONLY synchronization point.
+/* ee451 (S5/atomics): multi-CDB reply signaling. Each CDB owns one packed
+ * status cache line containing one independent byte per fake-ring slot. Small
+ * completed replies use a separate cache-line-isolated payload slot. A worker
+ * writes payload+len there, then release-stores the packed status byte; the
+ * owning IO thread acquire-loads that exact byte before reading either field
+ * and relaxed-stores EMPTY after consuming it. The status byte is the ONLY
+ * synchronization point.
  *
  * The old representation packed all slots into one uint32_t. Setting or clearing
  * one logical bit then required a locked fetch_or/fetch_and because other workers
  * could concurrently change other bits in the word. Separate atomic objects make
  * the real ownership visible: for one slot there is one completer and one drainer,
  * and slot reuse cannot begin until that drainer has cleared it. Workers mapped
- * to different CDBs still never publish into the same completion line.
- *
- * Footprint: an active slot grows from one byte to one cache line. At the target
- * 64-byte line size, one per-(worker,IO-client) CDB therefore grows from the old
- * padded 64 bytes to 32 * 64 = 2 KiB (TOMO_PIPELINE_DEPTH_MAX lines). */
+ * to different CDBs still never publish into the same status line. POINTER
+ * publication and polling touch only this one packed line per CDB, exactly as
+ * before inline replies. INLINE additionally touches its separate payload line.
+ * At a 64-byte cache line, each CDB allocates 33 lines (2112 bytes): one packed
+ * status line plus TOMO_PIPELINE_DEPTH_MAX payload lines. */
 #define NUM_CDB_MAX 256
 #define CDB_INLINE_REPLY_MAX 48
 #define CDB_SLOT_EMPTY 0
 #define CDB_SLOT_PTR 1
 #define CDB_SLOT_INLINE 2
-/* Legacy type name: one cdbSlots object is now one (cdb,ring-slot) line;
- * reply_cdb is a flat [num_cdb][TOMO_PIPELINE_DEPTH_MAX] array of them. */
 typedef struct cdbSlots {
-    redisAtomic uint8_t status;
+    redisAtomic uint8_t status[TOMO_PIPELINE_DEPTH_MAX];
+    char _pad[CACHE_LINE_SIZE -
+              sizeof(redisAtomic uint8_t) * TOMO_PIPELINE_DEPTH_MAX];
+} __attribute__((aligned(CACHE_LINE_SIZE))) cdbSlots;
+typedef struct cdbReplyPayload {
     uint8_t len;
     char payload[CDB_INLINE_REPLY_MAX];
-    char _pad[CACHE_LINE_SIZE - sizeof(redisAtomic uint8_t) - sizeof(uint8_t) -
-              CDB_INLINE_REPLY_MAX];
-} __attribute__((aligned(CACHE_LINE_SIZE))) cdbSlots;
+    char _pad[CACHE_LINE_SIZE - sizeof(uint8_t) - CDB_INLINE_REPLY_MAX];
+} __attribute__((aligned(CACHE_LINE_SIZE))) cdbReplyPayload;
 _Static_assert(sizeof(redisAtomic uint8_t) == 1,
                "reply-ready atomics must occupy one byte");
 _Static_assert(ATOMIC_CHAR_LOCK_FREE == 2,
                "reply-ready byte atomics must always be lock-free");
 _Static_assert(offsetof(cdbSlots, status) == 0,
-               "reply status must remain the slot publication byte");
+               "reply statuses must begin the packed publication line");
 _Static_assert(sizeof(cdbSlots) == CACHE_LINE_SIZE,
-               "each reply slot must occupy exactly one cache line");
+               "each reply CDB status bus must occupy exactly one cache line");
+_Static_assert(_Alignof(cdbSlots) == CACHE_LINE_SIZE,
+               "each reply CDB status bus must be cache-line aligned");
+_Static_assert(sizeof(cdbReplyPayload) == CACHE_LINE_SIZE,
+               "each inline reply payload slot must occupy exactly one cache line");
+_Static_assert(_Alignof(cdbReplyPayload) == CACHE_LINE_SIZE,
+               "each inline reply payload slot must be cache-line aligned");
 
 /* ---- R1 own-read gate: exact key sets ---------------------------------------------------
  * Per-group / per-read key hashes retained for the EXACT disjointness test (csKeysCollide).
@@ -1792,10 +1800,12 @@ typedef struct clientCold {
  * for field growth without moving the 320-byte execution core. */
 typedef union clientExecTail {
     struct {
-        /* Keep the CDB pointer at full-client offset 320. Its pointee remains
-         * cache-line isolated; this split must not add a dependent load to the
-         * EX->IO completion publication path. */
+        /* Keep the packed status pointer at full-client offset 320. POINTER
+         * publication remains the same direct load plus one status-byte store. */
         cdbSlots *reply_cdb;
+        /* Keep the separate payload pointer adjacent for INLINE lookup.
+         * POINTER publication never reads it. */
+        cdbReplyPayload *reply_cdb_payload;
         /* Connection-owned controller state. A fake never owns another fake
          * ring, which is the four-line hole removed by the core allocation. */
         client *fakeClients[TOMO_PIPELINE_DEPTH_MAX];

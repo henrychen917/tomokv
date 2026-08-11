@@ -180,6 +180,7 @@ static void resetFakeClientState(client *c, client *parent) {
     /* Fake-specific identity */
     c->isFake = 1;
     clientTail(c)->reply_cdb = NULL;          /* #75: fakes never own reply buses; they signal clientTail(parent)->reply_cdb */
+    clientTail(c)->reply_cdb_payload = NULL;  /* inline payload lines are real-client-owned too */
     c->parent = parent;
     clientTail(c)->uring = NULL;
     memset(clientTail(c)->fakeClients, 0, sizeof(clientTail(c)->fakeClients));
@@ -507,10 +508,10 @@ client *createClient(connection *conn) {
     clientTail(c)->cold = NULL;
     clientTail(c)->uring = NULL;
 
-    /* ee451 (#75): the per-CDB reply slots are a HEAP array (clientTail(c)->reply_cdb), aligned to
-     * CACHE_LINE_SIZE in the CDB-init block below. Every (CDB,ring-slot) owns one line, so the
-     * worker-cores-vs-IO-thread false-sharing isolation no longer depends on the client struct's
-     * own alignment, and the old inline-array + jemalloc-luck self-check is retired. */
+    /* ee451 (#75): packed per-CDB status lines and per-(CDB,ring-slot) payload lines are HEAP
+     * arrays aligned in the CDB-init block below. Worker-vs-IO false-sharing isolation therefore
+     * does not depend on the client struct's own alignment, and the old inline-array +
+     * jemalloc-luck self-check remains retired. */
 
     /* Pipeline fields — real client owns the ring */
     c->isFake = 0;
@@ -626,28 +627,37 @@ client *createClient(connection *conn) {
     clientTail(c)->node_id = NULL;
     atomicSet(clientTail(c)->pending_read, 0);
 
-    /* ee451 (#75/atomics): allocate a flat [num_cdb][TOMO_PIPELINE_DEPTH_MAX] array of
-     * cache-line-isolated reply slots for this real client. At the target 64-byte line size this
-     * is 2 KiB per CDB (32 lines), versus the old padded 64-byte CDB; a single-CDB client pays
-     * 2 KiB and a 128-worker bus-per-worker client pays 256 KiB. On a platform with a wider
-     * CACHE_LINE_SIZE the expression below scales to that actual ownership unit.
+    /* ee451 (#75/atomics): allocate the packed [num_cdb] status array separately from the flat
+     * [num_cdb][TOMO_PIPELINE_DEPTH_MAX] inline-payload array. POINTER completions touch only the
+     * packed status line, restoring their pre-inline one-line-per-CDB cache footprint. INLINE
+     * completions additionally touch one cache-line-isolated payload slot.
      *
-     * zmalloc gives no alignment guarantee, so over-allocate and align the base up to
-     * CACHE_LINE_SIZE, stashing the raw zmalloc pointer just below the aligned base so zfree can
+     * zmalloc gives no alignment guarantee, so each array is over-allocated and aligned up to
+     * CACHE_LINE_SIZE. Its raw zmalloc pointer is stashed just below the aligned base so zfree can
      * recover it (accounting-correct; no poisoned libc free/aligned_alloc). num_cdb is fixed at
-     * init so the size never changes (freed in freeClient). Fakes leave reply_cdb NULL and signal
-     * clientTail(parent)->reply_cdb. */
+     * init, so neither array changes size before freeClient. Fakes own neither array. */
     {
         int ncdb = server.num_cdb > 0 ? server.num_cdb : 1;
         size_t nslots = (size_t)ncdb * TOMO_PIPELINE_DEPTH_MAX;
-        void *raw = zmalloc(sizeof(cdbSlots) * nslots + CACHE_LINE_SIZE + sizeof(void *));
-        uintptr_t aligned = ((uintptr_t)raw + sizeof(void *) + (CACHE_LINE_SIZE - 1)) & ~(uintptr_t)(CACHE_LINE_SIZE - 1);
-        ((void **)aligned)[-1] = raw;
-        clientTail(c)->reply_cdb = (cdbSlots *)aligned;
+        void *status_raw = zmalloc(sizeof(cdbSlots) * (size_t)ncdb +
+                                   CACHE_LINE_SIZE + sizeof(void *));
+        uintptr_t status_aligned = ((uintptr_t)status_raw + sizeof(void *) +
+                                    (CACHE_LINE_SIZE - 1)) &
+                                   ~(uintptr_t)(CACHE_LINE_SIZE - 1);
+        ((void **)status_aligned)[-1] = status_raw;
+        clientTail(c)->reply_cdb = (cdbSlots *)status_aligned;
+
+        void *payload_raw = zmalloc(sizeof(cdbReplyPayload) * nslots +
+                                    CACHE_LINE_SIZE + sizeof(void *));
+        uintptr_t payload_aligned = ((uintptr_t)payload_raw + sizeof(void *) +
+                                     (CACHE_LINE_SIZE - 1)) &
+                                    ~(uintptr_t)(CACHE_LINE_SIZE - 1);
+        ((void **)payload_aligned)[-1] = payload_raw;
+        clientTail(c)->reply_cdb_payload = (cdbReplyPayload *)payload_aligned;
+
         for (int cc = 0; cc < ncdb; cc++)
             for (int slot = 0; slot < TOMO_PIPELINE_DEPTH_MAX; slot++)
-                atomic_store_explicit(&clientTail(c)->reply_cdb[
-                                          (size_t)cc * TOMO_PIPELINE_DEPTH_MAX + slot].status,
+                atomic_store_explicit(&clientTail(c)->reply_cdb[cc].status[slot],
                                       CDB_SLOT_EMPTY,
                                       memory_order_relaxed);
     }
@@ -2767,7 +2777,8 @@ void freeClient(client *c) {
                 clientTail(c)->fakeClients[i] = NULL;
             }
         }
-        if (clientTail(c)->reply_cdb) { zfree(((void **)clientTail(c)->reply_cdb)[-1]); clientTail(c)->reply_cdb = NULL; }   /* #75: free heap reply buses */
+        if (clientTail(c)->reply_cdb) { zfree(((void **)clientTail(c)->reply_cdb)[-1]); clientTail(c)->reply_cdb = NULL; }   /* #75: free packed status buses */
+        if (clientTail(c)->reply_cdb_payload) { zfree(((void **)clientTail(c)->reply_cdb_payload)[-1]); clientTail(c)->reply_cdb_payload = NULL; }   /* inline payload lines */
         /* R1 own-read publishing records. Freed HERE and not earlier, for the same reason as the
          * reply buses: a worker retiring a group touches both (csMsetPubRetire, cdbSlotPublish),
          * and the ring-in-flight deferral above is what guarantees no worker still can. */
