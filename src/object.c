@@ -53,7 +53,7 @@ uint64_t *kvobjMetaRef(kvobj *kv, int metaId) {
  * Example of "mykey" with expiration and metadata :
  * 
  *    +------------+------------+-----------+------------------+------------------------+
- *    | m.meta (8) | expiry (8) | robj (16) | key-hdr-size (1) | sdshdr5 "mykey" \0 (7) | 
+ *    | m.meta (8) | expiry (8) | robj (24) | key-hdr-size (1) | sdshdr5 "mykey" \0 (7) |
  *    +------------+------------+-----------+------------------+------------------------+
  *                              ^
  *                              |
@@ -157,9 +157,9 @@ robj *createRawStringObject(const char *ptr, size_t len) {
 /* Creates a new embedded string object and copies the content of key, val and
  * expire to the new object. LRU is set to 0. 
  * 
- * Example of kvobj "mykey" with embedded "myvalue" (16+1+7+11 = 35bytes):
+ * Example of kvobj "mykey" with embedded "myvalue" (24+1+7+11 = 43 bytes):
  *    +-----------+------------------+------------------------+----------------------------+
- *    | robj (16) | key-hdr-size (1) | sdshdr5 "mykey" \0 (7) | sdshdr8 "myvalue" \0  (11) | 
+ *    | robj (24) | key-hdr-size (1) | sdshdr5 "mykey" \0 (7) | sdshdr8 "myvalue" \0  (11) |
  *    +-----------+------------------+------------------------+----------------------------+
  */
 static kvobj *kvobjCreateEmbedString(const char *val_ptr, size_t val_len,
@@ -167,10 +167,12 @@ static kvobj *kvobjCreateEmbedString(const char *val_ptr, size_t val_len,
 {
     kvobj *o;
     debugServerAssert(key != NULL);
-    uint32_t sizeMetas = getNumMeta(keyMetaBits) * sizeof(uint64_t);
 
     /* Calculate sizes for embedded key */
     size_t key_sds_len = sdslen(key);
+    if (key_sds_len >= KEY_SIZE_TO_INCLUDE_EXPIRE_THRESHOLD)
+        keyMetaBits |= KEY_META_MASK_EXPIRE;
+    uint32_t sizeMetas = getNumMeta(keyMetaBits) * sizeof(uint64_t);
     char key_sds_type = sdsReqType(key_sds_len);
     size_t key_sds_size = sdsReqSize(key_sds_len, key_sds_type);
 
@@ -208,7 +210,8 @@ static kvobj *kvobjCreateEmbedString(const char *val_ptr, size_t val_len,
     o->ptr = sdsnewplacement(data, remaining_size, SDS_TYPE_8, val_ptr, val_len);
     
     keyMetaResetValues(o); /* modules + expire */
-    
+
+    tomoRelaxedBump(server.kstat[iotid].kvobj_embed_hits, 1);
     return o;
 }
 
@@ -216,10 +219,10 @@ static kvobj *kvobjCreateEmbedString(const char *val_ptr, size_t val_len,
  * an object where the sds string is actually an unmodifiable string
  * allocated in the same chunk as the object itself.
  * 
- * Example of robj with embedded "myvalue" (16+1+11 = 28 bytes):
- *    +-----------+------------------+----------------------------+
- *    | robj (16) | key-hdr-size (1) | sdshdr8 "myvalue" \0  (11) | 
- *    +-----------+------------------+----------------------------+
+ * Example of robj with embedded "myvalue" (24+11 = 35 bytes):
+ *    +-----------+----------------------------+
+ *    | robj (24) | sdshdr8 "myvalue" \0  (11) |
+ *    +-----------+----------------------------+
  */
 robj *createEmbeddedStringObject(const char *val_ptr, size_t val_len) {
     /* Calculate size for embedded value (always SDS_TYPE_8) */
@@ -288,18 +291,38 @@ kvobj *kvobjSetExpireEx(kvobj *kv, long long expire, int flags) {
     return kv;
 }
 
-/* CANDIDATE (census rank-3): the embed-fit arithmetic, shared by the EMBSTR and
- * RAW branches of kvobjSetEx(). Metadata is discarded from the sum since we
- * don't have to be accurate and it is placed before the object.
- * CANDIDATE: embed limit raised from CACHE_LINE_SIZE to 192.
- * The `len <= 255` guard is REQUIRED once the limit exceeds a cache line: the embedded
- * value sds is always written as SDS_TYPE_8, whose length field is one byte. At the old
- * 64-byte limit the arithmetic made len > 41 impossible, so the guard was unreachable. */
-static inline int kvobjEmbedStringFits(const sds key, size_t len) {
+/* jemalloc's small x86-64 classes around this boundary are 96, 112, 128,
+ * 160, 192, 224. Alignment is the low power-of-two factor of the class: 112
+ * is only 16-byte aligned and can already straddle three 64-byte cache lines,
+ * so stopping at 128 does not buy a two-line worst-case bound. Classes 160
+ * and 192 still touch at most three lines (192 is 64-byte aligned), while 224
+ * is 32-byte aligned and always touches four. Thus 192 is the last class that
+ * preserves the already-paid three-line locality envelope while saving one
+ * persistent allocation and pointer chase. This is deliberately hardcoded. */
+#define KVOBJ_EMBED_ALLOC_SIZE_LIMIT 192u
+
+/* Exact requested size shared by the EMBSTR and RAW branches of kvobjSetEx().
+ * Metadata precedes the object but belongs to the same allocation and must be
+ * counted. On LP64 the request is 31 + key_len + value_len + 8*metadata_count
+ * for sdshdr5 keys, or 33 + key_len + value_len + 8*metadata_count once the
+ * key needs sdshdr8; metadata_count includes the expiry slot reserved for keys
+ * of at least 128 bytes. The value is forced to SDS_TYPE_8, so retain its
+ * format limit even though the allocation-size limit makes it redundant. */
+static inline int kvobjEmbedStringFits(const sds key, size_t len, uint32_t keyMetaBits) {
+    if (key == NULL || len > UINT8_MAX)
+        return 0;
+
+    size_t key_len = sdslen(key);
+    if (key_len > KVOBJ_EMBED_ALLOC_SIZE_LIMIT)
+        return 0;
+    if (key_len >= KEY_SIZE_TO_INCLUDE_EXPIRE_THRESHOLD)
+        keyMetaBits |= KEY_META_MASK_EXPIRE;
+
     size_t size = sizeof(kvobj);
-    size += (key != NULL) * (sdslen(key) + 3); /* hdr size (1) + hdr (1) + nullterm (1) */
-    size += 4 + len; /* embstr header (3) + nullterm (1) */
-    return size <= 192u && len <= 255;
+    size += getNumMeta(keyMetaBits) * sizeof(uint64_t);
+    size += 1 + sdsReqSize(key_len, sdsReqType(key_len));
+    size += sdsReqSize(len, SDS_TYPE_8);
+    return size <= KVOBJ_EMBED_ALLOC_SIZE_LIMIT;
 }
 
 /* This functions may reallocate the value. The new allocation is returned and
@@ -308,13 +331,13 @@ static inline int kvobjEmbedStringFits(const sds key, size_t len) {
  *
  * 'flags' is a bitmask of KVOBJ_SET_* (0 == the historical embedRawOk=0).
  *
- * KVOBJ_SET_EMBED_RAW (CANDIDATE census rank-3): when set, an OBJ_ENCODING_RAW
- * string value that passes the same 192-byte arithmetic as the EMBSTR branch
+ * KVOBJ_SET_EMBED_RAW: when set, an OBJ_ENCODING_RAW string value that passes
+ * the exact requested-size test used by the EMBSTR branch
  * is COPIED into the kvobj allocation (result encoding OBJ_ENCODING_EMBSTR)
- * instead of adopting/duplicating the sds into a second allocation. Values of
- * 45B+ always arrive RAW from parsing (createStringObject()'s 44-byte EMBSTR
- * limit), so without this they pay the second allocation and its extra cache
- * line on every value-length read, GET reply and overwrite free.
+ * instead of adopting/duplicating the sds into a second allocation. RAW values
+ * produced outside the RESP parser's bounded EMBSTR path otherwise pay the
+ * second allocation and its extra pointer chase on every value-length read,
+ * GET reply and overwrite free.
  *
  * Pass 0 (or call kvobjSet()) whenever the caller may later mutate the stored
  * value in place through kv->ptr without first going through
@@ -363,18 +386,17 @@ kvobj *kvobjSetEx(sds key, robj *val, uint32_t keyMetaBits, int flags) {
         size_t len = sdslen(val->ptr);
 
         /* Embed when the sum is small (see kvobjEmbedStringFits) */
-        if (kvobjEmbedStringFits(key, len)) {
+        if (kvobjEmbedStringFits(key, len, keyMetaBits)) {
             kv = kvobjCreateEmbedString(val->ptr, len, key, keyMetaBits);
         } else {
             kv = kvobjCreate(OBJ_STRING, key, sdsnewlen(val->ptr, len), keyMetaBits);
         }
     } else if (embedRawOk && val->type == OBJ_STRING &&
                val->encoding == OBJ_ENCODING_RAW &&
-               kvobjEmbedStringFits(key, sdslen(val->ptr)))
+               kvobjEmbedStringFits(key, sdslen(val->ptr), keyMetaBits))
     {
-        /* CANDIDATE (census rank-3): RAW single-allocation embed. The <=170B
-         * memcpy (inside kvobjCreateEmbedString -> sdsnewplacement) is noise
-         * next to the saved malloc/free pair of the separate value sds. */
+        /* The bounded copy inside kvobjCreateEmbedString is
+         * cheaper than retaining a separate value allocation and pointer. */
         size_t len = sdslen(val->ptr);
         kv = kvobjCreateEmbedString(val->ptr, len, key, keyMetaBits);
         /* Mirror the adopt path's consumption contract (below): with
@@ -434,17 +456,31 @@ kvobj *kvobjSet(sds key, robj *val, uint32_t keyMetaBits) {
 }
 
 /* Create a string object with EMBSTR encoding if it is smaller than
- * OBJ_ENCODING_EMBSTR_SIZE_LIMIT, otherwise the RAW encoding is
- * used.
- *
- * The current limit of 44 is chosen so that the biggest string object
- * we allocate as EMBSTR will still fit into the 64 byte arena of jemalloc. */
+ * OBJ_ENCODING_EMBSTR_SIZE_LIMIT, otherwise the RAW encoding is used. Keep
+ * this historical general-purpose threshold stable: callers outside command
+ * parsing can have encoding-sensitive mutation contracts. */
 #define OBJ_ENCODING_EMBSTR_SIZE_LIMIT 44
 robj *createStringObject(const char *ptr, size_t len) {
     if (len <= OBJ_ENCODING_EMBSTR_SIZE_LIMIT)
         return createEmbeddedStringObject(ptr,len);
     else
         return createRawStringObject(ptr,len);
+}
+
+/* RESP operands are immutable command inputs. Extend their one-allocation
+ * representation through the same last-three-line class: on LP64 the
+ * exact request is sizeof(robj) + sdshdr8 + bytes + NUL = 28 + len, so values
+ * through 164 bytes fit in class 192. Above the historical 44-byte threshold
+ * this folds the RAW object's separate SDS allocation into the object itself. */
+robj *createStringObjectForArgument(const char *ptr, size_t len) {
+    if (len <= UINT8_MAX &&
+        sizeof(robj) + sdsReqSize(len, SDS_TYPE_8) <= KVOBJ_EMBED_ALLOC_SIZE_LIMIT)
+    {
+        if (len > OBJ_ENCODING_EMBSTR_SIZE_LIMIT)
+            tomoRelaxedBump(server.kstat[iotid].alloc_folds, 1);
+        return createEmbeddedStringObject(ptr, len);
+    }
+    return createRawStringObject(ptr, len);
 }
 
 /* Same as CreateRawStringObject, can return NULL if allocation fails */

@@ -4246,7 +4246,7 @@ static int processMultibulkBuffer(client *c, pendingCommand *pcmd) {
                 if (pcmd->argc == 0)
                     arg = commandNameIntern(clientTail(c)->querybuf+clientTail(c)->qb_pos, clientTail(c)->bulklen);
                 if (arg == NULL)
-                    arg = createStringObject(clientTail(c)->querybuf+clientTail(c)->qb_pos,clientTail(c)->bulklen);
+                    arg = createStringObjectForArgument(clientTail(c)->querybuf+clientTail(c)->qb_pos,clientTail(c)->bulklen);
                 (pcmd->argv)[(pcmd->argc)++] = arg;
                 pcmd->argv_len_sum += clientTail(c)->bulklen;
                 c->all_argv_len_sum += clientTail(c)->bulklen;

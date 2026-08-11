@@ -38,7 +38,7 @@
  * Example layout with key and embedded value "myvalue":
  *    +--------------+--------------+--------------------+----------------------+
  *    | serverObject | key-hdr-size | sdshdr5 "mykey" \0 | sdshdr8 "myvalue" \0 |
- *    | 16 bytes     | 1 byte       | 1      +   5   + 1 | 3    +      7    + 1 |
+ *    | 24 bytes     | 1 byte       | 1      +   5   + 1 | 3    +      7    + 1 |
  *    +--------------+--------------+--------------------+----------------------+
  * 
  * kvobj with metadata (+expiration)
@@ -50,7 +50,7 @@
  * Example of a key with expiration time (metabits=0b00000001):
  *     +--------------+--------------+--------------+--------------------+
  *     | Expiry Time  | serverObject | key-hdr-size | sdshdr5 "mykey" \0 |
- *     | 8 byte       | 16 bytes     | 1 byte       | 1      +   5   + 1 |
+ *     | 8 byte       | 24 bytes     | 1 byte       | 1      +   5   + 1 |
  *     +--------------+--------------+--------------+--------------------+
  *                    ^
  *                    +---- kvobjCreate() returns pointer here
@@ -58,7 +58,7 @@
  * Example with metadata of class1 and class3 attached (metabits=0b00001010):
  * +--------------+--------------+--------------+--------------+--------------------+
  * | meta (class3)| meta (class1)| serverObject | key-hdr-size | sdshdr5 "mykey" \0 |
- * | 8 byte       | 8 byte       | 16 bytes     | 1 byte       | 1      +   5   + 1 |
+ * | 8 byte       | 8 byte       | 24 bytes     | 1 byte       | 1      +   5   + 1 |
  * +--------------+--------------+--------------+--------------+--------------------+
  *                               ^
  *                               +---- kvobjCreate() returns pointer here
@@ -273,6 +273,7 @@ void dismissObject(robj *o, size_t dump_size);
 robj *createObject(int type, void *ptr);
 void initObjectLRUOrLFU(robj *o);
 robj *createStringObject(const char *ptr, size_t len);
+robj *createStringObjectForArgument(const char *ptr, size_t len);
 robj *createRawStringObject(const char *ptr, size_t len);
 robj *tryCreateRawStringObject(const char *ptr, size_t len);
 robj *tryCreateStringObject(const char *ptr, size_t len);

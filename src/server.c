@@ -5411,12 +5411,14 @@ void resetServerStats(void) {
     server.stat_keyspace_misses = 0;
     server.stat_keyspace_hits = 0;
     /* ee451 (S6): zero the per-thread keyspace counters too. */
-    for (int i = 0; i < TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX; i++) {
+    for (int i = 0; i < TOMO_STAT_SLOTS; i++) {
         tomoRelaxedSet(server.kstat[i].hits, 0);
         tomoRelaxedSet(server.kstat[i].misses, 0);
         tomoRelaxedSet(server.kstat[i].atomic_read_fast, 0);
         tomoRelaxedSet(server.kstat[i].atomic_read_slow, 0);
         tomoRelaxedSet(server.kstat[i].flat_hash_reuses, 0);
+        tomoRelaxedSet(server.kstat[i].kvobj_embed_hits, 0);
+        tomoRelaxedSet(server.kstat[i].alloc_folds, 0);
     }
     server.stat_active_defrag_hits = 0;
     server.stat_active_defrag_misses = 0;
@@ -19199,9 +19201,12 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
          * atomic mode was enabled. Raw values and misses are deliberately not
          * called fast: a large fast count therefore proves the new gate fired. */
         unsigned long long atomic_read_fast = 0, atomic_read_slow = 0;
+        unsigned long long kvobj_embed_hits = 0, alloc_folds = 0;
         for (int _t = 0; _t < TOMO_STAT_SLOTS; _t++) {
             atomic_read_fast += tomoRelaxedRead(server.kstat[_t].atomic_read_fast);
             atomic_read_slow += tomoRelaxedRead(server.kstat[_t].atomic_read_slow);
+            kvobj_embed_hits += tomoRelaxedRead(server.kstat[_t].kvobj_embed_hits);
+            alloc_folds += tomoRelaxedRead(server.kstat[_t].alloc_folds);
         }
         info = sdscatprintf(info, "# Stats\r\n" FMTARGS(
             "tomokv_flat_batches_closed:%llu\r\n", (unsigned long long)atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed),
@@ -19290,8 +19295,12 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
         info = sdscatprintf(info,
+            "tomokv_kvobj_embed_hits:%llu\r\n"
+            "tomokv_alloc_folds:%llu\r\n"
             "tomokv_fake_core_allocs:%llu\r\n"
             "tomokv_fake_tail_promotions:%llu\r\n",
+            kvobj_embed_hits,
+            alloc_folds,
             atomic_load_explicit(&tomo_fake_core_allocs, memory_order_relaxed),
             atomic_load_explicit(&tomo_fake_tail_promotions, memory_order_relaxed));
         /* Keep the lifecycle witnesses outside the already-large FMTARGS block. ref_waits is the

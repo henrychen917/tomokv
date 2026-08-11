@@ -150,10 +150,10 @@ void setGenericCommand(client *c, int flags, robj *key, robj **valref, robj *exp
     /* When expire is not NULL, we avoid deleting the TTL so it can be updated later instead of being deleted and then created again. */
     setkey_flags |= ((flags & OBJ_KEEPTTL) || expire) ? SETKEY_KEEPTTL : 0;
     setkey_flags |= found ? SETKEY_ALREADY_EXIST : SETKEY_DOESNT_EXIST;
-    /* CANDIDATE (census rank-3): the SET family stores a final value -- nothing
-     * mutates it in place through *valref afterwards -- so a small RAW value
-     * (45B+, which parsing never makes EMBSTR) may be embedded into the kvobj
-     * allocation. See kvobjSetEx(). */
+    /* The SET family stores a final value -- nothing mutates it in place
+     * through *valref afterwards -- so a final RAW value from an internal or
+     * non-parser path may be embedded into the kvobj allocation. See
+     * kvobjSetEx(). */
     setkey_flags |= SETKEY_EMBED_RAW;
 
     setKeyByLink(c, c->db, key, valref, setkey_flags, &link);
@@ -196,23 +196,30 @@ void setGenericCommand(client *c, int flags, robj *key, robj **valref, robj *exp
         addReply(c, ok_reply ? ok_reply : shared.ok);
     }
 
-    /* Propagate without the GET argument (Isn't needed if we had expire since in that case we completely re-written the command argv) */
+    /* Propagate without the GET argument (Isn't needed if we had expire since
+     * in that case we completely re-written the command argv). Worker fakes do
+     * not propagate, so avoid constructing and installing a propagation-only
+     * argv there. */
     if ((flags & OBJ_SET_GET) && !expire) {
-        int argc = 0;
-        int j;
-        robj **argv = zmalloc((c->argc-1)*sizeof(robj*));
-        for (j=0; j < c->argc; j++) {
-            char *a = c->argv[j]->ptr;
-            /* Skip GET which may be repeated multiple times. */
-            if (j >= 3 &&
-                (a[0] == 'g' || a[0] == 'G') &&
-                (a[1] == 'e' || a[1] == 'E') &&
-                (a[2] == 't' || a[2] == 'T') && a[3] == '\0')
-                continue;
-            argv[argc++] = c->argv[j];
-            incrRefCount(c->argv[j]);
+        if (c->isFake) {
+            tomoRelaxedBump(server.kstat[iotid].alloc_folds, 1);
+        } else {
+            int argc = 0;
+            int j;
+            robj **argv = zmalloc((c->argc-1)*sizeof(robj*));
+            for (j=0; j < c->argc; j++) {
+                char *a = c->argv[j]->ptr;
+                /* Skip GET which may be repeated multiple times. */
+                if (j >= 3 &&
+                    (a[0] == 'g' || a[0] == 'G') &&
+                    (a[1] == 'e' || a[1] == 'E') &&
+                    (a[2] == 't' || a[2] == 'T') && a[3] == '\0')
+                    continue;
+                argv[argc++] = c->argv[j];
+                incrRefCount(c->argv[j]);
+            }
+            replaceClientCommandVector(c, argc, argv);
         }
-        replaceClientCommandVector(c, argc, argv);
     }
 }
 
