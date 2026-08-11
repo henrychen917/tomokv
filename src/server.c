@@ -207,6 +207,11 @@ static int isStatefulCommandSlow(struct redisCommand *cmd);   /* v14: stamp-time
 static inline int isStatefulCommand(struct redisCommand *cmd);  /* v14: per-op flag test */
 static void moveExecutionState(client *real, client *fake);
 static void moveExecutionStateSlim(client *real, client *fake);  /* 2s-auto T3 express-slim */
+static pendingCommand *moveExecutionStateFast(client *real);
+static void exEntryInitFast(exQueueEntry *entry, client *reply_carrier,
+                            pendingCommand *pcmd, uint64_t hash,
+                            unsigned int bucket, unsigned int cdb,
+                            unsigned int reply_slot, unsigned int dbid);
 void fakeRingAutoTune(void);       /* 2s-auto T3 1Hz global express-slim EWMA (main thread) */
 void fakeRingClientCron(client *c);/* 2s-auto D1/D3 per-client depth-decay/buf-reset (owning thread) */
 /* ee451 (v7) cross-shard: defined below exIndexForKey, used earlier (dispatch + drain). */
@@ -257,6 +262,7 @@ static struct polyThreadCtx *tmCtxForIotid(int id);
 static void tomoRebuildCrossNodeTopology(void);
 static inline int migBucketInRange(int b);            /* v8d: bucket in migrating [lo,hi) */
 static inline int migKeyBucket(const void *p, size_t len);  /* v8d: key -> bucket id (one xxh64) */
+static uint64_t xxh64(const void *input, size_t len);
 void exBindNumaLocal(int ex_id);   /* v8d: NUMA-local shard alloc (any pinning pin-mode); defined late */
 static const char *tomoPinModeName(int mode);  /* tomokv-pin-mode enum -> its config spelling */
 static void tomoResolvePinConfig(void);        /* parse+cross-check tomokv-pin-io/-ex at boot */
@@ -275,6 +281,49 @@ static inline client *exOwnerOpEncode(tomoOwnerOp *op) {
 static inline tomoOwnerOp *exOwnerOpDecode(client *job) {
     serverAssert(((uintptr_t)job & TOMO_EX_OWNER_OP_TAG) != 0);
     return (tomoOwnerOp *)((uintptr_t)job & ~TOMO_EX_OWNER_OP_TAG);
+}
+
+#define TOMO_EX_META_KIND_MASK UINT64_C(0x7)
+#define TOMO_EX_META_SLOT_SHIFT 3
+#define TOMO_EX_META_CDB_SHIFT 8
+#define TOMO_EX_META_BUCKET_SHIFT 16
+#define TOMO_EX_META_DBID_SHIFT 30
+
+static inline exQueueEntryKind exEntryKind(const exQueueEntry *entry) {
+    return (exQueueEntryKind)(entry->meta & TOMO_EX_META_KIND_MASK);
+}
+
+static inline int exEntryIsFast(const exQueueEntry *entry) {
+    return exEntryKind(entry) >= TOMO_EX_ENTRY_FAST_GET_INLINE;
+}
+
+static inline uint64_t exEntryMeta(exQueueEntryKind kind, unsigned int slot,
+                                   unsigned int cdb, unsigned int bucket,
+                                   unsigned int dbid) {
+    serverAssert(slot < TOMO_PIPELINE_DEPTH_MAX);
+    serverAssert(cdb < NUM_CDB_MAX);
+    serverAssert(bucket < TOMO_BUCKETS);
+    return (uint64_t)kind |
+           ((uint64_t)slot << TOMO_EX_META_SLOT_SHIFT) |
+           ((uint64_t)cdb << TOMO_EX_META_CDB_SHIFT) |
+           ((uint64_t)bucket << TOMO_EX_META_BUCKET_SHIFT) |
+           ((uint64_t)dbid << TOMO_EX_META_DBID_SHIFT);
+}
+
+static inline unsigned int exEntrySlot(const exQueueEntry *entry) {
+    return (unsigned int)((entry->meta >> TOMO_EX_META_SLOT_SHIFT) & 0x1f);
+}
+
+static inline unsigned int exEntryCdb(const exQueueEntry *entry) {
+    return (unsigned int)((entry->meta >> TOMO_EX_META_CDB_SHIFT) & 0xff);
+}
+
+static inline unsigned int exEntryBucket(const exQueueEntry *entry) {
+    return (unsigned int)((entry->meta >> TOMO_EX_META_BUCKET_SHIFT) & TOMO_BUCKET_MASK);
+}
+
+static inline unsigned int exEntryDbid(const exQueueEntry *entry) {
+    return (unsigned int)(entry->meta >> TOMO_EX_META_DBID_SHIFT);
 }
 
 /* CURE2 completion order. The lock serializes the R1-approved draw, owner-op
@@ -3168,6 +3217,23 @@ static inline void cdbSlotClear(client *real, int cdb, unsigned int slot) {
                           memory_order_relaxed);
 }
 
+/* The IO owner must know which CDB byte to poll before it can acquire the
+ * completion. Keep that generation's route beside, but not inside, the CDB
+ * lines so FAST dispatch never has to stamp the fake carrier first. */
+static inline cdbRouteSlots *cdbRoutes(client *real) {
+    int ncdb = server.num_cdb > 0 ? server.num_cdb : 1;
+    return (cdbRouteSlots *)&clientTail(real)->reply_cdb[ncdb];
+}
+
+static inline void cdbRouteSet(client *real, unsigned int slot, int cdb) {
+    serverAssert(slot < TOMO_PIPELINE_DEPTH_MAX && cdb >= 0 && cdb < NUM_CDB_MAX);
+    cdbRoutes(real)->cdb[slot] = (uint8_t)cdb;
+}
+
+static inline int cdbRouteGet(client *real, unsigned int slot) {
+    return cdbRoutes(real)->cdb[slot];
+}
+
 /* ee451 (#A2): folded network byte counters (legacy atomic baseline + per-thread shards). */
 long long getNetInputBytes(void) {
     long long s; atomicGet(server.stat_net_input_bytes, s);
@@ -3907,16 +3973,25 @@ static inline exQueue *exQueueFor(int ex_id) {
     return &base[iotid];
 }
 
-static void exDispatchDirect(int ex_id, client *fake) {
+static void exDispatchEntryDirect(int ex_id, const exQueueEntry *entry) {
     exQueue *q = exQueueFor(ex_id);
-    if (__builtin_expect(server.prefetch_io_level == 2, 0) &&
-        tomoCrossNode(iotid, ex_id) &&
-        (fake->flags & CLIENT_EX_PENDING) && fake->parent &&
-        fake->parent->has_exec_tail)
-        clientTail(fake->parent)->prefetch_io_xnode_slots |=
-            1u << fake->fake_slot;
+    exQueueEntryKind kind = exEntryKind(entry);
+    if (kind == TOMO_EX_ENTRY_POINTER) {
+        client *fake = entry->client_id;
+        /* Keep strict-order's enqueue-time stamp on the POINTER path. FAST is
+         * excluded while strict ordering is active, and OWNER entries have no
+         * client arrival timestamp. Stamp once before any full-ring retry. */
+        if (__builtin_expect(server.strict_order != 0, 0))
+            fake->arrival_us = getMonotonicUs();
+        if (__builtin_expect(server.prefetch_io_level == 2, 0) &&
+            tomoCrossNode(iotid, ex_id) &&
+            (fake->flags & CLIENT_EX_PENDING) && fake->parent &&
+            fake->parent->has_exec_tail)
+            clientTail(fake->parent)->prefetch_io_xnode_slots |=
+                1u << fake->fake_slot;
+    }
     if (!tomo_rord.draining) tm_io_sig[iotid].disp_cnt++;   /* staged path counted at stage time */
-    if (__builtin_expect(exQueuePush(q, fake) == 0, 1)) {
+    if (__builtin_expect(exQueuePushEntry(q, entry) == 0, 1)) {
         /* D mechanism A: EARLY FLUSH once W dispatches are staged. W=0 = law silent = pass-end
          * only = pre-D behaviour. Suppressed during the reorder drain (already windowed at stage). */
         if (!tomo_rord.draining) {
@@ -3953,11 +4028,33 @@ static void exDispatchDirect(int ex_id, client *fake) {
         flushExQueues();
         exPauseCpu();
         if ((++spins & 4095) == 0) tomoPollingYield();
-    } while (exQueuePush(q, fake) != 0);
+    } while (exQueuePushEntry(q, entry) != 0);
     tmIoWaitEnd();
     tm_io_sig[iotid].tm_ring_stall_us += (unsigned int)(getMonotonicUs() - _stall0);
-    atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);       /* publish the just-pushed fake now */
+    atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);       /* publish the just-pushed entry now */
     exHandoffAdvertise(&server.exThreads[ex_id]);
+}
+
+static void exDispatchDirect(int ex_id, client *fake) {
+    exQueueEntry entry = {0};
+    entry.client_id = fake;
+    entry.meta = TOMO_EX_ENTRY_POINTER;
+    exDispatchEntryDirect(ex_id, &entry);
+}
+
+static void exDispatchFast(int ex_id, const exQueueEntry *entry, client *real) {
+    serverAssert(exEntryIsFast(entry));
+    /* A runtime reorder disable can leave older POINTER work in this IO
+     * thread's scratch window. Preserve the existing candidate/non-candidate
+     * boundary before the now-direct FAST enqueue. */
+    if (tomo_rord.n) tomoReorderDrain();
+    if (__builtin_expect(server.prefetch_io_level == 2, 0) &&
+        tomoCrossNode(iotid, ex_id)) {
+        /* FAST has no stamped fake yet, but its real identity and entry slot
+         * carry the same cross-node reply provenance without a carrier touch. */
+        clientTail(real)->prefetch_io_xnode_slots |= 1u << exEntrySlot(entry);
+    }
+    exDispatchEntryDirect(ex_id, entry);
 }
 
 /* ee451 #88: argv-aware refinement of the static cost class. Only for the argv-index-bounded range
@@ -4148,8 +4245,9 @@ void handleWorkerReplies(void) {
         if ((real->flags & CLIENT_CLOSE_ASAP) || !real->conn) {
             while (rt->flushid != rt->dispatchid) {
                 unsigned int slot = rt->flushid & rt->ring_mask;
+                int reply_cdb = cdbRouteGet(real, slot);
                 client *fake = rt->fakeClients[slot];
-                if (!cdbSlotReady(real, fake->cdb, slot)) break;  /* wait for worker */
+                if (!cdbSlotReady(real, reply_cdb, slot)) break;  /* wait for worker */
                 int was_ex_dispatched = (fake->flags & CLIENT_EX_PENDING) != 0;
                 int was_cs = (fake->csgroup != NULL);
                 fake->flags &= ~CLIENT_EX_PENDING;
@@ -4200,7 +4298,7 @@ void handleWorkerReplies(void) {
                     csReassemble(NULL, fake);
                 }
                 foldClientCommandsProcessed(real, fake);   /* ee451 (#B2) */
-                cdbSlotClear(real, fake->cdb, slot);
+                cdbSlotClear(real, reply_cdb, slot);
                 tomoReleaseReadSnapshot(fake);
                 commandProcessed(fake);
                 if (was_ex_dispatched || was_cs) replyWorking--;
@@ -4235,10 +4333,11 @@ void handleWorkerReplies(void) {
 
         while (rt->flushid != rt->dispatchid) {
             unsigned int slot = rt->flushid & rt->ring_mask;
+            int reply_cdb = cdbRouteGet(real, slot);
             client *fake = rt->fakeClients[slot];
             /* Acquire pairs with this slot's worker release publication. A
              * stale zero only postpones the prefix until the next poll. */
-            if (!cdbSlotReady(real, fake->cdb, slot)) break;
+            if (!cdbSlotReady(real, reply_cdb, slot)) break;
             if (__builtin_expect(atomic_load_explicit(&cross_node_any[iotid],
                                                        memory_order_acquire), 0)) {
                 uint32_t xnode_bit = 1u << slot;
@@ -4322,7 +4421,7 @@ void handleWorkerReplies(void) {
                  * Retire the fake state, stop walking the ring. The async
                  * free queue will clean up real; its ring doesn't need
                  * further drain here. */
-                cdbSlotClear(real, fake->cdb, slot);
+                cdbSlotClear(real, reply_cdb, slot);
                 tomoReleaseReadSnapshot(fake);
                 commandProcessed(fake);
                 if (was_ex_dispatched || was_cs) replyWorking--;
@@ -4333,7 +4432,7 @@ void handleWorkerReplies(void) {
 
             /* Fake is fully drained into real's output. Clear its independent
              * ready byte before retiring/reusing this fake-ring slot. */
-            cdbSlotClear(real, fake->cdb, slot);
+            cdbSlotClear(real, reply_cdb, slot);
             tomoReleaseReadSnapshot(fake);
             commandProcessed(fake);
 
@@ -8420,6 +8519,13 @@ int processCommand(client *c) {
             NOTIFY_KEY_MISS | NOTIFY_EXPIRED | NOTIFY_STRING | NOTIFY_NEW |
             NOTIFY_OVERWRITTEN | NOTIFY_TYPE_CHANGED))
         core_eligible = 0;
+    size_t fast_key_len = core_eligible ? sdslen(c->argv[1]->ptr) : 0;
+    /* Reorder/strict-order and MVCC need descriptor state beyond one line;
+     * preserve their exact fake-carrier semantics. Genuinely large keys do the
+     * same, while ordinary non-inline keys remain FAST as pointer+length. */
+    int fast_eligible = core_eligible && server.tomo_atomic == 0 &&
+        server.tomo_reorder == 0 && server.strict_order == 0 &&
+        fast_key_len <= TOMO_EX_FAST_KEY_PTR_MAX;
     unsigned int fslot = ct->dispatchid & ct->ring_mask;
     /* 2s-auto D3: lazy-create the ring slot on first use (createClient leaves every slot NULL).
      * fake_slot is restamped after a resize because the allocation may move. */
@@ -8431,15 +8537,18 @@ int processCommand(client *c) {
         fake = promoteFakeClient(fake);
     }
     ct->fakeClients[fslot] = fake;
-    fake->fake_slot = fslot;
+    cdbRouteSet(c, fslot, 0);
+    if (!fast_eligible) fake->fake_slot = fslot;
     /* 2s-auto T3: express-slim — GET/SET are never MULTI-queued under sharding, so
      * lookedcmd/realcmd/reploff_next/read_error are unused by them. Gate reads c->cmd
      * PRE-move (moveExecutionState clears real->cmd after); express test at ~5237 reads
      * fake->cmd POST-move — both resolve to the same command. */
     /* A core fake must take the tail-free slim move. Full express fakes retain the existing
      * EWMA Schmitt choice (tomokv-express-slim remains retired at AUTO). */
+    exQueueEntry fast_entry;
+    int fast_ex_id = -1;
     int use_slim = core_eligible;
-    if (!use_slim && c->cmd && (c->cmd->tomo_route & TOMO_R_EXPRESS)) {
+    if (!fast_eligible && !use_slim && c->cmd && (c->cmd->tomo_route & TOMO_R_EXPRESS)) {
         /* ee451 review: load the cross-thread EWMA ONCE — the old double read could observe two
          * different values inside one Schmitt comparison (and was a plain-load data race). */
         double ehw = tomoRelaxedRead(server.express_hit_ewma);
@@ -8447,7 +8556,22 @@ int processCommand(client *c) {
         double thr = last_slim ? 0.60 : 0.80;
         use_slim = last_slim = (ehw > thr) ? 1 : (ehw < 0.60 ? 0 : last_slim);
     }
-    if (use_slim) moveExecutionStateSlim(c, fake); else moveExecutionState(c, fake);
+    if (fast_eligible) {
+        sds key = c->argv[1]->ptr;
+        uint64_t hash = xxh64(key, fast_key_len);
+        unsigned int bucket = (unsigned int)(hash & TOMO_BUCKET_MASK);
+        fast_ex_id = (int)server.ex_bucket_table[bucket];
+        int fast_cdb = cdbIndexFor(fast_ex_id);
+        unsigned int dbid = (unsigned int)c->db->id;
+        pendingCommand *pcmd = moveExecutionStateFast(c);
+        exEntryInitFast(&fast_entry, fake, pcmd, hash, bucket,
+                        (unsigned int)fast_cdb, fslot, dbid);
+        cdbRouteSet(c, fslot, fast_cdb);
+    } else if (use_slim) {
+        moveExecutionStateSlim(c, fake);
+    } else {
+        moveExecutionState(c, fake);
+    }
 
     /* I7: only a cross-shard read needs a dispatch-to-reassembly pin so all of
      * its owner subs retain one snapshot. Single-owner reads linearize on their
@@ -8462,7 +8586,7 @@ int processCommand(client *c) {
      * MGET-after-MSET consistent through every stamp/publication interleaving.
      * Do not "fix" that by holding overlapping reads at dispatch — that
      * reinstates the 1:1 MGET:MSET serialization this branch removed. */
-    if (__builtin_expect(server.tomo_atomic != 0, 0) &&
+    if (!fast_eligible && __builtin_expect(server.tomo_atomic != 0, 0) &&
         fake->cmd && (fake->cmd->tomo_route & TOMO_R_CROSS) &&
         ((fake->cmd->flags & CMD_READONLY) ||
          (atomic_write_admission && (fake->cmd->tomo_route & TOMO_R_ATOMIC_READ)))) {
@@ -8497,9 +8621,15 @@ int processCommand(client *c) {
      * canDispatchToWorker pre-guards) made every hot op fall through ~25-40 cycles of
      * always-false tests. Two proc compares restore the v4 floor for the hot pair; every
      * other command takes the full (unchanged) classification below. */
-    if (fake->cmd->tomo_route & TOMO_R_EXPRESS) {   /* ee451 (v14): routing byte */
+    if (fast_eligible) {
+        /* The entry, not the fake core, owns every execution field. The fake
+         * remains quiescent until exExecFast starts constructing its reply. */
+        replyWorking++;
+        exDispatchFast(fast_ex_id, &fast_entry, c);
+    } else if (fake->cmd->tomo_route & TOMO_R_EXPRESS) {   /* ee451 (v14): routing byte */
         int ex_id = getWorkerForCommand(fake);
         fake->cdb = cdbIndexFor(ex_id);
+        cdbRouteSet(c, fslot, fake->cdb);
         fake->db = &server.exThreads[ex_id].db[fake->db->id];
         fake->flags |= CLIENT_EX_PENDING;
         replyWorking++;
@@ -8510,6 +8640,7 @@ int processCommand(client *c) {
         fake->tomo_local_worker = t6_worker;
         fake->db = &server.exThreads[t6_worker].db[fake->db->id];
         fake->cdb = cdbIndexFor(t6_worker);
+        cdbRouteSet(c, fslot, fake->cdb);
         fake->tomo_bkt = t6_worker ? server.ex_bucket_end[t6_worker - 1] : 0;
         fake->tomo_bkt_ptr = NULL;   /* the outer argv is not necessarily a key (EXEC/EVAL) */
         fake->tomo_key_h = 0;
@@ -8595,6 +8726,7 @@ int processCommand(client *c) {
          * captured value, published to the worker via the SPSC queue's release
          * store (exQueuePush below), so writer and clearer never disagree. */
         fake->cdb = cdbIndexFor(ex_id);
+        cdbRouteSet(c, fslot, fake->cdb);
         fake->db = &server.exThreads[ex_id].db[fake->db->id];
         fake->flags |= CLIENT_EX_PENDING;
         replyWorking++;
@@ -20711,6 +20843,69 @@ static inline int isStatefulCommand(struct redisCommand *cmd) {
     return cmd && (cmd->tomo_route & TOMO_R_STATEFUL);
 }
 
+/* FAST transfers command ownership into the cache-line descriptor, not into
+ * the fake. The worker attaches this pending command only when it is ready to
+ * write the reply, after all keyspace work has completed. */
+static pendingCommand *moveExecutionStateFast(client *real) {
+    pendingCommand *pcmd = popPendingCommandFromHead(&real->pending_cmds);
+    serverAssert(pcmd == real->current_pending_cmd);
+    pcmd->fast_reply_conn = real->conn;
+    pcmd->fast_reader = real;
+    pcmd->fast_reply_resp = (uint8_t)real->resp;
+    real->current_pending_cmd = NULL;
+    serverAssert(real->all_argv_len_sum >= pcmd->argv_len_sum);
+    real->all_argv_len_sum -= pcmd->argv_len_sum;
+
+    real->argc = 0;
+    real->argv = NULL;
+    real->argv_len = 0;
+    real->cmd = NULL;
+    real->slot = -1;
+    real->net_input_bytes_curr_cmd = 0;
+    return pcmd;
+}
+
+static void exEntryInitFast(exQueueEntry *entry, client *reply_carrier,
+                            pendingCommand *pcmd, uint64_t hash,
+                            unsigned int bucket, unsigned int cdb,
+                            unsigned int reply_slot, unsigned int dbid) {
+    memset(entry, 0, sizeof(*entry));
+    entry->client_id = reply_carrier;
+    entry->pending = pcmd;
+    entry->key_hash = hash;
+
+    sds key = pcmd->argv[1]->ptr;
+    size_t key_len = sdslen(key);
+    if (pcmd->cmd->proc == getCommand) {
+        exQueueEntryKind kind;
+        if (key_len <= TOMO_EX_FAST_GET_INLINE_MAX) {
+            kind = TOMO_EX_ENTRY_FAST_GET_INLINE;
+            entry->payload.get_inline.key_len = (uint8_t)key_len;
+            memcpy(entry->payload.get_inline.key, key, key_len);
+        } else {
+            kind = TOMO_EX_ENTRY_FAST_GET_PTR;
+            entry->payload.ptr.key = key;
+            entry->payload.ptr.key_len = key_len;
+        }
+        entry->meta = exEntryMeta(kind, reply_slot, cdb, bucket, dbid);
+    } else {
+        serverAssert(pcmd->cmd->proc == setCommand && pcmd->argc == 3);
+        exQueueEntryKind kind;
+        if (key_len <= TOMO_EX_FAST_SET_INLINE_MAX) {
+            kind = TOMO_EX_ENTRY_FAST_SET_INLINE;
+            entry->payload.set_inline.value = pcmd->argv[2];
+            entry->payload.set_inline.key_len = (uint8_t)key_len;
+            memcpy(entry->payload.set_inline.key, key, key_len);
+        } else {
+            kind = TOMO_EX_ENTRY_FAST_SET_PTR;
+            entry->payload.ptr.key = key;
+            entry->payload.ptr.key_len = key_len;
+            entry->payload.ptr.value = pcmd->argv[2];
+        }
+        entry->meta = exEntryMeta(kind, reply_slot, cdb, bucket, dbid);
+    }
+}
+
 /* 2s-auto T3 express-slim: a trimmed moveExecutionState for the express lane (GET/SET).
  * Skips ONLY lookedcmd/realcmd/reploff_next/read_error (unused by express commands —
  * sharding rejects MULTI/WATCH so these clients never reach here mid-transaction). It STILL
@@ -20857,7 +21052,10 @@ void exQueueInit(exQueue *q) {
  * cannot see it. One store publishes all the jobs[] writes that happened-before
  * it (standard SPSC batch publish). */
 void flushExQueues(void) {
-    if (tomo_rord.n) tomoReorderDrain();   /* D: reorder scratch never survives a flush boundary */
+    /* A full ring can flush while tomoReorderDrain{,Conn} is already emitting
+     * this scratch window. Publish the staged queue entries in that case, but
+     * never recursively dispatch the same still-live scratch contents. */
+    if (tomo_rord.n && !tomo_rord.draining) tomoReorderDrain();
     tomo_staged_cnt = 0;   /* D: pass-end flush also restarts the window count */
 
     exThread *ex = server.exThreads;
@@ -20933,10 +21131,7 @@ static inline void freebackDrainAll(exThread *worker) {
     }
 }
 
-int exQueuePush(exQueue *q, client *c) {
-    /* strict-order: stamp arrival at enqueue (producer side, monotonic within this queue).
-     * Gated so the default (off) hot path pays nothing. */
-    if (__builtin_expect(server.strict_order != 0, 0)) c->arrival_us = getMonotonicUs();
+int exQueuePushEntry(exQueue *q, const exQueueEntry *entry) {
     /* ee451 (S4): STAGE into jobs[] but do not publish `tail` here. The owning
      * IO thread publishes all staged jobs with one release-store per queue at
      * flushExQueues() (handleWorkerReplies top), batching up to
@@ -20957,7 +21152,7 @@ int exQueuePush(exQueue *q, client *c) {
             return -1;
         }
     }
-    q->jobs[t] = c;
+    q->jobs[t] = *entry;
     /* ee451 (S4): advance the producer-private staged frontier only; the single
      * release-store of `tail` in flushExQueues() publishes this and all
      * earlier staged jobs[] writes to the consumer.
@@ -20969,19 +21164,24 @@ int exQueuePush(exQueue *q, client *c) {
     return 0;
 }
 
+int exQueuePush(exQueue *q, client *c) {
+    /* strict-order remains a POINTER-only shape; FAST dispatch is gated out
+     * while this policy is active. */
+    if (__builtin_expect(server.strict_order != 0, 0)) c->arrival_us = getMonotonicUs();
+    exQueueEntry entry = {0};
+    entry.client_id = c;
+    entry.meta = TOMO_EX_ENTRY_POINTER;
+    return exQueuePushEntry(q, &entry);
+}
+
 /* Reserved CURE2 lane producer. Completion workers are serialized by
  * commit_lock, so this remains one logical SPSC producer even when the worker
  * that completes successive groups changes. */
 static int exQueuePushOwnerOp(exQueue *q, tomoOwnerOp *op) {
-    unsigned int t = q->staged_tail;
-    unsigned int next_t = (t + 1) & server.ex_queue_mask;
-    if (next_t == q->cached_head) {
-        q->cached_head = atomic_load_explicit(&q->head, memory_order_acquire);
-        if (next_t == q->cached_head) return -1;
-    }
-    q->jobs[t] = exOwnerOpEncode(op);
-    q->staged_tail = next_t;
-    return 0;
+    exQueueEntry entry = {0};
+    entry.client_id = exOwnerOpEncode(op);
+    entry.meta = TOMO_EX_ENTRY_OWNER;
+    return exQueuePushEntry(q, &entry);
 }
 
 
@@ -20997,12 +21197,16 @@ static inline int exQueuePeekArrival(exQueue *q, uint64_t *arr) {
         q->cached_tail = atomic_load_explicit(&q->tail, memory_order_acquire);
         if (((q->cached_tail - h) & server.ex_queue_mask) == 0) return 0;
     }
-    *arr = q->jobs[h & server.ex_queue_mask]->arrival_us;
+    exQueueEntry *entry = &q->jobs[h & server.ex_queue_mask];
+    /* A FAST entry can only predate a runtime strict-order enable. Treat it
+     * as oldest so the policy transition cannot let newer work pass it. */
+    *arr = exEntryKind(entry) == TOMO_EX_ENTRY_POINTER ?
+        entry->client_id->arrival_us : 0;
     return 1;
 }
 /* strict-order: pop a run from head while it stays within `ceil` (global-oldest + epsilon),
  * bounded by max. Head is the queue's oldest (monotonic), so this is a contiguous FIFO prefix. */
-int exQueuePopOrdered(exQueue *q, client **out, int max, uint64_t ceil) {
+int exQueuePopOrdered(exQueue *q, exQueueEntry *out, int max, uint64_t ceil) {
     unsigned int h = atomic_load_explicit(&q->head, memory_order_relaxed);
     unsigned int avail = (q->cached_tail - h) & server.ex_queue_mask;
     if (avail == 0) {
@@ -21012,16 +21216,18 @@ int exQueuePopOrdered(exQueue *q, client **out, int max, uint64_t ceil) {
     }
     int n = 0;
     while (n < max && (unsigned)n < avail) {
-        client *c = q->jobs[(h + n) & server.ex_queue_mask];
-        if (c->arrival_us > ceil) break;
-        out[n++] = c;
+        exQueueEntry entry = q->jobs[(h + n) & server.ex_queue_mask];
+        uint64_t arrival = exEntryKind(&entry) == TOMO_EX_ENTRY_POINTER ?
+            entry.client_id->arrival_us : 0;
+        if (arrival > ceil) break;
+        out[n++] = entry;
     }
     if (n) atomic_store_explicit(&q->head,
                                  (h + (unsigned int)n) & server.ex_queue_mask,
                                  memory_order_release);
     return n;
 }
-int exQueuePopBatch(exQueue *q, client **out, int max) {
+int exQueuePopBatch(exQueue *q, exQueueEntry *out, int max) {
     unsigned int h = atomic_load_explicit(&q->head, memory_order_relaxed);
     /* Masked subtraction — wraps correctly even when tail has wrapped
      * past head since last head advance.
@@ -21040,7 +21246,7 @@ int exQueuePopBatch(exQueue *q, client **out, int max) {
     int n = (int)avail < max ? (int)avail : max;
     /* ee451 (v14, lower-level): two-segment memcpy instead of a masked-index per-item loop —
      * the ring is contiguous from h to the buffer end, then wraps; memcpy lets the compiler
-     * emit wide moves (the & mask in the old index defeated vectorization). n <= 16 pointers. */
+     * emit wide moves (the & mask in the old index defeated vectorization). n <= 16 entries. */
     unsigned int size = server.ex_queue_mask + 1;
     unsigned int first = size - h;                 /* slots from h to buffer end */
     if ((unsigned int)n <= first) {
