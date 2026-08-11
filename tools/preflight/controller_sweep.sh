@@ -530,9 +530,11 @@ oo_cell() {
   # MODAL LANDING (2026-08-11 — the ship-record residual, now implemented). With the read
   # certified (below), the remaining run-to-run variance is REAL: the controller's accept is ONE
   # anchor-vs-probe throughput comparison, and this box's documented bimodal drift can flip that
-  # sign — so an occasional certified one-step mis-landing (SET settles io5, ~-10% vs io4 static;
-  # witnessed 2026-08-11 with settled=1, while AUTO==STATIC on the same binary sat at io4 within
-  # +0.85%) is the FROZEN controller's known character, not a regression. The gate therefore
+  # sign — so an occasional certified one-step mis-landing is the FROZEN controller's known
+  # character, not a regression. (Historic note: the certified io5 SET landings that motivated
+  # this read looked like mis-landings only against the STALE io4 oracle; the re-measured curve
+  # proved the controller right. The modal read still guards against genuine drift-accepts.)
+  # The gate therefore
   # asserts the MODE of up to 3 certified landings per phase. Discrimination is intact: a
   # controller that always climbs fails SET 3/3, one that never moves fails GET 3/3, and the
   # drift lottery no longer grades single runs. Early exit when two certified landings agree.
@@ -603,10 +605,13 @@ c1_flip() {
   fi
   local cfg pass ops
   declare -A P1 P32
-  P1[4_4]=""; P1[6_2]=""; P1[7_1]=""; P32[4_4]=""
-  # ---- static curve, arms cycled per pass (interleaves box drift) ----
+  P1[4_4]=""; P1[5_3]=""; P1[6_2]=""; P1[7_1]=""; P32[4_4]=""; P32[5_3]=""
+  # ---- static curve, arms cycled per pass (interleaves box drift). io5ex3 added 2026-08-11:
+  # the p32 SET optimum moved io4->io5 under the binary (OPPOSITE-OPTIMUM oracle re-measure),
+  # so the AUTO==STATIC reference below must be the better of io4/io5, not a fixed io4 that
+  # silently became a -3% soft reference. ----
   for pass in $(seq 1 "$REPS"); do
-    for cfg in "4 4" "6 2" "7 1"; do
+    for cfg in "4 4" "5 3" "6 2" "7 1"; do
       set -- $cfg
       boot "flip_static_io$1ex$2_p$pass" --tomokv-thread-mode static --tomokv-thread-io "$1" --tomokv-thread-ex "$2" || continue
       # shellcheck disable=SC2086
@@ -614,22 +619,27 @@ c1_flip() {
       # shellcheck disable=SC2086
       ops=$(mt "flip_static_io$1ex$2_p${pass}_p1" $W_P1GET --test-time="$T_MEAS")
       plaus "$ops" && P1[$1_$2]="${P1[$1_$2]} $ops"
-      if [ "$cfg" = "4 4" ]; then
+      if [ "$cfg" = "4 4" ] || [ "$cfg" = "5 3" ]; then
         # shellcheck disable=SC2086
-        ops=$(mt "flip_static_io4ex4_p${pass}_p32" $W_P32SET --test-time="$T_MEAS")
-        plaus "$ops" && P32[4_4]="${P32[4_4]} $ops"
+        ops=$(mt "flip_static_io$1ex$2_p${pass}_p32" $W_P32SET --test-time="$T_MEAS")
+        plaus "$ops" && P32[$1_$2]="${P32[$1_$2]} $ops"
       fi
       stopsrv
     done
   done
   # shellcheck disable=SC2086
-  local m44 m62 m71 m44w best bestcfg
-  m44=$(med ${P1[4_4]:-0}); m62=$(med ${P1[6_2]:-0}); m71=$(med ${P1[7_1]:-0}); m44w=$(med ${P32[4_4]:-0})
+  local m44 m53 m62 m71 m44w m53w m32ref m32refcfg best bestcfg
+  m44=$(med ${P1[4_4]:-0}); m53=$(med ${P1[5_3]:-0}); m62=$(med ${P1[6_2]:-0}); m71=$(med ${P1[7_1]:-0})
+  m44w=$(med ${P32[4_4]:-0}); m53w=$(med ${P32[5_3]:-0})
+  m32ref=$m44w; m32refcfg=io4ex4
+  [ "$m53w" -gt "$m32ref" ] && { m32ref=$m53w; m32refcfg=io5ex3; }
   best=$m44; bestcfg=io4ex4
+  [ "$m53" -gt "$best" ] && { best=$m53; bestcfg=io5ex3; }
   [ "$m62" -gt "$best" ] && { best=$m62; bestcfg=io6ex2; }
   [ "$m71" -gt "$best" ] && { best=$m71; bestcfg=io7ex1; }
-  tsv 1-flip static-curve "p1 GET on io4ex4/io6ex2/io7ex1" \
-      "io4ex4=$m44 io6ex2=$m62 io7ex1=$m71 (p32 io4ex4=$m44w)" "curve recorded; best=$bestcfg" \
+  tsv 1-flip static-curve "p1 GET on io4ex4/io5ex3/io6ex2/io7ex1" \
+      "io4ex4=$m44 io5ex3=$m53 io6ex2=$m62 io7ex1=$m71 (p32 io4ex4=$m44w io5ex3=$m53w)" \
+      "curve recorded; best=$bestcfg" \
       "$( plaus "$best" && echo PASS || echo SUSPECT )"
 
   # ---- AUTO arm: boot io4ex4 (flip range io4..io7 — see header) with the controller on ----
@@ -772,14 +782,16 @@ c1_flip() {
   tsv 1-flip long-hold-p32 "160s sustained p32 after settle (oscillation window)" \
       "flips-late=$((f_hold1-f_hold0))" "0-1 PASS / >1 FAIL (re-climb oscillation)" \
       "$( [ $((f_hold1-f_hold0)) -le 1 ] && echo PASS || echo FAIL )"
-  if plaus "$msettle" && plaus "$m44w"; then
-    local r2; r2=$( awk -v a="$msettle" -v s="$m44w" 'BEGIN{exit (a>=s*0.97)?0:1}' && echo PASS || echo FAIL )
+  # Reference = the better of static io4ex4/io5ex3 (2026-08-11: the p32 SET optimum moved to
+  # io5, so a fixed io4 reference understates what the controller must match by ~3%).
+  if plaus "$msettle" && plaus "$m32ref"; then
+    local r2; r2=$( awk -v a="$msettle" -v s="$m32ref" 'BEGIN{exit (a>=s*0.97)?0:1}' && echo PASS || echo FAIL )
     [ "$REPS" -lt 3 ] && [ "$r2" = PASS ] && r2=SUSPECT   # smoke: 1-rep static side
     [ "$settledB" != 1 ] && [ "$r2" = PASS ] && r2=SUSPECT   # settle-first: unsettled measurement can't PASS
-    tsv 1-flip AUTO==STATIC-p32 "settled auto vs static io4ex4, p32 SET" \
-        "auto=$msettle static=$m44w diff=$(pct_diff "$msettle" "$m44w")% settled=$settledB" ">=97% of static" "$r2"
+    tsv 1-flip AUTO==STATIC-p32 "settled auto vs best static ($m32refcfg), p32 SET" \
+        "auto=$msettle static=$m32ref($m32refcfg) diff=$(pct_diff "$msettle" "$m32ref")% settled=$settledB" ">=97% of best static" "$r2"
   else
-    tsv 1-flip AUTO==STATIC-p32 "settled auto vs static" "implausible ($msettle/$m44w)" "plausible" SUSPECT
+    tsv 1-flip AUTO==STATIC-p32 "settled auto vs best static" "implausible ($msettle/$m32ref)" "plausible" SUSPECT
   fi
   oo_cell
   # ---- EX-BOUND (2026-08-05, task #78): every workload above is IO-heavy or balanced, so half
