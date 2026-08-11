@@ -9229,6 +9229,8 @@ static flatTable *flat_rz_old = NULL, *flat_rz_new = NULL;
 static uint64_t   flat_rz_cursor = 0;
 static _Atomic monotime flat_rz_arm_us = 0;
 static int        flat_rz_n = 0, flat_rz_j = 0;
+_Atomic unsigned long long flat_insert_full_waits;  /* owner inserts blocked on a completely full table */
+_Atomic unsigned long long flat_rz_urgent_services; /* completed rebuilds escalated by a blocked insert */
 #define FLAT_RZ_QUIESCE_DEADLINE_US  200000ULL   /* 200ms: normal commands quiesce in us; only a genuinely long op trips this */
 /* The watchdog deadline is deliberately 10x the coordinator's own. In normal operation the
  * coordinator always wins this race and aborts at 200ms; the watchdog only ever fires when the
@@ -9306,14 +9308,19 @@ void flatResizeCoordinate(void) {
 
     if (flat_rz_state == FLAT_RZ_IDLE) {
         flatTable *t = NULL; kvstore *kvs = NULL; int fn = 0, fj = 0;
-        for (int n = 0; n < server.n_node_dbs && !t; n++)
-            for (int j = 0; j < server.dbnum; j++) {
-                if (!dbIsInitialized(&server.node_dbs[n][j])) continue;
-                flatTable *cand = kvstoreFlatTable(server.node_dbs[n][j].keys);
-                if (cand && atomic_load_explicit(&cand->resize_needed, memory_order_relaxed)) {
-                    t = cand; kvs = server.node_dbs[n][j].keys; fn = n; fj = j; break;
+        /* A full-table waiter has no forward path until its rebuild completes. Scan the entire
+         * table set for urgent requests before admitting ordinary load/tomb/shrink work. */
+        for (int level = FLAT_RESIZE_URGENT; level >= FLAT_RESIZE_NORMAL && !t; level--)
+            for (int n = 0; n < server.n_node_dbs && !t; n++)
+                for (int j = 0; j < server.dbnum; j++) {
+                    if (!dbIsInitialized(&server.node_dbs[n][j])) continue;
+                    flatTable *cand = kvstoreFlatTable(server.node_dbs[n][j].keys);
+                    int need = cand ? atomic_load_explicit(&cand->resize_needed, memory_order_relaxed)
+                                    : FLAT_RESIZE_NONE;
+                    if (need >= level) {
+                        t = cand; kvs = server.node_dbs[n][j].keys; fn = n; fj = j; break;
+                    }
                 }
-            }
         if (!t) return;
         /* exclusive with reshard/flush; hold mig_arm_lock for the WHOLE resize so no migration can
          * start under us (reshardArm needs the lock too). */
@@ -9391,7 +9398,9 @@ void flatResizeCoordinate(void) {
     if (flat_rz_state == FLAT_RZ_COPYING) {
         int done = flatTableCopyChunk(flat_rz_old, flat_rz_new, &flat_rz_cursor, FLAT_RZ_COPY_SLOT_BUDGET);
         if (!done) return;   /* more chunks next pass; workers stay parked, event loop stays live */
-        atomic_store_explicit(&flat_rz_new->resize_needed, 0, memory_order_relaxed);
+        if (atomic_load_explicit(&flat_rz_old->resize_needed, memory_order_relaxed) >= FLAT_RESIZE_URGENT)
+            atomic_fetch_add_explicit(&flat_rz_urgent_services, 1, memory_order_relaxed);
+        atomic_store_explicit(&flat_rz_new->resize_needed, FLAT_RESIZE_NONE, memory_order_relaxed);
         serverLog(LL_NOTICE, "FLATSTORE resize: node %d db %d rebuilt %llu -> %llu slots (live=%llu)",
                   flat_rz_n, flat_rz_j, (unsigned long long)flat_rz_old->size,
                   (unsigned long long)flat_rz_new->size,
@@ -19182,6 +19191,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_flat_resize_active:%d\r\n", atomic_load_explicit(&server.flat_resize_active, memory_order_relaxed),
             "tomokv_flat_resize_state:%d\r\n", flatResizeState(),   /* 0 IDLE, 1 QUIESCING, 2 COPYING */
             "tomokv_flat_resize_quiesce_waits:%llu\r\n", atomic_load_explicit(&flat_rz_quiesce_waits, memory_order_relaxed),
+            "tomokv_flat_insert_full_waits:%llu\r\n", atomic_load_explicit(&flat_insert_full_waits, memory_order_relaxed),
+            "tomokv_flat_resize_urgent_services:%llu\r\n", atomic_load_explicit(&flat_rz_urgent_services, memory_order_relaxed),
             /* ee451 (J4): non-zero means a resize armed and the coordinator then stopped running,
              * and a parked thread had to unpark the world. Should be 0 on a healthy server; any
              * non-zero value is a real incident, not noise. */

@@ -38,6 +38,12 @@
  * 8-slots-per-line layout absorbs the extra probe). Was tomokv-flat-load-pct, retired at 70 —
  * it is a compile-time constant now, NOT a per-insert load from the server global. */
 #define FLAT_LOAD_PCT   70ULL
+#define FLAT_INSERT_FULL UINT64_MAX              /* flatInsert exhausted every slot; caller waits/retries */
+enum {
+    FLAT_RESIZE_NONE = 0,
+    FLAT_RESIZE_NORMAL = 1,                      /* load/tomb/shrink-triggered rebuild */
+    FLAT_RESIZE_URGENT = 2                       /* an insert is blocked on a full table */
+};
 #define FLAT_TOMB       0x0001000000000000ULL      /* [48] */
 #define FLAT_TAG_SHIFT  49
 #define flat_tag_of(h)      (((uint64_t)(h) >> FLAT_TAG_SHIFT) & 0x7FFFULL)      /* 15-bit tag from the hash */
@@ -107,7 +113,7 @@ typedef struct flatTable {
     _Atomic(flatRetireNode *) retire_stack;  /* QSBR: lock-free push of retired values */
     flatBatch *batches;            /* QSBR: FIFO head, oldest closed batch (main-thread only) */
     flatBatch *batches_tail;       /* QSBR: FIFO append point (main-thread only) */
-    _Atomic int resize_needed;     /* set by insert at high load; the main-thread coordinator grows it */
+    _Atomic int resize_needed;     /* monotonic FLAT_RESIZE_* request; coordinator clears via replacement */
 } flatTable;
 
 flatTable *flatTableNew(uint64_t want_size);
@@ -125,8 +131,12 @@ dictEntry *flatGet(flatTable *t, uint64_t h, const char *key, size_t klen);   /*
 /* find-for-write: returns 1 and *slot = index of the FOUND live key, or 0 and *slot = index to
  * INSERT into (first TOMB seen on the probe, else the terminating EMPTY). */
 int        flatFindForWrite(flatTable *t, uint64_t h, const char *key, size_t klen, uint64_t *slot);
+/* Raise the table's rebuild request without allowing an ordinary request to downgrade an urgent
+ * one. The coordinator clears the request only by replacing the table. */
+void       flatResizeRequest(flatTable *t, int level);
 /* insert masked_kv for hash h; hint_slot from flatFindForWrite. Arbitrates cross-key slot collision
- * with one CAS (loser re-probes). Returns the slot actually claimed. */
+ * with one CAS (loser re-probes). Returns the slot actually claimed, or FLAT_INSERT_FULL after a
+ * complete probe with no reusable slot. */
 uint64_t   flatInsert(flatTable *t, uint64_t h, dictEntry *masked_kv, uint64_t hint_slot);
 /* replace the value at `slot` (same key: keep the tag/flag bits, swap the ptr bits); returns the
  * OLD masked kv for the caller to QSBR-retire. Owner-exclusive. */

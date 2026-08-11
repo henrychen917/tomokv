@@ -77,12 +77,20 @@ flatTable *flatTableNew(uint64_t want_size) {
     t->mask = sz - 1;
     atomic_store_explicit(&t->used, 0, memory_order_relaxed);
     atomic_store_explicit(&t->tombs, 0, memory_order_relaxed);
-    atomic_store_explicit(&t->resize_needed, 0, memory_order_relaxed);   /* zmalloc'd — must init */
+    atomic_store_explicit(&t->resize_needed, FLAT_RESIZE_NONE, memory_order_relaxed); /* zmalloc'd — must init */
     t->gen = 0;
     atomic_store_explicit(&t->retire_stack, NULL, memory_order_relaxed);
     t->batches = NULL;
     t->batches_tail = NULL;
     return t;
+}
+
+void flatResizeRequest(flatTable *t, int level) {
+    serverAssert(level > FLAT_RESIZE_NONE && level <= FLAT_RESIZE_URGENT);
+    int current = atomic_load_explicit(&t->resize_needed, memory_order_relaxed);
+    while (current < level &&
+           !atomic_compare_exchange_weak_explicit(&t->resize_needed, &current, level,
+                                                  memory_order_relaxed, memory_order_relaxed)) { }
 }
 
 static void flatTableDiscardRetires(flatTable *t) {
@@ -245,7 +253,7 @@ uint64_t flatInsert(flatTable *t, uint64_t h, dictEntry *masked_kv, uint64_t hin
                 if (w != 0) atomic_fetch_sub_explicit(&t->tombs, 1, memory_order_relaxed);  /* reused a tomb */
                 /* flag a rebuild at FLAT_LOAD_PCT% (used+tombs)/size — see flatstore.h. */
                 if ((u + atomic_load_explicit(&t->tombs, memory_order_relaxed)) * 100 >= t->size * FLAT_LOAD_PCT)
-                    atomic_store_explicit(&t->resize_needed, 1, memory_order_relaxed);
+                    flatResizeRequest(t, FLAT_RESIZE_NORMAL);
                 return i;
             }
             /* CAS lost: `expect` holds the winner's word. If a foreign key took it (now LIVE), advance;
@@ -255,7 +263,7 @@ uint64_t flatInsert(flatTable *t, uint64_t h, dictEntry *masked_kv, uint64_t hin
         }
         i = (i + 1) & mask;   /* live-other: keep probing for a free/tomb slot */
     }
-    serverPanic("flatstore INSERT: table full (%llu slots)", (unsigned long long)t->size);
+    return FLAT_INSERT_FULL;
 }
 
 dictEntry *flatOverwrite(flatTable *t, uint64_t slot, dictEntry *masked_kv_new) {
@@ -281,7 +289,7 @@ dictEntry *flatDelete(flatTable *t, uint64_t slot) {
      * trigger is FLAT_LOAD_PCT, post-grow load is FLAT_LOAD_PCT/2, so this is well clear). The
      * coordinator rebuilds smaller via flatTableAllocFor, reusing the same quiesce+copy machine. */
     if (t->size > FLAT_MIN_SIZE && nu * 400 <= t->size * FLAT_LOAD_PCT)
-        atomic_store_explicit(&t->resize_needed, 1, memory_order_relaxed);
+        flatResizeRequest(t, FLAT_RESIZE_NORMAL);
     return old;
 }
 
@@ -322,7 +330,9 @@ int flatTableCopyChunk(flatTable *old, flatTable *nw, uint64_t *cursor, uint64_t
         sds k = kvobjGetKey(dictGetKV(mk));
         uint64_t h = tomoKeyHash(k, sdslen(k)), slot;
         flatFindForWrite(nw, h, k, sdslen(k), &slot);        /* fresh target: finds an EMPTY slot */
-        flatInsert(nw, h, mk, slot);
+        /* flatTableAllocFor/kvstoreExpand size a fresh target from the complete live census, so a
+         * full target here is an internal sizing invariant failure, not an asynchronous wait case. */
+        serverAssert(flatInsert(nw, h, mk, slot) != FLAT_INSERT_FULL);
     }
     *cursor = i;
     return i >= old->size;   /* 1 => whole old table scanned (copy complete) */

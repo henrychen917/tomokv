@@ -501,6 +501,61 @@ static inline struct tomoVerMeta *tomoVerMetaNew(redisDb *db, uint64_t version_s
     return vmeta;
 }
 
+#define FLAT_INSERT_MAX_WAIT_ROUNDS 64U
+
+/* A worker command reaches this point holding its owner lock and with its flat section published.
+ * Drop both while waiting: keeping the lock can strand a sibling in the all-node-lock HFE path
+ * with its own flat section still published, which prevents the resize coordinator from draining.
+ * Reacquire the lock while still unpublished, then publish + recheck before the caller reloads the
+ * current table. This is the same store/check exclusion handshake used by exSlice and the version
+ * prune callback. */
+static void dbFlatInsertWait(exThread *worker) {
+    tomoWkrUnlockPub(worker->id);
+    for (;;) {
+        atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
+        /* If the urgent request has not been armed yet, give main's beforeSleep coordinator a
+         * bounded opportunity to observe it before tomoFlatResizeQuiesce checks ACTIVE. */
+        if (!atomic_load_explicit(&server.flat_resize_active, memory_order_acquire)) usleep(100);
+        tomoFlatResizeQuiesce();
+
+        /* The command may not touch the refreshed table until it holds both protections again. */
+        tomoWkrLockPub(worker->id);
+        atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
+        if (!atomic_load_explicit(&server.flat_resize_active, memory_order_seq_cst)) return;
+        tomoWkrUnlockPub(worker->id);
+    }
+}
+
+static void dbSetAtLinkWithFlatRetry(kvstore *kvs, int slot, kvobj *kv,
+                                     dictEntryLink *link) {
+    unsigned wait_rounds = 0;
+    for (;;) {
+        if (kvstoreDictSetAtLink(kvs, slot, kv, link, 1) == DICT_OK) return;
+
+        /* We are still in the flat section, so the table which rejected this insert cannot be
+         * replaced until after these diagnostics are captured. The kvstore caller already
+         * escalated its rebuild request to FLAT_RESIZE_URGENT before returning DICT_ERR. */
+        flatTable *t = kvstoreFlatTable(kvs);
+        serverAssert(t != NULL);
+        unsigned long long used = atomic_load_explicit(&t->used, memory_order_relaxed);
+        unsigned long long tombs = atomic_load_explicit(&t->tombs, memory_order_relaxed);
+        unsigned long long size = t->size;
+
+        if (wait_rounds == FLAT_INSERT_MAX_WAIT_ROUNDS)
+            serverPanic("flatstore INSERT: table remained full "
+                        "(used=%llu tombs=%llu size=%llu wait_rounds=%u)",
+                        used, tombs, size, wait_rounds);
+
+        int owner = iotid - (TOMO_IO_THREADS_MAX + 1);
+        serverAssert(owner >= 0 && owner < server.num_workers);
+        atomic_fetch_add_explicit(&flat_insert_full_waits, 1, memory_order_relaxed);
+        dbFlatInsertWait(&server.exThreads[owner]);
+        wait_rounds++;
+        /* kvstoreDictSetAtLink cleared the stale link. The next attempt reloads flatCurrent and
+         * repeats flatFindForWrite against the replacement table. */
+    }
+}
+
 static inline __attribute__((always_inline)) kvobj *dbAddInternalVersion(redisDb *db, robj *key, robj **valref,
                      dictEntryLink *link, const KeyMetaSpec *keymeta, int flags,
                      uint64_t version_seq)
@@ -513,7 +568,7 @@ static inline __attribute__((always_inline)) kvobj *dbAddInternalVersion(redisDb
     if (version_seq)
         kvobjSetVmeta(kv, tomoVerMetaNew(db, version_seq, NULL));
     initObjectLRUOrLFU(kv);
-    kvstoreDictSetAtLink(db->keys, slot, kv, link, 1);
+    dbSetAtLinkWithFlatRetry(db->keys, slot, kv, link);
     
     /* Handle metadata (expiration and modules metadata) */
     if (keymeta->metabits) {
@@ -657,7 +712,7 @@ kvobj *dbAddRDBLoad(redisDb *db, sds key, robj **valref, const KeyMetaSpec *keyM
     robj *val = *valref;
     kvobj *kv = kvobjSetEx(key, val, keyMetaSpec->metabits, KVOBJ_SET_EMBED_RAW);
     initObjectLRUOrLFU(kv);
-    kvstoreDictSetAtLink(db->keys, slot, kv, &bucket, 1);
+    serverAssert(kvstoreDictSetAtLink(db->keys, slot, kv, &bucket, 1) == DICT_OK);
 
     /* Handle metadata (expiration and modules metadata) */
     if (keyMetaSpec->metabits) {

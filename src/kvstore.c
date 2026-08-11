@@ -1096,7 +1096,7 @@ dictEntryLink kvstoreDictFindLink(kvstore *kvs, int didx, void *key, dictEntryLi
  * newItem: - If set, add a new key with a new dictEntry.
  *          - If not set, update the key of an existing dictEntry.
  */
-void kvstoreDictSetAtLink(kvstore *kvs, int didx, void *kv, dictEntryLink *link, int newItem) {
+int kvstoreDictSetAtLink(kvstore *kvs, int didx, void *kv, dictEntryLink *link, int newItem) {
     if (kvs->flags & KVSTORE_FLAT) {
         flatTable *t = flatCurrent(kvs);
         if (newItem) {
@@ -1106,7 +1106,13 @@ void kvstoreDictSetAtLink(kvstore *kvs, int didx, void *kv, dictEntryLink *link,
             uint64_t slot;
             if (link && *link) slot = flatSlotOf(t, *link);
             else flatFindForWrite(t, h, k, sdslen(k), &slot);
-            flatInsert(t, h, masked, slot);
+            uint64_t inserted = flatInsert(t, h, masked, slot);
+            if (inserted == FLAT_INSERT_FULL) {
+                flatResizeRequest(t, FLAT_RESIZE_URGENT);
+                if (link) *link = NULL;            /* a resize invalidates the old table's link */
+                return DICT_ERR;
+            }
+            if (link) *link = (dictEntryLink)&t->slots[inserted].w;
             __atomic_add_fetch(&kvs->key_count, 1, __ATOMIC_RELAXED);
         } else if (kv == NULL) {
             /* ee451 FLATSTORE (8B-slot review fix): preclearing a slot to FLAT_TOMB here is UNSAFE —
@@ -1120,7 +1126,7 @@ void kvstoreDictSetAtLink(kvstore *kvs, int didx, void *kv, dictEntryLink *link,
             dictEntry *masked = flatKvMask(kvs, kv);
             flatOverwrite(t, flatSlotOf(t, *link), masked); /* caller already holds/frees the old kvobj */
         }
-        return;
+        return DICT_OK;
     }
     dict *d;
     if (newItem) {
@@ -1131,6 +1137,7 @@ void kvstoreDictSetAtLink(kvstore *kvs, int didx, void *kv, dictEntryLink *link,
         d = kvstoreGetDict(kvs, didx);
         dictSetKeyAtLink(d, kv, link, newItem);
     }
+    return DICT_OK;
 }
 
 dictEntry *kvstoreDictAddRaw(kvstore *kvs, int didx, void *key, dictEntry **existing) {
