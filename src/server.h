@@ -1641,12 +1641,21 @@ typedef struct cdbSlots {
     char _pad[CACHE_LINE_SIZE -
               sizeof(redisAtomic uint8_t) * TOMO_PIPELINE_DEPTH_MAX];
 } __attribute__((aligned(CACHE_LINE_SIZE))) cdbSlots;
+/* IO-owned routing metadata for the corresponding fake-ring generation. It
+ * follows the per-client CDB array in the same aligned allocation, but gets a
+ * private line so worker completion traffic cannot false-share with routing. */
+typedef struct cdbRouteSlots {
+    uint8_t cdb[TOMO_PIPELINE_DEPTH_MAX];
+    char _pad[CACHE_LINE_SIZE - TOMO_PIPELINE_DEPTH_MAX];
+} __attribute__((aligned(CACHE_LINE_SIZE))) cdbRouteSlots;
 _Static_assert(sizeof(redisAtomic uint8_t) == 1,
                "reply-ready atomics must occupy one byte");
 _Static_assert(ATOMIC_CHAR_LOCK_FREE == 2,
                "reply-ready byte atomics must always be lock-free");
 _Static_assert(sizeof(cdbSlots) == CACHE_LINE_SIZE,
                "each reply CDB must occupy exactly one cache line");
+_Static_assert(sizeof(cdbRouteSlots) == CACHE_LINE_SIZE,
+               "reply CDB routes must occupy exactly one cache line");
 
 /* ---- R1 own-read gate: exact key sets ---------------------------------------------------
  * Per-group / per-read key hashes retained for the EXACT disjointness test (csKeysCollide).
@@ -2306,13 +2315,14 @@ void reshardAutoTune(void);                       /* v8d: EWMA load-balancer, ca
  * live DEBUG RESHARD STATUS keeps the historical phase integers. */
 typedef enum { MIG_IDLE=0, MIG_COPYING=1, MIG_DRAINING=2, MIG_FLIPPED=3, MIG_DONE=5 } migPhase;
 //ee451
-/* Worker queue capacity: size of the ring each IO thread pushes fake-client
- * jobs into for a given worker. Always a power of two. Runtime value lives
+/* Worker queue capacity: size of the ring each IO thread pushes dispatch
+ * entries into for a given worker. Always a power of two. Runtime value lives
  * in server.ex_queue_size; TOMO_EX_QUEUE_SIZE_MAX caps the static
  * array. Memory footprint at max:
- *   num_workers * (io_threads + 1) * TOMO_EX_QUEUE_SIZE_MAX * sizeof(ptr)
- * With defaults (3/8/1024) that's ~216KB across all queues; the MAX bound
- * (2048) keeps worst case manageable. */
+ *   num_workers * (io_threads + 1) * TOMO_EX_QUEUE_SIZE_MAX * 64 bytes
+ * Each max-depth lane is therefore 128 KiB of payload. That is deliberate L2
+ * pressure: the depth remains 2048 so widening the handoff cannot silently
+ * change admission or full-ring backpressure behavior. */
 #define TOMO_QS_WORDS ((TOMO_IO_THREADS_MAX + 1 + 63) / 64)  /* q_summary words (see exThread) */
 #define TOMO_EX_MASK_WORDS ((TOMO_EX_THREADS_MAX + 63) / 64)     /* ee451 #83: ex_dirty_mask words */
 #define TOMO_IO_MASK_WORDS ((TOMO_IO_THREADS_MAX + 1 + 63) / 64) /* ee451 #83: io_pin_mask words */
@@ -2418,6 +2428,55 @@ typedef enum { MIG_IDLE=0, MIG_COPYING=1, MIG_DRAINING=2, MIG_FLIPPED=3, MIG_DON
                                                 * Selected, but a no-op until the distance is
                                                 * fixed -- see the block above. */
 
+/* A POINTER entry is the old fake-client handoff unchanged. FAST entries own
+ * the exact GET/SET execution descriptor; the carrier pointer is not
+ * dereferenced by the worker until it starts writing the reply. The metadata
+ * word packs kind[2:0], reply slot[7:3], CDB[15:8], bucket[29:16], and dbid
+ * [63:30]. Inline GET keys use 31 bytes; SET reserves one value-object
+ * pointer and uses 23. Larger eligible keys use the pointer+length form while
+ * the pending command retained by the entry owns their storage. */
+typedef enum exQueueEntryKind {
+    TOMO_EX_ENTRY_POINTER = 0,
+    TOMO_EX_ENTRY_OWNER = 1,
+    TOMO_EX_ENTRY_FAST_GET_INLINE = 2,
+    TOMO_EX_ENTRY_FAST_GET_PTR = 3,
+    TOMO_EX_ENTRY_FAST_SET_INLINE = 4,
+    TOMO_EX_ENTRY_FAST_SET_PTR = 5
+} exQueueEntryKind;
+
+#define TOMO_EX_FAST_GET_INLINE_MAX 31
+#define TOMO_EX_FAST_SET_INLINE_MAX 23
+#define TOMO_EX_FAST_KEY_PTR_MAX 1024
+#define TOMO_EX_QUEUE_ENTRY_SIZE 64
+
+typedef struct exQueueEntry {
+    client *client_id;             /* POINTER carrier, or FAST reply carrier */
+    pendingCommand *pending;       /* FAST argv lifetime and IO-side retirement */
+    uint64_t key_hash;
+    uint64_t meta;
+    union {
+        struct {
+            uint8_t key_len;
+            unsigned char key[TOMO_EX_FAST_GET_INLINE_MAX];
+        } get_inline;
+        struct {
+            robj *value;
+            uint8_t key_len;
+            unsigned char key[TOMO_EX_FAST_SET_INLINE_MAX];
+        } set_inline;
+        struct {
+            const char *key;
+            size_t key_len;
+            robj *value;
+            uint64_t reserved;
+        } ptr;
+        unsigned char raw[32];
+    } payload;
+} __attribute__((aligned(TOMO_EX_QUEUE_ENTRY_SIZE))) exQueueEntry;
+
+_Static_assert(sizeof(exQueueEntry) == TOMO_EX_QUEUE_ENTRY_SIZE,
+               "each dispatch entry must occupy exactly 64 bytes");
+
 /* Lock-free SPSC ring buffer. The architecture already guarantees that
  * each exQueue has exactly one producer (the IO thread whose index
  * matches queues[]) and exactly one consumer (the owning worker thread),
@@ -2472,7 +2531,7 @@ typedef struct exQueue {
      * i.e. before any drain or sleep). Collapses up to pipeline_depth cross-CCD
      * tail release-stores into one. Producer-private, lives on tail's line. */
     unsigned int staged_tail;
-    client *jobs[TOMO_EX_QUEUE_SIZE_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
+    exQueueEntry jobs[TOMO_EX_QUEUE_SIZE_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
 } exQueue;
 
 /* ee451 (S8): free-back ring. For zero-copy large-value replies, a worker
@@ -4236,6 +4295,9 @@ struct pendingCommand {
     uint64_t argv_released_mask; /* ee451 (v14 deepint): bit j set = worker released argv[j] (DB-aliased
                                   * ref); freePendingCommand skips it. Lets the worker signal releases
                                   * WITHOUT writing the io-owned argv[] array (the decref bounce). */
+    connection *fast_reply_conn; /* FAST dispatch snapshot; consumed only when reply construction starts */
+    client *fast_reader;         /* stable real-client identity for lazy MVCC resolution */
+    uint8_t fast_reply_resp;
 
     struct pendingCommand *next;
     struct pendingCommand *prev;
@@ -5798,6 +5860,12 @@ kvobj *lookupKeyReadOrReply(client *c, robj *key, robj *reply);
 kvobj *lookupKeyWriteOrReply(client *c, robj *key, robj *reply);
 kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags);
 kvobj *lookupKeyWriteWithFlags(redisDb *db, robj *key, int flags);
+kvobj *tomoLookupKeyFast(redisDb *db, robj *key, sds probe,
+                         uint64_t hash, int bucket, int flags,
+                         dictEntryLink *link, pendingCommand *fast_pending);
+kvobj *tomoLookupKeyReadFast(redisDb *db, robj *key, sds probe,
+                             uint64_t hash, int bucket, int flags,
+                             pendingCommand *fast_pending);
 kvobj *kvobjCommandLookup(client *c, robj *key);
 /* ee451: read-run value forwarding (same-key read chains on a worker). */
 kvobj *kvobjCommandLookupOrReply(client *c, robj *key, robj *reply);
@@ -6107,6 +6175,9 @@ void commandGetKeysAndFlagsCommand(client *c);
 void commandHelpCommand(client *c);
 void commandDocsCommand(client *c);
 void setCommand(client *c);
+void tomoSetPlainStringApply(client *actor, redisDb *db, robj *key, sds probe,
+                             uint64_t hash, int bucket,
+                             pendingCommand *fast_pending, robj **valref);
 void setnxCommand(client *c);
 void setexCommand(client *c);
 void psetexCommand(client *c);
@@ -6439,7 +6510,8 @@ void initIOThreads(void);
 /* Worker thread functions */
 void exQueueInit(exQueue *q);
 int exQueuePush(exQueue *q, client *c);
-int exQueuePopBatch(exQueue *q, client **out, int max);
+int exQueuePushEntry(exQueue *q, const exQueueEntry *entry);
+int exQueuePopBatch(exQueue *q, exQueueEntry *out, int max);
 void flushExQueues(void);   /* ee451 (S4): publish staged pushes for this iotid */
 void migUnparkClient(client *c);  /* ee451 (H2 handover): drop a dying client from the range-hold park list */
 void freebackPush(int ex_id, robj *obj);   /* ee451 (S8): IO->worker value free-back */
