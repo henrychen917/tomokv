@@ -12183,7 +12183,7 @@ static inline double migBucketRate(const migProfile *p, int b) {
  * ARMING RULE. A window is armed only when the shard's top group is genuinely
  * CONCENTRATED, because that is the only situation in which per-bucket resolution can change an
  * answer — if the groups are flat there is no hot key to veto and the group profile is already the
- * truth. auto (-1) requires BOTH:
+ * truth. The automatic rule requires BOTH:
  *   - top >= 4x the shard's uniform per-group share. Under a hash-scattered background the argmax
  *     of nG Poisson groups sits ~1.1-1.4x the mean at these counts, so 4x is comfortably outside
  *     the noise and the window stays disarmed (and the data path's branch never-taken) on uniform
