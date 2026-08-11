@@ -3561,7 +3561,9 @@ struct redisServer {
      * lookup — one cache line bounced across all CCDs per command. Each thread
      * now bumps its own cache-line-isolated slot (indexed by iotid); INFO folds
      * them and CONFIG RESETSTAT zeroes them. Pure stats, no control-flow read,
-     * so this also removes a genuine non-atomic data race on the globals. */
+     * so this also removes a genuine non-atomic data race on the globals. The
+     * CDB form witnesses share this same owner-local line: publication adds
+     * relaxed load/store bumps, never a shared atomic RMW. */
     struct {
         _Atomic long long hits;     /* single-writer per slot; tomoRelaxedBump/Read/Set */
         _Atomic long long misses;
@@ -3570,7 +3572,9 @@ struct redisServer {
         _Atomic unsigned long long atomic_read_fast;
         _Atomic unsigned long long atomic_read_slow;
         _Atomic long long flat_hash_reuses; /* guarded tomo_key_h consumed by a FLAT lookup */
-        char _pad[CACHE_LINE_SIZE - 5 * sizeof(long long)];
+        _Atomic unsigned long long cdb_inline_replies;
+        _Atomic unsigned long long cdb_ptr_replies;
+        char _pad[CACHE_LINE_SIZE - 7 * sizeof(long long)];
     } kstat[TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
     /* ee451 (#B1): per-thread executed-command counters. stat_numcommands lived only in call(),
      * which worker threads never enter (they run cmd->proc directly from exExecFake, and the

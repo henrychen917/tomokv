@@ -3156,6 +3156,11 @@ static inline int cdbSlotReady(client *real, int cdb, unsigned int slot) {
 
 static inline void cdbSlotPublishPrepared(client *real, int cdb,
                                           unsigned int slot, uint8_t form) {
+    debugServerAssert(form == CDB_SLOT_PTR || form == CDB_SLOT_INLINE);
+    if (form == CDB_SLOT_INLINE)
+        tomoRelaxedBump(server.kstat[iotid].cdb_inline_replies, 1);
+    else
+        tomoRelaxedBump(server.kstat[iotid].cdb_ptr_replies, 1);
     atomic_store_explicit(&cdbSlotFor(real, cdb, slot)->status, form,
                           memory_order_release);
 }
@@ -5470,6 +5475,8 @@ void resetServerStats(void) {
         tomoRelaxedSet(server.kstat[i].atomic_read_fast, 0);
         tomoRelaxedSet(server.kstat[i].atomic_read_slow, 0);
         tomoRelaxedSet(server.kstat[i].flat_hash_reuses, 0);
+        tomoRelaxedSet(server.kstat[i].cdb_inline_replies, 0);
+        tomoRelaxedSet(server.kstat[i].cdb_ptr_replies, 0);
     }
     server.stat_active_defrag_hits = 0;
     server.stat_active_defrag_misses = 0;
@@ -19226,9 +19233,12 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
          * atomic mode was enabled. Raw values and misses are deliberately not
          * called fast: a large fast count therefore proves the new gate fired. */
         unsigned long long atomic_read_fast = 0, atomic_read_slow = 0;
+        unsigned long long cdb_inline_replies = 0, cdb_ptr_replies = 0;
         for (int _t = 0; _t < TOMO_STAT_SLOTS; _t++) {
             atomic_read_fast += tomoRelaxedRead(server.kstat[_t].atomic_read_fast);
             atomic_read_slow += tomoRelaxedRead(server.kstat[_t].atomic_read_slow);
+            cdb_inline_replies += tomoRelaxedRead(server.kstat[_t].cdb_inline_replies);
+            cdb_ptr_replies += tomoRelaxedRead(server.kstat[_t].cdb_ptr_replies);
         }
         info = sdscatprintf(info, "# Stats\r\n" FMTARGS(
             "tomokv_flat_batches_closed:%llu\r\n", (unsigned long long)atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed),
@@ -19315,8 +19325,12 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
         info = sdscatprintf(info,
+            "tomokv_cdb_inline_replies:%llu\r\n"
+            "tomokv_cdb_ptr_replies:%llu\r\n"
             "tomokv_fake_core_allocs:%llu\r\n"
             "tomokv_fake_tail_promotions:%llu\r\n",
+            cdb_inline_replies,
+            cdb_ptr_replies,
             atomic_load_explicit(&tomo_fake_core_allocs, memory_order_relaxed),
             atomic_load_explicit(&tomo_fake_tail_promotions, memory_order_relaxed));
         /* Keep the lifecycle witnesses outside the already-large FMTARGS block. ref_waits is the
