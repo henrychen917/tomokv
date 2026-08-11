@@ -94,6 +94,97 @@ atomic_inflight_drained(){
   return 1
 }
 
+keylb_off_smoke(){
+  # Keep one key hot for several controller ticks. Static thread mode is a companion on this cell:
+  # an AUTO role flip legitimately reshards buckets even when the key balancer itself is disabled.
+  local ops lines
+  ops=$($MT --test-time=4 --ratio=0:1 -d 32 --key-pattern=S:S --key-minimum=1 \
+    --key-maximum=1 -t 4 -c 16 --pipeline 32 2>&1 | awk '/^Totals/{print int($2); exit}')
+  sleep 2
+  lines=$(grep -acF 'ee451 reshard ' $J/knob.log 2>/dev/null); lines=${lines:-0}
+  printf 'skew_ops=%s reshard_lines=%s' "${ops:-0}" "$lines"
+  [ "${ops:-0}" -gt 1000 ] 2>/dev/null && [ "$lines" = 0 ]
+}
+
+clientlb_off_smoke(){
+  # One deeply-pipelined hot connection alongside shallow connections is the short form of
+  # lb_skew.sh arm B. With client-lb=no neither the decision nor its executed batch may appear.
+  local hot_pid hot_rc cool_rc hot_ops cool_ops decisions batches
+  $MT --test-time=5 --ratio=0:1 -d 32 --key-pattern=R:R --key-maximum=20000 \
+    -t 1 -c 1 --pipeline 200 >$J/knob_clb_hot.out 2>&1 &
+  hot_pid=$!
+  $MT --test-time=5 --ratio=0:1 -d 32 --key-pattern=R:R --key-maximum=20000 \
+    -t 4 -c 8 --pipeline 1 >$J/knob_clb_cool.out 2>&1
+  cool_rc=$?
+  wait "$hot_pid"; hot_rc=$?
+  sleep 2
+  hot_ops=$(awk '/^Totals/{print int($2); exit}' $J/knob_clb_hot.out)
+  cool_ops=$(awk '/^Totals/{print int($2); exit}' $J/knob_clb_cool.out)
+  decisions=$(grep -acF 'ee451 client-lb:' $J/knob.log 2>/dev/null); decisions=${decisions:-0}
+  batches=$(grep -acF 'REBALANCE — started' $J/knob.log 2>/dev/null); batches=${batches:-0}
+  printf 'hot_ops=%s cool_ops=%s clientlb_lines=%s rebalance_batches=%s' \
+    "${hot_ops:-0}" "${cool_ops:-0}" "$decisions" "$batches"
+  [ "$hot_rc" = 0 ] && [ "$cool_rc" = 0 ] && \
+    [ "${hot_ops:-0}" -gt 1000 ] 2>/dev/null && [ "${cool_ops:-0}" -gt 1000 ] 2>/dev/null && \
+    [ "$decisions" = 0 ] && [ "$batches" = 0 ]
+}
+
+zerocopy_value_smoke(){
+  # redis-cli's display modes add framing/newlines, so speak RESP directly and compare the exact
+  # 32KB bulk payload returned by GET. bytes(range(256))*128 also exercises embedded CR/LF/NUL.
+  python3 - "$PORT" <<'PY'
+import socket
+import sys
+
+port = int(sys.argv[1])
+payload = bytes(range(256)) * 128
+key = b"knob-matrix:zerocopy:32k"
+
+def command(*parts):
+    out = [f"*{len(parts)}\r\n".encode()]
+    for part in parts:
+        out.extend((f"${len(part)}\r\n".encode(), part, b"\r\n"))
+    return b"".join(out)
+
+def read_exact(sock, length):
+    out = bytearray()
+    while len(out) < length:
+        chunk = sock.recv(length - len(out))
+        if not chunk:
+            raise RuntimeError("short RESP reply")
+        out.extend(chunk)
+    return bytes(out)
+
+def read_line(sock):
+    out = bytearray()
+    while not out.endswith(b"\r\n"):
+        out.extend(read_exact(sock, 1))
+    return bytes(out)
+
+with socket.create_connection(("127.0.0.1", port), timeout=5) as sock:
+    sock.settimeout(5)
+    sock.sendall(command(b"SET", key, payload))
+    if read_line(sock) != b"+OK\r\n":
+        raise RuntimeError("SET did not return OK")
+    sock.sendall(command(b"GET", key))
+    header = read_line(sock)
+    if not header.startswith(b"$"):
+        raise RuntimeError(f"GET did not return a bulk reply: {header!r}")
+    length = int(header[1:-2])
+    actual = read_exact(sock, length)
+    if read_exact(sock, 2) != b"\r\n" or actual != payload:
+        raise RuntimeError("32KB GET was not byte-identical")
+PY
+}
+
+busypoll_privilege_refusal(){
+  # Some kernels/builds may make busy-poll setup boot-fatal. Accept that host limitation only when
+  # the log identifies busy-poll AND explicitly says privileges are the reason; all other refusals
+  # remain ordinary boot failures. The current best-effort implementation normally boots this arm.
+  grep -aiEq 'tomokv-os-busypoll|SO_(BUSY_POLL|PREFER_BUSY_POLL)' $J/knob.log 2>/dev/null &&
+    grep -aiEq 'CAP_NET_ADMIN|operation not permitted|permission denied|privileg' $J/knob.log 2>/dev/null
+}
+
 try(){ # $1 = knob, $2 = value, $3 = note, $4 = companion flags, $5 = extra smoke (optional)
   local knob=$1 val=$2 note=$3 companion=${4:-} smoke=${5:-}
   kb_kill; sleep 1; rm -rf $J/kdata; mkdir -p $J/kdata; : > $J/knob.log
@@ -104,26 +195,63 @@ try(){ # $1 = knob, $2 = value, $3 = note, $4 = companion flags, $5 = extra smok
   sleep 2; local up=0
   for i in $(seq 1 20); do timeout 2 $CLI ping 2>/dev/null | grep -q PONG && { up=1; break; }; sleep 0.5; done
   if [ "$up" != 1 ]; then
+    if [ "$knob" = tomokv-os-busypoll ] && [ "$val" = yes ] && busypoll_privilege_refusal; then
+      ok "$knob=$val explicitly refused: host lacks busy-poll privilege"
+      kb_kill
+      return
+    fi
     bad "$knob=$val — DID NOT BOOT ($note)"; grep -iE 'unresolved|bad|invalid|error' $J/knob.log | tail -2 >> $OUT; return
   fi
   local got=$($CLI config get $knob 2>/dev/null | tail -1)
+  # Most configs echo their literal spelling. These two are resolved during initServer, so CONFIG
+  # GET correctly reports the effective value instead; keep those expectations explicit.
+  local expected=$val echo_ok=0
+  case "$knob:$val" in
+    tomokv-pipeline-depth:-1) expected=32 ;;
+    tomokv-pipeline-depth:0)  expected=1 ;;
+    tomokv-cores-per-node:0)  expected=8 ;;
+  esac
+  [ "$got" = "$expected" ] && echo_ok=1
   # serve real traffic so a knob that breaks the data path shows up
   $MT --test-time=4 --ratio=1:1 -d 32 --key-pattern=R:R --key-maximum=20000 -t 8 -c 25 --pipeline 8 >/dev/null 2>&1
   local ops=$($MT --test-time=5 --ratio=1:1 -d 32 --key-pattern=R:R --key-maximum=20000 -t 8 -c 25 --pipeline 8 2>&1 | awk '/^Totals/{print int($2)}')
   local extra_ok=1 extra=""
-  if [ "$smoke" = atomic ]; then
-    local mixed=fail inflight
-    atomic_mixed_smoke && mixed=ok
-    inflight=$(atomic_inflight_drained) || extra_ok=0
-    [ "$mixed" = ok ] || extra_ok=0
-    extra=" mixed8=$mixed inflight=$inflight"
-  fi
+  case "$smoke" in
+    atomic)
+      local mixed=fail inflight
+      atomic_mixed_smoke && mixed=ok
+      inflight=$(atomic_inflight_drained) || extra_ok=0
+      [ "$mixed" = ok ] || extra_ok=0
+      extra=" mixed8=$mixed inflight=$inflight"
+      ;;
+    keylb-off)
+      local keylb_result
+      keylb_result=$(keylb_off_smoke) || extra_ok=0
+      extra=" $keylb_result"
+      ;;
+    clientlb-off)
+      local clientlb_result
+      clientlb_result=$(clientlb_off_smoke) || extra_ok=0
+      extra=" $clientlb_result"
+      ;;
+    thread-static)
+      local flip_lines
+      flip_lines=$(grep -acF 'flip-ctl' $J/knob.log 2>/dev/null); flip_lines=${flip_lines:-0}
+      [ "$flip_lines" = 0 ] || extra_ok=0
+      extra=" flip_ctl_lines=$flip_lines"
+      ;;
+    zerocopy)
+      if zerocopy_value_smoke; then extra=" value32k=byte-identical"
+      else extra_ok=0; extra=" value32k=MISMATCH"; fi
+      ;;
+  esac
   local alive=$(timeout 2 $CLI ping 2>/dev/null | tr -d '\r')
   local crash=$(grep -cE 'Guru Meditation|crashed by signal|ASSERTION FAILED' $J/knob.log 2>/dev/null)
-  if [ "$alive" = PONG ] && [ "${ops:-0}" -gt 1000 ] && [ "${crash:-0}" = 0 ] && [ "$extra_ok" = 1 ]; then
+  if [ "$alive" = PONG ] && [ "${ops:-0}" -gt 1000 ] && [ "${crash:-0}" = 0 ] && \
+     [ "$echo_ok" = 1 ] && [ "$extra_ok" = 1 ]; then
     ok "$knob=$val (echo=$got ops=$ops)$extra $note"
   else
-    bad "$knob=$val alive=$alive ops=${ops:-0} crashes=$crash (echo=$got)$extra $note"
+    bad "$knob=$val alive=$alive ops=${ops:-0} crashes=$crash (echo=$got expected=$expected)$extra $note"
   fi
   kb_kill
 }
@@ -135,7 +263,14 @@ echo "=== convention A: -1 = auto ===" >> $OUT
 # retirement cut 55 knobs to ~36 and left this suite "testing" 44 names that no longer exist --
 # with the deprecation shim in place every one of those passed trivially, which is coverage
 # theatre. Regenerate this block from config.c whenever the surface changes.
-  try tomokv-client-lb yes
+  # The yes/default arm is echo+serve only: controller_sweep.sh:c14_clientlb and lb_skew.sh arm B
+  # own the deep distribution, convergence, anti-thrash, hot-client and zero-disconnect gates.
+  try tomokv-client-lb yes "default: continuous connection balancer enabled"
+
+  # Static mode and key-LB=0 isolate this negative gate from flip-time redistribution and bucket
+  # migration; the deeply-pipelined client ranges over many keys, so this is connection skew.
+  try tomokv-client-lb no "OFF: no autonomous client rebalance decisions or batches" \
+    "--tomokv-thread-mode static --tomokv-key-lb 0" clientlb-off
 # Level-2 per-bucket window for the hot-KEY veto. -1 auto (arm at max(4x uniform per-group share,
 # 5% of shard rate)), 0 OFF (nothing allocated, windows disarmed, planner back to group resolution
 # — also the A/B arm for the <=3% budget), N = arm at N% of the shard's rate.
@@ -143,8 +278,8 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   try tomokv-key-lb-fine 0  "OFF: no allocation, exec path back to a never-taken branch"
   try tomokv-key-lb-fine 1  "static 1%: window armed continuously (worst-case data-path arm)"
 
-  try tomokv-client-lb no
-
+  # Immutable bools: exercise both spellings. busypoll=yes may instead pass via the narrowly
+  # matched privilege refusal in try(); a generic boot failure is never accepted.
   try tomokv-os-busypoll yes
 
   try tomokv-os-busypoll no
@@ -153,6 +288,17 @@ echo "=== convention A: -1 = auto ===" >> $OUT
 
   try tomokv-os-opts no
 
+  # The matrix defaults to auto, but both immutable enum spellings need explicit cells. Static
+  # must keep the controller completely inert under the same serving load.
+  try tomokv-thread-mode auto "default: adaptive role controller enabled"
+  try tomokv-thread-mode static "fixed boot split: controller must remain inert" "" thread-static
+
+  # With the fixture's io4+ex4 split, 0 derives an effective 8 cores and explicit 8 is the equal
+  # form. The product contract is <=, not equality: 9 is legal reserved capacity, while 7 refuses.
+  try tomokv-cores-per-node 0 "derive as thread-io + thread-ex (CONFIG GET resolves to 8)"
+  try tomokv-cores-per-node 8 "explicit value equals the io4+ex4 split"
+  must_refuse tomokv-cores-per-node 7 "fixture io4 + ex4 exceeds cores-per-node=7"
+
   # ee451 2026-07-29: `try tomokv-key-lb -1` was a TEST defect, not a product one, and it accounted
   # for the 5th of the 10 knob_matrix failures. config.c:3309 declares this knob
   # createIntConfig(..., 0, INT_MAX, ...): its convention is "0 = OFF, N = min ops/s before a shard
@@ -160,7 +306,10 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   # correctly refuses to start. Asserting the refusal is strictly stronger than deleting the cell.
   must_refuse tomokv-key-lb -1 "range is [0,INT_MAX]; this knob's convention is 0=OFF, N=min ops/s — there is no -1 auto"
 
-  try tomokv-key-lb 0 "OFF: reshardAutoTune returns before any state is touched"
+  # Deep behavior remains gated by keylb_veto.sh (all arms inherit the current default 20000) and
+  # reshard_suite.sh (stock-default ordering/fence cutovers); both run from preflight.sh.
+  try tomokv-key-lb 0 "OFF: skew must produce no reshard lifecycle logs" \
+    "--tomokv-thread-mode static --tomokv-client-lb no" keylb-off
 
   try tomokv-key-lb 20000 "default: min mean ops/s before a shard is a migration candidate"
 
@@ -194,11 +343,17 @@ echo "=== convention A: -1 = auto ===" >> $OUT
 
   must_refuse tomokv-strict-order -1 "below the declared minimum -- this knob spells auto as 0"
 
-  try tomokv-strict-order 0
+  try tomokv-strict-order 0  "OFF: ordinary cross-IO completion ordering"
+  try tomokv-strict-order 1  "strict cross-IO completion ordering"
+  try tomokv-strict-order 50 "epsilon arm: coalesce within (50-1)us"
 
   must_refuse tomokv-zerocopy-min-value -1 "below the declared minimum -- this knob spells auto as 0"
 
-  try tomokv-zerocopy-min-value 0
+  # 32KB is above the default threshold but below 65536, so these three byte-exact round trips
+  # cover copy-only OFF, zero-copy eligible, and below-threshold copy paths on the same value.
+  try tomokv-zerocopy-min-value 0     "OFF: always copy forwarded values" "" zerocopy
+  try tomokv-zerocopy-min-value 1024  "default: 32KB enters zero-copy forwarding" "" zerocopy
+  try tomokv-zerocopy-min-value 65536 "32KB remains below the zero-copy threshold" "" zerocopy
 
   # ee451 2026-08-06: reply-buffer-transfer (reply fork) — bool (createBoolConfig), default OFF ships
   # inert. Drive off + on so the drift guard accounts it and a broken transfer surfaces here, not in a
@@ -221,7 +376,8 @@ echo "=== convention A: -1 = auto ===" >> $OUT
 
   # ee451 2026-08-03: added because the drift guard flagged these three as LIVE BUT UNTESTED.
   # tomokv-io-uring is IMMUTABLE 0..2 (nonzero = the Helio ring; old mode-1 backend DELETED
-  # 2026-08-10); only 0 is driven here on purpose -- nonzero needs a USE_URING=yes build. A drift-guard cell that silently falls back or hangs on an epoll-only build
+  # 2026-08-10); only 0 is driven here on purpose. Nonzero requires a dedicated USE_URING=yes
+  # build; an ordinary drift-guard cell that silently falls back or hangs on an epoll-only build
   # is exactly the "certified a binary it never ran" trap this suite exists to prevent.
   try tomokv-io-uring 0
   must_refuse tomokv-io-uring -1 "below the declared minimum -- this knob spells auto as 0"
@@ -240,8 +396,11 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   # knob surfaces here, not in a bench.
   try tomokv-reorder 0 "OFF: admission-time reorder inert, no scratch write"
   try tomokv-reorder 1 "partition-by-worker only"
-  try tomokv-reorder 2 "full SJF class ordering (range [0,2])"
+  try tomokv-reorder 2 "chunk-bounded SJF class ordering + bucket grouping"
+  try tomokv-reorder 3 "dependency-aware exact SJF (Shinjuku arm; range [0,3])"
   must_refuse tomokv-reorder -1 "below the declared minimum -- 0=off"
+  # RYOW behavior is owned by client_correctness.py as invoked by gauntlet_ownread.sh: reorder 0
+  # and 3, each with and without same-key churn. Those are job harnesses, not checked-in suites.
 
   try tomokv-io-prefetch 0 "OFF: no io-side prefetch"
   try tomokv-io-prefetch 8 "max prefetch depth (range [0,8])"
@@ -290,8 +449,8 @@ echo "=== boolean levers (default off, restored for experimentation) ===" >> $OU
   try tomokv-atomic yes "ON: mixed multi-key completion drains cleanly" "" atomic
 
   try tomokv-atomic-window 0   "unlimited atomic admission" "--tomokv-atomic yes" atomic
-  try tomokv-atomic-window 64  "small static atomic admission window" "--tomokv-atomic yes" atomic
-  try tomokv-atomic-window 512 "default atomic admission window" "--tomokv-atomic yes" atomic
+  try tomokv-atomic-window 64  "default atomic admission window" "--tomokv-atomic yes" atomic
+  try tomokv-atomic-window 512 "large static atomic admission window" "--tomokv-atomic yes" atomic
 
 # ── DRIFT GUARD ──────────────────────────────────────────────────────────────────────────────
 # The cells above are hand-written (the VALUE to try needs per-knob judgement) but the SET of
@@ -322,17 +481,16 @@ drift_guard(){
   # EXEMPT: knobs this harness PINS on every cell, so a `try` cell for them would fight the
   # fixture (try() hardcodes --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4, and every
   # cell runs under a fixed taskset cpuset). Each is listed with where it IS varied instead; an
-  # exemption without coverage elsewhere is a gap, and the three that have none say so below.
+  # exemption without coverage elsewhere is a gap, and the two that have none say so below.
   #   tomokv-nodes / -thread-io / -thread-ex  -> feature_sweep.sh b_cell_topo (ex1/ex3/multi-node)
-  #   tomokv-thread-mode                      -> controller_sweep.sh + flip_updown.sh (auto/static)
   #   tomokv-pin-mode                         -> feature_sweep.sh
-  #   tomokv-cores-per-node / -pin-io / -pin-ex -> NOT COVERED ANYWHERE (see the NOTE emitted below)
-  printf '%s\n' tomokv-nodes tomokv-thread-io tomokv-thread-ex tomokv-thread-mode \
-                tomokv-pin-mode tomokv-cores-per-node tomokv-pin-io tomokv-pin-ex \
+  #   tomokv-pin-io / -pin-ex                 -> NOT COVERED ANYWHERE (see the NOTE emitted below)
+  printf '%s\n' tomokv-nodes tomokv-thread-io tomokv-thread-ex \
+                tomokv-pin-mode tomokv-pin-io tomokv-pin-ex \
     | sort -u > $J/knob_exempt.txt
   sort -u -m $J/knob_tried.txt $J/knob_exempt.txt > $J/knob_accounted.txt
-  echo "  NOTE no preflight suite varies tomokv-cores-per-node / -pin-io / -pin-ex (pinning" >> $OUT
-  echo "       specs are boot-FATAL when mismatched with pin-mode and nothing asserts that)." >> $OUT
+  echo "  NOTE no preflight suite varies tomokv-pin-io / -pin-ex (pinning specs are" >> $OUT
+  echo "       boot-FATAL when mismatched with pin-mode and nothing asserts that)." >> $OUT
   local untested=$(comm -23 $J/knob_live.txt $J/knob_accounted.txt | tr '\n' ' ')
   local ghost=$(comm -13 $J/knob_live.txt $J/knob_tried.txt | tr '\n' ' ')
   local zombie=$(comm -12 $J/knob_live.txt $J/knob_rejected.txt | tr '\n' ' ')
