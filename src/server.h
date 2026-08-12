@@ -3104,6 +3104,12 @@ typedef enum {
     TM_MIGREQ_IOEXIT_CANCEL  /* abort an in-flight IO-EXIT: re-join the accept group, stay IO (flip give-up) */
 } tmMigReqKind;
 
+enum {
+    TM_MIGREQ_SLOT_EMPTY = 0,
+    TM_MIGREQ_SLOT_READY,
+    TM_MIGREQ_SLOT_RESERVED
+};
+
 typedef struct tmMigMailbox {
     /* INBOX: clients migrating INTO this thread. Producers = source io threads (push
      * under inbox_lock); consumer = this thread (drains in its beforeSleepIO). */
@@ -3113,12 +3119,10 @@ typedef struct tmMigMailbox {
                                    * consumer skip locking on the common (empty) path */
     eventNotifier *notifier;      /* wakes this thread's loop on inbox push or new request */
     /* SOURCE REQUEST (control plane -> this thread; published before req_pending). */
-    _Atomic int req_pending;      /* 0 = none; 1 = a request is waiting to be picked up */
+    _Atomic int req_pending;      /* TM_MIGREQ_SLOT_* publication/reservation state */
     _Atomic uint64_t req_data;    /* kind/dest/count/then_ex packed into one atomic publication:
-                                   * two control-plane publishers may overlap after both observe
-                                   * req_pending == 0, but the owner can never see fields from
-                                   * different requests. req_pending remains the release/acquire
-                                   * availability edge. */
+                                   * a publisher owns RESERVED while filling this word, then
+                                   * release-publishes READY for the source owner. */
     /* SOURCE working state (owning thread only; no lock — single writer). */
     list *migrating_out;          /* clients with CLIENT_MIGRATING, draining to quiesce */
     _Atomic int io_exiting;       /* IO-EXIT in progress: request the EX role once client count
@@ -3255,7 +3259,7 @@ struct redisServer {
                                     * below; otherwise the converting ctx. Every actuator wins the
                                     * NULL->marker CAS before selecting its mutable role slot. */
     int tm_flip_target;            /* successful claimer writes before release-publishing the ctx;
-                                    * main reads after acquire-loading it. TOMO_MODE_UNSET when idle
+                                    * owning semi-main reads after acquire-loading it. UNSET when idle
                                     * — NOT 0, which is not a mode (see tomoThreadMode). */
     int tm_flip_phase;             /* grow-back phase machine: 0=await IO-EXIT+EX adoption, 1=arm the
                                     * seed migration, 2=await seed FLIP, 3=await IO-EXIT rollback ack */
@@ -3266,15 +3270,8 @@ struct redisServer {
                                     * abort past it. TIME, not ticks: tmFlipTick runs per event-loop
                                     * iteration, so a tick count is load-dependent (40 iterations ~ 1ms
                                     * under P32 load). */
-    int tm_flip_aborted_node;      /* review [races]: the NODE whose probe aborted. tm_flip_aborted is a
-                                    * server-global but the controller keeps per-node state and scans
-                                    * every node each tick; without this tag a peer node (in a routine
-                                    * post-revert backoff) would consume the flag and re-issue its own
-                                    * already-landed revert = uncommanded cross-node flip. Consumers
-                                    * gate on node==this. topo_nodes==1 => always 0 => no behaviour change. */
-    int tm_flip_aborted;           /* set after the phase-0 timeout's owner-acknowledged IO rollback;
-                                    * the flip controller consumes it to CANCEL the in-flight probe
-                                    * (config never left baseline: nothing to measure or revert). */
+    int tm_flip_aborted_node;      /* one-node legacy abort tag; multi-node uses per-node atomics */
+    int tm_flip_aborted;           /* one-node legacy abort flag, preserving the frozen controller path */
     _Atomic uint64_t reshard_done_seq;  /* bumped on every completed bucket-range move; the flip
                                     * controller's settle gate waits for this to go QUIET before
                                     * judging a probe (a mid-rebalance measurement under-reads the
@@ -3363,11 +3360,10 @@ struct redisServer {
      * 0 = ordinary migration (no flip tail);
      * 2 = GROW-FRONT: the converting worker's whole range has been moved out and torn down,
      *     so the coordinator tail retargets tm_flip_ctx to its flip target (IO).
-     * (Values 1/3 were the deleted reserve activation and the old grow-back live-count publication.
-     * Grow-back now publishes its complete IO->EX accounting move at EX adoption, outside reshard.)
-     * Written by the successful flip claimer (main or DEBUG's io thread) strictly before
-     * reshardArm, read + cleared by the single coordinator of that migration. The atomic flip
-     * claim plus one-migration-at-a-time makes this race-free. */
+     * 3 = GROW-BACK seed: associates the migration with the active flip but needs no coordinator
+     *     role-change tail (IO->EX accounting was already published at EX adoption).
+     * Written inside reshardArm's admission lock and read + cleared by the single coordinator of
+     * that migration, so a competing ordinary arm cannot inherit a flip action. */
     int tm_mig_flip_action;
     int pipeline_ring_depth;
     int ex_queue_size;
