@@ -29,25 +29,32 @@ echo "--- EX->IO completion bus (CDB) ---"
 chk "cdbSlots is exactly one cache line (static assert)" "$H" '_Static_assert\(sizeof\(cdbSlots\) == CACHE_LINE_SIZE'
 chk "cdbSlots is cache-line ALIGNED"                     "$H" "aligned\(CACHE_LINE_SIZE\)\)\) cdbSlots"
 chk "cdbSlots carries explicit padding"                  "$H" 'char _pad\[CACHE_LINE_SIZE'
-# Byte atomics keep the direct CDB's per-slot release/acquire protocol lock-free. Batched worker
-# buses use those bytes with relaxed (ordinary) stores/loads, then publish through a single-writer
-# summary STORE; an RMW would add an unnecessary locked operation and defeat store-only publication.
+# Byte atomics keep direct and small-batch per-slot release/acquire publication lock-free. Large
+# worker batches use value 2 as a relaxed marker, then publish through a single-writer summary
+# STORE; an RMW would add an unnecessary locked operation and defeat store-only publication.
 chk "reply-ready slots are ONE BYTE atomics (assert)"    "$H" '_Static_assert\(sizeof\(redisAtomic uint8_t\) == 1'
 chk "byte atomics are lock-free (assert)"                "$H" 'ATOMIC_CHAR_LOCK_FREE == 2'
 chk "CDB summary is a packed atomic word"                "$H" 'redisAtomic uint32_t published'
 chk "CDB summary stores are lock-free (assert)"          "$H" 'CDB summary stores must always be lock-free'
-chk "batched statuses use ordinary relaxed stores"       "$C" 'atomic_store_explicit\(&bus->ready\[slot\], 1, memory_order_relaxed\)'
+chk "direct path release-stores the original value 1"   "$C" 'reply_cdb\[cdb\]\.ready\[slot\], 1, memory_order_release'
+chk "small worker path release-stores its byte marker"   "$C" 'atomic_store_explicit\(&bus->ready\[slot\], CDB_READY_PER_SLOT, memory_order_release\)'
+chk "per-slot protocol marker is exactly value 1"        "$C" 'CDB_READY_PER_SLOT = 1'
+chk "summary protocol marker is exactly value 2"        "$C" 'CDB_READY_SUMMARY = 2'
+chk "batched statuses use a distinct relaxed marker"     "$C" 'atomic_store_explicit\(&bus->ready\[slot\], CDB_READY_SUMMARY, memory_order_relaxed\)'
 chk "one release summary store publishes the batch"      "$C" 'atomic_store_explicit\(&bus->published, published \^ slots, memory_order_release\)'
-chk "drain acquire-loads the summary before statuses"     "$C" 'atomic_load_explicit\(&bus->published, memory_order_acquire\)'
+chk "drain acquire-loads the status protocol tag first"  "$C" 'atomic_load_explicit\(&bus->ready\[slot\], memory_order_acquire\)'
+chk "per-slot drain returns without a summary read"       "$C" 'ready != CDB_READY_SUMMARY'
+chk "summary-tagged drain acquire-loads the summary"      "$C" 'atomic_load_explicit\(&bus->published, memory_order_acquire\)'
 chk "drain gates on the exact changed slot"               "$C" '\(published \^ bus->consumed\) & bit'
-chk "batched status reads are ordinary relaxed loads"     "$C" 'atomic_load_explicit\(&bus->ready\[slot\], memory_order_relaxed\)'
+chk "only summary generations consume slot parity"        "$C" 'if \(ready == CDB_READY_SUMMARY\)'
 chk "final retirement consumes the exact slot parity"     "$C" 'consumed \^= 1u << slot'
 # The identity mapping is the single-writer proof and also keeps integer division off dispatch.
 # The extra direct line preserves per-slot semantics for arbitrary inline/cross-shard completers.
 chk "worker CDB mapping is idiv-free identity"            "$C" 'return ex_id;   /\* identity is both single-writer'
 chk "direct completions have a reserved CDB"              "$C" 'return server\.num_workers;'
 chk "CDB count includes every worker plus direct"         "$C" 'server\.num_cdb = server\.num_workers \+ 1'
-chk "per-slot publication is direct-bus only"             "$C" 'debugServerAssert\(cdb == cdbDirectIndex\(\)\)'
+chk "direct per-slot publishes stay on direct CDB"        "$C" 'debugServerAssert\(cdb == cdbDirectIndex\(\)\)'
+chk "small worker publishes stay on worker CDB"           "$C" 'debugServerAssert\(cdb >= 0 && cdb < server\.num_workers\)'
 chk "batch publication is worker-bus only"                "$C" 'cdb < server\.num_workers && slots && count'
 chk "ordinary fake matches its worker CDB"                "$C" 'debugServerAssert\(fake->cdb == ctx->wcdb\)'
 
@@ -60,10 +67,13 @@ chk "commit_seq is on its own padded line"               "$C" 'commit_seq_line _
 chk "atomic inflight counter is line-isolated"           "$C" 'tomo_atomic_inflight_line __attribute__'
 
 echo
-echo "--- notification batching (must stay amortised, never per-command) ---"
-# Ordinary EX->IO completion publication must remain one summary event per distinct
-# (real,worker-CDB) represented in the popped batch, not one release store per slot.
-chk "ordinary completions use the batch publisher"        "$C" 'cdbBatchPublish\(sig_parents\[s\], ctx->wcdb, sig_masks\[s\], items\)'
+echo "--- completion publication gate and amortised notification ---"
+# Dense (at least half-full) ordinary completion waves use one summary event per distinct
+# (real,worker-CDB); sparse waves deliberately use the original per-slot release stores so their
+# drain never reads the summary word. Notifier syscalls below remain batch-amortised in both forms.
+chk "summary path is gated to half-full batches"          "$C" 'sig_n >= WORKER_POP_BATCH / 2'
+chk "large ordinary waves use the batch publisher"        "$C" 'cdbBatchPublish\(batch_parents\[b\], ctx->wcdb, batch_masks\[b\], items\)'
+chk "small ordinary waves use the per-slot publisher"     "$C" 'cdbWorkerSlotPublish\(sig_parents\[s\], ctx->wcdb, sig_slots\[s\]\)'
 # A wake per command would put a syscall on the fast path; the notifier is deliberately an edge that
 # beforeSleepIO consumes.
 chk "notifier fd handler only DRAINS (work in beforeSleep)" "$C" 'Notifier fd handler'

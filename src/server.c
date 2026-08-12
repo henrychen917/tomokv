@@ -3148,12 +3148,21 @@ static inline int cdbDirectIndex(void) {
     return server.num_workers;
 }
 
-/* ee451 (CDB batching): ordinary worker buses publish an exact per-slot parity
- * summary. The worker toggles a slot in published once after writing that
- * completion; the IO owner toggles the same slot in consumed only at final ring
- * retirement. Therefore (published ^ consumed) & bit is an exact pending test,
+enum {
+    CDB_READY_NONE = 0,
+    CDB_READY_PER_SLOT = 1,
+    CDB_READY_SUMMARY = 2
+};
+
+/* ee451 (CDB batching): a ready byte selects the publication protocol for its
+ * exact ring generation. Small ordinary batches and every direct completion use
+ * the original release-store of 1; the matching acquire-load below returns
+ * without reading the summary. Large ordinary batches relaxed-store 2, then the
+ * worker toggles their slots in published with one release store per parent. The
+ * IO owner toggles the same slots in consumed only at final ring retirement.
+ * Therefore (published ^ consumed) & bit is an exact pending test for tag 2,
  * even when cost reordering completes later ring slots first or several batches
- * arrive before a drain.
+ * of either protocol arrive before a drain.
  *
  * The exact bit also closes the next-batch-before-release hole: a relaxed ready
  * store for a reused slot cannot be inspected under an older summary, because
@@ -3168,23 +3177,31 @@ static inline int cdbDirectIndex(void) {
  * worker through the SPSC queue's release/acquire edge. */
 static inline int cdbSlotReady(client *real, int cdb, unsigned int slot) {
     cdbSlots *bus = &clientTail(real)->reply_cdb[cdb];
-    if (cdb == cdbDirectIndex())
-        return atomic_load_explicit(&bus->ready[slot], memory_order_acquire) != 0;
+    uint8_t ready = atomic_load_explicit(&bus->ready[slot], memory_order_acquire);
+    if (ready != CDB_READY_SUMMARY) {
+        debugServerAssert(ready == CDB_READY_NONE || ready == CDB_READY_PER_SLOT);
+        return ready;
+    }
 
+    debugServerAssert(cdb != cdbDirectIndex());
     uint32_t bit = 1u << slot;
     uint32_t published = atomic_load_explicit(&bus->published, memory_order_acquire);
-    if (!((published ^ bus->consumed) & bit)) return 0; /* unchanged slot: do not touch its status */
-    int ready = atomic_load_explicit(&bus->ready[slot], memory_order_relaxed) != 0;
-    debugServerAssert(ready);                  /* changed bit release-published this exact byte */
+    if (!((published ^ bus->consumed) & bit)) return CDB_READY_NONE;
     return ready;
 }
-/* Per-slot publication is intentionally restricted to the multi-publisher direct
- * bus. Cross-shard/R1 ordering depends on this release happening exactly where
- * the old helper was called, so those paths are not deferred into exSlice. */
+/* Both per-slot helpers preserve the pre-batching publication exactly: one
+ * release-store of 1. Cross-shard/R1 ordering depends on the direct helper at
+ * its existing sites; small ordinary batches call the worker helper in original
+ * issue order. Separate ownership assertions keep arbitrary completers off the
+ * single-writer worker lines. */
 static inline void cdbSlotPublish(client *real, int cdb, unsigned int slot) {
     debugServerAssert(cdb == cdbDirectIndex());
-    atomic_store_explicit(&clientTail(real)->reply_cdb[cdb].ready[slot], 1,
-                          memory_order_release);
+    atomic_store_explicit(&clientTail(real)->reply_cdb[cdb].ready[slot], 1, memory_order_release);
+}
+static inline void cdbWorkerSlotPublish(client *real, int cdb, unsigned int slot) {
+    debugServerAssert(cdb >= 0 && cdb < server.num_workers);
+    cdbSlots *bus = &clientTail(real)->reply_cdb[cdb];
+    atomic_store_explicit(&bus->ready[slot], CDB_READY_PER_SLOT, memory_order_release);
 }
 /* One ordinary status-store wave followed by one release summary store. The
  * summary has one worker writer (cdb == worker id), so load+store is not a lost
@@ -3197,7 +3214,7 @@ static inline void cdbBatchPublish(client *real, int cdb, uint32_t slots, unsign
     while (pending) {
         unsigned int slot = (unsigned int)__builtin_ctz(pending);
         pending &= pending - 1;
-        atomic_store_explicit(&bus->ready[slot], 1, memory_order_relaxed);
+        atomic_store_explicit(&bus->ready[slot], CDB_READY_SUMMARY, memory_order_relaxed);
     }
     uint32_t published = atomic_load_explicit(&bus->published, memory_order_relaxed);
     atomic_store_explicit(&bus->published, published ^ slots, memory_order_release);
@@ -3206,12 +3223,14 @@ static inline void cdbSlotClear(client *real, int cdb, unsigned int slot) {
     atomic_store_explicit(&clientTail(real)->reply_cdb[cdb].ready[slot], 0,
                           memory_order_relaxed);
 }
-/* Final ring retirement consumes one published worker status. Keep this out of
- * cdbSlotClear: cross-shard stage re-arms clear the direct byte without retiring
- * the ring slot, and the generic clear primitive must retain that exact meaning. */
-static inline void cdbSlotRetire(client *real, int cdb, unsigned int slot) {
+/* Final ring retirement consumes parity only for the summary-backed generation
+ * observed by cdbSlotReady. Keep this out of cdbSlotClear: per-slot publications
+ * have no parity, and cross-shard stage re-arms clear the direct byte without
+ * retiring the ring slot. */
+static inline void cdbSlotRetire(client *real, int cdb, unsigned int slot, int ready) {
+    debugServerAssert(ready == CDB_READY_PER_SLOT || ready == CDB_READY_SUMMARY);
     cdbSlotClear(real, cdb, slot);
-    if (cdb != cdbDirectIndex())
+    if (ready == CDB_READY_SUMMARY)
         clientTail(real)->reply_cdb[cdb].consumed ^= 1u << slot;
 }
 
@@ -4079,7 +4098,7 @@ static inline void exDispatchPush(int ex_id, client *fake) {
  * real client from the worker: `real` is owned by this IO thread, which also writes that same
  * field from call() on its inline commands, so a worker-side bump would be a cross-thread
  * non-atomic RMW. This runs on the drain thread after it has acquired the fake's completion
- * publication (worker summary or direct byte), so the worker's store is visible and the fake is
+ * publication (worker summary or status byte), so the worker's store is visible and the fake is
  * quiescent.
  *
  * Idempotent: it clears the fake's counter, and fakes are recycled without re-init. */
@@ -4197,7 +4216,8 @@ void handleWorkerReplies(void) {
             while (rt->flushid != rt->dispatchid) {
                 unsigned int slot = rt->flushid & rt->ring_mask;
                 client *fake = rt->fakeClients[slot];
-                if (!cdbSlotReady(real, fake->cdb, slot)) break;  /* wait for worker */
+                int cdb_ready = cdbSlotReady(real, fake->cdb, slot);
+                if (!cdb_ready) break;  /* wait for worker */
                 int was_ex_dispatched = (fake->flags & CLIENT_EX_PENDING) != 0;
                 int was_cs = (fake->csgroup != NULL);
                 fake->flags &= ~CLIENT_EX_PENDING;
@@ -4248,7 +4268,7 @@ void handleWorkerReplies(void) {
                     csReassemble(NULL, fake);
                 }
                 foldClientCommandsProcessed(real, fake);   /* ee451 (#B2) */
-                cdbSlotRetire(real, fake->cdb, slot);
+                cdbSlotRetire(real, fake->cdb, slot, cdb_ready);
                 tomoReleaseReadSnapshot(fake);
                 commandProcessed(fake);
                 if (was_ex_dispatched || was_cs) replyWorking--;
@@ -4284,10 +4304,11 @@ void handleWorkerReplies(void) {
         while (rt->flushid != rt->dispatchid) {
             unsigned int slot = rt->flushid & rt->ring_mask;
             client *fake = rt->fakeClients[slot];
-            /* Worker CDBs acquire the parity summary before reading this exact
-             * status; the direct CDB acquires the status byte itself. A stale
-             * publication value only postpones the prefix until the next poll. */
-            if (!cdbSlotReady(real, fake->cdb, slot)) break;
+            /* The acquired status byte selects either the original direct/small
+             * path or the large-batch parity path. A stale byte or summary value
+             * only postpones the prefix until the next poll. */
+            int cdb_ready = cdbSlotReady(real, fake->cdb, slot);
+            if (!cdb_ready) break;
             if (__builtin_expect(atomic_load_explicit(&cross_node_any[iotid],
                                                        memory_order_acquire), 0)) {
                 uint32_t xnode_bit = 1u << slot;
@@ -4371,7 +4392,7 @@ void handleWorkerReplies(void) {
                  * Retire the fake state, stop walking the ring. The async
                  * free queue will clean up real; its ring doesn't need
                  * further drain here. */
-                cdbSlotRetire(real, fake->cdb, slot);
+                cdbSlotRetire(real, fake->cdb, slot, cdb_ready);
                 tomoReleaseReadSnapshot(fake);
                 commandProcessed(fake);
                 if (was_ex_dispatched || was_cs) replyWorking--;
@@ -4382,7 +4403,7 @@ void handleWorkerReplies(void) {
 
             /* Fake is fully drained into real's output. Clear its independent
              * ready byte before retiring/reusing this fake-ring slot. */
-            cdbSlotRetire(real, fake->cdb, slot);
+            cdbSlotRetire(real, fake->cdb, slot, cdb_ready);
             tomoReleaseReadSnapshot(fake);
             commandProcessed(fake);
 
@@ -5468,6 +5489,7 @@ void resetServerStats(void) {
         tomoRelaxedSet(server.kstat[i].flat_hash_reuses, 0);
         tomoRelaxedSet(server.kstat[i].cdb_batched_publish_events, 0);
         tomoRelaxedSet(server.kstat[i].cdb_batched_publish_items, 0);
+        tomoRelaxedSet(server.kstat[i].cdb_worker_per_slot_publish_events, 0);
     }
     server.stat_active_defrag_hits = 0;
     server.stat_active_defrag_misses = 0;
@@ -8636,10 +8658,11 @@ int processCommand(client *c) {
         csDispatch(fake, csp, atomic_write_admission);  /* xshard registry: route kind from the row */
     } else if (canDispatchToWorker(fake)) {
         int ex_id = getWorkerForCommand(fake);
-        /* Capture the worker-owned CDB ONCE. The batch publisher toggles this
-         * slot in reply_cdb[fake->cdb].published and the final drain retirement
-         * toggles consumed — one captured value, carried through the SPSC queue,
-         * keeps writer and drainer on the same single-writer line. */
+        /* Capture the worker-owned CDB ONCE. A small batch publishes this slot's
+         * original status byte; a large batch toggles it in published, and only
+         * that form makes final drain retirement toggle consumed. One captured
+         * value carried through the SPSC queue keeps both forms on the same
+         * single-writer line. */
         fake->cdb = cdbIndexFor(ex_id);
         fake->db = &server.exThreads[ex_id].db[fake->db->id];
         fake->flags |= CLIENT_EX_PENDING;
@@ -19246,11 +19269,14 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
          * called fast: a large fast count therefore proves the new gate fired. */
         unsigned long long atomic_read_fast = 0, atomic_read_slow = 0;
         unsigned long long cdb_publish_events = 0, cdb_publish_items = 0;
+        unsigned long long cdb_worker_per_slot_publish_events = 0;
         for (int _t = 0; _t < TOMO_STAT_SLOTS; _t++) {
             atomic_read_fast += tomoRelaxedRead(server.kstat[_t].atomic_read_fast);
             atomic_read_slow += tomoRelaxedRead(server.kstat[_t].atomic_read_slow);
             cdb_publish_events += tomoRelaxedRead(server.kstat[_t].cdb_batched_publish_events);
             cdb_publish_items += tomoRelaxedRead(server.kstat[_t].cdb_batched_publish_items);
+            cdb_worker_per_slot_publish_events +=
+                tomoRelaxedRead(server.kstat[_t].cdb_worker_per_slot_publish_events);
         }
         double cdb_publish_avg = cdb_publish_events ?
             (double)cdb_publish_items / (double)cdb_publish_events : 0.0;
@@ -19348,8 +19374,10 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         info = sdscatprintf(info,
             "tomokv_cdb_batched_publish_events:%llu\r\n"
             "tomokv_cdb_batched_publish_items:%llu\r\n"
-            "tomokv_cdb_batched_publish_avg:%.2f\r\n",
-            cdb_publish_events, cdb_publish_items, cdb_publish_avg);
+            "tomokv_cdb_batched_publish_avg:%.2f\r\n"
+            "tomokv_cdb_worker_per_slot_publish_events:%llu\r\n",
+            cdb_publish_events, cdb_publish_items, cdb_publish_avg,
+            cdb_worker_per_slot_publish_events);
         /* Keep the lifecycle witnesses outside the already-large FMTARGS block. ref_waits is the
          * non-vacuous proof: it increments only when group completion reached zero but old-owner
          * STAMP/PRUNE/grace work for the migrating range was still outstanding. Both stale-owner
@@ -21735,8 +21763,9 @@ static inline tomoCmdClockStamp exExecFake(client *fake, monotonic_raw entry_raw
  * atomically at the mode-transition checkpoint. */
 typedef struct exSliceCtx {
     /* This worker's single-writer CDB index, fixed for its lifetime. Every
-     * ordinary fake dispatched here captures the same wcdb; direct cross-shard
-     * completions bypass the batch accumulator and use the reserved final CDB. */
+     * ordinary fake dispatched here captures the same wcdb; its popped batch
+     * selects per-slot or summary publication. Direct cross-shard completions
+     * bypass that gate and use the reserved final CDB. */
     int wcdb;
     int nq;             /* ee451 (v14): io_threads+1 — loop-invariant (immutable after startup), hoisted */
     int scan_start;     /* worker-local producer-scan rotation cursor */
@@ -22107,12 +22136,12 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
 
         tomoRelaxedBump(worker->ops_total, (uint64_t)n);   /* ee451 (v8d): monotonic load signal for the EWMA balancer (numa: _Atomic single-writer idiom) */
 
-        /* Per-batch completion accumulator. A producer lane multiplexes clients,
-         * so one pop can contain several parents; fold slots by distinct parent
-         * and issue one summary store for each represented (real,worker-CDB).
-         * Do not retain fake pointers: publication licenses immediate recycling. */
+        /* Preserve the original per-completion (parent,slot) records. SMALL
+         * waves publish this array directly in issue order; only a LARGE wave
+         * pays to fold it by parent for summary publication. Do not retain fake
+         * pointers: publication licenses immediate recycling. */
         client *sig_parents[WORKER_POP_BATCH];
-        uint32_t sig_masks[WORKER_POP_BATCH];
+        uint8_t sig_slots[WORKER_POP_BATCH];
         int sig_n = 0;
 
         /* One independent raw boundary per contiguous run of ordinary commands. Each proc's exit
@@ -22295,32 +22324,51 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
                 worker->w_ewma_vsize = cur < 0 ? 0 : (unsigned int)cur;
             }
 
-            {
-                client *parent = fake->parent;
-                int s;
-                for (s = 0; s < sig_n; s++)
-                    if (sig_parents[s] == parent) break;
-                if (s == sig_n) {
-                    sig_parents[s] = parent;
-                    sig_masks[s] = 0;
-                    sig_n++;
-                }
-                sig_masks[s] |= 1u << fake->fake_slot;
-            }
+            sig_parents[sig_n] = fake->parent;
+            sig_slots[sig_n] = (uint8_t)fake->fake_slot;
+            sig_n++;
             j++;
         }
 
-        /* cdbBatchPublish relaxed-stores every status in the mask before its ONE
-         * release summary store. This call is the final parent dereference: the
-         * IO owner may retire the real immediately afterward. Count the actual
-         * summary events and covered statuses in this worker's fixed kstat line
-         * so role conversion cannot turn the witness into a second-writer stat. */
+        /* WORKER_POP_BATCH is the fixed 16-wide execution/prefetch group. Require
+         * at least half of that completion capacity (8): only a dense pop pays
+         * parent folding and the drain's summary selection; sparse io4ex4/large-DB
+         * waves retain the original byte path with zero summary-word reads.
+         * Gate on actual ordinary completions, not popped control/xshard jobs. */
         int cdb_stat_slot = TOMO_IO_THREADS_MAX + 1 + worker->id;
-        for (int s = 0; s < sig_n; s++) {
-            unsigned int items = (unsigned int)__builtin_popcount(sig_masks[s]);
-            cdbBatchPublish(sig_parents[s], ctx->wcdb, sig_masks[s], items);
-            tomoRelaxedBump(server.kstat[cdb_stat_slot].cdb_batched_publish_events, 1);
-            tomoRelaxedBump(server.kstat[cdb_stat_slot].cdb_batched_publish_items, items);
+        if (sig_n >= WORKER_POP_BATCH / 2) {
+            client *batch_parents[WORKER_POP_BATCH];
+            uint32_t batch_masks[WORKER_POP_BATCH];
+            int batch_n = 0;
+            for (int s = 0; s < sig_n; s++) {
+                int b;
+                for (b = 0; b < batch_n; b++)
+                    if (batch_parents[b] == sig_parents[s]) break;
+                if (b == batch_n) {
+                    batch_parents[b] = sig_parents[s];
+                    batch_masks[b] = 0;
+                    batch_n++;
+                }
+                batch_masks[b] |= 1u << sig_slots[s];
+            }
+            /* Each call is the final dereference of that parent: its IO owner
+             * may retire the real immediately after the release summary store. */
+            for (int b = 0; b < batch_n; b++) {
+                unsigned int items =
+                    (unsigned int)__builtin_popcount(batch_masks[b]);
+                cdbBatchPublish(batch_parents[b], ctx->wcdb, batch_masks[b], items);
+            }
+            tomoRelaxedBump(server.kstat[cdb_stat_slot].cdb_batched_publish_events,
+                            (unsigned long long)batch_n);
+            tomoRelaxedBump(server.kstat[cdb_stat_slot].cdb_batched_publish_items,
+                            (unsigned long long)sig_n);
+        } else if (sig_n) {
+            /* Exact pre-batching path: one release status-byte store per
+             * completion, in issue order, and no summary publication. */
+            for (int s = 0; s < sig_n; s++)
+                cdbWorkerSlotPublish(sig_parents[s], ctx->wcdb, sig_slots[s]);
+            tomoRelaxedBump(server.kstat[cdb_stat_slot].cdb_worker_per_slot_publish_events,
+                            (unsigned long long)sig_n);
         }
 
         /* ee451 (H2, reshard drain fence): publish this queue's EXECUTION frontier. The pop above

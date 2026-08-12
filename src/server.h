@@ -1625,27 +1625,29 @@ static const uint32_t TOMO_CLS_SLO[TOMO_SVC_CLASSES] = { 1, 1, 4, 64, 1024, 1638
 #define PIPELINE_QUEUE_MASK (PIPELINE_DEPTH - 1) /* kept for back-compat; prefer c->ring_mask */
 /* ee451 (S5/CDB batching): one cache-line reply bus per worker, plus one
  * reserved direct bus for inline and cross-shard completions. Ordinary worker
- * buses have exactly one publisher and one drainer. The worker relaxed-stores all
- * ready bytes for one (real,batch), then release-stores one slot-parity summary to
- * published; the IO owner acquire-loads published and relaxed-loads a ring-head
- * byte only when that exact slot differs from its consumed parity. Direct
- * completions retain the original per-slot release/acquire protocol because their
- * final publisher is not tied to one worker.
+ * buses have exactly one publisher and one drainer. Each ready byte is also the
+ * generation-exact protocol tag: 0 is clear, 1 is the original per-slot
+ * release/acquire publication, and 2 is a relaxed status store covered by the
+ * release/acquire slot-parity summary. The IO owner acquire-loads the byte first;
+ * a 1 takes the original path without touching the summary, while a 2 is ready
+ * only when that exact slot differs from its consumed parity. Direct completions
+ * always use 1 because their final publisher is not tied to one worker.
  *
  * published and consumed deliberately occupy the old padding in the SAME line as
  * ready[]. A changed summary already transfers this line to the drainer, so an
  * adjacent summary line would require a second cross-core transfer per batch.
  * Each CDB remains a separately aligned line, and the reserved direct CDB keeps
  * arbitrary cross-shard publishers off every single-writer worker line. The byte
- * atomics remain lock-free: batched accesses are relaxed (ordinary load/store
- * instructions, never RMWs), while the direct bus still uses byte release/acquire.
- * Slot clear remains a relaxed byte store, and reuse cannot begin until the sole
- * IO drainer has performed it. */
+ * atomics remain lock-free and no publication uses an RMW. Slot clear remains a
+ * relaxed byte store, and reuse cannot begin until the sole IO drainer has both
+ * cleared it and, for tag 2, consumed its parity. A per-CDB mode flag would be
+ * incorrect because differently gated batches may be outstanding together; the
+ * per-slot tag remains valid until that exact generation is retired. */
 #define NUM_CDB_MAX 256
 typedef struct cdbSlots {
     redisAtomic uint8_t ready[TOMO_PIPELINE_DEPTH_MAX];
-    redisAtomic uint32_t published; /* worker-only release publisher; one toggle per completed slot */
-    uint32_t consumed;              /* IO-owner-only parity; toggled only at final ring retirement */
+    redisAtomic uint32_t published; /* worker release publisher; one toggle per summary-backed slot */
+    uint32_t consumed;              /* IO-owner parity; retires only summary-backed slot toggles */
     char _pad[CACHE_LINE_SIZE -
               sizeof(redisAtomic uint8_t) * TOMO_PIPELINE_DEPTH_MAX -
               sizeof(redisAtomic uint32_t) - sizeof(uint32_t)];
@@ -3571,12 +3573,18 @@ struct redisServer {
         _Atomic unsigned long long atomic_read_fast;
         _Atomic unsigned long long atomic_read_slow;
         _Atomic long long flat_hash_reuses; /* guarded tomo_key_h consumed by a FLAT lookup */
-        /* CDB batch witness. The worker's fixed stat slot is its sole writer even
-         * while that worker is temporarily serving an IO role. `items/events` is
-         * the weighted average number of ready bytes behind one summary store. */
+        /* CDB gate witness. The worker's fixed stat slot is its sole writer even
+         * while that worker is temporarily serving an IO role. Batched events are
+         * summary-word publishes, items/events is their covered-status average,
+         * and worker-per-slot events count the small ordinary path's original
+         * release-byte publishes (the reserved direct bus is intentionally not
+         * part of this gate witness). */
         _Atomic unsigned long long cdb_batched_publish_events;
         _Atomic unsigned long long cdb_batched_publish_items;
-        char _pad[CACHE_LINE_SIZE - 7 * sizeof(long long)];
+        _Atomic unsigned long long cdb_worker_per_slot_publish_events;
+#if CACHE_LINE_SIZE > 64
+        char _pad[CACHE_LINE_SIZE - 8 * sizeof(long long)];
+#endif
     } kstat[TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
     /* ee451 (#B1): per-thread executed-command counters. stat_numcommands lived only in call(),
      * which worker threads never enter (they run cmd->proc directly from exExecFake, and the
