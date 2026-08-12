@@ -19260,6 +19260,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 (unsigned long long)atomic_load_explicit(&server.reshard_fence_midbatch, memory_order_relaxed),
             "tomokv_reshard_fence_aborts:%llu\r\n",
                 (unsigned long long)atomic_load_explicit(&server.reshard_fence_aborts, memory_order_relaxed),
+            "tomokv_reshard_fence_stale_acks:%llu\r\n",   /* ee451 O1: drain sentinels rejected as stale (guard fired) */
+                (unsigned long long)atomic_load_explicit(&server.migration.fence_stale_acks, memory_order_relaxed),
             /* Flip actuator recoveries are never normal control decisions: each increment names one
              * conversion that was abandoned/rolled back, or whose seed cutover was abandoned after
              * the role move had safely completed. This makes the recovery visible without inferring
