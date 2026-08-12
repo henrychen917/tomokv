@@ -15643,6 +15643,7 @@ static void migPushFenceIfNeeded(void) {
     if (fg == 0 || mig_local_fence_gen == fg) return;        /* already fenced this cutover */
     client *sentinel = createFakeClient(&mig_fence_parent);
     clientTail(sentinel)->drain_ack = &server.migration.fence_acked[0]; /* non-NULL marker; A acks by queue index */
+    clientTail(sentinel)->drain_fence_gen = fg;              /* ee451 O1: bind this sentinel to fence gen fg */
     csPushSpin(server.migration.src, sentinel);              /* -> workers[A].queues[iotid] */
     mig_local_fence_gen = fg;
 }
@@ -22103,8 +22104,20 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
              * every range primary this producer dispatched before it has executed on A; decrement
              * the per-cutover barrier and free. No reply. */
             if (fake->has_exec_tail && clientTail(fake)->drain_ack) {
-                /* This sentinel came up queue slot `i`; mark that producer slot drained. */
-                atomic_store_explicit(&server.migration.fence_acked[i], 1, memory_order_release);
+                /* This sentinel came up queue slot `i`; mark that producer slot drained — but ONLY
+                 * if it still belongs to the CURRENT fence (ee451 O1). An aborted prior fence can
+                 * leave its sentinel in this producer's queue; acking it during a later fence would
+                 * forge this producer's drain and let the coordinator flip ownership while the
+                 * producer still has in-flight range writes for the current fence. */
+                uint64_t cur_fg = atomic_load_explicit(&server.migration.fence_gen, memory_order_acquire);
+                if (clientTail(fake)->drain_fence_gen == cur_fg) {
+                    atomic_store_explicit(&server.migration.fence_acked[i], 1, memory_order_release);
+                } else {
+                    atomic_fetch_add_explicit(&server.migration.fence_stale_acks, 1, memory_order_relaxed);
+                    serverLog(LL_NOTICE, "ee451 O1: rejected stale drain sentinel (gen=%llu cur=%llu slot=%d)",
+                              (unsigned long long)clientTail(fake)->drain_fence_gen,
+                              (unsigned long long)cur_fg, i);
+                }
                 freeFakeClient(fake);
                 cmd_boundary.timed = 0;
                 j++;
