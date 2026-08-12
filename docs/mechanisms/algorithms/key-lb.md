@@ -110,7 +110,7 @@ Exit ladder:
 | band | `hotv <= hot_bar` | hold (streak preserved) | `src/server.c:16968-16971` |
 | settle | `mig_settle > 0` | cool down `(int)(1/alpha)+1` ticks | `src/server.c:16975` |
 | no-progress | `mig_peak_pre > 0 && hotv > 0.85·mig_peak_pre` | stop chasing | `src/server.c:16978-16979` |
-| fastcold | `mig_load_ewma_fast[hot] <= hot_bar_fast` | reset streak, return | `src/server.c:16983`, `:16994` |
+| fastcold | `mig_load_ewma_fast[hot] <= hot_bar_fast` | return, streak **kept** (the `mig_hot_streak[hot]=0` reset at `:16994` is unreachable — the identical guard at `:16983` returns first) | `src/server.c:16983` |
 | sustain | `++mig_hot_streak[hot] < K` | not yet | `src/server.c:16995` |
 
 `K = migSustainK(alpha) = max(3, ceil(1/alpha))` — because `alpha <= 0.25`, `K >= 4`

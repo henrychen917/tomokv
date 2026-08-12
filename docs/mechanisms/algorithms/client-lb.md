@@ -16,7 +16,7 @@ separate one-shot flip-time backfill (`tmRebalanceOntoNewIo`) gated by the deriv
   events-per-event-loop-pass EWMA updated every `ioSlice()` as
   `B += ((events << 4) - B) >> 3` (Q4, alpha 1/8), returned **without** dividing by 16
   (`src/server.c:23142`, `:23951-23952`). It is a relative connection-placement weight, **not** a flip
-  ratio input (`src/server.h:670-671`).
+  ratio input (`src/server.c:670-671`).
 - **Connection count** `tmIoThreadLoad(id)` = `listLength(server.clients[id])` — the authoritative
   per-thread count maintained by `linkClient`/`unlinkClient` on the owning thread; read cross-thread
   racy but non-torn (`src/server.c:23943-23945`).

@@ -1,5 +1,16 @@
 # TomoKV — Mechanism Index
 
+## Navigation
+
+- [README](../../README.md)
+- [Thread-per-core execution](../execution-model.md)
+- [FLATSTORE](../storage-flatstore.md)
+- [QSBR reclamation](../reclamation-qsbr.md)
+- [MVCC atomics](../atomics-mvcc.md)
+- [Cross-shard scatter/gather](../crossshard.md)
+- [Online resharding](../reshard-migration.md)
+- [Load balancing](../loadbalance-flip.md)
+
 Granular, code-derived docs for every named buffer, prefetch stage, communication channel, and
 algorithm/calculation. Each file cites file:line and documents the real data structure + protocol.
 Parent: the 7 subsystem docs in `../` link down to these; the top-level `../../README.md` is the hub.

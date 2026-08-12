@@ -2,7 +2,7 @@
 
 A captured anchor (see `flip-anchor-and-episode.md`) cannot coexist with a signal that has moved
 materially. Three detectors invalidate it — set `anchor_n = 0` and, at the captured split, re-arm a
-fresh episode. Each is Schmitt-gated on **settled ticks only** and each (except the pure rate arm) is
+fresh episode. Each is Schmitt-gated on **settled ticks only** and each (except the floor-exit arm) is
 widened by the same power-of-two REVERT damping. All in the anchor-invalidation block of
 `tomoFlipController()`, `src/server.c:26101-26221`, with a parallel completed-episode variant at
 `:26282-26320`.

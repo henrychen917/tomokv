@@ -247,7 +247,7 @@ FLAT_PIN_GEN_WIDTH` (returns 1, `flat_pin_wrap_blocks++`, if set); and finally b
 
 ## Code / comment discrepancies
 
-- The FLATSTORE file header describes a "main-thread, worker-`loop_seq`" grace (`src/flatstore.c:14-20`).
+- The FLATSTORE file header describes a worker-`loop_seq` grace (its "main-thread" reclaim wording is at `src/flatstore.c:130-131`, not the :14-20 header) (`src/flatstore.c:14-20`).
   The ready predicate additionally gates on the global foreign pin, group generations, and captured
   IO epochs — four constituencies, not one (`src/server.c:9016-9058`).
 - The close comment says every batch value "was unlinked with a RELEASE store (flatOverwrite /

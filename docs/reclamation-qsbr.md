@@ -18,7 +18,7 @@ Replaced `flatTable` allocations do not use the per-batch test. They are kept in
 | External-reader TLS | `flat_extern_depth` is the nesting depth; `flat_slot_owned` is the registered IO slot or one of the worker/none sentinels; `flat_epoch_slot` latches the slot used by the outermost entry; `flat_epoch_val` remembers the published odd value; and `flat_foreign_held` records use of the global fallback pin. (`src/server.c:1073-1080`) |
 | Unregistered-reader fallback | `flat_foreign_active` is a cache-line-isolated `_Atomic int`; a nonzero value blocks every batch-readiness decision. (`src/server.c:977-983`, `src/server.c:1151-1161`, `src/server.c:9031-9032`) |
 | Worker quiescence | Each `exThread` has atomic `in_flat_section` and `loop_seq`. Its owner-private reclaim state is `flat_retire_local`, FIFO `flat_batches_local`/`flat_batches_tail`, `flat_batch_spare`, and `flat_batch_spare_n`, separated from the two polled atomics by padding and checked by compile-time cache-line assertions. (`src/server.h:2607-2613`, `src/server.h:2654-2677`, `src/server.c:1037-1043`) |
-| Dispatch-group pin | Each `flatGroupPinSlot` has cache-line-separated atomic `active`, atomic `floor`, atomic `scan_lock`, and `pin_out[4096]`; `flat_group_pin_mask.bits[]` identifies slots with active pins. `flat_batches_closed_n` is also the close-generation source, while `flat_batches_freed_n` and `flat_pin_wrap_blocks` are counters. (`src/server.c:985-1015`) |
+| Dispatch-group pin | Each `flatGroupPinSlot` isolates atomic `active` on its own cache line, pairs atomic `floor` with atomic `scan_lock` on the next, and separates `pin_out[4096]`; `flat_group_pin_mask.bits[]` identifies slots with active pins. `flat_batches_closed_n` is also the close-generation source, while `flat_batches_freed_n` and `flat_pin_wrap_blocks` are counters. (`src/server.c:985-1015`) |
 | Pin owner record | The fake client carries `tomo_read_snapshot_gen` and `tomo_read_snapshot_pinned`; the same client also carries the read snapshot protected by the pin. (`src/server.h:1909-1924`) |
 | Retire record | `flatRetireNode` contains exactly `masked_kv` and `next`. (`src/flatstore.h:67`) |
 | Closed batch | `flatBatch` contains `head`, `close_gen`, `nworkers`, `next`, and flexible array `arr[]`. (`src/flatstore.h:98-104`) |
@@ -274,3 +274,10 @@ Worker-local retire lists and batches are not members of the old table and are n
 | Physical-retire helper, arm path, detached-bag path, callback | `src/db.c:922-942`, `src/db.c:1024-1131`, `src/db.c:1134-1405` |
 | Owner-operation production and prune invocation | `src/server.c:9983-10086`, `src/server.c:10290-10389` |
 | Lifecycle reference and nonfatal owner audit | `src/server.c:344-425` |
+
+## Mechanisms
+
+- [Group-pin slots](mechanisms/buffers/group-pin-slots.md)
+- [Freeback ring](mechanisms/buffers/freeback-ring.md)
+- [QSBR grace](mechanisms/algorithms/qsbr-grace.md)
+- [Reclaim budget](mechanisms/algorithms/reclaim-budget.md)

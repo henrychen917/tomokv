@@ -72,7 +72,7 @@ A normal command follows this path:
    [`src/networking.c`](src/networking.c#L1956-L2000),
    [`src/networking.c`](src/networking.c#L3355-L3628))
 
-## Component map
+## Documentation map
 
 - [Thread-per-core execution](docs/execution-model.md) — IO owners manage connections, parsing, and
   ordered output while EX workers consume per-producer SPSC lanes, execute against worker DBs, and
@@ -94,6 +94,7 @@ A normal command follows this path:
   are not copied and this is not cross-node data migration.
 - [Load balancing](docs/loadbalance-flip.md) — Independent controllers convert threads between IO and
   EX roles, move adjacent-worker bucket ranges, and hand eligible connections between IO owners.
+- [Mechanism index](docs/mechanisms/INDEX.md)
 
 ## Configuration
 

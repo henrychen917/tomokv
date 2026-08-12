@@ -18,16 +18,21 @@ The return channel for ordinary jobs is the per-client [`cdbSlotPublish` complet
 
 `head`, `tail`, and `jobs` each have explicit cache-line alignment. That puts the two index-owner regions on separate lines and begins the pointer array on a third line; the structure's alignment also makes its array stride a cache-line multiple. ([src/server.h:2422-2437](../../../src/server.h#L2422-L2437), [src/server.h:2437-2477](../../../src/server.h#L2437-L2477)) The source places the consumer-private cache and `retired` beside `head`, and the producer-private caches beside `tail`, so routine ownership does not make the opposite side's index line bounce. ([src/server.h:2439-2468](../../../src/server.h#L2439-L2468))
 
-Let `C = CACHE_LINE_SIZE`, `A = sizeof(redisAtomic unsigned int)`, `U = sizeof(unsigned int)`, and `P = sizeof(client *)`. The source-portable layout is:
+Let `C = CACHE_LINE_SIZE`, `A = sizeof(redisAtomic unsigned int)`, `U = sizeof(unsigned int)`, `P = sizeof(client *)`, `a/u/p` be the corresponding `_Alignof` values, `E = max(C,a)`, and `J = max(C,p)`. Accounting for both natural alignment and the explicit GNU `aligned(C)` attributes, the source-portable layout is:
 
 ```text
-tail offset     = align_up(A + U + A, C)
-jobs offset     = align_up(tail_offset + A + U + U, C)
-jobs[] bytes    = 2048 * P
-sizeof(exQueue) = align_up(jobs_offset + 2048 * P, C)
+head offset        = 0
+cached_tail offset = align_up(A, u)
+retired offset     = align_up(cached_tail_offset + U, a)
+tail offset        = align_up(retired_offset + A, E)
+cached_head offset = align_up(tail_offset + A, u)
+staged_tail offset = align_up(cached_head_offset + U, u)
+jobs offset        = align_up(staged_tail_offset + U, J)
+jobs[] bytes       = 2048 * P
+sizeof(exQueue)    = align_up(jobs_offset + 2048 * P, max(E,J,u))
 ```
 
-Those formulas follow from the explicit alignment on `head`, `tail`, and `jobs` and from the declaration order; the source has no `sizeof(exQueue)` assertion. ([src/server.h:2437-2477](../../../src/server.h#L2437-L2477)) On the conventional ABI where both unsigned atomic and plain unsigned indices are four bytes and pointers are eight bytes, the first two offsets are `C` and `2*C`, `jobs[]` is 16,384 bytes, and `sizeof(exQueue)` is 16,512 bytes with 64-byte lines or 16,640 bytes with 128-byte lines. `CACHE_LINE_SIZE` selects 128 only on Apple AArch64 and 64 otherwise unless overridden. ([src/config.h:38-44](../../../src/config.h#L38-L44), [src/server.h:2320](../../../src/server.h#L2320), [src/server.h:2437-2477](../../../src/server.h#L2437-L2477))
+Those formulas follow from the explicit alignment on `head`, `tail`, and `jobs` and from the declaration order; the source has no `sizeof(exQueue)` assertion. ([src/server.h:2437-2477](../../../src/server.h#L2437-L2477)) On the conventional ABI where both unsigned atomic and plain unsigned indices are four bytes and pointers are eight bytes, `tail_offset = C`, `jobs_offset = 2*C`, `jobs[]` is 16,384 bytes, and `sizeof(exQueue)` is 16,512 bytes with 64-byte lines or 16,640 bytes with 128-byte lines. `CACHE_LINE_SIZE` selects 128 only on Apple AArch64 and 64 otherwise unless overridden. ([src/config.h:38-44](../../../src/config.h#L38-L44), [src/server.h:2320](../../../src/server.h#L2320), [src/server.h:2437-2477](../../../src/server.h#L2437-L2477))
 
 Each worker allocates `nlanes = min(io_threads + num_workers + 1, TOMO_IO_THREADS_MAX + 1)` queues contiguously, using `qbytes = sizeof(exQueue) * nlanes`; the free-back-ring block follows, and runtime assertions require both bases to be cache-line aligned. ([src/server.c:22829-22850](../../../src/server.c#L22829-L22850)) Initialization calls `exQueueInit` for indices `0 .. io_threads + tm_ngrow_io` inclusive: the lower indices are the normal producer lanes, and the final index is the reserved `csStampLane()`. ([src/server.c:9979-9981](../../../src/server.c#L9979-L9981), [src/server.c:22863-22876](../../../src/server.c#L22863-L22876))
 
@@ -39,7 +44,11 @@ The adaptive threshold buffer is `_Atomic int tomo_disp_window[129]`, exactly `1
 
 The reorder buffer is one thread-local structure with fields `client *fk[64]`, `uint64_t h[64]`, `uint8_t ex[64]`, `uint8_t cls[64]`, two `int` fields `n` and `draining`, and `uint64_t win_us`, in that order. Its source-exact member payload is `64*sizeof(client *) + 64*sizeof(uint64_t) + 128*sizeof(uint8_t) + 2*sizeof(int) + sizeof(uint64_t)` plus any ABI padding; on the conventional LP64 layout no internal padding is needed and the total is 1,168 bytes. It has no explicit cache-line alignment or pad fields and is private to its IO thread. ([src/server.c:3505-3533](../../../src/server.c#L3505-L3533))
 
+Each worker's pop destination is `client *batch[WORKER_POP_BATCH]`, the final member of its private `exSliceCtx`. It is exactly `16*sizeof(client *)` bytes because `WORKER_POP_BATCH` is 16, or 128 bytes on LP64. The array has no explicit alignment or cache-line padding; the whole context is an automatic `exctx` in `polyThreadMain`, and only that worker passes the scratch to the pop and execution code. ([src/server.h:2329-2333](../../../src/server.h#L2329-L2333), [src/server.c:21680-21711](../../../src/server.c#L21680-L21711), [src/server.c:23196-23200](../../../src/server.c#L23196-L23200))
+
 The worker advertisement buffer consists of cache-line-aligned `_Atomic uint64_t q_top` followed by `_Atomic uint64_t q_summary[TOMO_QS_WORDS]`. `TOMO_QS_WORDS = (129 + 63) / 64 = 3`, so the top plus bitmap contain four atomic words, normally 32 bytes total; `stamp_pending` and the worker's handoff counters follow, and the next member `nlanes` is explicitly aligned to the next configured cache-line boundary. Thus the summary/control region begins on one configured line and the read-only lane-pointer region begins on another. ([src/server.h:2317](../../../src/server.h#L2317), [src/server.h:2537-2584](../../../src/server.h#L2537-L2584), [src/config.h:38-44](../../../src/config.h#L38-L44))
+
+Each consumer pass snapshots that publication state into automatic `uint64_t advertised[TOMO_QS_WORDS]` and `uint64_t residual[TOMO_QS_WORDS]` arrays. At the compile-time width of three words, each array is exactly 24 bytes and the pair's member payload is 48 bytes; neither declaration requests cache-line alignment or padding, and both are private to the worker pass. ([src/server.h:2317-2319](../../../src/server.h#L2317-L2319), [src/server.c:21918-21925](../../../src/server.c#L21918-L21925), [src/server.c:22266-22280](../../../src/server.c#L22266-L22280))
 
 ## Logical size and ring equations
 

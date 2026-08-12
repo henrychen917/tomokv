@@ -428,3 +428,11 @@ The executable behavior above differs from several adjacent comments:
 | Resize states, abort/watchdog, pending scan, and coordinator | `src/server.c:9235-9449` |
 | Wait helper that drives the coordinator or watchdog | `src/server.c:15499-15522` |
 | Worker resize-exclusion handshake | `src/server.c:21819-21842`, `src/server.c:22361-22364` |
+
+## Mechanisms
+
+- [FLATSTORE hash and tag encoding](mechanisms/algorithms/flat-hash-and-tag.md)
+- [FLATSTORE probing](mechanisms/algorithms/flat-probe.md)
+- [FLATSTORE load factor and resize](mechanisms/algorithms/flat-load-factor-and-resize.md)
+- [Key-to-worker hash](mechanisms/algorithms/key-to-worker-hash.md)
+- [Version bag](mechanisms/buffers/version-bag.md)

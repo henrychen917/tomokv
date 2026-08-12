@@ -468,3 +468,14 @@ The implemented MSETNX path installs requested values marked as reservations and
 | Versioned set entry points | `src/db.c:1560-1632` |
 | FLAT prune callback encoding/dispatch | `src/flatstore.c:25-68`, `src/flatstore.c:176-196` |
 | FLAT wrapper's non-FLAT no-op condition | `src/kvstore.c:77-97` |
+
+## Mechanisms
+
+- [Commit-sequence ordering](mechanisms/algorithms/commit-seq-ordering.md)
+- [Version resolution](mechanisms/algorithms/version-resolve.md)
+- [Own-read widening](mechanisms/algorithms/own-read-widening.md)
+- [Install-commit protocol](mechanisms/algorithms/install-commit-protocol.md)
+- [DEL tombstone versions](mechanisms/algorithms/del-tombstone-versions.md)
+- [Bloom signature](mechanisms/algorithms/bloom-signature.md)
+- [Atomic window](mechanisms/algorithms/atomic-window.md)
+- [Version bag](mechanisms/buffers/version-bag.md)

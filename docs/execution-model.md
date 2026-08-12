@@ -326,3 +326,19 @@ The uring send path copies at most one <code>PROTO_REPLY_CHUNK_BYTES</code> pref
 | <code>src/uring2.c:985-1258</code> | CQ drain, parser callbacks, SQ submission, and wait. |
 | <code>src/uring2.c:1335-1529</code> | Ring validation/setup and client attachment. |
 | <code>src/uring2.c:1768-1776</code> | Nonzero runtime dispatch to uring2. |
+
+## Mechanisms
+
+- [SPSC dispatch ring](mechanisms/buffers/spsc-dispatch-ring.md)
+- [CDB completion slots](mechanisms/buffers/cdb-completion-slots.md)
+- [Pending-command pool](mechanisms/buffers/pending-command-pool.md)
+- [Reply buffer](mechanisms/buffers/reply-buffer.md)
+- [Fake-client ring](mechanisms/buffers/fake-client-ring.md)
+- [Ring push/pop](mechanisms/communication/ring-push-pop.md)
+- [CDB completion bus](mechanisms/communication/cdb-completion-bus.md)
+- [Cross-node prefetch](mechanisms/prefetch/crossnode-prefetch.md)
+- [Worker-side batch storage prefetch](mechanisms/prefetch/exprefetchbatch.md)
+- [L3 footprint gate](mechanisms/prefetch/l3-footprint-gate.md)
+- [Message-carrier prefetch](mechanisms/prefetch/message-carrier-prefetch.md)
+- [Prefetch engagement counters](mechanisms/prefetch/prefetch-engagement-counters.md)
+- [Worker lookup-prefetch stages](mechanisms/prefetch/prefetch-stages.md)

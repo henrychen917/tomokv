@@ -165,7 +165,7 @@ Accordingly, `key_sig` and `key_h` are retained and populated bookkeeping in the
 
 A non-atomic cross-owner read has no shared read-version step: its owner jobs execute independently and the group joins only at the pending/CDB completion barrier. A mixed result across a concurrent write follows from those executable paths. (`src/server.c:12648-12705`, `src/server.c:22144-22199`)
 
-Same-client ordering is narrower: if the connection's reorder scratch buffer is nonempty, `csDispatch` calls `tomoReorderDrainConn` and asserts that buffer is empty before routing the new command. (`src/server.c:8567-8584`)
+Same-client ordering is narrower: if the connection's reorder scratch buffer is nonempty, `processCommand` calls `tomoReorderDrainConn` for this connection — draining only its own staged writes and compacting the rest — immediately before invoking `csDispatch`; the drain is surgical and asserts nothing, leaving co-located connections' staged entries intact. (`src/server.c:8584`, then `csDispatch` at `:8590`; drain at `:3859-3880`)
 
 Non-atomic cross-worker RENAME has a real missing interval: HOP1 deletes the source before the IO drain can publish HOP2 to the destination owner. (`src/server.c:11187-11208`, `src/server.c:14564-14570`) `cs_barrier` prevents a later command from the same client from overtaking HOP2, but it does not make the two worker mutations one atomic event for other clients. (`src/server.c:14509-14519`, `src/server.c:8283-8303`) This is an inference from the HOP1 delete, drain-launched HOP2, and per-connection barrier. (`src/server.c:11187-11208`, `src/server.c:14564-14570`, `src/server.c:8283-8303`)
 
@@ -210,3 +210,7 @@ Non-atomic cross-worker RENAME has a real missing interval: HOP1 deletes the sou
 | Signature/hash remnants and live read resolver | `src/server.c:10097-10107`, `src/server.c:10133-10256` |
 | Worker pending barrier | `src/server.c:22144-22199` |
 | Reply reassembly and teardown | `src/server.c:14864-15328` |
+
+## Mechanisms
+
+- [Owner-operation stamp lane](mechanisms/communication/owner-op-stamp-lane.md)

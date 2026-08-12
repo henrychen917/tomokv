@@ -245,7 +245,7 @@ new graces (`src/flatstore.c` unlink already provided the pre-condition).
   role-converted thread sets the TLS sink during EX operation and keeps servicing retained reclaim
   state through dormant EX slices while in the IO role; no role-transition store clears the sink on
   that path.
-- The node-pool comment says nodes "never outlive the batch that frees them" (`src/flatstore.c:150-156`),
+- The node-pool comment says nodes "never outlive the batch that frees them" (`src/flatstore.c:141`),
   but `flatBatchFree` retains freed nodes in the TLS pool until later reuse or trim
   (`src/server.c:9067-9073`).
 - `INFO`'s `closed - freed` is described as an exact queue length, but quiescent table-discard frees

@@ -17,11 +17,11 @@ static struct { _Atomic uint8_t v; uint8_t pad[63]; }
     __attribute__((aligned(64))) tomo_wkr_lock[TOMO_EX_THREADS_MAX + 1];
 ```
 
-The state byte `v` is the only semantic field: `0` is unlocked and successful acquisition changes it to `1`; `pad[63]` supplies no state. The record type and array base are given 64-byte alignment by the GCC attribute. ([src/server.c:9659-9671](../../../src/server.c#L9659-L9671), [src/server.c:9679-9680](../../../src/server.c#L9679-L9680))
+The state byte `v` is the only semantic field: `0` is unlocked and successful acquisition changes it to `1`; `pad[63]` supplies no state. The file-static table has no explicit initializer, so its static-storage bytes begin zeroed. The record type and array base are given 64-byte alignment by the GCC attribute. ([src/server.c:9659-9671](../../../src/server.c#L9659-L9671), [src/server.c:9679-9680](../../../src/server.c#L9679-L9680))
 
 `TOMO_EX_THREADS_MAX` is 128, so the table contains 129 records. With the source's one-byte atomic state and 63-byte pad, one record is 64 bytes and the table payload is `129 * 64 = 8,256` bytes. The declaration has no separate `sizeof` static assertion; the nearby CDB assertions establish that the C11 byte-atomic configuration used by this tree occupies one byte. ([src/server.h:1470-1487](../../../src/server.h#L1470-L1487), [src/server.h:1643-1649](../../../src/server.h#L1643-L1649), [src/atomicvar.h:90-98](../../../src/atomicvar.h#L90-L98), [src/server.c:9663-9664](../../../src/server.c#L9663-L9664))
 
-The lock table hard-codes `64`, rather than using `CACHE_LINE_SIZE`. On the default non-Apple-AArch64 branch, where `CACHE_LINE_SIZE` is 64, every record has a separate cache line; on Apple AArch64 the configured cache-line constant is 128, so the literal declaration permits two adjacent 64-byte lock records in one configured line. ([src/config.h:38-44](../../../src/config.h#L38-L44), [src/server.c:9659-9664](../../../src/server.c#L9659-L9664)) There is no further pad between array elements and no owner metadata, waiter count, ticket, or recursion field. ([src/server.c:9663-9664](../../../src/server.c#L9663-L9664))
+The lock table hard-codes `64`, rather than using `CACHE_LINE_SIZE`. Unless that macro was predefined, the non-Apple-AArch64 branch uses 64 and every record has a separate configured line; Apple AArch64 uses 128, so the literal declaration permits two adjacent 64-byte lock records in one configured line. ([src/config.h:38-44](../../../src/config.h#L38-L44), [src/server.c:9659-9664](../../../src/server.c#L9659-L9664)) There is no further pad between array elements and no owner metadata, waiter count, ticket, or recursion field. ([src/server.c:9663-9664](../../../src/server.c#L9663-L9664))
 
 ## Lock and unlock algorithm
 
@@ -65,6 +65,7 @@ The ordinary S2 code chooses the lock from a fresh `ex_bucket_table[b]` read rat
 
 The literal call sites that can acquire a record belonging to another worker are:
 
+- The ordinary S2 branch reloads `mlk_wkr = ex_bucket_table[b]` and does not assert it equals the executing worker. Under the intended fence that fresh value remains the executing owner; if ownership changes under an already-running fake, this call site can instead lock the newly mapped worker's record. ([src/server.c:21588-21601](../../../src/server.c#L21588-L21601), [src/server.c:15966-15972](../../../src/server.c#L15966-L15972))
 - The hash-field-TTL command branch computes its node range as `wlo = node * wpn`, `whi = min(wlo + wpn, num_workers)`, locks every `lw` from `wlo` upward, executes the HFE procedure, and unlocks from `whi - 1` downward. A worker therefore holds its siblings' records as well as its own. ([src/server.c:21555-21573](../../../src/server.c#L21555-L21573))
 - `exActiveSubexpiresCycle` computes the same node-wide interval, locks every record in ascending order, operates on the node-shared hash-field expiry store, and unlocks in descending order. ([src/expire.c:488-507](../../../src/expire.c#L488-L507), [src/expire.c:606-612](../../../src/expire.c#L606-L612))
 - `unwatchAllKeys` reads the worker recorded on the first watched key and calls the public lock wrapper only when sharding is active and `tomoCurrentWorker() != worker`; it unlocks only when that conditional acquisition occurred. ([src/multi.c:473-490](../../../src/multi.c#L473-L490))

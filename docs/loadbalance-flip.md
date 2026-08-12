@@ -429,3 +429,14 @@ These are implementation discrepancies, not alternative behavior:
 | `reshardAutoTune()` | `src/server.c:16768-17104` |
 | Bucket routing/migration structures | `src/server.h:1560-1598`, `src/server.h:3377-3399` |
 | Bucket arm, drain fence, and cutover | `src/server.c:15525-16181` |
+
+## Mechanisms
+
+- [Flip signal](mechanisms/algorithms/flip-signal.md)
+- [Flip trigger and actuation](mechanisms/algorithms/flip-trigger-and-actuation.md)
+- [Flip anchor and episode](mechanisms/algorithms/flip-anchor-and-episode.md)
+- [Flip drops](mechanisms/algorithms/flip-drops.md)
+- [Flip judge](mechanisms/algorithms/flip-judge.md)
+- [Key load balancing](mechanisms/algorithms/key-lb.md)
+- [Client load balancing](mechanisms/algorithms/client-lb.md)
+- [Owner lock](mechanisms/communication/owner-lock.md)

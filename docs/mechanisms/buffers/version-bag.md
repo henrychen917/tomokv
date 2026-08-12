@@ -13,7 +13,7 @@ The physical chain may end in an old raw object with no metadata. The committed 
 
 ## Exact representation
 
-`tomoVerMeta` declares the following fields, in this order. ([`src/object.h:136-167`](../../../src/object.h#L136-L167))
+`tomoVerMeta` declares the following fields (listed by role; `lifecycle_ref_held` and `reservation_owner` sit at declaration positions 14 and 21, not the table order). ([`src/object.h:136-167`](../../../src/object.h#L136-L167))
 
 | Fields | Declared type | Code-visible role |
 | --- | --- | --- |

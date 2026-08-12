@@ -79,7 +79,7 @@ measured.
 ### `tmFlipSweepBegin`: the walk is one direction only (`src/server.c:25147-25249`)
 
 The helper first computes a **capacity-admitted set** — every split whose capacity-predicted `lr` is
-strictly inside its own half-`gstep` floor, plus one legal neighbour each side — but then **clears that
+strictly inside its own half-`gstep` floor — but then **clears that
 set** (`memset` at `src/server.c:25192`) and keeps it only for the START log. The actual walk is the
 momentum law inside the floor:
 

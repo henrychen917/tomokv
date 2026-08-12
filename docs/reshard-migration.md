@@ -285,3 +285,8 @@ The invariants above do not close the reorder-scratch and generationless-marker 
 | Main auto-trigger | `src/server.c:16768-17086` |
 | Debug control and observability | `src/server.c:17106-17218` |
 | Worker sentinel execution and retired publication | `src/server.c:22073-22105`, `src/server.c:22248-22263` |
+
+## Mechanisms
+
+- [Migration drain fence](mechanisms/communication/migration-drain-fence.md)
+- [Cross-node topology table](mechanisms/communication/crossnode-topology-table.md)

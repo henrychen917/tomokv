@@ -121,8 +121,8 @@ Used by `flatIterRange` / `flatRandomKeyInRange` (`src/flatstore.c:348-358,386-4
 - One bucket has exactly one owning worker at any instant (`ex_bucket_table[bucket]` is a single
   byte), so a given key is single-writer — the property `flatInsert`'s CAS relies on
   (`src/flatstore.c:7-8`, `src/server.h:1600-1601`).
-- Worker id fits `uint8_t` because `TOMO_EX_THREADS_MAX = 128`; the boot check asserts
-  `io_threads + ex_threads - 1 <= 255` (`src/server.c:5817`).
+- Worker id fits `uint8_t` because `TOMO_EX_THREADS_MAX = 128`; the boot `if`-gate requires
+  `io_threads + ex_threads - 1 <= 255` (a `thread_auto` pool-sizing condition, not a `serverAssert`; `src/server.c:5817`).
 - Each worker owns a **contiguous** bucket range (`ex_bucket_end`), so rebalance shifts one adjacent
   boundary rather than scattering buckets (`src/server.h:1564-1565`, `src/server.c:5902-5904`).
 - `exIndexForKey` and `getWorkerForCommand` use the identical hash→bucket→table path, so dispatch
