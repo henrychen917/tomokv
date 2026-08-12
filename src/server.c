@@ -95,7 +95,8 @@ static polyThreadCtx tm_flip_claim_marker;
  * source half of that move necessarily spans asynchronous work. Keep that claim explicit until
  * tmFlipTick either publishes the IO destination or rolls the EX source back. tmFlipRelease calls
  * the rollback hook as a last line of defence, so no release path can strand a half-move. These are
- * owned by the successful claimer and then main, ordered by tm_flip_ctx's release/acquire edge. */
+ * owned by the successful claimer and then that node's semi-main, ordered by tm_flip_ctx's
+ * release/acquire edge. */
 static polyThreadCtx *tm_flip_account_ctx;
 static int tm_flip_account_from = TOMO_MODE_UNSET;
 static void tmFlipAccountingRollback(const char *reason);
@@ -1267,6 +1268,7 @@ static int tmNumNodes(void);               /* logical node helpers, defined belo
 static int tmNodeOfWorker(int w);
 static int tmNodeOfIoSlot(int io_slot);
 static inline int tomoFlipIsNodeSemiMain(int io_slot);
+static int tmFlipOwnedByCurrentSemiMain(void);
 static int tmWorkerLive(int w);            /* per-node flip: worker-slot liveness (per-node prefixes) */
 static void tmNodeWliveAdd(int w, int delta);   /* per-node flip: node live-count bookkeeping */
 static void tmNodeIoliveAdd(int w_of_ctx, int delta);
@@ -4463,9 +4465,9 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
             reshardCoordinatorTick();
     }
     migReleaseParkedClients();   /* ee451 (H2 handover): main is io slot 0 and parks clients too */
-    /* flip: drive a conversion to completion (await the role change, then publish the new
-     * io/worker counts). Cheap when idle. */
-    if (__builtin_expect(tmFlipActive(), 0)) tmFlipTick();
+    /* flip: drive node 0's conversion to completion (await the role change, then publish the new
+     * io/worker counts). A peer node's claim belongs exclusively to that node's semi-main. */
+    if (__builtin_expect(tmFlipActive(), 0) && tmFlipOwnedByCurrentSemiMain()) tmFlipTick();
 
     /* ee451 FLATSTORE Stage-1: reclaim QSBR-retired values (cheap when nothing pending), and drive
      * the cooperative table resize. Quiescence for non-worker threads is published by the per-io
@@ -15480,8 +15482,9 @@ void flushAllShards(client *c, int dbid, int async) {
      * stable while we count arrivals. */
     if (server.shared_node_dbs) {
         /* [0]: serialize concurrent flushes (cross-barrier rendezvous deadlock otherwise).
-         * [1]: while waiting, the MAIN thread must keep pumping the coordinator/flip machines
-         *      (they only run on it) or a main-thread client's flush waits on itself.
+         * [1]: while waiting, the MAIN thread must keep pumping the coordinator and the owning
+         *      node semi-main must keep pumping its flip, or a client on either owner waits on
+         *      itself.
          * [2]: hold the gate BEFORE the migration/flip wait, and keep it until the last barrier
          *      participant releases — reshardArm refuses while it is set, so bucket boundaries
          *      cannot move between the census and the pushes. */
@@ -15500,7 +15503,10 @@ void flushAllShards(client *c, int dbid, int async) {
              * further it reaches an unsatisfiable phase check (armed forever) or frees a live
              * migLog (UAF). Gating makes "the tick only runs with a live migration" true by
              * construction, which the state machine already assumes. */
-            if (iotid == 0) { if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) reshardCoordinatorTick(); tmFlipTick(); }
+            if (iotid == 0 &&
+                atomic_load_explicit(&server.migration_active, memory_order_acquire))
+                reshardCoordinatorTick();
+            if (tmFlipOwnedByCurrentSemiMain()) tmFlipTick();
             usleep(100);
         }
         if (wait_flush_gate) tmIoWaitEnd();
@@ -15509,7 +15515,11 @@ void flushAllShards(client *c, int dbid, int async) {
                atomic_load_explicit(&server.flat_resize_active, memory_order_acquire) ||   /* wait out a resize (#7) */
                tmFlipActive()) {
             if (!wait_control_plane) { tmIoWaitBegin(); wait_control_plane = 1; }
-            if (iotid == 0) { if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) reshardCoordinatorTick(); tmFlipTick(); flatResizeCoordinate(); }  /* pump: else a main-thread flush deadlocks. tick gated -- see the note above */
+            if (iotid == 0 &&
+                atomic_load_explicit(&server.migration_active, memory_order_acquire))
+                reshardCoordinatorTick();
+            if (tmFlipOwnedByCurrentSemiMain()) tmFlipTick();
+            if (iotid == 0) flatResizeCoordinate();
             usleep(100);
         }
         if (wait_control_plane) tmIoWaitEnd();
@@ -15858,8 +15868,10 @@ static void migHoldKeyIfDraining(robj *key) {
     tmIoWaitBegin();
     while (atomic_load_explicit(&server.migration.phase, memory_order_acquire) == MIG_DRAINING) {
         migPushFenceIfNeeded();
-        /* pump every main-only coordinator — see the H2 note on the range hold above */
-        if (iotid == 0) { reshardCoordinatorTick(); tmFlipTick(); flatResizeCoordinate(); }
+        /* Pump global coordinators only on main; the active flip only on its node semi-main. */
+        if (iotid == 0) reshardCoordinatorTick();
+        if (tmFlipOwnedByCurrentSemiMain()) tmFlipTick();
+        if (iotid == 0) flatResizeCoordinate();
         exPauseCpu();
     }
     tmIoWaitEnd();
@@ -23304,8 +23316,10 @@ static int ioSlice(ioThreadArgs *t, int idle_wait_us) {
     s->busy_ewma_q4 += ((ne << 4) - s->busy_ewma_q4) >> 3;
     /* Run node-local control after the accounting fold so controller CPU is not charged to the
      * IO productive-work signal. The helper is a timestamp gate, not a per-loop controller call. */
-    if (server.topo_nodes > 1 && tomoFlipIsNodeSemiMain(t->id))
+    if (server.topo_nodes > 1 && tomoFlipIsNodeSemiMain(t->id)) {
         tomoFlipSemiMainTick(accounting.end_us);
+        if (tmFlipOwnedByCurrentSemiMain()) tmFlipTick();
+    }
     return ne;
 }
 
@@ -23858,16 +23872,24 @@ int tomoGrowBack(const char **err) {
     return tomoGrowBackSlot(io_live - 1, err);          /* highest grown io thread (LIFO with grow-front) */
 }
 
-/* Drive a flip to completion (main thread, from beforeSleep). Non-blocking: each call advances one
- * edge. GROW-FRONT (target IO): the coordinator tail hands the flipping worker the IO role; when
- * its checkpoint publishes mode==IO, account for it and publish io_threads_live. GROW-BACK (target
- * EX): phase 0 awaits the thread's own IO-EXIT + EX adoption (with an atomic commit-vs-cancel
- * handshake), phase 1 arms the seed migration, phase 2 awaits that seed, and phase 3 awaits an
- * owner-acknowledged pre-commit rollback. Live-count publication belongs to the role move, never
- * to the optional seed migration. */
+/* Drive a flip to completion on the owning node's semi-main (the real main on one node).
+ * Non-blocking: each call advances one edge. GROW-FRONT (target IO): the coordinator tail hands
+ * the flipping worker the IO role; when its checkpoint publishes mode==IO, account for it and
+ * publish io_threads_live. GROW-BACK (target EX): phase 0 awaits the thread's own IO-EXIT + EX
+ * adoption (with an atomic commit-vs-cancel handshake), phase 1 arms the seed migration, phase 2
+ * awaits that seed, and phase 3 awaits an owner-acknowledged pre-commit rollback. Live-count
+ * publication belongs to the role move, never to the optional seed migration. */
 void tmFlipTick(void) {
     polyThreadCtx *ctx = tmFlipCtxPublished();
     if (!ctx) return;
+    if (tmNumNodes() == 1) {
+        serverAssert(iotid == 0);
+    } else {
+        serverAssert(ctx->ex != NULL && server.io_per_node > 0);
+        int node = tmNodeOfWorker(ctx->ex->id);
+        serverAssert(node >= 0 && node < tmNumNodes() && node < TOMO_NODES_MAX);
+        serverAssert(iotid == node * server.io_per_node);
+    }
     if (server.tm_flip_target == TOMO_MODE_IO) {
         int m = atomic_load_explicit(&ctx->mode, memory_order_acquire);
         /* The thread publishes mode==IO only after its checkpoint has done BOTH halves of the
@@ -23994,7 +24016,8 @@ void tmFlipTick(void) {
                 return;
             }
             int lo = lo_src + (hi_src - lo_src) / 2, hi = hi_src;
-            /* balancer-slot hygiene for the incoming worker (main-owned fields; autotuner runs here). */
+            /* Balancer-slot hygiene for the incoming worker. The global autotuner observes
+             * tmFlipActive and cannot fold these fields until this owner releases the claim. */
             server.exThreads[w].tm_qdepth_ewma_q4 = 0;
             mig_load_ewma[w] = mig_load_ewma_fast[w] = 0;
             mig_last_ops[w] = server.exThreads[w].ops_total;
@@ -24892,6 +24915,19 @@ static inline int tomoFlipIsNodeSemiMain(int io_slot) {
     int node = tmNodeOfIoSlot(io_slot);
     return node >= 0 && node < nnodes && node < TOMO_NODES_MAX &&
            io_slot == node * server.io_per_node;
+}
+
+/* The flip claim is process-global, but its published EX binding identifies one owning node.
+ * Exactly that node's immutable base IO advances the handshake; on one node that identity is the
+ * real main. The claim marker has no published context yet and therefore has no driver work. */
+static int tmFlipOwnedByCurrentSemiMain(void) {
+    polyThreadCtx *ctx = tmFlipCtxPublished();
+    if (!ctx) return 0;
+    if (tmNumNodes() == 1) return iotid == 0;
+    if (!ctx->ex || server.io_per_node <= 0) return 0;
+    int node = tmNodeOfWorker(ctx->ex->id);
+    return node >= 0 && node < tmNumNodes() && node < TOMO_NODES_MAX &&
+           iotid == node * server.io_per_node;
 }
 
 /* One cadence spine per node. In multi-node AUTO no invocation keys off server.cronloops or hz:
