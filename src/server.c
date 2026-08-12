@@ -19601,6 +19601,9 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 info = sdscatprintf(info, "tomokv_node_%d_key_lb_runs:%llu\r\n",
                     node, (unsigned long long)atomic_load_explicit(
                         &tomo_key_lb_node_runs[node], memory_order_relaxed));
+                info = sdscatprintf(info, "tomokv_node_%d_flip_ticks:%llu\r\n",
+                    node, (unsigned long long)atomic_load_explicit(
+                        &tomo_flip_node_ticks[node], memory_order_relaxed));
             }
         }
         /* Raw per-role timing accumulators, available in STATIC mode as well as auto so every
