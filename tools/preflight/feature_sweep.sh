@@ -966,7 +966,7 @@ section_C() {
     if [ -n "$found" ]; then
         local oldsz newsz
         oldsz=$(printf '%s' "$found" | grep -oE 'rebuilt [0-9]+' | grep -oE '[0-9]+')
-        newsz=$(printf '%s' "$found" | grep -oE '-> [0-9]+' | grep -oE '[0-9]+')
+        newsz=$(printf '%s' "$found" | grep -oE -- '-> [0-9]+' | grep -oE '[0-9]+')
         if [ -n "$oldsz" ] && [ -n "$newsz" ] && [ "$newsz" -gt "$oldsz" ]; then
             row $sec flat-resize-grow "$cfg" PASS "seed 200k -> $oldsz -> $newsz slots"
         else row $sec flat-resize-grow "$cfg" SUSPECT "resize line but not a grow: $found"; fi
@@ -986,7 +986,7 @@ section_C() {
     if [ -n "$found" ]; then
         local oldsz newsz
         oldsz=$(printf '%s' "$found" | grep -oE 'rebuilt [0-9]+' | grep -oE '[0-9]+')
-        newsz=$(printf '%s' "$found" | grep -oE '-> [0-9]+' | grep -oE '[0-9]+')
+        newsz=$(printf '%s' "$found" | grep -oE -- '-> [0-9]+' | grep -oE '[0-9]+')
         if [ -n "$newsz" ] && [ -n "$oldsz" ] && [ "$newsz" -lt "$oldsz" ]; then
             row $sec flat-resize-shrink "$cfg" PASS "mass DEL -> $oldsz -> $newsz slots"
         else row $sec flat-resize-shrink "$cfg" SUSPECT "post-DEL resize not a shrink: $found"; fi

@@ -10,10 +10,15 @@ endif
 
 default: all
 
+PGO_PROFILE_DIR?=$(CURDIR)/pgo-data
+
+pgo-generate pgo-use:
+	$(MAKE) -C src $@ PGO_PROFILE_DIR="$(abspath $(PGO_PROFILE_DIR))"
+
 .DEFAULT:
 	for dir in $(SUBDIRS); do $(MAKE) -C $$dir $@; done
 
 install:
 	for dir in $(SUBDIRS); do $(MAKE) -C $$dir $@; done
 
-.PHONY: install
+.PHONY: install pgo-generate pgo-use

@@ -36,7 +36,7 @@ ifneq ($(OPTIMIZATION),-O0)
 	OPTIMIZATION+=-fno-omit-frame-pointer
 endif
 DEPENDENCY_TARGETS=hiredis linenoise lua hdr_histogram fpconv fast_float xxhash
-NODEPS:=clean distclean
+NODEPS:=clean distclean server-clean pgo-generate pgo-use
 
 # Default settings
 STD=-pedantic -DREDIS_STATIC=''
@@ -390,6 +390,12 @@ REDIS_CC=$(QUIET_CC)$(CC) $(FINAL_CFLAGS)
 REDIS_LD=$(QUIET_LINK)$(CC) $(FINAL_LDFLAGS)
 REDIS_INSTALL=$(QUIET_INSTALL)$(INSTALL)
 
+# Extra flags for server objects and the server link only.  The harness targets
+# build only redis-server with these flags, avoiding instrumentation of
+# dependencies and utility-only objects.
+REDIS_SERVER_CFLAGS?=
+REDIS_SERVER_LDFLAGS?=
+
 CCCOLOR="\033[34m"
 LINKCOLOR="\033[34;1m"
 SRCCOLOR="\033[33m"
@@ -422,6 +428,8 @@ REDIS_BENCHMARK_OBJ=ae.o anet.o redis-benchmark.o adlist.o dict.o zmalloc.o redi
 REDIS_CHECK_RDB_NAME=redis-check-rdb$(PROG_SUFFIX)
 REDIS_CHECK_AOF_NAME=redis-check-aof$(PROG_SUFFIX)
 ALL_SOURCES=$(sort $(patsubst %.o,%.c,$(REDIS_SERVER_OBJ) $(REDIS_VEC_SETS_OBJ) $(REDIS_CLI_OBJ) $(REDIS_BENCHMARK_OBJ)))
+
+$(REDIS_SERVER_OBJ) $(REDIS_VEC_SETS_OBJ): REDIS_SERVER_OBJECT_CFLAGS=$(REDIS_SERVER_CFLAGS)
 
 all: $(REDIS_SERVER_NAME) $(REDIS_SENTINEL_NAME) $(REDIS_CLI_NAME) $(REDIS_BENCHMARK_NAME) $(REDIS_CHECK_RDB_NAME) $(REDIS_CHECK_AOF_NAME) $(TLS_MODULE)
 	@echo ""
@@ -469,7 +477,7 @@ endif
 
 # redis-server
 $(REDIS_SERVER_NAME): $(REDIS_SERVER_OBJ) $(REDIS_VEC_SETS_OBJ)
-	$(REDIS_LD) -o $@ $^ ../deps/hiredis/libhiredis.a ../deps/lua/src/liblua.a ../deps/hdr_histogram/libhdrhistogram.a ../deps/fpconv/libfpconv.a ../deps/fast_float/libfast_float.a ../deps/xxhash/libxxhash.a $(FINAL_LIBS)
+	$(REDIS_LD) $(REDIS_SERVER_LDFLAGS) -o $@ $^ ../deps/hiredis/libhiredis.a ../deps/lua/src/liblua.a ../deps/hdr_histogram/libhdrhistogram.a ../deps/fpconv/libfpconv.a ../deps/fast_float/libfast_float.a ../deps/xxhash/libxxhash.a $(FINAL_LIBS)
 
 # redis-sentinel
 $(REDIS_SENTINEL_NAME): $(REDIS_SERVER_NAME)
@@ -496,13 +504,14 @@ $(REDIS_BENCHMARK_NAME): $(REDIS_BENCHMARK_OBJ)
 	$(REDIS_LD) -o $@ $^ ../deps/hiredis/libhiredis.a ../deps/hdr_histogram/libhdrhistogram.a $(FINAL_LIBS) $(TLS_CLIENT_LIBS)
 
 DEP = $(REDIS_SERVER_OBJ:%.o=%.d) $(REDIS_VEC_SETS_OBJ:%.o=%.d) $(REDIS_CLI_OBJ:%.o=%.d) $(REDIS_BENCHMARK_OBJ:%.o=%.d)
+REDIS_SERVER_DEP = $(REDIS_SERVER_OBJ:%.o=%.d) $(REDIS_VEC_SETS_OBJ:%.o=%.d)
 -include $(DEP)
 
 # Because the jemalloc.h header is generated as a part of the jemalloc build,
 # building it should complete before building any other object. Instead of
 # depending on a single artifact, build all dependencies first.
 %.o: %.c .make-prerequisites
-	$(REDIS_CC) -MMD -o $@ -c $<
+	$(REDIS_CC) $(REDIS_SERVER_OBJECT_CFLAGS) -MMD -o $@ -c $<
 
 # The following files are checked in and don't normally need to be rebuilt. They
 # are built only if python is available and their prereqs are modified.
@@ -517,6 +526,11 @@ fmtargs.h: ../utils/generate-fmtargs.py
 endif
 
 commands.c: $(COMMANDS_DEF_FILENAME).def
+
+server-clean:
+	rm -f $(REDIS_SERVER_NAME) $(REDIS_SERVER_OBJ) $(REDIS_VEC_SETS_OBJ) $(REDIS_SERVER_DEP)
+
+.PHONY: server-clean
 
 clean:
 	rm -rf $(REDIS_SERVER_NAME) $(REDIS_SENTINEL_NAME) $(REDIS_CLI_NAME) $(REDIS_BENCHMARK_NAME) $(REDIS_CHECK_RDB_NAME) $(REDIS_CHECK_AOF_NAME) *.o *.gcda *.gcno *.gcov redis.info lcov-html Makefile.dep *.so
@@ -559,6 +573,41 @@ bench: $(REDIS_BENCHMARK_NAME)
 
 gcov:
 	$(MAKE) REDIS_CFLAGS="-fprofile-arcs -ftest-coverage -DCOVERAGE_TEST" REDIS_LDFLAGS="-fprofile-arcs -ftest-coverage"
+
+PGO_PROFILE_DIR?=$(abspath ../pgo-data)
+PGO_GENERATE_FLAGS=-fprofile-generate=$(abspath $(PGO_PROFILE_DIR))
+PGO_USE_FLAGS=-fprofile-use=$(abspath $(PGO_PROFILE_DIR)) -fprofile-correction
+
+ifneq (,$(filter pgo-generate pgo-use,$(MAKECMDGOALS)))
+ifneq ($(words $(PGO_PROFILE_DIR)),1)
+$(error PGO_PROFILE_DIR must be a nonempty path without whitespace)
+endif
+endif
+
+pgo-generate:
+	@if test -d "$(abspath $(PGO_PROFILE_DIR))" && \
+		test -n "$$(find "$(abspath $(PGO_PROFILE_DIR))" -type f -name '*.gcda' -print -quit)"; then \
+		echo "PGO profile directory contains stale GCC data: $(abspath $(PGO_PROFILE_DIR))" >&2; exit 1; \
+	fi
+	$(MAKE) USE_URING=yes server-clean
+	@mkdir -p "$(abspath $(PGO_PROFILE_DIR))"
+	$(MAKE) USE_URING=yes \
+		REDIS_SERVER_CFLAGS="$(PGO_GENERATE_FLAGS)" \
+		REDIS_SERVER_LDFLAGS="$(PGO_GENERATE_FLAGS)" \
+		$(REDIS_SERVER_NAME)
+
+pgo-use:
+	@test -d "$(abspath $(PGO_PROFILE_DIR))" || { \
+		echo "PGO profile directory not found: $(abspath $(PGO_PROFILE_DIR))" >&2; exit 1; }
+	@test -n "$$(find "$(abspath $(PGO_PROFILE_DIR))" -type f -name '*.gcda' -print -quit)" || { \
+		echo "No GCC profile data found in $(abspath $(PGO_PROFILE_DIR))" >&2; exit 1; }
+	$(MAKE) USE_URING=yes server-clean
+	$(MAKE) USE_URING=yes \
+		REDIS_SERVER_CFLAGS="$(PGO_USE_FLAGS)" \
+		REDIS_SERVER_LDFLAGS="$(PGO_USE_FLAGS)" \
+		$(REDIS_SERVER_NAME)
+
+.PHONY: pgo-generate pgo-use
 
 noopt:
 	$(MAKE) OPTIMIZATION="-O0"

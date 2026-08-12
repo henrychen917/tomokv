@@ -20,9 +20,19 @@
  * variable is associated with the monotonic clock and should not be confused
  * with other types of time.*/
 typedef uint64_t monotime;
+typedef uint64_t monotonic_raw;
 
 /* Retrieve counter of micro-seconds relative to an arbitrary point in time.  */
 extern monotime (*getMonotonicUs)(void);
+
+/* Retrieve the clock's native counter and convert an elapsed native-counter
+ * delta to microseconds.  On the POSIX fallback the native unit is already a
+ * microsecond. */
+extern monotonic_raw (*getMonotonicRaw)(void);
+extern monotime (*monotonicRawToUs)(monotonic_raw delta);
+
+/* Convert a small microsecond interval to native-counter units. */
+monotonic_raw monotonicUsToRaw(monotime us);
 
 typedef enum monotonic_clock_type {
     MONOTONIC_CLOCK_POSIX,

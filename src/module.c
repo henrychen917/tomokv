@@ -11680,11 +11680,16 @@ void moduleCallCommandFilters(client *c) {
         pcmd->argv_len = filter.argv_len;
         pcmd->cmd = NULL;
         pcmd->slot = INVALID_CLUSTER_SLOT;
-        pcmd->flags = 0;
 
         /* Reset keys result */
-        getKeysFreeResult(&pcmd->keys_result);
+        if (pcmd->flags & PENDING_CMD_KEYS_RESULT_ALLOCATED)
+            getKeysFreeResult(&pcmd->keys_result);
+        pcmd->flags = 0;
         pcmd->keys_result = (getKeysResult)GETKEYS_RESULT_INIT;
+        pendingCommandDebugMark(pcmd, PENDING_CMD_DEBUG_INPUT_INITIALIZED |
+                                       PENDING_CMD_DEBUG_CMD_INITIALIZED |
+                                       PENDING_CMD_DEBUG_REPLOFF_INITIALIZED |
+                                       PENDING_CMD_DEBUG_SLOT_INITIALIZED);
     }
 }
 

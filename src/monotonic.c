@@ -8,8 +8,11 @@
 
 /* The function pointer for clock retrieval.  */
 monotime (*getMonotonicUs)(void) = NULL;
+monotonic_raw (*getMonotonicRaw)(void) = NULL;
+monotime (*monotonicRawToUs)(monotonic_raw delta) = NULL;
 
 static char monotonic_info_string[32];
+static monotonic_raw mono_rawUnitsPerMicrosecond = 1;
 
 
 /* Using the processor clock (aka TSC on x86) can provide improved performance
@@ -29,15 +32,57 @@ static char monotonic_info_string[32];
 #define USE_PROCESSOR_CLOCK
  */
 
+#if (defined(USE_PROCESSOR_CLOCK) && defined(__x86_64__) && defined(__linux__)) || \
+    defined(__aarch64__) || \
+    (defined(USE_PROCESSOR_CLOCK) && defined(__riscv) && defined(__linux__))
+static uint64_t mono_ticksPerMicrosecond = 0;
+static uint64_t mono_ticksReciprocal = 0;
+
+/* Convert a hardware-counter value by reciprocal multiplication.  Let d be
+ * mono_ticksPerMicrosecond and M=floor(2^64/d), computed once at init.  For
+ * every 64-bit tick value t,
+ *
+ *     t/d - 1 < t*M/2^64 <= t/d.
+ *
+ * Thus the high half of t*M is either floor(t/d) or one less.  In the latter
+ * case the remainder is at least d, so the final comparison corrects it.
+ * The result is exactly t/d (0 us error over the full 64-bit counter range),
+ * while the runtime path is multiply + shift + multiply/compare, with no
+ * 64-bit divide. */
+static inline monotime monotonicTicksToUs(uint64_t ticks) {
+    uint64_t quotient = (uint64_t)(((__uint128_t)ticks * mono_ticksReciprocal) >> 64);
+    uint64_t remainder = ticks - quotient * mono_ticksPerMicrosecond;
+    return quotient + (remainder >= mono_ticksPerMicrosecond);
+}
+
+static monotime monotonicRawToUs_hw(monotonic_raw delta) {
+    return monotonicTicksToUs(delta);
+}
+
+static void monotonicSetHardwareFrequency(uint64_t ticks_per_microsecond) {
+    assert(ticks_per_microsecond != 0);
+    mono_ticksPerMicrosecond = ticks_per_microsecond;
+    mono_rawUnitsPerMicrosecond = ticks_per_microsecond;
+    /* 2^64 does not fit the reciprocal word for d=1.  UINT64_MAX gives an
+     * initial quotient one low for every nonzero input, which the same
+     * remainder correction fixes. */
+    mono_ticksReciprocal = ticks_per_microsecond == 1
+        ? UINT64_MAX
+        : (uint64_t)(((__uint128_t)1 << 64) / ticks_per_microsecond);
+}
+#endif
+
 
 #if defined(USE_PROCESSOR_CLOCK) && defined(__x86_64__) && defined(__linux__)
 #include <regex.h>
 #include <x86intrin.h>
 
-static long mono_ticksPerMicrosecond = 0;
+static monotonic_raw getMonotonicRaw_x86(void) {
+    return __rdtsc();
+}
 
 static monotime getMonotonicUs_x86(void) {
-    return __rdtsc() / mono_ticksPerMicrosecond;
+    return monotonicTicksToUs(getMonotonicRaw_x86());
 }
 
 static void monotonicInit_x86linux(void) {
@@ -67,7 +112,9 @@ static void monotonicInit_x86linux(void) {
             if (regexec(&cpuGhzRegex, buf, nmatch, pmatch, 0) == 0) {
                 buf[pmatch[1].rm_eo] = '\0';
                 double ghz = atof(&buf[pmatch[1].rm_so]);
-                mono_ticksPerMicrosecond = (long)(ghz * 1000);
+                uint64_t ticks_per_microsecond = (uint64_t)(ghz * 1000);
+                if (ticks_per_microsecond != 0)
+                    monotonicSetHardwareFrequency(ticks_per_microsecond);
                 break;
             }
         }
@@ -93,14 +140,14 @@ static void monotonicInit_x86linux(void) {
     }
 
     snprintf(monotonic_info_string, sizeof(monotonic_info_string),
-            "X86 TSC @ %ld ticks/us", mono_ticksPerMicrosecond);
+            "X86 TSC @ %llu ticks/us", (unsigned long long)mono_ticksPerMicrosecond);
     getMonotonicUs = getMonotonicUs_x86;
+    getMonotonicRaw = getMonotonicRaw_x86;
+    monotonicRawToUs = monotonicRawToUs_hw;
 }
 #endif
 
 #if defined(__aarch64__)
-static long mono_ticksPerMicrosecond = 0;
-
 /* Read the clock value.
  * CNTVCT_EL0 is a system counter register, that provides the monotonic
  * timestamp as a 64-bit count value. */
@@ -120,31 +167,41 @@ static inline uint32_t cntfrq_hz(void) {
     return (uint32_t)virtual_freq_value;    /* top 32 bits are reserved */
 }
 
+static monotonic_raw getMonotonicRaw_aarch64(void) {
+    return __cntvct();
+}
+
 static monotime getMonotonicUs_aarch64(void) {
-    return __cntvct() / mono_ticksPerMicrosecond;
+    return monotonicTicksToUs(getMonotonicRaw_aarch64());
 }
 
 static void monotonicInit_aarch64(void) {
-    mono_ticksPerMicrosecond = (long)cntfrq_hz() / 1000L / 1000L;
+    uint64_t ticks_per_microsecond = (uint64_t)cntfrq_hz() / 1000 / 1000;
+    if (ticks_per_microsecond != 0)
+        monotonicSetHardwareFrequency(ticks_per_microsecond);
     if (mono_ticksPerMicrosecond == 0) {
         fprintf(stderr, "monotonic: aarch64, unable to determine clock rate\n");
         return;
     }
 
     snprintf(monotonic_info_string, sizeof(monotonic_info_string),
-            "ARM CNTVCT @ %ld ticks/us", mono_ticksPerMicrosecond);
+            "ARM CNTVCT @ %llu ticks/us", (unsigned long long)mono_ticksPerMicrosecond);
     getMonotonicUs = getMonotonicUs_aarch64;
+    getMonotonicRaw = getMonotonicRaw_aarch64;
+    monotonicRawToUs = monotonicRawToUs_hw;
 }
 #endif
 
 
 #if defined(USE_PROCESSOR_CLOCK) && defined(__riscv) && defined(__linux__)
-static long mono_ticksPerMicrosecond = 0;
-
 static inline uint64_t read_mtime(void) {
     uint64_t val;
     asm volatile("csrr %0, time" : "=r"(val));
     return val;
+}
+
+static monotonic_raw getMonotonicRaw_riscv(void) {
+    return read_mtime();
 }
 
 /* Read RISC-V timebase-frequency, which may be stored as either a 64-bit
@@ -178,18 +235,22 @@ static uint64_t get_timebase_frequency(void) {
 }
 
 static monotime getMonotonicUs_riscv(void) {
-    return read_mtime() / mono_ticksPerMicrosecond;
+    return monotonicTicksToUs(getMonotonicRaw_riscv());
 }
 
 static void monotonicInit_riscv(void) {
-    mono_ticksPerMicrosecond = (long)get_timebase_frequency() / 1000L / 1000L;
+    uint64_t ticks_per_microsecond = get_timebase_frequency() / 1000 / 1000;
+    if (ticks_per_microsecond != 0)
+        monotonicSetHardwareFrequency(ticks_per_microsecond);
     if (mono_ticksPerMicrosecond == 0) {
         fprintf(stderr, "monotonic: riscv, unable to determine clock rate\n");
         return;
     }
     snprintf(monotonic_info_string, sizeof(monotonic_info_string),
-            "RISC-V mtime @ %ld ticks/us", mono_ticksPerMicrosecond);
+            "RISC-V mtime @ %llu ticks/us", (unsigned long long)mono_ticksPerMicrosecond);
     getMonotonicUs = getMonotonicUs_riscv;
+    getMonotonicRaw = getMonotonicRaw_riscv;
+    monotonicRawToUs = monotonicRawToUs_hw;
 }
 #endif
 
@@ -203,6 +264,14 @@ static monotime getMonotonicUs_posix(void) {
     return ((uint64_t)ts.tv_sec) * 1000000 + ts.tv_nsec / 1000;
 }
 
+static monotonic_raw getMonotonicRaw_posix(void) {
+    return getMonotonicUs_posix();
+}
+
+static monotime monotonicRawToUs_posix(monotonic_raw delta) {
+    return delta;
+}
+
 static void monotonicInit_posix(void) {
     /* Ensure that CLOCK_MONOTONIC is supported.  This should be supported
      * on any reasonably current OS.  If the assertion below fails, provide
@@ -213,9 +282,15 @@ static void monotonicInit_posix(void) {
 
     snprintf(monotonic_info_string, sizeof(monotonic_info_string),
             "POSIX clock_gettime");
+    mono_rawUnitsPerMicrosecond = 1;
     getMonotonicUs = getMonotonicUs_posix;
+    getMonotonicRaw = getMonotonicRaw_posix;
+    monotonicRawToUs = monotonicRawToUs_posix;
 }
 
+monotonic_raw monotonicUsToRaw(monotime us) {
+    return us * mono_rawUnitsPerMicrosecond;
+}
 
 
 const char * monotonicInit(void) {

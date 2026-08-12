@@ -3139,9 +3139,15 @@ static int applyClientMaxMemoryUsage(const char **err) {
 }
 
 static int applyTomoAtomicAdmission(const char **err) {
-    UNUSED(err);
-    /* A live enable must publish the lifecycle table before its first version can install. Boot
-     * configuration reaches this callback before workers exist; initExThreads covers that case. */
+    /* CONFIG SET runs after initServer has fixed the storage mode. Boot admission is validated
+     * alongside shared_node_dbs, once the effective workers-per-node value is known. */
+    if (server.tomo_atomic && !server.shared_node_dbs) {
+        *err = "tomokv-atomic requires FLAT storage: set tomokv-thread-ex >= 2 per node "
+               "(workers-per-node>1)";
+        return 0;
+    }
+    /* A live enable must publish the lifecycle table before its first version can install.
+     * initExThreads performs the corresponding boot-time lifecycle initialization. */
     if (server.tomo_atomic) tomoAtomicLifecycleEnsure();
     /* A live increase, window=0, or tomokv-atomic=off may make parked commands admissible without
      * any group retiring. Wake their event loops; each owner rechecks the current settings. */
