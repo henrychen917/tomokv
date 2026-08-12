@@ -3243,8 +3243,9 @@ struct redisServer {
      * (base + grown). topo_nodes==1: node 0 mirrors the globals (identical behavior). */
     _Atomic int tm_node_wlive[16];       /* TM_MAXNODE — keep in sync with server.c */
     _Atomic int tm_node_iolive[16];
-    _Atomic int io_threads_live;   /* flip: live IO threads (grows front on ex->io conversion,
-                                    * shrinks on io->ex). io_slots [0, io_threads_live) are dense. */
+    _Atomic int io_threads_live;   /* flip: global count of live IO roles (grows front on ex->io,
+                                    * shrinks on io->ex). The slot set is dense only on one node;
+                                    * multi-node growth slots are node-partitioned and mode-tested. */
     _Atomic(struct polyThreadCtx *) tm_flip_ctx;
                                    /* the flip claim + published poly ctx. NULL = idle; a private
                                     * marker = claimed while the winner initializes the plain state
@@ -3292,12 +3293,13 @@ struct redisServer {
     int tm_flip_wslot;             /* grow-back: revived worker index (ex_slot) being seeded */
     int tm_ngrow_io;               /* flip: number of growth io binding slots reserved */
     /* ee451 (auto symmetric pool, 2026-07-29): in thread-mode AUTO the operator's io/ex split is the
-     * STARTING POINT, not the reachable range — every non-main thread is provisioned as a worker with
-     * a dormant io binding (io_threads := 1, num_workers := pool-1) and the split is applied at boot
-     * by BIRTHING the top (boot io - 1) workers in IO mode. These two carry that split; everywhere
-     * else `io_threads`/`num_workers` keep their meaning (provisioned counts, pin bases, registry
-     * layout) and the LIVE counts are io_threads_live / num_workers_live as before. In STATIC mode
-     * they are just the configured counts and nothing below changes. */
+     * STARTING POINT, not the reachable range — every non-anchor thread is provisioned as a worker
+     * with a dormant io binding (one base IO per node, pool_per_node-1 workers) and the split is
+     * applied at boot by BIRTHING each node's worker suffix in IO mode. These two carry GLOBAL live
+     * totals for that split; everywhere else `io_threads`/`num_workers` keep their provisioned-count
+     * meaning (pin bases, registry layout) and the LIVE counts are io_threads_live /
+     * num_workers_live as before. In STATIC mode they are just the configured counts and nothing
+     * below changes. */
     int tm_boot_io_live;           /* io threads LIVE at boot (io_threads_live seed) */
     int tm_boot_w_live;            /* workers LIVE at boot (num_workers_live seed, bucket-table split) */
     int tm_pool_symmetric;         /* 1 = the auto remap above was applied */
@@ -3351,9 +3353,9 @@ struct redisServer {
                                 * CCD (shared-L3 domain) when tomokv-pin-mode is `ccd` and a NUMA
                                 * node when it is `numa`. Hence topo_ (topology), not numa_. */
     int cores_per_node;        /* tomokv-cores-per-node; pool = topo_nodes * cores_per_node */
-    int io_per_node;           /* tomokv-thread-io: IO threads per node (the STARTING split) */
-    int ex_per_node;           /* tomokv-thread-ex: EX workers per node (the STARTING split);
-                                * io_per_node + ex_per_node <= cores_per_node */
+    int io_per_node;           /* provisioned base-IO stride per node; configured IO split in STATIC */
+    int ex_per_node;           /* provisioned worker stride per node; configured EX split in STATIC;
+                                * their sum stays within cores_per_node */
     /* (The ex_threads_min/max pair is GONE 2026-07-28, following the IO-side pair before it.
      * Their only reader was the reserve-thread quorum balancer, deleted with the reserve. The
      * bounds are structural, not numeric: grow-front refuses below 2 live workers in a node,

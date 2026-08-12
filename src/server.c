@@ -5805,9 +5805,7 @@ void initServer(void) {
      * directions span io 1..pool-1 from ANY boot split.
      *
      * STATIC mode is deliberately left alone: there the config IS the config, nothing moves, and
-     * paying for pool-1 worker slots to run four of them is pure overhead.
-     * Single-node only: with topo_nodes > 1 the per-node io/ex prefixes, node-scoped actuators and
-     * NUMA pin map carry their own placement rules; remapping those is a separate change. */
+     * paying for pool-1 worker slots to run four of them is pure overhead. */
     server.tm_boot_io_live = server.io_threads;
     server.tm_boot_w_live  = server.ex_threads;
     server.tm_pool_symmetric = 0;
@@ -5829,11 +5827,57 @@ void initServer(void) {
                   pool, server.ex_threads, server.tm_boot_io_live, server.tm_boot_w_live,
                   server.tm_boot_w_live, server.ex_threads - 1, pool - 1);
     }
+    /* Multi-node AUTO is the same symmetric allocation repeated independently in every node.
+     * Keep one immutable base IO identity per node (node 0 is the real main; the other base slots
+     * become that node's semi-main) and provision every other configured thread as an EX-capable
+     * worker with a dormant IO binding. The operator's split remains only the boot split.
+     *
+     * This is deliberately a separate topo_nodes>1 branch. The single-node block above is the
+     * frozen controller's original provisioning path and is left byte-for-byte in charge of a
+     * one-node boot. */
+    if (server.thread_auto && server.topo_nodes > 1) {
+        int nodes = server.topo_nodes;
+        int boot_ipn = server.tm_boot_io_live / nodes;
+        int boot_epn = server.tm_boot_w_live / nodes;
+        int pool_per_node = boot_ipn + boot_epn;
+        int provisioned_wpn = pool_per_node - 1;
+        int provisioned_workers = nodes * provisioned_wpn;
+
+        /* Every provisioned worker except the local worker-0 anchor needs an IO-capable slot.
+         * Both sides are fixed-cap arrays, so refusing is safer than silently leaving AUTO unable
+         * to reach part of the per-node pool. */
+        if (provisioned_workers > TOMO_EX_THREADS_MAX ||
+            provisioned_workers > TOMO_IO_THREADS_MAX ||
+            provisioned_workers > 255) {
+            serverLog(LL_WARNING,
+                "FATAL: multi-node AUTO symmetric pool needs %d worker/io-capable slots "
+                "(%d nodes x (%d threads/node - 1)); compiled limits are ex <= %d, io <= %d, "
+                "bucket owner <= 255. Reduce --tomokv-nodes or the per-node thread split.",
+                provisioned_workers, nodes, pool_per_node,
+                TOMO_EX_THREADS_MAX, TOMO_IO_THREADS_MAX);
+            exit(1);
+        }
+
+        server.io_threads = nodes;                    /* one base IO identity per node */
+        server.ex_threads = provisioned_workers;      /* node-local convertible worker pools */
+        server.io_per_node = 1;                       /* provisioned base-IO stride */
+        server.ex_per_node = provisioned_wpn;         /* provisioned worker stride */
+        server.tm_pool_symmetric = 1;
+        serverLog(LL_NOTICE,
+                  "tomokv thread-mode auto: PER-NODE SYMMETRIC POOL — %d nodes x %d threads: "
+                  "1 base io + %d convertible workers/node; boot split io %d / ex %d per node. "
+                  "Reachable range per node io 1..%d (both directions).",
+                  nodes, pool_per_node, provisioned_wpn, boot_ipn, boot_epn,
+                  pool_per_node - 1);
+    }
     /* flip: growth io slots a converted EX worker can run as an IO thread. Computed HERE (before
      * the per-iotid IO structure init below) so all those arrays are sized for the growth slots. */
     server.tm_ngrow_io = 0;
     if (server.ex_threads > 1) {   /* num_workers not assigned until later; ex_threads == num_workers and is resolved here */
-        server.tm_ngrow_io = server.ex_threads - 1;
+        if (server.topo_nodes > 1 && server.tm_pool_symmetric)
+            server.tm_ngrow_io = server.ex_threads - server.topo_nodes; /* one EX floor per node */
+        else
+            server.tm_ngrow_io = server.ex_threads - 1;
         if (server.io_threads + server.tm_ngrow_io > TOMO_IO_THREADS_MAX)
             server.tm_ngrow_io = TOMO_IO_THREADS_MAX - server.io_threads;
     }
@@ -5908,25 +5952,54 @@ void initServer(void) {
          * mode and own nothing — they take the canonical empty suffix range below, exactly as a
          * grown-front worker's slot does after its range is migrated away. In static mode
          * tm_boot_w_live == ex_threads and this is the historical initialization unchanged. */
-        int W = server.tm_boot_w_live > 0 ? server.tm_boot_w_live : server.ex_threads;
-        for (int b = 0; b < TOMO_BUCKETS; b++)
-            server.ex_bucket_table[b] = (uint8_t)(((long)b * W) / TOMO_BUCKETS);
-        /* ee451 (non-pow2 fix): end[i] must be the EXACT boundary of the table formula above —
-         * table[b]==i iff b in [ceil(i*B/W), ceil((i+1)*B/W)), so end[i] = CEIL((i+1)*B/W).
-         * The old floor form disagreed with the table whenever W does not divide TOMO_BUCKETS
-         * (any non-power-of-2 W): boundary buckets were owned by worker i per the table but
-         * attributed to worker i+1 per the ends, so reshardRangeValid's ownership walk rejected
-         * EVERY arm (flips + balancer dead on 3/6/etc.-worker configs). Identical values for
-         * power-of-2 W (all prior validated configs). */
-        for (int i = 0; i < W; i++)
-            server.ex_bucket_end[i] = (int)(((long)(i + 1) * TOMO_BUCKETS + W - 1) / W);
-        /* Canonical EMPTY suffix range for every slot above the configured workers:
-         * end[i] = TOMO_BUCKETS => range [TOMO_BUCKETS, TOMO_BUCKETS) = owns nothing.
-         * A grow-front's prefix move (src = w, dst = w-1) sets end[dst] = hi and leaves
-         * end[src] = end[dst], so the emptied slot keeps a well-formed empty range and the
-         * grow-back suffix move that revives it restores the boot shape. */
-        for (int i = W; i < TOMO_EX_THREADS_MAX; i++)
-            server.ex_bucket_end[i] = TOMO_BUCKETS;
+        if (server.topo_nodes > 1 && server.tm_pool_symmetric) {
+            /* Multi-node live workers are a prefix WITHIN EACH provisioned node slice, not one
+             * global prefix. Route through a compact live-worker ordinal, then expand it into the
+             * node-local slot. Dormant suffix workers get an empty range at their OWN node boundary
+             * (not at TOMO_BUCKETS), preserving the globally monotone end[] representation required
+             * by adjacent, within-node FLIPs. */
+            int nodes = server.topo_nodes;
+            int live_wpn = server.tm_boot_w_live / nodes;
+            int slot_wpn = server.ex_per_node;
+            int W = server.tm_boot_w_live;
+            for (int b = 0; b < TOMO_BUCKETS; b++) {
+                int k = (int)(((long)b * W) / TOMO_BUCKETS);
+                int node = k / live_wpn;
+                int local = k % live_wpn;
+                server.ex_bucket_table[b] = (uint8_t)(node * slot_wpn + local);
+            }
+            for (int i = 0; i < server.ex_threads; i++) {
+                int node = i / slot_wpn;
+                int local = i % slot_wpn;
+                int live_end = local + 1;
+                if (live_end > live_wpn) live_end = live_wpn;
+                long compact_end = (long)node * live_wpn + live_end;
+                server.ex_bucket_end[i] =
+                    (int)((compact_end * TOMO_BUCKETS + W - 1) / W);
+            }
+            for (int i = server.ex_threads; i < TOMO_EX_THREADS_MAX; i++)
+                server.ex_bucket_end[i] = TOMO_BUCKETS;
+        } else {
+            int W = server.tm_boot_w_live > 0 ? server.tm_boot_w_live : server.ex_threads;
+            for (int b = 0; b < TOMO_BUCKETS; b++)
+                server.ex_bucket_table[b] = (uint8_t)(((long)b * W) / TOMO_BUCKETS);
+            /* ee451 (non-pow2 fix): end[i] must be the EXACT boundary of the table formula above —
+             * table[b]==i iff b in [ceil(i*B/W), ceil((i+1)*B/W)), so end[i] = CEIL((i+1)*B/W).
+             * The old floor form disagreed with the table whenever W does not divide TOMO_BUCKETS
+             * (any non-power-of-2 W): boundary buckets were owned by worker i per the table but
+             * attributed to worker i+1 per the ends, so reshardRangeValid's ownership walk rejected
+             * EVERY arm (flips + balancer dead on 3/6/etc.-worker configs). Identical values for
+             * power-of-2 W (all prior validated configs). */
+            for (int i = 0; i < W; i++)
+                server.ex_bucket_end[i] = (int)(((long)(i + 1) * TOMO_BUCKETS + W - 1) / W);
+            /* Canonical EMPTY suffix range for every slot above the configured workers:
+             * end[i] = TOMO_BUCKETS => range [TOMO_BUCKETS, TOMO_BUCKETS) = owns nothing.
+             * A grow-front's prefix move (src = w, dst = w-1) sets end[dst] = hi and leaves
+             * end[src] = end[dst], so the emptied slot keeps a well-formed empty range and the
+             * grow-back suffix move that revives it restores the boot shape. */
+            for (int i = W; i < TOMO_EX_THREADS_MAX; i++)
+                server.ex_bucket_end[i] = TOMO_BUCKETS;
+        }
     }
     server.pid = getpid();
     server.in_fork_child = CHILD_TYPE_NONE;
@@ -6046,7 +6119,14 @@ void initServer(void) {
                                             : (server.ex_per_node > 0 ? server.ex_per_node : server.num_workers);
         int ipn = server.tm_boot_io_live > 0 ? server.tm_boot_io_live
                                              : (server.io_per_node > 0 ? server.io_per_node : server.io_threads);
-        if (nn > 1) { wpn = server.ex_per_node; ipn = server.io_per_node; }   /* multi-node: unchanged */
+        if (nn > 1) {
+            if (server.tm_pool_symmetric) {
+                wpn = server.tm_boot_w_live / nn;
+                ipn = server.tm_boot_io_live / nn;
+            } else {
+                wpn = server.ex_per_node; ipn = server.io_per_node;
+            }
+        }
         for (int n = 0; n < 16 && n < nn; n++) {
             atomic_store_explicit(&server.tm_node_wlive[n], wpn, memory_order_relaxed);
             atomic_store_explicit(&server.tm_node_iolive[n], ipn, memory_order_relaxed);
@@ -22598,19 +22678,41 @@ static void tomoResolvePinConfig(void) {
         serverLog(LL_WARNING, "FATAL: %s", err ? err : "invalid pin spec");
         exit(1);
     }
-    /* Coverage: every node needs at least as many cpus as it has threads of that role. */
-    for (int n = 0; n < server.topo_nodes; n++) {
-        if (tomo_pin_n[TOMO_PIN_ROLE_IO][n] < server.io_per_node) {
-            serverLog(LL_WARNING, "FATAL: tomokv-pin-io gives node%d %d cpu(s) but tomokv-thread-io "
-                      "is %d — every IO thread must have a cpu.", n,
-                      tomo_pin_n[TOMO_PIN_ROLE_IO][n], server.io_per_node);
-            exit(1);
+    /* Coverage is against the operator's BOOT split. Under the multi-node symmetric pool a thread
+     * keeps that boot core when its role changes; requiring a second CPU entry for its provisioned
+     * dormant role would reject an otherwise complete P-core pin map. */
+    if (server.topo_nodes > 1 && server.tm_pool_symmetric) {
+        int need_io = server.tm_boot_io_live / server.topo_nodes;
+        int need_ex = server.tm_boot_w_live / server.topo_nodes;
+        for (int n = 0; n < server.topo_nodes; n++) {
+            if (tomo_pin_n[TOMO_PIN_ROLE_IO][n] < need_io) {
+                serverLog(LL_WARNING, "FATAL: tomokv-pin-io gives node%d %d cpu(s) but the AUTO "
+                          "boot split needs %d — every boot IO thread must have a cpu.", n,
+                          tomo_pin_n[TOMO_PIN_ROLE_IO][n], need_io);
+                exit(1);
+            }
+            if (tomo_pin_n[TOMO_PIN_ROLE_EX][n] < need_ex) {
+                serverLog(LL_WARNING, "FATAL: tomokv-pin-ex gives node%d %d cpu(s) but the AUTO "
+                          "boot split needs %d — every boot EX worker must have a cpu.", n,
+                          tomo_pin_n[TOMO_PIN_ROLE_EX][n], need_ex);
+                exit(1);
+            }
         }
-        if (tomo_pin_n[TOMO_PIN_ROLE_EX][n] < server.ex_per_node) {
-            serverLog(LL_WARNING, "FATAL: tomokv-pin-ex gives node%d %d cpu(s) but tomokv-thread-ex "
-                      "is %d — every worker must have a cpu.", n,
-                      tomo_pin_n[TOMO_PIN_ROLE_EX][n], server.ex_per_node);
-            exit(1);
+    } else {
+        /* Coverage: every node needs at least as many cpus as it has threads of that role. */
+        for (int n = 0; n < server.topo_nodes; n++) {
+            if (tomo_pin_n[TOMO_PIN_ROLE_IO][n] < server.io_per_node) {
+                serverLog(LL_WARNING, "FATAL: tomokv-pin-io gives node%d %d cpu(s) but tomokv-thread-io "
+                          "is %d — every IO thread must have a cpu.", n,
+                          tomo_pin_n[TOMO_PIN_ROLE_IO][n], server.io_per_node);
+                exit(1);
+            }
+            if (tomo_pin_n[TOMO_PIN_ROLE_EX][n] < server.ex_per_node) {
+                serverLog(LL_WARNING, "FATAL: tomokv-pin-ex gives node%d %d cpu(s) but tomokv-thread-ex "
+                          "is %d — every worker must have a cpu.", n,
+                          tomo_pin_n[TOMO_PIN_ROLE_EX][n], server.ex_per_node);
+                exit(1);
+            }
         }
     }
     tomo_pin_loaded = 1;
@@ -22731,6 +22833,18 @@ static void pinExToCore(pthread_t thread, int ex_id) {
     char what[40]; snprintf(what, sizeof what, "Worker %d", ex_id);
     int epn = server.ex_per_node > 0 ? server.ex_per_node : 1;
     int node = ex_id / epn, idx = ex_id % epn;
+    if (server.topo_nodes > 1 && server.tm_pool_symmetric) {
+        /* Symmetric provisioning changes the role SHAPE, not the physical pool. Preserve the
+         * configured boot placement: the local live prefix uses EX pins; workers born as IO use
+         * the remaining IO pins after the node's immutable base-IO slot. */
+        int boot_epn = server.tm_boot_w_live / server.topo_nodes;
+        int ex_born = idx < boot_epn;
+        int role = ex_born ? TOMO_PIN_ROLE_EX : TOMO_PIN_ROLE_IO;
+        int role_idx = ex_born ? idx : 1 + idx - boot_epn;
+        int logical = node * server.cores_per_node + (ex_born ? idx : idx + 1);
+        pinThreadToCoreN(thread, what, logical, role, node, role_idx);
+        return;
+    }
     pinThreadToCoreN(thread, what, tomoLogicalCore(TOMO_PIN_ROLE_EX, node, idx),
                      TOMO_PIN_ROLE_EX, node, idx);
 }
@@ -22741,6 +22855,12 @@ void pinIOThreadToCore(pthread_t thread, int io_id) {
     int ipn = server.io_per_node > 0 ? server.io_per_node : 1;
     int node = io_id / ipn, idx = io_id % ipn;
     if (node >= server.topo_nodes) { node = server.topo_nodes - 1; idx = ipn - 1; }  /* grown io slots */
+    if (server.topo_nodes > 1 && server.tm_pool_symmetric) {
+        int boot_epn = server.tm_boot_w_live / server.topo_nodes;
+        int logical = node * server.cores_per_node + boot_epn + idx;
+        pinThreadToCoreN(thread, what, logical, TOMO_PIN_ROLE_IO, node, idx);
+        return;
+    }
     pinThreadToCoreN(thread, what, tomoLogicalCore(TOMO_PIN_ROLE_IO, node, idx),
                      TOMO_PIN_ROLE_IO, node, idx);
 }
@@ -22790,7 +22910,16 @@ static polyThreadCtx *tmCtxForIotid(int id) {
      * this, tmGatherLiveDests/the REBALANCE dest-validation can't see a converted io thread as a
      * live migration target and the new thread stays idle. */
     if (id >= server.io_threads && id < server.io_threads + server.tm_ngrow_io) {
-        int w = (server.num_workers - 1) - (id - server.io_threads);
+        int w;
+        if (server.topo_nodes > 1 && server.tm_pool_symmetric) {
+            int grow_per_node = server.ex_per_node - 1;
+            int g = id - server.io_threads;
+            int node = g / grow_per_node;
+            int local = (server.ex_per_node - 1) - (g % grow_per_node);
+            w = node * server.ex_per_node + local;
+        } else {
+            w = (server.num_workers - 1) - (id - server.io_threads);
+        }
         if (w >= 1 && w < server.num_workers) {
             polyThreadCtx *ctx = &tmPolyCtxs[(server.io_threads - 1) + w];
             if (ctx->io_slot == id) return ctx;                          /* io != NULL by construction */
@@ -22889,8 +23018,19 @@ void initExThreads(void) {
          * converts first and takes io_slot io_threads, next takes io_threads+1, ... => worker i
          * gets io_slot = io_threads + (num_workers-1 - i). Worker 0 is the >=1 EX floor: no io
          * binding. Bindings for slots >= io_threads were built in initIOThreads. */
-        int gidx = (server.num_workers - 1) - i;   /* 0 for the top worker */
-        if (i >= 1 && gidx >= 0 && gidx < server.tm_ngrow_io) {
+        int gidx;
+        int convertible;
+        if (server.topo_nodes > 1 && server.tm_pool_symmetric) {
+            int local = i % server.ex_per_node;
+            int node = i / server.ex_per_node;
+            convertible = local >= 1;
+            gidx = node * (server.ex_per_node - 1) +
+                   (server.ex_per_node - 1 - local);
+        } else {
+            gidx = (server.num_workers - 1) - i;   /* 0 for the top worker */
+            convertible = i >= 1;
+        }
+        if (convertible && gidx >= 0 && gidx < server.tm_ngrow_io) {
             ctx->io = &server.ioThreads[server.io_threads + gidx];
             ctx->io_slot = server.io_threads + gidx;
         } else {
@@ -22907,7 +23047,13 @@ void initExThreads(void) {
          * seeded to match in initIOThreads and initServer. In static mode tm_boot_w_live ==
          * num_workers and the condition is never true, so every worker is EX-born as before.
          * mode is UNSET (not 0, not a role) until the first checkpoint adopts the target. */
-        int born_io = (i >= server.tm_boot_w_live) && ctx->io;
+        int born_io;
+        if (server.topo_nodes > 1 && server.tm_pool_symmetric) {
+            int boot_wpn = server.tm_boot_w_live / server.topo_nodes;
+            born_io = ((i % server.ex_per_node) >= boot_wpn) && ctx->io;
+        } else {
+            born_io = (i >= server.tm_boot_w_live) && ctx->io;
+        }
         atomic_store_explicit(&ctx->mode, TOMO_MODE_UNSET, memory_order_relaxed);  /* not adopted yet */
         atomic_store_explicit(&ctx->target_mode, born_io ? TOMO_MODE_IO : TOMO_MODE_EX, memory_order_relaxed);
         if (born_io)
