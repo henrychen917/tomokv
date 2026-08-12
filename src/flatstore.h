@@ -17,6 +17,7 @@
 
 #include <stdint.h>
 #include <stdatomic.h>
+#include "config.h"    /* CACHE_LINE_SIZE */
 #include "dict.h"      /* dictEntry (a no_value slot stores the tag-masked kvobj pointer directly) */
 
 /* 8B SINGLE-WORD slot (memory: half the old 16B two-word slot). The tag and flags live in the unused
@@ -38,6 +39,7 @@
  * 8-slots-per-line layout absorbs the extra probe). Was tomokv-flat-load-pct, retired at 70 —
  * it is a compile-time constant now, NOT a per-insert load from the server global. */
 #define FLAT_LOAD_PCT   70ULL
+#define FLAT_COUNT_CHECK_EVERY 64U                  /* sampled per-writer table-count fold */
 #define FLAT_INSERT_FULL UINT64_MAX              /* flatInsert exhausted every slot; caller waits/retries */
 enum {
     FLAT_RESIZE_NONE = 0,
@@ -56,6 +58,23 @@ enum {
 typedef struct flatSlot {
     _Atomic uint64_t w;            /* [63:49] tag | [48] TOMB | [47:0] masked kv ptr; 0 = EMPTY. 8 B => 8/64B line */
 } flatSlot;
+
+/* One writer-owned count row per worker, plus one cold non-worker fallback row for load/resize.
+ * Deltas are signed: after an ownership flip worker B may delete a key (or reuse a tomb) whose
+ * positive delta was recorded by worker A. The row is exactly one cache line, so live writers
+ * never invalidate another worker's count line. Worker rows use atomic load+store (not an RMW);
+ * the fallback uses a cold RMW so concurrent foreign writers cannot lose updates. */
+typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) flatCountShard {
+    _Atomic int64_t used_delta;
+    _Atomic int64_t tombs_delta;
+    _Atomic int64_t occupied_delta; /* used+tombs; monotonic until rebuild, for the grow trigger */
+    _Atomic uint32_t insert_tick;
+    _Atomic uint32_t delete_tick;
+    char _pad[CACHE_LINE_SIZE - 3 * sizeof(_Atomic int64_t) -
+              2 * sizeof(_Atomic uint32_t)];
+} flatCountShard;
+_Static_assert(sizeof(flatCountShard) == CACHE_LINE_SIZE,
+               "flat count shard must occupy exactly one cache line");
 
 /* QSBR reclamation (Stage 1): a retired value can't be freed while a lock-free reader may still
  * hold its pointer. Retire pushes it (Treiber, lock-free) onto retire_stack (or the worker-local
@@ -107,8 +126,8 @@ typedef struct flatTable {
     flatSlot *slots;               /* size entries, 64B-aligned, zcalloc'd (all EMPTY) */
     uint64_t  size;                /* power of two */
     uint64_t  mask;                /* size - 1 */
-    _Atomic uint64_t used;         /* LIVE slot count (approx; relaxed) */
-    _Atomic uint64_t tombs;        /* TOMB slot count (approx; relaxed) */
+    flatCountShard *count_shards;  /* [count_workers] plus one non-worker fallback row */
+    int count_workers;             /* runtime worker slots; immutable for this table */
     uint64_t  gen;                 /* bumped on a rebuild (Stage 2); a cursor carrying gen restarts on change */
     _Atomic(flatRetireNode *) retire_stack;  /* QSBR: lock-free push of retired values */
     flatBatch *batches;            /* QSBR: FIFO head, oldest closed batch (main-thread only) */
@@ -117,6 +136,11 @@ typedef struct flatTable {
 } flatTable;
 
 flatTable *flatTableNew(uint64_t want_size);
+/* Fold this table's worker-local LIVE/TOMB deltas. The fenced form is for callers that already
+ * hold quiescence and require the completed pre-quiescence publications (resize sizing/snapshot
+ * diagnostics); a fence alone does not make a concurrently-mutating table a linearizable census. */
+void       flatTableCounts(flatTable *t, uint64_t *used, uint64_t *tombs);
+void       flatTableCountsWithFence(flatTable *t, uint64_t *used, uint64_t *tombs);
 /* Stage-2 cooperative resize: alloc a right-sized empty target (size by LIVE load, not used+tombs,
  * so tomb churn rebuilds same-size), then copy live slots in bounded chunks across beforeSleep passes
  * (workers parked throughout, so `old` is immutable here). flatTableCopyChunk returns 1 when done. */
@@ -126,7 +150,7 @@ void       flatTableFree(flatTable *t);
 void       flatTableDestroy(flatTable *t);   /* teardown: free LIVE kvobjs too (release, not resize) */
 
 /* Core ops — self-contained on flatTable (the kvstore wrapper owns key_count / per-owner counts /
- * Stage-1 retire). `h` is the full xxh64(key). t->used/t->tombs are maintained here. */
+ * Stage-1 retire). `h` is the full xxh64(key). Per-worker used/tomb deltas are maintained here. */
 dictEntry *flatGet(flatTable *t, uint64_t h, const char *key, size_t klen);   /* returns MASKED kvobj (decode via dictGetKV), NULL if absent */
 /* find-for-write: returns 1 and *slot = index of the FOUND live key, or 0 and *slot = index to
  * INSERT into (first TOMB seen on the probe, else the terminating EMPTY). */

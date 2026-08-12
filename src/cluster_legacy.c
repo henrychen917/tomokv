@@ -5247,7 +5247,7 @@ void clusterUpdateState(void) {
 
 /* Remove all the shard channel related information not owned by the current shard. */
 static inline void removeAllNotOwnedShardChannelSubscriptions(void) {
-    if (!kvstoreSize(server.pubsubshard_channels)) return;
+    if (!kvstoreSizeWithFence(server.pubsubshard_channels)) return;
     clusterNode *currmaster = clusterNodeIsMaster(myself) ? myself : myself->slaveof;
     for (int j = 0; j < CLUSTER_SLOTS; j++) {
         if (server.cluster->slots[j] != currmaster) {
@@ -5994,7 +5994,7 @@ int clusterCommandSpecial(client *c) {
         }
     } else if (!strcasecmp(c->argv[1]->ptr,"flushslots") && c->argc == 2) {
         /* CLUSTER FLUSHSLOTS */
-        if (kvstoreSize(server.db[0].keys) != 0) {
+        if (kvstoreSizeWithFence(server.db[0].keys) != 0) {
             addReplyError(c,"DB must be empty to perform CLUSTER FLUSHSLOTS.");
             return 1;
         }
@@ -6278,7 +6278,7 @@ int clusterCommandSpecial(client *c) {
          * slots nor keys to accept to replicate some other node.
          * Slaves can switch to another master without issues. */
         if (clusterNodeIsMaster(myself) &&
-            (myself->numslots != 0 || kvstoreSize(server.db[0].keys) != 0)) {
+            (myself->numslots != 0 || kvstoreSizeWithFence(server.db[0].keys) != 0)) {
             addReplyError(c,
                 "To set a master the node must be empty and "
                 "without assigned slots.");
@@ -6415,7 +6415,7 @@ int clusterCommandSpecial(client *c) {
 
         /* Slaves can be reset while containing data, but not master nodes
          * that must be empty. */
-        if (clusterNodeIsMaster(myself) && kvstoreSize(c->db->keys) != 0) {
+        if (clusterNodeIsMaster(myself) && kvstoreSizeWithFence(c->db->keys) != 0) {
             addReplyError(c,"CLUSTER RESET can't be called with "
                             "master nodes containing keys");
             return 1;

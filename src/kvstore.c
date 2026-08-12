@@ -27,6 +27,8 @@ void tomoRetireDetachedBag(struct _kvstore *kvs, kvobj *head);
 
 #include <string.h>
 #include <stddef.h>
+#include <stdint.h>
+#include <limits.h>
 
 #include "zmalloc.h"
 #include "kvstore.h"
@@ -35,6 +37,33 @@ void tomoRetireDetachedBag(struct _kvstore *kvs, kvobj *head);
 #include "monotonic.h"
 
 #define UNUSED(V) ((void) V)
+
+/* Set once during server initialization, before any KVSTORE_SHARED_MT instance is created. The
+ * TLS id is set for every EX slice (including a dormant EX slice running on an IO-role thread),
+ * so ownership flips do not require moving historical deltas between counters. */
+__thread int kvstore_counter_shard_id = -1;
+static int kvstore_counter_shard_count = 0;
+
+void kvstoreSetCounterShardCount(int count) {
+    assert(count >= 0);
+    kvstore_counter_shard_count = count;
+}
+
+int kvstoreCounterShardCount(void) {
+    return kvstore_counter_shard_count;
+}
+
+/* One owner writes each slot, while folders on other threads read it. A relaxed load + release
+ * store is deliberately used instead of atomic fetch-add: it is a plain owner-local load/store,
+ * not a lock-prefixed RMW. Signed deltas are required because, after a bucket ownership flip, a
+ * worker may delete a key inserted by a different worker and its historical delta becomes negative. */
+typedef struct {
+    long long delta;
+    unsigned char pad[CACHE_LINE_SIZE - sizeof(long long)];
+} __attribute__((aligned(CACHE_LINE_SIZE))) kvstoreKeyCountShard;
+
+_Static_assert(sizeof(kvstoreKeyCountShard) == CACHE_LINE_SIZE,
+               "kvstore key-count shards must be cache-line isolated");
 
 struct _kvstore {
     int flags;
@@ -48,7 +77,10 @@ struct _kvstore {
     int resize_cursor;                     /* Cron job uses this cursor to gradually resize dictionaries (only used if num_dicts > 1). */
     int allocated_dicts;                   /* The number of allocated dicts. */
     int non_empty_dicts;                   /* The number of non-empty dicts. */
-    unsigned long long key_count;          /* Total number of keys in this kvstore. */
+    long long key_count;                   /* Single-writer count, or cold non-worker baseline. */
+    kvstoreKeyCountShard *key_count_shards;/* SHARED_MT signed per-worker deltas (aligned view). */
+    void *key_count_shards_raw;            /* Allocation retained for zfree(). */
+    int key_count_shard_count;
     unsigned long long bucket_count;       /* Total number of buckets in this kvstore across dictionaries. */
     fenwickTree *dict_sizes;               /* Binary indexed tree (BIT) that describes cumulative key frequencies up until given dict-index. */
     size_t overhead_hashtable_rehashing;   /* The overhead of dictionaries rehashing. */
@@ -60,11 +92,120 @@ struct _kvstore {
  * single-writer path (flag off) keeps plain loads/stores with zero codegen change. */
 static inline int kvstoreSharedMT(kvstore *kvs) { return kvs->flags & KVSTORE_SHARED_MT; }
 int kvstoreIsSharedMT(kvstore *kvs) { return kvstoreSharedMT(kvs); }   /* public (db.c histogram gate) */
+
+static void kvstoreKeyCountShardsInit(kvstore *kvs) {
+    if (!kvstoreSharedMT(kvs) || kvstore_counter_shard_count == 0)
+        return;
+
+    assert((size_t)kvstore_counter_shard_count <=
+           (SIZE_MAX - (CACHE_LINE_SIZE - 1)) / sizeof(*kvs->key_count_shards));
+    size_t slots_size = sizeof(*kvs->key_count_shards) * (size_t)kvstore_counter_shard_count;
+    void *raw = zcalloc(slots_size + CACHE_LINE_SIZE - 1);
+    uintptr_t aligned = ((uintptr_t)raw + CACHE_LINE_SIZE - 1) & ~(uintptr_t)(CACHE_LINE_SIZE - 1);
+    kvs->key_count_shards_raw = raw;
+    kvs->key_count_shards = (kvstoreKeyCountShard *)aligned;
+    kvs->key_count_shard_count = kvstore_counter_shard_count;
+}
+
+static void kvstoreKeyCountShardsFree(kvstore *kvs) {
+    zfree(kvs->key_count_shards_raw);
+    kvs->key_count_shards_raw = NULL;
+    kvs->key_count_shards = NULL;
+    kvs->key_count_shard_count = 0;
+}
+
 static inline void kvstoreMtLock(kvstore *kvs) {
     while (__atomic_test_and_set(&kvs->mt_lock, __ATOMIC_ACQUIRE)) { /* rare + short hold */ }
 }
 static inline void kvstoreMtUnlock(kvstore *kvs) {
     __atomic_clear(&kvs->mt_lock, __ATOMIC_RELEASE);
+}
+
+/* The hot path has exactly one writer for each shard. The cold baseline remains atomic because
+ * setup/load/control-plane mutations can run without a worker id while worker shards exist. */
+static inline void kvstoreKeyCountAdd(kvstore *kvs, long delta) {
+    if (!kvstoreSharedMT(kvs)) {
+        kvs->key_count += delta;
+        return;
+    }
+
+    int shard_id = kvstore_counter_shard_id;
+    if (shard_id >= 0 && shard_id < kvs->key_count_shard_count) {
+        long long *counter = &kvs->key_count_shards[shard_id].delta;
+        long long value = __atomic_load_n(counter, __ATOMIC_RELAXED);
+        __atomic_store_n(counter, value + (long long)delta, __ATOMIC_RELEASE);
+        return;
+    }
+
+    /* A non-worker mutation is cold and may overlap workers, so it cannot use a plain update. */
+    assert(shard_id == -1 || kvs->key_count_shard_count == 0);
+    __atomic_fetch_add(&kvs->key_count, (long long)delta, __ATOMIC_RELEASE);
+}
+
+static __int128 kvstoreKeyCountFoldRaw(kvstore *kvs, int with_fence) {
+    if (!kvstoreSharedMT(kvs)) {
+        long long total = kvs->key_count;
+        if (with_fence)
+            __atomic_thread_fence(__ATOMIC_ACQUIRE);
+        return total;
+    }
+
+    __int128 total = __atomic_load_n(&kvs->key_count, __ATOMIC_RELAXED);
+    if (kvs->key_count_shard_count == 0) {
+        if (with_fence)
+            __atomic_thread_fence(__ATOMIC_ACQUIRE);
+        return total;
+    }
+
+    long long min_delta = LLONG_MAX;
+    long long max_delta = LLONG_MIN;
+    for (int i = 0; i < kvs->key_count_shard_count; i++) {
+        long long delta = __atomic_load_n(&kvs->key_count_shards[i].delta, __ATOMIC_RELAXED);
+        total += delta;
+        if (delta < min_delta) min_delta = delta;
+        if (delta > max_delta) max_delta = delta;
+    }
+    if (with_fence)
+        __atomic_thread_fence(__ATOMIC_ACQUIRE);
+
+    /* Witness skew is the spread across signed historical worker deltas: max - min. Unsigned
+     * subtraction represents the complete [0, 2^64-1] long-long spread without overflow. */
+    tomoCounterFoldWitness((unsigned long long)max_delta - (unsigned long long)min_delta);
+    return total;
+}
+
+/* Rebase the cold baseline instead of zeroing owner rows. The ordinary flush rendezvous makes the
+ * raw fold exact. DEBUG RELOAD can empty while workers remain live; that operation is not globally
+ * linearizable, but rebasing still preserves every owner update that lands after its row's sampled
+ * point and, crucially, cannot overwrite an in-flight owner-local load/store with a stale value.
+ * The existing cold kvstore lock serializes concurrent control-plane rebases. */
+static void kvstoreKeyCountReset(kvstore *kvs) {
+    if (!kvstoreSharedMT(kvs)) {
+        kvs->key_count = 0;
+        return;
+    }
+    if (kvs->key_count_shard_count == 0) {
+        __atomic_exchange_n(&kvs->key_count, 0, __ATOMIC_RELEASE);
+        return;
+    }
+
+    kvstoreMtLock(kvs);
+    __int128 total = kvstoreKeyCountFoldRaw(kvs, 1);
+    assert(total >= -(__int128)LLONG_MAX && total <= (__int128)LLONG_MAX);
+    if (total != 0)
+        __atomic_fetch_add(&kvs->key_count, -(long long)total, __ATOMIC_RELEASE);
+    kvstoreMtUnlock(kvs);
+}
+
+static unsigned long long kvstoreKeyCountFold(kvstore *kvs, int with_fence) {
+    __int128 total = kvstoreKeyCountFoldRaw(kvs, with_fence);
+
+    /* A live fold is deliberately approximate: sampling a delete after its counter store and a
+     * balancing insert before its store can transiently produce a negative sum. Never expose that
+     * as a huge unsigned size. After a worker/drain fence the sum is exact and non-negative. */
+    if (total <= 0) return 0;
+    if (total > ULLONG_MAX) return ULLONG_MAX;
+    return (unsigned long long)total;
 }
 
 /* ee451 FLATSTORE: a flat "link" is &slot->w; recover the slot index. */
@@ -152,10 +293,10 @@ static void cumulativeKeyCountAdd(kvstore *kvs, int didx, long delta) {
 
     if (kvstoreSharedMT(kvs)) {
         /* ee451 (S0.2b): multiple owner-threads add/delete in disjoint dicts of this kvstore.
-         * Aggregates via relaxed atomics (node-local line); the Fenwick tree is SKIPPED — a
+         * key_count uses cache-line-isolated owner shards; the Fenwick tree is SKIPPED — a
          * multi-writer log-n tree walk per op is the one hot-path cost sharing would add, and
          * its consumers (non-empty iteration / fair random) have linear fallbacks. */
-        __atomic_fetch_add(&kvs->key_count, (unsigned long long)delta, __ATOMIC_RELAXED);
+        kvstoreKeyCountAdd(kvs, delta);
         if (non_empty_dicts_delta)
             __atomic_fetch_add(&kvs->non_empty_dicts, non_empty_dicts_delta, __ATOMIC_RELAXED);
         return;
@@ -322,6 +463,7 @@ kvstore *kvstoreCreate(kvstoreType *type, dictType *dtype, int num_dicts_bits, i
     memcpy(&kvs->dtype, dtype, sizeof(kvs->dtype));
     kvs->flags = flags;
     kvs->type = type;
+    kvstoreKeyCountShardsInit(kvs);
 
     /* kvstore must be the one to set these callbacks, so we make sure the
      * caller didn't do it */
@@ -350,7 +492,7 @@ kvstore *kvstoreCreate(kvstoreType *type, dictType *dtype, int num_dicts_bits, i
         kvs->flat = flatTableNew(FLAT_MIN_SIZE);
     }
     kvs->rehashing = listCreate();
-    kvs->key_count = 0;
+    kvs->key_count = 0;   /* zcalloc also initialized every optional worker shard before publication */
     kvs->non_empty_dicts = 0;
     kvs->resize_cursor = 0;
     kvs->dict_sizes = kvs->num_dicts > 1 ? fwTreeCreate(kvs->num_dicts_bits) : NULL;
@@ -393,7 +535,7 @@ void kvstoreEmpty(kvstore *kvs, void(callback)(dict*)) {
 
     listEmpty(kvs->rehashing);
 
-    kvs->key_count = 0;
+    kvstoreKeyCountReset(kvs);
     kvs->non_empty_dicts = 0;
     kvs->resize_cursor = 0;
     kvs->bucket_count = 0;
@@ -408,6 +550,7 @@ void kvstoreRelease(kvstore *kvs) {
         zfree(kvs->dicts);
         listRelease(kvs->rehashing);
         if (kvs->dict_sizes) fwTreeDestroy(kvs->dict_sizes);
+        kvstoreKeyCountShardsFree(kvs);
         zfree(kvs);
         return;
     }
@@ -427,11 +570,16 @@ void kvstoreRelease(kvstore *kvs) {
     if (kvs->dict_sizes)
         fwTreeDestroy(kvs->dict_sizes);
 
+    kvstoreKeyCountShardsFree(kvs);
     zfree(kvs);
 }
 
 unsigned long long int kvstoreSize(kvstore *kvs) {
-    return kvs->key_count;
+    return kvstoreKeyCountFold(kvs, 0);
+}
+
+unsigned long long int kvstoreSizeWithFence(kvstore *kvs) {
+    return kvstoreKeyCountFold(kvs, 1);
 }
 
 /* This method provides the cumulative sum of all the dictionary buckets
@@ -446,6 +594,8 @@ unsigned long kvstoreBuckets(kvstore *kvs) {
 
 size_t kvstoreMemUsage(kvstore *kvs) {
     size_t mem = sizeof(*kvs);
+    if (kvs->key_count_shards_raw)
+        mem += zmalloc_usable_size(kvs->key_count_shards_raw);
     size_t metaSize = kvs->dtype.dictMetadataBytes(NULL);
     unsigned long long keys_count = kvstoreSize(kvs);
     mem += keys_count * dictEntryMemUsage(kvs->dtype.no_value) +
@@ -577,10 +727,14 @@ int kvstoreExpand(kvstore *kvs, uint64_t newsize, int try_expand, kvstoreExpandS
 int kvstoreGetFairRandomDictIndex(kvstore *kvs, kvstoreRandomShouldSkipDictIndex *skip_cb,
                                   int fair_attempts, int slow_fallback)
 {
-    if (kvs->num_dicts == 1 || kvstoreSize(kvs) == 0)
+    if (kvs->num_dicts == 1)
         return 0;
 
+    /* Fold once: a live shared fold is approximate, so two samples could otherwise change from
+     * nonzero to zero between the guard and modulo. */
     unsigned long long total_size = kvstoreSize(kvs);
+    if (total_size == 0)
+        return 0;
 
     /* Try fair attempts first. If skip_cb is not applicable, execute only once. */
     for (int attempt = 0; attempt < fair_attempts; attempt++) {
@@ -675,9 +829,8 @@ void kvstoreGetStats(kvstore *kvs, char *buf, size_t bufsize, int full) {
  * Time complexity of this function is O(log(kvs->num_dicts))
  */
 int kvstoreFindDictIndexByKeyIndex(kvstore *kvs, unsigned long target) {
-    if (kvs->num_dicts == 1 || kvstoreSize(kvs) == 0)
+    if (kvs->num_dicts == 1)
         return 0;
-    assert(target <= kvstoreSize(kvs));
 
     if (kvstoreSharedMT(kvs)) {
         /* ee451 (S0.2b): Fenwick is not maintained under sharing — linear accumulate. Racy
@@ -694,22 +847,28 @@ int kvstoreFindDictIndexByKeyIndex(kvstore *kvs, unsigned long target) {
         }
         return last;
     }
+
+    unsigned long long total_size = kvstoreSize(kvs);
+    if (total_size == 0)
+        return 0;
+    assert(target <= total_size);
     return fwTreeFindIndex(kvs->dict_sizes, target);
 }
 
 /* Get the first non-empty dict index in the kvstore. Returns -1 if kvstore is empty. */
 int kvstoreGetFirstNonEmptyDictIndex(kvstore *kvs) {
-    if (kvstoreSize(kvs) == 0)
-        return -1;
-    if (kvs->num_dicts == 1)
-        return 0;
     if (kvstoreSharedMT(kvs)) {   /* ee451 (S0.2b): linear scan (iteration users are cold) */
+        /* Do not use an approximate folded zero as an iteration correctness gate. */
         for (int i = 0; i < kvs->num_dicts; i++) {
             dict *d = __atomic_load_n(&kvs->dicts[i], __ATOMIC_ACQUIRE);
             if (d && dictSize(d)) return i;
         }
         return -1;
     }
+    if (kvstoreSize(kvs) == 0)
+        return -1;
+    if (kvs->num_dicts == 1)
+        return 0;
     return fwTreeFindFirstNonEmpty(kvs->dict_sizes);
 }
 
@@ -1113,7 +1272,7 @@ int kvstoreDictSetAtLink(kvstore *kvs, int didx, void *kv, dictEntryLink *link, 
                 return DICT_ERR;
             }
             if (link) *link = (dictEntryLink)&t->slots[inserted].w;
-            __atomic_add_fetch(&kvs->key_count, 1, __ATOMIC_RELAXED);
+            kvstoreKeyCountAdd(kvs, 1);
         } else if (kv == NULL) {
             /* ee451 FLATSTORE (8B-slot review fix): preclearing a slot to FLAT_TOMB here is UNSAFE —
              * FLAT_TOMB is immediately reusable, so a concurrent cross-key insert could claim the slot
@@ -1178,7 +1337,7 @@ void kvstoreDictTwoPhaseUnlinkFree(kvstore *kvs, int didx, dictEntryLink link, i
         flatTable *t = flatCurrent(kvs);
         dictEntry *old = flatDelete(t, flatSlotOf(t, link));
         if (old) tomoRetireDetachedBag(kvs, flatDecodeKV(old));
-        __atomic_sub_fetch(&kvs->key_count, 1, __ATOMIC_RELAXED);
+        kvstoreKeyCountAdd(kvs, -1);
         (void)table_index;
         return;
     }
@@ -1195,7 +1354,7 @@ int kvstoreDictDelete(kvstore *kvs, int didx, const void *key) {
         uint64_t slot; if (!flatFindForWrite(t, tomoKeyHash(key, len), (const char*)key, len, &slot)) return DICT_ERR;
         dictEntry *old = flatDelete(t, slot);
         if (old) tomoRetireDetachedBag(kvs, flatDecodeKV(old));
-        __atomic_sub_fetch(&kvs->key_count, 1, __ATOMIC_RELAXED);
+        kvstoreKeyCountAdd(kvs, -1);
         return DICT_OK;
     }
     dict *d = kvstoreGetDict(kvs, didx);

@@ -88,8 +88,8 @@ typedef struct {
 /* ee451 (shared-kv S0.2b): this kvstore is shared by MULTIPLE writer threads, each owning a
  * DISJOINT set of dict indexes (tomo node-db: one owner-worker per bucket-dict; dict content
  * itself is never touched cross-owner). Aggregate bookkeeping adapts:
- *   - key_count / non_empty_dicts / bucket_count / allocated_dicts / rehash overhead: relaxed
- *     atomics (node-local cache line, rare-to-per-op writers)
+ *   - key_count: release-published, cache-line-isolated per-worker signed deltas, folded on read
+ *   - non_empty_dicts / bucket_count / allocated_dicts / rehash overhead: relaxed atomics
  *   - Fenwick dict_sizes: SKIPPED (multi-writer log-n tree walk on every add/delete); the
  *     non-empty-dict queries it served fall back to a linear dicts[] scan (iteration users are
  *     cold: KEYS / checksums / empty), and fair-random callers are rerouted by the server
@@ -97,6 +97,16 @@ typedef struct {
  * Single-writer kvstores (flag off) are bit-for-bit unchanged. */
 #define KVSTORE_SHARED_MT (1<<2)
 #define KVSTORE_FLAT (1<<3)   /* ee451 FLATSTORE: one lock-free open-addressing table replaces the dicts[] */
+
+/* SHARED_MT key-count shards are sized once, before shared kvstores are created. The execution
+ * loop sets this TLS id while it is running a worker slice; -1 routes the rare non-worker mutation
+ * (RDB load / control-plane work) to the kvstore's cold signed baseline. */
+extern __thread int kvstore_counter_shard_id;
+void kvstoreSetCounterShardCount(int count);
+int kvstoreCounterShardCount(void);
+/* Server-owned, cache-line-sharded lifetime witness; called once per real counter fold. */
+void tomoCounterFoldWitness(unsigned long long skew);
+
 int kvstoreIsFlat(kvstore *kvs);
 void kvstoreFlatIterRange(kvstore *kvs, int blo, int bhi, void (*cb)(dictEntry *, void *), void *priv);
 void *kvstoreFlatRandomKeyInRange(kvstore *kvs, int blo, int bhi);
@@ -110,6 +120,9 @@ kvstore *kvstoreCreate(kvstoreType *type, dictType *dtype, int num_dicts_bits, i
 void kvstoreEmpty(kvstore *kvs, void(callback)(dict*));
 void kvstoreRelease(kvstore *kvs);
 unsigned long long kvstoreSize(kvstore *kvs);
+/* Same fold as kvstoreSize(), followed by an acquire fence. Use after a worker/drain fence when
+ * the count is a correctness gate rather than an approximate live observation. */
+unsigned long long kvstoreSizeWithFence(kvstore *kvs);
 unsigned long kvstoreBuckets(kvstore *kvs);
 size_t kvstoreMemUsage(kvstore *kvs);
 unsigned long long kvstoreScan(kvstore *kvs, unsigned long long cursor,

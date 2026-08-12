@@ -2296,7 +2296,9 @@ int slotSnapshotSaveRio(int req, rio *rdb, int *error) {
         char selectcmd[] = "*2\r\n$6\r\nSELECT\r\n";
         redisDb *db = server.db + i;
         if (!dbIsInitialized(db)) continue;
-        if (kvstoreSize(db->keys) == 0) continue;
+        /* Snapshot iteration cannot silently skip a non-empty DB. The migration snapshot is
+         * already serialized; the fenced fold publishes that exact pre-iteration count. */
+        if (kvstoreSizeWithFence(db->keys) == 0) continue;
 
         /* SELECT the new DB */
         if (rioWrite(rdb,selectcmd,sizeof(selectcmd)-1) == 0) goto werr;

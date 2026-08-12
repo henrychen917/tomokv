@@ -302,9 +302,11 @@ void xorObjectDigest(redisDb *db, robj *keyobj, unsigned char *digest, robj *o) 
  * the result. For list instead we use a feedback entering the output digest
  * as input in order to ensure that a different ordered list will result in
  * a different digest. */
-/* ee451: XOR every key's per-key digest of ONE physical db into `final` (order-independent). */
-static void digestOneDb(redisDb *db, unsigned char *final) {
+/* ee451: XOR every key's per-key digest of ONE physical db into `final`
+ * (order-independent), and return the number of keys actually visited. */
+static unsigned long long digestOneDb(redisDb *db, unsigned char *final) {
     unsigned char digest[20];
+    unsigned long long count = 0;
     dictEntry *de;
     kvstoreIterator kvs_it;
     kvstoreIteratorInit(&kvs_it, db->keys);   /* flat-aware (KVSTORE_FLAT branch) */
@@ -318,8 +320,10 @@ static void digestOneDb(redisDb *db, unsigned char *final) {
         xorObjectDigest(db, keyobj, digest, kv);
         xorDigest(final,digest,20);
         decrRefCount(keyobj);
+        count++;
     }
     kvstoreIteratorReset(&kvs_it);
+    return count;
 }
 
 void computeDatasetDigest(unsigned char *final) {
@@ -329,27 +333,32 @@ void computeDatasetDigest(unsigned char *final) {
     memset(final,0,20); /* Start with a clean result */
 
     for (j = 0; j < server.dbnum; j++) {
+        unsigned char dbdigest[20] = {0};
+        unsigned long long keys = 0;
+
         if (!dbIsInitialized(&server.db[j])) continue;
         /* ee451: the keyspace lives in the shard/node dbs, not the (empty) decoy server.db — iterating
          * server.db here digested ZERO keys. Digest the physical dbs holding dbid j: under shared_node_dbs
-         * each node ONCE (workers alias one node db — else wpn-fold over-count), else every worker shard. */
+         * each node ONCE (workers alias one node db — else wpn-fold over-count), else every worker shard.
+         * Discover emptiness from the same exact walk that produces the digest: a live cross-worker counter
+         * fold is not a linearizable zero test, even when its loads use publication fences. */
         if (server.shared_node_dbs && server.node_dbs) {
-            unsigned long long sz = 0;
-            for (int n = 0; n < server.n_node_dbs; n++) sz += kvstoreSize(server.node_dbs[n][j].keys);
-            if (sz == 0) continue;
-            aux = htonl(j); mixDigest(final,&aux,sizeof(aux));   /* mix DB id ONCE per db */
-            for (int n = 0; n < server.n_node_dbs; n++) digestOneDb(&server.node_dbs[n][j], final);
+            for (int n = 0; n < server.n_node_dbs; n++)
+                keys += digestOneDb(&server.node_dbs[n][j], dbdigest);
         } else if (server.exThreads) {
-            unsigned long long sz = 0;
-            for (int w = 0; w < server.num_workers; w++) sz += kvstoreSize(server.exThreads[w].db[j].keys);
-            if (sz == 0) continue;
-            aux = htonl(j); mixDigest(final,&aux,sizeof(aux));
-            for (int w = 0; w < server.num_workers; w++) digestOneDb(&server.exThreads[w].db[j], final);
+            for (int w = 0; w < server.num_workers; w++)
+                keys += digestOneDb(&server.exThreads[w].db[j], dbdigest);
         } else {
-            if (kvstoreSize(server.db[j].keys) == 0) continue;
-            aux = htonl(j); mixDigest(final,&aux,sizeof(aux));
-            digestOneDb(&server.db[j], final);
+            keys = digestOneDb(&server.db[j], dbdigest);
         }
+        if (keys == 0) continue;
+
+        aux = htonl(j);
+        mixDigest(final,&aux,sizeof(aux));   /* mix DB id ONCE per logical db */
+        /* digestOneDb already SHA1-and-XORed each key into dbdigest. Combine that aggregate
+         * byte-for-byte so this is identical to XORing every key into final after the DB id. */
+        for (size_t i = 0; i < sizeof(dbdigest); i++)
+            final[i] ^= dbdigest[i];
     }
 }
 

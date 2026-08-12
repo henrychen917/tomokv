@@ -1585,8 +1585,12 @@ ssize_t rdbSaveDb(rio *rdb, redisDb *db_param, int dbid, int rdbflags, long *key
 
     redisDb *db = db_param;   /* ee451: caller passes server.db[dbid] or a worker shard db */
     if (!dbIsInitialized(db)) return 0;
-    unsigned long long int db_size = kvstoreSize(db->keys);
-    if (db_size == 0) return 0;
+    /* After an external worker/drain rendezvous this fenced fold is exact. SAVE and DEBUG RELOAD
+     * can also reach this path while shared workers remain live, where a fence publishes completed
+     * deltas but cannot make a cross-shard fold linearizable. Consequently a live shared zero must
+     * not skip the DB: the iterator is the authority, while RESIZEDB remains a sizing hint. */
+    unsigned long long int db_size = kvstoreSizeWithFence(db->keys);
+    if (db_size == 0 && !kvstoreIsSharedMT(db->keys)) return 0;
 
     /* Write the SELECT DB opcode */
     if ((res = rdbSaveType(rdb,RDB_OPCODE_SELECTDB)) < 0) goto werr;
@@ -1595,7 +1599,7 @@ ssize_t rdbSaveDb(rio *rdb, redisDb *db_param, int dbid, int rdbflags, long *key
     written += res;
 
     /* Write the RESIZE DB opcode. */
-    unsigned long long expires_size = kvstoreSize(db->expires);
+    unsigned long long expires_size = kvstoreSizeWithFence(db->expires);
     if ((res = rdbSaveType(rdb,RDB_OPCODE_RESIZEDB)) < 0) goto werr;
     written += res;
     if ((res = rdbSaveLen(rdb,db_size)) < 0) goto werr;

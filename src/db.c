@@ -537,16 +537,22 @@ static void dbSetAtLinkWithFlatRetry(kvstore *kvs, int slot, kvobj *kv,
          * escalated its rebuild request to FLAT_RESIZE_URGENT before returning DICT_ERR. */
         flatTable *t = kvstoreFlatTable(kvs);
         serverAssert(t != NULL);
-        unsigned long long used = atomic_load_explicit(&t->used, memory_order_relaxed);
-        unsigned long long tombs = atomic_load_explicit(&t->tombs, memory_order_relaxed);
-        unsigned long long size = t->size;
+        uint64_t used, tombs;
+        /* This is a folded diagnostic, not the progress gate: URGENT was raised above and the
+         * retry reloads the replacement table. The fences make all completed shard publications
+         * visible; concurrent updates may still move the two values while the fold is in flight. */
+        flatTableCountsWithFence(t, &used, &tombs);
+        uint64_t size = t->size;
 
         if (wait_rounds == FLAT_INSERT_MAX_WAIT_ROUNDS)
             serverPanic("flatstore INSERT: table remained full "
                         "(used=%llu tombs=%llu size=%llu wait_rounds=%u)",
-                        used, tombs, size, wait_rounds);
+                        (unsigned long long)used, (unsigned long long)tombs,
+                        (unsigned long long)size, wait_rounds);
 
-        int owner = iotid - (TOMO_IO_THREADS_MAX + 1);
+        /* exSlice scopes this identity to the logical worker even when an IO-role thread is
+         * draining that worker's dormant slice and therefore retains an IO-range iotid. */
+        int owner = kvstore_counter_shard_id;
         serverAssert(owner >= 0 && owner < server.num_workers);
         atomic_fetch_add_explicit(&flat_insert_full_waits, 1, memory_order_relaxed);
         dbFlatInsertWait(&server.exThreads[owner]);
@@ -1949,7 +1955,11 @@ long long emptyDbStructure(redisDb *dbarray, int dbnum, int async,
 
     for (int j = startdb; j <= enddb; j++) {
         if (!dbIsInitialized(&dbarray[j])) continue;
-        removed += kvstoreSize(dbarray[j].keys);
+        /* The shared-node flush sentinel quiesces siblings, making this exact for the normal
+         * command path. DEBUG RELOAD/control-plane callers can invoke emptyData while workers
+         * remain live; there the fence preserves publication ordering but `removed` is only the
+         * best live fold, and exactness would require that same worker rendezvous. */
+        removed += kvstoreSizeWithFence(dbarray[j].keys);
         if (async) {
             emptyDbAsync(&dbarray[j]);
         } else {
@@ -2156,7 +2166,10 @@ long long dbTotalServerKeyCount(void) {
     int j;
     for (j = 0; j < server.dbnum; j++) {
         if (!dbIsInitialized(&server.db[j])) continue;
-        total += kvstoreSize(server.db[j].keys);
+        /* This is an exact emptiness gate in the supported scalar replication configuration.
+         * Sharded replication is rejected at configuration time and server.db is then only a
+         * decoy; a fence cannot turn that decoy into a physical-shard census. */
+        total += kvstoreSizeWithFence(server.db[j].keys);
     }
     return total;
 }
@@ -3264,9 +3277,9 @@ void scanCommand(client *c) {
 
 void dbsizeCommand(client *c) {
     /* ee451 v10-B (fan_all): the keyspace is partitioned across worker shard dbs; c->db (main)
-     * is empty. Sum dbSize across all worker shards for this db id. dbSize() reads the dict's
-     * used counter only (no iteration), so reading it from the IO thread while a worker writes
-     * is racy but crash-free and DBSIZE is approximate by nature. */
+     * is empty. Sum dbSize across all worker shards for this db id. dbSize() folds the
+     * cache-line-isolated count rows without iterating keys; a concurrent fold can be slightly
+     * stale, which is acceptable for DBSIZE's live observation. */
     if (server.num_workers > 0 && server.exThreads) {
         long long total = 0;
         int dbid = c->db->id;

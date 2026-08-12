@@ -69,20 +69,126 @@ void flatRetirePayloadDiscard(dictEntry *payload) {
 }
 
 flatTable *flatTableNew(uint64_t want_size) {
-    uint64_t sz = 1024;
+    /* The K=64 grow-trigger proof below is based on FLAT_MIN_SIZE headroom, so no table may be
+     * constructed below that floor even if a future caller passes a smaller sizing hint. */
+    uint64_t sz = FLAT_MIN_SIZE;
     while (sz < want_size) sz <<= 1;               /* power of two >= want_size */
-    flatTable *t = zmalloc(sizeof(*t));
+    int count_workers = kvstoreCounterShardCount();
+    serverAssert(count_workers >= 0 && count_workers <= TOMO_EX_THREADS_MAX);
+    size_t count_bytes = (size_t)(count_workers + 1) * sizeof(flatCountShard);
+    /* zmalloc does not promise cache-line alignment. Keep the rows in the table allocation but
+     * align their trailing base explicitly; flatTableFree/Destroy can still release one pointer. */
+    flatTable *t = zmalloc(sizeof(*t) + CACHE_LINE_SIZE - 1 + count_bytes);
+    uintptr_t count_base = ((uintptr_t)(t + 1) + CACHE_LINE_SIZE - 1) &
+                           ~(uintptr_t)(CACHE_LINE_SIZE - 1);
+    t->count_shards = (flatCountShard *)count_base;
+    t->count_workers = count_workers;
+    memset(t->count_shards, 0, count_bytes);
+    for (int i = 0; i <= count_workers; i++) {
+        atomic_init(&t->count_shards[i].used_delta, 0);
+        atomic_init(&t->count_shards[i].tombs_delta, 0);
+        atomic_init(&t->count_shards[i].occupied_delta, 0);
+        atomic_init(&t->count_shards[i].insert_tick, 0);
+        atomic_init(&t->count_shards[i].delete_tick, 0);
+    }
     t->slots = zcalloc(sz * sizeof(flatSlot));     /* all ctrl==0 (EMPTY), kv==NULL */
     t->size = sz;
     t->mask = sz - 1;
-    atomic_store_explicit(&t->used, 0, memory_order_relaxed);
-    atomic_store_explicit(&t->tombs, 0, memory_order_relaxed);
     atomic_store_explicit(&t->resize_needed, FLAT_RESIZE_NONE, memory_order_relaxed); /* zmalloc'd — must init */
     t->gen = 0;
     atomic_store_explicit(&t->retire_stack, NULL, memory_order_relaxed);
     t->batches = NULL;
     t->batches_tail = NULL;
     return t;
+}
+
+static inline int flatCountShardIndex(flatTable *t) {
+    int wid = kvstore_counter_shard_id;
+    return (wid >= 0 && wid < t->count_workers) ? wid : t->count_workers;
+}
+
+/* Worker rows are single-writer and use owner-local load/store. The fallback row is cold, but use
+ * an RMW there so an unexpected foreign mutation cannot lose a concurrent count publication. */
+static inline void flatCountDeltaAdd(_Atomic int64_t *counter, int64_t delta,
+                                     int single_writer) {
+    if (single_writer) {
+        int64_t value = atomic_load_explicit(counter, memory_order_relaxed);
+        atomic_store_explicit(counter, value + delta, memory_order_release);
+    } else {
+        atomic_fetch_add_explicit(counter, delta, memory_order_release);
+    }
+}
+
+static inline int flatCountTick(_Atomic uint32_t *tick, int single_writer) {
+    uint32_t next;
+    if (single_writer) {
+        next = atomic_load_explicit(tick, memory_order_relaxed) + 1;
+        atomic_store_explicit(tick, next, memory_order_relaxed);
+    } else {
+        next = atomic_fetch_add_explicit(tick, 1, memory_order_relaxed) + 1;
+    }
+    return (next & (FLAT_COUNT_CHECK_EVERY - 1)) == 0;
+}
+
+static void flatTableCountsInternal(flatTable *t, uint64_t *used, uint64_t *tombs,
+                                    uint64_t *occupied, int fenced) {
+    __int128 used_total = 0, tombs_total = 0, occupied_total = 0;
+    int64_t min_used = INT64_MAX, max_used = INT64_MIN;
+    int64_t min_tombs = INT64_MAX, max_tombs = INT64_MIN;
+    int64_t min_occupied = INT64_MAX, max_occupied = INT64_MIN;
+    int nshards = t->count_workers + 1;
+
+    if (fenced) atomic_thread_fence(memory_order_seq_cst);
+    for (int i = 0; i < nshards; i++) {
+        int64_t shard_used = atomic_load_explicit(&t->count_shards[i].used_delta,
+                                                  memory_order_acquire);
+        int64_t shard_tombs = atomic_load_explicit(&t->count_shards[i].tombs_delta,
+                                                   memory_order_acquire);
+        int64_t shard_occupied = atomic_load_explicit(&t->count_shards[i].occupied_delta,
+                                                      memory_order_acquire);
+        used_total += shard_used;
+        tombs_total += shard_tombs;
+        occupied_total += shard_occupied;
+        if (i < t->count_workers) {
+            if (shard_used < min_used) min_used = shard_used;
+            if (shard_used > max_used) max_used = shard_used;
+            if (shard_tombs < min_tombs) min_tombs = shard_tombs;
+            if (shard_tombs > max_tombs) max_tombs = shard_tombs;
+            if (shard_occupied < min_occupied) min_occupied = shard_occupied;
+            if (shard_occupied > max_occupied) max_occupied = shard_occupied;
+        }
+    }
+    if (fenced) atomic_thread_fence(memory_order_seq_cst);
+
+    /* A cross-owner fold may straddle the matching positive and negative deltas. Clamp only the
+     * completed sum; individual rows are deliberately allowed to be negative after handoff. */
+    *used = used_total <= 0 ? 0 : used_total > UINT64_MAX ? UINT64_MAX : (uint64_t)used_total;
+    *tombs = tombs_total <= 0 ? 0 : tombs_total > UINT64_MAX ? UINT64_MAX : (uint64_t)tombs_total;
+    if (occupied)
+        *occupied = occupied_total <= 0 ? 0 : occupied_total > UINT64_MAX
+                                              ? UINT64_MAX : (uint64_t)occupied_total;
+    if (t->count_workers > 0) {
+        uint64_t used_spread = (uint64_t)max_used - (uint64_t)min_used;
+        uint64_t tombs_spread = (uint64_t)max_tombs - (uint64_t)min_tombs;
+        uint64_t occupied_spread = (uint64_t)max_occupied - (uint64_t)min_occupied;
+        uint64_t spread = used_spread > tombs_spread ? used_spread : tombs_spread;
+        if (occupied_spread > spread) spread = occupied_spread;
+        tomoCounterFoldWitness(spread);
+    }
+}
+
+void flatTableCounts(flatTable *t, uint64_t *used, uint64_t *tombs) {
+    flatTableCountsInternal(t, used, tombs, NULL, 0);
+}
+
+void flatTableCountsWithFence(flatTable *t, uint64_t *used, uint64_t *tombs) {
+    flatTableCountsInternal(t, used, tombs, NULL, 1);
+}
+
+static uint64_t flatTableOccupied(flatTable *t) {
+    uint64_t used, tombs, occupied;
+    flatTableCountsInternal(t, &used, &tombs, &occupied, 0);
+    return occupied;
 }
 
 void flatResizeRequest(flatTable *t, int level) {
@@ -249,11 +355,33 @@ uint64_t flatInsert(flatTable *t, uint64_t h, dictEntry *masked_kv, uint64_t hin
             uint64_t expect = w;
             if (atomic_compare_exchange_strong_explicit(&t->slots[i].w, &expect, neww,
                     memory_order_acq_rel, memory_order_acquire)) {   /* publishes tag|ptr atomically */
-                uint64_t u = atomic_fetch_add_explicit(&t->used, 1, memory_order_relaxed) + 1;
-                if (w != 0) atomic_fetch_sub_explicit(&t->tombs, 1, memory_order_relaxed);  /* reused a tomb */
-                /* flag a rebuild at FLAT_LOAD_PCT% (used+tombs)/size — see flatstore.h. */
-                if ((u + atomic_load_explicit(&t->tombs, memory_order_relaxed)) * 100 >= t->size * FLAT_LOAD_PCT)
-                    flatResizeRequest(t, FLAT_RESIZE_NORMAL);
+                int count_index = flatCountShardIndex(t);
+                int single_writer = count_index < t->count_workers;
+                flatCountShard *counts = &t->count_shards[count_index];
+                flatCountDeltaAdd(&counts->used_delta, 1, single_writer);
+                if (w != 0) {
+                    flatCountDeltaAdd(&counts->tombs_delta, -1, single_writer);
+                } else {
+                    /* Occupied slots only increase between rebuilds: deleting produces a tomb and
+                     * tomb reuse leaves this value unchanged. That monotonicity makes the sampled
+                     * grow-trigger fold immune to split used/tomb observations. */
+                    flatCountDeltaAdd(&counts->occupied_delta, 1, single_writer);
+                }
+
+                /* Fold only every K successful inserts by this writer. At the worst possible
+                 * phase, one full K-insert interval from every configured writer can await a check.
+                 * K=64 with at most 128 workers plus the foreign row bounds the overshoot by
+                 * 64*129 = 8,256 slots. The dedicated occupied-slot delta is monotonic, so a fold
+                 * cannot undercount because it split a used/tomb pair. The
+                 * smallest table is 2^18 slots and its 70% trigger leaves floor(30%*2^18)=78,643
+                 * slots of headroom; 8,256 < 78,643, and larger tables only widen the margin.
+                 * Therefore sampling cannot carry a table from the trigger boundary to FULL.
+                 * Coordinator delay still can, so FLAT_INSERT_FULL's URGENT/WAIT path remains. */
+                if (flatCountTick(&counts->insert_tick, single_writer)) {
+                    uint64_t occupied = flatTableOccupied(t);
+                    if (occupied * 100 >= t->size * FLAT_LOAD_PCT)
+                        flatResizeRequest(t, FLAT_RESIZE_NORMAL);
+                }
                 return i;
             }
             /* CAS lost: `expect` holds the winner's word. If a foreign key took it (now LIVE), advance;
@@ -283,13 +411,24 @@ dictEntry *flatDelete(flatTable *t, uint64_t slot) {
     uint64_t w = atomic_load_explicit(&t->slots[slot].w, memory_order_relaxed);
     dictEntry *old = flat_word_ptr(w);
     atomic_store_explicit(&t->slots[slot].w, FLAT_TOMB, memory_order_release);
-    uint64_t nu = atomic_fetch_sub_explicit(&t->used, 1, memory_order_relaxed) - 1;
-    atomic_fetch_add_explicit(&t->tombs, 1, memory_order_relaxed);
+    int count_index = flatCountShardIndex(t);
+    int single_writer = count_index < t->count_workers;
+    flatCountShard *counts = &t->count_shards[count_index];
+    /* Preserve the physical live->tomb transition order in the published diagnostic deltas. */
+    flatCountDeltaAdd(&counts->tombs_delta, 1, single_writer);
+    flatCountDeltaAdd(&counts->used_delta, -1, single_writer);
     /* flag a SHRINK when the live set falls below FLAT_LOAD_PCT/4 of the table (hysteresis: grow
      * trigger is FLAT_LOAD_PCT, post-grow load is FLAT_LOAD_PCT/2, so this is well clear). The
-     * coordinator rebuilds smaller via flatTableAllocFor, reusing the same quiesce+copy machine. */
-    if (t->size > FLAT_MIN_SIZE && nu * 400 <= t->size * FLAT_LOAD_PCT)
-        flatResizeRequest(t, FLAT_RESIZE_NORMAL);
+     * coordinator rebuilds smaller via flatTableAllocFor, reusing the same quiesce+copy machine.
+     * Shrink is not a progress condition, so sample it every K deletes too. Up to K-1 deletes per
+     * writer can remain unsampled; if every writer then goes quiet, the oversized table remains
+     * until a later delete or another resize request. */
+    if (t->size > FLAT_MIN_SIZE && flatCountTick(&counts->delete_tick, single_writer)) {
+        uint64_t used, tombs;
+        flatTableCounts(t, &used, &tombs);
+        if (used * 400 <= t->size * FLAT_LOAD_PCT)
+            flatResizeRequest(t, FLAT_RESIZE_NORMAL);
+    }
     return old;
 }
 
@@ -298,7 +437,11 @@ flatTable *flatTableAllocFor(flatTable *old) {
      * (live set small), rebuild SAME size to reclaim tombs WITHOUT growing (else delete/TTL churn on
      * a bounded live set doubles unboundedly); double (or more) only when the live set needs it. Land
      * <= 1/3 live load so we don't immediately re-cross the 0.5 trigger. Never shrink below old->size. */
-    uint64_t used = atomic_load_explicit(&old->used, memory_order_relaxed);
+    uint64_t used, tombs;
+    /* The coordinator has parked all table users here. The fenced fold is consequently an exact
+     * sizing census; unlike a concurrent reader it cannot straddle worker publications. */
+    flatTableCountsWithFence(old, &used, &tombs);
+    (void)tombs;   /* tombs select rebuild timing; immutable live count alone sizes the target */
     uint64_t target = old->size;
     /* A resize at load T intrinsically halves to T/2, so a SINGLE double is always enough (used<=size).
      * Double only when the live set alone is over half the trigger (used >= (FLAT_LOAD_PCT/2)% of size); if

@@ -27,7 +27,9 @@ void lazyfreeFreeDatabase(void *args[]) {
     dict *stream_idmp_keys = args[3];
     estoreRelease(subexpires);
     dictRelease(stream_idmp_keys);
-    size_t numkeys = kvstoreSize(da1);
+    /* The detached kvstore is immutable; use the fenced fold so lazyfree accounting subtracts
+     * exactly the count that was published before ownership moved to this job. */
+    size_t numkeys = kvstoreSizeWithFence(da1);
     kvstoreRelease(da1);
     kvstoreRelease(da2);
     atomicDecr(lazyfree_objects,numkeys);
@@ -308,7 +310,9 @@ void emptyDbAsync(redisDb *db) {
 
 /* Empty a Redis DB data asynchronously. */
 void emptyDbDataAsync(kvstore *keys, kvstore *expires, ebuckets hexpires, dict *stream_idmp_keys) {
-    atomicIncr(lazyfree_objects, kvstoreSize(keys));
+    /* `keys` has just been detached from the DB and is now immutable. This must match the folded
+     * decrement in lazyfreeFreeDatabase, not a weak live estimate. */
+    atomicIncr(lazyfree_objects, kvstoreSizeWithFence(keys));
     bioCreateLazyFreeJob(lazyfreeFreeDatabase, 4, keys, expires, hexpires, stream_idmp_keys);
 }
 

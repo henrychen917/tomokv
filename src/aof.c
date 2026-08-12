@@ -2499,7 +2499,9 @@ int rewriteAppendOnlyFileRio(rio *aof) {
         char selectcmd[] = "*2\r\n$6\r\nSELECT\r\n";
         redisDb *db = server.db + j;
         if (!dbIsInitialized(db)) continue;
-        if (kvstoreSize(db->keys) == 0) continue;
+        /* The rewrite child sees a frozen snapshot; do not let an unfenced folded zero suppress
+         * an entire DB section. */
+        if (kvstoreSizeWithFence(db->keys) == 0) continue;
 
         /* SELECT the new DB */
         if (rioWrite(aof,selectcmd,sizeof(selectcmd)-1) == 0) goto werr;

@@ -2272,7 +2272,7 @@ int verifyClusterConfigWithData(void) {
     /* Make sure we only have keys in DB0. */
     for (int i = 1; i < server.dbnum; i++) {
         if (!dbIsInitialized(&server.db[i])) continue;
-        if (kvstoreSize(server.db[i].keys)) return C_ERR;
+        if (kvstoreSizeWithFence(server.db[i].keys)) return C_ERR;
     }
 
     /* Take over slots that we have keys for, but are assigned to no one. */

@@ -157,6 +157,13 @@ typedef struct tomoPrefetchCounter {
 } __attribute__((aligned(CACHE_LINE_SIZE))) tomoPrefetchCounter;
 _Static_assert(sizeof(tomoPrefetchCounter) == CACHE_LINE_SIZE,
                "prefetch engagement counter must occupy one cache line");
+typedef struct tomoCounterFoldWitnessSlot {
+    _Atomic unsigned long long calls;
+    _Atomic unsigned long long max_skew;
+    char _pad[CACHE_LINE_SIZE - 2 * sizeof(_Atomic unsigned long long)];
+} __attribute__((aligned(CACHE_LINE_SIZE))) tomoCounterFoldWitnessSlot;
+_Static_assert(sizeof(tomoCounterFoldWitnessSlot) == CACHE_LINE_SIZE,
+               "counter-fold witness slot must occupy one cache line");
 _Static_assert(TOMO_PIPELINE_DEPTH_MAX <= 32,
                "cross-node reply bitmap must cover every pipeline slot");
 
@@ -167,6 +174,39 @@ static _Atomic uint64_t cross_node[TOMO_IO_THREADS_MAX + 1][TOMO_EX_MASK_WORDS];
 static _Atomic unsigned char cross_node_any[TOMO_IO_THREADS_MAX + 1];
 static tomoPrefetchCounter prefetch_ex_xnode_issued[TOMO_STAT_SLOTS];
 static tomoPrefetchCounter prefetch_io_xnode_issued[TOMO_STAT_SLOTS];
+/* Lifetime witnesses. Worker-side sampled folds update only their iotid row, so observing the
+ * optimization never recreates a shared counter line. Slot zero uses RMWs because background
+ * threads inherit iotid=0 and may fold concurrently with main; that cold fallback is not a live
+ * worker write path. `max_skew` is the largest max(row)-min(row) spread for any counter folded. */
+static tomoCounterFoldWitnessSlot counter_fold_witness[TOMO_STAT_SLOTS];
+
+void tomoCounterFoldWitness(unsigned long long skew) {
+    int slot = (iotid >= 0 && iotid < TOMO_STAT_SLOTS) ? iotid : 0;
+    tomoCounterFoldWitnessSlot *w = &counter_fold_witness[slot];
+    if (slot == 0) {
+        atomic_fetch_add_explicit(&w->calls, 1, memory_order_relaxed);
+        unsigned long long seen = atomic_load_explicit(&w->max_skew, memory_order_relaxed);
+        while (seen < skew &&
+               !atomic_compare_exchange_weak_explicit(&w->max_skew, &seen, skew,
+                                                      memory_order_relaxed,
+                                                      memory_order_relaxed)) { }
+    } else {
+        tomoRelaxedBump(w->calls, 1);
+        if (skew > tomoRelaxedRead(w->max_skew)) tomoRelaxedSet(w->max_skew, skew);
+    }
+}
+
+static void tomoCounterFoldWitnessTotals(unsigned long long *calls,
+                                         unsigned long long *max_skew) {
+    unsigned long long total = 0, high = 0;
+    for (int i = 0; i < TOMO_STAT_SLOTS; i++) {
+        total += tomoRelaxedRead(counter_fold_witness[i].calls);
+        unsigned long long skew = tomoRelaxedRead(counter_fold_witness[i].max_skew);
+        if (skew > high) high = skew;
+    }
+    *calls = total;
+    *max_skew = high;
+}
 
 static inline int tomoCrossNode(int io_slot, int worker) {
     if (!atomic_load_explicit(&cross_node_any[io_slot], memory_order_acquire))
@@ -6034,6 +6074,8 @@ void initServer(void) {
     }
 
     server.num_workers = server.ex_threads;
+    /* Shared kvstores/tables are allocated below, after the configured worker count is final. */
+    kvstoreSetCounterShardCount(server.num_workers);
     /* ee451 (auto symmetric pool): the LIVE worker set is the boot split's prefix, not every
      * provisioned slot. Static mode: tm_boot_w_live == num_workers, i.e. unchanged.
      * (num_workers_alloc is GONE with the spare — there is no dormant slot to over-provision
@@ -9434,10 +9476,15 @@ void flatResizeCoordinate(void) {
         if (atomic_load_explicit(&flat_rz_old->resize_needed, memory_order_relaxed) >= FLAT_RESIZE_URGENT)
             atomic_fetch_add_explicit(&flat_rz_urgent_services, 1, memory_order_relaxed);
         atomic_store_explicit(&flat_rz_new->resize_needed, FLAT_RESIZE_NONE, memory_order_relaxed);
-        serverLog(LL_NOTICE, "FLATSTORE resize: node %d db %d rebuilt %llu -> %llu slots (live=%llu)",
+        uint64_t live, tombs;
+        /* Workers remain parked through this log, so the fenced fold is an exact old-table
+         * diagnostic rather than a concurrently sampled estimate. */
+        flatTableCountsWithFence(flat_rz_old, &live, &tombs);
+        serverLog(LL_NOTICE, "FLATSTORE resize: node %d db %d rebuilt %llu -> %llu slots "
+                             "(live=%llu tombs=%llu)",
                   flat_rz_n, flat_rz_j, (unsigned long long)flat_rz_old->size,
                   (unsigned long long)flat_rz_new->size,
-                  (unsigned long long)atomic_load_explicit(&flat_rz_old->used, memory_order_relaxed));
+                  (unsigned long long)live, (unsigned long long)tombs);
         kvstoreFlatSwap(flat_rz_kvs, flat_rz_new);
         flatTableRetire(flat_rz_old);   /* RCU: free once every reader has left its region */   /* frees old slots + drains its retire garbage; live keys moved to new */
         atomic_store_explicit(&server.flat_resize_active, 0, memory_order_seq_cst);  /* workers resume */
@@ -19199,10 +19246,12 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
          * atomic mode was enabled. Raw values and misses are deliberately not
          * called fast: a large fast count therefore proves the new gate fired. */
         unsigned long long atomic_read_fast = 0, atomic_read_slow = 0;
+        unsigned long long counter_fold_calls = 0, counter_fold_max_skew = 0;
         for (int _t = 0; _t < TOMO_STAT_SLOTS; _t++) {
             atomic_read_fast += tomoRelaxedRead(server.kstat[_t].atomic_read_fast);
             atomic_read_slow += tomoRelaxedRead(server.kstat[_t].atomic_read_slow);
         }
+        tomoCounterFoldWitnessTotals(&counter_fold_calls, &counter_fold_max_skew);
         info = sdscatprintf(info, "# Stats\r\n" FMTARGS(
             "tomokv_flat_batches_closed:%llu\r\n", (unsigned long long)atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed),
             "tomokv_flat_batches_freed:%llu\r\n", (unsigned long long)atomic_load_explicit(&flat_batches_freed_n, memory_order_relaxed),
@@ -19291,9 +19340,12 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
         info = sdscatprintf(info,
             "tomokv_fake_core_allocs:%llu\r\n"
-            "tomokv_fake_tail_promotions:%llu\r\n",
+            "tomokv_fake_tail_promotions:%llu\r\n"
+            "tomokv_counter_fold_calls:%llu\r\n"
+            "tomokv_counter_fold_max_skew:%llu\r\n",
             atomic_load_explicit(&tomo_fake_core_allocs, memory_order_relaxed),
-            atomic_load_explicit(&tomo_fake_tail_promotions, memory_order_relaxed));
+            atomic_load_explicit(&tomo_fake_tail_promotions, memory_order_relaxed),
+            counter_fold_calls, counter_fold_max_skew);
         /* Keep the lifecycle witnesses outside the already-large FMTARGS block. ref_waits is the
          * non-vacuous proof: it increments only when group completion reached zero but old-owner
          * STAMP/PRUNE/grace work for the migrating range was still outstanding. Both stale-owner
@@ -19789,11 +19841,33 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         info = sdscatprintf(info, "# Keyspace\r\n");
         for (j = 0; j < server.dbnum; j++) {
             if (!dbIsInitialized(&server.db[j])) continue;
-            long long keys, vkeys, subexpiry;
+            long long keys = 0, vkeys = 0, subexpiry = 0;
 
-            keys = kvstoreSize(server.db[j].keys);
-            vkeys = kvstoreSize(server.db[j].expires);
-            subexpiry = estoreSize(server.db[j].subexpires);
+            if (server.num_workers > 0 && server.exThreads) {
+                /* The client DB is a stable decoy in Tomo mode. Fold each distinct physical DB,
+                 * exactly as DBSIZE does; shared-node aliases must be counted once per node, not
+                 * once per worker. INFO is observational, so concurrent folds may be slightly
+                 * stale, but every value now comes through the central sharded fold helper. */
+                if (server.shared_node_dbs) {
+                    for (int n = 0; n < server.n_node_dbs; n++) {
+                        if (!dbIsInitialized(&server.node_dbs[n][j])) continue;
+                        keys += kvstoreSize(server.node_dbs[n][j].keys);
+                        vkeys += kvstoreSize(server.node_dbs[n][j].expires);
+                        subexpiry += estoreSize(server.node_dbs[n][j].subexpires);
+                    }
+                } else {
+                    for (int w = 0; w < server.num_workers; w++) {
+                        if (!dbIsInitialized(&server.exThreads[w].db[j])) continue;
+                        keys += kvstoreSize(server.exThreads[w].db[j].keys);
+                        vkeys += kvstoreSize(server.exThreads[w].db[j].expires);
+                        subexpiry += estoreSize(server.exThreads[w].db[j].subexpires);
+                    }
+                }
+            } else {
+                keys = kvstoreSize(server.db[j].keys);
+                vkeys = kvstoreSize(server.db[j].expires);
+                subexpiry = estoreSize(server.db[j].subexpires);
+            }
 
             if (keys || vkeys) {
                 info = sdscatprintf(info,
@@ -21780,6 +21854,11 @@ static inline int exDormantSliceNeeded(exThread *worker,
  * any work, 0 for an idle pass. */
 static int exSlice(exThread *worker, exSliceCtx *ctx,
                    exSliceIdlePolicy idle_policy) {
+    /* An IO-role thread can run this worker's dormant slice for late stragglers while retaining
+     * its IO iotid. Scope the count identity to the slice so those writes still land on this
+     * worker's cache-line-local key/flat deltas instead of the cold shared fallback. */
+    int saved_counter_shard_id = kvstore_counter_shard_id;
+    kvstore_counter_shard_id = worker->id;
     tm_cur_ex = worker;   /* D svc attribution: one TLS store per pass */
 
     /* ee451 (S8): decref any zero-copy reply values the IO threads handed
@@ -22361,6 +22440,7 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
     /* leave the flat section — the coordinator's drain-to-zero can now observe us idle (exSlice has
      * this single return, so this covers every exit path). */
     atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
+    kvstore_counter_shard_id = saved_counter_shard_id;
     return any;
 }
 
@@ -23264,6 +23344,7 @@ void *polyThreadMain(void *arg) {
                 }
                 serverAssert(flat_extern_depth == 0);   /* identity may not change inside a flat region */
                 iotid = ctx->io_slot;                   /* IO identity, BEFORE any slice */
+                kvstore_counter_shard_id = -1;
                 flatRegisterIoSlot(ctx->io_slot);
                 if (tomoUringBackendInitThread(ctx->io_slot, ctx->io->el) != C_OK) {
                     serverLog(LL_WARNING,
@@ -23363,6 +23444,7 @@ void *polyThreadMain(void *arg) {
                 }
                 serverAssert(flat_extern_depth == 0);   /* identity may not change inside a flat region */
                 iotid = TOMO_IO_THREADS_MAX + 1 + ctx->ex_slot;   /* EX identity, BEFORE any slice */
+                kvstore_counter_shard_id = ctx->ex_slot;
                 flatRegisterWorker();
                 if (!ex_inited) {
                     /* One-time EX setup before the first EX slice. */
