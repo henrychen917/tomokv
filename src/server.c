@@ -4457,11 +4457,12 @@ void afterSleepIO(struct aeEventLoop *eventLoop) {
 }
 
 void flatReclaimAll(void);
-void flatResizeCoordinate(void);
-void flatResizeWatchdog(void);   /* ee451 (J4): any-thread unpark for a coordinator that stopped running */
+void flatResizeCoordinate(int node);
+void flatResizeWatchdog(int node);   /* ee451 (J4): any-thread unpark for a coordinator that stopped running */
 int flatResizeState(void);
+static inline int flatResizeNodeActive(int node);
 extern _Atomic unsigned long long flat_rz_quiesce_waits;   /* defined with tomoFlatResizeQuiesce below */
-static void flatRetiredTablesTryFree(void);   /* RCU: free tables replaced by a rebuild */
+static void flatRetiredTablesTryFree(int node);   /* RCU: free tables replaced by a rebuild */
 
 void beforeSleep(struct aeEventLoop *eventLoop) {
     UNUSED(eventLoop);
@@ -4485,7 +4486,16 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
     /* CORRECTNESS NOTE (2026-07-28): this used to be hinted UNLIKELY. FLATSTORE is the DEFAULT
      * shape (any node with >1 worker), so the hint was backwards — it laid the taken path out cold
      * on the busiest loop in the server. Hint dropped, predicate unchanged. */
-    if (server.shared_node_dbs) { flatReclaimAll(); flatRetiredTablesTryFree(); flatResizeCoordinate(); }
+    if (server.shared_node_dbs) {
+        /* Until reclaim itself is node-partitioned in the following duty, main still walks every
+         * table. Publish that temporary cross-node walk as an external region so a peer resize
+         * cannot retire/free the table pointer under it. */
+        if (server.topo_nodes > 1) flatExternEnter();
+        flatReclaimAll();
+        if (server.topo_nodes > 1) flatExternExit();
+        flatRetiredTablesTryFree(0);
+        flatResizeCoordinate(0);
+    }
 
     /* ee451 (thread-modes step 4, signal c): main is IO slot 0 — publish its ROB and send backlog too. */
     if (server.thread_auto) {
@@ -9257,22 +9267,29 @@ static void flatWorkerReclaim(exThread *worker) {
  * while any reader may still be walking it. Readers are the io identities running inline commands
  * (KEYS/SAVE/DEBUG DIGEST/...) and the workers. Freeing it inline forced those readers to park for
  * the whole rebuild, which stalled client I/O; deferring the free instead lets them run untouched.
- * Bounded: at most a couple of tables can be pending, and each is freed at the first beforeSleep
- * where every reader is provably outside a flat region. */
-static flatTable **flat_retired_tables;
-static int flat_retired_n;
-static int flat_retired_cap;
-static void flatTableRetire(flatTable *t) {
+ * Bounded: at most a couple of tables can be pending per node, and each is freed on that node
+ * owner's first event-loop pass where every reader is provably outside a flat region. */
+static flatTable **flat_retired_tables[TOMO_NODES_MAX];
+static int flat_retired_n[TOMO_NODES_MAX];
+static int flat_retired_cap[TOMO_NODES_MAX];
+static void flatTableRetire(int node, flatTable *t) {
     if (!t) return;
-    if (flat_retired_n == flat_retired_cap) {
-        flat_retired_cap = flat_retired_cap ? flat_retired_cap * 2 : 8;
-        flat_retired_tables = zrealloc(flat_retired_tables,
-                                      sizeof(*flat_retired_tables) * (size_t)flat_retired_cap);
+    serverAssert(node >= 0 && node < TOMO_NODES_MAX);
+    if (flat_retired_n[node] == flat_retired_cap[node]) {
+        flat_retired_cap[node] = flat_retired_cap[node] ? flat_retired_cap[node] * 2 : 8;
+        flat_retired_tables[node] = zrealloc(flat_retired_tables[node],
+            sizeof(*flat_retired_tables[node]) * (size_t)flat_retired_cap[node]);
     }
-    flat_retired_tables[flat_retired_n++] = t;
+    flat_retired_tables[node][flat_retired_n[node]++] = t;
 }
-static void flatRetiredTablesTryFree(void) {
-    if (!flat_retired_n) return;
+static void flatRetiredTablesTryFree(int node) {
+    serverAssert(node >= 0 && node < TOMO_NODES_MAX);
+    if (tmNumNodes() == 1)
+        serverAssert(node == 0 && iotid == 0);
+    else
+        serverAssert(tomoFlipIsNodeSemiMain(iotid) &&
+                     tmNodeOfIoSlot(iotid) == node);
+    if (!flat_retired_n[node]) return;
     /* DELIBERATELY still "is anyone inside NOW", all-or-nothing — a retired TABLE has no per-batch
      * close stamp yet (per-table epoch stamping is the follow-up). Mechanical parity change only:
      * ODD epoch == inside a region. */
@@ -9282,8 +9299,8 @@ static void flatRetiredTablesTryFree(void) {
         if (atomic_load_explicit(&tm_io_sig[t].flat_epoch, memory_order_seq_cst) & 1) return;   /* a reader is inside */
     for (int w = 0; w < server.num_workers && w <= TOMO_EX_THREADS_MAX; w++)
         if (atomic_load_explicit(&server.exThreads[w].in_flat_section, memory_order_seq_cst)) return;
-    for (int i = 0; i < flat_retired_n; i++) flatTableFree(flat_retired_tables[i]);
-    flat_retired_n = 0;
+    for (int i = 0; i < flat_retired_n[node]; i++) flatTableFree(flat_retired_tables[node][i]);
+    flat_retired_n[node] = 0;
 }
 
 static int flatReclaimTableClose(flatTable *t) {
@@ -9308,6 +9325,7 @@ void flatReclaimAll(void) {
     int have_batches = 0;
     for (int n = 0; n < server.n_node_dbs; n++)
         for (int j = 0; j < server.dbnum; j++) {
+            if (server.topo_nodes > 1 && flatResizeNodeActive(n)) continue;
             if (!dbIsInitialized(&server.node_dbs[n][j])) continue;
             flatTable *t = kvstoreFlatTable(server.node_dbs[n][j].keys);
             if (t) {
@@ -9319,6 +9337,7 @@ void flatReclaimAll(void) {
     unsigned long budget = flatReclaimBudget(closed);
     for (int n = 0; n < server.n_node_dbs; n++)
         for (int j = 0; j < server.dbnum; j++) {
+            if (server.topo_nodes > 1 && flatResizeNodeActive(n)) continue;
             if (!dbIsInitialized(&server.node_dbs[n][j])) continue;
             flatTable *t = kvstoreFlatTable(server.node_dbs[n][j].keys);
             if (t && flatDrainReadyBatches(&t->batches, &t->batches_tail, NULL, NULL, &budget)) {
@@ -9331,6 +9350,7 @@ void flatReclaimAll(void) {
     if (!budget)
         for (int n = 0; n < server.n_node_dbs; n++)
             for (int j = 0; j < server.dbnum; j++) {
+                if (server.topo_nodes > 1 && flatResizeNodeActive(n)) continue;
                 if (!dbIsInitialized(&server.node_dbs[n][j])) continue;
                 flatTable *t = kvstoreFlatTable(server.node_dbs[n][j].keys);
                 if (t && t->batches && flatBatchReady(t->batches)) {
@@ -9342,217 +9362,266 @@ void flatReclaimAll(void) {
 
 static _Atomic int mig_arm_lock;      /* fwd decl (real def below near reshard) */
 static _Atomic int tomo_flush_gate;   /* fwd decl (real def below near flush) */
-/* ee451 FLATSTORE Stage-2 COOPERATIVE resize coordinator (main thread, beforeSleep). A NON-BLOCKING
- * state machine — it never spins the main thread (review fix #6): each beforeSleep pass advances one
- * step and returns to the event loop, so PING / cluster bus / accept keep flowing while workers are
- * parked and while a large table is being rebuilt.
- *   IDLE     -> a table flagged resize_needed and no reshard/flush is active: take mig_arm_lock (held
- *               for the WHOLE resize so no migration can start), announce flat_resize_active=1, -> QUIESCING.
- *   QUIESCING-> poll every worker's in_flat_section; when all 0 (identity-complete drain, review
- *               #1/#2/#5) alloc the right-sized target and -> COPYING. A wall-clock DEADLINE aborts if a
- *               worker stays mid-batch too long (a long command) so we never park indefinitely (fix #6).
- *   COPYING  -> copy a bounded slot budget from old->new each pass (workers stay parked, so old is
- *               immutable); when the whole table is scanned, swap, free old, release, -> IDLE.
- * Reshard/flush are held off while a resize is pending or active (mig_arm_lock + flatResizePending),
- * so a resize can't be starved to the table-full wall (fix #7). */
+
+/* One cooperative resize state machine per physical node. Its immutable base IO owns every plain
+ * field in the row; watchdog threads may only CAS the atomic QUIESCING edge. Node-local park gates
+ * let unrelated nodes continue serving while their peers copy disjoint node_dbs tables. */
 enum { FLAT_RZ_IDLE = 0, FLAT_RZ_QUIESCING, FLAT_RZ_COPYING };
-/* ee451 (BUGS.md J4, 2026-08-02): ATOMIC, and the QUIESCING exit is a CAS. This was a plain
- * main-thread-owned int, which was fine while main was the only thread that could move the state
- * machine — and that was exactly the P0: flat_resize_active=1 parks every worker, only
- * flatResizeCoordinate() clears it, and every spin site drives it under `if (iotid == 0)` with main
- * AS io slot 0. A main that blocks (observed: futex_do_wait during a DEBUG RELOAD) parks every
- * worker for the life of the process. The 200ms deadline below could not save it: it is evaluated
- * INSIDE the coordinator, i.e. by the very thread whose blocking caused the wedge.
- * Now any parked thread can abort a stuck QUIESCE via flatResizeAbortQuiesce(). */
-static _Atomic int flat_rz_state = FLAT_RZ_IDLE;
-static kvstore   *flat_rz_kvs = NULL;
-static flatTable *flat_rz_old = NULL, *flat_rz_new = NULL;
-static uint64_t   flat_rz_cursor = 0;
-static _Atomic monotime flat_rz_arm_us = 0;
-static int        flat_rz_n = 0, flat_rz_j = 0;
-_Atomic unsigned long long flat_insert_full_waits;  /* owner inserts blocked on a completely full table */
-_Atomic unsigned long long flat_rz_urgent_services; /* completed rebuilds escalated by a blocked insert */
-#define FLAT_RZ_QUIESCE_DEADLINE_US  200000ULL   /* 200ms: normal commands quiesce in us; only a genuinely long op trips this */
-/* The watchdog deadline is deliberately 10x the coordinator's own. In normal operation the
- * coordinator always wins this race and aborts at 200ms; the watchdog only ever fires when the
- * coordinator is NOT RUNNING AT ALL, which is the J4 wedge. Keeping it far away means the watchdog
- * can never pre-empt a healthy quiesce and turn a would-be resize into a spurious abort. */
-#define FLAT_RZ_WATCHDOG_US          2000000ULL  /* 2s with no coordinator progress => unpark the world */
-#define FLAT_RZ_COPY_SLOT_BUDGET     (1ULL << 16) /* 64k slots/pass -> ~1-2ms of copy, then back to the event loop */
+typedef struct flatResizeNodeState {
+    _Atomic int state;
+    _Atomic monotime arm_us;
+    _Atomic unsigned long long drives;
+    kvstore *kvs;
+    flatTable *old, *new;
+    uint64_t cursor;
+    int dbid;
+} __attribute__((aligned(CACHE_LINE_SIZE))) flatResizeNodeState;
+static flatResizeNodeState flat_rz[TOMO_NODES_MAX];
+_Atomic unsigned long long flat_insert_full_waits;
+_Atomic unsigned long long flat_rz_urgent_services;
+#define FLAT_RZ_QUIESCE_DEADLINE_US  200000ULL
+#define FLAT_RZ_WATCHDOG_US          2000000ULL
+#define FLAT_RZ_COPY_SLOT_BUDGET     (1ULL << 16)
 
-/* ee451: the coordinator's state, for observability only (INFO). Main-thread-owned int, read
- * racily from an io thread exactly like flatResizePending() below already does. IDLE=0 QUIESCING=1
- * COPYING=2. The distinction is load-bearing for any TEST of the resize window: flat_resize_active
- * is set at ARM time, so it reads 1 all through QUIESCING — which usually ABORTS at
- * FLAT_RZ_QUIESCE_DEADLINE_US having copied nothing. Only COPYING is the state in which the old
- * table must be immutable, and a probe that waits on the flag instead fires into a window that has
- * already shut. */
-int flatResizeState(void) { return atomic_load_explicit(&flat_rz_state, memory_order_relaxed); }
-
-/* ee451 (J4): abort an ARMED-BUT-NOT-YET-COPYING resize and unpark every worker. Callable from ANY
- * thread. Exactly one caller can win, because the QUIESCING exit is a CAS shared with the
- * coordinator's QUIESCING->COPYING transition — so this can never race a copy into existence, and
- * two concurrent aborters can never both release mig_arm_lock (which would hand a migration that
- * armed in between a lock it does not hold).
- *
- * SAFETY, stated exactly: in QUIESCING the coordinator has allocated NOTHING and mutated NOTHING.
- * It has only set flat_resize_active, taken mig_arm_lock, and recorded which table it intends to
- * rebuild. Undoing that is precisely what the coordinator's own deadline path already does; this
- * only lets a different thread perform the identical undo. Aborting in COPYING would be a
- * use-after-free (the old table must stay immutable for the whole rebuild), which is why the CAS
- * refuses any state that is not QUIESCING. The resize is not lost — resize_needed is still set, so
- * the next coordinator pass re-arms it. */
-static int flatResizeAbortQuiesce(void) {
-    int expected = FLAT_RZ_QUIESCING;
-    if (!atomic_compare_exchange_strong_explicit(&flat_rz_state, &expected, FLAT_RZ_IDLE,
-                                                 memory_order_acq_rel, memory_order_acquire))
-        return 0;
-    atomic_store_explicit(&server.flat_resize_active, 0, memory_order_seq_cst);  /* workers resume */
-    atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
-    return 1;
+static inline int flatResizeNodeActive(int node) {
+    return atomic_load_explicit(&server.flat_resize_active[node], memory_order_seq_cst) != 0;
 }
 
-/* ee451 (J4): the watchdog. Called from the two places a thread SPINS waiting out a resize — the
- * worker park loop and the io-thread resize wait — so it costs nothing on any path that is not
- * already stalled. Zero hot-path cost by construction: a running server never calls it.
- * Counter (not just a log line) because the J4 diagnosis turned on 'zero FLATSTORE resize: lines in
- * the log' — a gate that never opens must be observable. */
-_Atomic unsigned long long flat_rz_watchdog_aborts;   /* INFO: times the watchdog had to unpark the world */
-void flatResizeWatchdog(void) {
-    if (!atomic_load_explicit(&server.flat_resize_active, memory_order_acquire)) return;
-    if (atomic_load_explicit(&flat_rz_state, memory_order_acquire) != FLAT_RZ_QUIESCING) return;
-    monotime arm = atomic_load_explicit(&flat_rz_arm_us, memory_order_acquire);
-    if (!arm || getMonotonicUs() - arm <= FLAT_RZ_WATCHDOG_US) return;
-    if (flatResizeAbortQuiesce()) {
-        atomic_fetch_add_explicit(&flat_rz_watchdog_aborts, 1, memory_order_relaxed);
-        serverLog(LL_WARNING, "FLATSTORE resize: WATCHDOG aborted a stuck quiesce (no coordinator "
-                              "progress for %llums) — workers unparked", FLAT_RZ_WATCHDOG_US / 1000);
-    }
-}
-
-/* a resize is PENDING (flagged, not yet finished) or in progress — reshard/flush check this to avoid
- * starving it. Safe to call from any thread: reads atomics + a main-thread-owned state int (benign race). */
-int flatResizePending(void) {
-    if (flat_rz_state != FLAT_RZ_IDLE) return 1;
-    if (!server.shared_node_dbs || !server.node_dbs) return 0;
-    for (int n = 0; n < server.n_node_dbs; n++)
-        for (int j = 0; j < server.dbnum; j++) {
-            if (!dbIsInitialized(&server.node_dbs[n][j])) continue;
-            flatTable *t = kvstoreFlatTable(server.node_dbs[n][j].keys);
-            if (t && atomic_load_explicit(&t->resize_needed, memory_order_relaxed)) return 1;
-        }
+static int flatResizeAnyActive(void) {
+    int nnodes = tmNumNodes();
+    if (nnodes > TOMO_NODES_MAX) nnodes = TOMO_NODES_MAX;
+    for (int node = 0; node < nnodes; node++)
+        if (flatResizeNodeActive(node)) return 1;
     return 0;
 }
 
-void flatResizeCoordinate(void) {
-    if (!server.shared_node_dbs || !server.node_dbs) return;
+static int flatResizeStateNode(int node) {
+    return atomic_load_explicit(&flat_rz[node].state, memory_order_acquire);
+}
 
-    if (flat_rz_state == FLAT_RZ_IDLE) {
-        flatTable *t = NULL; kvstore *kvs = NULL; int fn = 0, fj = 0;
-        /* A full-table waiter has no forward path until its rebuild completes. Scan the entire
-         * table set for urgent requests before admitting ordinary load/tomb/shrink work. */
+/* Compatibility readout: active remains ANY and state is the most advanced node row. */
+int flatResizeState(void) {
+    int state = FLAT_RZ_IDLE, nnodes = tmNumNodes();
+    if (nnodes > TOMO_NODES_MAX) nnodes = TOMO_NODES_MAX;
+    for (int node = 0; node < nnodes; node++) {
+        int s = flatResizeStateNode(node);
+        if (s > state) state = s;
+    }
+    return state;
+}
+
+static int flatResizeOwnedNode(void) {
+    if (tmNumNodes() == 1) return iotid == 0 ? 0 : -1;
+    if (!tomoFlipIsNodeSemiMain(iotid)) return -1;
+    return tmNodeOfIoSlot(iotid);
+}
+
+/* In the one-node path mig_arm_lock remains held for the entire resize, exactly as before. With
+ * multiple independent rows it is admission-only: reshard takes the same lock and rejects ANY
+ * pending row, while peer resizes may copy concurrently. */
+static int flatResizeAbortQuiesce(int node) {
+    int expected = FLAT_RZ_QUIESCING;
+    if (!atomic_compare_exchange_strong_explicit(&flat_rz[node].state, &expected, FLAT_RZ_IDLE,
+                                                 memory_order_acq_rel, memory_order_acquire))
+        return 0;
+    atomic_store_explicit(&server.flat_resize_active[node], 0, memory_order_seq_cst);
+    if (tmNumNodes() == 1)
+        atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
+    return 1;
+}
+
+_Atomic unsigned long long flat_rz_watchdog_aborts;
+void flatResizeWatchdog(int node) {
+    if (node < 0 || node >= tmNumNodes() || node >= TOMO_NODES_MAX) return;
+    if (!flatResizeNodeActive(node)) return;
+    if (atomic_load_explicit(&flat_rz[node].state, memory_order_acquire) != FLAT_RZ_QUIESCING) return;
+    monotime arm = atomic_load_explicit(&flat_rz[node].arm_us, memory_order_acquire);
+    if (!arm || getMonotonicUs() - arm <= FLAT_RZ_WATCHDOG_US) return;
+    if (flatResizeAbortQuiesce(node)) {
+        atomic_fetch_add_explicit(&flat_rz_watchdog_aborts, 1, memory_order_relaxed);
+        serverLog(LL_WARNING, "FLATSTORE resize: WATCHDOG aborted node %d quiesce (no coordinator "
+                              "progress for %llums) — node workers unparked",
+                  node, FLAT_RZ_WATCHDOG_US / 1000);
+    }
+}
+
+static void flatResizeWatchdogAll(void) {
+    int nnodes = tmNumNodes();
+    if (nnodes > TOMO_NODES_MAX) nnodes = TOMO_NODES_MAX;
+    for (int node = 0; node < nnodes; node++)
+        if (flatResizeNodeActive(node)) flatResizeWatchdog(node);
+}
+
+static int flatResizePendingNode(int node) {
+    serverAssert(node >= 0 && node < tmNumNodes() && node < TOMO_NODES_MAX);
+    if (flatResizeNodeActive(node) || flatResizeStateNode(node) != FLAT_RZ_IDLE) return 1;
+    if (!server.shared_node_dbs || !server.node_dbs || node >= server.n_node_dbs) return 0;
+    for (int j = 0; j < server.dbnum; j++) {
+        if (!dbIsInitialized(&server.node_dbs[node][j])) continue;
+        flatTable *t = kvstoreFlatTable(server.node_dbs[node][j].keys);
+        if (t && atomic_load_explicit(&t->resize_needed, memory_order_relaxed)) return 1;
+    }
+    return 0;
+}
+
+/* Global migration and flush admission must reject a resize on any node. */
+int flatResizePending(void) {
+    if (!server.shared_node_dbs || !server.node_dbs) return 0;
+    int nnodes = server.n_node_dbs;
+    if (nnodes > TOMO_NODES_MAX) nnodes = TOMO_NODES_MAX;
+    int pending = 0;
+    /* Callers now include every node's controller. Pin table lifetime across this process-global
+     * scan so another node cannot swap, retire and free between flatCurrent and resize_needed. */
+    if (server.topo_nodes > 1) flatExternEnter();
+    for (int node = 0; node < nnodes && !pending; node++)
+        pending = flatResizePendingNode(node);
+    if (server.topo_nodes > 1) flatExternExit();
+    return pending;
+}
+
+int tomoFlatResizeWorkerActive(int worker_id) {
+    serverAssert(worker_id >= 0 && worker_id < server.num_workers);
+    int node = (tmNumNodes() > 1 && server.ex_per_node > 0) ?
+               worker_id / server.ex_per_node : 0;
+    if (node < 0 || node >= tmNumNodes() || node >= TOMO_NODES_MAX) return 0;
+    return atomic_load_explicit(&server.flat_resize_active[node], memory_order_seq_cst) != 0;
+}
+
+void tomoFlatResizeWakeWorker(int worker_id) {
+    serverAssert(worker_id >= 0 && worker_id < server.num_workers);
+    if (tmNumNodes() <= 1 || server.ex_per_node <= 0 || server.io_per_node <= 0) return;
+    int node = worker_id / server.ex_per_node;
+    if (node < 0 || node >= tmNumNodes() || node >= TOMO_NODES_MAX) return;
+    tomoAtomicWakeProducer(node * server.io_per_node);
+}
+
+void flatResizeCoordinate(int node) {
+    int nnodes = tmNumNodes();
+    serverAssert(node >= 0 && node < nnodes && node < TOMO_NODES_MAX);
+    if (nnodes == 1) {
+        serverAssert(node == 0 && iotid == 0);
+    } else {
+        serverAssert(tomoFlipIsNodeSemiMain(iotid));
+        serverAssert(tmNodeOfIoSlot(iotid) == node && iotid == node * server.io_per_node);
+    }
+    if (!server.shared_node_dbs || !server.node_dbs) return;
+    serverAssert(node < server.n_node_dbs);
+
+    flatResizeNodeState *rz = &flat_rz[node];
+    int state = atomic_load_explicit(&rz->state, memory_order_acquire);
+    if (nnodes > 1 && state != FLAT_RZ_IDLE)
+        atomic_fetch_add_explicit(&rz->drives, 1, memory_order_relaxed);
+    if (state == FLAT_RZ_IDLE) {
+        /* A watchdog publishes IDLE before it clears the park gate. Do not reuse this row in that
+         * interval: the late clear would otherwise erase the new arm (QUIESCING with writers live). */
+        if (flatResizeNodeActive(node)) return;
+        flatTable *t = NULL;
+        kvstore *kvs = NULL;
+        int fj = 0;
+        /* Urgent requests on this node precede ordinary load/tomb/shrink work. */
         for (int level = FLAT_RESIZE_URGENT; level >= FLAT_RESIZE_NORMAL && !t; level--)
-            for (int n = 0; n < server.n_node_dbs && !t; n++)
-                for (int j = 0; j < server.dbnum; j++) {
-                    if (!dbIsInitialized(&server.node_dbs[n][j])) continue;
-                    flatTable *cand = kvstoreFlatTable(server.node_dbs[n][j].keys);
-                    int need = cand ? atomic_load_explicit(&cand->resize_needed, memory_order_relaxed)
-                                    : FLAT_RESIZE_NONE;
-                    if (need >= level) {
-                        t = cand; kvs = server.node_dbs[n][j].keys; fn = n; fj = j; break;
-                    }
+            for (int j = 0; j < server.dbnum; j++) {
+                if (!dbIsInitialized(&server.node_dbs[node][j])) continue;
+                flatTable *cand = kvstoreFlatTable(server.node_dbs[node][j].keys);
+                int need = cand ? atomic_load_explicit(&cand->resize_needed, memory_order_relaxed)
+                                : FLAT_RESIZE_NONE;
+                if (need >= level) {
+                    t = cand;
+                    kvs = server.node_dbs[node][j].keys;
+                    fj = j;
+                    break;
                 }
+            }
         if (!t) return;
-        /* exclusive with reshard/flush; hold mig_arm_lock for the WHOLE resize so no migration can
-         * start under us (reshardArm needs the lock too). */
+        if (nnodes > 1)
+            atomic_fetch_add_explicit(&rz->drives, 1, memory_order_relaxed);
         if (atomic_load_explicit(&server.migration_active, memory_order_acquire) ||
             atomic_load_explicit(&tomo_flush_gate, memory_order_acquire)) return;
-        if (atomic_exchange_explicit(&mig_arm_lock, 1, memory_order_acq_rel)) return;   /* reshard arming — retry */
-        /* Announce FIRST (seq_cst), THEN re-check the flush gate (seq_cst). Flush does the mirror
-         * (set tomo_flush_gate; load flat_resize_active), so in the seq_cst total order at least one
-         * side sees the other — they can never both proceed onto the parked workers. */
-        atomic_store_explicit(&server.flat_resize_active, 1, memory_order_seq_cst);
+        if (atomic_exchange_explicit(&mig_arm_lock, 1, memory_order_acq_rel)) return;
+
+        rz->kvs = kvs;
+        rz->old = t;
+        rz->new = NULL;
+        rz->cursor = 0;
+        rz->dbid = fj;
+        atomic_store_explicit(&server.flat_resize_active[node], 1, memory_order_seq_cst);
         if (atomic_load_explicit(&tomo_flush_gate, memory_order_seq_cst) ||
             atomic_load_explicit(&server.migration_active, memory_order_seq_cst)) {
-            atomic_store_explicit(&server.flat_resize_active, 0, memory_order_seq_cst);
+            atomic_store_explicit(&server.flat_resize_active[node], 0, memory_order_seq_cst);
+            rz->kvs = NULL;
+            rz->old = NULL;
             atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
             return;
         }
-        flat_rz_kvs = kvs; flat_rz_old = t; flat_rz_n = fn; flat_rz_j = fj;
-        atomic_store_explicit(&flat_rz_arm_us, getMonotonicUs(), memory_order_release);
-        flat_rz_state = FLAT_RZ_QUIESCING;
-        return;   /* let workers park; poll next pass */
+        atomic_store_explicit(&rz->arm_us, getMonotonicUs(), memory_order_release);
+        atomic_store_explicit(&rz->state, FLAT_RZ_QUIESCING, memory_order_release);
+        if (nnodes > 1)
+            atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
+        return;
     }
 
-    if (flat_rz_state == FLAT_RZ_QUIESCING) {
-        int W = server.num_workers, all = 1;
-        for (int w = 0; w < W; w++)
-            if (atomic_load_explicit(&server.exThreads[w].in_flat_section, memory_order_seq_cst)) { all = 0; break; }
-        /* review [resize-quiesce]: NON-WORKER identities must be drained too. KEYS / RANDOMKEY /
-         * SAVE / DEBUG DIGEST / DEBUG RELOAD are not worker-dispatchable, so they execute INLINE on
-         * whichever io thread accepted the client and iterate old->slots via flatIterNext — while
-         * this coordinator swaps the table and calls flatTableFree(flat_rz_old) below. Draining only
-         * exThreads left that a use-after-free. Same constituency the QSBR grace uses. */
+    if (state == FLAT_RZ_QUIESCING) {
+        int wlo = nnodes == 1 ? 0 : node * server.ex_per_node;
+        int whi = nnodes == 1 ? server.num_workers : wlo + server.ex_per_node;
+        if (whi > server.num_workers) whi = server.num_workers;
+        int all = 1;
+        for (int w = wlo; w < whi; w++)
+            if (atomic_load_explicit(&server.exThreads[w].in_flat_section,
+                                     memory_order_seq_cst)) { all = 0; break; }
+
+        /* Inline/foreign readers may span node tables, so their drain remains process-global. */
         if (all) {
-            /* MUTUAL EXCLUSION, not a grace: flatTableCopyChunk needs the old table IMMUTABLE for
-             * the whole rebuild (relaxed loads, never-revisited cursor, no CAS — a concurrent
-             * mutator silently loses keys or copies already-retired kvobjs forward). The epoch
-             * change is mechanical here (ODD == inside), semantics deliberately unchanged; do NOT
-             * "optimize" this into the per-batch stamp comparison, which answers a different
-             * question. This scan also (accidentally but importantly) prevents COPYING during a
-             * DEBUG RELOAD: main's region stays ODD for the whole load, and dbAddRDBLoad is a
-             * NON-WORKER writer of the shared node dbs. */
             if (atomic_load_explicit(&flat_foreign_active, memory_order_seq_cst)) all = 0;
             int io_hi = flatIoHi();
             for (int t = 0; all && t <= io_hi; t++)
-                if (atomic_load_explicit(&tm_io_sig[t].flat_epoch, memory_order_seq_cst) & 1) { all = 0; break; }
+                if (atomic_load_explicit(&tm_io_sig[t].flat_epoch,
+                                         memory_order_seq_cst) & 1) { all = 0; break; }
         }
         if (!all) {
-            if (getMonotonicUs() - atomic_load_explicit(&flat_rz_arm_us, memory_order_relaxed)
+            if (getMonotonicUs() - atomic_load_explicit(&rz->arm_us, memory_order_relaxed)
                     > FLAT_RZ_QUIESCE_DEADLINE_US) {
-                /* a worker is stuck in a long command — unpark everyone and retry later so we never
-                 * park the whole server indefinitely (fix #6). The table is not yet full (0.5 trigger).
-                 * ee451 (J4): via the shared CAS, so this and the watchdog cannot both fire and
-                 * double-release mig_arm_lock. Losing the CAS means the watchdog already unparked. */
-                if (flatResizeAbortQuiesce())
-                    serverLog(LL_WARNING, "FLATSTORE resize: quiesce deadline (node %d db %d) — will retry", flat_rz_n, flat_rz_j);
+                if (flatResizeAbortQuiesce(node))
+                    serverLog(LL_WARNING, "FLATSTORE resize: quiesce deadline (node %d db %d) — will retry",
+                              node, rz->dbid);
             }
             return;
         }
-        /* quiesced — claim the transition BEFORE allocating. ee451 (J4): CAS, shared with
-         * flatResizeAbortQuiesce(). Losing it means a watchdog decided this quiesce was stuck and
-         * already unparked the workers; the old table is live again, so copying it now would be
-         * exactly the use-after-free the mutual exclusion above exists to prevent. resize_needed is
-         * still set, so the next pass simply re-arms. */
-        {
-            int expected = FLAT_RZ_QUIESCING;
-            if (!atomic_compare_exchange_strong_explicit(&flat_rz_state, &expected, FLAT_RZ_COPYING,
-                                                         memory_order_acq_rel, memory_order_acquire))
-                return;
+        /* Selection preceded active publication. A non-worker mutation that was already inside
+         * its external region could replace/free that candidate before observing our gate. The
+         * global epoch drain above proves it has now finished; validate the pointer before any
+         * dereference or copy. Active=1 excludes every new non-worker mutator from here onward. */
+        if (kvstoreFlatTable(rz->kvs) != rz->old) {
+            (void)flatResizeAbortQuiesce(node);
+            return;
         }
-        /* allocate the right-sized target (workers parked, so old is now immutable) */
-        flat_rz_new = flatTableAllocFor(flat_rz_old);
-        flat_rz_cursor = 0;
+        int expected = FLAT_RZ_QUIESCING;
+        if (!atomic_compare_exchange_strong_explicit(&rz->state, &expected, FLAT_RZ_COPYING,
+                                                     memory_order_acq_rel, memory_order_acquire))
+            return;
+        rz->new = flatTableAllocFor(rz->old);
+        rz->cursor = 0;
         return;
     }
 
-    if (flat_rz_state == FLAT_RZ_COPYING) {
-        int done = flatTableCopyChunk(flat_rz_old, flat_rz_new, &flat_rz_cursor, FLAT_RZ_COPY_SLOT_BUDGET);
-        if (!done) return;   /* more chunks next pass; workers stay parked, event loop stays live */
-        if (atomic_load_explicit(&flat_rz_old->resize_needed, memory_order_relaxed) >= FLAT_RESIZE_URGENT)
+    if (state == FLAT_RZ_COPYING) {
+        int done = flatTableCopyChunk(rz->old, rz->new, &rz->cursor,
+                                      FLAT_RZ_COPY_SLOT_BUDGET);
+        if (!done) return;
+        if (atomic_load_explicit(&rz->old->resize_needed, memory_order_relaxed) >= FLAT_RESIZE_URGENT)
             atomic_fetch_add_explicit(&flat_rz_urgent_services, 1, memory_order_relaxed);
-        atomic_store_explicit(&flat_rz_new->resize_needed, FLAT_RESIZE_NONE, memory_order_relaxed);
+        atomic_store_explicit(&rz->new->resize_needed, FLAT_RESIZE_NONE, memory_order_relaxed);
         serverLog(LL_NOTICE, "FLATSTORE resize: node %d db %d rebuilt %llu -> %llu slots (live=%llu)",
-                  flat_rz_n, flat_rz_j, (unsigned long long)flat_rz_old->size,
-                  (unsigned long long)flat_rz_new->size,
-                  (unsigned long long)atomic_load_explicit(&flat_rz_old->used, memory_order_relaxed));
-        kvstoreFlatSwap(flat_rz_kvs, flat_rz_new);
-        flatTableRetire(flat_rz_old);   /* RCU: free once every reader has left its region */   /* frees old slots + drains its retire garbage; live keys moved to new */
-        atomic_store_explicit(&server.flat_resize_active, 0, memory_order_seq_cst);  /* workers resume */
-        atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
-        flat_rz_old = flat_rz_new = NULL; flat_rz_kvs = NULL;
-        flat_rz_state = FLAT_RZ_IDLE;
-        return;
+                  node, rz->dbid, (unsigned long long)rz->old->size,
+                  (unsigned long long)rz->new->size,
+                  (unsigned long long)atomic_load_explicit(&rz->old->used, memory_order_relaxed));
+        kvstoreFlatSwap(rz->kvs, rz->new);
+        flatTableRetire(node, rz->old);
+        atomic_store_explicit(&server.flat_resize_active[node], 0, memory_order_seq_cst);
+        rz->old = rz->new = NULL;
+        rz->kvs = NULL;
+        atomic_store_explicit(&rz->state, FLAT_RZ_IDLE, memory_order_release);
+        if (nnodes == 1)
+            atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
     }
 }
 
@@ -15499,7 +15568,7 @@ void flushAllShards(client *c, int dbid, int async) {
          *      participant releases — reshardArm refuses while it is set, so bucket boundaries
          *      cannot move between the census and the pushes. */
         int wait_flush_gate = 0;
-        while (atomic_exchange_explicit(&tomo_flush_gate, 1, memory_order_acq_rel)) {
+        while (atomic_exchange_explicit(&tomo_flush_gate, 1, memory_order_seq_cst)) {
             if (!wait_flush_gate) { tmIoWaitBegin(); wait_flush_gate = 1; }
             /* ee451 2026-07-28 (review of the teardown reorder): gate the pump on
              * migration_active. These pumps exist so a main-thread FLUSHALL does not wait on a
@@ -15517,19 +15586,26 @@ void flushAllShards(client *c, int dbid, int async) {
                 atomic_load_explicit(&server.migration_active, memory_order_acquire))
                 reshardCoordinatorTick();
             if (tmFlipOwnedByCurrentSemiMain()) tmFlipTick();
+            int owned_resize = flatResizeOwnedNode();
+            if (owned_resize >= 0 && flatResizeNodeActive(owned_resize))
+                flatResizeCoordinate(owned_resize);
+            flatResizeWatchdogAll();
             usleep(100);
         }
         if (wait_flush_gate) tmIoWaitEnd();
         int wait_control_plane = 0;
         while (atomic_load_explicit(&server.migration_active, memory_order_acquire) ||
-               atomic_load_explicit(&server.flat_resize_active, memory_order_acquire) ||   /* wait out a resize (#7) */
+               flatResizeAnyActive() ||   /* wait out every node resize (#7) */
                tmFlipActive()) {
             if (!wait_control_plane) { tmIoWaitBegin(); wait_control_plane = 1; }
             if (iotid == 0 &&
                 atomic_load_explicit(&server.migration_active, memory_order_acquire))
                 reshardCoordinatorTick();
             if (tmFlipOwnedByCurrentSemiMain()) tmFlipTick();
-            if (iotid == 0) flatResizeCoordinate();
+            int owned_resize = flatResizeOwnedNode();
+            if (owned_resize >= 0 && flatResizeNodeActive(owned_resize))
+                flatResizeCoordinate(owned_resize);
+            flatResizeWatchdogAll();
             usleep(100);
         }
         if (wait_control_plane) tmIoWaitEnd();
@@ -15613,25 +15689,38 @@ void flushAllShards(client *c, int dbid, int async) {
  * FLAT_RZ_QUIESCE_DEADLINE_US. Having READ the old table stays safe either way — flatTableRetire
  * defers the free until every reader has left its region, and ours is open. */
 _Atomic unsigned long long flat_rz_quiesce_waits;   /* INFO: times this guard actually had to wait */
+void tomoFlatResizeWorkerQuiesce(int worker_id) {
+    serverAssert(worker_id >= 0 && worker_id < server.num_workers);
+    int node = (tmNumNodes() > 1 && server.ex_per_node > 0) ?
+               worker_id / server.ex_per_node : 0;
+    if (node < 0 || node >= tmNumNodes() || node >= TOMO_NODES_MAX) return;
+    if (flatResizeNodeActive(node))
+        atomic_fetch_add_explicit(&flat_rz_quiesce_waits, 1, memory_order_relaxed);
+    int waiting = 0;
+    while (flatResizeNodeActive(node)) {
+        if (!waiting) { tmIoWaitBegin(); waiting = 1; }
+        flatResizeWatchdog(node);
+        usleep(100);
+    }
+    if (waiting) tmIoWaitEnd();
+}
+
 void tomoFlatResizeQuiesce(void) {
     if (!server.shared_node_dbs) return;
     /* Count the calls that FIND a resize in flight, not the calls. A guard that never fires proves
      * nothing, so the acceptance test asserts this counter is non-zero — otherwise a green run just
      * means the window was never entered. Incremented once per call, before the wait. */
-    int active_at_entry = atomic_load_explicit(&server.flat_resize_active, memory_order_acquire);
+    int active_at_entry = flatResizeAnyActive();
     if (active_at_entry)
         atomic_fetch_add_explicit(&flat_rz_quiesce_waits, 1, memory_order_relaxed);
     int waiting = 0;
-    while (atomic_load_explicit(&server.flat_resize_active, memory_order_acquire)) {
+    while (flatResizeAnyActive()) {
         if (!waiting) { tmIoWaitBegin(); waiting = 1; }
-        /* Only the main thread runs the coordinator (beforeSleep), so if WE are main a plain sleep
-         * would be waiting on a machine nobody is advancing — the same pump flushAllShards uses.
-         * Workers take iotid = TOMO_IO_THREADS_MAX + 1 + id, so this never fires off-main. */
-        if (iotid == 0) flatResizeCoordinate();
-        /* ee451 (J4): off-main threads wait here too, and until now they waited on a machine only
-         * main advances — so a blocked main stalled them for the life of the process. usleep(100)
-         * makes the watchdog's clock read free at this site. */
-        else flatResizeWatchdog();
+        /* A waiter may advance only its own immutable node row. Other rows remain owned by their
+         * semi-mains; the all-node watchdog is merely the stuck-QUIESCING escape hatch. */
+        int owned = flatResizeOwnedNode();
+        if (owned >= 0 && flatResizeNodeActive(owned)) flatResizeCoordinate(owned);
+        flatResizeWatchdogAll();
         usleep(100);
     }
     if (waiting) tmIoWaitEnd();
@@ -15890,7 +15979,9 @@ static void migHoldKeyIfDraining(robj *key) {
         /* Pump global coordinators only on main; the active flip only on its node semi-main. */
         if (iotid == 0) reshardCoordinatorTick();
         if (tmFlipOwnedByCurrentSemiMain()) tmFlipTick();
-        if (iotid == 0) flatResizeCoordinate();
+        int owned_resize = flatResizeOwnedNode();
+        if (owned_resize >= 0 && flatResizeNodeActive(owned_resize))
+            flatResizeCoordinate(owned_resize);
         exPauseCpu();
     }
     tmIoWaitEnd();
@@ -19472,7 +19563,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
              * a live copy — it was inferring the window from whether a DBSIZE blocked, and scored
              * 2 hits in 12 tries. INFO is answered inline on an io thread and is never parked, so
              * polling this is safe while every worker is parked. */
-            "tomokv_flat_resize_active:%d\r\n", atomic_load_explicit(&server.flat_resize_active, memory_order_relaxed),
+            "tomokv_flat_resize_active:%d\r\n", flatResizeAnyActive(),
             "tomokv_flat_resize_state:%d\r\n", flatResizeState(),   /* 0 IDLE, 1 QUIESCING, 2 COPYING */
             "tomokv_flat_resize_quiesce_waits:%llu\r\n", atomic_load_explicit(&flat_rz_quiesce_waits, memory_order_relaxed),
             "tomokv_flat_insert_full_waits:%llu\r\n", atomic_load_explicit(&flat_insert_full_waits, memory_order_relaxed),
@@ -19604,6 +19695,14 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 info = sdscatprintf(info, "tomokv_node_%d_flip_ticks:%llu\r\n",
                     node, (unsigned long long)atomic_load_explicit(
                         &tomo_flip_node_ticks[node], memory_order_relaxed));
+                info = sdscatprintf(info,
+                    "tomokv_node_%d_flat_resize_active:%d\r\n"
+                    "tomokv_node_%d_flat_resize_state:%d\r\n"
+                    "tomokv_node_%d_resize_drives:%llu\r\n",
+                    node, flatResizeNodeActive(node),
+                    node, flatResizeStateNode(node),
+                    node, (unsigned long long)atomic_load_explicit(
+                        &flat_rz[node].drives, memory_order_relaxed));
             }
         }
         /* Raw per-role timing accumulators, available in STATIC mode as well as auto so every
@@ -22084,17 +22183,25 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
      * prior resize's ack can never satisfy the next one). The seq_cst store-then-load here pairs with
      * the coordinator's seq_cst set-active-then-scan: in the total order at least one side observes the
      * other, so the coordinator can never free the table between our check and our first table access. */
+    int flat_node = 0;
+    if (server.topo_nodes > 1) {
+        serverAssert(server.ex_per_node > 0);
+        flat_node = worker->id / server.ex_per_node;
+        serverAssert(flat_node >= 0 && flat_node < server.topo_nodes &&
+                     flat_node < TOMO_NODES_MAX);
+    }
     atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
-    while (__builtin_expect(atomic_load_explicit(&server.flat_resize_active, memory_order_seq_cst), 0)) {
+    while (__builtin_expect(atomic_load_explicit(&server.flat_resize_active[flat_node],
+                                                  memory_order_seq_cst), 0)) {
         atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);  /* back out so the coordinator can drain */
-        /* ee451 (J4): a parked worker is the LAST line of defence against a coordinator that has
-         * stopped running (main is io slot 0, and only io slot 0 drives it). Throttled to once per
+        /* ee451 (J4): a parked worker is the LAST line of defence against its node coordinator
+         * stopping. Throttled to once per
          * 1024 yields so the common case — a healthy 200us quiesce — costs no clock reads at all. */
         tmIoWaitBegin();
         for (unsigned spins = 0;
-             atomic_load_explicit(&server.flat_resize_active, memory_order_acquire);
+             atomic_load_explicit(&server.flat_resize_active[flat_node], memory_order_acquire);
              spins++) {
-            if ((spins & 1023) == 1023) flatResizeWatchdog();
+            if ((spins & 1023) == 1023) flatResizeWatchdog(flat_node);
             sched_yield();
         }
         tmIoWaitEnd();
@@ -23469,6 +23576,12 @@ static int ioSlice(ioThreadArgs *t, int idle_wait_us) {
     /* Run node-local control after the accounting fold so controller CPU is not charged to the
      * IO productive-work signal. The helper is a timestamp gate, not a per-loop controller call. */
     if (server.topo_nodes > 1 && tomoFlipIsNodeSemiMain(t->id)) {
+        int node = tmNodeOfIoSlot(t->id);
+        if (server.shared_node_dbs &&
+            atomic_load_explicit(&tomo_flip_semimain_ready, memory_order_acquire)) {
+            flatRetiredTablesTryFree(node);
+            flatResizeCoordinate(node);
+        }
         tomoKeyLbSemiMainTick(accounting.end_us);
         if (server.thread_auto) tomoFlipSemiMainTick(accounting.end_us);
         if (tmFlipOwnedByCurrentSemiMain()) tmFlipTick();
@@ -23783,7 +23896,11 @@ void *polyThreadMain(void *arg) {
             /* A non-main node's immutable base IO is also that node's semi-main. Wake it at the
              * controller period when otherwise idle; aeProcessEventsIO does not service time
              * events, so an infinite epoll wait would suppress both sampling and decisions. */
-            if (idle_wait_us < 0 && tomoFlipIsNodeSemiMain(ctx->io_slot)) {
+            if (tomoFlipIsNodeSemiMain(ctx->io_slot) &&
+                server.shared_node_dbs &&
+                flatResizeNodeActive(tmNodeOfIoSlot(ctx->io_slot))) {
+                idle_wait_us = 0;
+            } else if (idle_wait_us < 0 && tomoFlipIsNodeSemiMain(ctx->io_slot)) {
                 if (server.thread_auto)
                     idle_wait_us = TOMO_FLIP_NODE_TICK_US;
                 else

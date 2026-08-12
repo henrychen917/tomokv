@@ -2291,8 +2291,11 @@ typedef struct csGroup {
  * The reply returns once the flush is scheduled (effectively FLUSHALL ASYNC). A mutex in
  * flushAllShards serializes concurrent flushes so the per-worker flush_* fields aren't torn. */
 void flushAllShards(client *c, int dbid, int async);   /* server.c; called by db.c flush cmds */
-void tomoFlatResizeQuiesce(void);  /* server.c; wait out an in-flight FLATSTORE resize before a
-                                    * NON-WORKER mutation of a shared node db (emptyData's fold) */
+void tomoFlatResizeQuiesce(void);  /* server.c; wait out every in-flight FLATSTORE resize before a
+                                    * NON-WORKER mutation that may span shared node dbs */
+void tomoFlatResizeWorkerQuiesce(int worker_id); /* wait only for the worker's node resize */
+int tomoFlatResizeWorkerActive(int worker_id);
+void tomoFlatResizeWakeWorker(int worker_id);    /* wake that node's immutable resize owner */
 extern _Atomic unsigned long long flat_insert_full_waits;
 int migSuppressLazyExpire(redisDb *db, sds keyname); /* W6-E2: 1 = DRAINING fence — treat in-range key as expired WITHOUT deleting */
 void reshardDebug(client *c);                     /* v8d: DEBUG RESHARD START|STATUS */
@@ -3313,7 +3316,7 @@ struct redisServer {
     /* FLATSTORE is UNCONDITIONAL as of 2026-07-28 (thredis_flat_store / flat_load_pct deleted):
      * a shared node db (shared_node_dbs) is always a flat table, and the resize trigger uses the
      * FLAT_LOAD_PCT compile-time target. `shared_node_dbs` alone is the predicate everywhere. */
-    _Atomic int flat_resize_active;  /* FLATSTORE Stage-2: workers park at their pop point while a table is rebuilt */
+    _Atomic int flat_resize_active[TOMO_NODES_MAX]; /* FLATSTORE Stage-2: per-node worker park gates */
     /* ee451 (bug #42, worker active expiry): the CADENCE signal for the per-worker active-expire
      * cycle. Main is the sole writer and bumps with the owner-local relaxed load/store idiom;
      * workers poll relaxed and run one bounded pass after observing a new generation. It carries
