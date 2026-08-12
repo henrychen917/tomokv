@@ -77,7 +77,7 @@ typedef struct flatRetireNode { dictEntry *masked_kv; struct flatRetireNode *nex
  * hits jemalloc's thread cache (same arena) — whereas freeing them on the main/bio thread is a
  * cross-arena free on an already-saturated thread, which at ~5M overwrites/s cannot keep up (measured:
  * retires outrun reclaim, RSS 233MB -> 38GB in 180s -> OOM/wedge). NULL on non-worker threads (main,
- * bio), which keep using the shared lock-free stack + main-thread reclaim. */
+ * bio), which keep using the shared lock-free stack + node-owner reclaim. */
 extern __thread flatRetireNode **flat_local_sink;
 extern __thread flatRetireNode *flat_node_pool;      /* recycled retire nodes (see flatstore.c) */
 extern __thread unsigned flat_node_pool_n, flat_node_pool_lowat, flat_node_tick;
@@ -111,8 +111,8 @@ typedef struct flatTable {
     _Atomic uint64_t tombs;        /* TOMB slot count (approx; relaxed) */
     uint64_t  gen;                 /* bumped on a rebuild (Stage 2); a cursor carrying gen restarts on change */
     _Atomic(flatRetireNode *) retire_stack;  /* QSBR: lock-free push of retired values */
-    flatBatch *batches;            /* QSBR: FIFO head, oldest closed batch (main-thread only) */
-    flatBatch *batches_tail;       /* QSBR: FIFO append point (main-thread only) */
+    flatBatch *batches;            /* QSBR: FIFO head, oldest closed batch (node semi-main only) */
+    flatBatch *batches_tail;       /* QSBR: FIFO append point (node semi-main only) */
     _Atomic int resize_needed;     /* monotonic FLAT_RESIZE_* request; coordinator clears via replacement */
 } flatTable;
 

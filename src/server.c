@@ -4456,11 +4456,10 @@ void afterSleepIO(struct aeEventLoop *eventLoop) {
     updateCachedTime(1);
 }
 
-void flatReclaimAll(void);
+void flatReclaimAll(int node);
 void flatResizeCoordinate(int node);
 void flatResizeWatchdog(int node);   /* ee451 (J4): any-thread unpark for a coordinator that stopped running */
 int flatResizeState(void);
-static inline int flatResizeNodeActive(int node);
 extern _Atomic unsigned long long flat_rz_quiesce_waits;   /* defined with tomoFlatResizeQuiesce below */
 static void flatRetiredTablesTryFree(int node);   /* RCU: free tables replaced by a rebuild */
 
@@ -4487,12 +4486,7 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
      * shape (any node with >1 worker), so the hint was backwards — it laid the taken path out cold
      * on the busiest loop in the server. Hint dropped, predicate unchanged. */
     if (server.shared_node_dbs) {
-        /* Until reclaim itself is node-partitioned in the following duty, main still walks every
-         * table. Publish that temporary cross-node walk as an external region so a peer resize
-         * cannot retire/free the table pointer under it. */
-        if (server.topo_nodes > 1) flatExternEnter();
-        flatReclaimAll();
-        if (server.topo_nodes > 1) flatExternExit();
+        flatReclaimAll(0);
         flatRetiredTablesTryFree(0);
         flatResizeCoordinate(0);
     }
@@ -9046,7 +9040,7 @@ static uint64_t xxh64(const void *input, size_t len) {
 /* ee451 FLATSTORE: public full-64-bit key hash (xxh64 is file-static). */
 uint64_t tomoKeyHash(const void *key, size_t len) { return xxh64(key, len); }
 
-/* ee451 FLATSTORE Stage-1 QSBR reclaim (main thread, beforeSleep). Close the table's retire stack
+/* ee451 FLATSTORE Stage-1 QSBR reclaim (node semi-main, beforeSleep/ioSlice). Close the table's retire stack
  * into a batch stamped with every worker's loop_seq, then free any batch whose stamp every worker
  * has passed (all pre-retire lock-free readers have since finished a full pass). */
 /* (flat_main quiescence pair is defined above beforeSleep.) */
@@ -9225,7 +9219,7 @@ static int flatDrainReadyBatches(flatBatch **head, flatBatch **tail, flatBatch *
 
 /* PER-WORKER QSBR reclaim (ee451 reclaim-capacity fix) — runs on the worker thread, once per exSlice
  * pass. The worker closes its own retire list into a batch and frees batches whose grace has passed.
- * Identical grace rule to the main-thread path; the win is WHERE the free happens: same thread that
+ * Identical grace rule to the node-owner table path; the win is WHERE the free happens: same thread that
  * allocated the value (jemalloc tcache, same arena) and one that has spare cycles, instead of the
  * saturated main thread doing cross-arena frees. Cheap when nothing is pending. */
 static void flatWorkerReclaim(exThread *worker) {
@@ -9319,45 +9313,56 @@ static int flatReclaimTableClose(flatTable *t) {
     }
     return 0;
 }
-void flatReclaimAll(void) {
+typedef struct flatReclaimNodeWitness {
+    _Atomic unsigned long long drives;
+} __attribute__((aligned(CACHE_LINE_SIZE))) flatReclaimNodeWitness;
+static flatReclaimNodeWitness flat_reclaim_node[TOMO_NODES_MAX];
+
+void flatReclaimAll(int node) {
+    int nnodes = tmNumNodes();
+    serverAssert(node >= 0 && node < nnodes && node < TOMO_NODES_MAX);
+    if (nnodes == 1) {
+        serverAssert(node == 0 && iotid == 0);
+    } else {
+        serverAssert(tomoFlipIsNodeSemiMain(iotid));
+        serverAssert(tmNodeOfIoSlot(iotid) == node &&
+                     iotid == node * server.io_per_node);
+        atomic_fetch_add_explicit(&flat_reclaim_node[node].drives, 1,
+                                  memory_order_relaxed);
+    }
     if (!server.shared_node_dbs || !server.node_dbs) return;
+    serverAssert(node < server.n_node_dbs);
     unsigned long closed = 0;
     int have_batches = 0;
-    for (int n = 0; n < server.n_node_dbs; n++)
-        for (int j = 0; j < server.dbnum; j++) {
-            if (server.topo_nodes > 1 && flatResizeNodeActive(n)) continue;
-            if (!dbIsInitialized(&server.node_dbs[n][j])) continue;
-            flatTable *t = kvstoreFlatTable(server.node_dbs[n][j].keys);
-            if (t) {
-                if (flatReclaimTableClose(t) && closed != ULONG_MAX) closed++;
-                if (t->batches) have_batches = 1;
-            }
+    for (int j = 0; j < server.dbnum; j++) {
+        if (!dbIsInitialized(&server.node_dbs[node][j])) continue;
+        flatTable *t = kvstoreFlatTable(server.node_dbs[node][j].keys);
+        if (t) {
+            if (flatReclaimTableClose(t) && closed != ULONG_MAX) closed++;
+            if (t->batches) have_batches = 1;
         }
+    }
     if (!have_batches) return;
     unsigned long budget = flatReclaimBudget(closed);
-    for (int n = 0; n < server.n_node_dbs; n++)
+    for (int j = 0; j < server.dbnum; j++) {
+        if (!dbIsInitialized(&server.node_dbs[node][j])) continue;
+        flatTable *t = kvstoreFlatTable(server.node_dbs[node][j].keys);
+        if (t && flatDrainReadyBatches(&t->batches, &t->batches_tail, NULL, NULL, &budget)) {
+            atomic_fetch_add_explicit(&flat_reclaim_budget_trips_n, 1, memory_order_relaxed);
+            return;
+        }
+    }
+    /* A head skipped above can become ready while a later table consumes the last budget. Recheck
+     * heads once so every pass that actually defers ready work records the witness. */
+    if (!budget)
         for (int j = 0; j < server.dbnum; j++) {
-            if (server.topo_nodes > 1 && flatResizeNodeActive(n)) continue;
-            if (!dbIsInitialized(&server.node_dbs[n][j])) continue;
-            flatTable *t = kvstoreFlatTable(server.node_dbs[n][j].keys);
-            if (t && flatDrainReadyBatches(&t->batches, &t->batches_tail, NULL, NULL, &budget)) {
+            if (!dbIsInitialized(&server.node_dbs[node][j])) continue;
+            flatTable *t = kvstoreFlatTable(server.node_dbs[node][j].keys);
+            if (t && t->batches && flatBatchReady(t->batches)) {
                 atomic_fetch_add_explicit(&flat_reclaim_budget_trips_n, 1, memory_order_relaxed);
                 return;
             }
         }
-    /* A head skipped above can become ready while a later table consumes the last budget. Recheck
-     * heads once so every pass that actually defers ready work records the witness. */
-    if (!budget)
-        for (int n = 0; n < server.n_node_dbs; n++)
-            for (int j = 0; j < server.dbnum; j++) {
-                if (server.topo_nodes > 1 && flatResizeNodeActive(n)) continue;
-                if (!dbIsInitialized(&server.node_dbs[n][j])) continue;
-                flatTable *t = kvstoreFlatTable(server.node_dbs[n][j].keys);
-                if (t && t->batches && flatBatchReady(t->batches)) {
-                    atomic_fetch_add_explicit(&flat_reclaim_budget_trips_n, 1, memory_order_relaxed);
-                    return;
-                }
-            }
 }
 
 static _Atomic int mig_arm_lock;      /* fwd decl (real def below near reshard) */
@@ -19703,6 +19708,9 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                     node, flatResizeStateNode(node),
                     node, (unsigned long long)atomic_load_explicit(
                         &flat_rz[node].drives, memory_order_relaxed));
+                info = sdscatprintf(info, "tomokv_node_%d_reclaim_drives:%llu\r\n",
+                    node, (unsigned long long)atomic_load_explicit(
+                        &flat_reclaim_node[node].drives, memory_order_relaxed));
             }
         }
         /* Raw per-role timing accumulators, available in STATIC mode as well as auto so every
@@ -23579,6 +23587,7 @@ static int ioSlice(ioThreadArgs *t, int idle_wait_us) {
         int node = tmNodeOfIoSlot(t->id);
         if (server.shared_node_dbs &&
             atomic_load_explicit(&tomo_flip_semimain_ready, memory_order_acquire)) {
+            flatReclaimAll(node);
             flatRetiredTablesTryFree(node);
             flatResizeCoordinate(node);
         }
