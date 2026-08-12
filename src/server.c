@@ -6118,6 +6118,12 @@ void initServer(void) {
         int nnodes = server.topo_nodes > 0 ? server.topo_nodes : 1;
         int wpn = server.ex_per_node > 0 ? server.ex_per_node : server.num_workers;
         server.shared_node_dbs = (wpn > 1);
+        if (server.tomo_atomic && !server.shared_node_dbs) {
+            serverLog(LL_WARNING,
+                "FATAL: tomokv-atomic requires FLAT storage: set tomokv-thread-ex >= 2 per node "
+                "(workers-per-node>1)");
+            exit(1);
+        }
         server.n_node_dbs = nnodes;
         server.node_dbs = zmalloc(sizeof(redisDb *) * nnodes);
         for (int n = 0; n < nnodes; n++) {
