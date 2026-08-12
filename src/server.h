@@ -2296,7 +2296,7 @@ void tomoFlatResizeQuiesce(void);  /* server.c; wait out an in-flight FLATSTORE 
 extern _Atomic unsigned long long flat_insert_full_waits;
 int migSuppressLazyExpire(redisDb *db, sds keyname); /* W6-E2: 1 = DRAINING fence — treat in-range key as expired WITHOUT deleting */
 void reshardDebug(client *c);                     /* v8d: DEBUG RESHARD START|STATUS */
-void reshardAutoTune(void);                       /* v8d: EWMA load-balancer, called 1Hz from serverCron */
+void reshardAutoTune(void);                       /* per-node EWMA key balancer, driven at 1 Hz */
 
 /* ee451 (v8d): reshard phases. The COPY ENGINE that once backed them (the A->B effect log, the
  * cold scan, the B-side replay and A's post-flip range delete) was DELETED 2026-07-28: a reshard
@@ -3272,11 +3272,6 @@ struct redisServer {
     int tm_flip_aborted;           /* set after the phase-0 timeout's owner-acknowledged IO rollback;
                                     * the flip controller consumes it to CANCEL the in-flight probe
                                     * (config never left baseline: nothing to measure or revert). */
-    int tm_relevel_pending;        /* a completed role-flip left a deterministically skewed bucket
-                                    * layout (grow-back seeds by halving ONE neighbour; grow-front
-                                    * dumps a whole range on one worker). While set, the balancer
-                                    * tick runs an exact even-count re-level cascade (one O(1)
-                                    * range-flip per tick) instead of EWMA balancing. */
     _Atomic uint64_t reshard_done_seq;  /* bumped on every completed bucket-range move; the flip
                                     * controller's settle gate waits for this to go QUIET before
                                     * judging a probe (a mid-rebalance measurement under-reads the
@@ -3730,7 +3725,7 @@ struct redisServer {
     int set_proc_title;             /* True if change proc title */
     char *proc_title_template;      /* Process title template format */
     clientBufferLimitsConfig client_obuf_limits[CLIENT_TYPE_OBUF_COUNT];
-    int pause_cron;                 /* Don't run cron tasks (debug) */
+    _Atomic int pause_cron;         /* Don't run cron tasks (debug); peer semi-mains also read it */
     int dict_resizing;              /* Whether to allow main dict and expired dict to be resized (debug) */
     int latency_tracking_enabled;   /* 1 if extended latency tracking is enabled, 0 otherwise. */
     double *latency_tracking_info_percentiles; /* Extended latency tracking info output percentile list configuration. */

@@ -1244,7 +1244,7 @@ NULL
 #endif
     } else if (!strcasecmp(c->argv[1]->ptr,"pause-cron") && c->argc == 3)
     {
-        server.pause_cron = atoi(c->argv[2]->ptr);
+        atomic_store_explicit(&server.pause_cron, atoi(c->argv[2]->ptr), memory_order_relaxed);
         addReply(c,shared.ok);
     } else if (!strcasecmp(c->argv[1]->ptr,"replybuffer") && c->argc == 4 ) {
         if(!strcasecmp(c->argv[2]->ptr, "peak-reset-time")) {
