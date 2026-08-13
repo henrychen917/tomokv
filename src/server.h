@@ -1790,6 +1790,9 @@ typedef union clientExecTail {
         uint64_t mset_next_install_order; /* ownread: connection-global order reserved at R1 registration */
         double fake_ring_hwm_ewma;
         _Atomic int *drain_ack;
+        uint64_t drain_fence_gen; /* ee451 O1: fence_gen this drain sentinel was pushed under; worker A
+                                   * acks its slot only if this still equals the live fence_gen, so a
+                                   * stale sentinel left by an aborted prior fence cannot forge a drain. */
         listNode *mig_parked_node;
         listNode *atomic_window_parked_node;
         uint64_t id;
@@ -3392,6 +3395,8 @@ struct redisServer {
                                         * removed 2026-07-28 — see the H2 note on reshardCoordinatorTick:
                                         * an empty queue is the steady state of a busy worker.) */
         _Atomic uint64_t fence_gen;    /* MONOTONIC across migrations; producers push once per value */
+        _Atomic uint64_t fence_stale_acks; /* ee451 O1: count of drain sentinels rejected because they
+                                            * belonged to an earlier (aborted) fence generation. */
     } migration;
     redisDb **ex_dbs;
     /* ee451 (shared-kv S0.2b): the PHYSICAL db arrays — exactly one per NODE.
