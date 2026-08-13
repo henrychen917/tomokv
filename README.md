@@ -13,7 +13,10 @@ remain Redis-facing. ([`src/version.h`](src/version.h#L1-L2),
 The fork keeps the Redis protocol parser, command metadata, and reply machinery, but replaces the
 normal request path with IO-to-EX dispatch, owner-routed storage, cross-shard execution, and deferred
 reclamation. It is not a drop-in replacement for every Redis deployment feature; the supported
-boundary is described under [Compatibility and scope](#compatibility-and-scope).
+boundary is described under [Compatibility and scope](#compatibility-and-scope). For a consolidated
+view of exactly what is kept, adapted, replaced, and refused from upstream Redis — including why
+FLATSTORE replaces the `dict` key store (and is unrelated to RDB) — see
+[Redis heritage](docs/redis-heritage.md).
 
 ## Architecture and per-command lifecycle
 
