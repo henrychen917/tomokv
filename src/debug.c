@@ -989,6 +989,13 @@ NULL
         }
         addReplyVerbatim(c, o, sdslen(o), "txt");
         sdsfree(o);
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-nodeof") && c->argc == 3) {
+        int node = 0;
+        if (server.topo_nodes > 1) {
+            int owner = exIndexForKey(c->argv[2]->ptr, sdslen(c->argv[2]->ptr));
+            node = owner / server.ex_per_node;
+        }
+        addReplyLongLong(c, node);
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-fliptrace") && c->argc == 3) {
         /* DEBUG TOMO-FLIPTRACE <0|1> -- dense per-tick flip-controller trace. Test hook, same
          * class as TOMO-MODESHIFT: no default, no steady-state behaviour, just turns the firehose
