@@ -9019,7 +9019,7 @@ static flatBatch *flatBatchClose(flatRetireNode *pend, flatBatch *next, flatBatc
  * actively reading => UAF. in_flat_section is the honest signal (it is exactly "inside an exSlice
  * batch that may touch a flat table") and it still lets a worker that has genuinely stopped slicing
  * be skipped, so the grace never stalls. Non-worker threads are covered by their own region flags. */
-static int flatBatchReady(const flatBatch *b) {
+static int flatBatchReady(const flatBatch *b, int owner_worker) {
     /* NON-WORKER identities. Slot t blocks this batch iff BOTH:
      *   (i)  it was INSIDE a region when the batch closed (bit t set in io_pin_mask), AND
      *   (ii) it is STILL inside that same region (its epoch is unchanged).
@@ -9054,6 +9054,10 @@ static int flatBatchReady(const flatBatch *b) {
      * "if (!tmWorkerLive(w)) continue" — it does NOT skip a converting worker that is still executing
      * straggler commands and reading the table. */
     for (int w = 0; w < b->nworkers; w++) {
+        /* A worker tests its private FIFO before entering its next flat section, and no other
+         * reclaimer can steal that FIFO. Its own outside-section clause is therefore already true.
+         * Main passes -1 for table batches, which retains the complete worker scan. */
+        if (w == owner_worker) continue;
         exThread *et = &server.exThreads[w];
         if (atomic_load_explicit(&et->loop_seq, memory_order_acquire) >= snap[w] + FLAT_QSBR_MARGIN)
             continue;
@@ -9099,8 +9103,8 @@ static unsigned long flatReclaimBudget(unsigned long closed) {
  * the budget blocks a ready head, which is the exact event exposed by
  * tomokv_flat_reclaim_budget_trips. */
 static int flatDrainReadyBatches(flatBatch **head, flatBatch **tail, flatBatch **spare, int *spare_n,
-                                 unsigned long *budget) {
-    while (*head && flatBatchReady(*head)) {
+                                 int owner_worker, unsigned long *budget) {
+    while (*head && flatBatchReady(*head, owner_worker)) {
         if (!*budget) return 1;
         flatBatch *b = *head;
         *head = b->next;
@@ -9133,7 +9137,8 @@ static void flatWorkerReclaim(exThread *worker) {
     }
     unsigned long budget = flatReclaimBudget(closed);
     if (flatDrainReadyBatches(&worker->flat_batches_local, &worker->flat_batches_tail,
-                              &worker->flat_batch_spare, &worker->flat_batch_spare_n, &budget))
+                              &worker->flat_batch_spare, &worker->flat_batch_spare_n,
+                              worker->id, &budget))
         atomic_fetch_add_explicit(&flat_reclaim_budget_trips_n, 1, memory_order_relaxed);
 }
 
@@ -9219,7 +9224,7 @@ void flatReclaimAll(void) {
         for (int j = 0; j < server.dbnum; j++) {
             if (!dbIsInitialized(&server.node_dbs[n][j])) continue;
             flatTable *t = kvstoreFlatTable(server.node_dbs[n][j].keys);
-            if (t && flatDrainReadyBatches(&t->batches, &t->batches_tail, NULL, NULL, &budget)) {
+            if (t && flatDrainReadyBatches(&t->batches, &t->batches_tail, NULL, NULL, -1, &budget)) {
                 atomic_fetch_add_explicit(&flat_reclaim_budget_trips_n, 1, memory_order_relaxed);
                 return;
             }
@@ -9231,7 +9236,7 @@ void flatReclaimAll(void) {
             for (int j = 0; j < server.dbnum; j++) {
                 if (!dbIsInitialized(&server.node_dbs[n][j])) continue;
                 flatTable *t = kvstoreFlatTable(server.node_dbs[n][j].keys);
-                if (t && t->batches && flatBatchReady(t->batches)) {
+                if (t && t->batches && flatBatchReady(t->batches, -1)) {
                     atomic_fetch_add_explicit(&flat_reclaim_budget_trips_n, 1, memory_order_relaxed);
                     return;
                 }
