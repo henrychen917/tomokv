@@ -3119,10 +3119,11 @@ typedef struct tmMigMailbox {
                                    * consumer skip locking on the common (empty) path */
     eventNotifier *notifier;      /* wakes this thread's loop on inbox push or new request */
     /* SOURCE REQUEST (control plane -> this thread; published before req_pending). */
-    _Atomic int req_pending;      /* TM_MIGREQ_SLOT_* publication/reservation state */
+    _Atomic int req_pending;      /* one node: EMPTY/READY boolean edge; multi-node:
+                                   * TM_MIGREQ_SLOT_* publication/reservation state */
     _Atomic uint64_t req_data;    /* kind/dest/count/then_ex packed into one atomic publication:
-                                   * a publisher owns RESERVED while filling this word, then
-                                   * release-publishes READY for the source owner. */
+                                   * multi-node publishers own RESERVED while filling this word,
+                                   * then release-publish READY for the source owner. */
     /* SOURCE working state (owning thread only; no lock — single writer). */
     list *migrating_out;          /* clients with CLIENT_MIGRATING, draining to quiesce */
     _Atomic int io_exiting;       /* IO-EXIT in progress: request the EX role once client count

@@ -87,6 +87,7 @@ double R_Zero, R_PosInf, R_NegInf, R_Nan;
 
 /* Global vars */
 struct redisServer server; /* Server global state */
+static int tmNumNodes(void);  /* logical node count; defined with the flip controller helpers */
 /* LB-3: tm_flip_ctx is both the flip-in-progress gate and the publication edge for
  * the winner's plain phase fields. The marker keeps tmFlipTick from consuming those
  * fields between the successful claim and the release-publication of the real ctx. */
@@ -158,30 +159,36 @@ static inline polyThreadCtx *tmFlipCtxPublished(void) {
 static int flatResizeAnyActive(void);
 
 static int tmFlipTryClaim(const char **err) {
-    /* Pair the flip claim with migration/resize admission. Otherwise main can pass its
-     * tmFlipActive snapshot while a peer claims, then publish an ordinary migration underneath
-     * that flip. The lock is held only across the claim CAS, never across the flip itself. */
-    if (atomic_exchange_explicit(&mig_arm_lock, 1, memory_order_acq_rel)) {
-        *err = "a migration/resize arm is in progress";
-        return 0;
-    }
-    if (atomic_load_explicit(&tomo_flush_gate, memory_order_acquire) ||
-        atomic_load_explicit(&server.migration_active, memory_order_acquire) ||
-        flatResizeAnyActive()) {
-        atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
-        *err = "a migration/resize is in flight";
-        return 0;
+    int multi_node = tmNumNodes() > 1;
+    if (multi_node) {
+        /* Pair a peer-owned flip claim with migration/resize admission. Otherwise main can pass
+         * its tmFlipActive snapshot while a peer claims, then publish an ordinary migration under
+         * that flip. One node deliberately keeps the legacy CAS-only claim: main already owns the
+         * whole control plane there, and its resize/reshard ordering is part of the frozen path. */
+        if (atomic_exchange_explicit(&mig_arm_lock, 1, memory_order_acq_rel)) {
+            *err = "a migration/resize arm is in progress";
+            return 0;
+        }
+        if (atomic_load_explicit(&tomo_flush_gate, memory_order_acquire) ||
+            atomic_load_explicit(&server.migration_active, memory_order_acquire) ||
+            flatResizeAnyActive()) {
+            atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
+            *err = "a migration/resize is in flight";
+            return 0;
+        }
     }
     polyThreadCtx *expected = NULL;
     if (!atomic_compare_exchange_strong_explicit(&server.tm_flip_ctx, &expected,
                                                  &tm_flip_claim_marker,
                                                  memory_order_acq_rel,
                                                  memory_order_acquire)) {
-        atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
+        if (multi_node)
+            atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
         *err = "a flip is already in progress";
         return 0;
     }
-    atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
+    if (multi_node)
+        atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
     return 1;
 }
 
@@ -190,8 +197,9 @@ static inline void tmFlipPublish(polyThreadCtx *ctx) {
 }
 
 static inline void tmFlipRelease(void) {
-    serverAssert(atomic_load_explicit(&tm_flip_main_tail.state, memory_order_acquire) ==
-                 TM_FLIP_MAIN_TAIL_IDLE);
+    if (tmNumNodes() > 1)
+        serverAssert(atomic_load_explicit(&tm_flip_main_tail.state, memory_order_acquire) ==
+                     TM_FLIP_MAIN_TAIL_IDLE);
     /* A flip gate may never reopen with one side of its accounting transaction outstanding. Known
      * failure paths normally roll back with a specific reason; this catches every future/early
      * release too. The POOL BROKEN check remains a warning, but release is conservative by design. */
@@ -1318,7 +1326,6 @@ static int flatGroupPinsBlock(uint64_t close_gen) {
 
 static void tomoFlipController(void);      /* the 4Hz auto flip controller (always-full-pool); defined below */
 static void tomoFlipSemiMainTick(monotime now_us);
-static int tmNumNodes(void);               /* logical node helpers, defined below */
 static int tmNodeOfWorker(int w);
 static int tmNodeOfIoSlot(int io_slot);
 static inline int tomoFlipIsNodeSemiMain(int io_slot);
@@ -4533,7 +4540,7 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
     migReleaseParkedClients();   /* ee451 (H2 handover): main is io slot 0 and parks clients too */
     /* A peer owner may have completed its physical boundary edge and be waiting for the global
      * bookkeeping tail. This remains main-only and runs before node 0's possible direct actuator. */
-    tmFlipMainTailTick();
+    if (tmNumNodes() > 1) tmFlipMainTailTick();
     /* flip: drive node 0's conversion to completion (await the role change, then publish the new
      * io/worker counts). A peer node's claim belongs exclusively to that node's semi-main. */
     if (__builtin_expect(tmFlipActive(), 0) && tmFlipOwnedByCurrentSemiMain()) tmFlipTick();
@@ -9598,7 +9605,8 @@ void flatResizeCoordinate(int node) {
         if (nnodes > 1)
             atomic_fetch_add_explicit(&rz->drives, 1, memory_order_relaxed);
         if (atomic_load_explicit(&server.migration_active, memory_order_acquire) ||
-            atomic_load_explicit(&tomo_flush_gate, memory_order_acquire) || tmFlipActive()) return;
+            atomic_load_explicit(&tomo_flush_gate, memory_order_acquire) ||
+            (nnodes > 1 && tmFlipActive())) return;
         if (atomic_exchange_explicit(&mig_arm_lock, 1, memory_order_acq_rel)) return;
 
         rz->kvs = kvs;
@@ -9608,7 +9616,8 @@ void flatResizeCoordinate(int node) {
         rz->dbid = fj;
         atomic_store_explicit(&server.flat_resize_active[node], 1, memory_order_seq_cst);
         if (atomic_load_explicit(&tomo_flush_gate, memory_order_seq_cst) ||
-            atomic_load_explicit(&server.migration_active, memory_order_seq_cst) || tmFlipActive()) {
+            atomic_load_explicit(&server.migration_active, memory_order_seq_cst) ||
+            (nnodes > 1 && tmFlipActive())) {
             atomic_store_explicit(&server.flat_resize_active[node], 0, memory_order_seq_cst);
             rz->kvs = NULL;
             rz->old = NULL;
@@ -15601,7 +15610,9 @@ static _Atomic int tomo_flush_gate = 0;
  * The frozen one-node path retains its original single atomic exchange. */
 static inline int tomoFlushGateTryAcquire(void) {
     if (tmNumNodes() <= 1)
-        return !atomic_exchange_explicit(&tomo_flush_gate, TOMO_FLUSH_GATE_FROZEN,
+        /* Base used the boolean value 1 for the entire census. Keep that exact edge; only the
+         * multi-node protocol distinguishes WAITING from FROZEN. */
+        return !atomic_exchange_explicit(&tomo_flush_gate, TOMO_FLUSH_GATE_WAITING,
                                          memory_order_acq_rel);
     if (atomic_load_explicit(&tomo_flush_gate, memory_order_acquire)) return 0;
     if (atomic_exchange_explicit(&mig_arm_lock, 1, memory_order_acq_rel)) return 0;
@@ -15663,7 +15674,7 @@ void flushAllShards(client *c, int dbid, int async) {
             if (iotid == 0 &&
                 atomic_load_explicit(&server.migration_active, memory_order_acquire))
                 reshardCoordinatorTick();
-            if (iotid == 0) tmFlipMainTailTick();
+            if (tmNumNodes() > 1 && iotid == 0) tmFlipMainTailTick();
             if (tmFlipOwnedByCurrentSemiMain()) tmFlipTick();
             int owned_resize = flatResizeOwnedNode();
             if (owned_resize >= 0 && flatResizeNodeActive(owned_resize))
@@ -15680,7 +15691,7 @@ void flushAllShards(client *c, int dbid, int async) {
             if (iotid == 0 &&
                 atomic_load_explicit(&server.migration_active, memory_order_acquire))
                 reshardCoordinatorTick();
-            if (iotid == 0) tmFlipMainTailTick();
+            if (tmNumNodes() > 1 && iotid == 0) tmFlipMainTailTick();
             if (tmFlipOwnedByCurrentSemiMain()) tmFlipTick();
             int owned_resize = flatResizeOwnedNode();
             if (owned_resize >= 0 && flatResizeNodeActive(owned_resize))
@@ -15852,7 +15863,9 @@ static int reshardRangeValid(int lo, int hi, int src, int dst, int flip_action) 
     /* "would empty src" is REJECTED for normal load-balance moves, but is the POINT of a
      * GROW-FRONT flip: tm_flip_ctx is converting the node's highest live worker entirely out to
      * its neighbor before it takes the IO role. That flip is the only exemption. */
-    if (lo == s_lo && hi == s_hi && flip_action != TM_MIG_FLIP_GROW_FRONT)
+    int grow_front = tmNumNodes() == 1 ? tmFlipActive()
+                                        : flip_action == TM_MIG_FLIP_GROW_FRONT;
+    if (lo == s_lo && hi == s_hi && !grow_front)
         return 0;   /* would empty src */
     if (dst == src + 1 ? (hi != s_hi) : (lo != s_lo)) return 0;   /* on the shared boundary */
     for (int b = lo; b < hi; b++)                                 /* belt-and-braces vs drift */
@@ -15880,13 +15893,22 @@ static _Atomic uint64_t co_serving_arm = 0;
  * plan concurrently without ever sampling a cutover half-way through its boundary
  * updates. */
 static int reshardArmLocked(int lo, int hi, int src, int dst, int flip_action) {
-    serverAssert(atomic_load_explicit(&mig_arm_lock, memory_order_relaxed));
+    int single_node = tmNumNodes() == 1;
+    if (!single_node)
+        serverAssert(atomic_load_explicit(&mig_arm_lock, memory_order_relaxed));
     int flush_state = atomic_load_explicit(&tomo_flush_gate, memory_order_acquire);
-    if ((flush_state != TOMO_FLUSH_GATE_IDLE &&
-         (flip_action == TM_MIG_FLIP_NONE || flush_state != TOMO_FLUSH_GATE_WAITING)) ||
+    int flush_blocked = single_node
+                      ? flush_state != TOMO_FLUSH_GATE_IDLE
+                      : (flush_state != TOMO_FLUSH_GATE_IDLE &&
+                         (flip_action == TM_MIG_FLIP_NONE ||
+                          flush_state != TOMO_FLUSH_GATE_WAITING));
+    if (flush_blocked ||
         atomic_load_explicit(&server.migration_active, memory_order_acquire) || /* one at a time */
-        (flip_action == TM_MIG_FLIP_NONE ? flatResizePending() : flatResizeAnyActive()) || /* H1 fix: non-flip arms wait on resize pending-or-active; flip arms only on ACTIVE. A flip holds the claim that blocks the resize (tmFlipActive gate in flatResizeCoordinate), so gating its GROW_BACK seed on merely-PENDING is a deadlock — and a flip arm implies the claim is held, so the resize can never be active here anyway. */
-        (flip_action == TM_MIG_FLIP_NONE ? tmFlipActive() : !tmFlipActive()) ||
+        (single_node ? flatResizePending()
+                     : (flip_action == TM_MIG_FLIP_NONE ? flatResizePending()
+                                                        : flatResizeAnyActive())) ||
+        (!single_node &&
+         (flip_action == TM_MIG_FLIP_NONE ? tmFlipActive() : !tmFlipActive())) ||
         !reshardRangeValid(lo, hi, src, dst, flip_action)) {
         atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
         return 0;
@@ -15908,7 +15930,7 @@ static int reshardArmLocked(int lo, int hi, int src, int dst, int flip_action) {
      * mig_local_fence_gen always differs from a fresh cutover's gen and they push their sentinel. */
     server.migration.lo = lo; server.migration.hi = hi;
     server.migration.src = src; server.migration.dst = dst;
-    server.tm_mig_flip_action = flip_action;
+    if (!single_node) server.tm_mig_flip_action = flip_action;
     atomic_store_explicit(&server.migration.phase, MIG_COPYING, memory_order_release);
     atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_release);
     /* Bump the arm sequence BEFORE publishing active=1. reshardBeginCutover reads migration_active
@@ -16071,7 +16093,7 @@ static void migHoldKeyIfDraining(robj *key) {
         migPushFenceIfNeeded();
         /* Pump global coordinators only on main; the active flip only on its node semi-main. */
         if (iotid == 0) reshardCoordinatorTick();
-        if (iotid == 0) tmFlipMainTailTick();
+        if (tmNumNodes() > 1 && iotid == 0) tmFlipMainTailTick();
         if (tmFlipOwnedByCurrentSemiMain()) tmFlipTick();
         int owned_resize = flatResizeOwnedNode();
         if (owned_resize >= 0 && flatResizeNodeActive(owned_resize))
@@ -16976,6 +16998,59 @@ void fakeRingClientCron(client *c) {
  * drain-fence table flips — size-independent, so one big move beats a chunk cascade). Clears the
  * flag when every boundary is within tolerance. The EWMA balancer then refines for hot keys. */
 static void reshardRelevelTick(int node, int wlo, int whi) {
+    if (tmNumNodes() == 1) {
+        /* Frozen one-node algorithm: plan without a caller-held admission lock, try each
+         * off-boundary through reshardArm, and clear the one-shot after a fully refused pass.
+         * In particular, an arm refusal is not a reason to retain the relevel flag. */
+        int c[TOMO_EX_THREADS_MAX] = {0};
+        for (int b = 0; b < TOMO_BUCKETS; b++) c[server.ex_bucket_table[b]]++;
+        int wmax = server.num_workers;
+        int lo_n = 0;
+        for (int w0 = 0; w0 < wmax; ) {
+            int legacy_node = tmNodeOfWorker(w0);
+            int live[TOMO_EX_THREADS_MAX], k = 0, span = 0;
+            int w = w0;
+            for (; w < wmax && tmNodeOfWorker(w) == legacy_node; w++) {
+                span += c[w];
+                if (tmWorkerLive(w)) live[k++] = w;
+            }
+            if (k >= 2 && span > 0) {
+                int pfx = 0;
+                for (int i = 0; i + 1 < k; i++) {
+                    int lo_i = lo_n + pfx;
+                    pfx += c[live[i]];
+                    int cur = lo_n + pfx;
+                    int tgt = lo_n + (int)(((long)span * (i + 1)) / k);
+                    int d = cur - tgt;
+                    if (d < 64 && d > -64) continue;
+                    int src, dst, mlo, mhi;
+                    if (d > 0) {
+                        src = live[i]; dst = live[i + 1];
+                        mlo = tgt < (lo_i + 1) ? (lo_i + 1) : tgt;
+                        mhi = cur;
+                    } else {
+                        src = live[i + 1]; dst = live[i];
+                        int src_hi = cur + c[live[i + 1]];
+                        mlo = cur;
+                        mhi = tgt > (src_hi - 1) ? (src_hi - 1) : tgt;
+                    }
+                    if (mhi - mlo < 1) continue;
+                    if (reshardArm(mlo, mhi, src, dst, TM_MIG_FLIP_NONE)) {
+                        reshardBeginCutover();
+                        serverLog(LL_NOTICE, "ee451 reshard RELEVEL: [%d,%d) %d -> %d "
+                                             "(boundary %d, target %d)",
+                                  mlo, mhi, src, dst, cur, tgt);
+                        return;
+                    }
+                }
+            }
+            lo_n += span;
+            w0 = w;
+        }
+        atomic_store_explicit(&mig_relevel_pending[0], 0, memory_order_release);
+        serverLog(LL_NOTICE, "ee451 reshard RELEVEL: layout even (or handed off) — done");
+        return;
+    }
     if (atomic_exchange_explicit(&mig_arm_lock, 1, memory_order_acq_rel)) return;
     if (atomic_load_explicit(&tomo_flush_gate, memory_order_acquire) ||
         atomic_load_explicit(&server.migration_active, memory_order_acquire) ||
@@ -17084,12 +17159,15 @@ static void reshardDiffusionPass(int node, int wlo, int whi, double mean, double
     mig_diff_streak[bw] = 0;
     int hot = mig_load_ewma[bw] > mig_load_ewma[bw + 1] ? bw : bw + 1;
     int B   = (hot == bw) ? bw + 1 : bw;
-    if (atomic_exchange_explicit(&mig_arm_lock, 1, memory_order_acq_rel)) return;
-    if (atomic_load_explicit(&tomo_flush_gate, memory_order_acquire) ||
-        atomic_load_explicit(&server.migration_active, memory_order_acquire) ||
-        flatResizePending() || tmFlipActive()) {
-        atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
-        return;
+    int multi_node = tmNumNodes() > 1;
+    if (multi_node) {
+        if (atomic_exchange_explicit(&mig_arm_lock, 1, memory_order_acq_rel)) return;
+        if (atomic_load_explicit(&tomo_flush_gate, memory_order_acquire) ||
+            atomic_load_explicit(&server.migration_active, memory_order_acquire) ||
+            flatResizePending() || tmFlipActive()) {
+            atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
+            return;
+        }
     }
     int hot_lo = (hot == 0 ? 0 : server.ex_bucket_end[hot - 1]);
     int hot_hi = server.ex_bucket_end[hot];
@@ -17100,13 +17178,16 @@ static void reshardDiffusionPass(int node, int wlo, int whi, double mean, double
     if (chunk < 16) chunk = 16;
     { int cap = hrange / 2; if (cap < 1) cap = hrange - 1; if (chunk > cap) chunk = cap; }
     if (hrange <= chunk || chunk < 1) {
-        atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
+        if (multi_node) atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
         return;
     }
     int lo, hi;
     if (B == hot + 1) { lo = hot_hi - chunk; hi = hot_hi; }
     else              { lo = hot_lo; hi = hot_lo + chunk; }
-    if (reshardArmLocked(lo, hi, hot, B, TM_MIG_FLIP_NONE)) {
+    int armed = multi_node
+              ? reshardArmLocked(lo, hi, hot, B, TM_MIG_FLIP_NONE)
+              : reshardArm(lo, hi, hot, B, TM_MIG_FLIP_NONE);
+    if (armed) {
         reshardBeginCutover();
         *mig_diff_peak = bhi;
         *mig_diff_settle = (int)(1.0 / alpha) + 1;
@@ -17118,9 +17199,7 @@ static void reshardDiffusionPass(int node, int wlo, int whi, double mean, double
 void reshardAutoTune(void) {
     int nnodes = tmNumNodes();
     int node = 0;
-    if (nnodes == 1) {
-        serverAssert(iotid == 0);
-    } else {
+    if (nnodes > 1) {
         serverAssert(tomoFlipIsNodeSemiMain(iotid));
         node = tmNodeOfIoSlot(iotid);
         serverAssert(node >= 0 && node < nnodes && node < TOMO_NODES_MAX);
@@ -17303,14 +17382,18 @@ void reshardAutoTune(void) {
         }
     }
     mig_prev_rate_mean_node[node] = sum_rate / W;   /* feeds next tick's alpha */
-    /* The fine-window placement reads the mutable ownership boundaries. Serialize that
-     * snapshot with ARM admission; a busy global arm simply postpones re-pointing one tick. */
-    if (!atomic_exchange_explicit(&mig_arm_lock, 1, memory_order_acq_rel)) {
-        if (!atomic_load_explicit(&server.migration_active, memory_order_acquire) &&
-            !atomic_load_explicit(&tomo_flush_gate, memory_order_acquire) &&
-            !flatResizePending() && !tmFlipActive())
-            migFineTick(node, wlo, whi, hot, alpha);
-        atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
+    if (nnodes == 1) {
+        /* Base cadence: fold and re-point every sampled tick, before the priming return. */
+        migFineTick(0, 0, server.num_workers, hot, alpha);
+    } else {
+        /* Peer controllers serialize their mutable boundary snapshot with ARM admission. */
+        if (!atomic_exchange_explicit(&mig_arm_lock, 1, memory_order_acq_rel)) {
+            if (!atomic_load_explicit(&server.migration_active, memory_order_acquire) &&
+                !atomic_load_explicit(&tomo_flush_gate, memory_order_acquire) &&
+                !flatResizePending() && !tmFlipActive())
+                migFineTick(node, wlo, whi, hot, alpha);
+            atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
+        }
     }
     if (!*mig_ewma_primed) { *mig_ewma_primed = 1; return; }   /* bootstrap seed only */
     mig_trig->ticks++; mig_trig->alpha = alpha; mig_trig->hot = hot; mig_trig->hotv = hotv;
@@ -17427,12 +17510,14 @@ void reshardAutoTune(void) {
      * always believed a move would help — which is how a hot KEY got treated as a hot BUCKET and
      * ping-ponged between neighbours. The uniform estimate survives as the fallback for workloads
      * the per-group counters do not sample (see migPlanChunk). */
-    if (atomic_exchange_explicit(&mig_arm_lock, 1, memory_order_acq_rel)) return;
-    if (atomic_load_explicit(&tomo_flush_gate, memory_order_acquire) ||
-        atomic_load_explicit(&server.migration_active, memory_order_acquire) ||
-        flatResizePending() || tmFlipActive()) {
-        atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
-        return;
+    if (nnodes > 1) {
+        if (atomic_exchange_explicit(&mig_arm_lock, 1, memory_order_acq_rel)) return;
+        if (atomic_load_explicit(&tomo_flush_gate, memory_order_acquire) ||
+            atomic_load_explicit(&server.migration_active, memory_order_acquire) ||
+            flatResizePending() || tmFlipActive()) {
+            atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
+            return;
+        }
     }
     int hot_lo = (hot == 0 ? 0 : server.ex_bucket_end[hot - 1]);
     int hot_hi = server.ex_bucket_end[hot];
@@ -17474,19 +17559,22 @@ void reshardAutoTune(void) {
                       shadow >= 1 ? ", per-group would have moved" : "");
             mig_unbal_log_hold_node[node] = 60;
         } else mig_unbal_log_hold_node[node]--;
-        atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
+        if (nnodes > 1) atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
         return;
     }
     if (used_prof) mig_trig->prof++; else mig_trig->uniform++;
     if (hrange <= chunk || chunk < 1) {
-        atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
+        if (nnodes > 1) atomic_store_explicit(&mig_arm_lock, 0, memory_order_release);
         return;
     }
     int lo, hi;
     if (B == hot + 1) { lo = hot_hi - chunk; hi = hot_hi; }
     else              { lo = hot_lo; hi = hot_lo + chunk; }
 
-    if (reshardArmLocked(lo, hi, hot, B, TM_MIG_FLIP_NONE)) {
+    int armed = nnodes == 1
+              ? reshardArm(lo, hi, hot, B, TM_MIG_FLIP_NONE)
+              : reshardArmLocked(lo, hi, hot, B, TM_MIG_FLIP_NONE);
+    if (armed) {
         reshardBeginCutover();
         *mig_peak_pre = hotv;
         *mig_settle = (int)(1.0 / alpha) + 1;   /* self-derived settle = EWMA time constant */
@@ -17522,9 +17610,10 @@ void reshardKickAfterFlip(int from_w, int to_w) {
     }
     mig_settle_node[node] = 0;
     mig_peak_pre_node[node] = 0;
-    int wlo = tmNumNodes() == 1 ? 0 : node * server.ex_per_node;
-    int whi = tmNumNodes() == 1 ? server.num_workers : wlo + server.ex_per_node;
-    if (whi > server.num_workers) whi = server.num_workers;
+    int single_node = tmNumNodes() == 1;
+    int wlo = single_node ? 0 : node * server.ex_per_node;
+    int whi = single_node ? TOMO_EX_THREADS_MAX : wlo + server.ex_per_node;
+    if (!single_node && whi > server.num_workers) whi = server.num_workers;
     for (int w = wlo; w < whi; w++) mig_hot_streak[w] = 0;
 }
 
@@ -23265,14 +23354,29 @@ static polyThreadCtx *tmPolyCtxs = NULL;
 tmMigMailbox tm_mig_mbox[TOMO_IO_THREADS_MAX + 1];
 
 /* Pack the request payload into one atomic word. Destination is stored as dest+1 (0 encodes -1);
- * kind and then_ex occupy the low bits; count occupies the high 32 bits. req_pending additionally
- * reserves the producer slot: EMPTY->RESERVED excludes a competing controller, READY publishes the
- * complete word, and the owner holds RESERVED while it installs the request into owned state. */
+ * kind and then_ex occupy the low bits; count occupies the high 32 bits. On multiple nodes,
+ * req_pending additionally reserves the producer slot: EMPTY->RESERVED excludes a competing
+ * controller, READY publishes the complete word, and the owner holds RESERVED while it installs
+ * the request into owned state. */
 static inline uint64_t tmMigReqPack(tmMigReqKind kind, int dest, int count, int then_ex) {
     return ((uint64_t)(uint32_t)count << 32) |
            ((uint64_t)(uint16_t)(dest + 1) << 16) |
            ((uint64_t)(then_ex != 0) << 8) |
            (uint8_t)kind;
+}
+
+/* The single-node controller keeps the original one-producer EMPTY/READY mailbox protocol.
+ * Peer semi-mains need the reservation state below so competing node controllers cannot publish
+ * over each other, but imposing that protocol on one node changes the legacy request ordering. */
+static inline int tmMigLegacyReqProtocol(void) {
+    return tmNumNodes() == 1;
+}
+
+static inline void tmMigPublishReqLegacy(tmMigMailbox *mb, tmMigReqKind kind,
+                                         int dest, int count, int then_ex) {
+    atomic_store_explicit(&mb->req_data, tmMigReqPack(kind, dest, count, then_ex),
+                          memory_order_relaxed);
+    atomic_store_explicit(&mb->req_pending, TM_MIGREQ_SLOT_READY, memory_order_release);
 }
 
 static inline int tmMigTryReserveReq(tmMigMailbox *mb) {
@@ -23300,6 +23404,10 @@ static inline void tmMigReleaseReservedReq(tmMigMailbox *mb) {
 
 static inline int tmMigTryPublishReq(tmMigMailbox *mb, tmMigReqKind kind,
                                      int dest, int count, int then_ex) {
+    if (tmMigLegacyReqProtocol()) {
+        tmMigPublishReqLegacy(mb, kind, dest, count, then_ex);
+        return 1;
+    }
     if (!tmMigTryReserveReq(mb)) return 0;
     if (listLength(mb->migrating_out) ||
         atomic_load_explicit(&mb->io_exiting, memory_order_relaxed)) {
@@ -24187,7 +24295,10 @@ static int tomoGrowFrontWorker(int w, const char **err) {
     /* Delist w from the consuming set FIRST (autotuner + KEYS/FLUSH fan-outs stop targeting it)
      * while it keeps draining. */
     tmFlipAccountingClaimEx(ctx);
+    int single_node = tmNumNodes() == 1;
+    if (single_node) server.tm_mig_flip_action = TM_MIG_FLIP_GROW_FRONT;
     if (!reshardArm(lo, hi, w, w - 1, TM_MIG_FLIP_GROW_FRONT)) {
+        if (single_node) server.tm_mig_flip_action = TM_MIG_FLIP_NONE;
         tmFlipAccountingRollback("reshardArm rejected the grow-front migration");
         tmFlipRelease();
         *err = "reshardArm rejected the grow-front migration"; return 0;
@@ -24212,7 +24323,7 @@ int tomoGrowFront(const char **err) {
 static void tmRebalanceOntoNewIo(int new_id);   /* EWMA client pull, defined below */
 
 static inline int tmFlipUsesMainTail(void) {
-    return iotid != 0;   /* only a multi-node AUTO peer can own tmFlipTick off-main */
+    return tmNumNodes() > 1 && iotid != 0;  /* only a multi-node AUTO peer owns this handoff */
 }
 
 static void tmFlipMainTailPublish(int action, polyThreadCtx *ctx) {
@@ -24254,10 +24365,21 @@ static int tomoGrowBackSlot(int io_slot, const char **err) {
     if (!ctx || !ctx->ex) { *err = "grown io thread has no EX binding to revive"; tmFlipRelease(); return 0; }
     if (atomic_load_explicit(&ctx->mode, memory_order_acquire) != TOMO_MODE_IO) { *err = "thread not in IO mode"; tmFlipRelease(); return 0; }
     tmMigMailbox *mb = &tm_mig_mbox[io_slot];
-    if (!tmMigTryReserveReq(mb))
-        { *err = "a migration/exit request is already pending on that io thread"; tmFlipRelease(); return 0; }
-    if (listLength(mb->migrating_out) ||
-        atomic_load_explicit(&mb->io_exiting, memory_order_relaxed)) {
+    int legacy_req = tmMigLegacyReqProtocol();
+    if (legacy_req) {
+        if (atomic_load_explicit(&mb->req_pending, memory_order_acquire) ||
+            listLength(mb->migrating_out) ||
+            atomic_load_explicit(&mb->io_exiting, memory_order_relaxed)) {
+            *err = "a migration/exit is already in progress on that io thread";
+            tmFlipRelease();
+            return 0;
+        }
+    } else if (!tmMigTryReserveReq(mb)) {
+        *err = "a migration/exit request is already pending on that io thread";
+        tmFlipRelease();
+        return 0;
+    } else if (listLength(mb->migrating_out) ||
+               atomic_load_explicit(&mb->io_exiting, memory_order_relaxed)) {
         tmMigReleaseReservedReq(mb);
         *err = "a migration/exit is already in progress on that io thread";
         tmFlipRelease();
@@ -24265,7 +24387,7 @@ static int tomoGrowBackSlot(int io_slot, const char **err) {
     }
     int rem[TOMO_IO_THREADS_MAX + 1];
     if (tmGatherLiveDests(io_slot, rem, TOMO_IO_THREADS_MAX + 1) < 1) {
-        tmMigReleaseReservedReq(mb);
+        if (!legacy_req) tmMigReleaseReservedReq(mb);
         *err = "no other live io thread to receive the exiting thread's conns";
         tmFlipRelease();
         return 0;
@@ -24280,7 +24402,7 @@ static int tomoGrowBackSlot(int io_slot, const char **err) {
      * staleness contract as before (<=~100ms, and the phase-0 watchdog still backstops it), minus
      * the cross-thread pointer chase. */
     if (atomic_load_explicit(&tm_io_sig[io_slot].pinned_nonmig, memory_order_relaxed)) {
-        tmMigReleaseReservedReq(mb);
+        if (!legacy_req) tmMigReleaseReservedReq(mb);
         *err = "io thread pins a non-migratable conn (pubsub/blocked/multi) — cannot grow back now";
         tmFlipRelease();
         return 0;
@@ -24295,7 +24417,10 @@ static int tomoGrowBackSlot(int io_slot, const char **err) {
     tmFlipPublish(ctx);
     /* IO-EXIT: leave accept group + migrate every conn out (round-robin => even split), then the
      * thread requests EX from tmMigServiceOut's completion tail. */
-    tmMigCommitReservedReq(mb, TM_MIGREQ_IOEXIT, -1, 0, 1); /* this exit COMMITS to the EX role */
+    if (legacy_req)
+        tmMigPublishReqLegacy(mb, TM_MIGREQ_IOEXIT, -1, 0, 1);
+    else
+        tmMigCommitReservedReq(mb, TM_MIGREQ_IOEXIT, -1, 0, 1);
     triggerEventNotifier(mb->notifier);
     serverLog(LL_NOTICE, "ee451 flip: GROW-BACK — io thread %d (%ld conns) IO-EXIT + even-split out, "
                          "then IO->EX as worker %d", io_slot, tmIoThreadLoad(io_slot), ctx->ex->id);
@@ -24319,16 +24444,18 @@ int tomoGrowBack(const char **err) {
  * awaits that seed, and phase 3 awaits an owner-acknowledged pre-commit rollback. Live-count
  * publication belongs to the role move, never to the optional seed migration. */
 void tmFlipTick(void) {
-    serverAssert(iotid == 0 || tmNumNodes() > 1);
     polyThreadCtx *ctx = tmFlipCtxPublished();
     if (!ctx) return;
-    if (tmNumNodes() == 1 || !server.thread_auto) {
-        serverAssert(iotid == 0);
-    } else {
-        serverAssert(ctx->ex != NULL && server.io_per_node > 0);
-        int node = tmNodeOfWorker(ctx->ex->id);
-        serverAssert(node >= 0 && node < tmNumNodes() && node < TOMO_NODES_MAX);
-        serverAssert(iotid == node * server.io_per_node);
+    int nnodes = tmNumNodes();
+    if (nnodes > 1) {
+        if (!server.thread_auto) {
+            serverAssert(iotid == 0);
+        } else {
+            serverAssert(ctx->ex != NULL && server.io_per_node > 0);
+            int node = tmNodeOfWorker(ctx->ex->id);
+            serverAssert(node >= 0 && node < nnodes && node < TOMO_NODES_MAX);
+            serverAssert(iotid == node * server.io_per_node);
+        }
     }
     if (server.tm_flip_target == TOMO_MODE_IO) {
         int m = atomic_load_explicit(&ctx->mode, memory_order_acquire);
@@ -24380,7 +24507,15 @@ void tmFlipTick(void) {
              * bind/listen/accept-handler failure. The worker is still EX; restore its claimed live
              * count before releasing the gate. If its buckets were already moved it is empty-live,
              * which is the same supported state as grow-back's no-seed completion. */
-            int cutover_aborted = atomic_exchange_explicit(&co_aborted, 0, memory_order_acq_rel);
+            int cutover_aborted;
+            if (nnodes == 1) {
+                /* The base coordinator and actuator are the same main-thread state machine. */
+                cutover_aborted = atomic_load_explicit(&co_aborted, memory_order_relaxed);
+                atomic_store_explicit(&co_aborted, 0, memory_order_relaxed);
+            } else {
+                cutover_aborted = atomic_exchange_explicit(&co_aborted, 0,
+                                                            memory_order_acq_rel);
+            }
             const char *why = cutover_aborted ? "grow-front outbound migration aborted before role change"
                                               : "grow-front IO role entry rolled back";
             tmFlipAccountingRollback(why);
@@ -24428,10 +24563,25 @@ void tmFlipTick(void) {
                  * needs a second, longer deadline — not a shorter first one. */
                 if (mstime() >= server.tm_flip_abort_ms) {
                     tmMigMailbox *mb = &tm_mig_mbox[ctx->io_slot];
-                    /* Reserve the cancel request before winning the state CAS. If the original
+                    if (tmMigLegacyReqProtocol()) {
+                        /* Preserve the original one-node order: win cancellation first, then
+                         * overwrite/publish the owner request unconditionally. */
+                        int gb = TM_FLIP_GB_DRAINING;
+                        if (atomic_compare_exchange_strong_explicit(&server.tm_flip_gb_state, &gb,
+                                                                    TM_FLIP_GB_CANCEL_REQUESTED,
+                                                                    memory_order_acq_rel,
+                                                                    memory_order_acquire)) {
+                            tmMigPublishReqLegacy(mb, TM_MIGREQ_IOEXIT_CANCEL, -1, 0, 0);
+                            triggerEventNotifier(mb->notifier);
+                            server.tm_flip_phase = 3;
+                            serverLog(LL_WARNING, "ee451 flip: GROW-BACK cancel requested — io thread %d "
+                                                  "could not drain; awaiting owner rollback acknowledgement",
+                                      ctx->io_slot);
+                        }
+                    /* Multi-node must reserve before winning the state CAS. If the original
                      * IOEXIT has not been consumed yet, retry later; publishing CANCEL over it
                      * would lose the only request that makes the owner leave the accept group. */
-                    if (tmMigTryReserveReq(mb)) {
+                    } else if (tmMigTryReserveReq(mb)) {
                         int gb = TM_FLIP_GB_DRAINING;
                         if (atomic_compare_exchange_strong_explicit(&server.tm_flip_gb_state, &gb,
                                                                     TM_FLIP_GB_CANCEL_REQUESTED,
@@ -24502,7 +24652,16 @@ void tmFlipTick(void) {
         }
         if (server.tm_flip_phase == 2) {               /* awaiting seed migration to finish */
             if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) return;
-            if (atomic_exchange_explicit(&co_aborted, 0, memory_order_acq_rel)) {
+            int cutover_aborted;
+            if (nnodes == 1) {
+                cutover_aborted = atomic_load_explicit(&co_aborted, memory_order_relaxed);
+                if (cutover_aborted)
+                    atomic_store_explicit(&co_aborted, 0, memory_order_relaxed);
+            } else {
+                cutover_aborted = atomic_exchange_explicit(&co_aborted, 0,
+                                                            memory_order_acq_rel);
+            }
+            if (cutover_aborted) {
                 unsigned long long n = tmFlipRecoveryBump();
                 serverLog(LL_WARNING, "ee451 flip: GROW-BACK seed cutover ABANDONED — worker %d remains "
                                       "empty-but-LIVE (tomokv_flip_recoveries=%llu)",
@@ -24511,8 +24670,10 @@ void tmFlipTick(void) {
             serverLog(LL_NOTICE, "ee451 flip: GROW-BACK complete — num_workers_live=%d io_threads_live=%d",
                       atomic_load_explicit(&server.num_workers_live, memory_order_relaxed),
                       atomic_load_explicit(&server.io_threads_live, memory_order_relaxed));
-            reshardKickAfterFlip(-1, server.tm_flip_wslot); /* seed already half-splits: select its
-                                                             * node, but transfer no weight */
+            if (nnodes == 1)
+                reshardKickAfterFlip(-1, -1);
+            else
+                reshardKickAfterFlip(-1, server.tm_flip_wslot); /* select the peer controller row */
             atomic_store_explicit(&mig_relevel_pending[tmNodeOfWorker(server.tm_flip_wslot)],
                                   1, memory_order_release);
             tmFlipRelease();
@@ -24991,18 +25152,33 @@ void tmMigServiceOut(void) {
     tmMigMailbox *mb = &tm_mig_mbox[id];
     if (!mb->migrating_out) return;   /* not an io-capable migration slot */
 
-    /* 1. New control-plane request? Claim READY->RESERVED and retain the reservation until all
-     * owner-only state that makes later publishers refuse has been installed. */
-    int req_state = TM_MIGREQ_SLOT_READY;
-    if (atomic_compare_exchange_strong_explicit(&mb->req_pending, &req_state,
-                                                TM_MIGREQ_SLOT_RESERVED,
-                                                memory_order_acquire,
-                                                memory_order_relaxed)) {
-        uint64_t req = atomic_load_explicit(&mb->req_data, memory_order_relaxed);
+    /* 1. New control-plane request? One node consumes the original boolean publication edge;
+     * peer controllers claim READY->RESERVED and retain it until owner state is installed. */
+    int legacy_req = tmMigLegacyReqProtocol();
+    int have_req = 0;
+    uint64_t req = 0;
+    if (legacy_req) {
+        if (atomic_load_explicit(&mb->req_pending, memory_order_acquire)) {
+            req = atomic_load_explicit(&mb->req_data, memory_order_relaxed);
+            have_req = 1;
+        }
+    } else {
+        int req_state = TM_MIGREQ_SLOT_READY;
+        if (atomic_compare_exchange_strong_explicit(&mb->req_pending, &req_state,
+                                                    TM_MIGREQ_SLOT_RESERVED,
+                                                    memory_order_acquire,
+                                                    memory_order_relaxed)) {
+            req = atomic_load_explicit(&mb->req_data, memory_order_relaxed);
+            have_req = 1;
+        }
+    }
+    if (have_req) {
         int kind = (int)(uint8_t)req;
         int dest = (int)(uint16_t)(req >> 16) - 1;
         int count = (int)(uint32_t)(req >> 32);
         int then_ex = (int)((req >> 8) & 1);
+        if (legacy_req)
+            atomic_store_explicit(&mb->req_pending, TM_MIGREQ_SLOT_EMPTY, memory_order_release);
         int retry_reserved = 0;
         if (kind == TM_MIGREQ_REBALANCE) {
             mb->batch_dest = dest;
@@ -25039,8 +25215,12 @@ void tmMigServiceOut(void) {
                 /* A rollback is not complete with its listener still outside the accept group.
                  * Keep io_exiting/accept_left asserted, retry on this owner, and do not acknowledge
                  * main — the flip claim remains closed until the full IO role is restored. */
-                tmMigCommitReservedReq(mb, TM_MIGREQ_IOEXIT_CANCEL, -1, 0, 0);
-                retry_reserved = 1;
+                if (legacy_req) {
+                    tmMigPublishReqLegacy(mb, TM_MIGREQ_IOEXIT_CANCEL, -1, 0, 0);
+                } else {
+                    tmMigCommitReservedReq(mb, TM_MIGREQ_IOEXIT_CANCEL, -1, 0, 0);
+                    retry_reserved = 1;
+                }
                 triggerEventNotifier(mb->notifier);
                 serverLog(LL_WARNING, "ee451 flip: io thread %d could not rejoin accept group during "
                                       "GROW-BACK rollback; retrying", id);
@@ -25054,7 +25234,7 @@ void tmMigServiceOut(void) {
                 atomic_store_explicit(&server.tm_flip_gb_state, TM_FLIP_GB_ROLLED_BACK,
                                       memory_order_release);
         }
-        if (!retry_reserved) tmMigReleaseReservedReq(mb);
+        if (!legacy_req && !retry_reserved) tmMigReleaseReservedReq(mb);
     }
 
     /* 2. While exiting, keep marking newly-migratable clients (a client that was in MULTI/
