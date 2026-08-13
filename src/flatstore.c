@@ -128,7 +128,7 @@ void flatTableFree(flatTable *t) {
 }
 
 /* QSBR retire: lock-free Treiber push of a retired value onto the table's pending stack. Called by
- * the owning worker on delete/overwrite; the main thread closes + reclaims (flatReclaimAll). */
+ * the owning worker on delete/overwrite; the node semi-main closes + reclaims (flatReclaimAll). */
 __thread flatRetireNode **flat_local_sink = NULL;   /* see flatstore.h: worker-local retire sink */
 
 /* Retire-node recycling.

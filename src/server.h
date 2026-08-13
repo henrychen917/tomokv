@@ -2291,12 +2291,15 @@ typedef struct csGroup {
  * The reply returns once the flush is scheduled (effectively FLUSHALL ASYNC). A mutex in
  * flushAllShards serializes concurrent flushes so the per-worker flush_* fields aren't torn. */
 void flushAllShards(client *c, int dbid, int async);   /* server.c; called by db.c flush cmds */
-void tomoFlatResizeQuiesce(void);  /* server.c; wait out an in-flight FLATSTORE resize before a
-                                    * NON-WORKER mutation of a shared node db (emptyData's fold) */
+void tomoFlatResizeQuiesce(void);  /* server.c; wait out every in-flight FLATSTORE resize before a
+                                    * NON-WORKER mutation that may span shared node dbs */
+void tomoFlatResizeWorkerQuiesce(int worker_id); /* wait only for the worker's node resize */
+int tomoFlatResizeWorkerActive(int worker_id);
+void tomoFlatResizeWakeWorker(int worker_id);    /* wake that node's immutable resize owner */
 extern _Atomic unsigned long long flat_insert_full_waits;
 int migSuppressLazyExpire(redisDb *db, sds keyname); /* W6-E2: 1 = DRAINING fence — treat in-range key as expired WITHOUT deleting */
 void reshardDebug(client *c);                     /* v8d: DEBUG RESHARD START|STATUS */
-void reshardAutoTune(void);                       /* v8d: EWMA load-balancer, called 1Hz from serverCron */
+void reshardAutoTune(void);                       /* per-node EWMA key balancer, driven at 1 Hz */
 
 /* ee451 (v8d): reshard phases. The COPY ENGINE that once backed them (the A->B effect log, the
  * cold scan, the B-side replay and A's post-flip range delete) was DELETED 2026-07-28: a reshard
@@ -3101,6 +3104,12 @@ typedef enum {
     TM_MIGREQ_IOEXIT_CANCEL  /* abort an in-flight IO-EXIT: re-join the accept group, stay IO (flip give-up) */
 } tmMigReqKind;
 
+enum {
+    TM_MIGREQ_SLOT_EMPTY = 0,
+    TM_MIGREQ_SLOT_READY,
+    TM_MIGREQ_SLOT_RESERVED
+};
+
 typedef struct tmMigMailbox {
     /* INBOX: clients migrating INTO this thread. Producers = source io threads (push
      * under inbox_lock); consumer = this thread (drains in its beforeSleepIO). */
@@ -3110,12 +3119,10 @@ typedef struct tmMigMailbox {
                                    * consumer skip locking on the common (empty) path */
     eventNotifier *notifier;      /* wakes this thread's loop on inbox push or new request */
     /* SOURCE REQUEST (control plane -> this thread; published before req_pending). */
-    _Atomic int req_pending;      /* 0 = none; 1 = a request is waiting to be picked up */
+    _Atomic int req_pending;      /* TM_MIGREQ_SLOT_* publication/reservation state */
     _Atomic uint64_t req_data;    /* kind/dest/count/then_ex packed into one atomic publication:
-                                   * two control-plane publishers may overlap after both observe
-                                   * req_pending == 0, but the owner can never see fields from
-                                   * different requests. req_pending remains the release/acquire
-                                   * availability edge. */
+                                   * a publisher owns RESERVED while filling this word, then
+                                   * release-publishes READY for the source owner. */
     /* SOURCE working state (owning thread only; no lock — single writer). */
     list *migrating_out;          /* clients with CLIENT_MIGRATING, draining to quiesce */
     _Atomic int io_exiting;       /* IO-EXIT in progress: request the EX role once client count
@@ -3243,15 +3250,16 @@ struct redisServer {
      * (base + grown). topo_nodes==1: node 0 mirrors the globals (identical behavior). */
     _Atomic int tm_node_wlive[16];       /* TM_MAXNODE — keep in sync with server.c */
     _Atomic int tm_node_iolive[16];
-    _Atomic int io_threads_live;   /* flip: live IO threads (grows front on ex->io conversion,
-                                    * shrinks on io->ex). io_slots [0, io_threads_live) are dense. */
+    _Atomic int io_threads_live;   /* flip: global count of live IO roles (grows front on ex->io,
+                                    * shrinks on io->ex). The slot set is dense only on one node;
+                                    * multi-node growth slots are node-partitioned and mode-tested. */
     _Atomic(struct polyThreadCtx *) tm_flip_ctx;
                                    /* the flip claim + published poly ctx. NULL = idle; a private
                                     * marker = claimed while the winner initializes the plain state
                                     * below; otherwise the converting ctx. Every actuator wins the
                                     * NULL->marker CAS before selecting its mutable role slot. */
     int tm_flip_target;            /* successful claimer writes before release-publishing the ctx;
-                                    * main reads after acquire-loading it. TOMO_MODE_UNSET when idle
+                                    * owning semi-main reads after acquire-loading it. UNSET when idle
                                     * — NOT 0, which is not a mode (see tomoThreadMode). */
     int tm_flip_phase;             /* grow-back phase machine: 0=await IO-EXIT+EX adoption, 1=arm the
                                     * seed migration, 2=await seed FLIP, 3=await IO-EXIT rollback ack */
@@ -3262,20 +3270,8 @@ struct redisServer {
                                     * abort past it. TIME, not ticks: tmFlipTick runs per event-loop
                                     * iteration, so a tick count is load-dependent (40 iterations ~ 1ms
                                     * under P32 load). */
-    int tm_flip_aborted_node;      /* review [races]: the NODE whose probe aborted. tm_flip_aborted is a
-                                    * server-global but the controller keeps per-node state and scans
-                                    * every node each tick; without this tag a peer node (in a routine
-                                    * post-revert backoff) would consume the flag and re-issue its own
-                                    * already-landed revert = uncommanded cross-node flip. Consumers
-                                    * gate on node==this. topo_nodes==1 => always 0 => no behaviour change. */
-    int tm_flip_aborted;           /* set after the phase-0 timeout's owner-acknowledged IO rollback;
-                                    * the flip controller consumes it to CANCEL the in-flight probe
-                                    * (config never left baseline: nothing to measure or revert). */
-    int tm_relevel_pending;        /* a completed role-flip left a deterministically skewed bucket
-                                    * layout (grow-back seeds by halving ONE neighbour; grow-front
-                                    * dumps a whole range on one worker). While set, the balancer
-                                    * tick runs an exact even-count re-level cascade (one O(1)
-                                    * range-flip per tick) instead of EWMA balancing. */
+    int tm_flip_aborted_node;      /* one-node legacy abort tag; multi-node uses per-node atomics */
+    int tm_flip_aborted;           /* one-node legacy abort flag, preserving the frozen controller path */
     _Atomic uint64_t reshard_done_seq;  /* bumped on every completed bucket-range move; the flip
                                     * controller's settle gate waits for this to go QUIET before
                                     * judging a probe (a mid-rebalance measurement under-reads the
@@ -3292,12 +3288,13 @@ struct redisServer {
     int tm_flip_wslot;             /* grow-back: revived worker index (ex_slot) being seeded */
     int tm_ngrow_io;               /* flip: number of growth io binding slots reserved */
     /* ee451 (auto symmetric pool, 2026-07-29): in thread-mode AUTO the operator's io/ex split is the
-     * STARTING POINT, not the reachable range — every non-main thread is provisioned as a worker with
-     * a dormant io binding (io_threads := 1, num_workers := pool-1) and the split is applied at boot
-     * by BIRTHING the top (boot io - 1) workers in IO mode. These two carry that split; everywhere
-     * else `io_threads`/`num_workers` keep their meaning (provisioned counts, pin bases, registry
-     * layout) and the LIVE counts are io_threads_live / num_workers_live as before. In STATIC mode
-     * they are just the configured counts and nothing below changes. */
+     * STARTING POINT, not the reachable range — every non-anchor thread is provisioned as a worker
+     * with a dormant io binding (one base IO per node, pool_per_node-1 workers) and the split is
+     * applied at boot by BIRTHING each node's worker suffix in IO mode. These two carry GLOBAL live
+     * totals for that split; everywhere else `io_threads`/`num_workers` keep their provisioned-count
+     * meaning (pin bases, registry layout) and the LIVE counts are io_threads_live /
+     * num_workers_live as before. In STATIC mode they are just the configured counts and nothing
+     * below changes. */
     int tm_boot_io_live;           /* io threads LIVE at boot (io_threads_live seed) */
     int tm_boot_w_live;            /* workers LIVE at boot (num_workers_live seed, bucket-table split) */
     int tm_pool_symmetric;         /* 1 = the auto remap above was applied */
@@ -3316,7 +3313,7 @@ struct redisServer {
     /* FLATSTORE is UNCONDITIONAL as of 2026-07-28 (thredis_flat_store / flat_load_pct deleted):
      * a shared node db (shared_node_dbs) is always a flat table, and the resize trigger uses the
      * FLAT_LOAD_PCT compile-time target. `shared_node_dbs` alone is the predicate everywhere. */
-    _Atomic int flat_resize_active;  /* FLATSTORE Stage-2: workers park at their pop point while a table is rebuilt */
+    _Atomic int flat_resize_active[TOMO_NODES_MAX]; /* FLATSTORE Stage-2: per-node worker park gates */
     /* ee451 (bug #42, worker active expiry): the CADENCE signal for the per-worker active-expire
      * cycle. Main is the sole writer and bumps with the owner-local relaxed load/store idiom;
      * workers poll relaxed and run one bounded pass after observing a new generation. It carries
@@ -3351,9 +3348,9 @@ struct redisServer {
                                 * CCD (shared-L3 domain) when tomokv-pin-mode is `ccd` and a NUMA
                                 * node when it is `numa`. Hence topo_ (topology), not numa_. */
     int cores_per_node;        /* tomokv-cores-per-node; pool = topo_nodes * cores_per_node */
-    int io_per_node;           /* tomokv-thread-io: IO threads per node (the STARTING split) */
-    int ex_per_node;           /* tomokv-thread-ex: EX workers per node (the STARTING split);
-                                * io_per_node + ex_per_node <= cores_per_node */
+    int io_per_node;           /* provisioned base-IO stride per node; configured IO split in STATIC */
+    int ex_per_node;           /* provisioned worker stride per node; configured EX split in STATIC;
+                                * their sum stays within cores_per_node */
     /* (The ex_threads_min/max pair is GONE 2026-07-28, following the IO-side pair before it.
      * Their only reader was the reserve-thread quorum balancer, deleted with the reserve. The
      * bounds are structural, not numeric: grow-front refuses below 2 live workers in a node,
@@ -3363,11 +3360,10 @@ struct redisServer {
      * 0 = ordinary migration (no flip tail);
      * 2 = GROW-FRONT: the converting worker's whole range has been moved out and torn down,
      *     so the coordinator tail retargets tm_flip_ctx to its flip target (IO).
-     * (Values 1/3 were the deleted reserve activation and the old grow-back live-count publication.
-     * Grow-back now publishes its complete IO->EX accounting move at EX adoption, outside reshard.)
-     * Written by the successful flip claimer (main or DEBUG's io thread) strictly before
-     * reshardArm, read + cleared by the single coordinator of that migration. The atomic flip
-     * claim plus one-migration-at-a-time makes this race-free. */
+     * 3 = GROW-BACK seed: associates the migration with the active flip but needs no coordinator
+     *     role-change tail (IO->EX accounting was already published at EX adoption).
+     * Written inside reshardArm's admission lock and read + cleared by the single coordinator of
+     * that migration, so a competing ordinary arm cannot inherit a flip action. */
     int tm_mig_flip_action;
     int pipeline_ring_depth;
     int ex_queue_size;
@@ -3728,7 +3724,7 @@ struct redisServer {
     int set_proc_title;             /* True if change proc title */
     char *proc_title_template;      /* Process title template format */
     clientBufferLimitsConfig client_obuf_limits[CLIENT_TYPE_OBUF_COUNT];
-    int pause_cron;                 /* Don't run cron tasks (debug) */
+    _Atomic int pause_cron;         /* Don't run cron tasks (debug); peer semi-mains also read it */
     int dict_resizing;              /* Whether to allow main dict and expired dict to be resized (debug) */
     int latency_tracking_enabled;   /* 1 if extended latency tracking is enabled, 0 otherwise. */
     double *latency_tracking_info_percentiles; /* Extended latency tracking info output percentile list configuration. */

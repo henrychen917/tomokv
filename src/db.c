@@ -513,15 +513,16 @@ static void dbFlatInsertWait(exThread *worker) {
     tomoWkrUnlockPub(worker->id);
     for (;;) {
         atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
-        /* If the urgent request has not been armed yet, give main's beforeSleep coordinator a
-         * bounded opportunity to observe it before tomoFlatResizeQuiesce checks ACTIVE. */
-        if (!atomic_load_explicit(&server.flat_resize_active, memory_order_acquire)) usleep(100);
-        tomoFlatResizeQuiesce();
+        /* Wake this node's immutable resize owner. A peer base IO may otherwise be in its bounded
+         * controller sleep for longer than the urgent insert retry budget. */
+        tomoFlatResizeWakeWorker(worker->id);
+        if (!tomoFlatResizeWorkerActive(worker->id)) usleep(100);
+        tomoFlatResizeWorkerQuiesce(worker->id);
 
         /* The command may not touch the refreshed table until it holds both protections again. */
         tomoWkrLockPub(worker->id);
         atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
-        if (!atomic_load_explicit(&server.flat_resize_active, memory_order_seq_cst)) return;
+        if (!tomoFlatResizeWorkerActive(worker->id)) return;
         tomoWkrUnlockPub(worker->id);
     }
 }
@@ -1155,9 +1156,9 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
      * and may update a live bag after its first grace. The seq_cst
      * publish/check is the same exclusion handshake used by exSlice. */
     atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
-    while (atomic_load_explicit(&server.flat_resize_active, memory_order_seq_cst)) {
+    while (tomoFlatResizeWorkerActive(owner)) {
         atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
-        tomoFlatResizeQuiesce();
+        tomoFlatResizeWorkerQuiesce(owner);
         atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
     }
     tomoWkrLockPub(owner);
