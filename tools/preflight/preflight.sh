@@ -216,7 +216,27 @@ run_suite $SD/cmd_coverage.sh        $PF/cmd_coverage.out       $'\tFAIL'
 run_suite $SD/keylb_veto.sh          $PF/keylb_veto.out         $'\tFAIL'
 run_suite $SD/d_reorder.sh            $PF/d_reorder.out           $'\tFAIL'
 run_suite $SD/feature_sweep.sh       $PF/feature_sweep.tsv        $'\tFAIL' $'\tSUSPECT'
+# ee451 2026-08-12: the flip timing suites (controller_sweep, flip_updown) measure per-role
+# MICROSECONDS + absolute p32 throughput. After ~90 min of heavy correctness suites (esp. satfill's
+# 40M fill) the box is warm and these read ~17% low and mis-flip at the io5/io6 p32 boundary — a
+# full-gate FAIL that the SAME binary passes 14/14 on a fresh isolated box, with NO bench overlap
+# (boxguard clean during the cells). The frozen controller is not the bug; the warm-box measurement
+# is. Cool + quiesce the box before each flip timing suite so its verdict matches a cool isolated run.
+flip_cooldown(){
+  local q=0 l
+  say "  flip cooldown: quiescing + cooling the box before a timing suite (per-role us are box-state sensitive)"
+  for _i in $(seq 1 120); do            # up to ~4 min to reach a quiet box
+    l=$(awk '{printf "%d", $1*100}' /proc/loadavg)
+    if [ "${l:-999}" -lt 120 ]; then q=$((q+1)); else q=0; fi
+    [ "$q" -ge 5 ] && break             # load < 1.2 for 5x2s consecutive
+    sleep 2
+  done
+  sleep 120                             # thermal settle on the now-quiet box
+  say "  cooldown done (load=$(cut -d' ' -f1 /proc/loadavg))"
+}
+flip_cooldown
 run_suite $SD/controller_sweep.sh    $PF/controller_sweep.tsv     $'\tFAIL' $'\tSUSPECT'
+flip_cooldown
 run_suite $SD/flip_updown.sh          $PF/flip_updown.out          'FAIL' 'INVALID'
 run_suite $SD/lb_skew.sh              $PF/lb_skew.out              $'\tFAIL' $'\tSKIP'
 # ee451 2026-07-29: side_regression was NEVER WIRED IN. 62f03ebcc repaired its `BIN=${1:?}` line so
