@@ -19889,6 +19889,15 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 info = sdscatprintf(info, "tomokv_node_%d_flip_ticks:%llu\r\n",
                     node, (unsigned long long)atomic_load_explicit(
                         &tomo_flip_node_ticks[node], memory_order_relaxed));
+                /* Per-node LIVE role split (the flip edge), read straight off the two counters the
+                 * actuator maintains: io_live = tm_node_iolive[node] (IO role), ex_live =
+                 * tm_node_wlive[node] (EX role, the node's live bucket-owning workers). Pure
+                 * observability — no derived/stride math, so it can never disagree with the actuator. */
+                info = sdscatprintf(info,
+                    "tomokv_node_%d_io_live:%d\r\n"
+                    "tomokv_node_%d_ex_live:%d\r\n",
+                    node, (int)atomic_load_explicit(&server.tm_node_iolive[node], memory_order_relaxed),
+                    node, (int)atomic_load_explicit(&server.tm_node_wlive[node], memory_order_relaxed));
                 info = sdscatprintf(info,
                     "tomokv_node_%d_flat_resize_active:%d\r\n"
                     "tomokv_node_%d_flat_resize_state:%d\r\n"
