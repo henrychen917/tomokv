@@ -1,0 +1,10 @@
+# started on Fri Aug 14 00:00:51 2026
+
+
+ Performance counter stats for process id '2025842':
+
+ 1,014,419,449,257      instructions                     #    1.26  insn per cycle            
+   804,327,846,078      cycles                                                                
+
+      20.001521226 seconds time elapsed
+
