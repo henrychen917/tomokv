@@ -19958,7 +19958,9 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
      * answerable from outside. tomo_prefetch_gated == batches means the gate is SHUT. */
     unsigned long long tomo_pf_batches = 0, tomo_pf_gated = 0, tomo_pf_issued = 0;
     unsigned long long tomo_pf_issued_slot = 0, tomo_pf_issued_kvobj = 0;
-    for (int _w = 0; _w < server.num_workers; _w++) {
+    /* Listeners are live from boot, so an INFO can arrive on an io thread before initServer
+     * allocates the worker array; num_workers is config-derived and already non-zero then. */
+    for (int _w = 0; server.exThreads && _w < server.num_workers; _w++) {
         tomo_pf_batches += server.exThreads[_w].pf_batches;
         tomo_pf_gated   += server.exThreads[_w].pf_gated;
         tomo_pf_issued  += server.exThreads[_w].pf_issued;
@@ -20314,7 +20316,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 nio++;
             }
             int wlive = atomic_load_explicit(&server.num_workers_live, memory_order_relaxed);
-            for (int w = 0; w < wlive && w < TOMO_EX_THREADS_MAX; w++)
+            for (int w = 0; server.exThreads && w < wlive && w < TOMO_EX_THREADS_MAX; w++)
                 { ex_busy += server.exThreads[w].tm_busy_us;
                   ex_idle += server.exThreads[w].tm_idle_us; }
             info = sdscatprintf(info, FMTARGS(
@@ -20339,7 +20341,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "tomokv_rord_grouped:%llu\r\n", (unsigned long long)rord_grouped_sum,
                 "tomokv_rord_fences:%llu\r\n", (unsigned long long)rord_fences_sum,
                 "tomokv_reorder_age_pins:%llu\r\n", (unsigned long long)rord_age_pins_sum,
-                "tomokv_rord_worst_age_us:%u\r\n", ({ unsigned _m=0; for (int _w=0;_w<server.num_workers && _w<TOMO_EX_THREADS_MAX;_w++) if (server.exThreads[_w].rord_worst_age_us>_m) _m=server.exThreads[_w].rord_worst_age_us; _m; }),
+                "tomokv_rord_worst_age_us:%u\r\n", ({ unsigned _m=0; for (int _w=0; server.exThreads && _w<server.num_workers && _w<TOMO_EX_THREADS_MAX;_w++) if (server.exThreads[_w].rord_worst_age_us>_m) _m=server.exThreads[_w].rord_worst_age_us; _m; }),
                 "tomokv_io_threads_counted:%d\r\n", nio,
                 "tomokv_ex_threads_counted:%d\r\n", wlive));
         }
