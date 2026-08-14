@@ -915,8 +915,6 @@ static _Atomic unsigned long tomo_flip_in_floor_configs_visited;
 static _Atomic unsigned long tomo_flip_in_floor_last_configs_visited;
 static _Atomic unsigned long tomo_flip_in_floor_sweeps_abandoned;
 static _Atomic unsigned long tomo_flip_sweep_return_blocked;
-static _Atomic unsigned long tomo_flip_episode_early_stops;
-static _Atomic unsigned long tomo_flip_episode_wall_stops;
 
 /* ---- tomo_script_stw (PHASE 1 of the script fence; full spec in wf_20da9328-f79) ----
  * The crash: processCommand's serverAssert(!scriptIsRunning()) reads the PROCESS-GLOBAL
@@ -20244,11 +20242,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_flip_in_floor_final_changed:%lu\r\n",
                 atomic_load_explicit(&tomo_flip_in_floor_probe_keeps, memory_order_relaxed),
             "tomokv_flip_in_floor_final_unchanged:%lu\r\n",
-                atomic_load_explicit(&tomo_flip_in_floor_probe_reverts, memory_order_relaxed),
-            "tomokv_flip_episode_early_stops:%lu\r\n",
-                atomic_load_explicit(&tomo_flip_episode_early_stops, memory_order_relaxed),
-            "tomokv_flip_episode_wall_stops:%lu\r\n",
-                atomic_load_explicit(&tomo_flip_episode_wall_stops, memory_order_relaxed)));
+                atomic_load_explicit(&tomo_flip_in_floor_probe_reverts, memory_order_relaxed)));
         if (tmNumNodes() > 1) {
             for (int node = 0; node < tmNumNodes() && node < TOMO_NODES_MAX; node++) {
                 info = sdscatprintf(info, "tomokv_node_%d_key_lb_runs:%llu\r\n",
@@ -26446,13 +26440,6 @@ typedef struct {
                               * The same periodic wave re-presenting the same lr is suppressed
                               * outright, where backoff alone only slowed it (measured: probes at
                               * ~80s period, 4 flips/160s, after backoff halved the original 8). */
-    int      direction_episode_active;
-    int      direction_episode_stop;
-    double   direction_episode_rate;
-    double   direction_episode_ex_sat;
-    int      direction_episode_failed;
-    double   direction_episode_failed_rate;
-    double   direction_episode_failed_ex_sat;
     double   sat_smooth;     /* EWMA of max(io_sat,ex_sat) — the client/server-bound test input */
     /* pressure-directed control (2026-07-24): the ratio band (see FLIP_R_BAND) */
     /* Legacy no-work occupancy stays live for worker-only modes 1/2/3 and for diagnostics. It is
@@ -26660,17 +26647,6 @@ static flipCtlState fctl[TM_MAXNODE];
                                 * not the config: one physical flip moves one thread, and the worst case that
                                 * can do is halve the worker side (w=2 -> w=1) on a fully
                                 * worker-bound load, ~2x. Beyond 3x, re-baseline (#74). */
-#define FLIP_EPISODE_POOL_CUTOFF 16 /* owner compatibility boundary: configured per-node pools at
-                                     * or below this retain the original judged climb */
-#define FLIP_EPISODE_EX_CHANGE 0.10 /* required absolute EX-demand change before retrying a failed
-                                     * balance-point episode on an otherwise unchanged rate */
-
-enum {
-    FLIP_EPISODE_WALKING = 0,
-    FLIP_EPISODE_STOP_BALANCE,
-    FLIP_EPISODE_STOP_WALL,
-    FLIP_EPISODE_STOP_EDGE
-};
 
 /* tomokv-flip-signal and the FLIP_SIG_* modes were DELETED 2026-08-10 (owner decision): the
  * productive-work ratio is the only signal (old modes: 0 was its alias; 1-3 were worker-only
@@ -27188,10 +27164,19 @@ static void tmFlipSweepAbandon(flipCtlState *fc, int node, const char *why,
     tmFlipSweepReturnToBest(fc, node, current_io, why);
 }
 
-/* The old distance estimate is kept separate from its traversal policy: compatibility-size pools
- * retain the original one-transfer judge, while a large-pool episode halves this distance. */
-static int tmFlipStepDistance(flipCtlState *fc, double gstep, int dir,
-                              int w_live, int io_live, int grown_io_live) {
+/* How many one-thread role transfers make the next controller STEP. While the measured signal
+ * agrees with the climb direction, floor(|lr|/gstep) is the conservative count of WHOLE
+ * live-count-derived quanta in the measured distance; max(1,...) makes the endgame naturally one
+ * transfer as the distance shrinks. After the signal crosses the climb direction, the existing
+ * one-thread look-ahead remains intact. The direction-specific live cap is a hard role-liveness
+ * invariant, not a tuning limit: grow-front must leave one EX worker; grow-back may consume only
+ * grown IO threads and must leave one live poly IO destination. The caller recalculates this for
+ * every new measured step. step_moves stores a result only while that step is actuated/judged so
+ * an exact revert is possible; it is never reused as the next step's magnitude. There is
+ * deliberately no signal-mode branch here: modes 0/1/2/3/5 all maintain lr_ewma and pass its
+ * matching existing gstep. */
+static int tmFlipStepMoves(flipCtlState *fc, double gstep, int dir,
+                           int w_live, int io_live, int grown_io_live) {
     int cap;
     if (dir > 0) {
         cap = w_live - 1;
@@ -27201,42 +27186,12 @@ static int tmFlipStepDistance(flipCtlState *fc, double gstep, int dir,
     }
     if (cap < 1) return 0;
 
-    int distance = 1;
+    int moves = 1;
     if (fc->lr_ewma * (double)dir > 0.0 && isfinite(gstep) && gstep > 0.0) {
         double whole_moves = floor(fabs(fc->lr_ewma) / gstep);
-        distance = whole_moves < 1.0 ? 1
-                 : (whole_moves > (double)cap ? cap : (int)whole_moves);
+        moves = whole_moves < 1.0 ? 1 : (whole_moves > (double)cap ? cap : (int)whole_moves);
     }
-    return distance;
-}
-
-static int tmFlipStepMoves(flipCtlState *fc, double gstep, int dir,
-                           int w_live, int io_live, int grown_io_live,
-                           int geometric) {
-    int distance = tmFlipStepDistance(fc, gstep, dir, w_live, io_live, grown_io_live);
-    if (distance <= 0 || !geometric) return distance > 0 ? 1 : 0;
-    return (distance + 1) / 2;
-}
-
-static int tmFlipEpisodeStop(flipCtlState *fc, int dir, double balance_band,
-                             double ex_sat, int w_live, int io_live,
-                             int grown_io_live, double gstep) {
-    if ((dir > 0 && fc->lr_ewma <= balance_band) ||
-        (dir < 0 && fc->lr_ewma >= -balance_band))
-        return FLIP_EPISODE_STOP_BALANCE;
-
-    int moves = tmFlipStepMoves(fc, gstep, dir, w_live, io_live, grown_io_live, 1);
-    if (moves <= 0) return FLIP_EPISODE_STOP_EDGE;
-    if (dir > 0) {
-        /* (ops/ex)/ex_sat is implied per-EX capacity, so the measured demand with the owner's
-         * dimensionless 1.5 safety margin reduces to ex_live*ex_sat*1.5. */
-        double supported = isfinite(ex_sat) && ex_sat > 0.01
-                         ? ceil((double)w_live * ex_sat * 1.5) : 1.0;
-        int demand = supported > (double)w_live ? w_live : (int)supported;
-        if (demand < 1) demand = 1;
-        if (w_live - moves < demand) return FLIP_EPISODE_STOP_WALL;
-    }
-    return FLIP_EPISODE_WALKING;
+    return moves;
 }
 
 /* A distance step is k serialized uses of the existing one-thread actuator, followed by exactly
@@ -27265,12 +27220,6 @@ static void tomoFlipController(void) {
     if (server.tm_ngrow_io <= 0) return;                    /* single worker / capped: no flip headroom */
     if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) return;  /* one migration at a time */
     if (tmFlipActive()) return;                             /* a flip is mid-flight */
-
-    /* The configured per-node pool is immutable after boot and role transfers conserve its sum.
-     * Keep compatibility independent of lr_ewma: a signal moved by the actuator cannot select
-     * which actuator/judge implementation runs. */
-    const int directional_episode_enabled =
-        server.io_per_node + server.ex_per_node > FLIP_EPISODE_POOL_CUTOFF;
 
     static mstime_t prev_wall[TM_MAXNODE], last_log[TM_MAXNODE];
     static uint32_t fc_prev_io_idle_us[TM_MAXNODE][TOMO_IO_THREADS_MAX + 1];
@@ -27777,7 +27726,6 @@ static void tomoFlipController(void) {
         int ne = w_live > 0 ? w_live : 1;
         double gstep = tmFlipGstepAt(ni, ne, fc->lr_ewma, wsig);
         double gfloor = gstep / 2.0;
-        double balance_band = log1p(FLIP_R_BAND);
 
         /* A sweep never issues another conversion after a quiescent conservation failure. The
          * process-wide guard above diagnoses loss/gain anywhere; the entry-sum comparison makes
@@ -28055,8 +28003,6 @@ static void tomoFlipController(void) {
                               "-> end climb, pin, pause", node,
                               fc->last_dir > 0 ? "grow-front" : "grow-back", fc->step_moves);
                     fc->dir = 0;
-                    fc->direction_episode_active = 0;
-                    fc->direction_episode_stop = FLIP_EPISODE_WALKING;
                     fc->just_settled = 1;
                     fc->revert_steps = 0; fc->walkback_armed = 0;
                     fc->wait = FLIP_WAIT_REVERT;
@@ -28069,8 +28015,6 @@ static void tomoFlipController(void) {
                     fc->wait = 0;
                 }
                 fc->step_moves = 0; fc->step_done = 0;
-                fc->direction_episode_active = 0;
-                fc->direction_episode_stop = FLIP_EPISODE_WALKING;
                 fc->phase = 0;
                 continue;
             }
@@ -28094,8 +28038,6 @@ static void tomoFlipController(void) {
                           err ? err : "live role boundary changed");
                 if (fc->step_done == 0) {
                     fc->dir = 0; fc->just_settled = 1; fc->wait = FESC_WAIT_BASE;
-                    fc->direction_episode_active = 0;
-                    fc->direction_episode_stop = FLIP_EPISODE_WALKING;
                     fc->step_moves = 0; fc->phase = 0;
                     continue;
                 }
@@ -28117,8 +28059,7 @@ static void tomoFlipController(void) {
              * config is already clearly faster than before the flip, so accept it NOW and keep
              * climbing, no need to wait out the settle+measure window. (mean is an EWMA, so exceeding
              * before+band already implies a sustained rise, not a single-tick spike.) */
-            if ((!directional_episode_enabled || !fc->direction_episode_active) &&
-                fc->mean > fc->best_rate + fmax(2.0 * sigma, 0.02 * fc->best_rate)) {
+            if (fc->mean > fc->best_rate + fmax(2.0 * sigma, 0.02 * fc->best_rate)) {
                 /* review [1,8]: the config has clearly recovered above the best (past the cache-cold
                  * rebalance dip) — skip the remaining plateau WAIT and go straight to MEASURE. Crucially
                  * best_rate is then set from that SETTLED window (PHASE 2), NOT from the still-rising
@@ -28161,40 +28102,7 @@ static void tomoFlipController(void) {
                 : ((fc->settle_run >= FESC_SETTLE_N && fc->rs_quiet >= FESC_SETTLE_N) ||
                    fc->warm_ticks >= FESC_WARM_CAP);
             if (warm_ok) {
-                if (directional_episode_enabled && fc->direction_episode_active &&
-                    !fc->floor_probe_active) {
-                    int stop = tmFlipEpisodeStop(fc, fc->dir, balance_band, ex_sat,
-                                                 w_live, io_live_node,
-                                                 grown_io_live_node, gstep);
-                    if (stop == FLIP_EPISODE_WALKING) {
-                        fc->phase = 0;
-                        fc->wait = 0;
-                        serverLog(LL_NOTICE, "[flip-ctl n%d] STEP %s k=%d settled at io=%d/ex=%d "
-                                  "r=%.2f -> continue geometric walk",
-                                  node, fc->last_dir > 0 ? "GROW-FRONT" : "GROW-BACK",
-                                  fc->step_moves, ni, ne, exp(fc->lr_ewma));
-                    } else {
-                        fc->direction_episode_stop = stop;
-                        if (stop == FLIP_EPISODE_STOP_BALANCE)
-                            atomic_fetch_add_explicit(&tomo_flip_episode_early_stops, 1,
-                                                      memory_order_relaxed);
-                        else if (stop == FLIP_EPISODE_STOP_WALL)
-                            atomic_fetch_add_explicit(&tomo_flip_episode_wall_stops, 1,
-                                                      memory_order_relaxed);
-                        fc->phase = 2;
-                        fc->meas_ticks = 0;
-                        fc->ref_ops = node_ops;
-                        fc->ref_ms = now;
-                        serverLog(LL_NOTICE, "[flip-ctl n%d] STEP %s k=%d settled at io=%d/ex=%d "
-                                  "r=%.2f -> stop=%s, take final settled measurement",
-                                  node, fc->last_dir > 0 ? "GROW-FRONT" : "GROW-BACK",
-                                  fc->step_moves, ni, ne, exp(fc->lr_ewma),
-                                  stop == FLIP_EPISODE_STOP_BALANCE ? "balance" :
-                                  stop == FLIP_EPISODE_STOP_WALL ? "worker-wall" : "pool-edge");
-                    }
-                } else {
-                    fc->phase = 2; fc->meas_ticks = 0; fc->ref_ops = node_ops; fc->ref_ms = now;
-                }
+                fc->phase = 2; fc->meas_ticks = 0; fc->ref_ops = node_ops; fc->ref_ms = now;
             }
             continue;
         }
@@ -28226,8 +28134,6 @@ static void tomoFlipController(void) {
                 fc->coast_used = 0;
             }
             fc->dir = 0;
-            fc->direction_episode_active = 0;
-            fc->direction_episode_stop = FLIP_EPISODE_WALKING;
             fc->just_settled = 1;        /* review [5]: PIN the deadzones at this (pre-step) config so
                                           * the next idle tick can't immediately re-fire the same flip */
             fc->revert_steps = 0; fc->walkback_armed = 0;   /* abandon any in-flight walk-back */
@@ -28302,10 +28208,7 @@ static void tomoFlipController(void) {
              * The actuator moves this signal, so this signal cannot police the actuator. Only
              * throughput -- which the climb is explicitly trying to move, and judges against its
              * own best -- can end a climb. */
-            int judged_moves = directional_episode_enabled && fc->direction_episode_active
-                             ? abs(ni - fc->start_io) : fc->step_moves;
-            double load_shift = pow(FLIP_LOAD_SHIFT,
-                                    (double)(judged_moves > 0 ? judged_moves : 1));
+            double load_shift = pow(FLIP_LOAD_SHIFT, (double)(fc->step_moves > 0 ? fc->step_moves : 1));
             if ((after > 0 && fc->best_rate > 0 &&
                 (after > fc->best_rate * load_shift || after * load_shift < fc->best_rate))) {
                 serverLog(LL_NOTICE, "[flip-ctl n%d] RE-BASELINE %s (%.0f vs best %.0f; r %.2f vs "
@@ -28327,64 +28230,12 @@ static void tomoFlipController(void) {
                  * just_settled, which re-seeks a legal inside-floor anchor at the new operating
                  * point, and the unset band otherwise picks the direction afresh. */
                 fc->dir = 0; fc->just_settled = 1;
-                fc->direction_episode_active = 0;
-                fc->direction_episode_stop = FLIP_EPISODE_WALKING;
-                fc->direction_episode_failed = 0;
                 fc->veto_run = 0;                     /* the offered load changed: fresh reactivity */
                 tmFlipAcceptBestRate(fc, after);       /* moved split is retained under the new load */
                 fc->coast_used = 0;
                 fc->revert_steps = 0;       /* never walk back to a config only ever measured under
                                              * the OLD load — the band will re-decide from here */
                 fc->wait = FLIP_WAIT_REVERT;
-                fc->phase = 0;
-                continue;
-            }
-            if (directional_episode_enabled && fc->direction_episode_active &&
-                !fc->floor_probe_active) {
-                double baseline = fc->direction_episode_rate;
-                double keep_band = baseline * FLIP_R_BAND;
-                int total_moves = abs(ni - fc->start_io);
-                int keep = after > baseline + keep_band;
-                const char *stop = fc->direction_episode_stop == FLIP_EPISODE_STOP_BALANCE
-                                 ? "balance"
-                                 : fc->direction_episode_stop == FLIP_EPISODE_STOP_WALL
-                                 ? "worker-wall" : "pool-edge";
-
-                fc->direction_episode_active = 0;
-                if (keep) {
-                    tmFlipAcceptBestRate(fc, after);
-                    fc->coast_used = 0;
-                    fc->dir = 0;
-                    fc->just_settled = 1;
-                    fc->wait = FLIP_WAIT_KEEP;
-                    fc->veto_run = 0;
-                    fc->direction_episode_failed = 0;
-                    serverLog(LL_NOTICE, "[flip-ctl n%d] EPISODE KEEP %s k=%d "
-                              "(%.0f vs baseline %.0f, band %.0f) stop=%s io=%d "
-                              "-> adopt+anchor",
-                              node, fc->last_dir > 0 ? "grow-front" : "grow-back",
-                              fc->step_moves, after, baseline, keep_band, stop, ni);
-                } else {
-                    fc->best_rate = baseline;
-                    fc->best_dist = total_moves;
-                    fc->revert_steps = total_moves;
-                    fc->walkback_armed = 0;
-                    fc->wait = 0;
-                    fc->direction_episode_failed = 1;
-                    fc->direction_episode_failed_rate = baseline;
-                    fc->direction_episode_failed_ex_sat = fc->direction_episode_ex_sat;
-                    serverLog(LL_NOTICE, "[flip-ctl n%d] OVERSHOOT %s k=%d "
-                              "(%.0f vs best %.0f) -> walk back %d thread move(s) to best "
-                              "| stop=%s band=%.0f",
-                              node, fc->last_dir > 0 ? "grow-front" : "grow-back",
-                              fc->step_moves, after, baseline, total_moves, stop, keep_band);
-                    if (total_moves == 0) {
-                        fc->dir = 0;
-                        fc->just_settled = 1;
-                        fc->wait = FLIP_WAIT_REVERT;
-                    }
-                }
-                fc->direction_episode_stop = FLIP_EPISODE_WALKING;
                 fc->phase = 0;
                 continue;
             }
@@ -28617,22 +28468,10 @@ static void tomoFlipController(void) {
             /* VETO BACKOFF bookkeeping: ending back at the start config = a net-zero probe. */
             if (ni == fc->start_io) {
                 if (fc->veto_run < 8) fc->veto_run++;
-                if (fc->veto_run > 1) {
-                    if (directional_episode_enabled && fc->direction_episode_failed) {
-                        serverLog(LL_NOTICE, "[flip-ctl n%d] net-zero probe #%d from io=%d — next trigger "
-                                  "needs %dx sustain | re-arm requires rate change >%.0f%% from %.0f "
-                                  "or ex_sat change >%.2f from %.2f",
-                                  node, fc->veto_run, ni,
-                                  1 << (fc->veto_run > 3 ? 3 : fc->veto_run),
-                                  FLIP_R_BAND * 100.0, fc->direction_episode_failed_rate,
-                                  FLIP_EPISODE_EX_CHANGE,
-                                  fc->direction_episode_failed_ex_sat);
-                    } else {
-                        serverLog(LL_NOTICE, "[flip-ctl n%d] net-zero probe #%d from io=%d — next trigger "
-                                  "needs %dx sustain", node, fc->veto_run, ni,
-                                  1 << (fc->veto_run > 3 ? 3 : fc->veto_run));
-                    }
-                }
+                if (fc->veto_run > 1)
+                    serverLog(LL_NOTICE, "[flip-ctl n%d] net-zero probe #%d from io=%d — next trigger "
+                              "needs %dx sustain", node, fc->veto_run, ni,
+                              1 << (fc->veto_run > 3 ? 3 : fc->veto_run));
             } else {
                 fc->veto_run = 0;                     /* productive climb: normal reactivity */
             }
@@ -28827,34 +28666,7 @@ static void tomoFlipController(void) {
         /* MID-CLIMB: keep flipping the SAME direction while the pool allows it (momentum). */
         if (fc->dir != 0) {
             int d = fc->dir;
-            int directional_episode_active = directional_episode_enabled &&
-                                             fc->direction_episode_active;
-            int moves = tmFlipStepMoves(fc, gstep, d, w_live, io_live_node,
-                                        grown_io_live_node, directional_episode_active);
-            if (directional_episode_active) {
-                int stop = tmFlipEpisodeStop(fc, d, balance_band, ex_sat, w_live,
-                                             io_live_node, grown_io_live_node, gstep);
-                if (stop != FLIP_EPISODE_WALKING) {
-                    fc->direction_episode_stop = stop;
-                    if (stop == FLIP_EPISODE_STOP_BALANCE)
-                        atomic_fetch_add_explicit(&tomo_flip_episode_early_stops, 1,
-                                                  memory_order_relaxed);
-                    else if (stop == FLIP_EPISODE_STOP_WALL)
-                        atomic_fetch_add_explicit(&tomo_flip_episode_wall_stops, 1,
-                                                  memory_order_relaxed);
-                    fc->phase = 2;
-                    fc->meas_ticks = 0;
-                    fc->ref_ops = node_ops;
-                    fc->ref_ms = now;
-                    serverLog(LL_NOTICE, "[flip-ctl n%d] STEP %s k=%d settled at io=%d/ex=%d "
-                              "r=%.2f -> stop=%s, take final settled measurement",
-                              node, d > 0 ? "GROW-FRONT" : "GROW-BACK", fc->step_moves,
-                              ni, ne, exp(fc->lr_ewma),
-                              stop == FLIP_EPISODE_STOP_BALANCE ? "balance" :
-                              stop == FLIP_EPISODE_STOP_WALL ? "worker-wall" : "pool-edge");
-                    continue;
-                }
-            }
+            int moves = tmFlipStepMoves(fc, gstep, d, w_live, io_live_node, grown_io_live_node);
             int can = ((d > 0) ? can_front : can_back) && moves > 0;
             if (!can) {
                 /* pool edge — the climb cannot continue. review [3,4]: if we COASTED past the best
@@ -28875,8 +28687,6 @@ static void tomoFlipController(void) {
                               node, d > 0 ? "grow-front" : "grow-back",
                               fc->just_settled ? "" : " (pressure reversed — not anchoring)");
                 }
-                fc->direction_episode_active = 0;
-                fc->direction_episode_stop = FLIP_EPISODE_WALKING;
                 continue;
             }
             fc->before = fc->mean;
@@ -28921,8 +28731,6 @@ static void tomoFlipController(void) {
                               exp(fc->lr_ewma), pressure > 0 ? "grow-front" : "grow-back");
                     fc->refuse_run = 0;
                     fc->dir = 0;
-                    fc->direction_episode_active = 0;
-                    fc->direction_episode_stop = FLIP_EPISODE_WALKING;
                     /* A coasted config retained by structural refusal is now accepted even though
                      * no new judgement ran; its split-local rate must replace the old best. */
                     if (fc->best_dist > 0) {
@@ -28947,7 +28755,7 @@ static void tomoFlipController(void) {
          * around zero in log space. The static-sweep falsifier is correspondingly strict: p32 GET
          * and MGET8 must move from r=1.23/1.31 to about 1 at io4/ex4 while io5/ex3 moves away from
          * its old false 1.00/1.01; the p1 optima must remain near 1. */
-        double band = balance_band;
+        double band = log1p(FLIP_R_BAND);
         /* GRANULARITY FLOOR (owner, 2026-08-04). How close to r=1 can THIS NODE's core count even
          * get? One flip moves a thread EX->IO, scaling io capacity by n_io/(n_io+1) and ex capacity
          * by n_ex/(n_ex-1), so it moves the ratio by
@@ -29073,29 +28881,10 @@ static void tomoFlipController(void) {
              * materially DIFFERENT state: one whole thread-move of ratio (gstep) away from the
              * level that pulled the last vetoed trigger. A genuine workload change moves lr well
              * past gstep (p32<->p1 swings it ~1.0+) and still probes immediately. */
-            if (!directional_episode_enabled) {
-                int same_wave = (fc->veto_run >= 2 &&
-                                 fabs(fc->lr_ewma - fc->veto_lr) <= gstep);
-                if (fc->lr_out_run >= need && !same_wave) {
-                    if (out > 0 && can_front) want = +1;
-                    else if (out < 0 && can_back) want = -1;
-                }
-            } else {
-                int episode_rate_changed = fc->direction_episode_failed &&
-                    fabs(fc->mean - fc->direction_episode_failed_rate) >
-                    FLIP_R_BAND * fc->direction_episode_failed_rate;
-                int episode_ex_changed = fc->direction_episode_failed &&
-                    fabs(ex_sat - fc->direction_episode_failed_ex_sat) >
-                    FLIP_EPISODE_EX_CHANGE;
-                int episode_rearmed = episode_rate_changed || episode_ex_changed;
-                int episode_unchanged = fc->direction_episode_failed && !episode_rearmed;
-                int same_wave = (fc->veto_run >= 2 &&
-                                 fabs(fc->lr_ewma - fc->veto_lr) <= gstep &&
-                                 !episode_rearmed);
-                if (fc->lr_out_run >= need && !same_wave && !episode_unchanged) {
-                    if (out > 0 && can_front) want = +1;
-                    else if (out < 0 && can_back) want = -1;
-                }
+            int same_wave = (fc->veto_run >= 2 && fabs(fc->lr_ewma - fc->veto_lr) <= gstep);
+            if (fc->lr_out_run >= need && !same_wave) {
+                if (out > 0 && can_front) want = +1;
+                else if (out < 0 && can_back) want = -1;
             }
         }
 
@@ -29153,55 +28942,8 @@ static void tomoFlipController(void) {
         }
 
         fc->before = fc->mean;
-        int moves = tmFlipStepMoves(fc, gstep, want, w_live, io_live_node,
-                                    grown_io_live_node, directional_episode_enabled);
+        int moves = tmFlipStepMoves(fc, gstep, want, w_live, io_live_node, grown_io_live_node);
         if (moves <= 0) continue;                         /* live cap is the final role invariant */
-        int initial_stop = directional_episode_enabled
-                         ? tmFlipEpisodeStop(fc, want, balance_band, ex_sat, w_live,
-                                             io_live_node, grown_io_live_node, gstep)
-                         : FLIP_EPISODE_WALKING;
-        if (initial_stop != FLIP_EPISODE_WALKING) {
-            tmFlipAbortClear(node);
-            fc->best_rate = fc->before;
-            fc->best_dist = 0;
-            fc->revert_steps = 0;
-            fc->walkback_armed = 0;
-            fc->coast_used = 0;
-            fc->last_dir = want;
-            fc->dir = want;
-            fc->step_moves = 0;
-            fc->step_done = 0;
-            fc->step_armed = 0;
-            fc->start_io = ni;
-            fc->veto_lr = fc->lr_ewma;
-            fc->direction_episode_active = 1;
-            fc->direction_episode_stop = initial_stop;
-            fc->direction_episode_rate = fc->before;
-            fc->direction_episode_ex_sat = ex_sat;
-            fc->direction_episode_failed = 0;
-            fc->lr_out_run = 0;
-            fc->lr_out_dir = 0;
-            fc->phase = 2;
-            fc->meas_ticks = 0;
-            fc->ref_ops = node_ops;
-            fc->ref_ms = now;
-            if (initial_stop == FLIP_EPISODE_STOP_BALANCE)
-                atomic_fetch_add_explicit(&tomo_flip_episode_early_stops, 1,
-                                          memory_order_relaxed);
-            else if (initial_stop == FLIP_EPISODE_STOP_WALL)
-                atomic_fetch_add_explicit(&tomo_flip_episode_wall_stops, 1,
-                                          memory_order_relaxed);
-            serverLog(LL_NOTICE, "[flip-ctl n%d] START %s k=%d io_sat=%.2f ex_sat=%.2f r=%.2f "
-                      "past %.2f (target 1) (baseline %.0f ops/s) -> settle+confirm without "
-                      "actuation (stop=%s)%s",
-                      node, want > 0 ? "GROW-FRONT" : "GROW-BACK", moves, io_sat, ex_sat,
-                      exp(fc->lr_ewma), exp(want > 0 ? fc->lr_anchor + band : fc->lr_anchor - band),
-                      fc->before,
-                      initial_stop == FLIP_EPISODE_STOP_BALANCE ? "balance" :
-                      initial_stop == FLIP_EPISODE_STOP_WALL ? "worker-wall" : "pool-edge",
-                      wsig_log);
-            continue;
-        }
         const char *err = NULL;
         if (tmFlipDo(node, want, &err)) {
             tmFlipAbortClear(node);
@@ -29213,13 +28955,6 @@ static void tomoFlipController(void) {
             fc->step_moves = moves; fc->step_done = 0; fc->step_armed = 1;
             fc->start_io = ni;                        /* net-zero detector: where this climb began */
             fc->veto_lr = fc->lr_ewma;                /* same-wave latch: the lr that pulled this trigger */
-            if (directional_episode_enabled) {
-                fc->direction_episode_active = 1;
-                fc->direction_episode_stop = FLIP_EPISODE_WALKING;
-                fc->direction_episode_rate = fc->before;
-                fc->direction_episode_ex_sat = ex_sat;
-                fc->direction_episode_failed = 0;
-            }
             fc->lr_out_run = 0; fc->lr_out_dir = 0;   /* the next climb must re-earn its sustain */
             fc->phase = 3;
             serverLog(LL_NOTICE, "[flip-ctl n%d] START %s k=%d io_sat=%.2f ex_sat=%.2f r=%.2f "
