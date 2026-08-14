@@ -134,8 +134,8 @@ typedef struct flatTable {
 flatTable *flatTableNew(uint64_t want_size);
 /* Stage-2 cooperative resize: alloc a right-sized empty target (size by LIVE load, not used+tombs,
  * so tomb churn rebuilds same-size), then copy live slots in bounded chunks across the owning node
- * semi-main and its request-parked workers (`old` is immutable). flatTableCopyChunk returns 1 when
- * its caller's cursor reaches the end. */
+ * semi-main and its serving workers. Mutations of `old` are repaired by server.c's chase logs.
+ * flatTableCopyChunk returns 1 when its caller's cursor reaches the end. */
 flatTable *flatTableAllocFor(flatTable *old);
 int        flatTableCopyChunk(flatTable *old, flatTable *nw, uint64_t *cursor, uint64_t slot_budget);
 void       flatTableFree(flatTable *t);

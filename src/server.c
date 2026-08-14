@@ -1187,12 +1187,10 @@ static inline void flatRegisterWorker(void) {
 static void flatExternForeignEnter(void);   /* cold path, defined below */
 static void flatExternForeignExit(void);
 
-/* NOTE: readers deliberately do NOT park on flat_resize_active. An earlier revision did, mirroring
- * the worker park — but workers park because they are WRITERS (the copy needs the old table
- * immutable), whereas io threads here are READERS, and parking them blocked all client I/O for
- * the entire rebuild: PING itself stopped answering for seconds on a large table. Readers are
- * made safe instead by DEFERRING the old table's free until every reader has left its region
- * (flatTableRetire / flatRetiredTablesTryFree) — publish-new-then-defer-free, i.e. RCU. */
+/* Readers deliberately do not park on flat_resize_active. Serving workers repair mutations through
+ * chase logs; io threads here are readers, and parking them would block all client I/O for the
+ * entire rebuild. Deferring the old table's free until every reader leaves its region keeps them
+ * safe (flatTableRetire / flatRetiredTablesTryFree) — publish-new-then-defer-free, i.e. RCU. */
 static inline void flatExternEnter(void) {
     if (++flat_extern_depth != 1) return;          /* NESTED: publish nothing (EXEC/Lua/RM_Call) */
     int s = flat_slot_owned;
@@ -9296,6 +9294,10 @@ static int flatDrainReadyBatches(flatBatch **head, flatBatch **tail, flatBatch *
  * allocated the value (jemalloc tcache, same arena) and one that has spare cycles, instead of the
  * saturated main thread doing cross-arena frees. Cheap when nothing is pending. */
 static void flatWorkerReclaim(exThread *worker) {
+    /* A serving resize's unpublished target can temporarily hold a value already replaced in the
+     * old table. The slot log deliberately records only the old slot, so keep that value's retire
+     * batch intact until chase replay has removed every stale target pointer and the swap finishes. */
+    if (tomoFlatResizeWorkerActive(worker->id)) return;
     unsigned long closed = 0;
     if (worker->flat_retire_local) {
         /* APPEND (FIFO). Every close snapshots the CURRENT seqs, which only ever grow, so an older
@@ -9439,10 +9441,38 @@ void flatReclaimAll(int node) {
 }
 
 /* One cooperative resize state machine per physical node. Its immutable base IO writes every plain
- * field in the row; copy helpers read the published copy fields only after acquiring COPYING.
- * Watchdog threads may only CAS the atomic QUIESCING edge. Node-local park gates let unrelated
- * nodes continue serving while their peers copy disjoint node_dbs tables. */
-enum { FLAT_RZ_IDLE = 0, FLAT_RZ_QUIESCING, FLAT_RZ_COPYING };
+ * field in the row; copy helpers and log owners read them only after acquiring COPYING. The entry
+ * QUIESCING and final FENCING states park workers; COPYING and CHASING keep serving. */
+enum {
+    FLAT_RZ_IDLE = 0,
+    FLAT_RZ_QUIESCING,
+    FLAT_RZ_COPYING,
+    FLAT_RZ_CHASING,
+    FLAT_RZ_FENCING
+};
+
+typedef enum flatResizeLogKind {
+    FLAT_RZ_LOG_SLOT = 0,
+    FLAT_RZ_LOG_DELETE
+} flatResizeLogKind;
+
+typedef struct flatResizeLogEntry {
+    flatResizeLogKind kind;
+    union {
+        uint64_t slot;
+        sds key;
+    } u;
+} flatResizeLogEntry;
+
+/* Each worker is the sole producer and chase consumer of its row. The atomics are only the small
+ * publication surface the coordinator polls before raising the final fence. */
+typedef struct flatResizeWorkerLog {
+    flatResizeLogEntry *entries;
+    size_t len, cap;
+    _Atomic size_t pending;
+    _Atomic int empty_seen;
+} __attribute__((aligned(CACHE_LINE_SIZE))) flatResizeWorkerLog;
+
 typedef struct flatResizeNodeState {
     _Atomic int state;
     _Atomic monotime arm_us;
@@ -9451,16 +9481,21 @@ typedef struct flatResizeNodeState {
     _Atomic uint64_t completed_chunks;
     _Atomic unsigned int copy_claimers;
     _Atomic int claims_closed;
+    _Atomic uint64_t log_bytes;
+    _Atomic int chase_fallback;
     kvstore *kvs;
     flatTable *old, *new;
-    uint64_t copy_slots;
+    uint64_t copy_slots, log_limit;
     int dbid;
 } __attribute__((aligned(CACHE_LINE_SIZE))) flatResizeNodeState;
 static flatResizeNodeState flat_rz[TOMO_NODES_MAX];
+static flatResizeWorkerLog flat_rz_logs[TOMO_EX_THREADS_MAX];
 _Atomic unsigned long long flat_insert_full_waits;
 _Atomic unsigned long long flat_insert_full_wait_us_max;
 _Atomic unsigned long long flat_rz_urgent_services;
 _Atomic unsigned long long flat_rz_helper_chunks;
+_Atomic unsigned long long flat_rz_log_entries;
+_Atomic unsigned long long flat_rz_chase_fallbacks;
 #define FLAT_RZ_QUIESCE_DEADLINE_US  200000ULL
 #define FLAT_RZ_WATCHDOG_US          2000000ULL
 #define FLAT_RZ_COPY_SLOT_BUDGET     (1ULL << 16)
@@ -9498,15 +9533,180 @@ static int flatResizeOwnedNode(void) {
     return tmNodeOfIoSlot(iotid);
 }
 
+static void flatResizeWorkerRange(int node, int *wlo, int *whi) {
+    int nnodes = tmNumNodes();
+    *wlo = nnodes == 1 ? 0 : node * server.ex_per_node;
+    *whi = nnodes == 1 ? server.num_workers : *wlo + server.ex_per_node;
+    if (*whi > server.num_workers) *whi = server.num_workers;
+    serverAssert(*wlo >= 0 && *wlo <= *whi && *whi <= TOMO_EX_THREADS_MAX);
+}
+
+static void flatResizeRequestChaseFallback(flatResizeNodeState *rz) {
+    if (!atomic_exchange_explicit(&rz->chase_fallback, 1, memory_order_seq_cst))
+        atomic_fetch_add_explicit(&flat_rz_chase_fallbacks, 1, memory_order_relaxed);
+}
+
+static void flatResizeLogAccount(flatResizeNodeState *rz, size_t bytes) {
+    uint64_t total = atomic_fetch_add_explicit(&rz->log_bytes, bytes,
+                                                memory_order_relaxed) + bytes;
+    if (total > rz->log_limit) flatResizeRequestChaseFallback(rz);
+}
+
+static void flatResizeLogEnsure(flatResizeNodeState *rz, flatResizeWorkerLog *log) {
+    if (log->len < log->cap) return;
+    size_t oldcap = log->cap;
+    size_t newcap = oldcap ? oldcap * 2 : 64;
+    serverAssert(newcap > oldcap && newcap <= SIZE_MAX / sizeof(*log->entries));
+    log->entries = zrealloc(log->entries, newcap * sizeof(*log->entries));
+    log->cap = newcap;
+    flatResizeLogAccount(rz, (newcap - oldcap) * sizeof(*log->entries));
+}
+
+static flatResizeNodeState *flatResizeLogTarget(kvstore *kvs, flatTable *old,
+                                                int *worker_id) {
+    if (flat_slot_owned != FLAT_SLOT_WORKER) return NULL;
+    int w = iotid - (TOMO_IO_THREADS_MAX + 1);
+    if (w < 0 || w >= server.num_workers || w >= TOMO_EX_THREADS_MAX) return NULL;
+    int node = (tmNumNodes() > 1 && server.ex_per_node > 0) ? w / server.ex_per_node : 0;
+    if (node < 0 || node >= tmNumNodes() || node >= TOMO_NODES_MAX) return NULL;
+
+    flatResizeNodeState *rz = &flat_rz[node];
+    int state = atomic_load_explicit(&rz->state, memory_order_acquire);
+    /* FENCING is included for a worker whose mutation linearized just before the coordinator raised
+     * the fence. Its in_flat_section publication keeps the coordinator from draining too early. */
+    if ((state != FLAT_RZ_COPYING && state != FLAT_RZ_CHASING &&
+         state != FLAT_RZ_FENCING) ||
+        rz->kvs != kvs || rz->old != old || !flatResizeNodeActive(node))
+        return NULL;
+    *worker_id = w;
+    return rz;
+}
+
+void tomoFlatResizeLogSlot(kvstore *kvs, flatTable *old, uint64_t slot) {
+    int worker_id;
+    flatResizeNodeState *rz = flatResizeLogTarget(kvs, old, &worker_id);
+    if (!rz) return;
+    serverAssert(slot < rz->copy_slots);
+
+    flatResizeWorkerLog *log = &flat_rz_logs[worker_id];
+    flatResizeLogEnsure(rz, log);
+    /* If copy ran first, replay reads this slot's post-mutation CURRENT word; if mutation ran first,
+     * copy reads it directly. A chunk race is covered because this append precedes command ack. */
+    log->entries[log->len++] = (flatResizeLogEntry){
+        .kind = FLAT_RZ_LOG_SLOT,
+        .u.slot = slot
+    };
+    atomic_store_explicit(&log->pending, log->len, memory_order_release);
+    atomic_fetch_add_explicit(&flat_rz_log_entries, 1, memory_order_relaxed);
+}
+
+void tomoFlatResizeLogDelete(kvstore *kvs, flatTable *old, const sds key) {
+    int worker_id;
+    flatResizeNodeState *rz = flatResizeLogTarget(kvs, old, &worker_id);
+    if (!rz) return;
+
+    flatResizeWorkerLog *log = &flat_rz_logs[worker_id];
+    flatResizeLogEnsure(rz, log);
+    /* A tomb has no recoverable pointer. Keep private key bytes so append order can remove any copy
+     * after this owner's earlier upserts, while a later same-key insert remains later in the log. */
+    sds copy = sdsdup(key);
+    flatResizeLogAccount(rz, sdsAllocSize(copy));
+    log->entries[log->len++] = (flatResizeLogEntry){
+        .kind = FLAT_RZ_LOG_DELETE,
+        .u.key = copy
+    };
+    atomic_store_explicit(&log->pending, log->len, memory_order_release);
+    atomic_fetch_add_explicit(&flat_rz_log_entries, 1, memory_order_relaxed);
+}
+
+static void flatResizeReplayUpsert(flatResizeNodeState *rz, dictEntry *masked) {
+    kvobj *kv = dictGetKV(masked);
+    sds key = kvobjGetKey(kv);
+    uint64_t h = tomoKeyHash(key, sdslen(key)), slot;
+    if (flatFindForWrite(rz->new, h, key, sdslen(key), &slot)) {
+        (void)flatOverwrite(rz->new, slot, masked);
+    } else {
+        serverAssert(flatInsert(rz->new, h, masked, slot) != FLAT_INSERT_FULL);
+    }
+}
+
+static void flatResizeReplayLog(flatResizeNodeState *rz, flatResizeWorkerLog *log) {
+    size_t count = log->len;
+    for (size_t i = 0; i < count; i++) {
+        flatResizeLogEntry *entry = &log->entries[i];
+        if (entry->kind == FLAT_RZ_LOG_SLOT) {
+            serverAssert(entry->u.slot < rz->copy_slots);
+            uint64_t word = atomic_load_explicit(&rz->old->slots[entry->u.slot].w,
+                                                  memory_order_acquire);
+            if (FLAT_IS_LIVE(word)) flatResizeReplayUpsert(rz, flat_word_ptr(word));
+        } else {
+            serverAssert(entry->kind == FLAT_RZ_LOG_DELETE && entry->u.key != NULL);
+            sds key = entry->u.key;
+            uint64_t slot;
+            if (flatFindForWrite(rz->new, tomoKeyHash(key, sdslen(key)),
+                                 key, sdslen(key), &slot))
+                (void)flatDelete(rz->new, slot);
+            size_t bytes = sdsAllocSize(key);
+            sdsfree(key);
+            entry->u.key = NULL;
+            atomic_fetch_sub_explicit(&rz->log_bytes, bytes, memory_order_relaxed);
+        }
+    }
+    log->len = 0;
+    atomic_store_explicit(&log->pending, 0, memory_order_release);
+}
+
+static void flatResizeChaseClaim(int node, int worker_id) {
+    flatResizeNodeState *rz = &flat_rz[node];
+    if (atomic_load_explicit(&rz->state, memory_order_acquire) != FLAT_RZ_CHASING)
+        return;
+    flatResizeWorkerLog *log = &flat_rz_logs[worker_id];
+    flatResizeReplayLog(rz, log);
+    /* A later command may append again. The final fence handles that residual; this flag records
+     * only the required fact that this owner observed its log empty during CHASING. */
+    atomic_store_explicit(&log->empty_seen, 1, memory_order_release);
+}
+
+static void flatResizeLogsPrepare(int node, flatResizeNodeState *rz) {
+    int wlo, whi;
+    flatResizeWorkerRange(node, &wlo, &whi);
+    for (int w = wlo; w < whi; w++) {
+        flatResizeWorkerLog *log = &flat_rz_logs[w];
+        serverAssert(log->entries == NULL && log->len == 0 && log->cap == 0);
+        atomic_store_explicit(&log->pending, 0, memory_order_relaxed);
+        atomic_store_explicit(&log->empty_seen, 0, memory_order_relaxed);
+    }
+    atomic_store_explicit(&rz->log_bytes, 0, memory_order_relaxed);
+    atomic_store_explicit(&rz->chase_fallback, 0, memory_order_relaxed);
+}
+
+static void flatResizeLogsFree(int node, flatResizeNodeState *rz) {
+    int wlo, whi;
+    flatResizeWorkerRange(node, &wlo, &whi);
+    for (int w = wlo; w < whi; w++) {
+        flatResizeWorkerLog *log = &flat_rz_logs[w];
+        for (size_t i = 0; i < log->len; i++)
+            if (log->entries[i].kind == FLAT_RZ_LOG_DELETE && log->entries[i].u.key)
+                sdsfree(log->entries[i].u.key);
+        zfree(log->entries);
+        log->entries = NULL;
+        log->len = log->cap = 0;
+        atomic_store_explicit(&log->pending, 0, memory_order_relaxed);
+        atomic_store_explicit(&log->empty_seen, 0, memory_order_relaxed);
+    }
+    atomic_store_explicit(&rz->log_bytes, 0, memory_order_relaxed);
+}
+
 /* Claim one disjoint source range without taking a lock. The coordinator closes admission before
  * the swap and waits for both every valid range's release completion and any claimant that passed
  * the close edge. The seq_cst close/claimant handshake means a claimant either contributes to that
  * wait or observes claims_closed and never reads the table pointers.
  *
  * Copy helpers need no READER flat section: the old table cannot be retired, nor the new table
- * swapped in, until their claimed range completes. Source ranges are disjoint and every live key
- * occupies exactly one old slot, so no two copiers insert the same key. Distinct-key collisions in
- * the fresh table are arbitrated by flatInsert's per-slot CAS; used/tombs updates are atomic RMWs. */
+ * swapped in, until their claimed range completes, and worker retire batches stay pinned for the
+ * active window. Source ranges are disjoint and every live key occupies exactly one old slot, so no
+ * two copiers insert the same key. Distinct-key collisions in the fresh table are arbitrated by
+ * flatInsert's per-slot CAS; used/tombs updates are atomic RMWs. */
 static int flatResizeCopyClaim(int node, int worker_helper) {
     flatResizeNodeState *rz = &flat_rz[node];
 
@@ -9725,9 +9925,8 @@ void flatResizeCoordinate(int node) {
     }
 
     if (state == FLAT_RZ_QUIESCING) {
-        int wlo = nnodes == 1 ? 0 : node * server.ex_per_node;
-        int whi = nnodes == 1 ? server.num_workers : wlo + server.ex_per_node;
-        if (whi > server.num_workers) whi = server.num_workers;
+        int wlo, whi;
+        flatResizeWorkerRange(node, &wlo, &whi);
         int all = 1;
         for (int w = wlo; w < whi; w++)
             if (atomic_load_explicit(&server.exThreads[w].in_flat_section,
@@ -9761,6 +9960,8 @@ void flatResizeCoordinate(int node) {
         flatTable *nw = flatTableAllocFor(rz->old);
         rz->new = nw;
         rz->copy_slots = rz->old->size;
+        rz->log_limit = (sizeof(*nw) + nw->size * sizeof(flatSlot)) / 4;
+        flatResizeLogsPrepare(node, rz);
         atomic_store_explicit(&rz->claim_cursor, 0, memory_order_relaxed);
         atomic_store_explicit(&rz->completed_chunks, 0, memory_order_relaxed);
         /* Publish new/copy_slots/counters only after they are complete. If the watchdog won the
@@ -9768,6 +9969,7 @@ void flatResizeCoordinate(int node) {
         int expected = FLAT_RZ_QUIESCING;
         if (!atomic_compare_exchange_strong_explicit(&rz->state, &expected, FLAT_RZ_COPYING,
                                                      memory_order_release, memory_order_acquire)) {
+            flatResizeLogsFree(node, rz);
             rz->new = NULL;
             flatTableFree(nw);
             return;
@@ -9789,7 +9991,64 @@ void flatResizeCoordinate(int node) {
                atomic_load_explicit(&rz->copy_claimers, memory_order_seq_cst))
             sched_yield();
         serverAssert(atomic_load_explicit(&rz->completed_chunks, memory_order_acquire) == chunks);
-        if (atomic_load_explicit(&rz->old->resize_needed, memory_order_relaxed) >= FLAT_RESIZE_URGENT)
+        int urgent = atomic_load_explicit(&rz->old->resize_needed,
+                                           memory_order_relaxed) >= FLAT_RESIZE_URGENT;
+        /* A hard-full waiter cannot return to exSlice to drain its own log. Log overflow likewise
+         * stops serving promptly. Both take the Phase-1 final park path after copy completion. */
+        if (urgent || atomic_load_explicit(&rz->chase_fallback, memory_order_seq_cst)) {
+            atomic_store_explicit(&rz->state, FLAT_RZ_FENCING, memory_order_seq_cst);
+        } else {
+            int wlo, whi;
+            flatResizeWorkerRange(node, &wlo, &whi);
+            for (int w = wlo; w < whi; w++)
+                atomic_store_explicit(&flat_rz_logs[w].empty_seen, 0, memory_order_relaxed);
+            atomic_store_explicit(&rz->state, FLAT_RZ_CHASING, memory_order_seq_cst);
+        }
+        return;
+    }
+
+    if (state == FLAT_RZ_CHASING) {
+        int urgent = atomic_load_explicit(&rz->old->resize_needed,
+                                           memory_order_relaxed) >= FLAT_RESIZE_URGENT;
+        if (urgent || atomic_load_explicit(&rz->chase_fallback, memory_order_seq_cst)) {
+            atomic_store_explicit(&rz->state, FLAT_RZ_FENCING, memory_order_seq_cst);
+            return;
+        }
+
+        int wlo, whi, all_empty_seen = 1;
+        flatResizeWorkerRange(node, &wlo, &whi);
+        for (int w = wlo; w < whi; w++) {
+            flatResizeWorkerLog *log = &flat_rz_logs[w];
+            if (atomic_load_explicit(&log->pending, memory_order_acquire) == 0)
+                atomic_store_explicit(&log->empty_seen, 1, memory_order_release);
+            if (!atomic_load_explicit(&log->empty_seen, memory_order_acquire))
+                all_empty_seen = 0;
+        }
+        if (all_empty_seen)
+            atomic_store_explicit(&rz->state, FLAT_RZ_FENCING, memory_order_seq_cst);
+        return;
+    }
+
+    if (state == FLAT_RZ_FENCING) {
+        int wlo, whi;
+        flatResizeWorkerRange(node, &wlo, &whi);
+        for (int w = wlo; w < whi; w++)
+            if (atomic_load_explicit(&server.exThreads[w].in_flat_section,
+                                     memory_order_seq_cst))
+                return;
+
+        /* Every producer is now parked. Drain the residual entries in each owner's append order;
+         * chunk copiers are already closed, so replay is the only writer of these keys in `new`.
+         * Slot entries read CURRENT old state (newest overwrite wins); key tombstones run after all
+         * copies and after that owner's earlier entries (deletes cannot resurrect). */
+        for (int w = wlo; w < whi; w++) {
+            flatResizeReplayLog(rz, &flat_rz_logs[w]);
+            serverAssert(atomic_load_explicit(&flat_rz_logs[w].pending,
+                                              memory_order_acquire) == 0);
+        }
+
+        if (atomic_load_explicit(&rz->old->resize_needed,
+                                 memory_order_relaxed) >= FLAT_RESIZE_URGENT)
             atomic_fetch_add_explicit(&flat_rz_urgent_services, 1, memory_order_relaxed);
         atomic_store_explicit(&rz->new->resize_needed, FLAT_RESIZE_NONE, memory_order_relaxed);
         serverLog(LL_NOTICE, "FLATSTORE resize: node %d db %d rebuilt %llu -> %llu slots (live=%llu)",
@@ -9798,6 +10057,7 @@ void flatResizeCoordinate(int node) {
                   (unsigned long long)atomic_load_explicit(&rz->old->used, memory_order_relaxed));
         kvstoreFlatSwap(rz->kvs, rz->new);
         flatTableRetire(node, rz->old);
+        flatResizeLogsFree(node, rz);
         atomic_store_explicit(&server.flat_resize_active[node], 0, memory_order_seq_cst);
         rz->old = rz->new = NULL;
         rz->kvs = NULL;
@@ -15868,21 +16128,16 @@ void flushAllShards(client *c, int dbid, int async) {
     emptyDbStructure(server.db, dbid, async, NULL);
 }
 
-/* ee451 FLATSTORE: give a NON-WORKER mutation of a shared node db the entry condition that every
- * other shard-wide mutation already has — no flat resize in flight.
+/* ee451 FLATSTORE: a NON-WORKER mutation cannot use the single-producer worker chase logs, so its
+ * entry condition remains no flat resize in flight. Workers may serve in COPYING/CHASING because
+ * their slot/tombstone log repairs the unpublished target; active=1 must still exclude non-workers
+ * for that entire window. QUIESCING drains a region already open before active publication, while
+ * this guard stops a new emptyData/rdbLoad/kvstoreExpand mutation from opening mid-copy. call()
+ * holds one external region across all three for the whole of a DEBUG RELOAD.
  *
- * FLAT_RZ_COPYING requires the old table to be IMMUTABLE for the whole rebuild. The coordinator
- * enforces that against WORKERS (it parks them at their pop point) and against a non-worker region
- * that is ALREADY OPEN (QUIESCING refuses to complete while any io flat_epoch is odd). What nothing
- * re-checks is a non-worker region that OPENS while a resize is already COPYING. emptyData's shard
- * fold, rdbLoad's dbAddRDBLoad and kvstoreExpand's flat rebuild are all such mutators, and call()
- * holds ONE region across all three for the whole of a DEBUG RELOAD.
- *
- * MEASURED, not theorised — tools/preflight/flat_resize_reload_race.sh, at the DEFAULT hz on an
- * unmodified build. A reload that starts mid-COPYING has its empty applied to the OLD table while
- * the coordinator rebuilds the NEW one from a pre-empty snapshot. Slots the copy had already
- * visited are carried forward, so the swap both resurrects keys the empty tombstoned AND
- * re-publishes kvobjs the empty retired. Both halves are fatal and both were observed:
+ * A reload that starts mid-COPYING has its empty applied to the OLD table without producing worker
+ * log entries. Slots already visited would be carried forward, so the swap could both resurrect
+ * keys and re-publish retired kvobjs. Both halves are fatal:
  *   "Guru Meditation: Duplicated key found in RDB file #rdb.c:4016"  (the reload's re-insert
  *      collides with a resurrected key), and
  *   "keymeta.c:584 'pClass->state == CLASS_STATE_INUSE' is not true" (the swap republishes a
@@ -19852,16 +20107,18 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_flat_pin_wrap_blocks:%llu\r\n", atomic_load_explicit(&flat_pin_wrap_blocks, memory_order_relaxed),
             "tomokv_flat_foreign_pins:%d\r\n", atomic_load_explicit(&flat_foreign_active, memory_order_relaxed),
             "tomokv_flat_hash_reuses:%lld\r\n", flatHashReusesTotal(),
-            /* ee451: the resize coordinator's QUIESCING/COPYING window, per this tree's
+            /* ee451: the resize coordinator's QUIESCING/COPYING/CHASING/FENCING window, per this tree's
              * "expose the state" rule. Nothing else could observe it, which is why
              * flat_resize_reload_race.sh could not tell whether it had actually fired a reload INTO
              * a live copy — it was inferring the window from whether a DBSIZE blocked, and scored
              * 2 hits in 12 tries. INFO is answered inline on an io thread and is never parked, so
-             * polling this is safe while every worker is parked. */
+             * polling this is safe while workers serve or park. */
             "tomokv_flat_resize_active:%d\r\n", flatResizeAnyActive(),
-            "tomokv_flat_resize_state:%d\r\n", flatResizeState(),   /* 0 IDLE, 1 QUIESCING, 2 COPYING */
+            "tomokv_flat_resize_state:%d\r\n", flatResizeState(),   /* 0 IDLE, 1 QUIESCING, 2 COPYING, 3 CHASING, 4 FENCING */
             "tomokv_flat_resize_quiesce_waits:%llu\r\n", atomic_load_explicit(&flat_rz_quiesce_waits, memory_order_relaxed),
             "tomokv_flat_resize_helper_chunks:%llu\r\n", atomic_load_explicit(&flat_rz_helper_chunks, memory_order_relaxed),
+            "tomokv_flat_resize_log_entries:%llu\r\n", atomic_load_explicit(&flat_rz_log_entries, memory_order_relaxed),
+            "tomokv_flat_resize_chase_fallbacks:%llu\r\n", atomic_load_explicit(&flat_rz_chase_fallbacks, memory_order_relaxed),
             "tomokv_flat_insert_full_waits:%llu\r\n", atomic_load_explicit(&flat_insert_full_waits, memory_order_relaxed),
             "tomokv_flat_insert_full_wait_us_max:%llu\r\n", atomic_load_explicit(&flat_insert_full_wait_us_max, memory_order_relaxed),
             "tomokv_flat_resize_urgent_services:%llu\r\n", atomic_load_explicit(&flat_rz_urgent_services, memory_order_relaxed),
@@ -22510,8 +22767,18 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
                      flat_node < TOMO_NODES_MAX);
     }
     atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
-    while (__builtin_expect(atomic_load_explicit(&server.flat_resize_active[flat_node],
-                                                  memory_order_seq_cst), 0)) {
+    for (;;) {
+        int flat_active = atomic_load_explicit(&server.flat_resize_active[flat_node],
+                                                memory_order_seq_cst);
+        int flat_state = flat_active ?
+            atomic_load_explicit(&flat_rz[flat_node].state, memory_order_seq_cst) : FLAT_RZ_IDLE;
+        int flat_fallback = flat_active ?
+            atomic_load_explicit(&flat_rz[flat_node].chase_fallback,
+                                 memory_order_seq_cst) : 0;
+        if (!flat_active || ((flat_state == FLAT_RZ_COPYING ||
+                              flat_state == FLAT_RZ_CHASING) && !flat_fallback))
+            break;
+
         atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);  /* back out so the coordinator can drain */
         /* ee451 (J4): a parked worker is the LAST line of defence against its node coordinator
          * stopping. Throttled to once per
@@ -22520,17 +22787,33 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
         for (unsigned spins = 0;
              atomic_load_explicit(&server.flat_resize_active[flat_node], memory_order_acquire);
              spins++) {
+            int parked_state = atomic_load_explicit(&flat_rz[flat_node].state,
+                                                     memory_order_seq_cst);
+            int parked_fallback = atomic_load_explicit(&flat_rz[flat_node].chase_fallback,
+                                                        memory_order_seq_cst);
+            if ((parked_state == FLAT_RZ_COPYING || parked_state == FLAT_RZ_CHASING) &&
+                !parked_fallback)
+                break;
             /* We are quiescent for READER/QSBR purposes, but a valid copy claim pins old/new via
              * the resize completion protocol until this range is published complete. */
             serverAssert(!atomic_load_explicit(&worker->in_flat_section, memory_order_seq_cst));
-            if (atomic_load_explicit(&flat_rz[flat_node].state, memory_order_acquire) ==
-                    FLAT_RZ_COPYING && flatResizeCopyClaim(flat_node, 1))
+            if (parked_state == FLAT_RZ_COPYING && flatResizeCopyClaim(flat_node, 1))
                 continue;
             if ((spins & 1023) == 1023) flatResizeWatchdog(flat_node);
             sched_yield();
         }
         tmIoWaitEnd();
         atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);  /* re-enter, re-check */
+    }
+
+    /* Serving helpers are deliberately bounded to one copy chunk or one complete-at-this-moment
+     * owner-log drain per exSlice pass. Commands below continue to read and mutate the old table. */
+    int resize_work_state = atomic_load_explicit(&flat_rz[flat_node].state,
+                                                  memory_order_acquire);
+    if (resize_work_state == FLAT_RZ_COPYING) {
+        (void)flatResizeCopyClaim(flat_node, 1);
+    } else if (resize_work_state == FLAT_RZ_CHASING) {
+        flatResizeChaseClaim(flat_node, worker->id);
     }
 
     /* ee451 (v8d): the per-worker online-resharding duties (B replaying the ordered effect log,

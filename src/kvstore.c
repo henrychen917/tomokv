@@ -23,6 +23,8 @@ struct _kvstore;
 sds kvobjGetKey(const kvobj *kv);
 uint64_t tomoKeyHash(const void *key, size_t len);
 void tomoRetireDetachedBag(struct _kvstore *kvs, kvobj *head);
+void tomoFlatResizeLogSlot(struct _kvstore *kvs, flatTable *old, uint64_t slot);
+void tomoFlatResizeLogDelete(struct _kvstore *kvs, flatTable *old, const sds key);
 #define flatDecodeKV(de) ((kvobj *)((uintptr_t)(void *)(de) & ~(uintptr_t)7))
 
 #include <string.h>
@@ -1112,6 +1114,7 @@ int kvstoreDictSetAtLink(kvstore *kvs, int didx, void *kv, dictEntryLink *link, 
                 if (link) *link = NULL;            /* a resize invalidates the old table's link */
                 return DICT_ERR;
             }
+            tomoFlatResizeLogSlot(kvs, t, inserted);
             if (link) *link = (dictEntryLink)&t->slots[inserted].w;
             __atomic_add_fetch(&kvs->key_count, 1, __ATOMIC_RELAXED);
         } else if (kv == NULL) {
@@ -1124,7 +1127,9 @@ int kvstoreDictSetAtLink(kvstore *kvs, int didx, void *kv, dictEntryLink *link, 
                         "delete must route through the single-store flatDelete path");
         } else {
             dictEntry *masked = flatKvMask(kvs, kv);
-            flatOverwrite(t, flatSlotOf(t, *link), masked); /* caller already holds/frees the old kvobj */
+            uint64_t slot = flatSlotOf(t, *link);
+            flatOverwrite(t, slot, masked); /* caller already holds/frees the old kvobj */
+            tomoFlatResizeLogSlot(kvs, t, slot);
         }
         return DICT_OK;
     }
@@ -1177,7 +1182,10 @@ void kvstoreDictTwoPhaseUnlinkFree(kvstore *kvs, int didx, dictEntryLink link, i
     if (kvs->flags & KVSTORE_FLAT) {
         flatTable *t = flatCurrent(kvs);
         dictEntry *old = flatDelete(t, flatSlotOf(t, link));
-        if (old) tomoRetireDetachedBag(kvs, flatDecodeKV(old));
+        if (old) {
+            tomoFlatResizeLogDelete(kvs, t, kvobjGetKey(flatDecodeKV(old)));
+            tomoRetireDetachedBag(kvs, flatDecodeKV(old));
+        }
         __atomic_sub_fetch(&kvs->key_count, 1, __ATOMIC_RELAXED);
         (void)table_index;
         return;
@@ -1194,7 +1202,10 @@ int kvstoreDictDelete(kvstore *kvs, int didx, const void *key) {
         size_t len = sdslen((sds)key);
         uint64_t slot; if (!flatFindForWrite(t, tomoKeyHash(key, len), (const char*)key, len, &slot)) return DICT_ERR;
         dictEntry *old = flatDelete(t, slot);
-        if (old) tomoRetireDetachedBag(kvs, flatDecodeKV(old));
+        if (old) {
+            tomoFlatResizeLogDelete(kvs, t, kvobjGetKey(flatDecodeKV(old)));
+            tomoRetireDetachedBag(kvs, flatDecodeKV(old));
+        }
         __atomic_sub_fetch(&kvs->key_count, 1, __ATOMIC_RELAXED);
         return DICT_OK;
     }

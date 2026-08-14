@@ -324,7 +324,7 @@ int flatTableCopyChunk(flatTable *old, flatTable *nw, uint64_t *cursor, uint64_t
     uint64_t i = *cursor, end = i + slot_budget;
     if (end > old->size) end = old->size;
     for (; i < end; i++) {
-        uint64_t w = atomic_load_explicit(&old->slots[i].w, memory_order_relaxed);
+        uint64_t w = atomic_load_explicit(&old->slots[i].w, memory_order_acquire);
         if (!FLAT_IS_LIVE(w)) continue;
         dictEntry *mk = flat_word_ptr(w);
         sds k = kvobjGetKey(dictGetKV(mk));

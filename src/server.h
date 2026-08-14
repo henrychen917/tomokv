@@ -2307,6 +2307,8 @@ typedef struct tomoFlatResizeProgress {
 void tomoFlatResizeWorkerProgress(int worker_id, tomoFlatResizeProgress *progress);
 void tomoFlatResizeWorkerWaitStep(int worker_id);
 void tomoFlatResizeWakeWorker(int worker_id);    /* wake that node's immutable resize owner */
+void tomoFlatResizeLogSlot(kvstore *kvs, struct flatTable *old, uint64_t slot);
+void tomoFlatResizeLogDelete(kvstore *kvs, struct flatTable *old, const sds key);
 extern _Atomic unsigned long long flat_insert_full_waits;
 extern _Atomic unsigned long long flat_insert_full_wait_us_max;
 int migSuppressLazyExpire(redisDb *db, sds keyname); /* W6-E2: 1 = DRAINING fence — treat in-range key as expired WITHOUT deleting */
