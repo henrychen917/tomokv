@@ -3071,8 +3071,9 @@ typedef struct {
  * or DEBUG TOMO-MODESHIFT driving it by hand) — with ONE deliberate exception: an
  * io thread completing its own IO-EXIT stores its grow-back target from
  * tmMigServiceOut, because only that thread knows when the last conn left. The
- * iotid TLS store happens exclusively at the checkpoint, BEFORE the first slice
- * of the new mode runs. */
+ * iotid TLS store happens exclusively through the role-identity helpers at the
+ * checkpoint, BEFORE the first slice using that identity. A dormant EX safety slice
+ * takes EX identity only for that slice and restores IO identity before ioSlice. */
 typedef struct polyThreadCtx {
     exThread *ex;          /* EX binding (shard + queues); NULL = not EX-capable (step 2) */
     ioThreadArgs *io;      /* IO binding (event loop + listener); NULL = not IO-capable */
@@ -3132,12 +3133,11 @@ typedef struct tmMigMailbox {
     _Atomic int io_exiting;       /* IO-EXIT in progress: request the EX role once client count
                                    * hits 0. Written by the owner only, but read CROSS-THREAD by
                                    * tmGatherLiveDests / the rebalance dest fallback /
-                                   * tomoMigrateTest — atomic (relaxed) so those reads are
-                                   * not C11 data races. Stays 1 from the exit request all
-                                   * the way THROUGH the IO->EX checkpoint (cleared there, next
-                                   * to accept_left — NOT at service-out step 4), so the exiting
-                                   * thread is never selected as a migration destination in the
-                                   * window between the request and the role change. */
+                                   * tomoMigrateTest. Stays 1 through the IO->EX checkpoint and
+                                   * throughout the EX role; a future IO adoption release-clears it
+                                   * only after publishing mode==IO. Destination eligibility uses
+                                   * acquire loads, so no source can select the slot before that
+                                   * adoption is complete. */
     int accept_left;              /* IO-EXIT: this thread already left the reuseport group */
     int exit_then_ex;             /* owner's latched copy of req_then_ex for the current exit */
     int exit_logged;              /* one-shot: "IO-EXIT complete" printed for THIS exit — the

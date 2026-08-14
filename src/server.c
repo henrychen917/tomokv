@@ -22418,8 +22418,16 @@ static inline int exDormantSliceNeeded(exThread *worker,
  * migration duties, one full rotated producer-queue scan + batch exec + reply
  * signals, then the adaptive idle-spin decision. Returns 1 if this pass popped
  * any work, 0 for an idle pass. */
-static int exSlice(exThread *worker, exSliceCtx *ctx,
+static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
                    exSliceIdlePolicy idle_policy) {
+    if (__builtin_expect(iotid <= TOMO_IO_THREADS_MAX || worker->id < 0 ||
+                         worker->id >= server.num_workers ||
+                         iotid - (TOMO_IO_THREADS_MAX + 1) != worker->id ||
+                         poly_ctx->ex != worker || poly_ctx->ex_slot != worker->id, 0))
+        serverPanic("thread-modes: exSlice identity mismatch: iotid=%d worker_id=%d "
+                    "ctx_mode=%d io_slot=%d ex_slot=%d", iotid, worker->id,
+                    atomic_load_explicit(&poly_ctx->mode, memory_order_relaxed),
+                    poly_ctx->io_slot, poly_ctx->ex_slot);
     tm_cur_ex = worker;   /* D svc attribution: one TLS store per pass */
 
     /* ee451 (S8): decref any zero-copy reply values the IO threads handed
@@ -24070,7 +24078,13 @@ static inline void tmIoBusyBegin(void) {
  * wait helpers publish callback-side waits directly into the same wait counter. io_uring wait is
  * zero by design because completion taskwork and sleeping cannot be separated inside enter, but
  * its user-space CQ/parser/reply/event work is still bracketed. */
-static int ioSlice(ioThreadArgs *t, int idle_wait_us) {
+static int ioSlice(polyThreadCtx *ctx, ioThreadArgs *t, int idle_wait_us) {
+    if (__builtin_expect(iotid < 0 || iotid > TOMO_IO_THREADS_MAX ||
+                         iotid != t->id || ctx->io != t || ctx->io_slot != t->id, 0))
+        serverPanic("thread-modes: ioSlice identity mismatch: iotid=%d io_id=%d "
+                    "ctx_mode=%d io_slot=%d ex_slot=%d", iotid, t->id,
+                    atomic_load_explicit(&ctx->mode, memory_order_relaxed),
+                    ctx->io_slot, ctx->ex_slot);
     tmIoSignal *s = &tm_io_sig[t->id];
     aeIOAccounting accounting;
     int ne = aeProcessEventsIO(t->el, idle_wait_us, &accounting);
@@ -24131,6 +24145,31 @@ static int ioSlice(ioThreadArgs *t, int idle_wait_us) {
     return ne;
 }
 
+/* A slice identity is installed only between slices. Keeping the TLS id, flat-store registration,
+ * and role-accounting baseline in these two helpers prevents a refused adoption from publishing a
+ * partial identity and also covers the scoped dormant-EX drain performed by an IO-role thread. */
+static inline void tmAdoptIoIdentity(polyThreadCtx *ctx) {
+    serverAssert(ctx->io != NULL && ctx->io_slot >= 0 &&
+                 ctx->io_slot <= TOMO_IO_THREADS_MAX);
+    serverAssert(ctx->io == &server.ioThreads[ctx->io_slot] &&
+                 ctx->io->id == ctx->io_slot);
+    serverAssert(flat_extern_depth == 0);
+    iotid = ctx->io_slot;
+    flatRegisterIoSlot(ctx->io_slot);
+    tmIoBusyBegin();
+}
+
+static inline void tmAdoptExIdentity(polyThreadCtx *ctx, exSliceCtx *exctx) {
+    serverAssert(ctx->ex != NULL && ctx->ex_slot >= 0 &&
+                 ctx->ex_slot < server.num_workers);
+    serverAssert(ctx->ex == &server.exThreads[ctx->ex_slot] &&
+                 ctx->ex->id == ctx->ex_slot);
+    serverAssert(flat_extern_depth == 0);
+    iotid = TOMO_IO_THREADS_MAX + 1 + ctx->ex_slot;
+    flatRegisterWorker();
+    exctx->tm_idle_mark = 0;
+}
+
 /* ee451 (thread-modes v1, step 2): unified polymorphic thread main. All tomokv
  * threads run this. arg = this thread's polyThreadCtx (fixed identity pair + bindings).
  *
@@ -24138,9 +24177,10 @@ static int ioSlice(ioThreadArgs *t, int idle_wait_us) {
  * two live threads aliasing one __thread iotid slot):
  *   - identity slots are FIXED at creation and never shared between live threads
  *     (see polyThreadCtx) — so no transition can ever alias another thread;
- *   - iotid is (re)stored ONLY at the checkpoint below — between slices, when
- *     this thread is not mid-slice and owns no in-flight iotid-indexed state —
- *     and always BEFORE the first slice of the new mode runs;
+ *   - iotid is (re)stored ONLY through tmAdopt*Identity at the checkpoint below —
+ *     between slices, when this thread owns no in-flight iotid-indexed state — and
+ *     always BEFORE the first slice using that identity. The dormant-EX safety drain
+ *     adopts EX identity for its one slice and restores IO identity before ioSlice;
  *   - a mode is entered only if its binding exists (io: listener + event loop;
  *     ex: exThread/shard). A refused target leaves the thread in its current mode
  *     and is retried at the next checkpoint.
@@ -24222,7 +24262,7 @@ void *polyThreadMain(void *arg) {
                      * signals) until every source has stayed quiet for 50ms. */
                     mstime_t quiet0 = mstime();
                     while (mstime() - quiet0 < 50)
-                        if (exSlice(ctx->ex, &exctx, EX_SLICE_IDLE_BACKOFF)) quiet0 = mstime();
+                        if (exSlice(ctx, ctx->ex, &exctx, EX_SLICE_IDLE_BACKOFF)) quiet0 = mstime();
                     /* INVARIANT: a worker leaving the EX role owns NOTHING — the outbound
                      * migration moved its whole range. Fail loud rather than strand data.
                      * ee451 (shared-kv): under per-node sharing ctx->ex->db IS the node's shared
@@ -24249,15 +24289,6 @@ void *polyThreadMain(void *arg) {
                      * quiet drain uses live-worker backoff, whose integer EWMA
                      * decay can stop at 1..7 rather than clearing exactly. */
                     dormant_ex_followup = 1;
-                }
-                serverAssert(flat_extern_depth == 0);   /* identity may not change inside a flat region */
-                iotid = ctx->io_slot;                   /* IO identity, BEFORE any slice */
-                flatRegisterIoSlot(ctx->io_slot);
-                if (tomoUringBackendInitThread(ctx->io_slot, ctx->io->el) != C_OK) {
-                    serverLog(LL_WARNING,
-                              "FATAL: failed to initialize requested io_uring owner %d",
-                              ctx->io_slot);
-                    exit(1);
                 }
                 if (!ctx->io_listening) {
                     /* ee451 (rank-2 re-bind fix): an IO-EXIT CLOSES this slot's listener
@@ -24304,15 +24335,26 @@ void *polyThreadMain(void *arg) {
                         ok = 0; break;
                     }
                     ctx->io_listening = 1;
+                }
+                /* Listener preparation can refuse. Install the IO identity only after every
+                 * recoverable step has succeeded, so refusal leaves the current EX identity whole. */
+                tmAdoptIoIdentity(ctx);
+                if (tomoUringBackendInitThread(ctx->io_slot, ctx->io->el) != C_OK) {
+                    serverLog(LL_WARNING,
+                              "FATAL: failed to initialize requested io_uring owner %d",
+                              ctx->io_slot);
+                    exit(1);
+                }
+                /* Backend setup requires the IO TLS identity. Re-baseline afterwards so its
+                 * one-time CPU cost is not charged to the first serving slice. */
+                tmIoBusyBegin();
+                if (cur == TOMO_MODE_EX) {
                     serverLog(LL_NOTICE, "ee451 flip: GROW-FRONT role change complete — worker %d is now "
                                          "IO thread %d (iotid=%d), listener live, accepting",
                               ctx->ex ? ctx->ex->id : -1, ctx->io->id, iotid);
                 } else if (cur == TOMO_MODE_UNSET) {
                     fprintf(stderr, "IO thread %d started (poly, iotid=%d)\n", ctx->io->id, iotid);
                 }
-                /* Seed after the role transition so EX-role CPU and listener setup are not charged
-                 * to IO utilization. The first ioSlice publishes only CPU spent in the IO role. */
-                tmIoBusyBegin();
                 break;
             case TOMO_MODE_EX:
                 if (!ctx->ex) { ok = 0; break; }        /* no shard slot binding */
@@ -24338,20 +24380,13 @@ void *polyThreadMain(void *arg) {
                         ok = 0; break;
                     }
                     mb->accept_left = 0;   /* exit consumed; a future IO re-entry starts clean */
-                    /* ee451 (rank-1): io_exiting stays 1 from the exit request THROUGH this
-                     * adoption. Clearing it at tmMigServiceOut step 4 opened a window where
-                     * tmGatherLiveDests / the rebalance dest fallback saw io_exiting==0 &&
-                     * mode==IO and picked the EXITING thread as a migration destination.
-                     * (Residual window: this clear precedes the mode publication by a few
-                     * instructions — nanoseconds, vs a full service pass before; the expel
-                     * above catches anything that still lands.) */
-                    atomic_store_explicit(&mb->io_exiting, 0, memory_order_relaxed);
+                    /* Keep io_exiting set through the EX mode publication. The stale-sentinel
+                     * sweep below can run multiple slices, so clearing it here would make this
+                     * non-IO thread a migration destination for the entire sweep. */
                     serverLog(LL_NOTICE, "ee451 flip: GROW-BACK — io thread %d left the accept group with "
                                          "0 clients; taking the EX role", ctx->io_slot);
                 }
-                serverAssert(flat_extern_depth == 0);   /* identity may not change inside a flat region */
-                iotid = TOMO_IO_THREADS_MAX + 1 + ctx->ex_slot;   /* EX identity, BEFORE any slice */
-                flatRegisterWorker();
+                tmAdoptExIdentity(ctx, &exctx);
                 if (!ex_inited) {
                     /* One-time EX setup before the first EX slice. */
                     /* v12-K absent on numa lineage — stripped */
@@ -24360,12 +24395,6 @@ void *polyThreadMain(void *arg) {
                     ex_inited = 1;
                     fprintf(stderr, "[worker %d] started (poly, iotid=%d)\n", ctx->ex->id, iotid);
                 }
-                /* EVERY EX entry, not just the first: exctx outlives a role change (it is a stack
-                 * local of this thread's main loop and exSliceInit is one-time), so a drought left
-                 * open when this thread last went IO would otherwise be closed here and bill the
-                 * whole IO stint as EX idle. tm_mark needs no such reset — it is re-stamped at the
-                 * first pop of every work pass. Mirror of tmIoBusyBegin on the IO side. */
-                exctx.tm_idle_mark = 0;
                 if (cur != TOMO_MODE_UNSET) {
                     /* ee451 (hardening 3.1a): sweep STALE SENTINELS before going live. A
                      * FLUSHALL fanned to this slot in the same instant it left the EX role can
@@ -24374,7 +24403,7 @@ void *polyThreadMain(void *arg) {
                      * executing it after the seed migration would delete live data. No migration
                      * can be active here: the flip actuator checks migration_active and then
                      * waits for this checkpoint to publish EX mode before arming the seed. */
-                    while (exSlice(ctx->ex, &exctx, EX_SLICE_IDLE_BACKOFF)) ;
+                    while (exSlice(ctx, ctx->ex, &exctx, EX_SLICE_IDLE_BACKOFF)) ;
                     long long sz = 0;
                     for (int d = 0; d < server.dbnum; d++)
                         if (dbIsInitialized(&ctx->ex->db[d])) sz += dbSize(&ctx->ex->db[d]);
@@ -24399,6 +24428,12 @@ void *polyThreadMain(void *arg) {
                     tomoRebuildCrossNodeTopology();
                 }
                 atomic_store_explicit(&ctx->mode, cur, memory_order_release);
+                /* Eligibility requires both !io_exiting and mode==IO. Publishing IO first and
+                 * clearing with release keeps grow-back's departing slot excluded until its later
+                 * IO re-entry is complete. */
+                if (cur == TOMO_MODE_IO)
+                    atomic_store_explicit(&tm_mig_mbox[ctx->io_slot].io_exiting, 0,
+                                          memory_order_release);
                 refused = 0;                            /* a successful shift re-arms rejection logging */
             } else if (refused != want) {
                 serverLog(LL_WARNING, "thread-modes: refused shift to mode %d (io_slot %d, ex_slot %d): "
@@ -24429,9 +24464,12 @@ void *polyThreadMain(void *arg) {
             if (ctx->ex && ex_inited &&
                 (dormant_ex_followup || dormant_ex_probe_passes == 0)) {
                 if (dormant_ex_followup ||
-                    exDormantSliceNeeded(ctx->ex, &exctx))
+                    exDormantSliceNeeded(ctx->ex, &exctx)) {
+                    tmAdoptExIdentity(ctx, &exctx);
                     dormant_ex_followup =
-                        exSlice(ctx->ex, &exctx, EX_SLICE_IDLE_RETURN);
+                        exSlice(ctx, ctx->ex, &exctx, EX_SLICE_IDLE_RETURN);
+                    tmAdoptIoIdentity(ctx);
+                }
                 dormant_ex_probe_passes = TOMO_DORMANT_EX_PROBE_PASSES;
             }
             int idle_wait_us = (ctx->ex && ex_inited) ? 1000 : -1;
@@ -24448,7 +24486,7 @@ void *polyThreadMain(void *arg) {
                 else
                     idle_wait_us = TOMO_KEY_LB_NODE_TICK_US;
             }
-            io_events = ioSlice(ctx->io, idle_wait_us);
+            io_events = ioSlice(ctx, ctx->io, idle_wait_us);
             if (ctx->ex && ex_inited) {
                 /* A true idle timeout forces a probe on the next pass,
                  * preserving the 1 ms wall-clock bound when no activity can
@@ -24464,7 +24502,7 @@ void *polyThreadMain(void *arg) {
             }
             break;
         case TOMO_MODE_EX:
-            exSlice(ctx->ex, &exctx, EX_SLICE_IDLE_BACKOFF);
+            exSlice(ctx, ctx->ex, &exctx, EX_SLICE_IDLE_BACKOFF);
             break;
         default: {
             /* NEVER-ENTERED (birth, or every target so far refused): 50ms bounded wait, then
@@ -25058,7 +25096,7 @@ static int tmGatherLiveDests(int exclude, int *out, int cap) {
     int hi = server.io_threads + server.tm_ngrow_io;
     for (int id = 1; id <= hi && n < cap; id++) {
         if (id == exclude) continue;
-        if (atomic_load_explicit(&tm_mig_mbox[id].io_exiting, memory_order_relaxed)) continue;
+        if (atomic_load_explicit(&tm_mig_mbox[id].io_exiting, memory_order_acquire)) continue;
         polyThreadCtx *ctx = tmCtxForIotid(id);
         if (!ctx) continue;
         if (atomic_load_explicit(&ctx->mode, memory_order_acquire) != TOMO_MODE_IO) continue;
@@ -25517,7 +25555,7 @@ void tmMigServiceOut(void) {
                 if (restored) mb->accept_left = 0;
             }
             if (restored) {
-                atomic_store_explicit(&mb->io_exiting, 0, memory_order_relaxed);
+                atomic_store_explicit(&mb->io_exiting, 0, memory_order_release);
             } else {
                 /* A rollback is not complete with its listener still outside the accept group.
                  * Keep io_exiting/accept_left asserted, retry on this owner, and do not acknowledge
@@ -25589,7 +25627,7 @@ void tmMigServiceOut(void) {
             dest = mb->batch_dest;
             polyThreadCtx *dctx = tmCtxForIotid(dest);
             if (dest == id || !dctx ||
-                atomic_load_explicit(&tm_mig_mbox[dest].io_exiting, memory_order_relaxed) ||
+                atomic_load_explicit(&tm_mig_mbox[dest].io_exiting, memory_order_acquire) ||
                 atomic_load_explicit(&dctx->mode, memory_order_acquire) != TOMO_MODE_IO) {
                 /* the chosen destination went away — fall back to least-loaded, else abort */
                 dest = tmLeastLoadedIoDest(id);
@@ -25615,8 +25653,9 @@ void tmMigServiceOut(void) {
      * conn-drain test hook (DEBUG TOMO-MODESHIFT 5) has no controller bookkeeping behind it, so
      * its thread must stay IO — flipping it would leave io_threads_live counting a worker. A
      * thread with no EX binding likewise has nowhere to go.
-     * ee451 (rank-1 inbox-wedge fix): io_exiting is NOT cleared here — it stays set until the
-     * checkpoint actually adopts EX. Clearing it early (while ctx->mode is still IO) let
+     * ee451 (rank-1 inbox-wedge fix): io_exiting is NOT cleared here — it stays set throughout
+     * the EX role and is cleared only after a future IO adoption is published. Clearing it while
+     * ctx->mode is still IO lets
      * migration sources select this thread as a DEST in the request window; and a conn ADOPTED
      * in that window wedged the exit forever with the exiting flag off (clients!=0 blocked the
      * role change, step-2 re-marking no longer ran). Kept set, step 2 keeps re-migrating late
