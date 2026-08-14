@@ -23,7 +23,7 @@ Claude project memory (`claude-memory/` → copy to the new box's
 
 | What | From | Notes |
 |---|---|---|
-| TomoKV | `git@github.com:henrychen917/tomokv.git` | `stable` = docs+bench (730dc029f); this branch = `transfer-context` |
+| TomoKV | `git@github.com:henrychen917/tomokv.git` | **light clone**: `git clone -b stable --single-branch`, then `git fetch origin transfer-context:transfer-context` once and harvest `transfer/` (claude-memory -> .claude memory path). All other branches (threadcap128-dev, cx102-writetax-shelved, 2s-atomic-*, audits) stay on gh as archive — fetch on demand only. |
 | memtier_benchmark | github RedisLabs/memtier_benchmark | benches will be REWRITTEN for the new server; stock memtier suffices to start |
 | Redis (baseline) | github redis/redis, unstable | build `make MALLOC=jemalloc`; the sweep used a v255.255.255 unstable build |
 | Dragonfly v1.39 | github dragonflydb release binary x86_64 | pin the same version for comparability (torn result is version-specific) |
