@@ -2298,8 +2298,17 @@ void tomoFlatResizeQuiesce(void);  /* server.c; wait out every in-flight FLATSTO
                                     * NON-WORKER mutation that may span shared node dbs */
 void tomoFlatResizeWorkerQuiesce(int worker_id); /* wait only for the worker's node resize */
 int tomoFlatResizeWorkerActive(int worker_id);
+typedef struct tomoFlatResizeProgress {
+    unsigned long long drives;
+    unsigned long long completed_chunks;
+    int state;
+    int active;
+} tomoFlatResizeProgress;
+void tomoFlatResizeWorkerProgress(int worker_id, tomoFlatResizeProgress *progress);
+void tomoFlatResizeWorkerWaitStep(int worker_id);
 void tomoFlatResizeWakeWorker(int worker_id);    /* wake that node's immutable resize owner */
 extern _Atomic unsigned long long flat_insert_full_waits;
+extern _Atomic unsigned long long flat_insert_full_wait_us_max;
 int migSuppressLazyExpire(redisDb *db, sds keyname); /* W6-E2: 1 = DRAINING fence — treat in-range key as expired WITHOUT deleting */
 void reshardDebug(client *c);                     /* v8d: DEBUG RESHARD START|STATUS */
 void reshardAutoTune(void);                       /* per-node EWMA key balancer, driven at 1 Hz */

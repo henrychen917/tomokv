@@ -501,7 +501,59 @@ static inline struct tomoVerMeta *tomoVerMetaNew(redisDb *db, uint64_t version_s
     return vmeta;
 }
 
-#define FLAT_INSERT_MAX_WAIT_ROUNDS 64U
+/* A dead coordinator must outlive the independent two-second quiesce watchdog before this fires. */
+#define FLAT_INSERT_NO_PROGRESS_US 5000000ULL
+
+typedef struct dbFlatInsertWaitState {
+    monotime start_us;
+    monotime last_progress_us;
+    flatTable *table;
+    tomoFlatResizeProgress resize;
+    unsigned long long initial_drives;
+    unsigned long long wait_rounds;
+    unsigned long long used;
+    unsigned long long tombs;
+    unsigned long long size;
+    int initialized;
+} dbFlatInsertWaitState;
+
+static void dbFlatInsertWaitMaxUpdate(unsigned long long wait_us) {
+    unsigned long long old = atomic_load_explicit(&flat_insert_full_wait_us_max,
+                                                  memory_order_relaxed);
+    while (wait_us > old &&
+           !atomic_compare_exchange_weak_explicit(&flat_insert_full_wait_us_max, &old, wait_us,
+                                                  memory_order_relaxed, memory_order_relaxed)) { }
+}
+
+static void dbFlatInsertObserve(kvstore *kvs, exThread *worker,
+                                dbFlatInsertWaitState *wait) {
+    tomoFlatResizeProgress resize;
+    flatTable *table = kvstoreFlatTable(kvs);
+    tomoFlatResizeWorkerProgress(worker->id, &resize);
+    monotime now = getMonotonicUs();
+    int table_unchanged = table == wait->table;
+
+    if (!table_unchanged || resize.drives != wait->resize.drives ||
+        resize.completed_chunks != wait->resize.completed_chunks ||
+        resize.state != wait->resize.state || resize.active != wait->resize.active) {
+        wait->last_progress_us = now;
+        wait->table = table;
+        wait->resize = resize;
+    }
+
+    unsigned long long no_progress_us = now - wait->last_progress_us;
+    if (table_unchanged && no_progress_us >= FLAT_INSERT_NO_PROGRESS_US) {
+        unsigned long long wait_us = now - wait->start_us;
+        unsigned long long drive_delta = resize.drives - wait->initial_drives;
+        dbFlatInsertWaitMaxUpdate(wait_us);
+        serverPanic("flatstore INSERT: table remained full "
+                    "(used=%llu tombs=%llu size=%llu wait_rounds=%llu "
+                    "wait_us=%llu no_progress_us=%llu drive_delta=%llu "
+                    "resize_state=%d resize_active=%d)",
+                    wait->used, wait->tombs, wait->size, wait->wait_rounds,
+                    wait_us, no_progress_us, drive_delta, resize.state, resize.active);
+    }
+}
 
 /* A worker command reaches this point holding its owner lock and with its flat section published.
  * Drop both while waiting: keeping the lock can strand a sibling in the all-node-lock HFE path
@@ -509,15 +561,20 @@ static inline struct tomoVerMeta *tomoVerMetaNew(redisDb *db, uint64_t version_s
  * Reacquire the lock while still unpublished, then publish + recheck before the caller reloads the
  * current table. This is the same store/check exclusion handshake used by exSlice and the version
  * prune callback. */
-static void dbFlatInsertWait(exThread *worker) {
+static void dbFlatInsertWait(kvstore *kvs, exThread *worker,
+                             dbFlatInsertWaitState *wait) {
     tomoWkrUnlockPub(worker->id);
     for (;;) {
         atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
-        /* Wake this node's immutable resize owner. A peer base IO may otherwise be in its bounded
-         * controller sleep for longer than the urgent insert retry budget. */
-        tomoFlatResizeWakeWorker(worker->id);
-        if (!tomoFlatResizeWorkerActive(worker->id)) usleep(100);
-        tomoFlatResizeWorkerQuiesce(worker->id);
+        for (;;) {
+            tomoFlatResizeWakeWorker(worker->id);
+            if (tomoFlatResizeWorkerActive(worker->id))
+                tomoFlatResizeWorkerWaitStep(worker->id);
+            else
+                usleep(100);
+            dbFlatInsertObserve(kvs, worker, wait);
+            if (!tomoFlatResizeWorkerActive(worker->id)) break;
+        }
 
         /* The command may not touch the refreshed table until it holds both protections again. */
         tomoWkrLockPub(worker->id);
@@ -529,29 +586,38 @@ static void dbFlatInsertWait(exThread *worker) {
 
 static void dbSetAtLinkWithFlatRetry(kvstore *kvs, int slot, kvobj *kv,
                                      dictEntryLink *link) {
-    unsigned wait_rounds = 0;
+    dbFlatInsertWaitState wait = {0};
+    int owner = iotid - (TOMO_IO_THREADS_MAX + 1);
+    serverAssert(owner >= 0 && owner < server.num_workers);
+    exThread *worker = &server.exThreads[owner];
     for (;;) {
-        if (kvstoreDictSetAtLink(kvs, slot, kv, link, 1) == DICT_OK) return;
+        if (kvstoreDictSetAtLink(kvs, slot, kv, link, 1) == DICT_OK) {
+            if (wait.initialized)
+                dbFlatInsertWaitMaxUpdate(getMonotonicUs() - wait.start_us);
+            return;
+        }
 
         /* We are still in the flat section, so the table which rejected this insert cannot be
          * replaced until after these diagnostics are captured. The kvstore caller already
          * escalated its rebuild request to FLAT_RESIZE_URGENT before returning DICT_ERR. */
         flatTable *t = kvstoreFlatTable(kvs);
         serverAssert(t != NULL);
-        unsigned long long used = atomic_load_explicit(&t->used, memory_order_relaxed);
-        unsigned long long tombs = atomic_load_explicit(&t->tombs, memory_order_relaxed);
-        unsigned long long size = t->size;
+        wait.used = atomic_load_explicit(&t->used, memory_order_relaxed);
+        wait.tombs = atomic_load_explicit(&t->tombs, memory_order_relaxed);
+        wait.size = t->size;
+        if (!wait.initialized) {
+            wait.start_us = wait.last_progress_us = getMonotonicUs();
+            wait.table = t;
+            tomoFlatResizeWorkerProgress(owner, &wait.resize);
+            wait.initial_drives = wait.resize.drives;
+            wait.initialized = 1;
+        } else {
+            dbFlatInsertObserve(kvs, worker, &wait);
+        }
 
-        if (wait_rounds == FLAT_INSERT_MAX_WAIT_ROUNDS)
-            serverPanic("flatstore INSERT: table remained full "
-                        "(used=%llu tombs=%llu size=%llu wait_rounds=%u)",
-                        used, tombs, size, wait_rounds);
-
-        int owner = iotid - (TOMO_IO_THREADS_MAX + 1);
-        serverAssert(owner >= 0 && owner < server.num_workers);
         atomic_fetch_add_explicit(&flat_insert_full_waits, 1, memory_order_relaxed);
-        dbFlatInsertWait(&server.exThreads[owner]);
-        wait_rounds++;
+        wait.wait_rounds++;
+        dbFlatInsertWait(kvs, worker, &wait);
         /* kvstoreDictSetAtLink cleared the stale link. The next attempt reloads flatCurrent and
          * repeats flatFindForWrite against the replacement table. */
     }

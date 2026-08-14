@@ -9458,6 +9458,7 @@ typedef struct flatResizeNodeState {
 } __attribute__((aligned(CACHE_LINE_SIZE))) flatResizeNodeState;
 static flatResizeNodeState flat_rz[TOMO_NODES_MAX];
 _Atomic unsigned long long flat_insert_full_waits;
+_Atomic unsigned long long flat_insert_full_wait_us_max;
 _Atomic unsigned long long flat_rz_urgent_services;
 _Atomic unsigned long long flat_rz_helper_chunks;
 #define FLAT_RZ_QUIESCE_DEADLINE_US  200000ULL
@@ -9607,19 +9608,50 @@ int flatResizePending(void) {
     return pending;
 }
 
-int tomoFlatResizeWorkerActive(int worker_id) {
+static int flatResizeWorkerNode(int worker_id) {
     serverAssert(worker_id >= 0 && worker_id < server.num_workers);
     int node = (tmNumNodes() > 1 && server.ex_per_node > 0) ?
                worker_id / server.ex_per_node : 0;
-    if (node < 0 || node >= tmNumNodes() || node >= TOMO_NODES_MAX) return 0;
+    if (node < 0 || node >= tmNumNodes() || node >= TOMO_NODES_MAX) return -1;
+    return node;
+}
+
+int tomoFlatResizeWorkerActive(int worker_id) {
+    int node = flatResizeWorkerNode(worker_id);
+    if (node < 0) return 0;
     return atomic_load_explicit(&server.flat_resize_active[node], memory_order_seq_cst) != 0;
+}
+
+void tomoFlatResizeWorkerProgress(int worker_id, tomoFlatResizeProgress *progress) {
+    int node = flatResizeWorkerNode(worker_id);
+    serverAssert(progress != NULL);
+    if (node < 0) {
+        memset(progress, 0, sizeof(*progress));
+        return;
+    }
+    progress->drives = atomic_load_explicit(&flat_rz[node].drives, memory_order_relaxed);
+    progress->completed_chunks = atomic_load_explicit(&flat_rz[node].completed_chunks,
+                                                       memory_order_acquire);
+    progress->state = atomic_load_explicit(&flat_rz[node].state, memory_order_acquire);
+    progress->active = atomic_load_explicit(&server.flat_resize_active[node],
+                                             memory_order_seq_cst) != 0;
+}
+
+void tomoFlatResizeWorkerWaitStep(int worker_id) {
+    int node = flatResizeWorkerNode(worker_id);
+    if (node >= 0) flatResizeWatchdog(node);
+    usleep(100);
 }
 
 void tomoFlatResizeWakeWorker(int worker_id) {
     serverAssert(worker_id >= 0 && worker_id < server.num_workers);
-    if (tmNumNodes() <= 1 || server.ex_per_node <= 0 || server.io_per_node <= 0) return;
-    int node = worker_id / server.ex_per_node;
-    if (node < 0 || node >= tmNumNodes() || node >= TOMO_NODES_MAX) return;
+    if (tmNumNodes() <= 1) {
+        tomoAtomicWakeProducer(0);
+        return;
+    }
+    if (server.ex_per_node <= 0 || server.io_per_node <= 0) return;
+    int node = flatResizeWorkerNode(worker_id);
+    if (node < 0) return;
     tomoAtomicWakeProducer(node * server.io_per_node);
 }
 
@@ -9637,7 +9669,7 @@ void flatResizeCoordinate(int node) {
 
     flatResizeNodeState *rz = &flat_rz[node];
     int state = atomic_load_explicit(&rz->state, memory_order_acquire);
-    if (nnodes > 1 && state != FLAT_RZ_IDLE)
+    if (state != FLAT_RZ_IDLE)
         atomic_fetch_add_explicit(&rz->drives, 1, memory_order_relaxed);
     if (state == FLAT_RZ_IDLE) {
         /* A watchdog publishes IDLE before it clears the park gate. Do not reuse this row in that
@@ -9661,8 +9693,7 @@ void flatResizeCoordinate(int node) {
                 }
             }
         if (!t) return;
-        if (nnodes > 1)
-            atomic_fetch_add_explicit(&rz->drives, 1, memory_order_relaxed);
+        atomic_fetch_add_explicit(&rz->drives, 1, memory_order_relaxed);
         if (atomic_load_explicit(&server.migration_active, memory_order_acquire) ||
             atomic_load_explicit(&tomo_flush_gate, memory_order_acquire) ||
             (nnodes > 1 && tmFlipActive())) return;
@@ -15870,10 +15901,8 @@ void flushAllShards(client *c, int dbid, int async) {
  * defers the free until every reader has left its region, and ours is open. */
 _Atomic unsigned long long flat_rz_quiesce_waits;   /* INFO: times this guard actually had to wait */
 void tomoFlatResizeWorkerQuiesce(int worker_id) {
-    serverAssert(worker_id >= 0 && worker_id < server.num_workers);
-    int node = (tmNumNodes() > 1 && server.ex_per_node > 0) ?
-               worker_id / server.ex_per_node : 0;
-    if (node < 0 || node >= tmNumNodes() || node >= TOMO_NODES_MAX) return;
+    int node = flatResizeWorkerNode(worker_id);
+    if (node < 0) return;
     if (flatResizeNodeActive(node))
         atomic_fetch_add_explicit(&flat_rz_quiesce_waits, 1, memory_order_relaxed);
     int waiting = 0;
@@ -19834,6 +19863,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_flat_resize_quiesce_waits:%llu\r\n", atomic_load_explicit(&flat_rz_quiesce_waits, memory_order_relaxed),
             "tomokv_flat_resize_helper_chunks:%llu\r\n", atomic_load_explicit(&flat_rz_helper_chunks, memory_order_relaxed),
             "tomokv_flat_insert_full_waits:%llu\r\n", atomic_load_explicit(&flat_insert_full_waits, memory_order_relaxed),
+            "tomokv_flat_insert_full_wait_us_max:%llu\r\n", atomic_load_explicit(&flat_insert_full_wait_us_max, memory_order_relaxed),
             "tomokv_flat_resize_urgent_services:%llu\r\n", atomic_load_explicit(&flat_rz_urgent_services, memory_order_relaxed),
             /* ee451 (J4): non-zero means a resize armed and the coordinator then stopped running,
              * and a parked thread had to unpark the world. Should be 0 on a healthy server; any
