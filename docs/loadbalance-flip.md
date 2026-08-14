@@ -90,6 +90,17 @@ Every IO-capable slot has a `tmMigMailbox` containing a mutex-protected destinat
 
 Mailboxes are held in a static array indexed by IO identity; initialization allocates the lists/notifier and registers the notifier on the slot's event loop. `src/server.c:22757-22778`, `src/server.c:24603-24648`
 
+### Per-node observability
+
+Multi-node configurations (`tomokv-nodes > 1`) publish each node's live role counts through `INFO`:
+`tomokv_node_<n>_io_live` is the node's live IO count (`tm_node_iolive[n]`) and
+`tomokv_node_<n>_ex_live` is its live bucket-owning worker count (`tm_node_wlive[n]`); the block is
+omitted single-node, where the global `io_threads_live` / `num_workers_live` already describe the
+whole pool. `DEBUG TOMO-NODEOF <key>` reports the node index a key routes to through the real
+`exIndexForKey` routing path (requires the debug command to be enabled at boot, e.g.
+`--enable-debug-command local`). These are direct reads of controller state — no derived arithmetic —
+so they are safe to poll while the controllers are actuating. `src/server.c:19897`, `src/debug.c:992`
+
 ## Flip controller
 
 ### Entry gates and sample scope

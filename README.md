@@ -22,8 +22,11 @@ FLATSTORE replaces the `dict` key store (and is unrelated to RDB) — see
 
 Every supported configuration resolves at least one IO thread and one EX worker per topology node.
 `tomokv-thread-io` and `tomokv-thread-ex` describe the starting split per node; `static` keeps that
-split, while `auto` permits a controller to convert provisioned threads between roles at between-slice
-checkpoints. Both modes use the same polymorphic thread machinery. ([`src/server.c`](src/server.c#L5614-L5625),
+split, while `auto` permits per-node controllers to convert provisioned threads between roles at
+between-slice checkpoints — each node's controller decides independently from its own signals, while
+the physical conversions serialize globally. Single-node configurations take a dedicated
+`nnodes == 1` path that bypasses the multi-node admission protocols, so single-node flip behavior is
+identical to the pre-topology controller. Both modes use the same polymorphic thread machinery. ([`src/server.c`](src/server.c#L5614-L5625),
 [`src/server.c`](src/server.c#L5717-L5776),
 [`src/server.c`](src/server.c#L5840-L5850),
 [`src/server.c`](src/server.c#L23146-L23420))
@@ -93,11 +96,33 @@ A normal command follows this path:
   coalesced or scattered to current owner workers, and reassembled once, with barriers around
   pipeline and two-hop continuations.
 - [Online resharding](docs/reshard-migration.md) — A contiguous boundary range moves between adjacent
-  workers sharing one physical database by draining old-owner lanes and rewriting ownership; keys
-  are not copied and this is not cross-node data migration.
-- [Load balancing](docs/loadbalance-flip.md) — Independent controllers convert threads between IO and
-  EX roles, move adjacent-worker bucket ranges, and hand eligible connections between IO owners.
+  workers sharing one physical database by draining old-owner lanes and rewriting ownership; drain
+  acknowledgements carry a fence generation so a stale ack from an aborted cutover can never satisfy
+  a newer fence. Keys are not copied and this is not cross-node data migration.
+- [Load balancing](docs/loadbalance-flip.md) — Per-node controllers convert threads between IO and
+  EX roles (deciding independently per node, serializing conversions globally), move adjacent-worker
+  bucket ranges, and hand eligible connections between IO owners. Multi-node role state is observable
+  via `INFO` (`tomokv_node_<n>_io_live` / `_ex_live`) and key→node routing via
+  `DEBUG TOMO-NODEOF <key>`.
 - [Mechanism index](docs/mechanisms/INDEX.md)
+
+## Benchmark results
+
+Cross-system comparison sweep, 2026-08-13: TomoKV (`auto`, flip-cost-inclusive) vs stock Redis vs
+Dragonfly v1.39 on one 8-core Zen 4 box, 8 GB fixed keyspace, 200 connections. Full protocol and
+caveats in [methodology](docs/bench/methodology.md).
+
+- [Cross-system throughput, 32 B](docs/bench/cross-system-d32.md) — TomoKV leads all 24 cells:
+  4.3–4.7× Redis everywhere; 1.05–1.07× Dragonfly at p1 and 1.8× on pipelined reads.
+- [IO↔EX split sweep](docs/bench/io-ex-sweep.md) — the bathtub: p1 optimum io7/ex1, p32 GET optimum
+  io5/ex3, p32 SET optimum io4/ex4; the flip lands the optimum in three of four regimes.
+- [Multi-key MGET/MSET](docs/bench/multikey-mget-mset.md) — TomoKV +10–21% unpipelined; Dragonfly
+  ~13% ahead pipelined (marked optimization target).
+- [Multi-key atomicity](docs/bench/atomicity-torn.md) — torn-read probe: TomoKV `tomokv-atomic yes`
+  and Redis are torn-free; TomoKV `atomic=off` tears 24% under maximal contention by design;
+  Dragonfly v1.39 (defaults) tears 0.74%.
+- [Flip convergence cost](docs/bench/flip-cost.md) — auto boots balanced and converges inside the
+  measured window: 10–15 s typical (~1%), 115 s worst observed (~4%).
 
 ## Configuration
 
