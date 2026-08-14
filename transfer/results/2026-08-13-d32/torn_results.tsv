@@ -1,0 +1,5 @@
+config	mgets	torn	torn_rate	miss	msets	conn_errs	examples
+tomokv_atomic_off	16194480	3943086	0.243483	0	23470592	0	w1.108xxxxxxxxxxxxxxxxxx|w1.109xxxxxxxxxxxxxxxxxx|w1.111xxxxxxxxxxxxxxxxxx;w1.109xxxxxxxxxxxxxxxxxx|w1.111xxxxxxxxxxxxxxxxxx;w2.100xxxxxxxxxxxxxxxxxx|w2.99xxxxxxxxxxxxxxxxxxx;w2.106xxxxxxxxxxxxxxxxxx|w2.108xxxxxxxxxxxxxxxxxx
+tomokv_atomic_on	14915296	0	0.000000	0	19372144	0	-
+dragonfly	8858848	65279	0.007369	0	8849728	0	w1.48xxxxxxxxxxxxxxxxxxx|w1.49xxxxxxxxxxxxxxxxxxx;w1.140xxxxxxxxxxxxxxxxxx|w2.136xxxxxxxxxxxxxxxxxx;w2.183xxxxxxxxxxxxxxxxxx|w2.184xxxxxxxxxxxxxxxxxx;w0.192xxxxxxxxxxxxxxxxxx|w1.211xxxxxxxxxxxxxxxxxx
+redis	19113584	0	0.000000	0	25084912	0	-

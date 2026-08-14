@@ -1,0 +1,36 @@
+2026-08-13 13:50:13 [sweep] SEG s1_headline_d32_getset START
+2026-08-13 16:24:18 [sweep] SEG s1_headline_d32_getset DONE rc=0 rows=24 csv=/shared/Projects/.claude/jobs/fd085c8e/tmp/SWEEP/s1_headline_d32_getset/20260813T205013Z-3870942/results.csv
+2026-08-13 16:24:21 [sweep] SEG s2_ioex_io1 START
+2026-08-13 16:24:32 [sweep] SEG s2q_d32_io7 START (17728s to deadline)
+2026-08-13 16:44:49 [sweep] SEG s2q_d32_io7 DONE rc=0 rows=4
+2026-08-13 16:44:51 [sweep] SEG s2q_d32_io1 START (16509s to deadline)
+2026-08-13 16:59:37 [sweep] SEG s2q_d32_io1 DONE rc=0 rows=4
+2026-08-13 16:59:39 [sweep] SEG s2q_d32_io5 START (15621s to deadline)
+2026-08-13 17:01:46 [sweep] SEG s2q_d32_io1_v4 START (qmax=9.5, 15494s to deadline)
+2026-08-13 17:14:19 [sweep] SEG s2q_d32_io1_v4 DONE rc=0 rows=4
+2026-08-13 17:14:21 [sweep] SEG s2q_d32_io5_v4 START (qmax=5.5, 14739s to deadline)
+2026-08-13 17:31:34 [sweep] SEG s2q_d32_io5_v4 DONE rc=0 rows=4
+2026-08-13 17:31:36 [sweep] SEG s2q_d32_io3_v4 START (qmax=7.5, 13704s to deadline)
+2026-08-13 17:47:39 [sweep] SEG s2q_d32_io3_v4 DONE rc=0 rows=4
+2026-08-13 17:47:41 [sweep] SEG s2q_d32_io6_v4 START (qmax=4.5, 12739s to deadline)
+2026-08-13 18:05:30 [sweep] SEG s2q_d32_io6_v4 DONE rc=0 rows=4
+2026-08-13 18:05:32 [sweep] SEG s2q_d32_io4_v4 START (qmax=6.5, 11668s to deadline)
+2026-08-13 18:22:01 [sweep] SEG s2q_d32_io4_v4 DONE rc=0 rows=4
+2026-08-13 18:22:03 [sweep] SEG s2q_d32_io2_v4 START (qmax=8.5, 10677s to deadline)
+2026-08-13 18:36:34 [sweep] SEG s2q_d32_io2_v4 DONE rc=0 rows=4
+2026-08-13 18:36:36 [sweep] SEG s4_mget_d32_tomokv START (qmax=2.5, 9804s to deadline)
+2026-08-13 18:36:47 [sweep] SECTION torn_probe START (9793s before deadline; will run to completion)
+TORN[tomokv_atomic_off]: mgets=16194480 torn=3943086 rate=24.3483% miss=0 msets=23470592 errs=0
+TORN[tomokv_atomic_on]: mgets=14915296 torn=0 rate=0.0000% miss=0 msets=19372144 errs=0
+TORN[dragonfly]: mgets=8858848 torn=65279 rate=0.7369% miss=0 msets=8849728 errs=0
+TORN[redis]: mgets=19113584 torn=0 rate=0.0000% miss=0 msets=25084912 errs=0
+2026-08-13 18:41:06 [sweep] TORN PROBE DONE: tomokv_atomic_off=3943086/16194480 tomokv_atomic_on=0/14915296 dragonfly=65279/8858848 redis=0/19113584 
+2026-08-13 18:41:06 [sweep] SECTION mget_d32_all_systems START (9534s before deadline; will run to completion)
+2026-08-13 18:41:08 [sweep] SEG s4_mget_d32_tomokv START (qmax=2.5)
+2026-08-13 19:26:46 [sweep] SEG s4_mget_d32_tomokv DONE rc=0 rows=8
+2026-08-13 19:26:48 [sweep] SEG s4_mget_d32_dragonfly START (qmax=2.5)
+2026-08-13 20:26:10 [sweep] SEG s4_mget_d32_dragonfly DONE rc=0 rows=8
+2026-08-13 20:26:12 [sweep] SEG s4_mget_d32_redis START (qmax=2.5)
+2026-08-13 21:14:09 [sweep] SEG s4_mget_d32_redis DONE rc=0 rows=8
+2026-08-13 21:14:09 [sweep] SECTION ioex_d128_full_curve START (351s before deadline; will run to completion)
+2026-08-13 21:14:11 [sweep] SEG s2q_d128_io7 START (qmax=3.5)

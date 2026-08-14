@@ -1,0 +1,5 @@
+"system","mode","io","ex","threads","valbytes","family","ratio","pipeline","driver","status","ops_per_sec","avg_lat_ms","p50","p99","ipreq","ipc","converge_time_s","stable_throughput","cell_id","reason"
+"tomokv","static","1","7","8","32","get_set","1:0","1","memtier","INVALID","NA","NA","NA","NA","NA","NA","NA","NA","cell-000001","quiet-box guard timed out before measurement"
+"tomokv","static","1","7","8","32","get_set","0:1","1","memtier","INVALID","NA","NA","NA","NA","NA","NA","NA","NA","cell-000002","quiet-box guard timed out before measurement"
+"tomokv","static","1","7","8","32","get_set","1:0","32","memtier","INVALID","NA","NA","NA","NA","NA","NA","NA","NA","cell-000003","quiet-box guard timed out before measurement"
+"tomokv","static","1","7","8","32","get_set","0:1","32","memtier","INVALID","NA","NA","NA","NA","NA","NA","NA","NA","cell-000004","quiet-box guard timed out before measurement"

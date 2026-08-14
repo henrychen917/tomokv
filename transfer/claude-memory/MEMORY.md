@@ -1,0 +1,98 @@
+# Memory index
+
+- [THredis FLATSTORE](thredis-flatstore.md) — lock-free open-addressing table replacing per-bucket dicts (NUMA shared-kv fork); Stage 0/1/2 online-resize done+validated
+- [worker argv refcount race](thredis-worker-argv-refcount-race.md) — churn-crash root cause; fix releases argv on the worker thread
+- [iotid worker slot fix](thredis-iotid-worker-slot-fix.md) — earlier crash: workers ran iotid=0, aliasing IO-thread-0's client slot
+- [ASAN repro recipe](thredis-asan-repro-recipe.md) — how to build/stress THredis to catch heap bugs on this Linux box
+- [opt tree + testers](thredis-opt-and-testers.md) — THredis-opt perf opts (#3/#6/#7), stress tester, SET..EX UAF fix
+- [S8 two reply-release paths](thredis-s8-two-reply-release-paths.md) — zero-copy forwarding must route decref to owning worker in BOTH release paths
+- [paper results + venue](thredis-paper-results-and-venue.md) — beats baselines on 7800X single-CCD; arch win topology-independent; venue + 2 comparison axes
+- [opt-v4 tunable apparatus](thredis-v4-tunable-apparatus.md) — every opt a runtime knob; opts NUMA/cache/pattern-gated ⇒ eval on EPYC + real traces
+- [EX/expire fix](thredis-ex-expire-fix.md) — v5 SET..EX/SETEX/expire work single-shard: fake mstate init + worker whitelist + skip prop rewrite for fakes
+- [benchmarking methodology](thredis-benchmarking-methodology.md) — vary DB size (cache→DRAM), test 1:1 & 1:9, load-gen pinned 8-15, server 0-7
+- [v7 cross-shard](thredis-v7-cross-shard.md) — scatter-gather MGET: reply-buffer (not zero-copy), 3 hooks, validation gate
+- [zerocopy KEEP](thredis-zerocopy-keep.md) — wins +20-24% on 16-64KB values; gate by value-size
+- [v8d migration validated](thredis-v8d-migration-validated.md) — online reshard (effect-log copy + drain-fence cutover) byte-exact under load; cross-shard OFF
+- [jemalloc + overnight](thredis-jemalloc-and-overnight-findings.md) — jemalloc #1 lever (+30-54% vs libc); ≈Dragonfly GET/SET; small-value dispatch-bound; LB +133%
+- [v12 + sweep](thredis-v12-sweep-results.md) — v12≈v11≈1.15x Redis 64B P16 1:9; io_uring neutral loopback; queueToWorker hang fix; busy-poll gotchas
+- [io_uring DBMS guidelines](iouring-dbms-paper-guidelines.md) — Jasny VLDB'26: naive net-neutral, exploited 2-2.3x; ring-per-thread+DeferTR+single-issuer; I/O-bound only
+- [overnight bench](thredis-overnight-bench-results.md) — v12-J≈v11 (uring loopback wash), threestage 16KB parity, CHURN/ASAN clean; i4w2 +48% over i4w4; EPYC untested
+- [strict needs liburing + rename](thredis-strict-needs-liburing.md) — 3-stage REQUIRES USE_URING=yes (else silent first-conn hang); forks renamed ifid/ex/wb (bedd483a6)
+- [tiered operand pool VALIDATED](thredis-tiered-pool-validated.md) — size-class tiers+decay; −19% instr/+22% ops 1:0 256B; flat 64B 1:9; measure write-heavy
+- [canonical forks + dfly-port](thredis-canonical-forks-and-dfly-port.md) — pool=main 3s, v12=main 2s (epoll/uring knobs); pinning DONE both; #3 prefetch+#4 dirty TODO
+- [thread-config send-bound](thredis-threadcfg-sendbound.md) — more WB scales 3s UP on large/send-bound; 3s_i4e4w4 +32% over 2s at 16KB; small=dispatch-bound
+- [3-stage large-reply wedge FIXED](thredis-3stage-churn-wedge.md) — WB only sent c->buf; >16KB replies never sent → wedge; FIXED c6d293db6+bd3dda08a
+- [User autonomy — no asks](user-autonomy-no-permission-asks.md) — bypass-perms; DO investigate/build/bench/fix, report; only OS sudo is a blocker
+- [endgame two versions](thredis-endgame-two-versions.md) — ship 2s(v12)+3s(pool), each epoll OR deep-uring; collapse knobs; prefetch gate 8M too conservative
+- [final server specs](thredis-final-server-specs.md) — Threadripper 9965WX/7965WX 24c MULTI-CCD + 8ch DDR5 + WRX90 + 25GbE, NOT bought; DRAM verdicts re-measure there
+- [sanity-gate benching](thredis-sanity-gate-benching.md) — USER RULE: every number gets a plausibility check; nonsense ⇒ STOP, reread code/harness, fix, re-bench
+- [knob philosophy](thredis-knob-philosophy.md) — numeric tunables only; 0=off⇒no-alloc; thresholds self-derive; -1=auto
+- [Tomo topology + compute](tomokv-topology-and-compute-findings.md) — DRAM "Redis wins"=config artifact; compute-bound Tomo 1.5-2.8x; worker-heavy gated on bandwidth
+- [thread-modes 3s port](thredis-thread-modes-3s-port.md) — 197269a91 three-slot poly (ifid/ex/wb), WB first-class, 4 spare shifts validated; DEBUG RELOAD segfault pre-existing
+- [thread-modes step4 balancer](thredis-thread-modes-step4-balancer.md) — quorum pressure balancer VALIDATED 2s (spare PARKED<->EX ~3s); busy=TIME-weighted; +mass-hard-kill livelock pre-existing
+- [Forwarding abandoned](thredis-forwarding-abandoned.md) — permanently dead (3 physics walls); ORDER-1 fix is the salvage
+- [dropped-dispatch bug](thredis-3stage-hotkey-wedge.md) — hot sites ignore exQueuePush -1 (queue-full) ⇒ lost reply+wedge under single-key sat; fixed 8a5b104515
+- [universal xshard](thredis-xshard-universal.md) — 2s-crossshard-dev @7ab8fff6f: MGET/SETOP coalesce+SAFE-GATE+2-hop RENAME validated; CLOSE_ASAP launches HOP2
+- [external-review fixes](thredis-external-review-fixes.md) — 2026-07-20: 2 P0 data-loss (reshard arm, migLog wrap), setop-driver largest-not-smallest, fake-ring churn
+- [mcmd-lock per-node](thredis-mcmd-lock-pernode.md) — mcmd BORROW DELETED, cross-shard is PURE scatter-gather; tomo_wkr_lock common path = owner's own uncontended byte; cross-worker lock ONLY for HFE + RANDOMKEY-expire
+- [shared-kv never built](thredis-shared-kv-never-built.md) — shared-1-db/O(1) reshard DESIGNED not built; only 16384 buckets shipped; migApplyOne still copies keys
+- [LB 3% budget](thredis-lb-3pct-budget.md) — USER RULE: always-on machinery <=3% or it doesn't ship; scope the mechanism, don't accept the tax
+- [flat reclaim capacity](thredis-flat-reclaim-capacity.md) — default-on OOM-wedge ~5M writes/s; fixed by per-worker same-arena reclaim ⇒ RSS flat 228MB + p1 SET +40%
+- [A/B harness traps](thredis-ab-harness-traps.md) — renamed binary defeats pkill -x; comm 15-char truncation; instr/op is the verdict metric on this drift-prone box
+- [flat alloc anatomy](thredis-flat-alloc-anatomy.md) — retire-node zmalloc was flat-vs-dict delta (FIXED +2.6% SET); kvobjSet embed threshold (64 vs ~71B) open
+- [QSBR grace pinning](thredis-qsbr-grace-pinning.md) — long inline command pins grace for EVERY worker (OOM class); in_flat must become an epoch
+- [epoch+fence stack](thredis-epoch-fence-status.md) — QSBR epoch VALIDATED (convoy 50-2000x, free); embed192 +27% SET; #37/#38 crashes filed
+- [preflight contract](thredis-preflight-contract.md) — TIERED 2026-08-09: full gate for STABLE only; dev = mechanism-fired + no-regression per section, merged-tree verify at queue end
+- [Vacuous-validation trap](thredis-vacuous-validation-trap.md) — gated "0 bugs" proves nothing unless the gate OPENED (ship a counter); verify tests discriminate
+- [Fence qb_pos crash FIXED fa9aca003](thredis-fence-qbpos-crash.md) — processInputBuffer blanked current_client under processEventsWhileBlocked; ~20-30%/run
+- [Unified path CLOSED](thredis-unified-path-closed.md) — batch arm shelved (wash); wave line is THE line; +68% was MGET scatter-removal not prefetch
+- [Flat path DELETED](thredis-flat-path-deleted.md) — non-owner M-read broke same-client order 39%; correct design = reverse barrier (unbuilt)
+- [O(1) reshard](thredis-o1-reshard.md) — same-node bucket ownership flip, no key copy; ONE primitive + 3 LB triggers; hot-key≠hot-bucket; ≤3% budget
+- [Prefetch TRUTH](thredis-prefetch-truth.md) — RESOLVED 2026-08-09: storage prefetch PROVEN +2-3% at 40M DRAM-bound, SHIPPED (dev @ac8283bbb, default lvl3, L3 gate self-selects); per-key residency skip + operand prefetch both REJECTED (wash)
+- [Alloc TRUTH](thredis-alloc-truth.md) — cross-thread ownership DISPROVEN (~0.3%); real lever=alloc COUNT; csGroup SSO mget4 −5.2%; operand pool deleted
+- [Box noise TRUTH](thredis-box-noise-truth.md) — 7700X desktop ±2% when EXCLUSIVE; >5% between identical arms = contention/bug; use a shared flock to serialise
+- [Three-regime testing](thredis-three-regime-testing.md) — USER RULE: A/B in benefit/neutral/deficit regimes, decide from PATTERN; winning everywhere ⇒ wrong mechanism
+- [Quick-check protocol](thredis-quickcheck-protocol.md) — USER RULE: 8 cells first (p32/p1 × GET/SET at io4ex4 & io7ex1, static); ops/s; no flip check unless LB changed
+- [Right-sized tests](thredis-right-sized-tests.md) — USER RULE: prove the change + no neighbour breakage; shrink duration/breadth NEVER discrimination
+- [Verify before implementing](thredis-verify-before-implementing.md) — USER RULE: grep the CODE first; task list AND memory are stale; search behaviour + call sites
+- [Codex-first delegation](thredis-codex-first-delegation.md) — USER RULE: codex exec does work (danger-full-access in worktree fork, gpt-5.6-sol xhigh); Claude coordinates; Codex never tests
+- [Prefetch dict-lifetime invariant](thredis-prefetch-dict-lifetime-invariant.md) — "critical UAF" on cached dict* REFUTED (tomo omits FREE_EMPTY_DICTS on purpose); nothing enforces it
+- [Resize single-driver wedge](thredis-resize-single-driver-wedge.md) — P0: flat_resize_active parks all workers, only IO slot 0 clears it, 200ms deadline evaluated by that blocked thread
+- [Worker overhead-bound](thredis-worker-overhead-bound.md) — THE perf fact: ~2.0M ops/s/worker every config; 21x dataset = 3.5% ⇒ per-command WORK bound; do the ~500ns census
+- [Soak harness truth + N](thredis-soak-harness-truth.md) — N was freeClientsInAsyncFreeQueue re-queueing the client it freed; PING≠liveness; kill -ALRM for all-thread stacks
+- [Main blocked module GIL (O)](thredis-main-blocked-module-gil.md) — ProcessingEventsWhileBlocked is GLOBAL in a per-IO-thread server; GIL starts LOCKED main owns it; use fresh-conn hang rate not uptime
+- [uring blinded flip controller](thredis-uring-busy-accounting-blind.md) — io_sat 0.17 on 99.5%-CPU (DEFER_TASKRUN inside enter); fixed via sampled CLOCK_THREAD_CPUTIME_ID; never compare arms at diff thread configs
+- [Self-match + lock traps](thredis-selfmatch-and-lock-traps.md) — pgrep/ps/pkill -f self-match (incl. heredoc-embedded → SIGKILLs own shell), cd&&-backgrounding, leaked-flock server, voided run; prove the run executed; use pkill -x
+- [GET hit-rate trap](thredis-hitrate-benching-trap.md) — warmup didn't populate ⇒ 78% cheap MISSES ⇒ GET inflated 37%; pin dbsize==keymax + report hit rate; SET unaffected
+- [Wrong-two-quantities](thredis-wrong-two-quantities.md) — EVERY flip defect was a gate comparing mismatched kinds (CPU-time vs occupancy, raw vs EWMA); name both operands
+- [Flip A/B window+drift](thredis-flip-test-window-and-drift.md) — 90s hid the defect 20s exposes; box BIMODAL (3/4 then 0/4) ⇒ interleaved A/B/A/B only; report discordant pairs
+- [PUSHED 2026-08-05](thredis-pushed-2026-08-05.md) — 269db1a37 GitHub 2s-numa-stable-dev + default stable (forced, owner-waived); 15/17 gate; cell-only revalidation protocol
+- [Xshard tax RESOLVED](thredis-xshard-tax-resolved.md) — coalescing (default-on) MGET-8=11.9M keys/s=2.1x/key; work-stealing doesn't fit sharded ownership
+- [SORT top-k + global-state race](thredis-sort-and-global-state-race.md) — SORT LIMIT 7x (95b4aa476); + CLASS bug: server.* command scratch state races under per-worker exec (19 mis-sorts→0); AUDIT for more
+- [Reorder overhead + Shinjuku wall](thredis-reorder-overhead-and-wall.md) — tax was per-cmd rdtsc not the drain; 4 levers −6.5%→−1.6% pure-GET (a6aef460c); hot-key tail is in-service blocking (key-shard+RTC); next=per-class FIFO+wait/SLO
+- [Threadcap UNCAPPED 32/64→128/128](thredis-threadcap-uncapped.md) — #66/#83 DONE (2a7c831a3, NOT pushed): heap-lanes+heap-FAST, mask word-arrays, snap[] clamp fix; argv wall separate; +.make-settings/BGSAVE gotchas
+- [Codex fork integration traps](thredis-codex-fork-integration-traps.md) — boot-test the merged binary FIRST; a fork can silently revert shipped fixes (only full preflight catches); new knob⇒knob_matrix cell; single-conn p32 is drift noise
+- [hashbytes O(n) regression](thredis-hashbytes-oN-regression.md) — byte-bounded-listpack made HSET/HINCRBY O(n)/write (−58%); DELETED 49241cff2 (kept defer-shrink 87d21aba0); fast-path gate MISSED it — needs hash/list/zset write cell
+- [Hardcode-or-delete](user-hardcode-or-delete.md) — USER RULE: hard-code a consistent gain or delete it; no opt-in knob to preserve a net-negative unless owner asks for the knob
+- [Saturated benching](thredis-saturated-benching-rule.md) — USER RULE: single-conn never saturates (14x understated); bench throughput memtier 8t×25c p1+p32, investigate any >−3%; caught HMGET one-pass (p32 −20%, DELETED)
+- [MSET atomicity bake-off](thredis-mset-atomicity-bakeoff.md) — epoch-versioned MVCC WON (reader+writer atomic, −1.6%, no leak) vs intent-lock (−25%) vs seqlock (reader-only, LEAKS ~1%); knob tomokv-mset-atomic default off
+- [reorder RYOW fix](thredis-reorder-ryow-fix.md) — tomokv-reorder>0 broke read-your-own-writes 100% (fence-identity + cross-shard bypass); fixed b96ac3bce, drain surgical/per-conn 7518522cd, perf-neutral
+- [atomic window SHIPPED](thredis-atomic-window.md) — crater=arrival-order frontier convoy (superlinear window collapse, NOT locks); STACK @1d579325a bag+completion+cursor; vs dfly MGET +27% MSET −18% 1:1 −81% (read-hold); torn 0; #100 open
+- [flip controller FROZEN](thredis-flip-controller-frozen.md) — OWNER RULE: detection/sat/settle/measurement all frozen (validated p1-GET→ZRANGE); static config is the atomic-write answer; only bit-identical cost cuts allowed
+- [atomic session 2026-08-08](thredis-atomic-session-2026-08-08.md) — ship line + the write-side-probe P0 (77% wrong, ON only); wakecoal reverted (broke 1:1); 1:1 is a keyspace artifact; borrow reverse-barrier design
+- [bloom signature SATURATED](thredis-bloom-signature-saturation.md) — ~75% of atomic read-holds are BIT ALIASING (8 keys into 64 bits), not overlap; 1:1 deficit is mostly a fixable filter defect
+- [overnight 2026-08-08](thredis-session-2026-08-08-overnight.md) — atomicity PROVEN vs discriminating control; +19% mixed from 2 fixes; commit-diet REFUTED; my flip targets were wrong
+- [P0 thread conservation](thredis-flip-pool-broken-p0.md) — role conversion LOSES/GAINS a thread (POOL BROKEN + balancer conservation); pre-existing; grow-front path proven clean, look at GROW-BACK
+- [No CR/MR split](thredis-no-crmr-split.md) — OWNER RULE: IO/EX is the only stage boundary; take uTPS mechanisms (cat_l3 ways) not its architecture; no AMAC
+- [Flip: no machine constants](thredis-flip-no-machine-constants.md) — OWNER RULE; settle = steps x 6s window ⇒ scales with core count (66s on 24-core); fix = distance-derived step size
+- [Sweep ABANDON livelock](thredis-sweep-abandon-livelock.md) — predictor from CAPPED sats misreads sweep's own move as workload change ⇒ abandon-loop; LAW: a signal the actuator moves can't police the actuator; fix=abandon-free enum + ratify hysteresis
+- [Flip SHIPPED](thredis-flip-shipped.md) — dev @b04af268d 2026-08-09: owner-equation controller complete (directional episodes, frozen anchor, 3 damped drops, client-command judge); triad 6/6; 3 residuals; next=prefetch+hot-key
+- [ownread wedge SOLVED](thredis-ownread-wedge-rootcause.md) — P0 root-caused+fixed (gen-pins+budget, witnessed); window 512→64 = payoff: 1to1 4.8x crater, all mixed regimes beat pre-ownread, pure_mset −6..13% the only loser
+- [Session close 2026-08-10](thredis-session-2026-08-10-close.md) — #101 SHIPPED dev @ab31c1bf7 gh: wedge fixed+witnessed, window 64 = 4.8x crater kill, grid zero-regression; 2 staged candidates (retdiet2, cxfront)
+- [Notify/CDB scaling invariants](thredis-notify-scaling-invariants.md) — OWNER RULE + notifyguard.sh: 11 protections (CDB one-line-per-worker, byte atomics, idiv-free identity, ring head/tail split) that footprint-shrinking work must not revert
+- [One server, one bench](thredis-one-server-one-bench.md) — OWNER RULE + boxguard.sh watchdog; overlap has corrupted verdicts before (SO_REUSEPORT split class)
+- [comm-tax TRUTH](thredis-commtax-truth.md) — 400ns handoff = instruction volume NOT stalls; forwarding+innode-prefetch+inline-reply all neutral (3 proofs); ring = the live lever; reply branch parked @2s-cdb-inline-reply
+- [per-node control plane](thredis-pernode-control-plane.md) — #67/#27: flip DECISION may go per-node (promote 4 statics); migration/resize/reclaim coordinators MUST stay on main (moving=UAF/P0); single-node safe by construction
+- [Session close 2026-08-12](thredis-session-2026-08-12-close.md) — docs pushed gh stable @25b5cd6ac; merge-cert 14/14 CLEAN (flip "instability" was leftover-driver contamination, REFUTED); 3 forks fixed (O1 a51c7e465, cxnuma H1 0b0c27e90, cx102); reshard⇄resize starvation found
+- [Session 2026-08-13](thredis-session-2026-08-13.md) — cxnuma single-node flip FIXED+validated (14/14, codex 4d9a13a98: multi-node protocols leaked into nnodes==1); +2 obs hooks (per-node io/ex INFO, DEBUG TOMO-NODEOF); per-node flip BOTH-nodes-actuate proven, "2 6 6 2" EPYC-gated (io-load not node-confinable); finalmerge ccbb5da9f (stable+cooldown+cxnuma+O1) FULL GATE running, push-on-GO fast-forward; cx102 pending A/B
+- [bench-suite comparison](thredis-bench-suite-comparison.md) — cross-system harness: run via sweep_run/watchdog/analyze; 5 box fixes (memtier rebuild, setproctitle argv-proof, perf unsupported-3→NA non-fatal, LOAD enforce=0, redis-tomobench watchdog); FIXED keycount = fair; ipreq/ipc work, converge NA-but-derivable
