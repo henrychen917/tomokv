@@ -21,17 +21,17 @@
 # A_setget_worker ratio 0.0000, C_mget8_xshard 0.0001, D_mixed 0.2500, TOTAL 0.2976 -- worker-routed
 # and cross-shard commands were not counted at all -- against 1.0000 on every row post-fix.
 set -u
-J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
+J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 BIN=${1:-${TOMO_BIN:?TOMO_BIN required (or pass the binary as a positional argument)}}
 SD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # PORT-SAFETY: gate on the PORT before boot + verify pid identity after, so a leaked/foreign
 # server on $PORT cannot silently join our SO_REUSEPORT accept group and blend two binaries.
 . "$SD/preflight_lib.sh"
-OUT=$J/numcmd_check.out; : > "$OUT"
+OUT="${TOMO_RESULT_FILE:-$J/numcmd_check.out}"; : > "$OUT"
 PORT=7997
 D=$J/numcmd_work
 FAIL=0; PASS=0
-for _c in "$(dirname "$BIN")/redis-cli" "$SD/../../src/redis-cli" /shared/Projects/redis/src/redis-cli; do
+for _c in "$(dirname "$BIN")/redis-cli" "$SD/../../src/redis-cli" /home/user/Projects/redis/src/redis-cli; do
   [ -x "$_c" ] && { CLI=$_c; break; }
 done
 if [ -z "${CLI:-}" ]; then

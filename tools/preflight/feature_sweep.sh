@@ -8,11 +8,11 @@
 #   ./feature_sweep.sh              # full, ~50-80 min
 #
 # Output:
-#   /shared/Projects/.claude/jobs/fd085c8e/tmp/feature_sweep.tsv
+#   /tmp/tomo_pfjob/feature_sweep.tsv
 #     columns: section <TAB> test <TAB> config <TAB> result <TAB> detail
 #     result in {PASS, FAIL, KNOWN, SUSPECT}
 #   per-section logs + per-boot server logs (PRESERVED, never truncated):
-#     /shared/Projects/.claude/jobs/fd085c8e/tmp/feature_sweep_logs/
+#     /tmp/tomo_pfjob/feature_sweep_logs/
 #
 # BOX DISCIPLINE (encoded, do not relax):
 #   - never pkill/pgrep by pattern; all lifecycle is by OUR recorded PIDs only
@@ -27,18 +27,18 @@
 # ============================================================================
 set -u -o pipefail
 
-JOB=/shared/Projects/.claude/jobs/fd085c8e/tmp
+JOB=/tmp/tomo_pfjob
 TREE=${TREE:-$JOB/stable-w2}
 FORKSRV=${TOMO_BIN:-$TREE/src/redis-server}
-ORACLESRV=${ORACLESRV:-/shared/Projects/redis/src/redis-server}
+ORACLESRV=${ORACLESRV:-/home/user/Projects/redis/src/redis-server}
 # CLI must follow the binary under test. Defaulting it to $TREE/src/redis-cli silently paired a
 # freshly-built server with a redis-cli from whatever stale worktree TREE happened to point at
 # (observed: rev 652deda9b while testing a much newer binary).
 CLI=${CLI:-$(dirname "$FORKSRV")/redis-cli}
 [ -x "$CLI" ] || CLI=$TREE/src/redis-cli
-[ -x "$CLI" ] || CLI=/shared/Projects/redis/src/redis-cli
+[ -x "$CLI" ] || CLI=/home/user/Projects/redis/src/redis-cli
 
-TSV=$JOB/feature_sweep.tsv
+TSV="${TOMO_RESULT_FILE:-$JOB/feature_sweep.tsv}"
 LOGDIR=$JOB/feature_sweep_logs
 # ee451 2026-07-29: PER-RUN log identity. Server logs were named srv_<BOOTSEQ>_<kind>_p<port>.log
 # and BOOTSEQ restarts at 0 every run, so run N and run N+1 both wrote srv_14_fork_p7791.log -- and
@@ -93,7 +93,7 @@ flock -n 9 || {
   # grading a STALE feature_sweep.tsv from a previous run -- in one case results 6 hours old,
   # including a crash row for a panic that had since been fixed. Make the abort self-evident in
   # the RESULT FILE, not just on stderr, so it can never be mistaken for a real verdict.
-  echo "A	lock-held	-	FAIL	another feature_sweep holds the flock; THIS RUN PRODUCED NO RESULTS" > "$JOB/feature_sweep.tsv"
+  echo "A	lock-held	-	FAIL	another feature_sweep holds the flock; THIS RUN PRODUCED NO RESULTS" > "${TOMO_RESULT_FILE:-$JOB/feature_sweep.tsv}"
   echo "another feature_sweep is running; abort" >&2
   exit 1; }
 

@@ -189,7 +189,7 @@ done
 
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
 TREE_ROOT=$(cd "$HERE/../.." && pwd -P)
-RUN_ROOT=${SURFACE_RUN_ROOT:-${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}}
+RUN_ROOT=${SURFACE_RUN_ROOT:-${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}}
 RUN_ID=${SURFACE_RUN_ID:-$(date -u +%Y%m%d_%H%M%S)_$$}
 case "$RUN_ID" in
     *[!A-Za-z0-9_.-]*|'')

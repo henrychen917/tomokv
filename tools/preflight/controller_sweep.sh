@@ -55,10 +55,10 @@
 #        ./controller_sweep.sh           (~2h30-3h, 3 reps ABBA, full windows)
 # Filter: CONTROLLERS="1 9" ./controller_sweep.sh   (subset by number)
 #
-# Output: /shared/Projects/.claude/jobs/fd085c8e/tmp/controller_sweep.tsv
+# Output: /tmp/tomo_pfjob/controller_sweep.tsv
 #         (controller \t check \t stimulus \t observed \t expected \t result)
 #         result in {PASS, FAIL, SUSPECT, KNOWN}. Per-cell logs preserved under
-#         /shared/Projects/.claude/jobs/fd085c8e/tmp/csweep/logs/.
+#         /tmp/tomo_pfjob/csweep/logs/.
 #
 # HARNESS-TRAP IMMUNITY (each rule burned a real run once):
 #   * never pkill by name — we kill ONLY our own $SRV_PID and wait on it
@@ -77,15 +77,15 @@
 # =============================================================================
 
 set -u
-J=/shared/Projects/.claude/jobs/fd085c8e/tmp
+J=/tmp/tomo_pfjob
 TREE=$J/stable-w2
 # honour the binary preflight is stamping (was: always the tree build)
 BIN=${TOMO_BIN:-$TREE/src/redis-server}
-CLI=/shared/Projects/redis/src/redis-cli
+CLI=/home/user/Projects/redis/src/redis-cli
 [ -x "$CLI" ] || CLI=$TREE/src/redis-cli
 MTB=$(command -v memtier_benchmark || echo /usr/local/bin/memtier_benchmark)
 PORT=${PORT:-7973}
-OUT=$J/controller_sweep.tsv
+OUT="${TOMO_RESULT_FILE:-$J/controller_sweep.tsv}"
 LOGD=$J/csweep/logs
 DATA=$J/csweep/data
 LOCK=$J/csweep/.lock

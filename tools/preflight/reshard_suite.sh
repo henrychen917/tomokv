@@ -16,13 +16,13 @@ set -u
 # inherited withbox.sh's lock fd 9 and held the SHARED BOX LOCK FOREVER -- one such leak idled the
 # box ~4h with 10 jobs queued. Reaping the basename of the binary we actually launched kills ours
 # and cannot touch anyone else's.
-J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
+J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 BIN=${TOMO_BIN:?TOMO_BIN required}
 DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 # PORT-SAFETY: gate on the PORT so a leaked/foreign server cannot silently join our
 # SO_REUSEPORT accept group and blend two binaries across these cutovers.
 . "$DIR/preflight_lib.sh"
-OUT=$J/reshard_suite.out; : > $OUT
+OUT="${TOMO_RESULT_FILE:-$J/reshard_suite.out}"; : > $OUT
 PORT=7899
 # ee451 2026-07-29: RESOLVE redis-cli, do not assume it sits next to the server.
 # This suite's only two uses of a client were spelled `"$(dirname "$BIN")"/redis-cli`. Callers pass
@@ -33,7 +33,7 @@ PORT=7899
 # against a server that was alive -- the ordering probe in the SAME run had just passed 0/3000
 # violations across 11 cutovers and the crash-marker scan found 0. One harness typo, graded for days
 # as a product defect. lb_skew.sh already had this fallback chain; this suite never did.
-for _c in "$(dirname "$BIN")/redis-cli" "$DIR/../../src/redis-cli" /shared/Projects/redis/src/redis-cli; do
+for _c in "$(dirname "$BIN")/redis-cli" "$DIR/../../src/redis-cli" /home/user/Projects/redis/src/redis-cli; do
   [ -x "$_c" ] && { CLI=$_c; break; }
 done
 if [ -z "${CLI:-}" ]; then

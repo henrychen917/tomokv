@@ -2,7 +2,7 @@
 # BIGSTRESS — executable release-acceptance specification for TomoKV.
 #
 # Usage:
-#   BOXLOCKED=1 /shared/Projects/.claude/jobs/fd085c8e/tmp/withbox.sh -w 7200 \
+#   BOXLOCKED=1 /tmp/tomo_pfjob/withbox.sh -w 7200 \
 #       tools/preflight/bigstress.sh <redis-server>
 #   QUICK=1 BOXLOCKED=1 .../withbox.sh -w 7200 tools/preflight/bigstress.sh <redis-server>
 #   SELFTEST=1 tools/preflight/bigstress.sh
@@ -728,7 +728,7 @@ if [ ! -x "$SRC_CLI" ]; then
 fi
 MTB=$(command -v memtier_benchmark)
 
-ARTIFACT_ROOT=${BIGSTRESS_ARTIFACT_ROOT:-${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}}
+ARTIFACT_ROOT=${BIGSTRESS_ARTIFACT_ROOT:-${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}}
 mkdir -p -- "$ARTIFACT_ROOT" || exit 2
 WORK=$(mktemp -d "$ARTIFACT_ROOT/bigstress.XXXXXX") || exit 2
 mkdir "$WORK/stage" "$WORK/data" "$WORK/correctness"

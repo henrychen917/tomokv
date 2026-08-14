@@ -5,7 +5,7 @@
 # (vacuous-validation guard), the age bound holds, and the always-on window controller stays under
 # budget alone. TOMO_BIN required.
 set -u
-J=${JOB_TMP:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
+J=${JOB_TMP:-/tmp/tomo_pfjob}
 BIN=${TOMO_BIN:?TOMO_BIN required}
 CLI=$(dirname "$BIN")/redis-cli; [ -x "$CLI" ] || CLI="$J/mergew/src/redis-cli"
 PORT=7959

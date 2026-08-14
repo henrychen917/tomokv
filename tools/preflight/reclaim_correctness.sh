@@ -2,7 +2,7 @@
 # Correctness battery for the per-worker QSBR reclaim (ee451 FLATSTORE reclaim-capacity fix).
 # Exercises exactly the paths the change touches: retire under churn, worker-local drain, park/unpark
 # (bounded-residual path), EX<->IO flip with pending retires, FLUSHALL + resize with pending retires.
-J=/shared/Projects/.claude/jobs/fd085c8e/tmp; P=/shared/Projects
+J=/tmp/tomo_pfjob; P=/home/user/Projects
 BIN="${TOMO_BIN:-${BIN:-$J/stable-w/src/redis-server}}"
 CLI="$P/redis/src/redis-cli -p 7974"
 MT="taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p 7974 --hide-histogram"

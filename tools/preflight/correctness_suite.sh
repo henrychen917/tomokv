@@ -10,8 +10,8 @@
 #   OUT OF SPEC: its canonical background generator does not materialize, the exact ordering probe
 #   times out/exits nonzero/checks zero replies, or any checked reply is stale.
 set -u
-J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
-BIN=${TOMO_BIN:?TOMO_BIN required}; P=/shared/Projects
+J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
+BIN=${TOMO_BIN:?TOMO_BIN required}; P=/home/user/Projects
 PORT=7994
 KEY_MIN=1
 KEY_MAX=2000000

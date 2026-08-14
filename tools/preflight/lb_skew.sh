@@ -51,9 +51,9 @@ set -u
 # This suite has therefore NEVER EXECUTED under preflight. Fixing the flip_updown exit code was
 # necessary but not sufficient: the verdict logic was never even reached.
 BIN=${1:-${TOMO_BIN:?usage: lb_skew.sh <redis-server binary>  (or TOMO_BIN=...)}}
-J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
+J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 CLI=$(dirname "$BIN")/redis-cli; [ -x "$CLI" ] || CLI=$J/clean-w/src/redis-cli
-OUT=$J/lb_skew.out
+OUT="${TOMO_RESULT_FILE:-$J/lb_skew.out}"
 LOG=$J/lb_skew.srv.log
 PORT=7873
 DUR=${DUR:-60}

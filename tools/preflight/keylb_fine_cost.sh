@@ -29,7 +29,7 @@ _PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight
 # and cannot touch anyone else's.
 exec 9>/tmp/keylb_fine_cost.lock
 flock -n 9 || { echo "another keylb_fine_cost.sh is running -- refusing to start" >&2; exit 1; }
-J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
+J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 BIN=${TOMO_BIN:?TOMO_BIN required}
 PORT=${FINE_PORT:-7973}
 REPS=${FINE_REPS:-3}; DUR=${FINE_DUR:-20}

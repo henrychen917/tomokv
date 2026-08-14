@@ -8,7 +8,7 @@
 # If the unfixed arm survives, the verdict is INCONCLUSIVE -- never PASS. A probe that cannot fail
 # certifies nothing, which is the single most repeated mistake in this project's test history.
 set -u
-J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
+J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 HERE=$(cd "$(dirname "$0")" && pwd)
 # PORT-SAFETY: gate on the PORT before each trial so a leaked/foreign server cannot join
 # this trial's SO_REUSEPORT accept group and contaminate the crash draw.
@@ -40,7 +40,7 @@ trap 'exit 130' INT
 trap 'exit 129' HUP
 SECS=${SECS:-8}        # per TRIAL, not per arm -- see WHY SHORT TRIALS below
 TRIALS=${TRIALS:-12}
-OUT=${OUT:-$J/shared_refcount_race.out}
+OUT="${TOMO_RESULT_FILE:-$J/shared_refcount_race.out}"
 : > "$OUT"
 PORT=7898
 

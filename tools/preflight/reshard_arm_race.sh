@@ -20,7 +20,7 @@ DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 # PORT-SAFETY: gate on the PORT so a leaked/foreign server on it cannot silently join our
 # SO_REUSEPORT accept group and blend two binaries into one measurement.
 . "$DIR/preflight_lib.sh"
-OUT=${TOMO_HANG_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp/hangw}/armrace_$TAG
+OUT=${TOMO_HANG_DIR:-/tmp/tomo_pfjob/hangw}/armrace_$TAG
 CLI=$(dirname "$BIN")/redis-cli
 [ -x "$CLI" ] || CLI=$(cd "$DIR/../.." && pwd)/src/redis-cli
 PORT=${PORT:-7897}

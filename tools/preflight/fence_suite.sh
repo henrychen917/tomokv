@@ -30,9 +30,9 @@ trap 'exit 143' TERM
 trap 'exit 130' INT
 trap 'exit 129' HUP
 
-J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
+J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 BIN=${TOMO_BIN:?TOMO_BIN required}
-P=/shared/Projects; PORT=7975; C="$P/redis/src/redis-cli -p $PORT"
+P=/home/user/Projects; PORT=7975; C="$P/redis/src/redis-cli -p $PORT"
 C_BIN="$P/redis/src/redis-cli"   # bare path (no -p) for server_identity_ok
 OUT=$J/fence_suite.out; : > $OUT
 ok(){ echo "PASS $1" >> $OUT; }; bad(){ echo "FAIL $1" >> $OUT; }

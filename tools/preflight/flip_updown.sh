@@ -44,8 +44,8 @@ set -u
 # This suite has therefore NEVER EXECUTED under preflight. Fixing the flip_updown exit code was
 # necessary but not sufficient: the verdict logic was never even reached.
 BIN=${1:-${TOMO_BIN:?usage: flip_updown.sh <redis-server binary>  (or TOMO_BIN=...)}}
-J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
-OUT=$J/flip_updown.out
+J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
+OUT="${TOMO_RESULT_FILE:-$J/flip_updown.out}"
 LOG=$J/flip_updown.srv.log
 PORT=7874
 PHASE=${PHASE:-45}
@@ -58,7 +58,7 @@ taskset -c 0-7 "$BIN" --port $PORT --tomokv-nodes 1 --tomokv-thread-io 4 --tomok
   --tomokv-thread-mode auto --save '' --appendonly no --protected-mode no \
   --logfile "$LOG" --loglevel notice >/dev/null 2>&1 &
 sleep 3
-"$J/clean-w/src/redis-cli" -p $PORT ping >/dev/null 2>&1 || { echo "FAIL: server did not boot" | tee -a "$OUT"; exit 1; }
+"$(dirname "$BIN")/redis-cli" -p $PORT ping >/dev/null 2>&1 || { echo "FAIL: server did not boot" | tee -a "$OUT"; exit 1; }
 $MT --ratio=1:0 $KM --key-pattern=P:P -n allkeys -t 8 -c 25 --pipeline 32 >/dev/null 2>&1
 
 # ee451 2026-07-29: ANCHOR ON THE FLIP CONTROLLER'S OWN TOKEN.

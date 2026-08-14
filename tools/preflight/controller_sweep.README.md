@@ -1,6 +1,6 @@
 # controller_sweep — controller/allocator conformance suite
 
-Target tree: `/shared/Projects/.claude/jobs/fd085c8e/tmp/stable-w2` (2s-numa-shared-kv fork @ 52c760720;
+Target tree: `/tmp/tomo_pfjob/stable-w2` (2s-numa-shared-kv fork @ 52c760720;
 the working tree is LIVE — code citations give current line numbers, anchor by symbol/log string if they drift).
 Binary under test: `stable-w2/src/redis-server`. All knob names/semantics below were read from
 `src/config.c` + `src/server.c` of THIS tree — the code is the truth, not the docs.
@@ -32,7 +32,7 @@ Check types, built per controller where applicable:
 ## Running
 
 ```
-cd /shared/Projects/.claude/jobs/fd085c8e/tmp
+cd /tmp/tomo_pfjob
 SMOKE=1 ./controller_sweep.sh          # ~20–25 min: 1 rep, short windows, seed 400k
 ./controller_sweep.sh                  # full: ~2h30–3h, 3-rep ABBA medians, seed 2M
 CONTROLLERS="1 9 14" ./controller_sweep.sh  # subset by controller number
@@ -48,7 +48,7 @@ Preconditions (the script enforces all of them and refuses to start otherwise):
 * **Box free.** No `redis-server` and no `memtier_benchma` (comm-truncated) alive. The suite
   never pkills anything — it only ever kills its own booted PID and `wait`s on it.
 * flock single-instance (`csweep/.lock`).
-* `memtier_benchmark` in PATH, `redis-cli` at `/shared/Projects/redis/src/redis-cli` (falls back
+* `memtier_benchmark` in PATH, `redis-cli` at `/home/user/Projects/redis/src/redis-cli` (falls back
   to the tree's own cli), python3 (for the persistent-connection driver).
 * Server pinned to cores 0–7, load-gen to 8–15 (methodology rule; degrades to a half-split on
   smaller boxes).

@@ -3,7 +3,7 @@
 # multi-node coverage available on a single-CCD box: it exercises the per-node flat TABLES, the
 # per-node reclaim walk (flatReclaimAll iterates n_node_dbs), node-scoped worker ranges in the grace,
 # and the numa>=2 flip/balancer paths — even though the physical coherence topology is still one CCD.
-J=/shared/Projects/.claude/jobs/fd085c8e/tmp; P=/shared/Projects
+J=/tmp/tomo_pfjob; P=/home/user/Projects
 # PORT-SAFETY: boot() already re-runs cleanup_n2, but that reaps by pid only — a leaked/foreign
 # server on :7978 would still REUSEPORT-join. Gate on the port before boot + verify pid identity
 # after (boot currently trusts `sleep 1`/`sleep 3`).

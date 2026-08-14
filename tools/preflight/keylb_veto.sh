@@ -21,7 +21,7 @@ set -u
 # suite's accept group, blending two binaries into one measurement (the split is invisible
 # — a bind never fails). Gate on the PORT before boot and verify pid identity after.
 _PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
-J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
+J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 BIN=${TOMO_BIN:?TOMO_BIN required}
 OUT=$J/keylb_veto.out; : > $OUT
 PORT=${KEYLB_PORT:-7897}

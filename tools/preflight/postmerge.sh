@@ -26,7 +26,7 @@ BIN=${1:?usage: postmerge.sh <binary> [acceptance-script [args...]]}
 shift
 ACC=${1:-}; [ $# -gt 0 ] && shift || true
 
-J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
+J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 OUT=$J/postmerge.out
 BASE=${POSTMERGE_BASE:-$J/postmerge_baseline.tsv}
 TT=${TT:-20}

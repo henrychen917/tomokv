@@ -1,13 +1,13 @@
 # feature_sweep.sh — THredis full-feature correctness + stress sweep
 
-Target tree: `/shared/Projects/.claude/jobs/fd085c8e/tmp/stable-w2` (2s-numa-shared-kv fork, @ 52c760720).
-Oracle: stock Redis at `/shared/Projects/redis/src/redis-server` (dev build, v=255.255.255).
+Target tree: `/tmp/tomo_pfjob/stable-w2` (2s-numa-shared-kv fork, @ 52c760720).
+Oracle: stock Redis at `/home/user/Projects/redis/src/redis-server` (dev build, v=255.255.255).
 
 ## Usage
 
 ```
-SMOKE=1 /shared/Projects/.claude/jobs/fd085c8e/tmp/feature_sweep.sh    # ~12-16 min
-        /shared/Projects/.claude/jobs/fd085c8e/tmp/feature_sweep.sh    # full, ~50-80 min
+SMOKE=1 /tmp/tomo_pfjob/feature_sweep.sh    # ~12-16 min
+        /tmp/tomo_pfjob/feature_sweep.sh    # full, ~50-80 min
 ```
 
 Env overrides: `TREE`, `ORACLESRV`, `CLI`, `FORK_PORT` (7791), `ORACLE_PORT` (7792),
@@ -19,17 +19,17 @@ Exit code 0 iff no FAIL rows (KNOWN/SUSPECT do not fail the run).
 
 ## Outputs
 
-- `/shared/Projects/.claude/jobs/fd085c8e/tmp/feature_sweep.tsv` — `section  test  config  result  detail`
+- `/tmp/tomo_pfjob/feature_sweep.tsv` — `section  test  config  result  detail`
   with result in {PASS, FAIL, KNOWN, SUSPECT}.
   - **KNOWN** = documented-broken/by-design behavior asserted to still behave exactly as
     documented (a change in either direction becomes FAIL).
   - **SUSPECT** = the number/observation failed its plausibility gate or the check was
     vacuous (comparator self-test failed, load did not run, timing missed the window).
     Per the sanity-gate rule these are never silently upgraded to PASS.
-- `/shared/Projects/.claude/jobs/fd085c8e/tmp/feature_sweep_logs/` — `sc_<section>.log` per section plus one
+- `/tmp/tomo_pfjob/feature_sweep_logs/` — `sc_<section>.log` per section plus one
   **preserved, uniquely-named** server log per boot (`srv_<seq>_<kind>_p<port>.log`;
   never truncated by a later boot).
-- `/shared/Projects/.claude/jobs/fd085c8e/tmp/feature_sweep_work/` — helper (`oracle_helper.py`), per-cell
+- `/tmp/tomo_pfjob/feature_sweep_work/` — helper (`oracle_helper.py`), per-cell
   comparator outputs (`*.out` + `*.err`), RDB dirs, memtier logs, key caches.
 
 ## Box discipline encoded in the script

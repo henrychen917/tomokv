@@ -41,9 +41,9 @@ set -u
 # This suite has therefore NEVER EXECUTED under preflight. Fixing the flip_updown exit code was
 # necessary but not sufficient: the verdict logic was never even reached.
 BIN=${1:-${TOMO_BIN:?usage: side_regression.sh <redis-server binary> [baseline.tsv]  (or TOMO_BIN=...)}}
-J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
+J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 BASE=${2:-$J/side_regression_baseline.tsv}
-OUT=$J/side_regression.out
+OUT="${TOMO_RESULT_FILE:-$J/side_regression.out}"
 TT=${TT:-30}
 PORT=7875
 TOL=${TOL:-4}      # percent; box noise is ~+-2% exclusive, so 4% is ~2 sigma

@@ -30,7 +30,7 @@ set -u
 # the DEBUG RELOAD sequence across two binaries. Gate on $PORT + verify pid identity.
 _PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 BIN=${TOMO_BIN:?TOMO_BIN required}
-J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
+J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 SRC=$(cd "$(dirname "$0")/../.." && pwd)
 CLI=${TOMO_CLI:-$SRC/src/redis-cli}
 PORT=${PORT:-7994}

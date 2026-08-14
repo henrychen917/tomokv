@@ -81,7 +81,7 @@ _PFBIN_DIR="${TMPDIR:-/tmp}/tomo_pfbin_$$"
 mkdir -p "$_PFBIN_DIR"
 _SRC_DIR=$(cd "$(dirname "$BIN")" && pwd)
 cp -f "$BIN" "$_PFBIN_DIR/redis-pf" || { echo "NO-GO: cannot stage binary"; exit 1; }
-for _c in "$_SRC_DIR/redis-cli" "$SD/../../src/redis-cli" /shared/Projects/redis/src/redis-cli; do
+for _c in "$_SRC_DIR/redis-cli" "$SD/../../src/redis-cli" /home/user/Projects/redis/src/redis-cli; do
     [ -x "$_c" ] && { cp -f "$_c" "$_PFBIN_DIR/redis-cli"; break; }
 done
 [ -x "$_PFBIN_DIR/redis-cli" ] || { echo "NO-GO: cannot find a redis-cli to stage next to the binary"; exit 1; }
@@ -89,7 +89,7 @@ echo "preflight: staged $(basename "$BIN") -> $_PFBIN_DIR/redis-pf (+ redis-cli)
 BIN="$_PFBIN_DIR/redis-pf"
 trap 'rm -rf "$_PFBIN_DIR"' EXIT
 BINSHA=$(sha256sum "$BIN" | cut -c1-16)
-PF=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
+PF=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 REPORT=$PF/preflight_report.txt
 : > $REPORT
 SMOKE=${SMOKE:-0}

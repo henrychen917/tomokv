@@ -43,7 +43,7 @@ set -u
 # answers some of its connections. Gate on $PORT before boot, verify pid identity after,
 # and tear our server down on every exit path (this suite had no trap).
 _PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
-J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
+J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 BIN=${TOMO_BIN:?TOMO_BIN required}
 PORT=${TOMO_PORT:-7318}
 NAME=redis-exnest

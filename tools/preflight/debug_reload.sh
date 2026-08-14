@@ -15,7 +15,7 @@
 #   ex=4  -> FLATSTORE (shared node db)
 set -u
 BIN=${TOMO_BIN:?TOMO_BIN required}
-J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
+J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 SRC=$(cd "$(dirname "$0")/../.." && pwd)
 CLI=${TOMO_CLI:-$SRC/src/redis-cli}
 PORT=${PORT:-7996}

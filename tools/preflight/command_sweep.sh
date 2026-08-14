@@ -117,13 +117,13 @@
 # STAMP:   UPDATE_BASELINES=1 ./command_sweep.sh [bin]
 # Binary:  $1 wins, else $TOMO_BIN (preflight wrapper), else tree default.
 #
-# OUTPUT:  /shared/Projects/.claude/jobs/fd085c8e/tmp/command_sweep.tsv
+# OUTPUT:  /tmp/tomo_pfjob/command_sweep.tsv
 #            (class \t cell \t ops \t p99 \t baseline \t delta \t result)
 #            result in {PASS, PASS(no-baseline), IMPROVED, SUSPECT(...),
 #            FAIL(...)} — FAIL/SUSPECT tokens are tab-preceded so the
 #            preflight wrapper's grep -E $'\tFAIL' / $'\tSUSPECT' matches.
-#          /shared/Projects/.claude/jobs/fd085c8e/tmp/command_sweep_history.tsv (append-only, every run)
-#          per-cell logs under /shared/Projects/.claude/jobs/fd085c8e/tmp/cmdsweep/logs/
+#          /tmp/tomo_pfjob/command_sweep_history.tsv (append-only, every run)
+#          per-cell logs under /tmp/tomo_pfjob/cmdsweep/logs/
 #
 # HARNESS-TRAP LEDGER COMPLIANCE:
 #   * kill ONLY our own $SRV_PID; wait $SRV_PID; never pkill by name
@@ -147,16 +147,16 @@
 set -u
 
 # ---- paths ------------------------------------------------------------------
-J=/shared/Projects/.claude/jobs/fd085c8e/tmp
+J=/tmp/tomo_pfjob
 SD="$(cd "$(dirname "$0")" && pwd)"
 # PORT-SAFETY: the pgrep-x-redis-server guards below miss a leaker staged under a private
 # name; the port does not. Gate on $PORT before each class boots and verify pid identity.
 . "$SD/preflight_lib.sh"
 TREE="$(cd "$SD/../.." && pwd)"
 BIN="${1:-${TOMO_BIN:-$TREE/src/redis-server}}"
-CLI=/shared/Projects/redis/src/redis-cli
+CLI=/home/user/Projects/redis/src/redis-cli
 [ -x "$CLI" ] || CLI=$TREE/src/redis-cli
-RB=/shared/Projects/redis/src/redis-benchmark
+RB=/home/user/Projects/redis/src/redis-benchmark
 [ -x "$RB" ] || RB=$TREE/src/redis-benchmark
 MTB=$(command -v memtier_benchmark || echo /usr/local/bin/memtier_benchmark)
 PORT=${PORT:-7975}

@@ -2,7 +2,7 @@
 # TASK#43 regression: same-client "SET b NEW" then "MGET a b" must return NEW for b.
 # Positive control: MUST fail on a pre-fix build (that is what makes it a real test).
 set -u
-J=/shared/Projects/.claude/jobs/fd085c8e/tmp
+J=/tmp/tomo_pfjob
 BIN=${TOMO_BIN:?}; LBL=${LBL:-bin}; EXTRA=${EXTRA:-}
 PORT=${PORT_OVERRIDE:-7984}
 ORD_SRV_PID=""

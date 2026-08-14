@@ -16,7 +16,7 @@
 #   OUT OF SPEC: boot times out, or cmd_coverage.py reports any failing command-family check or any
 #   concurrency-sweep mismatch (per-connection result diverges from its own deterministic expectation).
 set -u
-J=${TOMO_PREFLIGHT_DIR:-/shared/Projects/.claude/jobs/fd085c8e/tmp}
+J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 BIN=${TOMO_BIN:?TOMO_BIN required}
 SD="$(cd "$(dirname "$0")" && pwd)"
 GATE="$SD/cmd_coverage.py"
