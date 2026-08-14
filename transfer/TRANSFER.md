@@ -16,7 +16,13 @@ Claude project memory (`claude-memory/` → copy to the new box's
 - Measurement: `linux-tools-common linux-tools-$(uname -r)` (perf), `numactl`, `hwloc` (topology),
   `util-linux` (flock), `psmisc` (fuser/pkill), `jq`, `python3` (3.10+, stdlib only)
 - YCSB: `openjdk-21-jdk maven`
-- Garnet (optional baseline): dotnet SDK 8+
+- Garnet (optional baseline): **dotnet SDK 10.0.300+** (garnet-src/global.json pins 10.0.300,
+  rollForward latestMajor — NOT SDK 8, that was wrong in an earlier version of this doc). MS apt
+  repo needed (distro repos lag): `packages.microsoft.com` -> `dotnet-sdk-10.0`. KNOWN GOTCHA: the
+  bench harness's Garnet adapter refuses to run unless it can grep a literal `--threads N` CLI
+  option out of the built server's option-parser source; on the last checkout that option wasn't
+  present, so Garnet SKIPped every comparison cell so far (never actually benchmarked) — verify
+  `--threads` exists (or fix the check / arg name) before relying on it as a baseline.
 - Dragonfly (if building from source): `ninja-build` + their deps — or just pull the release binary
 
 ## 2. Pulls
