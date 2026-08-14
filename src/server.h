@@ -1468,10 +1468,9 @@ typedef struct {
  * ========================================================================= */
 
 /* Compile-time maxes: bound array sizes in struct redisServer / client.
- * ee451 #83 (2026-08-05): RAISED 32/64 -> 128/128 after clearing every wall the raise touched:
- *   - lanes (802KB/worker inline) -> heap-sized to the runtime pool (initExThreads), so cap 128
- *     costs the same as cap 32 at a given thread count; heap-FAST (WQ hoist + exQueueFor TLS base)
- *     makes it perf-flat vs inline (measured +-0.4% instr/op io4ex4).
+ * ee451 #83 (2026-08-05): RAISED 32/64 -> 128/128 after clearing every mask wall the raise touched:
+ *   - queues/freeback remain the stable INLINE lanes; the cap port deliberately does not resurrect
+ *     the reverted heap-lane experiment or its TLS/hoisted-base fast paths.
  *   - q_summary -> two-level (q_top + q_summary[TOMO_QS_WORDS]); TOMO_QS_WORDS = 3 at cap 128,
  *     idle pass still exchanges ONE word.
  *   - ex_dirty_mask -> uint64 WORD ARRAY (TOMO_EX_MASK_WORDS); consume loop bounded by live words.
@@ -1479,10 +1478,10 @@ typedef struct {
  *     (pool-recycled headers must not inherit a stale high-word bit -> premature-free/leak).
  *   - TOMO_SCAN_WORKER_BITS = 8 already encodes worker indices 0..255, so 128 workers fit with a
  *     spare bit; that wall is only reached past 256.
- * "Pay only when thread values need it": every widened path (masks, q_summary) iterates
+ * "Pay only when thread values need it": every widened mask path (masks, q_summary) iterates
  * (live+63)/64 == 1 word while <=64 slots are live, so a normal small-thread boot runs the exact
- * pre-#83 single-word code. The only unconditional cost is ~100KB of extra per-slot stat arrays in
- * the single redisServer instance (97->257 slots), noise against a multi-GB server. */
+ * pre-#83 single-word mask code. Compile-cap-sized storage, including the stable inline lanes and
+ * per-slot stats, retains its existing layout policy. */
 #define TOMO_IO_THREADS_MAX 128
 #define TOMO_EX_THREADS_MAX 128
 
@@ -1562,9 +1561,10 @@ static const uint32_t TOMO_CLS_SLO[TOMO_SVC_CLASSES] = { 1, 1, 4, 64, 1024, 1638
  * ex_bucket_table[bucket]. This (a) lifts the power-of-two WORKER-count limit (any
  * number of workers can own buckets) while keeping xxhash, and (b) is the foundation for
  * adaptive resharding: each worker owns a CONTIGUOUS bucket range, so rebalancing only
- * shifts a boundary between adjacent workers. The table ELEMENT is a worker id (<= 64,
- * TOMO_EX_THREADS_MAX), so it stays uint8_t regardless of bucket count; only the array
- * LENGTH scales with TOMO_BUCKETS. 16384 buckets = 16KB uint8_t table, still small/L2, and
+ * shifts a boundary between adjacent workers. The table ELEMENT is a worker id
+ * (<= TOMO_EX_THREADS_MAX, and compile-asserted to fit), so it stays uint8_t regardless of bucket
+ * count; only the array LENGTH scales with TOMO_BUCKETS. 16384 buckets = 16KB uint8_t table, still
+ * small/L2, and
  * 16384 == kvstore's native cluster-slot count so the shared-keyspace kvstore (one dict per
  * bucket) reuses kvstore's per-slot machinery directly. Finer buckets = smoother rebalance. */
 #define TOMO_BUCKETS 16384
@@ -2571,23 +2571,12 @@ typedef struct exThread {
     _Atomic unsigned int stamp_pending; /* CURE2 owner stamp/prune jobs */
     unsigned long long handoff_missed;   /* dense sweep found work the summary did not advertise */
     unsigned int handoff_dense_tick;     /* consumer-private pass counter */
-    /* ee451 #83 (2026-08-05): lanes are HEAP arrays sized to the runtime pool (nlanes =
-     * io_threads + num_workers + 1), NOT inline arrays sized to the compile cap. This is the change
-     * that makes the cap raise affordable: inline at cap 128 would be ~3MB/worker faulted for even a
-     * 4-thread boot; heap-sizing to the runtime count means cap 128 costs the same as cap 32 at a
-     * given thread count — the "pay only when thread values need it" property. Layout INSIDE a lane
-     * (exQueue/freebackRing) is unchanged, so the SPSC hot path is untouched; the only new cost is
-     * one pointer load per lane access, recovered by hoisting the base out of the pop loop and
-     * TLS-caching the per-worker dispatch base (exQueueFor). Measured heap == inline at cap 32.
-     *
-     * ALIGNMENT BREAK is load-bearing: nlanes/queues/freeback are READ-ONLY after init but loaded on
-     * EVERY lane access by BOTH sides. Leaving them on the q_top/q_summary line (producers fetch_or
-     * that line per dispatch) put the lane POINTERS on a contended line: measured p32 GET -5.2%. On
-     * their own line both sides cache them Shared forever. */
-    __attribute__((aligned(CACHE_LINE_SIZE))) int nlanes;
-    exQueue *queues;
+    /* ee451 (2026-08-06): lanes stay INLINE. The heap-sized experiment was reverted after measuring
+     * a hot-path pointer-load cost; raising the thread ceiling must not silently resurrect it. */
+    int nlanes;
+    exQueue queues[TOMO_IO_THREADS_MAX + 1];
     /* ee451 (S8): one free-back ring per IO thread (incl. main = 0). */
-    freebackRing *freeback;
+    freebackRing freeback[TOMO_IO_THREADS_MAX + 1];
     /* ee451 (flip-actuator, F1): `db` relocated to the head line above; the owner-written fields
      * below now have NO IO-thread reader on their line (no dispatch false-sharing). */
     /* ee451 (#3): per-worker windowed write-rate (recent write activity). */
@@ -3221,12 +3210,11 @@ struct redisServer {
     list *clients_mig_parked[TOMO_IO_THREADS_MAX + 1];
     /* Clients refused before atomic-MSET group creation, retried only by their owning IO loop. */
     list *clients_atomic_window_parked[TOMO_IO_THREADS_MAX + 1];
-    /* ee451 #83: q_summary single-word gate. The two-level (q_top + q_summary[TOMO_QS_WORDS]) harvest
-     * only earns its extra q_top atomic when io slots can exceed 64. io_hi = io_threads + tm_ngrow_io
-     * <= io_threads + num_workers (tm_ngrow_io <= num_workers by construction), so if that sum < 64
-     * the process NEVER touches word 1 and takes the exact single-word path cap<=64 compiled. Latched
-     * once at initExThreads, process-constant (no transition hazard). 0 => "pay nothing for the
-     * raised cap"; only meaningful when TOMO_QS_WORDS > 1 (compile cap > 64). */
+    /* ee451 #83: q_summary single-word gate. The highest possible producer lane is the reserved
+     * owner-op lane io_threads+tm_ngrow_io; if it is below 64, the process never touches word 1 and
+     * takes the exact single-word path. Latched once at initExThreads, process-constant (no
+     * transition hazard). 0 => "pay nothing for the raised cap"; only meaningful when
+     * TOMO_QS_WORDS > 1 (compile cap > 64). */
     int tm_qs_multiword;
     int num_workers;
     /* ee451 (thread-modes): worker-slot accounting.
