@@ -1,6 +1,6 @@
 ---
 name: thredis-bench-suite-comparison
-description: "bench_suite cross-system comparison harness ($J/bench_suite): how to run it (sweep_run.sh+watchdog+analyze), the 5 box-specific harness fixes needed to get valid rows on the 7700X, and the fair-comparison decisions (fixed keycount, enforce=0, perf event set)."
+description: "RETIRED harness (owner 2026-08-13: benches will be REWRITTEN for the new server — do not resurrect this suite). Keep for: the d32 RESULTS (valid reference, on gh transfer-context + docs/bench), and the transferable harness LESSONS (box fixes, fair-comparison decisions) for the rewrite."
 metadata:
   type: reference
   originSessionId: fd085c8e-0bc5-48ff-bee2-eca219253f18
