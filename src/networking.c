@@ -6552,6 +6552,12 @@ uint32_t isPausedActionsWithUpdate(uint32_t actions_bitmask) {
  *
  * The function returns the total number of events processed. */
 void processEventsWhileBlocked(void) {
+    /* This drives server.el — main's loop, whose handlers (beforeSleep reclaim/resize trio,
+     * serverCron memory stats) are main-only and assert iotid==0. A worker-executed blocked
+     * command (DEBUG RELOAD's rdbLoad) reaching here off-main must not take over main's
+     * duties: main is not blocked in that case and keeps driving its own loop. Same rule
+     * script.c already applies at its call site (script.c:160). */
+    if (iotid != 0) return;
     int iterations = 4; /* See the function top-comment. */
 
     /* Update our cached time since it is used to create and update the last
