@@ -53,6 +53,21 @@ enum {
 #define FLAT_IS_EMPTY(w)    ((uint64_t)(w) == 0)
 #define FLAT_IS_LIVE(w)     (((uint64_t)(w) & FLAT_PTR_MASK) != 0)   /* has a pointer => a live key */
 
+/* Probe-start slot for hash h. The dispatch router consumes low bits of the SAME xxh64
+ * (bucket = h & 0x3FFF, node = a contiguous bucket range), so a per-node table indexed by
+ * h & mask has the routing bits FROZEN for every key it owns: only 1/nnodes of the slots are
+ * natural homes (2048-slot runs every 16384) and linear probing degenerates into kilo-slot
+ * clusters (~6.6k probes/lookup measured, 8 nodes x 10M keys). Finalize h (murmur3 fmix64)
+ * before taking the slot index so slot bits are independent of routing bits. The 15-bit tag
+ * still comes from the ORIGINAL h (flat_make/flat_word_tag untouched) — insert, lookup,
+ * resize-copy and the prefetch home-line computation must all start from this function. */
+static inline uint64_t flat_slot_start(uint64_t h, uint64_t mask) {
+    h ^= h >> 33; h *= 0xFF51AFD7ED558CCDULL;
+    h ^= h >> 33; h *= 0xC4CEB9FE1A85EC53ULL;
+    h ^= h >> 33;
+    return h & mask;
+}
+
 typedef struct flatSlot {
     _Atomic uint64_t w;            /* [63:49] tag | [48] TOMB | [47:0] masked kv ptr; 0 = EMPTY. 8 B => 8/64B line */
 } flatSlot;

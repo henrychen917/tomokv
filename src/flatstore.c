@@ -207,7 +207,7 @@ static inline int flatKeyMatch(dictEntry *masked, const char *key, size_t klen) 
 dictEntry *flatGet(flatTable *t, uint64_t h, const char *key, size_t klen) {
     if (!t) return NULL;
     uint64_t mask = t->mask, tag = flat_tag_of(h);
-    for (uint64_t i = h & mask, probes = 0; probes <= mask; i = (i + 1) & mask, probes++) {
+    for (uint64_t i = flat_slot_start(h, mask), probes = 0; probes <= mask; i = (i + 1) & mask, probes++) {
         uint64_t w = atomic_load_explicit(&t->slots[i].w, memory_order_acquire);
         if (FLAT_IS_EMPTY(w)) return NULL;                        /* the only probe STOP */
         if (FLAT_IS_LIVE(w) && flat_word_tag(w) == tag) {         /* tag+ptr are one atomic word (no mid-publish gap) */
@@ -223,7 +223,7 @@ dictEntry *flatGet(flatTable *t, uint64_t h, const char *key, size_t klen) {
 int flatFindForWrite(flatTable *t, uint64_t h, const char *key, size_t klen, uint64_t *slot) {
     uint64_t mask = t->mask, tag = flat_tag_of(h);
     int have_tomb = 0; uint64_t tomb_at = 0;
-    for (uint64_t i = h & mask, probes = 0; probes <= mask; i = (i + 1) & mask, probes++) {
+    for (uint64_t i = flat_slot_start(h, mask), probes = 0; probes <= mask; i = (i + 1) & mask, probes++) {
         uint64_t w = atomic_load_explicit(&t->slots[i].w, memory_order_acquire);
         if (FLAT_IS_EMPTY(w)) { *slot = have_tomb ? tomb_at : i; return 0; }  /* absent -> insert here */
         if (!FLAT_IS_LIVE(w)) { if (!have_tomb) { have_tomb = 1; tomb_at = i; } continue; }  /* dead/tomb */
@@ -232,7 +232,7 @@ int flatFindForWrite(flatTable *t, uint64_t h, const char *key, size_t klen, uin
             if (flatKeyMatch(mk, key, klen)) { *slot = i; return 1; }         /* found live key */
         }
     }
-    *slot = have_tomb ? tomb_at : (h & mask);   /* full wrap w/o EMPTY: reuse a tomb, else home slot */
+    *slot = have_tomb ? tomb_at : flat_slot_start(h, mask);   /* full wrap w/o EMPTY: reuse a tomb, else home slot */
     return 0;
 }
 

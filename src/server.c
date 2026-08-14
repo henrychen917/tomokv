@@ -11819,7 +11819,7 @@ static void csMsetSubExecVersioned(client *sub, csGroup *g) {
                 h[i] = tomoKeyHash(k->ptr, sdslen(k->ptr));
             }
             for (int i = 0; i < nw; i++)
-                redis_prefetch_read(&t->slots[h[i] & t->mask]);
+                redis_prefetch_read(&t->slots[flat_slot_start(h[i], t->mask)]);
             for (int i = 0; i < nw; i++) {
                 int a = 1 + 2 * (base + i);
                 robj *keyo = sub->argv[a];
@@ -11984,7 +11984,7 @@ static void csSubExec(client *sub) {
                     h[i] = tomoKeyHash(k->ptr, sdslen(k->ptr));
                 }
                 for (int i = 0; i < nw; i++)                      /* B: first-probe slot lines */
-                    redis_prefetch_read(&t->slots[h[i] & t->mask]);
+                    redis_prefetch_read(&t->slots[flat_slot_start(h[i], t->mask)]);
                 for (int i = 0; i < nw; i++) {                    /* C: apply — body unchanged */
                     int a = 1 + 2 * (base + i);
                     robj *keyo = sub->argv[a];
@@ -21905,7 +21905,7 @@ static inline void exPrefetchBatch(client **batch, int n, int prefetch_mode) {
                     flatTable *t = kvstoreFlatTable(kvs);
                     if (t && t->slots) {
                         uint64_t h = fake->tomo_key_h;
-                        flatSlot *slot = &t->slots[h & t->mask];
+                        flatSlot *slot = &t->slots[flat_slot_start(h, t->mask)];
                         storage[j].slot = slot;
                         idxs[j] = (unsigned long)flat_tag_of(h);
                         st[j] = (fake->cmd && (fake->cmd->flags & CMD_READONLY)) ?
