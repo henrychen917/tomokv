@@ -9438,22 +9438,28 @@ void flatReclaimAll(int node) {
         }
 }
 
-/* One cooperative resize state machine per physical node. Its immutable base IO owns every plain
- * field in the row; watchdog threads may only CAS the atomic QUIESCING edge. Node-local park gates
- * let unrelated nodes continue serving while their peers copy disjoint node_dbs tables. */
+/* One cooperative resize state machine per physical node. Its immutable base IO writes every plain
+ * field in the row; copy helpers read the published copy fields only after acquiring COPYING.
+ * Watchdog threads may only CAS the atomic QUIESCING edge. Node-local park gates let unrelated
+ * nodes continue serving while their peers copy disjoint node_dbs tables. */
 enum { FLAT_RZ_IDLE = 0, FLAT_RZ_QUIESCING, FLAT_RZ_COPYING };
 typedef struct flatResizeNodeState {
     _Atomic int state;
     _Atomic monotime arm_us;
     _Atomic unsigned long long drives;
+    _Atomic uint64_t claim_cursor;
+    _Atomic uint64_t completed_chunks;
+    _Atomic unsigned int copy_claimers;
+    _Atomic int claims_closed;
     kvstore *kvs;
     flatTable *old, *new;
-    uint64_t cursor;
+    uint64_t copy_slots;
     int dbid;
 } __attribute__((aligned(CACHE_LINE_SIZE))) flatResizeNodeState;
 static flatResizeNodeState flat_rz[TOMO_NODES_MAX];
 _Atomic unsigned long long flat_insert_full_waits;
 _Atomic unsigned long long flat_rz_urgent_services;
+_Atomic unsigned long long flat_rz_helper_chunks;
 #define FLAT_RZ_QUIESCE_DEADLINE_US  200000ULL
 #define FLAT_RZ_WATCHDOG_US          2000000ULL
 #define FLAT_RZ_COPY_SLOT_BUDGET     (1ULL << 16)
@@ -9489,6 +9495,53 @@ static int flatResizeOwnedNode(void) {
     if (tmNumNodes() == 1) return iotid == 0 ? 0 : -1;
     if (!tomoFlipIsNodeSemiMain(iotid)) return -1;
     return tmNodeOfIoSlot(iotid);
+}
+
+/* Claim one disjoint source range without taking a lock. The coordinator closes admission before
+ * the swap and waits for both every valid range's release completion and any claimant that passed
+ * the close edge. The seq_cst close/claimant handshake means a claimant either contributes to that
+ * wait or observes claims_closed and never reads the table pointers.
+ *
+ * Copy helpers need no READER flat section: the old table cannot be retired, nor the new table
+ * swapped in, until their claimed range completes. Source ranges are disjoint and every live key
+ * occupies exactly one old slot, so no two copiers insert the same key. Distinct-key collisions in
+ * the fresh table are arbitrated by flatInsert's per-slot CAS; used/tombs updates are atomic RMWs. */
+static int flatResizeCopyClaim(int node, int worker_helper) {
+    flatResizeNodeState *rz = &flat_rz[node];
+
+    if (!flatResizeNodeActive(node)) return 0;
+    atomic_fetch_add_explicit(&rz->copy_claimers, 1, memory_order_seq_cst);
+    if (atomic_load_explicit(&rz->state, memory_order_acquire) != FLAT_RZ_COPYING ||
+        atomic_load_explicit(&rz->claims_closed, memory_order_seq_cst) ||
+        !flatResizeNodeActive(node)) {
+        atomic_fetch_sub_explicit(&rz->copy_claimers, 1, memory_order_seq_cst);
+        return 0;
+    }
+
+    uint64_t start = atomic_fetch_add_explicit(&rz->claim_cursor,
+                                                FLAT_RZ_COPY_SLOT_BUDGET,
+                                                memory_order_acq_rel);
+    if (start >= rz->copy_slots) {
+        atomic_fetch_sub_explicit(&rz->copy_claimers, 1, memory_order_seq_cst);
+        return 0;
+    }
+
+    /* A valid claim is included in the coordinator's completion target, so active/state cannot
+     * change until this copier publishes completion. In particular the watchdog can no longer
+     * abort: its only successful edge is QUIESCING->IDLE. */
+    serverAssert(flatResizeNodeActive(node));
+    serverAssert(atomic_load_explicit(&rz->state, memory_order_acquire) == FLAT_RZ_COPYING);
+    serverAssert(rz->old != NULL && rz->new != NULL);
+    uint64_t cursor = start;
+    (void)flatTableCopyChunk(rz->old, rz->new, &cursor, FLAT_RZ_COPY_SLOT_BUDGET);
+    uint64_t end = start + FLAT_RZ_COPY_SLOT_BUDGET;
+    if (end > rz->copy_slots) end = rz->copy_slots;
+    serverAssert(cursor == end);
+    atomic_fetch_add_explicit(&rz->completed_chunks, 1, memory_order_release);
+    if (worker_helper)
+        atomic_fetch_add_explicit(&flat_rz_helper_chunks, 1, memory_order_relaxed);
+    atomic_fetch_sub_explicit(&rz->copy_claimers, 1, memory_order_seq_cst);
+    return 1;
 }
 
 /* In the one-node path mig_arm_lock remains held for the entire resize, exactly as before. With
@@ -9618,8 +9671,11 @@ void flatResizeCoordinate(int node) {
         rz->kvs = kvs;
         rz->old = t;
         rz->new = NULL;
-        rz->cursor = 0;
+        rz->copy_slots = 0;
         rz->dbid = fj;
+        /* Closed is also the generation barrier: a delayed claimant from the prior resize cannot
+         * enter this row before the next target and COPYING publication are complete. */
+        atomic_store_explicit(&rz->claims_closed, 1, memory_order_seq_cst);
         atomic_store_explicit(&server.flat_resize_active[node], 1, memory_order_seq_cst);
         if (atomic_load_explicit(&tomo_flush_gate, memory_order_seq_cst) ||
             atomic_load_explicit(&server.migration_active, memory_order_seq_cst) ||
@@ -9671,19 +9727,37 @@ void flatResizeCoordinate(int node) {
             (void)flatResizeAbortQuiesce(node);
             return;
         }
+        flatTable *nw = flatTableAllocFor(rz->old);
+        rz->new = nw;
+        rz->copy_slots = rz->old->size;
+        atomic_store_explicit(&rz->claim_cursor, 0, memory_order_relaxed);
+        atomic_store_explicit(&rz->completed_chunks, 0, memory_order_relaxed);
+        /* Publish new/copy_slots/counters only after they are complete. If the watchdog won the
+         * QUIESCING->IDLE race while allocation ran, no helper could have observed this target. */
         int expected = FLAT_RZ_QUIESCING;
         if (!atomic_compare_exchange_strong_explicit(&rz->state, &expected, FLAT_RZ_COPYING,
-                                                     memory_order_acq_rel, memory_order_acquire))
+                                                     memory_order_release, memory_order_acquire)) {
+            rz->new = NULL;
+            flatTableFree(nw);
             return;
-        rz->new = flatTableAllocFor(rz->old);
-        rz->cursor = 0;
+        }
+        serverAssert(flatResizeNodeActive(node));
+        /* Open claims only after COPYING is release-published. Besides publishing `new`, this
+         * ordering prevents a claimant delayed across resize generations from entering during
+         * QUIESCING, where the watchdog can still abort. */
+        atomic_store_explicit(&rz->claims_closed, 0, memory_order_seq_cst);
         return;
     }
 
     if (state == FLAT_RZ_COPYING) {
-        int done = flatTableCopyChunk(rz->old, rz->new, &rz->cursor,
-                                      FLAT_RZ_COPY_SLOT_BUDGET);
-        if (!done) return;
+        while (flatResizeCopyClaim(node, 0)) { }
+        atomic_store_explicit(&rz->claims_closed, 1, memory_order_seq_cst);
+        uint64_t chunks = (rz->copy_slots + FLAT_RZ_COPY_SLOT_BUDGET - 1) /
+                          FLAT_RZ_COPY_SLOT_BUDGET;
+        while (atomic_load_explicit(&rz->completed_chunks, memory_order_acquire) < chunks ||
+               atomic_load_explicit(&rz->copy_claimers, memory_order_seq_cst))
+            sched_yield();
+        serverAssert(atomic_load_explicit(&rz->completed_chunks, memory_order_acquire) == chunks);
         if (atomic_load_explicit(&rz->old->resize_needed, memory_order_relaxed) >= FLAT_RESIZE_URGENT)
             atomic_fetch_add_explicit(&flat_rz_urgent_services, 1, memory_order_relaxed);
         atomic_store_explicit(&rz->new->resize_needed, FLAT_RESIZE_NONE, memory_order_relaxed);
@@ -19758,6 +19832,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_flat_resize_active:%d\r\n", flatResizeAnyActive(),
             "tomokv_flat_resize_state:%d\r\n", flatResizeState(),   /* 0 IDLE, 1 QUIESCING, 2 COPYING */
             "tomokv_flat_resize_quiesce_waits:%llu\r\n", atomic_load_explicit(&flat_rz_quiesce_waits, memory_order_relaxed),
+            "tomokv_flat_resize_helper_chunks:%llu\r\n", atomic_load_explicit(&flat_rz_helper_chunks, memory_order_relaxed),
             "tomokv_flat_insert_full_waits:%llu\r\n", atomic_load_explicit(&flat_insert_full_waits, memory_order_relaxed),
             "tomokv_flat_resize_urgent_services:%llu\r\n", atomic_load_explicit(&flat_rz_urgent_services, memory_order_relaxed),
             /* ee451 (J4): non-zero means a resize armed and the coordinator then stopped running,
@@ -22407,6 +22482,12 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
         for (unsigned spins = 0;
              atomic_load_explicit(&server.flat_resize_active[flat_node], memory_order_acquire);
              spins++) {
+            /* We are quiescent for READER/QSBR purposes, but a valid copy claim pins old/new via
+             * the resize completion protocol until this range is published complete. */
+            serverAssert(!atomic_load_explicit(&worker->in_flat_section, memory_order_seq_cst));
+            if (atomic_load_explicit(&flat_rz[flat_node].state, memory_order_acquire) ==
+                    FLAT_RZ_COPYING && flatResizeCopyClaim(flat_node, 1))
+                continue;
             if ((spins & 1023) == 1023) flatResizeWatchdog(flat_node);
             sched_yield();
         }
