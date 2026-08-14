@@ -22962,20 +22962,68 @@ static int exSlice(exThread *worker, exSliceCtx *ctx,
  * wrapped with modulo if the machine has fewer cores than threads.
  * NOTE: topology/NUMA/P-core-aware pinning is a SEPARATE planned version,
  * intentionally NOT done here. */
-/* ee451 (v8d): TOPOLOGY-AWARE core ordering. Groups cores that share a domain to be CONSECUTIVE,
- * so the deterministic logical->physical map (worker i, IO j) PACKS threads onto one domain before
- * spilling to the next — keeping a shard's worker, the IO threads feeding it, and (with NUMA-local
- * alloc below) its memory together. The DOMAIN is chosen by tomokv-pin-mode:
+/* ee451 (v8d): TOPOLOGY-AWARE core ordering. Maps each configured node to one domain, keeping a
+ * shard's worker, the IO threads feeding it, and (with NUMA-local alloc below) its memory together.
+ * The DOMAIN is chosen by tomokv-pin-mode:
  *   ccd  -> the shared-L3 id  (/sys/devices/system/cpu/cpuN/cache/indexK/level + id)
  *   numa -> the NUMA node id  (/sys/devices/system/node/nodeM/cpuN)
- * Reads /sys; falls back to identity order if the topology is unknown.
- * EPYC/Threadripper-targeted; on a box with a single domain this is identity. */
+ * Reads /sys; falls back to the old logical-CPU ordering if the topology is unknown. */
 #define SMART_MAX_CORES 1024
 static int smart_core_order[2][SMART_MAX_CORES];   /* [0]=by L3/CCD, [1]=by NUMA node */
+static int smart_smt_order[2][SMART_MAX_CORES];
 static int smart_core_n[2] = {0, 0};
+static int smart_domain_start[2][SMART_MAX_CORES];
+static int smart_domain_smt_start[2][SMART_MAX_CORES];
+static int smart_domain_nphysical[2][SMART_MAX_CORES];
+static int smart_domain_nsmt[2][SMART_MAX_CORES];
+static int smart_domain_n[2] = {0, 0};
+static int smart_core_legacy[2] = {0, 0};
+static int smart_sibling_fallback_logged = 0;
 static int read_int_file(const char *path, int *out) {
     FILE *f = fopen(path, "r"); if (!f) return 0;
     int ok = (fscanf(f, "%d", out) == 1); fclose(f); return ok;
+}
+static int cpuListLowest(const char *path, int *lowest) {
+    char buf[256], *p;
+    FILE *f = fopen(path, "r");
+    if (!f) return 0;
+    int ok = fgets(buf, sizeof buf, f) != NULL;
+    fclose(f);
+    if (!ok) return 0;
+
+    int found = 0, mincpu = INT_MAX;
+    p = buf;
+    while (*p) {
+        while (*p == ',' || isspace((unsigned char)*p)) p++;
+        if (!*p) break;
+        char *end;
+        long first = strtol(p, &end, 10), last = first;
+        if (end == p || first < 0 || first > INT_MAX) return 0;
+        p = end;
+        if (*p == '-') {
+            p++;
+            last = strtol(p, &end, 10);
+            if (end == p || last < 0 || last > INT_MAX) return 0;
+            p = end;
+        }
+        if (first < mincpu) mincpu = (int)first;
+        if (last < mincpu) mincpu = (int)last;
+        found = 1;
+        while (isspace((unsigned char)*p)) p++;
+        if (*p && *p != ',') return 0;
+    }
+    if (!found) return 0;
+    *lowest = mincpu;
+    return 1;
+}
+static int coreSiblingLeader(int c, int *leader) {
+    char p[160];
+    snprintf(p, sizeof p,
+             "/sys/devices/system/cpu/cpu%d/topology/thread_siblings_list", c);
+    if (cpuListLowest(p, leader)) return 1;
+    snprintf(p, sizeof p,
+             "/sys/devices/system/cpu/cpu%d/topology/core_cpus_list", c);
+    return cpuListLowest(p, leader);
 }
 /* domain id of cpu `c`: by_numa ? its NUMA node : its L3 cache id. -1 = unknown. */
 static int coreDomainId(int c, int by_numa) {
@@ -22997,36 +23045,183 @@ static int coreDomainId(int c, int by_numa) {
     }
     return -1;
 }
+static void buildLegacySmartCoreOrder(int by_numa, const int *dom, int n) {
+    int k = 0;
+    for (int lastid = -1;;) {
+        int nextid = INT_MAX;
+        for (int c = 0; c < n; c++)
+            if (dom[c] > lastid && dom[c] < nextid) nextid = dom[c];
+        if (nextid == INT_MAX) break;
+        for (int c = 0; c < n; c++)
+            if (dom[c] == nextid) smart_core_order[by_numa][k++] = c;
+        lastid = nextid;
+    }
+    smart_core_n[by_numa] = k;
+    smart_core_legacy[by_numa] = 1;
+    serverLog(LL_NOTICE, "tomokv pin-mode %s: %d cores ordered by %s groups",
+              by_numa ? "numa" : "ccd", k,
+              by_numa ? "NUMA-node" : "shared-L3 (CCD)");
+}
 static void buildSmartCoreOrder(int by_numa) {
     long n = sysconf(_SC_NPROCESSORS_ONLN);
     if (n <= 0 || n > SMART_MAX_CORES) { smart_core_n[by_numa] = 0; return; }
-    int dom[SMART_MAX_CORES]; int have_all = 1;
+    int dom[SMART_MAX_CORES], leader[SMART_MAX_CORES]; int have_all = 1;
     for (int c = 0; c < n; c++) {
         dom[c] = coreDomainId(c, by_numa);
         if (dom[c] < 0) have_all = 0;
     }
-    int k = 0;
-    if (!have_all) {                                /* topology unknown -> identity order */
-        for (int c = 0; c < n; c++) smart_core_order[by_numa][c] = c;
-        smart_core_n[by_numa] = (int)n; return;
+
+    int missing_cpu = -1;
+    for (int c = 0; c < n; c++) {
+        if (!coreSiblingLeader(c, &leader[c])) { missing_cpu = c; break; }
     }
-    for (int lastid = -1;;) {                        /* emit cores grouped by ascending domain id */
-        int nextid = INT_MAX;
-        for (int c = 0; c < n; c++) if (dom[c] > lastid && dom[c] < nextid) nextid = dom[c];
-        if (nextid == INT_MAX) break;
-        for (int c = 0; c < n; c++) if (dom[c] == nextid) smart_core_order[by_numa][k++] = c;
-        lastid = nextid;
+    if (!have_all) {                                /* topology unknown -> identity order */
+        if (missing_cpu >= 0 && !smart_sibling_fallback_logged) {
+            serverLog(LL_WARNING, "tomokv pin-mode: CPU sibling topology unavailable at cpu%d; "
+                      "falling back to logical-CPU topology ordering", missing_cpu);
+            smart_sibling_fallback_logged = 1;
+        }
+        for (int c = 0; c < n; c++) smart_core_order[by_numa][c] = c;
+        smart_core_n[by_numa] = (int)n;
+        smart_core_legacy[by_numa] = 1;
+        return;
+    }
+
+    if (missing_cpu < 0) {
+        for (int c = 0; c < n; c++) {
+            if (leader[c] < 0 || leader[c] >= n || dom[leader[c]] != dom[c] ||
+                leader[leader[c]] != leader[c]) {
+                missing_cpu = c;
+                break;
+            }
+        }
+    }
+    if (missing_cpu >= 0) {
+        if (!smart_sibling_fallback_logged) {
+            serverLog(LL_WARNING, "tomokv pin-mode: CPU sibling topology unavailable at cpu%d; "
+                      "falling back to logical-CPU topology ordering", missing_cpu);
+            smart_sibling_fallback_logged = 1;
+        }
+        buildLegacySmartCoreOrder(by_numa, dom, (int)n);
+        return;
+    }
+
+    int domain_id[SMART_MAX_CORES], domain_min[SMART_MAX_CORES], ndom = 0;
+    for (int c = 0; c < n; c++) {
+        int d;
+        for (d = 0; d < ndom; d++) if (domain_id[d] == dom[c]) break;
+        if (d == ndom) {
+            domain_id[ndom] = dom[c];
+            domain_min[ndom] = c;
+            ndom++;
+        } else if (c < domain_min[d]) {
+            domain_min[d] = c;
+        }
+    }
+    for (int i = 1; i < ndom; i++) {
+        int id = domain_id[i], mincpu = domain_min[i], j = i;
+        while (j > 0 && (domain_min[j-1] > mincpu ||
+               (domain_min[j-1] == mincpu && domain_id[j-1] > id))) {
+            domain_id[j] = domain_id[j-1];
+            domain_min[j] = domain_min[j-1];
+            j--;
+        }
+        domain_id[j] = id;
+        domain_min[j] = mincpu;
+    }
+
+    int k = 0, sk = 0;
+    for (int d = 0; d < ndom; d++) {
+        smart_domain_start[by_numa][d] = k;
+        int nphysical = 0;
+        for (int c = 0; c < n; c++) {
+            if (dom[c] == domain_id[d] && leader[c] == c) {
+                smart_core_order[by_numa][k++] = c;
+                nphysical++;
+            }
+        }
+        smart_domain_smt_start[by_numa][d] = sk;
+        for (int c = 0; c < n; c++) {
+            if (dom[c] == domain_id[d] && leader[c] != c)
+                smart_smt_order[by_numa][sk++] = c;
+        }
+        smart_domain_nphysical[by_numa][d] = nphysical;
+        smart_domain_nsmt[by_numa][d] = sk - smart_domain_smt_start[by_numa][d];
     }
     smart_core_n[by_numa] = k;
-    serverLog(LL_NOTICE, "tomokv pin-mode %s: %d cores ordered by %s groups",
-              by_numa ? "numa" : "ccd", k, by_numa ? "NUMA-node" : "shared-L3 (CCD)");
+    smart_domain_n[by_numa] = ndom;
+    serverLog(LL_NOTICE, "tomokv pin-mode %s: %d physical cores (%d logical CPUs) ordered by "
+              "physical %s groups", by_numa ? "numa" : "ccd", k, k + sk,
+              by_numa ? "NUMA-node" : "shared-L3 (CCD)");
+
+    int cpn = server.cores_per_node;
+    int nodes = server.topo_nodes > 0 ? server.topo_nodes : 1;
+    for (int node = 0; cpn > 0 && node < nodes; node++) {
+        int d = node % ndom;
+        if (cpn > smart_domain_nphysical[by_numa][d] &&
+            smart_domain_nsmt[by_numa][d] > 0) {
+            serverLog(LL_NOTICE, "tomokv pin-mode %s: node width %d exceeds the %d physical "
+                      "cores in the %s domain starting at cpu%d; SMT sharing is in use within "
+                      "that domain", by_numa ? "numa" : "ccd", cpn,
+                      smart_domain_nphysical[by_numa][d], by_numa ? "NUMA" : "CCD",
+                      domain_min[d]);
+            break;
+        }
+    }
 }
 static int smartCoreFor(int logical) {
     int by_numa = (server.pin_mode == TOMO_PIN_NUMA) ? 1 : 0;
     if (smart_core_n[by_numa] == 0) buildSmartCoreOrder(by_numa);
     long n = sysconf(_SC_NPROCESSORS_ONLN);
     if (smart_core_n[by_numa] == 0) return (n > 0) ? (logical % (int)n) : 0;
+    if (!smart_core_legacy[by_numa] && smart_domain_n[by_numa] > 0 &&
+        server.cores_per_node > 0) {
+        int node = logical / server.cores_per_node;
+        int local = logical % server.cores_per_node;
+        int d = node % smart_domain_n[by_numa];
+        int nphysical = smart_domain_nphysical[by_numa][d];
+        int nsmt = smart_domain_nsmt[by_numa][d];
+        int count = nphysical + nsmt;
+        if (count > 0) {
+            local %= count;
+            if (local < nphysical)
+                return smart_core_order[by_numa][smart_domain_start[by_numa][d] + local];
+            return smart_smt_order[by_numa][smart_domain_smt_start[by_numa][d] +
+                                           local - nphysical];
+        }
+    }
     return smart_core_order[by_numa][logical % smart_core_n[by_numa]];
+}
+static int smartCoreForAllowed(int logical, const int *allowed, int nallowed) {
+    int preferred = smartCoreFor(logical);
+    int by_numa = (server.pin_mode == TOMO_PIN_NUMA) ? 1 : 0;
+    if (smart_core_legacy[by_numa] || smart_domain_n[by_numa] == 0 ||
+        server.cores_per_node <= 0) return preferred;
+
+    int node = logical / server.cores_per_node;
+    int local = logical % server.cores_per_node;
+    int d = node % smart_domain_n[by_numa];
+    int usable = 0;
+    for (int i = 0; i < smart_domain_nphysical[by_numa][d]; i++) {
+        int cpu = smart_core_order[by_numa][smart_domain_start[by_numa][d] + i];
+        for (int a = 0; a < nallowed; a++) if (allowed[a] == cpu) { usable++; break; }
+    }
+    for (int i = 0; i < smart_domain_nsmt[by_numa][d]; i++) {
+        int cpu = smart_smt_order[by_numa][smart_domain_smt_start[by_numa][d] + i];
+        for (int a = 0; a < nallowed; a++) if (allowed[a] == cpu) { usable++; break; }
+    }
+    if (usable == 0) return preferred;
+
+    int slot = local % usable;
+    for (int i = 0; i < smart_domain_nphysical[by_numa][d]; i++) {
+        int cpu = smart_core_order[by_numa][smart_domain_start[by_numa][d] + i];
+        for (int a = 0; a < nallowed; a++) if (allowed[a] == cpu && slot-- == 0) return cpu;
+    }
+    for (int i = 0; i < smart_domain_nsmt[by_numa][d]; i++) {
+        int cpu = smart_smt_order[by_numa][smart_domain_smt_start[by_numa][d] + i];
+        for (int a = 0; a < nallowed; a++) if (allowed[a] == cpu && slot-- == 0) return cpu;
+    }
+    return preferred;
 }
 
 /* ---- tomokv-pin-mode / tomokv-pin-io / tomokv-pin-ex ------------------------------------- */
@@ -23269,18 +23464,19 @@ static void pinThreadToCoreN(pthread_t thread, const char *what, int core_idx,
                              "(taskset/cgroup); %s floats",
                              role == TOMO_PIN_ROLE_EX ? "ex" : "io", core, what); return; }
     } else {
-        /* ccd / numa: the topology decides the policy. Multiple domains -> group threads by
-         * shared-L3 (ccd) or NUMA node (numa), so a worker sits near its io feeders. A single
-         * domain has no structure to exploit -> plain allowed-set round-robin IS the arch-aware
-         * answer (the grouped ordering can pack SMT siblings there and measurably hurts).
-         * Machine identity, decided once. Respects taskset/cgroup affinity either way. */
+        /* ccd / numa: the topology decides the policy. Group threads by shared-L3 (ccd) or NUMA
+         * node (numa), so a worker sits near its io feeders. Physical cores precede their SMT
+         * siblings within each domain. Respects taskset/cgroup affinity either way. */
         core = g_abs[core_idx % g_na];
-        static int g_multi_dom = -1;
-        if (g_multi_dom < 0) g_multi_dom = detectL3Domains() > 1 ? 1 : 0;
-        if (g_multi_dom) {
-            int sc = smartCoreFor(core_idx);
-            if (sc >= 0) for (int k = 0; k < g_na; k++) if (g_abs[k] == sc) { core = sc; break; }
+        int sc = smartCoreForAllowed(core_idx, g_abs, g_na);
+        int use_smart = !smart_core_legacy[server.pin_mode == TOMO_PIN_NUMA];
+        static int g_legacy_multi_dom = -1;
+        if (!use_smart) {
+            if (g_legacy_multi_dom < 0) g_legacy_multi_dom = detectL3Domains() > 1 ? 1 : 0;
+            use_smart = g_legacy_multi_dom;
         }
+        if (use_smart && sc >= 0)
+            for (int k = 0; k < g_na; k++) if (g_abs[k] == sc) { core = sc; break; }
     }
     cpu_set_t cpuset; CPU_ZERO(&cpuset); CPU_SET(core, &cpuset);
     if (pthread_setaffinity_np(thread, sizeof(cpuset), &cpuset) == 0)
