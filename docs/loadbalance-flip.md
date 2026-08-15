@@ -151,6 +151,20 @@ The one-thread productive-ratio quantum and its floor are:
 ni      = live_nonmain_io + (node == 0 ? 1 : 0)
 ne      = live_ex
 gstep   = log((ni + 1) / ni) + (ne > 1 ? log(ne / (ne - 1)) : 1)
+
+### Large-pool directional episodes (2026-08-15)
+
+On configured per-node pools **larger than 16 threads** the one-thread-per-settle-window climb is
+replaced by a geometric episode (`FLIP_EPISODE_POOL_CUTOFF`): each step covers half the remaining
+signal-derived distance; the walk stops early when the starvation ratio reaches the balance band or
+when the next step would cross the self-derived worker wall (`ceil(ex_live * ex_sat * 1.5)` — never
+observe the crater past the wall just to learn it is there). The keep/revert verdict is taken from a
+**settled** measurement at the stopping split, never from mid-walk samples the walk itself depressed
+(the standing law: a signal the actuator moves cannot police the actuator), and a reverted episode
+re-arms only on a real rate (>3%) or ex-demand (>0.1) change. Pools of 16 or fewer threads take the
+original path verbatim. Measured: a 64-thread pool that previously sawtoothed io 32↔63 forever at
+~2.0M ops/s now converges io60/ex4 at 3.2–3.5M and holds. INFO:
+`tomokv_flip_episode_early_stops`, `tomokv_flip_episode_wall_stops`.
 gfloor  = gstep / 2
 ```
 

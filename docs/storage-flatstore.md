@@ -186,12 +186,17 @@ each `DICT_ERR` reaches this loop (`src/db.c:529-538`, `src/kvstore.c:1109-1114`
 loop snapshots the current table's `used` and `tombs` with relaxed loads and reads `size` while its
 flat section still prevents replacement (`src/db.c:535-543`, `src/server.c:21819-21842`).
 
-The retry protocol is:
+The retry protocol is (reworked 2026-08-15 — the fixed 64-round budget panicked in ~6.4 ms, which a
+legitimate burst fill could exceed before the nodes==1 coordinator ever ran; worse,
+`tomoFlatResizeWakeWorker` was a no-op at `tmNumNodes()==1`, so main was never woken at all):
 
-1. `wait_rounds` starts at zero. If a failure is observed with `wait_rounds == 64`, the server panics
-   with the captured counts; failures for rounds 0 through 63 proceed to wait, so the panic is on the
-   65th failed insert attempt
-   (`src/db.c:504`, `src/db.c:529-547`).
+1. The wait is now **time-based with progress witnesses**: the waiter tracks the node's resize drive
+   counter, active/state transitions, completed copy chunks, and the current table pointer; ANY
+   observed progress restarts a 5-second no-progress deadline. The panic fires only when the table
+   pointer is unchanged AND no resize activity was witnessed for the full deadline — a true wedge,
+   not a slow resize. The nodes==1 path wakes main via its io-slot-0 event notifier
+   (`tomoAtomicWakeProducer(0)`). INFO `tomokv_flat_insert_full_wait_us_max` records the longest
+   successful wait (fault-injection measured ~2 s survivals that previously panicked).
 2. The code derives and range-checks the current worker identity, relaxed-increments
    `flat_insert_full_waits`, and calls `dbFlatInsertWait()` (`src/db.c:549-553`).
 3. `dbFlatInsertWait()` drops the worker's owner publication lock, seq-cst-clears
@@ -284,9 +289,29 @@ false when the shared node-database arrays are unavailable or no request is foun
    `flatTableAllocFor()`, zeros the cursor, and returns (`src/server.c:9414-9428`).
 
 Workers participate by seq-cst-setting `in_flat_section = 1` before checking the seq-cst active flag.
-While it is active they seq-cst-clear their section flag, wait until an acquire load sees it clear,
-and then seq-cst-reenter and recheck; the sole exit from the worker slice seq-cst-clears the flag
-(`src/server.c:21819-21842`, `src/server.c:22361-22364`).
+While it is active they seq-cst-clear their section flag and — since the 2026-08-15 write-path
+rework — do not merely wait:
+
+- **Phase 1 (parallel copy)**: a waiting worker of the resizing node claims disjoint 64Ki-slot
+  ranges of the old table via an atomic claim cursor (`flatResizeCopyClaim`) and runs the chunk
+  copy itself; the coordinator claims alongside, closes admission, waits for every valid claim's
+  release-published completion, and only then swaps. Distinct source slots mean distinct keys, so
+  concurrent copiers only ever contend per-slot CASes in the fresh table. INFO
+  `tomokv_flat_resize_helper_chunks` counts worker-copied chunks.
+- **Phase 2 (serve-while-copy)**: during `COPYING` and the `CHASING` drain, workers keep SERVING.
+  Mutations to the resizing node's db append to per-worker single-producer logs (old-table slot
+  index for upserts; a copy of the key bytes for deletes, since a tombed slot no longer holds a
+  pointer). After the chunk copies, each worker drains its own log in append order; a short final
+  fence (the pre-existing park handshake) replays residuals, swaps, retires, and frees log
+  storage. Worker retire-batch reclamation is held for the window: the unpublished new table can
+  transiently hold a pointer an overwrite already retired in the old one, and replay removes it
+  before reclamation resumes. Log bytes are bounded (1/4 of the new table); exceeding the bound
+  falls back to the fully-fenced Phase-1 path. INFO: `tomokv_flat_resize_log_entries`,
+  `tomokv_flat_resize_chase_fallbacks`.
+
+The park handshake itself is unchanged (sole worker-slice exit seq-cst-clears the flag) but is now
+reached only for the entry quiesce, the final fence, and the bounded-log fallback
+(`src/server.c` exSlice gate; measured effect: 16 GB populate p99.99 2392 ms -> 40 ms).
 
 Non-worker read regions do not test or park on `flat_resize_active`. An outermost registered reader
 seq-cst-publishes an odd `flat_epoch` on entry and release-publishes the following even value on exit;

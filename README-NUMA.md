@@ -232,7 +232,7 @@ of the free.
 
 | knob | default | meaning |
 |---|---|---|
-| `tomokv-nodes` | 1 | node count; max 16. A "node" is a **CCD** when `tomokv-pin-mode ccd`, a **NUMA node** when `tomokv-pin-mode numa`. Which partitioning wins on the target hardware is an open measurement (EPYC/Threadripper), which is why it is one knob. |
+| `tomokv-nodes` | 1 | node count; max 16. A "node" is a **shared-L3 domain (CCX)** when `tomokv-pin-mode ccd` — SMT-aware since 2026-08-15: one logical CPU per physical core, domains taken in physical order, siblings used (with a NOTICE) only when a node needs more threads than its domain has cores, a **NUMA node** when `tomokv-pin-mode numa`. Which partitioning wins on the target hardware is an open measurement (EPYC/Threadripper), which is why it is one knob. |
 | `tomokv-cores-per-node` | derive (io+ex) | cores per node; total real cores = nodes × cores-per-node |
 | `tomokv-thread-io` | **mandatory** | starting ingress threads **per node** |
 | `tomokv-thread-ex` | **mandatory** | starting workers **per node** — `1 io + (C−1) ex` maximizes flip range |

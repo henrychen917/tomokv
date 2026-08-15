@@ -11,8 +11,17 @@ All three functions walk the same sequence from the key's home slot, wrapping mo
 to one full table pass:
 
 ```c
-for (uint64_t i = h & mask, probes = 0; probes <= mask; i = (i + 1) & mask, probes++)
+for (uint64_t i = flat_slot_start(h, mask), probes = 0; probes <= mask; i = (i + 1) & mask, probes++)
 ```
+
+`flat_slot_start` (flatstore.h) finalizes `h` with a murmur3 fmix64 before taking the slot index.
+The raw `h & mask` home is NOT usable: dispatch routing consumes low/mid bits of the same xxh64
+(bucket = `h & 0x3FFF`, node = a contiguous bucket range), so at `tomokv-nodes N` a per-node table
+indexed by raw bits has the routing bits frozen for every key it owns — only 1/N of slots are
+natural homes (2048-slot runs every 16384) and linear probing degenerates into kilo-slot clusters
+(~6,600 probes/lookup measured at nodes=8, 10M keys, before the mixer). The 15-bit tag still
+derives from the ORIGINAL `h`; every probe site, the resize copy, and the prefetch home-line
+computation must start from `flat_slot_start`, never `h & mask`.
 
 `mask == t->size - 1` (power-of-two table), so `probes <= mask` permits exactly `mask + 1 == size`
 iterations (`src/flatstore.c:210`, `src/flatstore.c:226`). Each slot word is read with
@@ -64,7 +73,7 @@ Branch conditions, exactly as coded:
   then continue.
 - **Live + tag match + key match**: found; return that live index.
 - **Full wrap without EMPTY or match**: reuse `tomb_at` if any dead slot was seen, else fall back to
-  the home slot `h & mask`.
+  the home slot `flat_slot_start(h, mask)`.
 
 The returned index is a **hint, not a reservation** — the kvstore adapter exposes it as a
 `dictEntryLink` = `&t->slots[slot].w` (`src/kvstore.c:70-73,1107,1115`), and the actual claim is

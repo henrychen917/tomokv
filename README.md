@@ -124,6 +124,21 @@ caveats in [methodology](docs/bench/methodology.md).
 - [Flip convergence cost](docs/bench/flip-cost.md) — auto boots balanced and converges inside the
   measured window: 10–15 s typical (~1%), 115 s worst observed (~4%).
 
+**EPYC 9754 "Bergamo" (64 server cores), 2026-08-15** — first big-box results, branch
+`epyc-hardening-dev` (probe-start mixer, SMT-aware ccd pinning, two-phase online resize,
+role-identity adoption, large-pool flip episodes; `KNOWN_ISSUES.md` has the honest ledger):
+
+- Sustained 16 GB populate p99.99 write tail **2392 ms → 40 ms** (parallel copy, then
+  serve-while-copy resize); populate throughput +2× to ~12 M SET/s.
+- vs Dragonfly v1.39 at equal cores: GET pipe-32 **19.9 M vs 7.8 M (2.56×)**, SET pipe-32 15.1 M vs
+  9.5 M, pipe-4 GET 10.3 M vs 5.0 M (2.08×); unpipelined p1 3.45 M vs 3.71 M (−7%) — parity at
+  ≤32 cores, and the p1 comparison is loadgen-arrangement-sensitive (see EPYC_FIRST_LIGHT.md).
+- Per-thread economics: one EX thread saturates at ~1.18 M unpipelined ops/s on Zen 4c; io:ex knee
+  ≈ 16:1 at p1; the flip's large-pool episodes land io60/ex4 on a 64-thread pool (was a 32↔63
+  sawtooth livelock).
+- SMT oversubscription (128 server threads on 64 cores) hurts both engines — TomoKV −44% p1 /
+  −56% p32, Dragonfly ±5% p1 / −34% p32. Don't.
+
 ## Configuration
 
 This is the complete TomoKV configuration surface registered by `createXConfig` in

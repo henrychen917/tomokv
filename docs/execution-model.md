@@ -342,3 +342,14 @@ The uring send path copies at most one <code>PROTO_REPLY_CHUNK_BYTES</code> pref
 - [Message-carrier prefetch](mechanisms/prefetch/message-carrier-prefetch.md)
 - [Prefetch engagement counters](mechanisms/prefetch/prefetch-engagement-counters.md)
 - [Worker lookup-prefetch stages](mechanisms/prefetch/prefetch-stages.md)
+
+
+## processEventsWhileBlocked is main-only (2026-08-15)
+
+`processEventsWhileBlocked()` drives `server.el` — main's loop, whose handlers (the `beforeSleep`
+nodes==1 reclaim/resize trio, `serverCron`'s memory stats) are main-owned and assert `iotid == 0`.
+A worker-executed blocked command (DEBUG RELOAD's `rdbLoad`) that reaches PEWB off-main must not
+take over those duties: main is not blocked in that case and keeps driving its own loop, so the
+function returns immediately off-main (the rule `script.c` already applied at its call site).
+Load-time resize progress is unaffected — the blocked inserter self-drives the coordinator from its
+insert-full wait loop (`tomoFlatResizeQuiesce`).
