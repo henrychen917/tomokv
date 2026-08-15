@@ -1077,7 +1077,7 @@ void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
     }
     /* origin_client_id is deliberately NOT cleared: it is written once at
      * install and must survive the stamp. This lane runs BEFORE commit_seq
-     * advances to this sequence (csMsetStampAndAppend pushes stamp ops, then
+     * advances to this sequence (csMsetStampReady pushes stamp ops, then
      * csMsetInstallDone publishes), so the installing connection's own read
      * can meet this version already stamped while still holding a snapshot
      * below it — a cross-shard read pins S at dispatch, and even a lazily
@@ -1198,14 +1198,49 @@ void tomoRetireDetachedBag(kvstore *kvs, kvobj *head) {
     }
 }
 
-static void tomoVersionPruneFinish(int owner, exThread *worker,
-                                   struct tomoVerMeta *callback_meta) {
-    tomoWkrUnlockPub(owner);
-    /* Drop only after every live-bag mutation and the executing worker's lock are finished, but
-     * before leaving the flat section: promotion may already have QSBR-retired this metadata
-     * block, and this pin keeps it valid through the counter update. */
+/* A worker-local retire batch can contain many CURE2 callbacks which all passed one QSBR grace.
+ * Re-entering the flat section and taking the same owner lock around every individual version made
+ * atomic retirement orders of magnitude dearer than ordinary same-arena reclaim. Keep the scope
+ * open across that batch. The standalone arm remains for the shared-stack fail-safe path. */
+static __thread int tomo_prune_batch_active;
+static __thread int tomo_prune_batch_owner = -1;
+static __thread exThread *tomo_prune_batch_worker;
+
+void tomoVersionPruneBatchBegin(void) {
+    serverAssert(!tomo_prune_batch_active);
+    int owner = iotid - (TOMO_IO_THREADS_MAX + 1);
+    serverAssert(owner >= 0 && owner < server.num_workers);
+    exThread *worker = &server.exThreads[owner];
+
+    atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
+    while (tomoFlatResizeWorkerActive(owner)) {
+        atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
+        tomoFlatResizeWorkerQuiesce(owner);
+        atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
+    }
+    tomoWkrLockPub(owner);
+    tomo_prune_batch_owner = owner;
+    tomo_prune_batch_worker = worker;
+    tomo_prune_batch_active = 1;
+}
+
+void tomoVersionPruneBatchEnd(void) {
+    serverAssert(tomo_prune_batch_active && tomo_prune_batch_owner >= 0 &&
+                 tomo_prune_batch_worker != NULL);
+    tomoWkrUnlockPub(tomo_prune_batch_owner);
+    atomic_store_explicit(&tomo_prune_batch_worker->in_flat_section, 0,
+                          memory_order_seq_cst);
+    tomo_prune_batch_active = 0;
+    tomo_prune_batch_owner = -1;
+    tomo_prune_batch_worker = NULL;
+}
+
+static void tomoVersionPruneFinish(struct tomoVerMeta *callback_meta,
+                                   int standalone_scope) {
+    /* Drop after this callback's last live-bag mutation while the executing worker still holds its
+     * lock and flat-section pin: promotion may already have QSBR-retired this metadata block. */
     tomoAtomicLifecycleRelease(callback_meta);
-    atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
+    if (standalone_scope) tomoVersionPruneBatchEnd();
 }
 
 void tomoVersionPruneAfterGrace(kvobj *anchor) {
@@ -1215,23 +1250,14 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
     int owner = iotid - (TOMO_IO_THREADS_MAX + 1);
     tomoAtomicOwnerCheck(callback_meta, owner, 1);
     serverAssert(owner >= 0 && owner < server.num_workers);
-    exThread *worker = &server.exThreads[owner];
-
-    /* The ordinary reclaim pass runs outside a flat section, preserving the
-     * shipped OFF path. Only this CURE2 callback needs to re-enter: it walks
-     * and may update a live bag after its first grace. The seq_cst
-     * publish/check is the same exclusion handshake used by exSlice. */
-    atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
-    while (tomoFlatResizeWorkerActive(owner)) {
-        atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
-        tomoFlatResizeWorkerQuiesce(owner);
-        atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
-    }
-    tomoWkrLockPub(owner);
+    int standalone_scope = !tomo_prune_batch_active;
+    if (standalone_scope) tomoVersionPruneBatchBegin();
+    serverAssert(tomo_prune_batch_owner == owner &&
+                 tomo_prune_batch_worker == &server.exThreads[owner]);
 
     struct tomoVerMeta *anchor_meta = callback_meta;
     if (!anchor_meta || anchor_meta->retire_state == TOMO_RETIRE_PHYSICAL) {
-        tomoVersionPruneFinish(owner, worker, callback_meta);
+        tomoVersionPruneFinish(callback_meta, standalone_scope);
         return;
     }
     kvstore *kvs = anchor_meta->version_kvs;
@@ -1240,7 +1266,7 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
         serverAssert(anchor_meta->retire_state == TOMO_RETIRE_PRUNE_GRACE);
         anchor_meta->retire_state = TOMO_RETIRE_ACTIVE;
         tomoSchedulePhysicalRetire(kvs, anchor);
-        tomoVersionPruneFinish(owner, worker, callback_meta);
+        tomoVersionPruneFinish(callback_meta, standalone_scope);
         return;
     }
 
@@ -1345,7 +1371,7 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
         robj *keyobj = createStringObject(key, sdslen(key));
         serverAssert(dbSyncDelete(db, keyobj) == 1);
         decrRefCount(keyobj);
-        tomoVersionPruneFinish(owner, worker, callback_meta);
+        tomoVersionPruneFinish(callback_meta, standalone_scope);
         return;
     }
     struct tomoVerMeta *newhead_meta = kvobjVmeta(newhead);
@@ -1434,7 +1460,7 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
                                                sdslen(kvobjGetKey(sole_committed)));
             serverAssert(dbSyncDelete(db, keyobj) == 1);
             decrRefCount(keyobj);
-            tomoVersionPruneFinish(owner, worker, callback_meta);
+            tomoVersionPruneFinish(callback_meta, standalone_scope);
             return;
         }
     }
@@ -1470,7 +1496,7 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
     }
     if (anchor_meta && anchor_meta->retire_state == TOMO_RETIRE_PRUNE_GRACE)
         anchor_meta->retire_state = TOMO_RETIRE_ACTIVE;
-    tomoVersionPruneFinish(owner, worker, callback_meta);
+    tomoVersionPruneFinish(callback_meta, standalone_scope);
 }
 
 /* The ordinary write path is deliberately kept separate from the versioned

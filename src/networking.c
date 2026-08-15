@@ -192,7 +192,8 @@ static void resetFakeClientState(client *c, client *parent) {
      * per-key sub (csparent) until dispatchCrossShard sets it. */
     c->csgroup = NULL;
     c->csparent = NULL;
-    clientTail(c)->_atomic_probe_retired = NULL; /* preserved layout slot; probe machinery removed */
+    atomic_store_explicit(&clientTail(c)->atomic_commit_next, NULL,
+                          memory_order_relaxed);
     clientTail(c)->cssub_idx = 0;
     clientTail(c)->is_flush = 0;
     clientTail(c)->flush_bar = NULL;   /* ee451 (shared-kv S0.2b): per-node flush barrier, set only on shared-mode sentinels */
@@ -667,7 +668,8 @@ client *createClient(connection *conn) {
     atomic_store_explicit(&clientTail(c)->mset_read_waiting, 0, memory_order_relaxed);
     clientTail(c)->mset_pending_head = NULL;
     clientTail(c)->mset_pending_tail = NULL;
-    clientTail(c)->_atomic_probe_retired = NULL; /* preserved layout slot; probe machinery removed */
+    atomic_store_explicit(&clientTail(c)->atomic_commit_next, NULL,
+                          memory_order_relaxed);
     clientTail(c)->mset_next_install_order = 0;   /* ownread: connection-global R1 order */
     c->tomo_read_snapshot = 0;
     c->tomo_read_snapshot_gen = 0;
@@ -2733,12 +2735,10 @@ void freeClient(client *c) {
             }
         }
         if (clientTail(c)->reply_cdb) { zfree(((void **)clientTail(c)->reply_cdb)[-1]); clientTail(c)->reply_cdb = NULL; }   /* #75: free heap reply buses */
-        /* The former publishing-ring slot remains for OFF-mode client layout stability, but the
-         * membership machinery never allocates it. */
-        if (clientTail(c)->_atomic_probe_retired) {
-            zfree(clientTail(c)->_atomic_probe_retired);
-            clientTail(c)->_atomic_probe_retired = NULL;
-        }
+        /* An atomic group keeps the real client deferred until publication, so a client reaching
+         * final teardown cannot still be linked in the commit-ready stack. */
+        serverAssert(atomic_load_explicit(&clientTail(c)->atomic_commit_next,
+                                          memory_order_relaxed) == NULL);
     }
 
     /* We need to unbind connection of client from io thread event loop first. */

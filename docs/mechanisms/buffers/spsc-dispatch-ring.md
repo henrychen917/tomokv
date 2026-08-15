@@ -19,11 +19,10 @@ src/server.c:20820-20832)
 The same structure also supplies one reserved owner-operation lane per worker at
 index `server.io_threads + server.tm_ngrow_io`. Ordinary lanes are physically
 SPSC, but successive calls into this reserved lane may come from different
-completion-worker threads. `commit_lock` serializes those mutations into one
-logical producer stream; the code explicitly calls the lane multi-producer and
-leaves cross-producer arrival order unspecified because correctness does not
-depend on it. (src/server.c:9979-9999, src/server.c:10349-10403,
-src/server.c:20972-20984)
+completion-worker threads. The `commit_drain_active` election serializes those
+mutations into one logical producer stream; losing completion workers return to
+their EX slices. Cross-client arrival order is unspecified because correctness
+does not depend on it. (`src/server.c`)
 
 The carried fake-client lifecycle is documented in
 [the fake-client ring](fake-client-ring.md), and the worker's later reply
@@ -312,7 +311,7 @@ jobs. (src/server.c:9983-10057)
 | `exDispatchPush()` / `exDispatchDirect()` | Ordinary express and worker-routed fake dispatch; the reorder front may hold candidates before eventually calling the direct ring path, while the indivisible T6 route flushes reorder state and calls `exDispatchDirect()` for its selected worker. (src/server.c:3986-4022, src/server.c:8494-8563, src/server.c:8591-8604) |
 | `csPushSpin()` | Immediate-publish cross-shard sub-fakes and worker flush sentinels with lossless full-ring backpressure. (src/server.c:12544-12586, src/server.c:15437-15463) |
 | `csStampPush()` / `csStampDrain()` | Tagged STAMP, PRUNE, and CANCEL owner operations on the reserved lane. (src/server.c:9979-10086) |
-| `csCommitLock()` waiter | A completion worker that is waiting for `commit_lock` acquire-tests its own `stamp_pending` and calls `csStampDrain(self)`, preventing a full owner lane from deadlocking the lock holder; IO callers have no worker identity and only pause. (src/server.c:9790-9824) |
+| Completion-election loser | Returns immediately to its EX slice, where the normal owner-lane drain remains available to the elected sequencer. (`src/server.c`) |
 | `flushExQueues()` | Batch-publishes every queue staged by the current IO identity and advertises each published lane. (src/server.c:20852-20892) |
 | `exSlice()` | Harvests lane advertisements, pops normal batches in sparse or strict-arrival order, executes them, publishes reply completions, and advances `retired`. (src/server.c:21920-22003, src/server.c:22242-22280) |
 | Reshard coordinator | Reads `head`, `tail`, and `retired`; only `retired == tail` can acknowledge a producer slot that has no live producer to execute a sentinel. (src/server.c:15953-16010) |

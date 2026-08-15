@@ -4,7 +4,7 @@
 
 This mechanism is a reserved per-worker ring lane that carries three owner-affine MVCC operations—`TOMO_OWNER_OP_STAMP`, `TOMO_OWNER_OP_PRUNE`, and `TOMO_OWNER_OP_CANCEL`—to the worker recorded as the installed version's owner. The operation kinds have values 1, 2, and 3 respectively, and each `tomoOwnerOp` carries a `redisObject *kv`, a `uint64_t seq`, and a `tomoOwnerOpKind kind`. [`src/object.h:105-115`](../../../src/object.h#L105)
 
-Completion can occur on different worker threads, but every owner-operation push is made while the global `commit_lock` serializes completion; `exQueuePushOwnerOp` therefore treats those callers as one logical SPSC producer. The sole consumer is the destination owner worker, either in its EX slice or while that same worker helps its own lane during commit-lock or full-ring waits. [`src/server.c:9790-9801`](../../../src/server.c#L9790) [`src/server.c:20972-20984`](../../../src/server.c#L20972)
+Completion can occur on different worker threads, but `commit_drain_active` elects one global sequencer for every owner-operation push; `exQueuePushOwnerOp` therefore treats those callers as one logical SPSC producer. A losing completion worker returns to its EX slice. The sole consumer is the destination owner worker, either in its EX slice or while that same worker makes space during a full-ring wait. (`src/server.c`)
 
 `csStampRoute` is **not** part of this bus despite the similar name. It stamps command-table routing metadata at command-table population time; its exact, unrelated behavior is documented under [The `csStampRoute` name collision](#the-csstamproute-name-collision). [`src/server.c:11052-11080`](../../../src/server.c#L11052)
 
@@ -42,9 +42,9 @@ The ring is typed as `client *jobs[]`, so the bus tags an owner-op pointer by se
 
 ### Producer serialization and commit control
 
-The logical single producer is enforced by `commit_lock`, a macro for `commit_ctl.lock`, whose declared type is `atomic_flag`. `csCommitLock` tries `atomic_flag_test_and_set_explicit(..., memory_order_acquire)` and, on contention, repeats the same acquire operation while either helping its own pending owner lane or pausing; `csCommitUnlock` clears the flag with `memory_order_release`. `csMsetInstallDone` is the only direct lock/unlock caller and holds it across FIFO completion collection, sequence draw, owner-op enqueue, commit-frontier publication, and group reply publication. [`src/server.c:292-301`](../../../src/server.c#L292) [`src/server.c:9802-9824`](../../../src/server.c#L9802) [`src/server.c:10349-10403`](../../../src/server.c#L10349)
+The logical single producer is enforced by `_Atomic int commit_drain_active`. A per-client latch permits one intrusive `ready_clients` stack entry, and the completing worker pushes before attempting the `0 -> 1` sequencer election. A loser returns immediately. On exit the sequencer release-stores idle and acquire-rechecks the stack, closing the push/idle race without spinning. (`src/server.c`, `src/server.h`)
 
-`commit_ctl` declares `_Atomic uint64_t next_seq`, `atomic_flag lock`, `csGroup *head`, `csGroup *tail`, then `char pad[CACHE_LINE_SIZE - sizeof(_Atomic uint64_t) - sizeof(atomic_flag) - 2*sizeof(void*)]`; the attribute after the variable declarator aligns this static object's address to `CACHE_LINE_SIZE` but does not add that alignment to the anonymous struct type's `sizeof`. The padding expression subtracts member sizes but not the alignment gap before `head`. Let `C` be the configured line size, `Q/F/P` the three field sizes, and `q/f/p` their natural alignments. The exact offsets are `next_seq=0`, `lock=align_up(Q,f)`, `head=align_up(lock_offset+F,p)`, `tail=align_up(head_offset+P,p)`, and `pad=tail_offset+P`; the pad length is `C-Q-F-2P`, and `sizeof(commit_ctl) = align_up(pad_offset + (C-Q-F-2P), max(q,f,p))`. On the conventional ABI (`Q=8`, `F=1`, `P=8`, pointer alignment 8), the offsets are 0, 8, 16, 24, and 32; the seven-byte gap before `head` makes the size 72 bytes for `C=64` or 136 bytes for `C=128`. The base is configured-line aligned and all semantic fields fit in its first line, but seven declared pad bytes plus one final ABI-padding byte occupy the first eight bytes of a second line despite the nearby one-line intent comment. [`src/server.c:284-301`](../../../src/server.c#L284)
+`commit_ctl` declares `_Atomic uint64_t next_seq`, `_Atomic(client *) ready_clients`, `_Atomic int drain_active`, and explicit padding to `CACHE_LINE_SIZE`. A static assertion requires the aggregate to occupy exactly one configured cache line. The separately aligned `commit_seq_line` keeps read-hot snapshot draws isolated from ready-stack and election writes. (`src/server.c`)
 
 The separately declared `commit_seq_line` contains `_Atomic uint64_t v` plus `C - sizeof(_Atomic uint64_t)` pad bytes and has `aligned(C)`, so its declared member payload is exactly `C` bytes and, on the ordinary alignment where the atomic does not exceed `C`, its aggregate occupies one configured line. This separates the read-hot commit frontier from the mutating `commit_ctl` object; the owner-op protocol release-stores `commit_seq` only after its `STAMP` pushes. [`src/server.c:284-301`](../../../src/server.c#L284) [`src/server.c:10369-10383`](../../../src/server.c#L10369)
 
@@ -60,7 +60,7 @@ The count is also a read-correctness gate, not only a scheduler hint. When a rea
 
 1. At install time, the executing owner worker records the installed object, its worker identity, and install order in `g->mset_installs[]`; it also acquires the object's owner/bucket lifecycle reference before the normal owner job can retire. [`src/server.c:11432-11451`](../../../src/server.c#L11432)
 
-2. At R1-approved completion, `csMsetStampAndAppend` decides cancellation. A canceled group uses sequence 0; a successful group asserts that every expected install exists and draws `seq = atomic_fetch_add(next_seq, 1, relaxed) + 1`. It then walks install records in install order. [`src/server.c:10290-10319`](../../../src/server.c#L10290)
+2. At R1-approved completion, `csMsetStampReady` decides cancellation. A canceled group uses sequence 0; a successful group asserts that every expected install exists and draws `seq = atomic_fetch_add(next_seq, 1, relaxed) + 1`. It then walks install records in install order. (`src/server.c`)
 
 3. For each installed version, the producer release-stores `version_canceled`, release-stores `owner_ops_pending` to 1 when canceled or 2 otherwise, fills embedded operation 0 as `CANCEL(kv, 0)` or `STAMP(kv, seq)`, fills operation 1 as `PRUNE(kv, seq)` only for a successful group, and calls `csStampPush(install->owner, &vmeta->owner_op[0])`. [`src/server.c:10320-10329`](../../../src/server.c#L10320)
 
@@ -72,7 +72,7 @@ The count is also a read-correctness gate, not only a scheduler hint. When a rea
 
 7. After a successful stage, it closes wait accounting if needed, release-increments `worker->stamp_pending`, release-stores `q->staged_tail` to `q->tail`, and release-advertises the lane. Advertisement is deliberately after tail publication: it release-ORs the lane bit into `q_summary`, and in multiword mode release-ORs `q_top` only on the summary word's empty-to-nonempty transition. [`src/server.c:10083-10087`](../../../src/server.c#L10083) [`src/server.c:3445-3463`](../../../src/server.c#L3445)
 
-8. While still holding `commit_lock`, `csMsetInstallDone` release-stores a successful group's sequence to `commit_seq` only after all of that group's `STAMP` pushes. It then pushes each successful install's `PRUNE` op; canceled groups publish no sequence, but their `CANCEL` jobs were already queued. Finally it seals the lifecycle, publishes the reply slot, and release-decrements the connection's pending-group count. [`src/server.c:10349-10403`](../../../src/server.c#L10349)
+8. The unique sequencer release-stores a successful group's sequence to `commit_seq` only after all of that group's `STAMP` pushes. It then pushes each successful install's `PRUNE` op; canceled groups publish no sequence, but their `CANCEL` jobs were already queued. Finally it seals the lifecycle, publishes the reply slot, and release-decrements the connection's pending-group count. (`src/server.c`)
 
 The resulting temporal rule is exact: `STAMP`/`CANCEL` is enqueued before successful frontier publication or canceled reply publication, while `PRUNE` is enqueued only after the successful `commit_seq` release-store. [`src/server.c:10372-10383`](../../../src/server.c#L10372)
 
@@ -121,15 +121,15 @@ The resulting temporal rule is exact: `STAMP`/`CANCEL` is enqueued before succes
 
 - A lifecycle reference records install owner and bucket before the install can retire, and owner-op consumption checks that the recorded owner, live bucket owner, and executing owner still agree. [`src/server.c:367-384`](../../../src/server.c#L367) [`src/server.c:411-425`](../../../src/server.c#L411)
 
-- The bounded lane cannot deadlock with `commit_lock`: a worker waiting for the lock acquire-checks its own `stamp_pending` and drains its own lane; a producer facing its own full destination lane also self-drains. Non-worker lock callers have no worker identity and pause instead. [`src/server.c:9790-9824`](../../../src/server.c#L9790) [`src/server.c:10064-10081`](../../../src/server.c#L10064)
+- The bounded lane cannot form a sequencer/waiter cycle: completion-election losers do not wait and return to EX consumption; a producer facing its own full destination lane can still self-drain. (`src/server.c`)
 
 - Before executing any popped normal owner batch, the EX loop acquire-checks and fully drains pending owner operations. This is the cross-lane fence that applies every stamp published before a reader's snapshot before that normal read dereferences its version head. [`src/server.c:21994-22004`](../../../src/server.c#L21994)
 
 ## Call sites and scheduling points
 
-`csStampPush` has two production call sites: operation 0 (`STAMP` or `CANCEL`) during `csMsetStampAndAppend`, and operation 1 (`PRUNE`) after successful `commit_seq` publication in `csMsetInstallDone`. [`src/server.c:10320-10329`](../../../src/server.c#L10320) [`src/server.c:10369-10383`](../../../src/server.c#L10369)
+`csStampPush` has two production call sites: operation 0 (`STAMP` or `CANCEL`) during `csMsetStampReady`, and operation 1 (`PRUNE`) after successful `commit_seq` publication by `csMsetDrainReadyClient`. (`src/server.c`)
 
-`csStampDrain` runs in four coded contexts: a destination worker helping while it waits for `commit_lock`, an owner producer making space in its own full lane, the beginning of every EX work pass when `stamp_pending` is nonzero, and immediately before execution of each popped normal batch when new owner work appeared during the pass. [`src/server.c:9811-9820`](../../../src/server.c#L9811) [`src/server.c:10068-10081`](../../../src/server.c#L10068) [`src/server.c:21889-21893`](../../../src/server.c#L21889) [`src/server.c:21994-22004`](../../../src/server.c#L21994)
+`csStampDrain` runs in three coded contexts: an owner producer making space in its own full lane, the beginning of every EX work pass when `stamp_pending` is nonzero, and immediately before execution of each popped normal batch when new owner work appeared during the pass. (`src/server.c`)
 
 A converted IO thread's dormant EX binding also acquire-checks `stamp_pending` as an authoritative reason to enter an EX slice, so role conversion does not strand its former worker's owner lane. [`src/server.c:21741-21774`](../../../src/server.c#L21741)
 

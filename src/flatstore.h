@@ -96,6 +96,10 @@ typedef struct flatRetireNode { dictEntry *masked_kv; struct flatRetireNode *nex
 extern __thread flatRetireNode **flat_local_sink;
 extern __thread flatRetireNode *flat_node_pool;      /* recycled retire nodes (see flatstore.c) */
 extern __thread unsigned flat_node_pool_n, flat_node_pool_lowat, flat_node_tick;
+/* Properties accumulated while building the current worker-local retire list. The word is TLS for
+ * the same reason as flat_local_sink: one OS thread owns both ends of that list. */
+#define FLAT_RETIRE_BATCH_PRUNE (1u << 0)
+extern __thread unsigned flat_local_retire_flags;
 #define FLAT_NODE_POOL_CAP 4096u                     /* 64KB/worker at 16B/node */
 void flatNodePoolTrim(void);
 
@@ -114,6 +118,7 @@ typedef struct flatBatch {
     flatRetireNode *head;
     uint64_t close_gen;
     int nworkers;
+    unsigned int retire_flags;                  /* fits the pre-next alignment hole */
     struct flatBatch *next;
     uint64_t arr[];                            /* flexible; see FB_* in server.c */
 } flatBatch;

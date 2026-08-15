@@ -26,7 +26,7 @@ frontier edge and [del-tombstone-versions.md](del-tombstone-versions.md) /
 | --- | --- | --- |
 | `version_seq` | `uint64_t` | `TOMO_VERSION_UNCOMMITTED` while installing, then the group's commit ticket (0 = canceled). |
 | `read_seq` | `uint64_t` | The command snapshot `S`, while `version_seq` is still the write ticket. |
-| `commit_next` | `csGroup *` | Global ticket-order queue link (`commit_head/tail`). |
+| `commit_next` | `csGroup *` | Sequencer-local link for one completed per-client publish prefix. |
 | `mset_client` | `client *` | The real connection owning the pending FIFO. |
 | `mset_pending_prev/next` | `csGroup *` | Links into that connection's pending FIFO. |
 | `mset_complete` | `redisAtomic int` | Set when every owner installed this group. |
@@ -150,32 +150,33 @@ Per-command install bodies (see linked docs for detail):
 
 ## 3. Phase B — commit
 
-### B1. Completion + single-drainer election (`csMsetInstallDone`, `src/server.c:10336-10413`)
+### B1. Completion + sequencer election (`csMsetInstallDone`)
 
 The final owner wave calls `csMsetInstallDone`:
 
 ```c
-atomic_store_explicit(&g->mset_complete, 1, memory_order_release);       /* :10341 */
+atomic_store_explicit(&g->mset_complete, 1, memory_order_release);
 int expected = 0;
 if (!atomic_compare_exchange_strong_explicit(&rt->mset_drain_latch, &expected, 1,
                                              acquire, relaxed))
-    return;                        /* lost the election — someone else drains :10344-10347 */
-csCommitLock();                    /* :10349 */
+    return;
+csCommitReadyPush(real);
+csCommitDrainReady();
 ```
 
-`mset_drain_latch` is a per-connection CAS 0→1; exactly one caller wins and does the
-commit work, losers return (`src/server.c:10343-10347`). The winner holds
-`commit_lock` across both loops below (`:10349`/`:10403`).
+`mset_drain_latch` is a per-connection CAS 0→1; exactly one caller queues that real
+client on the intrusive MPSC ready stack. `commit_drain_active` then elects one global
+sequencer. Election losers return to EX processing instead of waiting.
 
 ### B2. Drain-loop 1 — pop complete FIFO heads, draw tickets
 
 ```c
 for (;;) {
     while ((done = csMsetPopComplete(real)) != NULL)   /* only COMPLETE heads :10352 */
-        csMsetStampAndAppend(done);                    /* draw ticket + enqueue STAMP/CANCEL */
-    atomic_store_explicit(&rt->mset_drain_latch, 0, release);  /* :10354 */
-    if (!csMsetHeadComplete(real)) break;                       /* :10355 recheck race */
-    /* re-elect if a completion raced the latch clear :10356-10360 */
+        csMsetStampReady(done);                  /* draw ticket + enqueue STAMP/CANCEL */
+    atomic_store_explicit(&rt->mset_drain_latch, 0, release);
+    if (!csMsetHeadComplete(real)) break;
+    /* reacquire or leave the one racing ready-stack entry to its winner */
 }
 ```
 
@@ -184,24 +185,23 @@ so **completion may arrive out of order but ticket processing for one connection
 follows registration-FIFO order**. The latch clear + recheck closes the race where a
 group completes just as the drainer clears the latch (`src/server.c:10354-10360`).
 
-`csMsetStampAndAppend` (`src/server.c:10293-10334`): asserts `installed == expected`
+`csMsetStampReady` asserts `installed == expected`
 for a non-canceled group, draws `seq = fetch_add(next_seq,1,relaxed)+1`, release-stores
 `version_canceled` and `owner_ops_pending` (2 = STAMP+PRUNE, 1 = CANCEL), fills the
-embedded `owner_op[0/1]`, **pushes STAMP/CANCEL**, then appends the group to the global
-`commit_head/tail` (`:10328` push, `:10330-10333` append).
+embedded `owner_op[0/1]`, **pushes STAMP/CANCEL**, then appends the group to the
+sequencer-local publish prefix.
 
-### B3. Drain-loop 2 — publish frontier, PRUNE, reply (`src/server.c:10363-10402`)
+### B3. Drain-loop 2 — publish frontier, PRUNE, reply
 
-Draining `commit_head` FIFO (= ascending ticket): for a non-canceled group
-release-store `commit_seq = version_seq` (`:10377`), then push each PRUNE
-(`:10382`), seal the group's admission lifecycle
-(`tomoAtomicLifecycleGroupSealed`, `:10389`), publish the head's reply-ready CDB byte
-(`cdbSlotPublish`, `:10395`), and release-decrement `mset_pending_count` (`:10398`).
+Draining the local prefix FIFO (= ascending ticket): for a non-canceled group,
+release-store `commit_seq = version_seq`, then push each PRUNE, seal the group's
+admission lifecycle, publish the head's reply-ready CDB byte, and release-decrement
+`mset_pending_count`.
 The frontier edge and the STAMP→release→PRUNE invariant are documented in
 [commit-seq-ordering.md](commit-seq-ordering.md).
 
-After the lock is dropped, one wake is issued to the producer IO thread so its event
-loop retires the group promptly (`src/server.c:10412`).
+One wake is issued to the producer IO thread for the whole published prefix so its
+event loop retires the groups promptly.
 
 ---
 
@@ -213,8 +213,8 @@ reply publication cannot invalidate a queued job. Each is
 
 - **Push:** `csStampPush(owner, op)` selects the owner's reserved lane
   (`csStampLane()`), queues the op, release-increments `stamp_pending`, and advertises
-  the lane (`src/server.c:10060-10087`). All pushes are serialized under `commit_lock`,
-  so the multi-committer reserved lane has a single logical producer.
+  the lane. All pushes are serialized by the unique elected sequencer, so the
+  multi-committer reserved lane has a single logical producer.
 - **Drain:** `csStampDrain(worker)` (`src/server.c:9987-10058`) acquire-checks
   `stamp_pending`, pops batches, takes `tomoWkrLock(worker->id)`, and applies each op:
   - `STAMP` → `tomoApplyVersionStamp` (`src/db.c:944-1022`), `owner_ops_pending` 2→1
@@ -273,7 +273,7 @@ at `tomoAtomicLifecycleGroupSealed` in loop 2 (`src/server.c:10389`,
 | `csMsetRecordInstall` | `src/server.c:11432-11452` |
 | `setKeyVersioned` / metadata / predecessor lifetime | `src/db.c:469-501`, `856-920`, `1569-1632` |
 | `csMsetInstallDone` (election + two loops) | `src/server.c:10336-10413` |
-| `csMsetStampAndAppend` | `src/server.c:10293-10334` |
+| `csMsetStampReady` | `src/server.c` |
 | `csMsetPopComplete` | `src/server.c:10272-10288` |
 | Owner-op push/drain | `src/server.c:9979-10087`, `21889-21893`, `21994-22004` |
 | STAMP / CANCEL / PRUNE-arm | `src/db.c:944-1106` |

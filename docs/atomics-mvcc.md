@@ -47,9 +47,13 @@ The source-reading shapes are marked `TOMO_R_ATOMIC_READ`; GET, MGET, EXISTS, TO
 
 After execution state moves to a fake, dispatch enters a FLAT group pin and acquire-loads `commit_seq` exactly when atomic mode is ON, the command is cross-routed, and the command is either read-only or is an admitted write with `TOMO_R_ATOMIC_READ`. (`src/server.c:8450-8471`)
 
+For a pure MGET, the last owner worker releases that group pin after every selected value has been serialized; IO reassembly consumes only private output and does not extend the version grace. Other snapshot-reading pipelines retain the pin through their final stage/reassembly. (`src/server.c`)
+
 The pipeline, atomic-snapshot gather, SORT, and two-hop constructors copy the dispatch snapshot into `g->read_seq`; `tomoPinnedReadSnapshot` can reuse a direct client pin, that group snapshot, or the group head's pin without loading the frontier again. (`src/server.c:12953-12956`, `src/server.c:13636-13641`, `src/server.c:14340-14343`, `src/server.c:14412-14415`, `src/server.h:5881-5901`)
 
 A raw single-owner read does not load `commit_seq`: it returns directly when `vmeta == NULL`; an unpinned read draws the frontier lazily only after it encounters a version bag. (`src/db.c:366-371`, `src/db.c:394-397`, `src/server.c:427-435`)
+
+`tomokv_atomic_read_fast` counts only the temporary `TOMO_SINGLE_COMMITTED` metadata license. A promoted raw value takes the still-cheaper `vmeta == NULL` return and is intentionally not included in that counter. Thus `read_fast:0` alone does not mean raw atomic reads are gated; `read_slow` measures the remaining version-bag population. (`src/db.c`)
 
 ## Key data structures
 
@@ -60,9 +64,9 @@ The frontier and the state that serializes commits occupy separate aligned cache
 | Field | Implemented role |
 | --- | --- |
 | `_Atomic uint64_t commit_seq` | Highest group sequence published to readers; loaded with `memory_order_acquire` and stored with `memory_order_release`. (`src/server.c:289-301`, `src/server.c:427-429`, `src/server.c:10369-10377`) |
-| `_Atomic uint64_t next_seq` | Ticket source; a successful group takes `fetch_add(..., memory_order_relaxed) + 1` while the global commit lock is held. (`src/server.c:292-301`, `src/server.c:10303-10310`) |
-| `atomic_flag commit_lock` | Serializes ticket draw, owner-op materialization, global queue append, and frontier publication; acquisition uses `memory_order_acquire` and release uses `memory_order_release`. (`src/server.c:292-301`, `src/server.c:9802-9825`) |
-| `csGroup *commit_head`, `*commit_tail` | Global FIFO links for groups whose STAMP/CANCEL jobs have been materialized and that await frontier/reply publication. (`src/server.c:292-301`, `src/server.c:10330-10333`, `src/server.c:10363-10367`) |
+| `_Atomic uint64_t next_seq` | Ticket source; a successful group takes `fetch_add(..., memory_order_relaxed) + 1` on the unique elected sequencer. (`src/server.c`) |
+| `_Atomic(client *) ready_clients` | Intrusive MPSC stack of real clients whose per-connection FIFO has a complete head. The client's drain latch permits at most one live entry. (`src/server.c`, `src/server.h`) |
+| `_Atomic int drain_active` | Elects one non-waiting global sequencer. Losing completion workers return to their EX slice instead of spinning. (`src/server.c`) |
 
 ### Owner operations and states
 
@@ -108,10 +112,10 @@ The physical and committed chains are distinct: install prepends through `versio
 
 | Structure | Relevant fields and role |
 | --- | --- |
-| `csGroup` | `version_seq` is the uncommitted marker/write ticket, `read_seq` is the command snapshot, `commit_next` is the global queue link, and `mset_client` plus `mset_pending_prev/next` link the group into its real connection's FIFO. (`src/server.h:2133-2138`) |
+| `csGroup` | `version_seq` is the uncommitted marker/write ticket, `read_seq` is the command snapshot, `commit_next` links one sequencer-local per-client publish prefix, and `mset_client` plus `mset_pending_prev/next` link the group into its real connection's FIFO. (`src/server.h`) |
 | `csGroup` | Atomic `mset_complete` and `mset_install_count`, `mset_installs`, `mset_install_order_base`, `versioned_write`, expected/ready/abort/NX flags, atomic `msetnx_retry`, and `msetnx_state` carry installation and completion state. (`src/server.h:2139-2151`) |
 | `csGroup` | The three `_atomic_probe_retired_*` words preserve OFF-mode group/cache geometry; they remain zero/NULL and are never populated or read. (`src/server.h`) |
-| Real-client execution tail | `mset_pending_head/tail` is the registration FIFO and `mset_next_install_order` reserves connection-global order ranges. `_atomic_probe_retired` preserves the former pointer slot but is always NULL. (`src/server.h`) |
+| Real-client execution tail | `mset_pending_head/tail` is the registration FIFO, `mset_next_install_order` reserves connection-global order ranges, and atomic-only `atomic_commit_next` reuses the former publishing-ring pointer slot as the ready-client stack link. (`src/server.h`) |
 | Real-client execution tail | `mset_pending_lock`, `mset_drain_latch`, and atomic `mset_pending_count` serialize FIFO operations, elect one per-client drainer, and gate the own-uncommitted scan. (`src/server.h:1839-1849`, `src/server.c:9827-9837`, `src/server.c:10227-10240`) |
 | Real-client execution tail | `atomic_window_parked_node` and `atomic_window_parked_tid` track a command refused by the admission window before it takes a fake-ring slot. (`src/server.h:1789-1795`, `src/server.h:1853-1858`, `src/server.c:497-515`) |
 
@@ -190,25 +194,25 @@ The last final owner stage calls `csMsetInstallDone`; intermediate MSETNX/NX or 
 
 `csMsetInstallDone` release-stores `mset_complete = 1`; a strong acquire CAS from `0` to `1` on the real client's `mset_drain_latch` elects the drainer, and a loser returns. (`src/server.c:10336-10347`)
 
-The elected drainer acquires the global commit lock, pops consecutive complete heads from this connection's pending FIFO, release-clears the latch, rechecks the FIFO head, and reacquires the latch if completion raced with the clear. (`src/server.c:10349-10361`)
+The elected per-client drainer pushes its real client onto the global ready stack and attempts to become the global sequencer. A losing worker returns immediately. The sequencer pops consecutive complete heads from that connection's pending FIFO, release-clears the latch, rechecks the FIFO head, and reacquires the latch if completion raced with the clear. (`src/server.c`)
 
 `csMsetPopComplete` refuses a missing or incomplete head, so completion may arrive out of order but ticket processing for one connection follows registration FIFO order. (`src/server.c:10272-10287`)
 
-If a worker contends for `commit_lock`, its wait loop drains that same worker's owner-op lane when necessary, breaking the bounded-lane/lock dependency while retaining acquire/release lock semantics. (`src/server.c:9790-9825`)
+The sequencer publishes idle before its final ready-stack recheck. A racing producer therefore either elects itself or is observed and re-elected by the departing sequencer; no ready client can be stranded. Because losers do not wait, target workers remain available to drain bounded owner-op lanes. (`src/server.c`)
 
 ### 6. Draw a ticket and materialize STAMP or CANCEL
 
-For a non-canceled group, `csMsetStampAndAppend` asserts that the installed count equals `version_install_expected` and takes `fetch_add(next_seq, 1, relaxed) + 1`. (`src/server.c:10293-10310`)
+For a non-canceled group, `csMsetStampReady` asserts that the installed count equals `version_install_expected` and takes `fetch_add(next_seq, 1, relaxed) + 1`. (`src/server.c`)
 
 `version_abort` or any MSETNX position in `CS_MSETNX_PRESENT` makes the group canceled; the group uses sequence `0`, and MSETNX records `CS_ERR_NX_EXISTS`. (`src/server.c:10294-10311`)
 
 For every installed object, the commit path asserts the uncommitted sentinel and matching group-local order, release-stores the cancel bit and owner-op count, fills embedded STAMP/CANCEL and optional PRUNE records, and pushes STAMP or CANCEL to the recorded owner. (`src/server.c:10312-10329`)
 
-Only after those first owner jobs have been pushed is the group appended to `commit_head/commit_tail`. (`src/server.c:10328-10333`)
+Only after those first owner jobs have been pushed is the group appended to the sequencer's local publish prefix for that client. (`src/server.c`)
 
 ### 7. Publish the global frontier, then PRUNE and reply
 
-While still holding `commit_lock`, the drainer removes every group from the global queue in FIFO order. (`src/server.c:10363-10367`, `src/server.c:10402-10403`)
+The unique sequencer removes every group from the per-client local prefix in R1 FIFO order. (`src/server.c`)
 
 For a successful group it release-stores the group's ticket into `commit_seq`, then pushes each PRUNE job; a canceled group neither advances `commit_seq` nor has PRUNE jobs. (`src/server.c:10369-10386`)
 
@@ -310,7 +314,7 @@ The owner then performs a committed-only presence check with a NULL reader; an e
 
 If absent, the owner installs the requested value as an uncommitted version, sets `version_reservation = TOMO_RESERVATION_SIGNAL_SET`, sets `reservation_owner = g`, records the install, and marks the position `RESERVED`. (`src/server.c:11495-11505`)
 
-If any position becomes `PRESENT`, `csMsetStampAndAppend` cancels the whole group, assigns no ticket, and release-marks every already-installed reservation canceled before queuing its CANCEL op. (`src/server.c:10294-10310`, `src/server.c:10312-10328`)
+If any position becomes `PRESENT`, `csMsetStampReady` cancels the whole group, assigns no ticket, and release-marks every already-installed reservation canceled before queuing its CANCEL op. (`src/server.c`)
 
 CANCEL leaves `version_seq` at the uncommitted sentinel, sets stamp state to `CANCELED`, clears reservation fields, and arms prune grace for an attached version or physical retirement for a detached one. (`src/db.c:1024-1049`)
 
@@ -388,7 +392,7 @@ Changing the atomic configuration lazily ensures lifecycle/reclaim storage when 
 
 Window zero is unlimited but still counted in `tomo_atomic_inflight`; a finite window uses the counter itself as the CAS word and does not perform a separate load-then-increment. (`src/server.c:457-476`)
 
-Each atomic install charges its full allocation to a cache-line-separated counter for its immutable install owner. The charge remains while the version is linked or waiting through QSBR and is released exactly once on physical free/resize discard or sole-live promotion. `tomokv-atomic-reclaim-limit=-1` divides one sixteenth of maxmemory (or physical RAM) across configured workers; `0` performs no allocation or accounting; a positive value is the exact per-worker byte limit. Crossing the limit parks only new atomic writers, allowing reads, already-admitted groups, owner operations, and grace reclamation to drain the backlog. (`src/server.c`, `src/db.c`, `src/flatstore.c`)
+Each atomic install charges its full allocation to a cache-line-separated counter for its immutable install owner. The charge remains while the version is linked or waiting through QSBR and is released exactly once on physical free/resize discard or sole-live promotion. `tomokv-atomic-reclaim-limit=-1` divides one sixteenth of maxmemory (or physical RAM) across configured workers; `0` performs no allocation or accounting; a positive value is the exact per-worker byte limit. Crossing the limit parks only new atomic writers, allowing reads, already-admitted groups, owner operations, and grace reclamation to drain the backlog. Under pressure, a worker adds a backlog/cap-proportional, pipeline-depth-bounded allowance to its ready-batch slice. All prune callbacks in one worker-local grace batch share one flat-section and owner-lock scope; ordinary retire batches retain their prior path. (`src/server.c`, `src/db.c`, `src/flatstore.c`)
 
 ## Enforced invariants
 
@@ -416,7 +420,7 @@ The executable read path is `csMsetOwnVersionAt` followed by `kvobjVersionAt`. T
 
 The `ownread_*` values are aggregated and emitted by INFO, but the shown declarations/aggregation are not part of the resolver and the resolver contains no counter updates or wait. (`src/server.c:724-756`, `src/server.c:19194-19196`, `src/server.c:19272-19282`, `src/server.c:10133-10256`)
 
-The retained `mset_read_waiting`, `ownread_*`, and `_atomic_probe_retired*` storage exists only to preserve default-OFF object/cache geometry and legacy INFO compatibility; it is not read by the resolver and causes no atomic-mode allocation. Origin identity and the two version chains define own-read visibility. (`src/server.c`, `src/server.h`, `src/networking.c`)
+The retained `mset_read_waiting`, `ownread_*`, and group `_atomic_probe_retired*` storage exists only to preserve default-OFF object/cache geometry and legacy INFO compatibility; it is not read by the resolver. The former client-tail probe pointer is now the allocation-free atomic completion stack link. Origin identity and the two version chains define own-read visibility. (`src/server.c`, `src/server.h`, `src/networking.c`)
 
 ### Numeric `install_order` is not the resolver order
 

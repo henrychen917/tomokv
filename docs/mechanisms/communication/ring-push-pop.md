@@ -119,7 +119,7 @@ If the first `exQueuePush` returns `-1`, `exDispatchDirect` counts one queue-ful
 
 ### Reserved owner-operation lane
 
-The same structure also backs the reserved lane at `csStampLane() = io_threads + tm_ngrow_io`. Its producer is logically serialized by `commit_lock`, uses the parallel `exQueuePushOwnerOp` algorithm, increments `stamp_pending`, and immediately release-publishes and advertises the lane; an owner that fills its own lane may drain it directly. ([src/server.c:9979-9989](../../../src/server.c#L9979-L9989), [src/server.c:10060-10087](../../../src/server.c#L10060-L10087), [src/server.c:20972-20984](../../../src/server.c#L20972-L20984)) This special lane is not an ordinary one-IO-thread normal-dispatch lane; its complete protocol is documented separately in `owner-op-stamp-lane.md`. ([src/server.c:20972-20984](../../../src/server.c#L20972-L20984))
+The same structure also backs the reserved lane at `csStampLane() = io_threads + tm_ngrow_io`. Its producer is logically serialized by the unique elected completion sequencer, uses the parallel `exQueuePushOwnerOp` algorithm, increments `stamp_pending`, and immediately release-publishes and advertises the lane; an owner that fills its own lane may drain it directly. This special lane is not an ordinary one-IO-thread normal-dispatch lane; its complete protocol is documented separately in `owner-op-stamp-lane.md`. (`src/server.c`)
 
 ## Consumer algorithm: `exQueuePopBatch`
 

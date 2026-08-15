@@ -348,28 +348,29 @@ static inline tomoOwnerOp *exOwnerOpDecode(client *job) {
     return (tomoOwnerOp *)((uintptr_t)job & ~TOMO_EX_OWNER_OP_TAG);
 }
 
-/* CURE2 completion order. The lock serializes the R1-approved draw, owner-op
+/* CURE2 completion order. One elected drainer serializes the R1-approved draw, owner-op
  * enqueue, and frontier publication; installs themselves remain concurrent.
  * LAYOUT (perf audit 2026-08-08): commit_seq is acquire-loaded by EVERY snapshot draw (each
- * read sub — ~8M loads/s at the 9:1 cell) while commit_lock is spun on by every committing
- * worker and the queue pointers churn under it. Sharing one line made every lock handoff
+ * read sub — ~8M loads/s at the 9:1 cell) while the completion controller is written by
+ * committing workers. Sharing one line made every handoff
  * invalidate the line every reader needs (HITM storm). The frontier gets a line of its own;
- * the lock deliberately shares a line with the state it protects (same writer). Padded-struct
- * + define keeps every use site untouched and stops the linker packing strangers into the
- * line (bare aligned() on the object would not). */
+ * ready-stack and election state deliberately share the elected producer's controller line.
+ * Padded-struct + define stops the linker packing strangers into either line. */
 static struct { _Atomic uint64_t v; char pad[CACHE_LINE_SIZE - sizeof(_Atomic uint64_t)]; }
     commit_seq_line __attribute__((aligned(CACHE_LINE_SIZE)));
 #define commit_seq (commit_seq_line.v)
 static struct {
     _Atomic uint64_t next_seq;
-    atomic_flag lock;
-    csGroup *head, *tail;
-    char pad[CACHE_LINE_SIZE - sizeof(_Atomic uint64_t) - sizeof(atomic_flag) - 2*sizeof(void*)];
+    _Atomic(client *) ready_clients;
+    _Atomic int drain_active;
+    char pad[CACHE_LINE_SIZE - sizeof(_Atomic uint64_t) -
+             sizeof(_Atomic(client *)) - sizeof(_Atomic int)];
 } commit_ctl __attribute__((aligned(CACHE_LINE_SIZE)));
+_Static_assert(sizeof(commit_ctl) == CACHE_LINE_SIZE,
+               "atomic completion controller must occupy one cache line");
 #define next_seq (commit_ctl.next_seq)
-#define commit_lock (commit_ctl.lock)
-#define commit_head (commit_ctl.head)
-#define commit_tail (commit_ctl.tail)
+#define commit_ready_clients (commit_ctl.ready_clients)
+#define commit_drain_active (commit_ctl.drain_active)
 
 /* Atomic-MSET admission. `inflight` is the reservation word for both finite and unlimited
  * windows: a successful increment is immediately followed, on the same non-yielding
@@ -386,10 +387,9 @@ static struct { _Atomic int v; char pad[CACHE_LINE_SIZE - sizeof(_Atomic int)]; 
 #define tomo_atomic_inflight (tomo_atomic_inflight_line.v)
 _Atomic unsigned long long tomo_atomic_promotions;
 static _Atomic int tomo_atomic_waiters;
-/* Liveness witnesses for the bounded owner-op lane. `stamp_full` is the necessary condition for
- * the commit-lock cycle described at csCommitLock; `commit_wait_drains` proves a lock waiter had
- * to consume its own lane to let the lock holder advance. Both paths are cold/error-pressure paths,
- * so global relaxed counters do not add work to an ordinary atomic completion. */
+/* Liveness witnesses for the bounded owner-op lane. stamp_full still records real lane pressure.
+ * commit_wait_drains is retained as an INFO compatibility witness and stays zero under the elected
+ * non-waiting completion protocol; a nonzero value can only come from an older binary. */
 static _Atomic unsigned long long tomo_atomic_stamp_full;
 static _Atomic unsigned long long tomo_atomic_commit_wait_drains;
 /* Writer-only memory backpressure. Atomic versions are charged to their install owner until
@@ -1398,13 +1398,12 @@ static inline void flatGroupPinEnter(client *fake) {
         atomic_store_explicit(&ps->floor, gen, memory_order_relaxed);
     atomic_fetch_add_explicit(&ps->pin_out[gen & FLAT_PIN_GEN_MASK], 1, memory_order_relaxed);
     fake->tomo_read_snapshot_gen = gen;
-    fake->tomo_read_snapshot_pinned = 1;
+    atomic_store_explicit(&fake->tomo_read_snapshot_pinned, 1, memory_order_release);
     atomic_store_explicit(&ps->scan_lock, 0, memory_order_release);
     FLAT_PUBLISH_FENCE();
 }
 
-static inline void flatGroupPinExit(client *fake) {
-    int s = flat_slot_owned;
+static inline void flatGroupPinExit(client *fake, int s) {
     serverAssert(s >= 0 && s <= flatIoHi());
     flatGroupPinSlot *ps = &flat_group_pins[s];
     uint64_t gen = fake->tomo_read_snapshot_gen;
@@ -4267,9 +4266,20 @@ static inline void foldClientCommandsProcessed(client *real, client *fake) {
 }
 
 static inline void tomoReleaseReadSnapshot(client *fake) {
-    if (!fake->tomo_read_snapshot_pinned) return;
-    fake->tomo_read_snapshot_pinned = 0;
-    flatGroupPinExit(fake);
+    /* Preserve the ordinary drain fast path: an unpinned fake performs the same one plain load and
+     * predicted return as before. Only a real atomic pin pays the cross-thread exchange. */
+    if (__builtin_expect(
+            atomic_load_explicit(&fake->tomo_read_snapshot_pinned,
+                                 memory_order_relaxed) == 0, 1))
+        return;
+    if (!atomic_exchange_explicit(&fake->tomo_read_snapshot_pinned, 0,
+                                  memory_order_acq_rel))
+        return;
+    /* Pure cross-shard reads may retire the pin on their last worker, before the IO thread
+     * reassembles already-serialized output. The real client's immutable owner slot identifies
+     * the group-pin row; the IO-side fallback is retained for teardown and non-read groups. */
+    int slot = fake->parent ? fake->parent->tid : flat_slot_owned;
+    flatGroupPinExit(fake, slot);
 }
 
 static inline unsigned long long tomoPrefetchReplyRange(const void *base,
@@ -9279,7 +9289,8 @@ static int flat_batch_mask_words;
 #define FB_IOSNAP(b) ((b)->arr + flat_batch_slots)       /* uint64_t[flat_batch_slots] */
 #define FB_IOPIN(b)  ((b)->arr + 2*flat_batch_slots)     /* uint64_t[flat_batch_mask_words] */
 
-static flatBatch *flatBatchClose(flatRetireNode *pend, flatBatch *next, flatBatch **spare, int *spare_n) {
+static flatBatch *flatBatchClose(flatRetireNode *pend, unsigned int retire_flags,
+                                 flatBatch *next, flatBatch **spare, int *spare_n) {
     debugServerAssert(flat_batch_slots > 0);   /* initExThreads must have run before any close */
     flatBatch *b = NULL;
     if (spare && *spare) { b = *spare; *spare = b->next; if (spare_n) (*spare_n)--; }
@@ -9287,6 +9298,7 @@ static flatBatch *flatBatchClose(flatRetireNode *pend, flatBatch *next, flatBatc
      * THIS process with the same flat_batch_slots, so a recycled one already has the right size. */
     if (!b) b = zmalloc(sizeof(*b) + (size_t)(2*flat_batch_slots + flat_batch_mask_words) * sizeof(uint64_t));
     b->head = pend;
+    b->retire_flags = retire_flags;
     /* nworkers is bounded by flat_batch_slots (= io_threads+num_workers+1 > num_workers), so snap[w]
      * for w < nworkers is always in range; clamp defensively to num_workers. */
     int nw = server.num_workers;
@@ -9387,6 +9399,12 @@ static int flatBatchReady(const flatBatch *b) {
 
 static void flatBatchFree(flatBatch *b, flatBatch **spare, int *spare_n) {
     atomic_fetch_add_explicit(&flat_batches_freed_n, 1, memory_order_relaxed);
+    /* Every prune callback in one batch has already passed the same grace and executes on the
+     * same owning worker. Enter the flat section and take that worker's database lock once for
+     * the batch, rather than once per retired version. Ordinary retire batches keep their exact
+     * old path: no extra lock, section store, branch per value, or allocator change. */
+    int prune_scope = (b->retire_flags & FLAT_RETIRE_BATCH_PRUNE) != 0;
+    if (prune_scope) tomoVersionPruneBatchBegin();
     flatRetireNode *n = b->head;
     while (n) {
         flatRetireNode *nx = n->next;
@@ -9400,6 +9418,7 @@ static void flatBatchFree(flatBatch *b, flatBatch **spare, int *spare_n) {
         }
         n = nx;
     }
+    if (prune_scope) tomoVersionPruneBatchEnd();
     if (spare && spare_n && *spare_n < FLAT_BATCH_SPARE_MAX) { b->next = *spare; *spare = b; (*spare_n)++; }
     else zfree(b);
 }
@@ -9411,6 +9430,42 @@ static void flatBatchFree(flatBatch *b, flatBatch **spare, int *spare_n) {
 static unsigned long flatReclaimBudget(unsigned long closed) {
     if (closed > (ULONG_MAX - 4UL) / 2UL) return 0;
     return 2UL * closed + 4UL;
+}
+
+/* Byte pressure means admission has stopped specifically to let this work catch up. Spend a
+ * proportionate part of one producer pipeline's structural depth on ready grace batches instead
+ * of continuing to nibble six at a time. The boost is bounded by pipeline depth, goes to zero with
+ * this owner's backlog, and reaches its maximum at the configured cap; no workload constant or new
+ * knob is involved. The ordinary atomic-OFF reclaim path pays only the predicted-false pressure
+ * test and retains the exact historical budget. */
+static unsigned long flatAtomicPressureBudget(int owner, unsigned long base) {
+    if (__builtin_expect(
+            atomic_load_explicit(&tomo_atomic_reclaim_pressure,
+                                 memory_order_relaxed) == 0, 1))
+        return base;
+    tomoAtomicReclaimSlot *slots =
+        atomic_load_explicit(&tomo_atomic_reclaim_slots, memory_order_acquire);
+    size_t limit = tomoAtomicReclaimLimitResolved();
+    if (!slots || !limit || owner < 0 || owner >= server.num_workers) return base;
+    size_t bytes = atomic_load_explicit(&slots[owner].bytes, memory_order_relaxed);
+    if (!bytes) return base;
+
+    unsigned long span = server.pipeline_ring_depth > 0 ?
+                         (unsigned long)server.pipeline_ring_depth : 1UL;
+    unsigned long add;
+    if (bytes >= limit) {
+        add = span;
+    } else {
+        size_t quantum = limit / (size_t)span;
+        if (!quantum) {
+            add = span;
+        } else {
+            add = (unsigned long)(bytes / quantum);
+            if (bytes % quantum) add++;
+            if (add > span) add = span;
+        }
+    }
+    return base > ULONG_MAX - add ? ULONG_MAX : base + add;
 }
 
 /* Drain at most *budget batches from the ready FIFO prefix. MONOTONICITY makes stopping at the first
@@ -9449,14 +9504,19 @@ static void flatWorkerReclaim(exThread *worker) {
          * drain below stop at the first non-ready head. That matters: a worker closes a batch per pass
          * (~1e5/s) while main only bumps its grace counter once per event loop, so the list can hold
          * hundreds of batches — and a full walk per pass (measured) cost ~16% of p32 SET. */
-        flatBatch *b = flatBatchClose(worker->flat_retire_local, NULL, &worker->flat_batch_spare, &worker->flat_batch_spare_n);
+        unsigned int retire_flags = flat_local_retire_flags;
+        flat_local_retire_flags = 0;
+        flatBatch *b = flatBatchClose(worker->flat_retire_local, retire_flags, NULL,
+                                      &worker->flat_batch_spare,
+                                      &worker->flat_batch_spare_n);
         worker->flat_retire_local = NULL;
         if (worker->flat_batches_tail) worker->flat_batches_tail->next = b;
         else worker->flat_batches_local = b;
         worker->flat_batches_tail = b;
         closed = 1;
     }
-    unsigned long budget = flatReclaimBudget(closed);
+    unsigned long budget = flatAtomicPressureBudget(worker->id,
+                                                     flatReclaimBudget(closed));
     if (flatDrainReadyBatches(&worker->flat_batches_local, &worker->flat_batches_tail,
                               &worker->flat_batch_spare, &worker->flat_batch_spare_n, &budget))
         atomic_fetch_add_explicit(&flat_reclaim_budget_trips_n, 1, memory_order_relaxed);
@@ -9523,7 +9583,9 @@ static int flatReclaimTableClose(flatTable *t) {
     if (atomic_load_explicit(&t->retire_stack, memory_order_relaxed)) {
         flatRetireNode *pend = atomic_exchange_explicit(&t->retire_stack, NULL, memory_order_acquire);
         if (pend) {
-            flatBatch *b = flatBatchClose(pend, NULL, NULL, NULL);
+            /* Atomic prune callbacks are owner-generated and therefore use the worker-local sink.
+             * Non-worker shared-stack batches retain standalone callback locking as a fail-safe. */
+            flatBatch *b = flatBatchClose(pend, 0, NULL, NULL, NULL);
             if (t->batches_tail) t->batches_tail->next = b;
             else t->batches = b;
             t->batches_tail = b;
@@ -10550,42 +10612,22 @@ static inline int tomoHfeProc(redisCommandProc *p) {
 static _Atomic unsigned long long tomo_xshard_multikey_split_n;
 static _Atomic unsigned long long tomo_xshard_hop2_unbarriered_n;
 
-/* The commit lane is bounded, while the worker that consumes it can itself be a commit-lock
- * waiter. A plain spin here creates a closed cycle:
- *
- *   worker A: owns commit_lock -> csStampPush(B) -> B's full owner-op lane
- *   worker B: csCommitLock() -> waits for A -> never returns to exSlice to drain that lane
- *
- * Make lock waiting work-conserving for worker callers. csMsetInstallDone reaches this point only
- * after exSlice released the worker's tomoWkrLock, so consuming the same worker's owner-op lane is
- * legal here; IO-thread callers have no worker identity and retain the old PAUSE loop. Applying a
- * STAMP before its commit_seq publication was already allowed (the owner normally drains as soon
- * as csStampPush publishes it), and PRUNE is only enqueued after commit_seq, so helping preserves
- * the atomic visibility ordering. */
-static inline void csCommitLock(void) {
-    if (!atomic_flag_test_and_set_explicit(&commit_lock, memory_order_acquire))
-        return;
-    /* MERGE (dev x 2s-flip-final): the self-drain body is the deadlock cure and OWNS the loop;
-     * the flip line's wait brackets wrap it whole. Drain iterations are thus billed as WAIT —
-     * conservative for u_io (drains fire only under contention, and briefly). */
-    int owner = iotid - (TOMO_IO_THREADS_MAX + 1);
-    exThread *self = (owner >= 0 && owner < server.num_workers) ?
-                     &server.exThreads[owner] : NULL;
-    tmIoWaitBegin();
+/* Completion workers publish only their real client into this intrusive MPSC stack. The
+ * per-client drain latch guarantees one live stack entry per client; the fake-ring reference keeps
+ * the real client alive until its groups publish. A losing worker never waits for the global
+ * sequencer and therefore immediately returns to exSlice, where it can consume owner-op lanes the
+ * sequencer is filling. This removes the old commit-lock/full-lane dependency cycle. */
+static inline void csCommitReadyPush(client *real) {
+    client *head = atomic_load_explicit(&commit_ready_clients, memory_order_relaxed);
     do {
-        if (self && atomic_load_explicit(&self->stamp_pending, memory_order_acquire) != 0 &&
-            csStampDrain(self) != 0) {
-            atomic_fetch_add_explicit(&tomo_atomic_commit_wait_drains, 1,
-                                      memory_order_relaxed);
-        } else {
-            exPauseCpu();
-        }
-    } while (atomic_flag_test_and_set_explicit(&commit_lock, memory_order_acquire));
-    tmIoWaitEnd();
+        atomic_store_explicit(&clientTail(real)->atomic_commit_next, head,
+                              memory_order_relaxed);
+    } while (!atomic_compare_exchange_weak_explicit(&commit_ready_clients, &head, real,
+                                                     memory_order_release,
+                                                     memory_order_relaxed));
 }
-static inline void csCommitUnlock(void) {
-    atomic_flag_clear_explicit(&commit_lock, memory_order_release);
-}
+
+static void csCommitDrainReady(void);
 
 static inline void csMsetPendingLock(client *c) {
     if (!atomic_exchange_explicit(&clientTail(c)->mset_pending_lock, 1, memory_order_acquire)) return;
@@ -10816,8 +10858,8 @@ static kvobj *csMsetOwnVersionAt(kvobj *head, client *real, int *found) {
  * longer matches, and a strict cursor at S < S_G steps PAST C's k2 to the
  * pre-MSET value — [own v1, stale v2], a torn view of C's own atomic group.
  * Plain GET reaches the same door with no pin at all: stamp ops are pushed
- * BEFORE commit_seq advances (csMsetStampAndAppend runs, csMsetInstallDone
- * publishes after), so this owner can stamp k and then execute C's GET k
+ * BEFORE commit_seq advances (csMsetStampReady pushes them before the elected
+ * sequencer publishes), so this owner can stamp k and then execute C's GET k
  * while commit_seq still reads below S_G.
  *
  * Correctness of the widening:
@@ -10939,7 +10981,7 @@ static csGroup *csMsetPopComplete(client *real) {
 /* I1/I3/I5: draw at R1-approved completion, then enqueue every owner stamp
  * before the group is allowed to advance commit_seq. Records are traversed in
  * install-order so same-key duplicates reach their one owner in that order. */
-static void csMsetStampAndAppend(csGroup *g) {
+static void csMsetStampReady(csGroup *g) {
     int ninstalled = atomic_load_explicit(&g->mset_install_count, memory_order_relaxed);
     int cancel = g->version_abort;
     if (g->ctype == CS_MSETNX) {
@@ -10977,32 +11019,27 @@ static void csMsetStampAndAppend(csGroup *g) {
         csStampPush(install->owner, &vmeta->owner_op[0]);
     }
     g->commit_next = NULL;
-    if (commit_tail) commit_tail->commit_next = g;
-    else commit_head = g;
-    commit_tail = g;
 }
 
-static void csMsetInstallDone(csGroup *g) {
-    client *real = g->mset_client;
-    serverAssert(real != NULL);
+/* Drain one client's complete R1 prefix, stamp the entire prefix, then publish it in the same
+ * order. Only the elected global sequencer calls this function, so next_seq/commit_seq remain
+ * monotone without a contended lock. Clearing the client latch before the final head recheck is the
+ * handoff point: a concurrent completer either loses to our reacquire or queues this client once. */
+static void csMsetDrainReadyClient(client *real) {
     int producer_tid = real->tid;
     clientExecTail *rt = clientTail(real);
-    atomic_store_explicit(&g->mset_complete, 1, memory_order_release);
-
-    int expected = 0;
-    if (!atomic_compare_exchange_strong_explicit(&rt->mset_drain_latch, &expected, 1,
-                                                  memory_order_acquire,
-                                                  memory_order_relaxed))
-        return;
-
-    csCommitLock();
+    csGroup *publish_head = NULL, *publish_tail = NULL;
     for (;;) {
         csGroup *done;
-        while ((done = csMsetPopComplete(real)) != NULL)
-            csMsetStampAndAppend(done);
+        while ((done = csMsetPopComplete(real)) != NULL) {
+            csMsetStampReady(done);
+            if (publish_tail) publish_tail->commit_next = done;
+            else publish_head = done;
+            publish_tail = done;
+        }
         atomic_store_explicit(&rt->mset_drain_latch, 0, memory_order_release);
         if (!csMsetHeadComplete(real)) break;
-        expected = 0;
+        int expected = 0;
         if (!atomic_compare_exchange_strong_explicit(&rt->mset_drain_latch, &expected, 1,
                                                       memory_order_acquire,
                                                       memory_order_relaxed))
@@ -11010,10 +11047,9 @@ static void csMsetInstallDone(csGroup *g) {
     }
 
     int published = 0;
-    while (commit_head) {
-        csGroup *done = commit_head;
-        commit_head = done->commit_next;
-        if (!commit_head) commit_tail = NULL;
+    while (publish_head) {
+        csGroup *done = publish_head;
+        publish_head = done->commit_next;
 
         int canceled = done->version_seq == 0;
         int ninstalled = atomic_load_explicit(&done->mset_install_count,
@@ -11045,16 +11081,61 @@ static void csMsetInstallDone(csGroup *g) {
         serverAssert(before > 0);
         published = 1;
     }
-    csCommitUnlock();
 
     /* Atomic R1 completion publishes the group-head CDB byte directly from a
      * worker, bypassing the ordinary fake-completion notification path. The
      * deleted own-read hold used to wake this producer incidentally through
      * mset_read_waiting; without an explicit completion wake, an otherwise-idle
      * producer sees the byte only on the 100us reply-poll fallback. Wake once
-     * for the whole R1 batch, after dropping commit_lock, so its event loop runs
+     * for the whole R1 batch, after frontier publication, so its event loop runs
      * handleWorkerReplies -> csReassemble and retires admission promptly. */
     if (published) tomoAtomicWakeProducer(producer_tid);
+}
+
+/* Race-free elected-drainer protocol. A producer pushes before it probes drain_active. On exit the
+ * drainer first publishes idle and then rechecks the stack: a push racing the transition either
+ * elects itself or is observed and re-elected here, so a ready client cannot be stranded. */
+static void csCommitDrainReady(void) {
+    int expected = 0;
+    if (!atomic_compare_exchange_strong_explicit(&commit_drain_active, &expected, 1,
+                                                  memory_order_acquire,
+                                                  memory_order_relaxed))
+        return;
+
+    for (;;) {
+        client *ready = atomic_exchange_explicit(&commit_ready_clients, NULL,
+                                                  memory_order_acquire);
+        while (ready) {
+            client *next = atomic_exchange_explicit(
+                &clientTail(ready)->atomic_commit_next, NULL, memory_order_relaxed);
+            csMsetDrainReadyClient(ready);
+            ready = next;
+        }
+
+        atomic_store_explicit(&commit_drain_active, 0, memory_order_release);
+        if (atomic_load_explicit(&commit_ready_clients, memory_order_acquire) == NULL)
+            return;
+        expected = 0;
+        if (!atomic_compare_exchange_strong_explicit(&commit_drain_active, &expected, 1,
+                                                      memory_order_acquire,
+                                                      memory_order_relaxed))
+            return;
+    }
+}
+
+static void csMsetInstallDone(csGroup *g) {
+    client *real = g->mset_client;
+    serverAssert(real != NULL);
+    clientExecTail *rt = clientTail(real);
+    atomic_store_explicit(&g->mset_complete, 1, memory_order_release);
+
+    int expected = 0;
+    if (!atomic_compare_exchange_strong_explicit(&rt->mset_drain_latch, &expected, 1,
+                                                  memory_order_acquire,
+                                                  memory_order_relaxed))
+        return;
+    csCommitReadyPush(real);
+    csCommitDrainReady();
 }
 
 /* A source parse/type/missing-key verdict may terminate a registered read-then-write group
@@ -13553,7 +13634,7 @@ static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int fi
     g->spec = s; g->h2_dbid = dbid; g->h2_pexpireat = -1;
     head->csgroup = g;
     head->cdb = 0;
-    if (head->tomo_read_snapshot_pinned) {
+    if (atomic_load_explicit(&head->tomo_read_snapshot_pinned, memory_order_acquire)) {
         g->snapshot_pinned = 1;
         g->read_seq = head->tomo_read_snapshot;
     }
@@ -14127,7 +14208,8 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
     int atomic_bag = atomic_write &&
                      (s->ctype == CS_MSET || s->ctype == CS_DEL ||
                       s->ctype == CS_MSETNX);
-    int atomic_snapshot = head->tomo_read_snapshot_pinned &&
+    int atomic_snapshot =
+        atomic_load_explicit(&head->tomo_read_snapshot_pinned, memory_order_acquire) &&
                           (atomic_write || s->ctype == CS_MGET ||
                            s->ctype == CS_EXISTS || s->ctype == CS_PFCOUNT);
     int atomic_msetnx = atomic_write && s->ctype == CS_MSETNX;
@@ -14233,7 +14315,8 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
 
     if (atomic_snapshot) {
         /* processCommand pinned and drew S before any owner sub was queued. */
-        serverAssert(head->tomo_read_snapshot_pinned);
+        serverAssert(atomic_load_explicit(&head->tomo_read_snapshot_pinned,
+                                          memory_order_acquire));
         g->snapshot_pinned = 1;
         g->read_seq = head->tomo_read_snapshot;
     }
@@ -14934,7 +15017,7 @@ static void dispatchSortByGet(client *head, const csCmdSpec *s, int atomic_admis
     atomic_store_explicit(&g->err,CS_ERR_NONE,memory_order_relaxed);
     head->csgroup = g;
     head->cdb = 0;
-    if (head->tomo_read_snapshot_pinned) {
+    if (atomic_load_explicit(&head->tomo_read_snapshot_pinned, memory_order_acquire)) {
         g->snapshot_pinned = 1;
         g->read_seq = head->tomo_read_snapshot;
     }
@@ -15001,7 +15084,7 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admissio
     g->h2_pexpireat = -1; g->h2_dbid = dbid;
     head->csgroup = g; head->cdb = 0;
     atomic_store_explicit(&g->err, CS_ERR_NONE, memory_order_relaxed);
-    if (head->tomo_read_snapshot_pinned) {
+    if (atomic_load_explicit(&head->tomo_read_snapshot_pinned, memory_order_acquire)) {
         g->snapshot_pinned = 1;
         g->read_seq = head->tomo_read_snapshot;
     }
@@ -20138,9 +20221,9 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_atomic_ownread_held:%llu\r\n", orh,
             "tomokv_atomic_ownread_conserv:%llu\r\n", orc,
             "tomokv_atomic_ownread_detach:%llu\r\n", ord,
-            /* Atomic completion liveness witnesses. A non-zero stamp_full proves a committer met
-             * the bounded owner-op back-pressure required by the old circular wait;
-             * commit_wait_drains proves a waiting worker cooperatively broke that dependency. */
+            /* Atomic completion liveness witnesses. stamp_full names real bounded-lane pressure;
+             * commit_wait_drains is retained for compatibility and remains zero now that losing
+             * completion workers return to exSlice instead of waiting on a global lock. */
             "tomokv_atomic_stamp_full:%llu\r\n",
                 atomic_load_explicit(&tomo_atomic_stamp_full, memory_order_relaxed),
             "tomokv_atomic_commit_wait_drains:%llu\r\n",
@@ -21883,9 +21966,8 @@ int exQueuePush(exQueue *q, client *c) {
     return 0;
 }
 
-/* Reserved CURE2 lane producer. Completion workers are serialized by
- * commit_lock, so this remains one logical SPSC producer even when the worker
- * that completes successive groups changes. */
+/* Reserved CURE2 lane producer. The elected completion drainer is unique, so this remains one
+ * logical SPSC producer even when the worker elected for successive drain epochs changes. */
 static int exQueuePushOwnerOp(exQueue *q, tomoOwnerOp *op) {
     unsigned int t = q->staged_tail;
     unsigned int next_t = (t + 1) & server.ex_queue_mask;
@@ -23151,6 +23233,13 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
                                                      memory_order_acq_rel) == 1;
                 }
                 if (last) {
+                    /* MGET has serialized every selected value before this point. Its snapshot is
+                     * no longer needed by reassembly, so release the dispatch grace here instead
+                     * of retaining a global reclaim pin until the producer IO loop reaches the
+                     * reply. Later IO-side release is exactly-once via the atomic exchange. */
+                    if (__builtin_expect(g->snapshot_pinned, 0) &&
+                        !g->versioned_write && g->ctype == CS_MGET)
+                        tomoReleaseReadSnapshot(g->head);
                     if (g->versioned_write) {
                         int stage_only = !g->version_commit_ready;
                         if (g->ctype == CS_MSETNX)

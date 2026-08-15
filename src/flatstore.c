@@ -168,6 +168,7 @@ __thread flatRetireNode *flat_node_pool = NULL;
 __thread unsigned flat_node_pool_n = 0;
 __thread unsigned flat_node_pool_lowat = 0;   /* min occupancy this window = never-needed surplus */
 __thread unsigned flat_node_tick = 0;
+__thread unsigned flat_local_retire_flags = 0;
 
 /* Low-water scavenger (glibc/tcmalloc shape). The minimum occupancy reached during a window is by
  * definition the number of nodes the window never needed, so that many are returned to the
@@ -187,7 +188,7 @@ void flatNodePoolTrim(void) {
     flat_node_pool_lowat = flat_node_pool_n;
 }
 
-static void flatRetirePayload(flatTable *t, dictEntry *payload) {
+static void flatRetirePayload(flatTable *t, dictEntry *payload, unsigned int retire_flags) {
     if (!payload) return;
     flatRetireNode *n = flat_node_pool;
     if (n) {
@@ -199,7 +200,12 @@ static void flatRetirePayload(flatTable *t, dictEntry *payload) {
     n->masked_kv = payload;
     /* Worker thread: push onto its OWN list (no CAS) — that worker closes the batch and frees it
      * same-arena once the QSBR grace passes (flatWorkerReclaim). */
-    if (flat_local_sink) { n->next = *flat_local_sink; *flat_local_sink = n; return; }
+    if (flat_local_sink) {
+        n->next = *flat_local_sink;
+        *flat_local_sink = n;
+        flat_local_retire_flags |= retire_flags;
+        return;
+    }
     flatRetireNode *head = atomic_load_explicit(&t->retire_stack, memory_order_relaxed);
     do { n->next = head; }
     while (!atomic_compare_exchange_weak_explicit(&t->retire_stack, &head, n,
@@ -207,19 +213,19 @@ static void flatRetirePayload(flatTable *t, dictEntry *payload) {
 }
 
 void flatRetire(flatTable *t, dictEntry *masked_kv) {
-    flatRetirePayload(t, masked_kv);
+    flatRetirePayload(t, masked_kv, 0);
 }
 
 void flatRetireAtomicRaw(flatTable *t, void *rawkv) {
-    flatRetirePayload(t, flatRetireReclaim(rawkv));
+    flatRetirePayload(t, flatRetireReclaim(rawkv), 0);
 }
 
 void flatRetireVersionPrune(flatTable *t, void *rawkv) {
-    flatRetirePayload(t, flatRetireSpecial(rawkv, 0));
+    flatRetirePayload(t, flatRetireSpecial(rawkv, 0), FLAT_RETIRE_BATCH_PRUNE);
 }
 
 void flatRetireVmeta(flatTable *t, void *vmeta) {
-    flatRetirePayload(t, flatRetireSpecial(vmeta, 1));
+    flatRetirePayload(t, flatRetireSpecial(vmeta, 1), 0);
 }
 
 /* decode a tag-masked slot pointer to (kvobj*, key). masked may be NULL. */

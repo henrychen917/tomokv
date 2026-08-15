@@ -126,7 +126,7 @@ the chain. This accepts `C`'s own stamped version even when its ticket
 
 **Why STAMP must not clear `origin_client_id`.** `tomoApplyVersionStamp` deliberately
 leaves `origin_client_id` intact (`src/db.c:1011-1021`). STAMP jobs are pushed
-*before* `commit_seq` advances (`csMsetStampAndAppend` at `src/server.c:10328`, then
+*before* `commit_seq` advances (`csMsetStampReady`, then
 `csMsetInstallDone` publishes at `:10377`), so an owner can stamp `k` and then execute
 `C`'s `GET k` while `commit_seq` still reads below `S_G`. Without the retained
 identity, the own branch would miss and the strict cursor would step past `C`'s own

@@ -1742,7 +1742,7 @@ typedef union clientExecTail {
         client *fakeClients[TOMO_PIPELINE_DEPTH_MAX];
         struct csGroup *mset_pending_head;
         struct csGroup *mset_pending_tail;
-        void *_atomic_probe_retired; /* layout reserve: former publishing-ring pointer, always NULL */
+        _Atomic(client *) atomic_commit_next; /* atomic-only intrusive MPSC ready-client stack */
         uint64_t mset_next_install_order; /* ownread: connection-global order reserved at R1 registration */
         double fake_ring_hwm_ewma;
         _Atomic int *drain_ack;
@@ -1879,7 +1879,7 @@ typedef struct client {
             size_t buf_usable_size;
             unsigned long long commands_processed;
 
-            unsigned int tomo_read_snapshot_pinned;
+            redisAtomic unsigned int tomo_read_snapshot_pinned;
             unsigned int fake_slot;
             int cdb;
             int prefetch_key_hash_valid;
@@ -5832,6 +5832,8 @@ void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq);
 void tomoCancelVersion(kvobj *kv);
 void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq);
 void tomoVersionPruneAfterGrace(kvobj *anchor);
+void tomoVersionPruneBatchBegin(void);
+void tomoVersionPruneBatchEnd(void);
 void tomoRetireDetachedBag(kvstore *kvs, kvobj *head);
 void tomoAtomicLifecycleEnsure(void);
 void tomoAtomicLifecycleRelease(struct tomoVerMeta *vmeta);
@@ -5844,7 +5846,7 @@ void tomoAtomicReclaimRelease(struct tomoVerMeta *vmeta);
 static inline int tomoPinnedReadSnapshot(uint64_t *snapshot) {
     client *c = server.current_client[iotid].p;
     if (!c) return 0;
-    if (c->tomo_read_snapshot_pinned) {
+    if (atomic_load_explicit(&c->tomo_read_snapshot_pinned, memory_order_acquire)) {
         *snapshot = c->tomo_read_snapshot;
         return 1;
     }
@@ -5854,7 +5856,8 @@ static inline int tomoPinnedReadSnapshot(uint64_t *snapshot) {
             *snapshot = g->read_seq;
             return 1;
         }
-        if (g->head && g->head->tomo_read_snapshot_pinned) {
+        if (g->head && atomic_load_explicit(&g->head->tomo_read_snapshot_pinned,
+                                            memory_order_acquire)) {
             *snapshot = g->head->tomo_read_snapshot;
             return 1;
         }
