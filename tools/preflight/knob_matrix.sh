@@ -413,6 +413,16 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   must_refuse tomokv-wb-uring -2 "below the declared minimum -- auto is -1"
   must_refuse tomokv-wb-uring 4097 "above the declared submission cap"
 
+  try tomokv-uring-multishot 0 "OFF: one-shot receive and no provided-buffer ring"
+  try tomokv-uring-multishot 256 "enable 256 provided receive buffers per IO thread when io_uring is selected"
+  must_refuse tomokv-uring-multishot -1 "below the declared minimum -- 0=off"
+  must_refuse tomokv-uring-multishot 8193 "above the declared maximum -- valid range is 0..8192"
+
+  try tomokv-uring-sendcopy-min 0 "OFF: every SEND uses the per-client scratch copy"
+  try tomokv-uring-sendcopy-min 64 "direct-send eligible staged prefixes of at most 64 bytes"
+  must_refuse tomokv-uring-sendcopy-min -1 "below the declared minimum -- 0=off"
+  must_refuse tomokv-uring-sendcopy-min 2147483648 "above the declared INT_MAX byte threshold"
+
   try tomokv-reshard-fence-timeout 0
   must_refuse tomokv-reshard-fence-timeout -1 "below the declared minimum -- this knob spells auto as 0"
 

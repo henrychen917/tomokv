@@ -23424,6 +23424,14 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "tomokv_uring2_send_scratch_bytes:%llu\r\n", (unsigned long long)u2st.send_scratch_bytes,
                 "tomokv_uring2_send_cancel_submitted:%llu\r\n", (unsigned long long)u2st.send_cancel_submitted,
                 "tomokv_uring2_migration_acks:%llu\r\n", (unsigned long long)u2st.migration_acks));
+            info = sdscatprintf(info, FMTARGS(
+                "tomokv_uring_multishot_arms:%llu\r\n", (unsigned long long)u2st.multishot_arms,
+                "tomokv_uring_multishot_cqes:%llu\r\n", (unsigned long long)u2st.multishot_cqes,
+                "tomokv_uring_multishot_rearms:%llu\r\n", (unsigned long long)u2st.multishot_rearms,
+                "tomokv_uring_multishot_enobufs:%llu\r\n", (unsigned long long)u2st.multishot_enobufs,
+                "tomokv_uring_recv_oneshot:%llu\r\n", (unsigned long long)u2st.recv_oneshot,
+                "tomokv_uring_send_nocopy:%llu\r\n", (unsigned long long)u2st.send_nocopy,
+                "tomokv_uring_send_copy:%llu\r\n", (unsigned long long)u2st.send_copy));
         }
         /* MERGE 2026-07-28: the fork-local counters and upstream's Stats block use
          * separate sdscatprintf calls because a single FMTARGS() takes at most 160 arguments

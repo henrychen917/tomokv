@@ -3267,6 +3267,12 @@ struct redisServer {
      * 0 keeps epoll and allocates no ring/buffer/op machinery; 1 selects the
      * existing ring; 2 selects the isolated Helio-style staged backend. */
     int io_uring;
+    /* tomokv-uring-multishot: 0 = one-shot receive and no provided-buffer
+     * ring allocation; N = multishot receive with N buffers per IO thread. */
+    int uring_multishot;
+    /* tomokv-uring-sendcopy-min: 0 = always copy the staged prefix; N = send
+     * eligible plain c->buf prefixes of at most N bytes without a copy. */
+    int uring_sendcopy_min;
     /* FLATSTORE is UNCONDITIONAL as of 2026-07-28 (thredis_flat_store / flat_load_pct deleted):
      * a shared node db (shared_node_dbs) is always a flat table, and the resize trigger uses the
      * FLAT_LOAD_PCT compile-time target. `shared_node_dbs` alone is the predicate everywhere. */

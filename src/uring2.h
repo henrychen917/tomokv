@@ -39,6 +39,11 @@ typedef struct tomoUring2Stats {
     uint64_t recv_poll_first;
     uint64_t recv_sock_nonempty;
     uint64_t recv_cancel_submitted;
+    uint64_t multishot_arms;
+    uint64_t multishot_cqes;
+    uint64_t multishot_rearms;
+    uint64_t multishot_enobufs;
+    uint64_t recv_oneshot;
     uint64_t send_queued;
     uint64_t send_submitted;
     uint64_t send_cqes;
@@ -47,6 +52,8 @@ typedef struct tomoUring2Stats {
     uint64_t send_errors;
     uint64_t send_scratch_copies;
     uint64_t send_scratch_bytes;
+    uint64_t send_nocopy;
+    uint64_t send_copy;
     uint64_t send_cancel_submitted;
     uint64_t migration_acks;
 } tomoUring2Stats;

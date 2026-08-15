@@ -31,6 +31,7 @@
 #define TOMO_URING2_CQE_BATCH      128U
 #define TOMO_URING2_SEND_BATCH_MAX 512U
 #define TOMO_URING2_NO_SLOT        UINT32_MAX
+#define TOMO_URING2_RECV_BGID      1U
 
 typedef enum tomoUring2RecvState {
     TOMO_URING2_RECV_IDLE = 0,
@@ -82,6 +83,11 @@ typedef struct tomoUring2AtomicStats {
     _Atomic uint64_t recv_poll_first;
     _Atomic uint64_t recv_sock_nonempty;
     _Atomic uint64_t recv_cancel_submitted;
+    _Atomic uint64_t multishot_arms;
+    _Atomic uint64_t multishot_cqes;
+    _Atomic uint64_t multishot_rearms;
+    _Atomic uint64_t multishot_enobufs;
+    _Atomic uint64_t recv_oneshot;
     _Atomic uint64_t send_queued;
     _Atomic uint64_t send_submitted;
     _Atomic uint64_t send_cqes;
@@ -90,6 +96,8 @@ typedef struct tomoUring2AtomicStats {
     _Atomic uint64_t send_errors;
     _Atomic uint64_t send_scratch_copies;
     _Atomic uint64_t send_scratch_bytes;
+    _Atomic uint64_t send_nocopy;
+    _Atomic uint64_t send_copy;
     _Atomic uint64_t send_cancel_submitted;
     _Atomic uint64_t migration_acks;
 } tomoUring2AtomicStats;
@@ -119,9 +127,10 @@ struct tomoUring2Client {
     tomoUring2RecvState recv_state;
     tomoUring2ClientMode mode;
 
-    char *recv_buf;               /* IO-owned until the one-shot RECV CQE. */
+    char *recv_buf;               /* Allocated only for a one-shot owner. */
     uint64_t recv_token;
     uint64_t recv_cancel_token;
+    unsigned multishot_armed_once : 1;
     unsigned socket_nonempty : 1;
     unsigned cancel_submitted : 1;
     unsigned cancel_seen : 1;
@@ -130,10 +139,11 @@ struct tomoUring2Client {
     unsigned in_callback : 1;
     int pending_read_error;
 
-    /* Every SEND references only this IO-owned copy.  c->buf retains the
-     * logical bytes until the data CQE advances sentlen, but its allocation
-     * and every worker-owned reply/value may be retired independently. */
+    /* A SEND references either this IO-owned copy or a guarded immutable
+     * prefix of c->buf.  In both cases the logical bytes remain in c->buf
+     * until the data CQE advances sentlen. */
     char *send_scratch;
+    char *send_direct_buf;
     uint64_t send_token;
     uint64_t send_cancel_token;
     unsigned send_active : 1;
@@ -144,8 +154,10 @@ struct tomoUring2Client {
     unsigned send_cancel_seen : 1;
     unsigned send_disarming : 1;
     unsigned send_failed : 1;
+    unsigned send_nocopy : 1;
     size_t send_len;
     size_t send_off;
+    size_t send_start;
     int send_result;
 
     unsigned arm_queued : 1;
@@ -177,6 +189,13 @@ struct tomoUring2Thread {
     unsigned kernel_minor;
     unsigned poll_first_supported : 1;
     unsigned taskrun_flag_enabled : 1;
+    unsigned multishot_enabled : 1;
+
+    struct io_uring_buf_ring *recv_buf_ring;
+    char *recv_buf_pool;
+    unsigned recv_buf_count;
+    unsigned recv_buf_ring_entries;
+    int recv_buf_ring_mask;
 
     tomoUring2CallbackSlot *slots;
     uint32_t slot_count;
@@ -310,6 +329,21 @@ static struct io_uring_sqe *tomoUring2GetSqe(
     io_uring_sqe_set_data64(sqe, *token);
     URING2_STAT_BUMP(st, sqes_staged, 1);
     return sqe;
+}
+
+static char *tomoUring2RecvBuffer(tomoUring2Thread *st, unsigned bid) {
+    if (!st->multishot_enabled || !st->recv_buf_ring ||
+        !st->recv_buf_pool || bid >= st->recv_buf_count)
+        tomoUring2Fatal(st, "provided receive buffer id", EPROTO);
+    return st->recv_buf_pool + (size_t)bid * PROTO_IOBUF_LEN;
+}
+
+static void tomoUring2ReturnRecvBuffer(tomoUring2Thread *st,
+                                       unsigned bid) {
+    char *buf = tomoUring2RecvBuffer(st, bid);
+    io_uring_buf_ring_add(st->recv_buf_ring, buf, PROTO_IOBUF_LEN,
+                          (unsigned short)bid, st->recv_buf_ring_mask, 0);
+    io_uring_buf_ring_advance(st->recv_buf_ring, 1);
 }
 
 static void tomoUring2ArmRemove(tomoUring2Thread *st,
@@ -497,20 +531,42 @@ static int tomoUring2SendCanPromote(const tomoUring2Client *uc) {
     return 1;
 }
 
+static int tomoUring2SendCanNoCopy(const tomoUring2Client *uc,
+                                   size_t len) {
+    const client *c = uc->c;
+    int limit = server.uring_sendcopy_min;
+    if (limit == 0 || len > (size_t)limit) return 0;
+    if (uc->mode != TOMO_URING2_CLIENT_RUN ||
+        !c->conn || c->conn->type != connectionTypeTcp() ||
+        c->buf_encoded || listLength(c->reply) != 0 ||
+        clientTail(c)->cs_barrier != 0 ||
+        c->flags & (CLIENT_MASTER | CLIENT_SLAVE | CLIENT_MONITOR |
+                    CLIENT_REPL_RDB_CHANNEL | CLIENT_CLOSE_ASAP |
+                    CLIENT_CLOSE_AFTER_REPLY | CLIENT_PROTECTED |
+                    CLIENT_MIGRATING | CLIENT_PIPELINE_STALLED))
+        return 0;
+    return 1;
+}
+
 static int tomoUring2SendPromote(tomoUring2Thread *st,
                                  tomoUring2Client *uc) {
     client *c = uc->c;
     serverAssert(!uc->send_active);
     if (!tomoUring2SendCanPromote(uc)) return C_ERR;
-    if (!uc->send_scratch) uc->send_scratch = zmalloc(PROTO_REPLY_CHUNK_BYTES);
 
     size_t available = c->bufpos - c->sentlen;
     size_t take = min(available, (size_t)PROTO_REPLY_CHUNK_BYTES);
-    memcpy(uc->send_scratch, c->buf + c->sentlen, take);
+    int nocopy = tomoUring2SendCanNoCopy(uc, take);
+    if (!nocopy) {
+        if (!uc->send_scratch)
+            uc->send_scratch = zmalloc(PROTO_REPLY_CHUNK_BYTES);
+        memcpy(uc->send_scratch, c->buf + c->sentlen, take);
+    }
 
     /* The acquire-ready worker publication and AddReplyFromClient splice have
-     * already completed on this IO owner.  Copying here pins the exact ordered
-     * prefix until its SEND CQE without extending any worker/QSBR lifetime. */
+     * already completed on this IO owner.  The no-copy guard admits only a
+     * plain real-client prefix: later replies append behind it, cron resize is
+     * gated by ClientSendPending, and close/free waits for the SEND CQE. */
     uc->send_active = 1;
     uc->send_submitted = 0;
     uc->send_main_seen = 0;
@@ -519,10 +575,18 @@ static int tomoUring2SendPromote(tomoUring2Thread *st,
     uc->send_cancel_seen = 1;
     uc->send_disarming = 0;
     uc->send_failed = 0;
+    uc->send_nocopy = nocopy;
     uc->send_len = take;
     uc->send_off = 0;
-    URING2_STAT_BUMP(st, send_scratch_copies, 1);
-    URING2_STAT_BUMP(st, send_scratch_bytes, take);
+    uc->send_start = nocopy ? c->sentlen : 0;
+    uc->send_direct_buf = nocopy ? c->buf : NULL;
+    if (nocopy) {
+        URING2_STAT_BUMP(st, send_nocopy, 1);
+    } else {
+        URING2_STAT_BUMP(st, send_copy, 1);
+        URING2_STAT_BUMP(st, send_scratch_copies, 1);
+        URING2_STAT_BUMP(st, send_scratch_bytes, take);
+    }
     return C_OK;
 }
 
@@ -539,8 +603,11 @@ static void tomoUring2SendClearActive(tomoUring2Thread *st,
     uc->send_cancel_seen = 1;
     uc->send_disarming = 0;
     uc->send_failed = 0;
+    uc->send_nocopy = 0;
     uc->send_len = 0;
     uc->send_off = 0;
+    uc->send_start = 0;
+    uc->send_direct_buf = NULL;
 }
 
 static void tomoUring2RequestSendCancel(tomoUring2Client *uc) {
@@ -670,8 +737,17 @@ static int tomoUring2StageSends(tomoUring2Thread *st) {
         tomoUring2SendRemove(st, uc);
         serverAssert(uc->send_active && !uc->send_submitted);
         size_t remaining = uc->send_len - uc->send_off;
-        io_uring_prep_send(sqe, uc->fd, uc->send_scratch + uc->send_off,
-                           remaining, MSG_NOSIGNAL);
+        const char *send_buf;
+        if (uc->send_nocopy) {
+            if (uc->c->buf != uc->send_direct_buf ||
+                uc->c->sentlen != uc->send_start + uc->send_off)
+                tomoUring2Fatal(st, "direct SEND prefix changed", EPROTO);
+            send_buf = uc->send_direct_buf + uc->send_start + uc->send_off;
+        } else {
+            send_buf = uc->send_scratch + uc->send_off;
+        }
+        io_uring_prep_send(sqe, uc->fd, send_buf, remaining,
+                           MSG_NOSIGNAL);
         uc->send_token = token;
         uc->send_submitted = 1;
         uc->send_main_seen = 0;
@@ -701,7 +777,21 @@ static int tomoUring2StageRecvs(tomoUring2Thread *st) {
             st, tomoUring2RecvCqe, uc, TOMO_URING2_OP_RECV, &token);
         if (!sqe) break;
         tomoUring2ArmRemove(st, uc);
-        io_uring_prep_recv(sqe, uc->fd, uc->recv_buf, PROTO_IOBUF_LEN, 0);
+        if (st->multishot_enabled) {
+            io_uring_prep_recv_multishot(sqe, uc->fd, NULL, 0, 0);
+            sqe->flags |= IOSQE_BUFFER_SELECT;
+            sqe->buf_group = TOMO_URING2_RECV_BGID;
+            URING2_STAT_BUMP(st, multishot_arms, 1);
+            if (uc->multishot_armed_once)
+                URING2_STAT_BUMP(st, multishot_rearms, 1);
+            else
+                uc->multishot_armed_once = 1;
+        } else {
+            serverAssert(uc->recv_buf != NULL);
+            io_uring_prep_recv(sqe, uc->fd, uc->recv_buf,
+                               PROTO_IOBUF_LEN, 0);
+            URING2_STAT_BUMP(st, recv_oneshot, 1);
+        }
         /* Helio uring_socket.cc:353-373: POLL_FIRST is conditional on the
          * prior receive's SOCK_NONEMPTY knowledge, never unconditional. */
         if (st->poll_first_supported && !uc->socket_nonempty) {
@@ -758,27 +848,42 @@ static void tomoUring2RecvCqe(tomoUring2Thread *st, void *owner,
                               const struct io_uring_cqe *cqe) {
     tomoUring2Client *uc = owner;
     tomoUring2AssertOwner(uc);
-    if (cqe->user_data != uc->recv_token ||
-        (cqe->flags & IORING_CQE_F_MORE))
-        tomoUring2Fatal(st, "invalid one-shot receive CQE", EPROTO);
+    int multishot = st->multishot_enabled;
+    int more = (cqe->flags & IORING_CQE_F_MORE) != 0;
+    if (cqe->user_data != uc->recv_token || (!multishot && more))
+        tomoUring2Fatal(st, "invalid receive CQE", EPROTO);
     URING2_STAT_BUMP(st, recv_cqes, 1);
-    uc->recv_token = 0;
+    if (multishot) URING2_STAT_BUMP(st, multishot_cqes, 1);
+
+    int has_buffer = (cqe->flags & IORING_CQE_F_BUFFER) != 0;
+    unsigned bid = cqe->flags >> IORING_CQE_BUFFER_SHIFT;
+    const char *recv_buf = uc->recv_buf;
+    if (multishot) {
+        if (has_buffer) recv_buf = tomoUring2RecvBuffer(st, bid);
+        if (cqe->res > 0 && !has_buffer)
+            tomoUring2Fatal(st, "multishot receive without buffer", EPROTO);
+    } else if (has_buffer) {
+        tomoUring2Fatal(st, "one-shot receive selected a buffer", EPROTO);
+    }
 
     int was_disarming = uc->recv_state == TOMO_URING2_RECV_DISARMING;
     if (!was_disarming && uc->recv_state != TOMO_URING2_RECV_ARMED)
         tomoUring2Fatal(st, "receive CQE without armed request", EPROTO);
-    if (was_disarming) {
-        uc->terminal_seen = 1;
-        /* If the target completed before its cancel SQE was staged, remove
-         * that queued cancel.  A cancel already in the ring retains the old,
-         * generation-tagged token and cannot ABA-cancel a reused slot. */
-        if (uc->cancel_queued && !uc->cancel_submitted) {
-            tomoUring2CancelRemove(st, uc);
-            uc->cancel_seen = 1;
+    if (!more) {
+        uc->recv_token = 0;
+        if (was_disarming) {
+            uc->terminal_seen = 1;
+            /* If the target completed before its cancel SQE was staged,
+             * remove that queued cancel.  A cancel already in the ring
+             * retains the old generation-tagged token. */
+            if (uc->cancel_queued && !uc->cancel_submitted) {
+                tomoUring2CancelRemove(st, uc);
+                uc->cancel_seen = 1;
+            }
+        } else {
+            uc->recv_state = TOMO_URING2_RECV_IDLE;
+            uc->terminal_seen = 1;
         }
-    } else {
-        uc->recv_state = TOMO_URING2_RECV_IDLE;
-        uc->terminal_seen = 1;
     }
 
     int need_close = 0;
@@ -791,24 +896,39 @@ static void tomoUring2RecvCqe(tomoUring2Thread *st, void *owner,
     if (cqe->res > 0) {
         if (cqe->res > PROTO_IOBUF_LEN)
             tomoUring2Fatal(st, "receive CQE exceeds IO buffer", EPROTO);
-        if (appendClientInputFromUring(uc->c, uc->recv_buf,
+        /* appendClientInputFromUring copies into the client's SDS and retains
+         * no pointer, so ownership can go back to the kernel immediately. */
+        if (appendClientInputFromUring(uc->c, recv_buf,
                                       (size_t)cqe->res) != C_OK)
             need_close = 1;
+        if (has_buffer) tomoUring2ReturnRecvBuffer(st, bid);
         URING2_STAT_BUMP(st, recv_bytes, cqe->res);
         if (!need_close && uc->mode == TOMO_URING2_CLIENT_RUN)
             tomoUring2ParsePush(st, uc);
-    } else if (cqe->res == 0) {
+    } else {
+        if (has_buffer) tomoUring2ReturnRecvBuffer(st, bid);
+    }
+
+    if (cqe->res == 0) {
         uc->socket_nonempty = 0;
         uc->pending_read_error = CLIENT_READ_CONN_CLOSED;
         tomoUring2ParsePush(st, uc);
     } else if (cqe->res == -ECANCELED) {
         uc->socket_nonempty = 0;
-        if (!was_disarming) tomoUring2QueueRecvIfRunning(uc);
+    } else if (multishot && cqe->res == -ENOBUFS) {
+        /* Every buffer carried by an earlier CQE was returned while that CQE
+         * was copied above.  If this CQE is terminal, the generic idle-state
+         * path below stages a replacement arm; otherwise this arm resumes as
+         * soon as the returned buffers become visible. */
+        uc->socket_nonempty = 0;
+        URING2_STAT_BUMP(st, multishot_enobufs, 1);
     } else if (cqe->res == -EAGAIN || cqe->res == -EINTR) {
         uc->socket_nonempty = 0;
     } else if (cqe->res == -EINVAL || cqe->res == -EOPNOTSUPP) {
-        tomoUring2Fatal(st, "required one-shot RECV/POLL_FIRST mode", cqe->res);
-    } else {
+        tomoUring2Fatal(st, multishot ?
+                       "probed multishot RECV mode" :
+                       "required one-shot RECV/POLL_FIRST mode", cqe->res);
+    } else if (cqe->res < 0) {
         uc->socket_nonempty = 0;
         uc->pending_read_error = CLIENT_READ_CONN_DISCONNECTED;
         tomoUring2ParsePush(st, uc);
@@ -901,6 +1021,10 @@ static void tomoUring2TryFinishSend(tomoUring2Client *uc) {
 static void tomoUring2AccountSendBytes(tomoUring2Thread *st,
                                        tomoUring2Client *uc, size_t n) {
     client *c = uc->c;
+    if (uc->send_nocopy &&
+        (c->buf != uc->send_direct_buf ||
+         c->sentlen != uc->send_start + uc->send_off))
+        tomoUring2Fatal(st, "direct SEND storage changed before CQE", EPROTO);
     if (n > uc->send_len - uc->send_off || c->sentlen + n > c->bufpos)
         tomoUring2Fatal(st, "send completion exceeds logical output", EPROTO);
     uc->send_off += n;
@@ -1283,6 +1407,68 @@ static int tomoUring2KernelAtLeast(const tomoUring2KernelVersion *v,
     return v->major > major || (v->major == major && v->minor >= minor);
 }
 
+static void tomoUring2SetupRecvBufRing(tomoUring2Thread *st,
+                                       const tomoUring2KernelVersion *kv) {
+    unsigned count = (unsigned)server.uring_multishot;
+    if (count == 0) return;
+
+    /* RECV multishot is a kernel-6.0 feature; registered provided-buffer
+     * rings arrived in 5.19.  Keep the requested backend usable on older or
+     * backported kernels by leaving this owner on its one-shot path. */
+    if (!tomoUring2KernelAtLeast(kv, 6, 0)) {
+        serverLog(LL_WARNING,
+                  "tomokv-uring-multishot=%u unavailable for io_uring owner "
+                  "%d on kernel %s; falling back to one-shot receive",
+                  count, st->tid, kv->release);
+        return;
+    }
+
+    size_t pool_bytes = (size_t)count * PROTO_IOBUF_LEN;
+    char *pool = ztrymalloc(pool_bytes);
+    if (!pool) {
+        serverLog(LL_WARNING,
+                  "tomokv-uring-multishot=%u owner %d could not allocate "
+                  "%zu-byte receive pool; falling back to one-shot receive",
+                  count, st->tid, pool_bytes);
+        return;
+    }
+
+    unsigned ring_entries = 1;
+    while (ring_entries < count) ring_entries <<= 1;
+    int rc = 0;
+    struct io_uring_buf_ring *br = io_uring_setup_buf_ring(
+        &st->ring, ring_entries, TOMO_URING2_RECV_BGID, 0, &rc);
+    if (!br) {
+        serverLog(LL_WARNING,
+                  "tomokv-uring-multishot=%u owner %d buffer-ring "
+                  "registration failed: %s; falling back to one-shot receive",
+                  count, st->tid, strerror(rc < 0 ? -rc : EIO));
+        zfree(pool);
+        return;
+    }
+
+    int mask = io_uring_buf_ring_mask(ring_entries);
+    io_uring_buf_ring_init(br);
+    for (unsigned bid = 0; bid < count; bid++) {
+        io_uring_buf_ring_add(br,
+                              pool + (size_t)bid * PROTO_IOBUF_LEN,
+                              PROTO_IOBUF_LEN, (unsigned short)bid, mask,
+                              (int)bid);
+    }
+    io_uring_buf_ring_advance(br, (int)count);
+
+    st->recv_buf_ring = br;
+    st->recv_buf_pool = pool;
+    st->recv_buf_count = count;
+    st->recv_buf_ring_entries = ring_entries;
+    st->recv_buf_ring_mask = mask;
+    st->multishot_enabled = 1;
+    serverLog(LL_NOTICE,
+              "tomokv io_uring owner %d enabled multishot receive with %u "
+              "provided buffers (%u-entry registered ring)",
+              st->tid, count, ring_entries);
+}
+
 static int tomoUring2ProbeRequiredOps(tomoUring2Thread *st) {
     struct io_uring_probe *probe = io_uring_get_probe_ring(&st->ring);
     if (!probe) {
@@ -1312,10 +1498,27 @@ static int tomoUring2ProbeRequiredOps(tomoUring2Thread *st) {
 }
 
 static void tomoUring2CleanupThread(tomoUring2Thread *st) {
+    if (st->recv_buf_ring && st->ring_initialized) {
+        int rc = io_uring_free_buf_ring(
+            &st->ring, st->recv_buf_ring, st->recv_buf_ring_entries,
+            TOMO_URING2_RECV_BGID);
+        if (rc < 0)
+            serverLog(LL_WARNING,
+                      "tomokv io_uring owner %d could not unregister receive "
+                      "buffer ring during cleanup: %s",
+                      st->tid, strerror(-rc));
+    }
     if (st->ring_initialized) {
         io_uring_queue_exit(&st->ring);
         st->ring_initialized = 0;
     }
+    zfree(st->recv_buf_pool);
+    st->recv_buf_ring = NULL;
+    st->recv_buf_pool = NULL;
+    st->recv_buf_count = 0;
+    st->recv_buf_ring_entries = 0;
+    st->recv_buf_ring_mask = 0;
+    st->multishot_enabled = 0;
     zfree(st->slots);
     st->slots = NULL;
     st->slot_count = 0;
@@ -1424,6 +1627,8 @@ static int tomoUring2InitThread(int tid, aeEventLoop *el) {
         goto fail_ring;
     }
 
+    tomoUring2SetupRecvBufRing(st, &kv);
+
     st->slot_count = params.sq_entries;
     st->slots = zcalloc(sizeof(*st->slots) * st->slot_count);
     st->free_slot = 0;
@@ -1452,8 +1657,7 @@ static int tomoUring2InitThread(int tid, aeEventLoop *el) {
     serverLog(LL_NOTICE,
               "tomokv io_uring mode 2 owner %d ready: kernel %s, liburing "
               "%d.%d, %u-entry staged ring, flags=%s%s, one issuer; "
-              "128-CQE drain-to-empty; POLL_FIRST=%s; SEND scratch pinned "
-              "through CQE",
+              "128-CQE drain-to-empty; POLL_FIRST=%s; RECV=%s; SEND=%s",
               tid, kv.release, liburing_major, liburing_minor,
               params.sq_entries,
               (params.flags & IORING_SETUP_SUBMIT_ALL) ? "SUBMIT_ALL" :
@@ -1461,7 +1665,11 @@ static int tomoUring2InitThread(int tid, aeEventLoop *el) {
               (params.flags & IORING_SETUP_DEFER_TASKRUN) ?
                   "|DEFER_TASKRUN|COOP_TASKRUN|TASKRUN_FLAG|SINGLE_ISSUER" :
                   "",
-              st->poll_first_supported ? "yes" : "no");
+              st->poll_first_supported ? "yes" : "no",
+              st->multishot_enabled ? "multishot+provided-ring" :
+                                      "one-shot",
+              server.uring_sendcopy_min ? "guarded-direct+scratch-fallback" :
+                                          "scratch-copy");
     return C_OK;
 
 fail_ring:
@@ -1511,7 +1719,7 @@ static int tomoUring2ClientAttach(client *c) {
         return C_ERR;
 
     tomoUring2Client *uc = zcalloc(sizeof(*uc));
-    uc->recv_buf = zmalloc(PROTO_IOBUF_LEN);
+    if (!st->multishot_enabled) uc->recv_buf = zmalloc(PROTO_IOBUF_LEN);
     uc->c = c;
     uc->owner = st;
     uc->owner_tid = iotid;
@@ -1584,6 +1792,8 @@ static int tomoUring2ClientAdopt(client *c) {
         uc->send_cancel_submitted || !c->conn || c->conn->fd != uc->fd ||
         c->tid != iotid)
         return C_ERR;
+    if (!st->multishot_enabled && !uc->recv_buf)
+        uc->recv_buf = zmalloc(PROTO_IOBUF_LEN);
     uc->owner = st;
     uc->owner_tid = iotid;
     uc->socket_nonempty = 0;
@@ -1723,6 +1933,11 @@ void tomoUring2GetStats(tomoUring2Stats *out) {
     FOLD(recv_poll_first);
     FOLD(recv_sock_nonempty);
     FOLD(recv_cancel_submitted);
+    FOLD(multishot_arms);
+    FOLD(multishot_cqes);
+    FOLD(multishot_rearms);
+    FOLD(multishot_enobufs);
+    FOLD(recv_oneshot);
     FOLD(send_queued);
     FOLD(send_submitted);
     FOLD(send_cqes);
@@ -1731,6 +1946,8 @@ void tomoUring2GetStats(tomoUring2Stats *out) {
     FOLD(send_errors);
     FOLD(send_scratch_copies);
     FOLD(send_scratch_bytes);
+    FOLD(send_nocopy);
+    FOLD(send_copy);
     FOLD(send_cancel_submitted);
     FOLD(migration_acks);
     for (int i = 0; i <= TOMO_IO_THREADS_MAX; i++) {
