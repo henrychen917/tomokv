@@ -110,6 +110,10 @@ typedef struct aeEventLoop {
 } aeEventLoop;
 extern __thread int iotid;
 extern __thread int replyWorking;
+/* Set only around the arm-before-recheck pass that precedes the bounded
+ * worker-reply sleep.  The server's before-sleep hook uses it to arm the
+ * coalesced EX->IO completion edge without coupling ae.o to server.o. */
+extern __thread int exReplyWakeRecheck;
 /* (aeIODrainSpin / aeIODrainUserpoll DELETED 2026-07-28: both are compile-time constants inside
  * ae.c now — AE_IO_DRAIN_SPIN / AE_IO_DRAIN_USERPOLL_MAX — so there is nothing for server.c to
  * mirror in.) */

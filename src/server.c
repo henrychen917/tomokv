@@ -3259,6 +3259,65 @@ static inline void cdbSlotClear(client *real, int cdb, unsigned int slot) {
                           memory_order_relaxed);
 }
 
+/* A completed EX job publishes only the CDB byte above.  epoll/io_uring cannot
+ * observe that memory edge, so an auxiliary IO owner which has exhausted ae's
+ * bounded zero-time drain used to sleep for the full 100us fallback even when
+ * its reply became ready a cycle later.
+ *
+ * Keep the established narrow-node path exact: when a node's configured IO
+ * owner width fits in one WORKER_POP_BATCH it never arms or checks this edge.
+ * At wider IO widths, ae requests an arm only after its drain budget is
+ * exhausted.  The IO owner stores armed BEFORE its normal CDB scan; the worker
+ * publishes every reply in a producer-lane batch, then consumes armed and
+ * posts that owner's existing eventfd once.  Thus notifications are coalesced
+ * per sleep episode and per worker/lane batch, never paid per command.
+ *
+ * The seq_cst fences are the arm/recheck handshake.  They forbid both sides
+ * missing one another: either the owner's post-arm CDB acquire sees the reply,
+ * or the worker's post-publication armed load sees the request and wakes it. */
+typedef struct tomoReplyWakeSlot {
+    _Atomic unsigned int armed;
+    char _pad[CACHE_LINE_SIZE - sizeof(_Atomic unsigned int)];
+} __attribute__((aligned(CACHE_LINE_SIZE))) tomoReplyWakeSlot;
+_Static_assert(sizeof(tomoReplyWakeSlot) == CACHE_LINE_SIZE,
+               "reply wake slot must occupy one cache line");
+static tomoReplyWakeSlot tomo_reply_wake[TOMO_IO_THREADS_MAX + 1]
+    __attribute__((aligned(CACHE_LINE_SIZE)));
+
+static inline int tomoReplyWakeWideIo(void) {
+    return server.io_per_node > WORKER_POP_BATCH;
+}
+
+static int tomoReplyWakeArm(int producer_tid) {
+    if (!tomoReplyWakeWideIo() || producer_tid < 0 ||
+        producer_tid > TOMO_IO_THREADS_MAX)
+        return 0;
+    atomic_store_explicit(&tomo_reply_wake[producer_tid].armed, 1,
+                          memory_order_relaxed);
+    atomic_thread_fence(memory_order_seq_cst);
+    return 1;
+}
+
+static void tomoReplyWakeDisarm(int producer_tid) {
+    atomic_store_explicit(&tomo_reply_wake[producer_tid].armed, 0,
+                          memory_order_relaxed);
+}
+
+static void tomoReplyWakePost(int producer_tid) {
+    if (!tomoReplyWakeWideIo() || producer_tid < 0 ||
+        producer_tid > TOMO_IO_THREADS_MAX)
+        return;
+    atomic_thread_fence(memory_order_seq_cst);
+    if (atomic_load_explicit(&tomo_reply_wake[producer_tid].armed,
+                             memory_order_relaxed) == 0)
+        return;
+    unsigned int expected = 1;
+    if (atomic_compare_exchange_strong_explicit(
+            &tomo_reply_wake[producer_tid].armed, &expected, 0,
+            memory_order_relaxed, memory_order_relaxed))
+        tomoAtomicWakeProducer(producer_tid);
+}
+
 /* ee451 (#A2): folded network byte counters (legacy atomic baseline + per-thread shards). */
 long long getNetInputBytes(void) {
     long long s; atomicGet(server.stat_net_input_bytes, s);
@@ -4477,6 +4536,12 @@ void handleWorkerReplies(void) {
 
 void beforeSleepIO(struct aeEventLoop *eventLoop) {
     UNUSED(eventLoop);
+    /* Arm before the CDB walk when ae is about to leave bounded polling for a
+     * real wait.  If this very walk makes progress, no sleep can strand the
+     * next completion: disarm the now-stale request after the walk. */
+    int reply_wake_before = replyWorking;
+    int reply_wake_armed =
+        __builtin_expect(exReplyWakeRecheck != 0, 0) && tomoReplyWakeArm(iotid);
     /* ee451 (v8d): this IO producer's cutover drain-sentinel (once per cutover). */
     if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
         migPushFenceIfNeeded();
@@ -4499,6 +4564,8 @@ void beforeSleepIO(struct aeEventLoop *eventLoop) {
     tmMigDrainInbox();
     connTypeProcessPendingData(eventLoop);
     handleWorkerReplies();
+    if (reply_wake_armed && replyWorking < reply_wake_before)
+        tomoReplyWakeDisarm(iotid);
     tomoAtomicReleaseStalledClients();
     handleClientsWithPendingWrites();
     /* ee451 (thread-modes v1.6): start/complete outgoing migrations AFTER replies are flushed
@@ -23042,6 +23109,7 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
         client *sig_parents[WORKER_POP_BATCH];
         uint8_t sig_slots[WORKER_POP_BATCH];
         int sig_n = 0;
+        int lane_completed = 0;
 
         /* One independent raw boundary per contiguous run of ordinary commands. Each proc's exit
          * becomes its successor's entry, reducing an all-ordinary N-command batch from 2N clock
@@ -23185,12 +23253,14 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
                         if (stage_only) {
                             client *hp = g->head->parent;
                             cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
+                            lane_completed = 1;
                         } else {
                             csMsetInstallDone(g);
                         }
                     } else {
                         client *hp = g->head->parent;
                         cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
+                        lane_completed = 1;
                     }
                 }
                 /* csSubExec times its own proc, but completion/commit work after that exit may be
@@ -23245,6 +23315,8 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
          * IO owner may immediately retire that slot. */
         for (int s = 0; s < sig_n; s++)
             cdbSlotPublish(sig_parents[s], ctx->wcdb, sig_slots[s]);
+        if (sig_n) lane_completed = 1;
+        if (lane_completed) tomoReplyWakePost(i);
 
         /* ee451 (H2, reshard drain fence): publish this queue's EXECUTION frontier. The pop above
          * advanced `head` before any of these commands ran, so `head` alone cannot distinguish

@@ -32,6 +32,9 @@
  * ae.o but not server.o — can resolve the reference in aeProcessEventsIO
  * below. Declared extern in ae.h. */
 __thread int replyWorking = 0;
+/* ae.o is also linked into redis-cli, so this is a TLS handoff to the server's
+ * before-sleep hook rather than a direct ae.c -> server.c callback. */
+__thread int exReplyWakeRecheck = 0;
 
 /* ee451 (AE-1): adaptive-drain budget for aeProcessEventsIO. While replyWorking>0 the
  * IO thread does up to this many ZERO-timeout poll passes (each pass re-runs beforesleep,
@@ -551,6 +554,8 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us,
         return 0;
     }
 
+    static __thread int drainPasses = 0;
+
     /* PRODUCTIVE PREFIX. On epoll this is the reply-retire/write path in beforeSleepIO. On
      * io_uring, reap first also harvests CQEs and runs ready parser callbacks, so the one bracket
      * deliberately covers reap + beforeSleepIO as a contiguous work interval. These are the two
@@ -565,8 +570,17 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us,
         uring_ready |= rr & AE_URING_EPOLL_READY;
     }
 
-    if (eventLoop->beforesleep != NULL)
+    if (eventLoop->beforesleep != NULL) {
+        /* Once the bounded zero-time drain budget is exhausted, the next
+         * nonzero wait cannot observe an EX ready-byte store by itself.  Tell
+         * beforeSleepIO to arm its completion edge BEFORE it rechecks those
+         * bytes, closing publish-between-check-and-sleep.  Narrow per-node IO
+         * widths leave the request inert in the server hook. */
+        exReplyWakeRecheck = replyWorking > 0 &&
+                             drainPasses >= AE_IO_DRAIN_SPIN;
         eventLoop->beforesleep(eventLoop);
+        exReplyWakeRecheck = 0;
+    }
     a.end_us = getMonotonicUs();
     a.work_us += a.end_us - work_start;
     /* ee451 (AE-1): sleep policy. replyWorking==0 normally blocks until an fd event
@@ -577,7 +591,6 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us,
      * completed replies) so a 1-5us worker completion is picked up in ~that time instead
      * of eating the 100us window; after the budget (wedged/slow worker) fall back to the
      * 100us poll so the IO thread never turns into a pure busy-loop. */
-    static __thread int drainPasses = 0;
     /* ee451 (AE-1b): REPLY progress also refreshes the budget, not just fd progress.
      * At moderate pipeline depths (P4-P16) a client burst puts N fakes in flight and
      * the replies retire one-by-one through beforesleep (above) with ZERO inbound fd
