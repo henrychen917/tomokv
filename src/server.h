@@ -2556,20 +2556,20 @@ typedef struct exThread {
      * head line (id/thread) instead of the tail line the owning worker dirties every op
      * (w_ewma_vsize/ops_total/tm_*), which bounced it cross-core on every dispatch. */
     redisDb *db;
-    /* One ready bit per producer lane. A producer release-publishes its SPSC tail,
-     * then performs exactly one relaxed OR here. The worker exchanges the live
-     * words and walks only set bits; payload visibility comes from the queue-tail
-     * acquire, not from this scheduling hint.
-     *
-     * Clear-before-pop is load-bearing: a publish racing a pop sets a fresh bit.
-     * After executing a quantum, the consumer ORs the bit back only when a real
-     * head/tail check says published work remains. This makes the mask a readiness
-     * set rather than a history of every lane that has ever produced a batch.
+    /* One ready bit per producer lane. The producer writes jobs[], release-publishes
+     * its SPSC tail, and only then release-ORs the bit (publish-then-set). The worker
+     * loads live words, walks only set bits, clears the bits of lanes it actually
+     * probed, and acquire-loads each such lane's REAL tail once more
+     * (clear-then-recheck). cached_tail is never allowed to make the keep/clear
+     * decision. Thus a publication racing the clear is either observed by the
+     * final tail probe or leaves its later bit set; data cannot exist without one
+     * of those two witnesses. Locally carried backlog is release-ORed back before
+     * the slice exits.
      *
      * A missed bit means a queued fake is never popped: its reply-ready byte is never
      * set, flushid cannot advance, the client's ring wedges full and it stalls forever
      * (the silent reply-loss failure documented at exDispatchPush). Every tail
-     * publication therefore goes through exHandoffAdvertiseLane. */
+     * publication therefore goes through exHandoffPublishLane. */
     _Atomic uint64_t q_summary[TOMO_QS_WORDS]
         __attribute__((aligned(CACHE_LINE_SIZE)));
     _Atomic unsigned int stamp_pending; /* CURE2 owner stamp/prune jobs */

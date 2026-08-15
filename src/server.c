@@ -3865,18 +3865,35 @@ void tomoCmdStatResetOne(struct redisCommand *cmd) {
  * correctly). We are the sole producer for queues[iotid], so the immediate release-store races
  * nothing. The fast (not-full) path is byte-identical to the old bare push: one stage, batched
  * publish later at flushExQueues (handleWorkerReplies top / beforeSleep). */
-/* Advertise that producer lane `t` has published to worker `ex`. This is a
- * readiness hint, not the payload edge: q->tail was release-stored first and
- * exQueuePopBatch acquire-loads it. Consequently the advertised bit is one
- * relaxed OR, even when the compiled lane cap spans several words. Every site
- * that publishes a tail must call this -- a missed call strands the lane. */
-static inline void exHandoffAdvertiseLane(exThread *ex, unsigned t) {
+/* Ready-mask publication protocol (paired with exReadyRecheckAfterClear):
+ *
+ *   producer: write jobs[] -> release-publish tail -> release-set ready bit
+ *   consumer: clear a selected ready bit -> acquire-recheck the real tail
+ *
+ * The order on both sides is load-bearing. Publishing the bit first lets a
+ * consumer find an empty lane, clear the bit, and then miss the item forever.
+ * Clearing without the final real-tail recheck can erase a publication that
+ * raced the drain. With publish-then-set / clear-then-recheck, every race leaves
+ * either a durable bit or an item observed by the consumer.
+ *
+ * Keep the tail store and ready OR in this single helper so a new immediate
+ * publication site cannot accidentally reverse or omit half of the protocol. */
+static inline void exHandoffPublishLane(exThread *ex, unsigned t) {
+    debugServerAssert(ex != NULL && ex->queues != NULL);
+    debugServerAssert(t < (unsigned)ex->nlanes);
+    exQueue *q = &ex->queues[t];
+    atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
+    /* This debug assertion is deliberately between the two publications: a
+     * ready bit may never describe a producer-private staged frontier. */
+    debugServerAssert(atomic_load_explicit(&q->tail, memory_order_relaxed) ==
+                      q->staged_tail);
     atomic_fetch_or_explicit(&ex->q_summary[t >> 6], 1ull << (t & 63),
-                             memory_order_relaxed);
+                             memory_order_release);
 }
 
-static inline void exHandoffAdvertise(exThread *ex) {
-    exHandoffAdvertiseLane(ex, (unsigned)iotid);
+static inline void exHandoffPublish(exThread *ex) {
+    debugServerAssert(iotid >= 0 && iotid <= TOMO_IO_THREADS_MAX);
+    exHandoffPublishLane(ex, (unsigned)iotid);
 }
 
 /* ee451 (A2, 2026-08-02): the producer's dirty-worker set for THIS thread's flush.
@@ -4351,8 +4368,7 @@ static void exDispatchDirect(int ex_id, client *fake) {
     uint64_t _stall0 = getMonotonicUs();   /* ring-stall = EX backlog seen from IO; see tmIoSignal */
     tmIoWaitBegin();
     do {
-        atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);  /* let the worker drain */
-        exHandoffAdvertise(&server.exThreads[ex_id]);
+        exHandoffPublish(&server.exThreads[ex_id]);  /* let the worker drain */
         /* ee451 (A3, 2026-08-02): PUBLISH EVERYTHING STAGED, not just the ring we are stuck on.
          * Republishing `q` alone lets the worker we are waiting for drain, but leaves any work this
          * thread already staged for OTHER workers invisible -- so those workers sit idle for the
@@ -4368,8 +4384,7 @@ static void exDispatchDirect(int ex_id, client *fake) {
     } while (exQueuePush(q, fake) != 0);
     tmIoWaitEnd();
     tm_io_sig[iotid].tm_ring_stall_us += (unsigned int)(getMonotonicUs() - _stall0);
-    atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);       /* publish the just-pushed fake now */
-    exHandoffAdvertise(&server.exThreads[ex_id]);
+    exHandoffPublish(&server.exThreads[ex_id]);       /* publish the just-pushed fake now */
 }
 
 /* ee451 #88: argv-aware refinement of the static cost class. Only for the argv-index-bounded range
@@ -11091,8 +11106,7 @@ static void csStampPush(int owner, tomoOwnerOp *op) {
             full_counted = 1;
         }
         if (!waiting) { tmIoWaitBegin(); waiting = 1; }
-        atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
-        exHandoffAdvertiseLane(worker, (unsigned)csStampLane());
+        exHandoffPublishLane(worker, (unsigned)csStampLane());
         if (current_owner == owner)
             csStampDrain(worker);
         else {
@@ -11102,8 +11116,7 @@ static void csStampPush(int owner, tomoOwnerOp *op) {
     }
     if (waiting) tmIoWaitEnd();
     atomic_fetch_add_explicit(&worker->stamp_pending, 1, memory_order_release);
-    atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
-    exHandoffAdvertiseLane(worker, (unsigned)csStampLane());
+    exHandoffPublishLane(worker, (unsigned)csStampLane());
 }
 
 static inline int csMsetHeadComplete(client *real) {
@@ -13585,8 +13598,7 @@ static void csPushSpin(int w, client *sub) {
             counted = 1;
         }
         /* Full: ensure everything staged so far is visible so the worker drains. */
-        atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
-        exHandoffAdvertise(&server.exThreads[w]);
+        exHandoffPublish(&server.exThreads[w]);
         /* ee451 (A3, 2026-08-02): PUBLISH EVERYTHING STAGED, not just the ring we are stuck on.
          * Republishing `q` alone lets the worker we are waiting for drain, but leaves any work this
          * thread already staged for OTHER workers invisible -- so those workers sit idle for the
@@ -13605,8 +13617,7 @@ static void csPushSpin(int w, client *sub) {
         tm_io_sig[iotid].tm_ring_stall_us += (unsigned int)(getMonotonicUs() - _stall0);
     }
     /* Publish this sub now (covers the opt_batch_push staging-only case). */
-    atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
-    exHandoffAdvertise(&server.exThreads[w]);
+    exHandoffPublish(&server.exThreads[w]);
 }
 
 /* xshard (universal): the shared COALESCED scatter used by every 1-hop cross-shard read/scatter cmd
@@ -22376,8 +22387,7 @@ void flushExQueues(void) {
         exQueue *q = &ex[w].queues[iotid];
         unsigned int published = atomic_load_explicit(&q->tail, memory_order_relaxed);
         if (q->staged_tail != published) {
-            atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
-            exHandoffAdvertise(&ex[w]);   /* AFTER the tail store -- see exThread.q_summary */
+            exHandoffPublish(&ex[w]);
         }
       }
     }
@@ -23222,6 +23232,8 @@ typedef enum exSliceIdlePolicy {
 static inline int exReadyTakeNext(uint64_t ready[TOMO_QS_WORDS], int nlanes,
                                   int *cursor) {
     if (nlanes <= 0) return -1;
+    debugServerAssert(nlanes <= TOMO_IO_THREADS_MAX + 1);
+    debugServerAssert(*cursor >= 0 && *cursor < nlanes);
     int nwords = (nlanes + 63) >> 6;
     int start = *cursor;
     if (start < 0 || start >= nlanes) start = 0;
@@ -23231,6 +23243,7 @@ static inline int exReadyTakeNext(uint64_t ready[TOMO_QS_WORDS], int nlanes,
     uint64_t bits = ready[sw] & (~0ULL << sb);
     if (bits) {
         int lane = (sw << 6) + __builtin_ctzll(bits);
+        debugServerAssert(lane >= 0 && lane < nlanes);
         ready[sw] &= ~(1ULL << ((unsigned)lane & 63));
         *cursor = lane + 1 == nlanes ? 0 : lane + 1;
         return lane;
@@ -23242,6 +23255,7 @@ static inline int exReadyTakeNext(uint64_t ready[TOMO_QS_WORDS], int nlanes,
         if (!bits) continue;
         int lane = (w << 6) + __builtin_ctzll(bits);
         if (lane >= nlanes) continue;
+        debugServerAssert(lane >= 0);
         ready[w] &= bits - 1;
         *cursor = lane + 1 == nlanes ? 0 : lane + 1;
         return lane;
@@ -23250,19 +23264,32 @@ static inline int exReadyTakeNext(uint64_t ready[TOMO_QS_WORDS], int nlanes,
         bits = ready[sw] & ((1ULL << sb) - 1);
         if (bits) {
             int lane = (sw << 6) + __builtin_ctzll(bits);
+            debugServerAssert(lane >= 0 && lane < nlanes);
             ready[sw] &= ~(1ULL << ((unsigned)lane & 63));
             *cursor = lane + 1 == nlanes ? 0 : lane + 1;
             return lane;
         }
     }
+#ifdef DEBUG_ASSERTIONS
+    /* A corrupt rotation cursor must never turn "one bit ready" into empty.
+     * Check every valid word before returning -1; release builds pay nothing. */
+    int tail_bits = nlanes & 63;
+    for (int w = 0; w < nwords; w++) {
+        uint64_t valid = (w == nwords - 1 && tail_bits != 0) ?
+                         ((1ULL << tail_bits) - 1) : ~0ULL;
+        debugServerAssert((ready[w] & valid) == 0);
+    }
+#endif
     return -1;
 }
 
 static inline void exReadyLocalSet(uint64_t ready[TOMO_QS_WORDS], int lane) {
+    debugServerAssert(lane >= 0 && lane <= TOMO_IO_THREADS_MAX);
     ready[(unsigned)lane >> 6] |= 1ULL << ((unsigned)lane & 63);
 }
 
 static inline void exReadyLocalClear(uint64_t ready[TOMO_QS_WORDS], int lane) {
+    debugServerAssert(lane >= 0 && lane <= TOMO_IO_THREADS_MAX);
     ready[(unsigned)lane >> 6] &= ~(1ULL << ((unsigned)lane & 63));
 }
 
@@ -23273,9 +23300,40 @@ static inline int exReadyLocalCount(const uint64_t ready[TOMO_QS_WORDS],
     return count;
 }
 
-static inline int exQueueCachedReady(exQueue *q) {
+static inline int exReadyLocalTest(const uint64_t ready[TOMO_QS_WORDS],
+                                   int lane) {
+    return (ready[(unsigned)lane >> 6] &
+            (1ULL << ((unsigned)lane & 63))) != 0;
+}
+
+/* Performance-only hint for another pop in the same aggregate. A false result
+ * merely defers that refill; it is never used to decide whether a bit may stay
+ * clear. exReadyRecheckAfterClear owns that safety decision using the real tail. */
+static inline int exQueueCachedReadyForRefill(exQueue *q) {
     unsigned int h = atomic_load_explicit(&q->head, memory_order_relaxed);
     return ((q->cached_tail - h) & server.ex_queue_mask) != 0;
+}
+
+/* Authoritative post-clear probe. cached_tail is intentionally forbidden here:
+ * it may predate a producer's release-store, which is precisely the race this
+ * handshake closes. The consumer owns head; the acquire of the real tail pairs
+ * with publish-then-set on the producer side. */
+static inline int exQueuePublishedReady(exQueue *q) {
+    unsigned int h = atomic_load_explicit(&q->head, memory_order_relaxed);
+    unsigned int t = atomic_load_explicit(&q->tail, memory_order_acquire);
+    return ((t - h) & server.ex_queue_mask) != 0;
+}
+
+/* Complete the consumer half of the ready protocol after its bit was cleared.
+ * If a publication landed before the clear, the real-tail acquire observes it
+ * and keeps the lane locally ready. If it lands after this probe, the producer's
+ * later ready OR remains set. No interleaving can leave data with no token. */
+static inline void exReadyRecheckAfterClear(uint64_t ready[TOMO_QS_WORDS],
+                                            exQueue *q, int lane) {
+    int published = exQueuePublishedReady(q);
+    if (published) exReadyLocalSet(ready, lane);
+    else exReadyLocalClear(ready, lane);
+    debugServerAssert(exReadyLocalTest(ready, lane) == published);
 }
 
 /* ee451 (thread-modes v1, step 1): initialize a worker's EX slice state at
@@ -23506,24 +23564,35 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
     int popmax = WORKER_POP_BATCH;
     int tm_pass_depth = 0;   /* ee451 (thread-modes step 4, signal a): items seen this pass */
     int so = server.strict_order;   /* 0 = off (batched rotation); N>0 = cross-queue merge, eps=(N-1)us */
+    int ready_fair = so == 0 && tomoWideProducerFanout();
 
-    /* Snapshot-and-clear the ready set before touching a queue. A producer racing
-     * this exchange sets a fresh bit for the next slice. There are at most three
-     * live words at the compiled cap and just one in all acceptance geometries;
-     * unlike the former q_top hierarchy, every publication costs one relaxed OR
-     * and cannot leave a hidden lower-level bit waiting for a later top edge. */
+    /* Wide fairness snapshots without clearing: a bit is cleared only after its
+     * lane was actually probed, then that lane's REAL tail is acquired once more
+     * by exReadyRecheckAfterClear. Leaving unselected bits shared avoids taking
+     * ownership of lanes this aggregate did not touch. Narrow healthy shapes
+     * keep their established one-RMW claim; their bounded loop visits every
+     * claimed bit, and the same mandatory post-clear real-tail probe closes each
+     * one. strict-order scans authoritative queue heads and ignores this mask. */
     uint64_t advertised[TOMO_QS_WORDS] = {0};
     uint64_t residual[TOMO_QS_WORDS] = {0};
     int ready_words = (ctx->nq + 63) >> 6;
-    int summary_words = (ctx->nq + 1 + 63) >> 6; /* + reserved stamp lane */
     if (ready_words > TOMO_QS_WORDS) ready_words = TOMO_QS_WORDS;
-    if (summary_words > TOMO_QS_WORDS) summary_words = TOMO_QS_WORDS;
-    for (int qw = 0; qw < summary_words; qw++)
-        advertised[qw] = atomic_exchange_explicit(&worker->q_summary[qw], 0,
-                                                  memory_order_relaxed);
-    /* csStampDrain is driven by stamp_pending rather than this ready set. Clear
-     * its advertised bit too, including the boundary case nq==64/128 where it
-     * occupies the otherwise-unused next word. */
+    if (so == 0) {
+        for (int qw = 0; qw < ready_words; qw++) {
+            int tail_bits = ctx->nq & 63;
+            uint64_t lane_mask = (qw == ready_words - 1 && tail_bits != 0) ?
+                                 ((1ULL << tail_bits) - 1) : ~0ULL;
+            if (ready_fair)
+                advertised[qw] = atomic_load_explicit(&worker->q_summary[qw],
+                                                       memory_order_acquire) & lane_mask;
+            else
+                advertised[qw] = atomic_fetch_and_explicit(
+                    &worker->q_summary[qw], ~lane_mask, memory_order_acquire) & lane_mask;
+        }
+    }
+    /* csStampDrain is driven by stamp_pending rather than this ready set. The
+     * lane_mask above preserves its reserved shared-word bit; mask defensively
+     * here too so it can never enter normal rotation. */
     if ((ctx->nq & 63) != 0)
         advertised[ready_words - 1] &= (1ULL << (ctx->nq & 63)) - 1;
     if (phase_trace_on) ctx->phase_scan_passes++;
@@ -23539,7 +23608,6 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
      * any lane receives a refill, so a 29-lane worker revisits a lane after at
      * most ~29 executed GETs, not 29 * WORKER_POP_BATCH. Narrow healthy shapes
      * retain the established full per-lane quantum and scalar prefetch path. */
-    int ready_fair = so == 0 && tomoWideProducerFanout();
     int work_units = ready_fair ? exReadyLocalCount(advertised, ready_words)
                                 : ctx->nq;
     uint64_t depth_lanes[TOMO_QS_WORDS];
@@ -23548,12 +23616,12 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
         if (ready_fair && k != 0) {
             /* Amortize the slice's QSBR/freeback/background prefix across as
              * many aggregates as there were ready lanes at entry, like the
-             * former per-lane loop did. Re-harvest at every aggregate boundary
+             * former per-lane loop did. Re-snapshot at every aggregate boundary
              * so a newly-ready lane waits behind at most 16 executions, while
              * residual lanes retain the rotating cursor. */
             for (int qw = 0; qw < ready_words; qw++) {
-                uint64_t live = atomic_exchange_explicit(
-                    &worker->q_summary[qw], 0, memory_order_relaxed);
+                uint64_t live = atomic_load_explicit(&worker->q_summary[qw],
+                                                     memory_order_acquire);
                 advertised[qw] = residual[qw] | live;
                 residual[qw] = 0;
             }
@@ -23565,6 +23633,7 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
         int popped_lanes[WORKER_POP_BATCH];
         int popped_counts[WORKER_POP_BATCH];
         int popped_n = 0;
+        uint64_t visited[TOMO_QS_WORDS] = {0};
         if (__builtin_expect(so != 0, 0)) {
             /* strict-order: execute the GLOBALLY-oldest queued command first, so a fresh op on
              * one IO thread's queue can't jump ahead of older ones on another's. Pick the
@@ -23590,6 +23659,7 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
             int quota = WORKER_POP_BATCH / nrdy;
             if (quota < 1) quota = 1;
             uint64_t selectable[TOMO_QS_WORDS];
+            uint64_t refill[TOMO_QS_WORDS] = {0};
             memcpy(selectable, advertised, sizeof(selectable));
             memset(advertised, 0, sizeof(advertised));
 
@@ -23600,6 +23670,7 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
                 int take = quota;
                 if (take > WORKER_POP_BATCH - n) take = WORKER_POP_BATCH - n;
                 if (phase_trace_on) ctx->phase_scan_lanes++;
+                exReadyLocalSet(visited, lane);
                 int got = exQueuePopBatch(&WQ[lane], ctx->batch + n, take);
                 if (!got) continue;                 /* stale/coalesced ready bit */
                 popped_lanes[popped_n] = lane;
@@ -23608,8 +23679,11 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
                 for (int j = 0; j < got; j++)
                     ctx->batch_lane[n + j] = (uint16_t)lane;
                 n += got;
-                if (exQueueCachedReady(&WQ[lane])) exReadyLocalSet(residual, lane);
-                else exReadyLocalClear(residual, lane);
+                /* Consumer-private cached_tail is sufficient only to choose a
+                 * same-aggregate refill. Safety comes from the real-tail probe
+                 * after the shared bit is cleared below. */
+                if (exQueueCachedReadyForRefill(&WQ[lane]))
+                    exReadyLocalSet(refill, lane);
             }
             /* A full aggregate can leave unvisited ready lanes. Preserve them
              * verbatim; scan_start now points at the first lane of the next turn. */
@@ -23619,18 +23693,14 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
              * were already served once. This retains a full prefetch batch when
              * the wide configuration happens to have few active producers. */
             if (n < WORKER_POP_BATCH) {
-                uint64_t refill[TOMO_QS_WORDS];
-                memcpy(refill, residual, sizeof(refill));
                 while (n < WORKER_POP_BATCH) {
                     int lane = exReadyTakeNext(refill, ctx->nq, &ctx->scan_start);
                     if (lane < 0) break;
                     if (phase_trace_on) ctx->phase_scan_lanes++;
+                    exReadyLocalSet(visited, lane);
                     int got = exQueuePopBatch(&WQ[lane], ctx->batch + n,
                                               WORKER_POP_BATCH - n);
-                    if (!got) {
-                        exReadyLocalClear(residual, lane);
-                        continue;
-                    }
+                    if (!got) continue;
                     int pi = 0;
                     while (pi < popped_n && popped_lanes[pi] != lane) pi++;
                     if (pi == popped_n) {
@@ -23642,22 +23712,43 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
                     for (int j = 0; j < got; j++)
                         ctx->batch_lane[n + j] = (uint16_t)lane;
                     n += got;
-                    if (exQueueCachedReady(&WQ[lane])) exReadyLocalSet(residual, lane);
-                    else exReadyLocalClear(residual, lane);
                 }
             }
         } else {
             i = exReadyTakeNext(advertised, ctx->nq, &ctx->scan_start);
             if (i < 0) break;
             if (phase_trace_on) ctx->phase_scan_lanes++;
+            exReadyLocalSet(visited, i);
             n = exQueuePopBatch(&WQ[i], ctx->batch, popmax);
             if (n) {
                 popped_lanes[0] = i;
                 popped_counts[0] = n;
                 popped_n = 1;
-                /* Re-advertise only a genuinely nonempty published prefix. The
-                 * old n!=0 rule made every once-active lane permanently ready. */
-                if (exQueueCachedReady(&WQ[i])) exReadyLocalSet(residual, i);
+            }
+        }
+
+        if (so == 0) {
+            /* Wide mode clears only lanes actually probed in this aggregate.
+             * Narrow mode already cleared every locally claimed bit in its one
+             * RMW claim above. In either case EVERY cleared/visited lane takes
+             * the authoritative recheck below, including a zero-pop lane. */
+            if (ready_fair) {
+                for (int qw = 0; qw < ready_words; qw++) {
+                    if (!visited[qw]) continue;
+                    /* A producer may have ORed while we popped. The acquire
+                     * half pairs with that publish if this fetch-and erases it. */
+                    atomic_fetch_and_explicit(&worker->q_summary[qw], ~visited[qw],
+                                              memory_order_acq_rel);
+                }
+            }
+            for (int qw = 0; qw < ready_words; qw++) {
+                uint64_t bits = visited[qw];
+                while (bits) {
+                    int lane = (qw << 6) + __builtin_ctzll(bits);
+                    bits &= bits - 1;
+                    debugServerAssert(lane >= 0 && lane < ctx->nq);
+                    exReadyRecheckAfterClear(residual, &WQ[lane], lane);
+                }
             }
         }
         if (n == 0) continue;
@@ -24015,12 +24106,13 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
         }
     }
 
-    /* Return only true backlog/unvisited lanes to the ready set. Producers can
-     * concurrently OR the same words; atomic OR cannot erase their publication. */
+    /* Return authoritative post-clear backlog plus locally carried unvisited
+     * lanes to the ready set. Release preserves the producer->consumer->rearm
+     * chain; a producer concurrently ORing the same word cannot be erased. */
     for (int qw = 0; qw < ready_words; qw++) {
         if (!residual[qw]) continue;
         atomic_fetch_or_explicit(&worker->q_summary[qw], residual[qw],
-                                 memory_order_relaxed);
+                                 memory_order_release);
     }
 
     if (phase_trace_on && phase_pops) {
