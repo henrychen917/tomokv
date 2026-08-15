@@ -2491,9 +2491,11 @@ typedef struct exQueue {
     /* ee451 (S4): batched producer-side push. exQueuePush writes jobs[] and
      * advances this producer-private staged_tail WITHOUT publishing; the owning
      * IO thread publishes all staged jobs with ONE release-store of `tail` per
-     * queue at flushExQueues() (called at the top of handleWorkerReplies,
-     * i.e. before any drain or sleep). Collapses up to pipeline_depth cross-CCD
-     * tail release-stores into one. Producer-private, lives on tail's line. */
+     * queue at flushExQueues(). In addition to eager parse-batch flushes and the
+     * pre-sleep reply walk, ae closes every non-empty partial batch after that
+     * loop pass's callbacks. Collapses a busy pass's cross-CCD tail stores
+     * without carrying a partial batch into the next poll. Producer-private,
+     * lives on tail's line. */
     unsigned int staged_tail;
     client *jobs[TOMO_EX_QUEUE_SIZE_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
 } exQueue;
@@ -6488,7 +6490,7 @@ void initIOThreads(void);
 void exQueueInit(exQueue *q);
 int exQueuePush(exQueue *q, client *c);
 int exQueuePopBatch(exQueue *q, client **out, int max);
-void flushExQueues(void);   /* ee451 (S4): publish staged pushes for this iotid */
+void flushExQueues(void);   /* ee451 (S4): publish staged pushes for this iotid at producer boundaries */
 void migUnparkClient(client *c);  /* ee451 (H2 handover): drop a dying client from the range-hold park list */
 void freebackPush(int ex_id, robj *obj);   /* ee451 (S8): IO->worker value free-back */
 void queueToWorker(client *c, int ex_id);

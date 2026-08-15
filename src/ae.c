@@ -37,6 +37,10 @@ __thread int replyWorking = 0;
  * hook rechecks CDB memory. Kept in ae.c because redis-cli links ae.o. */
 __thread int exReplyWakeRecheck = 0;
 aeLoopStatsProc *aeLoopStatsHook = NULL;
+/* Defined here, like the other optional server hooks, because redis-cli links
+ * ae.o without server.o. The server installs it to close producer batches at
+ * the event-loop pass boundary. */
+aeIOPassEndProc *aeIOPassEndHook = NULL;
 /* Defined here, like aeLoopStatsHook, because redis-cli links ae.o without
  * server.o. The server installs it only for a wide IO topology. */
 aeIOCompletionProc *aeIOCompletionHook = NULL;
@@ -557,6 +561,12 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
     if (flags & AE_TIME_EVENTS)
         processed += processTimeEvents(eventLoop);
 
+    /* Commands staged by file/CQE or time-event callbacks belong to this loop
+     * pass. Publish a partial producer batch before the next poll can wait. */
+    if ((flags & AE_CALL_BEFORE_SLEEP) &&
+        __builtin_expect(aeIOPassEndHook != NULL, 0))
+        aeIOPassEndHook();
+
     if ((flags & AE_CALL_BEFORE_SLEEP) &&
         __builtin_expect(aeIOCompletionHook != NULL, 0))
         aeIOCompletionHook();
@@ -761,6 +771,11 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us,
 
         processed++;
     }
+    /* Close any producer batch built by this pass's socket/CQE callbacks.
+     * This is deliberately after the complete callback batch, not merely in
+     * beforesleep (which ran before those callbacks). */
+    if (__builtin_expect(aeIOPassEndHook != NULL, 0))
+        aeIOPassEndHook();
     /* A CDB publication is not an fd event. Under sustained socket/CQE
      * progress the fallback notifier is intentionally never armed, and a
      * publication after the pre-poll scan would otherwise wait through a

@@ -4874,6 +4874,14 @@ static void tomoCompletionPickupAfterEvents(void) {
     if (replyWorking <= 0) tomoCompletionWakeDisarm(iotid);
 }
 
+/* The before-sleep hooks flush before polling, so they cannot publish work
+ * staged later by this pass's socket/CQE callbacks. Close that partial batch
+ * at ae's true pass tail. flushExQueues keeps the r4 protocol intact: release-
+ * publish each dirty lane's tail, then release-set its ready bit. */
+static void tomoFlushProducersAtPassEnd(void) {
+    flushExQueues();
+}
+
 void beforeSleepIO(struct aeEventLoop *eventLoop) {
     UNUSED(eventLoop);
     /* ee451 (v8d): this IO producer's cutover drain-sentinel (once per cutover). */
@@ -6391,6 +6399,7 @@ void initServer(void) {
     int max_io_per_node = server.tm_pool_symmetric ? server.ex_per_node
                                                     : server.io_per_node;
     tomo_wide_producer_fanout = max_io_per_node > WORKER_POP_BATCH;
+    aeIOPassEndHook = tomoFlushProducersAtPassEnd;
     aeIOCompletionHook = tomoCompletionWakeEnabled() ?
                          tomoCompletionPickupAfterEvents : NULL;
     /* ee451 (ex0 removal): ex_threads == 0 ("sharding off") is NOT a supported mode of this
@@ -22353,12 +22362,11 @@ void exQueueInit(exQueue *q) {
 }
 
 /* ee451 (S4): publish every job this IO thread (iotid) has STAGED to its
- * worker queues, with a single release-store of `tail` per queue. Called at the
- * top of handleWorkerReplies — i.e. before any reply drain and before the IO
- * thread sleeps (beforeSleepIO calls handleWorkerReplies first every loop) — so
- * a staged-but-unpublished job can never make the drain wait on a worker that
- * cannot see it. One store publishes all the jobs[] writes that happened-before
- * it (standard SPSC batch publish). */
+ * worker queues, with a single release-store of `tail` per queue. Called at
+ * eager parse boundaries, before reply drain/sleep, and after every event-loop
+ * callback batch. The final call is what prevents a non-empty partial batch
+ * from surviving into the next poll. One store publishes all jobs[] writes
+ * that happened-before it (standard SPSC batch publish). */
 void flushExQueues(void) {
     if (tomo_rord.n) tomoReorderDrain();   /* D: reorder scratch never survives a flush boundary */
     tomo_staged_cnt = 0;   /* D: pass-end flush also restarts the window count */
@@ -24063,9 +24071,11 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
             j++;
         }
 
-        /* Each release store publishes its fake's reply writes. This loop is
-         * the worker's final access to each saved parent; after a store, the
-         * IO owner may immediately retire that slot. */
+        /* Each release store publishes its fake's reply writes. sig_n is local
+         * to this aggregate and is drained unconditionally, so an underfilled
+         * aggregate never carries completion bytes into another exSlice pass.
+         * This loop is the worker's final access to each saved parent; after a
+         * store, the IO owner may immediately retire that slot. */
         for (int s = 0; s < sig_n; s++)
             cdbSlotPublish(sig_parents[s], ctx->wcdb, sig_slots[s]);
         /* One publication/armed check per producer represented in this aggregate,

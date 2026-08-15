@@ -64,6 +64,10 @@ typedef void aeUringFreeProc(struct aeEventLoop *eventLoop);
  * the loop's existing end boundary on the custom IO path. Keeping the storage
  * in ae.c lets redis-cli link ae.o without a server.o symbol. */
 typedef void aeLoopStatsProc(int events, uint64_t now_us);
+/* Optional server-owned producer flush hook. The server installs this at the
+ * end of every IO event-loop pass so work staged by that pass's callbacks is
+ * published before the producer starts another wait. */
+typedef void aeIOPassEndProc(void);
 /* Optional server-owned completion pickup hook. Wide IO topologies install
  * this so a CDB publication that races the pre-poll list walk is observed
  * again after the current socket/CQE event batch. */
@@ -122,6 +126,7 @@ extern __thread int replyWorking;
  * aeProcessEventsIO enters its nonzero worker-reply wait. */
 extern __thread int exReplyWakeRecheck;
 extern aeLoopStatsProc *aeLoopStatsHook;
+extern aeIOPassEndProc *aeIOPassEndHook;
 extern aeIOCompletionProc *aeIOCompletionHook;
 /* (aeIODrainSpin / aeIODrainUserpoll DELETED 2026-07-28: both are compile-time constants inside
  * ae.c now — AE_IO_DRAIN_SPIN / AE_IO_DRAIN_USERPOLL_MAX — so there is nothing for server.c to
