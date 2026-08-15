@@ -186,6 +186,8 @@ static void resetFakeClientState(client *c, client *parent) {
     clientTail(c)->dispatchid = 0;
     clientTail(c)->flushid = 0;
     clientTail(c)->prefetch_io_xnode_slots = 0;
+    clientTail(c)->phase_recv_us = 0;
+    clientTail(c)->phase_send_stamp = 0;
 
     /* ee451 (v7): cross-shard scatter-gather state. zmalloc leaves these as
      * garbage, so initialize: a fake is neither a group head (csgroup) nor a
@@ -519,6 +521,8 @@ client *createClient(connection *conn) {
     clientTail(c)->dispatchid = 0;
     clientTail(c)->flushid = 0;
     clientTail(c)->prefetch_io_xnode_slots = 0;
+    clientTail(c)->phase_recv_us = 0;
+    clientTail(c)->phase_send_stamp = 0;
 
     /* passing NULL as conn it is possible to create a non connected client.
      * This is useful since all the commands needs to be executed
@@ -3522,6 +3526,8 @@ int writeToClient(client *c, int handler_installed) {
         }
     }
     if (totwritten > 0) {
+        if (__builtin_expect(server.phase_trace_sample != 0, 0))
+            tomoPhaseSendDone(c);
         /* For clients representing masters we don't count sending data
          * as an interaction, since we always send REPLCONF ACK commands
          * that take some time to just fill the socket output buffer.
@@ -4010,10 +4016,11 @@ static void setProtocolError(const char *errstr, client *c) {
  *   activate:  client argc/argv/argv_len, input bytes, cmd, slot, read_error,
  *              current_pending_cmd, and reploff_next for masters
  *
- * argv and argv_len stay attached across recycle. cmd, slot, reploff, input_bytes,
- * keys_result, and the links are overwritten before their next read, so release
- * builds do not clear them. There is no contiguous fully-dead struct section to
- * memset: every candidate span contains retained or lazy state. DEBUG_ASSERTIONS
+ * argv and argv_len stay attached across recycle. cmd, slot, the reploff/phase
+ * union, input_bytes, keys_result, and the links are overwritten before their
+ * next read, so release builds do not clear them. There is no contiguous
+ * fully-dead struct section to memset: every candidate span contains retained
+ * or lazy state. DEBUG_ASSERTIONS
  * marks each lazy scalar at its writer and checks the marks at activation.
  *
  * The freelist is indexed by the client's pinned IO owner rather than stored in
@@ -4588,6 +4595,9 @@ int processInputBuffer(client *c) {
 
             preprocessCommand(c, pcmd);
             pcmd->flags |= PENDING_CMD_FLAG_PREPROCESSED;
+            if (__builtin_expect(server.phase_trace_sample != 0, 0) &&
+                !pcmd->read_error && pcmd->cmd)
+                tomoPhaseRequestParsed(c, pcmd);
             resetClientQbufState(c);
         }
 
@@ -4721,6 +4731,9 @@ int processInputBuffer(client *c) {
  * owner.  No pointer into the provided buffer survives this call. */
 int appendClientInputFromUring(client *c, const void *buf, size_t len) {
     if (!c || !len || (c->flags & CLIENT_CLOSE_ASAP)) return C_ERR;
+
+    if (__builtin_expect(server.phase_trace_sample != 0, 0))
+        tomoPhaseRecvComplete(c);
 
     clientTail(c)->read_error = 0;
     server.stat_io_reads_processed[iotid] += 1;
@@ -4889,6 +4902,9 @@ void readQueryFromClient(connection *conn) {
         freeClientAsync(c);
         goto done;
     }
+
+    if (__builtin_expect(server.phase_trace_sample != 0, 0))
+        tomoPhaseRecvComplete(c);
 
     sdsIncrLen(clientTail(c)->querybuf,nread);
     /* Owner demand signal: this read drained what QUEUED since the last service of this conn. */

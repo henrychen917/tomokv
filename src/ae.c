@@ -32,9 +32,7 @@
  * ae.o but not server.o — can resolve the reference in aeProcessEventsIO
  * below. Declared extern in ae.h. */
 __thread int replyWorking = 0;
-/* ae.o is also linked into redis-cli, so this is a TLS handoff to the server's
- * before-sleep hook rather than a direct ae.c -> server.c callback. */
-__thread int exReplyWakeRecheck = 0;
+aeLoopStatsProc *aeLoopStatsHook = NULL;
 
 /* ee451 (AE-1): adaptive-drain budget for aeProcessEventsIO. While replyWorking>0 the
  * IO thread does up to this many ZERO-timeout poll passes (each pass re-runs beforesleep,
@@ -538,9 +536,15 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
             processed++;
         }
     }
+    /* Keep wake batching separate from time-event work: this is the number
+     * of file/CQE events that caused useful dispatch in this loop turn. */
+    int wake_events = processed;
     /* Check time events */
     if (flags & AE_TIME_EVENTS)
         processed += processTimeEvents(eventLoop);
+
+    if (__builtin_expect(aeLoopStatsHook != NULL, 0))
+        aeLoopStatsHook(wake_events, getMonotonicUs());
 
     return processed; /* return the number of processed file/time events */
 }
@@ -551,6 +555,8 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us,
     if (eventLoop->maxfd == -1 && eventLoop->uring_enter == NULL) {
         a.end_us = getMonotonicUs();
         if (accounting) *accounting = a;
+        if (__builtin_expect(aeLoopStatsHook != NULL, 0))
+            aeLoopStatsHook(0, a.end_us);
         return 0;
     }
 
@@ -570,17 +576,8 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us,
         uring_ready |= rr & AE_URING_EPOLL_READY;
     }
 
-    if (eventLoop->beforesleep != NULL) {
-        /* Once the bounded zero-time drain budget is exhausted, the next
-         * nonzero wait cannot observe an EX ready-byte store by itself.  Tell
-         * beforeSleepIO to arm its completion edge BEFORE it rechecks those
-         * bytes, closing publish-between-check-and-sleep.  Narrow per-node IO
-         * widths leave the request inert in the server hook. */
-        exReplyWakeRecheck = replyWorking > 0 &&
-                             drainPasses >= AE_IO_DRAIN_SPIN;
+    if (eventLoop->beforesleep != NULL)
         eventLoop->beforesleep(eventLoop);
-        exReplyWakeRecheck = 0;
-    }
     a.end_us = getMonotonicUs();
     a.work_us += a.end_us - work_start;
     /* ee451 (AE-1): sleep policy. replyWorking==0 normally blocks until an fd event
@@ -749,6 +746,8 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us,
         a.work_us += a.end_us - event_work_start;
     }
     if (accounting) *accounting = a;
+    if (__builtin_expect(aeLoopStatsHook != NULL, 0))
+        aeLoopStatsHook(processed, a.end_us);
     return processed;
 }
 

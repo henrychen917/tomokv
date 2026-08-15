@@ -1870,6 +1870,12 @@ typedef union clientExecTail {
         /* IO-owned provenance for mode-2 cross-node reply prefetch. A bit is
          * set when any worker producing this ring generation is remote. */
         uint32_t prefetch_io_xnode_slots;
+        /* Selected successful socket/CQE receive observation. Its P1 command
+         * consumes this t0 into the pending-command handoff record. */
+        uint64_t phase_recv_us;
+        /* Debug phase tracing: packed (origin node, t4 monotonic usec) for the
+         * one sampled P1 reply waiting for its first successful send. */
+        uint64_t phase_send_stamp;
     };
     unsigned char _layout[CLIENT_EXEC_TAIL_BYTES];
     uint64_t _align;
@@ -4118,6 +4124,7 @@ struct redisServer {
      * xshard-guard / -pipeline / -localfast / mcmd-lock): every one of them is now an
      * unconditional property of the fork, folded into the code at its use sites. */
     int strict_order;          /* cross-IO-thread strict ordering: 0=off (batched rotation), 1=strict (global-oldest first), N>=2=eps of (N-1)us to retain batching. default 0. */
+    int phase_trace_sample;    /* tomokv-phase-trace: 0=off; N samples one P1 request in N per IO owner. */
     int prefetch_io_level;     /* tomokv-prefetch-io: 0=off, 1=next-run ring-tail write warm,
                                 * 2=mode 1 plus topology-gated cross-node reply prefetch. */
     int tomo_reorder;          /* ee451 D: admission reorder level. 0=off (no machinery on the
@@ -4232,6 +4239,13 @@ enum {
     PENDING_CMD_FLAG_PREPROCESSED = 1 << 1,   /* This command has passed pre-processing */
     PENDING_CMD_KEYS_RESULT_VALID = 1 << 2,   /* Command's keys_result is valid and cached */
     PENDING_CMD_KEYS_RESULT_ALLOCATED = 1 << 3, /* keys_result owns a heap array that must be released */
+    /* tomokv-phase-trace owns bits 4..11 while a sampled pending command is
+     * carried IO -> fake -> EX -> IO. State 0 begins at recv completion. */
+    PENDING_CMD_PHASE_TRACE = 1 << 4,
+    PENDING_CMD_PHASE_STATE_SHIFT = 5,
+    PENDING_CMD_PHASE_STATE_MASK = 7 << PENDING_CMD_PHASE_STATE_SHIFT,
+    PENDING_CMD_PHASE_NODE_SHIFT = 8,
+    PENDING_CMD_PHASE_NODE_MASK = 15 << PENDING_CMD_PHASE_NODE_SHIFT,
 #ifdef DEBUG_ASSERTIONS
     PENDING_CMD_DEBUG_INPUT_INITIALIZED = 1 << 27,
     PENDING_CMD_DEBUG_CMD_INITIALIZED = 1 << 28,
@@ -4249,7 +4263,10 @@ struct pendingCommand {
     unsigned long long input_bytes;
     struct redisCommand *cmd;
     getKeysResult keys_result;
-    long long reploff;        /* c->reploff should be set to this value when the command is processed */
+    union {
+        long long reploff;    /* replication clients only; set before command activation */
+        uint64_t phase_us;    /* debug phase timestamp for sampled non-replication requests */
+    };
     int flags;
     int slot;         /* The slot the command is executing against. Set to INVALID_CLUSTER_SLOT
                        * if no slot is being used or if the command has a cross slot error */
@@ -5021,6 +5038,9 @@ void tryDeferFreeClientObject(client *c, int type, void *ptr);
 void freeClientDeferredObjects(client *c, int free_array);
 void freeClientIODeferredObjects(client *c, int free_array);
 void sendReplyToClient(connection *conn);
+void tomoPhaseRecvComplete(client *c);
+void tomoPhaseRequestParsed(client *c, pendingCommand *pcmd);
+void tomoPhaseSendDone(client *c);
 void *addReplyDeferredLen(client *c);
 void setDeferredArrayLen(client *c, void *node, long length);
 void setDeferredMapLen(client *c, void *node, long length);

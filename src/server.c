@@ -88,6 +88,7 @@ double R_Zero, R_PosInf, R_NegInf, R_Nan;
 /* Global vars */
 struct redisServer server; /* Server global state */
 static int tmNumNodes(void);  /* logical node count; defined with the flip controller helpers */
+static int tmNodeOfIoSlot(int io_slot);
 /* LB-3: tm_flip_ctx is both the flip-in-progress gate and the publication edge for
  * the winner's plain phase fields. The marker keeps tmFlipTick from consuming those
  * fields between the successful claim and the release-publication of the real ctx. */
@@ -228,6 +229,252 @@ static _Atomic uint64_t cross_node[TOMO_IO_THREADS_MAX + 1][TOMO_EX_MASK_WORDS];
 static _Atomic unsigned char cross_node_any[TOMO_IO_THREADS_MAX + 1];
 static tomoPrefetchCounter prefetch_ex_xnode_issued[TOMO_STAT_SLOTS];
 static tomoPrefetchCounter prefetch_io_xnode_issued[TOMO_STAT_SLOTS];
+
+/* ---- Debug request-phase decomposition -----------------------------------
+ *
+ * tomokv-phase-trace=N selects one P1 receive/request in N independently on
+ * each IO owner. The pendingCommand already travels with the fake from IO to
+ * EX and back, so one timestamp there is sufficient: every transition first
+ * buckets (now - prior), then replaces it with now. No sample object, list or
+ * histogram is allocated. Its timestamp overlays the replication-only offset
+ * (replication clients are not sampled), preserving pendingCommand's normal
+ * size. The aggregates below are fixed BSS arrays, one single-writer shard per
+ * iotid; INFO only performs relaxed snapshots.
+ *
+ * A node dimension lives inside every writer shard because an EX worker can
+ * consume producer lanes originating on another node. The origin node is
+ * stamped into pendingCommand.flags at t0, so all five phases of one request
+ * remain in the same per-node histogram even if its EX destination is remote.
+ */
+enum {
+    TOMO_PHASE_RECV_ENQUEUE = 0,
+    TOMO_PHASE_EX_QUEUE,
+    TOMO_PHASE_EX_EXEC_PUBLISH,
+    TOMO_PHASE_COMPLETION_PICKUP,
+    TOMO_PHASE_SEND,
+    TOMO_PHASE_COUNT
+};
+#define TOMO_PHASE_BUCKETS 64
+#define TOMO_PHASE_SEND_NODE_SHIFT 60
+#define TOMO_PHASE_SEND_TIME_MASK ((1ULL << TOMO_PHASE_SEND_NODE_SHIFT) - 1)
+_Static_assert(TOMO_NODES_MAX <= 16,
+               "phase origin node no longer fits its pending-command flags");
+
+typedef struct tomoPhaseThreadStats {
+    _Atomic uint64_t hist[TOMO_NODES_MAX][TOMO_PHASE_COUNT][TOMO_PHASE_BUCKETS];
+
+    _Atomic uint64_t sample_countdown;
+    _Atomic uint64_t sampled;
+    _Atomic uint64_t send_collisions;
+
+    _Atomic uint64_t loop_iterations;
+    _Atomic uint64_t loop_wakeups;
+    _Atomic uint64_t loop_events;
+    _Atomic uint64_t loop_rate_epoch_us;
+    _Atomic uint64_t loop_rate_epoch_iterations;
+    _Atomic uint64_t loop_iterations_per_sec;
+
+    _Atomic uint64_t pop_batches[WORKER_POP_BATCH + 1];
+    _Atomic uint64_t pop_count;
+    _Atomic uint64_t pop_items;
+    _Atomic uint64_t scan_lanes;
+    _Atomic uint64_t scan_passes;
+} __attribute__((aligned(CACHE_LINE_SIZE))) tomoPhaseThreadStats;
+
+static tomoPhaseThreadStats tomo_phase_stats[TOMO_STAT_SLOTS];
+
+static inline int tomoPhaseStatSlot(void) {
+    return iotid >= 0 && iotid < TOMO_STAT_SLOTS ? iotid : -1;
+}
+
+static inline int tomoPhaseBucket(uint64_t usec) {
+    int bucket = usec ? 64 - __builtin_clzll(usec) : 0;
+    return bucket < TOMO_PHASE_BUCKETS ? bucket : TOMO_PHASE_BUCKETS - 1;
+}
+
+static inline int tomoPhaseNode(const pendingCommand *pcmd) {
+    return (pcmd->flags & PENDING_CMD_PHASE_NODE_MASK) >>
+           PENDING_CMD_PHASE_NODE_SHIFT;
+}
+
+static inline int tomoPhaseState(const pendingCommand *pcmd) {
+    return (pcmd->flags & PENDING_CMD_PHASE_STATE_MASK) >>
+           PENDING_CMD_PHASE_STATE_SHIFT;
+}
+
+static inline void tomoPhaseSetState(pendingCommand *pcmd, int state) {
+    pcmd->flags = (pcmd->flags & ~PENDING_CMD_PHASE_STATE_MASK) |
+                  (state << PENDING_CMD_PHASE_STATE_SHIFT);
+}
+
+static inline pendingCommand *tomoPhasePending(client *fake) {
+    pendingCommand *pcmd = fake ? fake->current_pending_cmd : NULL;
+    return pcmd && (pcmd->flags & PENDING_CMD_PHASE_TRACE) ? pcmd : NULL;
+}
+
+static inline void tomoPhaseRecord(int node, int phase, uint64_t usec) {
+    int slot = tomoPhaseStatSlot();
+    if (slot < 0 || node < 0 || node >= TOMO_NODES_MAX ||
+        phase < 0 || phase >= TOMO_PHASE_COUNT)
+        return;
+    tomoRelaxedBump(tomo_phase_stats[slot].hist[node][phase]
+                                      [tomoPhaseBucket(usec)], 1);
+}
+
+void tomoPhaseRecvComplete(client *c) {
+    int sample = server.phase_trace_sample;
+    int slot = tomoPhaseStatSlot();
+    if (sample <= 0 || slot < 0 || !c || !c->has_exec_tail) return;
+
+    uint64_t left = tomoRelaxedRead(tomo_phase_stats[slot].sample_countdown);
+    if (left > 1) {
+        tomoRelaxedSet(tomo_phase_stats[slot].sample_countdown, left - 1);
+        clientTail(c)->phase_recv_us = 0;
+        return;
+    }
+    tomoRelaxedSet(tomo_phase_stats[slot].sample_countdown, (uint64_t)sample);
+    clientTail(c)->phase_recv_us = getMonotonicUs();
+}
+
+void tomoPhaseRequestParsed(client *c, pendingCommand *pcmd) {
+    int sample = server.phase_trace_sample;
+    int slot = tomoPhaseStatSlot();
+    if (sample <= 0 || slot < 0 || !c || !c->has_exec_tail || !pcmd ||
+        (c->flags & CLIENT_MASTER) ||
+        !clientTail(c)->phase_recv_us)
+        return;
+
+    int node = tmNodeOfIoSlot(iotid);
+    if (node < 0 || node >= tmNumNodes() || node >= TOMO_NODES_MAX) node = 0;
+    pcmd->phase_us = clientTail(c)->phase_recv_us;
+    /* The requested workload is P1: consume at most one operation from the
+     * selected receive, rather than sampling a pipeline burst as one cohort. */
+    clientTail(c)->phase_recv_us = 0;
+    pcmd->flags = (pcmd->flags & ~(PENDING_CMD_PHASE_STATE_MASK |
+                                   PENDING_CMD_PHASE_NODE_MASK)) |
+                  PENDING_CMD_PHASE_TRACE |
+                  (node << PENDING_CMD_PHASE_NODE_SHIFT);
+    tomoRelaxedBump(tomo_phase_stats[slot].sampled, 1);
+}
+
+/* Called only after exQueuePush has proved the SPSC ring has space, so t1 is
+ * the actual enqueue, not an earlier failed/full-ring attempt. */
+static inline void tomoPhaseEnqueued(client *fake) {
+    pendingCommand *pcmd = tomoPhasePending(fake);
+    if (!pcmd || tomoPhaseState(pcmd) != 0) return;
+    uint64_t now = getMonotonicUs();
+    tomoPhaseRecord(tomoPhaseNode(pcmd), TOMO_PHASE_RECV_ENQUEUE,
+                    now - pcmd->phase_us);
+    pcmd->phase_us = now;
+    tomoPhaseSetState(pcmd, 1);
+}
+
+/* One clock boundary represents the batch's pop. Individual queue waits are
+ * still exact to microsecond resolution because every fake carries its own t1. */
+static void tomoPhaseExPopped(client **batch, int n) {
+    int traced = 0;
+    for (int j = 0; j < n; j++) {
+        pendingCommand *pcmd = tomoPhasePending(batch[j]);
+        if (pcmd && tomoPhaseState(pcmd) == 1) { traced = 1; break; }
+    }
+    uint64_t now = traced ? getMonotonicUs() : 0;
+    for (int j = 0; j < n; j++) {
+        pendingCommand *pcmd = tomoPhasePending(batch[j]);
+        if (!pcmd || tomoPhaseState(pcmd) != 1) continue;
+        tomoPhaseRecord(tomoPhaseNode(pcmd), TOMO_PHASE_EX_QUEUE,
+                        now - pcmd->phase_us);
+        pcmd->phase_us = now;
+        tomoPhaseSetState(pcmd, 2);
+    }
+}
+
+/* Runs immediately before the release-store of the ready byte, while the EX
+ * worker still owns the fake. Thus t3 includes delayed batch publication. */
+static inline void tomoPhasePublished(client *fake) {
+    pendingCommand *pcmd = tomoPhasePending(fake);
+    if (!pcmd || tomoPhaseState(pcmd) != 2) return;
+    uint64_t now = getMonotonicUs();
+    tomoPhaseRecord(tomoPhaseNode(pcmd), TOMO_PHASE_EX_EXEC_PUBLISH,
+                    now - pcmd->phase_us);
+    pcmd->phase_us = now;
+    tomoPhaseSetState(pcmd, 3);
+}
+
+/* The ready acquire has already succeeded. P1 guarantees one sampled reply
+ * awaiting a send per connection. If a non-P1 run violates that association,
+ * retain the older timestamp and expose the collision instead of mislabeling
+ * either operation. */
+static inline void tomoPhaseObserved(client *real, client *fake, int arm_send) {
+    pendingCommand *pcmd = tomoPhasePending(fake);
+    if (!pcmd || tomoPhaseState(pcmd) != 3) return;
+    uint64_t now = getMonotonicUs();
+    int node = tomoPhaseNode(pcmd);
+    tomoPhaseRecord(node, TOMO_PHASE_COMPLETION_PICKUP, now - pcmd->phase_us);
+    pcmd->phase_us = now;
+    tomoPhaseSetState(pcmd, 4);
+    if (!arm_send) return;
+
+    clientExecTail *rt = clientTail(real);
+    int slot = tomoPhaseStatSlot();
+    if (rt->phase_send_stamp) {
+        if (slot >= 0) tomoRelaxedBump(tomo_phase_stats[slot].send_collisions, 1);
+        return;
+    }
+    serverAssert((now & ~TOMO_PHASE_SEND_TIME_MASK) == 0);
+    rt->phase_send_stamp = now | ((uint64_t)node << TOMO_PHASE_SEND_NODE_SHIFT);
+}
+
+void tomoPhaseSendDone(client *c) {
+    if (!c || !c->has_exec_tail || !clientTail(c)->phase_send_stamp) return;
+    uint64_t stamp = clientTail(c)->phase_send_stamp;
+    clientTail(c)->phase_send_stamp = 0;
+    uint64_t start = stamp & TOMO_PHASE_SEND_TIME_MASK;
+    int node = (int)(stamp >> TOMO_PHASE_SEND_NODE_SHIFT);
+    uint64_t now = getMonotonicUs();
+    tomoPhaseRecord(node, TOMO_PHASE_SEND, now - start);
+}
+
+/* Installed into ae only when the immutable debug knob is nonzero. The
+ * normal build therefore pays a NULL function-pointer check per loop, with
+ * no clock read or counter write. */
+static void tomoPhaseLoopIteration(int events, uint64_t now) {
+    int slot = tomoPhaseStatSlot();
+    if (slot < 0) return;
+    tomoPhaseThreadStats *st = &tomo_phase_stats[slot];
+    uint64_t iterations = tomoRelaxedRead(st->loop_iterations) + 1;
+    tomoRelaxedSet(st->loop_iterations, iterations);
+    if (events > 0) {
+        tomoRelaxedBump(st->loop_wakeups, 1);
+        tomoRelaxedBump(st->loop_events, (uint64_t)events);
+    }
+
+    uint64_t epoch = tomoRelaxedRead(st->loop_rate_epoch_us);
+    if (!epoch) {
+        tomoRelaxedSet(st->loop_rate_epoch_us, now);
+        tomoRelaxedSet(st->loop_rate_epoch_iterations, iterations);
+    } else if (now - epoch >= 1000000) {
+        uint64_t base = tomoRelaxedRead(st->loop_rate_epoch_iterations);
+        uint64_t rate = (iterations - base) * 1000000ULL / (now - epoch);
+        tomoRelaxedSet(st->loop_iterations_per_sec, rate);
+        tomoRelaxedSet(st->loop_rate_epoch_us, now);
+        tomoRelaxedSet(st->loop_rate_epoch_iterations, iterations);
+    }
+}
+
+static inline void tomoPhaseExPopStats(int n) {
+    int slot = tomoPhaseStatSlot();
+    if (slot < 0 || n <= 0 || n > WORKER_POP_BATCH) return;
+    tomoRelaxedBump(tomo_phase_stats[slot].pop_batches[n], 1);
+    tomoRelaxedBump(tomo_phase_stats[slot].pop_count, 1);
+    tomoRelaxedBump(tomo_phase_stats[slot].pop_items, (uint64_t)n);
+}
+
+static inline void tomoPhaseExScanPublish(uint64_t lanes, uint64_t passes) {
+    int slot = tomoPhaseStatSlot();
+    if (slot < 0) return;
+    tomoRelaxedBump(tomo_phase_stats[slot].scan_lanes, lanes);
+    tomoRelaxedBump(tomo_phase_stats[slot].scan_passes, passes);
+}
 
 static inline int tomoCrossNode(int io_slot, int worker) {
     if (!atomic_load_explicit(&cross_node_any[io_slot], memory_order_acquire))
@@ -3251,71 +3498,17 @@ static inline int cdbSlotReady(client *real, int cdb, unsigned int slot) {
                                 memory_order_acquire) != 0;
 }
 static inline void cdbSlotPublish(client *real, int cdb, unsigned int slot) {
+    if (__builtin_expect(server.phase_trace_sample != 0, 0)) {
+        client *fake = slot < TOMO_PIPELINE_DEPTH_MAX ?
+                       clientTail(real)->fakeClients[slot] : NULL;
+        tomoPhasePublished(fake);
+    }
     atomic_store_explicit(&clientTail(real)->reply_cdb[cdb].ready[slot], 1,
                           memory_order_release);
 }
 static inline void cdbSlotClear(client *real, int cdb, unsigned int slot) {
     atomic_store_explicit(&clientTail(real)->reply_cdb[cdb].ready[slot], 0,
                           memory_order_relaxed);
-}
-
-/* A completed EX job publishes only the CDB byte above.  epoll/io_uring cannot
- * observe that memory edge, so an auxiliary IO owner which has exhausted ae's
- * bounded zero-time drain used to sleep for the full 100us fallback even when
- * its reply became ready a cycle later.
- *
- * Keep the established narrow-node path exact: when a node's configured IO
- * owner width fits in one WORKER_POP_BATCH it never arms or checks this edge.
- * At wider IO widths, ae requests an arm only after its drain budget is
- * exhausted.  The IO owner stores armed BEFORE its normal CDB scan; the worker
- * publishes every reply in a producer-lane batch, then consumes armed and
- * posts that owner's existing eventfd once.  Thus notifications are coalesced
- * per sleep episode and per worker/lane batch, never paid per command.
- *
- * The seq_cst fences are the arm/recheck handshake.  They forbid both sides
- * missing one another: either the owner's post-arm CDB acquire sees the reply,
- * or the worker's post-publication armed load sees the request and wakes it. */
-typedef struct tomoReplyWakeSlot {
-    _Atomic unsigned int armed;
-    char _pad[CACHE_LINE_SIZE - sizeof(_Atomic unsigned int)];
-} __attribute__((aligned(CACHE_LINE_SIZE))) tomoReplyWakeSlot;
-_Static_assert(sizeof(tomoReplyWakeSlot) == CACHE_LINE_SIZE,
-               "reply wake slot must occupy one cache line");
-static tomoReplyWakeSlot tomo_reply_wake[TOMO_IO_THREADS_MAX + 1]
-    __attribute__((aligned(CACHE_LINE_SIZE)));
-
-static inline int tomoReplyWakeWideIo(void) {
-    return server.io_per_node > WORKER_POP_BATCH;
-}
-
-static int tomoReplyWakeArm(int producer_tid) {
-    if (!tomoReplyWakeWideIo() || producer_tid < 0 ||
-        producer_tid > TOMO_IO_THREADS_MAX)
-        return 0;
-    atomic_store_explicit(&tomo_reply_wake[producer_tid].armed, 1,
-                          memory_order_relaxed);
-    atomic_thread_fence(memory_order_seq_cst);
-    return 1;
-}
-
-static void tomoReplyWakeDisarm(int producer_tid) {
-    atomic_store_explicit(&tomo_reply_wake[producer_tid].armed, 0,
-                          memory_order_relaxed);
-}
-
-static void tomoReplyWakePost(int producer_tid) {
-    if (!tomoReplyWakeWideIo() || producer_tid < 0 ||
-        producer_tid > TOMO_IO_THREADS_MAX)
-        return;
-    atomic_thread_fence(memory_order_seq_cst);
-    if (atomic_load_explicit(&tomo_reply_wake[producer_tid].armed,
-                             memory_order_relaxed) == 0)
-        return;
-    unsigned int expected = 1;
-    if (atomic_compare_exchange_strong_explicit(
-            &tomo_reply_wake[producer_tid].armed, &expected, 0,
-            memory_order_relaxed, memory_order_relaxed))
-        tomoAtomicWakeProducer(producer_tid);
 }
 
 /* ee451 (#A2): folded network byte counters (legacy atomic baseline + per-thread shards). */
@@ -4300,6 +4493,8 @@ void handleWorkerReplies(void) {
                 unsigned int slot = rt->flushid & rt->ring_mask;
                 client *fake = rt->fakeClients[slot];
                 if (!cdbSlotReady(real, fake->cdb, slot)) break;  /* wait for worker */
+                if (__builtin_expect(server.phase_trace_sample != 0, 0))
+                    tomoPhaseObserved(real, fake, 0);
                 int was_ex_dispatched = (fake->flags & CLIENT_EX_PENDING) != 0;
                 int was_cs = (fake->csgroup != NULL);
                 fake->flags &= ~CLIENT_EX_PENDING;
@@ -4389,6 +4584,8 @@ void handleWorkerReplies(void) {
             /* Acquire pairs with this slot's worker release publication. A
              * stale zero only postpones the prefix until the next poll. */
             if (!cdbSlotReady(real, fake->cdb, slot)) break;
+            if (__builtin_expect(server.phase_trace_sample != 0, 0))
+                tomoPhaseObserved(real, fake, 1);
             if (__builtin_expect(atomic_load_explicit(&cross_node_any[iotid],
                                                        memory_order_acquire), 0)) {
                 uint32_t xnode_bit = 1u << slot;
@@ -4536,12 +4733,6 @@ void handleWorkerReplies(void) {
 
 void beforeSleepIO(struct aeEventLoop *eventLoop) {
     UNUSED(eventLoop);
-    /* Arm before the CDB walk when ae is about to leave bounded polling for a
-     * real wait.  If this very walk makes progress, no sleep can strand the
-     * next completion: disarm the now-stale request after the walk. */
-    int reply_wake_before = replyWorking;
-    int reply_wake_armed =
-        __builtin_expect(exReplyWakeRecheck != 0, 0) && tomoReplyWakeArm(iotid);
     /* ee451 (v8d): this IO producer's cutover drain-sentinel (once per cutover). */
     if (__builtin_expect(atomic_load_explicit(&server.migration_active, memory_order_relaxed), 0))
         migPushFenceIfNeeded();
@@ -4564,8 +4755,6 @@ void beforeSleepIO(struct aeEventLoop *eventLoop) {
     tmMigDrainInbox();
     connTypeProcessPendingData(eventLoop);
     handleWorkerReplies();
-    if (reply_wake_armed && replyWorking < reply_wake_before)
-        tomoReplyWakeDisarm(iotid);
     tomoAtomicReleaseStalledClients();
     handleClientsWithPendingWrites();
     /* ee451 (thread-modes v1.6): start/complete outgoing migrations AFTER replies are flushed
@@ -5753,6 +5942,9 @@ void ensureLogicalDbInitialized(int id) {
 }
 
 void initServer(void) {
+    /* The knob is immutable. Install the ae hook once so 0=off is a NULL
+     * pointer for the lifetime of every event loop. */
+    aeLoopStatsHook = server.phase_trace_sample ? tomoPhaseLoopIteration : NULL;
     /* ee451 (v14): auto-detect from sysfs. tomokv-l3-kb (the explicit KB pin, for VMs that hide
      * cache topology) was retired at 0 = auto, so detection is the only path; detectL3Bytes has
      * its own 32MB fallback when sysfs says nothing. */
@@ -19721,6 +19913,160 @@ static long long expiredSubkeysActiveTotal(void) {
     return s;
 }
 
+static uint64_t tomoPhaseBucketUpper(int bucket) {
+    if (bucket <= 0) return 0;
+    if (bucket >= 63) return UINT64_MAX;
+    return (1ULL << bucket) - 1;
+}
+
+static uint64_t tomoPhaseQuantile(const uint64_t *hist, uint64_t count,
+                                  unsigned numerator, unsigned denominator) {
+    if (!count) return 0;
+    uint64_t target = (count / denominator) * numerator;
+    target += ((count % denominator) * numerator + denominator - 1) / denominator;
+    uint64_t cumulative = 0;
+    for (int b = 0; b < TOMO_PHASE_BUCKETS; b++) {
+        cumulative += hist[b];
+        if (cumulative >= target) return tomoPhaseBucketUpper(b);
+    }
+    return UINT64_MAX;
+}
+
+/* Append only when the immutable debug knob is armed. Histograms are folded
+ * by the origin node stamped at t0. Bucket labels are inclusive upper usec
+ * bounds: 0, 1, 3, 7, ...; only nonzero buckets are emitted. */
+static sds tomoPhaseAppendInfo(sds info) {
+    static const char *phase_name[TOMO_PHASE_COUNT] = {
+        "recv_enqueue", "ex_queue", "ex_exec_publish",
+        "completion_pickup", "send"
+    };
+    int nodes = tmNumNodes();
+    if (nodes < 1) nodes = 1;
+    if (nodes > TOMO_NODES_MAX) nodes = TOMO_NODES_MAX;
+
+    info = sdscatprintf(info,
+        "tomokv_phase_trace_sample:%d\r\n"
+        "tomokv_phase_histogram_unit:usec\r\n",
+        server.phase_trace_sample);
+
+    for (int node = 0; node < nodes; node++) {
+        uint64_t merged[TOMO_PHASE_COUNT][TOMO_PHASE_BUCKETS] = {{0}};
+        for (int slot = 0; slot < TOMO_STAT_SLOTS; slot++)
+            for (int phase = 0; phase < TOMO_PHASE_COUNT; phase++)
+                for (int b = 0; b < TOMO_PHASE_BUCKETS; b++)
+                    merged[phase][b] += atomic_load_explicit(
+                        &tomo_phase_stats[slot].hist[node][phase][b],
+                        memory_order_relaxed);
+
+        for (int phase = 0; phase < TOMO_PHASE_COUNT; phase++) {
+            uint64_t count = 0;
+            for (int b = 0; b < TOMO_PHASE_BUCKETS; b++) count += merged[phase][b];
+            uint64_t p50 = tomoPhaseQuantile(merged[phase], count, 1, 2);
+            uint64_t p99 = tomoPhaseQuantile(merged[phase], count, 99, 100);
+            info = sdscatprintf(info,
+                "tomokv_phase_node_%d_%s_count:%llu\r\n"
+                "tomokv_phase_node_%d_%s_p50_le_usec:%llu\r\n"
+                "tomokv_phase_node_%d_%s_p99_le_usec:%llu\r\n"
+                "tomokv_phase_node_%d_%s_hist_usec:",
+                node, phase_name[phase], (unsigned long long)count,
+                node, phase_name[phase], (unsigned long long)p50,
+                node, phase_name[phase], (unsigned long long)p99,
+                node, phase_name[phase]);
+            int emitted = 0;
+            for (int b = 0; b < TOMO_PHASE_BUCKETS; b++) {
+                if (!merged[phase][b]) continue;
+                if (b == TOMO_PHASE_BUCKETS - 1) {
+                    info = sdscatprintf(info, "%sge_%llu=%llu",
+                        emitted ? "," : "", 1ULL << 62,
+                        (unsigned long long)merged[phase][b]);
+                } else {
+                    info = sdscatprintf(info, "%s%llu=%llu",
+                        emitted ? "," : "",
+                        (unsigned long long)tomoPhaseBucketUpper(b),
+                        (unsigned long long)merged[phase][b]);
+                }
+                emitted = 1;
+            }
+            if (!emitted) info = sdscatlen(info, "-", 1);
+            info = sdscatlen(info, "\r\n", 2);
+        }
+    }
+
+    /* IO loop batching is intentionally per identity, not folded by node: a
+     * width pathology should show up as outlier owners rather than disappear
+     * into the node mean. */
+    for (int t = 0; t <= TOMO_IO_THREADS_MAX; t++) {
+        tomoPhaseThreadStats *st = &tomo_phase_stats[t];
+        uint64_t iterations = atomic_load_explicit(&st->loop_iterations,
+                                                    memory_order_relaxed);
+        uint64_t sampled = atomic_load_explicit(&st->sampled, memory_order_relaxed);
+        if (!iterations && !sampled) continue;
+        uint64_t wakes = atomic_load_explicit(&st->loop_wakeups, memory_order_relaxed);
+        uint64_t events = atomic_load_explicit(&st->loop_events, memory_order_relaxed);
+        uint64_t rate = atomic_load_explicit(&st->loop_iterations_per_sec,
+                                              memory_order_relaxed);
+        uint64_t collisions = atomic_load_explicit(&st->send_collisions,
+                                                    memory_order_relaxed);
+        int node = tmNodeOfIoSlot(t);
+        double per_wake = wakes ? (double)events / (double)wakes : 0.0;
+        info = sdscatprintf(info,
+            "tomokv_phase_io_%d_node:%d\r\n"
+            "tomokv_phase_io_%d_loop_iterations_per_sec:%llu\r\n"
+            "tomokv_phase_io_%d_events_per_wakeup:%.3f\r\n"
+            "tomokv_phase_io_%d_loop_iterations:%llu\r\n"
+            "tomokv_phase_io_%d_event_wakeups:%llu\r\n"
+            "tomokv_phase_io_%d_events:%llu\r\n"
+            "tomokv_phase_io_%d_samples:%llu\r\n"
+            "tomokv_phase_io_%d_send_collisions:%llu\r\n",
+            t, node,
+            t, (unsigned long long)rate,
+            t, per_wake,
+            t, (unsigned long long)iterations,
+            t, (unsigned long long)wakes,
+            t, (unsigned long long)events,
+            t, (unsigned long long)sampled,
+            t, (unsigned long long)collisions);
+    }
+
+    for (int w = 0; w < server.num_workers && w < TOMO_EX_THREADS_MAX; w++) {
+        int slot = TOMO_IO_THREADS_MAX + 1 + w;
+        tomoPhaseThreadStats *st = &tomo_phase_stats[slot];
+        uint64_t pops = atomic_load_explicit(&st->pop_count, memory_order_relaxed);
+        if (!pops) continue;
+        uint64_t items = atomic_load_explicit(&st->pop_items, memory_order_relaxed);
+        uint64_t lanes = atomic_load_explicit(&st->scan_lanes, memory_order_relaxed);
+        uint64_t passes = atomic_load_explicit(&st->scan_passes, memory_order_relaxed);
+        int node = server.ex_per_node > 0 ? w / server.ex_per_node : 0;
+        info = sdscatprintf(info,
+            "tomokv_phase_ex_%d_node:%d\r\n"
+            "tomokv_phase_ex_%d_pop_count:%llu\r\n"
+            "tomokv_phase_ex_%d_mean_batch:%.3f\r\n"
+            "tomokv_phase_ex_%d_lanes_scanned_per_pop:%.3f\r\n"
+            "tomokv_phase_ex_%d_scan_lanes:%llu\r\n"
+            "tomokv_phase_ex_%d_scan_passes:%llu\r\n"
+            "tomokv_phase_ex_%d_pop_batch_hist:",
+            w, node,
+            w, (unsigned long long)pops,
+            w, (double)items / (double)pops,
+            w, (double)lanes / (double)pops,
+            w, (unsigned long long)lanes,
+            w, (unsigned long long)passes,
+            w);
+        int emitted = 0;
+        for (int n = 1; n <= WORKER_POP_BATCH; n++) {
+            uint64_t count = atomic_load_explicit(&st->pop_batches[n],
+                                                   memory_order_relaxed);
+            if (!count) continue;
+            info = sdscatprintf(info, "%s%d=%llu", emitted ? "," : "", n,
+                                (unsigned long long)count);
+            emitted = 1;
+        }
+        if (!emitted) info = sdscatlen(info, "-", 1);
+        info = sdscatlen(info, "\r\n", 2);
+    }
+    return info;
+}
+
 /* Create the string returned by the INFO command. This is decoupled
  * by the INFO command itself as we need to report the same information
  * on memory corruption problems. */
@@ -20548,6 +20894,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_prefetch_io_xnode_issued:%llu\r\n",
             tomoPrefetchCounterTotal(prefetch_ex_xnode_issued),
             tomoPrefetchCounterTotal(prefetch_io_xnode_issued));
+        if (server.phase_trace_sample) info = tomoPhaseAppendInfo(info);
         info = genRedisInfoStringACLStats(info);
         if (!server.cluster_enabled && server.cluster_compatibility_sample_ratio) {
             info = sdscatprintf(info, "cluster_incompatible_ops:%lld\r\n", server.stat_cluster_incompatible_ops);
@@ -21959,6 +22306,8 @@ int exQueuePush(exQueue *q, client *c) {
             return -1;
         }
     }
+    if (__builtin_expect(server.phase_trace_sample != 0, 0))
+        tomoPhaseEnqueued(c);
     q->jobs[t] = c;
     /* ee451 (S4): advance the producer-private staged frontier only; the single
      * release-store of `tail` in flushExQueues() publishes this and all
@@ -22707,6 +23056,10 @@ typedef struct exSliceCtx {
     uint64_t tm_mark;
     /* ee451 2026-08-04 (OBSERVATION ONLY): start of the current idle episode, 0 when not idle. */
     uint64_t tm_idle_mark;
+    /* Debug-only scan proxy accumulated across empty passes and published on
+     * the next pop, avoiding a stats-line write in the worker's idle spin. */
+    uint64_t phase_scan_lanes;
+    uint64_t phase_scan_passes;
     /* pop/execute scratch. Contents never persist across passes; it lives here
      * (not on the slice stack) only so the slice body is the verbatim old loop. */
     client *batch[WORKER_POP_BATCH];
@@ -22738,6 +23091,8 @@ static void exSliceInit(exThread *worker, exSliceCtx *ctx) {
     ctx->spin_budget = 32;   /* adaptive seed; grows x1.5 to 256 when spinning pays, halves to 4 when it does not */
     ctx->tm_mark = getMonotonicUs();   /* ee451 (step 4): busy-time accounting baseline */
     ctx->tm_idle_mark = 0;             /* no drought open yet (exctx is an UNINITIALISED stack local) */
+    ctx->phase_scan_lanes = 0;
+    ctx->phase_scan_passes = 0;
 }
 
 /* A converted IO thread retains its old EX binding solely to consume work that
@@ -22791,6 +23146,15 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
                     atomic_load_explicit(&poly_ctx->mode, memory_order_relaxed),
                     poly_ctx->io_slot, poly_ctx->ex_slot);
     tm_cur_ex = worker;   /* D svc attribution: one TLS store per pass */
+    int phase_trace_on = __builtin_expect(server.phase_trace_sample != 0, 0);
+    int phase_pops = 0;
+    if (phase_trace_on) {
+        /* The normal sparse loop considers exactly nq producer lanes (most
+         * are cheap summary-bit rejects). This is the width-dependent scan
+         * work the proxy is intended to expose. */
+        ctx->phase_scan_lanes += (uint64_t)ctx->nq;
+        ctx->phase_scan_passes++;
+    }
 
     /* ee451 (S8): decref any zero-copy reply values the IO threads handed
      * back after sending — done here on the worker so the shard's value
@@ -23040,6 +23404,11 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
             }
         }
         if (n == 0) continue;
+        if (phase_trace_on) {
+            tomoPhaseExPopStats(n);
+            tomoPhaseExPopped(ctx->batch, n);
+            phase_pops++;
+        }
 
         /* I3 cross-lane fence. A reader acquires snapshot S before publishing
          * its normal owner job, while every stamp <= S was published to the
@@ -23109,7 +23478,6 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
         client *sig_parents[WORKER_POP_BATCH];
         uint8_t sig_slots[WORKER_POP_BATCH];
         int sig_n = 0;
-        int lane_completed = 0;
 
         /* One independent raw boundary per contiguous run of ordinary commands. Each proc's exit
          * becomes its successor's entry, reducing an all-ordinary N-command batch from 2N clock
@@ -23253,14 +23621,12 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
                         if (stage_only) {
                             client *hp = g->head->parent;
                             cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
-                            lane_completed = 1;
                         } else {
                             csMsetInstallDone(g);
                         }
                     } else {
                         client *hp = g->head->parent;
                         cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
-                        lane_completed = 1;
                     }
                 }
                 /* csSubExec times its own proc, but completion/commit work after that exit may be
@@ -23315,8 +23681,6 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
          * IO owner may immediately retire that slot. */
         for (int s = 0; s < sig_n; s++)
             cdbSlotPublish(sig_parents[s], ctx->wcdb, sig_slots[s]);
-        if (sig_n) lane_completed = 1;
-        if (lane_completed) tomoReplyWakePost(i);
 
         /* ee451 (H2, reshard drain fence): publish this queue's EXECUTION frontier. The pop above
          * advanced `head` before any of these commands ran, so `head` alone cannot distinguish
@@ -23345,6 +23709,12 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
 #else
         (void)oldw;
 #endif
+    }
+
+    if (phase_trace_on && phase_pops) {
+        tomoPhaseExScanPublish(ctx->phase_scan_lanes, ctx->phase_scan_passes);
+        ctx->phase_scan_lanes = 0;
+        ctx->phase_scan_passes = 0;
     }
 
     /* ee451 (thread-modes step 4, signals a+e): pressure folding lives INSIDE the existing
