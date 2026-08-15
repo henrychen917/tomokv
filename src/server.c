@@ -24867,6 +24867,86 @@ static unsigned long long tmFlipRecoveryBump(void) {
     return atomic_fetch_add_explicit(&tomo_flip_recoveries, 1, memory_order_relaxed) + 1;
 }
 
+/* At a quiescent role boundary the fixed poly identities are the ground truth: EX identities form
+ * the live prefix and the same contexts form the grown-IO suffix. The counters are routing
+ * indexes, not a second source of identity. A formerly exposed grow-front ordering window could
+ * roll its EX claim back just before the thread adopted IO; the next grow-back then blindly added
+ * EX once more. Pool SUM stayed conserved, but the EX prefix counter was one ahead of mode, so a
+ * return grow-front selected the next (still-IO) worker and retried a condition no sweep could
+ * change. Snapshot the adopted identities so admission and publication can close that split-brain
+ * state instead of propagating it. */
+static int tmFlipModeSnapshot(int node, int *ex_live_out, int *io_live_out) {
+    int nnodes = tmNumNodes();
+    if (node < 0 || node >= nnodes) return 0;
+
+    int w0 = nnodes == 1 ? 0 : node * server.ex_per_node;
+    int w1 = nnodes == 1 ? server.num_workers : w0 + server.ex_per_node;
+    int base_io = nnodes == 1 ? server.io_threads : server.io_per_node;
+    int ex_live = 0, grown_io_live = 0, saw_io = 0;
+    for (int w = w0; w < w1; w++) {
+        polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_EX, w);
+        if (!ctx) return 0;
+        int mode = atomic_load_explicit(&ctx->mode, memory_order_acquire);
+        if (mode == TOMO_MODE_EX) {
+            if (saw_io) return 0;       /* a hole would make prefix routing itself invalid */
+            ex_live++;
+        } else if (mode == TOMO_MODE_IO) {
+            saw_io = 1;
+            grown_io_live++;
+        } else {
+            return 0;                   /* birth/adoption has not completed */
+        }
+    }
+    if (ex_live_out) *ex_live_out = ex_live;
+    if (io_live_out) *io_live_out = base_io + grown_io_live;
+    return 1;
+}
+
+/* Replace this node's routing counters with one atomic-mode snapshot. The process-wide flip claim
+ * is held at every call, so no other role boundary can move while the node values and their global
+ * sums are published. expected_* describe the healthy transaction edge; any other delta is a
+ * recovered pre-existing identity/count split and is logged once at the point it is repaired. */
+static int tmFlipAccountingAlignNode(int node, int expected_ex_delta, int expected_io_delta,
+                                     const char *reason, int *ex_live_out, int *io_live_out) {
+    int ex_live, io_live;
+    if (!tmFlipModeSnapshot(node, &ex_live, &io_live)) return 0;
+
+    int old_ex, old_io;
+    int nnodes = tmNumNodes();
+    if (nnodes == 1) {
+        old_ex = atomic_exchange_explicit(&server.num_workers_live, ex_live,
+                                          memory_order_acq_rel);
+        old_io = atomic_exchange_explicit(&server.io_threads_live, io_live,
+                                          memory_order_acq_rel);
+    } else {
+        old_ex = atomic_exchange_explicit(&server.tm_node_wlive[node], ex_live,
+                                          memory_order_acq_rel);
+        old_io = atomic_exchange_explicit(&server.tm_node_iolive[node], io_live,
+                                          memory_order_acq_rel);
+        int all_ex = 0, all_io = 0;
+        for (int n = 0; n < nnodes; n++) {
+            all_ex += atomic_load_explicit(&server.tm_node_wlive[n], memory_order_acquire);
+            all_io += atomic_load_explicit(&server.tm_node_iolive[n], memory_order_acquire);
+        }
+        atomic_store_explicit(&server.num_workers_live, all_ex, memory_order_release);
+        atomic_store_explicit(&server.io_threads_live, all_io, memory_order_release);
+    }
+
+    int ex_delta = ex_live - old_ex;
+    int io_delta = io_live - old_io;
+    if (ex_delta != expected_ex_delta || io_delta != expected_io_delta) {
+        unsigned long long n = tmFlipRecoveryBump();
+        serverLog(LL_WARNING, "ee451 flip: accounting REALIGN node %d ex %d->%d io %d->%d "
+                              "(expected delta %+d/%+d): %s "
+                              "(tomokv_flip_recoveries=%llu)",
+                  node, old_ex, ex_live, old_io, io_live,
+                  expected_ex_delta, expected_io_delta, reason, n);
+    }
+    if (ex_live_out) *ex_live_out = ex_live;
+    if (io_live_out) *io_live_out = io_live;
+    return 1;
+}
+
 /* GROW-FRONT is the one move whose source must be removed before the physical role changes: fan-out
  * producers must stop targeting the worker before its entire bucket range can drain. Record that
  * removal as an outstanding transaction. tmFlipRelease cannot reopen the gate until it is either
@@ -24877,10 +24957,18 @@ static void tmFlipAccountingRollback(const char *reason) {
     int from = tm_flip_account_from;
     tm_flip_account_ctx = NULL;
     tm_flip_account_from = TOMO_MODE_UNSET;
-    if (from == TOMO_MODE_EX) {
+    int aligned = 0;
+    if (ctx && ctx->ex) {
+        int node = tmNumNodes() == 1 ? 0 : tmNodeOfWorker(ctx->ex->id);
+        aligned = tmFlipAccountingAlignNode(node,
+                    from == TOMO_MODE_EX ? +1 : 0,
+                    from == TOMO_MODE_IO ? +1 : 0,
+                    reason, NULL, NULL);
+    }
+    if (!aligned && from == TOMO_MODE_EX) {
         atomic_fetch_add_explicit(&server.num_workers_live, 1, memory_order_release);
         if (ctx && ctx->ex) tmNodeWliveAdd(ctx->ex->id, +1);
-    } else if (from == TOMO_MODE_IO) {
+    } else if (!aligned && from == TOMO_MODE_IO) {
         atomic_fetch_add_explicit(&server.io_threads_live, 1, memory_order_release);
         if (ctx && ctx->ex) tmNodeIoliveAdd(ctx->ex->id, +1);
     }
@@ -24902,18 +24990,22 @@ static void tmFlipAccountingClaimEx(polyThreadCtx *ctx) {
 }
 
 static void tmFlipAccountingPublishIo(polyThreadCtx *ctx) {
-    if (tm_flip_account_from != TOMO_MODE_EX || tm_flip_account_ctx != ctx) {
-        /* Preserve conservation even if a future edit loses the claim: normalize any stale claim,
-         * then express this already-landed EX->IO conversion as one complete move. */
+    int matched = tm_flip_account_from == TOMO_MODE_EX && tm_flip_account_ctx == ctx;
+    if (!matched) {
+        /* Normalize a stale claim first. The adopted IO identity below is then sufficient to
+         * reconstruct both counters; do not synthesize another decrement from stale bookkeeping. */
         tmFlipAccountingRollback("mismatched source claim at grow-front publication");
-        tmFlipAccountingClaimEx(ctx);
-        tmFlipRecoveryBump();
-        serverLog(LL_WARNING, "ee451 flip: reconstructed missing grow-front accounting claim for "
-                              "worker %d/io %d", ctx && ctx->ex ? ctx->ex->id : -1,
-                  ctx ? ctx->io_slot : -1);
     }
-    atomic_fetch_add_explicit(&server.io_threads_live, 1, memory_order_release);
-    if (ctx && ctx->ex) tmNodeIoliveAdd(ctx->ex->id, +1);
+    int aligned = 0;
+    if (ctx && ctx->ex) {
+        int node = tmNumNodes() == 1 ? 0 : tmNodeOfWorker(ctx->ex->id);
+        aligned = tmFlipAccountingAlignNode(node, 0, matched ? +1 : 0,
+                                             "grow-front IO identity publication", NULL, NULL);
+    }
+    if (!aligned) {
+        atomic_fetch_add_explicit(&server.io_threads_live, 1, memory_order_release);
+        if (ctx && ctx->ex) tmNodeIoliveAdd(ctx->ex->id, +1);
+    }
     tm_flip_account_ctx = NULL;
     tm_flip_account_from = TOMO_MODE_UNSET;
 }
@@ -24923,10 +25015,18 @@ static void tmFlipAccountingPublishIo(polyThreadCtx *ctx) {
  * the subsequent bucket seed is ordinary placement work and owns no liveness counter. */
 static void tmFlipAccountingPublishEx(polyThreadCtx *ctx) {
     tmFlipAccountingRollback("stale source claim found before grow-back publication");
-    atomic_fetch_sub_explicit(&server.io_threads_live, 1, memory_order_release);
-    if (ctx && ctx->ex) tmNodeIoliveAdd(ctx->ex->id, -1);
-    atomic_fetch_add_explicit(&server.num_workers_live, 1, memory_order_release);
-    if (ctx && ctx->ex) tmNodeWliveAdd(ctx->ex->id, +1);
+    int aligned = 0;
+    if (ctx && ctx->ex) {
+        int node = tmNumNodes() == 1 ? 0 : tmNodeOfWorker(ctx->ex->id);
+        aligned = tmFlipAccountingAlignNode(node, +1, -1,
+                                             "grow-back EX identity publication", NULL, NULL);
+    }
+    if (!aligned) {
+        atomic_fetch_sub_explicit(&server.io_threads_live, 1, memory_order_release);
+        if (ctx && ctx->ex) tmNodeIoliveAdd(ctx->ex->id, -1);
+        atomic_fetch_add_explicit(&server.num_workers_live, 1, memory_order_release);
+        if (ctx && ctx->ex) tmNodeWliveAdd(ctx->ex->id, +1);
+    }
 }
 
 /* Core grow-front: convert worker slot `w` (its node's highest live worker) to IO. The caller
@@ -24981,9 +25081,14 @@ int tomoGrowFront(const char **err) {
      * converting sum-1 would corrupt the per-node prefix. Multi-node must use the per-node hooks. */
     if (tmNumNodes() > 1) { *err = "multi-node: use per-node grow (modeshift-test 70+n)"; return 0; }
     if (!tmFlipTryClaim(err)) return 0;
-    int live = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
+    int live;
+    if (!tmFlipAccountingAlignNode(0, 0, 0, "grow-front admission", &live, NULL)) {
+        *err = "worker role identities are not an adopted EX-prefix/IO-suffix";
+        tmFlipRelease();
+        return 0;
+    }
     if (live <= 1) { *err = "need >= 2 live EX workers to grow front"; tmFlipRelease(); return 0; }
-    return tomoGrowFrontWorker(live - 1, err);          /* highest live worker converts */
+    return tomoGrowFrontWorker(live - 1, err);          /* highest adopted EX identity converts */
 }
 
 static void tmRebalanceOntoNewIo(int new_id);   /* EWMA client pull, defined below */
@@ -25096,9 +25201,27 @@ static int tomoGrowBackSlot(int io_slot, const char **err) {
 int tomoGrowBack(const char **err) {
     if (tmNumNodes() > 1) { *err = "multi-node: use per-node grow (modeshift-test 80+n)"; return 0; }  /* review [10] */
     if (!tmFlipTryClaim(err)) return 0;
-    int io_live = atomic_load_explicit(&server.io_threads_live, memory_order_acquire);
-    if (io_live <= server.io_threads) { *err = "no grown io thread to convert back (at base config)"; tmFlipRelease(); return 0; }
-    return tomoGrowBackSlot(io_live - 1, err);          /* highest grown io thread (LIFO with grow-front) */
+    int ex_live;
+    if (!tmFlipAccountingAlignNode(0, 0, 0, "grow-back admission", &ex_live, NULL)) {
+        *err = "worker role identities are not an adopted EX-prefix/IO-suffix";
+        tmFlipRelease();
+        return 0;
+    }
+    if (ex_live >= server.num_workers) {
+        *err = "no grown io thread to convert back (at base config)";
+        tmFlipRelease();
+        return 0;
+    }
+    /* The first IO identity after the adopted EX prefix is the most recently grown-front worker.
+     * Its fixed reverse io_slot mapping makes this the same LIFO target without trusting a
+     * potentially stale io_threads_live-derived slot number. */
+    polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_EX, ex_live);
+    if (!ctx || !ctx->io) {
+        *err = "grown io boundary has no IO binding";
+        tmFlipRelease();
+        return 0;
+    }
+    return tomoGrowBackSlot(ctx->io_slot, err);
 }
 
 /* Drive an AUTO flip to completion on the owning node's semi-main (the real main on one node).
@@ -27194,9 +27317,12 @@ static void tmFlipSweepAbandon(flipCtlState *fc, int node, const char *why,
     tmFlipSweepReturnToBest(fc, node, current_io, why);
 }
 
-/* The old distance estimate is kept separate from its traversal policy: compatibility-size pools
- * retain the original one-transfer judge, while a large-pool episode halves this distance. */
-static int tmFlipStepDistance(flipCtlState *fc, double gstep, int dir,
+/* Derive the distance to r=1 by walking the live-count capacity equation itself. Dividing |lr| by
+ * the CURRENT split's one-step gstep undercounts badly at an edge: at io15/ex1 it prices every
+ * later grow-back with the first, exceptionally large 1->2 EX quantum and returns distance one.
+ * The telescoped predictor instead evaluates each legal destination using only measured lr and
+ * live counts, then chooses the closest expressible ratio. No machine-size step constant enters. */
+static int tmFlipStepDistance(flipCtlState *fc, int dir, int ratio_io_live,
                               int w_live, int io_live, int grown_io_live) {
     int cap;
     if (dir > 0) {
@@ -27208,30 +27334,47 @@ static int tmFlipStepDistance(flipCtlState *fc, double gstep, int dir,
     if (cap < 1) return 0;
 
     int distance = 1;
-    if (fc->lr_ewma * (double)dir > 0.0 && isfinite(gstep) && gstep > 0.0) {
-        double whole_moves = floor(fabs(fc->lr_ewma) / gstep);
-        distance = whole_moves < 1.0 ? 1
-                 : (whole_moves > (double)cap ? cap : (int)whole_moves);
+    if (fc->lr_ewma * (double)dir > 0.0 && isfinite(fc->lr_ewma)) {
+        double best = fabs(fc->lr_ewma);
+        for (int k = 1; k <= cap; k++) {
+            int next_io = ratio_io_live + dir * k;
+            int next_ex = w_live - dir * k;
+            if (next_io < 1 || next_ex < 1) break;
+            double predicted = tmFlipPredictedLr(fc->lr_ewma,
+                                                  ratio_io_live, w_live,
+                                                  next_io, next_ex, 0);
+            double miss = fabs(predicted);
+            if (isfinite(miss) && miss <= best) {
+                best = miss;
+                distance = k;
+            }
+        }
     }
     return distance;
 }
 
-static int tmFlipStepMoves(flipCtlState *fc, double gstep, int dir,
+static int tmFlipStepMoves(flipCtlState *fc, int dir, int ratio_io_live,
                            int w_live, int io_live, int grown_io_live,
                            int geometric) {
-    int distance = tmFlipStepDistance(fc, gstep, dir, w_live, io_live, grown_io_live);
-    if (distance <= 0 || !geometric) return distance > 0 ? 1 : 0;
+    int distance = tmFlipStepDistance(fc, dir, ratio_io_live, w_live,
+                                      io_live, grown_io_live);
+    if (distance <= 0) return 0;
+    /* Compatibility-sized pools keep their settled-endpoint judge. Only its FAR traversal now
+     * coalesces the full derived distance; near r=1 the old one-position endgame is unchanged.
+     * Large-pool directional episodes retain their existing geometric half-distance policy. */
+    if (!geometric) return fabs(fc->lr_ewma) > FLIP_R_FAR ? distance : 1;
     return (distance + 1) / 2;
 }
 
 static int tmFlipEpisodeStop(flipCtlState *fc, int dir, double balance_band,
-                             double ex_sat, int w_live, int io_live,
-                             int grown_io_live, double gstep) {
+                             double ex_sat, int ratio_io_live, int w_live,
+                             int io_live, int grown_io_live) {
     if ((dir > 0 && fc->lr_ewma <= balance_band) ||
         (dir < 0 && fc->lr_ewma >= -balance_band))
         return FLIP_EPISODE_STOP_BALANCE;
 
-    int moves = tmFlipStepMoves(fc, gstep, dir, w_live, io_live, grown_io_live, 1);
+    int moves = tmFlipStepMoves(fc, dir, ratio_io_live, w_live,
+                                io_live, grown_io_live, 1);
     if (moves <= 0) return FLIP_EPISODE_STOP_EDGE;
     if (dir > 0) {
         /* (ops/ex)/ex_sat is implied per-EX capacity, so the measured demand with the owner's
@@ -28191,8 +28334,8 @@ static void tomoFlipController(void) {
                 if (directional_episode_enabled && fc->direction_episode_active &&
                     !fc->floor_probe_active) {
                     int stop = tmFlipEpisodeStop(fc, fc->dir, balance_band, ex_sat,
-                                                 w_live, io_live_node,
-                                                 grown_io_live_node, gstep);
+                                                 ni, w_live, io_live_node,
+                                                 grown_io_live_node);
                     if (stop == FLIP_EPISODE_WALKING) {
                         fc->phase = 0;
                         fc->wait = 0;
@@ -28856,11 +28999,11 @@ static void tomoFlipController(void) {
             int d = fc->dir;
             int directional_episode_active = directional_episode_enabled &&
                                              fc->direction_episode_active;
-            int moves = tmFlipStepMoves(fc, gstep, d, w_live, io_live_node,
+            int moves = tmFlipStepMoves(fc, d, ni, w_live, io_live_node,
                                         grown_io_live_node, directional_episode_active);
             if (directional_episode_active) {
-                int stop = tmFlipEpisodeStop(fc, d, balance_band, ex_sat, w_live,
-                                             io_live_node, grown_io_live_node, gstep);
+                int stop = tmFlipEpisodeStop(fc, d, balance_band, ex_sat, ni, w_live,
+                                             io_live_node, grown_io_live_node);
                 if (stop != FLIP_EPISODE_WALKING) {
                     fc->direction_episode_stop = stop;
                     if (stop == FLIP_EPISODE_STOP_BALANCE)
@@ -29180,12 +29323,12 @@ static void tomoFlipController(void) {
         }
 
         fc->before = fc->mean;
-        int moves = tmFlipStepMoves(fc, gstep, want, w_live, io_live_node,
+        int moves = tmFlipStepMoves(fc, want, ni, w_live, io_live_node,
                                     grown_io_live_node, directional_episode_enabled);
         if (moves <= 0) continue;                         /* live cap is the final role invariant */
         int initial_stop = directional_episode_enabled
-                         ? tmFlipEpisodeStop(fc, want, balance_band, ex_sat, w_live,
-                                             io_live_node, grown_io_live_node, gstep)
+                         ? tmFlipEpisodeStop(fc, want, balance_band, ex_sat, ni, w_live,
+                                             io_live_node, grown_io_live_node)
                          : FLIP_EPISODE_WALKING;
         if (initial_stop != FLIP_EPISODE_WALKING) {
             tmFlipAbortClear(node);
@@ -29289,25 +29432,42 @@ static int tomoGrowFrontNode(int node, const char **err) {
     int wpn = server.ex_per_node;
     if (wpn <= 0) { *err = "no per-node topology"; return 0; }
     if (!tmFlipTryClaim(err)) return 0;
-    int live_n = atomic_load_explicit(&server.tm_node_wlive[node], memory_order_acquire);
+    int live_n;
+    if (!tmFlipAccountingAlignNode(node, 0, 0, "node grow-front admission",
+                                   &live_n, NULL)) {
+        *err = "node worker identities are not an adopted EX-prefix/IO-suffix";
+        tmFlipRelease();
+        return 0;
+    }
     if (live_n <= 1) { *err = "need >= 2 live EX workers in the node"; tmFlipRelease(); return 0; }
-    return tomoGrowFrontWorker(node * wpn + live_n - 1, err);   /* node's highest live worker */
+    return tomoGrowFrontWorker(node * wpn + live_n - 1, err); /* highest adopted EX identity */
 }
 static int tomoGrowBackNode(int node, const char **err) {
     if (node < 0 || node >= tmNumNodes() || node >= 16) { *err = "bad node"; return 0; }
     if (!tmFlipTryClaim(err)) return 0;
-    /* The node's highest grown io slot currently serving IO (LIFO within the node). */
-    int pick = -1;
-    for (int g = 0; g < server.tm_ngrow_io; g++) {
-        int slot = server.io_threads + g;
-        polyThreadCtx *c = tmCtxForIotid(slot);
-        if (!c || !c->ex) continue;
-        if (tmNodeOfWorker(c->ex->id) != node) continue;
-        if (atomic_load_explicit(&c->mode, memory_order_acquire) != TOMO_MODE_IO) continue;
-        if (slot > pick) pick = slot;
+    int live_n;
+    if (!tmFlipAccountingAlignNode(node, 0, 0, "node grow-back admission",
+                                   &live_n, NULL)) {
+        *err = "node worker identities are not an adopted EX-prefix/IO-suffix";
+        tmFlipRelease();
+        return 0;
     }
-    if (pick < 0) { *err = "no grown io thread in this node to convert back"; tmFlipRelease(); return 0; }
-    return tomoGrowBackSlot(pick, err);
+    int wpn = server.ex_per_node;
+    if (wpn <= 0 || live_n >= wpn) {
+        *err = "no grown io thread in this node to convert back";
+        tmFlipRelease();
+        return 0;
+    }
+    /* Grow-front removes the EX prefix's last identity. Therefore the first adopted IO identity
+     * after that prefix is exactly the worker a grow-back must restore, independent of counter- or
+     * global-slot arithmetic. Its fixed io_slot is the intended LIFO return target. */
+    polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_EX, node * wpn + live_n);
+    if (!ctx || !ctx->io) {
+        *err = "grown io boundary has no IO binding";
+        tmFlipRelease();
+        return 0;
+    }
+    return tomoGrowBackSlot(ctx->io_slot, err);
 }
 
 //ee451
