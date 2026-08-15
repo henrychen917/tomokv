@@ -26424,6 +26424,7 @@ typedef struct {
     double   warm_prev;      /* mean at the previous warmup tick, to detect the settle plateau */
     uint64_t ref_ops; mstime_t ref_ms;  /* measure-window open snapshot */
     double   before;         /* smoothed rate just before the probe flip */
+    int      conversion_sample_dirty; /* next sample only re-baselines conversion-spanning counters */
     int      last_dir;       /* direction of the probe under evaluation */
     int      step_moves;     /* thread moves in the ONE step now awaiting throughput judgement */
     int      step_done;      /* phase 3: moves confirmed landed (each is a paired role transfer) */
@@ -26681,8 +26682,11 @@ enum {
 /* Try the flip in `dir` (+1 front / -1 back) for `node`. Returns 1 on success. topo_nodes==1 uses
  * the global actuators (node 0 == whole server); >1 uses the node-scoped ones (built in Phase C). */
 static int tmFlipDo(int node, int dir, const char **err) {
-    if (tmNumNodes() == 1) return dir > 0 ? tomoGrowFront(err) : tomoGrowBack(err);
-    return dir > 0 ? tomoGrowFrontNode(node, err) : tomoGrowBackNode(node, err);
+    int armed = tmNumNodes() == 1
+              ? (dir > 0 ? tomoGrowFront(err) : tomoGrowBack(err))
+              : (dir > 0 ? tomoGrowFrontNode(node, err) : tomoGrowBackNode(node, err));
+    if (armed) fctl[node].conversion_sample_dirty = 1;
+    return armed;
 }
 
 /* One definition of "rate plateau" for both post-flip warmup and anchor capture. The estimate is
@@ -27265,8 +27269,16 @@ static void tomoFlipController(void) {
     }
     if (!server.thread_auto || !server.exThreads) return;
     if (server.tm_ngrow_io <= 0) return;                    /* single worker / capped: no flip headroom */
-    if (atomic_load_explicit(&server.migration_active, memory_order_acquire)) return;  /* one migration at a time */
-    if (tmFlipActive()) return;                             /* a flip is mid-flight */
+    int flip_active = tmFlipActive();
+    if (atomic_load_explicit(&server.migration_active, memory_order_acquire) ||
+        flip_active) {
+        /* A guard skips decisions, not time: remember that every cumulative-counter baseline
+         * still predates this conversion so its eventual delta must not describe either endpoint. */
+        if (flip_active)
+            for (int node = node_lo; node < node_hi; node++)
+                fctl[node].conversion_sample_dirty = 1;
+        return;
+    }
 
     /* The configured per-node pool is immutable after boot and role transfers conserve its sum.
      * Keep compatibility independent of lr_ewma: a signal moved by the actuator cannot select
@@ -27456,6 +27468,22 @@ static void tomoFlipController(void) {
             io_occ_cnt++;
             io_live_node++;
             if (t >= server.io_threads) grown_io_live_node++;
+        }
+        /* Role adoption and its seed/relevel migrations are not endpoint service. The entry guards
+         * above pause decisions, but without this baseline-only edge the first later delta spans
+         * IO exit, the identity sweep and the new role, then divides that mixed work by the final
+         * role counts. Keep refreshing while relevel is pending and discard one clean boundary
+         * interval afterwards; the existing settle/judge/anchor equations then see only samples
+         * whose counters, identities, counts and bucket layout all belong to one configuration. */
+        int relevel_pending = atomic_load_explicit(&mig_relevel_pending[node],
+                                                   memory_order_acquire);
+        if (fc->conversion_sample_dirty || relevel_pending) {
+            for (int w = w0; w < w1 && w <= TOMO_EX_THREADS_MAX; w++)
+                fc_prev_ex_idle_us[node][w] = server.exThreads[w].tm_idle_us;
+            fc->ops_prev = node_ops;
+            fc->ops_prev_ms = now;
+            fc->conversion_sample_dirty = relevel_pending;
+            continue;
         }
         /* The first node visit establishes cumulative-counter baselines. Its deltas reach back to
          * process start rather than one controller wall span, so publish/fold no work sample. */
