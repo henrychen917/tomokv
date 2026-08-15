@@ -132,8 +132,8 @@ IO-owner-written and provides connection-global own-write order without a lock.
 
 Admission happens before a fake-ring slot is taken. A finite window uses the inflight counter itself
 as the CAS word; zero is unlimited but still counted. Registration sets the group to uncommitted,
-captures the current clock for lag diagnostics, allocates its shared commit record, reserves the
-connection's install-order range, and release-increments `mset_pending_count`.
+allocates its shared commit record, reserves the connection's install-order range, and
+release-increments `mset_pending_count`.
 
 Each owner install prepends a metadata version to the physical chain, acquires its immutable
 owner/bucket lifecycle reference, charges exact per-owner reclaim telemetry, attaches the shared
@@ -164,7 +164,8 @@ its reservation, arms its cancellation grace, and decrements the shared stamp co
 
 The `stamps_pending` decrements are acquire-release RMWs. Their modification-order chain carries all
 prior owner index publications to the worker that observes one. That worker advances the encoded
-clock and publishes the shared timestamp. A canceled group skips the clock.
+clock and publishes the shared timestamp. Its immediately preceding clock sample is the baseline for
+publication-lag telemetry. A canceled group skips the clock.
 
 The worker changes the group to `FINAL_READY`, pushes it to the same ready-group MPSC, and attempts
 the drainer election. Nothing waits for an earlier admitted group. A slow group is simply absent
@@ -178,8 +179,10 @@ publication. Canceled versions have no PRUNE operation beyond their already-comp
 
 After all owner-affine jobs have been materialized, the group seals its reshard lifecycle, drops its
 transient commit-record reference, release-decrements the real client's pending count, and publishes
-the group-head CDB byte. Producer notifiers are deduplicated in a word mask for each drain batch.
-The CDB publication is the first point at which reassembly may free the group.
+the group-head CDB byte. Producer IDs are deduplicated in a word mask for each drain batch, then each
+publisher consumes the IO owner's armed completion edge and posts its existing notifier. Atomic
+groups do not keep the IO loop's CDB poll mode active while stamps are pending. The CDB publication
+is the first point at which reassembly may free the group.
 
 ## Reader resolution and RYOW
 
@@ -258,8 +261,8 @@ INFO exposes the commit-time scheme directly:
 | Counter | Meaning |
 | --- | --- |
 | `tomokv_atomic_commit_ts` | Last fully published global timestamp. |
-| `tomokv_atomic_commit_ts_lag` | High-water number of other successful commits that passed a group between registration and its own commit. |
-| `tomokv_atomic_stragglers` | Successful groups whose observed commit-ts lag was nonzero. |
+| `tomokv_atomic_commit_ts_lag` | High-water number of successful publications that passed a group after its last stamp arrived but before it acquired the commit-clock latch. |
+| `tomokv_atomic_stragglers` | Successful last-stamp publishers which lost the commit-clock race to at least one other publisher. This is publication contention, not the normal registration-to-commit concurrency distance. |
 | `tomokv_atomic_stamp_full` | Bounded owner-lane full events. |
 | `tomokv_atomic_reclaim_limit` | Resolved process-wide byte cap. |
 | `tomokv_atomic_reclaim_bytes` | Conservative process-pool charge used for admission. |

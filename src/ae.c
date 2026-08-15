@@ -27,10 +27,11 @@
 #include "zmalloc.h"
 #include "config.h"
 
-/* Per-thread counter of worker-dispatched fakes still in flight for this
- * IO thread. Defined here (not in server.c) so redis-cli — which links
- * ae.o but not server.o — can resolve the reference in aeProcessEventsIO
- * below. Declared extern in ae.h. */
+/* Per-thread counter of poll-driven worker fakes still in flight for this IO
+ * thread. Atomic write groups use server.c's armed notifier lane instead and
+ * deliberately do not enter this counter. Defined here (not in server.c) so
+ * redis-cli — which links ae.o but not server.o — can resolve the reference in
+ * aeProcessEventsIO below. Declared extern in ae.h. */
 __thread int replyWorking = 0;
 
 /* ee451 (AE-1): adaptive-drain budget for aeProcessEventsIO. While replyWorking>0 the

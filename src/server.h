@@ -2081,7 +2081,7 @@ typedef struct csGroup {
     struct csGroup *commit_next; /* intrusive MPSC link for a ready commit stage */
     client *mset_client;         /* real client retained until terminal reply publication */
     tomoCommit *commit;          /* shared commit_ts record retained by installed versions */
-    uint64_t commit_start_ts;    /* T at registration; commit-lag diagnostics only */
+    uint64_t commit_start_ts;    /* T at last-stamp arrival; publication-lag diagnostics only */
     redisAtomic int mset_complete;      /* TOMO_COMMIT_* completion stage */
     redisAtomic int mset_install_count;
     csMsetInstall *mset_installs;       /* [version_install_expected], atomic-write arm only */

@@ -24,6 +24,13 @@ Refusal occurs before a fake-ring slot or group is allocated. The client remains
 thread's parked list with `CLIENT_ATOMIC_WINDOW_STALLED | CLIENT_PIPELINE_STALLED`, so its decoded
 pending command can be retried by a later event-loop pass.
 
+Each IO owner publishes an atomic waiter count without exposing its owner-only list. Terminal
+reassembly consumes a local free slot in the same before-sleep pass when possible; otherwise it
+round-robins to one remote owner and coalesces an already-pending notifier edge. It never broadcasts
+one retirement to the entire IO pool. Enroll-then-recheck and retire-then-check are separated by
+sequentially consistent fences, so a slot freed across the park edge is either assigned by the
+retirer or observed by the parker's one self-wake.
+
 ## Process-wide reclaim pool
 
 `tomokv-atomic-reclaim-limit` is modifiable and accepts:
@@ -79,6 +86,8 @@ participates in visibility, ordering, or writer admission.
    before a sequentially-consistent pool check, while a later charge republishes pressure.
 5. Disabling atomic mode makes the retry walk ignore both atomic gates, allowing parked commands to
    resume through the ordinary path.
+6. One group retirement creates at most one remote admission wake; a producer with an outstanding
+   wake consumes every currently open slot it can before handing residual capacity onward.
 
 ## Observability
 

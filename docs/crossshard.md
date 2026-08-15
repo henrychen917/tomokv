@@ -16,7 +16,7 @@ The relevant registry rows are `MGET` as `CS_RT_GATHER` with coalescing gated at
 
 There are no executable functions named `csScatter` or `csGather` in this worktree; the active route is `csClassify` to `csDispatch`, then `dispatchGather`, `dispatchTwoHop`, or `dispatchFanAll`. (`src/server.c:11161-11179`, `src/server.c:13742-13755`, `src/server.c:14368-14375`)
 
-After the real client's execution state is moved into its pipeline-ring fake, a classified cross-shard command drains that connection's staged reorder work, increments `replyWorking`, and calls `csDispatch`; the route switch selects fan-all, two-hop, or gather dispatch from `csCmdSpec.route`. (`src/server.c:8423-8450`, `src/server.c:8565-8590`, `src/server.c:13742-13748`)
+After the real client's execution state is moved into its pipeline-ring fake, a classified cross-shard command drains that connection's staged reorder work and calls `csDispatch`; the route switch selects fan-all, two-hop, or gather dispatch from `csCmdSpec.route`. Ordinary groups increment the poll-driving `replyWorking`. An admitted atomic write increments a separate owner-local wait count whose CDB publications are notifier-backed, so install/stamp latency does not make its IO owner poll. (`src/server.c`)
 
 When the exact predicate `!s->cs_write && !s->has_hop2 && !atomic_snapshot && nkeys >= 1` holds, `dispatchGather` first resolves every key; if all keys have one owner it sends one full-argv `CS_LOCAL` sub that runs the stock command, while keys spanning more than one owner continue to the scatter or reduction pipeline. (`src/server.c:13490-13509`, `src/server.c:13523-13587`)
 
@@ -65,9 +65,9 @@ The adjacent `nsub` comment says “number of sub-fakes = nkeys,” but that is 
 
 5. The worker locks `worker->id`, runs `csSubExec`, and unlocks. (`src/server.c:22144-22170`) A multi-sub wave decrements `pending` with `memory_order_acq_rel`; a singleton wave uses a relaxed zero store because it has no sibling writer. (`src/server.c:22171-22178`)
 
-6. For a non-versioned wave, the last sub release-publishes the head's CDB ready byte. (`src/server.c:22196-22199`, `src/server.c:3162-3164`) For a versioned final wave, the last sub calls `csMsetInstallDone` instead; versioned intermediate stages merely publish readiness so the IO drain can launch the next stage. (`src/server.c:22179-22195`)
+6. For a non-versioned wave, the last sub release-publishes the head's CDB ready byte. (`src/server.c:22196-22199`, `src/server.c:3162-3164`) For a versioned final wave, the last sub calls `csMsetInstallDone` instead; versioned intermediate stages publish readiness and consume the IO owner's armed notifier edge so the IO drain can launch the next stage without polling. (`src/server.c`)
 
-7. CDB publication is a release store and the IO drain polls it with an acquire load; the drain and drain-launched continuations clear it with a relaxed store before retirement or re-arm. (`src/server.c:3158-3168`, `src/server.c:4200-4204`, `src/server.c:4320-4337`, `src/server.c:14550-14561`) The drain walks ring slots in `flushid` order and stops at the first slot that is not ready. (`src/server.c:4236-4242`)
+7. CDB publication is a release store and the IO drain reads it with an acquire load; the drain and drain-launched continuations clear it with a relaxed store before retirement or re-arm. Ordinary groups reach that load through the established bounded poll. Atomic groups arm before the scan and block on their event notifier if no ready byte is visible. The drain walks ring slots in `flushid` order and stops at the first slot that is not ready. (`src/server.c`)
 
 8. A completed pipeline stage may call `csPipeAdvance`, and a completed HOP1 may call `csLaunchHop2`; either continuation keeps the same ring head in flight and makes the drain stop before retiring later slots. (`src/server.c:4285-4303`) Only a terminal wave reaches `csReassemble`. (`src/server.c:4304-4308`)
 
