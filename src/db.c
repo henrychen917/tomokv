@@ -1444,7 +1444,19 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
      * not block promotion. Nodes below it must already be gone so stripping
      * the metadata cannot orphan their links. Readers that acquired the
      * metadata are covered by the existing metadata retire grace. */
+    /* sole_committed may be a RAW value (vmeta == NULL): that is the already-promoted
+     * single live value this very block produces below via kvobjSetVmeta(..., NULL), and
+     * the census at the "!vmeta" arm above deliberately exports it as sole_committed.
+     * Under a CANCELED anchor such a raw member is not eligible for retirement (see the
+     * `else if (!cancel_anchor)` arm of the version walk), so it survives as newhead and
+     * reaches here -- whereas under a committed anchor it is always unlinked first, which
+     * is why only MSETNX-style cancellation exposes this. kvobjVersionPrev() dereferences
+     * vmeta unconditionally, so vmeta must be tested BEFORE it is called; the existing
+     * `vmeta &&` test below sat one line too late. A raw value has no predecessor by
+     * construction and no metadata to strip, so skipping the block is exactly the
+     * intended semantics -- the body was already a no-op for it. */
     if (committed == 1 && uncommitted == 0 && sole_committed &&
+        kvobjVmeta(sole_committed) != NULL &&
         kvobjVersionPrev(sole_committed) == NULL) {
         struct tomoVerMeta *vmeta = kvobjVmeta(sole_committed);
         /* Do not detach another version's install-owner identity while its own prune callback is
