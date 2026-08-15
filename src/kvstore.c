@@ -90,6 +90,10 @@ void kvstoreFlatRetireRaw(kvstore *kvs, void *rawkv) {   /* QSBR-retire a RAW (u
     flatTable *t = flatCurrent(kvs);
     if (t && rawkv) flatRetire(t, flatKvMask(kvs, rawkv));
 }
+void kvstoreFlatRetireAtomicRaw(kvstore *kvs, void *rawkv) {
+    flatTable *t = flatCurrent(kvs);
+    if (t && rawkv) flatRetireAtomicRaw(t, rawkv);
+}
 void kvstoreFlatRetireVersionPrune(kvstore *kvs, void *rawkv) {
     flatTable *t = flatCurrent(kvs);
     if (t && rawkv) flatRetireVersionPrune(t, rawkv);

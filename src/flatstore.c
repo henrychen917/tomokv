@@ -27,7 +27,9 @@
  * are already constrained to the low 48 bits) to request a grace callback. */
 #define FLAT_RETIRE_SPECIAL_BIT (UINT64_C(1) << 63)
 #define FLAT_RETIRE_VMETA_BIT   (UINT64_C(1) << 62)
-#define FLAT_RETIRE_SPECIAL_MASK (FLAT_RETIRE_SPECIAL_BIT | FLAT_RETIRE_VMETA_BIT)
+#define FLAT_RETIRE_RECLAIM_BIT (UINT64_C(1) << 61)
+#define FLAT_RETIRE_SPECIAL_MASK (FLAT_RETIRE_SPECIAL_BIT | FLAT_RETIRE_VMETA_BIT | \
+                                  FLAT_RETIRE_RECLAIM_BIT)
 
 static inline dictEntry *flatRetireSpecial(void *payload, int vmeta) {
     uintptr_t p = (uintptr_t)payload;
@@ -40,10 +42,21 @@ static inline void *flatRetireSpecialPayload(dictEntry *payload) {
     return (void *)((uintptr_t)payload & ~(uintptr_t)FLAT_RETIRE_SPECIAL_MASK);
 }
 
+static inline dictEntry *flatRetireReclaim(void *payload) {
+    uintptr_t p = (uintptr_t)payload;
+    serverAssert((p & (uintptr_t)FLAT_RETIRE_SPECIAL_MASK) == 0);
+    return (dictEntry *)(p | (uintptr_t)FLAT_RETIRE_SPECIAL_BIT |
+                         (uintptr_t)FLAT_RETIRE_RECLAIM_BIT);
+}
+
 void flatRetirePayloadReady(dictEntry *payload) {
     uintptr_t p = (uintptr_t)payload;
     if (!(p & (uintptr_t)FLAT_RETIRE_SPECIAL_BIT)) {
         decrRefCount((robj *)dictGetKV(payload));
+    } else if (p & (uintptr_t)FLAT_RETIRE_RECLAIM_BIT) {
+        kvobj *kv = flatRetireSpecialPayload(payload);
+        tomoAtomicReclaimRelease(kvobjVmeta(kv));
+        decrRefCount((robj *)kv);
     } else if (p & (uintptr_t)FLAT_RETIRE_VMETA_BIT) {
         zfree(flatRetireSpecialPayload(payload));
     } else {
@@ -58,6 +71,11 @@ void flatRetirePayloadDiscard(dictEntry *payload) {
     uintptr_t p = (uintptr_t)payload;
     if (!(p & (uintptr_t)FLAT_RETIRE_SPECIAL_BIT))
         decrRefCount((robj *)dictGetKV(payload));
+    else if (p & (uintptr_t)FLAT_RETIRE_RECLAIM_BIT) {
+        kvobj *kv = flatRetireSpecialPayload(payload);
+        tomoAtomicReclaimRelease(kvobjVmeta(kv));
+        decrRefCount((robj *)kv);
+    }
     else if (p & (uintptr_t)FLAT_RETIRE_VMETA_BIT)
         zfree(flatRetireSpecialPayload(payload));
     else {
@@ -114,7 +132,11 @@ void flatTableDestroy(flatTable *t) {
     flatTableDiscardRetires(t);
     for (uint64_t i = 0; i < t->size; i++) {
         uint64_t w = atomic_load_explicit(&t->slots[i].w, memory_order_relaxed);
-        if (FLAT_IS_LIVE(w)) decrRefCount((robj *)dictGetKV(flat_word_ptr(w)));
+        if (FLAT_IS_LIVE(w)) {
+            kvobj *kv = (kvobj *)dictGetKV(flat_word_ptr(w));
+            tomoAtomicReclaimRelease(kvobjVmeta(kv));
+            decrRefCount((robj *)kv);
+        }
     }
     zfree(t->slots);
     zfree(t);
@@ -186,6 +208,10 @@ static void flatRetirePayload(flatTable *t, dictEntry *payload) {
 
 void flatRetire(flatTable *t, dictEntry *masked_kv) {
     flatRetirePayload(t, masked_kv);
+}
+
+void flatRetireAtomicRaw(flatTable *t, void *rawkv) {
+    flatRetirePayload(t, flatRetireReclaim(rawkv));
 }
 
 void flatRetireVersionPrune(flatTable *t, void *rawkv) {

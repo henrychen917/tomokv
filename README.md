@@ -151,7 +151,8 @@ workers, and a maximum pipeline depth of 32. ([`src/server.h`](src/server.h#L148
 | Name | Type | Default | Accepted values | Effect |
 | --- | --- | ---: | --- | --- |
 | [`tomokv-atomic`](src/config.c#L3183) | Boolean, modifiable | `no` | `no`, `yes` | Enables MVCC admission for eligible cross-routed atomic writes and snapshot reads; enabling it initializes lifecycle state, and changes wake parked clients. ([apply callback](src/config.c#L3141-L3149)) |
-| [`tomokv-atomic-window`](src/config.c#L3184) | Integer, modifiable | `64` | `0..INT_MAX` | Caps admitted in-flight atomic write groups; `0` is unlimited, while a finite full window parks new groups. ([admission](src/server.c#L457-L476)) |
+| [`tomokv-atomic-window`](src/config.c#L3190) | Integer, modifiable | `-1` | `-1..INT_MAX` | Caps admitted in-flight atomic write groups; `-1` derives the limit from live writer concurrency and pipeline depth, `0` is unlimited, and a positive value is exact. |
+| [`tomokv-atomic-reclaim-limit`](src/config.c#L3191) | Integer bytes, modifiable | `-1` | `-1..LLONG_MAX` | Bounds atomic-version bytes awaiting physical reclaim per worker; `-1` derives a RAM/maxmemory budget, `0` disables accounting/allocation, and pressure stalls writers before ring allocation. |
 | [`tomokv-client-lb`](src/config.c#L3311) | Boolean, modifiable | `yes` | `no`, `yes` | Enables continuous migration of eligible connections away from sustained busy-outlier IO owners. |
 | [`tomokv-cores-per-node`](src/config.c#L3210) | Integer, immutable | `0` | `0..256` | Sets the core budget per topology node; `0` derives it as the IO-plus-EX starting split, with no reserved cores. |
 | [`tomokv-io-uring`](src/config.c#L3245) | Integer, immutable | `0` | `0..2` | Selects the native event-loop backend (epoll on Linux) at `0`; `1` selects the staged/taskrun-aware io_uring backend and `2` is its compatibility spelling. ([runtime dispatch](src/uring2.c#L1768-L1776)) |

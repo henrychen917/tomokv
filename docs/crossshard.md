@@ -42,14 +42,14 @@ The `csGroup` fields used by these protocols are declared together in `server.h`
 | Scalar and gathered results | `rcount` accumulates counts; `err` carries command errors; `mget_vals` and `mget_pos` carry position-indexed MGET copies; `setmem` and `setcnt` carry member-gather results, while `setop_pos` maps sub-local keys to original set-op positions for coalesced gather or the initial pipeline wave. (`src/server.h:2155-2176`, `src/server.c:12997-13003`) |
 | Two-hop state | `phase`, `has_hop2`, `h2_op`, `spec`, `h2sub`, `h2_nsub`, `h2_dbid`, `h2_flags`, `h2_payload`, `h2_pexpireat`, and `cs2_kind` retain the next-wave plan and its private serialized value. (`src/server.h:2189-2202`) |
 | Set-reduction pipeline | `pipe_stage`, `pipe_next`, `pipe_nshard`, `pipe_scard`, `pipe_order`, `pipe_cand`, `pipe_ncand`, `pipe_verdict`, `pipe_shard_of`, `pipe_smallest`, `pipe_cscore`, `pipe_probe_pos`, `pipe_probe_nk`, `pipe_npart`, `pipe_base_part`, `pipe_part`, `pipe_partcnt`, `pipe_partscore`, `pipe_midx`, `pipe_zraw`, `pipe_key_part`, and `cs2_intreply` carry the multi-stage INTER and local UNION/DIFF reductions. (`src/server.h:2203-2241`) |
-| Atomic-write state | `key_sig`, `key_h`, `key_h_n`, `version_seq`, `read_seq`, `commit_next`, `mset_client`, `mset_pending_prev`, `mset_pending_next`, `mset_complete`, `mset_install_count`, `mset_installs`, `mset_install_order_base`, `versioned_write`, `version_install_expected`, `version_commit_ready`, `version_abort`, `version_nx`, `version_nx_reserving`, `msetnx_retry`, `msetnx_state`, and `snapshot_pinned` carry a registered versioned write to publication. (`src/server.h:2115-2151`) |
+| Atomic-write state | `version_seq`, `read_seq`, `commit_next`, `mset_client`, `mset_pending_prev`, `mset_pending_next`, `mset_complete`, `mset_install_count`, `mset_installs`, `mset_install_order_base`, `versioned_write`, `version_install_expected`, `version_commit_ready`, `version_abort`, `version_nx`, `version_nx_reserving`, `msetnx_retry`, `msetnx_state`, and `snapshot_pinned` carry a registered versioned write to publication. The `_atomic_probe_retired_*` words are zeroed layout reserves, not membership state. (`src/server.h`) |
 | Accounting and allocation | Atomic `usec` and `had_err` accumulate sub work; `inl_cap`, `inl_used`, and flexible `inl[]` form the group's inline bump region. (`src/server.h:2244-2277`) |
 
 `csGroupNew` allocates and zeroes the header plus an eight-byte-aligned inline region capped at 512 bytes; `csgAlloc` advances the monotone inline cursor and spills to `zmalloc`, while `csgFree` ignores inline addresses and frees only spills. (`src/server.c:12418-12425`, `src/server.c:12465-12492`, `src/server.h:2278-2283`)
 
 `csH2Sub` is the two-field HOP2 plan element: `action` selects `CS_H2A_WRITE` or `CS_H2A_SRCOP`, and signed 32-bit `key_argi` selects the head argv key. (`src/server.h:2037-2040`, `src/server.h:2094-2100`) `csMsetInstall` is the three-field atomic-install record: `kv` is the exact installed store object, `owner` is the worker that applies its embedded operations, and `install_order` is the per-key duplicate-key tie break. (`src/server.h:2102-2106`)
 
-The retained publishing ring uses `csPubRec { tag, key_sig, key_h_n, key_h[16] }` and `csMsetPub { head, tail, mask, rec[] }`. (`src/server.h:1656-1673`, `src/server.h:1693-1697`) `tag` is stored as an identity value and compared by the retirement routine, while the other fields copy the departing group's signature and full hashes. (`src/server.c:9876-9886`, `src/server.c:9897-9907`)
+The former publishing-ring pointer slot remains as an always-NULL layout reserve so `tomokv-atomic no` retains the same client/cache geometry. No publishing ring is allocated. (`src/server.h`, `src/networking.c`)
 
 The adjacent `nsub` comment says “number of sub-fakes = nkeys,” but that is a legacy-shape description rather than a group invariant: the legacy arm sets `nsub=nkeys`, while the coalesced builder assigns the number of distinct workers with at least one key. (`src/server.h:2108-2113`, `src/server.c:12669-12674`, `src/server.c:13707-13722`)
 
@@ -145,21 +145,17 @@ With atomic admission, HOP1 reads/serializes without deleting, and the HOP2 plan
 
 The dispatcher comment that says RENAME HOP1 deletes the source is complete only for the non-atomic branch; the executable atomic branch passes `del=-1` and defers the source tombstone to HOP2. (`src/server.c:14368-14374`, `src/server.c:12124-12135`, `src/server.c:14514-14519`)
 
-## `key_sig` and the requested collision-test inventory
+## Membership-probe removal
 
-The retained signature builder is exact about what it computes: `csHashSignature(h)` is `1ULL << (h & 63)`, and group construction ORs those bits for written keys. (`src/server.c:10097-10099`, `src/server.c:12639-12668`) For at most `CS_EXACT_KEYS_MAX` (16) keys it also retains full 64-bit hashes and publishes `key_h_n` only after filling the vector. (`src/server.h:1651-1656`, `src/server.c:10101-10107`, `src/server.c:12639-12668`)
+The old own-read HOLD design used one low hash bit per key in a 64-bit signature, with an exact-hash companion and a per-connection publishing ring. At eight keys the signature aliased heavily, creating needless apparent conflicts. After own-read visibility moved to immutable version identity, those structures had no correctness consumer but were still built, copied, and allocated.
 
-Destination-only atomic groups compute the destination bit/hash directly, while atomic RENAME/RENAMENX compute destination plus source. (`src/server.c:10259-10270`, `src/server.c:14443-14468`) `csMsetRegister` then asserts that a registered group has installs, a positive expected count, and nonzero `key_sig`. (`src/server.c:9915-9922`)
-
-An exact-identifier search of this worktree finds `csKeysCollide` and `csMsetReadIntersects` only in comments, not as executable definitions or calls. (`src/server.h:1651-1673`, `src/server.h:2115-2132`, `src/server.c:9839-9871`, `src/server.c:12494-12506`, `src/server.c:12929-12932`) The stale descriptions occur in the header and atomic-publication blocks, while the implementation-side sizing code explicitly says the exact-key HOLD walk is gone. (`src/server.c:10101-10107`, `src/server.c:12494-12506`, `src/server.c:12721-12730`)
-
-The retained publication structures are not a live collision reader: `csMsetPopComplete` copies `key_sig`/`key_h` into `csPubRec`, while the other executable record references allocate the ring and define retirement. (`src/server.c:9873-9912`, `src/server.c:9936-9943`, `src/server.c:10272-10287`) An exact-identifier call-site search finds only the definition of `csMsetPubRetire`; the live commit loop instead decrements `mset_pending_count` directly after publishing the CDB byte. (`src/server.c:9897-9912`, `src/server.c:10390-10400`)
+The signature, exact vectors, publishing records, and write-side probe machinery are now removed. Routing still computes full key hashes for owner/bucket selection, but it does not derive membership state from them. (`src/server.c`, `src/server.h`)
 
 The live read-your-own-write resolver uses version identity instead of signature disjointness. (`src/server.c:10133-10148`, `src/server.c:10206-10256`) For a real reader it starts with the own-version scan enabled; when `mset_pending_count == 0` in a worker context, it narrows that decision to whether that worker's `stamp_pending` is nonzero, while a non-worker context retains the scan. (`src/server.c:10206-10239`) The scan selects an uncommitted, non-canceled version whose `origin_client_id` equals the real client's ID, and the committed-chain walk accepts the first version at or below the snapshot or the first version from that same client ID. (`src/server.c:10133-10148`, `src/server.c:10242-10256`)
 
 For a qualifying atomic cross-shard read, dispatch calls `flatGroupPinEnter(fake)` and acquire-loads `commit_seq` into `fake->tomo_read_snapshot`. (`src/server.c:8452-8471`) Owner-side resolution obtains that captured snapshot from the group or its head, and the dispatch path explicitly performs no overlap hold. (`src/server.h:5881-5901`, `src/server.c:8458-8464`)
 
-Accordingly, `key_sig` and `key_h` are retained and populated bookkeeping in the current code, but they do not gate or hold reads; descriptions of a live Bloom/exact collision decision are stale relative to the executable path. (`src/server.c:9876-9886`, `src/server.c:9915-9922`, `src/server.c:10101-10107`, `src/server.c:10227-10256`)
+Consequently there is no Bloom false-positive path in the active write or read protocol. The zeroed `_atomic_probe_retired_*` words preserve default-OFF layout only. (`src/server.h`)
 
 ## Consistency boundaries
 
@@ -207,7 +203,7 @@ Non-atomic cross-worker RENAME has a real missing interval: HOP1 deletes the sou
 | Two-hop dispatch and launcher | `src/server.c:14368-14861` |
 | RENAME worker operations | `src/server.c:11187-11279`, `src/server.c:12120-12139` |
 | Versioned registration and completion | `src/server.c:9914-9957`, `src/server.c:10272-10413` |
-| Signature/hash remnants and live read resolver | `src/server.c:10097-10107`, `src/server.c:10133-10256` |
+| Identity-based own-read resolver | `src/server.c` |
 | Worker pending barrier | `src/server.c:22144-22199` |
 | Reply reassembly and teardown | `src/server.c:14864-15328` |
 

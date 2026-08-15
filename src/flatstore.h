@@ -163,6 +163,7 @@ dictEntry *flatDelete(flatTable *t, uint64_t slot);
 void       flatRetire(flatTable *t, dictEntry *masked_kv);   /* QSBR: defer free until grace */
 /* CURE2 two-stage retirement. These payloads share the existing retire-node
  * pool but dispatch an owner prune or a metadata free when their grace ends. */
+void       flatRetireAtomicRaw(flatTable *t, void *rawkv);
 void       flatRetireVersionPrune(flatTable *t, void *rawkv);
 void       flatRetireVmeta(flatTable *t, void *vmeta);
 void       flatRetirePayloadReady(dictEntry *payload);

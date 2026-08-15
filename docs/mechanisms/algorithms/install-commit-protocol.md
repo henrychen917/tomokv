@@ -74,7 +74,7 @@ but *before* its first owner-queue push (`src/server.c:9914-9958`,
 g->versioned_write = 1;
 g->version_seq = TOMO_VERSION_UNCOMMITTED;                     /* :9919 */
 g->mset_client = real;
-serverAssert(g->mset_installs && g->version_install_expected > 0 && g->key_sig != 0); /* :9921 */
+serverAssert(g->mset_installs && g->version_install_expected > 0);
 /* under mset_pending_lock: */
 g->mset_install_order_base = clientTail(real)->mset_next_install_order;   /* :9949 */
 clientTail(real)->mset_next_install_order += g->version_install_expected; /* :9950 */

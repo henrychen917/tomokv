@@ -141,6 +141,8 @@ struct tomoVerMeta {
                                 * at install, IMMUTABLE until physical retire:
                                 * the RYOW resolver keys off it after the stamp
                                 * (kvobjVersionAt own-widening) */
+    size_t reclaim_bytes;      /* atomic-only allocation charge held until this version is
+                                * physically freed or promoted to the one raw live value */
     uint32_t version_order;
     int16_t install_owner;
     uint16_t install_bucket;

@@ -42,8 +42,8 @@ Parent: the 7 subsystem docs in `../` link down to these; the top-level `../../R
 - [`communication/ring-push-pop.md`](communication/ring-push-pop.md) — `exQueuePush` / `exQueuePopBatch` / `exQueuePopOrdered` / `staged_tail` — batc
 
 ## algorithms
-- [`algorithms/atomic-window.md`](algorithms/atomic-window.md) — tomokv-atomic-window: the atomic-write admission window
-- [`algorithms/bloom-signature.md`](algorithms/bloom-signature.md) — key_sig: the per-group key-set bloom signature
+- [`algorithms/atomic-window.md`](algorithms/atomic-window.md) — atomic-write admission and reclaim backpressure
+- [`algorithms/bloom-signature.md`](algorithms/bloom-signature.md) — retired atomic key-signature probe and its identity-based replacement
 - [`algorithms/client-lb.md`](algorithms/client-lb.md) — Client-LB: continuous connection rebalance across IO threads
 - [`algorithms/commit-seq-ordering.md`](algorithms/commit-seq-ordering.md) — commit_seq: the global commit-order counter
 - [`algorithms/del-tombstone-versions.md`](algorithms/del-tombstone-versions.md) — DEL / UNLINK and tombstone versions
@@ -62,4 +62,3 @@ Parent: the 7 subsystem docs in `../` link down to these; the top-level `../../R
 - [`algorithms/qsbr-grace.md`](algorithms/qsbr-grace.md) — FLATSTORE QSBR grace determination
 - [`algorithms/reclaim-budget.md`](algorithms/reclaim-budget.md) — FLATSTORE budgeted reclaim, same-arena free, and the two-grace physical retire
 - [`algorithms/version-resolve.md`](algorithms/version-resolve.md) — kvobjVersionAt: resolving a version bag at a snapshot
-

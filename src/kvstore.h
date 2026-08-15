@@ -102,6 +102,7 @@ void kvstoreFlatIterRange(kvstore *kvs, int blo, int bhi, void (*cb)(dictEntry *
 void *kvstoreFlatRandomKeyInRange(kvstore *kvs, int blo, int bhi);
 struct flatTable *kvstoreFlatTable(kvstore *kvs);
 void kvstoreFlatRetireRaw(kvstore *kvs, void *rawkv);
+void kvstoreFlatRetireAtomicRaw(kvstore *kvs, void *rawkv);
 void kvstoreFlatRetireVersionPrune(kvstore *kvs, void *rawkv);
 void kvstoreFlatRetireVmeta(kvstore *kvs, void *vmeta);
 void kvstoreFlatSwap(kvstore *kvs, struct flatTable *nw);

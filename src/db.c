@@ -1005,7 +1005,7 @@ static void tomoSchedulePhysicalRetire(kvstore *kvs, kvobj *kv) {
         if (vmeta->retire_state == TOMO_RETIRE_PHYSICAL) return;
         vmeta->retire_state = TOMO_RETIRE_PHYSICAL;
     }
-    kvstoreFlatRetireRaw(kvs, kv);
+    kvstoreFlatRetireAtomicRaw(kvs, kv);
 }
 
 void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
@@ -1460,6 +1460,7 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
             atomic_store_explicit(&vmeta->committed_head, sole_committed,
                                   memory_order_release);
             vmeta->retire_state = TOMO_RETIRE_ACTIVE;
+            tomoAtomicReclaimRelease(vmeta);
             kvobjSetVmeta(sole_committed, NULL);
             kvstoreFlatRetireVmeta(kvs, vmeta);
             atomic_fetch_add_explicit(&tomo_atomic_promotions, 1,

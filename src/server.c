@@ -392,6 +392,12 @@ static _Atomic int tomo_atomic_waiters;
  * so global relaxed counters do not add work to an ordinary atomic completion. */
 static _Atomic unsigned long long tomo_atomic_stamp_full;
 static _Atomic unsigned long long tomo_atomic_commit_wait_drains;
+/* Writer-only memory backpressure. Atomic versions are charged to their install owner until
+ * physical reclaim (or promotion to the sole raw live value). `pressure` is only consulted in
+ * the already-enabled atomic-write admission arm, so tomokv-atomic=no adds no read, branch or
+ * allocation to the ordinary command path. */
+static _Atomic int tomo_atomic_reclaim_pressure;
+static _Atomic unsigned long long tomo_atomic_reclaim_stalls;
 
 /* Atomic cutover lifecycle fence. One reference belongs to one installed version and is indexed by
  * the owner/bucket recorded at INSTALL. It survives the group's delayed completion, both embedded
@@ -399,6 +405,13 @@ static _Atomic unsigned long long tomo_atomic_commit_wait_drains;
  * server which keeps tomokv-atomic off neither allocates nor touches this table. */
 typedef _Atomic unsigned int tomoAtomicLifecycleRef;
 static _Atomic(tomoAtomicLifecycleRef *) tomo_atomic_lifecycle_refs;
+typedef struct tomoAtomicReclaimSlot {
+    _Atomic size_t bytes;
+    char pad[CACHE_LINE_SIZE - sizeof(_Atomic size_t)];
+} tomoAtomicReclaimSlot;
+_Static_assert(sizeof(tomoAtomicReclaimSlot) == CACHE_LINE_SIZE,
+               "atomic reclaim owners must not false-share counters");
+static _Atomic(tomoAtomicReclaimSlot *) tomo_atomic_reclaim_slots;
 static atomic_flag tomo_atomic_lifecycle_init_lock = ATOMIC_FLAG_INIT;
 static _Atomic int tomo_atomic_cutover_gate;
 static _Atomic unsigned long long tomo_atomic_cutover_fence_waits;
@@ -413,9 +426,12 @@ static struct { _Atomic int v; char pad[CACHE_LINE_SIZE - sizeof(_Atomic int)]; 
 #define tomo_atomic_unsealed (tomo_atomic_unsealed_line.v)
 
 void tomoAtomicLifecycleEnsure(void) {
-    if (server.num_workers <= 0 ||
-        atomic_load_explicit(&tomo_atomic_lifecycle_refs, memory_order_acquire) != NULL)
-        return;
+    if (server.num_workers <= 0) return;
+    int need_refs =
+        atomic_load_explicit(&tomo_atomic_lifecycle_refs, memory_order_acquire) == NULL;
+    int need_reclaim = server.tomo_atomic_reclaim_limit != 0 &&
+        atomic_load_explicit(&tomo_atomic_reclaim_slots, memory_order_acquire) == NULL;
+    if (!need_refs && !need_reclaim) return;
     while (atomic_flag_test_and_set_explicit(&tomo_atomic_lifecycle_init_lock,
                                              memory_order_acquire))
         exPauseCpu();
@@ -424,6 +440,13 @@ void tomoAtomicLifecycleEnsure(void) {
         tomoAtomicLifecycleRef *refs = zcalloc(sizeof(*refs) * nref);
         for (size_t i = 0; i < nref; i++) atomic_init(&refs[i], 0);
         atomic_store_explicit(&tomo_atomic_lifecycle_refs, refs, memory_order_release);
+    }
+    if (server.tomo_atomic_reclaim_limit != 0 &&
+        atomic_load_explicit(&tomo_atomic_reclaim_slots, memory_order_relaxed) == NULL) {
+        tomoAtomicReclaimSlot *slots = zcalloc(
+            sizeof(*slots) * (size_t)server.num_workers);
+        for (int w = 0; w < server.num_workers; w++) atomic_init(&slots[w].bytes, 0);
+        atomic_store_explicit(&tomo_atomic_reclaim_slots, slots, memory_order_release);
     }
     atomic_flag_clear_explicit(&tomo_atomic_lifecycle_init_lock, memory_order_release);
 }
@@ -520,9 +543,118 @@ static void tomoAtomicWakeAll(void) {
     for (int t = 0; t <= hi; t++) tomoAtomicWakeProducer(t);
 }
 
+/* AUTO window is the process's live writer concurrency times the independently-derived maximum
+ * number of commands one connection may have resident. This is a structural concurrency bound,
+ * not a core-count table: flips change the live writer count and pipeline configuration changes
+ * the per-producer population. Positive configurations remain exact and zero remains unlimited. */
+static int tomoAtomicWindowResolved(void) {
+    int configured = server.tomo_atomic_window;
+    if (configured >= 0) return configured;
+    int writers = atomic_load_explicit(&server.num_workers_live, memory_order_acquire);
+    if (writers < 1) writers = server.num_workers > 0 ? server.num_workers : 1;
+    int depth = server.pipeline_ring_depth > 0 ? server.pipeline_ring_depth : 1;
+    if (writers > INT_MAX / depth) return INT_MAX;
+    return writers * depth;
+}
+
+/* Leave the overwhelming majority of the allocator's addressable RAM to the dataset, client
+ * buffers and allocator fragmentation. The remaining fraction is divided across every configured
+ * writer slot, so the aggregate AUTO allowance is invariant as machines and worker pools scale.
+ * maxmemory wins when available; TomoKV's sharded configuration normally derives from physical
+ * memory because maxmemory is intentionally rejected there. */
+#define TOMO_ATOMIC_RECLAIM_RAM_FRACTION 16U
+static size_t tomoAtomicReclaimLimitResolved(void) {
+    long long configured = server.tomo_atomic_reclaim_limit;
+    if (configured == 0) return 0;
+    if (configured > 0) return (size_t)configured;
+
+    size_t source = 0;
+    if (server.maxmemory && server.maxmemory <= SIZE_MAX)
+        source = (size_t)server.maxmemory;
+    if (!source) source = server.system_memory_size;
+    if (!source) source = zmalloc_get_memory_size();
+    int writers = server.num_workers > 0 ? server.num_workers : 1;
+    size_t limit = source / TOMO_ATOMIC_RECLAIM_RAM_FRACTION / (size_t)writers;
+    return limit ? limit : 1; /* one byte is the fail-closed result when RAM discovery failed */
+}
+
+static int tomoAtomicReclaimOverLimit(size_t limit) {
+    tomoAtomicReclaimSlot *slots =
+        atomic_load_explicit(&tomo_atomic_reclaim_slots, memory_order_acquire);
+    if (!limit || !slots) return 0;
+    for (int w = 0; w < server.num_workers; w++)
+        if (atomic_load_explicit(&slots[w].bytes, memory_order_seq_cst) > limit)
+            return 1;
+    return 0;
+}
+
+/* Clear first, then validate. A concurrent charge either precedes the scan and is observed, or
+ * follows the clear and republishes pressure itself; this ordering cannot lose an over-limit edge.
+ * Extra wakes are harmless because each producer rechecks both gates on its own event loop. */
+static void tomoAtomicReclaimRefresh(void) {
+    int was_blocked = atomic_exchange_explicit(&tomo_atomic_reclaim_pressure, 0,
+                                                memory_order_seq_cst);
+    size_t limit = tomoAtomicReclaimLimitResolved();
+    if (tomoAtomicReclaimOverLimit(limit)) {
+        atomic_store_explicit(&tomo_atomic_reclaim_pressure, 1, memory_order_seq_cst);
+    } else if (was_blocked &&
+               atomic_load_explicit(&tomo_atomic_waiters, memory_order_relaxed) != 0) {
+        tomoAtomicWakeAll();
+    }
+}
+
+static inline int tomoAtomicReclaimBlocked(void) {
+    return server.tomo_atomic_reclaim_limit != 0 &&
+           atomic_load_explicit(&tomo_atomic_reclaim_pressure,
+                                memory_order_acquire) != 0;
+}
+
 void tomoAtomicWindowChanged(void) {
+    tomoAtomicReclaimRefresh();
     if (atomic_load_explicit(&tomo_atomic_waiters, memory_order_relaxed) != 0)
         tomoAtomicWakeAll();
+}
+
+/* Charge only after an atomic install has acquired its immutable owner identity. The allocation
+ * itself is the memory introduced by the version pipeline; it remains charged while it is linked,
+ * while either QSBR grace is pinned, and while it waits in a retire batch. */
+void tomoAtomicReclaimCharge(kvobj *kv, int owner) {
+    if (server.tomo_atomic_reclaim_limit == 0) return;
+    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+    serverAssert(vmeta != NULL && vmeta->reclaim_bytes == 0);
+    serverAssert(owner >= 0 && owner < server.num_workers &&
+                 vmeta->install_owner == owner);
+    size_t bytes = kvobjAllocSize(kv);
+    serverAssert(bytes > 0);
+    vmeta->reclaim_bytes = bytes;
+    tomoAtomicReclaimSlot *slots =
+        atomic_load_explicit(&tomo_atomic_reclaim_slots, memory_order_acquire);
+    serverAssert(slots != NULL);
+    size_t before = atomic_fetch_add_explicit(
+        &slots[owner].bytes, bytes, memory_order_seq_cst);
+    serverAssert(before <= SIZE_MAX - bytes);
+    if (before + bytes > tomoAtomicReclaimLimitResolved())
+        atomic_store_explicit(&tomo_atomic_reclaim_pressure, 1, memory_order_seq_cst);
+}
+
+/* Called exactly once, either before a sole version loses its metadata at promotion or while a
+ * still-versioned object is physically freed. Resize/shutdown discard uses the same hook. */
+void tomoAtomicReclaimRelease(struct tomoVerMeta *vmeta) {
+    if (!vmeta || !vmeta->reclaim_bytes) return;
+    size_t bytes = vmeta->reclaim_bytes;
+    int owner = vmeta->install_owner;
+    serverAssert(owner >= 0 && owner < server.num_workers);
+    vmeta->reclaim_bytes = 0;
+    tomoAtomicReclaimSlot *slots =
+        atomic_load_explicit(&tomo_atomic_reclaim_slots, memory_order_acquire);
+    serverAssert(slots != NULL);
+    size_t before = atomic_fetch_sub_explicit(
+        &slots[owner].bytes, bytes, memory_order_seq_cst);
+    serverAssert(before >= bytes);
+    size_t limit = tomoAtomicReclaimLimitResolved();
+    if (before > limit && before - bytes <= limit &&
+        atomic_load_explicit(&tomo_atomic_reclaim_pressure, memory_order_acquire))
+        tomoAtomicReclaimRefresh();
 }
 
 /* Called only after the caller has established server.tomo_atomic. Consequently the admission
@@ -628,9 +760,10 @@ static void tomoAtomicReleaseStalledClients(void) {
     list *l = server.clients_atomic_window_parked[iotid];
     while (l && listLength(l) != 0) {
         int window = 0;
-        if (server.tomo_atomic) window = server.tomo_atomic_window;
+        if (server.tomo_atomic) window = tomoAtomicWindowResolved();
         int window_open = window <= 0 ||
             atomic_load_explicit(&tomo_atomic_inflight, memory_order_relaxed) < window;
+        int reclaim_open = !server.tomo_atomic || !tomoAtomicReclaimBlocked();
         int cutover_open =
             atomic_load_explicit(&tomo_atomic_cutover_gate, memory_order_seq_cst) == 0;
 
@@ -641,7 +774,7 @@ static void tomoAtomicReleaseStalledClients(void) {
         while ((ln = listNext(&li)) != NULL) {
             client *candidate = listNodeValue(ln);
             if ((candidate->flags & CLIENT_ATOMIC_WINDOW_STALLED) &&
-                window_open && cutover_open) {
+                window_open && reclaim_open && cutover_open) {
                 c = candidate;
                 break;
             }
@@ -8529,9 +8662,6 @@ int processCommand(client *c) {
     const csCmdSpec *atomic_csp = NULL;
     int atomic_write_admission = 0;  /* 0=stock, 1=atomic inflight slot reserved */
     if (__builtin_expect(server.tomo_atomic != 0, 0)) {
-        /* Read the knob only inside the enabled arm. Classification is reused below so an admitted
-         * command cannot change route between reserving the counter and creating its group. */
-        int window = server.tomo_atomic_window;
         if (c->cmd->tomo_route & TOMO_R_CROSS) {
             const csCmdSpec *candidate = csClassify(c);
             /* Stock keeps one-key DEL on its direct worker path. Atomic mode
@@ -8545,28 +8675,40 @@ int processCommand(client *c) {
                                 candidate->ctype == CS_DEL ||
                                 candidate->ctype == CS_MSETNX ||
                                 csAtomicPortallVersionedWrite(c, candidate));
-            /* A cutover closes global atomic-write admission so the already-admitted group census
-             * can become final. This branch is nested under tomokv-atomic: OFF pays no load. */
-            if (atomic_write &&
-                atomic_load_explicit(&tomo_atomic_cutover_gate, memory_order_seq_cst)) {
-                tomoAtomicParkCutoverClient(c);
-                return C_OK;
-            }
-            if (window == 0) {
-                if (atomic_write) {
+            if (atomic_write) {
+                /* Memory pressure parks only a command which would create more versions. Reads and
+                 * workers continue, which is what lets group pins retire and both QSBR graces catch
+                 * up. This remains before fake-ring allocation, identical to window refusal. */
+                if (tomoAtomicReclaimBlocked()) {
+                    if (!ct->atomic_window_parked_node)
+                        atomic_fetch_add_explicit(&tomo_atomic_reclaim_stalls, 1,
+                                                  memory_order_relaxed);
+                    tomoAtomicParkWindowClient(c);
+                    return C_OK;
+                }
+                /* A cutover closes global atomic-write admission so the already-admitted group
+                 * census can become final. Reads do not touch this writer-only gate. */
+                if (atomic_load_explicit(&tomo_atomic_cutover_gate, memory_order_seq_cst)) {
+                    tomoAtomicParkCutoverClient(c);
+                    return C_OK;
+                }
+                /* Resolve the dynamic window only after write classification: pure reads add no
+                 * live-writer load, pressure load, or admission work in atomic mode. */
+                int window = tomoAtomicWindowResolved();
+                if (window == 0) {
                     tomoAtomicMsetTryReserve(0);
                     if (tomoAtomicCutoverRaceAfterReserve(c)) return C_OK;
                     atomic_csp = candidate;
                     atomic_write_admission = 1;
+                } else {
+                    if (!tomoAtomicMsetTryReserve(window)) {
+                        tomoAtomicParkWindowClient(c);
+                        return C_OK;
+                    }
+                    if (tomoAtomicCutoverRaceAfterReserve(c)) return C_OK;
+                    atomic_csp = candidate;
+                    atomic_write_admission = 1;
                 }
-            } else if (atomic_write) {
-                if (!tomoAtomicMsetTryReserve(window)) {
-                    tomoAtomicParkWindowClient(c);
-                    return C_OK;
-                }
-                if (tomoAtomicCutoverRaceAfterReserve(c)) return C_OK;
-                atomic_csp = candidate;
-                atomic_write_admission = 1;
             }
         }
     }
@@ -10457,81 +10599,6 @@ static inline void csMsetPendingUnlock(client *c) {
     atomic_store_explicit(&clientTail(c)->mset_pending_lock, 0, memory_order_release);
 }
 
-/* ---- R1 own-read gate: the DETACHED-HEAD (publishing) window ----------------------------
- *
- * A completed group leaves the connection's R1 FIFO at csMsetPopComplete, but it stays PENDING:
- * mset_pending_count is decremented much later, only after that group's commit_seq publication
- * (csMsetInstallDone's second loop). In between it is unreachable from the walk while it still
- * counts, so csMsetReadIntersects saw `pending > linked` and could only HOLD. Measured with the
- * ownread census once the exact arm landed (8-key MGET:MSET 1:1, 200 conns, io4/ex4, 2M keys):
- * 52,166 of the 53,392 remaining holds — 98% — came from that one arm, against ~1,200 genuine
- * key overlaps in 5.8M pending reads.
- *
- * Closing it means the walk must still be able to test the departing group's keys, and it must
- * NOT do that by keeping a pointer to the group. csReassemble frees the group — zfree(g), and
- * csgFree(g, g->key_h) immediately above it — as soon as the head's reply slot is published, and
- * that publication happens INSIDE this window (cdbSlotPublish precedes the count decrement by
- * design: the decrement is what licenses a held read to draw a snapshot containing the group).
- * So the group's key set is COPIED, at the pop, into a connection-owned record, and nothing on
- * this path ever dereferences the group again. That is the same reasoning that kept the exact
- * arm off g->subs[i], one step further: there, a live group's arrays were freed underneath the
- * walk; here, the whole group is.
- *
- * The records are a FIFO ring, which is exactly the discipline the producer already has:
- * csMsetInstallDone holds the GLOBAL commit lock across BOTH of its loops and drains the commit
- * queue to empty before releasing it, and csMsetStampAndAppend is only ever called from inside
- * that hold. So for one connection every pop of a critical section precedes every publish of
- * that section, the ring is empty at every csCommitUnlock, and the record at the ring head
- * always belongs to the group now publishing — asserted at the retire.
- *
- * A group that finds the ring FULL simply gets no record. That is self-healing rather than a
- * hole: `pending` then exceeds linked+recorded, the walk takes the same conservative hold it
- * took before any of this existed, and says so in ownread_conserv. The ring is sized from the
- * structural bound on concurrently-detached groups (csMsetPub) rather than guessed, so that arm
- * should be unreachable; it is kept because a hold is the safe answer to "my bound was wrong"
- * and conserv is where that would be reported. */
-
-/* Copy the departing group's key set into real's publishing ring. Called with the pending lock
- * held, in the same hold as the FIFO unlink, so (linked + recorded) never dips below `pending`
- * as far as any walk can observe. */
-static inline void csMsetPubRecordLocked(client *real, csGroup *g) {
-    csMsetPub *pub = clientTail(real)->mset_pub;
-    if (!pub || (unsigned int)(pub->tail - pub->head) > pub->mask)
-        return;                        /* no record => the conservative arm holds; see above */
-    csPubRec *r = &pub->rec[pub->tail & pub->mask];
-    r->tag = (uintptr_t)g;
-    r->key_sig = g->key_sig;
-    int n = g->key_h_n;
-    for (int i = 0; i < n; i++) r->key_h[i] = g->key_h[i];
-    r->key_h_n = n;                    /* after the slots, mirroring the group's own commit rule */
-    pub->tail++;
-}
-
-/* The group's commit_seq is published and its reply slot is out: drop its record and its pending
- * count in ONE lock hold, so no walk can observe the count without the record that explains it.
- * `tag` is the group's ADDRESS, captured before the slot publication and compared as a value —
- * by now the group may already have been freed by its IO thread and must not be dereferenced.
- *
- * The ring itself is connection-owned and outlives every group: freeClient defers a teardown
- * while the fake ring is in flight (dispatchid != flushid), which is the same guarantee that
- * lets the caller dereference hp->reply_cdb one line earlier. */
-static void csMsetPubRetire(client *real, uintptr_t tag) {
-    clientExecTail *rt = clientTail(real);
-    csMsetPendingLock(real);
-    csMsetPub *pub = rt->mset_pub;
-    if (pub && pub->head != pub->tail) {
-        /* FIFO discipline (see the block comment). A mismatch would mean pops and publishes had
-         * interleaved, i.e. this record belongs to another group — retiring it would then clear
-         * a key set that is still pending and could licence a stale read. Trip, do not guess. */
-        serverAssert(pub->rec[pub->head & pub->mask].tag == tag);
-        pub->head++;
-    }
-    unsigned int before = atomic_fetch_sub_explicit(&rt->mset_pending_count, 1,
-                                                    memory_order_release);
-    csMsetPendingUnlock(real);
-    serverAssert(before > 0);
-}
-
 /* I5/R1 registration is ticket-free and precedes every owner publish. */
 static void csMsetRegister(csGroup *g) {
     client *real = g->head->parent;
@@ -10539,30 +10606,7 @@ static void csMsetRegister(csGroup *g) {
     g->versioned_write = 1;
     g->version_seq = TOMO_VERSION_UNCOMMITTED;
     g->mset_client = real;
-    serverAssert(g->mset_installs != NULL && g->version_install_expected > 0 &&
-                 g->key_sig != 0);
-
-    /* Lazily arm the publishing ring: only a connection that actually registers an atomic group
-     * pays for one, so a server with tomokv-atomic off allocates nothing. Every registration for
-     * this connection runs on its own IO thread (dispatch, and the drain-side MSETNX/NX advances
-     * are that same thread), so this is the single writer of the pointer; it is published under
-     * the pending lock, which is the lock both readers — the walk and csMsetPubRetire — take.
-     *
-     * Capacity is the structural bound on concurrently-detached groups (see csMsetPub): this
-     * connection can never have more registered-and-unpublished groups than it has in-flight ring
-     * slots, and that is capped for the life of the process by tomokv-pipeline-depth, which is
-     * IMMUTABLE_CONFIG. Rounded UP to a power of two so the cursors can mask, and derived rather
-     * than picked, so no traffic shape can overflow it and the conservative arm below becomes
-     * unreachable instead of merely unlikely. */
-    if (__builtin_expect(rt->mset_pub == NULL, 0)) {
-        unsigned int cap = 1;
-        while (cap < (unsigned int)server.pipeline_ring_depth) cap <<= 1;
-        csMsetPub *pub = zcalloc(sizeof(*pub) + (size_t)cap * sizeof(csPubRec));
-        pub->mask = cap - 1;
-        csMsetPendingLock(real);
-        rt->mset_pub = pub;
-        csMsetPendingUnlock(real);
-    }
+    serverAssert(g->mset_installs != NULL && g->version_install_expected > 0);
 
     csMsetPendingLock(real);
     serverAssert(UINT64_MAX - clientTail(real)->mset_next_install_order >=
@@ -10714,18 +10758,6 @@ static inline int csMsetHeadComplete(client *real) {
     csMsetPendingUnlock(real);
     return complete;
 }
-
-static inline uint64_t csHashSignature(uint64_t h) {
-    return 1ULL << (h & 63);
-}
-
-/* Region demand of a group's written-key hash vector (RESTORED in the ownread replay: the
- * exact-key HOLD walk is gone, but registration/admission still size the inline bump region
- * with this, and the reserve below still hands out the vectors those sites fill). */
-static inline size_t csKeyHashWant(int nkeys) {
-    return (nkeys > 0 && nkeys <= CS_EXACT_KEYS_MAX) ? sizeof(uint64_t) * (size_t)nkeys : 0;
-}
-static uint64_t *csGroupKeyHashReserve(csGroup *g, int nkeys);
 
 /* Resolve C's owner-local uncommitted version before consulting the committed
  * cursor. origin_client_id identifies the installing connection for the whole
@@ -10880,11 +10912,8 @@ kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot, client *reader_connection) {
 /* Destination-only atomic shapes hash their one written key at registration and carry the
  * resulting bucket on the existing group-head hash cache. HOP2 re-reads only the mutable
  * bucket->owner table after a migration hold; it does not hash the destination bytes again. */
-static void csAtomicSetDestinationSignature(csGroup *g, robj *dst) {
+static void csAtomicSetDestinationRouting(csGroup *g, robj *dst) {
     uint64_t h = tomoKeyHash(dst->ptr, sdslen(dst->ptr));
-    g->key_sig = csHashSignature(h);
-    uint64_t *kh = csGroupKeyHashReserve(g, 1);
-    if (kh) { kh[0] = h; g->key_h_n = 1; }   /* publish only once the slot is written */
     g->head->tomo_key_h = h;
     g->head->tomo_bkt = (int)(h & TOMO_BUCKET_MASK);
     g->head->tomo_bkt_ptr = dst->ptr;
@@ -10903,7 +10932,6 @@ static csGroup *csMsetPopComplete(client *real) {
     else rt->mset_pending_tail = NULL;
     g->mset_pending_prev = g->mset_pending_next = NULL;
     g->mset_client = NULL;
-    csMsetPubRecordLocked(real, g);
     csMsetPendingUnlock(real);
     return g;
 }
@@ -11009,10 +11037,6 @@ static void csMsetInstallDone(csGroup *g) {
          * versions retain their owner/bucket refs until the jobs and prune callbacks retire. */
         tomoAtomicLifecycleGroupSealed();
         client *hp = done->head->parent;
-        /* Identity for this group's publishing record, taken while the group is still certainly
-         * alive: the slot publication below hands it to hp's IO thread, which may csReassemble
-         * (and zfree) it immediately. Everything after that store touches hp only. */
-        uintptr_t gtag = (uintptr_t)done;
         cdbSlotPublish(hp, done->head->cdb, done->head->fake_slot);
         /* This is the FIFO's semantic drain point, not csMsetPopComplete: the
          * release decrement follows commit_seq publication. */
@@ -12066,6 +12090,7 @@ static inline void csMsetRecordInstall(client *sub, csGroup *g, kvobj *installed
      * observes this reference or executes before the install; there is no invisible interval in
      * which the version exists but the cutover can regard its owner-affine lifecycle as drained. */
     tomoAtomicLifecycleAcquire(installed, owner);
+    tomoAtomicReclaimCharge(installed, owner);
     vmeta->version_order = (uint32_t)ii;
     g->mset_installs[ii].kv = installed;
     g->mset_installs[ii].owner = owner;
@@ -13112,26 +13137,6 @@ static inline void csgFree(csGroup *g, void *p) {
     zfree(p);
 }
 
-/* Reserve this group's written-key hash vector (see csGroup.key_h and csMsetReadIntersects).
- * From the group's OWN region, deliberately: that is what makes its lifetime identical to
- * key_sig's, which is the only lifetime the R1 walk may assume. Every caller sizes the region
- * with csKeyHashWant(), so the common shapes are served inline and this adds no allocation.
- *
- * Returns the vector, or NULL for a group with more written keys than the exact test retains —
- * that group stays FILTER-ONLY and every filter hit against it holds (charged to ownread_conserv).
- * The cap is not a tuning choice: past it the group's own signature is >=16 of 64 bits, so the
- * filter is >=91% false-positive and the region is already spilling arrays to the heap — exactness
- * there would buy an allocation instead of saving a park.
- *
- * key_h_n stays 0 until the CALLER has written every slot; a half-built vector must read as "no
- * vector" (hold), never as "disjoint". */
-static uint64_t *csGroupKeyHashReserve(csGroup *g, int nkeys) {
-    size_t want = csKeyHashWant(nkeys);
-    if (!want) return NULL;
-    g->key_h = csgAlloc(g, want);
-    return g->key_h;
-}
-
 static void csFreeSub(client *sub) {
     if (sub->argv) {
         csGroup *g = sub->csparent;
@@ -13260,12 +13265,6 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
     int register_bag = g->mset_installs && !g->versioned_write &&
                        (g->ctype == CS_MSET || g->ctype == CS_DEL ||
                         g->ctype == CS_MSETNX);
-    /* Reserved BEFORE the routing pass so the pass that computes each key's hash for routing also
-     * fills the exact-test vector — same hashes, no second pass, no second hash. Published (below,
-     * with key_h_n) only once every slot is written. A HOP2 re-run of this builder has
-     * register_bag == 0 (versioned_write is already set), so the HOP1 vector is neither rebuilt
-     * nor re-reserved: it is written exactly once, before the group is ever published. */
-    uint64_t *key_h = register_bag ? csGroupKeyHashReserve(g, nkeys) : NULL;
     for (int i = 0; i < nkeys; i++) {
         robj *key = head->argv[first + stride*i];
         /* FIX (task #48): the `spec->cs_write &&` conjunct used to let cross-shard multi-key READS
@@ -13280,13 +13279,8 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
             migHoldKeyIfDraining(key);
         uint64_t h = tomoKeyHash(key->ptr, sdslen(key->ptr));
         int w = (int)server.ex_bucket_table[h & TOMO_BUCKET_MASK];
-        if (register_bag) {
-            g->key_sig |= csHashSignature(h);
-            if (key_h) key_h[i] = h;
-        }
         wof[i] = w; cnt[w]++;
     }
-    if (key_h) g->key_h_n = nkeys;   /* commit: every slot above is now written */
     int nsub = 0;
     for (int w = 0; w < nw; w++) if (cnt[w]) nsub++;
     g->nsub = nsub;
@@ -13320,8 +13314,7 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
         if (append_extra) append_extra(head, sub, i);
         if (spec->posmap) (*spec->posmap)[lsi][fill[w]++] = i;
     }
-    /* Registration remains before every owner publication, but now follows the routing pass so
-     * MSET values and DEL tombstones reuse that pass's full hashes for their complete signature. */
+    /* Registration remains before every owner publication. */
     if (register_bag) csMsetRegister(g);
     for (int w = 0; w < nw; w++) if (wsub[w]) csPushSpin(w, wsub[w]);
     if (wof != wof_stk) zfree(wof);
@@ -13339,16 +13332,8 @@ static int csMsetnxAdvanceReservations(csGroup *g) {
         !csMsetnxHasPendingPosition(g))
         return 0;
 
-    /* An atomic MSETNX registered on HOP1, so this is 0 there and the group keeps the COMPLETE
-     * key_h vector built then — a superset of the still-pending positions re-hashed below, which
-     * is the conservative direction (it can only hold more). If a caller ever reaches here
-     * unregistered, key_h stays NULL and the group is filter-only: it holds, and says so in
-     * ownread_conserv. */
     int register_group = !g->versioned_write;
 
-    /* NOTE for the R1 walk's lifetime argument: these subs are freed while the group is still
-     * linked in the pending FIFO. That is why the exact test reads g->key_h (inside g) and never
-     * g->subs[i]. */
     if (g->subs) {
         for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
         csgFree(g, g->subs);
@@ -13376,7 +13361,6 @@ static int csMsetnxAdvanceReservations(csGroup *g) {
             migHoldKeyIfDraining(key);
         uint64_t h = tomoKeyHash(key->ptr, sdslen(key->ptr));
         owners[i] = (int)server.ex_bucket_table[h & TOMO_BUCKET_MASK];
-        if (register_group) g->key_sig |= csHashSignature(h);
         if (owners[i] < target) target = owners[i];
     }
     serverAssert(target >= 0 && target < server.num_workers);
@@ -13412,8 +13396,7 @@ static int csMsetnxAdvanceReservations(csGroup *g) {
     serverAssert(fill == count);
     g->subs[0] = sub;
     atomic_store_explicit(&g->pending, 1, memory_order_relaxed);
-    /* The first reservation routing pass covers every MSETNX position (including duplicate
-     * keys), registers the completed signature, then publishes its first owner wave. */
+    /* The first reservation routing pass registers before publishing its first owner wave. */
     if (register_group) csMsetRegister(g);
     csPushSpin(target, sub);
     if (owners != owner_stk) zfree(owners);
@@ -13547,10 +13530,9 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admissio
 #define CS_PIPE_LOCAL_UNION 4
 #define CS_PIPE_LOCAL_DIFF  5
 
-/* NOTE for the R1 walk's lifetime argument (csMsetReadIntersects): a registered pipeline group
- * drops and reallocates its whole sub array BETWEEN stages, while it is still linked in the
- * connection's pending FIFO. Sub-fakes are therefore unusable as the exact test's key source;
- * the hashes live in the group itself. */
+/* A registered pipeline group drops and reallocates its whole sub array between stages while it
+ * remains linked in the connection's pending FIFO. The FIFO therefore owns only group state, never
+ * pointers into a stage's transient sub array. */
 static void csPipeFreeStageSubs(csGroup *g) {
     for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
     csgFree(g, g->subs); g->subs = NULL; g->nsub = 0;
@@ -13566,7 +13548,7 @@ static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int fi
     csGroup *g = csGroupNew(csInlineWant(s, nkeys, nsub_hi, 1) +
                             12 * (size_t)nkeys +
                             8 * ((size_t)nkeys + 2 * (size_t)nsub_hi + 2) +
-                            (atomic_admission ? sizeof(csMsetInstall) + csKeyHashWant(1) : 0));
+                            (atomic_admission ? sizeof(csMsetInstall) : 0));
     g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
     g->spec = s; g->h2_dbid = dbid; g->h2_pexpireat = -1;
     head->csgroup = g;
@@ -13580,7 +13562,7 @@ static void dispatchPipeline(client *head, const csCmdSpec *s, int nkeys, int fi
         g->version_install_expected = 1;
         g->mset_installs = csgCalloc(g, sizeof(*g->mset_installs));
         serverAssert(s->dst_argi > 0);
-        csAtomicSetDestinationSignature(g, head->argv[(int)s->dst_argi]);
+        csAtomicSetDestinationRouting(g, head->argv[(int)s->dst_argi]);
         csMsetRegister(g);       /* R1 registration precedes the first source-read wave. */
     }
     g->pipe_scard = csgCalloc(g, sizeof(long) * nkeys);
@@ -14240,12 +14222,7 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
     int version_expected = (s->ctype == CS_MSET || s->ctype == CS_DEL ||
                             s->ctype == CS_MSETNX) ? nkeys : 1;
     if (atomic_write)
-        inline_want += sizeof(csMsetInstall) * (size_t)version_expected +
-                       /* R1 exact-overlap vector: nkeys hashes for a bag, one destination hash
-                        * otherwise. Accounted here for the same reason as mset_installs — an
-                        * unbudgeted array pushes a LATER array to the heap, i.e. trades the park
-                        * this is meant to remove for an allocation. */
-                       csKeyHashWant(atomic_bag ? nkeys : 1);
+        inline_want += sizeof(csMsetInstall) * (size_t)version_expected;
     if (atomic_msetnx) inline_want += (size_t)nkeys;
     csGroup *g = csGroupNew(inline_want);
     g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
@@ -14270,12 +14247,11 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
                                        (size_t)version_expected);
         if (atomic_msetnx)
             g->msetnx_state = csgCalloc(g, (size_t)nkeys);
-        /* MSET/DEL/MSETNX accumulate their signature in the same routing-hash pass that builds
-         * the first owner wave, then register immediately before its first push. Every other
-         * atomic GATHER shape writes only the declared store destination. */
+        /* MSET/DEL/MSETNX register immediately before their first owner push. Every other atomic
+         * GATHER shape carries its declared store destination for HOP2 routing. */
         if (!atomic_bag) {
             serverAssert(s->dst_argi > 0);
-            csAtomicSetDestinationSignature(g, head->argv[(int)s->dst_argi]);
+            csAtomicSetDestinationRouting(g, head->argv[(int)s->dst_argi]);
             csMsetRegister(g);
         }
     } else {
@@ -14968,7 +14944,7 @@ static void dispatchSortByGet(client *head, const csCmdSpec *s, int atomic_admis
         g->mset_installs = csgCalloc(g,sizeof(*g->mset_installs));
         int dst_argi = s->dynamic_dst_argi(head);
         serverAssert(dst_argi > 0 && dst_argi < head->argc);
-        csAtomicSetDestinationSignature(g, head->argv[dst_argi]);
+        csAtomicSetDestinationRouting(g, head->argv[dst_argi]);
         csMsetRegister(g);
     }
     clientTail(head->parent)->cs_barrier = 1;
@@ -15004,10 +14980,7 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admissio
     robj *src = head->argv[(int)s->src_argi], *dst = head->argv[dst_argi];
     /* review #1: hash each key ONCE. The bucket is stable across a cutover (only the
      * bucket->worker table flips), so worker = ex_bucket_table[bkt] can be re-read after the
-     * DRAINING hold without re-hashing, and the migrating-range test reuses the same bucket.
-     * Keep the FULL hash of that one hashing, not just its bucket: the atomic arm below needs it
-     * for the R1 exact-overlap vector, and re-deriving it would hash the same bytes twice.
-     * (migKeyBucket is exactly xxh64(k) & TOMO_BUCKET_MASK, so the buckets are unchanged.) */
+     * DRAINING hold without re-hashing, and the migrating-range test reuses the same bucket. */
     uint64_t src_h = tomoKeyHash(src->ptr, sdslen(src->ptr));
     uint64_t dst_h = tomoKeyHash(dst->ptr, sdslen(dst->ptr));
     int src_bkt = (int)(src_h & TOMO_BUCKET_MASK);
@@ -15023,9 +14996,7 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admissio
     size_t h2_argv = 2 * (size_t)(1 + s->h2_del_src);
     size_t argv_slots = (size_t)head->argc > h1_argv + h2_argv ?
                         (size_t)head->argc : h1_argv + h2_argv;
-    csGroup *g = csGroupNew(sizeof(client *) * ((size_t)(2 + CS_H2_MAX) + argv_slots) +
-                            /* R1 exact-overlap vector: dst, plus src on the two-write shapes. */
-                            (atomic_admission ? csKeyHashWant(2) : 0));
+    csGroup *g = csGroupNew(sizeof(client *) * ((size_t)(2 + CS_H2_MAX) + argv_slots));
     g->ctype = s->ctype; g->nkeys = 1; g->head = head; g->spec = s;
     g->h2_pexpireat = -1; g->h2_dbid = dbid;
     head->csgroup = g; head->cdb = 0;
@@ -15070,19 +15041,6 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admissio
         g->mset_installs = csgCalloc(g,sizeof(*g->mset_installs) *
                                        (size_t)g->version_install_expected);
         if (g->version_nx) g->msetnx_state = csgCalloc(g,1);
-        /* COPY and whole-value stores write only dst. RENAME/RENAMENX additionally install a
-         * source tombstone. Reuse the two routing hashes already computed above — the signature
-         * is unchanged (csHashSignature reads the low 6 bits, which the bucket mask preserves),
-         * and the same hashes fill the exact-overlap vector. */
-        int nwrite = (s->ctype == CS_RENAME || s->ctype == CS_RENAMENX) ? 2 : 1;
-        g->key_sig = csHashSignature(dst_h);
-        if (nwrite == 2) g->key_sig |= csHashSignature(src_h);
-        uint64_t *kh = csGroupKeyHashReserve(g, nwrite);
-        if (kh) {
-            kh[0] = dst_h;
-            if (nwrite == 2) kh[1] = src_h;
-            g->key_h_n = nwrite;      /* publish only once every slot is written */
-        }
         head->tomo_bkt = dst_bkt;
         head->tomo_key_h = dst_h;
         head->tomo_bkt_ptr = dst->ptr;
@@ -15438,8 +15396,8 @@ static int csLaunchHop2(csGroup *g) {
     for (int i = 0; i < n; i++) {
         robj *key = head->argv[g->h2sub[i].key_argi];
         if (mig) migHoldKeyIfDraining(key);                       /* v8d: hold FIRST */
-        /* Destination-only atomic registrations already hashed their written key to build
-         * key_sig. Reuse the carried bucket and only re-read its owner after the hold. */
+        /* Destination-only atomic registrations already carried the written key's bucket.
+         * Reuse it and only re-read its owner after the hold. */
         shards[i] = g->versioned_write &&
                     head->tomo_bkt_ptr == (const void *)key->ptr
                     ? (int)server.ex_bucket_table[head->tomo_bkt]
@@ -15920,10 +15878,9 @@ static void csReassemble(client *dst, client *head) {
         csgFree(g, g->mset_installs);
     }
     csgFree(g, g->msetnx_state);
-    /* Written-key hash vector. Inline in the common case (nothing to do); this releases the spill.
-     * Safe here and nowhere earlier: csMsetPendingRemove(g) at the top of this function already
-     * unlinked the group, so no R1 walk can still reach it. */
-    csgFree(g, g->key_h);
+    /* Layout-reserved retired probe pointer is always NULL. Keeping the slot avoids perturbing
+     * csGroup's OFF-mode layout while the obsolete membership machinery allocates nothing. */
+    csgFree(g, g->_atomic_probe_retired_h);
     /* Exactly-once atomic admission retirement. csReassemble is the group's single terminal
      * point: stage/HOP2 advances return before it, while both live reply publication and the
      * CLOSE_ASAP/disconnect drain call it once and then clear head->csgroup. versioned_write is set
@@ -20190,6 +20147,28 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 atomic_load_explicit(&tomo_atomic_commit_wait_drains, memory_order_relaxed),
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
+        size_t atomic_reclaim_bytes = 0, atomic_reclaim_worker_max = 0;
+        tomoAtomicReclaimSlot *atomic_reclaim_slots =
+            atomic_load_explicit(&tomo_atomic_reclaim_slots, memory_order_acquire);
+        if (atomic_reclaim_slots) {
+            for (int _w = 0; _w < server.num_workers; _w++) {
+                size_t bytes = atomic_load_explicit(
+                    &atomic_reclaim_slots[_w].bytes, memory_order_relaxed);
+                atomic_reclaim_bytes += bytes;
+                if (bytes > atomic_reclaim_worker_max) atomic_reclaim_worker_max = bytes;
+            }
+        }
+        info = sdscatprintf(info,
+            "tomokv_atomic_window_effective:%d\r\n"
+            "tomokv_atomic_reclaim_limit_per_worker:%zu\r\n"
+            "tomokv_atomic_reclaim_bytes:%zu\r\n"
+            "tomokv_atomic_reclaim_worker_max:%zu\r\n"
+            "tomokv_atomic_reclaim_pressure:%d\r\n"
+            "tomokv_atomic_reclaim_stalls:%llu\r\n",
+            tomoAtomicWindowResolved(), tomoAtomicReclaimLimitResolved(),
+            atomic_reclaim_bytes, atomic_reclaim_worker_max,
+            atomic_load_explicit(&tomo_atomic_reclaim_pressure, memory_order_relaxed),
+            atomic_load_explicit(&tomo_atomic_reclaim_stalls, memory_order_relaxed));
         info = sdscatprintf(info,
             "tomokv_fake_core_allocs:%llu\r\n"
             "tomokv_fake_tail_promotions:%llu\r\n",

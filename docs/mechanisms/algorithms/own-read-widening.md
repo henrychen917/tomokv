@@ -196,23 +196,21 @@ once at install before the owner-op that publishes the version, and never mutate
 2. Stage 2 accepts the first committed version at or below the snapshot **or** the
    first with matching `origin_client_id` above it. (`src/server.c:10251-10252`)
 3. `reader_connection == NULL` ⇒ `reader_id == 0` ⇒ both own stages are disabled; a
-   strict committed cut results (used by DEL/MSETNX write-side probes).
+   strict committed cut results (used by DEL/MSETNX write-side presence checks).
    (`src/server.c:10228`, `10242`, `10252`)
 4. STAMP never clears `origin_client_id`; the identity survives commit so own-widening
    works across the stamp/publish window. (`src/db.c:1011-1021`)
 5. An own selected tombstone (Stage 1 or Stage 2) is own absence, not a fall-through.
    (`src/server.c:10146`, `10255`)
 
-## 8. Discrepancy note — the old exact-key HOLD path is gone
+## 8. The old exact-key HOLD path is removed
 
-Comments and fields still name `csMsetHoldOwnRead`, `csMsetReadIntersects`,
-`csKeysCollide`, exact written-key vectors, and the `ownread_*` census counters
-(`src/server.c:724-756`, `9839-9871`; `src/server.h:1651-1697`). The **active** RYOW
-mechanism is `csMsetOwnVersionAt` + `kvobjVersionAt` own-widening — version identity,
-not signature disjointness or a read-hold wait (`src/server.c:10101-10107`,
-`10133-10256`). The `ownread_*` values are still aggregated by INFO but the resolver
-performs no counter updates and no wait (`src/server.c:19194-19196`, `10133-10256`).
-See [bloom-signature.md](bloom-signature.md).
+The active RYOW mechanism is `csMsetOwnVersionAt` plus `kvobjVersionAt` own-widening:
+version identity, not signature disjointness or a read-hold wait. The obsolete 64-bit
+signature, exact-key vectors, publishing ring, and their allocation/copy helpers have
+been deleted. `ownread_*` INFO counters and zeroed layout-reserve words remain for
+compatibility but the resolver performs no counter update or wait. See
+[bloom-signature.md](bloom-signature.md).
 
 ## File:line map
 

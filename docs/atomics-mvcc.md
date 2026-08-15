@@ -2,7 +2,7 @@
 
 ## What this implementation is
 
-`tomokv-atomic` changes newly admitted cross-routed whole-value writes from ordinary owner-local replacement/deletion into groups of per-key versions that install first and join the global committed frontier through one group sequence later. The switch is modifiable and defaults to `0`; `tomokv-atomic-window` is modifiable, accepts `0..INT_MAX`, and defaults to `64`. (`src/config.c:3182-3184`, `src/server.c:8344-8387`, `src/server.c:10303-10333`, `src/server.c:10363-10377`)
+`tomokv-atomic` changes newly admitted cross-routed whole-value writes from ordinary owner-local replacement/deletion into groups of per-key versions that install first and join the global committed frontier through one group sequence later. The switch is modifiable and defaults to `0`. `tomokv-atomic-window=-1` derives admission capacity from live writer concurrency and pipeline depth, while `tomokv-atomic-reclaim-limit=-1` derives a per-worker retained-version budget from maxmemory or physical RAM. Both gates stall only new atomic writes. (`src/config.c`, `src/server.c`)
 
 The global visibility frontier is the cache-line-isolated `_Atomic uint64_t commit_seq`; snapshot draws acquire-load it, while a successful group release-stores its ticket only after all of that group's STAMP jobs have been queued. (`src/server.c:280-301`, `src/server.c:427-435`, `src/server.c:10312-10333`, `src/server.c:10363-10383`)
 
@@ -84,6 +84,7 @@ Every `redisObject` has a nullable `vmeta`; `kvobjVmeta` acquire-loads the point
 | `_Atomic(redisObject *) committed_head` | Per-key cursor inherited by a new physical head and release-updated by STAMP or prune repair; the resolver acquire-loads it before walking committed history. (`src/db.c:476-494`, `src/db.c:1002-1009`, `src/db.c:1284-1289`, `src/server.c:10242-10244`) |
 | `uint64_t install_order` | Receives a connection-global number `mset_install_order_base + ii`; no executable resolver or committed-chain insertion in this tree reads this field. (`src/server.c:9946-9950`, `src/server.c:11432-11448`, `src/server.c:10133-10147`, `src/db.c:976-993`) |
 | `uint64_t origin_client_id` | Receives the real connection id at install and is compared for both own-uncommitted selection and committed own-widening. (`src/server.c:11440-11448`, `src/server.c:10137-10146`, `src/server.c:10242-10253`) |
+| `size_t reclaim_bytes` | Full atomic version allocation charged to its immutable install owner until physical free or promotion to a raw sole live value. (`src/server.c`, `src/db.c`, `src/flatstore.c`) |
 | `uint32_t version_order` | Receives the group-local install index and breaks ties between same-sequence versions in the committed chain. (`src/server.c:11435-11451`, `src/db.c:976-991`) |
 | `int16_t install_owner`, `uint16_t install_bucket`, `uint8_t lifecycle_ref_held` | Record the owner/bucket lifecycle slot acquired for the install and released after owner-affine work and any armed prune callback. (`src/server.c:367-397`, `src/server.c:11444-11448`, `src/db.c:1134-1141`) |
 | `uint8_t version_tombstone` | Marks a payload that resolves as logical absence and is excluded from single-live-version promotion. (`src/server.c:10144-10146`, `src/server.c:10255-10256`, `src/db.c:1061-1071`, `src/db.c:1356-1369`) |
@@ -109,8 +110,8 @@ The physical and committed chains are distinct: install prepends through `versio
 | --- | --- |
 | `csGroup` | `version_seq` is the uncommitted marker/write ticket, `read_seq` is the command snapshot, `commit_next` is the global queue link, and `mset_client` plus `mset_pending_prev/next` link the group into its real connection's FIFO. (`src/server.h:2133-2138`) |
 | `csGroup` | Atomic `mset_complete` and `mset_install_count`, `mset_installs`, `mset_install_order_base`, `versioned_write`, expected/ready/abort/NX flags, atomic `msetnx_retry`, and `msetnx_state` carry installation and completion state. (`src/server.h:2139-2151`) |
-| `csGroup` | `key_sig`, `key_h`, and `key_h_n` retain written-key hashes, although the active resolver does not consume them. (`src/server.h:2115-2132`, `src/server.c:10101-10107`, `src/server.c:10133-10256`) |
-| Real-client execution tail | `mset_pending_head/tail` is the registration FIFO, `mset_next_install_order` reserves connection-global order ranges, and `mset_pub` points at the legacy publishing-record ring. (`src/server.h:1783-1795`) |
+| `csGroup` | The three `_atomic_probe_retired_*` words preserve OFF-mode group/cache geometry; they remain zero/NULL and are never populated or read. (`src/server.h`) |
+| Real-client execution tail | `mset_pending_head/tail` is the registration FIFO and `mset_next_install_order` reserves connection-global order ranges. `_atomic_probe_retired` preserves the former pointer slot but is always NULL. (`src/server.h`) |
 | Real-client execution tail | `mset_pending_lock`, `mset_drain_latch`, and atomic `mset_pending_count` serialize FIFO operations, elect one per-client drainer, and gate the own-uncommitted scan. (`src/server.h:1839-1849`, `src/server.c:9827-9837`, `src/server.c:10227-10240`) |
 | Real-client execution tail | `atomic_window_parked_node` and `atomic_window_parked_tid` track a command refused by the admission window before it takes a fake-ring slot. (`src/server.h:1789-1795`, `src/server.h:1853-1858`, `src/server.c:497-515`) |
 
@@ -135,7 +136,7 @@ Before a reshard enters its producer-drain phase, the coordinator sequentially-c
 | Cancel decision | `version_canceled` release store; own scan acquire load. (`src/server.c:10320-10323`, `src/server.c:10140-10143`) |
 | Owner-op count | Release store at materialization; owner decrements are acquire-release. (`src/server.c:10320-10327`, `src/server.c:10011-10035`) |
 | Owner lane availability | `stamp_pending` release increment/decrement; consumers acquire-load before drain. (`src/server.c:10047-10056`, `src/server.c:10060-10087`, `src/server.c:21889-21893`) |
-| Admission counters | `tomo_atomic_inflight` uses relaxed increment/CAS/decrement; admission increments `tomo_atomic_unsealed` with sequential consistency and sealing decrements it with acquire-release. (`src/server.c:460-472`, `src/server.c:541-544`, `src/server.c:15313-15324`) |
+| Admission and reclaim counters | `tomo_atomic_inflight` uses relaxed increment/CAS/decrement; admission increments `tomo_atomic_unsealed` with sequential consistency and sealing decrements it with acquire-release. Per-worker reclaim bytes and the pressure edge use sequential consistency so pressure clear plus rescan cannot lose a concurrent charge. (`src/server.c`) |
 
 ## Install-then-commit protocol
 
@@ -143,7 +144,7 @@ Before a reshard enters its producer-drain phase, the coordinator sequentially-c
 
 The bounded-admission block is the final gate before fake-ring allocation; refusal leaves `dispatchid` unchanged and the decoded pending command at the executable input head. (`src/server.c:8338-8345`)
 
-For `window == 0`, admission relaxed-increments `tomo_atomic_inflight`, sequentially-consistent-increments `tomo_atomic_unsealed`, and succeeds unconditionally. (`src/server.c:457-465`)
+`window == -1` resolves to live writer slots times the already-resolved pipeline depth. For `window == 0`, admission relaxed-increments `tomo_atomic_inflight`, sequentially-consistent-increments `tomo_atomic_unsealed`, and succeeds unconditionally. (`src/server.c`)
 
 For a finite window, a relaxed CAS loop increments `tomo_atomic_inflight` only while the observed value is below the window; success also sequentially-consistent-increments `tomo_atomic_unsealed`, and failure parks the client. (`src/server.c:466-476`, `src/server.c:8377-8385`)
 
@@ -157,11 +158,11 @@ MSET does not appear in `csAtomicReadsSources`, while MSETNX and DEL do, so the 
 
 ### 3. Register the group before owner publication
 
-`csMsetRegister` sets `versioned_write = 1`, sets the group's sequence to `TOMO_VERSION_UNCOMMITTED`, binds the real client, and asserts that install storage, a positive expected count, and a nonzero key signature already exist. (`src/server.c:9914-9922`)
+`csMsetRegister` sets `versioned_write = 1`, sets the group's sequence to `TOMO_VERSION_UNCOMMITTED`, binds the real client, and asserts that install storage and a positive expected count already exist. (`src/server.c`)
 
 Under `mset_pending_lock`, registration checks order-range overflow, reserves `version_install_expected` consecutive numbers from the real client's `mset_next_install_order`, appends the group to that connection's FIFO, and release-increments `mset_pending_count`. (`src/server.c:9946-9957`)
 
-The MSET/DEL coalesced builder registers only after computing all routed owners and the written-key hashes, then pushes owner subs; MSETNX's first owner-ordered wave likewise registers before its first push. (`src/server.c:12639-12705`, `src/server.c:12794-12799`)
+The MSET/DEL coalesced builder registers only after computing all routed owners, then pushes owner subs; MSETNX's first owner-ordered wave likewise registers before its first push. (`src/server.c`)
 
 ### 4. Install fresh physical versions on key owners
 
@@ -375,17 +376,19 @@ For an attached successful version in that mode, PRUNE does not select the detac
 
 The configuration apply callback allocates lifecycle state when enabling and wakes waiters, but it performs no FLAT-storage validation; both atomic configuration entries remain accepted independently of storage mode. (`src/config.c:3141-3149`, `src/config.c:3183-3184`)
 
-## Atomic-window behavior
+## Atomic admission and reclaim behavior
 
-A refused finite-window command is linked into its IO owner's `clients_atomic_window_parked` list and marked with both `CLIENT_ATOMIC_WINDOW_STALLED` and `CLIENT_PIPELINE_STALLED`. (`src/server.c:497-515`, `src/server.h:449-451`)
+A command refused by either a finite window or reclaim pressure is linked into its IO owner's `clients_atomic_window_parked` list and marked with both `CLIENT_ATOMIC_WINDOW_STALLED` and `CLIENT_PIPELINE_STALLED`. Refusal occurs before fake-ring/group allocation. (`src/server.c`, `src/server.h`)
 
-The owning event loop's retry walk first checks whether any waiters exist, then considers the current atomic knob/window, relaxed-loads `tomo_atomic_inflight`, sequentially-consistent-loads the cutover gate, removes an admissible client, clears both flags, and calls `processInputBuffer`. (`src/server.c:547-585`)
+The owning event loop's retry walk considers the current atomic knob, resolved window, reclaim-pressure edge, and cutover gate before removing and retrying an admissible client. Reads never enter either writer gate. (`src/server.c`)
 
 The walk runs in a later event-loop frame; a command may park again if another producer consumes the opened slot first. (`src/server.c:547-585`)
 
-Changing the atomic configuration ensures lifecycle storage when enabling and wakes all producer event loops when a disable, an increased window, or window zero may make parked commands admissible. (`src/config.c:3141-3149`, `src/server.c:452-455`)
+Changing the atomic configuration lazily ensures lifecycle/reclaim storage when needed, refreshes reclaim pressure, and wakes producer event loops when a change may make parked commands admissible. (`src/config.c`, `src/server.c`)
 
 Window zero is unlimited but still counted in `tomo_atomic_inflight`; a finite window uses the counter itself as the CAS word and does not perform a separate load-then-increment. (`src/server.c:457-476`)
+
+Each atomic install charges its full allocation to a cache-line-separated counter for its immutable install owner. The charge remains while the version is linked or waiting through QSBR and is released exactly once on physical free/resize discard or sole-live promotion. `tomokv-atomic-reclaim-limit=-1` divides one sixteenth of maxmemory (or physical RAM) across configured workers; `0` performs no allocation or accounting; a positive value is the exact per-worker byte limit. Crossing the limit parks only new atomic writers, allowing reads, already-admitted groups, owner operations, and grace reclamation to drain the backlog. (`src/server.c`, `src/db.c`, `src/flatstore.c`)
 
 ## Enforced invariants
 
@@ -400,25 +403,20 @@ Window zero is unlimited but still counted in `tomo_atomic_inflight`; a finite w
 9. A selected tombstone is logical absence; atomic physical deletion occurs only in the prune callback after the tombstone becomes the eligible sole committed value. (`src/server.c:10144-10147`, `src/server.c:10255-10256`, `src/db.c:1345-1372`)
 10. STAMP consumes the first of two owner-op references, PRUNE consumes the second, and CANCEL consumes its sole reference; assertions check the expected pre-decrement counts. (`src/server.c:10006-10035`)
 11. Each installed version acquires an owner/bucket lifecycle reference before the install job can retire; FLAT prune completion or detached owner-op completion releases it only after owner-affine mutation has finished. (`src/server.c:367-397`, `src/server.c:11444-11448`, `src/server.c:10041-10046`, `src/db.c:1134-1141`)
-12. A finite admission window increments only by a successful CAS below the bound, while window zero never refuses but still participates in census and teardown. (`src/server.c:457-476`, `src/server.c:15306-15324`)
+12. A finite admission window increments only by a successful CAS below the bound, while window zero never refuses but still participates in census and teardown. (`src/server.c`)
+13. Reclaim pressure can stall only a newly classified atomic write and is checked before fake-ring allocation; pure reads perform no reclaim accounting or pressure check. (`src/server.c`)
 
 The predecessor-lifetime and prune invariants in items 7, 9, and 11 are implemented end-to-end only for FLAT storage because the non-FLAT paths described above do not preserve or retire the bag through the version-prune callback. (`src/db.c:904-917`, `src/kvstore.c:91-94`, `src/flatstore.c:43-51`)
 
 ## Code/comment discrepancies and inactive remnants
 
-### The old own-read HOLD path is not active
+### The old own-read HOLD path and membership probe are removed
 
-Comments and fields still name `csMsetHoldOwnRead`, `csMsetReadIntersects`, `csKeysCollide`, exact written-key vectors, publishing records, and `ownread_*` counters. (`src/server.c:724-756`, `src/server.h:1651-1697`, `src/server.c:9839-9871`, `src/server.c:12494-12511`)
-
-The current code explicitly says the exact-key HOLD walk is gone, and the executable read path is `csMsetOwnVersionAt` followed by `kvobjVersionAt`. (`src/server.c:10101-10107`, `src/server.c:10133-10256`)
+The executable read path is `csMsetOwnVersionAt` followed by `kvobjVersionAt`. The 64-bit Bloom signature, exact-hash companion, publishing-record ring, constructors, copies, and retirement helper have been removed; they had no live consumer after own-read resolution moved to immutable `origin_client_id`. (`src/server.c`, `src/server.h`)
 
 The `ownread_*` values are aggregated and emitted by INFO, but the shown declarations/aggregation are not part of the resolver and the resolver contains no counter updates or wait. (`src/server.c:724-756`, `src/server.c:19194-19196`, `src/server.c:19272-19282`, `src/server.c:10133-10256`)
 
-The retained `mset_read_waiting` field is initialized, but the completion-side reference to it describes a deleted hold; the active resolver does not test the field. (`src/server.h:1846-1850`, `src/networking.c:663-671`, `src/server.c:10405-10412`, `src/server.c:10133-10256`)
-
-`csMsetPopComplete` still copies a departing group's key hashes into `csMsetPub`, but the active publication loop directly decrements `mset_pending_count` instead of invoking `csMsetPubRetire`; the retire helper remains separately defined. (`src/server.c:9873-9912`, `src/server.c:10272-10286`, `src/server.c:10395-10400`)
-
-Accordingly, neither the publishing-record ring nor the hash-vector comments describe the active own-read algorithm; origin identity and the two version chains do. (`src/server.c:10101-10256`)
+The retained `mset_read_waiting`, `ownread_*`, and `_atomic_probe_retired*` storage exists only to preserve default-OFF object/cache geometry and legacy INFO compatibility; it is not read by the resolver and causes no atomic-mode allocation. Origin identity and the two version chains define own-read visibility. (`src/server.c`, `src/server.h`, `src/networking.c`)
 
 ### Numeric `install_order` is not the resolver order
 
@@ -447,9 +445,9 @@ The implemented MSETNX path installs requested values marked as reservations and
 | Config defaults and live apply | `src/config.c:3141-3149`, `src/config.c:3182-3184` |
 | Owner-op enums, version states, and every `tomoVerMeta` field | `src/object.h:105-180` |
 | Version pointer/link acquire-release helpers | `src/object.h:219-261` |
-| Per-client FIFO/latch/window state | `src/server.h:1651-1697`, `src/server.h:1783-1795`, `src/server.h:1839-1858` |
+| Per-client FIFO/latch/window state | `src/server.h` |
 | `csMsetInstall` and versioned `csGroup` fields | `src/server.h:2102-2151` |
-| Global frontier/controller and admission/lifecycle counters | `src/server.c:280-342` |
+| Global frontier/controller and admission/lifecycle/reclaim counters | `src/server.c` |
 | Snapshot helpers and window reservation/parking | `src/server.c:427-585` |
 | Atomic command-shape selection | `src/server.c:588-647`, `src/server.c:8344-8387` |
 | Dispatch snapshot draw | `src/server.c:8450-8471` |

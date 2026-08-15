@@ -404,9 +404,13 @@ echo "=== boolean levers ===" >> $OUT
   try tomokv-atomic no  "default: ordinary non-versioned SET/GET path"
   try tomokv-atomic yes "ON: mixed multi-key completion drains cleanly" "" atomic
 
+  try tomokv-atomic-window -1  "auto: live writers x pipeline depth" "--tomokv-atomic yes" atomic
   try tomokv-atomic-window 0   "unlimited atomic admission" "--tomokv-atomic yes" atomic
-  try tomokv-atomic-window 64  "default atomic admission window" "--tomokv-atomic yes" atomic
+  try tomokv-atomic-window 64  "explicit atomic admission window" "--tomokv-atomic yes" atomic
   try tomokv-atomic-window 512 "large static atomic admission window" "--tomokv-atomic yes" atomic
+  try tomokv-atomic-reclaim-limit -1 "auto: physical/maxmemory-derived per-worker cap" "--tomokv-atomic yes" atomic
+  try tomokv-atomic-reclaim-limit 0  "disable atomic reclaim backpressure" "--tomokv-atomic yes" atomic
+  try tomokv-atomic-reclaim-limit 1048576 "explicit per-worker atomic reclaim cap" "--tomokv-atomic yes" atomic
 
 # ── DRIFT GUARD ──────────────────────────────────────────────────────────────────────────────
 # The cells above are hand-written (the VALUE to try needs per-knob judgement) but the SET of
