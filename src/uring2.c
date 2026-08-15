@@ -924,6 +924,8 @@ static void tomoUring2ApplySendResult(tomoUring2Thread *st,
     uc->send_result_pending = 0;
     if (res > 0) {
         tomoUring2AccountSendBytes(st, uc, (size_t)res);
+        if (__builtin_expect(server.phase_trace_sample != 0, 0))
+            tomoPhaseSendDone(uc->c);
         if (uc->send_off < uc->send_len)
             URING2_STAT_BUMP(st, send_partial, 1);
     } else if (res == -EAGAIN || res == -EINTR ||

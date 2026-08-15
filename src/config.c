@@ -3186,6 +3186,10 @@ standardConfig static_configs[] = {
      * knob here could only make it wrong. To A/B the mechanism, build with CS_INLINE_MAX_BYTES 0
      * — that turns every csgAlloc into a plain zmalloc. */
     createIntConfig("tomokv-strict-order", NULL, MODIFIABLE_CONFIG, 0, 100000, server.strict_order, 0, INTEGER_CONFIG, NULL, NULL), /* cross-IO strict ordering: 0=off, 1=strict, N=eps(N-1)us */
+    /* Debug-only P1 lifecycle sampling. 0 leaves every timestamp/counter path dormant; N>0
+     * selects one receive/request in N independently on each IO owner. Immutable so an in-flight
+     * command can never cross an enable/disable boundary with a half-populated phase state. */
+    createIntConfig("tomokv-phase-trace", NULL, DEBUG_CONFIG | IMMUTABLE_CONFIG, 0, INT_MAX, server.phase_trace_sample, 0, INTEGER_CONFIG, NULL, NULL),
     createBoolConfig("tomokv-atomic",                NULL, MODIFIABLE_CONFIG, server.tomo_atomic, 0, NULL, applyTomoAtomicAdmission),
     createIntConfig("tomokv-atomic-window",          NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.tomo_atomic_window, 64, INTEGER_CONFIG, NULL, applyTomoAtomicAdmission),
     /* tomokv-worker-direct-send (v12-K) DELETED: foundation removed, see 2s-auto v1.6 for the real

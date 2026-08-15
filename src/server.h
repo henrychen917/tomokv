@@ -1472,8 +1472,8 @@ typedef struct {
  *   - lanes (802KB/worker inline) -> heap-sized to the runtime pool (initExThreads), so cap 128
  *     costs the same as cap 32 at a given thread count; heap-FAST (WQ hoist + exQueueFor TLS base)
  *     makes it perf-flat vs inline (measured +-0.4% instr/op io4ex4).
- *   - q_summary -> two-level (q_top + q_summary[TOMO_QS_WORDS]); TOMO_QS_WORDS = 3 at cap 128,
- *     idle pass still exchanges ONE word.
+ *   - q_summary -> q_summary[TOMO_QS_WORDS]; TOMO_QS_WORDS = 3 at cap 128 and
+ *     workers exchange only the runtime-live words before walking set bits.
  *   - ex_dirty_mask -> uint64 WORD ARRAY (TOMO_EX_MASK_WORDS); consume loop bounded by live words.
  *   - QSBR grace io_snap / io_pin_mask -> WORD ARRAY (TOMO_IO_MASK_WORDS), full-cleared on close
  *     (pool-recycled headers must not inherit a stale high-word bit -> premature-free/leak).
@@ -1555,7 +1555,6 @@ static const uint32_t TOMO_CLS_SLO[TOMO_SVC_CLASSES] = { 1, 1, 4, 64, 1024, 1638
 #define TOMO_PIN_ROLE_IO 0
 #define TOMO_PIN_ROLE_EX 1
 
-#define TOMO_HANDOFF_DENSE_EVERY 64   /* self-healing dense sweep cadence (see exThread.q_summary) */
 #define TOMO_PIPELINE_DEPTH_MAX 32  /* fixed upper bound for the per-client fake/ready-slot arrays */
 /* ee451 (v8): virtual-bucket indirection for key->shard. bucket = hash & TOMO_BUCKET_MASK
  * (TOMO_BUCKETS is a power of two so indexing stays a single AND), worker =
@@ -1870,6 +1869,12 @@ typedef union clientExecTail {
         /* IO-owned provenance for mode-2 cross-node reply prefetch. A bit is
          * set when any worker producing this ring generation is remote. */
         uint32_t prefetch_io_xnode_slots;
+        /* Selected successful socket/CQE receive observation. Its P1 command
+         * consumes this t0 into the pending-command handoff record. */
+        uint64_t phase_recv_us;
+        /* Debug phase tracing: packed (origin node, t4 monotonic usec) for the
+         * one sampled P1 reply waiting for its first successful send. */
+        uint64_t phase_send_stamp;
     };
     unsigned char _layout[CLIENT_EXEC_TAIL_BYTES];
     uint64_t _align;
@@ -2486,9 +2491,11 @@ typedef struct exQueue {
     /* ee451 (S4): batched producer-side push. exQueuePush writes jobs[] and
      * advances this producer-private staged_tail WITHOUT publishing; the owning
      * IO thread publishes all staged jobs with ONE release-store of `tail` per
-     * queue at flushExQueues() (called at the top of handleWorkerReplies,
-     * i.e. before any drain or sleep). Collapses up to pipeline_depth cross-CCD
-     * tail release-stores into one. Producer-private, lives on tail's line. */
+     * queue at flushExQueues(). In addition to eager parse-batch flushes and the
+     * pre-sleep reply walk, ae closes every non-empty partial batch after that
+     * loop pass's callbacks. Collapses a busy pass's cross-CCD tail stores
+     * without carrying a partial batch into the next poll. Producer-private,
+     * lives on tail's line. */
     unsigned int staged_tail;
     client *jobs[TOMO_EX_QUEUE_SIZE_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
 } exQueue;
@@ -2551,37 +2558,25 @@ typedef struct exThread {
      * head line (id/thread) instead of the tail line the owning worker dirties every op
      * (w_ewma_vsize/ops_total/tm_*), which bounced it cross-core on every dispatch. */
     redisDb *db;
-    /* ee451 (sparse handoff): one bit per PRODUCER slot that has published work to
-     * this worker and not yet been drained. Replaces the consumer's dense sweep of
-     * every queues[] lane with one exchange plus a ctz walk of the set bits.
-     *
-     * PROTOCOL. Producer: release-store tail FIRST, then fetch_or its bit (release),
-     * so a consumer that observes the bit is guaranteed to observe the tail.
-     * Consumer: exchange the whole word to 0 (acquire) BEFORE draining, so a publish
-     * that lands mid-drain re-sets the bit instead of being erased, then re-set the
-     * bits of any lane it could not fully drain. Clear-then-drain is the safe order;
-     * drain-then-clear would erase a concurrent publish and strand that lane.
+    /* One ready bit per producer lane. The producer writes jobs[], release-publishes
+     * its SPSC tail, and only then release-ORs the bit (publish-then-set). The worker
+     * loads live words, walks only set bits, clears the bits of lanes it actually
+     * probed, and acquire-loads each such lane's REAL tail once more
+     * (clear-then-recheck). cached_tail is never allowed to make the keep/clear
+     * decision. Thus a publication racing the clear is either observed by the
+     * final tail probe or leaves its later bit set; data cannot exist without one
+     * of those two witnesses. Locally carried backlog is release-ORed back before
+     * the slice exits.
      *
      * A missed bit means a queued fake is never popped: its reply-ready byte is never
      * set, flushid cannot advance, the client's ring wedges full and it stalls forever
-     * (the silent reply-loss failure documented at exDispatchPush). Because that is
-     * unattributable in production, the consumer also performs a DENSE sweep every
-     * TOMO_HANDOFF_DENSE_EVERY passes and counts anything the summary failed to
-     * advertise in handoff_missed. That counter is the correctness oracle: it must be
-     * zero, and a non-zero value localises a missing publish site immediately.
-     * Two-level since 2026-08-05 (TOMO_IO_THREADS_MAX now exceeds 64): q_top bit j hints
-     * that q_summary[j] is non-empty. The O(non-empty) property is preserved exactly:
-     * an idle pass exchanges ONLY q_top (one atomic, same as the old single word), a busy
-     * pass pays 1 + (#non-empty words). Producers set the top bit only on a word's
-     * empty->nonempty transition. A top bit without word bits (consumer took the word
-     * between the two producer stores) is a benign spurious visit; a word bit without a
-     * top bit closes on the producer's next store or the dense sweep — the same
-     * coalesce-into-a-later-slice semantics the single word always had. */
-    _Atomic uint64_t q_top __attribute__((aligned(CACHE_LINE_SIZE)));
-    _Atomic uint64_t q_summary[TOMO_QS_WORDS];   /* shares q_top's line: producers touch both */
+     * (the silent reply-loss failure documented at exDispatchPush). Every tail
+     * publication therefore goes through exHandoffPublishLane. */
+    _Atomic uint64_t q_summary[TOMO_QS_WORDS]
+        __attribute__((aligned(CACHE_LINE_SIZE)));
     _Atomic unsigned int stamp_pending; /* CURE2 owner stamp/prune jobs */
-    unsigned long long handoff_missed;   /* dense sweep found work the summary did not advertise */
-    unsigned int handoff_dense_tick;     /* consumer-private pass counter */
+    unsigned long long handoff_missed;   /* retained INFO correctness counter; must stay zero */
+    unsigned int handoff_dense_tick;     /* retained layout/stat slot */
     /* ee451 #83 (2026-08-05): lanes are HEAP arrays sized to the runtime pool (nlanes =
      * io_threads + num_workers + 1), NOT inline arrays sized to the compile cap. This is the change
      * that makes the cap raise affordable: inline at cap 128 would be ~3MB/worker faulted for even a
@@ -2592,7 +2587,7 @@ typedef struct exThread {
      * TLS-caching the per-worker dispatch base (exQueueFor). Measured heap == inline at cap 32.
      *
      * ALIGNMENT BREAK is load-bearing: nlanes/queues/freeback are READ-ONLY after init but loaded on
-     * EVERY lane access by BOTH sides. Leaving them on the q_top/q_summary line (producers fetch_or
+     * EVERY lane access by BOTH sides. Leaving them on the q_summary line (producers fetch_or
      * that line per dispatch) put the lane POINTERS on a contended line: measured p32 GET -5.2%. On
      * their own line both sides cache them Shared forever. */
     __attribute__((aligned(CACHE_LINE_SIZE))) int nlanes;
@@ -3232,13 +3227,6 @@ struct redisServer {
     list *clients_mig_parked[TOMO_IO_THREADS_MAX + 1];
     /* Clients refused before atomic-MSET group creation, retried only by their owning IO loop. */
     list *clients_atomic_window_parked[TOMO_IO_THREADS_MAX + 1];
-    /* ee451 #83: q_summary single-word gate. The two-level (q_top + q_summary[TOMO_QS_WORDS]) harvest
-     * only earns its extra q_top atomic when io slots can exceed 64. io_hi = io_threads + tm_ngrow_io
-     * <= io_threads + num_workers (tm_ngrow_io <= num_workers by construction), so if that sum < 64
-     * the process NEVER touches word 1 and takes the exact single-word path cap<=64 compiled. Latched
-     * once at initExThreads, process-constant (no transition hazard). 0 => "pay nothing for the
-     * raised cap"; only meaningful when TOMO_QS_WORDS > 1 (compile cap > 64). */
-    int tm_qs_multiword;
     int num_workers;
     /* ee451 (thread-modes): worker-slot accounting.
      * num_workers is the CONFIGURED count W — the number of worker SLOTS that exist. It sizes
@@ -4118,6 +4106,7 @@ struct redisServer {
      * xshard-guard / -pipeline / -localfast / mcmd-lock): every one of them is now an
      * unconditional property of the fork, folded into the code at its use sites. */
     int strict_order;          /* cross-IO-thread strict ordering: 0=off (batched rotation), 1=strict (global-oldest first), N>=2=eps of (N-1)us to retain batching. default 0. */
+    int phase_trace_sample;    /* tomokv-phase-trace: 0=off; N samples one P1 request in N per IO owner. */
     int prefetch_io_level;     /* tomokv-prefetch-io: 0=off, 1=next-run ring-tail write warm,
                                 * 2=mode 1 plus topology-gated cross-node reply prefetch. */
     int tomo_reorder;          /* ee451 D: admission reorder level. 0=off (no machinery on the
@@ -4232,6 +4221,13 @@ enum {
     PENDING_CMD_FLAG_PREPROCESSED = 1 << 1,   /* This command has passed pre-processing */
     PENDING_CMD_KEYS_RESULT_VALID = 1 << 2,   /* Command's keys_result is valid and cached */
     PENDING_CMD_KEYS_RESULT_ALLOCATED = 1 << 3, /* keys_result owns a heap array that must be released */
+    /* tomokv-phase-trace owns bits 4..11 while a sampled pending command is
+     * carried IO -> fake -> EX -> IO. State 0 begins at recv completion. */
+    PENDING_CMD_PHASE_TRACE = 1 << 4,
+    PENDING_CMD_PHASE_STATE_SHIFT = 5,
+    PENDING_CMD_PHASE_STATE_MASK = 7 << PENDING_CMD_PHASE_STATE_SHIFT,
+    PENDING_CMD_PHASE_NODE_SHIFT = 8,
+    PENDING_CMD_PHASE_NODE_MASK = 15 << PENDING_CMD_PHASE_NODE_SHIFT,
 #ifdef DEBUG_ASSERTIONS
     PENDING_CMD_DEBUG_INPUT_INITIALIZED = 1 << 27,
     PENDING_CMD_DEBUG_CMD_INITIALIZED = 1 << 28,
@@ -4249,7 +4245,10 @@ struct pendingCommand {
     unsigned long long input_bytes;
     struct redisCommand *cmd;
     getKeysResult keys_result;
-    long long reploff;        /* c->reploff should be set to this value when the command is processed */
+    union {
+        long long reploff;    /* replication clients only; set before command activation */
+        uint64_t phase_us;    /* debug phase timestamp for sampled non-replication requests */
+    };
     int flags;
     int slot;         /* The slot the command is executing against. Set to INVALID_CLUSTER_SLOT
                        * if no slot is being used or if the command has a cross slot error */
@@ -5021,6 +5020,9 @@ void tryDeferFreeClientObject(client *c, int type, void *ptr);
 void freeClientDeferredObjects(client *c, int free_array);
 void freeClientIODeferredObjects(client *c, int free_array);
 void sendReplyToClient(connection *conn);
+void tomoPhaseRecvComplete(client *c);
+void tomoPhaseRequestParsed(client *c, pendingCommand *pcmd);
+void tomoPhaseSendDone(client *c);
 void *addReplyDeferredLen(client *c);
 void setDeferredArrayLen(client *c, void *node, long length);
 void setDeferredMapLen(client *c, void *node, long length);
@@ -6488,7 +6490,7 @@ void initIOThreads(void);
 void exQueueInit(exQueue *q);
 int exQueuePush(exQueue *q, client *c);
 int exQueuePopBatch(exQueue *q, client **out, int max);
-void flushExQueues(void);   /* ee451 (S4): publish staged pushes for this iotid */
+void flushExQueues(void);   /* ee451 (S4): publish staged pushes for this iotid at producer boundaries */
 void migUnparkClient(client *c);  /* ee451 (H2 handover): drop a dying client from the range-hold park list */
 void freebackPush(int ex_id, robj *obj);   /* ee451 (S8): IO->worker value free-back */
 void queueToWorker(client *c, int ex_id);
