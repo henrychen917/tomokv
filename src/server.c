@@ -11067,7 +11067,47 @@ static int csStampDrain(exThread *worker) {
     return total;
 }
 
-static void csStampPush(int owner, tomoOwnerOp *op) {
+/* The elected commit drainer is the reserved lane's sole producer. Keep its owner-op writes
+ * producer-private for a whole ready-list pass, then publish once per touched owner. The mask lets
+ * us initialize only the owners that are actually touched instead of clearing both 128-entry
+ * arrays on every pass. */
+typedef struct csStampBatch {
+    unsigned int staged[TOMO_EX_THREADS_MAX];
+    uint64_t touched_mask[TOMO_EX_MASK_WORDS];
+    int touched_owners[TOMO_EX_THREADS_MAX];
+    int ntouched;
+} csStampBatch;
+
+static inline void csStampBatchInit(csStampBatch *batch) {
+    for (int i = 0; i < TOMO_EX_MASK_WORDS; i++) batch->touched_mask[i] = 0;
+    batch->ntouched = 0;
+}
+
+/* Publish count before tail: a consumer may transiently see pending work before it can see the
+ * entries, but it must never see entries whose pending accounting has not arrived yet. */
+static int csStampBatchFlushOwner(csStampBatch *batch, int owner) {
+    serverAssert(owner >= 0 && owner < server.num_workers);
+    uint64_t bit = 1ull << ((unsigned)owner & 63);
+    if (!(batch->touched_mask[(unsigned)owner >> 6] & bit) ||
+        batch->staged[owner] == 0)
+        return 0;
+
+    exThread *worker = &server.exThreads[owner];
+    exQueue *q = &worker->queues[csStampLane()];
+    unsigned int n = batch->staged[owner];
+    atomic_fetch_add_explicit(&worker->stamp_pending, n, memory_order_release);
+    atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
+    exHandoffAdvertiseLane(worker, (unsigned)csStampLane());
+    batch->staged[owner] = 0;
+    return 1;
+}
+
+static void csStampBatchFlush(csStampBatch *batch) {
+    for (int i = 0; i < batch->ntouched; i++)
+        csStampBatchFlushOwner(batch, batch->touched_owners[i]);
+}
+
+static void csStampStage(csStampBatch *batch, int owner, tomoOwnerOp *op) {
     serverAssert(owner >= 0 && owner < server.num_workers);
     exThread *worker = &server.exThreads[owner];
     exQueue *q = &worker->queues[csStampLane()];
@@ -11081,8 +11121,14 @@ static void csStampPush(int owner, tomoOwnerOp *op) {
             full_counted = 1;
         }
         if (!waiting) { tmIoWaitBegin(); waiting = 1; }
-        atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
-        exHandoffAdvertiseLane(worker, (unsigned)csStampLane());
+        /* The unpublished entries occupy the space the consumer must free. Make them visible
+         * before waiting, or a full reserved lane deadlocks. After the first publication, retain
+         * the old retry path's tail+advertise on every failed retry so a cleared handoff hint is
+         * promptly restored. */
+        if (!csStampBatchFlushOwner(batch, owner)) {
+            atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
+            exHandoffAdvertiseLane(worker, (unsigned)csStampLane());
+        }
         if (current_owner == owner)
             csStampDrain(worker);
         else {
@@ -11091,9 +11137,15 @@ static void csStampPush(int owner, tomoOwnerOp *op) {
         }
     }
     if (waiting) tmIoWaitEnd();
-    atomic_fetch_add_explicit(&worker->stamp_pending, 1, memory_order_release);
-    atomic_store_explicit(&q->tail, q->staged_tail, memory_order_release);
-    exHandoffAdvertiseLane(worker, (unsigned)csStampLane());
+
+    uint64_t bit = 1ull << ((unsigned)owner & 63);
+    if (!(batch->touched_mask[(unsigned)owner >> 6] & bit)) {
+        serverAssert(batch->ntouched < server.num_workers);
+        batch->touched_mask[(unsigned)owner >> 6] |= bit;
+        batch->touched_owners[batch->ntouched++] = owner;
+        batch->staged[owner] = 0;
+    }
+    batch->staged[owner]++;
 }
 
 /* Resolve C's newest still-uncommitted owner-local version before consulting
@@ -11246,7 +11298,8 @@ static void csCommitWakeMarked(uint64_t *wake_mask) {
     }
 }
 
-static void csMsetFinalizeCommit(csGroup *g, uint64_t *wake_mask) {
+static void csMsetFinalizeCommit(csGroup *g, uint64_t *wake_mask,
+                                 csStampBatch *stamp_batch) {
     serverAssert(atomic_load_explicit(&g->mset_complete,
                                       memory_order_acquire) == TOMO_COMMIT_FINAL_READY);
     tomoCommit *commit = g->commit;
@@ -11278,7 +11331,7 @@ static void csMsetFinalizeCommit(csGroup *g, uint64_t *wake_mask) {
             serverAssert(atomic_load_explicit(&vmeta->owner_ops_pending,
                                               memory_order_acquire) == 1);
             vmeta->owner_op[1] = (tomoOwnerOp){kv, commit_ts, TOMO_OWNER_OP_PRUNE};
-            csStampPush(install->owner, &vmeta->owner_op[1]);
+            csStampStage(stamp_batch, install->owner, &vmeta->owner_op[1]);
         }
         install->kv = NULL;
         install->owner = -1;
@@ -11308,7 +11361,8 @@ static void csMsetFinalizeCommit(csGroup *g, uint64_t *wake_mask) {
  * into its owner's stamped index first; the final owner decrements the shared
  * count and performs commit-time sequencing. Records are pushed in install
  * order so duplicate keys retain their group-local last-pair tie-break. */
-static void csMsetBeginCommit(csGroup *g, uint64_t *wake_mask) {
+static void csMsetBeginCommit(csGroup *g, uint64_t *wake_mask,
+                              csStampBatch *stamp_batch) {
     serverAssert(atomic_load_explicit(&g->mset_complete,
                                       memory_order_acquire) == TOMO_COMMIT_INSTALL_READY);
     tomoCommit *commit = g->commit;
@@ -11349,7 +11403,7 @@ static void csMsetBeginCommit(csGroup *g, uint64_t *wake_mask) {
         serverAssert(cancel);
         atomic_store_explicit(&g->mset_complete, TOMO_COMMIT_FINAL_READY,
                               memory_order_release);
-        csMsetFinalizeCommit(g, wake_mask);
+        csMsetFinalizeCommit(g, wake_mask, stamp_batch);
         return;
     }
 
@@ -11369,7 +11423,7 @@ static void csMsetBeginCommit(csGroup *g, uint64_t *wake_mask) {
                               memory_order_release);
         vmeta->owner_op[0] = (tomoOwnerOp){kv, 0,
             cancel ? TOMO_OWNER_OP_CANCEL : TOMO_OWNER_OP_STAMP};
-        csStampPush(install->owner, &vmeta->owner_op[0]);
+        csStampStage(stamp_batch, install->owner, &vmeta->owner_op[0]);
     }
 }
 
@@ -11393,7 +11447,8 @@ static void csMsetOwnerOpsDone(tomoCommit *commit) {
     csCommitDrainReady();
 }
 
-static void csMsetPublishCommit(csGroup *g, uint64_t *wake_mask) {
+static void csMsetPublishCommit(csGroup *g, uint64_t *wake_mask,
+                                csStampBatch *stamp_batch) {
     serverAssert(atomic_load_explicit(&g->mset_complete,
                                       memory_order_acquire) == TOMO_COMMIT_STAMP_READY);
     tomoCommit *commit = g->commit;
@@ -11407,7 +11462,7 @@ static void csMsetPublishCommit(csGroup *g, uint64_t *wake_mask) {
     }
     atomic_store_explicit(&g->mset_complete, TOMO_COMMIT_FINAL_READY,
                           memory_order_release);
-    csMsetFinalizeCommit(g, wake_mask);
+    csMsetFinalizeCommit(g, wake_mask, stamp_batch);
 }
 
 /* Race-free elected-drainer protocol. The MPSC contains only groups whose
@@ -11422,7 +11477,10 @@ static void csCommitDrainReady(void) {
         return;
 
     uint64_t wake_mask[TOMO_IO_MASK_WORDS] = {0};
+    serverAssert(server.num_workers <= TOMO_EX_THREADS_MAX);
     for (;;) {
+        csStampBatch stamp_batch;
+        csStampBatchInit(&stamp_batch);
         csGroup *ready = atomic_exchange_explicit(&commit_ready_groups, NULL,
                                                    memory_order_acquire);
         while (ready) {
@@ -11431,15 +11489,18 @@ static void csCommitDrainReady(void) {
             int stage = atomic_load_explicit(&ready->mset_complete,
                                              memory_order_acquire);
             if (stage == TOMO_COMMIT_INSTALL_READY)
-                csMsetBeginCommit(ready, wake_mask);
+                csMsetBeginCommit(ready, wake_mask, &stamp_batch);
             else if (stage == TOMO_COMMIT_STAMP_READY)
-                csMsetPublishCommit(ready, wake_mask);
+                csMsetPublishCommit(ready, wake_mask, &stamp_batch);
             else {
                 serverAssert(stage == TOMO_COMMIT_FINAL_READY); /* zero-install cancellation */
-                csMsetFinalizeCommit(ready, wake_mask);
+                csMsetFinalizeCommit(ready, wake_mask, &stamp_batch);
             }
             ready = next;
         }
+        /* Owner work must be visible before its completed groups can wake their reply producers,
+         * and every reserved-lane publication must precede release of the sole-producer election. */
+        csStampBatchFlush(&stamp_batch);
         csCommitWakeMarked(wake_mask);
 
         atomic_store_explicit(&commit_drain_active, 0, memory_order_release);
