@@ -13,8 +13,9 @@
  *  OVERWRITE: owner-exclusive read-modify-write keeping [63:48], swapping only the ptr bits [47:0].
  *  Single-writer-per-KEY (one owner per bucket) means the CAS only ever resolves cross-KEY physical
  *  collisions; a key is never inserted/deleted by two threads at once. A deleted/overwritten value is
- *  QSBR-retired (flatRetire) and freed only after every live worker's loop_seq grace, so concurrent
- *  lock-free readers never dereference freed memory. Those readers still exist after the node
+ *  QSBR-retired (flatRetire) and freed only after the scalar physical-grace frontier passes its
+ *  close target, so concurrent lock-free readers never dereference freed memory. Those readers
+ *  still exist after the node
  *  borrow was deleted (2026-07-27): the cross-shard MGET/SETOP subs, and above all the
  *  worker-routed top-level SCAN, whose composite-cursor slice walks EVERY node's flat table
  *  (flatScanDbs, db.c) and so derefs kvobjs it does not own. QSBR is what makes that legal. */
@@ -175,6 +176,7 @@ __thread unsigned flat_node_pool_n = 0;
 __thread unsigned flat_node_pool_lowat = 0;   /* min occupancy this window = never-needed surplus */
 __thread unsigned flat_node_tick = 0;
 __thread unsigned flat_local_retire_flags = 0;
+__thread uint64_t flat_local_retire_ts = 0;
 
 /* Low-water scavenger (glibc/tcmalloc shape). The minimum occupancy reached during a window is by
  * definition the number of nodes the window never needed, so that many are returned to the
@@ -226,7 +228,13 @@ void flatRetireAtomicRaw(flatTable *t, void *rawkv) {
     flatRetirePayload(t, flatRetireReclaim(rawkv), 0);
 }
 
-void flatRetireVersionPrune(flatTable *t, void *rawkv) {
+void flatRetireVersionPrune(flatTable *t, void *rawkv, uint64_t successor_ts) {
+    /* PRUNE is an owner operation consumed by csStampDrain while exSlice has armed the worker-local
+     * sink. Keeping its timestamp in the same TLS aggregate leaves ordinary/off-path retire machine
+     * code unchanged and makes an unexpected shared-stack producer fail closed instead of silently
+     * dropping logical eligibility. */
+    serverAssert(flat_local_sink != NULL);
+    if (successor_ts > flat_local_retire_ts) flat_local_retire_ts = successor_ts;
     flatRetirePayload(t, flatRetireSpecial(rawkv, 0), FLAT_RETIRE_BATCH_PRUNE);
 }
 

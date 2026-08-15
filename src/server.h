@@ -1868,7 +1868,7 @@ typedef struct client {
             const void *tomo_bkt_ptr;
             uint64_t tomo_key_h;
             uint64_t tomo_read_snapshot;
-            uint64_t tomo_read_snapshot_gen;   /* dispatch group-pin close generation */
+            uint64_t tomo_read_snapshot_gen;   /* dispatch group-pin MVCC timestamp */
 
             unsigned long long reply_bytes;
             size_t sentlen;
@@ -2591,7 +2591,7 @@ typedef struct exThread {
      * "tail block packs in one 64B line" claim no longer holds verbatim. They are
      * worker-private (written only by the owning worker), so they share a line only with
      * other worker-private fields — the property that matters is that they are NOT next to
-     * loop_seq/in_flat_section, which every worker now polls in flatBatchReady. */
+     * the physical-grace publication fields read by the shared eligibility controller. */
     /* ee451 2026-08-04: wall µs this worker spent with an EMPTY QUEUE, measured as whole idle
      * EPISODES (2 clock reads per episode, never per spin round). This drives the retained
      * worker-only modes. The ratio modes instead pair exThread.tm_busy_us productive work with
@@ -2621,17 +2621,17 @@ typedef struct exThread {
      * PLACEMENT: appended at the very END of the struct on purpose. Inserting them mid-struct shifted
      * the carefully-tuned hot block (the `db`/tm_* line the F1 false-sharing fix established) and
      * measured -16% on p32 SET; appending leaves every pre-existing field's relative layout intact,
-     * and they still sit far from loop_seq/in_flat_section, which every worker polls in
-     * flatBatchReady. */
+     * and they still sit far from loop_seq/in_flat_section/flat_section_gen, which the shared
+     * physical-grace controller samples only when advancing its cached frontier. */
     /* PAD: force the worker-private reclaim fields onto their own cache line. Without this they
      * land on the same line as loop_seq / in_flat_section (build-time _Static_assert in server.c
      * enforces it — an earlier "move to the end of the struct" did NOT actually separate them), and
-     * a write on every retire would ping-pong a line every other worker polls in flatBatchReady. */
+     * a write on every retire would ping-pong a line sampled by the shared grace controller. */
     char flat_pad[CACHE_LINE_SIZE];
     struct flatRetireNode *flat_retire_local;
     struct flatBatch *flat_batches_local;   /* FIFO head = oldest */
     struct flatBatch *flat_batches_tail;    /* FIFO tail = newest (append point) */
-    struct flatBatch *flat_batch_spare;     /* recycled batch headers (a batch is ~544B) */
+    struct flatBatch *flat_batch_spare;     /* recycled scalar batch headers */
     int flat_batch_spare_n;                 /* bounded: a long non-worker region can queue many
                                              * batches, and freeing them all would otherwise park an
                                              * unbounded free-list for the process lifetime */
@@ -2676,6 +2676,9 @@ typedef struct exThread {
      * predecessor offset; folded by INFO exactly like pf_batches/pf_gated/pf_issued. */
     unsigned long long pf_issued_slot;
     unsigned long long pf_issued_kvobj;
+    /* Entry generation of the current flat read section. Appended so no tuned predecessor offset
+     * moves. The global grace controller reads it only while in_flat_section is set. */
+    _Atomic uint64_t flat_section_gen;
 } exThread;
 
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
@@ -5554,6 +5557,8 @@ unsigned long long dbScan(redisDb *db, unsigned long long cursor, dictScanFuncti
  * free what it is dereferencing. Nesting-safe. */
 void flatQsbrRegionEnter(void);
 void flatQsbrRegionExit(void);
+void flatWorkerQsbrEnter(exThread *worker);
+void flatWorkerQsbrExit(exThread *worker);
 
 /* Set data type */
 robj *setTypeCreate(sds value, size_t size_hint);

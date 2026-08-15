@@ -74,16 +74,13 @@ typedef struct flatSlot {
 
 /* QSBR reclamation (Stage 1): a retired value can't be freed while a lock-free reader may still
  * hold its pointer. Retire pushes it (Treiber, lock-free) onto retire_stack (or the worker-local
- * sink); workers and main CLOSE lists into batches stamped with every worker's loop_seq and
- * every io identity's flat_epoch (only the identities inside an inline region at close —
- * io_pin_mask), plus the global close generation for dispatch-lifetime group pins. A batch frees
- * once every stamped constituency has passed its grace or is outside a protected section. One
- * stamp per batch amortizes the snapshot over many deletes. */
+ * sink); workers and main CLOSE lists into batches carrying one monotone grace target. Workers and
+ * inline IO readers publish the close generation at read-section entry. A shared completed
+ * frontier advances to the oldest such active entry and a batch is physically safe when its target
+ * is at or below that frontier. Version-prune batches additionally carry the successor commit_ts;
+ * their logical snapshot frontier is checked before the physical grace. */
 typedef struct flatRetireNode { dictEntry *masked_kv; struct flatRetireNode *next; } flatRetireNode;
 #define FLAT_BATCH_SPARE_MAX 8   /* cap the per-worker recycled batch-header free list */
-#define FLAT_QSBR_MARGIN 2   /* WORKER clause only: loop_seq must advance this far past the
-                              * snapshot. The io clause needs no margin — the epoch publish is a
-                              * full barrier before any table access. */
 
 /* Per-worker retire SINK (ee451 FLATSTORE reclaim-capacity fix). A worker thread points this at its
  * own retire-list head at the top of every exSlice pass; flatRetire then pushes there with NO atomics
@@ -100,27 +97,21 @@ extern __thread unsigned flat_node_pool_n, flat_node_pool_lowat, flat_node_tick;
  * the same reason as flat_local_sink: one OS thread owns both ends of that list. */
 #define FLAT_RETIRE_BATCH_PRUNE (1u << 0)
 extern __thread unsigned flat_local_retire_flags;
+extern __thread uint64_t flat_local_retire_ts;
 #define FLAT_NODE_POOL_CAP 4096u                     /* 64KB/worker at 16B/node */
 void flatNodePoolTrim(void);
 
-/* ee451 #83: the QSBR snapshot (worker loop_seq + io region-epoch + io pin bitmap) is ONE trailing
- * block sized to the RUNTIME thread pool, not the 128 compile cap. The batch header is heap-allocated
- * (flatBatchClose), so the block rides with it and recycles through the spare pool; its size is
- * flat_batch_slots = io_threads + num_workers + 1 (the largest io_hi a flip can ever reach, since
- * tm_ngrow_io <= num_workers), which is process-constant so every batch is uniform. This removes the
- * ~2KB cap-128 header (down to ~150B at a small boot) and the write-path cache cost it caused
- * (~1% SET at p32). Access ONLY via FB_SNAP/FB_IOSNAP/FB_IOPIN in server.c (they carry the runtime
- * stride); nothing outside server.c touches the snapshot. Layout:
- *     arr[0 .. slots)            snap[]         worker loop_seq at close
- *     arr[slots .. 2*slots)      io_snap[]      tm_io_sig[t].flat_epoch at close (valid iff pinned)
- *     arr[2*slots .. +mask_words) io_pin_mask[] bit t set iff io_snap[t] was ODD at close */
+/* Closed batches are FIFO nodes. `grace_target` is strictly increasing in close order.
+ * `eligible_ts` is zero for ordinary/post-unlink reclaim and canceled-version callbacks; a
+ * successful version-prune callback carries the successor timestamp whose older snapshot readers
+ * must first drain. A mixed batch keeps the maximum timestamp, conservatively making one head
+ * predicate cover every payload in it. */
 typedef struct flatBatch {
     flatRetireNode *head;
-    uint64_t close_gen;
-    int nworkers;
+    uint64_t grace_target;
+    uint64_t eligible_ts;
     unsigned int retire_flags;                  /* fits the pre-next alignment hole */
     struct flatBatch *next;
-    uint64_t arr[];                            /* flexible; see FB_* in server.c */
 } flatBatch;
 
 typedef struct flatTable {
@@ -169,7 +160,7 @@ void       flatRetire(flatTable *t, dictEntry *masked_kv);   /* QSBR: defer free
 /* CURE2 two-stage retirement. These payloads share the existing retire-node
  * pool but dispatch an owner prune or a metadata free when their grace ends. */
 void       flatRetireAtomicRaw(flatTable *t, void *rawkv);
-void       flatRetireVersionPrune(flatTable *t, void *rawkv);
+void       flatRetireVersionPrune(flatTable *t, void *rawkv, uint64_t successor_ts);
 void       flatRetireVmeta(flatTable *t, void *vmeta);
 void       flatRetirePayloadReady(dictEntry *payload);
 void       flatRetirePayloadDiscard(dictEntry *payload);

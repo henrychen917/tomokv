@@ -103,7 +103,7 @@ void *kvstoreFlatRandomKeyInRange(kvstore *kvs, int blo, int bhi);
 struct flatTable *kvstoreFlatTable(kvstore *kvs);
 void kvstoreFlatRetireRaw(kvstore *kvs, void *rawkv);
 void kvstoreFlatRetireAtomicRaw(kvstore *kvs, void *rawkv);
-void kvstoreFlatRetireVersionPrune(kvstore *kvs, void *rawkv);
+void kvstoreFlatRetireVersionPrune(kvstore *kvs, void *rawkv, uint64_t successor_ts);
 void kvstoreFlatRetireVmeta(kvstore *kvs, void *vmeta);
 void kvstoreFlatSwap(kvstore *kvs, struct flatTable *nw);
 int kvstoreIsSharedMT(kvstore *kvs);

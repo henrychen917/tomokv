@@ -285,7 +285,8 @@ void renameGenericCommand(client *c, int nx);  /* db.c; same-shard TWOHOP runs t
 #define CS_MSETNX_RESERVED 1
 #define CS_MSETNX_PRESENT  2
 #define TOMO_COMMIT_INSTALL_READY 1
-#define TOMO_COMMIT_FINAL_READY   2
+#define TOMO_COMMIT_STAMP_READY   2
+#define TOMO_COMMIT_FINAL_READY   3
 #define CO_IDLE          0
 #define CO_WAIT_CONVERGE 1
 #define CO_DRAINING      2
@@ -351,15 +352,11 @@ static inline tomoOwnerOp *exOwnerOpDecode(client *job) {
     return (tomoOwnerOp *)((uintptr_t)job & ~TOMO_EX_OWNER_OP_TAG);
 }
 
-/* Commit-time MVCC clock. The low bit is a writer-only publication latch and the high bits are
- * the last fully published timestamp. A reader never waits: an odd value means one committer has
- * installed its shared commit_ts but has not exposed it through the clock yet, so the reader uses
- * the unchanged high-bit timestamp. This two-store publication is what prevents a reader that
- * drew T during the tiny writer interval from observing that group halfway through its MGET.
- *
- * The clock remains isolated because every atomic snapshot reads it while completing workers
- * write the controller line. There is no reservation counter and no arrival-order frontier: a
- * group reaches this latch only after its last owner stamp has landed. */
+/* Commit-time MVCC clock. The representation remains 2*T, but the low-bit writer latch is no
+ * longer exercised: commit_drain_active elects one clock writer before a ready group reaches this
+ * point. The drainer release-publishes the shared commit_ts first and 2*T second; a reader's one
+ * acquire load therefore sees either the complete previous group or the complete new group.
+ * There is no reservation counter or arrival-order frontier. */
 static struct { _Atomic uint64_t v; char pad[CACHE_LINE_SIZE - sizeof(_Atomic uint64_t)]; }
     commit_clock_line __attribute__((aligned(CACHE_LINE_SIZE)));
 #define commit_clock (commit_clock_line.v)
@@ -1024,10 +1021,9 @@ static int csAtomicReadsSources(const csCmdSpec *s) {
  * IO thread (no false sharing — the line is private) and read racily by the 4Hz controller on
  * the main thread: EWMAs and snapshots, torn/stale reads are harmless on the control plane. */
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
-    /* LINE 0 — read-mostly, snapshotted by every batch close (flatBatchClose) and probed per-batch
-     * in flatBatchReady only while that batch's io_pin_mask bit is set. Nothing hot-written may
-     * share it. 52cb11a0f put q_full_events immediately before the grace word, so a queue-full
-     * burst invalidated this line on every worker on each event; the grace word owns the line. */
+    /* LINE 0 — read-mostly QSBR publication. Nothing hot-written may share it. 52cb11a0f put
+     * q_full_events immediately before the grace word, so a queue-full burst invalidated this line
+     * on every reclaimer; the grace state owns the line. */
     _Atomic uint64_t flat_epoch;
                         /* FLATSTORE QSBR region EPOCH for THIS io identity (0 = main, 1..N = io
                          * threads, io_threads[+ngrow) = flip growth slots).
@@ -1035,8 +1031,11 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
                          *   ODD   => INSIDE the region that began at this value.
                          *   0 (BSS) => never entered, outside.
                          * Monotone, strictly increasing, written ONLY by the thread that owns this
-                         * slot (see flat_slot_owned), read by the workers' grace machinery. */
-    char _pad_flat_epoch[CACHE_LINE_SIZE - sizeof(_Atomic uint64_t)];
+                         * slot (see flat_slot_owned), read by the grace controller. */
+    _Atomic uint64_t flat_section_gen;
+                        /* retire-close generation observed after publishing an ODD entry. An
+                         * active region blocks exactly targets newer than this generation. */
+    char _pad_flat_epoch[CACHE_LINE_SIZE - 2 * sizeof(_Atomic uint64_t)];
 
     /* LINE 1+ — owner-written control-plane state, read racily by the 4Hz balancer / INFO. */
     int busy_ewma_q4;   /* client-LB load weight only: EWMA (Q4, alpha 1/8) of IO events/pass.
@@ -1130,8 +1129,7 @@ _Static_assert(offsetof(tmIoSignal, flat_epoch) / CACHE_LINE_SIZE
 _Static_assert(offsetof(tmIoSignal, pend_write) / CACHE_LINE_SIZE
                == offsetof(tmIoSignal, tm_work_us) / CACHE_LINE_SIZE,
                "IO work clock added an owner cache line");
-/* ee451 #83: flatBatch's QSBR snapshot is a RUNTIME-sized trailing block (flatstore.h), so there is
- * no cap-tied array to bind here anymore — the sizing lives in flat_batch_slots, set at init. */
+/* flatBatch carries scalar eligibility frontiers, so no cap-tied batch snapshot binds here. */
 static tmIoSignal tm_io_sig[TOMO_IO_THREADS_MAX + 1];
 
 void tomoIoDrainNote(unsigned int nread) {
@@ -1330,10 +1328,11 @@ static inline int tomoEvalFcallProc(redisCommandProc *p) {
 static _Atomic int flat_foreign_active __attribute__((aligned(CACHE_LINE_SIZE)));
 static char _pad_flat_foreign[CACHE_LINE_SIZE - sizeof(_Atomic int)] __attribute__((unused));  /* deliberate: isolates flat_foreign_active on its own line */
 
-/* Dispatch-lifetime group pins use close generations instead of nesting into flat_epoch. The
- * fixed ring is deliberately fail-safe: once a live floor is a ring-width behind, reclamation
- * blocks until the ambiguous cells drain. active and the scan state have separate lines because
- * the io owner writes the former while reclaiming workers write the latter. */
+/* Dispatch-lifetime group pins are indexed by their MVCC snapshot timestamp. A prune anchored at
+ * successor timestamp C is eligible once the oldest live snapshot is >= C. The fixed counter ring
+ * is deliberately fail-safe under wrap: a colliding future timestamp merely keeps an older floor
+ * blocked until that future pin also drains. active and scan state have separate lines because the
+ * IO owner/last reader writes the former while the eligibility controller writes the latter. */
 #define FLAT_PIN_GEN_WIDTH 4096
 #define FLAT_PIN_GEN_MASK  (FLAT_PIN_GEN_WIDTH - 1)
 _Static_assert((FLAT_PIN_GEN_WIDTH & FLAT_PIN_GEN_MASK) == 0,
@@ -1349,18 +1348,36 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
 _Static_assert(sizeof(flatGroupPinSlot) % CACHE_LINE_SIZE == 0,
                "group-pin slots must not share cache lines");
 static flatGroupPinSlot flat_group_pins[TOMO_IO_THREADS_MAX + 1];
-typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
-    _Atomic uint64_t bits[TOMO_IO_MASK_WORDS];
-    char _pad[CACHE_LINE_SIZE - sizeof(_Atomic uint64_t) * TOMO_IO_MASK_WORDS];
-} flatGroupPinMask;
-_Static_assert(sizeof(flatGroupPinMask) == CACHE_LINE_SIZE,
-               "group-pin mask must not share the close-generation line");
-static flatGroupPinMask flat_group_pin_mask;
 
 /* closed doubles as the monotone close generation: its fetch-add is the one global RMW per batch,
  * off the per-retire path. pending = closed - freed remains the INFO progress witness. */
 static _Atomic uint64_t flat_batches_closed_n, flat_batches_freed_n;
 static _Atomic unsigned long long flat_pin_wrap_blocks;
+static _Atomic uint64_t flat_group_active_total __attribute__((aligned(CACHE_LINE_SIZE)));
+static char _pad_flat_group_active[CACHE_LINE_SIZE - sizeof(_Atomic uint64_t)]
+    __attribute__((unused));
+
+/* Both eligibility controllers publish scalar monotone frontiers read by every worker. A scan
+ * records the one participant currently defining the frontier; retries test only that participant
+ * until it changes, so a long section/pin cannot provoke another pool-wide walk per exSlice. */
+typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
+    _Atomic uint64_t safe;
+    char pad_safe[CACHE_LINE_SIZE - sizeof(_Atomic uint64_t)];
+    _Atomic int scan_lock;
+    _Atomic int blocker;
+    char pad_ctl[CACHE_LINE_SIZE - 2 * sizeof(_Atomic int)];
+} flatEligibilityCtl;
+_Static_assert(sizeof(flatEligibilityCtl) == 2 * CACHE_LINE_SIZE,
+               "flat eligibility frontier and scan state must occupy separate cache lines");
+static flatEligibilityCtl flat_grace_ctl;
+static flatEligibilityCtl flat_pin_ctl;
+
+enum {
+    FLAT_GRACE_BLOCK_NONE = 0,
+    FLAT_GRACE_BLOCK_FOREIGN = 1,
+    FLAT_GRACE_BLOCK_IO_BASE = 2,
+    FLAT_GRACE_BLOCK_WORKER_BASE = FLAT_GRACE_BLOCK_IO_BASE + TOMO_IO_THREADS_MAX + 1
+};
 
 static inline int flatIoHi(void);            /* fwd; defined with the region machinery below */
 static int flatIoPinnedCount(void) {         /* INFO gauge: io identities with inline or group pins */
@@ -1370,10 +1387,9 @@ static int flatIoPinnedCount(void) {         /* INFO gauge: io identities with i
             atomic_load_explicit(&flat_group_pins[t].active, memory_order_relaxed)) n++;
     return n;
 }
-/* INFO witness: rises when closes outrun an active group pin and returns to zero when all floors
- * catch up; an inactive slot's effective floor is cur. */
+/* INFO witness: commit timestamps elapsed behind the oldest active snapshot pin. */
 static uint64_t flatPinBacklog(void) {
-    uint64_t cur = atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed), min = cur;
+    uint64_t cur = tomoCommittedSeq(), min = cur;
     int hi = flatIoHi();
     for (int t = 0; t <= hi; t++) {
         if (!atomic_load_explicit(&flat_group_pins[t].active, memory_order_relaxed)) continue;
@@ -1382,16 +1398,17 @@ static uint64_t flatPinBacklog(void) {
     }
     return cur - min;
 }
-/* build-time layout guard (FLATSTORE reclaim): the worker-private retire fields must NOT share a
- * cache line with loop_seq / in_flat_section, which every OTHER worker polls in flatBatchReady —
- * a per-retire write next to them would ping-pong the line. */
+/* Build-time layout guard: worker-private retire writes must not share a cache line with the
+ * physical-grace publications sampled by the shared eligibility controller. */
 _Static_assert(offsetof(exThread, flat_retire_local) / 64 != offsetof(exThread, loop_seq) / 64,
                "flat_retire_local shares a cache line with loop_seq (false sharing)");
 _Static_assert(offsetof(exThread, flat_retire_local) / 64 != offsetof(exThread, in_flat_section) / 64,
                "flat_retire_local shares a cache line with in_flat_section (false sharing)");
+_Static_assert(offsetof(exThread, flat_retire_local) / 64 != offsetof(exThread, flat_section_gen) / 64,
+               "flat_retire_local shares a cache line with flat_section_gen (false sharing)");
 
 /* NON-WORKER quiescence for the FLATSTORE QSBR grace (see flatBatchReady).
- * Workers prove quiescence with loop_seq / in_flat_section. Every OTHER thread that can execute a
+ * Workers publish in_flat_section / flat_section_gen. Every OTHER thread that can execute a
  * command must do the same, because such a thread walks the shared flat tables holding RAW,
  * un-refcounted kvobj pointers: rdbSaveRio/rdbSaveDb (SAVE, DEBUG RELOAD, shutdown save),
  * computeDatasetDigest (DEBUG DIGEST), KEYS/RANDOMKEY, plus performEvictions and activeExpireCycle.
@@ -1409,16 +1426,16 @@ _Static_assert(offsetof(exThread, flat_retire_local) / 64 != offsetof(exThread, 
  * PARITY supplies the escape hatch it was reaching for: EVEN means "outside", and a never-entered
  * or VACATED slot (an io slot whose thread grew back into the EX role) is frozen EVEN, which passes
  * every grace forever with no registration/deregistration protocol. A pure monotone counter with no
- * parity WOULD stall on such a slot; the encoding is mandatory, not cosmetic. This restores the exact two-clause
- * disjunction the worker side has had all along (loop_seq advanced OR not in a section) — only the
- * io side lacked the counter, and that asymmetry was the defect: under the old flag, one long
+ * parity WOULD stall on such a slot; the encoding is mandatory, not cosmetic. This restores the
+ * exact entry-generation rule now used by the worker side — only the io side once lacked the
+ * counter, and that asymmetry was the defect: under the old flag, one long
  * inline region on ANY of the 33 identities blocked EVERY batch on EVERY worker for its whole
  * duration, including batches closed while the region was already open.
  *
  * COST: workers never execute call() (they run cmd->proc directly from exExecFake), and the common
  * io-thread path DISPATCHES rather than executing inline, so this is off the hot path entirely; the
  * flags are read-mostly, so a worker's grace check hits its own cache. */
-#define FLAT_SLOT_WORKER (-1)   /* registered as a WORKER: quiescence via loop_seq/in_flat_section */
+#define FLAT_SLOT_WORKER (-1)   /* worker publishes in_flat_section + flat_section_gen directly */
 #define FLAT_SLOT_NONE   (-2)   /* NOT registered: bio, module background, anything that never sets iotid */
 
 static __thread int      flat_extern_depth;                  /* nesting depth (ALL threads now) */
@@ -1427,6 +1444,15 @@ static __thread int      flat_epoch_slot  = -1;              /* slot LATCHED at 
 static __thread uint64_t flat_epoch_val;                     /* the ODD value published at that enter */
 static __thread int      flat_foreign_held;                  /* 1 => this thread holds the global pin */
 
+/* The reader's publish and the reclaimer's snapshot are a Dekker (StoreLoad) pair: publish-then-probe
+ * vs unlink-then-snapshot. On x86-64 a seq_cst store compiles to a locked RMW and is already a full
+ * barrier; on a weakly-ordered target (ARM64 stlr) it is NOT, and the explicit fence is mandatory. */
+#if defined(__x86_64__) || defined(__i386__)
+#define FLAT_PUBLISH_FENCE() ((void)0)
+#else
+#define FLAT_PUBLISH_FENCE() atomic_thread_fence(memory_order_seq_cst)
+#endif
+
 /* ONE bound expression for the io constituency. Boot-fixed (server.io_threads and tm_ngrow_io are
  * computed once in initServer), so slot MEMBERSHIP never changes at runtime — only occupancy. Every
  * writer AND every reader must use this, so the reader constituency can never be narrower than the
@@ -1434,6 +1460,106 @@ static __thread int      flat_foreign_held;                  /* 1 => this thread
 static inline int flatIoHi(void) {
     int hi = server.io_threads + server.tm_ngrow_io;
     return hi > TOMO_IO_THREADS_MAX ? TOMO_IO_THREADS_MAX : hi;
+}
+
+static int flatGraceBlockerActive(int blocker, uint64_t safe) {
+    if (blocker == FLAT_GRACE_BLOCK_FOREIGN)
+        return atomic_load_explicit(&flat_foreign_active, memory_order_seq_cst) != 0;
+    if (blocker >= FLAT_GRACE_BLOCK_IO_BASE &&
+        blocker < FLAT_GRACE_BLOCK_WORKER_BASE) {
+        int t = blocker - FLAT_GRACE_BLOCK_IO_BASE;
+        if (!(atomic_load_explicit(&tm_io_sig[t].flat_epoch,
+                                   memory_order_seq_cst) & 1))
+            return 0;
+        return atomic_load_explicit(&tm_io_sig[t].flat_section_gen,
+                                    memory_order_acquire) <= safe;
+    }
+    if (blocker >= FLAT_GRACE_BLOCK_WORKER_BASE) {
+        int w = blocker - FLAT_GRACE_BLOCK_WORKER_BASE;
+        if (w < 0 || w >= server.num_workers ||
+            !atomic_load_explicit(&server.exThreads[w].in_flat_section,
+                                  memory_order_seq_cst))
+            return 0;
+        return atomic_load_explicit(&server.exThreads[w].flat_section_gen,
+                                    memory_order_acquire) <= safe;
+    }
+    return 0;
+}
+
+/* Advance only as far as the FIFO head requires. Entry publishes its active flag before sampling
+ * flat_batches_closed_n. Therefore a scanner which misses an entry necessarily precedes that
+ * sample, and the new section receives a generation at least as new as `needed`. One cached blocker
+ * makes every unsuccessful retry constant-time; newer closes cannot make this head scan ahead. */
+static void flatGraceAdvance(uint64_t needed) {
+    uint64_t safe = atomic_load_explicit(&flat_grace_ctl.safe, memory_order_acquire);
+    if (safe >= needed) return;
+
+    int blocker = atomic_load_explicit(&flat_grace_ctl.blocker, memory_order_acquire);
+    if (blocker != FLAT_GRACE_BLOCK_NONE && flatGraceBlockerActive(blocker, safe))
+        return;
+
+    int expected = 0;
+    if (!atomic_compare_exchange_strong_explicit(&flat_grace_ctl.scan_lock, &expected, 1,
+                                                  memory_order_acquire,
+                                                  memory_order_relaxed))
+        return;
+
+    safe = atomic_load_explicit(&flat_grace_ctl.safe, memory_order_relaxed);
+    if (safe >= needed) {
+        atomic_store_explicit(&flat_grace_ctl.scan_lock, 0, memory_order_release);
+        return;
+    }
+    uint64_t candidate = needed;
+    int next_blocker = FLAT_GRACE_BLOCK_NONE;
+
+    if (atomic_load_explicit(&flat_foreign_active, memory_order_seq_cst)) {
+        candidate = safe;
+        next_blocker = FLAT_GRACE_BLOCK_FOREIGN;
+    } else {
+        int hi = flatIoHi();
+        for (int t = 0; t <= hi; t++) {
+            if (!(atomic_load_explicit(&tm_io_sig[t].flat_epoch,
+                                       memory_order_seq_cst) & 1))
+                continue;
+            uint64_t gen = atomic_load_explicit(&tm_io_sig[t].flat_section_gen,
+                                                memory_order_acquire);
+            if (gen < candidate) {
+                candidate = gen;
+                next_blocker = FLAT_GRACE_BLOCK_IO_BASE + t;
+            }
+        }
+        for (int w = 0; w < server.num_workers; w++) {
+            exThread *worker = &server.exThreads[w];
+            if (!atomic_load_explicit(&worker->in_flat_section, memory_order_seq_cst))
+                continue;
+            uint64_t gen = atomic_load_explicit(&worker->flat_section_gen,
+                                                memory_order_acquire);
+            if (gen < candidate) {
+                candidate = gen;
+                next_blocker = FLAT_GRACE_BLOCK_WORKER_BASE + w;
+            }
+        }
+    }
+
+    /* Stale observations may only hold the frontier back. Never let one move it backwards. */
+    if (candidate < safe) candidate = safe;
+    atomic_store_explicit(&flat_grace_ctl.safe, candidate, memory_order_release);
+    atomic_store_explicit(&flat_grace_ctl.blocker, next_blocker, memory_order_release);
+    atomic_store_explicit(&flat_grace_ctl.scan_lock, 0, memory_order_release);
+}
+
+/* Worker read-section publication is shared by exSlice, full-table retry, and version-prune
+ * callback scopes. Keep the resize handshake's seq-cst active flag; the generation sampled after
+ * it is the scalar replacement for every batch's worker snapshot vector. */
+void flatWorkerQsbrEnter(exThread *worker) {
+    atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
+    FLAT_PUBLISH_FENCE();
+    uint64_t gen = atomic_load_explicit(&flat_batches_closed_n, memory_order_seq_cst);
+    atomic_store_explicit(&worker->flat_section_gen, gen, memory_order_release);
+}
+
+void flatWorkerQsbrExit(exThread *worker) {
+    atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
 }
 
 /* Positive slot claim. Called at EVERY site that assigns iotid; nothing else may publish an epoch.
@@ -1450,17 +1576,6 @@ static inline void flatRegisterWorker(void) {
     flat_slot_owned = FLAT_SLOT_WORKER;
 }
 
-/* The reader's publish and the reclaimer's snapshot are a Dekker (StoreLoad) pair: publish-then-probe
- * vs unlink-then-snapshot. On x86-64 a seq_cst store compiles to a locked RMW and is already a full
- * barrier; on a weakly-ordered target (ARM64 stlr) it is NOT, and the explicit fence is mandatory.
- * Keep this macro even though it is a no-op on the shipping target — it is the written form of the
- * obligation. */
-#if defined(__x86_64__) || defined(__i386__)
-#define FLAT_PUBLISH_FENCE() ((void)0)
-#else
-#define FLAT_PUBLISH_FENCE() atomic_thread_fence(memory_order_seq_cst)
-#endif
-
 static void flatExternForeignEnter(void);   /* cold path, defined below */
 static void flatExternForeignExit(void);
 
@@ -1471,7 +1586,7 @@ static void flatExternForeignExit(void);
 static inline void flatExternEnter(void) {
     if (++flat_extern_depth != 1) return;          /* NESTED: publish nothing (EXEC/Lua/RM_Call) */
     int s = flat_slot_owned;
-    if (s == FLAT_SLOT_WORKER) return;             /* worker: covered by loop_seq + in_flat_section */
+    if (s == FLAT_SLOT_WORKER) return;             /* worker: covered by flatWorkerQsbrEnter */
     if (__builtin_expect(s == FLAT_SLOT_NONE, 0)) { flatExternForeignEnter(); return; }
     /* FAIL-SAFE arithmetic: (cur|1)+2 is ALWAYS odd and ALWAYS strictly greater than cur, so even
      * if the "slot is even at an outermost enter" invariant were ever violated (slot aliasing), the
@@ -1482,6 +1597,8 @@ static inline void flatExternEnter(void) {
     flat_epoch_val  = v;
     atomic_store_explicit(&tm_io_sig[s].flat_epoch, v, memory_order_seq_cst);
     FLAT_PUBLISH_FENCE();
+    uint64_t gen = atomic_load_explicit(&flat_batches_closed_n, memory_order_seq_cst);
+    atomic_store_explicit(&tm_io_sig[s].flat_section_gen, gen, memory_order_release);
 }
 static inline void flatExternExit(void) {
     if (--flat_extern_depth != 0) return;          /* inner scope of a nested region */
@@ -1518,30 +1635,41 @@ static inline void flatExternScopeEnd(const int *unused) { (void)unused; flatExt
 void flatQsbrRegionEnter(void) { flatExternEnter(); }
 void flatQsbrRegionExit(void)  { flatExternExit(); }
 
-/* Register before the snapshot/table probe. The 0->1 mask publication fence and close-generation
- * bump are seq_cst peers: either a close sees this slot, or this pin reads the post-close generation.
- * scan_lock closes the smaller load-generation/increment-cell race with a concurrent floor walk. */
+/* Register before the snapshot/table probe. active_total is published before sampling the commit
+ * clock. Thus an eligibility scan either includes this pin or precedes its snapshot, in which case
+ * that snapshot is no older than the frontier the scan may publish. scan_lock serializes the
+ * per-slot zero-to-one floor transition with sparse floor advancement. */
 static inline void flatGroupPinEnter(client *fake) {
     int s = flat_slot_owned;
     serverAssert(s >= 0 && s <= flatIoHi());
+    uint64_t total_before = atomic_fetch_add_explicit(&flat_group_active_total, 1,
+                                                       memory_order_seq_cst);
+    int ctl_held = 0;
+    if (total_before == 0) {
+        int ctl_expected = 0;
+        while (!atomic_compare_exchange_weak_explicit(&flat_pin_ctl.scan_lock,
+                                                       &ctl_expected, 1,
+                                                       memory_order_acquire,
+                                                       memory_order_relaxed))
+            ctl_expected = 0;
+        ctl_held = 1;
+    }
     flatGroupPinSlot *ps = &flat_group_pins[s];
     int expected = 0;
     while (!atomic_compare_exchange_weak_explicit(&ps->scan_lock, &expected, 1,
                                                    memory_order_acquire, memory_order_relaxed))
         expected = 0;
     uint64_t was_active = atomic_fetch_add_explicit(&ps->active, 1, memory_order_relaxed);
-    if (was_active == 0) {
-        atomic_fetch_or_explicit(&flat_group_pin_mask.bits[s >> 6], 1ULL << (s & 63),
-                                 memory_order_relaxed);
-        atomic_thread_fence(memory_order_seq_cst);
-    }
-    uint64_t gen = atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed);
+    uint64_t gen = tomoCommittedSeq();
     if (was_active == 0)
         atomic_store_explicit(&ps->floor, gen, memory_order_relaxed);
     atomic_fetch_add_explicit(&ps->pin_out[gen & FLAT_PIN_GEN_MASK], 1, memory_order_relaxed);
     fake->tomo_read_snapshot_gen = gen;
+    fake->tomo_read_snapshot = gen;
     atomic_store_explicit(&fake->tomo_read_snapshot_pinned, 1, memory_order_release);
     atomic_store_explicit(&ps->scan_lock, 0, memory_order_release);
+    if (ctl_held)
+        atomic_store_explicit(&flat_pin_ctl.scan_lock, 0, memory_order_release);
     FLAT_PUBLISH_FENCE();
 }
 
@@ -1555,47 +1683,86 @@ static inline void flatGroupPinExit(client *fake, int s) {
     serverAssert(old > 0);
     old = atomic_fetch_sub_explicit(&ps->active, 1, memory_order_release);
     serverAssert(old > 0);
-    if (old == 1)
-        atomic_fetch_and_explicit(&flat_group_pin_mask.bits[s >> 6], ~(1ULL << (s & 63)),
-                                  memory_order_release);
+    old = atomic_fetch_sub_explicit(&flat_group_active_total, 1, memory_order_seq_cst);
+    serverAssert(old > 0);
 }
 
-/* Advance each engaged slot to its oldest live generation. A busy scan gate and ring ambiguity
- * both block this batch; neither condition is ever allowed to guess in the freeing direction. */
-static int flatGroupPinsBlock(uint64_t close_gen) {
-    int hi = flatIoHi(), nwords = (hi + 64) >> 6;
-    for (int wi = 0; wi < nwords; wi++) {
-        uint64_t m = atomic_load_explicit(&flat_group_pin_mask.bits[wi], memory_order_seq_cst);
-        while (m) {
-            int s = (wi << 6) + __builtin_ctzll(m); m &= m - 1;
-            if (s > hi) continue;
-            flatGroupPinSlot *ps = &flat_group_pins[s];
-            int expected = 0;
-            if (!atomic_compare_exchange_strong_explicit(&ps->scan_lock, &expected, 1,
-                                                          memory_order_acquire, memory_order_relaxed))
-                return 1;
-            uint64_t cur = atomic_load_explicit(&flat_batches_closed_n, memory_order_acquire);
-            uint64_t floor = atomic_load_explicit(&ps->floor, memory_order_relaxed);
-            uint64_t active = atomic_load_explicit(&ps->active, memory_order_acquire);
-            int pressure = cur < floor || cur - floor >= FLAT_PIN_GEN_WIDTH;
-            if (!active) {
-                floor = cur;
-            } else if (cur >= floor) {
-                while (floor < cur &&
-                       atomic_load_explicit(&ps->pin_out[floor & FLAT_PIN_GEN_MASK],
-                                            memory_order_acquire) == 0)
-                    floor++;
-            }
-            atomic_store_explicit(&ps->floor, floor, memory_order_release);
-            atomic_store_explicit(&ps->scan_lock, 0, memory_order_release);
-            if (pressure) {
+/* Publish the oldest live MVCC snapshot. The expensive slot/floor walk happens only when the
+ * cached oldest counter cell drains. All intervening exSlice retries load that one cell. */
+static void flatGroupSafeAdvance(void) {
+    uint64_t safe = atomic_load_explicit(&flat_pin_ctl.safe, memory_order_acquire);
+    uint64_t cur = tomoCommittedSeq();
+    if (safe >= cur) return;
+
+    int blocker = atomic_load_explicit(&flat_pin_ctl.blocker, memory_order_acquire);
+    if (blocker > 0) {
+        flatGroupPinSlot *ps = &flat_group_pins[blocker - 1];
+        if (atomic_load_explicit(&ps->pin_out[safe & FLAT_PIN_GEN_MASK],
+                                 memory_order_acquire) != 0)
+            return;
+    }
+
+    int expected = 0;
+    if (!atomic_compare_exchange_strong_explicit(&flat_pin_ctl.scan_lock, &expected, 1,
+                                                  memory_order_acquire,
+                                                  memory_order_relaxed))
+        return;
+
+    safe = atomic_load_explicit(&flat_pin_ctl.safe, memory_order_relaxed);
+    cur = tomoCommittedSeq();
+    if (safe >= cur) {
+        atomic_store_explicit(&flat_pin_ctl.scan_lock, 0, memory_order_release);
+        return;
+    }
+    /* The zero-to-one pin transition takes this same lock before sampling commit time. Thus either
+     * the first pin is already visible below, or it samples after this publication and cannot carry
+     * an older snapshot. Sustained overlapping pins stay on their independent per-slot locks. */
+    if (atomic_load_explicit(&flat_group_active_total, memory_order_seq_cst) == 0) {
+        atomic_store_explicit(&flat_pin_ctl.safe, cur, memory_order_release);
+        atomic_store_explicit(&flat_pin_ctl.blocker, 0, memory_order_release);
+        atomic_store_explicit(&flat_pin_ctl.scan_lock, 0, memory_order_release);
+        return;
+    }
+    uint64_t candidate = cur;
+    int next_blocker = 0;
+    int hi = flatIoHi();
+    for (int s = 0; s <= hi; s++) {
+        flatGroupPinSlot *ps = &flat_group_pins[s];
+        expected = 0;
+        if (!atomic_compare_exchange_strong_explicit(&ps->scan_lock, &expected, 1,
+                                                      memory_order_acquire,
+                                                      memory_order_relaxed)) {
+            candidate = safe;
+            next_blocker = s + 1;
+            break;
+        }
+        uint64_t active = atomic_load_explicit(&ps->active, memory_order_acquire);
+        uint64_t floor = atomic_load_explicit(&ps->floor, memory_order_relaxed);
+        if (!active) {
+            floor = cur;
+        } else if (cur >= floor) {
+            if (cur - floor >= FLAT_PIN_GEN_WIDTH)
                 atomic_fetch_add_explicit(&flat_pin_wrap_blocks, 1, memory_order_relaxed);
-                return 1;
-            }
-            if (active && floor <= close_gen) return 1;
+            while (floor < cur &&
+                   atomic_load_explicit(&ps->pin_out[floor & FLAT_PIN_GEN_MASK],
+                                        memory_order_acquire) == 0)
+                floor++;
+        } else {
+            /* A wrapped/corrupt clock can delay reclaim but must never license it. */
+            floor = safe;
+        }
+        atomic_store_explicit(&ps->floor, floor, memory_order_release);
+        atomic_store_explicit(&ps->scan_lock, 0, memory_order_release);
+        if (active && floor < candidate) {
+            candidate = floor;
+            next_blocker = s + 1;
         }
     }
-    return 0;
+
+    if (candidate < safe) candidate = safe;
+    atomic_store_explicit(&flat_pin_ctl.safe, candidate, memory_order_release);
+    atomic_store_explicit(&flat_pin_ctl.blocker, next_blocker, memory_order_release);
+    atomic_store_explicit(&flat_pin_ctl.scan_lock, 0, memory_order_release);
 }
 
 static void tomoFlipController(void);      /* the 4Hz auto flip controller (always-full-pool); defined below */
@@ -4899,8 +5066,8 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
     if (__builtin_expect(tmFlipActive(), 0) && tmFlipOwnedByCurrentSemiMain()) tmFlipTick();
 
     /* ee451 FLATSTORE Stage-1: reclaim QSBR-retired values (cheap when nothing pending), and drive
-     * the cooperative table resize. Quiescence for non-worker threads is published by the per-io
-     * inline epochs and group-pin generations (see flatBatchReady), not by a counter here. */
+     * the cooperative table resize. Physical quiescence is folded from per-reader entry generations;
+     * logical prune eligibility is folded independently from MVCC snapshot pins. */
     /* CORRECTNESS NOTE (2026-07-28): this used to be hinted UNLIKELY. FLATSTORE is the DEFAULT
      * shape (any node with >1 worker), so the hint was backwards — it laid the taken path out cold
      * on the busiest loop in the server. Hint dropped, predicate unchanged. */
@@ -9023,8 +9190,8 @@ int processCommand(client *c) {
         ((fake->cmd->flags & CMD_READONLY) ||
          (atomic_write_admission && (fake->cmd->tomo_route & TOMO_R_ATOMIC_READ)))) {
         flatGroupPinEnter(fake);
-        /* One nonblocking clock sample is the whole group's visibility cut. */
-        fake->tomo_read_snapshot = tomoCommittedSeq();
+        /* flatGroupPinEnter's one nonblocking clock sample is both the visibility cut and the
+         * logical-reclaim eligibility key; a second sample could split those meanings. */
     }
 
     /* First in-flight fake for this real — enroll in flush-walk list. */
@@ -9495,135 +9662,45 @@ static uint64_t xxh64(const void *input, size_t len) {
 /* ee451 FLATSTORE: public full-64-bit key hash (xxh64 is file-static). */
 uint64_t tomoKeyHash(const void *key, size_t len) { return xxh64(key, len); }
 
-/* ee451 FLATSTORE Stage-1 QSBR reclaim (node semi-main, beforeSleep/ioSlice). Close the table's retire stack
- * into a batch stamped with every worker's loop_seq, then free any batch whose stamp every worker
- * has passed (all pre-retire lock-free readers have since finished a full pass). */
-/* (flat_main quiescence pair is defined above beforeSleep.) */
-
-/* Close a retire list into a grace batch: allocate its group-pin generation, then snapshot every
- * worker's loop_seq and every io identity's inline-region epoch right now.
- * `spare` (optional) is a recycle list of spent headers — a batch is ~816B and the worker closes one
- * per pass under write load, so recycling keeps the steady state allocation-free. */
-/* (flat_batches_closed_n/freed_n moved beside the group-pin slots above: closed doubles as the
- * monotone close generation.) */
+/* Stage-1 QSBR reclaim. A close allocates one scalar grace target instead of copying every reader's
+ * state into every batch. Reader sections publish their entry generation; flatGraceAdvance folds
+ * those publications into one completed frontier and caches the oldest blocking participant. */
 static _Atomic unsigned long flat_reclaim_budget_trips_n;
 
-/* ee451 #83: runtime size of a flatBatch's QSBR snapshot block. slots = io_threads + num_workers + 1
- * = the largest io_hi a flip can reach (tm_ngrow_io <= num_workers) + 1, which is also >= num_workers
- * for snap[]. Process-constant (set once in initExThreads before any batch closes), so every batch
- * header is the same size and the spare pool recycles uniformly. Sub-arrays are contiguous in
- * b->arr; FB_* carry the stride. */
-static int flat_batch_slots;
-static int flat_batch_mask_words;
-#define FB_SNAP(b)   ((b)->arr)                          /* uint64_t[flat_batch_slots] */
-#define FB_IOSNAP(b) ((b)->arr + flat_batch_slots)       /* uint64_t[flat_batch_slots] */
-#define FB_IOPIN(b)  ((b)->arr + 2*flat_batch_slots)     /* uint64_t[flat_batch_mask_words] */
-
 static flatBatch *flatBatchClose(flatRetireNode *pend, unsigned int retire_flags,
-                                 flatBatch *next, flatBatch **spare, int *spare_n) {
-    debugServerAssert(flat_batch_slots > 0);   /* initExThreads must have run before any close */
+                                 uint64_t eligible_ts, flatBatch *next,
+                                 flatBatch **spare, int *spare_n) {
     flatBatch *b = NULL;
     if (spare && *spare) { b = *spare; *spare = b->next; if (spare_n) (*spare_n)--; }
-    /* ee451 #83: header + the runtime-sized snapshot block in one alloc. Spare batches were closed by
-     * THIS process with the same flat_batch_slots, so a recycled one already has the right size. */
-    if (!b) b = zmalloc(sizeof(*b) + (size_t)(2*flat_batch_slots + flat_batch_mask_words) * sizeof(uint64_t));
+    if (!b) b = zmalloc(sizeof(*b));
     b->head = pend;
     b->retire_flags = retire_flags;
-    /* nworkers is bounded by flat_batch_slots (= io_threads+num_workers+1 > num_workers), so snap[w]
-     * for w < nworkers is always in range; clamp defensively to num_workers. */
-    int nw = server.num_workers;
-    b->nworkers = nw;
-    uint64_t *snap = FB_SNAP(b), *io_snap = FB_IOSNAP(b), *io_pin = FB_IOPIN(b);
+    b->eligible_ts = eligible_ts;
 
     /* MANDATORY StoreLoad fence. Every value in this batch was unlinked with a RELEASE store
      * (flatOverwrite / flatDelete) BEFORE this point — worker path by program order through
      * flat_local_sink, main path via the release-CAS push and the acquire exchange at the stack
-     * drain. x86 permits StoreLoad reordering, so without this fence the unlink store and the
-     * snapshot loads below can BOTH be stale: the reader misses the unlink and keeps its pointer,
-     * we miss its publish and record it as outside => premature free. Before this change the pair
-     * was closed only ACCIDENTALLY by the lock-xadd on t->tombs inside flatDelete and the loop_seq
-     * fetch_add in exSlice. ~30 cycles, once per exSlice pass. Do not remove. */
+     * drain. Reader entry publishes active before sampling this generation. Without the fence, the
+     * unlink and that publication/probe handshake can both be missed, licensing a premature free. */
     atomic_thread_fence(memory_order_seq_cst);
-    /* OLD is the generation this close seals. A pin that observes the increment reads a table from
-     * which this batch's values were already unlinked; the seq_cst RMW also pairs with 0->1 pin-mask
-     * publication so a pin cannot disappear between its generation probe and the floor scan. */
-    b->close_gen = atomic_fetch_add_explicit(&flat_batches_closed_n, 1, memory_order_seq_cst);
-
-    for (int w = 0; w < nw; w++)
-        snap[w] = atomic_load_explicit(&server.exThreads[w].loop_seq, memory_order_acquire);
-
-    /* io identities: snapshot the region epoch. Only ODD slots (inside a region right now) can ever
-     * hold a pointer into this batch, so only they are recorded — an EVEN slot at this instant holds
-     * nothing, and anything it enters LATER reads a table these values were already unlinked from. */
-    int io_hi = flatIoHi();
-    /* The mask is EXACTLY flat_batch_mask_words words (the live range), so clearing all of it clears
-     * the whole thing — no stale-high-word hazard exists anymore (the array has no words beyond the
-     * live range, unlike the old cap-128 sizing). io_hi <= flat_batch_slots-1 by construction. */
-    for (int wi = 0; wi < flat_batch_mask_words; wi++) io_pin[wi] = 0;
-    for (int t = 0; t <= io_hi; t++) {
-        uint64_t v = atomic_load_explicit(&tm_io_sig[t].flat_epoch, memory_order_seq_cst);
-        if (v & 1) { io_snap[t] = v; io_pin[t >> 6] |= 1ULL << (t & 63); }
-    }
+    uint64_t close_gen = atomic_fetch_add_explicit(&flat_batches_closed_n, 1,
+                                                    memory_order_seq_cst);
+    serverAssert(close_gen != UINT64_MAX);
+    b->grace_target = close_gen + 1;
 
     b->next = next;
     return b;
 }
 
-/* Can every thread that might have held a pointer to this batch's values have dropped it?
- * Per worker, EITHER is sufficient:
- *   (a) its loop_seq advanced past snap + MARGIN  => it passed a quiescent point since the retire; or
- *   (b) it is not currently inside a flat section => it holds no flat pointer at all, and any section
- *       it enters later reads a table the retired value was already unlinked from.
- * review [residual-leak]: (b) REPLACES the old `!tmWorkerLive(w) -> skip`, which was unsound now that
- * the retire->free latency is microseconds instead of seconds: "non-live" is NOT "quiesced" in this
- * fork — grow-front publishes num_workers_live-- BEFORE arming the migration, and a converting worker
- * keeps slicing and keeps executing straggler subs (e.g. a CS_KEYS sub runs flatIterRange, which
- * derefs every live kvobj in the node table). Such a worker was SKIPPED by the old predicate while
- * actively reading => UAF. in_flat_section is the honest signal (it is exactly "inside an exSlice
- * batch that may touch a flat table") and it still lets a worker that has genuinely stopped slicing
- * be skipped, so the grace never stalls. Non-worker threads are covered by their own region flags. */
+/* O(1) head predicate. The controller work is performed once per frontier transition, outside this
+ * FIFO walk; a blocked head is never used as an excuse to rescan either pending batches or grace
+ * participants. Ordinary/post-unlink batches have eligible_ts==0 and pay one frontier load. */
 static int flatBatchReady(const flatBatch *b) {
-    /* NON-WORKER identities. Slot t blocks this batch iff BOTH:
-     *   (i)  it was INSIDE a region when the batch closed (bit t set in io_pin_mask), AND
-     *   (ii) it is STILL inside that same region (its epoch is unchanged).
-     * Any other state is provably safe:
-     *   - bit clear   => t held nothing at close, and any region it enters later reads a table these
-     *                    values were already unlinked from (today's argument, applied once at the
-     *                    earliest safe instant instead of repeatedly at check time);
-     *   - epoch moved => t left that region (exit, or exit+re-enter); it advances ONLY at an
-     *                    outermost enter and an outermost exit, both points where t provably holds
-     *                    no raw flat pointer. Directly analogous to the workers' loop_seq clause.
-     * These are the inline readers: SAVE / DEBUG DIGEST / DEBUG RELOAD / EVAL / DEBUG SLEEP (KEYS is
-     * CS_KEYS/fan-all and runs as worker subs, not inline). Steady state: io_pin_mask == 0 and this
-     * is ONE predictable test, versus the old unconditional 33 seq_cst loads across 33 distinct
-     * cache lines on EVERY readiness check of EVERY batch. */
-    if (__builtin_expect(atomic_load_explicit(&flat_foreign_active, memory_order_seq_cst), 0))
-        return 0;                                   /* unregistered reader inside: fail-safe global pin */
-    /* GROUP pins overlap for whole dispatch/reassembly lifetimes. A slot blocks exactly while its
-     * oldest live generation is no newer than this batch's close generation. */
-    if (flatGroupPinsBlock(b->close_gen)) return 0;
-    const uint64_t *io_pin = FB_IOPIN(b), *io_snap = FB_IOSNAP(b), *snap = FB_SNAP(b);
-    for (int wi = 0; wi < flat_batch_mask_words; wi++) {
-      uint64_t m = io_pin[wi];
-      while (m) {
-        int t = (wi << 6) + __builtin_ctzll(m); m &= m - 1;
-        if (atomic_load_explicit(&tm_io_sig[t].flat_epoch, memory_order_acquire) == io_snap[t])
-            return 0;                               /* still inside the region it was in at close */
-      }
-    }
-    /* WORKERS: EITHER loop_seq advanced past the snapshot + margin (passed a quiescent point), OR the
-     * worker is not inside a flat section right now (holds nothing). The second clause is what makes
-     * a worker that has stopped slicing skippable without stalling the grace, and — unlike the old
-     * "if (!tmWorkerLive(w)) continue" — it does NOT skip a converting worker that is still executing
-     * straggler commands and reading the table. */
-    for (int w = 0; w < b->nworkers; w++) {
-        exThread *et = &server.exThreads[w];
-        if (atomic_load_explicit(&et->loop_seq, memory_order_acquire) >= snap[w] + FLAT_QSBR_MARGIN)
-            continue;
-        if (!atomic_load_explicit(&et->in_flat_section, memory_order_seq_cst))
-            continue;
+    if (atomic_load_explicit(&flat_grace_ctl.safe, memory_order_acquire) < b->grace_target)
         return 0;
-    }
+    if (b->eligible_ts &&
+        atomic_load_explicit(&flat_pin_ctl.safe, memory_order_acquire) < b->eligible_ts)
+        return 0;
     return 1;
 }
 
@@ -9698,12 +9775,11 @@ static unsigned long flatAtomicPressureBudget(int owner, unsigned long base) {
     return base > ULONG_MAX - add ? ULONG_MAX : base + add;
 }
 
-/* Drain at most *budget batches from the ready FIFO prefix. MONOTONICITY makes stopping at the first
- * non-ready head sound: for FIFO batches B1 closed before B2, snap1 <= snap2 per worker,
- * io_snap1[t] <= io_snap2[t] per io slot, and close_gen1 < close_gen2, so every worker,
- * inline-region and group-pin clause that passes for B2 also passes for B1. Return true only when
- * the budget blocks a ready head, which is the exact event exposed by
- * tomokv_flat_reclaim_budget_trips. */
+/* Drain the ready FIFO prefix. grace_target is strictly increasing. The sole commit drainer assigns
+ * successful successor timestamps and pushes PRUNEs through each owner's FIFO lane before assigning
+ * the next timestamp, so nonzero eligibility keys reach each worker monotonically; zero-only
+ * cancellation/physical batches impose no logical gate. A heap/tree would add work without exposing
+ * another reclaimable prefix: append/pop are O(1), and the head predicate is two loads. */
 static int flatDrainReadyBatches(flatBatch **head, flatBatch **tail, flatBatch **spare, int *spare_n,
                                  unsigned long *budget) {
     while (*head && flatBatchReady(*head)) {
@@ -9729,14 +9805,13 @@ static void flatWorkerReclaim(exThread *worker) {
     if (tomoFlatResizeWorkerActive(worker->id)) return;
     unsigned long closed = 0;
     if (worker->flat_retire_local) {
-        /* APPEND (FIFO). Every close snapshots the CURRENT seqs, which only ever grow, so an older
-         * batch always becomes ready no later than a newer one. Keeping the list oldest-first lets the
-         * drain below stop at the first non-ready head. That matters: a worker closes a batch per pass
-         * (~1e5/s) while main only bumps its grace counter once per event loop, so the list can hold
-         * hundreds of batches — and a full walk per pass (measured) cost ~16% of p32 SET. */
+        /* APPEND (FIFO): grace targets are strictly ordered and successful prune timestamps are
+         * owner-lane ordered. Keep the scalar eligibility tuple on the batch at the append point. */
         unsigned int retire_flags = flat_local_retire_flags;
+        uint64_t eligible_ts = flat_local_retire_ts;
         flat_local_retire_flags = 0;
-        flatBatch *b = flatBatchClose(worker->flat_retire_local, retire_flags, NULL,
+        flat_local_retire_ts = 0;
+        flatBatch *b = flatBatchClose(worker->flat_retire_local, retire_flags, eligible_ts, NULL,
                                       &worker->flat_batch_spare,
                                       &worker->flat_batch_spare_n);
         worker->flat_retire_local = NULL;
@@ -9744,6 +9819,22 @@ static void flatWorkerReclaim(exThread *worker) {
         else worker->flat_batches_local = b;
         worker->flat_batches_tail = b;
         closed = 1;
+    }
+    if (worker->flat_batches_local) {
+        flatBatch *head = worker->flat_batches_local;
+        uint64_t grace_needed = worker->flat_batches_tail->grace_target;
+        /* Do not chase physical eligibility down the tail while the logical head is known blocked.
+         * Once that head clears, advancing to the tail lets the existing >production budget catch
+         * up in one ready prefix without turning the blocked steady state back into scan-ahead. */
+        if (head->eligible_ts &&
+            atomic_load_explicit(&flat_pin_ctl.safe,
+                                 memory_order_acquire) < head->eligible_ts)
+            grace_needed = head->grace_target;
+        flatGraceAdvance(grace_needed);
+        if (head->eligible_ts &&
+            atomic_load_explicit(&flat_grace_ctl.safe,
+                                 memory_order_acquire) >= head->grace_target)
+            flatGroupSafeAdvance();
     }
     unsigned long budget = flatAtomicPressureBudget(worker->id,
                                                      flatReclaimBudget(closed));
@@ -9815,7 +9906,7 @@ static int flatReclaimTableClose(flatTable *t) {
         if (pend) {
             /* Atomic prune callbacks are owner-generated and therefore use the worker-local sink.
              * Non-worker shared-stack batches retain standalone callback locking as a fail-safe. */
-            flatBatch *b = flatBatchClose(pend, 0, NULL, NULL, NULL);
+            flatBatch *b = flatBatchClose(pend, 0, 0, NULL, NULL, NULL);
             if (t->batches_tail) t->batches_tail->next = b;
             else t->batches = b;
             t->batches_tail = b;
@@ -9844,16 +9935,18 @@ void flatReclaimAll(int node) {
     if (!server.shared_node_dbs || !server.node_dbs) return;
     serverAssert(node < server.n_node_dbs);
     unsigned long closed = 0;
-    int have_batches = 0;
+    uint64_t grace_needed = 0;
     for (int j = 0; j < server.dbnum; j++) {
         if (!dbIsInitialized(&server.node_dbs[node][j])) continue;
         flatTable *t = kvstoreFlatTable(server.node_dbs[node][j].keys);
         if (t) {
             if (flatReclaimTableClose(t) && closed != ULONG_MAX) closed++;
-            if (t->batches) have_batches = 1;
+            if (t->batches_tail && t->batches_tail->grace_target > grace_needed)
+                grace_needed = t->batches_tail->grace_target;
         }
     }
-    if (!have_batches) return;
+    if (!grace_needed) return;
+    flatGraceAdvance(grace_needed);
     unsigned long budget = flatReclaimBudget(closed);
     for (int j = 0; j < server.dbnum; j++) {
         if (!dbIsInitialized(&server.node_dbs[node][j])) continue;
@@ -11109,27 +11202,12 @@ static void csAtomicSetDestinationRouting(csGroup *g, robj *dst) {
     g->head->tomo_bkt_ptr = dst->ptr;
 }
 
-/* Serialize only the nanoscopic shared-timestamp publication interval. The
- * high bits remain the last fully published timestamp while the low bit is
- * odd, so readers take the old T without waiting. All owner stamps precede the
- * shared commit_ts release; the final clock release then licenses that T. */
-static uint64_t tomoCommitClockAdvance(tomoCommit *commit) {
-    uint64_t state = atomic_load_explicit(&commit_clock, memory_order_relaxed);
-    int spins = 0;
-    for (;;) {
-        if (!(state & 1)) {
-            uint64_t latched = state | 1;
-            if (atomic_compare_exchange_weak_explicit(&commit_clock, &state, latched,
-                                                       memory_order_acq_rel,
-                                                       memory_order_relaxed))
-                break;
-        } else {
-            exPauseCpu();
-            if ((++spins & 4095) == 0) tomoPollingYield();
-            state = atomic_load_explicit(&commit_clock, memory_order_acquire);
-        }
-    }
-
+/* The elected completion drainer is the sole clock writer. Completing workers queue STAMP_READY
+ * and never contend or PAUSE-poll on this publication. */
+static uint64_t tomoCommitClockAdvanceSerialized(tomoCommit *commit) {
+    serverAssert(atomic_load_explicit(&commit_drain_active, memory_order_relaxed) != 0);
+    uint64_t state = atomic_load_explicit(&commit_clock, memory_order_acquire);
+    serverAssert(!(state & 1));
     uint64_t previous = state >> 1;
     serverAssert(previous < (UINT64_MAX >> 1));
     uint64_t commit_ts = previous + 1;
@@ -11295,10 +11373,9 @@ static void csMsetBeginCommit(csGroup *g, uint64_t *wake_mask) {
     }
 }
 
-/* The final shard stamp is the sequencing point. The acq_rel decrement chain
- * carries every owner's stamped-index publication to this thread. Successful
- * groups contend only for the encoded clock update; canceled groups publish no
- * timestamp. Either terminal stage then re-enters the ready-group MPSC. */
+/* The final shard stamp is an event publication, not a clock contender. The acq_rel decrement
+ * chain carries every owner's stamped-index mutation to this worker; it records arrival time,
+ * queues STAMP_READY, and returns to exSlice. The elected drainer assigns timestamps serially. */
 static void csMsetOwnerOpsDone(tomoCommit *commit) {
     serverAssert(commit != NULL);
     csGroup *g = commit->group;
@@ -11306,13 +11383,23 @@ static void csMsetOwnerOpsDone(tomoCommit *commit) {
     serverAssert(atomic_load_explicit(&g->mset_complete,
                                       memory_order_acquire) == TOMO_COMMIT_INSTALL_READY);
 
-    if (g->version_seq == TOMO_VERSION_UNCOMMITTED) {
-        /* Measure only publication contention after the last stamp has
-         * arrived. Registration-to-commit distance is almost guaranteed to
-         * be nonzero at a full window and made "straggler" a concurrency
-         * counter rather than a delay signal. */
+    if (g->version_seq == TOMO_VERSION_UNCOMMITTED)
         g->commit_start_ts = tomoCommittedSeq();
-        uint64_t commit_ts = tomoCommitClockAdvance(commit);
+    else
+        serverAssert(g->version_seq == 0);
+    atomic_store_explicit(&g->mset_complete, TOMO_COMMIT_STAMP_READY,
+                          memory_order_release);
+    csCommitReadyPush(g);
+    csCommitDrainReady();
+}
+
+static void csMsetPublishCommit(csGroup *g, uint64_t *wake_mask) {
+    serverAssert(atomic_load_explicit(&g->mset_complete,
+                                      memory_order_acquire) == TOMO_COMMIT_STAMP_READY);
+    tomoCommit *commit = g->commit;
+    serverAssert(commit != NULL && commit->group == g);
+    if (g->version_seq == TOMO_VERSION_UNCOMMITTED) {
+        uint64_t commit_ts = tomoCommitClockAdvanceSerialized(commit);
         g->version_seq = commit_ts;
         tomoCommitLagObserve(g, commit_ts);
     } else {
@@ -11320,8 +11407,7 @@ static void csMsetOwnerOpsDone(tomoCommit *commit) {
     }
     atomic_store_explicit(&g->mset_complete, TOMO_COMMIT_FINAL_READY,
                           memory_order_release);
-    csCommitReadyPush(g);
-    csCommitDrainReady();
+    csMsetFinalizeCommit(g, wake_mask);
 }
 
 /* Race-free elected-drainer protocol. The MPSC contains only groups whose
@@ -11346,8 +11432,10 @@ static void csCommitDrainReady(void) {
                                              memory_order_acquire);
             if (stage == TOMO_COMMIT_INSTALL_READY)
                 csMsetBeginCommit(ready, wake_mask);
+            else if (stage == TOMO_COMMIT_STAMP_READY)
+                csMsetPublishCommit(ready, wake_mask);
             else {
-                serverAssert(stage == TOMO_COMMIT_FINAL_READY);
+                serverAssert(stage == TOMO_COMMIT_FINAL_READY); /* zero-install cancellation */
                 csMsetFinalizeCommit(ready, wake_mask);
             }
             ready = next;
@@ -23039,12 +23127,8 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
      * refcounts are only ever mutated by this thread. */
     freebackDrainAll(worker);
 
-    /* ee451 (FLATSTORE FIX D): bump loop_seq on EVERY pass with RELEASE ordering. It is the QSBR
-     * quiescence signal — flatReclaim frees a retired kvobj only once every worker's loop_seq has
-     * advanced past the retire snapshot, so any lock-free reader that acquire-loaded the old pointer
-     * BEFORE the retire has since finished a full pass (release here happens-before the reclaimer's
-     * acquire). Was migration-only, which left the grace unable to complete in steady state. Also
-     * still serves the migration cutover heartbeat (it only needs loop_seq to advance). */
+    /* Bump loop_seq on every pass. Reclamation now uses flat_section_gen; loop_seq remains the
+     * migration cutover heartbeat, whose coordinator needs to observe passes beyond DONE. */
     uint64_t next_loop_seq =
         atomic_load_explicit(&worker->loop_seq, memory_order_relaxed) + 1;
     atomic_store_explicit(&worker->loop_seq, next_loop_seq, memory_order_release);
@@ -23083,7 +23167,7 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
         serverAssert(flat_node >= 0 && flat_node < server.topo_nodes &&
                      flat_node < TOMO_NODES_MAX);
     }
-    atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
+    flatWorkerQsbrEnter(worker);
     for (;;) {
         int flat_active = atomic_load_explicit(&server.flat_resize_active[flat_node],
                                                 memory_order_seq_cst);
@@ -23096,7 +23180,7 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
                               flat_state == FLAT_RZ_CHASING) && !flat_fallback))
             break;
 
-        atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);  /* back out so the coordinator can drain */
+        flatWorkerQsbrExit(worker);  /* back out so the coordinator can drain */
         /* ee451 (J4): a parked worker is the LAST line of defence against its node coordinator
          * stopping. Throttled to once per
          * 1024 yields so the common case — a healthy 200us quiesce — costs no clock reads at all. */
@@ -23120,7 +23204,7 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
             sched_yield();
         }
         tmIoWaitEnd();
-        atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);  /* re-enter, re-check */
+        flatWorkerQsbrEnter(worker);  /* re-enter, re-check */
     }
 
     /* Serving helpers are deliberately bounded to one copy chunk or one complete-at-this-moment
@@ -23675,7 +23759,7 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
     }
     /* leave the flat section — the coordinator's drain-to-zero can now observe us idle (exSlice has
      * this single return, so this covers every exit path). */
-    atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
+    flatWorkerQsbrExit(worker);
     return any;
 }
 
@@ -24426,10 +24510,6 @@ void initExThreads(void) {
      * io_threads + num_workers, so < 64 there means word 1 is unreachable and the cheap single-word
      * harvest is exact — a normal small-thread boot pays nothing for the cap-128 two-level path. */
     server.tm_qs_multiword = (server.io_threads + server.num_workers >= 64);
-    /* ee451 #83: size the flatBatch QSBR snapshot to the runtime pool (max io_hi+1). Set BEFORE any
-     * flatBatchClose (init runs before workers serve or RDB loads). */
-    flat_batch_slots = server.io_threads + server.num_workers + 1;
-    flat_batch_mask_words = (flat_batch_slots + 63) / 64;
     server.exThreads = zcalloc(sizeof(exThread) * server.num_workers);
     if (server.tomo_atomic) tomoAtomicLifecycleEnsure();
     /* ee451 #83 (2026-08-05): per-worker lane arrays, HEAP-sized to the RUNTIME pool (not the

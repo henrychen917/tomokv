@@ -94,9 +94,9 @@ void kvstoreFlatRetireAtomicRaw(kvstore *kvs, void *rawkv) {
     flatTable *t = flatCurrent(kvs);
     if (t && rawkv) flatRetireAtomicRaw(t, rawkv);
 }
-void kvstoreFlatRetireVersionPrune(kvstore *kvs, void *rawkv) {
+void kvstoreFlatRetireVersionPrune(kvstore *kvs, void *rawkv, uint64_t successor_ts) {
     flatTable *t = flatCurrent(kvs);
-    if (t && rawkv) flatRetireVersionPrune(t, rawkv);
+    if (t && rawkv) flatRetireVersionPrune(t, rawkv, successor_ts);
 }
 void kvstoreFlatRetireVmeta(kvstore *kvs, void *vmeta) {
     flatTable *t = flatCurrent(kvs);

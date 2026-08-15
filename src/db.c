@@ -564,7 +564,7 @@ static void dbFlatInsertWait(kvstore *kvs, exThread *worker,
                              dbFlatInsertWaitState *wait) {
     tomoWkrUnlockPub(worker->id);
     for (;;) {
-        atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
+        flatWorkerQsbrExit(worker);
         for (;;) {
             tomoFlatResizeWakeWorker(worker->id);
             if (tomoFlatResizeWorkerActive(worker->id))
@@ -577,7 +577,7 @@ static void dbFlatInsertWait(kvstore *kvs, exThread *worker,
 
         /* The command may not touch the refreshed table until it holds both protections again. */
         tomoWkrLockPub(worker->id);
-        atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
+        flatWorkerQsbrEnter(worker);
         if (!tomoFlatResizeWorkerActive(worker->id)) return;
         tomoWkrUnlockPub(worker->id);
     }
@@ -1077,7 +1077,7 @@ void tomoCancelVersion(kvobj *kv) {
     }
     serverAssert(vmeta->retire_state == TOMO_RETIRE_ACTIVE);
     vmeta->retire_state = TOMO_RETIRE_PRUNE_GRACE;
-    kvstoreFlatRetireVersionPrune(vmeta->version_kvs, kv);
+    kvstoreFlatRetireVersionPrune(vmeta->version_kvs, kv, 0);
 }
 
 /* Publish the exact state licensed by the read fast path. The owner holds its
@@ -1133,7 +1133,7 @@ void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq) {
     }
     serverAssert(vmeta->retire_state == TOMO_RETIRE_ACTIVE);
     vmeta->retire_state = TOMO_RETIRE_PRUNE_GRACE;
-    kvstoreFlatRetireVersionPrune(vmeta->version_kvs, kv);
+    kvstoreFlatRetireVersionPrune(vmeta->version_kvs, kv, version_seq);
     tomoPublishSingleCommitted(kv, vmeta);
 }
 
@@ -1177,11 +1177,11 @@ void tomoVersionPruneBatchBegin(void) {
     serverAssert(owner >= 0 && owner < server.num_workers);
     exThread *worker = &server.exThreads[owner];
 
-    atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
+    flatWorkerQsbrEnter(worker);
     while (tomoFlatResizeWorkerActive(owner)) {
-        atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
+        flatWorkerQsbrExit(worker);
         tomoFlatResizeWorkerQuiesce(owner);
-        atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
+        flatWorkerQsbrEnter(worker);
     }
     tomoWkrLockPub(owner);
     tomo_prune_batch_owner = owner;
@@ -1193,8 +1193,7 @@ void tomoVersionPruneBatchEnd(void) {
     serverAssert(tomo_prune_batch_active && tomo_prune_batch_owner >= 0 &&
                  tomo_prune_batch_worker != NULL);
     tomoWkrUnlockPub(tomo_prune_batch_owner);
-    atomic_store_explicit(&tomo_prune_batch_worker->in_flat_section, 0,
-                          memory_order_seq_cst);
+    flatWorkerQsbrExit(tomo_prune_batch_worker);
     tomo_prune_batch_active = 0;
     tomo_prune_batch_owner = -1;
     tomo_prune_batch_worker = NULL;
@@ -2936,8 +2935,8 @@ static unsigned long long dictShardScanCursorFromKv(unsigned long long cursor, i
 
 /* ee451 FLATSTORE SCAN: walk EVERY node's flat table for this db with a composite cursor. The
  * top-level SCAN command runs this on a worker (dispatched via canDispatchToWorker), so it holds
- * in_flat_section (resize can't free/relocate a table mid-slice) + loop_seq (QSBR grace covers the
- * kvobjs it derefs across nodes); dbScan()'s module arm runs it inline and opens an explicit flat
+ * in_flat_section plus flat_section_gen (resize cannot relocate a table mid-slice and the scalar
+ * QSBR grace covers kvobjs dereferenced across nodes); dbScan()'s module arm opens an explicit flat
  * extern region for the same guarantee. One caller reads all node tables lock-free with no
  * double-counting (one physical table per node).
  * cursor: [63:52] node | [51:32] gen(low 20) | [31:0] slot. cursor 0 = start AND done.
