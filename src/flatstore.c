@@ -56,9 +56,12 @@ void flatRetirePayloadReady(dictEntry *payload) {
     } else if (p & (uintptr_t)FLAT_RETIRE_RECLAIM_BIT) {
         kvobj *kv = flatRetireSpecialPayload(payload);
         tomoAtomicReclaimRelease(kvobjVmeta(kv));
+        tomoAtomicCommitVersionRelease(kvobjVmeta(kv));
         decrRefCount((robj *)kv);
     } else if (p & (uintptr_t)FLAT_RETIRE_VMETA_BIT) {
-        zfree(flatRetireSpecialPayload(payload));
+        struct tomoVerMeta *vmeta = flatRetireSpecialPayload(payload);
+        tomoAtomicCommitVersionRelease(vmeta);
+        zfree(vmeta);
     } else {
         tomoVersionPruneAfterGrace((kvobj *)flatRetireSpecialPayload(payload));
     }
@@ -74,11 +77,13 @@ void flatRetirePayloadDiscard(dictEntry *payload) {
     else if (p & (uintptr_t)FLAT_RETIRE_RECLAIM_BIT) {
         kvobj *kv = flatRetireSpecialPayload(payload);
         tomoAtomicReclaimRelease(kvobjVmeta(kv));
+        tomoAtomicCommitVersionRelease(kvobjVmeta(kv));
         decrRefCount((robj *)kv);
-    }
-    else if (p & (uintptr_t)FLAT_RETIRE_VMETA_BIT)
-        zfree(flatRetireSpecialPayload(payload));
-    else {
+    } else if (p & (uintptr_t)FLAT_RETIRE_VMETA_BIT) {
+        struct tomoVerMeta *vmeta = flatRetireSpecialPayload(payload);
+        tomoAtomicCommitVersionRelease(vmeta);
+        zfree(vmeta);
+    } else {
         /* Teardown/resize suppresses the prune callback entirely. Retire the install-owner
          * reference here, at the point which proves no callback can later mutate the bag. */
         kvobj *anchor = flatRetireSpecialPayload(payload);
@@ -135,6 +140,7 @@ void flatTableDestroy(flatTable *t) {
         if (FLAT_IS_LIVE(w)) {
             kvobj *kv = (kvobj *)dictGetKV(flat_word_ptr(w));
             tomoAtomicReclaimRelease(kvobjVmeta(kv));
+            tomoAtomicCommitVersionRelease(kvobjVmeta(kv));
             decrRefCount((robj *)kv);
         }
     }

@@ -20,7 +20,7 @@ src/server.c:1000-1003, src/server.c:1082-1089,
 src/server.c:1178-1181)
 
 The fake carrier stores the selected close generation in
-`tomo_read_snapshot_gen`, the MVCC frontier in `tomo_read_snapshot`, and a plain
+`tomo_read_snapshot_gen`, the MVCC commit timestamp in `tomo_read_snapshot`, and a plain
 `tomo_read_snapshot_pinned` lifetime flag, but it stores no IO-slot identifier.
 Exit indexes by the current thread-local `flat_slot_owned`, so terminal drain must
 run under the same IO identity that entered the pin. The relationship to the carrier ring
@@ -99,7 +99,8 @@ atomic mode is nonzero; `fake->cmd` is non-null; the command route contains
 admission succeeded and the route contains `TOMO_R_ATOMIC_READ`.
 (src/server.c:8450-8469)
 
-Immediately after entry, dispatch acquire-loads `commit_seq` into
+Immediately after entry, dispatch acquire-loads the encoded `commit_clock` through
+`tomoCommittedSeq()` into
 `fake->tomo_read_snapshot`. Later pipeline and cross-shard constructors copy
 that snapshot into the group's `read_seq` and mark `snapshot_pinned` when the
 head fake carries the pin. (src/server.c:8465-8471,
@@ -112,7 +113,7 @@ then from its parent group's copied snapshot, then from the group's pinned head;
 if none applies, it reports no pinned snapshot. Versioned read lookup calls that
 helper directly for the single-committed fast check. Its full resolver calls
 `tomoCurrentReadSnapshot()`, which returns a pinned snapshot when one exists and
-otherwise acquire-loads `commit_seq`.
+otherwise acquire-loads the encoded commit clock.
 (src/server.h:5881-5901, src/server.c:431-434,
 src/db.c:366-395)
 
@@ -227,7 +228,7 @@ src/server.c:9181-9233)
 | Pin contents before exit | Exit executes a release fence before its relaxed decrement of the saved generation cell, then release-decrements `active`. (src/server.c:1202-1215) |
 | Engaged-slot discovery | Entry and exit update mask words with atomic RMWs; the scanner reads each live mask word with sequential consistency. (src/server.c:1186-1190, src/server.c:1211-1215, src/server.c:1220-1225) |
 | Floor discovery | The scanner acquire-loads the global current generation and `active`, acquire-loads each tested `pin_out` cell, and release-stores the new floor. (src/server.c:1232-1245) |
-| Snapshot frontier | Dispatch acquire-loads `commit_seq` only after pin entry has completed. (src/server.c:8465-8471) |
+| Snapshot timestamp | Dispatch samples `tomoCommittedSeq()` only after pin entry has completed. (src/server.c) |
 
 ## Invariants enforced by the code
 
@@ -257,7 +258,7 @@ src/server.c:9181-9233)
 
 | Function or state | Use of the mechanism |
 | --- | --- |
-| `processCommand()` dispatch block | Calls `flatGroupPinEnter()` for the exact cross-shard atomic-read predicate, then captures the MVCC frontier. (src/server.c:8450-8471) |
+| `processCommand()` dispatch block | Calls `flatGroupPinEnter()` for the exact cross-shard atomic-read predicate, then captures one MVCC timestamp. (src/server.c) |
 | `tomoPinnedReadSnapshot()` and `lookupKeyReadWithFlags()` | Recover the dispatch snapshot for a direct fake, a cross-shard sub, or its group head and apply it to version selection. (src/server.h:5881-5901, src/db.c:366-395) |
 | `handleWorkerReplies()` | Retains the pin through intermediate stages and calls the exit helper at terminal fake retirement, including disconnect and output-limit paths. (src/server.c:4188-4207, src/server.c:4285-4341) |
 | `flatBatchReady()` | Blocks physical batch reclamation when `flatGroupPinsBlock()` reports a live, busy, or generation-ambiguous slot. (src/server.c:9016-9058) |

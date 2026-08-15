@@ -1740,10 +1740,10 @@ typedef union clientExecTail {
         /* Connection-owned controller state. A fake never owns another fake
          * ring, which is the four-line hole removed by the core allocation. */
         client *fakeClients[TOMO_PIPELINE_DEPTH_MAX];
-        struct csGroup *mset_pending_head;
-        struct csGroup *mset_pending_tail;
-        _Atomic(client *) atomic_commit_next; /* atomic-only intrusive MPSC ready-client stack */
-        uint64_t mset_next_install_order; /* ownread: connection-global order reserved at R1 registration */
+        struct csGroup *_atomic_retired_pending_head;
+        struct csGroup *_atomic_retired_pending_tail;
+        _Atomic(client *) _atomic_retired_commit_next;
+        uint64_t mset_next_install_order; /* ownread: connection-global order reserved at registration */
         double fake_ring_hwm_ewma;
         _Atomic int *drain_ack;
         uint64_t drain_fence_gen; /* ee451 O1: fence_gen this drain sentinel was pushed under; worker A
@@ -1802,10 +1802,10 @@ typedef union clientExecTail {
         unsigned int ring_mask;
         unsigned int ring_want_grow;
         unsigned int cs_barrier;
-        redisAtomic int mset_pending_lock;
-        redisAtomic int mset_drain_latch;
+        redisAtomic int _atomic_retired_pending_lock;
+        redisAtomic int _atomic_retired_drain_latch;
         redisAtomic unsigned int mset_pending_count;
-        redisAtomic int mset_read_waiting;
+        redisAtomic int _atomic_retired_read_waiting;
         unsigned int fake_ring_decay_skip;
         unsigned int fake_ring_hwm_win;
         int cssub_idx;
@@ -2076,13 +2076,13 @@ typedef struct csGroup {
     uint64_t _atomic_probe_retired_sig;
     uint64_t *_atomic_probe_retired_h;
     int _atomic_probe_retired_n;
-    uint64_t version_seq;      /* UNCOMMITTED while installing, then the group commit ticket */
-    uint64_t read_seq;         /* command snapshot S while version_seq remains the write ticket */
-    struct csGroup *commit_next; /* CS_MSET global ticket-order queue link */
-    client *mset_client;         /* real-client owner of the R1 pending FIFO */
-    struct csGroup *mset_pending_prev;
-    struct csGroup *mset_pending_next;
-    redisAtomic int mset_complete;      /* every owner installed this group */
+    uint64_t version_seq;      /* UNCOMMITTED through stamping, then the commit-time timestamp */
+    uint64_t read_seq;         /* one command snapshot T, independent of the write timestamp */
+    struct csGroup *commit_next; /* intrusive MPSC link for a ready commit stage */
+    client *mset_client;         /* real client retained until terminal reply publication */
+    tomoCommit *commit;          /* shared commit_ts record retained by installed versions */
+    uint64_t commit_start_ts;    /* T at registration; commit-lag diagnostics only */
+    redisAtomic int mset_complete;      /* TOMO_COMMIT_* completion stage */
     redisAtomic int mset_install_count;
     csMsetInstall *mset_installs;       /* [version_install_expected], atomic-write arm only */
     uint64_t mset_install_order_base; /* first connection-global install order reserved by this group */
@@ -4067,10 +4067,10 @@ struct redisServer {
                                 * path), 1=worker partition (structural), 2=+class SJF + same-key
                                 * guard + same-bucket grouping. Mutually exclusive with
                                 * strict_order (reorder defers). default 0. */
-    int tomo_atomic;           /* tomokv-atomic: epoch-versioned MSET/MGET atomicity. default off. */
+    int tomo_atomic;           /* tomokv-atomic: commit-time MVCC for eligible whole-value groups. */
     int tomo_atomic_window;    /* max admitted atomic write groups; -1 = live-writer auto,
                                 * 0 = unlimited, positive = exact. */
-    long long tomo_atomic_reclaim_limit; /* retained atomic-version bytes per worker: -1 =
+    long long tomo_atomic_reclaim_limit; /* process-wide retained atomic-version pool: -1 =
                                           * physical/maxmemory-derived auto, 0 = off. */
     /* (no xshard_inline_* field: the inline region is sized per command by csInlineWant) */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
@@ -5828,7 +5828,7 @@ void dbReplaceValueWithLink(redisDb *db, robj *key, robj **val, dictEntryLink li
 void setKey(client *c, redisDb *db, robj *key, robj **ioval, int flags);
 kvobj *setKeyVersioned(client *c, redisDb *db, robj *key, robj **ioval, int flags,
                        uint64_t version_seq, long long version_expire);
-void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq);
+void tomoApplyVersionStamp(kvobj *kv);
 void tomoCancelVersion(kvobj *kv);
 void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq);
 void tomoVersionPruneAfterGrace(kvobj *anchor);
@@ -5841,7 +5841,8 @@ void tomoAtomicOwnerCheck(struct tomoVerMeta *vmeta, int executing_owner,
                           int prune_callback);
 void tomoAtomicReclaimCharge(kvobj *kv, int owner);
 void tomoAtomicReclaimRelease(struct tomoVerMeta *vmeta);
-/* Return the command's already-pinned snapshot without touching commit_seq.
+void tomoAtomicCommitVersionRelease(struct tomoVerMeta *vmeta);
+/* Return the command's already-pinned snapshot without touching the commit clock.
  * False means this is a single-owner/current read which may linearize now. */
 static inline int tomoPinnedReadSnapshot(uint64_t *snapshot) {
     client *c = server.current_client[iotid].p;

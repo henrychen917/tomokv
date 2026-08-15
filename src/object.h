@@ -114,6 +114,18 @@ typedef struct tomoOwnerOp {
     tomoOwnerOpKind kind;
 } tomoOwnerOp;
 
+/* One successful atomic group owns one commit record. Every installed version
+ * points at the same record, so the release-store of commit_ts is the group's
+ * only visibility publication. The transient group pointer is valid only until
+ * the last stamp/cancel has handed the group back to the completion MPSC. */
+typedef struct tomoCommit {
+    _Atomic uint64_t commit_ts;
+    _Atomic unsigned int refs;       /* group + version refs; made exact at INSTALL_READY */
+    _Atomic unsigned int stamps_pending;
+    size_t reclaim_bytes;
+    struct csGroup *group;
+} tomoCommit;
+
 typedef enum tomoStampState {
     TOMO_STAMP_PENDING = 0,
     TOMO_STAMP_APPLIED,
@@ -134,8 +146,8 @@ typedef enum tomoRetireState {
 #define TOMO_SINGLE_SUPERSEDED  2
 
 struct tomoVerMeta {
-    _Atomic uint64_t version_seq;
-    _Atomic(struct redisObject *) committed_head;
+    _Atomic(tomoCommit *) commit;
+    _Atomic(struct redisObject *) stamped_head;
     uint64_t install_order;
     uint64_t origin_client_id; /* installing (real) connection id; written once
                                 * at install, IMMUTABLE until physical retire:
@@ -161,7 +173,7 @@ struct tomoVerMeta {
     _Atomic uint8_t single_state;
     _Atomic unsigned int owner_ops_pending;
     struct redisObject *version_prev;
-    struct redisObject *committed_prev;
+    struct redisObject *stamped_prev;
     struct _kvstore *version_kvs;
     struct redisDb *version_db;
     void *reservation_owner;
@@ -233,7 +245,15 @@ static inline int kvobjSingleCommitted(const struct tomoVerMeta *vmeta) {
 
 static inline uint64_t kvobjVersionSeq(const kvobj *kv) {
     struct tomoVerMeta *vmeta = kvobjVmeta(kv);
-    return atomic_load_explicit(&vmeta->version_seq, memory_order_acquire);
+    tomoCommit *commit = atomic_load_explicit(&vmeta->commit, memory_order_acquire);
+    uint64_t ts = commit ?
+        atomic_load_explicit(&commit->commit_ts, memory_order_acquire) : 0;
+    return ts ? ts : TOMO_VERSION_UNCOMMITTED;
+}
+
+static inline uint64_t tomoVersionCommitTs(const struct tomoVerMeta *vmeta) {
+    tomoCommit *commit = atomic_load_explicit(&vmeta->commit, memory_order_acquire);
+    return commit ? atomic_load_explicit(&commit->commit_ts, memory_order_acquire) : 0;
 }
 
 static inline kvobj *kvobjVersionPrev(const kvobj *kv) {
@@ -246,19 +266,18 @@ static inline void kvobjSetVersionPrev(kvobj *kv, kvobj *prev) {
     __atomic_store_n(&vmeta->version_prev, prev, __ATOMIC_RELEASE);
 }
 
-static inline kvobj *kvobjCommittedPrev(const kvobj *kv) {
+static inline kvobj *kvobjStampedPrev(const kvobj *kv) {
     struct tomoVerMeta *vmeta = kvobjVmeta(kv);
-    return __atomic_load_n(&vmeta->committed_prev, __ATOMIC_ACQUIRE);
+    return __atomic_load_n(&vmeta->stamped_prev, __ATOMIC_ACQUIRE);
 }
 
-static inline void kvobjSetCommittedPrev(kvobj *kv, kvobj *prev) {
+static inline void kvobjSetStampedPrev(kvobj *kv, kvobj *prev) {
     struct tomoVerMeta *vmeta = kvobjVmeta(kv);
-    __atomic_store_n(&vmeta->committed_prev, prev, __ATOMIC_RELEASE);
+    __atomic_store_n(&vmeta->stamped_prev, prev, __ATOMIC_RELEASE);
 }
 
-/* Resolve a version bag for reader_connection at snapshot. The implementation
- * lives beside the connection's pending R1 FIFO in server.c. Passing NULL is
- * the write-side/internal committed-only resolver. */
+/* Resolve a version bag for reader_connection at one commit-clock snapshot.
+ * Passing NULL disables own widening for write-side/internal strict reads. */
 kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot,
                       struct client *reader_connection);
 

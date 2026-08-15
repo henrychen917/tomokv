@@ -45,7 +45,7 @@ Parent: the 7 subsystem docs in `../` link down to these; the top-level `../../R
 - [`algorithms/atomic-window.md`](algorithms/atomic-window.md) — atomic-write admission and reclaim backpressure
 - [`algorithms/bloom-signature.md`](algorithms/bloom-signature.md) — retired atomic key-signature probe and its identity-based replacement
 - [`algorithms/client-lb.md`](algorithms/client-lb.md) — Client-LB: continuous connection rebalance across IO threads
-- [`algorithms/commit-seq-ordering.md`](algorithms/commit-seq-ordering.md) — commit_seq: the global commit-order counter
+- [`algorithms/commit-seq-ordering.md`](algorithms/commit-seq-ordering.md) — last-stamp commit-time timestamps and the nonblocking encoded clock
 - [`algorithms/del-tombstone-versions.md`](algorithms/del-tombstone-versions.md) — DEL / UNLINK and tombstone versions
 - [`algorithms/flat-hash-and-tag.md`](algorithms/flat-hash-and-tag.md) — FLATSTORE slot word: hash, tag, and pointer encoding
 - [`algorithms/flat-load-factor-and-resize.md`](algorithms/flat-load-factor-and-resize.md) — FLATSTORE load factor, resize triggers, and grow/shrink sizing
