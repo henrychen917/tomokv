@@ -1472,8 +1472,8 @@ typedef struct {
  *   - lanes (802KB/worker inline) -> heap-sized to the runtime pool (initExThreads), so cap 128
  *     costs the same as cap 32 at a given thread count; heap-FAST (WQ hoist + exQueueFor TLS base)
  *     makes it perf-flat vs inline (measured +-0.4% instr/op io4ex4).
- *   - q_summary -> two-level (q_top + q_summary[TOMO_QS_WORDS]); TOMO_QS_WORDS = 3 at cap 128,
- *     idle pass still exchanges ONE word.
+ *   - q_summary -> q_summary[TOMO_QS_WORDS]; TOMO_QS_WORDS = 3 at cap 128 and
+ *     workers exchange only the runtime-live words before walking set bits.
  *   - ex_dirty_mask -> uint64 WORD ARRAY (TOMO_EX_MASK_WORDS); consume loop bounded by live words.
  *   - QSBR grace io_snap / io_pin_mask -> WORD ARRAY (TOMO_IO_MASK_WORDS), full-cleared on close
  *     (pool-recycled headers must not inherit a stale high-word bit -> premature-free/leak).
@@ -1555,7 +1555,6 @@ static const uint32_t TOMO_CLS_SLO[TOMO_SVC_CLASSES] = { 1, 1, 4, 64, 1024, 1638
 #define TOMO_PIN_ROLE_IO 0
 #define TOMO_PIN_ROLE_EX 1
 
-#define TOMO_HANDOFF_DENSE_EVERY 64   /* self-healing dense sweep cadence (see exThread.q_summary) */
 #define TOMO_PIPELINE_DEPTH_MAX 32  /* fixed upper bound for the per-client fake/ready-slot arrays */
 /* ee451 (v8): virtual-bucket indirection for key->shard. bucket = hash & TOMO_BUCKET_MASK
  * (TOMO_BUCKETS is a power of two so indexing stays a single AND), worker =
@@ -2557,37 +2556,25 @@ typedef struct exThread {
      * head line (id/thread) instead of the tail line the owning worker dirties every op
      * (w_ewma_vsize/ops_total/tm_*), which bounced it cross-core on every dispatch. */
     redisDb *db;
-    /* ee451 (sparse handoff): one bit per PRODUCER slot that has published work to
-     * this worker and not yet been drained. Replaces the consumer's dense sweep of
-     * every queues[] lane with one exchange plus a ctz walk of the set bits.
+    /* One ready bit per producer lane. A producer release-publishes its SPSC tail,
+     * then performs exactly one relaxed OR here. The worker exchanges the live
+     * words and walks only set bits; payload visibility comes from the queue-tail
+     * acquire, not from this scheduling hint.
      *
-     * PROTOCOL. Producer: release-store tail FIRST, then fetch_or its bit (release),
-     * so a consumer that observes the bit is guaranteed to observe the tail.
-     * Consumer: exchange the whole word to 0 (acquire) BEFORE draining, so a publish
-     * that lands mid-drain re-sets the bit instead of being erased, then re-set the
-     * bits of any lane it could not fully drain. Clear-then-drain is the safe order;
-     * drain-then-clear would erase a concurrent publish and strand that lane.
+     * Clear-before-pop is load-bearing: a publish racing a pop sets a fresh bit.
+     * After executing a quantum, the consumer ORs the bit back only when a real
+     * head/tail check says published work remains. This makes the mask a readiness
+     * set rather than a history of every lane that has ever produced a batch.
      *
      * A missed bit means a queued fake is never popped: its reply-ready byte is never
      * set, flushid cannot advance, the client's ring wedges full and it stalls forever
-     * (the silent reply-loss failure documented at exDispatchPush). Because that is
-     * unattributable in production, the consumer also performs a DENSE sweep every
-     * TOMO_HANDOFF_DENSE_EVERY passes and counts anything the summary failed to
-     * advertise in handoff_missed. That counter is the correctness oracle: it must be
-     * zero, and a non-zero value localises a missing publish site immediately.
-     * Two-level since 2026-08-05 (TOMO_IO_THREADS_MAX now exceeds 64): q_top bit j hints
-     * that q_summary[j] is non-empty. The O(non-empty) property is preserved exactly:
-     * an idle pass exchanges ONLY q_top (one atomic, same as the old single word), a busy
-     * pass pays 1 + (#non-empty words). Producers set the top bit only on a word's
-     * empty->nonempty transition. A top bit without word bits (consumer took the word
-     * between the two producer stores) is a benign spurious visit; a word bit without a
-     * top bit closes on the producer's next store or the dense sweep — the same
-     * coalesce-into-a-later-slice semantics the single word always had. */
-    _Atomic uint64_t q_top __attribute__((aligned(CACHE_LINE_SIZE)));
-    _Atomic uint64_t q_summary[TOMO_QS_WORDS];   /* shares q_top's line: producers touch both */
+     * (the silent reply-loss failure documented at exDispatchPush). Every tail
+     * publication therefore goes through exHandoffAdvertiseLane. */
+    _Atomic uint64_t q_summary[TOMO_QS_WORDS]
+        __attribute__((aligned(CACHE_LINE_SIZE)));
     _Atomic unsigned int stamp_pending; /* CURE2 owner stamp/prune jobs */
-    unsigned long long handoff_missed;   /* dense sweep found work the summary did not advertise */
-    unsigned int handoff_dense_tick;     /* consumer-private pass counter */
+    unsigned long long handoff_missed;   /* retained INFO correctness counter; must stay zero */
+    unsigned int handoff_dense_tick;     /* retained layout/stat slot */
     /* ee451 #83 (2026-08-05): lanes are HEAP arrays sized to the runtime pool (nlanes =
      * io_threads + num_workers + 1), NOT inline arrays sized to the compile cap. This is the change
      * that makes the cap raise affordable: inline at cap 128 would be ~3MB/worker faulted for even a
@@ -2598,7 +2585,7 @@ typedef struct exThread {
      * TLS-caching the per-worker dispatch base (exQueueFor). Measured heap == inline at cap 32.
      *
      * ALIGNMENT BREAK is load-bearing: nlanes/queues/freeback are READ-ONLY after init but loaded on
-     * EVERY lane access by BOTH sides. Leaving them on the q_top/q_summary line (producers fetch_or
+     * EVERY lane access by BOTH sides. Leaving them on the q_summary line (producers fetch_or
      * that line per dispatch) put the lane POINTERS on a contended line: measured p32 GET -5.2%. On
      * their own line both sides cache them Shared forever. */
     __attribute__((aligned(CACHE_LINE_SIZE))) int nlanes;
@@ -3238,13 +3225,6 @@ struct redisServer {
     list *clients_mig_parked[TOMO_IO_THREADS_MAX + 1];
     /* Clients refused before atomic-MSET group creation, retried only by their owning IO loop. */
     list *clients_atomic_window_parked[TOMO_IO_THREADS_MAX + 1];
-    /* ee451 #83: q_summary single-word gate. The two-level (q_top + q_summary[TOMO_QS_WORDS]) harvest
-     * only earns its extra q_top atomic when io slots can exceed 64. io_hi = io_threads + tm_ngrow_io
-     * <= io_threads + num_workers (tm_ngrow_io <= num_workers by construction), so if that sum < 64
-     * the process NEVER touches word 1 and takes the exact single-word path cap<=64 compiled. Latched
-     * once at initExThreads, process-constant (no transition hazard). 0 => "pay nothing for the
-     * raised cap"; only meaningful when TOMO_QS_WORDS > 1 (compile cap > 64). */
-    int tm_qs_multiword;
     int num_workers;
     /* ee451 (thread-modes): worker-slot accounting.
      * num_workers is the CONFIGURED count W — the number of worker SLOTS that exist. It sizes

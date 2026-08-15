@@ -32,7 +32,14 @@
  * ae.o but not server.o — can resolve the reference in aeProcessEventsIO
  * below. Declared extern in ae.h. */
 __thread int replyWorking = 0;
+/* TLS request to the server before-sleep hook: the next worker-reply poll is
+ * the nonzero fallback, so arm its coalesced completion notifier before the
+ * hook rechecks CDB memory. Kept in ae.c because redis-cli links ae.o. */
+__thread int exReplyWakeRecheck = 0;
 aeLoopStatsProc *aeLoopStatsHook = NULL;
+/* Defined here, like aeLoopStatsHook, because redis-cli links ae.o without
+ * server.o. The server installs it only for a wide IO topology. */
+aeIOCompletionProc *aeIOCompletionHook = NULL;
 
 /* ee451 (AE-1): adaptive-drain budget for aeProcessEventsIO. While replyWorking>0 the
  * IO thread does up to this many ZERO-timeout poll passes (each pass re-runs beforesleep,
@@ -536,12 +543,23 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
             processed++;
         }
     }
+    /* The main IO owner uses this generic loop rather than
+     * aeProcessEventsIO. Check after its file/CQE batch before a possibly-long
+     * cron callback, then again after time events for publications racing cron. */
+    if ((flags & AE_CALL_BEFORE_SLEEP) &&
+        __builtin_expect(aeIOCompletionHook != NULL, 0))
+        aeIOCompletionHook();
+
     /* Keep wake batching separate from time-event work: this is the number
      * of file/CQE events that caused useful dispatch in this loop turn. */
     int wake_events = processed;
     /* Check time events */
     if (flags & AE_TIME_EVENTS)
         processed += processTimeEvents(eventLoop);
+
+    if ((flags & AE_CALL_BEFORE_SLEEP) &&
+        __builtin_expect(aeIOCompletionHook != NULL, 0))
+        aeIOCompletionHook();
 
     if (__builtin_expect(aeLoopStatsHook != NULL, 0))
         aeLoopStatsHook(wake_events, getMonotonicUs());
@@ -576,8 +594,15 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us,
         uring_ready |= rr & AE_URING_EPOLL_READY;
     }
 
-    if (eventLoop->beforesleep != NULL)
+    if (eventLoop->beforesleep != NULL) {
+        int completion_edge =
+            __builtin_expect(aeIOCompletionHook != NULL, 0);
+        if (completion_edge)
+            exReplyWakeRecheck = replyWorking > 0 &&
+                                 drainPasses >= AE_IO_DRAIN_SPIN;
         eventLoop->beforesleep(eventLoop);
+        if (completion_edge) exReplyWakeRecheck = 0;
+    }
     a.end_us = getMonotonicUs();
     a.work_us += a.end_us - work_start;
     /* ee451 (AE-1): sleep policy. replyWorking==0 normally blocks until an fd event
@@ -736,6 +761,15 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us,
 
         processed++;
     }
+    /* A CDB publication is not an fd event. Under sustained socket/CQE
+     * progress the fallback notifier is intentionally never armed, and a
+     * publication after the pre-poll scan would otherwise wait through a
+     * second complete event-loop turn. Wide topologies install a hook whose
+     * common path is one owner-local flag load; healthy narrow geometries keep
+     * the NULL path. This boundary is outside all client callbacks, matching
+     * the normal before-sleep drain's non-reentrant context. */
+    if (__builtin_expect(aeIOCompletionHook != NULL, 0))
+        aeIOCompletionHook();
     /* PRODUCTIVE TAIL. Epoll's boundary is the already-required poll endpoint. The end clock is
      * ioSlice's former per-pass timestamp, moved here so it closes read/parse/dispatch and
      * writable callbacks without adding another read. Uring also includes its post-enter CQ reap
