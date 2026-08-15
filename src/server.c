@@ -27469,20 +27469,17 @@ static void tomoFlipController(void) {
             io_live_node++;
             if (t >= server.io_threads) grown_io_live_node++;
         }
-        /* Role adoption and its seed/relevel migrations are not endpoint service. The entry guards
-         * above pause decisions, but without this baseline-only edge the first later delta spans
-         * IO exit, the identity sweep and the new role, then divides that mixed work by the final
-         * role counts. Keep refreshing while relevel is pending and discard one clean boundary
-         * interval afterwards; the existing settle/judge/anchor equations then see only samples
-         * whose counters, identities, counts and bucket layout all belong to one configuration. */
-        int relevel_pending = atomic_load_explicit(&mig_relevel_pending[node],
-                                                   memory_order_acquire);
-        if (fc->conversion_sample_dirty || relevel_pending) {
+        /* Role adoption is not endpoint service. The entry guards above pause decisions, but
+         * without this baseline-only edge the first later delta spans IO exit, the identity sweep
+         * and the new role, then divides that mixed work by the final role counts. Discard exactly
+         * that conversion-spanning interval. Relevel is deliberately not a gate: its pending bit
+         * can cover several later intervals, whose quiescence is already handled by warmup. */
+        if (fc->conversion_sample_dirty) {
             for (int w = w0; w < w1 && w <= TOMO_EX_THREADS_MAX; w++)
                 fc_prev_ex_idle_us[node][w] = server.exThreads[w].tm_idle_us;
             fc->ops_prev = node_ops;
             fc->ops_prev_ms = now;
-            fc->conversion_sample_dirty = relevel_pending;
+            fc->conversion_sample_dirty = 0;
             continue;
         }
         /* The first node visit establishes cumulative-counter baselines. Its deltas reach back to
