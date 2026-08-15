@@ -16808,6 +16808,16 @@ static void reshardCoordinatorTick(void) {
      * this coordinator is still the sole owner. */
     int flip_act = server.tm_mig_flip_action;
     server.tm_mig_flip_action = 0;
+    /* A grow-front actuator treats active==0 with target_mode!=IO as proof that the cutover
+     * aborted before requesting the role change. Publish the successful target first, so the
+     * active=0 release below cannot expose a false-abort window to a node semi-main. */
+    polyThreadCtx *flip_ctx = NULL;
+    if (flip_act == TM_MIG_FLIP_GROW_FRONT) {
+        flip_ctx = tmFlipCtxPublished();
+        serverAssert(flip_ctx != NULL);
+        serverAssert(server.tm_flip_target == TOMO_MODE_IO);
+        atomic_store_explicit(&flip_ctx->target_mode, TOMO_MODE_IO, memory_order_release);
+    }
     /* co_state goes IDLE *BEFORE* migration_active drops. The old order (active=0, then a
      * serverLog(), then co_state=IDLE at the end of this function) left a window in which a
      * cross-thread DEBUG RESHARD START could arm a migration that reshardBeginCutover then refused
@@ -16828,17 +16838,13 @@ static void reshardCoordinatorTick(void) {
     }
     atomic_fetch_add_explicit(&server.reshard_done_seq, 1, memory_order_relaxed);
 
-    /* ee451 (thread-modes): GROW-FRONT tail (action 2). The converting worker's ENTIRE range is
-     * now owned by dst and teardown is complete, so it is safe to ask the thread for its new role.
-     * It adopts at its next checkpoint, which drains its (now traffic-less) queues and asserts it
-     * owns no buckets before taking the IO identity. */
-    if (flip_act == 2) {
-        polyThreadCtx *fc = tmFlipCtxPublished();
-        if (fc) {
-            atomic_store_explicit(&fc->target_mode, server.tm_flip_target, memory_order_release);
-            serverLog(LL_NOTICE, "ee451 flip: buckets returned to worker %d — role change requested "
-                                 "(target mode %d)", dst, server.tm_flip_target);
-        }
+    /* ee451 (thread-modes): GROW-FRONT tail (action 2). The role request was published before
+     * active=0 above; the converting worker's checkpoint also gates adoption on active==0. Its
+     * ENTIRE range is now owned by dst, so the checkpoint drains its traffic-less queues and
+     * asserts it owns no buckets before taking the IO identity. */
+    if (flip_ctx) {
+        serverLog(LL_NOTICE, "ee451 flip: buckets returned to worker %d — role change requested "
+                             "(target mode %d)", dst, server.tm_flip_target);
     }
     /* NOTE: co_state was published IDLE above, BEFORE migration_active dropped. It must NOT be
      * re-stored here: once active is 0 a new migration may already have armed and CASed co_state
