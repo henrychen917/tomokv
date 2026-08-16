@@ -68,7 +68,7 @@ The main-thread-owned `fctl[16]` array holds one `flipCtlState` per logical node
 
 ### Signal structures
 
-The LB-relevant `tmIoSignal` members are plain `busy_ewma_q4`, `tm_idle_us`, `tm_wait_us`, `tm_busy_us`, `rob`, `pend_write`, `tm_work_us`, `tm_ring_stall_us`, `tm_drain_bytes`, and `tm_read_events`, plus atomic `pinned_nonmig`; slots are cache-line aligned, owner-written, and—with the exception of the declared atomic—read racily by control-plane code. `src/server.c:649-774`
+The LB-relevant `tmIoSignal` members are plain `busy_ewma_q4`, `tm_idle_us`, `tm_wait_us`, `tm_busy_us`, `rob`, `pend_write`, `tm_work_us`, `tm_ring_stall_us`, `tm_drain_bytes`, and `tm_read_events`, plus atomic `pinned_nonmig`; slots are cache-line aligned, owner-written, and—with the exception of the declared atomic—read racily by control-plane code. `tm_idle_us` feeds the IO demand occupancy, `tm_work_us` feeds productive direction, and `tm_busy_us` is a trace/INFO CPU diagnostic. `src/server.c:649-774`
 
 The LB-relevant `exThread` members are atomic `ops_total` and `loop_seq`, plain `lb_grp_ops[]`, `tm_qdepth_ewma_q4`, `tm_idle_us`, and `tm_busy_us`, plus atomic `lb_fine_win` and plain `lb_fine_ops[]`. `src/server.h:2591-2612`, `src/server.h:2617-2653`, `src/server.h:2702-2712`
 
@@ -132,7 +132,7 @@ Each value is capped above at `1.0`, then the stored role value is updated as `s
 
 On genuinely work-bound P1 GET, the aggregate contains useful execution nearly end to end, so productive and raw EX saturation are expected to remain close and the substitution is approximately identity. Wide sparse/scattered batches are expected to separate the values; exporting both is the sanity check rather than a workload-specific assertion.
 
-The direction operands are `u_io=io_work_u_smooth` and `u_ex=ex_work_u_smooth`; `io_sat=u_io` and the logged `ex_sat=u_ex`. IO reply backlog, EX queue depth, IO ring-stall time, raw EX occupancy, and command rate do not augment the ratio. Raw EX occupancy is separately named `ex_demand_sat` for non-direction demand/capacity decisions; maximum EX queue depth remains part of idle detection. `src/server.c:25803-25806`, `src/server.c:25838-25862`, `src/server.c:25974-25987`
+The two productive direction operands are `u_io_work=io_work_u_smooth` and `u_ex_work=ex_work_u_smooth`, selected as `u_io/u_ex`; `io_sat=u_io` and the logged `ex_sat=u_ex`. The two demand operands are `u_io_occ=io_occ_smooth/100` and raw EX occupancy `ex_demand_sat=ex_raw_u_smooth`. IO reply backlog, EX queue depth, IO ring-stall time, CPU time, and command rate augment neither signal class; maximum EX queue depth remains part of idle detection. `src/server.c:28735-28815`
 
 The directional signal is:
 
@@ -143,7 +143,7 @@ lr    = log(ratio)
 
 A non-finite `lr` is replaced by zero; on non-idle, primed work samples, `lr_ewma` is seeded or updated with alpha `0.25`, and an actual EWMA step below `0.02` increments `lr_quiet_run`. `src/server.c:26027-26067`
 
-The separate actuation-worth gate folds `max(io_sat,ex_demand_sat)` into `sat_smooth` with alpha `0.25` and sets `server_bound` when the result is at least `0.75`; a false gate clears the ordinary outside-band run and prevents a new climb. Productive EX is excluded because execution density determines direction but is not a total-demand estimate. `src/server.c:24941-24966`, `src/server.c:26001-26019`, `src/server.c:27186-27221`
+The separate actuation-worth gate folds `max(u_io_occ,ex_demand_sat)` into `sat_smooth` with alpha `0.25` and sets `server_bound` when the result is at least `0.75`; a false gate clears the ordinary outside-band run and prevents a new climb. Both operands are occupancy-kind demand. Productive IO is excluded because its io_uring bracket cannot see enter-internal DEFER_TASKRUN completion work; productive EX is excluded because execution density determines direction rather than total demand. `src/server.c:28793-28811`, `src/server.c:30113-30118`
 
 Instantaneous throughput is the operation delta divided by actual elapsed milliseconds.  A tick is idle only when `inst <= 0`, maximum EX queue EWMA depth is below `1/16`, and mean IO occupancy is zero; the first positive rate seeds the estimator, non-idle ticks update `mean` and `var` with alpha `0.25`, and `sigma = sqrt(max(var,1))`. `src/server.c:25786-25806`
 
@@ -412,7 +412,7 @@ These are implementation discrepancies, not alternative behavior:
 1. The config comments describe selectable flip-signal modes, but no such config is created and the controller hardcodes productive ratio with `wsig=0`. `src/config.c:3220-3242`, `src/server.c:25014-25016`, `src/server.c:25631-25641`
 2. The load-balancing config header says each lever is separately switchable, but flip-time backfill has no knob and is derived from automatic thread mode. `src/config.c:3255-3261`, `src/config.c:3304-3310`, `src/server.c:5621-5625`
 3. The flip preamble describes busy-percent/PID behavior, no fixed operating point, and exponential probe backoff; the code uses productive work, target ratio `1`, fixed saturation/band/timing constants, and explicitly states that old backoff/convergence members were deleted and their behaviors are not implemented. `src/server.c:24682-24688`, `src/server.c:24745-24774`, `src/server.c:24917-25012`, `src/server.c:27106-27114`
-4. Several nearby comments describe backlog-augmented `io_sat/ex_sat`; the direction assignment is bare capped productive U on both sides, `q_io` is observational, EX depth affects only idle detection/observability, and raw EX occupancy is isolated to demand/capacity decisions. `src/server.c:25803-25806`, `src/server.c:25838-25862`, `src/server.c:25974-25987`
+4. Several nearby comments describe backlog-augmented `io_sat/ex_sat`; the direction assignment is bare capped productive U on both sides, `q_io` is observational, EX depth affects only idle detection/observability, and IO zero-event plus raw EX occupancy are isolated to demand/capacity decisions. `src/server.c:28735-28815`
 5. Comments describe an exhaustive in-floor sweep plus both neighbors; the implementation clears the admitted set and starts a single directional, gain-extended episode. `src/server.c:24925-24930`, `src/server.c:25140-25203`
 6. `FLIP_SUSTAIN` is defined twice with the same value `8`. `src/server.c:24990-24995`, `src/server.c:25005-25008`
 7. The key-LB cron comment names deleted `tomokv-reshard-auto`; the registered knob is `tomokv-key-lb`. `src/server.c:2943-2946`, `src/config.c:3292`

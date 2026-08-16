@@ -2,8 +2,8 @@
 
 The single direction signal for the auto-flip controller since 2026-08-10. Every direction-coordinate
 consumer (the trigger floor, anchor deadzone, per-tick quiet test, k-jump distance, balance stop, and
-anchor drops) is defined on this one quantity. Demand/capacity gates deliberately use separate raw
-EX occupancy. All code is in `tomoFlipController()` and its helpers in
+anchor drops) is defined on this one quantity. The separate CLI/SRV classifier uses two occupancy-kind
+demand operands. All code is in `tomoFlipController()` and its helpers in
 `src/server.c`; the signal fields live in `flipCtlState` (`src/server.c:24761-24911`).
 
 This document treats the code as authoritative. Where the source contradicts the task framing or
@@ -12,20 +12,24 @@ This document treats the code as authoritative. Where the source contradicts the
 
 ## What is measured, and from which counters
 
-Two per-role "productive work fraction of wall time" numbers, each in `[0,1]`:
+The two **productive direction operands** are per-role work fractions of wall time, each capped in
+`[0,1]`:
 
 ```text
-u_io = EWMA( sum(delta IO tm_work_us) / (wall_us * live_nonmain_io) ), capped at 1
-u_ex = EWMA( sum(delta EX tm_productive_us) / (wall_us * live_ex)   ), capped at 1
+u_io_work = EWMA( sum(delta IO tm_work_us) / (wall_us * live_nonmain_io) ), capped at 1
+u_ex_work = EWMA( sum(delta EX tm_productive_us) / (wall_us * live_ex)   ), capped at 1
+u_io = u_io_work
+u_ex = u_ex_work
+r = u_io / u_ex
 ```
 
-- `u_io` is fed by the IO owner's `tmIoSignal.tm_work_us` (`unsigned int`, wrap-safe cumulative),
+- `u_io_work` is fed by the IO owner's `tmIoSignal.tm_work_us` (`unsigned int`, wrap-safe cumulative),
   which brackets the io_uring CQ reap + `beforeSleepIO` prefix and the post-poll/enter fired-callback
   tail. Poll/enter sleep is *outside* the bracket, so spinning on an empty socket set cannot raise
-  `u_io`. Accumulated in `ioSlice()` at `src/server.c:23103` from `aeProcessEventsIO`'s
+  `u_io_work`. Accumulated in `ioSlice()` from `aeProcessEventsIO`'s
   `accounting.work_us`; the bracket itself is `src/ae.c:560-571` (prefix) and `src/ae.c:704-737`
-  (tail). Field declared `src/server.c:757-760`.
-- `u_ex` is fed by the worker's `exThread.tm_productive_us` (`unsigned int`, wrap-safe). Each
+  (tail).
+- `u_ex_work` is fed by the worker's `exThread.tm_productive_us` (`unsigned int`, wrap-safe). Each
   non-empty aggregate is timed from the successful-pop phase marker through CDB-ready and
   queue-retirement publication. Useful batch preparation/prefetch are inside; empty scans,
   freeback/reclaim prefixes, and idle PAUSE rounds are outside. The first aggregate reuses its
@@ -33,11 +37,38 @@ u_ex = EWMA( sum(delta EX tm_productive_us) / (wall_us * live_ex)   ), capped at
   (`src/server.c:23911-24140`, `src/server.c:24180-24198`).
 - `exThread.tm_busy_us` retains first-pop → pass-end occupancy. It is sampled and smoothed beside
   the productive clock as raw EX demand for the CLI/SRV classifier and large-pool worker wall, and
-  is also exported for A/B and INFO. It never enters `lr`. Both fields are declared at
-  `src/server.h:2661-2667`.
+  is also exported for A/B and INFO. It never enters `lr`.
 
-All three cumulative work/occupancy counters are owner-written plain integers and read racily by the 4 Hz controller with unsigned
-deltas — no atomic synchronization (`src/server.c:649-653`, `src/server.h:2617-2620`).
+The two **demand operands** are occupancy fractions, also in `[0,1]`:
+
+```text
+u_io_occ      = io_occ_smooth / 100
+ex_demand_sat = ex_raw_u_smooth
+demand_total  = max(u_io_occ, ex_demand_sat)
+```
+
+- `u_io_occ` is the complement of IO zero-event time. `ioSlice()` opens an idle episode when
+  `ne == 0`, folds a still-open episode every 16 ms so an always-idle thread continues to accrue
+  idle time, and closes it when work returns. The controller converts each live owner's wrap-safe
+  `tm_idle_us` delta to occupied percent, averages the node, and applies the existing integer EWMA.
+  This remains faithful under both backends: an idle uring busy-poller still reports zero events and
+  accrues idle time, while a loaded owner does not.
+- `ex_demand_sat` is the capped double EWMA of first-pop → pass-end `tm_busy_us` divided by the
+  same node wall/live-worker denominator. It is also the large-pool worker-capacity observation.
+
+The productive IO bracket is not a complete total-demand measure under io_uring. With
+`IORING_SETUP_DEFER_TASKRUN`, completion taskwork can execute inside the indivisible
+`io_uring_enter` span outside `u_io_work`. Measured p1 GET on io_uring read `u_io_work = 12.1%` while
+scheduled IO CPU was `100.3%` of wall. The same p1 workload on epoll had
+`io_work/io_busy = 96%`; mget8 on io_uring had `88%` coverage because a larger share remains in
+user-space parse/reply work. This is why productive IO remains a direction operand while
+zero-event occupancy supplies IO demand.
+
+`cpu_sat = sum(delta IO tm_busy_us) / (wall_us * live_nonmain_io)` is an uncapped, unsmoothed
+trace diagnostic. It is neither a direction nor demand operand.
+
+These cumulative work/occupancy/CPU counters are owner-written plain integers and read racily by the
+4 Hz controller with unsigned deltas — no atomic synchronization.
 
 ## Per-tick accumulation (`tomoFlipController`, `src/server.c:25570-26080`)
 
@@ -61,9 +92,11 @@ Static, function-scoped snapshot arrays hold each node's previous cumulative cou
 | Array | Type | Feeds |
 | --- | --- | --- |
 | `fc_prev_io_work_us[TM_MAXNODE][TOMO_IO_THREADS_MAX+1]` | `uint32_t` | `u_io` numerator |
+| `fc_prev_io_busy_us[TM_MAXNODE][TOMO_IO_THREADS_MAX+1]` | `uint32_t` | trace-only `cpu_sat` numerator |
 | `fc_prev_ex_work_us[TM_MAXNODE][TOMO_EX_THREADS_MAX+1]` | `uint32_t` | `u_ex` numerator |
 | `fc_prev_ex_raw_us[TM_MAXNODE][TOMO_EX_THREADS_MAX+1]` | `uint32_t` | raw EX demand/capacity occupancy |
-| `fc_prev_io_idle_us` / `fc_prev_io_wait_us` / `fc_prev_io_stall_us` | `uint32_t` | legacy occupancy / INFO |
+| `fc_prev_io_idle_us` | `uint32_t` | `u_io_occ` demand occupancy |
+| `fc_prev_io_wait_us` / `fc_prev_io_stall_us` | `uint32_t` | diagnostics |
 | `fc_prev_ex_idle_us` | `uint32_t` | legacy EX occupancy |
 | `fc_prev_busy_wall[TM_MAXNODE]` | `mstime_t` | this node's wall span |
 
@@ -78,7 +111,7 @@ fc_prev_busy_wall[node] = now
 
 The delta idiom is a wrap-safe unsigned subtract that advances the baseline **for every node-owned
 slot even while it is serving the opposite role**, so a later role re-entry does not inherit stale
-work (`src/server.c:25739-25741` for IO, `src/server.c:25690-25692` for EX):
+work:
 
 ```c
 uint32_t cwork = tm_io_sig[t].tm_work_us;
@@ -86,14 +119,15 @@ uint32_t dwork = cwork - fc_prev_io_work_us[node][t];   /* unsigned wrap-safe */
 fc_prev_io_work_us[node][t] = cwork;
 ```
 
-`dwork` is added into `io_work_delta_sum` only for slots currently live in the IO role
-(`src/server.c:25742-25757`); the productive `db` enters `ex_work_delta_sum` only for slots in EX
-mode, while the matching raw delta enters `ex_raw_delta_sum` for observation (`src/server.c:28508-28544`). Node 0's IO slot 0 (main) is excluded from the IO loop, which starts
-at `t = 1` (`src/server.c:25724`).
+`dwork` and the matching `tm_busy_us` CPU delta are added only for slots currently live in the IO
+role; the productive `db` enters `ex_work_delta_sum` only for slots in EX mode, while the matching
+raw delta enters `ex_raw_delta_sum`. `tmIoBusyBegin()` separately re-baselines the producer's thread
+CPU clock at each IO role entry, preventing CPU from the previous EX episode from entering
+`cpu_sat`. Node 0's IO slot 0 (main) is excluded from the IO loop, which starts at `t = 1`.
 
 **First-visit fold-out.** On the first visit to a node (`!work_sample_primed`) the deltas reach back
-to process start, so both sums are zeroed and no work sample is published this tick
-(`src/server.c:25761-25764`).
+to process start, so the productive, raw EX, and CPU sums are zeroed and no such sample is published
+that tick.
 
 ### Raw fractions, the cap, and the smoothing EWMA
 
@@ -121,26 +155,30 @@ the EWMA holds rather than collapsing (`src/server.c:25778-25781`, `src/server.c
 
 ### The direction operands and the log-ratio
 
-The direction operands are selected and re-capped (`src/server.c:25892-25900`):
+The direction operands are selected and re-capped:
 
 ```c
-double u_io = fc->io_work_u_smooth;   /* == u_io_work */
-double u_ex = fc->ex_work_u_smooth;   /* == u_ex_work */
+double u_io_work = fc->io_work_u_smooth;
+double u_ex_work = fc->ex_work_u_smooth;
+double u_io = u_io_work;
+double u_ex = u_ex_work;
 if (u_io > 1.0) u_io = 1.0;
 if (u_ex > 1.0) u_ex = 1.0;
 double io_sat = u_io;
 double ex_dir_sat = u_ex;              /* nothing else augments the ratio */
 ```
 
-The non-direction demand/capacity operand is separately named:
+The separate CLI/SRV gate names both occupancy-kind demand operands:
 
 ```c
+double u_io_occ = (double)fc->io_occ_smooth / 100.0;
 double ex_demand_sat = fc->ex_raw_u_smooth;
-double demand_total = fmax(io_sat, ex_demand_sat);
+double demand_total = fmax(u_io_occ, ex_demand_sat);
 ```
 
 `demand_total` feeds only the CLI/SRV classifier. `ex_demand_sat` also feeds the large-pool worker
-wall and its failed-episode re-arm check. It has no path into `ratio`, the balance band, or floor.
+wall and its failed-episode re-arm check. Neither demand operand has a path into `ratio`, the balance
+band, or floor. Conversely, neither productive operand feeds `demand_total`.
 
 The directional signal floors **both** sides before dividing so the log is always finite
 (`src/server.c:26035-26037`):
@@ -213,10 +251,11 @@ the box's ordinary drift (`src/server.c:25901-25904`).
 | `lr_quiet_run` | `int` | consecutive ticks the EWMA step stayed `< FLIP_R_QUIET`; caps at 1000 |
 | `lr_prev_tick` | `double` | stored, **not read** by the current controller (quietness uses the local `lr_before`) |
 | `mean`, `var` | `double` | throughput EWMA + variance |
-| `io_occ_smooth`, `ex_occ_smooth` | `int` | legacy integer-truncated occupancy EWMAs (diagnostics) |
+| `io_occ_smooth` | `int` | integer-EWMA zero-event IO occupancy; `u_io_occ = io_occ_smooth/100` demand operand |
+| `ex_occ_smooth` | `int` | legacy EX no-work occupancy diagnostic |
 | `u_io_mean`/`u_io_var`, `u_ex_mean`/`u_ex_var` | `double` | per-role noise EWMAs (observability) |
 | `lr_mean`, `lr_var` | `double` | settled-tick `lr` noise; `sqrt(lr_var)` frozen at capture |
-| `sat_smooth` | `double` | EWMA of `max(u_io,ex_raw_u_smooth)`; the server-bound gate input |
+| `sat_smooth` | `double` | EWMA of `max(u_io_occ,ex_raw_u_smooth)`; the server-bound gate input |
 
 ## Key constants
 
@@ -233,6 +272,8 @@ compile-time `const int 0` (`src/server.c:25014-25016`, `src/server.c:25635-2563
 - Owner-written counters are advanced-baselined for **every** node-owned slot even in the opposite
   role, so a role transition never injects a work spike (`src/server.c:25687-25692`,
   `:25726-25741`).
+- Direction and demand remain disjoint: `u_io_work/u_ex_work` alone feed `r`, while
+  `u_io_occ/ex_demand_sat` alone feed `demand_total`.
 - One field (`lr_ewma`) carries the signal for the anchor, the deadzone, the quiet test, the START
   gate, and the same-wave latch — deliberately, so it is structurally impossible to anchor one
   quantity while testing another for quietness (`src/server.c:24823-24833`).
@@ -242,9 +283,9 @@ compile-time `const int 0` (`src/server.c:25014-25016`, `src/server.c:25635-2563
 1. **Not integer-EWMA.** The task describes "the EXACT integer-EWMA math" for `u_io`/`u_ex`. In code
    the productive-work operands `io_work_u_smooth`/`ex_work_u_smooth` and `lr_ewma` are **`double`**
    EWMAs at `FESC_ALPHA = 0.25` (`src/server.c:25783`, `:25837`, `:26063`). The integer-truncated
-   EWMA (`x += (int)(FESC_ALPHA*(mean - x))`) applies only to the **legacy occupancy** fields
-   `io_occ_smooth`/`ex_occ_smooth` (`src/server.c:25775`, `:25831`), which are diagnostics and do
-   **not** feed `lr`.
+   EWMA (`x += (int)(FESC_ALPHA*(mean - x))`) applies to the occupancy fields
+   `io_occ_smooth`/`ex_occ_smooth`. `io_occ_smooth` now feeds the CLI/SRV demand gate, while neither
+   field feeds `lr`.
 2. **Raw EX occupancy is actionable only as demand/capacity.** `tm_busy_us` and
    `ex_raw_u_smooth` feed `tomokv_ex_busy_us` / `tomokv_ex_sat_raw`, the CLI/SRV classifier, and the
    large-pool worker wall/re-arm check. `tm_productive_us` and `ex_work_u_smooth` feed
@@ -254,3 +295,15 @@ compile-time `const int 0` (`src/server.c:25014-25016`, `src/server.c:25635-2563
    `wsig=0` productive-ratio path and the `q_io`/queue-depth quantities being INFO-only. The
    config-comment claims of selectable signal modes are a documented comment/code discrepancy
    (`loadbalance-flip.md` discrepancy #1, #3, #4).
+
+## Known follow-up: uring direction coverage (not implemented)
+
+The r3 change deliberately leaves direction untouched. On p1+uring, the blind productive bracket
+still understates `u_io`: measured `lr` was `0.66` versus roughly `2.8` with complete coverage, so
+the distance law selects a one-thread jump instead of roughly five. That slows the walk but does not
+reverse it; the epoll evidence shows the existing walk completes.
+
+An r4 candidate is to use `u_io := min(cpu_sat, 1) * u_io_occ` under io_uring. That would change the
+physical meaning and scale of `r`, so it must first re-run the `r ~= 1` falsifier static cells
+documented beside the target comment around `src/server.c:30034`. It is intentionally not part of
+r3.

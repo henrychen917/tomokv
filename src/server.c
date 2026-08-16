@@ -993,9 +993,9 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     unsigned int rord_heads;   /* head promotions performed */
     unsigned int rord_grouped; /* same-bucket adjacency pulls performed */
     unsigned int rord_fences;  /* dependency-guard collisions (run fenced from that point) */
-    unsigned int tm_idle_us; /* ee451 2026-08-04 (OBSERVATION ONLY): wall µs in zero-event passes,
-                              * i.e. this thread had NO work. Same episode measurement as
-                              * exThread.tm_idle_us so the two roles are directly comparable. */
+    unsigned int tm_idle_us; /* Wall µs in zero-event episodes, i.e. this thread had NO work.
+                              * The controller folds 1-idle/wall into its IO demand-occupancy
+                              * operand; it never enters the productive direction ratio. */
     unsigned int tm_wait_us; /* wall µs spent waiting instead of doing useful IO work. Complete
                               * on epoll only: poll/drain/backpressure/yield spans are bracketed;
                               * io_uring leaves this at zero because DEFER_TASKRUN can execute
@@ -25254,7 +25254,8 @@ void initIOThreads(void) {
         exit(1);
     }
 }
-/* Legacy IO scheduled-CPU observation (CLOCK_THREAD_CPUTIME_ID), retained for INFO only.
+/* Legacy IO scheduled-CPU observation (CLOCK_THREAD_CPUTIME_ID), retained for diagnostics only
+ * (INFO and fliptrace).
  *
  * It is not a useful-work estimator: an idle IO owner can burn scheduled CPU in drain spin and
  * short polls, so CPU over-reports busy. Nor can elapsed time around io_uring_enter replace it as
@@ -25321,7 +25322,7 @@ static int ioSlice(polyThreadCtx *ctx, ioThreadArgs *t, int idle_wait_us) {
     s->tm_wait_us += (unsigned int)accounting.wait_us;
     {
         /* Owner-published scheduled-CPU diagnostic, sampled on a gate. Accumulate it in STATIC
-         * mode as well as auto so INFO snapshots can compare CPU, zero-event idle, and true wait
+         * mode as well as auto so INFO/fliptrace can compare CPU, zero-event idle, and true wait
          * against measured throughput while the split is held fixed. It is not a controller input;
          * see tmIoBusyBegin for why neither CPU nor whole-uring-call elapsed time is WAIT. */
         /* aeProcessEventsIO moved this pass's existing monotonic read to the end of its final
@@ -27492,10 +27493,10 @@ typedef struct {
     int      direction_episode_failed;
     double   direction_episode_failed_rate;
     double   direction_episode_failed_ex_demand;
-    double   sat_smooth;     /* EWMA of max(productive IO, raw EX demand) for CLI/SRV classification */
+    double   sat_smooth;     /* EWMA of max(IO zero-event occupancy, raw EX demand) for CLI/SRV */
     /* pressure-directed control (2026-07-24): the ratio band (see FLIP_R_BAND) */
-    /* Legacy no-work occupancy stays live for diagnostics. It is deliberately not a ratio operand:
-     * one fd event marks a whole IO pass occupied. */
+    /* IO no-work occupancy feeds only the demand classifier; legacy EX no-work occupancy stays
+     * diagnostic. Neither is a ratio operand: one event marks a whole pass occupied. */
     int      io_occ_smooth;
     int      ex_occ_smooth;
     double   io_wait_u_smooth; /* INFO comparison: EWMA of 1 - epoll-wait/wall. */
@@ -27622,7 +27623,8 @@ static flipCtlState fctl[TM_MAXNODE];
  * Worked in log space, |log r| is symmetric and one band covers both directions. The settled
  * anchor remains only retry hysteresis after the throughput judge; it does not redefine r=1 or
  * legalize an anchor outside the existing half-step floor. --- */
-#define FLIP_BOUND_SAT   0.75  /* demand sat (= max of productive IO and raw EX occupancy) at or
+#define FLIP_BOUND_SAT   0.75  /* demand sat (= max of IO zero-event occupancy and raw EX
+                                * occupancy) at or
                                 * above this => the SERVER is
                                 * the constraint and a flip can win something. Below it no stage is
                                 * saturated, so the CLIENT or the round trip is the constraint and
@@ -28406,6 +28408,7 @@ static void tomoFlipController(void) {
 
     static mstime_t prev_wall[TM_MAXNODE], last_log[TM_MAXNODE];
     static uint32_t fc_prev_io_idle_us[TM_MAXNODE][TOMO_IO_THREADS_MAX + 1];
+    static uint32_t fc_prev_io_busy_us[TM_MAXNODE][TOMO_IO_THREADS_MAX + 1];
     static uint32_t fc_prev_io_wait_us[TM_MAXNODE][TOMO_IO_THREADS_MAX + 1];
     static uint32_t fc_prev_io_stall_us[TM_MAXNODE][TOMO_IO_THREADS_MAX + 1];
     static uint32_t fc_prev_io_work_us[TM_MAXNODE][TOMO_IO_THREADS_MAX + 1];
@@ -28553,7 +28556,7 @@ static void tomoFlipController(void) {
             }
         }
         long io_occ_sum = 0; double io_wait_u_sum = 0.0;
-        uint64_t io_wait_delta_sum = 0, io_work_delta_sum = 0;
+        uint64_t io_wait_delta_sum = 0, io_work_delta_sum = 0, io_cpu_delta_sum = 0;
         uint64_t io_stall_delta_sum = 0;
         int io_occ_cnt = 0, io_live_node = 0, grown_io_live_node = 0;
         int io_hi = server.io_threads + server.tm_ngrow_io;
@@ -28565,6 +28568,12 @@ static void tomoFlipController(void) {
             uint32_t ci = tm_io_sig[t].tm_idle_us;
             uint32_t di = ci - fc_prev_io_idle_us[node][t];
             fc_prev_io_idle_us[node][t] = ci;
+            /* tmIoBusyBegin re-baselines the producer's thread-CPU clock on every IO role entry.
+             * Advance this consumer baseline for inactive growth slots too, just like idle/work,
+             * so a later role re-entry cannot inherit an older IO episode. */
+            uint32_t ccpu = tm_io_sig[t].tm_busy_us;
+            uint32_t dcpu = ccpu - fc_prev_io_busy_us[node][t];
+            fc_prev_io_busy_us[node][t] = ccpu;
             uint32_t cw = tm_io_sig[t].tm_wait_us;
             uint32_t dw = cw - fc_prev_io_wait_us[node][t];
             fc_prev_io_wait_us[node][t] = cw;
@@ -28588,6 +28597,7 @@ static void tomoFlipController(void) {
             io_wait_u_sum += 1.0 - wait_frac;
             io_wait_delta_sum += dw;
             io_work_delta_sum += dwork;
+            io_cpu_delta_sum += dcpu;
             io_occ_cnt++;
             io_live_node++;
             if (t >= server.io_threads) grown_io_live_node++;
@@ -28609,11 +28619,13 @@ static void tomoFlipController(void) {
          * process start rather than one controller wall span, so publish/fold no work sample. */
         if (!work_sample_primed) {
             io_work_delta_sum = 0;
+            io_cpu_delta_sum = 0;
             ex_raw_delta_sum = 0;
             ex_work_delta_sum = 0;
         }
-        /* Retain the legacy idle/wait filters for INFO and worker modes. Productive work below is
-         * independently folded in double precision at the same FESC_ALPHA horizon. The older
+        /* Retain zero-event IO occupancy for demand/idle decisions and wait occupancy for INFO.
+         * Productive work below is independently folded in double precision at the same
+         * FESC_ALPHA horizon. The older
          * occupancy change removed two asymmetries at the time:
          *   - estimator: IO was a raw per-tick mean against an EX side already on an EWMA, so on
          *     any load STEP the IO term moved first and r spiked high from filter lag alone — a
@@ -28696,11 +28708,12 @@ static void tomoFlipController(void) {
         atomic_store_explicit(&tm_ex_sat_productive_ppm[node],
             (uint32_t)(fc->ex_work_u_smooth * TOMO_EX_SAT_INFO_SCALE + 0.5),
             memory_order_relaxed);
-        /* Raw EX occupancy below remains the server/client-bound and worker-capacity observation.
-         * It is never divided to form the productive-ratio r. */
+        /* Raw EX occupancy below remains one server/client-bound operand and the worker-capacity
+         * observation. It is never divided to form the productive-ratio r. */
         /* ===== DEMAND/CAPACITY OBSERVATIONS =====
          * Productive U_IO/U_EX belongs exclusively to direction, balance, and floor coordinates.
-         * The gate and the large-pool worker wall instead use demand-faithful raw EX occupancy.
+         * The gate uses zero-event IO occupancy plus raw EX occupancy; the large-pool worker wall
+         * uses the latter as its demand-faithful capacity observation.
          * TERMS:
          *   C_EX  commands retired by the node's workers this tick  (node_ops delta = inst * dt)
          *   A_IO  == C_EX, the pipeline chain identity: every retired command yields exactly one
@@ -28726,33 +28739,44 @@ static void tomoFlipController(void) {
             if (nnodes > 1 && tmNodeOfIoSlot(t) != node) continue;
             q_io += (long)tm_io_sig[t].pend_write;
         }
-        /* ===== ROLE UTILISATION: PRODUCTIVE WORK / WALL =====
-         * Ratio modes use exactly one kind of quantity on both sides:
+        /* ===== SIGNAL KINDS: PRODUCTIVE DIRECTION VS DEMAND OCCUPANCY =====
+         * The two PRODUCTIVE direction operands are:
          *
-         *   U_IO = sum(io productive-work µs) / (wall µs * live IO owners)
-         *   U_EX = sum(EX productive-work µs) / (wall µs * live workers)
-         *   r    = U_IO / U_EX
+         *   u_io_work = EWMA(sum(IO productive-work µs) / (wall µs * live IO owners))
+         *   u_ex_work = EWMA(sum(EX productive-work µs) / (wall µs * live workers))
+         *   r         = u_io_work / u_ex_work
+         *
+         * The two DEMAND operands for the separate CLI/SRV gate are:
+         *
+         *   u_io_occ     = EWMA(1 - zero-event-episode µs / wall µs)
+         *   ex_demand_sat = EWMA(first-pop..pass-end µs / wall µs)
          *
          * IO work brackets CQ harvest/parser callbacks, beforeSleepIO reply/write work (including
          * its normal queue/maintenance duties), adaptive-drain beforeSleepIO calls, and fired fd
-         * read/write callbacks. Poll/syscall time and the PAUSE-only part of drain userpoll are
-         * outside those brackets, so burning CPU while polling an empty socket set cannot increase
-         * U_IO. EX sums only non-empty command-execution..result-publication spans; the retained
-         * first-pop..work-pass-end occupancy is exported separately and never enters U_EX. Both
-         * productive means use this node's same snapshot wall and live-role count, then the same
-         * double EWMA.
+         * read/write callbacks. Poll/syscall time and the PAUSE-only part of drain userpoll are outside.
+         * Under io_uring DEFER_TASKRUN, enter-internal completion taskwork is also outside because
+         * the indivisible enter cannot distinguish it from sleep. Measured p1 GET coverage was only
+         * 12.1% productive bracket versus 100.3% scheduled CPU; the same p1 workload on epoll covered
+         * 96%, while mget8+uring covered 88% because parsing/reply work remains in userspace. Thus the
+         * bracket stays the direction operand, while zero-event occupancy supplies backend-faithful
+         * IO demand. EX sums only command-execution..result-publication spans for direction; its
+         * retained first-pop..work-pass-end occupancy supplies demand/capacity separately.
          *
          * Slot 0 remains outside the measured/movable IO pool: main runs aeMain rather than
          * ioSlice. io_live_node is therefore both the denominator and the exact pool whose one
          * thread movement defines the existing granularity floor.
          *
-         * `u_io`/`u_ex` below select productive work unconditionally. Raw EX demand is named and
-         * consumed separately below; wait-derived and zero-event occupancy remain diagnostics,
-         * never ratio inputs. */
-        double u_io_idle = (double)fc->io_occ_smooth / 100.0;
+         * `u_io`/`u_ex` below select productive work unconditionally. `u_io_occ` and
+         * `ex_demand_sat` are consumed separately; wait-derived occupancy and scheduled CPU remain
+         * diagnostics, never direction or demand operands. */
+        double u_io_occ = (double)fc->io_occ_smooth / 100.0;
         double u_io_wait = fc->io_wait_u_smooth;
         double u_io_work = fc->io_work_u_smooth;
         double u_ex_work = fc->ex_work_u_smooth;
+        double cpu_sat = (work_sample_primed && io_occ_cnt && node_wall_ms > 0)
+            ? (double)io_cpu_delta_sum /
+              ((double)node_wall_ms * 1000.0 * (double)io_occ_cnt)
+            : 0.0;
         double u_io = u_io_work;
         double u_ex = u_ex_work;
         if (u_io > 1.0) u_io = 1.0;
@@ -28762,19 +28786,19 @@ static void tomoFlipController(void) {
          * inflate its own threshold. Capture below snapshots the post-update settled estimate. */
         /* u_io_var/u_ex_var stay maintained for observability; their sigmas no longer gate any
          * drop — capped u compresses them below box drift (see the rate-band comments below). */
-        /* SIGNAL-CLASS AUDIT. `u_ex` is capped productive execution density and belongs to the
-         * direction ratio and every coordinate derived from that ratio. It must not estimate total
-         * demand or remaining worker capacity. The separately filtered first-pop..pass-end value
-         * supplies those raw-demand consumers below. q_io/qd remain log and idle observations. */
+        /* SIGNAL-CLASS AUDIT. `u_io_work`/`u_ex_work` are capped productive densities and belong
+         * to the direction ratio and every coordinate derived from it. They must not estimate total
+         * demand or remaining capacity. `u_io_occ`/`ex_demand_sat` are the two occupancy-kind demand
+         * operands. q_io/qd, wait-derived occupancy, and cpu_sat remain diagnostics. */
         /* OWNER EQUATION (2026-08-09, derived from the 30-cell signal census, not composed):
          *     io_sat = u_io = EWMA(productive IO work / wall), capped at 1
          *     ex_sat = u_ex = EWMA(EX productive work / wall), capped at 1
          *     r = io_sat / ex_sat — and NOTHING else in the ratio.
-         * The 2026-08-16 correction changes only U_EX's measurement source: the former pass-wide
-         * counter included non-productive occupancy and therefore made EX look saturated across
-         * the MGET-8 split sweep. Anchor, floor, band, judge, and damped-drop equations remain
-         * untouched. Neither side may exceed 1; q_io/qd/ring-stall/drain remain INFO observables
-         * and qd_max stays only in the node_idle test. */
+         * The 2026-08-16 direction correction changes only U_EX's measurement source: the former
+         * pass-wide counter included non-productive occupancy and therefore made EX look saturated
+         * across the MGET-8 split sweep. Anchor, floor, band, judge, and damped-drop equations
+         * remain untouched. Neither side may exceed 1; q_io/qd/ring-stall/drain remain INFO
+         * observables and qd_max stays only in the node_idle test. */
         double io_sat = u_io;
         double ex_dir_sat = u_ex;
         double ex_demand_sat = fc->ex_raw_u_smooth;
@@ -28782,15 +28806,14 @@ static void tomoFlipController(void) {
         /* TOTAL DEMAND => is the workload CLIENT-bound or SERVER-bound?
          * The pipeline is only as saturated as its tightest stage, so the total is the MAX, not a
          * sum: one demand-bearing stage at 1.0 means the server is the constraint even if the other
-         * idles. Productive EX is intentionally absent. Low productive execution density can mean
-         * sparse/scattered work, not low client demand, and using it here made p1 GET classify
-         * CLI-BOUND at its boot split and prevented the first walk.
+         * idles. Both sides are occupancy-kind demand: IO's complement of zero-event episodes and
+         * EX's first-pop..pass-end occupancy. Productive work is intentionally absent: under uring
+         * the IO bracket cannot see DEFER_TASKRUN completion work, while low EX execution density
+         * can mean sparse/scattered work rather than low client demand.
          * Below the threshold NO stage is saturated, so the client (or the network round trip) is
          * the constraint and there is nothing a thread flip can win — the LB's goal is to REACH
-         * this state, and reaching it is the natural stop condition. The raw EX choice restores
-         * the demand input that admitted the pre-direction-fix p1 walk while leaving the corrected
-         * productive ratio untouched. */
-        double demand_total = fmax(io_sat, ex_demand_sat);
+         * this state, and reaching it is the natural stop condition. */
+        double demand_total = fmax(u_io_occ, ex_demand_sat);
         /* ee451 2026-08-05: FILTER THE BOUND TEST, like every other input to this controller.
          *
          * An instantaneous threshold on a noisy signal is a gate that flickers, and this one does
@@ -28806,11 +28829,15 @@ static void tomoFlipController(void) {
          * EWMA at FESC_ALPHA is the same horizon io_occ/ex_occ/lr already use, so this is one
          * filter applied consistently rather than a second threshold or a hysteresis band. The
          * genuine client-bound case (load actually withdrawn) moves the EWMA within ~4 ticks and
-         * still gates; only the tick-to-tick jitter is removed. */
+         * still gates; only the tick-to-tick jitter is removed.
+         *
+         * sat_smooth and its occupancy inputs are BSS-zero seeded. A pegged cold start can therefore
+         * log CLI for roughly the first 2-3 seconds while the nested EWMAs rise through 0.75; this is
+         * the existing seed behavior, not a reason to add a separate warmup path. */
         fc->sat_smooth += FESC_ALPHA * (demand_total - fc->sat_smooth);
         int server_bound = (fc->sat_smooth >= FLIP_BOUND_SAT);
-        /* The direction signal is log(U_IO/U_EX), using productive work on both sides. Raw EX feeds
-         * only demand/capacity consumers; it does not contaminate r, its balance band, or floor.
+        /* The direction signal is log(U_IO/U_EX), using productive work on both sides. Occupancy
+         * feeds only demand/capacity consumers; it does not contaminate r, its balance band, or floor.
          * Smoothed, so a
          * single-tick pressure spike can neither start a spurious climb nor be captured as an
          * anchor (that failure was seen as io7/ex1 oscillation: steady pressure ~0.55 but a lone
@@ -29112,18 +29139,19 @@ static void tomoFlipController(void) {
             }
         }
 
-        /* Put both signal classes on every controller line: productive IO/EX are the ratio operands,
-         * while ex_demand is the raw pass-occupancy operand used only by the CLI/SRV gate and the
-         * large-pool capacity wall. Keeping them side by side makes an accidental cross-feed visible. */
+        /* Put both signal classes plus scheduled CPU on every controller line. Keeping the two
+         * productive operands, two demand operands, and CPU diagnostic side by side makes an
+         * accidental cross-feed visible. */
         char wsig_log[384]; wsig_log[0] = '\0';
         snprintf(wsig_log, sizeof(wsig_log),
-                     " | PW(io=%llu/%llu ex=%llu/%llu sample=%.3f/%.3f u=%.3f/%.3f r=%.3f ex_demand=%.3f idle_io=%.3f wait_io=%.3f wait_us=%llu)",
+                     " | SIG(u_io_work=%.3f u_ex_work=%.3f r=%.3f u_io_occ=%.3f ex_demand_sat=%.3f cpu_sat=%.3f PW=%llu/%llu:%llu/%llu sample=%.3f/%.3f wait_io=%.3f wait_us=%llu)",
+                     u_io_work, u_ex_work, ratio, u_io_occ, ex_demand_sat, cpu_sat,
                      (unsigned long long)io_work_delta_sum,
                      (unsigned long long)node_wall_ms * 1000ULL * (unsigned long long)io_occ_cnt,
                      (unsigned long long)ex_work_delta_sum,
                      (unsigned long long)node_wall_ms * 1000ULL * (unsigned long long)w_live,
-                     io_work_u_mean, ex_work_u_mean, u_io, u_ex, ratio, ex_demand_sat,
-                     u_io_idle, u_io_wait, (unsigned long long)io_wait_delta_sum);
+                     io_work_u_mean, ex_work_u_mean, u_io_wait,
+                     (unsigned long long)io_wait_delta_sum);
 
         /* ===== PHASE 3: finish one distance-derived controller STEP. The physical actuator is
          * intentionally still the existing one-thread tmFlipDo: arm one transfer, wait until its
@@ -30065,10 +30093,12 @@ static void tomoFlipController(void) {
         if (tm_flip_trace) {
             serverLog(LL_NOTICE,
                 "[flip-trace n%d] t=%lld ops=%.0f io_sat=%.4f ex_sat=%.4f r=%.4f lr=%.4f anchor=%.4f "
-                "band=%.4f floor=%.4f u_io=%.3f u_ex=%.3f qd=%.2f qio=%ld c_ex=%.0f io=%d ex=%d "
+                "band=%.4f floor=%.4f u_io=%.3f u_ex=%.3f u_io_occ=%.3f ex_demand_sat=%.3f cpu_sat=%.3f "
+                "qd=%.2f qio=%ld c_ex=%.0f io=%d ex=%d "
                 "dir=%d phase=%d wait=%d out_run=%d stable=%d tot=%.3f %s%s",
                 node, (long long)now, fc->mean, io_sat, ex_dir_sat, ratio, fc->lr_ewma, fc->lr_anchor,
-                band, gfloor, u_io, u_ex, qd_mean, q_io, c_ex, io_live_node, w_live,
+                band, gfloor, u_io, u_ex, u_io_occ, ex_demand_sat, cpu_sat,
+                qd_mean, q_io, c_ex, io_live_node, w_live,
                 fc->dir, fc->phase, fc->wait, fc->lr_out_run, fc->idle_stable, demand_total,
                 server_bound ? "SRV" : "CLI", wsig_log);
         }
@@ -30111,10 +30141,9 @@ static void tomoFlipController(void) {
         if (out != 0 && out == fc->lr_out_dir) fc->lr_out_run++;
         else { fc->lr_out_dir = out; fc->lr_out_run = out ? 1 : 0; }
         /* CLIENT-BOUND => nothing to win: hold regardless of the ratio. This demand gate remains
-         * separate from direction. Productive EX cannot feed it: low useful execution may mean a
-         * sparse command shape while the client still saturates IO. `demand_total` therefore pairs
-         * the proven productive IO observation with raw EX request-pass occupancy. Conversely, raw
-         * EX never reaches `lr_ewma`, the balance band, or the granularity floor. */
+         * separate from direction: `demand_total` pairs IO zero-event occupancy with raw EX
+         * request-pass occupancy. Neither demand operand reaches `lr_ewma`, the balance band, or
+         * the granularity floor. */
         if (!server_bound) { out = 0; fc->lr_out_dir = 0; fc->lr_out_run = 0; }
         /* A completed exhaustive episode owns this workload even when throughput selected a +/-1
          * neighbour outside the literal floor. A blocked return likewise owns its measured target:

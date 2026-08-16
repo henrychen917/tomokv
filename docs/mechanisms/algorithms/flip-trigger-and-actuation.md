@@ -110,14 +110,16 @@ if (fc->lr_out_run >= need && !same_wave) {
 `server_bound` is the `!server_bound → hold` gate above (`src/server.c:26019`):
 
 ```c
-double demand_total = fmax(io_sat, ex_demand_sat);                 /* productive IO + raw EX */
+double demand_total = fmax(u_io_occ, ex_demand_sat);              /* IO occupancy + raw EX */
 fc->sat_smooth += FESC_ALPHA * (demand_total - fc->sat_smooth);   /* smoothed like every input */
 int server_bound = (fc->sat_smooth >= FLIP_BOUND_SAT);         /* FLIP_BOUND_SAT = 0.75 ; 26019 */
 ```
 
-Below `0.75` neither the productive IO stage nor raw EX request-pass demand is saturated, so the
-client or round trip is the constraint and no flip can win — hold. Productive EX remains exclusively
-in the direction ratio and cannot collapse this gate. `FLIP_BOUND_SAT = 0.75` (`src/server.c:24941`).
+Below `0.75` neither IO zero-event occupancy nor raw EX request-pass demand is saturated, so the
+client or round trip is the constraint and no flip can win — hold. Productive IO and EX remain
+exclusively in the direction ratio and cannot collapse this gate. `FLIP_BOUND_SAT = 0.75`
+(`src/server.c:27625`). The BSS-zero occupancy and `sat_smooth` seeds mean a pegged cold start can
+still print CLI for roughly 2-3 seconds while the nested EWMAs rise; no separate warmup is applied.
 
 ### Start stability gates
 

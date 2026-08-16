@@ -1532,9 +1532,10 @@ static const uint32_t TOMO_CLS_SLO[TOMO_SVC_CLASSES] = { 1, 1, 4, 64, 1024, 1638
 
 /* ---- IO-utilisation observations -------------------------------------------
  * tmIoSignal.tm_work_us is explicitly bracketed productive IO work and is the ratio
- * controller's numerator. tm_busy_us retains sampled scheduled CPU for INFO only because drain
- * spin and short polls burn CPU without producing work. tm_wait_us and tm_idle_us remain separate
- * INFO/legacy-worker-mode observations; neither is a ratio-mode controller input. */
+ * controller's numerator. tm_busy_us retains sampled scheduled CPU for diagnostics only because
+ * drain spin and short polls burn CPU without producing work. tm_idle_us supplies the separate
+ * zero-event occupancy operand for the CLI/SRV demand gate; tm_wait_us remains diagnostic.
+ * Neither occupancy nor CPU enters the productive direction ratio. */
 
 /* ---- tomokv-pin-mode (IMMUTABLE enum) ---------------------------------------
  * Decides BOTH how threads are placed AND what a "node" (tomokv-nodes) means:
