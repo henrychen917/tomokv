@@ -27494,6 +27494,7 @@ typedef struct {
     double   direction_episode_failed_rate;
     double   direction_episode_failed_ex_demand;
     double   sat_smooth;     /* EWMA of max(IO zero-event occupancy, raw EX demand) for CLI/SRV */
+    int      cli_run;        /* consecutive sub-threshold verdict ticks; sustained at FLIP_SUSTAIN */
     /* pressure-directed control (2026-07-24): the ratio band (see FLIP_R_BAND) */
     /* IO no-work occupancy feeds only the demand classifier; legacy EX no-work occupancy stays
      * diagnostic. Neither is a ratio operand: one event marks a whole pass occupied. */
@@ -28836,6 +28837,11 @@ static void tomoFlipController(void) {
          * the existing seed behavior, not a reason to add a separate warmup path. */
         fc->sat_smooth += FESC_ALPHA * (demand_total - fc->sat_smooth);
         int server_bound = (fc->sat_smooth >= FLIP_BOUND_SAT);
+        if (server_bound) {
+            fc->cli_run = 0;
+        } else if (fc->cli_run < FLIP_SUSTAIN) {
+            fc->cli_run++;
+        }
         /* The direction signal is log(U_IO/U_EX), using productive work on both sides. Occupancy
          * feeds only demand/capacity consumers; it does not contaminate r, its balance band, or floor.
          * Smoothed, so a
@@ -30095,11 +30101,12 @@ static void tomoFlipController(void) {
                 "[flip-trace n%d] t=%lld ops=%.0f io_sat=%.4f ex_sat=%.4f r=%.4f lr=%.4f anchor=%.4f "
                 "band=%.4f floor=%.4f u_io=%.3f u_ex=%.3f u_io_occ=%.3f ex_demand_sat=%.3f cpu_sat=%.3f "
                 "qd=%.2f qio=%ld c_ex=%.0f io=%d ex=%d "
-                "dir=%d phase=%d wait=%d out_run=%d stable=%d tot=%.3f %s%s",
+                "dir=%d phase=%d wait=%d out_run=%d stable=%d tot=%.3f cli_run=%d %s%s",
                 node, (long long)now, fc->mean, io_sat, ex_dir_sat, ratio, fc->lr_ewma, fc->lr_anchor,
                 band, gfloor, u_io, u_ex, u_io_occ, ex_demand_sat, cpu_sat,
                 qd_mean, q_io, c_ex, io_live_node, w_live,
                 fc->dir, fc->phase, fc->wait, fc->lr_out_run, fc->idle_stable, demand_total,
+                fc->cli_run,
                 server_bound ? "SRV" : "CLI", wsig_log);
         }
         int out = 0;
@@ -30138,13 +30145,23 @@ static void tomoFlipController(void) {
          * LATCHED ITSELF SHUT (dz_front pinned at 0.99 against a steady 0.28), so it could not
          * re-trigger whatever the signal did. The lockout was accidentally supplying the loop
          * stability that this gate now supplies deliberately. */
-        if (out != 0 && out == fc->lr_out_dir) fc->lr_out_run++;
-        else { fc->lr_out_dir = out; fc->lr_out_run = out ? 1 : 0; }
-        /* CLIENT-BOUND => nothing to win: hold regardless of the ratio. This demand gate remains
-         * separate from direction: `demand_total` pairs IO zero-event occupancy with raw EX
-         * request-pass occupancy. Neither demand operand reaches `lr_ewma`, the balance band, or
-         * the granularity floor. */
-        if (!server_bound) { out = 0; fc->lr_out_dir = 0; fc->lr_out_run = 0; }
+        /* CLIENT-BOUND => nothing to win: hold regardless of the ratio. A post-move occupancy
+         * re-baseline can under-read for a few ticks, so a transient low verdict freezes the
+         * Schmitt evidence instead of destroying it. Only FLIP_SUSTAIN consecutive low verdicts
+         * prove sustained client-bound demand and retain the old hard reset. This demand gate
+         * remains separate from direction: `demand_total` pairs IO zero-event occupancy with raw
+         * EX request-pass occupancy. Neither demand operand reaches `lr_ewma`, the balance band,
+         * or the granularity floor. */
+        if (server_bound) {
+            if (out != 0 && out == fc->lr_out_dir) fc->lr_out_run++;
+            else { fc->lr_out_dir = out; fc->lr_out_run = out ? 1 : 0; }
+        } else {
+            out = 0;
+            if (fc->cli_run >= FLIP_SUSTAIN) {
+                fc->lr_out_dir = 0;
+                fc->lr_out_run = 0;
+            }
+        }
         /* A completed exhaustive episode owns this workload even when throughput selected a +/-1
          * neighbour outside the literal floor. A blocked return likewise owns its measured target:
          * only the full-settle RETURN-REARM path may move toward it, so an ordinary climb cannot

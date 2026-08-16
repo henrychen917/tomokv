@@ -180,6 +180,25 @@ double demand_total = fmax(u_io_occ, ex_demand_sat);
 wall and its failed-episode re-arm check. Neither demand operand has a path into `ratio`, the balance
 band, or floor. Conversely, neither productive operand feeds `demand_total`.
 
+### CLI/SRV verdict hysteresis
+
+`sat_smooth` is the `FESC_ALPHA` EWMA of `demand_total`. A tick at or above
+`FLIP_BOUND_SAT = 0.75` is server-bound and resets `cli_run` to zero. A sub-threshold tick always
+holds actuation (`out = 0`) and increments the per-node `cli_run`, capped at the existing
+`FLIP_SUSTAIN`. While `cli_run < FLIP_SUSTAIN`, the low verdict is transient: the controller leaves
+`lr_out_dir`, `lr_out_run`, the anchor, and episode state untouched, so the same walk can resume when
+demand recovers. When `cli_run` reaches `FLIP_SUSTAIN`, the verdict is sustained client-bound and
+the controller performs the previous CLI action: it holds and clears `lr_out_dir`/`lr_out_run`.
+
+This distinction was added after the 2026-08-16 fliptrace showed a bimodal verdict: mean
+`demand_total` was `0.918` on SRV ticks and `0.625` on CLI ticks. The low population included
+post-move re-baseline rows such as `io=3 ex=4`, where `tot` fell from about `0.70` to `0.63` for a
+few consecutive ticks. Those short dips are long enough to cross the EWMA threshold, but not long
+enough to establish genuinely client-limited demand. Reusing `FLIP_SUSTAIN` (two EWMA time
+constants) adds no new tuning constant; an idle/client-limited interval still reaches the same hard
+reset. Fliptrace prints `cli_run=N`, allowing transient CLI rows (`N < FLIP_SUSTAIN`) to be
+distinguished from the sustained verdict.
+
 The directional signal floors **both** sides before dividing so the log is always finite
 (`src/server.c:26035-26037`):
 
@@ -256,13 +275,16 @@ the box's ordinary drift (`src/server.c:25901-25904`).
 | `u_io_mean`/`u_io_var`, `u_ex_mean`/`u_ex_var` | `double` | per-role noise EWMAs (observability) |
 | `lr_mean`, `lr_var` | `double` | settled-tick `lr` noise; `sqrt(lr_var)` frozen at capture |
 | `sat_smooth` | `double` | EWMA of `max(u_io_occ,ex_raw_u_smooth)`; the server-bound gate input |
+| `cli_run` | `int` | consecutive sub-threshold verdict ticks, capped at `FLIP_SUSTAIN` |
 
 ## Key constants
 
-`FESC_ALPHA = 0.25` (`src/server.c:24917`), `FLIP_R_QUIET = 0.02` (`src/server.c:24997`),
-`FLIP_R_QUIET_N = 8` (`src/server.c:24998`). The productive-work ratio is the only direction signal;
-the old `tomokv-flip-signal` knob and `FLIP_SIG_*` modes were deleted 2026-08-10, and `wsig` is a
-compile-time `const int 0` (`src/server.c:25014-25016`, `src/server.c:25635-25639`).
+`FESC_ALPHA = 0.25` (`src/server.c:24917`), `FLIP_BOUND_SAT = 0.75`,
+`FLIP_SUSTAIN = 8`, `FLIP_R_QUIET = 0.02` (`src/server.c:24997`), and
+`FLIP_R_QUIET_N = 8` (`src/server.c:24998`). The bound-verdict counter deliberately reuses the same
+`FLIP_SUSTAIN` as the Schmitt gate. The productive-work ratio is the only direction signal; the old
+`tomokv-flip-signal` knob and `FLIP_SIG_*` modes were deleted 2026-08-10, and `wsig` is a compile-time
+`const int 0` (`src/server.c:25014-25016`, `src/server.c:25635-25639`).
 
 ## Invariants
 
