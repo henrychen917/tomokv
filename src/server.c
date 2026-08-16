@@ -24303,8 +24303,10 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
  * wrapped with modulo if the machine has fewer cores than threads.
  * NOTE: topology/NUMA/P-core-aware pinning is a SEPARATE planned version,
  * intentionally NOT done here. */
-/* ee451 (v8d): TOPOLOGY-AWARE core ordering. Maps each configured node to one domain, keeping a
- * shard's worker, the IO threads feeding it, and (with NUMA-local alloc below) its memory together.
+/* ee451 (v8d): TOPOLOGY-AWARE core ordering. Maps each configured node to one or more domains,
+ * keeping a shard's worker, the IO threads feeding it, and (with NUMA-local alloc below) its
+ * memory together. ccd mode composes adjacent shared-L3 groups when one group is narrower than
+ * the configured node; numa mode continues to map one node to one NUMA domain.
  * The DOMAIN is chosen by tomokv-pin-mode:
  *   ccd  -> the shared-L3 id  (/sys/devices/system/cpu/cpuN/cache/indexK/level + id)
  *   numa -> the NUMA node id  (/sys/devices/system/node/nodeM/cpuN)
@@ -24320,6 +24322,7 @@ static int smart_domain_nsmt[2][SMART_MAX_CORES];
 static int smart_domain_n[2] = {0, 0};
 static int smart_core_legacy[2] = {0, 0};
 static int smart_sibling_fallback_logged = 0;
+static int smart_l3_composition_logged = 0;
 static int read_int_file(const char *path, int *out) {
     FILE *f = fopen(path, "r"); if (!f) return 0;
     int ok = (fscanf(f, "%d", out) == 1); fclose(f); return ok;
@@ -24401,7 +24404,7 @@ static void buildLegacySmartCoreOrder(int by_numa, const int *dom, int n) {
     smart_core_legacy[by_numa] = 1;
     serverLog(LL_NOTICE, "tomokv pin-mode %s: %d cores ordered by %s groups",
               by_numa ? "numa" : "ccd", k,
-              by_numa ? "NUMA-node" : "shared-L3 (CCD)");
+              by_numa ? "NUMA-node" : "shared-L3 (CCX)");
 }
 static void buildSmartCoreOrder(int by_numa) {
     long n = sysconf(_SC_NPROCESSORS_ONLN);
@@ -24493,23 +24496,120 @@ static void buildSmartCoreOrder(int by_numa) {
     smart_domain_n[by_numa] = ndom;
     serverLog(LL_NOTICE, "tomokv pin-mode %s: %d physical cores (%d logical CPUs) ordered by "
               "physical %s groups", by_numa ? "numa" : "ccd", k, k + sk,
-              by_numa ? "NUMA-node" : "shared-L3 (CCD)");
+              by_numa ? "NUMA-node" : "shared-L3 (CCX)");
 
-    int cpn = server.cores_per_node;
-    int nodes = server.topo_nodes > 0 ? server.topo_nodes : 1;
-    for (int node = 0; cpn > 0 && node < nodes; node++) {
-        int d = node % ndom;
-        if (cpn > smart_domain_nphysical[by_numa][d] &&
-            smart_domain_nsmt[by_numa][d] > 0) {
-            serverLog(LL_NOTICE, "tomokv pin-mode %s: node width %d exceeds the %d physical "
-                      "cores in the %s domain starting at cpu%d; SMT sharing is in use within "
-                      "that domain", by_numa ? "numa" : "ccd", cpn,
-                      smart_domain_nphysical[by_numa][d], by_numa ? "NUMA" : "CCD",
-                      domain_min[d]);
-            break;
+    /* NUMA keeps the historical one-domain warning here. ccd's warning is emitted with the
+     * per-node composition below, after the process affinity mask is known, so it counts all
+     * usable physical cores across the adjacent L3 groups before considering SMT. */
+    if (by_numa) {
+        int cpn = server.cores_per_node;
+        int nodes = server.topo_nodes > 0 ? server.topo_nodes : 1;
+        for (int node = 0; cpn > 0 && node < nodes; node++) {
+            int d = node % ndom;
+            if (cpn > smart_domain_nphysical[by_numa][d] &&
+                smart_domain_nsmt[by_numa][d] > 0) {
+                serverLog(LL_NOTICE, "tomokv pin-mode numa: node width %d exceeds the %d physical "
+                          "cores in the NUMA domain starting at cpu%d; SMT sharing is in use "
+                          "within that domain", cpn, smart_domain_nphysical[by_numa][d],
+                          domain_min[d]);
+                break;
+            }
         }
     }
 }
+
+/* Number of adjacent sorted-L3 domains owned by one ccd-mode topology node. `width <= G` returns
+ * one, preserving the existing map exactly. Wider nodes consume ceil(width/G) groups; cap at the
+ * discovered group count so a node exhausts every physical core before it can consume an SMT
+ * sibling. Bergamo's equal-width CCX groups are the motivating topology (G=8). */
+static int smartNodeDomainSpan(int by_numa) {
+    int ndom = smart_domain_n[by_numa];
+    if (by_numa || ndom <= 0 || server.cores_per_node <= 0) return 1;
+    int group_width = smart_domain_nphysical[by_numa][0];
+    if (group_width <= 0) return 1;
+    int span = (server.cores_per_node + group_width - 1) / group_width;
+    if (span < 1) span = 1;
+    if (span > ndom) span = ndom;
+    return span;
+}
+
+static int smartNodeDomainStart(int by_numa, int node) {
+    int ndom = smart_domain_n[by_numa];
+    if (ndom <= 0) return 0;
+    int span = smartNodeDomainSpan(by_numa);
+    return by_numa ? node % ndom : (node * span) % ndom;
+}
+
+static int smartCpuIsAllowed(int cpu, const int *allowed, int nallowed) {
+    if (!allowed) return 1;
+    for (int a = 0; a < nallowed; a++) if (allowed[a] == cpu) return 1;
+    return 0;
+}
+
+static int smartDomainCpuAt(int by_numa, int domain, int smt, int slot) {
+    if (smt)
+        return smart_smt_order[by_numa][smart_domain_smt_start[by_numa][domain] + slot];
+    return smart_core_order[by_numa][smart_domain_start[by_numa][domain] + slot];
+}
+
+/* Enumerate one node's physical phase (or, only after that phase is exhausted, its SMT phase).
+ * With multiple L3 groups the inner loop is the important policy: thread indices alternate groups.
+ * Concatenating group A then group B would put an early EX block on A and the later IO block on B,
+ * concentrating every IO->EX handoff on the cross-L3 path. Round-robin keeps every multi-threaded
+ * role spread across the composed groups. With one group this is byte-for-byte the old order. */
+static int smartNodeCpuAt(int by_numa, int node, int smt, int slot,
+                          const int *allowed, int nallowed) {
+    int ndom = smart_domain_n[by_numa];
+    int span = smartNodeDomainSpan(by_numa);
+    int start = smartNodeDomainStart(by_numa, node);
+    for (int depth = 0;; depth++) {
+        int any = 0;
+        for (int off = 0; off < span; off++) {
+            int d = (start + off) % ndom;
+            int count = smt ? smart_domain_nsmt[by_numa][d]
+                            : smart_domain_nphysical[by_numa][d];
+            if (depth >= count) continue;
+            any = 1;
+            int cpu = smartDomainCpuAt(by_numa, d, smt, depth);
+            if (smartCpuIsAllowed(cpu, allowed, nallowed) && slot-- == 0) return cpu;
+        }
+        if (!any) break;
+    }
+    return -1;
+}
+
+static int smartNodeCpuCount(int by_numa, int node, int smt,
+                             const int *allowed, int nallowed) {
+    int ndom = smart_domain_n[by_numa];
+    int span = smartNodeDomainSpan(by_numa);
+    int start = smartNodeDomainStart(by_numa, node);
+    int count = 0;
+    for (int off = 0; off < span; off++) {
+        int d = (start + off) % ndom;
+        int ncpu = smt ? smart_domain_nsmt[by_numa][d]
+                       : smart_domain_nphysical[by_numa][d];
+        for (int slot = 0; slot < ncpu; slot++) {
+            int cpu = smartDomainCpuAt(by_numa, d, smt, slot);
+            if (smartCpuIsAllowed(cpu, allowed, nallowed)) count++;
+        }
+    }
+    return count;
+}
+
+static int smartMappedCoreFor(int by_numa, int logical,
+                              const int *allowed, int nallowed) {
+    int node = logical / server.cores_per_node;
+    int local = logical % server.cores_per_node;
+    int nphysical = smartNodeCpuCount(by_numa, node, 0, allowed, nallowed);
+    int nsmt = smartNodeCpuCount(by_numa, node, 1, allowed, nallowed);
+    int count = nphysical + nsmt;
+    if (count <= 0) return -1;
+    local %= count;
+    if (local < nphysical)
+        return smartNodeCpuAt(by_numa, node, 0, local, allowed, nallowed);
+    return smartNodeCpuAt(by_numa, node, 1, local - nphysical, allowed, nallowed);
+}
+
 static int smartCoreFor(int logical) {
     int by_numa = (server.pin_mode == TOMO_PIN_NUMA) ? 1 : 0;
     if (smart_core_n[by_numa] == 0) buildSmartCoreOrder(by_numa);
@@ -24517,19 +24617,8 @@ static int smartCoreFor(int logical) {
     if (smart_core_n[by_numa] == 0) return (n > 0) ? (logical % (int)n) : 0;
     if (!smart_core_legacy[by_numa] && smart_domain_n[by_numa] > 0 &&
         server.cores_per_node > 0) {
-        int node = logical / server.cores_per_node;
-        int local = logical % server.cores_per_node;
-        int d = node % smart_domain_n[by_numa];
-        int nphysical = smart_domain_nphysical[by_numa][d];
-        int nsmt = smart_domain_nsmt[by_numa][d];
-        int count = nphysical + nsmt;
-        if (count > 0) {
-            local %= count;
-            if (local < nphysical)
-                return smart_core_order[by_numa][smart_domain_start[by_numa][d] + local];
-            return smart_smt_order[by_numa][smart_domain_smt_start[by_numa][d] +
-                                           local - nphysical];
-        }
+        int core = smartMappedCoreFor(by_numa, logical, NULL, 0);
+        if (core >= 0) return core;
     }
     return smart_core_order[by_numa][logical % smart_core_n[by_numa]];
 }
@@ -24538,31 +24627,91 @@ static int smartCoreForAllowed(int logical, const int *allowed, int nallowed) {
     int by_numa = (server.pin_mode == TOMO_PIN_NUMA) ? 1 : 0;
     if (smart_core_legacy[by_numa] || smart_domain_n[by_numa] == 0 ||
         server.cores_per_node <= 0) return preferred;
+    int core = smartMappedCoreFor(by_numa, logical, allowed, nallowed);
+    return core >= 0 ? core : preferred;
+}
 
-    int node = logical / server.cores_per_node;
-    int local = logical % server.cores_per_node;
-    int d = node % smart_domain_n[by_numa];
-    int usable = 0;
-    for (int i = 0; i < smart_domain_nphysical[by_numa][d]; i++) {
-        int cpu = smart_core_order[by_numa][smart_domain_start[by_numa][d] + i];
-        for (int a = 0; a < nallowed; a++) if (allowed[a] == cpu) { usable++; break; }
-    }
-    for (int i = 0; i < smart_domain_nsmt[by_numa][d]; i++) {
-        int cpu = smart_smt_order[by_numa][smart_domain_smt_start[by_numa][d] + i];
-        for (int a = 0; a < nallowed; a++) if (allowed[a] == cpu) { usable++; break; }
-    }
-    if (usable == 0) return preferred;
+static void smartAppendCpuRange(char *buf, size_t buflen, size_t *used,
+                                int first, int last) {
+    if (*used >= buflen) return;
+    int n = last > first
+        ? snprintf(buf + *used, buflen - *used, "%s%d-%d", *used ? "," : "", first, last)
+        : snprintf(buf + *used, buflen - *used, "%s%d", *used ? "," : "", first);
+    if (n < 0) return;
+    if ((size_t)n >= buflen - *used) *used = buflen;
+    else *used += (size_t)n;
+}
 
-    int slot = local % usable;
-    for (int i = 0; i < smart_domain_nphysical[by_numa][d]; i++) {
-        int cpu = smart_core_order[by_numa][smart_domain_start[by_numa][d] + i];
-        for (int a = 0; a < nallowed; a++) if (allowed[a] == cpu && slot-- == 0) return cpu;
+static void smartFormatCpuSet(const unsigned char *cpus, char *buf, size_t buflen) {
+    size_t used = 0;
+    if (buflen == 0) return;
+    buf[0] = '\0';
+    for (int cpu = 0; cpu < SMART_MAX_CORES;) {
+        if (!cpus[cpu]) { cpu++; continue; }
+        int first = cpu, last = cpu;
+        while (last + 1 < SMART_MAX_CORES && cpus[last + 1]) last++;
+        smartAppendCpuRange(buf, buflen, &used, first, last);
+        cpu = last + 1;
     }
-    for (int i = 0; i < smart_domain_nsmt[by_numa][d]; i++) {
-        int cpu = smart_smt_order[by_numa][smart_domain_smt_start[by_numa][d] + i];
-        for (int a = 0; a < nallowed; a++) if (allowed[a] == cpu && slot-- == 0) return cpu;
+    if (used == 0) snprintf(buf, buflen, "none");
+}
+
+/* Log the actual ccd-mode plan after the caller's taskset/cgroup mask is cached. Besides making
+ * the adjacent-group composition harness-verifiable, doing this here makes the SMT warning honest
+ * for restricted affinity sets: only allowed physical CPUs across every composed group count. */
+static void logSmartL3NodeComposition(const int *allowed, int nallowed) {
+    if (smart_l3_composition_logged || server.pin_mode != TOMO_PIN_CCD) return;
+    if (smart_core_n[0] == 0) buildSmartCoreOrder(0);
+    if (smart_core_legacy[0] || smart_domain_n[0] <= 0 || server.cores_per_node <= 0) return;
+    smart_l3_composition_logged = 1;
+
+    int nodes = server.topo_nodes > 0 ? server.topo_nodes : 1;
+    int width = server.cores_per_node;
+    int span = smartNodeDomainSpan(0);
+    int warned_smt = 0;
+    for (int node = 0; node < nodes; node++) {
+        char groups[SMART_MAX_CORES * 6];
+        char cpulist[SMART_MAX_CORES * 6];
+        unsigned char cpus[SMART_MAX_CORES];
+        memset(cpus, 0, sizeof(cpus));
+
+        size_t groups_used = 0;
+        int start = smartNodeDomainStart(0, node);
+        for (int off = 0; off < span; off++) {
+            int n = snprintf(groups + groups_used, sizeof(groups) - groups_used,
+                             "%s%d", off ? "+" : "", (start + off) % smart_domain_n[0]);
+            if (n < 0) break;
+            if ((size_t)n >= sizeof(groups) - groups_used) {
+                groups_used = sizeof(groups);
+                break;
+            }
+            groups_used += (size_t)n;
+        }
+
+        int nphysical = smartNodeCpuCount(0, node, 0, allowed, nallowed);
+        int nsmt = smartNodeCpuCount(0, node, 1, allowed, nallowed);
+        int usable = nphysical + nsmt;
+        for (int local = 0; usable > 0 && local < width; local++) {
+            int slot = local % usable;
+            int cpu = slot < nphysical
+                ? smartNodeCpuAt(0, node, 0, slot, allowed, nallowed)
+                : smartNodeCpuAt(0, node, 1, slot - nphysical, allowed, nallowed);
+            if (cpu >= 0 && cpu < SMART_MAX_CORES) cpus[cpu] = 1;
+        }
+        smartFormatCpuSet(cpus, cpulist, sizeof(cpulist));
+        serverLog(LL_NOTICE, "tomokv pin-mode ccd: node %d: L3 groups %s, cpus %s",
+                  node, groups, cpulist);
+
+        if (!warned_smt && width > nphysical && nsmt > 0) {
+            int first_cpu = nphysical > 0
+                ? smartNodeCpuAt(0, node, 0, 0, allowed, nallowed)
+                : smartNodeCpuAt(0, node, 1, 0, allowed, nallowed);
+            serverLog(LL_NOTICE, "tomokv pin-mode ccd: node width %d exceeds the %d physical "
+                      "cores in the composed L3 groups starting at cpu%d; SMT sharing is in use "
+                      "within those groups", width, nphysical, first_cpu);
+            warned_smt = 1;
+        }
     }
-    return preferred;
 }
 
 /* ---- tomokv-pin-mode / tomokv-pin-io / tomokv-pin-ex ------------------------------------- */
@@ -24806,10 +24955,11 @@ static void pinThreadToCoreN(pthread_t thread, const char *what, int core_idx,
                              role == TOMO_PIN_ROLE_EX ? "ex" : "io", core, what); return; }
     } else {
         /* ccd / numa: the topology decides the policy. Group threads by shared-L3 (ccd) or NUMA
-         * node (numa), so a worker sits near its io feeders. Physical cores precede their SMT
-         * siblings within each domain. Respects taskset/cgroup affinity either way. */
+         * node (numa), so a worker sits near its io feeders. Physical cores across a node's whole
+         * domain composition precede its SMT siblings. Respects taskset/cgroup affinity either way. */
         core = g_abs[core_idx % g_na];
         int sc = smartCoreForAllowed(core_idx, g_abs, g_na);
+        logSmartL3NodeComposition(g_abs, g_na);
         int use_smart = !smart_core_legacy[server.pin_mode == TOMO_PIN_NUMA];
         static int g_legacy_multi_dom = -1;
         if (!use_smart) {

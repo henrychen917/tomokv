@@ -1540,8 +1540,9 @@ static const uint32_t TOMO_CLS_SLO[TOMO_SVC_CLASSES] = { 1, 1, 4, 64, 1024, 1638
  * Decides BOTH how threads are placed AND what a "node" (tomokv-nodes) means:
  *   float  — no pinning at all; the scheduler places threads. A node is a pure logical shard
  *            group (no placement meaning).
- *   ccd    — a node is a CCD / shared-L3 domain. Threads are packed onto shared-L3 groups so a
- *            shard's worker and the IO threads feeding it share a last-level cache. DEFAULT.
+ *   ccd    — a node owns one shared-L3 group, or adjacent sorted-L3 groups when its width exceeds
+ *            one group's physical cores. Threads alternate groups within a multi-group node and
+ *            use SMT siblings only after exhausting physical cores. DEFAULT.
  *   numa   — a node is a NUMA node. Threads are packed per NUMA node.
  *   static — placement comes verbatim from tomokv-pin-io / tomokv-pin-ex (per role per node).
  * WHICH PARTITIONING IS BETTER (ccd vs numa) IS AN OPEN QUESTION on the target hardware; it is
@@ -3316,9 +3317,9 @@ struct redisServer {
      * ex_threads are DERIVED (nodes * per-node). thread_mode=static fixes the split; auto lets the
      * controller flip the io/ex boundary WITHIN each node's core budget. */
     int prefetch_ex_level;   /* tomokv-prefetch-ex: 0=off, 1=storage, 2=storage+xnode messages */
-    int topo_nodes;            /* tomokv-nodes: node count. NOT necessarily a NUMA node — it is a
-                                * CCD (shared-L3 domain) when tomokv-pin-mode is `ccd` and a NUMA
-                                * node when it is `numa`. Hence topo_ (topology), not numa_. */
+    int topo_nodes;            /* tomokv-nodes: node count. NOT necessarily a NUMA node — it owns
+                                * one or more adjacent shared-L3 groups in `ccd` mode and one NUMA
+                                * domain in `numa` mode. Hence topo_ (topology), not numa_. */
     int cores_per_node;        /* tomokv-cores-per-node; pool = topo_nodes * cores_per_node */
     int io_per_node;           /* provisioned base-IO stride per node; configured IO split in STATIC */
     int ex_per_node;           /* provisioned worker stride per node; configured EX split in STATIC;
