@@ -15,7 +15,7 @@ Two per-role "productive work fraction of wall time" numbers, each in `[0,1]`:
 
 ```text
 u_io = EWMA( sum(delta IO tm_work_us) / (wall_us * live_nonmain_io) ), capped at 1
-u_ex = EWMA( sum(delta EX tm_busy_us) / (wall_us * live_ex)         ), capped at 1
+u_ex = EWMA( sum(delta EX tm_productive_us) / (wall_us * live_ex)   ), capped at 1
 ```
 
 - `u_io` is fed by the IO owner's `tmIoSignal.tm_work_us` (`unsigned int`, wrap-safe cumulative),
@@ -24,11 +24,17 @@ u_ex = EWMA( sum(delta EX tm_busy_us) / (wall_us * live_ex)         ), capped at
   `u_io`. Accumulated in `ioSlice()` at `src/server.c:23103` from `aeProcessEventsIO`'s
   `accounting.work_us`; the bracket itself is `src/ae.c:560-571` (prefix) and `src/ae.c:704-737`
   (tail). Field declared `src/server.c:757-760`.
-- `u_ex` is fed by the worker's `exThread.tm_busy_us` (`unsigned int`, wrap-safe), the first-pop →
-  work-pass-end busy interval. Accumulated at `src/server.c:22302`. Field declared
-  `src/server.h:2649-2653`.
+- `u_ex` is fed by the worker's `exThread.tm_productive_us` (`unsigned int`, wrap-safe). Each
+  non-empty aggregate is timed from the successful-pop phase marker through CDB-ready and
+  queue-retirement publication. Useful batch preparation/prefetch are inside; empty scans,
+  freeback/reclaim prefixes, and idle PAUSE rounds are outside. The first aggregate reuses its
+  raw stamp as the legacy pass start, and the accumulated raw ticks are converted once per pass
+  (`src/server.c:23911-24140`, `src/server.c:24180-24198`).
+- `exThread.tm_busy_us` retains the old first-pop → pass-end occupancy. It is sampled and smoothed
+  beside the productive clock only for A/B and INFO; it is not a decision operand. Both fields are
+  declared at `src/server.h:2661-2667`.
 
-Both counters are owner-written plain integers and read racily by the 4 Hz controller with unsigned
+All three cumulative work/occupancy counters are owner-written plain integers and read racily by the 4 Hz controller with unsigned
 deltas — no atomic synchronization (`src/server.c:649-653`, `src/server.h:2617-2620`).
 
 ## Per-tick accumulation (`tomoFlipController`, `src/server.c:25570-26080`)
@@ -54,6 +60,7 @@ Static, function-scoped snapshot arrays hold each node's previous cumulative cou
 | --- | --- | --- |
 | `fc_prev_io_work_us[TM_MAXNODE][TOMO_IO_THREADS_MAX+1]` | `uint32_t` | `u_io` numerator |
 | `fc_prev_ex_work_us[TM_MAXNODE][TOMO_EX_THREADS_MAX+1]` | `uint32_t` | `u_ex` numerator |
+| `fc_prev_ex_raw_us[TM_MAXNODE][TOMO_EX_THREADS_MAX+1]` | `uint32_t` | old EX occupancy, INFO only |
 | `fc_prev_io_idle_us` / `fc_prev_io_wait_us` / `fc_prev_io_stall_us` | `uint32_t` | legacy occupancy / INFO |
 | `fc_prev_ex_idle_us` | `uint32_t` | legacy EX occupancy |
 | `fc_prev_busy_wall[TM_MAXNODE]` | `mstime_t` | this node's wall span |
@@ -78,8 +85,8 @@ fc_prev_io_work_us[node][t] = cwork;
 ```
 
 `dwork` is added into `io_work_delta_sum` only for slots currently live in the IO role
-(`src/server.c:25742-25757`); `db` into `ex_work_delta_sum` only for slots in EX mode
-(`src/server.c:25710-25717`). Node 0's IO slot 0 (main) is excluded from the IO loop, which starts
+(`src/server.c:25742-25757`); the productive `db` enters `ex_work_delta_sum` only for slots in EX
+mode, while the matching raw delta enters `ex_raw_delta_sum` for observation (`src/server.c:28508-28544`). Node 0's IO slot 0 (main) is excluded from the IO loop, which starts
 at `t = 1` (`src/server.c:25724`).
 
 **First-visit fold-out.** On the first visit to a node (`!work_sample_primed`) the deltas reach back
@@ -187,6 +194,7 @@ the box's ordinary drift (`src/server.c:25901-25904`).
 | Field | Type | Meaning |
 | --- | --- | --- |
 | `io_work_u_smooth`, `ex_work_u_smooth` | `double` | the two capped productive-work EWMAs = `u_io`, `u_ex` |
+| `ex_raw_u_smooth` | `double` | identically filtered former EX pass occupancy, INFO only |
 | `lr_ewma` | `double` | EWMA of `log(u_io/u_ex)`; the decision signal |
 | `lr_init` | `int` | 1 once `lr_ewma` seeded from the first loaded sample |
 | `lr_quiet_run` | `int` | consecutive ticks the EWMA step stayed `< FLIP_R_QUIET`; caps at 1000 |
@@ -224,11 +232,11 @@ compile-time `const int 0` (`src/server.c:25014-25016`, `src/server.c:25635-2563
    EWMA (`x += (int)(FESC_ALPHA*(mean - x))`) applies only to the **legacy occupancy** fields
    `io_occ_smooth`/`ex_occ_smooth` (`src/server.c:25775`, `:25831`), which are diagnostics / retained
    worker-only-mode operands and do **not** feed `lr`.
-2. **`u_io` source is `tm_work_us`, not `tm_idle_us`.** The task says `u_io`/`u_ex` accumulate "from
-   `tm_busy_us`/`tm_idle_us`". `u_ex` does use EX `tm_busy_us` (`src/server.c:25690`). But `u_io` uses
-   IO `tm_work_us` (`src/server.c:25739`); `tm_idle_us` feeds only the legacy occupancy path and the
-   `node_idle` test (`src/server.c:25729-25731`, `:25803`). IO `tm_busy_us` (a sampled CPU-time
-   diagnostic, `src/server.c:23113-23118`) is not read in the controller's per-node loop at all.
+2. **Raw EX occupancy remains observable, not actionable.** `tm_busy_us` and
+   `ex_raw_u_smooth` feed `tomokv_ex_busy_us` / `tomokv_ex_sat_raw`; `tm_productive_us` and
+   `ex_work_u_smooth` feed `tomokv_ex_productive_us` / `tomokv_ex_sat_productive` and the controller.
+   Static mode maintains the same capped 0.25-EWMA solely for these INFO fields, so fixed-split
+   sweeps can compare the signals without enabling actuation (`src/server.c:27706-27770`).
 3. These match `loadbalance-flip.md`'s "Productive-work signal" section, which also documents the
    `wsig=0` productive-ratio path and the `q_io`/queue-depth quantities being INFO-only. The
    config-comment claims of selectable signal modes are a documented comment/code discrepancy

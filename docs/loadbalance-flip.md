@@ -105,7 +105,7 @@ so they are safe to poll while the controllers are actuating. `src/server.c:1989
 
 ### Entry gates and sample scope
 
-`tomoFlipController()` returns before sampling unless automatic mode is on, EX storage exists, at least one growth slot exists, `migration_active` is false by acquire load, no flip is active, and positive wall time elapsed. `src/server.c:25570-25587`
+`tomoFlipController()` returns before sampling unless automatic mode is on, EX storage exists, at least one growth slot exists, `migration_active` is false by acquire load, no flip is active, and positive wall time elapsed. Static mode has a separate observation-only 4 Hz sampler for the two EX INFO saturations; it never writes controller state or actuates. `src/server.c:27706-27770`, `src/server.c:28368-28411`
 
 At this quiescent entry the controller acquire-loads and checks `io_threads_live + num_workers_live == io_threads + num_workers`; a mismatch is only a rate-limited warning globally, although an active floor episode later refuses another move when either global or episode-local conservation fails. `src/server.c:25589-25629`, `src/server.c:26082-26099`
 
@@ -117,18 +117,20 @@ Node zero's main IO identity is excluded from the IO signal loop, which starts a
 
 ### Productive-work signal
 
-IO owners accumulate plain 32-bit `tm_work_us` from `aeProcessEventsIO().work_us`, and EX owners accumulate plain 32-bit `tm_busy_us` over productive worker passes; the controller reads those owner-written counters without atomic synchronization and uses unsigned deltas. `src/server.c:649-653`, `src/server.c:757-773`, `src/server.h:2649-2653`, `src/server.c:22007-22020`, `src/server.c:22290-22308`, `src/server.c:25683-25718`
+IO owners accumulate plain 32-bit `tm_work_us` from `aeProcessEventsIO().work_us`. EX owners keep two plain 32-bit clocks: `tm_busy_us` retains the old first-pop-to-pass-end raw occupancy for A/B, while `tm_productive_us` is the controller numerator. The controller snapshots both with wrap-safe unsigned deltas, but only the productive delta enters `u_ex`. `src/server.c:20866-20962`, `src/server.h:2647-2667`, `src/server.c:28508-28544`
 
-The IO work interval comprises the IO-uring reap plus `beforeSleepIO` prefix and the post-poll/enter fired-callback tail; epoll wait is accounted separately, while IO-uring's indivisible enter cannot separate sleeping from taskwork.  The EX interval starts at the first pop of a work pass and ends after that pass's productive processing. `src/ae.c:544-571`, `src/ae.c:680-738`, `src/server.c:23086-23118`, `src/server.c:22007-22020`, `src/server.c:22290-22308`
+The IO work interval comprises the IO-uring reap plus `beforeSleepIO` prefix and the post-poll/enter fired-callback tail; epoll wait is accounted separately, while IO-uring's indivisible enter cannot separate sleeping from taskwork. Each EX productive interval starts at the existing successful-pop phase marker and ends after its CDB result bytes and queue-retirement frontiers are release-published. Useful batch preparation and prefetch are inside; freeback/reclaim prefixes, PAUSE-only idle rounds, and lane/mask scans with no pop stay outside. The first aggregate reuses its raw stamp as the legacy pass-start stamp, and productive raw deltas are converted once per pass. `src/server.c:23453-24140`, `src/server.c:24180-24198`
 
 For one node sample, the raw role fractions are:
 
 ```text
 raw_io = sum(delta_io_work_us) / (wall_us * live_nonmain_io)
-raw_ex = sum(delta_ex_busy_us) / (wall_us * live_ex)
+raw_ex = sum(delta_ex_productive_us) / (wall_us * live_ex)
 ```
 
-Each raw value is capped above at `1.0`, then the stored role value is updated as `smooth += 0.25 * (raw - smooth)`. `src/server.c:25778-25783`, `src/server.c:25832-25837`, `src/server.c:25892-25900`
+Each value is capped above at `1.0`, then the stored role value is updated as `smooth += 0.25 * (raw - smooth)`. The former busy-occupancy EX fraction is filtered identically into `ex_raw_u_smooth` for observation only. INFO exposes the paired EWMAs as `tomokv_ex_sat_raw` and `tomokv_ex_sat_productive`, plus the cumulative `tomokv_ex_busy_us` and `tomokv_ex_productive_us` counters. `src/server.c:20904-20962`, `src/server.c:28674-28690`
+
+On genuinely work-bound P1 GET, the aggregate contains useful execution nearly end to end, so productive and raw EX saturation are expected to remain close and the substitution is approximately identity. Wide sparse/scattered batches are expected to separate the values; exporting both is the sanity check rather than a workload-specific assertion.
 
 The only current decision operands are `u_io=io_work_u_smooth` and `u_ex=ex_work_u_smooth`; `io_sat=u_io` and `ex_sat=u_ex`.  IO reply backlog, EX queue depth, IO ring-stall time, and command rate do not augment either operand; `q_io` is explicitly unused, while maximum EX queue depth remains part of idle detection. `src/server.c:25803-25806`, `src/server.c:25838-25862`, `src/server.c:25974-25987`
 
@@ -447,6 +449,7 @@ These are implementation discrepancies, not alternative behavior:
 | Connection signals, placement, continuous LB, and backfill | `src/server.c:23875-24118` |
 | Connection mailbox service and handoff | `src/server.c:24121-24582` |
 | IO productive-work accounting bracket | `src/ae.c:544-738`, `src/server.c:23086-23143` |
+| EX productive/raw accounting brackets | `src/server.c:23453-24198`, `src/server.h:2647-2667` |
 | Flip controller state/constants/helpers | `src/server.c:24761-25568` |
 | Flip sampling, anchor, episode, and hill climb | `src/server.c:25570-27327` |
 | Key-LB state and profile planner | `src/server.c:16189-16520` |
