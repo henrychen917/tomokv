@@ -232,7 +232,7 @@ of the free.
 
 | knob | default | meaning |
 |---|---|---|
-| `tomokv-nodes` | 1 | node count; max 16. A "node" is a **shared-L3 domain (CCX)** when `tomokv-pin-mode ccd` — SMT-aware since 2026-08-15: one logical CPU per physical core, domains taken in physical order, siblings used (with a NOTICE) only when a node needs more threads than its domain has cores, a **NUMA node** when `tomokv-pin-mode numa`. Which partitioning wins on the target hardware is an open measurement (EPYC/Threadripper), which is why it is one knob. |
+| `tomokv-nodes` | 1 | node count; max 16. With `tomokv-pin-mode ccd`, a node owns one or more adjacent shared-L3 (CCX) groups; with `tomokv-pin-mode numa`, it owns one NUMA domain. `float` makes nodes logical only and `static` supplies their CPU lists explicitly. |
 | `tomokv-cores-per-node` | derive (io+ex) | cores per node; total real cores = nodes × cores-per-node |
 | `tomokv-thread-io` | **mandatory** | starting ingress threads **per node** |
 | `tomokv-thread-ex` | **mandatory** | starting workers **per node** — `1 io + (C−1) ex` maximizes flip range |
@@ -240,6 +240,39 @@ of the free.
 With `tomokv-nodes 1` (the default) `tomokv-thread-io` / `tomokv-thread-ex` are simply the total
 thread counts. The old flat `tomokv-io-threads` / `tomokv-ex-threads` were removed — they were a
 second way to say the same thing.
+
+### Thread pinning
+
+`tomokv-pin-mode ccd` uses Linux shared-L3 cache IDs as its elementary domains. It deduplicates
+SMT siblings, sorts those L3 groups by their lowest CPU, and lets `G` be the physical-core count in
+one group. A node of width `W <= G` retains the historical one-group pin map exactly. A wider node
+composes `ceil(W/G)` adjacent groups in that existing order. Every usable physical core across the
+composition is consumed before an SMT sibling; the existing `SMT sharing is in use` NOTICE appears
+only if those physical cores are exhausted. Boot logs expose the plan, for example:
+
+```
+tomokv pin-mode ccd: node 2: L3 groups 4+5, cpus 32-47
+```
+
+Within a multi-group node, physical CPUs are assigned round-robin by local thread index across its
+L3 groups (and SMT CPUs use the same order if they are ever needed). This spreads each multi-threaded
+IO, EX, and WB role over the groups. Concatenating group A followed by group B would instead place
+the early EX block on A and the later IO block on B, concentrating every IO→EX handoff on the
+cross-L3 path.
+
+#### Bergamo topology
+
+On the measured EPYC 9754 Bergamo topology, the unit reported by the L3 cache ID is an 8-core CCX;
+two adjacent groups share a 16-core CCD. Therefore the 64-physical-core server partition maps as:
+
+| `tomokv-nodes` | width `W` | L3 groups per node | sorted-L3 composition |
+|---:|---:|---:|---|
+| 8 | 8 | 1 | `0`, `1`, `2`, `3`, `4`, `5`, `6`, `7` |
+| 4 | 16 | 2 | `0+1`, `2+3`, `4+5`, `6+7` |
+| 2 | 32 | 4 | `0+1+2+3`, `4+5+6+7` |
+
+This changes only CCD placement for nodes wider than one L3 group. The `-1`/AUTO role and width
+derivations are unchanged.
 
 ### Role-flipping
 

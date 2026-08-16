@@ -177,7 +177,7 @@ configEnum tomokv_thread_mode_enum[] = {
 
 configEnum tomokv_pin_mode_enum[] = {
     {"float", TOMO_PIN_FLOAT},              /* no pinning; scheduler decides */
-    {"ccd", TOMO_PIN_CCD},                  /* a node is a CCD / shared-L3 domain (DEFAULT) */
+    {"ccd", TOMO_PIN_CCD},                  /* one or more adjacent shared-L3 groups/node (DEFAULT) */
     {"numa", TOMO_PIN_NUMA},                /* a node is a NUMA node */
     {"static", TOMO_PIN_STATIC},            /* placement from tomokv-pin-io / tomokv-pin-ex */
     {NULL, 0}
@@ -3209,10 +3209,10 @@ standardConfig static_configs[] = {
     /* ================= TOPOLOGY (total real cores = nodes * cores-per-node) =================
      * ONE way to describe the thread pool. tomokv-nodes 1 makes tomokv-thread-io/-ex the plain
      * TOTAL thread counts (this is what the old flat tomokv-thread-io/-ex-threads meant).
-     * WHAT A "NODE" IS depends on tomokv-pin-mode: `ccd` => a CCD / shared-L3 domain, `numa` =>
-     * a NUMA node. Which partitioning is better for the target hardware is NOT yet known — it
-     * is a measurement to run on the EPYC/Threadripper box, which is why it is one knob and not
-     * a compile-time assumption. */
+     * WHAT A "NODE" IS depends on tomokv-pin-mode: `ccd` => one or more adjacent shared-L3
+     * groups (wide nodes compose groups), `numa` => one NUMA node. Which partitioning is better
+     * for the target hardware is NOT yet known — it is a measurement to run on the
+     * EPYC/Threadripper box, which is why it is one knob and not a compile-time assumption. */
     /* Symmetric prefetch modes: 0 = off, 1 = the shipped storage pipeline,
      * 2 = mode 1 plus topology-gated cross-node message prefetch. */
     createIntConfig("tomokv-prefetch-ex", NULL, MODIFIABLE_CONFIG, 0, 2, server.prefetch_ex_level, 1, INTEGER_CONFIG, NULL, NULL),
