@@ -1,4 +1,4 @@
-# Flip signal: the productive-work ratio `lr = ln(u_io/u_ex)`
+# Flip signal: the backend-faithful direction ratio `lr = ln(u_io/u_ex)`
 
 The single direction signal for the auto-flip controller since 2026-08-10. Every direction-coordinate
 consumer (the trigger floor, anchor deadzone, per-tick quiet test, k-jump distance, balance stop, and
@@ -12,15 +12,17 @@ This document treats the code as authoritative. Where the source contradicts the
 
 ## What is measured, and from which counters
 
-The two **productive direction operands** are per-role work fractions of wall time, each capped in
-`[0,1]`:
+EX direction is always productive execution density. IO direction selects the measurement source
+that is faithful for the immutable network backend; the resulting operands are capped in `[0,1]`:
 
 ```text
 u_io_work = EWMA( sum(delta IO tm_work_us) / (wall_us * live_nonmain_io) ), capped at 1
+cpu_sat   =       sum(delta IO tm_busy_us) / (wall_us * live_nonmain_io)
+u_io_occ  = EWMA(1 - zero-event-episode_us / wall_us)
+u_io      = server.io_uring != 0 ? min(cpu_sat, 1) * u_io_occ : u_io_work
 u_ex_work = EWMA( sum(delta EX tm_productive_us) / (wall_us * live_ex)   ), capped at 1
-u_io = u_io_work
-u_ex = u_ex_work
-r = u_io / u_ex
+u_ex      = u_ex_work
+r         = u_io / u_ex
 ```
 
 - `u_io_work` is fed by the IO owner's `tmIoSignal.tm_work_us` (`unsigned int`, wrap-safe cumulative),
@@ -29,6 +31,9 @@ r = u_io / u_ex
   `u_io_work`. Accumulated in `ioSlice()` from `aeProcessEventsIO`'s
   `accounting.work_us`; the bracket itself is `src/ae.c:560-571` (prefix) and `src/ae.c:704-737`
   (tail).
+- `cpu_sat` is the unsmoothed per-tick fraction from the IO owner's `tm_busy_us` thread-CPU clock.
+  It is capped at `1.0` when selected for uring, then multiplied by `u_io_occ` so empty-ring spin
+  cannot masquerade as useful IO pressure. Under epoll it remains an observable only.
 - `u_ex_work` is fed by the worker's `exThread.tm_productive_us` (`unsigned int`, wrap-safe). Each
   non-empty aggregate is timed from the successful-pop phase marker through CDB-ready and
   queue-retirement publication. Useful batch preparation/prefetch are inside; empty scans,
@@ -56,16 +61,22 @@ demand_total  = max(u_io_occ, ex_demand_sat)
 - `ex_demand_sat` is the capped double EWMA of first-pop → pass-end `tm_busy_us` divided by the
   same node wall/live-worker denominator. It is also the large-pool worker-capacity observation.
 
-The productive IO bracket is not a complete total-demand measure under io_uring. With
+The productive IO bracket is not a complete direction measure under io_uring. With
 `IORING_SETUP_DEFER_TASKRUN`, completion taskwork can execute inside the indivisible
-`io_uring_enter` span outside `u_io_work`. Measured p1 GET on io_uring read `u_io_work = 12.1%` while
-scheduled IO CPU was `100.3%` of wall. The same p1 workload on epoll had
-`io_work/io_busy = 96%`; mget8 on io_uring had `88%` coverage because a larger share remains in
-user-space parse/reply work. This is why productive IO remains a direction operand while
-zero-event occupancy supplies IO demand.
+`io_uring_enter` span outside `u_io_work`. Fliptrace measured the following productive-bracket
+coverage relative to scheduled IO CPU:
 
-`cpu_sat = sum(delta IO tm_busy_us) / (wall_us * live_nonmain_io)` is an uncapped, unsmoothed
-trace diagnostic. It is neither a direction nor demand operand.
+| workload | backend | `u_io_work / cpu_sat` coverage |
+| --- | --- | ---: |
+| p1 GET | io_uring | about 12% (`12.1% / 100.3%`) |
+| MGET8 | io_uring | about 88% |
+| p1 GET | epoll | about 96% |
+
+The missing uring share is enter-internal taskwork; MGET8 retains more visible userspace
+parse/reply work than p1. Consequently epoll keeps `u_io_work`, while uring selects
+`min(cpu_sat,1) * u_io_occ`. This is a measurement-source branch, not a policy branch: target,
+anchor, band, floor, demand gate, hysteresis, jump, and judge consume the selected `u_io` without
+backend-specific rules.
 
 These cumulative work/occupancy/CPU counters are owner-written plain integers and read racily by the
 4 Hz controller with unsigned deltas — no atomic synchronization.
@@ -91,8 +102,8 @@ Static, function-scoped snapshot arrays hold each node's previous cumulative cou
 
 | Array | Type | Feeds |
 | --- | --- | --- |
-| `fc_prev_io_work_us[TM_MAXNODE][TOMO_IO_THREADS_MAX+1]` | `uint32_t` | `u_io` numerator |
-| `fc_prev_io_busy_us[TM_MAXNODE][TOMO_IO_THREADS_MAX+1]` | `uint32_t` | trace-only `cpu_sat` numerator |
+| `fc_prev_io_work_us[TM_MAXNODE][TOMO_IO_THREADS_MAX+1]` | `uint32_t` | epoll `u_io` source and trace numerator |
+| `fc_prev_io_busy_us[TM_MAXNODE][TOMO_IO_THREADS_MAX+1]` | `uint32_t` | uring `u_io` source and trace numerator |
 | `fc_prev_ex_work_us[TM_MAXNODE][TOMO_EX_THREADS_MAX+1]` | `uint32_t` | `u_ex` numerator |
 | `fc_prev_ex_raw_us[TM_MAXNODE][TOMO_EX_THREADS_MAX+1]` | `uint32_t` | raw EX demand/capacity occupancy |
 | `fc_prev_io_idle_us` | `uint32_t` | `u_io_occ` demand occupancy |
@@ -135,6 +146,7 @@ that tick.
 
 ```text
 io_work_u_mean = io_work_delta_sum / (node_wall_ms * 1000 * io_occ_cnt)   (src/server.c:25778-25781)
+cpu_sat        = io_cpu_delta_sum  / (node_wall_ms * 1000 * io_occ_cnt)
 ex_work_u_mean = ex_work_delta_sum / (node_wall_ms * 1000 * w_live)       (src/server.c:25832-25834)
 ```
 
@@ -155,12 +167,17 @@ the EWMA holds rather than collapsing (`src/server.c:25778-25781`, `src/server.c
 
 ### The direction operands and the log-ratio
 
-The direction operands are selected and re-capped:
+The direction operands are selected and re-capped. Only the IO measurement source branches on the
+backend:
 
 ```c
+double u_io_occ = (double)fc->io_occ_smooth / 100.0;
 double u_io_work = fc->io_work_u_smooth;
 double u_ex_work = fc->ex_work_u_smooth;
-double u_io = u_io_work;
+double cpu_sat = (double)io_cpu_delta_sum / (node_wall_ms * 1000.0 * io_occ_cnt);
+double u_io = server.io_uring != 0
+    ? fmin(cpu_sat, 1.0) * u_io_occ
+    : u_io_work;
 double u_ex = u_ex_work;
 if (u_io > 1.0) u_io = 1.0;
 if (u_ex > 1.0) u_ex = 1.0;
@@ -177,8 +194,10 @@ double demand_total = fmax(u_io_occ, ex_demand_sat);
 ```
 
 `demand_total` feeds only the CLI/SRV classifier. `ex_demand_sat` also feeds the large-pool worker
-wall and its failed-episode re-arm check. Neither demand operand has a path into `ratio`, the balance
-band, or floor. Conversely, neither productive operand feeds `demand_total`.
+wall and its failed-episode re-arm check. Under uring, the `u_io_occ` measurement is additionally an
+idle-spin mask on the CPU direction source; the gate verdict and `ex_demand_sat` still have no path
+into `ratio`, the balance band, or floor. Conversely, neither productive operand feeds
+`demand_total`.
 
 ### CLI/SRV verdict hysteresis
 
@@ -263,14 +282,14 @@ the box's ordinary drift (`src/server.c:25901-25904`).
 
 | Field | Type | Meaning |
 | --- | --- | --- |
-| `io_work_u_smooth`, `ex_work_u_smooth` | `double` | the two capped productive-work EWMAs = `u_io`, `u_ex` |
+| `io_work_u_smooth`, `ex_work_u_smooth` | `double` | capped productive-work EWMAs; epoll source for `u_io`, unconditional source for `u_ex` |
 | `ex_raw_u_smooth` | `double` | identically filtered raw EX demand for the bound gate/capacity wall and INFO |
 | `lr_ewma` | `double` | EWMA of `log(u_io/u_ex)`; the decision signal |
 | `lr_init` | `int` | 1 once `lr_ewma` seeded from the first loaded sample |
 | `lr_quiet_run` | `int` | consecutive ticks the EWMA step stayed `< FLIP_R_QUIET`; caps at 1000 |
 | `lr_prev_tick` | `double` | stored, **not read** by the current controller (quietness uses the local `lr_before`) |
 | `mean`, `var` | `double` | throughput EWMA + variance |
-| `io_occ_smooth` | `int` | integer-EWMA zero-event IO occupancy; `u_io_occ = io_occ_smooth/100` demand operand |
+| `io_occ_smooth` | `int` | integer-EWMA zero-event IO occupancy; demand operand and uring idle-spin mask |
 | `ex_occ_smooth` | `int` | legacy EX no-work occupancy diagnostic |
 | `u_io_mean`/`u_io_var`, `u_ex_mean`/`u_ex_var` | `double` | per-role noise EWMAs (observability) |
 | `lr_mean`, `lr_var` | `double` | settled-tick `lr` noise; `sqrt(lr_var)` frozen at capture |
@@ -282,7 +301,7 @@ the box's ordinary drift (`src/server.c:25901-25904`).
 `FESC_ALPHA = 0.25` (`src/server.c:24917`), `FLIP_BOUND_SAT = 0.75`,
 `FLIP_SUSTAIN = 8`, `FLIP_R_QUIET = 0.02` (`src/server.c:24997`), and
 `FLIP_R_QUIET_N = 8` (`src/server.c:24998`). The bound-verdict counter deliberately reuses the same
-`FLIP_SUSTAIN` as the Schmitt gate. The productive-work ratio is the only direction signal; the old
+`FLIP_SUSTAIN` as the Schmitt gate. The backend-faithful ratio is the only direction signal; the old
 `tomokv-flip-signal` knob and `FLIP_SIG_*` modes were deleted 2026-08-10, and `wsig` is a compile-time
 `const int 0` (`src/server.c:25014-25016`, `src/server.c:25635-25639`).
 
@@ -294,8 +313,9 @@ the box's ordinary drift (`src/server.c:25901-25904`).
 - Owner-written counters are advanced-baselined for **every** node-owned slot even in the opposite
   role, so a role transition never injects a work spike (`src/server.c:25687-25692`,
   `:25726-25741`).
-- Direction and demand remain disjoint: `u_io_work/u_ex_work` alone feed `r`, while
-  `u_io_occ/ex_demand_sat` alone feed `demand_total`.
+- Direction policy and the demand verdict remain disjoint. Epoll uses `u_io_work`; uring uses
+  `min(cpu_sat,1) * u_io_occ`; both divide by `u_ex_work`. `demand_total` remains
+  `max(u_io_occ,ex_demand_sat)`, and neither that result nor `ex_demand_sat` reaches `r`.
 - One field (`lr_ewma`) carries the signal for the anchor, the deadzone, the quiet test, the START
   gate, and the same-wave latch — deliberately, so it is structurally impossible to anchor one
   quantity while testing another for quietness (`src/server.c:24823-24833`).
@@ -306,26 +326,29 @@ the box's ordinary drift (`src/server.c:25901-25904`).
    the productive-work operands `io_work_u_smooth`/`ex_work_u_smooth` and `lr_ewma` are **`double`**
    EWMAs at `FESC_ALPHA = 0.25` (`src/server.c:25783`, `:25837`, `:26063`). The integer-truncated
    EWMA (`x += (int)(FESC_ALPHA*(mean - x))`) applies to the occupancy fields
-   `io_occ_smooth`/`ex_occ_smooth`. `io_occ_smooth` now feeds the CLI/SRV demand gate, while neither
-   field feeds `lr`.
+   `io_occ_smooth`/`ex_occ_smooth`. `io_occ_smooth` feeds the CLI/SRV demand gate and, under uring,
+   masks idle-spin CPU in `u_io`; `ex_occ_smooth` does not feed `lr`.
 2. **Raw EX occupancy is actionable only as demand/capacity.** `tm_busy_us` and
    `ex_raw_u_smooth` feed `tomokv_ex_busy_us` / `tomokv_ex_sat_raw`, the CLI/SRV classifier, and the
    large-pool worker wall/re-arm check. `tm_productive_us` and `ex_work_u_smooth` feed
    `tomokv_ex_productive_us` / `tomokv_ex_sat_productive` and every direction coordinate. Static mode
    maintains the same capped 0.25-EWMA for INFO without enabling actuation (`src/server.c:27706-27770`).
-3. These match `loadbalance-flip.md`'s "Productive-work signal" section, which also documents the
-   `wsig=0` productive-ratio path and the `q_io`/queue-depth quantities being INFO-only. The
-   config-comment claims of selectable signal modes are a documented comment/code discrepancy
-   (`loadbalance-flip.md` discrepancy #1, #3, #4).
+3. `loadbalance-flip.md`'s productive-only IO direction description predates the uring source
+   correction. Its `wsig=0` and INFO-only `q_io`/queue-depth statements still hold, but this document
+   and the owner equation in `server.c` are authoritative for the backend-specific IO operand.
 
-## Known follow-up: uring direction coverage (not implemented)
+## 2026-08-16 uring direction correction and falsifier re-run
 
-The r3 change deliberately leaves direction untouched. On p1+uring, the blind productive bracket
-still understates `u_io`: measured `lr` was `0.66` versus roughly `2.8` with complete coverage, so
-the distance law selects a one-thread jump instead of roughly five. That slows the walk but does not
-reverse it; the epoll evidence shows the existing walk completes.
+The former uring operand understated IO direction after flicker was damped: MGET8 held at io4/ex4
+with `u_io_work~0.67`, `u_ex~0.66`, and therefore `r~1`, despite the CPU-faithful IO reading being
+about `0.88`. The selected uring operand now gives `r~0.88/0.66~1.33` at io4; at io5 the measured
+ratio is about `1.09`, inside the `gstep/2~0.27` granularity floor, so io5 is the expected optimum.
+For p1, the corrected ratio remains much greater than 1 until io6-7. Its initial `lr` becomes about
+`ln(1.0/0.062)=2.8`, so the existing distance law selects a roughly five-thread calculated target
+instead of a one-thread walk.
 
-An r4 candidate is to use `u_io := min(cpu_sat, 1) * u_io_occ` under io_uring. That would change the
-physical meaning and scale of `r`, so it must first re-run the `r ~= 1` falsifier static cells
-documented beside the target comment around `src/server.c:30034`. It is intentionally not part of
-r3.
+The original `r~=1` static falsifier was calibrated for productive IO and EX operands: p32 GET and
+MGET8 were expected near 1 at io4/ex4. Under uring those statics must now be interpreted with the
+CPU-times-occupancy IO operand; epoll retains the original productive expectation. The coordinator's
+`tools/preflight/flip_landing.sh` cells `L1`, `L2`, `L3_p1_uring`, and `L4_p1_epoll`, including the
+p32 static controls, are the falsifier re-run named beside the target equation in `server.c`.

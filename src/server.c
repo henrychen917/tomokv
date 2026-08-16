@@ -28633,7 +28633,9 @@ static void tomoFlipController(void) {
          *     fixed-sign bias toward growing IO, largest exactly when the workload changes and the
          *     anchor is most likely to be captured wrong;
          *   - quantity: both were CPU time, which counts an idle IO thread's spin as work.
-         * The CPU-time path is gone; see the u_io/u_ex comment for the measurement. */
+         * The unmasked CPU-time path is gone; under uring scheduled CPU is used only after
+         * zero-event occupancy masks idle-spin CPU. See the u_io/u_ex comment for the
+         * backend-specific measurement source. */
         int io_occ_mean = io_occ_cnt ? (int)(io_occ_sum / io_occ_cnt) : 0;
         fc->io_occ_smooth += (int)(FESC_ALPHA * (io_occ_mean - fc->io_occ_smooth));
         double io_wait_u_mean = io_occ_cnt ? io_wait_u_sum / (double)io_occ_cnt : 0.0;
@@ -28712,7 +28714,7 @@ static void tomoFlipController(void) {
         /* Raw EX occupancy below remains one server/client-bound operand and the worker-capacity
          * observation. It is never divided to form the productive-ratio r. */
         /* ===== DEMAND/CAPACITY OBSERVATIONS =====
-         * Productive U_IO/U_EX belongs exclusively to direction, balance, and floor coordinates.
+         * Direction U_IO/U_EX belongs exclusively to direction, balance, and floor coordinates.
          * The gate uses zero-event IO occupancy plus raw EX occupancy; the large-pool worker wall
          * uses the latter as its demand-faithful capacity observation.
          * TERMS:
@@ -28740,12 +28742,15 @@ static void tomoFlipController(void) {
             if (nnodes > 1 && tmNodeOfIoSlot(t) != node) continue;
             q_io += (long)tm_io_sig[t].pend_write;
         }
-        /* ===== SIGNAL KINDS: PRODUCTIVE DIRECTION VS DEMAND OCCUPANCY =====
-         * The two PRODUCTIVE direction operands are:
+        /* ===== SIGNAL KINDS: BACKEND-FAITHFUL DIRECTION VS DEMAND OCCUPANCY =====
+         * EX direction is always productive execution density. IO direction selects the
+         * measurement source that is faithful for the immutable network backend:
          *
          *   u_io_work = EWMA(sum(IO productive-work µs) / (wall µs * live IO owners))
+         *   cpu_sat   = sum(IO thread-CPU µs) / (wall µs * live IO owners)
+         *   u_io      = epoll ? u_io_work : min(cpu_sat, 1) * u_io_occ
          *   u_ex_work = EWMA(sum(EX productive-work µs) / (wall µs * live workers))
-         *   r         = u_io_work / u_ex_work
+         *   r         = u_io / u_ex_work
          *
          * The two DEMAND operands for the separate CLI/SRV gate are:
          *
@@ -28758,18 +28763,20 @@ static void tomoFlipController(void) {
          * Under io_uring DEFER_TASKRUN, enter-internal completion taskwork is also outside because
          * the indivisible enter cannot distinguish it from sleep. Measured p1 GET coverage was only
          * 12.1% productive bracket versus 100.3% scheduled CPU; the same p1 workload on epoll covered
-         * 96%, while mget8+uring covered 88% because parsing/reply work remains in userspace. Thus the
-         * bracket stays the direction operand, while zero-event occupancy supplies backend-faithful
-         * IO demand. EX sums only command-execution..result-publication spans for direction; its
-         * retained first-pop..work-pass-end occupancy supplies demand/capacity separately.
+         * 96%, while mget8+uring covered 88% because parsing/reply work remains in userspace. Epoll
+         * therefore keeps the bracket. Uring uses scheduled CPU multiplied by zero-event occupancy,
+         * which removes idle-spin CPU without losing enter-internal taskwork. EX sums only
+         * command-execution..result-publication spans for direction; its retained
+         * first-pop..work-pass-end occupancy supplies demand/capacity separately.
          *
          * Slot 0 remains outside the measured/movable IO pool: main runs aeMain rather than
          * ioSlice. io_live_node is therefore both the denominator and the exact pool whose one
          * thread movement defines the existing granularity floor.
          *
-         * `u_io`/`u_ex` below select productive work unconditionally. `u_io_occ` and
-         * `ex_demand_sat` are consumed separately; wait-derived occupancy and scheduled CPU remain
-         * diagnostics, never direction or demand operands. */
+         * `u_io`/`u_ex` below select only a measurement source; no policy, target, or decision
+         * constant branches on the backend. `u_io_occ` and `ex_demand_sat` remain the gate inputs;
+         * under uring `u_io_occ` is additionally the idle-spin mask on the CPU direction source.
+         * Wait-derived occupancy remains diagnostic. */
         double u_io_occ = (double)fc->io_occ_smooth / 100.0;
         double u_io_wait = fc->io_wait_u_smooth;
         double u_io_work = fc->io_work_u_smooth;
@@ -28778,7 +28785,9 @@ static void tomoFlipController(void) {
             ? (double)io_cpu_delta_sum /
               ((double)node_wall_ms * 1000.0 * (double)io_occ_cnt)
             : 0.0;
-        double u_io = u_io_work;
+        double u_io = server.io_uring != 0
+            ? fmin(cpu_sat, 1.0) * u_io_occ
+            : u_io_work;
         double u_ex = u_ex_work;
         if (u_io > 1.0) u_io = 1.0;
         if (u_io_wait > 1.0) u_io_wait = 1.0;
@@ -28787,19 +28796,26 @@ static void tomoFlipController(void) {
          * inflate its own threshold. Capture below snapshots the post-update settled estimate. */
         /* u_io_var/u_ex_var stay maintained for observability; their sigmas no longer gate any
          * drop — capped u compresses them below box drift (see the rate-band comments below). */
-        /* SIGNAL-CLASS AUDIT. `u_io_work`/`u_ex_work` are capped productive densities and belong
-         * to the direction ratio and every coordinate derived from it. They must not estimate total
-         * demand or remaining capacity. `u_io_occ`/`ex_demand_sat` are the two occupancy-kind demand
-         * operands. q_io/qd, wait-derived occupancy, and cpu_sat remain diagnostics. */
+        /* SIGNAL-CLASS AUDIT. `u_ex_work` is always the productive EX direction density.
+         * `u_io_work` is the epoll direction density; uring instead uses capped `cpu_sat` masked by
+         * `u_io_occ`. `u_io_occ`/`ex_demand_sat` remain the two occupancy-kind gate operands, but
+         * sharing the former as an uring idle-spin mask does not feed the gate verdict into r.
+         * q_io/qd and wait-derived occupancy remain diagnostics. */
         /* OWNER EQUATION (2026-08-09, derived from the 30-cell signal census, not composed):
-         *     io_sat = u_io = EWMA(productive IO work / wall), capped at 1
+         *     epoll: io_sat = u_io = EWMA(productive IO work / wall), capped at 1
+         *     uring: io_sat = u_io = min(IO thread CPU / wall, 1) * u_io_occ
          *     ex_sat = u_ex = EWMA(EX productive work / wall), capped at 1
          *     r = io_sat / ex_sat — and NOTHING else in the ratio.
-         * The 2026-08-16 direction correction changes only U_EX's measurement source: the former
+         * The backend conditional is a MEASUREMENT-SOURCE branch, not a policy branch: uring's
+         * indivisible enter hides productive taskwork from the bracket, while epoll's bracket is
+         * 96% CPU-faithful. Target, anchor, band, floor, demand gate, hysteresis, jump, and judge
+         * all consume the same selected u_io and do not branch on the backend.
+         * The earlier 2026-08-16 correction changed only U_EX's measurement source: the former
          * pass-wide counter included non-productive occupancy and therefore made EX look saturated
-         * across the MGET-8 split sweep. Anchor, floor, band, judge, and damped-drop equations
-         * remain untouched. Neither side may exceed 1; q_io/qd/ring-stall/drain remain INFO
-         * observables and qd_max stays only in the node_idle test. */
+         * across the MGET-8 split sweep. This uring correction leaves U_EX unchanged and changes
+         * only U_IO's source. Anchor, floor, band, judge, and damped-drop equations remain
+         * untouched. Neither side may exceed 1; q_io/qd/ring-stall/drain remain INFO observables
+         * and qd_max stays only in the node_idle test. */
         double io_sat = u_io;
         double ex_dir_sat = u_ex;
         double ex_demand_sat = fc->ex_raw_u_smooth;
@@ -28842,8 +28858,9 @@ static void tomoFlipController(void) {
         } else if (fc->cli_run < FLIP_SUSTAIN) {
             fc->cli_run++;
         }
-        /* The direction signal is log(U_IO/U_EX), using productive work on both sides. Occupancy
-         * feeds only demand/capacity consumers; it does not contaminate r, its balance band, or floor.
+        /* The direction signal is log(U_IO/U_EX), using the backend-faithful IO source and
+         * productive EX work. Under uring, zero-event occupancy masks idle-spin CPU before it
+         * reaches r; the separate demand verdict still cannot reach the ratio, band, or floor.
          * Smoothed, so a
          * single-tick pressure spike can neither start a spurious climb nor be captured as an
          * anchor (that failure was seen as io7/ex1 oscillation: steady pressure ~0.55 but a lone
@@ -29145,9 +29162,9 @@ static void tomoFlipController(void) {
             }
         }
 
-        /* Put both signal classes plus scheduled CPU on every controller line. Keeping the two
-         * productive operands, two demand operands, and CPU diagnostic side by side makes an
-         * accidental cross-feed visible. */
+        /* Put the selected direction value, its source components, and both demand operands on
+         * every controller line so the backend selection and any accidental cross-feed are
+         * visible. */
         char wsig_log[384]; wsig_log[0] = '\0';
         snprintf(wsig_log, sizeof(wsig_log),
                      " | SIG(u_io_work=%.3f u_ex_work=%.3f r=%.3f u_io_occ=%.3f ex_demand_sat=%.3f cpu_sat=%.3f PW=%llu/%llu:%llu/%llu sample=%.3f/%.3f wait_io=%.3f wait_us=%llu)",
@@ -30065,12 +30082,17 @@ static void tomoFlipController(void) {
 
         /* IDLE: pressure decides whether to START a climb. */
         int want = 0;
-        /* TARGET IS 1. In ratio modes this now follows from the operands rather than from a label:
-         * r is productive U_IO/U_EX, so equal per-thread productive wall fractions are exactly 1.
-         * The settled anchor is retry hysteresis only; the target and half-step floor remain fixed
-         * around zero in log space. The static-sweep falsifier is correspondingly strict: p32 GET
-         * and MGET8 must move from r=1.23/1.31 to about 1 at io4/ex4 while io5/ex3 moves away from
-         * its old false 1.00/1.01; the p1 optima must remain near 1. */
+        /* TARGET IS 1. This follows from the selected per-thread role operands rather than from a
+         * label. The settled anchor is retry hysteresis only; the target and half-step floor remain
+         * fixed around zero in log space.
+         *
+         * FALSIFIER DUTY (2026-08-16): the original r=1 statics were calibrated for productive
+         * operands: p32 GET and MGET8 were expected near 1 at io4/ex4, with io5/ex3 moving away
+         * from the old false 1.00/1.01. Under uring they must instead be evaluated with cpu*occ IO.
+         * Measured MGET8 at io4 is about 0.88/0.66 => r~1.33; at io5 r~1.09, inside the
+         * gstep/2~0.27 floor, so io5 is the expected optimum. P1 remains r >> 1 until io6-7.
+         * The coordinator's tools/preflight/flip_landing.sh cells L1, L2, L3_p1_uring, and
+         * L4_p1_epoll (including the p32 static controls) ARE the falsifier re-run. */
         double band = balance_band;
         /* GRANULARITY FLOOR (owner, 2026-08-04). How close to r=1 can THIS NODE's core count even
          * get? One flip moves a thread EX->IO, scaling io capacity by n_io/(n_io+1) and ex capacity
@@ -30092,7 +30114,7 @@ static void tomoFlipController(void) {
          * neighbour sat almost exactly at 1, so this correctly derived floor admitted the wrong
          * split. Changing the operand—not the floor—is what restores the floor's premise. The
          * step remains derived from current live role counts and introduces no machine-dependent
-         * value. The shared per-tick gstep/gfloor stays in productive-ratio coordinates and drives
+         * value. The shared per-tick gstep/gfloor stays in direction-ratio coordinates and drives
          * the distance approach, floor test, exhaustive candidate set, and invalidation. Raw EX
          * demand has no vote in these direction/balance calculations. */
 
