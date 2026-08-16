@@ -2646,9 +2646,9 @@ typedef struct exThread {
      * loop_seq/in_flat_section, which every worker now polls in flatBatchReady. */
     /* ee451 2026-08-04: wall µs this worker spent with an EMPTY QUEUE, measured as whole idle
      * EPISODES (2 clock reads per episode, never per spin round). This drives the retained
-     * worker-only modes. The ratio modes instead pair exThread.tm_busy_us productive work with
-     * tmIoSignal.tm_work_us productive work. Together the worker observations decompose wall:
-     *     busy (work) | idle (no work available) | residual (work available, NOT SCHEDULED)
+     * worker-only modes. The ratio mode instead pairs exThread.tm_productive_us with
+     * tmIoSignal.tm_work_us. Together the worker observations decompose wall:
+     *     raw occupied | productive | idle (no work available) | residual (not scheduled)
      * The residual is the one that matters for balance: it means the role is starved of CPU, not
      * of threads, so growing that role cannot help. */
     unsigned int tm_idle_us;
@@ -2658,11 +2658,12 @@ typedef struct exThread {
     unsigned int svc_us[TOMO_SVC_CLASSES];
     unsigned int svc_ops[TOMO_SVC_CLASSES];
     unsigned int rord_worst_age_us;  /* ee451 D: worst stage->exec wait seen (reorder bound check) */
-    unsigned int tm_busy_us;         /* µs spent in productive work intervals (first pop ->
-                                      * work-pass end; yields reset the mark without accumulating).
-                                      * Ratio modes use wrap-safe deltas as U_EX's numerator;
-                                      * worker-only modes retain empty-queue occupancy. Wraps at
-                                      * ~71min. */
+    unsigned int tm_busy_us;         /* Raw request-pass occupancy: first pop -> work-pass end.
+                                      * Retained for INFO/A-B only; it includes non-productive
+                                      * scanning/bookkeeping after a pop. Wraps at ~71min. */
+    unsigned int tm_productive_us;   /* Productive EX µs: sum of command-execution -> result-
+                                      * publication spans for non-empty aggregates. This is U_EX's
+                                      * wrap-safe controller numerator. Wraps at ~71min. */
     /* ee451 FLATSTORE reclaim-capacity fix: this worker's OWN QSBR retire list, its closed grace
      * batches (FIFO: head = oldest so the drain can stop at the first non-ready one), and a recycle
      * list of spent batch headers. Written ONLY by this worker (via flat_local_sink), never by any

@@ -1106,6 +1106,14 @@ _Static_assert(offsetof(tmIoSignal, pend_write) / CACHE_LINE_SIZE
  * no cap-tied array to bind here anymore — the sizing lives in flat_batch_slots, set at init. */
 static tmIoSignal tm_io_sig[TOMO_IO_THREADS_MAX + 1];
 
+/* Last controller EWMAs, exported as fixed-point parts per million so INFO can read them without
+ * racing a plain double. `raw` is the former first-pop..pass-end EX operand; `productive` is the
+ * command-execution..result-publication replacement. One slot is written by each node's 4 Hz
+ * controller owner. */
+#define TOMO_EX_SAT_INFO_SCALE 1000000u
+static _Atomic uint32_t tm_ex_sat_raw_ppm[TOMO_NODES_MAX];
+static _Atomic uint32_t tm_ex_sat_productive_ppm[TOMO_NODES_MAX];
+
 void tomoIoDrainNote(unsigned int nread) {
     tm_io_sig[iotid].tm_drain_bytes += (unsigned long long)nread;
     tm_io_sig[iotid].tm_read_events++;
@@ -1361,6 +1369,9 @@ _Static_assert(offsetof(exThread, flat_retire_local) / 64 != offsetof(exThread, 
                "flat_retire_local shares a cache line with loop_seq (false sharing)");
 _Static_assert(offsetof(exThread, flat_retire_local) / 64 != offsetof(exThread, in_flat_section) / 64,
                "flat_retire_local shares a cache line with in_flat_section (false sharing)");
+_Static_assert(offsetof(exThread, tm_busy_us) / CACHE_LINE_SIZE ==
+               offsetof(exThread, tm_productive_us) / CACHE_LINE_SIZE,
+               "EX raw/productive clocks must share the existing worker-private stats line");
 
 /* NON-WORKER quiescence for the FLATSTORE QSBR grace (see flatBatchReady).
  * Workers prove quiescence with loop_seq / in_flat_section. Every OTHER thread that can execute a
@@ -1572,6 +1583,7 @@ static int flatGroupPinsBlock(uint64_t close_gen) {
 }
 
 static void tomoFlipController(void);      /* the 4Hz auto flip controller (always-full-pool); defined below */
+static void tomoExSatStaticTick(monotime now_us); /* static-mode INFO observer; never actuates */
 static void tomoFlipSemiMainTick(monotime now_us);
 static int tmNodeOfWorker(int w);
 static int tmNodeOfIoSlot(int io_slot);
@@ -3279,6 +3291,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
     run_with_period(1000) tomoSvcTick();   /* ee451 D: fold per-worker svc rows -> published EWMAs */
     run_with_period(1000) tmClientBalanceCron();
     run_with_period(1000) fakeRingAutoTune();
+    run_with_period(250) tomoExSatStaticTick(cron_start);
 
     /* ee451 (flip): the auto flip controller — ~4Hz sampling of the per-thread pressure
      * signals; moves the io/ex boundary by grow-front/grow-back on sustained front/back EWMA
@@ -20866,7 +20879,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         /* Raw per-role timing accumulators, available in STATIC mode as well as auto so every
          * utilization estimator can be checked against a measured throughput curve. Take two
          * samples and divide each productive-work delta by (live threads * wall * 1000):
-         * tm_work_us on IO and tm_busy_us on EX are the controller's symmetric numerators.
+         * tm_work_us on IO and tm_productive_us on EX are the controller's symmetric numerators;
+         * tm_busy_us remains the old raw EX pass-occupancy A/B counter.
          *
          * tm_idle_us remains the legacy zero-event-episode measure. tm_wait_us is the new epoll
          * wait measure; both remain beside productive work so one pair of INFO snapshots can
@@ -20874,7 +20888,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
          * DEFER_TASKRUN makes completion work inseparable from the wait syscall. */
         {
             unsigned long long io_stall_total = 0, io_drain_total = 0, io_revents_total = 0;
-            unsigned long long io_work = 0, io_busy = 0, ex_busy = 0;
+            unsigned long long io_work = 0, io_busy = 0, ex_busy = 0, ex_productive = 0;
             unsigned long long io_idle = 0, io_wait = 0, ex_idle = 0;
             unsigned long long rord_runs_sum=0, rord_heads_sum=0, rord_grouped_sum=0, rord_fences_sum=0;
             unsigned long long rord_age_pins_sum=0;
@@ -20900,11 +20914,13 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             int wlive = atomic_load_explicit(&server.num_workers_live, memory_order_relaxed);
             for (int w = 0; server.exThreads && w < wlive && w < TOMO_EX_THREADS_MAX; w++)
                 { ex_busy += server.exThreads[w].tm_busy_us;
+                  ex_productive += server.exThreads[w].tm_productive_us;
                   ex_idle += server.exThreads[w].tm_idle_us; }
             info = sdscatprintf(info, FMTARGS(
                 "tomokv_io_work_us:%llu\r\n", io_work,
                 "tomokv_io_busy_us:%llu\r\n", io_busy,
                 "tomokv_ex_busy_us:%llu\r\n", ex_busy,
+                "tomokv_ex_productive_us:%llu\r\n", ex_productive,
                 "tomokv_io_idle_us:%llu\r\n", io_idle,
                 "tomokv_io_wait_us:%llu\r\n", io_wait,
                 "tomokv_io_wait_supported:%d\r\n", server.io_uring == 0,
@@ -20926,6 +20942,24 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "tomokv_rord_worst_age_us:%u\r\n", ({ unsigned _m=0; for (int _w=0; server.exThreads && _w<server.num_workers && _w<TOMO_EX_THREADS_MAX;_w++) if (server.exThreads[_w].rord_worst_age_us>_m) _m=server.exThreads[_w].rord_worst_age_us; _m; }),
                 "tomokv_io_threads_counted:%d\r\n", nio,
                 "tomokv_ex_threads_counted:%d\r\n", wlive));
+
+            int sat_nodes = tmNumNodes();
+            if (sat_nodes < 1) sat_nodes = 1;
+            if (sat_nodes > TOMO_NODES_MAX) sat_nodes = TOMO_NODES_MAX;
+            uint64_t ex_sat_raw_ppm = 0, ex_sat_productive_ppm = 0;
+            for (int node = 0; node < sat_nodes; node++) {
+                ex_sat_raw_ppm += atomic_load_explicit(&tm_ex_sat_raw_ppm[node],
+                                                       memory_order_relaxed);
+                ex_sat_productive_ppm += atomic_load_explicit(
+                    &tm_ex_sat_productive_ppm[node], memory_order_relaxed);
+            }
+            info = sdscatprintf(info,
+                "tomokv_ex_sat_raw:%.6f\r\n"
+                "tomokv_ex_sat_productive:%.6f\r\n",
+                (double)ex_sat_raw_ppm /
+                    ((double)TOMO_EX_SAT_INFO_SCALE * (double)sat_nodes),
+                (double)ex_sat_productive_ppm /
+                    ((double)TOMO_EX_SAT_INFO_SCALE * (double)sat_nodes));
         }
         info = sdscatprintf(info, FMTARGS(
             "tomokv_uring_enabled:%d\r\n", server.io_uring));
@@ -23218,8 +23252,7 @@ typedef struct exSliceCtx {
      * retired at -1 (adaptive), so the PINNED-budget mode and its `spin_pinned` selector are
      * gone — every grow/shrink below is unconditional. */
     int spin_budget;
-    /* ee451 (thread-modes step 4): time-accounting mark for the busy-time signal — the
-     * monotonic timestamp of the last accounting event (work-pass end or yield). */
+    /* ee451 (thread-modes step 4): first-pop mark for the retained raw-occupancy signal. */
     uint64_t tm_mark;
     /* ee451 2026-08-04 (OBSERVATION ONLY): start of the current idle episode, 0 when not idle. */
     uint64_t tm_idle_mark;
@@ -23426,6 +23459,8 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
     tm_cur_ex = worker;   /* D svc attribution: one TLS store per pass */
     int phase_trace_on = __builtin_expect(server.phase_trace_sample != 0, 0);
     int phase_pops = 0;
+    monotonic_raw tm_productive_raw = 0;
+    monotonic_raw tm_raw_pass_mark = 0;
     /* ee451 (S8): decref any zero-copy reply values the IO threads handed
      * back after sending — done here on the worker so the shard's value
      * refcounts are only ever mutated by this thread. */
@@ -23546,11 +23581,10 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
      *
      * WHAT THE LOAD BALANCERS SEE (stated explicitly — this is background work on a thread whose
      * occupancy three controllers measure):
-     *  - tm_busy_us: NOT counted. The busy mark is re-stamped at the FIRST POP of a work pass
-     *    (below), so this cycle's time falls outside every busy interval. That is deliberate — the
-     *    quorum pressure balancer's BUSY vote must measure REQUEST load, and shifting a thread
-     *    EX->PARKED or EX->IO because of background reclaim would be a wrong actuation. The cost is
-     *    that the balancer under-reads a worker's true CPU by at most
+     *  - tm_busy_us / tm_productive_us: NOT counted. Both marks begin only after request work is
+     *    found below, so this cycle falls outside both intervals. That is deliberate — neither the
+     *    legacy raw observation nor the productive flip signal may read background reclaim as
+     *    request demand. The cost is that the balancer under-reads a worker's true CPU by at most
      *    ACTIVE_EXPIRE_CYCLE_WORKER_TIME_PERC% (2% at the default effort), and only while there are
      *    expired keys or fields to reclaim.
      *  - ops_total / lb_grp_ops: NOT bumped. The key-LB / auto-reshard bucket balancer therefore
@@ -23572,7 +23606,8 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
 
     int any = 0;
     if (atomic_load_explicit(&worker->stamp_pending, memory_order_acquire)) {
-        ctx->tm_mark = getMonotonicUs();
+        tm_raw_pass_mark = getMonotonicRaw();
+        ctx->tm_mark = monotonicRawToUs(tm_raw_pass_mark);
         if (csStampDrain(worker)) any = 1;
     }
     int popmax = WORKER_POP_BATCH;
@@ -23772,6 +23807,18 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
             phase_pops++;
         }
 
+        /* This is the phase trace's EX_EXEC_PUBLISH boundary: a successful pop has ended queue
+         * time, and everything until completion/retirement publication advances that batch. On
+         * the first aggregate the same hardware stamp replaces the legacy raw pass-start read. */
+        monotonic_raw tm_productive_mark;
+        if (!any) {
+            tm_raw_pass_mark = getMonotonicRaw();
+            ctx->tm_mark = monotonicRawToUs(tm_raw_pass_mark);
+            tm_productive_mark = tm_raw_pass_mark;
+        } else {
+            tm_productive_mark = getMonotonicRaw();
+        }
+
         /* I3 cross-lane fence. A reader acquires snapshot S before publishing
          * its normal owner job, while every stamp <= S was published to the
          * reserved lane before S became visible. The owner drains that whole
@@ -23780,7 +23827,6 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
          * order is irrelevant; cursor insertion restores per-key tuple order.
          * Coalesced MGET subs arrive on these same normal owner queues. */
         if (atomic_load_explicit(&worker->stamp_pending, memory_order_acquire)) {
-            if (!any) ctx->tm_mark = getMonotonicUs();
             if (csStampDrain(worker)) any = 1;
         }
 
@@ -23797,8 +23843,8 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
          * stamped once at thread start and never again, so each work pass added "time since the
          * thread started" — growing linearly per pass and summing quadratically. Measured as
          * U_ex of 133x, 172x, and a NEGATIVE reading once the unsigned counter wrapped.
-         * One vDSO read, only on the first pop of a pass. */
-        if (!any) ctx->tm_mark = getMonotonicUs();
+         * One hardware-clock read, only on the first pop of a pass; it is shared with the
+         * productive phase boundary above. */
         /* D worst-age (reorder verdict aid): a wide aggregate can mix lanes, so
          * find its oldest stamped command rather than assuming batch[0] is the
          * only lane head. Reorder-off retains the predicted-false gate. */
@@ -23876,9 +23922,9 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
         int sig_n = 0;
         int group_completed = 0;
 
-        /* One independent raw boundary per contiguous run of ordinary commands. Each proc's exit
-         * becomes its successor's entry, reducing an all-ordinary N-command batch from 2N clock
-         * reads to N+1. Never borrow ctx->tm_mark: it feeds frozen flip-controller accounting. */
+        /* Ordinary commandstats retain their proc boundary independently of the aggregate phase
+         * clock above, so useful batch preparation is counted as productive without inflating the
+         * first command's reported execution latency. */
         tomoCmdClockStamp cmd_boundary = {0, 0};
 
         /* Execute the batch in issue (queue) order — plain, one op at a time.
@@ -24101,6 +24147,7 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
                                                        memory_order_relaxed),
                                   memory_order_release);
         }
+        tm_productive_raw += getMonotonicRaw() - tm_productive_mark;
     }
 
     /* A fair slice can revisit one lane across several aggregates. Sample its
@@ -24149,14 +24196,17 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
             int tm_e = (int)worker->tm_qdepth_ewma_q4;
             tm_e += ((tm_pass_depth << 4) - tm_e) >> 3;
             worker->tm_qdepth_ewma_q4 = tm_e < 0 ? 0 : (unsigned int)tm_e;
-            /* busy-TIME accounting: first-pop..here = this pass's WORK duration. Two vDSO
-             * clock reads per WORK pass (>=µs-scale), never per spin poll.
+            /* Raw occupancy accounting: first-pop..here retains the old pass-wide value for A/B.
+             * It includes scans/bookkeeping after productive publication and is no longer a
+             * controller operand. Two hardware-clock reads per work pass, never per spin poll.
              * Accumulated in STATIC mode too (was gated on thread_auto, matching the IO side):
-             * without it the EX half of the saturation signal reads exactly ZERO whenever the
-             * config is held fixed, so the ratio the controller decides on could never be
-             * compared against a measured throughput curve. Cost is unchanged in auto mode and
-             * two vDSO reads per work pass in static. */
-            worker->tm_busy_us += (unsigned int)(getMonotonicUs() - ctx->tm_mark);
+             * static sweeps can therefore compare the legacy value with productive time. */
+            debugServerAssert(tm_raw_pass_mark != 0);
+            worker->tm_busy_us += (unsigned int)monotonicRawToUs(
+                getMonotonicRaw() - tm_raw_pass_mark);
+            if (tm_productive_raw)
+                worker->tm_productive_us +=
+                    (unsigned int)monotonicRawToUs(tm_productive_raw);
             /* close any open idle episode: work is here, so the drought ended when we popped. */
             if (ctx->tm_idle_mark) {
                 worker->tm_idle_us += (unsigned int)(ctx->tm_mark - ctx->tm_idle_mark);
@@ -27449,7 +27499,9 @@ typedef struct {
     int      io_occ_smooth;
     int      ex_occ_smooth;
     double   io_wait_u_smooth; /* INFO comparison: EWMA of 1 - epoll-wait/wall. */
-    /* Ratio modes 0/5 use these two identically filtered PRODUCTIVE-WORK/WALL fractions. */
+    /* The retained raw EX pass occupancy is filtered in parallel for INFO/A-B only. Ratio modes
+     * use the two identically filtered PRODUCTIVE-WORK/WALL fractions below it. */
+    double   ex_raw_u_smooth;
     double   io_work_u_smooth;
     double   ex_work_u_smooth;
     /* Per-role saturation-magnitude noise. This is the same EWMA mean+variance estimator shape as
@@ -27664,6 +27716,70 @@ enum {
 /* tomokv-flip-signal and the FLIP_SIG_* modes were DELETED 2026-08-10 (owner decision): the
  * productive-work ratio is the only signal (old modes: 0 was its alias; 1-3 were worker-only
  * experiments, refuted; 4 was reserved for a branch that never merged). */
+
+/* STATIC mode has no controller sample, but it is where the owner sweeps a fixed split and compares
+ * each signal against throughput. Maintain the two EX saturation INFO values with the controller's
+ * exact measurement-layer rules: wrap-safe deltas, live EX count, cap at one, alpha 0.25. This
+ * observer never writes fctl and is a predicted-return no-op in AUTO, so it cannot affect an owner
+ * equation or an actuation. The cumulative counters themselves remain the authoritative raw A/B. */
+static void tomoExSatStaticTick(monotime now_us) {
+    if (server.thread_auto || !server.exThreads) return;
+
+    static monotime prev_us;
+    static uint32_t prev_raw[TOMO_EX_THREADS_MAX];
+    static uint32_t prev_productive[TOMO_EX_THREADS_MAX];
+    static double raw_smooth[TOMO_NODES_MAX];
+    static double productive_smooth[TOMO_NODES_MAX];
+
+    int nw = server.num_workers;
+    if (nw > TOMO_EX_THREADS_MAX) nw = TOMO_EX_THREADS_MAX;
+    if (!prev_us) {
+        for (int w = 0; w < nw; w++) {
+            prev_raw[w] = server.exThreads[w].tm_busy_us;
+            prev_productive[w] = server.exThreads[w].tm_productive_us;
+        }
+        prev_us = now_us;
+        return;
+    }
+    monotime wall_us = now_us - prev_us;
+    if (!wall_us) return;
+    prev_us = now_us;
+
+    int nnodes = tmNumNodes();
+    if (nnodes < 1) nnodes = 1;
+    if (nnodes > TOMO_NODES_MAX) nnodes = TOMO_NODES_MAX;
+    for (int node = 0; node < nnodes; node++) {
+        int w0 = nnodes == 1 ? 0 : node * server.ex_per_node;
+        int w1 = nnodes == 1 ? nw : w0 + server.ex_per_node;
+        if (w0 > nw) w0 = nw;
+        if (w1 > nw) w1 = nw;
+        uint64_t raw_delta = 0, productive_delta = 0;
+        for (int w = w0; w < w1; w++) {
+            uint32_t raw = server.exThreads[w].tm_busy_us;
+            uint32_t productive = server.exThreads[w].tm_productive_us;
+            raw_delta += (uint32_t)(raw - prev_raw[w]);
+            productive_delta += (uint32_t)(productive - prev_productive[w]);
+            prev_raw[w] = raw;
+            prev_productive[w] = productive;
+        }
+        int nlive = w1 - w0;
+        if (!nlive) continue;
+        double denom = (double)wall_us * (double)nlive;
+        double raw_u = (double)raw_delta / denom;
+        double productive_u = (double)productive_delta / denom;
+        if (raw_u > 1.0) raw_u = 1.0;
+        if (productive_u > 1.0) productive_u = 1.0;
+        raw_smooth[node] += FESC_ALPHA * (raw_u - raw_smooth[node]);
+        productive_smooth[node] +=
+            FESC_ALPHA * (productive_u - productive_smooth[node]);
+        atomic_store_explicit(&tm_ex_sat_raw_ppm[node],
+            (uint32_t)(raw_smooth[node] * TOMO_EX_SAT_INFO_SCALE + 0.5),
+            memory_order_relaxed);
+        atomic_store_explicit(&tm_ex_sat_productive_ppm[node],
+            (uint32_t)(productive_smooth[node] * TOMO_EX_SAT_INFO_SCALE + 0.5),
+            memory_order_relaxed);
+    }
+}
 
 /* Try the flip in `dir` (+1 front / -1 back) for `node`. Returns 1 on success. topo_nodes==1 uses
  * the global actuators (node 0 == whole server); >1 uses the node-scoped ones (built in Phase C). */
@@ -28298,6 +28414,7 @@ static void tomoFlipController(void) {
     static uint32_t fc_prev_io_stall_us[TM_MAXNODE][TOMO_IO_THREADS_MAX + 1];
     static uint32_t fc_prev_io_work_us[TM_MAXNODE][TOMO_IO_THREADS_MAX + 1];
     static uint32_t fc_prev_ex_idle_us[TM_MAXNODE][TOMO_EX_THREADS_MAX + 1];
+    static uint32_t fc_prev_ex_raw_us[TM_MAXNODE][TOMO_EX_THREADS_MAX + 1];
     static uint32_t fc_prev_ex_work_us[TM_MAXNODE][TOMO_EX_THREADS_MAX + 1];
     static mstime_t fc_prev_busy_wall[TM_MAXNODE];
     mstime_t now = mstime();
@@ -28400,13 +28517,16 @@ static void tomoFlipController(void) {
         if (nnodes == 1) { w0 = 0; w1 = atomic_load_explicit(&server.num_workers_live, memory_order_acquire); }
         else { w0 = node * server.ex_per_node; w1 = (node + 1) * server.ex_per_node; }
         int w_live = 0; double qd_max = 0.0, qd_sum = 0.0; int qd_n = 0;
-        uint64_t ex_work_delta_sum = 0;
+        uint64_t ex_raw_delta_sum = 0, ex_work_delta_sum = 0;
         for (int w = w0; w < w1 && w <= TOMO_EX_THREADS_MAX; w++) {
             exThread *et = &server.exThreads[w];
-            /* Snapshot every node-owned slot even while it is converted to IO. Its work counter
-             * freezes outside EX, and advancing the baseline prevents a later EX re-entry from
-             * inheriting work from an older role episode. */
-            uint32_t cb = et->tm_busy_us;
+            /* Snapshot both EX clocks for every node-owned slot even while it is converted to IO.
+             * They freeze outside EX, and advancing both baselines prevents a later EX re-entry
+             * from inheriting work from an older role episode. */
+            uint32_t cr = et->tm_busy_us;
+            uint32_t dr = cr - fc_prev_ex_raw_us[node][w];
+            fc_prev_ex_raw_us[node][w] = cr;
+            uint32_t cb = et->tm_productive_us;
             uint32_t db = cb - fc_prev_ex_work_us[node][w];
             fc_prev_ex_work_us[node][w] = cb;
             /* ee451 2026-08-03: read at FULL Q4 PRECISION, not `>>4`.
@@ -28432,6 +28552,7 @@ static void tomoFlipController(void) {
                           (wc && atomic_load_explicit(&wc->mode, memory_order_acquire) == TOMO_MODE_EX);
             if (ex_live) {
                 w_live++;
+                ex_raw_delta_sum += dr;
                 ex_work_delta_sum += db;
             }
         }
@@ -28492,6 +28613,7 @@ static void tomoFlipController(void) {
          * process start rather than one controller wall span, so publish/fold no work sample. */
         if (!work_sample_primed) {
             io_work_delta_sum = 0;
+            ex_raw_delta_sum = 0;
             ex_work_delta_sum = 0;
         }
         /* Retain the legacy idle/wait filters for INFO and worker modes. Productive work below is
@@ -28561,12 +28683,24 @@ static void tomoFlipController(void) {
         }
         int occ_mean = occ_n ? (occ_sum / occ_n) : 0;
         fc->ex_occ_smooth += (int)(FESC_ALPHA * (occ_mean - fc->ex_occ_smooth));
+        double ex_raw_u_mean = (work_sample_primed && w_live && node_wall_ms > 0)
+            ? (double)ex_raw_delta_sum /
+              ((double)node_wall_ms * 1000.0 * (double)w_live)
+            : fc->ex_raw_u_smooth;
+        if (ex_raw_u_mean > 1.0) ex_raw_u_mean = 1.0;
+        fc->ex_raw_u_smooth += FESC_ALPHA * (ex_raw_u_mean - fc->ex_raw_u_smooth);
         double ex_work_u_mean = (work_sample_primed && w_live && node_wall_ms > 0)
             ? (double)ex_work_delta_sum /
               ((double)node_wall_ms * 1000.0 * (double)w_live)
             : fc->ex_work_u_smooth;
         if (ex_work_u_mean > 1.0) ex_work_u_mean = 1.0;
         fc->ex_work_u_smooth += FESC_ALPHA * (ex_work_u_mean - fc->ex_work_u_smooth);
+        atomic_store_explicit(&tm_ex_sat_raw_ppm[node],
+            (uint32_t)(fc->ex_raw_u_smooth * TOMO_EX_SAT_INFO_SCALE + 0.5),
+            memory_order_relaxed);
+        atomic_store_explicit(&tm_ex_sat_productive_ppm[node],
+            (uint32_t)(fc->ex_work_u_smooth * TOMO_EX_SAT_INFO_SCALE + 0.5),
+            memory_order_relaxed);
         /* Backlog-augmented role saturation below remains the server/client-bound gate and the
          * worker-only signal. It is no longer divided to form the ratio-mode r. */
         /* ===== BACKLOG-AUGMENTED GATE / WORKER SIGNAL =====
@@ -28610,8 +28744,10 @@ static void tomoFlipController(void) {
          * its normal queue/maintenance duties), adaptive-drain beforeSleepIO calls, and fired fd
          * read/write callbacks. Poll/syscall time and the PAUSE-only part of drain userpoll are
          * outside those brackets, so burning CPU while polling an empty socket set cannot increase
-         * U_IO. EX uses its existing first-pop..work-pass-end clock. Both raw means use this
-         * node's same snapshot wall and live-role count, then the same double EWMA.
+         * U_IO. EX sums only non-empty command-execution..result-publication spans; the retained
+         * first-pop..work-pass-end occupancy is exported separately and never enters U_EX. Both
+         * productive means use this node's same snapshot wall and live-role count, then the same
+         * double EWMA.
          *
          * Slot 0 remains outside the measured/movable IO pool: main runs aeMain rather than
          * ioSlice. io_live_node is therefore both the denominator and the exact pool whose one
@@ -28705,16 +28841,13 @@ static void tomoFlipController(void) {
          * paragraph; flip-signal 3 is the repair for the trigger side of it. */
         /* OWNER EQUATION (2026-08-09, derived from the 30-cell signal census, not composed):
          *     io_sat = u_io = EWMA(productive IO work / wall), capped at 1
-         *     ex_sat = u_ex = EWMA(EX busy work / wall),       capped at 1
+         *     ex_sat = u_ex = EWMA(EX productive work / wall), capped at 1
          *     r = io_sat / ex_sat — and NOTHING else in the ratio.
-         * The bare productive pair scored 100% opt-is-min / 100% monotone across all five workload
-         * families (mean |lr| at the optimum 0.145, inside every derived floor); every queue-
-         * augmented pairing scored worse. Owner rules encoded here: neither side may exceed 1, and
-         * "if both are near max at 1 then we are happy" — which the floor grants automatically
-         * (both ~1 => |lr| ~ 0 < gfloor => hold). The q_io/qd/ring-stall/drain quantities remain
-         * INFO observables (drain is the leading candidate for the anchor-drop workload-change
-         * detector: census span 7.68, near-zero within-regime variance), but they no longer touch
-         * the ratio. qd_max stays where it belongs, in the node_idle test. */
+         * The 2026-08-16 correction changes only U_EX's measurement source: the former pass-wide
+         * counter included non-productive occupancy and therefore made EX look saturated across
+         * the MGET-8 split sweep. Anchor, floor, band, judge, and damped-drop equations remain
+         * untouched. Neither side may exceed 1; q_io/qd/ring-stall/drain remain INFO observables
+         * and qd_max stays only in the node_idle test. */
         double io_sat = u_io, ex_sat = u_ex;
         (void)q_io;
         /* TOTAL SATURATION => is the workload CLIENT-bound or SERVER-bound?
