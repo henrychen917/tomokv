@@ -2659,11 +2659,11 @@ typedef struct exThread {
     unsigned int svc_ops[TOMO_SVC_CLASSES];
     unsigned int rord_worst_age_us;  /* ee451 D: worst stage->exec wait seen (reorder bound check) */
     unsigned int tm_busy_us;         /* Raw request-pass occupancy: first pop -> work-pass end.
-                                      * Retained for INFO/A-B only; it includes non-productive
+                                      * Feeds demand/capacity gates and INFO/A-B; it includes
                                       * scanning/bookkeeping after a pop. Wraps at ~71min. */
     unsigned int tm_productive_us;   /* Productive EX µs: sum of command-execution -> result-
-                                      * publication spans for non-empty aggregates. This is U_EX's
-                                      * wrap-safe controller numerator. Wraps at ~71min. */
+                                      * publication spans for non-empty aggregates. This is the
+                                      * direction-ratio U_EX numerator. Wraps at ~71min. */
     /* ee451 FLATSTORE reclaim-capacity fix: this worker's OWN QSBR retire list, its closed grace
      * batches (FIFO: head = oldest so the drain can stop at the first non-ready one), and a recycle
      * list of spent batch headers. Written ONLY by this worker (via flat_local_sink), never by any

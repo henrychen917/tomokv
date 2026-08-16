@@ -1,8 +1,9 @@
 # Flip signal: the productive-work ratio `lr = ln(u_io/u_ex)`
 
-The single decision signal for the auto-flip controller since 2026-08-10. Everything downstream
-(the trigger floor, the anchor deadzone, the per-tick quiet test, the k-jump distance, the anchor
-drops) is defined on this one quantity. All code is in `tomoFlipController()` and its helpers in
+The single direction signal for the auto-flip controller since 2026-08-10. Every direction-coordinate
+consumer (the trigger floor, anchor deadzone, per-tick quiet test, k-jump distance, balance stop, and
+anchor drops) is defined on this one quantity. Demand/capacity gates deliberately use separate raw
+EX occupancy. All code is in `tomoFlipController()` and its helpers in
 `src/server.c`; the signal fields live in `flipCtlState` (`src/server.c:24761-24911`).
 
 This document treats the code as authoritative. Where the source contradicts the task framing or
@@ -30,9 +31,10 @@ u_ex = EWMA( sum(delta EX tm_productive_us) / (wall_us * live_ex)   ), capped at
   freeback/reclaim prefixes, and idle PAUSE rounds are outside. The first aggregate reuses its
   raw stamp as the legacy pass start, and the accumulated raw ticks are converted once per pass
   (`src/server.c:23911-24140`, `src/server.c:24180-24198`).
-- `exThread.tm_busy_us` retains the old first-pop → pass-end occupancy. It is sampled and smoothed
-  beside the productive clock only for A/B and INFO; it is not a decision operand. Both fields are
-  declared at `src/server.h:2661-2667`.
+- `exThread.tm_busy_us` retains first-pop → pass-end occupancy. It is sampled and smoothed beside
+  the productive clock as raw EX demand for the CLI/SRV classifier and large-pool worker wall, and
+  is also exported for A/B and INFO. It never enters `lr`. Both fields are declared at
+  `src/server.h:2661-2667`.
 
 All three cumulative work/occupancy counters are owner-written plain integers and read racily by the 4 Hz controller with unsigned
 deltas — no atomic synchronization (`src/server.c:649-653`, `src/server.h:2617-2620`).
@@ -60,7 +62,7 @@ Static, function-scoped snapshot arrays hold each node's previous cumulative cou
 | --- | --- | --- |
 | `fc_prev_io_work_us[TM_MAXNODE][TOMO_IO_THREADS_MAX+1]` | `uint32_t` | `u_io` numerator |
 | `fc_prev_ex_work_us[TM_MAXNODE][TOMO_EX_THREADS_MAX+1]` | `uint32_t` | `u_ex` numerator |
-| `fc_prev_ex_raw_us[TM_MAXNODE][TOMO_EX_THREADS_MAX+1]` | `uint32_t` | old EX occupancy, INFO only |
+| `fc_prev_ex_raw_us[TM_MAXNODE][TOMO_EX_THREADS_MAX+1]` | `uint32_t` | raw EX demand/capacity occupancy |
 | `fc_prev_io_idle_us` / `fc_prev_io_wait_us` / `fc_prev_io_stall_us` | `uint32_t` | legacy occupancy / INFO |
 | `fc_prev_ex_idle_us` | `uint32_t` | legacy EX occupancy |
 | `fc_prev_busy_wall[TM_MAXNODE]` | `mstime_t` | this node's wall span |
@@ -117,17 +119,28 @@ fc->ex_work_u_smooth += FESC_ALPHA * (ex_work_u_mean - fc->ex_work_u_smooth);   
 is skipped (`io_occ_cnt == 0` or not primed) the raw mean falls back to the current smoothed value, so
 the EWMA holds rather than collapsing (`src/server.c:25778-25781`, `src/server.c:25832-25835`).
 
-### The decision operands and the log-ratio
+### The direction operands and the log-ratio
 
-The only decision operands are selected and re-capped (`src/server.c:25892-25900`):
+The direction operands are selected and re-capped (`src/server.c:25892-25900`):
 
 ```c
 double u_io = fc->io_work_u_smooth;   /* == u_io_work */
 double u_ex = fc->ex_work_u_smooth;   /* == u_ex_work */
 if (u_io > 1.0) u_io = 1.0;
 if (u_ex > 1.0) u_ex = 1.0;
-double io_sat = u_io, ex_sat = u_ex;   /* 25986: NOTHING else augments them */
+double io_sat = u_io;
+double ex_dir_sat = u_ex;              /* nothing else augments the ratio */
 ```
+
+The non-direction demand/capacity operand is separately named:
+
+```c
+double ex_demand_sat = fc->ex_raw_u_smooth;
+double demand_total = fmax(io_sat, ex_demand_sat);
+```
+
+`demand_total` feeds only the CLI/SRV classifier. `ex_demand_sat` also feeds the large-pool worker
+wall and its failed-episode re-arm check. It has no path into `ratio`, the balance band, or floor.
 
 The directional signal floors **both** sides before dividing so the log is always finite
 (`src/server.c:26035-26037`):
@@ -194,22 +207,22 @@ the box's ordinary drift (`src/server.c:25901-25904`).
 | Field | Type | Meaning |
 | --- | --- | --- |
 | `io_work_u_smooth`, `ex_work_u_smooth` | `double` | the two capped productive-work EWMAs = `u_io`, `u_ex` |
-| `ex_raw_u_smooth` | `double` | identically filtered former EX pass occupancy, INFO only |
+| `ex_raw_u_smooth` | `double` | identically filtered raw EX demand for the bound gate/capacity wall and INFO |
 | `lr_ewma` | `double` | EWMA of `log(u_io/u_ex)`; the decision signal |
 | `lr_init` | `int` | 1 once `lr_ewma` seeded from the first loaded sample |
 | `lr_quiet_run` | `int` | consecutive ticks the EWMA step stayed `< FLIP_R_QUIET`; caps at 1000 |
 | `lr_prev_tick` | `double` | stored, **not read** by the current controller (quietness uses the local `lr_before`) |
 | `mean`, `var` | `double` | throughput EWMA + variance |
-| `io_occ_smooth`, `ex_occ_smooth` | `int` | legacy integer-truncated occupancy EWMAs (diagnostics / worker-only modes) |
+| `io_occ_smooth`, `ex_occ_smooth` | `int` | legacy integer-truncated occupancy EWMAs (diagnostics) |
 | `u_io_mean`/`u_io_var`, `u_ex_mean`/`u_ex_var` | `double` | per-role noise EWMAs (observability) |
 | `lr_mean`, `lr_var` | `double` | settled-tick `lr` noise; `sqrt(lr_var)` frozen at capture |
-| `sat_smooth` | `double` | EWMA of `max(u_io,u_ex)`; the server-bound gate input |
+| `sat_smooth` | `double` | EWMA of `max(u_io,ex_raw_u_smooth)`; the server-bound gate input |
 
 ## Key constants
 
 `FESC_ALPHA = 0.25` (`src/server.c:24917`), `FLIP_R_QUIET = 0.02` (`src/server.c:24997`),
-`FLIP_R_QUIET_N = 8` (`src/server.c:24998`). The productive-work signal is the only signal; the
-old `tomokv-flip-signal` knob and `FLIP_SIG_*` modes were deleted 2026-08-10, and `wsig` is a
+`FLIP_R_QUIET_N = 8` (`src/server.c:24998`). The productive-work ratio is the only direction signal;
+the old `tomokv-flip-signal` knob and `FLIP_SIG_*` modes were deleted 2026-08-10, and `wsig` is a
 compile-time `const int 0` (`src/server.c:25014-25016`, `src/server.c:25635-25639`).
 
 ## Invariants
@@ -230,13 +243,13 @@ compile-time `const int 0` (`src/server.c:25014-25016`, `src/server.c:25635-2563
    the productive-work operands `io_work_u_smooth`/`ex_work_u_smooth` and `lr_ewma` are **`double`**
    EWMAs at `FESC_ALPHA = 0.25` (`src/server.c:25783`, `:25837`, `:26063`). The integer-truncated
    EWMA (`x += (int)(FESC_ALPHA*(mean - x))`) applies only to the **legacy occupancy** fields
-   `io_occ_smooth`/`ex_occ_smooth` (`src/server.c:25775`, `:25831`), which are diagnostics / retained
-   worker-only-mode operands and do **not** feed `lr`.
-2. **Raw EX occupancy remains observable, not actionable.** `tm_busy_us` and
-   `ex_raw_u_smooth` feed `tomokv_ex_busy_us` / `tomokv_ex_sat_raw`; `tm_productive_us` and
-   `ex_work_u_smooth` feed `tomokv_ex_productive_us` / `tomokv_ex_sat_productive` and the controller.
-   Static mode maintains the same capped 0.25-EWMA solely for these INFO fields, so fixed-split
-   sweeps can compare the signals without enabling actuation (`src/server.c:27706-27770`).
+   `io_occ_smooth`/`ex_occ_smooth` (`src/server.c:25775`, `:25831`), which are diagnostics and do
+   **not** feed `lr`.
+2. **Raw EX occupancy is actionable only as demand/capacity.** `tm_busy_us` and
+   `ex_raw_u_smooth` feed `tomokv_ex_busy_us` / `tomokv_ex_sat_raw`, the CLI/SRV classifier, and the
+   large-pool worker wall/re-arm check. `tm_productive_us` and `ex_work_u_smooth` feed
+   `tomokv_ex_productive_us` / `tomokv_ex_sat_productive` and every direction coordinate. Static mode
+   maintains the same capped 0.25-EWMA for INFO without enabling actuation (`src/server.c:27706-27770`).
 3. These match `loadbalance-flip.md`'s "Productive-work signal" section, which also documents the
    `wsig=0` productive-ratio path and the `q_io`/queue-depth quantities being INFO-only. The
    config-comment claims of selectable signal modes are a documented comment/code discrepancy

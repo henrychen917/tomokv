@@ -117,7 +117,7 @@ Node zero's main IO identity is excluded from the IO signal loop, which starts a
 
 ### Productive-work signal
 
-IO owners accumulate plain 32-bit `tm_work_us` from `aeProcessEventsIO().work_us`. EX owners keep two plain 32-bit clocks: `tm_busy_us` retains the old first-pop-to-pass-end raw occupancy for A/B, while `tm_productive_us` is the controller numerator. The controller snapshots both with wrap-safe unsigned deltas, but only the productive delta enters `u_ex`. `src/server.c:20866-20962`, `src/server.h:2647-2667`, `src/server.c:28508-28544`
+IO owners accumulate plain 32-bit `tm_work_us` from `aeProcessEventsIO().work_us`. EX owners keep two plain 32-bit clocks: `tm_busy_us` retains first-pop-to-pass-end raw demand occupancy, while `tm_productive_us` is the direction-ratio numerator. The controller snapshots both with wrap-safe unsigned deltas; only the productive delta enters `u_ex`, while raw occupancy feeds demand/capacity consumers. `src/server.c:20866-20962`, `src/server.h:2647-2667`, `src/server.c:28508-28544`
 
 The IO work interval comprises the IO-uring reap plus `beforeSleepIO` prefix and the post-poll/enter fired-callback tail; epoll wait is accounted separately, while IO-uring's indivisible enter cannot separate sleeping from taskwork. Each EX productive interval starts at the existing successful-pop phase marker and ends after its CDB result bytes and queue-retirement frontiers are release-published. Useful batch preparation and prefetch are inside; freeback/reclaim prefixes, PAUSE-only idle rounds, and lane/mask scans with no pop stay outside. The first aggregate reuses its raw stamp as the legacy pass-start stamp, and productive raw deltas are converted once per pass. `src/server.c:23453-24140`, `src/server.c:24180-24198`
 
@@ -128,11 +128,11 @@ raw_io = sum(delta_io_work_us) / (wall_us * live_nonmain_io)
 raw_ex = sum(delta_ex_productive_us) / (wall_us * live_ex)
 ```
 
-Each value is capped above at `1.0`, then the stored role value is updated as `smooth += 0.25 * (raw - smooth)`. The former busy-occupancy EX fraction is filtered identically into `ex_raw_u_smooth` for observation only. INFO exposes the paired EWMAs as `tomokv_ex_sat_raw` and `tomokv_ex_sat_productive`, plus the cumulative `tomokv_ex_busy_us` and `tomokv_ex_productive_us` counters. `src/server.c:20904-20962`, `src/server.c:28674-28690`
+Each value is capped above at `1.0`, then the stored role value is updated as `smooth += 0.25 * (raw - smooth)`. The busy-occupancy EX fraction is filtered identically into `ex_raw_u_smooth` for the CLI/SRV gate and large-pool capacity wall. INFO exposes the paired EWMAs as `tomokv_ex_sat_raw` and `tomokv_ex_sat_productive`, plus the cumulative `tomokv_ex_busy_us` and `tomokv_ex_productive_us` counters. `src/server.c:20904-20962`, `src/server.c:28674-28690`
 
 On genuinely work-bound P1 GET, the aggregate contains useful execution nearly end to end, so productive and raw EX saturation are expected to remain close and the substitution is approximately identity. Wide sparse/scattered batches are expected to separate the values; exporting both is the sanity check rather than a workload-specific assertion.
 
-The only current decision operands are `u_io=io_work_u_smooth` and `u_ex=ex_work_u_smooth`; `io_sat=u_io` and `ex_sat=u_ex`.  IO reply backlog, EX queue depth, IO ring-stall time, and command rate do not augment either operand; `q_io` is explicitly unused, while maximum EX queue depth remains part of idle detection. `src/server.c:25803-25806`, `src/server.c:25838-25862`, `src/server.c:25974-25987`
+The direction operands are `u_io=io_work_u_smooth` and `u_ex=ex_work_u_smooth`; `io_sat=u_io` and the logged `ex_sat=u_ex`. IO reply backlog, EX queue depth, IO ring-stall time, raw EX occupancy, and command rate do not augment the ratio. Raw EX occupancy is separately named `ex_demand_sat` for non-direction demand/capacity decisions; maximum EX queue depth remains part of idle detection. `src/server.c:25803-25806`, `src/server.c:25838-25862`, `src/server.c:25974-25987`
 
 The directional signal is:
 
@@ -143,7 +143,7 @@ lr    = log(ratio)
 
 A non-finite `lr` is replaced by zero; on non-idle, primed work samples, `lr_ewma` is seeded or updated with alpha `0.25`, and an actual EWMA step below `0.02` increments `lr_quiet_run`. `src/server.c:26027-26067`
 
-The separate actuation-worth gate folds `max(io_sat,ex_sat)` into `sat_smooth` with alpha `0.25` and sets `server_bound` when the result is at least `0.75`; a false gate clears the ordinary outside-band run and prevents a new climb. `src/server.c:24941-24966`, `src/server.c:26001-26019`, `src/server.c:27186-27221`
+The separate actuation-worth gate folds `max(io_sat,ex_demand_sat)` into `sat_smooth` with alpha `0.25` and sets `server_bound` when the result is at least `0.75`; a false gate clears the ordinary outside-band run and prevents a new climb. Productive EX is excluded because execution density determines direction but is not a total-demand estimate. `src/server.c:24941-24966`, `src/server.c:26001-26019`, `src/server.c:27186-27221`
 
 Instantaneous throughput is the operation delta divided by actual elapsed milliseconds.  A tick is idle only when `inst <= 0`, maximum EX queue EWMA depth is below `1/16`, and mean IO occupancy is zero; the first positive rate seeds the estimator, non-idle ticks update `mean` and `var` with alpha `0.25`, and `sigma = sqrt(max(var,1))`. `src/server.c:25786-25806`
 
@@ -159,7 +159,7 @@ gstep   = log((ni + 1) / ni) + (ne > 1 ? log(ne / (ne - 1)) : 1)
 On configured per-node pools **larger than 16 threads** the one-thread-per-settle-window climb is
 replaced by a geometric episode (`FLIP_EPISODE_POOL_CUTOFF`): each step covers half the remaining
 signal-derived distance; the walk stops early when the starvation ratio reaches the balance band or
-when the next step would cross the self-derived worker wall (`ceil(ex_live * ex_sat * 1.5)` — never
+when the next step would cross the self-derived worker wall (`ceil(ex_live * ex_demand_sat * 1.5)`, using raw EX occupancy — never
 observe the crater past the wall just to learn it is there). The keep/revert verdict is taken from a
 **settled** measurement at the stopping split, never from mid-walk samples the walk itself depressed
 (the standing law: a signal the actuator moves cannot police the actuator), and a reverted episode
@@ -412,7 +412,7 @@ These are implementation discrepancies, not alternative behavior:
 1. The config comments describe selectable flip-signal modes, but no such config is created and the controller hardcodes productive ratio with `wsig=0`. `src/config.c:3220-3242`, `src/server.c:25014-25016`, `src/server.c:25631-25641`
 2. The load-balancing config header says each lever is separately switchable, but flip-time backfill has no knob and is derived from automatic thread mode. `src/config.c:3255-3261`, `src/config.c:3304-3310`, `src/server.c:5621-5625`
 3. The flip preamble describes busy-percent/PID behavior, no fixed operating point, and exponential probe backoff; the code uses productive work, target ratio `1`, fixed saturation/band/timing constants, and explicitly states that old backoff/convergence members were deleted and their behaviors are not implemented. `src/server.c:24682-24688`, `src/server.c:24745-24774`, `src/server.c:24917-25012`, `src/server.c:27106-27114`
-4. Several nearby comments describe backlog-augmented `io_sat/ex_sat`; the owner assignment is bare capped productive U on both sides, `q_io` is unused, and EX depth affects only idle detection/observability. `src/server.c:25803-25806`, `src/server.c:25838-25862`, `src/server.c:25974-25987`
+4. Several nearby comments describe backlog-augmented `io_sat/ex_sat`; the direction assignment is bare capped productive U on both sides, `q_io` is observational, EX depth affects only idle detection/observability, and raw EX occupancy is isolated to demand/capacity decisions. `src/server.c:25803-25806`, `src/server.c:25838-25862`, `src/server.c:25974-25987`
 5. Comments describe an exhaustive in-floor sweep plus both neighbors; the implementation clears the admitted set and starts a single directional, gain-extended episode. `src/server.c:24925-24930`, `src/server.c:25140-25203`
 6. `FLIP_SUSTAIN` is defined twice with the same value `8`. `src/server.c:24990-24995`, `src/server.c:25005-25008`
 7. The key-LB cron comment names deleted `tomokv-reshard-auto`; the registered knob is `tomokv-key-lb`. `src/server.c:2943-2946`, `src/config.c:3292`

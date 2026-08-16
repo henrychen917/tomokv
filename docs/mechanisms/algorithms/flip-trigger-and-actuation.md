@@ -110,14 +110,14 @@ if (fc->lr_out_run >= need && !same_wave) {
 `server_bound` is the `!server_bound → hold` gate above (`src/server.c:26019`):
 
 ```c
-double sat_total = fmax(io_sat, ex_sat);                       /* 26001 */
-fc->sat_smooth  += FESC_ALPHA * (sat_total - fc->sat_smooth);  /* smoothed like every input ; 26018 */
+double demand_total = fmax(io_sat, ex_demand_sat);                 /* productive IO + raw EX */
+fc->sat_smooth += FESC_ALPHA * (demand_total - fc->sat_smooth);   /* smoothed like every input */
 int server_bound = (fc->sat_smooth >= FLIP_BOUND_SAT);         /* FLIP_BOUND_SAT = 0.75 ; 26019 */
 ```
 
-Below `0.75` no stage is saturated, so the client or the round trip is the constraint and no flip can
-win — hold. `FLIP_BOUND_SAT = 0.75` (`src/server.c:24941`, lowered from 0.95 once the signal became
-occupancy rather than CPU time).
+Below `0.75` neither the productive IO stage nor raw EX request-pass demand is saturated, so the
+client or round trip is the constraint and no flip can win — hold. Productive EX remains exclusively
+in the direction ratio and cannot collapse this gate. `FLIP_BOUND_SAT = 0.75` (`src/server.c:24941`).
 
 ### Start stability gates
 
