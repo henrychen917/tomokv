@@ -33,8 +33,8 @@
 #   6. controller_sweep.sh     controller/allocator conformance: SHIFT,
 #                              ENVELOPE, NOREG, AUTO==STATIC (settle-first,
 #                              anti-thrash, client/key/flip LB families)
-#   6b. flip_landing.sh        8x8c MGET-8 landing + 2x8c p32 convergence against
-#                              in-suite static references (known F9 misses today)
+#   6b. flip_landing.sh        blocking 8x8c MGET-8 landing + 2x8c p32 convergence
+#                              against in-suite static references
 #   7. command_sweep.sh        per-command-type throughput by DISPATCH CLASS
 #                              vs committed baselines (75%/90% FAIL/SUSPECT)
 #   8. stress_reclaim.sh       bounded stress spot-check (DUR from mode)

@@ -286,13 +286,11 @@ run_l1() {
     [ "${LAST45_UNIQUE:-99}" = 1 ] && settled=1
     io_family_ok "$FINAL_VECTOR" && family=1
     r=$(ratio "$auto" "$ref")
-    if [ "$settled" = 1 ] && [ "$family" = 1 ] && ratio_at_least "$auto" "$ref" 0.85; then raw=1; fi
+    if [ "$settled" = 1 ] && [ "$family" = 1 ] && ratio_at_least "$auto" "$ref" 0.90; then raw=1; fi
     observed="settled=$settled settled_split=$FINAL_VECTOR last45=[$LAST45_VECTORS] auto=$auto static_io5ex3=$ref ratio=$r"
 
-    # EXPECTED-FAIL-KNOWN #F9-class — remove this annotation only with the controller fix.
     expected_grade L1 "$raw" "$observed" \
-        "last-45s per-node io_live stable in {4,5,6}; auto >=0.85x io5/ex3 static" \
-        "EXPECTED-FAIL-KNOWN #F9-class"
+        "last-45s per-node io_live stable in {4,5,6}; auto >=0.90x io5/ex3 static" ""
 }
 
 run_l2_static() { # tag io ex -> sets STATIC_OPS
@@ -347,10 +345,8 @@ run_l2() {
     if ratio_at_least "$auto" "$best" 0.90 && [ "$moves_late" -le 6 ]; then raw=1; fi
     observed="settled_split=$FINAL_VECTOR last45_splits=[$LAST45_VECTORS] auto=$auto static_io5ex3=$ref53 static_io6ex2=$ref62 best_static=$best ratio=$r moves_last45=$moves_late"
 
-    # EXPECTED-FAIL-KNOWN #F9-class — remove this annotation only with the controller fix.
     expected_grade L2 "$raw" "$observed" \
-        "auto >=0.90x best static and completed moves in final 45s <=6" \
-        "EXPECTED-FAIL-KNOWN #F9-class"
+        "auto >=0.90x best static and completed moves in final 45s <=6" ""
 }
 
 if dependency_check; then
