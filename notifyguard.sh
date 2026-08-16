@@ -123,6 +123,7 @@ chk "IO write-stat arrays retain their 2-stage bound"        "$H" 'stat_io_write
 chk "WB cross-thread fake returns are heap-only"             "$T/src/networking.c" 'static xsubReturnPool \*xsubReturns'
 chk "WB pending-command rows are heap-only"                  "$T/src/networking.c" 'static pendingCommand \*\(\*pcmdWbPool\)\[PCMD_POOL_WB_CAP\]'
 chk "WB static-pin matrix is heap-only"                       "$C" 'static int \(\*tomo_pin_wb_cpu\)\[TOMO_EX_THREADS_MAX\]'
+chk "WB config scalars consume the old alignment tail"         "$H" 'WB-only configuration lives in the alignment tail before migration_active'
 chk_not "no static WB fake-return array at wb=0"             "$T/src/networking.c" 'static xsubReturnPool xsubReturns\['
 chk_not "no static WB pcmd rows at wb=0"                     "$T/src/networking.c" 'static pendingCommand \*pcmdWbPool\['
 chk "WB initialization returns before every allocation"      "$C" 'if \(server\.wb_threads == 0\) return;'
@@ -132,6 +133,11 @@ chk "WB auto count is the physical-core remainder"          "$C" 'wpn = cpn - ip
 chk "WB pool is excluded from two-role flip conversion"      "$H" 'boundary, never count or convert WB threads'
 chk "wb=0 preserves the pending-EX intrusive node"           "$T/src/networking.c" 'Preserve the legacy intrusive-node'
 chk "IO handoff does not enqueue a dedicated-WB client"      "$T/src/iothread.c" 'if \(!clientHasDedicatedWb\(c\) &&'
+chk "knob matrix drives WB OFF"                               "$T/tools/preflight/knob_matrix.sh" '^ *try tomokv-thread-wb 0 '
+chk "knob matrix drives explicit WB"                          "$T/tools/preflight/knob_matrix.sh" '^ *try tomokv-thread-wb 1 '
+chk "knob matrix drives AUTO WB"                              "$T/tools/preflight/knob_matrix.sh" '^ *try tomokv-thread-wb -1 '
+chk "permanent wb=0 parity gate is wired"                     "$T/tools/preflight/preflight.sh" 'run_suite .*wb0_parity\.sh'
+chk "parity gate uses thermal-balanced B,C,C,B order"         "$T/tools/preflight/wb0_parity.sh" 'order=B,C,C,B'
 
 echo
 echo "--- post-EX cross-shard ownership ---"

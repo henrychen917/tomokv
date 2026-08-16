@@ -161,6 +161,25 @@ with socket.create_connection(("127.0.0.1", port), timeout=5) as sock:
 PY
 }
 
+wb_stage_smoke(){
+  # The ordinary traffic in try() must have crossed the complete IO->EX->WB path. Counting a
+  # live WB pool alone would miss a broken completion handoff; requiring replies proves the
+  # sticky drain owner both received work and sent it. The bounded MSET8/MGET8 pipe additionally
+  # forces WB-owned post-EX scatter/gather instead of certifying only the single-shard fast path.
+  local info threads replies
+  if ! atomic_mixed_smoke; then
+    printf 'xshard8=fail'
+    return 1
+  fi
+  info=$(timeout 3 $CLI info stats 2>/dev/null) || return 1
+  threads=$(printf '%s\n' "$info" |
+    awk -F: '$1=="tomokv_wb_threads_counted"{gsub(/\r/,"",$2); print $2; exit}')
+  replies=$(printf '%s\n' "$info" |
+    awk -F: '$1=="tomokv_wb_replies"{gsub(/\r/,"",$2); print $2; exit}')
+  printf 'xshard8=ok wb_threads=%s wb_replies=%s' "${threads:-missing}" "${replies:-missing}"
+  [ "${threads:-0}" -gt 0 ] 2>/dev/null && [ "${replies:-0}" -gt 0 ] 2>/dev/null
+}
+
 busypoll_privilege_refusal(){
   # Some kernels/builds may make busy-poll setup boot-fatal. Accept that host limitation only when
   # the log identifies busy-poll AND explicitly says privileges are the reason; all other refusals
@@ -194,6 +213,7 @@ try(){ # $1 = knob, $2 = value, $3 = note, $4 = companion flags, $5 = extra smok
     tomokv-pipeline-depth:-1) expected=32 ;;
     tomokv-pipeline-depth:0)  expected=1 ;;
     tomokv-cores-per-node:0)  expected=8 ;;
+    tomokv-thread-wb:-1)      expected=1 ;;
   esac
   [ "$got" = "$expected" ] && echo_ok=1
   # serve real traffic so a knob that breaks the data path shows up
@@ -227,6 +247,11 @@ try(){ # $1 = knob, $2 = value, $3 = note, $4 = companion flags, $5 = extra smok
     zerocopy)
       if zerocopy_value_smoke; then extra=" value32k=byte-identical"
       else extra_ok=0; extra=" value32k=MISMATCH"; fi
+      ;;
+    wb)
+      local wb_result
+      wb_result=$(wb_stage_smoke) || extra_ok=0
+      extra=" $wb_result"
       ;;
   esac
   local alive=$(timeout 2 $CLI ping 2>/dev/null | tr -d '\r')
@@ -276,6 +301,23 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   try tomokv-cores-per-node 0 "derive as thread-io + thread-ex (CONFIG GET resolves to 8)"
   try tomokv-cores-per-node 8 "explicit value equals the io4+ex4 split"
   must_refuse tomokv-cores-per-node 7 "fixture io4 + ex4 exceeds cores-per-node=7"
+
+  # The unified binary defaults to the exact two-stage path. Exercise explicit WB, AUTO remainder,
+  # and both range edges; enabled cells require real replies to be counted by the WB owner. The
+  # explicit-N cell deliberately leaves thread-mode=AUTO so the existing controller runs with a
+  # fixed WB pool while remaining limited to IO/EX conversions.
+  try tomokv-thread-wb 0 "OFF: authoritative IO->EX->IO path, no WB allocation"
+  try tomokv-thread-wb 1 "one static WB role beside the AUTO IO/EX pool" \
+    "--tomokv-cores-per-node 9" wb
+  try tomokv-thread-wb -1 "AUTO: physical-core-budget remainder resolves to one WB" \
+    "--tomokv-cores-per-node 9 --tomokv-thread-mode static" wb
+  must_refuse tomokv-thread-wb -2 "below the declared minimum -- auto is -1"
+  must_refuse tomokv-thread-wb 129 "above the compiled per-node WB cap"
+
+  # Static pinning needs complete coverage for every enabled role. This cell also prevents the
+  # new pin-wb config surface from becoming an untested drift-guard exemption.
+  try tomokv-pin-wb node0=8 "static WB pin participates in complete three-role coverage" \
+    "--tomokv-thread-wb 1 --tomokv-cores-per-node 9 --tomokv-thread-mode static --tomokv-pin-mode static --tomokv-pin-io node0=0-3 --tomokv-pin-ex node0=4-7" wb
 
   # ee451 2026-07-29: `try tomokv-key-lb -1` was a TEST defect, not a product one, and it accounted
   # for the 5th of the 10 knob_matrix failures. config.c:3309 declares this knob
@@ -343,6 +385,18 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   try tomokv-io-uring 0
   must_refuse tomokv-io-uring -1 "below the declared minimum -- this knob spells auto as 0"
   must_refuse tomokv-io-uring 3 "above the declared maximum -- valid modes are 0, 1, and 2"
+
+  # WB uring is independently probed and falls back to write()/writev, so all three convention
+  # arms are safe in every build. Enable WB in each cell: an inert echo while thread-wb=0 would not
+  # exercise either the legacy send path or setup/probe/fallback behavior.
+  try tomokv-wb-uring 0 "OFF: WB uses write()/writev" \
+    "--tomokv-thread-wb 1 --tomokv-cores-per-node 9 --tomokv-thread-mode static" wb
+  try tomokv-wb-uring -1 "AUTO SENDMSG batch cap; unsupported setup falls back per WB" \
+    "--tomokv-thread-wb 1 --tomokv-cores-per-node 9 --tomokv-thread-mode static" wb
+  try tomokv-wb-uring 8 "explicit SENDMSG submission cap; unsupported setup falls back per WB" \
+    "--tomokv-thread-wb 1 --tomokv-cores-per-node 9 --tomokv-thread-mode static" wb
+  must_refuse tomokv-wb-uring -2 "below the declared minimum -- auto is -1"
+  must_refuse tomokv-wb-uring 4097 "above the declared submission cap"
 
   try tomokv-prefetch-ex 0
   try tomokv-prefetch-ex 1 "shipped storage prefetch"

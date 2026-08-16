@@ -11,6 +11,8 @@
 # Suites (each must exist next to this script; missing suite = NO-GO in full
 # mode, SKIP in SMOKE):
 #   1. knob_matrix.sh          every knob x {-1,0,N}: boots, echoes, serves
+#   1b. wb0_parity.sh          B,C,C,B canonical p16 GET against the 219ec74cc two-stage artifact;
+#                              INFO surface and idle/load RSS must remain at parity too
 #   2. reclaim_correctness.sh  FLATSTORE/QSBR data correctness
 #   3. numa2_validate.sh       2-simnode correctness
 #   3b. simnode2_features.sh   2-simnode ENGAGEMENT gate for the 2026-08 features (prefetch
@@ -109,6 +111,9 @@ ATOMIC_TORN_SERVER_CORES=${TOMO_ATOMIC_TORN_SERVER_CORES:-$GATE_SERVER_CORES}
 ATOMIC_TORN_LOADGEN_CORES=${TOMO_ATOMIC_TORN_LOADGEN_CORES:-$GATE_LOADGEN_CORES}
 FLIP_LANDING_PORT=${TOMO_FLIP_LANDING_PORT:-5980}
 ATOMIC_TORN_PORT=${TOMO_ATOMIC_TORN_PORT:-5981}
+WB0_PARITY_PORT=${TOMO_WB0_PARITY_PORT:-5982}
+WB0_PARITY_SERVER_CORES=${TOMO_WB0_PARITY_SERVER_CORES:-0-7}
+WB0_PARITY_LOADGEN_CORES=${TOMO_WB0_PARITY_LOADGEN_CORES:-16-23}
 say(){ echo "$@" | tee -a $REPORT; }
 say "TOMOKV PREFLIGHT  $(date -u +%F' '%T)  bin=$BIN sha=$BINSHA smoke=$SMOKE"
 say "──────────────────────────────────────────────────────────────────────"
@@ -132,7 +137,7 @@ if [ "${TOMO_LANE_MODE:-0}" != 1 ] && pgrep -x memtier_benchma >/dev/null 2>&1; 
   exit 1
 fi
 # Every private comm this tree launches a server under. All are ours; none is `redis-server`.
-_OURS="redis-pf redis-corr redis-fence redis-veto redis-knob redis-rs redis-armrace redis-n2 redis-numcmd redis-rcrace redis-xslookup redis-exnest"
+_OURS="redis-pf redis-wb0b redis-wb0c redis-corr redis-fence redis-veto redis-knob redis-rs redis-armrace redis-n2 redis-numcmd redis-rcrace redis-xslookup redis-exnest"
 reap_ours(){ # $1 = suite that just finished
   local c leaked=""
   for c in $_OURS; do pgrep -x "$c" >/dev/null 2>&1 && { leaked="$leaked $c"; pkill -9 -x "$c" 2>/dev/null; }; done
@@ -165,7 +170,7 @@ run_suite(){ # $1 script $2 result $3 fail-regex $4 suspect-regex [$5 port $6 se
   # QUIET GATE (2026-08-11): reaped != drained. Wait (bounded) until no listener remains on the
   # suite port range before grading/continuing, so the next suite never boots into a dying server.
   for _q in $(seq 1 20); do
-    ss -ltn 2>/dev/null | grep -qE ':(597[0-9]|598[01])\s' || break
+    ss -ltn 2>/dev/null | grep -qE ':(597[0-9]|598[0-2])\s' || break
     sleep 0.5
   done
   local f=0 s=0 k=0
@@ -206,6 +211,11 @@ run_suite(){ # $1 script $2 result $3 fail-regex $4 suspect-regex [$5 port $6 se
 # NOTE: sub-suites currently carry this box's workdir internally; TOMO_BIN is
 # exported for the ported ones. Portability cleanup is tracked, not blocking.
 run_suite $SD/knob_matrix.sh         $PF/knob_matrix.out          '  FAIL'
+# Full preflight requires TOMO_WB0_BASELINE_BIN to point at the retained 219ec74cc artifact. The
+# suite fails closed when it is absent: silently skipping the comparator would turn a permanent
+# parity gate into an optional report.
+run_suite $SD/wb0_parity.sh          $PF/wb0_parity.out            $'^FAIL\t' '' \
+  "$WB0_PARITY_PORT" "$WB0_PARITY_SERVER_CORES" "$WB0_PARITY_LOADGEN_CORES"
 run_suite $SD/reclaim_correctness.sh $PF/reclaim_correctness.out  'FAIL:'
 run_suite $SD/numa2_validate.sh      $PF/numa2_validate.out       'FAIL'
 run_suite $SD/simnode2_features.sh   $PF/simnode2_features.out    'FAIL'
