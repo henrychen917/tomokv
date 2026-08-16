@@ -2,7 +2,9 @@
 
 ## What it is
 
-TomoKV splits the normal network command path between IO owners and EX workers. An IO owner accepts a connection, owns its parser and real client, routes non-stateful work through a ring of fake clients, and is the only side that drains those fakes back into the real client's output. EX workers consume per-IO SPSC queues, execute against worker DBs, build replies in the fake clients, and publish completion through per-client CDB bytes. (src/server.c:22977-23000, src/networking.c:503-545, src/server.c:8407-8645, src/server.c:21479-21665, src/server.c:4120-4383)
+TomoKV splits the normal network command path between IO owners and EX workers. An IO owner accepts a connection, owns its parser and real client, and routes non-stateful work through a ring of fake clients. EX workers consume per-producer SPSC queues, execute against worker DBs, build replies in the fake clients, and publish completion through per-client CDB bytes. At the default `tomokv-thread-wb 0`, IO drains those fakes and writes the socket. With WB enabled, a sticky dedicated WB owns that ordered drain and every send; see [Boot-selectable write-back stage](writeback-stage.md). (src/server.c:22977-23000, src/networking.c:503-545, src/server.c:8407-8645, src/server.c:21479-21665, src/server.c:4120-4383)
+
+Unless a section below explicitly discusses WB, its detailed completion walk describes the authoritative two-stage (`wb=0`) path. The parsing, IO-to-EX dispatch, EX storage ownership, and IO/EX polymorphic controller are shared by both boots.
 
 The design has at least one IO thread and one EX thread per configured topology node; a zero-EX execution mode is rejected at startup. (src/server.c:5717-5734, src/server.c:5840-5850)
 
@@ -14,9 +16,10 @@ The design has at least one IO thread and one EX thread per configured topology 
 
 | Running context | <code>iotid</code> | Work driven |
 | --- | --- | --- |
-| Main thread | 0 | Main event loop and IO-owner duties, including worker-reply drain and pending writes before polling. (src/server.c:153, src/server.c:22738-22745, src/server.c:4560-4571) |
+| Main thread | 0 | Main event loop and IO-owner duties, including worker-reply drain at WB=0 or IO-to-WB handoff when enabled. (src/server.c:153, src/server.c:22738-22745, src/server.c:4560-4571) |
 | Poly thread in IO mode | Its fixed <code>polyThreadCtx.io_slot</code> | One <code>ioSlice</code>, which calls <code>aeProcessEventsIO</code> on that binding's event loop. (src/server.c:23265-23273, src/server.c:23086-23104, src/server.c:23424-23464) |
 | Poly thread in EX mode | <code>TOMO_IO_THREADS_MAX + 1 + polyThreadCtx.ex_slot</code> | One <code>exSlice</code> on that binding's worker. (src/server.c:23364-23374, src/server.c:23465-23467) |
+| Dedicated WB (when enabled) | A fixed producer lane after every provisioned IO/growth identity | Its own event loop drains fenced connection-ready words, advances post-EX work, and sends replies. It is not a poly-thread role. |
 
 <code>polyThreadCtx</code> contains the optional <code>ex</code> and <code>io</code> bindings, fixed <code>io_slot</code> and <code>ex_slot</code> identities, thread-private <code>io_listening</code>, atomic <code>mode</code> and <code>target_mode</code>, and the pthread handle. The valid adopted roles are <code>TOMO_MODE_IO=1</code> and <code>TOMO_MODE_EX=2</code>; <code>TOMO_MODE_UNSET=-1</code> is the pre-adoption state. (src/server.h:2521-2525, src/server.h:3070-3080)
 

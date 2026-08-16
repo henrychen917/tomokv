@@ -10,15 +10,16 @@
 - [Cross-shard scatter/gather](../crossshard.md)
 - [Online resharding](../reshard-migration.md)
 - [Load balancing](../loadbalance-flip.md)
+- [Boot-selectable write-back stage](../writeback-stage.md)
 
 Granular, code-derived docs for every named buffer, prefetch stage, communication channel, and
 algorithm/calculation. Each file cites file:line and documents the real data structure + protocol.
-Parent: the 7 subsystem docs in `../` link down to these; the top-level `../../README.md` is the hub.
+Parent: the subsystem docs in `../` link down to these; the top-level `../../README.md` is the hub.
 
 ## buffers
-- [`buffers/cdb-completion-slots.md`](buffers/cdb-completion-slots.md) — `cdbSlots` — EX-to-IO reply-completion cache line
+- [`buffers/cdb-completion-slots.md`](buffers/cdb-completion-slots.md) — `cdbSlots` — EX-to-boot-selected-drain-owner completion cache line
 - [`buffers/fake-client-ring.md`](buffers/fake-client-ring.md) — `clientExecTail.fakeClients[]` — per-real-client fake-client pipeline ring
-- [`buffers/freeback-ring.md`](buffers/freeback-ring.md) — `freebackRing` — IO-to-owner-worker object-reference return ring
+- [`buffers/freeback-ring.md`](buffers/freeback-ring.md) — `freebackRing` — producer-to-owner-worker object-reference return ring
 - [`buffers/group-pin-slots.md`](buffers/group-pin-slots.md) — `flatGroupPinSlot`: generation-counted dispatch-lifetime pin slot
 - [`buffers/pending-command-pool.md`](buffers/pending-command-pool.md) — `pendingCommand`, `pendingCommandList`, and `pendingCommandPool` — pending-com
 - [`buffers/reply-buffer.md`](buffers/reply-buffer.md) — `client->buf`, `client->reply`, `clientReplyBlock`, and `replBufBlock`: reply bu
@@ -34,7 +35,7 @@ Parent: the 7 subsystem docs in `../` link down to these; the top-level `../../R
 - [`prefetch/prefetch-stages.md`](prefetch/prefetch-stages.md) — `PFS_*` — the worker lookup-prefetch scoreboard states
 
 ## communication
-- [`communication/cdb-completion-bus.md`](communication/cdb-completion-bus.md) — `cdbSlotPublish` / `cdbSlotReady` / `cdbSlotClear` — EX-to-IO reply-ready comp
+- [`communication/cdb-completion-bus.md`](communication/cdb-completion-bus.md) — `cdbSlotPublish` / `cdbSlotReady` / `cdbSlotClear` — EX-to-IO/WB reply-ready completion
 - [`communication/crossnode-topology-table.md`](communication/crossnode-topology-table.md) — `cross_node[][]` and `cross_node_any`: cross-node producer/consumer topology tab
 - [`communication/migration-drain-fence.md`](communication/migration-drain-fence.md) — `migPushFenceIfNeeded` / `drain_ack` / `fence_acked` — migration cutover execu
 - [`communication/owner-lock.md`](communication/owner-lock.md) — `tomoWkrLock` / `tomoWkrTrylock` / `tomoWkrUnlock` / `tomoWkrLockPub` / `tomoWkr
@@ -62,4 +63,3 @@ Parent: the 7 subsystem docs in `../` link down to these; the top-level `../../R
 - [`algorithms/qsbr-grace.md`](algorithms/qsbr-grace.md) — FLATSTORE QSBR grace determination
 - [`algorithms/reclaim-budget.md`](algorithms/reclaim-budget.md) — FLATSTORE budgeted reclaim, same-arena free, and the two-grace physical retire
 - [`algorithms/version-resolve.md`](algorithms/version-resolve.md) — kvobjVersionAt: resolving a version bag at a snapshot
-

@@ -2,6 +2,8 @@
 
 This is an inventory of the current in-process cross-shard implementation for `MGET`, `MSET`, set algebra, and `RENAME`. (`src/server.c:10784-10816`) The data path hands work from an IO thread to owner-worker queues. (`src/server.c:12544-12586`)
 
+Completion ownership is boot-selected. At `tomokv-thread-wb 0`, the original IO/last-EX helpers advance and reassemble groups. With WB enabled, the last EX publishes one common group marker and the sticky WB owns gather/reassembly, pipeline and two-hop continuations, reservation advancement, and post-install atomic commit. The complete ownership seam is documented in [Boot-selectable write-back stage](writeback-stage.md).
+
 The spanning-worker path is pure scatter-gather: every key is hashed, resolved through `server.ex_bucket_table`, placed in a sub bound to `server.exThreads[w].db[dbid]`, and pushed to worker `w`; that worker takes its own worker lock before calling `csSubExec`. (`src/server.c:12648-12705`, `src/server.c:22144-22170`) The active dispatch and execution chain contains no branch that reads a sub's keys through a different worker. (`src/server.c:12648-12705`, `src/server.c:22165-22170`)
 
 Cross-node placement does not select a different execution protocol: `csPushSpin` still publishes the selected worker's queue. (`src/server.c:12552-12586`) The exact prefetch-only branch is `server.prefetch_io_level == 2 && tomoCrossNode(iotid,w) && sub->csparent`; it then requires `head && head->parent && head->parent->has_exec_tail` before OR-ing `1u << head->fake_slot` into `clientTail(head->parent)->prefetch_io_xnode_slots`. (`src/server.c:12544-12551`) `tomoCrossNode` itself acquire-loads `cross_node_any[io_slot]`, returns zero when it is clear, otherwise relaxed-loads the worker's bit-table word and extracts the worker bit. (`src/server.c:163-176`)
@@ -16,7 +18,7 @@ The relevant registry rows are `MGET` as `CS_RT_GATHER` with coalescing gated at
 
 There are no executable functions named `csScatter` or `csGather` in this worktree; the active route is `csClassify` to `csDispatch`, then `dispatchGather`, `dispatchTwoHop`, or `dispatchFanAll`. (`src/server.c:11161-11179`, `src/server.c:13742-13755`, `src/server.c:14368-14375`)
 
-After the real client's execution state is moved into its pipeline-ring fake, a classified cross-shard command drains that connection's staged reorder work, increments `replyWorking`, and calls `csDispatch`; the route switch selects fan-all, two-hop, or gather dispatch from `csCmdSpec.route`. (`src/server.c:8423-8450`, `src/server.c:8565-8590`, `src/server.c:13742-13748`)
+After the real client's execution state is moved into its pipeline-ring fake, a classified cross-shard command drains that connection's staged reorder work, increments the legacy `replyWorking` counter only at WB=0, and calls `csDispatch`; the route switch selects fan-all, two-hop, or gather dispatch from `csCmdSpec.route`. (`src/server.c:8423-8450`, `src/server.c:8565-8590`, `src/server.c:13742-13748`)
 
 When the exact predicate `!s->cs_write && !s->has_hop2 && !atomic_snapshot && nkeys >= 1` holds, `dispatchGather` first resolves every key; if all keys have one owner it sends one full-argv `CS_LOCAL` sub that runs the stock command, while keys spanning more than one owner continue to the scatter or reduction pipeline. (`src/server.c:13490-13509`, `src/server.c:13523-13587`)
 

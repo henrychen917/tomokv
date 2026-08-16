@@ -6,6 +6,8 @@
 
 The global visibility frontier is the cache-line-isolated `_Atomic uint64_t commit_seq`; snapshot draws acquire-load it, while a successful group release-stores its ticket only after all of that group's STAMP jobs have been queued. (`src/server.c:280-301`, `src/server.c:427-435`, `src/server.c:10312-10333`, `src/server.c:10363-10383`)
 
+The commit coordinator is boot-selected without changing that visibility protocol. At `tomokv-thread-wb 0`, the original last-EX/per-client election publishes the group. With WB enabled, the last EX publishes a common completion marker and the sticky WB performs the post-install commit and retires the detached publication record. See [Boot-selectable write-back stage](writeback-stage.md).
+
 In enabled mode, eligible cross-shard reads use a snapshot drawn once at dispatch, and an owner-local resolver maps each key's version bag to that snapshot. A read by the installing connection may instead select its own still-uncommitted version or widen past the snapshot to its own already-stamped version. (`src/server.c:8465-8471`, `src/server.c:10133-10148`, `src/server.c:10206-10256`)
 
 The active own-read implementation does not wait for an earlier atomic group to commit; dispatch explicitly proceeds, and `kvobjVersionAt` resolves the connection's own version on the key owner. (`src/server.c:8280-8281`, `src/server.c:10133-10256`)
