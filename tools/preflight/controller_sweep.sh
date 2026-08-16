@@ -77,14 +77,14 @@
 # =============================================================================
 
 set -u
-J=/tmp/tomo_pfjob
+J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 TREE=$J/stable-w2
 # honour the binary preflight is stamping (was: always the tree build)
 BIN=${TOMO_BIN:-$TREE/src/redis-server}
 CLI=/home/user/Projects/redis/src/redis-cli
 [ -x "$CLI" ] || CLI=$TREE/src/redis-cli
 MTB=$(command -v memtier_benchmark || echo /usr/local/bin/memtier_benchmark)
-PORT=${PORT:-7973}
+PORT=${PORT:-5973}
 OUT="${TOMO_RESULT_FILE:-$J/controller_sweep.tsv}"
 LOGD=$J/csweep/logs
 DATA=$J/csweep/data
@@ -113,7 +113,7 @@ fi
 
 # ---- core pinning (methodology: server 0-7, load-gen 8-15) ------------------
 NCPU=$(nproc)
-if [ "$NCPU" -ge 16 ]; then SRV_CORES=0-7; CLI_CORES=8-15
+if [ "$NCPU" -ge 16 ]; then SRV_CORES=0-7; CLI_CORES=16-23
 else H=$((NCPU/2)); SRV_CORES=0-$((H-1)); CLI_CORES=$H-$((NCPU-1)); fi
 
 # ---- canonical workloads ----------------------------------------------------
@@ -192,9 +192,9 @@ preflight() {
   # BOX DISCIPLINE: refuse to run alongside anyone else's server/bench. Note this asks about the
   # SHARED name on purpose -- preflight stages the binary under test as `redis-pf`, so a process
   # called `redis-server` really is somebody else's and we must not touch it.
-  if pgrep -x redis-server >/dev/null 2>&1; then
+  if [ "${TOMO_LANE_MODE:-0}" != 1 ] && pgrep -x redis-server >/dev/null 2>&1; then
     die_pf box-busy "a redis-server is already running on this box — not touching it"; fi
-  if pgrep -x memtier_benchma >/dev/null 2>&1; then     # comm truncates at 15
+  if [ "${TOMO_LANE_MODE:-0}" != 1 ] && pgrep -x memtier_benchma >/dev/null 2>&1; then   # comm truncates at 15
     die_pf box-busy "a memtier_benchmark is already running — box busy"; fi
 }
 
@@ -202,7 +202,7 @@ boot() { # boot <cellname> [extra server args...]  -> sets SRV_PID/SRVLOG/CELL
   local name=$1; shift
   CELL=$name; SRVLOG=$LOGD/$name.srv.log
   rm -rf "$DATA"; mkdir -p "$DATA"; : > "$SRVLOG"
-  if pgrep -x redis-server >/dev/null 2>&1; then
+  if [ "${TOMO_LANE_MODE:-0}" != 1 ] && pgrep -x redis-server >/dev/null 2>&1; then
     tsv preflight boot "$name" "foreign redis-server appeared" "box free" FAIL; return 1; fi
   # A leaked RENAMED server walks straight past pgrep -x (thredis-selfmatch memory) and, worse,
   # SO_REUSEPORT means a survivor on our port silently splits the kernel's conn dealing between

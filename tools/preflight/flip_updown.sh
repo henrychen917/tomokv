@@ -47,9 +47,9 @@ BIN=${1:-${TOMO_BIN:?usage: flip_updown.sh <redis-server binary>  (or TOMO_BIN=.
 J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 OUT="${TOMO_RESULT_FILE:-$J/flip_updown.out}"
 LOG=$J/flip_updown.srv.log
-PORT=7874
+PORT=5874
 PHASE=${PHASE:-45}
-MT="taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
+MT="taskset -c 16-23 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
 KM="--key-maximum=2000000 -d 32"
 : > "$OUT"
 

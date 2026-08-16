@@ -8,7 +8,7 @@ set -u
 J=${JOB_TMP:-/tmp/tomo_pfjob}
 BIN=${TOMO_BIN:?TOMO_BIN required}
 CLI=$(dirname "$BIN")/redis-cli; [ -x "$CLI" ] || CLI="$J/mergew/src/redis-cli"
-PORT=7959
+PORT=5959
 WORK=$J/d_reorder_work; rm -rf "$WORK"; mkdir -p "$WORK"
 OUT=${TOMO_RESULT_FILE:-$WORK/d_reorder.out}; : > "$OUT"  # honor preflight's result file (was local-only => preflight saw "no result file")
 ok(){  printf 'PASS\t%s\t%s\n' "$1" "$2" >> "$OUT"; }
@@ -54,9 +54,9 @@ CTR=$("$CLI" -p $PORT GET c2 | tr -d '\r')
   || bad level2-order "LLEN=$L2LEN mono=$L2MONO INCR=$CTR (want 8000/ok/8000)"
 # drive mixed load to move counters + exercise the age bound
 "$CLI" -p $PORT flushall >/dev/null 2>&1
-taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram --ratio=1:0 -n allkeys -c 1 -t 8 -d 32 \
+taskset -c 16-23 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram --ratio=1:0 -n allkeys -c 1 -t 8 -d 32 \
   --key-minimum=1 --key-maximum=50000 --key-pattern=P:P --pipeline=32 >/dev/null 2>&1
-taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram --ratio=1:1 --test-time=10 -t 8 -c 25 -d 32 \
+taskset -c 16-23 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram --ratio=1:1 --test-time=10 -t 8 -c 25 -d 32 \
   --key-minimum=1 --key-maximum=50000 --pipeline=16 --distinct-client-seed >/dev/null 2>&1
 I=$(info); RUNS=$(val "$I" tomokv_rord_runs); AGE=$(val "$I" tomokv_rord_worst_age_us); FEN=$(val "$I" tomokv_rord_fences)
 ALIVE=$(timeout 2 "$CLI" -p $PORT ping 2>/dev/null | tr -d '\r')

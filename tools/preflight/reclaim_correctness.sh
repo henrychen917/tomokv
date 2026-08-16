@@ -2,10 +2,10 @@
 # Correctness battery for the per-worker QSBR reclaim (ee451 FLATSTORE reclaim-capacity fix).
 # Exercises exactly the paths the change touches: retire under churn, worker-local drain, park/unpark
 # (bounded-residual path), EX<->IO flip with pending retires, FLUSHALL + resize with pending retires.
-J=/tmp/tomo_pfjob; P=/home/user/Projects
+J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}; P=/home/user/Projects
 BIN="${TOMO_BIN:-${BIN:-$J/stable-w/src/redis-server}}"
-CLI="$P/redis/src/redis-cli -p 7974"
-MT="taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p 7974 --hide-histogram"
+CLI="$P/redis/src/redis-cli -p 5974"
+MT="taskset -c 16-23 memtier_benchmark -s 127.0.0.1 -p 5974 --hide-histogram"
 OUT=$J/reclaim_correctness.out; : > $OUT
 : > $J/cc.log   # truncate the SERVER log too: it appends, so a previous run's crash markers read as this run's failure
 PASS=0; FAIL=0
@@ -33,7 +33,7 @@ trap 'exit 129' HUP
 
 boot(){ # $1 extra args
   cleanup_reclaim; sleep 1; rm -rf $J/cdata; mkdir -p $J/cdata
-  taskset -c 0-7 $BIN --port 7974 --dir $J/cdata --tomokv-nodes 1 \
+  taskset -c 0-7 $BIN --port 5974 --dir $J/cdata --tomokv-nodes 1 \
     --tomokv-thread-io 4 --tomokv-thread-ex 4 $1 \
     --save '' --appendonly no --protected-mode no --logfile $J/cc.log --loglevel notice >/dev/null 2>&1 &
   RECLAIM_PID=$!

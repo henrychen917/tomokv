@@ -32,7 +32,7 @@ BIN=${1:?usage: reload_memtier_wedge.sh <server-binary> [tag]}
 TAG=${2:-adhoc}
 DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 REPO=$(cd "$DIR/../.." && pwd)
-PORT=${PORT:-7899}
+PORT=${PORT:-5899}
 IO=${IO:-4}
 EX=${EX:-4}
 # KEYS is the whole experiment, not a size knob. Run 4 reloaded 700308 keys into a table that had

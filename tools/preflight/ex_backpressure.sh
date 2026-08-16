@@ -18,7 +18,7 @@ BIN=${1:?usage: ex_backpressure.sh <server-binary> [tag]}
 TAG=${2:-adhoc}
 DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 REPO=$(cd "$DIR/../.." && pwd)
-PORT=${PORT:-7898}
+PORT=${PORT:-5898}
 IO=${IO:-4}
 EX=${EX:-4}
 CONNS=${CONNS:-128}
@@ -84,7 +84,7 @@ fi
 # which is honest but useless -- raise it here where we can.
 ulimit -n "$(( CONNS * 4 + 1024 ))" 2>/dev/null || true
 
-taskset -c 8-15 python3 "$DIR/ex_backpressure.py" \
+taskset -c 16-23 python3 "$DIR/ex_backpressure.py" \
     --port "$PORT" --io-threads "$IO" \
     --conns "$CONNS" --depth "$DEPTH" --seconds "$SECONDS_PER_ARM" \
     2>&1 | tee "$OUT/probe.out"

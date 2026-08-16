@@ -23,7 +23,7 @@ DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 # SO_REUSEPORT accept group and blend two binaries across these cutovers.
 . "$DIR/preflight_lib.sh"
 OUT="${TOMO_RESULT_FILE:-$J/reshard_suite.out}"; : > $OUT
-PORT=7899
+PORT=5899
 # ee451 2026-07-29: RESOLVE redis-cli, do not assume it sits next to the server.
 # This suite's only two uses of a client were spelled `"$(dirname "$BIN")"/redis-cli`. Callers pass
 # a STAGED binary (bins/stable/redis-server, or preflight's private dir) and those directories hold

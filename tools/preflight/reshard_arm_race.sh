@@ -23,7 +23,7 @@ DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 OUT=${TOMO_HANG_DIR:-/tmp/tomo_pfjob/hangw}/armrace_$TAG
 CLI=$(dirname "$BIN")/redis-cli
 [ -x "$CLI" ] || CLI=$(cd "$DIR/../.." && pwd)/src/redis-cli
-PORT=${PORT:-7897}
+PORT=${PORT:-5897}
 rm -rf "$OUT"; mkdir -p "$OUT/data"
 
 # Stage under a UNIQUE process name, like correctness_suite (redis-corr) and fence_suite

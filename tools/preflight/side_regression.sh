@@ -45,9 +45,9 @@ J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 BASE=${2:-$J/side_regression_baseline.tsv}
 OUT="${TOMO_RESULT_FILE:-$J/side_regression.out}"
 TT=${TT:-30}
-PORT=7875
+PORT=5875
 TOL=${TOL:-4}      # percent; box noise is ~+-2% exclusive, so 4% is ~2 sigma
-MT="taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
+MT="taskset -c 16-23 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
 KM="--key-maximum=2000000 -d 32"
 : > "$OUT"
 

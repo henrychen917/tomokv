@@ -14,11 +14,11 @@ trap _leak_guard EXIT
 # that holds raw flat pointers on OTHER threads — cross-shard MGET, KEYS, SCAN, DEBUG DIGEST, BGSAVE,
 # expiry, FLUSHALL, table resize, and EX<->IO flips. Watches for: RSS growth (reclaim stalling => the
 # original OOM bug), reclaim never running (leak), dbsize corruption, and crashes.
-J=/tmp/tomo_pfjob; P=/home/user/Projects
+J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}; P=/home/user/Projects
 BIN="${TOMO_BIN:-${BIN:-$J/stable-w/src/redis-server}}"
-PORT=7976
+PORT=5976
 CLI="$P/redis/src/redis-cli -p $PORT"
-MT="taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
+MT="taskset -c 16-23 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
 DUR="${DUR:-600}"
 OUT="${TOMO_RESULT_FILE:-$J/stress_reclaim.out}"; : > $OUT
 : > $J/stress.log   # truncate the SERVER log too: it appends, so a previous run's crash markers read as this run's failure

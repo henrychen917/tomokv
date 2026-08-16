@@ -51,7 +51,7 @@ BIN=${1:?usage: active_subexpiry_probe.sh <binary> [hashes] [ttl_s] [watch_s] [b
 HASHES=${2:-100000}
 TTL=${3:-10}
 WATCH=${4:-45}
-BASEPORT=${5:-7996}
+BASEPORT=${5:-5996}
 EXLIST=${6:-"1 4"}
 
 DIR=$(cd "$(dirname "$BIN")" && pwd)

@@ -31,12 +31,12 @@ exec 9>/tmp/keylb_fine_cost.lock
 flock -n 9 || { echo "another keylb_fine_cost.sh is running -- refusing to start" >&2; exit 1; }
 J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 BIN=${TOMO_BIN:?TOMO_BIN required}
-PORT=${FINE_PORT:-7973}
+PORT=${FINE_PORT:-5973}
 REPS=${FINE_REPS:-3}; DUR=${FINE_DUR:-20}
 OUT=$J/keylb_fine_cost.tsv
 CLI="$(dirname $BIN)/redis-cli -p $PORT"
 CLI_BIN="$(dirname "$BIN")/redis-cli"   # bare path (no -p) for server_identity_ok
-MT="taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
+MT="taskset -c 16-23 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
 : > $OUT
 printf "rep\tarm\twl\tops\tmigs\n" >> $OUT
 

@@ -37,7 +37,7 @@ _PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight
 BIN=${BIN:?BIN required (an ASAN build)}
 D=$(cd "$(dirname "$0")" && pwd)
 NAME=$(basename "$BIN")                 # keep <=15 chars: pkill -x matches truncated comm
-PORT=${PORT:-7965}
+PORT=${PORT:-5965}
 SECS=${SECS:-90}
 rm -rf "$D/lb1"; mkdir -p "$D/lb1"
 # Cleanup on every exit path (this suite had none): kill OUR recorded pid, then sweep the name.

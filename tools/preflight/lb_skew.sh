@@ -55,9 +55,9 @@ J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 CLI=$(dirname "$BIN")/redis-cli; [ -x "$CLI" ] || CLI=$J/clean-w/src/redis-cli
 OUT="${TOMO_RESULT_FILE:-$J/lb_skew.out}"
 LOG=$J/lb_skew.srv.log
-PORT=7873
+PORT=5873
 DUR=${DUR:-60}
-MT="taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
+MT="taskset -c 16-23 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
 : > "$OUT"
 fail=0
 

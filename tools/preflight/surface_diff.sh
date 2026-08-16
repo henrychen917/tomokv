@@ -258,7 +258,7 @@ if ! cp -p -- "$A_SRC" "$A_BIN" || ! cp -p -- "$B_SRC" "$B_BIN"; then
     exit 2
 fi
 
-PORT=${PORT:-7988}
+PORT=${PORT:-5988}
 case "$PORT" in
     *[!0-9]*|'') case_result FAIL SD-INFRA "invalid PORT=$PORT"; finish; exit 2 ;;
 esac

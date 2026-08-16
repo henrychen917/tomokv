@@ -4,7 +4,7 @@
 set -u
 J=/tmp/tomo_pfjob
 BIN=${TOMO_BIN:?}; LBL=${LBL:-bin}; EXTRA=${EXTRA:-}
-PORT=${PORT_OVERRIDE:-7984}
+PORT=${PORT_OVERRIDE:-5984}
 ORD_SRV_PID=""
 ORD_CLIENT_PID=""
 ORD_STAGED_BIN=""
@@ -57,7 +57,7 @@ if [ -z "${PORT_OVERRIDE:-}" ]; then
     >"$OTD/server.launch.log" 2>&1 &
   ORD_SRV_PID=$!
   setsid timeout --foreground --signal=TERM --kill-after=2 20s \
-    taskset -c 8-15 python3 - "$PORT" "$ORD_SRV_PID" >"$OTD/boot.out" 2>&1 <<'PY' &
+    taskset -c 16-23 python3 - "$PORT" "$ORD_SRV_PID" >"$OTD/boot.out" 2>&1 <<'PY' &
 import os, re, socket, sys, time
 port, wanted = int(sys.argv[1]), int(sys.argv[2])
 request = b"*2\r\n$4\r\nINFO\r\n$6\r\nserver\r\n"
@@ -103,7 +103,7 @@ fi
 
 ORD_RC=0
 setsid timeout --foreground --signal=TERM --kill-after=5 \
-  "${ORD_TIMEOUT:-120}s" taskset -c 8-15 python3 - "$LBL" "$PORT" <<'PY' &
+  "${ORD_TIMEOUT:-120}s" taskset -c 16-23 python3 - "$LBL" "$PORT" <<'PY' &
 import socket,re,sys
 lbl=sys.argv[1]
 port=int(sys.argv[2])

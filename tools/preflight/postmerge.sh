@@ -30,10 +30,10 @@ J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 OUT=$J/postmerge.out
 BASE=${POSTMERGE_BASE:-$J/postmerge_baseline.tsv}
 TT=${TT:-20}
-PORT=7987
+PORT=5987
 TAG=redis-pm                      # PRIVATE name: never reap a shared one, never be reaped by one
 SRV=$J/$TAG
-MT="taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
+MT="taskset -c 16-23 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
 KM="--key-maximum=2000000 -d 32"
 : > "$OUT"
 cp -f "$BIN" "$SRV" || { echo "postmerge: cannot stage $BIN" | tee -a "$OUT"; exit 2; }

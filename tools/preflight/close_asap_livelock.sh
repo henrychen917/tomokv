@@ -14,7 +14,7 @@ BIN=${1:?usage: close_asap_livelock.sh <server-binary> [tag]}
 TAG=${2:-adhoc}
 DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 REPO=$(cd "$DIR/../.." && pwd)
-PORT=${PORT:-7895}
+PORT=${PORT:-5895}
 IO=${IO:-4}
 EX=${EX:-4}
 ROUNDS=${ROUNDS:-40}
@@ -57,7 +57,7 @@ done
 
 ulimit -n "$(( CONNS * 8 + 4096 ))" 2>/dev/null || true
 
-taskset -c 8-15 timeout 420 python3 "$DIR/close_asap_livelock.py" \
+taskset -c 16-23 timeout 420 python3 "$DIR/close_asap_livelock.py" \
     --port "$PORT" --rounds "$ROUNDS" --conns "$CONNS" --depth "$DEPTH" 2>&1 | tee "$OUT/probe.out"
 rc=${PIPESTATUS[0]}
 [ "$rc" = 124 ] && echo "TIMEOUT	the probe itself did not finish in 420s -- treat as a wedge" | tee -a "$OUT/probe.out"

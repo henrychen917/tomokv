@@ -45,7 +45,7 @@ set -u
 _PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 BIN=${TOMO_BIN:?TOMO_BIN required}
-PORT=${TOMO_PORT:-7318}
+PORT=${TOMO_PORT:-5318}
 NAME=redis-exnest
 OUT=$J/exec_nesting.out; : > "$OUT"
 CLI=$(dirname "$BIN")/redis-cli; [ -x "$CLI" ] || CLI="$_PFDIR/../../src/redis-cli"

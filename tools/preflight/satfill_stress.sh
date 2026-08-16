@@ -20,7 +20,7 @@ set -u
 SD="$(cd "$(dirname "$0")" && pwd)"
 J="${TOMO_JOB_DIR:-/tmp/satfill_$$}"; mkdir -p "$J"
 BIN="${TOMO_BIN:?satfill_stress.sh: TOMO_BIN required}"
-PORT=7971
+PORT=5971
 RES="${TOMO_RESULT_FILE:-$J/satfill_stress.out}"; : > "$RES"
 CLI(){ "$SD/../../src/redis-cli" -p $PORT "$@" 2>/dev/null || redis-cli -p $PORT "$@" 2>/dev/null; }
 MTB=$(command -v memtier_benchmark || echo /usr/local/bin/memtier_benchmark)
@@ -40,7 +40,7 @@ for it in $(seq 1 "$N"); do
     --save '' --appendonly no --protected-mode no --logfile "$J/scr/s.log" >/dev/null 2>&1 &
   up=0; for _ in $(seq 1 150); do CLI ping | grep -q PONG && { up=1; break; }; sleep 0.1; done
   if [ $up != 1 ]; then note "FAIL iter$it boot"; FAILS=$((FAILS+1)); continue; fi
-  taskset -c 8-15 "$MTB" -s 127.0.0.1 -p $PORT --hide-histogram --ratio=1:0 -d 32 \
+  taskset -c 16-23 "$MTB" -s 127.0.0.1 -p $PORT --hide-histogram --ratio=1:0 -d 32 \
     --key-pattern=P:P --key-minimum=1 --key-maximum=40000000 -n allkeys -c 1 -t 8 --pipeline 32 \
     > "$J/iter$it.fill.log" 2>&1
   if grep -qE "table full|REDIS BUG REPORT|Guru Meditation" "$J/scr/s.log" 2>/dev/null; then

@@ -18,7 +18,7 @@ BIN=${TOMO_BIN:?TOMO_BIN required}
 J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 SRC=$(cd "$(dirname "$0")/../.." && pwd)
 CLI=${TOMO_CLI:-$SRC/src/redis-cli}
-PORT=${PORT:-7996}
+PORT=${PORT:-5996}
 NKEYS=${NKEYS:-100000}
 [ "${SMOKE:-0}" = "1" ] && NKEYS=20000
 OUT=${OUT:-$J/debug_reload.out}; : > $OUT

@@ -42,7 +42,7 @@ SECS=${SECS:-8}        # per TRIAL, not per arm -- see WHY SHORT TRIALS below
 TRIALS=${TRIALS:-12}
 OUT="${TOMO_RESULT_FILE:-$J/shared_refcount_race.out}"
 : > "$OUT"
-PORT=7898
+PORT=5898
 
 # WHY SHORT TRIALS, NOT ONE LONG RUN.  robj.refcount starts at 1 and the racing incr/decr pairs
 # make it perform an unbiased random walk.  The absorbing barrier (0 -> free -> panic) is only

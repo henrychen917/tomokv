@@ -10,7 +10,7 @@ set -u
 # server on $PORT cannot join our SO_REUSEPORT accept group and blend two binaries' counters.
 _PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 BIN=${1:-$(cd "$(dirname "$0")/../.." && pwd)/src/redis-server}
-PORT=${2:-7913}
+PORT=${2:-5913}
 HERE=$(cd "$(dirname "$0")" && pwd)
 D=/tmp/cmdstat_check.$PORT
 NAME=redis-cmdstat            # 13 chars: safely under the 15-char `comm` truncation

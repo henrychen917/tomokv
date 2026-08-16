@@ -27,7 +27,7 @@
 # ============================================================================
 set -u -o pipefail
 
-JOB=/tmp/tomo_pfjob
+JOB=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 TREE=${TREE:-$JOB/stable-w2}
 FORKSRV=${TOMO_BIN:-$TREE/src/redis-server}
 ORACLESRV=${ORACLESRV:-/home/user/Projects/redis/src/redis-server}
@@ -56,8 +56,8 @@ WORK=$JOB/feature_sweep_work
 PY=$WORK/oracle_helper.py
 
 SMOKE=${SMOKE:-0}
-FORK_PORT=${FORK_PORT:-7791}
-ORACLE_PORT=${ORACLE_PORT:-7792}
+FORK_PORT=${FORK_PORT:-5791}
+ORACLE_PORT=${ORACLE_PORT:-5792}
 SRV_CORES=${SRV_CORES:-}    # e.g. "0-7"  (taskset for servers; empty = no taskset)
 LG_CORES=${LG_CORES:-}      # e.g. "8-15" (taskset for memtier / pipe loaders)
 SEED=${SEED:-3225208}       # fixed stream seed
@@ -87,7 +87,7 @@ CRASH_RE='REDIS BUG REPORT|ASSERTION FAILED|Segmentation fault|SIGSEGV|SIGABRT|S
 # ---------------------------------------------------------------------------
 # infra
 # ---------------------------------------------------------------------------
-exec 9>/tmp/feature_sweep.lock
+exec 9>${TOMO_PREFLIGHT_DIR:-/tmp}/feature_sweep.lock
 flock -n 9 || {
   # HARNESS FIX 2026-07-27: this used to abort BEFORE writing anything, so preflight was left
   # grading a STALE feature_sweep.tsv from a previous run -- in one case results 6 hours old,

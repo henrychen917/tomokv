@@ -121,7 +121,7 @@ readonly LOAD_CORES=8-15
 readonly KEY_MIN=1
 readonly KEY_MAX=2000000
 readonly VALUE_BYTES=32
-readonly PORT_DEFAULT=7986
+readonly PORT_DEFAULT=5986
 readonly MIGRATION_BUCKET_LO=2048
 readonly MIGRATION_BUCKET_HI=4096
 
@@ -1195,9 +1195,9 @@ run_correctness_case() { # label io ex mode
     result=$dir/result.out
     log=$dir/invocation.log
     [ "$QUICK" = 1 ] && smoke=1
-    if ! port_free_at 7994; then
+    if ! port_free_at 5994; then
         case_result "$label" FAIL \
-            "correctness port 7994 occupied or bounded port check failed"
+            "correctness port 5994 occupied or bounded port check failed"
         return
     fi
     setsid timeout --foreground --signal=TERM --kill-after=45 \
@@ -1212,7 +1212,7 @@ run_correctness_case() { # label io ex mode
         deadline=$((SECONDS + CORRECTNESS_TIMEOUT + 10))
         while kill -0 "$HELPER_PID" 2>/dev/null &&
               [ "$SECONDS" -lt "$deadline" ]; do
-            if role_snapshot_at "$label.correctness.$poll" 7994 "$((io + ex))"; then
+            if role_snapshot_at "$label.correctness.$poll" 5994 "$((io + ex))"; then
                 role_last="$SNAP_IO/$SNAP_EX"
                 if [ -z "$role_first" ]; then
                     role_first=$role_last

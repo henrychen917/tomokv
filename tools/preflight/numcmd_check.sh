@@ -28,7 +28,7 @@ SD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # server on $PORT cannot silently join our SO_REUSEPORT accept group and blend two binaries.
 . "$SD/preflight_lib.sh"
 OUT="${TOMO_RESULT_FILE:-$J/numcmd_check.out}"; : > "$OUT"
-PORT=7997
+PORT=5997
 D=$J/numcmd_work
 FAIL=0; PASS=0
 for _c in "$(dirname "$BIN")/redis-cli" "$SD/../../src/redis-cli" /home/user/Projects/redis/src/redis-cli; do

@@ -24,7 +24,7 @@ _PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight
 J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 BIN=${TOMO_BIN:?TOMO_BIN required}
 OUT=$J/keylb_veto.out; : > $OUT
-PORT=${KEYLB_PORT:-7897}
+PORT=${KEYLB_PORT:-5897}
 SECS=${KEYLB_SECS:-30}
 CLI="$(dirname $BIN)/redis-cli"
 

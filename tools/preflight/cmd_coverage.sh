@@ -20,7 +20,7 @@ J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 BIN=${TOMO_BIN:?TOMO_BIN required}
 SD="$(cd "$(dirname "$0")" && pwd)"
 GATE="$SD/cmd_coverage.py"
-PORT=${TOMO_CMDCOV_PORT:-7993}
+PORT=${TOMO_CMDCOV_PORT:-5993}
 BOOT_TIMEOUT=${TOMO_BOOT_TIMEOUT:-20}
 CLI="$(dirname "$BIN")/redis-cli"; [ -x "$CLI" ] || CLI="$(dirname "$BIN")/redis-pf-cli"
 [ -f "$SD/preflight_lib.sh" ] && . "$SD/preflight_lib.sh"
@@ -44,7 +44,7 @@ boot(){ # $1 = reorder
 rc=0
 for R in 0 2; do
   boot "$R" || { rc=1; stop; continue; }
-  detail=$(taskset -c 8-15 python3 "$GATE" $PORT "r$R" 2>&1); prc=$?
+  detail=$(taskset -c 16-23 python3 "$GATE" $PORT "r$R" 2>&1); prc=$?
   if [ $prc -eq 0 ]; then echo -e "cmd-coverage-r$R\tPASS\t$(echo "$detail"|tail -1)" >>"$OUT"
   else rc=1; echo -e "cmd-coverage-r$R\tFAIL\t$(echo "$detail"|grep -E '^  -|FAIL'|head -6|tr '\n' '|')" >>"$OUT"; fi
   stop

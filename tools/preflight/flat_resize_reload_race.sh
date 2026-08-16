@@ -33,7 +33,7 @@ BIN=${TOMO_BIN:?TOMO_BIN required}
 J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 SRC=$(cd "$(dirname "$0")/../.." && pwd)
 CLI=${TOMO_CLI:-$SRC/src/redis-cli}
-PORT=${PORT:-7994}
+PORT=${PORT:-5994}
 NKEYS=${NKEYS:-2000000}
 NRELOAD=${NRELOAD:-4}
 # HZ: main's event loop idles at the serverCron timer, so COPYING advances one 64k chunk per

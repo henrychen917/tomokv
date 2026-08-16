@@ -47,7 +47,7 @@ set -u
 # inherited withbox.sh's lock fd 9 and held the SHARED BOX LOCK FOREVER -- one such leak idled the
 # box ~4h with 10 jobs queued. Reaping the basename of the binary we actually launched kills ours
 # and cannot touch anyone else's.
-exec 9>/tmp/tomo_preflight.lock
+exec 9>${TOMO_PREFLIGHT_DIR:-/tmp}/tomo_preflight.lock
 flock -n 9 || { echo "another preflight is running"; exit 2; }
 
 SD="$(cd "$(dirname "$0")" && pwd)"
@@ -106,12 +106,12 @@ say "─────────────────────────
 #   (b) after that instant, any memtier_benchmark or any server under one of OUR private comms is
 #       BY CONSTRUCTION ours, so reaping it between suites cannot touch another session. The reap
 #       is reported, and names the suite that leaked it.
-if pgrep -x redis-server >/dev/null 2>&1; then
+if [ "${TOMO_LANE_MODE:-0}" != 1 ] && pgrep -x redis-server >/dev/null 2>&1; then
   say "NO-GO: a foreign redis-server is running on this box. Preflight will not measure against it."
   say "       holder(s): $(pgrep -ax redis-server | head -3)"
   exit 1
 fi
-if pgrep -x memtier_benchma >/dev/null 2>&1; then     # comm(2) truncates at 15
+if [ "${TOMO_LANE_MODE:-0}" != 1 ] && pgrep -x memtier_benchma >/dev/null 2>&1; then   # comm(2) truncates at 15
   say "NO-GO: a memtier_benchmark is already running — the box is busy. Wait, do not kill."
   exit 1
 fi
@@ -120,7 +120,7 @@ _OURS="redis-pf redis-corr redis-fence redis-veto redis-knob redis-rs redis-armr
 reap_ours(){ # $1 = suite that just finished
   local c leaked=""
   for c in $_OURS; do pgrep -x "$c" >/dev/null 2>&1 && { leaked="$leaked $c"; pkill -9 -x "$c" 2>/dev/null; }; done
-  pgrep -x memtier_benchma >/dev/null 2>&1 && { leaked="$leaked memtier"; pkill -9 -x memtier_benchma 2>/dev/null; }
+  pgrep -f "[m]emtier_benchmark.* -p 5[0-9][0-9][0-9]" >/dev/null 2>&1 && { leaked="$leaked memtier(lane)"; pkill -9 -f "[m]emtier_benchmark.* -p 5[0-9][0-9][0-9]" 2>/dev/null; }
   [ -n "$leaked" ] && say "      note: $1 leaked:$leaked — reaped (ours only; nothing shared was touched)"
   return 0
 }
@@ -140,7 +140,7 @@ run_suite(){ # $1 script  $2 result-file  $3 fail-regex  $4 suspect-regex
   # QUIET GATE (2026-08-11): reaped != drained. Wait (bounded) until no listener remains on the
   # suite port range before grading/continuing, so the next suite never boots into a dying server.
   for _q in $(seq 1 20); do
-    ss -ltn 2>/dev/null | grep -qE ':(797[0-9])\s' || break
+    ss -ltn 2>/dev/null | grep -qE ':(597[0-9])\s' || break
     sleep 0.5
   done
   local f=0 s=0

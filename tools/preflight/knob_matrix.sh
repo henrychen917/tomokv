@@ -2,13 +2,13 @@
 # Verify every static-vs-auto knob actually WORKS: boots, is echoed back, serves traffic, and (where
 # observable) resolves to the documented behaviour. Two conventions are in use in this tree —
 # "-1 = auto" and "0 = auto" — so each knob is exercised at auto, a static value, and its edge.
-J=/tmp/tomo_pfjob; P=/home/user/Projects
+J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}; P=/home/user/Projects
 # review fix: was a HARDCODED path -- the suite tested a different binary than the one being
 # stamped, so the GO certified a build it never exercised.
 BIN="${TOMO_BIN:-/tmp/tomo_pfjob/bins/fence_d/redis-server}"
-PORT=7979
+PORT=5979
 CLI="$P/redis/src/redis-cli -p $PORT"
-MT="taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
+MT="taskset -c 16-23 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
 OUT=$J/knob_matrix.out; : > $OUT
 PASS=0; FAIL=0
 ok(){ echo "  PASS $1" >> $OUT; PASS=$((PASS+1)); }
@@ -352,6 +352,17 @@ echo "=== convention A: -1 = auto ===" >> $OUT
 
   try tomokv-reshard-fence-timeout 0
   must_refuse tomokv-reshard-fence-timeout -1 "below the declared minimum -- this knob spells auto as 0"
+
+  # lane-G merge gate 2026-08-16: added because the drift guard flagged tomokv-phase-trace as
+  # LIVE BUT UNTESTED. The knob arrived with c93e759b1 (debug: instrument TomoKV request phases)
+  # in the n2-hardening range of this merge; it is absent from the pre-merge tree, which is
+  # exactly the drift the guard exists to catch. Definition (config.c): createIntConfig,
+  # DEBUG_CONFIG|IMMUTABLE_CONFIG, range [0,INT_MAX], default 0. Every call site in
+  # networking.c/uring2.c/server.c is gated by __builtin_expect(server.phase_trace_sample != 0, 0),
+  # so the default arm must be inert and a nonzero arm must still boot and serve.
+  try tomokv-phase-trace 0 "OFF: request-phase instrumentation inert (default)"
+  try tomokv-phase-trace 1000 "sampling arm: 1-in-N request-phase tracing still boots and serves"
+  must_refuse tomokv-phase-trace -1 "below the declared minimum -- this knob spells off as 0"
 
   # Surviving D-feature knobs: SEDA reorder and the symmetric IO-side prefetch.
   try tomokv-reorder 0 "OFF: admission-time reorder inert, no scratch write"

@@ -32,7 +32,7 @@ BIN=${1:?usage: module_gil_pairing.sh <server-binary> [tag]}
 TAG=${2:-adhoc}
 DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 REPO=$(cd "$DIR/../.." && pwd)
-PORT=${PORT:-7893}
+PORT=${PORT:-5893}
 IO=${IO:-4}
 EX=${EX:-4}
 RELOADS=${RELOADS:-60}
@@ -62,7 +62,7 @@ SRV=$!
 for _ in $(seq 1 80); do [ "$(timeout 2 "$CLI" -p "$PORT" ping 2>/dev/null | tr -d '\r')" = PONG ] && break; sleep 0.3; done
 [ "$(timeout 2 "$CLI" -p "$PORT" ping 2>/dev/null | tr -d '\r')" = PONG ] || { echo "module-gil-pairing[$TAG]	FAIL	no boot"; exit 1; }
 
-taskset -c 8-15 python3 "$DIR/module_gil_pairing.py" --port "$PORT" --reloads "$RELOADS" --keys "$KEYS" --io-threads "$IO" 2>&1 | tee "$OUT/probe.out"
+taskset -c 16-23 python3 "$DIR/module_gil_pairing.py" --port "$PORT" --reloads "$RELOADS" --keys "$KEYS" --io-threads "$IO" 2>&1 | tee "$OUT/probe.out"
 rc=${PIPESTATUS[0]}
 cm=$(grep -cE 'Guru Meditation|ASSERTION FAILED|crashed by signal|Sanitizer' "$OUT/server.log" 2>/dev/null); cm=${cm:-0}
 [ "$cm" = 0 ] || { echo "  crash_markers=$cm"; rc=1; }

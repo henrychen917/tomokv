@@ -12,7 +12,7 @@
 set -u
 J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 BIN=${TOMO_BIN:?TOMO_BIN required}; P=/home/user/Projects
-PORT=7994
+PORT=5994
 KEY_MIN=1
 KEY_MAX=2000000
 VALUE_BYTES=32
@@ -276,7 +276,7 @@ emit "topology-proof	PASS	$(tr '\n' ' ' <"$TOPOLOGY_OUT")"
 # functional checks. A successful memtier exit without a positive Totals rate is still a non-run.
 SEEDLOG=$WORK/exact-2m-seed.memtier
 setsid timeout --foreground --signal=TERM --kill-after=5 "${SEED_TIMEOUT}s" \
-  taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p "$PORT" --hide-histogram \
+  taskset -c 16-23 memtier_benchmark -s 127.0.0.1 -p "$PORT" --hide-histogram \
   --ratio=1:0 --key-pattern=P:P --key-minimum="$KEY_MIN" --key-maximum="$KEY_MAX" \
   -n allkeys -d "$VALUE_BYTES" -t 8 -c 25 --pipeline 32 --distinct-client-seed \
   --connection-timeout=5 --connection-stage-timeout=15 >"$SEEDLOG" 2>&1 &
@@ -325,7 +325,7 @@ emit "exact-2m-seed	PASS	keys=$KEY_MIN..$KEY_MAX dbsize=$DBSIZE value_bytes=$VAL
 
 PY_RC=0
 setsid timeout --foreground --signal=TERM --kill-after=5 "${DRIVER_TIMEOUT}s" \
-taskset -c 8-15 python3 - "$OUT" "$PORT" "${SMOKE:-0}" <<'PY' &
+taskset -c 16-23 python3 - "$OUT" "$PORT" "${SMOKE:-0}" <<'PY' &
 import socket, sys, random, struct
 out, port, smoke = sys.argv[1], int(sys.argv[2]), sys.argv[3]=="1"
 R = (lambda n: max(1, n//5)) if smoke else (lambda n: n)
@@ -683,7 +683,7 @@ if [ "$PY_RC" -ne 0 ]; then
 else
   MTLOG=$WORK/ordering-load.memtier
   setsid timeout --foreground --signal=TERM --kill-after=5 "${LOAD_TIMEOUT}s" \
-    taskset -c 8-15 memtier_benchmark -s 127.0.0.1 -p "$PORT" --hide-histogram \
+    taskset -c 16-23 memtier_benchmark -s 127.0.0.1 -p "$PORT" --hide-histogram \
     --test-time=25 --ratio=1:1 -d "$VALUE_BYTES" --key-pattern=R:R \
     --key-minimum="$KEY_MIN" --key-maximum="$KEY_MAX" -t 8 -c 25 --pipeline 16 \
     --distinct-client-seed --connection-timeout=5 --connection-stage-timeout=15 \
@@ -694,7 +694,7 @@ else
   ORD_FILE=$WORK/ordering-under-load.out
   LOAD_READY_FILE=$WORK/ordering-load.ready
   setsid timeout --foreground --signal=TERM --kill-after=2 15s \
-    taskset -c 8-15 python3 - "$PORT" >"$LOAD_READY_FILE" 2>&1 <<'PY' &
+    taskset -c 16-23 python3 - "$PORT" >"$LOAD_READY_FILE" 2>&1 <<'PY' &
 import socket, sys, time
 port = int(sys.argv[1])
 
@@ -742,7 +742,7 @@ PY
   fi
   if [ "$LOAD_READY_RC" -eq 0 ]; then
     setsid timeout --foreground --signal=TERM --kill-after=5 "${ORDER_TIMEOUT}s" \
-      taskset -c 8-15 env TOMO_BIN="$BIN" LBL="under-load" \
+      taskset -c 16-23 env TOMO_BIN="$BIN" LBL="under-load" \
       EXTRA="${TOMO_XTRA:-}" PORT_OVERRIDE="$PORT" \
       "$(dirname "${BASH_SOURCE[0]}")"/ord_test.sh >"$ORD_FILE" 2>&1 &
     CLIENT_PID=$!
