@@ -28785,8 +28785,15 @@ static void tomoFlipController(void) {
             ? (double)io_cpu_delta_sum /
               ((double)node_wall_ms * 1000.0 * (double)io_occ_cnt)
             : 0.0;
+        /* r6 (2026-08-16): BOTH uring io estimators are LOWER bounds that fail in different
+         * regimes — the productive bracket misses enter-internal taskwork (measured 12% of CPU
+         * under p1), while cpu*occ double-discounts idleness because both factors embed the same
+         * idle time (measured: mget io4 read 0.53 vs work-bracket 0.67 and walked BACKWARD to
+         * io3). Neither over-reads, so the max of the two is the tightest available lower bound:
+         * p1 keeps cpu*occ's ~1.0 (full-jump landing, all nodes io7), mget keeps the bracket's
+         * 0.67 (stable io4 hold). Epoll stays on the 96%-faithful bracket alone. */
         double u_io = server.io_uring != 0
-            ? fmin(cpu_sat, 1.0) * u_io_occ
+            ? fmax(u_io_work, fmin(cpu_sat, 1.0) * u_io_occ)
             : u_io_work;
         double u_ex = u_ex_work;
         if (u_io > 1.0) u_io = 1.0;
