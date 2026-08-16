@@ -1016,9 +1016,10 @@ void tomoApplyVersionStamp(kvobj *kv) {
     serverAssert(commit != NULL &&
                  atomic_load_explicit(&commit->commit_ts, memory_order_acquire) == 0);
 
-    /* The owner lane is the sole stamped-index mutator. Locate the current
-     * physical head so installs need only inherit its authoritative per-key
-     * index. A detached bag is no longer reader-resolvable and needs no move. */
+    /* The install owner, under its ordinary worker lock, is the sole
+     * stamped-index mutator. Locate the current physical head so installs need
+     * only inherit its authoritative per-key index. A detached bag is no longer
+     * reader-resolvable and needs no move. */
     kvobj *head = NULL;
     struct tomoVerMeta *head_meta = NULL;
     if (!vmeta->detached) {
@@ -1053,8 +1054,8 @@ void tomoApplyVersionStamp(kvobj *kv) {
      * stamped to committed; identity keeps that whole interval RYOW-safe. */
 }
 
-/* Canceled atomic-group versions use the same owner lane as stamping. A canceled
- * version never receives a timestamp, so it remains invisible forever.
+/* Canceled atomic-group versions are removed locally by their install owner. A
+ * canceled version never receives a timestamp, so it remains invisible forever.
  * Live-bag cancellation arms the existing prune grace; a version whose bag
  * was already detached can enter the ordinary post-unlink retire grace. */
 void tomoCancelVersion(kvobj *kv) {
@@ -1111,9 +1112,9 @@ static void tomoPublishSingleCommitted(kvobj *kv, struct tomoVerMeta *vmeta) {
         prev = kvobjVersionPrev(prev);
     }
 
-    /* The prune owner-op is queued only after the shared timestamp and commit
-     * clock publish. Its queue acquire, this release, and the reader's acquire
-     * let an unpinned reader omit the commit clock altogether. */
+    /* Owner-local retirement is armed only after the shared timestamp and
+     * commit clock publish. This release and the reader's acquire let an
+     * unpinned reader omit the commit clock altogether. */
     atomic_store_explicit(&vmeta->single_state, TOMO_SINGLE_COMMITTED,
                           memory_order_release);
 }
@@ -1138,9 +1139,9 @@ void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq) {
 }
 
 /* A non-versioned overwrite/delete removes the whole bag from the table in
- * one ordinary owner store. Committed members with no queued owner operation
- * can enter their post-unlink grace now; uncommitted members remain pinned by
- * their install records and retire only when their stamp+prune operations run. */
+ * one ordinary owner store. Committed members with no pending owner-local
+ * maintenance can enter their post-unlink grace now; uncommitted members stay
+ * pinned by their install records until local publish/retirement runs. */
 void tomoRetireDetachedBag(kvstore *kvs, kvobj *head) {
     serverAssert(kvstoreIsFlat(kvs));
     kvobj *kv = head;
@@ -1265,7 +1266,7 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
     /* This one maintenance walk owns every live-bag cancellation mutation:
      * unlink a buried canceled node, replace a canceled head with a survivor,
      * or remove the whole key when cancellation leaves no survivor. The
-     * cancel owner-op itself only marks and arms this grace callback. */
+     * owner-local cancel pass itself only marks and arms this grace callback. */
     kvobj *newhead = head, *previous = NULL, *kv = head;
     while (kv) {
         struct tomoVerMeta *vmeta = kvobjVmeta(kv);
@@ -1296,11 +1297,11 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
             else newhead = next;
             if (vmeta && atomic_load_explicit(&vmeta->owner_ops_pending,
                                                memory_order_acquire) != 0) {
-                /* The successor's grace licenses unlink now, but an embedded
-                 * PRUNE op still owns this allocation. Mark it detached; that
-                 * op will schedule the post-unlink grace when it drains. This
+                /* The successor's grace licenses unlink now, but owner-local
+                 * post-marker maintenance still owns this allocation. Mark it
+                 * detached; that pass will schedule the post-unlink grace. This
                  * closes the commit-reordering case where the successor's
-                 * callback overtakes the predecessor's PRUNE enqueue. */
+                 * callback overtakes predecessor retirement arming. */
                 vmeta->detached = 1;
             } else {
                 tomoSchedulePhysicalRetire(kvs, kv);
@@ -1339,8 +1340,8 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
      * expose a reusable tomb before the follow-up unlink. Route the empty-bag
      * case through the same stock owner-side single-store delete used for a
      * committed tombstone. The anchor grace licenses every unlink above;
-     * nodes with no queued owner operation have entered post-unlink grace,
-     * while a detached pending node will enter it when its PRUNE drains. */
+     * nodes with no pending owner maintenance have entered post-unlink grace,
+     * while a detached pending node will enter it on the owner's next pass. */
     if (!newhead) {
         redisDb *db = anchor_meta->version_db;
         serverAssert(db != NULL && db->keys == kvs);

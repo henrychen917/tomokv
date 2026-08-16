@@ -193,7 +193,7 @@ physical retirement instead of arming a live-bag prune grace: `tomoCancelVersion
 
 | Load/store | Order | Site |
 | --- | --- | --- |
-| `version_tombstone` | plain (set before owner-op publish) | `src/server.c:11529` |
+| `version_tombstone` | plain (set before the owner's local stamp publication) | `src/server.c` |
 | shared `commit_ts` probe | acquire | `src/object.h`, `src/server.c` |
 | current command timestamp | acquire clock load | `src/server.c` |
 | `owner_ops_pending` (census/eligibility) | acquire | `src/db.c` |

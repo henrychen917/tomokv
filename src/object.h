@@ -102,27 +102,17 @@ struct _kvstore;
 #define OBJ_STATIC_REFCOUNT ((1 << OBJ_REFCOUNT_BITS) - 2) /* Object allocated in the stack. */
 #define OBJ_FIRST_SPECIAL_REFCOUNT OBJ_STATIC_REFCOUNT
 
-typedef enum tomoOwnerOpKind {
-    TOMO_OWNER_OP_STAMP = 1,
-    TOMO_OWNER_OP_PRUNE = 2,
-    TOMO_OWNER_OP_CANCEL = 3,
-} tomoOwnerOpKind;
-
-typedef struct tomoOwnerOp {
-    struct redisObject *kv;
-    uint64_t seq;
-    tomoOwnerOpKind kind;
-} tomoOwnerOp;
-
 /* One successful atomic group owns one commit record. Every installed version
  * points at the same record, so the release-store of commit_ts is the group's
- * only visibility publication. The transient group pointer is valid only until
- * the last stamp/cancel has handed the group back to the completion MPSC. */
+ * only visibility publication. Owners publish their local stamped indexes
+ * independently; the last shards_remaining decrement publishes this marker
+ * and hands the reply back to the origin IO thread. */
 typedef struct tomoCommit {
     _Atomic uint64_t commit_ts;
-    _Atomic unsigned int refs;       /* group + version refs; made exact at INSTALL_READY */
-    _Atomic unsigned int stamps_pending;
-    size_t reclaim_bytes;
+    _Atomic unsigned int refs;       /* group + version refs; made exact before deferred publish */
+    _Atomic unsigned int shards_remaining; /* owner-local publications not yet complete */
+    _Atomic size_t reclaim_bytes;    /* owner-local byte sums, folded once per owner */
+    void *owner_records;             /* commit-owned csMsetOwner[]; freed with this record */
     struct csGroup *group;
 } tomoCommit;
 
@@ -167,8 +157,9 @@ struct tomoVerMeta {
     uint8_t lifecycle_ref_held;
     /* Owner-published read state. MERGE NOTE (dev x onever): lifecycle_ref_held took the first
      * of the three padding bytes that preceded owner_ops_pending, so this takes the second —
-     * tomoVerMeta still does not grow and owner_ops_pending does not move (both asserted below).
-     * COMMITTED licenses the read fast path. SUPERSEDED permanently prevents a late prune op
+     * this field itself does not move owner_ops_pending (asserted below). owner_next replaces the
+     * retired embedded cross-core operations and is outside that padding/layout assertion.
+     * COMMITTED licenses the read fast path. SUPERSEDED permanently prevents late retirement
      * from relicensing an object after a successor was installed. */
     _Atomic uint8_t single_state;
     _Atomic unsigned int owner_ops_pending;
@@ -177,7 +168,10 @@ struct tomoVerMeta {
     struct _kvstore *version_kvs;
     struct redisDb *version_db;
     void *reservation_owner;
-    tomoOwnerOp owner_op[2];
+    /* Install-owner-local commit chain. The version's owner appends this while
+     * the metadata is hot; one inline publish pass and one post-marker retire
+     * pass walk it without any cross-core queue entry. */
+    struct redisObject *owner_next;
 };
 
 _Static_assert(offsetof(struct tomoVerMeta, single_state) ==

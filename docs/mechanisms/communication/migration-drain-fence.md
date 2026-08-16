@@ -105,7 +105,7 @@ The outer `migration_active` checks on the command and before-sleep hot paths ar
 
 The worker executes each popped batch in queue order. When a fake has an execution tail and a non-`NULL` `drain_ack`, the worker release-stores `1` to `fence_acked[i]`, frees the fake, advances the batch cursor, and produces no reply. ([src/server.c:22068-22105](../../../src/server.c#L22068-L22105)) The acknowledgement occurs in the execution loop, not merely when `exQueuePopBatch` advances `head`. ([src/server.c:21024-21053](../../../src/server.c#L21024-L21053), [src/server.c:22096-22105](../../../src/server.c#L22096-L22105))
 
-After all jobs in any ordinary batch have executed, the worker release-stores that lane's post-pop `head` into `q->retired`. This separate execution frontier is what makes `retired == tail` a quiescence proof for a lane that has no live producer. ([src/server.c:22248-22263](../../../src/server.c#L22248-L22263)) The owner-op reserved lane performs the analogous `retired = head` release publication after draining its operations. ([src/server.c:10047-10056](../../../src/server.c#L10047-L10056))
+After all jobs in any ordinary batch have executed, the worker release-stores that lane's post-pop `head` into `q->retired`. This separate execution frontier is what makes `retired == tail` a quiescence proof for a lane that has no live producer. Atomic owner-local publication is not a ring lane and is covered separately by atomic lifecycle references. (`src/server.c`)
 
 ### 5. Wait, wake, fall back for dead slots, or abort
 

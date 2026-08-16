@@ -101,9 +101,9 @@ A full fake allocates the core plus tail, an output buffer, and a reply list. An
 
 ### Worker lanes and completion bus
 
-Each <code>exQueue</code> has consumer-owned atomic <code>head</code>, non-atomic <code>cached_tail</code>, and atomic <code>retired</code>; producer-owned atomic <code>tail</code>, non-atomic <code>cached_head</code>, and non-atomic <code>staged_tail</code>; and a fixed <code>jobs[TOMO_EX_QUEUE_SIZE_MAX]</code> array. <code>head</code> and <code>tail</code> are separately cache-line aligned, and the maximum jobs array is 2048 entries. (src/server.h:2310-2324, src/server.h:2437-2477)
+Each <code>exQueue</code> has consumer-owned atomic <code>head</code>, non-atomic <code>cached_tail</code>, and atomic <code>retired</code>; producer-owned atomic <code>tail</code>, non-atomic <code>cached_head</code>, and non-atomic <code>staged_tail</code>; and a fixed <code>jobs[TOMO_EX_QUEUE_SIZE_MAX]</code> array. <code>head</code> and <code>tail</code> are separately cache-line aligned, and the maximum jobs array is 2048 entries. (src/server.h)
 
-Each worker <code>exThread</code> contains <code>id</code>, pthread handle, DB pointer, atomic <code>q_top</code> and <code>q_summary[]</code> handoff summaries, <code>stamp_pending</code>, dense-sweep diagnostics, and a read-only runtime lane description: <code>nlanes</code>, heap <code>queues</code>, and heap <code>freeback</code>. (src/server.h:2527-2584)
+Each worker <code>exThread</code> contains <code>id</code>, pthread handle, DB pointer, atomic <code>q_top</code> and <code>q_summary[]</code> handoff summaries, the atomic-only <code>atomic_publish_pending</code> relevance count, dense-sweep diagnostics, and a read-only runtime lane description: <code>nlanes</code>, heap <code>queues</code>, and heap <code>freeback</code>. Owner-local atomic list heads are held in a separate lazy atomic-only array, preserving the worker layout. (src/server.h, src/server.c)
 
 <code>initExThreads</code> allocates one <code>exThread</code> per worker. Each worker gets <code>min(io_threads + num_workers + 1, TOMO_IO_THREADS_MAX + 1)</code> heap lanes in one contiguous queue/freeback block, and indices 0 through <code>io_threads + tm_ngrow_io</code> are initialized. (src/server.c:22816-22877)
 

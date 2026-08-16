@@ -1805,7 +1805,7 @@ typedef union clientExecTail {
         redisAtomic int _atomic_retired_pending_lock;
         redisAtomic int _atomic_retired_drain_latch;
         redisAtomic unsigned int mset_pending_count;
-        redisAtomic int _atomic_retired_read_waiting;
+        int mset_owner_idx; /* installing sub's index in csGroup.mset_owners; -1 otherwise */
         unsigned int fake_ring_decay_skip;
         unsigned int fake_ring_hwm_win;
         int cssub_idx;
@@ -2058,33 +2058,43 @@ typedef struct csH2Sub {
                         * => OOB argv read / crash on a many-key MPOP. */
 } csH2Sub;
 struct csCmdSpec;      /* fwd — full definition next to struct redisCommand below */
-typedef struct csMsetInstall {
-    kvobj *kv;                   /* exact store object returned by setKeyVersioned */
-    int owner;                   /* sole owner that applies both embedded operations */
-    uint32_t install_order;      /* per-key install-order tie break for duplicate keys */
-} csMsetInstall;
+/* One persistent record per distinct install owner. The owner appends versions
+ * while it executes normal sub-fakes, publishes this chain locally, and then
+ * keeps the same record on its private post-marker retirement list. The commit
+ * record, not csGroup, owns the array so reply retirement cannot invalidate it. */
+typedef struct csMsetOwner {
+    kvobj *head;
+    kvobj *tail;
+    size_t reclaim_bytes;        /* owner-local sum, folded once per group */
+    tomoCommit *commit;
+    struct csMsetOwner *next;    /* owner-private publish/retirement list */
+    int owner;
+    unsigned int ninstalled;
+    uint8_t phase;
+} csMsetOwner;
 
 typedef struct csGroup {
     redisAtomic int pending;   /* sub-fakes not yet complete; last decrementer signals slot */
     int nsub;                  /* number of sub-fakes = nkeys (one sub per key) */
     csCmdType ctype;
     int nkeys;                 /* original key count */
-    client **subs;             /* [nsub] sub-fakes (freed at drain) */
+    client **subs;             /* [nsub] sub-fakes (freed at group completion) */
     client *head;              /* the group-head fake (the ring slot) */
-    /* Preserve the pre-removal layout so tomokv-atomic=no keeps the same group/cache geometry.
-     * These fields remain zero/NULL and are never read as a membership structure. */
-    uint64_t _atomic_probe_retired_sig;
-    uint64_t *_atomic_probe_retired_h;
-    int _atomic_probe_retired_n;
+    /* Reuse the retired atomic-probe footprint so tomokv-atomic=no keeps the
+     * same group/cache geometry. The allocation remains NULL off-mode. */
+    csMsetOwner *mset_owners;     /* stable [mset_owner_cap], one entry per distinct owner */
+    uint64_t _atomic_owner_records_reserved;
+    int mset_owner_count;
+    int mset_owner_cap;
     uint64_t version_seq;      /* UNCOMMITTED through stamping, then the commit-time timestamp */
     uint64_t read_seq;         /* one command snapshot T, independent of the write timestamp */
-    struct csGroup *commit_next; /* intrusive MPSC link for a ready commit stage */
+    struct csGroup *_atomic_retired_commit_next; /* layout reserve: global commit MPSC deleted */
     client *mset_client;         /* real client retained until terminal reply publication */
     tomoCommit *commit;          /* shared commit_ts record retained by installed versions */
-    uint64_t commit_start_ts;    /* T at last-stamp arrival; publication-lag diagnostics only */
+    uint64_t commit_start_ts;    /* T at last-owner arrival; publication-lag diagnostics only */
     redisAtomic int mset_complete;      /* TOMO_COMMIT_* completion stage */
     redisAtomic int mset_install_count;
-    csMsetInstall *mset_installs;       /* [version_install_expected], atomic-write arm only */
+    void *_atomic_retired_mset_installs; /* layout reserve: owner chains replaced install array */
     uint64_t mset_install_order_base; /* first connection-global install order reserved by this group */
     int versioned_write;         /* this group is an atomic version-bag write */
     int version_install_expected; /* successful group's exact whole-value install count */
@@ -2522,7 +2532,7 @@ typedef struct exThread {
      * coalesce-into-a-later-slice semantics the single word always had. */
     _Atomic uint64_t q_top __attribute__((aligned(CACHE_LINE_SIZE)));
     _Atomic uint64_t q_summary[TOMO_QS_WORDS];   /* shares q_top's line: producers touch both */
-    _Atomic unsigned int stamp_pending; /* CURE2 owner stamp/prune jobs */
+    _Atomic unsigned int atomic_publish_pending; /* owner-private publish/retirement records */
     unsigned long long handoff_missed;   /* dense sweep found work the summary did not advertise */
     unsigned int handoff_dense_tick;     /* consumer-private pass counter */
     /* ee451 #83 (2026-08-05): lanes are HEAP arrays sized to the runtime pool (nlanes =

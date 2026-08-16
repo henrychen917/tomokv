@@ -16,13 +16,9 @@ marks that worker dirty in producer-local state, and returns the lane at that
 identity. (src/server.h:2422-2426, src/server.c:3882-3907,
 src/server.c:20820-20832)
 
-The same structure also supplies one reserved owner-operation lane per worker at
-index `server.io_threads + server.tm_ngrow_io`. Ordinary lanes are physically
-SPSC, but successive calls into this reserved lane may come from different
-completion-worker threads. The `commit_drain_active` election serializes those
-mutations into one logical producer stream; losing completion workers return to
-their EX slices. Cross-client arrival order is unspecified because correctness
-does not depend on it. (`src/server.c`)
+Atomic version publication does not use this ring. Install owners mutate their
+own stable records inline and revisit post-marker retirement through an
+owner-private list. The extra allocated lane is only a layout-compatible spare.
 
 The carried fake-client lifecycle is documented in
 [the fake-client ring](fake-client-ring.md), and the worker's later reply
@@ -46,18 +42,7 @@ order. (src/server.h:2437-2477, src/server.h:3373-3374)
 | `tail` | `redisAtomic unsigned int`, aligned to `CACHE_LINE_SIZE`; written by the producer | Published producer frontier. A release store makes all earlier `jobs[]` writes visible. (src/server.h:2462-2474, src/server.c:20852-20889) |
 | `cached_head` | `unsigned int`; producer-private | Cached snapshot of `head`; it is refreshed with an acquire load only when the cached full test fires. (src/server.h:2463-2468, src/server.c:20945-20959) |
 | `staged_tail` | `unsigned int`; producer-private | Next staged slot, including jobs not yet visible through `tail`. (src/server.h:2469-2475, src/server.c:20940-20969) |
-| `jobs` | `client *[TOMO_EX_QUEUE_SIZE_MAX]`, aligned to `CACHE_LINE_SIZE` | Fixed physical storage for 2,048 job pointers. Normal lanes carry fake clients; the reserved lane carries tagged owner-operation pointers. (src/server.h:2320, src/server.h:2476, src/server.c:270-278, src/server.c:20960-20966, src/server.c:20975-20984) |
-
-The reserved representation uses `TOMO_EX_OWNER_OP_TAG == (uintptr_t)1`.
-`exOwnerOpEncode()` asserts that the pointer's low bit is clear and ORs in one;
-`exOwnerOpDecode()` asserts that the low bit is set and clears it before returning
-the `tomoOwnerOp *`. (src/server.c:270-278)
-
-The pointee is exactly `tomoOwnerOp { redisObject *kv; uint64_t seq;
-tomoOwnerOpKind kind; }`. Its enum values are `TOMO_OWNER_OP_STAMP = 1`,
-`TOMO_OWNER_OP_PRUNE = 2`, and `TOMO_OWNER_OP_CANCEL = 3`; the associated
-version metadata embeds two such records. (src/object.h:105-115,
-src/object.h:166)
+| `jobs` | `client *[TOMO_EX_QUEUE_SIZE_MAX]`, aligned to `CACHE_LINE_SIZE` | Fixed physical storage for 2,048 fake-client/sentinel pointers on normal IO-producer lanes. (`src/server.h`, `src/server.c`) |
 
 `redisAtomic` expands to C11 `_Atomic` when C11 atomics are available; the queue
 operations themselves use explicit memory orders rather than the convenience
@@ -103,12 +88,10 @@ freeback rings. The code computes the queue portion as
 `sizeof(exQueue) * nlanes` and asserts both the queue base and following freeback
 base are cache-line aligned. (src/server.c:22829-22850)
 
-Initialization covers producer indices zero through
-`server.io_threads + server.tm_ngrow_io`, inclusive; the last of those is the
-reserved owner-operation lane. A normal worker slice scans the indices below
-that reserved index, while `csStampDrain()` drains the reserved index
-separately. (src/server.c:9979-9994, src/server.c:21720-21733,
-src/server.c:22863-22877)
+Initialization and the normal worker scan cover producer indices zero through
+`server.io_threads + server.tm_ngrow_io - 1`. The separately allocated final
+lane is not initialized or scanned because the former owner-operation channel
+has been deleted. (`src/server.c`)
 
 ## Producer protocol
 
@@ -132,10 +115,6 @@ zero to both cached indices and `staged_tail`, and zeroes the entire fixed
 4. Otherwise it writes `q->jobs[t] = c`, assigns `q->staged_tail = next_t`, and
    returns zero. This operation alone does not update the published `tail`.
    (src/server.c:20960-20969)
-
-The reserved `exQueuePushOwnerOp()` applies the same `staged_tail`, masked-next,
-cached-head refresh, and full branches, but stores `exOwnerOpEncode(op)` and does
-not stamp an arrival time. (src/server.c:20972-20984)
 
 ### Publish a staged prefix
 
@@ -177,23 +156,9 @@ sub-fakes, counts both general and cross-shard full events once per wait, yields
 on the same 4,096-spin cadence, and always immediately publishes the successful
 sub-fake. (src/server.c:12544-12586)
 
-The owner-operation path also spins on full. It publishes and advertises on each
-failed attempt; if the caller is the target owner it drains that lane directly,
-otherwise it pauses and uses the same 4,096-spin yield cadence. After success it
-release-increments `stamp_pending`, release-publishes `tail`, and advertises the
-reserved lane. (src/server.c:10060-10086)
-
-`stamp_pending` is a count/relevance gate, not the owner-operation payload edge.
-The producer release-fetch-adds one before release-storing the queue `tail`.
-`csStampDrain()` acquire-loads the count before popping; `exSlice()` acquire-tests
-it once at pass entry and again before every nonempty normal batch, so owner
-operations relevant to a read are drained first. After applying each popped
-owner batch, the consumer release-fetch-subtracts that batch's `n`. Visibility
-of each tagged `jobs[]` pointer itself comes from the queue `tail` release store
-and the pop path's acquire load, not from `stamp_pending`. (src/server.c:9983-9999,
-src/server.c:10047-10050, src/server.c:10060-10086,
-src/server.c:21889-21893, src/server.c:21994-22003,
-src/server.c:21024-21038)
+Atomic owner-local publish has no ring-full path. `atomic_publish_pending` is a
+worker scheduling relevance count for its private record list, not an `exQueue`
+payload or publication edge. (`src/server.c`)
 
 ## Consumer protocol
 
@@ -256,11 +221,6 @@ sentinel forms publish their own barriers and have no reply. Only after the
 whole loop does the worker relaxed-load the already advanced `head` and
 release-store that value to this queue's `retired`. (src/server.c:22068-22263)
 
-The reserved owner-operation drain repeatedly pops batches of at most
-`WORKER_POP_BATCH`, applies them under the worker lock, and after the lane is
-empty release-stores its relaxed-loaded `head` to `retired` if it processed any
-jobs. (src/server.c:9983-10057)
-
 ## Memory-order map
 
 | Edge | Exact ordering |
@@ -268,7 +228,6 @@ jobs. (src/server.c:9983-10057)
 | Initialization | Relaxed stores initialize `head`, `tail`, and `retired`; the private cached fields are plain assignments. (src/server.c:20842-20849) |
 | Slot reuse, consumer to producer | The consumer release-stores `head` after copying pointers out; a producer acquire-loads `head` only when `next_t == cached_head`. (src/server.c:20945-20959, src/server.c:21040-21053) |
 | Job publication, producer to consumer | The producer writes `jobs[]` and advances plain `staged_tail`, then release-stores `tail`; a consumer acquire-loads `tail` only when its cached available count is zero. (src/server.c:20884-20889, src/server.c:20960-20969, src/server.c:21024-21038) |
-| Reserved-lane relevance count | The producer release-increments `stamp_pending` before release-publishing `tail`; the consumer acquire-tests the count before reserved-lane and normal-batch work, then release-subtracts each applied batch. This gates/drains relevant work but does not replace the `tail` edge that publishes `jobs[]`. (src/server.c:9987-9995, src/server.c:10047-10050, src/server.c:10084-10086, src/server.c:21889-21893, src/server.c:22001-22003) |
 | Sparse wakeup | The producer release-stores `tail` before release-ORing `q_summary`; the consumer acquire-exchanges summary state to zero before visiting advertised lanes. (src/server.c:3445-3463, src/server.c:21920-21946) |
 | Execution retirement | After every copied job in a normal batch has executed or completed its no-reply sentinel action, the worker release-stores relaxed-loaded `head` to `retired`; ordinary fake CDB publication occurs before that store. (src/server.c:22068-22263) |
 | Reshard quiescence observation | The coordinator relaxed-loads `head`, acquire-loads `tail`, and acquire-loads `retired`; an unpumped lane is quiescent only when `retired == tail`. (src/server.c:15990-16004) |
@@ -310,8 +269,6 @@ jobs. (src/server.c:9983-10057)
 | --- | --- |
 | `exDispatchPush()` / `exDispatchDirect()` | Ordinary express and worker-routed fake dispatch; the reorder front may hold candidates before eventually calling the direct ring path, while the indivisible T6 route flushes reorder state and calls `exDispatchDirect()` for its selected worker. (src/server.c:3986-4022, src/server.c:8494-8563, src/server.c:8591-8604) |
 | `csPushSpin()` | Immediate-publish cross-shard sub-fakes and worker flush sentinels with lossless full-ring backpressure. (src/server.c:12544-12586, src/server.c:15437-15463) |
-| `csStampPush()` / `csStampDrain()` | Tagged STAMP, PRUNE, and CANCEL owner operations on the reserved lane. (src/server.c:9979-10086) |
-| Completion-election loser | Returns immediately to its EX slice, where the normal owner-lane drain remains available to the elected sequencer. (`src/server.c`) |
 | `flushExQueues()` | Batch-publishes every queue staged by the current IO identity and advertises each published lane. (src/server.c:20852-20892) |
 | `exSlice()` | Harvests lane advertisements, pops normal batches in sparse or strict-arrival order, executes them, publishes reply completions, and advances `retired`. (src/server.c:21920-22003, src/server.c:22242-22280) |
 | Reshard coordinator | Reads `head`, `tail`, and `retired`; only `retired == tail` can acknowledge a producer slot that has no live producer to execute a sentinel. (src/server.c:15953-16010) |

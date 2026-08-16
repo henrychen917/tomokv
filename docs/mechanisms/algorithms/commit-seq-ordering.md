@@ -2,69 +2,68 @@
 
 ## Purpose
 
-Atomic groups install invisible owner-local versions first. A group receives its timestamp only
-when its last owner STAMP finishes. A slow group is absent from commit ordering until it is ready,
-so it cannot convoy unrelated groups behind an admission ticket or global cursor.
+Atomic groups install invisible versions first. Each distinct owner publishes only its local
+stamped-index links and acquire-release decrements `tomoCommit::shards_remaining`. A non-last owner
+returns immediately. The last owner assigns the timestamp, so an incomplete group is absent from
+commit ordering and cannot convoy unrelated work.
+
+There is no global completion drain, ready-group MPSC, elected publisher, admission ticket, or
+incomplete-group frontier.
 
 ## Encoded clock
 
-The cache-line-isolated `commit_clock` uses its low bit as a writer publication latch and its high
-bits as the last fully published timestamp:
+The cache-line-isolated `commit_clock` uses its low bit as a short writer publication latch and its
+high bits as the last fully published timestamp:
 
 ```text
 2*T      fully published T
-2*T + 1  one writer is publishing T+1; readers still use T
+2*T + 1  one last owner is publishing T+1; readers still use T
 ```
 
 Readers acquire-load once and shift right. They never wait on an odd value.
 
-After every group stamp has linked its version into the appropriate owner-local stamped index, the
-last stamp publisher:
+After the counter RMW chain has acquired every owner-local publication, the last owner:
 
 1. CASes the even clock to odd;
-2. release-stores `T+1` into the group's shared `tomoCommit::commit_ts`;
+2. release-stores `T+1` into the group's shared `tomoCommit::commit_ts` marker;
 3. release-stores `2*(T+1)` into the clock.
 
-A reader that samples before step 3 receives old `T` and excludes the group. A reader that samples
-after step 3 acquires the shared timestamp and every prior owner index publication. The writer
-latch serializes only this two-store publication interval.
+A reader sampling before step 3 receives old `T` and excludes the group. A reader sampling after
+step 3 acquires every prior local stamp and can include the group. The writer latch serializes only
+this constant-time marker/clock publication interval; it never waits for a shard.
 
-## Ready-group completion
+## Completion
 
-The completion MPSC contains `csGroup *`, not clients or admission placeholders. A group enters it
-once when all installs are ready and once after all STAMP/CANCEL operations finish. `drain_active`
-elects one logical producer for the bounded owner-operation lanes; losers return immediately.
+`csMsetOwnerPublished` performs the per-owner counter decrement. The last owner calls
+`tomoCommitClockAdvance`, then `csMsetGroupComplete` directly. Completion is O(1): it publishes the
+pooled reclaim charge, seals lifecycle accounting, marks the group final, detaches the commit-owned
+owner records, releases the client's pending count, and publishes/posts the existing CDB completion
+edge to the origin IO thread.
 
-At `INSTALL_READY`, the elected drainer initializes the shared stamp count and pushes every
-STAMP/CANCEL. At `FINAL_READY`, it pushes PRUNE only for a successfully timestamped group, seals
-lifecycle accounting, and publishes the reply. A zero-install cancellation skips owner operations
-and proceeds directly to finalization.
-
-The drainer release-publishes idle before rechecking the MPSC. Because producers push before
-attempting election, a push racing that transition is observed by the old drainer or elects a new
-one. Ready work cannot be stranded.
+Owner records already live on their workers' private post-marker lists. Completion neither walks
+keys nor pushes retirement jobs. Each worker later arms its own retirement when the marker falls at
+or below that slice's frozen published frontier.
 
 ## Ordering ledger
 
 | Edge | Ordering |
 | --- | --- |
-| Install stage to MPSC | release stage CAS and MPSC push; acquire exchange/load by drainer |
-| Owner stamp payload | owner-lane tail release; owner acquire before decode |
-| All stamps to last stamp | acquire-release `stamps_pending` RMW chain |
-| Last stamp to shared timestamp | encoded-clock CAS, then shared `commit_ts` release store |
-| Shared timestamp to reader cut | final clock release; reader acquire load |
-| Timestamp to retirement | PRUNE materialization occurs only in `FINAL_READY` |
-| Timestamp to reply | CDB release occurs after PRUNE materialization and lifecycle sealing |
+| Owner stamped links to group counter | Local release publication before an acquire-release counter decrement. |
+| All owners to last owner | Modification-order chain on `shards_remaining`. |
+| Last owner to shared visibility | Clock CAS, shared `commit_ts` release, final clock release. |
+| Shared visibility to reader cut | Reader acquire-loads the encoded clock; marker resolution excludes zero or values above its cut. |
+| Visibility to reply | CDB release occurs after marker and final clock publication. |
+| Visibility to retirement | Owner-local maintenance requires a nonzero marker no newer than its frozen committed frontier. |
 
 ## Invariants
 
-- No sequence or timestamp is reserved at admission.
-- `commit_ts` remains zero until every successful stamp has landed.
-- One shared release publication flips visibility for the whole group.
-- A non-own reader never accepts a timestamp above its single sampled `T`.
-- PRUNE and reply publication follow the fully published clock value.
-- The MPSC never contains an incomplete admission-order head.
-- The old `next_seq`, `commit_seq`, per-client FIFO, and `commit_wait_drains` witness do not exist.
+- No timestamp is reserved at admission.
+- `commit_ts` remains zero until every owner-local stamp has landed.
+- One shared release store flips visibility for the whole group.
+- A non-own reader never accepts a timestamp above its one sampled `T`.
+- Non-last owners do not spin, drain, enqueue completion, or wait.
+- The old `next_seq`, global drain, ready MPSC, owner-operation lane, and
+  `commit_wait_drains` witness do not exist.
 
-See `src/server.c` (`tomoCommitClockAdvance`, `csMsetOwnerOpsDone`, `csCommitDrainReady`) and
-[MVCC atomic multi-key commands](../../atomics-mvcc.md).
+See `src/server.c` (`csMsetOwnerPublished`, `tomoCommitClockAdvance`,
+`csMsetGroupComplete`) and [MVCC atomic multi-key commands](../../atomics-mvcc.md).

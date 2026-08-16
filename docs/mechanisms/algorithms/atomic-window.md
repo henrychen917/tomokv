@@ -56,8 +56,8 @@ separated by cache lines. The pooled counter is separately cache-line-isolated. 
 `tomokv-atomic no` path neither allocates nor touches this state.
 
 When the pooled charge exceeds its limit, a pressure edge is published. New atomic writes park at
-the same pre-ring gate as a full group window. Reads, already-admitted groups, owner stamp/prune
-jobs, and worker QSBR reclaim continue to run. Releasing the last metadata reference of a charged
+the same pre-ring gate as a full group window. Reads, already-admitted groups, owner-local
+publish/retirement, and worker QSBR reclaim continue to run. Releasing the last metadata reference of a charged
 group decrements the pool, refreshes pressure, and wakes parked IO loops once it is within budget.
 A charge rechecks the pool after publishing pressure: if a concurrent final release crossed below
 the cap before seeing that store, the existing clear-and-rescan protocol removes the otherwise
@@ -76,7 +76,7 @@ participates in visibility, ordering, or writer admission.
 
 ## Ordering and wake invariants
 
-1. Commit-time sequencing publishes one shared timestamp only after the last owner stamp; there is
+1. Commit-time sequencing publishes one shared timestamp only after the last owner-local publish; there is
    no per-connection registration FIFO or incomplete-group frontier.
 2. Reshard cutover still fences on `tomo_atomic_unsealed` plus install-owner lifecycle references;
    the reclaim budget does not alter the flip controller.

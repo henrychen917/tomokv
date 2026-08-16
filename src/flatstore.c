@@ -229,9 +229,9 @@ void flatRetireAtomicRaw(flatTable *t, void *rawkv) {
 }
 
 void flatRetireVersionPrune(flatTable *t, void *rawkv, uint64_t successor_ts) {
-    /* PRUNE is an owner operation consumed by csStampDrain while exSlice has armed the worker-local
-     * sink. Keeping its timestamp in the same TLS aggregate leaves ordinary/off-path retire machine
-     * code unchanged and makes an unexpected shared-stack producer fail closed instead of silently
+    /* Owner-local post-marker maintenance runs while exSlice has armed the worker-local sink.
+     * Keeping its timestamp in the same TLS aggregate leaves ordinary/off-path retire machine code
+     * unchanged and makes an unexpected shared-stack producer fail closed instead of silently
      * dropping logical eligibility. */
     serverAssert(flat_local_sink != NULL);
     if (successor_ts > flat_local_retire_ts) flat_local_retire_ts = successor_ts;

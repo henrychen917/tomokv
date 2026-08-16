@@ -195,6 +195,7 @@ static void resetFakeClientState(client *c, client *parent) {
     atomic_store_explicit(&clientTail(c)->_atomic_retired_commit_next, NULL,
                           memory_order_relaxed);
     clientTail(c)->cssub_idx = 0;
+    clientTail(c)->mset_owner_idx = -1;
     clientTail(c)->is_flush = 0;
     clientTail(c)->flush_bar = NULL;   /* ee451 (shared-kv S0.2b): per-node flush barrier, set only on shared-mode sentinels */
     c->tomo_bkt_ptr = NULL;    /* ee451 (hash-carry): no carried bucket until dispatch stamps one */
@@ -665,8 +666,7 @@ client *createClient(connection *conn) {
     atomic_store_explicit(&clientTail(c)->_atomic_retired_pending_lock, 0, memory_order_relaxed);
     atomic_store_explicit(&clientTail(c)->_atomic_retired_drain_latch, 0, memory_order_relaxed);
     atomic_store_explicit(&clientTail(c)->mset_pending_count, 0, memory_order_relaxed);
-    atomic_store_explicit(&clientTail(c)->_atomic_retired_read_waiting, 0,
-                          memory_order_relaxed);
+    clientTail(c)->mset_owner_idx = -1;
     clientTail(c)->_atomic_retired_pending_head = NULL;
     clientTail(c)->_atomic_retired_pending_tail = NULL;
     atomic_store_explicit(&clientTail(c)->_atomic_retired_commit_next, NULL,

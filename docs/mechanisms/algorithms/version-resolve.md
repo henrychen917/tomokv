@@ -61,7 +61,7 @@ Other clients never pass the identity test, so the normal snapshot boundary rema
 
 ## Snapshot and lifetime ordering
 
-Cross-shard reads enter the FLAT group pin before sampling the commit clock. A last-stamp publisher
+Cross-shard reads enter the FLAT group pin before sampling the commit clock. The last owner publisher
 release-stores the shared timestamp and then the global clock. A reader that acquires the new clock
 therefore sees every stamped link; one that sampled the old clock excludes the group.
 

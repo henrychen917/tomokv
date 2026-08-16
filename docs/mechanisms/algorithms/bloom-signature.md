@@ -17,9 +17,11 @@ Own-read visibility has since moved to version identity:
 
 Because this exact resolver is the live correctness mechanism, the old `key_sig`, exact-hash
 vector, publishing-record ring, builders, copies, and retirement helper have been deleted. The
-three `_atomic_probe_retired_*` words in `csGroup` remain zero/NULL layout reserves. The former
-client-tail pointer word now carries the intrusive ready-client link for atomic completion; it
-still preserves the `tomokv-atomic no` object/cache geometry and allocates nothing.
+former three-word probe footprint in `csGroup` now carries the compact per-owner commit-array
+pointer and its count/capacity while one word stays reserved. Those fields remain zero/NULL,
+preserve group geometry, and allocate nothing when `tomokv-atomic no`. The retired completion-link
+word remains a layout reserve, while the former client-tail integer carries an installing sub's
+per-owner record index.
 
 Routing continues to hash keys for owner and bucket selection. Those hashes do not participate in
 visibility or conflict detection.
@@ -30,7 +32,7 @@ visibility or conflict detection.
 2. Same-connection read-your-own-write is determined exactly by `origin_client_id` on the key
    owner.
 3. Other readers remain bounded by their captured committed-sequence snapshot.
-4. The group layout-reserve fields remain zero/NULL; the repurposed client word causes no allocation.
+4. The per-owner group/client fields remain zero/NULL or `-1` off-mode and cause no allocation.
 
 See [own-read widening](own-read-widening.md), [version resolution](version-resolve.md), and
 [atomic admission and reclaim backpressure](atomic-window.md).
