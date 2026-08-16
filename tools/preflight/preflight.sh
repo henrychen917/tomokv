@@ -17,7 +17,9 @@
 #   3c. atomic_correctness.sh  nodes-1 atomic visibility gauntlet (torn/RYOW/monotonic/msetnx +
 #                              completion-wedge drain), promoted from the job harness
 #                              mode-2 arms fire, atomics correct, everything-on soak)
-#   3d. satfill_stress.sh      N x saturating 40M uniform fill: flat resize-storm crash guard
+#   3d. atomic_torn.sh         torn-read discriminator, runtime atomic-on proof, MSETNX P0
+#                              survival, and bounded-RSS multi-key atomic mini-soak
+#   3e. satfill_stress.sh      N x saturating 40M uniform fill: flat resize-storm crash guard
 #                              (task #117, ~10%/fill pre-fix), promoted per the owner rule —
 #                              a harness that catches a bug joins the gate
 #   4. fence_suite.sh          script fence: crash repro, -BUSY, KILL, no leak
@@ -31,14 +33,17 @@
 #   6. controller_sweep.sh     controller/allocator conformance: SHIFT,
 #                              ENVELOPE, NOREG, AUTO==STATIC (settle-first,
 #                              anti-thrash, client/key/flip LB families)
+#   6b. flip_landing.sh        8x8c MGET-8 landing + 2x8c p32 convergence against
+#                              in-suite static references (known F9 misses today)
 #   7. command_sweep.sh        per-command-type throughput by DISPATCH CLASS
 #                              vs committed baselines (75%/90% FAIL/SUSPECT)
 #   8. stress_reclaim.sh       bounded stress spot-check (DUR from mode)
 #
 # Verdict rules: any FAIL => NO-GO. SUSPECT => listed loudly, does not block
 # (sanity-gate rule: a suspect number means STOP AND LOOK, and the report says
-# exactly where). KNOWN => expected-broken ledger, changes flip it to FAIL
-# inside the owning suite.
+# exactly where). KNOWN-FAIL => annotated expected-broken ledger, non-blocking only while the
+# measured predicate still fails; an unexpected pass with the annotation present is a blocking
+# FAIL until the fixing change removes the annotation and the cell reports PASS.
 set -u
 # ee451 2026-07-29: reap by OUR OWN binary name, never the shared "redis-server".
 # `pkill -9 -x redis-server` was two defects at once: it killed every server on the box including
@@ -93,6 +98,17 @@ PF=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 REPORT=$PF/preflight_report.txt
 : > $REPORT
 SMOKE=${SMOKE:-0}
+# Full-box defaults for the two new 8x8c-capable suites. A lane/CI launcher can override either
+# family globally or per suite; the values are injected into the suites rather than embedded in
+# them. SRV_CORES/LG_CORES remain accepted as the lane-G compatibility spellings.
+GATE_SERVER_CORES=${TOMO_SERVER_CORES:-${SRV_CORES:-0-63}}
+GATE_LOADGEN_CORES=${TOMO_LOADGEN_CORES:-${LG_CORES:-64-127,192-255}}
+FLIP_LANDING_SERVER_CORES=${TOMO_FLIP_LANDING_SERVER_CORES:-$GATE_SERVER_CORES}
+FLIP_LANDING_LOADGEN_CORES=${TOMO_FLIP_LANDING_LOADGEN_CORES:-$GATE_LOADGEN_CORES}
+ATOMIC_TORN_SERVER_CORES=${TOMO_ATOMIC_TORN_SERVER_CORES:-$GATE_SERVER_CORES}
+ATOMIC_TORN_LOADGEN_CORES=${TOMO_ATOMIC_TORN_LOADGEN_CORES:-$GATE_LOADGEN_CORES}
+FLIP_LANDING_PORT=${TOMO_FLIP_LANDING_PORT:-5980}
+ATOMIC_TORN_PORT=${TOMO_ATOMIC_TORN_PORT:-5981}
 say(){ echo "$@" | tee -a $REPORT; }
 say "TOMOKV PREFLIGHT  $(date -u +%F' '%T)  bin=$BIN sha=$BINSHA smoke=$SMOKE"
 say "──────────────────────────────────────────────────────────────────────"
@@ -125,8 +141,8 @@ reap_ours(){ # $1 = suite that just finished
   return 0
 }
 
-FAILS=0; SUSPECTS=0
-run_suite(){ # $1 script  $2 result-file  $3 fail-regex  $4 suspect-regex
+FAILS=0; SUSPECTS=0; KNOWN_FAILS=0
+run_suite(){ # $1 script $2 result $3 fail-regex $4 suspect-regex [$5 port $6 server-cpus $7 load-cpus]
   local name=$(basename "$1")
   if [ ! -x "$1" ]; then
     if [ "$SMOKE" = 1 ]; then say "SKIP  $name (missing, smoke mode)"; return; fi
@@ -135,22 +151,34 @@ run_suite(){ # $1 script  $2 result-file  $3 fail-regex  $4 suspect-regex
   say "RUN   $name ..."
   rm -f "$2"          # never grade a STALE result file from a previous run
   local rc=0
-  TOMO_RESULT_FILE="$2" TOMO_BIN="$BIN" SMOKE=$SMOKE "$1" 9>&- >> $PF/preflight_${name}.log 2>&1 || rc=$?   # 9>&-: children must NOT inherit the singleton lock fd (a leaked suite child held it across a killed run, 2026-08-11)
+  if [ "$#" -ge 7 ]; then
+    TOMO_RESULT_FILE="$2" TOMO_BIN="$BIN" TOMO_PORT="$5" \
+      TOMO_SERVER_CORES="$6" TOMO_LOADGEN_CORES="$7" SMOKE=$SMOKE \
+      "$1" 9>&- >> $PF/preflight_${name}.log 2>&1 || rc=$?
+  else
+    TOMO_RESULT_FILE="$2" TOMO_BIN="$BIN" SMOKE=$SMOKE \
+      "$1" 9>&- >> $PF/preflight_${name}.log 2>&1 || rc=$?
+  fi
+  # 9>&-: children must NOT inherit the singleton lock fd (a leaked suite child held it across a
+  # killed run, 2026-08-11).
   reap_ours "$name"   # a leak here is what aborted the NEXT suite and got mis-filed as its failure
   # QUIET GATE (2026-08-11): reaped != drained. Wait (bounded) until no listener remains on the
   # suite port range before grading/continuing, so the next suite never boots into a dying server.
   for _q in $(seq 1 20); do
-    ss -ltn 2>/dev/null | grep -qE ':(597[0-9])\s' || break
+    ss -ltn 2>/dev/null | grep -qE ':(597[0-9]|598[01])\s' || break
     sleep 0.5
   done
-  local f=0 s=0
+  local f=0 s=0 k=0
   # review fix: the old code graded a MISSING result file as 0 failures => PASS, so a suite that
   # crashed, timed out, or never wrote its output still contributed to a GO verdict.
   if [ ! -f "$2" ]; then
     say "FAIL  $name — produced no result file (exit $rc); see $PF/preflight_${name}.log"
     FAILS=$((FAILS+1)); return
   fi
-  f=$(grep -cE "$3" "$2" 2>/dev/null || true); s=$(grep -cE "${4:-__none__}" "$2" 2>/dev/null || true)
+  f=$(grep -cE "$3" "$2" 2>/dev/null || true)
+  s=$(grep -cE "${4:-__none__}" "$2" 2>/dev/null || true)
+  k=$(grep -cE '(^|[[:space:]])KNOWN-FAIL([[:space:]]|$)' "$2" 2>/dev/null || true)
+  KNOWN_FAILS=$((KNOWN_FAILS+${k:-0}))
   if [ "$rc" -ne 0 ]; then
     # ee451 2026-07-29: SHOW WHAT FAILED. This branch used to report only "suite exited 1" and
     # return, discarding the result file the suite had just written — so a run whose tsv named four
@@ -165,7 +193,12 @@ run_suite(){ # $1 script  $2 result-file  $3 fail-regex  $4 suspect-regex
     say "FAIL  $name — $f failing checks:"; grep -E "$3" "$2" | head -5 | sed 's/^/        /' | tee -a $REPORT
     FAILS=$((FAILS+f))
   else
-    say "PASS  $name$([ "${s:-0}" -gt 0 ] && echo "  (⚠ $s SUSPECT — read $2)")"
+    if [ "${k:-0}" -gt 0 ]; then
+      say "KNOWN-FAIL  $name — $k annotated, non-blocking known miss(es):"
+      grep -E '(^|[[:space:]])KNOWN-FAIL([[:space:]]|$)' "$2" | head -5 | sed 's/^/        /' | tee -a $REPORT
+    else
+      say "PASS  $name$([ "${s:-0}" -gt 0 ] && echo "  (⚠ $s SUSPECT — read $2)")"
+    fi
   fi
   SUSPECTS=$((SUSPECTS+${s:-0}))
 }
@@ -177,6 +210,9 @@ run_suite $SD/reclaim_correctness.sh $PF/reclaim_correctness.out  'FAIL:'
 run_suite $SD/numa2_validate.sh      $PF/numa2_validate.out       'FAIL'
 run_suite $SD/simnode2_features.sh   $PF/simnode2_features.out    'FAIL'
 run_suite $SD/atomic_correctness.sh  $PF/atomic_correctness.out   'FAIL'
+run_suite $SD/atomic_torn.sh         $PF/atomic_torn.out \
+  $'^[^\t]*\t[^\t]*\t[^\t]*\tFAIL$' '' \
+  "$ATOMIC_TORN_PORT" "$ATOMIC_TORN_SERVER_CORES" "$ATOMIC_TORN_LOADGEN_CORES"
 run_suite $SD/satfill_stress.sh      $PF/satfill_stress.out       'FAIL'
 run_suite $SD/fence_suite.sh         $PF/fence_suite.out          'FAIL'
 # correctness output is per invocation. Passing the exact unique path through TOMO_RESULT_FILE
@@ -235,6 +271,10 @@ flip_cooldown(){
   say "  cooldown done (load=$(cut -d' ' -f1 /proc/loadavg))"
 }
 flip_cooldown
+run_suite $SD/flip_landing.sh        $PF/flip_landing.out \
+  $'^[^\t]*\t[^\t]*\t[^\t]*\tFAIL\t' '' \
+  "$FLIP_LANDING_PORT" "$FLIP_LANDING_SERVER_CORES" "$FLIP_LANDING_LOADGEN_CORES"
+flip_cooldown
 run_suite $SD/controller_sweep.sh    $PF/controller_sweep.tsv     $'\tFAIL' $'\tSUSPECT'
 flip_cooldown
 run_suite $SD/flip_updown.sh          $PF/flip_updown.out          'FAIL' 'INVALID'
@@ -277,14 +317,14 @@ GITDESC=$(git -C "$_SRC_DIR/.." describe --always --dirty 2>/dev/null \
 cp $REPORT $PF/preflight_reports/${BINSHA}_$(date -u +%Y%m%d_%H%M%S).txt
 if [ "$FAILS" = 0 ]; then
   echo "$BINSHA $(date -u +%s)" > $PF/preflight.GO
-  printf "%s\t%s\t%s\t%s\tGO\t0\t%s\tsmoke=%s\n" "$(date -u +%F_%T)" "$BINSHA" "$GITDESC" "$BIN" "$SUSPECTS" "$SMOKE" >> $PF/preflight_history.tsv
-  say "VERDICT: GO  (suspects: $SUSPECTS)  stamp: $PF/preflight.GO"
+  printf "%s\t%s\t%s\t%s\tGO\t0\t%s\tsmoke=%s,known-fail=%s\n" "$(date -u +%F_%T)" "$BINSHA" "$GITDESC" "$BIN" "$SUSPECTS" "$SMOKE" "$KNOWN_FAILS" >> $PF/preflight_history.tsv
+  say "VERDICT: GO  (known-fails: $KNOWN_FAILS; suspects: $SUSPECTS)  stamp: $PF/preflight.GO"
   say "history: $PF/preflight_history.tsv  report archived: preflight_reports/${BINSHA}_*.txt"
   exit 0
 else
   rm -f $PF/preflight.GO
-  printf "%s\t%s\t%s\t%s\tNO-GO\t%s\t%s\tsmoke=%s\n" "$(date -u +%F_%T)" "$BINSHA" "$GITDESC" "$BIN" "$FAILS" "$SUSPECTS" "$SMOKE" >> $PF/preflight_history.tsv
-  say "VERDICT: NO-GO — $FAILS failing checks (suspects: $SUSPECTS). Stamp removed."
+  printf "%s\t%s\t%s\t%s\tNO-GO\t%s\t%s\tsmoke=%s,known-fail=%s\n" "$(date -u +%F_%T)" "$BINSHA" "$GITDESC" "$BIN" "$FAILS" "$SUSPECTS" "$SMOKE" "$KNOWN_FAILS" >> $PF/preflight_history.tsv
+  say "VERDICT: NO-GO — $FAILS failing checks (known-fails: $KNOWN_FAILS; suspects: $SUSPECTS). Stamp removed."
   exit 1
 fi
 # STAMP CONTRACT: comparison benchmarks read $PF/preflight.GO and require
