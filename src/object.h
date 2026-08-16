@@ -111,7 +111,7 @@ typedef struct tomoCommit {
     _Atomic uint64_t commit_ts;
     _Atomic unsigned int refs;       /* group + version refs; made exact before deferred publish */
     _Atomic unsigned int shards_remaining; /* owner-local publications not yet complete */
-    _Atomic size_t reclaim_bytes;    /* owner-local byte sums, folded once per owner */
+    _Atomic size_t reclaim_bytes;    /* last-owner sum of the acquired owner-local byte totals */
     void *owner_records;             /* commit-owned csMsetOwner[]; freed with this record */
     struct csGroup *group;
 } tomoCommit;
@@ -168,9 +168,9 @@ struct tomoVerMeta {
     struct _kvstore *version_kvs;
     struct redisDb *version_db;
     void *reservation_owner;
-    /* Install-owner-local commit chain. The version's owner appends this while
-     * the metadata is hot; one inline publish pass and one post-marker retire
-     * pass walk it without any cross-core queue entry. */
+    /* Install-owner-local commit chain. The owner appends and eagerly indexes
+     * this version while its metadata is hot; one post-marker epoch callback
+     * later walks the stable chain without a cross-core queue entry. */
     struct redisObject *owner_next;
 };
 

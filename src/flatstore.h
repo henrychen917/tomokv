@@ -161,6 +161,12 @@ void       flatRetire(flatTable *t, dictEntry *masked_kv);   /* QSBR: defer free
  * pool but dispatch an owner prune or a metadata free when their grace ends. */
 void       flatRetireAtomicRaw(flatTable *t, void *rawkv);
 void       flatRetireVersionPrune(flatTable *t, void *rawkv, uint64_t successor_ts);
+/* One already-owner-local record can carry every version installed by that
+ * owner through the same first grace. The caller supplies its private sink;
+ * no table/global stack or cross-core atomic participates. */
+/* Returns one when a fresh node was needed, zero when the worker pool supplied
+ * it. This is cold-path allocator telemetry; enqueue itself remains local. */
+int        flatRetireVersionOwnerLocal(flatRetireNode **sink, void *owner_record);
 void       flatRetireVmeta(flatTable *t, void *vmeta);
 void       flatRetirePayloadReady(dictEntry *payload);
 void       flatRetirePayloadDiscard(dictEntry *payload);

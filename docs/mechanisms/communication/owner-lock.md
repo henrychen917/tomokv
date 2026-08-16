@@ -49,7 +49,7 @@ The following direct callers are owner-side execution or maintenance paths. All 
 
 | Caller | Exact critical section |
 | --- | --- |
-| [Owner-local atomic publish](owner-local-publish.md) | Ordinary MSET/DEL stamps its complete owner chain inside the existing cross-shard sub lock. Strictly key-dependent records later take the same owner lock for local stamp/cancel; post-marker retirement locks around the local chain and releases detached lifecycle references after unlock. (`src/server.c`) |
+| [Owner-local atomic publish](owner-local-publish.md) | Ordinary MSET/DEL publishes each invisible index link in the existing install critical section and has no second chain walk. Strictly key-dependent records later take the same owner lock only for reservation effects or cancellation marking. One ready owner-epoch batch takes the lock once around all of its local prune callbacks. (`src/server.c`) |
 | T6/full-call worker branch in `exSlice` | Sets `w = fake->tomo_local_worker`, asserts the current EX identity equals `w`, locks, executes the full transaction/script `call`, then unlocks. ([src/server.c:21526-21554](../../../src/server.c#L21526-L21554)) |
 | Ordinary S2 branch in `exSlice` | Only when the command declares its first key at position 1 and has `argv[1]`, derives or reuses bucket `b`, reloads `mlk_wkr = ex_bucket_table[b]`, locks across `fake->cmd->proc(fake)`, and conditionally unlocks. ([src/server.c:21574-21601](../../../src/server.c#L21574-L21601)) |
 | Flush sentinel in `exSlice` | Locks `worker->id` while touching watched keys for the selected DB range. ([src/server.c:22108-22118](../../../src/server.c#L22108-L22118)) |

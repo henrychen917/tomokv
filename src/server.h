@@ -2058,19 +2058,20 @@ typedef struct csH2Sub {
                         * => OOB argv read / crash on a many-key MPOP. */
 } csH2Sub;
 struct csCmdSpec;      /* fwd — full definition next to struct redisCommand below */
-/* One persistent record per distinct install owner. The owner appends versions
- * while it executes normal sub-fakes, publishes this chain locally, and then
- * keeps the same record on its private post-marker retirement list. The commit
- * record, not csGroup, owns the array so reply retirement cannot invalidate it. */
+/* One persistent record per distinct install owner. The owner appends and
+ * eagerly indexes versions while it executes normal sub-fakes, then carries
+ * the same record through its private post-marker epoch lane. The commit record,
+ * not csGroup, owns the array so reply retirement cannot invalidate it. */
 typedef struct csMsetOwner {
     kvobj *head;
     kvobj *tail;
-    size_t reclaim_bytes;        /* owner-local sum, folded once per group */
+    size_t reclaim_bytes;        /* owner-local sum, published once and read by the last owner */
     tomoCommit *commit;
     struct csMsetOwner *next;    /* owner-private publish/retirement list */
     int owner;
     unsigned int ninstalled;
     uint8_t phase;
+    uint8_t reclaim_folded;
 } csMsetOwner;
 
 typedef struct csGroup {
@@ -2086,14 +2087,14 @@ typedef struct csGroup {
     uint64_t _atomic_owner_records_reserved;
     int mset_owner_count;
     int mset_owner_cap;
-    uint64_t version_seq;      /* UNCOMMITTED through stamping, then the commit-time timestamp */
+    uint64_t version_seq;      /* UNCOMMITTED until last-owner marker assignment */
     uint64_t read_seq;         /* one command snapshot T, independent of the write timestamp */
     struct csGroup *_atomic_retired_commit_next; /* layout reserve: global commit MPSC deleted */
     client *mset_client;         /* real client retained until terminal reply publication */
     tomoCommit *commit;          /* shared commit_ts record retained by installed versions */
     uint64_t commit_start_ts;    /* T at last-owner arrival; publication-lag diagnostics only */
     redisAtomic int mset_complete;      /* TOMO_COMMIT_* completion stage */
-    redisAtomic int mset_install_count;
+    redisAtomic int _atomic_install_count_reserved; /* layout reserve: exact installs fold owner records */
     void *_atomic_retired_mset_installs; /* layout reserve: owner chains replaced install array */
     uint64_t mset_install_order_base; /* first connection-global install order reserved by this group */
     int versioned_write;         /* this group is an atomic version-bag write */
@@ -2532,7 +2533,7 @@ typedef struct exThread {
      * coalesce-into-a-later-slice semantics the single word always had. */
     _Atomic uint64_t q_top __attribute__((aligned(CACHE_LINE_SIZE)));
     _Atomic uint64_t q_summary[TOMO_QS_WORDS];   /* shares q_top's line: producers touch both */
-    _Atomic unsigned int atomic_publish_pending; /* owner-private publish/retirement records */
+    _Atomic unsigned int atomic_publish_pending; /* single-writer total: owner list + epoch reclaim */
     unsigned long long handoff_missed;   /* dense sweep found work the summary did not advertise */
     unsigned int handoff_dense_tick;     /* consumer-private pass counter */
     /* ee451 #83 (2026-08-05): lanes are HEAP arrays sized to the runtime pool (nlanes =
@@ -5847,6 +5848,8 @@ void tomoApplyVersionStamp(kvobj *kv);
 void tomoCancelVersion(kvobj *kv);
 void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq);
 void tomoVersionPruneAfterGrace(kvobj *anchor);
+void tomoVersionPruneOwnerAfterGrace(void *owner_record);
+void tomoVersionPruneOwnerDiscard(void *owner_record);
 void tomoVersionPruneBatchBegin(void);
 void tomoVersionPruneBatchEnd(void);
 void tomoRetireDetachedBag(kvstore *kvs, kvobj *head);

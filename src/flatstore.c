@@ -29,8 +29,9 @@
 #define FLAT_RETIRE_SPECIAL_BIT (UINT64_C(1) << 63)
 #define FLAT_RETIRE_VMETA_BIT   (UINT64_C(1) << 62)
 #define FLAT_RETIRE_RECLAIM_BIT (UINT64_C(1) << 61)
+#define FLAT_RETIRE_OWNER_BIT   (UINT64_C(1) << 60)
 #define FLAT_RETIRE_SPECIAL_MASK (FLAT_RETIRE_SPECIAL_BIT | FLAT_RETIRE_VMETA_BIT | \
-                                  FLAT_RETIRE_RECLAIM_BIT)
+                                  FLAT_RETIRE_RECLAIM_BIT | FLAT_RETIRE_OWNER_BIT)
 
 static inline dictEntry *flatRetireSpecial(void *payload, int vmeta) {
     uintptr_t p = (uintptr_t)payload;
@@ -50,6 +51,13 @@ static inline dictEntry *flatRetireReclaim(void *payload) {
                          (uintptr_t)FLAT_RETIRE_RECLAIM_BIT);
 }
 
+static inline dictEntry *flatRetireOwner(void *payload) {
+    uintptr_t p = (uintptr_t)payload;
+    serverAssert((p & (uintptr_t)FLAT_RETIRE_SPECIAL_MASK) == 0);
+    return (dictEntry *)(p | (uintptr_t)FLAT_RETIRE_SPECIAL_BIT |
+                         (uintptr_t)FLAT_RETIRE_OWNER_BIT);
+}
+
 void flatRetirePayloadReady(dictEntry *payload) {
     uintptr_t p = (uintptr_t)payload;
     if (!(p & (uintptr_t)FLAT_RETIRE_SPECIAL_BIT)) {
@@ -63,6 +71,8 @@ void flatRetirePayloadReady(dictEntry *payload) {
         struct tomoVerMeta *vmeta = flatRetireSpecialPayload(payload);
         tomoAtomicCommitVersionRelease(vmeta);
         zfree(vmeta);
+    } else if (p & (uintptr_t)FLAT_RETIRE_OWNER_BIT) {
+        tomoVersionPruneOwnerAfterGrace(flatRetireSpecialPayload(payload));
     } else {
         tomoVersionPruneAfterGrace((kvobj *)flatRetireSpecialPayload(payload));
     }
@@ -84,6 +94,8 @@ void flatRetirePayloadDiscard(dictEntry *payload) {
         struct tomoVerMeta *vmeta = flatRetireSpecialPayload(payload);
         tomoAtomicCommitVersionRelease(vmeta);
         zfree(vmeta);
+    } else if (p & (uintptr_t)FLAT_RETIRE_OWNER_BIT) {
+        tomoVersionPruneOwnerDiscard(flatRetireSpecialPayload(payload));
     } else {
         /* Teardown/resize suppresses the prune callback entirely. Retire the install-owner
          * reference here, at the point which proves no callback can later mutate the bag. */
@@ -218,6 +230,28 @@ static void flatRetirePayload(flatTable *t, dictEntry *payload, unsigned int ret
     do { n->next = head; }
     while (!atomic_compare_exchange_weak_explicit(&t->retire_stack, &head, n,
              memory_order_release, memory_order_relaxed));
+}
+
+/* The owner record already is a stable, install-order local chain. Give it one
+ * recycled retire node and append it directly to the caller's private logical
+ * lane. Its batch close supplies the physical grace and the scalar commit
+ * frontier supplies logical eligibility. */
+int flatRetireVersionOwnerLocal(flatRetireNode **sink, void *owner_record) {
+    serverAssert(sink != NULL && owner_record != NULL);
+    flatRetireNode *n = flat_node_pool;
+    int allocated = 0;
+    if (n) {
+        flat_node_pool = n->next;
+        if (--flat_node_pool_n < flat_node_pool_lowat)
+            flat_node_pool_lowat = flat_node_pool_n;
+    } else {
+        n = zmalloc(sizeof(*n));
+        allocated = 1;
+    }
+    n->masked_kv = flatRetireOwner(owner_record);
+    n->next = *sink;
+    *sink = n;
+    return allocated;
 }
 
 void flatRetire(flatTable *t, dictEntry *masked_kv) {

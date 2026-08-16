@@ -12,8 +12,9 @@ Registration marks the group versioned and uncommitted, binds the real client, i
 
 There is one stable `csMsetOwner` record per distinct install owner. An owner appends each new
 whole-value version to its local record while installing it, acquires its owner/bucket lifecycle
-reference, records exact reclaim bytes, and release-attaches the shared commit record. The stable
-array is owned by `tomoCommit`, not by the reply lifetime.
+reference, records exact reclaim bytes, release-attaches the shared commit record, and immediately
+publishes the invisible local index link. The stable array is owned by `tomoCommit`, not by the
+reply lifetime.
 
 ## Phase B: owner-local publish
 
@@ -23,10 +24,11 @@ local stamped indexes. It folds its byte total, keeps its record on a private po
 then decrements `shards_remaining` once. A non-last owner continues normal work immediately.
 
 Strictly key-dependent shapes use multiple waves. Their stable owner records enter `WAIT`.
-`csMsetInstallDone` publishes the terminal success/cancel decision, makes the pre-reserved commit
-reference count exact, and initializes the counter. A worker revisits only a bounded snapshot of
-its private list per slice; an undecided record is rotated once. After it acquires the terminal
-decision, that owner stamps or cancels only its own chain and decrements once.
+`csMsetInstallDone` publishes the terminal success/cancel decision, obtains the exact install count
+from the stable owner records, makes the pre-reserved commit reference count exact, and initializes
+the counter. A worker revisits only the runnable-list population observed at slice entry; an
+undecided record is rotated once. After it acquires the terminal decision, that owner applies only
+its local reservation effects or marks its already-indexed chain canceled, then decrements once.
 
 No phase uses a ready-group MPSC, global drainer, reserved ring lane, or per-key cross-core message.
 
@@ -37,21 +39,24 @@ prior local stamped-index publication to the worker whose decrement observes one
 last owner advances the encoded clock and release-stores the timestamp into the one shared commit
 record. Cancellation leaves the marker zero.
 
-The last owner then directly performs constant-time finalization: pooled reclaim publication,
-lifecycle sealing, `FINAL_READY`, group/commit detachment, client pending-count release, and CDB
-completion publication plus notifier post. It drops the transient group reference last. No other
-thread is elected and no completion section walks the group's keys.
+The last owner then directly performs finalization bounded by the distinct-owner count: it folds
+the owner-record byte totals without walking versions or keys, publishes the pooled reclaim charge, seals lifecycle accounting, stores
+`FINAL_READY`, detaches the group/commit, releases the client pending count, and publishes the CDB
+completion plus notifier post. It drops the transient group reference last. No other thread is
+elected and no completion section walks the group's keys.
 
 ## Phase D: owner-local retirement
 
 Successful records stay on the install owner's private list. A later slice freezes the published
-clock and arms `tomoArmVersionRetire` for records whose marker is at or below that frontier. This
-preserves monotonic FIFO eligibility for the existing O(1) grace caches. Marker plus QSBR grace
-licenses logical pruning; post-unlink grace licenses physical free.
+clock and queues one tagged owner-epoch payload for each record whose marker is at or below that
+frontier. The payload enters a separate owner-private logical FIFO, preserving monotonic scalar
+eligibility for the existing O(1) grace caches. Marker/frontier plus QSBR grace licenses logical
+pruning; post-unlink grace licenses physical free.
 
-Cancellation performs its owner-local removal before the counter decrement. Detached objects
-release lifecycle references outside the owner lock. A zero-install cancellation goes straight
-through the zero-owner terminal path.
+Cancellation marks the eager entries before the counter decrement and queues one owner payload in
+the ordinary physical-grace lane, which has no snapshot gate. The callback removes the entries and
+starts any required post-unlink grace. A zero-install owner has no payload and completes before its
+counter decrement can free the commit-owned record array.
 
 ## Atomicity and RYOW
 

@@ -1016,69 +1016,47 @@ void tomoApplyVersionStamp(kvobj *kv) {
     serverAssert(commit != NULL &&
                  atomic_load_explicit(&commit->commit_ts, memory_order_acquire) == 0);
 
-    /* The install owner, under its ordinary worker lock, is the sole
-     * stamped-index mutator. Locate the current physical head so installs need
-     * only inherit its authoritative per-key index. A detached bag is no longer
-     * reader-resolvable and needs no move. */
-    kvobj *head = NULL;
-    struct tomoVerMeta *head_meta = NULL;
-    if (!vmeta->detached) {
-        sds key = kvobjGetKey(kv);
-        int slot = getKeySlot(key);
-        dictEntryLink link = kvstoreDictFindLink(vmeta->version_kvs, slot,
-                                                  key, NULL);
-        serverAssert(link != NULL);
-        head = dictGetKV(*link);
-        head_meta = kvobjVmeta(head);
-        serverAssert(head_meta != NULL);
-    }
-
-    kvobj *stamped_head = head_meta ?
-        atomic_load_explicit(&head_meta->stamped_head, memory_order_acquire) :
-        NULL;
-
-    /* A timestamp does not exist yet: it is assigned only by the group's last
-     * stamp. Prepend to an unordered owner-local index instead. Readers select
-     * the greatest visible (commit_ts,version_order), and the one shared
-     * commit_ts release makes every indexed shard visible together. */
+    /* Installation already made kv the physical head and initialized its
+     * stamped_head from the predecessor's authoritative index. Publish that
+     * inherited chain through this new head while all of the allocation and
+     * predecessor lines are still hot. The former deferred stamp pass had to
+     * hash and probe the key again merely to rediscover this same head.
+     *
+     * A timestamp does not exist yet. Readers can observe this local index at
+     * any point, but skip kv while the one shared commit marker is zero. The
+     * last-owner acq_rel chain therefore remains the only cross-shard edge. */
+    serverAssert(!vmeta->detached);
+    kvobj *stamped_head = atomic_load_explicit(&vmeta->stamped_head,
+                                                memory_order_acquire);
     kvobjSetStampedPrev(kv, stamped_head);
     vmeta->stamp_state = TOMO_STAMP_APPLIED;
-    vmeta->version_reservation = 0;
-    vmeta->reservation_owner = NULL;
-
-    if (head_meta)
-        atomic_store_explicit(&head_meta->stamped_head, kv,
-                              memory_order_release);
+    atomic_store_explicit(&vmeta->stamped_head, kv, memory_order_release);
     /* origin_client_id is deliberately NOT cleared. A pipelined own read can
      * carry an older snapshot while this group transitions from installed to
      * stamped to committed; identity keeps that whole interval RYOW-safe. */
 }
 
-/* Canceled atomic-group versions are removed locally by their install owner. A
- * canceled version never receives a timestamp, so it remains invisible forever.
- * Live-bag cancellation arms the existing prune grace; a version whose bag
- * was already detached can enter the ordinary post-unlink retire grace. */
+/* Mark an eagerly indexed atomic version canceled. It never receives a
+ * timestamp, so the indexed entry remains invisible. The owner record (one
+ * payload for the whole local chain) already owns the first grace; keeping
+ * PRUNE_GRACE here prevents a newer callback from treating this canceled node
+ * as eligible before that grace has actually passed. */
 void tomoCancelVersion(kvobj *kv) {
     struct tomoVerMeta *vmeta = kvobjVmeta(kv);
     serverAssert(vmeta != NULL && vmeta->version_kvs != NULL);
-    serverAssert(vmeta->stamp_state == TOMO_STAMP_PENDING);
+    serverAssert(vmeta->stamp_state == TOMO_STAMP_APPLIED);
     serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
     serverAssert(atomic_load_explicit(&vmeta->owner_ops_pending,
-                                      memory_order_acquire) == 0);
+                                      memory_order_acquire) == 1);
     vmeta->stamp_state = TOMO_STAMP_CANCELED;
     vmeta->version_reservation = 0;
     vmeta->reservation_owner = NULL;
     /* origin_client_id stays: the field is write-once at install (see
      * tomoApplyVersionStamp). A canceled version is excluded from the own
-     * branch by version_canceled and never enters the stamped index, so
-     * the surviving identity is inert here. */
-    if (vmeta->detached) {
-        tomoSchedulePhysicalRetire(vmeta->version_kvs, kv);
-        return;
-    }
+     * branch by version_canceled; the zero marker also excludes the eagerly
+     * indexed node from every other reader. */
     serverAssert(vmeta->retire_state == TOMO_RETIRE_ACTIVE);
     vmeta->retire_state = TOMO_RETIRE_PRUNE_GRACE;
-    kvstoreFlatRetireVersionPrune(vmeta->version_kvs, kv, 0);
 }
 
 /* Publish the exact state licensed by the read fast path. The owner holds its
@@ -1312,17 +1290,22 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
         kv = next;
     }
 
-    /* Remove reclaimed members from the unordered stamped index. Physical
-     * retirement marks versioned members before this pass; a successful prune
-     * also retires the implicit-timestamp-zero raw tail. Survivor-link stores
-     * precede release publication of the repaired index head. */
-    if (!cancel_anchor) {
+    /* Stable-filter the unordered stamped index for both successful and
+     * canceled anchors. Versions are now indexed eagerly at install, while the
+     * shared zero marker keeps them invisible; cancellation must consequently
+     * remove its dead indexed nodes after the owner's common first grace. A
+     * canceled anchor cannot retire the raw predecessor, so retain that raw
+     * tail. A successful anchor did retire it above and drops it here. */
+    {
         kvobj *new_stamped_head = NULL, *stamped_previous = NULL;
         for (kv = stamped_head; kv; ) {
             struct tomoVerMeta *vmeta = kvobjVmeta(kv);
             kvobj *next = vmeta ? kvobjStampedPrev(kv) : NULL;
-            int survives = vmeta && !vmeta->detached &&
-                           vmeta->retire_state != TOMO_RETIRE_PHYSICAL;
+            int survives = vmeta ?
+                (vmeta->stamp_state == TOMO_STAMP_APPLIED &&
+                 !vmeta->detached &&
+                 vmeta->retire_state != TOMO_RETIRE_PHYSICAL) :
+                cancel_anchor;
             if (survives) {
                 if (!new_stamped_head) new_stamped_head = kv;
                 if (stamped_previous)

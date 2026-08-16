@@ -38,7 +38,7 @@ Parent: the 7 subsystem docs in `../` link down to these; the top-level `../../R
 - [`communication/crossnode-topology-table.md`](communication/crossnode-topology-table.md) — `cross_node[][]` and `cross_node_any`: cross-node producer/consumer topology tab
 - [`communication/migration-drain-fence.md`](communication/migration-drain-fence.md) — `migPushFenceIfNeeded` / `drain_ack` / `fence_acked` — migration cutover execu
 - [`communication/owner-lock.md`](communication/owner-lock.md) — `tomoWkrLock` / `tomoWkrTrylock` / `tomoWkrUnlock` / `tomoWkrLockPub` / `tomoWkr
-- [`communication/owner-local-publish.md`](communication/owner-local-publish.md) — owner-local stamp/cancel, last-owner marker publication, and post-marker retirement
+- [`communication/owner-local-publish.md`](communication/owner-local-publish.md) — eager owner-local indexing, last-owner marker publication, and owner-epoch retirement
 - [`communication/ring-push-pop.md`](communication/ring-push-pop.md) — `exQueuePush` / `exQueuePopBatch` / `exQueuePopOrdered` / `staged_tail` — batc
 
 ## algorithms

@@ -3,9 +3,10 @@
 ## Scope and guarantee
 
 With `tomokv-atomic` enabled, eligible cross-shard whole-value writes install one invisible version
-per key. Each install points to one shared `tomoCommit`. The owners publish their own stamped-index
-links independently, and the last owner to decrement `tomoCommit::shards_remaining` assigns the
-commit timestamp and release-stores it into that shared record.
+per key. Each install points to one shared `tomoCommit` and immediately publishes its stamped-index
+link from the allocating owner, while the new head and predecessor are already hot. The last owner
+to decrement `tomoCommit::shards_remaining` assigns the commit timestamp and release-stores it into
+that shared record.
 
 That one release store is the visibility event for the entire group. A reader ignores a stamped
 version while the shared marker is zero, so any number of owner-local publications can exist
@@ -39,9 +40,10 @@ not reserve the atomic window, load reclaim pressure, allocate a commit or owner
 MVCC clock, or enter owner-local publication.
 
 The existing `exThread::atomic_publish_pending` word is a rename of the former atomic-only pending
-word and does not move the worker layout. Owner-list heads are allocated lazily with the atomic
-lifecycle tables instead of being appended to `exThread`, preserving the tuned worker-array stride
-and off-mode allocation behavior. Retired client/group fields remain layout reserves.
+word and does not move the worker layout. Owner-list and logical-retire state is allocated lazily
+with the atomic lifecycle tables instead of being appended to `exThread`; its base and stride are
+cache-line aligned so different workers do not false-share it. This preserves the tuned worker-array
+stride and off-mode allocation behavior. Retired client/group fields remain layout reserves.
 
 Raw reads return before MVCC resolution. Existing version bags are still resolved if the setting is
 changed while admitted groups remain in flight.
@@ -75,8 +77,8 @@ serializes only this constant-time two-store publication interval; it is not a s
 | --- | --- |
 | `_Atomic uint64_t commit_ts` | Zero until the last successful owner publishes the single group marker. |
 | `_Atomic unsigned int refs` | One transient group reference plus version references, trimmed to the exact install count before deferred publication. |
-| `_Atomic unsigned int shards_remaining` | Distinct owner records that have not completed local stamp/cancel publication. |
-| `_Atomic size_t reclaim_bytes` | Owner-local byte totals, each folded once before its counter decrement. |
+| `_Atomic unsigned int shards_remaining` | Distinct owner records that have not completed eager index publication and terminal reservation/cancellation work. |
+| `_Atomic size_t reclaim_bytes` | Final group total, stored by the last owner after the existing counter chain acquires all owner records. |
 | `void *owner_records` | Commit-owned stable `csMsetOwner[]`; it outlives `csGroup` until all version references retire. |
 | `csGroup *group` | Valid through marker/no-op completion, then cleared before the reply can retire the group. |
 
@@ -93,8 +95,9 @@ and carries the record through these owner-private phases:
 
 - `NEW`: installs may still append;
 - `WAIT`: a strictly key-dependent group has not published its terminal decision;
-- `PRUNE`: local stamps are published and the record waits only for the shared marker;
-- `DONE`: retirement was armed or cancellation cleanup completed.
+- `PRUNE`: every local index link is published and the record waits only for the shared marker;
+- `RECLAIM`: one owner-epoch payload is waiting for its first grace/frontier;
+- `DONE`: the owner-epoch callback or empty-cancellation cleanup completed.
 
 The owner-private list heads live in a lazy atomic-only array indexed by worker ID. Only that worker
 mutates its element. The list is not a communication queue and has no capacity/backpressure path.
@@ -106,9 +109,9 @@ Relevant `tomoVerMeta` fields include the shared `commit`, physical `version_pre
 lifecycle identity, cancellation/retirement state, and `owner_next` for the local record chain.
 The retired embedded STAMP/PRUNE carriers are gone.
 
-`owner_ops_pending` remains a local lifetime guard: success uses `2 -> 1` when stamping and
-`1 -> 0` when retirement is armed; cancellation uses `1 -> 0`. It no longer counts queued
-cross-core operations.
+`owner_ops_pending` remains a local lifetime guard. Installation release-stores one after linking
+the version into its owner record; the owner-epoch callback release-stores zero immediately before
+local pruning. It no longer counts queued cross-core operations or requires a locked decrement.
 
 ## Install-to-publish protocol
 
@@ -119,23 +122,30 @@ allocates its shared commit, reserves a connection-global install-order range, a
 release-increments the real client's `mset_pending_count`.
 
 Each owner install prepends an invisible whole-value version to the physical chain, acquires its
-owner/bucket lifecycle reference, charges exact owner reclaim telemetry, attaches the shared
-commit, and appends the version to that owner's stable record. Registration precedes every owner
-queue publication.
+owner/bucket lifecycle reference, records its exact reclaim bytes, attaches the shared commit,
+appends the version to that owner's stable record, and release-publishes the new stamped-index head.
+The index entry is harmless until the common commit marker becomes nonzero. The predecessor index
+was inherited by the new head during allocation, so this needs no second hash/probe or chain search.
+
+Ordering within a group is record-local. Versions of one key necessarily have one owner, so that
+owner's append ordinal is sufficient for both duplicate-key tie-breaking and same-client install
+ordering. A terminal key-dependent decision sums the owner records once to obtain the exact install
+count; installs no longer contend on a group-wide per-key counter.
 
 ### 2. Ordinary MSET and DEL publish inline
 
 MSET and DEL are coalesced to one sub per distinct owner and their outcome is known before
 execution. While holding its ordinary worker lock, an owner:
 
-1. installs every key in its coalesced sub;
-2. walks only its record and release-publishes each stamped-index link;
-3. folds its local reclaim-byte total once;
-4. places the record on its private post-marker retirement list.
+1. installs every key and publishes each invisible index link in the allocation pass;
+2. folds its local reclaim-byte total once;
+3. places the record on its private post-marker list.
+
+There is no post-install record walk on this known-success path.
 
 After unlocking, it completes the normal group-pending decrement and then acquire-release
 decrements `shards_remaining`. A non-last owner immediately continues unrelated work. The counter
-RMW chain carries every local stamped-index release to the last owner, and the ordering after the
+RMW chain carries every eager local index release to the last owner, and the ordering after the
 normal pending decrement also proves the group cannot be returned to IO while a sub is live.
 
 ### 3. Strictly key-dependent shapes
@@ -145,19 +155,21 @@ owner waves. Their owner record enters `WAIT`. `csMsetInstallDone` performs the 
 trims the pre-reserved references, initializes `shards_remaining`, and release-publishes
 `INSTALL_READY`.
 
-Each worker revisits at most the private-list population seen at slice entry. An unready record is
-rotated once and the worker continues with normal work; it does not spin or drain to empty. Once
-the terminal decision is acquired, that owner stamps its local chain or cancels it under its own
-lock, folds bytes, and decrements the group counter. This deferred local revisit is used only where
-the command is strictly key-dependent.
+Each worker revisits at most the private-list population seen at slice entry. The runnable list has
+its own owner-local count; epochs already waiting in reclamation do not inflate that budget. An
+unready record is therefore rotated once and the worker continues with normal work, even if an old
+snapshot is retaining thousands of prior epochs. Once the terminal decision is acquired, success
+only clears reservation side effects, while cancellation marks the already-indexed zero-marker
+entries. The owner then folds bytes and decrements the group counter. This deferred local revisit is
+used only where the command is strictly key-dependent.
 
 ### 4. Last owner and reply
 
 The owner whose counter decrement observes one is the last local publisher. On success it advances
 the encoded clock and stores the shared marker. On cancellation it publishes no timestamp. It then
-performs only O(1) group work:
+performs no per-key work; only the distinct-owner byte fold is variable:
 
-1. publishes the group reclaim charge;
+1. sums the acquired owner-record byte totals and publishes one group reclaim charge;
 2. seals reshard lifecycle accounting;
 3. release-stores `FINAL_READY`;
 4. detaches the commit-owned owner array from `csGroup`;
@@ -187,35 +199,54 @@ introduced.
 
 ## Retirement and backpressure
 
-A successful record remains on its owner's private list after stamping. At the start of a worker
-slice, `csOwnerPublishStep` freezes the currently published clock and arms retirement only for
-records whose marker is nonzero and at most that frozen frontier. Markers created during the pass
-remain for the next pass. This preserves nondecreasing eligibility timestamps for the existing O(1)
-FLAT FIFO frontier caches without sorting.
+A successful record remains on its owner's private list after installation. At the start of a
+worker slice, `csOwnerPublishStep` freezes the currently published clock and moves only records whose
+marker is nonzero and at most that frozen frontier. Markers created during the pass remain for the
+next pass, preserving nondecreasing batch eligibility without sorting.
 
-`tomoArmVersionRetire` starts the existing marker-plus-snapshot-frontier QSBR path. A completed
-grace removes only versions below the anchor's `(commit_ts, version_order)`. Physical free occurs
-after a second grace, at which point the lifecycle reference, exact owner charge, and commit
-reference are released. Detached predecessors remain pinned by `owner_ops_pending` until their
-owner-local maintenance reaches them.
+The entire owner record is then represented by one recycled retire node, rather than one node per
+version. Successful records enter an owner-private logical FIFO whose batch carries the maximum
+commit timestamp. Once its physical grace and the existing snapshot frontier both pass, one batch
+scope takes the owner lock and locally prunes every record chain. Cancellation needs no logical
+frontier and goes through the ordinary physical-grace lane, so it cannot queue behind an unrelated
+old snapshot. Unlinked values still wait the mandatory second physical grace.
 
-Each owner folds its byte total once into `tomoCommit::reclaim_bytes`; the last owner performs the
-single global pool charge. The conservative charge remains until the final version metadata loses
-its commit reference. `tomokv-atomic-reclaim-limit` continues to gate only new writers and remains
-the memory-safety backstop.
+The logical FIFO is deliberately separate from ordinary/post-unlink batches. Previously a mixed
+batch's maximum `eligible_ts` let one old snapshot convoy already-safe physical frees, amplifying
+allocator/reclaim latency and RSS. Splitting the lanes fixes that cheap coupling while retaining the
+bounded frontier-gates-retirement design. When both lanes close in one worker pass, their headers
+share one physical grace target and one global close RMW. A genuinely old atomic-read snapshot must still retain the
+successful versions it can observe; if those versions reach `tomokv-atomic-reclaim-limit`, new
+atomic writers remain backpressured by design rather than allowing unbounded memory.
+
+Each owner publishes its already-summed bytes to its cache-line-isolated worker slot once. The last
+owner's existing acquire-release counter chain makes all contiguous owner records readable; it sums
+them and performs the single global pool charge. The conservative charge remains until the final
+version metadata loses its commit reference.
+
+INFO separates the remaining tail causes:
+
+- `tomokv_atomic_prune_qsbr_wait_passes` counts logical heads whose physical grace is waiting on a
+  reader/worker QSBR participant;
+- `tomokv_atomic_prune_snapshot_wait_passes` counts physically safe heads held by an old MVCC
+  snapshot;
+- `tomokv_atomic_prune_node_allocs` and `tomokv_atomic_prune_batch_allocs`, compared with
+  `tomokv_atomic_owner_epochs_queued`, expose misses in the recycled node/header pools;
+- `tomokv_atomic_owner_pending{,_max}` and the existing reclaim pressure/stall counters show whether
+  retention is reaching admission backpressure.
 
 ## Memory-order summary
 
 | Edge | Ordering and guarantee |
 | --- | --- |
 | Install metadata / local chain | Owner lock plus release attachment of the shared commit pointer. |
-| Local stamped index | Owner release publication; reader acquire traversal. |
+| Local stamped index | Eager install-side release publication; reader acquire traversal. |
 | All owners to last owner | Acquire-release `shards_remaining` RMW modification-order chain. |
 | Group visibility | One release store to shared `commit_ts`; readers acquire it through resolution/clock ordering. |
 | Snapshot cut | Final commit-clock release; reader's single acquire sample. |
-| Terminal decision | `INSTALL_READY` release; key-dependent owners acquire before stamp/cancel. |
+| Terminal decision | `INSTALL_READY` release; key-dependent owners acquire before reservation effects or cancellation marking. |
 | Reply | CDB release and notifier post after marker/no-op completion and lifecycle sealing. |
-| Retirement | Marker at or below frozen frontier plus QSBR grace, using existing O(1) cached frontiers. |
+| Retirement | One owner-epoch node; successful epochs require marker/frontier plus QSBR, canceled epochs QSBR only. |
 
 ## Core invariants
 
@@ -227,7 +258,8 @@ the memory-safety backstop.
 6. The single marker release makes every group member visible together.
 7. Readers never wait; marker zero selects the predecessor and marker above `T` is excluded.
 8. Reply publication follows the marker and visible-clock release, preserving next-read RYOW.
-9. Retirement starts only after the marker and completes only after QSBR grace.
+9. Successful retirement starts only after the marker; cancellation remains marker-zero. Both
+   complete only after QSBR grace, and physical free still requires the post-unlink grace.
 10. Reassembly remains the exactly-once atomic-admission retirement point.
 11. OFF mode enters none of the atomic allocation, publication, snapshot, or completion machinery.
 

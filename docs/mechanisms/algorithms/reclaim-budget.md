@@ -64,8 +64,13 @@ batches this pass just closed. The steady-state arithmetic: once a backlog is re
 `closed` per pass while reclaim removes `2*closed + 4`, so the backlog shrinks by `closed + 4` per
 pass (`src/server.c:9080-9082`).
 
-- **Worker path**: closes at most one batch per pass, so `closed ∈ {0, 1}` ⇒ budget **4** (no close)
-  or **6** (one close) (`src/server.c:9114-9128`).
+- **Worker physical path**: closes at most one ordinary/post-unlink batch per pass, so
+  `closed ∈ {0, 1}` gives budget **4** or **6**.
+- **Worker logical path**: independently closes at most one successful owner-epoch batch and gets
+  its own budget **4** or **6**. Separate budgets let a ready physical prefix drain even when the
+  logical FIFO head is snapshot-blocked; both remain bounded by the same production-derived rule.
+  If both lanes close in one pass, their headers share one physical grace target and a single
+  `flat_batches_closed_n` RMW adds two, so the lane split does not double close serialization.
 - **Main path**: `closed` = the number of table stacks it closed during the scan; one budget covers
   the whole nested table walk (`src/server.c:9197-9211`).
 
@@ -107,14 +112,16 @@ never-needed surplus) nodes to the allocator and re-arms the mark. `exSlice` cal
 passes (`src/server.c:21812-21815`). This eliminates the malloc/free pair per overwrite that was the
 flat-vs-dict allocator delta (`src/flatstore.c:134-156`).
 
-Payload dispatch (`src/flatstore.c:43-52`) branches on two high tag bits carried in the record
-pointer (`FLAT_RETIRE_SPECIAL_BIT` = `1<<63`, `FLAT_RETIRE_VMETA_BIT` = `1<<62`,
-`src/flatstore.c:28-30`):
+Payload dispatch branches on high tag bits carried in the retire-list pointer: the common special
+bit plus metadata, atomic-object reclaim, or owner-epoch subtype bits. The underlying allocations
+fit below those reserved bits. (`src/flatstore.c`)
 
 ```c
-if (!(p & SPECIAL_BIT))      decrRefCount(dictGetKV(payload));                 /* ordinary value */
-else if (p & VMETA_BIT)      zfree(flatRetireSpecialPayload(payload));         /* detached vmeta */
-else                         tomoVersionPruneAfterGrace(payload);              /* version-prune cb */
+if (!(p & SPECIAL_BIT))      decrRefCount(dictGetKV(payload));          /* ordinary value */
+else if (p & RECLAIM_BIT)    release_accounting_and_object(payload);   /* atomic object */
+else if (p & VMETA_BIT)      release_commit_and_vmeta(payload);        /* detached vmeta */
+else if (p & OWNER_BIT)      tomoVersionPruneOwnerAfterGrace(payload); /* owner epoch */
+else                         tomoVersionPruneAfterGrace(payload);      /* legacy single anchor */
 ```
 
 ## Worker reclaim pass (`src/server.c:9113-9132`)
@@ -159,37 +166,29 @@ it is still table-reachable, then the ordinary post-unlink grace. States are
 `tomoRetireState { TOMO_RETIRE_ACTIVE=0, TOMO_RETIRE_PRUNE_GRACE=1, TOMO_RETIRE_PHYSICAL=2 }`
 (`src/object.h:123-127`), carried in `tomoVerMeta.retire_state` (`uint8_t`, `src/object.h:151`).
 
-### Grace 1 — arm (`src/db.c:1089-1105`)
+### Grace 1 — owner epoch
 
-`tomoArmVersionRetire(kv, seq)` asserts vmeta+kvstore exist, stamp is `APPLIED`, the object's seq
-equals `seq` and `<= tomoCommittedSeq()`, and `owner_ops_pending == 0`. Then:
+Each installed version is eagerly inserted into its owner-local stamped index while the shared
+commit marker is zero and is held by `owner_ops_pending == 1`. Once a successful group's marker is
+published, `csMsetOwnerQueuePrune` allocates or recycles **one** tagged retire node for the complete
+`csMsetOwner` chain. It appends that node to a separate owner-private logical lane and aggregates the
+record's commit timestamp into the lane's next batch. Cancellation uses the same owner payload but
+the ordinary physical lane because a zero-marker canceled version has no snapshot eligibility
+requirement. (`src/server.c`, `src/flatstore.c`)
 
-```c
-if (vmeta->detached) {                                   /* already table-unlinked */
-    if (vmeta->retire_state == TOMO_RETIRE_ACTIVE)
-        tomoSchedulePhysicalRetire(vmeta->version_kvs, kv);  /* skip grace 1 */
-    return;
-}
-serverAssert(vmeta->retire_state == TOMO_RETIRE_ACTIVE);
-vmeta->retire_state = TOMO_RETIRE_PRUNE_GRACE;           /* -> PRUNE_GRACE */
-kvstoreFlatRetireVersionPrune(vmeta->version_kvs, kv);   /* tagged prune record */
-tomoPublishSingleCommitted(kv, vmeta);
-```
-
-`kvstoreFlatRetireVersionPrune` enqueues a **tagged** record (`FLAT_RETIRE_SPECIAL_BIT`, no vmeta
-bit) via `flatRetireVersionPrune` (`src/kvstore.c:91-94`, `src/flatstore.c:191-193`). When that
-record's batch becomes ready, dispatch calls `tomoVersionPruneAfterGrace` **instead of freeing the
-anchor** (`src/flatstore.c:50`).
+The next worker pass closes each nonempty lane independently. A successful owner batch is ready only
+when both its scalar physical grace and scalar MVCC snapshot frontier pass. An old snapshot therefore
+stops the logical FIFO but no longer stops ordinary/post-unlink frees. (`src/server.c`)
 
 ### The prune callback (`src/db.c:1134-1405`)
 
-Runs under the executing worker's lock with `in_flat_section` published; unlinks eligible versions
-below the frontier by release predecessor stores and passes each to `tomoSchedulePhysicalRetire`
-(this is the frontier walk; details in the QSBR subsystem map). The callback creates **ordinary**
-raw retire records, which — because `flatWorkerReclaim` already closed and cleared the local list
-before draining — land in the now-empty local list and are snapshotted on a **later** worker pass, so
-they cannot be freed in the same batch that invoked the callback (`src/db.c:1233-1243`,
-`src/server.c:9113-9131`).
+`flatBatchFree` opens the executing worker's lock/flat section once for a prune batch.
+`tomoVersionPruneOwnerAfterGrace` walks each stable owner record, drops the local lifetime guard,
+and invokes `tomoVersionPruneAfterGrace` for its keys. That callback unlinks eligible versions below
+the frontier by release predecessor stores and passes each to `tomoSchedulePhysicalRetire` (the
+frontier walk is detailed in the QSBR subsystem map). Callback-created **ordinary** raw retire
+records land in the already-cleared physical list and are snapshotted on a later worker pass, so they
+cannot be freed in the batch that invoked the callback. (`src/server.c`, `src/db.c`)
 
 ### Grace 2 — schedule physical (`src/db.c:927-942`)
 
@@ -224,6 +223,9 @@ new graces (`src/flatstore.c` unlink already provided the pre-condition).
 
 - The retire hot path is atomic-free on workers (worker-private local list) and a release-CAS Treiber
   push only on non-worker threads (`src/flatstore.c:168-185`).
+- Successful logical-prune batches and allocator-facing physical batches have independent FIFOs;
+  a pinned snapshot cannot stop the physical FIFO. Canceled owner epochs use the physical FIFO.
+- One retire node represents one owner epoch, not one key/version.
 - FIFO mutation is oldest-first; a drain never walks past the first non-ready batch
   (`src/server.c:9089-9105`).
 - Budget is `2*closed + 4` (or 0 on overflow); reclaim throughput exceeds production once a backlog

@@ -42,7 +42,7 @@ echo "--- IO->EX dispatch ring ---"
 # Producer and consumer indices must live on DIFFERENT lines. If they share, every push invalidates
 # the consumer's line and vice versa -- the classic ping-pong that worsens with thread count.
 chk "exQueue head/tail are cache-line separated"         "$C" 'aligned\(CACHE_LINE_SIZE\)|CACHE_LINE_SIZE\]'
-chk "commit_seq is on its own padded line"               "$C" 'commit_seq_line __attribute__\(\(aligned\(CACHE_LINE_SIZE\)\)\)'
+chk "commit clock is on its own padded line"             "$C" 'commit_clock_line __attribute__\(\(aligned\(CACHE_LINE_SIZE\)\)\)'
 chk "atomic inflight counter is line-isolated"           "$C" 'tomo_atomic_inflight_line __attribute__'
 
 echo

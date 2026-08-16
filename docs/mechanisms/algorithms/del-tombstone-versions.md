@@ -184,16 +184,15 @@ release the lifecycle reference.
 A non-versioned overwrite/delete removes the whole bag from the table in one store;
 `tomoRetireDetachedBag` marks every member `detached = 1` and schedules physical
 retirement for committed/canceled members with no pending owner ops
-(`src/db.c:1108-1132`). A detached tombstone/terminal version goes **directly** to
-physical retirement instead of arming a live-bag prune grace: `tomoCancelVersion` and
-`tomoArmVersionRetire` both branch on `vmeta->detached` to `tomoSchedulePhysicalRetire`
-(`src/db.c:1042-1044`, `1097-1101`).
+(`src/db.c`). A member still protected by its owner epoch remains allocated. When that
+epoch's already-armed first grace completes, its callback observes `detached` and sends
+the member directly to post-unlink physical grace without another live-bag walk.
 
 ## 7. Memory orderings
 
 | Load/store | Order | Site |
 | --- | --- | --- |
-| `version_tombstone` | plain (set before the owner's local stamp publication) | `src/server.c` |
+| `version_tombstone` | plain (set before the eager owner-local index publication) | `src/server.c` |
 | shared `commit_ts` probe | acquire | `src/object.h`, `src/server.c` |
 | current command timestamp | acquire clock load | `src/server.c` |
 | `owner_ops_pending` (census/eligibility) | acquire | `src/db.c` |

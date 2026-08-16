@@ -7,8 +7,9 @@ table always points at the newest physical install. Existing nodes are not moved
 install.
 
 Each physical head also carries `stamped_head`, the head of an owner-local unordered index linked by
-`stamped_prev`. A new physical head inherits the current index. STAMP prepends its version to that
-index before the group has a commit timestamp. CANCEL never enters it.
+`stamped_prev`. A new physical head inherits the current index and immediately prepends itself while
+the group still has a zero commit marker. A later cancellation marks that already-indexed entry;
+readers skip it because its shared marker never becomes nonzero.
 
 The chains have different jobs:
 
@@ -21,7 +22,7 @@ retirement keeps the transient population bounded.
 ## Shared commit record
 
 Every version in one write group release-points at the same `tomoCommit`. `commit_ts == 0` makes all
-of them normally invisible. The last owner stamp release-stores one nonzero timestamp, atomically
+of them normally invisible. The last owner release-stores one nonzero timestamp, atomically
 changing the visibility predicate for the whole group.
 
 The commit record has one reference per version plus a transient group reference. The version
@@ -29,14 +30,18 @@ reference remains until object or metadata retirement has passed the relevant QS
 
 ## Local prune
 
-After commit publication, each owner's private post-marker pass arms a grace callback for its versions. The callback's own
-rank is its local retirement boundary: after that grace, it may stable-filter physical versions
-with lower `(commit_ts, version_order)` ranks and the raw rank zero. It never consults a global
-visibility cursor and never removes a zero-timestamp or higher-rank version.
+After commit publication, each owner's complete record becomes one tagged epoch payload in a
+private logical-retire FIFO. After the batch's physical grace and snapshot frontier pass, one owner
+lock scope walks the stable record. Each version callback's rank is its local retirement boundary:
+it may stable-filter physical versions with lower `(commit_ts, version_order)` ranks and the raw
+rank zero. It never consults a global visibility cursor and never removes a pending zero-timestamp
+or higher-rank physical version.
 
-Canceled versions are removable only after their own cancellation grace. A lower committed version
+Canceled versions use an owner-epoch physical grace without the snapshot frontier and are removable
+only after that grace. A lower committed version
 whose owner-local retirement is still pending can be unlinked after the successor's grace, but is
-marked `detached` instead of physically retired. Its owner's later pass schedules post-unlink grace.
+marked `detached` instead of physically retired. Its owner's later epoch callback schedules
+post-unlink grace.
 
 The callback filters `stamped_prev` to the same live set and release-publishes the repaired index
 through the surviving physical head. If the table head changes, whole-key expiration and hash-field

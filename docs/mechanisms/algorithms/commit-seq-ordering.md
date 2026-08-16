@@ -2,10 +2,10 @@
 
 ## Purpose
 
-Atomic groups install invisible versions first. Each distinct owner publishes only its local
-stamped-index links and acquire-release decrements `tomoCommit::shards_remaining`. A non-last owner
-returns immediately. The last owner assigns the timestamp, so an incomplete group is absent from
-commit ordering and cannot convoy unrelated work.
+Atomic groups eagerly index invisible versions during installation. Each distinct owner completes
+only its local reservation/cancellation work and acquire-release decrements
+`tomoCommit::shards_remaining`. A non-last owner returns immediately. The last owner assigns the
+timestamp, so an incomplete group is absent from commit ordering and cannot convoy unrelated work.
 
 There is no global completion drain, ready-group MPSC, elected publisher, admission ticket, or
 incomplete-group frontier.
@@ -29,26 +29,26 @@ After the counter RMW chain has acquired every owner-local publication, the last
 3. release-stores `2*(T+1)` into the clock.
 
 A reader sampling before step 3 receives old `T` and excludes the group. A reader sampling after
-step 3 acquires every prior local stamp and can include the group. The writer latch serializes only
+step 3 acquires every prior local index publication and can include the group. The writer latch serializes only
 this constant-time marker/clock publication interval; it never waits for a shard.
 
 ## Completion
 
 `csMsetOwnerPublished` performs the per-owner counter decrement. The last owner calls
-`tomoCommitClockAdvance`, then `csMsetGroupComplete` directly. Completion is O(1): it publishes the
-pooled reclaim charge, seals lifecycle accounting, marks the group final, detaches the commit-owned
-owner records, releases the client's pending count, and publishes/posts the existing CDB completion
-edge to the origin IO thread.
+`tomoCommitClockAdvance`, then `csMsetGroupComplete` directly. Completion does no key work: it folds
+the bounded owner-record byte totals, publishes the pooled reclaim charge, seals lifecycle
+accounting, marks the group final, detaches the commit-owned owner records, releases the client's
+pending count, and publishes/posts the existing CDB completion edge to the origin IO thread.
 
 Owner records already live on their workers' private post-marker lists. Completion neither walks
-keys nor pushes retirement jobs. Each worker later arms its own retirement when the marker falls at
-or below that slice's frozen published frontier.
+keys nor pushes retirement jobs. Each worker later puts one complete owner epoch into its logical
+retire FIFO when the marker falls at or below that slice's frozen published frontier.
 
 ## Ordering ledger
 
 | Edge | Ordering |
 | --- | --- |
-| Owner stamped links to group counter | Local release publication before an acquire-release counter decrement. |
+| Owner index links to group counter | Eager local release publication before an acquire-release counter decrement. |
 | All owners to last owner | Modification-order chain on `shards_remaining`. |
 | Last owner to shared visibility | Clock CAS, shared `commit_ts` release, final clock release. |
 | Shared visibility to reader cut | Reader acquire-loads the encoded clock; marker resolution excludes zero or values above its cut. |
@@ -58,7 +58,7 @@ or below that slice's frozen published frontier.
 ## Invariants
 
 - No timestamp is reserved at admission.
-- `commit_ts` remains zero until every owner-local stamp has landed.
+- `commit_ts` remains zero until every eager owner-local index publish and terminal owner decision has landed.
 - One shared release store flips visibility for the whole group.
 - A non-own reader never accepts a timestamp above its one sampled `T`.
 - Non-last owners do not spin, drain, enqueue completion, or wait.
