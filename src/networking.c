@@ -444,13 +444,11 @@ client *promoteFakeClient(client *c) {
     return full;
 }
 
-/* ee451 (v11): per-IO-thread pool of recyclable fake clients for the CROSS-SHARD SUB path.
- * A cross-shard command creates one sub fake PER KEY and frees them at reassembly — all on the
- * SAME IO thread (dispatch + drain run on the owning IO thread), so a per-iotid freelist needs no
- * locking. Without pooling, each sub did zmalloc(client) + a 16KB reply buffer + a reply list per
- * key per call (then freed) — dominating small-MGET/MSET cost and making cross-shard slower than
- * vanilla UNDER PIPELINE. The pool caches the struct + buffer + reply list across calls. Scoped to
- * cross-shard subs only; sentinels/fence keep the plain create/free path (they can free off-thread). */
+/* ee451 (v11): per-origin-IO pool of recyclable fake clients for the CROSS-SHARD SUB path.
+ * In 2-stage mode dispatch and retirement stay on that IO owner and retain the original local
+ * LIFO. With WB enabled, the sticky WB returns the cleaned object through a bounded MPSC stack to
+ * the IO identity stamped in c->tid; that IO remains the sole local-pool consumer. Scoped to
+ * cross-shard subs only; sentinels/fence keep the plain create/free path. */
 #define XSUB_POOL_CAP 96
 static client *xsubPool[TOMO_IO_THREADS_MAX + 1][XSUB_POOL_CAP];
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
@@ -458,6 +456,56 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     char pad[CACHE_LINE_SIZE - sizeof(int)];
 } ioLocalPoolCount;
 static ioLocalPoolCount xsubPoolN[TOMO_IO_THREADS_MAX + 1];
+
+typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
+    _Atomic(client *) head;
+    _Atomic unsigned int reserved;
+    char pad[CACHE_LINE_SIZE - sizeof(_Atomic(client *)) - sizeof(_Atomic unsigned int)];
+} xsubReturnPool;
+_Static_assert(sizeof(xsubReturnPool) == CACHE_LINE_SIZE,
+               "cross-shard return pool must occupy one cache line");
+/* WB is optional in the unified binary.  Keep the cross-thread return tier on the heap so
+ * tomokv-thread-wb=0 has neither an allocation nor resident WB-only pool pages. */
+static xsubReturnPool *xsubReturns;
+
+static int xsubReturnReserve(int owner) {
+    unsigned int n = atomic_load_explicit(&xsubReturns[owner].reserved,
+                                           memory_order_relaxed);
+    while (n < XSUB_POOL_CAP) {
+        if (atomic_compare_exchange_weak_explicit(&xsubReturns[owner].reserved, &n, n + 1,
+                                                   memory_order_relaxed,
+                                                   memory_order_relaxed))
+            return 1;
+    }
+    return 0;
+}
+
+static void xsubReturnPushReserved(int owner, client *c) {
+    client *head = atomic_load_explicit(&xsubReturns[owner].head, memory_order_relaxed);
+    do {
+        c->parent = head; /* pool-only intrusive link; resetFakeClientState restores the parent */
+    } while (!atomic_compare_exchange_weak_explicit(&xsubReturns[owner].head, &head, c,
+                                                     memory_order_release,
+                                                     memory_order_relaxed));
+}
+
+static void xsubReturnDrain(int owner) {
+    client *c = atomic_exchange_explicit(&xsubReturns[owner].head, NULL,
+                                          memory_order_acquire);
+    unsigned int n = 0;
+    while (c) {
+        client *next = c->parent;
+        serverAssert(xsubPoolN[owner].n < XSUB_POOL_CAP);
+        xsubPool[owner][xsubPoolN[owner].n++] = c;
+        c = next;
+        n++;
+    }
+    if (n) {
+        unsigned int before = atomic_fetch_sub_explicit(&xsubReturns[owner].reserved, n,
+                                                         memory_order_relaxed);
+        serverAssert(before >= n);
+    }
+}
 
 /* 2s-auto D1: is this fake's buffer poolable? Any demand-grown width within [START,MAX] is
  * reusable. (The exact-size tests for the fixed/legacy fake-buf modes went with the knob.) */
@@ -467,6 +515,9 @@ static inline int isFakeBufPoolable(client *c) {
 
 client *createPooledFakeClient(client *parent) {
     int t = iotid;
+    if (server.wb_threads > 0 &&
+        t >= 0 && t <= TOMO_IO_THREADS_MAX && xsubPoolN[t].n == 0)
+        xsubReturnDrain(t);
     if (t >= 0 && t <= TOMO_IO_THREADS_MAX && xsubPoolN[t].n > 0) {
         client *c = xsubPool[t][--xsubPoolN[t].n];
         /* c->buf valid (size in c->buf_usable_size), c->reply an empty list with methods set
@@ -478,10 +529,22 @@ client *createPooledFakeClient(client *parent) {
 }
 
 void freePooledFakeClient(client *c) {
-    int t = iotid;
+    int owner, local, remote;
+    if (__builtin_expect(server.wb_threads == 0, 1)) {
+        owner = iotid;
+        local = owner >= 0 && owner <= TOMO_IO_THREADS_MAX &&
+                xsubPoolN[owner].n < XSUB_POOL_CAP;
+        remote = 0;
+    } else {
+        owner = c->tid;
+        local = owner >= 0 && owner <= TOMO_IO_THREADS_MAX && iotid == owner &&
+                xsubPoolN[owner].n < XSUB_POOL_CAP;
+        remote = owner >= 0 && owner <= TOMO_IO_THREADS_MAX && !local &&
+                 xsubReturnReserve(owner);
+    }
     /* Pool only standard-sized fakes whose buffer wasn't grown. Reclaim the per-call heap that
      * freeFakeClient would free, but KEEP the struct + buf + reply-list object for reuse. */
-    if (t >= 0 && t <= TOMO_IO_THREADS_MAX && xsubPoolN[t].n < XSUB_POOL_CAP &&
+    if ((local || remote) &&
         c->buf && c->reply && isFakeBufPoolable(c)) {
         if (clientTail(c)->querybuf) { sdsfree(clientTail(c)->querybuf); clientTail(c)->querybuf = NULL; }
         releaseAllBufReferences(c);
@@ -496,8 +559,16 @@ void freePooledFakeClient(client *c) {
         reqresReset(c, 1);
 #endif
         serverAssert(c->all_argv_len_sum == 0 && c->pending_cmds.len == 0);
-        xsubPool[t][xsubPoolN[t].n++] = c;
+        if (local)
+            xsubPool[owner][xsubPoolN[owner].n++] = c;
+        else
+            xsubReturnPushReserved(owner, c);
         return;
+    }
+    if (remote) {
+        unsigned int before = atomic_fetch_sub_explicit(&xsubReturns[owner].reserved, 1,
+                                                         memory_order_relaxed);
+        serverAssert(before > 0);
     }
     freeFakeClient(c);
 }
@@ -609,7 +680,13 @@ client *createClient(connection *conn) {
     clientTail(c)->io_last_client_cron = 0;
     clientTail(c)->last_memory_usage = 0;
     clientTail(c)->last_memory_type = CLIENT_TYPE_NORMAL;
-    listInitNode(&clientTail(c)->clients_pending_ex_node, c);
+    /* These bytes are boot-mode exclusive. Preserve the legacy intrusive-node
+     * initialization exactly in 2-stage mode; WB mode initializes only its
+     * pointer view before the sidecar assignment below. */
+    if (__builtin_expect(server.wb_threads == 0, 1))
+        listInitNode(&clientTail(c)->clients_pending_ex_node, c);
+    else
+        clientTail(c)->wb = NULL;
     listInitNode(&clientTail(c)->clients_pending_write_node, c);
     listInitNode(&clientTail(c)->pending_ref_reply_node, c);
     c->net_input_bytes_curr_cmd = 0;
@@ -693,29 +770,29 @@ client *createClient(connection *conn) {
     clientTail(c)->fake_ring_hwm_ewma   = 0.0;
     clientTail(c)->fake_ring_hwm_win    = 0;
 
+    if (conn && server.wb_threads > 0) tomoWbAssignClient(c);
+
     return c;
 }
 
 void installClientWriteHandler(client *c) {
-    if (server.io_uring && tomoUringBackendClientAttached(c) &&
-        tomoUringBackendClientQueueWrite(c) == C_OK) {
-        connSetWriteHandler(c->conn, NULL);
+    if (__builtin_expect(server.wb_threads == 0, 1)) {
+        if (server.io_uring && tomoUringBackendClientAttached(c) &&
+            tomoUringBackendClientQueueWrite(c) == C_OK) {
+            connSetWriteHandler(c->conn, NULL);
+            return;
+        }
+        int ae_barrier = 0;
+        if (server.aof_state == AOF_ON &&
+            server.aof_fsync == AOF_FSYNC_ALWAYS)
+            ae_barrier = 1;
+        if (connSetWriteHandlerWithBarrier(c->conn, sendReplyToClient, ae_barrier) == C_ERR)
+            freeClientAsync(c);
         return;
     }
-    int ae_barrier = 0;
-    /* For the fsync=always policy, we want that a given FD is never
-     * served for reading and writing in the same event loop iteration,
-     * so that in the middle of receiving the query, and serving it
-     * to the client, we'll call beforeSleep() that will do the
-     * actual fsync of AOF to disk. the write barrier ensures that. */
-    if (server.aof_state == AOF_ON &&
-        server.aof_fsync == AOF_FSYNC_ALWAYS)
-    {
-        ae_barrier = 1;
-    }
-    if (connSetWriteHandlerWithBarrier(c->conn, sendReplyToClient, ae_barrier) == C_ERR) {
-        freeClientAsync(c);
-    }
+    /* With WB enabled, IO's pending-write list is a pointer-only handoff queue. WB owns the
+     * actual write readiness registration on its event loop. */
+    if (!tomoWbInThread()) putClientInPendingWriteQueue(c);
 }
 
 /* This function puts the client in the queue of clients that should write
@@ -726,6 +803,9 @@ void installClientWriteHandler(client *c) {
  * If we fail and there is more data to write, compared to what the socket
  * buffers can hold, then we'll really install the handler. */
 void putClientInPendingWriteQueue(client *c) {
+    /* WB owns the socket in three-stage mode. While WB is assembling a reply it will attempt the
+     * send itself; enqueuing into an IO-owned pending list here would violate that ownership. */
+    if (server.wb_threads > 0 && tomoWbInThread()) return;
     /* Schedule the client to write the output buffers to the socket only
      * if not already done and, for slaves, if the slave can actually receive
      * writes at this stage. */
@@ -770,16 +850,18 @@ static inline int _prepareClientToWrite(client *c) {
 
     if (unlikely(!c->conn)) return C_ERR; /* Fake client for AOF loading. */
 
-    /* Schedule the client to write the output buffers to the socket, unless
-     * it should already be setup to do so (it has already pending data).
-     *
-     * If the client runs in an IO thread, we should not put the client in the
-     * pending write queue. Instead, we will install the write handler to the
-     * corresponding IO thread’s event loop and let it handle the reply. */
+    /* A dispatched fake owns private reply storage and has no socket handler. Its completion
+     * publication hands it to the boot-selected ordered drain owner (IO or sticky WB). */
     if (_flags & CLIENT_EX_PENDING) return C_OK;
 
-    if (likely(c->running_tid == IOTHREAD_MAIN_THREAD_ID) && !clientHasPendingReplies(c))
-        putClientInPendingWriteQueue(c);
+    if (__builtin_expect(server.wb_threads == 0, 1)) {
+        if (likely(c->running_tid == IOTHREAD_MAIN_THREAD_ID) &&
+            !clientHasPendingReplies(c))
+            putClientInPendingWriteQueue(c);
+    } else {
+        /* This IO-owned list is only a construction-fenced handoff queue. */
+        if (!clientHasPendingReplies(c)) putClientInPendingWriteQueue(c);
+    }
 
     /* Authorize the caller to queue in the output buffer of this client. */
     return C_OK;
@@ -1003,9 +1085,12 @@ static inline int clientIsInPendingRefReplyList(client *c) {
      * in the worker range, so the listFirst([iotid]) clause below would read out
      * of bounds. Returning false for fakes keeps this and the unlink path safe. */
     if (c->isFake) return 0;
+    int owner = server.wb_threads > 0 ? c->tid : iotid;
+    serverAssert(owner >= 0 && owner <= TOMO_IO_THREADS_MAX);
     return listNextNode(&clientTail(c)->pending_ref_reply_node) != NULL ||
            listPrevNode(&clientTail(c)->pending_ref_reply_node) != NULL ||
-           listFirst(server.clients_with_pending_ref_reply[iotid]) == &clientTail(c)->pending_ref_reply_node;
+           listFirst(server.clients_with_pending_ref_reply[owner]) ==
+               &clientTail(c)->pending_ref_reply_node;
 }
 
 /* Increment reference to object and add pointer to object and
@@ -1059,7 +1144,9 @@ static void _addBulkStrRefToBufferOrList(client *c, robj *obj, size_t len) {
      * is held alive by the +1 ref taken above and released on the owning worker
      * via the free-back ring, so a concurrent flushdb can't free it early. */
     if (str_ref.owner_ex < 0 && !clientIsInPendingRefReplyList(c)) {
-        listLinkNodeTail(server.clients_with_pending_ref_reply[iotid], &clientTail(c)->pending_ref_reply_node);
+        int owner = server.wb_threads > 0 ? c->tid : iotid;
+        listLinkNodeTail(server.clients_with_pending_ref_reply[owner],
+                         &clientTail(c)->pending_ref_reply_node);
     }
 }
 
@@ -1759,11 +1846,10 @@ static int isCopyAvoidPreferred(client *c, robj *obj, size_t len) {
      * routed back to the owning worker via the free-back ring (no cross-thread
      * refcount race). For such fakes we skip the normal-client-only checks
      * (getClientType / PUSHING) — they execute single-key string reads.
-     * ee451 (v8): zero-copy is now VALUE-SIZE gated. zerocopy_min_value==0 disables it
-     * entirely; otherwise a worker fake uses copy-avoidance only when the value is at least
-     * zerocopy_min_value bytes — copy avoidance pays on large values (the saved memcpy beats
-     * the refcount + free-back overhead; +20-24% at 16-64KB) and is neutral below ~1KB. */
-    int zc_on = (server.zerocopy_min_value > 0 && len >= (size_t)server.zerocopy_min_value);
+     * Zero-copy is VALUE-SIZE gated. 0 disables it; otherwise a worker fake uses copy avoidance
+     * only when the value reaches the configured threshold. */
+    int zc_on = (server.zerocopy_min_value > 0 &&
+                 len >= (size_t)server.zerocopy_min_value);
     int on_ex = zc_on && c->isFake && iotid > TOMO_IO_THREADS_MAX;
     if (!on_ex) {
         /* Non-worker fakes (e.g. a fake on the IO/main thread) must still copy:
@@ -2486,7 +2572,9 @@ void unlinkClient(client *c) {
  * contain any referenced robj. */
 void tryUnlinkClientFromPendingRefReply(client *c, int force) {
     if (clientIsInPendingRefReplyList(c) && (force || !clientHasPendingReplies(c))) {
-        listUnlinkNode(server.clients_with_pending_ref_reply[iotid], &clientTail(c)->pending_ref_reply_node);
+        int owner = server.wb_threads > 0 ? c->tid : iotid;
+        listUnlinkNode(server.clients_with_pending_ref_reply[owner],
+                       &clientTail(c)->pending_ref_reply_node);
     }
 }
 
@@ -2570,7 +2658,8 @@ static void resetReusableQueryBuf(client *c) {
 /* Release references to string objects inside an encoded buffer.
  * If running in IO thread, defer the free to main thread via io_deferred_objects. */
 static void releaseBufReferences(client *c, char *buf, size_t bufpos) {
-    int in_io_thread = (c && c->running_tid != IOTHREAD_MAIN_THREAD_ID);
+    int in_io_thread = tomoWbInThread() ||
+                       (c && c->running_tid != IOTHREAD_MAIN_THREAD_ID);
     char *ptr = buf;
     while (ptr < buf + bufpos) {
         payloadHeader *header = (payloadHeader *)ptr;
@@ -2615,6 +2704,21 @@ static void releaseAllBufReferences(client *c) {
             releaseBufReferences(c, o->buf, o->used);
         }
     }
+}
+
+/* Empty an unsent reusable fake without destroying its storage. The WB close walk needs this
+ * explicit release path: commandProcessed resets argv/command state, but a full fake deliberately
+ * retains its reply buffer/list allocation for reuse and therefore cannot be allowed to retain an
+ * owner_ex reference. releaseAllBufReferences routes those refs through freebackPush using the
+ * caller's dedicated producer lane. */
+void discardClientReply(client *c) {
+    releaseAllBufReferences(c);
+    listEmpty(c->reply);
+    c->bufpos = 0;
+    c->reply_bytes = 0;
+    c->buf_encoded = 0;
+    c->last_header = NULL;
+    c->sentlen = 0;
 }
 
 //ee451
@@ -2685,6 +2789,12 @@ void freeClient(client *c) {
         freeClientAsync(c->parent);
         return;
     }
+    /* A WB owner may still be walking the ring, holding a writable registration, or posting an
+     * owner-IO action. Only the IO owner destroys the connection, after WB publishes quiescence. */
+    if (!c->isFake && tomoWbClientBusy(c)) {
+        freeClientAsync(c);
+        return;
+    }
     if (server.io_uring && tomoUringBackendClientAttached(c)) {
         tomoUringBackendClientRequestClose(c);
         if (!tomoUringBackendClientCloseReady(c)) {
@@ -2709,14 +2819,20 @@ void freeClient(client *c) {
         return;
     }
 
-    /* ee451: ring not drained — defer free until every dispatched fake has
-     * been flushed. dispatchid == flushid means the ring is empty.
-     * The drain in handleWorkerReplies now skips CLOSE_ASAP reals (and
-     * advances flushid as fakes complete, letting freeClient eventually
-     * succeed when the ring drains). We do NOT mutate the per-IO-thread
-     * pending_worker lists here because freeClient can be called from a
-     * different thread than the one that owns c->tid's list. */
+    /* Ring not drained — defer free until the boot-selected drain owner retires every dispatched
+     * fake. dispatchid == flushid means the ring is empty. The close drain discards completed
+     * replies and advances flushid until teardown becomes safe. */
     if (!c->isFake && clientTail(c)->dispatchid != clientTail(c)->flushid) {
+        freeClientAsync(c);
+        return;
+    }
+
+    /* Recheck WB lifetime AFTER observing an empty ring. A completion can land between the first
+     * busy test and the ring test, and WB can retire that final fake quickly enough for the latter
+     * to observe empty while the bitmap/CQE callback still holds its drain reference. Once both
+     * tests pass in this order, the owning IO cannot dispatch new work and no worker remains that
+     * can publish another bit, so slot removal at tomoWbFreeClient is terminal. */
+    if (!c->isFake && tomoWbClientBusy(c)) {
         freeClientAsync(c);
         return;
     }
@@ -2738,8 +2854,8 @@ void freeClient(client *c) {
         }
         if (clientTail(c)->reply_cdb) { zfree(((void **)clientTail(c)->reply_cdb)[-1]); clientTail(c)->reply_cdb = NULL; }   /* #75: free heap reply buses */
         /* R1 own-read publishing records. Freed HERE and not earlier, for the same reason as the
-         * reply buses: a worker retiring a group touches both (csMsetPubRetire, cdbSlotPublish),
-         * and the ring-in-flight deferral above is what guarantees no worker still can. */
+         * reply buses: the active drain owner touches both (csMsetPubRetire, cdbSlotPublish), and
+         * the ring-in-flight deferral above guarantees that owner is quiescent. */
         if (clientTail(c)->mset_pub) { zfree(clientTail(c)->mset_pub); clientTail(c)->mset_pub = NULL; }
     }
 
@@ -2885,6 +3001,7 @@ void freeClient(client *c) {
     sdsfree(clientTail(c)->sockname);
     sdsfree(clientTail(c)->node_id);
     freeClientCold(c);
+    tomoWbFreeClient(c);
     zfree(c);
 }
 
@@ -2900,6 +3017,13 @@ void freeClientAsync(client *c) {
         freeClientAsync(c->parent);
         return;
     }
+    /* WB never owns clients_to_close[]. Convert every send/output-limit close into a mailbox
+     * request for the sticky connection's IO owner. */
+    if (tomoWbInThread()) {
+        tomoWbRequestClose(c);
+        return;
+    }
+    tomoWbLockClient(c);
     // if (c->running_tid != IOTHREAD_MAIN_THREAD_ID) {
     //     int main_thread = pthread_equal(pthread_self(), server.main_thread_id);
     //     /* Make sure the main thread can access IO thread data safely. */
@@ -2912,13 +3036,21 @@ void freeClientAsync(client *c) {
     //     return;
     // }
 
-    if (c->flags & CLIENT_CLOSE_ASAP || c->flags & CLIENT_SCRIPT) return;
-    if (c->flags & CLIENT_EX_PENDING) return;
+    if (c->flags & CLIENT_CLOSE_ASAP || c->flags & CLIENT_SCRIPT) {
+        tomoWbUnlockClient(c);
+        return;
+    }
+    if (c->flags & CLIENT_EX_PENDING) {
+        tomoWbUnlockClient(c);
+        return;
+    }
     c->flags |= CLIENT_CLOSE_ASAP;
     /* Replicas that was marked as CLIENT_CLOSE_ASAP should not keep the
      * replication backlog from been trimmed. */
     if (c->flags & CLIENT_SLAVE) freeReplicaReferencedReplBuffer(c);
     listAddNodeTail(server.clients_to_close[iotid],c);
+    tomoWbRequestClose(c);
+    tomoWbUnlockClient(c);
 }
 
 /* Log errors for invalid use and free the client in async way.
@@ -2987,8 +3119,8 @@ int freeClientsInAsyncFreeQueue(void) {
      * double-deletes). But clearing it is exactly what disarms freeClientAsync()'s re-entry guard,
      * so such a path re-appends the client to the TAIL of the very list this loop is walking.
      * An unbounded listNext() then reaches it, tries again, re-appends, forever -- allocating one
-     * list node per turn. The pass never returns to the event loop, so handleWorkerReplies() never
-     * runs, so flushid never advances, so the condition that sent it down that path can never
+     * list node per turn. The pass never returns to the event loop, so the ordered reply drain
+     * never runs, flushid never advances, and the condition that sent it down that path can never
      * clear. Self-sustaining, and the malloc storm starves the main thread on the allocator lock,
      * which stops the resize coordinator and fires its 2s watchdog -- the symptom that made this
      * look like a FLATSTORE resize bug for two runs (docs/BUGS.md N).
@@ -3008,10 +3140,11 @@ int freeClientsInAsyncFreeQueue(void) {
         }
         if (c->flags & CLIENT_PROTECTED) continue;
         if (c->flags & CLIENT_EX_PENDING) continue;
+        if (tomoWbClientBusy(c)) continue;
         /* Ring not drained: freeClient() would bounce straight back out through
          * freeClientAsync() and re-queue this client. Skip it here for exactly the same reason
          * PROTECTED and EX_PENDING are skipped -- leave it queued with CLOSE_ASAP still SET (so
-         * the re-entry guard stays armed) and retry on a later pass, once handleWorkerReplies()
+         * the re-entry guard stays armed) and retry on a later pass, once the active drain owner
          * has advanced flushid. Mirrors freeClient()'s own condition; keep the two in step. */
         if (!c->isFake && clientTail(c)->dispatchid != clientTail(c)->flushid) {
             atomic_fetch_add_explicit(&tomo_close_deferred_ring, 1, memory_order_relaxed);
@@ -3235,7 +3368,8 @@ int clientReplyIOVCanAsync(client *c) {
 static payloadHeader *processSentDataInEncodedBuffer(client *c, char *start_ptr, char *end_ptr,
                                                      size_t *sentlen, ssize_t *remaining)
 {
-    int in_io_thread = (c && c->running_tid != IOTHREAD_MAIN_THREAD_ID);
+    int in_io_thread = tomoWbInThread() ||
+                       (c && c->running_tid != IOTHREAD_MAIN_THREAD_ID);
     char *ptr = start_ptr;
     while (ptr < end_ptr && *remaining > 0) {
         payloadHeader *head = (payloadHeader *)ptr;
@@ -3467,7 +3601,8 @@ int writeToClient(client *c, int handler_installed) {
     if (!(c->io_flags & CLIENT_IO_WRITE_ENABLED)) return C_OK;
     /* A ring-owned prefix is the only writer until its data CQE retires it.
      * A legacy syscall here would overtake that prefix on the same stream. */
-    if (server.io_uring && tomoUringBackendClientSendPending(c)) return C_OK;
+    if (server.io_uring && !tomoWbInThread() &&
+        tomoUringBackendClientSendPending(c)) return C_OK;
     /* Update the number of writes of io threads on server */
     /* CONFIG RESETSTAT is a second writer, so this must remain one atomic
      * RMW; no ordering is carried by the statistic. */
@@ -3552,7 +3687,9 @@ int writeToClient(client *c, int handler_installed) {
         }
 
         /* Remove client from pending referenced reply clients list. */
-        if (c->running_tid == IOTHREAD_MAIN_THREAD_ID)
+        if (tomoWbInThread())
+            tomoWbReferencesDrained(c);
+        else if (c->running_tid == IOTHREAD_MAIN_THREAD_ID)
             tryUnlinkClientFromPendingRefReply(c, 1);
 
         /* If replica client has sent all the replication data it knows about
@@ -4023,22 +4160,94 @@ static void setProtocolError(const char *errstr, client *c) {
  * or lazy state. DEBUG_ASSERTIONS
  * marks each lazy scalar at its writer and checks the marks at activation.
  *
- * The freelist is indexed by the client's pinned IO owner rather than stored in
- * the client itself. Acquire and terminal free therefore touch one owner-local
- * LIFO with no synchronization; its common hit is a single array pointer bump.
+ * The freelist is indexed by the IO identity that parsed the command rather than
+ * stored in the client itself. The 2-stage path retains its original owner-local LIFO. With WB
+ * enabled, a terminal free on sticky WB returns the record through a bounded MPSC stack and the
+ * origin IO drains that stack into its separate WB-mode LIFO only when the LIFO is empty.
  * This also follows a pending command when ownership moves through a worker fake
  * or MULTI, where a literal per-client cache would not.
  *
  * NOTE this recycles the pcmd STRUCT and its argv ARRAY -- not the argv element
- * objects, which is what the deleted operand pool got wrong. Bounded: CAP structs
- * x ~160B + their argv arrays (<64 ptrs each) = <=80KB per IO owner. */
-#define PCMD_POOL_CAP 128
+ * objects, which is what the deleted operand pool got wrong. The capacity covers
+ * the normal clients-per-IO x p32 working set, so a WB retirement burst does not
+ * turn common two/three-slot GET/SET vectors back into per-command allocations.
+ * Bounded: CAP structs x ~160B + worst retained argv arrays (64 pointers) is
+ * under 350KB in each local or return tier per IO owner; common shapes are much
+ * smaller. */
+#define PCMD_POOL_2S_CAP 128
+#define PCMD_POOL_WB_CAP 512
 #define PCMD_POOL_MAX_ARGV 64          /* don't hoard oversized argv arrays */
-static pendingCommand *pcmdPool[TOMO_IO_THREADS_MAX + 1][PCMD_POOL_CAP];
+/* Keep the authoritative 2-stage rows byte-for-byte at their original 128-pointer stride. The
+ * larger cross-thread return tier is separate BSS and remains untouched/unresident when WB is off. */
+static pendingCommand *pcmdPool[TOMO_IO_THREADS_MAX + 1][PCMD_POOL_2S_CAP];
+static pendingCommand *(*pcmdWbPool)[PCMD_POOL_WB_CAP];
 static ioLocalPoolCount pcmdPoolN[TOMO_IO_THREADS_MAX + 1];
 
+typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
+    _Atomic(pendingCommand *) head;
+    _Atomic unsigned int reserved;
+    char pad[CACHE_LINE_SIZE - sizeof(_Atomic(pendingCommand *)) -
+             sizeof(_Atomic unsigned int)];
+} pcmdReturnPool;
+_Static_assert(sizeof(pcmdReturnPool) == CACHE_LINE_SIZE,
+               "pending-command return pool must occupy one cache line");
+static pcmdReturnPool *pcmdReturns;
+
+/* Called only from initWbThreads(), before any IO/WB thread or accepted client exists.  These
+ * arrays are the only networking-side structures that exist solely to return objects from a
+ * sticky WB owner to the originating IO owner; keeping their allocation here makes the off mode
+ * visibly auditable and preserves the original 2-stage BSS/pool layout. */
+void tomoWbNetworkingInit(void) {
+    serverAssert(server.wb_threads > 0);
+    serverAssert(xsubReturns == NULL && pcmdWbPool == NULL && pcmdReturns == NULL);
+    xsubReturns = zcalloc(sizeof(*xsubReturns) * (TOMO_IO_THREADS_MAX + 1));
+    pcmdWbPool = zcalloc(sizeof(*pcmdWbPool) * (TOMO_IO_THREADS_MAX + 1));
+    pcmdReturns = zcalloc(sizeof(*pcmdReturns) * (TOMO_IO_THREADS_MAX + 1));
+}
+
+static int pcmdReturnReserve(int owner) {
+    unsigned int n = atomic_load_explicit(&pcmdReturns[owner].reserved,
+                                           memory_order_relaxed);
+    while (n < PCMD_POOL_WB_CAP) {
+        if (atomic_compare_exchange_weak_explicit(&pcmdReturns[owner].reserved, &n, n + 1,
+                                                   memory_order_relaxed,
+                                                   memory_order_relaxed))
+            return 1;
+    }
+    return 0;
+}
+
+static void pcmdReturnPushReserved(int owner, pendingCommand *pcmd) {
+    pendingCommand *head = atomic_load_explicit(&pcmdReturns[owner].head,
+                                                 memory_order_relaxed);
+    do {
+        pcmd->next = head; /* pool-only intrusive link */
+    } while (!atomic_compare_exchange_weak_explicit(&pcmdReturns[owner].head, &head, pcmd,
+                                                     memory_order_release,
+                                                     memory_order_relaxed));
+}
+
+static void pcmdReturnDrain(int owner) {
+    pendingCommand *pcmd = atomic_exchange_explicit(&pcmdReturns[owner].head, NULL,
+                                                     memory_order_acquire);
+    unsigned int n = 0;
+    while (pcmd) {
+        pendingCommand *next = pcmd->next;
+        pcmd->next = NULL;
+        serverAssert(pcmdPoolN[owner].n < PCMD_POOL_WB_CAP);
+        pcmdWbPool[owner][pcmdPoolN[owner].n++] = pcmd;
+        pcmd = next;
+        n++;
+    }
+    if (n) {
+        unsigned int before = atomic_fetch_sub_explicit(&pcmdReturns[owner].reserved, n,
+                                                         memory_order_relaxed);
+        serverAssert(before >= n);
+    }
+}
+
 /* Terminal recycle only. Partial/deferred cleanup must retain every field until
- * the owning IO thread performs the terminal free. */
+ * terminal retirement; pool_owner survives reset so WB can return the record. */
 static inline void resetPendingCommandForPool(pendingCommand *pcmd) {
     debugServerAssert(pcmd->next == NULL && pcmd->prev == NULL);
     debugServerAssert(pcmd->argv_len >= 0);
@@ -4357,7 +4566,7 @@ int processCommandAndResetClient(client *c) {
         /* ee451: if the command was refused because the pipeline ring is full
          * (or a stateful/MULTI command needs to drain the ring first), the
          * pending_cmd at the head of c->pending_cmds must stay there so it
-         * can be re-tried once handleWorkerReplies frees a slot. Skipping
+         * can be re-tried once the WB drain frees a slot. Skipping
          * commandProcessed() preserves c->current_pending_cmd and c->argv. */
         if (!(c->flags & CLIENT_PIPELINE_STALLED)) {
             /* ee451: in pipelining, real's execution state was moved to the fake
@@ -4482,7 +4691,7 @@ int isClientReadErrorFatal(client *c) {
  * or because a client was blocked and later reactivated, so there could be
  * pending query buffer, already representing a full command, to process.
  * return C_ERR in case the client was freed during the processing */
-int processInputBuffer(client *c) {
+static int processInputBuffer2s(client *c) {
     /* We limit the lookahead for unauthenticated connections to 1.
      * This is both to reduce memory overhead, and to prevent errors: AUTH can
      * affect the handling of succeeding commands. Parsing of "large"
@@ -4725,6 +4934,283 @@ int processInputBuffer(client *c) {
     return C_OK;
 }
 
+static int processInputBufferWbUnlocked(client *c, unsigned int *parsed_out) {
+    unsigned int parsed_commands = 0;
+    int parse_blocked = 0;
+    /* A fresh 3-stage receive pass decodes the complete buffer before it starts
+     * activating commands. This is intentionally decided at entry: if a prior
+     * pass is already stalled with ready commands, later socket reads remain in
+     * querybuf and its normal memory limit continues to provide back-pressure.
+     * A lone incomplete tail is safe -- the new bytes finish that same receive
+     * unit and the tight loop continues through every following frame. Masters
+     * retain replication's bounded lookahead and repl_applied semantics. */
+    const int whole_input_pass = server.custom_io_threads_active &&
+                                 !(c->flags & CLIENT_MASTER) &&
+                                 c->pending_cmds.ready_len == 0;
+
+    /* Keep processing while there is something in the input buffer */
+    while ((clientTail(c)->querybuf && clientTail(c)->qb_pos < sdslen(clientTail(c)->querybuf)) ||
+           c->pending_cmds.ready_len > 0)
+    {
+        /* Immediately abort if the client is in the middle of something. */
+        if (c->flags & CLIENT_BLOCKED || c->flags & CLIENT_UNBLOCKED) break;
+
+        /* Don't process more buffers from clients that have already pending
+         * commands to execute in c->argv. */
+        if (c->flags & CLIENT_PENDING_COMMAND) break;
+
+        /* Don't process input from the master while there is a busy script
+         * condition on the slave. We want just to accumulate the replication
+         * stream (instead of replying -BUSY like we do with other clients) and
+         * later resume the processing. */
+        if (c->flags & CLIENT_MASTER && isInsideYieldingLongCommand()) break;
+
+        /* CLIENT_CLOSE_AFTER_REPLY closes the connection once the reply is
+         * written to the client. Make sure to not let the reply grow after
+         * this flag has been set (i.e. don't process more commands).
+         *
+         * The same applies for clients we want to terminate ASAP. */
+        if (c->flags & (CLIENT_CLOSE_AFTER_REPLY|CLIENT_CLOSE_ASAP)) break;
+
+        /* AUTH is the one deliberate one-command fence: it changes how the
+         * next frame is validated. Once it succeeds, the next outer iteration
+         * observes the new auth state and resumes whole-buffer decoding. */
+        const int auth_limited = authRequired(c);
+        const int parse_whole = whole_input_pass && !auth_limited;
+        const int lookahead = auth_limited ? 1 : server.lookahead;
+        const int parse_more = !parse_blocked &&
+                               (parse_whole || !c->pending_cmds.ready_len);
+
+        /* WB mode: parse_whole ignores the legacy prefetch lookahead ceiling and
+         * consumes every complete pipelined frame already returned by recv.
+         * The stock/master path retains the old ready_len ceiling. */
+        while (parse_more && (parse_whole || c->pending_cmds.ready_len < lookahead) &&
+               clientTail(c)->querybuf && clientTail(c)->qb_pos < sdslen(clientTail(c)->querybuf))
+        {
+            /* Determine request type when unknown. */
+            if (!clientTail(c)->reqtype) {
+                if (clientTail(c)->querybuf[clientTail(c)->qb_pos] == '*') {
+                    clientTail(c)->reqtype = PROTO_REQ_MULTIBULK;
+                } else {
+                    clientTail(c)->reqtype = PROTO_REQ_INLINE;
+                }
+            }
+
+            pendingCommand *pcmd = NULL;
+            if (clientTail(c)->reqtype == PROTO_REQ_INLINE) {
+                pcmd = acquirePendingCommand();
+                if (processInlineBuffer(c, pcmd) == C_ERR && !pcmd->read_error) {
+                    /* If it fails but there are no errors, it means that it might just be
+                     * that the desired content cannot be parsed. At this point, we exit and wait for the next time. */
+                    freePendingCommand(c, pcmd);
+                    parse_blocked = 1;
+                    break;
+                }
+            } else if (clientTail(c)->reqtype == PROTO_REQ_MULTIBULK) {
+                int incomplete = (c->pending_cmds.len != c->pending_cmds.ready_len);
+                if (unlikely(incomplete)) {
+                    pcmd = popPendingCommandFromTail(&c->pending_cmds);
+                } else {
+                    pcmd = acquirePendingCommand();
+                }
+
+                if (processMultibulkBuffer(c, pcmd) == C_ERR && !pcmd->read_error) {
+                    /* If it fails but there are no errors, it means that it might just be
+                     * that the desired content cannot be parsed. At this point, we exit and wait for the next time. */
+                    freePendingCommand(c, pcmd);
+                    parse_blocked = 1;
+                    break;
+                }
+            } else {
+                serverPanic("Unknown request type");
+            }
+
+            /* Parser errors bypass preprocessing. Materialize only the lazy
+             * fields that the error consumer will read. A multibulk parser
+             * that got past its first header already initialized input_bytes
+             * and may have accumulated a partial command, so preserve it. */
+            if (unlikely(pcmd->read_error)) {
+                if (clientTail(c)->reqtype == PROTO_REQ_INLINE ||
+                    clientTail(c)->multibulklen == 0)
+                {
+                    pcmd->input_bytes = 0;
+                    pendingCommandDebugMark(pcmd, PENDING_CMD_DEBUG_INPUT_INITIALIZED);
+                }
+                pcmd->cmd = NULL;
+                pcmd->slot = INVALID_CLUSTER_SLOT;
+                pendingCommandDebugMark(pcmd, PENDING_CMD_DEBUG_CMD_INITIALIZED |
+                                               PENDING_CMD_DEBUG_SLOT_INITIALIZED);
+                if (c->flags & CLIENT_MASTER) {
+                    pcmd->reploff = 0;
+                    pendingCommandDebugMark(pcmd, PENDING_CMD_DEBUG_REPLOFF_INITIALIZED);
+                }
+            }
+
+            addPendingCommand(&c->pending_cmds, pcmd);
+            if (unlikely(pcmd->read_error || (pcmd->flags & PENDING_CMD_FLAG_INCOMPLETE))) {
+                parse_blocked = 1;
+                break;
+            }
+
+            if (unlikely(c->flags & CLIENT_MASTER)) {
+                clientCold *repl = clientReplicationData(c);
+                serverAssert(repl != NULL);
+                long long read_reploff = c->running_tid == IOTHREAD_MAIN_THREAD_ID ?
+                                         repl->read_reploff : repl->io_read_reploff;
+                pcmd->reploff = read_reploff - sdslen(clientTail(c)->querybuf) +
+                                clientTail(c)->qb_pos;
+                pendingCommandDebugMark(pcmd, PENDING_CMD_DEBUG_REPLOFF_INITIALIZED);
+            }
+
+            preprocessCommand(c, pcmd);
+            pcmd->flags |= PENDING_CMD_FLAG_PREPROCESSED;
+            if (__builtin_expect(server.phase_trace_sample != 0, 0) &&
+                !pcmd->read_error && pcmd->cmd)
+                tomoPhaseRequestParsed(c, pcmd);
+            if (pcmd->argc) parsed_commands++;
+            resetClientQbufState(c);
+        }
+
+        /* Try to consume the next ready command from the pending command list. */
+        if (!c->pending_cmds.ready_len)
+            break;
+        pendingCommand *curcmd = c->pending_cmds.head;
+        const int is_master = (c->flags & CLIENT_MASTER) != 0;
+        debugAssertPendingCommandMetadata(curcmd, is_master);
+
+        /* We populate the old client fields so we don't have to modify all existing logic to work with pendingCommands */
+        c->argc = curcmd->argc;
+        c->argv = curcmd->argv;
+        c->argv_len = curcmd->argv_len;
+        c->net_input_bytes_curr_cmd = curcmd->input_bytes;
+        if (is_master) clientTail(c)->reploff_next = curcmd->reploff;
+        c->slot = curcmd->slot;
+        clientTail(c)->lookedcmd = curcmd->cmd;
+        clientTail(c)->read_error = curcmd->read_error;
+        c->current_pending_cmd = curcmd;
+
+        /* Upstream command-prefetch batch (memory_prefetch.c) removed.
+         * Cache warming for worker-dispatched commands is handled in
+         * exPrefetchBatch() (server.c) on the worker side against the
+         * correct shard DB. */
+
+        /* Check if the client has a fatal read error that requires stopping processing. */
+        if (isClientReadErrorFatal(c)) {
+            if (c->running_tid != IOTHREAD_MAIN_THREAD_ID) {
+                enqueuePendingClientsToMainThread(c, 0);
+            }
+            break;
+        }
+
+        /* Multibulk processing could see a <= 0 length. */
+        if (!c->argc) {
+            /* A naked newline can be sent from masters as a keep-alive, or from slaves to refresh
+             * the last ACK time. In that case there's no command to actually execute. */
+            prepareForNextCommand(c, 0);
+        } else {
+            /* If we are in the context of an I/O thread, we can't really
+             * execute the command here. All we can do is to flag the client
+             * as one that needs to process the command. */
+            if (c->running_tid != IOTHREAD_MAIN_THREAD_ID) {
+                c->io_flags |= CLIENT_IO_PENDING_COMMAND;
+                enqueuePendingClientsToMainThread(c, 0);
+                break;
+            }
+
+            /* We are finally ready to execute the command.
+             *
+             * ee451 (#44): SAVE and RESTORE this thread's current-client slot; never blank it.
+             * processCommandAndResetClient() reports "the client was freed underneath me" by
+             * testing this slot for NULL (unlinkClient() is what clears it), and that signal is
+             * only sound while every nested frame puts back what it found — see the upstream
+             * comment inside processCommandAndResetClient().
+             *
+             * This function DOES run nested: a script that outlives busy-reply-threshold calls
+             * processEventsWhileBlocked(), whose event loop re-enters processInputBuffer() for
+             * other clients on this same thread. Blanking the slot on the way out of the nested
+             * command therefore made the OUTER frame's still-live client look dead. Its caller
+             * readQueryFromClient() then does `c = NULL` and skips the whole done: epilogue — the
+             * querybuf trim and resetReusableQueryBuf() — so the client kept a non-zero qb_pos
+             * AND the thread's reusable query buffer. The next read on that client that leaves
+             * through an early `goto done` (EAGAIN, or nread==0 when it disconnects) then tripped
+             * serverAssert(clientTail(c)->qb_pos == 0). Same blast radius for the other processInputBuffer()
+             * callers, which read C_ERR as "client gone" and drop it. */
+            client *prev_current = server.current_client[iotid].p;
+            if (unlikely(prev_current != NULL))     /* the #44 window — see the counter's comment */
+                atomic_fetch_add_explicit(&tomo_nested_cmd_frames, 1, memory_order_relaxed);
+            server.current_client[iotid].p = c;
+            if (processCommandAndResetClient(c) == C_ERR) {
+                /* c really is gone: don't hand a dangling pointer back to an outer frame that
+                 * was executing this very client (unlinkClient() already NULLed the slot). */
+                server.current_client[iotid].p = (prev_current == c) ? NULL : prev_current;
+                *parsed_out = parsed_commands;
+                return C_ERR;
+            }
+            server.current_client[iotid].p = prev_current;
+
+            /* ee451: the command was refused because the pipeline ring is full
+             * (or a stateful/MULTI command is waiting for it to drain). The
+             * pending_cmd is still at the head of c->pending_cmds; we must
+             * stop processing so we don't spin on the same stalled head. When
+             * the WB drain flushes a reply, clears STALLED, and calls
+             * processInputBuffer again, which will pick up from here. */
+            if (c->flags & CLIENT_PIPELINE_STALLED) break;
+        }
+    }
+
+    if (c->flags & CLIENT_MASTER) {
+        /* If the client is a master, trim the querybuf to repl_applied,
+         * since master client is very special, its querybuf not only
+         * used to parse command, but also proxy to sub-replicas.
+         *
+         * Here are some scenarios we cannot trim to qb_pos:
+         * 1. we don't receive complete command from master
+         * 2. master client blocked cause of client pause
+         * 3. io threads operate read, master client flagged with CLIENT_PENDING_COMMAND
+         *
+         * In these scenarios, qb_pos points to the part of the current command
+         * or the beginning of next command, and the current command is not applied yet,
+         * so the repl_applied is not equal to qb_pos. */
+        if (clientReplicationData(c)->repl_applied) {
+            sdsrange(clientTail(c)->querybuf,clientReplicationData(c)->repl_applied,-1);
+            serverAssert(clientTail(c)->qb_pos >= (size_t)clientReplicationData(c)->repl_applied);
+            clientTail(c)->qb_pos -= clientReplicationData(c)->repl_applied;
+            clientReplicationData(c)->repl_applied = 0;
+        }
+    } else if (clientTail(c)->qb_pos) {
+        /* Trim to pos */
+        sdsrange(clientTail(c)->querybuf,clientTail(c)->qb_pos,-1);
+        clientTail(c)->qb_pos = 0;
+    }
+
+    *parsed_out = parsed_commands;
+    return C_OK;
+}
+
+/* With WB enabled, IO may identify/dispatch the next pipeline batch while the sticky WB remains
+ * active, but it must not mutate the real client's output structures during a WB gather/writev walk. The
+ * lock is sidecar-only, recursive for the existing nested event-loop paths, and io_building makes
+ * an in-scope free defer until after the unlock. */
+static int processInputBufferWb(client *c) {
+    tomoWbLockClient(c);
+    unsigned int parsed_commands = 0;
+    tomoInputDispatchBatchBegin(c);
+    int rc = processInputBufferWbUnlocked(c, &parsed_commands);
+    /* Drain and publish the per-lane bulk scratch, including on the
+     * C_ERR/unlink path. The scope stays live through publication so the INFO
+     * batch census excludes later WB-launched continuations. */
+    tomoInputDispatchBatchEnd();
+    tomoIoParsedCommandsNote(parsed_commands);
+    tomoWbUnlockClient(c);
+    return rc;
+}
+
+int processInputBuffer(client *c) {
+    if (__builtin_expect(server.wb_threads == 0, 1))
+        return processInputBuffer2s(c);
+    return processInputBufferWb(c);
+}
+
 /* Append one provided-buffer receive to a client-owned SDS.  Unlike the
  * epoll reader this never borrows thread_reusable_qb: bytes consumed while a
  * recv is being disarmed may have to travel with the client to another IO
@@ -4737,6 +5223,7 @@ int appendClientInputFromUring(client *c, const void *buf, size_t len) {
 
     clientTail(c)->read_error = 0;
     server.stat_io_reads_processed[iotid] += 1;
+    if (server.wb_threads > 0) tomoIoInputRecvNote();
     if (clientTail(c)->querybuf == NULL) clientTail(c)->querybuf = sdsempty();
     clientTail(c)->querybuf = sdscatlen(clientTail(c)->querybuf, buf, len);
     size_t qblen = sdslen(clientTail(c)->querybuf);
@@ -4905,7 +5392,7 @@ void readQueryFromClient(connection *conn) {
 
     if (__builtin_expect(server.phase_trace_sample != 0, 0))
         tomoPhaseRecvComplete(c);
-
+    if (server.wb_threads > 0) tomoIoInputRecvNote();
     sdsIncrLen(clientTail(c)->querybuf,nread);
     /* Owner demand signal: this read drained what QUEUED since the last service of this conn. */
     tomoIoDrainNote((unsigned int)nread);
@@ -6620,14 +7107,22 @@ void processEventsWhileBlocked(void) {
  * otherwise allocates a new pending command structure. */
 static pendingCommand *acquirePendingCommand(void) {
     pendingCommand *pcmd = NULL;
-    /* Owner-local hit: the terminal recycler already restored the five live
-     * defaults, so acquisition itself is just the freelist pointer bump. */
-    if (iotid <= TOMO_IO_THREADS_MAX && pcmdPoolN[iotid].n > 0) {
-        pcmd = pcmdPool[iotid][--pcmdPoolN[iotid].n];
+    int owner = iotid >= 0 && iotid <= TOMO_IO_THREADS_MAX ? iotid : -1;
+    /* Owner-local hit: the terminal recycler already restored the five live defaults. */
+    if (__builtin_expect(server.wb_threads == 0, 1)) {
+        if (iotid <= TOMO_IO_THREADS_MAX && pcmdPoolN[iotid].n > 0)
+            pcmd = pcmdPool[iotid][--pcmdPoolN[iotid].n];
+    } else {
+        if (owner >= 0 && pcmdPoolN[owner].n == 0) pcmdReturnDrain(owner);
+        if (owner >= 0 && pcmdPoolN[owner].n > 0)
+            pcmd = pcmdWbPool[owner][--pcmdPoolN[owner].n];
+    }
+    if (pcmd) {
         debugServerAssert(pcmd->argc == 0 && pcmd->argv_len_sum == 0);
         debugServerAssert(pcmd->flags == 0 && pcmd->read_error == 0);
         debugServerAssert(pcmd->argv_released_mask == 0);
         debugServerAssert(pcmd->next == NULL && pcmd->prev == NULL);
+        if (server.wb_threads > 0) pcmd->pool_owner = (uint8_t)owner;
         return pcmd;
     }
 
@@ -6650,6 +7145,8 @@ static pendingCommand *acquirePendingCommand(void) {
         pcmd = zmalloc(sizeof(pendingCommand));
         initPendingCommand(pcmd);
     }
+    if (server.wb_threads > 0)
+        pcmd->pool_owner = owner >= 0 ? (uint8_t)owner : (uint8_t)(TOMO_IO_THREADS_MAX + 1);
     return pcmd;
 }
 
@@ -6741,6 +7238,9 @@ free_command:
 void initPendingCommand(pendingCommand *pcmd) {
     memset(pcmd, 0, sizeof(pendingCommand));
     pcmd->slot = INVALID_CLUSTER_SLOT;
+    if (server.wb_threads > 0)
+        pcmd->pool_owner = iotid >= 0 && iotid <= TOMO_IO_THREADS_MAX ?
+                           (uint8_t)iotid : (uint8_t)(TOMO_IO_THREADS_MAX + 1);
     pendingCommandDebugMark(pcmd, PENDING_CMD_DEBUG_INPUT_INITIALIZED |
                                    PENDING_CMD_DEBUG_CMD_INITIALIZED |
                                    PENDING_CMD_DEBUG_REPLOFF_INITIALIZED |
@@ -6766,21 +7266,58 @@ void freePendingCommand(client *c, pendingCommand *pcmd) {
             c->all_argv_len_sum -= pcmd->argv_len_sum;
         }
 
-        /* R1: recycle pcmd WITH its argv attached (both allocs skipped on the next acquire).
-         * Guarded to the owning-io-identity pool; oversized argv arrays are not hoarded. */
-        if (iotid <= TOMO_IO_THREADS_MAX && pcmdPoolN[iotid].n < PCMD_POOL_CAP &&
-            pcmd->argv_len <= PCMD_POOL_MAX_ARGV)
-        {
-            resetPendingCommandForPool(pcmd);
-            pcmdPool[iotid][pcmdPoolN[iotid].n++] = pcmd;
-            return;
+        if (__builtin_expect(server.wb_threads == 0, 1)) {
+            if (iotid <= TOMO_IO_THREADS_MAX &&
+                pcmdPoolN[iotid].n < PCMD_POOL_2S_CAP &&
+                pcmd->argv_len <= PCMD_POOL_MAX_ARGV) {
+                resetPendingCommandForPool(pcmd);
+                pcmdPool[iotid][pcmdPoolN[iotid].n++] = pcmd;
+                return;
+            }
+        } else {
+            /* WB returns the record to the IO identity that originally acquired it. */
+            int owner = pcmd->pool_owner;
+            int local = owner >= 0 && owner <= TOMO_IO_THREADS_MAX && iotid == owner &&
+                        pcmdPoolN[owner].n < PCMD_POOL_WB_CAP;
+            int remote = owner >= 0 && owner <= TOMO_IO_THREADS_MAX && !local &&
+                         pcmdReturnReserve(owner);
+            if ((local || remote) && pcmd->argv_len <= PCMD_POOL_MAX_ARGV) {
+                resetPendingCommandForPool(pcmd);
+                if (local)
+                    pcmdWbPool[owner][pcmdPoolN[owner].n++] = pcmd;
+                else
+                    pcmdReturnPushReserved(owner, pcmd);
+                return;
+            }
+            if (remote) {
+                unsigned int before = atomic_fetch_sub_explicit(&pcmdReturns[owner].reserved, 1,
+                                                                 memory_order_relaxed);
+                serverAssert(before > 0);
+            }
         }
         zfree(pcmd->argv);
-    } else if (iotid <= TOMO_IO_THREADS_MAX && pcmdPoolN[iotid].n < PCMD_POOL_CAP) {
-        /* argv-less pcmd (parse aborted early): still worth recycling the struct. */
-        resetPendingCommandForPool(pcmd);
-        pcmdPool[iotid][pcmdPoolN[iotid].n++] = pcmd;
-        return;
+    } else {
+        if (__builtin_expect(server.wb_threads == 0, 1)) {
+            if (iotid <= TOMO_IO_THREADS_MAX && pcmdPoolN[iotid].n < PCMD_POOL_2S_CAP) {
+                resetPendingCommandForPool(pcmd);
+                pcmdPool[iotid][pcmdPoolN[iotid].n++] = pcmd;
+                return;
+            }
+        } else {
+            int owner = pcmd->pool_owner;
+            int local = owner >= 0 && owner <= TOMO_IO_THREADS_MAX && iotid == owner &&
+                        pcmdPoolN[owner].n < PCMD_POOL_WB_CAP;
+            int remote = owner >= 0 && owner <= TOMO_IO_THREADS_MAX && !local &&
+                         pcmdReturnReserve(owner);
+            if (local || remote) {
+                resetPendingCommandForPool(pcmd);
+                if (local)
+                    pcmdWbPool[owner][pcmdPoolN[owner].n++] = pcmd;
+                else
+                    pcmdReturnPushReserved(owner, pcmd);
+                return;
+            }
+        }
     }
 
     zfree(pcmd);

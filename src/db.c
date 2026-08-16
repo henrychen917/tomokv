@@ -1078,7 +1078,7 @@ void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
     /* origin_client_id is deliberately NOT cleared: it is written once at
      * install and must survive the stamp. This lane runs BEFORE commit_seq
      * advances to this sequence (csMsetStampAndAppend pushes stamp ops, then
-     * csMsetInstallDone publishes), so the installing connection's own read
+     * the boot-selected commit continuation publishes), so the installing connection's own read
      * can meet this version already stamped while still holding a snapshot
      * below it — a cross-shard read pins S at dispatch, and even a lazily
      * resolved GET can draw commit_seq inside that window. kvobjVersionAt

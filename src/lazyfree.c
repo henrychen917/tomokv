@@ -221,6 +221,7 @@ static void protectClientReplyObjects(void) {
     listRewind(server.clients_with_pending_ref_reply[iotid], &li);
     while ((ln = listNext(&li)) != NULL) {
         client *c = listNodeValue(ln);
+        tomoWbLockClient(c);
 
         /* Process c->buf if it's encoded */
         if (c->buf_encoded && c->bufpos > 0) {
@@ -280,6 +281,7 @@ static void protectClientReplyObjects(void) {
          * pending ref list since all refs have been duplicated above. */
         freeClientIODeferredObjects(c, 0);
         tryUnlinkClientFromPendingRefReply(c, 1);
+        tomoWbUnlockClient(c);
     }
 
     if (allpaused) resumeAllIOThreads();

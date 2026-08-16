@@ -3217,10 +3217,12 @@ standardConfig static_configs[] = {
      * 2 = mode 1 plus topology-gated cross-node message prefetch. */
     createIntConfig("tomokv-prefetch-ex", NULL, MODIFIABLE_CONFIG, 0, 2, server.prefetch_ex_level, 1, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-nodes",                  NULL, IMMUTABLE_CONFIG, 1, TOMO_NODES_MAX, server.topo_nodes, 1, INTEGER_CONFIG, NULL, NULL), /* CCD count or NUMA-node count — tomokv-pin-mode decides which */
-    createIntConfig("tomokv-cores-per-node",         NULL, IMMUTABLE_CONFIG, 0, TOMO_IO_THREADS_MAX + TOMO_EX_THREADS_MAX, server.cores_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* 0 = derive as thread-io + thread-ex (i.e. no reserved cores) */
+    createIntConfig("tomokv-cores-per-node",         NULL, IMMUTABLE_CONFIG, 0, TOMO_IO_THREADS_MAX + TOMO_EX_THREADS_MAX + TOMO_WB_THREADS_MAX, server.cores_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* 0 = explicit-role sum, or allowed CPUs when any role is AUTO */
 
     /* ================= FRONT/BACK SPLIT ====================================================
-     * thread-io / thread-ex are the STARTING split, PER NODE, in BOTH modes. Under `auto` the
+     * thread-io / thread-ex are the STARTING split, PER NODE, in BOTH modes; WB is the static
+     * third role. For WB, -1 derives the physical-core remainder, 0 disables it, and N is explicit.
+     * Under `auto` the
      * flip controller may move away from it; under `static` it is held for the whole run. The
      * starting point matters for measurement reproducibility: a benchmark that starts at a
      * different split spends its window converging instead of measuring. */
@@ -3252,15 +3254,18 @@ standardConfig static_configs[] = {
      * io7/ex1, the clip repair is load-bearing and belongs in whichever worker mode ships. */
     createIntConfig("tomokv-thread-io",              NULL, IMMUTABLE_CONFIG, 0, TOMO_IO_THREADS_MAX, server.io_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: IO threads per node; 0 = unset -> fatal at boot */
     createIntConfig("tomokv-thread-ex",              NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_THREADS_MAX, server.ex_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: EX workers per node; 0 = unset -> fatal at boot */
+    createIntConfig("tomokv-thread-wb",              NULL, IMMUTABLE_CONFIG, -1, TOMO_WB_THREADS_MAX, server.wb_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* 0=2-stage/no allocation; N=WB per node; -1=physical-core remainder */
     createIntConfig("tomokv-io-uring",               NULL, IMMUTABLE_CONFIG, 0, 2, server.io_uring, 0, INTEGER_CONFIG, NULL, NULL), /* 0=epoll; nonzero=the Helio-style staged/taskrun-aware ring (1 canonical, 2 = compat spelling). The old mode-1 unified SI|DTR ring was DELETED 2026-08-10 after losing 9/9 interleaved cells to this one. */
+    createIntConfig("tomokv-wb-uring",               NULL, IMMUTABLE_CONFIG, -1, 4096, server.wb_uring, 0, INTEGER_CONFIG, NULL, NULL), /* 0=current write()/writev path; N=max SENDMSG SQEs per submit; -1=auto. Setup/probe/arm rejection falls back per WB. */
 
     /* ================= PINNING =============================================================
-     * pin-io / pin-ex are PER ROLE PER NODE and are used ONLY with pin-mode static. Setting
+     * pin-io / pin-ex / pin-wb are PER ROLE PER NODE and are used ONLY with pin-mode static. Setting
      * them with any other pin-mode is a boot FATAL (they would otherwise be silently ignored),
      * and pin-mode static with an empty/short spec is a boot FATAL too. */
     createEnumConfig("tomokv-pin-mode",              NULL, IMMUTABLE_CONFIG, tomokv_pin_mode_enum, server.pin_mode, TOMO_PIN_CCD, NULL, NULL),
     createStringConfig("tomokv-pin-io",              NULL, IMMUTABLE_CONFIG, ALLOW_EMPTY_STRING, server.pin_io_spec, "", isValidTomokvPinSpec, NULL), /* e.g. "node0=0-3 node1=8,9,10,11" */
     createStringConfig("tomokv-pin-ex",              NULL, IMMUTABLE_CONFIG, ALLOW_EMPTY_STRING, server.pin_ex_spec, "", isValidTomokvPinSpec, NULL), /* e.g. "node0=4-7 node1=12,13,14,15" */
+    createStringConfig("tomokv-pin-wb",              NULL, IMMUTABLE_CONFIG, EMPTY_STRING_IS_NULL, server.pin_wb_spec, NULL, isValidTomokvPinSpec, NULL), /* absent at wb=0 allocates nothing; e.g. "node0=8 node1=16" */
 
     /* ================= LOAD BALANCING (three separate levers, deliberately) =================
      * These were briefly collapsed into one another; they are not the same decision:
