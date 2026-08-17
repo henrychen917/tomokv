@@ -275,11 +275,20 @@ applies only after REVERT and does not gate initial probes or KEEP outcomes.
 On a clean REVERT, `tmFlipSweepFinish()` preserves the settled sweep-entry
 `floor_probe_entry_lr` as the owned signal level, increments `episode_revert_run` when the final
 `io` still equals `revert_run_io`, and clears `episode_rearm_run`. Once the normal post-return settle
-window ends, the re-arm counter advances only on consecutive loaded ticks satisfying:
+window ends, the re-arm counter advances on consecutive loaded ticks satisfying either arm:
 
 ```text
-abs(lr_ewma - floor_probe_entry_lr) > live gstep
+departure  = abs(lr_ewma - floor_probe_entry_lr) > live gstep
+far signal = abs(lr_ewma) - live gfloor > live gstep
+rearm tick = departure OR far signal
 ```
+
+The departure arm is r7's workload-change escape. The independent magnitude arm is the r8 escape
+for an owned split whose signal remains grossly outside the expressible half-step floor: ownership
+is meant to suppress near-floor hover, not suppress an indefinitely sustained multi-step gradient.
+Requiring one whole `gstep` beyond `gfloor` keeps boundary crossings and every signal inside the
+floor out of this arm. In particular, p32 SET at `[8,8]` remains inside its floor, so its clean
+two-probes-then-quiet behavior does not re-arm.
 
 The required run deliberately mirrors the existing climb `veto_run` escalation:
 
@@ -287,17 +296,47 @@ The required run deliberately mirrors the existing climb `veto_run` escalation:
 need = FLIP_SUSTAIN << min(episode_revert_run, 3);   /* 16, 32, 64 ticks after REVERT 1, 2, 3+ */
 ```
 
-Any in-band or idle tick resets the countdown. Floor, fine-anchor, and rate-drop observations may
-still invalidate their representational baselines, but they cannot release a same-config REVERT
-episode before this owned-lr run completes. A real config change releases ownership immediately and
-resets the same-config revert sequence. A KEEP also resets both governance counters, so a workload
-where probing helps retains the prior re-probe behavior. No new cadence or threshold constant is
-introduced: the distance is the existing live `gstep`, persistence is `FLIP_SUSTAIN`, and the capped
-doubling is the existing veto-backoff shape.
+Any tick satisfying neither arm, or any idle tick, resets the countdown. Floor, fine-anchor, and
+rate-drop observations may still invalidate their representational baselines, but they cannot
+release a same-config REVERT episode before this shared run completes. A real config change releases
+ownership immediately and resets the same-config revert sequence. A KEEP also resets both
+governance counters, so a workload where probing helps retains the prior re-probe behavior. No new
+cadence or threshold constant is introduced: both distances use the existing live `gstep`,
+persistence is `FLIP_SUSTAIN`, and the capped doubling is the existing veto-backoff shape.
 
 Fliptrace exposes `owned`, `owned_lr`, `reverts`, and `rearm_countdown`. The countdown is the number
-of additional consecutive departure ticks required; it is zero when ownership is inactive or has
-already released.
+of additional consecutive qualifying ticks required; it is zero when ownership is inactive or has
+already released. `OWNERSHIP-REARM` logs whether `departure`, `far`, or both completed it.
+
+### Settled-to-settled floor-probe windows
+
+The 2026-08-17 2x16-core p16 GET fliptrace isolated the one-step-short failure at `[8,8]`:
+`io_sat=0.97`, `ex_sat=0.48`, `r=2.0`, `lr=0.69`, and `gfloor=0.126`. The signal was server-bound
+and durable (`out_run=209`, `SRV`, `cli_run=0`) but actuation stayed off (`dir=0`). The two twin-cell
+episodes reported `probes=2, reverts=2`, even though the gate's static references measured io9 at
+14% above the landed io8 and io11 at 43% above it. Thus the neighbour was visited, under-measured,
+and reverted; episode ownership then made the false result durable.
+
+The under-measurement came from unequal endpoints. Sweep entry used one settled throughput-EWMA
+point as `best_rate`, while a moved candidate could take the ordinary early-gain path and open its
+counter window immediately after role conversion. That window included the same occupancy and
+throughput re-baselining dip that the CLI/SRV classifier treats as transient for `FLIP_SUSTAIN`
+ticks. A candidate was therefore systematically compared transient-to-settled.
+
+An r8 probe now compares the same statistic at both endpoints:
+
+```text
+incumbent: already fully settled -> FESC_MEAS_N=16 tick counter window (~4s)
+candidate: role transfer -> discard FLIP_SUSTAIN=8 clean ticks (~2s)
+                         -> FESC_MEAS_N=16 tick counter window (~4s)
+```
+
+The incumbent window also refreshes the sweep's owned `floor_probe_entry_lr` at its settled end.
+The candidate cannot use the ordinary early-gain shortcut. The compare window remains 16 ticks; it
+was not lengthened. Consequently the first incumbent/candidate A/B costs 40 controller ticks, about
+10 seconds of observation plus the bounded role transfer. Each frontier extension adds 24 ticks,
+about 6 seconds plus its transfer. The frozen legal window, one-direction frontier, and existing
+`FLIP_COAST` rule continue to bound the number of candidates.
 
 ### The idle test and the throughput estimator
 
@@ -342,7 +381,7 @@ the box's ordinary drift (`src/server.c:25901-25904`).
 | `cli_run` | `int` | consecutive sub-threshold verdict ticks, capped at `FLIP_SUSTAIN` |
 | `floor_probe_entry_lr` | `double` | settled sweep-entry `lr`; preserved as the owned level after a clean REVERT |
 | `episode_revert_run`, `revert_run_io` | `int` | consecutive same-config REVERTs and their owned split |
-| `episode_rearm_run` | `int` | consecutive ticks more than one live `gstep` from the owned level |
+| `episode_rearm_run` | `int` | consecutive ticks satisfying owned-level departure or far-outside-floor magnitude |
 
 ## Key constants
 
