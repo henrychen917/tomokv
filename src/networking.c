@@ -1092,6 +1092,17 @@ static void _addBulkStrRefToBufferOrList(client *c, robj *obj, size_t len) {
      * routed back to it. iotid for a worker is TOMO_IO_THREADS_MAX+1+ex_id. */
     str_ref.owner_ex = (c->isFake && iotid > TOMO_IO_THREADS_MAX)
                          ? (iotid - (TOMO_IO_THREADS_MAX + 1)) : -1;
+    /* Retained-ref fence (2026-08-17): a worker-owned str_ref outlives this command — the +1 ref
+     * above is released only after send, via freebackPush back to owner_ex. Same class as the
+     * coalesced-MGET retention: owner_ex is captured NOW, so a bucket cutover during the reply's
+     * flight would decref on the old owner while the new owner mutates the same non-atomic
+     * refcount word. Count it so the reshard coordinator's CO_WAIT_APPLIED fence holds the flip
+     * until the free-back drain returns it. owner_ex is by construction THIS thread's own worker
+     * id, so the single-writer discipline of retained_refs holds. Balanced by freebackDrainAll
+     * (both release paths — releaseBufReferences and processSentDataInEncodedBuffer — route
+     * owner_ex >= 0 refs through freebackPush, never a direct decref). */
+    if (str_ref.owner_ex >= 0)
+        tomoExRetainedAdd(&server.exThreads[str_ref.owner_ex], 1);
 
     /* Fill prefix with bulk string length: "$<len>\r\n" */
     str_ref.prefix[0] = '$';

@@ -653,6 +653,15 @@ static _Atomic unsigned long long tomo_atomic_cutover_ref_waits;
 static _Atomic unsigned long long tomo_atomic_cutover_fence_wait_us;
 static _Atomic unsigned long long tomo_atomic_stale_owner_ops;
 static _Atomic unsigned long long tomo_atomic_stale_owner_prunes;
+/* Retained-ref fence witness (2026-08-17): free-back drains whose entry was pushed under a
+ * different server.migration.gen than the one live at drain — i.e. an S8 value return whose
+ * flight overlapped a migration transition. This is the cheaper of the two candidate witnesses
+ * (the push-time-owner vs current-table compare would need the value's bucket carried per ring
+ * entry — 8B/entry vs the 4B gen stamp — and, with the CO_WAIT_APPLIED retained-refs fence
+ * holding flips until the drain, could never fire at all). Nonzero under the MGET-vs-reshard
+ * reproducer proves the retention window the fence guards was actually entered; a clean run with
+ * this at 0 exercised nothing (vacuous-validation rule). */
+static _Atomic unsigned long long tomo_freeback_stale_owner_drains;
 /* Reserved beside tomo_atomic_inflight at admission, but retired earlier: once the commit path has
  * materialized every owner op. Cutover waits on this word, never on client reply reassembly. */
 static struct { _Atomic int v; char pad[CACHE_LINE_SIZE - sizeof(_Atomic int)]; }
@@ -12703,6 +12712,7 @@ static void csSubExec(client *sub) {
              * Reassembly copies it with copy avoidance disabled and returns this reference to
              * this same worker through S8, so the IO thread never mutates its refcount. */
             int *pos = g->mget_pos[clientTail(sub)->cssub_idx];
+            int retained = 0;
             for (int a = 1; a < sub->argc; a++) {
                 int idx = pos[a - 1];
                 robj *key = sub->argv[a];
@@ -12714,7 +12724,18 @@ static void csSubExec(client *sub) {
                 if (o != NULL && o->type == OBJ_STRING) {
                     incrRefCount(o);
                     g->mget_refs[idx] = o;
+                    retained++;
                 }
+            }
+            /* Retained-ref fence (2026-08-17): these references outlive this command (returned by
+             * S8 to the DISPATCH-TIME owner recorded in mget_owner[]), so a bucket cutover inside
+             * the window would split the refcount word between two mutators. Count them on this
+             * worker — the sub runs ON its owner, so this is the same worker mget_owner[] names and
+             * the same one freebackDrainAll will decrement — and the reshard coordinator holds the
+             * flip until the count returns to zero (CO_WAIT_APPLIED). Single bump per sub. */
+            if (retained) {
+                debugServerAssert(iotid > TOMO_IO_THREADS_MAX);
+                tomoExRetainedAdd(&server.exThreads[iotid - (TOMO_IO_THREADS_MAX + 1)], retained);
             }
             /* A pooled sub can later carry an unrelated key at the same address. Pointer-clear
              * is the generation invalidation for the routing-hash hint. */
@@ -17214,6 +17235,49 @@ static void reshardCoordinatorTick(void) {
         /* C.3: the "B must replay the log up to the freeze point" wait was the copy engine's.
          * Nothing is replayed now — the fence above already proved every in-flight range command
          * dispatched to A has executed, which is the whole precondition for the flip. */
+        /* C.3b: RETAINED-REFERENCE FENCE (2026-08-17). Executed is NOT released: a coalesced MGET
+         * retains DB values (+1 non-atomic refcount) on A past its own execution, and a worker RAW
+         * zero-copy reply pins its value the same way; both return the reference to A through S8
+         * only after IO reassembly/send, and the drain decref is a whole-word RMW on the packed
+         * type/encoding/refcount word. Flip while such a reference is in flight and A's freeback
+         * decref races the NEW owner's DB-side refcount ops on the same word — a lost update frees
+         * the value one release early and the final decref panics (object.c "illegal decrRefCount",
+         * refcount 0). So hold the flip until A's retained_refs drains to 0. This wait MUST sit
+         * here, after the producer sentinel fence, not in CO_WAIT_ATOMIC: range admission only
+         * closes when producers observe DRAINING, so any earlier zero could be overtaken by a new
+         * range retention; here every admitted range sub has executed (all retentions counted) and
+         * new range work is held, so a zero is final for the moved range. Whole-worker granularity
+         * (the window is IO-reassembly-short); acquire pairs with the drain's release so the
+         * observed zero carries every final decref. Same watchdog budget (co_fence_t0 carries over
+         * from DRAINING) and same ABORT semantics: never flip, phase to DONE, table untouched —
+         * an aborted cutover is a keyspace no-op and the balancer re-arms later. */
+        int rrefs = atomic_load_explicit(&server.exThreads[src].retained_refs,
+                                         memory_order_acquire);
+        if (rrefs != 0) {
+            monotime now = getMonotonicUs();
+            if (co_fence_t0 == 0) co_fence_t0 = now;
+            int tmo = server.reshard_fence_timeout_ms;
+            if (tmo > 0 && now - co_fence_t0 >= (monotime)tmo * 1000) {
+                atomic_fetch_add_explicit(&server.reshard_fence_aborts, 1, memory_order_relaxed);
+                serverLog(LL_WARNING,
+                          "ee451 reshard ABORT: retained-reference fence did not drain within "
+                          "%d ms (worker %d retained_refs=%d, e.g. a zero-copy reply pinned by a "
+                          "slow client); ownership NOT flipped, [%d,%d) stays on worker %d",
+                          tmo, src, rrefs, lo, hi, src);
+                atomic_store_explicit(&co_aborted, 1, memory_order_release);
+                server.tm_mig_flip_action = 0;
+                atomic_store_explicit(&server.migration.phase, MIG_DONE, memory_order_release);
+                atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_release);
+                atomic_store_explicit(&tomo_atomic_cutover_gate, 0, memory_order_seq_cst);
+                if (atomic_load_explicit(&tomo_atomic_waiters, memory_order_relaxed) != 0)
+                    tomoAtomicWakeAll();
+                /* Same wake as the DRAINING abort: clients parked by the range hold must be
+                 * released or the abort trades a stalled range for a stalled client. */
+                for (int t2 = 1; t2 < nprod; t2++) migWakeProducer(t2);
+                atomic_store_explicit(&co_state, CO_WAIT_DONE, memory_order_release);
+            }
+            return;
+        }
     /* C.4: FLIP. Route [lo,hi) to B. The raw table bytes need no per-byte atomicity — every reader's
      * correctness is gated on the phase/gen acquire that synchronizes-with this release. */
     for (int b = lo; b < hi; b++) server.ex_bucket_table[b] = (uint8_t)dst;
@@ -17240,11 +17304,17 @@ static void reshardCoordinatorTick(void) {
     }
 
     if (atomic_load_explicit(&co_state, memory_order_relaxed) == CO_WAIT_REFS) {
-        /* Phase D.1/D.2: the ref-fence and source-copy cleanup hand-off both existed only for the
-         * copy engine — the fence held the flip until no zero-copy reply still pointed into a
-         * source value the cleanup was about to free. There is no second copy or source cleanup
-         * now (the flipped range's data is in the SAME dict[b] the new owner already serves), so
-         * nothing can dangle and the phase goes straight to DONE. */
+        /* Phase D.1/D.2: the old ref-fence and source-copy cleanup hand-off existed for the copy
+         * engine — that fence held the flip until no zero-copy reply still pointed into a source
+         * value the cleanup was about to FREE. With one shared physical dict[b] there is no second
+         * copy or source cleanup, so DATA cannot dangle — but "nothing can dangle" was never the
+         * whole invariant: refcount-MUTATOR IDENTITY can. A reference retained across the flip
+         * (coalesced-MGET S8 return, worker RAW zero-copy str_ref) still decrefs on the OLD owner
+         * while the NEW owner mutates the same non-atomic refcount word — the object.c:713
+         * "illegal decrRefCount" corruption. That is why the retained-reference fence in
+         * CO_WAIT_APPLIED (C.3b, 2026-08-17) drains exThreads[src].retained_refs to zero BEFORE
+         * the flip commits; by this state nothing retained remains and the phase goes straight to
+         * DONE. */
         atomic_store_explicit(&server.migration.phase, MIG_DONE, memory_order_release);
         atomic_store_explicit(&co_state, CO_WAIT_DONE, memory_order_release);
         return;
@@ -20776,6 +20846,13 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 (unsigned long long)atomic_load_explicit(&server.reshard_fence_midbatch, memory_order_relaxed),
             "tomokv_reshard_fence_aborts:%llu\r\n",
                 (unsigned long long)atomic_load_explicit(&server.reshard_fence_aborts, memory_order_relaxed),
+            /* Retained-ref fence evidence (2026-08-17): S8 free-back drains whose ring entry was
+             * pushed under an older migration generation — a retained value reference (coalesced
+             * MGET / worker zero-copy reply) whose flight overlapped a cutover transition. This is
+             * the window the CO_WAIT_APPLIED retained_refs fence closes; a reshard-under-MGET run
+             * that leaves this at 0 never entered that window and validates nothing. */
+            "tomokv_freeback_stale_owner_drains:%llu\r\n",
+                (unsigned long long)atomic_load_explicit(&tomo_freeback_stale_owner_drains, memory_order_relaxed),
             "tomokv_reshard_fence_stale_acks:%llu\r\n",   /* ee451 O1: drain sentinels rejected as stale (guard fired) */
                 (unsigned long long)atomic_load_explicit(&server.migration.fence_stale_acks, memory_order_relaxed),
             /* Flip actuator recoveries are never normal control decisions: each increment names one
@@ -22486,6 +22563,10 @@ void freebackPush(int ex_id, robj *obj) {
     }
     if (waiting) tmIoWaitEnd();
     fb->objs[t] = obj;
+    /* Retained-ref fence witness: stamp the entry with the live migration generation so the
+     * drain can count entries whose flight crossed a migration transition (see
+     * tomo_freeback_stale_owner_drains). Written before the tail release-publish, like objs[]. */
+    fb->gens[t] = (uint32_t)atomic_load_explicit(&server.migration.gen, memory_order_relaxed);
     atomic_store_explicit(&fb->tail, next_t, memory_order_release);
 }
 
@@ -22499,17 +22580,33 @@ static inline void freebackDrainAll(exThread *worker) {
      * fills and freebackPush spins forever (wedging that IO thread + leaking every forwarded value).
      * The growth slots are alloc-sized and empty until live, so the extra iterations are no-ops. */
     int nfb = server.io_threads + server.tm_ngrow_io;
+    int drained = 0;
+    unsigned long long crossed = 0;
+    /* One relaxed gen sample for the whole pass: the witness is a diagnostic, a bump landing
+     * mid-drain only shifts which pass counts the crossing. */
+    uint32_t cur_gen = (uint32_t)atomic_load_explicit(&server.migration.gen, memory_order_relaxed);
     for (int t = 0; t <= nfb; t++) {
         freebackRing *fb = &worker->freeback[t];
         unsigned int h = atomic_load_explicit(&fb->head, memory_order_relaxed);
         unsigned int tl = atomic_load_explicit(&fb->tail, memory_order_acquire);
         if (h == tl) continue;
         while (h != tl) {
+            if (__builtin_expect(fb->gens[h] != cur_gen, 0)) crossed++;
             decrRefCount((robj *)fb->objs[h]);
             h = (h + 1) & FREEBACK_RING_MASK;
+            drained++;
         }
         atomic_store_explicit(&fb->head, h, memory_order_release);
     }
+    /* Retained-ref fence: every object in these rings was counted at its retention site (MGET
+     * coalesced retention or worker RAW zero-copy str_ref — freebackPush has no other producer),
+     * so the drained total balances the counter exactly. The RELEASE store runs after the
+     * decrRefCounts above: a coordinator that acquire-loads 0 has therefore observed the final
+     * decref of every retained value before it commits the ownership flip. */
+    if (drained) tomoExRetainedAdd(worker, -drained);
+    if (__builtin_expect(crossed != 0, 0))
+        atomic_fetch_add_explicit(&tomo_freeback_stale_owner_drains, crossed,
+                                  memory_order_relaxed);
 }
 
 int exQueuePush(exQueue *q, client *c) {

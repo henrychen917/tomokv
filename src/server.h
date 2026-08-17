@@ -2522,6 +2522,13 @@ typedef struct freebackRing {
     redisAtomic unsigned int head __attribute__((aligned(CACHE_LINE_SIZE))); /* consumer (worker) */
     redisAtomic unsigned int tail __attribute__((aligned(CACHE_LINE_SIZE))); /* producer (IO thread) */
     void *objs[FREEBACK_RING_SIZE] __attribute__((aligned(CACHE_LINE_SIZE)));
+    /* Retained-ref fence evidence (2026-08-17): server.migration.gen at push, per entry. The drain
+     * compares it against the live gen and counts tomokv_freeback_stale_owner_drains when an entry's
+     * flight crossed a migration transition — the vacuous-validation witness that the retention
+     * window the cutover ref-fence exists for was actually exercised (a run that never trips it
+     * proves nothing about that fence). Same producer/consumer discipline as objs[]: written before
+     * the tail release-publish, read after the tail acquire. */
+    uint32_t gens[FREEBACK_RING_SIZE];
 } freebackRing;
 
 /* ee451 (#4): branch-predictor-style forward predictor — a table of 2-bit
@@ -2738,7 +2745,32 @@ typedef struct exThread {
      * predecessor offset; folded by INFO exactly like pf_batches/pf_gated/pf_issued. */
     unsigned long long pf_issued_slot;
     unsigned long long pf_issued_kvobj;
+    /* Retained DB-value references (2026-08-17): +1 for every value reference this worker retains
+     * PAST its own command execution and returns to itself through the S8 free-back ring — the
+     * coalesced-MGET retention (csSubExec CS_MGET) and the RAW zero-copy reply str_ref
+     * (_addBulkStrRefToBufferOrList, owner_ex >= 0); -1 per object drained in freebackDrainAll.
+     * robj.refcount is a non-atomic whole-word RMW, safe only while a value has exactly ONE
+     * mutating thread; a bucket-ownership cutover inside a retention window breaks that identity
+     * (freeback decref on the OLD owner vs DB-side refcount ops on the NEW owner = lost update,
+     * early free, decrRefCount panic on the corpse). The reshard coordinator therefore waits for
+     * this to reach 0 before the flip commits (CO_WAIT_APPLIED, reshardCoordinatorTick).
+     * SINGLE-WRITER: every increment site runs on this worker's own thread (retention happens in
+     * its command execution / reply build) and the drain decrements on the same thread, so no RMW
+     * is needed — tomoExRetainedAdd does a relaxed load + RELEASE store; the coordinator
+     * acquire-loads. PLACEMENT: appended at the very end per this struct's standing rule
+     * (mid-struct inserts shift the tuned hot block; measured -16% p32 SET). It shares the
+     * owner-written stats tail line (pf_issued_*): the coordinator reads it only on cutover ticks,
+     * so there is no steady-state cross-thread traffic on the line. */
+    _Atomic int retained_refs;
 } exThread;
+
+/* Single-writer add/sub for exThread.retained_refs (see the field comment). Owner thread only:
+ * relaxed load (no other writer exists) + release store, so a coordinator that acquire-loads 0
+ * also observes every decrRefCount that preceded the final decrement. */
+static inline void tomoExRetainedAdd(exThread *w, int n) {
+    int v = atomic_load_explicit(&w->retained_refs, memory_order_relaxed) + n;
+    atomic_store_explicit(&w->retained_refs, v, memory_order_release);
+}
 
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     uint8_t id;                                 /* The unique ID assigned, if IO_THREADS_MAX_NUM is more
