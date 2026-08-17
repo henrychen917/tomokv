@@ -2,7 +2,12 @@
 
 This is an inventory of the current in-process cross-shard implementation for `MGET`, `MSET`, set algebra, and `RENAME`. (`src/server.c:10784-10816`) The data path hands work from an IO thread to owner-worker queues. (`src/server.c:12544-12586`)
 
-Completion ownership is boot-selected. At `tomokv-thread-wb 0`, the original IO/last-EX helpers advance and reassemble groups. With WB enabled, the last EX publishes one common group marker and the sticky WB owns gather/reassembly, pipeline and two-hop continuations, reservation advancement, and post-install atomic commit. The complete ownership seam is documented in [Boot-selectable write-back stage](writeback-stage.md).
+Drain ownership is boot-selected. At `tomokv-thread-wb 0`, IO advances and reassembles groups. With
+WB enabled, the sticky WB owns gather/reassembly, pipeline and two-hop continuations, and reservation
+advancement. Atomic commit publication is shared across both modes instead: the last owner-local
+publisher assigns the group marker and publishes the final CDB byte, which schedules IO or WB
+according to the boot mode. The complete ownership seam is documented in
+[Boot-selectable write-back stage](writeback-stage.md).
 
 The spanning-worker path is pure scatter-gather: every key is hashed, resolved through `server.ex_bucket_table`, placed in a sub bound to `server.exThreads[w].db[dbid]`, and pushed to worker `w`; that worker takes its own worker lock before calling `csSubExec`. (`src/server.c:12648-12705`, `src/server.c:22144-22170`) The active dispatch and execution chain contains no branch that reads a sub's keys through a different worker. (`src/server.c:12648-12705`, `src/server.c:22165-22170`)
 

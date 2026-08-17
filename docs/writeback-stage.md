@@ -85,12 +85,15 @@ session concurrently; `tomokv-thread-wb 0` retains the existing TLS behavior.
 EX remains responsible only for shard-local work. The last sub-fake release-publishes one common
 group-completion marker. In three-stage mode the sticky WB alone consumes that marker and performs
 the next action: gather/reassemble, launch a pipeline or two-hop continuation through its dedicated
-producer lane, advance MSETNX reservations, or publish an atomic commit after every install is
-ready. Parsed-command and sub-fake return objects are then posted to their origin IO pool.
+producer lane, or advance MSETNX/NX reservations. Parsed-command and sub-fake return objects are
+then posted to their origin IO pool.
 
-The two-stage boot keeps its original last-EX election and IO-side gather/retirement helpers. Shared
-atomic publication records are detached before commit in both modes and retired only after the
-matching commit sequence is visible, so neither mode can leave a stale record behind a freed group.
+Atomic terminal publication is not a WB coordinator action. In both modes each install owner
+publishes locally and decrements the shared `shards_remaining`; its last decrementer assigns the
+timestamp, release-publishes the marker, detaches the commit-owned owner records from `csGroup`, and
+publishes the final CDB byte. That byte enters the ordinary IO scan at WB=0 or the fenced sticky-WB
+ready bitmap at WB>0. Owner records outlive reply reassembly through `tomoCommit` and retire through
+their owner-local epoch path, so neither drain mode can leave a stale record behind a freed group.
 
 ## Client and slot lifetime
 

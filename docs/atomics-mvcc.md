@@ -14,7 +14,13 @@ without exposing a torn group. No owner waits for another owner: a non-last decr
 its normal slice immediately. There is no commit drainer, ready-group MPSC, elected producer,
 reserved owner-operation ring, or per-key cross-core publish message.
 
-The commit coordinator is boot-selected without changing that visibility protocol. At `tomokv-thread-wb 0`, the original last-EX/per-client election publishes the group. With WB enabled, the last EX publishes a common completion marker and the sticky WB performs the post-install commit and retires the detached publication record. See [Boot-selectable write-back stage](writeback-stage.md).
+Commit publication is identical in both boot modes. The `shards_remaining` modification-order chain
+carries every owner-local release to its last decrementer; that owner assigns the timestamp,
+release-publishes the shared marker, detaches the commit-owned owner records from `csGroup`, and
+publishes the final CDB byte. At `tomokv-thread-wb 0`, the connection's IO owner consumes that byte;
+with WB enabled, `cdbSlotPublish` advertises it through the sticky WB's fenced ready bitmap. WB still
+owns intermediate pipeline, two-hop, and reservation continuations, but it does not assign the
+atomic timestamp. See [Boot-selectable write-back stage](writeback-stage.md).
 
 An eligible cross-shard read samples the committed clock once at dispatch. Call the resulting
 snapshot `T`. Normal resolution accepts a group version only when its shared `commit_ts` is nonzero

@@ -108,7 +108,8 @@ chk "WB returns cross-shard fakes to origin IO"              "$T/src/networking.
 chk "WB returns parsed commands to origin IO"               "$T/src/networking.c" 'pcmdReturnPushReserved\(owner, pcmd\)'
 chk "writable ownership participates in client quiescence"  "$C" 'atomic_load_explicit\(&wc->write_registered, memory_order_acquire\) != 0'
 chk "writable registration is cross-thread atomic"          "$C" '_Atomic int write_registered'
-chk "WB releases FLAT pin against its entry IO slot"         "$C" 'tomo_read_snapshot_pinned - 1'
+chk "WB stores the FLAT pin entry IO slot"                   "$C" '\? 1 : \(unsigned int\)s \+ 1'
+chk "WB releases FLAT pin against its entry IO slot"         "$C" ': \(int\)pinned - 1'
 chk "referenced-reply list stays with connection IO"         "$T/src/networking.c" 'clients_with_pending_ref_reply\[owner\]'
 
 echo
@@ -147,17 +148,19 @@ chk "parity gate uses thermal-balanced B,C,C,B order"         "$T/tools/prefligh
 
 echo
 echo "--- post-EX cross-shard ownership ---"
-# EX owns only shard-local execution and the release publication of one common group marker in
-# WB mode. Sticky WB consumes that marker, advances every coordinator state machine, and
-# re-publishes an atomic group's slot only after commit ordering. The authoritative wb=0 path keeps
-# its existing last-EX FIFO election, so this section guards both sides of the boot-time branch.
-chk "last EX publishes the common group completion marker"  "$C" 'sticky WB alone decides whether to advance a stage, commit, or'
-chk "2-stage EX atomic commit helper remains"                "$C" 'static void csMsetInstallDone\(csGroup \*g\)'
-chk "2-stage per-client commit election remains"             "$H" 'redisAtomic int mset_drain_latch'
-chk "last EX enters that helper only at wb=0"                "$C" 'if \(last && __builtin_expect\(server\.wb_threads == 0, 1\)\)'
-chk_count "both commit paths retire detached publication records" "$C" 'csMsetPubRetire\(hp, gtag\);' 2
-chk "atomic marker finalization is WB-named"                 "$C" 'csAtomicFinalizeFromWb\(csGroup \*g\)'
-chk "atomic commit continuation is WB-named"                "$C" 'csMsetCommitFromWb\(csGroup \*g\)'
+# The owner-local atomic ship stack deliberately removed the per-client commit FIFO and its
+# WB-specific finalizer. Every owner publishes independently, shards_remaining carries those
+# releases to the last owner, and that owner publishes one marker plus one common CDB completion.
+# cdbSlotPublish then selects the boot-time drain owner: positional IO scan at wb=0, ready bitmap at
+# wb>0. Intermediate pipeline/reservation markers still return to that same active drain owner.
+chk "key-dependent atomic install fold remains"             "$C" 'static void csMsetInstallDone\(csGroup \*g\)'
+chk "atomic owner rendezvous remains"                       "$C" 'atomic_fetch_sub_explicit\(&commit->shards_remaining, 1,'
+chk "non-last atomic owners return immediately"             "$C" 'if \(before != 1\) return;'
+chk "last owner release-publishes one commit marker"        "$C" 'atomic_store_explicit\(&commit->commit_ts, commit_ts, memory_order_release\)'
+chk "terminal completion detaches owner records"            "$C" 'g->mset_owners = NULL;'
+chk "terminal completion severs the group/commit link"      "$C" 'commit->group = NULL;'
+chk_count "terminal atomic completion publishes one CDB marker" "$C" 'cdbSlotPublish\(real, g->head->cdb, g->head->fake_slot\);' 1
+chk "atomic IO notifier stays wb=0-only"                    "$C" 'if \(__builtin_expect\(server\.wb_threads == 0, 1\)\) tomoAtomicReplyWakePost\(producer_tid\);'
 chk "post-EX MSETNX ownership preserves both boot modes"    "$C" 'register_group \|\| server\.wb_threads == 0 \|\| tomoWbInThread\(\)'
 chk "SETOP pipeline continuation asserts WB ownership"      "$C" 'static int csPipeAdvance\(csGroup \*g\)'
 chk "two-hop continuation asserts WB ownership"             "$C" 'static int csLaunchHop2\(csGroup \*g\)'

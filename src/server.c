@@ -2171,7 +2171,13 @@ static inline void flatGroupPinEnter(client *fake) {
     atomic_fetch_add_explicit(&ps->pin_out[gen & FLAT_PIN_GEN_MASK], 1, memory_order_relaxed);
     fake->tomo_read_snapshot_gen = gen;
     fake->tomo_read_snapshot = gen;
-    atomic_store_explicit(&fake->tomo_read_snapshot_pinned, 1, memory_order_release);
+    /* wb=0 retires on the same connection owner and retains the legacy boolean carrier. A sticky
+     * WB can retire after an IO handoff changed real->tid, so encode the immutable entry slot + 1
+     * in that mode. The exchange in tomoReleaseReadSnapshot recovers this exact row. */
+    unsigned int pin_owner = __builtin_expect(server.wb_threads == 0, 1)
+                           ? 1 : (unsigned int)s + 1;
+    atomic_store_explicit(&fake->tomo_read_snapshot_pinned, pin_owner,
+                          memory_order_release);
     atomic_store_explicit(&ps->scan_lock, 0, memory_order_release);
     if (ctl_held)
         atomic_store_explicit(&flat_pin_ctl.scan_lock, 0, memory_order_release);
@@ -5456,13 +5462,15 @@ static inline void tomoReleaseReadSnapshot(client *fake) {
             atomic_load_explicit(&fake->tomo_read_snapshot_pinned,
                                  memory_order_relaxed) == 0, 1))
         return;
-    if (!atomic_exchange_explicit(&fake->tomo_read_snapshot_pinned, 0,
-                                  memory_order_acq_rel))
-        return;
-    /* Pure cross-shard reads may retire the pin on their last worker, before the IO thread
-     * reassembles already-serialized output. The real client's immutable owner slot identifies
-     * the group-pin row; the IO-side fallback is retained for teardown and non-read groups. */
-    int slot = fake->parent ? fake->parent->tid : flat_slot_owned;
+    unsigned int pinned = atomic_exchange_explicit(
+        &fake->tomo_read_snapshot_pinned, 0, memory_order_acq_rel);
+    if (!pinned) return;
+    /* Pure cross-shard reads may retire on their last worker. wb=0's boolean carrier can resolve
+     * through the still-owned real client; WB must use the entry slot encoded before dispatch,
+     * because receive ownership may have migrated while the sticky writer kept the fake alive. */
+    int slot = __builtin_expect(server.wb_threads == 0, 1)
+             ? (fake->parent ? fake->parent->tid : flat_slot_owned)
+             : (int)pinned - 1;
     flatGroupPinExit(fake, slot);
 }
 
@@ -13287,7 +13295,9 @@ static void csMsetGroupComplete(tomoCommit *commit) {
                           memory_order_release);
     client *real = g->mset_client;
     serverAssert(real != NULL && real == g->head->parent);
-    int producer_tid = real->tid;
+    /* real->tid may change under IO handoff in WB mode. Only the two-stage notifier consumes it;
+     * the sticky writer is selected from immutable WB state by cdbSlotPublish. */
+    int producer_tid = __builtin_expect(server.wb_threads == 0, 1) ? real->tid : -1;
     serverAssert(commit->owner_records == g->mset_owners ||
                  (commit->owner_records == NULL && g->mset_owners == NULL));
     g->mset_owners = NULL;
@@ -13300,8 +13310,10 @@ static void csMsetGroupComplete(tomoCommit *commit) {
     unsigned int before = atomic_fetch_sub_explicit(
         &clientTail(real)->mset_pending_count, 1, memory_order_release);
     serverAssert(before > 0);
+    /* cdbSlotPublish schedules the sticky WB in three-stage mode. Only wb=0 owns the separate
+     * notifier-backed IO wait count; do not touch its arm from an EX completion in WB mode. */
     cdbSlotPublish(real, g->head->cdb, g->head->fake_slot);
-    tomoAtomicReplyWakePost(producer_tid);
+    if (__builtin_expect(server.wb_threads == 0, 1)) tomoAtomicReplyWakePost(producer_tid);
     tomoCommitRelease(commit);             /* drop the transient group reference last */
     /* g may be reassembled and freed as soon as the CDB release is observed. */
 }
@@ -13309,7 +13321,7 @@ static void csMsetGroupComplete(tomoCommit *commit) {
 /* Every owner reaches this only after its eager index publications and any terminal local
  * reservation/cancellation work. The acq_rel RMW chain is the whole group rendezvous: non-last
  * owners return immediately; the last assigns the timestamp, publishes the single marker, and
- * posts IO. */
+ * publishes the common CDB completion; cdbSlotPublish selects the IO or sticky-WB drain owner. */
 static void csMsetOwnerPublished(tomoCommit *commit) {
     serverAssert(commit != NULL);
     unsigned int before = atomic_fetch_sub_explicit(&commit->shards_remaining, 1,
@@ -26309,9 +26321,10 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
                              g->msetnx_state[0] != CS_MSETNX_RESERVED))
                             stage_only = 1;
 
-                        /* Versioned completion participates in the commit FIFO and cannot be
-                         * delayed past later jobs in this aggregate. Close the accounting segment
-                         * first: either call can immediately expose (and retire) the group. */
+                        /* A final key-dependent wave folds its exact owner records and lets those
+                         * owners publish locally; it cannot be delayed past later jobs in this
+                         * aggregate. Close the accounting segment first: csMsetInstallDone can
+                         * complete a zero-owner cancellation immediately. */
                         zmalloc_stat_batch_end();
                         if (stage_only) {
                             client *hp = g->head->parent;
