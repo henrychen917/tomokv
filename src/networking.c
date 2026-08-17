@@ -163,17 +163,16 @@ void freeClientCold(client *c) {
 }
 //ee451
 //ee451
-/* ee451 (v11): reset ALL per-call fields of a fake client to the pristine post-create state,
- * WITHOUT touching the cached heap allocations (c->buf and the c->reply list object).
- * createFakeClient and the pooled-reuse path (createPooledFakeClient) BOTH call this, so a fresh
- * fake and a recycled fake are byte-identical in every field — no field can be missed on reuse.
- * Caller guarantees c->buf is allocated (size in c->buf_usable_size) and c->reply is an EMPTY
- * list with its free/dup methods already set. */
+/* Initialize a newly allocated (or newly promoted) full fake. The pooled cross-shard path does
+ * not call this on reuse: its retire step owns all dynamic cleanup, while its rearm step resets
+ * only fields that a later sub reads before overwriting. Keeping those two contracts separate is
+ * what avoids rewriting the full client+tail for every MGET shard. Caller guarantees c->buf is
+ * allocated and c->reply is an empty list with its methods installed. */
 static void resetFakeClientState(client *c, client *parent) {
     serverAssert(c->has_exec_tail);
-    /* A pooled fake must never inherit subscriptions, transaction errors, or
-     * any other cold state from its previous command. Fresh fakes set cold to
-     * NULL before entering here, so this is safe on every construction path. */
+    /* Fresh fakes enter with cold == NULL; promotion zeroes the new tail. Keep
+     * the defensive teardown for either construction path if that contract is
+     * ever widened. Pooled retirement handles its own cold state below. */
     freeClientCold(c);
     clientTail(c)->cold = NULL;
 
@@ -465,13 +464,43 @@ static inline int isFakeBufPoolable(client *c) {
     return c->buf_usable_size >= FAKE_BUF_START_BYTES && c->buf_usable_size <= FAKE_BUF_MAX_BYTES;
 }
 
+/* Rearm contract for a retired pooled sub. Cross-shard constructors overwrite cmd/resp/conn/db,
+ * argv/argc, csparent and cssub_idx before publication. The fields below are the smaller set a
+ * later command can read or update before such an overwrite: identity/thread affinity, additive
+ * reply counters, ACL defaults, and routing-hint generation. Existing scalar values double as
+ * dirty bits, so the common MGET reuse performs no writes for already-clean optional state.
+ * Dynamic ownership and reply-buffer cleanliness are established once in freePooledFakeClient. */
+static inline void rearmPooledFakeClient(client *c, client *parent) {
+    serverAssert(c->has_exec_tail && c->isFake);
+    int clean_mget_generation = c->cmd && c->cmd->proc == mgetCommand;
+    c->parent = parent;
+    if (unlikely(c->tid != parent->tid || c->running_tid != parent->running_tid)) {
+        c->tid = parent->tid;
+        c->running_tid = parent->running_tid;
+    }
+    /* MGET's open-coded sub execution cannot dirty ACL/parser/counter state, and its routing
+     * pointer is cleared on the worker. The previous command is therefore a generation tag for
+     * the minimal rearm. prefetch_key_hash_valid is the one worker-prefetch scratch bit that may
+     * remain armed after a DICT lookup. */
+    if (unlikely(c->prefetch_key_hash_valid)) c->prefetch_key_hash_valid = 0;
+    if (likely(clean_mget_generation)) return;
+    if (unlikely(c->user != NULL || c->authenticated != 0)) {
+        c->user = NULL;
+        c->authenticated = 0;
+    }
+    if (unlikely(c->argv_len != 0)) c->argv_len = 0;
+    if (unlikely(c->net_input_bytes_curr_cmd || c->net_output_bytes_curr_cmd)) {
+        c->net_input_bytes_curr_cmd = 0;
+        c->net_output_bytes_curr_cmd = 0;
+    }
+    if (unlikely(c->tomo_bkt_ptr != NULL)) c->tomo_bkt_ptr = NULL;
+}
+
 client *createPooledFakeClient(client *parent) {
     int t = iotid;
     if (t >= 0 && t <= TOMO_IO_THREADS_MAX && xsubPoolN[t].n > 0) {
         client *c = xsubPool[t][--xsubPoolN[t].n];
-        /* c->buf valid (size in c->buf_usable_size), c->reply an empty list with methods set
-         * (ensured at free time). Re-init every other field to the pristine state. */
-        resetFakeClientState(c, parent);
+        rearmPooledFakeClient(c, parent);
         return c;
     }
     return createFakeClient(parent);
@@ -483,15 +512,56 @@ void freePooledFakeClient(client *c) {
      * freeFakeClient would free, but KEEP the struct + buf + reply-list object for reuse. */
     if (t >= 0 && t <= TOMO_IO_THREADS_MAX && xsubPoolN[t].n < XSUB_POOL_CAP &&
         c->buf && c->reply && isFakeBufPoolable(c)) {
-        if (clientTail(c)->querybuf) { sdsfree(clientTail(c)->querybuf); clientTail(c)->querybuf = NULL; }
-        releaseAllBufReferences(c);
-        listEmpty(c->reply);                 /* free reply blocks, keep the list object */
-        freeClientOriginalArgv(c);
-        freeClientDeferredObjects(c, 1);
-        freeClientIODeferredObjects(c, 1);
-        if (clientTail(c)->deferred_reply_errors) { listRelease(clientTail(c)->deferred_reply_errors); clientTail(c)->deferred_reply_errors = NULL; }
-        if (clientTail(c)->name) { decrRefCount(clientTail(c)->name); clientTail(c)->name = NULL; }
-        freeClientCold(c);
+        /* Existing lengths/pointers are the dirty mask. Coalesced MGET subs never append a
+         * private reply, so their common retirement skips the list walk entirely. */
+        if (unlikely(c->bufpos || c->reply_bytes || c->buf_encoded || c->last_header ||
+                     c->sentlen || c->net_input_bytes_curr_cmd ||
+                     c->net_output_bytes_curr_cmd || listLength(c->reply))) {
+            releaseAllBufReferences(c);
+            listEmpty(c->reply);             /* free reply blocks, keep the list object */
+            c->bufpos = 0;
+            c->reply_bytes = 0;
+            c->buf_encoded = 0;
+            c->last_header = NULL;
+            c->sentlen = 0;
+            c->net_input_bytes_curr_cmd = 0;
+            c->net_output_bytes_curr_cmd = 0;
+        }
+        /* The previous command is the generation tag. MGET cannot acquire any of the dynamic
+         * fields below, so its hot retirement need not even read their cache lines. */
+        if (unlikely(!c->cmd || c->cmd->proc != mgetCommand)) {
+            uintptr_t owned_dirty =
+                (uintptr_t)clientTail(c)->querybuf |
+                (uintptr_t)clientTail(c)->original_argv |
+                (uintptr_t)clientTail(c)->deferred_objects |
+                (uintptr_t)clientTail(c)->io_deferred_objects |
+                (uintptr_t)clientTail(c)->deferred_reply_errors |
+                (uintptr_t)clientTail(c)->name |
+                (uintptr_t)clientTail(c)->lib_name |
+                (uintptr_t)clientTail(c)->lib_ver |
+                (uintptr_t)clientTail(c)->cold |
+                (uintptr_t)(unsigned int)clientTail(c)->deferred_objects_num |
+                (uintptr_t)(unsigned int)clientTail(c)->io_deferred_objects_num;
+            if (unlikely(owned_dirty != 0)) {
+                if (clientTail(c)->querybuf) {
+                    sdsfree(clientTail(c)->querybuf);
+                    clientTail(c)->querybuf = NULL;
+                }
+                if (clientTail(c)->original_argv) freeClientOriginalArgv(c);
+                if (clientTail(c)->deferred_objects || clientTail(c)->deferred_objects_num)
+                    freeClientDeferredObjects(c, 1);
+                if (clientTail(c)->io_deferred_objects || clientTail(c)->io_deferred_objects_num)
+                    freeClientIODeferredObjects(c, 1);
+                if (clientTail(c)->deferred_reply_errors) {
+                    listRelease(clientTail(c)->deferred_reply_errors);
+                    clientTail(c)->deferred_reply_errors = NULL;
+                }
+                if (clientTail(c)->name) { decrRefCount(clientTail(c)->name); clientTail(c)->name = NULL; }
+                if (clientTail(c)->lib_name) { decrRefCount(clientTail(c)->lib_name); clientTail(c)->lib_name = NULL; }
+                if (clientTail(c)->lib_ver) { decrRefCount(clientTail(c)->lib_ver); clientTail(c)->lib_ver = NULL; }
+                if (clientTail(c)->cold) freeClientCold(c);
+            }
+        }
 #ifdef LOG_REQ_RES
         reqresReset(c, 1);
 #endif

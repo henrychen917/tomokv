@@ -168,6 +168,8 @@ void *kvstoreGetDictMeta(kvstore *kvs, int didx, int createIfNeeded);
 void *kvstoreGetMetadata(kvstore *kvs);
 
 dictEntryLink kvstoreDictFindLink(kvstore *kvs, int didx, void *key, dictEntryLink *bucket);
+/* FLAT-only read form; hash must be the full tomo key hash for this exact key. */
+dictEntry *kvstoreFlatFindWithHash(kvstore *kvs, uint64_t hash, void *key);
 /* FLAT-only form; hash must be the full tomo key hash for this exact key. */
 dictEntryLink kvstoreFlatFindLinkWithHash(kvstore *kvs, uint64_t hash, void *key, dictEntryLink *bucket);
 /* Returns DICT_ERR only when a FLAT new-item insert made a complete full-table probe. */

@@ -2080,7 +2080,7 @@ robj *hllMergeObjects(robj **hlls, int n, int *err);
 #define TOMO_SW_INVALID    (-3)
 /* ---- result slots dispatchGather allocates ---- */
 #define CS_RES_NONE        0
-#define CS_RES_MGETVALS    1   /* g->mget_vals[nkeys] — ONLY on the coalesced path (as today) */
+#define CS_RES_MGETVALS    1   /* coalesced string slots; CS_MGET uses retained g->mget_refs */
 #define CS_RES_SETMEM      2   /* g->setmem/setcnt[nkeys] — ALWAYS (legacy + coalesced) */
 #define CS_RES_KEYREPORT   3   /* g->klen/ktype[nkeys] (ordered MPOP/BPOP probes) */
 #define CS_RES_ZSETMEM     4   /* setmem/setcnt + parallel zscore[nkeys] (step 6 Z-ops) */
@@ -2138,7 +2138,10 @@ typedef struct csGroup {
      * therefore reachable exactly as long as the group is LINKED in the FIFO: csMsetPopComplete
      * copies key_sig/key_h into a connection-owned csPubRec on the way out, because past that
      * point csReassemble may free this whole allocation at any moment. */
-    uint64_t *key_h;           /* [key_h_n] full tomo key hashes of the written keys */
+    union {
+        uint64_t *key_h;       /* [key_h_n] full tomo key hashes of the written keys */
+        uint64_t *mget_hash;   /* MGET-only routing-hash scratch; group is never in R1 */
+    };
     int key_h_n;               /* 0 => filter-only (conservative); see above */
     uint64_t version_seq;      /* UNCOMMITTED while installing, then the group commit ticket */
     uint64_t read_seq;         /* command snapshot S while version_seq remains the write ticket */
@@ -2159,9 +2162,6 @@ typedef struct csGroup {
     redisAtomic int msetnx_retry;       /* reservations blocked by an earlier pending owner */
     uint8_t *msetnx_state;              /* [nkeys], coordinator-visible reservation verdict */
     int snapshot_pinned;       /* snapshot-reading group uses its head's dispatch pin */
-    /* (results[]/result_ex[] DELETED 2026-07-28: the robj-per-position MGET result carrier was
-     * replaced by mget_vals[] — sds copies, no cross-thread refcount — and the pair had been
-     * NULL-initialised-and-never-read ever since.) */
     redisAtomic long rcount;   /* DEL/EXISTS: summed integer result */
     /* ee451 (v11-F): cross-shard set-ops (SINTER/SUNION/SDIFF). Each per-key sub gathers its
      * set's members as freshly-allocated sds COPIES (private, refcount-free => safe to free on
@@ -2173,15 +2173,18 @@ typedef struct csGroup {
     long *setcnt;              /* CS_SETOP: [nsub] member count for setmem[i] (0 if missing key) */
     double **zscore;           /* CS_Z*: [nkeys] per-key score arrays parallel to setmem
                                 * (worker-alloc; a plain-set source contributes 1.0 per stock) */
-    /* ee451 (xshard OPT-1): COALESCED MGET. Instead of one sub-fake PER KEY (k allocs / k argv /
-     * 2k refcounts / k cross-thread pushes / k reply-buffer page-faults, all serial on the
-     * coordinator), issue one sub PER DISTINCT SHARD carrying all that shard's keys, and preserve
-     * original key ORDER via position-indexed value slots: worker writes each value as a private
-     * sds COPY (refcount-free, like setmem => safe to free on the coordinator) into mget_vals[pos];
-     * coordinator emits mget_vals[0..nkeys-1] in order (NULL slot => nil). mget_pos[si] carries the
-     * original positions of sub si's keys (worker maps its local key j -> mget_pos[cssub_idx][j-1]).
-     * NULL mget_vals => legacy per-key path (knob off) => reassemble via per-sub reply-buffer splice. */
-    sds  *mget_vals;           /* CS_MGET coalesced: [nkeys] value copies, position-indexed (NULL=nil) */
+    /* ee451 (xshard OPT-1): COALESCED MGET. One sub per distinct owner writes retained value
+     * references into original-position slots. The IO owner copies bytes into the real reply
+     * with copy avoidance disabled, then routes each decref through S8 to mget_owner[pos]; it
+     * never mutates a worker-owned refcount. This removes the former per-hit SDS allocation and
+     * second value copy. mget_hash reuses the routing pass's full hash for the worker FLAT read.
+     * Other CS_RES_MGETVALS commands still use private mget_vals SDS images because their
+     * coordinator computations require independently-owned bytes. NULL mget_refs identifies the
+     * legacy one-key-sub MGET path, whose serialized buffers are spliced as before. */
+    union {
+        robj **mget_refs;       /* CS_MGET coalesced: [nkeys] retained values (NULL=nil) */
+        sds *mget_vals;         /* other string-image gathers: private position-indexed copies */
+    };
     int **mget_pos;            /* CS_MGET coalesced: [nsub] per-sub original-position lists */
     int **setop_pos;           /* CS_SETOP coalesced: [nsub] per-sub original-key-position lists (NULL=legacy per-key subs). setmem/setcnt stay indexed by ORIGINAL key position. */
     client **xread_out;        /* CS_XREAD: [nkeys] bare [key,entries] reply fragments */
@@ -2261,7 +2264,11 @@ typedef struct csGroup {
     redisAtomic long long usec;  /* summed sub proc time, microseconds */
     redisAtomic int had_err;     /* a sub emitted an error reply => failed_calls */
     redisAtomic long long probe; /* dst-probe lane: exists/type verdict (step 4+) */
-    long *klen; uint8_t *ktype;  /* [nkeys] per-original-key len/type reports (step 9) */
+    long *klen;                  /* [nkeys] per-original-key length reports (step 9) */
+    union {
+        uint8_t *ktype;         /* ordered key-report gathers: type by original position */
+        uint8_t *mget_owner;    /* CS_MGET coalesced: S8 return owner, indexed by position */
+    };
     /* T3 SORT BY/GET pipeline. The source worker constructs an opaque, refcount-free SORT
      * context; later owner-bucketed dereference waves fill mget_vals and use sort_fields to
      * distinguish string lookups from hash-field lookups. All three fields are private to
