@@ -15,7 +15,8 @@ artifact · FLATSTORE/QSBR correctness · numa=2 · script-fence battery
 · atomic torn-read/P0/RSS discrimination · feature sweep (oracle equivalence vs stock Redis,
 toggle semantics, persistence, known-issues ledger) · controller conformance (SHIFT / ENVELOPE /
 NOREG / AUTO==STATIC with timestamp-based stabilization verdicts; client + key + flip LB
-families) · flip landing/convergence against in-suite statics · bounded stress.
+families) · Arm C multishot/direct-send re-entry through `processEventsWhileBlocked` · flip
+landing/convergence against in-suite statics · bounded stress.
 
 Verdicts: `FAIL` → NO-GO. `SUSPECT` → doesn't block, printed loudly (sanity-gate rule: stop and
 look, never average a bad number away). Every run is archived to

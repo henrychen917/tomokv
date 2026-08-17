@@ -3254,7 +3254,7 @@ standardConfig static_configs[] = {
     createIntConfig("tomokv-thread-wb",              NULL, IMMUTABLE_CONFIG, -1, TOMO_WB_THREADS_MAX, server.wb_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* 0=2-stage/no allocation; N=WB per node; -1=AUTO three-role sizing */
     createIntConfig("tomokv-io-uring",               NULL, IMMUTABLE_CONFIG, 0, 2, server.io_uring, 0, INTEGER_CONFIG, NULL, NULL), /* 0=epoll; nonzero=the Helio-style staged/taskrun-aware ring (1 canonical, 2 = compat spelling). The old mode-1 unified SI|DTR ring was DELETED 2026-08-10 after losing 9/9 interleaved cells to this one. */
     createIntConfig("tomokv-wb-uring",               NULL, IMMUTABLE_CONFIG, -1, 4096, server.wb_uring, 0, INTEGER_CONFIG, NULL, NULL), /* 0=current write()/writev path; N=max SENDMSG SQEs per submit; -1=auto. Setup/probe/arm rejection falls back per WB. */
-    createIntConfig("tomokv-uring-multishot",         NULL, IMMUTABLE_CONFIG, 0, 8192, server.uring_multishot, 0, INTEGER_CONFIG, NULL, NULL), /* 0=one-shot/no buffer ring; N=multishot receive with N provided buffers per IO thread (clean per-owner fallback when unsupported). */
+    createIntConfig("tomokv-uring-multishot",         NULL, IMMUTABLE_CONFIG, 0, 8192, server.uring_multishot, 0, INTEGER_CONFIG, NULL, NULL), /* 0=one-shot/no buffer ring; N=multishot receive with N provided buffers per IO thread (setup or arm rejection falls back per owner). */
     createIntConfig("tomokv-uring-sendcopy-min",       NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.uring_sendcopy_min, 0, INTEGER_CONFIG, NULL, NULL), /* 0=always copy; N=direct-send an eligible plain c->buf prefix when its staged length is <=N bytes. */
 
     /* ================= PINNING =============================================================

@@ -1,9 +1,10 @@
 /*
- * TomoKV Helio-style io_uring backend (tomokv-io-uring=2).
+ * TomoKV Helio-style io_uring backend (tomokv-io-uring=1; 2 is the retained
+ * compatibility spelling).
  *
  * The Backend entry points below are the only dispatch layer shared with the
- * rest of the server.  Mode 1 continues to call the original uring.c entry
- * points; mode 2 is implemented independently in uring2.c.
+ * rest of the server.  Every nonzero mode reaches the same implementation in
+ * uring2.c; the former mode-1 backend and its uring.c dispatch were deleted.
  */
 #ifndef TOMOKV_URING2_H
 #define TOMOKV_URING2_H
@@ -60,8 +61,7 @@ typedef struct tomoUring2Stats {
 
 void tomoUring2GetStats(tomoUring2Stats *out);
 
-/* Immutable-mode dispatch.  These preserve the original mode-1 calls exactly
- * and route only tomokv-io-uring=2 to the new implementation. */
+/* Immutable-mode dispatch for the sole nonzero backend. */
 int tomoUringBackendInitThread(int tid, struct aeEventLoop *el);
 int tomoUringBackendThreadEnabled(int tid);
 void tomoUringBackendAfterForkChild(void);

@@ -15,7 +15,10 @@
   power of two, but exactly the configured N buffers are allocated and added.
   Kernel versions before 6.0, allocation failure, or
   `io_uring_setup_buf_ring`/registration failure log a warning and retain the
-  one-shot path for that owner.
+  one-shot path for that owner. Because the kernel opcode probe reports RECV
+  support but cannot report its MULTISHOT flag, a terminal `EINVAL` or
+  `EOPNOTSUPP` from the first real multishot arm also switches all later arms
+  on that owner to one-shot without terminating the server.
 - `src/uring2.c:534` and `src/uring2.c:551` add the guarded direct-send path.
   `src/uring2.c:1021` verifies the buffer address and logical cursor again at
   the CQE before retiring bytes. Partial sends and EAGAIN/EINTR retain the
@@ -84,3 +87,11 @@ Per the task's safety rules, validation was compile-only. The required
 USE_URING+jemalloc build links `src/redis-server`; no server, benchmark, CLI,
 test, preflight, or knob-matrix process was started. Existing unrelated
 `server.c` warnings remain unchanged.
+
+The pre-ship follow-up adds `tools/preflight/uring_arm_c_pewb.sh`: it pins the
+script, probe, and killer connections to main's IO owner, enters nested
+`processEventsWhileBlocked()` with a timed-out Lua script, proves a second
+connection still receives an uring reply, kills the script, and requires both
+multishot receive and guarded direct-send counters to have engaged. It is
+wired into the canonical preflight gate; it was not run during the restricted
+consolidation task.

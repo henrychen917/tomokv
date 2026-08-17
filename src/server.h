@@ -3264,8 +3264,9 @@ struct redisServer {
     int io_threads;
     int ex_threads;
     /* One immutable numeric gate for the complete io_uring network backend.
-     * 0 keeps epoll and allocates no ring/buffer/op machinery; 1 selects the
-     * existing ring; 2 selects the isolated Helio-style staged backend. */
+     * 0 keeps epoll and allocates no ring/buffer/op machinery; any nonzero
+     * value selects the Helio-style staged backend (1 canonical, 2 retained
+     * as a compatibility spelling). */
     int io_uring;
     /* tomokv-uring-multishot: 0 = one-shot receive and no provided-buffer
      * ring allocation; N = multishot receive with N buffers per IO thread. */

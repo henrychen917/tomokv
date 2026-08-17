@@ -27,6 +27,8 @@
 #   4. fence_suite.sh          script fence: crash repro, -BUSY, KILL, no leak
 #   5. correctness_suite.sh   ordering/boundary invariants (each check exists
 #                              because a real bug got past a weaker one)
+#   5a. uring_arm_c_pewb.sh    Arm C multishot/direct-send engagement while
+#                              main re-enters its ring from a blocked script
 #   5b. keylb_veto.sh          the balancer's hot-KEY veto ENGAGES on per-bucket
 #                              evidence, a multi-bucket skew still migrates, and
 #                              the window-off arm does not reach it
@@ -127,6 +129,7 @@ done
 FLIP_LANDING_PORT=${TOMO_FLIP_LANDING_PORT:-5980}
 ATOMIC_TORN_PORT=${TOMO_ATOMIC_TORN_PORT:-5981}
 WB0_PARITY_PORT=${TOMO_WB0_PARITY_PORT:-5982}
+URING_ARM_C_PORT=${TOMO_URING_ARM_C_PORT:-5983}
 WB0_PARITY_SERVER_CORES=${TOMO_WB0_PARITY_SERVER_CORES:-0-7}
 WB0_PARITY_LOADGEN_CORES=${TOMO_WB0_PARITY_LOADGEN_CORES:-16-23}
 say(){ echo "$@" | tee -a $REPORT; }
@@ -186,7 +189,7 @@ run_suite(){ # $1 script $2 result $3 fail-regex $4 suspect-regex [$5 port $6 se
   # QUIET GATE (2026-08-11): reaped != drained. Wait (bounded) until no listener remains on the
   # suite port range before grading/continuing, so the next suite never boots into a dying server.
   for _q in $(seq 1 20); do
-    ss -ltn 2>/dev/null | grep -qE ':(597[0-9]|598[0-2])\s' || break
+    ss -ltn 2>/dev/null | grep -qE ':(597[0-9]|598[0-3])\s' || break
     sleep 0.5
   done
   local f=0 s=0 k=0
@@ -262,6 +265,13 @@ run_suite $SD/xshard_lookup_accounting.sh $PF/xshard_lookup_accounting.out $'\tF
 # guards (measured io-thread partition, asserted overlap, unarmed control on the same build), so a
 # build where the arm cannot be established FAILS rather than passing silently.
 run_suite $SD/exec_nesting.sh        $PF/exec_nesting.out       $'\tFAIL'
+# Arm C receive/send re-entry: this is deliberately separate from broad
+# command coverage because a default epoll cell cannot prove either optional
+# uring path ran. The driver selects three clients physically owned by main,
+# keeps an infinite Lua frame live, and requires a nested reply plus successful
+# SCRIPT KILL and nonzero multishot/direct-send counters.
+run_suite $SD/uring_arm_c_pewb.sh     $PF/uring_arm_c_pewb.out   $'\tFAIL' '' \
+  "$URING_ARM_C_PORT" "$GATE_SERVER_CORES" "$GATE_LOADGEN_CORES"
 # Command-coverage: representative KNOWN-correct check per command family (Part A) + a concurrency race
 # sweep (Part B). Here because SORT shipped the same class exec_nesting guards for one counter, but in a
 # command's REPLY: sortCompare read process-global server.sort_desc/alpha, so concurrent SORTs with

@@ -1,9 +1,10 @@
 /*
  * TomoKV io_uring network backend, mode 2.
  *
- * This is the Helio-style package selected by tomokv-io-uring=2.  It is
- * intentionally separate from uring.c: mode 1 keeps its existing provided
- * buffers, SEND_ZC path, setup flags, and event-loop behavior unchanged.
+ * This is the Helio-style package selected by every nonzero
+ * tomokv-io-uring value.  The former mode-1 implementation was deleted;
+ * values 1 and 2 are canonical and compatibility spellings for this same
+ * backend, respectively.
  *
  * One ring belongs to one IO event-loop pthread.  Worker/EX threads continue
  * to publish through TomoKV's existing SPSC queues and wake mechanisms; they
@@ -137,6 +138,9 @@ struct tomoUring2Client {
     unsigned terminal_seen : 1;
     unsigned terminal_wait_counted : 1;
     unsigned in_callback : 1;
+    /* Latched per arm: a thread-wide fallback may be published while older
+     * multishot requests still have CQEs in flight. */
+    unsigned recv_multishot : 1;
     int pending_read_error;
 
     /* A SEND references either this IO-owned copy or a guarded immutable
@@ -190,6 +194,10 @@ struct tomoUring2Thread {
     unsigned poll_first_supported : 1;
     unsigned taskrun_flag_enabled : 1;
     unsigned multishot_enabled : 1;
+    /* IORING_REGISTER_PROBE reports RECV opcode support, not support for the
+     * IORING_RECV_MULTISHOT flag.  A terminal EINVAL/EOPNOTSUPP therefore
+     * closes the capability probe and makes later arms one-shot. */
+    unsigned multishot_rejected : 1;
 
     struct io_uring_buf_ring *recv_buf_ring;
     char *recv_buf_pool;
@@ -777,7 +785,8 @@ static int tomoUring2StageRecvs(tomoUring2Thread *st) {
             st, tomoUring2RecvCqe, uc, TOMO_URING2_OP_RECV, &token);
         if (!sqe) break;
         tomoUring2ArmRemove(st, uc);
-        if (st->multishot_enabled) {
+        int multishot = st->multishot_enabled && !st->multishot_rejected;
+        if (multishot) {
             io_uring_prep_recv_multishot(sqe, uc->fd, NULL, 0, 0);
             sqe->flags |= IOSQE_BUFFER_SELECT;
             sqe->buf_group = TOMO_URING2_RECV_BGID;
@@ -787,6 +796,9 @@ static int tomoUring2StageRecvs(tomoUring2Thread *st) {
             else
                 uc->multishot_armed_once = 1;
         } else {
+            /* A runtime capability rejection can switch an owner after
+             * clients were attached without one-shot storage. */
+            if (!uc->recv_buf) uc->recv_buf = zmalloc(PROTO_IOBUF_LEN);
             serverAssert(uc->recv_buf != NULL);
             io_uring_prep_recv(sqe, uc->fd, uc->recv_buf,
                                PROTO_IOBUF_LEN, 0);
@@ -802,6 +814,7 @@ static int tomoUring2StageRecvs(tomoUring2Thread *st) {
          * republish SOCK_NONEMPTY if another receive may skip POLL_FIRST. */
         uc->socket_nonempty = 0;
         uc->recv_token = token;
+        uc->recv_multishot = multishot;
         uc->recv_state = TOMO_URING2_RECV_ARMED;
         uc->cancel_seen = 0;
         uc->terminal_seen = 0;
@@ -848,7 +861,10 @@ static void tomoUring2RecvCqe(tomoUring2Thread *st, void *owner,
                               const struct io_uring_cqe *cqe) {
     tomoUring2Client *uc = owner;
     tomoUring2AssertOwner(uc);
-    int multishot = st->multishot_enabled;
+    /* Do not consult the thread-wide capability here.  Another client's
+     * rejected probe may have switched future arms to one-shot while this
+     * already-submitted multishot request still owns F_MORE CQEs. */
+    int multishot = uc->recv_multishot;
     int more = (cqe->flags & IORING_CQE_F_MORE) != 0;
     if (cqe->user_data != uc->recv_token || (!multishot && more))
         tomoUring2Fatal(st, "invalid receive CQE", EPROTO);
@@ -871,6 +887,7 @@ static void tomoUring2RecvCqe(tomoUring2Thread *st, void *owner,
         tomoUring2Fatal(st, "receive CQE without armed request", EPROTO);
     if (!more) {
         uc->recv_token = 0;
+        uc->recv_multishot = 0;
         if (was_disarming) {
             uc->terminal_seen = 1;
             /* If the target completed before its cancel SQE was staged,
@@ -924,10 +941,26 @@ static void tomoUring2RecvCqe(tomoUring2Thread *st, void *owner,
         URING2_STAT_BUMP(st, multishot_enobufs, 1);
     } else if (cqe->res == -EAGAIN || cqe->res == -EINTR) {
         uc->socket_nonempty = 0;
+    } else if (multishot &&
+               (cqe->res == -EINVAL || cqe->res == -EOPNOTSUPP)) {
+        /* Kernel opcode probes cannot describe per-op flag support.  Treat
+         * the first terminal arm rejection as the authoritative capability
+         * result, retain the registered pool until owner teardown, and use
+         * ordinary per-client receive buffers for every later arm.  Requests
+         * submitted before this store retain their per-arm recv_multishot
+         * latch and retire normally. */
+        serverAssert(!more);
+        if (!st->multishot_rejected) {
+            serverLog(LL_WARNING,
+                      "tomokv io_uring owner %d kernel rejected multishot "
+                      "RECV (%s); falling back to one-shot receive",
+                      st->tid, strerror(-cqe->res));
+            st->multishot_rejected = 1;
+        }
+        if (!uc->recv_buf) uc->recv_buf = zmalloc(PROTO_IOBUF_LEN);
     } else if (cqe->res == -EINVAL || cqe->res == -EOPNOTSUPP) {
-        tomoUring2Fatal(st, multishot ?
-                       "probed multishot RECV mode" :
-                       "required one-shot RECV/POLL_FIRST mode", cqe->res);
+        tomoUring2Fatal(st, "required one-shot RECV/POLL_FIRST mode",
+                       cqe->res);
     } else if (cqe->res < 0) {
         uc->socket_nonempty = 0;
         uc->pending_read_error = CLIENT_READ_CONN_DISCONNECTED;
@@ -1413,8 +1446,10 @@ static void tomoUring2SetupRecvBufRing(tomoUring2Thread *st,
     if (count == 0) return;
 
     /* RECV multishot is a kernel-6.0 feature; registered provided-buffer
-     * rings arrived in 5.19.  Keep the requested backend usable on older or
-     * backported kernels by leaving this owner on its one-shot path. */
+     * rings arrived in 5.19.  This version gate avoids a known-unsupported
+     * setup, while buffer-ring registration and the first real arm are the
+     * authoritative probes for backports.  The latter must remain a runtime
+     * fallback because REGISTER_PROBE reports RECV, not its MULTISHOT flag. */
     if (!tomoUring2KernelAtLeast(kv, 6, 0)) {
         serverLog(LL_WARNING,
                   "tomokv-uring-multishot=%u unavailable for io_uring owner "
@@ -1519,6 +1554,7 @@ static void tomoUring2CleanupThread(tomoUring2Thread *st) {
     st->recv_buf_ring_entries = 0;
     st->recv_buf_ring_mask = 0;
     st->multishot_enabled = 0;
+    st->multishot_rejected = 0;
     zfree(st->slots);
     st->slots = NULL;
     st->slot_count = 0;
@@ -1719,7 +1755,8 @@ static int tomoUring2ClientAttach(client *c) {
         return C_ERR;
 
     tomoUring2Client *uc = zcalloc(sizeof(*uc));
-    if (!st->multishot_enabled) uc->recv_buf = zmalloc(PROTO_IOBUF_LEN);
+    if (!st->multishot_enabled || st->multishot_rejected)
+        uc->recv_buf = zmalloc(PROTO_IOBUF_LEN);
     uc->c = c;
     uc->owner = st;
     uc->owner_tid = iotid;
@@ -1792,7 +1829,8 @@ static int tomoUring2ClientAdopt(client *c) {
         uc->send_cancel_submitted || !c->conn || c->conn->fd != uc->fd ||
         c->tid != iotid)
         return C_ERR;
-    if (!st->multishot_enabled && !uc->recv_buf)
+    if ((!st->multishot_enabled || st->multishot_rejected) &&
+        !uc->recv_buf)
         uc->recv_buf = zmalloc(PROTO_IOBUF_LEN);
     uc->owner = st;
     uc->owner_tid = iotid;
