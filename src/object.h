@@ -131,13 +131,18 @@ typedef enum tomoRetireState {
 #define TOMO_RESERVATION_SIGNAL_SET 1
 #define TOMO_RESERVATION_SILENT     2
 
-#define TOMO_SINGLE_NONE        0
-#define TOMO_SINGLE_COMMITTED   1
-#define TOMO_SINGLE_SUPERSEDED  2
+#define TOMO_READ_GATE_CLOSED       0
+#define TOMO_READ_GATE_OPEN         1
+#define TOMO_READ_GATE_SUPERSEDED   2
 
 struct tomoVerMeta {
     _Atomic(tomoCommit *) commit;
     _Atomic(struct redisObject *) stamped_head;
+    /* Key-local fast-read publication. The physical table head is install-ordered and is not
+     * necessarily the value with the greatest commit rank. While holding the owner lock, the last
+     * conflicting group to finish stores that logical winner here and release-opens read_gate.
+     * NULL is a valid published result (absence). */
+    _Atomic(struct redisObject *) read_head;
     uint64_t install_order;
     uint64_t origin_client_id; /* installing (real) connection id; written once
                                 * at install, IMMUTABLE until physical retire:
@@ -155,13 +160,10 @@ struct tomoVerMeta {
     uint8_t retire_state;
     uint8_t detached;
     uint8_t lifecycle_ref_held;
-    /* Owner-published read state. MERGE NOTE (dev x onever): lifecycle_ref_held took the first
-     * of the three padding bytes that preceded owner_ops_pending, so this takes the second —
-     * this field itself does not move owner_ops_pending (asserted below). owner_next replaces the
-     * retired embedded cross-core operations and is outside that padding/layout assertion.
-     * COMMITTED licenses the read fast path. SUPERSEDED permanently prevents late retirement
-     * from relicensing an object after a successor was installed. */
-    _Atomic uint8_t single_state;
+    /* OPEN licenses read_head. A successor release-stores SUPERSEDED before publishing its own
+     * CLOSED metadata/table head, so a reader which already acquired OPEN may linearize before
+     * that install. A predecessor may be relicensed only after it becomes the table head again. */
+    _Atomic uint8_t read_gate;
     _Atomic unsigned int owner_ops_pending;
     struct redisObject *version_prev;
     struct redisObject *stamped_prev;
@@ -174,16 +176,16 @@ struct tomoVerMeta {
     struct redisObject *owner_next;
 };
 
-_Static_assert(offsetof(struct tomoVerMeta, single_state) ==
+_Static_assert(offsetof(struct tomoVerMeta, read_gate) ==
                offsetof(struct tomoVerMeta, detached) + 2 * sizeof(uint8_t),
-               "single-version state must consume vmeta padding");
+               "read-gate state must consume vmeta padding");
 /* REPLAY NOTE (dev x ownread): install_order/origin_client_id/version_canceled inserted above
  * shift detached to an odd offset, so the aligned slot after the packed byte run is detached+3,
  * not +4. The INTENT is unchanged and asserted in that form: owner_ops_pending sits at the very
- * next 4-byte-aligned position after single_state — the byte-packing consumed padding only. */
+ * next 4-byte-aligned position after read_gate — the byte-packing consumed padding only. */
 _Static_assert(offsetof(struct tomoVerMeta, owner_ops_pending) ==
-               ((offsetof(struct tomoVerMeta, single_state) + 1 + 3) & ~(size_t)3),
-               "single-version state must not move owner_ops_pending");
+               ((offsetof(struct tomoVerMeta, read_gate) + 1 + 3) & ~(size_t)3),
+               "read-gate state must not move owner_ops_pending");
 
 #define TOMO_VERSION_UNCOMMITTED UINT64_MAX
 
@@ -232,9 +234,14 @@ static inline void kvobjSetVmeta(kvobj *kv, struct tomoVerMeta *vmeta) {
     __atomic_store_n(&kv->vmeta, vmeta, __ATOMIC_RELEASE);
 }
 
-static inline int kvobjSingleCommitted(const struct tomoVerMeta *vmeta) {
-    return atomic_load_explicit(&vmeta->single_state,
-                                memory_order_acquire) == TOMO_SINGLE_COMMITTED;
+/* Return true and the owner-published logical winner when this key has no unfinished conflicting
+ * group. read_head may legitimately be NULL. */
+static inline int kvobjReadFastHead(const struct tomoVerMeta *vmeta, kvobj **read_head) {
+    if (atomic_load_explicit(&vmeta->read_gate,
+                             memory_order_acquire) != TOMO_READ_GATE_OPEN)
+        return 0;
+    *read_head = atomic_load_explicit(&vmeta->read_head, memory_order_relaxed);
+    return 1;
 }
 
 static inline uint64_t kvobjVersionSeq(const kvobj *kv) {

@@ -362,6 +362,29 @@ kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
  * This function is equivalent to lookupKey(). The point of using this function
  * rather than lookupKey() directly is to indicate that the purpose is to read
  * the key. */
+/* A closed fast-read gate can mean either a real key-local visibility conflict or a conservative
+ * fallback (most commonly an old command snapshot). Keep this discriminator on the already-slow
+ * arm: the open path remains one byte acquire plus one cached-pointer load. */
+static int tomoVersionBagHasInflightConflict(kvobj *head) {
+    for (kvobj *kv = head; kv; ) {
+        struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+        if (!vmeta) return 0;
+        if (!atomic_load_explicit(&vmeta->version_canceled, memory_order_acquire) &&
+            tomoVersionCommitTs(vmeta) == 0)
+            return 1;
+        kv = kvobjVersionPrev(kv);
+    }
+    return 0;
+}
+
+static inline void tomoAtomicReadSlow(kvobj *head, int gate_closed_other) {
+    tomoRelaxedBump(server.kstat[iotid].atomic_read_slow, 1);
+    if (!gate_closed_other && tomoVersionBagHasInflightConflict(head))
+        tomoRelaxedBump(server.kstat[iotid].atomic_read_slow_inflight_conflict, 1);
+    else
+        tomoRelaxedBump(server.kstat[iotid].atomic_read_slow_gate_closed_other, 1);
+}
+
 kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
     serverAssert(!(flags & LOOKUP_WRITE));
     /* ee451 (F4, 2026-07-27): the value-forwarding record/replay branches used to run per read op
@@ -373,26 +396,25 @@ kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
      * they neither read atomic mode nor test the new metadata hint. */
     struct tomoVerMeta *vmeta = kv ? kvobjVmeta(kv) : NULL;
     if (unlikely(vmeta)) {
-        /* REPLAY (onever x ownread): the single-committed fast license runs FIRST — a reader
-         * with its own uncommitted write on this key cannot see SingleCommitted, so every
-         * own-origin case falls through to the client-aware resolver and the license never
-         * hides an own write. */
+        /* The owner-published key-local license runs first. A reader with an own uncommitted write
+         * cannot observe OPEN, so own-origin widening still reaches the client-aware resolver. */
         if (__builtin_expect(server.tomo_atomic != 0, 1)) {
-            if (likely(kvobjSingleCommitted(vmeta))) {
+            kvobj *read_head;
+            if (likely(kvobjReadFastHead(vmeta, &read_head))) {
                 uint64_t pinned_snapshot;
+                struct tomoVerMeta *read_meta = read_head ? kvobjVmeta(read_head) : NULL;
+                uint64_t read_ts = read_meta ? tomoVersionCommitTs(read_meta) : 0;
                 if (!tomoPinnedReadSnapshot(&pinned_snapshot) ||
-                    tomoVersionCommitTs(vmeta) <= pinned_snapshot) {
+                    read_ts <= pinned_snapshot) {
                     tomoRelaxedBump(server.kstat[iotid].atomic_read_fast, 1);
-                    return kv;
+                    return read_meta && read_meta->version_tombstone ? NULL : read_head;
                 }
-                /* This sole version committed after an already-pinned cut.
-                 * Preserve the slow path's absent result without re-reading
-                 * the pin or the global commit clock. */
-                tomoRelaxedBump(server.kstat[iotid].atomic_read_slow, 1);
+                /* The cached current value committed after this command's already-pinned cut. */
+                tomoAtomicReadSlow(kv, 1);
                 return kvobjVersionAt(kv, pinned_snapshot,
                                       server.current_client[iotid].p);
             }
-            tomoRelaxedBump(server.kstat[iotid].atomic_read_slow, 1);
+            tomoAtomicReadSlow(kv, 0);
         }
         kv = kvobjVersionAt(kv, tomoCurrentReadSnapshot(),
                             server.current_client[iotid].p);
@@ -473,7 +495,8 @@ static inline struct tomoVerMeta *tomoVerMetaNew(redisDb *db, uint64_t version_s
                                                  kvobj *version_prev) {
     struct tomoVerMeta *vmeta = zcalloc(sizeof(*vmeta));
     atomic_store_explicit(&vmeta->commit, NULL, memory_order_relaxed);
-    atomic_store_explicit(&vmeta->single_state, TOMO_SINGLE_NONE,
+    atomic_store_explicit(&vmeta->read_head, NULL, memory_order_relaxed);
+    atomic_store_explicit(&vmeta->read_gate, TOMO_READ_GATE_CLOSED,
                           memory_order_relaxed);
     atomic_store_explicit(&vmeta->version_canceled, 0, memory_order_relaxed);
     kvobj *stamped_head = NULL;
@@ -482,13 +505,13 @@ static inline struct tomoVerMeta *tomoVerMetaNew(redisDb *db, uint64_t version_s
         stamped_head = prev_meta ?
             atomic_load_explicit(&prev_meta->stamped_head, memory_order_acquire) :
             version_prev;
-        /* Withdraw the sole-version licence before the caller release-attaches
+        /* Withdraw the key-local licence before the caller release-attaches
          * this metadata and release-publishes a new physical table head. A
-         * reader which already saw true may linearize before this transition;
-         * one which sees the new head sees its zero-initialized hint. */
+         * reader which already saw OPEN may linearize before this transition;
+         * one which sees the new head sees its zero-initialized CLOSED gate. */
         if (prev_meta)
-            atomic_store_explicit(&prev_meta->single_state,
-                                  TOMO_SINGLE_SUPERSEDED,
+            atomic_store_explicit(&prev_meta->read_gate,
+                                  TOMO_READ_GATE_SUPERSEDED,
                                   memory_order_release);
     }
     /* The new physical head inherits the owner-local stamped-version index before
@@ -1040,6 +1063,8 @@ void tomoApplyVersionStamp(kvobj *kv) {
      * stamped to committed; identity keeps that whole interval RYOW-safe. */
 }
 
+static void tomoPublishReadFast(kvobj *member, struct tomoVerMeta *member_meta);
+
 /* Mark an eagerly indexed atomic version canceled. It never receives a
  * timestamp, so the indexed entry remains invisible. The owner record (one
  * payload for the whole local chain) already owns the first grace; keeping
@@ -1061,43 +1086,65 @@ void tomoCancelVersion(kvobj *kv) {
      * indexed node from every other reader. */
     serverAssert(vmeta->retire_state == TOMO_RETIRE_ACTIVE);
     vmeta->retire_state = TOMO_RETIRE_PRUNE_GRACE;
+    tomoPublishReadFast(kv, vmeta);
 }
 
-/* Publish the exact state licensed by the read fast path. The owner holds its
- * per-key worker lock throughout this census and the store, so no install,
- * stamp, cancellation, or prune can mutate the bag concurrently.
- *
- * TOMO_SINGLE_NONE proves no later install has superseded this physical head:
- * every successor release-stores SUPERSEDED before publishing its own
- * vmeta/table pointer, and that state is permanent even if this object's prune
- * op arrives late. stamped_prev==NULL proves no older stamped candidate;
- * the physical predecessor scan rejects raw, applied, and pending members, but
- * permits fully canceled members because they can never become visible. */
-static void tomoPublishSingleCommitted(kvobj *kv, struct tomoVerMeta *vmeta) {
-    if (vmeta->detached || vmeta->version_tombstone ||
-        vmeta->stamp_state != TOMO_STAMP_APPLIED ||
-        atomic_load_explicit(&vmeta->single_state,
-                             memory_order_acquire) != TOMO_SINGLE_NONE ||
-        atomic_load_explicit(&vmeta->owner_ops_pending,
-                             memory_order_acquire) != 0 ||
-        atomic_load_explicit(&vmeta->stamped_head,
-                             memory_order_acquire) != kv ||
-        kvobjStampedPrev(kv) != NULL || tomoVersionCommitTs(vmeta) == 0)
-        return;
+/* Publish the exact key-local state licensed by the read fast path. This runs with the key
+ * owner's worker lock held. The physical head is install-ordered, while visibility is
+ * commit-ordered, so cache the greatest committed rank instead of assuming the table entry is the
+ * answer. A non-canceled zero timestamp is an unfinished group and keeps the gate closed. Fully
+ * canceled versions can never become visible and are ignored; the raw tail has rank (0,0). */
+static void tomoPublishReadFast(kvobj *member, struct tomoVerMeta *member_meta) {
+    if (member_meta->detached) return;
 
-    for (kvobj *prev = kvobjVersionPrev(kv); prev; ) {
-        struct tomoVerMeta *prev_meta = kvobjVmeta(prev);
-        if (!prev_meta || prev_meta->stamp_state != TOMO_STAMP_CANCELED ||
-            atomic_load_explicit(&prev_meta->owner_ops_pending,
-                                 memory_order_acquire) != 0)
+    kvstore *kvs = member_meta->version_kvs;
+    serverAssert(kvs != NULL);
+    sds key = kvobjGetKey(member);
+    int slot = getKeySlot(key);
+    dictEntryLink link = kvstoreDictFindLink(kvs, slot, key, NULL);
+    serverAssert(link != NULL);
+    kvobj *head = dictGetKV(*link);
+    struct tomoVerMeta *head_meta = kvobjVmeta(head);
+    serverAssert(head_meta != NULL);
+
+    kvobj *winner = NULL;
+    uint64_t winner_ts = 0;
+    uint32_t winner_order = 0;
+    int winner_set = 0;
+    for (kvobj *cur = head; cur; ) {
+        struct tomoVerMeta *vmeta = kvobjVmeta(cur);
+        if (!vmeta) {
+            if (!winner_set) {
+                winner = cur;
+                winner_set = 1;
+            }
+            break;
+        }
+
+        kvobj *next = kvobjVersionPrev(cur);
+        if (atomic_load_explicit(&vmeta->version_canceled, memory_order_acquire) ||
+            vmeta->stamp_state == TOMO_STAMP_CANCELED) {
+            cur = next;
+            continue;
+        }
+
+        uint64_t ts = tomoVersionCommitTs(vmeta);
+        if (vmeta->stamp_state != TOMO_STAMP_APPLIED || ts == 0)
             return;
-        prev = kvobjVersionPrev(prev);
+        if (!winner_set || ts > winner_ts ||
+            (ts == winner_ts && vmeta->version_order > winner_order)) {
+            winner = cur;
+            winner_ts = ts;
+            winner_order = vmeta->version_order;
+            winner_set = 1;
+        }
+        cur = next;
     }
 
-    /* Owner-local retirement is armed only after the shared timestamp and
-     * commit clock publish. This release and the reader's acquire let an
-     * unpinned reader omit the commit clock altogether. */
-    atomic_store_explicit(&vmeta->single_state, TOMO_SINGLE_COMMITTED,
+    /* Owner-local commit/cancel publication precedes the epoch callback which reaches this census.
+     * Publish the cached answer before OPEN so an acquiring reader may omit the global clock. */
+    atomic_store_explicit(&head_meta->read_head, winner, memory_order_relaxed);
+    atomic_store_explicit(&head_meta->read_gate, TOMO_READ_GATE_OPEN,
                           memory_order_release);
 }
 
@@ -1117,7 +1164,7 @@ void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq) {
     serverAssert(vmeta->retire_state == TOMO_RETIRE_ACTIVE);
     vmeta->retire_state = TOMO_RETIRE_PRUNE_GRACE;
     kvstoreFlatRetireVersionPrune(vmeta->version_kvs, kv, version_seq);
-    tomoPublishSingleCommitted(kv, vmeta);
+    tomoPublishReadFast(kv, vmeta);
 }
 
 /* A non-versioned overwrite/delete removes the whole bag from the table in
@@ -1375,6 +1422,12 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
                 estoreAdd(exdb->subexpires, slot, newhead, hmn);
         }
     }
+
+    /* A prune can expose an older physical predecessor whose gate was superseded by the removed
+     * head. Re-census only after the repaired head is table-published; readers either retain the
+     * former head or acquire this fully initialized key-local winner. */
+    if (newhead_meta)
+        tomoPublishReadFast(newhead, newhead_meta);
 
     int committed = 0, uncommitted = 0;
     kvobj *sole_committed = NULL;

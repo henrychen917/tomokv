@@ -3515,8 +3515,10 @@ struct redisServer {
          * lookupKey already dirties for hits/misses, avoiding a shared RMW. */
         _Atomic unsigned long long atomic_read_fast;
         _Atomic unsigned long long atomic_read_slow;
+        _Atomic unsigned long long atomic_read_slow_inflight_conflict;
+        _Atomic unsigned long long atomic_read_slow_gate_closed_other;
         _Atomic long long flat_hash_reuses; /* guarded tomo_key_h consumed by a FLAT lookup */
-        char _pad[CACHE_LINE_SIZE - 5 * sizeof(long long)];
+        char _pad[CACHE_LINE_SIZE - 7 * sizeof(long long)];
     } kstat[TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
     /* ee451 (#B1): per-thread executed-command counters. stat_numcommands lived only in call(),
      * which worker threads never enter (they run cmd->proc directly from exExecFake, and the

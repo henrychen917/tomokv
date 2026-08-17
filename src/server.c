@@ -7573,6 +7573,8 @@ void resetServerStats(void) {
         tomoRelaxedSet(server.kstat[i].misses, 0);
         tomoRelaxedSet(server.kstat[i].atomic_read_fast, 0);
         tomoRelaxedSet(server.kstat[i].atomic_read_slow, 0);
+        tomoRelaxedSet(server.kstat[i].atomic_read_slow_inflight_conflict, 0);
+        tomoRelaxedSet(server.kstat[i].atomic_read_slow_gate_closed_other, 0);
         tomoRelaxedSet(server.kstat[i].flat_hash_reuses, 0);
     }
     server.stat_active_defrag_hits = 0;
@@ -22921,9 +22923,15 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
          * atomic mode was enabled. Raw values and misses are deliberately not
          * called fast: a large fast count therefore proves the new gate fired. */
         unsigned long long atomic_read_fast = 0, atomic_read_slow = 0;
+        unsigned long long atomic_read_slow_inflight_conflict = 0;
+        unsigned long long atomic_read_slow_gate_closed_other = 0;
         for (int _t = 0; _t < TOMO_STAT_SLOTS; _t++) {
             atomic_read_fast += tomoRelaxedRead(server.kstat[_t].atomic_read_fast);
             atomic_read_slow += tomoRelaxedRead(server.kstat[_t].atomic_read_slow);
+            atomic_read_slow_inflight_conflict += tomoRelaxedRead(
+                server.kstat[_t].atomic_read_slow_inflight_conflict);
+            atomic_read_slow_gate_closed_other += tomoRelaxedRead(
+                server.kstat[_t].atomic_read_slow_gate_closed_other);
         }
         info = sdscatprintf(info, "# Stats\r\n" FMTARGS(
             "tomokv_flat_batches_closed:%llu\r\n", (unsigned long long)atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed),
@@ -23010,6 +23018,10 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 atomic_load_explicit(&tomo_atomic_promotions, memory_order_relaxed),
             "tomokv_atomic_read_fast:%llu\r\n", atomic_read_fast,
             "tomokv_atomic_read_slow:%llu\r\n", atomic_read_slow,
+            "tomokv_atomic_read_slow_inflight_conflict:%llu\r\n",
+                atomic_read_slow_inflight_conflict,
+            "tomokv_atomic_read_slow_gate_closed_other:%llu\r\n",
+                atomic_read_slow_gate_closed_other,
             "tomokv_atomic_ownread_reads:%llu\r\n", orr,
             "tomokv_atomic_ownread_pending:%llu\r\n", orp,
             "tomokv_atomic_ownread_held:%llu\r\n", orh,
