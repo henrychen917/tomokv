@@ -27,14 +27,15 @@
 # usage: reload_memtier_wedge.sh <server-binary> [tag]
 #   tools/preflight/withbox.sh -w 3600 tools/preflight/reload_memtier_wedge.sh src/redis-server
 set -u
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 
 BIN=${1:?usage: reload_memtier_wedge.sh <server-binary> [tag]}
 TAG=${2:-adhoc}
 DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 REPO=$(cd "$DIR/../.." && pwd)
 PORT=${PORT:-5899}
-IO=${IO:-4}
-EX=${EX:-4}
+IO=${IO:-8}
+EX=${EX:-8}
 # KEYS is the whole experiment, not a size knob. Run 4 reloaded 700308 keys into a table that had
 # last been rebuilt to 1048576 slots -- load factor 0.67, over the 0.5 resize trigger -- so the RDB
 # re-insert ARMS A FLATSTORE RESIZE WHILE MAIN IS INSIDE rdbLoad. A first pass at 400k (factor 0.38)
@@ -42,8 +43,9 @@ EX=${EX:-4}
 KEYS=${KEYS:-700000}
 CALIB=${CALIB:-20}            # stress_validation --calib-secs
 TIMEOUT=$((CALIB + 120))      # stress_validation's own budget: calib_secs + 120
-LOAD_CORES=${LOAD_CORES:-8-15}
-SRV_CORES=${SRV_CORES:-0-7}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
+SRV_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+[ $((IO + EX)) -eq 16 ] || { echo "reload-memtier-wedge[$TAG]	FAIL	IO+EX must equal 16 per node"; exit 2; }
 
 OUT=$(mktemp -d "${TMPDIR:-/tmp}/nwedge.XXXXXX")
 CLI=$(dirname "$BIN")/redis-cli
@@ -72,7 +74,7 @@ if ss -ltnp 2>/dev/null | grep -qE 'users:\(\("(redis|tomo)'; then
 fi
 
 taskset -c "$SRV_CORES" "$STAGED" --port "$PORT" --bind 127.0.0.1 --dir "$OUT" \
-    --tomokv-nodes 1 --tomokv-thread-io "$IO" --tomokv-thread-ex "$EX" \
+    --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-io "$IO" --tomokv-thread-ex "$EX" \
     --tomokv-thread-mode static \
     --save '' --appendonly no --protected-mode no --enable-debug-command local \
     --logfile "$OUT/server.log" --loglevel notice >"$OUT/stdout.log" 2>&1 &
@@ -85,10 +87,11 @@ for _ in $(seq 1 80); do
 done
 [ "$(timeout 2 "$CLI" -p "$PORT" ping 2>/dev/null | tr -d '\r')" = PONG ] || {
     echo "reload-memtier-wedge[$TAG]	FAIL	server never answered PING"; exit 1; }
+preflight_assert_standard_boot "$OUT/server.log" "$SRV" "$IO" "$EX" || exit 1
 
 echo "== loading $KEYS keys =="
 # Match what the soak actually leaves behind: sv:bulk:<n> with a 64B value.
-python3 - "$PORT" "$KEYS" <<'PY' >"$OUT/load.log" 2>&1
+taskset -c "$LOAD_CORES" python3 - "$PORT" "$KEYS" <<'PY' >"$OUT/load.log" 2>&1
 import socket, sys
 port, n = int(sys.argv[1]), int(sys.argv[2])
 s = socket.create_connection(("127.0.0.1", port)); s.settimeout(60)
@@ -180,7 +183,7 @@ run_memtier() {   # run_memtier <arm-name>
 }
 
 bg_load_start() {
-    python3 - "$PORT" "$KEYS" <<'PY' >"$OUT/bgload.log" 2>&1 &
+    taskset -c "$LOAD_CORES" python3 - "$PORT" "$KEYS" <<'PY' >"$OUT/bgload.log" 2>&1 &
 import socket, sys, time
 port, keys = int(sys.argv[1]), int(sys.argv[2])
 s = socket.create_connection(("127.0.0.1", port)); s.settimeout(30)

@@ -10,7 +10,9 @@ J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}; P=/home/user/Projects
 _PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 CLI="$P/redis/src/redis-cli -p 5978"
 CLI_BIN="$P/redis/src/redis-cli"   # bare path (no -p) for server_identity_ok
-MT="taskset -c 16-23 memtier_benchmark -s 127.0.0.1 -p 5978 --hide-histogram"
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
+MT="taskset -c $LOAD_CORES memtier_benchmark -s 127.0.0.1 -p 5978 --hide-histogram"
 OUT=$J/numa2_validate.out; : > $OUT
 PASS=0; FAIL=0
 ok(){ echo "  PASS: $1" >> $OUT; PASS=$((PASS+1)); }
@@ -44,12 +46,12 @@ trap 'exit 143' TERM
 trap 'exit 130' INT
 trap 'exit 129' HUP
 
-boot(){ # $1 = numa nodes
+boot(){ # fixed 2-simnode, 16 threads/node geometry
   cleanup_n2; sleep 1; rm -rf $J/n2data; mkdir -p $J/n2data; : > $J/numa2.log
   # PORT-SAFETY: refuse to boot while any listener still holds :5978.
   wait_port_free 5978 || { echo "  boot: :5978 still has a listener before boot (SO_REUSEPORT split risk)" >> $OUT; return 1; }
-  taskset -c 0-7 "$N2BIN" --port 5978 --dir $J/n2data --tomokv-nodes $1 \
-    --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-thread-mode auto \
+  taskset -c "$SERVER_CORES" "$N2BIN" --port 5978 --dir $J/n2data --tomokv-nodes 2 --tomokv-pin-mode ccd \
+    --tomokv-thread-io 8 --tomokv-thread-ex 8 --tomokv-thread-mode auto \
     --save '' --appendonly no --protected-mode no --enable-debug-command yes \
     --logfile $J/numa2.log --loglevel notice >/dev/null 2>&1 &
   N2PID=$!
@@ -58,6 +60,8 @@ boot(){ # $1 = numa nodes
     if timeout 2 $CLI ping 2>/dev/null | grep -q PONG; then
       # IDENTITY: every fresh INFO conn must land on OUR pid or every measurement is a blend.
       server_identity_ok "$CLI_BIN" 5978 "$N2PID" || { echo "  SO_REUSEPORT split on :5978 — measurement void" >> $OUT; return 1; }
+      preflight_assert_standard_boot "$J/numa2.log" "$N2PID" 8 8 || {
+        echo "  2x16c composed-L3/core-range assertion failed" >> $OUT; return 1; }
       return 0
     fi
     sleep 1
@@ -110,7 +114,7 @@ if ! boot 2; then bad "numa=2 boot"; tail -12 $J/numa2.log >> $OUT; else
 
   # D. cross-node MGET (lock-free readers spanning both node tables) + expire/delete churn
   $MT --test-time=30 --command="MGET memtier-1 memtier-2 memtier-3 memtier-4" --command-key-pattern=R --key-maximum=1000000 -t 4 -c 10 --pipeline 8 >/dev/null 2>&1
-  for k in $(seq 1 2000); do echo "SET ex:$k v$k PX 300"; done | $CLI --pipe >/dev/null 2>&1
+  for k in $(seq 1 2000); do echo "SET ex:$k v$k PX 300"; done | taskset -c "$LOAD_CORES" $CLI --pipe >/dev/null 2>&1
   sleep 3
   timeout 2 $CLI ping 2>/dev/null | grep -q PONG && ok "alive after cross-node MGET + expire churn" || bad "died on MGET/expire"
 

@@ -22,10 +22,13 @@
 #
 # Usage: expiry_clock_ab.sh <dir-with-redis-server> <port> [reps] [samples]
 set -u
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 DIR=${1:?usage: expiry_clock_ab.sh <dir-with-redis-server> <port> [reps] [samples]}
 PORT=${2:?port required}
 REPS=${3:-3}
 SAMPLES=${4:-60}
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
 BIN=$DIR/redis-server
 [ -x "$BIN" ] || { echo "expiry_clock_ab: no executable $BIN"; exit 1; }
 [ "$(basename "$BIN")" = redis-server ] || { echo "expiry_clock_ab: binary must be named redis-server"; exit 1; }
@@ -40,13 +43,16 @@ trap cleanup EXIT
 boot() { # a fresh server per rep: D1's counter leak is CUMULATIVE, so a reused server would
          # carry the previous rep's leak into this one and the reps would not be independent.
     rm -rf "$RUN/d"; mkdir -p "$RUN/d"
-    taskset -c 0-7 "$BIN" --port "$PORT" --dir "$RUN/d" --tomokv-nodes 1 \
-        --tomokv-thread-io 4 --tomokv-thread-ex 4 --enable-debug-command local ${TOMO_XTRA:-} \
+    taskset -c "$SERVER_CORES" "$BIN" --port "$PORT" --dir "$RUN/d" --tomokv-nodes 2 --tomokv-pin-mode ccd \
+        --tomokv-thread-io 8 --tomokv-thread-ex 8 --enable-debug-command local ${TOMO_XTRA:-} \
         --save '' --appendonly no --protected-mode no --logfile "$RUN/d/srv.log" >/dev/null 2>&1 &
     PID=$!
     for _ in $(seq 60); do
         sleep 0.25
-        (exec 3<>/dev/tcp/127.0.0.1/"$PORT") 2>/dev/null && return 0
+        if (exec 3<>/dev/tcp/127.0.0.1/"$PORT") 2>/dev/null; then
+            preflight_assert_standard_boot "$RUN/d/srv.log" "$PID" 8 8 && return 0
+            return 1
+        fi
     done
     echo "$ARM: server did not come up"; sed -n '1,20p' "$RUN/d/srv.log"; return 1
 }
@@ -57,11 +63,11 @@ for r in $(seq "$REPS"); do
     # D1: worker write load, poll flat out.
     boot || exit 1
     printf 'arm=%s rep=%d D1-guard   ' "$ARM" "$r"
-    python3 "$SD/expiry_clock_lag.py" "$PORT" "$SAMPLES" 60 8 0
+    taskset -c "$LOAD_CORES" python3 "$SD/expiry_clock_lag.py" "$PORT" "$SAMPLES" 60 8 0
     halt
     # D2: idle main loop, 5ms poll gap.
     boot || exit 1
     printf 'arm=%s rep=%d D2-clock   ' "$ARM" "$r"
-    python3 "$SD/expiry_clock_lag.py" "$PORT" "$SAMPLES" 60 0 5 1
+    taskset -c "$LOAD_CORES" python3 "$SD/expiry_clock_lag.py" "$PORT" "$SAMPLES" 60 0 5 1
     halt
 done

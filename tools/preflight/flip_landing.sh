@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
-# flip_landing.sh — fixed-workload landing/convergence cells for the flip controller.
+# flip_landing.sh — 2x16c fixed-workload landing/convergence gate.
 #
-# Ports and CPU sets are deliberately injected by preflight.sh (or a standalone caller). The
-# suite owns only the child PIDs it starts: no process-name lookup or name-based reap is used.
+# Owner contract (2026-08-17): search moves are not thrash. A completed move after
+# a >=30 s quiet gap is thrash; a terminal >=45 s quiet interval is a clean landing;
+# anything else gets one 2x-window observation and remains INCONCLUSIVE-lengthen.
+# Throughput is an INFO total_commands_processed delta taken only after a certified
+# clean landing. Every comparison reference is measured here, on the same binary:
+# the landed static split and its +/-1 neighbours (plus the measured starting hint).
 set -u
 
 SD="$(cd "$(dirname "$0")" && pwd)"
@@ -15,10 +19,6 @@ SERVER_CORES="${TOMO_SERVER_CORES:?flip_landing.sh: TOMO_SERVER_CORES required}"
 LOAD_CORES="${TOMO_LOADGEN_CORES:?flip_landing.sh: TOMO_LOADGEN_CORES required}"
 MT="$(command -v memtier_benchmark 2>/dev/null || true)"
 
-mkdir -p "$WORK" "$(dirname "$OUT")"
-: > "$OUT"
-printf 'cell\tobserved\texpected\tverdict\texpected_state\n' >> "$OUT"
-
 # shellcheck source=tools/preflight/preflight_lib.sh
 . "$SD/preflight_lib.sh"
 
@@ -27,7 +27,12 @@ for candidate in "$(dirname "$BIN")/redis-cli" "$SD/../../src/redis-cli" "$(comm
     if [ -n "$candidate" ] && [ -x "$candidate" ]; then CLI=$candidate; break; fi
 done
 
+mkdir -p "$WORK" "$(dirname "$OUT")"
+: > "$OUT"
+printf 'cell\tobserved\texpected\tverdict\texpected_state\n' >> "$OUT"
+
 BLOCKING=0
+INCONCLUSIVE=0
 SRV_PID=
 LOAD_PID=
 SRV_LOG=
@@ -35,37 +40,12 @@ LOAD_LOG=
 LOAD_RC=1
 LOAD_OPS=
 
-row() { # cell observed expected verdict [expected-state]
-    printf '%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" "${5:-}" | tee -a "$OUT"
-}
-
-blocking_fail() {
-    row "$1" "$2" "$3" FAIL
-    BLOCKING=$((BLOCKING + 1))
-}
-
-# An expected-state marker excuses only a valid measurement that misses its acceptance predicate.
-# Harness failures, missing references, crashes, and unreadable observables remain ordinary FAILs.
-expected_grade() { # cell raw-pass(0/1) observed expected annotation
-    local cell=$1 raw=$2 observed=$3 expected=$4 annotation=$5
-    if [ "$raw" = 1 ]; then
-        if [ -n "$annotation" ]; then
-            row "$cell" "$observed; raw=PASS; remove expected-state annotation" "$expected" FAIL "$annotation"
-            BLOCKING=$((BLOCKING + 1))
-        else
-            row "$cell" "$observed" "$expected" PASS
-        fi
-    elif [ -n "$annotation" ]; then
-        row "$cell" "$observed" "$expected" KNOWN-FAIL "$annotation"
-    else
-        row "$cell" "$observed" "$expected" FAIL
-        BLOCKING=$((BLOCKING + 1))
-    fi
-}
+row() { printf '%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" "${5:-}" | tee -a "$OUT"; }
+blocking_fail() { row "$1" "$2" "$3" FAIL; BLOCKING=$((BLOCKING + 1)); }
 
 stop_load() {
     [ -n "${LOAD_PID:-}" ] || return 0
-    if kill -0 "$LOAD_PID" 2>/dev/null; then kill "$LOAD_PID" 2>/dev/null || true; fi
+    kill "$LOAD_PID" 2>/dev/null || true
     wait "$LOAD_PID" 2>/dev/null || true
     LOAD_PID=
 }
@@ -82,10 +62,7 @@ stop_server() {
     SRV_PID=
 }
 
-cleanup() {
-    stop_load
-    stop_server
-}
+cleanup() { stop_load; stop_server; }
 trap cleanup EXIT
 trap 'exit 143' TERM HUP
 trap 'exit 130' INT
@@ -96,12 +73,21 @@ dependency_check() {
     [ -n "$MT" ] && [ -x "$MT" ] || { blocking_fail harness "memtier_benchmark not found" "memtier_benchmark in PATH"; return 1; }
     command -v taskset >/dev/null 2>&1 || { blocking_fail harness "taskset not found" "taskset in PATH"; return 1; }
     command -v timeout >/dev/null 2>&1 || { blocking_fail harness "timeout not found" "timeout in PATH"; return 1; }
+    command -v python3 >/dev/null 2>&1 || { blocking_fail harness "python3 not found" "timestamp verdict parser"; return 1; }
+    [ "$SERVER_CORES" = "$PREFLIGHT_SERVER_CORES" ] || {
+        blocking_fail harness "server cores=$SERVER_CORES" "server cores 0-31"; return 1; }
+    [ "$LOAD_CORES" = "$PREFLIGHT_LOADGEN_CORES" ] || {
+        blocking_fail harness "loadgen cores=$LOAD_CORES" "loadgen cores 32-127,160-255 (exclude server SMT 128-159)"; return 1; }
     return 0
 }
 
-boot() { # tag nodes mode io ex
-    local tag=$1 nodes=$2 mode=$3 io=$4 ex=$5 i up=0 data
+boot() { # tag mode io ex [uring]
+    local tag=$1 mode=$2 io=$3 ex=$4 uring=${5:-1} i up=0 data
     cleanup
+    if [ $((io + ex)) -ne 16 ]; then
+        blocking_fail "$tag" "requested io$io/ex$ex" "exactly 16 threads per node"
+        return 1
+    fi
     if ! wait_port_free "$PORT"; then
         blocking_fail "$tag" "port $PORT already has a listener" "exclusive injected port"
         return 1
@@ -113,9 +99,9 @@ boot() { # tag nodes mode io ex
     : > "$SRV_LOG"
     taskset -c "$SERVER_CORES" "$BIN" --port "$PORT" --bind 127.0.0.1 --dir "$data" \
         --save '' --appendonly no --protected-mode no --loglevel notice --logfile "$SRV_LOG" \
-        --tomokv-nodes "$nodes" --tomokv-pin-mode ccd --tomokv-thread-mode "$mode" \
+        --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-mode "$mode" \
         --tomokv-thread-io "$io" --tomokv-thread-ex "$ex" --tomokv-key-lb 0 \
-        --tomokv-client-lb no --tomokv-atomic no --tomokv-io-uring 1 >/dev/null 2>&1 &
+        --tomokv-client-lb no --tomokv-atomic no --tomokv-io-uring "$uring" >/dev/null 2>&1 &
     SRV_PID=$!
     for i in $(seq 1 120); do
         if timeout 2 "$CLI" -p "$PORT" ping 2>/dev/null | grep -q '^PONG$'; then up=1; break; fi
@@ -129,6 +115,12 @@ boot() { # tag nodes mode io ex
     fi
     if ! server_identity_ok "$CLI" "$PORT" "$SRV_PID"; then
         blocking_fail "$tag" "SO_REUSEPORT identity check failed on port $PORT" "all connections reach pid $SRV_PID"
+        stop_server
+        return 1
+    fi
+    if ! preflight_assert_standard_boot "$SRV_LOG" "$SRV_PID" "$io" "$ex"; then
+        blocking_fail "$tag" "2x16c/L3/core-range boot assertion failed; log=$SRV_LOG" \
+            "two composed-L3 nodes and every server thread on cores 0-31"
         stop_server
         return 1
     fi
@@ -168,195 +160,232 @@ finish_load() {
     [ "$LOAD_RC" = 0 ] && awk -v v="$LOAD_OPS" 'BEGIN{exit !(v>0)}'
 }
 
-fill_dataset() { # tag keys bytes threads clients
-    local tag=$1 keys=$2 bytes=$3 threads=$4 clients=$5 got
-    start_load "${tag}_fill" 0 -t "$threads" -c "$clients" --pipeline=32 --ratio=1:0 \
-        --data-size="$bytes" --key-pattern=P:P --key-minimum=1 --key-maximum="$keys" \
-        -n allkeys
-    # Request-count mode (-n allkeys) exits only after the full deterministic fill.
-    if ! finish_load; then return 1; fi
+wait_load_period() { # seconds; fail if server or sustained load exits early
+    local seconds=$1 i
+    for i in $(seq 1 "$seconds"); do
+        sleep 1
+        [ -n "${SRV_PID:-}" ] && kill -0 "$SRV_PID" 2>/dev/null || return 1
+        [ -n "${LOAD_PID:-}" ] && kill -0 "$LOAD_PID" 2>/dev/null || return 1
+    done
+}
+
+fill_dataset() { # tag kind
+    local tag=$1 kind=$2 got
+    if [ "$kind" = zrange ]; then
+        awk 'BEGIN{for(i=1;i<=20000;i++){printf "ZADD z:memtier-%d",i; for(j=1;j<=64;j++)printf " %d m%d",j,j; printf "\r\n"}}' \
+            | timeout 180 taskset -c "$LOAD_CORES" "$CLI" -p "$PORT" --pipe >/dev/null 2>&1 || return 1
+        got=$(timeout 10 "$CLI" -p "$PORT" dbsize 2>/dev/null | tr -d '\r')
+        [ "$got" = 20000 ]
+        return
+    fi
+    start_load "${tag}_fill" 0 -t 64 -c 8 --pipeline=32 --ratio=1:0 --data-size=32 \
+        --key-pattern=P:P --key-minimum=1 --key-maximum=10000000 -n allkeys
+    finish_load || return 1
     got=$(timeout 10 "$CLI" -p "$PORT" dbsize 2>/dev/null | tr -d '\r')
-    [ "$got" = "$keys" ]
+    [ "$got" = 10000000 ]
 }
 
-mget8_args() {
-    MGET8=( -t 64 -c 8 --pipeline=16 --data-size=32 --key-minimum=1 --key-maximum=10000000
-        --distinct-client-seed
-        --command="MGET __key__ __key__ __key__ __key__ __key__ __key__ __key__ __key__"
-        --command-key-pattern=R )
+workload_args() { # name -> WL_ARGS array
+    local kind=$1
+    local mg='MGET __key__ __key__ __key__ __key__ __key__ __key__ __key__ __key__'
+    local ms='MSET __key__ __data__ __key__ __data__ __key__ __data__ __key__ __data__ __key__ __data__ __key__ __data__ __key__ __data__ __key__ __data__'
+    case "$kind" in
+        get_p1)  WL_ARGS=( -t 128 -c 4 --pipeline=1  --ratio=0:1 --key-pattern=R:R --key-minimum=1 --key-maximum=10000000 -d 32 --distinct-client-seed ) ;;
+        get_p16) WL_ARGS=( -t 64  -c 8 --pipeline=16 --ratio=0:1 --key-pattern=R:R --key-minimum=1 --key-maximum=10000000 -d 32 --distinct-client-seed ) ;;
+        get_p32) WL_ARGS=( -t 64  -c 8 --pipeline=32 --ratio=0:1 --key-pattern=R:R --key-minimum=1 --key-maximum=10000000 -d 32 --distinct-client-seed ) ;;
+        set_p1)  WL_ARGS=( -t 128 -c 4 --pipeline=1  --ratio=1:0 --key-pattern=R:R --key-minimum=1 --key-maximum=10000000 -d 32 --distinct-client-seed ) ;;
+        set_p16) WL_ARGS=( -t 64  -c 8 --pipeline=16 --ratio=1:0 --key-pattern=R:R --key-minimum=1 --key-maximum=10000000 -d 32 --distinct-client-seed ) ;;
+        set_p32) WL_ARGS=( -t 64  -c 8 --pipeline=32 --ratio=1:0 --key-pattern=R:R --key-minimum=1 --key-maximum=10000000 -d 32 --distinct-client-seed ) ;;
+        mget8)   WL_ARGS=( -t 64  -c 8 --pipeline=16 --command="$mg" --command-key-pattern=R --key-minimum=1 --key-maximum=10000000 -d 32 --distinct-client-seed ) ;;
+        mset8)   WL_ARGS=( -t 64  -c 8 --pipeline=8  --command="$ms" --command-key-pattern=R --key-minimum=1 --key-maximum=10000000 -d 32 --distinct-client-seed ) ;;
+        zrange)  WL_ARGS=( -t 64  -c 8 --pipeline=8  --command='ZRANGE z:__key__ 0 -1' --command-key-pattern=R --key-minimum=1 --key-maximum=20000 --distinct-client-seed ) ;;
+        mix19)   WL_ARGS=( -t 64  -c 8 --pipeline=16 --ratio=1:9 --key-pattern=R:R --key-minimum=1 --key-maximum=10000000 -d 32 --distinct-client-seed ) ;;
+        *) return 1 ;;
+    esac
 }
 
-p32set_args() {
-    P32SET=( -t 8 -c 25 --pipeline=32 --ratio=1:0 --data-size=64 --key-pattern=R:R
-        --key-minimum=1 --key-maximum=2000000 --distinct-client-seed )
-}
-
-node_vector() { # nodes -> comma-separated per-node io/ex vector from one INFO snapshot
-    local nodes=$1 info n io ex sep= vector=
+node_vector() {
+    local info n io ex sep= vector=
     info=$(timeout 5 "$CLI" -p "$PORT" info all 2>/dev/null | tr -d '\r') || return 1
-    for n in $(seq 0 $((nodes - 1))); do
+    for n in 0 1; do
         io=$(printf '%s\n' "$info" | awk -F: -v k="tomokv_node_${n}_io_live" '$1==k{print $2; exit}')
         ex=$(printf '%s\n' "$info" | awk -F: -v k="tomokv_node_${n}_ex_live" '$1==k{print $2; exit}')
-        case "$io" in ''|*[!0-9]*) return 1 ;; esac
-        case "$ex" in ''|*[!0-9]*) return 1 ;; esac
+        case "$io:$ex" in *[!0-9:]*) return 1 ;; esac
+        [ $((io + ex)) -eq 16 ] || return 1
         vector="${vector}${sep}n${n}=io${io}/ex${ex}"
         sep=,
     done
     printf '%s\n' "$vector"
 }
 
-io_family_ok() { # n0=io5/ex3,... -> every io count is 4, 5, or 6
-    local vector=$1 item io
-    local old_ifs=$IFS
-    IFS=,
-    for item in $vector; do
-        io=${item#*=io}; io=${io%%/*}
-        case "$io" in 4|5|6) : ;; *) IFS=$old_ifs; return 1 ;; esac
-    done
-    IFS=$old_ifs
-    return 0
+vector_ios() {
+    printf '%s\n' "$1" | tr ',' '\n' | sed -nE 's/^n[0-9]+=io([0-9]+)\/ex[0-9]+$/\1/p'
 }
-
-move_count() {
-    local n
-    n=$(grep -cE 'GROW-FRONT complete|GROW-BACK complete' "$SRV_LOG" 2>/dev/null) || true
-    printf '%s\n' "${n:-0}"
+command_count() {
+    local count
+    count=$(timeout 5 "$CLI" -p "$PORT" info stats 2>/dev/null | tr -d '\r' \
+        | awk -F: '$1=="total_commands_processed"{print $2; exit}') || return 1
+    case "$count" in ''|*[!0-9]*) return 1 ;; esac
+    printf '%s\n' "$count"
 }
-
+rate_from() { # counter0 epoch0 counter1 epoch1
+    case "$1:$3" in *[!0-9:]*) return 1 ;; esac
+    awk -v c0="$1" -v t0="$2" -v c1="$3" -v t1="$4" \
+        'BEGIN{d=t1-t0; if(d<=0 || c1<c0) exit 1; printf "%.3f",(c1-c0)/d}'
+}
 ratio() { awk -v a="$1" -v b="$2" 'BEGIN{if(b<=0)print "0.0000"; else printf "%.4f",a/b}'; }
-ratio_at_least() { awk -v a="$1" -v b="$2" -v floor="$3" 'BEGIN{exit !(b>0 && a/b>=floor)}'; }
-max2() { awk -v a="$1" -v b="$2" 'BEGIN{print (a>b?a:b)}'; }
+ratio_at_least() { awk -v a="$1" -v b="$2" 'BEGIN{exit !(b>0 && a/b>=0.95)}'; }
 
-sample_auto() { # nodes duration; writes t/vector rows and captures half/final move counts
-    local nodes=$1 duration=$2 elapsed vector
-    SAMPLE_FILE="$WORK/current.splits"
-    : > "$SAMPLE_FILE"
-    SAMPLES_VALID=1
-    MOVES_HALF=
-    for elapsed in $(seq 5 5 "$duration"); do
-        sleep 5
-        vector=$(node_vector "$nodes" 2>/dev/null || true)
-        [ -n "$vector" ] || SAMPLES_VALID=0
-        printf 't=%s\t%s\n' "$elapsed" "${vector:-UNREADABLE}" >> "$SAMPLE_FILE"
-        [ "$elapsed" = 45 ] && MOVES_HALF=$(move_count)
+measure_static() { # cell kind io uring -> STATIC_RATE
+    local cell=$1 kind=$2 io=$3 uring=$4 ex=$((16 - io)) c0 c1 t0 t1
+    STATIC_RATE=
+    boot "${cell}_ref_io${io}ex${ex}" static "$io" "$ex" "$uring" || return 1
+    fill_dataset "${cell}_ref_io${io}ex${ex}" "$kind" || { stop_server; return 1; }
+    workload_args "$kind" || { stop_server; return 1; }
+    start_load "${cell}_ref_io${io}ex${ex}" 55 "${WL_ARGS[@]}"
+    wait_load_period 30 || { stop_load; stop_server; return 1; }
+    c0=$(command_count); t0=$(date +%s.%N)
+    wait_load_period 20 || { stop_load; stop_server; return 1; }
+    c1=$(command_count); t1=$(date +%s.%N)
+    STATIC_RATE=$(rate_from "$c0" "$t0" "$c1" "$t1") || STATIC_RATE=
+    stop_load
+    server_alive || { stop_server; return 1; }
+    stop_server
+    [ -n "$STATIC_RATE" ]
+}
+
+run_cell() { # cell workload starting-io uring
+    local cell=$1 kind=$2 hint_io=$3 uring=${4:-1} window=240 retry=0
+    local phase_start phase_end parsed move_verdict moves span terminal post vector
+    local c0 c1 t0 t1 auto_rate= candidates io ex ref_rate refs= best_rate=0 best_io=0 r
+    case "$kind" in get_p1|set_p1) window=120 ;; esac
+
+    workload_args "$kind" || { blocking_fail "$cell" "unknown workload $kind" "known workload"; return; }
+    boot "${cell}_auto" auto 8 8 "$uring" || return
+    fill_dataset "${cell}_auto" "$kind" || {
+        blocking_fail "$cell" "dataset fill failed; log=$SRV_LOG" "complete in-suite dataset"
+        stop_server; return
+    }
+    workload_args "$kind"
+    phase_start=$(date +%s.%N)
+    start_load "${cell}_auto" $((window * 2 + 90)) "${WL_ARGS[@]}"
+    if ! wait_load_period "$window"; then
+        blocking_fail "$cell" "auto load/server ended before ${window}s; logs=$WORK" "sustained workload and live server"
+        stop_load; stop_server; return
+    fi
+    phase_end=$(date +%s.%N)
+    parsed=$(preflight_flip_verdict "$SRV_LOG" "$phase_start" "$phase_end") || parsed=
+    IFS=$'\t' read -r move_verdict moves span terminal post <<< "$parsed"
+    # Only a clean landing opens the INFO-delta steady-state window. Keep the same memtier
+    # process/connections alive; restarting it would change the workload the controller owns.
+    # Reclassify after that delta too: a first late move there is still search, so it gets the
+    # same single 2x retry instead of being mislabeled merely because it crossed our boundary.
+    while :; do
+        if [ "$move_verdict" = STILL_SEARCHING ] && [ "$retry" -eq 0 ]; then
+            retry=1
+            auto_rate=
+            if ! wait_load_period "$window"; then
+                blocking_fail "$cell" "auto retry load/server ended before $((window * 2))s; logs=$WORK" "sustained 2x observation"
+                stop_load; stop_server; return
+            fi
+            phase_end=$(date +%s.%N)
+            parsed=$(preflight_flip_verdict "$SRV_LOG" "$phase_start" "$phase_end") || parsed=
+            IFS=$'\t' read -r move_verdict moves span terminal post <<< "$parsed"
+            continue
+        fi
+        if [ "$move_verdict" = STABILIZED_CLEAN ]; then
+            c0=$(command_count); t0=$(date +%s.%N)
+            if wait_load_period 20; then
+                c1=$(command_count); t1=$(date +%s.%N)
+                auto_rate=$(rate_from "$c0" "$t0" "$c1" "$t1") || auto_rate=
+                phase_end=$t1
+                parsed=$(preflight_flip_verdict "$SRV_LOG" "$phase_start" "$phase_end") || parsed=
+                IFS=$'\t' read -r move_verdict moves span terminal post <<< "$parsed"
+                if [ "$move_verdict" = STILL_SEARCHING ] && [ "$retry" -eq 0 ]; then
+                    auto_rate=
+                    continue
+                fi
+            fi
+        fi
+        break
     done
-    MOVES_FINAL=$(move_count)
-    FINAL_VECTOR=$(tail -1 "$SAMPLE_FILE" | cut -f2-)
-    LAST45_VECTORS=$(awk -F'\t' '$1 ~ /^t=/ {sub(/^t=/,"",$1); if($1>=45) print $2}' "$SAMPLE_FILE" | paste -sd';' -)
-    LAST45_UNIQUE=$(awk -F'\t' '$1 ~ /^t=/ {sub(/^t=/,"",$1); if($1>=45) print $2}' "$SAMPLE_FILE" | sort -u | wc -l)
-}
+    vector=$(node_vector 2>/dev/null || true)
+    if [ -z "$move_verdict" ] || [ -z "$vector" ]; then
+        blocking_fail "$cell" "unreadable move timestamps or terminal split; parsed=${parsed:-none} vector=${vector:-none}" \
+            "timestamp verdict and two-node INFO vector"
+        stop_load; stop_server; return
+    fi
+    stop_load
+    server_alive || {
+        blocking_fail "$cell" "server died after auto observation; log=$SRV_LOG" "live server"
+        stop_server; return
+    }
+    stop_server
 
-run_l1() {
-    local ref= auto= valid=1 settled=0 family=0 r raw=0 observed
-    FINAL_VECTOR=; LAST45_VECTORS=; LAST45_UNIQUE=; SAMPLES_VALID=0
-    mget8_args
-
-    if boot L1_static_io5ex3 8 static 5 3; then
-        fill_dataset L1_static_io5ex3 10000000 32 64 8 || valid=0
-        if [ "$valid" = 1 ]; then
-            start_load L1_static_io5ex3 90 "${MGET8[@]}"
-            finish_load && server_alive || valid=0
-            ref=$LOAD_OPS
+    # Never trust the hint. Discover around every split actually landed by either node,
+    # and retain the measured hint as an extra starting point for stale-map diagnosis.
+    candidates=$hint_io
+    while IFS= read -r io; do
+        for io in "$io" $((io - 1)) $((io + 1)); do
+            [ "$io" -ge 1 ] && [ "$io" -le 15 ] && candidates="$candidates $io"
+        done
+    done < <(vector_ios "$vector")
+    candidates=$(printf '%s\n' $candidates | sort -nu | paste -sd' ' -)
+    for io in $candidates; do
+        ex=$((16 - io))
+        if measure_static "$cell" "$kind" "$io" "$uring"; then
+            ref_rate=$STATIC_RATE
+            refs="${refs}${refs:+,}io${io}/ex${ex}=${ref_rate}"
+            if awk -v a="$ref_rate" -v b="$best_rate" 'BEGIN{exit !(a>b)}'; then
+                best_rate=$ref_rate; best_io=$io
+            fi
+        else
+            blocking_fail "$cell" "static discovery failed at io${io}/ex${ex}; logs=$WORK" \
+                "valid landed/neighbor in-suite reference"
+            return
         fi
-        stop_server
-    else
-        valid=0
-    fi
+    done
 
-    if [ "$valid" = 1 ] && boot L1_auto_io4ex4 8 auto 4 4; then
-        fill_dataset L1_auto_io4ex4 10000000 32 64 8 || valid=0
-        if [ "$valid" = 1 ]; then
-            start_load L1_auto_io4ex4 90 "${MGET8[@]}"
-            sample_auto 8 90
-            finish_load && server_alive || valid=0
-            auto=$LOAD_OPS
-        fi
-        stop_server
-    else
-        valid=0
-    fi
-
-    if [ "$valid" != 1 ] || [ "${SAMPLES_VALID:-0}" != 1 ] || [ -z "$ref" ] || [ -z "$auto" ] ||
-       [ "${FINAL_VECTOR:-UNREADABLE}" = UNREADABLE ]; then
-        blocking_fail L1 "invalid measurement; static=${ref:-none} auto=${auto:-none} split=${FINAL_VECTOR:-none}; logs=$WORK" \
-            "valid in-suite reference, auto Totals, per-node INFO, and live server"
-        return
-    fi
-
-    [ "${LAST45_UNIQUE:-99}" = 1 ] && settled=1
-    io_family_ok "$FINAL_VECTOR" && family=1
-    r=$(ratio "$auto" "$ref")
-    if [ "$settled" = 1 ] && [ "$family" = 1 ] && ratio_at_least "$auto" "$ref" 0.90; then raw=1; fi
-    observed="settled=$settled settled_split=$FINAL_VECTOR last45=[$LAST45_VECTORS] auto=$auto static_io5ex3=$ref ratio=$r"
-
-    expected_grade L1 "$raw" "$observed" \
-        "last-45s per-node io_live stable in {4,5,6}; auto >=0.90x io5/ex3 static" ""
-}
-
-run_l2_static() { # tag io ex -> sets STATIC_OPS
-    local tag=$1 io=$2 ex=$3 valid=1
-    STATIC_OPS=
-    if boot "$tag" 2 static "$io" "$ex"; then
-        fill_dataset "$tag" 2000000 64 8 25 || valid=0
-        if [ "$valid" = 1 ]; then
-            p32set_args
-            start_load "$tag" 90 "${P32SET[@]}"
-            finish_load && server_alive || valid=0
-            STATIC_OPS=$LOAD_OPS
-        fi
-        stop_server
-    else
-        valid=0
-    fi
-    [ "$valid" = 1 ] && [ -n "$STATIC_OPS" ]
-}
-
-run_l2() {
-    local ref53= ref62= best= auto= valid=1 moves_late=999 r raw=0 observed
-    FINAL_VECTOR=; LAST45_VECTORS=; LAST45_UNIQUE=; SAMPLES_VALID=0
-    run_l2_static L2_static_io5ex3 5 3 && ref53=$STATIC_OPS || valid=0
-    if [ "$valid" = 1 ]; then
-        run_l2_static L2_static_io6ex2 6 2 && ref62=$STATIC_OPS || valid=0
-    fi
-    if [ "$valid" = 1 ] && boot L2_auto_io4ex4 2 auto 4 4; then
-        fill_dataset L2_auto_io4ex4 2000000 64 8 25 || valid=0
-        if [ "$valid" = 1 ]; then
-            p32set_args
-            start_load L2_auto_io4ex4 90 "${P32SET[@]}"
-            sample_auto 2 90
-            finish_load && server_alive || valid=0
-            auto=$LOAD_OPS
-            moves_late=$(( ${MOVES_FINAL:-999} - ${MOVES_HALF:-0} ))
-        fi
-        stop_server
-    else
-        valid=0
-    fi
-
-    if [ "$valid" != 1 ] || [ "${SAMPLES_VALID:-0}" != 1 ] || [ -z "$ref53" ] || [ -z "$ref62" ] || [ -z "$auto" ] ||
-       [ "${FINAL_VECTOR:-UNREADABLE}" = UNREADABLE ]; then
-        blocking_fail L2 "invalid measurement; statics=${ref53:-none}/${ref62:-none} auto=${auto:-none} split=${FINAL_VECTOR:-none}; logs=$WORK" \
-            "two valid in-suite references, auto Totals, per-node INFO, and live server"
-        return
-    fi
-
-    best=$(max2 "$ref53" "$ref62")
-    r=$(ratio "$auto" "$best")
-    if ratio_at_least "$auto" "$best" 0.90 && [ "$moves_late" -le 6 ]; then raw=1; fi
-    observed="settled_split=$FINAL_VECTOR last45_splits=[$LAST45_VECTORS] auto=$auto static_io5ex3=$ref53 static_io6ex2=$ref62 best_static=$best ratio=$r moves_last45=$moves_late"
-
-    expected_grade L2 "$raw" "$observed" \
-        "auto >=0.90x best static and completed moves in final 45s <=6" ""
+    r=$(ratio "${auto_rate:-0}" "$best_rate")
+    local observed="move_verdict=$move_verdict retry_2x=$retry window=${window}s moves=$moves search_span=${span}s terminal_quiet=${terminal}s post_stable_moves=$post landed=[$vector] hint=io${hint_io}/ex$((16-hint_io)) auto_info_ops=${auto_rate:-unmeasured} refs=[$refs] discovered_best=io${best_io}/ex$((16-best_io)):${best_rate} ratio=$r"
+    local expected="STABILIZED_CLEAN; steady INFO total_commands_processed delta >=0.95x best landed/neighbor static"
+    case "$move_verdict" in
+        SETTLE_THEN_MOVED)
+            blocking_fail "$cell" "$observed" "$expected (move after >=30s quiet is the only thrash FAIL)"
+            ;;
+        STILL_SEARCHING)
+            row "$cell" "$observed" "$expected; lengthen beyond the automatic 2x window" INCONCLUSIVE-lengthen
+            INCONCLUSIVE=$((INCONCLUSIVE + 1))
+            ;;
+        STABILIZED_CLEAN)
+            if [ -n "$auto_rate" ] && ratio_at_least "$auto_rate" "$best_rate"; then
+                row "$cell" "$observed" "$expected" PASS
+            else
+                blocking_fail "$cell" "$observed" "$expected"
+            fi
+            ;;
+        *) blocking_fail "$cell" "$observed" "$expected" ;;
+    esac
 }
 
 if dependency_check; then
-    run_l1
-    run_l2
+    # Measured 2x16c optima are hints only. Every row above discovers and records its own
+    # landed/neighbor static maximum, preventing a stale key from grading the controller.
+    run_cell get_p1       get_p1  13 1
+    run_cell get_p16      get_p16 11 1
+    run_cell get_p32      get_p32 10 1
+    run_cell set_p1       set_p1  14 1
+    run_cell set_p16      set_p16  9 1
+    run_cell set_p32      set_p32  8 1
+    run_cell mget8        mget8   10 1
+    run_cell mset8        mset8   8 1
+    run_cell zrange       zrange  7 1
+    run_cell mix19        mix19   11 1
+    # Preserve the landed L3/L4 coverage: p1 must converge under both backends.
+    run_cell get_p1_epoll get_p1  13 0
 fi
 
 cleanup
-printf 'flip_landing\tblocking=%d\tknown_fail=%s\t%s\t%s\n' "$BLOCKING" \
-    "$(grep -c $'\tKNOWN-FAIL\t' "$OUT" 2>/dev/null || true)" \
-    "$( [ "$BLOCKING" = 0 ] && echo complete || echo incomplete )" \
+printf 'flip_landing\tblocking=%d inconclusive=%d\tcomplete\t%s\t\n' "$BLOCKING" "$INCONCLUSIVE" \
     "$( [ "$BLOCKING" = 0 ] && echo PASS || echo FAIL )" >> "$OUT"
 [ "$BLOCKING" = 0 ]

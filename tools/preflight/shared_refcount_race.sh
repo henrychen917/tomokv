@@ -13,6 +13,8 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 # PORT-SAFETY: gate on the PORT before each trial so a leaked/foreign server cannot join
 # this trial's SO_REUSEPORT accept group and contaminate the crash draw.
 . "$HERE/preflight_lib.sh"
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
 # ee451 2026-07-29: HAND-WRITTEN FIX -- this suite had no BIN-style variable, so the mechanical
 # `pkill -x "$(basename "$BIN")"` substitution applied to the rest of the tree could not be applied
 # here. The old rule below was: "arm binaries MUST be named exactly redis-server, distinguished by
@@ -66,7 +68,7 @@ run_trial() {  # $1=label $2=binary $3=trial-index -> 1 if panicked
       return 2
   fi
   # >1 worker per node is what makes the dbs shared and the verbs concurrently refcounted
-  taskset -c 0-7 "$run/redis-rcrace" --port $PORT --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4 \
+  taskset -c "$SERVER_CORES" "$run/redis-rcrace" --port $PORT --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-io 8 --tomokv-thread-ex 8 \
       --save '' --appendonly no --protected-mode no --enable-debug-command yes \
       --logfile "$log" >/dev/null 2>&1 &
   local pid=$!
@@ -84,7 +86,12 @@ run_trial() {  # $1=label $2=binary $3=trial-index -> 1 if panicked
       cleanup_rc
       return 2
   fi
-  timeout $((SECS + 60)) python3 "$HERE/shared_refcount_race.py" $PORT "$SECS" "${THREADS:-16}" >>"$OUT" 2>&1
+  if ! preflight_assert_standard_boot "$log" "$RCPID" 8 8; then
+      echo "$label trial $3: SKIP (standard 2x16c pin assertion failed)" | tee -a "$OUT"
+      cleanup_rc
+      return 2
+  fi
+  timeout $((SECS + 60)) taskset -c "$LOAD_CORES" python3 "$HERE/shared_refcount_race.py" $PORT "$SECS" "${THREADS:-16}" >>"$OUT" 2>&1
   local rc=$?
   local panic
   panic=$(grep -cE 'illegal decrRefCount|Guru Meditation|crashed by signal|ASSERTION FAILED' "$log")

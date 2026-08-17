@@ -27,6 +27,8 @@ SD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # PORT-SAFETY: gate on the PORT before boot + verify pid identity after, so a leaked/foreign
 # server on $PORT cannot silently join our SO_REUSEPORT accept group and blend two binaries.
 . "$SD/preflight_lib.sh"
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
 OUT="${TOMO_RESULT_FILE:-$J/numcmd_check.out}"; : > "$OUT"
 PORT=5997
 D=$J/numcmd_work
@@ -63,8 +65,8 @@ boot() {  # boot <binary> -> 0 if serving
   # PORT-SAFETY: refuse to boot while any listener still holds $PORT (the srv.log note is what
   # the caller's "server did not boot; see srv.log" message then surfaces).
   wait_port_free "$PORT" || { echo "port-busy: :$PORT still has a listener before boot (SO_REUSEPORT split risk)" > "$D/srv.log"; return 1; }
-  taskset -c 0-7 "$D/redis-numcmd" --port $PORT --dir "$D" --tomokv-nodes 1 \
-     --tomokv-thread-io 4 --tomokv-thread-ex 4 --save '' --appendonly no \
+  taskset -c "$SERVER_CORES" "$D/redis-numcmd" --port $PORT --dir "$D" --tomokv-nodes 2 --tomokv-pin-mode ccd \
+     --tomokv-thread-io 8 --tomokv-thread-ex 8 --save '' --appendonly no \
      --protected-mode no --logfile "$D/srv.log" --loglevel notice >/dev/null 2>&1 &
   NCPID=$!
   local i
@@ -73,6 +75,7 @@ boot() {  # boot <binary> -> 0 if serving
     if timeout 2 "$CLI" -p $PORT ping 2>/dev/null | grep -q PONG; then
       # IDENTITY: every fresh INFO conn must land on OUR pid, else the counts are a blend.
       server_identity_ok "$CLI" "$PORT" "$NCPID" || { echo "SO_REUSEPORT split on :$PORT" >> "$D/srv.log"; return 1; }
+      preflight_assert_standard_boot "$D/srv.log" "$NCPID" 8 8 || return 1
       return 0
     fi
     sleep 0.5
@@ -90,7 +93,7 @@ arm() {  # arm <label> <binary> <expect: OK|WRONG>
     echo "numcmd-$label	FAIL	server did not boot; see $D/srv.log" >> "$OUT"
     FAIL=$((FAIL+1)); return 1
   fi
-  raw=$(timeout 600 python3 "$SD/numcmd_check.py" $PORT "$label" 2>&1); rc=$?
+  raw=$(timeout 600 taskset -c "$LOAD_CORES" python3 "$SD/numcmd_check.py" $PORT "$label" 2>&1); rc=$?
   cleanup_numcmd
   printf '%s\n' "$raw" >> "$J/numcmd_check.raw"
   if [ "$rc" -ne 0 ]; then

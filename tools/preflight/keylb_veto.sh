@@ -27,6 +27,8 @@ OUT=$J/keylb_veto.out; : > $OUT
 PORT=${KEYLB_PORT:-5897}
 SECS=${KEYLB_SECS:-30}
 CLI="$(dirname $BIN)/redis-cli"
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
 
 # LEAK GUARD: this is a MULTI-BOOT suite (arms A/B each boot on $PORT). Without a trap,
 # any early exit — a failed arm, an interrupt, an unset var under `set -u` — leaves the
@@ -55,15 +57,16 @@ run_arm() {   # $1 = arm name, $2 = workload (hotkey|spread)
   # PORT-SAFETY: refuse to boot while any listener still holds $PORT — otherwise it joins
   # this arm's SO_REUSEPORT accept group and the load generator's connections split.
   wait_port_free "$PORT" || { echo "$arm-port-busy	FAIL	:$PORT still has a listener before boot (SO_REUSEPORT split risk)" >> $OUT; return 1; }
-  taskset -c 0-7 $J/redis-veto --port $PORT --dir $J/vetodata --tomokv-nodes 1 \
-    --tomokv-thread-io 4 --tomokv-thread-ex 4 --save '' --appendonly no --protected-mode no \
+  taskset -c "$SERVER_CORES" $J/redis-veto --port $PORT --dir $J/vetodata --tomokv-nodes 2 \
+    --tomokv-pin-mode ccd --tomokv-thread-io 8 --tomokv-thread-ex 8 --save '' --appendonly no --protected-mode no \
     --enable-debug-command yes --logfile $J/veto_$arm.log >/dev/null 2>&1 &
   VETO_PID=$!
   sleep 3
   # IDENTITY: N fresh INFO conns must all land on OUR pid. A second listener on $PORT would
   # answer a share of them and silently blend its binary into this arm's counters.
   server_identity_ok "$CLI" "$PORT" "$VETO_PID" || { echo "$arm-port-identity	FAIL	SO_REUSEPORT split on :$PORT" >> $OUT; $CLI -p $PORT shutdown nosave >/dev/null 2>&1; pkill -9 -x redis-veto 2>/dev/null; VETO_PID=""; return 1; }
-  python3 - "$PORT" "$wl" "$SECS" "$arm" "$OUT" <<'PY'
+  preflight_assert_standard_boot "$J/veto_$arm.log" "$VETO_PID" 8 8 || { echo "$arm-pin-geometry	FAIL	standard 2x16c pin assertion failed" >> "$OUT"; return 1; }
+  taskset -c "$LOAD_CORES" python3 - "$PORT" "$wl" "$SECS" "$arm" "$OUT" <<'PY'
 import socket, sys, time, threading, random
 port, wl, secs, arm, out = int(sys.argv[1]), sys.argv[2], int(sys.argv[3]), sys.argv[4], sys.argv[5]
 

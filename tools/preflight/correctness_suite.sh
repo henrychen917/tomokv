@@ -11,6 +11,7 @@
 #   times out/exits nonzero/checks zero replies, or any checked reply is stale.
 set -u
 J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 BIN=${TOMO_BIN:?TOMO_BIN required}; P=/home/user/Projects
 PORT=5994
 KEY_MIN=1
@@ -22,10 +23,12 @@ CLIENT_TIMEOUT=${TOMO_CLIENT_TIMEOUT:-15}
 DRIVER_TIMEOUT=${TOMO_DRIVER_TIMEOUT:-600}
 ORDER_TIMEOUT=${TOMO_ORDER_TIMEOUT:-120}
 LOAD_TIMEOUT=${TOMO_LOAD_TIMEOUT:-60}
-EXPECT_NODES=${TOMO_EXPECT_NODES:-1}
-EXPECT_IO=${TOMO_EXPECT_IO:-4}
-EXPECT_EX=${TOMO_EXPECT_EX:-4}
+EXPECT_NODES=2
+EXPECT_IO=${TOMO_EXPECT_IO:-8}
+EXPECT_EX=${TOMO_EXPECT_EX:-8}
 EXPECT_MODE=${TOMO_EXPECT_MODE:-static}
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
 if [ -n "${TOMO_RESULT_FILE:-}" ]; then
   OUT=$TOMO_RESULT_FILE
   if ! (set -o noclobber; : > "$OUT") 2>/dev/null; then
@@ -103,8 +106,13 @@ if ! cp "$BIN" "$CB" 2>/dev/null || ! chmod +x "$CB" 2>/dev/null; then
   emit "RESULT: 0 passed, 1 failed"
   exit 1
 fi
-setsid taskset -c 0-7 "$CB" --port $PORT --dir "$DATA" --tomokv-nodes 1 --tomokv-thread-io 4 \
-  --tomokv-thread-ex 4 --tomokv-thread-mode static --enable-debug-command local \
+if [ $((EXPECT_IO + EXPECT_EX)) -ne 16 ]; then
+  emit "correctness-harness\tFAIL\trequested io=$EXPECT_IO ex=$EXPECT_EX; require 16 threads per node"
+  emit "RESULT: 0 passed, 1 failed"
+  exit 1
+fi
+setsid taskset -c "$SERVER_CORES" "$CB" --port $PORT --dir "$DATA" --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-io "$EXPECT_IO" \
+  --tomokv-thread-ex "$EXPECT_EX" --tomokv-thread-mode "$EXPECT_MODE" --enable-debug-command local \
   ${TOMO_XTRA:-} --save '' --appendonly no --protected-mode no \
   --logfile "$LOG" >"$WORK/server.launch.log" 2>&1 &
 CORR_PID=$!
@@ -156,6 +164,11 @@ BOOT_RC=$?
 CLIENT_PID=""
 if [ "$BOOT_RC" -ne 0 ]; then
   emit "boot	FAIL	bounded readiness failed rc=$BOOT_RC: $(tr '\n' ' ' <"$BOOT_PROBE")"
+  emit "RESULT: 0 passed, 1 failed"
+  exit 1
+fi
+if ! preflight_assert_standard_boot "$LOG" "$CORR_PID" "$EXPECT_IO" "$EXPECT_EX"; then
+  emit "boot-pinning\tFAIL\t2x16c composed-L3/core-range assertion failed; log=$LOG"
   emit "RESULT: 0 passed, 1 failed"
   exit 1
 fi
@@ -223,10 +236,11 @@ with socket.create_connection(("127.0.0.1", port), timeout=5) as sock:
 
 expected = {
     "tomokv-nodes": str(nodes),
-    "tomokv-thread-io": str(1 if mode == "auto" and nodes == 1 else io),
-    "tomokv-thread-ex": str(
-        io + ex - 1 if mode == "auto" and nodes == 1 else ex
-    ),
+    # AUTO exposes its provisioned symmetric pool through CONFIG: one immutable
+    # base IO plus the other 15 convertible workers in each node. DEBUG below
+    # separately proves that the requested 8/8 (or 15/1) live split was applied.
+    "tomokv-thread-io": str(1 if mode == "auto" else io),
+    "tomokv-thread-ex": str(io + ex - 1 if mode == "auto" else ex),
     "tomokv-thread-mode": mode,
 }
 if values != expected:
@@ -276,7 +290,7 @@ emit "topology-proof	PASS	$(tr '\n' ' ' <"$TOPOLOGY_OUT")"
 # functional checks. A successful memtier exit without a positive Totals rate is still a non-run.
 SEEDLOG=$WORK/exact-2m-seed.memtier
 setsid timeout --foreground --signal=TERM --kill-after=5 "${SEED_TIMEOUT}s" \
-  taskset -c 16-23 memtier_benchmark -s 127.0.0.1 -p "$PORT" --hide-histogram \
+  taskset -c "$LOAD_CORES" memtier_benchmark -s 127.0.0.1 -p "$PORT" --hide-histogram \
   --ratio=1:0 --key-pattern=P:P --key-minimum="$KEY_MIN" --key-maximum="$KEY_MAX" \
   -n allkeys -d "$VALUE_BYTES" -t 8 -c 25 --pipeline 32 --distinct-client-seed \
   --connection-timeout=5 --connection-stage-timeout=15 >"$SEEDLOG" 2>&1 &
@@ -325,7 +339,7 @@ emit "exact-2m-seed	PASS	keys=$KEY_MIN..$KEY_MAX dbsize=$DBSIZE value_bytes=$VAL
 
 PY_RC=0
 setsid timeout --foreground --signal=TERM --kill-after=5 "${DRIVER_TIMEOUT}s" \
-taskset -c 16-23 python3 - "$OUT" "$PORT" "${SMOKE:-0}" <<'PY' &
+taskset -c "$LOAD_CORES" python3 - "$OUT" "$PORT" "${SMOKE:-0}" <<'PY' &
 import socket, sys, random, struct
 out, port, smoke = sys.argv[1], int(sys.argv[2]), sys.argv[3]=="1"
 R = (lambda n: max(1, n//5)) if smoke else (lambda n: n)
@@ -683,7 +697,7 @@ if [ "$PY_RC" -ne 0 ]; then
 else
   MTLOG=$WORK/ordering-load.memtier
   setsid timeout --foreground --signal=TERM --kill-after=5 "${LOAD_TIMEOUT}s" \
-    taskset -c 16-23 memtier_benchmark -s 127.0.0.1 -p "$PORT" --hide-histogram \
+    taskset -c "$LOAD_CORES" memtier_benchmark -s 127.0.0.1 -p "$PORT" --hide-histogram \
     --test-time=25 --ratio=1:1 -d "$VALUE_BYTES" --key-pattern=R:R \
     --key-minimum="$KEY_MIN" --key-maximum="$KEY_MAX" -t 8 -c 25 --pipeline 16 \
     --distinct-client-seed --connection-timeout=5 --connection-stage-timeout=15 \
@@ -694,7 +708,7 @@ else
   ORD_FILE=$WORK/ordering-under-load.out
   LOAD_READY_FILE=$WORK/ordering-load.ready
   setsid timeout --foreground --signal=TERM --kill-after=2 15s \
-    taskset -c 16-23 python3 - "$PORT" >"$LOAD_READY_FILE" 2>&1 <<'PY' &
+    taskset -c "$LOAD_CORES" python3 - "$PORT" >"$LOAD_READY_FILE" 2>&1 <<'PY' &
 import socket, sys, time
 port = int(sys.argv[1])
 
@@ -742,7 +756,7 @@ PY
   fi
   if [ "$LOAD_READY_RC" -eq 0 ]; then
     setsid timeout --foreground --signal=TERM --kill-after=5 "${ORDER_TIMEOUT}s" \
-      taskset -c 16-23 env TOMO_BIN="$BIN" LBL="under-load" \
+      taskset -c "$LOAD_CORES" env TOMO_BIN="$BIN" LBL="under-load" \
       EXTRA="${TOMO_XTRA:-}" PORT_OVERRIDE="$PORT" \
       "$(dirname "${BASH_SOURCE[0]}")"/ord_test.sh >"$ORD_FILE" 2>&1 &
     CLIENT_PID=$!

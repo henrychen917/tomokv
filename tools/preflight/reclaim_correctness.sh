@@ -3,9 +3,12 @@
 # Exercises exactly the paths the change touches: retire under churn, worker-local drain, park/unpark
 # (bounded-residual path), EX<->IO flip with pending retires, FLUSHALL + resize with pending retires.
 J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}; P=/home/user/Projects
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 BIN="${TOMO_BIN:-${BIN:-$J/stable-w/src/redis-server}}"
 CLI="$P/redis/src/redis-cli -p 5974"
-MT="taskset -c 16-23 memtier_benchmark -s 127.0.0.1 -p 5974 --hide-histogram"
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
+MT="taskset -c $LOAD_CORES memtier_benchmark -s 127.0.0.1 -p 5974 --hide-histogram"
 OUT=$J/reclaim_correctness.out; : > $OUT
 : > $J/cc.log   # truncate the SERVER log too: it appends, so a previous run's crash markers read as this run's failure
 PASS=0; FAIL=0
@@ -33,11 +36,17 @@ trap 'exit 129' HUP
 
 boot(){ # $1 extra args
   cleanup_reclaim; sleep 1; rm -rf $J/cdata; mkdir -p $J/cdata
-  taskset -c 0-7 $BIN --port 5974 --dir $J/cdata --tomokv-nodes 1 \
-    --tomokv-thread-io 4 --tomokv-thread-ex 4 $1 \
+  taskset -c "$SERVER_CORES" $BIN --port 5974 --dir $J/cdata --tomokv-nodes 2 --tomokv-pin-mode ccd \
+    --tomokv-thread-io 8 --tomokv-thread-ex 8 $1 \
     --save '' --appendonly no --protected-mode no --logfile $J/cc.log --loglevel notice >/dev/null 2>&1 &
   RECLAIM_PID=$!
-  sleep 2; for i in $(seq 1 25); do timeout 2 $CLI ping 2>/dev/null | grep -q PONG && return 0; sleep 0.5; done; return 1
+  sleep 2; for i in $(seq 1 25); do
+    if timeout 2 $CLI ping 2>/dev/null | grep -q PONG; then
+      preflight_assert_standard_boot "$J/cc.log" "$RECLAIM_PID" 8 8
+      return $?
+    fi
+    sleep 0.5
+  done; return 1
 }
 alive(){ [ "$(timeout 2 $CLI ping 2>/dev/null | tr -d '\r')" = PONG ]; }
 rss_kb(){ awk '/VmRSS/{print $2; exit}' "/proc/$RECLAIM_PID/status" 2>/dev/null; }
@@ -74,12 +83,12 @@ fi
 echo "=== T3: DEL/expire churn (retire via delete path) + dbsize sanity ===" >> $OUT
 if alive; then
   $CLI flushall >/dev/null 2>&1
-  for i in $(seq 1 2000); do echo "SET del:$i v$i"; done | $CLI --pipe >/dev/null 2>&1
+  for i in $(seq 1 2000); do echo "SET del:$i v$i"; done | taskset -c "$LOAD_CORES" $CLI --pipe >/dev/null 2>&1
   n1=$($CLI dbsize)
-  for i in $(seq 1 1000); do echo "DEL del:$i"; done | $CLI --pipe >/dev/null 2>&1
+  for i in $(seq 1 1000); do echo "DEL del:$i"; done | taskset -c "$LOAD_CORES" $CLI --pipe >/dev/null 2>&1
   sleep 1; n2=$($CLI dbsize)
   [ "$n1" = "2000" ] && [ "$n2" = "1000" ] && ok "delete path: 2000 -> 1000 exact" || bad "delete path: $n1 -> $n2"
-  for i in $(seq 1001 1500); do echo "SET exp:$i v$i PX 300"; done | $CLI --pipe >/dev/null 2>&1
+  for i in $(seq 1001 1500); do echo "SET exp:$i v$i PX 300"; done | taskset -c "$LOAD_CORES" $CLI --pipe >/dev/null 2>&1
   sleep 3; alive && ok "alive after expire churn" || bad "dead after expire churn"
 fi
 
@@ -88,15 +97,15 @@ if alive; then
   $CLI flushall >/dev/null 2>&1
   for i in $(seq 1 500); do
     echo "HSET h:$i f1 v$i f2 w$i"; echo "RPUSH l:$i a$i b$i"; echo "SADD s:$i m$i"; echo "ZADD z:$i $i n$i"
-  done | $CLI --pipe >/dev/null 2>&1
+  done | taskset -c "$LOAD_CORES" $CLI --pipe >/dev/null 2>&1
   # Type-CHANGING overwrite: SET replaces the hash/list value with a string (retiring the complex
   # value through the flat path), then DEL + recreate restores the type. NB: an earlier version did
   # SET then HSET/RPUSH on the same key, which correctly returns WRONGTYPE and leaves a string —
   # a test bug that reported a false FAIL.
   for r in 1 2 3; do
-    for i in $(seq 1 500); do echo "SET h:$i overwritten$r"; echo "SET l:$i overwritten$r"; done | $CLI --pipe >/dev/null 2>&1
-    for i in $(seq 1 500); do echo "DEL h:$i"; echo "DEL l:$i"; done | $CLI --pipe >/dev/null 2>&1
-    for i in $(seq 1 500); do echo "HSET h:$i f1 back$r"; echo "RPUSH l:$i back$r"; done | $CLI --pipe >/dev/null 2>&1
+    for i in $(seq 1 500); do echo "SET h:$i overwritten$r"; echo "SET l:$i overwritten$r"; done | taskset -c "$LOAD_CORES" $CLI --pipe >/dev/null 2>&1
+    for i in $(seq 1 500); do echo "DEL h:$i"; echo "DEL l:$i"; done | taskset -c "$LOAD_CORES" $CLI --pipe >/dev/null 2>&1
+    for i in $(seq 1 500); do echo "HSET h:$i f1 back$r"; echo "RPUSH l:$i back$r"; done | taskset -c "$LOAD_CORES" $CLI --pipe >/dev/null 2>&1
   done
   sleep 1
   t1=$($CLI type h:1); t2=$($CLI type l:1); n=$($CLI dbsize)

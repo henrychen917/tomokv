@@ -76,6 +76,8 @@ dependency_check() {
     command -v python3 >/dev/null 2>&1 || { fail harness "python3 not found" "python3 in PATH"; return 1; }
     command -v taskset >/dev/null 2>&1 || { fail harness "taskset not found" "taskset in PATH"; return 1; }
     command -v timeout >/dev/null 2>&1 || { fail harness "timeout not found" "timeout in PATH"; return 1; }
+    [ "$SERVER_CORES" = "$PREFLIGHT_SERVER_CORES" ] || { fail harness "server cores=$SERVER_CORES" "0-31"; return 1; }
+    [ "$LOAD_CORES" = "$PREFLIGHT_LOADGEN_CORES" ] || { fail harness "load cores=$LOAD_CORES" "32-127,160-255"; return 1; }
     return 0
 }
 
@@ -91,8 +93,8 @@ boot() {
     : > "$SRV_LOG"
     taskset -c "$SERVER_CORES" "$BIN" --port "$PORT" --bind 127.0.0.1 --dir "$data" \
         --save '' --appendonly no --protected-mode no --loglevel notice --logfile "$SRV_LOG" \
-        --tomokv-nodes 8 --tomokv-pin-mode ccd --tomokv-thread-mode static \
-        --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-key-lb 0 \
+        --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-mode static \
+        --tomokv-thread-io 8 --tomokv-thread-ex 8 --tomokv-key-lb 0 \
         --tomokv-client-lb no --tomokv-atomic no >/dev/null 2>&1 &
     SRV_PID=$!
     for i in $(seq 1 120); do
@@ -107,6 +109,12 @@ boot() {
     fi
     if ! server_identity_ok "$CLI" "$PORT" "$SRV_PID"; then
         fail boot "SO_REUSEPORT identity check failed on port $PORT" "all connections reach pid $SRV_PID"
+        stop_server
+        return 1
+    fi
+    if ! preflight_assert_standard_boot "$SRV_LOG" "$SRV_PID" 8 8; then
+        fail boot "2x16c composed-L3/core-range assertion failed; log=$SRV_LOG" \
+            "all server threads pinned within 0-31"
         stop_server
         return 1
     fi
@@ -241,7 +249,7 @@ run_soak() {
     ping=$(timeout 3 "$CLI" -p "$PORT" ping 2>/dev/null | tr -d '\r')
     markers=$(crash_markers)
     rss_ratio=$(awk -v r="$SOAK_PEAK" -v d="$dataset_kb" 'BEGIN{if(d<=0)print "inf"; else printf "%.3f",r/d}')
-    sample="topology=8x8c dataset=${dataset_bytes}B rss_base=${SOAK_BASE}kB rss_peak=${SOAK_PEAK}kB rss_end=${SOAK_END:-unreadable}kB rss_ratio=${rss_ratio}x limit=${limit_kb}kB ops=${SOAK_OPS:-none} ping=${ping:-none} crash_markers=$markers samples=$SOAK_RSS"
+    sample="topology=2x16c dataset=${dataset_bytes}B rss_base=${SOAK_BASE}kB rss_peak=${SOAK_PEAK}kB rss_end=${SOAK_END:-unreadable}kB rss_ratio=${rss_ratio}x limit=${limit_kb}kB ops=${SOAK_OPS:-none} ping=${ping:-none} crash_markers=$markers samples=$SOAK_RSS"
     if [ "$breach" = 0 ] && [ "$invalid" = 0 ] && [ "$SOAK_PEAK" -le "$limit_kb" ] &&
        [ "$ping" = PONG ] && [ "$markers" = 0 ]; then
         pass mmix_ON "$sample" "60s 50/50 MSET-8/MGET-8 p16; peak RSS <=3x used_memory_dataset"

@@ -13,17 +13,21 @@
 # Must run under the shared box lock like anything else that loads the server:
 #   tools/preflight/withbox.sh -w 3600 tools/preflight/ex_backpressure.sh src/redis-server
 set -u
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 
 BIN=${1:?usage: ex_backpressure.sh <server-binary> [tag]}
 TAG=${2:-adhoc}
 DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 REPO=$(cd "$DIR/../.." && pwd)
 PORT=${PORT:-5898}
-IO=${IO:-4}
-EX=${EX:-4}
+IO=${IO:-8}
+EX=${EX:-8}
 CONNS=${CONNS:-128}
 DEPTH=${DEPTH:-512}
 SECONDS_PER_ARM=${SECONDS_PER_ARM:-8}
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
+[ $((IO + EX)) -eq 16 ] || { echo "ex-backpressure[$TAG]	FAIL	IO+EX must equal 16 per node"; exit 2; }
 
 OUT=$(mktemp -d "${TMPDIR:-/tmp}/exbp.XXXXXX")
 CLI=$(dirname "$BIN")/redis-cli
@@ -64,8 +68,8 @@ fi
 # must not be what stops us. Defaults are generous enough for 512-deep GET/MGET bursts, but the
 # ring depth is DERIVED from pipeline depth (4 * (io+1) * pipeline_depth, floored at 2048), so we
 # leave tomokv-pipeline-depth alone: raising it would raise the very ring we are trying to fill.
-taskset -c 0-7 "$STAGED" --port "$PORT" --bind 127.0.0.1 --dir "$OUT" \
-    --tomokv-nodes 1 --tomokv-thread-io "$IO" --tomokv-thread-ex "$EX" \
+taskset -c "$SERVER_CORES" "$STAGED" --port "$PORT" --bind 127.0.0.1 --dir "$OUT" \
+    --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-io "$IO" --tomokv-thread-ex "$EX" \
     --tomokv-thread-mode static \
     --save '' --appendonly no --protected-mode no --enable-debug-command local \
     --logfile "$OUT/server.log" --loglevel notice >"$OUT/stdout.log" 2>&1 &
@@ -79,12 +83,13 @@ done
 if [ "$(timeout 2 "$CLI" -p "$PORT" ping 2>/dev/null | tr -d '\r')" != PONG ]; then
     echo "ex-backpressure[$TAG]	FAIL	server never answered PING (see $OUT/server.log)"; exit 1
 fi
+preflight_assert_standard_boot "$OUT/server.log" "$SRV" "$IO" "$EX" || exit 1
 
 # ulimit: CONNS sockets plus the server's own. A probe that dies on EMFILE would report ABORTED,
 # which is honest but useless -- raise it here where we can.
 ulimit -n "$(( CONNS * 4 + 1024 ))" 2>/dev/null || true
 
-taskset -c 16-23 python3 "$DIR/ex_backpressure.py" \
+taskset -c "$LOAD_CORES" python3 "$DIR/ex_backpressure.py" \
     --port "$PORT" --io-threads "$IO" \
     --conns "$CONNS" --depth "$DEPTH" --seconds "$SECONDS_PER_ARM" \
     2>&1 | tee "$OUT/probe.out"

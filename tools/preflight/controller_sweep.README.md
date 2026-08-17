@@ -11,7 +11,16 @@ Binary under test: `stable-w2/src/redis-server`. All knob names/semantics below 
 > memory must not climb beyond expected numbers; throughput no regression; AUTO modes must equal
 > STATIC mode for the same workload.
 
-**Spec rev 2** (user refinements, applied on top of the reviewed suite): (1) settle-first —
+**Owner revision 2026-08-17 supersedes the older flip rules below.** Every server boot is 2×16c
+on CPUs 0-31, with load generation on `32-127,160-255`. For flip cells, search is not thrash:
+completed move timestamps yield `STABILIZED_CLEAN`, `SETTLE_THEN_MOVED` (the only thrash FAIL), or
+`STILL_SEARCHING` (one automatic 2×-window retry, then `INCONCLUSIVE-lengthen`). Steady throughput
+is an INFO command-counter delta after stabilization and must reach 95% of freshly measured
+landed/±1 static references. Static split tables are hints only. The historical controller notes
+below document the non-flip families and retired implementation; they are not the live flip
+verdict contract.
+
+**Spec rev 2 (historical non-flip policy)** (user refinements, applied on top of the reviewed suite): (1) settle-first —
 every AUTO==STATIC and NOREG measurement on a shifting controller waits for that controller's
 settle signal, with the convergence time reported as its own bounded row; (2) systematic
 anti-thrash — after settle, on the unchanged workload, shift events counted over ≥3 consecutive
@@ -50,49 +59,32 @@ Preconditions (the script enforces all of them and refuses to start otherwise):
 * flock single-instance (`csweep/.lock`).
 * `memtier_benchmark` in PATH, `redis-cli` at `/home/user/Projects/redis/src/redis-cli` (falls back
   to the tree's own cli), python3 (for the persistent-connection driver).
-* Server pinned to cores 0–7, load-gen to 8–15 (methodology rule; degrades to a half-split on
-  smaller boxes).
+* Server pinned to cores 0–31 with exactly two 16-core nodes; load-gen pinned to
+  32–127,160–255, excluding server SMT siblings 128–159. There is no smaller-box fallback.
 
 Outputs:
 
 * `controller_sweep.tsv` — `controller ⟶ check ⟶ stimulus ⟶ observed ⟶ expected ⟶ result`,
-  result ∈ {PASS, FAIL, SUSPECT, KNOWN}. SUSPECT = implausible/gray-zone number (never promoted
-  to PASS — sanity-gate rule). KNOWN = expected-by-design or project-memory-known condition.
+  result ∈ {PASS, FAIL, SUSPECT, KNOWN, INCONCLUSIVE-lengthen}. SUSPECT = implausible/gray-zone
+  number (never promoted to PASS — sanity-gate rule). KNOWN = expected-by-design or
+  project-memory-known condition. INCONCLUSIVE-lengthen is the non-failing third flip verdict.
 * `csweep/logs/` — every cell's server log, memtier log, RSS trace, INFO snapshots, preserved.
 * `csweep/logs/summary_failures.txt` + a stdout summary histogram.
 
 ## Controller inventory and how each is checked
 
 ### 1. tomoFlipController (momentum hill-climb; `tomokv-thread-mode auto`)
-* **Code truth (flip floor):** grow-back can only reclaim **grown** io slots — `tomoGrowBack`
-  rejects at base config (`server.c:16341-16343`, "no grown io thread to convert back") and the
-  controller's `can_back` (`server.c:17752`) has the same floor. From boot ioN/exM the reachable
-  range is io ∈ [N .. N+M−1]. An io-heavy boot (io6ex2) can therefore NEVER shift ex-ward below
-  io6 — the original plan's "p32 from io6ex2 ⇒ io4ex4" was untestable by design.
-* Static curve first: p1 GET on io4ex4 / io6ex2 / io7ex1 (+ p32 SET on io4ex4), arms cycled per
-  pass so box drift interleaves. Best static arm is picked from the measured curve, not assumed.
-* AUTO arm boots **io4ex4** (reachable range io4..io7) with the controller on:
-  * Phase A: p1 GET ⇒ expect ≥1 `GROW-FRONT complete` and `io_threads_live > 4` (io-ward),
-  * Phase B: p32 pure-SET ⇒ expect ≥1 `GROW-BACK complete` (ex-ward reclaim of the grown slots),
-  * CONVERGENCE (each phase, settle-first): after the conversion load, a bounded 5-probe ladder
-    of 10 s same-workload windows runs until one FULL window shows **0 new flips** — that is the
-    settle signal; `convergence_time` (stimulus start → first 0-flip window) is its own row,
-    timeout ⇒ FAIL. The measurement windows open ONLY after this,
-  * ANTI-THRASH (each phase): flip count across the 3 settled measure windows on the unchanged
-    workload, graded 0 PASS / 1 SUSPECT / >1 FAIL (deadzone pins),
-  * AUTO==STATIC: settled median ≥ 97% of the best static arm (p1) and of static io4ex4 (p32);
-    in SMOKE these demote PASS→SUSPECT (1-rep static side); an unsettled phase (CONVERGENCE
-    FAIL) also demotes a PASS to SUSPECT,
-  * ENVELOPE: RSS peak ≤ boot + 1.5 GB across both phases (derivation: workload footprint
-    ~30–60 MB; the gated leak class grew ~210 MB/s ⇒ multi-GB over the run — bound sits an order
-    above footprint, an order below leak).
-* Design assert: the poly pool is FULLY ACTIVE — the boot line must read
-  `N poly threads (io-1 io-born, ex ex-born)` and nothing more. There is no reserve thread
-  to provision (deleted 2026-07-28); a boot that adds one is the regression this catches.
-* NOTE (comparability): a static io7ex1 boot runs 1 worker ⇒ non-shared db (dict store), while the
-  AUTO arm converged to io7ex1 keeps the 4-worker shared FLATSTORE. There is no bootable static
-  twin of the converged state — the ≥97%-of-best-bootable-static gate deliberately covers that
-  whole delta (that IS the user-facing question).
+
+The live sweep has two fixed-load cells: p1 GET (120-second base window, io13/ex3 starting hint)
+and p32 SET (240-second base window, io8/ex8 starting hint). Both boot AUTO at io8/ex8 per node.
+Completed move timestamps—not raw move counts—produce the three owner verdicts. A searching cell
+gets one continuation to twice its base window.
+
+After a clean terminal interval, the unchanged load stays connected for an INFO
+`total_commands_processed` delta. The suite then boots fresh static servers at each landed split
+and its ±1 neighbors, also measuring the hint rather than trusting it. AUTO passes at 95% of the
+best static rate discovered in that cell. A stable controller already at the right split need not
+move merely to prove actuation.
 
 ### 2. Reserve-thread quorum balancer — DELETED 2026-07-28
 The feature is gone from the server, not just from this suite. Owner ruling: the controller has
@@ -100,7 +92,7 @@ exactly two moves, front-flip-back and back-flip-front; there is no third role t
 retarget, so there was nothing left for these cells to exercise. The `DEBUG TOMO-MODESHIFT`
 verbs they drove (0/1/2/3) are now rejected outright.
 
-Replaced by **`tools/preflight/flip_updown.sh`**, which tests what actually exists: boot io4/ex4
+Replaced by **`tools/preflight/flip_updown.sh`**, which tests what actually exists: boot io8/ex8
 in `thread-mode auto`, drive `p32 -> p1 -> p32 -> p1`, and require flips in BOTH directions.
 
 ### 3. Per-connection fake-ring controller (`tomokv-fake-ring-depth -1`)

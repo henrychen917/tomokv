@@ -14,7 +14,7 @@
 #   2. reclaim_correctness.sh  FLATSTORE/QSBR data correctness
 #   3. numa2_validate.sh       2-simnode correctness
 #   3b. simnode2_features.sh   2-simnode ENGAGEMENT gate for the 2026-08 features (prefetch
-#   3c. atomic_correctness.sh  nodes-1 atomic visibility gauntlet (torn/RYOW/monotonic/msetnx +
+#   3c. atomic_correctness.sh  2x16c atomic visibility gauntlet (torn/RYOW/monotonic/msetnx +
 #                              completion-wedge drain), promoted from the job harness
 #                              mode-2 arms fire, atomics correct, everything-on soak)
 #   3d. atomic_torn.sh         torn-read discriminator, runtime atomic-on proof, MSETNX P0
@@ -33,8 +33,8 @@
 #   6. controller_sweep.sh     controller/allocator conformance: SHIFT,
 #                              ENVELOPE, NOREG, AUTO==STATIC (settle-first,
 #                              anti-thrash, client/key/flip LB families)
-#   6b. flip_landing.sh        blocking 8x8c MGET-8 landing + 2x8c p32 convergence
-#                              against in-suite static references
+#   6b. flip_landing.sh        2x16c landing/convergence matrix with timestamp verdicts
+#                              and discovered landed/neighbor static references
 #   7. command_sweep.sh        per-command-type throughput by DISPATCH CLASS
 #                              vs committed baselines (75%/90% FAIL/SUSPECT)
 #   8. stress_reclaim.sh       bounded stress spot-check (DUR from mode)
@@ -97,20 +97,35 @@ BINSHA=$(sha256sum "$BIN" | cut -c1-16)
 PF=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 REPORT=$PF/preflight_report.txt
 : > $REPORT
+rm -f "$PF/preflight.GO"              # invalidate every prior/legacy authorization at run start
 SMOKE=${SMOKE:-0}
-# Full-box defaults for the two new 8x8c-capable suites. A lane/CI launcher can override either
-# family globally or per suite; the values are injected into the suites rather than embedded in
-# them. SRV_CORES/LG_CORES remain accepted as the lane-G compatibility spellings.
-GATE_SERVER_CORES=${TOMO_SERVER_CORES:-${SRV_CORES:-0-63}}
-GATE_LOADGEN_CORES=${TOMO_LOADGEN_CORES:-${LG_CORES:-64-127,192-255}}
+# Stamp schema v2: every server is exactly two 16-physical-core nodes on CPUs 0-31.
+# CPUs 128-159 are those cores' SMT siblings and are excluded from load generation.
+# These are certification geometry, not lane-tuning overrides: accepting a different mask
+# would let one binary sha acquire stamps for incomparable hardware shapes.
+PREFLIGHT_STAMP_SCHEMA=2x16c-v1
+GATE_SERVER_CORES=0-31
+GATE_LOADGEN_CORES=32-127,160-255
+[ -z "${TOMO_SERVER_CORES:-}" ] || [ "$TOMO_SERVER_CORES" = "$GATE_SERVER_CORES" ] || {
+  echo "NO-GO: TOMO_SERVER_CORES=$TOMO_SERVER_CORES; gate geometry requires $GATE_SERVER_CORES"; exit 1; }
+[ -z "${TOMO_LOADGEN_CORES:-}" ] || [ "$TOMO_LOADGEN_CORES" = "$GATE_LOADGEN_CORES" ] || {
+  echo "NO-GO: TOMO_LOADGEN_CORES=$TOMO_LOADGEN_CORES; gate requires $GATE_LOADGEN_CORES"; exit 1; }
 FLIP_LANDING_SERVER_CORES=${TOMO_FLIP_LANDING_SERVER_CORES:-$GATE_SERVER_CORES}
 FLIP_LANDING_LOADGEN_CORES=${TOMO_FLIP_LANDING_LOADGEN_CORES:-$GATE_LOADGEN_CORES}
 ATOMIC_TORN_SERVER_CORES=${TOMO_ATOMIC_TORN_SERVER_CORES:-$GATE_SERVER_CORES}
 ATOMIC_TORN_LOADGEN_CORES=${TOMO_ATOMIC_TORN_LOADGEN_CORES:-$GATE_LOADGEN_CORES}
+for _geometry in \
+  "flip server:$FLIP_LANDING_SERVER_CORES:$GATE_SERVER_CORES" \
+  "flip loadgen:$FLIP_LANDING_LOADGEN_CORES:$GATE_LOADGEN_CORES" \
+  "atomic server:$ATOMIC_TORN_SERVER_CORES:$GATE_SERVER_CORES" \
+  "atomic loadgen:$ATOMIC_TORN_LOADGEN_CORES:$GATE_LOADGEN_CORES"; do
+  _label=${_geometry%%:*}; _rest=${_geometry#*:}; _got=${_rest%%:*}; _want=${_rest#*:}
+  [ "$_got" = "$_want" ] || { echo "NO-GO: $_label cores=$_got; gate requires $_want"; exit 1; }
+done
 FLIP_LANDING_PORT=${TOMO_FLIP_LANDING_PORT:-5980}
 ATOMIC_TORN_PORT=${TOMO_ATOMIC_TORN_PORT:-5981}
 say(){ echo "$@" | tee -a $REPORT; }
-say "TOMOKV PREFLIGHT  $(date -u +%F' '%T)  bin=$BIN sha=$BINSHA smoke=$SMOKE"
+say "TOMOKV PREFLIGHT  $(date -u +%F' '%T)  bin=$BIN sha=$BINSHA smoke=$SMOKE geometry=$PREFLIGHT_STAMP_SCHEMA"
 say "──────────────────────────────────────────────────────────────────────"
 
 # ee451 2026-07-29: REFUSE TO START ON A CONTENDED BOX, then own everything that appears after.
@@ -156,7 +171,8 @@ run_suite(){ # $1 script $2 result $3 fail-regex $4 suspect-regex [$5 port $6 se
       TOMO_SERVER_CORES="$6" TOMO_LOADGEN_CORES="$7" SMOKE=$SMOKE \
       "$1" 9>&- >> $PF/preflight_${name}.log 2>&1 || rc=$?
   else
-    TOMO_RESULT_FILE="$2" TOMO_BIN="$BIN" SMOKE=$SMOKE \
+    TOMO_RESULT_FILE="$2" TOMO_BIN="$BIN" \
+      TOMO_SERVER_CORES="$GATE_SERVER_CORES" TOMO_LOADGEN_CORES="$GATE_LOADGEN_CORES" SMOKE=$SMOKE \
       "$1" 9>&- >> $PF/preflight_${name}.log 2>&1 || rc=$?
   fi
   # 9>&-: children must NOT inherit the singleton lock fd (a leaked suite child held it across a
@@ -272,19 +288,20 @@ flip_cooldown(){
 }
 flip_cooldown
 run_suite $SD/flip_landing.sh        $PF/flip_landing.out \
-  $'^[^\t]*\t[^\t]*\t[^\t]*\tFAIL\t' '' \
+  $'^[^\t]*\t[^\t]*\t[^\t]*\tFAIL\t' 'INCONCLUSIVE-lengthen' \
   "$FLIP_LANDING_PORT" "$FLIP_LANDING_SERVER_CORES" "$FLIP_LANDING_LOADGEN_CORES"
 flip_cooldown
-run_suite $SD/controller_sweep.sh    $PF/controller_sweep.tsv     $'\tFAIL' $'\tSUSPECT'
+run_suite $SD/controller_sweep.sh    $PF/controller_sweep.tsv     $'\tFAIL' $'\t(SUSPECT|INCONCLUSIVE-lengthen)'
 flip_cooldown
 run_suite $SD/flip_updown.sh          $PF/flip_updown.out          'FAIL' 'INVALID'
 run_suite $SD/lb_skew.sh              $PF/lb_skew.out              $'\tFAIL' $'\tSKIP'
 # ee451 2026-07-29: side_regression was NEVER WIRED IN. 62f03ebcc repaired its `BIN=${1:?}` line so
 # it could run under `TOMO_BIN`, and the plan lists side_regression.out among the files a preflight
 # run must produce — but `grep -c side_regression preflight.sh` was 0, so no preflight run could
-# ever have produced it, before or after that fix. Two-sided per-side throughput gate: io7ex1
-# exposes worker-side cost, io1ex7 exposes io-side cost, so a regression is ATTRIBUTABLE rather than
-# just visible. On the very first run it writes the baseline and self-reports SUSPECT/NO VERDICT.
+# ever have produced it, before or after that fix. Two-sided per-side throughput gate: io15ex1
+# exposes worker-side cost, io1ex15 exposes io-side cost, so a regression is ATTRIBUTABLE rather than
+# just visible. On the very first run it writes the
+# geometry-versioned baseline and self-reports SUSPECT/NO VERDICT.
 run_suite $SD/side_regression.sh      $PF/side_regression.out      'FAIL' 'SUSPECT|INVALID'
 # command_sweep RETIRED 2026-07-28. Its per-dispatch-class floors were calibrated against a
 # -t 4 -c 8 (32-connection) config, which we have since established is CLIENT-BOUND on this box:
@@ -316,16 +333,17 @@ GITDESC=$(git -C "$_SRC_DIR/.." describe --always --dirty 2>/dev/null \
        || git -C "$SD" describe --always --dirty 2>/dev/null || echo unknown)
 cp $REPORT $PF/preflight_reports/${BINSHA}_$(date -u +%Y%m%d_%H%M%S).txt
 if [ "$FAILS" = 0 ]; then
-  echo "$BINSHA $(date -u +%s)" > $PF/preflight.GO
-  printf "%s\t%s\t%s\t%s\tGO\t0\t%s\tsmoke=%s,known-fail=%s\n" "$(date -u +%F_%T)" "$BINSHA" "$GITDESC" "$BIN" "$SUSPECTS" "$SMOKE" "$KNOWN_FAILS" >> $PF/preflight_history.tsv
+  echo "$BINSHA $(date -u +%s) $PREFLIGHT_STAMP_SCHEMA" > $PF/preflight.GO
+  printf "%s\t%s\t%s\t%s\tGO\t0\t%s\tsmoke=%s,known-fail=%s,geometry=%s\n" "$(date -u +%F_%T)" "$BINSHA" "$GITDESC" "$BIN" "$SUSPECTS" "$SMOKE" "$KNOWN_FAILS" "$PREFLIGHT_STAMP_SCHEMA" >> $PF/preflight_history.tsv
   say "VERDICT: GO  (known-fails: $KNOWN_FAILS; suspects: $SUSPECTS)  stamp: $PF/preflight.GO"
   say "history: $PF/preflight_history.tsv  report archived: preflight_reports/${BINSHA}_*.txt"
   exit 0
 else
   rm -f $PF/preflight.GO
-  printf "%s\t%s\t%s\t%s\tNO-GO\t%s\t%s\tsmoke=%s,known-fail=%s\n" "$(date -u +%F_%T)" "$BINSHA" "$GITDESC" "$BIN" "$FAILS" "$SUSPECTS" "$SMOKE" "$KNOWN_FAILS" >> $PF/preflight_history.tsv
+  printf "%s\t%s\t%s\t%s\tNO-GO\t%s\t%s\tsmoke=%s,known-fail=%s,geometry=%s\n" "$(date -u +%F_%T)" "$BINSHA" "$GITDESC" "$BIN" "$FAILS" "$SUSPECTS" "$SMOKE" "$KNOWN_FAILS" "$PREFLIGHT_STAMP_SCHEMA" >> $PF/preflight_history.tsv
   say "VERDICT: NO-GO — $FAILS failing checks (known-fails: $KNOWN_FAILS; suspects: $SUSPECTS). Stamp removed."
   exit 1
 fi
 # STAMP CONTRACT: comparison benchmarks read $PF/preflight.GO and require
-# (a) sha match with the tomo binary they boot, (b) age < 24h. See comp gate.
+# (a) sha match with the tomo binary they boot, (b) age < 24h, and
+# (c) field 3 exactly "2x16c-v1". A two-field legacy stamp is invalid. See comp gate.

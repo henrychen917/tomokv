@@ -3,12 +3,15 @@
 # observable) resolves to the documented behaviour. Two conventions are in use in this tree —
 # "-1 = auto" and "0 = auto" — so each knob is exercised at auto, a static value, and its edge.
 J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}; P=/home/user/Projects
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 # review fix: was a HARDCODED path -- the suite tested a different binary than the one being
 # stamped, so the GO certified a build it never exercised.
 BIN="${TOMO_BIN:-/tmp/tomo_pfjob/bins/fence_d/redis-server}"
 PORT=5979
 CLI="$P/redis/src/redis-cli -p $PORT"
-MT="taskset -c 16-23 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
+MT="taskset -c $LOAD_CORES memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
 OUT=$J/knob_matrix.out; : > $OUT
 PASS=0; FAIL=0
 ok(){ echo "  PASS $1" >> $OUT; PASS=$((PASS+1)); }
@@ -30,7 +33,7 @@ trap 'kb_kill' EXIT TERM INT HUP
 reject(){ # $1 knob $2 value -- a RETIRED knob must make the server refuse to boot
   local knob=$1 val=$2
   kb_kill; sleep 1
-  taskset -c 0-7 $KB --port $PORT --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4 \
+  taskset -c "$SERVER_CORES" $KB --port $PORT --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-io 8 --tomokv-thread-ex 8 \
     --$knob $val --save '' --protected-mode no --logfile '' >/dev/null 2>&1 &
   sleep 2
   local up=0; timeout 2 $CLI ping 2>/dev/null | grep -q PONG && up=1
@@ -46,7 +49,7 @@ reject(){ # $1 knob $2 value -- a RETIRED knob must make the server refuse to bo
 must_refuse(){ # $1 = knob, $2 = value, $3 = why boot must fail
   local knob=$1 val=$2 why=$3
   kb_kill; sleep 1
-  taskset -c 0-7 $KB --port $PORT --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4 \
+  taskset -c "$SERVER_CORES" $KB --port $PORT --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-io 8 --tomokv-thread-ex 8 \
     --$knob $val --save '' --protected-mode no --logfile '' >/dev/null 2>&1 &
   sleep 2
   local up=0; timeout 2 $CLI ping 2>/dev/null | grep -q PONG && up=1
@@ -63,7 +66,7 @@ atomic_mixed_smoke(){
     k=$((i % 8))
     echo "MSET atomic:$k:0 v$i atomic:$k:1 v$i atomic:$k:2 v$i atomic:$k:3 v$i atomic:$k:4 v$i atomic:$k:5 v$i atomic:$k:6 v$i atomic:$k:7 v$i"
     echo "MGET atomic:$k:0 atomic:$k:1 atomic:$k:2 atomic:$k:3 atomic:$k:4 atomic:$k:5 atomic:$k:6 atomic:$k:7"
-  done | timeout 20 $CLI --pipe >/dev/null 2>&1
+  done | timeout 20 taskset -c "$LOAD_CORES" $CLI --pipe >/dev/null 2>&1
 }
 
 atomic_inflight_drained(){
@@ -116,7 +119,7 @@ clientlb_off_smoke(){
 zerocopy_value_smoke(){
   # redis-cli's display modes add framing/newlines, so speak RESP directly and compare the exact
   # 32KB bulk payload returned by GET. bytes(range(256))*128 also exercises embedded CR/LF/NUL.
-  python3 - "$PORT" <<'PY'
+  taskset -c "$LOAD_CORES" python3 - "$PORT" <<'PY'
 import socket
 import sys
 
@@ -172,10 +175,11 @@ busypoll_privilege_refusal(){
 try(){ # $1 = knob, $2 = value, $3 = note, $4 = companion flags, $5 = extra smoke (optional)
   local knob=$1 val=$2 note=$3 companion=${4:-} smoke=${5:-}
   kb_kill; sleep 1; rm -rf $J/kdata; mkdir -p $J/kdata; : > $J/knob.log
-  taskset -c 0-7 $KB --port $PORT --dir $J/kdata --tomokv-nodes 1 \
-    --tomokv-thread-io 4 --tomokv-thread-ex 4 $companion \
+  taskset -c "$SERVER_CORES" $KB --port $PORT --dir $J/kdata --tomokv-nodes 2 --tomokv-pin-mode ccd \
+    --tomokv-thread-io 8 --tomokv-thread-ex 8 $companion \
     --$knob $val --save '' --appendonly no --protected-mode no \
     --logfile $J/knob.log --loglevel notice >/dev/null 2>&1 &
+  local server_pid=$!
   sleep 2; local up=0
   for i in $(seq 1 20); do timeout 2 $CLI ping 2>/dev/null | grep -q PONG && { up=1; break; }; sleep 0.5; done
   if [ "$up" != 1 ]; then
@@ -186,6 +190,11 @@ try(){ # $1 = knob, $2 = value, $3 = note, $4 = companion flags, $5 = extra smok
     fi
     bad "$knob=$val — DID NOT BOOT ($note)"; grep -iE 'unresolved|bad|invalid|error' $J/knob.log | tail -2 >> $OUT; return
   fi
+  if ! preflight_assert_standard_boot "$J/knob.log" "$server_pid" 8 8; then
+    bad "$knob=$val — 2x16c composed-L3/core-range assertion failed"
+    kb_kill
+    return
+  fi
   local got=$($CLI config get $knob 2>/dev/null | tail -1)
   # Most configs echo their literal spelling. These two are resolved during initServer, so CONFIG
   # GET correctly reports the effective value instead; keep those expectations explicit.
@@ -193,7 +202,7 @@ try(){ # $1 = knob, $2 = value, $3 = note, $4 = companion flags, $5 = extra smok
   case "$knob:$val" in
     tomokv-pipeline-depth:-1) expected=32 ;;
     tomokv-pipeline-depth:0)  expected=1 ;;
-    tomokv-cores-per-node:0)  expected=8 ;;
+    tomokv-cores-per-node:0)  expected=16 ;;
   esac
   [ "$got" = "$expected" ] && echo_ok=1
   # serve real traffic so a knob that breaks the data path shows up
@@ -271,11 +280,10 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   try tomokv-thread-mode auto "default: adaptive role controller enabled"
   try tomokv-thread-mode static "fixed boot split: controller must remain inert" "" thread-static
 
-  # With the fixture's io4+ex4 split, 0 derives an effective 8 cores and explicit 8 is the equal
-  # form. The product contract is <=, not equality: 9 is legal reserved capacity, while 7 refuses.
-  try tomokv-cores-per-node 0 "derive as thread-io + thread-ex (CONFIG GET resolves to 8)"
-  try tomokv-cores-per-node 8 "explicit value equals the io4+ex4 split"
-  must_refuse tomokv-cores-per-node 7 "fixture io4 + ex4 exceeds cores-per-node=7"
+  # With the gate's io8+ex8 split, 0 derives 16 cores and explicit 16 is equivalent.
+  try tomokv-cores-per-node 0 "derive as thread-io + thread-ex (CONFIG GET resolves to 16)"
+  try tomokv-cores-per-node 16 "explicit value equals the io8+ex8 split"
+  must_refuse tomokv-cores-per-node 15 "fixture io8 + ex8 exceeds cores-per-node=15"
 
   # ee451 2026-07-29: `try tomokv-key-lb -1` was a TEST defect, not a product one, and it accounted
   # for the 5th of the 10 knob_matrix failures. config.c:3309 declares this knob
@@ -427,11 +435,15 @@ echo "=== boolean levers ===" >> $OUT
 # So derive the live surface from the server itself (CONFIG GET is config.c's own output, and
 # needs no source path) and fail on any disagreement in either direction.
 drift_guard(){
-  kb_kill; sleep 1; rm -rf $J/kdata2; mkdir -p $J/kdata2
-  taskset -c 0-7 $KB --port $PORT --dir $J/kdata2 --tomokv-nodes 1 --tomokv-thread-io 4 \
-    --tomokv-thread-ex 4 --save '' --appendonly no --protected-mode no --logfile '' >/dev/null 2>&1 &
+  kb_kill; sleep 1; rm -rf $J/kdata2; mkdir -p $J/kdata2; : > $J/knob_drift.log
+  taskset -c "$SERVER_CORES" $KB --port $PORT --dir $J/kdata2 --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-io 8 \
+    --tomokv-thread-ex 8 --save '' --appendonly no --protected-mode no --logfile $J/knob_drift.log >/dev/null 2>&1 &
+  local server_pid=$!
   local up=0; for i in $(seq 1 20); do timeout 2 $CLI ping 2>/dev/null | grep -q PONG && { up=1; break; }; sleep 0.5; done
   if [ "$up" != 1 ]; then bad "drift-guard: server would not boot"; return; fi
+  if ! preflight_assert_standard_boot "$J/knob_drift.log" "$server_pid" 8 8; then
+    bad "drift-guard: 2x16c composed-L3/core-range assertion failed"; kb_kill; return
+  fi
   $CLI config get 'tomokv-*' 2>/dev/null | awk 'NR%2==1' | tr -d '\r' | sort -u > $J/knob_live.txt
   kb_kill
   # Names this suite drives, names retired through reject(), and deleted directives asserted through
@@ -445,11 +457,11 @@ drift_guard(){
   # must_refuse is not positive coverage: an untagged cell only proves that a live knob rejects an
   # out-of-range value. Tagged deletion cells invert that liveness assertion and must remain absent.
   # EXEMPT: knobs this harness PINS on every cell, so a `try` cell for them would fight the
-  # fixture (try() hardcodes --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4, and every
+  # fixture (try() hardcodes --tomokv-nodes 2 --tomokv-thread-io 8 --tomokv-thread-ex 8, and every
   # cell runs under a fixed taskset cpuset). Each is listed with where it IS varied instead; an
   # exemption without coverage elsewhere is a gap, and the two that have none say so below.
-  #   tomokv-nodes / -thread-io / -thread-ex  -> feature_sweep.sh b_cell_topo (ex1/ex3/multi-node)
-  #   tomokv-pin-mode                         -> feature_sweep.sh
+  #   tomokv-nodes / -thread-io / -thread-ex  -> feature_sweep.sh b_cell_topo (2x16c split variants)
+  #   tomokv-pin-mode                         -> fixed by the certification geometry
   #   tomokv-pin-io / -pin-ex                 -> NOT COVERED ANYWHERE (see the NOTE emitted below)
   printf '%s\n' tomokv-nodes tomokv-thread-io tomokv-thread-ex \
                 tomokv-pin-mode tomokv-pin-io tomokv-pin-ex \

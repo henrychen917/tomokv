@@ -45,12 +45,14 @@ NRELOAD=${NRELOAD:-4}
 HZ=${HZ:-10}
 DELAY=${DELAY:-2}
 # EX/CPUS: during COPYING every worker spins in `while (flat_resize_active) sched_yield()` at its
-# pop point. With 4 workers on an 8-core cpuset that starves the io thread running rdbSave, so the
+# pop point. With too many spinners on a narrow cpuset that starves the io thread running rdbSave, so the
 # save leg accidentally outlasts the copy and emptyData always lands AFTER the swap. That protection
 # is a CPU-contention artifact, not a guarantee -- fewer spinners on more cores removes it.
 # RELOAD_ARGS: `NOSAVE` drops the save leg entirely, so emptyData is the FIRST thing in the command.
 EX=${EX:-4}
-CPUS=${CPUS:-0-7}
+IO=$((16-EX))
+CPUS=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
 RELOAD_ARGS=${RELOAD_ARGS:-NOSAVE}
 [ "${SMOKE:-0}" = "1" ] && { NKEYS=600000; NRELOAD=3; }
 OUT=${OUT:-$J/flat_resize_reload_race.out}; : > $OUT
@@ -78,7 +80,7 @@ rec() { printf "%s\t%s\t%s\n" "$1" "$2" "${3:-}" >> $OUT; }
 
 gen() { # $1=SET|DEL  $2=lo  $3=hi  -> RESP on stdout. Small values: the table must be BIG while the
         # RDB stays small, so the reload's legs are short relative to the copy they land inside.
-python3 -c "
+taskset -c "$LOAD_CORES" python3 -c "
 import sys
 cmd='$1'; lo=$2; hi=$3
 def c(*a):
@@ -98,8 +100,8 @@ rm -rf $RUN; mkdir -p $RUN
 # resize coordinator at all, so this probe is flat-only by construction.
 # PORT-SAFETY: only boot if $PORT is free; a listener still here would REUSEPORT-join us.
 if wait_port_free "$PORT"; then
-  taskset -c $CPUS $J/$NAME --port $PORT --dir $RUN --tomokv-nodes 1 --tomokv-thread-io 4 \
-    --tomokv-thread-ex $EX --save '' --appendonly no --protected-mode no \
+  taskset -c "$CPUS" $J/$NAME --port $PORT --dir $RUN --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-io "$IO" \
+    --tomokv-thread-ex "$EX" --save '' --appendonly no --protected-mode no \
     --enable-debug-command local --logfile $RUN/server.log >/dev/null 2>&1 &
   RZPID=$!
 else
@@ -111,12 +113,13 @@ if ! timeout 2 $CLI -p $PORT ping 2>/dev/null | grep -q PONG; then rec boot FAIL
 # the DEBUG RELOAD/dbsize sequence below across two servers; tear ours down so it is skipped.
 if [ -n "${RZPID:-}" ] && timeout 2 $CLI -p $PORT ping 2>/dev/null | grep -q PONG; then
   server_identity_ok "$CLI" "$PORT" "$RZPID" || { rec identity FAIL "SO_REUSEPORT split on :$PORT"; kill -9 "$RZPID" 2>/dev/null; wait "$RZPID" 2>/dev/null; RZPID=""; }
+  [ -z "${RZPID:-}" ] || preflight_assert_standard_boot "$RUN/server.log" "$RZPID" "$IO" "$EX" || { rec pin FAIL "standard 2x16c assertion"; kill -9 "$RZPID" 2>/dev/null; wait "$RZPID" 2>/dev/null; RZPID=""; }
 fi
 
 if timeout 2 $CLI -p $PORT ping 2>/dev/null | grep -q PONG; then
   # small values: the table must be BIG (4M slots) while the RDB stays small, so the save/load legs
   # are short relative to the ~6s copy they have to land inside.
-  gen SET 0 $NKEYS | $CLI -p $PORT --pipe >/dev/null 2>&1
+  gen SET 0 $NKEYS | taskset -c "$LOAD_CORES" $CLI -p $PORT --pipe >/dev/null 2>&1
   BEFORE=$($CLI -p $PORT dbsize 2>/dev/null)
   if [ "$BEFORE" != "$NKEYS" ]; then rec fill FAIL "dbsize=$BEFORE want=$NKEYS"
   else
@@ -177,13 +180,13 @@ if timeout 2 $CLI -p $PORT ping 2>/dev/null | grep -q PONG; then
       # the live count down to just ABOVE the trigger, tripping nothing and stalling on nothing;
       # stage 2 deletes a few thousand keys to cross it, and is short enough to complete inside one
       # beforeSleep pass, before the coordinator arms.
-      gen DEL $ARMHI $NKEYS | $CLI -p $PORT --pipe >/dev/null 2>&1   # walk down to just ABOVE the trigger
+      gen DEL $ARMHI $NKEYS | taskset -c "$LOAD_CORES" $CLI -p $PORT --pipe >/dev/null 2>&1   # walk down to just ABOVE the trigger
       t0=$(date +%s.%N)
       # flat_rz_fire.py does the rest on ONE pre-handshaken socket: the small trigger delete, the
       # arm delay, then the reload -- with nothing else touching the server inside the window. Every
       # alternative (redis-cli, INFO polling, one big DEL burst) closed the window before the reload
       # arrived; the header of that file records each one.
-      out=$(python3 $SRC/tools/preflight/flat_rz_fire.py $PORT $KEEP $ARMHI ${ARMDELAY:-0.35} $RELOAD_ARGS 2>&1)
+      out=$(taskset -c "$LOAD_CORES" python3 $SRC/tools/preflight/flat_rz_fire.py $PORT $KEEP $ARMHI ${ARMDELAY:-0.35} $RELOAD_ARGS 2>&1)
       t1=$(date +%s.%N)
       echo "$r $t0 $t1" >> $RUN/reload_windows.txt
       if ! echo "$out" | grep -q OK; then rec "reload$r" FAIL "not OK: $out"; ok=0; break; fi
@@ -194,7 +197,7 @@ if timeout 2 $CLI -p $PORT ping 2>/dev/null | grep -q PONG; then
         rec "reload$r" FAIL "dbsize=$now want=$EXPECT"; ok=0; break; fi
       rec "reload$r" PASS ""
       if [ "$RESTORE" = yes ]; then
-        gen SET $KEEP $NKEYS | $CLI -p $PORT --pipe >/dev/null 2>&1   # restore for the next cycle
+        gen SET $KEEP $NKEYS | taskset -c "$LOAD_CORES" $CLI -p $PORT --pipe >/dev/null 2>&1   # restore for the next cycle
         back=$(timeout 300 $CLI -p $PORT dbsize 2>/dev/null)
         if [ "$back" != "$NKEYS" ]; then rec "restore$r" FAIL "dbsize=$back want=$NKEYS"; ok=0; break; fi
       fi

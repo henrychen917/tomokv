@@ -101,14 +101,13 @@
 #                 drive (RENAME/MSETNX/LMPOP/ZMPOP need fresh keys every op)
 #   cli-scan      redis-cli --scan full cursor loop, keys/sec + completeness
 #
-# FIXED CONFIG: canonical boot — the MANDATORY topology knobs only
-# (tomokv-nodes 1, tomokv-thread-io 4, tomokv-thread-ex 4: the 8-core
-# box split, same as fence_suite.sh). There is NO thread default in this fork:
+# FIXED CONFIG: canonical 2x16c boot — the MANDATORY topology knobs only.
+# There is NO thread default in this fork:
 # initServer exit(1)s FATAL when io/ex-threads are unset (server.c:3683), so
 # "no knob overrides at all" boots NOTHING. Every other knob stays at its
-# default. Override via IO_T/EX_T env (baselines are only comparable at the
-# topology that stamped them — binsha provenance covers this). Server pinned
-# 0-7, loadgen pinned 8-15, one server asserted before every cell. Fresh boot
+# default. The split is fixed at io8/ex8 per node because baselines are only comparable at the
+# topology that stamped them. Server pinned 0-31, loadgen pinned 32-127,160-255, one server
+# asserted before every cell. Fresh boot
 # per class so a crash poisons at most its own class.
 #
 # MODES:   SMOKE=1 ./command_sweep.sh [bin]   ~12-18 min  (10s x 1 rep)
@@ -170,8 +169,8 @@ SMOKE=${SMOKE:-0}
 UPDATE_BASELINES=${UPDATE_BASELINES:-0}
 CLASSES=${CLASSES:-"express whitelist collections stateful gather ported fanall script expiry guards"}
 # MANDATORY topology (initServer is FATAL without it — there is no default):
-IO_T=${IO_T:-4}
-EX_T=${EX_T:-4}
+IO_T=8
+EX_T=8
 
 # ---- durations / sizes ------------------------------------------------------
 if [ "$SMOKE" = 1 ]; then
@@ -200,10 +199,9 @@ RB_R_STR=100000                # rk: rb string keyspace
 RB_R_PAIR=1000                 # si:/sj:/zi:/zj:/li:/pfa:/pfb:/bx:/by: seeded;
                                # dst:/zd:/pfd:/bd:/cpd: written by the cells
 
-# ---- core pinning (methodology: server 0-7, load-gen 8-15) ------------------
-NCPU=$(nproc)
-if [ "$NCPU" -ge 16 ]; then SRV_CORES=0-7; CLI_CORES=8-15
-else H=$((NCPU/2)); SRV_CORES=0-$((H-1)); CLI_CORES=$H-$((NCPU-1)); fi
+# ---- fixed certification core partitions -----------------------------------
+SRV_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+CLI_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
 
 mkdir -p "$LOGD" "$DATA"
 
@@ -260,7 +258,7 @@ boot() { # boot <class>  — mandatory topology + every other knob at default
   # PORT-SAFETY: a private-named leaker passes the pgrep check above but still holds $PORT.
   wait_port_free "$PORT" || { row "$KLASS" "${KLASS}_boot" 0 NA "" "" "FAIL(port-busy)"; return 1; }
   taskset -c "$SRV_CORES" "$BIN" --port "$PORT" --dir "$DATA" --save "" \
-    --tomokv-nodes 1 --tomokv-thread-io "$IO_T" --tomokv-thread-ex "$EX_T" \
+    --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-io "$IO_T" --tomokv-thread-ex "$EX_T" \
     --appendonly no --protected-mode no --loglevel notice --logfile "$SRVLOG" \
     >/dev/null 2>&1 &
   SRV_PID=$!
@@ -282,6 +280,8 @@ boot() { # boot <class>  — mandatory topology + every other knob at default
   # on $PORT. Every fresh INFO conn must land on OUR pid or this class measures a blend.
   server_identity_ok "$CLI" "$PORT" "$SRV_PID" || {
     row "$KLASS" "${KLASS}_boot" 0 NA "" "" "FAIL(port-identity-split)"; stopsrv; return 1; }
+  preflight_assert_standard_boot "$SRVLOG" "$SRV_PID" "$IO_T" "$EX_T" || {
+    row "$KLASS" "${KLASS}_boot" 0 NA "" "" "FAIL(pin-geometry)"; stopsrv; return 1; }
   return 0
 }
 
@@ -389,14 +389,14 @@ rb_cell() { # class cell floor r n pipeline clients -- cmd args...
 pipe_rate() { # <awk-gen-program> <n> <logfile> -> echoes ops/sec (timed --pipe)
   local prog=$1 n=$2 lg=$3 t0 t1 rc
   t0=$(date +%s%N)
-  awk -v n="$n" "$prog" | timeout "$PIPE_TO" "$CLI" -p "$PORT" --pipe > "$lg" 2>&1
+  awk -v n="$n" "$prog" | timeout "$PIPE_TO" taskset -c "$CLI_CORES" "$CLI" -p "$PORT" --pipe > "$lg" 2>&1
   rc=$?   # pipeline rc = cli/timeout rc; awk's SIGPIPE on kill is invisible here
   t1=$(date +%s%N)
   if [ "$rc" != 0 ]; then echo 0; return; fi   # wedge/timeout/refused => hard 0 => below-floor
   awk -v n="$n" -v a="$t0" -v b="$t1" 'BEGIN{d=(b-a)/1e9; if(d<=0)d=0.001; printf "%d\n", n/d}'
 }
 
-pipe_in() { timeout "$PIPE_TO" "$CLI" -p "$PORT" --pipe; }   # seeder guard
+pipe_in() { timeout "$PIPE_TO" taskset -c "$CLI_CORES" "$CLI" -p "$PORT" --pipe; }   # seeder guard
 
 # =============================================================================
 # seeders (cli --pipe; sized so cells measure the op, not the seed)

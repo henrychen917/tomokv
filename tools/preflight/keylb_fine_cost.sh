@@ -36,7 +36,9 @@ REPS=${FINE_REPS:-3}; DUR=${FINE_DUR:-20}
 OUT=$J/keylb_fine_cost.tsv
 CLI="$(dirname $BIN)/redis-cli -p $PORT"
 CLI_BIN="$(dirname "$BIN")/redis-cli"   # bare path (no -p) for server_identity_ok
-MT="taskset -c 16-23 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
+MT="taskset -c $LOAD_CORES memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
 : > $OUT
 printf "rep\tarm\twl\tops\tmigs\n" >> $OUT
 
@@ -71,8 +73,8 @@ cell(){ # $1 arm-name  $2 rep
   # PORT-SAFETY: refuse to boot while any listener still holds $PORT (killsrv above should
   # have cleared ours; a listener still here means a foreign/leaked server would REUSEPORT-join).
   wait_port_free "$PORT" || { printf "%s\t%s\tPORTBUSY\t0\t0\n" "$2" "$1" >> $OUT; return; }
-  taskset -c 0-7 "$b" --port $PORT --dir $J/finecost --tomokv-nodes 1 \
-    --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-thread-mode static \
+  taskset -c "$SERVER_CORES" "$b" --port $PORT --dir $J/finecost --tomokv-nodes 2 --tomokv-pin-mode ccd \
+    --tomokv-thread-io 8 --tomokv-thread-ex 8 --tomokv-thread-mode static \
     --enable-debug-command yes \
     --save '' --appendonly no --protected-mode no --logfile $J/fine_$1.log >/dev/null 2>&1 &
   FINE_PID=$!    # script-scope (no `local`) so the EXIT trap can reap it
@@ -81,6 +83,8 @@ cell(){ # $1 arm-name  $2 rep
   # IDENTITY: pgrep-by-name below cannot see a private-named leaker; the port can. Every fresh
   # INFO conn must land on OUR pid or this cell's ops/s is a two-binary blend.
   server_identity_ok "$CLI_BIN" "$PORT" "$FINE_PID" || { printf "%s\t%s\tSPLIT\t0\t0\n" "$2" "$1" >> $OUT; killsrv; FINE_PID=""; return; }
+  preflight_assert_standard_boot "$J/fine_$1.log" "$FINE_PID" 8 8 || {
+    printf "%s\t%s\tPINFAIL\t0\t0\n" "$2" "$1" >> "$OUT"; killsrv; FINE_PID=""; return; }
   # HARD ASSERT exactly one server: a leaked one from a previous cell silently halves throughput.
   local n; n=$(pgrep -x redis-server | wc -l)
   [ "$n" = 1 ] || { printf "%s\t%s\tLEAK(%s)\t0\t0\n" "$2" "$1" "$n" >> $OUT; killsrv; return; }

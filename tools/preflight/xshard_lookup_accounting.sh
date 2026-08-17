@@ -37,6 +37,8 @@ NAME=redis-xslookup
 OUT=$J/xshard_lookup_accounting.out; : > "$OUT"
 CLI=$(dirname "$BIN")/redis-cli; [ -x "$CLI" ] || CLI="$_PFDIR/../../src/redis-cli"
 SRV=""
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
 cleanup_xsl(){
   if [ -n "${SRV:-}" ]; then
     kill -TERM "$SRV" 2>/dev/null
@@ -56,8 +58,8 @@ rc=1
 if ! wait_port_free "$PORT"; then
   echo "xshard-lookup-port-busy	FAIL	:$PORT still has a listener before boot (SO_REUSEPORT split risk)" >> "$OUT"
 else
-  taskset -c 0-7 "$J/$NAME" --port $PORT --dir "$J/xsl" --tomokv-nodes 1 --tomokv-thread-io 4 \
-    --tomokv-thread-ex 4 ${TOMO_XTRA:-} --save '' --appendonly no --protected-mode no \
+  taskset -c "$SERVER_CORES" "$J/$NAME" --port $PORT --dir "$J/xsl" --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-io 8 \
+    --tomokv-thread-ex 8 ${TOMO_XTRA:-} --save '' --appendonly no --protected-mode no \
     --maxmemory-policy allkeys-lfu --lfu-log-factor 0 --lfu-decay-time 0 \
     --logfile "$J/xsl.log" >/dev/null 2>&1 &
   SRV=$!
@@ -67,8 +69,11 @@ else
   if [ -x "$CLI" ] && ! server_identity_ok "$CLI" "$PORT" "$SRV"; then
     echo "xshard-lookup-port-identity	FAIL	SO_REUSEPORT split on :$PORT" >> "$OUT"
     rc=1
+  elif ! preflight_assert_standard_boot "$J/xsl.log" "$SRV" 8 8; then
+    echo "xshard-lookup-geometry\tFAIL\t2x16c composed-L3/core-range assertion" >> "$OUT"
+    rc=1
   else
-    python3 "$(dirname "$0")/xshard_lookup_accounting.py" "$OUT" "$PORT" "$J/xsl/dump.rdb"
+    taskset -c "$LOAD_CORES" python3 "$(dirname "$0")/xshard_lookup_accounting.py" "$OUT" "$PORT" "$J/xsl/dump.rdb"
     rc=$?
   fi
 fi

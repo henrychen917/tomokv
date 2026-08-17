@@ -1,8 +1,8 @@
 #!/bin/bash
 # SIDE-ATTRIBUTED REGRESSION GATE — does a regression live on the IO side or the EX side?
 #
-# WHY THIS EXISTS. On 2026-07-28 a 5.5% regression was invisible at the balanced io4/ex4 config and
-# only appeared at io7/ex1. Worse, it was MIS-ATTRIBUTED: the obvious suspect (a newly added
+# WHY THIS EXISTS. On 2026-07-28 a 5.5% regression was invisible at the balanced split and
+# only appeared with one EX thread. Worse, it was MIS-ATTRIBUTED: the obvious suspect (a newly added
 # per-command clock read) fit the story, and the real cause was a deleted dict-prefetch stage that
 # is live only when ex=1 leaves the keyspace dict-backed. A balanced-only gate would have shipped
 # it; a gate that reports WHICH SIDE moved would have pointed at the EX side immediately.
@@ -10,14 +10,14 @@
 # THE IDEA. Run the same workload at two deliberately lopsided thread splits and compare each
 # against its own baseline. The PAIR of deltas localises the fault:
 #
-#   io-heavy regressed (io7/ex1), ex-heavy flat   -> the fault is on the EX/worker side.
-#        io7/ex1 has ONE worker, so per-command worker cost is fully exposed and cannot be
+#   io-heavy regressed (io15/ex1), ex-heavy flat  -> the fault is on the EX/worker side.
+#        io15/ex1 has ONE worker, so per-command worker cost is fully exposed and cannot be
 #        absorbed by spare worker capacity. Suspects: dispatch, command exec, kvstore, per-command
 #        bookkeeping, anything gated on shared_node_dbs (which is FALSE at ex=1 -- the keyspace is
 #        DICT-backed there, so dict-path code is live in this config and dead in the others).
 #
-#   ex-heavy regressed (io1/ex7), io-heavy flat   -> the fault is on the IO/front side.
-#        io1/ex7 has ONE io thread. Suspects: parsing, reply assembly, the event loop, the
+#   ex-heavy regressed (io1/ex15), io-heavy flat  -> the fault is on the IO/front side.
+#        io1/ex15 has ONE io thread. Suspects: parsing, reply assembly, the event loop, the
 #        wake/drain path, per-connection work, anything in networking.c.
 #
 #   BOTH regressed                                -> shared or global: allocator, a lock, a
@@ -32,6 +32,7 @@
 # Usage: side_regression.sh <binary> [baseline.tsv]
 #   Writes a baseline if none exists (first run establishes it, reports NO VERDICT).
 set -u
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 # Reap by the PID captured at each launch. A basename can be the shared `redis-server` for direct
 # callers, while a hardcoded private comm can collide with another invocation of this suite.
 # ee451 2026-07-29: accept the binary from EITHER a positional arg OR $TOMO_BIN.
@@ -42,12 +43,14 @@ set -u
 # necessary but not sufficient: the verdict logic was never even reached.
 BIN=${1:-${TOMO_BIN:?usage: side_regression.sh <redis-server binary> [baseline.tsv]  (or TOMO_BIN=...)}}
 J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
-BASE=${2:-$J/side_regression_baseline.tsv}
+BASE=${2:-$J/side_regression_baseline.2x16c-v1.tsv}
 OUT="${TOMO_RESULT_FILE:-$J/side_regression.out}"
 TT=${TT:-30}
 PORT=5875
 TOL=${TOL:-4}      # percent; box noise is ~+-2% exclusive, so 4% is ~2 sigma
-MT="taskset -c 16-23 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
+MT="taskset -c $LOAD_CORES memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
 KM="--key-maximum=2000000 -d 32"
 : > "$OUT"
 
@@ -74,11 +77,13 @@ trap 'exit 129' HUP
 cell(){ # io ex pipeline ratio label
   local io=$1 ex=$2 pl=$3 ratio=$4 lab=$5
   cleanup_side_server; sleep 1
-  taskset -c 0-7 "$BIN" --port $PORT --tomokv-nodes 1 --tomokv-thread-io "$io" \
+  SIDE_LOG=$J/side_regression.${io}.${ex}.srv.log; : > "$SIDE_LOG"
+  taskset -c "$SERVER_CORES" "$BIN" --port $PORT --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-io "$io" \
     --tomokv-thread-ex "$ex" --tomokv-thread-mode static --save '' --appendonly no \
-    --protected-mode no --logfile '' >/dev/null 2>&1 &
+    --protected-mode no --logfile "$SIDE_LOG" >/dev/null 2>&1 &
   SIDE_PID=$!
   sleep 3
+  preflight_assert_standard_boot "$SIDE_LOG" "$SIDE_PID" "$io" "$ex" || { cleanup_side_server; printf '%s\t%s\tINVALID\n' "io${io}ex${ex}" "$lab"; return; }
   $MT --ratio=1:0 $KM --key-pattern=P:P -n allkeys -t 8 -c 25 --pipeline 32 >/dev/null 2>&1
   local o
   o=$($MT --test-time="$TT" --ratio="$ratio" $KM --key-pattern=R:R -t 8 -c 25 \
@@ -91,7 +96,7 @@ cell(){ # io ex pipeline ratio label
 }
 
 run_all(){
-  for cfg in "7 1:IO-HEAVY" "1 7:EX-HEAVY"; do
+  for cfg in "15 1:IO-HEAVY" "1 15:EX-HEAVY"; do
     local spec=${cfg%%:*}; set -- $spec; local io=$1 ex=$2
     cell "$io" "$ex" 32 0:1 p32GET
     cell "$io" "$ex" 32 1:0 p32SET
@@ -138,8 +143,8 @@ def load(p):
             d[(f[0], f[1])] = f[2]
     return d
 b, n = load(base), load(out)
-sides = {'io7ex1': 'IO-HEAVY (1 worker: EX-side cost exposed)',
-         'io1ex7': 'EX-HEAVY (1 io thread: IO-side cost exposed)'}
+sides = {'io15ex1': 'IO-HEAVY (1 worker: EX-side cost exposed)',
+         'io1ex15': 'EX-HEAVY (1 io thread: IO-side cost exposed)'}
 regressed, dead = {}, []
 print(f"\n{'config':9s} {'op':8s} {'baseline':>12s} {'now':>12s} {'delta':>8s}")
 for k in sorted(n):
@@ -160,13 +165,13 @@ print("side_regression: FAIL")
 for c, items in regressed.items():
     print(f"  {sides.get(c, c)}")
     for op, d in items: print(f"    {op} {d:+.1f}%")
-if hit == {'io7ex1'}:
-    print("\n  ATTRIBUTION: EX/WORKER side. io7ex1 runs ONE worker, so per-command worker cost is")
+if hit == {'io15ex1'}:
+    print("\n  ATTRIBUTION: EX/WORKER side. io15ex1 runs ONE worker, so per-command worker cost is")
     print("  fully exposed. Look at dispatch, command exec, kvstore, per-command bookkeeping --")
     print("  and note shared_node_dbs is FALSE at ex=1, so DICT-path code is live in this config")
     print("  and dead in the others (that asymmetry caused a real mis-attribution on 2026-07-28).")
-elif hit == {'io1ex7'}:
-    print("\n  ATTRIBUTION: IO/FRONT side. io1ex7 runs ONE io thread. Look at parsing, reply")
+elif hit == {'io1ex15'}:
+    print("\n  ATTRIBUTION: IO/FRONT side. io1ex15 runs ONE io thread. Look at parsing, reply")
     print("  assembly, the event loop, the wake/drain path, per-connection work, networking.c.")
 else:
     print("\n  ATTRIBUTION: SHARED/GLOBAL -- both sides moved. Look at the allocator, a lock, a")

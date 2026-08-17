@@ -15,6 +15,8 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 D=/tmp/cmdstat_check.$PORT
 NAME=redis-cmdstat            # 13 chars: safely under the 15-char `comm` truncation
 CLI=$(dirname "$BIN")/redis-cli; [ -x "$CLI" ] || CLI="$HERE/../../src/redis-cli"
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
 # Cleanup on every exit path (this suite had none): kill OUR recorded pid, then sweep the name.
 srv=""
 cleanup_cmdstat(){
@@ -36,8 +38,8 @@ cp "$BIN" $D/$NAME
 
 # PORT-SAFETY: refuse to boot while any listener still holds $PORT.
 wait_port_free "$PORT" || { echo "cmdstat_check: :$PORT still has a listener before boot (SO_REUSEPORT split risk)" >&2; exit 2; }
-$D/$NAME --port $PORT --dir $D --tomokv-nodes 1 \
-   --tomokv-thread-io 4 --tomokv-thread-ex 4 --save '' --appendonly no \
+taskset -c "$SERVER_CORES" $D/$NAME --port $PORT --dir $D --tomokv-nodes 2 --tomokv-pin-mode ccd \
+   --tomokv-thread-io 8 --tomokv-thread-ex 8 --save '' --appendonly no \
    --protected-mode no --latency-tracking yes --logfile $D/srv.log >/dev/null 2>&1 &
 srv=$!
 
@@ -57,8 +59,9 @@ if [ -x "$CLI" ] && ! server_identity_ok "$CLI" "$PORT" "$srv"; then
   echo "cmdstat_check: SO_REUSEPORT split on :$PORT — measurement void" >&2
   exit 2
 fi
+preflight_assert_standard_boot "$D/srv.log" "$srv" 8 8 || exit 2
 
-python3 "$HERE/cmdstat_check.py" $PORT "${LABEL:-run}"
+taskset -c "$LOAD_CORES" python3 "$HERE/cmdstat_check.py" $PORT "${LABEL:-run}"
 rc=$?
 
 pkill -9 -x $NAME 2>/dev/null; sleep 1

@@ -22,6 +22,8 @@ DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 # PORT-SAFETY: gate on the PORT so a leaked/foreign server cannot silently join our
 # SO_REUSEPORT accept group and blend two binaries across these cutovers.
 . "$DIR/preflight_lib.sh"
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
 OUT="${TOMO_RESULT_FILE:-$J/reshard_suite.out}"; : > $OUT
 PORT=5899
 # ee451 2026-07-29: RESOLVE redis-cli, do not assume it sits next to the server.
@@ -52,8 +54,8 @@ rm -rf $J/rsdata; mkdir -p $J/rsdata
 # PORT-SAFETY: refuse to boot while any listener still holds $PORT (this runs BEFORE the
 # teardown trap is armed, so there is nothing of ours to clean up on this early exit).
 wait_port_free "$PORT" || { echo "reshard-port-busy	FAIL	:$PORT still has a listener before boot (SO_REUSEPORT split risk)" >> $OUT; cat $OUT; exit 1; }
-taskset -c 0-7 "$RSBIN" --port $PORT --dir $J/rsdata --tomokv-nodes 1 \
-  --tomokv-thread-io 4 --tomokv-thread-ex 4 --save '' --appendonly no \
+taskset -c "$SERVER_CORES" "$RSBIN" --port $PORT --dir $J/rsdata --tomokv-nodes 2 --tomokv-pin-mode ccd \
+  --tomokv-thread-io 8 --tomokv-thread-ex 8 --save '' --appendonly no \
   --protected-mode no --enable-debug-command yes --logfile $J/rs.log >/dev/null 2>&1 &
 SRV=$!
 # ee451 2026-07-29: tear our server down on EVERY exit path. Without this the one-server-assert
@@ -65,8 +67,9 @@ sleep 3
 # IDENTITY: pgrep-by-name above cannot see a leaker staged under a private name; the port
 # can. Every fresh INFO conn must land on OUR pid or the measurement is a two-binary blend.
 server_identity_ok "$CLI" "$PORT" "$SRV" || { echo "FAIL	port-identity-split	SO_REUSEPORT split on :$PORT" >> $OUT; exit 1; }
+preflight_assert_standard_boot "$J/rs.log" "$SRV" 8 8 || { echo "FAIL	pin-geometry	standard 2x16c pin assertion failed" >> "$OUT"; exit 1; }
 
-python3 "$DIR/reshard_order.py" $PORT 3000 > $J/rs_probe.out 2>&1
+taskset -c "$LOAD_CORES" python3 "$DIR/reshard_order.py" $PORT 3000 > $J/rs_probe.out 2>&1
 rc=$?
 line=$(grep '^reshard_order:' $J/rs_probe.out | head -1)
 case $rc in
@@ -77,7 +80,7 @@ esac
 
 # H2: ownership must not move while a producer still has un-retired range work for the old owner.
 # Its own probe, because the ordering probe above cannot manufacture that stall (see the header).
-python3 "$DIR/reshard_midbatch.py" $PORT 8 > $J/rs_midbatch.out 2>&1
+taskset -c "$LOAD_CORES" python3 "$DIR/reshard_midbatch.py" $PORT 8 > $J/rs_midbatch.out 2>&1
 rc=$?
 line=$(grep '^reshard_midbatch: violations' $J/rs_midbatch.out | head -1)
 case $rc in

@@ -32,6 +32,7 @@ trap 'exit 129' HUP
 
 J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 BIN=${TOMO_BIN:?TOMO_BIN required}
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
 P=/home/user/Projects; PORT=5975; C="$P/redis/src/redis-cli -p $PORT"
 C_BIN="$P/redis/src/redis-cli"   # bare path (no -p) for server_identity_ok
 OUT=$J/fence_suite.out; : > $OUT
@@ -40,8 +41,8 @@ cp "$BIN" $J/redis-fence 2>/dev/null; FB=$J/redis-fence
 pkill -9 -x redis-fence 2>/dev/null; sleep 1; rm -rf $J/fsd; mkdir -p $J/fsd; : > $J/fs.log
 # PORT-SAFETY: refuse to boot while any listener still holds $PORT, else it REUSEPORT-joins.
 wait_port_free "$PORT" || { bad "port-busy (:$PORT still has a listener before boot — SO_REUSEPORT split risk)"; exit 0; }
-taskset -c 0-7 $FB --port $PORT --dir $J/fsd --tomokv-nodes 1 --tomokv-thread-io 4 \
-  --tomokv-thread-ex 4 --save '' --appendonly no --protected-mode no \
+taskset -c "$SERVER_CORES" $FB --port $PORT --dir $J/fsd --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-io 8 \
+  --tomokv-thread-ex 8 --save '' --appendonly no --protected-mode no \
   --logfile $J/fs.log >/dev/null 2>&1 &
 FSPID=$!
 sleep 3
@@ -49,6 +50,7 @@ timeout 3 $C ping 2>/dev/null | grep -q PONG || { bad "boot"; exit 0; }
 # IDENTITY: every fresh INFO conn must land on OUR pid; a co-listener on $PORT would split
 # the correctness probes (the EVAL, the SCRIPT KILL) across two servers and void the run.
 server_identity_ok "$C_BIN" "$PORT" "$FSPID" || { bad "port-identity (SO_REUSEPORT split on :$PORT)"; exit 0; }
+preflight_assert_standard_boot "$J/fs.log" "$FSPID" 8 8 || { bad "2x16c composed-L3/core-range assertion"; exit 0; }
 ITER=$([ "${SMOKE:-0}" = 1 ] && echo 5 || echo 20)
 F=0
 for it in $(seq 1 $ITER); do

@@ -37,6 +37,7 @@ trap _leak_guard EXIT
 #   - B measures per-io-thread connection counts and load before judging rebalances; if no io thread
 #     was ever a sustained outlier, the cell reports SKIP, not PASS.
 set -u
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 # ee451 2026-07-29: reap by OUR OWN binary name, never the shared "redis-server".
 # `pkill -9 -x redis-server` was two defects at once: it killed every server on the box including
 # other sessions' (that is how a live preflight and several queued jobs died), and it did NOT match
@@ -57,24 +58,28 @@ OUT="${TOMO_RESULT_FILE:-$J/lb_skew.out}"
 LOG=$J/lb_skew.srv.log
 PORT=5873
 DUR=${DUR:-60}
-MT="taskset -c 16-23 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
+MT="taskset -c $LOAD_CORES memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
 : > "$OUT"
 fail=0
 
 boot(){ # io ex extra...
   pkill -9 -x "$(basename "${BIN}")" 2>/dev/null; sleep 1; : > "$LOG"
-  taskset -c 0-7 "$BIN" --port $PORT --tomokv-nodes 1 --tomokv-thread-io "$1" \
+  taskset -c "$SERVER_CORES" "$BIN" --port $PORT --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-io "$1" \
     --tomokv-thread-ex "$2" --tomokv-thread-mode static --save '' --appendonly no \
     --protected-mode no --enable-debug-command local --logfile "$LOG" --loglevel notice \
     "${@:3}" >/dev/null 2>&1 &
+  LB_PID=$!
   sleep 3
-  timeout 2 "$CLI" -p $PORT ping 2>/dev/null | grep -q PONG
+  timeout 2 "$CLI" -p $PORT ping 2>/dev/null | grep -q PONG && \
+    preflight_assert_standard_boot "$LOG" "$LB_PID" "$1" "$2"
 }
 row(){ printf '%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" | tee -a "$OUT"; }
 
 # ---------------------------------------------------------------- A. GAUSSIAN HOT-KEY -> KEY LB
 echo "=== A. gaussian hot-key band -> key LB (tomokv-key-lb) ===" | tee -a "$OUT"
-if ! boot 4 4 --tomokv-key-lb 1000; then
+if ! boot 8 8 --tomokv-key-lb 1000; then
   row A boot "server did not start" FAIL; fail=$((fail+1))
 else
   $MT --ratio=1:0 -d 32 --key-pattern=P:P --key-maximum=2000000 -n allkeys -t 8 -c 25 \
@@ -102,7 +107,7 @@ fi
 
 # ---------------------------------------------------------------- B. HOT CLIENT -> CLIENT LB
 echo "=== B. hot client -> client LB (tomokv-client-lb) ===" | tee -a "$OUT"
-if ! boot 4 4 --tomokv-client-lb yes; then
+if ! boot 8 8 --tomokv-client-lb yes; then
   row B boot "server did not start" FAIL; fail=$((fail+1))
 else
   $MT --ratio=1:0 -d 32 --key-pattern=P:P --key-maximum=500000 -n allkeys -t 4 -c 4 \
