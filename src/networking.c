@@ -483,7 +483,17 @@ static inline void rearmPooledFakeClient(client *c, client *parent) {
      * the minimal rearm. prefetch_key_hash_valid is the one worker-prefetch scratch bit that may
      * remain armed after a DICT lookup. */
     if (unlikely(c->prefetch_key_hash_valid)) c->prefetch_key_hash_valid = 0;
-    if (likely(clean_mget_generation)) return;
+    if (likely(clean_mget_generation)) {
+        /* 2026-08-17 audit: this fast path RETURNS without the resets below on the claim that an
+         * MGET sub cannot have dirtied them (retirement cleaned anything it did). That claim is
+         * load-bearing — a stale tomo_bkt_ptr is a wrong-bucket routing hint, a stale user/argv_len
+         * is a wrong-ACL/wrong-free — and was previously unchecked. Debug builds verify it. */
+        debugServerAssert(c->user == NULL && c->authenticated == 0);
+        debugServerAssert(c->argv_len == 0);
+        debugServerAssert(c->net_input_bytes_curr_cmd == 0 && c->net_output_bytes_curr_cmd == 0);
+        debugServerAssert(c->tomo_bkt_ptr == NULL);
+        return;
+    }
     if (unlikely(c->user != NULL || c->authenticated != 0)) {
         c->user = NULL;
         c->authenticated = 0;
@@ -561,6 +571,23 @@ void freePooledFakeClient(client *c) {
                 if (clientTail(c)->lib_ver) { decrRefCount(clientTail(c)->lib_ver); clientTail(c)->lib_ver = NULL; }
                 if (clientTail(c)->cold) freeClientCold(c);
             }
+        } else {
+            /* 2026-08-17 audit: the MGET-generation retirement skips the dynamic-ownership mask
+             * above entirely — in release builds it deliberately never reads those cache lines.
+             * The unchecked, load-bearing claim is that an MGET sub cannot have ACQUIRED any of
+             * them; a missed one here is a leak or a cross-command carry the next reuse inherits.
+             * Debug builds pay the reads and verify. */
+            debugServerAssert(clientTail(c)->querybuf == NULL &&
+                              clientTail(c)->original_argv == NULL &&
+                              clientTail(c)->deferred_objects == NULL &&
+                              clientTail(c)->io_deferred_objects == NULL &&
+                              clientTail(c)->deferred_reply_errors == NULL &&
+                              clientTail(c)->name == NULL &&
+                              clientTail(c)->lib_name == NULL &&
+                              clientTail(c)->lib_ver == NULL &&
+                              clientTail(c)->cold == NULL &&
+                              clientTail(c)->deferred_objects_num == 0 &&
+                              clientTail(c)->io_deferred_objects_num == 0);
         }
 #ifdef LOG_REQ_RES
         reqresReset(c, 1);
