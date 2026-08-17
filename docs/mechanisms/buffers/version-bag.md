@@ -30,9 +30,9 @@ reference remains until object or metadata retirement has passed the relevant QS
 
 ## Local prune
 
-After commit publication, each owner's complete record is chained directly through its existing
-`next` link in a private logical-retire FIFO. After the batch's physical grace and snapshot frontier
-pass, one owner lock scope walks the stable record. Each version callback's rank is its local retirement boundary:
+After commit publication, each owner's complete record becomes one tagged epoch payload in a
+private logical-retire FIFO. After the batch's physical grace and snapshot frontier pass, one owner
+lock scope walks the stable record. Each version callback's rank is its local retirement boundary:
 it may stable-filter physical versions with lower `(commit_ts, version_order)` ranks and the raw
 rank zero. It never consults a global visibility cursor and never removes a pending zero-timestamp
 or higher-rank physical version.
@@ -67,5 +67,5 @@ graces complete.
 - Commit-record and reclaim charges release before the version metadata or object is freed.
 - Owner/bucket lifecycle references survive every owner-affine callback.
 
-See `src/db.c` (`tomoVerMetaNew`, `tomoVersionPruneAfterGrace`) and
+See `src/db.c` (`tomoApplyVersionStamp`, `tomoVersionPruneAfterGrace`) and
 [version-bag snapshot resolution](../algorithms/version-resolve.md).

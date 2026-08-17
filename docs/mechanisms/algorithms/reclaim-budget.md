@@ -163,16 +163,16 @@ without a trip it rechecks table heads once so a head that became ready mid-scan
 
 A **versioned** value takes *two* graces before its memory is freed: a pre-unlink "prune" grace while
 it is still table-reachable, then the ordinary post-unlink grace. States are
-`tomoRetireState { TOMO_RETIRE_ACTIVE=0, TOMO_RETIRE_OWNER_GRACE=1, TOMO_RETIRE_PRUNE_GRACE=2, TOMO_RETIRE_PHYSICAL=3 }`
+`tomoRetireState { TOMO_RETIRE_ACTIVE=0, TOMO_RETIRE_PRUNE_GRACE=1, TOMO_RETIRE_PHYSICAL=2 }`
 (`src/object.h:123-127`), carried in `tomoVerMeta.retire_state` (`uint8_t`, `src/object.h:151`).
 
 ### Grace 1 — owner epoch
 
 Each installed version is eagerly inserted into its owner-local stamped index while the shared
-commit marker is zero and starts in `TOMO_RETIRE_OWNER_GRACE`. Once a successful group's marker is
-published, `csMsetOwnerQueuePrune` appends the existing `csMsetOwner` record directly to a separate
-owner-private logical lane and aggregates the record's commit timestamp into the lane's next batch.
-Cancellation uses one tagged wrapper for the same owner payload but
+commit marker is zero and is held by `owner_ops_pending == 1`. Once a successful group's marker is
+published, `csMsetOwnerQueuePrune` allocates or recycles **one** tagged retire node for the complete
+`csMsetOwner` chain. It appends that node to a separate owner-private logical lane and aggregates the
+record's commit timestamp into the lane's next batch. Cancellation uses the same owner payload but
 the ordinary physical lane because a zero-marker canceled version has no snapshot eligibility
 requirement. (`src/server.c`, `src/flatstore.c`)
 
@@ -198,9 +198,8 @@ static void tomoSchedulePhysicalRetire(kvstore *kvs, kvobj *kv) {
     if (vmeta) {
         serverAssert(vmeta->stamp_state == APPLIED || vmeta->stamp_state == CANCELED);
         /* APPLIED => seq != UNCOMMITTED ; CANCELED => seq == UNCOMMITTED */
+        serverAssert(load_acquire(vmeta->owner_ops_pending) == 0);
         if (vmeta->retire_state == TOMO_RETIRE_PHYSICAL) return;   /* already scheduled */
-        serverAssert(vmeta->retire_state == TOMO_RETIRE_ACTIVE ||
-                     vmeta->retire_state == TOMO_RETIRE_PRUNE_GRACE);
         vmeta->retire_state = TOMO_RETIRE_PHYSICAL;                /* -> PHYSICAL */
     }
     kvstoreFlatRetireRaw(kvs, kv);   /* ordinary retire: post-unlink grace, then decrRefCount */
@@ -216,8 +215,7 @@ without a second enqueue.
 
 A non-versioned overwrite/delete removes the whole bag in one owner store
 (`tomoRetireDetachedBag`): a raw tail is ordinary-retired immediately; a canceled member or one with
-a non-sentinel seq is physically retired when state is `ACTIVE`; `OWNER_GRACE` waits for its owner
-callback
+a non-sentinel seq is physically retired when `owner_ops_pending == 0` and state is `ACTIVE`
 (skipping grace 1, since the table unlink already happened). This is the explicit exception to two
 new graces (`src/flatstore.c` unlink already provided the pre-condition).
 

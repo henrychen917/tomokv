@@ -109,11 +109,9 @@ Relevant `tomoVerMeta` fields include the shared `commit`, physical `version_pre
 lifecycle identity, cancellation/retirement state, and `owner_next` for the local record chain.
 The retired embedded STAMP/PRUNE carriers are gone.
 
-`TOMO_RETIRE_OWNER_GRACE` is the local lifetime guard. An atomic version starts in that state before
-its table-head publication and cannot enter physical retirement. Its owner-epoch callback changes
-the state to `TOMO_RETIRE_PRUNE_GRACE` after the shared first grace, immediately before local
-pruning. This encodes ownership in the existing byte state and needs no per-version atomic word,
-fence, or RMW.
+`owner_ops_pending` remains a local lifetime guard. Installation release-stores one after linking
+the version into its owner record; the owner-epoch callback release-stores zero immediately before
+local pruning. It no longer counts queued cross-core operations or requires a locked decrement.
 
 ## Install-to-publish protocol
 
@@ -123,12 +121,11 @@ Atomic admission happens before fake-ring allocation. Registration marks the gro
 allocates its shared commit, reserves a connection-global install-order range, and
 release-increments the real client's `mset_pending_count`.
 
-Each owner install constructs the new stamped-index head and inherited predecessor while allocating
-the physical version, then release-publishes its metadata and table head. It acquires the
-owner/bucket lifecycle reference using the dictionary bucket already computed by the install,
-records exact reclaim bytes, attaches the shared commit, and appends the version to that owner's
-stable record. The index entry is harmless until the common commit marker becomes nonzero. This
-needs no second hash/probe, metadata pass, or chain search.
+Each owner install prepends an invisible whole-value version to the physical chain, acquires its
+owner/bucket lifecycle reference, records its exact reclaim bytes, attaches the shared commit,
+appends the version to that owner's stable record, and release-publishes the new stamped-index head.
+The index entry is harmless until the common commit marker becomes nonzero. The predecessor index
+was inherited by the new head during allocation, so this needs no second hash/probe or chain search.
 
 Ordering within a group is record-local. Versions of one key necessarily have one owner, so that
 owner's append ordinal is sufficient for both duplicate-key tie-breaking and same-client install
@@ -156,8 +153,7 @@ normal pending decrement also proves the group cannot be returned to IO while a 
 MSETNX, NX destinations, and read-then-write/two-hop shapes can discover success only after multiple
 owner waves. Their owner record enters `WAIT`. `csMsetInstallDone` performs the terminal decision,
 trims the pre-reserved references, initializes `shards_remaining`, and release-publishes
-`INSTALL_READY`. Exactly one terminal coordinator reaches this function; its `0 -> PREPARING`
-transition is a checked plain store, while `INSTALL_READY` is the release edge consumed by owners.
+`INSTALL_READY`.
 
 Each worker revisits at most the private-list population seen at slice entry. The runnable list has
 its own owner-local count; epochs already waiting in reclamation do not inflate that budget. An
@@ -206,16 +202,14 @@ introduced.
 A successful record remains on its owner's private list after installation. At the start of a
 worker slice, `csOwnerPublishStep` freezes the currently published clock and moves only records whose
 marker is nonzero and at most that frozen frontier. Markers created during the pass remain for the
-next pass, preserving nondecreasing batch eligibility without sorting. A pure-`PRUNE` list is not
-rescanned until either the commit clock advances or a new record is appended; unresolved `WAIT`
-records continue to be checked every slice.
+next pass, preserving nondecreasing batch eligibility without sorting.
 
-Successful records use their existing `csMsetOwner::next` links directly in the owner-private
-logical FIFO, with no retire-node wrapper. Its batch carries the maximum commit timestamp. Once its
-physical grace and the existing snapshot frontier both pass, one batch scope takes the owner lock
-and locally prunes every record chain. Cancellation needs no logical frontier and uses one tagged
-wrapper in the ordinary physical-grace lane, so it cannot queue behind an unrelated old snapshot.
-Unlinked values still wait the mandatory second physical grace.
+The entire owner record is then represented by one recycled retire node, rather than one node per
+version. Successful records enter an owner-private logical FIFO whose batch carries the maximum
+commit timestamp. Once its physical grace and the existing snapshot frontier both pass, one batch
+scope takes the owner lock and locally prunes every record chain. Cancellation needs no logical
+frontier and goes through the ordinary physical-grace lane, so it cannot queue behind an unrelated
+old snapshot. Unlinked values still wait the mandatory second physical grace.
 
 The logical FIFO is deliberately separate from ordinary/post-unlink batches. Previously a mixed
 batch's maximum `eligible_ts` let one old snapshot convoy already-safe physical frees, amplifying
@@ -252,7 +246,7 @@ INFO separates the remaining tail causes:
 | Snapshot cut | Final commit-clock release; reader's single acquire sample. |
 | Terminal decision | `INSTALL_READY` release; key-dependent owners acquire before reservation effects or cancellation marking. |
 | Reply | CDB release and notifier post after marker/no-op completion and lifecycle sealing. |
-| Retirement | Successful owner records are chained directly and require marker/frontier plus QSBR; canceled epochs use one tagged node and QSBR only. |
+| Retirement | One owner-epoch node; successful epochs require marker/frontier plus QSBR, canceled epochs QSBR only. |
 
 ## Core invariants
 

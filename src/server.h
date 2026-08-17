@@ -5844,6 +5844,7 @@ void dbReplaceValueWithLink(redisDb *db, robj *key, robj **val, dictEntryLink li
 void setKey(client *c, redisDb *db, robj *key, robj **ioval, int flags);
 kvobj *setKeyVersioned(client *c, redisDb *db, robj *key, robj **ioval, int flags,
                        uint64_t version_seq, long long version_expire);
+void tomoApplyVersionStamp(kvobj *kv);
 void tomoCancelVersion(kvobj *kv);
 void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq);
 void tomoVersionPruneAfterGrace(kvobj *anchor);
@@ -5856,7 +5857,7 @@ void tomoAtomicLifecycleEnsure(void);
 void tomoAtomicLifecycleRelease(struct tomoVerMeta *vmeta);
 void tomoAtomicOwnerCheck(struct tomoVerMeta *vmeta, int executing_owner,
                           int prune_callback);
-void tomoAtomicReclaimCharge(kvobj *kv, struct tomoVerMeta *vmeta, int owner);
+void tomoAtomicReclaimCharge(kvobj *kv, int owner);
 void tomoAtomicReclaimRelease(struct tomoVerMeta *vmeta);
 void tomoAtomicCommitVersionRelease(struct tomoVerMeta *vmeta);
 /* Return the command's already-pinned snapshot without touching the commit clock.
