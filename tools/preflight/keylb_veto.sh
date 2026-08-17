@@ -159,7 +159,7 @@ def driver(mode):
 
 t0 = trig()
 ths = [threading.Thread(target=driver, args=("hot" if wl == "hotkey" else "spread",), daemon=True)
-       for _ in range(3)]
+       for _ in range(12)]
 for t in ths: t.start()
 time.sleep(secs)
 stop = True
