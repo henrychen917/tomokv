@@ -20,6 +20,12 @@ view of exactly what is kept, adapted, replaced, and refused from upstream Redis
 FLATSTORE replaces the `dict` key store (and is unrelated to RDB) — see
 [Redis heritage](docs/redis-heritage.md).
 
+The consolidated integration candidate is stamped
+`loopback-final.2026-08-17.1`. Its ordered source boundaries, retained unified-side work, selected
+pipeline modes, and cross-branch invariants are recorded in
+[Loopback-final unified pipeline](docs/unified-pipeline.md). This integration stamp does not change
+the Redis-facing `8.6.2` identity above.
+
 ## Architecture and per-command lifecycle
 
 Every supported configuration resolves at least one IO thread and one EX worker per topology node.
@@ -90,6 +96,8 @@ A normal command follows this path:
 
 ## Documentation map
 
+- [Loopback-final unified pipeline](docs/unified-pipeline.md) — Version stamp and ordered content
+  ledger for the consolidated two-stage/WB, flip, atomic, read-fast, and Arm C candidate.
 - [Thread-per-core execution](docs/execution-model.md) — IO owners manage connections, parsing, and
   ordered output while EX workers consume per-producer SPSC lanes, execute against worker DBs, and
   publish per-client CDB completions.
@@ -169,6 +177,8 @@ workers, 128 WB threads, and a maximum pipeline depth of 32. ([`src/server.h`](s
 | [`tomokv-client-lb`](src/config.c#L3311) | Boolean, modifiable | `yes` | `no`, `yes` | Enables continuous migration of eligible connections away from sustained busy-outlier IO owners. |
 | [`tomokv-cores-per-node`](src/config.c#L3210) | Integer, immutable | `0` | `0..384` | Sets the core budget per topology node; at WB=0, `0` derives IO+EX; with explicit WB it derives IO+EX+WB, and with WB=-1 it is derived from allowed physical cores. |
 | [`tomokv-io-uring`](src/config.c#L3245) | Integer, immutable | `0` | `0..2` | Selects the native event-loop backend (epoll on Linux) at `0`; `1` selects the staged/taskrun-aware io_uring backend and `2` is its compatibility spelling. ([runtime dispatch](src/uring2.c#L1768-L1776)) |
+| [`tomokv-uring-multishot`](src/config.c#L3257) | Integer, immutable | `0` | `0..8192` | Uses one-shot receive with no provided-buffer ring at `0`; positive `N` requests multishot receive with `N` registered buffers per IO owner. Unsupported setup or arm flags fall back to one-shot for that owner. |
+| [`tomokv-uring-sendcopy-min`](src/config.c#L3258) | Integer, modifiable | `0` | `0..INT_MAX` bytes | Keeps scratch-copy sends at `0`; positive `N` permits an eligible plain client-buffer prefix of at most `N` bytes to remain pinned and be sent directly. |
 | [`tomokv-key-lb`](src/config.c#L3292) | Integer, modifiable | `20000` | `0..INT_MAX` | Sets the bucket-balancer load floor; `0` disables it, and the controller compares `N` with operation deltas from its nominal one-second sampling tick rather than an elapsed-time-normalized rate. ([schedule](src/server.c#L2943-L2947), [controller](src/server.c#L16882-L16918)) |
 | [`tomokv-nodes`](src/config.c#L3209) | Integer, immutable | `1` | `1..16` | Sets the number of topology nodes; `ccd` placement composes each node from adjacent shared-L3 groups as needed, while `numa`, `float`, and `static` give nodes NUMA, logical, and explicit meanings. |
 | [`tomokv-os-busypoll`](src/config.c#L3289) | Boolean, immutable | `no` | `no`, `yes` | Enables best-effort `SO_BUSY_POLL` on accepted sockets; it is separate because kernel busy-polling consumes CPU. ([socket setup](src/socket.c#L196-L202)) |
@@ -187,6 +197,10 @@ workers, 128 WB threads, and a maximum pipeline depth of 32. ([`src/server.h`](s
 | `tomokv-thread-wb` | Integer, immutable | `0` | `-1..128` | Selects the pipeline per node: `0` is the exact two-stage/no-allocation path, positive `N` creates dedicated WB threads, and `-1` takes the physical-core-budget remainder. WB is never a flip-adoptable role. |
 | `tomokv-wb-uring` | Integer, immutable | `0` | `-1..4096` | Controls per-WB SENDMSG batching: `0` uses write/writev with no sender ring, `-1` derives a cap, and positive `N` caps SQEs per submit; unsupported rings fall back per WB. |
 | [`tomokv-zerocopy-min-value`](src/config.c#L3319) | Integer, modifiable | `1024` | `0..INT_MAX` bytes | Uses copy-avoidance when forwarding values at least `N` bytes; `0` disables it. ([reply path](src/networking.c#L1758-L1763)) |
+
+`tomokv-uring-sqpoll` and `tomokv-uring-coalesce` are retired experiments, not configuration
+knobs. Their formerly meaningful non-default spellings are rejected at boot so stale deployments
+cannot silently run a different path.
 
 Static pin specifications are whitespace- or semicolon-separated `nodeN=cpu-list` tokens; each CPU
 list accepts comma-separated IDs and inclusive ranges. Static mode requires IO and EX coverage, plus

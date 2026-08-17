@@ -199,6 +199,20 @@ Thus partial local publishes cannot tear MGET: before the marker every group mem
 and after the marker the reader's clock acquire covers all stamped links. No read-side wait is
 introduced.
 
+After conflicting owner work settles, the key owner scans the physical bag under its existing lock,
+caches the greatest committed `(commit_ts, version_order)` winner (including logical absence for a
+tombstone), and release-opens the table head's `read_gate`. A successor install release-supersedes
+that gate before publishing its new closed head. An atomic-mode reader that acquire-observes an open
+gate can return the cached `read_head` without sampling the global clock or walking the version bag,
+unless its command already pinned an older snapshot. A closed/superseded gate, an unfinished group,
+or an older pinned cut uses the full resolver, preserving normal snapshot and same-client RYOW
+semantics.
+
+INFO reports `tomokv_atomic_read_fast` and `tomokv_atomic_read_slow`. The slow count is partitioned
+by `tomokv_atomic_read_slow_inflight_conflict` and
+`tomokv_atomic_read_slow_gate_closed_other`; raw values and misses are intentionally outside both
+fast/slow counters, so the fast count demonstrates that the version-bag gate actually fired.
+
 ## Retirement and backpressure
 
 A successful record remains on its owner's private list after installation. At the start of a

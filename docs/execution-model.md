@@ -124,9 +124,9 @@ Each boot IO thread other than the main thread has its own event loop, nonblocki
 
 With the epoll path, a readable callback enters <code>readQueryFromClient</code>. It refuses a read while <code>CLIENT_EX_PENDING</code> or IO reading is disabled, grows or borrows a query buffer, calls <code>connRead</code>, handles disconnect/EOF and query-buffer limits, then calls <code>processInputBuffer</code>. (src/networking.c:4794-4811, src/networking.c:4812-4893, src/networking.c:4920-4953)
 
-With uring2, an accepted ordinary TCP client is attached only when it belongs to the current <code>iotid</code> and is not a master, slave, internal client, or RDB replication channel. Attachment removes the connection read handler, allocates a per-client receive buffer, and queues a one-shot receive. (src/networking.c:2133-2151, src/uring2.c:1502-1529)
+With uring2, an accepted ordinary TCP client is attached only when it belongs to the current <code>iotid</code> and is not a master, slave, internal client, or RDB replication channel. Attachment removes the connection read handler and queues a receive. With <code>tomokv-uring-multishot=0</code>, that receive uses a private per-client buffer. A positive value requests an owner-local registered provided-buffer ring and multishot RECV; unsupported kernel setup or the first rejected optional arm falls back to one-shot for that IO owner. (src/networking.c, src/uring2.c)
 
-A positive uring receive CQE copies its bytes from that per-client buffer into the client's SDS query buffer, queues the client for parsing, and rearms a one-shot receive when the client remains runnable. (src/uring2.c:757-825, src/networking.c:4718-4760)
+A positive receive CQE copies its bytes into the client's SDS query buffer, returns a selected provided buffer immediately when Arm C supplied one, and queues the client for parsing. The per-client arm latches one-shot versus multishot so an owner fallback cannot reinterpret CQEs already in flight. (src/uring2.c, src/networking.c)
 
 ### 2. Parse into <code>pendingCommand</code>
 
@@ -256,9 +256,9 @@ Kernel 5.19 or newer enables <code>SUBMIT_ALL</code> and conditional <code>POLL_
 
 Uring2 does not eliminate epoll. It gets the existing event loop's epoll FD and keeps an uring <code>POLL_ADD</code> on it for listener and control-FD readiness; after that CQE, AE performs a nonblocking native poll and rearms the epoll poll operation. (src/uring2.c:581-595, src/uring2.c:1128-1136, src/uring2.c:1335-1449, src/ae.c:467-476)
 
-Each receive is one-shot into the client's private <code>recv_buf</code>. A tagged callback slot validates the CQE generation, the CQ is advanced in batches of at most 128 before parser callbacks run, and parsing calls <code>processClientInputFromUring</code> on the owning event-loop thread. (src/uring2.c:102-112, src/uring2.c:685-721, src/uring2.c:997-1125)
+At the default <code>tomokv-uring-multishot=0</code>, each receive is one-shot into the client's private <code>recv_buf</code>. A positive value builds one registered buffer ring per IO owner and arms multishot RECV with buffer selection. Each CQE is generation-checked, copied, and has its BID returned before parser callbacks run; parsing remains on the owning event-loop thread. Setup failure, an old kernel, or <code>EINVAL</code>/<code>EOPNOTSUPP</code> from the optional multishot arm switches future receives for that owner to the one-shot path. (src/uring2.c, src/networking.c)
 
-The uring send path copies at most one <code>PROTO_REPLY_CHUNK_BYTES</code> prefix from the real client's static buffer into owner-private <code>send_scratch</code>, stages up to 512 SEND SQEs in a loop turn, and advances the logical client buffer only when the SEND CQE is applied. Partial or retryable results requeue the remaining immutable scratch prefix, and <code>writeToClient</code> refuses to overtake an active uring send. (src/uring2.c:30-33, src/uring2.c:487-526, src/uring2.c:638-682, src/uring2.c:845-960, src/networking.c:3462-3467)
+The default uring send path copies at most one <code>PROTO_REPLY_CHUNK_BYTES</code> prefix from the real client's static buffer into owner-private <code>send_scratch</code>. Positive <code>tomokv-uring-sendcopy-min</code> permits only an eligible plain <code>c-&gt;buf</code> prefix no larger than the configured limit to be sent directly and pinned until its CQE. Both arms advance the logical client buffer only when the SEND CQE is applied; partial or retryable results preserve the same prefix, and <code>writeToClient</code> refuses to overtake an active uring send. (src/uring2.c, src/networking.c)
 
 ## Invariants and memory ordering
 
@@ -283,10 +283,6 @@ The uring send path copies at most one <code>PROTO_REPLY_CHUNK_BYTES</code> pref
 10. **Role identity changes only between slices.** A poly thread changes <code>iotid</code> at its checkpoint after satisfying exit conditions and before executing the new role's first slice; successful <code>mode</code> publication is a release store. (src/server.c:23146-23181, src/server.c:23210-23222, src/server.c:23265-23273, src/server.c:23364-23373, src/server.c:23406-23420)
 
 ## Code/comment discrepancies
-
-- The headers of <code>uring2.c</code> and <code>uring2.h</code>, plus the <code>redisServer.io_uring</code> field comment, still describe mode 1 as an older backend and mode 2 as the isolated uring2 backend. The configuration comment instead calls 1 canonical and 2 a compatibility spelling, while executable dispatch makes no distinction and routes every nonzero value to uring2. (src/uring2.c:1-12, src/uring2.h:1-7, src/server.h:3312-3315, src/config.c:3245, src/uring2.c:1335-1338, src/uring2.c:1768-1776)
-
-- Comments on <code>appendClientInputFromUring</code> and <code>processClientInputFromUring</code> refer to a provided-buffer ring and to the reaper returning every BID before parsing. The live uring2 implementation instead allocates one heap receive buffer per attached client, submits that buffer directly to a one-shot <code>recv</code>, copies completed bytes into the query SDS, advances the CQ in the reaper, and only then invokes parser callbacks. (src/networking.c:4718-4721, src/networking.c:4763-4765, src/uring2.c:114-166, src/uring2.c:685-721, src/uring2.c:757-825, src/uring2.c:1087-1125)
 
 - The sparse-scan comment says a lane is added to <code>residual</code> when a batch could not fully drain it or more work arrived. The actual condition is only <code>n != 0</code>, so every normally popped nonempty lane is re-advertised, including a lane that the batch just emptied. (src/server.c:21969-21990, src/server.c:22266-22280)
 

@@ -96,10 +96,9 @@ Both resolver stages turn a *selected* tombstone into `NULL`:
   `version_tombstone` returns `NULL` — a committed tombstone at or below the snapshot
   reads as absent.
 
-A tombstone is also excluded from the sole-version fast license
-(`tomoPublishSingleCommitted` rejects `version_tombstone`, `src/db.c:1062`), so a key
-that has collapsed to a lone committed tombstone never takes the raw-fast return; it
-resolves through the client-aware path and reports absence.
+The key-local read-fast gate may cache a committed tombstone as its logical winner. The cached
+pointer remains a tombstone object, but the fast reader converts it to `NULL`, so both the fast and
+client-aware resolver paths report absence.
 
 ---
 
@@ -204,8 +203,8 @@ the member directly to post-unlink physical grace without another live-bag walk.
    for live, non-duplicate keys. (`src/server.c:11515-11539`)
 2. A selected tombstone is logical absence in both resolver stages.
    (`src/server.c:10146`, `10255`)
-3. A tombstone is excluded from the sole-version fast license.
-   (`src/db.c:1062`)
+3. A read-fast gate whose cached winner is a tombstone returns logical absence.
+   (`src/db.c`)
 4. Physical deletion of a sole committed tombstone occurs only in the prune callback,
    under the owner lock, via `dbSyncDelete`. (`src/db.c:1345-1372`)
 5. A tombstone is never promoted to a raw live head: the tombstone-delete arm precedes
