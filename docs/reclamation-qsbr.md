@@ -127,11 +127,26 @@ A worker passes by either of two independent branches: its sequence reached the 
 
 ### FIFO drain, payload release, and budget
 
-`flatDrainReadyBatches` examines only the ready FIFO prefix. It calls `flatBatchReady` before checking the remaining budget; a ready head with zero budget returns the budget-trip signal, while a positive budget pops the head, fixes a now-empty tail, frees the batch, and decrements the budget. (`src/server.c:9089-9105`)
+Atomic mode keeps the validated `flatDrainReadyBatches` path. It examines only the ready FIFO
+prefix and acquire-loads the applicable frontier for each head. A ready head with zero budget
+returns the budget-trip signal, while a positive budget pops the head, fixes a now-empty tail,
+frees the batch, and decrements the budget. (`src/server.c`)
+
+With atomic mode off and no owner epoch left from a live disable, workers instead use
+`flatWorkerReclaimOff` and `flatDrainReadyBatchesAt`. An empty pass returns before close/frontier
+bookkeeping. A nonempty pass acquire-loads the physical and logical safe frontiers once and reuses
+that snapshot for its FIFO prefix. The frontiers are monotone, so this may defer a concurrently
+ready batch until the next pass but cannot free a batch early. The main/table fallback uses the
+same OFF-only rule. (`src/server.c`)
 
 A non-ready head stops only that FIFO. The main nested table scan continues to later tables unless a ready head reports budget exhaustion. (`src/server.c:9095-9105`, `src/server.c:9211-9219`)
 
-`flatBatchFree` relaxed-increments `flat_batches_freed_n`, dispatches every payload, recycles retire nodes up to `FLAT_NODE_POOL_CAP` (4096), and either retains a batch header in a worker spare list up to `FLAT_BATCH_SPARE_MAX` (8) or frees the header. (`src/flatstore.h:68`, `src/flatstore.h:84-85`, `src/server.c:9061-9077`)
+Both modes dispatch every payload, recycle retire nodes up to `FLAT_NODE_POOL_CAP` (4096), and
+either retain a batch header in a worker spare list up to `FLAT_BATCH_SPARE_MAX` (8) or free it.
+Atomic mode retains the validated relaxed `flat_batches_freed_n` increment per header. Atomic-OFF
+drains count completed headers locally and publish one relaxed increment per drain span. This is
+telemetry only; neither grace controller consumes the freed counter. (`src/flatstore.h`,
+`src/server.c`)
 
 Payload dispatch decrements the object reference for an ordinary record, releases reclaim and shared-commit accounting before an atomic object free, releases the shared-commit reference before a metadata free, and calls `tomoVersionPruneAfterGrace` for a version-prune record. (`src/flatstore.c`)
 
@@ -284,7 +299,10 @@ Worker-local retire lists and batches are not members of the old table and are n
 - The detached-bag comment says uncommitted members remain pinned, but a canceled member also retains the uncommitted sentinel and is immediately eligible for physical scheduling when it has zero pending owner work and is `ACTIVE`; only members failing the executable terminal/pending/state condition wait. (`src/db.c:1108-1111`, `src/db.c:1121-1130`)
 - The promotion comment calls the result a raw-head fast path, but the promotion condition requires only that the sole committed object's own `version_prev` be null. Canceled nodes above it are ignored by the census, so the table's physical head can still be a canceled metadata-bearing node until its callback prunes it. (`src/db.c:1322-1343`, `src/db.c:1375-1401`)
 - The retired-table comment says at most a couple of tables can be pending, but the implementation grows `flat_retired_tables` dynamically from capacity 8 and imposes no executable count bound. The resize state-machine comment also says it frees the old table at swap, while the code appends it for later all-readers-outside reclamation. (`src/server.c:9147-9165`, `src/server.c:9237-9248`, `src/server.c:9431-9447`)
-- Normal `flatBatchFree` increments `flat_batches_freed_n`, but quiescent table discard frees table-owned closed batches without incrementing it. Therefore the INFO expression `closed - freed` can retain discarded batches rather than being an exact queue length. (`src/flatstore.c:96-107`, `src/server.c:9061-9063`, `src/server.c:19207-19211`)
+- Normal drains increment `flat_batches_freed_n` per header in atomic mode or once by the completed
+  span count in atomic-OFF mode, but quiescent table discard frees table-owned closed batches
+  without incrementing it. Therefore the INFO expression `closed - freed` can retain discarded
+  batches rather than being an exact queue length. (`src/flatstore.c`, `src/server.c`)
 - Comments that list KEYS and RANDOMKEY as inline readers are stale: KEYS is registered as `CS_RT_FANALL` and dispatched to worker subs, while RANDOMKEY is in the worker whitelist and has a worker-selection branch. (`src/server.c:1045-1050`, `src/server.c:9147-9151`, `src/server.c:9383-9387`, `src/server.c:10803-10804`, `src/server.c:13742-13792`, `src/server.c:8828-8830`, `src/server.c:9472-9477`)
 
 ## File map

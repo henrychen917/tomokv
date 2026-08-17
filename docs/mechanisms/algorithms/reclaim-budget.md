@@ -93,18 +93,27 @@ static int flatDrainReadyBatches(flatBatch **head, flatBatch **tail, flatBatch *
 
 `flatBatchReady` is checked **before** the budget, so a ready head with zero budget returns the
 budget-trip signal (`1`); a non-ready head just stops this FIFO (returns `0`). Callers relaxed-bump
-`flat_reclaim_budget_trips_n` only on the trip return (`src/server.c:9131,9217,9229`).
+`flat_reclaim_budget_trips_n` only on the trip return. Atomic mode retains this validated path.
+
+Atomic-OFF workers with no residual owner epoch use `flatDrainReadyBatchesAt`: it compares the same
+fields against one acquired `(grace_safe, pin_safe)` snapshot for the complete drain span. The main
+fallback selects the same OFF-only helper. Monotonicity makes the snapshot conservative: a
+concurrent frontier advance can delay a header to the next pass, never release one early.
 
 ## Freeing a batch + recycling (`src/flatstore.c:157-166`, `src/server.c:9061-9078`)
 
-`flatBatchFree`:
+The common batch-content release:
 
-1. relaxed `flat_batches_freed_n++`.
-2. For each node: dispatch its payload via `flatRetirePayloadReady`, then **recycle the node** onto
+1. For each node: dispatch its payload via `flatRetirePayloadReady`, then **recycle the node** onto
    `flat_node_pool` if `flat_node_pool_n < FLAT_NODE_POOL_CAP` (= `4096`, `src/flatstore.h:84`), else
    `zfree`.
-3. Retain the batch **header** on the spare list if `*spare_n < FLAT_BATCH_SPARE_MAX` (= `8`,
+2. Retain the batch **header** on the spare list if `*spare_n < FLAT_BATCH_SPARE_MAX` (= `8`,
    `src/flatstore.h:68`), else `zfree`.
+
+Atomic mode executes a relaxed `flat_batches_freed_n++` before each header release, preserving the
+validated progress cadence. Atomic-OFF drains accumulate the number of released headers locally
+and issue one relaxed fetch-add at the end of the drain span. The counter is INFO telemetry and is
+not an eligibility input.
 
 The node pool is `__thread` and trimmed by a low-water scavenger `flatNodePoolTrim`
 (`src/flatstore.c:157-166`): it returns `flat_node_pool_lowat` (the window's minimum occupancy =

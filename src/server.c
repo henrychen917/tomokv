@@ -9877,6 +9877,116 @@ static int flatDrainReadyBatches(flatBatch **head, flatBatch **tail, flatBatch *
     return 0;
 }
 
+/* Atomic-OFF drains may reuse one acquired frontier snapshot for a complete
+ * FIFO prefix. Both frontiers are monotone, so a concurrent advance can only
+ * defer a batch to the next pass; it cannot make an unsafe batch appear ready.
+ * Atomic mode deliberately retains flatBatchReady's per-head loads. Its
+ * logical-prune FIFO is more sensitive to an extra deferred pass because the
+ * owner epoch remains retained until that callback runs. */
+static inline int flatBatchReadyAt(const flatBatch *b, uint64_t grace_safe,
+                                   uint64_t pin_safe) {
+    return grace_safe >= b->grace_target &&
+           (!b->eligible_ts || pin_safe >= b->eligible_ts);
+}
+
+/* Deliberate duplicate of flatBatchFree without its per-header counter RMW.
+ * Keeping the validated atomic helper source-exact makes this experiment's
+ * runtime boundary auditable; consolidate only after the OFF candidate and a
+ * separately ablated atomic implementation both pass their batteries. */
+static void flatBatchFreeOff(flatBatch *b, flatBatch **spare, int *spare_n) {
+    int prune_scope = (b->retire_flags & FLAT_RETIRE_BATCH_PRUNE) != 0;
+    if (prune_scope) tomoVersionPruneBatchBegin();
+    flatRetireNode *n = b->head;
+    while (n) {
+        flatRetireNode *nx = n->next;
+        flatRetirePayloadReady(n->masked_kv);
+        if (flat_node_pool_n < FLAT_NODE_POOL_CAP) {
+            n->next = flat_node_pool; flat_node_pool = n;
+            flat_node_pool_n++;
+        } else {
+            zfree(n);
+        }
+        n = nx;
+    }
+    if (prune_scope) tomoVersionPruneBatchEnd();
+    if (spare && spare_n && *spare_n < FLAT_BATCH_SPARE_MAX) { b->next = *spare; *spare = b; (*spare_n)++; }
+    else zfree(b);
+}
+
+/* Atomic-OFF counterpart. Keep telemetry out of flatBatchFree so all headers
+ * completed in one drain span contribute one global RMW instead of one each. */
+static int flatDrainReadyBatchesAt(flatBatch **head, flatBatch **tail,
+                                   flatBatch **spare, int *spare_n,
+                                   unsigned long *budget, uint64_t grace_safe,
+                                   uint64_t pin_safe, uint64_t *freed) {
+    while (*head && flatBatchReadyAt(*head, grace_safe, pin_safe)) {
+        if (!*budget) return 1;
+        flatBatch *b = *head;
+        *head = b->next;
+        if (!*head) *tail = NULL;
+        flatBatchFreeOff(b, spare, spare_n);
+        (*budget)--;
+        (*freed)++;
+    }
+    return 0;
+}
+
+/* The atomics-off path has no owner-epoch lane. Isolate its drain diet here so
+ * flatWorkerReclaim below remains the validated 0510237a7 atomic path. A live
+ * disable continues using that path while any atomic owner epoch is pending. */
+static void flatWorkerReclaimOff(exThread *worker) {
+    if (tomoFlatResizeWorkerActive(worker->id)) return;
+    if (!worker->flat_retire_local && !worker->flat_batches_local) return;
+
+    unsigned long closed = 0;
+    if (worker->flat_retire_local) {
+        unsigned int retire_flags = flat_local_retire_flags;
+        uint64_t eligible_ts = flat_local_retire_ts;
+        flat_local_retire_flags = 0;
+        flat_local_retire_ts = 0;
+        uint64_t close_target = flatBatchCloseTarget(1);
+        flatBatch *b = flatBatchCloseAt(worker->flat_retire_local, retire_flags,
+                                        eligible_ts, NULL,
+                                        &worker->flat_batch_spare,
+                                        &worker->flat_batch_spare_n,
+                                        close_target);
+        worker->flat_retire_local = NULL;
+        if (worker->flat_batches_tail) worker->flat_batches_tail->next = b;
+        else worker->flat_batches_local = b;
+        worker->flat_batches_tail = b;
+        closed = 1;
+    }
+
+    serverAssert(worker->flat_batches_tail != NULL);
+    uint64_t grace_needed = worker->flat_batches_tail->grace_target;
+    uint64_t pin_safe = atomic_load_explicit(&flat_pin_ctl.safe,
+                                             memory_order_acquire);
+    flatGraceAdvance(grace_needed);
+    uint64_t grace_safe = atomic_load_explicit(&flat_grace_ctl.safe,
+                                               memory_order_acquire);
+    flatBatch *head = worker->flat_batches_local;
+    if (head->eligible_ts && grace_safe >= head->grace_target &&
+        pin_safe < head->eligible_ts) {
+        flatGroupSafeAdvance();
+        pin_safe = atomic_load_explicit(&flat_pin_ctl.safe,
+                                        memory_order_acquire);
+    }
+
+    unsigned long budget = flatAtomicPressureBudget(worker->id,
+                                                     flatReclaimBudget(closed));
+    uint64_t freed = 0;
+    if (flatDrainReadyBatchesAt(&worker->flat_batches_local,
+                                &worker->flat_batches_tail,
+                                &worker->flat_batch_spare,
+                                &worker->flat_batch_spare_n, &budget,
+                                grace_safe, pin_safe, &freed))
+        atomic_fetch_add_explicit(&flat_reclaim_budget_trips_n, 1,
+                                  memory_order_relaxed);
+    if (freed)
+        atomic_fetch_add_explicit(&flat_batches_freed_n, freed,
+                                  memory_order_relaxed);
+}
+
 /* PER-WORKER QSBR reclaim (ee451 reclaim-capacity fix) — runs on the worker thread, once per exSlice
  * pass. The worker closes its own retire list into a batch and frees batches whose grace has passed.
  * Identical grace rule to the node-owner table path; the win is WHERE the free happens: same thread that
@@ -10097,6 +10207,49 @@ void flatReclaimAll(int node) {
     }
     if (!grace_needed) return;
     flatGraceAdvance(grace_needed);
+    if (!server.tomo_atomic) {
+        uint64_t grace_safe = atomic_load_explicit(&flat_grace_ctl.safe,
+                                                   memory_order_acquire);
+        uint64_t pin_safe = atomic_load_explicit(&flat_pin_ctl.safe,
+                                                 memory_order_acquire);
+        unsigned long budget = flatReclaimBudget(closed);
+        uint64_t freed = 0;
+        for (int j = 0; j < server.dbnum; j++) {
+            if (!dbIsInitialized(&server.node_dbs[node][j])) continue;
+            flatTable *t = kvstoreFlatTable(server.node_dbs[node][j].keys);
+            if (t && flatDrainReadyBatchesAt(&t->batches, &t->batches_tail,
+                                             NULL, NULL, &budget, grace_safe,
+                                             pin_safe, &freed)) {
+                if (freed)
+                    atomic_fetch_add_explicit(&flat_batches_freed_n, freed,
+                                              memory_order_relaxed);
+                atomic_fetch_add_explicit(&flat_reclaim_budget_trips_n, 1,
+                                          memory_order_relaxed);
+                return;
+            }
+        }
+        /* The snapshot is intentionally stable for this drain span. Recheck
+         * only diagnoses a ready head skipped before another table consumed
+         * the budget; a concurrent frontier advance waits for the next pass. */
+        if (!budget)
+            for (int j = 0; j < server.dbnum; j++) {
+                if (!dbIsInitialized(&server.node_dbs[node][j])) continue;
+                flatTable *t = kvstoreFlatTable(server.node_dbs[node][j].keys);
+                if (t && t->batches &&
+                    flatBatchReadyAt(t->batches, grace_safe, pin_safe)) {
+                    if (freed)
+                        atomic_fetch_add_explicit(&flat_batches_freed_n, freed,
+                                                  memory_order_relaxed);
+                    atomic_fetch_add_explicit(&flat_reclaim_budget_trips_n, 1,
+                                              memory_order_relaxed);
+                    return;
+                }
+            }
+        if (freed)
+            atomic_fetch_add_explicit(&flat_batches_freed_n, freed,
+                                      memory_order_relaxed);
+        return;
+    }
     unsigned long budget = flatReclaimBudget(closed);
     for (int j = 0; j < server.dbnum; j++) {
         if (!dbIsInitialized(&server.node_dbs[node][j])) continue;
@@ -23520,7 +23673,10 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
             flat_node_tick = 0;
             flatNodePoolTrim();
         }
-        flatWorkerReclaim(worker, atomic_owner_pending);
+        if (!server.tomo_atomic && !atomic_owner_pending)
+            flatWorkerReclaimOff(worker);
+        else
+            flatWorkerReclaim(worker, atomic_owner_pending);
     }
 
     /* ee451 FLATSTORE Stage-2 (review fix #1/#2/#5): announce we are entering a flat section, then

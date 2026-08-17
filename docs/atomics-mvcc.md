@@ -219,6 +219,34 @@ share one physical grace target and one global close RMW. A genuinely old atomic
 successful versions it can observe; if those versions reach `tomokv-atomic-reclaim-limit`, new
 atomic writers remain backpressured by design rather than allowing unbounded memory.
 
+### Rejected atomic instruction diet: `a505fe15e`
+
+The 2026-08-17 160M battery rejected `a505fe15e`. It combined eager stamped-link construction,
+direct `csMsetOwner` retirement links, a byte owner-grace state in place of
+`owner_ops_pending`, cached publish-list scans, and drain-span frontier/counter folding. Torn-read
+checks stayed clean, but atomic MSET fell from 968.6k/s to 598.9k/s, p99 rose from 25ms to 185ms,
+the mixed cell fell from 994k/s to 772k/s, and soak decayed from 1.118M/s to 719k/s. The same commit
+raised atomic-OFF MSET from 1.516M/s to 1.913M/s, so the OFF result remains a correctness-unproven
+candidate rather than evidence for the atomic rewrite.
+
+The failure signature is a retirement-feedback convoy. A successful atomic owner record stays live,
+holds its version/lifecycle references and reclaim-byte charge, and remains counted as owner work
+until the logical FIFO callback crosses both physical grace and snapshot eligibility. The rejected
+patch changed the record lifetime/queue representation and publish scan cadence at the same time
+that it reused one frontier snapshot for a whole drain. Any deferred logical head therefore retained
+an entire owner epoch for another pass; sustained production accumulated retained epochs, raised
+reclaim backpressure, reduced admission, and turned the queue into the observed latency and soak
+collapse. Static comparison rules out a lost close hoist: both `0510237a7` and `a505fe15e` call
+`flatBatchCloseTarget(close_count)` once when the physical and logical lanes close together.
+
+The retained experiment is consequently OFF-only: empty reclaim passes return early, readiness
+uses one monotone frontier snapshot per drain span, and completed-header telemetry is folded into
+one relaxed RMW. Atomic mode, including the tail of a live disable while owner epochs remain,
+keeps the `0510237a7` per-head readiness, per-header telemetry update, tagged owner-epoch node,
+and `owner_ops_pending` lifetime transition. A future atomic diet must ablate publication,
+retirement representation, readiness cadence, and counter folding separately, and must pass the
+MSETNX hammer, churn, tail-latency, and sustained-reclaim cells before those pieces are recombined.
+
 Each owner publishes its already-summed bytes to its cache-line-isolated worker slot once. The last
 owner's existing acquire-release counter chain makes all contiguous owner records readable; it sums
 them and performs the single global pool charge. The conservative charge remains until the final
