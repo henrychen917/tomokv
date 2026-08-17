@@ -206,13 +206,14 @@ try(){ # $1 = knob, $2 = value, $3 = note, $4 = companion flags, $5 = extra smok
     bad "$knob=$val — DID NOT BOOT ($note)"; grep -iE 'unresolved|bad|invalid|error' $J/knob.log | tail -2 >> $OUT; return
   fi
   local got=$($CLI config get $knob 2>/dev/null | tail -1)
-  # Most configs echo their literal spelling. These two are resolved during initServer, so CONFIG
+  # Most configs echo their literal spelling. These are resolved during initServer, so CONFIG
   # GET correctly reports the effective value instead; keep those expectations explicit.
   local expected=$val echo_ok=0
   case "$knob:$val" in
     tomokv-pipeline-depth:-1) expected=32 ;;
     tomokv-pipeline-depth:0)  expected=1 ;;
     tomokv-cores-per-node:0)  expected=8 ;;
+    tomokv-thread-io:-1)      expected=2 ;;
     tomokv-thread-wb:-1)      expected=1 ;;
   esac
   [ "$got" = "$expected" ] && echo_ok=1
@@ -311,6 +312,8 @@ echo "=== convention A: -1 = auto ===" >> $OUT
     "--tomokv-cores-per-node 9" wb
   try tomokv-thread-wb -1 "AUTO: physical-core-budget remainder resolves to one WB" \
     "--tomokv-cores-per-node 9 --tomokv-thread-mode static" wb
+  try tomokv-thread-io -1 "all-AUTO 8-core split resolves in WB/EX/IO remainder order to io2/ex3/wb3" \
+    "--tomokv-thread-ex -1 --tomokv-thread-wb -1 --tomokv-cores-per-node 8 --tomokv-thread-mode static" wb
   must_refuse tomokv-thread-wb -2 "below the declared minimum -- auto is -1"
   must_refuse tomokv-thread-wb 129 "above the compiled per-node WB cap"
 

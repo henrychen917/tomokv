@@ -7310,25 +7310,32 @@ void initServer(void) {
     }
         server.wb_threads = 0;
     } else {
-    /* wb>0: validated three-role sizing. IO and EX retain this tree's explicit
-     * per-node contract; wb=-1 takes the remainder of the derived/explicit
-     * physical-core budget, in the reference sizer's WB-first remainder rule. */
+    /* wb>0: validated three-role sizing. Each role accepts -1 as AUTO. AUTO
+     * roles divide the available physical-core budget evenly, with indivisible
+     * remainder cores assigned in the reference sizer's WB, EX, IO order. */
     {
         int nodes = server.topo_nodes > 0 ? server.topo_nodes : 1;
-        int ipn = server.io_per_node;
-        int epn = server.ex_per_node;
-        int wpn = server.wb_per_node;
-        int cpn = server.cores_per_node;
+        int ipn = server.io_per_node, epn = server.ex_per_node;
+        int wpn = server.wb_per_node, cpn = server.cores_per_node;
+        int auto_io = ipn < 0, auto_ex = epn < 0, auto_wb = wpn < 0;
+        int nauto = auto_io + auto_ex + auto_wb;
 
-        if (ipn <= 0 || epn <= 0) {
+        /* WB=0 selects the unchanged two-stage resolver above. Once WB mode is
+         * selected, zero is invalid for every role and -1 is the sole AUTO
+         * spelling. */
+        if (ipn == 0 || epn == 0 || wpn == 0) {
             serverLog(LL_WARNING,
-                "FATAL: wb mode requires explicit positive --tomokv-thread-io I "
-                "and --tomokv-thread-ex E values per node; got io=%d ex=%d.",
-                ipn, epn);
+                "FATAL: 3-stage mode requires io >= 1, ex >= 1, and wb >= 1 per node. "
+                "Use -1 to auto-derive a role; got tomokv-thread-io=%d "
+                "tomokv-thread-ex=%d tomokv-thread-wb=%d.",
+                server.io_per_node, server.ex_per_node, server.wb_per_node);
             exit(1);
         }
 
-        if (cpn == 0 && wpn > 0) {
+        /* With every role explicit, cores-per-node=0 means their exact sum. If
+         * any role is AUTO, derive the budget from the process's allowed CPU
+         * set, deduplicating SMT siblings, and divide it across topology nodes. */
+        if (cpn == 0 && nauto == 0) {
             cpn = ipn + epn + wpn;
         } else if (cpn == 0) {
             long available = 0;
@@ -7348,23 +7355,53 @@ void initServer(void) {
                           "using %d allowed logical CPUs", allowed_logical);
             }
             if (available <= 0) available = sysconf(_SC_NPROCESSORS_ONLN);
-            cpn = available > 0 ? (int)(available / nodes) : 0;
             int lane_cap_per_node = (TOMO_IO_THREADS_MAX + 1) / nodes;
+            cpn = available > 0 ? (int)(available / nodes) : 0;
             if (cpn > lane_cap_per_node) cpn = lane_cap_per_node;
+            if (cpn <= 0) {
+                serverLog(LL_WARNING,
+                          "FATAL: cannot derive the 3-stage pool: no allowed CPUs remain after "
+                          "dividing by tomokv-nodes=%d.", nodes);
+                exit(1);
+            }
         }
 
-        if (wpn < 0) {
-            wpn = cpn - ipn - epn;
+        if (nauto) {
+            int fixed = (auto_io ? 0 : ipn) + (auto_ex ? 0 : epn) +
+                        (auto_wb ? 0 : wpn);
+            int remaining = cpn - fixed;
+            if (remaining < nauto) {
+                serverLog(LL_WARNING,
+                          "FATAL: cannot auto-derive the 3-stage split: %d core(s)/node remain "
+                          "after explicit roles, but %d AUTO role(s) each require at least one "
+                          "(cores-per-node=%d, io=%d, ex=%d, wb=%d).",
+                          remaining, nauto, cpn, ipn, epn, wpn);
+                exit(1);
+            }
+            int share = remaining / nauto;
+            int extra = remaining % nauto;
+            /* Preserve the measured reference policy without a machine-specific
+             * ratio: assign spare cores to WB first, then EX, then IO. */
+            if (auto_wb) { wpn = share + (extra > 0); if (extra > 0) extra--; }
+            if (auto_ex) { epn = share + (extra > 0); if (extra > 0) extra--; }
+            if (auto_io) { ipn = share + (extra > 0); }
             serverLog(LL_NOTICE,
-                      "tomokv 3-stage AUTO split: %d cores/node -> io %d + ex %d + "
-                      "wb remainder %d (%d node(s))",
+                      "tomokv 3-stage AUTO split: %d cores/node -> io %d + ex %d + wb %d "
+                      "(%d node(s); explicit role values preserved)",
                       cpn, ipn, epn, wpn, nodes);
         }
-        if (cpn <= 0 || wpn <= 0 || ipn + epn + wpn > cpn) {
+
+        if (ipn <= 0 || epn <= 0 || wpn <= 0) {
             serverLog(LL_WARNING,
-                      "FATAL: invalid 3-stage split: io=%d ex=%d wb=%d cores=%d per node; "
-                      "all roles must be positive and their sum must fit the core budget.",
-                      ipn, epn, wpn, cpn);
+                      "FATAL: resolved 3-stage split must keep every role live; got io=%d ex=%d "
+                      "wb=%d per node.", ipn, epn, wpn);
+            exit(1);
+        }
+        if (ipn + epn + wpn > cpn) {
+            serverLog(LL_WARNING,
+                      "FATAL: node topology invalid (tomokv-thread-io=%d tomokv-thread-ex=%d "
+                      "tomokv-thread-wb=%d tomokv-cores-per-node=%d): need thread-io + "
+                      "thread-ex + thread-wb <= cores-per-node.", ipn, epn, wpn, cpn);
             exit(1);
         }
 

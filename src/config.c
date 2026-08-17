@@ -3248,9 +3248,9 @@ standardConfig static_configs[] = {
      * everywhere, the IO-side
      * saturation signal can be deleted outright; if only 3 clears ZRANGE p1 entered from a settled
      * io7/ex1, the clip repair is load-bearing and belongs in whichever worker mode ships. */
-    createIntConfig("tomokv-thread-io",              NULL, IMMUTABLE_CONFIG, 0, TOMO_IO_THREADS_MAX, server.io_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: IO threads per node; 0 = unset -> fatal at boot */
-    createIntConfig("tomokv-thread-ex",              NULL, IMMUTABLE_CONFIG, 0, TOMO_EX_THREADS_MAX, server.ex_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* MANDATORY: EX workers per node; 0 = unset -> fatal at boot */
-    createIntConfig("tomokv-thread-wb",              NULL, IMMUTABLE_CONFIG, -1, TOMO_WB_THREADS_MAX, server.wb_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* 0=2-stage/no allocation; N=WB per node; -1=physical-core remainder */
+    createIntConfig("tomokv-thread-io",              NULL, IMMUTABLE_CONFIG, -1, TOMO_IO_THREADS_MAX, server.io_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* IO threads per node; -1=AUTO in WB mode, 0=unset/fatal */
+    createIntConfig("tomokv-thread-ex",              NULL, IMMUTABLE_CONFIG, -1, TOMO_EX_THREADS_MAX, server.ex_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* EX workers per node; -1=AUTO in WB mode, 0=unset/fatal */
+    createIntConfig("tomokv-thread-wb",              NULL, IMMUTABLE_CONFIG, -1, TOMO_WB_THREADS_MAX, server.wb_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* 0=2-stage/no allocation; N=WB per node; -1=AUTO three-role sizing */
     createIntConfig("tomokv-io-uring",               NULL, IMMUTABLE_CONFIG, 0, 2, server.io_uring, 0, INTEGER_CONFIG, NULL, NULL), /* 0=epoll; nonzero=the Helio-style staged/taskrun-aware ring (1 canonical, 2 = compat spelling). The old mode-1 unified SI|DTR ring was DELETED 2026-08-10 after losing 9/9 interleaved cells to this one. */
     createIntConfig("tomokv-wb-uring",               NULL, IMMUTABLE_CONFIG, -1, 4096, server.wb_uring, 0, INTEGER_CONFIG, NULL, NULL), /* 0=current write()/writev path; N=max SENDMSG SQEs per submit; -1=auto. Setup/probe/arm rejection falls back per WB. */
 

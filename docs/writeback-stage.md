@@ -109,17 +109,21 @@ slot.
 
 ## Sizing and pinning
 
-In WB mode, IO and EX are explicit positive per-node counts. WB sizing is layered on top:
+The `wb=0` boundary keeps the existing two-role resolver unchanged. In WB mode, each of IO, EX,
+and WB is either an explicit positive per-node count or `-1` for AUTO:
 
 - `tomokv-thread-wb 0` runs the unchanged two-role resolver. With a zero core budget, the budget is
   `io + ex`.
-- Positive WB with a zero core budget sets the budget to `io + ex + wb`.
-- `tomokv-thread-wb -1` subtracts explicit IO and EX from `tomokv-cores-per-node`. If that budget is
-  also zero, boot counts CPUs allowed by affinity/cgroups, deduplicates SMT siblings into physical
-  cores, divides the result across topology nodes, and assigns the remainder to WB.
+- With all three WB-mode roles explicit, a zero core budget becomes `io + ex + wb`.
+- If any WB-mode role is `-1`, boot preserves explicit roles and divides the remaining core budget
+  evenly among AUTO roles. Indivisible remainder cores go to WB first, EX second, and IO last.
+- If AUTO is requested with a zero core budget, boot counts CPUs allowed by affinity/cgroups,
+  deduplicates SMT siblings into physical cores, and divides the result across topology nodes before
+  applying that same split rule.
 
-For example, `nodes=8`, `cores-per-node=8`, `thread-io=2`, `thread-ex=3`, and `thread-wb=3`
-resolves global totals of IO 16, EX 24, and WB 24.
+For example, `nodes=8`, `cores-per-node=8`, and all three role knobs set to `-1` resolve the same
+per-node `io=2`, `ex=3`, `wb=3` split as the reference tree: global totals of IO 16, EX 24, and WB
+24.
 
 Every enabled role must be positive and fit both the per-node core budget and its compiled global
 capacity. IO/growth/WB producer identities share the bounded producer-lane namespace, so an

@@ -37,7 +37,7 @@ The separate upstream pool in <code>iothread.c</code> starts only when <code>ser
 
 Both <code>tomokv-thread-mode static</code> and <code>auto</code> enable the same poly-thread execution machinery. Static holds the boot IO/EX split; auto sets <code>server.thread_auto</code> and enables flip rebalancing so the controller may move the split. (src/server.h:1525-1531, src/server.c:5614-5625)
 
-The configured <code>tomokv-thread-io</code> and <code>tomokv-thread-ex</code> values are per-node starting counts in both modes, and startup derives global counts, requires both roles to be positive, and checks the fixed IO/EX capacities. (src/config.c:3212-3244, src/server.c:5717-5776)
+The configured <code>tomokv-thread-io</code> and <code>tomokv-thread-ex</code> values are per-node starting counts in both modes. At <code>wb=0</code>, the original two-role resolver is unchanged. With WB enabled, any of IO, EX, and WB may be <code>-1</code>; startup shares the remaining core budget among AUTO roles, assigns spare cores in WB/EX/IO order, derives global counts, requires every role to resolve positive, and checks the fixed capacities.
 
 For auto mode on one topology node, startup may remap the provisioned pool to one main IO slot plus <code>pool-1</code> convertible worker slots, then realize the requested boot split by birthing a suffix of those workers in IO mode. Static mode does not use this symmetric remap. (src/server.c:5782-5831, src/server.c:22901-22915)
 
