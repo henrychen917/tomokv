@@ -185,7 +185,6 @@ static void resetFakeClientState(client *c, client *parent) {
     memset(clientTail(c)->fakeClients, 0, sizeof(clientTail(c)->fakeClients));
     clientTail(c)->dispatchid = 0;
     clientTail(c)->flushid = 0;
-    clientTail(c)->prefetch_io_xnode_slots = 0;
     clientTail(c)->phase_recv_us = 0;
     clientTail(c)->phase_send_stamp = 0;
 
@@ -591,7 +590,6 @@ client *createClient(connection *conn) {
     memset(clientTail(c)->fakeClients, 0, sizeof(clientTail(c)->fakeClients));
     clientTail(c)->dispatchid = 0;
     clientTail(c)->flushid = 0;
-    clientTail(c)->prefetch_io_xnode_slots = 0;
     clientTail(c)->phase_recv_us = 0;
     clientTail(c)->phase_send_stamp = 0;
 

@@ -12,7 +12,7 @@
 - [Load balancing](../loadbalance-flip.md)
 - [Boot-selectable write-back stage](../writeback-stage.md)
 
-Granular, code-derived docs for every named buffer, prefetch stage, communication channel, and
+Granular, code-derived docs for every named buffer, storage-lookahead pass, communication channel, and
 algorithm/calculation. Each file cites file:line and documents the real data structure + protocol.
 Parent: the subsystem docs in `../` link down to these; the top-level `../../README.md` is the hub.
 
@@ -27,16 +27,12 @@ Parent: the subsystem docs in `../` link down to these; the top-level `../../REA
 - [`buffers/version-bag.md`](buffers/version-bag.md) — `tomoVerMeta` — per-version metadata and the version bag
 
 ## prefetch
-- [`prefetch/crossnode-prefetch.md`](prefetch/crossnode-prefetch.md) — `cross_node` mode 2 — topology-gated cross-node message/reply prefetch
-- [`prefetch/exprefetchbatch.md`](prefetch/exprefetchbatch.md) — `exPrefetchBatch` — the worker-side batch storage-warm driver
+- [`prefetch/exprefetchbatch.md`](prefetch/exprefetchbatch.md) — `exPrefetchBatch` — always-on owner-side storage lookahead
 - [`prefetch/l3-footprint-gate.md`](prefetch/l3-footprint-gate.md) — `pf_cached_min` — the L3-derived prefetch-footprint gate
-- [`prefetch/message-carrier-prefetch.md`](prefetch/message-carrier-prefetch.md) — `tomoMessagePrefetch` — incoming ring-carrier prefetch
-- [`prefetch/prefetch-engagement-counters.md`](prefetch/prefetch-engagement-counters.md) — `pf_batches`, `pf_gated`, `pf_issued`, `prefetch_ex_xnode_issued`, and `prefetch
-- [`prefetch/prefetch-stages.md`](prefetch/prefetch-stages.md) — `PFS_*` — the worker lookup-prefetch scoreboard states
+- [`prefetch/prefetch-engagement-counters.md`](prefetch/prefetch-engagement-counters.md) — storage-lookahead entry, gate, slot, and kvobj counters
 
 ## communication
 - [`communication/cdb-completion-bus.md`](communication/cdb-completion-bus.md) — `cdbSlotPublish` / `cdbSlotReady` / `cdbSlotClear` — EX-to-IO/WB reply-ready completion
-- [`communication/crossnode-topology-table.md`](communication/crossnode-topology-table.md) — `cross_node[][]` and `cross_node_any`: cross-node producer/consumer topology tab
 - [`communication/migration-drain-fence.md`](communication/migration-drain-fence.md) — `migPushFenceIfNeeded` / `drain_ack` / `fence_acked` — migration cutover execu
 - [`communication/owner-lock.md`](communication/owner-lock.md) — `tomoWkrLock` / `tomoWkrTrylock` / `tomoWkrUnlock` / `tomoWkrLockPub` / `tomoWkr
 - [`communication/owner-op-stamp-lane.md`](communication/owner-op-stamp-lane.md) — `csStampLane` / `csStampPush` / `csStampRoute` / `csStampDrain` / `owner_ops_pen

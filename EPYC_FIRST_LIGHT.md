@@ -65,8 +65,8 @@ wins both.
 - `tomokv-reorder 2`: GET p32 **+2.4%**, mixed 1:9 **+2.3%**, hot-key (gaussian)
   +2.2% — first box where reorder pays. Level 3 = level 2 throughput with a worse
   tail. Recommend default 2 on multi-CCD (pending regime sweep).
-- `tomokv-prefetch-ex 0/1/2`: wash (±1%) at 64 B values, including level 2
-  (cross-node message prefetch). `tomokv-prefetch-io 1/2`: wash.
+- The retired operand-pipeline and IO/message-prefetch experiments were washes
+  (±1%) at 64 B values. Owner-side storage lookahead remains shipped.
 
 ## Standing caveats
 - p1 cells are connection-count-bound (256 conns × loopback RTT); they measure

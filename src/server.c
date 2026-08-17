@@ -395,23 +395,6 @@ int tomoWbInThread(void) {
     return tomo_wb_id >= 0;
 }
 
-typedef struct tomoPrefetchCounter {
-    _Atomic unsigned long long value;
-    char _pad[CACHE_LINE_SIZE - sizeof(_Atomic unsigned long long)];
-} __attribute__((aligned(CACHE_LINE_SIZE))) tomoPrefetchCounter;
-_Static_assert(sizeof(tomoPrefetchCounter) == CACHE_LINE_SIZE,
-               "prefetch engagement counter must occupy one cache line");
-_Static_assert(TOMO_PIPELINE_DEPTH_MAX <= 32,
-               "cross-node reply bitmap must cover every pipeline slot");
-
-/* Boot-derived producer/consumer topology. Row io_slot contains one bit per
- * worker; words are atomic because role checkpoints republish the table while
- * other pool threads may still be reading it. */
-static _Atomic uint64_t cross_node[TOMO_IO_THREADS_MAX + 1][TOMO_EX_MASK_WORDS];
-static _Atomic unsigned char cross_node_any[TOMO_IO_THREADS_MAX + 1];
-static tomoPrefetchCounter prefetch_ex_xnode_issued[TOMO_STAT_SLOTS];
-static tomoPrefetchCounter prefetch_io_xnode_issued[TOMO_STAT_SLOTS];
-
 /* ---- Debug request-phase decomposition -----------------------------------
  *
  * tomokv-phase-trace=N selects one P1 receive/request in N independently on
@@ -658,25 +641,6 @@ static inline void tomoPhaseExScanPublish(uint64_t lanes, uint64_t passes) {
     tomoRelaxedBump(tomo_phase_stats[slot].scan_passes, passes);
 }
 
-static inline int tomoCrossNode(int io_slot, int worker) {
-    if (!atomic_load_explicit(&cross_node_any[io_slot], memory_order_acquire))
-        return 0;
-    uint64_t word = atomic_load_explicit(
-        &cross_node[io_slot][(unsigned)worker >> 6], memory_order_relaxed);
-    return (word >> ((unsigned)worker & 63)) & 1u;
-}
-
-static inline void tomoPrefetchCounterBump(tomoPrefetchCounter *counter,
-                                           unsigned long long issued) {
-    if (issued) tomoRelaxedBump(counter[iotid].value, issued);
-}
-
-static unsigned long long tomoPrefetchCounterTotal(tomoPrefetchCounter *counter) {
-    unsigned long long total = 0;
-    for (int i = 0; i < TOMO_STAT_SLOTS; i++)
-        total += atomic_load_explicit(&counter[i].value, memory_order_relaxed);
-    return total;
-}
 /* ee451 (F-clock family): per-execution-context "read expired/trimmed keys" guards. See the
  * comment on their declaration in server.h — these were globals that every worker raced. */
 __thread int tomo_access_expired = 0;
@@ -756,7 +720,6 @@ static void migReleaseParkedClients(void);
  * and needs to be able to WAKE one that is asleep in epoll. Both live in the poly-thread module
  * far below; declared here because the coordinator is defined first. */
 static struct polyThreadCtx *tmCtxForIotid(int id);
-static void tomoRebuildCrossNodeTopology(void);
 static inline int migBucketInRange(int b);            /* v8d: bucket in migrating [lo,hi) */
 static inline int migKeyBucket(const void *p, size_t len);  /* v8d: key -> bucket id (one xxh64) */
 void exBindNumaLocal(int ex_id);   /* v8d: NUMA-local shard alloc (any pinning pin-mode); defined late */
@@ -4437,15 +4400,6 @@ void tomoReorderDrain(void) {
         int w = tomo_rord.ex[order[s0]];
         int s1 = s0; while (s1 < n && tomo_rord.ex[order[s1]] == w) s1++;
         int r = s1 - s0;
-        /* D-C IO prefetch: the NEXT run goes to a DIFFERENT worker (order is grouped by worker),
-         * so its ring tail is a cold line this io thread has not touched this pass. Warm it while
-         * we emit the current run — the write lands in THIS io thread's cache (unlike a
-         * cross-thread data prefetch, which would be useless). One prefetch per run. Default off. */
-        if (server.prefetch_io_level && s1 < n) {
-            int nw = tomo_rord.ex[order[s1]];
-            exQueue *nq = &server.exThreads[nw].queues[iotid];
-            redis_prefetch_write(&nq->jobs[nq->staged_tail & server.ex_queue_mask]);
-        }
         if (r <= 1 || lvl < 1) {
             for (int i = s0; i < s1; i++) exDispatchDirect(w, tomo_rord.fk[order[i]]);
         } else if (lvl == 3) {
@@ -4638,12 +4592,6 @@ static inline unsigned int exQueuePublishTracked(exThread *worker, exQueue *q,
 
 static void exDispatchDirect(int ex_id, client *fake) {
     exQueue *q = exQueueFor(ex_id);
-    if (__builtin_expect(server.prefetch_io_level == 2, 0) &&
-        tomoCrossNode(iotid, ex_id) &&
-        (fake->flags & CLIENT_EX_PENDING) && fake->parent &&
-        fake->parent->has_exec_tail)
-        clientTail(fake->parent)->prefetch_io_xnode_slots |=
-            1u << fake->fake_slot;
     if (!tomo_rord.draining) tm_io_sig[iotid].disp_cnt++;   /* staged path counted at stage time */
     if (__builtin_expect(exQueuePush(q, fake) == 0, 1)) {
         exQueueMarkDirty(ex_id);
@@ -4695,15 +4643,6 @@ static void exDispatchDirect(int ex_id, client *fake) {
 static void exDispatchDirectBatch(int ex_id, client *const *jobs, int n) {
     if (n <= 0) return;
     exQueue *q = exQueueFor(ex_id);
-    for (int i = 0; i < n; i++) {
-        client *fake = jobs[i];
-        if (__builtin_expect(server.prefetch_io_level == 2, 0) &&
-            tomoCrossNode(iotid, ex_id) &&
-            (fake->flags & CLIENT_EX_PENDING) && fake->parent &&
-            fake->parent->has_exec_tail)
-            clientTail(fake->parent)->prefetch_io_xnode_slots |=
-                1u << fake->fake_slot;
-    }
 
     int off = 0;
     int waiting = 0;
@@ -4938,75 +4877,6 @@ static inline void tomoReleaseReadSnapshot(client *fake) {
     }
 }
 
-static inline unsigned long long tomoPrefetchReplyRange(const void *base,
-                                                        size_t len) {
-    if (!base || !len) return 0;
-    uintptr_t line = (uintptr_t)base & ~(uintptr_t)(CACHE_LINE_SIZE - 1);
-    uintptr_t last = ((uintptr_t)base + len - 1) &
-                     ~(uintptr_t)(CACHE_LINE_SIZE - 1);
-    unsigned long long issued = 0;
-    for (;;) {
-        redis_prefetch_read((const void *)line);
-        issued++;
-        if (line == last) break;
-        line += CACHE_LINE_SIZE;
-    }
-    return issued;
-}
-
-/* The completion acquire precedes this helper, so every worker-written reply
- * pointer and length is stable. Cover the plain buffer plus every list-backed
- * output block that the drain joins and the immediate write path consumes. */
-static unsigned long long tomoPrefetchClientReplyBuffers(client *source) {
-    if (!source) return 0;
-    unsigned long long issued =
-        tomoPrefetchReplyRange(source->buf, source->bufpos);
-    if (!source->reply || !listLength(source->reply)) return issued;
-
-    listIter li;
-    listNode *ln;
-    listRewind(source->reply, &li);
-    while ((ln = listNext(&li))) {
-        clientReplyBlock *block = listNodeValue(ln);
-        if (!block) continue;
-        redis_prefetch_read(block);
-        issued++;
-        issued += tomoPrefetchReplyRange(block->buf, block->used);
-    }
-    return issued;
-}
-
-/* Cross-shard heads carry completion state rather than a stock reply buffer.
- * When a group uses stock-client replies, its carriers live in these vectors;
- * warm those buffers under the same aggregate remote-generation bit. */
-static unsigned long long tomoPrefetchReplyBuffers(client *fake) {
-    unsigned long long issued = tomoPrefetchClientReplyBuffers(fake);
-    csGroup *g = fake->csgroup;
-    if (!g) return issued;
-
-    redis_prefetch_read(g);
-    issued++;
-    if (g->subs) {
-        for (int i = 0; i < g->nsub; i++)
-            if (g->subs[i]) {
-                redis_prefetch_read(g->subs[i]);
-                issued++;
-            }
-        for (int i = 0; i < g->nsub; i++)
-            issued += tomoPrefetchClientReplyBuffers(g->subs[i]);
-    }
-    if (g->xread_out && g->xread_out != g->subs) {
-        for (int i = 0; i < g->nkeys; i++)
-            if (g->xread_out[i]) {
-                redis_prefetch_read(g->xread_out[i]);
-                issued++;
-            }
-        for (int i = 0; i < g->nkeys; i++)
-            issued += tomoPrefetchClientReplyBuffers(g->xread_out[i]);
-    }
-    return issued;
-}
-
 static void handleWorkerRepliesScan(void) {
     listIter li;
     listNode *ln;
@@ -5110,16 +4980,6 @@ static void handleWorkerRepliesScan(void) {
         int spliced = 0;
         int close_asap = 0;
 
-        /* ee451: pipelined drain prefetch — "prefetch finished fc -> prefetch
-         * reply -> send response". The ready fakes were last written on a
-         * worker core, so they are cold in this IO thread's cache. Pass 1 warms
-         * the fake structs; pass 2 (structs now warm) prefetches each fake's
-         * reply payload (static buf + overflow list head), so the splice loop
-         * below copies hot memory. We walk the same ready prefix the splice
-         * loop will, stopping at the first not-ready slot. */
-        /* The old topology-blind two-pass drain walk remains deleted. Mode 2
-         * below warms only a completed generation proven cross-node. */
-
         while (rt->flushid != rt->dispatchid) {
             unsigned int slot = rt->flushid & rt->ring_mask;
             client *fake = rt->fakeClients[slot];
@@ -5128,20 +4988,6 @@ static void handleWorkerRepliesScan(void) {
             if (!cdbSlotReady(real, fake->cdb, slot)) break;
             if (__builtin_expect(server.phase_trace_sample != 0, 0))
                 tomoPhaseObserved(real, fake, 1);
-            if (__builtin_expect(atomic_load_explicit(&cross_node_any[iotid],
-                                                       memory_order_acquire), 0)) {
-                uint32_t xnode_bit = 1u << slot;
-                int xnode_reply =
-                    (rt->prefetch_io_xnode_slots & xnode_bit) != 0;
-                /* Retire provenance with the CDB generation even while mode 2
-                 * is disabled, so a later transition cannot reuse a stale bit. */
-                if (xnode_reply) {
-                    rt->prefetch_io_xnode_slots &= ~xnode_bit;
-                    if (__builtin_expect(server.prefetch_io_level == 2, 0))
-                        tomoPrefetchCounterBump(prefetch_io_xnode_issued,
-                                                tomoPrefetchReplyBuffers(fake));
-                }
-            }
             int was_ex_dispatched = (fake->flags & CLIENT_EX_PENDING) != 0;
             /* ee451 (v7): a cross-shard head is NOT CLIENT_EX_PENDING but DID bump
              * replyWorking at dispatch (its subs are in flight), so it must decrement here
@@ -5484,7 +5330,6 @@ static int tomoWbDirectReplyEligible(client *fake) {
 
 static void tomoWbRetireFake(tomoWbThread *w, client *real, client *fake, unsigned int slot) {
     clientExecTail *rt = clientTail(real);
-    rt->prefetch_io_xnode_slots &= ~(1u << slot);
     fake->flags &= ~CLIENT_EX_PENDING;
     foldClientCommandsProcessed(real, fake);
     cdbSlotClear(real, fake->cdb, slot);
@@ -5654,16 +5499,6 @@ static void tomoWbDrainClient(tomoWbThread *w, client *real) {
             if (!cdbSlotReady(real, fake->cdb, slot)) break;
             if (__builtin_expect(server.phase_trace_sample != 0, 0))
                 tomoPhaseObserved(real, fake, 1);
-            if (__builtin_expect(atomic_load_explicit(&cross_node_any[iotid],
-                                                       memory_order_acquire), 0)) {
-                uint32_t bit = 1u << slot;
-                if (rt->prefetch_io_xnode_slots & bit) {
-                    rt->prefetch_io_xnode_slots &= ~bit;
-                    if (__builtin_expect(server.prefetch_io_level == 2, 0))
-                        tomoPrefetchCounterBump(prefetch_io_xnode_issued,
-                                                tomoPrefetchReplyBuffers(fake));
-                }
-            }
             fake->flags &= ~CLIENT_EX_PENDING;
             if (fake->csgroup) {
                 csGroup *g = fake->csgroup;
@@ -7069,11 +6904,8 @@ void resetServerStats(void) {
     server.stat_numcommands = 0;
     /* ee451 (#B1): zero the per-thread executed-command counters too, else CONFIG RESETSTAT
      * would only clear the (normally zero) fold baseline and INFO would keep the old total. */
-    for (int i = 0; i < TOMO_STAT_SLOTS; i++) {
+    for (int i = 0; i < TOMO_STAT_SLOTS; i++)
         tomoRelaxedSet(server.cmdstat[i].n, 0);
-        tomoRelaxedSet(prefetch_ex_xnode_issued[i].value, 0);
-        tomoRelaxedSet(prefetch_io_xnode_issued[i].value, 0);
-    }
     server.stat_numconnections = 0;
     server.stat_expiredkeys = 0;
     server.stat_expiredkeys_active = 0;
@@ -7906,9 +7738,8 @@ void initServer(void) {
      * the well-tested cluster-slot kvstore configuration; getKeySlot returns tomoKeyBucket).
      * Each bucket-dict has ONE owning worker => single-writer shrinks to bucket granularity,
      * which is what lets S0.2b share one kvstore per NODE and S1 reshard by table flip.
-     * Deliberately NOT KVSTORE_FREE_EMPTY_DICTS: the IO-thread nextop prefetch (PFS_HASH #3
-     * feed) reads worker dicts cross-thread; a dict freed-on-empty by its owner would turn
-     * that benign stale-read race into a use-after-free. Dicts persist once created. */
+     * Preserve the established persistent-bucket allocation policy: dicts remain allocated
+     * after first use rather than being freed whenever a bucket becomes empty. */
 
     /* Keep stable decoy DB shells so legacy pointers remain valid. The heavy
      * state is created together with the matching physical DBs on first use. */
@@ -12049,8 +11880,7 @@ static inline int tomoHfeProc(redisCommandProc *p) {
  * The structural edge a multi-key command holds over N pipelined singles is that all N keys are
  * known UP FRONT: besides amortizing parse/pcmd/dispatch over N, the execution can SOFTWARE-
  * PIPELINE the memory accesses. N pipelined GETs each serialize one dependent argv -> key-bytes ->
- * hash -> slot-line -> kvobj chain (~2-3 DRAM round-trips of ~100ns, back-to-back without the
- * level-2/3 FLAT scoreboard stages described in the interaction audit below); a wave issues
+ * hash -> slot-line -> kvobj chain (~2-3 DRAM round-trips of ~100ns); a wave issues
  * each chain stage for the WHOLE wave before consuming it, so the misses overlap up to the core's
  * memory-level parallelism (~10-12 sustained outstanding DRAM misses on Zen4).
  *
@@ -12062,18 +11892,13 @@ static inline int tomoHfeProc(redisCommandProc *p) {
  * line has fallen out of L1 by then it is still L2-resident (~14cy), keeping the bulk of the
  * ~100ns saving.
  *
- * INTERACTION AUDIT (pf-w-hash / pf-w-nextop / the old mget-coalesce level 2): at prefetch level 1
- * the table half still self-disables because KVSTORE_FLAT has no per-bucket dict. Levels 2/3 now
- * let exPrefetchBatch issue SLOT/KVOBJ for its one dispatched key, while deliberately leaving the
- * DICT hash stash invalid, so #3 next-op remains unable to fire. A coalesced multi-key sub exposes
- * only argv[1] to that batch scoreboard; this wave covers every key in the sub. The only storage
- * overlap is therefore the first key's already-warm hint, which hardware drops cheaply; the rest
- * of the wave retains its needed MLP coverage.
+ * INTERACTION AUDIT: `exPrefetchBatch` covers only argv[1] of a coalesced multi-key sub, while
+ * this wave covers every key in the sub. The only storage overlap is therefore the first key's
+ * already-warm hint, which hardware drops cheaply; the rest retains its needed MLP coverage.
  *
  * PASSES over a wave of nw <= TOMO_MWAVE keys:
  *   A0  prefetch key robj headers (argv was built on the IO thread — cross-core cold here);
- *   A1  prefetch key BYTE lines (embstr keys share the robj line — skipped, the
- *       exPrefetchBatch:PFS_KEYBYTES rule);
+ *   A1  prefetch key BYTE lines (embstr keys share the robj line and are skipped);
  *   A2  h[i] = xxh64 of every key — independent, superscalar, no memory dependence between keys;
  *   B   owner/db/table resolve (L1-warm control lines: ex_bucket_table + exThreads) + prefetch
  *       each key's FIRST-PROBE slot line t->slots[h & mask]. 8B slots, 8 per line: the home line
@@ -14966,13 +14791,6 @@ static void csFreeSub(client *sub) {
  * driven by CONCURRENT commands (many pipelined scatters from one io thread to one worker),
  * not by one wide command — which is what tools/preflight/ex_backpressure.sh has to reproduce. */
 static void csPushSpin(int w, client *sub) {
-    if (__builtin_expect(server.prefetch_io_level == 2, 0) &&
-        tomoCrossNode(iotid, w) && sub->csparent) {
-        client *head = sub->csparent->head;
-        if (head && head->parent && head->parent->has_exec_tail)
-            clientTail(head->parent)->prefetch_io_xnode_slots |=
-                1u << head->fake_slot;
-    }
     exQueue *q = exQueueFor(w);
     int spins = 0;
     int counted = 0;
@@ -21932,17 +21750,15 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
     int stat_io_ops_processed_calculated = 0;
     long long stat_io_reads_processed = 0, stat_io_writes_processed = 0;
     long long stat_total_reads_processed = 0, stat_total_writes_processed = 0;
-    /* L0 prefetch observability: sum the per-worker counters. Racy reads of single-writer
-     * counters -- fine for a stat, and the whole point is that "did prefetch run?" must be
-     * answerable from outside. tomo_prefetch_gated == batches means the gate is SHUT. */
-    unsigned long long tomo_pf_batches = 0, tomo_pf_gated = 0, tomo_pf_issued = 0;
+    /* Storage-prefetch observability: racy reads of single-writer worker counters are
+     * sufficient for stats. Equal gated/batch totals mean the footprint gate stayed shut. */
+    unsigned long long tomo_pf_batches = 0, tomo_pf_gated = 0;
     unsigned long long tomo_pf_issued_slot = 0, tomo_pf_issued_kvobj = 0;
     /* Listeners are live from boot, so an INFO can arrive on an io thread before initServer
      * allocates the worker array; num_workers is config-derived and already non-zero then. */
     for (int _w = 0; server.exThreads && _w < server.num_workers; _w++) {
         tomo_pf_batches += server.exThreads[_w].pf_batches;
         tomo_pf_gated   += server.exThreads[_w].pf_gated;
-        tomo_pf_issued  += server.exThreads[_w].pf_issued;
         tomo_pf_issued_slot += server.exThreads[_w].pf_issued_slot;
         tomo_pf_issued_kvobj += server.exThreads[_w].pf_issued_kvobj;
     }
@@ -22578,7 +22394,6 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "dump_payload_sanitizations:%lld\r\n", server.stat_dump_payload_sanitizations,
             "tomo_prefetch_batches:%llu\r\n", tomo_pf_batches,
             "tomo_prefetch_gated:%llu\r\n", tomo_pf_gated,
-            "tomo_prefetch_issued:%llu\r\n", tomo_pf_issued,
             "tomo_prefetch_issued_slot:%llu\r\n", tomo_pf_issued_slot,
             "tomo_prefetch_issued_kvobj:%llu\r\n", tomo_pf_issued_kvobj,
             "total_reads_processed:%lld\r\n", stat_total_reads_processed,
@@ -22596,11 +22411,6 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "eventloop_duration_cmd_sum:%llu\r\n", server.duration_stats[EL_DURATION_TYPE_CMD].sum,
             "instantaneous_eventloop_cycles_per_sec:%llu\r\n", getInstantaneousMetric(STATS_METRIC_EL_CYCLE),
             "instantaneous_eventloop_duration_usec:%llu\r\n", getInstantaneousMetric(STATS_METRIC_EL_DURATION)));
-        info = sdscatprintf(info,
-            "tomokv_prefetch_ex_xnode_issued:%llu\r\n"
-            "tomokv_prefetch_io_xnode_issued:%llu\r\n",
-            tomoPrefetchCounterTotal(prefetch_ex_xnode_issued),
-            tomoPrefetchCounterTotal(prefetch_io_xnode_issued));
         if (server.phase_trace_sample) info = tomoPhaseAppendInfo(info);
         info = genRedisInfoStringACLStats(info);
         if (!server.cluster_enabled && server.cluster_compatibility_sample_ratio) {
@@ -24145,83 +23955,15 @@ int exQueuePopBatch(exQueue *q, client **out, int max) {
     return n;
 }
 
-typedef struct tomoMessagePrefetch {
-    exQueue *q;
-    unsigned int slot;
-    int remaining;
-} tomoMessagePrefetch;
-
-/* The pop has already touched the current prefix. Prime the next acquired
- * prefix's ring lines now; the ordinary storage pipeline provides distance
- * before the carried fake headers are read, and execution of this batch
- * provides distance before the next pop consumes those headers. */
-static inline void tomoMessagePrefetchInit(tomoMessagePrefetch *pf,
-                                           exQueue *q, int width) {
-    unsigned int head = atomic_load_explicit(&q->head, memory_order_relaxed);
-    unsigned int future = (q->cached_tail - head) & server.ex_queue_mask;
-    pf->q = q;
-    pf->slot = head;
-    pf->remaining = (int)future < width ? (int)future : width;
-    for (int off = 0; off < pf->remaining; off++)
-        redis_prefetch_read(&q->jobs[(head + (unsigned int)off) &
-                                    server.ex_queue_mask]);
-}
-
-static inline void tomoMessagePrefetchCarriers(tomoMessagePrefetch *pf) {
-    int issued = pf->remaining;
-    while (pf->remaining) {
-        client *future = pf->q->jobs[pf->slot];
-        redis_prefetch_read(future);
-        pf->slot = (pf->slot + 1) & server.ex_queue_mask;
-        pf->remaining--;
-    }
-    tomoPrefetchCounterBump(prefetch_ex_xnode_issued,
-                            (unsigned long long)issued);
-}
-
-
-
 /* ee451 (v13, audit #9): dead queueToWorker() deleted — no callers (live dispatch uses
  * exQueuePush directly); it carried a per-op epoll_ctl (connSetReadHandler NULL) trap. */
 
-/* ee451: Pipelined prefetch for a batch of fakes about to execute on a worker.
- * The dependent pointer chain a single-key command walks is:
- *
- *     fake -> argv -> argv[1](robj) -> argv[1]->ptr(sds)        (the key)
- *           -> cmd                                              (the proc)
- *           -> DICT bucket -> dict entry -> kvobj               (ex=1)
- *           -> FLAT home-slot line -> tag-matched kvobj         (ex>=2)
- *
- * Chasing that chain synchronously inside the command handler serializes a
- * string of L3/DRAM misses. Instead we issue the loads as a SOFTWARE PIPELINE
- * across the whole batch: each pass prefetches one link for every fake, so by
- * the time a later pass dereferences a link it has had ~n iterations to land,
- * and the misses of different fakes overlap (memory-level parallelism).
- *
- * Stages mirror the requested ordering "prefetch fc -> prefetch command
- * execution stages -> prefetch key value -> execute":
- *   1. fake client struct, its argv vector, the command descriptor, key robj
- *   2. key sds bytes, then select the storage branch:
- *      DICT computes/stashes SipHash and prefetches bucket -> entry -> kvobj;
- *      FLAT uses the dispatch-carried tomoKeyHash result and prefetches SLOT -> KVOBJ
- *
- * fake->db was already pointed at the worker's shard during dispatch. Scratch arrays are bounded
- * by WORKER_POP_BATCH (n <= WORKER_POP_BATCH). All derefs are NULL-guarded; a stale slot word or
- * stale prefetch address is harmless, and execution always performs the authoritative lookup. */
-static inline void exPrefetchBatch(client **batch, int n, int prefetch_mode) {
-    /* ee451 (B1, 2026-08-02): MODE 0 == the machinery does not exist on this path.
-     *
-     * This feature has never had a trustworthy measurement. Its residency gate is exactly 100%
-     * SHUT at 2M x 32B -- the standard apparatus and the one every previous prefetch A/B used --
-     * so every historical "prefetch is neutral" verdict measured DISABLED MACHINERY (measured
-     * 2026-08-02: batches 11088850, gated 11088850, issued 0). Without an off switch there was no
-     * way to compare engaged-against-absent at all, which is why nobody could attribute a number
-     * to this code.
-     *
-     * Returning here BEFORE pf_batches++ is deliberate: in mode 0 the counters must not move
-     * either, so a gated run and a disabled run are distinguishable in INFO rather than both
-     * reading as zero issues. Both enabled modes run this same shipped storage path. */
-    if (__builtin_expect(prefetch_mode == 0, 0)) return;
+/* Always-on storage lookahead for a worker-owned batch. Pass one issues FLAT
+ * slot or DICT bucket hints, pass two consumes those lines and issues the
+ * tag-matched kvobj or entry hints, and pass three issues DICT value hints.
+ * Command operands are read normally; only owner-side storage lines are hinted.
+ * Execution remains authoritative, so stale hint addresses cannot affect results. */
+static inline void exPrefetchBatch(client **batch, int n) {
     union {
         dict *d;
         flatSlot *slot;
@@ -24229,34 +23971,19 @@ static inline void exPrefetchBatch(client **batch, int n, int prefetch_mode) {
     unsigned long idxs[WORKER_POP_BATCH];
     dictEntry *des[WORKER_POP_BATCH];
 
-    /* ee451 (v13): opt-prefetch-worker master knob RETIRED (hardwired on) — control is the
-     * adaptive DB-size gate below. */
-
-    /* ee451 v11 (#58): DB-size-ADAPTIVE worker prefetch. The v9 sweep showed worker-prefetch HURTS
-     * when the shard dict is L3-resident (-4-5%) and only pays when it's DRAM-cold (~10M keys, +1.2%).
-     * So skip prefetch on small shards (the common cache-friendly case). batch[0]->db is this worker's
-     * shard db (set at dispatch); dbSize is a cheap counter read. min_keys=0 disables the gate. */
-    /* v13 (knob philosophy): -1 = AUTO — derive the gate from SELF-MEASURED quantities instead
-     * of a hardware-encoding constant: open prefetch once the shard's estimated footprint
-     * (dbSize x (96B dict/robj overhead + EWMA value size)) clearly exceeds the machine's own
-     * L3 (read from sysfs at startup) by a dimensionless 8x — below that, hot subsets are
-     * largely cache-resident and prefetch measurably hurt (-4-5%). 0 = gate off (always
-     * prefetch); N = explicit key-count override. Transfers across machines with no tuning. */
+    /* DB-size-adaptive storage lookahead. The v9 sweep showed that hints hurt when a shard is
+     * L3-resident (-4-5%) and pay when it is DRAM-cold, so the always-on controller skips small
+     * shards. Its threshold is derived from detected L3 share and the live value-size EWMA. */
     /* ee451 (#20/#21 + v13 auto-gate): this worker — predictors + self-measured vsize EWMA. */
     exThread *pfw = &server.exThreads[iotid - (TOMO_IO_THREADS_MAX + 1)];
-    pfw->pf_batches++;                         /* L0: entries, denominator for gated/issued */
-    /* ee451 (v14): gate knob DELETED — the L3-derived controller is THE gate, recomputed
-     * per batch from self-measured vsize (continuous; a workload shift re-tunes it at once). */
+    pfw->pf_batches++;                         /* L0: entries, denominator for gated */
+    /* The L3-derived threshold follows the self-measured value size. */
     {
         /* ee451 (v14): the L3-derived gate needs a 64-bit divide (8*L3/fp); fp tracks the slow-moving
          * vsize EWMA, so recompute it only every 64 batches and cache — removes the per-batch idiv on
          * the gate-closed (dispatch-bound, cache-resident) path, the hottest regime. */
-        /* ee451 (2026-07-28): tomokv-prefetch-min-keys RETIRED. It shipped in its AUTO arm (-1)
-         * and the explicit-override / gate-off arms were operator guesses at a number the server
-         * already measures. The AUTO derivation below is now the ONLY gate: it is self-deriving
-         * (detected L3 / workers-per-L3 domain, divided by a self-measured footprint EWMA), so it
-         * needs no hardware knowledge and re-tunes itself on a workload shift. Nothing about the
-         * gate's behaviour changes — this is the same arm that was already the default. */
+        /* The only gate is self-derived: detected L3 per sharing worker divided by the
+         * measured per-key footprint. No hardware-specific operator input is required. */
         unsigned long long auto_min;
         {
             if ((pfw->pf_gate_tick++ & 63u) == 0u || pfw->pf_cached_min == 0) {
@@ -24277,11 +24004,7 @@ static inline void exPrefetchBatch(client **batch, int n, int prefetch_mode) {
                 pfw->pf_cached_min = (8ULL * l3_share) / (fp ? fp : 1);
                 /* refresh the value-chase width in the same slot (same idiv class, gate-open path) */
                 unsigned int ev = pfw->w_ewma_vsize < 64 ? 64u : pfw->w_ewma_vsize;
-                /* ee451 (2026-07-28): tomokv-pf-value-budget-kb RETIRED. Its AUTO arm (-1, the
-                 * shipped default) is folded in here: the value-chase may occupy half of this
-                 * worker's fair share of L3. Self-deriving from the detected cache and the live
-                 * worker count; an explicit KB figure was an operator restating what the box
-                 * already reports. */
+                /* The value chase may occupy half this worker's fair share of detected L3. */
                 long budget = (long)(server.detected_l3_bytes / (2UL * (unsigned long)server.num_workers));
                 pfw->pf_cached_w4 = (int)(budget / (long)ev);
             }
@@ -24291,7 +24014,7 @@ static inline void exPrefetchBatch(client **batch, int n, int prefetch_mode) {
             unsigned long long est = dbSize(batch[0]->db);
             /* shared node-db: dbSize is the NODE aggregate, but this worker only ever touches its
              * own bucket range — its resident set is aggregate * range/16384. Gating on the raw
-             * aggregate opened the prefetch FSM at 4x the true per-worker set (2.0M node vs 500k
+             * aggregate opened storage lookahead at 4x the true per-worker set (2.0M node vs 500k
              * per worker squeaked past the L3 gate by 0.6%) in cache-resident regimes. */
             if (server.shared_node_dbs) {
                 int wid = iotid - (TOMO_IO_THREADS_MAX + 1);
@@ -24318,23 +24041,20 @@ static inline void exPrefetchBatch(client **batch, int n, int prefetch_mode) {
         }
     }
 
-    /* The retired group-stage widths all resolved to the current batch occupancy, so these
-     * stages cover the entire popped batch. The hash COMPUTE still runs for all n (it is
-     * functional, not a prefetch), while VALUE retains its adaptive width below. */
+    /* Scan the whole popped batch. Hash computation remains functional because execution
+     * reuses the DICT hash hint; only the dependent DICT value pass is adaptively bounded. */
 
-    /* ee451 (gem5): VALUE-SIZE-ADAPTIVE pass-4 width. The value chase is the line-fill-
+    /* ee451 (gem5): VALUE-SIZE-ADAPTIVE third-pass width. The value chase is the line-fill-
      * buffer-hungry stage; with big values each chased key plus its demand read floods the
      * LFBs, so the optimal width shrinks as values grow. Set width = cache_budget / vsize,
      * clamped to [TOMO_PF_W_VALUE_MIN, TOMO_PF_W_VALUE_MAX]: small values keep the full window,
      * big values go shallow.
      * Reproduces the measured 64B→64 / 4KB→32 / 64KB→~4 sweet spots. EWMA from served reads. */
-    /* ee451 (2026-07-28): tomokv-pf-w-value RETIRED. It shipped at -1 = AUTO, i.e. "let the
-     * budget/EWMA controller decide, capped only by the knob's own ceiling". The ceiling is now
-     * the named constant below and the controller is unconditional: the chase width is
+    /* The controller is unconditional: the chase width is
      * (L3/(2*workers)) / EWMA-vsize, clamped to [TOMO_PF_W_VALUE_MIN, TOMO_PF_W_VALUE_MAX].
-     * Both bounds are structural, not tuning: below 4 the chase cannot cover a rotation, and the
+     * The lower bound preserves the shipped controller's minimum useful lookahead, and the
      * upper bound only has to exceed any reachable batch (WORKER_POP_BATCH), so the clamp is
-     * really "whatever the measured budget says". */
+     * effectively "whatever the measured budget says". */
     int w4cap = TOMO_PF_W_VALUE_MAX;
     {
         long aw = pfw->pf_cached_w4;   /* ee451 (v14): cached (budget/ev computed in the 64-batch refresh) */
@@ -24344,176 +24064,93 @@ static inline void exPrefetchBatch(client **batch, int n, int prefetch_mode) {
     }
     int w4 = n < w4cap ? n : w4cap;
 
-    /* ── Tomo SCOREBOARD prefetcher (v13) ────────────────────────────────────────────
-     * Redis-8-style round-robin FSM (see upstream memory_prefetch.c) over Tomo's
-     * CROSS-CORE stage set. Hardware framing: each fake is an instruction in flight on
-     * a scoreboard; the cursor is the issue slot. One visit advances ONE lookup by one
-     * stage and yields as soon as it ISSUES a prefetch — by the time the cursor returns
-     * to a lookup, every other in-flight lookup has had work issued in between, so each
-     * dereference lands on a line whose prefetch got a full scoreboard rotation to
-     * arrive. Stages that issue nothing (guard-fail, width-skip, embstr) fall through
-     * within the same visit; DONE lookups retire from the rotation (writes retire right
-     * after their storage-slot hint — no wasted old-value chase).
-     * Stage set (superset of Redis's dict-only FSM — our operands cross a core
-     * boundary, ifid-parse -> worker-exec, so the struct/argv/key links are cold too):
-     *   common: STRUCT -> ARGV -> KEYOBJ -> KEYBYTES
-     *   DICT:   HASH(bucket) -> ENTRY -> VALUE(kvobj) -> DONE
-     *   FLAT:   SLOT -> KVOBJ -> DONE
-     * The group stages issue across the full batch; only the adaptive VALUE width can
-     * stop the DICT entry-to-value chase early. FLAT READONLY commands consume the warmed
-     * slot one rotation later and hint its tag-matched KVOBJ. The FUNCTIONAL work
-     * (SipHash + hash/dict/bucket stash, consumed by hash-carry,
-     * #3 nextop, and the predictors) always runs for all n.
-     * pf-cmd stays deleted (command table is permanently L1-hot). */
-    enum { PFS_STRUCT = 0, PFS_ARGV, PFS_KEYOBJ, PFS_KEYBYTES, PFS_HASH,
-           PFS_FLAT_KVOBJ, PFS_ENTRY, PFS_VALUE, PFS_DONE };
-    uint8_t st[WORKER_POP_BATCH];
+    enum {
+        STORAGE_PREFETCH_NONE = 0,
+        STORAGE_PREFETCH_FLAT,
+        STORAGE_PREFETCH_DICT
+    };
+    uint8_t storage_kind[WORKER_POP_BATCH] = {STORAGE_PREFETCH_NONE};
+    unsigned int issued_slot = 0, issued_kvobj = 0;
+
+    /* Pass 1: inspect each command normally, then hint only its owner-side
+     * storage entry point. The FLAT hash was carried by dispatch; DICT computes
+     * its hash here and retains the established execution-time hash reuse. */
     for (int j = 0; j < n; j++) {
-        st[j] = PFS_STRUCT;
+        client *fake = batch[j];
         storage[j].d = NULL;
         des[j] = NULL;
-        batch[j]->prefetch_key_hash_valid = 0;
-    }
-    int remaining = n;
+        fake->prefetch_key_hash_valid = 0;
+        if (fake->argc < 2 || !fake->argv || !fake->argv[1] || !fake->db)
+            continue;
 
-    unsigned int issued_slot = 0, issued_kvobj = 0;
-    int cur = 0;
-    while (remaining > 0) {
-        int j = cur;
-        cur = (cur + 1 == n) ? 0 : cur + 1;
-        if (st[j] == PFS_DONE) continue;
-        client *fake = batch[j];
-        int issued = 0;
-        while (!issued && st[j] != PFS_DONE) {
-            switch (st[j]) {
-            case PFS_STRUCT:
-                st[j] = PFS_ARGV;
-                redis_prefetch_read(fake);          /* ee451 metadata head line */
-                redis_prefetch_read(&fake->argc);   /* exec-fields line (argv/argc/db) */
-                issued = 1;
-                break;
-            case PFS_ARGV:
-                /* struct lines had a full rotation to land; cheap guards read them. */
-                if (fake->argc < 2 || !fake->argv || !fake->db) { st[j] = PFS_DONE; break; }
-                st[j] = PFS_KEYOBJ;
-                redis_prefetch_read(fake->argv);
-                issued = 1;
-                break;
-            case PFS_KEYOBJ: {
-                robj *k = fake->argv[1];                /* argv vector line warm */
-                if (!k) { st[j] = PFS_DONE; break; }
-                st[j] = PFS_KEYBYTES;
-                redis_prefetch_read(k);
-                issued = 1;
-                break;
-            }
-            case PFS_KEYBYTES: {
-                robj *k = fake->argv[1];                /* robj header line warm */
-                st[j] = PFS_HASH;
-                /* embstr: key bytes share the robj line KEYOBJ already pulled. */
-                if (k->encoding != OBJ_ENCODING_EMBSTR && k->ptr) {
-                    redis_prefetch_read(k->ptr);
-                    issued = 1;
-                }
-                break;
-            }
-            case PFS_HASH: {
-                /* Storage split. Normal keyed dispatch has already computed tomoKeyHash's exact
-                 * xxh64 into tomo_key_h. The pointer match proves argv[1] is that routed key, so
-                 * this owner may touch its FLAT table without re-reading/hash-walking key bytes.
-                 * The shipped path issues the home SLOT line, then schedules the tag-gated KVOBJ
-                 * read a full cursor rotation later. Writes stop at SLOT: they install a new value and
-                 * never read the old payload. The live table cannot swap during this exSlice's
-                 * in_flat_section; a stale atomic slot word remains only a harmless hint. */
-                kvstore *kvs = fake->db->keys;
-                robj *key = fake->argv[1];
-                if (fake->tomo_bkt_ptr == (const void *)key->ptr) {
-                    flatTable *t = kvstoreFlatTable(kvs);
-                    if (t && t->slots) {
-                        uint64_t h = fake->tomo_key_h;
-                        flatSlot *slot = &t->slots[flat_slot_start(h, t->mask)];
-                        storage[j].slot = slot;
-                        idxs[j] = (unsigned long)flat_tag_of(h);
-                        st[j] = (fake->cmd && (fake->cmd->flags & CMD_READONLY)) ?
-                                PFS_FLAT_KVOBJ : PFS_DONE;
-                        redis_prefetch_read(slot);   /* 8B slots: home line also warms 7 neighbours */
-                        issued_slot++;
-                        issued = 1;
-                        break;
-                    }
-                }
-
-                /* DICT branch remains independent and retains its original NULL-dict guard. */
-                /* FUNCTIONAL stage — always runs (feeds hash-carry, #3 nextop, and the
-                 * predictors); key bytes are warm from KEYBYTES/KEYOBJ.
-                 * ee451 (shared-kv S0.2a): dict index == argv[1]'s bucket now (was the single
-                 * dict 0; ->slot is a cluster/cs-sub concept, never a tomo bucket). */
-                dict *d = kvstoreGetDict(fake->db->keys,
-                    server.ex_threads > 0
-                        ? ((fake->tomo_bkt_ptr == (const void *)fake->argv[1]->ptr)
-                               ? fake->tomo_bkt
-                               : tomoKeyBucket(fake->argv[1]->ptr, sdslen(fake->argv[1]->ptr)))
-                        : (fake->slot > 0 ? fake->slot : 0));
-                if (!d || dictSize(d) == 0 || !d->ht_table[0]) { st[j] = PFS_DONE; break; }
-                uint64_t h = dictGetHash(d, fake->argv[1]->ptr);
-                fake->prefetch_key_hash = h;
-                fake->prefetch_key_hash_valid = 1;
-                unsigned long idx = h & DICTHT_SIZE_MASK(d->ht_size_exp[0]);
-                fake->prefetch_dict = d; fake->prefetch_bucket_idx = idx;   /* #3 feed */
-                /* Chase bucket->entry->value only for READ commands (a write installs a
-                 * NEW value and never reads the old payload — the chase measurably hurt
-                 * write-heavy: pure-SET populate regressed ~35% with it on), optionally
-                 * throttled by the #20 feedback / #21 reuse predictors. */
-                /* ee451 (v13): #20/#21 predictor throttles deleted with the VF apparatus —
-                 * the chase is gated by READONLY; VALUE remains adaptively capped. */
-                int chase = (fake->cmd && (fake->cmd->flags & CMD_READONLY)) ? 1 : 0;
-                if (chase) { storage[j].d = d; idxs[j] = idx; st[j] = PFS_ENTRY; }
-                else st[j] = PFS_DONE;                   /* writes retire here — no dead visits */
-                redis_prefetch_read(&d->ht_table[0][idx]);   /* bucket line */
-                issued = 1;
-                break;
-            }
-            case PFS_FLAT_KVOBJ: {
-                /* SLOT had one full scoreboard rotation to arrive. Match the same LIVE + 15-bit
-                 * tag predicate as flatFindForWrite before decoding the atomically published
-                 * pointer. No key comparison or lookup result is consumed here: a tag collision,
-                 * overwrite, or stale word can only issue a useless prefetch. */
-                uint64_t w = atomic_load_explicit(&storage[j].slot->w, memory_order_acquire);
-                st[j] = PFS_DONE;
-                if (FLAT_IS_LIVE(w) && flat_word_tag(w) == idxs[j]) {
-                    kvobj *kv = dictGetKV(flat_word_ptr(w));
-                    if (kv) {
-                        redis_prefetch_read(kv);
-                        issued_kvobj++;
-                        issued = 1;
-                    }
-                }
-                break;
-            }
-            case PFS_ENTRY: {
-                dictEntry *de = storage[j].d->ht_table[0][idxs[j]];    /* bucket line warm */
-                if (!de) { st[j] = PFS_DONE; break; }
-                des[j] = de;
-                st[j] = (j < w4) ? PFS_VALUE : PFS_DONE;
-                redis_prefetch_read(de);
-                issued = 1;
-                break;
-            }
-            case PFS_VALUE: {
-                void *kv = dictGetKey(des[j]);                   /* entry line warm */
-                st[j] = PFS_DONE;
-                if (kv) { redis_prefetch_read(kv); issued = 1; }
-                break;
-            }
-            default:
-                st[j] = PFS_DONE;
-                break;
+        kvstore *kvs = fake->db->keys;
+        robj *key = fake->argv[1];
+        if (fake->tomo_bkt_ptr == (const void *)key->ptr) {
+            flatTable *t = kvstoreFlatTable(kvs);
+            if (t && t->slots) {
+                uint64_t h = fake->tomo_key_h;
+                flatSlot *slot = &t->slots[flat_slot_start(h, t->mask)];
+                storage[j].slot = slot;
+                idxs[j] = (unsigned long)flat_tag_of(h);
+                if (fake->cmd && (fake->cmd->flags & CMD_READONLY))
+                    storage_kind[j] = STORAGE_PREFETCH_FLAT;
+                redis_prefetch_read(slot);
+                issued_slot++;
+                continue;
             }
         }
-        pfw->pf_issued += (unsigned)issued;   /* L0: prefetch stages actually issued */
-        if (st[j] == PFS_DONE) remaining--;
+
+        dict *d = kvstoreGetDict(kvs,
+            server.ex_threads > 0
+                ? ((fake->tomo_bkt_ptr == (const void *)key->ptr)
+                       ? fake->tomo_bkt
+                       : tomoKeyBucket(key->ptr, sdslen(key->ptr)))
+                : (fake->slot > 0 ? fake->slot : 0));
+        if (!d || dictSize(d) == 0 || !d->ht_table[0])
+            continue;
+
+        uint64_t h = dictGetHash(d, key->ptr);
+        unsigned long idx = h & DICTHT_SIZE_MASK(d->ht_size_exp[0]);
+        fake->prefetch_key_hash = h;
+        fake->prefetch_key_hash_valid = 1;
+        fake->prefetch_dict = d;
+        fake->prefetch_bucket_idx = idx;
+        if (fake->cmd && (fake->cmd->flags & CMD_READONLY)) {
+            storage_kind[j] = STORAGE_PREFETCH_DICT;
+        }
+        redis_prefetch_read(&d->ht_table[0][idx]);
     }
-    /* Fold once per batch so proof instrumentation adds no per-key worker-counter stores. */
+
+    /* Pass 2: the slot/bucket hints above have a full batch scan to land.
+     * Consume only hint metadata; command execution still repeats the lookup. */
+    for (int j = 0; j < n; j++) {
+        if (storage_kind[j] == STORAGE_PREFETCH_FLAT) {
+            uint64_t w = atomic_load_explicit(&storage[j].slot->w,
+                                              memory_order_acquire);
+            if (FLAT_IS_LIVE(w) && flat_word_tag(w) == idxs[j]) {
+                kvobj *kv = dictGetKV(flat_word_ptr(w));
+                if (kv) {
+                    redis_prefetch_read(kv);
+                    issued_kvobj++;
+                }
+            }
+        } else if (storage_kind[j] == STORAGE_PREFETCH_DICT) {
+            client *fake = batch[j];
+            dictEntry *de = fake->prefetch_dict->ht_table[0]
+                                                   [fake->prefetch_bucket_idx];
+            des[j] = de;
+            if (de) redis_prefetch_read(de);
+        }
+    }
+
+    /* Pass 3: bound only the dependent DICT value chase, exactly as the shipped
+     * value-size/L3 controller did. FLAT finished in pass 2. */
+    for (int j = 0; j < w4; j++) {
+        if (!des[j]) continue;
+        void *kv = dictGetKey(des[j]);
+        if (kv) redis_prefetch_read(kv);
+    }
+
     if (issued_slot) pfw->pf_issued_slot += issued_slot;
     if (issued_kvobj) pfw->pf_issued_kvobj += issued_kvobj;
 }
@@ -25218,7 +24855,6 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
         }
         int i = -1, n = 0;
         int popped_lanes[WORKER_POP_BATCH];
-        int popped_counts[WORKER_POP_BATCH];
         int popped_n = 0;
         uint64_t visited[TOMO_QS_WORDS] = {0};
         if (__builtin_expect(so != 0, 0)) {
@@ -25236,7 +24872,6 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
             n = exQueuePopOrdered(&WQ[i], ctx->batch, popmax, best + (uint64_t)(so - 1));
             if (n) {
                 popped_lanes[0] = i;
-                popped_counts[0] = n;
                 popped_n = 1;
                 if (phase_trace_on) ctx->phase_scan_lanes += (uint64_t)ctx->nq;
             }
@@ -25261,7 +24896,6 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
                 int got = exQueuePopBatch(&WQ[lane], ctx->batch + n, take);
                 if (!got) continue;                 /* stale/coalesced ready bit */
                 popped_lanes[popped_n] = lane;
-                popped_counts[popped_n] = got;
                 popped_n++;
                 for (int j = 0; j < got; j++)
                     ctx->batch_lane[n + j] = (uint16_t)lane;
@@ -25292,10 +24926,8 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
                     while (pi < popped_n && popped_lanes[pi] != lane) pi++;
                     if (pi == popped_n) {
                         popped_lanes[popped_n] = lane;
-                        popped_counts[popped_n] = 0;
                         popped_n++;
                     }
-                    popped_counts[pi] += got;
                     for (int j = 0; j < got; j++)
                         ctx->batch_lane[n + j] = (uint16_t)lane;
                     n += got;
@@ -25309,7 +24941,6 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
             n = exQueuePopBatch(&WQ[i], ctx->batch, popmax);
             if (n) {
                 popped_lanes[0] = i;
-                popped_counts[0] = n;
                 popped_n = 1;
             }
         }
@@ -25420,34 +25051,8 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
         }
         any = 1;
 
-        /* Warm the cache before executing the batch. */
-        int prefetch_mode = server.prefetch_ex_level;
-        if (prefetch_mode == 2 && popped_n == 1) {
-            /* Preserve the established one-lane path for the healthy widths. */
-            int lane = popped_lanes[0];
-            if (tomoCrossNode(lane, worker->id)) {
-                tomoMessagePrefetch message;
-                tomoMessagePrefetchInit(&message, &WQ[lane], n);
-                exPrefetchBatch(ctx->batch, n, prefetch_mode);
-                tomoMessagePrefetchCarriers(&message);
-            } else {
-                exPrefetchBatch(ctx->batch, n, prefetch_mode);
-            }
-        } else if (prefetch_mode == 2) {
-            tomoMessagePrefetch messages[WORKER_POP_BATCH];
-            int message_n = 0;
-            for (int pi = 0; pi < popped_n; pi++) {
-                int lane = popped_lanes[pi];
-                if (!tomoCrossNode(lane, worker->id)) continue;
-                tomoMessagePrefetchInit(&messages[message_n++], &WQ[lane],
-                                        popped_counts[pi]);
-            }
-            exPrefetchBatch(ctx->batch, n, prefetch_mode);
-            for (int mi = 0; mi < message_n; mi++)
-                tomoMessagePrefetchCarriers(&messages[mi]);
-        } else {
-            exPrefetchBatch(ctx->batch, n, prefetch_mode);
-        }
+        /* Always issue the shipped owner-side storage lookahead before execution. */
+        exPrefetchBatch(ctx->batch, n);
 
         tomoRelaxedBump(worker->ops_total, (uint64_t)n);   /* ee451 (v8d): monotonic load signal for the EWMA balancer (numa: _Atomic single-writer idiom) */
 
@@ -25472,26 +25077,6 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
          * The record/replay helpers in db.c remain dormant for the paper's artifact. */
         for (int j = 0; j < n; ) {
             client *fake = ctx->batch[j];
-
-            /* ee451 (#3): next-op dict-bucket look-ahead. While this op executes (a few hundred
-             * cycles), warm the bucket line of the fake TOMO_PF_W_NEXTOP ahead so its lookup doesn't
-             * eat the full DRAM miss — a rolling, execution-adjacent software-pipelined prefetch
-             * (the pass-2 batch prefetch may have been evicted by the time deep fakes run). Reuses
-             * pass-2's (dict,idx); a stale idx after a rehash only mis-warms a line (prefetch never
-             * faults). Targets the big-DB cache-miss regime; 0 = off. */
-            /* ee451 (2026-07-28): tomokv-pf-w-nextop RETIRED, and unlike the other nine this one
-             * CHANGES BEHAVIOUR: it shipped at 0 = OFF and is now hardwired to AUTO (= ON), on the
-             * owner's explicit ruling. It only actually fires at ONE worker per node, though —
-             * with >= 2 the node db is KVSTORE_FLAT, whose SLOT/KVOBJ branch deliberately never
-             * sets the DICT-only prefetch_key_hash_valid. See TOMO_PF_W_NEXTOP in server.h. */
-            if (TOMO_PF_W_NEXTOP) {   /* -1 = AUTO (lookahead = current batch n), N = strict, 0 = off */
-                int la = j + (TOMO_PF_W_NEXTOP == TOMO_PFW_NEXTOP_AUTO ? n : TOMO_PF_W_NEXTOP);
-                if (la < n) {
-                    client *nf = ctx->batch[la];
-                    if (nf->prefetch_key_hash_valid && nf->prefetch_dict && nf->prefetch_dict->ht_table[0])
-                        redis_prefetch_read(&nf->prefetch_dict->ht_table[0][nf->prefetch_bucket_idx]);
-                }
-            }
 
             /* ee451 (v8d): CUTOVER DRAIN SENTINEL — processed in queue order. Reaching it proves
              * every range primary this producer dispatched before it has executed on A; decrement
@@ -26935,10 +26520,6 @@ void initExThreads(void) {
         if (born_io)
             serverLog(LL_NOTICE, "ee451 flip: boot split — worker %d born as IO thread %d "
                                  "(symmetric pool; convertible back by grow-back)", i, ctx->io_slot);
-        /* Publish this worker's pair relations before its first slice can run.
-         * Later iterations overwrite still-dormant growth rows as their fixed
-         * contexts become available; the final boot rebuild seals the table. */
-        tomoRebuildCrossNodeTopology();
         if (pthread_create(&ctx->thread, NULL, polyThreadMain, ctx) != 0) {
             serverLog(LL_WARNING, "Failed creating poly EX thread %d: %s", i, strerror(errno));
             exit(1);
@@ -27583,10 +27164,8 @@ void *polyThreadMain(void *arg) {
             if (ok) {
                 int role_changed = cur != TOMO_MODE_UNSET;
                 cur = want;
-                if (role_changed) {
+                if (role_changed)
                     setPolyThreadName(ctx, cur); /* conversion edge, never a slice hot path */
-                    tomoRebuildCrossNodeTopology();
-                }
                 atomic_store_explicit(&ctx->mode, cur, memory_order_release);
                 /* Eligibility requires both !io_exiting and mode==IO. Publishing IO first and
                  * clearing with release keeps grow-back's departing slot excluded until its later
@@ -29215,13 +28794,6 @@ static int tmNodeOfIoSlot(int io_slot) {
     return 0;
 }
 
-static int tmNodeOfProducerSlot(int slot) {
-    int wb = slot - tomoWbLaneBase();
-    if (wb >= 0 && wb < server.wb_threads)
-        return wb / server.wb_per_node;
-    return tmNodeOfIoSlot(slot);
-}
-
 /* WB is sticky for the lifetime of the connection. Migration stays within a node, so preserving
  * the assignment also preserves locality. When enabled, the client sidecar is the only
  * per-connection WB allocation; wb=0 never calls this subsystem. */
@@ -29524,38 +29096,6 @@ static void tomoKeyLbSemiMainTick(monotime now_us) {
     reshardAutoTune();
 }
 
-/* Publish the complete boot-fixed producer/consumer relation. A floating pool
- * has no stable physical node membership, so mode 2 deliberately degenerates
- * to mode 1 there just as it does for a one-node boot. Overwrite every word:
- * role conversions must never retain a bit from an older identity snapshot. */
-static void tomoRebuildCrossNodeTopology(void) {
-    int io_slots = tomoWbLaneBase() + server.wb_threads;
-    if (io_slots > TOMO_IO_THREADS_MAX + 1)
-        io_slots = TOMO_IO_THREADS_MAX + 1;
-
-    for (int io = 0; io <= TOMO_IO_THREADS_MAX; io++) {
-        int any = 0;
-        for (int word = 0; word < TOMO_EX_MASK_WORDS; word++) {
-            uint64_t bits = 0;
-            if (io < io_slots && server.pin_mode != TOMO_PIN_FLOAT &&
-                tmNumNodes() > 1) {
-                int first = word * 64;
-                int last = first + 64;
-                if (last > server.num_workers) last = server.num_workers;
-                int io_node = tmNodeOfProducerSlot(io);
-                for (int worker = first; worker < last; worker++) {
-                    if (io_node != tmNodeOfWorker(worker))
-                        bits |= 1ull << ((unsigned)worker & 63);
-                }
-            }
-            atomic_store_explicit(&cross_node[io][word], bits,
-                                  memory_order_relaxed);
-            any |= bits != 0;
-        }
-        atomic_store_explicit(&cross_node_any[io], (unsigned char)any,
-                              memory_order_release);
-    }
-}
 
 /* ---- PID-style per-node flip controller (2026-07-22 user directive). Per node, it eagerly flips
  * on sustained internal pressure, then MEASURES the throughput outcome over a window; if throughput
@@ -32871,10 +32411,7 @@ int main(int argc, char **argv) {
     ACLLoadUsersAtStartup();
     initListeners();
     InitServerLast();
-    if (!server.sentinel_mode) {
-        initExThreads();
-        tomoRebuildCrossNodeTopology();
-    }
+    if (!server.sentinel_mode) initExThreads();
 
     if (!server.sentinel_mode) {
         serverLog(LL_NOTICE,"Server initialized");

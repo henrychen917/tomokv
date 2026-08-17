@@ -228,7 +228,8 @@ crashes; perf geomean 0.991 vs original (campaigns: 0.997/1.006/0.991 — parity
 ## Optimization loop (2026-07-23, ~2h): instruction-metered, 3 keepers
 METHOD: perf-stat instructions at fixed n, idle-corrected (work = instr - 12.7B/s x wall) — ~1-3%
 repeatable vs the box's ±10% rps drift; every keeper has an internal control (untouched paths flat).
-- C1 PFS_HASH reuses the dispatch-carried bucket: WASH (~40 of 5100 instr/op) — kept as cleanup.
+- C1's former storage-hash pass reused the dispatch-carried bucket: WASH (~40 of 5100 instr/op)
+  — kept as cleanup at the time.
 - C2 stackified the M-dispatch scratch (6 heap pairs in tomoMPerNodeDispatch, 5 in
   csBuildCoalescedSubs; [16]/[TOMO_EX_THREADS_MAX+1] stack frames, >128-key heap fallback):
   exists8 -7.1%, mset8 -4.2%, mget8 -2.6% work/op (numa=2 cross-node paths).
@@ -273,7 +274,7 @@ itself the drift fingerprint: a real shared-kvstore cost would hit numa=1 HARDER
 ## numa=1 head-vs-preopt GET/SET cells (2026-07-23, user flag) — investigated, refuted; C1 retired
 Campaign cells said numa=1 head/pre get 0.95 / set 0.97. Direct interleaved counter probes:
 - Probe A (head+C1 vs preopt): SET clearly BETTER (-5% instr, -14.6% L1d, +4.9% rps); GET slightly
-  worse (+2.9% instr, +6.4% L1d, -1.9% rps) — suspected C1's PFS_HASH hint read.
+  worse (+2.9% instr, +6.4% L1d, -1.9% rps) — suspected C1's hash-hint read.
 - Probe B (three-way with C1 reverted, fresh preopt interleave): the SAME preopt binary measured
   +6.6% more instr/op than in probe A => EVEN COUNTERS drift ±6% ACROSS campaigns (only
   same-campaign interleaved comparisons are trustworthy). -C1 improved GET ~2% but WORSENED SET ~7%

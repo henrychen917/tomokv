@@ -206,12 +206,10 @@ Caps read from code: retire-node pool `FLAT_NODE_POOL_CAP` 4096/worker (64 KB), 
   arms is the exact check, plus throughput parity.
 
 ### 12. pf-w-* prefetch widths
-* Flat store: `kvstoreGetDict` NULL retires `PFS_HASH` ⇒ hash/entry/value(+nextop feed) stages
-  inert. NOTE the blanket "pf inert on flat" is overbroad — struct/argv/keyobj/keybytes still
-  issue prefetches (`server.c:14690-14740`). Check: all 8 knobs cycled 8/0/−1 live under traffic,
-  no crash ⇒ KNOWN (wave-engine successor owns flat prefetch).
-* Dict mode (`tomokv-flat-store no`): same cycle must survive; **firing has no counter** in either
-  mode, so "does fire" is asserted only as reachable-and-harmless (coverage gap).
+* RETIRED 2026-07-28. All eight width knobs and their sweep cells were deleted.
+* The current owner-side storage lookahead is always-on and self-sized. This controller suite has
+  no A/B cell for it; its positive performance discrimination belongs to the DRAM-class benchmark
+  campaign, while INFO exposes entry, gate, FLAT-slot, and FLAT-kvobj engagement counters.
 
 ### 13. Knob −1/0/N normalization spot-checks (knob_matrix.sh pattern)
 Boot + `CONFIG GET` echo + 5 s traffic + crash-scan for: fake-ring-depth −1/0/8 (0 = OFF depth 1

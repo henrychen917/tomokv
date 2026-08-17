@@ -15,10 +15,10 @@
 #                              INFO surface and idle/load RSS must remain at parity too
 #   2. reclaim_correctness.sh  FLATSTORE/QSBR data correctness
 #   3. numa2_validate.sh       2-simnode correctness
-#   3b. simnode2_features.sh   2-simnode ENGAGEMENT gate for the 2026-08 features (prefetch
+#   3b. simnode2_features.sh   2-simnode atomic-visibility and reorder-aging engagement gate,
+#                              plus the atomic+reorder soak
 #   3c. atomic_correctness.sh  nodes-1 atomic visibility gauntlet (torn/RYOW/monotonic/msetnx +
 #                              completion-wedge drain), promoted from the job harness
-#                              mode-2 arms fire, atomics correct, everything-on soak)
 #   3d. atomic_torn.sh         torn-read discriminator, runtime atomic-on proof, MSETNX P0
 #                              survival, and bounded-RSS multi-key atomic mini-soak
 #   3e. satfill_stress.sh      N x saturating 40M uniform fill: flat resize-storm crash guard

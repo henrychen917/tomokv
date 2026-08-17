@@ -6,7 +6,7 @@ Completion ownership is boot-selected. At `tomokv-thread-wb 0`, the original IO/
 
 The spanning-worker path is pure scatter-gather: every key is hashed, resolved through `server.ex_bucket_table`, placed in a sub bound to `server.exThreads[w].db[dbid]`, and pushed to worker `w`; that worker takes its own worker lock before calling `csSubExec`. (`src/server.c:12648-12705`, `src/server.c:22144-22170`) The active dispatch and execution chain contains no branch that reads a sub's keys through a different worker. (`src/server.c:12648-12705`, `src/server.c:22165-22170`)
 
-Cross-node placement does not select a different execution protocol: `csPushSpin` still publishes the selected worker's queue. (`src/server.c:12552-12586`) The exact prefetch-only branch is `server.prefetch_io_level == 2 && tomoCrossNode(iotid,w) && sub->csparent`; it then requires `head && head->parent && head->parent->has_exec_tail` before OR-ing `1u << head->fake_slot` into `clientTail(head->parent)->prefetch_io_xnode_slots`. (`src/server.c:12544-12551`) `tomoCrossNode` itself acquire-loads `cross_node_any[io_slot]`, returns zero when it is clear, otherwise relaxed-loads the worker's bit-table word and extracts the worker bit. (`src/server.c:163-176`)
+Cross-node placement does not select a different execution protocol: `csPushSpin` publishes the selected owner worker's queue through the same path. (`src/server.c:12544-12579`)
 
 ## Entry and route selection
 
@@ -193,7 +193,6 @@ Non-atomic cross-worker RENAME has a real missing interval: HOP1 deletes the sou
 
 | Area | Current implementation |
 | --- | --- |
-| Cross-node predicate and reply-prefetch branch | `src/server.c:163-176`, `src/server.c:12544-12586` |
 | CDB release/acquire completion byte | `src/server.c:3149-3168` |
 | Ring-head dispatch and drain | `src/server.c:4236-4308`, `src/server.c:8423-8590` |
 | Cross-shard registry and classifier | `src/server.c:10784-10816`, `src/server.c:11161-11179` |

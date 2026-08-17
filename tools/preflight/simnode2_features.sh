@@ -1,8 +1,7 @@
 #!/bin/bash
-# simnode2_features.sh — gate suite: the 2026-08 features (symmetric topology-aware prefetch,
-# atomic visibility, reorder aging) exercised under --tomokv-nodes 2, where the topology table
-# marks real cross-node pairs and the mode-2 arms must ENGAGE (witness counters > 0). Single-node
-# runs of these features are identity checks only; THIS suite is the engagement + correctness gate.
+# simnode2_features.sh — gate suite: atomic visibility and reorder aging exercised under
+# --tomokv-nodes 2. Single-node runs are identity checks only; this suite is the multi-node
+# engagement and correctness gate.
 # Port 5975 is exclusive to this suite (#73: no port sharing between suites).
 set -u
 SD="$(cd "$(dirname "$0")" && pwd)"
@@ -26,16 +25,6 @@ seed(){ for i in $(seq 0 63); do CLI set memtier-$i AAAAAAAAAAAAAAAA >/dev/null;
 stat(){ CLI info stats | awk -F: -v k="$1" '$1==k{gsub(/\r/,"",$2); print $2; exit}'; }
 mt(){ local secs=$1; shift; timeout "$secs" taskset -c 16-23 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram "$@" 2>&1 | awk '/^Totals/{print int($2)}'; }
 
-echo "=== simnode2_features: prefetch mode-2 engagement ==="
-req "boot prefetch2" 'boot --tomokv-prefetch-ex 2 --tomokv-prefetch-io 2'
-seed
-V=$(mt 25 --command="$MG8" --command-ratio=3 --command-key-pattern=R --command="$MS8" --command-ratio=1 --command-key-pattern=R --key-maximum=200000 -d 16 -t 8 -c 25 --pipeline=16 --test-time=10)
-req "serves (${V:-0} ops/s)" '[ "${V:-0}" -gt 100000 ]'
-EX=$(stat tomokv_prefetch_ex_xnode_issued); IO=$(stat tomokv_prefetch_io_xnode_issued)
-req "ex-xnode engaged ($EX)" '[ "${EX:-0}" -gt 1000 ]'
-req "io-xnode engaged ($IO)" '[ "${IO:-0}" -gt 1000 ]'
-req "no crash" '[ "$(grep -cE "crash|=== ASSERT" $J/scr/s.log)" = 0 ]'
-
 echo "=== simnode2_features: atomic correctness @ nodes 2 ==="
 req "boot atomic" 'boot --tomokv-atomic yes'
 seed
@@ -48,16 +37,15 @@ sleep 2; INF=$(stat tomokv_atomic_inflight)
 req "1to1 serves (${V:-0})" '[ "${V:-0}" -gt 50000 ]'
 req "inflight drains ($INF)" '[ "${INF:-1}" = 0 ]'
 
-echo "=== simnode2_features: everything-on soak ==="
-req "boot all-on" 'boot --tomokv-atomic yes --tomokv-prefetch-ex 2 --tomokv-prefetch-io 2 --tomokv-reorder 3'
+echo "=== simnode2_features: atomic + reorder soak ==="
+req "boot atomic+reorder" 'boot --tomokv-atomic yes --tomokv-reorder 3'
 seed
 T=$(timeout 30 taskset -c 16-23 python3 "$SD/atomicity_test.py" $PORT 5 8 2>&1 | grep -oE 'torn_reads=[0-9]+' | cut -d= -f2)
 req "torn=0 all-on (got ${T:-none})" '[ "${T:-1}" = 0 ]'
 V=$(mt 35 --command="$MG8" --command-ratio=1 --command-key-pattern=R --command="$MS8" --command-ratio=1 --command-key-pattern=R --key-maximum=64 -d 16 -t 8 -c 25 --pipeline=32 --test-time=25)
-sleep 2; INF=$(stat tomokv_atomic_inflight); EX=$(stat tomokv_prefetch_ex_xnode_issued)
+sleep 2; INF=$(stat tomokv_atomic_inflight)
 req "soak serves (${V:-0})" '[ "${V:-0}" -gt 50000 ]'
 req "inflight drains ($INF)" '[ "${INF:-1}" = 0 ]'
-req "xnode still engaged ($EX)" '[ "${EX:-0}" -gt 1000 ]'
 req "no crash" '[ "$(grep -cE "crash|=== ASSERT" $J/scr/s.log)" = 0 ]'
 kb_kill
 echo "SIMNODE2 $( [ $FAILS = 0 ] && echo PASS || echo "FAIL ($FAILS)" )" | tee -a "$RES"

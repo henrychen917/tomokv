@@ -289,4 +289,3 @@ The invariants above do not close the reorder-scratch and generationless-marker 
 ## Mechanisms
 
 - [Migration drain fence](mechanisms/communication/migration-drain-fence.md)
-- [Cross-node topology table](mechanisms/communication/crossnode-topology-table.md)

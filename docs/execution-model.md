@@ -193,7 +193,7 @@ The worker acquire-exchanges <code>q_top</code>/<code>q_summary</code> to clear 
 
 For an ordinary lane, <code>exQueuePopBatch</code> relaxed-loads consumer-owned <code>head</code>, acquire-refreshes <code>tail</code> only when its cached tail says empty, copies up to <code>WORKER_POP_BATCH</code> jobs, and release-stores the new head. The compiled batch maximum is 16. (src/server.h:2329-2333, src/server.c:21024-21054)
 
-The worker prefetches the batch, then executes it in queue order. It records parent and slot pairs rather than retaining fake pointers for completion publication. (src/server.c:22042-22073)
+The worker runs the always-on owner-side storage lookahead, then executes the batch in queue order. The lookahead reads operands normally and warms only FLAT/DICT storage lines; execution remains authoritative. It records parent and slot pairs rather than retaining fake pointers for completion publication. (src/server.c:23961-24155, src/server.c:25054-25086)
 
 For an ordinary fake, <code>exExecFake</code> installs the fake in the worker's <code>current_client</code> and <code>executing_client</code> slots. T6 jobs use full <code>call</code> while holding the owner-worker lock; hash-field-expiration commands on shared node DBs hold every worker lock for that node; the ordinary keyed route invokes the command proc while holding its selected owner lock when argv[1] is declared as a key. (src/server.c:21479-21602)
 
@@ -339,12 +339,9 @@ The uring send path copies at most one <code>PROTO_REPLY_CHUNK_BYTES</code> pref
 - [Fake-client ring](mechanisms/buffers/fake-client-ring.md)
 - [Ring push/pop](mechanisms/communication/ring-push-pop.md)
 - [CDB completion bus](mechanisms/communication/cdb-completion-bus.md)
-- [Cross-node prefetch](mechanisms/prefetch/crossnode-prefetch.md)
 - [Worker-side batch storage prefetch](mechanisms/prefetch/exprefetchbatch.md)
 - [L3 footprint gate](mechanisms/prefetch/l3-footprint-gate.md)
-- [Message-carrier prefetch](mechanisms/prefetch/message-carrier-prefetch.md)
 - [Prefetch engagement counters](mechanisms/prefetch/prefetch-engagement-counters.md)
-- [Worker lookup-prefetch stages](mechanisms/prefetch/prefetch-stages.md)
 
 
 ## processEventsWhileBlocked is main-only (2026-08-15)
