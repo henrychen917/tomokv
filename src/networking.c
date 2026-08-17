@@ -192,8 +192,10 @@ static void resetFakeClientState(client *c, client *parent) {
      * per-key sub (csparent) until dispatchCrossShard sets it. */
     c->csgroup = NULL;
     c->csparent = NULL;
-    clientTail(c)->mset_pub = NULL;   /* R1 FIFO state is real-client-only; never leave a fake a stale pointer */
+    atomic_store_explicit(&clientTail(c)->_atomic_retired_commit_next, NULL,
+                          memory_order_relaxed);
     clientTail(c)->cssub_idx = 0;
+    clientTail(c)->mset_owner_idx = -1;
     clientTail(c)->is_flush = 0;
     clientTail(c)->flush_bar = NULL;   /* ee451 (shared-kv S0.2b): per-node flush barrier, set only on shared-mode sentinels */
     c->tomo_bkt_ptr = NULL;    /* ee451 (hash-carry): no carried bucket until dispatch stamps one */
@@ -837,14 +839,15 @@ client *createClient(connection *conn) {
         clientTail(c)->ring_size = p2; clientTail(c)->ring_mask = p2 - 1; clientTail(c)->ring_want_grow = 0;
     }
     clientTail(c)->cs_barrier = 0;   /* ORDER-2: no multi-hop group in flight on a fresh client */
-    atomic_store_explicit(&clientTail(c)->mset_pending_lock, 0, memory_order_relaxed);
-    atomic_store_explicit(&clientTail(c)->mset_drain_latch, 0, memory_order_relaxed);
+    atomic_store_explicit(&clientTail(c)->_atomic_retired_pending_lock, 0, memory_order_relaxed);
+    atomic_store_explicit(&clientTail(c)->_atomic_retired_drain_latch, 0, memory_order_relaxed);
     atomic_store_explicit(&clientTail(c)->mset_pending_count, 0, memory_order_relaxed);
-    atomic_store_explicit(&clientTail(c)->mset_read_waiting, 0, memory_order_relaxed);
-    clientTail(c)->mset_pending_head = NULL;
-    clientTail(c)->mset_pending_tail = NULL;
-    clientTail(c)->mset_pub = NULL;   /* armed lazily by this connection's first csMsetRegister */
-    clientTail(c)->mset_next_install_order = 0;   /* ownread: connection-global R1 order */
+    clientTail(c)->mset_owner_idx = -1;
+    clientTail(c)->_atomic_retired_pending_head = NULL;
+    clientTail(c)->_atomic_retired_pending_tail = NULL;
+    atomic_store_explicit(&clientTail(c)->_atomic_retired_commit_next, NULL,
+                          memory_order_relaxed);
+    clientTail(c)->mset_next_install_order = 0;   /* ownread: connection-global install order */
     c->tomo_read_snapshot = 0;
     c->tomo_read_snapshot_gen = 0;
     c->tomo_read_snapshot_pinned = 0;
@@ -2959,10 +2962,9 @@ void freeClient(client *c) {
             }
         }
         if (clientTail(c)->reply_cdb) { zfree(((void **)clientTail(c)->reply_cdb)[-1]); clientTail(c)->reply_cdb = NULL; }   /* #75: free heap reply buses */
-        /* R1 own-read publishing records. Freed HERE and not earlier, for the same reason as the
-         * reply buses: the active drain owner touches both (csMsetPubRetire, cdbSlotPublish), and
-         * the ring-in-flight deferral above guarantees that owner is quiescent. */
-        if (clientTail(c)->mset_pub) { zfree(clientTail(c)->mset_pub); clientTail(c)->mset_pub = NULL; }
+        /* These compatibility-layout fields are never live state. */
+        serverAssert(atomic_load_explicit(&clientTail(c)->_atomic_retired_commit_next,
+                                          memory_order_relaxed) == NULL);
     }
 
     /* We need to unbind connection of client from io thread event loop first. */

@@ -3191,7 +3191,8 @@ standardConfig static_configs[] = {
      * command can never cross an enable/disable boundary with a half-populated phase state. */
     createIntConfig("tomokv-phase-trace", NULL, DEBUG_CONFIG | IMMUTABLE_CONFIG, 0, INT_MAX, server.phase_trace_sample, 0, INTEGER_CONFIG, NULL, NULL),
     createBoolConfig("tomokv-atomic",                NULL, MODIFIABLE_CONFIG, server.tomo_atomic, 0, NULL, applyTomoAtomicAdmission),
-    createIntConfig("tomokv-atomic-window",          NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.tomo_atomic_window, 64, INTEGER_CONFIG, NULL, applyTomoAtomicAdmission),
+    createIntConfig("tomokv-atomic-window",          NULL, MODIFIABLE_CONFIG, -1, INT_MAX, server.tomo_atomic_window, -1, INTEGER_CONFIG, NULL, applyTomoAtomicAdmission),
+    createLongLongConfig("tomokv-atomic-reclaim-limit", NULL, MODIFIABLE_CONFIG, -1, LLONG_MAX, server.tomo_atomic_reclaim_limit, -1, INTEGER_CONFIG, NULL, applyTomoAtomicAdmission),
     /* tomokv-worker-direct-send (v12-K) DELETED: foundation removed, see 2s-auto v1.6 for the real
      * send-back lineage. On this fork the knob only allocated a 2048-deep ring per worker that
      * nothing ever submitted to (wdsRingOf had zero callers — protocol increments 2/3 never landed

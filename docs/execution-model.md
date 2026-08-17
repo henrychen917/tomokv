@@ -104,9 +104,9 @@ A full fake allocates the core plus tail, an output buffer, and a reply list. An
 
 ### Worker lanes and completion bus
 
-Each <code>exQueue</code> has consumer-owned atomic <code>head</code>, non-atomic <code>cached_tail</code>, and atomic <code>retired</code>; producer-owned atomic <code>tail</code>, non-atomic <code>cached_head</code>, and non-atomic <code>staged_tail</code>; and a fixed <code>jobs[TOMO_EX_QUEUE_SIZE_MAX]</code> array. <code>head</code> and <code>tail</code> are separately cache-line aligned, and the maximum jobs array is 2048 entries. (src/server.h:2310-2324, src/server.h:2437-2477)
+Each <code>exQueue</code> has consumer-owned atomic <code>head</code>, non-atomic <code>cached_tail</code>, and atomic <code>retired</code>; producer-owned atomic <code>tail</code>, non-atomic <code>cached_head</code>, and non-atomic <code>staged_tail</code>; and a fixed <code>jobs[TOMO_EX_QUEUE_SIZE_MAX]</code> array. <code>head</code> and <code>tail</code> are separately cache-line aligned, and the maximum jobs array is 2048 entries. (src/server.h)
 
-Each worker <code>exThread</code> contains <code>id</code>, pthread handle, DB pointer, atomic <code>q_top</code> and <code>q_summary[]</code> handoff summaries, <code>stamp_pending</code>, dense-sweep diagnostics, and a read-only runtime lane description: <code>nlanes</code>, heap <code>queues</code>, and heap <code>freeback</code>. (src/server.h:2527-2584)
+Each worker <code>exThread</code> contains <code>id</code>, pthread handle, DB pointer, atomic <code>q_top</code> and <code>q_summary[]</code> handoff summaries, the atomic-only <code>atomic_publish_pending</code> relevance count, dense-sweep diagnostics, and a read-only runtime lane description: <code>nlanes</code>, heap <code>queues</code>, and heap <code>freeback</code>. Owner-local atomic list heads are held in a separate lazy atomic-only array, preserving the worker layout. (src/server.h, src/server.c)
 
 <code>initExThreads</code> allocates one <code>exThread</code> per worker. Each worker gets <code>min(io_threads + num_workers + 1, TOMO_IO_THREADS_MAX + 1)</code> heap lanes in one contiguous queue/freeback block, and indices 0 through <code>io_threads + tm_ngrow_io</code> are initialized. (src/server.c:22816-22877)
 
@@ -153,7 +153,7 @@ At the end of the parse pass, consumed query bytes are trimmed and <code>flushEx
 | T6 route resolves to cross-worker | Reject; EXEC also discards the queued transaction before returning CROSSSLOT. (src/server.c:8214-8229) |
 | T6 route resolves to one worker | Use the ring head as one worker job, set <code>cs_barrier</code>, transfer transaction/script state where needed, and dispatch directly to that worker queue. (src/server.c:8507-8563) |
 | <code>TOMO_R_EXPRESS</code> route bit | Resolve the owner worker, capture CDB and worker DB, set <code>CLIENT_EX_PENDING</code>, increment <code>replyWorking</code>, and call <code>exDispatchPush</code>. (src/server.c:8494-8506) |
-| Cross-shard classifier returns a command specification | Drain this connection's reorder scratch if needed, increment <code>replyWorking</code>, and fan out through <code>csDispatch</code>; the ring fake remains the group head. (src/server.c:8565-8590) |
+| Cross-shard classifier returns a command specification | Drain this connection's reorder scratch if needed and fan out through <code>csDispatch</code>; the ring fake remains the group head. Ordinary groups increment <code>replyWorking</code>; admitted atomic writes increment a separate notifier-backed wait count. (src/server.c) |
 | <code>canDispatchToWorker(fake)</code> | Resolve one owner, capture CDB and worker DB, set EX-pending, increment <code>replyWorking</code>, and dispatch. (src/server.c:8591-8604) |
 | All other non-stateful commands | Execute <code>call(fake, CMD_CALL_FULL)</code> synchronously on the IO owner, but still mark EX-pending and release-publish CDB completion so this reply cannot overtake earlier ring entries. (src/server.c:8605-8640) |
 
@@ -215,7 +215,7 @@ For each real client it examines <code>slot = flushid &amp; ring_mask</code> and
 
 For a ready ordinary fake, the drain clears <code>CLIENT_EX_PENDING</code> and calls <code>AddReplyFromClient</code>, which copies the fake's static buffer and joins its reply list into the real client. For a cross-shard group it calls the appropriate stage/reassembly path instead. (src/server.c:4256-4311, src/networking.c:1956-2000)
 
-After splicing, it relaxed-clears the CDB byte, releases any read snapshot, calls <code>commandProcessed(fake)</code>, decrements <code>replyWorking</code> for EX or cross-shard work, and increments <code>flushid</code>. The ready byte is cleared before the ring slot can be reused. (src/server.c:4325-4341)
+After splicing, it relaxed-clears the CDB byte, releases any read snapshot, calls <code>commandProcessed(fake)</code>, decrements the matching ordinary or atomic completion count, and increments <code>flushid</code>. The ready byte is cleared before the ring slot can be reused. (src/server.c)
 
 A closing or connectionless real client uses the same acquire-ready, ordered-retirement protocol but omits reply splicing and socket writes; once its ring is empty it is removed from the pending-EX list. (src/server.c:4133-4212)
 
@@ -244,7 +244,7 @@ On Linux, the native poller first attempts <code>epoll_pwait2</code> so sub-mill
 
 The main loop uses <code>aeProcessEvents</code>; custom IO slices use <code>aeProcessEventsIO</code>. Without uring hooks, each calls the native poller and then invokes the registered readable and writable callbacks. (src/ae.c:395-456, src/ae.c:484-535, src/ae.c:544-545, src/ae.c:695-727)
 
-For custom IO slices, <code>replyWorking</code> is thread-local. When it is zero the loop may block indefinitely, while in-flight replies select bounded user polling, zero-timeout drain passes, and finally a 100-microsecond poll fallback; the main before-sleep path separately forces no sleep while its pending-EX list is nonempty. (src/ae.c:30-45, src/ae.c:572-662, src/server.c:4560-4568)
+For custom IO slices, <code>replyWorking</code> is thread-local. Ordinary in-flight replies select bounded user polling, zero-timeout drain passes, and finally a 100-microsecond poll fallback. Atomic writes are excluded: their owner arms a cache-line-isolated completion edge before the normal CDB scan and may block indefinitely; an EX publisher which wins the arm posts the owner's existing event notifier. The main before-sleep path likewise allows an atomic-only pending list to sleep. (src/ae.c, src/server.c)
 
 ### uring2 path
 

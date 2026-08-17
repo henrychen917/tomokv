@@ -381,14 +381,13 @@ kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
             if (likely(kvobjSingleCommitted(vmeta))) {
                 uint64_t pinned_snapshot;
                 if (!tomoPinnedReadSnapshot(&pinned_snapshot) ||
-                    atomic_load_explicit(&vmeta->version_seq,
-                                         memory_order_acquire) <= pinned_snapshot) {
+                    tomoVersionCommitTs(vmeta) <= pinned_snapshot) {
                     tomoRelaxedBump(server.kstat[iotid].atomic_read_fast, 1);
                     return kv;
                 }
                 /* This sole version committed after an already-pinned cut.
                  * Preserve the slow path's absent result without re-reading
-                 * the pin or the global frontier. */
+                 * the pin or the global commit clock. */
                 tomoRelaxedBump(server.kstat[iotid].atomic_read_slow, 1);
                 return kvobjVersionAt(kv, pinned_snapshot,
                                       server.current_client[iotid].p);
@@ -473,15 +472,15 @@ kvobj *lookupKeyWriteOrReply(client *c, robj *key, robj *reply) {
 static inline struct tomoVerMeta *tomoVerMetaNew(redisDb *db, uint64_t version_seq,
                                                  kvobj *version_prev) {
     struct tomoVerMeta *vmeta = zcalloc(sizeof(*vmeta));
-    atomic_store_explicit(&vmeta->version_seq, version_seq, memory_order_relaxed);
+    atomic_store_explicit(&vmeta->commit, NULL, memory_order_relaxed);
     atomic_store_explicit(&vmeta->single_state, TOMO_SINGLE_NONE,
                           memory_order_relaxed);
     atomic_store_explicit(&vmeta->version_canceled, 0, memory_order_relaxed);
-    kvobj *committed_head = NULL;
+    kvobj *stamped_head = NULL;
     if (version_prev) {
         struct tomoVerMeta *prev_meta = kvobjVmeta(version_prev);
-        committed_head = prev_meta ?
-            atomic_load_explicit(&prev_meta->committed_head, memory_order_acquire) :
+        stamped_head = prev_meta ?
+            atomic_load_explicit(&prev_meta->stamped_head, memory_order_acquire) :
             version_prev;
         /* Withdraw the sole-version licence before the caller release-attaches
          * this metadata and release-publishes a new physical table head. A
@@ -492,9 +491,9 @@ static inline struct tomoVerMeta *tomoVerMetaNew(redisDb *db, uint64_t version_s
                                   TOMO_SINGLE_SUPERSEDED,
                                   memory_order_release);
     }
-    /* The new physical head inherits the per-key cursor before its vmeta/table
-     * publication. Cursor movement remains confined to owner stamp/retire. */
-    atomic_store_explicit(&vmeta->committed_head, committed_head,
+    /* The new physical head inherits the owner-local stamped-version index before
+     * its vmeta/table publication. Index movement remains confined to stamp/retire. */
+    atomic_store_explicit(&vmeta->stamped_head, stamped_head,
                           memory_order_release);
     vmeta->stamp_state = version_seq == TOMO_VERSION_UNCOMMITTED ?
                          TOMO_STAMP_PENDING : TOMO_STAMP_APPLIED;
@@ -569,7 +568,7 @@ static void dbFlatInsertWait(kvstore *kvs, exThread *worker,
                              dbFlatInsertWaitState *wait) {
     tomoWkrUnlockPub(worker->id);
     for (;;) {
-        atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
+        flatWorkerQsbrExit(worker);
         for (;;) {
             tomoFlatResizeWakeWorker(worker->id);
             if (tomoFlatResizeWorkerActive(worker->id))
@@ -582,7 +581,7 @@ static void dbFlatInsertWait(kvstore *kvs, exThread *worker,
 
         /* The command may not touch the refreshed table until it holds both protections again. */
         tomoWkrLockPub(worker->id);
-        atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
+        flatWorkerQsbrEnter(worker);
         if (!tomoFlatResizeWorkerActive(worker->id)) return;
         tomoWkrUnlockPub(worker->id);
     }
@@ -992,9 +991,9 @@ static kvobj *dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEnt
 
 /* CURE2 retirement is deliberately not a chain repair. A committed version
  * first waits a full grace while it is still reachable. The owner then removes
- * only versions below the committed maximum, preserving the relative install
- * order of every survivor, and puts removed objects through the ordinary flat
- * retire path for the post-unlink grace. */
+ * only versions below that local successor's rank, preserving the relative
+ * install order of every survivor, and puts removed objects through the
+ * ordinary flat retire path for the post-unlink grace. */
 static void tomoSchedulePhysicalRetire(kvstore *kvs, kvobj *kv) {
     struct tomoVerMeta *vmeta = kvobjVmeta(kv);
     if (vmeta) {
@@ -1009,114 +1008,59 @@ static void tomoSchedulePhysicalRetire(kvstore *kvs, kvobj *kv) {
         if (vmeta->retire_state == TOMO_RETIRE_PHYSICAL) return;
         vmeta->retire_state = TOMO_RETIRE_PHYSICAL;
     }
-    kvstoreFlatRetireRaw(kvs, kv);
+    kvstoreFlatRetireAtomicRaw(kvs, kv);
 }
 
-void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq) {
+void tomoApplyVersionStamp(kvobj *kv) {
     struct tomoVerMeta *vmeta = kvobjVmeta(kv);
     serverAssert(vmeta != NULL);
-    serverAssert(version_seq != 0 && version_seq != TOMO_VERSION_UNCOMMITTED);
     serverAssert(vmeta->stamp_state == TOMO_STAMP_PENDING);
     serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
+    tomoCommit *commit = atomic_load_explicit(&vmeta->commit, memory_order_acquire);
+    serverAssert(commit != NULL &&
+                 atomic_load_explicit(&commit->commit_ts, memory_order_acquire) == 0);
 
-    /* The owner lane is the sole cursor mutator. Locate the current physical
-     * head so installs need only inherit its authoritative per-key cursor. A
-     * detached bag is no longer reader-resolvable and needs no cursor move. */
-    kvobj *head = NULL;
-    struct tomoVerMeta *head_meta = NULL;
-    if (!vmeta->detached) {
-        sds key = kvobjGetKey(kv);
-        int slot = getKeySlot(key);
-        dictEntryLink link = kvstoreDictFindLink(vmeta->version_kvs, slot,
-                                                  key, NULL);
-        serverAssert(link != NULL);
-        head = dictGetKV(*link);
-        head_meta = kvobjVmeta(head);
-        serverAssert(head_meta != NULL);
-    }
-
-    kvobj *committed_head = head_meta ?
-        atomic_load_explicit(&head_meta->committed_head, memory_order_acquire) :
-        NULL;
-
-    /* Sequence draw and publication are ordered, but pushes from completing
-     * workers into this owner's lane need not arrive in that order. Find the
-     * descending (seq,install_order) insertion point. The common monotone case
-     * stops immediately and advances the cursor; an older arrival is linked
-     * into history without moving the cursor backward. */
-    kvobj *committed_previous = NULL, *committed_next = committed_head;
-    while (committed_next) {
-        struct tomoVerMeta *committed_meta = kvobjVmeta(committed_next);
-        uint64_t committed_seq = committed_meta ?
-            atomic_load_explicit(&committed_meta->version_seq,
-                                 memory_order_acquire) : 0;
-        uint32_t committed_order = committed_meta ? committed_meta->version_order : 0;
-        if (version_seq > committed_seq ||
-            (version_seq == committed_seq &&
-             vmeta->version_order > committed_order))
-            break;
-
-        /* A group has one object per install_order, and different groups have
-         * different sequences, so distinct committed objects cannot tie. */
-        serverAssert(version_seq != committed_seq ||
-                     vmeta->version_order != committed_order);
-        committed_previous = committed_next;
-        committed_next = committed_meta ? kvobjCommittedPrev(committed_next) : NULL;
-    }
-
-    kvobjSetCommittedPrev(kv, committed_next);
-    atomic_store_explicit(&vmeta->version_seq, version_seq, memory_order_release);
+    /* Installation already made kv the physical head and initialized its
+     * stamped_head from the predecessor's authoritative index. Publish that
+     * inherited chain through this new head while all of the allocation and
+     * predecessor lines are still hot. The former deferred stamp pass had to
+     * hash and probe the key again merely to rediscover this same head.
+     *
+     * A timestamp does not exist yet. Readers can observe this local index at
+     * any point, but skip kv while the one shared commit marker is zero. The
+     * last-owner acq_rel chain therefore remains the only cross-shard edge. */
+    serverAssert(!vmeta->detached);
+    kvobj *stamped_head = atomic_load_explicit(&vmeta->stamped_head,
+                                                memory_order_acquire);
+    kvobjSetStampedPrev(kv, stamped_head);
     vmeta->stamp_state = TOMO_STAMP_APPLIED;
-    vmeta->version_reservation = 0;
-    vmeta->reservation_owner = NULL;
-
-    if (head_meta) {
-        /* Publish only after the new node's predecessor and stamp. MAX
-         * semantics leave an older arrival's committed-head unchanged. */
-        if (committed_previous)
-            kvobjSetCommittedPrev(committed_previous, kv);
-        else
-            atomic_store_explicit(&head_meta->committed_head, kv,
-                                  memory_order_release);
-    }
-    /* origin_client_id is deliberately NOT cleared: it is written once at
-     * install and must survive the stamp. This lane runs BEFORE commit_seq
-     * advances to this sequence (csMsetStampAndAppend pushes stamp ops, then
-     * the boot-selected commit continuation publishes), so the installing connection's own read
-     * can meet this version already stamped while still holding a snapshot
-     * below it — a cross-shard read pins S at dispatch, and even a lazily
-     * resolved GET can draw commit_seq inside that window. kvobjVersionAt
-     * then recognizes the version as the reader's own by this identity and
-     * widens the snapshot upward to it; clearing the id here made the own
-     * branch miss and the strict cursor step past the connection's own
-     * atomic write (the torn-own-read P0). */
+    atomic_store_explicit(&vmeta->stamped_head, kv, memory_order_release);
+    /* origin_client_id is deliberately NOT cleared. A pipelined own read can
+     * carry an older snapshot while this group transitions from installed to
+     * stamped to committed; identity keeps that whole interval RYOW-safe. */
 }
 
-/* Canceled atomic-group versions use the same owner lane as stamping. A canceled
- * version never receives a sequence, so it remains invisible forever.
- * Live-bag cancellation arms the existing prune grace; a version whose bag
- * was already detached can enter the ordinary post-unlink retire grace. */
+/* Mark an eagerly indexed atomic version canceled. It never receives a
+ * timestamp, so the indexed entry remains invisible. The owner record (one
+ * payload for the whole local chain) already owns the first grace; keeping
+ * PRUNE_GRACE here prevents a newer callback from treating this canceled node
+ * as eligible before that grace has actually passed. */
 void tomoCancelVersion(kvobj *kv) {
     struct tomoVerMeta *vmeta = kvobjVmeta(kv);
     serverAssert(vmeta != NULL && vmeta->version_kvs != NULL);
-    serverAssert(vmeta->stamp_state == TOMO_STAMP_PENDING);
+    serverAssert(vmeta->stamp_state == TOMO_STAMP_APPLIED);
     serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
     serverAssert(atomic_load_explicit(&vmeta->owner_ops_pending,
-                                      memory_order_acquire) == 0);
+                                      memory_order_acquire) == 1);
     vmeta->stamp_state = TOMO_STAMP_CANCELED;
     vmeta->version_reservation = 0;
     vmeta->reservation_owner = NULL;
     /* origin_client_id stays: the field is write-once at install (see
      * tomoApplyVersionStamp). A canceled version is excluded from the own
-     * branch by version_canceled and never enters the committed chain, so
-     * the surviving identity is inert here. */
-    if (vmeta->detached) {
-        tomoSchedulePhysicalRetire(vmeta->version_kvs, kv);
-        return;
-    }
+     * branch by version_canceled; the zero marker also excludes the eagerly
+     * indexed node from every other reader. */
     serverAssert(vmeta->retire_state == TOMO_RETIRE_ACTIVE);
     vmeta->retire_state = TOMO_RETIRE_PRUNE_GRACE;
-    kvstoreFlatRetireVersionPrune(vmeta->version_kvs, kv);
 }
 
 /* Publish the exact state licensed by the read fast path. The owner holds its
@@ -1126,7 +1070,7 @@ void tomoCancelVersion(kvobj *kv) {
  * TOMO_SINGLE_NONE proves no later install has superseded this physical head:
  * every successor release-stores SUPERSEDED before publishing its own
  * vmeta/table pointer, and that state is permanent even if this object's prune
- * op arrives late. committed_prev==NULL proves no older committed candidate;
+ * op arrives late. stamped_prev==NULL proves no older stamped candidate;
  * the physical predecessor scan rejects raw, applied, and pending members, but
  * permits fully canceled members because they can never become visible. */
 static void tomoPublishSingleCommitted(kvobj *kv, struct tomoVerMeta *vmeta) {
@@ -1136,9 +1080,9 @@ static void tomoPublishSingleCommitted(kvobj *kv, struct tomoVerMeta *vmeta) {
                              memory_order_acquire) != TOMO_SINGLE_NONE ||
         atomic_load_explicit(&vmeta->owner_ops_pending,
                              memory_order_acquire) != 0 ||
-        atomic_load_explicit(&vmeta->committed_head,
+        atomic_load_explicit(&vmeta->stamped_head,
                              memory_order_acquire) != kv ||
-        kvobjCommittedPrev(kv) != NULL)
+        kvobjStampedPrev(kv) != NULL || tomoVersionCommitTs(vmeta) == 0)
         return;
 
     for (kvobj *prev = kvobjVersionPrev(kv); prev; ) {
@@ -1150,9 +1094,9 @@ static void tomoPublishSingleCommitted(kvobj *kv, struct tomoVerMeta *vmeta) {
         prev = kvobjVersionPrev(prev);
     }
 
-    /* The prune owner-op is queued only after commit_seq's release-store. Its
-     * queue acquire, this release, and the reader's acquire form the chain
-     * which lets an unpinned reader omit commit_seq altogether. */
+    /* Owner-local retirement is armed only after the shared timestamp and
+     * commit clock publish. This release and the reader's acquire let an
+     * unpinned reader omit the commit clock altogether. */
     atomic_store_explicit(&vmeta->single_state, TOMO_SINGLE_COMMITTED,
                           memory_order_release);
 }
@@ -1162,7 +1106,7 @@ void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq) {
     serverAssert(vmeta != NULL && vmeta->version_kvs != NULL);
     serverAssert(vmeta->stamp_state == TOMO_STAMP_APPLIED);
     serverAssert(kvobjVersionSeq(kv) == version_seq);
-    serverAssert(version_seq <= tomoCommittedSeq());
+    serverAssert(version_seq != 0 && version_seq != TOMO_VERSION_UNCOMMITTED);
     serverAssert(atomic_load_explicit(&vmeta->owner_ops_pending,
                                       memory_order_acquire) == 0);
     if (vmeta->detached) {
@@ -1172,14 +1116,14 @@ void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq) {
     }
     serverAssert(vmeta->retire_state == TOMO_RETIRE_ACTIVE);
     vmeta->retire_state = TOMO_RETIRE_PRUNE_GRACE;
-    kvstoreFlatRetireVersionPrune(vmeta->version_kvs, kv);
+    kvstoreFlatRetireVersionPrune(vmeta->version_kvs, kv, version_seq);
     tomoPublishSingleCommitted(kv, vmeta);
 }
 
 /* A non-versioned overwrite/delete removes the whole bag from the table in
- * one ordinary owner store. Committed members with no queued owner operation
- * can enter their post-unlink grace now; uncommitted members remain pinned by
- * their install records and retire only when their stamp+prune operations run. */
+ * one ordinary owner store. Committed members with no pending owner-local
+ * maintenance can enter their post-unlink grace now; uncommitted members stay
+ * pinned by their install records until local publish/retirement runs. */
 void tomoRetireDetachedBag(kvstore *kvs, kvobj *head) {
     serverAssert(kvstoreIsFlat(kvs));
     kvobj *kv = head;
@@ -1202,14 +1146,48 @@ void tomoRetireDetachedBag(kvstore *kvs, kvobj *head) {
     }
 }
 
-static void tomoVersionPruneFinish(int owner, exThread *worker,
-                                   struct tomoVerMeta *callback_meta) {
-    tomoWkrUnlockPub(owner);
-    /* Drop only after every live-bag mutation and the executing worker's lock are finished, but
-     * before leaving the flat section: promotion may already have QSBR-retired this metadata
-     * block, and this pin keeps it valid through the counter update. */
+/* A worker-local retire batch can contain many CURE2 callbacks which all passed one QSBR grace.
+ * Re-entering the flat section and taking the same owner lock around every individual version made
+ * atomic retirement orders of magnitude dearer than ordinary same-arena reclaim. Keep the scope
+ * open across that batch. The standalone arm remains for the shared-stack fail-safe path. */
+static __thread int tomo_prune_batch_active;
+static __thread int tomo_prune_batch_owner = -1;
+static __thread exThread *tomo_prune_batch_worker;
+
+void tomoVersionPruneBatchBegin(void) {
+    serverAssert(!tomo_prune_batch_active);
+    int owner = iotid - (TOMO_IO_THREADS_MAX + 1);
+    serverAssert(owner >= 0 && owner < server.num_workers);
+    exThread *worker = &server.exThreads[owner];
+
+    flatWorkerQsbrEnter(worker);
+    while (tomoFlatResizeWorkerActive(owner)) {
+        flatWorkerQsbrExit(worker);
+        tomoFlatResizeWorkerQuiesce(owner);
+        flatWorkerQsbrEnter(worker);
+    }
+    tomoWkrLockPub(owner);
+    tomo_prune_batch_owner = owner;
+    tomo_prune_batch_worker = worker;
+    tomo_prune_batch_active = 1;
+}
+
+void tomoVersionPruneBatchEnd(void) {
+    serverAssert(tomo_prune_batch_active && tomo_prune_batch_owner >= 0 &&
+                 tomo_prune_batch_worker != NULL);
+    tomoWkrUnlockPub(tomo_prune_batch_owner);
+    flatWorkerQsbrExit(tomo_prune_batch_worker);
+    tomo_prune_batch_active = 0;
+    tomo_prune_batch_owner = -1;
+    tomo_prune_batch_worker = NULL;
+}
+
+static void tomoVersionPruneFinish(struct tomoVerMeta *callback_meta,
+                                   int standalone_scope) {
+    /* Drop after this callback's last live-bag mutation while the executing worker still holds its
+     * lock and flat-section pin: promotion may already have QSBR-retired this metadata block. */
     tomoAtomicLifecycleRelease(callback_meta);
-    atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
+    if (standalone_scope) tomoVersionPruneBatchEnd();
 }
 
 void tomoVersionPruneAfterGrace(kvobj *anchor) {
@@ -1219,23 +1197,14 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
     int owner = iotid - (TOMO_IO_THREADS_MAX + 1);
     tomoAtomicOwnerCheck(callback_meta, owner, 1);
     serverAssert(owner >= 0 && owner < server.num_workers);
-    exThread *worker = &server.exThreads[owner];
-
-    /* The ordinary reclaim pass runs outside a flat section, preserving the
-     * shipped OFF path. Only this CURE2 callback needs to re-enter: it walks
-     * and may update a live bag after its first grace. The seq_cst
-     * publish/check is the same exclusion handshake used by exSlice. */
-    atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
-    while (tomoFlatResizeWorkerActive(owner)) {
-        atomic_store_explicit(&worker->in_flat_section, 0, memory_order_seq_cst);
-        tomoFlatResizeWorkerQuiesce(owner);
-        atomic_store_explicit(&worker->in_flat_section, 1, memory_order_seq_cst);
-    }
-    tomoWkrLockPub(owner);
+    int standalone_scope = !tomo_prune_batch_active;
+    if (standalone_scope) tomoVersionPruneBatchBegin();
+    serverAssert(tomo_prune_batch_owner == owner &&
+                 tomo_prune_batch_worker == &server.exThreads[owner]);
 
     struct tomoVerMeta *anchor_meta = callback_meta;
     if (!anchor_meta || anchor_meta->retire_state == TOMO_RETIRE_PHYSICAL) {
-        tomoVersionPruneFinish(owner, worker, callback_meta);
+        tomoVersionPruneFinish(callback_meta, standalone_scope);
         return;
     }
     kvstore *kvs = anchor_meta->version_kvs;
@@ -1244,7 +1213,7 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
         serverAssert(anchor_meta->retire_state == TOMO_RETIRE_PRUNE_GRACE);
         anchor_meta->retire_state = TOMO_RETIRE_ACTIVE;
         tomoSchedulePhysicalRetire(kvs, anchor);
-        tomoVersionPruneFinish(owner, worker, callback_meta);
+        tomoVersionPruneFinish(callback_meta, standalone_scope);
         return;
     }
 
@@ -1255,22 +1224,22 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
     kvobj *head = dictGetKV(*link);
     struct tomoVerMeta *head_meta = kvobjVmeta(head);
     serverAssert(head_meta != NULL);
-    kvobj *committed_head = atomic_load_explicit(&head_meta->committed_head,
-                                                  memory_order_acquire);
-    uint64_t visible = tomoCommittedSeq();
+    kvobj *stamped_head = atomic_load_explicit(&head_meta->stamped_head,
+                                               memory_order_acquire);
     int cancel_anchor = anchor_meta->stamp_state == TOMO_STAMP_CANCELED;
-    /* A committed callback proves a grace only for its own frontier. A newer
-     * version may have committed while that grace was running; using the
-     * current global maximum would unlink a value still needed by a reader
-     * pinned between the two commits. A canceled anchor has no frontier: its
-     * grace licenses only canceled nodes whose own grace has completed. */
+    /* A successful callback proves that readers older than this local successor
+     * have drained. A newer version may commit while the grace is running, but
+     * this callback removes only ranks below its own (commit_ts,version_order).
+     * A canceled anchor has no timestamp and licenses only canceled nodes whose
+     * own grace has completed. */
     uint64_t retire_max = cancel_anchor ? 0 : kvobjVersionSeq(anchor);
+    uint32_t retire_order = cancel_anchor ? 0 : anchor_meta->version_order;
     if (cancel_anchor) {
         serverAssert(kvobjVersionSeq(anchor) == TOMO_VERSION_UNCOMMITTED);
         serverAssert(anchor_meta->retire_state == TOMO_RETIRE_PRUNE_GRACE);
         anchor_meta->retire_state = TOMO_RETIRE_ACTIVE;
     } else {
-        serverAssert(retire_max != TOMO_VERSION_UNCOMMITTED && retire_max <= visible);
+        serverAssert(retire_max != 0 && retire_max != TOMO_VERSION_UNCOMMITTED);
         serverAssert(anchor_meta->stamp_state == TOMO_STAMP_APPLIED);
     }
     serverAssert(atomic_load_explicit(&anchor_meta->owner_ops_pending,
@@ -1279,26 +1248,28 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
     /* This one maintenance walk owns every live-bag cancellation mutation:
      * unlink a buried canceled node, replace a canceled head with a survivor,
      * or remove the whole key when cancellation leaves no survivor. The
-     * cancel owner-op itself only marks and arms this grace callback. */
+     * owner-local cancel pass itself only marks and arms this grace callback. */
     kvobj *newhead = head, *previous = NULL, *kv = head;
     while (kv) {
         struct tomoVerMeta *vmeta = kvobjVmeta(kv);
         kvobj *next = vmeta ? kvobjVersionPrev(kv) : NULL;
-        uint64_t seq = vmeta ? kvobjVersionSeq(kv) : 0;
+        uint64_t seq = vmeta ? tomoVersionCommitTs(vmeta) : 0;
         int eligible = 0;
         if (vmeta && vmeta->stamp_state == TOMO_STAMP_CANCELED) {
-            /* CANCELED is retire-eligible independent of every committed
-             * frontier, but never before its own pre-unlink grace. */
+            /* CANCELED is retire-eligible independent of every commit
+             * timestamp, but never before its own pre-unlink grace. */
             eligible = vmeta->retire_state == TOMO_RETIRE_ACTIVE &&
                        atomic_load_explicit(&vmeta->owner_ops_pending,
                                             memory_order_acquire) == 0;
         } else if (!cancel_anchor) {
-            eligible = seq < retire_max;
-            if (vmeta && (seq == TOMO_VERSION_UNCOMMITTED || seq > visible ||
-                          vmeta->stamp_state != TOMO_STAMP_APPLIED ||
-                          atomic_load_explicit(&vmeta->owner_ops_pending,
-                                               memory_order_acquire) != 0))
-                eligible = 0;
+            if (!vmeta) {
+                eligible = 1; /* raw tail has implicit timestamp/order zero */
+            } else {
+                eligible = seq != 0 &&
+                    (seq < retire_max ||
+                     (seq == retire_max && vmeta->version_order < retire_order)) &&
+                    vmeta->stamp_state == TOMO_STAMP_APPLIED;
+            }
         }
 
         if (eligible) {
@@ -1306,58 +1277,73 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
              * install order; no node is inserted, relocated, or re-spliced. */
             if (previous) kvobjSetVersionPrev(previous, next);
             else newhead = next;
-            tomoSchedulePhysicalRetire(kvs, kv);
+            if (vmeta && atomic_load_explicit(&vmeta->owner_ops_pending,
+                                               memory_order_acquire) != 0) {
+                /* The successor's grace licenses unlink now, but owner-local
+                 * post-marker maintenance still owns this allocation. Mark it
+                 * detached; that pass will schedule the post-unlink grace. This
+                 * closes the commit-reordering case where the successor's
+                 * callback overtakes predecessor retirement arming. */
+                vmeta->detached = 1;
+            } else {
+                tomoSchedulePhysicalRetire(kvs, kv);
+            }
         } else {
             previous = kv;
         }
         kv = next;
     }
 
-    /* Remove reclaimed members from the committed-order chain. This is a
-     * stable filter of the already sorted chain: it neither assumes that the
-     * anchor was the cursor nor that stamps arrived in sequence order.
-     * Physical retirement marks versioned members before this pass; a
-     * committed prune also always retires the implicit-seq-0 raw tail. Stores
-     * to survivor links precede release publication of the repaired maximum. */
-    if (!cancel_anchor) {
-        kvobj *new_committed_head = NULL, *committed_previous = NULL;
-        for (kv = committed_head; kv; ) {
+    /* Stable-filter the unordered stamped index for both successful and
+     * canceled anchors. Versions are now indexed eagerly at install, while the
+     * shared zero marker keeps them invisible; cancellation must consequently
+     * remove its dead indexed nodes after the owner's common first grace. A
+     * canceled anchor cannot retire the raw predecessor, so retain that raw
+     * tail. A successful anchor did retire it above and drops it here. */
+    {
+        kvobj *new_stamped_head = NULL, *stamped_previous = NULL;
+        for (kv = stamped_head; kv; ) {
             struct tomoVerMeta *vmeta = kvobjVmeta(kv);
-            kvobj *next = vmeta ? kvobjCommittedPrev(kv) : NULL;
-            int survives = vmeta && vmeta->retire_state != TOMO_RETIRE_PHYSICAL;
+            kvobj *next = vmeta ? kvobjStampedPrev(kv) : NULL;
+            int survives = vmeta ?
+                (vmeta->stamp_state == TOMO_STAMP_APPLIED &&
+                 !vmeta->detached &&
+                 vmeta->retire_state != TOMO_RETIRE_PHYSICAL) :
+                cancel_anchor;
             if (survives) {
-                if (!new_committed_head) new_committed_head = kv;
-                if (committed_previous)
-                    kvobjSetCommittedPrev(committed_previous, kv);
-                committed_previous = kv;
+                if (!new_stamped_head) new_stamped_head = kv;
+                if (stamped_previous)
+                    kvobjSetStampedPrev(stamped_previous, kv);
+                stamped_previous = kv;
             }
             kv = next;
         }
-        if (committed_previous)
-            kvobjSetCommittedPrev(committed_previous, NULL);
-        committed_head = new_committed_head;
+        if (stamped_previous)
+            kvobjSetStampedPrev(stamped_previous, NULL);
+        stamped_head = new_stamped_head;
     }
     /* A reservation that created an absent key can be the bag's last member.
      * SetAtLink(NULL) is not a delete operation for FLAT stores: it would
      * expose a reusable tomb before the follow-up unlink. Route the empty-bag
      * case through the same stock owner-side single-store delete used for a
-     * committed tombstone. Every removed node above has already completed its
-     * pre-unlink grace and entered the ordinary post-unlink retire grace. */
+     * committed tombstone. The anchor grace licenses every unlink above;
+     * nodes with no pending owner maintenance have entered post-unlink grace,
+     * while a detached pending node will enter it on the owner's next pass. */
     if (!newhead) {
         redisDb *db = anchor_meta->version_db;
         serverAssert(db != NULL && db->keys == kvs);
         robj *keyobj = createStringObject(key, sdslen(key));
         serverAssert(dbSyncDelete(db, keyobj) == 1);
         decrRefCount(keyobj);
-        tomoVersionPruneFinish(owner, worker, callback_meta);
+        tomoVersionPruneFinish(callback_meta, standalone_scope);
         return;
     }
     struct tomoVerMeta *newhead_meta = kvobjVmeta(newhead);
     if (newhead_meta)
-        atomic_store_explicit(&newhead_meta->committed_head, committed_head,
+        atomic_store_explicit(&newhead_meta->stamped_head, stamped_head,
                               memory_order_release);
     else
-        serverAssert(committed_head == newhead);
+        serverAssert(stamped_head == newhead);
     if (newhead != head) {
         kvstoreDictSetAtLink(kvs, slot, newhead, &link, 0);
         /* EXPIRY-INDEX TRANSITION (review finding, 2026-08-10). db->expires and the HFE
@@ -1399,12 +1385,11 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
             sole_committed = kv;
             break;
         }
-        uint64_t seq = kvobjVersionSeq(kv);
+        uint64_t seq = tomoVersionCommitTs(vmeta);
         if (vmeta->stamp_state == TOMO_STAMP_CANCELED) {
             /* A canceled sibling is semantically retired immediately. It is
              * still linked only until its own grace callback can reclaim it. */
-        } else if (seq == TOMO_VERSION_UNCOMMITTED || seq > visible ||
-                   vmeta->stamp_state != TOMO_STAMP_APPLIED) {
+        } else if (seq == 0 || vmeta->stamp_state != TOMO_STAMP_APPLIED) {
             uncommitted++;
         } else {
             committed++;
@@ -1438,7 +1423,7 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
                                                sdslen(kvobjGetKey(sole_committed)));
             serverAssert(dbSyncDelete(db, keyobj) == 1);
             decrRefCount(keyobj);
-            tomoVersionPruneFinish(owner, worker, callback_meta);
+            tomoVersionPruneFinish(callback_meta, standalone_scope);
             return;
         }
     }
@@ -1447,7 +1432,19 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
      * not block promotion. Nodes below it must already be gone so stripping
      * the metadata cannot orphan their links. Readers that acquired the
      * metadata are covered by the existing metadata retire grace. */
+    /* sole_committed may be a RAW value (vmeta == NULL): that is the already-promoted
+     * single live value this very block produces below via kvobjSetVmeta(..., NULL), and
+     * the census at the "!vmeta" arm above deliberately exports it as sole_committed.
+     * Under a CANCELED anchor such a raw member is not eligible for retirement (see the
+     * `else if (!cancel_anchor)` arm of the version walk), so it survives as newhead and
+     * reaches here -- whereas under a committed anchor it is always unlinked first, which
+     * is why only MSETNX-style cancellation exposes this. kvobjVersionPrev() dereferences
+     * vmeta unconditionally, so vmeta must be tested BEFORE it is called; the existing
+     * `vmeta &&` test below sat one line too late. A raw value has no predecessor by
+     * construction and no metadata to strip, so skipping the block is exactly the
+     * intended semantics -- the body was already a no-op for it. */
     if (committed == 1 && uncommitted == 0 && sole_committed &&
+        kvobjVmeta(sole_committed) != NULL &&
         kvobjVersionPrev(sole_committed) == NULL) {
         struct tomoVerMeta *vmeta = kvobjVmeta(sole_committed);
         /* Do not detach another version's install-owner identity while its own prune callback is
@@ -1458,12 +1455,13 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
             serverAssert(vmeta->stamp_state == TOMO_STAMP_APPLIED);
             serverAssert(atomic_load_explicit(&vmeta->owner_ops_pending,
                                               memory_order_acquire) == 0);
-            /* The cursor follows the sole committed value into the raw-head
-             * fast path; stale metadata readers retain a valid self cursor
-             * until its existing retire grace completes. */
-            atomic_store_explicit(&vmeta->committed_head, sole_committed,
+            /* The stamped index follows the sole committed value into the raw
+             * fast path; stale metadata readers retain a valid self index until
+             * the metadata retire grace completes. */
+            atomic_store_explicit(&vmeta->stamped_head, sole_committed,
                                   memory_order_release);
             vmeta->retire_state = TOMO_RETIRE_ACTIVE;
+            tomoAtomicReclaimRelease(vmeta);
             kvobjSetVmeta(sole_committed, NULL);
             kvstoreFlatRetireVmeta(kvs, vmeta);
             atomic_fetch_add_explicit(&tomo_atomic_promotions, 1,
@@ -1473,7 +1471,7 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
     }
     if (anchor_meta && anchor_meta->retire_state == TOMO_RETIRE_PRUNE_GRACE)
         anchor_meta->retire_state = TOMO_RETIRE_ACTIVE;
-    tomoVersionPruneFinish(owner, worker, callback_meta);
+    tomoVersionPruneFinish(callback_meta, standalone_scope);
 }
 
 /* The ordinary write path is deliberately kept separate from the versioned
@@ -2937,8 +2935,8 @@ static unsigned long long dictShardScanCursorFromKv(unsigned long long cursor, i
 
 /* ee451 FLATSTORE SCAN: walk EVERY node's flat table for this db with a composite cursor. The
  * top-level SCAN command runs this on a worker (dispatched via canDispatchToWorker), so it holds
- * in_flat_section (resize can't free/relocate a table mid-slice) + loop_seq (QSBR grace covers the
- * kvobjs it derefs across nodes); dbScan()'s module arm runs it inline and opens an explicit flat
+ * in_flat_section plus flat_section_gen (resize cannot relocate a table mid-slice and the scalar
+ * QSBR grace covers kvobjs dereferenced across nodes); dbScan()'s module arm opens an explicit flat
  * extern region for the same guarantee. One caller reads all node tables lock-free with no
  * double-counting (one physical table per node).
  * cursor: [63:52] node | [51:32] gen(low 20) | [31:0] slot. cursor 0 = start AND done.

@@ -1658,53 +1658,9 @@ _Static_assert(ATOMIC_CHAR_LOCK_FREE == 2,
 _Static_assert(sizeof(cdbSlots) == CACHE_LINE_SIZE,
                "each reply CDB must occupy exactly one cache line");
 
-/* ---- R1 own-read gate: exact key sets ---------------------------------------------------
- * Per-group / per-read key hashes retained for the EXACT disjointness test (csKeysCollide).
- * Past this many written keys a group's own 64-bit signature is >= 16 of 64 bits, i.e. the
- * filter is >= 91% false-positive anyway and the group's inline region is already spilling, so
- * it stays filter-only and every filter hit against it HOLDS (charged to ownread_conserv). */
-#define CS_EXACT_KEYS_MAX 16
-
-/* One completed-but-not-yet-published group's key set, COPIED off the group at the moment it
- * leaves the connection's R1 FIFO (csMsetPopComplete) and dropped when its pending count is
- * decremented (csMsetPubRetire). Between those two points the group is invisible to the FIFO
- * walk while it still counts as pending, and the walk used to have no choice but to hold; this
- * record is what lets it answer exactly instead. It is a COPY, not a pointer: csReassemble
- * frees the group (and csgFree()s g->key_h) as soon as the head's reply slot is published,
- * which happens INSIDE that window.
- *
- * `tag` is the group's address, kept for identity only — the record is retired in FIFO order
- * and the tag asserts that discipline. It is NEVER dereferenced: by then the group may be gone. */
-typedef struct csPubRec {
-    uintptr_t tag;                    /* the csGroup this record stands for; compare, never deref */
-    uint64_t key_sig;                 /* copy of csGroup.key_sig */
-    int key_h_n;                      /* copy of csGroup.key_h_n; 0 => filter-only (conservative) */
-    uint64_t key_h[CS_EXACT_KEYS_MAX];/* copy of csGroup.key_h[0..key_h_n) */
-} csPubRec;
-
-/* FIFO ring of the above, one per connection that has ever registered an atomic group (lazily
- * allocated in csMsetRegister, so a server with tomokv-atomic off never allocates one).
- *
- * SIZED FROM THE STRUCTURAL BOUND, not from a guess. Every registered group owns a fake-ring
- * slot from dispatch until csReassemble, and the pending-count decrement happens BEFORE that
- * reassembly, so
- *     concurrently detached <= mset_pending_count <= dispatchid - flushid
- *                           <= c->ring_size <= server.pipeline_ring_depth <= 32,
- * where tomokv-pipeline-depth is IMMUTABLE_CONFIG and therefore fixed boot->shutdown. Rounding
- * that up to a power of two makes the ring provably impossible to overflow, at a cost of
- * (depth * 152) bytes for a connection whose fake ring already holds `depth` fakes with a 16KB
- * reply buffer each — i.e. ~1% of the ring it is sized from.
- *
- * Overflow nevertheless remains SAFE and self-healing, and the check stays: a group that finds
- * the ring full gets no record, the walk then sees pending > (linked + recorded) and takes the
- * same conservative hold it always took, counted in ownread_conserv. That arm is now unreachable
- * by the argument above, which makes any non-zero conserv on a plain MGET/MSET cell a report
- * that the argument is wrong — the cheap insurance, same as the retire's tag assert. */
-typedef struct csMsetPub {
-    unsigned int head, tail;          /* FIFO cursors; (tail - head) records live, wrap is fine */
-    unsigned int mask;                /* capacity - 1; capacity is a power of two >= pipeline depth */
-    csPubRec rec[];                   /* [mask + 1] */
-} csMsetPub;
+/* The former 64-bit written-key signature and exact-key publishing ring are gone. Own reads now
+ * resolve by immutable connection identity on the key owner, so a membership probe could only add
+ * false conflicts and allocation; it no longer participates in visibility or ordering. */
 
 struct tomoUringClient;
 typedef struct client client;
@@ -1794,10 +1750,10 @@ typedef union clientExecTail {
         /* Connection-owned controller state. A fake never owns another fake
          * ring, which is the four-line hole removed by the core allocation. */
         client *fakeClients[TOMO_PIPELINE_DEPTH_MAX];
-        struct csGroup *mset_pending_head;
-        struct csGroup *mset_pending_tail;
-        struct csMsetPub *mset_pub;
-        uint64_t mset_next_install_order; /* ownread: connection-global order reserved at R1 registration */
+        struct csGroup *_atomic_retired_pending_head;
+        struct csGroup *_atomic_retired_pending_tail;
+        _Atomic(client *) _atomic_retired_commit_next;
+        uint64_t mset_next_install_order; /* ownread: connection-global order reserved at registration */
         double fake_ring_hwm_ewma;
         _Atomic int *drain_ack;
         uint64_t drain_fence_gen; /* ee451 O1: fence_gen this drain sentinel was pushed under; worker A
@@ -1861,10 +1817,10 @@ typedef union clientExecTail {
         unsigned int ring_mask;
         unsigned int ring_want_grow;
         unsigned int cs_barrier;
-        redisAtomic int mset_pending_lock;
-        redisAtomic int mset_drain_latch;
+        redisAtomic int _atomic_retired_pending_lock;
+        redisAtomic int _atomic_retired_drain_latch;
         redisAtomic unsigned int mset_pending_count;
-        redisAtomic int mset_read_waiting;
+        int mset_owner_idx; /* installing sub's index in csGroup.mset_owners; -1 otherwise */
         unsigned int fake_ring_decay_skip;
         unsigned int fake_ring_hwm_win;
         int cssub_idx;
@@ -1932,7 +1888,7 @@ typedef struct client {
             const void *tomo_bkt_ptr;
             uint64_t tomo_key_h;
             uint64_t tomo_read_snapshot;
-            uint64_t tomo_read_snapshot_gen;   /* dispatch group-pin close generation */
+            uint64_t tomo_read_snapshot_gen;   /* dispatch group-pin MVCC timestamp */
 
             unsigned long long reply_bytes;
             size_t sentlen;
@@ -1943,8 +1899,9 @@ typedef struct client {
             size_t buf_usable_size;
             unsigned long long commands_processed;
 
-            /* 0 = no pin; wb=0 retains legacy boolean 1, WB mode stores entry IO slot + 1. */
-            unsigned int tomo_read_snapshot_pinned;
+            /* 0 = no pin; wb=0 retains legacy boolean 1, WB mode stores entry IO slot + 1.
+             * Atomic because owner-local publication and a dedicated WB may observe it. */
+            redisAtomic unsigned int tomo_read_snapshot_pinned;
             unsigned int fake_slot;
             int cdb;
             int prefetch_key_hash_valid;
@@ -2125,49 +2082,48 @@ typedef struct csH2Sub {
                         * => OOB argv read / crash on a many-key MPOP. */
 } csH2Sub;
 struct csCmdSpec;      /* fwd — full definition next to struct redisCommand below */
-typedef struct csMsetInstall {
-    kvobj *kv;                   /* exact store object returned by setKeyVersioned */
-    int owner;                   /* sole owner that applies both embedded operations */
-    uint32_t install_order;      /* per-key install-order tie break for duplicate keys */
-} csMsetInstall;
+/* One persistent record per distinct install owner. The owner appends and
+ * eagerly indexes versions while it executes normal sub-fakes, then carries
+ * the same record through its private post-marker epoch lane. The commit record,
+ * not csGroup, owns the array so reply retirement cannot invalidate it. */
+typedef struct csMsetOwner {
+    kvobj *head;
+    kvobj *tail;
+    size_t reclaim_bytes;        /* owner-local sum, published once and read by the last owner */
+    tomoCommit *commit;
+    struct csMsetOwner *next;    /* owner-private publish/retirement list */
+    int owner;
+    unsigned int ninstalled;
+    uint8_t phase;
+    uint8_t reclaim_folded;
+} csMsetOwner;
 
 typedef struct csGroup {
     redisAtomic int pending;   /* sub-fakes not yet complete; last decrementer signals slot */
     int nsub;                  /* number of sub-fakes = nkeys (one sub per key) */
     csCmdType ctype;
     int nkeys;                 /* original key count */
-    client **subs;             /* [nsub] sub-fakes (freed at drain) */
+    client **subs;             /* [nsub] sub-fakes (freed at group completion) */
     client *head;              /* the group-head fake (the ring slot) */
-    uint64_t key_sig;          /* OR of 1ULL << (tomo key hash & 63) for every written key */
-    /* R1 own-read gate, EXACT arm. key_sig is one bit per key, so at 8 written keys two
-     * disjoint 8-key sets already alias ~66% of the time and the filter almost never proves
-     * disjointness. key_h carries the FULL hash of every key that contributed to key_sig, so a
-     * filter "maybe" can be settled exactly. Deliberately adjacent to key_sig: the FIFO walk
-     * reads all three from one cache line.
-     *   key_h_n == 0  =>  no vector (too many keys, or a shape that never built one): the walk
-     *                     cannot prove disjointness and must HOLD (charged to ownread_conserv).
-     *   key_h_n  > 0  =>  key_h[0..key_h_n) is COMPLETE w.r.t. key_sig. Publishing key_h_n is
-     *                     the commit point; it is written only after every slot is filled, so a
-     *                     half-built vector reads as "no vector" (hold) and never as "disjoint".
-     * Storage lives in this group's own allocation (inline bump region, heap only if it spilled)
-     * and is written once, on the head's IO thread, before csMsetRegister publishes g. It is
-     * therefore reachable exactly as long as the group is LINKED in the FIFO: csMsetPopComplete
-     * copies key_sig/key_h into a connection-owned csPubRec on the way out, because past that
-     * point csReassemble may free this whole allocation at any moment. */
+    /* Reuse the retired atomic-probe footprint so tomokv-atomic=no keeps the
+     * same group/cache geometry. Atomic writes and MGET are disjoint command
+     * classes, so the unified routing-hash scratch reuses the same pointer slot. */
     union {
-        uint64_t *key_h;       /* [key_h_n] full tomo key hashes of the written keys */
-        uint64_t *mget_hash;   /* MGET-only routing-hash scratch; group is never in R1 */
+        csMsetOwner *mset_owners; /* stable [mset_owner_cap], one entry per distinct owner */
+        uint64_t *mget_hash;      /* MGET-only routing hashes; never live with mset_owners */
     };
-    int key_h_n;               /* 0 => filter-only (conservative); see above */
-    uint64_t version_seq;      /* UNCOMMITTED while installing, then the group commit ticket */
-    uint64_t read_seq;         /* command snapshot S while version_seq remains the write ticket */
-    struct csGroup *commit_next; /* CS_MSET global ticket-order queue link */
-    client *mset_client;         /* real-client owner of the R1 pending FIFO */
-    struct csGroup *mset_pending_prev;
-    struct csGroup *mset_pending_next;
-    redisAtomic int mset_complete;      /* active coordinator admitted every owner install */
-    redisAtomic int mset_install_count;
-    csMsetInstall *mset_installs;       /* [version_install_expected], atomic-write arm only */
+    uint64_t _atomic_owner_records_reserved;
+    int mset_owner_count;
+    int mset_owner_cap;
+    uint64_t version_seq;      /* UNCOMMITTED until last-owner marker assignment */
+    uint64_t read_seq;         /* one command snapshot T, independent of the write timestamp */
+    struct csGroup *_atomic_retired_commit_next; /* layout reserve: global commit MPSC deleted */
+    client *mset_client;         /* real client retained until terminal reply publication */
+    tomoCommit *commit;          /* shared commit_ts record retained by installed versions */
+    uint64_t commit_start_ts;    /* T at last-owner arrival; publication-lag diagnostics only */
+    redisAtomic int mset_complete;      /* TOMO_COMMIT_* completion stage */
+    redisAtomic int _atomic_install_count_reserved; /* layout reserve: exact installs fold owner records */
+    void *_atomic_retired_mset_installs; /* layout reserve: owner chains replaced install array */
     uint64_t mset_install_order_base; /* first connection-global install order reserved by this group */
     int versioned_write;         /* this group is an atomic version-bag write */
     int version_install_expected; /* successful group's exact whole-value install count */
@@ -2521,13 +2477,24 @@ typedef struct exThread {
      *
      * A missed bit means a queued fake is never popped: its reply-ready byte is never
      * set, flushid cannot advance, the client's ring wedges full and it stalls forever
-     * (the silent reply-loss failure documented at exDispatchPush). Every tail
-     * publication therefore goes through exHandoffPublishLane. */
-    _Atomic uint64_t q_summary[TOMO_QS_WORDS]
-        __attribute__((aligned(CACHE_LINE_SIZE)));
-    _Atomic unsigned int stamp_pending; /* CURE2 owner stamp/prune jobs */
-    unsigned long long handoff_missed;   /* retained INFO correctness counter; must stay zero */
-    unsigned int handoff_dense_tick;     /* retained layout/stat slot */
+     * (the silent reply-loss failure documented at exDispatchPush). Because that is
+     * unattributable in production, the consumer also performs a DENSE sweep every
+     * TOMO_HANDOFF_DENSE_EVERY passes and counts anything the summary failed to
+     * advertise in handoff_missed. That counter is the correctness oracle: it must be
+     * zero, and a non-zero value localises a missing publish site immediately.
+     * Two-level since 2026-08-05 (TOMO_IO_THREADS_MAX now exceeds 64): q_top bit j hints
+     * that q_summary[j] is non-empty. The O(non-empty) property is preserved exactly:
+     * an idle pass exchanges ONLY q_top (one atomic, same as the old single word), a busy
+     * pass pays 1 + (#non-empty words). Producers set the top bit only on a word's
+     * empty->nonempty transition. A top bit without word bits (consumer took the word
+     * between the two producer stores) is a benign spurious visit; a word bit without a
+     * top bit closes on the producer's next store or the dense sweep — the same
+     * coalesce-into-a-later-slice semantics the single word always had. */
+    _Atomic uint64_t q_top __attribute__((aligned(CACHE_LINE_SIZE)));
+    _Atomic uint64_t q_summary[TOMO_QS_WORDS];   /* shares q_top's line: producers touch both */
+    _Atomic unsigned int atomic_publish_pending; /* single-writer total: owner list + epoch reclaim */
+    unsigned long long handoff_missed;   /* dense sweep found work the summary did not advertise */
+    unsigned int handoff_dense_tick;     /* consumer-private pass counter */
     /* ee451 #83 (2026-08-05): lanes are HEAP arrays sized to the runtime pool (nlanes =
      * io_threads + num_workers + 1), NOT inline arrays sized to the compile cap. This is the change
      * that makes the cap raise affordable: inline at cap 128 would be ~3MB/worker faulted for even a
@@ -2593,7 +2560,7 @@ typedef struct exThread {
      * "tail block packs in one 64B line" claim no longer holds verbatim. They are
      * worker-private (written only by the owning worker), so they share a line only with
      * other worker-private fields — the property that matters is that they are NOT next to
-     * loop_seq/in_flat_section, which every worker now polls in flatBatchReady. */
+     * the physical-grace publication fields read by the shared eligibility controller. */
     /* ee451 2026-08-04: wall µs this worker spent with an EMPTY QUEUE, measured as whole idle
      * EPISODES (2 clock reads per episode, never per spin round). This drives the retained
      * worker-only modes. The ratio mode instead pairs exThread.tm_productive_us with
@@ -2624,17 +2591,17 @@ typedef struct exThread {
      * PLACEMENT: appended at the very END of the struct on purpose. Inserting them mid-struct shifted
      * the carefully-tuned hot block (the `db`/tm_* line the F1 false-sharing fix established) and
      * measured -16% on p32 SET; appending leaves every pre-existing field's relative layout intact,
-     * and they still sit far from loop_seq/in_flat_section, which every worker polls in
-     * flatBatchReady. */
+     * and they still sit far from loop_seq/in_flat_section/flat_section_gen, which the shared
+     * physical-grace controller samples only when advancing its cached frontier. */
     /* PAD: force the worker-private reclaim fields onto their own cache line. Without this they
      * land on the same line as loop_seq / in_flat_section (build-time _Static_assert in server.c
      * enforces it — an earlier "move to the end of the struct" did NOT actually separate them), and
-     * a write on every retire would ping-pong a line every other worker polls in flatBatchReady. */
+     * a write on every retire would ping-pong a line sampled by the shared grace controller. */
     char flat_pad[CACHE_LINE_SIZE];
     struct flatRetireNode *flat_retire_local;
     struct flatBatch *flat_batches_local;   /* FIFO head = oldest */
     struct flatBatch *flat_batches_tail;    /* FIFO tail = newest (append point) */
-    struct flatBatch *flat_batch_spare;     /* recycled batch headers (a batch is ~544B) */
+    struct flatBatch *flat_batch_spare;     /* recycled scalar batch headers */
     int flat_batch_spare_n;                 /* bounded: a long non-worker region can queue many
                                              * batches, and freeing them all would otherwise park an
                                              * unbounded free-list for the process lifetime */
@@ -2696,6 +2663,10 @@ typedef struct exThread {
      * owner-written stats tail line (pf_issued_*): the coordinator reads it only on cutover ticks,
      * so there is no steady-state cross-thread traffic on the line. */
     _Atomic int retained_refs;
+    /* Entry generation of the current flat read section. Appended after the retained-ref fence
+     * field so no already-shipped predecessor offset moves. The global grace controller reads it
+     * only while in_flat_section is set. */
+    _Atomic uint64_t flat_section_gen;
 } exThread;
 
 /* Single-writer add/sub for exThread.retained_refs (see the field comment). Owner thread only:
@@ -3206,6 +3177,9 @@ struct redisServer {
     list *clients_mig_parked[TOMO_IO_THREADS_MAX + 1];
     /* Clients refused before atomic-MSET group creation, retried only by their owning IO loop. */
     list *clients_atomic_window_parked[TOMO_IO_THREADS_MAX + 1];
+    /* Process-constant q_summary shape: widths below 64 use the exact single-word harvest; wider
+     * producer sets enable q_top and the second summary word. Latched once in initExThreads. */
+    int tm_qs_multiword;
     int num_workers;
     /* ee451 (thread-modes): worker-slot accounting.
      * num_workers is the CONFIGURED count W — the number of worker SLOTS that exist. It sizes
@@ -4092,8 +4066,11 @@ struct redisServer {
                                 * path), 1=worker partition (structural), 2=+class SJF + same-key
                                 * guard + same-bucket grouping. Mutually exclusive with
                                 * strict_order (reorder defers). default 0. */
-    int tomo_atomic;           /* tomokv-atomic: epoch-versioned MSET/MGET atomicity. default off. */
-    int tomo_atomic_window;    /* max admitted atomic MSET groups; 0 = unlimited. default 64: smaller in-flight populations keep version piles shallow and the whole atomic pipeline cache-hot — measured better than 512 in EVERY regime (64-key adversarial AND 2M realistic, 1:1 AND 9:1). */
+    int tomo_atomic;           /* tomokv-atomic: commit-time MVCC for eligible whole-value groups. */
+    int tomo_atomic_window;    /* max admitted atomic write groups; -1 = live-writer auto,
+                                * 0 = unlimited, positive = exact. */
+    long long tomo_atomic_reclaim_limit; /* process-wide retained atomic-version pool: -1 =
+                                          * physical/maxmemory-derived auto, 0 = off. */
     /* (no xshard_inline_* field: the inline region is sized per command by csInlineWant) */
     /* ee451 (v8d): EWMA adaptive load-balancer (control plane only — never on the routing hot path). */
     char *pin_io_spec;         /* tomokv-pin-io: per-role-per-node cpu spec, e.g.
@@ -5594,6 +5571,8 @@ unsigned long long dbScan(redisDb *db, unsigned long long cursor, dictScanFuncti
  * free what it is dereferencing. Nesting-safe. */
 void flatQsbrRegionEnter(void);
 void flatQsbrRegionExit(void);
+void flatWorkerQsbrEnter(exThread *worker);
+void flatWorkerQsbrExit(exThread *worker);
 
 /* Set data type */
 robj *setTypeCreate(sds value, size_t size_hint);
@@ -5868,21 +5847,28 @@ void dbReplaceValueWithLink(redisDb *db, robj *key, robj **val, dictEntryLink li
 void setKey(client *c, redisDb *db, robj *key, robj **ioval, int flags);
 kvobj *setKeyVersioned(client *c, redisDb *db, robj *key, robj **ioval, int flags,
                        uint64_t version_seq, long long version_expire);
-void tomoApplyVersionStamp(kvobj *kv, uint64_t version_seq);
+void tomoApplyVersionStamp(kvobj *kv);
 void tomoCancelVersion(kvobj *kv);
 void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq);
 void tomoVersionPruneAfterGrace(kvobj *anchor);
+void tomoVersionPruneOwnerAfterGrace(void *owner_record);
+void tomoVersionPruneOwnerDiscard(void *owner_record);
+void tomoVersionPruneBatchBegin(void);
+void tomoVersionPruneBatchEnd(void);
 void tomoRetireDetachedBag(kvstore *kvs, kvobj *head);
 void tomoAtomicLifecycleEnsure(void);
 void tomoAtomicLifecycleRelease(struct tomoVerMeta *vmeta);
 void tomoAtomicOwnerCheck(struct tomoVerMeta *vmeta, int executing_owner,
                           int prune_callback);
-/* Return the command's already-pinned snapshot without touching commit_seq.
+void tomoAtomicReclaimCharge(kvobj *kv, int owner);
+void tomoAtomicReclaimRelease(struct tomoVerMeta *vmeta);
+void tomoAtomicCommitVersionRelease(struct tomoVerMeta *vmeta);
+/* Return the command's already-pinned snapshot without touching the commit clock.
  * False means this is a single-owner/current read which may linearize now. */
 static inline int tomoPinnedReadSnapshot(uint64_t *snapshot) {
     client *c = server.current_client[iotid].p;
     if (!c) return 0;
-    if (c->tomo_read_snapshot_pinned) {
+    if (atomic_load_explicit(&c->tomo_read_snapshot_pinned, memory_order_acquire)) {
         *snapshot = c->tomo_read_snapshot;
         return 1;
     }
@@ -5892,7 +5878,8 @@ static inline int tomoPinnedReadSnapshot(uint64_t *snapshot) {
             *snapshot = g->read_seq;
             return 1;
         }
-        if (g->head && g->head->tomo_read_snapshot_pinned) {
+        if (g->head && atomic_load_explicit(&g->head->tomo_read_snapshot_pinned,
+                                            memory_order_acquire)) {
             *snapshot = g->head->tomo_read_snapshot;
             return 1;
         }

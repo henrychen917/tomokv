@@ -18,6 +18,8 @@ The fixed scratch arrays hold one FLAT slot or DICT pointer, one tag/index, one 
 
 The storage pass order is therefore FLAT slot -> tag-matched kvobj, or DICT bucket -> entry -> value. There is no operand-prefetch prefix around it.
 
+The ordinary input lane passed to `exSlice()` has exactly one producing I/O identity and one consuming worker. The structure's field order separates cache-line-aligned atomic `head`, cache-line-aligned atomic `tail`, and cache-line-aligned `client *jobs[2048]`; consumer-private `cached_tail` and atomic execution frontier `retired` share the head region, while producer-private `cached_head` and `staged_tail` share the tail region. `retired` is not part of job publication: the worker release-stores the post-pop `head` there only after executing the batch, for the reshard quiescence test. Atomic version publication uses owner-private records, not an `exQueue`, and never reaches `exPrefetchBatch()`. (`src/server.c`, `src/server.h`)
+
 ## Engagement and safety
 
 The L3-derived footprint gate can skip all storage hints for a cache-resident shard; see [the L3 footprint gate](l3-footprint-gate.md). The worker still clears stale DICT hash validity before either returning at the gate or scanning an engaged batch. (`src/server.c:24013-24039`, `src/server.c:24078-24083`)

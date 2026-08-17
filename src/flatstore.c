@@ -13,8 +13,9 @@
  *  OVERWRITE: owner-exclusive read-modify-write keeping [63:48], swapping only the ptr bits [47:0].
  *  Single-writer-per-KEY (one owner per bucket) means the CAS only ever resolves cross-KEY physical
  *  collisions; a key is never inserted/deleted by two threads at once. A deleted/overwritten value is
- *  QSBR-retired (flatRetire) and freed only after every live worker's loop_seq grace, so concurrent
- *  lock-free readers never dereference freed memory. Those readers still exist after the node
+ *  QSBR-retired (flatRetire) and freed only after the scalar physical-grace frontier passes its
+ *  close target, so concurrent lock-free readers never dereference freed memory. Those readers
+ *  still exist after the node
  *  borrow was deleted (2026-07-27): the cross-shard MGET/SETOP subs, and above all the
  *  worker-routed top-level SCAN, whose composite-cursor slice walks EVERY node's flat table
  *  (flatScanDbs, db.c) and so derefs kvobjs it does not own. QSBR is what makes that legal. */
@@ -27,7 +28,10 @@
  * are already constrained to the low 48 bits) to request a grace callback. */
 #define FLAT_RETIRE_SPECIAL_BIT (UINT64_C(1) << 63)
 #define FLAT_RETIRE_VMETA_BIT   (UINT64_C(1) << 62)
-#define FLAT_RETIRE_SPECIAL_MASK (FLAT_RETIRE_SPECIAL_BIT | FLAT_RETIRE_VMETA_BIT)
+#define FLAT_RETIRE_RECLAIM_BIT (UINT64_C(1) << 61)
+#define FLAT_RETIRE_OWNER_BIT   (UINT64_C(1) << 60)
+#define FLAT_RETIRE_SPECIAL_MASK (FLAT_RETIRE_SPECIAL_BIT | FLAT_RETIRE_VMETA_BIT | \
+                                  FLAT_RETIRE_RECLAIM_BIT | FLAT_RETIRE_OWNER_BIT)
 
 static inline dictEntry *flatRetireSpecial(void *payload, int vmeta) {
     uintptr_t p = (uintptr_t)payload;
@@ -40,12 +44,35 @@ static inline void *flatRetireSpecialPayload(dictEntry *payload) {
     return (void *)((uintptr_t)payload & ~(uintptr_t)FLAT_RETIRE_SPECIAL_MASK);
 }
 
+static inline dictEntry *flatRetireReclaim(void *payload) {
+    uintptr_t p = (uintptr_t)payload;
+    serverAssert((p & (uintptr_t)FLAT_RETIRE_SPECIAL_MASK) == 0);
+    return (dictEntry *)(p | (uintptr_t)FLAT_RETIRE_SPECIAL_BIT |
+                         (uintptr_t)FLAT_RETIRE_RECLAIM_BIT);
+}
+
+static inline dictEntry *flatRetireOwner(void *payload) {
+    uintptr_t p = (uintptr_t)payload;
+    serverAssert((p & (uintptr_t)FLAT_RETIRE_SPECIAL_MASK) == 0);
+    return (dictEntry *)(p | (uintptr_t)FLAT_RETIRE_SPECIAL_BIT |
+                         (uintptr_t)FLAT_RETIRE_OWNER_BIT);
+}
+
 void flatRetirePayloadReady(dictEntry *payload) {
     uintptr_t p = (uintptr_t)payload;
     if (!(p & (uintptr_t)FLAT_RETIRE_SPECIAL_BIT)) {
         decrRefCount((robj *)dictGetKV(payload));
+    } else if (p & (uintptr_t)FLAT_RETIRE_RECLAIM_BIT) {
+        kvobj *kv = flatRetireSpecialPayload(payload);
+        tomoAtomicReclaimRelease(kvobjVmeta(kv));
+        tomoAtomicCommitVersionRelease(kvobjVmeta(kv));
+        decrRefCount((robj *)kv);
     } else if (p & (uintptr_t)FLAT_RETIRE_VMETA_BIT) {
-        zfree(flatRetireSpecialPayload(payload));
+        struct tomoVerMeta *vmeta = flatRetireSpecialPayload(payload);
+        tomoAtomicCommitVersionRelease(vmeta);
+        zfree(vmeta);
+    } else if (p & (uintptr_t)FLAT_RETIRE_OWNER_BIT) {
+        tomoVersionPruneOwnerAfterGrace(flatRetireSpecialPayload(payload));
     } else {
         tomoVersionPruneAfterGrace((kvobj *)flatRetireSpecialPayload(payload));
     }
@@ -58,9 +85,18 @@ void flatRetirePayloadDiscard(dictEntry *payload) {
     uintptr_t p = (uintptr_t)payload;
     if (!(p & (uintptr_t)FLAT_RETIRE_SPECIAL_BIT))
         decrRefCount((robj *)dictGetKV(payload));
-    else if (p & (uintptr_t)FLAT_RETIRE_VMETA_BIT)
-        zfree(flatRetireSpecialPayload(payload));
-    else {
+    else if (p & (uintptr_t)FLAT_RETIRE_RECLAIM_BIT) {
+        kvobj *kv = flatRetireSpecialPayload(payload);
+        tomoAtomicReclaimRelease(kvobjVmeta(kv));
+        tomoAtomicCommitVersionRelease(kvobjVmeta(kv));
+        decrRefCount((robj *)kv);
+    } else if (p & (uintptr_t)FLAT_RETIRE_VMETA_BIT) {
+        struct tomoVerMeta *vmeta = flatRetireSpecialPayload(payload);
+        tomoAtomicCommitVersionRelease(vmeta);
+        zfree(vmeta);
+    } else if (p & (uintptr_t)FLAT_RETIRE_OWNER_BIT) {
+        tomoVersionPruneOwnerDiscard(flatRetireSpecialPayload(payload));
+    } else {
         /* Teardown/resize suppresses the prune callback entirely. Retire the install-owner
          * reference here, at the point which proves no callback can later mutate the bag. */
         kvobj *anchor = flatRetireSpecialPayload(payload);
@@ -114,7 +150,12 @@ void flatTableDestroy(flatTable *t) {
     flatTableDiscardRetires(t);
     for (uint64_t i = 0; i < t->size; i++) {
         uint64_t w = atomic_load_explicit(&t->slots[i].w, memory_order_relaxed);
-        if (FLAT_IS_LIVE(w)) decrRefCount((robj *)dictGetKV(flat_word_ptr(w)));
+        if (FLAT_IS_LIVE(w)) {
+            kvobj *kv = (kvobj *)dictGetKV(flat_word_ptr(w));
+            tomoAtomicReclaimRelease(kvobjVmeta(kv));
+            tomoAtomicCommitVersionRelease(kvobjVmeta(kv));
+            decrRefCount((robj *)kv);
+        }
     }
     zfree(t->slots);
     zfree(t);
@@ -146,6 +187,8 @@ __thread flatRetireNode *flat_node_pool = NULL;
 __thread unsigned flat_node_pool_n = 0;
 __thread unsigned flat_node_pool_lowat = 0;   /* min occupancy this window = never-needed surplus */
 __thread unsigned flat_node_tick = 0;
+__thread unsigned flat_local_retire_flags = 0;
+__thread uint64_t flat_local_retire_ts = 0;
 
 /* Low-water scavenger (glibc/tcmalloc shape). The minimum occupancy reached during a window is by
  * definition the number of nodes the window never needed, so that many are returned to the
@@ -165,7 +208,7 @@ void flatNodePoolTrim(void) {
     flat_node_pool_lowat = flat_node_pool_n;
 }
 
-static void flatRetirePayload(flatTable *t, dictEntry *payload) {
+static void flatRetirePayload(flatTable *t, dictEntry *payload, unsigned int retire_flags) {
     if (!payload) return;
     flatRetireNode *n = flat_node_pool;
     if (n) {
@@ -177,23 +220,60 @@ static void flatRetirePayload(flatTable *t, dictEntry *payload) {
     n->masked_kv = payload;
     /* Worker thread: push onto its OWN list (no CAS) — that worker closes the batch and frees it
      * same-arena once the QSBR grace passes (flatWorkerReclaim). */
-    if (flat_local_sink) { n->next = *flat_local_sink; *flat_local_sink = n; return; }
+    if (flat_local_sink) {
+        n->next = *flat_local_sink;
+        *flat_local_sink = n;
+        flat_local_retire_flags |= retire_flags;
+        return;
+    }
     flatRetireNode *head = atomic_load_explicit(&t->retire_stack, memory_order_relaxed);
     do { n->next = head; }
     while (!atomic_compare_exchange_weak_explicit(&t->retire_stack, &head, n,
              memory_order_release, memory_order_relaxed));
 }
 
-void flatRetire(flatTable *t, dictEntry *masked_kv) {
-    flatRetirePayload(t, masked_kv);
+/* The owner record already is a stable, install-order local chain. Give it one
+ * recycled retire node and append it directly to the caller's private logical
+ * lane. Its batch close supplies the physical grace and the scalar commit
+ * frontier supplies logical eligibility. */
+int flatRetireVersionOwnerLocal(flatRetireNode **sink, void *owner_record) {
+    serverAssert(sink != NULL && owner_record != NULL);
+    flatRetireNode *n = flat_node_pool;
+    int allocated = 0;
+    if (n) {
+        flat_node_pool = n->next;
+        if (--flat_node_pool_n < flat_node_pool_lowat)
+            flat_node_pool_lowat = flat_node_pool_n;
+    } else {
+        n = zmalloc(sizeof(*n));
+        allocated = 1;
+    }
+    n->masked_kv = flatRetireOwner(owner_record);
+    n->next = *sink;
+    *sink = n;
+    return allocated;
 }
 
-void flatRetireVersionPrune(flatTable *t, void *rawkv) {
-    flatRetirePayload(t, flatRetireSpecial(rawkv, 0));
+void flatRetire(flatTable *t, dictEntry *masked_kv) {
+    flatRetirePayload(t, masked_kv, 0);
+}
+
+void flatRetireAtomicRaw(flatTable *t, void *rawkv) {
+    flatRetirePayload(t, flatRetireReclaim(rawkv), 0);
+}
+
+void flatRetireVersionPrune(flatTable *t, void *rawkv, uint64_t successor_ts) {
+    /* Owner-local post-marker maintenance runs while exSlice has armed the worker-local sink.
+     * Keeping its timestamp in the same TLS aggregate leaves ordinary/off-path retire machine code
+     * unchanged and makes an unexpected shared-stack producer fail closed instead of silently
+     * dropping logical eligibility. */
+    serverAssert(flat_local_sink != NULL);
+    if (successor_ts > flat_local_retire_ts) flat_local_retire_ts = successor_ts;
+    flatRetirePayload(t, flatRetireSpecial(rawkv, 0), FLAT_RETIRE_BATCH_PRUNE);
 }
 
 void flatRetireVmeta(flatTable *t, void *vmeta) {
-    flatRetirePayload(t, flatRetireSpecial(vmeta, 1));
+    flatRetirePayload(t, flatRetireSpecial(vmeta, 1), 0);
 }
 
 /* decode a tag-masked slot pointer to (kvobj*, key). masked may be NULL. */

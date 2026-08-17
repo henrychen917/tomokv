@@ -35,14 +35,14 @@ Parent: the subsystem docs in `../` link down to these; the top-level `../../REA
 - [`communication/cdb-completion-bus.md`](communication/cdb-completion-bus.md) — `cdbSlotPublish` / `cdbSlotReady` / `cdbSlotClear` — EX-to-IO/WB reply-ready completion
 - [`communication/migration-drain-fence.md`](communication/migration-drain-fence.md) — `migPushFenceIfNeeded` / `drain_ack` / `fence_acked` — migration cutover execu
 - [`communication/owner-lock.md`](communication/owner-lock.md) — `tomoWkrLock` / `tomoWkrTrylock` / `tomoWkrUnlock` / `tomoWkrLockPub` / `tomoWkr
-- [`communication/owner-op-stamp-lane.md`](communication/owner-op-stamp-lane.md) — `csStampLane` / `csStampPush` / `csStampRoute` / `csStampDrain` / `owner_ops_pen
+- [`communication/owner-local-publish.md`](communication/owner-local-publish.md) — eager owner-local indexing, last-owner marker publication, and owner-epoch retirement
 - [`communication/ring-push-pop.md`](communication/ring-push-pop.md) — `exQueuePush` / `exQueuePopBatch` / `exQueuePopOrdered` / `staged_tail` — batc
 
 ## algorithms
-- [`algorithms/atomic-window.md`](algorithms/atomic-window.md) — tomokv-atomic-window: the atomic-write admission window
-- [`algorithms/bloom-signature.md`](algorithms/bloom-signature.md) — key_sig: the per-group key-set bloom signature
+- [`algorithms/atomic-window.md`](algorithms/atomic-window.md) — atomic-write admission and reclaim backpressure
+- [`algorithms/bloom-signature.md`](algorithms/bloom-signature.md) — retired atomic key-signature probe and its identity-based replacement
 - [`algorithms/client-lb.md`](algorithms/client-lb.md) — Client-LB: continuous connection rebalance across IO threads
-- [`algorithms/commit-seq-ordering.md`](algorithms/commit-seq-ordering.md) — commit_seq: the global commit-order counter
+- [`algorithms/commit-seq-ordering.md`](algorithms/commit-seq-ordering.md) — last-owner commit-time timestamps and the nonblocking encoded clock
 - [`algorithms/del-tombstone-versions.md`](algorithms/del-tombstone-versions.md) — DEL / UNLINK and tombstone versions
 - [`algorithms/flat-hash-and-tag.md`](algorithms/flat-hash-and-tag.md) — FLATSTORE slot word: hash, tag, and pointer encoding
 - [`algorithms/flat-load-factor-and-resize.md`](algorithms/flat-load-factor-and-resize.md) — FLATSTORE load factor, resize triggers, and grow/shrink sizing
@@ -52,7 +52,7 @@ Parent: the subsystem docs in `../` link down to these; the top-level `../../REA
 - [`algorithms/flip-judge.md`](algorithms/flip-judge.md) — Flip throughput judge: `getNumCommands()` vs per-worker `ops_total`
 - [`algorithms/flip-signal.md`](algorithms/flip-signal.md) — Flip signal: the productive-work ratio `lr = ln(u_io/u_ex)`
 - [`algorithms/flip-trigger-and-actuation.md`](algorithms/flip-trigger-and-actuation.md) — Flip trigger and actuation: the Schmitt gate, the granularity floor, and the k-j
-- [`algorithms/install-commit-protocol.md`](algorithms/install-commit-protocol.md) — The two-phase install-then-commit protocol
+- [`algorithms/install-commit-protocol.md`](algorithms/install-commit-protocol.md) — install, owner-local publish, marker, and QSBR retirement
 - [`algorithms/key-lb.md`](algorithms/key-lb.md) — Key-LB: the hot-BUCKET detector and bucket-range cutover
 - [`algorithms/key-to-worker-hash.md`](algorithms/key-to-worker-hash.md) — Key → bucket → worker routing (`ex_bucket_table`)
 - [`algorithms/own-read-widening.md`](algorithms/own-read-widening.md) — Own-read: reading your own uncommitted / stamped writes

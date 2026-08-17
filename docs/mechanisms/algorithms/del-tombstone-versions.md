@@ -72,14 +72,14 @@ Key properties:
 
 - **A tombstone is installed for every argument position**, including absent and
   duplicate keys (`src/server.c:11523-11530`). This keeps the group's install count
-  equal to `version_install_expected`, so the group commits with one ticket rather
-  than a variable count.
+  equal to `version_install_expected`, so every shard participates in the one shared
+  commit-time timestamp publication.
 - **The reply count increments only for a live, non-duplicate key.** Liveness is
   decided by a committed-only probe: `kvobjVersionAt(head, tomoCommittedSeq(), NULL)`
   with a **NULL reader** (`src/server.c:11514`), which is the strict committed cut of
   [version-resolve.md](version-resolve.md) — no own-widening. The reply is accumulated
   into `g->rcount` (`:11539`).
-- The probe uses `tomoCommittedSeq()` (current frontier) and ignores `g->read_seq`:
+- The probe uses `tomoCommittedSeq()` (current fully published timestamp) and ignores `g->read_seq`:
   DEL's reply reflects committed presence at execution time, not the dispatch snapshot
   (`atomics-mvcc.md` §"Pin a source snapshot").
 
@@ -92,9 +92,9 @@ Both resolver stages turn a *selected* tombstone into `NULL`:
 - **Stage 1 (own uncommitted):** `csMsetOwnVersionAt` returns
   `vmeta->version_tombstone ? NULL : kv` with `found = 1`
   (`src/server.c:10146`) — `C`'s own uncommitted DEL reads as absent to `C`.
-- **Stage 2 (committed):** `if (kv && vmeta && vmeta->version_tombstone) return NULL`
-  (`src/server.c:10255`) — a committed tombstone at or below the snapshot reads as
-  absent.
+- **Stage 2 (stamped index):** a selected candidate whose metadata carries
+  `version_tombstone` returns `NULL` — a committed tombstone at or below the snapshot
+  reads as absent.
 
 A tombstone is also excluded from the sole-version fast license
 (`tomoPublishSingleCommitted` rejects `version_tombstone`, `src/db.c:1062`), so a key
@@ -147,8 +147,8 @@ if (committed == 1 && uncommitted == 0 && sole_committed) {
 ```
 
 `committed`/`uncommitted`/`sole_committed` come from the visibility census at
-`src/db.c:1322-1343`, which counts each surviving bag member against the currently
-visible frontier (`visible = tomoCommittedSeq()`, `:1189`).
+`src/db.c`, which counts an applied member as committed when its shared `commit_ts` is
+nonzero. No global cursor participates in this local maintenance decision.
 
 ---
 
@@ -184,20 +184,19 @@ release the lifecycle reference.
 A non-versioned overwrite/delete removes the whole bag from the table in one store;
 `tomoRetireDetachedBag` marks every member `detached = 1` and schedules physical
 retirement for committed/canceled members with no pending owner ops
-(`src/db.c:1108-1132`). A detached tombstone/terminal version goes **directly** to
-physical retirement instead of arming a live-bag prune grace: `tomoCancelVersion` and
-`tomoArmVersionRetire` both branch on `vmeta->detached` to `tomoSchedulePhysicalRetire`
-(`src/db.c:1042-1044`, `1097-1101`).
+(`src/db.c`). A member still protected by its owner epoch remains allocated. When that
+epoch's already-armed first grace completes, its callback observes `detached` and sends
+the member directly to post-unlink physical grace without another live-bag walk.
 
 ## 7. Memory orderings
 
 | Load/store | Order | Site |
 | --- | --- | --- |
-| `version_tombstone` | plain (set before owner-op publish) | `src/server.c:11529` |
-| committed probe (`version_seq`) | acquire | `src/server.c:10250` |
-| `visible = tomoCommittedSeq()` | acquire | `src/db.c:1189`, `src/server.c:428` |
-| `owner_ops_pending` (census/eligibility) | acquire | `src/db.c:1205`, `1222`, `1228` |
-| `committed_head` in callback | acquire load / release store | `src/db.c:1187`, `1286`, `1393` |
+| `version_tombstone` | plain (set before the eager owner-local index publication) | `src/server.c` |
+| shared `commit_ts` probe | acquire | `src/object.h`, `src/server.c` |
+| current command timestamp | acquire clock load | `src/server.c` |
+| `owner_ops_pending` (census/eligibility) | acquire | `src/db.c` |
+| `stamped_head` in callback | acquire load / release store | `src/db.c` |
 
 ## 8. Invariants
 

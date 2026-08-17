@@ -18,7 +18,7 @@ The relevant registry rows are `MGET` as `CS_RT_GATHER` with coalescing gated at
 
 There are no executable functions named `csScatter` or `csGather` in this worktree; the active route is `csClassify` to `csDispatch`, then `dispatchGather`, `dispatchTwoHop`, or `dispatchFanAll`. (`src/server.c:11161-11179`, `src/server.c:13742-13755`, `src/server.c:14368-14375`)
 
-After the real client's execution state is moved into its pipeline-ring fake, a classified cross-shard command drains that connection's staged reorder work, increments the legacy `replyWorking` counter only at WB=0, and calls `csDispatch`; the route switch selects fan-all, two-hop, or gather dispatch from `csCmdSpec.route`. (`src/server.c:8423-8450`, `src/server.c:8565-8590`, `src/server.c:13742-13748`)
+After the real client's execution state is moved into its pipeline-ring fake, a classified cross-shard command drains that connection's staged reorder work and calls `csDispatch`; the route switch selects fan-all, two-hop, or gather dispatch from `csCmdSpec.route`. At WB=0, ordinary groups increment the poll-driving `replyWorking`; WB mode uses its sticky drain owner instead. An admitted atomic write increments a separate owner-local wait count whose CDB publications are notifier-backed, so install/publication latency does not make its IO owner poll. (`src/server.c`)
 
 When the exact predicate `!s->cs_write && !s->has_hop2 && !atomic_snapshot && nkeys >= 1` holds, `dispatchGather` first resolves every key; if all keys have one owner it sends one full-argv `CS_LOCAL` sub that runs the stock command, while keys spanning more than one owner continue to the scatter or reduction pipeline. (`src/server.c:13490-13509`, `src/server.c:13523-13587`)
 
@@ -46,14 +46,14 @@ The `csGroup` fields used by these protocols are declared together in `server.h`
 | Scalar and gathered results | `rcount` accumulates counts; `err` carries command errors; `mget_refs`, `mget_hash`, `mget_owner`, and `mget_pos` carry coalesced MGET values and routing metadata; `mget_vals` remains the private-SDS carrier for other string-image gathers. `setmem` and `setcnt` carry member-gather results, while `setop_pos` maps sub-local keys to original set-op positions for coalesced gather or the initial pipeline wave. (`src/server.h`, `csGroup`) |
 | Two-hop state | `phase`, `has_hop2`, `h2_op`, `spec`, `h2sub`, `h2_nsub`, `h2_dbid`, `h2_flags`, `h2_payload`, `h2_pexpireat`, and `cs2_kind` retain the next-wave plan and its private serialized value. (`src/server.h:2189-2202`) |
 | Set-reduction pipeline | `pipe_stage`, `pipe_next`, `pipe_nshard`, `pipe_scard`, `pipe_order`, `pipe_cand`, `pipe_ncand`, `pipe_verdict`, `pipe_shard_of`, `pipe_smallest`, `pipe_cscore`, `pipe_probe_pos`, `pipe_probe_nk`, `pipe_npart`, `pipe_base_part`, `pipe_part`, `pipe_partcnt`, `pipe_partscore`, `pipe_midx`, `pipe_zraw`, `pipe_key_part`, and `cs2_intreply` carry the multi-stage INTER and local UNION/DIFF reductions. (`src/server.h:2203-2241`) |
-| Atomic-write state | `key_sig`, `key_h`, `key_h_n`, `version_seq`, `read_seq`, `commit_next`, `mset_client`, `mset_pending_prev`, `mset_pending_next`, `mset_complete`, `mset_install_count`, `mset_installs`, `mset_install_order_base`, `versioned_write`, `version_install_expected`, `version_commit_ready`, `version_abort`, `version_nx`, `version_nx_reserving`, `msetnx_retry`, `msetnx_state`, and `snapshot_pinned` carry a registered versioned write to publication. (`src/server.h:2115-2151`) |
+| Atomic-write state | `version_seq`, `read_seq`, `mset_client`, `commit`, `commit_start_ts`, `mset_complete`, `mset_install_order_base`, `mset_owners`, `mset_owner_count`, `mset_owner_cap`, `versioned_write`, `version_install_expected`, `version_commit_ready`, `version_abort`, `version_nx`, `version_nx_reserving`, `msetnx_retry`, `msetnx_state`, and `snapshot_pinned` carry a registered versioned write through owner-local publication. The former shared install-count, MPSC, and install-array words preserve group geometry as inert reserves. (`src/server.h`) |
 | Accounting and allocation | Atomic `usec` and `had_err` accumulate sub work; `inl_cap`, `inl_used`, and flexible `inl[]` form the group's inline bump region. (`src/server.h:2244-2277`) |
 
 `csGroupNew` allocates and zeroes the header plus an eight-byte-aligned inline region capped at 512 bytes; `csgAlloc` advances the monotone inline cursor and spills to `zmalloc`, while `csgFree` ignores inline addresses and frees only spills. (`src/server.c:12418-12425`, `src/server.c:12465-12492`, `src/server.h:2278-2283`)
 
-`csH2Sub` is the two-field HOP2 plan element: `action` selects `CS_H2A_WRITE` or `CS_H2A_SRCOP`, and signed 32-bit `key_argi` selects the head argv key. (`src/server.h:2037-2040`, `src/server.h:2094-2100`) `csMsetInstall` is the three-field atomic-install record: `kv` is the exact installed store object, `owner` is the worker that applies its embedded operations, and `install_order` is the per-key duplicate-key tie break. (`src/server.h:2102-2106`)
+`csH2Sub` is the two-field HOP2 plan element: `action` selects `CS_H2A_WRITE` or `CS_H2A_SRCOP`, and signed 32-bit `key_argi` selects the head argv key. (`src/server.h`) `csMsetOwner` is the stable per-(group, owner) record. Its local chain preserves install order; each install eagerly publishes its invisible index link, and the record later carries the whole owner epoch through retirement. `tomoCommit` owns the array beyond group reply teardown. (`src/server.h`, `src/server.c`)
 
-The retained publishing ring uses `csPubRec { tag, key_sig, key_h_n, key_h[16] }` and `csMsetPub { head, tail, mask, rec[] }`. (`src/server.h:1656-1673`, `src/server.h:1693-1697`) `tag` is stored as an identity value and compared by the retirement routine, while the other fields copy the departing group's signature and full hashes. (`src/server.c:9876-9886`, `src/server.c:9897-9907`)
+The former publishing-ring pointer slot remains as an always-NULL layout reserve so `tomokv-atomic no` retains the same client/cache geometry. No publishing ring is allocated. (`src/server.h`, `src/networking.c`)
 
 The adjacent `nsub` comment says “number of sub-fakes = nkeys,” but that is a legacy-shape description rather than a group invariant: the legacy arm sets `nsub=nkeys`, while the coalesced builder assigns the number of distinct workers with at least one key. (`src/server.h:2108-2113`, `src/server.c:12669-12674`, `src/server.c:13707-13722`)
 
@@ -69,9 +69,9 @@ The adjacent `nsub` comment says “number of sub-fakes = nkeys,” but that is 
 
 5. The worker locks `worker->id`, runs `csSubExec`, and unlocks. (`src/server.c:22144-22170`) A multi-sub wave decrements `pending` with `memory_order_acq_rel`; a singleton wave uses a relaxed zero store because it has no sibling writer. (`src/server.c:22171-22178`)
 
-6. For a non-versioned wave, the last sub release-publishes the head's CDB ready byte. (`src/server.c:22196-22199`, `src/server.c:3162-3164`) For a versioned final wave, the last sub calls `csMsetInstallDone` instead; versioned intermediate stages merely publish readiness so the IO drain can launch the next stage. (`src/server.c:22179-22195`)
+6. For a non-versioned wave, the last sub release-publishes the head's CDB ready byte. Ordinary atomic MSET/DEL installs eagerly publish their invisible local index links and each owner decrements the remaining-owner counter after its normal pending decrement; the last owner directly publishes the marker and head byte. A strictly key-dependent final wave calls `csMsetInstallDone` to release-publish its decision, after which each owner finishes reservation/cancellation locally. Versioned intermediate stages publish readiness and consume the IO owner's armed notifier edge so the IO drain can launch the next stage without polling. (`src/server.c`)
 
-7. CDB publication is a release store and the IO drain polls it with an acquire load; the drain and drain-launched continuations clear it with a relaxed store before retirement or re-arm. (`src/server.c:3158-3168`, `src/server.c:4200-4204`, `src/server.c:4320-4337`, `src/server.c:14550-14561`) The drain walks ring slots in `flushid` order and stops at the first slot that is not ready. (`src/server.c:4236-4242`)
+7. CDB publication is a release store and the IO drain reads it with an acquire load; the drain and drain-launched continuations clear it with a relaxed store before retirement or re-arm. Ordinary groups reach that load through the established bounded poll. Atomic groups arm before the scan and block on their event notifier if no ready byte is visible. The drain walks ring slots in `flushid` order and stops at the first slot that is not ready. (`src/server.c`)
 
 8. A completed pipeline stage may call `csPipeAdvance`, and a completed HOP1 may call `csLaunchHop2`; either continuation keeps the same ring head in flight and makes the drain stop before retiring later slots. (`src/server.c:4285-4303`) Only a terminal wave reaches `csReassemble`. (`src/server.c:4304-4308`)
 
@@ -99,17 +99,17 @@ Without atomic admission, workers apply their shards independently, the ordinary
 
 Consequently, the non-atomic branch is not a cross-worker transaction: owner writes occur before the completion barrier, so another client can observe a partially applied MSET even though the issuing client receives `+OK` only after every sub completes. (`src/server.c:11706-11759`, `src/server.c:22171-22199`, `src/server.c:14963-14965`) This is an inference from the worker apply loop and the absence of a commit-publication branch before the ordinary pending barrier. (`src/server.c:11706-11759`, `src/server.c:22196-22199`)
 
-With atomic admission, dispatch allocates one `csMsetInstall` per key; the coalesced routing pass builds the signature and, for at most 16 keys, the full-hash vector, calls `csMsetRegister` before its first owner-queue publication, and changes the worker case to `setKeyVersioned` plus `csMsetRecordInstall`. (`src/server.c:10101-10107`, `src/server.c:13619-13659`, `src/server.c:12639-12668`, `src/server.c:12702-12705`, `src/server.c:11542-11608`)
+With atomic admission, dispatch reserves one stable `csMsetOwner` per distinct owner, calls `csMsetRegister` before the coalesced routing pass's first owner-queue publication, and changes the worker case to `setKeyVersioned` plus `csMsetRecordInstall`. Each installed object is appended directly to its owner's local chain; no per-key install array or written-key membership structure is built. (`src/server.c`)
 
-`csMsetRegister` marks the group versioned and uncommitted, binds it to the real client, reserves a connection-global install-order range under `mset_pending_lock`, appends it to that connection's pending FIFO, and release-increments `mset_pending_count`. (`src/server.c:9914-9957`)
+`csMsetRegister` marks the group uncommitted, binds it to the real client, reserves a connection-global install-order range, allocates one shared `tomoCommit`, captures the current timestamp for lag diagnostics, and release-increments `mset_pending_count`. There is no per-client pending FIFO or admission ticket. (`src/server.c`)
 
-The final worker wave calls `csMsetInstallDone`, which release-stores `mset_complete`; an acquire CAS on the connection's `mset_drain_latch` elects one drainer, and an acquire `commit_lock` serializes its commit work. (`src/server.c:10336-10350`, `src/server.c:9802-9825`)
+For ordinary MSET, each coalesced owner eagerly indexes every installed version in the allocation pass under the normal owner lock, retains one record for epoch retirement, and decrements `shards_remaining` once after the group-pending decrement. There is no second owner-chain walk. A non-last owner returns immediately and continues unrelated work. (`src/server.c`)
 
-While holding that lock, the drainer pops only completed FIFO heads with an acquire read of `mset_complete`, allocates a sequence with a relaxed `next_seq` fetch-add for a non-canceled group, release-stores `version_canceled` and `owner_ops_pending`, fills the embedded owner operations, pushes each STAMP or CANCEL job, and appends the group to the global commit queue. (`src/server.c:10272-10287`, `src/server.c:10290-10334`)
+The counter's acquire-release modification-order chain carries every eager owner-local index publication to the owner whose decrement observes one. That last owner advances the encoded commit clock and release-publishes one shared `commit_ts` for all group versions. This marker is the only visibility event: partial local indexes remain invisible while it is zero. (`src/server.c`)
 
-The same lock holder drains the commit queue: it release-stores `commit_seq` for a non-canceled group, pushes PRUNE jobs, seals the group's atomic lifecycle, release-publishes the head ready byte, and release-decrements the connection's pending count; it drops `commit_lock` before waking the producer IO thread. (`src/server.c:10363-10413`)
+The last owner performs finalization directly: it folds the bounded owner-record byte totals (never the keys), publishes the pooled reclaim charge, seals lifecycle accounting, release-decrements the connection's pending count, publishes the head CDB byte, and posts the existing completion notifier. Owner records already reside on private post-marker lists and later enter marker-plus-QSBR retirement through the existing O(1) frontier caches. There is no elected drainer, MPSC hop, or group key walk. (`src/server.c`)
 
-Thus the generic “last sub signals the head” comment is not the complete atomic behavior: the executable versioned branch delays terminal head publication until `csMsetInstallDone` has performed the commit-publication sequence. (`src/server.h:1991-1995`, `src/server.c:22179-22199`, `src/server.c:10363-10413`)
+Thus the generic “last sub signals the head” comment is not the complete atomic behavior: terminal publication waits for all eager owner publications and terminal reservation/cancellation work and, on success, the commit-time timestamp publication. (`src/server.c`, `src/server.h`)
 
 ### Set operations
 
@@ -149,21 +149,17 @@ With atomic admission, HOP1 reads/serializes without deleting, and the HOP2 plan
 
 The dispatcher comment that says RENAME HOP1 deletes the source is complete only for the non-atomic branch; the executable atomic branch passes `del=-1` and defers the source tombstone to HOP2. (`src/server.c:14368-14374`, `src/server.c:12124-12135`, `src/server.c:14514-14519`)
 
-## `key_sig` and the requested collision-test inventory
+## Membership-probe removal
 
-The retained signature builder is exact about what it computes: `csHashSignature(h)` is `1ULL << (h & 63)`, and group construction ORs those bits for written keys. (`src/server.c:10097-10099`, `src/server.c:12639-12668`) For at most `CS_EXACT_KEYS_MAX` (16) keys it also retains full 64-bit hashes and publishes `key_h_n` only after filling the vector. (`src/server.h:1651-1656`, `src/server.c:10101-10107`, `src/server.c:12639-12668`)
+The old own-read HOLD design used one low hash bit per key in a 64-bit signature, with an exact-hash companion and a per-connection publishing ring. At eight keys the signature aliased heavily, creating needless apparent conflicts. After own-read visibility moved to immutable version identity, those structures had no correctness consumer but were still built, copied, and allocated.
 
-Destination-only atomic groups compute the destination bit/hash directly, while atomic RENAME/RENAMENX compute destination plus source. (`src/server.c:10259-10270`, `src/server.c:14443-14468`) `csMsetRegister` then asserts that a registered group has installs, a positive expected count, and nonzero `key_sig`. (`src/server.c:9915-9922`)
+The signature, exact vectors, publishing records, and write-side probe machinery are now removed. Routing still computes full key hashes for owner/bucket selection, but it does not derive membership state from them. (`src/server.c`, `src/server.h`)
 
-An exact-identifier search of this worktree finds `csKeysCollide` and `csMsetReadIntersects` only in comments, not as executable definitions or calls. (`src/server.h:1651-1673`, `src/server.h:2115-2132`, `src/server.c:9839-9871`, `src/server.c:12494-12506`, `src/server.c:12929-12932`) The stale descriptions occur in the header and atomic-publication blocks, while the implementation-side sizing code explicitly says the exact-key HOLD walk is gone. (`src/server.c:10101-10107`, `src/server.c:12494-12506`, `src/server.c:12721-12730`)
+The live read-your-own-write resolver uses immutable version identity instead of signature disjointness. A nonzero `mset_pending_count` enables a physical scan for the connection's newest zero-timestamp version. The unordered stamped-index scan otherwise selects the greatest normal `(commit_ts, version_order)` at or below the snapshot and separately permits only that connection's greatest `install_order` above the snapshot. (`src/server.c`)
 
-The retained publication structures are not a live collision reader: `csMsetPopComplete` copies `key_sig`/`key_h` into `csPubRec`, while the other executable record references allocate the ring and define retirement. (`src/server.c:9873-9912`, `src/server.c:9936-9943`, `src/server.c:10272-10287`) An exact-identifier call-site search finds only the definition of `csMsetPubRetire`; the live commit loop instead decrements `mset_pending_count` directly after publishing the CDB byte. (`src/server.c:9897-9912`, `src/server.c:10390-10400`)
+For a qualifying atomic cross-shard read, dispatch calls `flatGroupPinEnter(fake)` and acquire-loads the encoded commit clock once into `fake->tomo_read_snapshot`. Owner-side resolution obtains that captured snapshot from the group or its head, and the dispatch path explicitly performs no overlap hold. A pure MGET's last owner worker releases the pin after all values are serialized, before IO reassembly. (`src/server.c`, `src/server.h`)
 
-The live read-your-own-write resolver uses version identity instead of signature disjointness. (`src/server.c:10133-10148`, `src/server.c:10206-10256`) For a real reader it starts with the own-version scan enabled; when `mset_pending_count == 0` in a worker context, it narrows that decision to whether that worker's `stamp_pending` is nonzero, while a non-worker context retains the scan. (`src/server.c:10206-10239`) The scan selects an uncommitted, non-canceled version whose `origin_client_id` equals the real client's ID, and the committed-chain walk accepts the first version at or below the snapshot or the first version from that same client ID. (`src/server.c:10133-10148`, `src/server.c:10242-10256`)
-
-For a qualifying atomic cross-shard read, dispatch calls `flatGroupPinEnter(fake)` and acquire-loads `commit_seq` into `fake->tomo_read_snapshot`. (`src/server.c:8452-8471`) Owner-side resolution obtains that captured snapshot from the group or its head, and the dispatch path explicitly performs no overlap hold. (`src/server.h:5881-5901`, `src/server.c:8458-8464`)
-
-Accordingly, `key_sig` and `key_h` are retained and populated bookkeeping in the current code, but they do not gate or hold reads; descriptions of a live Bloom/exact collision decision are stale relative to the executable path. (`src/server.c:9876-9886`, `src/server.c:9915-9922`, `src/server.c:10101-10107`, `src/server.c:10227-10256`)
+Consequently there is no Bloom false-positive path in the active write or read protocol. The former probe footprint now holds the compact per-owner commit array; it stays zero/NULL and allocation-free in default-OFF mode. (`src/server.h`)
 
 ## Consistency boundaries
 
@@ -179,13 +175,13 @@ Non-atomic cross-worker RENAME has a real missing interval: HOP1 deletes the sou
 
 - **Publish after initialization.** The coalesced builder completes its position maps and argv vectors and stores `pending` before `csPushSpin` release-publishes queue tails; pipeline and HOP2 re-arms likewise set the next pending count before their first push. (`src/server.c:12669-12705`, `src/server.c:12584-12586`, `src/server.c:13420-13431`, `src/server.c:13463-13485`, `src/server.c:14550-14561`)
 
-- **Gather visibility.** Multi-sub completion uses an acquire-release decrement; for a non-versioned wave the last sub release-publishes the head byte, and the drain acquire-loads that byte before reading results. A terminal versioned wave takes the separate `csMsetInstallDone` publication path described above. (`src/server.c:22171-22199`, `src/server.c:3158-3164`)
+- **Gather visibility.** Multi-sub completion uses an acquire-release decrement; for a non-versioned wave the last sub release-publishes the head byte, and the IO drain acquire-loads that byte before reading results. An ordinary versioned write uses the separate remaining-owner marker path; strictly key-dependent shapes first publish their terminal install decision. (`src/server.c`)
 
 - **Original-position replies.** Coalesced MGET and coalesced gather/pipeline inputs use position maps keyed by the original argument order, and MGET reassembly walks original positions rather than completion order. (`src/server.c:12693-12701`, `src/server.c:12997-13003`, `src/server.c:14949-14961`)
 
 - **No later-stage overtaking.** A pipeline or HOP2 group raises `cs_barrier`; the head remains the unretired first ring slot while the drain clears and re-arms that same completion byte. (`src/server.c:12965-12970`, `src/server.c:13694-13706`, `src/server.c:14509-14512`, `src/server.c:14550-14561`, `src/server.c:8283-8303`)
 
-- **Atomic reply after commit publication.** A final versioned wave reaches CDB publication through `csMsetInstallDone`, after owner STAMP or CANCEL jobs have been enqueued and, for non-canceled groups, after `commit_seq` has been release-stored. (`src/server.c:10303-10334`, `src/server.c:10363-10400`, `src/server.c:22179-22199`)
+- **Atomic reply after commit publication.** A final versioned wave reaches CDB publication only after every eager owner index publish and terminal reservation/cancellation action and, for success, after the shared marker and encoded commit clock have both been release-published. (`src/server.c`)
 
 - **Private cross-thread payloads.** Coalesced MGET and set-reduction stages export private `sds` copies, and two-hop value transfer uses a private serialized RDB blob; cleanup occurs after the pending/CDB barrier. (`src/server.c:11625-11647`, `src/server.c:13283-13342`, `src/server.c:11187-11203`, `src/server.c:15245-15269`)
 
@@ -210,10 +206,10 @@ Non-atomic cross-worker RENAME has a real missing interval: HOP1 deletes the sou
 | Two-hop dispatch and launcher | `src/server.c:14368-14861` |
 | RENAME worker operations | `src/server.c:11187-11279`, `src/server.c:12120-12139` |
 | Versioned registration and completion | `src/server.c:9914-9957`, `src/server.c:10272-10413` |
-| Signature/hash remnants and live read resolver | `src/server.c:10097-10107`, `src/server.c:10133-10256` |
+| Identity-based own-read resolver | `src/server.c` |
 | Worker pending barrier | `src/server.c:22144-22199` |
 | Reply reassembly and teardown | `src/server.c:14864-15328` |
 
 ## Mechanisms
 
-- [Owner-operation stamp lane](mechanisms/communication/owner-op-stamp-lane.md)
+- [Owner-local atomic publish](mechanisms/communication/owner-local-publish.md)
