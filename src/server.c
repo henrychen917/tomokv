@@ -1767,6 +1767,9 @@ static void tmFlipAbortPublish(polyThreadCtx *ctx);
 static int tmFlipAbortConsume(int node);
 static void tmFlipAbortClear(int node);
 static int tmWorkerLive(int w);            /* per-node flip: worker-slot liveness (per-node prefixes) */
+#ifdef DEBUG_ASSERTIONS
+static int tmWorkerServingEx(int w);       /* push invariant: primary target has a running EX consumer */
+#endif
 static void tmNodeWliveAdd(int w, int delta);   /* per-node flip: node live-count bookkeeping */
 static void tmNodeIoliveAdd(int w_of_ctx, int delta);
 static int tomoGrowFrontNode(int node, const char **err);  /* per-node flip actuators */
@@ -4600,6 +4603,12 @@ static inline unsigned int exQueuePublishTracked(exThread *worker, exQueue *q,
 }
 
 static void exDispatchDirect(int ex_id, client *fake) {
+    debugServerAssert(ex_id >= 0 && ex_id < server.num_workers);
+    /* Sub-command fan-outs have an explicitly bounded transition-straggler path,
+     * but a primary dispatch is table-routed and must always have an active EX
+     * consumer. Check at the actual push edge so a future boot/FLIP regression
+     * fails before it can turn into an indefinitely queued client command. */
+    debugServerAssert(tmWorkerServingEx(ex_id));
     exQueue *q = exQueueFor(ex_id);
     if (!tomo_rord.draining) tm_io_sig[iotid].disp_cnt++;   /* staged path counted at stage time */
     if (__builtin_expect(exQueuePush(q, fake) == 0, 1)) {
@@ -4651,6 +4660,10 @@ static void exDispatchDirect(int ex_id, client *fake) {
  * coalesced. */
 static void exDispatchDirectBatch(int ex_id, client *const *jobs, int n) {
     if (n <= 0) return;
+    debugServerAssert(ex_id >= 0 && ex_id < server.num_workers);
+    /* Whole-buffer parsing reaches a distinct bulk push edge added after the
+     * routing fix's source branch. It carries the same primary-table invariant. */
+    debugServerAssert(tmWorkerServingEx(ex_id));
     exQueue *q = exQueueFor(ex_id);
 
     int off = 0;
@@ -7836,6 +7849,12 @@ void initServer(void) {
             atomic_store_explicit(&server.tm_node_iolive[n], ipn, memory_order_relaxed);
         }
     }
+#ifdef DEBUG_ASSERTIONS
+    /* Boot ownership is quiescent: every bucket must name the configured live
+     * EX set, never a provisioned AUTO suffix slot born in IO mode. */
+    for (int b = 0; b < TOMO_BUCKETS; b++)
+        debugServerAssert(tmWorkerLive(server.ex_bucket_table[b]));
+#endif
     server.tm_mig_flip_action = 0;
     atomic_store_explicit(&server.tm_flip_ctx, NULL, memory_order_relaxed);
     server.tm_flip_target = TOMO_MODE_UNSET;   /* no flip in progress; 0 is not a mode */
@@ -17970,6 +17989,10 @@ static int reshardRangeValid(int lo, int hi, int src, int dst, int flip_action) 
      * its neighbor before it takes the IO role. That flip is the only exemption. */
     int grow_front = tmNumNodes() == 1 ? tmFlipActive()
                                         : flip_action == TM_MIG_FLIP_GROW_FRONT;
+    /* Normal balancing and grow-back may only publish ownership to live EX
+     * consumers. Grow-front is the sole exception for src: it deliberately
+     * delists that worker before draining and moving its final range. */
+    if (!tmWorkerLive(dst) || (!grow_front && !tmWorkerLive(src))) return 0;
     if (lo == s_lo && hi == s_hi && !grow_front)
         return 0;   /* would empty src */
     if (dst == src + 1 ? (hi != s_hi) : (lo != s_lo)) return 0;   /* on the shared boundary */
@@ -18541,6 +18564,12 @@ static void reshardCoordinatorTick(void) {
     for (int b = lo; b < hi; b++) server.ex_bucket_table[b] = (uint8_t)dst;
     if (dst == src + 1) server.ex_bucket_end[src] = lo;      /* suffix move: A|B boundary -> lo */
     else                server.ex_bucket_end[dst] = hi;      /* prefix move (B=A-1) */
+#ifdef DEBUG_ASSERTIONS
+    /* FLIP is the only runtime table writer. Once its bytes are installed, the
+     * complete ownership map must again contain live EX workers exclusively. */
+    for (int b = 0; b < TOMO_BUCKETS; b++)
+        debugServerAssert(tmWorkerLive(server.ex_bucket_table[b]));
+#endif
     atomic_store_explicit(&server.migration.phase, MIG_FLIPPED, memory_order_release);
     atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_release);  /* releases held writers */
     /* Ownership is now published and no old-owner lifecycle remains. Re-open unrelated atomic
@@ -25976,6 +26005,12 @@ static int smartMappedCoreFor(int by_numa, int logical,
     int nsmt = smartNodeCpuCount(by_numa, node, 1, allowed, nallowed);
     int count = nphysical + nsmt;
     if (count <= 0) return -1;
+    /* 219ec74cc already composes wide ccd nodes from adjacent L3 groups. A
+     * restricted physical-only taskset can still punch holes in that planned
+     * composition (the io14/ex2 gate is the concrete case). Never modulo-wrap
+     * a 16-role node onto fewer than 16 distinct allowed CPUs: return failure
+     * so pinThreadToCoreN uses its disjoint allowed-set round robin instead. */
+    if (allowed && count < server.cores_per_node) return -1;
     local %= count;
     if (local < nphysical)
         return smartNodeCpuAt(by_numa, node, 0, local, allowed, nallowed);
@@ -26062,12 +26097,10 @@ static void logSmartL3NodeComposition(const int *allowed, int nallowed) {
 
         int nphysical = smartNodeCpuCount(0, node, 0, allowed, nallowed);
         int nsmt = smartNodeCpuCount(0, node, 1, allowed, nallowed);
-        int usable = nphysical + nsmt;
-        for (int local = 0; usable > 0 && local < width; local++) {
-            int slot = local % usable;
-            int cpu = slot < nphysical
-                ? smartNodeCpuAt(0, node, 0, slot, allowed, nallowed)
-                : smartNodeCpuAt(0, node, 1, slot - nphysical, allowed, nallowed);
+        for (int local = 0; nallowed > 0 && local < width; local++) {
+            int logical = node * width + local;
+            int cpu = smartMappedCoreFor(0, logical, allowed, nallowed);
+            if (cpu < 0) cpu = allowed[logical % nallowed];
             if (cpu >= 0 && cpu < SMART_MAX_CORES) cpus[cpu] = 1;
         }
         smartFormatCpuSet(cpus, cpulist, sizeof(cpulist));
@@ -26615,6 +26648,23 @@ static polyThreadCtx *tmPolyCtxFor(int born_mode, int idx) {
     if (born_mode == TOMO_MODE_IO) return &tmPolyCtxs[idx - 1];            /* idx = io thread id, 1-based */
     return &tmPolyCtxs[(server.io_threads - 1) + idx];                     /* idx = worker id */
 }
+
+#ifdef DEBUG_ASSERTIONS
+/* Physical consumption state, intentionally distinct from tmWorkerLive(). A
+ * grow-front delists its source before the ownership fence, while that source
+ * remains in EX mode and must keep accepting table-routed work until FLIP. */
+static int tmWorkerServingEx(int w) {
+    if (!tmPolyCtxs || w < 0 || w >= server.num_workers) return 0;
+    polyThreadCtx *ctx = tmPolyCtxFor(TOMO_MODE_EX, w);
+    int mode = atomic_load_explicit(&ctx->mode, memory_order_acquire);
+    if (mode == TOMO_MODE_EX) return 1;
+    /* A thread cannot receive commands before the server starts serving, but
+     * accepting the stamped birth edge makes the invariant valid throughout
+     * startup rather than depending on pthread scheduling order. */
+    return mode == TOMO_MODE_UNSET &&
+           atomic_load_explicit(&ctx->target_mode, memory_order_acquire) == TOMO_MODE_EX;
+}
+#endif
 
 void initExThreads(void) {
     /* One exThread per worker SLOT. zcalloc (numa): the stat/EWMA scalars must not be
