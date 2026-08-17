@@ -921,8 +921,8 @@ c14_clientlb() {
   "$CLI" -p "$PORT" set hk "$(printf 'v%.0s' $(seq 1 64))" >/dev/null
   write_connhold
   awk 'BEGIN{for(i=0;i<4;i++) printf "GET hk\r\n"}' > "$LOGD/round_clb.txt"
-  connhold clb 40 "$CLB_BURST" 5 "$LOGD/round_clb.txt"
-  sleep 6   # let REUSEPORT place all 40 conns + first balancer ticks run
+  connhold clb 120 "$CLB_BURST" 5 "$LOGD/round_clb.txt"
+  sleep 6   # let REUSEPORT place all 120 conns + first balancer ticks run
   # ---- (a) distribution: 40 persistent conns spread across the io listeners ----
   ioclients > "$LOGD/clb_dist1.txt"
   "$CLI" -p "$PORT" debug tomo-ioload > "$LOGD/clb_ioload1.txt" 2>&1
@@ -933,7 +933,7 @@ c14_clientlb() {
     # assert). Judge: >=2 live listeners, none starved, max <= 2x mean + 1, and CONSERVATION —
     # the holder's 40 conns must be visible somewhere (sum over ALL slots incl. main >= 38).
     awk '{ tot+=$2 } $3==1 {n++; s+=$2; if(min==""||$2<min)min=$2; if($2>max)max=$2}
-         END{mean=(n?s/n:0); ok=(n>=2 && min>=1 && max<=2*mean+1 && tot>=38);
+         END{mean=(n?s/n:0); ok=(n>=2 && min>=1 && max<=2*mean+1 && tot>=114);
              printf "%s %d %d %d", (ok?"PASS":"FAIL"), min+0, max+0, tot+0}' "$1"
   }
   local d1; d1=$(dist_gate "$LOGD/clb_dist1.txt")
