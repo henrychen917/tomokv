@@ -254,6 +254,51 @@ else fc->lr_quiet_run = 0;
 `fc->lr_quiet_run` (`int`) is the "ratio holding still" counter that gates both anchor capture and a
 climb START (see `flip-trigger-and-actuation.md`, `flip-anchor-and-episode.md`).
 
+### Reverted-probe ownership and durable re-arm
+
+The owner's thrash definition is deliberately narrow: **movement after stabilization under an
+unchanged workload is the only thrash**. Exploration before stabilization is useful work; a probe
+that finds and adopts a better split is useful work. A completed probe that returns to its entry
+split is different: it measured that excursion and rejected it, so the episode owns the workload at
+that config. Repeating the same measurement because `lr` wiggled spends migrations without gaining
+knowledge.
+
+The 2026-08-17 240-second MGET8/node-8 discrimination exposed that exact failure. Auto made 93 moves
+in `[0,120]` and another 67 in `[120,240]` (4.2 moves/node/minute in minutes 3-4), remained scattered
+at `[5,5,5,2,4,5,5,5]`, and delivered 1.595M steady-state against 1.844M at static io5/ex3
+(-13.5%). The floor counters attributed the movement to 64 in-floor sweeps: 56 REVERTs and only 3
+KEEPs, or approximately one sweep per node every 30 seconds forever. In contrast, p32 SET/node-2
+ran two sweeps total, both REVERTed, then made no moves for more than 120 seconds and beat its static
+reference by 7.1%. The useful initial-probe path already latched in that case; governance therefore
+applies only after REVERT and does not gate initial probes or KEEP outcomes.
+
+On a clean REVERT, `tmFlipSweepFinish()` preserves the settled sweep-entry
+`floor_probe_entry_lr` as the owned signal level, increments `episode_revert_run` when the final
+`io` still equals `revert_run_io`, and clears `episode_rearm_run`. Once the normal post-return settle
+window ends, the re-arm counter advances only on consecutive loaded ticks satisfying:
+
+```text
+abs(lr_ewma - floor_probe_entry_lr) > live gstep
+```
+
+The required run deliberately mirrors the existing climb `veto_run` escalation:
+
+```c
+need = FLIP_SUSTAIN << min(episode_revert_run, 3);   /* 16, 32, 64 ticks after REVERT 1, 2, 3+ */
+```
+
+Any in-band or idle tick resets the countdown. Floor, fine-anchor, and rate-drop observations may
+still invalidate their representational baselines, but they cannot release a same-config REVERT
+episode before this owned-lr run completes. A real config change releases ownership immediately and
+resets the same-config revert sequence. A KEEP also resets both governance counters, so a workload
+where probing helps retains the prior re-probe behavior. No new cadence or threshold constant is
+introduced: the distance is the existing live `gstep`, persistence is `FLIP_SUSTAIN`, and the capped
+doubling is the existing veto-backoff shape.
+
+Fliptrace exposes `owned`, `owned_lr`, `reverts`, and `rearm_countdown`. The countdown is the number
+of additional consecutive departure ticks required; it is zero when ownership is inactive or has
+already released.
+
 ### The idle test and the throughput estimator
 
 A tick is idle only when all three hold (`src/server.c:25803`):
@@ -295,6 +340,9 @@ the box's ordinary drift (`src/server.c:25901-25904`).
 | `lr_mean`, `lr_var` | `double` | settled-tick `lr` noise; `sqrt(lr_var)` frozen at capture |
 | `sat_smooth` | `double` | EWMA of `max(u_io_occ,ex_raw_u_smooth)`; the server-bound gate input |
 | `cli_run` | `int` | consecutive sub-threshold verdict ticks, capped at `FLIP_SUSTAIN` |
+| `floor_probe_entry_lr` | `double` | settled sweep-entry `lr`; preserved as the owned level after a clean REVERT |
+| `episode_revert_run`, `revert_run_io` | `int` | consecutive same-config REVERTs and their owned split |
+| `episode_rearm_run` | `int` | consecutive ticks more than one live `gstep` from the owned level |
 
 ## Key constants
 

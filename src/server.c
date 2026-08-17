@@ -29503,11 +29503,13 @@ typedef struct {
     int      floor_out_run;  /* its Schmitt counter — feeds the anchor/episode DROPS, which the
                               * trigger's lr_out_run cannot (floor_probe_used forces that to 0) */
     int      episode_revert_run; /* consecutive clean-REVERT sweep finishes at revert_run_io; each
-                                  * one doubles the sat-drop band (<<, capped at 3 like the climb's
+                                  * one doubles the owned-lr departure persistence and retains the
+                                  * existing drop-band damping (<<, capped at 3 like the climb's
                                   * veto shift): N same-verdict re-verifications are evidence the
-                                  * rate motion does NOT move the optimum, so a monotone warmup
-                                  * tide stops being re-probed. KEEP, a floor-drop, or finishing
-                                  * at a different split resets it. */
+                                  * signal motion does NOT move the optimum. KEEP or finishing at a
+                                  * different split resets it. */
+    int      episode_rearm_run;  /* consecutive post-REVERT ticks more than one live gstep from
+                                  * floor_probe_entry_lr, the owned signal level */
     int      revert_run_io;
     double   lr_mean, lr_var;    /* settled-tick EWMA of lr, same estimator shape as u noise;
                                   * sqrt(lr_var) frozen at capture is the anchor band's sigma */
@@ -29928,6 +29930,7 @@ static void tmFlipSweepBegin(flipCtlState *fc, int node, int ni, int ne, int bas
     fc->best_rate = fc->mean;
     fc->best_dist = 0;
     fc->coast_used = 0;
+    fc->episode_rearm_run = 0;
     fc->revert_steps = 0;
     fc->walkback_armed = 0;
     fc->refuse_run = 0;
@@ -30092,6 +30095,7 @@ static void tmFlipSweepFinish(flipCtlState *fc, int node, int current_io) {
     atomic_store_explicit(&tomo_flip_in_floor_last_configs_visited,
                           (unsigned long)fc->floor_probe_visited, memory_order_relaxed);
     int fresh_episode = fc->floor_probe_abandon_pending || fc->floor_probe_return_blocked;
+    int clean_revert = !fresh_episode && intended_best == fc->floor_probe_entry_io;
     if (fc->floor_probe_abandon_pending) {
         serverLog(LL_NOTICE, "[flip-ctl n%d] IN-FLOOR-SWEEP ABANDON-RETURNED "
                   "intended=io%d actual=io%d; re-arm after a fresh settle",
@@ -30107,11 +30111,17 @@ static void tmFlipSweepFinish(flipCtlState *fc, int node, int current_io) {
             outcomes = atomic_fetch_add_explicit(
                 &tomo_flip_in_floor_probe_keeps, 1, memory_order_relaxed) + 1;
             fc->episode_revert_run = 0;
+            fc->episode_rearm_run = 0;
         } else {
             outcomes = atomic_fetch_add_explicit(
                 &tomo_flip_in_floor_probe_reverts, 1, memory_order_relaxed) + 1;
-            if (current_io == fc->revert_run_io) fc->episode_revert_run++;
-            else { fc->revert_run_io = current_io; fc->episode_revert_run = 1; }
+            if (current_io == fc->revert_run_io) {
+                if (fc->episode_revert_run < 8) fc->episode_revert_run++;
+            } else {
+                fc->revert_run_io = current_io;
+                fc->episode_revert_run = 1;
+            }
+            fc->episode_rearm_run = 0;
         }
         tmFlipAcceptBestRate(fc, fc->best_rate);
         serverLog(LL_NOTICE, "[flip-ctl n%d] IN-FLOOR-SWEEP FINISH visited=%d/%d "
@@ -30128,12 +30138,14 @@ static void tmFlipSweepFinish(flipCtlState *fc, int node, int current_io) {
      * crosses a config move and inherits the predictor's capped-saturation error, so every
      * KEEP was followed by a spurious EPISODE-DROP -> re-arm -> sweep churn (mget8_p1: correct
      * config at 10s, then chg=5). With entry == final split the predictor telescopes over a
-     * zero-length path and the test compares the split's own lr against its own floor. */
+     * zero-length path and the test compares the split's own lr against its own floor. A clean
+     * REVERT is already back at its entry split: preserve that settled entry lr as the ownership
+     * level rather than replacing it with the candidate-contaminated EWMA at return time. */
     int rebase_pool = fc->floor_probe_entry_io + fc->floor_probe_entry_ex;
     if (current_io >= 1 && rebase_pool - current_io >= 1) {
         fc->floor_probe_entry_io = current_io;
         fc->floor_probe_entry_ex = rebase_pool - current_io;
-        fc->floor_probe_entry_lr = fc->lr_ewma;
+        if (!clean_revert) fc->floor_probe_entry_lr = fc->lr_ewma;
         fc->floor_probe_entry_gfloor = tmFlipGstepAt(current_io, rebase_pool - current_io,
                                                      fc->lr_ewma, fc->floor_probe_wsig) / 2.0;
     }
@@ -30223,6 +30235,41 @@ static void tmFlipSweepAbandon(flipCtlState *fc, int node, const char *why,
     fc->lr_out_run = 0;
     fc->u_noise_primed = 0;
     tmFlipSweepReturnToBest(fc, node, current_io, why);
+}
+
+/* Release a completed REVERT episode only after its ownership condition passes. This is the same
+ * state transition the old floor/anchor/rate drops performed directly; keeping it in one place
+ * makes those noisy observations unable to bypass the durable owned-lr gate. A real config move
+ * also ends the same-split revert sequence, while a signal departure preserves the sequence so a
+ * later REVERT at that same split earns the next doubled hold. */
+static void tmFlipSweepReleaseOwnership(flipCtlState *fc, int config_changed) {
+    fc->floor_probe_used = 0;
+    fc->floor_probe_revert_pending = 0;
+    fc->floor_probe_await_settle = 0;
+    fc->floor_probe_abandon_pending = 0;
+    fc->floor_probe_return_retries = 0;
+    fc->floor_probe_return_blocked = 0;
+    fc->floor_probe_target_io = 0;
+    fc->floor_probe_best_io = 0;
+    fc->floor_probe_check_valid = 0;
+    fc->episode_rearm_run = 0;
+    fc->anchor_n = 0;
+    fc->lr_anchor = 0.0;
+    fc->anchor_sat_rebase = 0;
+    fc->anchor_rate_prev = fc->mean;
+    fc->anchor_rate_run = 0;
+    fc->lr_quiet_run = 0;
+    fc->lr_out_dir = 0;
+    fc->lr_out_run = 0;
+    fc->floor_out_dir = 0;
+    fc->floor_out_run = 0;
+    fc->anchor_out_dir = 0;
+    fc->anchor_out_run = 0;
+    fc->u_noise_primed = 0;
+    if (config_changed) {
+        fc->episode_revert_run = 0;
+        fc->revert_run_io = 0;
+    }
 }
 
 /* Derive the distance to r=1 by walking the live-count capacity equation itself. Dividing |lr| by
@@ -30866,6 +30913,65 @@ static void tomoFlipController(void) {
         double gfloor = gstep / 2.0;
         double balance_band = log1p(FLIP_R_BAND);
 
+        /* REVERTED-SWEEP OWNERSHIP (2026-08-17). A sweep that measured its neighbour and returned
+         * to the same split learned that the excursion does not help THIS workload. The old re-arm
+         * path let floor/anchor jitter discard that knowledge, so mget8 restarted one sweep per node
+         * about every 30s forever. Movement after stabilization under an unchanged workload is the
+         * owner's definition of thrash; a rejected probe therefore owns this split until either:
+         *
+         *   (a) a real walk changed the config, or
+         *   (b) |lr_ewma - owned_lr| > one live gstep for a durable run.
+         *
+         * floor_probe_entry_lr is captured at settled sweep entry and tmFlipSweepFinish preserves
+         * it when a REVERT returns to that same split, so it is the owned lr without another level
+         * field. The persistence expression deliberately mirrors the ordinary climb's veto_run
+         * backoff below:
+         *
+         *     FLIP_SUSTAIN << min(run, 3)  ==  16/32/64 ticks after revert #1/#2/#3+
+         *
+         * A KEEP resets episode_revert_run in tmFlipSweepFinish. A same-config REVERT increments it,
+         * so repeated negative measurements geometrically strengthen ownership instead of making
+         * the noisy drop machinery geometrically expensive. No initial probe is gated here. */
+        if (fc->episode_revert_run > 0 && !fc->floor_probe_active &&
+            ni != fc->revert_run_io) {
+            serverLog(LL_NOTICE, "[flip-ctl n%d] IN-FLOOR-SWEEP OWNERSHIP-RESET "
+                      "config changed io%d->io%d; same-config reverts=%d -> 0",
+                      node, fc->revert_run_io, ni, fc->episode_revert_run);
+            if (fc->floor_probe_used)
+                tmFlipSweepReleaseOwnership(fc, 1);
+            else {
+                fc->episode_revert_run = 0;
+                fc->episode_rearm_run = 0;
+                fc->revert_run_io = 0;
+            }
+        }
+        if (fc->episode_revert_run > 0 && fc->floor_probe_used &&
+            !fc->floor_probe_active && ni == fc->revert_run_io) {
+            int need = FLIP_SUSTAIN <<
+                       (fc->episode_revert_run > 3 ? 3 : fc->episode_revert_run);
+            int departed = !fc->floor_probe_await_settle && !node_idle &&
+                           isfinite(fc->lr_ewma) && isfinite(fc->floor_probe_entry_lr) &&
+                           fabs(fc->lr_ewma - fc->floor_probe_entry_lr) > gstep;
+            if (departed) {
+                if (fc->episode_rearm_run < need) fc->episode_rearm_run++;
+            } else {
+                fc->episode_rearm_run = 0;
+            }
+            if (fc->episode_rearm_run >= need) {
+                serverLog(LL_NOTICE, "[flip-ctl n%d] IN-FLOOR-SWEEP OWNERSHIP-REARM "
+                          "owned_lr=%+.3f lr=%+.3f departure=%.3f>gstep=%.3f "
+                          "sustain=%d/%d same-config-reverts=%d",
+                          node, fc->floor_probe_entry_lr, fc->lr_ewma,
+                          fabs(fc->lr_ewma - fc->floor_probe_entry_lr), gstep,
+                          fc->episode_rearm_run, need, fc->episode_revert_run);
+                tmFlipSweepReleaseOwnership(fc, 0);
+            }
+        }
+        int reverted_owner_same_config = fc->episode_revert_run > 0 &&
+                                         fc->floor_probe_used &&
+                                         !fc->floor_probe_active &&
+                                         ni == fc->revert_run_io;
+
         /* A sweep never issues another conversion after a quiescent conservation failure. The
          * process-wide guard above diagnoses loss/gain anywhere; the entry-sum comparison makes
          * the same proof node-local. In-flight half-moves cannot appear here because both
@@ -30981,19 +31087,24 @@ static void tomoFlipController(void) {
                 fc->anchor_out_dir = 0;
                 fc->anchor_out_run = 0;
                 fc->u_noise_primed = 0;
-                /* A workload/saturation change at the captured split starts a new settled
-                 * episode. A sweep move, final walk-back and cache re-settle must NOT re-arm it. */
-                if (same_split && !fc->floor_probe_await_settle) {
+                /* For a KEEP (or before any REVERT), a workload/saturation change at the captured
+                 * split starts a new settled episode as before. After a REVERT these observations
+                 * may invalidate the representational anchor, but only the owned-lr governor above
+                 * may release the measured episode. */
+                if (same_split && !fc->floor_probe_await_settle &&
+                    !reverted_owner_same_config) {
                     fc->floor_probe_used = 0;
                     fc->floor_probe_best_io = 0;
                     fc->floor_probe_return_blocked = 0;
                 }
                 if (drop_floor) {
                     atomic_fetch_add_explicit(&tomo_flip_anchor_drop_floor, 1, memory_order_relaxed);
-                    fc->episode_revert_run = 0;   /* the MIX moved: re-verification damping over */
+                    if (!reverted_owner_same_config)
+                        fc->episode_revert_run = 0;
                 } else if (drop_anchor) {
                     atomic_fetch_add_explicit(&tomo_flip_anchor_drop_floor, 1, memory_order_relaxed);
-                    fc->episode_revert_run = 0;   /* anchor-band = mix moved inside the floor */
+                    if (!reverted_owner_same_config)
+                        fc->episode_revert_run = 0;
                 } else
                     atomic_fetch_add_explicit(&tomo_flip_anchor_drop_sat, 1, memory_order_relaxed);
                 serverLog(LL_NOTICE, "[flip-ctl n%d] ANCHOR-DROP %s lr=%+.3f/%+.3f floor=%.3f "
@@ -31067,7 +31178,8 @@ static void tomoFlipController(void) {
          * tests that remain live during enumeration (idle, after<=0, FLIP_LOAD_SHIFT), and costs at
          * worst one bounded excursion over the frozen candidate set, corrected next episode. */
         if (fc->floor_probe_used && !fc->floor_probe_abandon_pending && sweep_observable &&
-            !fc->floor_probe_active && !fc->floor_probe_await_settle) {
+            !fc->floor_probe_active && !fc->floor_probe_await_settle &&
+            !reverted_owner_same_config) {
             int sweep_drop_floor = 0;
             double sweep_lr_equiv = 0.0;
             if (tmFlipSweepWorkloadChanged(fc, ni, ne, u_io, u_ex,
@@ -31628,15 +31740,18 @@ static void tomoFlipController(void) {
             }
             fc->wait = FESC_WAIT_BASE; fc->just_settled = 0;
             fc->idle_stable = 0; fc->veto_run = 0;         /* workload boundary: fresh reactivity */
-            fc->floor_probe_used = 0;                      /* the next loaded settle is a new episode */
-            fc->floor_probe_active = 0;
-            fc->floor_probe_revert_pending = 0;
-            fc->floor_probe_await_settle = 0;
-            fc->floor_probe_abandon_pending = 0;
-            fc->floor_probe_return_retries = 0;
-            fc->floor_probe_return_blocked = 0;
-            fc->floor_probe_target_io = 0;
-            fc->floor_probe_best_io = 0;
+            fc->episode_rearm_run = 0;                    /* idle cannot satisfy durable departure */
+            if (!reverted_owner_same_config) {
+                fc->floor_probe_used = 0;                  /* an unowned loaded settle is a new episode */
+                fc->floor_probe_active = 0;
+                fc->floor_probe_revert_pending = 0;
+                fc->floor_probe_await_settle = 0;
+                fc->floor_probe_abandon_pending = 0;
+                fc->floor_probe_return_retries = 0;
+                fc->floor_probe_return_blocked = 0;
+                fc->floor_probe_target_io = 0;
+                fc->floor_probe_best_io = 0;
+            }
             fc->anchor_rate_prev = fc->mean; fc->anchor_rate_run = 0;
             fc->lr_quiet_run = 0; fc->u_noise_primed = 0; fc->anchor_sat_rebase = 0;
             continue;
@@ -32063,16 +32178,29 @@ static void tomoFlipController(void) {
          * demand has no vote in these direction/balance calculations. */
 
         if (tm_flip_trace) {
+            int ownership_active = fc->episode_revert_run > 0 &&
+                                   fc->floor_probe_used && !fc->floor_probe_active &&
+                                   ni == fc->revert_run_io;
+            int rearm_countdown = 0;
+            if (ownership_active) {
+                int need = FLIP_SUSTAIN <<
+                           (fc->episode_revert_run > 3 ? 3 : fc->episode_revert_run);
+                rearm_countdown = need > fc->episode_rearm_run
+                                ? need - fc->episode_rearm_run : 0;
+            }
             serverLog(LL_NOTICE,
                 "[flip-trace n%d] t=%lld ops=%.0f io_sat=%.4f ex_sat=%.4f r=%.4f lr=%.4f anchor=%.4f "
                 "band=%.4f floor=%.4f u_io=%.3f u_ex=%.3f u_io_occ=%.3f ex_demand_sat=%.3f cpu_sat=%.3f "
                 "qd=%.2f qio=%ld c_ex=%.0f io=%d ex=%d "
-                "dir=%d phase=%d wait=%d out_run=%d stable=%d tot=%.3f cli_run=%d %s%s",
+                "dir=%d phase=%d wait=%d out_run=%d stable=%d tot=%.3f cli_run=%d "
+                "owned=%d owned_lr=%+.4f reverts=%d rearm_countdown=%d %s%s",
                 node, (long long)now, fc->mean, io_sat, ex_dir_sat, ratio, fc->lr_ewma, fc->lr_anchor,
                 band, gfloor, u_io, u_ex, u_io_occ, ex_demand_sat, cpu_sat,
                 qd_mean, q_io, c_ex, io_live_node, w_live,
                 fc->dir, fc->phase, fc->wait, fc->lr_out_run, fc->idle_stable, demand_total,
-                fc->cli_run,
+                fc->cli_run, ownership_active,
+                fc->episode_revert_run > 0 ? fc->floor_probe_entry_lr : 0.0,
+                fc->episode_revert_run, rearm_countdown,
                 server_bound ? "SRV" : "CLI", wsig_log);
         }
         int out = 0;
