@@ -21,22 +21,31 @@ Replaced `flatTable` allocations do not use the per-batch test. They are kept in
 | Dispatch-group pin | Each `flatGroupPinSlot` isolates atomic `active` on its own cache line, pairs atomic `floor` with atomic `scan_lock` on the next, and separates `pin_out[4096]`; `flat_group_pin_mask.bits[]` identifies slots with active pins. `flat_batches_closed_n` is also the close-generation source, while `flat_batches_freed_n` and `flat_pin_wrap_blocks` are counters. (`src/server.c:985-1015`) |
 | Pin owner record | The fake client carries `tomo_read_snapshot_gen` and `tomo_read_snapshot_pinned`; the same client also carries the read snapshot protected by the pin. (`src/server.h:1909-1924`) |
 | Retire record | `flatRetireNode` contains exactly `masked_kv` and `next`. (`src/flatstore.h:67`) |
-| Closed batch | `flatBatch` contains `head`, `close_gen`, `nworkers`, `next`, and flexible array `arr[]`. (`src/flatstore.h:98-104`) |
+| Closed batch | `flatBatch` contains `head`, scalar `grace_target`, scalar `eligible_ts`, `retire_flags`, and `next`. An owner flag makes `head` a direct `csMsetOwner` chain; otherwise it is a `flatRetireNode` chain. (`src/flatstore.h`) |
 | Table-owned fallback queues | `flatTable` contains atomic `retire_stack` plus FIFO `batches` and `batches_tail`, in addition to its slots, size/mask, counters, generation, and resize request. (`src/flatstore.h:106-117`) |
 
-The flexible `flatBatch.arr` is interpreted as three consecutive regions: `snap[flat_batch_slots]`, `io_snap[flat_batch_slots]`, and `io_pin[flat_batch_mask_words]`. Initialization sets `flat_batch_slots = server.io_threads + server.num_workers + 1` and `flat_batch_mask_words = ceil(flat_batch_slots / 64)`, and allocation uses `sizeof(flatBatch) + (2 * flat_batch_slots + flat_batch_mask_words) * sizeof(uint64_t)`. (`src/server.c:8944-8967`, `src/server.c:22816-22827`)
+Batch readiness compares those two scalars with one acquired physical-frontier and snapshot-frontier
+snapshot per drain span. Both frontiers are monotone, so a concurrent advance can only defer a
+ready batch to the next pass. When physical and logical lanes close together they share one
+post-fence grace target and one close-counter RMW. Completed-header telemetry is likewise folded
+into one relaxed RMW per drain span rather than one per batch. (`src/server.c`)
 
 The worker-local list is not keyed by table: when `flat_local_sink` is nonnull, `flatRetirePayload` does not use its `flatTable *t` argument, so one worker batch can contain payloads retired from multiple flat tables. A converted IO role explicitly requests a dormant EX slice when either its retained local list or worker FIFO is nonempty. (`src/flatstore.c:168-185`, `src/server.c:21752-21775`, `src/server.c:23424-23450`)
 
 ### Version-retirement state
 
-`tomoRetireState` has exactly three values: `TOMO_RETIRE_ACTIVE`, `TOMO_RETIRE_PRUNE_GRACE`, and `TOMO_RETIRE_PHYSICAL`; stamp state is independently `PENDING`, `APPLIED`, or `CANCELED`, and `TOMO_VERSION_UNCOMMITTED` is `UINT64_MAX`. (`src/object.h:117-127`, `src/object.h:180`)
+`tomoRetireState` has four values: `TOMO_RETIRE_ACTIVE`, `TOMO_RETIRE_OWNER_GRACE`, `TOMO_RETIRE_PRUNE_GRACE`, and `TOMO_RETIRE_PHYSICAL`; stamp state is independently `PENDING`, `APPLIED`, or `CANCELED`, and `TOMO_VERSION_UNCOMMITTED` is `UINT64_MAX`. (`src/object.h`)
 
-The complete `tomoVerMeta` layout is atomic `commit`; atomic `stamped_head`; `install_order`; `origin_client_id`; `reclaim_bytes`; `version_order`; `install_owner`; `install_bucket`; `version_tombstone`; `version_reservation`; atomic `version_canceled`; `stamp_state`; `retire_state`; `detached`; `lifecycle_ref_held`; atomic `single_state`; atomic `owner_ops_pending`; `version_prev`; `stamped_prev`; `version_kvs`; `version_db`; `reservation_owner`; and owner-local `owner_next`. Every installed version's `commit` points to its group's reference-counted shared timestamp record. (`src/object.h`)
+The complete `tomoVerMeta` layout is atomic `commit`; atomic `stamped_head`; `install_order`; `origin_client_id`; `reclaim_bytes`; `version_order`; `install_owner`; `install_bucket`; `version_tombstone`; `version_reservation`; atomic `version_canceled`; `stamp_state`; `retire_state`; `detached`; `lifecycle_ref_held`; atomic `single_state`; `version_prev`; `stamped_prev`; `version_kvs`; `version_db`; `reservation_owner`; and owner-local `owner_next`. Every installed version's `commit` points to its group's reference-counted shared timestamp record. (`src/object.h`)
 
 Metadata and chain access is published rather than plain: `kvobjVmeta`, the shared timestamp helpers, and both predecessor getters use acquire loads, while the corresponding metadata and predecessor setters use release stores. (`src/object.h`)
 
-New version metadata initializes a null commit pointer, `single_state`, and `version_canceled`, inherits the unordered stamped-index head through an acquire load and release store, starts an atomic install in `PENDING` and `TOMO_RETIRE_ACTIVE`, and records its physical predecessor, kvstore, and database. `csMsetRecordInstall` later release-attaches the shared commit record while still under the destination owner lock. (`src/db.c`, `src/server.c`)
+New version metadata initializes a null commit pointer, `single_state`, and `version_canceled`. An
+atomic install inherits the unordered stamped-index head, links itself as that index's new head,
+starts in `APPLIED` and `TOMO_RETIRE_OWNER_GRACE`, and records its physical predecessor, kvstore,
+database, and already-computed install bucket before metadata/table publication.
+`csMsetRecordInstall` later release-attaches the shared commit record while still under the
+destination owner lock. (`src/db.c`, `src/server.c`)
 
 ## Reader protocols
 
@@ -152,32 +161,34 @@ convoy allocator-facing physical frees. No limit or grace rule was removed. (`sr
 
 ### Arming the first grace
 
-Every atomic install inherits its physical predecessor's authoritative stamped index, appends itself
-to the stable owner record, release-initializes `owner_ops_pending` to one, and release-publishes
-itself as the new stamped-index head. This happens before the owner's acquire-release
+Every atomic install inherits its physical predecessor's authoritative stamped index and publishes
+itself as the new stamped-index head with `TOMO_RETIRE_OWNER_GRACE` before the table head becomes
+visible, then appends itself to the stable owner record. This happens before the owner's acquire-release
 `shards_remaining` decrement. The common marker is still zero, so the eager entry is invisible.
 The last owner publishes the shared `commit_ts` marker and encoded global clock. (`src/server.c`,
 `src/db.c`)
 
 The same stable owner record remains on that worker's private list. A later slice freezes the
-published commit frontier; when the record's marker is nonzero and no newer than that frontier, one
-tagged retire node carries the complete record to the worker's separate logical FIFO. The batch
-close supplies one common physical grace and its scalar maximum timestamp supplies logical
-eligibility. There is no per-version first-grace node, cross-core retirement job, or reserved lane.
+published commit frontier; when the record's marker is nonzero and no newer than that frontier, its
+existing `next` link chains the complete record directly into the worker's separate logical FIFO.
+The batch close supplies one common physical grace and its scalar maximum timestamp supplies logical
+eligibility. There is no successful-epoch retire-node wrapper, per-version first-grace node,
+cross-core retirement job, or reserved lane.
 (`src/server.c`, `src/flatstore.c`)
 
-Cancellation marks the eagerly indexed entry canceled and moves `ACTIVE -> PRUNE_GRACE` while the
-common marker remains zero. Its owner-record payload enters the ordinary physical-grace lane with
-no logical timestamp, so it cannot queue behind a successful epoch held by an old snapshot.
+Cancellation marks the eagerly indexed entry canceled while it remains in `OWNER_GRACE` and the
+common marker remains zero. Its owner-record payload uses one tagged node in the ordinary
+physical-grace lane with no logical timestamp, so it cannot queue behind a successful epoch held by
+an old snapshot.
 (`src/server.c`, `src/db.c`)
 
 ### First-grace callback
 
-When an owner-epoch batch becomes ready, `flatBatchFree` opens one worker QSBR/lock scope and payload
-dispatch calls `tomoVersionPruneOwnerAfterGrace` for each record. That callback walks the stable
-owner chain, release-stores each `owner_ops_pending` from one to zero, establishes the anchor's
-first-grace state, and calls `tomoVersionPruneAfterGrace`. One outer scope is shared by all records
-and versions in the batch. (`src/server.c`, `src/flatstore.c`)
+When an owner-epoch batch becomes ready, `flatBatchFree` opens one worker QSBR/lock scope and calls
+`tomoVersionPruneOwnerAfterGrace` for each directly chained record (or dispatches the tagged
+cancellation payload). That callback walks the stable owner chain, changes each version from
+`OWNER_GRACE` to `PRUNE_GRACE`, and calls `tomoVersionPruneAfterGrace`. One outer scope is shared by
+all records and versions in the batch. (`src/server.c`, `src/flatstore.c`)
 
 At callback entry, the code acquire-loads the anchor metadata, derives the executing owner from `iotid`, runs `tomoAtomicOwnerCheck`, and asserts the owner range. That check is telemetry only: on an install/current/executing-owner mismatch it relaxed-increments a stale-owner counter and returns, after which the callback continues. (`src/db.c:1144-1151`, `src/server.c:411-425`)
 
@@ -186,8 +197,8 @@ The callback seq-cst publishes `in_flat_section = 1`, backs out to zero and quie
 The callback branches as follows. (`src/db.c:1144-1405`)
 
 1. Null metadata or an anchor already in `PHYSICAL` state finishes without walking a bag. A detached anchor must be in `PRUNE_GRACE`; it is reset to `ACTIVE`, passed to physical retirement, and then finished. (`src/db.c:1165-1177`)
-2. A live anchor is resolved to the current table head under the worker lock. The callback acquire-loads that head's unordered stamped-index head. A canceled anchor has no timestamp and licenses only canceled nodes whose own grace is complete; an applied anchor uses its own `(commit_ts, version_order)` rank. Neither mode reads a global cursor, and both require `owner_ops_pending == 0` on the anchor. (`src/db.c`)
-3. During the physical-chain scan, a canceled node is eligible exactly when it is `ACTIVE` and has zero pending owner operations. For an applied anchor, an applied version is eligible only when its nonzero shared rank is below the anchor's rank; a raw tail has implicit rank zero. Higher timestamps and zero-timestamp versions survive. (`src/db.c`)
+2. A live anchor is resolved to the current table head under the worker lock. The callback acquire-loads that head's unordered stamped-index head. A canceled anchor has no timestamp and licenses only canceled nodes whose own grace is complete; an applied anchor uses its own `(commit_ts, version_order)` rank. Neither mode reads a global cursor, and the anchor must no longer be in `OWNER_GRACE`. (`src/db.c`)
+3. During the physical-chain scan, a canceled node is eligible exactly when it is `ACTIVE`; `OWNER_GRACE` is the pending-owner exclusion. For an applied anchor, an applied version is eligible only when its nonzero shared rank is below the anchor's rank; a raw tail has implicit rank zero. Higher timestamps and zero-timestamp versions survive. (`src/db.c`)
 4. An eligible interior node is removed by a release predecessor store; an eligible head advances local `newhead`. A node with no pending owner maintenance enters physical grace immediately. A lower committed node whose owner-local retirement remains pending is instead marked detached: the successor's completed grace licenses unlink, while the later owner pass retains ownership until it can schedule post-unlink grace. (`src/db.c`)
 5. The callback stable-filters the unordered stamped index for both anchor kinds. A metadata-bearing
    node survives exactly when it is `APPLIED`, not detached, and not `PHYSICAL`. A canceled anchor
@@ -198,12 +209,12 @@ The callback branches as follows. (`src/db.c:1144-1405`)
 7. If the physical head changed, the callback release-overwrites the flat slot, then repoints, removes, or adds the whole-key expiry entry according to the old and new heads and replaces their hash subexpiry membership. (`src/db.c:1290-1320`, `src/flatstore.c:269-275`)
 8. The survivor census counts a raw node as committed and stops; ignores canceled nodes; counts a version as uncommitted when its shared timestamp is zero or its stamp is not `APPLIED`; and counts every other version as committed. (`src/db.c`)
 9. With exactly one committed survivor and no uncommitted survivor, a metadata-bearing tombstone is deleted when it is the callback anchor, is `ACTIVE`, or is in `PRUNE_GRACE` with no lifecycle reference—the state left when its callback record was discarded. The callback resets `PRUNE_GRACE` to `ACTIVE` before `dbSyncDelete`. (`src/db.c:1345-1372`, `src/flatstore.c:54-68`)
-10. With exactly one committed survivor, no uncommitted survivor, and no physical predecessor below the sole committed object, a metadata-bearing non-tombstone is promoted when it is the callback anchor or has no lifecycle reference. Promotion requires an applied stamp and zero pending owner work, release-stores the stamped index to self, releases exact per-owner byte accounting, release-detaches the metadata, and queues that metadata for grace-delayed commit-reference release and free. (`src/db.c`, `src/flatstore.c`)
+10. With exactly one committed survivor, no uncommitted survivor, and no physical predecessor below the sole committed object, a metadata-bearing non-tombstone is promoted when it is the callback anchor or has no lifecycle reference. Promotion requires an applied stamp and a state other than `OWNER_GRACE`, release-stores the stamped index to self, releases exact per-owner byte accounting, release-detaches the metadata, and queues that metadata for grace-delayed commit-reference release and free. (`src/db.c`, `src/flatstore.c`)
 11. If none of the terminal branches returned, an anchor still in `PRUNE_GRACE` is reset to `ACTIVE` before the common finish path. (`src/db.c:1403-1405`)
 
 ### Physical retirement and the second grace
 
-For an object with metadata, `tomoSchedulePhysicalRetire` requires either `stamp_state == APPLIED` with a nonzero shared timestamp, or `stamp_state == CANCELED` with no timestamp, and an acquire load must see zero pending owner operations. An already-`PHYSICAL` metadata-bearing object returns without another enqueue; otherwise the helper writes `PHYSICAL`, and either that object or a metadata-free input is queued once as an ordinary raw retire record. (`src/db.c`)
+For an object with metadata, `tomoSchedulePhysicalRetire` requires either `stamp_state == APPLIED` with a nonzero shared timestamp, or `stamp_state == CANCELED` with no timestamp, and requires `ACTIVE` or `PRUNE_GRACE` rather than `OWNER_GRACE`. An already-`PHYSICAL` metadata-bearing object returns without another enqueue; otherwise the helper writes `PHYSICAL`, and either that object or a metadata-free input is queued once as an ordinary raw retire record. (`src/db.c`)
 
 For a still-live bag, its owner-epoch record waits for the pre-unlink grace while the anchors remain
 table-reachable. Ready dispatch invokes the local callbacks without freeing an anchor; under the
@@ -219,11 +230,11 @@ That later close executes the seq-cst pre-snapshot fence after the completed cal
 For an eligible interior node, the release predecessor unlink occurs before its ordinary enqueue. For an eligible physical head, the callback enqueues the raw record while scanning and release-overwrites or deletes the flat slot later; the later-pass close rule above makes the new batch's fence and snapshots occur after the entire callback, including that delayed head unlink. (`src/db.c:1233-1239`, `src/db.c:1269-1292`, `src/server.c:8969-8997`, `src/server.c:9113-9131`)
 
 The detached-before-callback case is the explicit exception to two new graces because the table
-unlink has already happened. The owner epoch still owns the allocation through
-`owner_ops_pending`; when its first-grace callback runs, the detached branch schedules the object
-directly into the ordinary post-unlink lane. (`src/server.c`, `src/db.c`)
+unlink has already happened. `OWNER_GRACE` still gives the owner epoch allocation ownership; when
+its first-grace callback runs, the detached branch schedules the object directly into the ordinary
+post-unlink lane. (`src/server.c`, `src/db.c`)
 
-Removing a whole version bag marks every metadata-bearing member detached. A raw tail is ordinary-retired immediately; a canceled member or one with a nonzero shared timestamp is physically retired when pending owner work is zero and state is `ACTIVE`; a `PRUNE_GRACE` member waits for its already-armed callback; a `PHYSICAL` member already has retire work; and a genuinely pending/uncommitted member or one with nonzero `owner_ops_pending` waits for terminal owner work. (`src/db.c`)
+Removing a whole version bag marks every metadata-bearing member detached. A raw tail is ordinary-retired immediately; a canceled member or one with a nonzero shared timestamp is physically retired when state is `ACTIVE`; a `PRUNE_GRACE` member waits for its already-armed callback; a `PHYSICAL` member already has retire work; and an `OWNER_GRACE` member waits for terminal owner work. (`src/db.c`)
 
 Table discard is terminal for the retire record, not necessarily for its version. Because table teardown/replacement is already quiescent, discard decrements ordinary records and releases commit references before freeing atomic objects or metadata, but suppresses a pending prune callback, releases only its install-owner lifecycle reference, and leaves the version's `PRUNE_GRACE` state unchanged. It applies this dispatch to both the table stack and table-owned closed batches; a later sibling callback recognizes the no-lifecycle `PRUNE_GRACE` state in its tombstone-deletion and live-promotion branches. (`src/flatstore.c`, `src/db.c`)
 
@@ -248,9 +259,9 @@ Worker-local retire lists and batches are not members of the old table and are n
 | Worker announcements | `loop_seq` is release-stored and acquire-loaded by close/readiness; `in_flat_section` transitions and readiness loads are seq-cst. (`src/server.c:9045-9055`, `src/server.c:21790-21798`, `src/server.c:21827-21841`, `src/server.c:22361-22364`) |
 | IO announcements | Entry uses a relaxed prior-value load, seq-cst odd store, and architecture-dependent publish fence; exit uses a release even store; close seq-cst snapshots epochs and readiness acquire-loads only captured slots. (`src/server.c:1105-1114`, `src/server.c:1125-1149`, `src/server.c:8993-8997`, `src/server.c:9036-9043`) |
 | Foreign pin | Entry/exit RMWs and readiness load are seq-cst. (`src/server.c:1151-1161`, `src/server.c:9031-9032`) |
-| Batch boundary | Close executes a seq-cst fence, then a seq-cst generation fetch-add, then acquire worker snapshots and seq-cst IO snapshots. (`src/server.c:8969-8997`) |
+| Batch boundary | Close executes a seq-cst fence and seq-cst generation fetch-add. Reader entry publishes active before sampling that generation; the shared grace controller folds active generations into its scalar safe frontier. (`src/server.c`) |
 | Group pin | Scan-lock acquisition is acquire and release-unlock; first-active mask publication is relaxed plus a seq-cst fence; generation cells are relaxed-updated and acquire-scanned; active exit and last-active mask clearing are release operations. (`src/server.c:1178-1215`, `src/server.c:1220-1250`) |
-| Owner-local lifetime | `owner_ops_pending` is release-initialized to one after install-side index publication and release-stored to zero by the owner-epoch callback before pruning; no cross-core queue publishes it. (`src/server.c`) |
+| Owner-local lifetime | Atomic metadata is table-published in `OWNER_GRACE`; the owner-epoch callback changes it to `PRUNE_GRACE` only after the shared first grace. No per-version atomic counter or cross-core queue publishes this transition. (`src/db.c`, `src/server.c`) |
 | Prune worker lock | The callback's worker lock is acquired by a strong CAS with acquire success/relaxed failure and released by a release store. (`src/server.c:9668-9684`, `src/db.c:1134-1163`) |
 | Version links | Metadata, commit pointer/timestamp, and both predecessor getters are acquire; setters are release. The callback also release-publishes the repaired stamped-index head. (`src/object.h`, `src/db.c`) |
 

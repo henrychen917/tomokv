@@ -124,6 +124,9 @@ typedef enum tomoStampState {
 
 typedef enum tomoRetireState {
     TOMO_RETIRE_ACTIVE = 0,
+    /* The install-owner record owns the version until its shared first grace.
+     * This replaces the former per-version atomic owner_ops_pending word. */
+    TOMO_RETIRE_OWNER_GRACE,
     TOMO_RETIRE_PRUNE_GRACE,
     TOMO_RETIRE_PHYSICAL,
 } tomoRetireState;
@@ -155,14 +158,10 @@ struct tomoVerMeta {
     uint8_t retire_state;
     uint8_t detached;
     uint8_t lifecycle_ref_held;
-    /* Owner-published read state. MERGE NOTE (dev x onever): lifecycle_ref_held took the first
-     * of the three padding bytes that preceded owner_ops_pending, so this takes the second —
-     * this field itself does not move owner_ops_pending (asserted below). owner_next replaces the
-     * retired embedded cross-core operations and is outside that padding/layout assertion.
-     * COMMITTED licenses the read fast path. SUPERSEDED permanently prevents late retirement
-     * from relicensing an object after a successor was installed. */
+    /* Owner-published read state. COMMITTED licenses the read fast path.
+     * SUPERSEDED permanently prevents late retirement from relicensing an
+     * object after a successor was installed. */
     _Atomic uint8_t single_state;
-    _Atomic unsigned int owner_ops_pending;
     struct redisObject *version_prev;
     struct redisObject *stamped_prev;
     struct _kvstore *version_kvs;
@@ -177,13 +176,6 @@ struct tomoVerMeta {
 _Static_assert(offsetof(struct tomoVerMeta, single_state) ==
                offsetof(struct tomoVerMeta, detached) + 2 * sizeof(uint8_t),
                "single-version state must consume vmeta padding");
-/* REPLAY NOTE (dev x ownread): install_order/origin_client_id/version_canceled inserted above
- * shift detached to an odd offset, so the aligned slot after the packed byte run is detached+3,
- * not +4. The INTENT is unchanged and asserted in that form: owner_ops_pending sits at the very
- * next 4-byte-aligned position after single_state — the byte-packing consumed padding only. */
-_Static_assert(offsetof(struct tomoVerMeta, owner_ops_pending) ==
-               ((offsetof(struct tomoVerMeta, single_state) + 1 + 3) & ~(size_t)3),
-               "single-version state must not move owner_ops_pending");
 
 #define TOMO_VERSION_UNCOMMITTED UINT64_MAX
 

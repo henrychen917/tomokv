@@ -48,9 +48,9 @@ elected and no completion section walks the group's keys.
 ## Phase D: owner-local retirement
 
 Successful records stay on the install owner's private list. A later slice freezes the published
-clock and queues one tagged owner-epoch payload for each record whose marker is at or below that
-frontier. The payload enters a separate owner-private logical FIFO, preserving monotonic scalar
-eligibility for the existing O(1) grace caches. Marker/frontier plus QSBR grace licenses logical
+clock and chains each ready owner record directly into a separate owner-private logical FIFO,
+preserving monotonic scalar eligibility for the existing O(1) grace caches. Marker/frontier plus
+QSBR grace licenses logical
 pruning; post-unlink grace licenses physical free.
 
 Cancellation marks the eager entries before the counter decrement and queues one owner payload in

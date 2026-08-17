@@ -25,9 +25,10 @@ reclaim backlog, then the worker continues unrelated work.
 
 ## Ordinary writes
 
-For MSET/DEL, `csMsetRecordInstall` calls `tomoApplyVersionStamp` immediately after appending each
-new version. The new physical head already contains the predecessor's authoritative stamped-index
-pointer, so this is a self-link publication with no key re-hash, table probe, or later record walk.
+For MSET/DEL, version allocation constructs the new stamped-index head and predecessor link before
+publishing the metadata and physical table head. `csMsetRecordInstall` then attaches the shared
+commit and appends the already-indexed version. The install bucket is retained from the dictionary
+operation, so there is no second key hash, table probe, or later record walk.
 `csMsetOwnerSliceDone` only folds the already-local reclaim total and appends the record in `PRUNE`.
 After unlocking and completing the normal pending barrier, the owner decrements
 `shards_remaining`. Nothing is sent to another worker.
@@ -57,10 +58,11 @@ all group versions become eligible together after it is published.
 ## Retirement
 
 A successful record stays on the private list in `PRUNE`. `csOwnerPublishStep` freezes the current
-committed frontier once per pass and queues only records at or below it. One recycled retire node
-carries the complete record into a separate owner-private logical FIFO. The batch's scalar maximum
+committed frontier once per pass and queues only records at or below it. Existing record links carry
+the records directly into a separate owner-private logical FIFO. The batch's scalar maximum
 timestamp retains the O(1) snapshot-frontier predicate. Once its physical and logical frontiers pass,
-one owner-lock scope drops each local lifetime guard and performs the per-key prune callbacks.
+one owner-lock scope changes each `OWNER_GRACE` lifetime state to `PRUNE_GRACE` and performs the
+per-key prune callbacks.
 
 Canceled records carry no timestamp and enter the ordinary physical-grace lane, so a pinned old
 snapshot cannot retain an invisible canceled group. Callback-created post-unlink records also enter

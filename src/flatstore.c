@@ -232,10 +232,9 @@ static void flatRetirePayload(flatTable *t, dictEntry *payload, unsigned int ret
              memory_order_release, memory_order_relaxed));
 }
 
-/* The owner record already is a stable, install-order local chain. Give it one
- * recycled retire node and append it directly to the caller's private logical
- * lane. Its batch close supplies the physical grace and the scalar commit
- * frontier supplies logical eligibility. */
+/* Canceled owner epochs share the ordinary retire lane, whose payload type is
+ * a tagged flatRetireNode. Successful epochs bypass this wrapper and chain
+ * their stable owner records directly in the separate logical lane. */
 int flatRetireVersionOwnerLocal(flatRetireNode **sink, void *owner_record) {
     serverAssert(sink != NULL && owner_record != NULL);
     flatRetireNode *n = flat_node_pool;

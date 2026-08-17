@@ -27,7 +27,8 @@ Sites that install a tombstone:
 | Empty destination store / RENAME source half | `csInstallVersionTombstone` (`src/server.c:11324-11337`) | `createStringObject("",0)` placeholder |
 
 Both call `setKeyVersioned(..., g->version_seq, -1)` to prepend one UNCOMMITTED bag
-version, assert `stamp_state == TOMO_STAMP_PENDING`, set `version_tombstone = 1`, and
+version already indexed with `stamp_state == TOMO_STAMP_APPLIED` and
+`retire_state == TOMO_RETIRE_OWNER_GRACE`, set `version_tombstone = 1`, and
 `csMsetRecordInstall` it into the group (`src/server.c:11524-11530`, `11328-11333`).
 See [install-commit-protocol.md](install-commit-protocol.md).
 
@@ -53,7 +54,7 @@ static void csDelSubExecVersioned(client *sub, csGroup *g) {
                                            SETKEY_EMBED_RAW | SETKEY_NO_SIGNAL,
                                            g->version_seq, -1);            /* :11524 */
         struct tomoVerMeta *vmeta = kvobjVmeta(installed);
-        serverAssert(vmeta && vmeta->stamp_state == TOMO_STAMP_PENDING);
+        serverAssert(vmeta && vmeta->stamp_state == TOMO_STAMP_APPLIED);
         vmeta->version_tombstone = 1;                                     /* :11529 */
         csMsetRecordInstall(sub, g, installed);                          /* :11530 */
 
@@ -183,7 +184,7 @@ release the lifecycle reference.
 
 A non-versioned overwrite/delete removes the whole bag from the table in one store;
 `tomoRetireDetachedBag` marks every member `detached = 1` and schedules physical
-retirement for committed/canceled members with no pending owner ops
+retirement for committed/canceled members in `TOMO_RETIRE_ACTIVE`
 (`src/db.c`). A member still protected by its owner epoch remains allocated. When that
 epoch's already-armed first grace completes, its callback observes `detached` and sends
 the member directly to post-unlink physical grace without another live-bag walk.
@@ -192,10 +193,10 @@ the member directly to post-unlink physical grace without another live-bag walk.
 
 | Load/store | Order | Site |
 | --- | --- | --- |
-| `version_tombstone` | plain (set before the eager owner-local index publication) | `src/server.c` |
+| `version_tombstone` | plain (set before shared-commit attachment and owner publication) | `src/server.c` |
 | shared `commit_ts` probe | acquire | `src/object.h`, `src/server.c` |
 | current command timestamp | acquire clock load | `src/server.c` |
-| `owner_ops_pending` (census/eligibility) | acquire | `src/db.c` |
+| `retire_state` owner-grace exclusion | owner-local plain state under the worker lock | `src/db.c`, `src/server.c` |
 | `stamped_head` in callback | acquire load / release store | `src/db.c` |
 
 ## 8. Invariants
