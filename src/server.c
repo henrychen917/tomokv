@@ -17146,6 +17146,25 @@ static int csLaunchHop2(csGroup *g) {
     return 1;
 }
 
+/* Gather-only storage lookahead (2026-08-17 owner A/B): deleting the broad prefetch machinery
+ * improved p16get by 1.5%, but reduced mget8 by 4.8% (1.218M -> 1.159M). Keep that machinery
+ * deleted and recover only the miss-hiding MGET needs: while result k is assembled, scan the
+ * already-resolved result slots k+1..k+D, then hint their SDS header/value lines. The first pass
+ * gives the result-slot line time to land before the second pass consumes its pointer, matching
+ * the shipped storage-prefetch scan. D is the existing minimum useful storage lookahead, not a
+ * new knob. This is storage-class lookahead over stable addresses published by the owner subs;
+ * it has no speculative lookup, pointer-chase state machine, or cross-operation AMAC state. */
+static inline void csMgetPrefetchResolved(sds *vals, int k, int nkeys) {
+    int end = k + 1 + TOMO_PF_W_VALUE_MIN;
+    if (end > nkeys) end = nkeys;
+    for (int i = k + 1; i < end; i++)
+        redis_prefetch_read(&vals[i]);
+    for (int i = k + 1; i < end; i++) {
+        sds value = vals[i];
+        if (value) redis_prefetch_read(value - 1);  /* SDS flags/length + first value bytes */
+    }
+}
+
 static void csReassemble(client *dst, client *head) {
     if (server.wb_threads > 0) serverAssert(tomoWbInThread());
     csGroup *g = head->csgroup;
@@ -17238,6 +17257,7 @@ static void csReassemble(client *dst, client *head) {
                 /* xshard OPT-1: coalesced — emit position slots in original key order. addReplyBulkSds
                  * consumes (frees) the sds; NULL the slot so teardown doesn't double-free. */
                 for (int i = 0; i < g->nkeys; i++) {
+                    csMgetPrefetchResolved(g->mget_vals, i, g->nkeys);
                     if (g->mget_vals[i]) { addReplyBulkSds(dst, g->mget_vals[i]); g->mget_vals[i] = NULL; }
                     else addReplyNull(dst);
                 }
