@@ -95,3 +95,14 @@ connection still receives an uring reply, kills the script, and requires both
 multishot receive and guarded direct-send counters to have engaged. It is
 wired into the canonical preflight gate; it was not run during the restricted
 consolidation task.
+
+## Retired deeper-batching experiments
+
+The shared per-node SQPOLL experiment (`f3a8292ee`) and its submit/wait enter
+coalescer (`ede26f59a`) are deliberately not part of the consolidated Arm C
+implementation. SQPOLL measured 78% below the ordinary owner-local ring, and
+the coalescer was a wash. Consequently the final tree has no `uring_sqpoll` or
+`uring_coalesce` server fields, SQPOLL group/setup path, deferred-enter state,
+or related INFO counters. `tomokv-uring-sqpoll` and
+`tomokv-uring-coalesce` are unknown directives; the knob matrix passes their
+formerly legal values and requires startup to reject both.

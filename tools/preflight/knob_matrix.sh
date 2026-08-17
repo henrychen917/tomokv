@@ -423,6 +423,13 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   must_refuse tomokv-uring-sendcopy-min -1 "below the declared minimum -- 0=off"
   must_refuse tomokv-uring-sendcopy-min 2147483648 "above the declared INT_MAX byte threshold"
 
+  # The f3a8292ee shared-SQPOLL arm measured -78%, and ede26f59a's enter
+  # coalescer was a wash. Neither experiment's config row or implementation is
+  # part of the consolidated tree. Formerly legal values must be boot-fatal so
+  # an old deployment cannot silently believe either mechanism still runs.
+  must_refuse tomokv-uring-sqpoll 1 "directive deleted; shared SQPOLL measured -78%"
+  must_refuse tomokv-uring-coalesce 8 "directive deleted; submit/wait coalescing was a wash"
+
   try tomokv-reshard-fence-timeout 0
   must_refuse tomokv-reshard-fence-timeout -1 "below the declared minimum -- this knob spells auto as 0"
 
