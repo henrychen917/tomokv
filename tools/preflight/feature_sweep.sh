@@ -959,7 +959,7 @@ section_C() {
     if grep -aq "FLATSTORE resize:.*rebuilt" "$flog"; then
         row $sec flat-resize-precheck "$cfg" SUSPECT "resize line present BEFORE seeding (unexpected)"
     fi
-    pipe_set "$FORK_PORT" 200000 "flat:" 8 0
+    pipe_set "$FORK_PORT" 400000 "flat:" 8 0
     found=""
     for i in $(seq 1 40); do
         found=$(grep -a "FLATSTORE resize:.*rebuilt" "$flog" | head -1)
@@ -970,13 +970,13 @@ section_C() {
         oldsz=$(printf '%s' "$found" | grep -oE 'rebuilt [0-9]+' | grep -oE '[0-9]+')
         newsz=$(printf '%s' "$found" | grep -oE -- '-> [0-9]+' | grep -oE '[0-9]+')
         if [ -n "$oldsz" ] && [ -n "$newsz" ] && [ "$newsz" -gt "$oldsz" ]; then
-            row $sec flat-resize-grow "$cfg" PASS "seed 200k -> $oldsz -> $newsz slots"
+            row $sec flat-resize-grow "$cfg" PASS "seed 400k -> $oldsz -> $newsz slots"
         else row $sec flat-resize-grow "$cfg" SUSPECT "resize line but not a grow: $found"; fi
-    else row $sec flat-resize-grow "$cfg" FAIL "no FLATSTORE resize log after 200k seed (trigger=70% of 256K slots)"; fi
+    else row $sec flat-resize-grow "$cfg" FAIL "no FLATSTORE resize log after 400k seed (2 nodes x 256K slots, 78%/node > 70% trigger)"; fi
 
     # C2: flat SHRINK after mass DEL (live falls under load_pct/4 of the table)
     local grow_lines; grow_lines=$(grep -ac "FLATSTORE resize:.*rebuilt" "$flog")
-    pipe_del "$FORK_PORT" 145000 "flat:" 0
+    pipe_del "$FORK_PORT" 345000 "flat:" 0
     local dbs; dbs=$(tcli "$FORK_PORT" DBSIZE)
     [ "$dbs" = "55000" ] || row $sec flat-shrink-dbsize "$cfg" SUSPECT "post-DEL dbsize=$dbs (expected 55000)"
     found=""
