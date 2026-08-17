@@ -47,6 +47,7 @@
 # three short windows. Full mode uses the median of three longer windows.
 
 set -uo pipefail
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 # Keep asynchronous children in this shell's process group until `setsid` runs.
 # That guarantees setsid can exec in place (the captured $! becomes the new
 # session/process-group leader rather than a short-lived forking wrapper).
@@ -61,8 +62,8 @@ export LC_ALL=C
 # floor, not a regression. 3 sits above the noise and still well under the -4% that the reference
 # cells treat as a real regression, so a genuine controller regression is still caught.
 readonly ACCEPT_TOL_PCT=3
-readonly SERVER_CORES=0-7
-readonly LOAD_CORES=8-15
+readonly SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+readonly LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
 readonly KEY_MIN=1
 readonly KEY_MAX=2000000
 readonly VALUE_BYTES=32
@@ -193,18 +194,18 @@ clean_marker_count() {
 }
 
 parse_roles() {
-    local role_file=$1
-    awk '
+    local role_file=$1 expected=${2:-32}
+    awk -v expected="$expected" '
         /^io_slot [0-9]+ mode=(IO|EX) conns=[0-9]+ busy=/ {
             slot = $2 + 0
-            if (slot < 0 || slot > 7 || seen[slot]++) bad = 1
+            if (slot < 0 || slot >= expected || seen[slot]++) bad = 1
             if ($3 == "mode=IO") io++
             else if ($3 == "mode=EX") ex++
             next
         }
         END {
-            for (slot=0; slot<8; slot++) if (!seen[slot]) bad = 1
-            if (bad || io + ex != 8) exit 1
+            for (slot=0; slot<expected; slot++) if (!seen[slot]) bad = 1
+            if (bad || io + ex != expected) exit 1
             printf "%d %d\n", io+0, ex+0
         }' "$role_file"
 }
@@ -261,7 +262,7 @@ selftest() {
         fi
     }
     ops_class() { valid_ops "$1" && printf VALID || printf INVALID; }
-    role_class() { parse_roles "$1" 2>/dev/null || printf INVALID; }
+    role_class() { parse_roles "$1" 8 2>/dev/null || printf INVALID; }
     tolerance_class() { within_tolerance "$1" "$2" && printf PASS || printf FAIL; }
 
     selfcheck totals-positive VALID ops_class 123.45
@@ -516,7 +517,12 @@ seed_keys() {
 }
 
 boot_server() {
-    local label=$1 io=$2 ex=$3 mode=$4 launch_log
+    local label=$1 want_io=$2 want_ex=$3 mode=$4 launch_log io ex
+    if [ $((want_io + want_ex)) -ne 32 ] || [ $((want_io % 2)) -ne 0 ] || [ $((want_ex % 2)) -ne 0 ]; then
+        LAST_REASON="2x16c static boot needs even global roles totalling 32; requested $want_io/$want_ex"
+        return 1
+    fi
+    io=$((want_io / 2)); ex=$((want_ex / 2))
     stop_server
     ACTIVE_LOG=$WORK/$label.server.log
     launch_log=$WORK/$label.launch.log
@@ -536,7 +542,7 @@ boot_server() {
     rm -f "$WORK/data.$label"/*.rdb 2>/dev/null || true
     setsid taskset -c "$SERVER_CORES" "$STAGED" \
         --port "$PORT" --bind 127.0.0.1 --dir "$WORK/data.$label" \
-        --tomokv-nodes 1 --tomokv-thread-io "$io" --tomokv-thread-ex "$ex" \
+        --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-io "$io" --tomokv-thread-ex "$ex" \
         --tomokv-thread-mode "$mode" --save '' --appendonly no \
         --daemonize no --protected-mode no --enable-debug-command local \
         --logfile "$ACTIVE_LOG" --loglevel notice \
@@ -577,15 +583,19 @@ boot_server() {
             fi
             if role_snapshot "$label.ready" &&
                [ "$info_pid" = "$SERVER_PID" ] &&
-               [ "$SNAP_IO" -eq "$io" ] && [ "$SNAP_EX" -eq "$ex" ]; then
-                say "  boot $label pid=$SERVER_PID io=$io ex=$ex mode=$mode"
+               [ "$SNAP_IO" -eq "$want_io" ] && [ "$SNAP_EX" -eq "$want_ex" ]; then
+                if ! preflight_assert_standard_boot "$ACTIVE_LOG" "$SERVER_PID" "$io" "$ex"; then
+                    LAST_REASON="standard 2x16c pin assertion failed"
+                    return 1
+                fi
+                say "  boot $label pid=$SERVER_PID global-roles=$want_io/$want_ex per-node=$io/$ex mode=$mode"
                 return 0
             fi
             if [ "$LAST_CLIENT_RC" -eq 124 ] || [ "$LAST_CLIENT_RC" -eq 137 ]; then
                 LAST_REASON="DEBUG TOMO-IOLOAD timed out during readiness"
                 return 1
             fi
-            LAST_REASON="server answered PING but roles were not ready as $io/$ex"
+            LAST_REASON="server answered PING but roles were not ready as global $want_io/$want_ex"
         fi
         sleep 0.25
     done
@@ -610,8 +620,8 @@ role_snapshot() {
         return 1
     }
     read -r SNAP_IO SNAP_EX <<< "$parsed"
-    if [ $((SNAP_IO + SNAP_EX)) -ne 8 ]; then
-        LAST_REASON="DEBUG TOMO-IOLOAD exposed $SNAP_IO IO + $SNAP_EX EX, expected pool=8 ($SNAP_FILE)"
+    if [ $((SNAP_IO + SNAP_EX)) -ne 32 ]; then
+        LAST_REASON="DEBUG TOMO-IOLOAD exposed $SNAP_IO IO + $SNAP_EX EX, expected 2x16c pool=32 ($SNAP_FILE)"
         return 1
     fi
     return 0
@@ -1022,13 +1032,13 @@ clean_log_case() {
 say "flipcmp: binary=$BIN staged=$STAGED QUICK=${QUICK:-0} tolerance=${ACCEPT_TOL_PCT}%"
 say "flipcmp: server-cores=$SERVER_CORES load-cores=$LOAD_CORES keys=$KEY_MIN..$KEY_MAX d=$VALUE_BYTES t=8 c=25"
 
-auto_sequence auto-boot44 4 4 \
-    auto-grow-front-from44 4 4 7 1 0:1 1 \
-    auto-grow-back-after-front 4 4 1:0 32
+auto_sequence auto-boot-balanced 16 16 \
+    auto-grow-front-from-balanced 16 16 30 2 0:1 1 \
+    auto-grow-back-after-front 16 16 1:0 32
 
-auto_sequence auto-boot71 7 1 \
-    auto-grow-back-from71 7 1 4 4 1:0 32 \
-    auto-grow-front-after-back 7 1 0:1 1
+auto_sequence auto-boot-front-heavy 30 2 \
+    auto-grow-back-from-front-heavy 30 2 16 16 1:0 32 \
+    auto-grow-front-after-back 30 2 0:1 1
 
 run_static_references
 report_transition_comparisons

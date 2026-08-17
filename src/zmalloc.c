@@ -101,6 +101,13 @@ static redisAtomic size_t num_active_threads = 0;
 static redisAtomic size_t zmalloc_peak = 0;
 static redisAtomic time_t zmalloc_peak_time = 0;
 static __thread long thread_index = -1;
+/* A worker execution aggregate or IO reply-drain scan owns one thread and has a bounded
+ * lifetime. Keep its allocator-stat traffic in TLS and publish at that boundary instead of
+ * load/storing the shared accounting slot for every allocation. The high-water delta preserves
+ * the peak statistic even when the batch later frees part (or all) of what it allocated. */
+__thread unsigned int zmalloc_stat_batch_depth = 0;
+__thread long long zmalloc_stat_batch_delta = 0;
+__thread long long zmalloc_stat_batch_high_water = 0;
 
 static inline void init_my_thread_index(void) {
     if (unlikely(thread_index == -1)) {
@@ -122,7 +129,7 @@ static inline long long zmalloc_local_add(long long bytes_delta) {
     return v;
 }
 
-static void update_zmalloc_stat_alloc(long long bytes_delta) {
+static void update_zmalloc_stat_alloc_now(long long bytes_delta) {
     init_my_thread_index();
 
     /* Per-thread allocation counter and the last counter value at which we ran a
@@ -164,9 +171,39 @@ static void update_zmalloc_stat_alloc(long long bytes_delta) {
     }
 }
 
-static void update_zmalloc_stat_free(long long num) {
+static void update_zmalloc_stat_free_now(long long num) {
     init_my_thread_index();
     zmalloc_local_add(-num);   /* ee451 v10-A: single-writer per-thread slot, no LOCK */
+}
+
+static void update_zmalloc_stat_alloc(long long bytes_delta) {
+    if (likely(zmalloc_stat_batch_depth != 0)) {
+        zmalloc_stat_batch_delta += bytes_delta;
+        if (zmalloc_stat_batch_delta > zmalloc_stat_batch_high_water)
+            zmalloc_stat_batch_high_water = zmalloc_stat_batch_delta;
+        return;
+    }
+    update_zmalloc_stat_alloc_now(bytes_delta);
+}
+
+static void update_zmalloc_stat_free(long long num) {
+    if (likely(zmalloc_stat_batch_depth != 0)) {
+        zmalloc_stat_batch_delta -= num;
+        return;
+    }
+    update_zmalloc_stat_free_now(num);
+}
+
+void zmalloc_stat_batch_fold(long long delta, long long high_water) {
+    /* Publish the transient high water first so peak_memory retains its old
+     * meaning, then bring the slot to the exact end-of-batch used_memory. At
+     * most two slot updates replace an arbitrary number of per-allocation
+     * updates. */
+    if (high_water > 0) update_zmalloc_stat_alloc_now(high_water);
+    if (delta < high_water)
+        update_zmalloc_stat_free_now(high_water - delta);
+    else if (delta > high_water)
+        update_zmalloc_stat_alloc_now(delta - high_water);
 }
 
 static void zmalloc_default_oom(size_t size) {
@@ -613,6 +650,10 @@ size_t zmalloc_used_memory(void) {
         atomicGet(used_memory[i].used_memory, thread_used_mem);
         total_mem += thread_used_mem;
     }
+    /* A memory query issued by the batching thread itself must include its not-yet-folded delta.
+     * Other threads see the last execution/drain boundary; those boundaries fold before command
+     * completion is published or the IO loop can execute INFO. */
+    if (zmalloc_stat_batch_depth != 0) total_mem += zmalloc_stat_batch_delta;
     return total_mem;
 }
 

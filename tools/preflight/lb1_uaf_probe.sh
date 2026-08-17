@@ -39,6 +39,8 @@ D=$(cd "$(dirname "$0")" && pwd)
 NAME=$(basename "$BIN")                 # keep <=15 chars: pkill -x matches truncated comm
 PORT=${PORT:-5965}
 SECS=${SECS:-90}
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
 rm -rf "$D/lb1"; mkdir -p "$D/lb1"
 # Cleanup on every exit path (this suite had none): kill OUR recorded pid, then sweep the name.
 SRV=""
@@ -59,8 +61,8 @@ pkill -9 -x "$NAME" 2>/dev/null; sleep 1
 wait_port_free "$PORT" || { echo "INVALID: :$PORT still has a listener before boot (SO_REUSEPORT split risk) -- refusing to boot into a blend"; exit 2; }
 
 ASAN_OPTIONS="detect_leaks=0 halt_on_error=0 abort_on_error=0 log_path=$D/lb1/asan" \
-taskset -c 0-7 "$BIN" --port $PORT --dir "$D/lb1" --tomokv-nodes 1 --tomokv-thread-io 4 \
-  --tomokv-thread-ex 4 --tomokv-thread-mode auto --save '' --appendonly no \
+taskset -c "$SERVER_CORES" "$BIN" --port $PORT --dir "$D/lb1" --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-io 8 \
+  --tomokv-thread-ex 8 --tomokv-thread-mode auto --save '' --appendonly no \
   --protected-mode no --enable-debug-command yes --logfile "$D/lb1/$NAME.log" >/dev/null 2>&1 &
 SRV=$!
 sleep 8
@@ -75,6 +77,7 @@ if ! server_identity_ok "$CLI" "$PORT" "$SRV"; then
   echo "INVALID: SO_REUSEPORT split on :$PORT -- another listener answered; ASAN result would be a blend"
   kill -9 $SRV 2>/dev/null; exit 2
 fi
+preflight_assert_standard_boot "$D/lb1/$NAME.log" "$SRV" 8 8 || exit 2
 
 LOG="$D/lb1/$NAME.log"
 

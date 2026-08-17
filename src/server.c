@@ -800,6 +800,15 @@ static _Atomic unsigned long long tomo_atomic_cutover_ref_waits;
 static _Atomic unsigned long long tomo_atomic_cutover_fence_wait_us;
 static _Atomic unsigned long long tomo_atomic_stale_owner_ops;
 static _Atomic unsigned long long tomo_atomic_stale_owner_prunes;
+/* Retained-ref fence witness (2026-08-17): free-back drains whose entry was pushed under a
+ * different server.migration.gen than the one live at drain — i.e. an S8 value return whose
+ * flight overlapped a migration transition. This is the cheaper of the two candidate witnesses
+ * (the push-time-owner vs current-table compare would need the value's bucket carried per ring
+ * entry — 8B/entry vs the 4B gen stamp — and, with the CO_WAIT_APPLIED retained-refs fence
+ * holding flips until the drain, could never fire at all). Nonzero under the MGET-vs-reshard
+ * reproducer proves the retention window the fence guards was actually entered; a clean run with
+ * this at 0 exercised nothing (vacuous-validation rule). */
+static _Atomic unsigned long long tomo_freeback_stale_owner_drains;
 /* Reserved beside tomo_atomic_inflight at admission, but retired earlier: once the commit path has
  * materialized every owner op. Cutover waits on this word, never on client reply reassembly. */
 static struct { _Atomic int v; char pad[CACHE_LINE_SIZE - sizeof(_Atomic int)]; }
@@ -4881,6 +4890,12 @@ static void handleWorkerRepliesScan(void) {
     listIter li;
     listNode *ln;
     listRewind(server.clients_pending_ex[iotid], &li);
+    if (listLength(server.clients_pending_ex[iotid]) == 0) return;
+
+    /* Reassembly is the IO-side half of the same drain run. It can allocate reply cells and
+     * release coordinator/result storage many times before the event loop can run INFO again,
+     * so publish their exact net accounting once at the scan boundary. */
+    zmalloc_stat_batch_begin();
     while ((ln = listNext(&li))) {
         client *real = listNodeValue(ln);
         clientExecTail *rt = clientTail(real);
@@ -5080,6 +5095,9 @@ static void handleWorkerRepliesScan(void) {
          * owner-wide SEND batch. Knob 0 retains the existing immediate epoll
          * write path byte-for-byte. */
         if (spliced && !close_asap) {
+            /* A response can let this client (or another IO thread) issue INFO immediately.
+             * Fold the whole client's reassembly before any bytes become externally visible. */
+            zmalloc_stat_batch_end();
             if (server.io_uring && tomoUringBackendClientAttached(real)) {
                 putClientInPendingWriteQueue(real);
             } else {
@@ -5087,6 +5105,7 @@ static void handleWorkerRepliesScan(void) {
                 if (clientHasPendingReplies(real))
                     putClientInPendingWriteQueue(real);
             }
+            zmalloc_stat_batch_begin();
         }
 
         /* Ring fully drained and all ready slots consumed — drop off the
@@ -5114,9 +5133,14 @@ static void handleWorkerRepliesScan(void) {
                             : ((rt->dispatchid - rt->flushid) < rt->ring_size)))
         {
             real->flags &= ~CLIENT_PIPELINE_STALLED;
+            /* This may execute INFO (or a maxmemory-sensitive command) inline. Make the
+             * completed drain's accounting visible before re-entering the command parser. */
+            zmalloc_stat_batch_end();
             processInputBuffer(real);
+            zmalloc_stat_batch_begin();
         }
     }
+    zmalloc_stat_batch_end();
 }
 
 static void tomoWbHandoffPendingWrites(void) {
@@ -13909,40 +13933,41 @@ static void csSubExec(client *sub) {
     case CS_MGET: {
         /* mgetCommand per-key semantics: wrong-type OR missing -> nil (NOT error), so deliberately
          * not getCommand. */
-        if (g->snapshot_pinned && g->mget_vals) {
-            /* xshard OPT-1: COALESCED — this sub carries all of one shard's keys. Write each value
-             * as a private sds COPY (refcount-free, like setmem => safe to free on the coordinator)
-             * into its ORIGINAL position slot; NULL slot => nil. Positions from mget_pos[cssub_idx]. */
+        if (g->mget_refs) {
+            /* Coalesced: retain the worker-owned value instead of allocating an SDS carrier.
+             * Reassembly copies it with copy avoidance disabled and returns this reference to
+             * this same worker through S8, so the IO thread never mutates its refcount. */
             int *pos = g->mget_pos[clientTail(sub)->cssub_idx];
-            /* xshard OPT-2 (level 2): two-pass in-sub prefetch. Coalescing lost the per-key batch
-             * prefetch (exPrefetchBatch only prefetches argv[1]); the coalesced path is now dict-
-             * lookup-bound (profile: lookupKey/dictFindLinkInternal dominate). Pass 1 computes each
-             * key's hash + prefetches its dict bucket; pass 2 arms the hash (single-shot hint, same
-             * exExecFake handshake) so lookup reuses it AND lands on a warm bucket. Pure hint => output
-             * byte-identical to level 1. Bounded stack stash; oversized MGETs fall back to plain. */
-            /* ee451 2026-07-28: the in-sub two-pass dict prefetch (mget-coalesce level 2) is
-             * GUTTED. Unreachable twice over: the level was hardwired to 1, and its ds[] nulls
-             * under KVSTORE_FLAT anyway (see the INTERACTION AUDIT above). */
+            int retained = 0;
             for (int a = 1; a < sub->argc; a++) {
-                robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
-                if (o != NULL && o->type == OBJ_STRING)
-                    g->mget_vals[pos[a - 1]] = sdsEncodedObject(o) ? sdsdup(o->ptr)
-                                                                   : sdsfromlonglong((long)o->ptr);
+                int idx = pos[a - 1];
+                robj *key = sub->argv[a];
+                uint64_t h = g->mget_hash[idx];
+                sub->tomo_key_h = h;
+                sub->tomo_bkt = (int)(h & TOMO_BUCKET_MASK);
+                sub->tomo_bkt_ptr = key->ptr;
+                robj *o = lookupKeyReadWithFlags(sub->db, key, LOOKUP_NONE);
+                if (o != NULL && o->type == OBJ_STRING) {
+                    incrRefCount(o);
+                    g->mget_refs[idx] = o;
+                    retained++;
+                }
             }
-        } else if (g->snapshot_pinned) {
-            /* Legacy per-key: serialize the single element into the sub's own reply buffer. */
-            robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[1], LOOKUP_NONE);
-            if (o == NULL || o->type != OBJ_STRING) addReplyNull(sub);
-            else addReplyBulk(sub, o);
-        } else if (g->mget_vals) {
-            int *pos = g->mget_pos[clientTail(sub)->cssub_idx];
-            for (int a = 1; a < sub->argc; a++) {
-                robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[a], LOOKUP_NONE);
-                if (o != NULL && o->type == OBJ_STRING)
-                    g->mget_vals[pos[a - 1]] = sdsEncodedObject(o) ? sdsdup(o->ptr)
-                                                                   : sdsfromlonglong((long)o->ptr);
+            /* Retained-ref fence (2026-08-17): these references outlive this command (returned by
+             * S8 to the DISPATCH-TIME owner recorded in mget_owner[]), so a bucket cutover inside
+             * the window would split the refcount word between two mutators. Count them on this
+             * worker — the sub runs ON its owner, so this is the same worker mget_owner[] names and
+             * the same one freebackDrainAll will decrement — and the reshard coordinator holds the
+             * flip until the count returns to zero (CO_WAIT_APPLIED). Single bump per sub. */
+            if (retained) {
+                debugServerAssert(iotid > TOMO_IO_THREADS_MAX);
+                tomoExRetainedAdd(&server.exThreads[iotid - (TOMO_IO_THREADS_MAX + 1)], retained);
             }
+            /* A pooled sub can later carry an unrelated key at the same address. Pointer-clear
+             * is the generation invalidation for the routing-hash hint. */
+            sub->tomo_bkt_ptr = NULL;
         } else {
+            /* Legacy per-key: serialize the single element into the sub's own reply buffer. */
             robj *o = lookupKeyReadWithFlags(sub->db, sub->argv[1], LOOKUP_NONE);
             if (o == NULL || o->type != OBJ_STRING) addReplyNull(sub);
             else addReplyBulk(sub, o);
@@ -14727,6 +14752,9 @@ static size_t csInlineWant(const csCmdSpec *s, int nkeys, int nsub, int posmap) 
     case CS_RES_XREAD:     w += 8 * (size_t)nkeys + (size_t)nkeys + 7; break;  /* out + status */
     default: break;
     }
+    if (s->ctype == CS_MGET && posmap)
+        w += 8 * (size_t)nkeys                         /* mget_hash */
+           + (((size_t)nkeys + 7) & ~(size_t)7);      /* mget_owner */
     w += 8 * ((size_t)nsub + (size_t)(1 + s->per_key_extra) * nkeys); /* HOP1 sub argv */
     if (s->has_hop2) {
         if (s->h2_op == CS_H2_SCATTER) {
@@ -14936,6 +14964,11 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
             migHoldKeyIfDraining(key);
         uint64_t h = tomoKeyHash(key->ptr, sdslen(key->ptr));
         int w = (int)server.ex_bucket_table[h & TOMO_BUCKET_MASK];
+        if (g->ctype == CS_MGET) {
+            serverAssert(g->mget_hash != NULL && g->mget_owner != NULL);
+            g->mget_hash[i] = h;
+            g->mget_owner[i] = (uint8_t)w;
+        }
         if (register_bag) {
             g->key_sig |= csHashSignature(h);
             if (key_h) key_h[i] = h;
@@ -14962,7 +14995,7 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
         sub->csparent = g; clientTail(sub)->cssub_idx = si; sub->cmd = head->cmd;
         sub->resp = head->resp;
         sub->conn = head->conn;
-        sub->flags |= CLIENT_EX_PENDING;
+        sub->flags = CLIENT_EX_PENDING;
         sub->argv = csgAlloc(g, sizeof(robj*) * (1 + (1 + spec->per_key_extra) * cnt[w]));
         sub->argv[0] = head->argv[0]; incrRefCount(head->argv[0]);
         sub->argc = 1;
@@ -15053,7 +15086,7 @@ static int csMsetnxAdvanceReservations(csGroup *g) {
     sub->cmd = g->head->cmd;
     sub->resp = g->head->resp;
     sub->conn = g->head->conn;
-    sub->flags |= CLIENT_EX_PENDING;
+    sub->flags = CLIENT_EX_PENDING;
     sub->db = &server.exThreads[target].db[g->h2_dbid];
     sub->argv = csgAlloc(g, sizeof(robj *) * (size_t)(1 + 2*count));
     sub->argv[0] = g->head->argv[0];
@@ -15088,7 +15121,7 @@ static client *csMakeSub(csGroup *g, int idx, int shard, int dbid) {
     /* The sub serializes its reply into its OWN buffer on the worker; spliced at
      * reassembly, never written to the socket directly (CLIENT_EX_PENDING + borrowed conn). */
     sub->conn = head->conn;
-    sub->flags |= CLIENT_EX_PENDING;
+    sub->flags = CLIENT_EX_PENDING;
     sub->db = &server.exThreads[shard].db[dbid];
     g->subs[idx] = sub;
     return sub;
@@ -15951,8 +15984,15 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
         if (s->res_kind == CS_RES_ZSETMEM)
             g->zscore = csgCalloc(g, sizeof(double*) * nkeys);  /* parallel score arrays */
     }
-    if (s->res_kind == CS_RES_MGETVALS && coalesce)
-        g->mget_vals = csgCalloc(g, sizeof(sds) * nkeys); /* position-indexed value slots (NULL = nil) */
+    if (s->res_kind == CS_RES_MGETVALS && coalesce) {
+        if (s->ctype == CS_MGET) {
+            g->mget_refs = csgCalloc(g, sizeof(*g->mget_refs) * (size_t)nkeys);
+            g->mget_hash = csgAlloc(g, sizeof(*g->mget_hash) * (size_t)nkeys);
+            g->mget_owner = csgAlloc(g, sizeof(*g->mget_owner) * (size_t)nkeys);
+        } else {
+            g->mget_vals = csgCalloc(g, sizeof(*g->mget_vals) * (size_t)nkeys);
+        }
+    }
     if (s->res_kind == CS_RES_KEYREPORT) {           /* LIVE: ordered MPOP/BPOP rows set it */
         g->klen  = csgCalloc(g, sizeof(long) * nkeys);
         g->ktype = csgCalloc(g, sizeof(uint8_t) * nkeys);
@@ -15969,7 +16009,7 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
             out->cmd = head->cmd;
             out->resp = head->resp;
             out->conn = head->conn;
-            out->flags |= CLIENT_EX_PENDING;
+            out->flags = CLIENT_EX_PENDING;
             g->xread_out[i] = out;
         }
     }
@@ -16064,7 +16104,7 @@ static void dispatchFanAll(client *head) {
         sub->csparent = g; clientTail(sub)->cssub_idx = w; sub->cmd = head->cmd;
         sub->resp = head->resp;
         sub->conn = head->conn;
-        sub->flags |= CLIENT_EX_PENDING;
+        sub->flags = CLIENT_EX_PENDING;
         sub->argv = csgAlloc(g, sizeof(robj*) * head->argc);
         for (int a = 0; a < head->argc; a++) { sub->argv[a] = head->argv[a]; incrRefCount(head->argv[a]); }
         sub->argc = head->argc;
@@ -17149,19 +17189,23 @@ static int csLaunchHop2(csGroup *g) {
 /* Gather-only storage lookahead (2026-08-17 owner A/B): deleting the broad prefetch machinery
  * improved p16get by 1.5%, but reduced mget8 by 4.8% (1.218M -> 1.159M). Keep that machinery
  * deleted and recover only the miss-hiding MGET needs: while result k is assembled, scan the
- * already-resolved result slots k+1..k+D, then hint their SDS header/value lines. The first pass
- * gives the result-slot line time to land before the second pass consumes its pointer, matching
- * the shipped storage-prefetch scan. D is the existing minimum useful storage lookahead, not a
- * new knob. This is storage-class lookahead over stable addresses published by the owner subs;
- * it has no speculative lookup, pointer-chase state machine, or cross-operation AMAC state. */
-static inline void csMgetPrefetchResolved(sds *vals, int k, int nkeys) {
+ * already-resolved result slots k+1..k+D, then hint each retained object's header and SDS payload.
+ * The first pass gives the result-slot line time to land before the second pass consumes its
+ * pointer, matching the shipped storage-prefetch scan. D is the existing minimum useful storage
+ * lookahead, not a new knob. This is storage-class lookahead over stable, retained references
+ * published by the owner subs; it has no speculative lookup, pointer-chase state machine, or
+ * cross-operation AMAC state. */
+static inline void csMgetPrefetchResolved(robj **refs, int k, int nkeys) {
     int end = k + 1 + TOMO_PF_W_VALUE_MIN;
     if (end > nkeys) end = nkeys;
     for (int i = k + 1; i < end; i++)
-        redis_prefetch_read(&vals[i]);
+        redis_prefetch_read(&refs[i]);
     for (int i = k + 1; i < end; i++) {
-        sds value = vals[i];
-        if (value) redis_prefetch_read(value - 1);  /* SDS flags/length + first value bytes */
+        robj *value = refs[i];
+        if (!value) continue;
+        redis_prefetch_read(value);
+        if (sdsEncodedObject(value))
+            redis_prefetch_read((char *)value->ptr - 1); /* SDS flags/length + first bytes */
     }
 }
 
@@ -17253,12 +17297,13 @@ static void csReassemble(client *dst, client *head) {
         switch (g->ctype) {
         case CS_MGET:
             addReplyArrayLen(dst, g->nkeys);
-            if (g->mget_vals) {
-                /* xshard OPT-1: coalesced — emit position slots in original key order. addReplyBulkSds
-                 * consumes (frees) the sds; NULL the slot so teardown doesn't double-free. */
+            if (g->mget_refs) {
+                /* Copy while the worker-retained reference is live. Avoid-copy must stay off:
+                 * arming a reply reference here would increment a worker-owned refcount on the
+                 * IO thread. Generic teardown returns our one reference through S8. */
                 for (int i = 0; i < g->nkeys; i++) {
-                    csMgetPrefetchResolved(g->mget_vals, i, g->nkeys);
-                    if (g->mget_vals[i]) { addReplyBulkSds(dst, g->mget_vals[i]); g->mget_vals[i] = NULL; }
+                    csMgetPrefetchResolved(g->mget_refs, i, g->nkeys);
+                    if (g->mget_refs[i]) addReplyBulkWithFlag(dst, g->mget_refs[i], 0);
                     else addReplyNull(dst);
                 }
             } else {
@@ -17563,10 +17608,19 @@ static void csReassemble(client *dst, client *head) {
     }
     if (g->setop_pos) { for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->setop_pos[i]); csgFree(g, g->setop_pos); }
     if (g->xread_pos) { for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->xread_pos[i]); csgFree(g, g->xread_pos); }
+    /* A coalesced MGET retains values on their owner worker and merely borrows their bytes here.
+     * Return every reference to the exact owner through S8 even when dst==NULL; direct IO-thread
+     * decref would race the shard's sole refcount mutator. */
+    if (g->ctype == CS_MGET && g->mget_refs) {
+        for (int i = 0; i < g->nkeys; i++)
+            if (g->mget_refs[i]) freebackPush((int)g->mget_owner[i], g->mget_refs[i]);
+        csgFree(g, g->mget_refs);
+        g->mget_refs = NULL;
+    }
     /* xshard OPT-1: free any value slots not consumed by reassembly (the dst==NULL teardown path
      * never emitted them) + the position arrays. Reassembly NULLs each slot as it consumes it.
-     * (MGET + the string-image gathers BITOP/PFCOUNT/PFMERGE/LCS all use these slots.) */
-    if (g->mget_vals) {
+     * (The string-image gathers BITOP/PFCOUNT/PFMERGE/LCS use these slots; MGET uses refs above.) */
+    if (g->ctype != CS_MGET && g->mget_vals) {
         for (int i = 0; i < g->nkeys; i++) if (g->mget_vals[i]) sdsfree(g->mget_vals[i]);
         csgFree(g, g->mget_vals);
     }
@@ -17605,9 +17659,9 @@ static void csReassemble(client *dst, client *head) {
         csgFree(g, g->mset_installs);
     }
     csgFree(g, g->msetnx_state);
-    /* Written-key hash vector. Inline in the common case (nothing to do); this releases the spill.
-     * Safe here and nowhere earlier: csMsetPendingRemove(g) at the top of this function already
-     * unlinked the group, so no R1 walk can still reach it. */
+    /* Written-key hash vector, or its MGET routing-hash union arm. Inline in the common case
+     * (nothing to do); this releases the spill. A write vector is safe here because
+     * csMsetPendingRemove(g) above already unlinked it from every R1 walk. */
     csgFree(g, g->key_h);
     /* Exactly-once atomic admission retirement. csReassemble is the group's single terminal
      * point: stage/HOP2 advances return before it, while both live reply publication and the
@@ -18439,6 +18493,49 @@ static void reshardCoordinatorTick(void) {
         /* C.3: the "B must replay the log up to the freeze point" wait was the copy engine's.
          * Nothing is replayed now — the fence above already proved every in-flight range command
          * dispatched to A has executed, which is the whole precondition for the flip. */
+        /* C.3b: RETAINED-REFERENCE FENCE (2026-08-17). Executed is NOT released: a coalesced MGET
+         * retains DB values (+1 non-atomic refcount) on A past its own execution, and a worker RAW
+         * zero-copy reply pins its value the same way; both return the reference to A through S8
+         * only after IO reassembly/send, and the drain decref is a whole-word RMW on the packed
+         * type/encoding/refcount word. Flip while such a reference is in flight and A's freeback
+         * decref races the NEW owner's DB-side refcount ops on the same word — a lost update frees
+         * the value one release early and the final decref panics (object.c "illegal decrRefCount",
+         * refcount 0). So hold the flip until A's retained_refs drains to 0. This wait MUST sit
+         * here, after the producer sentinel fence, not in CO_WAIT_ATOMIC: range admission only
+         * closes when producers observe DRAINING, so any earlier zero could be overtaken by a new
+         * range retention; here every admitted range sub has executed (all retentions counted) and
+         * new range work is held, so a zero is final for the moved range. Whole-worker granularity
+         * (the window is IO-reassembly-short); acquire pairs with the drain's release so the
+         * observed zero carries every final decref. Same watchdog budget (co_fence_t0 carries over
+         * from DRAINING) and same ABORT semantics: never flip, phase to DONE, table untouched —
+         * an aborted cutover is a keyspace no-op and the balancer re-arms later. */
+        int rrefs = atomic_load_explicit(&server.exThreads[src].retained_refs,
+                                         memory_order_acquire);
+        if (rrefs != 0) {
+            monotime now = getMonotonicUs();
+            if (co_fence_t0 == 0) co_fence_t0 = now;
+            int tmo = server.reshard_fence_timeout_ms;
+            if (tmo > 0 && now - co_fence_t0 >= (monotime)tmo * 1000) {
+                atomic_fetch_add_explicit(&server.reshard_fence_aborts, 1, memory_order_relaxed);
+                serverLog(LL_WARNING,
+                          "ee451 reshard ABORT: retained-reference fence did not drain within "
+                          "%d ms (worker %d retained_refs=%d, e.g. a zero-copy reply pinned by a "
+                          "slow client); ownership NOT flipped, [%d,%d) stays on worker %d",
+                          tmo, src, rrefs, lo, hi, src);
+                atomic_store_explicit(&co_aborted, 1, memory_order_release);
+                server.tm_mig_flip_action = 0;
+                atomic_store_explicit(&server.migration.phase, MIG_DONE, memory_order_release);
+                atomic_fetch_add_explicit(&server.migration.gen, 1, memory_order_release);
+                atomic_store_explicit(&tomo_atomic_cutover_gate, 0, memory_order_seq_cst);
+                if (atomic_load_explicit(&tomo_atomic_waiters, memory_order_relaxed) != 0)
+                    tomoAtomicWakeAll();
+                /* Same wake as the DRAINING abort: clients parked by the range hold must be
+                 * released or the abort trades a stalled range for a stalled client. */
+                for (int t2 = 1; t2 < nprod; t2++) migWakeProducer(t2);
+                atomic_store_explicit(&co_state, CO_WAIT_DONE, memory_order_release);
+            }
+            return;
+        }
     /* C.4: FLIP. Route [lo,hi) to B. The raw table bytes need no per-byte atomicity — every reader's
      * correctness is gated on the phase/gen acquire that synchronizes-with this release. */
     for (int b = lo; b < hi; b++) server.ex_bucket_table[b] = (uint8_t)dst;
@@ -18465,11 +18562,17 @@ static void reshardCoordinatorTick(void) {
     }
 
     if (atomic_load_explicit(&co_state, memory_order_relaxed) == CO_WAIT_REFS) {
-        /* Phase D.1/D.2: the ref-fence and source-copy cleanup hand-off both existed only for the
-         * copy engine — the fence held the flip until no zero-copy reply still pointed into a
-         * source value the cleanup was about to free. There is no second copy or source cleanup
-         * now (the flipped range's data is in the SAME dict[b] the new owner already serves), so
-         * nothing can dangle and the phase goes straight to DONE. */
+        /* Phase D.1/D.2: the old ref-fence and source-copy cleanup hand-off existed for the copy
+         * engine — that fence held the flip until no zero-copy reply still pointed into a source
+         * value the cleanup was about to FREE. With one shared physical dict[b] there is no second
+         * copy or source cleanup, so DATA cannot dangle — but "nothing can dangle" was never the
+         * whole invariant: refcount-MUTATOR IDENTITY can. A reference retained across the flip
+         * (coalesced-MGET S8 return, worker RAW zero-copy str_ref) still decrefs on the OLD owner
+         * while the NEW owner mutates the same non-atomic refcount word — the object.c:713
+         * "illegal decrRefCount" corruption. That is why the retained-reference fence in
+         * CO_WAIT_APPLIED (C.3b, 2026-08-17) drains exThreads[src].retained_refs to zero BEFORE
+         * the flip commits; by this state nothing retained remains and the phase goes straight to
+         * DONE. */
         atomic_store_explicit(&server.migration.phase, MIG_DONE, memory_order_release);
         atomic_store_explicit(&co_state, CO_WAIT_DONE, memory_order_release);
         return;
@@ -22027,6 +22130,13 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 (unsigned long long)atomic_load_explicit(&server.reshard_fence_midbatch, memory_order_relaxed),
             "tomokv_reshard_fence_aborts:%llu\r\n",
                 (unsigned long long)atomic_load_explicit(&server.reshard_fence_aborts, memory_order_relaxed),
+            /* Retained-ref fence evidence (2026-08-17): S8 free-back drains whose ring entry was
+             * pushed under an older migration generation — a retained value reference (coalesced
+             * MGET / worker zero-copy reply) whose flight overlapped a cutover transition. This is
+             * the window the CO_WAIT_APPLIED retained_refs fence closes; a reshard-under-MGET run
+             * that leaves this at 0 never entered that window and validates nothing. */
+            "tomokv_freeback_stale_owner_drains:%llu\r\n",
+                (unsigned long long)atomic_load_explicit(&tomo_freeback_stale_owner_drains, memory_order_relaxed),
             "tomokv_reshard_fence_stale_acks:%llu\r\n",   /* ee451 O1: drain sentinels rejected as stale (guard fired) */
                 (unsigned long long)atomic_load_explicit(&server.migration.fence_stale_acks, memory_order_relaxed),
             /* Flip actuator recoveries are never normal control decisions: each increment names one
@@ -23838,6 +23948,10 @@ void freebackPush(int ex_id, robj *obj) {
     }
     if (waiting) tmIoWaitEnd();
     fb->objs[t] = obj;
+    /* Retained-ref fence witness: stamp the entry with the live migration generation so the
+     * drain can count entries whose flight crossed a migration transition (see
+     * tomo_freeback_stale_owner_drains). Written before the tail release-publish, like objs[]. */
+    fb->gens[t] = (uint32_t)atomic_load_explicit(&server.migration.gen, memory_order_relaxed);
     atomic_store_explicit(&fb->tail, next_t, memory_order_release);
 }
 
@@ -23849,19 +23963,36 @@ static inline void freebackDrainAll(exThread *worker) {
      * (io_threads..io_threads+tm_ngrow_io-1) and can push zero-copy reply-value decrefs into
      * freeback[that slot]; the owning worker must drain those slots too, else the 16-entry ring
      * fills and freebackPush spins forever (wedging that producer + leaking every forwarded value).
-     * Growth IO and fixed WB slots are alloc-sized and empty until live, so extra iterations are no-ops. */
+     * Growth IO and fixed WB slots are alloc-sized and empty until live, so extra iterations are
+     * no-ops. tomoProducerLaneHi also includes the reserved owner-op lane. */
     int nfb = tomoProducerLaneHi();
+    int drained = 0;
+    unsigned long long crossed = 0;
+    /* One relaxed gen sample for the whole pass: the witness is a diagnostic, a bump landing
+     * mid-drain only shifts which pass counts the crossing. */
+    uint32_t cur_gen = (uint32_t)atomic_load_explicit(&server.migration.gen, memory_order_relaxed);
     for (int t = 0; t <= nfb; t++) {
         freebackRing *fb = &worker->freeback[t];
         unsigned int h = atomic_load_explicit(&fb->head, memory_order_relaxed);
         unsigned int tl = atomic_load_explicit(&fb->tail, memory_order_acquire);
         if (h == tl) continue;
         while (h != tl) {
+            if (__builtin_expect(fb->gens[h] != cur_gen, 0)) crossed++;
             decrRefCount((robj *)fb->objs[h]);
             h = (h + 1) & FREEBACK_RING_MASK;
+            drained++;
         }
         atomic_store_explicit(&fb->head, h, memory_order_release);
     }
+    /* Retained-ref fence: every object in these rings was counted at its retention site (MGET
+     * coalesced retention or worker RAW zero-copy str_ref — freebackPush has no other producer),
+     * so the drained total balances the counter exactly. The RELEASE store runs after the
+     * decrRefCounts above: a coordinator that acquire-loads 0 has therefore observed the final
+     * decref of every retained value before it commits the ownership flip. */
+    if (drained) tomoExRetainedAdd(worker, -drained);
+    if (__builtin_expect(crossed != 0, 0))
+        atomic_fetch_add_explicit(&tomo_freeback_stale_owner_drains, crossed,
+                                  memory_order_relaxed);
 }
 
 int exQueuePush(exQueue *q, client *c) {
@@ -25116,8 +25247,12 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
         /* Backlogged connections retain batch publication. A depth-1 connection publishes at the
          * command boundary below, so its WB hop does not include the rest of this worker batch.
          * Retain only (parent,slot), never fake pointers: sticky WB may recycle a fake immediately
-         * after its slot is published. */
+         * after its slot is published. Ordinary and non-versioned group records retain the full
+         * independent (parent,cdb,slot) identity instead of folding slots into a locked-OR word;
+         * never retain fake/group pointers because their drain owner may recycle them as soon as
+         * the slot is published. */
         client *sig_parents[WORKER_POP_BATCH];
+        int sig_cdb[WORKER_POP_BATCH];
         uint8_t sig_slots[WORKER_POP_BATCH];
         int sig_n = 0;
         int group_completed = 0;
@@ -25126,6 +25261,12 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
          * clock above, so useful batch preparation is counted as productive without inflating the
          * first command's reported execution latency. */
         tomoCmdClockStamp cmd_boundary = {0, 0};
+
+        /* The aggregate is the allocator-accounting visibility boundary too.
+         * Worker-side command/result allocations stay thread-local during the
+         * run and are folded before any completion byte exposes their effects
+         * to INFO or the owning IO thread. */
+        zmalloc_stat_batch_begin();
 
         /* Execute the batch in issue (queue) order — plain, one op at a time.
          * ee451 (v13): the value-forwarding run-detect/record-replay apparatus was REMOVED
@@ -25243,6 +25384,11 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
                             (atomic_load_explicit(&g->msetnx_retry,memory_order_acquire) != 0 ||
                              g->msetnx_state[0] != CS_MSETNX_RESERVED))
                             stage_only = 1;
+
+                        /* Versioned completion participates in the commit FIFO and cannot be
+                         * delayed past later jobs in this aggregate. Close the accounting segment
+                         * first: either call can immediately expose (and retire) the group. */
+                        zmalloc_stat_batch_end();
                         if (stage_only) {
                             client *hp = g->head->parent;
                             cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
@@ -25250,9 +25396,12 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
                         } else {
                             csMsetInstallDone(g);
                         }
+                        zmalloc_stat_batch_begin();
                     } else {
-                        client *hp = g->head->parent;
-                        cdbSlotPublish(hp, g->head->cdb, g->head->fake_slot);
+                        sig_parents[sig_n] = g->head->parent;
+                        sig_cdb[sig_n] = g->head->cdb;
+                        sig_slots[sig_n] = (uint8_t)g->head->fake_slot;
+                        sig_n++;
                         group_completed = 1;
                     }
                 } else if (last) {
@@ -25320,10 +25469,13 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
             }
             /* Authoritative wb=0 completion record, also used for backlogged WB clients. */
             sig_parents[sig_n] = parent;
+            sig_cdb[sig_n] = ctx->wcdb;
             sig_slots[sig_n] = (uint8_t)fake->fake_slot;
             sig_n++;
             j++;
         }
+
+        zmalloc_stat_batch_end();
 
         /* Each release store publishes its fake's reply writes. sig_n is local
          * to this aggregate and is drained unconditionally, so an underfilled
@@ -25331,7 +25483,7 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
          * This loop is the worker's final access to each saved parent; after a
          * store, the IO owner may immediately retire that slot. */
         for (int s = 0; s < sig_n; s++)
-            cdbSlotPublish(sig_parents[s], ctx->wcdb, sig_slots[s]);
+            cdbSlotPublish(sig_parents[s], sig_cdb[s], sig_slots[s]);
         /* One publication/armed check per producer represented in this aggregate,
          * after all of that producer's ready bytes are visible. The arm exchange
          * coalesces the actual eventfd syscall to once per IO scan episode. */

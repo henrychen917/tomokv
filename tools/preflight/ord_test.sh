@@ -2,9 +2,12 @@
 # TASK#43 regression: same-client "SET b NEW" then "MGET a b" must return NEW for b.
 # Positive control: MUST fail on a pre-fix build (that is what makes it a real test).
 set -u
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 J=/tmp/tomo_pfjob
 BIN=${TOMO_BIN:?}; LBL=${LBL:-bin}; EXTRA=${EXTRA:-}
 PORT=${PORT_OVERRIDE:-5984}
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
 ORD_SRV_PID=""
 ORD_CLIENT_PID=""
 ORD_STAGED_BIN=""
@@ -50,14 +53,14 @@ if [ -z "${PORT_OVERRIDE:-}" ]; then
     echo "$LBL: BOOTFAIL (could not stage candidate)"
     exit 2
   fi
-  setsid taskset -c 0-7 "$ORD_STAGED_BIN" --bind 127.0.0.1 --port "$PORT" \
-    --dir "$OTD" --tomokv-nodes 1 --tomokv-thread-io 4 \
-    --tomokv-thread-ex 4 $EXTRA --save '' --appendonly no \
+  setsid taskset -c "$SERVER_CORES" "$ORD_STAGED_BIN" --bind 127.0.0.1 --port "$PORT" \
+    --dir "$OTD" --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-io 8 \
+    --tomokv-thread-ex 8 $EXTRA --save '' --appendonly no \
     --daemonize no --protected-mode no --logfile "$OTD/server.log" \
     >"$OTD/server.launch.log" 2>&1 &
   ORD_SRV_PID=$!
   setsid timeout --foreground --signal=TERM --kill-after=2 20s \
-    taskset -c 16-23 python3 - "$PORT" "$ORD_SRV_PID" >"$OTD/boot.out" 2>&1 <<'PY' &
+    taskset -c "$LOAD_CORES" python3 - "$PORT" "$ORD_SRV_PID" >"$OTD/boot.out" 2>&1 <<'PY' &
 import os, re, socket, sys, time
 port, wanted = int(sys.argv[1]), int(sys.argv[2])
 request = b"*2\r\n$4\r\nINFO\r\n$6\r\nserver\r\n"
@@ -99,11 +102,12 @@ PY
     echo "$LBL: BOOTFAIL ($(tr '\n' ' ' <"$OTD/boot.out"))"
     exit 1
   fi
+  preflight_assert_standard_boot "$OTD/server.log" "$ORD_SRV_PID" 8 8 || exit 1
 fi
 
 ORD_RC=0
 setsid timeout --foreground --signal=TERM --kill-after=5 \
-  "${ORD_TIMEOUT:-120}s" taskset -c 16-23 python3 - "$LBL" "$PORT" <<'PY' &
+  "${ORD_TIMEOUT:-120}s" taskset -c "$LOAD_CORES" python3 - "$LBL" "$PORT" <<'PY' &
 import socket,re,sys
 lbl=sys.argv[1]
 port=int(sys.argv[2])

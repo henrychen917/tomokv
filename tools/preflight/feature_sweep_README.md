@@ -10,10 +10,9 @@ SMOKE=1 /tmp/tomo_pfjob/feature_sweep.sh    # ~12-16 min
         /tmp/tomo_pfjob/feature_sweep.sh    # full, ~50-80 min
 ```
 
-Env overrides: `TREE`, `ORACLESRV`, `CLI`, `FORK_PORT` (7791), `ORACLE_PORT` (7792),
-`SRV_CORES` / `LG_CORES` (optional tasksets for server / load-gen, e.g. `0-7` / `8-15`;
-default = no pinning at all — the fork is booted with `--tomokv-pin-mode float` so it never
-sched_setaffinity's onto cores a concurrent bench owns), `SEED` (stream seed).
+Env overrides: `TREE`, `ORACLESRV`, `CLI`, `FORK_PORT` (5791), `ORACLE_PORT` (5792), and `SEED`.
+The fork geometry is fixed by the gate: two 16-core nodes, ccd pinning on CPUs 0-31, with helpers
+on `32-127,160-255`. Alternate CPU masks are not certification-grade.
 
 Exit code 0 iff no FAIL rows (KNOWN/SUSPECT do not fail the run).
 
@@ -100,7 +99,7 @@ hash-field-TTL (HEXPIRE...), streams — see coverage gaps.
 ## Sections
 
 ### A — oracle equivalence (centerpiece)
-Default config (`--tomokv-thread-io 2 --tomokv-thread-ex 2`, everything else stock
+Default config (`--tomokv-nodes 2 --tomokv-thread-io 8 --tomokv-thread-ex 8`, everything else stock
 defaults => FLATSTORE ON, shared node dbs) vs stock oracle; 50k ops (12k SMOKE).
 Plus the KNOWN-reject list asserted with the expected message
 (`is not supported with tomokv sharding` for MULTI/WATCH; `not yet supported with
@@ -168,7 +167,7 @@ owner's reply shows the kill (NOTBUSY timing => SUSPECT, not FAIL); next EVAL cl
 Full mode repeats 20 short busy+SET rounds. Boot sets `--busy-reply-threshold 1000`.
 
 ### F — stress spot-checks
-Per config class {default io2ex2, numa2 (2 nodes x (1 io + 2 ex)), thread-mode-auto,
+Per config class {default io8ex8, numa2 (2 nodes x (14 io + 2 ex)), thread-mode-auto,
 mcmd-lock}: 32 sentinels -> memtier 60s/300s (t2 c25 P4, 1:1, R:R over 500k keys, 64B)
 -> assert our pid still serves; 32/32 sentinel readback; DEBUG DIGEST completes nonzero;
 `tomokv_ex_queue_full == 0`; VmRSS < 3GB; crash-marker scan of the preserved server log
@@ -185,8 +184,8 @@ from D. Changes in either direction get flagged.
 ## Known coverage gaps (also reported in the run's structured output)
 
 See the `coverage_gaps` list in the task output; headline items: the os-opts
-knob family (build/root-dependent), pin-mode/pin-cores (deliberately floated for box
-politeness), reshard tuning knob family beyond min-ops, flat-load-pct / l3-kb values,
+knob family (build/root-dependent), alternate pin-mode/pin-core mappings (the gate fixes ccd on
+0-31), reshard tuning knob family beyond min-ops, flat-load-pct / l3-kb values,
 modeshift-test manual actuator, express-lane engagement observable, PF/BITOP/streams/
 hash-field-TTL/pubsub/AOF/replication/keyspace-notifications, RNG commands.
 

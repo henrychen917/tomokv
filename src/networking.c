@@ -163,17 +163,16 @@ void freeClientCold(client *c) {
 }
 //ee451
 //ee451
-/* ee451 (v11): reset ALL per-call fields of a fake client to the pristine post-create state,
- * WITHOUT touching the cached heap allocations (c->buf and the c->reply list object).
- * createFakeClient and the pooled-reuse path (createPooledFakeClient) BOTH call this, so a fresh
- * fake and a recycled fake are byte-identical in every field — no field can be missed on reuse.
- * Caller guarantees c->buf is allocated (size in c->buf_usable_size) and c->reply is an EMPTY
- * list with its free/dup methods already set. */
+/* Initialize a newly allocated (or newly promoted) full fake. The pooled cross-shard path does
+ * not call this on reuse: its retire step owns all dynamic cleanup, while its rearm step resets
+ * only fields that a later sub reads before overwriting. Keeping those two contracts separate is
+ * what avoids rewriting the full client+tail for every MGET shard. Caller guarantees c->buf is
+ * allocated and c->reply is an empty list with its methods installed. */
 static void resetFakeClientState(client *c, client *parent) {
     serverAssert(c->has_exec_tail);
-    /* A pooled fake must never inherit subscriptions, transaction errors, or
-     * any other cold state from its previous command. Fresh fakes set cold to
-     * NULL before entering here, so this is safe on every construction path. */
+    /* Fresh fakes enter with cold == NULL; promotion zeroes the new tail. Keep
+     * the defensive teardown for either construction path if that contract is
+     * ever widened. Pooled retirement handles its own cold state below. */
     freeClientCold(c);
     clientTail(c)->cold = NULL;
 
@@ -512,6 +511,48 @@ static inline int isFakeBufPoolable(client *c) {
     return c->buf_usable_size >= FAKE_BUF_START_BYTES && c->buf_usable_size <= FAKE_BUF_MAX_BYTES;
 }
 
+/* Rearm contract for a retired pooled sub. Cross-shard constructors overwrite cmd/resp/conn/db,
+ * argv/argc, csparent and cssub_idx before publication. The fields below are the smaller set a
+ * later command can read or update before such an overwrite: identity/thread affinity, additive
+ * reply counters, ACL defaults, and routing-hint generation. Existing scalar values double as
+ * dirty bits, so the common MGET reuse performs no writes for already-clean optional state.
+ * Dynamic ownership and reply-buffer cleanliness are established once in freePooledFakeClient. */
+static inline void rearmPooledFakeClient(client *c, client *parent) {
+    serverAssert(c->has_exec_tail && c->isFake);
+    int clean_mget_generation = c->cmd && c->cmd->proc == mgetCommand;
+    c->parent = parent;
+    if (unlikely(c->tid != parent->tid || c->running_tid != parent->running_tid)) {
+        c->tid = parent->tid;
+        c->running_tid = parent->running_tid;
+    }
+    /* MGET's open-coded sub execution cannot dirty ACL/parser/counter state, and its routing
+     * pointer is cleared on the worker. The previous command is therefore a generation tag for
+     * the minimal rearm. prefetch_key_hash_valid is the one worker-prefetch scratch bit that may
+     * remain armed after a DICT lookup. */
+    if (unlikely(c->prefetch_key_hash_valid)) c->prefetch_key_hash_valid = 0;
+    if (likely(clean_mget_generation)) {
+        /* 2026-08-17 audit: this fast path RETURNS without the resets below on the claim that an
+         * MGET sub cannot have dirtied them (retirement cleaned anything it did). That claim is
+         * load-bearing — a stale tomo_bkt_ptr is a wrong-bucket routing hint, a stale user/argv_len
+         * is a wrong-ACL/wrong-free — and was previously unchecked. Debug builds verify it. */
+        debugServerAssert(c->user == NULL && c->authenticated == 0);
+        debugServerAssert(c->argv_len == 0);
+        debugServerAssert(c->net_input_bytes_curr_cmd == 0 && c->net_output_bytes_curr_cmd == 0);
+        debugServerAssert(c->tomo_bkt_ptr == NULL);
+        return;
+    }
+    if (unlikely(c->user != NULL || c->authenticated != 0)) {
+        c->user = NULL;
+        c->authenticated = 0;
+    }
+    if (unlikely(c->argv_len != 0)) c->argv_len = 0;
+    if (unlikely(c->net_input_bytes_curr_cmd || c->net_output_bytes_curr_cmd)) {
+        c->net_input_bytes_curr_cmd = 0;
+        c->net_output_bytes_curr_cmd = 0;
+    }
+    if (unlikely(c->tomo_bkt_ptr != NULL)) c->tomo_bkt_ptr = NULL;
+}
+
 client *createPooledFakeClient(client *parent) {
     int t = iotid;
     if (server.wb_threads > 0 &&
@@ -519,9 +560,7 @@ client *createPooledFakeClient(client *parent) {
         xsubReturnDrain(t);
     if (t >= 0 && t <= TOMO_IO_THREADS_MAX && xsubPoolN[t].n > 0) {
         client *c = xsubPool[t][--xsubPoolN[t].n];
-        /* c->buf valid (size in c->buf_usable_size), c->reply an empty list with methods set
-         * (ensured at free time). Re-init every other field to the pristine state. */
-        resetFakeClientState(c, parent);
+        rearmPooledFakeClient(c, parent);
         return c;
     }
     return createFakeClient(parent);
@@ -545,15 +584,73 @@ void freePooledFakeClient(client *c) {
      * freeFakeClient would free, but KEEP the struct + buf + reply-list object for reuse. */
     if ((local || remote) &&
         c->buf && c->reply && isFakeBufPoolable(c)) {
-        if (clientTail(c)->querybuf) { sdsfree(clientTail(c)->querybuf); clientTail(c)->querybuf = NULL; }
-        releaseAllBufReferences(c);
-        listEmpty(c->reply);                 /* free reply blocks, keep the list object */
-        freeClientOriginalArgv(c);
-        freeClientDeferredObjects(c, 1);
-        freeClientIODeferredObjects(c, 1);
-        if (clientTail(c)->deferred_reply_errors) { listRelease(clientTail(c)->deferred_reply_errors); clientTail(c)->deferred_reply_errors = NULL; }
-        if (clientTail(c)->name) { decrRefCount(clientTail(c)->name); clientTail(c)->name = NULL; }
-        freeClientCold(c);
+        /* Existing lengths/pointers are the dirty mask. Coalesced MGET subs never append a
+         * private reply, so their common retirement skips the list walk entirely. */
+        if (unlikely(c->bufpos || c->reply_bytes || c->buf_encoded || c->last_header ||
+                     c->sentlen || c->net_input_bytes_curr_cmd ||
+                     c->net_output_bytes_curr_cmd || listLength(c->reply))) {
+            releaseAllBufReferences(c);
+            listEmpty(c->reply);             /* free reply blocks, keep the list object */
+            c->bufpos = 0;
+            c->reply_bytes = 0;
+            c->buf_encoded = 0;
+            c->last_header = NULL;
+            c->sentlen = 0;
+            c->net_input_bytes_curr_cmd = 0;
+            c->net_output_bytes_curr_cmd = 0;
+        }
+        /* The previous command is the generation tag. MGET cannot acquire any of the dynamic
+         * fields below, so its hot retirement need not even read their cache lines. */
+        if (unlikely(!c->cmd || c->cmd->proc != mgetCommand)) {
+            uintptr_t owned_dirty =
+                (uintptr_t)clientTail(c)->querybuf |
+                (uintptr_t)clientTail(c)->original_argv |
+                (uintptr_t)clientTail(c)->deferred_objects |
+                (uintptr_t)clientTail(c)->io_deferred_objects |
+                (uintptr_t)clientTail(c)->deferred_reply_errors |
+                (uintptr_t)clientTail(c)->name |
+                (uintptr_t)clientTail(c)->lib_name |
+                (uintptr_t)clientTail(c)->lib_ver |
+                (uintptr_t)clientTail(c)->cold |
+                (uintptr_t)(unsigned int)clientTail(c)->deferred_objects_num |
+                (uintptr_t)(unsigned int)clientTail(c)->io_deferred_objects_num;
+            if (unlikely(owned_dirty != 0)) {
+                if (clientTail(c)->querybuf) {
+                    sdsfree(clientTail(c)->querybuf);
+                    clientTail(c)->querybuf = NULL;
+                }
+                if (clientTail(c)->original_argv) freeClientOriginalArgv(c);
+                if (clientTail(c)->deferred_objects || clientTail(c)->deferred_objects_num)
+                    freeClientDeferredObjects(c, 1);
+                if (clientTail(c)->io_deferred_objects || clientTail(c)->io_deferred_objects_num)
+                    freeClientIODeferredObjects(c, 1);
+                if (clientTail(c)->deferred_reply_errors) {
+                    listRelease(clientTail(c)->deferred_reply_errors);
+                    clientTail(c)->deferred_reply_errors = NULL;
+                }
+                if (clientTail(c)->name) { decrRefCount(clientTail(c)->name); clientTail(c)->name = NULL; }
+                if (clientTail(c)->lib_name) { decrRefCount(clientTail(c)->lib_name); clientTail(c)->lib_name = NULL; }
+                if (clientTail(c)->lib_ver) { decrRefCount(clientTail(c)->lib_ver); clientTail(c)->lib_ver = NULL; }
+                if (clientTail(c)->cold) freeClientCold(c);
+            }
+        } else {
+            /* 2026-08-17 audit: the MGET-generation retirement skips the dynamic-ownership mask
+             * above entirely — in release builds it deliberately never reads those cache lines.
+             * The unchecked, load-bearing claim is that an MGET sub cannot have ACQUIRED any of
+             * them; a missed one here is a leak or a cross-command carry the next reuse inherits.
+             * Debug builds pay the reads and verify. */
+            debugServerAssert(clientTail(c)->querybuf == NULL &&
+                              clientTail(c)->original_argv == NULL &&
+                              clientTail(c)->deferred_objects == NULL &&
+                              clientTail(c)->io_deferred_objects == NULL &&
+                              clientTail(c)->deferred_reply_errors == NULL &&
+                              clientTail(c)->name == NULL &&
+                              clientTail(c)->lib_name == NULL &&
+                              clientTail(c)->lib_ver == NULL &&
+                              clientTail(c)->cold == NULL &&
+                              clientTail(c)->deferred_objects_num == 0 &&
+                              clientTail(c)->io_deferred_objects_num == 0);
+        }
 #ifdef LOG_REQ_RES
         reqresReset(c, 1);
 #endif
@@ -1105,6 +1202,17 @@ static void _addBulkStrRefToBufferOrList(client *c, robj *obj, size_t len) {
      * routed back to it. iotid for a worker is TOMO_IO_THREADS_MAX+1+ex_id. */
     str_ref.owner_ex = (c->isFake && iotid > TOMO_IO_THREADS_MAX)
                          ? (iotid - (TOMO_IO_THREADS_MAX + 1)) : -1;
+    /* Retained-ref fence (2026-08-17): a worker-owned str_ref outlives this command — the +1 ref
+     * above is released only after send, via freebackPush back to owner_ex. Same class as the
+     * coalesced-MGET retention: owner_ex is captured NOW, so a bucket cutover during the reply's
+     * flight would decref on the old owner while the new owner mutates the same non-atomic
+     * refcount word. Count it so the reshard coordinator's CO_WAIT_APPLIED fence holds the flip
+     * until the free-back drain returns it. owner_ex is by construction THIS thread's own worker
+     * id, so the single-writer discipline of retained_refs holds. Balanced by freebackDrainAll
+     * (both release paths — releaseBufReferences and processSentDataInEncodedBuffer — route
+     * owner_ex >= 0 refs through freebackPush, never a direct decref). */
+    if (str_ref.owner_ex >= 0)
+        tomoExRetainedAdd(&server.exThreads[str_ref.owner_ex], 1);
 
     /* Fill prefix with bulk string length: "$<len>\r\n" */
     str_ref.prefix[0] = '$';

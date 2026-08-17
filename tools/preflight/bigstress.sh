@@ -17,29 +17,29 @@
 #   OUT OF SPEC: injected zero/empty/garbage generator totals, a digest
 #   difference, or a rising/diverging synthetic memory series is accepted.
 #
-# CASE FIDELITY-{DICT,FLAT}-{STATIC,AUTO}
+# CASE FIDELITY-DICT-STATIC / FIDELITY-FLAT-{STATIC,AUTO}
 #   OUT OF SPEC: a timeout; a wrong/missing byte from single-key SET/GET or
 #   multi-key MSET/MGET; failure to exercise all 32 B, 4 KiB, and 64 KiB values;
 #   incomplete SCAN MATCH coverage while eight clients mutate/read concurrently;
 #   a zero-work helper; the wrong effective engine; or, for AUTO, no observed
 #   role conversion (that row is INCONCLUSIVE with ENGAGED=NO, never PASS).
-#   FIDELITY-DICT-TWONODE-STATIC additionally exhausts SCAN across two private
-#   per-node dictionaries so a cursor that visits only one owner is a failure.
+#   FIDELITY-DICT-STATIC exhausts SCAN across the two private per-node
+#   dictionaries so a cursor that visits only one owner is a failure.
+#   FIDELITY-DICT-AUTO is NA: a 16-slot AUTO symmetric pool is necessarily FLAT.
 #
 # CASE STORAGE-ENGINE-EQUIVALENCE / THREAD-MODE-EQUIVALENCE
 #   OUT OF SPEC: the canonical exact-value digests differ, or a prerequisite
 #   fidelity row did not execute. A rate comparison is not a fidelity oracle.
 #
 # CASE DICT-MULTINODE-EQUIVALENCE
-#   OUT OF SPEC: one-node and two-node private-DICT runs do not both execute,
-#   do not exhaust their composite SCAN cursors, or emit different exact
-#   canonical digests.
+#   NOT APPLICABLE under the fixed gate geometry: one-node boots are forbidden.
+#   The two-node private-DICT arm still exhausts its composite SCAN cursor.
 #
-# CASE CORRECTNESS-{DICT,FLAT}-{STATIC,AUTO}
+# CASE CORRECTNESS-DICT-STATIC / CORRECTNESS-FLAT-{STATIC,AUTO}
 #   OUT OF SPEC: tools/preflight/correctness_suite.sh exits nonzero, times out,
 #   emits any FAIL row, or fails to materialize its per-run result file.
 #
-# CASE OWNERSHIP-MOVE-{DICT,FLAT}-{STATIC,AUTO}
+# CASE OWNERSHIP-MOVE-DICT-STATIC / OWNERSHIP-MOVE-FLAT-{STATIC,AUTO}
 #   OUT OF SPEC: exact canary reads differ during/after traffic; an automatic
 #   key-balancer decision does not reach FLIP and DONE; final status stays
 #   active; a fence abort occurs; or the logged moved range contains no exact
@@ -64,7 +64,7 @@
 #   handoff does not change that same socket's CLIENT INFO io-thread owner.
 #   No observed owner change is INCONCLUSIVE with ENGAGED=NO. AUTO additionally
 #   requires a completed role conversion and changed per-slot role snapshot
-#   during exact lifecycle traffic; the one-IO DICT-auto topology cannot engage.
+#   during exact lifecycle traffic. DICT-AUTO is NA at the fixed 16-slot/node pool.
 #
 # CASE CONNECTION-LIFECYCLE-{STORAGE,THREAD}-EQUIVALENCE
 #   OUT OF SPEC: the exact surviving-connection digests differ across engines
@@ -105,7 +105,7 @@
 #   OUT OF SPEC: full mode emits even one SKIP row.
 #
 # Process contract:
-#   * the server is pinned to cores 0–7 and every load process to cores 8–15;
+#   * the server is pinned to cores 0–31 and every load process excludes SMT siblings 128–159;
 #   * every server, client, helper, correctness suite, and generator is bounded;
 #   * every memtier call seeds/uses keys 1..2,000,000, d32, t8/c25 and includes
 #     --distinct-client-seed;
@@ -115,9 +115,10 @@
 set -uo pipefail
 set +m
 export LC_ALL=C
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 
-readonly SERVER_CORES=0-7
-readonly LOAD_CORES=8-15
+readonly SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+readonly LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
 readonly KEY_MIN=1
 readonly KEY_MAX=2000000
 readonly VALUE_BYTES=32
@@ -864,6 +865,14 @@ role_snapshot() { # label
 
 boot_server_nodes() { # label nodes io-per-node ex-per-node mode [extra args...]
     local label=$1 nodes=$2 io=$3 ex=$4 mode=$5
+    if [ "$nodes" -ne 2 ]; then
+        LAST_REASON="requested nodes=$nodes; bigstress requires exactly two nodes"
+        return 1
+    fi
+    if [ $((io + ex)) -ne 16 ]; then
+        LAST_REASON="requested io=$io ex=$ex; bigstress requires exactly 16 threads per node"
+        return 1
+    fi
     local expected_io=$((nodes * io)) expected_ex=$((nodes * ex))
     shift 5
     stop_server
@@ -877,7 +886,7 @@ boot_server_nodes() { # label nodes io-per-node ex-per-node mode [extra args...]
     SERVER_LOGS+=("$ACTIVE_LOG")
     setsid taskset -c "$SERVER_CORES" "$STAGED" \
         --bind 127.0.0.1 --port "$PORT" --dir "$WORK/data" \
-        --tomokv-nodes "$nodes" --tomokv-thread-io "$io" --tomokv-thread-ex "$ex" \
+        --tomokv-nodes "$nodes" --tomokv-pin-mode ccd --tomokv-thread-io "$io" --tomokv-thread-ex "$ex" \
         --tomokv-thread-mode "$mode" --save '' --appendonly no \
         --daemonize no --protected-mode no --enable-debug-command local \
         --logfile "$ACTIVE_LOG" --loglevel notice "$@" \
@@ -913,6 +922,10 @@ boot_server_nodes() { # label nodes io-per-node ex-per-node mode [extra args...]
                         ''|*[!0-9]*) LAST_REASON="invalid effective EX count '$cfg'"; return 1 ;;
                     esac
                     EFFECTIVE_EX=$cfg
+                    if ! preflight_assert_standard_boot "$ACTIVE_LOG" "$SERVER_PID" "$io" "$ex"; then
+                        LAST_REASON="standard 2x16c pin assertion failed"
+                        return 1
+                    fi
                     say "  boot $label pid=$SERVER_PID nodes=$nodes requested-per-node=$io/$ex roles=$expected_io/$expected_ex effective-ex=$EFFECTIVE_EX mode=$mode"
                     return 0
                 fi
@@ -930,7 +943,7 @@ boot_server_nodes() { # label nodes io-per-node ex-per-node mode [extra args...]
 boot_server() { # label io ex mode [extra server args...]
     local label=$1 io=$2 ex=$3 mode=$4
     shift 4
-    boot_server_nodes "$label" 1 "$io" "$ex" "$mode" "$@"
+    boot_server_nodes "$label" 2 "$io" "$ex" "$mode" "$@"
 }
 
 run_mt() { # label timeout-seconds memtier args...
@@ -1039,9 +1052,9 @@ else:
 PY
 }
 
-run_fidelity_case() { # key label io-per-node ex-per-node mode expected-engine [nodes]
+run_fidelity_case() { # key label io-per-node ex-per-node mode expected-engine
     local key=$1 label=$2 io=$3 ex=$4 mode=$5 expected_engine=$6
-    local nodes=${7:-1}
+    local nodes=2
     local out=$WORK/$label.json err=$WORK/$label.err digest engine
     local infra=1 helper_ok=0 engaged=1 flips0=0 flips1=0 roles0 roles1
     local log_conversion=0 controller_status=PASS
@@ -1203,16 +1216,16 @@ run_correctness_case() { # label io ex mode
     setsid timeout --foreground --signal=TERM --kill-after=45 \
         "${CORRECTNESS_TIMEOUT}s" env \
         TOMO_PREFLIGHT_DIR="$dir" TOMO_BIN="$STAGED" TOMO_RESULT_FILE="$result" \
-        TOMO_EXPECT_NODES=1 TOMO_EXPECT_IO="$io" TOMO_EXPECT_EX="$ex" \
+        TOMO_EXPECT_NODES=2 TOMO_EXPECT_IO="$io" TOMO_EXPECT_EX="$ex" \
         TOMO_EXPECT_MODE="$mode" \
-        SMOKE="$smoke" TOMO_XTRA="--tomokv-thread-io $io --tomokv-thread-ex $ex --tomokv-thread-mode $mode --enable-debug-command local" \
+        SMOKE="$smoke" TOMO_XTRA="--enable-debug-command local" \
         "$CORRECTNESS" >"$log" 2>&1 &
     HELPER_PID=$!
     if [ "$mode" = auto ]; then
         deadline=$((SECONDS + CORRECTNESS_TIMEOUT + 10))
         while kill -0 "$HELPER_PID" 2>/dev/null &&
               [ "$SECONDS" -lt "$deadline" ]; do
-            if role_snapshot_at "$label.correctness.$poll" 5994 "$((io + ex))"; then
+            if role_snapshot_at "$label.correctness.$poll" 5994 "$((2 * (io + ex)))"; then
                 role_last="$SNAP_IO/$SNAP_EX"
                 if [ -z "$role_first" ]; then
                     role_first=$role_last
@@ -2149,9 +2162,9 @@ compare_lifecycle() { # key-a key-b case-name dimension [require-engagement]
 
 run_lifecycle_matrix() {
     run_lifecycle_variant dict_static CONNECTION-LIFECYCLE-DICT-STATIC \
-        7 1 static DICT
+        15 1 static DICT
     run_lifecycle_variant flat_static CONNECTION-LIFECYCLE-FLAT-STATIC \
-        4 4 static FLAT
+        8 8 static FLAT
     compare_lifecycle dict_static flat_static \
         CONNECTION-LIFECYCLE-STORAGE-EQUIVALENCE-STATIC \
         "DICT-static vs FLAT-static" 1
@@ -2166,16 +2179,14 @@ run_lifecycle_matrix() {
             "QUICK functional subset"
         return
     fi
-    run_lifecycle_variant dict_auto CONNECTION-LIFECYCLE-DICT-AUTO \
-        1 1 auto DICT
+    case_result CONNECTION-LIFECYCLE-DICT-AUTO NA \
+        "NOT-APPLICABLE: a 16-slot AUTO symmetric pool provisions 15 workers/node and is FLAT; no 2x16c DICT-AUTO shape exists"
     run_lifecycle_variant flat_auto CONNECTION-LIFECYCLE-FLAT-AUTO \
-        4 4 auto FLAT
-    compare_lifecycle dict_auto flat_auto \
-        CONNECTION-LIFECYCLE-STORAGE-EQUIVALENCE-AUTO \
-        "DICT-auto vs FLAT-auto" 1
-    compare_lifecycle dict_static dict_auto \
-        CONNECTION-LIFECYCLE-THREAD-EQUIVALENCE-DICT \
-        "DICT static vs auto" 1
+        8 8 auto FLAT
+    case_result CONNECTION-LIFECYCLE-STORAGE-EQUIVALENCE-AUTO NA \
+        "NOT-APPLICABLE: fixed 2x16c AUTO has no DICT storage arm"
+    case_result CONNECTION-LIFECYCLE-THREAD-EQUIVALENCE-DICT NA \
+        "NOT-APPLICABLE: fixed 2x16c AUTO has no DICT storage arm"
     compare_lifecycle flat_static flat_auto \
         CONNECTION-LIFECYCLE-THREAD-EQUIVALENCE-FLAT \
         "FLAT static vs auto" 1
@@ -2187,7 +2198,7 @@ run_memory_case() {
     local total=$((MEMORY_WARMUP + MEMORY_SECS + interval + 2))
     local samples=$(((MEMORY_SECS + interval - 1) / interval + 1))
     local i elapsed rss used analysis_rc=0 detail started_at
-    if ! boot_server memory 4 4 static; then
+    if ! boot_server memory 8 8 static; then
         case_result STEADY-STATE-MEMORY FAIL "$LAST_REASON"
         return
     fi
@@ -2318,7 +2329,7 @@ reference_case() { # name ratio pipeline ref
 }
 
 run_reference_cells() {
-    if ! boot_server perf-dict 7 1 static || ! seed_keys perf-dict; then
+    if ! boot_server perf-dict 15 1 static || ! seed_keys perf-dict; then
         case_result REFERENCE-DICT-GET FAIL "$LAST_REASON"
         case_result REFERENCE-DICT-SET FAIL "prerequisite boot/seed failed"
     else
@@ -2326,7 +2337,7 @@ run_reference_cells() {
         reference_case REFERENCE-DICT-SET 1:0 1 817393
     fi
     stop_server
-    if ! boot_server perf-flat 4 4 static || ! seed_keys perf-flat; then
+    if ! boot_server perf-flat 8 8 static || ! seed_keys perf-flat; then
         case_result REFERENCE-FLAT-GET FAIL "$LAST_REASON"
         case_result REFERENCE-FLAT-SET FAIL "prerequisite boot/seed failed"
     else
@@ -2484,57 +2495,57 @@ fi
 
 run_adopted_gates
 
-run_fidelity_case dict_static FIDELITY-DICT-STATIC 7 1 static DICT
-run_fidelity_case dict2_static FIDELITY-DICT-TWONODE-STATIC 2 1 static DICT 2
-run_fidelity_case flat_static FIDELITY-FLAT-STATIC 4 4 static FLAT
+run_fidelity_case dict_static FIDELITY-DICT-STATIC 15 1 static DICT
+run_fidelity_case flat_static FIDELITY-FLAT-STATIC 8 8 static FLAT
 if [ "$QUICK" = 1 ]; then
     case_result FIDELITY-DICT-AUTO SKIP "QUICK functional subset"
     case_result FIDELITY-FLAT-AUTO SKIP "QUICK functional subset"
 else
-    # pool=2 preserves the private DICT engine but has no convertible role.
-    run_fidelity_case dict_auto FIDELITY-DICT-AUTO 1 1 auto DICT
-    run_fidelity_case flat_auto FIDELITY-FLAT-AUTO 4 4 auto FLAT
+    case_result FIDELITY-DICT-AUTO NA \
+        "NOT-APPLICABLE: a 16-slot AUTO symmetric pool provisions 15 workers/node and is FLAT; no 2x16c DICT-AUTO shape exists"
+    run_fidelity_case flat_auto FIDELITY-FLAT-AUTO 8 8 auto FLAT
 fi
 
 compare_fidelity dict_static flat_static STORAGE-ENGINE-EQUIVALENCE-STATIC \
     "DICT-static vs FLAT-static"
-compare_fidelity dict_static dict2_static DICT-MULTINODE-EQUIVALENCE \
-    "DICT one-node vs two-node composite-SCAN"
+case_result DICT-MULTINODE-EQUIVALENCE NA \
+    "NOT-APPLICABLE fixed 2x16c geometry forbids the former one-node arm; FIDELITY-DICT-STATIC covers two-node composite SCAN"
 if [ "$QUICK" = 1 ]; then
     case_result STORAGE-ENGINE-EQUIVALENCE-AUTO SKIP "QUICK functional subset"
     case_result THREAD-MODE-EQUIVALENCE-DICT SKIP "QUICK functional subset"
     case_result THREAD-MODE-EQUIVALENCE-FLAT SKIP "QUICK functional subset"
 else
-    compare_fidelity dict_auto flat_auto STORAGE-ENGINE-EQUIVALENCE-AUTO \
-        "DICT-auto vs FLAT-auto" 1
-    compare_fidelity dict_static dict_auto THREAD-MODE-EQUIVALENCE-DICT \
-        "DICT static vs auto functional" 1
+    case_result STORAGE-ENGINE-EQUIVALENCE-AUTO NA \
+        "NOT-APPLICABLE: fixed 2x16c AUTO has no DICT storage arm"
+    case_result THREAD-MODE-EQUIVALENCE-DICT NA \
+        "NOT-APPLICABLE: fixed 2x16c AUTO has no DICT storage arm"
     compare_fidelity flat_static flat_auto THREAD-MODE-EQUIVALENCE-FLAT \
         "FLAT static vs auto functional" 1
 fi
 
-run_correctness_case CORRECTNESS-DICT-STATIC 7 1 static
-run_correctness_case CORRECTNESS-FLAT-STATIC 4 4 static
+run_correctness_case CORRECTNESS-DICT-STATIC 15 1 static
+run_correctness_case CORRECTNESS-FLAT-STATIC 8 8 static
 if [ "$QUICK" = 1 ]; then
     case_result CORRECTNESS-DICT-AUTO SKIP "QUICK correctness subset"
     case_result CORRECTNESS-FLAT-AUTO SKIP "QUICK correctness subset"
 else
-    run_correctness_case CORRECTNESS-DICT-AUTO 1 1 auto
-    run_correctness_case CORRECTNESS-FLAT-AUTO 4 4 auto
+    case_result CORRECTNESS-DICT-AUTO NA \
+        "NOT-APPLICABLE: fixed 2x16c AUTO has no DICT storage arm"
+    run_correctness_case CORRECTNESS-FLAT-AUTO 8 8 auto
 fi
 
 run_migration_variant \
-    dict_static OWNERSHIP-MOVE-DICT-STATIC 7 1 static DICT
+    dict_static OWNERSHIP-MOVE-DICT-STATIC 15 1 static DICT
 run_migration_variant \
-    flat_static OWNERSHIP-MOVE-FLAT-STATIC 4 4 static FLAT
+    flat_static OWNERSHIP-MOVE-FLAT-STATIC 8 8 static FLAT
 if [ "$QUICK" = 1 ]; then
     case_result OWNERSHIP-MOVE-DICT-AUTO SKIP "QUICK functional subset"
     case_result OWNERSHIP-MOVE-FLAT-AUTO SKIP "QUICK functional subset"
 else
+    case_result OWNERSHIP-MOVE-DICT-AUTO NA \
+        "NOT-APPLICABLE: fixed 2x16c AUTO has no DICT storage arm"
     run_migration_variant \
-        dict_auto OWNERSHIP-MOVE-DICT-AUTO 1 1 auto DICT
-    run_migration_variant \
-        flat_auto OWNERSHIP-MOVE-FLAT-AUTO 4 4 auto FLAT
+        flat_auto OWNERSHIP-MOVE-FLAT-AUTO 8 8 auto FLAT
 fi
 
 compare_migration dict_static flat_static \
@@ -2548,12 +2559,10 @@ if [ "$QUICK" = 1 ]; then
     case_result OWNERSHIP-MOVE-THREAD-MODE-EQUIVALENCE-FLAT SKIP \
         "QUICK functional subset"
 else
-    compare_migration dict_auto flat_auto \
-        OWNERSHIP-MOVE-STORAGE-ENGINE-EQUIVALENCE-AUTO \
-        "DICT-auto vs FLAT-auto" 1
-    compare_migration dict_static dict_auto \
-        OWNERSHIP-MOVE-THREAD-MODE-EQUIVALENCE-DICT \
-        "DICT static vs auto" 1
+    case_result OWNERSHIP-MOVE-STORAGE-ENGINE-EQUIVALENCE-AUTO NA \
+        "NOT-APPLICABLE: fixed 2x16c AUTO has no DICT storage arm"
+    case_result OWNERSHIP-MOVE-THREAD-MODE-EQUIVALENCE-DICT NA \
+        "NOT-APPLICABLE: fixed 2x16c AUTO has no DICT storage arm"
     compare_migration flat_static flat_auto \
         OWNERSHIP-MOVE-THREAD-MODE-EQUIVALENCE-FLAT \
         "FLAT static vs auto" 1

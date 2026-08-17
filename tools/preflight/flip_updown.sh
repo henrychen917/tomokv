@@ -19,8 +19,8 @@ trap _leak_guard EXIT
 #
 # THE TEST: drive the workload back and forth and require the controller to follow, both ways.
 #
-#   p32  -> throughput-bound, pipelined: the optimum is BALANCED/back-heavy (io4/ex4)
-#   p1   -> latency-bound, one round trip at a time: the optimum is FRONT-heavy (io7/ex1)
+#   p32  -> throughput-bound, pipelined: tends toward a balanced/back-heavy split
+#   p1   -> latency-bound, one round trip at a time: tends toward a front-heavy split
 #
 # So p32 -> p1 -> p32 -> p1 must produce flips in BOTH directions. A controller that only ever
 # grows the front, or only ever settles once and then sits, fails this even though a single-phase
@@ -30,6 +30,7 @@ trap _leak_guard EXIT
 # moves only one way FAILS on the missing direction. We assert direction, not just "some activity",
 # because a flip count alone cannot distinguish a working controller from one stuck oscillating.
 set -u
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 # ee451 2026-07-29: reap by OUR OWN binary name, never the shared "redis-server".
 # `pkill -9 -x redis-server` was two defects at once: it killed every server on the box including
 # other sessions' (that is how a live preflight and several queued jobs died), and it did NOT match
@@ -49,16 +50,20 @@ OUT="${TOMO_RESULT_FILE:-$J/flip_updown.out}"
 LOG=$J/flip_updown.srv.log
 PORT=5874
 PHASE=${PHASE:-45}
-MT="taskset -c 16-23 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
+MT="taskset -c $LOAD_CORES memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
 KM="--key-maximum=2000000 -d 32"
 : > "$OUT"
 
 pkill -9 -x "$(basename "${BIN}")" 2>/dev/null; sleep 1; : > "$LOG"
-taskset -c 0-7 "$BIN" --port $PORT --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4 \
+taskset -c "$SERVER_CORES" "$BIN" --port $PORT --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-io 8 --tomokv-thread-ex 8 \
   --tomokv-thread-mode auto --save '' --appendonly no --protected-mode no \
   --logfile "$LOG" --loglevel notice >/dev/null 2>&1 &
+FLIP_PID=$!
 sleep 3
 "$(dirname "$BIN")/redis-cli" -p $PORT ping >/dev/null 2>&1 || { echo "FAIL: server did not boot" | tee -a "$OUT"; exit 1; }
+preflight_assert_standard_boot "$LOG" "$FLIP_PID" 8 8 || { echo "FAIL: standard 2x16c pin assertion failed" | tee -a "$OUT"; exit 1; }
 $MT --ratio=1:0 $KM --key-pattern=P:P -n allkeys -t 8 -c 25 --pipeline 32 >/dev/null 2>&1
 
 # ee451 2026-07-29: ANCHOR ON THE FLIP CONTROLLER'S OWN TOKEN.
@@ -86,7 +91,7 @@ phase(){ # label pipeline ratio
   echo "${io:-NONE}"
 }
 
-echo "=== flip conformance: p32 -> p1 -> p32 -> p1 (io4/ex4 boot, thread-mode auto) ===" | tee -a "$OUT"
+echo "=== flip conformance: p32 -> p1 -> p32 -> p1 (2x16c io8/ex8 boot, thread-mode auto) ===" | tee -a "$OUT"
 A=$(phase "p32 #1" 32 1:0 | tail -1)
 B=$(phase "p1  #1"  1 0:1 | tail -1)
 C=$(phase "p32 #2" 32 1:0 | tail -1)

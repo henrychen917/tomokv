@@ -112,6 +112,25 @@ void zfree_usable(void *ptr, size_t *usable);
 __attribute__((malloc)) char *zstrdup(const char *s);
 __attribute__((malloc)) char *zstrdup_usable(const char *s, size_t *usable);
 size_t zmalloc_used_memory(void);
+/* Amortize allocator accounting over a bounded execution batch. Batches may
+ * nest; the outermost end publishes the exact net delta. */
+extern __thread unsigned int zmalloc_stat_batch_depth;
+extern __thread long long zmalloc_stat_batch_delta;
+extern __thread long long zmalloc_stat_batch_high_water;
+void zmalloc_stat_batch_fold(long long delta, long long high_water);
+static inline void zmalloc_stat_batch_begin(void) {
+    zmalloc_stat_batch_depth++;
+}
+static inline void zmalloc_stat_batch_end(void) {
+    if (__builtin_expect(zmalloc_stat_batch_depth == 0, 0)) __builtin_trap();
+    if (--zmalloc_stat_batch_depth != 0) return;
+    long long delta = zmalloc_stat_batch_delta;
+    long long high_water = zmalloc_stat_batch_high_water;
+    if (__builtin_expect((delta | high_water) == 0, 1)) return;
+    zmalloc_stat_batch_delta = 0;
+    zmalloc_stat_batch_high_water = 0;
+    zmalloc_stat_batch_fold(delta, high_water);
+}
 size_t zmalloc_get_peak_memory(void);
 time_t zmalloc_get_peak_memory_time(void);
 void zmalloc_set_oom_handler(void (*oom_handler)(size_t));

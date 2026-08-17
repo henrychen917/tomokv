@@ -1035,6 +1035,10 @@ dictEntry *kvstoreDictFind(kvstore *kvs, int didx, void *key) {
     return dictFind(d, key);
 }
 
+dictEntry *kvstoreFlatFindWithHash(kvstore *kvs, uint64_t hash, void *key) {
+    return flatGet(flatCurrent(kvs), hash, key, sdslen((sds)key));
+}
+
 /* Find a link to a key in the specified kvstore. If not found return NULL.
  *
  * This function is a wrapper around dictFindLink(), used to locate a key in a dict

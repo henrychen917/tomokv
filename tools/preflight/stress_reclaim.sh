@@ -15,23 +15,27 @@ trap _leak_guard EXIT
 # expiry, FLUSHALL, table resize, and EX<->IO flips. Watches for: RSS growth (reclaim stalling => the
 # original OOM bug), reclaim never running (leak), dbsize corruption, and crashes.
 J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}; P=/home/user/Projects
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 BIN="${TOMO_BIN:-${BIN:-$J/stable-w/src/redis-server}}"
 PORT=5976
 CLI="$P/redis/src/redis-cli -p $PORT"
-MT="taskset -c 16-23 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
+MT="taskset -c $LOAD_CORES memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
 DUR="${DUR:-600}"
 OUT="${TOMO_RESULT_FILE:-$J/stress_reclaim.out}"; : > $OUT
 : > $J/stress.log   # truncate the SERVER log too: it appends, so a previous run's crash markers read as this run's failure
 FAIL=0; note(){ echo "  $1" >> $OUT; }
 
 pkill -9 -x "$(basename "${BIN}")" 2>/dev/null; sleep 1; rm -rf $J/sdata; mkdir -p $J/sdata
-taskset -c 0-7 $BIN --port $PORT --dir $J/sdata --tomokv-nodes 1 \
-  --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-thread-mode auto \
+taskset -c "$SERVER_CORES" $BIN --port $PORT --dir $J/sdata --tomokv-nodes 2 --tomokv-pin-mode ccd \
+  --tomokv-thread-io 8 --tomokv-thread-ex 8 --tomokv-thread-mode auto \
   --save '' --appendonly no --protected-mode no --enable-debug-command yes \
   --logfile $J/stress.log --loglevel notice >/dev/null 2>&1 &
 SRV=$!    # our OWN pid; `taskset` execs into the binary, so this IS the server
 sleep 3; for i in $(seq 1 30); do timeout 2 $CLI ping 2>/dev/null | grep -q PONG && break; sleep 1; done
 timeout 2 $CLI ping 2>/dev/null | grep -q PONG || { echo "SERVER DID NOT BOOT" >> $OUT; echo "=== DONE ===" >> $OUT; exit 1; }
+preflight_assert_standard_boot "$J/stress.log" "$SRV" 8 8 || { echo "FAIL: standard 2x16c pin assertion failed" >> "$OUT"; exit 1; }
 # ee451 2026-07-29: was `SRV=$(pgrep -x redis-server | head -1)`. On this shared box that resolves
 # to WHOEVER'S server sorts first -- so the RSS series below could be sampled from another session's
 # process entirely, and preflight now stages the binary under a unique name (`redis-pf`) so the
@@ -64,7 +68,7 @@ while [ $SECONDS -lt $END ]; do
   sleep 3
   $CLI debug tomo-modeshift 8 >/dev/null 2>&1   # IO->EX flip back
   # expiring keys (delete path retires too)
-  for k in $(seq 1 200); do echo "SET vol:$k v$k PX 400"; done | $CLI --pipe >/dev/null 2>&1
+  for k in $(seq 1 200); do echo "SET vol:$k v$k PX 400"; done | taskset -c "$LOAD_CORES" $CLI --pipe >/dev/null 2>&1
   sleep 2
   cur=$(rss); note "t=${SECONDS}s round=$round rss=${cur}MB dbsize=$($CLI dbsize) ping=$(timeout 2 $CLI ping 2>/dev/null)"
   if [ -n "$cur" ] && [ -n "$BASE" ] && [ "$cur" -gt $((BASE + 2000)) ]; then

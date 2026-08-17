@@ -9,18 +9,22 @@
 # usage: close_asap_livelock.sh <server-binary> [tag]
 #   tools/preflight/withbox.sh -w 900 tools/preflight/close_asap_livelock.sh src/redis-server
 set -u
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 
 BIN=${1:?usage: close_asap_livelock.sh <server-binary> [tag]}
 TAG=${2:-adhoc}
 DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 REPO=$(cd "$DIR/../.." && pwd)
 PORT=${PORT:-5895}
-IO=${IO:-4}
-EX=${EX:-4}
+IO=${IO:-8}
+EX=${EX:-8}
 ROUNDS=${ROUNDS:-40}
 CONNS=${CONNS:-64}
 DEPTH=${DEPTH:-256}
 MODE=${MODE:-auto}
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
+[ $((IO + EX)) -eq 16 ] || { echo "close-asap-livelock[$TAG]	FAIL	IO+EX must equal 16 per node"; exit 2; }
 
 OUT=$(mktemp -d "${TMPDIR:-/tmp}/casaplive.XXXXXX")
 CLI=$REPO/src/redis-cli
@@ -40,8 +44,8 @@ if ss -ltn "sport = :$PORT" 2>/dev/null | grep -q LISTEN; then
     echo "close-asap-livelock[$TAG]	SKIP	port $PORT in use"; exit 2
 fi
 
-taskset -c 0-7 "$STAGED" --port "$PORT" --bind 127.0.0.1 --dir "$OUT" \
-    --tomokv-nodes 1 --tomokv-thread-io "$IO" --tomokv-thread-ex "$EX" \
+taskset -c "$SERVER_CORES" "$STAGED" --port "$PORT" --bind 127.0.0.1 --dir "$OUT" \
+    --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-io "$IO" --tomokv-thread-ex "$EX" \
     --tomokv-thread-mode "$MODE" \
     --save '' --appendonly no --protected-mode no --enable-debug-command local \
     --logfile "$OUT/server.log" --loglevel notice >"$OUT/stdout.log" 2>&1 &
@@ -54,10 +58,11 @@ for _ in $(seq 1 80); do
 done
 [ "$(timeout 2 "$CLI" -p "$PORT" ping 2>/dev/null | tr -d '\r')" = PONG ] || {
     echo "close-asap-livelock[$TAG]	FAIL	server never answered PING"; exit 1; }
+preflight_assert_standard_boot "$OUT/server.log" "$SRV" "$IO" "$EX" || exit 1
 
 ulimit -n "$(( CONNS * 8 + 4096 ))" 2>/dev/null || true
 
-taskset -c 16-23 timeout 420 python3 "$DIR/close_asap_livelock.py" \
+taskset -c "$LOAD_CORES" timeout 420 python3 "$DIR/close_asap_livelock.py" \
     --port "$PORT" --rounds "$ROUNDS" --conns "$CONNS" --depth "$DEPTH" 2>&1 | tee "$OUT/probe.out"
 rc=${PIPESTATUS[0]}
 [ "$rc" = 124 ] && echo "TIMEOUT	the probe itself did not finish in 420s -- treat as a wedge" | tee -a "$OUT/probe.out"

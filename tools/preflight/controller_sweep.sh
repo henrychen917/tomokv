@@ -67,13 +67,13 @@
 #   * flock single-instance on the whole sweep
 #   * assert exactly ONE redis-server after each boot, before measuring
 #   * memtier Totals col2 = ops/sec (last col is KB/sec, NOT errors)
-#   * total_commands_processed misses worker-dispatched cmds -> we use memtier ops
+#   * flip throughput uses INFO total_commands_processed deltas only after stabilization
 #   * ONE INFO call per sample, parsed from the saved copy
 #   * every absence-check has a positive control
 #   * plausibility gate on every number (nonsense => SUSPECT, never PASS)
 #   * A/B arms interleaved ABBA (this box drifts ~15%)
 #   * medians of >=3 reps for any throughput comparison (full mode)
-#   * server pinned 0-7, load-gen pinned 8-15
+#   * server pinned 0-31; load-gen excludes the server's SMT siblings 128-159
 # =============================================================================
 
 set -u
@@ -93,6 +93,9 @@ SMOKE=${SMOKE:-0}
 # 3 4 5 6 11 12 13 retired with their knobs (2026-07-28) — ids left as holes on purpose
 CONTROLLERS=${CONTROLLERS:-"1 2 7 8 9 10 14"}
 
+# shellcheck source=tools/preflight/preflight_lib.sh
+. "$(cd "$(dirname "$0")" && pwd)/preflight_lib.sh"
+
 # ---- durations / reps -------------------------------------------------------
 # AT_WIN     anti-thrash window seconds (3 consecutive windows per check)
 # T_WARM     parity warmup seconds (arg 8 of parity(); settles global adaptive state
@@ -111,15 +114,15 @@ else
   AT_WIN=10; T_WARM=6; CLB_BURST=155
 fi
 
-# ---- core pinning (methodology: server 0-7, load-gen 8-15) ------------------
-NCPU=$(nproc)
-if [ "$NCPU" -ge 16 ]; then SRV_CORES=0-7; CLI_CORES=16-23
-else H=$((NCPU/2)); SRV_CORES=0-$((H-1)); CLI_CORES=$H-$((NCPU-1)); fi
+# ---- fixed gate geometry ----------------------------------------------------
+SRV_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+CLI_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
 
 # ---- canonical workloads ----------------------------------------------------
 # CLIENT LOAD (2026-08-04). These drove `-t 4 -c 8` -- 32 connections -- which is 44% BELOW the
 # load generator's own ceiling and therefore never reached the server's. Measured on p32 SET at
-# io4ex4: -t4 -c8 = 4.99M/s, -t8 -c25 = 7.19M/s, -t8 -c40 = 6.68M, -t12 -c25 = 6.86M. So -t8 -c25
+# on the then-balanced legacy shape: -t4 -c8 = 4.99M/s, -t8 -c25 = 7.19M/s,
+# -t8 -c40 = 6.68M, -t12 -c25 = 6.86M. So -t8 -c25
 # (200 conns) is the peak and 32 conns simply cannot keep 8 server threads fed at pipeline 32.
 #
 # WHY THAT MATTERED: under-driven, every thread config performs about the same, so the suite could
@@ -148,13 +151,13 @@ rm -f "$J/pat_all.txt" "$J/pat_hit.txt" "$J/pat_all.u" "$J/pat_hit.u"
 # =============================================================================
 # helpers
 # =============================================================================
-SRV_PID=; RSS_SPID=; CELL=boot; SRVLOG=/dev/null; RSSF=/dev/null
+SRV_PID=; RSS_SPID=; CELL=boot; SRVLOG=/dev/null; RSSF=/dev/null; C1_LOAD_PID=
 BG_PIDS=""
 
 say()  { printf '[%s] %s\n' "$(date +%H:%M:%S)" "$*"; }
 tsv()  { printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" "$5" "$6" >> "$OUT"; say "  -> $1 | $2 | $6 | obs=$4 exp=$5"; }
 
-plaus() { # throughput plausibility gate for this box (loopback, 8 cores)
+plaus() { # throughput plausibility gate for this box (loopback, fixed 2x16c server)
   local v=${1:-0}
   case "$v" in ''|*[!0-9]*) return 1;; esac
   [ "$v" -ge 1000 ] && [ "$v" -le 20000000 ]
@@ -189,6 +192,10 @@ preflight() {
   [ -x "$MTB" ] || die_pf memtier "memtier_benchmark not found"
   [ -x "$CLI" ] || die_pf redis-cli "redis-cli not found"
   command -v python3 >/dev/null 2>&1 || die_pf python3 "python3 not found (connhold driver for c7/c14)"
+  [ "$SRV_CORES" = "$PREFLIGHT_SERVER_CORES" ] || die_pf geometry \
+      "server cores=$SRV_CORES; the gate requires 0-31"
+  [ "$CLI_CORES" = "$PREFLIGHT_LOADGEN_CORES" ] || die_pf geometry \
+      "loadgen cores=$CLI_CORES; require 32-127,160-255 (exclude SMT siblings 128-159)"
   # BOX DISCIPLINE: refuse to run alongside anyone else's server/bench. Note this asks about the
   # SHARED name on purpose -- preflight stages the binary under test as `redis-pf`, so a process
   # called `redis-server` really is somebody else's and we must not touch it.
@@ -200,6 +207,14 @@ preflight() {
 
 boot() { # boot <cellname> [extra server args...]  -> sets SRV_PID/SRVLOG/CELL
   local name=$1; shift
+  local -a extra=("$@")
+  local eff_io=8 eff_ex=8 ai
+  for ((ai=0; ai<${#extra[@]}; ai++)); do
+    case "${extra[$ai]}" in
+      --tomokv-thread-io) ai=$((ai+1)); eff_io=${extra[$ai]:-0} ;;
+      --tomokv-thread-ex) ai=$((ai+1)); eff_ex=${extra[$ai]:-0} ;;
+    esac
+  done
   CELL=$name; SRVLOG=$LOGD/$name.srv.log
   rm -rf "$DATA"; mkdir -p "$DATA"; : > "$SRVLOG"
   if [ "${TOMO_LANE_MODE:-0}" != 1 ] && pgrep -x redis-server >/dev/null 2>&1; then
@@ -211,9 +226,15 @@ boot() { # boot <cellname> [extra server args...]  -> sets SRV_PID/SRVLOG/CELL
     tsv preflight boot "$name" "port $PORT already has a listener (leaked server?)" "port free" FAIL
     return 1
   fi
+  if [ $((eff_io + eff_ex)) -ne 16 ]; then
+    tsv preflight boot "$name" "requested io=$eff_io ex=$eff_ex" \
+        "exact 16-thread/node budget" FAIL
+    return 1
+  fi
   taskset -c "$SRV_CORES" "$BIN" --port "$PORT" --dir "$DATA" --save "" \
     --appendonly no --protected-mode no --loglevel notice --logfile "$SRVLOG" \
-    --tomokv-nodes 1 "$@" >/dev/null 2>&1 &
+    --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-io 8 --tomokv-thread-ex 8 \
+    "${extra[@]}" >/dev/null 2>&1 &
   SRV_PID=$!
   local up=0 i
   for i in $(seq 1 60); do
@@ -258,6 +279,11 @@ boot() { # boot <cellname> [extra server args...]  -> sets SRV_PID/SRVLOG/CELL
       stopsrv; return 1
     fi
   done
+  if ! preflight_assert_standard_boot "$SRVLOG" "$SRV_PID" "$eff_io" "$eff_ex"; then
+    tsv boot "$name" "geometry/pinning" "2x16c or pin assertion failed; log=$SRVLOG" \
+        "two composed-L3 nodes; all server threads on cores 0-31" FAIL
+    stopsrv; return 1
+  fi
   return 0
 }
 
@@ -367,11 +393,11 @@ ioclients() { # per-io-slot "slot clients listening" — ONE INFO threads call. 
 
 seedkeys() { # seedkeys <n> <valbytes>  (keys k:0..n-1)
   awk -v n="$1" -v v="$2" 'BEGIN{s=""; for(i=0;i<v;i++)s=s"x"; for(i=0;i<n;i++) printf "SET k:%d %s\r\n", i, s}' \
-    | "$CLI" -p "$PORT" --pipe >/dev/null 2>&1
+    | taskset -c "$CLI_CORES" "$CLI" -p "$PORT" --pipe >/dev/null 2>&1
 }
 delkeys() { # delkeys <lo> <hi>
   awk -v a="$1" -v b="$2" 'BEGIN{for(i=a;i<b;i++) printf "DEL k:%d\r\n", i}' \
-    | "$CLI" -p "$PORT" --pipe >/dev/null 2>&1
+    | taskset -c "$CLI_CORES" "$CLI" -p "$PORT" --pipe >/dev/null 2>&1
 }
 
 # ---- AUTO==STATIC parity runner (fresh boot per rep, ABBA interleave) -------
@@ -477,362 +503,12 @@ connhold() { # connhold <cell> <nconns> <burst_s> <hold_s> <roundfile>
 
 cleanup() {
   local p
+  [ -n "${C1_LOAD_PID:-}" ] && { kill "$C1_LOAD_PID" 2>/dev/null; wait "$C1_LOAD_PID" 2>/dev/null; }
+  C1_LOAD_PID=
   for p in $BG_PIDS; do kill "$p" 2>/dev/null; done
   stopsrv
 }
 trap cleanup EXIT INT TERM
-
-# =============================================================================
-# 1. tomoFlipController (momentum hill-climb; thread-mode auto)
-#    CODE TRUTH (re-anchored 2026-08-03; the old refs :16341-16343 and :17752 had rotted onto
-#    unrelated code, so they could not be used to judge whether a failure here was real):
-#      server.c:18407  tomoGrowBackSlot's guard —
-#                      if (io_live <= server.io_threads) err = "no grown io thread to convert
-#                      back (at base config)"
-#      server.c:19543  can_back = io_threads_live > server.io_threads  (the controller's own
-#                      precondition, same claim, evaluated per tick)
-#      server.c:4307-4311 + flatIoHi() at :400-405  tm_ngrow_io = ex_threads-1, fixed at boot,
-#                      so the io constituency is [io_threads, io_threads+tm_ngrow_io) forever.
-#    Line numbers drift; re-find by the quoted strings above, not by number.
-#    grow-back can ONLY reclaim GROWN io slots — io_threads_live can never go BELOW the boot
-#    io_threads. So the
-#    reachable range from boot ioN/exM is io in [N .. N+M-1]. The AUTO arm boots
-#    io4ex4 (range io4..io7) and tests BOTH directions inside that range:
-#    Phase A: p1-GET -> GROW-FRONT (io-ward, io4 -> >4); Phase B: p32-SET ->
-#    GROW-BACK (ex-ward, reclaims the grown slots). Settle: 0 flips across the
-#    settled measure windows. AUTO==STATIC: settled AUTO vs best static arm.
-# =============================================================================
-# ---- OPPOSITE-OPTIMUM: the only cell here that cannot be passed by accident ------------------
-# Two phases whose REQUIRED ACTIONS point opposite ways (opposite actions, not same boot — the
-# boots differ per phase since the 2026-08-11 oracle re-measure):
-#     p32 SET  boots io5ex3 (the optimum)            => must HOLD at 5
-#     p32 GET  boots io4ex4 (2 steps below optimum)  => must CLIMB to 5-6
-# A controller that never moves passes SET and fails GET; one that always climbs does the
-# reverse (SET 5->6 is a -31% cliff). Every other cell in this suite can be satisfied by a
-# controller that never moves.
-#
-# ORACLE (re-measured 2026-08-11 on stable @09774330d, interleaved A/B, fresh boot + proven
-# full fill per rep, static, -t8 -c25, d32):
-#     p32 SET : io5ex3 7.57-7.68M > io4ex4 7.46M (+3%) >> io6ex2 5.25M (-31%)
-#     p32 GET : io5ex3 ~9.0M > io6ex2 ~6.9M full-fill (2026-08-05, task #77); io6 accepted
-# STALE-ORACLE HISTORY — this cell's expectations encode a measured curve, and the curve moves
-# under the binary (it has now happened TWICE: GET's optimum io6->io5 when the full-populate
-# fill landed; SET's io4->io5 across ownread/window-64/prefetch/uring2). On 2026-08-11 the
-# controller landed io5 on SET in 3/3 CERTIFIED reads and was graded FAIL by the old io4
-# expectation — the controller was RIGHT and the harness map was stale. If this cell FAILs with
-# a CONSISTENT (modal) landing one step off the expectation, re-measure the static curve before
-# blaming the frozen controller.
-#
-# It caught two real controller defects the other 11 cells missed: a deadzone centred on r=1
-# instead of on the settle point (correctly-rejected climbs restarted for ever -- 103 flips,
-# -24% on SET), and a saturation signal that meant "75% busy" rather than "input == output".
-oo_cell() {
-  # MODAL LANDING (2026-08-11 — the ship-record residual, now implemented). With the read
-  # certified (below), the remaining run-to-run variance is REAL: the controller's accept is ONE
-  # anchor-vs-probe throughput comparison, and this box's documented bimodal drift can flip that
-  # sign — so an occasional certified one-step mis-landing is the FROZEN controller's known
-  # character, not a regression. (Historic note: the certified io5 SET landings that motivated
-  # this read looked like mis-landings only against the STALE io4 oracle; the re-measured curve
-  # proved the controller right. The modal read still guards against genuine drift-accepts.)
-  # The gate therefore
-  # asserts the MODE of up to 3 certified landings per phase. Discrimination is intact: a
-  # controller that always climbs fails SET 3/3, one that never moves fails GET 3/3, and the
-  # drift lottery no longer grades single runs. Early exit when two certified landings agree.
-  local OO_LANDS OO_MODE OO_NSET OO_OPS1
-  oo_phase() { # oo_phase <tag> <workload-string> <boot_io> <boot_ex> -> OO_LANDS OO_MODE OO_NSET OO_OPS1
-    local tag=$1 wl=$2 bio=$3 bex=$4 r _pr fq settled io o
-    OO_LANDS=""; OO_MODE=""; OO_NSET=0; OO_OPS1=""
-    for r in 1 2 3; do
-      stopsrv
-      boot "flip_oo_$tag$r" --tomokv-thread-mode auto --tomokv-thread-io "$bio" --tomokv-thread-ex "$bex" || { stopsrv; continue; }
-      fill "flip_oo_${tag}${r}_fill"
-      # shellcheck disable=SC2086
-      o=$(mt "flip_oo_${tag}${r}_meas" $wl --test-time="$T_MEAS"); [ "$r" = 1 ] && OO_OPS1=$o
-      # CERTIFIED LANDING (2026-08-11): iolive reads the LAST flip line in the log, and T_MEAS
-      # (20s) is inside ONE probe period (30-40s), 12x short of the measured 240s convergence —
-      # the old instant scrape graded a climb apex (4->5->6, rejection pending) as "the landing";
-      # that run's own 6.55M ops (io4/5-mix; a server SETTLED at io6 measures 4.26M) proved it
-      # never sat there. Same certification as anti-thrash/convergence: 40s probe windows under
-      # sustained stimulus until one is flip-quiet, THEN read the resting config. Uncertified
-      # reps are excluded from the mode rather than silently graded.
-      settled=0
-      for _pr in 1 2 3 4 5; do
-        fq=$(flips)
-        # shellcheck disable=SC2086
-        mt "flip_oo_${tag}${r}_settle$_pr" $wl --test-time=40 >/dev/null
-        [ "$(flips)" = "$fq" ] && { settled=1; break; }
-      done
-      # Empty iolive <=> no flip ever <=> still at the boot config: a correct HOLD logs no
-      # io_threads_live= line, so this default cannot mask a real miss (a wrong flip WOULD log).
-      io=$(iolive); : "${io:=$bio}"
-      stopsrv
-      if [ "$settled" = 1 ]; then
-        OO_LANDS="$OO_LANDS $io"; OO_NSET=$((OO_NSET+1))
-        # shellcheck disable=SC2086
-        set -- $OO_LANDS; [ $# -ge 2 ] && [ "$1" = "$2" ] && break   # mode decided at 2/2
-      fi
-    done
-    # shellcheck disable=SC2086
-    OO_MODE=$(printf '%s\n' $OO_LANDS | sort | uniq -c | sort -rn | awk 'NR==1 && $1>1 {print $2}')
-  }
-  oo_phase set "$W_P32SET" 5 3
-  local sl=$OO_LANDS sm=$OO_MODE sn=$OO_NSET so=$OO_OPS1
-  oo_phase get "$W_P32GET" 4 4
-  local gl=$OO_LANDS gm=$OO_MODE gn=$OO_NSET go=$OO_OPS1
-  # SET boots AT its optimum (io5, 2026-08-11 oracle) and must modal-HOLD there: 5->6 is the
-  # -31% cliff, 5->4 is -3% wrong-way. GET boots below its optimum and must modal-CLIMB; io5 is
-  # the full-fill optimum (2026-08-05, task #77: io5ex3 9.00M vs io6ex2 6.94M at 100% hit rate),
-  # io6 stays accepted (one step, within the flat top).
-  # Fewer than 2 certified reps on a side is unreadable -> SUSPECT (anti-thrash owns any true
-  # never-settles FAIL); 2+ certified reps with no repeated value is real instability -> FAIL.
-  local vv=PASS
-  if [ "$sn" -lt 2 ] || [ "$gn" -lt 2 ]; then
-    vv=SUSPECT
-  else
-    [ "$sm" = 5 ] || vv=FAIL
-    case "$gm" in 5|6) : ;; *) vv=FAIL ;; esac
-  fi
-  tsv 1-flip OPPOSITE-OPTIMUM "opposite required actions (SET io5-boot HOLD vs GET io4-boot CLIMB); modal certified landing" \
-      "SET mode=${sm:-?} lands=[${sl# }] ops1=${so:-?} | GET mode=${gm:-?} lands=[${gl# }] ops1=${go:-?}" \
-      "SET modal-holds 5 (its optimum), GET modal-climbs 5-6; mode of <=3 certified (40s flip-quiet) landings" "$vv"
-}
-
-c1_flip() {
-  say "=== [1] tomoFlipController ==="
-  if [ "${OO_ONLY:-0}" = 1 ]; then
-    say "  (OO_ONLY=1: opposite-optimum cell only — certified-landing rerun, binary unchanged)"
-    oo_cell; return
-  fi
-  local cfg pass ops
-  declare -A P1 P32
-  P1[4_4]=""; P1[5_3]=""; P1[6_2]=""; P1[7_1]=""; P32[4_4]=""; P32[5_3]=""
-  # ---- static curve, arms cycled per pass (interleaves box drift). io5ex3 added 2026-08-11:
-  # the p32 SET optimum moved io4->io5 under the binary (OPPOSITE-OPTIMUM oracle re-measure),
-  # so the AUTO==STATIC reference below must be the better of io4/io5, not a fixed io4 that
-  # silently became a -3% soft reference. ----
-  for pass in $(seq 1 "$REPS"); do
-    for cfg in "4 4" "5 3" "6 2" "7 1"; do
-      set -- $cfg
-      boot "flip_static_io$1ex$2_p$pass" --tomokv-thread-mode static --tomokv-thread-io "$1" --tomokv-thread-ex "$2" || continue
-      # shellcheck disable=SC2086
-      fill "flip_static_io$1ex$2_p${pass}_fill"
-      # shellcheck disable=SC2086
-      ops=$(mt "flip_static_io$1ex$2_p${pass}_p1" $W_P1GET --test-time="$T_MEAS")
-      plaus "$ops" && P1[$1_$2]="${P1[$1_$2]} $ops"
-      if [ "$cfg" = "4 4" ] || [ "$cfg" = "5 3" ]; then
-        # shellcheck disable=SC2086
-        ops=$(mt "flip_static_io$1ex$2_p${pass}_p32" $W_P32SET --test-time="$T_MEAS")
-        plaus "$ops" && P32[$1_$2]="${P32[$1_$2]} $ops"
-      fi
-      stopsrv
-    done
-  done
-  # shellcheck disable=SC2086
-  local m44 m53 m62 m71 m44w m53w m32ref m32refcfg best bestcfg
-  m44=$(med ${P1[4_4]:-0}); m53=$(med ${P1[5_3]:-0}); m62=$(med ${P1[6_2]:-0}); m71=$(med ${P1[7_1]:-0})
-  m44w=$(med ${P32[4_4]:-0}); m53w=$(med ${P32[5_3]:-0})
-  m32ref=$m44w; m32refcfg=io4ex4
-  [ "$m53w" -gt "$m32ref" ] && { m32ref=$m53w; m32refcfg=io5ex3; }
-  best=$m44; bestcfg=io4ex4
-  [ "$m53" -gt "$best" ] && { best=$m53; bestcfg=io5ex3; }
-  [ "$m62" -gt "$best" ] && { best=$m62; bestcfg=io6ex2; }
-  [ "$m71" -gt "$best" ] && { best=$m71; bestcfg=io7ex1; }
-  tsv 1-flip static-curve "p1 GET on io4ex4/io5ex3/io6ex2/io7ex1" \
-      "io4ex4=$m44 io5ex3=$m53 io6ex2=$m62 io7ex1=$m71 (p32 io4ex4=$m44w io5ex3=$m53w)" \
-      "curve recorded; best=$bestcfg" \
-      "$( plaus "$best" && echo PASS || echo SUSPECT )"
-
-  # ---- AUTO arm: boot io4ex4 (flip range io4..io7 — see header) with the controller on ----
-  boot flip_auto --tomokv-thread-io 4 --tomokv-thread-ex 4 \
-       --tomokv-thread-mode auto || return
-  rss_start
-  local rss0; rss0=$(rss_kb)
-  # shellcheck disable=SC2086
-  fill flip_auto_fill
-  # conformance: the poly pool is FULLY ACTIVE -- every provisioned thread holds a real role and
-  # nothing is held in reserve. The reserve-thread count is gone with the reserve thread
-  # (2026-07-28), so assert the boot log's pool composition instead.
-  # 2026-07-29: the string is the SYMMETRIC POOL line, not "(3 io-born, 4 ex-born)". In thread-mode
-  # AUTO this tip provisions the whole pool as convertible workers (io_threads := 1) and applies the
-  # operator's split by BIRTHING the top workers in IO mode, so the io-born/ex-born line reads
-  # "(0 io-born, 7 ex-born)" for EVERY auto split and could never match the old text -- a cell that
-  # can only ever report SUSPECT is not a check. This string carries the same claim (pool fully
-  # provisioned as role-holders, split applied at birth) and is one the server actually writes.
-  if wait_log "SYMMETRIC POOL — 8 threads provisioned as 1 io (main) + 7 convertible workers" 5; then
-    tsv 1-flip design-assert "thread-mode auto, io=4 ex=4 (flip pool)" \
-        "pool = 8 threads, all role-holding (1 io + 7 convertible), no reserve" \
-        "fully-active pool, two roles only" PASS
-  else
-    tsv 1-flip design-assert "thread-mode auto, io=4 ex=4 (flip pool)" \
-        "boot pool line absent or unexpected" \
-        "expected the SYMMETRIC POOL boot line (8 threads, 1 io + 7 convertible)" SUSPECT
-  fi
-
-  # Phase A: p1 GET-heavy => io-ward (GROW-FRONT) from the io4 base
-  local fb0 ff0 ff1 ta0
-  fb0=$(count_log "GROW-BACK complete"); ff0=$(count_log "GROW-FRONT complete")
-  ta0=$(date +%s)
-  # shellcheck disable=SC2086
-  mt flip_auto_p1conv $W_P1GET --test-time="$T_CONV1" >/dev/null
-  ff1=$(count_log "GROW-FRONT complete")
-  local iolive; iolive=$(grep -o 'io_threads_live=[0-9]*' "$SRVLOG" | tail -1 | cut -d= -f2)
-  tsv 1-flip SHIFT-ioward "p1 GET-heavy from io4ex4 boot" \
-      "grow-front flips=$((ff1-ff0)) io_threads_live=${iolive:-?}" ">=1 flip, io_threads_live>4" \
-      "$( [ $((ff1-ff0)) -ge 1 ] && [ "${iolive:-0}" -gt 4 ] && echo PASS || echo FAIL )"
-  # SPEC REV 2 settle-first: the measurement window opens ONLY after the settle signal —
-  # a FULL 10s probe window (same workload) with 0 new flips. Bounded probe ladder.
-  local settledA=0 pr fprobe convA
-  for pr in 1 2 3 4 5; do
-    fprobe=$(flips)
-    # shellcheck disable=SC2086
-    mt "flip_auto_p1probe$pr" $W_P1GET --test-time=40 >/dev/null   # 40s >= one oscillation period; a 10s probe certified quiet from the gap BETWEEN flips
-    [ "$(flips)" = "$fprobe" ] && { settledA=1; break; }
-  done
-  convA=$(( $(date +%s) - ta0 ))
-  tsv 1-flip convergence-p1 "p1 stimulus start -> first 0-flip 10s probe window" \
-      "settled=$settledA convergence_time=${convA}s" "settle within $((T_CONV1 + 200))s (5x40s-probe ladder)" \
-      "$( [ "$settledA" = 1 ] && echo PASS || echo FAIL )"
-  # settled p1: flips must STOP during the measure windows (deadzone pins) — these 3
-  # consecutive windows on the UNCHANGED workload are the flip ANTI-THRASH check.
-  local f_pre f_post o1 o2 o3 msettle
-  f_pre=$(flips)
-  # shellcheck disable=SC2086
-  o1=$(mt flip_auto_p1m1 $W_P1GET --test-time="$T_MEAS")
-  # shellcheck disable=SC2086
-  o2=$(mt flip_auto_p1m2 $W_P1GET --test-time="$T_MEAS")
-  # shellcheck disable=SC2086
-  o3=$(mt flip_auto_p1m3 $W_P1GET --test-time="$T_MEAS")
-  f_post=$(flips)
-  msettle=$(med "$o1" "$o2" "$o3")
-  tsv 1-flip anti-thrash-p1 "3 settled p1 windows, unchanged workload" "flips-during=$((f_post-f_pre))" \
-      "0 PASS / 1 SUSPECT / >1 FAIL (deadzone pinned)" "$(atgrade $((f_post-f_pre)))"
-  # USER SPEC 2026-07-27: the AUTO==STATIC comparison is only meaningful if the controller was
-  # (a) STABLE and (b) ACTUALLY FLIPPING, and the data must come from AFTER it stabilised.
-  #
-  # (b) was missing, and its absence made `settledA` VACUOUS: "settled" is defined as 0 new flips
-  # in a 10s probe, which a controller that NEVER FLIPPED satisfies trivially. So a controller
-  # stuck at the boot config scored "settled=1" and was then compared against the best static
-  # config -- reporting a throughput deficit that is really just the static curve gap, and hiding
-  # the actual defect (no actuation at all) behind a number that looks like a tuning shortfall.
-  # boot split: FIRST io_threads_live the server ever logged (fall back to the configured io count)
-  local IO_BOOT; IO_BOOT=$(grep -o 'io_threads_live=[0-9]*' "$SRVLOG" | head -1 | cut -d= -f2)
-  IO_BOOT=${IO_BOOT:-4}
-  local fa_total; fa_total=$(flips)                    # completed GROW-FRONT/BACK so far
-  local io_end; io_end=$(iolive); io_end=${io_end:-$IO_BOOT}
-  local actuated=0
-  [ "${fa_total:-0}" -gt 0 ] && actuated=1             # a GROW-FRONT/BACK completed
-  [ "${io_end:-0}" != "${IO_BOOT:-0}" ] && actuated=1  # or the split demonstrably moved
-  if plaus "$msettle" && plaus "$best"; then
-    local r1; r1=$( awk -v a="$msettle" -v s="$best" 'BEGIN{exit (a>=s*0.97)?0:1}' && echo PASS || echo FAIL )
-    [ "$REPS" -lt 3 ] && [ "$r1" = PASS ] && r1=SUSPECT   # smoke: 1-rep static side
-    [ "$settledA" != 1 ] && [ "$r1" = PASS ] && r1=SUSPECT   # settle-first: unsettled measurement can't PASS
-    # No actuation => this is NOT a 3% tuning verdict. Report it as what it is.
-    [ "$actuated" = 0 ] && r1=SUSPECT
-    tsv 1-flip AUTO==STATIC-p1 "settled auto vs best static ($bestcfg), p1 GET" \
-        "auto=$msettle best-static=$best diff=$(pct_diff "$msettle" "$best")% settled=$settledA actuated=$actuated io_boot=${IO_BOOT:-?} io_end=$io_end flips=$fa_total" \
-        ">=97% of best static, MEASURED AFTER settle, AND controller must have actuated" "$r1"
-  else
-    tsv 1-flip AUTO==STATIC-p1 "settled auto vs best static" "implausible ($msettle/$best)" "plausible" SUSPECT
-  fi
-
-  # Phase B: p32 pure-SET => ex-ward (GROW-BACK reclaims the grown io slots), reverse of A
-  local fb1 tb0
-  fb0=$(count_log "GROW-BACK complete")
-  tb0=$(date +%s)
-  # shellcheck disable=SC2086
-  mt flip_auto_p32conv $W_P32SET --test-time="$T_CONV2" >/dev/null
-  fb1=$(count_log "GROW-BACK complete")
-  iolive=$(grep -o 'io_threads_live=[0-9]*' "$SRVLOG" | tail -1 | cut -d= -f2)
-  tsv 1-flip SHIFT-exward "p32 pure-SET after p1 settle (io grown >4)" \
-      "grow-back flips=$((fb1-fb0)) io_threads_live=${iolive:-?}" ">=1 flip (grown slots reclaimed ex-ward)" \
-      "$( [ $((fb1-fb0)) -ge 1 ] && echo PASS || echo FAIL )"
-  # SPEC REV 2 settle-first (same ladder as phase A, p32 workload)
-  local settledB=0 convB
-  for pr in 1 2 3 4 5; do
-    fprobe=$(flips)
-    # shellcheck disable=SC2086
-    mt "flip_auto_p32probe$pr" $W_P32SET --test-time=40 >/dev/null  # 40s >= one oscillation period (long-hold documents 30-40s); 10s was structurally vacuous
-    [ "$(flips)" = "$fprobe" ] && { settledB=1; break; }
-  done
-  convB=$(( $(date +%s) - tb0 ))
-  tsv 1-flip convergence-p32 "p32 stimulus start -> first 0-flip 10s probe window" \
-      "settled=$settledB convergence_time=${convB}s" "settle within $((T_CONV2 + 200))s (5x40s-probe ladder)" \
-      "$( [ "$settledB" = 1 ] && echo PASS || echo FAIL )"
-  # settled p32 + anti-thrash + AUTO==STATIC io4ex4
-  f_pre=$(flips)
-  # shellcheck disable=SC2086
-  o1=$(mt flip_auto_p32m1 $W_P32SET --test-time="$T_MEAS")
-  # shellcheck disable=SC2086
-  o2=$(mt flip_auto_p32m2 $W_P32SET --test-time="$T_MEAS")
-  # shellcheck disable=SC2086
-  o3=$(mt flip_auto_p32m3 $W_P32SET --test-time="$T_MEAS")
-  f_post=$(flips)
-  msettle=$(med "$o1" "$o2" "$o3")
-  tsv 1-flip anti-thrash-p32 "3 settled p32 windows, unchanged workload" "flips-during=$((f_post-f_pre))" \
-      "0 PASS / 1 SUSPECT / >1 FAIL (deadzone pinned)" "$(atgrade $((f_post-f_pre)))"
-  # ---- LONG-HOLD (2026-08-05): the re-climb oscillation onsets ~90s AFTER settle with a
-  # 30-40s period, so every short window ever used (20-70s) was structurally blind to it —
-  # measured: 3 climb/veto/walkback cycles inside "settled" windows = 8 flips and -14% while
-  # two 250s+ standalone holds were clean. Hold under sustained stimulus for 160s and count
-  # flips: this is the cell that keeps the veto-backoff honest. ----
-  f_hold0=$(flips)
-  # shellcheck disable=SC2086
-  mt flip_auto_p32hold $W_P32SET --test-time=160 >/dev/null
-  f_hold1=$(flips)
-  tsv 1-flip long-hold-p32 "160s sustained p32 after settle (oscillation window)" \
-      "flips-late=$((f_hold1-f_hold0))" "0-1 PASS / >1 FAIL (re-climb oscillation)" \
-      "$( [ $((f_hold1-f_hold0)) -le 1 ] && echo PASS || echo FAIL )"
-  # Reference = the better of static io4ex4/io5ex3 (2026-08-11: the p32 SET optimum moved to
-  # io5, so a fixed io4 reference understates what the controller must match by ~3%).
-  if plaus "$msettle" && plaus "$m32ref"; then
-    local r2; r2=$( awk -v a="$msettle" -v s="$m32ref" 'BEGIN{exit (a>=s*0.97)?0:1}' && echo PASS || echo FAIL )
-    [ "$REPS" -lt 3 ] && [ "$r2" = PASS ] && r2=SUSPECT   # smoke: 1-rep static side
-    [ "$settledB" != 1 ] && [ "$r2" = PASS ] && r2=SUSPECT   # settle-first: unsettled measurement can't PASS
-    tsv 1-flip AUTO==STATIC-p32 "settled auto vs best static ($m32refcfg), p32 SET" \
-        "auto=$msettle static=$m32ref($m32refcfg) diff=$(pct_diff "$msettle" "$m32ref")% settled=$settledB" ">=97% of best static" "$r2"
-  else
-    tsv 1-flip AUTO==STATIC-p32 "settled auto vs best static" "implausible ($msettle/$m32ref)" "plausible" SUSPECT
-  fi
-  oo_cell
-  # ---- EX-BOUND (2026-08-05, task #78): every workload above is IO-heavy or balanced, so half
-  # the actuator's travel (io4 -> io2) was never gate-tested — the p1GET<->ZRANGE harness found
-  # two wedges there (unbounded structural-refusal retry; oscillating bound gate). ZRANGE does
-  # real worker compute + a multi-element reply: measured static optimum io2ex6 (1.17M), 3x worse
-  # at io7ex1. From an io4 boot the controller must grow BACK and must not wedge. ----
-  for _xb in 1; do
-    stopsrv
-    boot flip_exbound --tomokv-thread-mode auto --tomokv-thread-io 4 --tomokv-thread-ex 4 || { stopsrv; break; }
-    awk 'BEGIN{for(i=1;i<=20000;i++){printf "ZADD z:memtier-%d",i; for(j=1;j<=64;j++)printf " %d m%d",j,j; printf "\r\n"}}' \
-      | "$CLI" -p "$PORT" --pipe >/dev/null 2>&1
-    zdb=$("$CLI" -p "$PORT" dbsize 2>/dev/null | tr -d '\r')
-    if [ "$zdb" != "20000" ]; then
-      tsv 1-flip EXBOUND "20k zsets x 64 members, ZRANGE full-range" "populate dbsize=$zdb" "20000" FAIL
-      stopsrv; break
-    fi
-    zops=$(mt flip_exbound_zr --command="ZRANGE z:__key__ 0 -1" --command-key-pattern=R \
-           --key-minimum=1 --key-maximum=20000 --test-time=90 $WCLIENT --pipeline=32)
-    zio=$(iolive); zfl=$(flips)
-    zping=$(timeout 3 "$CLI" -p "$PORT" ping 2>/dev/null | tr -d '\r')
-    zv=PASS
-    [ "$zping" = "PONG" ] || zv=FAIL
-    [ "${zio:-9}" -le 3 ] || zv=FAIL
-    [ "${zfl:-0}" -ge 1 ] || zv=FAIL
-    tsv 1-flip EXBOUND "EX-bound ZRANGE from io4 boot (static best io2ex6)" \
-        "ops=${zops:-0} io_live=${zio:-?} flips=${zfl:-0} ping=$zping" \
-        "grows BACK to io_live<=3, >=1 flip, server alive" "$zv"
-    stopsrv
-  done
-
-  # ENVELOPE across the whole controller run. Bound derivation: workload footprint is ~30-60MB
-  # (100k keys x 64B + conn bufs); the leak class this gates (38GB QSBR incident) grew ~210MB/s,
-  # i.e. multi-GB over these phases. base+1.5GB sits an order above footprint, an order below leak.
-  rss_stop
-  local rpk; rpk=$(rss_peak)
-  tsv 1-flip ENVELOPE "RSS through both phases" "peak=${rpk}KB base=${rss0}KB" \
-      "peak <= base+1.5GB (no flip leak; see derivation comment)" \
-      "$( [ "$rpk" -le $((rss0 + 1500000)) ] && echo PASS || echo FAIL )"
-  stopsrv
-}
 
 # =============================================================================
 # 2. RESERVE-THREAD QUORUM BALANCER — SECTION DELETED 2026-07-28, and the feature itself is now
@@ -889,7 +565,7 @@ c1_flip() {
 # =============================================================================
 c7_pools() {
   say "=== [7] allocator pools ==="
-  local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
+  local IO4="--tomokv-thread-io 8 --tomokv-thread-ex 8"
   # ---- retire-node + batch-spare + pcmd envelope (overwrite churn then idle) ----
   boot pools_env $IO4 || return
   # Baseline must contain the SAME keyspace the churn writes (memtier keys, not k:*) —
@@ -944,7 +620,7 @@ c7_pools() {
 # =============================================================================
 c8_flatresize() {
   say "=== [8] FLATSTORE resize ==="
-  local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
+  local IO4="--tomokv-thread-io 8 --tomokv-thread-ex 8"
   boot flat_resize $IO4 || return
   rss_start
   # sustained write DURING the growth resizes: seed pipe + memtier writes together
@@ -1018,7 +694,7 @@ c8_flatresize() {
 # =============================================================================
 c9_qsbr() {
   say "=== [9] QSBR reclaim ==="
-  local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
+  local IO4="--tomokv-thread-io 8 --tomokv-thread-ex 8"
   boot qsbr $IO4 || return
   seedkeys 100000 64
   sleep 2
@@ -1062,7 +738,7 @@ c9_qsbr() {
 # =============================================================================
 c10_reshard() {
   say "=== [10] reshard auto-tune ==="
-  local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
+  local IO4="--tomokv-thread-io 8 --tomokv-thread-ex 8"
   # ---- anti-flap arm FIRST (uniform, default min-ops 20000) ----
   boot reshard_uniform $IO4 || return
   # shellcheck disable=SC2086
@@ -1240,7 +916,7 @@ c10_reshard() {
 # =============================================================================
 c14_clientlb() {
   say "=== [14] client load-balancing family ==="
-  local IO4="--tomokv-thread-io 4 --tomokv-thread-ex 4"
+  local IO4="--tomokv-thread-io 8 --tomokv-thread-ex 8"
   boot clb $IO4 --tomokv-thread-mode auto --enable-debug-command yes || return
   "$CLI" -p "$PORT" set hk "$(printf 'v%.0s' $(seq 1 64))" >/dev/null
   write_connhold
@@ -1336,6 +1012,221 @@ c14_clientlb() {
 }
 
 # =============================================================================
+# 1 (2026-08-17 owner contract). The superseded executable cells were
+# removed; historical policy remains in controller_sweep.README.md only.
+#
+# Search is not thrash. Completed GROW-FRONT/BACK timestamps are classified by
+# preflight_flip_verdict: terminal quiet >=45s is STABILIZED_CLEAN, a move after
+# a >=30s quiet gap is SETTLE_THEN_MOVED (the only thrash FAIL), and an unfinished
+# walk is retried once to 2x the workload window before INCONCLUSIVE-lengthen.
+# References are discovered from statics at the landed split and +/-1; the measured
+# 2x16c table is only an extra starting hint. Steady throughput is an INFO counter
+# delta opened after stabilization, never a whole-window memtier average.
+# =============================================================================
+c1_workload_args() {
+  local kind=$1
+  case "$kind" in
+    get_p1)
+      C1_WL=( -t 128 -c 4 --pipeline=1 --ratio=0:1 --key-pattern=R:R \
+        --key-minimum=1 --key-maximum=10000000 -d 32 --distinct-client-seed ) ;;
+    set_p32)
+      C1_WL=( -t 64 -c 8 --pipeline=32 --ratio=1:0 --key-pattern=R:R \
+        --key-minimum=1 --key-maximum=10000000 -d 32 --distinct-client-seed ) ;;
+    *) return 1 ;;
+  esac
+}
+
+c1_fill() { # label
+  local label=$1 got
+  timeout 900 taskset -c "$CLI_CORES" "$MTB" -s 127.0.0.1 -p "$PORT" --hide-histogram \
+    -t 64 -c 8 --pipeline=32 --ratio=1:0 --key-pattern=P:P \
+    --key-minimum=1 --key-maximum=10000000 -n allkeys -d 32 \
+    > "$LOGD/${label}.fill.mt.log" 2>&1 || return 1
+  got=$(timeout 10 "$CLI" -p "$PORT" dbsize 2>/dev/null | tr -d '\r')
+  [ "$got" = 10000000 ]
+}
+
+c1_start_load() { # label duration workload
+  local label=$1 duration=$2 kind=$3
+  c1_workload_args "$kind" || return 1
+  taskset -c "$CLI_CORES" "$MTB" -s 127.0.0.1 -p "$PORT" --hide-histogram \
+    --test-time="$duration" "${C1_WL[@]}" > "$LOGD/${label}.mt.log" 2>&1 &
+  C1_LOAD_PID=$!
+}
+
+c1_stop_load() {
+  [ -n "${C1_LOAD_PID:-}" ] || return 0
+  kill "$C1_LOAD_PID" 2>/dev/null || true
+  wait "$C1_LOAD_PID" 2>/dev/null || true
+  C1_LOAD_PID=
+}
+
+c1_wait_load() {
+  local seconds=$1 i
+  for i in $(seq 1 "$seconds"); do
+    sleep 1
+    [ -n "${SRV_PID:-}" ] && kill -0 "$SRV_PID" 2>/dev/null || return 1
+    [ -n "${C1_LOAD_PID:-}" ] && kill -0 "$C1_LOAD_PID" 2>/dev/null || return 1
+  done
+}
+
+c1_command_count() {
+  local count
+  count=$(timeout 5 "$CLI" -p "$PORT" info stats 2>/dev/null | tr -d '\r' \
+    | awk -F: '$1=="total_commands_processed"{print $2; exit}') || return 1
+  case "$count" in ''|*[!0-9]*) return 1 ;; esac
+  printf '%s\n' "$count"
+}
+
+c1_rate() {
+  case "$1:$3" in *[!0-9:]*) return 1 ;; esac
+  awk -v c0="$1" -v t0="$2" -v c1="$3" -v t1="$4" \
+    'BEGIN{d=t1-t0; if(d<=0 || c1<c0) exit 1; printf "%.3f",(c1-c0)/d}'
+}
+
+c1_node_vector() {
+  local info n io ex sep= vector=
+  info=$(timeout 5 "$CLI" -p "$PORT" info all 2>/dev/null | tr -d '\r') || return 1
+  for n in 0 1; do
+    io=$(printf '%s\n' "$info" | awk -F: -v k="tomokv_node_${n}_io_live" '$1==k{print $2; exit}')
+    ex=$(printf '%s\n' "$info" | awk -F: -v k="tomokv_node_${n}_ex_live" '$1==k{print $2; exit}')
+    case "$io:$ex" in *[!0-9:]*) return 1 ;; esac
+    [ $((io + ex)) -eq 16 ] || return 1
+    vector="${vector}${sep}n${n}=io${io}/ex${ex}"; sep=,
+  done
+  printf '%s\n' "$vector"
+}
+
+c1_vector_ios() {
+  printf '%s\n' "$1" | tr ',' '\n' | sed -nE 's/^n[0-9]+=io([0-9]+)\/ex[0-9]+$/\1/p'
+}
+
+c1_static_rate() { # cell workload io -> C1_STATIC_RATE
+  local cell=$1 kind=$2 io=$3 ex=$((16-io)) c0 c1 t0 t1
+  C1_STATIC_RATE=
+  boot "${cell}_ref_io${io}ex${ex}" --tomokv-thread-mode static \
+    --tomokv-thread-io "$io" --tomokv-thread-ex "$ex" || return 1
+  c1_fill "${cell}_ref_io${io}ex${ex}" || { stopsrv; return 1; }
+  c1_start_load "${cell}_ref_io${io}ex${ex}" 55 "$kind" || { stopsrv; return 1; }
+  c1_wait_load 30 || { c1_stop_load; stopsrv; return 1; }
+  c0=$(c1_command_count); t0=$(date +%s.%N)
+  c1_wait_load 20 || { c1_stop_load; stopsrv; return 1; }
+  c1=$(c1_command_count); t1=$(date +%s.%N)
+  C1_STATIC_RATE=$(c1_rate "$c0" "$t0" "$c1" "$t1") || C1_STATIC_RATE=
+  c1_stop_load
+  stopsrv
+  [ -n "$C1_STATIC_RATE" ]
+}
+
+c1_landing_cell() { # workload starting-reference-io window
+  local kind=$1 hint_io=$2 window=$3 phase_start phase_end parsed
+  local mv moves span terminal post retry=0 vector auto_rate= c0 c1 t0 t1
+  local candidates io ex refs= ref best=0 best_io=0 ratio result observed
+
+  boot "c1_${kind}_auto" --tomokv-thread-mode auto \
+    --tomokv-thread-io 8 --tomokv-thread-ex 8 || return
+  if ! c1_fill "c1_${kind}_auto"; then
+    tsv 1-flip "$kind" "complete dataset" "fill failed" "10M keys" FAIL
+    stopsrv; return
+  fi
+  phase_start=$(date +%s.%N)
+  c1_start_load "c1_${kind}_auto" $((window * 2 + 90)) "$kind" || {
+    tsv 1-flip "$kind" "sustained workload" "load did not start" "load starts" FAIL
+    stopsrv; return
+  }
+  if ! c1_wait_load "$window"; then
+    tsv 1-flip "$kind" "${window}s observation" "load/server ended early" "sustained" FAIL
+    c1_stop_load; stopsrv; return
+  fi
+  phase_end=$(date +%s.%N)
+  parsed=$(preflight_flip_verdict "$SRVLOG" "$phase_start" "$phase_end") || parsed=
+  IFS=$'\t' read -r mv moves span terminal post <<< "$parsed"
+  # Reclassify after the steady INFO-delta interval too. A first move in that interval is
+  # continued once to the 2x window; it is search, not controller thrash.
+  while :; do
+    if [ "$mv" = STILL_SEARCHING ] && [ "$retry" -eq 0 ]; then
+      retry=1
+      auto_rate=
+      if ! c1_wait_load "$window"; then
+        tsv 1-flip "$kind" "2x observation" "retry load/server ended early" "sustained" FAIL
+        c1_stop_load; stopsrv; return
+      fi
+      phase_end=$(date +%s.%N)
+      parsed=$(preflight_flip_verdict "$SRVLOG" "$phase_start" "$phase_end") || parsed=
+      IFS=$'\t' read -r mv moves span terminal post <<< "$parsed"
+      continue
+    fi
+    if [ "$mv" = STABILIZED_CLEAN ]; then
+      c0=$(c1_command_count); t0=$(date +%s.%N)
+      if c1_wait_load 20; then
+        c1=$(c1_command_count); t1=$(date +%s.%N)
+        auto_rate=$(c1_rate "$c0" "$t0" "$c1" "$t1") || auto_rate=
+        phase_end=$t1
+        parsed=$(preflight_flip_verdict "$SRVLOG" "$phase_start" "$phase_end") || parsed=
+        IFS=$'\t' read -r mv moves span terminal post <<< "$parsed"
+        if [ "$mv" = STILL_SEARCHING ] && [ "$retry" -eq 0 ]; then
+          auto_rate=
+          continue
+        fi
+      fi
+    fi
+    break
+  done
+  vector=$(c1_node_vector 2>/dev/null || true)
+  c1_stop_load
+  stopsrv
+  if [ -z "$mv" ] || [ -z "$vector" ]; then
+    tsv 1-flip "$kind" "timestamp verdict + terminal INFO" \
+      "parsed=${parsed:-none} vector=${vector:-none}" "readable" FAIL
+    return
+  fi
+
+  candidates=$hint_io
+  while IFS= read -r io; do
+    for io in "$io" $((io-1)) $((io+1)); do
+      [ "$io" -ge 1 ] && [ "$io" -le 15 ] && candidates="$candidates $io"
+    done
+  done < <(c1_vector_ios "$vector")
+  candidates=$(printf '%s\n' $candidates | sort -nu | paste -sd' ' -)
+  for io in $candidates; do
+    ex=$((16-io))
+    if ! c1_static_rate "c1_$kind" "$kind" "$io"; then
+      tsv 1-flip "$kind-reference" "landed/neighbor static io${io}/ex${ex}" \
+        "measurement failed" "valid in-suite INFO delta" FAIL
+      return
+    fi
+    ref=$C1_STATIC_RATE
+    refs="${refs}${refs:+,}io${io}/ex${ex}=$ref"
+    if awk -v a="$ref" -v b="$best" 'BEGIN{exit !(a>b)}'; then best=$ref; best_io=$io; fi
+  done
+  tsv 1-flip "$kind-reference" "hint + landed/neighbor statics" \
+    "refs=[$refs] discovered_best=io${best_io}/ex$((16-best_io)):$best" \
+    "reference discovered in-suite; hint io${hint_io}/ex$((16-hint_io)) is not trusted" PASS
+
+  ratio=$(awk -v a="${auto_rate:-0}" -v b="$best" 'BEGIN{if(b>0)printf "%.4f",a/b; else print "0.0000"}')
+  observed="move_verdict=$mv retry_2x=$retry window=${window}s moves=$moves search_span=${span}s terminal_quiet=${terminal}s post_stable_moves=$post landed=[$vector] auto_info_ops=${auto_rate:-unmeasured} discovered_best=io${best_io}/ex$((16-best_io)):$best ratio=$ratio"
+  case "$mv" in
+    SETTLE_THEN_MOVED) result=FAIL ;;
+    STILL_SEARCHING) result=INCONCLUSIVE-lengthen ;;
+    STABILIZED_CLEAN)
+      if [ -n "$auto_rate" ] && awk -v a="$auto_rate" -v b="$best" 'BEGIN{exit !(b>0 && a/b>=0.95)}'; then
+        result=PASS
+      else
+        result=FAIL
+      fi ;;
+    *) result=FAIL ;;
+  esac
+  tsv 1-flip "$kind-landing" "fixed $kind workload" "$observed" \
+    "STABILIZED_CLEAN and post-stabilization INFO delta >=0.95x discovered static; SETTLE_THEN_MOVED is thrash; STILL_SEARCHING is inconclusive" "$result"
+}
+
+c1_flip() {
+  say "=== [1] tomoFlipController — owner stabilization definition, 2x16c ==="
+  c1_landing_cell get_p1 13 120
+  c1_landing_cell set_p32 8 240
+}
+
+# =============================================================================
 # main
 # =============================================================================
 main() {
@@ -1385,7 +1276,7 @@ main() {
   # ---- final summary ----
   say "=== SUMMARY ==="
   awk -F'\t' 'NR>1{n[$6]++} END{for (k in n) printf "  %-8s %d\n", k, n[k]}' "$OUT"
-  awk -F'\t' 'NR>1 && ($6=="FAIL" || $6=="SUSPECT"){printf "  %-8s %s | %s | %s\n", $6, $1, $2, $4}' "$OUT" \
+  awk -F'\t' 'NR>1 && ($6=="FAIL" || $6=="SUSPECT" || $6=="INCONCLUSIVE-lengthen"){printf "  %-22s %s | %s | %s\n", $6, $1, $2, $4}' "$OUT" \
     > "$LOGD/summary_failures.txt"
   say "TSV: $OUT   logs: $LOGD"
   cat "$LOGD/summary_failures.txt" 2>/dev/null

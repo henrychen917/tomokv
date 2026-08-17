@@ -13,7 +13,7 @@
 #   PASS: the nonempty, positively-validated observable sets are byte-identical.
 #   OUT OF SPEC: either dump is invalid/empty, or any name was added/removed.
 #
-# CASE SD-BOOT-{DICT-STATIC,FLAT-STATIC,DICT-AUTO,FLAT-AUTO,TWONODE}
+# CASE SD-BOOT-{DICT-STATIC,FLAT-STATIC,FRONT-AUTO,FLAT-AUTO,TWONODE}
 #   PASS: candidate CONFIG reports the documented effective allocation/mode
 #   (auto single-node pools provision as 1 IO + pool-1 EX), DEBUG TOMO-IOLOAD
 #   reports the requested initial live split with unique slots, the listening
@@ -35,7 +35,7 @@
 #   OUT OF SPEC: any injected difference escapes detection.
 #
 # Safety:
-#   * one server at a time, pinned to cores 0-7;
+#   * one server at a time, using the gate's fixed 0-31 server partition;
 #   * only the exact active child PID is signaled and waited for;
 #   * every server start and redis-cli command has a deadline;
 #   * the port must be unused and INFO process_id must identify our child;
@@ -189,6 +189,7 @@ done
 
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
 TREE_ROOT=$(cd "$HERE/../.." && pwd -P)
+. "$HERE/preflight_lib.sh"
 RUN_ROOT=${SURFACE_RUN_ROOT:-${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}}
 RUN_ID=${SURFACE_RUN_ID:-$(date -u +%Y%m%d_%H%M%S)_$$}
 case "$RUN_ID" in
@@ -267,7 +268,8 @@ if [ "$PORT" -lt 1024 ] || [ "$PORT" -gt 65535 ]; then
     finish
     exit 2
 fi
-SERVER_CORES=0-7
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
 CLI_TIMEOUT=${CLI_TIMEOUT:-8}
 CLI_SOCKET_TIMEOUT=${CLI_SOCKET_TIMEOUT:-5}
 START_TIMEOUT=${START_TIMEOUT:-20}
@@ -276,7 +278,8 @@ ACTIVE_PID=
 
 cli_cmd() {
     timeout --foreground --kill-after=2s "${CLI_TIMEOUT}s" \
-        "$CLI" -4 -h 127.0.0.1 -p "$PORT" -t "$CLI_SOCKET_TIMEOUT" -e --raw "$@"
+        taskset -c "$LOAD_CORES" "$CLI" -4 -h 127.0.0.1 -p "$PORT" \
+        -t "$CLI_SOCKET_TIMEOUT" -e --raw "$@"
 }
 
 # Return 0 only when connect(2) says nothing is listening; 1 means occupied,
@@ -347,6 +350,7 @@ boot_server() { # binary log cwd [config-or-options...]
         cd "$cwd" || exit 125
         exec taskset -c "$SERVER_CORES" "$bin" "$@" \
             --bind 127.0.0.1 --port "$PORT" --daemonize no \
+            --tomokv-pin-mode ccd \
             --save '' --appendonly no --protected-mode no \
             --enable-debug-command local --dir "$OUT/data" \
             --loglevel notice --logfile "$log"
@@ -364,7 +368,10 @@ boot_server() { # binary log cwd [config-or-options...]
         if [ "$(printf '%s' "$pong" | tr -d '\r')" = PONG ]; then
             if assert_active_server; then
                 if [ -s "$log" ]; then
-                    return 0
+                    preflight_assert_standard_boot "$log" "$ACTIVE_PID" && return 0
+                    say "  server booted outside standard 2x16c pin geometry"
+                    stop_server
+                    return 1
                 fi
                 say "  server reached readiness but retained an empty server log"
                 stop_server
@@ -423,7 +430,7 @@ dump_surface() { # binary destination
     local bin=$1 dst=$2 rc=0 count
     mkdir -p "$dst"
     if ! boot_server "$bin" "$dst/server.log" "$TREE_ROOT" \
-        --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4 \
+        --tomokv-nodes 2 --tomokv-thread-io 8 --tomokv-thread-ex 8 \
         --tomokv-thread-mode static; then
         say "  surface boot failed: $(boot_failure_tail "$dst/server.log")"
         return 1
@@ -604,7 +611,7 @@ try_shape() { # label nodes io-per-node ex-per-node mode options...
     fi
     expected_io=$((nodes * io))
     expected_ex=$((nodes * ex))
-    if [ "$mode" = auto ] && [ "$nodes" -eq 1 ]; then
+    if [ "$mode" = auto ]; then
         config_io=1
         config_ex=$((io + ex - 1))
     fi
@@ -631,19 +638,17 @@ try_shape() { # label nodes io-per-node ex-per-node mode options...
     stop_server
 }
 
-say "=== five-shape candidate boot matrix ==="
-try_shape DICT-STATIC 1 7 1 static \
-    --tomokv-nodes 1 --tomokv-thread-io 7 --tomokv-thread-ex 1 --tomokv-thread-mode static
-try_shape FLAT-STATIC 1 4 4 static \
-    --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-thread-mode static
-try_shape FLAT-AUTO 1 4 4 auto \
-    --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-thread-mode auto
-# Auto 7/1 symmetrically provisions the whole 8-slot pool and therefore uses
-# FLAT. A genuine DICT auto shape is the mechanically non-convertible 1/1 pool.
-try_shape DICT-AUTO 1 1 1 auto \
-    --tomokv-nodes 1 --tomokv-thread-io 1 --tomokv-thread-ex 1 --tomokv-thread-mode auto
-try_shape TWONODE 2 2 2 static \
-    --tomokv-nodes 2 --tomokv-thread-io 2 --tomokv-thread-ex 2 --tomokv-thread-mode static
+say "=== five-split candidate boot matrix (all 2x16c) ==="
+try_shape DICT-STATIC 2 15 1 static \
+    --tomokv-nodes 2 --tomokv-thread-io 15 --tomokv-thread-ex 1 --tomokv-thread-mode static
+try_shape FLAT-STATIC 2 8 8 static \
+    --tomokv-nodes 2 --tomokv-thread-io 8 --tomokv-thread-ex 8 --tomokv-thread-mode static
+try_shape FLAT-AUTO 2 8 8 auto \
+    --tomokv-nodes 2 --tomokv-thread-io 8 --tomokv-thread-ex 8 --tomokv-thread-mode auto
+try_shape FRONT-AUTO 2 15 1 auto \
+    --tomokv-nodes 2 --tomokv-thread-io 15 --tomokv-thread-ex 1 --tomokv-thread-mode auto
+try_shape TWONODE 2 14 2 static \
+    --tomokv-nodes 2 --tomokv-thread-io 14 --tomokv-thread-ex 2 --tomokv-thread-mode static
 
 if [ -n "${SURFACE_CONFIG_ROOT:-}" ]; then
     CONFIG_ROOT=$SURFACE_CONFIG_ROOT
@@ -666,7 +671,7 @@ try_shipped_config() { # BASE|CANDIDATE binary config-name
         return
     fi
     if ! boot_server "$bin" "$log" "$CONFIG_ROOT" "$conf" \
-        --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4 \
+        --tomokv-nodes 2 --tomokv-thread-io 8 --tomokv-thread-ex 8 \
         --tomokv-thread-mode static; then
         detail=$(boot_failure_tail "$log")
         case_result FAIL "SD-CONFIG-$arm-$label" "exact shipped file did not boot: $detail"

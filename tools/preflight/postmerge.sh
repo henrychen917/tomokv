@@ -8,32 +8,35 @@
 #    fixes things, one to check 4 4 at p32 and 7 1 at p1 for regression both d32"
 #
 #   1. ACCEPTANCE  — does this change actually fix the thing it was written for?
-#   2. io4/ex4 p32 d32 — throughput-bound regression check (the canonical config)
-#   3. io7/ex1 p1  d32 — latency-bound regression check (front-heavy, 1 worker)
+#   2. io8/ex8 p32 d32 — throughput-bound regression check (the canonical 16c/node config)
+#   3. io15/ex1 p1 d32 — latency-bound regression check (front-heavy, 1 worker/node)
 #
 # WHY THESE TWO CONFIGS AND NOT A SWEEP. They bracket the two regimes that behave OPPOSITELY here:
-# p32/io4ex4 is throughput-bound with FLATSTORE live (shared_node_dbs true at ex>=2); p1/io7ex1 is
+# p32/io8ex8 is throughput-bound with FLATSTORE live (shared_node_dbs true at ex>=2); p1/io15ex1 is
 # latency-bound and DICT-backed (shared_node_dbs is FALSE at ex=1, so the keyspace is a different
 # engine). A regression that hides in one is usually visible in the other — a real -5.5% once showed
-# up ONLY at io7/ex1, and was then mis-attributed to the obvious suspect. Two cheap cells catch the
+# up ONLY with one EX thread, and was then mis-attributed to the obvious suspect. Two cheap cells catch the
 # class; a full sweep costs 90 minutes and is not the per-change tool.
 #
 # COST: ~4 minutes total. That is the point. Per-change checks are meant to be short and
 # discriminating; the LONG suite runs after a BATCH of merges, because per-change tests validate
 # changes in isolation and structurally cannot see interaction.
 set -u
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 BIN=${1:?usage: postmerge.sh <binary> [acceptance-script [args...]]}
 shift
 ACC=${1:-}; [ $# -gt 0 ] && shift || true
 
 J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 OUT=$J/postmerge.out
-BASE=${POSTMERGE_BASE:-$J/postmerge_baseline.tsv}
+BASE=${POSTMERGE_BASE:-$J/postmerge_baseline.2x16c-v1.tsv}
 TT=${TT:-20}
 PORT=5987
 TAG=redis-pm                      # PRIVATE name: never reap a shared one, never be reaped by one
 SRV=$J/$TAG
-MT="taskset -c 16-23 memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
+MT="taskset -c $LOAD_CORES memtier_benchmark -s 127.0.0.1 -p $PORT --hide-histogram"
 KM="--key-maximum=2000000 -d 32"
 : > "$OUT"
 cp -f "$BIN" "$SRV" || { echo "postmerge: cannot stage $BIN" | tee -a "$OUT"; exit 2; }
@@ -56,12 +59,15 @@ solo(){ local w=0 n m
   done; return 0; }
 
 cell(){ # io ex pipeline ratio label
-  local io=$1 ex=$2 pl=$3 ratio=$4 lab=$5 o
+  local io=$1 ex=$2 pl=$3 ratio=$4 lab=$5 o pid log=$J/postmerge.${1}.${2}.srv.log
   reap; sleep 1
-  taskset -c 0-7 "$SRV" --port $PORT --tomokv-nodes 1 --tomokv-thread-io "$io" \
+  : > "$log"
+  taskset -c "$SERVER_CORES" "$SRV" --port $PORT --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-io "$io" \
     --tomokv-thread-ex "$ex" --tomokv-thread-mode static --save '' --appendonly no \
-    --protected-mode no --logfile '' >/dev/null 2>&1 &
+    --protected-mode no --logfile "$log" >/dev/null 2>&1 &
+  pid=$!
   sleep 3
+  preflight_assert_standard_boot "$log" "$pid" "$io" "$ex" || { reap; printf '%s\tINVALID\n' "$lab" | tee -a "$OUT"; return; }
   $MT --ratio=1:0 $KM --key-pattern=P:P -n allkeys -t 8 -c 25 --pipeline 32 >/dev/null 2>&1
   o=$($MT --test-time="$TT" --ratio="$ratio" $KM --key-pattern=R:R -t 8 -c 25 \
       --pipeline "$pl" --distinct-client-seed 2>/dev/null | awk '/^Totals/{print $2}')
@@ -87,13 +93,13 @@ else
 fi
 
 # ---- 2+3. REGRESSION: the two bracketing regimes -----------------------------------------------
-say "=== 2/3 io4/ex4 p32 d32 (throughput-bound, FLATSTORE live) ==="
+say "=== 2/3 io8/ex8 p32 d32 (throughput-bound, FLATSTORE live) ==="
 solo || exit 1
-cell 4 4 32 0:1 p32GET_io4ex4
-cell 4 4 32 1:0 p32SET_io4ex4
-say "=== 3/3 io7/ex1 p1 d32 (latency-bound, DICT-backed) ==="
-cell 7 1 1 0:1 p1GET_io7ex1
-cell 7 1 1 1:0 p1SET_io7ex1
+cell 8 8 32 0:1 p32GET_io8ex8
+cell 8 8 32 1:0 p32SET_io8ex8
+say "=== 3/3 io15/ex1 p1 d32 (latency-bound, DICT-backed) ==="
+cell 15 1 1 0:1 p1GET_io15ex1
+cell 15 1 1 1:0 p1SET_io15ex1
 
 # ---- verdict ------------------------------------------------------------------------------------
 if [ ! -f "$BASE" ]; then

@@ -26,6 +26,7 @@
 #     injects a deliberate divergence and must catch it, or section A is SUSPECT)
 # ============================================================================
 set -u -o pipefail
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 
 JOB=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 TREE=${TREE:-$JOB/stable-w2}
@@ -58,8 +59,8 @@ PY=$WORK/oracle_helper.py
 SMOKE=${SMOKE:-0}
 FORK_PORT=${FORK_PORT:-5791}
 ORACLE_PORT=${ORACLE_PORT:-5792}
-SRV_CORES=${SRV_CORES:-}    # e.g. "0-7"  (taskset for servers; empty = no taskset)
-LG_CORES=${LG_CORES:-}      # e.g. "8-15" (taskset for memtier / pipe loaders)
+SRV_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LG_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
 SEED=${SEED:-3225208}       # fixed stream seed
 # report the ACTUAL revision under test, not a hardcoded one (it read 52c760720 for every run,
 # which made every log line about "which build was this?" actively misleading)
@@ -71,11 +72,12 @@ else
     A_OPS=50000; B_OPS=4000; STRESS_T=300; FLIP_T=45; E_REPS=20
 fi
 
-# fork default topology (mandatory knobs) + politeness (float, no core pinning)
-DEF_TOPO=(--tomokv-thread-io 2 --tomokv-thread-ex 2)
+# Fork boots are all the gate's standard two 16-core nodes. Stock Redis remains the
+# single-threaded semantic oracle, pinned to the same server CPU partition.
+DEF_TOPO=(--tomokv-nodes 2 --tomokv-thread-io 8 --tomokv-thread-ex 8)
 FORK_COMMON=(--bind 127.0.0.1 --save '' --appendonly no --protected-mode no
              --enable-debug-command yes --busy-reply-threshold 1000
-             --tomokv-pin-mode float)
+             --tomokv-pin-mode ccd)
 ORACLE_COMMON=(--bind 127.0.0.1 --save '' --appendonly no --protected-mode no
                --enable-debug-command yes)
 
@@ -149,8 +151,7 @@ boot_srv() { # kind(fork|oracle) port dir extra-args... ; rc!=0 on failure
     fi
     local bin; local -a args
     if [ "$kind" = fork ]; then bin=$FORKSRV; args=("${FORK_COMMON[@]}"); else bin=$ORACLESRV; args=("${ORACLE_COMMON[@]}"); fi
-    local -a ts=()
-    [ -n "$SRV_CORES" ] && ts=(taskset -c "$SRV_CORES")
+    local -a ts=(taskset -c "$SRV_CORES")
     "${ts[@]}" "$bin" --port "$port" --dir "$dir" --logfile "$slog" "${args[@]}" "$@" >>"$slog" 2>&1 &
     local pid=$!
     OUR_PIDS+=("$pid")
@@ -165,6 +166,7 @@ boot_srv() { # kind(fork|oracle) port dir extra-args... ; rc!=0 on failure
     local st; st=$(tcli "$port" INFO stats)
     if [ "$kind" = fork ]; then
         printf '%s' "$st" | grep -q tomokv_ex_queue_depth || { log "BOOT-FAIL: fork identity check (no tomokv fields)"; return 1; }
+        preflight_assert_standard_boot "$slog" "$pid" || { log "BOOT-FAIL: standard 2x16c pin assertion failed"; return 1; }
     else
         printf '%s' "$st" | grep -q tomokv_ex_queue_depth && { log "BOOT-FAIL: oracle identity check (has tomokv fields?)"; return 1; }
     fi
@@ -697,8 +699,8 @@ PYEOF
 # hot/samebucket key caches (deterministic; computed once, reused everywhere)
 HOTFILE=$WORK/hotkeys_w2.txt
 SBFILE=$WORK/samebucket_12.txt
-[ -s "$HOTFILE" ] || timeout 300 python3 "$PY" hotkeys --workers 2 --wid 1 --count 140 > "$HOTFILE" || true
-[ -s "$SBFILE" ] || timeout 300 python3 "$PY" samebucket --count 12 > "$SBFILE" || true
+[ -s "$HOTFILE" ] || lg_run timeout 300 python3 "$PY" hotkeys --workers 2 --wid 1 --count 140 > "$HOTFILE" || true
+[ -s "$SBFILE" ] || lg_run timeout 300 python3 "$PY" samebucket --count 12 > "$SBFILE" || true
 
 # map python CHK lines -> TSV rows.  args: section config rc outfile [prefix]
 emit_chk_rows() {
@@ -741,7 +743,7 @@ pipe_del() { # port n prefix start
 # SECTION A — ORACLE EQUIVALENCE
 # ===========================================================================
 section_A() {
-    local sec=A cfg="io2ex2/default-vs-stock"
+    local sec=A cfg="2x16c-io8ex8/default-vs-stock"
     log "=== SECTION A: oracle equivalence ==="
     local opid fpid flog o rc inj
     boot_srv oracle "$ORACLE_PORT" "$WORK/a_oracle" || { row $sec boot "$cfg" FAIL "oracle boot failed"; return; }
@@ -786,7 +788,7 @@ section_A() {
     local st_ok=1
     for inj in op state; do
         o=$WORK/a_selftest_$inj.out
-        timeout 600 python3 "$PY" compare --fork-port "$FORK_PORT" --oracle-port "$ORACLE_PORT" \
+        lg_run timeout 600 python3 "$PY" compare --fork-port "$FORK_PORT" --oracle-port "$ORACLE_PORT" \
             --seed "$SEED" --ops 800 --workers 2 --reduced \
             --hot-file "$HOTFILE" --sb-file "$SBFILE" --inject "$inj" >"$o" 2>"$o.err"
         rc=$?
@@ -810,7 +812,7 @@ section_A() {
         st_ok=0
     fi
     o=$WORK/a_main.out
-    timeout 1800 python3 "$PY" compare --fork-port "$FORK_PORT" --oracle-port "$ORACLE_PORT" \
+    lg_run timeout 1800 python3 "$PY" compare --fork-port "$FORK_PORT" --oracle-port "$ORACLE_PORT" \
         --seed "$SEED" --ops "$A_OPS" --workers 2 \
         --hot-file "$HOTFILE" --sb-file "$SBFILE" >"$o" 2>"$o.err"
     rc=$?
@@ -838,7 +840,7 @@ section_A() {
 # ===========================================================================
 b_cell() { # name enum extra-args...   (leaves the fork RUNNING in B_LAST_PID)
     local name=$1 enum=$2; shift 2
-    local sec=B cfg="io2ex2/$name"
+    local sec=B cfg="2x16c-io8ex8/$name"
     B_LAST_PID=""
     local o rc
     boot_srv fork "$FORK_PORT" "$WORK/b_$name" "${DEF_TOPO[@]}" "$@" \
@@ -848,7 +850,7 @@ b_cell() { # name enum extra-args...   (leaves the fork RUNNING in B_LAST_PID)
     tcli "$ORACLE_PORT" FLUSHALL >/dev/null
     [ "$(tcli "$ORACLE_PORT" DBSIZE)" = "0" ] || { row $sec cell "$cfg" SUSPECT "oracle flush failed"; return 1; }
     o=$WORK/b_$name.out
-    timeout 900 python3 "$PY" compare --fork-port "$FORK_PORT" --oracle-port "$ORACLE_PORT" \
+    lg_run timeout 900 python3 "$PY" compare --fork-port "$FORK_PORT" --oracle-port "$ORACLE_PORT" \
         --seed "$SEED" --ops "$B_OPS" --workers 2 --reduced --enum "$enum" \
         --hot-file "$HOTFILE" --sb-file "$SBFILE" >"$o" 2>"$o.err"
     rc=$?
@@ -858,10 +860,10 @@ b_cell() { # name enum extra-args...   (leaves the fork RUNNING in B_LAST_PID)
     return 0
 }
 
-b_cell_topo() { # name enum io ex  (different mandatory topology)
+b_cell_topo() { # name enum io ex  (different 16-thread/node split)
     local name=$1 enum=$2 io=$3 ex=$4
     local -a save=("${DEF_TOPO[@]}")
-    DEF_TOPO=(--tomokv-thread-io "$io" --tomokv-thread-ex "$ex")
+    DEF_TOPO=(--tomokv-nodes 2 --tomokv-thread-io "$io" --tomokv-thread-ex "$ex")
     b_cell "$name" "$enum"
     local rc=$?
     DEF_TOPO=("${save[@]}")
@@ -873,7 +875,7 @@ section_B() {
     local sec=B      # ('out'/'sc' locals dropped with the flat0 and xshard-guard0 probes)
     if [ -z "$A_ORACLE_PID" ] || ! assert_server "$ORACLE_PORT" "$A_ORACLE_PID"; then
         boot_srv oracle "$ORACLE_PORT" "$WORK/b_oracle" \
-            || { row $sec oracle "io2ex2" FAIL "oracle boot failed; B skipped"; return; }
+            || { row $sec oracle "2x16c-io8ex8" FAIL "oracle boot failed; B skipped"; return; }
         A_ORACLE_PID=$BOOT_PID
     fi
 
@@ -936,8 +938,8 @@ section_B() {
         b_cell strict-order1 scan --tomokv-strict-order 1;            stop_srv "$B_LAST_PID"
         # topology variants (different sharding shapes, same semantics).
         # ex=1 => non-shared per-worker dbs (no FLATSTORE): SCAN is decoy-inline there too => KEYS
-        b_cell_topo ex1-nonshared keys 2 1;                           stop_srv "$B_LAST_PID"
-        b_cell_topo ex3-oddworkers scan 2 3;                          stop_srv "$B_LAST_PID"
+        b_cell_topo ex1-nonshared keys 15 1;                          stop_srv "$B_LAST_PID"
+        b_cell_topo ex3-oddworkers scan 13 3;                         stop_srv "$B_LAST_PID"
     fi
     stop_srv "$A_ORACLE_PID"; A_ORACLE_PID=""
 }
@@ -947,7 +949,7 @@ section_B() {
 # ===========================================================================
 section_C() {
     log "=== SECTION C: feature-effect checks ==="
-    local sec=C cfg="io2ex2/default"
+    local sec=C cfg="2x16c-io8ex8/default"
     local fpid flog info i found cm
     boot_srv fork "$FORK_PORT" "$WORK/c_main" "${DEF_TOPO[@]}" \
         || { row $sec boot "$cfg" FAIL "fork boot failed; C main cells skipped"; return; }
@@ -957,7 +959,7 @@ section_C() {
     if grep -aq "FLATSTORE resize:.*rebuilt" "$flog"; then
         row $sec flat-resize-precheck "$cfg" SUSPECT "resize line present BEFORE seeding (unexpected)"
     fi
-    pipe_set "$FORK_PORT" 200000 "flat:" 8 0
+    pipe_set "$FORK_PORT" 400000 "flat:" 8 0
     found=""
     for i in $(seq 1 40); do
         found=$(grep -a "FLATSTORE resize:.*rebuilt" "$flog" | head -1)
@@ -968,13 +970,13 @@ section_C() {
         oldsz=$(printf '%s' "$found" | grep -oE 'rebuilt [0-9]+' | grep -oE '[0-9]+')
         newsz=$(printf '%s' "$found" | grep -oE -- '-> [0-9]+' | grep -oE '[0-9]+')
         if [ -n "$oldsz" ] && [ -n "$newsz" ] && [ "$newsz" -gt "$oldsz" ]; then
-            row $sec flat-resize-grow "$cfg" PASS "seed 200k -> $oldsz -> $newsz slots"
+            row $sec flat-resize-grow "$cfg" PASS "seed 400k -> $oldsz -> $newsz slots"
         else row $sec flat-resize-grow "$cfg" SUSPECT "resize line but not a grow: $found"; fi
-    else row $sec flat-resize-grow "$cfg" FAIL "no FLATSTORE resize log after 200k seed (trigger=70% of 256K slots)"; fi
+    else row $sec flat-resize-grow "$cfg" FAIL "no FLATSTORE resize log after 400k seed (2 nodes x 256K slots, 78%/node > 70% trigger)"; fi
 
     # C2: flat SHRINK after mass DEL (live falls under load_pct/4 of the table)
     local grow_lines; grow_lines=$(grep -ac "FLATSTORE resize:.*rebuilt" "$flog")
-    pipe_del "$FORK_PORT" 145000 "flat:" 0
+    pipe_del "$FORK_PORT" 345000 "flat:" 0
     local dbs; dbs=$(tcli "$FORK_PORT" DBSIZE)
     [ "$dbs" = "55000" ] || row $sec flat-shrink-dbsize "$cfg" SUSPECT "post-DEL dbsize=$dbs (expected 55000)"
     found=""
@@ -1049,7 +1051,7 @@ section_C() {
     if [ -n "$BOOT_PID" ]; then
         fpid=$BOOT_PID
         local rd drop
-        rd=$(timeout 150 python3 "$PY" ringdecay --fork-port "$FORK_PORT" 2>&1 | tail -1)
+        rd=$(lg_run timeout 150 python3 "$PY" ringdecay --fork-port "$FORK_PORT" 2>&1 | tail -1)
         drop=$(printf '%s' "$rd" | grep -oE 'DROP=-?[0-9]+' | cut -d= -f2)
         if [ -n "$drop" ] && [ "$drop" -ge 32768 ]; then
             row $sec fake-ring-decay "$cfg" PASS "$rd (ring freed after 10s idle on an open conn)"
@@ -1078,7 +1080,7 @@ section_C() {
     #   no config path to a small ring. Until then this is a real hole, not a green square.
 
     # C7: flips>0 under thread-mode-auto with alternating p1/p32 phases
-    local cfg3="io2ex2/thread-mode-auto"
+    local cfg3="2x16c-io8ex8/thread-mode-auto"
     boot_srv fork "$FORK_PORT" "$WORK/c_flip" "${DEF_TOPO[@]}" \
            --tomokv-thread-mode auto \
         || { row $sec flips-under-phases "$cfg3" FAIL "boot failed"; BOOT_PID=""; }
@@ -1110,7 +1112,7 @@ section_C() {
     fi
 
     # C8: reshard DONE with low min-ops + hot keys pinned to one worker
-    local cfg4="io2ex2/key-lb2000"
+    local cfg4="2x16c-io8ex8/key-lb2000"
     boot_srv fork "$FORK_PORT" "$WORK/c_reshard" "${DEF_TOPO[@]}" --tomokv-key-lb 2000 \
         || { row $sec reshard-done "$cfg4" FAIL "boot failed"; BOOT_PID=""; }
     if [ -n "$BOOT_PID" ]; then
@@ -1165,7 +1167,7 @@ section_C() {
     # counter). The B express-slim0/express-slim-forced cells that used to carry the
     # semantics went away with tomokv-express-slim on 2026-07-28, so the express lane
     # now has NEITHER an observable NOR a toggle cell — only its default arm runs.
-    row $sec express-lane-engagement "io2ex2/express-slim" KNOWN "no observable exists (express_hit_ewma not exported, no slim-path counter) AND the B toggle cells were retired with tomokv-express-slim: default arm only; listed in coverage_gaps"
+    row $sec express-lane-engagement "2x16c-io8ex8/express-slim" KNOWN "no observable exists (express_hit_ewma not exported, no slim-path counter) AND the B toggle cells were retired with tomokv-express-slim: default arm only; listed in coverage_gaps"
 }
 
 # ===========================================================================
@@ -1173,14 +1175,14 @@ section_C() {
 # ===========================================================================
 section_D() {
     log "=== SECTION D: persistence ==="
-    local sec=D cfg="io2ex2/default"
+    local sec=D cfg="2x16c-io8ex8/default"
     local dir=$WORK/d_rdb; rm -rf "$dir"
     local fpid o rc info i ok
     boot_srv fork "$FORK_PORT" "$dir" "${DEF_TOPO[@]}" \
         || { row $sec boot "$cfg" FAIL "boot failed; D skipped"; return; }
     fpid=$BOOT_PID
     o=$WORK/d_snapshot.out
-    timeout 900 python3 "$PY" snapshot --fork-port "$FORK_PORT" --seed "$SEED" --ops "$B_OPS" --workers 2 --reduced \
+    lg_run timeout 900 python3 "$PY" snapshot --fork-port "$FORK_PORT" --seed "$SEED" --ops "$B_OPS" --workers 2 --reduced \
         --hot-file "$HOTFILE" --sb-file "$SBFILE" --snap "$WORK/d_state.pkl" >"$o" 2>"$o.err"
     rc=$?
     emit_chk_rows $sec "$cfg" "$rc" "$o" "seed-"
@@ -1211,7 +1213,7 @@ section_D() {
         || { row $sec restart "$cfg" FAIL "restart from BGSAVE rdb failed"; return; }
     fpid=$BOOT_PID
     o=$WORK/d_verify.out
-    timeout 900 python3 "$PY" verify --fork-port "$FORK_PORT" --snap "$WORK/d_state.pkl" >"$o" 2>"$o.err"
+    lg_run timeout 900 python3 "$PY" verify --fork-port "$FORK_PORT" --snap "$WORK/d_state.pkl" >"$o" 2>"$o.err"
     rc=$?
     emit_chk_rows $sec "$cfg" "$rc" "$o" "restart-"
     stop_srv "$fpid"
@@ -1250,7 +1252,7 @@ section_D() {
 # ===========================================================================
 section_EG() {
     log "=== SECTION E: script fence / G: known-issues ledger ==="
-    local sec=E cfg="io2ex2/default"
+    local sec=E cfg="2x16c-io8ex8/default"
     local fpid flog out i
     boot_srv fork "$FORK_PORT" "$WORK/e_fence" "${DEF_TOPO[@]}" \
         || { row $sec boot "$cfg" FAIL "boot failed; E+G skipped"; return; }
@@ -1442,10 +1444,10 @@ f_cell() { # name extra-args...
 
 section_F() {
     log "=== SECTION F: stress spot-checks (${STRESS_T}s per config) ==="
-    f_cell "io2ex2/default"     "${DEF_TOPO[@]}"
-    f_cell "numa2-io1ex2pn"     --tomokv-nodes 2 --tomokv-thread-io 1 --tomokv-thread-ex 2
-    f_cell "io2ex2/thread-mode-auto"   "${DEF_TOPO[@]}" --tomokv-thread-mode auto
-    f_cell "io2ex2/thread-mode-static" "${DEF_TOPO[@]}" --tomokv-thread-mode static
+    f_cell "io8ex8/default"     "${DEF_TOPO[@]}"
+    f_cell "numa2-io14ex2pn"    --tomokv-nodes 2 --tomokv-thread-io 14 --tomokv-thread-ex 2
+    f_cell "io8ex8/thread-mode-auto"   "${DEF_TOPO[@]}" --tomokv-thread-mode auto
+    f_cell "io8ex8/thread-mode-static" "${DEF_TOPO[@]}" --tomokv-thread-mode static
 }
 
 # ===========================================================================

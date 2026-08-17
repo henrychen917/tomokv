@@ -47,12 +47,15 @@
 # Usage: active_subexpiry_probe.sh <binary> [hashes] [ttl_s] [watch_s] [base_port] [ex-list]
 # Exit 0 = active field expiry demonstrably ran in EVERY regime.
 set -u
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 BIN=${1:?usage: active_subexpiry_probe.sh <binary> [hashes] [ttl_s] [watch_s] [base_port] [ex-list]}
 HASHES=${2:-100000}
 TTL=${3:-10}
 WATCH=${4:-45}
 BASEPORT=${5:-5996}
 EXLIST=${6:-"1 4"}
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
 
 DIR=$(cd "$(dirname "$BIN")" && pwd)
 # redis-cli is normally beside the binary, but postmerge.sh STAGES the server under a private name
@@ -70,11 +73,11 @@ cleanup() { [ -n "$PID" ] && kill -9 "$PID" 2>/dev/null; wait "$PID" 2>/dev/null
 trap cleanup EXIT
 
 run_one() {   # $1 = ex threads, $2 = port ; echoes a verdict line, returns 0 PASS / 1 FAIL / 2 INVALID
-  local EX=$1 PORT=$2
+  local EX=$1 IO=$((16-$1)) PORT=$2
   RUN=$(mktemp -d "${TMPDIR:-/tmp}/asubexp.XXXXXX")
   mkdir -p "$RUN/d"
-  taskset -c 0-7 "$BIN" --port "$PORT" --dir "$RUN/d" \
-      --tomokv-nodes 1 --tomokv-cores-per-node 8 --tomokv-thread-io 4 --tomokv-thread-ex "$EX" \
+  taskset -c "$SERVER_CORES" "$BIN" --port "$PORT" --dir "$RUN/d" \
+      --tomokv-nodes 2 --tomokv-cores-per-node 16 --tomokv-pin-mode ccd --tomokv-thread-io "$IO" --tomokv-thread-ex "$EX" \
       --tomokv-thread-mode static \
       --save '' --appendonly no --protected-mode no --daemonize no \
       --logfile "$RUN/d/srv.log" >/dev/null 2>&1 &
@@ -85,6 +88,7 @@ run_one() {   # $1 = ex threads, $2 = port ; echoes a verdict line, returns 0 PA
       if timeout 2 "$CLI" -p "$PORT" ping 2>/dev/null | grep -q PONG; then up=1; break; fi
   done
   [ "$up" = 1 ] || { echo "  ex=$EX INVALID: server did not come up"; sed -n '1,30p' "$RUN/d/srv.log"; return 2; }
+  preflight_assert_standard_boot "$RUN/d/srv.log" "$PID" "$IO" "$EX" || return 2
 
   # Load: HASHES hashes, one field each, then arm that field with a TTL. HPEXPIRE takes ms and is
   # SIX arguments (HPEXPIRE key ms FIELDS numfields field) -- an *7 array header here silently
@@ -93,7 +97,7 @@ run_one() {   # $1 = ex threads, $2 = port ; echoes a verdict line, returns 0 PA
   # slow generator spreads the deadlines across the whole watch and a plateau would be
   # indistinguishable from a stalled cycle (the sibling probe learned this the hard way).
   local t0=$SECONDS
-  python3 -c "
+  taskset -c "$LOAD_CORES" python3 -c "
 import sys
 n=int(sys.argv[1]); ttlms=str(int(sys.argv[2])*1000)
 w=sys.stdout.write
@@ -101,7 +105,7 @@ for i in range(1,n+1):
     k='asx:%d'%i
     w('*4\r\n\$4\r\nHSET\r\n\$%d\r\n%s\r\n\$1\r\nf\r\n\$2\r\nv1\r\n'%(len(k),k))
     w('*6\r\n\$8\r\nHPEXPIRE\r\n\$%d\r\n%s\r\n\$%d\r\n%s\r\n\$6\r\nFIELDS\r\n\$1\r\n1\r\n\$1\r\nf\r\n'%(len(k),k,len(ttlms),ttlms))
-" "$HASHES" "$TTL" | "$CLI" -p "$PORT" --pipe >"$RUN/load.out" 2>&1
+" "$HASHES" "$TTL" | taskset -c "$LOAD_CORES" "$CLI" -p "$PORT" --pipe >"$RUN/load.out" 2>&1
   grep -q "errors: 0" "$RUN/load.out" || { echo "  ex=$EX INVALID: load reported errors"; cat "$RUN/load.out"; return 2; }
   local load_secs=$((SECONDS - t0))
 

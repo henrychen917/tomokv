@@ -34,6 +34,8 @@ The ring fake that represents the client command is the **group head**: `head->c
 
 Each worker job is a pooled **sub-fake**: `sub->csparent` points to the group, `clientTail(sub)->cssub_idx` identifies its result/plan slot, `sub->cmd` retains the original command, and `sub->db` is the selected owner worker's database. (`src/server.c:12803-12814`)
 
+The pool has a split lifecycle contract. Retirement releases only state whose pointer/count fields say it is dirty (reply storage, rewritten argv, deferred objects, names, and cold state) and preserves the cached client, reply list, and buffer. Rearm updates only fields that a later sub can read before its constructor overwrites them; command, connection, database, argv, result index, and flags are initialized by every constructor. A pooled reuse therefore is intentionally not byte-identical to a newly allocated fake. (`src/networking.c`, `createPooledFakeClient` and `freePooledFakeClient`; `src/server.c`, pooled-sub constructors)
+
 The `client` execution core contains both relationship pointers—`csgroup` for a head and `csparent` for a sub—alongside the command, argv, reply buffers, key-hash cache, and snapshot fields that the handoff uses. (`src/server.h:1877-1913`)
 
 The `csGroup` fields used by these protocols are declared together in `server.h`. (`src/server.h:2108-2277`)
@@ -41,7 +43,7 @@ The `csGroup` fields used by these protocols are declared together in `server.h`
 | Field group | Implemented contents |
 | --- | --- |
 | Completion and identity | `pending`, `nsub`, `ctype`, `nkeys`, `subs`, and `head` describe the current worker wave and its ring head. (`src/server.h:2108-2115`) |
-| Scalar and gathered results | `rcount` accumulates counts; `err` carries command errors; `mget_vals` and `mget_pos` carry position-indexed MGET copies; `setmem` and `setcnt` carry member-gather results, while `setop_pos` maps sub-local keys to original set-op positions for coalesced gather or the initial pipeline wave. (`src/server.h:2155-2176`, `src/server.c:12997-13003`) |
+| Scalar and gathered results | `rcount` accumulates counts; `err` carries command errors; `mget_refs`, `mget_hash`, `mget_owner`, and `mget_pos` carry coalesced MGET values and routing metadata; `mget_vals` remains the private-SDS carrier for other string-image gathers. `setmem` and `setcnt` carry member-gather results, while `setop_pos` maps sub-local keys to original set-op positions for coalesced gather or the initial pipeline wave. (`src/server.h`, `csGroup`) |
 | Two-hop state | `phase`, `has_hop2`, `h2_op`, `spec`, `h2sub`, `h2_nsub`, `h2_dbid`, `h2_flags`, `h2_payload`, `h2_pexpireat`, and `cs2_kind` retain the next-wave plan and its private serialized value. (`src/server.h:2189-2202`) |
 | Set-reduction pipeline | `pipe_stage`, `pipe_next`, `pipe_nshard`, `pipe_scard`, `pipe_order`, `pipe_cand`, `pipe_ncand`, `pipe_verdict`, `pipe_shard_of`, `pipe_smallest`, `pipe_cscore`, `pipe_probe_pos`, `pipe_probe_nk`, `pipe_npart`, `pipe_base_part`, `pipe_part`, `pipe_partcnt`, `pipe_partscore`, `pipe_midx`, `pipe_zraw`, `pipe_key_part`, and `cs2_intreply` carry the multi-stage INTER and local UNION/DIFF reductions. (`src/server.h:2203-2241`) |
 | Atomic-write state | `key_sig`, `key_h`, `key_h_n`, `version_seq`, `read_seq`, `commit_next`, `mset_client`, `mset_pending_prev`, `mset_pending_next`, `mset_complete`, `mset_install_count`, `mset_installs`, `mset_install_order_base`, `versioned_write`, `version_install_expected`, `version_commit_ready`, `version_abort`, `version_nx`, `version_nx_reserving`, `msetnx_retry`, `msetnx_state`, and `snapshot_pinned` carry a registered versioned write to publication. (`src/server.h:2115-2151`) |
@@ -83,9 +85,9 @@ The older cross-shard overview says the mechanism is “Default OFF” and descr
 
 The current cross-worker MGET has two physical forms: two keys use one `[CMD,key]` sub per key, while three or more keys use one sub per distinct worker plus `mget_pos`; same-owner, non-snapshot reads take the single-sub local-fast path before either form. (`src/server.c:10786-10788`, `src/server.c:13531-13587`, `src/server.c:13601-13617`)
 
-On the coalesced path, each owner worker looks up all of its keys and writes a private `sds` copy into `mget_vals[original_position]`; missing and non-string keys leave a null slot. (`src/server.c:11625-11647`, `src/server.c:11653-11660`) On the legacy path, the one-key sub serializes its bulk-or-null element into its own reply buffer. (`src/server.c:11648-11652`, `src/server.c:11661-11665`)
+On the coalesced path, dispatch saves each key's routing hash and owner in original-position order. The owner worker reuses that hash for the read-only FLAT probe and retains each string value in `mget_refs[original_position]`; missing and non-string keys leave a null slot. On the legacy path, the one-key sub serializes its bulk-or-null element into its own reply buffer. (`src/server.c`, `csBuildCoalescedSubs` and `csSubExec`)
 
-Reassembly emits one array of `nkeys`; it consumes `mget_vals` in original key order when coalesced or splices the legacy sub buffers in sub/original-key order. (`src/server.c:14949-14961`)
+Reassembly emits one array of `nkeys`; for coalesced MGET it copies each retained object's bytes with reply copy-avoidance disabled, then returns the reference to `mget_owner[position]` through the S8 freeback ring. Thus the IO thread neither increments nor decrements worker-owned refcounts. The legacy form still splices sub buffers in original-key order. (`src/server.c`, `csReassemble`; `src/networking.c`, `addReplyBulkWithFlag`)
 
 The nearby legacy-MGET comment calls that arm the “knob off” path, but no coalescing knob participates in the branch: its live condition is `nkeys < 3`. (`src/server.h:2166-2175`, `src/server.c:13601-13617`)
 

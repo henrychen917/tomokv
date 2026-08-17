@@ -14,6 +14,7 @@
 #   ex=1  -> DICT
 #   ex=4  -> FLATSTORE (shared node db)
 set -u
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 BIN=${TOMO_BIN:?TOMO_BIN required}
 J=${TOMO_PREFLIGHT_DIR:-/tmp/tomo_pfjob}
 SRC=$(cd "$(dirname "$0")/../.." && pwd)
@@ -22,6 +23,8 @@ PORT=${PORT:-5996}
 NKEYS=${NKEYS:-100000}
 [ "${SMOKE:-0}" = "1" ] && NKEYS=20000
 OUT=${OUT:-$J/debug_reload.out}; : > $OUT
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
 
 # Private binary name: never `pkill -x redis-server` on this box, other sessions run exactly that.
 NAME=redis-dbgreload
@@ -32,7 +35,7 @@ trap cleanup EXIT
 rec() { printf "%s\t%s\t%s\n" "$1" "$2" "${3:-}" >> $OUT; }
 
 fill() { # $1=port  $2=nkeys — mixed types so the reload exercises more than strings
-  python3 -c "
+  taskset -c "$LOAD_CORES" python3 -c "
 import sys
 n=int('$2'); o=[]
 def c(*a):
@@ -47,18 +50,20 @@ for i in range(n):
     elif m==1: o.append(c('SET','e:%d'%i,'v'*40+str(i),'EX','100000'))
     elif m==2: o.append(c('HSET','h:%d'%i,'f1','a','f2','b'))
     else:      o.append(c('ZADD','z:%d'%i,'1','a','2','b'))
-sys.stdout.buffer.write(b''.join(o))" | $CLI -p $1 --pipe >/dev/null 2>&1
+sys.stdout.buffer.write(b''.join(o))" | taskset -c "$LOAD_CORES" $CLI -p $1 --pipe >/dev/null 2>&1
 }
 
 run_regime() { # $1 = ex threads, $2 = label
-  local EX=$1 LBL=$2 RUN=$J/dbgreload_$2
+  local EX=$1 IO=$((16-$1)) LBL=$2 RUN=$J/dbgreload_$2 DBGPID
   pkill -9 -x $NAME 2>/dev/null; sleep 0.5
   rm -rf $RUN; mkdir -p $RUN
-  taskset -c 0-7 $J/$NAME --port $PORT --dir $RUN --tomokv-nodes 1 --tomokv-thread-io 4 \
-    --tomokv-thread-ex $EX --save '' --appendonly no --protected-mode no \
+  taskset -c "$SERVER_CORES" $J/$NAME --port $PORT --dir $RUN --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-io "$IO" \
+    --tomokv-thread-ex "$EX" --save '' --appendonly no --protected-mode no \
     --enable-debug-command local --logfile $RUN/server.log >/dev/null 2>&1 &
+  DBGPID=$!
   for i in $(seq 1 100); do timeout 2 $CLI -p $PORT ping 2>/dev/null | grep -q PONG && break; sleep 0.3; done
   if ! timeout 2 $CLI -p $PORT ping 2>/dev/null | grep -q PONG; then rec "$LBL-boot" FAIL "no PONG"; return; fi
+  preflight_assert_standard_boot "$RUN/server.log" "$DBGPID" "$IO" "$EX" || { rec "$LBL-pin" FAIL "standard 2x16c assertion"; return; }
 
   fill $PORT $NKEYS
   local before after
@@ -96,7 +101,7 @@ run_regime() { # $1 = ex threads, $2 = label
   fi
   # every key must be READABLE through normal dispatch (routing survived the reload)
   local miss
-  miss=$(python3 -c "
+  miss=$(taskset -c "$LOAD_CORES" python3 -c "
 import socket,sys
 n=int('$NKEYS'); port=int('$PORT')
 s=socket.create_connection(('127.0.0.1',port)); s.settimeout(30)

@@ -28,15 +28,19 @@
 #
 # usage: module_gil_pairing.sh <server-binary> [tag]
 set -u
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 BIN=${1:?usage: module_gil_pairing.sh <server-binary> [tag]}
 TAG=${2:-adhoc}
 DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 REPO=$(cd "$DIR/../.." && pwd)
 PORT=${PORT:-5893}
-IO=${IO:-4}
-EX=${EX:-4}
+IO=${IO:-8}
+EX=${EX:-8}
 RELOADS=${RELOADS:-60}
 KEYS=${KEYS:-120000}
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
+[ $((IO + EX)) -eq 16 ] || { echo "module-gil-pairing[$TAG]	FAIL	IO+EX must equal 16 per node"; exit 2; }
 
 OUT=$(mktemp -d "${TMPDIR:-/tmp}/gilpair.XXXXXX")
 CLI=$REPO/src/redis-cli
@@ -54,15 +58,16 @@ trap cleanup EXIT INT TERM
 
 ss -ltn "sport = :$PORT" 2>/dev/null | grep -q LISTEN && { echo "module-gil-pairing[$TAG]	SKIP	port busy"; exit 2; }
 
-taskset -c 0-7 "$STAGED" --port "$PORT" --bind 127.0.0.1 --dir "$OUT" \
-    --tomokv-nodes 1 --tomokv-thread-io "$IO" --tomokv-thread-ex "$EX" --tomokv-thread-mode auto \
+taskset -c "$SERVER_CORES" "$STAGED" --port "$PORT" --bind 127.0.0.1 --dir "$OUT" \
+    --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-io "$IO" --tomokv-thread-ex "$EX" --tomokv-thread-mode auto \
     --save '' --appendonly no --protected-mode no --enable-debug-command local \
     --logfile "$OUT/server.log" --loglevel notice >"$OUT/stdout.log" 2>&1 &
 SRV=$!
 for _ in $(seq 1 80); do [ "$(timeout 2 "$CLI" -p "$PORT" ping 2>/dev/null | tr -d '\r')" = PONG ] && break; sleep 0.3; done
 [ "$(timeout 2 "$CLI" -p "$PORT" ping 2>/dev/null | tr -d '\r')" = PONG ] || { echo "module-gil-pairing[$TAG]	FAIL	no boot"; exit 1; }
+preflight_assert_standard_boot "$OUT/server.log" "$SRV" "$IO" "$EX" || exit 1
 
-taskset -c 16-23 python3 "$DIR/module_gil_pairing.py" --port "$PORT" --reloads "$RELOADS" --keys "$KEYS" --io-threads "$IO" 2>&1 | tee "$OUT/probe.out"
+taskset -c "$LOAD_CORES" python3 "$DIR/module_gil_pairing.py" --port "$PORT" --reloads "$RELOADS" --keys "$KEYS" --io-threads "$IO" 2>&1 | tee "$OUT/probe.out"
 rc=${PIPESTATUS[0]}
 cm=$(grep -cE 'Guru Meditation|ASSERTION FAILED|crashed by signal|Sanitizer' "$OUT/server.log" 2>/dev/null); cm=${cm:-0}
 [ "$cm" = 0 ] || { echo "  crash_markers=$cm"; rc=1; }

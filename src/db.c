@@ -276,8 +276,12 @@ void dbgAssertAllocSizePerSlot(redisDb *db) {
  * expired on replicas even if the master is lagging expiring our key via DELs
  * in the replication link. */
 kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
-
-    kvobj *val = dbFindByLink(db, key->ptr, link);
+    /* A link is an insertion/update cursor, not a lookup prerequisite. The
+     * old unconditional dbFindByLink made every read of a FLAT table execute
+     * flatFindForWrite, including tombstone tracking and insert-position
+     * production that no read caller consumed. */
+    kvobj *val = link ? dbFindByLink(db, key->ptr, link)
+                      : dbFind(db, key->ptr);
 
     if (val) {
         /* Forcing deletion of expired keys on a replica makes the replica
@@ -4356,6 +4360,16 @@ static kvobj *dbFindGeneric(kvstore *kvs, sds key) {
 }
 
 kvobj *dbFind(redisDb *db, sds key) {
+    if (kvstoreIsFlat(db->keys)) {
+        /* A dispatched fake may already carry this exact key's routing hash.
+         * Otherwise hash once here. Going through dbFindGeneric would compute
+         * a bucket in getKeySlot and then hash again inside kvstoreDictFind. */
+        client *cc = tomoKeyHashHint(key);
+        uint64_t h = cc ? cc->tomo_key_h : tomoKeyHash(key, sdslen(key));
+        dictEntry *res = kvstoreFlatFindWithHash(db->keys, h, key);
+        if (cc) tomoRelaxedBump(server.kstat[iotid].flat_hash_reuses, 1);
+        return res ? dictGetKV(res) : NULL;
+    }
     return dbFindGeneric(db->keys, key);
 }
 

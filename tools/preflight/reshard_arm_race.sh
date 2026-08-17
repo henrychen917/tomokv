@@ -20,6 +20,8 @@ DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 # PORT-SAFETY: gate on the PORT so a leaked/foreign server on it cannot silently join our
 # SO_REUSEPORT accept group and blend two binaries into one measurement.
 . "$DIR/preflight_lib.sh"
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
 OUT=${TOMO_HANG_DIR:-/tmp/tomo_pfjob/hangw}/armrace_$TAG
 CLI=$(dirname "$BIN")/redis-cli
 [ -x "$CLI" ] || CLI=$(cd "$DIR/../.." && pwd)/src/redis-cli
@@ -50,16 +52,17 @@ trap 'exit 130' INT
 trap 'exit 129' HUP
 # PORT-SAFETY: refuse to boot while any listener still holds $PORT.
 wait_port_free "$PORT" || { echo "reshard-arm-race[$TAG]	FAIL	:$PORT still has a listener before boot (SO_REUSEPORT split risk)"; exit 1; }
-taskset -c 0-7 "$BIN" --port $PORT --dir "$OUT/data" \
-  --tomokv-nodes 1 --tomokv-thread-io 4 --tomokv-thread-ex 4 --tomokv-thread-mode static \
+taskset -c "$SERVER_CORES" "$BIN" --port $PORT --dir "$OUT/data" \
+  --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-io 8 --tomokv-thread-ex 8 --tomokv-thread-mode static \
   --save '' --appendonly no --protected-mode no --enable-debug-command yes \
   --logfile "$OUT/server.log" >"$OUT/stdout.log" 2>&1 &
 SRV=$!
 for i in $(seq 1 40); do [ "$(timeout 2 "$CLI" -p $PORT ping 2>/dev/null | tr -d '\r')" = PONG ] && break; sleep 0.3; done
 # IDENTITY: after PONG, verify every fresh INFO conn lands on OUR pid — not a co-listener.
 server_identity_ok "$CLI" "$PORT" "$SRV" || { echo "reshard-arm-race[$TAG]	FAIL	SO_REUSEPORT split on :$PORT"; exit 1; }
+preflight_assert_standard_boot "$OUT/server.log" "$SRV" 8 8 || exit 1
 
-python3 "$DIR/reshard_arm_race.py" $PORT "$SECS" > "$OUT/probe.out" 2>&1
+taskset -c "$LOAD_CORES" python3 "$DIR/reshard_arm_race.py" $PORT "$SECS" > "$OUT/probe.out" 2>&1
 rc=$?
 case $rc in 0) res=PASS ;; 2) res=SKIP ;; 4) res=DIED ;; *) res=FAIL ;; esac
 echo "reshard-arm-race[$TAG]	$res	$(grep '^reshard_arm_race:' "$OUT/probe.out" | tail -1)"

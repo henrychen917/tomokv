@@ -2,8 +2,8 @@
 # stress_validation.sh -- the ~2h soak. Run this after every big change.
 #
 # WHAT IT IS
-#   ONE long-lived server per NUMA topology (1 node, then 2 nodes), each driven for
-#   ~55 minutes without ever being restarted, while every command family, connection
+#   ONE long-lived 2x16c server, driven for the requested soak window without ever being
+#   restarted, while every command family, connection
 #   churn, keyspace growth/shrink, thread-mode flips, key-balancer reshards and
 #   FLATSTORE resizes all happen concurrently on that same process.
 #
@@ -31,16 +31,17 @@
 #   SV_SELFTEST=1 ...   prove the oracles discriminate, then exit
 set -uo pipefail
 set +m
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 
 BIN=${1:?usage: stress_validation.sh /path/to/redis-server}
 SV_MINUTES=${SV_MINUTES:-110}
-SV_NODES=${SV_NODES:-"1 2"}
+SV_NODES=2
 SV_CYCLES=${SV_CYCLES:-4}
 SV_SELFTEST=${SV_SELFTEST:-0}
 SV_HIGH_KEYS=${SV_HIGH_KEYS:-300000}
 SV_PORT=${SV_PORT:-5997}
-SERVER_CORES=${SERVER_CORES:-0-7}
-LOAD_CORES=${LOAD_CORES:-8-15}
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
 
 # Memory is allowed to differ between the first and last quiesced sample by this much.
 # It is a RATIO at identical key count, after a drain, not a raw delta -- allocator bins
@@ -107,6 +108,14 @@ crash_markers() { # logfile
 
 boot() { # nodes io ex label
     local nodes=$1 io=$2 ex=$3 label=$4
+    if [ "$nodes" -ne 2 ]; then
+        say "  boot $label: requested nodes=$nodes; gate requires exactly two nodes"
+        return 1
+    fi
+    if [ $((io + ex)) -ne 16 ]; then
+        say "  boot $label: requested io=$io ex=$ex; gate requires exactly 16 threads per node"
+        return 1
+    fi
     local datadir=$WORK/data.$label
     # ALWAYS an explicit, empty --dir. Without it the server inherits the caller's CWD and
     # silently loads any dump.rdb sitting there; that exact trap once invalidated the flip
@@ -120,7 +129,7 @@ boot() { # nodes io ex label
     ACTIVE_LOG=$WORK/$label.server.log; : > "$ACTIVE_LOG"
     setsid taskset -c "$SERVER_CORES" "$STAGED" \
         --port "$SV_PORT" --bind 127.0.0.1 --dir "$datadir" \
-        --tomokv-nodes "$nodes" --tomokv-thread-io "$io" --tomokv-thread-ex "$ex" \
+        --tomokv-nodes "$nodes" --tomokv-pin-mode ccd --tomokv-thread-io "$io" --tomokv-thread-ex "$ex" \
         --tomokv-thread-mode auto \
         --save '' --appendonly no --daemonize no --protected-mode no \
         --enable-debug-command local \
@@ -129,6 +138,7 @@ boot() { # nodes io ex label
     SERVER_PID=$!
     for _ in $(seq 1 120); do
         if [ "$(timeout 2 "$CLI" -p "$SV_PORT" ping 2>/dev/null)" = "PONG" ]; then
+            preflight_assert_standard_boot "$ACTIVE_LOG" "$SERVER_PID" "$io" "$ex" || return 1
             if [ "$SV_WEDGE_WATCH" = 1 ] && command -v gdb >/dev/null 2>&1; then
                 SERVER_LOG="$ACTIVE_LOG" "$HERE/wedge_watch.sh" "$SERVER_PID" "$SV_PORT" "$WORK/wedge.$label" 10 3 \
                     >"$WORK/wedge.$label.log" 2>&1 &
@@ -161,7 +171,7 @@ say "STRESS-VALIDATION server-cores=$SERVER_CORES load-cores=$LOAD_CORES"
 # ---------------------------------------------------------------- self-test
 # A suite that cannot fail is not evidence. Prove the oracles catch injected faults
 # BEFORE trusting an hour of green.
-if ! boot 1 4 4 selftest; then result HARNESS-SELFTEST FAIL "could not boot"; exit 1; fi
+if ! boot 2 8 8 selftest; then result HARNESS-SELFTEST FAIL "could not boot"; exit 1; fi
 st_out=$WORK/selftest.out
 taskset -c "$LOAD_CORES" python3 "$ENGINE" --port "$SV_PORT" --selftest > "$st_out" 2>&1
 st_rc=$?
@@ -183,7 +193,7 @@ phase_secs=$(( SV_MINUTES * 60 / nphases ))
 
 for nodes in $SV_NODES; do
     label=numa$nodes
-    if [ "$nodes" = 1 ]; then io=4; ex=4; else io=2; ex=2; fi   # per-node split
+    io=8; ex=8
     say ""
     say "################ PHASE $label  (${phase_secs}s, ONE server, no restarts) ################"
     if ! boot "$nodes" "$io" "$ex" "$label"; then

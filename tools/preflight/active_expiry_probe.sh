@@ -27,13 +27,17 @@
 # Usage: active_expiry_probe.sh <dir-with-binary> <binary-name> <port> <ex-threads> <keys> <ttl_s> <watch_s>
 # Prints one PASS/FAIL verdict line. Exit 0 = active expiry demonstrably ran.
 set -u
+_PFDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"; . "$_PFDIR/preflight_lib.sh"
 DIR=${1:?usage: active_expiry_probe.sh <dir> <binname> <port> <ex> <keys> <ttl_s> <watch_s>}
 BINNAME=${2:?binary name required}
 PORT=${3:?port required}
 EX=${4:-4}
+IO=$((16-EX))
 KEYS=${5:-200000}
 TTL=${6:-10}
 WATCH=${7:-45}
+SERVER_CORES=${TOMO_SERVER_CORES:-$PREFLIGHT_SERVER_CORES}
+LOAD_CORES=${TOMO_LOADGEN_CORES:-$PREFLIGHT_LOADGEN_CORES}
 
 BIN="$DIR/$BINNAME"
 CLI="$DIR/redis-cli"
@@ -48,8 +52,8 @@ cleanup() { [ -n "$PID" ] && kill -9 "$PID" 2>/dev/null; wait "$PID" 2>/dev/null
 trap cleanup EXIT
 
 mkdir -p "$RUN/d"
-taskset -c 0-7 "$BIN" --port "$PORT" --dir "$RUN/d" \
-    --tomokv-nodes 1 --tomokv-cores-per-node 8 --tomokv-thread-io 4 --tomokv-thread-ex "$EX" \
+taskset -c "$SERVER_CORES" "$BIN" --port "$PORT" --dir "$RUN/d" \
+    --tomokv-nodes 2 --tomokv-cores-per-node 16 --tomokv-pin-mode ccd --tomokv-thread-io "$IO" --tomokv-thread-ex "$EX" \
     --tomokv-thread-mode static \
     --save '' --appendonly no --protected-mode no --daemonize no \
     --logfile "$RUN/d/srv.log" >/dev/null 2>&1 &
@@ -60,6 +64,7 @@ for _ in $(seq 80); do
     if timeout 2 "$CLI" -p "$PORT" ping 2>/dev/null | grep -q PONG; then up=1; break; fi
 done
 [ "$up" = 1 ] || { echo "active_expiry_probe: server did not come up (ex=$EX)"; sed -n '1,30p' "$RUN/d/srv.log"; exit 2; }
+preflight_assert_standard_boot "$RUN/d/srv.log" "$PID" "$IO" "$EX" || exit 2
 
 # Load KEYS keys, each with a TTL, in one pipe. Values are small: we are measuring the COUNT.
 # `EX $TTL` is relative to each SET, so the load WINDOW is part of the deadline -- and redis-cli
@@ -68,14 +73,14 @@ done
 # deadline when the watch started, and the plateau looked like a stalled expiry). Generate with
 # python3 so the window is ~1s, and measure it so the wait can cover it either way.
 t_load_start=$SECONDS
-python3 -c "
+taskset -c "$LOAD_CORES" python3 -c "
 import sys
 n=int(sys.argv[1]); ttl=sys.argv[2]
 w=sys.stdout.write
 for i in range(1,n+1):
     k='aexp:%d'%i; v='v%d'%i
     w('*5\r\n\$3\r\nSET\r\n\$%d\r\n%s\r\n\$%d\r\n%s\r\n\$2\r\nEX\r\n\$%d\r\n%s\r\n'%(len(k),k,len(v),v,len(ttl),ttl))
-" "$KEYS" "$TTL" | "$CLI" -p "$PORT" --pipe >"$RUN/load.out" 2>&1
+" "$KEYS" "$TTL" | taskset -c "$LOAD_CORES" "$CLI" -p "$PORT" --pipe >"$RUN/load.out" 2>&1
 grep -q "errors: 0" "$RUN/load.out" || { echo "active_expiry_probe: load reported errors"; cat "$RUN/load.out"; exit 2; }
 load_secs=$((SECONDS - t_load_start))
 
