@@ -728,7 +728,19 @@ def info_sample():
         if b":" in line and not line.startswith(b"#"):
             key, value = line.split(b":", 1)
             fields[key] = value
-    return int(fields[b"connected_clients"]), int(
+    # In custom-IO mode `connected_clients` is the list local to whichever IO thread accepted
+    # this INFO connection, not a process total. At 2x8 IO, requiring that one list to contain 20
+    # of memtier's 25 clients can never arm. Sum the authoritative per-IO rows emitted by INFO;
+    # retain the upstream field only as a fallback for a non-custom fixture.
+    io_clients = []
+    for key, value in fields.items():
+        if not key.startswith(b"tomo_io_thread_"):
+            continue
+        client_field = value.split(b",", 1)[0]
+        if client_field.startswith(b"clients="):
+            io_clients.append(int(client_field.split(b"=", 1)[1]))
+    connected = sum(io_clients) if io_clients else int(fields[b"connected_clients"])
+    return connected, int(
         fields[b"total_commands_processed"]
     )
 
@@ -738,7 +750,7 @@ while time.monotonic() < deadline:
     connected, commands = info_sample()
     if previous is not None and connected >= 20 and commands - previous >= 100:
         print(
-            f"connected_clients={connected} "
+            f"aggregate_clients={connected} "
             f"commands_delta={commands - previous}"
         )
         raise SystemExit(0)

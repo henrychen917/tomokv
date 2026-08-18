@@ -102,19 +102,32 @@ rec("cross-shard-key-set-found", cross_keys is not None,
 if cross_keys is None:
     open(out_path, "w").write("".join("%s\t%s\t%s\n" % r for r in res)); raise SystemExit(1)
 
-# same-shard control set (localfast route: multikey_split must NOT rise)
-same_keys = None
-for attempt in range(200):
-    keys = ["ss%d:%d" % (attempt, i) for i in range(K)]
-    for k in keys:
-        cmd("DEL", k)
-        cmd("SADD", k, "common", "u_" + k)
+# Same-shard control set (localfast route: multikey_split must NOT rise). With 16 owners, a random
+# four-key set lands together with probability 1/16^3 = 1/4096; the old 200-quartet search therefore
+# succeeded only ~4.8% of the time. Hold one anchor and admit candidates whose two-key SINTER proves
+# the same owner. Each draw now succeeds with probability 1/16, while the route oracle remains the
+# authority (no duplicated hash/owner implementation in the harness).
+anchor = "ss:anchor"
+cmd("DEL", anchor)
+cmd("SADD", anchor, "common", "u_" + anchor)
+same_keys = [anchor]
+for attempt in range(400):
+    candidate = "ss:candidate:%d" % attempt
+    cmd("DEL", candidate)
+    cmd("SADD", candidate, "common", "u_" + candidate)
     before = info_int("tomokv_xshard_multikey_split")
-    r = cmd("SINTER", *keys)
+    r = cmd("SINTER", anchor, candidate)
     after = info_int("tomokv_xshard_multikey_split")
     if after == before and r == [b"common"]:
-        same_keys = keys; break
-    for k in keys: cmd("DEL", k)
+        same_keys.append(candidate)
+        if len(same_keys) == K:
+            break
+    else:
+        cmd("DEL", candidate)
+if len(same_keys) != K:
+    for k in same_keys:
+        cmd("DEL", k)
+    same_keys = None
 rec("same-shard-control-key-set-found", same_keys is not None, "keys=%s" % (same_keys,))
 
 M = 20

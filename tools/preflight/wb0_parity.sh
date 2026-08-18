@@ -111,8 +111,16 @@ rss_kb(){
 }
 
 run_cell(){ # role round
-  local role=$1 round=$2 bin extra=() data="$WORK/data-$role-$round"
-  local log="$WORK/$role-$round.log" bench="$WORK/$role-$round.memtier"
+  # Assign positional parameters before deriving paths. In one compound `local` statement bash
+  # expands the path RHS before the sibling role/round assignments take effect; under `set -u`
+  # that aborted the suite with no scored check and bypassed its normal RESULT discipline.
+  local role round bin data log bench
+  local -a extra=()
+  role=$1
+  round=$2
+  data="$WORK/data-$role-$round"
+  log="$WORK/$role-$round.log"
+  bench="$WORK/$role-$round.memtier"
   local up=0 idle peak rss ops alive crash cfg rc=0
   stop_server
   if ! wait_port_free "$PORT"; then

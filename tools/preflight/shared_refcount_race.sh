@@ -129,7 +129,14 @@ run_arm() {  # $1=label $2=binary -> sets ARM_CRASHES and ARM_SKIPS
 
 echo "=== arm 1/2: DEFECT-REINTRODUCED (must CRASH) ===" | tee -a "$OUT"
 if [ ! -x "$UNFIXED" ]; then
-  echo "INCONCLUSIVE: no unfixed binary at $UNFIXED" | tee -a "$OUT"; exit 2
+  echo "INCONCLUSIVE: no unfixed binary at $UNFIXED" | tee -a "$OUT"
+  printf '%s\n' \
+    '  REBUILD: use worktree /home/user/Projects/wt-unfixed at 924271400.' \
+    '  git -C /home/user/Projects/wt-unfixed checkout --detach 924271400' \
+    '  make -C /home/user/Projects/wt-unfixed -j"$(nproc)"' \
+    "  install -D -m 0755 /home/user/Projects/wt-unfixed/src/redis-server $UNFIXED" \
+    | tee -a "$OUT"
+  exit 2
 fi
 run_arm unfixed "$UNFIXED"; U=$ARM_CRASHES; US=$ARM_SKIPS
 

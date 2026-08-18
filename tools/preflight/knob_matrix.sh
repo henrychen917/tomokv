@@ -403,13 +403,15 @@ echo "=== convention A: -1 = auto ===" >> $OUT
 
   # WB uring is independently probed and falls back to write()/writev, so all three convention
   # arms are safe in every build. Enable WB in each cell: an inert echo while thread-wb=0 would not
-  # exercise either the legacy send path or setup/probe/fallback behavior.
+  # exercise either the legacy send path or setup/probe/fallback behavior. The old companion only
+  # added wb1/cpn9 to try()'s io8+ex8 base, yielding an impossible 17-role/9-core node after the
+  # 2x16c conversion. Use the same valid io7+ex8+wb1 = 16 split as the WB role cells above.
   try tomokv-wb-uring 0 "OFF: WB uses write()/writev" \
-    "--tomokv-thread-wb 1 --tomokv-cores-per-node 9 --tomokv-thread-mode static" wb
+    "--tomokv-thread-io 7 --tomokv-thread-ex 8 --tomokv-thread-wb 1 --tomokv-cores-per-node 16 --tomokv-thread-mode static" wb "7 8 1"
   try tomokv-wb-uring -1 "AUTO SENDMSG batch cap; unsupported setup falls back per WB" \
-    "--tomokv-thread-wb 1 --tomokv-cores-per-node 9 --tomokv-thread-mode static" wb
+    "--tomokv-thread-io 7 --tomokv-thread-ex 8 --tomokv-thread-wb 1 --tomokv-cores-per-node 16 --tomokv-thread-mode static" wb "7 8 1"
   try tomokv-wb-uring 8 "explicit SENDMSG submission cap; unsupported setup falls back per WB" \
-    "--tomokv-thread-wb 1 --tomokv-cores-per-node 9 --tomokv-thread-mode static" wb
+    "--tomokv-thread-io 7 --tomokv-thread-ex 8 --tomokv-thread-wb 1 --tomokv-cores-per-node 16 --tomokv-thread-mode static" wb "7 8 1"
   must_refuse tomokv-wb-uring -2 "below the declared minimum -- auto is -1"
   must_refuse tomokv-wb-uring 4097 "above the declared submission cap"
 

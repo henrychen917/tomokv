@@ -66,9 +66,10 @@ run_arm() {   # $1 = arm name, $2 = workload (hotkey|spread)
   # answer a share of them and silently blend its binary into this arm's counters.
   server_identity_ok "$CLI" "$PORT" "$VETO_PID" || { echo "$arm-port-identity	FAIL	SO_REUSEPORT split on :$PORT" >> $OUT; $CLI -p $PORT shutdown nosave >/dev/null 2>&1; pkill -9 -x redis-veto 2>/dev/null; VETO_PID=""; return 1; }
   preflight_assert_standard_boot "$J/veto_$arm.log" "$VETO_PID" 8 8 || { echo "$arm-pin-geometry	FAIL	standard 2x16c pin assertion failed" >> "$OUT"; return 1; }
-  taskset -c "$LOAD_CORES" python3 - "$PORT" "$wl" "$SECS" "$arm" "$OUT" <<'PY'
-import socket, sys, time, threading, random
+  python3 - "$PORT" "$wl" "$SECS" "$arm" "$OUT" "$LOAD_CORES" "$J/veto_$arm.memtier" <<'PY'
+import socket, subprocess, sys
 port, wl, secs, arm, out = int(sys.argv[1]), sys.argv[2], int(sys.argv[3]), sys.argv[4], sys.argv[5]
+load_cores, mtlog = sys.argv[6], sys.argv[7]
 
 def conn():
     s = socket.create_connection(("127.0.0.1", port)); s.settimeout(60); return s
@@ -134,38 +135,43 @@ def trig():
             except ValueError: d[k] = v
     return d
 
-stop = False
-def driver(mode):
-    s = conn(); B = 200
-    while not stop:
-        if mode == "hot":
-            # 97% one key / 3% uniform. The hot key alone must exceed a fair share (total/W) or the
-            # hotspot is genuinely balanceable and refusing would be the WRONG answer -- see
-            # docs/lb-imbalance-model.md 4. 97% also puts the gain from moving the shard's entire
-            # remaining background below the planner's worth-it margin, so the ONLY reason to fire
-            # would be believing the hot bucket is divisible, which is the belief under test.
-            batch = b"".join(enc("GET", HOT if random.random() < 0.97 else f"bg:{random.randrange(20000)}")
-                             for _ in range(B))
-        else:
-            # Genuine MULTI-BUCKET skew: 90% of traffic to keys spread across ONE shard's whole
-            # 4096-bucket range. Nothing is concentrated in a single bucket, so this must still
-            # migrate -- the control that shows the veto is selective and not just "never move".
-            batch = b"".join(enc("GET", random.choice(spread_keys) if random.random() < 0.90
-                                 else f"bg:{random.randrange(20000)}")
-                             for _ in range(B))
-        s.sendall(batch + enc("PING"))
-        drain(s)
-    s.close()
-
 t0 = trig()
-ths = [threading.Thread(target=driver, args=("hot" if wl == "hotkey" else "spread",), daemon=True)
-       for _ in range(12)]
-for t in ths: t.start()
-time.sleep(secs)
-stop = True
-for t in ths: t.join(timeout=10)
+# The old twelve-thread Python socket loop topped out below the TIME-weighted detector's pressure
+# floor on a 32-core server. memtier supplies enough ingress to exercise the server, while the two
+# command rotations retain the exact workload shapes used above.
+mt = ["timeout", str(secs + 15), "taskset", "-c", load_cores, "memtier_benchmark",
+      "-s", "127.0.0.1", "-p", str(port), "--hide-histogram", "--test-time", str(secs),
+      "-t", "8", "-c", "25", "--pipeline=32", "--key-minimum=0", "--key-maximum=19999",
+      "--distinct-client-seed", "--connection-timeout=5", "--connection-stage-timeout=15"]
+if wl == "hotkey":
+    # 97% one key / 3% uniform. The hot key alone must exceed a fair share (total/W) or the
+    # hotspot is genuinely balanceable and refusing would be the WRONG answer -- see
+    # docs/lb-imbalance-model.md 4. 97% also puts the gain from moving the shard's entire
+    # remaining background below the planner's worth-it margin, so the ONLY reason to fire
+    # would be believing the hot bucket is divisible, which is the belief under test.
+    mt += [f"--command=GET {HOT}", "--command-ratio=97",
+           "--command=GET bg:__key__", "--command-ratio=3", "--command-key-pattern=R"]
+else:
+    # Genuine MULTI-BUCKET skew: 90% of traffic to keys spread across ONE worker's owned
+    # bucket range. Nothing is concentrated in a single bucket, so this must still
+    # migrate -- the control that shows the veto is selective and not just "never move".
+    # Give each selected literal key nine turns and the uniform-background command N turns:
+    # 9N / (9N + N) = 90%, without collapsing the hot side back to one generated bucket.
+    for key in spread_keys:
+        mt += [f"--command=GET {key}", "--command-ratio=9"]
+    mt += ["--command=GET bg:__key__", f"--command-ratio={len(spread_keys)}",
+           "--command-key-pattern=R"]
+with open(mtlog, "wb") as log:
+    mt_rc = subprocess.run(mt, stdout=log, stderr=subprocess.STDOUT).returncode
 t1 = trig()
 lbf = bulk(c, "DEBUG", "RESHARD", "LBFINE", hot_w).decode(errors="replace")
+
+mt_ops = "missing"
+with open(mtlog, "rb") as log:
+    for line in log.read().decode(errors="replace").splitlines():
+        fields = line.split()
+        if fields and fields[0] == "Totals" and len(fields) > 1:
+            mt_ops = fields[1]
 
 d = {k: t1.get(k, 0) - t0.get(k, 0) for k in ("ticks","quiet","balanced","band","settle","noprog",
      "fastcold","sustain","noneigh","unbal","fire","unbal_fine","unbal_grp","fine_used","fine_arm",
@@ -174,6 +180,7 @@ sig = {k: t1.get(k, 0) for k in ("hot","hotv","mean","hot_bar","fine_grp","fine_
                                  "K")}
 with open(out, "a") as f:
     f.write(f"# ARM {arm} ({wl}) hot_key_bucket={hot_bkt} owner_w={hot_w} spread_target_w={target}\n")
+    f.write(f"# memtier rc={mt_rc} ops={mt_ops} log={mtlog}\n")
     f.write("# delta " + " ".join(f"{k}={v}" for k, v in d.items()) + "\n")
     f.write("# signal " + " ".join(f"{k}={v}" for k, v in sig.items()) + "\n")
     f.write("# lbfine " + lbf.replace("\r\n", " | ")[:400] + "\n")
@@ -190,6 +197,8 @@ with open(out, "a") as f:
     if arm == "B":
         f.write(f"B-multibucket-still-migrates\t{'PASS' if d['fire'] > 0 else 'FAIL'}\t"
                 f"fire={d['fire']} unbal={d['unbal']} unbal_fine={d['unbal_fine']}\n")
+    if mt_rc != 0:
+        f.write(f"{arm}-memtier-load\tFAIL\texit={mt_rc} log={mtlog}\n")
 PY
   $CLI -p $PORT shutdown nosave >/dev/null 2>&1; sleep 1
   pkill -9 -x redis-veto 2>/dev/null
