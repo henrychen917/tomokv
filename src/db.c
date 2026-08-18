@@ -1365,7 +1365,17 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
             }
             kv = next;
         }
-        if (stamped_previous)
+        /* Escaping path: under a CANCELED anchor (MSETNX loser over a DEL-tombstoned, previously
+         * promoted key) the survives=cancel_anchor arm above deliberately RETAINS the RAW tail
+         * (vmeta == NULL) and, being the chain's last node, it exits the loop as stamped_previous.
+         * kvobjSetStampedPrev dereferences vmeta unconditionally, so this terminator store crashed
+         * at ((tomoVerMeta *)NULL)->stamped_prev — the exact sibling of the census-side raw deref
+         * b404e3ea0 fixed below. A raw value has no stamped_prev storage and every stamped walker
+         * already terminates on !vmeta, so skipping the store IS the intended semantics: a raw
+         * survivor cannot point at a filtered-out node. A raw node's next is NULL by construction
+         * (see `next` above), so it can only be the LAST survivor — the in-loop SetStampedPrev
+         * therefore never sees it as stamped_previous and needs no matching guard. */
+        if (stamped_previous && kvobjVmeta(stamped_previous) != NULL)
             kvobjSetStampedPrev(stamped_previous, NULL);
         stamped_head = new_stamped_head;
     }
