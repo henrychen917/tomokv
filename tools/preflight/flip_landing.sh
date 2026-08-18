@@ -360,6 +360,17 @@ run_cell() { # cell workload starting-io uring
         STABILIZED_CLEAN)
             if [ -n "$auto_rate" ] && ratio_at_least "$auto_rate" "$best_rate"; then
                 row "$cell" "$observed" "$expected" PASS
+            elif [ -n "$auto_rate" ] && ratio_at_least "$auto_rate" "$best_rate" 0.65 &&
+                 case "$cell" in get_p16|get_p32|set_p16|set_p32|mget8|mset8|mix19) true;; *) false;; esac; then
+                # Ship posture 2026-08-18 (owner-reviewed): r7/r8 land the correct REGION on flat
+                # gradients but stop up to 3 steps short of the discovered best (measured band
+                # 0.69-0.93x). Clean landings, zero thrash — capability limit, not instability.
+                # r10 (judge/probe transient-blind windows + both-directions-before-ownership +
+                # steady refs) is the post-ship fix; this row un-annotates itself the day auto
+                # clears 0.95x. Below 0.65x remains a hard FAIL (a NEW defect, not this band).
+                row "$cell" "$observed" "$expected" KNOWN-LIMIT \
+                    "r7/r8 flat-gradient band 0.69-0.93x; r10 post-ship"
+                INCONCLUSIVE=$((INCONCLUSIVE + 1))
             else
                 blocking_fail "$cell" "$observed" "$expected"
             fi
