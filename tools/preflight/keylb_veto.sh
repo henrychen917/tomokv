@@ -141,7 +141,7 @@ t0 = trig()
 # command rotations retain the exact workload shapes used above.
 mt = ["timeout", str(secs + 15), "taskset", "-c", load_cores, "memtier_benchmark",
       "-s", "127.0.0.1", "-p", str(port), "--hide-histogram", "--test-time", str(secs),
-      "-t", "8", "-c", "25", "--pipeline=32", "--key-minimum=0", "--key-maximum=19999",
+      "-t", "8", "-c", "25", "--pipeline=32", "--key-minimum=1", "--key-maximum=19999",
       "--distinct-client-seed", "--connection-timeout=5", "--connection-stage-timeout=15"]
 if wl == "hotkey":
     # 97% one key / 3% uniform. The hot key alone must exceed a fair share (total/W) or the
