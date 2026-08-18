@@ -125,17 +125,29 @@ for i in range(0, 4000):
 target = max(pool, key=lambda w: len(pool[w]))
 spread_keys = pool[target]
 
-def trig():
-    r = one(c, "DEBUG", "RESHARD", "TRIGGER").decode().strip().lstrip("+")
+def trig(node):
+    r = one(c, "DEBUG", "RESHARD", "TRIGGER", node).decode().strip()
+    if r.startswith("-"): return None      # past the last node
     d = {}
-    for tok in r.split():
+    for tok in r.lstrip("+").split():
         if "=" in tok:
             k, v = tok.split("=", 1)
             try: d[k] = float(v) if "." in v else int(v)
             except ValueError: d[k] = v
     return d
 
-t0 = trig()
+def trig_all():
+    # Balancer state is PER-NODE and a no-arg TRIGGER reads node 0 only. That blinded this
+    # suite whenever the arm's target worker lived on another node (arm B, 2026-08-19):
+    # node 1 armed, node 0 said "balanced", and the suite failed a working server. Read all.
+    out = []
+    for n in range(8):
+        t = trig(n)
+        if t is None: break
+        out.append(t)
+    return out
+
+t0 = trig_all()
 # The old twelve-thread Python socket loop topped out below the TIME-weighted detector's pressure
 # floor on a 32-core server. memtier supplies enough ingress to exercise the server, while the two
 # command rotations retain the exact workload shapes used above.
@@ -163,8 +175,9 @@ else:
            "--command-key-pattern=R"]
 with open(mtlog, "wb") as log:
     mt_rc = subprocess.run(mt, stdout=log, stderr=subprocess.STDOUT).returncode
-t1 = trig()
-lbf = bulk(c, "DEBUG", "RESHARD", "LBFINE", hot_w).decode(errors="replace")
+t1 = trig_all()
+wtarget = target if wl == "spread" else hot_w
+lbf = bulk(c, "DEBUG", "RESHARD", "LBFINE", wtarget).decode(errors="replace")
 
 mt_ops = "missing"
 with open(mtlog, "rb") as log:
@@ -173,16 +186,21 @@ with open(mtlog, "rb") as log:
         if fields and fields[0] == "Totals" and len(fields) > 1:
             mt_ops = fields[1]
 
-d = {k: t1.get(k, 0) - t0.get(k, 0) for k in ("ticks","quiet","balanced","band","settle","noprog",
-     "fastcold","sustain","noneigh","unbal","fire","unbal_fine","unbal_grp","fine_used","fine_arm",
-     "fine_ticks")}
-sig = {k: t1.get(k, 0) for k in ("hot","hotv","mean","hot_bar","fine_grp","fine_top","fine_peak",
-                                 "K")}
+CTR = ("ticks","quiet","balanced","band","settle","noprog","fastcold","sustain","noneigh",
+       "unbal","fire","unbal_fine","unbal_grp","fine_used","fine_arm","fine_ticks")
+dn = [{k: b.get(k, 0) - a.get(k, 0) for k in CTR} for a, b in zip(t0, t1)]
+d = {k: sum(x[k] for x in dn) for k in CTR}
+def act(x): return x["fire"]*1000 + x["fine_used"]*100 + x["unbal"] + x["sustain"] + x["band"]
+signode = max(range(len(dn)), key=lambda n: (act(dn[n]), t1[n].get("hotv", 0)))
+sig = {k: t1[signode].get(k, 0) for k in ("hot","hotv","mean","hot_bar","fine_grp","fine_top",
+                                          "fine_peak","K")}
 with open(out, "a") as f:
     f.write(f"# ARM {arm} ({wl}) hot_key_bucket={hot_bkt} owner_w={hot_w} spread_target_w={target}\n")
     f.write(f"# memtier rc={mt_rc} ops={mt_ops} log={mtlog}\n")
     f.write("# delta " + " ".join(f"{k}={v}" for k, v in d.items()) + "\n")
-    f.write("# signal " + " ".join(f"{k}={v}" for k, v in sig.items()) + "\n")
+    for n, x in enumerate(dn):
+        f.write(f"# node{n} delta " + " ".join(f"{k}={v}" for k, v in x.items()) + "\n")
+    f.write(f"# signal node={signode} " + " ".join(f"{k}={v}" for k, v in sig.items()) + "\n")
     f.write("# lbfine " + lbf.replace("\r\n", " | ")[:400] + "\n")
     armed = d["ticks"] > 0 and (d["fire"] + d["unbal"] + d["sustain"] + d["band"]) > 0
     f.write(f"{arm}-detector-armed\t{'PASS' if armed else 'FAIL'}\t"
