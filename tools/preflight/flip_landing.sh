@@ -234,7 +234,7 @@ rate_from() { # counter0 epoch0 counter1 epoch1
         'BEGIN{d=t1-t0; if(d<=0 || c1<c0) exit 1; printf "%.3f",(c1-c0)/d}'
 }
 ratio() { awk -v a="$1" -v b="$2" 'BEGIN{if(b<=0)print "0.0000"; else printf "%.4f",a/b}'; }
-ratio_at_least() { awk -v a="$1" -v b="$2" 'BEGIN{exit !(b>0 && a/b>=0.95)}'; }
+ratio_at_least() { awk -v a="$1" -v b="$2" -v f="${3:-0.95}" 'BEGIN{exit !(b>0 && a/b>=f)}'; }
 
 measure_static() { # cell kind io uring -> STATIC_RATE
     local cell=$1 kind=$2 io=$3 uring=$4 ex=$((16 - io)) c0 c1 t0 t1
