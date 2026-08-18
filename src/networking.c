@@ -541,6 +541,9 @@ static inline void rearmPooledFakeClient(client *c, client *parent) {
         debugServerAssert(c->argv_len == 0);
         debugServerAssert(c->net_input_bytes_curr_cmd == 0 && c->net_output_bytes_curr_cmd == 0);
         debugServerAssert(c->tomo_bkt_ptr == NULL);
+        /* 2026-08-18: MGET subs never install as MSET owners; a nonzero here means a non-MGET
+         * retiree leaked through the generation tag (see the retirement-side scalar resets). */
+        debugServerAssert(clientTail(c)->mset_owner_idx == -1);
         return;
     }
     if (unlikely(c->user != NULL || c->authenticated != 0)) {
@@ -635,6 +638,21 @@ void freePooledFakeClient(client *c) {
                 if (clientTail(c)->lib_ver) { decrRefCount(clientTail(c)->lib_ver); clientTail(c)->lib_ver = NULL; }
                 if (clientTail(c)->cold) freeClientCold(c);
             }
+            /* 2026-08-18 consolidation fix: atomic-stack per-sub scalars. On the merged tree,
+             * atomic MSET subs retire through THIS pool (the atomic source tree always took the
+             * full resetFakeClientState path, which clears these; the pooled fast path predates
+             * the fields and never knew them). A stale mset_owner_idx on reuse trips the
+             * install-time assert at csMsetInstall (observed: 'mset_owner_idx == -1' failed,
+             * 16-thread cascade) and without asserts is a wrong-owner commit. Scalars only —
+             * one tail line, no heap work. */
+            clientTail(c)->mset_owner_idx = -1;
+            atomic_store_explicit(&clientTail(c)->_atomic_retired_commit_next, NULL,
+                                  memory_order_relaxed);
+            clientTail(c)->atomic_window_parked_node = NULL;
+            clientTail(c)->atomic_window_parked_tid = 0;
+            c->tomo_read_snapshot = 0;
+            c->tomo_read_snapshot_gen = 0;
+            c->tomo_read_snapshot_pinned = 0;
         } else {
             /* 2026-08-17 audit: the MGET-generation retirement skips the dynamic-ownership mask
              * above entirely — in release builds it deliberately never reads those cache lines.
