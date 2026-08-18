@@ -18509,8 +18509,12 @@ static void csReassemble(client *dst, client *head) {
     /* MGET's routing arrays share the owner-record union arm only with atomic writes, so they are
      * live exclusively on this non-versioned shape. csgFree is a no-op for inline allocations. */
     if (g->ctype == CS_MGET) {
+        /* consolidation seam (atomic-stack x mget-diet group lineage): mget_hash aliases the
+         * mset_owners union arm — detach (NULL) it before the atomic-stack teardown asserts below
+         * read that slot; mget_owner aliases ktype, which the csgFree(g, g->ktype) above already
+         * released (a second free here double-zfrees the spilled large-nkeys shape). */
         csgFree(g, g->mget_hash);
-        csgFree(g, g->mget_owner);
+        g->mget_hash = NULL;
     }
     if (!g->versioned_write) {
         serverAssert(g->mset_owners == NULL);
