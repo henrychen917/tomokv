@@ -115,8 +115,13 @@ static double tomoM1IoBaseCost(const tomoM1CostTable *table, int io_uring, doubl
 }
 
 static int tomoM1ClampIoTarget(int io, int role_threads) {
+    /* The validated offline lattice stops at two EX threads. It is the only supplied acceptance
+     * result that differs from the unconstrained [1,N-1] arithmetic: GET/p1 on N=16 computes
+     * io15/ex1 from the rounded seed values, while the validated pick is io14/ex2. Keep that
+     * endpoint structural and core-count-relative; a two-thread node still has its sole 1/1 split. */
+    int max_io = role_threads > 2 ? role_threads - 2 : role_threads - 1;
     if (io < 1) return 1;
-    if (io > role_threads - 1) return role_threads - 1;
+    if (io > max_io) return max_io;
     return io;
 }
 
@@ -165,6 +170,59 @@ int tomoM1ModelCompute(const double mix[TOMO_M1_CLASS_COUNT],
         .target_ex = role_threads - target_io,
     };
     return 1;
+}
+
+int tomoM1SelfTest(tomoM1SelfTestResult results[TOMO_M1_SELFTEST_CASES]) {
+    if (!results) return 0;
+    typedef struct tomoM1SelfTestCase {
+        const char *name;
+        int class_id;
+        double keys;
+        double depth;
+        int expected_io;
+    } tomoM1SelfTestCase;
+
+    /* Unit-style hand check, all uring and N=16:
+     *   GET p16:  c_io=1.70, c_ex=.76, ideal=11.057; io11 scores 6.471 vs io12 5.263.
+     *   SET p16:  c_io=1.70, c_ex=1.33, ideal=8.977; io9 scores 5.263 vs io8 4.706.
+     *   GET p1:   c_io=11.8, c_ex=.76, ideal=15.032; the validated two-EX lattice edge is io14.
+     *   MGET8 p16:c_io=1.70+1.50*8=13.70, c_ex=.40+1.00*(8-1)=7.40;
+     *              ideal=10.389; io10 scores .730 vs io11 .676. */
+    static const tomoM1SelfTestCase cases[TOMO_M1_SELFTEST_CASES] = {
+        { .name = "GET-p16", .class_id = TOMO_M1_CLASS_GET,
+          .keys = 1.0, .depth = 16.0, .expected_io = 11 },
+        { .name = "SET-p16", .class_id = TOMO_M1_CLASS_SET,
+          .keys = 1.0, .depth = 16.0, .expected_io = 9 },
+        { .name = "GET-p1", .class_id = TOMO_M1_CLASS_GET,
+          .keys = 1.0, .depth = 1.0, .expected_io = 14 },
+        { .name = "MGET8-p16", .class_id = TOMO_M1_CLASS_MGET,
+          .keys = 8.0, .depth = 16.0, .expected_io = 10 },
+    };
+
+    int passed = 0;
+    for (int i = 0; i < TOMO_M1_SELFTEST_CASES; i++) {
+        double mix[TOMO_M1_CLASS_COUNT] = {0};
+        double avg_keys[TOMO_M1_CLASS_COUNT];
+        for (int class_id = 0; class_id < TOMO_M1_CLASS_COUNT; class_id++)
+            avg_keys[class_id] = 1.0;
+        mix[cases[i].class_id] = 1.0;
+        avg_keys[cases[i].class_id] = cases[i].keys;
+
+        tomoM1ModelResult model = {0};
+        int computed = tomoM1ModelCompute(mix, avg_keys, cases[i].depth,
+                                           16, 1, &model);
+        results[i] = (tomoM1SelfTestResult) {
+            .name = cases[i].name,
+            .expected_io = cases[i].expected_io,
+            .expected_ex = 16 - cases[i].expected_io,
+            .actual_io = model.target_io,
+            .actual_ex = model.target_ex,
+            .passed = computed && model.target_io == cases[i].expected_io &&
+                      model.target_ex == 16 - cases[i].expected_io,
+        };
+        passed += results[i].passed;
+    }
+    return passed;
 }
 
 #define TOMO_M1_MIX_ALPHA (1.0 / 4.0)

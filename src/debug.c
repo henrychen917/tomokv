@@ -1021,6 +1021,17 @@ NULL
         if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
         tomoM1TraceSet(on != 0);
         addReplyStatus(c, tomoM1TraceEnabled() ? "m1 trace ON" : "m1 trace OFF");
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-m1selftest") && c->argc == 2) {
+        /* DEBUG TOMO-M1SELFTEST -- pure table/model checks; no server state or actuation. */
+        tomoM1SelfTestResult results[TOMO_M1_SELFTEST_CASES];
+        tomoM1SelfTest(results);
+        addReplyArrayLen(c, TOMO_M1_SELFTEST_CASES);
+        for (int i = 0; i < TOMO_M1_SELFTEST_CASES; i++) {
+            addReplyStatusFormat(c, "%s %s expected=io%d/ex%d actual=io%d/ex%d",
+                results[i].passed ? "OK" : "FAIL", results[i].name,
+                results[i].expected_io, results[i].expected_ex,
+                results[i].actual_io, results[i].actual_ex);
+        }
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-rordtrace") && c->argc == 3) {
         /* DEBUG TOMO-RORDTRACE <0|1> -- one-shot dump of the next reorder run's arrival vs emit
          * class sequence (class digit, upper=head-of-pipe, | = dependency fence). */

@@ -4819,7 +4819,7 @@ int isClientReadErrorFatal(client *c) {
  * pending query buffer, already representing a full command, to process.
  * return C_ERR in case the client was freed during the processing */
 static int processInputBuffer2s(client *c) {
-    unsigned int parsed_commands = 0;
+    unsigned int dispatch_start = clientTail(c)->dispatchid;
     /* We limit the lookahead for unauthenticated connections to 1.
      * This is both to reduce memory overhead, and to prevent errors: AUTH can
      * affect the handling of succeeding commands. Parsing of "large"
@@ -4935,7 +4935,6 @@ static int processInputBuffer2s(client *c) {
             if (__builtin_expect(server.phase_trace_sample != 0, 0) &&
                 !pcmd->read_error && pcmd->cmd)
                 tomoPhaseRequestParsed(c, pcmd);
-            if (pcmd->argc) parsed_commands++;
             resetClientQbufState(c);
         }
 
@@ -5011,7 +5010,6 @@ static int processInputBuffer2s(client *c) {
                 /* c really is gone: don't hand a dangling pointer back to an outer frame that
                  * was executing this very client (unlinkClient() already NULLed the slot). */
                 server.current_client[iotid].p = (prev_current == c) ? NULL : prev_current;
-                tomoM1BatchDepthNote(parsed_commands);
                 return C_ERR;
             }
             server.current_client[iotid].p = prev_current;
@@ -5061,7 +5059,7 @@ static int processInputBuffer2s(client *c) {
      * the stock main thread (flushExQueues early-returns / nothing staged). */
     flushExQueues();   /* ee451 (#E1+S4, v13): batch-push + eager publish both hardwired */
 
-    tomoM1BatchDepthNote(parsed_commands);
+    tomoM1BatchDepthNote(clientTail(c)->dispatchid - dispatch_start);
 
     return C_OK;
 }
@@ -5325,6 +5323,7 @@ static int processInputBufferWbUnlocked(client *c, unsigned int *parsed_out) {
  * an in-scope free defer until after the unlock. */
 static int processInputBufferWb(client *c) {
     tomoWbLockClient(c);
+    unsigned int dispatch_start = clientTail(c)->dispatchid;
     unsigned int parsed_commands = 0;
     tomoInputDispatchBatchBegin(c);
     int rc = processInputBufferWbUnlocked(c, &parsed_commands);
@@ -5332,7 +5331,7 @@ static int processInputBufferWb(client *c) {
      * C_ERR/unlink path. The scope stays live through publication so the INFO
      * batch census excludes later WB-launched continuations. */
     tomoInputDispatchBatchEnd();
-    tomoM1BatchDepthNote(parsed_commands);
+    tomoM1BatchDepthNote(clientTail(c)->dispatchid - dispatch_start);
     tomoIoParsedCommandsNote(parsed_commands);
     tomoWbUnlockClient(c);
     return rc;
