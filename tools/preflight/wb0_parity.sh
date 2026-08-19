@@ -257,17 +257,17 @@ if [ -s "$WORK/baseline.info" ] && [ -s "$WORK/candidate.info" ]; then
   # Consolidation-deliberate INFO surface changes vs the pre-unification 219ec74cc baseline:
   # the atomic ship stack replaced its counter set (old commit_wait/stamp_full fields removed,
   # owner-epoch/prune/reclaim/read-slow fields added), the decref-race fence added its witness
-  # counter, and the prefetch knob deletion removed the io/ex prefetch counters. Anything OUTSIDE
-  # these named sets is still drift and still fails.
-  grep -vE '^tomokv_wb_|^tomokv_atomic_(commit_ts|commit_ts_lag|owner_epochs_queued|owner_pending|owner_pending_max|owner_versions_queued|prune_batch_allocs|prune_node_allocs|prune_qsbr_wait_passes|prune_snapshot_wait_passes|read_slow_gate_closed_other|read_slow_inflight_conflict|reclaim_bytes|reclaim_limit|reclaim_pressure|reclaim_stalls|reclaim_worker_bytes|reclaim_worker_max|stragglers|window_effective)$|^tomokv_freeback_stale_owner_drains$' \
+  # counter, the passive u1 substrate added its three gauges, and the prefetch knob deletion
+  # removed the io/ex prefetch counters. Anything OUTSIDE these named sets is still drift and fails.
+  grep -vE '^tomokv_wb_|^tomokv_u1_(sigma|windows|settle_ticks_last)$|^tomokv_atomic_(commit_ts|commit_ts_lag|owner_epochs_queued|owner_pending|owner_pending_max|owner_versions_queued|prune_batch_allocs|prune_node_allocs|prune_qsbr_wait_passes|prune_snapshot_wait_passes|read_slow_gate_closed_other|read_slow_inflight_conflict|reclaim_bytes|reclaim_limit|reclaim_pressure|reclaim_stalls|reclaim_worker_bytes|reclaim_worker_max|stragglers|window_effective)$|^tomokv_freeback_stale_owner_drains$' \
     "$WORK/added.keys" > "$WORK/unexpected-added.keys" || true
   grep -vE '^tomokv_atomic_(commit_wait_drains|stamp_full)$|^tomokv_prefetch_(ex|io)_xnode_issued$|^tomo_prefetch_issued$' \
     "$WORK/removed.keys" > "$WORK/unexpected-removed.keys" || true
   mv "$WORK/unexpected-removed.keys" "$WORK/removed.keys"
   if [ -s "$WORK/removed.keys" ] || [ -s "$WORK/unexpected-added.keys" ]; then
-    fail "INFO key-set drift outside allowed tomokv_wb_* additions: removed=$(tr '\n' ',' < "$WORK/removed.keys") added=$(tr '\n' ',' < "$WORK/unexpected-added.keys")"
+    fail "INFO key-set drift outside allowed observability additions: removed=$(tr '\n' ',' < "$WORK/removed.keys") added=$(tr '\n' ',' < "$WORK/unexpected-added.keys")"
   else
-    pass "INFO key set matches baseline modulo tomokv_wb_* observability"
+    pass "INFO key set matches baseline modulo named observability additions"
   fi
   wb_nonzero=$(awk -F: '$1 ~ /^tomokv_wb_/ {v=$2; gsub(/\r/,"",v); if (v !~ /^0([.]0+)?$/) print $1 "=" v}' "$WORK/candidate.info")
   if [ -n "$wb_nonzero" ]; then
