@@ -37,6 +37,7 @@
 #include "uring2.h"
 #include "wb_uring.h"
 #include "flip_u1.h"
+#include "flip_m1.h"
 
 #include <time.h>
 #include <signal.h>
@@ -9144,11 +9145,15 @@ void populateCommandTable(void) {
          * table — one list, never two (csStampRoute recurses into subcommands). */
         csStampRoute(c);
         tomoStampCmdClass(c);   /* ee451 D: cost class, same one-walk idiom */
+        tomoM1StampCommandClass(c);
         if (c->subcommands_dict) {
             dictIterator *di = dictGetIterator(c->subcommands_dict);
             dictEntry *de;
-            while ((de = dictNext(di)) != NULL)
-                tomoStampCmdClass((struct redisCommand *)dictGetVal(de));
+            while ((de = dictNext(di)) != NULL) {
+                struct redisCommand *sub = (struct redisCommand *)dictGetVal(de);
+                tomoStampCmdClass(sub);
+                tomoM1StampCommandClass(sub);
+            }
             dictReleaseIterator(di);
         }
 
@@ -10924,6 +10929,8 @@ int processCommand(client *c) {
         /* flatGroupPinEnter's one nonblocking clock sample is both the visibility cut and the
          * logical-reclaim eligibility key; a second sample could split those meanings. */
     }
+
+    tomoM1DispatchNote(fake->cmd, (unsigned int)fake->argc);
 
     if (__builtin_expect(server.wb_threads == 0, 1)) {
         /* The 2-stage owner scans only clients with an in-flight ring. */

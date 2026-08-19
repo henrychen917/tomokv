@@ -4617,6 +4617,8 @@ struct redisCommand {
     /* ee451 D: TOMO_CLS_* cost class (stamped at table init). TAIL member on purpose —
      * commands.def initializes this struct POSITIONALLY, so new fields must trail. */
     uint8_t tomo_cls;
+    /* m1 workload class. Also tail-only for commands.def positional initialization. */
+    uint8_t tomo_m1_class;
 };
 
 struct redisError {

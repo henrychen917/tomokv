@@ -1,0 +1,52 @@
+#ifndef __FLIP_M1_H
+#define __FLIP_M1_H
+
+#include <stdint.h>
+
+/* Zero is deliberately OTHER: dynamically registered commands are zero-initialized and therefore
+ * enter the conservative fallback class even if they do not pass through the built-in table walk. */
+typedef enum tomoM1CommandClass {
+    TOMO_M1_CLASS_OTHER = 0,
+    TOMO_M1_CLASS_GET,
+    TOMO_M1_CLASS_SET,
+    TOMO_M1_CLASS_MGET,
+    TOMO_M1_CLASS_MSET,
+    TOMO_M1_CLASS_ZRANGE,
+    TOMO_M1_CLASS_DEL,
+    TOMO_M1_CLASS_EXPIRE,
+    TOMO_M1_CLASS_COUNT
+} tomoM1CommandClass;
+
+typedef struct tomoM1ClassSignal {
+    uint64_t commands;
+    uint64_t args;
+} tomoM1ClassSignal;
+
+/* One producer owns each slot. The controller reads it racily, like tmIoSignal/netstat: a torn or
+ * stale sample only adds one tick of estimator noise. Alignment plus a whole-line stride prevents
+ * two IO owners from ever writing the same cache line. Class counters occupy two lines; the
+ * once-per-input-pass depth EWMA owns the third. */
+typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) tomoM1IoSignal {
+    tomoM1ClassSignal classes[TOMO_M1_CLASS_COUNT];
+    int batch_depth_q8;
+    char _pad[CACHE_LINE_SIZE - sizeof(int)];
+} tomoM1IoSignal;
+
+_Static_assert(sizeof(tomoM1IoSignal) % CACHE_LINE_SIZE == 0,
+               "m1 IO signal slots must have a cache-line stride");
+
+extern tomoM1IoSignal tomo_m1_io_signals[TOMO_IO_THREADS_MAX + 1];
+
+void tomoM1StampCommandClass(struct redisCommand *cmd);
+void tomoM1BatchDepthNote(unsigned int commands);
+
+/* Accepted-command hot edge: the command table supplies the byte-sized index, so this is exactly
+ * two owner-local counter updates and no lookup, branch, atomic, or shared cache-line write. */
+static inline void tomoM1DispatchNote(const struct redisCommand *cmd, unsigned int argc) {
+    tomoM1ClassSignal *signal =
+        &tomo_m1_io_signals[iotid].classes[cmd->tomo_m1_class];
+    signal->commands++;
+    signal->args += argc;
+}
+
+#endif /* __FLIP_M1_H */
