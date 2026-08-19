@@ -4528,8 +4528,8 @@ static inline void exDispatchPush(int ex_id, client *fake) {
         tomo_rord.ex[i]  = (uint8_t)ex_id;
         /* head-of-pipe: this dispatch is the client's oldest un-flushed (ring was empty when it
          * entered). dispatchid was incremented at stage; head iff it is now flushid+1. */
-        uint8_t hd = (fake->parent &&
-                      clientTail(fake->parent)->dispatchid == clientTail(fake->parent)->flushid + 1) ? 0x80 : 0;
+        client *hd_c = fake->parent ? fake->parent : fake;   /* DIRECT reals are their own pipe head */
+        uint8_t hd = (clientTail(hd_c)->dispatchid == clientTail(hd_c)->flushid + 1) ? 0x80 : 0;
         tomo_rord.cls[i] = (uint8_t)(tomoArgvClass(fake) & TOMO_CLS_MASK) | hd;
         tomo_rord.n = i + 1;
         tm_io_sig[iotid].disp_cnt++;

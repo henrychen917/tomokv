@@ -2024,7 +2024,11 @@ static inline int clientExOwnedReal(const client *c) {
      CLIENT_REPLY_SKIP_NEXT | CLIENT_CLOSE_AFTER_REPLY | CLIENT_CLOSE_ASAP | \
      CLIENT_PROTECTED | CLIENT_MIGRATING | CLIENT_SCRIPT | CLIENT_MODULE | \
      CLIENT_INTERNAL | CLIENT_ASM_MIGRATING | CLIENT_ASM_IMPORTING | CLIENT_PUSHING | \
-     CLIENT_PENDING_WRITE)
+     CLIENT_PENDING_WRITE | CLIENT_PUBSUB)
+/* CLIENT_PUBSUB: PUBLISH delivery writes the SUBSCRIBER's c->buf from the publisher's io
+ * thread (addReplyPubsubMessage), and RESP3 subscribers may still issue GET. A DIRECT flight
+ * would widen that pre-existing two-writer window from the splice instant to the whole
+ * flight — subscribers stay on the fake path. */
 
 /* p1direct witness counters (anti-vacuous rule: every closed path ships a counter that
  * proves it opened). One cache line per io identity, owner-incremented with plain stores;
