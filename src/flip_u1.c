@@ -67,12 +67,17 @@ typedef struct tomoU1NodeState {
     tomoU1Subwindow subwindow;
     tomoU1Window windows[TOMO_U1_WINDOW_RING];
     tomoU1CmpState comparison;
+    _Atomic double sigma_published;
+    _Atomic uint64_t windows_published;
+    _Atomic uint64_t settle_ticks_published;
+    _Atomic uint64_t settle_end_ms_published;
 } tomoU1NodeState;
 
 static tomoU1NodeState tomo_u1_nodes[TOMO_NODES_MAX];
 static _Atomic uint64_t tomo_u1_controller_ticks[TOMO_NODES_MAX];
 static _Atomic uint64_t tomo_u1_role_change_tick[TOMO_NODES_MAX];
 static _Atomic uint64_t tomo_u1_role_change_seq[TOMO_NODES_MAX];
+static _Atomic int tomo_u1_trace;
 
 static int tomoU1NodeValid(int node) {
     return node >= 0 && node < TOMO_NODES_MAX;
@@ -106,6 +111,7 @@ static void tomoU1NoiseResetState(tomoU1NodeState *state) {
     state->noise.sigma = 0.0;
     state->noise.pairs = 0;
     state->aa_barrier = 1;
+    atomic_store_explicit(&state->sigma_published, 0.0, memory_order_relaxed);
 }
 
 static void tomoU1ShapeChangeBegin(tomoU1NodeState *state, uint64_t change_tick) {
@@ -197,6 +203,53 @@ static void tomoU1StoreWindow(tomoU1NodeState *state, const tomoU1Window *window
     if (state->ring_count < TOMO_U1_WINDOW_RING) state->ring_count++;
 }
 
+static const char *tomoU1VerdictName(tomoU1CmpResult verdict) {
+    switch (verdict) {
+    case TOMO_U1_CMP_A_BETTER: return "A_BETTER";
+    case TOMO_U1_CMP_B_BETTER: return "B_BETTER";
+    case TOMO_U1_CMP_FLAT: return "FLAT";
+    case TOMO_U1_CMP_NEED_MORE: return "NEED_MORE";
+    }
+    return "NEED_MORE";
+}
+
+static void tomoU1ShapeString(char *buf, size_t size, tomoU1Shape shape) {
+    if (shape.wb != 0)
+        snprintf(buf, size, "io%u/ex%u/wb%u", shape.io, shape.ex, shape.wb);
+    else
+        snprintf(buf, size, "io%u/ex%u", shape.io, shape.ex);
+}
+
+static void tomoU1TraceWindow(int node, const tomoU1NodeState *state,
+                              const tomoU1Window *window) {
+    if (!atomic_load_explicit(&tomo_u1_trace, memory_order_relaxed)) return;
+    char shape[48];
+    tomoU1ShapeString(shape, sizeof(shape), window->shape);
+    const tomoU1CmpState *cmp = &state->comparison;
+    if (cmp->active) {
+        char shape_a[48], shape_b[48];
+        tomoU1ShapeString(shape_a, sizeof(shape_a), cmp->shape_a);
+        tomoU1ShapeString(shape_b, sizeof(shape_b), cmp->shape_b);
+        tomoU1CmpResult verdict = tomoU1CmpVerdict(cmp, state->noise.sigma);
+        serverLog(LL_NOTICE,
+            "[u1-trace n%d] t=%llu shape=%s win_mean=%.3f sigma=%.9f pairs=%llu "
+            "settled=%d settle_ticks=%llu cmp=A(%s)/B(%s) cmp_pairs=%u "
+            "a_wins=%u b_wins=%u ties=%u verdict=%s",
+            node, (unsigned long long)window->end_ms, shape, window->mean,
+            state->noise.sigma, (unsigned long long)state->noise.pairs,
+            window->settle_clean, (unsigned long long)window->settle_ticks,
+            shape_a, shape_b, cmp->pairs, cmp->a_wins, cmp->b_wins, cmp->ties,
+            tomoU1VerdictName(verdict));
+    } else {
+        serverLog(LL_NOTICE,
+            "[u1-trace n%d] t=%llu shape=%s win_mean=%.3f sigma=%.9f pairs=%llu "
+            "settled=%d settle_ticks=%llu",
+            node, (unsigned long long)window->end_ms, shape, window->mean,
+            state->noise.sigma, (unsigned long long)state->noise.pairs,
+            window->settle_clean, (unsigned long long)window->settle_ticks);
+    }
+}
+
 int tomoU1Feed(int node, uint64_t ops_delta, uint64_t elapsed_ms,
                tomoU1Shape shape, uint64_t now_ms) {
     if (!tomoU1NodeValid(node) || elapsed_ms == 0) return 0;
@@ -268,6 +321,10 @@ int tomoU1Feed(int node, uint64_t ops_delta, uint64_t elapsed_ms,
             state->settling = 0;
             state->settle_ticks_last = settle_ticks;
             settle_clean = 1;
+            atomic_store_explicit(&state->settle_ticks_published, settle_ticks,
+                                  memory_order_relaxed);
+            atomic_store_explicit(&state->settle_end_ms_published, now_ms,
+                                  memory_order_release);
         }
     }
 
@@ -284,13 +341,19 @@ int tomoU1Feed(int node, uint64_t ops_delta, uint64_t elapsed_ms,
     if (!state->aa_barrier && previous && previous->settle_clean &&
         window.settle_clean && tomoU1ShapeEqual(previous->shape, window.shape)) {
         tomoU1NoiseFeed(&state->noise, previous->mean, window.mean);
+        atomic_store_explicit(&state->sigma_published, state->noise.sigma,
+                              memory_order_relaxed);
     }
     state->aa_barrier = 0;
     state->windows_total++;
     tomoU1StoreWindow(state, &window);
+    atomic_store_explicit(&state->windows_published, state->windows_total,
+                          memory_order_relaxed);
 
     if (window.settle_clean && state->comparison.active)
         tomoU1CmpFeed(&state->comparison, window.mean, window.shape);
+
+    tomoU1TraceWindow(node, state, &window);
 
     tomoU1SubwindowReset(subwindow);
     return 1;
@@ -333,6 +396,37 @@ uint64_t tomoU1SettleTicksLast(int node) {
 
 tomoU1CmpState *tomoU1NodeComparison(int node) {
     return tomoU1NodeValid(node) ? &tomo_u1_nodes[node].comparison : NULL;
+}
+
+void tomoU1TraceSet(int enabled) {
+    atomic_store_explicit(&tomo_u1_trace, enabled != 0, memory_order_relaxed);
+}
+
+int tomoU1TraceEnabled(void) {
+    return atomic_load_explicit(&tomo_u1_trace, memory_order_relaxed) != 0;
+}
+
+void tomoU1InfoGet(int node_count, tomoU1Info *info) {
+    if (!info) return;
+    memset(info, 0, sizeof(*info));
+    if (node_count < 0) node_count = 0;
+    if (node_count > TOMO_NODES_MAX) node_count = TOMO_NODES_MAX;
+    uint64_t latest_settle_ms = 0;
+    for (int node = 0; node < node_count; node++) {
+        tomoU1NodeState *state = &tomo_u1_nodes[node];
+        double sigma = atomic_load_explicit(&state->sigma_published,
+                                            memory_order_relaxed);
+        if (sigma > info->sigma) info->sigma = sigma;
+        info->windows += atomic_load_explicit(&state->windows_published,
+                                              memory_order_relaxed);
+        uint64_t settle_ms = atomic_load_explicit(&state->settle_end_ms_published,
+                                                  memory_order_acquire);
+        if (settle_ms >= latest_settle_ms && settle_ms != 0) {
+            latest_settle_ms = settle_ms;
+            info->settle_ticks_last = atomic_load_explicit(
+                &state->settle_ticks_published, memory_order_relaxed);
+        }
+    }
 }
 
 void tomoU1CmpBegin(tomoU1CmpState *cmp, int node,

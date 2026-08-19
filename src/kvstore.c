@@ -74,7 +74,9 @@ static inline uint64_t flatSlotOf(flatTable *t, dictEntryLink link) {
     return (uint64_t)((flatSlot *)((char *)link - offsetof(struct flatSlot, w)) - t->slots);
 }
 static inline dictEntry *flatKvMask(kvstore *kvs, void *kv) {
-    return dictEncodeStoredKey(&kvs->dtype, kvs, kv);
+    /* Flat storage has no dict object. dbDictType has no keyDup, so this owner is never
+     * dereferenced; make the existing intentionally opaque payload explicit to the compiler. */
+    return dictEncodeStoredKey(&kvs->dtype, (dict *)(void *)kvs, kv);
 }
 int kvstoreIsFlat(kvstore *kvs) { return (kvs->flags & KVSTORE_FLAT) != 0; }
 static inline flatTable *flatCurrent(kvstore *kvs) {

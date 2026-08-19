@@ -49,6 +49,12 @@ typedef struct tomoU1CmpState {
     unsigned int ties;
 } tomoU1CmpState;
 
+typedef struct tomoU1Info {
+    double sigma;                 /* maximum current per-node relative sigma */
+    uint64_t windows;             /* completed sub-windows summed across nodes */
+    uint64_t settle_ticks_last;   /* most recently completed per-node settle */
+} tomoU1Info;
+
 int tomoU1ShapeEqual(tomoU1Shape a, tomoU1Shape b);
 
 void tomoU1CmpBegin(tomoU1CmpState *cmp, int node,
@@ -70,5 +76,9 @@ double tomoU1Sigma(int node);
 uint64_t tomoU1NoisePairs(int node);
 uint64_t tomoU1SettleTicksLast(int node);
 tomoU1CmpState *tomoU1NodeComparison(int node);
+
+void tomoU1TraceSet(int enabled);
+int tomoU1TraceEnabled(void);
+void tomoU1InfoGet(int node_count, tomoU1Info *info);
 
 #endif /* __FLIP_U1_H */

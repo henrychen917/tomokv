@@ -10131,8 +10131,9 @@ void preprocessCommand(client *c, pendingCommand *pcmd) {
 
     /* Check if we can reuse the previous command instead of looking it up.
      * The previous command is either the penultimate pending command (if it exists), or c->lastcmd. */
-    if (pcmd->prev)
+    if (pcmd->prev) {
         debugServerAssert(pcmd->prev->flags & PENDING_CMD_DEBUG_CMD_INITIALIZED);
+    }
     struct redisCommand *last_cmd = pcmd->prev ? pcmd->prev->cmd : clientTail(c)->lastcmd;
 
     if (isCommandReusable(last_cmd, pcmd->argv[0]))
@@ -23189,6 +23190,18 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 atomic_load_explicit(&tomo_flip_episode_early_stops, memory_order_relaxed),
             "tomokv_flip_episode_wall_stops:%lu\r\n",
                 atomic_load_explicit(&tomo_flip_episode_wall_stops, memory_order_relaxed)));
+        /* Passive u1 gauges. Per-node state remains controller-owner-local; this snapshot reads
+         * only atomic publications. Sigma is the maximum current node value, windows is the
+         * process sum, and settle_ticks_last follows the latest completed settle event. */
+        tomoU1Info u1_info;
+        tomoU1InfoGet(tmNumNodes(), &u1_info);
+        info = sdscatprintf(info,
+            "tomokv_u1_sigma:%.9f\r\n"
+            "tomokv_u1_windows:%llu\r\n"
+            "tomokv_u1_settle_ticks_last:%llu\r\n",
+            u1_info.sigma,
+            (unsigned long long)u1_info.windows,
+            (unsigned long long)u1_info.settle_ticks_last);
         if (tmNumNodes() > 1) {
             for (int node = 0; node < tmNumNodes() && node < TOMO_NODES_MAX; node++) {
                 info = sdscatprintf(info, "tomokv_node_%d_key_lb_runs:%llu\r\n",
@@ -23251,11 +23264,16 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             unsigned long long wb_uring_submit_failures = 0;
             unsigned long long rord_runs_sum=0, rord_heads_sum=0, rord_grouped_sum=0, rord_fences_sum=0;
             unsigned long long rord_age_pins_sum=0;
+            unsigned int rord_worst_age_us=0;
             for (int _t = 0; _t <= TOMO_IO_THREADS_MAX; _t++) {
                 rord_runs_sum += tm_io_sig[_t].rord_runs; rord_heads_sum += tm_io_sig[_t].rord_heads;
                 rord_grouped_sum += tm_io_sig[_t].rord_grouped; rord_fences_sum += tm_io_sig[_t].rord_fences;
                 rord_age_pins_sum += tm_io_sig[_t].rord_age_pins;
             }
+            for (int _w = 0; server.exThreads && _w < server.num_workers &&
+                                 _w < TOMO_EX_THREADS_MAX; _w++)
+                if (server.exThreads[_w].rord_worst_age_us > rord_worst_age_us)
+                    rord_worst_age_us = server.exThreads[_w].rord_worst_age_us;
             int io_hi = server.io_threads + server.tm_ngrow_io, nio = 0;
             for (int t = 1; t <= io_hi && t <= TOMO_IO_THREADS_MAX; t++) {
                 polyThreadCtx *ic = tmCtxForIotid(t);
@@ -23365,7 +23383,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "tomokv_rord_grouped:%llu\r\n", (unsigned long long)rord_grouped_sum,
                 "tomokv_rord_fences:%llu\r\n", (unsigned long long)rord_fences_sum,
                 "tomokv_reorder_age_pins:%llu\r\n", (unsigned long long)rord_age_pins_sum,
-                "tomokv_rord_worst_age_us:%u\r\n", ({ unsigned _m=0; for (int _w=0; server.exThreads && _w<server.num_workers && _w<TOMO_EX_THREADS_MAX;_w++) if (server.exThreads[_w].rord_worst_age_us>_m) _m=server.exThreads[_w].rord_worst_age_us; _m; }),
+                "tomokv_rord_worst_age_us:%u\r\n", rord_worst_age_us,
                 "tomokv_io_threads_counted:%d\r\n", nio,
                 "tomokv_ex_threads_counted:%d\r\n", wlive));
 
