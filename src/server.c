@@ -14965,9 +14965,11 @@ static int csMsetnxHasOtherReservation(kvobj *head, csGroup *g) {
                                   memory_order_acquire)) {
             uint64_t commit_ts = atomic_load_explicit(&commit->commit_ts,
                                                        memory_order_acquire);
-            /* The marker precedes the encoded clock store. Treat that tiny
-             * interval as reserved too; after the clock reaches commit_ts the
-             * ordinary visibility lookup below will report the key present. */
+            /* D.1: assignment (fetch_add) precedes the marker store, so a group in that
+             * tiny interval reads marker==0 and stays reserved; one whose marker landed
+             * above this sample is reserved as ts > published. Either way the ordinary
+             * visibility lookup will report the key present once it matters — the
+             * collapsed marker/clock interval changes nothing here. */
             if (commit_ts == 0 || commit_ts > published) return 1;
         }
         kv = kvobjVersionPrev(kv);
@@ -23492,7 +23494,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_atomic_ownread_held:%llu\r\n", orh,
             "tomokv_atomic_ownread_conserv:%llu\r\n", orc,
             "tomokv_atomic_ownread_detach:%llu\r\n", ord,
-            /* Last fully published commit-time timestamp. */
+            /* D.1: highest ASSIGNED commit timestamp (an upper bound over published markers —
+             * the unlatched clock counts assignments; markers land with their own store). */
             "tomokv_atomic_commit_ts:%llu\r\n",
                 (unsigned long long)tomoCommittedSeq(),
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
