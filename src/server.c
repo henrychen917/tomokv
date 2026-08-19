@@ -707,6 +707,9 @@ enum {
 };
 static void reshardCoordinatorTick(void);   /* zero-thread-churn cutover state machine (main) */
 static _Atomic int co_state;                /* CO_* above; main-owned, IO threads CAS-arm only */
+static int csReadRestartAdvance(csGroup *g); /* D.1: drain-thread re-wave for straddle-flagged
+                                              * snapshot reads; 1 = new wave pushed (head stays
+                                              * in flight), 0 = proceed to reassemble */
 static int csPipeAdvance(csGroup *g);       /* merge-exec pipeline: drain-thread stage driver; 1 =
                                              * next stage dispatched (head stays in flight) */
 static int csSortAdvance(csGroup *g);       /* T3 SORT BY/GET drain-thread phase driver */
@@ -761,6 +764,7 @@ static _Atomic unsigned long long tomo_atomic_stragglers;
  * control: 0 keeps the unlatched fetch_add clock but disables memoization. */
 __thread tomoStraddleMemo tomo_straddle_memo;
 redisAtomic int tomo_atomic_memo_on = 1;
+static void tomoCommitRelease(tomoCommit *commit);   /* fwd: fold reset drops its refs */
 /* Restart waves executed for straddle-flagged snapshot reads (memo overflow, or a memoized
  * record whose marker landed at or below the group's T while its subs resolved). */
 static _Atomic unsigned long long tomo_atomic_straddle_restarts;
@@ -803,12 +807,72 @@ static void tomoStraddleMemoArm(csGroup *g) {
 static void tomoStraddleMemoDisarm(csGroup *g) {
     tomoStraddleMemo *m = &tomo_straddle_memo;
     if (m->g != (const struct csGroup *)g) return;     /* this sub never armed */
-    if (__builtin_expect(m->overflow != 0, 0))
-        atomic_fetch_add_explicit(&tomo_atomic_straddle_unrepaired, 1,
-                                  memory_order_relaxed);
+    if (__builtin_expect(m->n != 0 || m->overflow != 0, 1)) {
+        if (g->straddle_fold != NULL) {
+            /* Fold this sub's verdicts into the group BEFORE the caller's pending decrement
+             * publishes this sub complete: the last sub validates the union against the
+             * frozen T (cross-sub closure — a sibling may have used a visible verdict for a
+             * record this sub froze invisible; only the union can tell). Each folded entry
+             * takes one tomoCommit reference: this thread is still inside the sub's live
+             * region, so the record is alive here, and the reference keeps it dereferenceable
+             * for the validator/drain, which may run a full grace later. Dedup is best-effort
+             * (a racing sibling's slot may read as NULL); duplicates only cost a slot. */
+            for (int i = 0; i < m->n; i++) {
+                tomoCommit *rec = m->ent[i];
+                int cap = atomic_load_explicit(&g->straddle_fold_n,
+                                               memory_order_relaxed);
+                if (cap > TOMO_STRADDLE_MEMO_MAX) break;      /* already overflowed */
+                int dup = 0;
+                for (int j = 0; j < cap; j++) {
+                    if (atomic_load_explicit(&g->straddle_fold[j],
+                                             memory_order_relaxed) == rec) {
+                        dup = 1;
+                        break;
+                    }
+                }
+                if (dup) continue;
+                int idx = atomic_fetch_add_explicit(&g->straddle_fold_n, 1,
+                                                    memory_order_relaxed);
+                if (idx >= TOMO_STRADDLE_MEMO_MAX) {
+                    /* Fold union exceeds the bound: torn-safety can no longer be proven
+                     * from the memo — fail torn-safe via the group re-wave. */
+                    atomic_store_explicit(&g->read_restart, 1, memory_order_relaxed);
+                    break;
+                }
+                atomic_fetch_add_explicit(&rec->refs, 1, memory_order_relaxed);
+                atomic_store_explicit(&g->straddle_fold[idx], rec,
+                                      memory_order_relaxed);
+            }
+            if (__builtin_expect(m->overflow != 0, 0))
+                atomic_store_explicit(&g->read_restart, 1, memory_order_relaxed);
+        } else if (__builtin_expect(m->overflow != 0, 0)) {
+            /* Overflow in a context with no restart lever (pipeline stage, localfast,
+             * hop1-of-store): the remainder of this resolution ran with transient
+             * unmemoized invisible verdicts, which cannot prove stability. Trip the
+             * wire — this must never be silently zero-by-vacuity. */
+            atomic_fetch_add_explicit(&tomo_atomic_straddle_unrepaired, 1,
+                                      memory_order_relaxed);
+        }
+    }
     m->g = NULL;
     m->n = 0;
     m->overflow = 0;
+}
+
+/* Release the fold's commit references and clear the repair state. Runs at the group's
+ * terminal reassembly and at each restart wave reset (drain thread; never concurrently with
+ * folding subs — the pending barrier/CDB handoff precedes both callers). */
+static void csStraddleFoldReset(csGroup *g) {
+    if (g->straddle_fold == NULL) return;
+    int n = atomic_load_explicit(&g->straddle_fold_n, memory_order_relaxed);
+    if (n > TOMO_STRADDLE_MEMO_MAX) n = TOMO_STRADDLE_MEMO_MAX;
+    for (int i = 0; i < n; i++) {
+        tomoCommit *rec = atomic_exchange_explicit(&g->straddle_fold[i], NULL,
+                                                   memory_order_relaxed);
+        if (rec) tomoCommitRelease(rec);
+    }
+    atomic_store_explicit(&g->straddle_fold_n, 0, memory_order_relaxed);
+    atomic_store_explicit(&g->read_restart, 0, memory_order_relaxed);
 }
 
 /* Atomic-MSET admission. `inflight` is the reservation word for both finite and unlimited
@@ -5832,6 +5896,13 @@ static void handleWorkerRepliesScan(void) {
                 if (csAtomicAbortIncomplete(g)) {
                     break;
                 }
+                /* D.1: a straddle-flagged snapshot read re-waves with a fresh T instead of
+                 * reassembling (same head-stays-in-flight contract as csPipeAdvance). */
+                if (__builtin_expect(atomic_load_explicit(&g->read_restart,
+                                                          memory_order_relaxed), 0) &&
+                    csReadRestartAdvance(g)) {
+                    break;
+                }
                 csReassemble(real, fake);
             } else {
                 AddReplyFromClient(real, fake);
@@ -6322,6 +6393,11 @@ static void tomoWbDrainClient(tomoWbThread *w, client *real) {
                     csLaunchHop2(g))
                     break;
                 if (csAtomicAbortIncomplete(g)) break;
+                /* D.1: straddle-flagged snapshot read — re-wave, head stays in flight. */
+                if (__builtin_expect(atomic_load_explicit(&g->read_restart,
+                                                          memory_order_relaxed), 0) &&
+                    csReadRestartAdvance(g))
+                    break;
                 csReassemble(real, fake);
             } else {
                 AddReplyFromClient(real, fake);
@@ -13313,7 +13389,8 @@ static inline tomoCommit *csMsetOwnerSliceDone(exThread *worker, client *sub, cs
  * own node is therefore the program-order newest own write. If that node is
  * already committed, stop: an older own group which happens to remain pending
  * must not supersede it merely because completion order changed. */
-static kvobj *csMsetOwnVersionAt(kvobj *head, client *real, int *found) {
+static kvobj *csMsetOwnVersionAt(kvobj *head, client *real, int *found,
+                                 uint64_t own_order_limit) {
     *found = 0;
     if (!real) return NULL;
 
@@ -13323,6 +13400,11 @@ static kvobj *csMsetOwnVersionAt(kvobj *head, client *real, int *found) {
         if (atomic_load_explicit(&vmeta->version_canceled, memory_order_acquire))
             continue;
         if (vmeta->origin_client_id != clientTail(real)->id) continue;
+        /* D.1 restart waves: an own install at/after the read's dispatch watermark is a
+         * program-order LATER write (owner-queue FIFO kept it out of the first wave) — a
+         * re-resolved wave must not surface it either. UINT64_MAX (no watermark) is the
+         * ordinary case and filters nothing. */
+        if (vmeta->install_order >= own_order_limit) continue;
         if (tomoVersionCommitTs(vmeta) != 0) return NULL;
         *found = 1;
         return vmeta->version_tombstone ? NULL : kv;
@@ -13351,6 +13433,18 @@ kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot, client *reader_connection) {
         real = reader_connection->isFake ? reader_connection->parent
                                          : reader_connection;
 
+    /* D.1: the straddle memo engages only for the armed pinned resolution it was reset for.
+     * Own-origin records bypass it entirely — pipelined own-read widening must keep its exact
+     * pre-memo behavior (its stability comes from immutable connection identity plus
+     * install-order selection, not from the marker frontier). The one own-side addition is
+     * the restart watermark: on a straddle-eligible group, own installs at/after the read's
+     * dispatch order are program-order LATER writes and stay invisible on every wave. */
+    tomoStraddleMemo *memo = &tomo_straddle_memo;
+    int memo_armed = memo->g != NULL && reader_connection != NULL &&
+                     reader_connection->csparent == memo->g;
+    uint64_t own_limit = (memo_armed && memo->g->straddle_eligible)
+                       ? memo->g->own_order_limit : UINT64_MAX;
+
     /* pending_count is decremented only after every eager local index publish
      * and the group marker (or every local cancellation) has landed. Post-marker retirement
      * may still be pending, but zero proves the expensive physical own scan
@@ -13358,7 +13452,7 @@ kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot, client *reader_connection) {
     if (real && atomic_load_explicit(&clientTail(real)->mset_pending_count,
                                      memory_order_acquire) != 0) {
         int own_found;
-        kvobj *own = csMsetOwnVersionAt(kv, real, &own_found);
+        kvobj *own = csMsetOwnVersionAt(kv, real, &own_found, own_limit);
         if (own_found) return own;
     }
 
@@ -13367,13 +13461,6 @@ kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot, client *reader_connection) {
     uint64_t best_ts = 0, own_install_order = 0;
     uint32_t best_order = 0;
     int best_set = 0, own_above_set = 0;
-    /* D.1: the straddle memo engages only for the armed pinned resolution it was reset for.
-     * Own-origin records bypass it entirely — pipelined own-read widening must keep its exact
-     * pre-memo behavior (its stability comes from immutable connection identity plus
-     * install-order selection, not from the marker frontier). */
-    tomoStraddleMemo *memo = &tomo_straddle_memo;
-    int memo_armed = memo->g != NULL && reader_connection != NULL &&
-                     reader_connection->csparent == memo->g;
 
     for (kvobj *cur = atomic_load_explicit(&head_meta->stamped_head,
                                            memory_order_acquire);
@@ -13391,6 +13478,8 @@ kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot, client *reader_connection) {
         uint64_t ts = rec ? atomic_load_explicit(&rec->commit_ts, memory_order_acquire)
                           : 0;
         int own = reader_id != 0 && vmeta->origin_client_id == reader_id;
+        if (own && vmeta->install_order >= own_limit)
+            continue;    /* program-order later than this read (restart-wave watermark) */
         if (memo_armed && rec != NULL && !own) {
             /* Consult BEFORE evaluating ts: once this command judged the record invisible,
              * the verdict is frozen even if its marker has landed at or below T since (the
@@ -16219,6 +16308,113 @@ static void csSubCopyFullArgv(client *sub, client *head) {           /* same-sha
     sub->argc = head->argc;
 }
 
+/* D.1: torn-safe re-wave for a straddle-flagged snapshot read (MGET/EXISTS/TOUCH/PFCOUNT).
+ * Runs on the drain thread at the point csReassemble would otherwise emit the reply, exactly
+ * like the csPipeAdvance/csMsetnxAdvanceReservations stage pattern: drop the completed wave's
+ * subs and result state, resample T, rebuild and re-push the same key waves. Returns 1 = new
+ * wave pushed (head stays in flight; caller breaks), 0 = proceed to reassemble.
+ *
+ * Restart preserves the group's original dispatch pin (older reclaim floor — reading a newer T
+ * under an older floor is merely conservative) and its own_order_limit watermark, so a
+ * re-resolved wave can neither lose reclaim protection nor observe this connection's
+ * program-order-later writes. Restarts terminate in practice: each further wave requires a
+ * fresh straddle to land inside the (microsecond) resolution window, and every wave is counted
+ * in tomokv_atomic_straddle_resolution_restarts for the sanity gate. */
+static int csReadRestartAdvance(csGroup *g) {
+    if (g->straddle_fold == NULL ||
+        !atomic_load_explicit(&g->read_restart, memory_order_relaxed))
+        return 0;
+    serverAssert(g->straddle_eligible && !g->versioned_write && g->spec != NULL &&
+                 g->pipe_stage == 0 && g->sort_stage == 0 && !g->has_hop2);
+    csStraddleFoldReset(g);                     /* drops fold refs; clears read_restart */
+    if (atomic_load_explicit(&g->err, memory_order_relaxed) != CS_ERR_NONE)
+        return 0;   /* error replies are not snapshot-checked: reassemble the error verbatim */
+    if (!atomic_load_explicit(&tomo_atomic_memo_on, memory_order_relaxed))
+        return 0;   /* discriminating control arm: no repair */
+    atomic_fetch_add_explicit(&tomo_atomic_straddle_restarts, 1, memory_order_relaxed);
+
+    client *head = g->head;
+    const csCmdSpec *s = g->spec;
+    int dbid = g->h2_dbid, first = csFirstKeyArg(s);
+
+    /* Fresh T for the whole group (subs resolve through g->read_seq; the g->head fallback
+     * pin path must agree). tomo_read_snapshot_gen is deliberately NOT touched — pin-exit
+     * accounting must return to the generation row the pin entered under. */
+    uint64_t t = tomoCommittedSeq();
+    g->read_seq = t;
+    head->tomo_read_snapshot = t;
+
+    /* Reset the completed wave's result state. Retained MGET values return to their
+     * dispatch-time owners through S8 (this thread never mutates a worker-owned refcount);
+     * PFCOUNT's private sds images are coordinator-owned and freed here; EXISTS/TOUCH only
+     * carry the summed rcount. */
+    if (g->ctype == CS_MGET && g->mget_refs) {
+        for (int i = 0; i < g->nkeys; i++) {
+            if (g->mget_refs[i]) {
+                freebackPush((int)g->mget_owner[i], g->mget_refs[i]);
+                g->mget_refs[i] = NULL;
+            }
+        }
+    }
+    if (g->ctype == CS_PFCOUNT && g->mget_vals) {
+        for (int i = 0; i < g->nkeys; i++) {
+            if (g->mget_vals[i]) { sdsfree(g->mget_vals[i]); g->mget_vals[i] = NULL; }
+        }
+    }
+    atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
+
+    /* Drop the wave's subs. Legacy per-key MGET subs carry serialized reply fragments in
+     * their own buffers — discard them so the pooled fake is returned empty. */
+    if (g->subs) {
+        for (int i = 0; i < g->nsub; i++) {
+            discardClientReply(g->subs[i]);
+            csFreeSub(g->subs[i]);
+        }
+        csgFree(g, g->subs);
+        g->subs = NULL;
+        g->nsub = 0;
+    }
+    if (g->mget_pos) {
+        for (int i = 0; i < g->posmap_nsub; i++) csgFree(g, g->mget_pos[i]);
+        csgFree(g, g->mget_pos);
+        g->mget_pos = NULL;
+    }
+    g->posmap_nsub = 0;
+    cdbSlotClear(head->parent, head->cdb, head->fake_slot);
+
+    /* Rebuild with the ORIGINAL coalesce decision (the k>=3 threshold is load-bearing) and
+     * post-flip routing — csBuildCoalescedSubs re-derives mget_hash/mget_owner and re-arms
+     * pending before its own pushes, exactly as at first dispatch. */
+    int coalesce = 1;
+    switch (s->co_gate) {
+    case CS_CO_MGET_K3:  coalesce = (g->nkeys >= 3); break;
+    case CS_CO_SETOP_K3: coalesce = (g->nkeys >= 3); break;
+    }
+    if (coalesce) {
+        csCoalesceSpec cs = { .first_argi = first, .key_stride = s->key_stride,
+                              .per_key_extra = s->per_key_extra,
+                              .posmap = (s->pos_kind == CS_POS_MGET) ? &g->mget_pos
+                                                                     : NULL };
+        csBuildCoalescedSubs(head, g, g->nkeys, dbid, &cs, s->append_extra);
+    } else {
+        g->nsub = g->nkeys;
+        g->subs = csgAlloc(g, sizeof(client*) * (size_t)g->nkeys);
+        atomic_store_explicit(&g->pending, g->nkeys, memory_order_relaxed);
+        atomic_store_explicit(&g->rcount, 0, memory_order_relaxed);
+        for (int i = 0; i < g->nkeys; i++) {
+            robj *key = head->argv[first + i * s->key_stride];
+            if (__builtin_expect(atomic_load_explicit(&server.migration_active,
+                                                      memory_order_relaxed), 0))
+                migHoldKeyIfDraining(key);
+            int w = exIndexForKey(key->ptr, sdslen(key->ptr));
+            client *sub = csMakeSub(g, i, w, dbid);
+            csSubSetKeyArgv(sub, head, key);
+            csPushSpin(w, sub);
+        }
+    }
+    return 1;
+}
+
 /* Drain-side continuation for the one-destination NX reservation used by RENAMENX and COPY
  * without REPLACE. Conflict retries stay on the normal owner FIFO. Once RENAMENX owns the
  * destination, a final source-tombstone wave completes its two-install group; COPY's reserved
@@ -17010,10 +17206,19 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
     int nw = server.num_workers;
     int nsub_hi = coalesce ? ((nkeys < nw) ? nkeys : nw) : nkeys;
     int posmap  = coalesce && (s->pos_kind != CS_POS_NONE || atomic_msetnx);
+    /* D.1: restart-capable snapshot reads — exactly the atomic_snapshot READ family whose
+     * whole result state can be reset and re-waved from the drain (per-position values or a
+     * summed count; no partials, no hop2, no pipeline stage). Their straddle fold rides the
+     * group's inline region like every other coordinator array. */
+    int straddle_repair = atomic_snapshot && !atomic_write &&
+                          (s->ctype == CS_MGET || s->ctype == CS_EXISTS ||
+                           s->ctype == CS_PFCOUNT);
     size_t inline_want = csInlineWant(s, nkeys, nsub_hi, posmap);
     int version_expected = (s->ctype == CS_MSET || s->ctype == CS_DEL ||
                             s->ctype == CS_MSETNX) ? nkeys : 1;
     if (atomic_msetnx) inline_want += (size_t)nkeys;
+    if (straddle_repair)
+        inline_want += sizeof(tomoCommit *) * TOMO_STRADDLE_MEMO_MAX;
     csGroup *g = csGroupNew(inline_want);
     g->ctype = s->ctype; g->setop = s->setop; g->nkeys = nkeys; g->head = head;
     g->spec = s; g->h2_dbid = dbid;
@@ -17027,6 +17232,16 @@ static void dispatchGather(client *head, const csCmdSpec *s, int atomic_admissio
                                           memory_order_acquire));
         g->snapshot_pinned = 1;
         g->read_seq = head->tomo_read_snapshot;
+        if (straddle_repair) {
+            g->straddle_eligible = 1;
+            g->straddle_fold = csgCalloc(g, sizeof(_Atomic(tomoCommit *)) *
+                                             TOMO_STRADDLE_MEMO_MAX);
+            /* Connection install-order watermark: dispatch runs on the connection's owning
+             * producer, which is the sole writer of mset_next_install_order, so this plain
+             * read is exact. Every atomic write this connection dispatches AFTER this read
+             * reserves orders at/above it; restart waves use that to keep program order. */
+            g->own_order_limit = clientTail(head->parent)->mset_next_install_order;
+        }
     }
     if (atomic_write) {
         /* The pre-ring admission gate reserved exactly one inflight slot and rechecked the cutover
@@ -18670,6 +18885,13 @@ static void csReassemble(client *dst, client *head) {
             if (g->mget_refs[i]) freebackPush((int)g->mget_owner[i], g->mget_refs[i]);
         csgFree(g, g->mget_refs);
         g->mget_refs = NULL;
+    }
+    /* D.1: drop the straddle fold's commit references (covers both the normal reply and the
+     * dst==NULL teardown, where a flagged restart is pointless and simply not taken). */
+    if (g->straddle_fold) {
+        csStraddleFoldReset(g);
+        csgFree(g, g->straddle_fold);
+        g->straddle_fold = NULL;
     }
     /* xshard OPT-1: free any value slots not consumed by reassembly (the dst==NULL teardown path
      * never emitted them) + the position arrays. Reassembly NULLs each slot as it consumes it.
@@ -26560,12 +26782,41 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
                     continue;
                 }
                 if (last) {
+                    /* D.1 cross-sub validation. The acq_rel pending chain this thread just
+                     * completed publishes every sibling's straddle fold. A memoized-invisible
+                     * record whose marker now reads at or below the group's frozen T means a
+                     * sibling COULD have taken the visible verdict at its own instant while
+                     * another froze invisible — undetectable per sub, so conservatively
+                     * re-wave. Entries hold commit references (fold), so this dereference is
+                     * safe even a full grace after capture. Records still unpublished or
+                     * above T were invisible for every sub — consistent, no restart. */
+                    if (__builtin_expect(g->straddle_fold != NULL, 0) &&
+                        !atomic_load_explicit(&g->read_restart, memory_order_relaxed)) {
+                        int fn = atomic_load_explicit(&g->straddle_fold_n,
+                                                      memory_order_relaxed);
+                        if (fn > TOMO_STRADDLE_MEMO_MAX) fn = TOMO_STRADDLE_MEMO_MAX;
+                        for (int fi = 0; fi < fn; fi++) {
+                            tomoCommit *frec = atomic_load_explicit(
+                                &g->straddle_fold[fi], memory_order_relaxed);
+                            if (!frec) continue;
+                            uint64_t fts = atomic_load_explicit(&frec->commit_ts,
+                                                                memory_order_acquire);
+                            if (fts != 0 && fts <= g->read_seq) {
+                                atomic_store_explicit(&g->read_restart, 1,
+                                                      memory_order_relaxed);
+                                break;
+                            }
+                        }
+                    }
                     /* MGET has serialized every selected value before this point. Its snapshot is
                      * no longer needed by reassembly, so release the dispatch grace here instead
                      * of retaining a global reclaim pin until the producer IO loop reaches the
-                     * reply. Later IO-side release is exactly-once via the atomic exchange. */
+                     * reply. Later IO-side release is exactly-once via the atomic exchange.
+                     * A restart-flagged group KEEPS its pin: the re-wave resamples T under the
+                     * original (older, safe) reclaim floor. */
                     if (__builtin_expect(g->snapshot_pinned, 0) &&
-                        !g->versioned_write && g->ctype == CS_MGET)
+                        !g->versioned_write && g->ctype == CS_MGET &&
+                        !atomic_load_explicit(&g->read_restart, memory_order_relaxed))
                         tomoReleaseReadSnapshot(g->head);
                     if (g->versioned_write) {
                         int stage_only = !g->version_commit_ready;

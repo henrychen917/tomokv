@@ -2134,6 +2134,23 @@ typedef struct csGroup {
     redisAtomic int msetnx_retry;       /* reservations blocked by an earlier pending owner */
     uint8_t *msetnx_state;              /* [nkeys], coordinator-visible reservation verdict */
     int snapshot_pinned;       /* snapshot-reading group uses its head's dispatch pin */
+    /* ---- D.1 straddle repair (restart-capable snapshot reads: MGET/EXISTS/TOUCH/PFCOUNT).
+     * straddle_fold is the union of the subs' per-command memo entries (each entry holds one
+     * tomoCommit reference, released at fold reset). Subs fold at disarm, BEFORE their pending
+     * decrement publishes them complete; the last sub validates the union against the frozen T
+     * and arms read_restart when a memoized record's marker landed at or below it (some sibling
+     * may have used the visible verdict another sub froze invisible) or when a sub's memo
+     * overflowed. The drain then re-waves the group with a fresh T instead of reassembling.
+     * own_order_limit is the connection's install-order watermark at dispatch: a restarted wave
+     * must treat own installs at/after it as invisible — they are program-order LATER writes
+     * that the first wave could not have observed (owner-queue FIFO), so neither ordinary
+     * visibility nor own-widening may pull them into this read. NULL fold = shape without a
+     * restart lever (memo still guards intra-sub stability there). */
+    _Atomic(tomoCommit *) *straddle_fold; /* [TOMO_STRADDLE_MEMO_MAX] */
+    redisAtomic int straddle_fold_n;      /* reserved fold slots; > MAX encodes fold overflow */
+    redisAtomic int read_restart;         /* drain must re-wave instead of reassembling */
+    uint64_t own_order_limit;             /* first own install order NOT visible to this read */
+    int straddle_eligible;                /* restart-capable shape, stamped at dispatch */
     redisAtomic long rcount;   /* DEL/EXISTS: summed integer result */
     /* ee451 (v11-F): cross-shard set-ops (SINTER/SUNION/SDIFF). Each per-key sub gathers its
      * set's members as freshly-allocated sds COPIES (private, refcount-free => safe to free on
