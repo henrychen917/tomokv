@@ -293,6 +293,14 @@ int tomoR10OwnsActuator(const tomoR10Node *climb) {
     return climb && climb->active;
 }
 
+void tomoR10MoveAborted(tomoR10Node *climb) {
+    if (!climb || !climb->move_pending) return;
+    climb->move_pending = 0;
+    climb->pending_direction = 0;
+    climb->expected = climb->current;
+    if (climb->moves > 0) climb->moves--;
+}
+
 const char *tomoR10StateName(tomoR10State state) {
     switch (state) {
     case TOMO_R10_BASELINE: return "BASELINE";
@@ -329,6 +337,11 @@ void tomoR10Tick(tomoR10Node *climb, const tomoR10TickInput *input,
         break;
 
     case TOMO_R10_SIDE_A:
+        if (climb->rung != climb->initial_direction) {
+            tomoR10Request(climb, climb->initial_direction,
+                           request_move, private_data);
+            break;
+        }
         if (clean_window)
             tomoR10SeriesFeed(&climb->side_a, window, input->sigma);
         if (climb->side_a.count == TOMO_U1_PAIR_CAP) {
@@ -369,6 +382,11 @@ void tomoR10Tick(tomoR10Node *climb, const tomoR10TickInput *input,
         break;
 
     case TOMO_R10_SIDE_B:
+        if (climb->rung != -climb->initial_direction) {
+            tomoR10Request(climb, -climb->initial_direction,
+                           request_move, private_data);
+            break;
+        }
         if (clean_window)
             tomoR10SeriesFeed(&climb->side_b, window, input->sigma);
         if (climb->side_b.count == TOMO_U1_PAIR_CAP) {
@@ -383,6 +401,11 @@ void tomoR10Tick(tomoR10Node *climb, const tomoR10TickInput *input,
     case TOMO_R10_CLIMBING:
         if (!climb->candidate_active) {
             tomoR10StartClimbStep(climb, request_move, private_data);
+            break;
+        }
+        if (!tomoU1ShapeEqual(climb->current, climb->candidate.shape)) {
+            tomoR10Request(climb, climb->climb_direction,
+                           request_move, private_data);
             break;
         }
         if (clean_window)

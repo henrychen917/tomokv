@@ -37,6 +37,7 @@
 #include "uring2.h"
 #include "wb_uring.h"
 #include "flip_u1.h"
+#include "flip_r10.h"
 #include "flip_m1.h"
 
 #include <time.h>
@@ -4020,7 +4021,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
 
         /* ee451 (flip): the auto flip controller — ~4Hz sampling of the per-thread pressure
          * signals; moves the io/ex boundary by grow-front/grow-back on sustained front/back EWMA
-         * pressure (no-op unless tomokv-thread-mode auto and there is flip headroom). A one-node
+         * pressure (no-op unless tomokv-thread-mode auto/climb and there is flip headroom). A one-node
          * server keeps the frozen main-thread path; multi-node sampling belongs to each semi-main. */
         if (tmNumNodes() == 1) {
             run_with_period(250) {
@@ -7793,12 +7794,14 @@ void initServer(void) {
 
     /* ---- tomokv-thread-mode -> the two internal booleans it replaces ------------------------
      * ONE knob, so the "set both or the feature silently does nothing" trap cannot exist:
-     *   auto   = poly threads + the controller may actuate (the old thread-modes yes + balance yes)
+     *   auto   = poly threads + the r8 controller may actuate
+     *   climb  = the same r8 path through anchor, followed by r10 measured climb ownership
      *   static = poly threads, controller inert (the boot split is held for the whole run)
-     * The poly-thread apparatus runs in BOTH modes on purpose: auto-vs-static must be a clean A/B
+     * The poly-thread apparatus runs in every mode on purpose: auto-vs-static must be a clean A/B
      * of the CONTROLLER, not of two different execution models. */
     server.poly_threads = 1;
-    server.thread_auto  = (server.thread_mode == TOMO_THREAD_MODE_AUTO);
+    server.thread_auto  = (server.thread_mode == TOMO_THREAD_MODE_AUTO ||
+                           server.thread_mode == TOMO_THREAD_MODE_CLIMB);
     /* Merged into thread-mode 2026-07-28 (was tomokv-flip-rebalance): a flip that creates an io
      * thread no connection is routed to has only done half the work, so backfill is part of
      * flipping, not a separate switch. */
@@ -7958,6 +7961,7 @@ void initServer(void) {
         serverLog(LL_NOTICE, "tomokv topology: %d node(s) x %d cores (io %d + ex %d per node) "
                   "=> io_threads=%d ex_threads=%d, thread-mode=%s, pin-mode=%s",
                   nodes, cpn, ipn, epn, server.io_threads, server.ex_threads,
+                  server.thread_mode == TOMO_THREAD_MODE_CLIMB ? "climb" :
                   server.thread_auto ? "auto" : "static", tomoPinModeName(server.pin_mode));
     }
         server.wb_threads = 0;
@@ -8085,6 +8089,7 @@ void initServer(void) {
                   "per node) => io_threads=%d ex_threads=%d wb_threads=%d, "
                   "thread-mode=%s, pin-mode=%s",
                   nodes, cpn, ipn, epn, wpn, io_total, ex_total, wb_total,
+                  server.thread_mode == TOMO_THREAD_MODE_CLIMB ? "climb" :
                   server.thread_auto ? "auto" : "static",
                   tomoPinModeName(server.pin_mode));
     }
@@ -8130,10 +8135,11 @@ void initServer(void) {
         server.ex_per_node  = server.ex_threads;
         server.io_per_node  = 1;
         server.tm_pool_symmetric = 1;
-        serverLog(LL_NOTICE, "tomokv thread-mode auto: SYMMETRIC POOL — %d threads provisioned as "
+        serverLog(LL_NOTICE, "tomokv thread-mode %s: SYMMETRIC POOL — %d threads provisioned as "
                              "1 io (main) + %d convertible workers; boot split io %d / ex %d applied "
                              "by birthing workers %d..%d in IO mode. Reachable range io 1..%d "
                              "(both directions, from any boot split).",
+                  server.thread_mode == TOMO_THREAD_MODE_CLIMB ? "climb" : "auto",
                   pool, server.ex_threads, server.tm_boot_io_live, server.tm_boot_w_live,
                   server.tm_boot_w_live, server.ex_threads - 1, pool - 1);
     }
@@ -8174,9 +8180,10 @@ void initServer(void) {
         server.ex_per_node = provisioned_wpn;         /* provisioned worker stride */
         server.tm_pool_symmetric = 1;
         serverLog(LL_NOTICE,
-                  "tomokv thread-mode auto: PER-NODE SYMMETRIC POOL — %d nodes x %d threads: "
+                  "tomokv thread-mode %s: PER-NODE SYMMETRIC POOL — %d nodes x %d threads: "
                   "1 base io + %d convertible workers/node; boot split io %d / ex %d per node. "
                   "Reachable range per node io 1..%d (both directions).",
+                  server.thread_mode == TOMO_THREAD_MODE_CLIMB ? "climb" : "auto",
                   nodes, pool_per_node, provisioned_wpn, boot_ipn, boot_epn,
                   pool_per_node - 1);
     }
@@ -29989,7 +29996,7 @@ int tomoMigrateTest(int val, const char **err) {
  * (io ingress saturated while the workers have slack) -> grow-front; BACK pressure (workers
  * saturated while io has slack) -> grow-back. Signals are IO-thread + worker busy% utilization,
  * with a Schmitt sustain and a post-flip settle cooldown; the flip actuators enforce the per-role
- * bounds. No-op unless tomokv-thread-mode auto. */
+ * bounds. No-op unless tomokv-thread-mode auto/climb. */
 /* Per-node flip actuators (topo_nodes>=2). Defined below; see the node-scoped implementations. */
 
 /* ---- Logical NODE model for per-node flipping (2026-07-22 user directive: EWMA hot-key + client
@@ -30495,6 +30502,10 @@ typedef struct {
     int      walkback_armed; /* one reposition transfer is in flight; count only after it lands */
 } flipCtlState;
 static flipCtlState fctl[TM_MAXNODE];
+static tomoR10Node r10ctl[TM_MAXNODE];
+
+static void tmR10BeginEpisode(int node, flipCtlState *fc, int ni, int ne);
+static void tmR10DriveEpisode(int node, flipCtlState *fc, int ni, int ne);
 
 /* Dimensionless DYNAMICS only (smoothing rates + the signal-exceeds-noise boundary + backoff shape).
  * None is an operating threshold in throughput or pressure units — those are all derived per-tick
@@ -30677,14 +30688,105 @@ static void tomoExSatStaticTick(monotime now_us) {
     }
 }
 
-/* Try the flip in `dir` (+1 front / -1 back) for `node`. Returns 1 on success. topo_nodes==1 uses
- * the global actuators (node 0 == whole server); >1 uses the node-scoped ones (built in Phase C). */
-static int tmFlipDo(int node, int dir, const char **err) {
+/* Try the physical flip in `dir` (+1 front / -1 back) for `node`. Both controllers reach this
+ * same staged single-thread actuator; ownership is selected by the wrappers immediately below. */
+static int tmFlipActuate(int node, int dir, const char **err) {
     int armed = tmNumNodes() == 1
               ? (dir > 0 ? tomoGrowFront(err) : tomoGrowBack(err))
               : (dir > 0 ? tomoGrowFrontNode(node, err) : tomoGrowBackNode(node, err));
     if (armed) fctl[node].conversion_sample_dirty = 1;
     return armed;
+}
+
+/* This is the single r8 actuation gate. None of r8's four request sites carries an ownership
+ * branch. In CLIMB mode, r10 owns from BASELINE through ANCHORED. A request made while the search
+ * is active is refused here; the first request after ANCHORED is r8's already-sustained
+ * band/demand wake, which re-arms r8 and is allowed through as the first move of the next jump. */
+static int tmFlipDo(int node, int dir, const char **err) {
+    if (server.thread_mode == TOMO_THREAD_MODE_CLIMB &&
+        node >= 0 && node < TM_MAXNODE && tomoR10OwnsActuator(&r10ctl[node])) {
+        if (r10ctl[node].state != TOMO_R10_ANCHORED) {
+            if (err) *err = "r10 measured climb owns the role-conversion actuator";
+            return 0;
+        }
+        serverLog(LL_NOTICE, "[r10 n%d] REARM r8 band/demand wake at io%u/ex%u; "
+                  "next jump direction=%+d", node, r10ctl[node].current.io,
+                  r10ctl[node].current.ex, dir > 0 ? 1 : -1);
+        tomoR10Reset(&r10ctl[node]);
+    }
+    return tmFlipActuate(node, dir, err);
+}
+
+static int tmR10RequestMove(void *private_data, int node, int direction,
+                            const char **err) {
+    UNUSED(private_data);
+    return tmFlipActuate(node, direction, err);
+}
+
+static void tmR10BeginEpisode(int node, flipCtlState *fc, int ni, int ne) {
+    tomoU1Shape shape = {
+        .io = (uint16_t)ni,
+        .ex = (uint16_t)ne,
+        .wb = (uint16_t)(server.wb_threads > 0 ? server.wb_per_node : 0),
+    };
+    int min_io = server.tm_pool_symmetric
+               ? 1 : (tmNumNodes() == 1 ? server.io_threads : server.io_per_node);
+    int max_io = ni + ne - 1;
+    tomoR10Begin(&r10ctl[node], node, shape, fc->last_dir, min_io, max_io);
+    serverLog(LL_NOTICE, "[r10 n%d] BEGIN J=io%d/ex%d last_dir=%+d lattice=io%d..io%d "
+              "rung_cap=%u", node, ni, ne, fc->last_dir, min_io, max_io,
+              r10ctl[node].rung_limit);
+}
+
+static void tmR10DriveEpisode(int node, flipCtlState *fc, int ni, int ne) {
+    if (r10ctl[node].move_pending && tmFlipAbortConsume(node)) {
+        serverLog(LL_WARNING, "[r10 n%d] move %+d ABORTED before landing; retrying the same rung",
+                  node, r10ctl[node].pending_direction);
+        tomoR10MoveAborted(&r10ctl[node]);
+    }
+    tomoU1Window window;
+    const tomoU1Window *latest = tomoU1WindowGet(node, 0, &window) ? &window : NULL;
+    tomoR10TickInput input = {
+        .shape = {
+            .io = (uint16_t)ni,
+            .ex = (uint16_t)ne,
+            .wb = (uint16_t)(server.wb_threads > 0 ? server.wb_per_node : 0),
+        },
+        .ops_mean = fc->mean,
+        .sigma = tomoU1Sigma(node),
+        .window = latest,
+    };
+    tomoR10State before = r10ctl[node].state;
+    tomoR10Tick(&r10ctl[node], &input, tmR10RequestMove, NULL);
+    if (before != TOMO_R10_ANCHORED && r10ctl[node].state == TOMO_R10_ANCHORED) {
+        int level = r10ctl[node].backstop_hit ? LL_WARNING : LL_NOTICE;
+        serverLog(level, "[r10 n%d] ANCHOR io%u/ex%u rung=%+d moves=%u "
+                  "examined=%u/%u%s", node, r10ctl[node].current.io,
+                  r10ctl[node].current.ex, r10ctl[node].rung,
+                  r10ctl[node].moves, r10ctl[node].rungs_examined,
+                  r10ctl[node].rung_limit,
+                  r10ctl[node].backstop_hit ? " BACKSTOP-HIT" : "");
+    }
+}
+
+static int tmR10DeadArmReady(int node, flipCtlState *fc, int ni, int ne) {
+    /* A clean A/A pair is the grace: it cannot exist until u1a has observed the held shape through
+     * its settle detector and then completed two adjacent sub-windows. This uses the substrate's
+     * measured cadence rather than adding a timer. The corresponding absolute idle floor is the
+     * current per-node mean scaled by that pair's measured relative sigma. */
+    if (tomoU1NoisePairs(node) == 0) return 0;
+    tomoU1Window window;
+    if (!tomoU1WindowGet(node, 0, &window) || !window.settle_clean) return 0;
+    tomoU1Shape shape = {
+        .io = (uint16_t)ni,
+        .ex = (uint16_t)ne,
+        .wb = (uint16_t)(server.wb_threads > 0 ? server.wb_per_node : 0),
+    };
+    if (!tomoU1ShapeEqual(window.shape, shape) || !isfinite(window.mean) ||
+        fpclassify(window.mean) == FP_ZERO || fpclassify(window.mean) == FP_SUBNORMAL)
+        return 0;
+    double sigma_idle_floor = fabs(fc->mean) * tomoU1Sigma(node);
+    return isfinite(sigma_idle_floor) && window.mean > sigma_idle_floor;
 }
 
 /* One definition of "rate plateau" for both post-flip warmup and anchor capture. The estimate is
@@ -32914,6 +33016,13 @@ static void tomoFlipController(void) {
             continue;
         }
 
+        if (server.thread_mode == TOMO_THREAD_MODE_CLIMB &&
+            tomoR10OwnsActuator(&r10ctl[node]) &&
+            r10ctl[node].state != TOMO_R10_ANCHORED) {
+            tmR10DriveEpisode(node, fc, ni, ne);
+            continue;
+        }
+
         int at_intended_best = (fc->floor_probe_best_io == 0 ||
                                 fc->floor_probe_best_io == ni);
         if (settled_in_floor && fc->anchor_n == 0 && at_intended_best) {
@@ -32935,6 +33044,23 @@ static void tomoFlipController(void) {
                       node, captures, fc->lr_ewma, gfloor, sig_lc, fc->lr_quiet_run,
                       fc->anchor_rate_run, u_io, u_ex, ni, ne);
         }
+        if (server.thread_mode == TOMO_THREAD_MODE_CLIMB && settled_in_floor &&
+            fc->anchor_n > 0 && at_intended_best &&
+            !tomoR10OwnsActuator(&r10ctl[node])) {
+            tmR10BeginEpisode(node, fc, ni, ne);
+            continue;
+        }
+        if (server.thread_mode == TOMO_THREAD_MODE_CLIMB &&
+            !tomoR10OwnsActuator(&r10ctl[node]) && anchor_idle &&
+            !fc->floor_probe_active && !fc->floor_probe_return_blocked &&
+            !server_bound && fc->cli_run >= FLIP_SUSTAIN &&
+            tmR10DeadArmReady(node, fc, ni, ne)) {
+            serverLog(LL_NOTICE, "[r10 n%d] DEAD-ARM demand gate stayed closed with "
+                      "settle-clean load %.0f ops/s; starting C0-C2 at io%d/ex%d",
+                      node, fc->mean, ni, ne);
+            tmR10BeginEpisode(node, fc, ni, ne);
+            continue;
+        }
         /* NO FOLD (2026-08-09, owner design). The anchor is a FROZEN snapshot: a running-mean
          * anchor tracks whatever lr does and blinds the |lr - anchor| band — that tracking is
          * exactly how the original band trigger froze, and under a slow tide a folding anchor
@@ -32944,6 +33070,9 @@ static void tomoFlipController(void) {
             !fc->floor_probe_revert_pending)
             fc->floor_probe_await_settle = 0;
 
+        if (server.thread_mode == TOMO_THREAD_MODE_CLIMB &&
+            tomoR10OwnsActuator(&r10ctl[node]))
+            goto r10_floor_sweep_done;
         if (settled_in_floor && fc->anchor_n > 0 && !fc->floor_probe_used) {
             int base_io = (nnodes == 1) ? server.io_threads : server.io_per_node;
             tmFlipSweepBegin(fc, node, ni, ne, base_io, wsig, u_io, u_ex);
@@ -32954,6 +33083,7 @@ static void tomoFlipController(void) {
             fc->ref_ms = now;
             continue;                              /* first take the settled incumbent window */
         }
+r10_floor_sweep_done:
 
         /* REPOSITION/WALK-BACK: a sweep targets its next frozen candidate (and finally its measured
          * best); an ordinary exhausted coast steps back opposite the climb by best_dist one-thread

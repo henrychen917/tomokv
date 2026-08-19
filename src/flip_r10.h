@@ -82,6 +82,7 @@ void tomoR10Begin(tomoR10Node *climb, int node, tomoU1Shape shape,
                   int last_move_direction, int min_io, int max_io);
 void tomoR10Tick(tomoR10Node *climb, const tomoR10TickInput *input,
                  tomoR10MoveRequest request_move, void *private_data);
+void tomoR10MoveAborted(tomoR10Node *climb);
 
 int tomoR10OwnsActuator(const tomoR10Node *climb);
 const char *tomoR10StateName(tomoR10State state);
