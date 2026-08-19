@@ -8,8 +8,13 @@ install.
 
 Each physical head also carries `stamped_head`, the head of an owner-local unordered index linked by
 `stamped_prev`. A new physical head inherits the current index and immediately prepends itself while
-the group still has a zero commit marker. A later cancellation marks that already-indexed entry;
+its metadata is still private, before the vmeta/table-head release publication. The group still has
+a zero commit marker. A later cancellation marks that already-indexed entry;
 readers skip it because its shared marker never becomes nonzero.
+
+The metadata objects form one fixed-size allocation class. A bounded TLS pool on each install
+worker recycles blocks after their final grace, with low-water trimming for idle RSS; cold
+non-owner and quiescent teardown paths continue to free directly.
 
 The chains have different jobs:
 
@@ -67,5 +72,5 @@ graces complete.
 - Commit-record and reclaim charges release before the version metadata or object is freed.
 - Owner/bucket lifecycle references survive every owner-affine callback.
 
-See `src/db.c` (`tomoApplyVersionStamp`, `tomoVersionPruneAfterGrace`) and
+See `src/db.c` (`tomoVerMetaNew`, `tomoVersionPruneAfterGrace`) and
 [version-bag snapshot resolution](../algorithms/version-resolve.md).

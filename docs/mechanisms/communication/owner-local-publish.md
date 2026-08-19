@@ -25,10 +25,12 @@ reclaim backlog, then the worker continues unrelated work.
 
 ## Ordinary writes
 
-For MSET/DEL, `csMsetRecordInstall` calls `tomoApplyVersionStamp` immediately after appending each
-new version. The new physical head already contains the predecessor's authoritative stamped-index
-pointer, so this is a self-link publication with no key re-hash, table probe, or later record walk.
-`csMsetOwnerSliceDone` only folds the already-local reclaim total and appends the record in `PRUNE`.
+For MSET/DEL, `tomoVerMetaNew` initializes each new version's inherited `stamped_prev` and self
+`stamped_head` before the vmeta/table-head release publication. `csMsetRecordInstall` therefore has
+no second stamp publication; it carries the already-resolved database bucket into lifecycle
+accounting, release-attaches the shared commit, and appends the version. There is no key re-hash,
+table probe, or later record walk. `csMsetOwnerSliceDone` only folds the already-local reclaim total
+and appends the record in `PRUNE`.
 After unlocking and completing the normal pending barrier, the owner decrements
 `shards_remaining`. Nothing is sent to another worker.
 
@@ -46,7 +48,7 @@ all versions of one key necessarily share one owner. There is no shared per-key 
 
 ## Last-owner publication
 
-Every owner performs its eager local index release before the acquire-release counter decrement.
+Every owner completes its eager local index/table publication before the acquire-release counter decrement.
 The worker that observes one has acquired the complete group. It assigns the timestamp and
 release-stores the one shared `commit_ts` marker, advances the visible clock, and posts the existing
 CDB completion edge to the origin IO thread. All other owners have already returned to normal work.

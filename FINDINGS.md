@@ -222,7 +222,7 @@ a consequence of the failed conversion, not the initiating dependency.
 ## What to capture on the owner's reproduction
 
 - Process gone, assertion/core in `tomoVersionPruneAfterGrace`,
-  `tomoApplyVersionStamp`, or flatstore retirement: finding 1.
+  `tomoVerMetaNew`, or flatstore retirement: finding 1.
 - Process alive with one worker in `csStampPush`, another in `csCommitLock`, and IO
   threads in `csPushSpin`/`exDispatchDirect`: finding 2.
 - On the patched binary, non-zero `tomokv_atomic_stamp_full` plus

@@ -27,7 +27,8 @@ Sites that install a tombstone:
 | Empty destination store / RENAME source half | `csInstallVersionTombstone` (`src/server.c:11324-11337`) | `createStringObject("",0)` placeholder |
 
 Both call `setKeyVersioned(..., g->version_seq, -1)` to prepend one UNCOMMITTED bag
-version, assert `stamp_state == TOMO_STAMP_PENDING`, set `version_tombstone = 1`, and
+version whose invisible stamped link is already `TOMO_STAMP_APPLIED`, set
+`version_tombstone = 1`, and
 `csMsetRecordInstall` it into the group (`src/server.c:11524-11530`, `11328-11333`).
 See [install-commit-protocol.md](install-commit-protocol.md).
 
@@ -53,7 +54,7 @@ static void csDelSubExecVersioned(client *sub, csGroup *g) {
                                            SETKEY_EMBED_RAW | SETKEY_NO_SIGNAL,
                                            g->version_seq, -1);            /* :11524 */
         struct tomoVerMeta *vmeta = kvobjVmeta(installed);
-        serverAssert(vmeta && vmeta->stamp_state == TOMO_STAMP_PENDING);
+        serverAssert(vmeta && vmeta->stamp_state == TOMO_STAMP_APPLIED);
         vmeta->version_tombstone = 1;                                     /* :11529 */
         csMsetRecordInstall(sub, g, installed);                          /* :11530 */
 

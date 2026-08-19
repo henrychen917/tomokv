@@ -36,7 +36,7 @@ The complete `tomoVerMeta` layout is atomic `commit`; atomic `stamped_head`; ato
 
 Metadata and chain access is published rather than plain: `kvobjVmeta`, the shared timestamp helpers, and both predecessor getters use acquire loads, while the corresponding metadata and predecessor setters use release stores. (`src/object.h`)
 
-New version metadata initializes null commit and cached-read pointers, a closed `read_gate`, and `version_canceled`; it inherits the unordered stamped-index head through an acquire load and release store, starts an atomic install in `PENDING` and `TOMO_RETIRE_ACTIVE`, and records its physical predecessor, kvstore, and database. Before publishing a successor, installation permanently supersedes the old physical head's gate. `csMsetRecordInstall` later release-attaches the shared commit record while still under the destination owner lock. (`src/db.c`, `src/server.c`)
+New version metadata comes from a bounded install-worker fixed-size pool, initializes null commit and cached-read pointers, a closed `read_gate`, and `version_canceled`, and inherits the unordered stamped-index head through an acquire load. An atomic install initializes `stamped_prev` and `stamped_head = self` before the vmeta/table-head release publication, starts in `APPLIED` and `TOMO_RETIRE_ACTIVE`, and records its physical predecessor, already-resolved bucket, kvstore, and database. Before publishing a successor, installation permanently supersedes the old physical head's gate. `csMsetRecordInstall` later release-attaches the shared commit record while still under the destination owner lock. Final same-owner QSBR retirement recycles the block; low-water trimming and non-owner/quiescent fallback bound or bypass the pool. (`src/db.c`, `src/object.c`, `src/server.c`)
 
 ## Reader protocols
 
@@ -167,9 +167,9 @@ convoy allocator-facing physical frees. No limit or grace rule was removed. (`sr
 
 ### Arming the first grace
 
-Every atomic install inherits its physical predecessor's authoritative stamped index, appends itself
-to the stable owner record, release-initializes `owner_ops_pending` to one, and release-publishes
-itself as the new stamped-index head. This happens before the owner's acquire-release
+Every atomic install inherits its physical predecessor's authoritative stamped index and initializes
+itself as the new stamped-index head before publishing the vmeta/table head. It then appends itself
+to the stable owner record and release-initializes `owner_ops_pending` to one before the owner's acquire-release
 `shards_remaining` decrement. The common marker is still zero, so the eager entry is invisible.
 The last owner publishes the shared `commit_ts` marker and encoded global clock. (`src/server.c`,
 `src/db.c`)
