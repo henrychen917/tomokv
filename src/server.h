@@ -1868,6 +1868,15 @@ typedef union clientExecTail {
         int last_memory_type;
         redisAtomic int pending_read;
         uint8_t read_error;
+        /* p1direct per-conn mode state. All three are io-owner-written plain bytes:
+         * p1d_mode/p1d_streak are only ever touched by the owning io thread; p1d_inflight
+         * is set by the owner before the dispatch publish and cleared after the completion
+         * consume, so the worker-side phase-trace peek that reads it does so strictly
+         * inside the window where its value is 1 (race-free by publication order). They
+         * occupy the alignment hole after read_error — tail size unchanged. */
+        uint8_t p1d_mode;       /* TOMO_P1D_DIRECT (boot default) | TOMO_P1D_FC */
+        uint8_t p1d_inflight;   /* 1 while a DIRECT dispatch is in flight on ex */
+        uint8_t p1d_streak;     /* consecutive clean singleton rounds while in FC (saturating) */
         /* IO-owned provenance for mode-2 cross-node reply prefetch. A bit is
          * set when any worker producing this ring generation is remote. */
         uint32_t prefetch_io_xnode_slots;
@@ -1998,6 +2007,24 @@ _Static_assert(offsetof(client, argc) == 276, "client argv state left hot line 4
 static inline int clientExOwnedReal(const client *c) {
     return !c->isFake && (c->flags & CLIENT_EX_PENDING);
 }
+
+/* p1direct per-conn mode values (clientExecTail.p1d_mode). DIRECT is the boot state:
+ * the first command on a fresh conn is always a singleton. */
+#define TOMO_P1D_DIRECT 0
+#define TOMO_P1D_FC     1
+
+/* Flags that disqualify a conn from DIRECT dispatch outright. The fake path executes
+ * with a four-flag SUBSET (moveExecutionStateSlim), so a conn whose full flag word
+ * carries connection-scoped semantics the GET/SET proc or its reply path could observe
+ * (replication identities, reply silencing, tracking, teardown, migration, parks) must
+ * stay on the fake path where those flags are stripped for the execution object. */
+#define TOMO_P1D_DISQUALIFY_FLAGS \
+    (CLIENT_MULTI | CLIENT_BLOCKED | CLIENT_UNBLOCKED | CLIENT_SLAVE | CLIENT_MASTER | \
+     CLIENT_MONITOR | CLIENT_TRACKING | CLIENT_REPLY_OFF | CLIENT_REPLY_SKIP | \
+     CLIENT_REPLY_SKIP_NEXT | CLIENT_CLOSE_AFTER_REPLY | CLIENT_CLOSE_ASAP | \
+     CLIENT_PROTECTED | CLIENT_MIGRATING | CLIENT_SCRIPT | CLIENT_MODULE | \
+     CLIENT_INTERNAL | CLIENT_ASM_MIGRATING | CLIENT_ASM_IMPORTING | CLIENT_PUSHING | \
+     CLIENT_PENDING_WRITE)
 
 /* p1direct witness counters (anti-vacuous rule: every closed path ships a counter that
  * proves it opened). One cache line per io identity, owner-incremented with plain stores;

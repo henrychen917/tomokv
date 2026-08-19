@@ -2660,6 +2660,38 @@ void getExpansiveClientsInfo(size_t *in_usage, size_t *out_usage) {
  * array; INFO folds the per-io lines. */
 tomoP1DirectStats tomo_p1d_stats[TOMO_IO_THREADS_MAX + 1];
 
+/* p1direct master toggle: DEBUG TOMO-P1DIRECT <0|1>, DEFAULT ON. 0 forces every conn
+ * onto the fake path WITHOUT mutating per-conn mode state (re-enable restores the
+ * previous per-conn modes instantly) — the A/B lever for validation. Not a config knob
+ * (no new knobs rule); a DEBUG test hook in the TOMO-MODESHIFT class. Relaxed atomics:
+ * one relaxed load on the DIRECT-eligible arm only; FC-mode conns never read it. */
+_Atomic int tomo_p1direct_enabled = 1;
+
+/* p1direct: is THIS command, RIGHT NOW, a clean singleton on a quiet conn? True iff
+ * dispatching the real client to ex is indistinguishable from the fake path except for
+ * the ceremony it skips. Evaluated on the owning io thread against io-owned state only.
+ *   - ring empty: zero in-flight executions of any kind for this conn;
+ *   - singleton parse round: the head being executed is the ONLY complete parsed
+ *     command (ready_len counts the head until moveExecutionState/commandProcessed
+ *     pops it) and the query buffer holds no undecoded tail — a second complete
+ *     command found behind this one is the owner's "detect pipe" trigger;
+ *   - clean output: the previous reply fully left (ex writes straight into c->buf, so
+ *     any unflushed prior bytes would be concurrently read by the io send path; this
+ *     is also the owner's "before the previous reply flushed" trigger), including an
+ *     io_uring SEND whose CQE has not retired the buffer reference;
+ *   - none of the disqualifying connection-scoped flags (see server.h). */
+static inline int tomoP1DirectCleanNow(client *c, clientExecTail *ct) {
+    if (ct->dispatchid != ct->flushid) return 0;
+    if (c->pending_cmds.ready_len > 1) return 0;
+    if (ct->querybuf && ct->qb_pos < sdslen(ct->querybuf)) return 0;
+    if (c->bufpos != 0 || c->sentlen != 0 || listLength(c->reply) != 0) return 0;
+    if (c->flags & TOMO_P1D_DISQUALIFY_FLAGS) return 0;
+    if (!c->conn) return 0;
+    if (server.io_uring && tomoUringBackendClientAttached(c) &&
+        tomoUringBackendClientSendPending(c)) return 0;
+    return 1;
+}
+
 /* Run cron tasks for a single client. Return 1 if the client should
  * be terminated, 0 otherwise. */
 int clientsCronRunClient(client *c) {
@@ -3541,7 +3573,13 @@ static inline int cdbSlotReady(client *real, int cdb, unsigned int slot) {
 }
 static inline void cdbSlotPublish(client *real, int cdb, unsigned int slot) {
     if (__builtin_expect(server.phase_trace_sample != 0, 0)) {
-        client *fake = slot < TOMO_PIPELINE_DEPTH_MAX ?
+        /* p1direct: during a DIRECT flight the slot has no live fake — fakeClients[slot]
+         * is at best an idle previous occupant, and stamping it would phase-trace a
+         * bystander. p1d_inflight is io-owner-written but STABLE across this publish
+         * (set before the dispatch publish that carried the job here, cleared only after
+         * the byte stored below is consumed), so the relaxed read is race-free. */
+        client *fake = (slot < TOMO_PIPELINE_DEPTH_MAX &&
+                        !clientTail(real)->p1d_inflight) ?
                        clientTail(real)->fakeClients[slot] : NULL;
         tomoPhasePublished(fake);
     }
@@ -4618,6 +4656,25 @@ static void handleWorkerRepliesScan(void) {
          * real from the pending_worker list; freeClient will reclaim on the
          * next async-free pass. */
         if ((real->flags & CLIENT_CLOSE_ASAP) || !real->conn) {
+            /* p1direct teardown consume: the one in-flight execution IS the real client
+             * (no ring fake exists for this generation). Retire it without touching the
+             * conn; the async-free walker completes the deferred kill on its next pass,
+             * now that EX_PENDING is off and the ring is empty. */
+            if (__builtin_expect(rt->p1d_inflight != 0, 0)) {
+                unsigned int slot = rt->flushid & rt->ring_mask;
+                if (!cdbSlotReady(real, real->cdb, slot)) continue;  /* wait for worker */
+                cdbSlotClear(real, real->cdb, slot);
+                rt->p1d_inflight = 0;
+                real->flags &= ~CLIENT_EX_PENDING;
+                real->db = &server.db[real->db->id];   /* undo the worker-shard rebind */
+                TOMO_P1D_BUMP(handbacks);
+                commandProcessed(real);                /* retire the pcmd (mask-aware free) */
+                replyWorking--;
+                rt->flushid++;
+                debugServerAssert(rt->flushid == rt->dispatchid);
+                listUnlinkNode(server.clients_pending_ex[iotid], ln);
+                continue;
+            }
             while (rt->flushid != rt->dispatchid) {
                 unsigned int slot = rt->flushid & rt->ring_mask;
                 client *fake = rt->fakeClients[slot];
@@ -4706,6 +4763,56 @@ static void handleWorkerRepliesScan(void) {
          * loop will, stopping at the first not-ready slot. */
         /* The old topology-blind two-pass drain walk remains deleted. Mode 2
          * below warms only a completed generation proven cross-node. */
+
+        /* ===== p1direct handback consume ==================================================
+         * The one in-flight execution IS the real client; its reply already sits in the
+         * real c->buf (zero relocation). Consume the client-tagged ready byte, close the
+         * EX_OWNED window, retire the pcmd, and fall through to the SAME flush/unlink/wake
+         * tail the fake path uses (the ring is empty after the consume, so the fake walk
+         * below no-ops and the shared tail sees spliced=1 with bytes already in place). */
+        if (__builtin_expect(rt->p1d_inflight != 0, 0)) {
+            unsigned int slot = rt->flushid & rt->ring_mask;
+            debugServerAssert(rt->dispatchid - rt->flushid == 1 &&
+                              real->fake_slot == slot);
+            if (!cdbSlotReady(real, real->cdb, slot)) continue;  /* completion not published yet;
+                * the wake tail below must NOT re-drive this conn — its predicate requires
+                * ring-empty while p1d_inflight is set, and we skip it entirely here. */
+            /* The acquire above pairs with the worker's release store of this byte (the
+             * executor sig batch): every ex-side write — c->buf/bufpos, plain-copy spill
+             * nodes, reply metrics, pcmd argv_released_mask — happened-before this point.
+             * The EX_OWNED window closes HERE; from the next statement on, this thread owns
+             * the client again and every deferred toucher acts on its next pass. */
+            cdbSlotClear(real, real->cdb, slot);
+            rt->p1d_inflight = 0;
+            real->flags &= ~CLIENT_EX_PENDING;
+            real->db = &server.db[real->db->id];      /* undo the worker-shard rebind */
+            TOMO_P1D_BUMP(handbacks);
+            /* Spill fallback: a non-empty reply list means the reply did not fit c->buf.
+             * The command still completed correctly (plain-copy list nodes — the copy-avoid
+             * and str-ref paths are gated off for EX_OWNED reals — and writeToClient sends
+             * buf then list), but the conn leaves the small-reply lane: FC executes big
+             * replies on a fake with the S8 zero-copy machinery. */
+            if (__builtin_expect(listLength(real->reply) != 0, 0)) {
+                TOMO_P1D_BUMP(spill_fallbacks);
+                if (rt->p1d_mode == TOMO_P1D_DIRECT) {
+                    rt->p1d_mode = TOMO_P1D_FC;
+                    TOMO_P1D_BUMP(mode_to_fc);
+                }
+            }
+            commandProcessed(real);   /* the fake path's commandProcessed(fake) equivalent:
+                                       * pops+frees the attached pcmd; freePendingCommand
+                                       * honors argv_released_mask, so operands the worker
+                                       * already released are skipped (single-mutator). */
+            replyWorking--;
+            rt->flushid++;
+            /* Deferred obuf-limit check (EX_OWNED deferral site 5): io-side, in the same
+             * post-completion position the fake path runs it (AddReplyFromClient). */
+            if (closeClientOnOutputBufferLimitReached(real, 1)) {
+                listUnlinkNode(server.clients_pending_ex[iotid], ln);
+                continue;   /* CLOSE_ASAP recorded; teardown owns the reply */
+            }
+            spliced = 1;
+        }
 
         while (rt->flushid != rt->dispatchid) {
             unsigned int slot = rt->flushid & rt->ring_mask;
@@ -4859,7 +4966,14 @@ static void handleWorkerRepliesScan(void) {
          * bit here would leave a stale wait-list entry. */
         if ((real->flags & CLIENT_PIPELINE_STALLED) &&
             !(real->flags & CLIENT_ATOMIC_WINDOW_STALLED) &&
-            (rt->cs_barrier ? (rt->dispatchid == rt->flushid)
+            /* p1direct: a DIRECT flight parks the conn with PIPELINE_STALLED at dispatch;
+             * its wake condition is ring-EMPTY (the handback), exactly the cs_barrier
+             * shape — the generic one-slot-freed arm would re-drive the parser while ex
+             * still owns the client. Normally unreachable while in flight (the consume
+             * arm `continue`s on a pending completion), but any other route into this
+             * tail must keep the same gate. */
+            ((rt->cs_barrier || rt->p1d_inflight)
+                            ? (rt->dispatchid == rt->flushid)
                             : ((rt->dispatchid - rt->flushid) < rt->ring_size)))
         {
             real->flags &= ~CLIENT_PIPELINE_STALLED;
@@ -9119,6 +9233,69 @@ int processCommand(client *c) {
             NOTIFY_KEY_MISS | NOTIFY_EXPIRED | NOTIFY_STRING | NOTIFY_NEW |
             NOTIFY_OVERWRITTEN | NOTIFY_TYPE_CHANGED))
         core_eligible = 0;
+
+    /* ===== p1 DIRECT-CLIENT dispatch (design 2026-08-19) ======================================
+     * At pipeline depth 1 the fake wrapper protects against an overlap that cannot exist:
+     * exactly one command is in flight, so the REAL client* is dispatched to ex, ex executes
+     * with c == the real client (addReply writes straight into the real c->buf), ex publishes
+     * this client's ready byte on the SAME EX->IO reply-discovery channel the ring uses
+     * (reply_cdb[cdb].ready[slot] — the byte lives on the real client, i.e. it IS the
+     * client-tagged bit), and the io drain flushes c->buf with zero relocation. No pcmd move,
+     * no fake acquire/retire, no small-reply relocation.
+     *
+     * ELIGIBILITY is the core-fake gate verbatim: the `core_eligible` value computed above is
+     * the ONE eligibility source (plain GET/SET shapes, no modules watching string keyspace,
+     * LOG_REQ_RES builds excluded). DIRECT adds only per-conn dynamic conditions
+     * (tomoP1DirectCleanNow) — never a second command list.
+     *
+     * OWNERSHIP: CLIENT_EX_PENDING on the real == the EX_OWNED window (see clientExOwnedReal;
+     * every io-side toucher defers). It also re-uses two existing gates verbatim: the read
+     * paths (readQueryFromClient / processClientInputFromUring) return immediately on the
+     * flag, so the parser can NEVER run concurrently with ex on this client, and
+     * _prepareClientToWrite returns C_OK without touching event registration, so ex's
+     * addReply never schedules a write. CLIENT_PIPELINE_STALLED parks this conn's execute
+     * loop (processCommandAndResetClient skips commandProcessed — the pcmd stays attached,
+     * ex is reading its argv — and processInputBuffer breaks); the drain's wake re-drives it
+     * after the handback consume, gated on ring-empty exactly like cs_barrier.
+     *
+     * HANDSHAKE FENCES (hard rule from ccfeef463): the dispatch->completion->consume chain
+     * introduces NO new cross-thread stall/recheck pair.
+     *   - completion visibility: worker release-stores the CDB byte, drain acquire-loads it
+     *     (the existing SPSC discipline);
+     *   - sleep-edge: a direct completion is published through the SAME executor sig batch
+     *     as every ring fake, so tomoCompletionWakePostBatch's store(published)->seq_cst
+     *     fence->load(armed) pairs with tomoCompletionWakeArm's store(armed)->seq_cst
+     *     fence->rescan — the already-fenced Dekker pair of the reply channel;
+     *   - the PIPELINE_STALLED park is set and cleared by the OWNING io thread only, and its
+     *     waker (the drain) runs on that same thread: program order closes it, no fence.
+     * A lost handback here reproduces the captured wedge signature (parsed+dispatched, argv
+     * held, events unarmed, conn starved forever) — which is why the witnesses below carry
+     * the dispatches==handbacks quiesce invariant. */
+    if (core_eligible && ct->p1d_mode == TOMO_P1D_DIRECT &&
+        __builtin_expect(atomic_load_explicit(&tomo_p1direct_enabled,
+                                              memory_order_relaxed), 1)) {
+        if (tomoP1DirectCleanNow(c, ct)) {
+            int ex_id = getWorkerForCommand(c);   /* stamps tomo_bkt/tomo_bkt_ptr/tomo_key_h */
+            c->cdb = cdbIndexFor(ex_id);
+            c->fake_slot = ct->dispatchid & ct->ring_mask;   /* ready-byte slot the drain consumes */
+            c->db = &server.exThreads[ex_id].db[c->db->id];  /* worker-shard rebind; undone at handback */
+            /* EX_OWNED window opens here; both flags must be visible to the worker via the
+             * dispatch publish (exQueuePush release store) — set them BEFORE the push. */
+            c->flags |= CLIENT_EX_PENDING | CLIENT_PIPELINE_STALLED;
+            ct->p1d_inflight = 1;
+            TOMO_P1D_BUMP(dispatches);
+            /* Ring is empty (CleanNow) => this conn is never on the flush-walk list yet. */
+            listLinkNodeTail(server.clients_pending_ex[iotid], &ct->clients_pending_ex_node);
+            replyWorking++;
+            exDispatchPush(ex_id, c);
+            ct->dispatchid++;
+            return C_OK;
+        }
+        /* Owner rule "switch to fc mode when detect pipe" — the safe direction: THIS
+         * command takes the existing fake path below, instantly. */
+        ct->p1d_mode = TOMO_P1D_FC;
+        TOMO_P1D_BUMP(mode_to_fc);
+    }
     unsigned int fslot = ct->dispatchid & ct->ring_mask;
     /* 2s-auto D3: lazy-create the ring slot on first use (createClient leaves every slot NULL).
      * fake_slot is restamped after a resize because the allocation may move. */
@@ -23258,7 +23435,17 @@ static __thread exThread *tm_cur_ex;
 
 static inline tomoCmdClockStamp exExecFake(client *fake, monotonic_raw entry_raw) {
     tomoCmdClockStamp exit_clock = {0, 0};
-    serverAssert(fake->isFake);
+    /* p1direct: a DIRECT dispatch pops the REAL client here — always EX_PENDING-marked and
+     * conn-backed. Everything below already works on it unmodified: current_client points at
+     * it (tomoKeyHashHint's EX_PENDING test holds), the proc's addReply lands in its own
+     * c->buf (the EX_PENDING arm of _prepareClientToWrite), the S2 bucket lock derives from
+     * the dispatch-stamped tomo_bkt, per-command stats/counts take the direct-proc arm
+     * (tomo_local_worker is -1 on reals for life), commands_processed increments the real's
+     * own counter (no drain fold needed), and the argv release below decrefs the pcmd
+     * operands with the worker as the sole shard-refcount mutator, exactly as for a fake —
+     * the pcmd stayed ATTACHED to the real (no move), and argv_released_mask tells the io
+     * side's later freePendingCommand which slots are already released. */
+    serverAssert(fake->isFake || ((fake->flags & CLIENT_EX_PENDING) && fake->conn));
     if (fake->cmd) {
         server.current_client[iotid].p = fake;
         server.executing_client[iotid].p = fake;
@@ -24360,7 +24547,13 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
                 worker->w_ewma_vsize = cur < 0 ? 0 : (unsigned int)cur;
             }
 
-            sig_parents[sig_n] = fake->parent;
+            /* p1direct: a DIRECT real is its own completion target (parent == NULL only for
+             * reals; every fake carries one). Routing it through this same sig batch is
+             * load-bearing for the handshake fences: the batch's cdbSlotPublish release
+             * stores and the ONE tomoCompletionWakePostBatch fence/arm-check episode below
+             * are the already-fenced Dekker pair of the reply channel (ccfeef463 idiom) —
+             * a separate publish site would have to rebuild both. */
+            sig_parents[sig_n] = fake->parent ? fake->parent : fake;
             sig_cdb[sig_n] = ctx->wcdb;
             sig_slots[sig_n] = (uint8_t)fake->fake_slot;
             sig_n++;

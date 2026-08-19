@@ -789,6 +789,36 @@ client *createClient(connection *conn) {
     clientTail(c)->fake_ring_hwm_ewma   = 0.0;
     clientTail(c)->fake_ring_hwm_win    = 0;
 
+    /* p1direct: a REAL client can now be handed to a worker (DIRECT dispatch), which makes
+     * the ex pop loop and the reply drain consult fields createClient never armed — it
+     * zmallocs, so each carries recycled heap garbage until someone writes it. A garbage
+     * drain_ack reads as a CUTOVER SENTINEL (freeFakeClient on a live conn), garbage
+     * is_flush as a FLUSH sentinel (empties the shard db), garbage csparent as a scatter
+     * sub, and a garbage prefetch_key_hash_valid arms a wrong-bucket hash hint (silent
+     * wrong-shard lookups). Exactly the mig_parked_node defect class above (21013fded):
+     * fresh mmap pages hide it, allocator recycling detonates it. Initialize them all. */
+    clientTail(c)->is_flush = 0;
+    clientTail(c)->flush_dbid = 0;
+    clientTail(c)->flush_async = 0;
+    clientTail(c)->flush_bar = NULL;
+    clientTail(c)->drain_ack = NULL;
+    clientTail(c)->drain_fence_gen = 0;
+    c->csgroup = NULL;
+    c->csparent = NULL;
+    c->prefetch_key_hash = 0;
+    c->prefetch_key_hash_valid = 0;
+    c->prefetch_dict = NULL;
+    c->prefetch_bucket_idx = 0;
+    c->tomo_bkt_ptr = NULL;
+    c->tomo_key_h = 0;
+    c->tomo_bkt = 0;
+    c->fake_slot = 0;
+    /* p1direct per-conn mode: DIRECT at accept — the first command on a fresh conn is
+     * always a singleton (design 2026-08-19). */
+    clientTail(c)->p1d_mode = TOMO_P1D_DIRECT;
+    clientTail(c)->p1d_inflight = 0;
+    clientTail(c)->p1d_streak = 0;
+
     return c;
 }
 
