@@ -10130,8 +10130,9 @@ void preprocessCommand(client *c, pendingCommand *pcmd) {
 
     /* Check if we can reuse the previous command instead of looking it up.
      * The previous command is either the penultimate pending command (if it exists), or c->lastcmd. */
-    if (pcmd->prev)
+    if (pcmd->prev) {
         debugServerAssert(pcmd->prev->flags & PENDING_CMD_DEBUG_CMD_INITIALIZED);
+    }
     struct redisCommand *last_cmd = pcmd->prev ? pcmd->prev->cmd : clientTail(c)->lastcmd;
 
     if (isCommandReusable(last_cmd, pcmd->argv[0]))
@@ -23255,6 +23256,14 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 rord_grouped_sum += tm_io_sig[_t].rord_grouped; rord_fences_sum += tm_io_sig[_t].rord_fences;
                 rord_age_pins_sum += tm_io_sig[_t].rord_age_pins;
             }
+            /* Hoisted from the sdscatprintf argument list: a GNU ({...})
+             * statement expression there trips -Wpedantic (braced-group in
+             * expression); this is the identical worst-of-workers fold. */
+            unsigned rord_worst_age_us = 0;
+            for (int _w = 0; server.exThreads && _w < server.num_workers &&
+                             _w < TOMO_EX_THREADS_MAX; _w++)
+                if (server.exThreads[_w].rord_worst_age_us > rord_worst_age_us)
+                    rord_worst_age_us = server.exThreads[_w].rord_worst_age_us;
             int io_hi = server.io_threads + server.tm_ngrow_io, nio = 0;
             for (int t = 1; t <= io_hi && t <= TOMO_IO_THREADS_MAX; t++) {
                 polyThreadCtx *ic = tmCtxForIotid(t);
@@ -23364,7 +23373,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "tomokv_rord_grouped:%llu\r\n", (unsigned long long)rord_grouped_sum,
                 "tomokv_rord_fences:%llu\r\n", (unsigned long long)rord_fences_sum,
                 "tomokv_reorder_age_pins:%llu\r\n", (unsigned long long)rord_age_pins_sum,
-                "tomokv_rord_worst_age_us:%u\r\n", ({ unsigned _m=0; for (int _w=0; server.exThreads && _w<server.num_workers && _w<TOMO_EX_THREADS_MAX;_w++) if (server.exThreads[_w].rord_worst_age_us>_m) _m=server.exThreads[_w].rord_worst_age_us; _m; }),
+                "tomokv_rord_worst_age_us:%u\r\n", rord_worst_age_us,
                 "tomokv_io_threads_counted:%d\r\n", nio,
                 "tomokv_ex_threads_counted:%d\r\n", wlive));
 
