@@ -244,6 +244,14 @@ unscaled selected population and witnesses that classification actually ran. Raw
 are intentionally outside both fast/slow counters, so the fast count demonstrates that the
 version-bag gate actually fired.
 
+Both physical and stamped predecessor accessors prefetch a non-null predecessor immediately after
+the acquire which discovers its address. Bag loops advance through those accessors, placing the
+prefetch at the transition into the next iteration without another dependent load. This covers the
+slow resolver's stamped walk, the NX reservation probe's physical walk, and both physical/stamped
+prune filters with no knob or read-side telemetry update. The owner-local
+`tomokv_atomic_bag_prefetches` witness counts actual non-null next nodes encountered by the two
+prune filters and is folded only for INFO.
+
 ## Retirement and backpressure
 
 A successful record remains on its owner's private list after installation. At the start of a

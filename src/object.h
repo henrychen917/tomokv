@@ -67,6 +67,8 @@
 #ifndef __OBJECT_H
 #define __OBJECT_H
 
+#include "config.h"
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdatomic.h>
@@ -268,7 +270,9 @@ static inline uint64_t tomoVersionCommitTs(const struct tomoVerMeta *vmeta) {
 
 static inline kvobj *kvobjVersionPrev(const kvobj *kv) {
     struct tomoVerMeta *vmeta = kvobjVmeta(kv);
-    return __atomic_load_n(&vmeta->version_prev, __ATOMIC_ACQUIRE);
+    kvobj *prev = __atomic_load_n(&vmeta->version_prev, __ATOMIC_ACQUIRE);
+    if (prev) redis_prefetch_read(prev);
+    return prev;
 }
 
 static inline void kvobjSetVersionPrev(kvobj *kv, kvobj *prev) {
@@ -278,7 +282,9 @@ static inline void kvobjSetVersionPrev(kvobj *kv, kvobj *prev) {
 
 static inline kvobj *kvobjStampedPrev(const kvobj *kv) {
     struct tomoVerMeta *vmeta = kvobjVmeta(kv);
-    return __atomic_load_n(&vmeta->stamped_prev, __ATOMIC_ACQUIRE);
+    kvobj *prev = __atomic_load_n(&vmeta->stamped_prev, __ATOMIC_ACQUIRE);
+    if (prev) redis_prefetch_read(prev);
+    return prev;
 }
 
 static inline void kvobjSetStampedPrev(kvobj *kv, kvobj *prev) {

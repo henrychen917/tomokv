@@ -1259,6 +1259,7 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
      * callback was armed misses exactly an old-owner callback which matures after a cutover. */
     struct tomoVerMeta *callback_meta = kvobjVmeta(anchor);
     int owner = iotid - (TOMO_IO_THREADS_MAX + 1);
+    unsigned long long bag_prefetches = 0;
     tomoAtomicOwnerCheck(callback_meta, owner, 1);
     serverAssert(owner >= 0 && owner < server.num_workers);
     int standalone_scope = !tomo_prune_batch_active;
@@ -1317,6 +1318,7 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
     while (kv) {
         struct tomoVerMeta *vmeta = kvobjVmeta(kv);
         kvobj *next = vmeta ? kvobjVersionPrev(kv) : NULL;
+        if (next) bag_prefetches++;
         uint64_t seq = vmeta ? tomoVersionCommitTs(vmeta) : 0;
         int eligible = 0;
         if (vmeta && vmeta->stamp_state == TOMO_STAMP_CANCELED) {
@@ -1369,6 +1371,7 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
         for (kv = stamped_head; kv; ) {
             struct tomoVerMeta *vmeta = kvobjVmeta(kv);
             kvobj *next = vmeta ? kvobjStampedPrev(kv) : NULL;
+            if (next) bag_prefetches++;
             int survives = vmeta ?
                 (vmeta->stamp_state == TOMO_STAMP_APPLIED &&
                  !vmeta->detached &&
@@ -1396,6 +1399,7 @@ void tomoVersionPruneAfterGrace(kvobj *anchor) {
             kvobjSetStampedPrev(stamped_previous, NULL);
         stamped_head = new_stamped_head;
     }
+    tomoAtomicBagPrefetchWitness(owner, bag_prefetches);
     /* A reservation that created an absent key can be the bag's last member.
      * SetAtLink(NULL) is not a delete operation for FLAT stores: it would
      * expose a reusable tomb before the follow-up unlink. Route the empty-bag

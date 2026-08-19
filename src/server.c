@@ -834,6 +834,7 @@ typedef struct csOwnerPublishList {
     _Atomic unsigned long long vmeta_pool_recycles;
     _Atomic unsigned long long bucket_carry_hits;
     _Atomic unsigned long long gate_early_reopens;
+    _Atomic unsigned long long bag_prefetches;
 } __attribute__((aligned(CACHE_LINE_SIZE))) csOwnerPublishList;
 _Static_assert(sizeof(csOwnerPublishList) % CACHE_LINE_SIZE == 0,
                "owner-local publish state must have a cache-line stride");
@@ -847,6 +848,16 @@ static inline csOwnerPublishList *csOwnerPublishListFor(exThread *worker) {
                                                      memory_order_acquire);
     serverAssert(lists != NULL && worker->id >= 0 && worker->id < server.num_workers);
     return &lists[worker->id];
+}
+
+/* Prune is the cold owner-affine witness site for the common predecessor
+ * accessors. Aggregate a complete callback locally so observability adds no
+ * locked RMW and no instrumentation to the read/NX hot walks themselves. */
+void tomoAtomicBagPrefetchWitness(int owner, unsigned long long count) {
+    if (!count) return;
+    serverAssert(owner >= 0 && owner < server.num_workers);
+    tomoRelaxedBump(
+        csOwnerPublishListFor(&server.exThreads[owner])->bag_prefetches, count);
 }
 
 static atomic_flag tomo_atomic_lifecycle_init_lock = ATOMIC_FLAG_INIT;
@@ -962,6 +973,7 @@ void tomoAtomicLifecycleEnsure(void) {
             atomic_init(&lists[w].vmeta_pool_recycles, 0);
             atomic_init(&lists[w].bucket_carry_hits, 0);
             atomic_init(&lists[w].gate_early_reopens, 0);
+            atomic_init(&lists[w].bag_prefetches, 0);
         }
         atomic_store_explicit(&tomo_atomic_publish_lists, lists, memory_order_release);
     }
@@ -23249,6 +23261,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         unsigned long long diet_pool_hits = 0, diet_pool_recycles = 0;
         unsigned long long diet_bucket_carries = 0;
         unsigned long long gate_early_reopens = 0;
+        unsigned long long bag_prefetches = 0;
         csOwnerPublishList *owner_lists = atomic_load_explicit(
             &tomo_atomic_publish_lists, memory_order_acquire);
         if (owner_lists) {
@@ -23276,6 +23289,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                     owner_lists[_w].bucket_carry_hits);
                 gate_early_reopens += tomoRelaxedRead(
                     owner_lists[_w].gate_early_reopens);
+                bag_prefetches += tomoRelaxedRead(
+                    owner_lists[_w].bag_prefetches);
             }
         }
         info = sdscatprintf(info,
@@ -23302,7 +23317,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_atomic_vmeta_pool_hits:%llu\r\n"
             "tomokv_atomic_vmeta_pool_recycles:%llu\r\n"
             "tomokv_atomic_bucket_carry_hits:%llu\r\n"
-            "tomokv_atomic_gate_early_reopens:%llu\r\n",
+            "tomokv_atomic_gate_early_reopens:%llu\r\n"
+            "tomokv_atomic_bag_prefetches:%llu\r\n",
             atomic_load_explicit(&tomo_atomic_commit_ts_lag, memory_order_relaxed),
             atomic_load_explicit(&tomo_atomic_stragglers, memory_order_relaxed),
             tomoAtomicWindowResolved(), tomoAtomicReclaimLimitResolved(),
@@ -23315,7 +23331,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             owner_epochs, owner_versions, owner_qsbr_waits, owner_snapshot_waits,
             owner_node_allocs, owner_batch_allocs, diet_stamp_folds,
             diet_pool_hits, diet_pool_recycles, diet_bucket_carries,
-            gate_early_reopens);
+            gate_early_reopens, bag_prefetches);
         info = sdscatprintf(info,
             "tomokv_fake_core_allocs:%llu\r\n"
             "tomokv_fake_tail_promotions:%llu\r\n",
