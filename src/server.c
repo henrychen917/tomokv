@@ -30747,6 +30747,7 @@ static void tmR10BeginEpisode(int node, flipCtlState *fc, int ni, int ne) {
     int min_io = server.tm_pool_symmetric
                ? 1 : (tmNumNodes() == 1 ? server.io_threads : server.io_per_node);
     int max_io = ni + ne - 1;
+    tmFlipAbortClear(node);
     tomoR10Begin(&r10ctl[node], node, shape, fc->last_dir, min_io, max_io);
     tomoR10WitnessEpisode();
     serverLog(LL_NOTICE, "[r10 n%d] BEGIN J=io%d/ex%d last_dir=%+d lattice=io%d..io%d "
