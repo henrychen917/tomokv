@@ -976,7 +976,14 @@ static void _addReplyPayloadToList(client *c, list *reply_list, const char *payl
         listAddNodeTail(reply_list, tail);
         c->reply_bytes += tail->size;
 
-        closeClientOnOutputBufferLimitReached(c, 1);
+        /* p1direct EX_OWNED: a REAL client executing directly on an ex thread must not run
+         * the obuf-limit close from that thread — checkClientOutputBufferLimits would stamp
+         * the io-owned soft-limit timestamp and freeClientAsync would RMW c->flags from the
+         * worker. The owning io thread re-runs this exact check at handback (the same
+         * ordering the fake path has: AddReplyFromClient checks the REAL after the splice).
+         * A fake is already a no-op inside the callee (isFake early return). */
+        if (!clientExOwnedReal(c))
+            closeClientOnOutputBufferLimitReached(c, 1);
     }
 }
 
@@ -1876,6 +1883,14 @@ static int isCopyAvoidPreferred(client *c, robj *obj, size_t len) {
         /* Non-worker fakes (e.g. a fake on the IO/main thread) must still copy:
          * no owning worker to route the decref to. */
         if (c->isFake || !c->conn) return 0;
+        /* p1direct EX_OWNED: a REAL client executing directly on an ex thread must COPY.
+         * Falling through would build a str-ref with owner_ex == -1 (the isFake test above
+         * is how worker execution is normally detected): a cross-thread incref whose decref
+         * runs on the io write path, plus enrollment in clients_with_pending_ref_reply[]
+         * indexed by the WORKER's iotid — out of bounds (the exact S8 SEGV class). The
+         * direct reply contract is bytes-into-c->buf, never shared robjs; a value large
+         * enough to want zero-copy overflows c->buf anyway and flips the conn to FC. */
+        if (clientExOwnedReal(c)) return 0;
         int type = getClientType(c);
         if (type != CLIENT_TYPE_NORMAL) return 0;
         /* Don't use copy avoidance for push messages (deferred when PUSHING). */
@@ -3020,7 +3035,18 @@ void freeClientAsync(client *c) {
     // }
 
     if (c->flags & CLIENT_CLOSE_ASAP || c->flags & CLIENT_SCRIPT) return;
-    if (c->flags & CLIENT_EX_PENDING) return;
+    if (c->flags & CLIENT_EX_PENDING) {
+        /* p1direct EX_OWNED: an ex thread is executing on this REAL client (DIRECT flight;
+         * a fake never reaches here — the isFake redirect above went to its parent, so this
+         * test was dead until reals could carry EX_PENDING). A bare return would silently
+         * LOSE the close request — CLIENT KILL, obuf-limit close, protocol error — because
+         * nothing re-issues it after handback. Record the intent instead (CLOSE_ASAP + the
+         * close queue below) and let the async-free walker act after handback: the walker
+         * skips EX_PENDING clients and dispatchid!=flushid clients, and the reply drain
+         * refuses to touch the conn of a CLOSE_ASAP real, so acting is naturally deferred
+         * to the first pass after the io owner consumed the completion. */
+        TOMO_P1D_BUMP(deferred_kills);
+    }
     c->flags |= CLIENT_CLOSE_ASAP;
     /* Replicas that was marked as CLIENT_CLOSE_ASAP should not keep the
      * replication backlog from been trimmed. */

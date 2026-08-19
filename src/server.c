@@ -2655,10 +2655,27 @@ void getExpansiveClientsInfo(size_t *in_usage, size_t *out_usage) {
     *out_usage = o;
 }
 
+/* p1direct witness slots (see server.h). Defined here so every consumer (networking.c
+ * kill deferral, iothread-driven cron, migration walks, the dispatch/drain) shares one
+ * array; INFO folds the per-io lines. */
+tomoP1DirectStats tomo_p1d_stats[TOMO_IO_THREADS_MAX + 1];
+
 /* Run cron tasks for a single client. Return 1 if the client should
  * be terminated, 0 otherwise. */
 int clientsCronRunClient(client *c) {
     mstime_t now = server.mstime;
+    /* p1direct EX_OWNED deferral: an ex thread is executing on this real client right now.
+     * Every service this cron performs touches io-owned state the direct execution is
+     * entitled to see stable — querybuf resize (parser bookkeeping), c->buf REALLOC
+     * (clientsCronResizeOutputBuffer would move the buffer ex's addReply is appending to),
+     * timeout/obuf-limit frees, fake-ring decay, memory sampling of a half-built reply.
+     * The flight is microseconds and this cron visits each client ~1Hz, so deferring one
+     * tick is invisible; the flag is set/cleared by THIS thread (the owner), so a plain
+     * read suffices — no fence (contrast ccfeef463: that Dekker pair spanned two threads). */
+    if (__builtin_expect(clientExOwnedReal(c), 0)) {
+        TOMO_P1D_BUMP(deferred_cron_touches);
+        return 0;
+    }
     /* The following functions do different service checks on the client.
      * The protocol is that they return non-zero if the client was
      * terminated. */
@@ -27269,6 +27286,16 @@ void tmMigServiceOut(void) {
             listRewind(server.clients[id], &li);
             while (started < count && (ln = listNext(&li))) {
                 client *c = listNodeValue(ln);
+                /* p1direct EX_OWNED: an ex thread is executing on this real client (DIRECT
+                 * dispatch). Migration of an EX_OWNED conn must WAIT for handback — do not
+                 * even START it here (a start pauses reads and enrolls migration state on a
+                 * client whose execution identity is mid-flight). The walk just picks the
+                 * next migratable conn; the banked latent-P1 class this guards against is
+                 * a conn handed to another io thread while ex still writes its c->buf. */
+                if (__builtin_expect(clientExOwnedReal(c), 0)) {
+                    TOMO_P1D_BUMP(deferred_migrations);
+                    continue;
+                }
                 if (!(c->flags & CLIENT_MIGRATING) && tmClientMigratable(c)) {
                     tmMigStartClient(c); started++;
                 }
@@ -27327,6 +27354,12 @@ void tmMigServiceOut(void) {
         listRewind(server.clients[id], &li);
         while ((ln = listNext(&li))) {
             client *c = listNodeValue(ln);
+            /* p1direct EX_OWNED: defer the start until handback (this walk re-runs every
+             * pass, so a deferred conn is re-marked a few microseconds later). */
+            if (__builtin_expect(clientExOwnedReal(c), 0)) {
+                TOMO_P1D_BUMP(deferred_migrations);
+                continue;
+            }
             if (!(c->flags & CLIENT_MIGRATING) && tmClientMigratable(c)) tmMigStartClient(c);
         }
     }
@@ -27349,6 +27382,14 @@ void tmMigServiceOut(void) {
         if (!tmClientMigratable(c)) {
             if (!tmMigAbortClient(c)) continue;
             listDelNode(mb->migrating_out, ln);
+            continue;
+        }
+        /* p1direct EX_OWNED: a conn already enrolled (marked before its DIRECT dispatch, or
+         * raced by one) must WAIT for handback — tmClientQuiesced's dispatchid==flushid fence
+         * refuses it below; witness the deferral so a migration-under-flight cell can prove
+         * the wait fired rather than never being exercised (vacuous-validation rule). */
+        if (__builtin_expect(clientExOwnedReal(c), 0)) {
+            TOMO_P1D_BUMP(deferred_migrations);
             continue;
         }
         if (!tmClientQuiesced(c)) continue;    /* still draining in-flight / flushing replies */

@@ -1976,6 +1976,55 @@ _Static_assert(offsetof(client, reply_bytes) == 192, "client reply accounting le
 _Static_assert(offsetof(client, argc) == 276, "client argv state left hot line 4");
 #endif
 
+/* ===== p1 DIRECT-CLIENT: the EX_OWNED ownership window (design 2026-08-19) =============
+ *
+ * In DIRECT mode the dispatch hands the REAL client* to an ex thread (no fake wrapper).
+ * The window is delimited by the flag every dispatched execution object already carries:
+ * CLIENT_EX_PENDING on a NON-fake client == "an ex thread is executing on this real
+ * client right now". The owning io thread sets it immediately before the SPSC dispatch
+ * publish and clears it when it consumes the completion byte, so for the owner the flag
+ * is program-ordered; the worker observes it through the queue's release/acquire pair.
+ *
+ * While the window is open, EVERY io-side toucher must defer/skip this client:
+ *   - clientsCronRunClient (querybuf resize, obuf limit check, timeout processing,
+ *     output-buffer resize, fake-ring decay, memory sampling),
+ *   - CLIENT KILL / freeClient / freeClientAsync (record CLOSE_ASAP intent, act after
+ *     handback via the async-free walker, which already skips EX_PENDING clients),
+ *   - client-lb / flip connection migration (start walks skip; the handoff already
+ *     waits on tmClientQuiesced's dispatchid==flushid fence),
+ *   - the reply path's output-buffer-limit close (re-checked io-side at handback).
+ * Ex touches ONLY exec-visible fields (argv, db context, c->buf/bufpos, reply metrics);
+ * never events, the socket, querybuf, or migration fields. */
+static inline int clientExOwnedReal(const client *c) {
+    return !c->isFake && (c->flags & CLIENT_EX_PENDING);
+}
+
+/* p1direct witness counters (anti-vacuous rule: every closed path ships a counter that
+ * proves it opened). One cache line per io identity, owner-incremented with plain stores;
+ * INFO folds the slots. INVARIANT: dispatches == handbacks at quiesce — a lasting gap is
+ * exactly the captured wedge signature (parsed+dispatched, argv held, events unarmed,
+ * conn starved forever). deferred_kills may be bumped from a non-owner thread (a killer
+ * thread records intent); that writer indexes its own slot, so slots stay single-writer. */
+typedef struct tomoP1DirectStats {
+    unsigned long long dispatches;          /* direct dispatches (io, at push) */
+    unsigned long long handbacks;           /* direct completions consumed (io, at drain) */
+    unsigned long long mode_to_fc;          /* per-conn DIRECT->FC transitions */
+    unsigned long long mode_to_direct;      /* per-conn FC->DIRECT transitions */
+    unsigned long long deferred_cron_touches;  /* clientsCronRunClient skipped an EX_OWNED conn */
+    unsigned long long deferred_migrations;    /* migration start/handoff deferred on EX_OWNED */
+    unsigned long long deferred_kills;         /* kill intent recorded on an EX_OWNED conn */
+    unsigned long long spill_fallbacks;        /* direct reply overflowed c->buf => conn -> FC */
+} __attribute__((aligned(CACHE_LINE_SIZE))) tomoP1DirectStats;
+_Static_assert(sizeof(tomoP1DirectStats) == CACHE_LINE_SIZE,
+               "p1direct witness slot must occupy exactly one owner line");
+extern tomoP1DirectStats tomo_p1d_stats[TOMO_IO_THREADS_MAX + 1];
+/* Non-io callers (a killer thread recording intent from a cold teardown path) fold
+ * into slot 0; the guard keeps a worker-range iotid from indexing out of bounds. */
+#define TOMO_P1D_BUMP(fieldname) do { \
+        int _p1d_slot = (iotid >= 0 && iotid <= TOMO_IO_THREADS_MAX) ? iotid : 0; \
+        tomo_p1d_stats[_p1d_slot].fieldname++; \
+    } while (0)
+
 /* Non-allocating cold-state readers. Call the subsystem initializer before a
  * write; these helpers deliberately return NULL for never-used state. */
 static inline multiState *clientMultiState(client *c) {
