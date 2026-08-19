@@ -2667,6 +2667,23 @@ tomoP1DirectStats tomo_p1d_stats[TOMO_IO_THREADS_MAX + 1];
  * one relaxed load on the DIRECT-eligible arm only; FC-mode conns never read it. */
 _Atomic int tomo_p1direct_enabled = 1;
 
+/* p1direct FC -> DIRECT hysteresis run length. DERIVED, not invented (owner rule: no new
+ * magic numbers). The design's first choice — K from a measured input-noise estimator
+ * ("u1a-style machinery") — does not exist in this tree (grepped: no such apparatus), so
+ * the fallback derivation applies: reuse the flip controller's FLIP_SUSTAIN (= 8), this
+ * tree's established "persisted this long => not a transient" quantum. The mode switch is
+ * the exact self-influencing-controller shape FLIP_SUSTAIN was sized for: the actuator
+ * moves the signal (a DIRECT flight gates reads, which reshapes the very parse-round
+ * batching the promotion predicate observes — the flip controller's analogue is "a flip
+ * changes both saturations"), so promoting on the first clean round would chase the
+ * controller's own transient. FLIP_SUSTAIN's magnitude was validated against measured
+ * out-of-band rates (see the flip controller's settle-band table: 8 consecutive ticks is
+ * what makes 3-5% isolated out-of-band noise unable to fire a transition); the same
+ * absorb-isolated-noise role is wanted here — a stray pipelined burst inside an
+ * otherwise-p1 conn must not ping-pong the mode. A compile-time cross-check next to
+ * FLIP_SUSTAIN's definition keeps the two from drifting apart silently. */
+#define TOMO_P1D_SUSTAIN 8
+
 /* p1direct: is THIS command, RIGHT NOW, a clean singleton on a quiet conn? True iff
  * dispatching the real client to ex is indistinguishable from the fake path except for
  * the ceremony it skips. Evaluated on the owning io thread against io-owned state only.
@@ -9271,10 +9288,10 @@ int processCommand(client *c) {
      * A lost handback here reproduces the captured wedge signature (parsed+dispatched, argv
      * held, events unarmed, conn starved forever) — which is why the witnesses below carry
      * the dispatches==handbacks quiesce invariant. */
-    if (core_eligible && ct->p1d_mode == TOMO_P1D_DIRECT &&
-        __builtin_expect(atomic_load_explicit(&tomo_p1direct_enabled,
-                                              memory_order_relaxed), 1)) {
-        if (tomoP1DirectCleanNow(c, ct)) {
+    if (__builtin_expect(atomic_load_explicit(&tomo_p1direct_enabled,
+                                              memory_order_relaxed), 1) &&
+        ct->p1d_mode == TOMO_P1D_DIRECT) {
+        if (core_eligible && tomoP1DirectCleanNow(c, ct)) {
             int ex_id = getWorkerForCommand(c);   /* stamps tomo_bkt/tomo_bkt_ptr/tomo_key_h */
             c->cdb = cdbIndexFor(ex_id);
             c->fake_slot = ct->dispatchid & ct->ring_mask;   /* ready-byte slot the drain consumes */
@@ -9291,10 +9308,40 @@ int processCommand(client *c) {
             ct->dispatchid++;
             return C_OK;
         }
-        /* Owner rule "switch to fc mode when detect pipe" — the safe direction: THIS
-         * command takes the existing fake path below, instantly. */
+        /* Owner rule "switch to fc mode when detect pipe" — DIRECT -> FC is INSTANT and
+         * covers both triggers: a non-eligible command (core_eligible == 0) and a pipe
+         * signature (CleanNow == 0: a 2nd complete command behind this one, an undecoded
+         * querybuf tail, a previous reply not yet flushed, an in-flight execution, or a
+         * disqualifying flag). The safe direction: THIS command takes the existing fake
+         * path below, immediately. */
         ct->p1d_mode = TOMO_P1D_FC;
+        ct->p1d_streak = 0;
         TOMO_P1D_BUMP(mode_to_fc);
+    } else if (__builtin_expect(atomic_load_explicit(&tomo_p1direct_enabled,
+                                                     memory_order_relaxed), 1)) {
+        /* FC -> DIRECT hysteresis: only after TOMO_P1D_SUSTAIN consecutive clean singleton
+         * parse rounds with zero in-flight fakes (the same predicate a DIRECT dispatch
+         * requires, so a promoted conn's next round is dispatchable by construction). The
+         * Kth clean round itself still dispatches FC — the promotion applies "after K
+         * rounds", i.e. from the next command.
+         *
+         * DEEP-PIPE BUDGET: on a pipelined conn this arm costs the mode-byte test plus
+         * CleanNow's FIRST compare (dispatchid != flushid — both values this path already
+         * loaded for the hwm update above) for 15 of 16 commands in a p16 batch; only the
+         * batch head reaches the second test (ready_len). The streak byte shares the
+         * dispatchid line and is written only when it must change (a saturated-zero streak
+         * on a busy pipe never stores). */
+        if (core_eligible && tomoP1DirectCleanNow(c, ct)) {
+            if (ct->p1d_streak >= TOMO_P1D_SUSTAIN - 1) {
+                ct->p1d_mode = TOMO_P1D_DIRECT;
+                ct->p1d_streak = 0;
+                TOMO_P1D_BUMP(mode_to_direct);
+            } else {
+                ct->p1d_streak++;
+            }
+        } else if (ct->p1d_streak) {
+            ct->p1d_streak = 0;
+        }
     }
     unsigned int fslot = ct->dispatchid & ct->ring_mask;
     /* 2s-auto D3: lazy-create the ring slot on first use (createClient leaves every slot NULL).
@@ -28311,6 +28358,12 @@ static flipCtlState fctl[TM_MAXNODE];
                                 * not the config: one physical flip moves one thread, and the worst case that
                                 * can do is halve the worker side (w=2 -> w=1) on a fully
                                 * worker-bound load, ~2x. Beyond 3x, re-baseline (#74). */
+/* p1direct's FC->DIRECT run length is DERIVED from this constant (see TOMO_P1D_SUSTAIN's
+ * derivation comment at its definition). If FLIP_SUSTAIN is ever re-sized from new settle
+ * measurements, re-derive the p1direct value with it — this check makes silent drift a
+ * compile error rather than an undocumented second constant. */
+_Static_assert(TOMO_P1D_SUSTAIN == FLIP_SUSTAIN,
+               "p1direct hysteresis is derived from FLIP_SUSTAIN; re-derive, don't fork");
 #define FLIP_EPISODE_POOL_CUTOFF 16 /* owner compatibility boundary: configured per-node pools at
                                      * or below this retain the original judged climb */
 #define FLIP_EPISODE_EX_CHANGE 0.10 /* required absolute raw-EX-demand change before retrying a
