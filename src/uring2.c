@@ -84,6 +84,8 @@ typedef struct tomoUring2AtomicStats {
     _Atomic uint64_t cq_drain_passes;
     _Atomic uint64_t cq_batches;
     _Atomic uint64_t epoll_wakes;
+    _Atomic uint64_t p1_batch_harvests;
+    _Atomic uint64_t recv_ceremony_batched_ops;
     _Atomic uint64_t recv_submitted;
     _Atomic uint64_t recv_cqes;
     _Atomic uint64_t recv_bytes;
@@ -99,6 +101,9 @@ typedef struct tomoUring2AtomicStats {
     _Atomic uint64_t send_scratch_copies;
     _Atomic uint64_t send_scratch_bytes;
     _Atomic uint64_t send_cancel_submitted;
+    _Atomic uint64_t send_ceremony_batches;
+    _Atomic uint64_t send_ceremony_batched_ops;
+    _Atomic uint64_t sqe_template_hits;
     _Atomic uint64_t migration_acks;
 } tomoUring2AtomicStats;
 
@@ -738,6 +743,8 @@ static int tomoUring2StageSends(tomoUring2Thread *st) {
         uc->send_result_pending = 0;
     }
     URING2_STAT_BUMP(st, send_submitted, ready_count);
+    /* One pass-level increment witnesses every copied per-connection image. */
+    URING2_STAT_BUMP(st, sqe_template_hits, ready_count);
     return (int)ready_count;
 }
 
@@ -1040,6 +1047,8 @@ static void tomoUring2ProcessSendReadyBatch(
         tomoUring2TryFinishSend(uc, tcp_type);
     }
     tomoUring2PublishSendResultFold(st, &fold);
+    URING2_STAT_BUMP(st, send_ceremony_batches, 1);
+    URING2_STAT_BUMP(st, send_ceremony_batched_ops, count);
 }
 
 static void tomoUring2ApplySendResultScalar(tomoUring2Thread *st,
@@ -1160,7 +1169,7 @@ static int tomoUring2ProcessReady(tomoUring2Thread *st,
     return processed;
 }
 
-static void tomoUring2ProcessCqeBatch(
+static unsigned int tomoUring2ProcessCqeBatch(
     tomoUring2Thread *st, struct io_uring_cqe **kernel_cqes,
     unsigned count) {
     /* Slot storage and its free-list frontier are pass invariants. Retire the
@@ -1173,6 +1182,7 @@ static void tomoUring2ProcessCqeBatch(
     uint64_t recv_cqes = 0;
     uint64_t recv_bytes = 0;
     uint64_t recv_sock_nonempty = 0;
+    unsigned int recv_ops = 0;
     uint64_t send_cqes = 0;
     tomoUring2Client *send_ready[TOMO_URING2_CQE_BATCH];
     unsigned int send_ready_count = 0;
@@ -1206,6 +1216,7 @@ static void tomoUring2ProcessCqeBatch(
         if (kind == TOMO_URING2_OP_RECV) {
             recv_cqes++;
             if (cqe.res > 0) {
+                recv_ops++;
                 recv_bytes += (uint64_t)cqe.res;
                 tomoUring2Client *uc = owner;
                 if (uc->mode == TOMO_URING2_CLIENT_RUN &&
@@ -1232,6 +1243,7 @@ static void tomoUring2ProcessCqeBatch(
     if (recv_sock_nonempty)
         URING2_STAT_BUMP(st, recv_sock_nonempty, recv_sock_nonempty);
     if (send_cqes) URING2_STAT_BUMP(st, send_cqes, send_cqes);
+    return recv_ops;
 }
 
 static int tomoUring2ReapAe(aeEventLoop *el, int process_file_events) {
@@ -1242,6 +1254,7 @@ static int tomoUring2ReapAe(aeEventLoop *el, int process_file_events) {
 
     struct io_uring_cqe *cqes[TOMO_URING2_CQE_BATCH];
     unsigned total = 0;
+    unsigned int recv_ops = 0;
     int started = 0;
     int input_batch = io_uring_cq_ready(&st->ring) != 0 ||
                       (process_file_events && st->parse_count != 0);
@@ -1267,7 +1280,7 @@ static int tomoUring2ReapAe(aeEventLoop *el, int process_file_events) {
             started = 1;
         }
         URING2_STAT_BUMP(st, cq_batches, 1);
-        tomoUring2ProcessCqeBatch(st, cqes, count);
+        recv_ops += tomoUring2ProcessCqeBatch(st, cqes, count);
         io_uring_cq_advance(&st->ring, count);
         total += count;
         URING2_STAT_BUMP(st, cqes, count);
@@ -1278,6 +1291,11 @@ static int tomoUring2ReapAe(aeEventLoop *el, int process_file_events) {
     if (input_batch) tomoUringInputBatchHarvestDone();
     int processed = tomoUring2ProcessReady(st, process_file_events);
     if (input_batch) tomoUringInputBatchEnd();
+    if (recv_ops) {
+        /* These two increments happen once per complete drain, not per CQE. */
+        URING2_STAT_BUMP(st, p1_batch_harvests, 1);
+        URING2_STAT_BUMP(st, recv_ceremony_batched_ops, recv_ops);
+    }
     uint64_t reported = (uint64_t)processed + total;
     if (reported > AE_URING_COUNT_MASK) reported = AE_URING_COUNT_MASK;
     int result = (int)reported;
@@ -1877,6 +1895,8 @@ void tomoUring2GetStats(tomoUring2Stats *out) {
     FOLD(cq_drain_passes);
     FOLD(cq_batches);
     FOLD(epoll_wakes);
+    FOLD(p1_batch_harvests);
+    FOLD(recv_ceremony_batched_ops);
     FOLD(recv_submitted);
     FOLD(recv_cqes);
     FOLD(recv_bytes);
@@ -1892,6 +1912,9 @@ void tomoUring2GetStats(tomoUring2Stats *out) {
     FOLD(send_scratch_copies);
     FOLD(send_scratch_bytes);
     FOLD(send_cancel_submitted);
+    FOLD(send_ceremony_batches);
+    FOLD(send_ceremony_batched_ops);
+    FOLD(sqe_template_hits);
     FOLD(migration_acks);
     for (int i = 0; i <= TOMO_IO_THREADS_MAX; i++) {
         uint64_t v = tomoRelaxedRead(tomo_uring2[i].stats.sqes_max_batch);

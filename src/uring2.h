@@ -33,6 +33,8 @@ typedef struct tomoUring2Stats {
     uint64_t cq_drain_passes;
     uint64_t cq_batches;
     uint64_t epoll_wakes;
+    uint64_t p1_batch_harvests;
+    uint64_t recv_ceremony_batched_ops;
     uint64_t recv_submitted;
     uint64_t recv_cqes;
     uint64_t recv_bytes;
@@ -48,6 +50,9 @@ typedef struct tomoUring2Stats {
     uint64_t send_scratch_copies;
     uint64_t send_scratch_bytes;
     uint64_t send_cancel_submitted;
+    uint64_t send_ceremony_batches;
+    uint64_t send_ceremony_batched_ops;
+    uint64_t sqe_template_hits;
     uint64_t migration_acks;
 } tomoUring2Stats;
 

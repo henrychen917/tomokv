@@ -74,7 +74,9 @@ static inline uint64_t flatSlotOf(flatTable *t, dictEntryLink link) {
     return (uint64_t)((flatSlot *)((char *)link - offsetof(struct flatSlot, w)) - t->slots);
 }
 static inline dictEntry *flatKvMask(kvstore *kvs, void *kv) {
-    return dictEncodeStoredKey(&kvs->dtype, kvs, kv);
+    /* dictType's legacy keyDup ABI names its opaque owner `dict *`; flat
+     * stores deliberately supply their kvstore owner through that slot. */
+    return dictEncodeStoredKey(&kvs->dtype, (dict *)(void *)kvs, kv);
 }
 int kvstoreIsFlat(kvstore *kvs) { return (kvs->flags & KVSTORE_FLAT) != 0; }
 static inline flatTable *flatCurrent(kvstore *kvs) {

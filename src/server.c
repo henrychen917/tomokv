@@ -11012,7 +11012,8 @@ static inline void csMsetPubRecordLocked(client *real, csGroup *g) {
  * The ring itself is connection-owned and outlives every group: freeClient defers a teardown
  * while the fake ring is in flight (dispatchid != flushid), which is the same guarantee that
  * lets the caller dereference hp->reply_cdb one line earlier. */
-static void csMsetPubRetire(client *real, uintptr_t tag) {
+static void __attribute__((unused)) csMsetPubRetire(client *real,
+                                                     uintptr_t tag) {
     clientExecTail *rt = clientTail(real);
     csMsetPendingLock(real);
     csMsetPub *pub = rt->mset_pub;
@@ -11508,6 +11509,7 @@ static void csMsetInstallDone(csGroup *g) {
          * alive: the slot publication below hands it to hp's IO thread, which may csReassemble
          * (and zfree) it immediately. Everything after that store touches hp only. */
         uintptr_t gtag = (uintptr_t)done;
+        UNUSED(gtag);
         cdbSlotPublish(hp, done->head->cdb, done->head->fake_slot);
         /* This is the FIFO's semantic drain point, not csMsetPopComplete: the
          * release decrement follows commit_seq publication. */
@@ -21059,6 +21061,12 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 { ex_busy += server.exThreads[w].tm_busy_us;
                   ex_productive += server.exThreads[w].tm_productive_us;
                   ex_idle += server.exThreads[w].tm_idle_us; }
+            unsigned int rord_worst_age_us = 0;
+            for (int w = 0; server.exThreads && w < server.num_workers &&
+                                w < TOMO_EX_THREADS_MAX; w++) {
+                if (server.exThreads[w].rord_worst_age_us > rord_worst_age_us)
+                    rord_worst_age_us = server.exThreads[w].rord_worst_age_us;
+            }
             info = sdscatprintf(info, FMTARGS(
                 "tomokv_io_work_us:%llu\r\n", io_work,
                 "tomokv_io_busy_us:%llu\r\n", io_busy,
@@ -21082,7 +21090,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "tomokv_rord_grouped:%llu\r\n", (unsigned long long)rord_grouped_sum,
                 "tomokv_rord_fences:%llu\r\n", (unsigned long long)rord_fences_sum,
                 "tomokv_reorder_age_pins:%llu\r\n", (unsigned long long)rord_age_pins_sum,
-                "tomokv_rord_worst_age_us:%u\r\n", ({ unsigned _m=0; for (int _w=0; server.exThreads && _w<server.num_workers && _w<TOMO_EX_THREADS_MAX;_w++) if (server.exThreads[_w].rord_worst_age_us>_m) _m=server.exThreads[_w].rord_worst_age_us; _m; }),
+                "tomokv_rord_worst_age_us:%u\r\n", rord_worst_age_us,
                 "tomokv_io_threads_counted:%d\r\n", nio,
                 "tomokv_ex_threads_counted:%d\r\n", wlive));
 
@@ -21142,6 +21150,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "tomokv_uring2_cq_batches:%llu\r\n", (unsigned long long)u2st.cq_batches,
                 "tomokv_uring2_cqes_per_drain_pass:%.6f\r\n", u2_cqes_per_drain,
                 "tomokv_uring2_epoll_wakes:%llu\r\n", (unsigned long long)u2st.epoll_wakes,
+                "tomokv_uring2_p1_batch_harvests:%llu\r\n", (unsigned long long)u2st.p1_batch_harvests,
+                "tomokv_uring2_recv_ceremony_batched_ops:%llu\r\n", (unsigned long long)u2st.recv_ceremony_batched_ops,
                 "tomokv_uring2_recv_submitted:%llu\r\n", (unsigned long long)u2st.recv_submitted,
                 "tomokv_uring2_recv_cqes:%llu\r\n", (unsigned long long)u2st.recv_cqes,
                 "tomokv_uring2_recv_bytes:%llu\r\n", (unsigned long long)u2st.recv_bytes,
@@ -21157,6 +21167,9 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "tomokv_uring2_send_scratch_copies:%llu\r\n", (unsigned long long)u2st.send_scratch_copies,
                 "tomokv_uring2_send_scratch_bytes:%llu\r\n", (unsigned long long)u2st.send_scratch_bytes,
                 "tomokv_uring2_send_cancel_submitted:%llu\r\n", (unsigned long long)u2st.send_cancel_submitted,
+                "tomokv_uring2_send_ceremony_batches:%llu\r\n", (unsigned long long)u2st.send_ceremony_batches,
+                "tomokv_uring2_send_ceremony_batched_ops:%llu\r\n", (unsigned long long)u2st.send_ceremony_batched_ops,
+                "tomokv_uring2_sqe_template_hits:%llu\r\n", (unsigned long long)u2st.sqe_template_hits,
                 "tomokv_uring2_migration_acks:%llu\r\n", (unsigned long long)u2st.migration_acks));
         }
         /* MERGE 2026-07-28: the fork-local counters and upstream's Stats block use
