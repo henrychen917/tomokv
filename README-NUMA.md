@@ -278,7 +278,7 @@ derivations are unchanged.
 
 | knob | default | mutable | meaning |
 |---|---|---|---|
-| `tomokv-thread-mode` | `auto` | no | `auto` = the per-node flip controller + EWMA-weighted client balancing may move the io/ex split away from the boot values; `static` = the boot split is held for the whole run (reproducible measurement). One knob: the old `tomokv-thread-modes` + `tomokv-thread-balance` pair had to be set TOGETHER, and setting one silently disabled the feature. |
+| `tomokv-thread-mode` | `auto` | no | `auto` = r8 may move the per-node io/ex split; `climb` = r8+r10 measured climbing; `model` = m1's filtered target owns staged moves; `static` = hold the boot split. One knob replaces the old paired booleans. |
 | `tomokv-flip-rebalance` | on | yes | client re-spread and load-weight transfer at each conversion; also gates the **continuous client-lb** (below) |
 | `DEBUG TOMO-MODESHIFT <n>` | — | test hook | Not a config knob (moved out of the config surface 2026-07-28). Manual actuator: `5`/`6` = IO-EXIT / conn rebalance, `7`/`8` = grow front/back (single-node only), `70+n`/`80+n` = per-node (n < 10). Anything else is rejected — there are only two flips. |
 

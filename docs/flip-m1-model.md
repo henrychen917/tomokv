@@ -61,12 +61,18 @@ Seed table (16c EPYC, d32, cache-resident; per-op us):
    sustained run of ticks (reuse u1a sigma machinery on the INPUT signals — mix/depth noise —
    so the threshold is measured, not a machine constant). Zero moves while the target is
    stable = thrash-clean by construction.
-5. SHADOW MODE FIRST (this round): compute + trace only ([m1-trace nX] mix= depth= c_io=
-   c_ex= target=ioT/exT current=ioC/exC), DEBUG TOMO-M1TRACE <0|1>, INFO gauges. r8 decides;
+5. SHADOW SUBSTRATE: auto/climb still compute + trace only ([m1-trace nX] mix= depth= c_io=
+   c_ex= target=ioT/exT current=ioC/exC), DEBUG TOMO-M1TRACE <0|1>, INFO gauges. r8/r10 decide;
    m1 predicts. Validation = run the 11 cells, compare m1's logged target vs discovered best
    (offline says 11/11 gate-green) and vs r8's landing, live.
-6. ACTUATION (next round, new mode `tomokv-thread-mode model`): computed target drives the
-   EXISTING actuator (tmFlipDo staged conversions). r8's decision stack untouched.
+6. ACTUATION (`tomokv-thread-mode model`, landed 2026-08-19): the FILTERED target drives the
+   existing staged single-thread actuator, one arm + observed landing at a time. Exact target means
+   no request. r8 telemetry keeps folding, but its unchanged request sites are refused at the one
+   tmFlipDo ownership gate. A refused model arm is counted and retried only within two settling
+   spans: 2 × max(last measured u1 settle ticks, the existing u1 subwindow cadence before the first
+   measurement). Exceeding that derived budget warns once and holds until the filtered target
+   changes; an externally changed observed shape is logged, adopted as current, and planned from
+   there. TOMO-M1TRACE also enables [m1-act nX] target/arm/landing/hold lines.
 7. STALE-TABLE ALARM: load signals demoted, not deleted — computed-balanced but one stage's
    queue/occupancy persistently pegged while the other idles => table wrong: log + INFO flag;
    in sampling mode it self-corrects. The load signal never overrides the computed target
