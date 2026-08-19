@@ -57,6 +57,8 @@ typedef struct tomoUring2Stats {
 } tomoUring2Stats;
 
 void tomoUring2GetStats(tomoUring2Stats *out);
+int tomoUring2RegistrationEnabled(void);
+void tomoUring2SetRegistrationEnabled(int enabled);
 
 /* Immutable-mode dispatch.  These preserve the original mode-1 calls exactly
  * and route only tomokv-io-uring=2 to the new implementation. */

@@ -31,6 +31,18 @@
 #include <sys/utsname.h>
 #include <unistd.h>
 
+static _Atomic int tomo_uring2_registration_enabled = 1;
+
+int tomoUring2RegistrationEnabled(void) {
+    return atomic_load_explicit(&tomo_uring2_registration_enabled,
+                                memory_order_relaxed);
+}
+
+void tomoUring2SetRegistrationEnabled(int enabled) {
+    atomic_store_explicit(&tomo_uring2_registration_enabled, enabled != 0,
+                          memory_order_relaxed);
+}
+
 #ifdef HAVE_LIBURING
 
 #include <liburing.h>
@@ -39,6 +51,7 @@
 #define TOMO_URING2_CQE_BATCH      128U
 #define TOMO_URING2_SEND_BATCH_MAX 512U
 #define TOMO_URING2_NO_SLOT        UINT32_MAX
+#define TOMO_URING2_MAX_FIXED_FILES (1U << 20)
 
 typedef enum tomoUring2RecvState {
     TOMO_URING2_RECV_IDLE = 0,
@@ -112,6 +125,13 @@ typedef struct tomoUring2Client tomoUring2Client;
 typedef void tomoUring2Completion(tomoUring2Thread *st, void *owner,
                                   const struct io_uring_cqe *cqe);
 
+typedef struct tomoUring2FileSlot {
+    tomoUring2Client *owner;
+    uint32_t next_free;
+    int fd;
+    unsigned quarantined : 1;
+} tomoUring2FileSlot;
+
 /* Low user_data half is the array index.  The high half encodes the operation
  * kind plus a changing submission sequence: it is both a diagnostic tag and
  * an ABA guard for ASYNC_CANCEL when a callback slot is reused. */
@@ -129,6 +149,7 @@ struct tomoUring2Client {
     tomoUring2Thread *owner;
     int owner_tid;
     int fd;
+    uint32_t fixed_file_slot;
     tomoUring2RecvState recv_state;
     tomoUring2ClientMode mode;
 
@@ -198,6 +219,11 @@ struct __attribute__((aligned(CACHE_LINE_SIZE))) tomoUring2Thread {
     uint32_t next_tag;
     uint32_t pending_slots;
 
+    tomoUring2FileSlot *file_slots;
+    uint32_t file_slot_count;
+    uint32_t free_file_slot;
+    unsigned file_table_registered : 1;
+
     uint64_t poll_token;
     int poll_armed;               /* staged or submitted */
     int poll_needs_arm;
@@ -262,6 +288,228 @@ static inline void tomoUring2AssertOwnerInPass(
     serverAssert(uc != NULL);
     serverAssert(uc->owner == st);
     serverAssert(uc->owner_tid == st->tid);
+}
+
+static void tomoUring2AssertFixedFileSlot(const tomoUring2Thread *st,
+                                          const tomoUring2Client *uc) {
+#ifdef DEBUG_ASSERTIONS
+    debugServerAssert(uc->fixed_file_slot < st->file_slot_count);
+    const tomoUring2FileSlot *slot =
+        &st->file_slots[uc->fixed_file_slot];
+    debugServerAssert(st->file_table_registered);
+    debugServerAssert(!slot->quarantined);
+    debugServerAssert(slot->owner == uc);
+    debugServerAssert(slot->fd == uc->fd);
+#else
+    UNUSED(st);
+    UNUSED(uc);
+#endif
+}
+
+static int tomoUring2UseFixedFile(const tomoUring2Thread *st,
+                                  const tomoUring2Client *uc) {
+    if (!tomoUring2RegistrationEnabled() ||
+        uc->fixed_file_slot == TOMO_URING2_NO_SLOT)
+        return 0;
+    tomoUring2AssertFixedFileSlot(st, uc);
+    return 1;
+}
+
+static void tomoUring2BuildSendTemplate(tomoUring2Client *uc) {
+    io_uring_prep_send(&uc->send_sqe_template, uc->fd, NULL, 0,
+                       MSG_NOSIGNAL);
+    if (uc->fixed_file_slot != TOMO_URING2_NO_SLOT) {
+        tomoUring2AssertFixedFileSlot(uc->owner, uc);
+        uc->send_sqe_template.fd = (int)uc->fixed_file_slot;
+        uc->send_sqe_template.flags |= IOSQE_FIXED_FILE;
+    }
+}
+
+static uint32_t tomoUring2InitialFileSlots(void) {
+    uint64_t slots = server.maxclients;
+    if (slots == 0) slots = 1;
+    if (slots > TOMO_URING2_MAX_FIXED_FILES)
+        slots = TOMO_URING2_MAX_FIXED_FILES;
+    return (uint32_t)slots;
+}
+
+static void tomoUring2LinkFreeFileSlots(tomoUring2FileSlot *slots,
+                                        uint32_t count, uint32_t *head) {
+    *head = TOMO_URING2_NO_SLOT;
+    for (uint32_t i = count; i-- > 0;) {
+        if (slots[i].owner) {
+            slots[i].next_free = TOMO_URING2_NO_SLOT;
+            continue;
+        }
+        slots[i].fd = -1;
+        slots[i].quarantined = 0;
+        slots[i].next_free = *head;
+        *head = i;
+    }
+}
+
+static int tomoUring2InitFileTable(tomoUring2Thread *st) {
+    uint32_t count = tomoUring2InitialFileSlots();
+    tomoUring2FileSlot *slots = zcalloc(sizeof(*slots) * count);
+    int *files = zmalloc(sizeof(*files) * count);
+    for (uint32_t i = 0; i < count; i++) files[i] = -1;
+
+    int rc = io_uring_register_files(&st->ring, files, count);
+    zfree(files);
+    if (rc < 0) {
+        serverLog(LL_NOTICE,
+                  "tomokv io_uring mode 2 owner %d: %u-slot fixed-file "
+                  "table unavailable (%s); connections will use raw fds",
+                  st->tid, count, strerror(-rc));
+        zfree(slots);
+        st->file_slots = NULL;
+        st->file_slot_count = 0;
+        st->free_file_slot = TOMO_URING2_NO_SLOT;
+        st->file_table_registered = 0;
+        return C_ERR;
+    }
+
+    st->file_slots = slots;
+    st->file_slot_count = count;
+    st->file_table_registered = 1;
+    tomoUring2LinkFreeFileSlots(slots, count, &st->free_file_slot);
+    return C_OK;
+}
+
+static uint32_t tomoUring2NextFileSlotCount(uint32_t old_count) {
+    uint64_t count = server.maxclients;
+    if (count <= old_count) count = (uint64_t)old_count * 2;
+    if (count > TOMO_URING2_MAX_FIXED_FILES)
+        count = TOMO_URING2_MAX_FIXED_FILES;
+    return (uint32_t)count;
+}
+
+/* Registration tables cannot be extended in place. Preserve every live index
+ * while replacing the per-ring sparse table; old in-flight requests retain
+ * their kernel resource-node references. If replacement fails after the old
+ * table was removed, every connection is atomically downgraded to raw fds. */
+static int tomoUring2GrowFileTable(tomoUring2Thread *st) {
+    uint32_t old_count = st->file_slot_count;
+    uint32_t new_count = tomoUring2NextFileSlotCount(old_count);
+    if (!st->file_table_registered || new_count <= old_count)
+        return C_ERR;
+
+    tomoUring2FileSlot *old_slots = st->file_slots;
+    tomoUring2FileSlot *new_slots = zcalloc(sizeof(*new_slots) * new_count);
+    int *files = zmalloc(sizeof(*files) * new_count);
+    for (uint32_t i = 0; i < new_count; i++) {
+        files[i] = -1;
+        new_slots[i].fd = -1;
+    }
+    for (uint32_t i = 0; i < old_count; i++) {
+        if (!old_slots[i].owner) continue;
+        serverAssert(!old_slots[i].quarantined);
+        serverAssert(old_slots[i].owner->fixed_file_slot == i);
+        files[i] = old_slots[i].fd;
+        new_slots[i].owner = old_slots[i].owner;
+        new_slots[i].fd = old_slots[i].fd;
+    }
+
+    int rc = io_uring_unregister_files(&st->ring);
+    if (rc < 0) {
+        zfree(files);
+        zfree(new_slots);
+        return C_ERR;
+    }
+    st->file_table_registered = 0;
+
+    rc = io_uring_register_files(&st->ring, files, new_count);
+    zfree(files);
+    if (rc < 0) {
+        serverLog(LL_WARNING,
+                  "tomokv io_uring mode 2 owner %d: fixed-file table "
+                  "growth %u -> %u failed (%s); downgrading ring to raw fds",
+                  st->tid, old_count, new_count, strerror(-rc));
+        for (uint32_t i = 0; i < old_count; i++) {
+            tomoUring2Client *uc = old_slots[i].owner;
+            if (!uc) continue;
+            uc->fixed_file_slot = TOMO_URING2_NO_SLOT;
+            tomoUring2BuildSendTemplate(uc);
+        }
+        zfree(old_slots);
+        zfree(new_slots);
+        st->file_slots = NULL;
+        st->file_slot_count = 0;
+        st->free_file_slot = TOMO_URING2_NO_SLOT;
+        return C_ERR;
+    }
+
+    st->file_slots = new_slots;
+    st->file_slot_count = new_count;
+    st->file_table_registered = 1;
+    tomoUring2LinkFreeFileSlots(new_slots, new_count,
+                                &st->free_file_slot);
+    zfree(old_slots);
+    return C_OK;
+}
+
+static int tomoUring2AcquireFixedFile(tomoUring2Client *uc) {
+    tomoUring2Thread *st = uc->owner;
+    serverAssert(uc->fixed_file_slot == TOMO_URING2_NO_SLOT);
+    if (!st->file_table_registered) return C_ERR;
+    if (st->free_file_slot == TOMO_URING2_NO_SLOT &&
+        tomoUring2GrowFileTable(st) != C_OK)
+        return C_ERR;
+    if (!st->file_table_registered ||
+        st->free_file_slot == TOMO_URING2_NO_SLOT)
+        return C_ERR;
+
+    uint32_t index = st->free_file_slot;
+    tomoUring2FileSlot *slot = &st->file_slots[index];
+    serverAssert(!slot->owner && slot->fd == -1 && !slot->quarantined);
+    st->free_file_slot = slot->next_free;
+    slot->next_free = TOMO_URING2_NO_SLOT;
+
+    int fd = uc->fd;
+    int rc = io_uring_register_files_update(&st->ring, index, &fd, 1);
+    if (rc != 1) {
+        slot->next_free = st->free_file_slot;
+        st->free_file_slot = index;
+        return C_ERR;
+    }
+
+    slot->owner = uc;
+    slot->fd = fd;
+    uc->fixed_file_slot = index;
+    tomoUring2BuildSendTemplate(uc);
+    return C_OK;
+}
+
+static void tomoUring2ReleaseFixedFile(tomoUring2Client *uc) {
+    if (uc->fixed_file_slot == TOMO_URING2_NO_SLOT) return;
+    tomoUring2Thread *st = uc->owner;
+    uint32_t index = uc->fixed_file_slot;
+    serverAssert(st && st->file_table_registered);
+    serverAssert(index < st->file_slot_count);
+    tomoUring2FileSlot *slot = &st->file_slots[index];
+    serverAssert(slot->owner == uc && slot->fd == uc->fd &&
+                 !slot->quarantined);
+
+    int empty = -1;
+    int rc = io_uring_register_files_update(&st->ring, index, &empty, 1);
+    uc->fixed_file_slot = TOMO_URING2_NO_SLOT;
+    slot->owner = NULL;
+    if (rc == 1) {
+        slot->fd = -1;
+        slot->next_free = st->free_file_slot;
+        st->free_file_slot = index;
+    } else {
+        /* Never recycle an index whose kernel mapping could still name the
+         * old file. A later successful table replacement reclaims it. */
+        slot->quarantined = 1;
+        slot->next_free = TOMO_URING2_NO_SLOT;
+        serverLog(LL_WARNING,
+                  "tomokv io_uring mode 2 owner %d: fixed-file slot %u "
+                  "release failed (%s); slot quarantined",
+                  st->tid, index,
+                  rc < 0 ? strerror(-rc) : "short resource update");
+    }
+    tomoUring2BuildSendTemplate(uc);
 }
 
 static void tomoUring2UpdateMaxSubmit(tomoUring2Thread *st, unsigned n) {
@@ -735,6 +983,14 @@ static int tomoUring2StageSends(tomoUring2Thread *st) {
         struct io_uring_sqe *sqe = tomoUring2GetSqeFromImage(
             st, tomoUring2SendCqe, uc, TOMO_URING2_OP_SEND, &token,
             &uc->send_sqe_template);
+        if (tomoUring2UseFixedFile(st, uc)) {
+            sqe->fd = (int)uc->fixed_file_slot;
+            sqe->flags |= IOSQE_FIXED_FILE;
+        } else {
+            /* DEBUG TOMO-URINGREG 0 must reproduce the old raw-fd image. */
+            sqe->fd = uc->fd;
+            sqe->flags &= (unsigned char)~IOSQE_FIXED_FILE;
+        }
         size_t remaining = uc->send_len - uc->send_off;
         serverAssert(remaining <= UINT32_MAX);
         sqe->addr = (uint64_t)(uintptr_t)(uc->send_scratch + uc->send_off);
@@ -769,7 +1025,11 @@ static int tomoUring2StageRecvs(tomoUring2Thread *st) {
             st, tomoUring2RecvCqe, uc, TOMO_URING2_OP_RECV, &token);
         if (!sqe) break;
         tomoUring2ArmRemove(st, uc);
-        io_uring_prep_recv(sqe, uc->fd, uc->recv_buf, PROTO_IOBUF_LEN, 0);
+        int sqe_fd = uc->fd;
+        int use_fixed_file = tomoUring2UseFixedFile(st, uc);
+        if (use_fixed_file) sqe_fd = (int)uc->fixed_file_slot;
+        io_uring_prep_recv(sqe, sqe_fd, uc->recv_buf, PROTO_IOBUF_LEN, 0);
+        if (use_fixed_file) sqe->flags |= IOSQE_FIXED_FILE;
         /* Helio uring_socket.cc:353-373: POLL_FIRST is conditional on the
          * prior receive's SOCK_NONEMPTY knowledge, never unconditional. */
         if (st->poll_first_supported && !uc->socket_nonempty) {
@@ -1497,9 +1757,17 @@ static int tomoUring2ProbeRequiredOps(tomoUring2Thread *st) {
 
 static void tomoUring2CleanupThread(tomoUring2Thread *st) {
     if (st->ring_initialized) {
+        if (st->file_table_registered) {
+            (void)io_uring_unregister_files(&st->ring);
+            st->file_table_registered = 0;
+        }
         io_uring_queue_exit(&st->ring);
         st->ring_initialized = 0;
     }
+    zfree(st->file_slots);
+    st->file_slots = NULL;
+    st->file_slot_count = 0;
+    st->free_file_slot = TOMO_URING2_NO_SLOT;
     zfree(st->slots);
     st->slots = NULL;
     st->slot_count = 0;
@@ -1608,6 +1876,8 @@ static int tomoUring2InitThread(int tid, aeEventLoop *el) {
         goto fail_ring;
     }
 
+    (void)tomoUring2InitFileTable(st);
+
     st->slot_count = params.sq_entries;
     st->slots = zcalloc(sizeof(*st->slots) * st->slot_count);
     st->free_slot = 0;
@@ -1637,7 +1907,7 @@ static int tomoUring2InitThread(int tid, aeEventLoop *el) {
               "tomokv io_uring mode 2 owner %d ready: kernel %s, liburing "
               "%d.%d, %u-entry staged ring, flags=%s%s, one issuer; "
               "128-CQE drain-to-empty; POLL_FIRST=%s; SEND scratch pinned "
-              "through CQE",
+              "through CQE; fixed-files=%u",
               tid, kv.release, liburing_major, liburing_minor,
               params.sq_entries,
               (params.flags & IORING_SETUP_SUBMIT_ALL) ? "SUBMIT_ALL" :
@@ -1645,7 +1915,8 @@ static int tomoUring2InitThread(int tid, aeEventLoop *el) {
               (params.flags & IORING_SETUP_DEFER_TASKRUN) ?
                   "|DEFER_TASKRUN|COOP_TASKRUN|TASKRUN_FLAG|SINGLE_ISSUER" :
                   "",
-              st->poll_first_supported ? "yes" : "no");
+              st->poll_first_supported ? "yes" : "no",
+              st->file_table_registered ? st->file_slot_count : 0);
     return C_OK;
 
 fail_ring:
@@ -1700,8 +1971,8 @@ static int tomoUring2ClientAttach(client *c) {
     uc->owner = st;
     uc->owner_tid = iotid;
     uc->fd = c->conn->fd;
-    io_uring_prep_send(&uc->send_sqe_template, uc->fd, NULL, 0,
-                       MSG_NOSIGNAL);
+    uc->fixed_file_slot = TOMO_URING2_NO_SLOT;
+    tomoUring2BuildSendTemplate(uc);
     uc->recv_state = TOMO_URING2_RECV_IDLE;
     uc->mode = TOMO_URING2_CLIENT_RUN;
     uc->cancel_seen = 1;
@@ -1712,6 +1983,7 @@ static int tomoUring2ClientAttach(client *c) {
         zfree(uc);
         return C_ERR;
     }
+    (void)tomoUring2AcquireFixedFile(uc);
     clientTail(c)->uring = (struct tomoUringClient *)(void *)uc;
     tomoUring2ArmPush(st, uc);
     return C_OK;
@@ -1754,6 +2026,7 @@ static void tomoUring2ClientPublishTransit(client *c) {
     tomoUring2AssertOwner(uc);
     serverAssert(tomoUring2ClientMigrationReady(c));
     tomoUring2Thread *source = uc->owner;
+    tomoUring2ReleaseFixedFile(uc);
     uc->mode = TOMO_URING2_CLIENT_TRANSIT;
     uc->socket_nonempty = 0;
     uc->owner = NULL;
@@ -1772,6 +2045,10 @@ static int tomoUring2ClientAdopt(client *c) {
         return C_ERR;
     uc->owner = st;
     uc->owner_tid = iotid;
+    (void)tomoUring2AcquireFixedFile(uc);
+    /* The fixed index is ring-local. Rebuild before adopt can expose any
+     * owner work that stages a SEND or receive arm. */
+    tomoUring2BuildSendTemplate(uc);
     uc->socket_nonempty = 0;
     uc->mode = TOMO_URING2_CLIENT_MIGRATE;
     return C_OK;
@@ -1858,6 +2135,8 @@ static void tomoUring2ClientRelease(client *c) {
     if (!uc) return;
     tomoUring2AssertOwner(uc);
     serverAssert(tomoUring2ClientCloseReady(c));
+    /* freeClient() closes conn->fd only after backend release returns. */
+    tomoUring2ReleaseFixedFile(uc);
     clientTail(c)->uring = NULL;
     zfree(uc->recv_buf);
     zfree(uc->send_scratch);
