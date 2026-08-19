@@ -43,6 +43,8 @@ typedef struct tomoR10TickInput {
 typedef struct tomoR10Info {
     uint64_t episodes;
     uint64_t dead_arm_episodes;
+    uint64_t backstop_episodes;
+    tomoR10BackstopTrigger backstop_trigger_last;
     uint64_t cmp_better;
     uint64_t cmp_flat;
     unsigned int rungs_climbed_last;
@@ -50,7 +52,23 @@ typedef struct tomoR10Info {
     int anchor_io_n1;
 } tomoR10Info;
 
-#define TOMO_R10_SELFTEST_CASES 5
+typedef struct tomoR10BeginGate {
+    tomoU1Shape shape;
+    uint64_t quiet_ticks;
+    unsigned char shape_valid;
+} tomoR10BeginGate;
+
+typedef struct tomoR10BeginGateStatus {
+    uint64_t settle_quantum;
+    uint64_t quiet_need;
+    uint64_t quiet_ticks;
+    double idle_floor;
+    int load_ready;
+    int sweep_suppressed;
+    int ready;
+} tomoR10BeginGateStatus;
+
+#define TOMO_R10_SELFTEST_CASES 6
 typedef struct tomoR10SelfTestResult {
     const char *name;
     int expected_rung;
@@ -105,6 +123,8 @@ typedef struct tomoR10Node {
     tomoR10Series reference;
     tomoR10Series candidate;
     tomoU1CmpState last_comparison;
+    double last_comparison_mean_a;
+    double last_comparison_mean_b;
     tomoU1CmpResult verdict_a;
     tomoU1CmpResult verdict_b;
     tomoU1CmpResult verdict_sides;
@@ -127,10 +147,19 @@ const char *tomoR10StateName(tomoR10State state);
 const char *tomoR10BackstopTriggerName(tomoR10BackstopTrigger trigger);
 double tomoR10SeriesMean(const tomoR10Series *series);
 
+void tomoR10BeginGateReset(tomoR10BeginGate *gate);
+void tomoR10BeginGateTick(tomoR10BeginGate *gate, tomoU1Shape shape,
+                          double observed_rate, double mean, double relative_sigma,
+                          uint64_t settle_ticks_last,
+                          tomoR10BeginGateStatus *status);
+int tomoR10LoadAboveIdleFloor(double observed_rate, double mean,
+                              double relative_sigma, double *idle_floor);
+
 void tomoR10TraceSet(int enabled);
 int tomoR10TraceEnabled(void);
 void tomoR10WitnessEpisode(void);
 void tomoR10WitnessDeadArmEpisode(void);
+void tomoR10WitnessBackstop(tomoR10BackstopTrigger trigger);
 void tomoR10WitnessComparisons(unsigned int better, unsigned int flat);
 void tomoR10WitnessAnchor(int node, int best_rung, int anchor_io);
 void tomoR10InfoGet(tomoR10Info *info);

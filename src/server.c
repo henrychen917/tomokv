@@ -23234,6 +23234,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         info = sdscatprintf(info,
             "tomokv_r10_episodes:%llu\r\n"
             "tomokv_r10_dead_arm_episodes:%llu\r\n"
+            "tomokv_r10_backstop_episodes:%llu\r\n"
+            "tomokv_r10_backstop_trigger_last:%s\r\n"
             "tomokv_r10_rungs_climbed_last:%u\r\n"
             "tomokv_r10_anchor_io_n0:%d\r\n"
             "tomokv_r10_anchor_io_n1:%d\r\n"
@@ -23241,6 +23243,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_r10_cmp_flat:%llu\r\n",
             (unsigned long long)r10_info.episodes,
             (unsigned long long)r10_info.dead_arm_episodes,
+            (unsigned long long)r10_info.backstop_episodes,
+            tomoR10BackstopTriggerName(r10_info.backstop_trigger_last),
             r10_info.rungs_climbed_last,
             r10_info.anchor_io_n0,
             r10_info.anchor_io_n1,
@@ -30543,6 +30547,7 @@ typedef struct {
 } flipCtlState;
 static flipCtlState fctl[TM_MAXNODE];
 static tomoR10Node r10ctl[TM_MAXNODE];
+static tomoR10BeginGate r10_begin_gate[TM_MAXNODE];
 
 /* r8 may consume the per-node abort latch only while r8 OWNS actuation. In MODEL mode m1 is
  * the sole actuator, and in CLIMB mode ownership passes to r10 mid-episode; r8's fc machinery
@@ -30811,6 +30816,39 @@ static void tmM1DriveActuator(int node) {
                         tmM1RequestMove, NULL);
 }
 
+/* The widened begin can observe a held shape while r8 is between its own bookkeeping states.
+ * The process-wide migration/flip guards prove there is no physical conversion in flight here;
+ * discard only r8's staged actuation claims so they cannot resume underneath r10 after ANCHOR.
+ * Its signal/rate estimators continue running as before and remain available for the later re-arm. */
+static void tmR10TakeHeldShape(flipCtlState *fc) {
+    fc->dir = 0;
+    fc->phase = 0;
+    fc->wait = 0;
+    fc->just_settled = 0;
+    fc->step_moves = 0;
+    fc->step_done = 0;
+    fc->step_armed = 0;
+    fc->revert_steps = 0;
+    fc->walkback_armed = 0;
+    fc->revert_retry = 0;
+    fc->refuse_run = 0;
+    fc->direction_episode_active = 0;
+    fc->direction_episode_stop = FLIP_EPISODE_WALKING;
+    fc->floor_probe_used = 0;
+    fc->floor_probe_active = 0;
+    fc->floor_probe_revert_pending = 0;
+    fc->floor_probe_await_settle = 0;
+    fc->floor_probe_abandon_pending = 0;
+    fc->floor_probe_return_retries = 0;
+    fc->floor_probe_return_blocked = 0;
+    fc->floor_probe_target_io = 0;
+    fc->floor_probe_best_io = 0;
+    fc->floor_probe_idle_run = 0;
+    fc->anchor_n = 0;
+    fc->lr_anchor = 0.0;
+    fc->anchor_sat_rebase = 0;
+}
+
 static void tmR10BeginEpisode(int node, flipCtlState *fc, int ni, int ne) {
     tomoU1Shape shape = {
         .io = (uint16_t)ni,
@@ -30825,6 +30863,7 @@ static void tmR10BeginEpisode(int node, flipCtlState *fc, int ni, int ne) {
     int io_slot_cap = server.io_threads + server.tm_ngrow_io;
     if (max_io > io_slot_cap) max_io = io_slot_cap;
     tmFlipAbortClear(node);
+    tomoR10BeginGateReset(&r10_begin_gate[node]);
     tomoR10Begin(&r10ctl[node], node, shape, fc->last_dir, min_io, max_io);
     tomoR10WitnessEpisode();
     serverLog(LL_NOTICE, "[r10 n%d] BEGIN J=io%d/ex%d last_dir=%+d lattice=io%d..io%d "
@@ -30836,6 +30875,7 @@ static void tmR10RecordAnchor(int node) {
     tomoR10WitnessAnchor(node, r10ctl[node].best_rung,
                          r10ctl[node].current.io);
     if (r10ctl[node].backstop_hit) {
+        tomoR10WitnessBackstop(r10ctl[node].backstop_trigger);
         serverLog(LL_WARNING, "[r10 n%d] ANCHOR io%u/ex%u rung=%+d moves=%u "
                   "examined=%u/%u BACKSTOP-HIT state=%s trigger=%s "
                   "drive=%llu refused=%llu budget=%llu",
@@ -30901,8 +30941,8 @@ static int tmR10DeadArmReady(int node, flipCtlState *fc, int ni, int ne) {
     if (!tomoU1ShapeEqual(window.shape, shape) || !isfinite(window.mean) ||
         fpclassify(window.mean) == FP_ZERO || fpclassify(window.mean) == FP_SUBNORMAL)
         return 0;
-    double sigma_idle_floor = fabs(fc->mean) * tomoU1Sigma(node);
-    return isfinite(sigma_idle_floor) && window.mean > sigma_idle_floor;
+    return tomoR10LoadAboveIdleFloor(window.mean, fc->mean,
+                                     tomoU1Sigma(node), NULL);
 }
 
 /* One definition of "rate plateau" for both post-flip warmup and anchor capture. The estimate is
@@ -32112,6 +32152,18 @@ static void tomoFlipController(void) {
         double gstep = tmFlipGstepAt(ni, ne, fc->lr_ewma, wsig);
         double gfloor = gstep / 2.0;
         double balance_band = log1p(FLIP_R_BAND);
+        tomoR10BeginGateStatus r10_quiet;
+        if (server.thread_mode == TOMO_THREAD_MODE_CLIMB &&
+            !tomoR10OwnsActuator(&r10ctl[node])) {
+            tomoU1Shape held_shape = {
+                .io = (uint16_t)ni,
+                .ex = (uint16_t)ne,
+                .wb = (uint16_t)(server.wb_threads > 0 ? server.wb_per_node : 0),
+            };
+            tomoR10BeginGateTick(&r10_begin_gate[node], held_shape,
+                                 inst, fc->mean, tomoU1Sigma(node),
+                                 tomoU1SettleTicksLast(node), &r10_quiet);
+        }
 
         /* REVERTED-SWEEP OWNERSHIP (2026-08-17). A sweep that measured its neighbour and returned
          * to the same split learned that the excursion does not help THIS workload. The old re-arm
@@ -33190,6 +33242,20 @@ static void tomoFlipController(void) {
             tmR10BeginEpisode(node, fc, ni, ne);
             continue;
         }
+        if (server.thread_mode == TOMO_THREAD_MODE_CLIMB &&
+            !tomoR10OwnsActuator(&r10ctl[node]) && r10_quiet.ready) {
+            serverLog(LL_NOTICE, "[r10 n%d] QUIET-BEGIN shape io%d/ex%d held %llu/%llu "
+                      "ticks (2 x u1a settle quantum %llu), load %.0f > sigma-idle "
+                      "floor %.0f; taking C0-C2 without anchor-idle",
+                      node, ni, ne,
+                      (unsigned long long)r10_quiet.quiet_ticks,
+                      (unsigned long long)r10_quiet.quiet_need,
+                      (unsigned long long)r10_quiet.settle_quantum,
+                      inst, r10_quiet.idle_floor);
+            tmR10TakeHeldShape(fc);
+            tmR10BeginEpisode(node, fc, ni, ne);
+            continue;
+        }
         /* NO FOLD (2026-08-09, owner design). The anchor is a FROZEN snapshot: a running-mean
          * anchor tracks whatever lr does and blinds the |lr - anchor| band — that tracking is
          * exactly how the original band trigger froze, and under a slow tide a folding anchor
@@ -33200,7 +33266,7 @@ static void tomoFlipController(void) {
             fc->floor_probe_await_settle = 0;
 
         if (server.thread_mode == TOMO_THREAD_MODE_CLIMB &&
-            tomoR10OwnsActuator(&r10ctl[node]))
+            (tomoR10OwnsActuator(&r10ctl[node]) || r10_quiet.sweep_suppressed))
             goto r10_floor_sweep_done;
         if (settled_in_floor && fc->anchor_n > 0 && !fc->floor_probe_used) {
             int base_io = (nnodes == 1) ? server.io_threads : server.io_per_node;

@@ -56,6 +56,8 @@
 static _Atomic int tomo_r10_trace;
 static _Atomic uint64_t tomo_r10_episodes;
 static _Atomic uint64_t tomo_r10_dead_arm_episodes;
+static _Atomic uint64_t tomo_r10_backstop_episodes;
+static _Atomic int tomo_r10_backstop_trigger_last;
 static _Atomic uint64_t tomo_r10_cmp_better;
 static _Atomic uint64_t tomo_r10_cmp_flat;
 static _Atomic unsigned int tomo_r10_rungs_climbed_last;
@@ -100,6 +102,8 @@ static void tomoR10TraceNode(const tomoR10Node *climb, const char *event) {
         "[r10-trace n%d] event=%s state=%s rung=%+d best=%+d "
         "T(J)=%.3f/%u T(A:%+d)=%.3f/%u T(B:%+d)=%.3f/%u "
         "T(ref:%+d)=%.3f/%u T(probe:%+d)=%.3f/%u sigma=%.9f "
+        "cmp_means=A:%.3f/%u,B:%.3f/%u "
+        "sign=A:%u,B:%u,ties:%u/%u "
         "verdicts=A:%s,B:%s,sides:%s,last:%s moves=%u pending=%+d rungs=%u/%u "
         "state_budget=%llu+%llu/%llu",
         climb->node, event, tomoR10StateName(climb->state), climb->rung,
@@ -110,7 +114,11 @@ static void tomoR10TraceNode(const tomoR10Node *climb, const char *event) {
         tomoR10SeriesMean(&climb->side_b), climb->side_b.count,
         ref_rung, tomoR10SeriesMean(&climb->reference), climb->reference.count,
         probe_rung, tomoR10SeriesMean(&climb->candidate), climb->candidate.count,
-        climb->sigma, tomoR10VerdictName(climb->verdict_a),
+        climb->sigma, climb->last_comparison_mean_a,
+        climb->last_comparison.a_samples, climb->last_comparison_mean_b,
+        climb->last_comparison.b_samples, climb->last_comparison.a_wins,
+        climb->last_comparison.b_wins, climb->last_comparison.ties,
+        climb->last_comparison.pairs, tomoR10VerdictName(climb->verdict_a),
         tomoR10VerdictName(climb->verdict_b),
         tomoR10VerdictName(climb->verdict_sides),
         tomoR10VerdictName(climb->verdict_last), climb->moves,
@@ -137,6 +145,12 @@ void tomoR10WitnessDeadArmEpisode(void) {
     atomic_fetch_add_explicit(&tomo_r10_dead_arm_episodes, 1, memory_order_relaxed);
 }
 
+void tomoR10WitnessBackstop(tomoR10BackstopTrigger trigger) {
+    atomic_fetch_add_explicit(&tomo_r10_backstop_episodes, 1, memory_order_relaxed);
+    atomic_store_explicit(&tomo_r10_backstop_trigger_last, trigger,
+                          memory_order_relaxed);
+}
+
 void tomoR10WitnessComparisons(unsigned int better, unsigned int flat) {
     if (better)
         atomic_fetch_add_explicit(&tomo_r10_cmp_better, better, memory_order_relaxed);
@@ -160,6 +174,10 @@ void tomoR10InfoGet(tomoR10Info *info) {
         .episodes = atomic_load_explicit(&tomo_r10_episodes, memory_order_relaxed),
         .dead_arm_episodes = atomic_load_explicit(&tomo_r10_dead_arm_episodes,
                                                   memory_order_relaxed),
+        .backstop_episodes = atomic_load_explicit(&tomo_r10_backstop_episodes,
+                                                  memory_order_relaxed),
+        .backstop_trigger_last = atomic_load_explicit(
+            &tomo_r10_backstop_trigger_last, memory_order_relaxed),
         .cmp_better = atomic_load_explicit(&tomo_r10_cmp_better, memory_order_relaxed),
         .cmp_flat = atomic_load_explicit(&tomo_r10_cmp_flat, memory_order_relaxed),
         .rungs_climbed_last = atomic_load_explicit(&tomo_r10_rungs_climbed_last,
@@ -169,6 +187,59 @@ void tomoR10InfoGet(tomoR10Info *info) {
         .anchor_io_n1 = atomic_load_explicit(&tomo_r10_anchor_io[1],
                                              memory_order_relaxed),
     };
+}
+
+int tomoR10LoadAboveIdleFloor(double observed_rate, double mean,
+                              double relative_sigma, double *idle_floor) {
+    double floor = fabs(mean) * fabs(relative_sigma);
+    if (idle_floor) *idle_floor = floor;
+    return isfinite(observed_rate) && observed_rate > 0.0 &&
+           isfinite(floor) && observed_rate > floor;
+}
+
+void tomoR10BeginGateReset(tomoR10BeginGate *gate) {
+    if (gate) memset(gate, 0, sizeof(*gate));
+}
+
+void tomoR10BeginGateTick(tomoR10BeginGate *gate, tomoU1Shape shape,
+                          double observed_rate, double mean, double relative_sigma,
+                          uint64_t settle_ticks_last,
+                          tomoR10BeginGateStatus *status) {
+    if (!gate || !status) return;
+    memset(status, 0, sizeof(*status));
+
+    /* A normal landing may consume one measured settling span. Require that entire span once
+     * more with the physical role shape held fixed. Before u1a has measured a landing, its
+     * existing sub-window cadence is the quantum floor. This is a duration derived from u1a,
+     * not a machine-size timeout or a new controller knob. */
+    uint64_t quantum = settle_ticks_last > TOMO_U1_SUBW_TICKS
+                     ? settle_ticks_last : TOMO_U1_SUBW_TICKS;
+    uint64_t need = quantum > UINT64_MAX / 2 ? UINT64_MAX : quantum * 2;
+    status->settle_quantum = quantum;
+    status->quiet_need = need;
+    status->load_ready = tomoR10LoadAboveIdleFloor(observed_rate, mean,
+                                                   relative_sigma,
+                                                   &status->idle_floor);
+
+    if (!gate->shape_valid || !tomoU1ShapeEqual(gate->shape, shape)) {
+        gate->shape = shape;
+        gate->shape_valid = 1;
+        gate->quiet_ticks = 0;
+    }
+    if (!status->load_ready) {
+        gate->quiet_ticks = 0;
+    } else if (gate->quiet_ticks != UINT64_MAX) {
+        gate->quiet_ticks++;
+    }
+
+    status->quiet_ticks = gate->quiet_ticks;
+    /* Reserve the actuator for r10 during the final complete settle quantum. This makes a sweep
+     * already in progress finish normally, but prevents its next ownership edge from racing the
+     * quiet begin. At equality the begin branch runs first, so r10 wins the tie. */
+    uint64_t suppress_at = need > quantum ? need - quantum : 0;
+    status->sweep_suppressed = status->load_ready &&
+                               gate->quiet_ticks >= suppress_at;
+    status->ready = status->load_ready && gate->quiet_ticks >= need;
 }
 
 typedef struct tomoR10SelfTestContext {
@@ -229,6 +300,8 @@ static double tomoR10SelfTestMean(int case_id, int rung, unsigned int sample) {
     }
     case 4: /* The first SIDE_A arm aborts, then every retry is refused. */
         return 100.0;
+    case 5: /* Quiet-begin coverage then the same flat two-sided episode as case 1. */
+        return 100.0;
     }
     return 0.0;
 }
@@ -255,13 +328,17 @@ int tomoR10SelfTest(tomoR10SelfTestResult results[TOMO_R10_SELFTEST_CASES]) {
      *   noise-only:   BASELINE -> SIDE_A -> RETURN_A -> SIDE_B -> RETREAT ->
      *                 ANCHORED(0), moves=4; both sub-sigma deltas verdict FLAT.
      *   arm-refused:  BASELINE -> SIDE_A (first arm aborts) -> bounded retries ->
-     *                 ANCHORED(0), moves=0, BACKSTOP-HIT. */
+     *                 ANCHORED(0), moves=0, BACKSTOP-HIT.
+     *   quiet-begin:  with synthetic anchor_idle=0, a held loaded shape does not fire before
+     *                 2 x u1a settle quantum, suppresses a sweep for the final quantum, then
+     *                 fires and runs the ordinary flat C0-C2 episode to ANCHORED(0). */
     static const tomoR10SelfTestCase cases[TOMO_R10_SELFTEST_CASES] = {
         { "gain-forward-13-10-8-flat", 0.01, 3, 9, -1, 4, 0 },
         { "both-sides-flat",           0.01, 0, 4, -1, 1, 0 },
         { "gain-back-5pct",            0.01, -2, 6, -3, 1, 0 },
         { "noise-only-below-sigma",    0.02, 0, 4, -1, 1, 0 },
         { "side-a-permanent-arm-refusal", 0.01, 0, 0, 0, 0, 1 },
+        { "quiet-span-begin-without-anchor-idle", 0.01, 0, 4, -1, 1, 0 },
     };
 
     int passed = 0;
@@ -274,6 +351,27 @@ int tomoR10SelfTest(tomoR10SelfTestResult results[TOMO_R10_SELFTEST_CASES]) {
             .max_rung_seen = 0,
         };
         tomoR10Node climb;
+        int quiet_gate_ok = 1;
+        if (case_id == 5) {
+            tomoR10BeginGate gate = {0};
+            tomoR10BeginGateStatus gate_status = {0};
+            int anchor_idle = 0;
+            uint64_t quantum = TOMO_U1_SUBW_TICKS;
+            uint64_t need = quantum * 2;
+            for (uint64_t tick = 1; tick <= need; tick++) {
+                tomoR10BeginGateTick(&gate, context.shape, 100.0, 100.0, 0.01,
+                                     quantum, &gate_status);
+                if (tick < quantum && gate_status.sweep_suppressed)
+                    quiet_gate_ok = 0;
+                if (tick >= quantum && !gate_status.sweep_suppressed)
+                    quiet_gate_ok = 0;
+                if (tick < need && (anchor_idle || gate_status.ready))
+                    quiet_gate_ok = 0;
+            }
+            quiet_gate_ok = quiet_gate_ok && !anchor_idle && gate_status.ready &&
+                            gate_status.quiet_ticks == need &&
+                            gate_status.quiet_need == need;
+        }
         tomoR10Begin(&climb, 0, context.origin, 1, 1, 15);
 
         for (uint64_t sequence = 1;
@@ -314,7 +412,8 @@ int tomoR10SelfTest(tomoR10SelfTestResult results[TOMO_R10_SELFTEST_CASES]) {
                  climb.moves == (unsigned int)cases[case_id].expected_moves &&
                  context.min_rung_seen == cases[case_id].expected_min_rung &&
                  context.max_rung_seen == cases[case_id].expected_max_rung &&
-                 climb.backstop_hit == cases[case_id].expected_backstop;
+                 climb.backstop_hit == cases[case_id].expected_backstop &&
+                 quiet_gate_ok;
         results[case_id] = (tomoR10SelfTestResult) {
             .name = cases[case_id].name,
             .expected_rung = cases[case_id].expected_rung,
@@ -364,12 +463,15 @@ static tomoU1CmpResult tomoR10Compare(tomoR10Node *climb,
     double sigma = a->sigma > b->sigma ? a->sigma : b->sigma;
     tomoU1CmpResult verdict = tomoU1CmpVerdict(&comparison, sigma);
     climb->last_comparison = comparison;
+    climb->last_comparison_mean_a = tomoR10SeriesMean(a);
+    climb->last_comparison_mean_b = tomoR10SeriesMean(b);
     climb->verdict_last = verdict;
     if (verdict == TOMO_U1_CMP_FLAT)
         climb->comparisons_flat++;
     else if (verdict == TOMO_U1_CMP_A_BETTER ||
              verdict == TOMO_U1_CMP_B_BETTER)
         climb->comparisons_better++;
+    tomoR10TraceNode(climb, "verdict");
     return verdict;
 }
 

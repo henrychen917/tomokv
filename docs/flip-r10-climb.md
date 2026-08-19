@@ -11,8 +11,13 @@ dead (owner: retested repeatedly, always loses) — nothing here or elsewhere ma
 ## Shape
 
 PHASE J (jump — r8 unchanged): the full r1..r8 stack runs exactly as today and walks to its
-proxy equilibrium J. Its decision code is byte-identical; the only change is that reaching the
-anchor condition (lr inside band + sustained quiet) now enters CLIMB instead of terminal quiet.
+proxy equilibrium J. Its decision code is byte-identical. Reaching the anchor condition (lr
+inside band + sustained quiet) enters CLIMB instead of terminal quiet. Flat-gradient cells also
+enter when the physical per-node role shape has stayed unchanged under non-idle load for
+`2 * max(last u1a settle ticks, TOMO_U1_SUBW_TICKS)` controller ticks; the load floor is the
+current mean scaled by u1a's relative sigma. During the final one-quantum half of that span, the
+single r8 in-floor-sweep ownership point suppresses a new sweep, and r10 wins the equality tick.
+The pre-existing dead-arm route remains the earlier no-demand rescue.
 
 PHASE C (climb — per node, fine-grain single steps, all decisions in sigma units):
   C0 baseline: hold J; wait settle (u1a settle detector); collect paired sub-windows -> T(J).
