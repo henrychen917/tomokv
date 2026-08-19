@@ -32,6 +32,13 @@ typedef enum tomoU1CmpResult {
     TOMO_U1_CMP_NEED_MORE
 } tomoU1CmpResult;
 
+/* Shared relative-noise estimator. u1 throughput windows and m1 input hysteresis deliberately
+ * use this one implementation so their meaning of measured sigma cannot drift apart. */
+typedef struct tomoU1Noise {
+    double sigma;
+    uint64_t pairs;
+} tomoU1Noise;
+
 /* A caller-owned comparison state. The functions operating on it are pure with respect to the
  * server: they read and write only this struct and their arguments. */
 typedef struct tomoU1CmpState {
@@ -61,6 +68,7 @@ void tomoU1CmpBegin(tomoU1CmpState *cmp, int node,
                     tomoU1Shape shape_a, tomoU1Shape shape_b);
 int tomoU1CmpFeed(tomoU1CmpState *cmp, double window_mean, tomoU1Shape shape);
 tomoU1CmpResult tomoU1CmpVerdict(const tomoU1CmpState *cmp, double sigma);
+void tomoU1NoiseFeed(tomoU1Noise *noise, double a, double b);
 
 /* Controller-owner API. One controller tick is recorded even when r8 cannot take a throughput
  * sample, so conversion-to-settle duration retains the actual 4 Hz tick clock. */

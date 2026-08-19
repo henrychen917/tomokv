@@ -37,8 +37,23 @@ _Static_assert(sizeof(tomoM1IoSignal) % CACHE_LINE_SIZE == 0,
 
 extern tomoM1IoSignal tomo_m1_io_signals[TOMO_IO_THREADS_MAX + 1];
 
+typedef struct tomoM1ModelResult {
+    double c_io;
+    double c_ex;
+    int target_io;
+    int target_ex;
+} tomoM1ModelResult;
+
 void tomoM1StampCommandClass(struct redisCommand *cmd);
 void tomoM1BatchDepthNote(unsigned int commands);
+int tomoM1ModelCompute(const double mix[TOMO_M1_CLASS_COUNT],
+                       const double avg_keys[TOMO_M1_CLASS_COUNT],
+                       double depth, int role_threads, int io_uring,
+                       tomoM1ModelResult *result);
+void tomoM1ControllerTick(int node);
+
+/* server.c owns the poly-thread registry and therefore the authoritative growth-slot -> node map. */
+int tomoM1IoSlotNode(int io_slot);
 
 /* Accepted-command hot edge: the command table supplies the byte-sized index, so this is exactly
  * two owner-local counter updates and no lookup, branch, atomic, or shared cache-line write. */

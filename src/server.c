@@ -4023,7 +4023,10 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
          * pressure (no-op unless tomokv-thread-mode auto and there is flip headroom). A one-node
          * server keeps the frozen main-thread path; multi-node sampling belongs to each semi-main. */
         if (tmNumNodes() == 1) {
-            run_with_period(250) tomoFlipController();
+            run_with_period(250) {
+                tomoFlipController();
+                if (server.thread_auto) tomoM1ControllerTick(0);
+            }
         } else {
             /* Multi-node cadence belongs to node 0's semi-main, not to the process-global
              * cronloops counter. Other nodes use the same timestamp gate from their base IO loop. */
@@ -29994,6 +29997,10 @@ static int tmNodeOfIoSlot(int io_slot) {
     return 0;
 }
 
+int tomoM1IoSlotNode(int io_slot) {
+    return tmNumNodes() == 1 ? 0 : tmNodeOfIoSlot(io_slot);
+}
+
 /* WB is sticky for the lifetime of the connection. Migration stays within a node, so preserving
  * the assignment also preserves locality. When enabled, the client sidecar is the only
  * per-connection WB allocation; wb=0 never calls this subsystem. */
@@ -30273,6 +30280,7 @@ static void tomoFlipSemiMainTick(monotime now_us) {
 
     atomic_fetch_add_explicit(&tomo_flip_node_ticks[node], 1, memory_order_relaxed);
     tomoFlipController();
+    tomoM1ControllerTick(node);
 }
 
 /* Key-LB has the same immutable per-node owner as flip, but an independent 1 Hz cadence. Each

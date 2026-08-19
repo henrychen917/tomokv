@@ -28,11 +28,6 @@
 #define TOMO_U1_SETTLE_SIGMAS 2.0
 #define TOMO_U1_SIGN_ALPHA (1.0 / 20.0)
 
-typedef struct tomoU1Noise {
-    double sigma;
-    uint64_t pairs;
-} tomoU1Noise;
-
 typedef struct tomoU1Subwindow {
     uint64_t ops;
     uint64_t elapsed_ms;
@@ -152,7 +147,7 @@ void tomoU1RoleChangeComplete(int node) {
     atomic_fetch_add_explicit(&tomo_u1_role_change_seq[node], 1, memory_order_release);
 }
 
-static void tomoU1NoiseFeed(tomoU1Noise *noise, double a, double b) {
+void tomoU1NoiseFeed(tomoU1Noise *noise, double a, double b) {
     double relative;
     if (!tomoU1RelativeDelta(a, b, &relative)) return;
     if (noise->pairs == 0) {
