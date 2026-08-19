@@ -38,6 +38,16 @@ typedef struct tomoR10Info {
     int anchor_io_n1;
 } tomoR10Info;
 
+#define TOMO_R10_SELFTEST_CASES 4
+typedef struct tomoR10SelfTestResult {
+    const char *name;
+    int expected_rung;
+    int actual_rung;
+    int expected_moves;
+    unsigned int actual_moves;
+    int passed;
+} tomoR10SelfTestResult;
+
 /* The callback arms one existing staged role conversion. A successful return means only that the
  * conversion was accepted; the state machine waits until a later tick observes the resulting
  * shape before it consumes another held window or requests another step. */
@@ -103,5 +113,6 @@ void tomoR10WitnessEpisode(void);
 void tomoR10WitnessComparisons(unsigned int better, unsigned int flat);
 void tomoR10WitnessAnchor(int node, int best_rung, int anchor_io);
 void tomoR10InfoGet(tomoR10Info *info);
+int tomoR10SelfTest(tomoR10SelfTestResult results[TOMO_R10_SELFTEST_CASES]);
 
 #endif /* __FLIP_R10_H */

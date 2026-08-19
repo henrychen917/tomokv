@@ -160,6 +160,143 @@ void tomoR10InfoGet(tomoR10Info *info) {
     };
 }
 
+typedef struct tomoR10SelfTestContext {
+    int case_id;
+    tomoU1Shape origin;
+    tomoU1Shape shape;
+    unsigned int samples[TOMO_U1_WINDOW_RING];
+    int min_rung_seen;
+    int max_rung_seen;
+} tomoR10SelfTestContext;
+
+static int tomoR10SelfTestMove(void *private_data, int node, int direction,
+                               const char **err) {
+    UNUSED(node);
+    tomoR10SelfTestContext *context = private_data;
+    int io = (int)context->shape.io + (direction > 0 ? 1 : -1);
+    int ex = (int)context->shape.ex - (direction > 0 ? 1 : -1);
+    if (io < 1 || ex < 1) {
+        if (err) *err = "synthetic lattice edge";
+        return 0;
+    }
+    context->shape.io = (uint16_t)io;
+    context->shape.ex = (uint16_t)ex;
+    int rung = io - (int)context->origin.io;
+    if (rung < context->min_rung_seen) context->min_rung_seen = rung;
+    if (rung > context->max_rung_seen) context->max_rung_seen = rung;
+    return 1;
+}
+
+static double tomoR10SelfTestMean(int case_id, int rung, unsigned int sample) {
+    switch (case_id) {
+    case 0: /* +13%, then +10%, then +8%, then flat. */
+        if (rung < 0) return 96.0;
+        if (rung == 0) return 100.0;
+        if (rung == 1) return 113.0;
+        if (rung == 2) return 124.3;
+        return 134.244;
+    case 1: /* Both neighbors are exactly flat. */
+        return 100.0;
+    case 2: /* The initially opposite side improves by 5% for two rungs. */
+        if (rung == -1) return 105.0;
+        if (rung <= -2) return 110.25;
+        return 100.0;
+    case 3: { /* All inter-shape displacement remains below the supplied 2% sigma. */
+        static const double noise[TOMO_U1_PAIR_CAP] = {
+            -0.003, 0.002, -0.001, 0.003, -0.002, 0.001
+        };
+        double level = 100.0 * (1.0 + 0.006 * (double)rung);
+        return level * (1.0 + noise[sample % TOMO_U1_PAIR_CAP]);
+    }
+    }
+    return 0.0;
+}
+
+int tomoR10SelfTest(tomoR10SelfTestResult results[TOMO_R10_SELFTEST_CASES]) {
+    if (!results) return 0;
+    typedef struct tomoR10SelfTestCase {
+        const char *name;
+        double sigma;
+        int expected_rung;
+        int expected_moves;
+        int expected_min_rung;
+        int expected_max_rung;
+    } tomoR10SelfTestCase;
+
+    /* Expected terminal traces (the repeated clean-window lines are omitted):
+     *   gain-forward: BASELINE -> SIDE_A -> RETURN_A -> SIDE_B -> RETREAT ->
+     *                 CLIMBING(+1,+2,+3,+4) -> RETREAT -> ANCHORED(+3), moves=9.
+     *   both-flat:    BASELINE -> SIDE_A -> RETURN_A -> SIDE_B -> RETREAT ->
+     *                 ANCHORED(0), moves=4 (out/back/out/back exactly).
+     *   gain-back:    BASELINE -> SIDE_A -> RETURN_A -> SIDE_B -> CLIMBING(-1,-2,-3) ->
+     *                 RETREAT -> ANCHORED(-2), moves=6.
+     *   noise-only:   BASELINE -> SIDE_A -> RETURN_A -> SIDE_B -> RETREAT ->
+     *                 ANCHORED(0), moves=4; both sub-sigma deltas verdict FLAT. */
+    static const tomoR10SelfTestCase cases[TOMO_R10_SELFTEST_CASES] = {
+        { "gain-forward-13-10-8-flat", 0.01, 3, 9, -1, 4 },
+        { "both-sides-flat",           0.01, 0, 4, -1, 1 },
+        { "gain-back-5pct",            0.01, -2, 6, -3, 1 },
+        { "noise-only-below-sigma",    0.02, 0, 4, -1, 1 },
+    };
+
+    int passed = 0;
+    for (int case_id = 0; case_id < TOMO_R10_SELFTEST_CASES; case_id++) {
+        tomoR10SelfTestContext context = {
+            .case_id = case_id,
+            .origin = { .io = 8, .ex = 8, .wb = 0 },
+            .shape = { .io = 8, .ex = 8, .wb = 0 },
+            .min_rung_seen = 0,
+            .max_rung_seen = 0,
+        };
+        tomoR10Node climb;
+        tomoR10Begin(&climb, 0, context.origin, 1, 1, 15);
+
+        for (uint64_t sequence = 1;
+             sequence <= 4096 && climb.state != TOMO_R10_ANCHORED;
+             sequence++) {
+            int rung = (int)context.shape.io - (int)context.origin.io;
+            unsigned int slot = (unsigned int)(rung + TOMO_U1_WINDOW_RING / 2);
+            if (slot >= TOMO_U1_WINDOW_RING) break;
+            unsigned int sample = context.samples[slot]++;
+            double mean = tomoR10SelfTestMean(case_id, rung, sample);
+            tomoU1Window window = {
+                .sequence = sequence,
+                .end_tick = sequence,
+                .end_ms = sequence,
+                .mean = mean,
+                .shape = context.shape,
+                .settle_clean = 1,
+            };
+            tomoR10TickInput input = {
+                .shape = context.shape,
+                .ops_mean = mean,
+                .sigma = cases[case_id].sigma,
+                .window = &window,
+            };
+            tomoR10Tick(&climb, &input, tomoR10SelfTestMove, &context);
+        }
+
+        int actual_rung = (int)context.shape.io - (int)context.origin.io;
+        int ok = climb.state == TOMO_R10_ANCHORED &&
+                 actual_rung == cases[case_id].expected_rung &&
+                 climb.best_rung == cases[case_id].expected_rung &&
+                 climb.moves == (unsigned int)cases[case_id].expected_moves &&
+                 context.min_rung_seen == cases[case_id].expected_min_rung &&
+                 context.max_rung_seen == cases[case_id].expected_max_rung &&
+                 !climb.backstop_hit;
+        results[case_id] = (tomoR10SelfTestResult) {
+            .name = cases[case_id].name,
+            .expected_rung = cases[case_id].expected_rung,
+            .actual_rung = actual_rung,
+            .expected_moves = cases[case_id].expected_moves,
+            .actual_moves = climb.moves,
+            .passed = ok,
+        };
+        passed += ok;
+    }
+    return passed;
+}
+
 static void tomoR10SeriesBegin(tomoR10Series *series, tomoU1Shape shape) {
     memset(series, 0, sizeof(*series));
     series->shape = shape;

@@ -1022,6 +1022,17 @@ NULL
         if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
         tomoR10TraceSet(on != 0);
         addReplyStatus(c, tomoR10TraceEnabled() ? "r10 trace ON" : "r10 trace OFF");
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-r10selftest") && c->argc == 2) {
+        /* DEBUG TOMO-R10SELFTEST -- pure state-machine calls with a synthetic actuator/windows. */
+        tomoR10SelfTestResult results[TOMO_R10_SELFTEST_CASES];
+        tomoR10SelfTest(results);
+        addReplyArrayLen(c, TOMO_R10_SELFTEST_CASES);
+        for (int i = 0; i < TOMO_R10_SELFTEST_CASES; i++) {
+            addReplyStatusFormat(c, "%s %s expected=rung%+d/moves%d actual=rung%+d/moves%u",
+                results[i].passed ? "OK" : "FAIL", results[i].name,
+                results[i].expected_rung, results[i].expected_moves,
+                results[i].actual_rung, results[i].actual_moves);
+        }
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-m1trace") && c->argc == 3) {
         /* DEBUG TOMO-M1TRACE <0|1> -- one shadow-model line per 4 Hz node tick. Like the
          * flip/u1 traces this is a test firehose, not a configuration or actuation surface. */
