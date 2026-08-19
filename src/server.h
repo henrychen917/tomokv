@@ -5879,6 +5879,8 @@ void setKey(client *c, redisDb *db, robj *key, robj **ioval, int flags);
 kvobj *setKeyVersioned(client *c, redisDb *db, robj *key, robj **ioval, int flags,
                        uint64_t version_seq, long long version_expire);
 void tomoCancelVersion(kvobj *kv);
+int tomoReopenReadFastAfterMarker(kvobj *member);
+void tomoAtomicBagPrefetchWitness(int owner, unsigned long long count);
 void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq);
 void tomoVersionPruneAfterGrace(kvobj *anchor);
 void tomoVersionPruneOwnerAfterGrace(void *owner_record);

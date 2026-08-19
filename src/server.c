@@ -916,6 +916,7 @@ static _Atomic unsigned int tomo_atomic_wake_cursor;
  * allocation to the ordinary command path. */
 static _Atomic int tomo_atomic_reclaim_pressure;
 static _Atomic unsigned long long tomo_atomic_reclaim_stalls;
+static _Atomic unsigned long long tomo_atomic_reclaim_folds;
 static struct { _Atomic size_t v; char pad[CACHE_LINE_SIZE - sizeof(_Atomic size_t)]; }
     tomo_atomic_reclaim_bytes_line __attribute__((aligned(CACHE_LINE_SIZE)));
 #define tomo_atomic_reclaim_bytes (tomo_atomic_reclaim_bytes_line.v)
@@ -961,6 +962,8 @@ typedef struct csOwnerPublishList {
     _Atomic unsigned long long vmeta_pool_hits;
     _Atomic unsigned long long vmeta_pool_recycles;
     _Atomic unsigned long long bucket_carry_hits;
+    _Atomic unsigned long long gate_early_reopens;
+    _Atomic unsigned long long bag_prefetches;
 } __attribute__((aligned(CACHE_LINE_SIZE))) csOwnerPublishList;
 _Static_assert(sizeof(csOwnerPublishList) % CACHE_LINE_SIZE == 0,
                "owner-local publish state must have a cache-line stride");
@@ -976,6 +979,16 @@ static inline csOwnerPublishList *csOwnerPublishListFor(exThread *worker) {
     return &lists[worker->id];
 }
 
+/* Prune is the cold owner-affine witness site for the common predecessor
+ * accessors. Aggregate a complete callback locally so observability adds no
+ * locked RMW and no instrumentation to the read/NX hot walks themselves. */
+void tomoAtomicBagPrefetchWitness(int owner, unsigned long long count) {
+    if (!count) return;
+    serverAssert(owner >= 0 && owner < server.num_workers);
+    tomoRelaxedBump(
+        csOwnerPublishListFor(&server.exThreads[owner])->bag_prefetches, count);
+}
+
 static atomic_flag tomo_atomic_lifecycle_init_lock = ATOMIC_FLAG_INIT;
 static _Atomic int tomo_atomic_cutover_gate;
 static _Atomic unsigned long long tomo_atomic_cutover_fence_waits;
@@ -983,6 +996,7 @@ static _Atomic unsigned long long tomo_atomic_cutover_ref_waits;
 static _Atomic unsigned long long tomo_atomic_cutover_fence_wait_us;
 static _Atomic unsigned long long tomo_atomic_stale_owner_ops;
 static _Atomic unsigned long long tomo_atomic_stale_owner_prunes;
+static _Atomic unsigned long long tomo_atomic_admission_census_folds;
 /* Retained-ref fence witness (2026-08-17): free-back drains whose entry was pushed under a
  * different server.migration.gen than the one live at drain — i.e. an S8 value return whose
  * flight overlapped a migration transition. This is the cheaper of the two candidate witnesses
@@ -993,11 +1007,57 @@ static _Atomic unsigned long long tomo_atomic_stale_owner_prunes;
  * this at 0 exercised nothing (vacuous-validation rule). */
 static _Atomic unsigned long long tomo_freeback_stale_owner_drains;
 /* Reserved beside tomo_atomic_inflight at admission, but retired earlier: once all local publishes
- * have completed and the group marker/no-op decision is final. Cutover waits on this word, never on
- * client reply reassembly. */
-static struct { _Atomic int v; char pad[CACHE_LINE_SIZE - sizeof(_Atomic int)]; }
-    tomo_atomic_unsealed_line __attribute__((aligned(CACHE_LINE_SIZE)));
-#define tomo_atomic_unsealed (tomo_atomic_unsealed_line.v)
+ * have completed and the group marker/no-op decision is final. This is a cutover census, not the
+ * admission semaphore, so shard its RMWs by the producer identity which admitted the group. The
+ * last owner carries that immutable identity in tomoCommit and retires the matching slot. Cutover
+ * closes admission before folding every cache-line-isolated slot; after that close, an accepted
+ * group's slot can only fall, while a racing new reservation rechecks the gate and rolls itself
+ * back. A zero fold therefore proves the same fact as the former global word without bouncing one
+ * line between every producer and last owner. */
+typedef struct tomoAtomicAdmissionCensusSlot {
+    _Atomic int unsealed;
+    char pad[CACHE_LINE_SIZE - sizeof(_Atomic int)];
+} tomoAtomicAdmissionCensusSlot;
+_Static_assert(sizeof(tomoAtomicAdmissionCensusSlot) == CACHE_LINE_SIZE,
+               "atomic admission census slots must occupy one cache line");
+static tomoAtomicAdmissionCensusSlot
+    tomo_atomic_admission_census[TOMO_IO_THREADS_MAX + 1]
+    __attribute__((aligned(CACHE_LINE_SIZE)));
+
+static inline tomoAtomicAdmissionCensusSlot *tomoAtomicAdmissionCensusFor(int slot) {
+    serverAssert(slot >= 0 && slot <= TOMO_IO_THREADS_MAX);
+    return &tomo_atomic_admission_census[slot];
+}
+
+static void tomoAtomicAdmissionCensusReserve(int slot) {
+    int before = atomic_fetch_add_explicit(
+        &tomoAtomicAdmissionCensusFor(slot)->unsealed, 1, memory_order_seq_cst);
+    serverAssert(before >= 0 && before < INT_MAX);
+}
+
+static void tomoAtomicAdmissionCensusRelease(int slot) {
+    int before = atomic_fetch_sub_explicit(
+        &tomoAtomicAdmissionCensusFor(slot)->unsealed, 1, memory_order_seq_cst);
+    serverAssert(before > 0);
+}
+
+/* Correctness callers fold only after sequence-consistently closing the cutover gate. Count a
+ * witness only when the fold observes live admitted work: an empty cutover is not evidence that
+ * the sharded reserve/seal census participated. INFO uses the same exact slot population as an
+ * observational snapshot without incrementing the witness. */
+static int tomoAtomicAdmissionCensusFold(int witness) {
+    int total = 0;
+    for (int slot = 0; slot <= TOMO_IO_THREADS_MAX; slot++) {
+        int unsealed = atomic_load_explicit(
+            &tomo_atomic_admission_census[slot].unsealed, memory_order_seq_cst);
+        serverAssert(unsealed >= 0 && total <= INT_MAX - unsealed);
+        total += unsealed;
+    }
+    if (witness && total)
+        atomic_fetch_add_explicit(&tomo_atomic_admission_census_folds, 1,
+                                  memory_order_relaxed);
+    return total;
+}
 
 void tomoAtomicLifecycleEnsure(void) {
     if (server.num_workers <= 0) return;
@@ -1041,6 +1101,8 @@ void tomoAtomicLifecycleEnsure(void) {
             atomic_init(&lists[w].vmeta_pool_hits, 0);
             atomic_init(&lists[w].vmeta_pool_recycles, 0);
             atomic_init(&lists[w].bucket_carry_hits, 0);
+            atomic_init(&lists[w].gate_early_reopens, 0);
+            atomic_init(&lists[w].bag_prefetches, 0);
         }
         atomic_store_explicit(&tomo_atomic_publish_lists, lists, memory_order_release);
     }
@@ -1085,7 +1147,7 @@ static void tomoAtomicLifecycleAcquire(kvobj *kv, int owner) {
     /* Witness (anti-vacuous rule): every acquire that consumed the carried
      * bucket rather than re-deriving it from the key bytes. */
     tomoRelaxedBump(csOwnerPublishListFor(&server.exThreads[owner])->bucket_carry_hits, 1);
-    /* One worker owns every bucket in its row. The cutover unsealed gate
+    /* One worker owns every bucket in its row. The cutover unsealed census
      * excludes ownership change across an install, so publish this local count
      * with load/store instead of a locked RMW. */
     tomoAtomicLifecycleRef *slot = tomoAtomicLifecycleSlot(refs, owner, bucket);
@@ -1244,39 +1306,65 @@ static size_t tomoAtomicReclaimLimitResolved(void) {
 
 static int tomoAtomicReclaimOverLimit(size_t limit) {
     return limit && atomic_load_explicit(&tomo_atomic_reclaim_bytes,
-                                         memory_order_seq_cst) > limit;
+                                         memory_order_acquire) > limit;
 }
 
-/* Clear first, then validate. A concurrent charge either precedes the scan and is observed, or
- * follows the clear and republishes pressure itself; this ordering cannot lose an over-limit edge.
- * Extra wakes are harmless because each producer rechecks both gates on its own event loop. */
-static void tomoAtomicReclaimRefresh(void) {
-    int was_blocked = atomic_exchange_explicit(&tomo_atomic_reclaim_pressure, 0,
-                                                memory_order_seq_cst);
+/* Controller-tick fold of the exact per-owner live charges. Owner slots are updated at publish and
+ * per-version release, while this process-wide value is a deliberately stale admission snapshot:
+ * it is replaced once per completed serverCron tick (nominally <= 1000/server.hz ms old). Updates
+ * racing a scan can be deferred only to the next tick. The reclaim limit reserves ample process
+ * headroom and the independent group window remains the structural bound during that interval.
+ *
+ * `pressure` mirrors the same snapshot for reclaim-budget boosting and INFO only; admission reads
+ * the folded byte value itself. A downward crossing wakes all parked owners, which independently
+ * recheck the window, reclaim snapshot, and cutover gate before dispatch. */
+static void tomoAtomicReclaimFold(int witness) {
+    tomoAtomicReclaimSlot *slots =
+        atomic_load_explicit(&tomo_atomic_reclaim_slots, memory_order_acquire);
+    size_t bytes = 0;
+    if (slots) {
+        for (int owner = 0; owner < server.num_workers; owner++) {
+            size_t owner_bytes = atomic_load_explicit(&slots[owner].bytes,
+                                                       memory_order_acquire);
+            if (owner_bytes > SIZE_MAX - bytes)
+                bytes = SIZE_MAX; /* fail closed on an impossible address-space overflow */
+            else
+                bytes += owner_bytes;
+        }
+    }
+    atomic_store_explicit(&tomo_atomic_reclaim_bytes, bytes, memory_order_release);
+
     size_t limit = tomoAtomicReclaimLimitResolved();
-    if (tomoAtomicReclaimOverLimit(limit)) {
-        atomic_store_explicit(&tomo_atomic_reclaim_pressure, 1, memory_order_seq_cst);
-    } else if (was_blocked &&
-               atomic_load_explicit(&tomo_atomic_waiters, memory_order_acquire) != 0) {
+    int blocked = limit && bytes > limit;
+    int was_blocked = atomic_exchange_explicit(&tomo_atomic_reclaim_pressure, blocked,
+                                                memory_order_acq_rel);
+    if (was_blocked && !blocked &&
+        atomic_load_explicit(&tomo_atomic_waiters, memory_order_acquire) != 0) {
         tomoAtomicWakeAll();
     }
+    /* Count only folds which consumed a live charge: an idle timer tick is not evidence that the
+     * accounting mechanism participated in admission. */
+    if (witness && bytes)
+        atomic_fetch_add_explicit(&tomo_atomic_reclaim_folds, 1,
+                                  memory_order_relaxed);
 }
 
 static inline int tomoAtomicReclaimBlocked(void) {
-    return server.tomo_atomic_reclaim_limit != 0 &&
-           atomic_load_explicit(&tomo_atomic_reclaim_pressure,
-                                memory_order_acquire) != 0;
+    return tomoAtomicReclaimOverLimit(tomoAtomicReclaimLimitResolved());
 }
 
 void tomoAtomicWindowChanged(void) {
-    tomoAtomicReclaimRefresh();
+    /* Live configuration changes publish an immediate snapshot; only periodic controller folds
+     * count toward the anti-vacuous cadence witness. */
+    tomoAtomicReclaimFold(0);
     if (atomic_load_explicit(&tomo_atomic_waiters, memory_order_acquire) != 0)
         tomoAtomicWakeAll();
 }
 
 /* Charge only after an atomic install has acquired its immutable owner identity. The version keeps
  * its exact byte charge locally; csMsetOwnerFoldReclaim publishes the already-summed owner total
- * once. Admission likewise adds one group total at completion. No per-key counter RMW remains. */
+ * once. The controller periodically folds owner slots, so no per-key or per-group global counter
+ * RMW remains. */
 void tomoAtomicReclaimCharge(kvobj *kv, int owner) {
     if (server.tomo_atomic_reclaim_limit == 0) return;
     struct tomoVerMeta *vmeta = kvobjVmeta(kv);
@@ -1320,12 +1408,15 @@ static tomoCommit *tomoCommitNew(csGroup *g) {
                  (unsigned int)g->version_install_expected < UINT_MAX);
     atomic_init(&commit->commit_ts, 0);
     /* Reserve every possible version reference before the first install can
-     * publish the pointer. The terminal install decision trims an aborted
-     * partial group to its exact count before any version can retire. */
+     * publish the pointer. The terminal install decision releases an aborted
+     * partial group's unfilled reservations RELATIVELY before any version can
+     * retire (D.1: foreign straddle-fold refs may ride the same counter, so
+     * there is no exact-count store; see csMsetInstallDone). */
     atomic_init(&commit->refs,
                 (unsigned int)g->version_install_expected + 1);
     atomic_init(&commit->shards_remaining, 0);
-    atomic_init(&commit->reclaim_bytes, 0);
+    serverAssert(iotid >= 0 && iotid <= TOMO_IO_THREADS_MAX);
+    commit->admission_slot = iotid;
     commit->owner_records = NULL;
     commit->group = g;
     return commit;
@@ -1337,17 +1428,6 @@ static void tomoCommitRelease(tomoCommit *commit) {
                                                      memory_order_acq_rel);
     serverAssert(before > 0);
     if (before != 1) return;
-
-    size_t bytes = atomic_load_explicit(&commit->reclaim_bytes,
-                                        memory_order_relaxed);
-    if (bytes) {
-        size_t pooled_before = atomic_fetch_sub_explicit(&tomo_atomic_reclaim_bytes, bytes,
-                                                         memory_order_seq_cst);
-        serverAssert(pooled_before >= bytes);
-        if (atomic_load_explicit(&tomo_atomic_reclaim_pressure,
-                                 memory_order_acquire))
-            tomoAtomicReclaimRefresh();
-    }
     zfree(commit->owner_records);
     zfree(commit);
 }
@@ -1463,44 +1543,13 @@ void tomoVerMetaPoolTrim(void) {
     tomo_vmeta_pool_lowat = tomo_vmeta_pool_n;
 }
 
-/* The last shards_remaining decrement acquired every owner record write. Sum those contiguous
- * local totals once here and perform the sole pooled counter RMW. Keeping the whole group charged
- * until its final version metadata retires remains deliberately conservative. */
-static void tomoAtomicReclaimGroupPublish(tomoCommit *commit) {
-    serverAssert(commit != NULL && commit->group != NULL);
-    csGroup *g = commit->group;
-    csMsetOwner *owners = commit->owner_records;
-    size_t bytes = 0;
-    for (int i = 0; i < g->mset_owner_count; i++) {
-        serverAssert(owners != NULL && owners[i].reclaim_folded);
-        serverAssert(bytes <= SIZE_MAX - owners[i].reclaim_bytes);
-        bytes += owners[i].reclaim_bytes;
-    }
-    atomic_store_explicit(&commit->reclaim_bytes, bytes, memory_order_relaxed);
-    if (!bytes) return;
-    size_t before = atomic_fetch_add_explicit(&tomo_atomic_reclaim_bytes, bytes,
-                                              memory_order_seq_cst);
-    serverAssert(before <= SIZE_MAX - bytes);
-    size_t limit = tomoAtomicReclaimLimitResolved();
-    if (limit && before + bytes > limit) {
-        atomic_store_explicit(&tomo_atomic_reclaim_pressure, 1,
-                              memory_order_seq_cst);
-        /* A concurrent final release can cross below the cap after our add but
-         * before the pressure store, observe the old zero, and omit its own
-         * refresh. Recheck after publication so that interleaving cannot
-         * strand a stale closed gate. Clear/rescan also closes a racing add. */
-        if (!tomoAtomicReclaimOverLimit(limit))
-            tomoAtomicReclaimRefresh();
-    }
-}
-
 /* Called only after the caller has established server.tomo_atomic. Consequently the admission
  * path never reads tomokv-atomic-window while atomic visibility is disabled. Window 0 still
  * counts groups for observability/exactly-once auditing, but never refuses one. */
 static int tomoAtomicMsetTryReserve(int window) {
     if (window == 0) {
         atomic_fetch_add_explicit(&tomo_atomic_inflight, 1, memory_order_relaxed);
-        atomic_fetch_add_explicit(&tomo_atomic_unsealed, 1, memory_order_seq_cst);
+        tomoAtomicAdmissionCensusReserve(iotid);
         return 1;
     }
     int cur = atomic_load_explicit(&tomo_atomic_inflight, memory_order_relaxed);
@@ -1508,7 +1557,7 @@ static int tomoAtomicMsetTryReserve(int window) {
         if (atomic_compare_exchange_weak_explicit(&tomo_atomic_inflight, &cur, cur + 1,
                                                   memory_order_relaxed,
                                                   memory_order_relaxed)) {
-            atomic_fetch_add_explicit(&tomo_atomic_unsealed, 1, memory_order_seq_cst);
+            tomoAtomicAdmissionCensusReserve(iotid);
             return 1;
         }
         /* Failed CAS refreshed cur; do not race past the bound. */
@@ -1593,18 +1642,17 @@ static void tomoAtomicParkCutoverClient(client *c) {
 static int tomoAtomicCutoverRaceAfterReserve(client *c) {
     if (atomic_load_explicit(&tomo_atomic_cutover_gate, memory_order_seq_cst) == 0)
         return 0;
-    int old_unsealed =
-        atomic_fetch_sub_explicit(&tomo_atomic_unsealed, 1, memory_order_seq_cst);
+    tomoAtomicAdmissionCensusRelease(iotid);
     int old_inflight =
         atomic_fetch_sub_explicit(&tomo_atomic_inflight, 1, memory_order_relaxed);
-    serverAssert(old_unsealed > 0 && old_inflight > 0);
+    serverAssert(old_inflight > 0);
     tomoAtomicParkCutoverClient(c);
     return 1;
 }
 
-static void tomoAtomicLifecycleGroupSealed(void) {
-    int old = atomic_fetch_sub_explicit(&tomo_atomic_unsealed, 1, memory_order_acq_rel);
-    serverAssert(old > 0);
+static void tomoAtomicLifecycleGroupSealed(tomoCommit *commit) {
+    serverAssert(commit != NULL);
+    tomoAtomicAdmissionCensusRelease(commit->admission_slot);
 }
 
 
@@ -4253,6 +4301,8 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
     /* Sentinel has no EX pool. Every Tomo data
      * plane controller below consumes executor state and must remain a data-server-only service. */
     if (!server.sentinel_mode) {
+        /* Reclaim admission consumes a one-controller-tick-stale fold of owner-local charges. */
+        tomoAtomicReclaimFold(1);
         /* ee451 (v8d): adaptive load-balancer — sample shard EWMAs and maybe auto-reshard (no-op unless
          * tomokv-reshard-auto is on). Control-plane only; the routing hot path is untouched. */
         void tmClientBalanceCron(void);
@@ -13580,8 +13630,7 @@ static void csMsetGroupComplete(tomoCommit *commit) {
                                           memory_order_acquire) == 0);
     }
 
-    tomoAtomicReclaimGroupPublish(commit);
-    tomoAtomicLifecycleGroupSealed();
+    tomoAtomicLifecycleGroupSealed(commit);
     atomic_store_explicit(&g->mset_complete, TOMO_COMMIT_FINAL_READY,
                           memory_order_release);
     client *real = g->mset_client;
@@ -13633,10 +13682,11 @@ static void csMsetOwnerPublished(tomoCommit *commit) {
     csMsetGroupComplete(commit);
 }
 
-/* Publish one complete owner chain into its private first-grace lane. The
- * scalar batch timestamp is the same commit marker readers already gate on;
- * no per-version retire-node allocation, counter RMW, or table probe remains
- * in this pre-grace owner path. */
+/* Publish one complete owner chain into its private first-grace lane. On the
+ * successful path this is the earliest pass which has acquired a nonzero
+ * marker through the frozen published frontier. Re-census each key now, while
+ * its predecessor still awaits grace-prune, instead of leaving its fast-read
+ * gate closed for the whole retirement latency. */
 static void csMsetOwnerQueuePrune(exThread *worker, csMsetOwner *record,
                                   uint64_t commit_ts) {
     serverAssert(record->phase == TOMO_OWNER_LOCAL_PRUNE &&
@@ -13652,6 +13702,22 @@ static void csMsetOwnerQueuePrune(exThread *worker, csMsetOwner *record,
     csOwnerPublishList *list = csOwnerPublishListFor(worker);
     flatRetireNode **sink;
     if (commit_ts) {
+        unsigned int seen = 0;
+        unsigned long long reopened = 0;
+        tomoWkrLock(worker->id);
+        for (kvobj *kv = record->head; kv; ) {
+            struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+            serverAssert(vmeta != NULL && vmeta->install_owner == worker->id &&
+                         vmeta->stamp_state == TOMO_STAMP_APPLIED &&
+                         tomoVersionCommitTs(vmeta) == commit_ts);
+            kvobj *next = vmeta->owner_next;
+            reopened += (unsigned int)tomoReopenReadFastAfterMarker(kv);
+            seen++;
+            kv = next;
+        }
+        tomoWkrUnlock(worker->id);
+        serverAssert(seen == record->ninstalled);
+        if (reopened) tomoRelaxedBump(list->gate_early_reopens, reopened);
         sink = &list->retire_local;
         if (commit_ts > list->retire_ts) list->retire_ts = commit_ts;
     } else {
@@ -19648,8 +19714,7 @@ static void reshardCoordinatorTick(void) {
          * lock and returns on every miss, and workers/IO loops keep advancing completion and grace.
          * reshardArm also excluded flat resize, so no counted callback needs this coordinator. */
         monotime now = getMonotonicUs();
-        int atomic_unsealed =
-            atomic_load_explicit(&tomo_atomic_unsealed, memory_order_seq_cst);
+        int atomic_unsealed = tomoAtomicAdmissionCensusFold(1);
         uint64_t lifecycle_refs = atomic_unsealed == 0 ?
             tomoAtomicLifecycleRangeRefs(src, lo, hi) : 0;
         if (atomic_unsealed != 0 || lifecycle_refs != 0) {
@@ -23412,6 +23477,9 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 server.kstat[_t].straddle_memo_peak);
             if (peak > straddle_memo_peak) straddle_memo_peak = peak;
         }
+        unsigned long long atomic_read_slow_reason_samples =
+            atomic_read_slow_inflight_conflict / 64ULL +
+            atomic_read_slow_gate_closed_other / 64ULL;
         info = sdscatprintf(info, "# Stats\r\n" FMTARGS(
             "tomokv_flat_batches_closed:%llu\r\n", (unsigned long long)atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed),
             "tomokv_flat_batches_freed:%llu\r\n", (unsigned long long)atomic_load_explicit(&flat_batches_freed_n, memory_order_relaxed),
@@ -23501,6 +23569,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 atomic_read_slow_inflight_conflict,
             "tomokv_atomic_read_slow_gate_closed_other:%llu\r\n",
                 atomic_read_slow_gate_closed_other,
+            "tomokv_atomic_read_slow_reason_samples:%llu\r\n",
+                atomic_read_slow_reason_samples,
             /* D.1 anti-vacuous witnesses. A "clean" torn run whose memo_hits is 0 never
              * exercised the straddle path and proves nothing; restarts counts the torn-safe
              * overflow/validation re-waves; unrepaired MUST stay 0 — it names hazards seen
@@ -23550,6 +23620,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         unsigned long long diet_stamp_folds = 0;
         unsigned long long diet_pool_hits = 0, diet_pool_recycles = 0;
         unsigned long long diet_bucket_carries = 0;
+        unsigned long long gate_early_reopens = 0;
+        unsigned long long bag_prefetches = 0;
         csOwnerPublishList *owner_lists = atomic_load_explicit(
             &tomo_atomic_publish_lists, memory_order_acquire);
         if (owner_lists) {
@@ -23575,6 +23647,10 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                     owner_lists[_w].vmeta_pool_recycles);
                 diet_bucket_carries += tomoRelaxedRead(
                     owner_lists[_w].bucket_carry_hits);
+                gate_early_reopens += tomoRelaxedRead(
+                    owner_lists[_w].gate_early_reopens);
+                bag_prefetches += tomoRelaxedRead(
+                    owner_lists[_w].bag_prefetches);
             }
         }
         info = sdscatprintf(info,
@@ -23588,6 +23664,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_atomic_reclaim_worker_max:%zu\r\n"
             "tomokv_atomic_reclaim_pressure:%d\r\n"
             "tomokv_atomic_reclaim_stalls:%llu\r\n"
+            "tomokv_atomic_reclaim_folds:%llu\r\n"
             "tomokv_atomic_owner_pending:%llu\r\n"
             "tomokv_atomic_owner_pending_max:%llu\r\n"
             "tomokv_atomic_owner_epochs_queued:%llu\r\n"
@@ -23600,17 +23677,21 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_atomic_stamp_fold_installs:%llu\r\n"
             "tomokv_atomic_vmeta_pool_hits:%llu\r\n"
             "tomokv_atomic_vmeta_pool_recycles:%llu\r\n"
-            "tomokv_atomic_bucket_carry_hits:%llu\r\n",
+            "tomokv_atomic_bucket_carry_hits:%llu\r\n"
+            "tomokv_atomic_gate_early_reopens:%llu\r\n"
+            "tomokv_atomic_bag_prefetches:%llu\r\n",
             atomic_load_explicit(&tomo_atomic_stragglers, memory_order_relaxed),
             tomoAtomicWindowResolved(), tomoAtomicReclaimLimitResolved(),
             atomic_reclaim_pooled, atomic_reclaim_worker_bytes,
             atomic_reclaim_worker_max,
             atomic_load_explicit(&tomo_atomic_reclaim_pressure, memory_order_relaxed),
             atomic_load_explicit(&tomo_atomic_reclaim_stalls, memory_order_relaxed),
+            atomic_load_explicit(&tomo_atomic_reclaim_folds, memory_order_relaxed),
             owner_pending, owner_pending_max,
             owner_epochs, owner_versions, owner_qsbr_waits, owner_snapshot_waits,
             owner_node_allocs, owner_batch_allocs, diet_stamp_folds,
-            diet_pool_hits, diet_pool_recycles, diet_bucket_carries);
+            diet_pool_hits, diet_pool_recycles, diet_bucket_carries,
+            gate_early_reopens, bag_prefetches);
         info = sdscatprintf(info,
             "tomokv_fake_core_allocs:%llu\r\n"
             "tomokv_fake_tail_promotions:%llu\r\n",
@@ -23638,13 +23719,16 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         info = sdscatprintf(info,
             "tomokv_atomic_cutover_gate:%d\r\n"
             "tomokv_atomic_cutover_unsealed:%d\r\n"
+            "tomokv_atomic_admission_census_folds:%llu\r\n"
             "tomokv_atomic_cutover_fence_waits:%llu\r\n"
             "tomokv_atomic_cutover_ref_waits:%llu\r\n"
             "tomokv_atomic_cutover_fence_wait_usec:%llu\r\n"
             "tomokv_atomic_stale_owner_ops:%llu\r\n"
             "tomokv_atomic_stale_owner_prunes:%llu\r\n",
             atomic_load_explicit(&tomo_atomic_cutover_gate, memory_order_relaxed),
-            atomic_load_explicit(&tomo_atomic_unsealed, memory_order_relaxed),
+            tomoAtomicAdmissionCensusFold(0),
+            atomic_load_explicit(&tomo_atomic_admission_census_folds,
+                                 memory_order_relaxed),
             atomic_load_explicit(&tomo_atomic_cutover_fence_waits, memory_order_relaxed),
             atomic_load_explicit(&tomo_atomic_cutover_ref_waits, memory_order_relaxed),
             atomic_load_explicit(&tomo_atomic_cutover_fence_wait_us, memory_order_relaxed),

@@ -90,7 +90,7 @@ In `CO_WAIT_CONVERGE`, the coordinator seq-cst stores `tomo_atomic_cutover_gate 
 
 Atomic write admission seq-cst checks that gate before reservation and seq-cst rechecks it after reservation. A losing post-reservation race removes both the `unsealed` and `inflight` reservations and parks the client. (`src/server.c:460-476`, `src/server.c:526-538`, `src/server.c:8363-8384`)
 
-In `CO_WAIT_ATOMIC`, the coordinator seq-cst loads `tomo_atomic_unsealed`. Only when it is zero does it acquire-sum lifecycle references for `(src, [lo,hi))`; it remains in this state while either value is nonzero. (`src/server.c:400-408`, `src/server.c:15879-15904`)
+In `CO_WAIT_ATOMIC`, the coordinator sequence-consistently folds the cache-line-isolated unsealed census slots. Only when their sum is zero does it acquire-sum lifecycle references for `(src, [lo,hi))`; it remains in this state while either value is nonzero. Admission records its producer slot in the commit, so the last owner seals the same shard without a process-global census RMW.
 
 If `reshard_fence_timeout_ms > 0` and that pre-drain wait reaches the configured duration, the coordinator increments the abort counter, marks the cutover aborted, release-stores `MIG_DONE`, release-increments `migration.gen`, seq-cst reopens atomic admission, wakes atomic waiters, and proceeds to done teardown without touching the ownership table. (`src/server.c:15905-15927`)
 
