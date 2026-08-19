@@ -112,6 +112,7 @@ typedef struct tomoCommit {
     _Atomic unsigned int refs;       /* group + version refs; made exact before deferred publish */
     _Atomic unsigned int shards_remaining; /* owner-local publications not yet complete */
     _Atomic size_t reclaim_bytes;    /* last-owner sum of the acquired owner-local byte totals */
+    int admission_slot;              /* producer-local cutover-census slot reserved for this group */
     void *owner_records;             /* commit-owned csMsetOwner[]; freed with this record */
     struct csGroup *group;
 } tomoCommit;

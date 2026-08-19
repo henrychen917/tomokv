@@ -78,8 +78,10 @@ participates in visibility, ordering, or writer admission.
 
 1. Commit-time sequencing publishes one shared timestamp only after the last owner-local publish; there is
    no per-connection registration FIFO or incomplete-group frontier.
-2. Reshard cutover still fences on `tomo_atomic_unsealed` plus install-owner lifecycle references;
-   the reclaim budget does not alter the flip controller.
+2. Reshard cutover still fences on the unsealed admission census plus install-owner lifecycle
+   references. The census is cache-line-sharded by originating IO/WB producer; after closing the
+   cutover gate, the coordinator folds every slot before consulting lifecycle references. The
+   reclaim budget does not alter the flip controller.
 3. A parked command owns no fake/group state. Its IO owner alone removes it from the parked list and
    retries it.
 4. A pressure clear and concurrent pooled charge cannot lose the pressure edge: clear happens
@@ -100,6 +102,9 @@ INFO exposes:
 - `tomokv_atomic_reclaim_worker_max`
 - `tomokv_atomic_reclaim_pressure`
 - `tomokv_atomic_reclaim_stalls`
+- `tomokv_atomic_admission_census_folds`
 
 Together these distinguish group-window saturation from memory backpressure and show that retained
-bytes drain after writer throttling engages.
+bytes drain after writer throttling engages. The admission-census witness advances only when a
+coordinator fold actually observes at least one admitted, unsealed group; an empty cutover does not
+satisfy the anti-vacuous check.

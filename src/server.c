@@ -854,6 +854,7 @@ static _Atomic unsigned long long tomo_atomic_cutover_ref_waits;
 static _Atomic unsigned long long tomo_atomic_cutover_fence_wait_us;
 static _Atomic unsigned long long tomo_atomic_stale_owner_ops;
 static _Atomic unsigned long long tomo_atomic_stale_owner_prunes;
+static _Atomic unsigned long long tomo_atomic_admission_census_folds;
 /* Retained-ref fence witness (2026-08-17): free-back drains whose entry was pushed under a
  * different server.migration.gen than the one live at drain — i.e. an S8 value return whose
  * flight overlapped a migration transition. This is the cheaper of the two candidate witnesses
@@ -864,11 +865,57 @@ static _Atomic unsigned long long tomo_atomic_stale_owner_prunes;
  * this at 0 exercised nothing (vacuous-validation rule). */
 static _Atomic unsigned long long tomo_freeback_stale_owner_drains;
 /* Reserved beside tomo_atomic_inflight at admission, but retired earlier: once all local publishes
- * have completed and the group marker/no-op decision is final. Cutover waits on this word, never on
- * client reply reassembly. */
-static struct { _Atomic int v; char pad[CACHE_LINE_SIZE - sizeof(_Atomic int)]; }
-    tomo_atomic_unsealed_line __attribute__((aligned(CACHE_LINE_SIZE)));
-#define tomo_atomic_unsealed (tomo_atomic_unsealed_line.v)
+ * have completed and the group marker/no-op decision is final. This is a cutover census, not the
+ * admission semaphore, so shard its RMWs by the producer identity which admitted the group. The
+ * last owner carries that immutable identity in tomoCommit and retires the matching slot. Cutover
+ * closes admission before folding every cache-line-isolated slot; after that close, an accepted
+ * group's slot can only fall, while a racing new reservation rechecks the gate and rolls itself
+ * back. A zero fold therefore proves the same fact as the former global word without bouncing one
+ * line between every producer and last owner. */
+typedef struct tomoAtomicAdmissionCensusSlot {
+    _Atomic int unsealed;
+    char pad[CACHE_LINE_SIZE - sizeof(_Atomic int)];
+} tomoAtomicAdmissionCensusSlot;
+_Static_assert(sizeof(tomoAtomicAdmissionCensusSlot) == CACHE_LINE_SIZE,
+               "atomic admission census slots must occupy one cache line");
+static tomoAtomicAdmissionCensusSlot
+    tomo_atomic_admission_census[TOMO_IO_THREADS_MAX + 1]
+    __attribute__((aligned(CACHE_LINE_SIZE)));
+
+static inline tomoAtomicAdmissionCensusSlot *tomoAtomicAdmissionCensusFor(int slot) {
+    serverAssert(slot >= 0 && slot <= TOMO_IO_THREADS_MAX);
+    return &tomo_atomic_admission_census[slot];
+}
+
+static void tomoAtomicAdmissionCensusReserve(int slot) {
+    int before = atomic_fetch_add_explicit(
+        &tomoAtomicAdmissionCensusFor(slot)->unsealed, 1, memory_order_seq_cst);
+    serverAssert(before >= 0 && before < INT_MAX);
+}
+
+static void tomoAtomicAdmissionCensusRelease(int slot) {
+    int before = atomic_fetch_sub_explicit(
+        &tomoAtomicAdmissionCensusFor(slot)->unsealed, 1, memory_order_seq_cst);
+    serverAssert(before > 0);
+}
+
+/* Correctness callers fold only after sequence-consistently closing the cutover gate. Count a
+ * witness only when the fold observes live admitted work: an empty cutover is not evidence that
+ * the sharded reserve/seal census participated. INFO uses the same exact slot population as an
+ * observational snapshot without incrementing the witness. */
+static int tomoAtomicAdmissionCensusFold(int witness) {
+    int total = 0;
+    for (int slot = 0; slot <= TOMO_IO_THREADS_MAX; slot++) {
+        int unsealed = atomic_load_explicit(
+            &tomo_atomic_admission_census[slot].unsealed, memory_order_seq_cst);
+        serverAssert(unsealed >= 0 && total <= INT_MAX - unsealed);
+        total += unsealed;
+    }
+    if (witness && total)
+        atomic_fetch_add_explicit(&tomo_atomic_admission_census_folds, 1,
+                                  memory_order_relaxed);
+    return total;
+}
 
 void tomoAtomicLifecycleEnsure(void) {
     if (server.num_workers <= 0) return;
@@ -956,7 +1003,7 @@ static void tomoAtomicLifecycleAcquire(kvobj *kv, int owner) {
     /* Witness (anti-vacuous rule): every acquire that consumed the carried
      * bucket rather than re-deriving it from the key bytes. */
     tomoRelaxedBump(csOwnerPublishListFor(&server.exThreads[owner])->bucket_carry_hits, 1);
-    /* One worker owns every bucket in its row. The cutover unsealed gate
+    /* One worker owns every bucket in its row. The cutover unsealed census
      * excludes ownership change across an install, so publish this local count
      * with load/store instead of a locked RMW. */
     tomoAtomicLifecycleRef *slot = tomoAtomicLifecycleSlot(refs, owner, bucket);
@@ -1194,6 +1241,8 @@ static tomoCommit *tomoCommitNew(csGroup *g) {
                 (unsigned int)g->version_install_expected + 1);
     atomic_init(&commit->shards_remaining, 0);
     atomic_init(&commit->reclaim_bytes, 0);
+    serverAssert(iotid >= 0 && iotid <= TOMO_IO_THREADS_MAX);
+    commit->admission_slot = iotid;
     commit->owner_records = NULL;
     commit->group = g;
     return commit;
@@ -1368,7 +1417,7 @@ static void tomoAtomicReclaimGroupPublish(tomoCommit *commit) {
 static int tomoAtomicMsetTryReserve(int window) {
     if (window == 0) {
         atomic_fetch_add_explicit(&tomo_atomic_inflight, 1, memory_order_relaxed);
-        atomic_fetch_add_explicit(&tomo_atomic_unsealed, 1, memory_order_seq_cst);
+        tomoAtomicAdmissionCensusReserve(iotid);
         return 1;
     }
     int cur = atomic_load_explicit(&tomo_atomic_inflight, memory_order_relaxed);
@@ -1376,7 +1425,7 @@ static int tomoAtomicMsetTryReserve(int window) {
         if (atomic_compare_exchange_weak_explicit(&tomo_atomic_inflight, &cur, cur + 1,
                                                   memory_order_relaxed,
                                                   memory_order_relaxed)) {
-            atomic_fetch_add_explicit(&tomo_atomic_unsealed, 1, memory_order_seq_cst);
+            tomoAtomicAdmissionCensusReserve(iotid);
             return 1;
         }
         /* Failed CAS refreshed cur; do not race past the bound. */
@@ -1461,18 +1510,17 @@ static void tomoAtomicParkCutoverClient(client *c) {
 static int tomoAtomicCutoverRaceAfterReserve(client *c) {
     if (atomic_load_explicit(&tomo_atomic_cutover_gate, memory_order_seq_cst) == 0)
         return 0;
-    int old_unsealed =
-        atomic_fetch_sub_explicit(&tomo_atomic_unsealed, 1, memory_order_seq_cst);
+    tomoAtomicAdmissionCensusRelease(iotid);
     int old_inflight =
         atomic_fetch_sub_explicit(&tomo_atomic_inflight, 1, memory_order_relaxed);
-    serverAssert(old_unsealed > 0 && old_inflight > 0);
+    serverAssert(old_inflight > 0);
     tomoAtomicParkCutoverClient(c);
     return 1;
 }
 
-static void tomoAtomicLifecycleGroupSealed(void) {
-    int old = atomic_fetch_sub_explicit(&tomo_atomic_unsealed, 1, memory_order_acq_rel);
-    serverAssert(old > 0);
+static void tomoAtomicLifecycleGroupSealed(tomoCommit *commit) {
+    serverAssert(commit != NULL);
+    tomoAtomicAdmissionCensusRelease(commit->admission_slot);
 }
 
 
@@ -13411,7 +13459,7 @@ static void csMsetGroupComplete(tomoCommit *commit) {
     }
 
     tomoAtomicReclaimGroupPublish(commit);
-    tomoAtomicLifecycleGroupSealed();
+    tomoAtomicLifecycleGroupSealed(commit);
     atomic_store_explicit(&g->mset_complete, TOMO_COMMIT_FINAL_READY,
                           memory_order_release);
     client *real = g->mset_client;
@@ -19317,8 +19365,7 @@ static void reshardCoordinatorTick(void) {
          * lock and returns on every miss, and workers/IO loops keep advancing completion and grace.
          * reshardArm also excluded flat resize, so no counted callback needs this coordinator. */
         monotime now = getMonotonicUs();
-        int atomic_unsealed =
-            atomic_load_explicit(&tomo_atomic_unsealed, memory_order_seq_cst);
+        int atomic_unsealed = tomoAtomicAdmissionCensusFold(1);
         uint64_t lifecycle_refs = atomic_unsealed == 0 ?
             tomoAtomicLifecycleRangeRefs(src, lo, hi) : 0;
         if (atomic_unsealed != 0 || lifecycle_refs != 0) {
@@ -23280,13 +23327,16 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         info = sdscatprintf(info,
             "tomokv_atomic_cutover_gate:%d\r\n"
             "tomokv_atomic_cutover_unsealed:%d\r\n"
+            "tomokv_atomic_admission_census_folds:%llu\r\n"
             "tomokv_atomic_cutover_fence_waits:%llu\r\n"
             "tomokv_atomic_cutover_ref_waits:%llu\r\n"
             "tomokv_atomic_cutover_fence_wait_usec:%llu\r\n"
             "tomokv_atomic_stale_owner_ops:%llu\r\n"
             "tomokv_atomic_stale_owner_prunes:%llu\r\n",
             atomic_load_explicit(&tomo_atomic_cutover_gate, memory_order_relaxed),
-            atomic_load_explicit(&tomo_atomic_unsealed, memory_order_relaxed),
+            tomoAtomicAdmissionCensusFold(0),
+            atomic_load_explicit(&tomo_atomic_admission_census_folds,
+                                 memory_order_relaxed),
             atomic_load_explicit(&tomo_atomic_cutover_fence_waits, memory_order_relaxed),
             atomic_load_explicit(&tomo_atomic_cutover_ref_waits, memory_order_relaxed),
             atomic_load_explicit(&tomo_atomic_cutover_fence_wait_us, memory_order_relaxed),
