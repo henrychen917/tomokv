@@ -4574,6 +4574,7 @@ static void handleWorkerRepliesScan(void) {
     listNode *ln;
     listRewind(server.clients_pending_ex[iotid], &li);
     if (listLength(server.clients_pending_ex[iotid]) == 0) return;
+    const int uring_send_pass = server.io_uring != 0;
 
     /* Reassembly is the IO-side half of the same drain run. It can allocate reply cells and
      * release coordinator/result storage many times before the event loop can run INFO again,
@@ -4799,21 +4800,25 @@ static void handleWorkerRepliesScan(void) {
             rt->flushid++;
         }
 
-        /* With io_uring, queue one client write after splicing so it joins the
-         * owner-wide SEND batch. Knob 0 retains the existing immediate epoll
-         * write path byte-for-byte. */
+        /* With io_uring, hand the completed reply straight to the owner send
+         * run. The old pending-write list added and removed one list node per
+         * p1 reply before reaching this same queue. No bytes become visible
+         * until the owner-wide SQE pass and its single enter below, so the
+         * allocation-accounting batch remains open across all uring replies. */
         if (spliced && !close_asap) {
-            /* A response can let this client (or another IO thread) issue INFO immediately.
-             * Fold the whole client's reassembly before any bytes become externally visible. */
-            zmalloc_stat_batch_end();
-            if (server.io_uring && tomoUringBackendClientAttached(real)) {
-                putClientInPendingWriteQueue(real);
+            if (uring_send_pass && tomoUringBackendClientAttached(real)) {
+                if (tomoUringBackendClientQueueWrite(real) != C_OK)
+                    putClientInPendingWriteQueue(real);
             } else {
+                /* A synchronous response can let this client (or another IO
+                 * thread) issue INFO immediately. Fold this reassembly before
+                 * any bytes become externally visible. */
+                zmalloc_stat_batch_end();
                 (void)writeToClient(real, 0);
                 if (clientHasPendingReplies(real))
                     putClientInPendingWriteQueue(real);
+                zmalloc_stat_batch_begin();
             }
-            zmalloc_stat_batch_begin();
         }
 
         /* Ring fully drained and all ready slots consumed — drop off the

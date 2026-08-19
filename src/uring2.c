@@ -13,7 +13,10 @@
  * Pass-batching invariant: a CQ harvest retires callback slots and folds
  * receive bookkeeping before parsing; after CQ advancement, its ready-client
  * run shares one parser cache and ends at exactly one EX publication boundary.
- * No staged dispatch or folded byte/read count may survive that boundary.
+ * No staged dispatch or folded byte/read count may survive that boundary. A
+ * send pass pins its ready prefixes first, then owns one contiguous SQ tail
+ * range; ordinary submission remains the single loop-enter operation, and
+ * SEND result/accounting folds only after the complete CQ array callback walk.
  */
 
 #include "server.h"
@@ -504,10 +507,11 @@ static void tomoUring2TryFinishDisarm(tomoUring2Client *uc) {
         tomoUring2ParsePush(uc->owner, uc);
 }
 
-static int tomoUring2SendCanPromote(const tomoUring2Client *uc) {
+static int tomoUring2SendCanPromote(const tomoUring2Client *uc,
+                                    const ConnectionType *tcp_type) {
     const client *c = uc->c;
     if (!c->conn || c->conn->fd != uc->fd ||
-        c->conn->type != connectionTypeTcp() ||
+        c->conn->type != tcp_type ||
         !(c->io_flags & CLIENT_IO_WRITE_ENABLED) ||
         c->buf_encoded || c->bufpos <= c->sentlen ||
         c->flags & (CLIENT_MASTER | CLIENT_SLAVE | CLIENT_INTERNAL |
@@ -517,11 +521,9 @@ static int tomoUring2SendCanPromote(const tomoUring2Client *uc) {
     return 1;
 }
 
-static int tomoUring2SendPromote(tomoUring2Thread *st,
-                                 tomoUring2Client *uc) {
+static size_t tomoUring2SendPromoteReady(tomoUring2Client *uc) {
     client *c = uc->c;
     serverAssert(!uc->send_active);
-    if (!tomoUring2SendCanPromote(uc)) return C_ERR;
     if (!uc->send_scratch) uc->send_scratch = zmalloc(PROTO_REPLY_CHUNK_BYTES);
 
     size_t available = c->bufpos - c->sentlen;
@@ -541,9 +543,7 @@ static int tomoUring2SendPromote(tomoUring2Thread *st,
     uc->send_failed = 0;
     uc->send_len = take;
     uc->send_off = 0;
-    URING2_STAT_BUMP(st, send_scratch_copies, 1);
-    URING2_STAT_BUMP(st, send_scratch_bytes, take);
-    return C_OK;
+    return take;
 }
 
 static void tomoUring2SendClearActive(tomoUring2Thread *st,
@@ -656,14 +656,26 @@ static int tomoUring2StageSendCancels(tomoUring2Thread *st) {
 }
 
 static int tomoUring2StageSends(tomoUring2Thread *st) {
-    int staged = 0;
-    while (st->send_head && staged < (int)TOMO_URING2_SEND_BATCH_MAX) {
+    tomoUring2Client *ready[TOMO_URING2_SEND_BATCH_MAX];
+    const int owner_tid = st->tid;
+    const ConnectionType *tcp_type = connectionTypeTcp();
+    unsigned int sq_budget = io_uring_sq_space_left(&st->ring);
+    if (sq_budget > TOMO_URING2_SEND_BATCH_MAX)
+        sq_budget = TOMO_URING2_SEND_BATCH_MAX;
+    unsigned int ready_count = 0;
+    unsigned int scratch_copies = 0;
+    uint64_t scratch_bytes = 0;
+
+    /* First retire owner-list ceremony and pin every stable reply prefix.
+     * Limit the run to the SQ space already available: ordinary send staging
+     * never submits from inside this per-reply walk. */
+    while (st->send_head && ready_count < sq_budget) {
         tomoUring2Client *uc = st->send_head;
         if (uc->c->flags & CLIENT_PROTECTED) {
             tomoUring2SendRemove(st, uc);
             continue;
         }
-        if (uc->owner != st || uc->owner_tid != iotid ||
+        if (uc->owner != st || uc->owner_tid != owner_tid ||
             uc->mode == TOMO_URING2_CLIENT_CLOSE ||
             uc->mode == TOMO_URING2_CLIENT_TRANSIT ||
             !uc->c->conn || uc->c->conn->fd != uc->fd) {
@@ -672,23 +684,38 @@ static int tomoUring2StageSends(tomoUring2Thread *st) {
                 tomoUring2SendClearActive(st, uc);
             continue;
         }
-        if (!uc->send_active && !tomoUring2SendCanPromote(uc)) {
+        if (!uc->send_active && !tomoUring2SendCanPromote(uc, tcp_type)) {
             tomoUring2SendRemove(st, uc);
             if (uc->c->bufpos || listLength(uc->c->reply))
                 putClientInPendingWriteQueue(uc->c);
             continue;
         }
-        if (!uc->send_active && tomoUring2SendPromote(st, uc) != C_OK) {
-            tomoUring2SendRemove(st, uc);
-            continue;
+        if (!uc->send_active) {
+            scratch_bytes += tomoUring2SendPromoteReady(uc);
+            scratch_copies++;
         }
+
+        tomoUring2SendRemove(st, uc);
+        serverAssert(uc->send_active && !uc->send_submitted);
+        ready[ready_count++] = uc;
+    }
+
+    if (!ready_count) return 0;
+    if (scratch_copies)
+        URING2_STAT_BUMP(st, send_scratch_copies, scratch_copies);
+    if (scratch_bytes)
+        URING2_STAT_BUMP(st, send_scratch_bytes, scratch_bytes);
+
+    /* The second loop owns one contiguous SQ tail range. io_uring_get_sqe()
+     * therefore advances sequential ring slots with no reply-list work or
+     * eligibility branches interleaved between SEND preparations. */
+    serverAssert(io_uring_sq_space_left(&st->ring) >= ready_count);
+    for (unsigned int i = 0; i < ready_count; i++) {
+        tomoUring2Client *uc = ready[i];
 
         uint64_t token = 0;
         struct io_uring_sqe *sqe = tomoUring2GetSqe(
             st, tomoUring2SendCqe, uc, TOMO_URING2_OP_SEND, &token);
-        if (!sqe) break;
-        tomoUring2SendRemove(st, uc);
-        serverAssert(uc->send_active && !uc->send_submitted);
         size_t remaining = uc->send_len - uc->send_off;
         io_uring_prep_send(sqe, uc->fd, uc->send_scratch + uc->send_off,
                            remaining, MSG_NOSIGNAL);
@@ -696,10 +723,9 @@ static int tomoUring2StageSends(tomoUring2Thread *st) {
         uc->send_submitted = 1;
         uc->send_main_seen = 0;
         uc->send_result_pending = 0;
-        URING2_STAT_BUMP(st, send_submitted, 1);
-        staged++;
     }
-    return staged;
+    URING2_STAT_BUMP(st, send_submitted, ready_count);
+    return (int)ready_count;
 }
 
 static int tomoUring2StageRecvs(tomoUring2Thread *st) {
@@ -857,7 +883,8 @@ static void tomoUring2RecvCancelCqe(tomoUring2Thread *st, void *owner,
     tomoUring2TryFinishDisarm(uc);
 }
 
-static void tomoUring2TryFinishSend(tomoUring2Client *uc) {
+static void tomoUring2TryFinishSend(tomoUring2Client *uc,
+                                    const ConnectionType *tcp_type) {
     tomoUring2Thread *st = uc->owner;
     if (uc->c->flags & CLIENT_PROTECTED) return;
     if (uc->send_result_pending || !uc->send_active || !uc->send_main_seen)
@@ -904,7 +931,7 @@ static void tomoUring2TryFinishSend(tomoUring2Client *uc) {
         /* Exactly one prefix is active per connection.  A later c->buf prefix
          * is copied only after this CQE; a legacy reply-list write cannot pass
          * it because ClientSendPending remains true through retirement. */
-        if (tomoUring2SendCanPromote(uc))
+        if (tomoUring2SendCanPromote(uc, tcp_type))
             tomoUring2SendPush(st, uc);
         else if (uc->c->bufpos || listLength(uc->c->reply))
             putClientInPendingWriteQueue(uc->c);
@@ -913,8 +940,19 @@ static void tomoUring2TryFinishSend(tomoUring2Client *uc) {
     }
 }
 
+typedef struct tomoUring2SendResultFold {
+    int owner_tid;
+    time_t unixtime;
+    int phase_trace_sample;
+    uint64_t bytes;
+    uint64_t writes;
+    uint64_t partial;
+    uint64_t errors;
+} tomoUring2SendResultFold;
+
 static void tomoUring2AccountSendBytes(tomoUring2Thread *st,
-                                       tomoUring2Client *uc, size_t n) {
+                                       tomoUring2Client *uc, size_t n,
+                                       tomoUring2SendResultFold *fold) {
     client *c = uc->c;
     if (n > uc->send_len - uc->send_off || c->sentlen + n > c->bufpos)
         tomoUring2Fatal(st, "send completion exceeds logical output", EPROTO);
@@ -924,25 +962,26 @@ static void tomoUring2AccountSendBytes(tomoUring2Thread *st,
         c->sentlen = 0;
         c->bufpos = 0;
     }
-    URING2_STAT_BUMP(st, send_bytes, n);
-    server.stat_io_writes_processed[iotid] += 1;
-    tomoRelaxedBump(server.netstat[iotid].out, n);
+    fold->bytes += n;
+    fold->writes++;
     clientTail(c)->net_output_bytes += n;
-    if (!(c->flags & CLIENT_MASTER)) clientTail(c)->lastinteraction = server.unixtime;
+    if (!(c->flags & CLIENT_MASTER))
+        clientTail(c)->lastinteraction = fold->unixtime;
 }
 
 static void tomoUring2ApplySendResult(tomoUring2Thread *st,
-                                      tomoUring2Client *uc) {
+                                      tomoUring2Client *uc,
+                                      tomoUring2SendResultFold *fold) {
     if (!uc->send_result_pending) return;
     serverAssert(!(uc->c->flags & CLIENT_PROTECTED));
     int res = uc->send_result;
     uc->send_result_pending = 0;
     if (res > 0) {
-        tomoUring2AccountSendBytes(st, uc, (size_t)res);
-        if (__builtin_expect(server.phase_trace_sample != 0, 0))
+        tomoUring2AccountSendBytes(st, uc, (size_t)res, fold);
+        if (__builtin_expect(fold->phase_trace_sample != 0, 0))
             tomoPhaseSendDone(uc->c);
         if (uc->send_off < uc->send_len)
-            URING2_STAT_BUMP(st, send_partial, 1);
+            fold->partial++;
     } else if (res == -EAGAIN || res == -EINTR ||
                (res == -ECANCELED && !uc->send_disarming)) {
         /* Retry the same immutable scratch prefix after this CQE. */
@@ -950,13 +989,55 @@ static void tomoUring2ApplySendResult(tomoUring2Thread *st,
         /* Close-time cancellation; logical bytes remain in c->buf. */
     } else {
         uc->send_failed = 1;
-        URING2_STAT_BUMP(st, send_errors, 1);
+        fold->errors++;
         serverLog(LL_VERBOSE,
                   "Error writing to io_uring mode-2 client %llu: %s",
                   (unsigned long long)clientTail(uc->c)->id,
                   res == 0 ? "connection closed" :
                   strerror(res < 0 ? -res : EIO));
     }
+}
+
+static void tomoUring2PublishSendResultFold(
+    tomoUring2Thread *st, const tomoUring2SendResultFold *fold) {
+    if (fold->bytes) {
+        URING2_STAT_BUMP(st, send_bytes, fold->bytes);
+        server.stat_io_writes_processed[fold->owner_tid] += fold->writes;
+        tomoRelaxedBump(server.netstat[fold->owner_tid].out, fold->bytes);
+    }
+    if (fold->partial)
+        URING2_STAT_BUMP(st, send_partial, fold->partial);
+    if (fold->errors)
+        URING2_STAT_BUMP(st, send_errors, fold->errors);
+}
+
+static void tomoUring2ProcessSendReadyBatch(
+    tomoUring2Thread *st, tomoUring2Client **ready, unsigned int count) {
+    tomoUring2SendResultFold fold = {
+        .owner_tid = st->tid,
+        .unixtime = server.unixtime,
+        .phase_trace_sample = server.phase_trace_sample,
+    };
+    const ConnectionType *tcp_type = connectionTypeTcp();
+
+    for (unsigned int i = 0; i < count; i++) {
+        tomoUring2Client *uc = ready[i];
+        if (!(uc->c->flags & CLIENT_PROTECTED))
+            tomoUring2ApplySendResult(st, uc, &fold);
+        tomoUring2TryFinishSend(uc, tcp_type);
+    }
+    tomoUring2PublishSendResultFold(st, &fold);
+}
+
+static void tomoUring2ApplySendResultScalar(tomoUring2Thread *st,
+                                             tomoUring2Client *uc) {
+    tomoUring2SendResultFold fold = {
+        .owner_tid = st->tid,
+        .unixtime = server.unixtime,
+        .phase_trace_sample = server.phase_trace_sample,
+    };
+    tomoUring2ApplySendResult(st, uc, &fold);
+    tomoUring2PublishSendResultFold(st, &fold);
 }
 
 static void tomoUring2SendCqe(tomoUring2Thread *st, void *owner,
@@ -971,9 +1052,6 @@ static void tomoUring2SendCqe(tomoUring2Thread *st, void *owner,
     uc->send_main_seen = 1;
     uc->send_result = cqe->res;
     uc->send_result_pending = 1;
-    if (!(uc->c->flags & CLIENT_PROTECTED))
-        tomoUring2ApplySendResult(st, uc);
-    tomoUring2TryFinishSend(uc);
 }
 
 static void tomoUring2SendCancelCqe(tomoUring2Thread *st, void *owner,
@@ -989,7 +1067,7 @@ static void tomoUring2SendCancelCqe(tomoUring2Thread *st, void *owner,
     uc->send_cancel_token = 0;
     uc->send_cancel_submitted = 0;
     uc->send_cancel_seen = 1;
-    tomoUring2TryFinishSend(uc);
+    tomoUring2TryFinishSend(uc, connectionTypeTcp());
 }
 
 static void tomoUring2ResumeNow(tomoUring2Client *uc) {
@@ -1083,6 +1161,8 @@ static void tomoUring2ProcessCqeBatch(
     uint64_t recv_bytes = 0;
     uint64_t recv_sock_nonempty = 0;
     uint64_t send_cqes = 0;
+    tomoUring2Client *send_ready[TOMO_URING2_CQE_BATCH];
+    unsigned int send_ready_count = 0;
 
     for (unsigned i = 0; i < count; i++) {
         /* Copy before advancing, matching Helio uring_proactor.cc:279-320. */
@@ -1123,11 +1203,17 @@ static void tomoUring2ProcessCqeBatch(
             send_cqes++;
         }
         callback(st, owner, &cqe);
+        if (kind == TOMO_URING2_OP_SEND) {
+            serverAssert(send_ready_count < TOMO_URING2_CQE_BATCH);
+            send_ready[send_ready_count++] = owner;
+        }
     }
 
     serverAssert(st->pending_slots >= retired);
     st->free_slot = free_slot;
     st->pending_slots -= retired;
+    if (send_ready_count)
+        tomoUring2ProcessSendReadyBatch(st, send_ready, send_ready_count);
     if (recv_cqes) URING2_STAT_BUMP(st, recv_cqes, recv_cqes);
     if (recv_bytes) URING2_STAT_BUMP(st, recv_bytes, recv_bytes);
     if (recv_sock_nonempty)
@@ -1554,7 +1640,7 @@ static int tomoUring2ClientQueueWrite(client *c) {
     if (uc->mode == TOMO_URING2_CLIENT_CLOSE ||
         uc->mode == TOMO_URING2_CLIENT_TRANSIT ||
         (c->flags & (CLIENT_CLOSE_ASAP | CLIENT_PROTECTED)) ||
-        !tomoUring2SendCanPromote(uc))
+        !tomoUring2SendCanPromote(uc, connectionTypeTcp()))
         return C_ERR;
     tomoUring2SendPush(uc->owner, uc);
     return C_OK;
@@ -1677,8 +1763,8 @@ static void tomoUring2ClientResume(client *c) {
     }
     if (uc->send_active) {
         if (uc->send_result_pending)
-            tomoUring2ApplySendResult(uc->owner, uc);
-        tomoUring2TryFinishSend(uc);
+            tomoUring2ApplySendResultScalar(uc->owner, uc);
+        tomoUring2TryFinishSend(uc, connectionTypeTcp());
         if (uc->mode == TOMO_URING2_CLIENT_CLOSE ||
             (c->flags & CLIENT_CLOSE_ASAP))
             return;

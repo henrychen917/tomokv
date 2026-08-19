@@ -3693,6 +3693,7 @@ int handleClientsWithPendingWrites(void) {
     listIter li;
     listNode *ln;
     int processed = listLength(server.clients_pending_write[iotid]);
+    const int uring_send_pass = server.io_uring != 0;
 
     listRewind(server.clients_pending_write[iotid],&li);
     while((ln = listNext(&li))) {
@@ -3714,7 +3715,7 @@ int handleClientsWithPendingWrites(void) {
 
         /* Queue one stable prefix per client; all clients' SEND SQEs are
          * staged together by the owner ring's single enter for this pass. */
-        if (server.io_uring && tomoUringBackendClientAttached(c) &&
+        if (uring_send_pass && tomoUringBackendClientAttached(c) &&
             tomoUringBackendClientQueueWrite(c) == C_OK)
             continue;
 
