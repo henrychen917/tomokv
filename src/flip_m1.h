@@ -54,6 +54,7 @@ typedef struct tomoM1Info {
     uint64_t target_changes;
     uint64_t arm_refusals;
     uint64_t holds;
+    uint64_t pending_recoveries;
 } tomoM1Info;
 
 #define TOMO_M1_SELFTEST_CASES 6

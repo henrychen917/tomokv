@@ -23261,7 +23261,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_m1_moves_total:%llu\r\n"
             "tomokv_m1_target_changes:%llu\r\n"
             "tomokv_m1_arm_refusals:%llu\r\n"
-            "tomokv_m1_holds:%llu\r\n",
+            "tomokv_m1_holds:%llu\r\n"
+            "tomokv_m1_pending_recoveries:%llu\r\n",
             m1_info.target_io_n0,
             m1_info.target_io_n1,
             m1_info.c_io,
@@ -23270,7 +23271,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             (unsigned long long)m1_info.moves_total,
             (unsigned long long)m1_info.target_changes,
             (unsigned long long)m1_info.arm_refusals,
-            (unsigned long long)m1_info.holds);
+            (unsigned long long)m1_info.holds,
+            (unsigned long long)m1_info.pending_recoveries);
         if (tmNumNodes() > 1) {
             for (int node = 0; node < tmNumNodes() && node < TOMO_NODES_MAX; node++) {
                 info = sdscatprintf(info, "tomokv_node_%d_key_lb_runs:%llu\r\n",
@@ -30542,6 +30544,20 @@ typedef struct {
 static flipCtlState fctl[TM_MAXNODE];
 static tomoR10Node r10ctl[TM_MAXNODE];
 
+/* r8 may consume the per-node abort latch only while r8 OWNS actuation. In MODEL mode m1 is
+ * the sole actuator, and in CLIMB mode ownership passes to r10 mid-episode; r8's fc machinery
+ * keeps running (telemetry, and its episodes reach phase!=0 without ever arming) — an
+ * unguarded consume here eats the owner's conversion abort, and the owner's pending-move
+ * state then waits forever: the silent-freeze class the liveness fixes close (review
+ * 2026-08-19 finding 1). */
+static int tmR8OwnsAbortLatch(int node) {
+    if (server.thread_mode == TOMO_THREAD_MODE_MODEL) return 0;
+    if (server.thread_mode == TOMO_THREAD_MODE_CLIMB &&
+        node >= 0 && node < TM_MAXNODE && tomoR10OwnsActuator(&r10ctl[node]))
+        return 0;
+    return 1;
+}
+
 static void tmR10BeginEpisode(int node, flipCtlState *fc, int ni, int ne);
 static void tmR10DriveEpisode(int node, flipCtlState *fc, int ni, int ne);
 
@@ -32438,7 +32454,7 @@ static void tomoFlipController(void) {
          * config. If a later transfer is merely refused, judge the landed prefix as the actual
          * step; a loss then walks back that exact prefix through the normal best_dist machinery. */
         if (fc->phase == 3) {
-            if (tmFlipAbortConsume(node)) {
+            if (tmR8OwnsAbortLatch(node) && tmFlipAbortConsume(node)) {
                 int landed = fc->step_done;
                 fc->step_armed = 0;
                 if (landed == 0) {
@@ -32619,7 +32635,8 @@ static void tomoFlipController(void) {
          * committed opposite climb — momentum semantics) and pause a FIXED interval before re-reading
          * pressure (the pin that caused the abort tends to persist briefly; a fixed, non-monotonic
          * backoff so repeated aborts never latch the controller idle for a minute). */
-        if (fc->phase != 0 && tmFlipAbortConsume(node)) { /* only the owning node consumes */
+        if (fc->phase != 0 && tmR8OwnsAbortLatch(node) &&
+            tmFlipAbortConsume(node)) { /* only the owning NODE and the owning MODE consume */
             serverLog(LL_WARNING, "[flip-ctl n%d] step %s ABORTED at actuation -> end climb, pin, pause",
                       node, fc->last_dir > 0 ? "grow-front" : "grow-back");
             if (fc->floor_probe_active) {
@@ -33204,7 +33221,8 @@ r10_floor_sweep_done:
          * later; so confirm the previous step LANDED (no abort for this node) before counting it — never
          * decrement on a step that didn't physically happen. review [7]: only consume THIS node's abort. */
         if (fc->revert_steps > 0) {
-            if (tmFlipAbortConsume(node)) {                  /* previous step aborted: config unchanged */
+            if (tmR8OwnsAbortLatch(node) &&
+                tmFlipAbortConsume(node)) {                  /* previous step aborted: config unchanged */
                 fc->walkback_armed = 0; fc->wait = FLIP_WAIT_REVERT;   /* re-issue it after a pause */
                 if (fc->floor_probe_active &&
                     (ni != fc->floor_probe_move_from_io ||

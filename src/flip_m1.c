@@ -288,6 +288,7 @@ typedef struct tomoM1ActuationPlan {
     unsigned char current_valid;
     unsigned char target_valid;
     unsigned char move_pending;
+    uint64_t pending_ticks;   /* owner ticks with the staged conversion in flight */
     unsigned char held;
     unsigned char at_target;
 } tomoM1ActuationPlan;
@@ -335,6 +336,7 @@ static _Atomic uint64_t tomo_m1_moves_total;
 static _Atomic uint64_t tomo_m1_target_changes;
 static _Atomic uint64_t tomo_m1_arm_refusals;
 static _Atomic uint64_t tomo_m1_holds;
+static _Atomic uint64_t tomo_m1_pending_recoveries;
 
 static void tomoM1Publish(int node, const tomoM1NodeState *state) {
     atomic_store_explicit(&tomo_m1_published[node].target_io, state->target_io,
@@ -399,6 +401,7 @@ void tomoM1InfoGet(tomoM1Info *info) {
         .arm_refusals = atomic_load_explicit(&tomo_m1_arm_refusals,
                                              memory_order_relaxed),
         .holds = atomic_load_explicit(&tomo_m1_holds, memory_order_relaxed),
+        .pending_recoveries = atomic_load_explicit(&tomo_m1_pending_recoveries, memory_order_relaxed),
     };
 }
 
@@ -596,7 +599,23 @@ static void tomoM1ActuationPlanTick(tomoM1ActuationPlan *plan, int node,
             plan->at_target = 0;
             tomoM1ActuationResetFailures(plan);
         } else if (current_io == plan->current_io && current_ex == plan->current_ex) {
-            return;                     /* the one accepted staged conversion is still in flight */
+            /* The one accepted staged conversion is still in flight. Its abort could be
+             * consumed by another latch reader (belt: the r8 consumers are ownership-gated;
+             * braces: bound the wait with the same settle-derived budget as refusals, so a
+             * stolen or lost abort can never freeze the actuator silently -- review
+             * finding-1 class). Recovery = drop the pending claim and re-plan from the
+             * observed shape on a later owner tick. */
+            plan->pending_ticks++;
+            if (plan->pending_ticks >= tomoM1RefusalBudget(settle_ticks_last, NULL)) {
+                atomic_fetch_add_explicit(&tomo_m1_pending_recoveries, 1, memory_order_relaxed);
+                serverLog(LL_WARNING, "[m1-act n%d] staged conversion unresolved for %llu owner "
+                          "ticks (budget hit) -> dropping pending claim, re-planning",
+                          node, (unsigned long long)plan->pending_ticks);
+                plan->move_pending = 0;
+                plan->pending_direction = 0;
+                plan->pending_ticks = 0;
+            }
+            return;
         } else {
             event->prior_io = plan->current_io;
             event->prior_ex = plan->current_ex;
@@ -647,6 +666,7 @@ static void tomoM1ActuationPlanTick(tomoM1ActuationPlan *plan, int node,
         plan->expected_ex = expected_ex;
         plan->pending_direction = direction;
         plan->move_pending = 1;
+        plan->pending_ticks = 0;
         event->armed = 1;
         return;
     }
