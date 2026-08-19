@@ -42,6 +42,18 @@ Seed table (16c EPYC, d32, cache-resident; per-op us):
    — rdtsc on 1/256 ex commands, EWMA per class (per-op timing on EVERY command was the
    measured reorder tax; 1/256 sampling is noise). (c) absorbs value sizes, DRAM-bound cost
    inflation, and every ex-side code change — the owner's stated maintenance downside.
+
+   CONFIG-AWARENESS (owner: "config aware, workload aware"): workload-aware = the detection
+   side (mix + batch depth, observed); config-aware = the table VALUES are bound to the
+   running config while the STRUCTURE is universal. Boot-knowable axes are columns: backend
+   (uring/epoll io anchors, measured 11.8 vs 13.4us at p1), atomics (write surcharge column:
+   measured ON tax ~30% deep-pipe / ~6% p1 / 0% reads), stage structure (2s fused-io column
+   vs 3s ifid+wb columns — same lattice math, K roles). Continuous axes (value size, DRAM-
+   boundedness, NIC interrupt load, future hardware) are never hand-enumerated: source (c)
+   collapses them all into measured service times of the current config — and the io side is
+   self-measured the same way (rdtsc-sampled ~1/64 drain passes -> io us/op), so on a NIC box
+   the anchors retire and the controller runs entirely on measured costs. One lookup function
+   (role, class, nkeys, depth) is the only place config axes exist.
 3. TARGET: per node at the 4Hz tick: mix vector m (node-local, decayed), batch depth p ->
    c_ex = sum(m_i * ex_i), c_io = io(p) [+ bytes term] -> io* = N * c_io_rate/(...) i.e.
    io*/ex* = c_io/c_ex; round both ways, pick the better under min(); clamp to lattice.
