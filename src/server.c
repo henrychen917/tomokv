@@ -30747,6 +30747,10 @@ static void tmR10BeginEpisode(int node, flipCtlState *fc, int ni, int ne) {
     int min_io = server.tm_pool_symmetric
                ? 1 : (tmNumNodes() == 1 ? server.io_threads : server.io_per_node);
     int max_io = ni + ne - 1;
+    /* Role conservation describes the logical lattice; the actuator can only occupy the base
+     * plus provisioned growth slots, whose latter term may have been compile-cap clamped. */
+    int io_slot_cap = server.io_threads + server.tm_ngrow_io;
+    if (max_io > io_slot_cap) max_io = io_slot_cap;
     tmFlipAbortClear(node);
     tomoR10Begin(&r10ctl[node], node, shape, fc->last_dir, min_io, max_io);
     tomoR10WitnessEpisode();
