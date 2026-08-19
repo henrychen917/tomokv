@@ -440,12 +440,16 @@ static double tomoM1LatticeStep(int target_io, int role_threads) {
     return step;
 }
 
-static unsigned int tomoM1HysteresisTicks(const tomoM1NodeState *state,
-                                          int target_io, int role_threads) {
+static double tomoM1InputSigma(const tomoM1NodeState *state) {
     double mix_sigma = 0.0;
     for (int class_id = 0; class_id < TOMO_M1_CLASS_COUNT; class_id++)
         mix_sigma += state->mix[class_id] * state->mix_noise[class_id].sigma;
-    double input_sigma = fmax(mix_sigma, state->depth_noise.sigma);
+    return fmax(mix_sigma, state->depth_noise.sigma);
+}
+
+static unsigned int tomoM1HysteresisTicks(const tomoM1NodeState *state,
+                                          int target_io, int role_threads) {
+    double input_sigma = tomoM1InputSigma(state);
     double lattice_step = tomoM1LatticeStep(target_io, role_threads);
     double extra = (isfinite(lattice_step) && lattice_step > 0.0)
                  ? ceil(log1p(fmax(input_sigma, 0.0)) / lattice_step) : 0.0;
@@ -455,7 +459,36 @@ static unsigned int tomoM1HysteresisTicks(const tomoM1NodeState *state,
     return 2U + (unsigned int)extra;
 }
 
-static int tomoM1FilterTarget(tomoM1NodeState *state, int role_threads) {
+static int tomoM1CandidateOutsideBand(const tomoM1NodeState *state,
+                                      int role_threads) {
+    if (!(state->raw.c_io > 0.0) || !(state->raw.c_ex > 0.0) ||
+        !isfinite(state->raw.c_io) || !isfinite(state->raw.c_ex))
+        return 1;                       /* model computation normally guarantees this */
+
+    /* For adjacent io counts k and k+1, min(io/c_io, ex/c_ex) ties at
+     * c_io/c_ex = k/(N-k-1). Keep the incumbent until the live cost ratio crosses
+     * that exact lattice boundary by the same measured two-sigma convention u1 uses
+     * for settling. This is the amplitude half of the Schmitt gate; the sustained-run
+     * test below remains its time half. Comparing the first boundary in the candidate's
+     * direction also permits a real multi-rung workload change without walking the raw
+     * target one rung at a time. */
+    int lower_io = state->raw.target_io > state->target_io
+                 ? state->target_io : state->target_io - 1;
+    int boundary_ex = role_threads - lower_io - 1;
+    if (lower_io < 1 || boundary_ex < 1) return 1;
+
+    double ratio_log = log(state->raw.c_io / state->raw.c_ex);
+    double boundary_log = log((double)lower_io / (double)boundary_ex);
+    double sigma_band = log1p(2.0 * fmax(tomoM1InputSigma(state), 0.0));
+    if (!isfinite(ratio_log) || !isfinite(boundary_log) || !isfinite(sigma_band))
+        return 1;
+    return state->raw.target_io > state->target_io
+         ? ratio_log > boundary_log + sigma_band
+         : ratio_log < boundary_log - sigma_band;
+}
+
+static int tomoM1FilterTarget(tomoM1NodeState *state, int role_threads,
+                              int model_actuating) {
     if (!state->target_valid) {
         state->target_io = state->raw.target_io;
         state->target_ex = state->raw.target_ex;
@@ -466,6 +499,15 @@ static int tomoM1FilterTarget(tomoM1NodeState *state, int role_threads) {
         return 0;
     }
     if (state->raw.target_io == state->target_io) {
+        state->pending_io = 0;
+        state->pending_run = 0;
+        state->pending_need = 0;
+        return 0;
+    }
+
+    /* Shadow-mode filtering is intentionally unchanged: auto/climb keep byte-identical
+     * target traces. MODEL is the only mode in which a filtered edge has physical cost. */
+    if (model_actuating && !tomoM1CandidateOutsideBand(state, role_threads)) {
         state->pending_io = 0;
         state->pending_run = 0;
         state->pending_need = 0;
@@ -698,14 +740,22 @@ static int tomoM1ActuationSelfTestMove(void *private_data, int node, int directi
 }
 
 static int tomoM1ActuationSelfTest(tomoM1SelfTestResult *result) {
-    /* The raw target alternates every tick after the initial io11 nomination. It never earns the
-     * filter's sustained-agreement requirement, so the actuation plan sees io11 throughout: three
-     * serialized io-ward requests from io8/ex8, then request-free holds at io11/ex5. */
-    static const int raw_flicker[] = {10, 12, 10, 12, 10, 12, 10, 12};
-    tomoM1NodeState filter = {
-        .raw = {.target_io = 11, .target_ex = 5},
+    /* Reproduce the measured feedback loop: GET/p16 first nominates io12, then the batch-depth
+     * disturbance from landing/rebalancing supplies runs long enough to nominate io11 and io12
+     * again. Both excursions remain inside the measured two-sigma lattice band. The old
+     * duration-only filter accepted each run and actuated it; the full Schmitt gate must retain
+     * io12, making the boot io8 -> io12 walk exactly four serialized requests. */
+    static const int raw_feedback[] = {
+        12, 12, 12, 12, 12,
+        11, 11, 11, 11,
+        12, 12, 12, 12,
+        11, 11, 11, 11,
     };
-    (void)tomoM1FilterTarget(&filter, 16);
+    tomoM1NodeState filter = {
+        .raw = {.c_io = 2.20, .c_ex = 0.76, .target_io = 12, .target_ex = 4},
+        .depth_noise = {.sigma = 0.13, .pairs = 1},
+    };
+    (void)tomoM1FilterTarget(&filter, 16, 1);
 
     tomoM1ActuationPlan plan = {0};
     tomoM1ActuationSelfTestContext context = {.io = 8, .ex = 8};
@@ -713,10 +763,11 @@ static int tomoM1ActuationSelfTest(tomoM1SelfTestResult *result) {
     unsigned int held_ticks = 0;
     unsigned int filtered_changes = 0;
     for (unsigned int tick = 0;
-         tick < sizeof(raw_flicker) / sizeof(raw_flicker[0]); tick++) {
-        filter.raw.target_io = raw_flicker[tick];
-        filter.raw.target_ex = 16 - raw_flicker[tick];
-        filtered_changes += tomoM1FilterTarget(&filter, 16);
+         tick < sizeof(raw_feedback) / sizeof(raw_feedback[0]); tick++) {
+        filter.raw.target_io = raw_feedback[tick];
+        filter.raw.target_ex = 16 - raw_feedback[tick];
+        filter.raw.c_io = raw_feedback[tick] == 12 ? 2.20 : 1.68;
+        filtered_changes += tomoM1FilterTarget(&filter, 16, 1);
 
         tomoM1ActuationEvent event;
         tomoM1ActuationPlanTick(&plan, 0, context.io, context.ex,
@@ -729,20 +780,20 @@ static int tomoM1ActuationSelfTest(tomoM1SelfTestResult *result) {
             held_ticks++;
     }
 
-    int directions_ok = context.moves == 3;
+    int directions_ok = context.moves == 4;
     for (unsigned int i = 0; i < context.moves && directions_ok; i++)
         directions_ok = context.directions[i] == 1;
-    int passed = directions_ok && landings == 3 && held_ticks > 0 &&
-                 filtered_changes == 0 && filter.target_io == 11 &&
-                 filter.target_ex == 5 && context.io == 11 && context.ex == 5 &&
+    int passed = directions_ok && landings == 4 && held_ticks > 0 &&
+                 filtered_changes == 0 && filter.target_io == 12 &&
+                 filter.target_ex == 4 && context.io == 12 && context.ex == 4 &&
                  !plan.move_pending;
     *result = (tomoM1SelfTestResult) {
-        .name = "actuation-io8-to-io11-filter-flicker",
-        .expected_io = 11,
-        .expected_ex = 5,
+        .name = "actuation-io8-to-io12-depth-feedback",
+        .expected_io = 12,
+        .expected_ex = 4,
         .actual_io = context.io,
         .actual_ex = context.ex,
-        .expected_moves = 3,
+        .expected_moves = 4,
         .actual_moves = context.moves,
         .passed = passed,
     };
@@ -905,7 +956,8 @@ void tomoM1ControllerTick(int node) {
     int role_threads = server.io_per_node + server.ex_per_node;
     if (tomoM1ModelCompute(state->mix, state->avg_keys, state->depth,
                            role_threads, server.io_uring != 0, &state->raw)) {
-        int target_changed = tomoM1FilterTarget(state, role_threads);
+        int target_changed = tomoM1FilterTarget(
+            state, role_threads, server.thread_mode == TOMO_THREAD_MODE_MODEL);
         if (server.thread_mode == TOMO_THREAD_MODE_MODEL && target_changed)
             atomic_fetch_add_explicit(&tomo_m1_target_changes, 1,
                                       memory_order_relaxed);

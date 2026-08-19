@@ -57,10 +57,13 @@ Seed table (16c EPYC, d32, cache-resident; per-op us):
 3. TARGET: per node at the 4Hz tick: mix vector m (node-local, decayed), batch depth p ->
    c_ex = sum(m_i * ex_i), c_io = io(p) [+ bytes term] -> io* = N * c_io_rate/(...) i.e.
    io*/ex* = c_io/c_ex; round both ways, pick the better under min(); clamp to lattice.
-4. HYSTERESIS: actuate only when the computed target differs from current by >=1 step for a
-   sustained run of ticks (reuse u1a sigma machinery on the INPUT signals — mix/depth noise —
-   so the threshold is measured, not a machine constant). Zero moves while the target is
-   stable = thrash-clean by construction.
+4. HYSTERESIS: in MODEL, actuate only when the computed cost ratio crosses the exact adjacent
+   target-lattice boundary by u1's measured two-sigma INPUT band (mix/depth noise) and the new
+   target then persists for the sustained run of ticks. The amplitude and time tests form the
+   Schmitt gate; a role conversion's own batch-depth/rebalance disturbance must clear the
+   measured band before it can ratify a reverse move. Auto/climb retain their original
+   shadow-only duration filter byte-for-byte.
+   Zero moves while the target is stable = thrash-clean by construction.
 5. SHADOW SUBSTRATE: auto/climb still compute + trace only ([m1-trace nX] mix= depth= c_io=
    c_ex= target=ioT/exT current=ioC/exC), DEBUG TOMO-M1TRACE <0|1>, INFO gauges. r8/r10 decide;
    m1 predicts. Validation = run the 11 cells, compare m1's logged target vs discovered best
