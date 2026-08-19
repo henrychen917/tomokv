@@ -50,6 +50,8 @@ typedef struct tomoU1CmpState {
     tomoU1Shape pending_shape;
     double pending_mean;
     double gains[TOMO_U1_PAIR_CAP]; /* signed relative gain: positive means B won */
+    unsigned int a_samples;
+    unsigned int b_samples;
     unsigned int pairs;
     unsigned int a_wins;
     unsigned int b_wins;

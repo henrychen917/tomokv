@@ -442,6 +442,11 @@ int tomoU1CmpFeed(tomoU1CmpState *cmp, double window_mean, tomoU1Shape shape) {
         cmp->pending = 0;
         return 0;
     }
+    if (is_a) {
+        if (cmp->a_samples < TOMO_U1_PAIR_CAP) cmp->a_samples++;
+    } else {
+        if (cmp->b_samples < TOMO_U1_PAIR_CAP) cmp->b_samples++;
+    }
     if (!cmp->pending) {
         cmp->pending = 1;
         cmp->pending_shape = shape;
@@ -500,8 +505,12 @@ static double tomoU1BinomialTail(unsigned int wins, unsigned int pairs) {
 }
 
 tomoU1CmpResult tomoU1CmpVerdict(const tomoU1CmpState *cmp, double sigma) {
-    if (!cmp || !cmp->active || cmp->pairs == 0)
+    if (!cmp || !cmp->active)
         return TOMO_U1_CMP_NEED_MORE;
+    int series_full = cmp->a_samples >= TOMO_U1_PAIR_CAP &&
+                      cmp->b_samples >= TOMO_U1_PAIR_CAP;
+    if (cmp->pairs == 0)
+        return series_full ? TOMO_U1_CMP_FLAT : TOMO_U1_CMP_NEED_MORE;
     if (!isfinite(sigma) || sigma < 0.0) sigma = INFINITY;
 
     /* Exact ties carry no sign and are omitted from n, as in the conventional sign test. The
@@ -516,6 +525,6 @@ tomoU1CmpResult tomoU1CmpVerdict(const tomoU1CmpState *cmp, double sigma) {
         tomoU1BinomialTail(cmp->a_wins, decisive) < TOMO_U1_SIGN_ALPHA &&
         -median > sigma)
         return TOMO_U1_CMP_A_BETTER;
-    return cmp->pairs >= TOMO_U1_PAIR_CAP ? TOMO_U1_CMP_FLAT :
-                                           TOMO_U1_CMP_NEED_MORE;
+    return cmp->pairs >= TOMO_U1_PAIR_CAP || series_full ? TOMO_U1_CMP_FLAT :
+                                                          TOMO_U1_CMP_NEED_MORE;
 }

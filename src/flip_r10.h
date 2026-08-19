@@ -15,6 +15,14 @@ typedef enum tomoR10State {
     TOMO_R10_ANCHORED
 } tomoR10State;
 
+typedef enum tomoR10BackstopTrigger {
+    TOMO_R10_BACKSTOP_NONE = 0,
+    TOMO_R10_BACKSTOP_RUNG_LIMIT,
+    TOMO_R10_BACKSTOP_ARM_REFUSED,
+    TOMO_R10_BACKSTOP_SETTLE_NEVER,
+    TOMO_R10_BACKSTOP_NEED_MORE
+} tomoR10BackstopTrigger;
+
 typedef struct tomoR10Series {
     tomoU1Shape shape;
     double means[TOMO_U1_PAIR_CAP];
@@ -26,6 +34,7 @@ typedef struct tomoR10TickInput {
     tomoU1Shape shape;
     double ops_mean;
     double sigma;
+    uint64_t settle_ticks_last;
     const tomoU1Window *window;
 } tomoR10TickInput;
 
@@ -38,7 +47,7 @@ typedef struct tomoR10Info {
     int anchor_io_n1;
 } tomoR10Info;
 
-#define TOMO_R10_SELFTEST_CASES 4
+#define TOMO_R10_SELFTEST_CASES 5
 typedef struct tomoR10SelfTestResult {
     const char *name;
     int expected_rung;
@@ -68,11 +77,16 @@ typedef struct tomoR10Node {
     unsigned int rung_limit;
     unsigned int rungs_examined;
     unsigned int moves;
+    uint64_t state_drive_ticks;
+    uint64_t state_drive_budget;
+    uint64_t refused_arms;
     unsigned int move_pending;
     int pending_direction;
     int candidate_active;
     int retreat_then_anchor;
     int backstop_hit;
+    tomoR10State backstop_state;
+    tomoR10BackstopTrigger backstop_trigger;
     int side_a_available;
     int side_b_available;
     uint64_t last_window_sequence;
@@ -102,9 +116,12 @@ void tomoR10Begin(tomoR10Node *climb, int node, tomoU1Shape shape,
 void tomoR10Tick(tomoR10Node *climb, const tomoR10TickInput *input,
                  tomoR10MoveRequest request_move, void *private_data);
 void tomoR10MoveAborted(tomoR10Node *climb);
+void tomoR10Abandon(tomoR10Node *climb, tomoU1Shape shape,
+                    tomoR10BackstopTrigger trigger);
 
 int tomoR10OwnsActuator(const tomoR10Node *climb);
 const char *tomoR10StateName(tomoR10State state);
+const char *tomoR10BackstopTriggerName(tomoR10BackstopTrigger trigger);
 double tomoR10SeriesMean(const tomoR10Series *series);
 
 void tomoR10TraceSet(int enabled);

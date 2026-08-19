@@ -30770,6 +30770,7 @@ static void tmR10DriveEpisode(int node, flipCtlState *fc, int ni, int ne) {
         },
         .ops_mean = fc->mean,
         .sigma = tomoU1Sigma(node),
+        .settle_ticks_last = tomoU1SettleTicksLast(node),
         .window = latest,
     };
     tomoR10State before = r10ctl[node].state;
@@ -30781,13 +30782,25 @@ static void tmR10DriveEpisode(int node, flipCtlState *fc, int ni, int ne) {
     if (before != TOMO_R10_ANCHORED && r10ctl[node].state == TOMO_R10_ANCHORED) {
         tomoR10WitnessAnchor(node, r10ctl[node].best_rung,
                              r10ctl[node].current.io);
-        int level = r10ctl[node].backstop_hit ? LL_WARNING : LL_NOTICE;
-        serverLog(level, "[r10 n%d] ANCHOR io%u/ex%u rung=%+d moves=%u "
-                  "examined=%u/%u%s", node, r10ctl[node].current.io,
-                  r10ctl[node].current.ex, r10ctl[node].rung,
-                  r10ctl[node].moves, r10ctl[node].rungs_examined,
-                  r10ctl[node].rung_limit,
-                  r10ctl[node].backstop_hit ? " BACKSTOP-HIT" : "");
+        if (r10ctl[node].backstop_hit) {
+            serverLog(LL_WARNING, "[r10 n%d] ANCHOR io%u/ex%u rung=%+d moves=%u "
+                      "examined=%u/%u BACKSTOP-HIT state=%s trigger=%s "
+                      "drive=%llu refused=%llu budget=%llu",
+                      node, r10ctl[node].current.io, r10ctl[node].current.ex,
+                      r10ctl[node].rung, r10ctl[node].moves,
+                      r10ctl[node].rungs_examined, r10ctl[node].rung_limit,
+                      tomoR10StateName(r10ctl[node].backstop_state),
+                      tomoR10BackstopTriggerName(r10ctl[node].backstop_trigger),
+                      (unsigned long long)r10ctl[node].state_drive_ticks,
+                      (unsigned long long)r10ctl[node].refused_arms,
+                      (unsigned long long)r10ctl[node].state_drive_budget);
+        } else {
+            serverLog(LL_NOTICE, "[r10 n%d] ANCHOR io%u/ex%u rung=%+d moves=%u "
+                      "examined=%u/%u", node, r10ctl[node].current.io,
+                      r10ctl[node].current.ex, r10ctl[node].rung,
+                      r10ctl[node].moves, r10ctl[node].rungs_examined,
+                      r10ctl[node].rung_limit);
+        }
     }
 }
 

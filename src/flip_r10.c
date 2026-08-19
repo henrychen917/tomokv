@@ -99,7 +99,8 @@ static void tomoR10TraceNode(const tomoR10Node *climb, const char *event) {
         "[r10-trace n%d] event=%s state=%s rung=%+d best=%+d "
         "T(J)=%.3f/%u T(A:%+d)=%.3f/%u T(B:%+d)=%.3f/%u "
         "T(ref:%+d)=%.3f/%u T(probe:%+d)=%.3f/%u sigma=%.9f "
-        "verdicts=A:%s,B:%s,sides:%s,last:%s moves=%u pending=%+d rungs=%u/%u",
+        "verdicts=A:%s,B:%s,sides:%s,last:%s moves=%u pending=%+d rungs=%u/%u "
+        "state_budget=%llu+%llu/%llu",
         climb->node, event, tomoR10StateName(climb->state), climb->rung,
         climb->best_rung,
         tomoR10SeriesMean(&climb->baseline), climb->baseline.count,
@@ -113,7 +114,10 @@ static void tomoR10TraceNode(const tomoR10Node *climb, const char *event) {
         tomoR10VerdictName(climb->verdict_sides),
         tomoR10VerdictName(climb->verdict_last), climb->moves,
         climb->move_pending ? climb->pending_direction : 0,
-        climb->rungs_examined, climb->rung_limit);
+        climb->rungs_examined, climb->rung_limit,
+        (unsigned long long)climb->state_drive_ticks,
+        (unsigned long long)climb->refused_arms,
+        (unsigned long long)climb->state_drive_budget);
 }
 
 void tomoR10TraceSet(int enabled) {
@@ -165,6 +169,8 @@ typedef struct tomoR10SelfTestContext {
     tomoU1Shape origin;
     tomoU1Shape shape;
     unsigned int samples[TOMO_U1_WINDOW_RING];
+    unsigned int move_requests;
+    int first_arm_aborted;
     int min_rung_seen;
     int max_rung_seen;
 } tomoR10SelfTestContext;
@@ -173,6 +179,12 @@ static int tomoR10SelfTestMove(void *private_data, int node, int direction,
                                const char **err) {
     UNUSED(node);
     tomoR10SelfTestContext *context = private_data;
+    if (context->case_id == 4) {
+        if (context->move_requests++ == 0)
+            return 1; /* Synthetic accepted arm; the loop reports its abort before landing. */
+        if (err) *err = "synthetic permanent arm refusal";
+        return 0;
+    }
     int io = (int)context->shape.io + (direction > 0 ? 1 : -1);
     int ex = (int)context->shape.ex - (direction > 0 ? 1 : -1);
     if (io < 1 || ex < 1) {
@@ -208,6 +220,8 @@ static double tomoR10SelfTestMean(int case_id, int rung, unsigned int sample) {
         double level = 100.0 * (1.0 + 0.006 * (double)rung);
         return level * (1.0 + noise[sample % TOMO_U1_PAIR_CAP]);
     }
+    case 4: /* The first SIDE_A arm aborts, then every retry is refused. */
+        return 100.0;
     }
     return 0.0;
 }
@@ -221,6 +235,7 @@ int tomoR10SelfTest(tomoR10SelfTestResult results[TOMO_R10_SELFTEST_CASES]) {
         int expected_moves;
         int expected_min_rung;
         int expected_max_rung;
+        int expected_backstop;
     } tomoR10SelfTestCase;
 
     /* Expected terminal traces (the repeated clean-window lines are omitted):
@@ -231,12 +246,15 @@ int tomoR10SelfTest(tomoR10SelfTestResult results[TOMO_R10_SELFTEST_CASES]) {
      *   gain-back:    BASELINE -> SIDE_A -> RETURN_A -> SIDE_B -> CLIMBING(-1,-2,-3) ->
      *                 RETREAT -> ANCHORED(-2), moves=6.
      *   noise-only:   BASELINE -> SIDE_A -> RETURN_A -> SIDE_B -> RETREAT ->
-     *                 ANCHORED(0), moves=4; both sub-sigma deltas verdict FLAT. */
+     *                 ANCHORED(0), moves=4; both sub-sigma deltas verdict FLAT.
+     *   arm-refused:  BASELINE -> SIDE_A (first arm aborts) -> bounded retries ->
+     *                 ANCHORED(0), moves=0, BACKSTOP-HIT. */
     static const tomoR10SelfTestCase cases[TOMO_R10_SELFTEST_CASES] = {
-        { "gain-forward-13-10-8-flat", 0.01, 3, 9, -1, 4 },
-        { "both-sides-flat",           0.01, 0, 4, -1, 1 },
-        { "gain-back-5pct",            0.01, -2, 6, -3, 1 },
-        { "noise-only-below-sigma",    0.02, 0, 4, -1, 1 },
+        { "gain-forward-13-10-8-flat", 0.01, 3, 9, -1, 4, 0 },
+        { "both-sides-flat",           0.01, 0, 4, -1, 1, 0 },
+        { "gain-back-5pct",            0.01, -2, 6, -3, 1, 0 },
+        { "noise-only-below-sigma",    0.02, 0, 4, -1, 1, 0 },
+        { "side-a-permanent-arm-refusal", 0.01, 0, 0, 0, 0, 1 },
     };
 
     int passed = 0;
@@ -271,9 +289,15 @@ int tomoR10SelfTest(tomoR10SelfTestResult results[TOMO_R10_SELFTEST_CASES]) {
                 .shape = context.shape,
                 .ops_mean = mean,
                 .sigma = cases[case_id].sigma,
+                .settle_ticks_last = TOMO_U1_SUBW_TICKS,
                 .window = &window,
             };
             tomoR10Tick(&climb, &input, tomoR10SelfTestMove, &context);
+            if (case_id == 4 && !context.first_arm_aborted &&
+                climb.state == TOMO_R10_SIDE_A && climb.move_pending) {
+                tomoR10MoveAborted(&climb);
+                context.first_arm_aborted = 1;
+            }
         }
 
         int actual_rung = (int)context.shape.io - (int)context.origin.io;
@@ -283,7 +307,7 @@ int tomoR10SelfTest(tomoR10SelfTestResult results[TOMO_R10_SELFTEST_CASES]) {
                  climb.moves == (unsigned int)cases[case_id].expected_moves &&
                  context.min_rung_seen == cases[case_id].expected_min_rung &&
                  context.max_rung_seen == cases[case_id].expected_max_rung &&
-                 !climb.backstop_hit;
+                 climb.backstop_hit == cases[case_id].expected_backstop;
         results[case_id] = (tomoR10SelfTestResult) {
             .name = cases[case_id].name,
             .expected_rung = cases[case_id].expected_rung,
@@ -306,7 +330,7 @@ static int tomoR10SeriesFeed(tomoR10Series *series, const tomoU1Window *window,
                              double sigma) {
     if (!series || !window || series->count >= TOMO_U1_PAIR_CAP ||
         !window->settle_clean || !tomoU1ShapeEqual(series->shape, window->shape) ||
-        !isfinite(window->mean) || window->mean < 0.0)
+        !isfinite(window->mean) || window->mean <= 0.0)
         return 0;
     series->means[series->count++] = window->mean;
     if (isfinite(sigma) && sigma > series->sigma) series->sigma = sigma;
@@ -342,6 +366,13 @@ static tomoU1CmpResult tomoR10Compare(tomoR10Node *climb,
     return verdict;
 }
 
+static void tomoR10EnterState(tomoR10Node *climb, tomoR10State state) {
+    climb->state = state;
+    climb->state_drive_ticks = 0;
+    climb->state_drive_budget = 0;
+    climb->refused_arms = 0;
+}
+
 static int tomoR10Request(tomoR10Node *climb, int direction,
                           tomoR10MoveRequest request_move, void *private_data) {
     tomoU1Shape expected;
@@ -349,10 +380,19 @@ static int tomoR10Request(tomoR10Node *climb, int direction,
         !tomoR10ShapeAtRung(climb, climb->rung + (direction > 0 ? 1 : -1),
                             &expected))
         return -1;
-    if (!request_move) return 0;
-    const char *err = NULL;
-    if (!request_move(private_data, climb->node, direction, &err)) return 0;
-    (void)err;
+    const char *err = "move callback unavailable";
+    if (!request_move || !request_move(private_data, climb->node, direction, &err)) {
+        if (climb->refused_arms != UINT64_MAX) climb->refused_arms++;
+        if (climb->refused_arms == 1) {
+            serverLog(LL_NOTICE,
+                      "[r10 n%d] state=%s arm=%+d REFUSED (%s); retrying within "
+                      "the progress budget",
+                      climb->node, tomoR10StateName(climb->state),
+                      direction > 0 ? 1 : -1, err ? err : "unspecified refusal");
+        }
+        return 0;
+    }
+    climb->refused_arms = 0;
     climb->expected = expected;
     climb->move_pending = 1;
     climb->pending_direction = direction > 0 ? 1 : -1;
@@ -380,6 +420,66 @@ static void tomoR10Anchor(tomoR10Node *climb) {
     climb->pending_direction = 0;
 }
 
+const char *tomoR10BackstopTriggerName(tomoR10BackstopTrigger trigger) {
+    switch (trigger) {
+    case TOMO_R10_BACKSTOP_NONE: return "none";
+    case TOMO_R10_BACKSTOP_RUNG_LIMIT: return "rung-limit";
+    case TOMO_R10_BACKSTOP_ARM_REFUSED: return "arm-refused";
+    case TOMO_R10_BACKSTOP_SETTLE_NEVER: return "settle-never";
+    case TOMO_R10_BACKSTOP_NEED_MORE: return "need-more";
+    }
+    return "unknown";
+}
+
+void tomoR10Abandon(tomoR10Node *climb, tomoU1Shape shape,
+                    tomoR10BackstopTrigger trigger) {
+    if (!climb || climb->state == TOMO_R10_ANCHORED) return;
+    climb->backstop_state = climb->state;
+    climb->backstop_trigger = trigger;
+    climb->backstop_hit = 1;
+    climb->current = shape;
+    climb->expected = shape;
+    climb->rung = tomoR10ShapeRung(climb, shape);
+    climb->best_rung = climb->rung;
+    climb->best = shape;
+    tomoR10Anchor(climb);
+}
+
+static tomoR10BackstopTrigger tomoR10ProgressTrigger(const tomoR10Node *climb) {
+    if (climb->refused_arms != 0) return TOMO_R10_BACKSTOP_ARM_REFUSED;
+    if ((climb->state == TOMO_R10_SIDE_A &&
+         climb->side_a.count >= TOMO_U1_PAIR_CAP &&
+         climb->verdict_a == TOMO_U1_CMP_NEED_MORE) ||
+        (climb->state == TOMO_R10_SIDE_B &&
+         climb->side_b.count >= TOMO_U1_PAIR_CAP &&
+         climb->verdict_b == TOMO_U1_CMP_NEED_MORE) ||
+        (climb->state == TOMO_R10_CLIMBING && climb->candidate_active &&
+         climb->candidate.count >= TOMO_U1_PAIR_CAP &&
+         climb->verdict_last == TOMO_U1_CMP_NEED_MORE))
+        return TOMO_R10_BACKSTOP_NEED_MORE;
+    return TOMO_R10_BACKSTOP_SETTLE_NEVER;
+}
+
+static int tomoR10ProgressBudgetExhausted(tomoR10Node *climb,
+                                           const tomoR10TickInput *input) {
+    if (climb->state_drive_ticks != UINT64_MAX) climb->state_drive_ticks++;
+
+    /* One state normally needs one measured settle plus at most PAIR_CAP windows. Give it that
+     * complete span twice; the second span is retry margin. The cadence floor is one u1a window,
+     * so a fresh process with no published settle measurement still has a non-zero budget. */
+    uint64_t quantum = input->settle_ticks_last > TOMO_U1_SUBW_TICKS
+                     ? input->settle_ticks_last : TOMO_U1_SUBW_TICKS;
+    uint64_t spans = 2 * ((uint64_t)TOMO_U1_PAIR_CAP + 1);
+    climb->state_drive_budget = quantum > UINT64_MAX / spans
+                              ? UINT64_MAX : quantum * spans;
+    uint64_t spent = climb->state_drive_ticks > UINT64_MAX - climb->refused_arms
+                   ? UINT64_MAX : climb->state_drive_ticks + climb->refused_arms;
+    if (spent < climb->state_drive_budget) return 0;
+
+    tomoR10Abandon(climb, input->shape, tomoR10ProgressTrigger(climb));
+    return 1;
+}
+
 static int tomoR10StartSideA(tomoR10Node *climb,
                              tomoR10MoveRequest request_move,
                              void *private_data) {
@@ -387,7 +487,7 @@ static int tomoR10StartSideA(tomoR10Node *climb,
     tomoU1Shape shape;
     if (!tomoR10ShapeAtRung(climb, rung, &shape)) {
         climb->side_a_available = 0;
-        climb->state = TOMO_R10_RETURN_A;
+        tomoR10EnterState(climb, TOMO_R10_RETURN_A);
         return -1;
     }
     int requested = tomoR10Request(climb, climb->initial_direction,
@@ -395,7 +495,7 @@ static int tomoR10StartSideA(tomoR10Node *climb,
     if (requested == 1) {
         climb->side_a_available = 1;
         tomoR10SeriesBegin(&climb->side_a, shape);
-        climb->state = TOMO_R10_SIDE_A;
+        tomoR10EnterState(climb, TOMO_R10_SIDE_A);
     }
     return requested;
 }
@@ -405,7 +505,7 @@ static void tomoR10Retreat(tomoR10Node *climb, int target_rung,
                            void *private_data) {
     climb->target_rung = target_rung;
     climb->retreat_then_anchor = then_anchor;
-    climb->state = TOMO_R10_RETREAT;
+    tomoR10EnterState(climb, TOMO_R10_RETREAT);
     if (climb->rung != target_rung) {
         int direction = target_rung > climb->rung ? 1 : -1;
         tomoR10Request(climb, direction, request_move, private_data);
@@ -416,8 +516,7 @@ static void tomoR10StartClimbStep(tomoR10Node *climb,
                                   tomoR10MoveRequest request_move,
                                   void *private_data) {
     if (climb->rungs_examined >= climb->rung_limit) {
-        climb->backstop_hit = 1;
-        tomoR10Anchor(climb);
+        tomoR10Abandon(climb, climb->current, TOMO_R10_BACKSTOP_RUNG_LIMIT);
         return;
     }
     tomoU1Shape candidate;
@@ -477,7 +576,7 @@ static void tomoR10ChooseSide(tomoR10Node *climb,
         tomoR10Retreat(climb, best_rung, 0, request_move, private_data);
         return;
     }
-    climb->state = TOMO_R10_CLIMBING;
+    tomoR10EnterState(climb, TOMO_R10_CLIMBING);
     tomoR10StartClimbStep(climb, request_move, private_data);
 }
 
@@ -502,7 +601,7 @@ void tomoR10Begin(tomoR10Node *climb, int node, tomoU1Shape shape,
     if (max_io < (int)shape.io) max_io = shape.io;
     unsigned int width = max_io > min_io ? (unsigned int)(max_io - min_io) : 0;
 
-    climb->state = TOMO_R10_BASELINE;
+    tomoR10EnterState(climb, TOMO_R10_BASELINE);
     climb->node = node;
     climb->active = 1;
     climb->initial_direction = last_move_direction < 0 ? -1 : 1;
@@ -549,6 +648,7 @@ void tomoR10Tick(tomoR10Node *climb, const tomoR10TickInput *input,
         return;
     climb->ops_mean = input->ops_mean;
     climb->sigma = input->sigma;
+    if (tomoR10ProgressBudgetExhausted(climb, input)) return;
     if (!tomoR10ObserveLanding(climb, input->shape)) return;
 
     const tomoU1Window *window = input->window;
@@ -578,7 +678,7 @@ void tomoR10Tick(tomoR10Node *climb, const tomoR10TickInput *input,
                                                &climb->side_a);
             if (climb->verdict_a == TOMO_U1_CMP_NEED_MORE) break;
             if (climb->rungs_examined != UINT_MAX) climb->rungs_examined++;
-            climb->state = TOMO_R10_RETURN_A;
+            tomoR10EnterState(climb, TOMO_R10_RETURN_A);
             tomoR10Request(climb, -climb->initial_direction,
                            request_move, private_data);
         }
@@ -605,7 +705,7 @@ void tomoR10Tick(tomoR10Node *climb, const tomoR10TickInput *input,
             if (requested == 1) {
                 climb->side_b_available = 1;
                 tomoR10SeriesBegin(&climb->side_b, side_b_shape);
-                climb->state = TOMO_R10_SIDE_B;
+                tomoR10EnterState(climb, TOMO_R10_SIDE_B);
             }
         }
         break;
@@ -668,7 +768,7 @@ void tomoR10Tick(tomoR10Node *climb, const tomoR10TickInput *input,
         if (climb->retreat_then_anchor) {
             tomoR10Anchor(climb);
         } else {
-            climb->state = TOMO_R10_CLIMBING;
+            tomoR10EnterState(climb, TOMO_R10_CLIMBING);
             tomoR10StartClimbStep(climb, request_move, private_data);
         }
         break;
