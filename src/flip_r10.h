@@ -42,6 +42,7 @@ typedef struct tomoR10TickInput {
 
 typedef struct tomoR10Info {
     uint64_t episodes;
+    uint64_t dead_arm_episodes;
     uint64_t cmp_better;
     uint64_t cmp_flat;
     unsigned int rungs_climbed_last;
@@ -129,6 +130,7 @@ double tomoR10SeriesMean(const tomoR10Series *series);
 void tomoR10TraceSet(int enabled);
 int tomoR10TraceEnabled(void);
 void tomoR10WitnessEpisode(void);
+void tomoR10WitnessDeadArmEpisode(void);
 void tomoR10WitnessComparisons(unsigned int better, unsigned int flat);
 void tomoR10WitnessAnchor(int node, int best_rung, int anchor_io);
 void tomoR10InfoGet(tomoR10Info *info);

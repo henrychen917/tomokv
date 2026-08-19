@@ -23223,12 +23223,14 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         tomoR10InfoGet(&r10_info);
         info = sdscatprintf(info,
             "tomokv_r10_episodes:%llu\r\n"
+            "tomokv_r10_dead_arm_episodes:%llu\r\n"
             "tomokv_r10_rungs_climbed_last:%u\r\n"
             "tomokv_r10_anchor_io_n0:%d\r\n"
             "tomokv_r10_anchor_io_n1:%d\r\n"
             "tomokv_r10_cmp_better:%llu\r\n"
             "tomokv_r10_cmp_flat:%llu\r\n",
             (unsigned long long)r10_info.episodes,
+            (unsigned long long)r10_info.dead_arm_episodes,
             r10_info.rungs_climbed_last,
             r10_info.anchor_io_n0,
             r10_info.anchor_io_n1,
@@ -33109,6 +33111,7 @@ static void tomoFlipController(void) {
             !fc->floor_probe_active && !fc->floor_probe_return_blocked &&
             !server_bound && fc->cli_run >= FLIP_SUSTAIN &&
             tmR10DeadArmReady(node, fc, ni, ne)) {
+            tomoR10WitnessDeadArmEpisode();
             serverLog(LL_NOTICE, "[r10 n%d] DEAD-ARM demand gate stayed closed with "
                       "settle-clean load %.0f ops/s; starting C0-C2 at io%d/ex%d",
                       node, fc->mean, ni, ne);

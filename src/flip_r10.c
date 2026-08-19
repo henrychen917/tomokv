@@ -55,6 +55,7 @@
 
 static _Atomic int tomo_r10_trace;
 static _Atomic uint64_t tomo_r10_episodes;
+static _Atomic uint64_t tomo_r10_dead_arm_episodes;
 static _Atomic uint64_t tomo_r10_cmp_better;
 static _Atomic uint64_t tomo_r10_cmp_flat;
 static _Atomic unsigned int tomo_r10_rungs_climbed_last;
@@ -132,6 +133,10 @@ void tomoR10WitnessEpisode(void) {
     atomic_fetch_add_explicit(&tomo_r10_episodes, 1, memory_order_relaxed);
 }
 
+void tomoR10WitnessDeadArmEpisode(void) {
+    atomic_fetch_add_explicit(&tomo_r10_dead_arm_episodes, 1, memory_order_relaxed);
+}
+
 void tomoR10WitnessComparisons(unsigned int better, unsigned int flat) {
     if (better)
         atomic_fetch_add_explicit(&tomo_r10_cmp_better, better, memory_order_relaxed);
@@ -153,6 +158,8 @@ void tomoR10InfoGet(tomoR10Info *info) {
     if (!info) return;
     *info = (tomoR10Info) {
         .episodes = atomic_load_explicit(&tomo_r10_episodes, memory_order_relaxed),
+        .dead_arm_episodes = atomic_load_explicit(&tomo_r10_dead_arm_episodes,
+                                                  memory_order_relaxed),
         .cmp_better = atomic_load_explicit(&tomo_r10_cmp_better, memory_order_relaxed),
         .cmp_flat = atomic_load_explicit(&tomo_r10_cmp_flat, memory_order_relaxed),
         .rungs_climbed_last = atomic_load_explicit(&tomo_r10_rungs_climbed_last,
