@@ -258,6 +258,7 @@ static double tomoM1TargetScore(int io, int role_threads, double c_io, double c_
 
 int tomoM1ModelCompute(const double mix[TOMO_M1_CLASS_COUNT],
                        const double avg_keys[TOMO_M1_CLASS_COUNT],
+                       const tomoM1MeasuredEx measured[TOMO_M1_CLASS_COUNT],
                        double depth, int role_threads, int io_uring,
                        tomoM1ModelResult *result) {
     if (!mix || !avg_keys || !result || role_threads < 2) return 0;
@@ -271,6 +272,7 @@ int tomoM1ModelCompute(const double mix[TOMO_M1_CLASS_COUNT],
 
     double c_ex = 0.0;
     double c_io = tomoM1IoBaseCost(&tomo_m1_seed_costs, io_uring, depth);
+    uint32_t measured_mask = 0;
     for (int class_id = 0; class_id < TOMO_M1_CLASS_COUNT; class_id++) {
         double class_mix = (isfinite(mix[class_id]) && mix[class_id] > 0.0)
                          ? mix[class_id] / mix_total : 0.0;
@@ -278,7 +280,20 @@ int tomoM1ModelCompute(const double mix[TOMO_M1_CLASS_COUNT],
                     ? avg_keys[class_id] : 1.0;
         double extra_keys = fmax(keys - 1.0, 0.0);
         const tomoM1ClassCost *cost = &tomo_m1_seed_costs.classes[class_id];
-        c_ex += class_mix * (cost->a_ex + cost->b_ex * extra_keys);
+        int use_measured = measured && measured[class_id].populated &&
+                           isfinite(measured[class_id].ewma_us) &&
+                           measured[class_id].ewma_us > 0.0;
+        double class_ex;
+        if (use_measured) {
+            /* This is whole-command service at the current operating point. Value size,
+             * DRAM pressure, contention, atomic work, and the current average key count are
+             * already inside it; applying b_ex*keys again would double-count the last axis. */
+            class_ex = measured[class_id].ewma_us;
+            measured_mask |= UINT32_C(1) << class_id;
+        } else {
+            class_ex = cost->a_ex + cost->b_ex * extra_keys;
+        }
+        c_ex += class_mix * class_ex;
         c_io += class_mix * cost->c_io * keys;
     }
     if (!(c_io > 0.0) || !(c_ex > 0.0) || !isfinite(c_io) || !isfinite(c_ex)) return 0;
@@ -293,6 +308,7 @@ int tomoM1ModelCompute(const double mix[TOMO_M1_CLASS_COUNT],
     *result = (tomoM1ModelResult) {
         .c_io = c_io,
         .c_ex = c_ex,
+        .measured_mask = measured_mask,
         .target_io = target_io,
         .target_ex = role_threads - target_io,
     };
@@ -338,6 +354,7 @@ int tomoM1SelfTest(tomoM1SelfTestResult results[TOMO_M1_SELFTEST_CASES]) {
     };
 
     int passed = 0;
+    const tomoM1MeasuredEx unpopulated[TOMO_M1_CLASS_COUNT] = {{0}};
     for (int i = 0; i < TOMO_M1_MODEL_SELFTEST_CASES; i++) {
         double mix[TOMO_M1_CLASS_COUNT] = {0};
         double avg_keys[TOMO_M1_CLASS_COUNT];
@@ -347,7 +364,7 @@ int tomoM1SelfTest(tomoM1SelfTestResult results[TOMO_M1_SELFTEST_CASES]) {
         avg_keys[cases[i].class_id] = cases[i].keys;
 
         tomoM1ModelResult model = {0};
-        int computed = tomoM1ModelCompute(mix, avg_keys, cases[i].depth,
+        int computed = tomoM1ModelCompute(mix, avg_keys, unpopulated, cases[i].depth,
                                            16, 1, &model);
         results[i] = (tomoM1SelfTestResult) {
             .name = cases[i].name,
@@ -480,12 +497,21 @@ static void tomoM1TraceNode(int node, const tomoM1NodeState *state) {
     serverLog(LL_NOTICE,
         "[m1-trace n%d] t=%lld depth=%.3f "
         "mix=GET:%.3f,SET:%.3f,MGET:%.3f,MSET:%.3f,ZRANGE:%.3f,DEL:%.3f,EXPIRE:%.3f,OTHER:%.3f "
+        "src=GET:%s,SET:%s,MGET:%s,MSET:%s,ZRANGE:%s,DEL:%s,EXPIRE:%s,OTHER:%s "
         "c_io=%.3f c_ex=%.3f target_raw=io%d/ex%d target=io%d/ex%d current=io%d/ex%d",
         node, (long long)mstime(), state->depth,
         state->mix[TOMO_M1_CLASS_GET], state->mix[TOMO_M1_CLASS_SET],
         state->mix[TOMO_M1_CLASS_MGET], state->mix[TOMO_M1_CLASS_MSET],
         state->mix[TOMO_M1_CLASS_ZRANGE], state->mix[TOMO_M1_CLASS_DEL],
         state->mix[TOMO_M1_CLASS_EXPIRE], state->mix[TOMO_M1_CLASS_OTHER],
+        state->raw.measured_mask & (UINT32_C(1) << TOMO_M1_CLASS_GET) ? "measured" : "seed",
+        state->raw.measured_mask & (UINT32_C(1) << TOMO_M1_CLASS_SET) ? "measured" : "seed",
+        state->raw.measured_mask & (UINT32_C(1) << TOMO_M1_CLASS_MGET) ? "measured" : "seed",
+        state->raw.measured_mask & (UINT32_C(1) << TOMO_M1_CLASS_MSET) ? "measured" : "seed",
+        state->raw.measured_mask & (UINT32_C(1) << TOMO_M1_CLASS_ZRANGE) ? "measured" : "seed",
+        state->raw.measured_mask & (UINT32_C(1) << TOMO_M1_CLASS_DEL) ? "measured" : "seed",
+        state->raw.measured_mask & (UINT32_C(1) << TOMO_M1_CLASS_EXPIRE) ? "measured" : "seed",
+        state->raw.measured_mask & (UINT32_C(1) << TOMO_M1_CLASS_OTHER) ? "measured" : "seed",
         state->raw.c_io, state->raw.c_ex,
         state->raw.target_io, state->raw.target_ex,
         state->target_io, state->target_ex, current_io, current_ex);
@@ -501,6 +527,8 @@ int tomoM1TraceEnabled(void) {
 
 void tomoM1InfoGet(tomoM1Info *info) {
     if (!info) return;
+    tomoM1MeasuredEx measured[TOMO_M1_CLASS_COUNT];
+    tomoM1MeasuredGet(measured);
     *info = (tomoM1Info) {
         .target_io_n0 = atomic_load_explicit(&tomo_m1_published[0].target_io,
                                              memory_order_relaxed),
@@ -521,6 +549,11 @@ void tomoM1InfoGet(tomoM1Info *info) {
         .holds = atomic_load_explicit(&tomo_m1_holds, memory_order_relaxed),
         .pending_recoveries = atomic_load_explicit(&tomo_m1_pending_recoveries, memory_order_relaxed),
     };
+    for (int class_id = 0; class_id < TOMO_M1_CLASS_COUNT; class_id++) {
+        if (!measured[class_id].populated) continue;
+        info->measured_classes++;
+        info->ex_us[class_id] = measured[class_id].ewma_us;
+    }
 }
 
 static double tomoM1AverageKeys(int class_id, uint64_t commands, uint64_t args) {
@@ -1072,7 +1105,9 @@ void tomoM1ControllerTick(int node) {
     }
 
     int role_threads = server.io_per_node + server.ex_per_node;
-    if (tomoM1ModelCompute(state->mix, state->avg_keys, state->depth,
+    tomoM1MeasuredEx measured[TOMO_M1_CLASS_COUNT];
+    tomoM1MeasuredGet(measured);
+    if (tomoM1ModelCompute(state->mix, state->avg_keys, measured, state->depth,
                            role_threads, server.io_uring != 0, &state->raw)) {
         int target_changed = tomoM1FilterTarget(
             state, role_threads, server.thread_mode == TOMO_THREAD_MODE_MODEL);

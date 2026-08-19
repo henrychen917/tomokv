@@ -23276,6 +23276,15 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_m1_cio:%.6f\r\n"
             "tomokv_m1_cex:%.6f\r\n"
             "tomokv_m1_depth:%.6f\r\n"
+            "tomokv_m1_measured_classes:%d\r\n"
+            "tomokv_m1_ex_us_other:%.6f\r\n"
+            "tomokv_m1_ex_us_get:%.6f\r\n"
+            "tomokv_m1_ex_us_set:%.6f\r\n"
+            "tomokv_m1_ex_us_mget:%.6f\r\n"
+            "tomokv_m1_ex_us_mset:%.6f\r\n"
+            "tomokv_m1_ex_us_zrange:%.6f\r\n"
+            "tomokv_m1_ex_us_del:%.6f\r\n"
+            "tomokv_m1_ex_us_expire:%.6f\r\n"
             "tomokv_m1_moves_total:%llu\r\n"
             "tomokv_m1_target_changes:%llu\r\n"
             "tomokv_m1_arm_refusals:%llu\r\n"
@@ -23286,6 +23295,15 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             m1_info.c_io,
             m1_info.c_ex,
             m1_info.depth,
+            m1_info.measured_classes,
+            m1_info.ex_us[TOMO_M1_CLASS_OTHER],
+            m1_info.ex_us[TOMO_M1_CLASS_GET],
+            m1_info.ex_us[TOMO_M1_CLASS_SET],
+            m1_info.ex_us[TOMO_M1_CLASS_MGET],
+            m1_info.ex_us[TOMO_M1_CLASS_MSET],
+            m1_info.ex_us[TOMO_M1_CLASS_ZRANGE],
+            m1_info.ex_us[TOMO_M1_CLASS_DEL],
+            m1_info.ex_us[TOMO_M1_CLASS_EXPIRE],
             (unsigned long long)m1_info.moves_total,
             (unsigned long long)m1_info.target_changes,
             (unsigned long long)m1_info.arm_refusals,

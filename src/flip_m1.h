@@ -78,6 +78,7 @@ void tomoM1MeasuredGet(tomoM1MeasuredEx measured[TOMO_M1_CLASS_COUNT]);
 typedef struct tomoM1ModelResult {
     double c_io;
     double c_ex;
+    uint32_t measured_mask;
     int target_io;
     int target_ex;
 } tomoM1ModelResult;
@@ -88,6 +89,8 @@ typedef struct tomoM1Info {
     double c_io;
     double c_ex;
     double depth;
+    int measured_classes;
+    double ex_us[TOMO_M1_CLASS_COUNT];
     uint64_t moves_total;
     uint64_t target_changes;
     uint64_t arm_refusals;
@@ -116,6 +119,7 @@ void tomoM1StampCommandClass(struct redisCommand *cmd);
 void tomoM1BatchDepthNote(unsigned int commands);
 int tomoM1ModelCompute(const double mix[TOMO_M1_CLASS_COUNT],
                        const double avg_keys[TOMO_M1_CLASS_COUNT],
+                       const tomoM1MeasuredEx measured[TOMO_M1_CLASS_COUNT],
                        double depth, int role_threads, int io_uring,
                        tomoM1ModelResult *result);
 void tomoM1ControllerTick(int node);
