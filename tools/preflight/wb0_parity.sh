@@ -256,7 +256,7 @@ if [ -s "$WORK/baseline.info" ] && [ -s "$WORK/candidate.info" ]; then
   comm -13 "$WORK/baseline.keys" "$WORK/candidate.keys" > "$WORK/added.keys"
   # Allowlisted additions: WB observability plus the atomdiet2 witness counters
   # (each atomdiet2 mechanism ships its INFO witness in the same commit).
-  grep -vE '^(tomokv_wb_|tomokv_atomic_stamp_fold_|tomokv_atomic_vmeta_pool_|tomokv_atomic_bucket_carry_|tomokv_atomic_admission_census_|tomokv_atomic_read_slow_reason_|tomokv_atomic_reclaim_folds$)' "$WORK/added.keys" > "$WORK/unexpected-added.keys" || true
+  grep -vE '^(tomokv_wb_|tomokv_atomic_stamp_fold_|tomokv_atomic_vmeta_pool_|tomokv_atomic_bucket_carry_|tomokv_atomic_admission_census_|tomokv_atomic_read_slow_reason_|tomokv_atomic_reclaim_folds$|tomokv_atomic_gate_early_)' "$WORK/added.keys" > "$WORK/unexpected-added.keys" || true
   if [ -s "$WORK/removed.keys" ] || [ -s "$WORK/unexpected-added.keys" ]; then
     fail "INFO key-set drift outside allowlisted additions: removed=$(tr '\n' ',' < "$WORK/removed.keys") added=$(tr '\n' ',' < "$WORK/unexpected-added.keys")"
   else

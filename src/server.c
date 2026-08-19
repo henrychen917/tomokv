@@ -833,6 +833,7 @@ typedef struct csOwnerPublishList {
     _Atomic unsigned long long vmeta_pool_hits;
     _Atomic unsigned long long vmeta_pool_recycles;
     _Atomic unsigned long long bucket_carry_hits;
+    _Atomic unsigned long long gate_early_reopens;
 } __attribute__((aligned(CACHE_LINE_SIZE))) csOwnerPublishList;
 _Static_assert(sizeof(csOwnerPublishList) % CACHE_LINE_SIZE == 0,
                "owner-local publish state must have a cache-line stride");
@@ -960,6 +961,7 @@ void tomoAtomicLifecycleEnsure(void) {
             atomic_init(&lists[w].vmeta_pool_hits, 0);
             atomic_init(&lists[w].vmeta_pool_recycles, 0);
             atomic_init(&lists[w].bucket_carry_hits, 0);
+            atomic_init(&lists[w].gate_early_reopens, 0);
         }
         atomic_store_explicit(&tomo_atomic_publish_lists, lists, memory_order_release);
     }
@@ -13496,10 +13498,11 @@ static void csMsetOwnerPublished(tomoCommit *commit) {
     csMsetGroupComplete(commit);
 }
 
-/* Publish one complete owner chain into its private first-grace lane. The
- * scalar batch timestamp is the same commit marker readers already gate on;
- * no per-version retire-node allocation, counter RMW, or table probe remains
- * in this pre-grace owner path. */
+/* Publish one complete owner chain into its private first-grace lane. On the
+ * successful path this is the earliest pass which has acquired a nonzero
+ * marker through the frozen published frontier. Re-census each key now, while
+ * its predecessor still awaits grace-prune, instead of leaving its fast-read
+ * gate closed for the whole retirement latency. */
 static void csMsetOwnerQueuePrune(exThread *worker, csMsetOwner *record,
                                   uint64_t commit_ts) {
     serverAssert(record->phase == TOMO_OWNER_LOCAL_PRUNE &&
@@ -13515,6 +13518,22 @@ static void csMsetOwnerQueuePrune(exThread *worker, csMsetOwner *record,
     csOwnerPublishList *list = csOwnerPublishListFor(worker);
     flatRetireNode **sink;
     if (commit_ts) {
+        unsigned int seen = 0;
+        unsigned long long reopened = 0;
+        tomoWkrLock(worker->id);
+        for (kvobj *kv = record->head; kv; ) {
+            struct tomoVerMeta *vmeta = kvobjVmeta(kv);
+            serverAssert(vmeta != NULL && vmeta->install_owner == worker->id &&
+                         vmeta->stamp_state == TOMO_STAMP_APPLIED &&
+                         tomoVersionCommitTs(vmeta) == commit_ts);
+            kvobj *next = vmeta->owner_next;
+            reopened += (unsigned int)tomoReopenReadFastAfterMarker(kv);
+            seen++;
+            kv = next;
+        }
+        tomoWkrUnlock(worker->id);
+        serverAssert(seen == record->ninstalled);
+        if (reopened) tomoRelaxedBump(list->gate_early_reopens, reopened);
         sink = &list->retire_local;
         if (commit_ts > list->retire_ts) list->retire_ts = commit_ts;
     } else {
@@ -23229,6 +23248,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         unsigned long long diet_stamp_folds = 0;
         unsigned long long diet_pool_hits = 0, diet_pool_recycles = 0;
         unsigned long long diet_bucket_carries = 0;
+        unsigned long long gate_early_reopens = 0;
         csOwnerPublishList *owner_lists = atomic_load_explicit(
             &tomo_atomic_publish_lists, memory_order_acquire);
         if (owner_lists) {
@@ -23254,6 +23274,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                     owner_lists[_w].vmeta_pool_recycles);
                 diet_bucket_carries += tomoRelaxedRead(
                     owner_lists[_w].bucket_carry_hits);
+                gate_early_reopens += tomoRelaxedRead(
+                    owner_lists[_w].gate_early_reopens);
             }
         }
         info = sdscatprintf(info,
@@ -23279,7 +23301,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_atomic_stamp_fold_installs:%llu\r\n"
             "tomokv_atomic_vmeta_pool_hits:%llu\r\n"
             "tomokv_atomic_vmeta_pool_recycles:%llu\r\n"
-            "tomokv_atomic_bucket_carry_hits:%llu\r\n",
+            "tomokv_atomic_bucket_carry_hits:%llu\r\n"
+            "tomokv_atomic_gate_early_reopens:%llu\r\n",
             atomic_load_explicit(&tomo_atomic_commit_ts_lag, memory_order_relaxed),
             atomic_load_explicit(&tomo_atomic_stragglers, memory_order_relaxed),
             tomoAtomicWindowResolved(), tomoAtomicReclaimLimitResolved(),
@@ -23291,7 +23314,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             owner_pending, owner_pending_max,
             owner_epochs, owner_versions, owner_qsbr_waits, owner_snapshot_waits,
             owner_node_allocs, owner_batch_allocs, diet_stamp_folds,
-            diet_pool_hits, diet_pool_recycles, diet_bucket_carries);
+            diet_pool_hits, diet_pool_recycles, diet_bucket_carries,
+            gate_early_reopens);
         info = sdscatprintf(info,
             "tomokv_fake_core_allocs:%llu\r\n"
             "tomokv_fake_tail_promotions:%llu\r\n",

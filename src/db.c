@@ -1069,7 +1069,7 @@ static void tomoSchedulePhysicalRetire(kvstore *kvs, kvobj *kv) {
     kvstoreFlatRetireAtomicRaw(kvs, kv);
 }
 
-static void tomoPublishReadFast(kvobj *member, struct tomoVerMeta *member_meta);
+static int tomoPublishReadFast(kvobj *member, struct tomoVerMeta *member_meta);
 
 /* Mark an eagerly indexed atomic version canceled. It never receives a
  * timestamp, so the indexed entry remains invisible. The owner record (one
@@ -1099,8 +1099,8 @@ void tomoCancelVersion(kvobj *kv) {
  * commit-ordered, so cache the greatest committed rank instead of assuming the table entry is the
  * answer. A non-canceled zero timestamp is an unfinished group and keeps the gate closed. Fully
  * canceled versions can never become visible and are ignored; the raw tail has rank (0,0). */
-static void tomoPublishReadFast(kvobj *member, struct tomoVerMeta *member_meta) {
-    if (member_meta->detached) return;
+static int tomoPublishReadFast(kvobj *member, struct tomoVerMeta *member_meta) {
+    if (member_meta->detached) return 0;
 
     kvstore *kvs = member_meta->version_kvs;
     serverAssert(kvs != NULL);
@@ -1135,7 +1135,7 @@ static void tomoPublishReadFast(kvobj *member, struct tomoVerMeta *member_meta) 
 
         uint64_t ts = tomoVersionCommitTs(vmeta);
         if (vmeta->stamp_state != TOMO_STAMP_APPLIED || ts == 0)
-            return;
+            return 0;
         if (!winner_set || ts > winner_ts ||
             (ts == winner_ts && vmeta->version_order > winner_order)) {
             winner = cur;
@@ -1148,9 +1148,21 @@ static void tomoPublishReadFast(kvobj *member, struct tomoVerMeta *member_meta) 
 
     /* Owner-local commit/cancel publication precedes the epoch callback which reaches this census.
      * Publish the cached answer before OPEN so an acquiring reader may omit the global clock. */
+    uint8_t prior_gate = atomic_load_explicit(&head_meta->read_gate,
+                                               memory_order_relaxed);
     atomic_store_explicit(&head_meta->read_head, winner, memory_order_relaxed);
     atomic_store_explicit(&head_meta->read_gate, TOMO_READ_GATE_OPEN,
                           memory_order_release);
+    return prior_gate != TOMO_READ_GATE_OPEN;
+}
+
+/* The first successful owner-PRUNE pass calls this after acquiring the
+ * group's marker through the published frontier. The caller holds the key
+ * owner's lock, exactly as the cancel and post-prune census callers do. */
+int tomoReopenReadFastAfterMarker(kvobj *member) {
+    struct tomoVerMeta *vmeta = kvobjVmeta(member);
+    serverAssert(vmeta != NULL && tomoVersionCommitTs(vmeta) != 0);
+    return tomoPublishReadFast(member, vmeta);
 }
 
 void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq) {

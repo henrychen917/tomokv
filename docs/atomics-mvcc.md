@@ -223,6 +223,17 @@ unless its command already pinned an older snapshot. A closed/superseded gate, a
 or an older pinned cut uses the full resolver, preserving normal snapshot and same-client RYOW
 semantics.
 
+Successful groups perform that re-census at the first owner PRUNE pass which acquire-observes the
+nonzero marker at or below the pass's frozen published frontier, before the owner record enters its
+first-grace lane. This is the earliest point at which current readers may see the complete group;
+the old predecessor can remain physically linked until grace-prune without keeping the gate closed.
+The census still refuses to open when any non-canceled sibling is unfinished and still selects the
+greatest committed rank. It runs under the key-owner lock, caches the answer before release-opening,
+and a later install supersedes the gate under that same lock. A reader pinned before this commit
+compares the cached winner's timestamp with its pinned cut and falls back to the bag resolver, so
+early reopening changes no snapshot semantics. INFO `tomokv_atomic_gate_early_reopens` counts only
+closed/superseded-to-open transitions at this pre-grace point.
+
 INFO reports `tomokv_atomic_read_fast` and `tomokv_atomic_read_slow`. The slow count is partitioned
 by `tomokv_atomic_read_slow_inflight_conflict` and
 `tomokv_atomic_read_slow_gate_closed_other`. Reason classification deterministically samples one
