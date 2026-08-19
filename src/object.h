@@ -176,6 +176,15 @@ struct tomoVerMeta {
     struct redisObject *owner_next;
 };
 
+/* atomdiet2: atomic versions allocate one fixed-size metadata block whose
+ * normal QSBR retirement runs on the installing worker. A bounded TLS pool
+ * there (src/server.c, sized from the atomic admission window) recycles the
+ * hot size class instead of returning every block to the allocator;
+ * non-owner/quiescent frees keep the generic allocator path. */
+struct tomoVerMeta *tomoVerMetaPoolAlloc(void);
+void tomoVerMetaPoolFree(struct tomoVerMeta *vmeta);
+void tomoVerMetaPoolTrim(void);
+
 _Static_assert(offsetof(struct tomoVerMeta, read_gate) ==
                offsetof(struct tomoVerMeta, detached) + 2 * sizeof(uint8_t),
                "read-gate state must consume vmeta padding");

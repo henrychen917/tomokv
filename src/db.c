@@ -493,7 +493,7 @@ kvobj *lookupKeyWriteOrReply(client *c, robj *key, robj *reply) {
  */
 static inline struct tomoVerMeta *tomoVerMetaNew(redisDb *db, uint64_t version_seq,
                                                  kvobj *version_prev, kvobj *self) {
-    struct tomoVerMeta *vmeta = zcalloc(sizeof(*vmeta));
+    struct tomoVerMeta *vmeta = tomoVerMetaPoolAlloc();
     atomic_store_explicit(&vmeta->commit, NULL, memory_order_relaxed);
     atomic_store_explicit(&vmeta->read_head, NULL, memory_order_relaxed);
     atomic_store_explicit(&vmeta->read_gate, TOMO_READ_GATE_CLOSED,

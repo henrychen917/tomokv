@@ -829,6 +829,8 @@ typedef struct csOwnerPublishList {
      * its mechanism FIRED on this worker; a validation that can pass with the
      * mechanism dead is worthless. INFO folds them across workers. */
     _Atomic unsigned long long stamp_fold_installs;
+    _Atomic unsigned long long vmeta_pool_hits;
+    _Atomic unsigned long long vmeta_pool_recycles;
 } __attribute__((aligned(CACHE_LINE_SIZE))) csOwnerPublishList;
 _Static_assert(sizeof(csOwnerPublishList) % CACHE_LINE_SIZE == 0,
                "owner-local publish state must have a cache-line stride");
@@ -906,6 +908,8 @@ void tomoAtomicLifecycleEnsure(void) {
             atomic_init(&lists[w].node_allocs, 0);
             atomic_init(&lists[w].batch_allocs, 0);
             atomic_init(&lists[w].stamp_fold_installs, 0);
+            atomic_init(&lists[w].vmeta_pool_hits, 0);
+            atomic_init(&lists[w].vmeta_pool_recycles, 0);
         }
         atomic_store_explicit(&tomo_atomic_publish_lists, lists, memory_order_release);
     }
@@ -1214,6 +1218,106 @@ void tomoAtomicCommitVersionRelease(struct tomoVerMeta *vmeta) {
     tomoCommit *commit = atomic_exchange_explicit(&vmeta->commit, NULL,
                                                    memory_order_acq_rel);
     if (commit) tomoCommitRelease(commit);
+}
+
+/* ---- atomdiet2: fixed-size TLS recycling of atomic version metadata ----
+ *
+ * tomoVerMeta is one fixed size class, and its allocation (install) and final
+ * QSBR retirement normally run on the same worker — the same owner-affine
+ * shape the flat retire-node pool exploits. Recycling the block on that
+ * worker removes the zmalloc/zfree pair per committed atomic version and
+ * keeps the memory in the install worker's jemalloc arena.
+ *
+ * GRACE SAFETY (no second reclamation scheme): the pool is fed exclusively by
+ * frees the existing QSBR/flat-retire machinery has already licensed —
+ * flatRetirePayloadReady fires after the version's grace, PayloadDiscard and
+ * the terminal decrRefCount sites run post-grace or quiescent. Everywhere a
+ * block enters the pool, zfree() was already legal, i.e. the allocator itself
+ * could have handed the memory out again immediately; pool reuse is therefore
+ * never earlier than the reuse the existing scheme already permitted.
+ *
+ * CAPACITY (no new knob): derived from the existing atomic admission window,
+ * tomoAtomicWindowResolved() — live writers times resident pipeline depth, or
+ * the explicit configuration. The window bounds admitted groups and hence the
+ * same-grace-boundary retirement burst a worker sees for the canonical
+ * one-key-per-owner group shape; unlimited (0) or huge windows clamp to
+ * FLAT_NODE_POOL_CAP, the sibling per-worker recycling bound. The cached cap
+ * re-derives at every trim tick, so window/flip changes propagate without a
+ * hot-path resolve. */
+static __thread struct tomoVerMeta *tomo_vmeta_pool;
+static __thread unsigned int tomo_vmeta_pool_n;
+static __thread unsigned int tomo_vmeta_pool_lowat; /* min occupancy this window = never-needed surplus */
+static __thread unsigned int tomo_vmeta_pool_cap;   /* 0 = not yet derived on this thread */
+
+static unsigned int tomoVerMetaPoolCapResolve(void) {
+    int window = tomoAtomicWindowResolved();
+    if (window <= 0 || window > (int)FLAT_NODE_POOL_CAP) return FLAT_NODE_POOL_CAP;
+    return (unsigned int)window;
+}
+
+struct tomoVerMeta *tomoVerMetaPoolAlloc(void) {
+    struct tomoVerMeta *vmeta = tomo_vmeta_pool;
+    if (vmeta) {
+        tomo_vmeta_pool = (struct tomoVerMeta *)vmeta->version_prev;
+        if (--tomo_vmeta_pool_n < tomo_vmeta_pool_lowat)
+            tomo_vmeta_pool_lowat = tomo_vmeta_pool_n;
+        /* Witness (anti-vacuous rule): a hit implies this thread pooled a
+         * block earlier, which only happens on an install worker after
+         * lifecycle Ensure ran; the lists check is pure cold-path safety. */
+        csOwnerPublishList *lists = atomic_load_explicit(
+            &tomo_atomic_publish_lists, memory_order_relaxed);
+        int widx = iotid - (TOMO_IO_THREADS_MAX + 1);
+        if (lists && widx >= 0 && widx < server.num_workers)
+            tomoRelaxedBump(lists[widx].vmeta_pool_hits, 1);
+        memset(vmeta, 0, sizeof(*vmeta));
+        return vmeta;
+    }
+    return zcalloc(sizeof(*vmeta));
+}
+
+void tomoVerMetaPoolFree(struct tomoVerMeta *vmeta) {
+    if (!vmeta) return;
+    int executing_owner = iotid - (TOMO_IO_THREADS_MAX + 1);
+    if (__builtin_expect(tomo_vmeta_pool_cap == 0, 0))
+        tomo_vmeta_pool_cap = tomoVerMetaPoolCapResolve();
+    /* Owner-affine capture only. Shutdown/table discard can free from a
+     * coordinator identity, and a block whose lifecycle reference, commit
+     * attachment or reclaim charge was not released through the normal
+     * retire chain is not a clean fixed-size block; every such cold case
+     * keeps the generic allocator path — exactly the old behavior. */
+    if (executing_owner != vmeta->install_owner || vmeta->lifecycle_ref_held ||
+        atomic_load_explicit(&vmeta->commit, memory_order_relaxed) != NULL ||
+        vmeta->reclaim_bytes != 0 ||
+        tomo_vmeta_pool_n >= tomo_vmeta_pool_cap) {
+        zfree(vmeta);
+        return;
+    }
+    vmeta->version_prev = (kvobj *)tomo_vmeta_pool;
+    tomo_vmeta_pool = vmeta;
+    tomo_vmeta_pool_n++;
+    csOwnerPublishList *lists = atomic_load_explicit(
+        &tomo_atomic_publish_lists, memory_order_relaxed);
+    if (lists)
+        tomoRelaxedBump(lists[executing_owner].vmeta_pool_recycles, 1);
+}
+
+/* Peak-with-reset trim on the flat node pool's 4096-slice tick: capacity the
+ * whole window never touched is returned, a steady load keeps its working
+ * set, and the cap re-derivation keeps the bound tracking the live window. */
+void tomoVerMetaPoolTrim(void) {
+    tomo_vmeta_pool_cap = tomoVerMetaPoolCapResolve();
+    unsigned int excess = tomo_vmeta_pool_lowat;
+    if (tomo_vmeta_pool_n > tomo_vmeta_pool_cap) {
+        unsigned int over = tomo_vmeta_pool_n - tomo_vmeta_pool_cap;
+        if (over > excess) excess = over;
+    }
+    while (excess-- > 0 && tomo_vmeta_pool) {
+        struct tomoVerMeta *vmeta = tomo_vmeta_pool;
+        tomo_vmeta_pool = (struct tomoVerMeta *)vmeta->version_prev;
+        tomo_vmeta_pool_n--;
+        zfree(vmeta);
+    }
+    tomo_vmeta_pool_lowat = tomo_vmeta_pool_n;
 }
 
 /* The last shards_remaining decrement acquired every owner record write. Sum those contiguous
@@ -23075,6 +23179,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         unsigned long long owner_node_allocs = 0, owner_batch_allocs = 0;
         unsigned long long owner_pending = 0, owner_pending_max = 0;
         unsigned long long diet_stamp_folds = 0;
+        unsigned long long diet_pool_hits = 0, diet_pool_recycles = 0;
         csOwnerPublishList *owner_lists = atomic_load_explicit(
             &tomo_atomic_publish_lists, memory_order_acquire);
         if (owner_lists) {
@@ -23094,6 +23199,10 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 owner_batch_allocs += tomoRelaxedRead(owner_lists[_w].batch_allocs);
                 diet_stamp_folds += tomoRelaxedRead(
                     owner_lists[_w].stamp_fold_installs);
+                diet_pool_hits += tomoRelaxedRead(
+                    owner_lists[_w].vmeta_pool_hits);
+                diet_pool_recycles += tomoRelaxedRead(
+                    owner_lists[_w].vmeta_pool_recycles);
             }
         }
         info = sdscatprintf(info,
@@ -23115,7 +23224,9 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_atomic_prune_node_allocs:%llu\r\n"
             "tomokv_atomic_prune_batch_allocs:%llu\r\n"
             /* atomdiet2 witnesses: nonzero proves the mechanism fired. */
-            "tomokv_atomic_stamp_fold_installs:%llu\r\n",
+            "tomokv_atomic_stamp_fold_installs:%llu\r\n"
+            "tomokv_atomic_vmeta_pool_hits:%llu\r\n"
+            "tomokv_atomic_vmeta_pool_recycles:%llu\r\n",
             atomic_load_explicit(&tomo_atomic_commit_ts_lag, memory_order_relaxed),
             atomic_load_explicit(&tomo_atomic_stragglers, memory_order_relaxed),
             tomoAtomicWindowResolved(), tomoAtomicReclaimLimitResolved(),
@@ -23125,7 +23236,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             atomic_load_explicit(&tomo_atomic_reclaim_stalls, memory_order_relaxed),
             owner_pending, owner_pending_max,
             owner_epochs, owner_versions, owner_qsbr_waits, owner_snapshot_waits,
-            owner_node_allocs, owner_batch_allocs, diet_stamp_folds);
+            owner_node_allocs, owner_batch_allocs, diet_stamp_folds,
+            diet_pool_hits, diet_pool_recycles);
         info = sdscatprintf(info,
             "tomokv_fake_core_allocs:%llu\r\n"
             "tomokv_fake_tail_promotions:%llu\r\n",
@@ -25808,6 +25920,7 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
         if (__builtin_expect(++flat_node_tick >= 4096u, 0)) {
             flat_node_tick = 0;
             flatNodePoolTrim();
+            tomoVerMetaPoolTrim();
         }
         if (!server.tomo_atomic && !atomic_owner_pending)
             flatWorkerReclaimOff(worker);

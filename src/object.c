@@ -738,7 +738,7 @@ void decrRefCount(robj *o) {
             }
         }
         if (o->vmeta)
-            zfree(o->vmeta);
+            tomoVerMetaPoolFree(o->vmeta);
         zfree(alloc);
     }
 }
