@@ -412,7 +412,7 @@ kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
                  * a pin, so its n==0 test never even loads for them past one TLS word). */
                 if (!tomoPinnedReadSnapshot(&pinned_snapshot) ||
                     (read_ts <= pinned_snapshot &&
-                     !tomoStraddleMemoBlocksFast(read_meta))) {
+                     !tomoStraddleMemoBlocksFast(read_head, read_meta))) {
                     tomoRelaxedBump(server.kstat[iotid].atomic_read_fast, 1);
                     return read_meta && read_meta->version_tombstone ? NULL : read_head;
                 }

@@ -5953,10 +5953,17 @@ static inline int tomoStraddleMemoBlocks(tomoCommit *rec) {
 
 /* Pinned-fast-path fallthrough test (lookupKeyReadWithFlags): the owner-published read_head is
  * a VISIBLE candidate, but if its commit record was already judged invisible by this command,
- * the frozen verdict wins and the caller must fall through to the memo-aware resolver. */
-static inline int tomoStraddleMemoBlocksFast(struct tomoVerMeta *read_meta) {
+ * the frozen verdict wins and the caller must fall through to the memo-aware resolver.
+ * A published ABSENCE (read_head == NULL) carries no metadata to attribute it — a group this
+ * command froze invisible (e.g. a straddling atomic DEL) may be what produced it, so with a
+ * non-empty memo absence is conservatively routed to the resolver too, where the tombstone's
+ * own record is memo-checked. A raw head without vmeta is a pre-atomic stable value. */
+static inline int tomoStraddleMemoBlocksFast(struct redisObject *read_head,
+                                             struct tomoVerMeta *read_meta) {
     tomoStraddleMemo *m = &tomo_straddle_memo;
-    if (__builtin_expect(m->n == 0, 1) || read_meta == NULL) return 0;
+    if (__builtin_expect(m->n == 0, 1)) return 0;
+    if (read_head == NULL) return 1;
+    if (read_meta == NULL) return 0;
     tomoCommit *rec = atomic_load_explicit(&read_meta->commit, memory_order_acquire);
     return rec != NULL && tomoStraddleMemoBlocks(rec);
 }
