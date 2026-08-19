@@ -74,7 +74,12 @@ static inline uint64_t flatSlotOf(flatTable *t, dictEntryLink link) {
     return (uint64_t)((flatSlot *)((char *)link - offsetof(struct flatSlot, w)) - t->slots);
 }
 static inline dictEntry *flatKvMask(kvstore *kvs, void *kv) {
-    return dictEncodeStoredKey(&kvs->dtype, kvs, kv);
+    /* dup_owner is consulted only by dt->keyDup, which the db kvstore type
+     * does not define (stored keys ARE the kvobjs, never duplicated). The
+     * flat kvstore has no dict struct, so its own handle doubles as the
+     * opaque owner context; the cast makes the previously-implicit pointer
+     * conversion explicit for -Wincompatible-pointer-types. */
+    return dictEncodeStoredKey(&kvs->dtype, (dict *)(void *)kvs, kv);
 }
 int kvstoreIsFlat(kvstore *kvs) { return (kvs->flags & KVSTORE_FLAT) != 0; }
 static inline flatTable *flatCurrent(kvstore *kvs) {
