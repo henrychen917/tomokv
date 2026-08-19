@@ -53,6 +53,9 @@ typedef struct tomoUring2Stats {
     uint64_t send_ceremony_batches;
     uint64_t send_ceremony_batched_ops;
     uint64_t sqe_template_hits;
+    uint64_t fixed_file_sqes;
+    uint64_t fixed_buf_sqes;
+    uint64_t reg_fallbacks;
     uint64_t migration_acks;
 } tomoUring2Stats;
 

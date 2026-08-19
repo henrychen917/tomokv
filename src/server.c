@@ -21411,6 +21411,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 (double)u2st.sqes_submitted / (double)u2st.enter_calls : 0.0;
             info = sdscatprintf(info, FMTARGS(
                 "tomokv_uring2_enabled:%d\r\n", server.io_uring != 0,
+                "tomokv_uring2_registration_enabled:%d\r\n", tomoUring2RegistrationEnabled(),
                 "tomokv_uring2_rings_ready:%llu\r\n", (unsigned long long)u2st.rings_ready,
                 "tomokv_uring2_setup_submit_all:%llu\r\n", (unsigned long long)u2st.setup_submit_all,
                 "tomokv_uring2_setup_defer_taskrun:%llu\r\n", (unsigned long long)u2st.setup_defer_taskrun,
@@ -21453,6 +21454,9 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "tomokv_uring2_send_ceremony_batches:%llu\r\n", (unsigned long long)u2st.send_ceremony_batches,
                 "tomokv_uring2_send_ceremony_batched_ops:%llu\r\n", (unsigned long long)u2st.send_ceremony_batched_ops,
                 "tomokv_uring2_sqe_template_hits:%llu\r\n", (unsigned long long)u2st.sqe_template_hits,
+                "tomokv_uring2_fixed_file_sqes:%llu\r\n", (unsigned long long)u2st.fixed_file_sqes,
+                "tomokv_uring2_fixed_buf_sqes:%llu\r\n", (unsigned long long)u2st.fixed_buf_sqes,
+                "tomokv_uring2_reg_fallbacks:%llu\r\n", (unsigned long long)u2st.reg_fallbacks,
                 "tomokv_uring2_migration_acks:%llu\r\n", (unsigned long long)u2st.migration_acks));
         }
         /* MERGE 2026-07-28: the fork-local counters and upstream's Stats block use

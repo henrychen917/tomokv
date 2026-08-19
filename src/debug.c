@@ -24,6 +24,7 @@
 #include "threads_mngr.h"
 #include "script.h"
 #include "cluster_asm.h"
+#include "uring2.h"
 
 #include <arpa/inet.h>
 #include <signal.h>
@@ -996,6 +997,19 @@ NULL
             node = owner / server.ex_per_node;
         }
         addReplyLongLong(c, node);
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-uringreg") && c->argc == 3) {
+        /* DEBUG TOMO-URINGREG <0|1> -- A/B gate for registered file and SEND
+         * buffer SQE fields. Slots remain owned while disabled so toggling is
+         * safe with live connections and re-enabling is immediate. */
+        long on;
+        if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
+        if (on != 0 && on != 1) {
+            addReplyError(c, "TOMO-URINGREG expects 0 or 1");
+            return;
+        }
+        tomoUring2SetRegistrationEnabled((int)on);
+        addReplyStatus(c, on ? "uring registration ON" :
+                               "uring registration OFF (raw SQEs)");
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-p1direct") && c->argc == 3) {
         /* DEBUG TOMO-P1DIRECT <0|1> -- master toggle for the p1 DIRECT-CLIENT mode,
          * DEFAULTING ON. 0 forces every conn onto the fake path WITHOUT mutating per-conn
