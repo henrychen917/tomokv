@@ -98,7 +98,7 @@ typedef struct tomoM1Info {
     uint64_t pending_recoveries;
 } tomoM1Info;
 
-#define TOMO_M1_SELFTEST_CASES 6
+#define TOMO_M1_SELFTEST_CASES 7
 typedef struct tomoM1SelfTestResult {
     const char *name;
     int expected_io;

@@ -315,6 +315,7 @@ int tomoM1ModelCompute(const double mix[TOMO_M1_CLASS_COUNT],
     return 1;
 }
 
+static int tomoM1MeasuredSelfTest(tomoM1SelfTestResult *result);
 static int tomoM1ActuationSelfTest(tomoM1SelfTestResult *result);
 
 int tomoM1SelfTest(tomoM1SelfTestResult results[TOMO_M1_SELFTEST_CASES]) {
@@ -339,8 +340,8 @@ int tomoM1SelfTest(tomoM1SelfTestResult results[TOMO_M1_SELFTEST_CASES]) {
      *              == the command-weighted truth (.5*11.8+.5*1.70=6.75) — the mixture theorem
      *              this selftest pins. ratio 6.74/.76=8.87, ideal 14.38, two-EX edge => io14.
      *              (The p16/p1 anchor costs 1.70/11.8 imply F=10.81, v=0.99 by the LSQ fit.) */
-    enum { TOMO_M1_MODEL_SELFTEST_CASES = TOMO_M1_SELFTEST_CASES - 1 };
-    static const tomoM1SelfTestCase cases[TOMO_M1_MODEL_SELFTEST_CASES] = {
+    enum { TOMO_M1_SEED_SELFTEST_CASES = TOMO_M1_SELFTEST_CASES - 2 };
+    static const tomoM1SelfTestCase cases[TOMO_M1_SEED_SELFTEST_CASES] = {
         { .name = "GET-p16", .class_id = TOMO_M1_CLASS_GET,
           .keys = 1.0, .depth = 16.0, .expected_io = 11 },
         { .name = "SET-p16", .class_id = TOMO_M1_CLASS_SET,
@@ -355,7 +356,7 @@ int tomoM1SelfTest(tomoM1SelfTestResult results[TOMO_M1_SELFTEST_CASES]) {
 
     int passed = 0;
     const tomoM1MeasuredEx unpopulated[TOMO_M1_CLASS_COUNT] = {{0}};
-    for (int i = 0; i < TOMO_M1_MODEL_SELFTEST_CASES; i++) {
+    for (int i = 0; i < TOMO_M1_SEED_SELFTEST_CASES; i++) {
         double mix[TOMO_M1_CLASS_COUNT] = {0};
         double avg_keys[TOMO_M1_CLASS_COUNT];
         for (int class_id = 0; class_id < TOMO_M1_CLASS_COUNT; class_id++)
@@ -377,8 +378,53 @@ int tomoM1SelfTest(tomoM1SelfTestResult results[TOMO_M1_SELFTEST_CASES]) {
         };
         passed += results[i].passed;
     }
-    passed += tomoM1ActuationSelfTest(&results[TOMO_M1_MODEL_SELFTEST_CASES]);
+    passed += tomoM1MeasuredSelfTest(&results[TOMO_M1_SEED_SELFTEST_CASES]);
+    passed += tomoM1ActuationSelfTest(&results[TOMO_M1_SEED_SELFTEST_CASES + 1]);
     return passed;
+}
+
+static int tomoM1MeasuredSelfTest(tomoM1SelfTestResult *result) {
+    double mix[TOMO_M1_CLASS_COUNT] = {0};
+    double avg_keys[TOMO_M1_CLASS_COUNT];
+    tomoM1MeasuredEx measured[TOMO_M1_CLASS_COUNT] = {{0}};
+    for (int class_id = 0; class_id < TOMO_M1_CLASS_COUNT; class_id++)
+        avg_keys[class_id] = 1.0;
+
+    /* Mixed sources in one computation: SET keeps its 1.33us seed while MGET8's populated
+     * whole-command 2.0us replaces 0.40 + 1.00*(8-1). At p16 this shifts io10/ex6 -> io13/ex3.
+     * Leaving the synthetic value in place but clearing populated must restore the seed target. */
+    mix[TOMO_M1_CLASS_SET] = 0.5;
+    mix[TOMO_M1_CLASS_MGET] = 0.5;
+    avg_keys[TOMO_M1_CLASS_MGET] = 8.0;
+    measured[TOMO_M1_CLASS_MGET] = (tomoM1MeasuredEx) {
+        .ewma_us = 2.0,
+        .populated = 1,
+        .last_ops = 4,
+    };
+
+    tomoM1ModelResult override = {0}, fallback = {0};
+    int override_ok = tomoM1ModelCompute(mix, avg_keys, measured, 16.0,
+                                          16, 1, &override);
+    measured[TOMO_M1_CLASS_MGET].populated = 0;
+    int fallback_ok = tomoM1ModelCompute(mix, avg_keys, measured, 16.0,
+                                          16, 1, &fallback);
+    uint32_t mget_mask = UINT32_C(1) << TOMO_M1_CLASS_MGET;
+    int ok = override_ok && fallback_ok &&
+             override.target_io == 13 && override.target_ex == 3 &&
+             fabs(override.c_ex - 1.665) < 1e-12 &&
+             override.measured_mask == mget_mask &&
+             fallback.target_io == 10 && fallback.target_ex == 6 &&
+             fabs(fallback.c_ex - 4.365) < 1e-12 &&
+             fallback.measured_mask == 0;
+    *result = (tomoM1SelfTestResult) {
+        .name = "MEASURED-MGET8-OVERRIDE-FALLBACK",
+        .expected_io = 13,
+        .expected_ex = 3,
+        .actual_io = override.target_io,
+        .actual_ex = override.target_ex,
+        .passed = ok,
+    };
+    return ok;
 }
 
 #define TOMO_M1_MIX_ALPHA (1.0 / 4.0)
