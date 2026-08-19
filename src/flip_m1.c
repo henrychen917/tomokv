@@ -93,25 +93,34 @@ static const tomoM1CostTable tomo_m1_seed_costs = {
     },
 };
 
-/* Return the pipe-keyed IO base by interpolating linearly in log(batch depth) between the three
- * compiled anchors. Values outside the sampled interval clamp to its nearest endpoint. Keeping
- * the anchors and this shape separate means a later calibrated/sampled source swaps only the
- * tomoM1CostTable object, not controller logic. */
+/* Return the pipe-keyed IO base as F/depth + v — a per-readiness-visit fixed cost F amortized
+ * over the visit's commands plus a per-command cost v — fitted (closed-form least squares on
+ * x = 1/depth) from the compiled anchors at each call. The hyperbola is not cosmetic: per-visit
+ * cost is affine (F + v*b), so total cost over ANY MIX of per-conn depths is visits*F + cmds*v,
+ * and the per-command cost of a mixed population is exactly F/(visit-mean depth) + v. The
+ * visit-mean depth EWMA is therefore the sufficient statistic for MIXED PIPELINES (owner
+ * requirement 2026-08-19: some conns p1, some p4, some p16) — no histogram, no Jensen error.
+ * A log-linear interpolation here would misprice every mixed regime. Uring fit from the seed
+ * anchors: F=10.81us/visit, v=0.99us/cmd (reproduces 11.8/1.70/1.33 at b=1/16/32).
+ * Keeping anchors as the one data object means a calibrated/sampled source swaps the table,
+ * not this logic; sampled mode is mixture-exact by construction (sum cycles / sum cmds). */
 static double tomoM1IoBaseCost(const tomoM1CostTable *table, int io_uring, double depth) {
     int backend = io_uring ? TOMO_M1_BACKEND_URING : TOMO_M1_BACKEND_EPOLL;
     const tomoM1IoAnchor *anchors = table->io_base[backend];
-    if (!isfinite(depth) || depth <= anchors[0].depth) return anchors[0].cost;
+    if (!isfinite(depth) || depth < 1.0) depth = 1.0;
 
-    for (int hi = 1; hi < TOMO_M1_IO_ANCHOR_COUNT; hi++) {
-        if (depth <= anchors[hi].depth) {
-            const tomoM1IoAnchor *lo_anchor = &anchors[hi - 1];
-            const tomoM1IoAnchor *hi_anchor = &anchors[hi];
-            double span = log(hi_anchor->depth) - log(lo_anchor->depth);
-            double fraction = (log(depth) - log(lo_anchor->depth)) / span;
-            return lo_anchor->cost + fraction * (hi_anchor->cost - lo_anchor->cost);
-        }
+    double sum_x = 0, sum_y = 0, sum_xx = 0, sum_xy = 0;
+    for (int i = 0; i < TOMO_M1_IO_ANCHOR_COUNT; i++) {
+        double x = 1.0 / anchors[i].depth, y = anchors[i].cost;
+        sum_x += x; sum_y += y; sum_xx += x * x; sum_xy += x * y;
     }
-    return anchors[TOMO_M1_IO_ANCHOR_COUNT - 1].cost;
+    double n = (double)TOMO_M1_IO_ANCHOR_COUNT;
+    double var_x = sum_xx - sum_x * sum_x / n;
+    double f_visit = var_x > 0 ? (sum_xy - sum_x * sum_y / n) / var_x : 0.0;
+    double v_cmd = (sum_y - f_visit * sum_x) / n;
+    if (f_visit < 0) f_visit = 0;                  /* degenerate table: fall back to flat mean */
+    if (v_cmd < 0) v_cmd = 0;
+    return f_visit / depth + v_cmd;
 }
 
 static int tomoM1ClampIoTarget(int io, int role_threads) {
@@ -187,7 +196,13 @@ int tomoM1SelfTest(tomoM1SelfTestResult results[TOMO_M1_SELFTEST_CASES]) {
      *   SET p16:  c_io=1.70, c_ex=1.33, ideal=8.977; io9 scores 5.263 vs io8 4.706.
      *   GET p1:   c_io=11.8, c_ex=.76, ideal=15.032; the validated two-EX lattice edge is io14.
      *   MGET8 p16:c_io=1.70+1.50*8=13.70, c_ex=.40+1.00*(8-1)=7.40;
-     *              ideal=10.389; io10 scores .730 vs io11 .676. */
+     *              ideal=10.389; io10 scores .730 vs io11 .676.
+     *   MIXED-GET: 50/50 COMMAND split between p1 and p16 conns => visit-mean depth
+     *              2/(17/16)=1.882 (a p16 conn delivers 16 commands per visit, a p1 conn one,
+     *              so equal command halves = 16:1 visit ratio). F/b+v: 10.81/1.882+0.99=6.74
+     *              == the command-weighted truth (.5*11.8+.5*1.70=6.75) — the mixture theorem
+     *              this selftest pins. ratio 6.74/.76=8.87, ideal 14.38, two-EX edge => io14.
+     *              (The p16/p1 anchor costs 1.70/11.8 imply F=10.81, v=0.99 by the LSQ fit.) */
     static const tomoM1SelfTestCase cases[TOMO_M1_SELFTEST_CASES] = {
         { .name = "GET-p16", .class_id = TOMO_M1_CLASS_GET,
           .keys = 1.0, .depth = 16.0, .expected_io = 11 },
@@ -197,6 +212,8 @@ int tomoM1SelfTest(tomoM1SelfTestResult results[TOMO_M1_SELFTEST_CASES]) {
           .keys = 1.0, .depth = 1.0, .expected_io = 14 },
         { .name = "MGET8-p16", .class_id = TOMO_M1_CLASS_MGET,
           .keys = 8.0, .depth = 16.0, .expected_io = 10 },
+        { .name = "MIXED-GET-p1p16", .class_id = TOMO_M1_CLASS_GET,
+          .keys = 1.0, .depth = 1.882, .expected_io = 14 },
     };
 
     int passed = 0;

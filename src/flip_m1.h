@@ -52,7 +52,7 @@ typedef struct tomoM1Info {
     double depth;
 } tomoM1Info;
 
-#define TOMO_M1_SELFTEST_CASES 4
+#define TOMO_M1_SELFTEST_CASES 5
 typedef struct tomoM1SelfTestResult {
     const char *name;
     int expected_io;

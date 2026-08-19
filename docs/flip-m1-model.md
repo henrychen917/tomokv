@@ -84,3 +84,19 @@ change, thrash-clean), disambiguates what load aliases, composes mixes linearly,
 mixes -> per-node splits, extends to 3s; costs: the table (auto-calibrated or self-sampled),
 an OTHER bucket for unknown commands (live-sampled), and model risk where stages couple
 (min() ignores overlap — measured residual 0.3-5.8% on these cells; value-size term phase 2).
+
+## Mixed pipelines (owner requirement 2026-08-19: some conns p1, some p4, some p16)
+
+The io cost model is a per-visit affine law: each conn readiness-visit costs F (visit ceremony:
+wake, parse setup, reply flush arm) plus v per command. Equivalently cost/cmd = F/b + v for a
+conn bursting b commands per visit. Because per-visit cost is AFFINE in b, total io cost over
+any MIX of depths is visits*F + cmds*v — so the per-command cost of a mixed population is
+exactly F/(visit-mean depth) + v, and the per-conn-visit depth EWMA (which the signals already
+collect at the per-client drain) is the sufficient statistic. No histogram, no Jensen error.
+Uring seed fit: F=10.81us/visit, v=0.99us/cmd (reproduces the 11.8/1.70/1.30 anchors).
+The earlier log-linear interpolation was replaced — it mispriced mixed regimes. Sampled mode
+is mixture-exact by construction (sum io cycles / sum commands). Selftest case MIXED-GET-p1p16
+pins the theorem: 50/50 command split => visit-mean 1.882 => c_io 6.74 == command-weighted
+truth 6.75 => io14/ex2. The p1 direct-client mode (design_p1direct.md) is per-conn by
+construction, so mixed populations run DIRECT and FC conns side by side; its mode signal
+feeds the same visit-depth statistic.
