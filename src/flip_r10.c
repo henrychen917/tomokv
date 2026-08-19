@@ -409,7 +409,9 @@ static int tomoR10ObserveLanding(tomoR10Node *climb, tomoU1Shape shape) {
         climb->rung = tomoR10ShapeRung(climb, shape);
         return 1;
     }
-    return tomoU1ShapeEqual(shape, climb->current);
+    if (tomoU1ShapeEqual(shape, climb->current)) return 1;
+    tomoR10Abandon(climb, shape, TOMO_R10_BACKSTOP_UNEXPECTED_SHAPE);
+    return 0;
 }
 
 static void tomoR10Anchor(tomoR10Node *climb) {
@@ -427,6 +429,7 @@ const char *tomoR10BackstopTriggerName(tomoR10BackstopTrigger trigger) {
     case TOMO_R10_BACKSTOP_ARM_REFUSED: return "arm-refused";
     case TOMO_R10_BACKSTOP_SETTLE_NEVER: return "settle-never";
     case TOMO_R10_BACKSTOP_NEED_MORE: return "need-more";
+    case TOMO_R10_BACKSTOP_UNEXPECTED_SHAPE: return "unexpected-shape";
     }
     return "unknown";
 }
