@@ -36,6 +36,7 @@
 #include "chk.h"
 #include "uring2.h"
 #include "wb_uring.h"
+#include "flip_u1.h"
 
 #include <time.h>
 #include <signal.h>
@@ -28335,6 +28336,8 @@ void *polyThreadMain(void *arg) {
                 if (role_changed)
                     setPolyThreadName(ctx, cur); /* conversion edge, never a slice hot path */
                 atomic_store_explicit(&ctx->mode, cur, memory_order_release);
+                if (role_changed)
+                    tomoU1RoleChangeComplete(tmNodeOfWorker(ctx->ex->id));
                 /* Eligibility requires both !io_exiting and mode==IO. Publishing IO first and
                  * clearing with release keeps grow-back's departing slot excluded until its later
                  * IO re-entry is complete. */
@@ -31280,6 +31283,7 @@ static void tomoFlipController(void) {
     }
     if (!server.thread_auto || !server.exThreads) return;
     if (server.tm_ngrow_io <= 0) return;                    /* single worker / capped: no flip headroom */
+    tomoU1ControllerTick(node_lo);
     int flip_active = tmFlipActive();
     if (atomic_load_explicit(&server.migration_active, memory_order_acquire) ||
         flip_active) {
@@ -31542,8 +31546,11 @@ static void tomoFlipController(void) {
          * any decision is measured against; nothing here is an absolute number). --- */
         /* inst needs only a prior BASELINE sample (ops_prev_ms), not a primed EWMA — priming now
          * waits for the first NONZERO rate (see below), so gating inst on primed would deadlock. */
-        double inst = (fc->ops_prev_ms != 0 && now > fc->ops_prev_ms)
-                    ? (double)(node_ops - fc->ops_prev) * 1000.0 / (double)(now - fc->ops_prev_ms) : 0.0;
+        uint64_t ops_delta = node_ops - fc->ops_prev;
+        uint64_t ops_elapsed_ms = (fc->ops_prev_ms != 0 && now > fc->ops_prev_ms)
+                                ? (uint64_t)(now - fc->ops_prev_ms) : 0;
+        double inst = ops_elapsed_ms != 0
+                    ? (double)ops_delta * 1000.0 / (double)ops_elapsed_ms : 0.0;
         fc->ops_prev = node_ops; fc->ops_prev_ms = now;
         /* ee451 (controller-inputs fix): IDLE ticks carry NO information about any config's merit —
          * folding their inst≈0 into the EWMA variance is what blew sigma past the mean (observed
@@ -31559,6 +31566,21 @@ static void tomoFlipController(void) {
         if (!fc->primed) { if (inst > 0.0) { fc->primed = 1; fc->mean = inst; fc->var = 0; } }
         else if (!node_idle) { double d = inst - fc->mean; fc->mean += FESC_ALPHA * d; fc->var += FESC_ALPHA * (d*d - fc->var); }
         double sigma = sqrt(fc->var > 1.0 ? fc->var : 1.0);
+
+        if (ops_elapsed_ms != 0) {
+            int shape_io = nnodes == 1
+                         ? atomic_load_explicit(&server.io_threads_live, memory_order_relaxed)
+                         : atomic_load_explicit(&server.tm_node_iolive[node], memory_order_relaxed);
+            int shape_ex = nnodes == 1
+                         ? atomic_load_explicit(&server.num_workers_live, memory_order_relaxed)
+                         : atomic_load_explicit(&server.tm_node_wlive[node], memory_order_relaxed);
+            tomoU1Shape shape = {
+                .io = (uint16_t)shape_io,
+                .ex = (uint16_t)shape_ex,
+                .wb = (uint16_t)(server.wb_threads > 0 ? server.wb_per_node : 0),
+            };
+            tomoU1Feed(node, ops_delta, ops_elapsed_ms, shape, (uint64_t)now);
+        }
 
         int can_front = (w_live > 1);
         /* io_live_node >= 2: IO-EXIT hands the exiting thread's connections to ANOTHER live poly
