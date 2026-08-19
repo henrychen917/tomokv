@@ -773,6 +773,11 @@ static _Atomic unsigned long long tomo_atomic_straddle_restarts;
  * carried a torn-capable window — never let this be silently zero-by-vacuity: it is bumped at
  * the exact decision point where the safe path was unavailable. */
 static _Atomic unsigned long long tomo_atomic_straddle_unrepaired;
+/* Witness: terminal install decisions that observed a live FOREIGN straddle-fold reference
+ * on their commit record (refs_before > expected+1 in csMsetInstallDone). This is the exact
+ * race the relative reservation trim tolerates; a torn-suite run that leaves it at 0 never
+ * opened the window and validates nothing about the trim. */
+static _Atomic unsigned long long tomo_atomic_terminal_foreign_refs;
 
 static inline void tomoStraddleMemoRecord(tomoCommit *rec) {
     tomoStraddleMemo *m = &tomo_straddle_memo;
@@ -13841,11 +13846,30 @@ static void csMsetInstallDone(csGroup *g) {
         serverAssert(ninstalled <= UINT_MAX - local);
         ninstalled += local;
     }
-    serverAssert(ninstalled < UINT_MAX);
-    serverAssert(atomic_load_explicit(&commit->refs, memory_order_relaxed) ==
-                 (unsigned int)g->version_install_expected + 1);
-    atomic_store_explicit(&commit->refs, ninstalled + 1,
-                          memory_order_release);
+    serverAssert(ninstalled < UINT_MAX &&
+                 ninstalled <= (unsigned int)g->version_install_expected);
+    /* D.1: commit->refs is no longer this group's private count. A concurrent pinned
+     * snapshot reader that met one of this group's eagerly stamped zero-marker versions
+     * holds a transient straddle-fold reference on this record (kvobjVersionAt memoized it,
+     * tomoStraddleMemoDisarm folded it with a fetch_add), and such foreign refs may be
+     * taken or dropped at any instant relative to this terminal decision. The pre-D.1
+     * equality assert (refs == expected+1) is therefore wrong, and the blind trim store
+     * it guarded was worse: it erased any fold ref that landed between load and store
+     * (reader's later release then frees the record under live install refs — UAF) and
+     * resurrected any that released in the window (leak). Release the UNFILLED install
+     * reservations relatively instead, and verify only this group's own floor: the
+     * expected reservations plus the transient group ref are untouchable until here
+     * (installs consume reservations without decrementing; version refs release only
+     * post-commit, post-grace), so refs_before >= expected+1 always, with equality
+     * exactly when no foreign fold ref is live at this instant. */
+    unsigned int unfilled =
+        (unsigned int)g->version_install_expected - ninstalled;
+    unsigned int refs_before = atomic_fetch_sub_explicit(&commit->refs, unfilled,
+                                                         memory_order_release);
+    serverAssert(refs_before >= (unsigned int)g->version_install_expected + 1);
+    if (refs_before > (unsigned int)g->version_install_expected + 1)
+        atomic_fetch_add_explicit(&tomo_atomic_terminal_foreign_refs, 1,
+                                  memory_order_relaxed);
 
     int cancel = g->version_abort ||
                  ninstalled != (unsigned int)g->version_install_expected;
@@ -23488,6 +23512,12 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                                                          memory_order_relaxed),
             "tomokv_atomic_straddle_unrepaired:%llu\r\n",
                 (unsigned long long)atomic_load_explicit(&tomo_atomic_straddle_unrepaired,
+                                                         memory_order_relaxed),
+            /* Terminal decisions that ran with a live foreign fold ref on their commit
+             * record — the window the relative reservation trim tolerates. Must be > 0
+             * for a torn run to have exercised that tolerance. */
+            "tomokv_atomic_terminal_foreign_refs:%llu\r\n",
+                (unsigned long long)atomic_load_explicit(&tomo_atomic_terminal_foreign_refs,
                                                          memory_order_relaxed),
             "tomokv_atomic_ownread_reads:%llu\r\n", orr,
             "tomokv_atomic_ownread_pending:%llu\r\n", orp,
