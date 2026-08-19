@@ -755,6 +755,62 @@ static struct { _Atomic uint64_t v; char pad[CACHE_LINE_SIZE - sizeof(_Atomic ui
 #define commit_clock (commit_clock_line.v)
 static _Atomic unsigned long long tomo_atomic_stragglers;
 
+/* D.1 straddle memo (struct + rationale in server.h). Armed per worker command in csSubExec
+ * for pinned (snapshot-atomic) resolutions only; every other resolution keeps the exact
+ * pre-memo instruction stream. The DEBUG TOMO-ATOMICMEMO toggle below is the discriminating
+ * control: 0 keeps the unlatched fetch_add clock but disables memoization. */
+__thread tomoStraddleMemo tomo_straddle_memo;
+redisAtomic int tomo_atomic_memo_on = 1;
+/* Restart waves executed for straddle-flagged snapshot reads (memo overflow, or a memoized
+ * record whose marker landed at or below the group's T while its subs resolved). */
+static _Atomic unsigned long long tomo_atomic_straddle_restarts;
+/* Tripwire: a straddle hazard was detected in a context that has no restart lever (memo
+ * overflow inside a pipeline/localfast/hop1 resolution). A nonzero value means a run may have
+ * carried a torn-capable window — never let this be silently zero-by-vacuity: it is bumped at
+ * the exact decision point where the safe path was unavailable. */
+static _Atomic unsigned long long tomo_atomic_straddle_unrepaired;
+
+static inline void tomoStraddleMemoRecord(tomoCommit *rec) {
+    tomoStraddleMemo *m = &tomo_straddle_memo;
+    if (m->n < TOMO_STRADDLE_MEMO_MAX) {
+        m->ent[m->n++] = rec;
+        if ((unsigned long long)m->n >
+            tomoRelaxedRead(server.kstat[iotid].straddle_memo_peak))
+            tomoRelaxedSet(server.kstat[iotid].straddle_memo_peak,
+                           (unsigned long long)m->n);
+        return;
+    }
+    /* Memo full and a NEW unstable record appeared: this resolution can no longer prove
+     * verdict stability. Fail torn-safe — the command must restart with a fresh T and a
+     * cleared memo (existing verdicts are never re-evaluated, and there is no fallback to
+     * per-instant evaluation). The disarm path routes this to the group restart wave when
+     * one exists and to the unrepaired tripwire when it does not. */
+    m->overflow = 1;
+}
+
+static void tomoStraddleMemoArm(csGroup *g) {
+    tomoStraddleMemo *m = &tomo_straddle_memo;
+    if (!atomic_load_explicit(&tomo_atomic_memo_on, memory_order_relaxed)) return;
+    if (!(g->snapshot_pinned ||
+          (g->head && atomic_load_explicit(&g->head->tomo_read_snapshot_pinned,
+                                           memory_order_acquire))))
+        return;                 /* per-instant readers have no cross-instant predicate */
+    m->g = g;
+    m->n = 0;
+    m->overflow = 0;
+}
+
+static void tomoStraddleMemoDisarm(csGroup *g) {
+    tomoStraddleMemo *m = &tomo_straddle_memo;
+    if (m->g != (const struct csGroup *)g) return;     /* this sub never armed */
+    if (__builtin_expect(m->overflow != 0, 0))
+        atomic_fetch_add_explicit(&tomo_atomic_straddle_unrepaired, 1,
+                                  memory_order_relaxed);
+    m->g = NULL;
+    m->n = 0;
+    m->overflow = 0;
+}
+
 /* Atomic-MSET admission. `inflight` is the reservation word for both finite and unlimited
  * windows: a successful increment is immediately followed, on the same non-yielding
  * processCommand stack, by construction and registration of exactly one versioned-write group.
@@ -7711,7 +7767,11 @@ void resetServerStats(void) {
         tomoRelaxedSet(server.kstat[i].atomic_read_slow_inflight_conflict, 0);
         tomoRelaxedSet(server.kstat[i].atomic_read_slow_gate_closed_other, 0);
         tomoRelaxedSet(server.kstat[i].flat_hash_reuses, 0);
+        tomoRelaxedSet(server.kstat[i].straddle_memo_hits, 0);
+        tomoRelaxedSet(server.kstat[i].straddle_memo_peak, 0);
     }
+    atomic_store_explicit(&tomo_atomic_straddle_restarts, 0, memory_order_relaxed);
+    atomic_store_explicit(&tomo_atomic_straddle_unrepaired, 0, memory_order_relaxed);
     server.stat_active_defrag_hits = 0;
     server.stat_active_defrag_misses = 0;
     server.stat_active_defrag_key_hits = 0;
@@ -13307,6 +13367,13 @@ kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot, client *reader_connection) {
     uint64_t best_ts = 0, own_install_order = 0;
     uint32_t best_order = 0;
     int best_set = 0, own_above_set = 0;
+    /* D.1: the straddle memo engages only for the armed pinned resolution it was reset for.
+     * Own-origin records bypass it entirely — pipelined own-read widening must keep its exact
+     * pre-memo behavior (its stability comes from immutable connection identity plus
+     * install-order selection, not from the marker frontier). */
+    tomoStraddleMemo *memo = &tomo_straddle_memo;
+    int memo_armed = memo->g != NULL && reader_connection != NULL &&
+                     reader_connection->csparent == memo->g;
 
     for (kvobj *cur = atomic_load_explicit(&head_meta->stamped_head,
                                            memory_order_acquire);
@@ -13320,8 +13387,27 @@ kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot, client *reader_connection) {
             break;
         }
 
-        uint64_t ts = tomoVersionCommitTs(vmeta);
-        if (ts == 0) continue;            /* stamped, but group not yet published */
+        tomoCommit *rec = atomic_load_explicit(&vmeta->commit, memory_order_acquire);
+        uint64_t ts = rec ? atomic_load_explicit(&rec->commit_ts, memory_order_acquire)
+                          : 0;
+        int own = reader_id != 0 && vmeta->origin_client_id == reader_id;
+        if (memo_armed && rec != NULL && !own) {
+            /* Consult BEFORE evaluating ts: once this command judged the record invisible,
+             * the verdict is frozen even if its marker has landed at or below T since (the
+             * unlatched writer publishes markers out of frontier order). A visible verdict
+             * (0 < ts <= T) can never change — markers are write-once and T is fixed — so
+             * it is never memoized. */
+            if (tomoStraddleMemoBlocks(rec)) {
+                tomoRelaxedBump(server.kstat[iotid].straddle_memo_hits, 1);
+                continue;
+            }
+            if (ts == 0 || ts > snapshot) {
+                tomoStraddleMemoRecord(rec);
+                continue;
+            }
+        } else if (ts == 0) {
+            continue;            /* stamped, but group not yet published */
+        }
         if (ts <= snapshot) {
             if (!best_set || ts > best_ts ||
                 (ts == best_ts && vmeta->version_order > best_order)) {
@@ -13330,7 +13416,7 @@ kvobj *kvobjVersionAt(kvobj *kv, uint64_t snapshot, client *reader_connection) {
                 best_order = vmeta->version_order;
                 best_set = 1;
             }
-        } else if (reader_id != 0 && vmeta->origin_client_id == reader_id &&
+        } else if (own &&
                    (!own_above_set || vmeta->install_order > own_install_order)) {
             own_above = cur;
             own_install_order = vmeta->install_order;
@@ -14942,6 +15028,10 @@ static void csSubExec(client *sub) {
      * lookupKey / expireIfNeeded without ever entering an execution unit. Latch here so every key
      * this sub touches sees ONE instant. Paired with a release at both exits below. */
     tomoCmdClockStamp cs_clock = tomoCmdClockEnter();
+    /* D.1: arm the per-command straddle memo for pinned (snapshot-atomic) resolutions.
+     * The memo's lifetime is exactly this sub's resolution: reset here, cleared at both
+     * exits, never carried across commands. */
+    tomoStraddleMemoArm(g);
     /* ee451 (#B2): a scatter sub is a FRACTION of one client command, so it contributes work to
      * the group's accounting and is never counted as a call of its own — csReassemble does that
      * once, for the whole group (same rule #B1 established for the command counter). Capture the
@@ -14950,6 +15040,7 @@ static void csSubExec(client *sub) {
     if (g->pipe_stage) {                    /* merge-exec pipeline stage op (reads only) */
         csPipeSubExec(sub, g);
         server.current_client[iotid].p = saved;
+        tomoStraddleMemoDisarm(g);
         csSubStatAccum(g, cs_clock, cs_e0);
         tomoCmdClockExit();
         return;
@@ -15692,6 +15783,7 @@ static void csSubExec(client *sub) {
     default: break;
     }
     server.current_client[iotid].p = saved;
+    tomoStraddleMemoDisarm(g);           /* D.1: memo never crosses commands */
     csSubStatAccum(g, cs_clock, cs_e0);   /* ee451 (#B2): this sub's work joins the group's totals */
     tomoCmdClockExit();   /* ee451 (F-clock): pairs with the latch at entry */
     /* ee451 (v8d/v11): cross-shard WRITE effect capture (MSET/DEL) for online resharding now happens
@@ -23056,6 +23148,9 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         unsigned long long atomic_read_fast = 0, atomic_read_slow = 0;
         unsigned long long atomic_read_slow_inflight_conflict = 0;
         unsigned long long atomic_read_slow_gate_closed_other = 0;
+        /* D.1 straddle-memo witnesses: hits/restarts SUM; peak is the MAX across workers
+         * (a per-command high-water mark, meaningless as a sum). */
+        unsigned long long straddle_memo_hits = 0, straddle_memo_peak = 0;
         for (int _t = 0; _t < TOMO_STAT_SLOTS; _t++) {
             atomic_read_fast += tomoRelaxedRead(server.kstat[_t].atomic_read_fast);
             atomic_read_slow += tomoRelaxedRead(server.kstat[_t].atomic_read_slow);
@@ -23063,6 +23158,11 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 server.kstat[_t].atomic_read_slow_inflight_conflict);
             atomic_read_slow_gate_closed_other += tomoRelaxedRead(
                 server.kstat[_t].atomic_read_slow_gate_closed_other);
+            straddle_memo_hits += tomoRelaxedRead(
+                server.kstat[_t].straddle_memo_hits);
+            unsigned long long peak = tomoRelaxedRead(
+                server.kstat[_t].straddle_memo_peak);
+            if (peak > straddle_memo_peak) straddle_memo_peak = peak;
         }
         info = sdscatprintf(info, "# Stats\r\n" FMTARGS(
             "tomokv_flat_batches_closed:%llu\r\n", (unsigned long long)atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed),
@@ -23153,6 +23253,18 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 atomic_read_slow_inflight_conflict,
             "tomokv_atomic_read_slow_gate_closed_other:%llu\r\n",
                 atomic_read_slow_gate_closed_other,
+            /* D.1 anti-vacuous witnesses. A "clean" torn run whose memo_hits is 0 never
+             * exercised the straddle path and proves nothing; restarts counts the torn-safe
+             * overflow/validation re-waves; unrepaired MUST stay 0 — it names hazards seen
+             * where no restart lever exists (pipeline/localfast/hop1 contexts). */
+            "tomokv_atomic_straddle_memo_hits:%llu\r\n", straddle_memo_hits,
+            "tomokv_atomic_straddle_memo_entries_peak:%llu\r\n", straddle_memo_peak,
+            "tomokv_atomic_straddle_resolution_restarts:%llu\r\n",
+                (unsigned long long)atomic_load_explicit(&tomo_atomic_straddle_restarts,
+                                                         memory_order_relaxed),
+            "tomokv_atomic_straddle_unrepaired:%llu\r\n",
+                (unsigned long long)atomic_load_explicit(&tomo_atomic_straddle_unrepaired,
+                                                         memory_order_relaxed),
             "tomokv_atomic_ownread_reads:%llu\r\n", orr,
             "tomokv_atomic_ownread_pending:%llu\r\n", orp,
             "tomokv_atomic_ownread_held:%llu\r\n", orh,

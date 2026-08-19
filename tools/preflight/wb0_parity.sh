@@ -255,8 +255,10 @@ if [ -s "$WORK/baseline.info" ] && [ -s "$WORK/candidate.info" ]; then
   comm -23 "$WORK/baseline.keys" "$WORK/candidate.keys" > "$WORK/removed.keys"
   comm -13 "$WORK/baseline.keys" "$WORK/candidate.keys" > "$WORK/added.keys"
   # Allowlisted additions: WB observability plus the atomdiet2 witness counters
-  # (each atomdiet2 mechanism ships its INFO witness in the same commit).
-  grep -vE '^(tomokv_wb_|tomokv_atomic_stamp_fold_|tomokv_atomic_vmeta_pool_|tomokv_atomic_bucket_carry_)' "$WORK/added.keys" > "$WORK/unexpected-added.keys" || true
+  # (each atomdiet2 mechanism ships its INFO witness in the same commit) and the D.1
+  # unlatched-commit straddle witnesses (memo_hits / memo_entries_peak /
+  # resolution_restarts / unrepaired), shipped in the same commit as the memo.
+  grep -vE '^(tomokv_wb_|tomokv_atomic_stamp_fold_|tomokv_atomic_vmeta_pool_|tomokv_atomic_bucket_carry_|tomokv_atomic_straddle_)' "$WORK/added.keys" > "$WORK/unexpected-added.keys" || true
   # Allowlisted removals: tomokv_atomic_commit_ts_lag died with the D.1 commit-publication
   # latch (its CAS-max maintenance WAS the serialization being removed; a frozen-zero gauge
   # would be a vacuous witness).

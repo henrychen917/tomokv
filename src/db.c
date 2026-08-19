@@ -404,12 +404,20 @@ kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
                 uint64_t pinned_snapshot;
                 struct tomoVerMeta *read_meta = read_head ? kvobjVmeta(read_head) : NULL;
                 uint64_t read_ts = read_meta ? tomoVersionCommitTs(read_meta) : 0;
+                /* D.1 straddle memo: with a pinned snapshot the owner-published winner is only
+                 * returnable while its commit record has NOT been judged invisible by this same
+                 * command — the unlatched clock lets a straddling marker land at or below the
+                 * pin mid-command, and the frozen verdict must win over the fresher fast head.
+                 * Unpinned readers keep the exact pre-memo fast path (the memo arms only under
+                 * a pin, so its n==0 test never even loads for them past one TLS word). */
                 if (!tomoPinnedReadSnapshot(&pinned_snapshot) ||
-                    read_ts <= pinned_snapshot) {
+                    (read_ts <= pinned_snapshot &&
+                     !tomoStraddleMemoBlocksFast(read_meta))) {
                     tomoRelaxedBump(server.kstat[iotid].atomic_read_fast, 1);
                     return read_meta && read_meta->version_tombstone ? NULL : read_head;
                 }
-                /* The cached current value committed after this command's already-pinned cut. */
+                /* The cached current value committed after this command's already-pinned cut,
+                 * or carries a commit record this command already froze as invisible. */
                 tomoAtomicReadSlow(kv, 1);
                 return kvobjVersionAt(kv, pinned_snapshot,
                                       server.current_client[iotid].p);
