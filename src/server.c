@@ -14590,6 +14590,15 @@ static inline void csSubStatAccum(csGroup *g, tomoCmdClockStamp clock, long long
         atomic_store_explicit(&g->had_err, 1, memory_order_relaxed);
 }
 
+/* A scatter command is one model operation even when several workers execute its subs. The last
+ * worker has acquired every sibling's g->usec contribution through pending, so charge the summed
+ * EX service once to that worker's padded M1 slot. This stays off the IO reassembly path. */
+static inline void csM1ServiceAccum(exThread *worker, csGroup *g) {
+    long long total = atomic_load_explicit(&g->usec, memory_order_relaxed);
+    uint64_t service_us = total > 1000000LL ? 1000000u : (total > 0 ? (uint64_t)total : 0);
+    tomoM1ExServiceNote(worker->id, g->head->cmd, service_us);
+}
+
 #define CS_XREAD_EMPTY 0
 #define CS_XREAD_HIT   1
 #define CS_XREAD_ERR   2
@@ -25563,8 +25572,13 @@ static inline tomoCmdClockStamp exExecFake(client *fake, monotonic_raw entry_raw
              * multi-second command from wrapping the u32 row between 1 Hz sweeps. */
             if (tm_cur_ex) {
                 unsigned cls = cs_cmd->tomo_cls & TOMO_CLS_MASK;
-                tm_cur_ex->svc_us[cls] += (cs_usec > 1000000LL) ? 1000000u : (unsigned)cs_usec;
+                unsigned service_us =
+                    (cs_usec > 1000000LL) ? 1000000u : (unsigned)cs_usec;
+                tm_cur_ex->svc_us[cls] += service_us;
                 tm_cur_ex->svc_ops[cls]++;
+                /* M1 uses the same already-bracketed service observation, keyed by its command
+                 * class. No new clock read and no IO-side instruction enter this path. */
+                tomoM1ExServiceNote(tm_cur_ex->id, cs_cmd, service_us);
             }
             /* call() owns command/error/latency accounting for T6. All other worker commands
              * retain the direct-proc accounting path established for the express lane. */
@@ -26395,6 +26409,7 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
                      * the group to IO. This call may make g/fake unreachable. */
                     serverAssert(g->versioned_write && g->version_commit_ready &&
                                  (g->ctype == CS_MSET || g->ctype == CS_DEL));
+                    if (last) csM1ServiceAccum(worker, g);
                     csMsetOwnerPublished(inline_commit);
                     cmd_boundary.timed = 0;
                     j++;
@@ -26433,10 +26448,21 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
                             if (__builtin_expect(server.wb_threads == 0, 1))
                                 tomoAtomicReplyWakePost(hp->tid);
                         } else {
+                            csM1ServiceAccum(worker, g);
                             csMsetInstallDone(g);
                         }
                         zmalloc_stat_batch_begin();
                     } else {
+                        /* One-hop groups (including MGET/MSET/DEL and the single-owner local
+                         * fast path) are complete here. HOP2 is likewise terminal. Multi-wave
+                         * pipeline intermediates remain uncharged until their terminal wave. */
+                        int m1_terminal = (!g->has_hop2 && !g->pipe_stage &&
+                                           !g->sort_stage) ||
+                                          g->phase == CS_PH_HOP2 ||
+                                          (!g->has_hop2 &&
+                                           (g->pipe_stage == CS_PIPE_LOCAL_UNION ||
+                                            g->pipe_stage == CS_PIPE_LOCAL_DIFF));
+                        if (m1_terminal) csM1ServiceAccum(worker, g);
                         sig_parents[sig_n] = g->head->parent;
                         sig_cdb[sig_n] = g->head->cdb;
                         sig_slots[sig_n] = (uint8_t)g->head->fake_slot;

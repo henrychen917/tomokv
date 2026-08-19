@@ -37,6 +37,32 @@ _Static_assert(sizeof(tomoM1IoSignal) % CACHE_LINE_SIZE == 0,
 
 extern tomoM1IoSignal tomo_m1_io_signals[TOMO_IO_THREADS_MAX + 1];
 
+typedef struct tomoM1ExClassSignal {
+    _Atomic uint64_t service_us;
+    _Atomic uint64_t ops;
+} tomoM1ExClassSignal;
+
+/* One worker owns each slot. The 128-byte class row is cache-line aligned and has a whole-line
+ * stride, so RESETSTAT/fold reads of one worker cannot make another worker's hot writes share a
+ * line. Relaxed single-writer load/add/stores match the existing owner-local stats discipline. */
+typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) tomoM1ExSignal {
+    tomoM1ExClassSignal classes[TOMO_M1_CLASS_COUNT];
+} tomoM1ExSignal;
+
+_Static_assert(sizeof(tomoM1ExSignal) % CACHE_LINE_SIZE == 0,
+               "m1 EX signal slots must have a cache-line stride");
+
+extern tomoM1ExSignal tomo_m1_ex_signals[TOMO_EX_THREADS_MAX];
+
+/* Worker-only completion edge: service_us is taken from an execution clock already in hand. */
+static inline void tomoM1ExServiceNote(int worker_id, const struct redisCommand *cmd,
+                                       uint64_t service_us) {
+    tomoM1ExClassSignal *signal =
+        &tomo_m1_ex_signals[worker_id].classes[cmd->tomo_m1_class];
+    tomoRelaxedBump(signal->service_us, service_us);
+    tomoRelaxedBump(signal->ops, 1);
+}
+
 typedef struct tomoM1ModelResult {
     double c_io;
     double c_ex;

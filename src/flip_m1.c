@@ -10,6 +10,7 @@
 #include <string.h>
 
 tomoM1IoSignal tomo_m1_io_signals[TOMO_IO_THREADS_MAX + 1];
+tomoM1ExSignal tomo_m1_ex_signals[TOMO_EX_THREADS_MAX];
 
 void tomoM1StampCommandClass(struct redisCommand *cmd) {
     tomoM1CommandClass class_id = TOMO_M1_CLASS_OTHER;
