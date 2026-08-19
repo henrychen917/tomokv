@@ -25,6 +25,7 @@
 #include "script.h"
 #include "cluster_asm.h"
 #include "flip_u1.h"
+#include "flip_r10.h"
 #include "flip_m1.h"
 
 #include <arpa/inet.h>
@@ -1014,6 +1015,13 @@ NULL
         if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
         tomoU1TraceSet(on != 0);
         addReplyStatus(c, tomoU1TraceEnabled() ? "u1 trace ON" : "u1 trace OFF");
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-r10trace") && c->argc == 3) {
+        /* DEBUG TOMO-R10TRACE <0|1> -- r10 state/window/move lines. Like TOMO-FLIPTRACE this is
+         * a test firehose, not a configuration surface. */
+        long on;
+        if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
+        tomoR10TraceSet(on != 0);
+        addReplyStatus(c, tomoR10TraceEnabled() ? "r10 trace ON" : "r10 trace OFF");
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-m1trace") && c->argc == 3) {
         /* DEBUG TOMO-M1TRACE <0|1> -- one shadow-model line per 4 Hz node tick. Like the
          * flip/u1 traces this is a test firehose, not a configuration or actuation surface. */

@@ -23219,6 +23219,21 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             u1_info.sigma,
             (unsigned long long)u1_info.windows,
             (unsigned long long)u1_info.settle_ticks_last);
+        tomoR10Info r10_info;
+        tomoR10InfoGet(&r10_info);
+        info = sdscatprintf(info,
+            "tomokv_r10_episodes:%llu\r\n"
+            "tomokv_r10_rungs_climbed_last:%u\r\n"
+            "tomokv_r10_anchor_io_n0:%d\r\n"
+            "tomokv_r10_anchor_io_n1:%d\r\n"
+            "tomokv_r10_cmp_better:%llu\r\n"
+            "tomokv_r10_cmp_flat:%llu\r\n",
+            (unsigned long long)r10_info.episodes,
+            r10_info.rungs_climbed_last,
+            r10_info.anchor_io_n0,
+            r10_info.anchor_io_n1,
+            (unsigned long long)r10_info.cmp_better,
+            (unsigned long long)r10_info.cmp_flat);
         /* m1 is shadow-only: these are atomic publications from the node controller owners.
          * Target slots expose the first two topology nodes requested by the experiment; the
          * unsuffixed cost/depth gauges are node 0, while every node remains visible in M1TRACE. */
@@ -30733,6 +30748,7 @@ static void tmR10BeginEpisode(int node, flipCtlState *fc, int ni, int ne) {
                ? 1 : (tmNumNodes() == 1 ? server.io_threads : server.io_per_node);
     int max_io = ni + ne - 1;
     tomoR10Begin(&r10ctl[node], node, shape, fc->last_dir, min_io, max_io);
+    tomoR10WitnessEpisode();
     serverLog(LL_NOTICE, "[r10 n%d] BEGIN J=io%d/ex%d last_dir=%+d lattice=io%d..io%d "
               "rung_cap=%u", node, ni, ne, fc->last_dir, min_io, max_io,
               r10ctl[node].rung_limit);
@@ -30757,8 +30773,14 @@ static void tmR10DriveEpisode(int node, flipCtlState *fc, int ni, int ne) {
         .window = latest,
     };
     tomoR10State before = r10ctl[node].state;
+    unsigned int better_before = r10ctl[node].comparisons_better;
+    unsigned int flat_before = r10ctl[node].comparisons_flat;
     tomoR10Tick(&r10ctl[node], &input, tmR10RequestMove, NULL);
+    tomoR10WitnessComparisons(r10ctl[node].comparisons_better - better_before,
+                              r10ctl[node].comparisons_flat - flat_before);
     if (before != TOMO_R10_ANCHORED && r10ctl[node].state == TOMO_R10_ANCHORED) {
+        tomoR10WitnessAnchor(node, r10ctl[node].best_rung,
+                             r10ctl[node].current.io);
         int level = r10ctl[node].backstop_hit ? LL_WARNING : LL_NOTICE;
         serverLog(level, "[r10 n%d] ANCHOR io%u/ex%u rung=%+d moves=%u "
                   "examined=%u/%u%s", node, r10ctl[node].current.io,

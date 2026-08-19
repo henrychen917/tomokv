@@ -45,11 +45,20 @@
  * marks the diagnostic backstop.
  */
 
+#include "server.h"
 #include "flip_r10.h"
 
 #include <limits.h>
 #include <math.h>
+#include <stdatomic.h>
 #include <string.h>
+
+static _Atomic int tomo_r10_trace;
+static _Atomic uint64_t tomo_r10_episodes;
+static _Atomic uint64_t tomo_r10_cmp_better;
+static _Atomic uint64_t tomo_r10_cmp_flat;
+static _Atomic unsigned int tomo_r10_rungs_climbed_last;
+static _Atomic int tomo_r10_anchor_io[2];
 
 static int tomoR10ShapeRung(const tomoR10Node *climb, tomoU1Shape shape) {
     return (int)shape.io - (int)climb->origin.io;
@@ -68,6 +77,87 @@ static int tomoR10ShapeAtRung(const tomoR10Node *climb, int rung,
         .wb = climb->origin.wb,
     };
     return 1;
+}
+
+static const char *tomoR10VerdictName(tomoU1CmpResult verdict) {
+    switch (verdict) {
+    case TOMO_U1_CMP_A_BETTER: return "A_BETTER";
+    case TOMO_U1_CMP_B_BETTER: return "B_BETTER";
+    case TOMO_U1_CMP_FLAT: return "FLAT";
+    case TOMO_U1_CMP_NEED_MORE: return "NEED_MORE";
+    }
+    return "NEED_MORE";
+}
+
+static void tomoR10TraceNode(const tomoR10Node *climb, const char *event) {
+    if (!atomic_load_explicit(&tomo_r10_trace, memory_order_relaxed)) return;
+    int ref_rung = climb->reference.count
+                 ? tomoR10ShapeRung(climb, climb->reference.shape) : 0;
+    int probe_rung = climb->candidate.count || climb->candidate_active
+                   ? tomoR10ShapeRung(climb, climb->candidate.shape) : climb->rung;
+    serverLog(LL_NOTICE,
+        "[r10-trace n%d] event=%s state=%s rung=%+d best=%+d "
+        "T(J)=%.3f/%u T(A:%+d)=%.3f/%u T(B:%+d)=%.3f/%u "
+        "T(ref:%+d)=%.3f/%u T(probe:%+d)=%.3f/%u sigma=%.9f "
+        "verdicts=A:%s,B:%s,sides:%s,last:%s moves=%u pending=%+d rungs=%u/%u",
+        climb->node, event, tomoR10StateName(climb->state), climb->rung,
+        climb->best_rung,
+        tomoR10SeriesMean(&climb->baseline), climb->baseline.count,
+        climb->initial_direction, tomoR10SeriesMean(&climb->side_a),
+        climb->side_a.count, -climb->initial_direction,
+        tomoR10SeriesMean(&climb->side_b), climb->side_b.count,
+        ref_rung, tomoR10SeriesMean(&climb->reference), climb->reference.count,
+        probe_rung, tomoR10SeriesMean(&climb->candidate), climb->candidate.count,
+        climb->sigma, tomoR10VerdictName(climb->verdict_a),
+        tomoR10VerdictName(climb->verdict_b),
+        tomoR10VerdictName(climb->verdict_sides),
+        tomoR10VerdictName(climb->verdict_last), climb->moves,
+        climb->move_pending ? climb->pending_direction : 0,
+        climb->rungs_examined, climb->rung_limit);
+}
+
+void tomoR10TraceSet(int enabled) {
+    atomic_store_explicit(&tomo_r10_trace, enabled != 0, memory_order_relaxed);
+}
+
+int tomoR10TraceEnabled(void) {
+    return atomic_load_explicit(&tomo_r10_trace, memory_order_relaxed) != 0;
+}
+
+void tomoR10WitnessEpisode(void) {
+    atomic_fetch_add_explicit(&tomo_r10_episodes, 1, memory_order_relaxed);
+}
+
+void tomoR10WitnessComparisons(unsigned int better, unsigned int flat) {
+    if (better)
+        atomic_fetch_add_explicit(&tomo_r10_cmp_better, better, memory_order_relaxed);
+    if (flat)
+        atomic_fetch_add_explicit(&tomo_r10_cmp_flat, flat, memory_order_relaxed);
+}
+
+void tomoR10WitnessAnchor(int node, int best_rung, int anchor_io) {
+    unsigned int distance = best_rung < 0 ? (unsigned int)(-best_rung)
+                                          : (unsigned int)best_rung;
+    atomic_store_explicit(&tomo_r10_rungs_climbed_last, distance,
+                          memory_order_relaxed);
+    if (node >= 0 && node < 2)
+        atomic_store_explicit(&tomo_r10_anchor_io[node], anchor_io,
+                              memory_order_relaxed);
+}
+
+void tomoR10InfoGet(tomoR10Info *info) {
+    if (!info) return;
+    *info = (tomoR10Info) {
+        .episodes = atomic_load_explicit(&tomo_r10_episodes, memory_order_relaxed),
+        .cmp_better = atomic_load_explicit(&tomo_r10_cmp_better, memory_order_relaxed),
+        .cmp_flat = atomic_load_explicit(&tomo_r10_cmp_flat, memory_order_relaxed),
+        .rungs_climbed_last = atomic_load_explicit(&tomo_r10_rungs_climbed_last,
+                                                   memory_order_relaxed),
+        .anchor_io_n0 = atomic_load_explicit(&tomo_r10_anchor_io[0],
+                                             memory_order_relaxed),
+        .anchor_io_n1 = atomic_load_explicit(&tomo_r10_anchor_io[1],
+                                             memory_order_relaxed),
+    };
 }
 
 static void tomoR10SeriesBegin(tomoR10Series *series, tomoU1Shape shape) {
@@ -287,6 +377,7 @@ void tomoR10Begin(tomoR10Node *climb, int node, tomoU1Shape shape,
     climb->expected = shape;
     climb->best = shape;
     tomoR10SeriesBegin(&climb->baseline, shape);
+    tomoR10TraceNode(climb, "begin");
 }
 
 int tomoR10OwnsActuator(const tomoR10Node *climb) {
@@ -299,6 +390,7 @@ void tomoR10MoveAborted(tomoR10Node *climb) {
     climb->pending_direction = 0;
     climb->expected = climb->current;
     if (climb->moves > 0) climb->moves--;
+    tomoR10TraceNode(climb, "move-abort");
 }
 
 const char *tomoR10StateName(tomoR10State state) {
@@ -447,4 +539,5 @@ void tomoR10Tick(tomoR10Node *climb, const tomoR10TickInput *input,
     case TOMO_R10_ANCHORED:
         break;
     }
+    tomoR10TraceNode(climb, clean_window ? "clean-window" : "tick");
 }

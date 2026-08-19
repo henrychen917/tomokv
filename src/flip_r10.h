@@ -29,6 +29,15 @@ typedef struct tomoR10TickInput {
     const tomoU1Window *window;
 } tomoR10TickInput;
 
+typedef struct tomoR10Info {
+    uint64_t episodes;
+    uint64_t cmp_better;
+    uint64_t cmp_flat;
+    unsigned int rungs_climbed_last;
+    int anchor_io_n0;
+    int anchor_io_n1;
+} tomoR10Info;
+
 /* The callback arms one existing staged role conversion. A successful return means only that the
  * conversion was accepted; the state machine waits until a later tick observes the resulting
  * shape before it consumes another held window or requests another step. */
@@ -87,5 +96,12 @@ void tomoR10MoveAborted(tomoR10Node *climb);
 int tomoR10OwnsActuator(const tomoR10Node *climb);
 const char *tomoR10StateName(tomoR10State state);
 double tomoR10SeriesMean(const tomoR10Series *series);
+
+void tomoR10TraceSet(int enabled);
+int tomoR10TraceEnabled(void);
+void tomoR10WitnessEpisode(void);
+void tomoR10WitnessComparisons(unsigned int better, unsigned int flat);
+void tomoR10WitnessAnchor(int node, int best_rung, int anchor_io);
+void tomoR10InfoGet(tomoR10Info *info);
 
 #endif /* __FLIP_R10_H */
