@@ -179,7 +179,7 @@ struct tomoUring2Client {
     tomoUring2Client *send_cancel_next;
 };
 
-struct tomoUring2Thread {
+struct __attribute__((aligned(CACHE_LINE_SIZE))) tomoUring2Thread {
     struct io_uring ring;
     aeEventLoop *el;
     int tid;
@@ -216,6 +216,7 @@ struct tomoUring2Thread {
     tomoUring2Client *send_cancel_tail;
 
     tomoUring2AtomicStats stats;
+    uint8_t in_cqe_walk;          /* CQE-walk freelist checkout guard (see ProcessCqeBatch) */
 };
 
 static tomoUring2Thread tomo_uring2[TOMO_IO_THREADS_MAX + 1]
@@ -303,6 +304,7 @@ static struct io_uring_sqe *tomoUring2GetSqeFromImage(
     tomoUring2Thread *st, tomoUring2Completion *callback, void *owner,
     tomoUring2OpKind kind, uint64_t *token,
     const struct io_uring_sqe *image) {
+    serverAssert(!st->in_cqe_walk);   /* freelist frontier is checked out by the CQE walk */
     if (st->free_slot == TOMO_URING2_NO_SLOT)
         tomoUring2RegrowSlots(st);
 
@@ -1177,6 +1179,11 @@ static unsigned int tomoUring2ProcessCqeBatch(
      * pending count local, and fold per-kind stats once after the walk. */
     tomoUring2CallbackSlot *slots = st->slots;
     const uint32_t slot_count = st->slot_count;
+    /* The walk keeps the freelist frontier in a LOCAL; a callback that allocated an SQE slot
+     * (tomoUring2GetSqeFromImage pops st->free_slot) would be silently overwritten by the
+     * writeback below — double-allocated slot, misdirected completion. No callback does that
+     * today; the flag turns "one refactor away" into an assert. */
+    st->in_cqe_walk = 1;
     uint32_t free_slot = st->free_slot;
     uint32_t retired = 0;
     uint64_t recv_cqes = 0;
@@ -1234,6 +1241,7 @@ static unsigned int tomoUring2ProcessCqeBatch(
     }
 
     serverAssert(st->pending_slots >= retired);
+    st->in_cqe_walk = 0;
     st->free_slot = free_slot;
     st->pending_slots -= retired;
     if (send_ready_count)
