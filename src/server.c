@@ -32152,7 +32152,7 @@ static void tomoFlipController(void) {
         double gstep = tmFlipGstepAt(ni, ne, fc->lr_ewma, wsig);
         double gfloor = gstep / 2.0;
         double balance_band = log1p(FLIP_R_BAND);
-        tomoR10BeginGateStatus r10_quiet;
+        tomoR10BeginGateStatus r10_quiet = {0};
         if (server.thread_mode == TOMO_THREAD_MODE_CLIMB &&
             !tomoR10OwnsActuator(&r10ctl[node])) {
             tomoU1Shape held_shape = {
