@@ -4015,7 +4015,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
              * remains exclusively global and is never the clock for a per-node controller. */
             tomoKeyLbSemiMainTick(cron_start);
         }
-        run_with_period(1000) tomoSvcTick();   /* ee451 D: fold per-worker svc rows -> published EWMAs */
+        run_with_period(TOMO_M1_MEASURED_FOLD_MS) tomoSvcTick();   /* ee451 D: fold per-worker svc rows -> published EWMAs */
         run_with_period(1000) tmClientBalanceCron();
         run_with_period(1000) fakeRingAutoTune();
         run_with_period(250) tomoExSatStaticTick(cron_start);
@@ -7557,6 +7557,7 @@ void resetServerStats(void) {
     int j;
 
     server.stat_numcommands = 0;
+    tomoM1MeasuredReset();
     /* ee451 (#B1): zero the per-thread executed-command counters too, else CONFIG RESETSTAT
      * would only clear the (normally zero) fold baseline and INFO would keep the old total. */
     for (int i = 0; i < TOMO_STAT_SLOTS; i++)
@@ -9070,6 +9071,10 @@ void tomoSvcTick(void) {
     }
     if (mn_set)
         atomic_store_explicit(&tomo_svc_min_q8, (uint32_t)(mn * 256.0 + 0.5), memory_order_release);
+
+    /* The M1 command taxonomy is independent of the SEDA C classes, but shares this exact 1 Hz
+     * cadence and the already-collected worker execution spans. */
+    tomoM1MeasuredTick();
 
     /* ---- mechanism A: the window law. B = max(svc_min, sojourn/8); W_i = 1 + lam_i * B.
      * sojourn = qd_mean * svc_mean (Little), all sides measured, same units (µs), no hardware

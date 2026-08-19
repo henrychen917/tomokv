@@ -12,6 +12,123 @@
 tomoM1IoSignal tomo_m1_io_signals[TOMO_IO_THREADS_MAX + 1];
 tomoM1ExSignal tomo_m1_ex_signals[TOMO_EX_THREADS_MAX];
 
+typedef struct tomoM1MeasuredPublished {
+    _Atomic double ewma_us;
+    _Atomic uint64_t last_ops;
+    _Atomic int populated;
+} tomoM1MeasuredPublished;
+
+static tomoM1MeasuredPublished tomo_m1_measured_ex[TOMO_M1_CLASS_COUNT];
+static pthread_mutex_t tomo_m1_measured_lock = PTHREAD_MUTEX_INITIALIZER;
+static uint64_t tomo_m1_measured_last_us[TOMO_EX_THREADS_MAX][TOMO_M1_CLASS_COUNT];
+static uint64_t tomo_m1_measured_last_ops[TOMO_EX_THREADS_MAX][TOMO_M1_CLASS_COUNT];
+static uint64_t tomo_m1_measured_seen_ops[TOMO_M1_CLASS_COUNT];
+static double tomo_m1_measured_ewma[TOMO_M1_CLASS_COUNT];
+
+#define TOMO_M1_MEASURED_ALPHA (1.0 / 4.0)
+
+/* Require one observation for every 1 Hz fold in the EWMA's 1/alpha time horizon. The guard
+ * therefore follows both the fold cadence and the inherited four-fold horizon; it is not an
+ * independently tuned operation-count constant. */
+static uint64_t tomoM1MeasuredMinOps(void) {
+    double horizon_ms = (double)TOMO_M1_MEASURED_FOLD_MS / TOMO_M1_MEASURED_ALPHA;
+    return (uint64_t)ceil(horizon_ms / (double)TOMO_M1_MEASURED_FOLD_MS);
+}
+
+void tomoM1MeasuredTick(void) {
+    serverAssert(iotid == 0);
+    pthread_mutex_lock(&tomo_m1_measured_lock);
+
+    uint64_t service_us[TOMO_M1_CLASS_COUNT] = {0};
+    uint64_t ops[TOMO_M1_CLASS_COUNT] = {0};
+    int workers = server.num_workers;
+    if (workers > TOMO_EX_THREADS_MAX) workers = TOMO_EX_THREADS_MAX;
+    for (int worker = 0; worker < workers; worker++) {
+        for (int class_id = 0; class_id < TOMO_M1_CLASS_COUNT; class_id++) {
+            const tomoM1ExClassSignal *signal =
+                &tomo_m1_ex_signals[worker].classes[class_id];
+            uint64_t current_us = tomoRelaxedRead(signal->service_us);
+            uint64_t current_ops = tomoRelaxedRead(signal->ops);
+            service_us[class_id] += current_us - tomo_m1_measured_last_us[worker][class_id];
+            ops[class_id] += current_ops - tomo_m1_measured_last_ops[worker][class_id];
+            tomo_m1_measured_last_us[worker][class_id] = current_us;
+            tomo_m1_measured_last_ops[worker][class_id] = current_ops;
+        }
+    }
+
+    uint64_t min_ops = tomoM1MeasuredMinOps();
+    for (int class_id = 0; class_id < TOMO_M1_CLASS_COUNT; class_id++) {
+        uint64_t fold_ops = ops[class_id];
+        if (fold_ops != 0) {
+            double instant_us = (double)service_us[class_id] / (double)fold_ops;
+            if (tomo_m1_measured_ewma[class_id] == 0.0)
+                tomo_m1_measured_ewma[class_id] = instant_us;
+            else
+                tomo_m1_measured_ewma[class_id] += TOMO_M1_MEASURED_ALPHA *
+                    (instant_us - tomo_m1_measured_ewma[class_id]);
+            if (UINT64_MAX - tomo_m1_measured_seen_ops[class_id] < fold_ops)
+                tomo_m1_measured_seen_ops[class_id] = UINT64_MAX;
+            else
+                tomo_m1_measured_seen_ops[class_id] += fold_ops;
+        }
+
+        double ewma_us = tomo_m1_measured_ewma[class_id];
+        int populated = tomo_m1_measured_seen_ops[class_id] >= min_ops &&
+                        isfinite(ewma_us) && ewma_us > 0.0;
+        atomic_store_explicit(&tomo_m1_measured_ex[class_id].ewma_us, ewma_us,
+                              memory_order_release);
+        atomic_store_explicit(&tomo_m1_measured_ex[class_id].last_ops, fold_ops,
+                              memory_order_relaxed);
+        atomic_store_explicit(&tomo_m1_measured_ex[class_id].populated, populated,
+                              memory_order_release);
+    }
+    pthread_mutex_unlock(&tomo_m1_measured_lock);
+}
+
+void tomoM1MeasuredReset(void) {
+    pthread_mutex_lock(&tomo_m1_measured_lock);
+    /* Rebaseline cumulative owner counters instead of cross-thread zeroing them. A command racing
+     * RESETSTAT lands naturally on one side of this snapshot without a lost load/add/store. */
+    for (int worker = 0; worker < TOMO_EX_THREADS_MAX; worker++) {
+        for (int class_id = 0; class_id < TOMO_M1_CLASS_COUNT; class_id++) {
+            const tomoM1ExClassSignal *signal =
+                &tomo_m1_ex_signals[worker].classes[class_id];
+            tomo_m1_measured_last_us[worker][class_id] =
+                tomoRelaxedRead(signal->service_us);
+            tomo_m1_measured_last_ops[worker][class_id] = tomoRelaxedRead(signal->ops);
+        }
+    }
+    memset(tomo_m1_measured_seen_ops, 0, sizeof(tomo_m1_measured_seen_ops));
+    memset(tomo_m1_measured_ewma, 0, sizeof(tomo_m1_measured_ewma));
+    for (int class_id = 0; class_id < TOMO_M1_CLASS_COUNT; class_id++) {
+        atomic_store_explicit(&tomo_m1_measured_ex[class_id].populated, 0,
+                              memory_order_release);
+        atomic_store_explicit(&tomo_m1_measured_ex[class_id].ewma_us, 0.0,
+                              memory_order_relaxed);
+        atomic_store_explicit(&tomo_m1_measured_ex[class_id].last_ops, 0,
+                              memory_order_relaxed);
+    }
+    pthread_mutex_unlock(&tomo_m1_measured_lock);
+}
+
+void tomoM1MeasuredGet(tomoM1MeasuredEx measured[TOMO_M1_CLASS_COUNT]) {
+    if (!measured) return;
+    for (int class_id = 0; class_id < TOMO_M1_CLASS_COUNT; class_id++) {
+        int populated_before, populated_after;
+        do {
+            populated_before = atomic_load_explicit(
+                &tomo_m1_measured_ex[class_id].populated, memory_order_acquire);
+            measured[class_id].ewma_us = atomic_load_explicit(
+                &tomo_m1_measured_ex[class_id].ewma_us, memory_order_acquire);
+            measured[class_id].last_ops = atomic_load_explicit(
+                &tomo_m1_measured_ex[class_id].last_ops, memory_order_relaxed);
+            populated_after = atomic_load_explicit(
+                &tomo_m1_measured_ex[class_id].populated, memory_order_acquire);
+        } while (populated_before != populated_after);
+        measured[class_id].populated = populated_after;
+    }
+}
+
 void tomoM1StampCommandClass(struct redisCommand *cmd) {
     tomoM1CommandClass class_id = TOMO_M1_CLASS_OTHER;
 

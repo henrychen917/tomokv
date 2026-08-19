@@ -63,6 +63,18 @@ static inline void tomoM1ExServiceNote(int worker_id, const struct redisCommand 
     tomoRelaxedBump(signal->ops, 1);
 }
 
+#define TOMO_M1_MEASURED_FOLD_MS 1000
+
+typedef struct tomoM1MeasuredEx {
+    double ewma_us;
+    int populated;
+    uint64_t last_ops;
+} tomoM1MeasuredEx;
+
+void tomoM1MeasuredTick(void);
+void tomoM1MeasuredReset(void);
+void tomoM1MeasuredGet(tomoM1MeasuredEx measured[TOMO_M1_CLASS_COUNT]);
+
 typedef struct tomoM1ModelResult {
     double c_io;
     double c_ex;
