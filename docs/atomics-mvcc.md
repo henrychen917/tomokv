@@ -86,7 +86,7 @@ serializes only this constant-time two-store publication interval; it is not a s
 | `_Atomic uint64_t commit_ts` | Zero until the last successful owner publishes the single group marker. |
 | `_Atomic unsigned int refs` | One transient group reference plus version references, trimmed to the exact install count before deferred publication. |
 | `_Atomic unsigned int shards_remaining` | Distinct owner records that have not completed eager index publication and terminal reservation/cancellation work. |
-| `_Atomic size_t reclaim_bytes` | Final group total, stored by the last owner after the existing counter chain acquires all owner records. |
+| `int admission_slot` | Originating producer's cache-line-isolated unsealed-census slot, retired by the last owner. |
 | `void *owner_records` | Commit-owned stable `csMsetOwner[]`; it outlives `csGroup` until all version references retire. |
 | `csGroup *group` | Valid through marker/no-op completion, then cleared before the reply can retire the group. |
 
@@ -185,15 +185,14 @@ used only where the command is strictly key-dependent.
 
 The owner whose counter decrement observes one is the last local publisher. On success it advances
 the encoded clock and stores the shared marker. On cancellation it publishes no timestamp. It then
-performs no per-key work; only the distinct-owner byte fold is variable:
+performs no per-key or owner-array accounting work:
 
-1. sums the acquired owner-record byte totals and publishes one group reclaim charge;
-2. seals reshard lifecycle accounting;
-3. release-stores `FINAL_READY`;
-4. detaches the commit-owned owner array from `csGroup`;
-5. release-decrements the client's pending count;
-6. release-publishes the group-head CDB byte and posts the existing completion notifier;
-7. drops the transient group reference.
+1. seals the originating producer's reshard admission-census slot;
+2. release-stores `FINAL_READY`;
+3. detaches the commit-owned owner array from `csGroup`;
+4. release-decrements the client's pending count;
+5. release-publishes the group-head CDB byte and posts the existing completion notifier;
+6. drops the transient group reference.
 
 There is no MPSC hop or elected completion thread. CDB publication is the first point at which the
 origin IO thread may reassemble and free `csGroup`.
@@ -293,10 +292,11 @@ Each mechanism carries a per-worker witness counter (INFO `tomokv_atomic_stamp_f
 `tomokv_atomic_vmeta_pool_hits`/`_recycles`, `tomokv_atomic_bucket_carry_hits`) so a validation
 run can prove the mechanism actually fired rather than passing vacuously with it dead.
 
-Each owner publishes its already-summed bytes to its cache-line-isolated worker slot once. The last
-owner's existing acquire-release counter chain makes all contiguous owner records readable; it sums
-them and performs the single global pool charge. The conservative charge remains until the final
-version metadata loses its commit reference.
+Each owner publishes its already-summed bytes to its cache-line-isolated worker slot once, and each
+version release subtracts its exact local charge. The main controller folds those slots into the
+process-wide admission snapshot once per tick. INFO `tomokv_atomic_reclaim_folds` witnesses that
+periodic fold and increments only when a tick actually consumes a nonzero live charge; no group
+publication or final commit release performs a global reclaim-byte RMW.
 
 INFO separates the remaining tail causes:
 
