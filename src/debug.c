@@ -25,6 +25,7 @@
 #include "script.h"
 #include "cluster_asm.h"
 #include "flip_u1.h"
+#include "flip_m1.h"
 
 #include <arpa/inet.h>
 #include <signal.h>
@@ -1013,6 +1014,13 @@ NULL
         if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
         tomoU1TraceSet(on != 0);
         addReplyStatus(c, tomoU1TraceEnabled() ? "u1 trace ON" : "u1 trace OFF");
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-m1trace") && c->argc == 3) {
+        /* DEBUG TOMO-M1TRACE <0|1> -- one shadow-model line per 4 Hz node tick. Like the
+         * flip/u1 traces this is a test firehose, not a configuration or actuation surface. */
+        long on;
+        if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
+        tomoM1TraceSet(on != 0);
+        addReplyStatus(c, tomoM1TraceEnabled() ? "m1 trace ON" : "m1 trace OFF");
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-rordtrace") && c->argc == 3) {
         /* DEBUG TOMO-RORDTRACE <0|1> -- one-shot dump of the next reorder run's arrival vs emit
          * class sequence (class digit, upper=head-of-pipe, | = dependency fence). */

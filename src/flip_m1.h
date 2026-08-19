@@ -44,6 +44,14 @@ typedef struct tomoM1ModelResult {
     int target_ex;
 } tomoM1ModelResult;
 
+typedef struct tomoM1Info {
+    int target_io_n0;
+    int target_io_n1;
+    double c_io;
+    double c_ex;
+    double depth;
+} tomoM1Info;
+
 void tomoM1StampCommandClass(struct redisCommand *cmd);
 void tomoM1BatchDepthNote(unsigned int commands);
 int tomoM1ModelCompute(const double mix[TOMO_M1_CLASS_COUNT],
@@ -51,6 +59,9 @@ int tomoM1ModelCompute(const double mix[TOMO_M1_CLASS_COUNT],
                        double depth, int role_threads, int io_uring,
                        tomoM1ModelResult *result);
 void tomoM1ControllerTick(int node);
+void tomoM1TraceSet(int enabled);
+int tomoM1TraceEnabled(void);
+void tomoM1InfoGet(tomoM1Info *info);
 
 /* server.c owns the poly-thread registry and therefore the authoritative growth-slot -> node map. */
 int tomoM1IoSlotNode(int io_slot);

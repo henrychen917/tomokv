@@ -196,6 +196,75 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) tomoM1SlotBaseline {
 static tomoM1NodeState tomo_m1_nodes[TOMO_NODES_MAX];
 static tomoM1SlotBaseline tomo_m1_slot_baselines[TOMO_IO_THREADS_MAX + 1];
 
+typedef struct tomoM1Published {
+    _Atomic int target_io;
+    _Atomic double c_io;
+    _Atomic double c_ex;
+    _Atomic double depth;
+} tomoM1Published;
+
+static tomoM1Published tomo_m1_published[TOMO_NODES_MAX];
+static _Atomic int tomo_m1_trace;
+
+static void tomoM1Publish(int node, const tomoM1NodeState *state) {
+    atomic_store_explicit(&tomo_m1_published[node].target_io, state->target_io,
+                          memory_order_relaxed);
+    atomic_store_explicit(&tomo_m1_published[node].c_io, state->raw.c_io,
+                          memory_order_relaxed);
+    atomic_store_explicit(&tomo_m1_published[node].c_ex, state->raw.c_ex,
+                          memory_order_relaxed);
+    atomic_store_explicit(&tomo_m1_published[node].depth, state->depth,
+                          memory_order_relaxed);
+}
+
+static void tomoM1TraceNode(int node, const tomoM1NodeState *state) {
+    if (!atomic_load_explicit(&tomo_m1_trace, memory_order_relaxed)) return;
+
+    int node_count = server.topo_nodes > 0 ? server.topo_nodes : 1;
+    int current_io = node_count == 1
+                   ? atomic_load_explicit(&server.io_threads_live, memory_order_relaxed)
+                   : atomic_load_explicit(&server.tm_node_iolive[node], memory_order_relaxed);
+    int current_ex = node_count == 1
+                   ? atomic_load_explicit(&server.num_workers_live, memory_order_relaxed)
+                   : atomic_load_explicit(&server.tm_node_wlive[node], memory_order_relaxed);
+    serverLog(LL_NOTICE,
+        "[m1-trace n%d] t=%lld depth=%.3f "
+        "mix=GET:%.3f,SET:%.3f,MGET:%.3f,MSET:%.3f,ZRANGE:%.3f,DEL:%.3f,EXPIRE:%.3f,OTHER:%.3f "
+        "c_io=%.3f c_ex=%.3f target_raw=io%d/ex%d target=io%d/ex%d current=io%d/ex%d",
+        node, (long long)mstime(), state->depth,
+        state->mix[TOMO_M1_CLASS_GET], state->mix[TOMO_M1_CLASS_SET],
+        state->mix[TOMO_M1_CLASS_MGET], state->mix[TOMO_M1_CLASS_MSET],
+        state->mix[TOMO_M1_CLASS_ZRANGE], state->mix[TOMO_M1_CLASS_DEL],
+        state->mix[TOMO_M1_CLASS_EXPIRE], state->mix[TOMO_M1_CLASS_OTHER],
+        state->raw.c_io, state->raw.c_ex,
+        state->raw.target_io, state->raw.target_ex,
+        state->target_io, state->target_ex, current_io, current_ex);
+}
+
+void tomoM1TraceSet(int enabled) {
+    atomic_store_explicit(&tomo_m1_trace, enabled != 0, memory_order_relaxed);
+}
+
+int tomoM1TraceEnabled(void) {
+    return atomic_load_explicit(&tomo_m1_trace, memory_order_relaxed) != 0;
+}
+
+void tomoM1InfoGet(tomoM1Info *info) {
+    if (!info) return;
+    *info = (tomoM1Info) {
+        .target_io_n0 = atomic_load_explicit(&tomo_m1_published[0].target_io,
+                                             memory_order_relaxed),
+        .target_io_n1 = atomic_load_explicit(&tomo_m1_published[1].target_io,
+                                             memory_order_relaxed),
+        .c_io = atomic_load_explicit(&tomo_m1_published[0].c_io,
+                                     memory_order_relaxed),
+        .c_ex = atomic_load_explicit(&tomo_m1_published[0].c_ex,
+                                     memory_order_relaxed),
+        .depth = atomic_load_explicit(&tomo_m1_published[0].depth,
+                                      memory_order_relaxed),
+    };
+}
+
 static double tomoM1AverageKeys(int class_id, uint64_t commands, uint64_t args) {
     if (commands == 0) return 1.0;
     double avg_args = (double)args / (double)commands;
@@ -310,9 +379,11 @@ void tomoM1ControllerTick(int node) {
             depth_weighted += (long double)slot_commands * (long double)depth_q8 / 256.0;
         total_commands += slot_commands;
     }
-    if (total_commands == 0) return;
-
     tomoM1NodeState *state = &tomo_m1_nodes[node];
+    if (total_commands == 0) {
+        tomoM1TraceNode(node, state);
+        return;
+    }
     double tick_mix[TOMO_M1_CLASS_COUNT];
     double tick_depth = depth_weighted > 0.0
                       ? (double)(depth_weighted / (long double)total_commands)
@@ -353,6 +424,9 @@ void tomoM1ControllerTick(int node) {
 
     int role_threads = server.io_per_node + server.ex_per_node;
     if (tomoM1ModelCompute(state->mix, state->avg_keys, state->depth,
-                           role_threads, server.io_uring != 0, &state->raw))
+                           role_threads, server.io_uring != 0, &state->raw)) {
         tomoM1FilterTarget(state, role_threads);
+        tomoM1Publish(node, state);
+    }
+    tomoM1TraceNode(node, state);
 }

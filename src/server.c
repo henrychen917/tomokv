@@ -23212,6 +23212,22 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             u1_info.sigma,
             (unsigned long long)u1_info.windows,
             (unsigned long long)u1_info.settle_ticks_last);
+        /* m1 is shadow-only: these are atomic publications from the node controller owners.
+         * Target slots expose the first two topology nodes requested by the experiment; the
+         * unsuffixed cost/depth gauges are node 0, while every node remains visible in M1TRACE. */
+        tomoM1Info m1_info;
+        tomoM1InfoGet(&m1_info);
+        info = sdscatprintf(info,
+            "tomokv_m1_target_io_n0:%d\r\n"
+            "tomokv_m1_target_io_n1:%d\r\n"
+            "tomokv_m1_cio:%.6f\r\n"
+            "tomokv_m1_cex:%.6f\r\n"
+            "tomokv_m1_depth:%.6f\r\n",
+            m1_info.target_io_n0,
+            m1_info.target_io_n1,
+            m1_info.c_io,
+            m1_info.c_ex,
+            m1_info.depth);
         if (tmNumNodes() > 1) {
             for (int node = 0; node < tmNumNodes() && node < TOMO_NODES_MAX; node++) {
                 info = sdscatprintf(info, "tomokv_node_%d_key_lb_runs:%llu\r\n",
