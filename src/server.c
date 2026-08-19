@@ -505,7 +505,8 @@ __thread int tomo_access_trimmed = 0;
 /*============================ Internal prototypes ========================== */
 
 static inline int isShutdownInitiated(void);
-static inline int isCommandReusable(struct redisCommand *cmd, robj *commandArg);
+static inline int isCommandReusable(struct redisCommand *cmd, robj *previousArg,
+                                    robj *commandArg);
 int isReadyToShutdown(void);
 int finishShutdown(void);
 const char *replstateToString(int replstate);
@@ -1617,10 +1618,12 @@ static int tomoGrowBackNode(int node, const char **err);
  * - It does not have subcommands (subcommands_dict == NULL).
  *   This preserves simplicity on the check and accounts for the majority of the use cases.
  * - Its full name matches the provided command argument. */
-static inline int isCommandReusable(struct redisCommand *cmd, robj *commandArg) {
+static inline int isCommandReusable(struct redisCommand *cmd, robj *previousArg,
+                                    robj *commandArg) {
     return cmd != NULL &&
            cmd->subcommands_dict == NULL &&
-           strcasecmp(cmd->fullname, commandArg->ptr) == 0;
+           ((previousArg != NULL && previousArg == commandArg) ||
+            strcasecmp(cmd->fullname, commandArg->ptr) == 0);
 }
 
 /* This macro tells if we are in the context of loading an AOF. */
@@ -4576,6 +4579,7 @@ static void handleWorkerRepliesScan(void) {
      * release coordinator/result storage many times before the event loop can run INFO again,
      * so publish their exact net accounting once at the scan boundary. */
     zmalloc_stat_batch_begin();
+    pendingCommandReturnBatchBegin();
     while ((ln = listNext(&li))) {
         client *real = listNodeValue(ln);
         clientExecTail *rt = clientTail(real);
@@ -4839,11 +4843,14 @@ static void handleWorkerRepliesScan(void) {
             real->flags &= ~CLIENT_PIPELINE_STALLED;
             /* This may execute INFO (or a maxmemory-sensitive command) inline. Make the
              * completed drain's accounting visible before re-entering the command parser. */
+            pendingCommandReturnBatchEnd();
             zmalloc_stat_batch_end();
             processInputBuffer(real);
             zmalloc_stat_batch_begin();
+            pendingCommandReturnBatchBegin();
         }
     }
+    pendingCommandReturnBatchEnd();
     zmalloc_stat_batch_end();
 }
 
@@ -8345,11 +8352,13 @@ void preprocessCommand(client *c, pendingCommand *pcmd) {
 
     /* Check if we can reuse the previous command instead of looking it up.
      * The previous command is either the penultimate pending command (if it exists), or c->lastcmd. */
-    if (pcmd->prev)
+    if (pcmd->prev) {
         debugServerAssert(pcmd->prev->flags & PENDING_CMD_DEBUG_CMD_INITIALIZED);
+    }
     struct redisCommand *last_cmd = pcmd->prev ? pcmd->prev->cmd : clientTail(c)->lastcmd;
+    robj *last_arg = pcmd->prev && pcmd->prev->argc ? pcmd->prev->argv[0] : NULL;
 
-    if (isCommandReusable(last_cmd, pcmd->argv[0]))
+    if (isCommandReusable(last_cmd, last_arg, pcmd->argv[0]))
         pcmd->cmd = last_cmd;
     else
         pcmd->cmd = lookupCommand(pcmd->argv, pcmd->argc);
@@ -8370,6 +8379,29 @@ void preprocessCommand(client *c, pendingCommand *pcmd) {
     /* keysbuf is populated before publication and only entries below numkeys
      * are read. Initialize just the scalar header; after extraction, record
      * heap ownership even on an error return so terminal cleanup is exact. */
+    /* Exact-shape GET/SET have one fixed key at argv[1]. Fill the same cached
+     * key result directly instead of walking channel/key-spec metadata and a
+     * one-entry getkeys result. SET options retain the generic path because
+     * only argc==3 reaches this arm. */
+    redisCommandProc *proc = pcmd->cmd->proc;
+    if (likely((proc == getCommand && pcmd->argc == 2) ||
+               (proc == setCommand && pcmd->argc == 3)))
+    {
+        pcmd->keys_result.numkeys = 1;
+        pcmd->keys_result.size = MAX_KEYS_BUFFER;
+        pcmd->keys_result.keys = pcmd->keys_result.keysbuf;
+        pcmd->keys_result.keysbuf[0].pos = 1;
+        pcmd->keys_result.keysbuf[0].flags = proc == getCommand ?
+            (CMD_KEY_RO | CMD_KEY_ACCESS) : (CMD_KEY_OW | CMD_KEY_UPDATE);
+        if (server.cluster_enabled) {
+            sds key = pcmd->argv[1]->ptr;
+            pcmd->slot = (int)keyHashSlot(key, (int)sdslen(key));
+        }
+        pcmd->flags |= PENDING_CMD_KEYS_RESULT_VALID;
+        debugAssertPendingCommandKeysResult(pcmd);
+        return;
+    }
+
     pcmd->keys_result.numkeys = 0;
     pcmd->keys_result.size = MAX_KEYS_BUFFER;
     pcmd->keys_result.keys = NULL;
@@ -8465,7 +8497,7 @@ int processCommand(client *c) {
         /* The command may have been modified by modules (e.g., in CommandFilters callbacks),
          * so we need to look it up again. */
         if (!cmd) {
-            if (isCommandReusable(ct->lastcmd, c->argv[0]))
+            if (isCommandReusable(ct->lastcmd, NULL, c->argv[0]))
                 cmd = ct->lastcmd;
             else
                 cmd = lookupCommand(c->argv, c->argc);
@@ -22369,12 +22401,47 @@ static inline int isStatefulCommand(struct redisCommand *cmd) {
     return cmd && (cmd->tomo_route & TOMO_R_STATEFUL);
 }
 
+#ifdef DEBUG_ASSERTIONS
+/* Release builds omit reset stores whose next promotion has a dominating
+ * writer. Audit the full core-fake contract at the exact rearm point, including
+ * the atomic/auxiliary scalars whose stale reuse has caused production faults. */
+static void debugAssertCoreFakeRearm(const client *fake) {
+    int watch_worker;
+    unsigned int dirty_cas;
+    atomicGet(fake->tomo_watch_worker, watch_worker);
+    atomicGet(fake->tomo_dirty_cas, dirty_cas);
+
+    debugServerAssert(fake->isFake && !fake->has_exec_tail);
+    debugServerAssert(fake->current_pending_cmd == NULL);
+    debugServerAssert(fake->pending_cmds.head == NULL && fake->pending_cmds.tail == NULL);
+    debugServerAssert(fake->pending_cmds.len == 0 && fake->pending_cmds.ready_len == 0);
+    debugServerAssert(fake->all_argv_len_sum == 0);
+    debugServerAssert(fake->argc == 0 && fake->argv == NULL && fake->argv_len == 0);
+    debugServerAssert(fake->cmd == NULL);
+    debugServerAssert(fake->bufpos == 0 && fake->reply_bytes == 0 && fake->sentlen == 0);
+    debugServerAssert(!fake->buf_encoded && fake->last_header == NULL);
+    debugServerAssert(listLength(fake->reply) == 0);
+    debugServerAssert(fake->net_output_bytes_curr_cmd == 0);
+    debugServerAssert(fake->prefetch_key_hash_valid == 0);
+    debugServerAssert(fake->cluster_compatibility_check_slot == -2);
+    debugServerAssert(fake->tomo_local_worker == -1 && watch_worker == -1);
+    debugServerAssert(dirty_cas == 0 && fake->tomo_script_gate == 0);
+    debugServerAssert(fake->tomo_bkt_ptr == NULL);
+    debugServerAssert(fake->csgroup == NULL && fake->csparent == NULL);
+    debugServerAssert(!fake->tomo_read_snapshot_pinned);
+    debugServerAssert(!(fake->flags & CLIENT_EX_PENDING));
+}
+#endif
+
 /* 2s-auto T3 express-slim: a trimmed moveExecutionState for the express lane (GET/SET).
  * Skips ONLY lookedcmd/realcmd/reploff_next/read_error (unused by express commands —
  * sharding rejects MULTI/WATCH so these clients never reach here mid-transaction). It STILL
  * moves the pending command + argv accounting: commandProcessed(fake) frees the pcmd via
  * fake->pending_cmds, so skipping it would leak/double-free. */
 static void moveExecutionStateSlim(client *real, client *fake) {
+#ifdef DEBUG_ASSERTIONS
+    if (!fake->has_exec_tail) debugAssertCoreFakeRearm(fake);
+#endif
     fake->argc     = real->argc;
     fake->argv     = real->argv;
     fake->argv_len = real->argv_len;

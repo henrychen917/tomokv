@@ -4987,6 +4987,8 @@ int moduleHasKeyspaceChangeCallbacks(int type);
 /* pcmd */
 void initPendingCommand(pendingCommand *pcmd);
 void freePendingCommand(client *c, pendingCommand *pcmd);
+void pendingCommandReturnBatchBegin(void);
+void pendingCommandReturnBatchEnd(void);
 void addPendingCommand(pendingCommandList *queue, pendingCommand *cmd);
 pendingCommand *popPendingCommandFromHead(pendingCommandList *queue);
 pendingCommand *popPendingCommandFromTail(pendingCommandList *queue);
@@ -5075,6 +5077,9 @@ int isClientReadErrorFatal(client *c);
 int processInputBuffer(client *c);
 int appendClientInputFromUring(client *c, const void *buf, size_t len);
 int processClientInputFromUring(client *c);
+void tomoUringInputBatchBegin(void);
+void tomoUringInputBatchHarvestDone(void);
+void tomoUringInputBatchEnd(void);
 void acceptCommonHandler(connection *conn, int flags, char *ip);
 void readQueryFromClient(connection *conn);
 int prepareClientToWrite(client *c);

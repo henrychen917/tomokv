@@ -9,6 +9,11 @@
  * to publish through TomoKV's existing SPSC queues and wake mechanisms; they
  * never obtain an SQE or enter an IO ring.  That invariant is what makes
  * IORING_SETUP_SINGLE_ISSUER truthful.
+ *
+ * Pass-batching invariant: a CQ harvest retires callback slots and folds
+ * receive bookkeeping before parsing; after CQ advancement, its ready-client
+ * run shares one parser cache and ends at exactly one EX publication boundary.
+ * No staged dispatch or folded byte/read count may survive that boundary.
  */
 
 #include "server.h"
@@ -239,6 +244,16 @@ static void tomoUring2AssertOwner(const tomoUring2Client *uc) {
     serverAssert(pthread_equal(uc->owner->issuer, pthread_self()));
 }
 
+/* Reap already proved the issuer once for the complete CQ array. Callbacks
+ * retain the ownership assertions without repeating TLS lookup/pthread_equal
+ * for every completion. */
+static inline void tomoUring2AssertOwnerInPass(
+    const tomoUring2Thread *st, const tomoUring2Client *uc) {
+    serverAssert(uc != NULL);
+    serverAssert(uc->owner == st);
+    serverAssert(uc->owner_tid == st->tid);
+}
+
 static void tomoUring2UpdateMaxSubmit(tomoUring2Thread *st, unsigned n) {
     uint64_t oldmax = tomoRelaxedRead(st->stats.sqes_max_batch);
     if (n > oldmax) tomoRelaxedSet(st->stats.sqes_max_batch, n);
@@ -359,17 +374,22 @@ static void tomoUring2CancelPush(tomoUring2Thread *st,
     uc->cancel_queued = 1;
 }
 
-static void tomoUring2ParseRemove(tomoUring2Thread *st,
-                                  tomoUring2Client *uc) {
-    if (!uc->parse_queued) return;
-    if (uc->parse_prev) uc->parse_prev->parse_next = uc->parse_next;
-    else st->parse_head = uc->parse_next;
-    if (uc->parse_next) uc->parse_next->parse_prev = uc->parse_prev;
-    else st->parse_tail = uc->parse_prev;
+/* Ready-pass consumption is always from the head, so make the p1 harvest loop
+ * a predictable head-pop with no prev/tail selection branches. */
+static inline tomoUring2Client *tomoUring2ParsePop(
+    tomoUring2Thread *st) {
+    tomoUring2Client *uc = st->parse_head;
+    serverAssert(uc != NULL && uc->parse_queued && uc->parse_prev == NULL);
+    st->parse_head = uc->parse_next;
+    if (st->parse_head)
+        st->parse_head->parse_prev = NULL;
+    else
+        st->parse_tail = NULL;
     uc->parse_prev = uc->parse_next = NULL;
     uc->parse_queued = 0;
     serverAssert(st->parse_count > 0);
     st->parse_count--;
+    return uc;
 }
 
 static void tomoUring2ParsePush(tomoUring2Thread *st,
@@ -757,11 +777,10 @@ static void tomoUring2PollCqe(tomoUring2Thread *st, void *owner,
 static void tomoUring2RecvCqe(tomoUring2Thread *st, void *owner,
                               const struct io_uring_cqe *cqe) {
     tomoUring2Client *uc = owner;
-    tomoUring2AssertOwner(uc);
+    tomoUring2AssertOwnerInPass(st, uc);
     if (cqe->user_data != uc->recv_token ||
         (cqe->flags & IORING_CQE_F_MORE))
         tomoUring2Fatal(st, "invalid one-shot receive CQE", EPROTO);
-    URING2_STAT_BUMP(st, recv_cqes, 1);
     uc->recv_token = 0;
 
     int was_disarming = uc->recv_state == TOMO_URING2_RECV_DISARMING;
@@ -785,16 +804,12 @@ static void tomoUring2RecvCqe(tomoUring2Thread *st, void *owner,
     uc->socket_nonempty =
         cqe->res > 0 && uc->mode == TOMO_URING2_CLIENT_RUN &&
         (cqe->flags & IORING_CQE_F_SOCK_NONEMPTY) != 0;
-    if (uc->socket_nonempty)
-        URING2_STAT_BUMP(st, recv_sock_nonempty, 1);
-
     if (cqe->res > 0) {
         if (cqe->res > PROTO_IOBUF_LEN)
             tomoUring2Fatal(st, "receive CQE exceeds IO buffer", EPROTO);
         if (appendClientInputFromUring(uc->c, uc->recv_buf,
                                       (size_t)cqe->res) != C_OK)
             need_close = 1;
-        URING2_STAT_BUMP(st, recv_bytes, cqe->res);
         if (!need_close && uc->mode == TOMO_URING2_CLIENT_RUN)
             tomoUring2ParsePush(st, uc);
     } else if (cqe->res == 0) {
@@ -829,7 +844,7 @@ static void tomoUring2RecvCqe(tomoUring2Thread *st, void *owner,
 static void tomoUring2RecvCancelCqe(tomoUring2Thread *st, void *owner,
                                     const struct io_uring_cqe *cqe) {
     tomoUring2Client *uc = owner;
-    tomoUring2AssertOwner(uc);
+    tomoUring2AssertOwnerInPass(st, uc);
     if (cqe->user_data != uc->recv_cancel_token ||
         (cqe->flags & IORING_CQE_F_MORE))
         tomoUring2Fatal(st, "invalid receive-cancel CQE", EPROTO);
@@ -947,12 +962,11 @@ static void tomoUring2ApplySendResult(tomoUring2Thread *st,
 static void tomoUring2SendCqe(tomoUring2Thread *st, void *owner,
                               const struct io_uring_cqe *cqe) {
     tomoUring2Client *uc = owner;
-    tomoUring2AssertOwner(uc);
+    tomoUring2AssertOwnerInPass(st, uc);
     if (!uc->send_active || !uc->send_submitted ||
         cqe->user_data != uc->send_token ||
         (cqe->flags & (IORING_CQE_F_MORE | IORING_CQE_F_NOTIF)))
         tomoUring2Fatal(st, "invalid ordinary SEND CQE", EPROTO);
-    URING2_STAT_BUMP(st, send_cqes, 1);
     uc->send_token = 0;
     uc->send_main_seen = 1;
     uc->send_result = cqe->res;
@@ -965,7 +979,7 @@ static void tomoUring2SendCqe(tomoUring2Thread *st, void *owner,
 static void tomoUring2SendCancelCqe(tomoUring2Thread *st, void *owner,
                                     const struct io_uring_cqe *cqe) {
     tomoUring2Client *uc = owner;
-    tomoUring2AssertOwner(uc);
+    tomoUring2AssertOwnerInPass(st, uc);
     if (cqe->user_data != uc->send_cancel_token ||
         (cqe->flags & IORING_CQE_F_MORE))
         tomoUring2Fatal(st, "invalid send-cancel CQE", EPROTO);
@@ -1003,8 +1017,7 @@ static int tomoUring2ProcessReady(tomoUring2Thread *st,
     int processed = 0;
     unsigned budget = st->parse_count;
     while (budget-- && st->parse_head) {
-        tomoUring2Client *uc = st->parse_head;
-        tomoUring2ParseRemove(st, uc);
+        tomoUring2Client *uc = tomoUring2ParsePop(st);
         if (uc->in_callback) {
             tomoUring2ParsePush(st, uc);
             continue;
@@ -1056,34 +1069,70 @@ static int tomoUring2ProcessReady(tomoUring2Thread *st,
     return processed;
 }
 
-static void tomoUring2ProcessCqe(tomoUring2Thread *st,
-                                 const struct io_uring_cqe *kernel_cqe) {
-    /* Copy before advancing, matching Helio uring_proactor.cc:279-320. */
-    struct io_uring_cqe cqe = *kernel_cqe;
-    uint32_t index = (uint32_t)cqe.user_data;
-    uint32_t tag = (uint32_t)(cqe.user_data >> 32);
-    if (index >= st->slot_count)
-        tomoUring2Fatal(st, "CQE callback index", EPROTO);
-    tomoUring2CallbackSlot *slot = &st->slots[index];
-    if (!slot->in_use || !slot->callback || slot->tag != tag)
-        tomoUring2Fatal(st, "stale/foreign CQE callback tag", EPROTO);
+static void tomoUring2ProcessCqeBatch(
+    tomoUring2Thread *st, struct io_uring_cqe **kernel_cqes,
+    unsigned count) {
+    /* Slot storage and its free-list frontier are pass invariants. Retire the
+     * callback images in one tight array walk, keep the free frontier and
+     * pending count local, and fold per-kind stats once after the walk. */
+    tomoUring2CallbackSlot *slots = st->slots;
+    const uint32_t slot_count = st->slot_count;
+    uint32_t free_slot = st->free_slot;
+    uint32_t retired = 0;
+    uint64_t recv_cqes = 0;
+    uint64_t recv_bytes = 0;
+    uint64_t recv_sock_nonempty = 0;
+    uint64_t send_cqes = 0;
 
-    tomoUring2Completion *callback = slot->callback;
-    void *owner = slot->owner;
-    if (!(cqe.flags & IORING_CQE_F_MORE)) {
-        slot->callback = NULL;
-        slot->owner = NULL;
-        slot->tag = 0;
-        slot->kind = 0;
-        slot->in_use = 0;
-        slot->next_free = st->free_slot;
-        st->free_slot = index;
-        serverAssert(st->pending_slots > 0);
-        st->pending_slots--;
+    for (unsigned i = 0; i < count; i++) {
+        /* Copy before advancing, matching Helio uring_proactor.cc:279-320. */
+        struct io_uring_cqe cqe = *kernel_cqes[i];
+        uint32_t index = (uint32_t)cqe.user_data;
+        uint32_t tag = (uint32_t)(cqe.user_data >> 32);
+        if (index >= slot_count)
+            tomoUring2Fatal(st, "CQE callback index", EPROTO);
+        tomoUring2CallbackSlot *slot = &slots[index];
+        if (!slot->in_use || !slot->callback || slot->tag != tag)
+            tomoUring2Fatal(st, "stale/foreign CQE callback tag", EPROTO);
+
+        tomoUring2Completion *callback = slot->callback;
+        void *owner = slot->owner;
+        unsigned char kind = slot->kind;
+        if (!(cqe.flags & IORING_CQE_F_MORE)) {
+            slot->callback = NULL;
+            slot->owner = NULL;
+            slot->tag = 0;
+            slot->kind = 0;
+            slot->in_use = 0;
+            slot->next_free = free_slot;
+            free_slot = index;
+            retired++;
+        }
+        /* F_MORE deliberately leaves the indexed callback allocated for a
+         * multishot operation, exactly as Helio uring_proactor.cc:309-320. */
+        if (kind == TOMO_URING2_OP_RECV) {
+            recv_cqes++;
+            if (cqe.res > 0) {
+                recv_bytes += (uint64_t)cqe.res;
+                tomoUring2Client *uc = owner;
+                if (uc->mode == TOMO_URING2_CLIENT_RUN &&
+                    (cqe.flags & IORING_CQE_F_SOCK_NONEMPTY))
+                    recv_sock_nonempty++;
+            }
+        } else if (kind == TOMO_URING2_OP_SEND) {
+            send_cqes++;
+        }
+        callback(st, owner, &cqe);
     }
-    /* F_MORE deliberately leaves the indexed callback allocated for a
-     * multishot operation, exactly as Helio uring_proactor.cc:309-320. */
-    callback(st, owner, &cqe);
+
+    serverAssert(st->pending_slots >= retired);
+    st->free_slot = free_slot;
+    st->pending_slots -= retired;
+    if (recv_cqes) URING2_STAT_BUMP(st, recv_cqes, recv_cqes);
+    if (recv_bytes) URING2_STAT_BUMP(st, recv_bytes, recv_bytes);
+    if (recv_sock_nonempty)
+        URING2_STAT_BUMP(st, recv_sock_nonempty, recv_sock_nonempty);
+    if (send_cqes) URING2_STAT_BUMP(st, send_cqes, send_cqes);
 }
 
 static int tomoUring2ReapAe(aeEventLoop *el, int process_file_events) {
@@ -1095,6 +1144,9 @@ static int tomoUring2ReapAe(aeEventLoop *el, int process_file_events) {
     struct io_uring_cqe *cqes[TOMO_URING2_CQE_BATCH];
     unsigned total = 0;
     int started = 0;
+    int input_batch = io_uring_cq_ready(&st->ring) != 0 ||
+                      (process_file_events && st->parse_count != 0);
+    if (input_batch) tomoUringInputBatchBegin();
     for (;;) {
         /* Gate the liburing batch helper with the userspace CQ count.  When
          * CQ is empty, io_uring_peek_batch_cqe() may itself enter the kernel
@@ -1105,13 +1157,18 @@ static int tomoUring2ReapAe(aeEventLoop *el, int process_file_events) {
         unsigned count = io_uring_peek_batch_cqe(
             &st->ring, cqes, TOMO_URING2_CQE_BATCH);
         if (count == 0) break;
+        /* A CQE can arrive after the entry sample above. Open the same scope
+         * before its callbacks so no harvested receive takes the scalar path. */
+        if (!input_batch) {
+            tomoUringInputBatchBegin();
+            input_batch = 1;
+        }
         if (!started) {
             URING2_STAT_BUMP(st, cq_drain_passes, 1);
             started = 1;
         }
         URING2_STAT_BUMP(st, cq_batches, 1);
-        for (unsigned i = 0; i < count; i++)
-            tomoUring2ProcessCqe(st, cqes[i]);
+        tomoUring2ProcessCqeBatch(st, cqes, count);
         io_uring_cq_advance(&st->ring, count);
         total += count;
         URING2_STAT_BUMP(st, cqes, count);
@@ -1119,7 +1176,9 @@ static int tomoUring2ReapAe(aeEventLoop *el, int process_file_events) {
          * the callbacks above ran (Helio uring_proactor.cc:347-359). */
     }
 
+    if (input_batch) tomoUringInputBatchHarvestDone();
     int processed = tomoUring2ProcessReady(st, process_file_events);
+    if (input_batch) tomoUringInputBatchEnd();
     uint64_t reported = (uint64_t)processed + total;
     if (reported > AE_URING_COUNT_MASK) reported = AE_URING_COUNT_MASK;
     int result = (int)reported;
