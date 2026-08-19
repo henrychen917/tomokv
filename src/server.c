@@ -30754,6 +30754,30 @@ static void tmR10BeginEpisode(int node, flipCtlState *fc, int ni, int ne) {
               r10ctl[node].rung_limit);
 }
 
+static void tmR10RecordAnchor(int node) {
+    tomoR10WitnessAnchor(node, r10ctl[node].best_rung,
+                         r10ctl[node].current.io);
+    if (r10ctl[node].backstop_hit) {
+        serverLog(LL_WARNING, "[r10 n%d] ANCHOR io%u/ex%u rung=%+d moves=%u "
+                  "examined=%u/%u BACKSTOP-HIT state=%s trigger=%s "
+                  "drive=%llu refused=%llu budget=%llu",
+                  node, r10ctl[node].current.io, r10ctl[node].current.ex,
+                  r10ctl[node].rung, r10ctl[node].moves,
+                  r10ctl[node].rungs_examined, r10ctl[node].rung_limit,
+                  tomoR10StateName(r10ctl[node].backstop_state),
+                  tomoR10BackstopTriggerName(r10ctl[node].backstop_trigger),
+                  (unsigned long long)r10ctl[node].state_drive_ticks,
+                  (unsigned long long)r10ctl[node].refused_arms,
+                  (unsigned long long)r10ctl[node].state_drive_budget);
+    } else {
+        serverLog(LL_NOTICE, "[r10 n%d] ANCHOR io%u/ex%u rung=%+d moves=%u "
+                  "examined=%u/%u", node, r10ctl[node].current.io,
+                  r10ctl[node].current.ex, r10ctl[node].rung,
+                  r10ctl[node].moves, r10ctl[node].rungs_examined,
+                  r10ctl[node].rung_limit);
+    }
+}
+
 static void tmR10DriveEpisode(int node, flipCtlState *fc, int ni, int ne) {
     if (r10ctl[node].move_pending && tmFlipAbortConsume(node)) {
         serverLog(LL_WARNING, "[r10 n%d] move %+d ABORTED before landing; retrying the same rung",
@@ -30779,29 +30803,8 @@ static void tmR10DriveEpisode(int node, flipCtlState *fc, int ni, int ne) {
     tomoR10Tick(&r10ctl[node], &input, tmR10RequestMove, NULL);
     tomoR10WitnessComparisons(r10ctl[node].comparisons_better - better_before,
                               r10ctl[node].comparisons_flat - flat_before);
-    if (before != TOMO_R10_ANCHORED && r10ctl[node].state == TOMO_R10_ANCHORED) {
-        tomoR10WitnessAnchor(node, r10ctl[node].best_rung,
-                             r10ctl[node].current.io);
-        if (r10ctl[node].backstop_hit) {
-            serverLog(LL_WARNING, "[r10 n%d] ANCHOR io%u/ex%u rung=%+d moves=%u "
-                      "examined=%u/%u BACKSTOP-HIT state=%s trigger=%s "
-                      "drive=%llu refused=%llu budget=%llu",
-                      node, r10ctl[node].current.io, r10ctl[node].current.ex,
-                      r10ctl[node].rung, r10ctl[node].moves,
-                      r10ctl[node].rungs_examined, r10ctl[node].rung_limit,
-                      tomoR10StateName(r10ctl[node].backstop_state),
-                      tomoR10BackstopTriggerName(r10ctl[node].backstop_trigger),
-                      (unsigned long long)r10ctl[node].state_drive_ticks,
-                      (unsigned long long)r10ctl[node].refused_arms,
-                      (unsigned long long)r10ctl[node].state_drive_budget);
-        } else {
-            serverLog(LL_NOTICE, "[r10 n%d] ANCHOR io%u/ex%u rung=%+d moves=%u "
-                      "examined=%u/%u", node, r10ctl[node].current.io,
-                      r10ctl[node].current.ex, r10ctl[node].rung,
-                      r10ctl[node].moves, r10ctl[node].rungs_examined,
-                      r10ctl[node].rung_limit);
-        }
-    }
+    if (before != TOMO_R10_ANCHORED && r10ctl[node].state == TOMO_R10_ANCHORED)
+        tmR10RecordAnchor(node);
 }
 
 static int tmR10DeadArmReady(int node, flipCtlState *fc, int ni, int ne) {
@@ -32925,6 +32928,17 @@ static void tomoFlipController(void) {
          * steady state cheap AND stops edge oscillation without any absolute floor. ===== */
         if (w_live < 1) continue;
         if (node_idle || fc->mean < 1000.0) {              /* no offered load — nothing to optimize */
+            if (server.thread_mode == TOMO_THREAD_MODE_CLIMB &&
+                tomoR10OwnsActuator(&r10ctl[node]) &&
+                r10ctl[node].state != TOMO_R10_ANCHORED) {
+                tomoU1Shape shape = {
+                    .io = (uint16_t)ni,
+                    .ex = (uint16_t)ne,
+                    .wb = (uint16_t)(server.wb_threads > 0 ? server.wb_per_node : 0),
+                };
+                tomoR10Abandon(&r10ctl[node], shape, TOMO_R10_BACKSTOP_IDLE);
+                tmR10RecordAnchor(node);
+            }
             if (fc->floor_probe_active) {
                 fc->wait = FESC_WAIT_BASE;                /* let the existing settle persistence decide */
                 continue;

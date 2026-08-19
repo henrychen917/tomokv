@@ -430,6 +430,7 @@ const char *tomoR10BackstopTriggerName(tomoR10BackstopTrigger trigger) {
     case TOMO_R10_BACKSTOP_SETTLE_NEVER: return "settle-never";
     case TOMO_R10_BACKSTOP_NEED_MORE: return "need-more";
     case TOMO_R10_BACKSTOP_UNEXPECTED_SHAPE: return "unexpected-shape";
+    case TOMO_R10_BACKSTOP_IDLE: return "idle";
     }
     return "unknown";
 }

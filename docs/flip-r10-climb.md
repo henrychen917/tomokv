@@ -27,6 +27,8 @@ PHASE C (climb — per node, fine-grain single steps, all decisions in sigma uni
 ANCHORED: zero moves (owner thrash definition — climb moves are search, the anchor is
 terminal). RE-ARM: r8's existing band-escape / demand machinery detects workload change and
 starts a fresh J+C episode; during quiet the signal only watches, never moves.
+An idle boundary anchors in place with zero moves; a non-idle workload shift remains bounded by
+the per-state backstop and starts a fresh measurement era through the normal post-anchor r8 re-arm.
 
 ## Laws honored
 * No tables, no machine constants: improvement threshold = u1a paired-window sign test against
