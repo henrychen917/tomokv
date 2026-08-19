@@ -606,7 +606,8 @@ static int tomoUring2AcquireFixedBuffer(tomoUring2Client *uc) {
         st->free_buffer_slot == TOMO_URING2_NO_SLOT)
         return C_ERR;
 
-    if (!uc->send_scratch)
+    int allocated_scratch = uc->send_scratch == NULL;
+    if (allocated_scratch)
         uc->send_scratch = zmalloc(PROTO_REPLY_CHUNK_BYTES);
     uint32_t index = st->free_buffer_slot;
     tomoUring2BufferSlot *slot = &st->buffer_slots[index];
@@ -624,6 +625,10 @@ static int tomoUring2AcquireFixedBuffer(tomoUring2Client *uc) {
     if (rc != 1) {
         slot->next_free = st->free_buffer_slot;
         st->free_buffer_slot = index;
+        if (allocated_scratch) {
+            zfree(uc->send_scratch);
+            uc->send_scratch = NULL;
+        }
         return C_ERR;
     }
 
