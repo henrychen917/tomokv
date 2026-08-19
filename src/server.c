@@ -4026,6 +4026,7 @@ void flushExQueues(void);   /* defined below; used by the back-pressure path (A3
  * relaxed load per staged dispatch. Read-mostly line, deliberately NOT on tm_io_sig (that line
  * is owner-written by the io thread; a main-written field there would false-share). */
 _Atomic int tomo_disp_window[TOMO_IO_THREADS_MAX + 1];
+int tomo_disp_window_forced_zero = 0;   /* DEBUG TOMO-DISPWINDOW diagnostic override */
 static __thread int tomo_staged_cnt;   /* dispatches staged since this thread's last flush */
 
 /* ===================== ee451 D: the reorder (mechanism B — KNOB tomokv-reorder) ==============
@@ -7456,6 +7457,7 @@ void tomoSvcTick(void) {
                  * publish 0 (= pass-end only) rather than a per-dispatch flush storm */
                 if (wnd <= 2) wnd = 0;
             }
+            if (tomo_disp_window_forced_zero) continue;   /* diagnostic A/B: hold at 0 */
             int cur = atomic_load_explicit(&tomo_disp_window[t], memory_order_relaxed);
             int step = cur >> 2;                     /* 25% deadzone (0 -> always publish) */
             if (wnd > cur + step || wnd < cur - step)

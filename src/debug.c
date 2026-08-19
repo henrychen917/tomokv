@@ -1031,6 +1031,17 @@ NULL
         if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
         tm_flip_trace = (on != 0);
         addReplyStatus(c, tm_flip_trace ? "flip trace ON" : "flip trace OFF");
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-dispwindow") && c->argc == 3) {
+        /* DEBUG TOMO-DISPWINDOW <0|1> -- diagnostic: 0 forces the SEDA window law's published
+         * values to zero (pass-end flush only, pre-mechanism-A behaviour) for an isolated A/B;
+         * 1 restores the live law. The law itself keeps computing; only publication is gated. */
+        long on;
+        if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
+        tomo_disp_window_forced_zero = (on == 0);
+        if (tomo_disp_window_forced_zero)
+            for (int t = 0; t <= TOMO_IO_THREADS_MAX; t++)
+                atomic_store_explicit(&tomo_disp_window[t], 0, memory_order_release);
+        addReplyStatus(c, tomo_disp_window_forced_zero ? "disp window FORCED 0" : "disp window AUTO");
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-rordtrace") && c->argc == 3) {
         /* DEBUG TOMO-RORDTRACE <0|1> -- one-shot dump of the next reorder run's arrival vs emit
          * class sequence (class digit, upper=head-of-pipe, | = dependency fence). */
