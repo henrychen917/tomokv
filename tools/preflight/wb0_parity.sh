@@ -254,11 +254,13 @@ if [ -s "$WORK/baseline.info" ] && [ -s "$WORK/candidate.info" ]; then
   awk -F: '/^[A-Za-z0-9_]+:/{print $1}' "$WORK/candidate.info" | sort -u > "$WORK/candidate.keys"
   comm -23 "$WORK/baseline.keys" "$WORK/candidate.keys" > "$WORK/removed.keys"
   comm -13 "$WORK/baseline.keys" "$WORK/candidate.keys" > "$WORK/added.keys"
-  grep -vE '^tomokv_wb_' "$WORK/added.keys" > "$WORK/unexpected-added.keys" || true
+  # Allowlisted additions: WB observability plus the atomdiet2 witness counters
+  # (each atomdiet2 mechanism ships its INFO witness in the same commit).
+  grep -vE '^(tomokv_wb_|tomokv_atomic_stamp_fold_)' "$WORK/added.keys" > "$WORK/unexpected-added.keys" || true
   if [ -s "$WORK/removed.keys" ] || [ -s "$WORK/unexpected-added.keys" ]; then
-    fail "INFO key-set drift outside allowed tomokv_wb_* additions: removed=$(tr '\n' ',' < "$WORK/removed.keys") added=$(tr '\n' ',' < "$WORK/unexpected-added.keys")"
+    fail "INFO key-set drift outside allowlisted additions: removed=$(tr '\n' ',' < "$WORK/removed.keys") added=$(tr '\n' ',' < "$WORK/unexpected-added.keys")"
   else
-    pass "INFO key set matches baseline modulo tomokv_wb_* observability"
+    pass "INFO key set matches baseline modulo allowlisted observability"
   fi
   wb_nonzero=$(awk -F: '$1 ~ /^tomokv_wb_/ {v=$2; gsub(/\r/,"",v); if (v !~ /^0([.]0+)?$/) print $1 "=" v}' "$WORK/candidate.info")
   if [ -n "$wb_nonzero" ]; then

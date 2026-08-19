@@ -825,6 +825,10 @@ typedef struct csOwnerPublishList {
     _Atomic unsigned long long versions_queued;
     _Atomic unsigned long long node_allocs;
     _Atomic unsigned long long batch_allocs;
+    /* atomdiet2 witness counters (single-writer, owner-affine). Each proves
+     * its mechanism FIRED on this worker; a validation that can pass with the
+     * mechanism dead is worthless. INFO folds them across workers. */
+    _Atomic unsigned long long stamp_fold_installs;
 } __attribute__((aligned(CACHE_LINE_SIZE))) csOwnerPublishList;
 _Static_assert(sizeof(csOwnerPublishList) % CACHE_LINE_SIZE == 0,
                "owner-local publish state must have a cache-line stride");
@@ -901,6 +905,7 @@ void tomoAtomicLifecycleEnsure(void) {
             atomic_init(&lists[w].versions_queued, 0);
             atomic_init(&lists[w].node_allocs, 0);
             atomic_init(&lists[w].batch_allocs, 0);
+            atomic_init(&lists[w].stamp_fold_installs, 0);
         }
         atomic_store_explicit(&tomo_atomic_publish_lists, lists, memory_order_release);
     }
@@ -14471,7 +14476,7 @@ static int csH2RestoreKeyVersioned(client *sub, csGroup *g, int nclass,
     kvobj *installed = setKeyVersioned(sub,sub->db,dstkey,&val,0,g->version_seq,
                                        g->h2_pexpireat);
     struct tomoVerMeta *vmeta = kvobjVmeta(installed);
-    serverAssert(vmeta && vmeta->stamp_state == TOMO_STAMP_PENDING);
+    serverAssert(vmeta && vmeta->stamp_state == TOMO_STAMP_APPLIED);
     if (reservation) {
         /* Still blocks competing NX owners, but this command emitted its own event already. */
         vmeta->version_reservation = TOMO_RESERVATION_SILENT;
@@ -14498,7 +14503,7 @@ static void csInstallVersionTombstone(client *sub, csGroup *g, int nclass,
     kvobj *installed = setKeyVersioned(sub,sub->db,key,&placeholder,
                                        SETKEY_EMBED_RAW | SETKEY_NO_SIGNAL,g->version_seq,-1);
     struct tomoVerMeta *vmeta = kvobjVmeta(installed);
-    serverAssert(vmeta && vmeta->stamp_state == TOMO_STAMP_PENDING);
+    serverAssert(vmeta && vmeta->stamp_state == TOMO_STAMP_APPLIED);
     vmeta->version_tombstone = 1;
     csMsetRecordInstall(sub,g,installed);
     keyModified(sub,sub->db,key,NULL,1);
@@ -14650,13 +14655,16 @@ static inline void csMsetRecordInstall(client *sub, csGroup *g, kvobj *installed
     owner_record->tail = installed;
     owner_record->ninstalled++;
 
-    /* The new physical head already carries the predecessor's stamped-index
-     * pointer. Complete that per-key publication now, in the allocating
-     * worker's arena and while those cache lines are hot. One outstanding
-     * owner epoch protects the allocation until the common first-grace
-     * callback; the shared zero commit marker keeps this eager index invisible. */
+    /* atomdiet2 stamp fold: the new physical head and its invisible
+     * stamped-index link were published together by setKeyVersioned
+     * (tomoVerMetaNew), so no second per-key stamp publication happens here.
+     * One outstanding owner epoch protects the allocation until the common
+     * first-grace callback; the shared zero commit marker keeps the eager
+     * index entry invisible exactly as before.
+     * Witness (anti-vacuous rule): count every install that rode the folded
+     * one-pass path on this owner's cache-line-isolated slot. */
+    tomoRelaxedBump(csOwnerPublishListFor(&server.exThreads[owner])->stamp_fold_installs, 1);
     atomic_store_explicit(&vmeta->owner_ops_pending, 1, memory_order_release);
-    tomoApplyVersionStamp(installed);
 }
 
 /* Any other group's uncommitted version is an NX reservation, including an
@@ -14716,7 +14724,7 @@ static void csMsetnxSubExecVersioned(client *sub, csGroup *g) {
                                            &sub->argv[a+1], SETKEY_NO_SIGNAL,
                                            g->version_seq, -1);
         struct tomoVerMeta *vmeta = kvobjVmeta(installed);
-        serverAssert(vmeta != NULL && vmeta->stamp_state == TOMO_STAMP_PENDING);
+        serverAssert(vmeta != NULL && vmeta->stamp_state == TOMO_STAMP_APPLIED);
         vmeta->version_reservation = TOMO_RESERVATION_SIGNAL_SET;
         vmeta->reservation_owner = g;
         csMsetRecordInstall(sub, g, installed);
@@ -14744,7 +14752,7 @@ static void csDelSubExecVersioned(client *sub, csGroup *g) {
                                            SETKEY_EMBED_RAW | SETKEY_NO_SIGNAL,
                                            g->version_seq, -1);
         struct tomoVerMeta *vmeta = kvobjVmeta(installed);
-        serverAssert(vmeta != NULL && vmeta->stamp_state == TOMO_STAMP_PENDING);
+        serverAssert(vmeta != NULL && vmeta->stamp_state == TOMO_STAMP_APPLIED);
         vmeta->version_tombstone = 1;
         csMsetRecordInstall(sub, g, installed);
 
@@ -23066,6 +23074,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
         unsigned long long owner_qsbr_waits = 0, owner_snapshot_waits = 0;
         unsigned long long owner_node_allocs = 0, owner_batch_allocs = 0;
         unsigned long long owner_pending = 0, owner_pending_max = 0;
+        unsigned long long diet_stamp_folds = 0;
         csOwnerPublishList *owner_lists = atomic_load_explicit(
             &tomo_atomic_publish_lists, memory_order_acquire);
         if (owner_lists) {
@@ -23083,6 +23092,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                     owner_lists[_w].pin_blocked_passes);
                 owner_node_allocs += tomoRelaxedRead(owner_lists[_w].node_allocs);
                 owner_batch_allocs += tomoRelaxedRead(owner_lists[_w].batch_allocs);
+                diet_stamp_folds += tomoRelaxedRead(
+                    owner_lists[_w].stamp_fold_installs);
             }
         }
         info = sdscatprintf(info,
@@ -23102,7 +23113,9 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_atomic_prune_qsbr_wait_passes:%llu\r\n"
             "tomokv_atomic_prune_snapshot_wait_passes:%llu\r\n"
             "tomokv_atomic_prune_node_allocs:%llu\r\n"
-            "tomokv_atomic_prune_batch_allocs:%llu\r\n",
+            "tomokv_atomic_prune_batch_allocs:%llu\r\n"
+            /* atomdiet2 witnesses: nonzero proves the mechanism fired. */
+            "tomokv_atomic_stamp_fold_installs:%llu\r\n",
             atomic_load_explicit(&tomo_atomic_commit_ts_lag, memory_order_relaxed),
             atomic_load_explicit(&tomo_atomic_stragglers, memory_order_relaxed),
             tomoAtomicWindowResolved(), tomoAtomicReclaimLimitResolved(),
@@ -23112,7 +23125,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             atomic_load_explicit(&tomo_atomic_reclaim_stalls, memory_order_relaxed),
             owner_pending, owner_pending_max,
             owner_epochs, owner_versions, owner_qsbr_waits, owner_snapshot_waits,
-            owner_node_allocs, owner_batch_allocs);
+            owner_node_allocs, owner_batch_allocs, diet_stamp_folds);
         info = sdscatprintf(info,
             "tomokv_fake_core_allocs:%llu\r\n"
             "tomokv_fake_tail_promotions:%llu\r\n",

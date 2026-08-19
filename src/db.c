@@ -492,7 +492,7 @@ kvobj *lookupKeyWriteOrReply(client *c, robj *key, robj *reply) {
  *           (renameGenericCommand under FLATSTORE — see there).
  */
 static inline struct tomoVerMeta *tomoVerMetaNew(redisDb *db, uint64_t version_seq,
-                                                 kvobj *version_prev) {
+                                                 kvobj *version_prev, kvobj *self) {
     struct tomoVerMeta *vmeta = zcalloc(sizeof(*vmeta));
     atomic_store_explicit(&vmeta->commit, NULL, memory_order_relaxed);
     atomic_store_explicit(&vmeta->read_head, NULL, memory_order_relaxed);
@@ -514,12 +514,26 @@ static inline struct tomoVerMeta *tomoVerMetaNew(redisDb *db, uint64_t version_s
                                   TOMO_READ_GATE_SUPERSEDED,
                                   memory_order_release);
     }
-    /* The new physical head inherits the owner-local stamped-version index before
-     * its vmeta/table publication. Index movement remains confined to stamp/retire. */
-    atomic_store_explicit(&vmeta->stamped_head, stamped_head,
-                          memory_order_release);
-    vmeta->stamp_state = version_seq == TOMO_VERSION_UNCOMMITTED ?
-                         TOMO_STAMP_PENDING : TOMO_STAMP_APPLIED;
+    /* atomdiet2 stamp fold: build an atomic head's invisible stamped-index
+     * link before either its vmeta or the table head is release-published.
+     * The former deferred stamp pass (tomoApplyVersionStamp) had to make a
+     * second pass over these same lines at commit record time merely to move
+     * the inherited index into stamped_prev and self-publish stamped_head.
+     * A reader may now encounter self in the index immediately, but commit is
+     * still NULL (the ordinary zero marker), so it skips the entry; same-key
+     * writers are owner-serialized and cannot observe the interval at all.
+     * The vmeta/table publication carries both link initializations with its
+     * existing release, so the relaxed stores here need no fence of their own.
+     * Index movement remains confined to install/retire. */
+    if (version_seq == TOMO_VERSION_UNCOMMITTED) {
+        __atomic_store_n(&vmeta->stamped_prev, stamped_head, __ATOMIC_RELAXED);
+        atomic_store_explicit(&vmeta->stamped_head, self,
+                              memory_order_relaxed);
+    } else {
+        atomic_store_explicit(&vmeta->stamped_head, stamped_head,
+                              memory_order_relaxed);
+    }
+    vmeta->stamp_state = TOMO_STAMP_APPLIED;
     vmeta->retire_state = TOMO_RETIRE_ACTIVE;
     vmeta->version_prev = version_prev;
     vmeta->version_kvs = db->keys;
@@ -659,7 +673,7 @@ static inline __attribute__((always_inline)) kvobj *dbAddInternalVersion(redisDb
     robj *val = *valref;
     kvobj *kv = kvobjSetEx(key->ptr, val, keymeta->metabits, flags);
     if (version_seq)
-        kvobjSetVmeta(kv, tomoVerMetaNew(db, version_seq, NULL));
+        kvobjSetVmeta(kv, tomoVerMetaNew(db, version_seq, NULL, kv));
     initObjectLRUOrLFU(kv);
     dbSetAtLinkWithFlatRetry(db->keys, slot, kv, link);
     
@@ -950,7 +964,7 @@ static kvobj *dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEnt
         if (version_expire >= 0)
             serverAssert(kvobjSetExpire(kvNew, version_expire) == kvNew);
         if (version_seq)
-            kvobjSetVmeta(kvNew, tomoVerMetaNew(db, version_seq, old));
+            kvobjSetVmeta(kvNew, tomoVerMetaNew(db, version_seq, old, kvNew));
         kvstoreDictSetAtLink(db->keys, slot, kvNew, &link, 0);
 
         /* if expiry replace the old value at its location in the expire space. */
@@ -1034,35 +1048,6 @@ static void tomoSchedulePhysicalRetire(kvstore *kvs, kvobj *kv) {
     kvstoreFlatRetireAtomicRaw(kvs, kv);
 }
 
-void tomoApplyVersionStamp(kvobj *kv) {
-    struct tomoVerMeta *vmeta = kvobjVmeta(kv);
-    serverAssert(vmeta != NULL);
-    serverAssert(vmeta->stamp_state == TOMO_STAMP_PENDING);
-    serverAssert(kvobjVersionSeq(kv) == TOMO_VERSION_UNCOMMITTED);
-    tomoCommit *commit = atomic_load_explicit(&vmeta->commit, memory_order_acquire);
-    serverAssert(commit != NULL &&
-                 atomic_load_explicit(&commit->commit_ts, memory_order_acquire) == 0);
-
-    /* Installation already made kv the physical head and initialized its
-     * stamped_head from the predecessor's authoritative index. Publish that
-     * inherited chain through this new head while all of the allocation and
-     * predecessor lines are still hot. The former deferred stamp pass had to
-     * hash and probe the key again merely to rediscover this same head.
-     *
-     * A timestamp does not exist yet. Readers can observe this local index at
-     * any point, but skip kv while the one shared commit marker is zero. The
-     * last-owner acq_rel chain therefore remains the only cross-shard edge. */
-    serverAssert(!vmeta->detached);
-    kvobj *stamped_head = atomic_load_explicit(&vmeta->stamped_head,
-                                                memory_order_acquire);
-    kvobjSetStampedPrev(kv, stamped_head);
-    vmeta->stamp_state = TOMO_STAMP_APPLIED;
-    atomic_store_explicit(&vmeta->stamped_head, kv, memory_order_release);
-    /* origin_client_id is deliberately NOT cleared. A pipelined own read can
-     * carry an older snapshot while this group transitions from installed to
-     * stamped to committed; identity keeps that whole interval RYOW-safe. */
-}
-
 static void tomoPublishReadFast(kvobj *member, struct tomoVerMeta *member_meta);
 
 /* Mark an eagerly indexed atomic version canceled. It never receives a
@@ -1080,10 +1065,9 @@ void tomoCancelVersion(kvobj *kv) {
     vmeta->stamp_state = TOMO_STAMP_CANCELED;
     vmeta->version_reservation = 0;
     vmeta->reservation_owner = NULL;
-    /* origin_client_id stays: the field is write-once at install (see
-     * tomoApplyVersionStamp). A canceled version is excluded from the own
-     * branch by version_canceled; the zero marker also excludes the eagerly
-     * indexed node from every other reader. */
+    /* origin_client_id stays: the field is write-once at install. A canceled
+     * version is excluded from the own branch by version_canceled; the zero
+     * marker also excludes the eagerly indexed node from every other reader. */
     serverAssert(vmeta->retire_state == TOMO_RETIRE_ACTIVE);
     vmeta->retire_state = TOMO_RETIRE_PRUNE_GRACE;
     tomoPublishReadFast(kv, vmeta);
