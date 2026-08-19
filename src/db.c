@@ -492,7 +492,8 @@ kvobj *lookupKeyWriteOrReply(client *c, robj *key, robj *reply) {
  *           (renameGenericCommand under FLATSTORE — see there).
  */
 static inline struct tomoVerMeta *tomoVerMetaNew(redisDb *db, uint64_t version_seq,
-                                                 kvobj *version_prev, kvobj *self) {
+                                                 kvobj *version_prev, kvobj *self,
+                                                 int slot) {
     struct tomoVerMeta *vmeta = tomoVerMetaPoolAlloc();
     atomic_store_explicit(&vmeta->commit, NULL, memory_order_relaxed);
     atomic_store_explicit(&vmeta->read_head, NULL, memory_order_relaxed);
@@ -538,6 +539,10 @@ static inline struct tomoVerMeta *tomoVerMetaNew(redisDb *db, uint64_t version_s
     vmeta->version_prev = version_prev;
     vmeta->version_kvs = db->keys;
     vmeta->version_db = db;
+    /* atomdiet2 bucket carry: the caller already resolved this key's database
+     * slot (== ownership bucket) for the table operation. Record it so
+     * lifecycle acquisition never hashes the key a second time. */
+    vmeta->install_bucket = (uint16_t)slot;
     return vmeta;
 }
 
@@ -673,7 +678,7 @@ static inline __attribute__((always_inline)) kvobj *dbAddInternalVersion(redisDb
     robj *val = *valref;
     kvobj *kv = kvobjSetEx(key->ptr, val, keymeta->metabits, flags);
     if (version_seq)
-        kvobjSetVmeta(kv, tomoVerMetaNew(db, version_seq, NULL, kv));
+        kvobjSetVmeta(kv, tomoVerMetaNew(db, version_seq, NULL, kv, slot));
     initObjectLRUOrLFU(kv);
     dbSetAtLinkWithFlatRetry(db->keys, slot, kv, link);
     
@@ -964,7 +969,7 @@ static kvobj *dbSetValueVersioned(redisDb *db, robj *key, robj **valref, dictEnt
         if (version_expire >= 0)
             serverAssert(kvobjSetExpire(kvNew, version_expire) == kvNew);
         if (version_seq)
-            kvobjSetVmeta(kvNew, tomoVerMetaNew(db, version_seq, old, kvNew));
+            kvobjSetVmeta(kvNew, tomoVerMetaNew(db, version_seq, old, kvNew, slot));
         kvstoreDictSetAtLink(db->keys, slot, kvNew, &link, 0);
 
         /* if expiry replace the old value at its location in the expire space. */
