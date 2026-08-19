@@ -181,6 +181,8 @@ int tomoM1ModelCompute(const double mix[TOMO_M1_CLASS_COUNT],
     return 1;
 }
 
+static int tomoM1ActuationSelfTest(tomoM1SelfTestResult *result);
+
 int tomoM1SelfTest(tomoM1SelfTestResult results[TOMO_M1_SELFTEST_CASES]) {
     if (!results) return 0;
     typedef struct tomoM1SelfTestCase {
@@ -203,7 +205,8 @@ int tomoM1SelfTest(tomoM1SelfTestResult results[TOMO_M1_SELFTEST_CASES]) {
      *              == the command-weighted truth (.5*11.8+.5*1.70=6.75) — the mixture theorem
      *              this selftest pins. ratio 6.74/.76=8.87, ideal 14.38, two-EX edge => io14.
      *              (The p16/p1 anchor costs 1.70/11.8 imply F=10.81, v=0.99 by the LSQ fit.) */
-    static const tomoM1SelfTestCase cases[TOMO_M1_SELFTEST_CASES] = {
+    enum { TOMO_M1_MODEL_SELFTEST_CASES = TOMO_M1_SELFTEST_CASES - 1 };
+    static const tomoM1SelfTestCase cases[TOMO_M1_MODEL_SELFTEST_CASES] = {
         { .name = "GET-p16", .class_id = TOMO_M1_CLASS_GET,
           .keys = 1.0, .depth = 16.0, .expected_io = 11 },
         { .name = "SET-p16", .class_id = TOMO_M1_CLASS_SET,
@@ -217,7 +220,7 @@ int tomoM1SelfTest(tomoM1SelfTestResult results[TOMO_M1_SELFTEST_CASES]) {
     };
 
     int passed = 0;
-    for (int i = 0; i < TOMO_M1_SELFTEST_CASES; i++) {
+    for (int i = 0; i < TOMO_M1_MODEL_SELFTEST_CASES; i++) {
         double mix[TOMO_M1_CLASS_COUNT] = {0};
         double avg_keys[TOMO_M1_CLASS_COUNT];
         for (int class_id = 0; class_id < TOMO_M1_CLASS_COUNT; class_id++)
@@ -239,6 +242,7 @@ int tomoM1SelfTest(tomoM1SelfTestResult results[TOMO_M1_SELFTEST_CASES]) {
         };
         passed += results[i].passed;
     }
+    passed += tomoM1ActuationSelfTest(&results[TOMO_M1_MODEL_SELFTEST_CASES]);
     return passed;
 }
 
@@ -268,8 +272,55 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) tomoM1SlotBaseline {
     uint64_t args[TOMO_M1_CLASS_COUNT];
 } tomoM1SlotBaseline;
 
+/* Pure per-node actuation plan. The server-owned wrapper supplies observed role counts and the
+ * existing one-step actuator callback; no r8 pressure or throughput decision enters this state. */
+typedef struct tomoM1ActuationPlan {
+    int current_io;
+    int current_ex;
+    int target_io;
+    int target_ex;
+    int expected_io;
+    int expected_ex;
+    int pending_direction;
+    uint64_t consecutive_failures;
+    uint64_t refusal_quantum;
+    uint64_t refusal_budget;
+    unsigned char current_valid;
+    unsigned char target_valid;
+    unsigned char move_pending;
+    unsigned char held;
+    unsigned char at_target;
+} tomoM1ActuationPlan;
+
+typedef struct tomoM1ActuationEvent {
+    int old_target_io;
+    int old_target_ex;
+    int prior_io;
+    int prior_ex;
+    int observed_expected_io;
+    int observed_expected_ex;
+    int expected_io;
+    int expected_ex;
+    int direction;
+    int landed_direction;
+    uint64_t settle_quantum;
+    uint64_t failures;
+    uint64_t refusal_budget;
+    const char *error;
+    unsigned char target_started;
+    unsigned char target_changed;
+    unsigned char landed;
+    unsigned char unexpected_shape;
+    unsigned char armed;
+    unsigned char arm_refused;
+    unsigned char move_aborted;
+    unsigned char hold_started;
+    unsigned char at_target;
+} tomoM1ActuationEvent;
+
 static tomoM1NodeState tomo_m1_nodes[TOMO_NODES_MAX];
 static tomoM1SlotBaseline tomo_m1_slot_baselines[TOMO_IO_THREADS_MAX + 1];
+static tomoM1ActuationPlan tomo_m1_actuation[TOMO_NODES_MAX];
 
 typedef struct tomoM1Published {
     _Atomic int target_io;
@@ -280,6 +331,10 @@ typedef struct tomoM1Published {
 
 static tomoM1Published tomo_m1_published[TOMO_NODES_MAX];
 static _Atomic int tomo_m1_trace;
+static _Atomic uint64_t tomo_m1_moves_total;
+static _Atomic uint64_t tomo_m1_target_changes;
+static _Atomic uint64_t tomo_m1_arm_refusals;
+static _Atomic uint64_t tomo_m1_holds;
 
 static void tomoM1Publish(int node, const tomoM1NodeState *state) {
     atomic_store_explicit(&tomo_m1_published[node].target_io, state->target_io,
@@ -337,6 +392,13 @@ void tomoM1InfoGet(tomoM1Info *info) {
                                      memory_order_relaxed),
         .depth = atomic_load_explicit(&tomo_m1_published[0].depth,
                                       memory_order_relaxed),
+        .moves_total = atomic_load_explicit(&tomo_m1_moves_total,
+                                            memory_order_relaxed),
+        .target_changes = atomic_load_explicit(&tomo_m1_target_changes,
+                                               memory_order_relaxed),
+        .arm_refusals = atomic_load_explicit(&tomo_m1_arm_refusals,
+                                             memory_order_relaxed),
+        .holds = atomic_load_explicit(&tomo_m1_holds, memory_order_relaxed),
     };
 }
 
@@ -390,7 +452,7 @@ static unsigned int tomoM1HysteresisTicks(const tomoM1NodeState *state,
     return 2U + (unsigned int)extra;
 }
 
-static void tomoM1FilterTarget(tomoM1NodeState *state, int role_threads) {
+static int tomoM1FilterTarget(tomoM1NodeState *state, int role_threads) {
     if (!state->target_valid) {
         state->target_io = state->raw.target_io;
         state->target_ex = state->raw.target_ex;
@@ -398,13 +460,13 @@ static void tomoM1FilterTarget(tomoM1NodeState *state, int role_threads) {
         state->pending_io = 0;
         state->pending_run = 0;
         state->pending_need = 0;
-        return;
+        return 0;
     }
     if (state->raw.target_io == state->target_io) {
         state->pending_io = 0;
         state->pending_run = 0;
         state->pending_need = 0;
-        return;
+        return 0;
     }
 
     if (state->pending_io != state->raw.target_io) {
@@ -420,7 +482,331 @@ static void tomoM1FilterTarget(tomoM1NodeState *state, int role_threads) {
         state->pending_io = 0;
         state->pending_run = 0;
         state->pending_need = 0;
+        return 1;
     }
+    return 0;
+}
+
+static uint64_t tomoM1RefusalBudget(uint64_t settle_ticks_last,
+                                    uint64_t *settle_quantum) {
+    /* Match the r10 liveness lesson: one measured settling span is the ordinary transient,
+     * and one more is retry margin. Before u1 has measured a landing, its existing subwindow
+     * cadence is the floor. This is a duration-derived budget, not a machine-size constant. */
+    uint64_t quantum = settle_ticks_last > TOMO_U1_SUBW_TICKS
+                     ? settle_ticks_last : TOMO_U1_SUBW_TICKS;
+    if (settle_quantum) *settle_quantum = quantum;
+    return quantum > UINT64_MAX / 2 ? UINT64_MAX : quantum * 2;
+}
+
+static void tomoM1ActuationResetFailures(tomoM1ActuationPlan *plan) {
+    plan->consecutive_failures = 0;
+    plan->refusal_quantum = 0;
+    plan->refusal_budget = 0;
+}
+
+static void tomoM1ActuationRefused(tomoM1ActuationPlan *plan,
+                                   tomoM1ActuationEvent *event,
+                                   uint64_t settle_ticks_last,
+                                   const char *error, int move_aborted) {
+    if (plan->consecutive_failures == 0)
+        plan->refusal_budget = tomoM1RefusalBudget(settle_ticks_last,
+                                                   &plan->refusal_quantum);
+    if (plan->consecutive_failures != UINT64_MAX)
+        plan->consecutive_failures++;
+
+    event->arm_refused = move_aborted == 0;
+    event->move_aborted = move_aborted != 0;
+    event->settle_quantum = plan->refusal_quantum;
+    event->failures = plan->consecutive_failures;
+    event->refusal_budget = plan->refusal_budget;
+    event->error = error;
+    if (plan->consecutive_failures > plan->refusal_budget) {
+        plan->held = 1;
+        event->hold_started = 1;
+    }
+}
+
+static void tomoM1ActuationPlanTick(tomoM1ActuationPlan *plan, int node,
+                                    int current_io, int current_ex,
+                                    int target_io, int target_ex,
+                                    uint64_t settle_ticks_last, int move_aborted,
+                                    tomoM1MoveRequest request_move, void *private_data,
+                                    tomoM1ActuationEvent *event) {
+    memset(event, 0, sizeof(*event));
+    if (!plan || current_io < 1 || current_ex < 1 ||
+        target_io < 1 || target_ex < 1)
+        return;
+
+    if (!plan->target_valid) {
+        plan->target_io = target_io;
+        plan->target_ex = target_ex;
+        plan->target_valid = 1;
+        event->target_started = 1;
+    } else if (plan->target_io != target_io || plan->target_ex != target_ex) {
+        event->old_target_io = plan->target_io;
+        event->old_target_ex = plan->target_ex;
+        event->target_changed = 1;
+        plan->target_io = target_io;
+        plan->target_ex = target_ex;
+        plan->held = 0;                 /* a held target may retry only on this edge */
+        plan->at_target = 0;
+        tomoM1ActuationResetFailures(plan);
+    }
+
+    if (!plan->current_valid) {
+        plan->current_io = current_io;
+        plan->current_ex = current_ex;
+        plan->current_valid = 1;
+    }
+
+    if (move_aborted && plan->move_pending) {
+        event->prior_io = plan->current_io;
+        event->prior_ex = plan->current_ex;
+        event->observed_expected_io = plan->expected_io;
+        event->observed_expected_ex = plan->expected_ex;
+        event->landed_direction = plan->pending_direction;
+        event->direction = plan->pending_direction;
+        plan->move_pending = 0;
+        plan->pending_direction = 0;
+        plan->current_io = current_io;
+        plan->current_ex = current_ex;
+        plan->at_target = 0;
+        if (current_io == plan->target_io && current_ex == plan->target_ex) {
+            tomoM1ActuationResetFailures(plan);
+            plan->at_target = 1;
+            event->at_target = 1;
+            event->move_aborted = 1;
+            return;
+        }
+        tomoM1ActuationRefused(plan, event, settle_ticks_last,
+                               "accepted conversion aborted before landing", 1);
+        return;                         /* retries start on a later owner tick */
+    }
+
+    if (plan->move_pending) {
+        if (current_io == plan->expected_io && current_ex == plan->expected_ex) {
+            event->prior_io = plan->current_io;
+            event->prior_ex = plan->current_ex;
+            event->landed_direction = plan->pending_direction;
+            event->landed = 1;
+            plan->move_pending = 0;
+            plan->pending_direction = 0;
+            plan->current_io = current_io;
+            plan->current_ex = current_ex;
+            plan->at_target = 0;
+            tomoM1ActuationResetFailures(plan);
+        } else if (current_io == plan->current_io && current_ex == plan->current_ex) {
+            return;                     /* the one accepted staged conversion is still in flight */
+        } else {
+            event->prior_io = plan->current_io;
+            event->prior_ex = plan->current_ex;
+            event->observed_expected_io = plan->expected_io;
+            event->observed_expected_ex = plan->expected_ex;
+            event->unexpected_shape = 1;
+            plan->move_pending = 0;
+            plan->pending_direction = 0;
+            plan->current_io = current_io;
+            plan->current_ex = current_ex;
+            plan->held = 0;
+            plan->at_target = 0;
+            tomoM1ActuationResetFailures(plan);
+        }
+    } else if (current_io != plan->current_io || current_ex != plan->current_ex) {
+        event->prior_io = plan->current_io;
+        event->prior_ex = plan->current_ex;
+        event->observed_expected_io = plan->current_io;
+        event->observed_expected_ex = plan->current_ex;
+        event->unexpected_shape = 1;
+        plan->current_io = current_io;
+        plan->current_ex = current_ex;
+        plan->held = 0;
+        plan->at_target = 0;
+        tomoM1ActuationResetFailures(plan);
+    }
+
+    if (current_io == plan->target_io && current_ex == plan->target_ex) {
+        if (!plan->at_target) event->at_target = 1;
+        plan->at_target = 1;
+        tomoM1ActuationResetFailures(plan);
+        return;                          /* thrash rule: exact target means zero requests */
+    }
+    plan->at_target = 0;
+    if (plan->held) return;
+
+    int direction = current_io < plan->target_io ? 1 : -1;
+    int expected_io = current_io + direction;
+    int expected_ex = current_ex - direction;
+    const char *error = "move callback unavailable";
+    event->direction = direction;
+    event->expected_io = expected_io;
+    event->expected_ex = expected_ex;
+    if (request_move && request_move(private_data, node, direction, &error)) {
+        plan->current_io = current_io;
+        plan->current_ex = current_ex;
+        plan->expected_io = expected_io;
+        plan->expected_ex = expected_ex;
+        plan->pending_direction = direction;
+        plan->move_pending = 1;
+        event->armed = 1;
+        return;
+    }
+    tomoM1ActuationRefused(plan, event, settle_ticks_last,
+                           error ? error : "unspecified refusal", 0);
+}
+
+typedef struct tomoM1ActuationSelfTestContext {
+    int io;
+    int ex;
+    int directions[TOMO_M1_SELFTEST_CASES];
+    unsigned int moves;
+} tomoM1ActuationSelfTestContext;
+
+static int tomoM1ActuationSelfTestMove(void *private_data, int node, int direction,
+                                       const char **err) {
+    UNUSED(node);
+    tomoM1ActuationSelfTestContext *context = private_data;
+    int next_io = context->io + (direction > 0 ? 1 : -1);
+    int next_ex = context->ex - (direction > 0 ? 1 : -1);
+    if (next_io < 1 || next_ex < 1 || context->moves >= TOMO_M1_SELFTEST_CASES) {
+        if (err) *err = "synthetic lattice edge";
+        return 0;
+    }
+    context->directions[context->moves++] = direction > 0 ? 1 : -1;
+    context->io = next_io;
+    context->ex = next_ex;
+    return 1;
+}
+
+static int tomoM1ActuationSelfTest(tomoM1SelfTestResult *result) {
+    /* The raw target alternates every tick after the initial io11 nomination. It never earns the
+     * filter's sustained-agreement requirement, so the actuation plan sees io11 throughout: three
+     * serialized io-ward requests from io8/ex8, then request-free holds at io11/ex5. */
+    static const int raw_flicker[] = {10, 12, 10, 12, 10, 12, 10, 12};
+    tomoM1NodeState filter = {
+        .raw = {.target_io = 11, .target_ex = 5},
+    };
+    (void)tomoM1FilterTarget(&filter, 16);
+
+    tomoM1ActuationPlan plan = {0};
+    tomoM1ActuationSelfTestContext context = {.io = 8, .ex = 8};
+    unsigned int landings = 0;
+    unsigned int held_ticks = 0;
+    unsigned int filtered_changes = 0;
+    for (unsigned int tick = 0;
+         tick < sizeof(raw_flicker) / sizeof(raw_flicker[0]); tick++) {
+        filter.raw.target_io = raw_flicker[tick];
+        filter.raw.target_ex = 16 - raw_flicker[tick];
+        filtered_changes += tomoM1FilterTarget(&filter, 16);
+
+        tomoM1ActuationEvent event;
+        tomoM1ActuationPlanTick(&plan, 0, context.io, context.ex,
+                                filter.target_io, filter.target_ex,
+                                TOMO_U1_SUBW_TICKS, 0,
+                                tomoM1ActuationSelfTestMove, &context, &event);
+        landings += event.landed;
+        if (context.io == filter.target_io && context.ex == filter.target_ex &&
+            !event.armed && !plan.move_pending)
+            held_ticks++;
+    }
+
+    int directions_ok = context.moves == 3;
+    for (unsigned int i = 0; i < context.moves && directions_ok; i++)
+        directions_ok = context.directions[i] == 1;
+    int passed = directions_ok && landings == 3 && held_ticks > 0 &&
+                 filtered_changes == 0 && filter.target_io == 11 &&
+                 filter.target_ex == 5 && context.io == 11 && context.ex == 5 &&
+                 !plan.move_pending;
+    *result = (tomoM1SelfTestResult) {
+        .name = "actuation-io8-to-io11-filter-flicker",
+        .expected_io = 11,
+        .expected_ex = 5,
+        .actual_io = context.io,
+        .actual_ex = context.ex,
+        .expected_moves = 3,
+        .actual_moves = context.moves,
+        .passed = passed,
+    };
+    return passed;
+}
+
+void tomoM1ActuationTick(int node, int current_io, int current_ex,
+                         uint64_t settle_ticks_last, int move_aborted,
+                         tomoM1MoveRequest request_move, void *private_data) {
+    if (server.thread_mode != TOMO_THREAD_MODE_MODEL ||
+        node < 0 || node >= TOMO_NODES_MAX || !tomo_m1_nodes[node].target_valid)
+        return;
+
+    tomoM1NodeState *model = &tomo_m1_nodes[node];
+    tomoM1ActuationEvent event;
+    tomoM1ActuationPlanTick(&tomo_m1_actuation[node], node, current_io, current_ex,
+                            model->target_io, model->target_ex,
+                            settle_ticks_last, move_aborted,
+                            request_move, private_data, &event);
+    int trace = atomic_load_explicit(&tomo_m1_trace, memory_order_relaxed) != 0;
+
+    if (event.target_changed) {
+        if (trace)
+            serverLog(LL_NOTICE,
+                      "[m1-act n%d] TARGET io%d/ex%d -> io%d/ex%d; current=io%d/ex%d",
+                      node, event.old_target_io, event.old_target_ex,
+                      model->target_io, model->target_ex, current_io, current_ex);
+    } else if (event.target_started && trace) {
+        serverLog(LL_NOTICE, "[m1-act n%d] TARGET initial io%d/ex%d; current=io%d/ex%d",
+                  node, model->target_io, model->target_ex, current_io, current_ex);
+    }
+    if (event.landed) {
+        atomic_fetch_add_explicit(&tomo_m1_moves_total, 1, memory_order_relaxed);
+        if (trace)
+            serverLog(LL_NOTICE,
+                      "[m1-act n%d] LANDED dir=%+d io%d/ex%d -> io%d/ex%d target=io%d/ex%d",
+                      node, event.landed_direction, event.prior_io, event.prior_ex,
+                      current_io, current_ex, model->target_io, model->target_ex);
+    }
+    if (event.unexpected_shape) {
+        serverLog(LL_WARNING,
+                  "[m1-act n%d] UNEXPECTED-SHAPE prior=io%d/ex%d expected=io%d/ex%d "
+                  "observed=io%d/ex%d; re-reading and continuing toward io%d/ex%d",
+                  node, event.prior_io, event.prior_ex,
+                  event.observed_expected_io, event.observed_expected_ex,
+                  current_io, current_ex, model->target_io, model->target_ex);
+    }
+    if (event.arm_refused)
+        atomic_fetch_add_explicit(&tomo_m1_arm_refusals, 1, memory_order_relaxed);
+    if (event.arm_refused || (event.move_aborted && event.failures != 0)) {
+        if (trace)
+            serverLog(LL_NOTICE,
+                      "[m1-act n%d] %s dir=%+d FAILED (%s) consecutive=%llu/%llu "
+                      "settle_quantum=%llu",
+                      node, event.move_aborted ? "ABORT" : "ARM", event.direction,
+                      event.error ? event.error : "unspecified refusal",
+                      (unsigned long long)event.failures,
+                      (unsigned long long)event.refusal_budget,
+                      (unsigned long long)event.settle_quantum);
+    } else if (event.move_aborted && trace) {
+        serverLog(LL_NOTICE,
+                  "[m1-act n%d] ABORT dir=%+d ended at target io%d/ex%d; no retry",
+                  node, event.landed_direction, current_io, current_ex);
+    }
+    if (event.hold_started) {
+        atomic_fetch_add_explicit(&tomo_m1_holds, 1, memory_order_relaxed);
+        serverLog(LL_WARNING,
+                  "[m1-act n%d] HOLD io%d/ex%d toward target io%d/ex%d after %llu "
+                  "consecutive arm failures exceeded budget=%llu (2 x settle quantum %llu); "
+                  "retrying only on the next filtered target change",
+                  node, current_io, current_ex, model->target_io, model->target_ex,
+                  (unsigned long long)event.failures,
+                  (unsigned long long)event.refusal_budget,
+                  (unsigned long long)event.settle_quantum);
+    }
+    if (event.armed && trace)
+        serverLog(LL_NOTICE,
+                  "[m1-act n%d] ARM dir=%+d io%d/ex%d -> io%d/ex%d target=io%d/ex%d",
+                  node, event.direction, current_io, current_ex,
+                  event.expected_io, event.expected_ex,
+                  model->target_io, model->target_ex);
+    if (event.at_target && trace)
+        serverLog(LL_NOTICE, "[m1-act n%d] HOLD at target io%d/ex%d; zero moves",
+                  node, current_io, current_ex);
 }
 
 void tomoM1ControllerTick(int node) {
@@ -500,7 +886,10 @@ void tomoM1ControllerTick(int node) {
     int role_threads = server.io_per_node + server.ex_per_node;
     if (tomoM1ModelCompute(state->mix, state->avg_keys, state->depth,
                            role_threads, server.io_uring != 0, &state->raw)) {
-        tomoM1FilterTarget(state, role_threads);
+        int target_changed = tomoM1FilterTarget(state, role_threads);
+        if (server.thread_mode == TOMO_THREAD_MODE_MODEL && target_changed)
+            atomic_fetch_add_explicit(&tomo_m1_target_changes, 1,
+                                      memory_order_relaxed);
         tomoM1Publish(node, state);
     }
     tomoM1TraceNode(node, state);

@@ -172,6 +172,7 @@ configEnum tomokv_thread_mode_enum[] = {
     {"auto", TOMO_THREAD_MODE_AUTO},        /* the controller may move the io/ex split */
     {"static", TOMO_THREAD_MODE_STATIC},    /* the boot split is held for the whole run */
     {"climb", TOMO_THREAD_MODE_CLIMB},      /* r8 jump, then r10 measured single-rung climb */
+    {"model", TOMO_THREAD_MODE_MODEL},      /* filtered m1 target owns staged conversions */
     {NULL, 0}
 };
 
@@ -3303,7 +3304,7 @@ standardConfig static_configs[] = {
      * newly created io thread is not a separate decision from flipping -- a flip that spawns an io
      * thread nobody routes to has done half a job, and the only reason to want the split was to
      * debug the actuator, which DEBUG TOMO-MODESHIFT already covers. It is therefore derived from
-     * tomokv-thread-mode: auto/climb => flip AND backfill, static => neither. Client-lb stays separate
+     * tomokv-thread-mode: auto/climb/model => flip AND backfill, static => neither. Client-lb stays separate
      * because it is genuinely a different question (continuous rebalancing on load skew, which is
      * useful with a STATIC split too). */
     createBoolConfig("tomokv-client-lb",             NULL, MODIFIABLE_CONFIG, server.tm_client_lb, 1, NULL, NULL), /* continuous connection balancer: moves conns off a SUSTAINED busy-outlier io thread, within a node, to a tolerance band. */

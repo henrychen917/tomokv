@@ -1531,10 +1531,12 @@ static const uint32_t TOMO_CLS_SLO[TOMO_SVC_CLASSES] = { 1, 1, 4, 64, 1024, 1638
  * split in every mode; the mode only decides whether the controller may move away from it.
  *   auto   — the flip controller / quorum balancer may shift the io<->ex boundary at runtime.
  *   static — the boot split is held for the life of the process (reproducible measurement).
- *   climb  — r8 jumps, then r10 measures single-rung neighbors and owns the final anchor. */
+ *   climb  — r8 jumps, then r10 measures single-rung neighbors and owns the final anchor.
+ *   model  — m1's filtered workload-model target owns staged single-rung conversions. */
 #define TOMO_THREAD_MODE_AUTO   0
 #define TOMO_THREAD_MODE_STATIC 1
 #define TOMO_THREAD_MODE_CLIMB  2
+#define TOMO_THREAD_MODE_MODEL  3
 
 /* ---- IO-utilisation observations -------------------------------------------
  * tmIoSignal.tm_work_us is explicitly bracketed productive IO work and is the ratio
@@ -3288,17 +3290,18 @@ struct redisServer {
     /* ee451 (thread-modes v1, step 2): the poly-thread apparatus — every tomokv thread runs
      * polyThreadMain with a preset mode. The pool is ALWAYS fully active: there is no reserve
      * thread, so the pool size is exactly io_threads + num_workers and a flip only ever moves
-     * the boundary between the two roles. DERIVED from tomokv-thread-mode (all three modes run
+     * the boundary between the two roles. DERIVED from tomokv-thread-mode (all four modes run
      * the poly threads; they differ only in whether and how the controller is allowed to
      * actuate). Not a user knob. */
     int poly_threads;
     /* (modeshift_test DELETED 2026-07-28 with the tomokv-modeshift-test knob: it was the
      * hand-driven mode-retarget used before the controller existed; nothing read it.) */
     /* tomokv-thread-mode: TOMO_THREAD_MODE_AUTO | TOMO_THREAD_MODE_STATIC |
-     * TOMO_THREAD_MODE_CLIMB. IMMUTABLE.
+     * TOMO_THREAD_MODE_CLIMB | TOMO_THREAD_MODE_MODEL. IMMUTABLE.
      * The ONE knob that decides whether the io/ex split may move at runtime. */
     int thread_mode;
-    /* ee451 (thread-modes step 4): the flip controller may ACTUATE. DERIVED: 1 for AUTO or CLIMB.
+    /* ee451 (thread-modes step 4): adaptive controller telemetry is active. DERIVED: 1 for AUTO,
+     * CLIMB, or MODEL (whose m1 owner gates r8's physical actuation at tmFlipDo).
      * 0 = no signal folding anywhere (every hook is behind this bool, so
      * the hot path pays one predicted branch) and the boot split from tomokv-thread-io/-ex is
      * held for the life of the process. Not a user knob. */

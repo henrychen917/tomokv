@@ -50,17 +50,28 @@ typedef struct tomoM1Info {
     double c_io;
     double c_ex;
     double depth;
+    uint64_t moves_total;
+    uint64_t target_changes;
+    uint64_t arm_refusals;
+    uint64_t holds;
 } tomoM1Info;
 
-#define TOMO_M1_SELFTEST_CASES 5
+#define TOMO_M1_SELFTEST_CASES 6
 typedef struct tomoM1SelfTestResult {
     const char *name;
     int expected_io;
     int expected_ex;
     int actual_io;
     int actual_ex;
+    unsigned int expected_moves;
+    unsigned int actual_moves;
     int passed;
 } tomoM1SelfTestResult;
+
+/* A successful callback return means one staged conversion was armed, not landed. The planner
+ * observes the paired io/ex role-count change on a later owner tick before requesting another. */
+typedef int (*tomoM1MoveRequest)(void *private_data, int node, int direction,
+                                const char **err);
 
 void tomoM1StampCommandClass(struct redisCommand *cmd);
 void tomoM1BatchDepthNote(unsigned int commands);
@@ -69,6 +80,9 @@ int tomoM1ModelCompute(const double mix[TOMO_M1_CLASS_COUNT],
                        double depth, int role_threads, int io_uring,
                        tomoM1ModelResult *result);
 void tomoM1ControllerTick(int node);
+void tomoM1ActuationTick(int node, int current_io, int current_ex,
+                         uint64_t settle_ticks_last, int move_aborted,
+                         tomoM1MoveRequest request_move, void *private_data);
 void tomoM1TraceSet(int enabled);
 int tomoM1TraceEnabled(void);
 void tomoM1InfoGet(tomoM1Info *info);

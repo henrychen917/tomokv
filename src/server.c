@@ -2282,6 +2282,7 @@ static void flatGroupSafeAdvance(void) {
 static void tomoFlipController(void);      /* the 4Hz auto flip controller (always-full-pool); defined below */
 static void tomoExSatStaticTick(monotime now_us); /* static-mode INFO observer; never actuates */
 static void tomoFlipSemiMainTick(monotime now_us);
+static void tmM1DriveActuator(int node);
 static int tmNodeOfWorker(int w);
 static int tmNodeOfIoSlot(int io_slot);
 static inline int tomoFlipIsNodeSemiMain(int io_slot);
@@ -4019,14 +4020,17 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
         run_with_period(1000) fakeRingAutoTune();
         run_with_period(250) tomoExSatStaticTick(cron_start);
 
-        /* ee451 (flip): the auto flip controller — ~4Hz sampling of the per-thread pressure
+        /* ee451 (flip): the adaptive controllers — ~4Hz sampling of the per-thread pressure
          * signals; moves the io/ex boundary by grow-front/grow-back on sustained front/back EWMA
-         * pressure (no-op unless tomokv-thread-mode auto/climb and there is flip headroom). A one-node
+         * pressure in auto/climb; MODEL keeps that telemetry but m1 alone actuates its filtered
+         * target. A one-node
          * server keeps the frozen main-thread path; multi-node sampling belongs to each semi-main. */
         if (tmNumNodes() == 1) {
             run_with_period(250) {
                 tomoFlipController();
                 if (server.thread_auto) tomoM1ControllerTick(0);
+                if (server.thread_mode == TOMO_THREAD_MODE_MODEL)
+                    tmM1DriveActuator(0);
             }
         } else {
             /* Multi-node cadence belongs to node 0's semi-main, not to the process-global
@@ -7796,12 +7800,14 @@ void initServer(void) {
      * ONE knob, so the "set both or the feature silently does nothing" trap cannot exist:
      *   auto   = poly threads + the r8 controller may actuate
      *   climb  = the same r8 path through anchor, followed by r10 measured climb ownership
+     *   model  = the same telemetry substrate, but m1's filtered target owns actuation
      *   static = poly threads, controller inert (the boot split is held for the whole run)
      * The poly-thread apparatus runs in every mode on purpose: auto-vs-static must be a clean A/B
      * of the CONTROLLER, not of two different execution models. */
     server.poly_threads = 1;
     server.thread_auto  = (server.thread_mode == TOMO_THREAD_MODE_AUTO ||
-                           server.thread_mode == TOMO_THREAD_MODE_CLIMB);
+                           server.thread_mode == TOMO_THREAD_MODE_CLIMB ||
+                           server.thread_mode == TOMO_THREAD_MODE_MODEL);
     /* Merged into thread-mode 2026-07-28 (was tomokv-flip-rebalance): a flip that creates an io
      * thread no connection is routed to has only done half the work, so backfill is part of
      * flipping, not a separate switch. */
@@ -7961,6 +7967,7 @@ void initServer(void) {
         serverLog(LL_NOTICE, "tomokv topology: %d node(s) x %d cores (io %d + ex %d per node) "
                   "=> io_threads=%d ex_threads=%d, thread-mode=%s, pin-mode=%s",
                   nodes, cpn, ipn, epn, server.io_threads, server.ex_threads,
+                  server.thread_mode == TOMO_THREAD_MODE_MODEL ? "model" :
                   server.thread_mode == TOMO_THREAD_MODE_CLIMB ? "climb" :
                   server.thread_auto ? "auto" : "static", tomoPinModeName(server.pin_mode));
     }
@@ -8089,6 +8096,7 @@ void initServer(void) {
                   "per node) => io_threads=%d ex_threads=%d wb_threads=%d, "
                   "thread-mode=%s, pin-mode=%s",
                   nodes, cpn, ipn, epn, wpn, io_total, ex_total, wb_total,
+                  server.thread_mode == TOMO_THREAD_MODE_MODEL ? "model" :
                   server.thread_mode == TOMO_THREAD_MODE_CLIMB ? "climb" :
                   server.thread_auto ? "auto" : "static",
                   tomoPinModeName(server.pin_mode));
@@ -8139,6 +8147,7 @@ void initServer(void) {
                              "1 io (main) + %d convertible workers; boot split io %d / ex %d applied "
                              "by birthing workers %d..%d in IO mode. Reachable range io 1..%d "
                              "(both directions, from any boot split).",
+                  server.thread_mode == TOMO_THREAD_MODE_MODEL ? "model" :
                   server.thread_mode == TOMO_THREAD_MODE_CLIMB ? "climb" : "auto",
                   pool, server.ex_threads, server.tm_boot_io_live, server.tm_boot_w_live,
                   server.tm_boot_w_live, server.ex_threads - 1, pool - 1);
@@ -8183,6 +8192,7 @@ void initServer(void) {
                   "tomokv thread-mode %s: PER-NODE SYMMETRIC POOL — %d nodes x %d threads: "
                   "1 base io + %d convertible workers/node; boot split io %d / ex %d per node. "
                   "Reachable range per node io 1..%d (both directions).",
+                  server.thread_mode == TOMO_THREAD_MODE_MODEL ? "model" :
                   server.thread_mode == TOMO_THREAD_MODE_CLIMB ? "climb" : "auto",
                   nodes, pool_per_node, provisioned_wpn, boot_ipn, boot_epn,
                   pool_per_node - 1);
@@ -23236,9 +23246,10 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             r10_info.anchor_io_n1,
             (unsigned long long)r10_info.cmp_better,
             (unsigned long long)r10_info.cmp_flat);
-        /* m1 is shadow-only: these are atomic publications from the node controller owners.
-         * Target slots expose the first two topology nodes requested by the experiment; the
-         * unsuffixed cost/depth gauges are node 0, while every node remains visible in M1TRACE. */
+        /* m1 targets/costs are atomic publications from the node controller owners. Target slots
+         * expose the first two topology nodes requested by the experiment; the unsuffixed
+         * cost/depth gauges are node 0. Actuation witnesses are process totals and remain zero
+         * outside MODEL mode; every node's decisions remain visible in M1TRACE. */
         tomoM1Info m1_info;
         tomoM1InfoGet(&m1_info);
         info = sdscatprintf(info,
@@ -23246,12 +23257,20 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_m1_target_io_n1:%d\r\n"
             "tomokv_m1_cio:%.6f\r\n"
             "tomokv_m1_cex:%.6f\r\n"
-            "tomokv_m1_depth:%.6f\r\n",
+            "tomokv_m1_depth:%.6f\r\n"
+            "tomokv_m1_moves_total:%llu\r\n"
+            "tomokv_m1_target_changes:%llu\r\n"
+            "tomokv_m1_arm_refusals:%llu\r\n"
+            "tomokv_m1_holds:%llu\r\n",
             m1_info.target_io_n0,
             m1_info.target_io_n1,
             m1_info.c_io,
             m1_info.c_ex,
-            m1_info.depth);
+            m1_info.depth,
+            (unsigned long long)m1_info.moves_total,
+            (unsigned long long)m1_info.target_changes,
+            (unsigned long long)m1_info.arm_refusals,
+            (unsigned long long)m1_info.holds);
         if (tmNumNodes() > 1) {
             for (int node = 0; node < tmNumNodes() && node < TOMO_NODES_MAX; node++) {
                 info = sdscatprintf(info, "tomokv_node_%d_key_lb_runs:%llu\r\n",
@@ -30013,7 +30032,7 @@ int tomoMigrateTest(int val, const char **err) {
  * (io ingress saturated while the workers have slack) -> grow-front; BACK pressure (workers
  * saturated while io has slack) -> grow-back. Signals are IO-thread + worker busy% utilization,
  * with a Schmitt sustain and a post-flip settle cooldown; the flip actuators enforce the per-role
- * bounds. No-op unless tomokv-thread-mode auto/climb. */
+ * bounds. In model mode the body still folds telemetry, while tmFlipDo refuses every r8 arm. */
 /* Per-node flip actuators (topo_nodes>=2). Defined below; see the node-scoped implementations. */
 
 /* ---- Logical NODE model for per-node flipping (2026-07-22 user directive: EWMA hot-key + client
@@ -30321,6 +30340,8 @@ static void tomoFlipSemiMainTick(monotime now_us) {
     atomic_fetch_add_explicit(&tomo_flip_node_ticks[node], 1, memory_order_relaxed);
     tomoFlipController();
     tomoM1ControllerTick(node);
+    if (server.thread_mode == TOMO_THREAD_MODE_MODEL)
+        tmM1DriveActuator(node);
 }
 
 /* Key-LB has the same immutable per-node owner as flip, but an independent 1 Hz cadence. Each
@@ -30705,7 +30726,7 @@ static void tomoExSatStaticTick(monotime now_us) {
     }
 }
 
-/* Try the physical flip in `dir` (+1 front / -1 back) for `node`. Both controllers reach this
+/* Try the physical flip in `dir` (+1 front / -1 back) for `node`. All controller owners reach this
  * same staged single-thread actuator; ownership is selected by the wrappers immediately below. */
 static int tmFlipActuate(int node, int dir, const char **err) {
     int armed = tmNumNodes() == 1
@@ -30720,6 +30741,10 @@ static int tmFlipActuate(int node, int dir, const char **err) {
  * is active is refused here; the first request after ANCHORED is r8's already-sustained
  * band/demand wake, which re-arms r8 and is allowed through as the first move of the next jump. */
 static int tmFlipDo(int node, int dir, const char **err) {
+    if (server.thread_mode == TOMO_THREAD_MODE_MODEL) {
+        if (err) *err = "m1 model target owns the role-conversion actuator";
+        return 0;
+    }
     if (server.thread_mode == TOMO_THREAD_MODE_CLIMB &&
         node >= 0 && node < TM_MAXNODE && tomoR10OwnsActuator(&r10ctl[node])) {
         if (r10ctl[node].state != TOMO_R10_ANCHORED) {
@@ -30738,6 +30763,36 @@ static int tmR10RequestMove(void *private_data, int node, int direction,
                             const char **err) {
     UNUSED(private_data);
     return tmFlipActuate(node, direction, err);
+}
+
+/* Model ownership mirrors r10: its pure planner requests exactly one direction step through a
+ * callback, while this server-owned adapter alone knows the physical actuator. tmFlipDo remains
+ * the single r8 gate, so none of r8's decision sites needs a MODEL branch. */
+static int tmM1RequestMove(void *private_data, int node, int direction,
+                           const char **err) {
+    UNUSED(private_data);
+    tmFlipAbortClear(node);
+    return tmFlipActuate(node, direction, err);
+}
+
+static void tmM1DriveActuator(int node) {
+    if (server.thread_mode != TOMO_THREAD_MODE_MODEL ||
+        node < 0 || node >= tmNumNodes() || node >= TOMO_NODES_MAX)
+        return;
+    /* Role counts are an endpoint only after the staged converter releases its claim. In
+     * particular, grow-front delists EX before publishing IO; sampling that half-move would look
+     * like an unexpected external shape and could arm a second request before the first landed. */
+    if (tmFlipActive()) return;
+    int current_io = tmNumNodes() == 1
+                   ? atomic_load_explicit(&server.io_threads_live, memory_order_acquire)
+                   : atomic_load_explicit(&server.tm_node_iolive[node], memory_order_acquire);
+    int current_ex = tmNumNodes() == 1
+                   ? atomic_load_explicit(&server.num_workers_live, memory_order_acquire)
+                   : atomic_load_explicit(&server.tm_node_wlive[node], memory_order_acquire);
+    int move_aborted = tmFlipAbortConsume(node);
+    tomoM1ActuationTick(node, current_io, current_ex,
+                        tomoU1SettleTicksLast(node), move_aborted,
+                        tmM1RequestMove, NULL);
 }
 
 static void tmR10BeginEpisode(int node, flipCtlState *fc, int ni, int ne) {
