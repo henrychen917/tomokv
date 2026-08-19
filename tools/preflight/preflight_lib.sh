@@ -164,11 +164,13 @@ preflight_assert_standard_boot() { # server-log server-pid [io-per-node ex-per-n
   echo "BOOT-PIN PASS: 2x16c, certified role map, $n role threads wholly on cores 0-31"
 }
 
-preflight_flip_verdict() { # server-log phase-start-epoch phase-end-epoch
+preflight_flip_verdict() { # server-log phase-start-epoch phase-end-epoch [auto|climb|model]
   # Port of scratchpad/movelog.py. Only completed role moves count. Search before the
   # first >=30 s quiet gap is not thrash. A move after such a gap is the sole thrash
   # verdict; lacking 45 s of terminal quiet means the observation window was too short.
-  python3 - "$1" "$2" "$3" <<'PY'
+  # CLIMB/MODEL callers prefer their controller lifecycle markers; callers that omit mode
+  # retain the original quiet-gap inference byte-for-byte.
+  python3 - "$1" "$2" "$3" "${4:-auto}" <<'PY'
 import datetime as dt
 import locale
 import re
@@ -178,31 +180,129 @@ SETTLE_S = 30.0
 TERM_S = 45.0
 locale.setlocale(locale.LC_TIME, 'C')
 path, start_s, end_s = sys.argv[1], float(sys.argv[2]), float(sys.argv[3])
-pat = re.compile(r'(\d+ \w+ \d+ \d+:\d+:\d+\.\d+) \* ee451 flip: GROW-(?:FRONT|BACK) complete')
+mode = sys.argv[4].lower()
+stamp_pat = re.compile(r'(\d+ \w+ \d+ \d+:\d+:\d+\.\d+)')
+move_pat = re.compile(r'(\d+ \w+ \d+ \d+:\d+:\d+\.\d+) \* ee451 flip: GROW-(?:FRONT|BACK) complete')
+r10_begin_pat = re.compile(r'\[r10 n(\d+)\] BEGIN\b')
+r10_anchor_pat = re.compile(r'\[r10 n(\d+)\] ANCHOR(?:ED)?\b', re.IGNORECASE)
+m1_change_pat = re.compile(r'\[m1-act n(\d+)\] target-changed\b', re.IGNORECASE)
+m1_reached_pat = re.compile(r'\[m1-act n(\d+)\] target-reached\b', re.IGNORECASE)
 moves = []
+move_events = []
+r10_events = []
+m1_events = []
+order = 0
 with open(path, errors='replace') as src:
     for line in src:
-        match = pat.search(line)
-        if not match:
+        stamp_match = stamp_pat.search(line)
+        if not stamp_match:
             continue
         try:
-            stamp = dt.datetime.strptime(match.group(1), '%d %b %Y %H:%M:%S.%f').timestamp()
+            stamp = dt.datetime.strptime(stamp_match.group(1), '%d %b %Y %H:%M:%S.%f').timestamp()
         except ValueError:
             continue
-        if start_s <= stamp <= end_s:
+        order += 1
+        move_match = move_pat.search(line)
+        if move_match and start_s <= stamp <= end_s:
             moves.append(stamp)
+            move_events.append((stamp, order, 'move', -1))
+        match = r10_begin_pat.search(line)
+        if match and start_s <= stamp <= end_s:
+            r10_events.append((stamp, order, 'begin', int(match.group(1))))
+        match = r10_anchor_pat.search(line)
+        if match and start_s <= stamp <= end_s:
+            r10_events.append((stamp, order, 'anchor', int(match.group(1))))
+        match = m1_change_pat.search(line)
+        if match and start_s <= stamp <= end_s:
+            m1_events.append((stamp, order, 'change', int(match.group(1))))
+        match = m1_reached_pat.search(line)
+        if match and start_s <= stamp <= end_s:
+            m1_events.append((stamp, order, 'reached', int(match.group(1))))
 
-gaps = [b - a for a, b in zip(moves, moves[1:])]
-post_stable = sum(1 for gap in gaps if gap >= SETTLE_S)
-last = moves[-1] if moves else start_s
-terminal = max(0.0, end_s - last)
-span = (moves[-1] - moves[0]) if len(moves) > 1 else 0.0
-if post_stable:
-    verdict = 'SETTLE_THEN_MOVED'
-elif terminal >= TERM_S:
-    verdict = 'STABILIZED_CLEAN'
+def emit_quiet_gap():
+    gaps = [b - a for a, b in zip(moves, moves[1:])]
+    post_stable = sum(1 for gap in gaps if gap >= SETTLE_S)
+    last = moves[-1] if moves else start_s
+    terminal = max(0.0, end_s - last)
+    span = (moves[-1] - moves[0]) if len(moves) > 1 else 0.0
+    if post_stable:
+        verdict = 'SETTLE_THEN_MOVED'
+    elif terminal >= TERM_S:
+        verdict = 'STABILIZED_CLEAN'
+    else:
+        verdict = 'STILL_SEARCHING'
+    print(f'{verdict}\t{len(moves)}\t{span:.3f}\t{terminal:.3f}\t{post_stable}')
+
+def emit_marker_verdict(search_moves, post_moves, stable_at, open_episode):
+    span = (search_moves[-1] - search_moves[0]) if len(search_moves) > 1 else 0.0
+    if post_moves:
+        terminal_from = post_moves[-1]
+    elif stable_at is not None:
+        terminal_from = max(start_s, stable_at)
+    else:
+        terminal_from = search_moves[-1] if search_moves else start_s
+    terminal = max(0.0, end_s - terminal_from)
+    if post_moves:
+        verdict = 'SETTLE_THEN_MOVED'
+    elif open_episode:
+        verdict = 'STILL_SEARCHING'
+    elif terminal >= TERM_S:
+        verdict = 'STABILIZED_CLEAN'
+    else:
+        verdict = 'STILL_SEARCHING'
+    print(f'{verdict}\t{len(moves)}\t{span:.3f}\t{terminal:.3f}\t{len(post_moves)}')
+
+if mode == 'climb' and r10_events:
+    # A completed r10 episode owns every move through its final ANCHOR, even when settle-clean
+    # windows put >30 s between those search moves. A later completed move is controller-certified
+    # post-anchor movement. If any node's final BEGIN is still open, the window is search-in-progress.
+    state = {}
+    anchors = []
+    for stamp, _, kind, node in r10_events:
+        prior = state.setdefault(node, {'begin': None, 'anchor': None, 'open': False})
+        if kind == 'begin':
+            prior['begin'] = stamp
+            prior['open'] = True
+        else:
+            prior['anchor'] = stamp
+            prior['open'] = False
+            anchors.append(stamp)
+    open_episode = any(value['open'] for value in state.values())
+    if open_episode:
+        # The terminal controller state is authoritative: no post-stable era exists yet.
+        emit_marker_verdict(moves, [], None, True)
+    elif anchors:
+        stable_at = max(anchors)
+        emit_marker_verdict([move for move in moves if move <= stable_at],
+                            [move for move in moves if move > stable_at],
+                            stable_at, False)
+    else:
+        emit_marker_verdict(moves, [], None, True)
+elif mode == 'model' and m1_events:
+    # Merge target lifecycle edges with completed moves. A move while any node is travelling
+    # toward a changed target is search. Once all announced targets are reached, later unowned
+    # moves are post-stabilization thrash. An unfinished target episode remains STILL_SEARCHING.
+    timeline = list(m1_events) + move_events
+    timeline.sort(key=lambda item: (item[0], item[1]))
+    active = {}
+    stable_at = None
+    search_moves = []
+    post_moves = []
+    for stamp, _, kind, node in timeline:
+        if kind == 'change':
+            active[node] = True
+            continue
+        if kind == 'reached':
+            active[node] = False
+            if active and not any(active.values()):
+                stable_at = stamp
+            continue
+        if any(active.values()) or stable_at is None:
+            search_moves.append(stamp)
+        else:
+            post_moves.append(stamp)
+    emit_marker_verdict(search_moves, post_moves, stable_at, any(active.values()))
 else:
-    verdict = 'STILL_SEARCHING'
-print(f'{verdict}\t{len(moves)}\t{span:.3f}\t{terminal:.3f}\t{post_stable}')
+    emit_quiet_gap()
 PY
 }

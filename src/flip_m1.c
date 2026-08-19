@@ -765,13 +765,12 @@ void tomoM1ActuationTick(int node, int current_io, int current_ex,
     int trace = atomic_load_explicit(&tomo_m1_trace, memory_order_relaxed) != 0;
 
     if (event.target_changed) {
-        if (trace)
-            serverLog(LL_NOTICE,
-                      "[m1-act n%d] TARGET io%d/ex%d -> io%d/ex%d; current=io%d/ex%d",
-                      node, event.old_target_io, event.old_target_ex,
-                      model->target_io, model->target_ex, current_io, current_ex);
-    } else if (event.target_started && trace) {
-        serverLog(LL_NOTICE, "[m1-act n%d] TARGET initial io%d/ex%d; current=io%d/ex%d",
+        serverLog(LL_NOTICE,
+                  "[m1-act n%d] target-changed io%d/ex%d -> io%d/ex%d; current=io%d/ex%d",
+                  node, event.old_target_io, event.old_target_ex,
+                  model->target_io, model->target_ex, current_io, current_ex);
+    } else if (event.target_started) {
+        serverLog(LL_NOTICE, "[m1-act n%d] target-changed initial io%d/ex%d; current=io%d/ex%d",
                   node, model->target_io, model->target_ex, current_io, current_ex);
     }
     if (event.landed) {
@@ -824,8 +823,8 @@ void tomoM1ActuationTick(int node, int current_io, int current_ex,
                   node, event.direction, current_io, current_ex,
                   event.expected_io, event.expected_ex,
                   model->target_io, model->target_ex);
-    if (event.at_target && trace)
-        serverLog(LL_NOTICE, "[m1-act n%d] HOLD at target io%d/ex%d; zero moves",
+    if (event.at_target)
+        serverLog(LL_NOTICE, "[m1-act n%d] target-reached io%d/ex%d; zero moves",
                   node, current_io, current_ex);
 }
 

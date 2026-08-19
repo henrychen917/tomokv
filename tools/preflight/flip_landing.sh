@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # flip_landing.sh — 2x16c fixed-workload landing/convergence gate.
 #
-# Owner contract (2026-08-17): search moves are not thrash. A completed move after
-# a >=30 s quiet gap is thrash; a terminal >=45 s quiet interval is a clean landing;
-# anything else gets one 2x-window observation and remains INCONCLUSIVE-lengthen.
+# Owner contract (2026-08-17): search moves are not thrash. Auto infers the search boundary
+# from a >=30 s quiet gap. Climb/model prefer their explicit anchor/target lifecycle markers,
+# so long settle gaps inside an owned episode remain search. A terminal >=45 s anchored/quiet
+# interval is a clean landing; anything else gets one 2x-window observation and remains
+# INCONCLUSIVE-lengthen.
 # Throughput is an INFO total_commands_processed delta taken only after a certified
 # clean landing. Every comparison reference is measured here, on the same binary:
 # the landed static split and its +/-1 neighbours (plus the measured starting hint).
@@ -236,6 +238,21 @@ rate_from() { # counter0 epoch0 counter1 epoch1
 ratio() { awk -v a="$1" -v b="$2" 'BEGIN{if(b<=0)print "0.0000"; else printf "%.4f",a/b}'; }
 ratio_at_least() { awk -v a="$1" -v b="$2" -v f="${3:-0.95}" 'BEGIN{exit !(b>0 && a/b>=f)}'; }
 
+controller_info_lines() {
+    timeout 5 "$CLI" -p "$PORT" info all 2>/dev/null | tr -d '\r' |
+        awk '/^tomokv_(r10|m1)_/{print}'
+}
+
+dump_controller_info() { # cell captured-info
+    local cell=$1 info=$2
+    printf '# controller-info cell=%s\n' "$cell" | tee -a "$OUT"
+    if [ -n "$info" ]; then
+        printf '%s\n' "$info" | tee -a "$OUT"
+    else
+        printf '# controller-info unavailable\n' | tee -a "$OUT"
+    fi
+}
+
 measure_static() { # cell kind io uring -> STATIC_RATE
     local cell=$1 kind=$2 io=$3 uring=$4 ex=$((16 - io)) c0 c1 t0 t1
     STATIC_RATE=
@@ -256,12 +273,14 @@ measure_static() { # cell kind io uring -> STATIC_RATE
 
 run_cell() { # cell workload starting-io uring
     local cell=$1 kind=$2 hint_io=$3 uring=${4:-1} window=240 retry=0
+    local mode=${TOMO_FLIP_MODE:-auto} controller_info=
     local phase_start phase_end parsed move_verdict moves span terminal post vector
     local c0 c1 t0 t1 auto_rate= candidates io ex ref_rate refs= best_rate=0 best_io=0 r
     case "$kind" in get_p1|set_p1) window=120 ;; esac
+    if [ "$mode" = climb ]; then window=$((window * 2)); fi
 
     workload_args "$kind" || { blocking_fail "$cell" "unknown workload $kind" "known workload"; return; }
-    boot "${cell}_auto" "${TOMO_FLIP_MODE:-auto}" 8 8 "$uring" || return
+    boot "${cell}_auto" "$mode" 8 8 "$uring" || return
     fill_dataset "${cell}_auto" "$kind" || {
         blocking_fail "$cell" "dataset fill failed; log=$SRV_LOG" "complete in-suite dataset"
         stop_server; return
@@ -274,7 +293,7 @@ run_cell() { # cell workload starting-io uring
         stop_load; stop_server; return
     fi
     phase_end=$(date +%s.%N)
-    parsed=$(preflight_flip_verdict "$SRV_LOG" "$phase_start" "$phase_end") || parsed=
+    parsed=$(preflight_flip_verdict "$SRV_LOG" "$phase_start" "$phase_end" "$mode") || parsed=
     IFS=$'\t' read -r move_verdict moves span terminal post <<< "$parsed"
     # Only a clean landing opens the INFO-delta steady-state window. Keep the same memtier
     # process/connections alive; restarting it would change the workload the controller owns.
@@ -289,7 +308,7 @@ run_cell() { # cell workload starting-io uring
                 stop_load; stop_server; return
             fi
             phase_end=$(date +%s.%N)
-            parsed=$(preflight_flip_verdict "$SRV_LOG" "$phase_start" "$phase_end") || parsed=
+            parsed=$(preflight_flip_verdict "$SRV_LOG" "$phase_start" "$phase_end" "$mode") || parsed=
             IFS=$'\t' read -r move_verdict moves span terminal post <<< "$parsed"
             continue
         fi
@@ -299,7 +318,7 @@ run_cell() { # cell workload starting-io uring
                 c1=$(command_count); t1=$(date +%s.%N)
                 auto_rate=$(rate_from "$c0" "$t0" "$c1" "$t1") || auto_rate=
                 phase_end=$t1
-                parsed=$(preflight_flip_verdict "$SRV_LOG" "$phase_start" "$phase_end") || parsed=
+                parsed=$(preflight_flip_verdict "$SRV_LOG" "$phase_start" "$phase_end" "$mode") || parsed=
                 IFS=$'\t' read -r move_verdict moves span terminal post <<< "$parsed"
                 if [ "$move_verdict" = STILL_SEARCHING ] && [ "$retry" -eq 0 ]; then
                     auto_rate=
@@ -310,14 +329,17 @@ run_cell() { # cell workload starting-io uring
         break
     done
     vector=$(node_vector 2>/dev/null || true)
+    controller_info=$(controller_info_lines 2>/dev/null || true)
     if [ -z "$move_verdict" ] || [ -z "$vector" ]; then
         blocking_fail "$cell" "unreadable move timestamps or terminal split; parsed=${parsed:-none} vector=${vector:-none}" \
             "timestamp verdict and two-node INFO vector"
+        dump_controller_info "$cell" "$controller_info"
         stop_load; stop_server; return
     fi
     stop_load
     server_alive || {
         blocking_fail "$cell" "server died after auto observation; log=$SRV_LOG" "live server"
+        dump_controller_info "$cell" "$controller_info"
         stop_server; return
     }
     stop_server
@@ -342,6 +364,7 @@ run_cell() { # cell workload starting-io uring
         else
             blocking_fail "$cell" "static discovery failed at io${io}/ex${ex}; logs=$WORK" \
                 "valid landed/neighbor in-suite reference"
+            dump_controller_info "$cell" "$controller_info"
             return
         fi
     done
@@ -379,6 +402,7 @@ run_cell() { # cell workload starting-io uring
             ;;
         *) blocking_fail "$cell" "$observed" "$expected" ;;
     esac
+    dump_controller_info "$cell" "$controller_info"
 }
 
 if dependency_check; then
