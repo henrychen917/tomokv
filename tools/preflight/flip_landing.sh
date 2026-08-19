@@ -261,7 +261,7 @@ run_cell() { # cell workload starting-io uring
     case "$kind" in get_p1|set_p1) window=120 ;; esac
 
     workload_args "$kind" || { blocking_fail "$cell" "unknown workload $kind" "known workload"; return; }
-    boot "${cell}_auto" auto 8 8 "$uring" || return
+    boot "${cell}_auto" "${TOMO_FLIP_MODE:-auto}" 8 8 "$uring" || return
     fill_dataset "${cell}_auto" "$kind" || {
         blocking_fail "$cell" "dataset fill failed; log=$SRV_LOG" "complete in-suite dataset"
         stop_server; return
