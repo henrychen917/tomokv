@@ -996,6 +996,18 @@ NULL
             node = owner / server.ex_per_node;
         }
         addReplyLongLong(c, node);
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-p1direct") && c->argc == 3) {
+        /* DEBUG TOMO-P1DIRECT <0|1> -- master toggle for the p1 DIRECT-CLIENT mode,
+         * DEFAULTING ON. 0 forces every conn onto the fake path WITHOUT mutating per-conn
+         * mode state, so re-enabling restores the population instantly: this is the A/B
+         * lever the validation battery flips between arms (same class as TOMO-FLIPTRACE:
+         * a test hook, not a tunable — deliberately not a config knob). In-flight DIRECT
+         * commands complete normally; the toggle only gates NEW dispatches and mode
+         * transitions, so flipping it under load is always safe. */
+        long on;
+        if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
+        atomic_store_explicit(&tomo_p1direct_enabled, on != 0, memory_order_relaxed);
+        addReplyStatus(c, on != 0 ? "p1direct ON" : "p1direct OFF (all-FC)");
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-fliptrace") && c->argc == 3) {
         /* DEBUG TOMO-FLIPTRACE <0|1> -- dense per-tick flip-controller trace. Test hook, same
          * class as TOMO-MODESHIFT: no default, no steady-state behaviour, just turns the firehose

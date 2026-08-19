@@ -21195,6 +21195,40 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             atomic_load_explicit(&tomo_atomic_cutover_fence_wait_us, memory_order_relaxed),
             atomic_load_explicit(&tomo_atomic_stale_owner_ops, memory_order_relaxed),
             atomic_load_explicit(&tomo_atomic_stale_owner_prunes, memory_order_relaxed));
+        /* p1direct witnesses: per-io-thread owner-written slots, folded here (COLD path —
+         * one pass over the io identity lines). INVARIANT at quiesce: dispatches ==
+         * handbacks; a lasting gap IS the wedge signature (parsed+dispatched, argv held,
+         * events unarmed, conn starved forever) — the wedge-scan reads exactly this pair.
+         * The deferral counters prove their gates OPENED (vacuous-validation rule): a
+         * migration-under-flight or kill-under-flight cell that ends with these at zero
+         * proved nothing. */
+        {
+            tomoP1DirectStats p1d = {0, 0, 0, 0, 0, 0, 0, 0};
+            for (int t = 0; t <= TOMO_IO_THREADS_MAX; t++) {
+                p1d.dispatches            += tomo_p1d_stats[t].dispatches;
+                p1d.handbacks             += tomo_p1d_stats[t].handbacks;
+                p1d.mode_to_fc            += tomo_p1d_stats[t].mode_to_fc;
+                p1d.mode_to_direct        += tomo_p1d_stats[t].mode_to_direct;
+                p1d.deferred_cron_touches += tomo_p1d_stats[t].deferred_cron_touches;
+                p1d.deferred_migrations   += tomo_p1d_stats[t].deferred_migrations;
+                p1d.deferred_kills        += tomo_p1d_stats[t].deferred_kills;
+                p1d.spill_fallbacks       += tomo_p1d_stats[t].spill_fallbacks;
+            }
+            info = sdscatprintf(info,
+                "tomokv_p1direct_enabled:%d\r\n"
+                "tomokv_p1direct_dispatches:%llu\r\n"
+                "tomokv_p1direct_handbacks:%llu\r\n"
+                "tomokv_p1direct_mode_to_fc:%llu\r\n"
+                "tomokv_p1direct_mode_to_direct:%llu\r\n"
+                "tomokv_p1direct_deferred_cron_touches:%llu\r\n"
+                "tomokv_p1direct_deferred_migrations:%llu\r\n"
+                "tomokv_p1direct_deferred_kills:%llu\r\n"
+                "tomokv_p1direct_spill_fallbacks:%llu\r\n",
+                atomic_load_explicit(&tomo_p1direct_enabled, memory_order_relaxed),
+                p1d.dispatches, p1d.handbacks, p1d.mode_to_fc, p1d.mode_to_direct,
+                p1d.deferred_cron_touches, p1d.deferred_migrations,
+                p1d.deferred_kills, p1d.spill_fallbacks);
+        }
         info = sdscatprintf(info, FMTARGS(
             "tomokv_flip_anchor_captures:%lu\r\n",
                 atomic_load_explicit(&tomo_flip_anchor_captures, memory_order_relaxed),

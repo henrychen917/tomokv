@@ -2045,6 +2045,9 @@ typedef struct tomoP1DirectStats {
 _Static_assert(sizeof(tomoP1DirectStats) == CACHE_LINE_SIZE,
                "p1direct witness slot must occupy exactly one owner line");
 extern tomoP1DirectStats tomo_p1d_stats[TOMO_IO_THREADS_MAX + 1];
+/* Master toggle (DEBUG TOMO-P1DIRECT <0|1>, default ON; 0 forces all-FC without touching
+ * per-conn mode state — the validation A/B lever). Deliberately NOT a config knob. */
+extern _Atomic int tomo_p1direct_enabled;
 /* Non-io callers (a killer thread recording intent from a cold teardown path) fold
  * into slot 0; the guard keeps a worker-range iotid from indexing out of bounds. */
 #define TOMO_P1D_BUMP(fieldname) do { \

@@ -257,10 +257,11 @@ if [ -s "$WORK/baseline.info" ] && [ -s "$WORK/candidate.info" ]; then
   # Consolidation-deliberate INFO surface changes vs the pre-unification 219ec74cc baseline:
   # the atomic ship stack replaced its counter set (old commit_wait/stamp_full fields removed,
   # owner-epoch/prune/reclaim/read-slow fields added), the decref-race fence added its witness
-  # counter, the prefetch knob deletion removed the io/ex prefetch counters, and the uring p1
-  # ceremony witnesses add five explicitly named counters. Anything OUTSIDE these named sets is
-  # still drift and still fails.
-  grep -vE '^tomokv_wb_|^tomokv_atomic_(commit_ts|commit_ts_lag|owner_epochs_queued|owner_pending|owner_pending_max|owner_versions_queued|prune_batch_allocs|prune_node_allocs|prune_qsbr_wait_passes|prune_snapshot_wait_passes|read_slow_gate_closed_other|read_slow_inflight_conflict|reclaim_bytes|reclaim_limit|reclaim_pressure|reclaim_stalls|reclaim_worker_bytes|reclaim_worker_max|stragglers|window_effective)$|^tomokv_freeback_stale_owner_drains$|^tomokv_uring2_(p1_batch_harvests|recv_ceremony_batched_ops|send_ceremony_batches|send_ceremony_batched_ops|sqe_template_hits)$' \
+  # counter, the prefetch knob deletion removed the io/ex prefetch counters, the uring p1
+  # ceremony witnesses add five explicitly named counters, and the p1 DIRECT-CLIENT mode adds
+  # its enabled flag plus eight explicitly named witnesses (dispatches==handbacks is the
+  # wedge-scan invariant pair). Anything OUTSIDE these named sets is still drift and still fails.
+  grep -vE '^tomokv_wb_|^tomokv_atomic_(commit_ts|commit_ts_lag|owner_epochs_queued|owner_pending|owner_pending_max|owner_versions_queued|prune_batch_allocs|prune_node_allocs|prune_qsbr_wait_passes|prune_snapshot_wait_passes|read_slow_gate_closed_other|read_slow_inflight_conflict|reclaim_bytes|reclaim_limit|reclaim_pressure|reclaim_stalls|reclaim_worker_bytes|reclaim_worker_max|stragglers|window_effective)$|^tomokv_freeback_stale_owner_drains$|^tomokv_uring2_(p1_batch_harvests|recv_ceremony_batched_ops|send_ceremony_batches|send_ceremony_batched_ops|sqe_template_hits)$|^tomokv_p1direct_(enabled|dispatches|handbacks|mode_to_fc|mode_to_direct|deferred_cron_touches|deferred_migrations|deferred_kills|spill_fallbacks)$' \
     "$WORK/added.keys" > "$WORK/unexpected-added.keys" || true
   grep -vE '^tomokv_atomic_(commit_wait_drains|stamp_full)$|^tomokv_prefetch_(ex|io)_xnode_issued$|^tomo_prefetch_issued$' \
     "$WORK/removed.keys" > "$WORK/unexpected-removed.keys" || true
