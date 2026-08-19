@@ -9288,36 +9288,42 @@ int processCommand(client *c) {
      * A lost handback here reproduces the captured wedge signature (parsed+dispatched, argv
      * held, events unarmed, conn starved forever) — which is why the witnesses below carry
      * the dispatches==handbacks quiesce invariant. */
-    if (__builtin_expect(atomic_load_explicit(&tomo_p1direct_enabled,
-                                              memory_order_relaxed), 1) &&
-        ct->p1d_mode == TOMO_P1D_DIRECT) {
-        if (core_eligible && tomoP1DirectCleanNow(c, ct)) {
-            int ex_id = getWorkerForCommand(c);   /* stamps tomo_bkt/tomo_bkt_ptr/tomo_key_h */
-            c->cdb = cdbIndexFor(ex_id);
-            c->fake_slot = ct->dispatchid & ct->ring_mask;   /* ready-byte slot the drain consumes */
-            c->db = &server.exThreads[ex_id].db[c->db->id];  /* worker-shard rebind; undone at handback */
-            /* EX_OWNED window opens here; both flags must be visible to the worker via the
-             * dispatch publish (exQueuePush release store) — set them BEFORE the push. */
-            c->flags |= CLIENT_EX_PENDING | CLIENT_PIPELINE_STALLED;
-            ct->p1d_inflight = 1;
-            TOMO_P1D_BUMP(dispatches);
-            /* Ring is empty (CleanNow) => this conn is never on the flush-walk list yet. */
-            listLinkNodeTail(server.clients_pending_ex[iotid], &ct->clients_pending_ex_node);
-            replyWorking++;
-            exDispatchPush(ex_id, c);
-            ct->dispatchid++;
-            return C_OK;
+    if (ct->p1d_mode == TOMO_P1D_DIRECT) {
+        /* Mode byte first (same tail line the hwm update above already dirtied); the
+         * toggle — a shared read-mostly line — is never loaded by a pipelined (FC-mode)
+         * conn. Toggle off: no dispatch AND no mode mutation (the A/B lever must not
+         * bleach the population it will re-measure). */
+        if (__builtin_expect(atomic_load_explicit(&tomo_p1direct_enabled,
+                                                  memory_order_relaxed), 1)) {
+            if (core_eligible && tomoP1DirectCleanNow(c, ct)) {
+                int ex_id = getWorkerForCommand(c);   /* stamps tomo_bkt/tomo_bkt_ptr/tomo_key_h */
+                c->cdb = cdbIndexFor(ex_id);
+                c->fake_slot = ct->dispatchid & ct->ring_mask;   /* ready-byte slot the drain consumes */
+                c->db = &server.exThreads[ex_id].db[c->db->id];  /* worker-shard rebind; undone at handback */
+                /* EX_OWNED window opens here; both flags must be visible to the worker via
+                 * the dispatch publish (exQueuePush release store) — set BEFORE the push. */
+                c->flags |= CLIENT_EX_PENDING | CLIENT_PIPELINE_STALLED;
+                ct->p1d_inflight = 1;
+                TOMO_P1D_BUMP(dispatches);
+                /* Ring is empty (CleanNow) => this conn is not on the flush-walk list. */
+                listLinkNodeTail(server.clients_pending_ex[iotid], &ct->clients_pending_ex_node);
+                replyWorking++;
+                exDispatchPush(ex_id, c);
+                ct->dispatchid++;
+                return C_OK;
+            }
+            /* Owner rule "switch to fc mode when detect pipe" — DIRECT -> FC is INSTANT
+             * and covers both triggers: a non-eligible command (core_eligible == 0) and a
+             * pipe signature (CleanNow == 0: a 2nd complete command behind this one, an
+             * undecoded querybuf tail, a previous reply not yet flushed, an in-flight
+             * execution, or a disqualifying flag). The safe direction: THIS command takes
+             * the existing fake path below, immediately. */
+            ct->p1d_mode = TOMO_P1D_FC;
+            ct->p1d_streak = 0;
+            TOMO_P1D_BUMP(mode_to_fc);
         }
-        /* Owner rule "switch to fc mode when detect pipe" — DIRECT -> FC is INSTANT and
-         * covers both triggers: a non-eligible command (core_eligible == 0) and a pipe
-         * signature (CleanNow == 0: a 2nd complete command behind this one, an undecoded
-         * querybuf tail, a previous reply not yet flushed, an in-flight execution, or a
-         * disqualifying flag). The safe direction: THIS command takes the existing fake
-         * path below, immediately. */
-        ct->p1d_mode = TOMO_P1D_FC;
-        ct->p1d_streak = 0;
-        TOMO_P1D_BUMP(mode_to_fc);
-    } else if (__builtin_expect(atomic_load_explicit(&tomo_p1direct_enabled,
+    } else if (core_eligible && tomoP1DirectCleanNow(c, ct) &&
+               __builtin_expect(atomic_load_explicit(&tomo_p1direct_enabled,
                                                      memory_order_relaxed), 1)) {
         /* FC -> DIRECT hysteresis: only after TOMO_P1D_SUSTAIN consecutive clean singleton
          * parse rounds with zero in-flight fakes (the same predicate a DIRECT dispatch
@@ -9328,20 +9334,22 @@ int processCommand(client *c) {
          * DEEP-PIPE BUDGET: on a pipelined conn this arm costs the mode-byte test plus
          * CleanNow's FIRST compare (dispatchid != flushid — both values this path already
          * loaded for the hwm update above) for 15 of 16 commands in a p16 batch; only the
-         * batch head reaches the second test (ready_len). The streak byte shares the
-         * dispatchid line and is written only when it must change (a saturated-zero streak
-         * on a busy pipe never stores). */
-        if (core_eligible && tomoP1DirectCleanNow(c, ct)) {
-            if (ct->p1d_streak >= TOMO_P1D_SUSTAIN - 1) {
-                ct->p1d_mode = TOMO_P1D_DIRECT;
-                ct->p1d_streak = 0;
-                TOMO_P1D_BUMP(mode_to_direct);
-            } else {
-                ct->p1d_streak++;
-            }
-        } else if (ct->p1d_streak) {
+         * batch head reaches the second test (ready_len), and the toggle line is loaded
+         * only on a fully CLEAN round (p1-shaped traffic). The streak byte shares the
+         * dispatchid line and is written only when it must change (a saturated-zero
+         * streak on a busy pipe never stores). */
+        if (ct->p1d_streak >= TOMO_P1D_SUSTAIN - 1) {
+            ct->p1d_mode = TOMO_P1D_DIRECT;
             ct->p1d_streak = 0;
+            TOMO_P1D_BUMP(mode_to_direct);
+        } else {
+            ct->p1d_streak++;
         }
+    } else if (ct->p1d_streak) {
+        ct->p1d_streak = 0;   /* a non-clean round breaks the run. (Toggle-off rounds also
+                               * land here and zero it: promotions are disabled, and the
+                               * run restarts honestly after re-enable — per-conn MODE is
+                               * what the A/B lever preserves, not a half-counted run.) */
     }
     unsigned int fslot = ct->dispatchid & ct->ring_mask;
     /* 2s-auto D3: lazy-create the ring slot on first use (createClient leaves every slot NULL).
