@@ -284,6 +284,28 @@ run_checks() {
     fi
     server_alive || { fail atomic_on_liveness "server not alive after atomic probe" "PONG"; return; }
 
+    # DISCRIMINATING CONTROL for the D.1 straddle memo (owner vacuous-validation doctrine):
+    # atomic stays ON but per-command memoization is disabled — under the unlatched fetch_add
+    # clock this arm MUST tear, proving the suite can see the hazard class the memo closes.
+    # Gated by env so pre-D.1 binaries (no TOMO-ATOMICMEMO subcommand) skip cleanly.
+    if [ "${TOMO_MEMO_CONTROL_ARM:-0}" = 1 ]; then
+        memo_reply=$(timeout 5 "$CLI" -p "$PORT" debug tomo-atomicmemo 0 2>/dev/null | tr -d '\r')
+        case "$memo_reply" in
+        *ERR*|"")
+            fail atomic_memo_control "DEBUG TOMO-ATOMICMEMO reply=${memo_reply:-none}" "toggle accepted" ;;
+        *)
+            run_atomicity_probe atomic_memo_off
+            if [ "${PROBE_RC:-1}" = 0 ] && [ "${PROBE_TORN:-0}" -gt 0 ]; then
+                pass atomic_memo_control "torn=$PROBE_TORN with memo disabled; $PROBE_LINE" "torn >0 (memo is load-bearing)"
+            else
+                fail atomic_memo_control "rc=${PROBE_RC:-?} torn=${PROBE_TORN:-0}; window may not have opened" "torn >0 with memo off"
+            fi
+            timeout 5 "$CLI" -p "$PORT" debug tomo-atomicmemo 1 >/dev/null 2>&1
+            server_alive || { fail atomic_memo_liveness "server not alive after memo-control probe" "PONG"; return; }
+            ;;
+        esac
+    fi
+
     msx_rc=0
     timeout --signal=TERM --kill-after=5 45 taskset -c "$LOAD_CORES" \
         python3 "$SD/msetnx_race.py" "$PORT" 5 8 > "$WORK/msetnx_p0.log" 2>&1 || msx_rc=$?
