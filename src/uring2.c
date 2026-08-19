@@ -141,6 +141,7 @@ struct tomoUring2Client {
     /* Every SEND references only this IO-owned copy.  c->buf retains the
      * logical bytes until the data CQE advances sentlen, but its allocation
      * and every worker-owned reply/value may be retired independently. */
+    struct io_uring_sqe send_sqe_template;
     char *send_scratch;
     uint64_t send_token;
     uint64_t send_cancel_token;
@@ -293,9 +294,10 @@ static void tomoUring2RegrowSlots(tomoUring2Thread *st) {
     st->slot_count = new_count;
 }
 
-static struct io_uring_sqe *tomoUring2GetSqe(
+static struct io_uring_sqe *tomoUring2GetSqeFromImage(
     tomoUring2Thread *st, tomoUring2Completion *callback, void *owner,
-    tomoUring2OpKind kind, uint64_t *token) {
+    tomoUring2OpKind kind, uint64_t *token,
+    const struct io_uring_sqe *image) {
     if (st->free_slot == TOMO_URING2_NO_SLOT)
         tomoUring2RegrowSlots(st);
 
@@ -308,7 +310,10 @@ static struct io_uring_sqe *tomoUring2GetSqe(
         sqe = io_uring_get_sqe(&st->ring);
         if (!sqe) tomoUring2Fatal(st, "SQE after emergency submit", ENOSPC);
     }
-    memset(sqe, 0, sizeof(*sqe));
+    if (image)
+        memcpy(sqe, image, sizeof(*sqe));
+    else
+        memset(sqe, 0, sizeof(*sqe));
 
     uint32_t index = st->free_slot;
     tomoUring2CallbackSlot *slot = &st->slots[index];
@@ -328,6 +333,12 @@ static struct io_uring_sqe *tomoUring2GetSqe(
     io_uring_sqe_set_data64(sqe, *token);
     URING2_STAT_BUMP(st, sqes_staged, 1);
     return sqe;
+}
+
+static inline struct io_uring_sqe *tomoUring2GetSqe(
+    tomoUring2Thread *st, tomoUring2Completion *callback, void *owner,
+    tomoUring2OpKind kind, uint64_t *token) {
+    return tomoUring2GetSqeFromImage(st, callback, owner, kind, token, NULL);
 }
 
 static void tomoUring2ArmRemove(tomoUring2Thread *st,
@@ -714,11 +725,13 @@ static int tomoUring2StageSends(tomoUring2Thread *st) {
         tomoUring2Client *uc = ready[i];
 
         uint64_t token = 0;
-        struct io_uring_sqe *sqe = tomoUring2GetSqe(
-            st, tomoUring2SendCqe, uc, TOMO_URING2_OP_SEND, &token);
+        struct io_uring_sqe *sqe = tomoUring2GetSqeFromImage(
+            st, tomoUring2SendCqe, uc, TOMO_URING2_OP_SEND, &token,
+            &uc->send_sqe_template);
         size_t remaining = uc->send_len - uc->send_off;
-        io_uring_prep_send(sqe, uc->fd, uc->send_scratch + uc->send_off,
-                           remaining, MSG_NOSIGNAL);
+        serverAssert(remaining <= UINT32_MAX);
+        sqe->addr = (uint64_t)(uintptr_t)(uc->send_scratch + uc->send_off);
+        sqe->len = (uint32_t)remaining;
         uc->send_token = token;
         uc->send_submitted = 1;
         uc->send_main_seen = 0;
@@ -1661,6 +1674,8 @@ static int tomoUring2ClientAttach(client *c) {
     uc->owner = st;
     uc->owner_tid = iotid;
     uc->fd = c->conn->fd;
+    io_uring_prep_send(&uc->send_sqe_template, uc->fd, NULL, 0,
+                       MSG_NOSIGNAL);
     uc->recv_state = TOMO_URING2_RECV_IDLE;
     uc->mode = TOMO_URING2_CLIENT_RUN;
     uc->cancel_seen = 1;
