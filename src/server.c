@@ -23120,6 +23120,9 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             atomic_read_slow_gate_closed_other += tomoRelaxedRead(
                 server.kstat[_t].atomic_read_slow_gate_closed_other);
         }
+        unsigned long long atomic_read_slow_reason_samples =
+            atomic_read_slow_inflight_conflict / 64ULL +
+            atomic_read_slow_gate_closed_other / 64ULL;
         info = sdscatprintf(info, "# Stats\r\n" FMTARGS(
             "tomokv_flat_batches_closed:%llu\r\n", (unsigned long long)atomic_load_explicit(&flat_batches_closed_n, memory_order_relaxed),
             "tomokv_flat_batches_freed:%llu\r\n", (unsigned long long)atomic_load_explicit(&flat_batches_freed_n, memory_order_relaxed),
@@ -23209,6 +23212,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 atomic_read_slow_inflight_conflict,
             "tomokv_atomic_read_slow_gate_closed_other:%llu\r\n",
                 atomic_read_slow_gate_closed_other,
+            "tomokv_atomic_read_slow_reason_samples:%llu\r\n",
+                atomic_read_slow_reason_samples,
             "tomokv_atomic_ownread_reads:%llu\r\n", orr,
             "tomokv_atomic_ownread_pending:%llu\r\n", orp,
             "tomokv_atomic_ownread_held:%llu\r\n", orh,

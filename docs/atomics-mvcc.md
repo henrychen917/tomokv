@@ -226,8 +226,13 @@ semantics.
 
 INFO reports `tomokv_atomic_read_fast` and `tomokv_atomic_read_slow`. The slow count is partitioned
 by `tomokv_atomic_read_slow_inflight_conflict` and
-`tomokv_atomic_read_slow_gate_closed_other`; raw values and misses are intentionally outside both
-fast/slow counters, so the fast count demonstrates that the version-bag gate actually fired.
+`tomokv_atomic_read_slow_gate_closed_other`. Reason classification deterministically samples one
+in every 64 slow reads per thread from the exact slow-counter ordinal and adds a weight of 64 to
+the selected class, avoiding a diagnostic second bag walk on the other 63 reads. The reason values
+are therefore scaled population estimates; `tomokv_atomic_read_slow_reason_samples` reports the
+unscaled selected population and witnesses that classification actually ran. Raw values and misses
+are intentionally outside both fast/slow counters, so the fast count demonstrates that the
+version-bag gate actually fired.
 
 ## Retirement and backpressure
 

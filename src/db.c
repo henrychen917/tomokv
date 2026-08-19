@@ -377,12 +377,28 @@ static int tomoVersionBagHasInflightConflict(kvobj *head) {
     return 0;
 }
 
+#define TOMO_ATOMIC_SLOW_REASON_SAMPLE_WEIGHT 64ULL
+#define TOMO_ATOMIC_SLOW_REASON_SAMPLE_MASK \
+    (TOMO_ATOMIC_SLOW_REASON_SAMPLE_WEIGHT - 1ULL)
+
 static inline void tomoAtomicReadSlow(kvobj *head, int gate_closed_other) {
-    tomoRelaxedBump(server.kstat[iotid].atomic_read_slow, 1);
+    /* Reason splitting is diagnostic only, and finding "inflight" used to require a second full
+     * dependent bag walk on every gate-closed slow read. Derive a deterministic 1/64 sample from
+     * this thread's exact slow-read ordinal: no clock read, RNG, shared state, or extra counter.
+     * Weight the selected class by 64 so the two reason counters remain population estimates;
+     * atomic_read_slow itself remains exact. Sampling ordinal zero makes even a short validation
+     * produce a non-vacuous witness when it reaches this path. */
+    unsigned long long ordinal =
+        tomoRelaxedRead(server.kstat[iotid].atomic_read_slow);
+    tomoRelaxedSet(server.kstat[iotid].atomic_read_slow, ordinal + 1);
+    if ((ordinal & TOMO_ATOMIC_SLOW_REASON_SAMPLE_MASK) != 0) return;
+
     if (!gate_closed_other && tomoVersionBagHasInflightConflict(head))
-        tomoRelaxedBump(server.kstat[iotid].atomic_read_slow_inflight_conflict, 1);
+        tomoRelaxedBump(server.kstat[iotid].atomic_read_slow_inflight_conflict,
+                        TOMO_ATOMIC_SLOW_REASON_SAMPLE_WEIGHT);
     else
-        tomoRelaxedBump(server.kstat[iotid].atomic_read_slow_gate_closed_other, 1);
+        tomoRelaxedBump(server.kstat[iotid].atomic_read_slow_gate_closed_other,
+                        TOMO_ATOMIC_SLOW_REASON_SAMPLE_WEIGHT);
 }
 
 kvobj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
