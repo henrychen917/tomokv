@@ -257,8 +257,12 @@ if [ -s "$WORK/baseline.info" ] && [ -s "$WORK/candidate.info" ]; then
   # Allowlisted additions: WB observability plus the atomdiet2 witness counters
   # (each atomdiet2 mechanism ships its INFO witness in the same commit).
   grep -vE '^(tomokv_wb_|tomokv_atomic_stamp_fold_|tomokv_atomic_vmeta_pool_|tomokv_atomic_bucket_carry_)' "$WORK/added.keys" > "$WORK/unexpected-added.keys" || true
-  if [ -s "$WORK/removed.keys" ] || [ -s "$WORK/unexpected-added.keys" ]; then
-    fail "INFO key-set drift outside allowlisted additions: removed=$(tr '\n' ',' < "$WORK/removed.keys") added=$(tr '\n' ',' < "$WORK/unexpected-added.keys")"
+  # Allowlisted removals: tomokv_atomic_commit_ts_lag died with the D.1 commit-publication
+  # latch (its CAS-max maintenance WAS the serialization being removed; a frozen-zero gauge
+  # would be a vacuous witness).
+  grep -vE '^(tomokv_atomic_commit_ts_lag)$' "$WORK/removed.keys" > "$WORK/unexpected-removed.keys" || true
+  if [ -s "$WORK/unexpected-removed.keys" ] || [ -s "$WORK/unexpected-added.keys" ]; then
+    fail "INFO key-set drift outside allowlisted additions: removed=$(tr '\n' ',' < "$WORK/unexpected-removed.keys") added=$(tr '\n' ',' < "$WORK/unexpected-added.keys")"
   else
     pass "INFO key set matches baseline modulo allowlisted observability"
   fi

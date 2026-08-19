@@ -739,16 +739,20 @@ static inline void exPauseCpu(void);   /* defined far below; csPushSpin needs it
 static inline void tomoPollingYield(void);
 static int csOwnerPublishStep(exThread *worker);
 
-/* Commit-time MVCC clock. The low bit is a writer-only publication latch and the high bits are
- * the last fully published timestamp. Readers never wait: an odd value still exposes the prior
- * high-bit snapshot. Only a group's last shard reaches the latch, after the acq_rel decrement
- * chain has acquired every eager owner-local index release. It stores the shared commit marker
- * first and advances the visible clock second, so a snapshot can include either all shards or
- * none. No reader or writer waits for another shard; a non-last owner simply returns to work. */
+/* Commit-time MVCC clock — D.1 UNLATCHED. A plain monotone counter of ASSIGNED commit
+ * timestamps: a group's last shard takes ts = fetch_add+1 (relaxed RMW) and release-stores the
+ * group's shared marker immediately. There is no publication latch, no odd/even encoding, no
+ * spin and no second store, so concurrent last-owners never serialize against each other.
+ * CONSEQUENCE: the counter is an UPPER BOUND over published markers — a reader that samples
+ * T = counter may still observe marker==0 for a group whose ts <= T (the marker store has not
+ * landed yet). Snapshot readers make that legal with the per-command straddle memo
+ * (kvobjVersionAt): the first verdict taken for a commit record is frozen for the rest of that
+ * command's resolution, so the visibility predicate stays stable without any writer-side wait.
+ * Frontier consumers (csOwnerPublishStep, csMsetnxHasOtherReservation, pin floors) already treat
+ * a zero marker conservatively, so an in-flight assignment is never mistaken for published. */
 static struct { _Atomic uint64_t v; char pad[CACHE_LINE_SIZE - sizeof(_Atomic uint64_t)]; }
     commit_clock_line __attribute__((aligned(CACHE_LINE_SIZE)));
 #define commit_clock (commit_clock_line.v)
-static _Atomic unsigned long long tomo_atomic_commit_ts_lag;
 static _Atomic unsigned long long tomo_atomic_stragglers;
 
 /* Atomic-MSET admission. `inflight` is the reservation word for both finite and unlimited
@@ -1016,7 +1020,10 @@ void tomoAtomicOwnerCheck(struct tomoVerMeta *vmeta, int executing_owner,
 }
 
 uint64_t tomoCommittedSeq(void) {
-    return atomic_load_explicit(&commit_clock, memory_order_acquire) >> 1;
+    /* D.1: the counter carries ASSIGNED timestamps, not published markers. T is an upper
+     * bound: a group with ts <= T may still have marker==0 for a moment; snapshot readers
+     * freeze that verdict per command (straddle memo) instead of waiting on a latch. */
+    return atomic_load_explicit(&commit_clock, memory_order_acquire);
 }
 
 uint64_t tomoCurrentReadSnapshot(void) {
@@ -13347,33 +13354,19 @@ static void csAtomicSetDestinationRouting(csGroup *g, robj *dst) {
     g->head->tomo_bkt_ptr = dst->ptr;
 }
 
-/* Serialize only the nanoscopic shared-timestamp publication interval. The high bits remain the
- * last fully published timestamp while the low bit is odd, so readers continue without waiting.
- * This is the r3 last-owner assignment: there is no elected thread and no ready-group hop. */
+/* D.1 unlatched commit publication — the r3 last-owner assignment with the publication latch
+ * REMOVED. ts assignment is one relaxed fetch_add (never contended-spun) and atomicity is the
+ * single release store of the group marker: every owner's partial index publication is already
+ * complete but remains invisible while commit_ts is zero. Publications of concurrent groups may
+ * now land in any order relative to their timestamps; readers repair the only interleaving that
+ * matters (a marker with ts <= their sampled T landing mid-command) with the per-command
+ * straddle memo instead of this thread ever waiting. */
 static uint64_t tomoCommitClockAdvance(tomoCommit *commit) {
-    uint64_t state = atomic_load_explicit(&commit_clock, memory_order_relaxed);
-    int spins = 0;
-    for (;;) {
-        if (!(state & 1)) {
-            uint64_t latched = state | 1;
-            if (atomic_compare_exchange_weak_explicit(&commit_clock, &state, latched,
-                                                       memory_order_acq_rel,
-                                                       memory_order_relaxed))
-                break;
-        } else {
-            exPauseCpu();
-            if ((++spins & 4095) == 0) tomoPollingYield();
-            state = atomic_load_explicit(&commit_clock, memory_order_acquire);
-        }
-    }
-
-    uint64_t previous = state >> 1;
-    serverAssert(previous < (UINT64_MAX >> 1));
+    uint64_t previous = atomic_fetch_add_explicit(&commit_clock, 1,
+                                                  memory_order_relaxed);
+    serverAssert(previous < TOMO_VERSION_UNCOMMITTED - 1);
     uint64_t commit_ts = previous + 1;
-    /* Atomicity is this one release store. Every owner's partial index publication is already
-     * complete but remains invisible while commit_ts is zero. */
     atomic_store_explicit(&commit->commit_ts, commit_ts, memory_order_release);
-    atomic_store_explicit(&commit_clock, commit_ts << 1, memory_order_release);
     return commit_ts;
 }
 
@@ -13381,13 +13374,10 @@ static void tomoCommitLagObserve(csGroup *g, uint64_t commit_ts) {
     serverAssert(commit_ts > g->commit_start_ts);
     unsigned long long lag = commit_ts - g->commit_start_ts - 1;
     if (lag == 0) return;
+    /* D.1: the CAS-max lag gauge is gone with the latch — it was itself a contended
+     * cross-owner RMW on the hot last-owner path. The straggler count survives: it still
+     * witnesses that concurrent last-owner completion overlap actually occurs. */
     atomic_fetch_add_explicit(&tomo_atomic_stragglers, 1, memory_order_relaxed);
-    unsigned long long old = atomic_load_explicit(&tomo_atomic_commit_ts_lag,
-                                                  memory_order_relaxed);
-    while (lag > old &&
-           !atomic_compare_exchange_weak_explicit(&tomo_atomic_commit_ts_lag, &old, lag,
-                                                  memory_order_relaxed,
-                                                  memory_order_relaxed)) { }
 }
 
 /* Terminal publication has no key walk on the last owner. It folds the bounded owner-record array,
@@ -13594,11 +13584,12 @@ static int csOwnerPublishStep(exThread *worker) {
      * Snapshot only this runnable list population so one unready record is
      * rotated at most once even when thousands of old epochs are frontier-held. */
     unsigned int budget = list->list_count;
-    /* Freeze the marker frontier for this pass. The clock acquire carries every
-     * marker at or below published, so none of those loads can appear as stale
-     * zero below. Records that commit during this pass necessarily get a later
-     * timestamp and remain for the next retire batch. This keeps each worker's
-     * O(1) FIFO eligibility timestamps nondecreasing without a heap or sort. */
+    /* Freeze the assigned-ts frontier for this pass. D.1: the counter no longer carries
+     * markers — a record with ts <= published can still read as a stale zero below; that
+     * record simply rotates and retires on a later pass (conservative, never premature).
+     * Late-landing markers also mean per-lane batch eligibility timestamps are no longer
+     * strictly nondecreasing; flatDrainReadyBatches' prefix-stop remains conservative-
+     * correct against that, so do not reintroduce ordering here. */
     uint64_t published = tomoCommittedSeq();
     int progressed = 0;
     for (unsigned int i = 0; i < budget; i++) {
@@ -23220,7 +23211,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             }
         }
         info = sdscatprintf(info,
-            "tomokv_atomic_commit_ts_lag:%llu\r\n"
+            /* D.1: tomokv_atomic_commit_ts_lag was deleted with the publication latch — its
+             * CAS-max maintenance was itself a cross-owner serialization on the commit path. */
             "tomokv_atomic_stragglers:%llu\r\n"
             "tomokv_atomic_window_effective:%d\r\n"
             "tomokv_atomic_reclaim_limit:%zu\r\n"
@@ -23242,7 +23234,6 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_atomic_vmeta_pool_hits:%llu\r\n"
             "tomokv_atomic_vmeta_pool_recycles:%llu\r\n"
             "tomokv_atomic_bucket_carry_hits:%llu\r\n",
-            atomic_load_explicit(&tomo_atomic_commit_ts_lag, memory_order_relaxed),
             atomic_load_explicit(&tomo_atomic_stragglers, memory_order_relaxed),
             tomoAtomicWindowResolved(), tomoAtomicReclaimLimitResolved(),
             atomic_reclaim_pooled, atomic_reclaim_worker_bytes,
