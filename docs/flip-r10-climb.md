@@ -35,6 +35,21 @@ starts a fresh J+C episode; during quiet the signal only watches, never moves.
 An idle boundary anchors in place with zero moves; a non-idle workload shift remains bounded by
 the per-state backstop and starts a fresh measurement era through the normal post-anchor r8 re-arm.
 
+## First work and idle hysteresis
+
+Boot and every sustained idle period arm one immediate search. Two consecutive loaded controller
+samples (about 0.5 seconds at 4 Hz) establish the idle-to-serving transition. That transition primes
+only r8's existing cadence gates and invokes its decision on that confirming sample, so its
+direction, jump distance, stop conditions, and throughput judge are unchanged; if r8 requests no
+jump, r10 begins C0-C2 at the held boot split immediately.
+While r10 is active it remains the sole shape authority.
+
+Idle is deliberately harder to establish: eight consecutive empty controller samples (about two
+seconds, using r8's existing no-retired-work/no-queue/no-ingress `node_idle` observation) are required
+to re-arm. A shorter traffic gap leaves the node in the same serving era and cannot start a second
+search. A server that receives no loaded sample never transitions and never searches.
+`tomokv_flip_first_work_searches` counts the per-node transitions that invoked this path.
+
 ## Laws honored
 * No tables, no machine constants: improvement threshold = u1a paired-window sign test against
   the live A/A sigma; settle detected, never assumed; windows are the u1a sub-window cadence.

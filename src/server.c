@@ -112,6 +112,51 @@ static _Atomic unsigned long long tomo_flip_recoveries;
 static _Atomic unsigned long long tomo_flip_forced_moves;
 static _Atomic unsigned long long tomo_flip_mode_changes;
 static _Atomic unsigned long long tomo_flip_conservation_violations;
+static _Atomic unsigned long long tomo_flip_first_work_searches;
+
+/* A traffic era is deliberately asymmetric: two loaded 4 Hz samples (~0.5s) confirm that a real
+ * workload arrived, while eight consecutive idle samples (~2s) are required to re-arm. Thus boot
+ * traffic starts promptly, but a scheduler hiccup or a short client think-time gap cannot turn one
+ * workload into repeated searches. The gate is independent per node because each node owns its
+ * own r8/r10 controller and signal stream. */
+#define TOMO_FLIP_FIRST_WORK_ACTIVE_TICKS 2
+#define TOMO_FLIP_FIRST_WORK_IDLE_TICKS   8
+typedef struct tomoFlipFirstWorkGate {
+    unsigned int active_run;
+    unsigned int idle_run;
+    int serving;
+} tomoFlipFirstWorkGate;
+static tomoFlipFirstWorkGate tomo_flip_first_work_gate[TOMO_NODES_MAX];
+
+static int tomoFlipFirstWorkTick(tomoFlipFirstWorkGate *gate, int has_work) {
+    if (!gate) return 0;
+    if (has_work) {
+        gate->idle_run = 0;
+        if (gate->serving) {
+            gate->active_run = 0;
+            return 0;
+        }
+        if (gate->active_run < TOMO_FLIP_FIRST_WORK_ACTIVE_TICKS)
+            gate->active_run++;
+        if (gate->active_run < TOMO_FLIP_FIRST_WORK_ACTIVE_TICKS) return 0;
+        gate->active_run = 0;
+        gate->serving = 1;
+        return 1;
+    }
+
+    gate->active_run = 0;
+    if (!gate->serving) {
+        gate->idle_run = 0;       /* boot is already an armed idle era */
+        return 0;
+    }
+    if (gate->idle_run < TOMO_FLIP_FIRST_WORK_IDLE_TICKS)
+        gate->idle_run++;
+    if (gate->idle_run >= TOMO_FLIP_FIRST_WORK_IDLE_TICKS) {
+        gate->idle_run = 0;
+        gate->serving = 0;
+    }
+    return 0;
+}
 
 /* FLIP is callable from any IO owner while each node's controller runs on its semi-main. This
  * short mutex serializes control decisions and mode hand-offs; physical conversions remain the
@@ -715,6 +760,7 @@ static void csRegistryBootAudit(void);      /* registry: initServer-time asserts
 void tomoWbSchedule(client *c, int force_wake);
 static void tomoWbPostIo(client *c, unsigned int actions);
 static inline int tomoWbClosing(client *c);
+static int tomoAllowedLogicalCpuCount(void);
 static int tomoAllowedPhysicalCpuCount(int *logical_out);
 void renameGenericCommand(client *c, int nx);  /* db.c; same-shard TWOHOP runs the real proc on a worker */
 #define CS_MSETNX_PENDING  0
@@ -7697,6 +7743,7 @@ void resetServerStats(void) {
     atomic_store_explicit(&tomo_flip_forced_moves, 0, memory_order_relaxed);
     atomic_store_explicit(&tomo_flip_mode_changes, 0, memory_order_relaxed);
     atomic_store_explicit(&tomo_flip_conservation_violations, 0, memory_order_relaxed);
+    atomic_store_explicit(&tomo_flip_first_work_searches, 0, memory_order_relaxed);
     memset(server.duration_stats, 0, sizeof(durationStats) * EL_DURATION_TYPE_NUM);
     server.el_cmd_cnt_max = 0;
     lazyfreeResetStats();
@@ -7753,6 +7800,68 @@ static int detectL3Domains(void) {
         if (!found && nseen < 64) strncpy(seen[nseen++], buf, sizeof(seen[0]) - 1);
     }
     return nseen > 0 ? nseen : 1;
+}
+
+/* The two-stage default deliberately starts on the measured IO-heavy plateau instead of at an
+ * even split. Two thirds IO, rounded to the nearest whole role, gives io11/ex5 on the measured
+ * 16-CPU ladder (whose p16 optimum is io10-11/ex5-6) without baking the p1-only io14/ex2 extreme
+ * into every workload. Both roles must remain live, so pools smaller than two are unresolved. */
+#define TOMO_TWO_STAGE_DEFAULT_IO_NUMERATOR 2
+#define TOMO_TWO_STAGE_DEFAULT_DENOMINATOR  3
+
+typedef struct tomoTwoStageSizing {
+    int cores_per_node;
+    int io_per_node;
+    int ex_per_node;
+    int affinity_derived;
+    int default_split;
+} tomoTwoStageSizing;
+
+/* Pure resolver shared by boot and DEBUG TOMO-FLIPSELFTEST. `allowed_cpus` is injected so the
+ * selftest can prove the boot policy without changing the process affinity or live thread pool.
+ * Explicit role values are never rewritten; a missing side is only their complement in the
+ * explicit/affinity-derived budget, exactly like the existing cores-per-node path. */
+static int tomoResolveTwoStageSizing(int nodes, int configured_cpn,
+                                     int configured_io, int configured_ex,
+                                     int allowed_cpus,
+                                     tomoTwoStageSizing *resolved) {
+    if (!resolved || nodes < 1) return 0;
+
+    int cpn = configured_cpn;
+    int ipn = configured_io;
+    int epn = configured_ex;
+    int affinity_derived = 0;
+    int default_split = 0;
+
+    if (cpn == 0 && ipn > 0 && epn > 0) {
+        cpn = ipn + epn;
+    } else if (cpn == 0 && (ipn == 0 || epn == 0)) {
+        if (allowed_cpus <= 0) return 0;
+        cpn = allowed_cpus / nodes;
+        affinity_derived = 1;
+    }
+
+    if (cpn > 0 && ipn > 0 && epn == 0) epn = cpn - ipn;
+    if (cpn > 0 && epn > 0 && ipn == 0) ipn = cpn - epn;
+    if (cpn > 0 && ipn == 0 && epn == 0) {
+        if (cpn < 2) return 0;
+        ipn = (cpn * TOMO_TWO_STAGE_DEFAULT_IO_NUMERATOR + 1) /
+              TOMO_TWO_STAGE_DEFAULT_DENOMINATOR;
+        if (ipn < 1) ipn = 1;
+        if (ipn >= cpn) ipn = cpn - 1;
+        epn = cpn - ipn;
+        default_split = 1;
+    }
+
+    if (cpn <= 0 || ipn <= 0 || epn <= 0) return 0;
+    *resolved = (tomoTwoStageSizing) {
+        .cores_per_node = cpn,
+        .io_per_node = ipn,
+        .ex_per_node = epn,
+        .affinity_derived = affinity_derived,
+        .default_split = default_split,
+    };
+    return 1;
 }
 
 /* Clients and workers retain pointers into the contiguous database arrays, so
@@ -7882,7 +7991,7 @@ void initServer(void) {
      * per-node shared dbs, KVSTORE_FLAT, ex_bucket_table routing and the online reshard all key off
      * buckets, and the kvstore setup below therefore always uses TOMO_BUCKET_BITS.
      *
-     * Sharding is NOT optional in this fork — tomokv-thread-io / tomokv-thread-ex are mandatory
+     * Sharding is NOT optional in this fork — startup always resolves at least one IO and EX role,
      * and ex_threads >= 1 is enforced a few lines below ("sharding-off mode is not supported").
      * So "cluster-enabled yes" cannot mean "cluster instead of tomokv"; it can only mean cluster
      * slot geometry underneath tomokv bucket routing, which is undefined behaviour rather than a
@@ -7940,26 +8049,55 @@ void initServer(void) {
         exit(1);
     }
 
-    /* wb=0 is the authoritative two-stage boot path; it retains the original
-     * resolver and leaves every WB allocation unreachable. */
+    /* wb=0 is the authoritative two-stage boot path and leaves every WB allocation unreachable. */
     if (server.wb_per_node == 0) {
     /* ee451 node-topology (2026-07-22): the pool is topo_nodes * cores_per_node threads, always
      * fully active. tomokv-thread-io / tomokv-thread-ex are PER NODE; io_threads / ex_threads are
-     * the GLOBAL totals (nodes * per-node) that the rest of the server consumes. */
+     * the GLOBAL totals (nodes * per-node) that the rest of the server consumes. With neither role
+     * configured, the pool comes only from sched_getaffinity and starts at the documented 2:1
+     * IO-heavy split; an explicit role remains authoritative and the other is its complement. */
     {
         int nodes = server.topo_nodes > 0 ? server.topo_nodes : 1;
         int ipn = server.io_per_node, epn = server.ex_per_node, cpn = server.cores_per_node;
-        if (cpn > 0 && ipn > 0 && epn == 0) epn = cpn - ipn;      /* derive the complement */
-        if (cpn > 0 && epn > 0 && ipn == 0) ipn = cpn - epn;
-        if (cpn == 0) cpn = ipn + epn;                            /* cores = the split total */
-        /* Thread counts are MANDATORY — there is no sensible default for a machine we cannot see. */
-        if (ipn <= 0 || epn <= 0) {
+        int needs_affinity = cpn == 0 && (ipn == 0 || epn == 0);
+        int allowed_cpus = needs_affinity ? tomoAllowedLogicalCpuCount() : 0;
+        if (needs_affinity && allowed_cpus <= 0) {
             serverLog(LL_WARNING,
-                "FATAL: set the thread pool explicitly — --tomokv-thread-io I --tomokv-thread-ex E "
-                "(PER NODE; with tomokv-nodes 1, the default, these are the total counts). "
-                "Got tomokv-thread-io=%d tomokv-thread-ex=%d tomokv-cores-per-node=%d.",
+                "FATAL: set the thread pool explicitly — sched_getaffinity could not read the "
+                "process's allowed CPU set, so there is no sensible default. Use "
+                "--tomokv-thread-io I --tomokv-thread-ex E (PER NODE; with tomokv-nodes 1, "
+                "these are the total counts). Got tomokv-thread-io=%d tomokv-thread-ex=%d "
+                "tomokv-cores-per-node=%d.",
                 server.io_per_node, server.ex_per_node, server.cores_per_node);
             exit(1);
+        }
+        tomoTwoStageSizing sizing;
+        if (!tomoResolveTwoStageSizing(nodes, cpn, ipn, epn, allowed_cpus, &sizing)) {
+            serverLog(LL_WARNING,
+                "FATAL: the two-stage thread pool did not resolve to at least one IO and one EX "
+                "role per node. Set --tomokv-thread-io I --tomokv-thread-ex E explicitly, or "
+                "provide at least two allowed CPUs per topology node. Got tomokv-nodes=%d "
+                "tomokv-thread-io=%d tomokv-thread-ex=%d tomokv-cores-per-node=%d "
+                "allowed-cpus=%d.",
+                nodes, server.io_per_node, server.ex_per_node,
+                server.cores_per_node, allowed_cpus);
+            exit(1);
+        }
+        cpn = sizing.cores_per_node;
+        ipn = sizing.io_per_node;
+        epn = sizing.ex_per_node;
+        if (sizing.affinity_derived && allowed_cpus % nodes != 0) {
+            serverLog(LL_NOTICE,
+                      "tomokv two-stage sizing: %d allowed CPUs across %d node(s) leaves %d "
+                      "CPU(s) outside the equal per-node pool",
+                      allowed_cpus, nodes, allowed_cpus % nodes);
+        }
+        if (sizing.default_split) {
+            serverLog(LL_NOTICE,
+                      "tomokv two-stage default: %d cores/node -> io %d + ex %d "
+                      "(2/3 IO, 1/3 EX; nearest whole role%s)",
+                      cpn, ipn, epn,
+                      sizing.affinity_derived ? "; pool from sched_getaffinity" : "");
         }
         if (ipn + epn > cpn) {
             serverLog(LL_WARNING, "FATAL: node topology invalid (tomokv-thread-io=%d "
@@ -23157,6 +23295,9 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 (unsigned long long)tomoCommittedSeq(),
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
+        /* Keep new FLIP witnesses outside this already-large FMTARGS expansion. */
+        info = sdscatprintf(info, "tomokv_flip_first_work_searches:%llu\r\n",
+            atomic_load_explicit(&tomo_flip_first_work_searches, memory_order_relaxed));
         info = sdscatprintf(info, "tomokv_kvstore_shard_slots:%d\r\n", TOMO_EX_THREADS_MAX);
 #ifdef DEBUG_ASSERTIONS
         info = sdscatprintf(info, "tomokv_kvstore_count_mismatch:%llu\r\n",
@@ -26899,6 +27040,21 @@ static int coreSiblingLeader(int c, int *leader) {
     return cpuListLowest(p, leader);
 }
 
+/* The default two-stage pool is the process's scheduler-visible CPU set verbatim. This is
+ * intentionally CPU_COUNT(sched_getaffinity), never sysconf/nproc: a routinely taskset/cgroup
+ * pinned server must not size itself to CPUs it cannot run on. SMT policy belongs to explicit
+ * topology/pinning; each allowed logical CPU is a legal scheduler execution slot here. */
+static int tomoAllowedLogicalCpuCount(void) {
+#ifdef __linux__
+    cpu_set_t allowed;
+    CPU_ZERO(&allowed);
+    if (sched_getaffinity(0, sizeof(allowed), &allowed) != 0) return 0;
+    return CPU_COUNT(&allowed);
+#else
+    return 0;
+#endif
+}
+
 /* Count the process's allowed physical cores with the same thread-sibling leader used by the
  * SMT-aware pinning order. Counting CPU_COUNT() here made an 8-core/16-thread cpuset auto-size to
  * sixteen IO+EX+WB threads. A cpuset may expose only the non-leader sibling of a core, so dedupe by
@@ -30453,6 +30609,8 @@ static void tomoFlipControlReady(void) {
         atomic_store_explicit(&tomo_flip_manual[node].valid, 1, memory_order_relaxed);
         atomic_store_explicit(&tomo_flip_manual[node].pending, 0, memory_order_relaxed);
         atomic_store_explicit(&tomo_flip_rearm_pending[node], 0, memory_order_relaxed);
+        memset(&tomo_flip_first_work_gate[node], 0,
+               sizeof(tomo_flip_first_work_gate[node]));
         tomo_flip_manual[node].move_pending = 0;
         tomo_flip_manual[node].freeze_after_move = 0;
     }
@@ -30674,6 +30832,64 @@ int tomoFlipSelfTest(tomoFlipSelfTestResult results[TOMO_FLIP_SELFTEST_CASES]) {
         .actual_io = io, .actual_ex = ex, .passed = conservation_ok,
     };
     passed += conservation_ok;
+
+    /* (e) The boot-default resolver consumes the allowed set as the whole pool and applies the
+     * documented nearest-whole-role 2:1 split: a 16-CPU affinity becomes io11/ex5. */
+    tomoTwoStageSizing default_sizing = {0};
+    int default_ok = tomoResolveTwoStageSizing(1, 0, 0, 0, 16, &default_sizing) &&
+                     default_sizing.affinity_derived && default_sizing.default_split &&
+                     default_sizing.cores_per_node == 16 &&
+                     default_sizing.io_per_node == 11 &&
+                     default_sizing.ex_per_node == 5;
+    results[4] = (tomoFlipSelfTestResult) {
+        .name = "affinity-default-pool-is-io11-ex5-at-16",
+        .expected_io = 11, .expected_ex = 5,
+        .actual_io = default_sizing.io_per_node,
+        .actual_ex = default_sizing.ex_per_node,
+        .passed = default_ok,
+    };
+    passed += default_ok;
+
+    /* (f) A complete explicit pair determines its own pool and never consults/uses the injected
+     * affinity size. This is the same authority explicit configuration had before defaults. */
+    tomoTwoStageSizing explicit_sizing = {0};
+    int explicit_ok = tomoResolveTwoStageSizing(1, 0, 10, 6, 64, &explicit_sizing) &&
+                      !explicit_sizing.affinity_derived && !explicit_sizing.default_split &&
+                      explicit_sizing.cores_per_node == 16 &&
+                      explicit_sizing.io_per_node == 10 &&
+                      explicit_sizing.ex_per_node == 6;
+    results[5] = (tomoFlipSelfTestResult) {
+        .name = "explicit-thread-split-overrides-affinity-default",
+        .expected_io = 10, .expected_ex = 6,
+        .actual_io = explicit_sizing.io_per_node,
+        .actual_ex = explicit_sizing.ex_per_node,
+        .passed = explicit_ok,
+    };
+    passed += explicit_ok;
+
+    /* (g) Boot-idle cannot fire. Two loaded samples fire exactly once, and a one-tick micro-gap
+     * does not re-arm the gate; re-arm requires the documented eight consecutive idle ticks. */
+    tomoFlipFirstWorkGate first_work_gate = {0};
+    int searches = 0;
+    for (int i = 0; i < TOMO_FLIP_FIRST_WORK_IDLE_TICKS * 2; i++)
+        searches += tomoFlipFirstWorkTick(&first_work_gate, 0);
+    int boot_idle_searches = searches;
+    for (int i = 0; i < TOMO_FLIP_FIRST_WORK_ACTIVE_TICKS; i++)
+        searches += tomoFlipFirstWorkTick(&first_work_gate, 1);
+    int first_arrival_searches = searches;
+    searches += tomoFlipFirstWorkTick(&first_work_gate, 1);
+    searches += tomoFlipFirstWorkTick(&first_work_gate, 0); /* brief gap */
+    for (int i = 0; i < TOMO_FLIP_FIRST_WORK_ACTIVE_TICKS; i++)
+        searches += tomoFlipFirstWorkTick(&first_work_gate, 1);
+    int first_work_ok = boot_idle_searches == 0 && first_arrival_searches == 1 &&
+                        searches == 1 && first_work_gate.serving;
+    results[6] = (tomoFlipSelfTestResult) {
+        .name = "first-traffic-once-brief-gap-does-not-refire",
+        .expected_io = 1, .expected_ex = 1,
+        .actual_io = searches, .actual_ex = first_work_gate.serving,
+        .passed = first_work_ok,
+    };
+    passed += first_work_ok;
     return passed == TOMO_FLIP_SELFTEST_CASES;
 }
 
@@ -32657,6 +32873,15 @@ static void tomoFlipController(void) {
         int node_idle = (inst <= 0.0) && (qd_max < (1.0/16.0)) && (io_occ_mean == 0);
         if (!fc->primed) { if (inst > 0.0) { fc->primed = 1; fc->mean = inst; fc->var = 0; } }
         else if (!node_idle) { double d = inst - fc->mean; fc->mean += FESC_ALPHA * d; fc->var += FESC_ALPHA * (d*d - fc->var); }
+        int first_work_mode = server.thread_mode == TOMO_THREAD_MODE_AUTO ||
+                              server.thread_mode == TOMO_THREAD_MODE_CLIMB;
+        int first_work_search = first_work_mode &&
+            tomoFlipFirstWorkTick(&tomo_flip_first_work_gate[node],
+                                  !node_idle);
+        /* The transition itself is the demand evidence for this one invocation. Seed the existing
+         * demand EWMA high enough that its unchanged update below cannot spend another cold-start
+         * cadence below FLIP_BOUND_SAT. Later ticks immediately return to measured values. */
+        if (first_work_search) fc->sat_smooth = 1.0;
         double sigma = sqrt(fc->var > 1.0 ? fc->var : 1.0);
 
         if (ops_elapsed_ms != 0) {
@@ -32937,6 +33162,34 @@ static void tomoFlipController(void) {
         double gstep = tmFlipGstepAt(ni, ne, fc->lr_ewma, wsig);
         double gfloor = gstep / 2.0;
         double balance_band = log1p(FLIP_R_BAND);
+        if (first_work_search) {
+            /* A fresh traffic era discards only staged search ownership. The r8 direction,
+             * distance, stop, and judge below remain unchanged; priming their existing cadence
+             * counters changes when that byte-identical decision runs. If it finds no jump, the
+             * CLIMB owner enters r10 C0 directly below. Reset u1 so r10 cannot compare the new
+             * workload with a settle-clean window retained from the previous era. */
+            tmR10TakeHeldShape(fc);
+            tomoR10Reset(&r10ctl[node]);
+            tomoR10BeginGateReset(&r10_begin_gate[node]);
+            tomoU1EraReset(node);
+            fc->wait = 0;
+            fc->veto_run = 0;
+            fc->episode_revert_run = 0;
+            fc->episode_rearm_run = 0;
+            fc->revert_run_io = 0;
+            fc->direction_episode_failed = 0;
+            fc->lr_quiet_run = FLIP_R_QUIET_N;
+            fc->idle_stable = FESC_SETTLE_N;
+            fc->lr_out_dir = fc->lr_ewma < 0.0 ? -1 : 1;
+            fc->lr_out_run = FLIP_SUSTAIN - 1; /* unchanged Schmitt block supplies the last tick */
+            atomic_fetch_add_explicit(&tomo_flip_first_work_searches, 1,
+                                      memory_order_relaxed);
+            serverLog(LL_NOTICE,
+                      "[flip-ctl n%d] FIRST-WORK search io%d/ex%d after %d loaded ticks; "
+                      "idle re-arm requires %d consecutive empty ticks",
+                      node, ni, ne, TOMO_FLIP_FIRST_WORK_ACTIVE_TICKS,
+                      TOMO_FLIP_FIRST_WORK_IDLE_TICKS);
+        }
         tomoR10BeginGateStatus r10_quiet = {0};
         if (server.thread_mode == TOMO_THREAD_MODE_CLIMB &&
             !tomoR10OwnsActuator(&r10ctl[node])) {
@@ -33279,6 +33532,11 @@ static void tomoFlipController(void) {
                      (unsigned long long)node_wall_ms * 1000ULL * (unsigned long long)w_live,
                      io_work_u_mean, ex_work_u_mean, u_io_wait,
                      (unsigned long long)io_wait_delta_sum);
+
+        /* Do not let the normal settle/ownership cadence between here and the r8 decision delay
+         * the one transition that exists to bypass that cadence. The destination block itself is
+         * unchanged and consumes the live signal values computed above. */
+        if (first_work_search) goto first_work_r8_decision;
 
         /* ===== PHASE 3: finish one distance-derived controller STEP. The physical actuator is
          * intentionally still the existing one-thread tmFlipDo: arm one transfer, wait until its
@@ -34303,6 +34561,7 @@ r10_floor_sweep_done:
             continue;
         }
 
+first_work_r8_decision: ;
         /* IDLE: pressure decides whether to START a climb. */
         int want = 0;
         /* TARGET IS 1. This follows from the selected per-thread role operands rather than from a
@@ -34462,6 +34721,17 @@ r10_floor_sweep_done:
                     else if (out < 0 && can_back) want = -1;
                 }
             }
+        }
+
+        /* At a split where r8's unchanged decision requests no jump, first work still starts the
+         * measured both-sides search immediately. tomoR10Begin makes r10 the sole actuator owner;
+         * the existing ownership gate below remains the only guard on later r8 requests. */
+        if (first_work_search && server.thread_mode == TOMO_THREAD_MODE_CLIMB && want == 0) {
+            serverLog(LL_NOTICE,
+                      "[r10 n%d] FIRST-WORK r8 requested no jump at io%d/ex%d; beginning C0-C2",
+                      node, ni, ne);
+            tmR10BeginEpisode(node, fc, ni, ne);
+            continue;
         }
 
         if (want == 0) {

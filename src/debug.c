@@ -1023,8 +1023,9 @@ NULL
         tomoR10TraceSet(on != 0);
         addReplyStatus(c, tomoR10TraceEnabled() ? "r10 trace ON" : "r10 trace OFF");
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-flipselftest") && c->argc == 2) {
-        /* DEBUG TOMO-FLIPSELFTEST -- isolated FLIP target, ownership, validation and invariant
-         * checks. It never changes the live controller or arms the asynchronous actuator. */
+        /* DEBUG TOMO-FLIPSELFTEST -- isolated sizing, first-work, FLIP target, ownership,
+         * validation and invariant checks. It never changes the live pool/controller or arms the
+         * asynchronous actuator. */
         tomoFlipSelfTestResult results[TOMO_FLIP_SELFTEST_CASES];
         tomoFlipSelfTest(results);
         addReplyArrayLen(c, TOMO_FLIP_SELFTEST_CASES);

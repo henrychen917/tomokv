@@ -233,13 +233,15 @@ of the free.
 | knob | default | meaning |
 |---|---|---|
 | `tomokv-nodes` | 1 | node count; max 16. With `tomokv-pin-mode ccd`, a node owns one or more adjacent shared-L3 (CCX) groups; with `tomokv-pin-mode numa`, it owns one NUMA domain. `float` makes nodes logical only and `static` supplies their CPU lists explicitly. |
-| `tomokv-cores-per-node` | derive (io+ex) | cores per node; total real cores = nodes × cores-per-node |
-| `tomokv-thread-io` | **mandatory** | starting ingress threads **per node** |
-| `tomokv-thread-ex` | **mandatory** | starting workers **per node** — `1 io + (C−1) ex` maximizes flip range |
+| `tomokv-cores-per-node` | affinity-derived when roles are omitted | cores per node; total real cores = nodes × cores-per-node |
+| `tomokv-thread-io` | affinity default: nearest 2/3 | starting ingress threads **per node**; an explicit value wins |
+| `tomokv-thread-ex` | affinity default: remainder near 1/3 | starting workers **per node**; an explicit value wins |
 
 With `tomokv-nodes 1` (the default) `tomokv-thread-io` / `tomokv-thread-ex` are simply the total
 thread counts. The old flat `tomokv-io-threads` / `tomokv-ex-threads` were removed — they were a
-second way to say the same thing.
+second way to say the same thing. When both counts and the core budget are omitted,
+`sched_getaffinity` supplies the pool (never system-wide `nproc`) and the 2:1 default gives
+io11/ex5 on a 16-CPU allowed set.
 
 ### Thread pinning
 

@@ -4721,7 +4721,7 @@ static inline int tomoThreadModeAdaptive(void) {
 /* Canonical runtime setter used by both CONFIG SET and the FLIP command. */
 int tomoFlipSetMode(int mode, const char **err);
 
-#define TOMO_FLIP_SELFTEST_CASES 4
+#define TOMO_FLIP_SELFTEST_CASES 7
 typedef struct tomoFlipSelfTestResult {
     const char *name;
     int expected_io;

@@ -29,10 +29,13 @@ the Redis-facing `8.6.2` identity above.
 ## Architecture and per-command lifecycle
 
 Every supported configuration resolves at least one IO thread and one EX worker per topology node.
-`tomokv-thread-io` and `tomokv-thread-ex` describe the starting split per node; `static` keeps that
-split, while `auto` permits per-node controllers to convert provisioned threads between roles at
-between-slice checkpoints — each node's controller decides independently from its own signals, while
-the physical conversions serialize globally. Single-node configurations take a dedicated
+With both counts and the core budget omitted, the two-stage pool is the process's
+`sched_getaffinity` CPU count divided across nodes and starts two-thirds IO / one-third EX, rounded
+to `io11/ex5` at 16 CPUs. Explicit `tomokv-thread-io` and `tomokv-thread-ex` values describe and
+override that starting split per node; `static` keeps the split, while `auto` permits per-node
+controllers to convert provisioned threads between roles at between-slice checkpoints. Each node's
+controller decides independently from its own signals, while physical conversions serialize
+globally. Single-node configurations take a dedicated
 `nnodes == 1` path that bypasses the multi-node admission protocols, so single-node flip behavior is
 identical to the pre-topology controller. Both modes use the same polymorphic thread machinery. ([`src/server.c`](src/server.c#L5614-L5625),
 [`src/server.c`](src/server.c#L5717-L5776),
@@ -175,7 +178,7 @@ workers, 128 WB threads, and a maximum pipeline depth of 32. ([`src/server.h`](s
 | [`tomokv-atomic-window`](src/config.c#L3190) | Integer, modifiable | `-1` | `-1..INT_MAX` | Caps admitted in-flight atomic write groups; `-1` derives the limit from live writer concurrency and pipeline depth, `0` is unlimited, and a positive value is exact. |
 | [`tomokv-atomic-reclaim-limit`](src/config.c#L3191) | Integer bytes, modifiable | `-1` | `-1..LLONG_MAX` | Bounds the process-wide pool of atomic-version bytes awaiting physical reclaim; `-1` derives one RAM/maxmemory budget, `0` disables accounting/allocation, and pressure stalls writers before ring allocation. |
 | [`tomokv-client-lb`](src/config.c#L3311) | Boolean, modifiable | `yes` | `no`, `yes` | Enables continuous migration of eligible connections away from sustained busy-outlier IO owners. |
-| [`tomokv-cores-per-node`](src/config.c#L3210) | Integer, immutable | `0` | `0..384` | Sets the core budget per topology node; at WB=0, `0` derives IO+EX; with explicit WB it derives IO+EX+WB, and with WB=-1 it is derived from allowed physical cores. |
+| [`tomokv-cores-per-node`](src/config.c#L3210) | Integer, immutable | `0` | `0..384` | Sets the core budget per topology node; at WB=0, `0` uses the explicit IO+EX sum or, when a role is missing, the process affinity count divided across nodes. With explicit WB it derives IO+EX+WB, and with WB=-1 it is derived from allowed physical cores. |
 | [`tomokv-io-uring`](src/config.c#L3245) | Integer, immutable | `0` | `0..2` | Selects the native event-loop backend (epoll on Linux) at `0`; `1` selects the staged/taskrun-aware io_uring backend and `2` is its compatibility spelling. ([runtime dispatch](src/uring2.c#L1768-L1776)) |
 | [`tomokv-uring-multishot`](src/config.c#L3257) | Integer, immutable | `0` | `0..8192` | Uses one-shot receive with no provided-buffer ring at `0`; positive `N` requests multishot receive with `N` registered buffers per IO owner. Unsupported setup or arm flags fall back to one-shot for that owner. |
 | [`tomokv-uring-sendcopy-min`](src/config.c#L3258) | Integer, modifiable | `0` | `0..INT_MAX` bytes | Keeps scratch-copy sends at `0`; positive `N` permits an eligible plain client-buffer prefix of at most `N` bytes to remain pinned and be sent directly. |
@@ -191,8 +194,8 @@ workers, 128 WB threads, and a maximum pipeline depth of 32. ([`src/server.h`](s
 | [`tomokv-reorder`](src/config.c#L3218) | Integer, modifiable | `0` | `0..3` | Selects the staged IO-to-worker admission-reordering level; `0` bypasses the reorder machinery. ([dispatch gate](src/server.c#L3986-L4022)) |
 | [`tomokv-reshard-fence-timeout`](src/config.c#L3303) | Integer, modifiable | `10000` | `0..INT_MAX` milliseconds | Sets the cutover watchdog for both the atomic-lifecycle pre-drain and producer drain-fence waits; a positive `N` aborts after `N` milliseconds, while `0` waits indefinitely. ([atomic pre-drain](src/server.c#L15879-L15927), [producer fence](src/server.c#L16011-L16032)) |
 | [`tomokv-strict-order`](src/config.c#L3182) | Integer, modifiable | `0` | `0..100000` | Controls cross-IO worker-lane selection: `0` uses batched rotation, `1` selects the globally oldest head, and `N >= 2` permits an epsilon of `N-1` microseconds. ([field contract](src/server.h#L4107)) |
-| [`tomokv-thread-ex`](src/config.c#L3244) | Integer, immutable | `0` | `0..128` | Sets the starting EX-worker count per node; at WB=0 the two-role resolver can derive a zero as the core-budget complement, while WB mode requires an explicit positive value. ([resolution](src/server.c#L5721-L5734)) |
-| [`tomokv-thread-io`](src/config.c#L3243) | Integer, immutable | `0` | `0..128` | Sets the starting IO-thread count per node; at WB=0 the two-role resolver can derive a zero as the core-budget complement, while WB mode requires an explicit positive value. ([resolution](src/server.c#L5721-L5734)) |
+| [`tomokv-thread-ex`](src/config.c#L3244) | Integer, immutable | `0` | `0..128` | Sets the starting EX-worker count per node. At WB=0, two zero role values select the 2:1 IO/EX default from the core budget, which is affinity-derived when that budget is also zero; one explicit role wins and the other is the core-budget complement. |
+| [`tomokv-thread-io`](src/config.c#L3243) | Integer, immutable | `0` | `0..128` | Sets the starting IO-thread count per node. At WB=0, two zero role values select the 2:1 IO/EX default from the core budget, which is affinity-derived when that budget is also zero; one explicit role wins and the other is the core-budget complement. |
 | [`tomokv-thread-mode`](src/config.c#L3230) | Enum, immutable | `auto` | `auto`, `static`, `climb`, `model` | Selects r8 auto actuation, a fixed boot split, r8+r10 measured climbing, or m1 filtered-target actuation. ([enum](src/config.c#L171-L177)) |
 | `tomokv-thread-wb` | Integer, immutable | `0` | `-1..128` | Selects the pipeline per node: `0` is the exact two-stage/no-allocation path, positive `N` creates dedicated WB threads, and `-1` takes the physical-core-budget remainder. WB is never a flip-adoptable role. |
 | `tomokv-wb-uring` | Integer, immutable | `0` | `-1..4096` | Controls per-WB SENDMSG batching: `0` uses write/writev with no sender ring, `-1` derives a cap, and positive `N` caps SQEs per submit; unsupported rings fall back per WB. |
@@ -217,14 +220,17 @@ LTO and frame pointers. ([`Makefile`](Makefile#L1-L19),
 
 ```sh
 make
-./src/redis-server --tomokv-thread-io 1 --tomokv-thread-ex 1
-# Three-stage example: add --tomokv-thread-wb 1
+./src/redis-server
 ./src/redis-cli
+
+# Explicit three-stage boot:
+./src/redis-server --tomokv-thread-io 1 --tomokv-thread-ex 1 --tomokv-thread-wb 1
 ```
 
-There is no Makefile `run` target. The explicit thread split is required unless one role can be
-derived from `tomokv-cores-per-node`; the example above resolves a single-EX, DICT-backed pool. A
-resolved pool with at least two EX slots per node selects the shared FLAT key store. ([`src/server.c`](src/server.c#L5717-L5776),
+There is no Makefile `run` target. With no two-stage thread options, the pool uses only CPUs in the
+process affinity set and starts at the documented two-thirds-IO split; explicit IO/EX values retain
+their authority. A resolved pool with at least two EX slots per node selects the shared FLAT key
+store. ([`src/server.c`](src/server.c#L5717-L5776),
 [`src/server.c`](src/server.c#L6108-L6137))
 
 io_uring support is build-time `auto`: on Linux it is included when `pkg-config` finds liburing

@@ -3270,7 +3270,7 @@ standardConfig static_configs[] = {
      * for the target hardware is NOT yet known — it is a measurement to run on the
      * EPYC/Threadripper box, which is why it is one knob and not a compile-time assumption. */
     createIntConfig("tomokv-nodes",                  NULL, IMMUTABLE_CONFIG, 1, TOMO_NODES_MAX, server.topo_nodes, 1, INTEGER_CONFIG, NULL, NULL), /* CCD count or NUMA-node count — tomokv-pin-mode decides which */
-    createIntConfig("tomokv-cores-per-node",         NULL, IMMUTABLE_CONFIG, 0, TOMO_IO_THREADS_MAX + TOMO_EX_THREADS_MAX + TOMO_WB_THREADS_MAX, server.cores_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* 0 = explicit-role sum, or allowed CPUs when any role is AUTO */
+    createIntConfig("tomokv-cores-per-node",         NULL, IMMUTABLE_CONFIG, 0, TOMO_IO_THREADS_MAX + TOMO_EX_THREADS_MAX + TOMO_WB_THREADS_MAX, server.cores_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* 0 = explicit-role sum; with missing two-stage roles, sched_getaffinity budget per node */
 
     /* ================= FRONT/BACK SPLIT ====================================================
      * thread-io / thread-ex are the STARTING split, PER NODE, in BOTH modes; WB is the static
@@ -3304,8 +3304,8 @@ standardConfig static_configs[] = {
      * everywhere, the IO-side
      * saturation signal can be deleted outright; if only 3 clears ZRANGE p1 entered from a settled
      * io7/ex1, the clip repair is load-bearing and belongs in whichever worker mode ships. */
-    createIntConfig("tomokv-thread-io",              NULL, IMMUTABLE_CONFIG, -1, TOMO_IO_THREADS_MAX, server.io_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* IO threads per node; -1=AUTO in WB mode, 0=unset/fatal */
-    createIntConfig("tomokv-thread-ex",              NULL, IMMUTABLE_CONFIG, -1, TOMO_EX_THREADS_MAX, server.ex_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* EX workers per node; -1=AUTO in WB mode, 0=unset/fatal */
+    createIntConfig("tomokv-thread-io",              NULL, IMMUTABLE_CONFIG, -1, TOMO_IO_THREADS_MAX, server.io_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* IO threads per node; WB=0 zero participates in affinity-derived 2:1 IO/EX default; -1=AUTO in WB mode */
+    createIntConfig("tomokv-thread-ex",              NULL, IMMUTABLE_CONFIG, -1, TOMO_EX_THREADS_MAX, server.ex_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* EX workers per node; WB=0 zero participates in affinity-derived 2:1 IO/EX default; -1=AUTO in WB mode */
     createIntConfig("tomokv-thread-wb",              NULL, IMMUTABLE_CONFIG, -1, TOMO_WB_THREADS_MAX, server.wb_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* 0=2-stage/no allocation; N=WB per node; -1=AUTO three-role sizing */
     createIntConfig("tomokv-io-uring",               NULL, IMMUTABLE_CONFIG, 0, 2, server.io_uring, 0, INTEGER_CONFIG, NULL, NULL), /* 0=epoll; nonzero=the Helio-style staged/taskrun-aware ring (1 canonical, 2 = compat spelling). The old mode-1 unified SI|DTR ring was DELETED 2026-08-10 after losing 9/9 interleaved cells to this one. */
     createIntConfig("tomokv-wb-uring",               NULL, IMMUTABLE_CONFIG, -1, 4096, server.wb_uring, 0, INTEGER_CONFIG, NULL, NULL), /* 0=current write()/writev path; N=max SENDMSG SQEs per submit; -1=auto. Setup/probe/arm rejection falls back per WB. */
