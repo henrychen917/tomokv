@@ -1526,11 +1526,11 @@ static const uint32_t TOMO_CLS_SLO[TOMO_SVC_CLASSES] = { 1, 1, 4, 64, 1024, 1638
  * [16], so this is a hard array bound, not a policy. */
 #define TOMO_NODES_MAX 16
 
-/* ---- tomokv-thread-mode (IMMUTABLE enum) ------------------------------------
+/* ---- tomokv-thread-mode (runtime enum) --------------------------------------
  * ONE knob for the io/ex split policy. tomokv-thread-io / tomokv-thread-ex give the STARTING
  * split in every mode; the mode only decides whether the controller may move away from it.
  *   auto   — the flip controller / quorum balancer may shift the io<->ex boundary at runtime.
- *   static — the boot split is held for the life of the process (reproducible measurement).
+ *   static — the current split is held until an operator selects another mode/target.
  *   climb  — r8 jumps, then r10 measures single-rung neighbors and owns the final anchor.
  *   model  — m1's filtered workload-model target owns staged single-rung conversions. */
 #define TOMO_THREAD_MODE_AUTO   0
@@ -3218,9 +3218,9 @@ struct redisServer {
                                     * marker = claimed while the winner initializes the plain state
                                     * below; otherwise the converting ctx. Every actuator wins the
                                     * NULL->marker CAS before selecting its mutable role slot. */
-    int tm_flip_target;            /* successful claimer writes before release-publishing the ctx;
-                                    * owning semi-main reads after acquire-loading it. UNSET when idle
-                                    * — NOT 0, which is not a mode (see tomoThreadMode). */
+    _Atomic int tm_flip_target;    /* successful claimer writes before release-publishing the ctx;
+                                    * owning semi-main and FLIP SPLIT read it. UNSET when idle — NOT
+                                    * 0, which is not a role mode (see tomoThreadMode). */
     int tm_flip_phase;             /* grow-back phase machine: 0=await IO-EXIT+EX adoption, 1=arm the
                                     * seed migration, 2=await seed FLIP, 3=await IO-EXIT rollback ack */
     _Atomic int tm_flip_gb_state;  /* grow-back commit arbitration: IDLE -> DRAINING -> exactly one
@@ -3247,18 +3247,16 @@ struct redisServer {
                                     * not completed within N ms (never flips: pure anti-hang net) */
     int tm_flip_wslot;             /* grow-back: revived worker index (ex_slot) being seeded */
     int tm_ngrow_io;               /* flip: number of growth io binding slots reserved */
-    /* ee451 (auto symmetric pool, 2026-07-29): in thread-mode AUTO the operator's io/ex split is the
+    /* ee451 (runtime symmetric pool): the operator's io/ex split is the
      * STARTING POINT, not the reachable range — every non-anchor thread is provisioned as a worker
      * with a dormant io binding (one base IO per node, pool_per_node-1 workers) and the split is
      * applied at boot by BIRTHING each node's worker suffix in IO mode. These two carry GLOBAL live
      * totals for that split; everywhere else `io_threads`/`num_workers` keep their provisioned-count
      * meaning (pin bases, registry layout) and the LIVE counts are io_threads_live /
-     * num_workers_live as before. In STATIC mode they are just the configured counts and nothing
-     * below changes. */
+     * num_workers_live as before. */
     int tm_boot_io_live;           /* io threads LIVE at boot (io_threads_live seed) */
     int tm_boot_w_live;            /* workers LIVE at boot (num_workers_live seed, bucket-table split) */
-    int tm_pool_symmetric;         /* 1 = the auto remap above was applied */
-    int tm_flip_rebalance;     /* flip: on grow-front, EWMA-pull existing conns onto the new io thread (default 1) */
+    int tm_pool_symmetric;         /* 1 = the runtime-convertible remap above was applied */
     int tm_client_lb;          /* continuous client LB (tmClientBalanceCron); split from tm_flip_rebalance 2026-07-28 */
     /* Tomo KV-dev custom threading/pipelining runtime state. io_threads/ex_threads/wb_threads
      * come from redis.conf (`tomokv-thread-io`, `tomokv-thread-ex`, `tomokv-thread-wb`);
@@ -3297,15 +3295,9 @@ struct redisServer {
     /* (modeshift_test DELETED 2026-07-28 with the tomokv-modeshift-test knob: it was the
      * hand-driven mode-retarget used before the controller existed; nothing read it.) */
     /* tomokv-thread-mode: TOMO_THREAD_MODE_AUTO | TOMO_THREAD_MODE_STATIC |
-     * TOMO_THREAD_MODE_CLIMB | TOMO_THREAD_MODE_MODEL. IMMUTABLE.
-     * The ONE knob that decides whether the io/ex split may move at runtime. */
-    int thread_mode;
-    /* ee451 (thread-modes step 4): adaptive controller telemetry is active. DERIVED: 1 for AUTO,
-     * CLIMB, or MODEL (whose m1 owner gates r8's physical actuation at tmFlipDo).
-     * 0 = no signal folding anywhere (every hook is behind this bool, so
-     * the hot path pays one predicted branch) and the boot split from tomokv-thread-io/-ex is
-     * held for the life of the process. Not a user knob. */
-    int thread_auto;
+     * TOMO_THREAD_MODE_CLIMB | TOMO_THREAD_MODE_MODEL. This atomic is the ONE canonical authority
+     * for controller ownership and may be changed by CONFIG SET or FLIP. */
+    _Atomic int thread_mode;
     /* (tomokv-flip-signal DELETED 2026-08-10: the productive-work ratio is the only trigger
      * signal; see the tombstone note in server.c.) */
 
@@ -4716,6 +4708,28 @@ typedef struct {
 extern struct redisServer server;
 extern struct sharedObjectsStruct shared;
 extern dictType objectKeyPointerValueDictType;
+
+static inline int tomoThreadModeGet(void) {
+    return atomic_load_explicit(&server.thread_mode, memory_order_acquire);
+}
+
+static inline int tomoThreadModeAdaptive(void) {
+    return tomoThreadModeGet() != TOMO_THREAD_MODE_STATIC;
+}
+
+/* Canonical runtime setter used by both CONFIG SET and the FLIP command. */
+int tomoFlipSetMode(int mode, const char **err);
+
+#define TOMO_FLIP_SELFTEST_CASES 4
+typedef struct tomoFlipSelfTestResult {
+    const char *name;
+    int expected_io;
+    int expected_ex;
+    int actual_io;
+    int actual_ex;
+    int passed;
+} tomoFlipSelfTestResult;
+int tomoFlipSelfTest(tomoFlipSelfTestResult results[TOMO_FLIP_SELFTEST_CASES]);
 
 /* ee451 (#4): dirty-counter accessors. iotid is the current thread's index (ae.h). When
  * opt_perthread_dirty is OFF these are byte-identical to the legacy server.dirty arithmetic.
@@ -6224,6 +6238,7 @@ void syncCommand(client *c);
 void flushdbCommand(client *c);
 void flushallCommand(client *c);
 void trimslotsCommand(client *c);
+void flipCommand(client *c);
 void sortCommand(client *c);
 void sortroCommand(client *c);
 robj *sortStoreResultObject(client *c);

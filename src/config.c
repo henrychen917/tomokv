@@ -171,7 +171,7 @@ configEnum propagation_error_behavior_enum[] = {
 /* ---- tomokv named enums (see server.h for the full semantics) ---------------- */
 configEnum tomokv_thread_mode_enum[] = {
     {"auto", TOMO_THREAD_MODE_AUTO},        /* the controller may move the io/ex split */
-    {"static", TOMO_THREAD_MODE_STATIC},    /* the boot split is held for the whole run */
+    {"static", TOMO_THREAD_MODE_STATIC},    /* hold the current split until runtime selection */
     {"climb", TOMO_THREAD_MODE_CLIMB},      /* r8 jump, then r10 measured single-rung climb */
     {"model", TOMO_THREAD_MODE_MODEL},      /* filtered m1 target owns staged conversions */
     {NULL, 0}
@@ -231,10 +231,15 @@ typedef struct sdsConfigData {
 } sdsConfigData;
 
 typedef struct enumConfigData {
-    int *config; /* The pointer to the server config this value is stored in */
+    union {
+        int *plain;
+        _Atomic int *atomic;
+    } config; /* The pointer to the server config this value is stored in */
     configEnum *enum_value; /* The underlying enum type this data represents */
     int default_value; /* The default value of the config on rewrite */
     int (*is_valid_fn)(int val, const char **err); /* Optional function to check validity of new value (generic doc above) */
+    int (*set_fn)(int val, const char **err); /* Optional owner for an atomic/runtime value. */
+    int is_atomic;
 } enumConfigData;
 
 typedef enum numericType {
@@ -2012,8 +2017,21 @@ static void sdsConfigRewrite(standardConfig *config, const char *name, struct re
 }
 
 /* Enum configs */
+static int enumConfigLoad(const enumConfigData *data) {
+    return data->is_atomic
+        ? atomic_load_explicit(data->config.atomic, memory_order_acquire)
+        : *data->config.plain;
+}
+
+static void enumConfigStore(enumConfigData *data, int value) {
+    if (data->is_atomic)
+        atomic_store_explicit(data->config.atomic, value, memory_order_release);
+    else
+        *data->config.plain = value;
+}
+
 static void enumConfigInit(standardConfig *config) {
-    *config->data.enumd.config = config->data.enumd.default_value;
+    enumConfigStore(&config->data.enumd, config->data.enumd.default_value);
 }
 
 static int enumConfigSet(standardConfig *config, sds *argv, int argc, const char **err) {
@@ -2040,24 +2058,26 @@ static int enumConfigSet(standardConfig *config, sds *argv, int argc, const char
     }
     if (config->data.enumd.is_valid_fn && !config->data.enumd.is_valid_fn(enumval, err))
         return 0;
-    int prev = config->flags & MODULE_CONFIG ? getModuleEnumConfig(config->privdata) : *(config->data.enumd.config);
+    int prev = config->flags & MODULE_CONFIG ? getModuleEnumConfig(config->privdata) : enumConfigLoad(&config->data.enumd);
     if (prev != enumval) {
         if (config->flags & MODULE_CONFIG)
             return setModuleEnumConfig(config->privdata, enumval, err);
-        *(config->data.enumd.config) = enumval;
+        if (config->data.enumd.set_fn)
+            return config->data.enumd.set_fn(enumval, err);
+        enumConfigStore(&config->data.enumd, enumval);
         return 1;
     }
     return (config->flags & VOLATILE_CONFIG) ? 1 : 2;
 }
 
 static sds enumConfigGet(standardConfig *config) {
-    int val = config->flags & MODULE_CONFIG ? getModuleEnumConfig(config->privdata) : *(config->data.enumd.config);
+    int val = config->flags & MODULE_CONFIG ? getModuleEnumConfig(config->privdata) : enumConfigLoad(&config->data.enumd);
     int bitflags = !!(config->flags & MULTI_ARG_CONFIG);
     return configEnumGetName(config->data.enumd.enum_value,val,bitflags);
 }
 
 static void enumConfigRewrite(standardConfig *config, const char *name, struct rewriteConfigState *state) {
-    int val = config->flags & MODULE_CONFIG ? getModuleEnumConfig(config->privdata) : *(config->data.enumd.config);
+    int val = config->flags & MODULE_CONFIG ? getModuleEnumConfig(config->privdata) : enumConfigLoad(&config->data.enumd);
     rewriteConfigEnumOption(state, name, val, config);
 }
 
@@ -2066,9 +2086,25 @@ static void enumConfigRewrite(standardConfig *config, const char *name, struct r
     embedConfigInterface(enumConfigInit, enumConfigSet, enumConfigGet, enumConfigRewrite, apply) \
     .type = ENUM_CONFIG, \
     .data.enumd = { \
-        .config = &(config_addr), \
+        .config.plain = &(config_addr), \
         .default_value = (default), \
         .is_valid_fn = (is_valid), \
+        .enum_value = (enum), \
+    } \
+}
+
+/* Runtime enums need atomic publication and may have a single state-machine owner. The setter is
+ * also used by CONFIG SET rollback, so the canonical value never has a transient plain write. */
+#define createAtomicEnumConfig(name, alias, flags, enum, config_addr, default, is_valid, setter) { \
+    embedCommonConfig(name, alias, flags) \
+    embedConfigInterface(enumConfigInit, enumConfigSet, enumConfigGet, enumConfigRewrite, NULL) \
+    .type = ENUM_CONFIG, \
+    .data.enumd = { \
+        .config.atomic = &(config_addr), \
+        .default_value = (default), \
+        .is_valid_fn = (is_valid), \
+        .set_fn = (setter), \
+        .is_atomic = 1, \
         .enum_value = (enum), \
     } \
 }
@@ -3240,11 +3276,11 @@ standardConfig static_configs[] = {
      * thread-io / thread-ex are the STARTING split, PER NODE, in BOTH modes; WB is the static
      * third role. For WB, -1 derives the physical-core remainder, 0 disables it, and N is explicit.
      * Under `auto` the
-     * flip controller may move away from it; under `static` it is held for the whole run. The
+     * flip controller may move away from it; under `static` it is held until runtime selection. The
      * starting point matters for measurement reproducibility: a benchmark that starts at a
      * different split spends its window converging instead of measuring. */
     createIntConfig("tomokv-reorder", NULL, MODIFIABLE_CONFIG, 0, 3, server.tomo_reorder, 0, INTEGER_CONFIG, NULL, NULL),
-    createEnumConfig("tomokv-thread-mode",           NULL, IMMUTABLE_CONFIG, tomokv_thread_mode_enum, server.thread_mode, TOMO_THREAD_MODE_AUTO, NULL, NULL),
+    createAtomicEnumConfig("tomokv-thread-mode",     NULL, MODIFIABLE_CONFIG, tomokv_thread_mode_enum, server.thread_mode, TOMO_THREAD_MODE_AUTO, NULL, tomoFlipSetMode),
     /* WHICH quantity the flip controller's TRIGGER reads. Levels, so a sweep is one-dimensional;
      * everything downstream of the trigger (momentum hill-climb, throughput judge, walk-back,
      * settle sequencing) is shared across all modes.
@@ -3688,7 +3724,7 @@ void addModuleStringConfig(sds name, sds alias, int flags, void *privdata, sds d
 void addModuleEnumConfig(sds name, sds alias, int flags, void *privdata, int default_val, configEnum *enum_vals, int num_enum_vals) {
     int config_dummy_address;
     standardConfig sc = createEnumConfig(name, alias, flags | MODULE_CONFIG, enum_vals, config_dummy_address, default_val, NULL, NULL);
-    sc.data.enumd.config = NULL;
+    sc.data.enumd.config.plain = NULL;
     sc.privdata = privdata;
     registerConfigValue(name, &sc, 0);
 

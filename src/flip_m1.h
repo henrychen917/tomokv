@@ -235,6 +235,8 @@ void tomoM1ControllerTick(int node);
 void tomoM1ActuationTick(int node, int current_io, int current_ex,
                          uint64_t settle_ticks_last, int move_aborted,
                          tomoM1MoveRequest request_move, void *private_data);
+void tomoM1ActuationRearm(int node, int current_io, int current_ex);
+int tomoM1TargetGet(int node, int *target_io, int *target_ex);
 void tomoM1TraceSet(int enabled);
 int tomoM1TraceEnabled(void);
 void tomoM1InfoGet(tomoM1Info *info);

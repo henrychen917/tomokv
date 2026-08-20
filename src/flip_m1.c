@@ -2167,6 +2167,36 @@ void tomoM1ActuationTick(int node, int current_io, int current_ex,
                   node, current_io, current_ex);
 }
 
+/* A runtime ownership hand-off discards the old pending edge and seeds the actuator from the
+ * authoritative live endpoint. The model estimator and its current workload target remain intact;
+ * the next MODEL tick may deliberately choose that target, but it does so from this live shape
+ * rather than completing a pre-freeze plan. */
+void tomoM1ActuationRearm(int node, int current_io, int current_ex) {
+    if (node < 0 || node >= TOMO_NODES_MAX) return;
+    tomoM1ActuationPlan *plan = &tomo_m1_actuation[node];
+    memset(plan, 0, sizeof(*plan));
+    plan->current_io = current_io;
+    plan->current_ex = current_ex;
+    plan->target_io = current_io;
+    plan->target_ex = current_ex;
+    plan->expected_io = current_io;
+    plan->expected_ex = current_ex;
+    plan->current_valid = 1;
+    plan->target_valid = 1;
+    plan->at_target = 1;
+}
+
+int tomoM1TargetGet(int node, int *target_io, int *target_ex) {
+    if (node < 0 || node >= TOMO_NODES_MAX) return 0;
+    int io = atomic_load_explicit(&tomo_m1_published[node].target_io,
+                                  memory_order_acquire);
+    int budget = server.io_per_node + server.ex_per_node;
+    if (io < 1 || io >= budget) return 0;
+    if (target_io) *target_io = io;
+    if (target_ex) *target_ex = budget - io;
+    return 1;
+}
+
 void tomoM1ControllerTick(int node) {
     int node_count = server.topo_nodes > 0 ? server.topo_nodes : 1;
     if (node < 0 || node >= node_count || node >= TOMO_NODES_MAX) return;
