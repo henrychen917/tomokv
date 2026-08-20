@@ -1032,16 +1032,27 @@ NULL
         tm_flip_trace = (on != 0);
         addReplyStatus(c, tm_flip_trace ? "flip trace ON" : "flip trace OFF");
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-dispwindow") && c->argc == 3) {
-        /* DEBUG TOMO-DISPWINDOW <0|1> -- diagnostic: 0 forces the SEDA window law's published
-         * values to zero (pass-end flush only, pre-mechanism-A behaviour) for an isolated A/B;
-         * 1 restores the live law. The law itself keeps computing; only publication is gated. */
-        long on;
-        if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
-        tomo_disp_window_forced_zero = (on == 0);
-        if (tomo_disp_window_forced_zero)
+        /* DEBUG TOMO-DISPWINDOW <-1|0|N> -- diagnostic control of the SEDA window law's PUBLISHED
+         * value (the law itself keeps computing either way):
+         *   -1 or 1 = AUTO, the live law publishes
+         *    0      = forced 0 (pass-end flush only, pre-mechanism-A behaviour)
+         *    N > 1  = forced N on every io thread — sweeps window SIZE, which is how we separate
+         *             "early flush helps" from "how much early" (the staging supplement showed the
+         *             only measured reorder win is flush timing, not permutation).
+         * Integer reply so a suite can assert the value actually took. */
+        long want;
+        if (getLongFromObjectOrReply(c, c->argv[2], &want, NULL) != C_OK) return;
+        if (want < -1 || want > TOMO_RORD_CAP) {
+            addReplyErrorFormat(c, "TOMO-DISPWINDOW expects -1 (auto), 0, or 2..%d", TOMO_RORD_CAP);
+            return;
+        }
+        if (want == 1) want = -1;                 /* back-compat: 1 meant "restore auto" */
+        tomo_disp_window_forced_zero = (want == 0);
+        tomo_disp_window_forced_val = (want > 0) ? (int)want : -1;
+        if (want >= 0)
             for (int t = 0; t <= TOMO_IO_THREADS_MAX; t++)
-                atomic_store_explicit(&tomo_disp_window[t], 0, memory_order_release);
-        addReplyStatus(c, tomo_disp_window_forced_zero ? "disp window FORCED 0" : "disp window AUTO");
+                atomic_store_explicit(&tomo_disp_window[t], (int)want, memory_order_release);
+        addReplyLongLong(c, want);
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-rordmask") && c->argc == 3) {
         /* DEBUG TOMO-RORDMASK <0..63> -- per-pass reorder ablation. Integer reply is intentional:
          * measurement suites must assert the effective mask rather than trust an unverified OK. */

@@ -1510,6 +1510,7 @@ typedef struct {
 #define TOMO_RORD_TIER_ELEM  16    /* argv range <= this => C2 ELEM  */
 #define TOMO_RORD_TIER_SMALL 256   /* <= this => C3 SMALL */
 #define TOMO_RORD_TIER_MED   4096  /* <= this => C4 MED; else C5 BIG. getrange window is /64 (bytes->elems) */
+#define TOMO_RORD_CAP 64           /* reorder/staging window capacity (also the DEBUG window max) */
 /* DEBUG TOMO-RORDMASK: independently ablate the passes in the reorder stack. */
 #define TOMO_RORD_MASK_WORKER_GROUP 0x01
 #define TOMO_RORD_MASK_AGE_SLICE    0x02
@@ -6403,6 +6404,7 @@ void replicaofCommand(client *c);
 void roleCommand(client *c);
 extern int tm_flip_trace;
 extern int tomo_disp_window_forced_zero;
+extern int tomo_disp_window_forced_val;
 extern _Atomic int tomo_disp_window[TOMO_IO_THREADS_MAX + 1];
 extern int tomo_rord_mask;
 extern int tomo_rord_diag;

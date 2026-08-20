@@ -4030,6 +4030,7 @@ void flushExQueues(void);   /* defined below; used by the back-pressure path (A3
  * is owner-written by the io thread; a main-written field there would false-share). */
 _Atomic int tomo_disp_window[TOMO_IO_THREADS_MAX + 1];
 int tomo_disp_window_forced_zero = 0;   /* DEBUG TOMO-DISPWINDOW diagnostic override */
+int tomo_disp_window_forced_val = -1;   /* >=0: hold every io thread's window at this value */
 static __thread int tomo_staged_cnt;   /* dispatches staged since this thread's last flush */
 
 /* ===================== ee451 D: the reorder (mechanism B — KNOB tomokv-reorder) ==============
@@ -4050,7 +4051,6 @@ static __thread int tomo_staged_cnt;   /* dispatches staged since this thread's 
 int tomo_rord_mask = TOMO_RORD_MASK_ALL; /* DEBUG TOMO-RORDMASK, relaxed atomic access */
 int tomo_rord_diag = 0;                  /* DEBUG TOMO-RORDDIAG, relaxed atomic access */
 int tomo_rord_unsafe_diag = 0;           /* sticky once DEP_FENCE has been disabled */
-#define TOMO_RORD_CAP 64
 /* D5 aging: retain the accepted old displacement budget (32) only as a multiplier over measured
  * TIME. The actual bound is AGE_EWMAS * the slowest published class-service EWMA, so it follows the
  * workload instead of assuming that 32 displaced commands have a stable latency cost. */
@@ -7689,7 +7689,8 @@ void tomoSvcTick(void) {
                  * publish 0 (= pass-end only) rather than a per-dispatch flush storm */
                 if (wnd <= 2) wnd = 0;
             }
-            if (tomo_disp_window_forced_zero) continue;   /* diagnostic A/B: hold at 0 */
+            /* diagnostic A/B: hold the published window (at 0, or at a forced size) */
+            if (tomo_disp_window_forced_zero || tomo_disp_window_forced_val >= 0) continue;
             int cur = atomic_load_explicit(&tomo_disp_window[t], memory_order_relaxed);
             int step = cur >> 2;                     /* 25% deadzone (0 -> always publish) */
             if (wnd > cur + step || wnd < cur - step)
@@ -21558,11 +21559,18 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
              * first, so one INFO response cannot identify an unsafe mask as safe. */
             int rord_mask_info = __atomic_load_n(&tomo_rord_mask, __ATOMIC_ACQUIRE);
             int rord_unsafe_info = __atomic_load_n(&tomo_rord_unsafe_diag, __ATOMIC_RELAXED);
+            /* Window-law witnesses across ALL io threads, not just thread 1: a single-thread
+             * sample cannot tell "the law never engages" from "it engages on another thread",
+             * and mechanism A's keep-or-delete verdict rests on exactly that distinction. */
+            int disp_window_max = 0, disp_window_nonzero = 0;
             for (int _t = 0; _t <= TOMO_IO_THREADS_MAX; _t++) {
                 rord_runs_sum += tm_io_sig[_t].rord_runs; rord_heads_sum += tm_io_sig[_t].rord_heads;
                 rord_grouped_sum += tm_io_sig[_t].rord_grouped; rord_fences_sum += tm_io_sig[_t].rord_fences;
                 rord_age_pins_sum += tm_io_sig[_t].rord_age_pins;
                 rord_inversions_sum += tm_io_sig[_t].rord_inversions;
+                int _w = atomic_load_explicit(&tomo_disp_window[_t], memory_order_relaxed);
+                if (_w > disp_window_max) disp_window_max = _w;
+                if (_w > 0) disp_window_nonzero++;
             }
             int io_hi = server.io_threads + server.tm_ngrow_io, nio = 0;
             for (int t = 1; t <= io_hi && t <= TOMO_IO_THREADS_MAX; t++) {
@@ -21607,6 +21615,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "tomokv_svc_us_c3:%.2f\r\n", atomic_load_explicit(&tomo_svc_q8[3], memory_order_relaxed) / 256.0,
                 "tomokv_svc_min_us:%.2f\r\n", atomic_load_explicit(&tomo_svc_min_q8, memory_order_relaxed) / 256.0,
                 "tomokv_disp_window_io1:%d\r\n", atomic_load_explicit(&tomo_disp_window[1], memory_order_relaxed),
+                "tomokv_disp_window_max:%d\r\n", disp_window_max,
+                "tomokv_disp_window_nonzero:%d\r\n", disp_window_nonzero,
                 "tomokv_rord_runs:%llu\r\n", (unsigned long long)rord_runs_sum,
                 "tomokv_rord_heads:%llu\r\n", (unsigned long long)rord_heads_sum,
                 "tomokv_rord_grouped:%llu\r\n", (unsigned long long)rord_grouped_sum,
