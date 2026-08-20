@@ -2552,6 +2552,12 @@ static int isValidTomokvPinSpec(char *val, const char **err) {
     return tomoPinSpecParse(val, "tomokv-pin-io/-ex", NULL, NULL, err);
 }
 
+static int isValidTomoM1CostSource(char *val, const char **err) {
+    if (tomoM1CostSourcesParseSpec(val, NULL, NULL)) return 1;
+    *err = "tomokv-m1-cost-source must be <seed|measured>,<seed|measured>";
+    return 0;
+}
+
 /* Signal 4 is owned by the adjacent worker-skew experiment. This branch predates that commit, so
  * preserve its current rejection rather than silently assigning it a different meaning; the two
  * branches combine by admitting 4 (worker-max) beside productive-ratio mode 5. */
@@ -3203,6 +3209,7 @@ standardConfig static_configs[] = {
     createIntConfig("tomokv-phase-trace", NULL, DEBUG_CONFIG | IMMUTABLE_CONFIG, 0, INT_MAX, server.phase_trace_sample, 0, INTEGER_CONFIG, NULL, NULL),
     createBoolConfig("tomokv-atomic",                NULL, MODIFIABLE_CONFIG, server.tomo_atomic, 0, NULL, applyTomoAtomicToggle),
     createStringConfig("tomokv-costs-file",          NULL, IMMUTABLE_CONFIG, ALLOW_EMPTY_STRING, server.tomo_m1_costs_file, "", NULL, NULL),
+    createStringConfig("tomokv-m1-cost-source",      NULL, IMMUTABLE_CONFIG, ALLOW_EMPTY_STRING, server.tomo_m1_cost_source, "measured,seed", isValidTomoM1CostSource, NULL),
     createIntConfig("tomokv-atomic-window",          NULL, MODIFIABLE_CONFIG, -1, INT_MAX, server.tomo_atomic_window, -1, INTEGER_CONFIG, NULL, applyTomoAtomicAdmission),
     createLongLongConfig("tomokv-atomic-reclaim-limit", NULL, MODIFIABLE_CONFIG, -1, LLONG_MAX, server.tomo_atomic_reclaim_limit, -1, INTEGER_CONFIG, NULL, applyTomoAtomicAdmission),
     /* tomokv-worker-direct-send (v12-K) DELETED: foundation removed, see 2s-auto v1.6 for the real

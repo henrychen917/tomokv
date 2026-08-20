@@ -4083,6 +4083,7 @@ struct redisServer {
                                 * strict_order (reorder defers). default 0. */
     int tomo_atomic;           /* tomokv-atomic: commit-time MVCC for eligible whole-value groups. */
     char *tomo_m1_costs_file;  /* optional boot priors for the m1 argv-shape cost registry. */
+    char *tomo_m1_cost_source; /* immutable "ex,io" source pair for the M1 cost model. */
     int tomo_atomic_window;    /* max admitted atomic write groups; -1 = live-writer auto,
                                 * 0 = unlimited, positive = exact. */
     long long tomo_atomic_reclaim_limit; /* process-wide retained atomic-version pool: -1 =

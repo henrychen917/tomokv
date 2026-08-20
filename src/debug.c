@@ -1040,6 +1040,22 @@ NULL
         if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
         tomoM1TraceSet(on != 0);
         addReplyStatus(c, tomoM1TraceEnabled() ? "m1 trace ON" : "m1 trace OFF");
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-m1costsrc")) {
+        /* DEBUG TOMO-M1COSTSRC <seed|measured> <seed|measured> -- atomically select EX then IO
+         * consumption. Measurement continues in either mode, so changing back is lossless. */
+        if (c->argc != 4) {
+            addReplyError(c, "DEBUG TOMO-M1COSTSRC <seed|measured> <seed|measured>");
+            return;
+        }
+        if (tomoM1CostSourcesSetNames(c->argv[2]->ptr, c->argv[3]->ptr) == C_ERR) {
+            addReplyError(c, "M1 cost sources must each be seed or measured");
+            return;
+        }
+        tomoM1CostSource ex_source, io_source;
+        tomoM1CostSourcesGet(&ex_source, &io_source);
+        addReplyArrayLen(c, 2);
+        addReplyBulkCString(c, tomoM1CostSourceName(ex_source));
+        addReplyBulkCString(c, tomoM1CostSourceName(io_source));
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-costdump") &&
                (c->argc == 2 || c->argc == 3)) {
         /* DEBUG TOMO-COSTDUMP [path] -- atomically persist currently frozen argv-shape cells. */

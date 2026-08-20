@@ -8458,8 +8458,10 @@ void initServer(void) {
     }
 
     server.num_workers = server.ex_threads;
-    /* Command ids and the final backend/atomic/topology config are now known, while no worker
-     * can observe the registry yet. Compatible rows enter as CONFIRMING priors. */
+    /* The immutable boot string and compiled default both select measured EX + seed IO. Apply the
+     * parsed pair before any controller can observe it. Command ids and the final backend/atomic/
+     * topology config are also now known; compatible cost rows enter as CONFIRMING priors. */
+    serverAssert(tomoM1CostSourcesSetSpec(server.tomo_m1_cost_source) == C_OK);
     tomoM1CostsBootLoad();
     /* ee451 (auto symmetric pool): the LIVE worker set is the boot split's prefix, not every
      * provisioned slot. Static mode: tm_boot_w_live == num_workers, i.e. unchanged.
@@ -23271,14 +23273,19 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             (unsigned long long)r10_info.cmp_flat);
         /* m1 targets/costs are atomic publications from the node controller owners. Target slots
          * expose the first two topology nodes requested by the experiment; the unsuffixed
-         * cost/depth gauges are node 0. Actuation witnesses are process totals and remain zero
-         * outside MODEL mode; every node's decisions remain visible in M1TRACE. */
+         * cost/depth gauges and both IO candidates are node 0. cio_source is the selected source;
+         * cio still equals the seed during a measured source's four-fold warm-up, when
+         * cio_measured is zero. Actuation witnesses are process totals and remain zero outside
+         * MODEL mode; every node's decisions remain visible in M1TRACE. */
         tomoM1Info m1_info;
         tomoM1InfoGet(&m1_info);
         info = sdscatprintf(info,
             "tomokv_m1_target_io_n0:%d\r\n"
             "tomokv_m1_target_io_n1:%d\r\n"
             "tomokv_m1_cio:%.6f\r\n"
+            "tomokv_m1_cio_measured:%.6f\r\n"
+            "tomokv_m1_cio_seed:%.6f\r\n"
+            "tomokv_m1_cio_source:%s\r\n"
             "tomokv_m1_cex:%.6f\r\n"
             "tomokv_m1_depth:%.6f\r\n"
             "tomokv_m1_measured_classes:%d\r\n"
@@ -23305,6 +23312,9 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             m1_info.target_io_n0,
             m1_info.target_io_n1,
             m1_info.c_io,
+            m1_info.c_io_measured,
+            m1_info.c_io_seed,
+            tomoM1CostSourceName((tomoM1CostSource)m1_info.c_io_source),
             m1_info.c_ex,
             m1_info.depth,
             m1_info.measured_classes,
