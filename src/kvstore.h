@@ -88,8 +88,10 @@ typedef struct {
 /* ee451 (shared-kv S0.2b): this kvstore is shared by MULTIPLE writer threads, each owning a
  * DISJOINT set of dict indexes (tomo node-db: one owner-worker per bucket-dict; dict content
  * itself is never touched cross-owner). Aggregate bookkeeping adapts:
- *   - key_count / non_empty_dicts / bucket_count / allocated_dicts / rehash overhead: relaxed
- *     atomics (node-local cache line, rare-to-per-op writers)
+ *   - key_count / non_empty_dicts / bucket_count / rehash overhead: one cache-line-padded
+ *     contribution slot per possible owner. The sole writer of a slot publishes with relaxed
+ *     load/store (never an atomic RMW); cold readers fold all slots.
+ *   - allocated_dicts: relaxed atomic (dict allocation/free is cold)
  *   - Fenwick dict_sizes: SKIPPED (multi-writer log-n tree walk on every add/delete); the
  *     non-empty-dict queries it served fall back to a linear dicts[] scan (iteration users are
  *     cold: KEYS / checksums / empty), and fair-random callers are rerouted by the server
@@ -107,6 +109,9 @@ void kvstoreFlatRetireVersionPrune(kvstore *kvs, void *rawkv, uint64_t successor
 void kvstoreFlatRetireVmeta(kvstore *kvs, void *vmeta);
 void kvstoreFlatSwap(kvstore *kvs, struct flatTable *nw);
 int kvstoreIsSharedMT(kvstore *kvs);
+/* Register the fixed worker identity used for shared-kvstore counter contributions. Worker
+ * threads call this once at startup; REDIS_TEST changes it to emulate distinct owners. */
+void kvstoreSetThreadOwner(int owner);
 kvstore *kvstoreCreate(kvstoreType *type, dictType *dtype, int num_dicts_bits, int flags);
 void kvstoreEmpty(kvstore *kvs, void(callback)(dict*));
 void kvstoreRelease(kvstore *kvs);
@@ -143,6 +148,11 @@ uint64_t kvstoreIncrementallyRehash(kvstore *kvs, uint64_t threshold_us);
 size_t kvstoreOverheadHashtableLut(kvstore *kvs);
 size_t kvstoreOverheadHashtableRehashing(kvstore *kvs);
 unsigned long kvstoreDictRehashingCount(kvstore *kvs);
+
+#if defined(DEBUG_ASSERTIONS) || defined(REDIS_TEST)
+/* Debug witness: compare the sharded key-count sum with a slow table/dict recount. */
+int kvstoreCountMismatch(kvstore *kvs);
+#endif
 
 /* Specific dict access by dict-index */
 unsigned long kvstoreDictSize(kvstore *kvs, int didx);

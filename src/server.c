@@ -8581,7 +8581,7 @@ void initServer(void) {
     /* ee451 (shared-kv S0.2b): ONE physical db array per NODE — every worker of a node ALIASES
      * its node's array (ex_dbs[w] = node_dbs[node]), so a node's workers share one kvstore and
      * each owns the bucket-dicts of its range (dict index == bucket, S0.2a). Sharing (wpn > 1)
-     * marks the kvstores KVSTORE_SHARED_MT (atomic aggregates, Fenwick off, rehash-list lock).
+     * marks the kvstores KVSTORE_SHARED_MT (per-owner counter slots, Fenwick off, rehash-list lock).
      * (There used to be a +1 PRIVATE array for a reserve worker slot that no longer exists
      * 2026-07-28; every worker slot belongs to a node, so the array count is exactly the node
      * count. Every fold over the physical arrays is `n < n_node_dbs`.)
@@ -22380,6 +22380,30 @@ static long long flatHashReusesTotal(void) {
     return s;
 }
 
+#ifdef DEBUG_ASSERTIONS
+/* Debug-only integrity witness for shared kvstores. The double aggregate sample inside
+ * kvstoreCountMismatch suppresses a false mismatch when writers changed the total during the
+ * slow recount. A QSBR region keeps flat tables alive while their slots are inspected. */
+static unsigned long long kvstoreCountMismatchTotal(void) {
+    unsigned long long mismatches = 0;
+    if (!server.shared_node_dbs || !server.node_dbs) return 0;
+
+    flatQsbrRegionEnter();
+    for (int node = 0; node < server.n_node_dbs; node++) {
+        for (int dbid = 0; dbid < server.dbnum; dbid++) {
+            redisDb *db = &server.node_dbs[node][dbid];
+            if (!dbIsInitialized(db)) continue;
+            if (db->keys && kvstoreIsSharedMT(db->keys))
+                mismatches += kvstoreCountMismatch(db->keys);
+            if (db->expires && kvstoreIsSharedMT(db->expires))
+                mismatches += kvstoreCountMismatch(db->expires);
+        }
+    }
+    flatQsbrRegionExit();
+    return mismatches;
+}
+#endif
+
 /* ee451 (bug #42): same shape — expired_keys_active must count the WORKER cycles too, otherwise
  * the one instrument that distinguishes active from lazy expiry reads 0 on a sharded server and
  * the defect is unfalsifiable from the outside. Each worker's counter is single-writer (its own
@@ -23133,6 +23157,11 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 (unsigned long long)tomoCommittedSeq(),
             "tomokv_ex_queue_depth:%d\r\n", server.ex_queue_size,
             "tomokv_pipeline_depth:%d\r\n", server.pipeline_ring_depth));
+        info = sdscatprintf(info, "tomokv_kvstore_shard_slots:%d\r\n", TOMO_EX_THREADS_MAX);
+#ifdef DEBUG_ASSERTIONS
+        info = sdscatprintf(info, "tomokv_kvstore_count_mismatch:%llu\r\n",
+                            kvstoreCountMismatchTotal());
+#endif
         size_t atomic_reclaim_worker_bytes = 0, atomic_reclaim_worker_max = 0;
         tomoAtomicReclaimSlot *atomic_reclaim_slots =
             atomic_load_explicit(&tomo_atomic_reclaim_slots, memory_order_acquire);
@@ -25272,6 +25301,9 @@ int exQueuePopBatch(exQueue *q, client **out, int max) {
  * tag-matched kvobj or entry hints, and pass three issues DICT value hints.
  * Command operands are read normally; only owner-side storage lines are hinted.
  * Execution remains authoritative, so stale hint addresses cannot affect results. */
+static __thread redisDb *pf_size_cache_db;
+static __thread unsigned long long pf_size_cache_keys;
+
 static inline void exPrefetchBatch(client **batch, int n) {
     union {
         dict *d;
@@ -25294,8 +25326,9 @@ static inline void exPrefetchBatch(client **batch, int n) {
         /* The only gate is self-derived: detected L3 per sharing worker divided by the
          * measured per-key footprint. No hardware-specific operator input is required. */
         unsigned long long auto_min;
+        int refresh_gate = (pfw->pf_gate_tick++ & 63u) == 0u || pfw->pf_cached_min == 0;
         {
-            if ((pfw->pf_gate_tick++ & 63u) == 0u || pfw->pf_cached_min == 0) {
+            if (refresh_gate) {
                 unsigned long long fp = 96ULL + pfw->w_ewma_vsize;
                 /* L1a UNITS FIX. `est` below is a PER-WORKER footprint, but this compared it against
                  * the WHOLE shared L3 -- so with W workers sharing one L3 domain the effective
@@ -25320,7 +25353,21 @@ static inline void exPrefetchBatch(client **batch, int n) {
             auto_min = pfw->pf_cached_min;                             /* 0 = auto (L3-derived, cached) */
         }
         if (n > 0 && batch[0]->db) {
-            unsigned long long est = dbSize(batch[0]->db);
+            unsigned long long est;
+            if (server.shared_node_dbs) {
+                /* dbSize now folds TOMO_EX_THREADS_MAX contribution slots. This gate runs once per
+                 * worker batch, so keep the approximate sizing signal in owner-local TLS and refresh
+                 * it with the existing 64-batch gate cadence (or immediately after SELECT). Writers
+                 * still touch only their own counter slot; no shared dirty line is introduced. */
+                if (refresh_gate || pf_size_cache_db != batch[0]->db) {
+                    pf_size_cache_db = batch[0]->db;
+                    pf_size_cache_keys = dbSize(batch[0]->db);
+                }
+                est = pf_size_cache_keys;
+            } else {
+                /* Single-writer dbSize remains one plain scalar load. */
+                est = dbSize(batch[0]->db);
+            }
             /* shared node-db: dbSize is the NODE aggregate, but this worker only ever touches its
              * own bucket range — its resident set is aggregate * range/16384. Gating on the raw
              * aggregate opened storage lookahead at 4x the true per-worker set (2.0M node vs 500k
@@ -28340,6 +28387,10 @@ static void setPolyThreadName(const polyThreadCtx *ctx, int mode) {
 
 void *polyThreadMain(void *arg) {
     polyThreadCtx *ctx = (polyThreadCtx *)arg;
+    /* Fixed OS-thread identity for shared-kvstore contribution slots. An EX-born thread keeps the
+     * same ex_slot across IO/EX role changes and dormant-EX drains, so this is set exactly once,
+     * before any slice can mutate a kvstore. Base IO threads have no EX binding and never write one. */
+    if (ctx->ex) kvstoreSetThreadOwner(ctx->ex_slot);
     int cur = TOMO_MODE_UNSET; /* no mode entered yet */
     exSliceCtx exctx;
     int ex_inited = 0;         /* one-time EX setup done (send ring / NUMA bind / slice ctx) */

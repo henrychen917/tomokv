@@ -1487,7 +1487,8 @@ typedef struct {
  * pre-#83 single-word code. The only unconditional cost is ~100KB of extra per-slot stat arrays in
  * the single redisServer instance (97->257 slots), noise against a multi-GB server. */
 #define TOMO_IO_THREADS_MAX 128
-#define TOMO_EX_THREADS_MAX 128
+/* TOMO_EX_THREADS_MAX lives in config.h so generic kvstore code can size owner slots without
+ * depending on server internals. */
 #define TOMO_WB_THREADS_MAX 128
 
 /* ee451 D (2026-08-05): static cost class, stamped once at populateCommandTable. C0/C1 are the

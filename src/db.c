@@ -1819,7 +1819,6 @@ static int accessKeysShouldSkipDictIndex(int didx) {
 robj *dbRandomKey(redisDb *db) {
     dictEntry *de;
     int maxtries = 100;
-    int allvolatile = kvstoreSize(db->keys) == kvstoreSize(db->expires);
 
     /* ee451 (shared-kv S0.2b): on a SHARED node db, sample ONLY this worker's own bucket range —
      * walking another worker's dict races its owner (the pre-share code sampled a whole per-worker
@@ -1888,6 +1887,10 @@ robj *dbRandomKey(redisDb *db) {
             return NULL;                                     /* all tries hit expired keys */
         }
     }
+
+    /* The shared owner-range branches above never consume allvolatile. Keep these aggregate reads
+     * off RANDOMKEY's shared per-command path now that each is a bounded owner-slot fold. */
+    int allvolatile = kvstoreSize(db->keys) == kvstoreSize(db->expires);
 
     while(1) {
         robj *keyobj;
@@ -3394,9 +3397,9 @@ void scanCommand(client *c) {
 
 void dbsizeCommand(client *c) {
     /* ee451 v10-B (fan_all): the keyspace is partitioned across worker shard dbs; c->db (main)
-     * is empty. Sum dbSize across all worker shards for this db id. dbSize() reads the dict's
-     * used counter only (no iteration), so reading it from the IO thread while a worker writes
-     * is racy but crash-free and DBSIZE is approximate by nature. */
+     * is empty. Sum dbSize across all physical shards for this db id. Under SHARED_MT dbSize()
+     * folds the padded owner slots (never dictionaries); relaxed concurrent reads can observe a
+     * momentarily skewed total, as the former relaxed aggregate already could. */
     if (server.num_workers > 0 && server.exThreads) {
         long long total = 0;
         int dbid = c->db->id;

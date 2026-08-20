@@ -314,7 +314,8 @@ void exActiveExpireCycle(exThread *worker) {
          * budget that is ~4s of wall clock PER EMPTY DB, so with the default dbnum=16 a finished
          * sweep took ~60s to come back round to db 0. Measured exactly that: a run stalled at
          * dbsize=83234 for 60s before resuming. Skip the db, don't walk it.
-         * kvstoreSize is an O(1) aggregate (atomic under SHARED_MT), not a walk. */
+         * Under SHARED_MT kvstoreSize is a bounded relaxed-load fold over owner slots, paid only
+         * on this background expiry cadence; it never walks dictionaries or the key set. */
         if (!dbIsInitialized(db) || kvstoreSize(db->expires) == 0) {
             worker->aexp_cursor = 0;
             b = blo;

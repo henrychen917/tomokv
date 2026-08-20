@@ -13,6 +13,7 @@
  */
 
 #include "fmacros.h"
+#include "config.h"
 #include "flatstore.h"
 #include "sds.h"
 /* ee451 FLATSTORE: server-level bits used by the flat branch, forward-declared to keep kvstore.c
@@ -38,7 +39,31 @@ void tomoFlatResizeLogDelete(struct _kvstore *kvs, flatTable *old, const sds key
 
 #define UNUSED(V) ((void) V)
 
+/* Shared counters are contribution ledgers, not ownership inventories. A bucket migration changes
+ * only who will write future deltas; existing contributions stay in the old owner's slot. Using
+ * unsigned modular arithmetic lets the new owner publish a delete even when its slot did not
+ * publish the corresponding insert. The folded sum remains exact without any migration-side
+ * counter transfer, so a cutover has no counter operation that could double-count or lose keys.
+ *
+ * Each field is atomic only to make concurrent cold readers legal in C11. There is exactly one
+ * writer per slot, so updates are an atomic relaxed LOAD followed by a relaxed STORE -- never a
+ * locked fetch-add/read-modify-write. */
+typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) kvstoreCounterSlot {
+    _Atomic uint64_t key_count;
+    _Atomic uint64_t bucket_count;
+    _Atomic uint64_t non_empty_dicts;
+    _Atomic uint64_t overhead_hashtable_rehashing;
+    unsigned char padding[CACHE_LINE_SIZE - 4 * sizeof(_Atomic uint64_t)];
+} kvstoreCounterSlot;
+
+_Static_assert(sizeof(kvstoreCounterSlot) == CACHE_LINE_SIZE,
+               "shared kvstore counter owners must have a cache-line stride");
+_Static_assert((CACHE_LINE_SIZE & (CACHE_LINE_SIZE - 1)) == 0,
+               "shared kvstore slot alignment requires a power-of-two cache line");
+
 struct _kvstore {
+    /* Lookup/read-mostly region. Shared counter activity is out of line, and the live mutable
+     * fields below are isolated so they cannot invalidate flat/dicts/num_dicts_bits/dtype. */
     int flags;
     _Atomic(flatTable *) flat; /* release-published at resize; acquired by lock-free readers */
     kvstoreType *type;
@@ -47,21 +72,100 @@ struct _kvstore {
     long long num_dicts;
     long long num_dicts_bits;
     list *rehashing;                       /* List of dictionaries in this kvstore that are currently rehashing. */
-    int resize_cursor;                     /* Cron job uses this cursor to gradually resize dictionaries (only used if num_dicts > 1). */
-    int allocated_dicts;                   /* The number of allocated dicts. */
+    kvstoreCounterSlot *counter_slots;     /* NULL unless KVSTORE_SHARED_MT; immutable after create. */
+
+    /* Keep these four scalar offsets unchanged for the byte-identical single-writer hot path.
+     * They are initialized but never written after publication under KVSTORE_SHARED_MT; shared
+     * writers use the out-of-line slots above. */
     int non_empty_dicts;                   /* The number of non-empty dicts. */
     unsigned long long key_count;          /* Total number of keys in this kvstore. */
     unsigned long long bucket_count;       /* Total number of buckets in this kvstore across dictionaries. */
     fenwickTree *dict_sizes;               /* Binary indexed tree (BIT) that describes cumulative key frequencies up until given dict-index. */
     size_t overhead_hashtable_rehashing;   /* The overhead of dictionaries rehashing. */
+
+    /* zmalloc does not promise cache-line alignment. The offsets below put the first field that
+     * can mutate on a published shared kvstore at least one full line after num_dicts_bits for
+     * every possible base alignment. */
+    unsigned char lookup_cacheline_guard[CACHE_LINE_SIZE];
+    int resize_cursor;                     /* Cron job uses this cursor to gradually resize dictionaries (only used if num_dicts > 1). */
+    int allocated_dicts;                   /* The number of allocated dicts. */
     volatile unsigned char mt_lock;        /* ee451 (S0.2b KVSTORE_SHARED_MT): spinlock for the rehashing list (rare: rehash start/finish) */
     void *metadata[];                      /* conditionally allocated based on "flags" */
 };
 
-/* ee451 (S0.2b): SHARED_MT helpers. GCC/Clang __atomic builtins on the plain fields so the
- * single-writer path (flag off) keeps plain loads/stores with zero codegen change. */
+_Static_assert(offsetof(struct _kvstore, resize_cursor) -
+               (offsetof(struct _kvstore, num_dicts_bits) + sizeof(long long) - 1) >=
+               CACHE_LINE_SIZE,
+               "kvstore lookup and mutable fields must never share a cache line");
+
+/* ee451 (S0.2b): SHARED_MT helpers. The TLS defaults to slot zero for quiescent bootstrap/test
+ * work; every OS thread with an EX binding replaces it with its fixed worker identity once, before
+ * its first slice. No server types or globals leak into this generic layer. */
+static __thread unsigned int kvstore_thread_owner;
+
+void kvstoreSetThreadOwner(int owner) {
+    assert(owner >= 0 && owner < TOMO_EX_THREADS_MAX);
+    kvstore_thread_owner = (unsigned int)owner;
+}
+
 static inline int kvstoreSharedMT(kvstore *kvs) { return kvs->flags & KVSTORE_SHARED_MT; }
 int kvstoreIsSharedMT(kvstore *kvs) { return kvstoreSharedMT(kvs); }   /* public (db.c histogram gate) */
+
+static inline kvstoreCounterSlot *kvstoreThreadCounterSlot(kvstore *kvs) {
+    return &kvs->counter_slots[kvstore_thread_owner];
+}
+
+static inline void kvstoreCounterAdd(_Atomic uint64_t *counter, uint64_t delta) {
+    uint64_t value = atomic_load_explicit(counter, memory_order_relaxed);
+    atomic_store_explicit(counter, value + delta, memory_order_relaxed);
+}
+
+static inline void kvstoreSharedKeyCountAdd(kvstore *kvs, int64_t delta) {
+    kvstoreCounterAdd(&kvstoreThreadCounterSlot(kvs)->key_count, delta);
+}
+
+static uint64_t kvstoreCounterSum(kvstore *kvs, size_t member_offset) {
+    uint64_t total = 0;
+    for (int owner = 0; owner < TOMO_EX_THREADS_MAX; owner++) {
+        _Atomic uint64_t *counter = (_Atomic uint64_t *)
+            ((unsigned char *)&kvs->counter_slots[owner] + member_offset);
+        total += atomic_load_explicit(counter, memory_order_relaxed);
+    }
+    return total;
+}
+
+static kvstoreCounterSlot *kvstoreCounterSlotsAlloc(void) {
+    size_t bytes = sizeof(kvstoreCounterSlot) * (size_t)TOMO_EX_THREADS_MAX;
+    void *raw = zcalloc(bytes + CACHE_LINE_SIZE + sizeof(void *));
+    uintptr_t aligned = ((uintptr_t)raw + sizeof(void *) + (CACHE_LINE_SIZE - 1)) &
+                        ~(uintptr_t)(CACHE_LINE_SIZE - 1);
+    ((void **)aligned)[-1] = raw;
+    kvstoreCounterSlot *slots = (kvstoreCounterSlot *)aligned;
+    for (int owner = 0; owner < TOMO_EX_THREADS_MAX; owner++) {
+        atomic_init(&slots[owner].key_count, 0);
+        atomic_init(&slots[owner].bucket_count, 0);
+        atomic_init(&slots[owner].non_empty_dicts, 0);
+        atomic_init(&slots[owner].overhead_hashtable_rehashing, 0);
+    }
+    return slots;
+}
+
+static void kvstoreCounterSlotsReset(kvstore *kvs) {
+    for (int owner = 0; owner < TOMO_EX_THREADS_MAX; owner++) {
+        atomic_store_explicit(&kvs->counter_slots[owner].key_count, 0, memory_order_relaxed);
+        atomic_store_explicit(&kvs->counter_slots[owner].bucket_count, 0, memory_order_relaxed);
+        atomic_store_explicit(&kvs->counter_slots[owner].non_empty_dicts, 0, memory_order_relaxed);
+        atomic_store_explicit(&kvs->counter_slots[owner].overhead_hashtable_rehashing, 0,
+                              memory_order_relaxed);
+    }
+}
+
+static void kvstoreCounterSlotsFree(kvstore *kvs) {
+    if (!kvs->counter_slots) return;
+    zfree(((void **)kvs->counter_slots)[-1]);
+    kvs->counter_slots = NULL;
+}
+
 static inline void kvstoreMtLock(kvstore *kvs) {
     while (__atomic_test_and_set(&kvs->mt_lock, __ATOMIC_ACQUIRE)) { /* rare + short hold */ }
 }
@@ -160,12 +264,13 @@ static void cumulativeKeyCountAdd(kvstore *kvs, int didx, long delta) {
 
     if (kvstoreSharedMT(kvs)) {
         /* ee451 (S0.2b): multiple owner-threads add/delete in disjoint dicts of this kvstore.
-         * Aggregates via relaxed atomics (node-local line); the Fenwick tree is SKIPPED — a
-         * multi-writer log-n tree walk per op is the one hot-path cost sharing would add, and
-         * its consumers (non-empty iteration / fair random) have linear fallbacks. */
-        __atomic_fetch_add(&kvs->key_count, (unsigned long long)delta, __ATOMIC_RELAXED);
+         * Each owner publishes only to its padded contribution slot with load/store (no atomic
+         * RMW); the Fenwick tree is SKIPPED — a multi-writer log-n tree walk per op is the one
+         * hot-path cost sharing would add, and its consumers have linear fallbacks. */
+        kvstoreCounterSlot *slot = kvstoreThreadCounterSlot(kvs);
+        kvstoreCounterAdd(&slot->key_count, delta);
         if (non_empty_dicts_delta)
-            __atomic_fetch_add(&kvs->non_empty_dicts, non_empty_dicts_delta, __ATOMIC_RELAXED);
+            kvstoreCounterAdd(&slot->non_empty_dicts, non_empty_dicts_delta);
         return;
     }
 
@@ -188,7 +293,7 @@ static dict *createDictIfNeeded(kvstore *kvs, int didx) {
     if (kvstoreSharedMT(kvs)) {
         /* ee451 (S0.2b): didx has ONE owner thread (only it creates this dict), but other
          * threads read dicts[didx] (cross-owner prefetch peeks, iteration). Release-publish
-         * the fully-built dict; count via atomic (owners of different didx race the counter). */
+         * the fully-built dict; allocated_dicts remains a cold shared atomic. */
         d = dictCreate(&kvs->dtype);
         __atomic_store_n(&kvs->dicts[didx], d, __ATOMIC_RELEASE);
         __atomic_fetch_add(&kvs->allocated_dicts, 1, __ATOMIC_RELAXED);
@@ -249,7 +354,8 @@ static void kvstoreDictRehashingStarted(dict *d) {
         kvstoreMtUnlock(kvs);
         unsigned long long from, to;
         dictRehashingInfo(d, &from, &to);
-        __atomic_fetch_add(&kvs->overhead_hashtable_rehashing, from, __ATOMIC_RELAXED);
+        kvstoreCounterAdd(&kvstoreThreadCounterSlot(kvs)->overhead_hashtable_rehashing,
+                          (int64_t)from);
         return;
     }
     listAddNodeTail(kvs->rehashing, d);
@@ -276,7 +382,8 @@ static void kvstoreDictRehashingCompleted(dict *d) {
         kvstoreMtUnlock(kvs);
         unsigned long long from, to;
         dictRehashingInfo(d, &from, &to);
-        __atomic_fetch_sub(&kvs->overhead_hashtable_rehashing, from, __ATOMIC_RELAXED);
+        kvstoreCounterAdd(&kvstoreThreadCounterSlot(kvs)->overhead_hashtable_rehashing,
+                          0 - (uint64_t)from);
         return;
     }
     if (metadata->rehashing_node) {
@@ -295,7 +402,7 @@ static void kvstoreDictRehashingCompleted(dict *d) {
 static void kvstoreDictBucketChanged(dict *d, long long delta) {
     kvstore *kvs = d->type->userdata;
     if (kvstoreSharedMT(kvs)) {   /* ee451 (S0.2b): table-size changes on any owner thread */
-        __atomic_fetch_add(&kvs->bucket_count, (unsigned long long)delta, __ATOMIC_RELAXED);
+        kvstoreCounterAdd(&kvstoreThreadCounterSlot(kvs)->bucket_count, delta);
         return;
     }
     kvs->bucket_count += delta;
@@ -315,6 +422,10 @@ static size_t kvstoreDictBaseMetaSize(dict *d) {
  * num_dicts_bits is the log2 of the amount of dictionaries needed (e.g. 0 for 1 dict,
  * 3 for 8 dicts, etc.) */
 kvstore *kvstoreCreate(kvstoreType *type, dictType *dtype, int num_dicts_bits, int flags) {
+    /* Flat storage is the shared node-db implementation, never a single-writer shape. Keeping
+     * this invariant explicit lets its insert/delete hot path publish directly to the TLS owner
+     * slot without adding a per-write flag branch. */
+    assert(!(flags & KVSTORE_FLAT) || (flags & KVSTORE_SHARED_MT));
     /* We can't support more than 2^16 dicts because we want to save 48 bits
      * for the dict cursor, see kvstoreScan */
     assert(num_dicts_bits <= 16);
@@ -347,6 +458,8 @@ kvstore *kvstoreCreate(kvstoreType *type, dictType *dtype, int num_dicts_bits, i
     kvs->num_dicts_bits = num_dicts_bits;
     kvs->num_dicts = 1 << kvs->num_dicts_bits;
     kvs->dicts = zcalloc(sizeof(dict*) * kvs->num_dicts);
+    if (kvstoreSharedMT(kvs))
+        kvs->counter_slots = kvstoreCounterSlotsAlloc();
     if (!(kvs->flags & KVSTORE_ALLOCATE_DICTS_ON_DEMAND)) {
         for (int i = 0; i < kvs->num_dicts; i++)
             createDictIfNeeded(kvs, i);
@@ -401,13 +514,22 @@ void kvstoreEmpty(kvstore *kvs, void(callback)(dict*)) {
 
     listEmpty(kvs->rehashing);
 
-    kvs->key_count = 0;
-    kvs->non_empty_dicts = 0;
+    int shared = kvstoreSharedMT(kvs);
+    if (shared) {
+        /* The flush rendezvous has stopped every owner. Clear ALL contribution slots: leaving
+         * even one stale slot would resurrect a phantom DBSIZE after FLUSHALL. */
+        kvstoreCounterSlotsReset(kvs);
+    } else {
+        kvs->key_count = 0;
+        kvs->non_empty_dicts = 0;
+    }
     kvs->resize_cursor = 0;
-    kvs->bucket_count = 0;
+    if (!shared)
+        kvs->bucket_count = 0;
     if (kvs->dict_sizes)
         fwTreeClear(kvs->dict_sizes);
-    kvs->overhead_hashtable_rehashing = 0;
+    if (!shared)
+        kvs->overhead_hashtable_rehashing = 0;
 }
 
 void kvstoreRelease(kvstore *kvs) {
@@ -416,6 +538,7 @@ void kvstoreRelease(kvstore *kvs) {
         zfree(kvs->dicts);
         listRelease(kvs->rehashing);
         if (kvs->dict_sizes) fwTreeDestroy(kvs->dict_sizes);
+        kvstoreCounterSlotsFree(kvs);
         zfree(kvs);
         return;
     }
@@ -435,16 +558,53 @@ void kvstoreRelease(kvstore *kvs) {
     if (kvs->dict_sizes)
         fwTreeDestroy(kvs->dict_sizes);
 
+    kvstoreCounterSlotsFree(kvs);
     zfree(kvs);
 }
 
 unsigned long long int kvstoreSize(kvstore *kvs) {
+    if (kvstoreSharedMT(kvs))
+        return kvstoreCounterSum(kvs, offsetof(kvstoreCounterSlot, key_count));
     return kvs->key_count;
 }
+
+#if defined(DEBUG_ASSERTIONS) || defined(REDIS_TEST)
+static unsigned long long kvstoreSlowKeyCount(kvstore *kvs) {
+    unsigned long long total = 0;
+    if (kvs->flags & KVSTORE_FLAT) {
+        flatTable *t = flatCurrent(kvs);
+        if (!t) return 0;
+        for (uint64_t i = 0; i < t->size; i++) {
+            uint64_t word = atomic_load_explicit(&t->slots[i].w, memory_order_relaxed);
+            if (FLAT_IS_LIVE(word)) total++;
+        }
+        return total;
+    }
+
+    for (int didx = 0; didx < kvs->num_dicts; didx++) {
+        dict *d = kvstoreSharedMT(kvs) ?
+            __atomic_load_n(&kvs->dicts[didx], __ATOMIC_ACQUIRE) : kvs->dicts[didx];
+        if (d) total += dictSize(d);
+    }
+    return total;
+}
+
+int kvstoreCountMismatch(kvstore *kvs) {
+    unsigned long long before = kvstoreSize(kvs);
+    unsigned long long recounted = kvstoreSlowKeyCount(kvs);
+    unsigned long long after = kvstoreSize(kvs);
+    /* A concurrent relaxed reader was already approximate before sharding. Do not diagnose a
+     * counter mismatch when the aggregate itself changed during the slow walk. */
+    return before == after && recounted != after;
+}
+#endif
 
 /* This method provides the cumulative sum of all the dictionary buckets
  * across dictionaries in a database. */
 unsigned long kvstoreBuckets(kvstore *kvs) {
+    if (kvstoreSharedMT(kvs))
+        return (unsigned long)kvstoreCounterSum(
+            kvs, offsetof(kvstoreCounterSlot, bucket_count));
     if (kvs->num_dicts != 1) {
         return kvs->bucket_count;
     } else {
@@ -454,6 +614,9 @@ unsigned long kvstoreBuckets(kvstore *kvs) {
 
 size_t kvstoreMemUsage(kvstore *kvs) {
     size_t mem = sizeof(*kvs);
+    if (kvstoreSharedMT(kvs))
+        mem += sizeof(kvstoreCounterSlot) * (size_t)TOMO_EX_THREADS_MAX +
+               CACHE_LINE_SIZE + sizeof(void *);
     size_t metaSize = kvs->dtype.dictMetadataBytes(NULL);
     unsigned long long keys_count = kvstoreSize(kvs);
     mem += keys_count * dictEntryMemUsage(kvs->dtype.no_value) +
@@ -738,6 +901,8 @@ int kvstoreGetNextNonEmptyDictIndex(kvstore *kvs, int didx) {
 }
 
 int kvstoreNumNonEmptyDicts(kvstore *kvs) {
+    if (kvstoreSharedMT(kvs))
+        return (int)kvstoreCounterSum(kvs, offsetof(kvstoreCounterSlot, non_empty_dicts));
     return kvs->non_empty_dicts;
 }
 
@@ -898,10 +1063,17 @@ uint64_t kvstoreIncrementallyRehash(kvstore *kvs, uint64_t threshold_us) {
 }
 
 size_t kvstoreOverheadHashtableLut(kvstore *kvs) {
+    if (kvstoreSharedMT(kvs))
+        return kvstoreCounterSum(kvs, offsetof(kvstoreCounterSlot, bucket_count)) *
+               sizeof(dictEntry *);
     return kvs->bucket_count * sizeof(dictEntry *);
 }
 
 size_t kvstoreOverheadHashtableRehashing(kvstore *kvs) {
+    if (kvstoreSharedMT(kvs))
+        return kvstoreCounterSum(
+            kvs, offsetof(kvstoreCounterSlot, overhead_hashtable_rehashing)) *
+            sizeof(dictEntry *);
     return kvs->overhead_hashtable_rehashing * sizeof(dictEntry *);
 }
 
@@ -1126,7 +1298,7 @@ int kvstoreDictSetAtLink(kvstore *kvs, int didx, void *kv, dictEntryLink *link, 
             }
             tomoFlatResizeLogSlot(kvs, t, inserted);
             if (link) *link = (dictEntryLink)&t->slots[inserted].w;
-            __atomic_add_fetch(&kvs->key_count, 1, __ATOMIC_RELAXED);
+            kvstoreSharedKeyCountAdd(kvs, 1);
         } else if (kv == NULL) {
             /* ee451 FLATSTORE (8B-slot review fix): preclearing a slot to FLAT_TOMB here is UNSAFE —
              * FLAT_TOMB is immediately reusable, so a concurrent cross-key insert could claim the slot
@@ -1196,7 +1368,7 @@ void kvstoreDictTwoPhaseUnlinkFree(kvstore *kvs, int didx, dictEntryLink link, i
             tomoFlatResizeLogDelete(kvs, t, kvobjGetKey(flatDecodeKV(old)));
             tomoRetireDetachedBag(kvs, flatDecodeKV(old));
         }
-        __atomic_sub_fetch(&kvs->key_count, 1, __ATOMIC_RELAXED);
+        kvstoreSharedKeyCountAdd(kvs, -1);
         (void)table_index;
         return;
     }
@@ -1216,7 +1388,7 @@ int kvstoreDictDelete(kvstore *kvs, int didx, const void *key) {
             tomoFlatResizeLogDelete(kvs, t, kvobjGetKey(flatDecodeKV(old)));
             tomoRetireDetachedBag(kvs, flatDecodeKV(old));
         }
-        __atomic_sub_fetch(&kvs->key_count, 1, __ATOMIC_RELAXED);
+        kvstoreSharedKeyCountAdd(kvs, -1);
         return DICT_OK;
     }
     dict *d = kvstoreGetDict(kvs, didx);
@@ -1462,6 +1634,79 @@ int kvstoreTest(int argc, char **argv, int flags) {
             kvstoreResetDictIterator(&kvs_di);
         }
         kvstoreRelease(kvs);
+    }
+
+    TEST("SHARED_MT owner counters survive deletes, migration, and FLUSHALL") {
+        kvstore *kvs = kvstoreCreate(&KvstoreTestType, &KvstoreDictTestType, 2,
+                            KVSTORE_ALLOCATE_DICTS_ON_DEMAND | KVSTORE_SHARED_MT);
+        void *keys[3][4] = {{0}};
+        int next_key = 1000;
+
+        /* Three independent writers publish inserts and deletes only to their own slots. */
+        for (int owner = 0; owner < 3; owner++) {
+            kvstoreSetThreadOwner(owner);
+            for (int n = 0; n < 4; n++) {
+                keys[owner][n] = stringFromInt(next_key++);
+                de = kvstoreDictAddRaw(kvs, owner, keys[owner][n], NULL);
+                assert(de != NULL);
+            }
+        }
+        kvstoreSetThreadOwner(1);
+        assert(kvstoreDictDelete(kvs, 1, keys[1][0]) == DICT_OK);
+        keys[1][0] = NULL;
+        assert((uintptr_t)kvs->counter_slots % CACHE_LINE_SIZE == 0);
+        assert(atomic_load_explicit(&kvs->counter_slots[0].key_count,
+                                    memory_order_relaxed) == 4);
+        assert(atomic_load_explicit(&kvs->counter_slots[1].key_count,
+                                    memory_order_relaxed) == 3);
+        assert(atomic_load_explicit(&kvs->counter_slots[2].key_count,
+                                    memory_order_relaxed) == 4);
+        assert(atomic_load_explicit(&kvs->counter_slots[3].key_count,
+                                    memory_order_relaxed) == 0);
+        assert(kvstoreSize(kvs) == 11);
+        assert(kvstoreNumNonEmptyDicts(kvs) == 3);
+        assert(kvstoreCountMismatch(kvs) == 0);
+
+        /* A real reshard only flips bucket ownership. Do exactly that to the accounting: change
+         * the future writer and do not touch any counter. The aggregate cannot double-count or
+         * lose a key because migration has no counter-transfer operation. */
+        unsigned long long before_migration = kvstoreSize(kvs);
+        kvstoreSetThreadOwner(3);
+        assert(kvstoreSize(kvs) == before_migration);
+
+        /* Deleting an old owner's key creates modular debt in the new owner's contribution. The
+         * folded sum still matches the dictionaries; a later insert cancels that debt. */
+        assert(kvstoreDictDelete(kvs, 0, keys[0][0]) == DICT_OK);
+        keys[0][0] = NULL;
+        assert(atomic_load_explicit(&kvs->counter_slots[3].key_count,
+                                    memory_order_relaxed) == UINT64_MAX);
+        assert(kvstoreSize(kvs) == before_migration - 1);
+        assert(kvstoreCountMismatch(kvs) == 0);
+        void *post_migration_key = stringFromInt(next_key++);
+        assert(kvstoreDictAddRaw(kvs, 0, post_migration_key, NULL) != NULL);
+        assert(atomic_load_explicit(&kvs->counter_slots[3].key_count,
+                                    memory_order_relaxed) == 0);
+        assert(kvstoreSize(kvs) == before_migration);
+        assert(kvstoreCountMismatch(kvs) == 0);
+
+        /* kvstoreEmpty is the shared node-db half of FLUSHDB/FLUSHALL. Every field in every slot
+         * must be reset, including slots whose owner no longer owns the buckets it accounted. */
+        kvstoreEmpty(kvs, NULL);
+        assert(kvstoreSize(kvs) == 0);
+        assert(kvstoreCountMismatch(kvs) == 0);
+        for (int owner = 0; owner < TOMO_EX_THREADS_MAX; owner++) {
+            assert(atomic_load_explicit(&kvs->counter_slots[owner].key_count,
+                                        memory_order_relaxed) == 0);
+            assert(atomic_load_explicit(&kvs->counter_slots[owner].bucket_count,
+                                        memory_order_relaxed) == 0);
+            assert(atomic_load_explicit(&kvs->counter_slots[owner].non_empty_dicts,
+                                        memory_order_relaxed) == 0);
+            assert(atomic_load_explicit(
+                       &kvs->counter_slots[owner].overhead_hashtable_rehashing,
+                       memory_order_relaxed) == 0);
+        }
+        kvstoreRelease(kvs);
+        kvstoreSetThreadOwner(0);
     }
 
     kvstoreRelease(kvs1);

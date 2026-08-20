@@ -43,6 +43,10 @@
 #endif
 #endif
 
+/* Compile-time worker cap shared by the server and generic kvstore. Shared
+ * kvstores allocate one cache-line counter slot for every possible owner. */
+#define TOMO_EX_THREADS_MAX 128
+
 /* Legacy source-compatibility definitions. Reply CDBs are now heap-resident
  * cdbSlots and are always cache-line isolated; these macros have no live user. */
 #ifndef THREDIS_OPT_MASK_ISOLATE
