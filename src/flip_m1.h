@@ -37,48 +37,134 @@ _Static_assert(sizeof(tomoM1IoSignal) % CACHE_LINE_SIZE == 0,
 
 extern tomoM1IoSignal tomo_m1_io_signals[TOMO_IO_THREADS_MAX + 1];
 
-typedef struct tomoM1ExClassSignal {
+/* Exact argv-shape cells. argc has twelve live buckets (1..8, 9-16, 17-32, 33-64, 65+)
+ * plus ANY for a capacity fallback; bytes has four log4 buckets plus ANY. */
+#define TOMO_M1_CELLS_MAX 512
+#define TOMO_M1_CMD_CELL_MAP 8
+#define TOMO_M1_MEASURED_FOLD_MS 1000
+#define TOMO_M1_COSTS_DEFAULT "tomokv-costs.conf"
+
+typedef enum tomoM1CellState {
+    TOMO_M1_CELL_MEASURING = 0,
+    TOMO_M1_CELL_CONFIRMING,
+    TOMO_M1_CELL_FROZEN
+} tomoM1CellState;
+
+/* Packed redisCommand.tomo_m1_cells[] word. Cell ids are stored +1 so zero remains empty. */
+#define TOMO_M1_CELL_ID_MASK       UINT32_C(0x3ff)
+#define TOMO_M1_CELL_ARGC_SHIFT    10
+#define TOMO_M1_CELL_ARGC_MASK     (UINT32_C(0xf) << TOMO_M1_CELL_ARGC_SHIFT)
+#define TOMO_M1_CELL_BYTES_SHIFT   14
+#define TOMO_M1_CELL_BYTES_MASK    (UINT32_C(0x7) << TOMO_M1_CELL_BYTES_SHIFT)
+#define TOMO_M1_CELL_ACTIVE        (UINT32_C(1) << 17)
+#define TOMO_M1_CELL_FROZEN_BIT    (UINT32_C(1) << 18)
+#define TOMO_M1_CELL_FALLBACK_ON   (UINT32_C(1) << 19)
+#define TOMO_M1_CELL_SHAPE_MASK    (TOMO_M1_CELL_ARGC_MASK | TOMO_M1_CELL_BYTES_MASK)
+
+typedef struct tomoM1ExCellSignal {
     _Atomic uint64_t service_us;
     _Atomic uint64_t ops;
-} tomoM1ExClassSignal;
+    _Atomic uint32_t frozen;
+} tomoM1ExCellSignal;
 
-/* One worker owns each slot. The 128-byte class row is cache-line aligned and has a whole-line
- * stride, so RESETSTAT/fold reads of one worker cannot make another worker's hot writes share a
- * line. Relaxed single-writer load/add/stores match the existing owner-local stats discipline. */
+/* One worker owns each row. A whole-line stride prevents RESETSTAT/fold readers from making two
+ * workers' hot writes share a line. `ops` remains live after freeze because the model still needs
+ * lambda_cell; immutable service cost stops accumulating. */
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) tomoM1ExSignal {
-    tomoM1ExClassSignal classes[TOMO_M1_CLASS_COUNT];
+    tomoM1ExCellSignal cells[TOMO_M1_CELLS_MAX];
 } tomoM1ExSignal;
 
 _Static_assert(sizeof(tomoM1ExSignal) % CACHE_LINE_SIZE == 0,
                "m1 EX signal slots must have a cache-line stride");
 
 extern tomoM1ExSignal tomo_m1_ex_signals[TOMO_EX_THREADS_MAX];
+extern _Atomic int tomo_m1_all_frozen;
 
-/* Worker-only completion edge: service_us is taken from an execution clock already in hand. */
+uint32_t tomoM1CellResolveSlow(struct redisCommand *cmd, unsigned int argc,
+                               unsigned int argc_bucket, unsigned int bytes_bucket);
+
+static inline unsigned int tomoM1ArgcBucket(unsigned int argc) {
+    if (argc <= 8) return argc ? argc - 1 : 0;
+    if (argc <= 16) return 8;
+    if (argc <= 32) return 9;
+    if (argc <= 64) return 10;
+    return 11;
+}
+
+static inline unsigned int tomoM1BytesBucket(size_t bytes) {
+    if (bytes < 256) return 0;
+    if (bytes < 4096) return 1;
+    if (bytes < 65536) return 2;
+    return 3;
+}
+
+/* Worker-only completion edge: service_us is taken from an execution clock already in hand and
+ * argv_bytes is the parser-maintained pendingCommand.argv_len_sum. Exact hits are a bounded scan
+ * of command-local words; only first sight enters the registry lock. */
 static inline void tomoM1ExServiceNote(int worker_id, const struct redisCommand *cmd,
+                                       unsigned int argc, size_t argv_bytes,
                                        uint64_t service_us) {
-    tomoM1ExClassSignal *signal =
-        &tomo_m1_ex_signals[worker_id].classes[cmd->tomo_m1_class];
+    unsigned int argc_bucket = tomoM1ArgcBucket(argc);
+    unsigned int bytes_bucket = tomoM1BytesBucket(argv_bytes);
+    uint32_t shape = (argc_bucket << TOMO_M1_CELL_ARGC_SHIFT) |
+                     (bytes_bucket << TOMO_M1_CELL_BYTES_SHIFT);
+    uint32_t word = 0;
+    for (int i = 0; i < TOMO_M1_CMD_CELL_MAP; i++) {
+        uint32_t candidate = atomic_load_explicit(&cmd->tomo_m1_cells[i],
+                                                  memory_order_acquire);
+        if ((candidate & TOMO_M1_CELL_ID_MASK) &&
+            (candidate & TOMO_M1_CELL_SHAPE_MASK) == shape) {
+            word = candidate;
+            break;
+        }
+    }
+    if (!word) {
+        uint32_t fallback = atomic_load_explicit(&cmd->tomo_m1_fallback,
+                                                 memory_order_acquire);
+        if ((fallback & TOMO_M1_CELL_FALLBACK_ON) &&
+            (fallback & TOMO_M1_CELL_ACTIVE))
+            word = fallback;
+        else
+            word = tomoM1CellResolveSlow((struct redisCommand *)cmd, argc,
+                                         argc_bucket, bytes_bucket);
+    } else if (!(word & TOMO_M1_CELL_ACTIVE)) {
+        word = tomoM1CellResolveSlow((struct redisCommand *)cmd, argc,
+                                     argc_bucket, bytes_bucket);
+    }
+
+    unsigned int cell_id = (word & TOMO_M1_CELL_ID_MASK) - 1;
+    tomoM1ExCellSignal *signal = &tomo_m1_ex_signals[worker_id].cells[cell_id];
+    /* Cost freezes, demand does not: lambda_cell must continue tracking workload changes. */
+    if (likely(atomic_load_explicit(&tomo_m1_all_frozen, memory_order_relaxed))) {
+        tomoRelaxedBump(signal->ops, 1);
+        return;
+    }
+    if (tomoRelaxedRead(signal->frozen)) {
+        tomoRelaxedBump(signal->ops, 1);
+        return;
+    }
+    /* Preserve the original class accumulator's service-then-op publication order; a fold racing
+     * the two owner-local stores contributes only the same one-tick estimator noise as before. */
     tomoRelaxedBump(signal->service_us, service_us);
     tomoRelaxedBump(signal->ops, 1);
 }
 
-#define TOMO_M1_MEASURED_FOLD_MS 1000
+void tomoM1CellsTick(void);
+void tomoM1CellsReset(void);
+void tomoM1AtomicConfigChanged(void);
+void tomoM1CostsBootLoad(void);
+int tomoM1CostsDump(const char *path, char *err, size_t errlen);
 
-typedef struct tomoM1MeasuredEx {
-    double ewma_us;
-    int populated;
-    uint64_t last_ops;
-} tomoM1MeasuredEx;
-
-void tomoM1MeasuredTick(void);
-void tomoM1MeasuredReset(void);
-void tomoM1MeasuredGet(tomoM1MeasuredEx measured[TOMO_M1_CLASS_COUNT]);
+typedef struct tomoM1ModelInput {
+    double mix[TOMO_M1_CLASS_COUNT];
+    double avg_keys[TOMO_M1_CLASS_COUNT];
+    double ex_us;
+    int cells;
+} tomoM1ModelInput;
 
 typedef struct tomoM1ModelResult {
     double c_io;
     double c_ex;
-    uint32_t measured_mask;
     int target_io;
     int target_ex;
 } tomoM1ModelResult;
@@ -96,9 +182,16 @@ typedef struct tomoM1Info {
     uint64_t arm_refusals;
     uint64_t holds;
     uint64_t pending_recoveries;
+    int cells;
+    int cells_measuring;
+    int cells_confirming;
+    int cells_frozen;
+    uint64_t cell_overflow;
+    uint64_t cells_forced_frozen;
+    int all_frozen;
 } tomoM1Info;
 
-#define TOMO_M1_SELFTEST_CASES 7
+#define TOMO_M1_SELFTEST_CASES 10
 typedef struct tomoM1SelfTestResult {
     const char *name;
     int expected_io;
@@ -117,10 +210,8 @@ typedef int (*tomoM1MoveRequest)(void *private_data, int node, int direction,
 
 void tomoM1StampCommandClass(struct redisCommand *cmd);
 void tomoM1BatchDepthNote(unsigned int commands);
-int tomoM1ModelCompute(const double mix[TOMO_M1_CLASS_COUNT],
-                       const double avg_keys[TOMO_M1_CLASS_COUNT],
-                       const tomoM1MeasuredEx measured[TOMO_M1_CLASS_COUNT],
-                       double depth, int role_threads, int io_uring,
+int tomoM1ModelCompute(const tomoM1ModelInput *input, double depth,
+                       int role_threads, int io_uring,
                        tomoM1ModelResult *result);
 void tomoM1ControllerTick(int node);
 void tomoM1ActuationTick(int node, int current_io, int current_ex,

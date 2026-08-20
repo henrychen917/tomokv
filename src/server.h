@@ -4082,6 +4082,7 @@ struct redisServer {
                                 * guard + same-bucket grouping. Mutually exclusive with
                                 * strict_order (reorder defers). default 0. */
     int tomo_atomic;           /* tomokv-atomic: commit-time MVCC for eligible whole-value groups. */
+    char *tomo_m1_costs_file;  /* optional boot priors for the m1 argv-shape cost registry. */
     int tomo_atomic_window;    /* max admitted atomic write groups; -1 = live-writer auto,
                                 * 0 = unlimited, positive = exact. */
     long long tomo_atomic_reclaim_limit; /* process-wide retained atomic-version pool: -1 =
@@ -4625,6 +4626,11 @@ struct redisCommand {
     uint8_t tomo_cls;
     /* m1 workload class. Also tail-only for commands.def positional initialization. */
     uint8_t tomo_m1_class;
+    /* m1 argv-shape cache. Each release-published word carries bucket ids, dense cell id,
+     * and the cell's active/frozen bits. The fallback is armed only after this command exhausts
+     * its eight exact entries or the process registry fills. Tail-only for commands.def. */
+    _Atomic uint32_t tomo_m1_cells[8];
+    _Atomic uint32_t tomo_m1_fallback;
 };
 
 struct redisError {

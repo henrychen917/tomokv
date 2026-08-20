@@ -7557,7 +7557,7 @@ void resetServerStats(void) {
     int j;
 
     server.stat_numcommands = 0;
-    tomoM1MeasuredReset();
+    tomoM1CellsReset();
     /* ee451 (#B1): zero the per-thread executed-command counters too, else CONFIG RESETSTAT
      * would only clear the (normally zero) fold baseline and INFO would keep the old total. */
     for (int i = 0; i < TOMO_STAT_SLOTS; i++)
@@ -9074,7 +9074,7 @@ void tomoSvcTick(void) {
 
     /* The M1 command taxonomy is independent of the SEDA C classes, but shares this exact 1 Hz
      * cadence and the already-collected worker execution spans. */
-    tomoM1MeasuredTick();
+    tomoM1CellsTick();
 
     /* ---- mechanism A: the window law. B = max(svc_min, sojourn/8); W_i = 1 + lam_i * B.
      * sojourn = qd_mean * svc_mean (Little), all sides measured, same units (µs), no hardware
@@ -14601,7 +14601,8 @@ static inline void csSubStatAccum(csGroup *g, tomoCmdClockStamp clock, long long
 static inline void csM1ServiceAccum(exThread *worker, csGroup *g) {
     long long total = atomic_load_explicit(&g->usec, memory_order_relaxed);
     uint64_t service_us = total > 1000000LL ? 1000000u : (total > 0 ? (uint64_t)total : 0);
-    tomoM1ExServiceNote(worker->id, g->head->cmd, service_us);
+    tomoM1ExServiceNote(worker->id, g->head->cmd, (unsigned int)g->head->argc,
+                        g->head->all_argv_len_sum, service_us);
 }
 
 #define CS_XREAD_EMPTY 0
@@ -25599,9 +25600,10 @@ static inline tomoCmdClockStamp exExecFake(client *fake, monotonic_raw entry_raw
                     (cs_usec > 1000000LL) ? 1000000u : (unsigned)cs_usec;
                 tm_cur_ex->svc_us[cls] += service_us;
                 tm_cur_ex->svc_ops[cls]++;
-                /* M1 uses the same already-bracketed service observation, keyed by its command
-                 * class. No new clock read and no IO-side instruction enter this path. */
-                tomoM1ExServiceNote(tm_cur_ex->id, cs_cmd, service_us);
+                /* M1 uses the same already-bracketed service observation, keyed by command and
+                 * parser-maintained argv shape. No new clock read or IO-side instruction. */
+                tomoM1ExServiceNote(tm_cur_ex->id, cs_cmd, (unsigned int)fake->argc,
+                                    fake->all_argv_len_sum, service_us);
             }
             /* call() owns command/error/latency accounting for T6. All other worker commands
              * retain the direct-proc accounting path established for the express lane. */

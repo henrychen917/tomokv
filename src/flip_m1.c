@@ -5,128 +5,469 @@
 #include "flip_m1.h"
 #include "flip_u1.h"
 
+#include <fcntl.h>
 #include <limits.h>
 #include <math.h>
 #include <string.h>
+#include <sys/stat.h>
 
 tomoM1IoSignal tomo_m1_io_signals[TOMO_IO_THREADS_MAX + 1];
 tomoM1ExSignal tomo_m1_ex_signals[TOMO_EX_THREADS_MAX];
 
-typedef struct tomoM1MeasuredPublished {
-    _Atomic double ewma_us;
-    _Atomic uint64_t last_ops;
-    _Atomic int populated;
-} tomoM1MeasuredPublished;
-
-static tomoM1MeasuredPublished tomo_m1_measured_ex[TOMO_M1_CLASS_COUNT];
-static pthread_mutex_t tomo_m1_measured_lock = PTHREAD_MUTEX_INITIALIZER;
-static uint64_t tomo_m1_measured_last_us[TOMO_EX_THREADS_MAX][TOMO_M1_CLASS_COUNT];
-static uint64_t tomo_m1_measured_last_ops[TOMO_EX_THREADS_MAX][TOMO_M1_CLASS_COUNT];
-static uint64_t tomo_m1_measured_seen_ops[TOMO_M1_CLASS_COUNT];
-static double tomo_m1_measured_ewma[TOMO_M1_CLASS_COUNT];
-
 #define TOMO_M1_MEASURED_ALPHA (1.0 / 4.0)
+#define TOMO_M1_POPULATED_FOLDS 4
+#define TOMO_M1_CONFIRM_STREAK 3
+#define TOMO_M1_CONFIRM_FOLDS_MAX 12
+#define TOMO_M1_CONFIRM_MIN_BAND 0.12
+#define TOMO_M1_ARGC_ANY 12
+#define TOMO_M1_BYTES_ANY 4
+/* Keep one terminal slot for the pathological case where a brand-new command first appears only
+ * after all 511 ordinary ids have been assigned. Normal ids remain dense from zero. */
+#define TOMO_M1_REGULAR_CELLS (TOMO_M1_CELLS_MAX - 1)
+#define TOMO_M1_GLOBAL_FALLBACK_ID (TOMO_M1_CELLS_MAX - 1)
 
-/* Require one observation for every 1 Hz fold in the EWMA's 1/alpha time horizon. The guard
- * therefore follows both the fold cadence and the inherited four-fold horizon; it is not an
- * independently tuned operation-count constant. */
-static uint64_t tomoM1MeasuredMinOps(void) {
-    double horizon_ms = (double)TOMO_M1_MEASURED_FOLD_MS / TOMO_M1_MEASURED_ALPHA;
-    return (uint64_t)ceil(horizon_ms / (double)TOMO_M1_MEASURED_FOLD_MS);
+typedef struct tomoM1Cell {
+    struct redisCommand *cmd;
+    int cmd_id;
+    uint8_t class_id;
+    uint8_t argc_bucket;
+    uint8_t bytes_bucket;
+    uint8_t state;
+    uint8_t present;
+    uint8_t active;
+    uint8_t populated;
+    uint8_t fallback;
+    uint8_t has_write;
+    uint8_t confirm_streak;
+    uint8_t confirming_folds;
+    unsigned int argc_sample;
+    uint32_t ewma_q8;
+    uint32_t seed_q8;
+    uint32_t last_fold_q8;
+    uint64_t folds;
+    tomoU1Noise noise;
+    double lambda[TOMO_NODES_MAX];
+} tomoM1Cell;
+
+typedef struct tomoM1Registry {
+    tomoM1Cell cells[TOMO_M1_CELLS_MAX];
+    unsigned int count;
+} tomoM1Registry;
+
+typedef struct tomoM1LoadResult {
+    int loaded;
+    int skipped;
+    int mismatch;
+} tomoM1LoadResult;
+
+static tomoM1Registry tomo_m1_registry;
+static pthread_mutex_t tomo_m1_cells_lock = PTHREAD_MUTEX_INITIALIZER;
+static uint64_t tomo_m1_cell_last_us[TOMO_EX_THREADS_MAX][TOMO_M1_CELLS_MAX];
+static uint64_t tomo_m1_cell_last_ops[TOMO_EX_THREADS_MAX][TOMO_M1_CELLS_MAX];
+static _Atomic double tomo_m1_node_ex_us[TOMO_NODES_MAX];
+static _Atomic int tomo_m1_node_demand_cells[TOMO_NODES_MAX];
+static _Atomic uint64_t tomo_m1_cell_overflow;
+static _Atomic uint64_t tomo_m1_cells_forced_frozen;
+_Atomic int tomo_m1_all_frozen;
+static int tomo_m1_auto_dumped;
+
+static uint32_t tomoM1Q8(double usec) {
+    if (!isfinite(usec) || !(usec > 0.0)) return 0;
+    double scaled = usec * 256.0;
+    if (scaled >= (double)UINT32_MAX) return UINT32_MAX;
+    return (uint32_t)(scaled + 0.5);
 }
 
-void tomoM1MeasuredTick(void) {
-    serverAssert(iotid == 0);
-    pthread_mutex_lock(&tomo_m1_measured_lock);
+static double tomoM1FromQ8(uint32_t q8) {
+    return (double)q8 / 256.0;
+}
 
-    uint64_t service_us[TOMO_M1_CLASS_COUNT] = {0};
-    uint64_t ops[TOMO_M1_CLASS_COUNT] = {0};
+static unsigned int tomoM1ArgcRepresentative(unsigned int bucket) {
+    static const unsigned int representative[] = {
+        1, 2, 3, 4, 5, 6, 7, 8, 12, 24, 48, 65, 1
+    };
+    return bucket < sizeof(representative) / sizeof(representative[0])
+         ? representative[bucket] : 1;
+}
+
+static double tomoM1KeysForArgc(int class_id, double argc) {
+    switch (class_id) {
+    case TOMO_M1_CLASS_MGET:
+    case TOMO_M1_CLASS_DEL:
+        return fmax(argc - 1.0, 1.0);
+    case TOMO_M1_CLASS_MSET:
+        return fmax((argc - 1.0) / 2.0, 1.0);
+    default:
+        return 1.0;
+    }
+}
+
+static uint32_t tomoM1MapWord(unsigned int cell_id, unsigned int argc_bucket,
+                              unsigned int bytes_bucket, int active, int frozen) {
+    uint32_t word = (cell_id + 1) |
+                    (argc_bucket << TOMO_M1_CELL_ARGC_SHIFT) |
+                    (bytes_bucket << TOMO_M1_CELL_BYTES_SHIFT);
+    if (active) word |= TOMO_M1_CELL_ACTIVE;
+    if (frozen) word |= TOMO_M1_CELL_FROZEN_BIT;
+    return word;
+}
+
+static void tomoM1CellBaseline(unsigned int cell_id) {
+    for (int worker = 0; worker < TOMO_EX_THREADS_MAX; worker++) {
+        tomoM1ExCellSignal *signal = &tomo_m1_ex_signals[worker].cells[cell_id];
+        tomo_m1_cell_last_us[worker][cell_id] = tomoRelaxedRead(signal->service_us);
+        tomo_m1_cell_last_ops[worker][cell_id] = tomoRelaxedRead(signal->ops);
+    }
+}
+
+static void tomoM1CellMapFlags(struct redisCommand *cmd, unsigned int cell_id,
+                               uint32_t set, uint32_t clear) {
+    if (!cmd) return;
+    for (int i = 0; i < TOMO_M1_CMD_CELL_MAP; i++) {
+        uint32_t word = atomic_load_explicit(&cmd->tomo_m1_cells[i], memory_order_relaxed);
+        if ((word & TOMO_M1_CELL_ID_MASK) != cell_id + 1) continue;
+        word = (word | set) & ~clear;
+        atomic_store_explicit(&cmd->tomo_m1_cells[i], word, memory_order_release);
+    }
+    uint32_t fallback = atomic_load_explicit(&cmd->tomo_m1_fallback, memory_order_relaxed);
+    if ((fallback & TOMO_M1_CELL_ID_MASK) == cell_id + 1) {
+        fallback = (fallback | set) & ~clear;
+        atomic_store_explicit(&cmd->tomo_m1_fallback, fallback, memory_order_release);
+    }
+}
+
+static void tomoM1CellSetFrozen(tomoM1Cell *cell, unsigned int cell_id, int frozen) {
+    for (int worker = 0; worker < TOMO_EX_THREADS_MAX; worker++)
+        atomic_store_explicit(&tomo_m1_ex_signals[worker].cells[cell_id].frozen,
+                              frozen != 0, memory_order_release);
+    tomoM1CellMapFlags(cell->cmd, cell_id,
+        frozen ? TOMO_M1_CELL_FROZEN_BIT : 0,
+        frozen ? 0 : TOMO_M1_CELL_FROZEN_BIT);
+}
+
+static double tomoM1CellCost(const tomoM1Cell *cell) {
+    uint32_t q8 = cell->populated ? cell->ewma_q8 : cell->seed_q8;
+    return tomoM1FromQ8(q8);
+}
+
+static void tomoM1CellRearmState(tomoM1Cell *cell) {
+    uint32_t old_q8 = cell->populated && cell->ewma_q8 ? cell->ewma_q8 : cell->seed_q8;
+    cell->seed_q8 = old_q8;
+    cell->ewma_q8 = 0;
+    cell->last_fold_q8 = 0;
+    cell->folds = 0;
+    cell->confirm_streak = 0;
+    cell->confirming_folds = 0;
+    cell->noise = (tomoU1Noise){0};
+    cell->populated = 0;
+    cell->state = TOMO_M1_CELL_MEASURING;
+}
+
+static void tomoM1CellRearm(tomoM1Cell *cell, unsigned int cell_id) {
+    tomoM1CellRearmState(cell);
+    tomoM1CellBaseline(cell_id);
+    tomoM1CellSetFrozen(cell, cell_id, 0);
+}
+
+static int tomoM1RegistryRearmWrites(tomoM1Registry *registry, int runtime) {
+    int rearmed = 0;
+    for (unsigned int id = 0; id < TOMO_M1_CELLS_MAX; id++) {
+        tomoM1Cell *cell = &registry->cells[id];
+        if (!cell->present || !cell->has_write || cell->state != TOMO_M1_CELL_FROZEN)
+            continue;
+        if (runtime)
+            tomoM1CellRearm(cell, id);
+        else
+            tomoM1CellRearmState(cell);
+        rearmed++;
+    }
+    return rearmed;
+}
+
+static void tomoM1CellActivate(tomoM1Cell *cell, unsigned int cell_id) {
+    if (cell->active) return;
+    tomoM1CellBaseline(cell_id);
+    cell->active = 1;
+    atomic_store_explicit(&tomo_m1_all_frozen, 0, memory_order_release);
+    tomoM1CellMapFlags(cell->cmd, cell_id, TOMO_M1_CELL_ACTIVE, 0);
+}
+
+/* Lifecycle fold. The confirming band is evaluated against sigma from PREVIOUS pairs, so the
+ * candidate being judged cannot widen its own acceptance band. */
+static int tomoM1CellFold(tomoM1Cell *cell, uint64_t service_us, uint64_t ops,
+                          int *forced) {
+    if (cell->state == TOMO_M1_CELL_FROZEN || ops == 0) return 0;
+    double instant = (double)service_us / (double)ops;
+    if (!isfinite(instant) || !(instant > 0.0)) return 0;
+
+    double previous = tomoM1FromQ8(cell->ewma_q8);
+    double updated = previous > 0.0
+                   ? previous + TOMO_M1_MEASURED_ALPHA * (instant - previous)
+                   : instant;
+    cell->last_fold_q8 = tomoM1Q8(instant);
+    cell->ewma_q8 = tomoM1Q8(updated);
+    updated = tomoM1FromQ8(cell->ewma_q8);
+    cell->folds++;
+
+    if (cell->state == TOMO_M1_CELL_MEASURING) {
+        if (cell->folds >= TOMO_M1_POPULATED_FOLDS && cell->ewma_q8 != 0) {
+            cell->populated = 1;
+            cell->state = TOMO_M1_CELL_CONFIRMING;
+            cell->confirm_streak = 0;
+            cell->confirming_folds = 0;
+        }
+        if (previous > 0.0) tomoU1NoiseFeed(&cell->noise, previous, updated);
+        return 0;
+    }
+
+    double sigma_band = cell->noise.pairs ? 2.0 * cell->noise.sigma : 0.0;
+    double band = fmax(TOMO_M1_CONFIRM_MIN_BAND, sigma_band);
+    double relative = previous > 0.0 ? fabs(updated - previous) / previous : INFINITY;
+    if (relative <= band)
+        cell->confirm_streak++;
+    else
+        cell->confirm_streak = 0;
+    cell->confirming_folds++;
+    if (previous > 0.0) tomoU1NoiseFeed(&cell->noise, previous, updated);
+
+    if (cell->confirm_streak >= TOMO_M1_CONFIRM_STREAK ||
+        cell->confirming_folds >= TOMO_M1_CONFIRM_FOLDS_MAX) {
+        if (cell->confirm_streak < TOMO_M1_CONFIRM_STREAK && forced) *forced = 1;
+        cell->state = TOMO_M1_CELL_FROZEN;
+        return 1;
+    }
+    return 0;
+}
+
+/* Compiled per-key slopes are used only here, to seed a never-before-seen argv shape. */
+static uint32_t tomoM1CellSeedQ8(const struct redisCommand *cmd, unsigned int argc,
+                                 unsigned int bytes_bucket);
+
+static int tomoM1RegistryFind(const tomoM1Registry *registry, const struct redisCommand *cmd,
+                              unsigned int argc_bucket, unsigned int bytes_bucket) {
+    for (unsigned int i = 0; i < TOMO_M1_CELLS_MAX; i++) {
+        const tomoM1Cell *cell = &registry->cells[i];
+        if (cell->present && cell->cmd == cmd && !cell->fallback &&
+            cell->argc_bucket == argc_bucket && cell->bytes_bucket == bytes_bucket)
+            return (int)i;
+    }
+    return -1;
+}
+
+static void tomoM1EnableFallback(struct redisCommand *cmd, unsigned int cell_id) {
+    tomoM1Cell *cell = &tomo_m1_registry.cells[cell_id];
+    if (!cell->fallback) {
+        cell->fallback = 1;
+        cell->argc_bucket = TOMO_M1_ARGC_ANY;
+        cell->bytes_bucket = TOMO_M1_BYTES_ANY;
+        if (cell->folds || cell->populated) tomoM1CellRearm(cell, cell_id);
+        atomic_fetch_add_explicit(&tomo_m1_cell_overflow, 1, memory_order_relaxed);
+    }
+    tomoM1CellActivate(cell, cell_id);
+    uint32_t fallback = (cell_id + 1) | TOMO_M1_CELL_FALLBACK_ON;
+    if (cell->active) fallback |= TOMO_M1_CELL_ACTIVE;
+    if (cell->state == TOMO_M1_CELL_FROZEN) fallback |= TOMO_M1_CELL_FROZEN_BIT;
+    atomic_store_explicit(&cmd->tomo_m1_fallback, fallback, memory_order_release);
+}
+
+uint32_t tomoM1CellResolveSlow(struct redisCommand *cmd, unsigned int argc,
+                               unsigned int argc_bucket, unsigned int bytes_bucket) {
+    pthread_mutex_lock(&tomo_m1_cells_lock);
+
+    int found = tomoM1RegistryFind(&tomo_m1_registry, cmd, argc_bucket, bytes_bucket);
+    if (found >= 0) {
+        tomoM1Cell *cell = &tomo_m1_registry.cells[found];
+        tomoM1CellActivate(cell, (unsigned int)found);
+        uint32_t word = tomoM1MapWord((unsigned int)found, argc_bucket, bytes_bucket,
+                                      1, cell->state == TOMO_M1_CELL_FROZEN);
+        pthread_mutex_unlock(&tomo_m1_cells_lock);
+        return word;
+    }
+
+    uint32_t fallback_word = atomic_load_explicit(&cmd->tomo_m1_fallback,
+                                                   memory_order_relaxed);
+    if (fallback_word & TOMO_M1_CELL_FALLBACK_ON) {
+        unsigned int cell_id = (fallback_word & TOMO_M1_CELL_ID_MASK) - 1;
+        tomoM1Cell *cell = &tomo_m1_registry.cells[cell_id];
+        if (cmd->flags & CMD_WRITE) cell->has_write = 1;
+        tomoM1CellActivate(cell, cell_id);
+        fallback_word = atomic_load_explicit(&cmd->tomo_m1_fallback, memory_order_relaxed);
+        pthread_mutex_unlock(&tomo_m1_cells_lock);
+        return fallback_word;
+    }
+
+    int map_slot = -1;
+    for (int i = 0; i < TOMO_M1_CMD_CELL_MAP; i++) {
+        if (!(atomic_load_explicit(&cmd->tomo_m1_cells[i], memory_order_relaxed) &
+              TOMO_M1_CELL_ID_MASK)) {
+            map_slot = i;
+            break;
+        }
+    }
+
+    if (map_slot >= 0 && tomo_m1_registry.count < TOMO_M1_REGULAR_CELLS) {
+        unsigned int cell_id = tomo_m1_registry.count++;
+        tomoM1Cell *cell = &tomo_m1_registry.cells[cell_id];
+        *cell = (tomoM1Cell) {
+            .cmd = cmd,
+            .cmd_id = cmd->id,
+            .class_id = cmd->tomo_m1_class,
+            .argc_bucket = argc_bucket,
+            .bytes_bucket = bytes_bucket,
+            .state = TOMO_M1_CELL_MEASURING,
+            .present = 1,
+            .active = 1,
+            .has_write = (cmd->flags & CMD_WRITE) != 0,
+            .argc_sample = argc,
+            .seed_q8 = tomoM1CellSeedQ8(cmd, argc, bytes_bucket),
+        };
+        tomoM1CellBaseline(cell_id);
+        atomic_store_explicit(&tomo_m1_all_frozen, 0, memory_order_release);
+        uint32_t word = tomoM1MapWord(cell_id, argc_bucket, bytes_bucket, 1, 0);
+        atomic_store_explicit(&cmd->tomo_m1_cells[map_slot], word, memory_order_release);
+        if (!(fallback_word & TOMO_M1_CELL_ID_MASK))
+            atomic_store_explicit(&cmd->tomo_m1_fallback, cell_id + 1,
+                                  memory_order_release);
+        pthread_mutex_unlock(&tomo_m1_cells_lock);
+        return word;
+    }
+
+    unsigned int cell_id;
+    if (fallback_word & TOMO_M1_CELL_ID_MASK) {
+        cell_id = (fallback_word & TOMO_M1_CELL_ID_MASK) - 1;
+        tomoM1EnableFallback(cmd, cell_id);
+    } else {
+        /* Total registry exhaustion before this command's first sight: share the terminal ANY
+         * cell. This is the only non-command-private fallback and remains explicitly counted. */
+        cell_id = TOMO_M1_GLOBAL_FALLBACK_ID;
+        tomoM1Cell *cell = &tomo_m1_registry.cells[cell_id];
+        if (!cell->present) {
+            *cell = (tomoM1Cell) {
+                .cmd_id = -1,
+                .class_id = TOMO_M1_CLASS_OTHER,
+                .argc_bucket = TOMO_M1_ARGC_ANY,
+                .bytes_bucket = TOMO_M1_BYTES_ANY,
+                .state = TOMO_M1_CELL_MEASURING,
+                .present = 1,
+                .active = 1,
+                .fallback = 1,
+                .argc_sample = 1,
+                .seed_q8 = tomoM1CellSeedQ8(cmd, argc, bytes_bucket),
+            };
+            tomoM1CellBaseline(cell_id);
+            atomic_store_explicit(&tomo_m1_all_frozen, 0, memory_order_release);
+        } else if (cell->folds || cell->populated) {
+            tomoM1CellRearm(cell, cell_id);
+            atomic_store_explicit(&tomo_m1_all_frozen, 0, memory_order_release);
+        }
+        if (cmd->flags & CMD_WRITE) cell->has_write = 1;
+        atomic_fetch_add_explicit(&tomo_m1_cell_overflow, 1, memory_order_relaxed);
+        uint32_t word = (cell_id + 1) | TOMO_M1_CELL_FALLBACK_ON | TOMO_M1_CELL_ACTIVE;
+        atomic_store_explicit(&cmd->tomo_m1_fallback, word, memory_order_release);
+    }
+    uint32_t word = atomic_load_explicit(&cmd->tomo_m1_fallback, memory_order_relaxed);
+    pthread_mutex_unlock(&tomo_m1_cells_lock);
+    return word;
+}
+
+static void tomoM1PublishDemandLocked(void) {
+    int node_count = server.topo_nodes > 0 ? server.topo_nodes : 1;
+    if (node_count > TOMO_NODES_MAX) node_count = TOMO_NODES_MAX;
+    for (int node = 0; node < node_count; node++) {
+        double lambda_total = 0.0, weighted = 0.0;
+        int cells = 0;
+        for (unsigned int id = 0; id < TOMO_M1_CELLS_MAX; id++) {
+            tomoM1Cell *cell = &tomo_m1_registry.cells[id];
+            double lambda = cell->present && cell->active ? cell->lambda[node] : 0.0;
+            double cost = tomoM1CellCost(cell);
+            if (!(lambda > 0.0) || !(cost > 0.0) || !isfinite(lambda) || !isfinite(cost))
+                continue;
+            lambda_total += lambda;
+            weighted += lambda * cost;
+            cells++;
+        }
+        atomic_store_explicit(&tomo_m1_node_ex_us[node],
+                              lambda_total > 0.0 ? weighted / lambda_total : 0.0,
+                              memory_order_release);
+        atomic_store_explicit(&tomo_m1_node_demand_cells[node], cells,
+                              memory_order_release);
+    }
+}
+
+void tomoM1CellsTick(void) {
+    serverAssert(iotid == 0);
+    int should_dump = 0;
+    pthread_mutex_lock(&tomo_m1_cells_lock);
     int workers = server.num_workers;
     if (workers > TOMO_EX_THREADS_MAX) workers = TOMO_EX_THREADS_MAX;
-    for (int worker = 0; worker < workers; worker++) {
-        for (int class_id = 0; class_id < TOMO_M1_CLASS_COUNT; class_id++) {
-            const tomoM1ExClassSignal *signal =
-                &tomo_m1_ex_signals[worker].classes[class_id];
+    int wpn = server.ex_per_node > 0 ? server.ex_per_node : workers;
+
+    for (unsigned int id = 0; id < TOMO_M1_CELLS_MAX; id++) {
+        tomoM1Cell *cell = &tomo_m1_registry.cells[id];
+        if (!cell->present) continue;
+        uint64_t service_us = 0, ops = 0;
+        uint64_t node_ops[TOMO_NODES_MAX] = {0};
+        for (int worker = 0; worker < workers; worker++) {
+            tomoM1ExCellSignal *signal = &tomo_m1_ex_signals[worker].cells[id];
             uint64_t current_us = tomoRelaxedRead(signal->service_us);
             uint64_t current_ops = tomoRelaxedRead(signal->ops);
-            service_us[class_id] += current_us - tomo_m1_measured_last_us[worker][class_id];
-            ops[class_id] += current_ops - tomo_m1_measured_last_ops[worker][class_id];
-            tomo_m1_measured_last_us[worker][class_id] = current_us;
-            tomo_m1_measured_last_ops[worker][class_id] = current_ops;
+            uint64_t delta_us = current_us - tomo_m1_cell_last_us[worker][id];
+            uint64_t delta_ops = current_ops - tomo_m1_cell_last_ops[worker][id];
+            tomo_m1_cell_last_us[worker][id] = current_us;
+            tomo_m1_cell_last_ops[worker][id] = current_ops;
+            service_us += delta_us;
+            ops += delta_ops;
+            int node = wpn > 0 ? worker / wpn : 0;
+            if (node >= TOMO_NODES_MAX) node = TOMO_NODES_MAX - 1;
+            node_ops[node] += delta_ops;
+        }
+        if (!cell->active) continue;
+        int node_count = server.topo_nodes > 0 ? server.topo_nodes : 1;
+        if (node_count > TOMO_NODES_MAX) node_count = TOMO_NODES_MAX;
+        for (int node = 0; node < node_count; node++)
+            cell->lambda[node] += TOMO_M1_MEASURED_ALPHA *
+                                  ((double)node_ops[node] - cell->lambda[node]);
+
+        int forced = 0;
+        if (tomoM1CellFold(cell, service_us, ops, &forced)) {
+            tomoM1CellSetFrozen(cell, id, 1);
+            if (forced)
+                atomic_fetch_add_explicit(&tomo_m1_cells_forced_frozen, 1,
+                                          memory_order_relaxed);
         }
     }
 
-    uint64_t min_ops = tomoM1MeasuredMinOps();
-    for (int class_id = 0; class_id < TOMO_M1_CLASS_COUNT; class_id++) {
-        uint64_t fold_ops = ops[class_id];
-        if (fold_ops != 0) {
-            double instant_us = (double)service_us[class_id] / (double)fold_ops;
-            if (tomo_m1_measured_ewma[class_id] == 0.0)
-                tomo_m1_measured_ewma[class_id] = instant_us;
-            else
-                tomo_m1_measured_ewma[class_id] += TOMO_M1_MEASURED_ALPHA *
-                    (instant_us - tomo_m1_measured_ewma[class_id]);
-            if (UINT64_MAX - tomo_m1_measured_seen_ops[class_id] < fold_ops)
-                tomo_m1_measured_seen_ops[class_id] = UINT64_MAX;
-            else
-                tomo_m1_measured_seen_ops[class_id] += fold_ops;
-        }
-
-        double ewma_us = tomo_m1_measured_ewma[class_id];
-        int populated = tomo_m1_measured_seen_ops[class_id] >= min_ops &&
-                        isfinite(ewma_us) && ewma_us > 0.0;
-        atomic_store_explicit(&tomo_m1_measured_ex[class_id].ewma_us, ewma_us,
-                              memory_order_release);
-        atomic_store_explicit(&tomo_m1_measured_ex[class_id].last_ops, fold_ops,
-                              memory_order_relaxed);
-        atomic_store_explicit(&tomo_m1_measured_ex[class_id].populated, populated,
-                              memory_order_release);
+    tomoM1PublishDemandLocked();
+    int active = 0, frozen = 0;
+    for (unsigned int id = 0; id < TOMO_M1_CELLS_MAX; id++) {
+        tomoM1Cell *cell = &tomo_m1_registry.cells[id];
+        if (!cell->present || !cell->active) continue;
+        active++;
+        if (cell->state == TOMO_M1_CELL_FROZEN) frozen++;
     }
-    pthread_mutex_unlock(&tomo_m1_measured_lock);
+    int all_frozen = active > 0 && active == frozen;
+    int was_all_frozen = atomic_exchange_explicit(&tomo_m1_all_frozen, all_frozen,
+                                                   memory_order_acq_rel);
+    if (all_frozen && !was_all_frozen && !tomo_m1_auto_dumped) {
+        tomo_m1_auto_dumped = 1;
+        should_dump = 1;
+    }
+    pthread_mutex_unlock(&tomo_m1_cells_lock);
+
+    if (should_dump) {
+        char err[256];
+        if (tomoM1CostsDump(TOMO_M1_COSTS_DEFAULT, err, sizeof(err)) == C_ERR)
+            serverLog(LL_WARNING, "m1 auto cost dump failed: %s", err);
+    }
 }
 
-void tomoM1MeasuredReset(void) {
-    pthread_mutex_lock(&tomo_m1_measured_lock);
-    /* Rebaseline cumulative owner counters instead of cross-thread zeroing them. A command racing
-     * RESETSTAT lands naturally on one side of this snapshot without a lost load/add/store. */
-    for (int worker = 0; worker < TOMO_EX_THREADS_MAX; worker++) {
-        for (int class_id = 0; class_id < TOMO_M1_CLASS_COUNT; class_id++) {
-            const tomoM1ExClassSignal *signal =
-                &tomo_m1_ex_signals[worker].classes[class_id];
-            tomo_m1_measured_last_us[worker][class_id] =
-                tomoRelaxedRead(signal->service_us);
-            tomo_m1_measured_last_ops[worker][class_id] = tomoRelaxedRead(signal->ops);
-        }
-    }
-    memset(tomo_m1_measured_seen_ops, 0, sizeof(tomo_m1_measured_seen_ops));
-    memset(tomo_m1_measured_ewma, 0, sizeof(tomo_m1_measured_ewma));
-    for (int class_id = 0; class_id < TOMO_M1_CLASS_COUNT; class_id++) {
-        atomic_store_explicit(&tomo_m1_measured_ex[class_id].populated, 0,
-                              memory_order_release);
-        atomic_store_explicit(&tomo_m1_measured_ex[class_id].ewma_us, 0.0,
-                              memory_order_relaxed);
-        atomic_store_explicit(&tomo_m1_measured_ex[class_id].last_ops, 0,
-                              memory_order_relaxed);
-    }
-    pthread_mutex_unlock(&tomo_m1_measured_lock);
-}
-
-void tomoM1MeasuredGet(tomoM1MeasuredEx measured[TOMO_M1_CLASS_COUNT]) {
-    if (!measured) return;
-    for (int class_id = 0; class_id < TOMO_M1_CLASS_COUNT; class_id++) {
-        int populated_before, populated_after;
-        do {
-            populated_before = atomic_load_explicit(
-                &tomo_m1_measured_ex[class_id].populated, memory_order_acquire);
-            measured[class_id].ewma_us = atomic_load_explicit(
-                &tomo_m1_measured_ex[class_id].ewma_us, memory_order_acquire);
-            measured[class_id].last_ops = atomic_load_explicit(
-                &tomo_m1_measured_ex[class_id].last_ops, memory_order_relaxed);
-            populated_after = atomic_load_explicit(
-                &tomo_m1_measured_ex[class_id].populated, memory_order_acquire);
-        } while (populated_before != populated_after);
-        measured[class_id].populated = populated_after;
-    }
+void tomoM1CellsReset(void) {
+    pthread_mutex_lock(&tomo_m1_cells_lock);
+    /* Frozen empirical costs survive RESETSTAT. Only the cumulative owner counters are
+     * rebaselined, so an in-flight command lands naturally on one side of the snapshot. */
+    for (unsigned int id = 0; id < TOMO_M1_CELLS_MAX; id++)
+        if (tomo_m1_registry.cells[id].present) tomoM1CellBaseline(id);
+    pthread_mutex_unlock(&tomo_m1_cells_lock);
 }
 
 void tomoM1StampCommandClass(struct redisCommand *cmd) {
@@ -211,6 +552,40 @@ static const tomoM1CostTable tomo_m1_seed_costs = {
     },
 };
 
+static uint32_t tomoM1CellSeedQ8(const struct redisCommand *cmd, unsigned int argc,
+                                 unsigned int bytes_bucket) {
+    int class_id = cmd ? cmd->tomo_m1_class : TOMO_M1_CLASS_OTHER;
+    const tomoM1ClassCost *compiled = &tomo_m1_seed_costs.classes[class_id];
+    double target_keys = tomoM1KeysForArgc(class_id, (double)argc);
+    double seed = compiled->a_ex + compiled->b_ex * fmax(target_keys - 1.0, 0.0);
+
+    const tomoM1Cell *nearest = NULL;
+    unsigned int nearest_distance = UINT_MAX;
+    for (unsigned int id = 0; id < TOMO_M1_CELLS_MAX; id++) {
+        const tomoM1Cell *candidate = &tomo_m1_registry.cells[id];
+        if (!candidate->present || candidate->cmd != cmd) continue;
+        unsigned int source_argc = candidate->argc_sample ? candidate->argc_sample : 1;
+        unsigned int argc_distance = source_argc > argc ? source_argc - argc : argc - source_argc;
+        unsigned int source_bytes = candidate->bytes_bucket <= TOMO_M1_BYTES_ANY
+                                  ? candidate->bytes_bucket : TOMO_M1_BYTES_ANY;
+        unsigned int bytes_distance = source_bytes > bytes_bucket
+                                    ? source_bytes - bytes_bucket : bytes_bucket - source_bytes;
+        unsigned int distance = argc_distance * 4 + bytes_distance;
+        if (!nearest || distance < nearest_distance) {
+            nearest = candidate;
+            nearest_distance = distance;
+        }
+    }
+    if (nearest) {
+        double source = tomoM1CellCost(nearest);
+        double source_keys = tomoM1KeysForArgc(class_id,
+            nearest->argc_sample ? (double)nearest->argc_sample : 1.0);
+        double scaled = source + compiled->b_ex * (target_keys - source_keys);
+        if (isfinite(scaled) && scaled > 0.0) seed = scaled;
+    }
+    return tomoM1Q8(seed);
+}
+
 /* Return the pipe-keyed IO base as F/depth + v — a per-readiness-visit fixed cost F amortized
  * over the visit's commands plus a per-command cost v — fitted (closed-form least squares on
  * x = 1/depth) from the compiled anchors at each call. The hyperbola is not cosmetic: per-visit
@@ -256,44 +631,31 @@ static double tomoM1TargetScore(int io, int role_threads, double c_io, double c_
     return fmin((double)io / c_io, (double)(role_threads - io) / c_ex);
 }
 
-int tomoM1ModelCompute(const double mix[TOMO_M1_CLASS_COUNT],
-                       const double avg_keys[TOMO_M1_CLASS_COUNT],
-                       const tomoM1MeasuredEx measured[TOMO_M1_CLASS_COUNT],
-                       double depth, int role_threads, int io_uring,
+int tomoM1ModelCompute(const tomoM1ModelInput *input, double depth,
+                       int role_threads, int io_uring,
                        tomoM1ModelResult *result) {
-    if (!mix || !avg_keys || !result || role_threads < 2) return 0;
+    if (!input || !result || role_threads < 2 || input->cells <= 0 ||
+        !isfinite(input->ex_us) || !(input->ex_us > 0.0)) return 0;
 
     double mix_total = 0.0;
     for (int class_id = 0; class_id < TOMO_M1_CLASS_COUNT; class_id++) {
-        if (isfinite(mix[class_id]) && mix[class_id] > 0.0)
-            mix_total += mix[class_id];
+        if (isfinite(input->mix[class_id]) && input->mix[class_id] > 0.0)
+            mix_total += input->mix[class_id];
     }
     if (!(mix_total > 0.0) || !isfinite(mix_total)) return 0;
 
-    double c_ex = 0.0;
+    /* EX is already sum(lambda_cell * effective_cell_cost) / sum(lambda_cell), folded at 1 Hz.
+     * Effective cost is a shape seed until populated and the immutable empirical value after
+     * freeze. No avg_keys linearization remains on the EX side. */
+    double c_ex = input->ex_us;
     double c_io = tomoM1IoBaseCost(&tomo_m1_seed_costs, io_uring, depth);
-    uint32_t measured_mask = 0;
     for (int class_id = 0; class_id < TOMO_M1_CLASS_COUNT; class_id++) {
-        double class_mix = (isfinite(mix[class_id]) && mix[class_id] > 0.0)
-                         ? mix[class_id] / mix_total : 0.0;
-        double keys = (isfinite(avg_keys[class_id]) && avg_keys[class_id] > 0.0)
-                    ? avg_keys[class_id] : 1.0;
-        double extra_keys = fmax(keys - 1.0, 0.0);
+        double class_mix = (isfinite(input->mix[class_id]) && input->mix[class_id] > 0.0)
+                         ? input->mix[class_id] / mix_total : 0.0;
+        double keys = (isfinite(input->avg_keys[class_id]) && input->avg_keys[class_id] > 0.0)
+                    ? input->avg_keys[class_id] : 1.0;
         const tomoM1ClassCost *cost = &tomo_m1_seed_costs.classes[class_id];
-        int use_measured = measured && measured[class_id].populated &&
-                           isfinite(measured[class_id].ewma_us) &&
-                           measured[class_id].ewma_us > 0.0;
-        double class_ex;
-        if (use_measured) {
-            /* This is whole-command service at the current operating point. Value size,
-             * DRAM pressure, contention, atomic work, and the current average key count are
-             * already inside it; applying b_ex*keys again would double-count the last axis. */
-            class_ex = measured[class_id].ewma_us;
-            measured_mask |= UINT32_C(1) << class_id;
-        } else {
-            class_ex = cost->a_ex + cost->b_ex * extra_keys;
-        }
-        c_ex += class_mix * class_ex;
+        /* Retain the validated IO-side per-command surcharge and F/b+v visit law unchanged. */
         c_io += class_mix * cost->c_io * keys;
     }
     if (!(c_io > 0.0) || !(c_ex > 0.0) || !isfinite(c_io) || !isfinite(c_ex)) return 0;
@@ -308,15 +670,18 @@ int tomoM1ModelCompute(const double mix[TOMO_M1_CLASS_COUNT],
     *result = (tomoM1ModelResult) {
         .c_io = c_io,
         .c_ex = c_ex,
-        .measured_mask = measured_mask,
         .target_io = target_io,
         .target_ex = role_threads - target_io,
     };
     return 1;
 }
 
-static int tomoM1MeasuredSelfTest(tomoM1SelfTestResult *result);
 static int tomoM1ActuationSelfTest(tomoM1SelfTestResult *result);
+static int tomoM1CostsDumpRegistry(const tomoM1Registry *registry, const char *path,
+                                   char *err, size_t errlen);
+static int tomoM1CostsLoadRegistry(tomoM1Registry *registry, const char *path,
+                                   int publish_map, tomoM1LoadResult *result,
+                                   char *err, size_t errlen);
 
 int tomoM1SelfTest(tomoM1SelfTestResult results[TOMO_M1_SELFTEST_CASES]) {
     if (!results) return 0;
@@ -340,7 +705,7 @@ int tomoM1SelfTest(tomoM1SelfTestResult results[TOMO_M1_SELFTEST_CASES]) {
      *              == the command-weighted truth (.5*11.8+.5*1.70=6.75) — the mixture theorem
      *              this selftest pins. ratio 6.74/.76=8.87, ideal 14.38, two-EX edge => io14.
      *              (The p16/p1 anchor costs 1.70/11.8 imply F=10.81, v=0.99 by the LSQ fit.) */
-    enum { TOMO_M1_SEED_SELFTEST_CASES = TOMO_M1_SELFTEST_CASES - 2 };
+    enum { TOMO_M1_SEED_SELFTEST_CASES = 5 };
     static const tomoM1SelfTestCase cases[TOMO_M1_SEED_SELFTEST_CASES] = {
         { .name = "GET-p16", .class_id = TOMO_M1_CLASS_GET,
           .keys = 1.0, .depth = 16.0, .expected_io = 11 },
@@ -355,18 +720,17 @@ int tomoM1SelfTest(tomoM1SelfTestResult results[TOMO_M1_SELFTEST_CASES]) {
     };
 
     int passed = 0;
-    const tomoM1MeasuredEx unpopulated[TOMO_M1_CLASS_COUNT] = {{0}};
     for (int i = 0; i < TOMO_M1_SEED_SELFTEST_CASES; i++) {
-        double mix[TOMO_M1_CLASS_COUNT] = {0};
-        double avg_keys[TOMO_M1_CLASS_COUNT];
+        tomoM1ModelInput input = {.cells = 1};
         for (int class_id = 0; class_id < TOMO_M1_CLASS_COUNT; class_id++)
-            avg_keys[class_id] = 1.0;
-        mix[cases[i].class_id] = 1.0;
-        avg_keys[cases[i].class_id] = cases[i].keys;
+            input.avg_keys[class_id] = 1.0;
+        input.mix[cases[i].class_id] = 1.0;
+        input.avg_keys[cases[i].class_id] = cases[i].keys;
+        const tomoM1ClassCost *cost = &tomo_m1_seed_costs.classes[cases[i].class_id];
+        input.ex_us = cost->a_ex + cost->b_ex * fmax(cases[i].keys - 1.0, 0.0);
 
         tomoM1ModelResult model = {0};
-        int computed = tomoM1ModelCompute(mix, avg_keys, unpopulated, cases[i].depth,
-                                           16, 1, &model);
+        int computed = tomoM1ModelCompute(&input, cases[i].depth, 16, 1, &model);
         results[i] = (tomoM1SelfTestResult) {
             .name = cases[i].name,
             .expected_io = cases[i].expected_io,
@@ -378,53 +742,123 @@ int tomoM1SelfTest(tomoM1SelfTestResult results[TOMO_M1_SELFTEST_CASES]) {
         };
         passed += results[i].passed;
     }
-    passed += tomoM1MeasuredSelfTest(&results[TOMO_M1_SEED_SELFTEST_CASES]);
-    passed += tomoM1ActuationSelfTest(&results[TOMO_M1_SEED_SELFTEST_CASES + 1]);
-    return passed;
-}
 
-static int tomoM1MeasuredSelfTest(tomoM1SelfTestResult *result) {
-    double mix[TOMO_M1_CLASS_COUNT] = {0};
-    double avg_keys[TOMO_M1_CLASS_COUNT];
-    tomoM1MeasuredEx measured[TOMO_M1_CLASS_COUNT] = {{0}};
+    /* MEASURING -> CONFIRMING after four populated folds, then three stable confirmations.
+     * The same mixed workload switches from the MGET8 seed to the measured whole-command cost. */
+    tomoM1Cell lifecycle = {
+        .state = TOMO_M1_CELL_MEASURING,
+        .present = 1, .active = 1,
+        .seed_q8 = tomoM1Q8(7.4),
+    };
+    tomoM1ModelInput lifecycle_input = {.cells = 2, .ex_us = 4.365};
+    lifecycle_input.mix[TOMO_M1_CLASS_SET] = 0.5;
+    lifecycle_input.mix[TOMO_M1_CLASS_MGET] = 0.5;
     for (int class_id = 0; class_id < TOMO_M1_CLASS_COUNT; class_id++)
-        avg_keys[class_id] = 1.0;
-
-    /* Mixed sources in one computation: SET keeps its 1.33us seed while MGET8's populated
-     * whole-command 2.0us replaces 0.40 + 1.00*(8-1). At p16 this shifts io10/ex6 -> io13/ex3.
-     * Leaving the synthetic value in place but clearing populated must restore the seed target. */
-    mix[TOMO_M1_CLASS_SET] = 0.5;
-    mix[TOMO_M1_CLASS_MGET] = 0.5;
-    avg_keys[TOMO_M1_CLASS_MGET] = 8.0;
-    measured[TOMO_M1_CLASS_MGET] = (tomoM1MeasuredEx) {
-        .ewma_us = 2.0,
-        .populated = 1,
-        .last_ops = 4,
+        lifecycle_input.avg_keys[class_id] = 1.0;
+    lifecycle_input.avg_keys[TOMO_M1_CLASS_MGET] = 8.0;
+    tomoM1ModelResult seed_model = {0}, measured_model = {0};
+    int seed_ok = tomoM1ModelCompute(&lifecycle_input, 16.0, 16, 1, &seed_model);
+    for (int fold = 0; fold < TOMO_M1_POPULATED_FOLDS; fold++)
+        tomoM1CellFold(&lifecycle, 200, 100, NULL);
+    int entered_confirming = lifecycle.state == TOMO_M1_CELL_CONFIRMING;
+    for (int fold = 0; fold < TOMO_M1_CONFIRM_STREAK; fold++)
+        tomoM1CellFold(&lifecycle, 200, 100, NULL);
+    lifecycle_input.ex_us = 0.5 * 1.33 + 0.5 * tomoM1CellCost(&lifecycle);
+    int measured_ok = tomoM1ModelCompute(&lifecycle_input, 16.0, 16, 1, &measured_model);
+    int lifecycle_ok = seed_ok && measured_ok && entered_confirming &&
+        lifecycle.state == TOMO_M1_CELL_FROZEN && seed_model.target_io == 10 &&
+        measured_model.target_io == 13;
+    results[5] = (tomoM1SelfTestResult) {
+        .name = "CELL-LIFECYCLE-SEED-TO-MEASURED",
+        .expected_io = 13, .expected_ex = 3,
+        .actual_io = measured_model.target_io, .actual_ex = measured_model.target_ex,
+        .passed = lifecycle_ok,
     };
+    passed += lifecycle_ok;
 
-    tomoM1ModelResult override = {0}, fallback = {0};
-    int override_ok = tomoM1ModelCompute(mix, avg_keys, measured, 16.0,
-                                          16, 1, &override);
-    measured[TOMO_M1_CLASS_MGET].populated = 0;
-    int fallback_ok = tomoM1ModelCompute(mix, avg_keys, measured, 16.0,
-                                          16, 1, &fallback);
-    uint32_t mget_mask = UINT32_C(1) << TOMO_M1_CLASS_MGET;
-    int ok = override_ok && fallback_ok &&
-             override.target_io == 13 && override.target_ex == 3 &&
-             fabs(override.c_ex - 1.665) < 1e-12 &&
-             override.measured_mask == mget_mask &&
-             fallback.target_io == 10 && fallback.target_ex == 6 &&
-             fabs(fallback.c_ex - 4.365) < 1e-12 &&
-             fallback.measured_mask == 0;
-    *result = (tomoM1SelfTestResult) {
-        .name = "MEASURED-MGET8-OVERRIDE-FALLBACK",
-        .expected_io = 13,
-        .expected_ex = 3,
-        .actual_io = override.target_io,
-        .actual_ex = override.target_ex,
-        .passed = ok,
+    /* Frozen-table dump, explicit registry wipe, then boot parser reload as CONFIRMING prior. */
+    tomoM1Registry roundtrip = {0};
+    struct redisCommand *getcmd = lookupCommandByCStringLogic(server.orig_commands, "get");
+    roundtrip.count = 1;
+    roundtrip.cells[0] = (tomoM1Cell) {
+        .cmd = getcmd, .cmd_id = getcmd ? getcmd->id : -1,
+        .class_id = TOMO_M1_CLASS_GET, .argc_bucket = tomoM1ArgcBucket(2),
+        .bytes_bucket = 0, .state = TOMO_M1_CELL_FROZEN, .present = 1,
+        .active = 1, .populated = 1, .argc_sample = 2,
+        .ewma_q8 = tomoM1Q8(1.25), .seed_q8 = tomoM1Q8(0.76), .folds = 9,
     };
-    return ok;
+    char path[160], err[256];
+    snprintf(path, sizeof(path), "/tmp/tomokv-m1-selftest-%ld.conf", (long)getpid());
+    int dumped = getcmd && tomoM1CostsDumpRegistry(&roundtrip, path, err, sizeof(err)) == C_OK;
+    memset(&roundtrip, 0, sizeof(roundtrip));
+    tomoM1LoadResult load = {0};
+    int loaded = dumped && tomoM1CostsLoadRegistry(&roundtrip, path, 0, &load,
+                                                    err, sizeof(err)) == C_OK;
+    if (dumped) unlink(path);
+    int roundtrip_ok = loaded && load.loaded == 1 && load.skipped == 0 &&
+        roundtrip.count == 1 && roundtrip.cells[0].state == TOMO_M1_CELL_CONFIRMING &&
+        roundtrip.cells[0].populated && roundtrip.cells[0].ewma_q8 == tomoM1Q8(1.25);
+    results[6] = (tomoM1SelfTestResult) {
+        .name = "COST-DUMP-WIPE-LOAD-PRIOR",
+        .expected_io = TOMO_M1_CELL_CONFIRMING, .actual_io = roundtrip.cells[0].state,
+        .expected_ex = 1, .actual_ex = load.loaded, .passed = roundtrip_ok,
+    };
+    passed += roundtrip_ok;
+
+    /* Atomic config flips re-arm frozen writes only, preserving the old cost as their seed. */
+    tomoM1Registry rearm = {.count = 2};
+    rearm.cells[0] = (tomoM1Cell) {
+        .present = 1, .state = TOMO_M1_CELL_FROZEN, .populated = 1,
+        .has_write = 1, .ewma_q8 = tomoM1Q8(3.0), .seed_q8 = tomoM1Q8(1.33),
+    };
+    rearm.cells[1] = (tomoM1Cell) {
+        .present = 1, .state = TOMO_M1_CELL_FROZEN, .populated = 1,
+        .has_write = 0, .ewma_q8 = tomoM1Q8(1.0), .seed_q8 = tomoM1Q8(0.76),
+    };
+    int rearmed = tomoM1RegistryRearmWrites(&rearm, 0);
+    int rearm_ok = rearmed == 1 && rearm.cells[0].state == TOMO_M1_CELL_MEASURING &&
+        !rearm.cells[0].populated && rearm.cells[0].seed_q8 == tomoM1Q8(3.0) &&
+        rearm.cells[1].state == TOMO_M1_CELL_FROZEN;
+    results[7] = (tomoM1SelfTestResult) {
+        .name = "ATOMIC-REARM-WRITE-ONLY",
+        .expected_io = TOMO_M1_CELL_MEASURING, .actual_io = rearm.cells[0].state,
+        .expected_ex = TOMO_M1_CELL_FROZEN, .actual_ex = rearm.cells[1].state,
+        .passed = rearm_ok,
+    };
+    passed += rearm_ok;
+
+    /* argc=2 and argc=8 MGETs occupy distinct ids and converge independently. */
+    tomoM1Cell shapes[2] = {
+        {.present = 1, .active = 1, .state = TOMO_M1_CELL_MEASURING,
+         .argc_bucket = 1, .seed_q8 = tomoM1Q8(0.4)},
+        {.present = 1, .active = 1, .state = TOMO_M1_CELL_MEASURING,
+         .argc_bucket = 7, .seed_q8 = tomoM1Q8(6.4)},
+    };
+    for (int fold = 0; fold < TOMO_M1_POPULATED_FOLDS + TOMO_M1_CONFIRM_STREAK; fold++) {
+        tomoM1CellFold(&shapes[0], 200, 100, NULL);
+        tomoM1CellFold(&shapes[1], 800, 100, NULL);
+    }
+    tomoM1ModelInput shape_input = {.cells = 2, .ex_us = 5.0};
+    shape_input.mix[TOMO_M1_CLASS_MGET] = 1.0;
+    for (int class_id = 0; class_id < TOMO_M1_CLASS_COUNT; class_id++)
+        shape_input.avg_keys[class_id] = 1.0;
+    shape_input.avg_keys[TOMO_M1_CLASS_MGET] = 4.0;
+    tomoM1ModelResult shape_model = {0};
+    int shape_model_ok = tomoM1ModelCompute(&shape_input, 16.0, 16, 1, &shape_model);
+    int shape_ok = shape_model_ok && shapes[0].argc_bucket != shapes[1].argc_bucket &&
+        shapes[0].state == TOMO_M1_CELL_FROZEN && shapes[1].state == TOMO_M1_CELL_FROZEN &&
+        shapes[0].ewma_q8 == tomoM1Q8(2.0) && shapes[1].ewma_q8 == tomoM1Q8(8.0) &&
+        shape_model.target_io == 10;
+    results[8] = (tomoM1SelfTestResult) {
+        .name = "SHAPE-MGET-ARGC-B2-B8",
+        .expected_io = 10, .expected_ex = 6,
+        .actual_io = shape_model.target_io, .actual_ex = shape_model.target_ex,
+        .passed = shape_ok,
+    };
+    passed += shape_ok;
+
+    passed += tomoM1ActuationSelfTest(&results[9]);
+    return passed;
 }
 
 #define TOMO_M1_MIX_ALPHA (1.0 / 4.0)
@@ -530,6 +964,328 @@ static void tomoM1Publish(int node, const tomoM1NodeState *state) {
                           memory_order_relaxed);
 }
 
+static const char *tomoM1CellStateName(int state) {
+    switch (state) {
+    case TOMO_M1_CELL_MEASURING: return "measuring";
+    case TOMO_M1_CELL_CONFIRMING: return "confirming";
+    case TOMO_M1_CELL_FROZEN: return "frozen";
+    default: return "unknown";
+    }
+}
+
+static const char *tomoM1ArgcBucketName(unsigned int bucket) {
+    static const char *names[] = {
+        "1", "2", "3", "4", "5", "6", "7", "8",
+        "9-16", "17-32", "33-64", "65+", "ANY"
+    };
+    return bucket < sizeof(names) / sizeof(names[0]) ? names[bucket] : "?";
+}
+
+static const char *tomoM1BytesBucketName(unsigned int bucket) {
+    static const char *names[] = { "<256B", "<4KB", "<64KB", ">=64KB", "ANY" };
+    return bucket < sizeof(names) / sizeof(names[0]) ? names[bucket] : "?";
+}
+
+static int tomoM1ArgcBucketParse(const char *label) {
+    for (unsigned int bucket = 0; bucket <= TOMO_M1_ARGC_ANY; bucket++)
+        if (!strcmp(label, tomoM1ArgcBucketName(bucket))) return (int)bucket;
+    return -1;
+}
+
+static int tomoM1BytesBucketParse(const char *label) {
+    for (unsigned int bucket = 0; bucket <= TOMO_M1_BYTES_ANY; bucket++)
+        if (!strcmp(label, tomoM1BytesBucketName(bucket))) return (int)bucket;
+    return -1;
+}
+
+static int tomoM1CostsWrite(const char *path, const char *contents, size_t len,
+                            char *err, size_t errlen) {
+    sds tmp = sdscatprintf(sdsempty(), "%s.tmp.%ld", path, (long)getpid());
+    int fd = open(tmp, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (fd == -1) {
+        snprintf(err, errlen, "open %s: %s", tmp, strerror(errno));
+        sdsfree(tmp);
+        return C_ERR;
+    }
+    size_t written = 0;
+    while (written < len) {
+        ssize_t n = write(fd, contents + written, len - written);
+        if (n > 0) {
+            written += (size_t)n;
+            continue;
+        }
+        if (n == -1 && errno == EINTR) continue;
+        snprintf(err, errlen, "write %s: %s", tmp, strerror(errno));
+        close(fd);
+        unlink(tmp);
+        sdsfree(tmp);
+        return C_ERR;
+    }
+    if (fsync(fd) == -1) {
+        snprintf(err, errlen, "sync %s: %s", tmp, strerror(errno));
+        close(fd);
+        unlink(tmp);
+        sdsfree(tmp);
+        return C_ERR;
+    }
+    if (close(fd) == -1) {
+        snprintf(err, errlen, "close %s: %s", tmp, strerror(errno));
+        unlink(tmp);
+        sdsfree(tmp);
+        return C_ERR;
+    }
+    if (rename(tmp, path) == -1) {
+        snprintf(err, errlen, "rename %s to %s: %s", tmp, path, strerror(errno));
+        unlink(tmp);
+        sdsfree(tmp);
+        return C_ERR;
+    }
+    if (fsyncFileDir(path) == -1) {
+        snprintf(err, errlen, "sync directory for %s: %s", path, strerror(errno));
+        sdsfree(tmp);
+        return C_ERR;
+    }
+    sdsfree(tmp);
+    return C_OK;
+}
+
+static int tomoM1CostsDumpRegistry(const tomoM1Registry *registry, const char *path,
+                                   char *err, size_t errlen) {
+    char date[32];
+    struct tm tm;
+    time_t cached_now = server.unixtime;
+    if (!gmtime_r(&cached_now, &tm) ||
+        !strftime(date, sizeof(date), "%Y-%m-%dT%H:%M:%SZ", &tm))
+        snprintf(date, sizeof(date), "1970-01-01T00:00:00Z");
+
+    sds out = sdscatprintf(sdsempty(),
+        "# tomokv-costs v1 sha=%s date=%s backend=%s atomic=%d nodes=%d io=%d ex=%d\n",
+        redisGitSHA1(), date, server.io_uring ? "uring" : "epoll", server.tomo_atomic != 0,
+        server.topo_nodes > 0 ? server.topo_nodes : 1, server.io_threads, server.ex_threads);
+    for (unsigned int id = 0; id < TOMO_M1_CELLS_MAX; id++) {
+        const tomoM1Cell *cell = &registry->cells[id];
+        if (!cell->present || cell->state != TOMO_M1_CELL_FROZEN) continue;
+        const char *name = cell->cmd ? cell->cmd->fullname : "other";
+        out = sdscatprintf(out,
+            "cell cmd=%s argc=%s bytes=%s ex_us=%.6f folds=%llu state=frozen\n",
+            name, tomoM1ArgcBucketName(cell->argc_bucket),
+            tomoM1BytesBucketName(cell->bytes_bucket), tomoM1FromQ8(cell->ewma_q8),
+            (unsigned long long)cell->folds);
+    }
+    int rc = tomoM1CostsWrite(path, out, sdslen(out), err, errlen);
+    sdsfree(out);
+    return rc;
+}
+
+int tomoM1CostsDump(const char *path, char *err, size_t errlen) {
+    if (!err || errlen == 0) return C_ERR;
+    err[0] = '\0';
+    if (!path || !path[0]) path = TOMO_M1_COSTS_DEFAULT;
+    pthread_mutex_lock(&tomo_m1_cells_lock);
+    int rc = tomoM1CostsDumpRegistry(&tomo_m1_registry, path, err, errlen);
+    pthread_mutex_unlock(&tomo_m1_cells_lock);
+    return rc;
+}
+
+static int tomoM1RegistryAddPrior(tomoM1Registry *registry, struct redisCommand *cmd,
+                                  unsigned int argc_bucket, unsigned int bytes_bucket,
+                                  uint32_t cost_q8, uint64_t folds, int matching,
+                                  int publish_map) {
+    if (!cmd || !cost_q8 || argc_bucket > TOMO_M1_ARGC_ANY ||
+        bytes_bucket > TOMO_M1_BYTES_ANY) return 0;
+    for (unsigned int id = 0; id < TOMO_M1_CELLS_MAX; id++) {
+        tomoM1Cell *cell = &registry->cells[id];
+        if (cell->present && cell->cmd == cmd && cell->argc_bucket == argc_bucket &&
+            cell->bytes_bucket == bytes_bucket) return 0;
+    }
+    if (registry->count >= TOMO_M1_REGULAR_CELLS) return 0;
+
+    int map_slot = -1;
+    if (publish_map && argc_bucket != TOMO_M1_ARGC_ANY &&
+        bytes_bucket != TOMO_M1_BYTES_ANY) {
+        for (int i = 0; i < TOMO_M1_CMD_CELL_MAP; i++) {
+            if (!(atomic_load_explicit(&cmd->tomo_m1_cells[i], memory_order_relaxed) &
+                  TOMO_M1_CELL_ID_MASK)) {
+                map_slot = i;
+                break;
+            }
+        }
+        if (map_slot < 0) return 0;
+    }
+
+    unsigned int id = registry->count++;
+    tomoM1Cell *cell = &registry->cells[id];
+    *cell = (tomoM1Cell) {
+        .cmd = cmd,
+        .cmd_id = cmd->id,
+        .class_id = cmd->tomo_m1_class,
+        .argc_bucket = argc_bucket,
+        .bytes_bucket = bytes_bucket,
+        .state = matching ? TOMO_M1_CELL_CONFIRMING : TOMO_M1_CELL_MEASURING,
+        .present = 1,
+        .populated = matching,
+        .fallback = argc_bucket == TOMO_M1_ARGC_ANY || bytes_bucket == TOMO_M1_BYTES_ANY,
+        .has_write = (cmd->flags & CMD_WRITE) != 0,
+        .argc_sample = tomoM1ArgcRepresentative(argc_bucket),
+        .ewma_q8 = matching ? cost_q8 : 0,
+        .seed_q8 = cost_q8,
+        .folds = matching ? folds : 0,
+    };
+    if (!publish_map) return 1;
+
+    if (cell->fallback) {
+        atomic_store_explicit(&cmd->tomo_m1_fallback,
+                              (id + 1) | TOMO_M1_CELL_FALLBACK_ON,
+                              memory_order_release);
+    } else {
+        uint32_t word = tomoM1MapWord(id, argc_bucket, bytes_bucket, 0, 0);
+        atomic_store_explicit(&cmd->tomo_m1_cells[map_slot], word, memory_order_release);
+        uint32_t fallback = atomic_load_explicit(&cmd->tomo_m1_fallback,
+                                                 memory_order_relaxed);
+        if (!(fallback & TOMO_M1_CELL_ID_MASK))
+            atomic_store_explicit(&cmd->tomo_m1_fallback, id + 1, memory_order_release);
+    }
+    return 1;
+}
+
+static int tomoM1CostsLoadRegistry(tomoM1Registry *registry, const char *path,
+                                   int publish_map, tomoM1LoadResult *result,
+                                   char *err, size_t errlen) {
+    FILE *fp = fopen(path, "r");
+    if (!fp) {
+        snprintf(err, errlen, "open %s: %s", path, strerror(errno));
+        return C_ERR;
+    }
+    *result = (tomoM1LoadResult){0};
+    char line[1024];
+    int header_seen = 0;
+    while (fgets(line, sizeof(line), fp)) {
+        if (!header_seen) {
+            char sha[65], date[64], backend[16];
+            int atomic, nodes, io, ex;
+            int consumed = 0;
+            header_seen = 1;
+            int fields = sscanf(line,
+                "# tomokv-costs v1 sha=%64s date=%63s backend=%15s atomic=%d nodes=%d io=%d ex=%d %n",
+                sha, date, backend, &atomic, &nodes, &io, &ex, &consumed);
+            for (const char *tail = line + consumed; fields == 7 && *tail; tail++)
+                if (*tail != ' ' && *tail != '\t' && *tail != '\r' && *tail != '\n') fields = 0;
+            if (fields != 7) {
+                result->skipped++;
+                result->mismatch = 1;
+            } else if (strcmp(backend, server.io_uring ? "uring" : "epoll") ||
+                       atomic != (server.tomo_atomic != 0)) {
+                result->mismatch = 1;
+            }
+            continue;
+        }
+        if (line[0] == '#' || line[0] == '\n' || line[0] == '\r') continue;
+        char cmdname[128] = {0}, argc_label[32] = {0}, bytes_label[32] = {0}, state[16] = {0};
+        double ex_us = 0.0;
+        unsigned long long folds = 0;
+        int consumed = 0;
+        int fields = sscanf(line,
+            "cell cmd=%127s argc=%31s bytes=%31s ex_us=%lf folds=%llu state=%15s %n",
+            cmdname, argc_label, bytes_label, &ex_us, &folds, state, &consumed);
+        for (const char *tail = line + consumed; fields == 6 && *tail; tail++)
+            if (*tail != ' ' && *tail != '\t' && *tail != '\r' && *tail != '\n') fields = 0;
+        int argc_bucket = fields == 6 ? tomoM1ArgcBucketParse(argc_label) : -1;
+        int bytes_bucket = fields == 6 ? tomoM1BytesBucketParse(bytes_label) : -1;
+        struct redisCommand *cmd = fields == 6
+            ? lookupCommandByCStringLogic(server.orig_commands, cmdname) : NULL;
+        uint32_t q8 = tomoM1Q8(ex_us);
+        if (fields != 6 || strcmp(state, "frozen") || argc_bucket < 0 || bytes_bucket < 0 ||
+            !cmd || !q8 || !tomoM1RegistryAddPrior(registry, cmd,
+                (unsigned int)argc_bucket, (unsigned int)bytes_bucket, q8,
+                (uint64_t)folds, !result->mismatch, publish_map)) {
+            result->skipped++;
+            continue;
+        }
+        result->loaded++;
+    }
+    if (ferror(fp)) {
+        snprintf(err, errlen, "read %s: %s", path, strerror(errno));
+        fclose(fp);
+        return C_ERR;
+    }
+    fclose(fp);
+    if (!header_seen) {
+        result->skipped++;
+        result->mismatch = 1;
+    }
+    return C_OK;
+}
+
+void tomoM1CostsBootLoad(void) {
+    if (!server.tomo_m1_costs_file || !server.tomo_m1_costs_file[0]) return;
+    char err[256];
+    tomoM1LoadResult result;
+    pthread_mutex_lock(&tomo_m1_cells_lock);
+    int rc = tomoM1CostsLoadRegistry(&tomo_m1_registry, server.tomo_m1_costs_file,
+                                     1, &result, err, sizeof(err));
+    pthread_mutex_unlock(&tomo_m1_cells_lock);
+    if (rc == C_ERR) {
+        serverLog(LL_WARNING, "m1 cost priors not loaded: %s", err);
+        return;
+    }
+    serverLog(result.skipped ? LL_WARNING : LL_NOTICE,
+        "m1 cost priors: loaded=%d skipped=%d compatibility=%s file=%s",
+        result.loaded, result.skipped, result.mismatch ? "seed-only" : "confirming",
+        server.tomo_m1_costs_file);
+}
+
+void tomoM1AtomicConfigChanged(void) {
+    pthread_mutex_lock(&tomo_m1_cells_lock);
+    int rearmed = tomoM1RegistryRearmWrites(&tomo_m1_registry, 1);
+    if (rearmed) {
+        atomic_store_explicit(&tomo_m1_all_frozen, 0, memory_order_release);
+        tomoM1PublishDemandLocked();
+    }
+    pthread_mutex_unlock(&tomo_m1_cells_lock);
+}
+
+static void tomoM1TraceTopCells(int node, char *buf, size_t buflen) {
+    unsigned int top[8];
+    double lambda[8] = {0};
+    int n = 0;
+    pthread_mutex_lock(&tomo_m1_cells_lock);
+    for (unsigned int id = 0; id < TOMO_M1_CELLS_MAX; id++) {
+        tomoM1Cell *cell = &tomo_m1_registry.cells[id];
+        double rate = cell->present && cell->active ? cell->lambda[node] : 0.0;
+        if (!(rate > 0.0)) continue;
+        int pos = n < 8 ? n++ : 7;
+        if (n == 8 && rate <= lambda[7]) continue;
+        while (pos > 0 && rate > lambda[pos - 1]) {
+            if (pos < 8) {
+                lambda[pos] = lambda[pos - 1];
+                top[pos] = top[pos - 1];
+            }
+            pos--;
+        }
+        lambda[pos] = rate;
+        top[pos] = id;
+    }
+    size_t used = 0;
+    if (buflen) buf[0] = '\0';
+    for (int i = 0; i < n && used < buflen; i++) {
+        tomoM1Cell *cell = &tomo_m1_registry.cells[top[i]];
+        const char *name = cell->cmd ? cell->cmd->fullname : "overflow";
+        int wrote = snprintf(buf + used, buflen - used,
+            "%s%s/a%s/b%s:%.2f@%s", i ? "," : "", name,
+            tomoM1ArgcBucketName(cell->argc_bucket),
+            tomoM1BytesBucketName(cell->bytes_bucket), lambda[i],
+            tomoM1CellStateName(cell->state));
+        if (wrote < 0) break;
+        if ((size_t)wrote >= buflen - used) {
+            used = buflen;
+            break;
+        }
+        used += (size_t)wrote;
+    }
+    if (n == 0 && buflen) snprintf(buf, buflen, "-");
+    pthread_mutex_unlock(&tomo_m1_cells_lock);
+}
+
 static void tomoM1TraceNode(int node, const tomoM1NodeState *state) {
     if (!atomic_load_explicit(&tomo_m1_trace, memory_order_relaxed)) return;
 
@@ -540,24 +1296,19 @@ static void tomoM1TraceNode(int node, const tomoM1NodeState *state) {
     int current_ex = node_count == 1
                    ? atomic_load_explicit(&server.num_workers_live, memory_order_relaxed)
                    : atomic_load_explicit(&server.tm_node_wlive[node], memory_order_relaxed);
+    char cells[768];
+    tomoM1TraceTopCells(node, cells, sizeof(cells));
     serverLog(LL_NOTICE,
         "[m1-trace n%d] t=%lld depth=%.3f "
         "mix=GET:%.3f,SET:%.3f,MGET:%.3f,MSET:%.3f,ZRANGE:%.3f,DEL:%.3f,EXPIRE:%.3f,OTHER:%.3f "
-        "src=GET:%s,SET:%s,MGET:%s,MSET:%s,ZRANGE:%s,DEL:%s,EXPIRE:%s,OTHER:%s "
+        "cells=[%s] "
         "c_io=%.3f c_ex=%.3f target_raw=io%d/ex%d target=io%d/ex%d current=io%d/ex%d",
         node, (long long)mstime(), state->depth,
         state->mix[TOMO_M1_CLASS_GET], state->mix[TOMO_M1_CLASS_SET],
         state->mix[TOMO_M1_CLASS_MGET], state->mix[TOMO_M1_CLASS_MSET],
         state->mix[TOMO_M1_CLASS_ZRANGE], state->mix[TOMO_M1_CLASS_DEL],
         state->mix[TOMO_M1_CLASS_EXPIRE], state->mix[TOMO_M1_CLASS_OTHER],
-        state->raw.measured_mask & (UINT32_C(1) << TOMO_M1_CLASS_GET) ? "measured" : "seed",
-        state->raw.measured_mask & (UINT32_C(1) << TOMO_M1_CLASS_SET) ? "measured" : "seed",
-        state->raw.measured_mask & (UINT32_C(1) << TOMO_M1_CLASS_MGET) ? "measured" : "seed",
-        state->raw.measured_mask & (UINT32_C(1) << TOMO_M1_CLASS_MSET) ? "measured" : "seed",
-        state->raw.measured_mask & (UINT32_C(1) << TOMO_M1_CLASS_ZRANGE) ? "measured" : "seed",
-        state->raw.measured_mask & (UINT32_C(1) << TOMO_M1_CLASS_DEL) ? "measured" : "seed",
-        state->raw.measured_mask & (UINT32_C(1) << TOMO_M1_CLASS_EXPIRE) ? "measured" : "seed",
-        state->raw.measured_mask & (UINT32_C(1) << TOMO_M1_CLASS_OTHER) ? "measured" : "seed",
+        cells,
         state->raw.c_io, state->raw.c_ex,
         state->raw.target_io, state->raw.target_ex,
         state->target_io, state->target_ex, current_io, current_ex);
@@ -573,8 +1324,6 @@ int tomoM1TraceEnabled(void) {
 
 void tomoM1InfoGet(tomoM1Info *info) {
     if (!info) return;
-    tomoM1MeasuredEx measured[TOMO_M1_CLASS_COUNT];
-    tomoM1MeasuredGet(measured);
     *info = (tomoM1Info) {
         .target_io_n0 = atomic_load_explicit(&tomo_m1_published[0].target_io,
                                              memory_order_relaxed),
@@ -594,12 +1343,31 @@ void tomoM1InfoGet(tomoM1Info *info) {
                                              memory_order_relaxed),
         .holds = atomic_load_explicit(&tomo_m1_holds, memory_order_relaxed),
         .pending_recoveries = atomic_load_explicit(&tomo_m1_pending_recoveries, memory_order_relaxed),
+        .cell_overflow = atomic_load_explicit(&tomo_m1_cell_overflow, memory_order_relaxed),
+        .cells_forced_frozen = atomic_load_explicit(&tomo_m1_cells_forced_frozen,
+                                                    memory_order_relaxed),
+        .all_frozen = atomic_load_explicit(&tomo_m1_all_frozen, memory_order_relaxed),
     };
-    for (int class_id = 0; class_id < TOMO_M1_CLASS_COUNT; class_id++) {
-        if (!measured[class_id].populated) continue;
-        info->measured_classes++;
-        info->ex_us[class_id] = measured[class_id].ewma_us;
+    double class_lambda[TOMO_M1_CLASS_COUNT] = {0};
+    pthread_mutex_lock(&tomo_m1_cells_lock);
+    for (unsigned int id = 0; id < TOMO_M1_CELLS_MAX; id++) {
+        tomoM1Cell *cell = &tomo_m1_registry.cells[id];
+        if (!cell->present) continue;
+        info->cells++;
+        if (cell->state == TOMO_M1_CELL_MEASURING) info->cells_measuring++;
+        else if (cell->state == TOMO_M1_CELL_CONFIRMING) info->cells_confirming++;
+        else if (cell->state == TOMO_M1_CELL_FROZEN) info->cells_frozen++;
+        if (!cell->populated || !(cell->lambda[0] > 0.0)) continue;
+        int class_id = cell->class_id;
+        info->ex_us[class_id] += cell->lambda[0] * tomoM1CellCost(cell);
+        class_lambda[class_id] += cell->lambda[0];
     }
+    for (int class_id = 0; class_id < TOMO_M1_CLASS_COUNT; class_id++) {
+        if (!(class_lambda[class_id] > 0.0)) continue;
+        info->ex_us[class_id] /= class_lambda[class_id];
+        info->measured_classes++;
+    }
+    pthread_mutex_unlock(&tomo_m1_cells_lock);
 }
 
 static double tomoM1AverageKeys(int class_id, uint64_t commands, uint64_t args) {
@@ -1151,10 +1919,14 @@ void tomoM1ControllerTick(int node) {
     }
 
     int role_threads = server.io_per_node + server.ex_per_node;
-    tomoM1MeasuredEx measured[TOMO_M1_CLASS_COUNT];
-    tomoM1MeasuredGet(measured);
-    if (tomoM1ModelCompute(state->mix, state->avg_keys, measured, state->depth,
-                           role_threads, server.io_uring != 0, &state->raw)) {
+    tomoM1ModelInput input = {
+        .ex_us = atomic_load_explicit(&tomo_m1_node_ex_us[node], memory_order_acquire),
+        .cells = atomic_load_explicit(&tomo_m1_node_demand_cells[node], memory_order_acquire),
+    };
+    memcpy(input.mix, state->mix, sizeof(input.mix));
+    memcpy(input.avg_keys, state->avg_keys, sizeof(input.avg_keys));
+    if (tomoM1ModelCompute(&input, state->depth, role_threads,
+                           server.io_uring != 0, &state->raw)) {
         int target_changed = tomoM1FilterTarget(
             state, role_threads, server.thread_mode == TOMO_THREAD_MODE_MODEL);
         if (server.thread_mode == TOMO_THREAD_MODE_MODEL && target_changed)
