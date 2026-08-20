@@ -1510,6 +1510,14 @@ typedef struct {
 #define TOMO_RORD_TIER_ELEM  16    /* argv range <= this => C2 ELEM  */
 #define TOMO_RORD_TIER_SMALL 256   /* <= this => C3 SMALL */
 #define TOMO_RORD_TIER_MED   4096  /* <= this => C4 MED; else C5 BIG. getrange window is /64 (bytes->elems) */
+/* DEBUG TOMO-RORDMASK: independently ablate the passes in the reorder stack. */
+#define TOMO_RORD_MASK_WORKER_GROUP 0x01
+#define TOMO_RORD_MASK_AGE_SLICE    0x02
+#define TOMO_RORD_MASK_DEP_FENCE    0x04
+#define TOMO_RORD_MASK_HEAD_PROMO   0x08
+#define TOMO_RORD_MASK_CLASS_SJF    0x10
+#define TOMO_RORD_MASK_BUCKET_GROUP 0x20
+#define TOMO_RORD_MASK_ALL          0x3F
 /* Shinjuku (reorder mode 3) per-class service-time proxy (relative). argmax(wait/SLO) => a short
  * class (small SLO) outranks a long one until the long one has waited proportionally longer.
  * Monotonic in class; values are relative, calibrate later. */
@@ -6396,6 +6404,8 @@ void roleCommand(client *c);
 extern int tm_flip_trace;
 extern int tomo_disp_window_forced_zero;
 extern _Atomic int tomo_disp_window[TOMO_IO_THREADS_MAX + 1];
+extern int tomo_rord_mask;
+extern int tomo_rord_unsafe_diag;
 extern int tm_rord_trace;
 void debugCommand(client *c);
 void msetCommand(client *c);

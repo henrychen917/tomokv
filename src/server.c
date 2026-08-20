@@ -4044,6 +4044,8 @@ static __thread int tomo_staged_cnt;   /* dispatches staged since this thread's 
  * emitted in arrival order — rather than risking a same-connection same-key swap.
  * Levels: 0 = path compiled around (no scratch write, direct push); 1 = partition + heads;
  * 2 = + class SJF + bucket grouping. Mutually exclusive with strict-order (so != 0). */
+int tomo_rord_mask = TOMO_RORD_MASK_ALL; /* DEBUG TOMO-RORDMASK, relaxed atomic access */
+int tomo_rord_unsafe_diag = 0;           /* sticky once DEP_FENCE has been disabled */
 #define TOMO_RORD_CAP 64
 /* D5 aging: retain the accepted old displacement budget (32) only as a multiplier over measured
  * TIME. The actual bound is AGE_EWMAS * the slowest published class-service EWMA, so it follows the
@@ -4146,41 +4148,153 @@ static __thread uint32_t rord_hset_curgen;
 
 static void exDispatchDirect(int ex_id, client *fake);   /* the pre-D push path, defined below */
 
-/* D trace helper (armed-only, off the hot path): reproduce the emission order of ONE run into a
- * string without dispatching. Mirrors tomoReorderDrain's time slices, per-slice head pass, class-SJF
- * and bucket grouping exactly. cls char = class digit, upper=head, | separates the fenced tail. */
-static void tomoReorderTraceRun(int w, int r, const int *ridx, int fence_at, int lvl,
-                                const tomoRordAge *age_base) {
-    char arr[80], emt[80]; int ai = 0, ei = 0;
-    uint8_t used[TOMO_RORD_CAP]; for (int i = 0; i < r && i < TOMO_RORD_CAP; i++) used[i] = 0;
+static inline uint64_t tomoReorderDepKey(int idx) {
+    client *cid = tomo_rord.fk[idx]->parent ? tomo_rord.fk[idx]->parent : tomo_rord.fk[idx];
+    return tomo_rord.h[idx] ^ ((uint64_t)(uintptr_t)cid * 0x9E3779B97F4A7C15ull);
+}
+
+/* Produce one Shinjuku slice's emission permutation without dispatching. This is deliberately
+ * cold diagnostic planning. Keep it structurally paired with tomoReorderEmitShinjuku below. */
+static void tomoReorderPlanShinjuku(const int *ord, int r, int mask, int *emit) {
+    if (!(mask & TOMO_RORD_MASK_CLASS_SJF)) {
+        for (int a = 0; a < r; a++) emit[a] = ord[a];
+        return;
+    }
+
+    uint8_t clspos[TOMO_SVC_CLASSES][TOMO_RORD_CAP];
+    int clen[TOMO_SVC_CLASSES] = {0}, ccur[TOMO_SVC_CLASSES] = {0};
+    if (!(mask & TOMO_RORD_MASK_DEP_FENCE)) {
+        int ne = 0;
+        for (int a = 0; a < r; a++) {
+            int c = tomo_rord.cls[ord[a]] & TOMO_CLS_MASK;
+            clspos[c][clen[c]++] = (uint8_t)a;
+        }
+        for (int c = 0; c < TOMO_SVC_CLASSES; c++)
+            for (int p = 0; p < clen[c]; p++) emit[ne++] = ord[clspos[c][p]];
+        return;
+    }
+
+    uint8_t blocked[TOMO_RORD_CAP];
+    int succ[TOMO_RORD_CAP];
+    uint64_t key[TOMO_RORD_HSET];
+    uint8_t occupied[TOMO_RORD_HSET] = {0};
+    int dep_pos[TOMO_RORD_HSET];
+    for (int a = 0; a < r; a++) {
+        int i = ord[a];
+        int c = tomo_rord.cls[i] & TOMO_CLS_MASK;
+        clspos[c][clen[c]++] = (uint8_t)a;
+        succ[a] = -1;
+        blocked[a] = 0;
+        uint64_t dep = tomoReorderDepKey(i);
+        unsigned slot = (unsigned)(dep ^ (dep >> 32)) & (TOMO_RORD_HSET - 1);
+        while (occupied[slot]) {
+            if (key[slot] == dep) {
+                succ[dep_pos[slot]] = a;
+                blocked[a] = 1;
+                break;
+            }
+            slot = (slot + 1) & (TOMO_RORD_HSET - 1);
+        }
+        occupied[slot] = 1;
+        key[slot] = dep;
+        dep_pos[slot] = a;
+    }
+    for (int ne = 0; ne < r; ne++) {
+        int pc = -1;
+        for (int c = 0; c < TOMO_SVC_CLASSES; c++)
+            if (ccur[c] < clen[c] && !blocked[clspos[c][ccur[c]]]) { pc = c; break; }
+        int a = clspos[pc][ccur[pc]++];
+        emit[ne] = ord[a];
+        if (succ[a] >= 0) blocked[succ[a]] = 0;
+    }
+}
+
+/* Reproduce one run's complete permutation without dispatching. The real emitter remains the hot
+ * path; this shared cold planner keeps the trace and the opt-in inversion counter honest for every
+ * mask combination, including Shinjuku. */
+static void tomoReorderPlanRun(int r, const int *ridx, int fence_at, int lvl, int mask,
+                               const tomoRordAge *age_base, int *emit) {
+    if (r <= 1 || lvl < 1) {
+        for (int i = 0; i < r; i++) emit[i] = ridx[i];
+        return;
+    }
+
     tomoRordAge age = *age_base;
-    tomoReorderAgeStartRun(&age, ridx, r);
+    if (mask & TOMO_RORD_MASK_AGE_SLICE) tomoReorderAgeStartRun(&age, ridx, r);
+    if (lvl == 3) {
+        int ne = 0;
+        for (int c0 = 0; c0 < r; ) {
+            int c1;
+            if (mask & TOMO_RORD_MASK_AGE_SLICE) {
+                int pinned;
+                c1 = tomoReorderAgeSlice(&age, ridx, c0, r, &pinned);
+            } else {
+                c1 = r;
+            }
+            tomoReorderPlanShinjuku(ridx + c0, c1 - c0, mask, emit + ne);
+            ne += c1 - c0;
+            c0 = c1;
+        }
+        return;
+    }
+
+    uint8_t used[TOMO_RORD_CAP] = {0};
+    int ne = 0;
+    #define PLAN_EMIT(K) do { emit[ne++] = ridx[K]; used[K] = 1; } while (0)
+    for (int c0 = 0; c0 < fence_at; ) {
+        int c1;
+        if (mask & TOMO_RORD_MASK_AGE_SLICE) {
+            int pinned;
+            c1 = tomoReorderAgeSlice(&age, ridx, c0, fence_at, &pinned);
+        } else {
+            c1 = fence_at;
+        }
+        if (mask & TOMO_RORD_MASK_HEAD_PROMO)
+            for (int i = c0; i < c1; i++)
+                if (tomo_rord.cls[ridx[i]] & 0x80) PLAN_EMIT(i);
+        if (mask & TOMO_RORD_MASK_CLASS_SJF) {
+            for (int cl = 0; cl < TOMO_SVC_CLASSES; cl++)
+                for (int i = c0; i < c1; i++) {
+                    if (used[i] || (tomo_rord.cls[ridx[i]] & TOMO_CLS_MASK) != cl) continue;
+                    PLAN_EMIT(i);
+                    if (lvl >= 2 && (mask & TOMO_RORD_MASK_BUCKET_GROUP)) {
+                        uint64_t bkt = tomo_rord.h[ridx[i]] & TOMO_BUCKET_MASK;
+                        for (int j = i + 1; j < c1; j++)
+                            if (!used[j] &&
+                                (tomo_rord.cls[ridx[j]] & TOMO_CLS_MASK) == cl &&
+                                (tomo_rord.h[ridx[j]] & TOMO_BUCKET_MASK) == bkt)
+                                PLAN_EMIT(j);
+                    }
+                }
+        } else {
+            for (int i = c0; i < c1; i++) if (!used[i]) PLAN_EMIT(i);
+        }
+        c0 = c1;
+    }
+    for (int i = fence_at; i < r; i++) if (!used[i]) PLAN_EMIT(i);
+    #undef PLAN_EMIT
+    debugServerAssert(ne == r);
+}
+
+/* D trace helper (armed-only, off the hot path). cls char = class digit, upper=head; | separates
+ * the mode-1/2 fenced tail. The shared planner above mirrors every active mask bit. */
+static void tomoReorderTraceRun(int w, int r, const int *ridx, int fence_at, int lvl, int mask,
+                                const tomoRordAge *age_base) {
+    char arr[80], emt[80];
+    int planned[TOMO_RORD_CAP];
+    int ai = 0, ei = 0;
+    tomoReorderPlanRun(r, ridx, fence_at, lvl, mask, age_base, planned);
     for (int i = 0; i < r && ai < 78; i++) {
         int c = tomo_rord.cls[ridx[i]] & TOMO_CLS_MASK;
         arr[ai++] = (tomo_rord.cls[ridx[i]] & 0x80) ? ('A' + c) : ('0' + c);
-        if (i == fence_at - 1 && fence_at < r) arr[ai++] = '|';
+        if (lvl != 3 && i == fence_at - 1 && fence_at < r) arr[ai++] = '|';
     }
     arr[ai] = 0;
-    #define EMITC(K) do { if (ei < 78) { int _c = tomo_rord.cls[ridx[K]] & TOMO_CLS_MASK; \
-        emt[ei++] = (tomo_rord.cls[ridx[K]] & 0x80) ? ('A'+_c) : ('0'+_c); used[K] = 1; } } while(0)
-    for (int c0 = 0; c0 < fence_at; ) {
-        int pinned;
-        int c1 = tomoReorderAgeSlice(&age, ridx, c0, fence_at, &pinned);
-        for (int i = c0; i < c1; i++) if (tomo_rord.cls[ridx[i]] & 0x80) EMITC(i);
-        for (int cl = 0; cl < TOMO_SVC_CLASSES; cl++)
-            for (int i = c0; i < c1; i++) {
-                if (used[i] || (tomo_rord.cls[ridx[i]] & TOMO_CLS_MASK) != cl) continue;
-                EMITC(i);
-                if (lvl >= 2) { uint64_t bkt = tomo_rord.h[ridx[i]] & TOMO_BUCKET_MASK;
-                    for (int j = i + 1; j < c1; j++)
-                        if (!used[j] && (tomo_rord.cls[ridx[j]] & TOMO_CLS_MASK) == cl &&
-                            (tomo_rord.h[ridx[j]] & TOMO_BUCKET_MASK) == bkt) EMITC(j); }
-            }
-        c0 = c1;
+    for (int e = 0; e < r && ei < 78; e++) {
+        if (lvl != 3 && e == fence_at && fence_at < r) emt[ei++] = '|';
+        int c = tomo_rord.cls[planned[e]] & TOMO_CLS_MASK;
+        emt[ei++] = (tomo_rord.cls[planned[e]] & 0x80) ? ('A' + c) : ('0' + c);
     }
-    if (fence_at < r && ei < 78) emt[ei++] = '|';
-    for (int i = fence_at; i < r; i++) if (!used[i]) EMITC(i);
-    #undef EMITC
     emt[ei] = 0;
     serverLog(LL_NOTICE, "[rord-trace] worker %d r=%d  arrival=[%s]  emitted=[%s]", w, r, arr, emt);
     tm_rord_trace = 0;   /* one-shot */
@@ -4192,7 +4306,23 @@ static void tomoReorderTraceRun(int w, int r, const int *ridx, int fence_at, int
  * connection, so cross-client same-key is free to reorder. Among ready commands, pick shortest
  * class first. The caller supplies consecutive time-bounded slices; dependencies spanning slices
  * are already satisfied because slices emit in arrival order. r <= TOMO_RORD_CAP. */
-static void tomoReorderEmitShinjuku(int w, const int *ord, int r) {
+static void tomoReorderEmitShinjuku(int w, const int *ord, int r, int mask) {
+    /* CLASS_SJF owns the dependency-aware selector as one unit. Arrival order needs neither the
+     * class lists nor dependency bookkeeping, so the ablated path exits before either is built. */
+    if (!(mask & TOMO_RORD_MASK_CLASS_SJF)) {
+        for (int a = 0; a < r; a++) exDispatchDirect(w, tomo_rord.fk[ord[a]]);
+        return;
+    }
+    /* DEP_FENCE is represented by Shinjuku's chain rather than a fenced tail. With it disabled,
+     * retain stable class-SJF but deliberately remove the same-connection/same-key constraint. */
+    if (!(mask & TOMO_RORD_MASK_DEP_FENCE)) {
+        for (int c = 0; c < TOMO_SVC_CLASSES; c++)
+            for (int a = 0; a < r; a++)
+                if ((tomo_rord.cls[ord[a]] & TOMO_CLS_MASK) == c)
+                    exDispatchDirect(w, tomo_rord.fk[ord[a]]);
+        return;
+    }
+
     uint8_t blocked[TOMO_RORD_CAP];
     int     succ[TOMO_RORD_CAP];
     /* per-class arrival-order position lists + cursors */
@@ -4212,9 +4342,7 @@ static void tomoReorderEmitShinjuku(int w, const int *ord, int r) {
          * and the reorder emits the read before the write => read-your-own-writes breaks. parent ?
          * parent : self gives both the same id; distinct real clients still differ (correctly free
          * to reorder). Was: ->parent alone (NULL-folds real clients to key-only, mismatching fakes). */
-        client *cid = tomo_rord.fk[i]->parent ? tomo_rord.fk[i]->parent : tomo_rord.fk[i];
-        uint64_t dep = tomo_rord.h[i] ^
-            ((uint64_t)(uintptr_t)cid * 0x9E3779B97F4A7C15ull);
+        uint64_t dep = tomoReorderDepKey(i);
         unsigned slot = (unsigned)(dep ^ (dep >> 32)) & (TOMO_RORD_HSET - 1);
         while (rord_hset_gen[slot] == g) {
             if (rord_hset_key[slot] == dep) { succ[rord_dep_pos[slot]] = a; blocked[a] = 1; break; }
@@ -4239,6 +4367,9 @@ void tomoReorderDrain(void) {
     tomo_rord.draining = 1;
     int n = tomo_rord.n;
     int lvl = server.tomo_reorder;
+    /* Relaxed atomic access lets DEBUG toggle a live process without a C data race. Sample once
+     * so every pass in this drain observes one coherent mask. */
+    int mask = __atomic_load_n(&tomo_rord_mask, __ATOMIC_RELAXED);
     tomoRordAge age_base;
     tomoReorderAgeSnapshot(&age_base);
     /* stable counting-scatter by worker: order[] holds indices grouped by ex id. Bounded by the
@@ -4246,7 +4377,7 @@ void tomoReorderDrain(void) {
      * few live workers, so zeroing+scanning all 128 buckets was a fixed O(TOMO_EX_THREADS_MAX) tax
      * per drain (doubled when the ex cap went 64->128). Output order[] is unchanged. */
     int order[TOMO_RORD_CAP];
-    {
+    if (mask & TOMO_RORD_MASK_WORKER_GROUP) {
         int mx = tomo_rord.ex[0];
         for (int i = 1; i < n; i++) if (tomo_rord.ex[i] > mx) mx = tomo_rord.ex[i];
         int cnt[TOMO_EX_THREADS_MAX], base[TOMO_EX_THREADS_MAX];
@@ -4255,6 +4386,8 @@ void tomoReorderDrain(void) {
         int acc = 0;
         for (int w = 0; w <= mx; w++) { base[w] = acc; acc += cnt[w]; }
         for (int i = 0; i < n; i++) order[base[tomo_rord.ex[i]]++] = i;
+    } else {
+        for (int i = 0; i < n; i++) order[i] = i;
     }
     /* per-run emit */
     for (int s0 = 0; s0 < n; ) {
@@ -4274,14 +4407,20 @@ void tomoReorderDrain(void) {
             for (int i = s0; i < s1; i++) exDispatchDirect(w, tomo_rord.fk[order[i]]);
         } else if (lvl == 3) {
             tm_io_sig[iotid].rord_runs++;
-            tomoRordAge age = age_base;
-            tomoReorderAgeStartRun(&age, order + s0, r);
-            for (int c0 = 0; c0 < r; ) {
-                int pinned;
-                int c1 = tomoReorderAgeSlice(&age, order + s0, c0, r, &pinned);
-                if (pinned) tm_io_sig[iotid].rord_age_pins++;
-                tomoReorderEmitShinjuku(w, order + s0 + c0, c1 - c0);
-                c0 = c1;
+            if (__builtin_expect(tm_rord_trace && r >= 4 && r < 70, 0))
+                tomoReorderTraceRun(w, r, order + s0, r, lvl, mask, &age_base);
+            if (mask & TOMO_RORD_MASK_AGE_SLICE) {
+                tomoRordAge age = age_base;
+                tomoReorderAgeStartRun(&age, order + s0, r);
+                for (int c0 = 0; c0 < r; ) {
+                    int pinned;
+                    int c1 = tomoReorderAgeSlice(&age, order + s0, c0, r, &pinned);
+                    if (pinned) tm_io_sig[iotid].rord_age_pins++;
+                    tomoReorderEmitShinjuku(w, order + s0 + c0, c1 - c0, mask);
+                    c0 = c1;
+                }
+            } else {
+                tomoReorderEmitShinjuku(w, order + s0, r, mask);
             }
         } else {
             tm_io_sig[iotid].rord_runs++;
@@ -4289,34 +4428,29 @@ void tomoReorderDrain(void) {
              * collision point — everything before the collision may still be emitted reordered,
              * the collision entry and everything after it go in arrival order. */
             int fence_at = r;
-            uint32_t hgen = ++rord_hset_curgen;
-            for (int a = 0; a < r; a++) {
-                int ia = order[s0 + a];
-                /* dependency key = (key-hash, OWNING CONNECTION). Redis guarantees command order
-                 * only WITHIN a connection, so only same-client same-key pairs must stay ordered;
-                 * same-key commands from DIFFERENT clients have no ordering guarantee and are free to
-                 * reorder. Mixing the parent ptr into the fence key loosens the guard to exactly
-                 * that -- on a hot key hammered by many connections the old key-only fence pinned the
-                 * whole run to arrival order (killing the SJF); now only each client's own
-                 * subsequence fences. (parent==NULL folds to key-only = the safe/strict side.) */
-                client *cida = tomo_rord.fk[ia]->parent ? tomo_rord.fk[ia]->parent : tomo_rord.fk[ia];
-                uint64_t da = tomo_rord.h[ia] ^
-                    ((uint64_t)(uintptr_t)cida * 0x9E3779B97F4A7C15ull);
-                unsigned slot = (unsigned)(da ^ (da >> 32)) & (TOMO_RORD_HSET - 1);
-                while (rord_hset_gen[slot] == hgen) {
-                    if (rord_hset_key[slot] == da) { fence_at = a; break; }
-                    slot = (slot + 1) & (TOMO_RORD_HSET - 1);
+            if (mask & TOMO_RORD_MASK_DEP_FENCE) {
+                uint32_t hgen = ++rord_hset_curgen;
+                for (int a = 0; a < r; a++) {
+                    int ia = order[s0 + a];
+                    /* dependency key = (key-hash, OWNING CONNECTION). Redis guarantees command
+                     * order only WITHIN a connection, so different clients remain free to reorder. */
+                    uint64_t da = tomoReorderDepKey(ia);
+                    unsigned slot = (unsigned)(da ^ (da >> 32)) & (TOMO_RORD_HSET - 1);
+                    while (rord_hset_gen[slot] == hgen) {
+                        if (rord_hset_key[slot] == da) { fence_at = a; break; }
+                        slot = (slot + 1) & (TOMO_RORD_HSET - 1);
+                    }
+                    if (fence_at != r) break;
+                    rord_hset_gen[slot] = hgen;
+                    rord_hset_key[slot] = da;
                 }
-                if (fence_at != r) break;
-                rord_hset_gen[slot] = hgen;
-                rord_hset_key[slot] = da;
             }
             if (fence_at < r) tm_io_sig[iotid].rord_fences++;
             /* D trace (ARMED-ONLY, zero hot-path cost): simulate the emission order into a string
              * and log, WITHOUT touching the real emit below. Guarded by the one-shot flag so the
              * millions-of-emits hot path never pays a per-emit branch. */
             if (__builtin_expect(tm_rord_trace && r >= 4 && r < 70, 0))
-                tomoReorderTraceRun(w, r, order + s0, fence_at, lvl, &age_base);
+                tomoReorderTraceRun(w, r, order + s0, fence_at, lvl, mask, &age_base);
             int emitted = 0;
             /* D5 time aging. Consecutive slices carry no more predicted service than remains in
              * the oldest entry's derived deadline. SJF, head promotion and bucket pulls stay inside
@@ -4324,39 +4458,85 @@ void tomoReorderDrain(void) {
              * Unlike the retired 32-entry chunks, the displacement allowance now contracts/expands
              * with measured command cost while retaining O(r * nclasses) emission. */
             tomoRordAge age = age_base;
-            tomoReorderAgeStartRun(&age, order + s0, r);
+            if (mask & TOMO_RORD_MASK_AGE_SLICE)
+                tomoReorderAgeStartRun(&age, order + s0, r);
             for (int c0 = 0; c0 < fence_at; ) {
-                int pinned;
-                int c1 = tomoReorderAgeSlice(&age, order + s0, c0, fence_at, &pinned);
-                if (pinned) tm_io_sig[iotid].rord_age_pins++;
+                int c1;
+                if (mask & TOMO_RORD_MASK_AGE_SLICE) {
+                    int pinned;
+                    c1 = tomoReorderAgeSlice(&age, order + s0, c0, fence_at, &pinned);
+                    if (pinned) tm_io_sig[iotid].rord_age_pins++;
+                } else {
+                    c1 = fence_at;
+                }
                 /* pass 1: heads, arrival order inside this time boundary (never demoted) */
-                for (int i = c0; i < c1; i++) {
-                    int idx = order[s0 + i];
-                    if (tomo_rord.cls[idx] & 0x80) {
-                        exDispatchDirect(w, tomo_rord.fk[idx]);
-                        tomo_rord.cls[idx] = 0xFF;               /* consumed */
-                        emitted++; tm_io_sig[iotid].rord_heads++;
+                if (mask & TOMO_RORD_MASK_HEAD_PROMO) {
+                    for (int i = c0; i < c1; i++) {
+                        int idx = order[s0 + i];
+                        if (tomo_rord.cls[idx] & 0x80) {
+                            exDispatchDirect(w, tomo_rord.fk[idx]);
+                            tomo_rord.cls[idx] = 0xFF;           /* consumed */
+                            emitted++; tm_io_sig[iotid].rord_heads++;
+                        }
                     }
                 }
                 /* pass 2: class SJF; same-bucket grouping cannot cross the time boundary */
-                for (int cl = 0; cl < TOMO_SVC_CLASSES; cl++) {
-                    for (int i = c0; i < c1; i++) {
-                        int idx = order[s0 + i];
-                        if (tomo_rord.cls[idx] != cl) continue;
-                        exDispatchDirect(w, tomo_rord.fk[idx]);
-                        tomo_rord.cls[idx] = 0xFF; emitted++;
-                        if (lvl >= 2) {
-                            uint64_t bkt = tomo_rord.h[idx] & TOMO_BUCKET_MASK;
-                            for (int j = i + 1; j < c1; j++) {
-                                int jdx = order[s0 + j];
-                                if (tomo_rord.cls[jdx] == cl &&
-                                    (tomo_rord.h[jdx] & TOMO_BUCKET_MASK) == bkt) {
-                                    exDispatchDirect(w, tomo_rord.fk[jdx]);
-                                    tomo_rord.cls[jdx] = 0xFF; emitted++;
-                                    tm_io_sig[iotid].rord_grouped++;
+                if (mask & TOMO_RORD_MASK_CLASS_SJF) {
+                    if (mask & TOMO_RORD_MASK_HEAD_PROMO) {
+                        /* Default arm: heads are already consumed, so retain the original exact
+                         * class-byte comparisons and counter behaviour. */
+                        for (int cl = 0; cl < TOMO_SVC_CLASSES; cl++) {
+                            for (int i = c0; i < c1; i++) {
+                                int idx = order[s0 + i];
+                                if (tomo_rord.cls[idx] != cl) continue;
+                                exDispatchDirect(w, tomo_rord.fk[idx]);
+                                tomo_rord.cls[idx] = 0xFF; emitted++;
+                                if (lvl >= 2 && (mask & TOMO_RORD_MASK_BUCKET_GROUP)) {
+                                    uint64_t bkt = tomo_rord.h[idx] & TOMO_BUCKET_MASK;
+                                    for (int j = i + 1; j < c1; j++) {
+                                        int jdx = order[s0 + j];
+                                        if (tomo_rord.cls[jdx] == cl &&
+                                            (tomo_rord.h[jdx] & TOMO_BUCKET_MASK) == bkt) {
+                                            exDispatchDirect(w, tomo_rord.fk[jdx]);
+                                            tomo_rord.cls[jdx] = 0xFF; emitted++;
+                                            tm_io_sig[iotid].rord_grouped++;
+                                        }
+                                    }
                                 }
                             }
                         }
+                    } else {
+                        /* Without head promotion, bit 7 is metadata rather than a consumed mark;
+                         * compare the underlying class so heads take their ordinary SJF slot. */
+                        for (int cl = 0; cl < TOMO_SVC_CLASSES; cl++) {
+                            for (int i = c0; i < c1; i++) {
+                                int idx = order[s0 + i];
+                                if ((tomo_rord.cls[idx] & TOMO_CLS_MASK) != cl) continue;
+                                exDispatchDirect(w, tomo_rord.fk[idx]);
+                                tomo_rord.cls[idx] = 0xFF; emitted++;
+                                if (lvl >= 2 && (mask & TOMO_RORD_MASK_BUCKET_GROUP)) {
+                                    uint64_t bkt = tomo_rord.h[idx] & TOMO_BUCKET_MASK;
+                                    for (int j = i + 1; j < c1; j++) {
+                                        int jdx = order[s0 + j];
+                                        if ((tomo_rord.cls[jdx] & TOMO_CLS_MASK) == cl &&
+                                            (tomo_rord.h[jdx] & TOMO_BUCKET_MASK) == bkt) {
+                                            exDispatchDirect(w, tomo_rord.fk[jdx]);
+                                            tomo_rord.cls[jdx] = 0xFF; emitted++;
+                                            tm_io_sig[iotid].rord_grouped++;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    /* Keep the same consumed marker as the two-pass path; only pass 2's choice
+                     * changes to arrival order within this slice. */
+                    for (int i = c0; i < c1; i++) {
+                        int idx = order[s0 + i];
+                        if (tomo_rord.cls[idx] == 0xFF) continue;
+                        exDispatchDirect(w, tomo_rord.fk[idx]);
+                        tomo_rord.cls[idx] = 0xFF; emitted++;
                     }
                 }
                 c0 = c1;
@@ -21322,6 +21502,10 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             unsigned long long io_idle = 0, io_wait = 0, ex_idle = 0;
             unsigned long long rord_runs_sum=0, rord_heads_sum=0, rord_grouped_sum=0, rord_fences_sum=0;
             unsigned long long rord_age_pins_sum=0;
+            /* Acquire the published mask before its sticky witness. DEBUG publishes the witness
+             * first, so one INFO response cannot identify an unsafe mask as safe. */
+            int rord_mask_info = __atomic_load_n(&tomo_rord_mask, __ATOMIC_ACQUIRE);
+            int rord_unsafe_info = __atomic_load_n(&tomo_rord_unsafe_diag, __ATOMIC_RELAXED);
             for (int _t = 0; _t <= TOMO_IO_THREADS_MAX; _t++) {
                 rord_runs_sum += tm_io_sig[_t].rord_runs; rord_heads_sum += tm_io_sig[_t].rord_heads;
                 rord_grouped_sum += tm_io_sig[_t].rord_grouped; rord_fences_sum += tm_io_sig[_t].rord_fences;
@@ -21376,6 +21560,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "tomokv_rord_fences:%llu\r\n", (unsigned long long)rord_fences_sum,
                 "tomokv_reorder_age_pins:%llu\r\n", (unsigned long long)rord_age_pins_sum,
                 "tomokv_rord_worst_age_us:%u\r\n", rord_worst_age_us,
+                "tomokv_rord_mask:%d\r\n", rord_mask_info,
+                "tomokv_rord_unsafe_diag:%d\r\n", rord_unsafe_info,
                 "tomokv_io_threads_counted:%d\r\n", nio,
                 "tomokv_ex_threads_counted:%d\r\n", wlive));
 

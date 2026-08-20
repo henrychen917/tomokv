@@ -1042,6 +1042,26 @@ NULL
             for (int t = 0; t <= TOMO_IO_THREADS_MAX; t++)
                 atomic_store_explicit(&tomo_disp_window[t], 0, memory_order_release);
         addReplyStatus(c, tomo_disp_window_forced_zero ? "disp window FORCED 0" : "disp window AUTO");
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-rordmask") && c->argc == 3) {
+        /* DEBUG TOMO-RORDMASK <0..63> -- per-pass reorder ablation. Integer reply is intentional:
+         * measurement suites must assert the effective mask rather than trust an unverified OK. */
+        long requested;
+        if (getLongFromObjectOrReply(c, c->argv[2], &requested, NULL) != C_OK) return;
+        if (requested < 0 || requested > TOMO_RORD_MASK_ALL) {
+            addReplyError(c, "TOMO-RORDMASK expects an integer from 0 through 63");
+            return;
+        }
+        int mask = (int)requested;
+        /* Publish the sticky witness first: an INFO racing the mask store must never observe an
+         * unsafe mask with a zero unsafe_diag field. */
+        if (!(mask & TOMO_RORD_MASK_DEP_FENCE))
+            __atomic_store_n(&tomo_rord_unsafe_diag, 1, __ATOMIC_RELAXED);
+        int old = __atomic_exchange_n(&tomo_rord_mask, mask, __ATOMIC_RELEASE);
+        if ((old & TOMO_RORD_MASK_DEP_FENCE) && !(mask & TOMO_RORD_MASK_DEP_FENCE)) {
+            serverLog(LL_WARNING,
+                "DEBUG TOMO-RORDMASK disabled DEP_FENCE; same-connection same-key order is unsafe");
+        }
+        addReplyLongLong(c, mask);
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-rordtrace") && c->argc == 3) {
         /* DEBUG TOMO-RORDTRACE <0|1> -- one-shot dump of the next reorder run's arrival vs emit
          * class sequence (class digit, upper=head-of-pipe, | = dependency fence). */
