@@ -2011,8 +2011,10 @@ _Static_assert(offsetof(client, argc) == 276, "client argv state left hot line 4
  *   - client-lb / flip connection migration (start walks skip; the handoff already
  *     waits on tmClientQuiesced's dispatchid==flushid fence),
  *   - the reply path's output-buffer-limit close (re-checked io-side at handback).
- * Ex touches ONLY exec-visible fields (argv, db context, c->buf/bufpos, reply metrics);
- * never events, the socket, querybuf, or migration fields. */
+ * Ex normally touches only exec-visible fields (argv, db context, c->buf/bufpos, reply
+ * metrics). With p1direct publish enabled, it may also issue one raw write on the stable
+ * plain-socket fd and advance the existing output cursor before publishing completion;
+ * it never mutates events, connection lifecycle, querybuf, or migration fields. */
 static inline int clientExOwnedReal(const client *c) {
     return !c->isFake && (c->flags & CLIENT_EX_PENDING);
 }

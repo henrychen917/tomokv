@@ -5038,8 +5038,9 @@ static void handleWorkerRepliesScan(void) {
          * The one in-flight execution IS the real client; its reply already sits in the
          * real c->buf (zero relocation). Consume the client-tagged ready byte, close the
          * EX_OWNED window, retire the pcmd, and fall through to the SAME flush/unlink/wake
-         * tail the fake path uses (the ring is empty after the consume, so the fake walk
-         * below no-ops and the shared tail sees spliced=1 with bytes already in place). */
+         * tail the fake path uses. The ring is empty after the consume, so the fake walk
+         * below no-ops. The shared tail sees pending bytes after an ordinary/partial send,
+         * or no pending bytes after a full executor-side write. */
         if (__builtin_expect(rt->p1d_inflight != 0, 0)) {
             unsigned int slot = rt->flushid & rt->ring_mask;
             debugServerAssert(rt->dispatchid - rt->flushid == 1 &&
@@ -9523,8 +9524,10 @@ int processCommand(client *c) {
      * with c == the real client (addReply writes straight into the real c->buf), ex publishes
      * this client's ready byte on the SAME EX->IO reply-discovery channel the ring uses
      * (reply_cdb[cdb].ready[slot] — the byte lives on the real client, i.e. it IS the
-     * client-tagged bit), and the io drain flushes c->buf with zero relocation. No pcmd move,
-     * no fake acquire/retire, no small-reply relocation.
+     * client-tagged bit). Normally the io drain flushes c->buf with zero relocation; with
+     * p1direct publish enabled, an eligible worker first writes that buffer directly and
+     * publishes the cleared output cursor with the same completion byte. No pcmd move, no
+     * fake acquire/retire, no small-reply relocation.
      *
      * ELIGIBILITY is the core-fake gate verbatim: the `core_eligible` value computed above is
      * the ONE eligibility source (plain GET/SET shapes, no modules watching string keyspace,
