@@ -17,6 +17,11 @@ typedef enum tomoM1CommandClass {
     TOMO_M1_CLASS_COUNT
 } tomoM1CommandClass;
 
+typedef enum tomoM1CostSource {
+    TOMO_M1_COST_SOURCE_SEED = 0,
+    TOMO_M1_COST_SOURCE_MEASURED,
+} tomoM1CostSource;
+
 typedef struct tomoM1ClassSignal {
     uint64_t commands;
     uint64_t args;
@@ -152,18 +157,28 @@ static inline void tomoM1ExServiceNote(int worker_id, const struct redisCommand 
 void tomoM1CellsTick(void);
 void tomoM1CellsReset(void);
 void tomoM1AtomicConfigChanged(void);
+int tomoM1CostSourcesParseSpec(const char *spec, tomoM1CostSource *ex_source,
+                               tomoM1CostSource *io_source);
+int tomoM1CostSourcesSetSpec(const char *spec);
+int tomoM1CostSourcesSetNames(const char *ex_name, const char *io_name);
+void tomoM1CostSourcesGet(tomoM1CostSource *ex_source, tomoM1CostSource *io_source);
+const char *tomoM1CostSourceName(tomoM1CostSource source);
 void tomoM1CostsBootLoad(void);
 int tomoM1CostsDump(const char *path, char *err, size_t errlen);
 
 typedef struct tomoM1ModelInput {
     double mix[TOMO_M1_CLASS_COUNT];
     double avg_keys[TOMO_M1_CLASS_COUNT];
-    double ex_us;
+    double ex_us;              /* measured-cell consumption, including seed fallback cells */
+    double ex_seed_us;         /* compiled per-class seed consumption over the same cells */
+    double io_measured_us;     /* whole sampled IO CPU cost; eligible only when populated */
     int cells;
+    int io_measured_populated;
 } tomoM1ModelInput;
 
 typedef struct tomoM1ModelResult {
     double c_io;
+    double c_io_seed;
     double c_ex;
     int target_io;
     int target_ex;
@@ -173,8 +188,11 @@ typedef struct tomoM1Info {
     int target_io_n0;
     int target_io_n1;
     double c_io;
+    double c_io_seed;
+    double c_io_measured;
     double c_ex;
     double depth;
+    int c_io_source;
     int measured_classes;
     double ex_us[TOMO_M1_CLASS_COUNT];
     uint64_t moves_total;
@@ -191,7 +209,7 @@ typedef struct tomoM1Info {
     int all_frozen;
 } tomoM1Info;
 
-#define TOMO_M1_SELFTEST_CASES 10
+#define TOMO_M1_SELFTEST_CASES 12
 typedef struct tomoM1SelfTestResult {
     const char *name;
     int expected_io;
@@ -224,6 +242,7 @@ int tomoM1SelfTest(tomoM1SelfTestResult results[TOMO_M1_SELFTEST_CASES]);
 
 /* server.c owns the poly-thread registry and therefore the authoritative growth-slot -> node map. */
 int tomoM1IoSlotNode(int io_slot);
+void tomoM1IoCostCountersGet(int io_slot, uint32_t *busy_us, uint32_t *dispatches);
 
 /* Accepted-command hot edge: the command table supplies the byte-sized index, so this is exactly
  * two owner-local counter updates and no lookup, branch, atomic, or shared cache-line write. */

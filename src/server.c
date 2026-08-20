@@ -1529,7 +1529,8 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     unsigned int tm_busy_us; /* thread CPU µs consumed while serving the IO role. Like
                               * exThread.tm_busy_us, this is a wrap-safe cumulative counter;
                               * blocked poll time does not advance it, while zero-timeout drain
-                              * spins do. Wraps at ~71min at 100% utilization. */
+                              * spins do. The optional M1 measured-IO source folds it per dispatch;
+                              * otherwise it remains diagnostic. Wraps at ~71min at 100%. */
     int rob;            /* poll/notifier reply-ROB occupancy; unused and zero in WB mode */
     /* ee451 (LB-1): does this io thread pin a conn that IO-EXIT could never drain (pubsub/blocked/
      * MULTI/...)? PUBLISHED BY THE OWNER, because server.clients[] is single-writer-per-slot and
@@ -28089,16 +28090,18 @@ void initIOThreads(void) {
         exit(1);
     }
 }
-/* Legacy IO scheduled-CPU observation (CLOCK_THREAD_CPUTIME_ID), retained for diagnostics only
- * (INFO and fliptrace).
+/* IO scheduled-CPU observation (CLOCK_THREAD_CPUTIME_ID), retained for INFO/fliptrace and folded
+ * per dispatched command by M1 when its measured-IO cost source is selected.
  *
  * It is not a useful-work estimator: an idle IO owner can burn scheduled CPU in drain spin and
- * short polls, so CPU over-reports busy. Nor can elapsed time around io_uring_enter replace it as
- * a wait estimator: with DEFER_TASKRUN, useful completion taskwork runs inside that syscall (the
+ * short polls, so CPU over-reports productive work. That makes it unsuitable for r8's utilization
+ * direction, but honest for M1's whole-role cost: those cycles still consume an IO core. Nor can
+ * elapsed time around io_uring_enter replace it as a wait estimator: with DEFER_TASKRUN, useful
+ * completion taskwork runs inside that syscall (the
  * recorded naive bracket published 17% busy on a 99.5%-CPU thread). The ratio controller uses
  * neither observation; its explicit productive-work brackets sit outside backend wait/spin.
  *
- * CLOCK_THREAD_CPUTIME_ID is a real syscall rather than a vDSO read, so the diagnostic counter is
+ * CLOCK_THREAD_CPUTIME_ID is a real syscall rather than a vDSO read, so the CPU counter is
  * sampled on a ~16ms gate instead of every pass. Both marks are TLS; only tm_busy_us is published. */
 #define TOMO_IO_CPU_SAMPLE_US 16000
 
@@ -28156,10 +28159,11 @@ static int ioSlice(polyThreadCtx *ctx, ioThreadArgs *t, int idle_wait_us) {
     s->tm_work_us += (unsigned int)accounting.work_us;
     s->tm_wait_us += (unsigned int)accounting.wait_us;
     {
-        /* Owner-published scheduled-CPU diagnostic, sampled on a gate. Accumulate it in STATIC
+        /* Owner-published scheduled CPU, sampled on a gate. Accumulate it in STATIC
          * mode as well as auto so INFO/fliptrace can compare CPU, zero-event idle, and true wait
-         * against measured throughput while the split is held fixed. It is not a controller input;
-         * see tmIoBusyBegin for why neither CPU nor whole-uring-call elapsed time is WAIT. */
+         * against measured throughput while the split is held fixed. r8 does not consume it; M1's
+         * optional measured cost source folds the whole-role CPU per dispatch. See tmIoBusyBegin
+         * for why neither CPU nor whole-uring-call elapsed time is WAIT. */
         /* aeProcessEventsIO moved this pass's existing monotonic read to the end of its final
          * productive span, so the CPU diagnostic and legacy idle clock reuse it here. */
         uint64_t now_us = accounting.end_us;
@@ -30132,6 +30136,12 @@ static int tmNodeOfIoSlot(int io_slot) {
 
 int tomoM1IoSlotNode(int io_slot) {
     return tmNumNodes() == 1 ? 0 : tmNodeOfIoSlot(io_slot);
+}
+
+void tomoM1IoCostCountersGet(int io_slot, uint32_t *busy_us, uint32_t *dispatches) {
+    serverAssert(io_slot >= 0 && io_slot <= TOMO_IO_THREADS_MAX);
+    if (busy_us) *busy_us = tm_io_sig[io_slot].tm_busy_us;
+    if (dispatches) *dispatches = tm_io_sig[io_slot].disp_cnt;
 }
 
 /* WB is sticky for the lifetime of the connection. Migration stays within a node, so preserving
