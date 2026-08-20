@@ -17,6 +17,7 @@
 #include "cluster.h"
 #include "connection.h"
 #include "bio.h"
+#include "flip_m1.h"
 
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -3157,6 +3158,14 @@ static int applyTomoAtomicAdmission(const char **err) {
     return 1;
 }
 
+static int applyTomoAtomicToggle(const char **err) {
+    if (!applyTomoAtomicAdmission(err)) return 0;
+    /* This wrapper belongs only to the bool knob; window/reclaim-limit reuse the admission apply
+     * without falsely re-arming costs. CONFIG SET calls it only when tomokv-atomic changed. */
+    tomoM1AtomicConfigChanged();
+    return 1;
+}
+
 standardConfig static_configs[] = {
     /* Bool configs */
     createBoolConfig("rdbchecksum", NULL, IMMUTABLE_CONFIG, server.rdb_checksum, 1, NULL, NULL),
@@ -3192,7 +3201,8 @@ standardConfig static_configs[] = {
      * selects one receive/request in N independently on each IO owner. Immutable so an in-flight
      * command can never cross an enable/disable boundary with a half-populated phase state. */
     createIntConfig("tomokv-phase-trace", NULL, DEBUG_CONFIG | IMMUTABLE_CONFIG, 0, INT_MAX, server.phase_trace_sample, 0, INTEGER_CONFIG, NULL, NULL),
-    createBoolConfig("tomokv-atomic",                NULL, MODIFIABLE_CONFIG, server.tomo_atomic, 0, NULL, applyTomoAtomicAdmission),
+    createBoolConfig("tomokv-atomic",                NULL, MODIFIABLE_CONFIG, server.tomo_atomic, 0, NULL, applyTomoAtomicToggle),
+    createStringConfig("tomokv-costs-file",          NULL, IMMUTABLE_CONFIG, ALLOW_EMPTY_STRING, server.tomo_m1_costs_file, "", NULL, NULL),
     createIntConfig("tomokv-atomic-window",          NULL, MODIFIABLE_CONFIG, -1, INT_MAX, server.tomo_atomic_window, -1, INTEGER_CONFIG, NULL, applyTomoAtomicAdmission),
     createLongLongConfig("tomokv-atomic-reclaim-limit", NULL, MODIFIABLE_CONFIG, -1, LLONG_MAX, server.tomo_atomic_reclaim_limit, -1, INTEGER_CONFIG, NULL, applyTomoAtomicAdmission),
     /* tomokv-worker-direct-send (v12-K) DELETED: foundation removed, see 2s-auto v1.6 for the real

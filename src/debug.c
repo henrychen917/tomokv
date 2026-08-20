@@ -1040,8 +1040,19 @@ NULL
         if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
         tomoM1TraceSet(on != 0);
         addReplyStatus(c, tomoM1TraceEnabled() ? "m1 trace ON" : "m1 trace OFF");
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-costdump") &&
+               (c->argc == 2 || c->argc == 3)) {
+        /* DEBUG TOMO-COSTDUMP [path] -- atomically persist currently frozen argv-shape cells. */
+        const char *path = c->argc == 3 ? c->argv[2]->ptr : TOMO_M1_COSTS_DEFAULT;
+        char err[256];
+        if (tomoM1CostsDump(path, err, sizeof(err)) == C_ERR) {
+            addReplyErrorFormat(c, "m1 cost dump failed: %s", err);
+            return;
+        }
+        addReplyStatusFormat(c, "m1 costs written to %s", path);
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-m1selftest") && c->argc == 2) {
-        /* DEBUG TOMO-M1SELFTEST -- pure table/model and actuation-plan checks; no server state. */
+        /* DEBUG TOMO-M1SELFTEST -- isolated cell/model/file and actuation-plan checks; the live
+         * registry is never wiped or changed by the dump/load roundtrip. */
         tomoM1SelfTestResult results[TOMO_M1_SELFTEST_CASES];
         tomoM1SelfTest(results);
         addReplyArrayLen(c, TOMO_M1_SELFTEST_CASES);

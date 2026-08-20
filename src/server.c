@@ -8457,6 +8457,9 @@ void initServer(void) {
     }
 
     server.num_workers = server.ex_threads;
+    /* Command ids and the final backend/atomic/topology config are now known, while no worker
+     * can observe the registry yet. Compatible rows enter as CONFIRMING priors. */
+    tomoM1CostsBootLoad();
     /* ee451 (auto symmetric pool): the LIVE worker set is the boot split's prefix, not every
      * provisioned slot. Static mode: tm_boot_w_live == num_workers, i.e. unchanged.
      * (num_workers_alloc is GONE with the spare — there is no dormant slot to over-provision
