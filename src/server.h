@@ -2031,6 +2031,7 @@ static inline int clientExOwnedReal(const client *c) {
     (CLIENT_MULTI | CLIENT_BLOCKED | CLIENT_UNBLOCKED | CLIENT_SLAVE | CLIENT_MASTER | \
      CLIENT_MONITOR | CLIENT_TRACKING | CLIENT_REPLY_OFF | CLIENT_REPLY_SKIP | \
      CLIENT_REPLY_SKIP_NEXT | CLIENT_CLOSE_AFTER_REPLY | CLIENT_CLOSE_ASAP | \
+     CLIENT_CLOSE_AFTER_COMMAND | \
      CLIENT_PROTECTED | CLIENT_MIGRATING | CLIENT_SCRIPT | CLIENT_MODULE | \
      CLIENT_INTERNAL | CLIENT_ASM_MIGRATING | CLIENT_ASM_IMPORTING | CLIENT_PUSHING | \
      CLIENT_PENDING_WRITE | CLIENT_PUBSUB)
@@ -2061,6 +2062,9 @@ extern tomoP1DirectStats tomo_p1d_stats[TOMO_IO_THREADS_MAX + 1];
 /* Master toggle (DEBUG TOMO-P1DIRECT <0|1>, default ON; 0 forces all-FC without touching
  * per-conn mode state — the validation A/B lever). Deliberately NOT a config knob. */
 extern _Atomic int tomo_p1direct_enabled;
+/* Executor-side p1 reply publication. The modifiable config is mirrored into this
+ * read-mostly atomic so the disabled worker path is one predictable branch. */
+extern _Atomic int tomo_p1direct_publish_enabled;
 /* Non-io callers (a killer thread recording intent from a cold teardown path) fold
  * into slot 0; the guard keeps a worker-range iotid from indexing out of bounds. */
 #define TOMO_P1D_BUMP(fieldname) do { \
@@ -3503,6 +3507,7 @@ struct redisServer {
      * that migration, so a competing ordinary arm cannot inherit a flip action. */
     int tm_mig_flip_action;
     int pipeline_ring_depth;
+    int tomo_p1direct_publish;  /* modifiable tomokv-p1direct-publish; default off */
     int ex_queue_size;
     unsigned int ex_queue_mask;
     /* (ex_dispatch_mask DELETED 2026-07-28: a v8 leftover — worker routing goes through the

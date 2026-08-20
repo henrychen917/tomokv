@@ -1022,6 +1022,22 @@ NULL
         if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
         atomic_store_explicit(&tomo_p1direct_enabled, on != 0, memory_order_relaxed);
         addReplyStatus(c, on != 0 ? "p1direct ON" : "p1direct OFF (all-FC)");
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-p1dpublish") && c->argc == 3) {
+        /* DEBUG TOMO-P1DPUBLISH <0|1> -- live A/B gate for executor-side socket
+         * publication of eligible p1direct replies. Keep the config's canonical
+         * value in step, and return the effective atomic value as an INTEGER so
+         * measurement suites can assert that the toggle actually took. */
+        long on;
+        if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
+        if (on != 0 && on != 1) {
+            addReplyError(c, "TOMO-P1DPUBLISH expects 0 or 1");
+            return;
+        }
+        server.tomo_p1direct_publish = (int)on;
+        atomic_store_explicit(&tomo_p1direct_publish_enabled, (int)on,
+                              memory_order_relaxed);
+        addReplyLongLong(c, atomic_load_explicit(&tomo_p1direct_publish_enabled,
+                                                 memory_order_relaxed));
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-fliptrace") && c->argc == 3) {
         /* DEBUG TOMO-FLIPTRACE <0|1> -- dense per-tick flip-controller trace. Test hook, same
          * class as TOMO-MODESHIFT: no default, no steady-state behaviour, just turns the firehose

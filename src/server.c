@@ -2663,12 +2663,32 @@ void getExpansiveClientsInfo(size_t *in_usage, size_t *out_usage) {
  * array; INFO folds the per-io lines. */
 tomoP1DirectStats tomo_p1d_stats[TOMO_IO_THREADS_MAX + 1];
 
+/* p1 executor-publish witnesses are worker-owned, not IO-owned. Keep one
+ * isolated line per provisioned worker so the enabled path never contends on
+ * a global counter; INFO folds these cold. */
+typedef struct tomoP1DirectPublishStats {
+    _Atomic unsigned long long writes;       /* eligible raw write(2) attempts */
+    _Atomic unsigned long long bytes;        /* bytes accepted by the socket */
+    _Atomic unsigned long long partial;      /* non-negative short writes */
+    _Atomic unsigned long long eagain;       /* EAGAIN/EWOULDBLOCK fallbacks */
+    _Atomic unsigned long long ineligible;   /* DIRECT completions rejected post-exec */
+    char _pad[CACHE_LINE_SIZE - 5 * sizeof(unsigned long long)];
+} __attribute__((aligned(CACHE_LINE_SIZE))) tomoP1DirectPublishStats;
+_Static_assert(sizeof(tomoP1DirectPublishStats) == CACHE_LINE_SIZE,
+               "p1direct publish witness slot must occupy one worker line");
+static tomoP1DirectPublishStats tomo_p1d_pub_stats[TOMO_EX_THREADS_MAX];
+
 /* p1direct master toggle: DEBUG TOMO-P1DIRECT <0|1>, DEFAULT ON. 0 forces every conn
  * onto the fake path WITHOUT mutating per-conn mode state (re-enable restores the
  * previous per-conn modes instantly) — the A/B lever for validation. Not a config knob
  * (no new knobs rule); a DEBUG test hook in the TOMO-MODESHIFT class. Relaxed atomics:
  * one relaxed load on the DIRECT-eligible arm only; FC-mode conns never read it. */
 _Atomic int tomo_p1direct_enabled = 1;
+
+/* Modifiable tomokv-p1direct-publish mirror. Static zero initialization is
+ * the dark default; initServer publishes any startup override before workers
+ * exist, and the config apply hook handles live changes. */
+_Atomic int tomo_p1direct_publish_enabled = 0;
 
 /* p1direct FC -> DIRECT hysteresis run length. DERIVED, not invented (owner rule: no new
  * magic numbers). The design's first choice — K from a measured input-noise estimator
@@ -5028,8 +5048,11 @@ static void handleWorkerRepliesScan(void) {
                 * the wake tail below must NOT re-drive this conn — its predicate requires
                 * ring-empty while p1d_inflight is set, and we skip it entirely here. */
             /* The acquire above pairs with the worker's release store of this byte (the
-             * executor sig batch): every ex-side write — c->buf/bufpos, plain-copy spill
-             * nodes, reply metrics, pcmd argv_released_mask — happened-before this point.
+             * executor sig batch): every ex-side write — the socket syscall and resulting
+             * c->bufpos/c->sentlen cursor, plain-copy spill nodes, reply metrics, pcmd
+             * argv_released_mask — happened-before this point. In particular, bufpos==0
+             * is the published "executor already wrote it" state; an acquire consumer
+             * cannot observe ready while retaining the pre-send nonzero cursor.
              * The EX_OWNED window closes HERE; from the next statement on, this thread owns
              * the client again and every deferred toucher acts on its next pass. */
             cdbSlotClear(real, real->cdb, slot);
@@ -5061,7 +5084,10 @@ static void handleWorkerRepliesScan(void) {
                 listUnlinkNode(server.clients_pending_ex[iotid], ln);
                 continue;   /* CLOSE_ASAP recorded; teardown owns the reply */
             }
-            spliced = 1;
+            /* Full executor publication left bufpos==0 and therefore no flush work.
+             * Partial/EAGAIN/error publication retained an ordinary pending reply (and
+             * partial progress in sentlen), so the unchanged shared tail finishes it. */
+            spliced = clientHasPendingReplies(real);
         }
 
         while (rt->flushid != rt->dispatchid) {
@@ -6530,6 +6556,11 @@ void ensureLogicalDbInitialized(int id) {
 }
 
 void initServer(void) {
+    /* Config parsing is complete and no worker exists yet. Mirror the startup
+     * p1 publish value into the atomic used by the worker hot path. */
+    atomic_store_explicit(&tomo_p1direct_publish_enabled,
+                          server.tomo_p1direct_publish,
+                          memory_order_relaxed);
     /* The knob is immutable. Install the ae hook once so 0=off is a NULL
      * pointer for the lifetime of every event loop. */
     aeLoopStatsHook = server.phase_trace_sample ? tomoPhaseLoopIteration : NULL;
@@ -21446,7 +21477,9 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
          * migration-under-flight or kill-under-flight cell that ends with these at zero
          * proved nothing. */
         {
-            tomoP1DirectStats p1d = {0, 0, 0, 0, 0, 0, 0, 0};
+            tomoP1DirectStats p1d = {0};
+            unsigned long long pub_writes = 0, pub_bytes = 0, pub_partial = 0;
+            unsigned long long pub_eagain = 0, pub_ineligible = 0;
             for (int t = 0; t <= TOMO_IO_THREADS_MAX; t++) {
                 p1d.dispatches            += tomo_p1d_stats[t].dispatches;
                 p1d.handbacks             += tomo_p1d_stats[t].handbacks;
@@ -21457,6 +21490,13 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 p1d.deferred_kills        += tomo_p1d_stats[t].deferred_kills;
                 p1d.spill_fallbacks       += tomo_p1d_stats[t].spill_fallbacks;
             }
+            for (int w = 0; w < TOMO_EX_THREADS_MAX; w++) {
+                pub_writes     += tomoRelaxedRead(tomo_p1d_pub_stats[w].writes);
+                pub_bytes      += tomoRelaxedRead(tomo_p1d_pub_stats[w].bytes);
+                pub_partial    += tomoRelaxedRead(tomo_p1d_pub_stats[w].partial);
+                pub_eagain     += tomoRelaxedRead(tomo_p1d_pub_stats[w].eagain);
+                pub_ineligible += tomoRelaxedRead(tomo_p1d_pub_stats[w].ineligible);
+            }
             info = sdscatprintf(info,
                 "tomokv_p1direct_enabled:%d\r\n"
                 "tomokv_p1direct_dispatches:%llu\r\n"
@@ -21466,11 +21506,17 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "tomokv_p1direct_deferred_cron_touches:%llu\r\n"
                 "tomokv_p1direct_deferred_migrations:%llu\r\n"
                 "tomokv_p1direct_deferred_kills:%llu\r\n"
-                "tomokv_p1direct_spill_fallbacks:%llu\r\n",
+                "tomokv_p1direct_spill_fallbacks:%llu\r\n"
+                "tomokv_p1direct_pub_writes:%llu\r\n"
+                "tomokv_p1direct_pub_bytes:%llu\r\n"
+                "tomokv_p1direct_pub_partial:%llu\r\n"
+                "tomokv_p1direct_pub_eagain:%llu\r\n"
+                "tomokv_p1direct_pub_ineligible:%llu\r\n",
                 atomic_load_explicit(&tomo_p1direct_enabled, memory_order_relaxed),
                 p1d.dispatches, p1d.handbacks, p1d.mode_to_fc, p1d.mode_to_direct,
                 p1d.deferred_cron_touches, p1d.deferred_migrations,
-                p1d.deferred_kills, p1d.spill_fallbacks);
+                p1d.deferred_kills, p1d.spill_fallbacks,
+                pub_writes, pub_bytes, pub_partial, pub_eagain, pub_ineligible);
         }
         info = sdscatprintf(info, FMTARGS(
             "tomokv_flip_anchor_captures:%lu\r\n",
@@ -23778,6 +23824,79 @@ static inline void tomoPollingYield(void) {
  * pass), read at the exExecFake exit. exExecFake has no worker parameter and grows none. */
 static __thread exThread *tm_cur_ex;
 
+/* Try the p1-only executor socket publication immediately before the existing
+ * ready-byte release store. A return leaves completion publication unchanged:
+ * full writes clear the ordinary output cursor, while every decline, short
+ * write, and error preserves the reply for the IO owner's normal send path. */
+static inline void tomoP1DirectPublishReply(client *real) {
+    if (!real || real->isFake || !real->has_exec_tail) return;
+
+    clientExecTail *rt = clientTail(real);
+    /* A fake completion also names its real parent. p1d_inflight is the
+     * generation tag that distinguishes the one DIRECT-real completion from
+     * those ordinary fake/group publications; do not instrument fake traffic
+     * as an ineligible p1 publish. */
+    if (!rt->p1d_inflight) return;
+
+    serverAssert(tm_cur_ex && tm_cur_ex->id >= 0 &&
+                 tm_cur_ex->id < TOMO_EX_THREADS_MAX);
+    tomoP1DirectPublishStats *pub = &tomo_p1d_pub_stats[tm_cur_ex->id];
+    connection *conn = real->conn;
+    uint64_t flags = real->flags;
+    unsigned int slot = rt->flushid & rt->ring_mask;
+
+    /* Reuse the dispatch disqualifier verbatim. The remaining checks are
+     * post-execution facts that only the worker can decide: still exactly p1,
+     * a wholly plain inline reply, a live raw-fd transport, and no IO-side
+     * close/write suppression pending. */
+    if (rt->p1d_mode != TOMO_P1D_DIRECT ||
+        rt->dispatchid - rt->flushid != 1 || real->fake_slot != slot ||
+        listLength(real->reply) != 0 || real->reply_bytes != 0 ||
+        real->buf_encoded || real->last_header ||
+        real->sentlen >= real->bufpos ||
+        (flags & TOMO_P1D_DISQUALIFY_FLAGS) ||
+        !(real->io_flags & CLIENT_IO_WRITE_ENABLED) ||
+        (real->io_flags & CLIENT_IO_CLOSE_ASAP) ||
+        !conn || conn->fd < 0 || connGetState(conn) != CONN_STATE_CONNECTED ||
+        (conn->flags & CONN_FLAG_CLOSE_SCHEDULED) ||
+        (conn->type != connectionTypeTcp() &&
+         conn->type != connectionTypeUnix()))
+    {
+        tomoRelaxedBump(pub->ineligible, 1);
+        return;
+    }
+
+    size_t want = real->bufpos - real->sentlen;
+    ssize_t nwritten = write(conn->fd, real->buf + real->sentlen, want);
+    int write_errno = nwritten < 0 ? errno : 0;
+    tomoRelaxedBump(pub->writes, 1);
+
+    if (nwritten < 0) {
+        if (write_errno == EAGAIN || write_errno == EWOULDBLOCK)
+            tomoRelaxedBump(pub->eagain, 1);
+        return;                 /* fatal errno stays IO-owned too */
+    }
+    if ((size_t)nwritten < want) tomoRelaxedBump(pub->partial, 1);
+    if (nwritten == 0) return;
+
+    size_t sent = (size_t)nwritten;
+    tomoRelaxedBump(pub->bytes, sent);
+    real->sentlen += sent;
+    tomoRelaxedBump(server.netstat[iotid].out, (long long)sent);
+    rt->net_output_bytes += sent;
+    if (__builtin_expect(server.phase_trace_sample != 0, 0))
+        tomoPhaseSendDone(real);
+    rt->lastinteraction = server.unixtime;
+
+    if (sent != want) return;   /* IO resumes at the published sentlen */
+
+    /* bufpos==0 is the IO-side "already written" state. Both cursor stores
+     * precede cdbSlotPublish's release store, so the drain's acquire-ready
+     * observation cannot see completion with the old nonzero cursor. */
+    real->bufpos = 0;
+    real->sentlen = 0;
+}
+
 static inline tomoCmdClockStamp exExecFake(client *fake, monotonic_raw entry_raw) {
     tomoCmdClockStamp exit_clock = {0, 0};
     /* p1direct: a DIRECT dispatch pops the REAL client here — always EX_PENDING-marked and
@@ -24912,8 +25031,16 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
          * aggregate never carries completion bytes into another exSlice pass.
          * This loop is the worker's final access to each saved parent; after a
          * store, the IO owner may immediately retire that slot. */
-        for (int s = 0; s < sig_n; s++)
+        for (int s = 0; s < sig_n; s++) {
+            /* Disabled cost: one predictable read-mostly-global branch. The
+             * helper itself recognizes only the p1 DIRECT-real generation;
+             * fake and deep-pipe completions remain untouched. */
+            if (__builtin_expect(atomic_load_explicit(
+                                     &tomo_p1direct_publish_enabled,
+                                     memory_order_relaxed), 0))
+                tomoP1DirectPublishReply(sig_parents[s]);
             cdbSlotPublish(sig_parents[s], sig_cdb[s], sig_slots[s]);
+        }
         /* One publication/armed check per producer represented in this aggregate,
          * after all of that producer's ready bytes are visible. The arm exchange
          * coalesces the actual eventfd syscall to once per IO scan episode. */
