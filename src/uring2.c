@@ -31,7 +31,7 @@
 #include <sys/utsname.h>
 #include <unistd.h>
 
-static _Atomic int tomo_uring2_registration_enabled = 1;
+static _Atomic int tomo_uring2_registration_enabled = 0;
 
 int tomoUring2RegistrationEnabled(void) {
     return atomic_load_explicit(&tomo_uring2_registration_enabled,
