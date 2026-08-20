@@ -1022,6 +1022,18 @@ NULL
         if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
         tomoR10TraceSet(on != 0);
         addReplyStatus(c, tomoR10TraceEnabled() ? "r10 trace ON" : "r10 trace OFF");
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-flipselftest") && c->argc == 2) {
+        /* DEBUG TOMO-FLIPSELFTEST -- isolated FLIP target, ownership, validation and invariant
+         * checks. It never changes the live controller or arms the asynchronous actuator. */
+        tomoFlipSelfTestResult results[TOMO_FLIP_SELFTEST_CASES];
+        tomoFlipSelfTest(results);
+        addReplyArrayLen(c, TOMO_FLIP_SELFTEST_CASES);
+        for (int i = 0; i < TOMO_FLIP_SELFTEST_CASES; i++) {
+            addReplyStatusFormat(c, "%s %s expected=io%d/ex%d actual=io%d/ex%d",
+                results[i].passed ? "OK" : "FAIL", results[i].name,
+                results[i].expected_io, results[i].expected_ex,
+                results[i].actual_io, results[i].actual_ex);
+        }
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-r10selftest") && c->argc == 2) {
         /* DEBUG TOMO-R10SELFTEST -- pure state-machine calls with a synthetic actuator/windows. */
         tomoR10SelfTestResult results[TOMO_R10_SELFTEST_CASES];

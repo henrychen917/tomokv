@@ -7243,6 +7243,44 @@ struct COMMAND_ARG FAILOVER_Args[] = {
 {MAKE_ARG("milliseconds",ARG_TYPE_INTEGER,-1,"TIMEOUT",NULL,NULL,CMD_ARG_OPTIONAL,0,NULL)},
 };
 
+/********** FLIP ********************/
+
+#ifndef SKIP_CMD_HISTORY_TABLE
+/* FLIP history */
+#define FLIP_History NULL
+#endif
+
+#ifndef SKIP_CMD_TIPS_TABLE
+/* FLIP tips */
+#define FLIP_Tips NULL
+#endif
+
+#ifndef SKIP_CMD_KEY_SPECS_TABLE
+/* FLIP key specs */
+#define FLIP_Keyspecs NULL
+#endif
+
+/* FLIP operation forced_split argument table */
+struct COMMAND_ARG FLIP_operation_forced_split_Subargs[] = {
+{MAKE_ARG("io",ARG_TYPE_INTEGER,-1,NULL,NULL,NULL,CMD_ARG_NONE,0,NULL)},
+{MAKE_ARG("ex",ARG_TYPE_INTEGER,-1,NULL,NULL,NULL,CMD_ARG_NONE,0,NULL)},
+{MAKE_ARG("node-selector",ARG_TYPE_INTEGER,-1,"NODE",NULL,NULL,CMD_ARG_OPTIONAL,0,NULL)},
+};
+
+/* FLIP operation argument table */
+struct COMMAND_ARG FLIP_operation_Subargs[] = {
+{MAKE_ARG("auto",ARG_TYPE_PURE_TOKEN,-1,"AUTO",NULL,NULL,CMD_ARG_NONE,0,NULL)},
+{MAKE_ARG("model",ARG_TYPE_PURE_TOKEN,-1,"MODEL",NULL,NULL,CMD_ARG_NONE,0,NULL)},
+{MAKE_ARG("static",ARG_TYPE_PURE_TOKEN,-1,"STATIC",NULL,NULL,CMD_ARG_NONE,0,NULL)},
+{MAKE_ARG("split",ARG_TYPE_PURE_TOKEN,-1,"SPLIT",NULL,NULL,CMD_ARG_NONE,0,NULL)},
+{MAKE_ARG("forced-split",ARG_TYPE_BLOCK,-1,NULL,NULL,NULL,CMD_ARG_NONE,3,NULL),.subargs=FLIP_operation_forced_split_Subargs},
+};
+
+/* FLIP argument table */
+struct COMMAND_ARG FLIP_Args[] = {
+{MAKE_ARG("operation",ARG_TYPE_ONEOF,-1,NULL,NULL,NULL,CMD_ARG_NONE,5,NULL),.subargs=FLIP_operation_Subargs},
+};
+
 /********** FLUSHALL ********************/
 
 #ifndef SKIP_CMD_HISTORY_TABLE
@@ -11885,6 +11923,7 @@ struct COMMAND_STRUCT redisCommandTable[] = {
 {MAKE_CMD("dbsize","Returns the number of keys in the database.","O(1)","1.0.0",CMD_DOC_NONE,NULL,NULL,"server",COMMAND_GROUP_SERVER,DBSIZE_History,0,DBSIZE_Tips,2,dbsizeCommand,1,CMD_READONLY|CMD_FAST,ACL_CATEGORY_KEYSPACE,DBSIZE_Keyspecs,0,NULL,0)},
 {MAKE_CMD("debug","A container for debugging commands.","Depends on subcommand.","1.0.0",CMD_DOC_SYSCMD,NULL,NULL,"server",COMMAND_GROUP_SERVER,DEBUG_History,0,DEBUG_Tips,0,debugCommand,-2,CMD_ADMIN|CMD_NOSCRIPT|CMD_LOADING|CMD_STALE|CMD_PROTECTED,0,DEBUG_Keyspecs,0,NULL,0)},
 {MAKE_CMD("failover","Starts a coordinated failover from a server to one of its replicas.","O(1)","6.2.0",CMD_DOC_NONE,NULL,NULL,"server",COMMAND_GROUP_SERVER,FAILOVER_History,0,FAILOVER_Tips,0,failoverCommand,-1,CMD_ADMIN|CMD_NOSCRIPT|CMD_STALE,0,FAILOVER_Keyspecs,0,NULL,3),.args=FAILOVER_Args},
+{MAKE_CMD("flip","Selects the TomoKV thread-split controller, forces a split, or reports live split state.","O(N) where N is the number of TomoKV topology nodes","8.4.0",CMD_DOC_NONE,NULL,NULL,"server",COMMAND_GROUP_SERVER,FLIP_History,0,FLIP_Tips,0,flipCommand,-2,CMD_WRITE|CMD_ADMIN|CMD_NOSCRIPT|CMD_NO_MULTI|CMD_NO_ASYNC_LOADING,0,FLIP_Keyspecs,0,NULL,1),.args=FLIP_Args},
 {MAKE_CMD("flushall","Removes all keys from all databases.","O(N) where N is the total number of keys in all databases","1.0.0",CMD_DOC_NONE,NULL,NULL,"server",COMMAND_GROUP_SERVER,FLUSHALL_History,2,FLUSHALL_Tips,2,flushallCommand,-1,CMD_WRITE,ACL_CATEGORY_KEYSPACE|ACL_CATEGORY_DANGEROUS,FLUSHALL_Keyspecs,0,NULL,1),.args=FLUSHALL_Args},
 {MAKE_CMD("flushdb","Remove all keys from the current database.","O(N) where N is the number of keys in the selected database","1.0.0",CMD_DOC_NONE,NULL,NULL,"server",COMMAND_GROUP_SERVER,FLUSHDB_History,2,FLUSHDB_Tips,2,flushdbCommand,-1,CMD_WRITE,ACL_CATEGORY_KEYSPACE|ACL_CATEGORY_DANGEROUS,FLUSHDB_Keyspecs,0,NULL,1),.args=FLUSHDB_Args},
 {MAKE_CMD("hotkeys","A container for hotkeys tracking commands.","Depends on subcommand.","8.6.0",CMD_DOC_NONE,NULL,NULL,"server",COMMAND_GROUP_SERVER,HOTKEYS_History,0,HOTKEYS_Tips,0,NULL,-2,0,0,HOTKEYS_Keyspecs,0,NULL,0),.subcommands=HOTKEYS_Subcommands},

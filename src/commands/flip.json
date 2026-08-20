@@ -1,0 +1,102 @@
+{
+    "FLIP": {
+        "summary": "Selects the TomoKV thread-split controller, forces a split, or reports live split state.",
+        "complexity": "O(N) where N is the number of TomoKV topology nodes",
+        "group": "server",
+        "since": "8.4.0",
+        "arity": -2,
+        "function": "flipCommand",
+        "command_flags": [
+            "WRITE",
+            "ADMIN",
+            "NOSCRIPT",
+            "NO_MULTI",
+            "NO_ASYNC_LOADING"
+        ],
+        "arguments": [
+            {
+                "name": "operation",
+                "type": "oneof",
+                "arguments": [
+                    {
+                        "name": "auto",
+                        "type": "pure-token",
+                        "token": "AUTO"
+                    },
+                    {
+                        "name": "model",
+                        "type": "pure-token",
+                        "token": "MODEL"
+                    },
+                    {
+                        "name": "static",
+                        "type": "pure-token",
+                        "token": "STATIC"
+                    },
+                    {
+                        "name": "split",
+                        "type": "pure-token",
+                        "token": "SPLIT"
+                    },
+                    {
+                        "name": "forced-split",
+                        "type": "block",
+                        "arguments": [
+                            {
+                                "name": "io",
+                                "type": "integer"
+                            },
+                            {
+                                "name": "ex",
+                                "type": "integer"
+                            },
+                            {
+                                "name": "node-selector",
+                                "token": "NODE",
+                                "type": "integer",
+                                "optional": true
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "reply_schema": {
+            "oneOf": [
+                {
+                    "description": "The controller mode now in force.",
+                    "type": "string"
+                },
+                {
+                    "description": "Per-node applied targets or split-state records.",
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "minItems": 3,
+                                "maxItems": 3,
+                                "items": {
+                                    "type": "integer"
+                                }
+                            },
+                            {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                    "node": {"type": "integer"},
+                                    "live_io": {"type": "integer"},
+                                    "live_ex": {"type": "integer"},
+                                    "target_io": {"type": "integer"},
+                                    "target_ex": {"type": "integer"},
+                                    "mode": {"type": "string"},
+                                    "moving": {"type": "boolean"}
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}
