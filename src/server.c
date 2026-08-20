@@ -30288,6 +30288,10 @@ int tomoFlipSetMode(int mode, const char **err) {
         if (err) *err = "FLIP is unavailable without the TomoKV executor pool";
         return 0;
     }
+    if (server.loading || server.async_loading) {
+        if (err) *err = "tomokv thread mode cannot change while data is loading";
+        return 0;
+    }
     if (server.masterhost) {
         if (err) *err = "FLIP is not allowed on a replica; apply it to the topology owner";
         return 0;
