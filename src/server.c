@@ -1099,6 +1099,9 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     unsigned int tm_ring_stall_us;
     unsigned long long tm_drain_bytes;
     unsigned int tm_read_events;
+    /* DEBUG TOMO-RORDDIAG-only permutation distance. Appended in the struct's existing tail
+     * padding so none of the owner-written hot fields above move. */
+    unsigned long long rord_inversions;
 } tmIoSignal;
 
 /* Owner read-batch demand accumulators, callable from networking.c (tmIoSignal and the iotid TLS
@@ -4045,6 +4048,7 @@ static __thread int tomo_staged_cnt;   /* dispatches staged since this thread's 
  * Levels: 0 = path compiled around (no scratch write, direct push); 1 = partition + heads;
  * 2 = + class SJF + bucket grouping. Mutually exclusive with strict-order (so != 0). */
 int tomo_rord_mask = TOMO_RORD_MASK_ALL; /* DEBUG TOMO-RORDMASK, relaxed atomic access */
+int tomo_rord_diag = 0;                  /* DEBUG TOMO-RORDDIAG, relaxed atomic access */
 int tomo_rord_unsafe_diag = 0;           /* sticky once DEP_FENCE has been disabled */
 #define TOMO_RORD_CAP 64
 /* D5 aging: retain the accepted old displacement budget (32) only as a multiplier over measured
@@ -4153,8 +4157,26 @@ static inline uint64_t tomoReorderDepKey(int idx) {
     return tomo_rord.h[idx] ^ ((uint64_t)(uintptr_t)cid * 0x9E3779B97F4A7C15ull);
 }
 
+/* Diagnostic-only counterpart of the live generation-stamped fence scan. It uses local occupancy
+ * instead of consuming a live generation, so inversion accounting cannot perturb the real drain. */
+static int tomoReorderPlanFenceAt(const int *ord, int r) {
+    uint64_t key[TOMO_RORD_HSET];
+    uint8_t occupied[TOMO_RORD_HSET] = {0};
+    for (int a = 0; a < r; a++) {
+        uint64_t dep = tomoReorderDepKey(ord[a]);
+        unsigned slot = (unsigned)(dep ^ (dep >> 32)) & (TOMO_RORD_HSET - 1);
+        while (occupied[slot]) {
+            if (key[slot] == dep) return a;
+            slot = (slot + 1) & (TOMO_RORD_HSET - 1);
+        }
+        occupied[slot] = 1;
+        key[slot] = dep;
+    }
+    return r;
+}
+
 /* Produce one Shinjuku slice's emission permutation without dispatching. This is deliberately
- * cold diagnostic planning. Keep it structurally paired with tomoReorderEmitShinjuku below. */
+ * cold trace/diagnostic planning. Keep it structurally paired with tomoReorderEmitShinjuku below. */
 static void tomoReorderPlanShinjuku(const int *ord, int r, int mask, int *emit) {
     if (!(mask & TOMO_RORD_MASK_CLASS_SJF)) {
         for (int a = 0; a < r; a++) emit[a] = ord[a];
@@ -4362,14 +4384,41 @@ static void tomoReorderEmitShinjuku(int w, const int *ord, int r, int mask) {
     }
 }
 
+/* Opt-in permutation distance. Run the cold planner before the live emitter mutates cls to 0xFF;
+ * the disabled path is one guard in tomoReorderDrain and performs no per-entry accounting. */
+static unsigned long long tomoReorderInversions(int n, const int *order, int lvl, int mask,
+                                                const tomoRordAge *age_base) {
+    unsigned long long total = 0;
+    int arrival_pos[TOMO_RORD_CAP];
+    int planned[TOMO_RORD_CAP];
+    for (int s0 = 0; s0 < n; ) {
+        int w = tomo_rord.ex[order[s0]];
+        int s1 = s0;
+        while (s1 < n && tomo_rord.ex[order[s1]] == w) s1++;
+        int r = s1 - s0;
+        int fence_at = r;
+        if (r > 1 && lvl >= 1 && lvl != 3 && (mask & TOMO_RORD_MASK_DEP_FENCE))
+            fence_at = tomoReorderPlanFenceAt(order + s0, r);
+        tomoReorderPlanRun(r, order + s0, fence_at, lvl, mask, age_base, planned);
+        for (int a = 0; a < r; a++) arrival_pos[order[s0 + a]] = a;
+        for (int e = 0; e < r; e++) {
+            int delta = e - arrival_pos[planned[e]];
+            total += (unsigned long long)(delta < 0 ? -delta : delta);
+        }
+        s0 = s1;
+    }
+    return total;
+}
+
 void tomoReorderDrain(void) {
     if (tomo_rord.n == 0) return;
     tomo_rord.draining = 1;
     int n = tomo_rord.n;
     int lvl = server.tomo_reorder;
-    /* Relaxed atomic access lets DEBUG toggle a live process without a C data race. Sample once
-     * so every pass in this drain observes one coherent mask. */
+    /* Relaxed atomic access lets DEBUG toggle a live process without a C data race. Sample each
+     * control once, so every pass in this drain observes one coherent mask/diagnostic state. */
     int mask = __atomic_load_n(&tomo_rord_mask, __ATOMIC_RELAXED);
+    int diag = __atomic_load_n(&tomo_rord_diag, __ATOMIC_RELAXED);
     tomoRordAge age_base;
     tomoReorderAgeSnapshot(&age_base);
     /* stable counting-scatter by worker: order[] holds indices grouped by ex id. Bounded by the
@@ -4389,6 +4438,9 @@ void tomoReorderDrain(void) {
     } else {
         for (int i = 0; i < n; i++) order[i] = i;
     }
+    if (__builtin_expect(diag, 0))
+        tm_io_sig[iotid].rord_inversions +=
+            tomoReorderInversions(n, order, lvl, mask, &age_base);
     /* per-run emit */
     for (int s0 = 0; s0 < n; ) {
         int w = tomo_rord.ex[order[s0]];
@@ -21501,7 +21553,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             unsigned long long io_work = 0, io_busy = 0, ex_busy = 0, ex_productive = 0;
             unsigned long long io_idle = 0, io_wait = 0, ex_idle = 0;
             unsigned long long rord_runs_sum=0, rord_heads_sum=0, rord_grouped_sum=0, rord_fences_sum=0;
-            unsigned long long rord_age_pins_sum=0;
+            unsigned long long rord_age_pins_sum=0, rord_inversions_sum=0;
             /* Acquire the published mask before its sticky witness. DEBUG publishes the witness
              * first, so one INFO response cannot identify an unsafe mask as safe. */
             int rord_mask_info = __atomic_load_n(&tomo_rord_mask, __ATOMIC_ACQUIRE);
@@ -21510,6 +21562,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 rord_runs_sum += tm_io_sig[_t].rord_runs; rord_heads_sum += tm_io_sig[_t].rord_heads;
                 rord_grouped_sum += tm_io_sig[_t].rord_grouped; rord_fences_sum += tm_io_sig[_t].rord_fences;
                 rord_age_pins_sum += tm_io_sig[_t].rord_age_pins;
+                rord_inversions_sum += tm_io_sig[_t].rord_inversions;
             }
             int io_hi = server.io_threads + server.tm_ngrow_io, nio = 0;
             for (int t = 1; t <= io_hi && t <= TOMO_IO_THREADS_MAX; t++) {
@@ -21562,6 +21615,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "tomokv_rord_worst_age_us:%u\r\n", rord_worst_age_us,
                 "tomokv_rord_mask:%d\r\n", rord_mask_info,
                 "tomokv_rord_unsafe_diag:%d\r\n", rord_unsafe_info,
+                "tomokv_rord_inversions:%llu\r\n", rord_inversions_sum,
                 "tomokv_io_threads_counted:%d\r\n", nio,
                 "tomokv_ex_threads_counted:%d\r\n", wlive));
 

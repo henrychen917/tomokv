@@ -1062,6 +1062,16 @@ NULL
                 "DEBUG TOMO-RORDMASK disabled DEP_FENCE; same-connection same-key order is unsafe");
         }
         addReplyLongLong(c, mask);
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-rorddiag") && c->argc == 3) {
+        /* DEBUG TOMO-RORDDIAG <0|1> -- opt-in permutation-distance accounting. */
+        long on;
+        if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
+        if (on != 0 && on != 1) {
+            addReplyError(c, "TOMO-RORDDIAG expects 0 or 1");
+            return;
+        }
+        __atomic_store_n(&tomo_rord_diag, (int)on, __ATOMIC_RELAXED);
+        addReplyLongLong(c, on);
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-rordtrace") && c->argc == 3) {
         /* DEBUG TOMO-RORDTRACE <0|1> -- one-shot dump of the next reorder run's arrival vs emit
          * class sequence (class digit, upper=head-of-pipe, | = dependency fence). */

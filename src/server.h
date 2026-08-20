@@ -6405,6 +6405,7 @@ extern int tm_flip_trace;
 extern int tomo_disp_window_forced_zero;
 extern _Atomic int tomo_disp_window[TOMO_IO_THREADS_MAX + 1];
 extern int tomo_rord_mask;
+extern int tomo_rord_diag;
 extern int tomo_rord_unsafe_diag;
 extern int tm_rord_trace;
 void debugCommand(client *c);
