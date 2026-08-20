@@ -23289,6 +23289,13 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_m1_ex_us_zrange:%.6f\r\n"
             "tomokv_m1_ex_us_del:%.6f\r\n"
             "tomokv_m1_ex_us_expire:%.6f\r\n"
+            "tomo_m1_cells:%d\r\n"
+            "tomo_m1_cells_measuring:%d\r\n"
+            "tomo_m1_cells_confirming:%d\r\n"
+            "tomo_m1_cells_frozen:%d\r\n"
+            "tomo_m1_cell_overflow:%llu\r\n"
+            "tomo_m1_cells_forced_frozen:%llu\r\n"
+            "tomo_m1_all_frozen:%d\r\n"
             "tomokv_m1_moves_total:%llu\r\n"
             "tomokv_m1_target_changes:%llu\r\n"
             "tomokv_m1_arm_refusals:%llu\r\n"
@@ -23308,6 +23315,13 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             m1_info.ex_us[TOMO_M1_CLASS_ZRANGE],
             m1_info.ex_us[TOMO_M1_CLASS_DEL],
             m1_info.ex_us[TOMO_M1_CLASS_EXPIRE],
+            m1_info.cells,
+            m1_info.cells_measuring,
+            m1_info.cells_confirming,
+            m1_info.cells_frozen,
+            (unsigned long long)m1_info.cell_overflow,
+            (unsigned long long)m1_info.cells_forced_frozen,
+            m1_info.all_frozen,
             (unsigned long long)m1_info.moves_total,
             (unsigned long long)m1_info.target_changes,
             (unsigned long long)m1_info.arm_refusals,
