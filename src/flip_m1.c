@@ -9,6 +9,7 @@
 #include <limits.h>
 #include <math.h>
 #include <string.h>
+#include <strings.h>
 #include <sys/stat.h>
 
 tomoM1IoSignal tomo_m1_io_signals[TOMO_IO_THREADS_MAX + 1];
@@ -146,18 +147,20 @@ int tomoM1CostSourcesParseSpec(const char *spec, tomoM1CostSource *ex_source,
     return 1;
 }
 
-int tomoM1CostSourcesSetSpec(const char *spec) {
+static int tomoM1CostSourcesStoreSpec(_Atomic unsigned int *destination,
+                                      const char *spec) {
     tomoM1CostSource ex_source, io_source;
     if (!tomoM1CostSourcesParseSpec(spec, &ex_source, &io_source)) return C_ERR;
-    atomic_store_explicit(&tomo_m1_cost_sources,
+    atomic_store_explicit(destination,
         TOMO_M1_COST_SOURCES_PACK(ex_source, io_source), memory_order_release);
     return C_OK;
 }
 
-int tomoM1CostSourcesSetNames(const char *ex_name, const char *io_name) {
+static int tomoM1CostSourcesStoreNames(_Atomic unsigned int *destination,
+                                       const char *ex_name, const char *io_name) {
     unsigned int word;
     if (!tomoM1CostSourcesWordForNames(ex_name, io_name, &word)) return C_ERR;
-    atomic_store_explicit(&tomo_m1_cost_sources, word, memory_order_release);
+    atomic_store_explicit(destination, word, memory_order_release);
     return C_OK;
 }
 
@@ -167,9 +170,23 @@ static void tomoM1CostSourcesUnpack(unsigned int word, tomoM1CostSource *ex_sour
     if (io_source) *io_source = (tomoM1CostSource)((word >> 1) & 1U);
 }
 
-void tomoM1CostSourcesGet(tomoM1CostSource *ex_source, tomoM1CostSource *io_source) {
-    unsigned int word = atomic_load_explicit(&tomo_m1_cost_sources, memory_order_acquire);
+static void tomoM1CostSourcesLoad(_Atomic unsigned int *source,
+                                  tomoM1CostSource *ex_source,
+                                  tomoM1CostSource *io_source) {
+    unsigned int word = atomic_load_explicit(source, memory_order_acquire);
     tomoM1CostSourcesUnpack(word, ex_source, io_source);
+}
+
+int tomoM1CostSourcesSetSpec(const char *spec) {
+    return tomoM1CostSourcesStoreSpec(&tomo_m1_cost_sources, spec);
+}
+
+int tomoM1CostSourcesSetNames(const char *ex_name, const char *io_name) {
+    return tomoM1CostSourcesStoreNames(&tomo_m1_cost_sources, ex_name, io_name);
+}
+
+void tomoM1CostSourcesGet(tomoM1CostSource *ex_source, tomoM1CostSource *io_source) {
+    tomoM1CostSourcesLoad(&tomo_m1_cost_sources, ex_source, io_source);
 }
 
 static unsigned int tomoM1ArgcRepresentative(unsigned int bucket) {
@@ -1129,14 +1146,15 @@ int tomoM1SelfTest(tomoM1SelfTestResult results[TOMO_M1_SELFTEST_CASES]) {
     passed += shape_ok;
 
     /* The boot comma form and DEBUG's two-name form share canonical enum/name round trips. */
-    tomoM1CostSource boot_ex = TOMO_M1_COST_SOURCE_MEASURED;
-    tomoM1CostSource boot_io = TOMO_M1_COST_SOURCE_SEED;
-    tomoM1CostSource debug_ex = TOMO_M1_COST_SOURCE_SEED;
-    tomoM1CostSource debug_io = TOMO_M1_COST_SOURCE_MEASURED;
-    unsigned int debug_word = 0;
-    int boot_source_ok = tomoM1CostSourcesParseSpec("seed,measured", &boot_ex, &boot_io);
-    int debug_source_ok = tomoM1CostSourcesWordForNames("measured", "seed", &debug_word);
-    if (debug_source_ok) tomoM1CostSourcesUnpack(debug_word, &debug_ex, &debug_io);
+    _Atomic unsigned int test_sources =
+        TOMO_M1_COST_SOURCES_PACK(TOMO_M1_COST_SOURCE_MEASURED,
+                                  TOMO_M1_COST_SOURCE_SEED);
+    tomoM1CostSource boot_ex, boot_io, debug_ex, debug_io;
+    int boot_source_ok = tomoM1CostSourcesStoreSpec(&test_sources, "seed,measured") == C_OK;
+    tomoM1CostSourcesLoad(&test_sources, &boot_ex, &boot_io);
+    int debug_source_ok = tomoM1CostSourcesStoreNames(
+        &test_sources, "measured", "seed") == C_OK;
+    tomoM1CostSourcesLoad(&test_sources, &debug_ex, &debug_io);
     int source_roundtrip_ok = boot_source_ok && debug_source_ok &&
         boot_ex == TOMO_M1_COST_SOURCE_SEED && boot_io == TOMO_M1_COST_SOURCE_MEASURED &&
         debug_ex == TOMO_M1_COST_SOURCE_MEASURED && debug_io == TOMO_M1_COST_SOURCE_SEED &&
