@@ -10,6 +10,14 @@
  * to publish through TomoKV's existing SPSC queues and wake mechanisms; they
  * never obtain an SQE or enter an IO ring.  That invariant is what makes
  * IORING_SETUP_SINGLE_ISSUER truthful.
+ *
+ * Pass-batching invariant: a CQ harvest retires callback slots and folds
+ * receive bookkeeping before parsing; after CQ advancement, its ready-client
+ * run shares one parser cache and ends at exactly one EX publication boundary.
+ * No staged dispatch or folded byte/read count may survive that boundary. A
+ * send pass pins its ready prefixes first, then owns one contiguous SQ tail
+ * range; ordinary submission remains the single loop-enter operation, and
+ * SEND result/accounting folds only after the complete CQ array callback walk.
  */
 
 #include "server.h"
@@ -24,6 +32,18 @@
 #include <sys/utsname.h>
 #include <unistd.h>
 
+static _Atomic int tomo_uring2_registration_enabled = 0;
+
+int tomoUring2RegistrationEnabled(void) {
+    return atomic_load_explicit(&tomo_uring2_registration_enabled,
+                                memory_order_relaxed);
+}
+
+void tomoUring2SetRegistrationEnabled(int enabled) {
+    atomic_store_explicit(&tomo_uring2_registration_enabled, enabled != 0,
+                          memory_order_relaxed);
+}
+
 #ifdef HAVE_LIBURING
 
 #include <liburing.h>
@@ -33,6 +53,8 @@
 #define TOMO_URING2_SEND_BATCH_MAX 512U
 #define TOMO_URING2_NO_SLOT        UINT32_MAX
 #define TOMO_URING2_RECV_BGID      1U
+#define TOMO_URING2_MAX_FIXED_FILES (1U << 20)
+#define TOMO_URING2_MAX_FIXED_BUFS  (1U << 14)
 
 typedef enum tomoUring2RecvState {
     TOMO_URING2_RECV_IDLE = 0,
@@ -78,6 +100,8 @@ typedef struct tomoUring2AtomicStats {
     _Atomic uint64_t cq_drain_passes;
     _Atomic uint64_t cq_batches;
     _Atomic uint64_t epoll_wakes;
+    _Atomic uint64_t p1_batch_harvests;
+    _Atomic uint64_t recv_ceremony_batched_ops;
     _Atomic uint64_t recv_submitted;
     _Atomic uint64_t recv_cqes;
     _Atomic uint64_t recv_bytes;
@@ -100,6 +124,12 @@ typedef struct tomoUring2AtomicStats {
     _Atomic uint64_t send_nocopy;
     _Atomic uint64_t send_copy;
     _Atomic uint64_t send_cancel_submitted;
+    _Atomic uint64_t send_ceremony_batches;
+    _Atomic uint64_t send_ceremony_batched_ops;
+    _Atomic uint64_t sqe_template_hits;
+    _Atomic uint64_t fixed_file_sqes;
+    _Atomic uint64_t fixed_buf_sqes;
+    _Atomic uint64_t reg_fallbacks;
     _Atomic uint64_t migration_acks;
 } tomoUring2AtomicStats;
 
@@ -107,6 +137,20 @@ typedef struct tomoUring2Thread tomoUring2Thread;
 typedef struct tomoUring2Client tomoUring2Client;
 typedef void tomoUring2Completion(tomoUring2Thread *st, void *owner,
                                   const struct io_uring_cqe *cqe);
+
+typedef struct tomoUring2FileSlot {
+    tomoUring2Client *owner;
+    uint32_t next_free;
+    int fd;
+    unsigned quarantined : 1;
+} tomoUring2FileSlot;
+
+typedef struct tomoUring2BufferSlot {
+    tomoUring2Client *owner;
+    void *base;
+    uint32_t next_free;
+    unsigned quarantined : 1;
+} tomoUring2BufferSlot;
 
 /* Low user_data half is the array index.  The high half encodes the operation
  * kind plus a changing submission sequence: it is both a diagnostic tag and
@@ -125,6 +169,8 @@ struct tomoUring2Client {
     tomoUring2Thread *owner;
     int owner_tid;
     int fd;
+    uint32_t fixed_file_slot;
+    uint32_t fixed_buf_slot;
     tomoUring2RecvState recv_state;
     tomoUring2ClientMode mode;
 
@@ -143,9 +189,10 @@ struct tomoUring2Client {
     unsigned recv_multishot : 1;
     int pending_read_error;
 
-    /* A SEND references either this IO-owned copy or a guarded immutable
-     * prefix of c->buf.  In both cases the logical bytes remain in c->buf
-     * until the data CQE advances sentlen. */
+    /* A SEND references either the IO-owned scratch copy or a guarded immutable
+     * prefix of c->buf. The reusable per-connection image supplies the invariant
+     * SQE fields; each batched submit patches only generation-specific fields. */
+    struct io_uring_sqe send_sqe_template;
     char *send_scratch;
     char *send_direct_buf;
     uint64_t send_token;
@@ -159,6 +206,7 @@ struct tomoUring2Client {
     unsigned send_disarming : 1;
     unsigned send_failed : 1;
     unsigned send_nocopy : 1;
+    unsigned send_fixed_buf_submitted : 1;
     size_t send_len;
     size_t send_off;
     size_t send_start;
@@ -181,7 +229,7 @@ struct tomoUring2Client {
     tomoUring2Client *send_cancel_next;
 };
 
-struct tomoUring2Thread {
+struct __attribute__((aligned(CACHE_LINE_SIZE))) tomoUring2Thread {
     struct io_uring ring;
     aeEventLoop *el;
     int tid;
@@ -211,6 +259,16 @@ struct tomoUring2Thread {
     uint32_t next_tag;
     uint32_t pending_slots;
 
+    tomoUring2FileSlot *file_slots;
+    uint32_t file_slot_count;
+    uint32_t free_file_slot;
+    unsigned file_table_registered : 1;
+
+    tomoUring2BufferSlot *buffer_slots;
+    uint32_t buffer_slot_count;
+    uint32_t free_buffer_slot;
+    unsigned buffer_table_registered : 1;
+
     uint64_t poll_token;
     int poll_armed;               /* staged or submitted */
     int poll_needs_arm;
@@ -229,6 +287,7 @@ struct tomoUring2Thread {
     tomoUring2Client *send_cancel_tail;
 
     tomoUring2AtomicStats stats;
+    uint8_t in_cqe_walk;          /* CQE-walk freelist checkout guard (see ProcessCqeBatch) */
 };
 
 static tomoUring2Thread tomo_uring2[TOMO_IO_THREADS_MAX + 1]
@@ -264,6 +323,399 @@ static void tomoUring2AssertOwner(const tomoUring2Client *uc) {
     serverAssert(uc->owner_tid == iotid);
     serverAssert(uc->owner == tomoUring2Current());
     serverAssert(pthread_equal(uc->owner->issuer, pthread_self()));
+}
+
+/* Reap already proved the issuer once for the complete CQ array. Callbacks
+ * retain the ownership assertions without repeating TLS lookup/pthread_equal
+ * for every completion. */
+static inline void tomoUring2AssertOwnerInPass(
+    const tomoUring2Thread *st, const tomoUring2Client *uc) {
+    serverAssert(uc != NULL);
+    serverAssert(uc->owner == st);
+    serverAssert(uc->owner_tid == st->tid);
+}
+
+static void tomoUring2AssertFixedFileSlot(const tomoUring2Thread *st,
+                                          const tomoUring2Client *uc) {
+#ifdef DEBUG_ASSERTIONS
+    debugServerAssert(uc->fixed_file_slot < st->file_slot_count);
+    const tomoUring2FileSlot *slot =
+        &st->file_slots[uc->fixed_file_slot];
+    debugServerAssert(st->file_table_registered);
+    debugServerAssert(!slot->quarantined);
+    debugServerAssert(slot->owner == uc);
+    debugServerAssert(slot->fd == uc->fd);
+#else
+    UNUSED(st);
+    UNUSED(uc);
+#endif
+}
+
+static int tomoUring2UseFixedFile(const tomoUring2Thread *st,
+                                  const tomoUring2Client *uc) {
+    if (!tomoUring2RegistrationEnabled() ||
+        uc->fixed_file_slot == TOMO_URING2_NO_SLOT)
+        return 0;
+    tomoUring2AssertFixedFileSlot(st, uc);
+    return 1;
+}
+
+static void tomoUring2AssertFixedBufferSlot(const tomoUring2Thread *st,
+                                            const tomoUring2Client *uc) {
+#ifdef DEBUG_ASSERTIONS
+    debugServerAssert(uc->fixed_buf_slot < st->buffer_slot_count);
+    const tomoUring2BufferSlot *slot =
+        &st->buffer_slots[uc->fixed_buf_slot];
+    debugServerAssert(st->buffer_table_registered);
+    debugServerAssert(!slot->quarantined);
+    debugServerAssert(slot->owner == uc);
+    debugServerAssert(slot->base == uc->send_scratch);
+#else
+    UNUSED(st);
+    UNUSED(uc);
+#endif
+}
+
+static int tomoUring2UseFixedBuffer(const tomoUring2Thread *st,
+                                    const tomoUring2Client *uc) {
+    if (!tomoUring2RegistrationEnabled() ||
+        uc->fixed_buf_slot == TOMO_URING2_NO_SLOT)
+        return 0;
+    tomoUring2AssertFixedBufferSlot(st, uc);
+    return 1;
+}
+
+static void tomoUring2BuildSendTemplate(tomoUring2Client *uc) {
+    io_uring_prep_send(&uc->send_sqe_template, uc->fd, NULL, 0,
+                       MSG_NOSIGNAL);
+    if (uc->fixed_file_slot != TOMO_URING2_NO_SLOT) {
+        tomoUring2AssertFixedFileSlot(uc->owner, uc);
+        uc->send_sqe_template.fd = (int)uc->fixed_file_slot;
+        uc->send_sqe_template.flags |= IOSQE_FIXED_FILE;
+    }
+    if (uc->fixed_buf_slot != TOMO_URING2_NO_SLOT) {
+        tomoUring2AssertFixedBufferSlot(uc->owner, uc);
+        uc->send_sqe_template.ioprio |= IORING_RECVSEND_FIXED_BUF;
+        uc->send_sqe_template.buf_index = (uint16_t)uc->fixed_buf_slot;
+    }
+}
+
+static uint32_t tomoUring2InitialFileSlots(void) {
+    uint64_t slots = server.maxclients;
+    if (slots == 0) slots = 1;
+    if (slots > TOMO_URING2_MAX_FIXED_FILES)
+        slots = TOMO_URING2_MAX_FIXED_FILES;
+    return (uint32_t)slots;
+}
+
+static void tomoUring2LinkFreeFileSlots(tomoUring2FileSlot *slots,
+                                        uint32_t count, uint32_t *head) {
+    *head = TOMO_URING2_NO_SLOT;
+    for (uint32_t i = count; i-- > 0;) {
+        if (slots[i].owner) {
+            slots[i].next_free = TOMO_URING2_NO_SLOT;
+            continue;
+        }
+        slots[i].fd = -1;
+        slots[i].quarantined = 0;
+        slots[i].next_free = *head;
+        *head = i;
+    }
+}
+
+static int tomoUring2InitFileTable(tomoUring2Thread *st) {
+    uint32_t count = tomoUring2InitialFileSlots();
+    tomoUring2FileSlot *slots = zcalloc(sizeof(*slots) * count);
+    int *files = zmalloc(sizeof(*files) * count);
+    for (uint32_t i = 0; i < count; i++) files[i] = -1;
+
+    int rc = io_uring_register_files(&st->ring, files, count);
+    zfree(files);
+    if (rc < 0) {
+        serverLog(LL_NOTICE,
+                  "tomokv io_uring mode 2 owner %d: %u-slot fixed-file "
+                  "table unavailable (%s); connections will use raw fds",
+                  st->tid, count, strerror(-rc));
+        zfree(slots);
+        st->file_slots = NULL;
+        st->file_slot_count = 0;
+        st->free_file_slot = TOMO_URING2_NO_SLOT;
+        st->file_table_registered = 0;
+        return C_ERR;
+    }
+
+    st->file_slots = slots;
+    st->file_slot_count = count;
+    st->file_table_registered = 1;
+    tomoUring2LinkFreeFileSlots(slots, count, &st->free_file_slot);
+    return C_OK;
+}
+
+static uint32_t tomoUring2NextFileSlotCount(uint32_t old_count) {
+    uint64_t count = server.maxclients;
+    if (count <= old_count) count = (uint64_t)old_count * 2;
+    if (count > TOMO_URING2_MAX_FIXED_FILES)
+        count = TOMO_URING2_MAX_FIXED_FILES;
+    return (uint32_t)count;
+}
+
+/* Registration tables cannot be extended in place. Preserve every live index
+ * while replacing the per-ring sparse table; old in-flight requests retain
+ * their kernel resource-node references. If replacement fails after the old
+ * table was removed, every connection is atomically downgraded to raw fds. */
+static int tomoUring2GrowFileTable(tomoUring2Thread *st) {
+    uint32_t old_count = st->file_slot_count;
+    uint32_t new_count = tomoUring2NextFileSlotCount(old_count);
+    if (!st->file_table_registered || new_count <= old_count)
+        return C_ERR;
+
+    tomoUring2FileSlot *old_slots = st->file_slots;
+    tomoUring2FileSlot *new_slots = zcalloc(sizeof(*new_slots) * new_count);
+    int *files = zmalloc(sizeof(*files) * new_count);
+    for (uint32_t i = 0; i < new_count; i++) {
+        files[i] = -1;
+        new_slots[i].fd = -1;
+    }
+    for (uint32_t i = 0; i < old_count; i++) {
+        if (!old_slots[i].owner) continue;
+        serverAssert(!old_slots[i].quarantined);
+        serverAssert(old_slots[i].owner->fixed_file_slot == i);
+        files[i] = old_slots[i].fd;
+        new_slots[i].owner = old_slots[i].owner;
+        new_slots[i].fd = old_slots[i].fd;
+    }
+
+    int rc = io_uring_unregister_files(&st->ring);
+    if (rc < 0) {
+        zfree(files);
+        zfree(new_slots);
+        return C_ERR;
+    }
+    st->file_table_registered = 0;
+
+    rc = io_uring_register_files(&st->ring, files, new_count);
+    zfree(files);
+    if (rc < 0) {
+        serverLog(LL_WARNING,
+                  "tomokv io_uring mode 2 owner %d: fixed-file table "
+                  "growth %u -> %u failed (%s); downgrading ring to raw fds",
+                  st->tid, old_count, new_count, strerror(-rc));
+        for (uint32_t i = 0; i < old_count; i++) {
+            tomoUring2Client *uc = old_slots[i].owner;
+            if (!uc) continue;
+            uc->fixed_file_slot = TOMO_URING2_NO_SLOT;
+            tomoUring2BuildSendTemplate(uc);
+            URING2_STAT_BUMP(st, reg_fallbacks, 1);
+        }
+        zfree(old_slots);
+        zfree(new_slots);
+        st->file_slots = NULL;
+        st->file_slot_count = 0;
+        st->free_file_slot = TOMO_URING2_NO_SLOT;
+        return C_ERR;
+    }
+
+    st->file_slots = new_slots;
+    st->file_slot_count = new_count;
+    st->file_table_registered = 1;
+    tomoUring2LinkFreeFileSlots(new_slots, new_count,
+                                &st->free_file_slot);
+    zfree(old_slots);
+    return C_OK;
+}
+
+static int tomoUring2AcquireFixedFile(tomoUring2Client *uc) {
+    tomoUring2Thread *st = uc->owner;
+    serverAssert(uc->fixed_file_slot == TOMO_URING2_NO_SLOT);
+    if (!st->file_table_registered) return C_ERR;
+    if (st->free_file_slot == TOMO_URING2_NO_SLOT &&
+        tomoUring2GrowFileTable(st) != C_OK)
+        return C_ERR;
+    if (!st->file_table_registered ||
+        st->free_file_slot == TOMO_URING2_NO_SLOT)
+        return C_ERR;
+
+    uint32_t index = st->free_file_slot;
+    tomoUring2FileSlot *slot = &st->file_slots[index];
+    serverAssert(!slot->owner && slot->fd == -1 && !slot->quarantined);
+    st->free_file_slot = slot->next_free;
+    slot->next_free = TOMO_URING2_NO_SLOT;
+
+    int fd = uc->fd;
+    int rc = io_uring_register_files_update(&st->ring, index, &fd, 1);
+    if (rc != 1) {
+        slot->next_free = st->free_file_slot;
+        st->free_file_slot = index;
+        return C_ERR;
+    }
+
+    slot->owner = uc;
+    slot->fd = fd;
+    uc->fixed_file_slot = index;
+    return C_OK;
+}
+
+static void tomoUring2ReleaseFixedFile(tomoUring2Client *uc) {
+    if (uc->fixed_file_slot == TOMO_URING2_NO_SLOT) return;
+    tomoUring2Thread *st = uc->owner;
+    uint32_t index = uc->fixed_file_slot;
+    serverAssert(st && st->file_table_registered);
+    serverAssert(index < st->file_slot_count);
+    tomoUring2FileSlot *slot = &st->file_slots[index];
+    serverAssert(slot->owner == uc && slot->fd == uc->fd &&
+                 !slot->quarantined);
+
+    int empty = -1;
+    int rc = io_uring_register_files_update(&st->ring, index, &empty, 1);
+    uc->fixed_file_slot = TOMO_URING2_NO_SLOT;
+    slot->owner = NULL;
+    if (rc == 1) {
+        slot->fd = -1;
+        slot->next_free = st->free_file_slot;
+        st->free_file_slot = index;
+    } else {
+        /* Never recycle an index whose kernel mapping could still name the
+         * old file. A later successful table replacement reclaims it. */
+        slot->quarantined = 1;
+        slot->next_free = TOMO_URING2_NO_SLOT;
+        serverLog(LL_WARNING,
+                  "tomokv io_uring mode 2 owner %d: fixed-file slot %u "
+                  "release failed (%s); slot quarantined",
+                  st->tid, index,
+                  rc < 0 ? strerror(-rc) : "short resource update");
+        URING2_STAT_BUMP(st, reg_fallbacks, 1);
+    }
+    tomoUring2BuildSendTemplate(uc);
+}
+
+static uint32_t tomoUring2InitialBufferSlots(void) {
+    uint64_t slots = server.maxclients;
+    if (slots == 0) slots = 1;
+    if (slots > TOMO_URING2_MAX_FIXED_BUFS)
+        slots = TOMO_URING2_MAX_FIXED_BUFS;
+    return (uint32_t)slots;
+}
+
+static int tomoUring2InitBufferTable(tomoUring2Thread *st) {
+    uint32_t count = tomoUring2InitialBufferSlots();
+    tomoUring2BufferSlot *slots = zcalloc(sizeof(*slots) * count);
+    struct iovec *iovecs = zcalloc(sizeof(*iovecs) * count);
+
+    int rc = io_uring_register_buffers(&st->ring, iovecs, count);
+    zfree(iovecs);
+    if (rc < 0) {
+        serverLog(LL_NOTICE,
+                  "tomokv io_uring mode 2 owner %d: %u-slot fixed-buffer "
+                  "table unavailable (%s); SENDs will use raw buffers",
+                  st->tid, count, strerror(-rc));
+        zfree(slots);
+        st->buffer_slots = NULL;
+        st->buffer_slot_count = 0;
+        st->free_buffer_slot = TOMO_URING2_NO_SLOT;
+        st->buffer_table_registered = 0;
+        return C_ERR;
+    }
+
+    st->buffer_slots = slots;
+    st->buffer_slot_count = count;
+    st->free_buffer_slot = 0;
+    st->buffer_table_registered = 1;
+    for (uint32_t i = 0; i < count; i++)
+        slots[i].next_free =
+            i + 1 < count ? i + 1 : TOMO_URING2_NO_SLOT;
+    return C_OK;
+}
+
+static int tomoUring2AcquireFixedBuffer(tomoUring2Client *uc) {
+    tomoUring2Thread *st = uc->owner;
+    serverAssert(uc->fixed_buf_slot == TOMO_URING2_NO_SLOT);
+    if (!st->buffer_table_registered ||
+        st->free_buffer_slot == TOMO_URING2_NO_SLOT)
+        return C_ERR;
+
+    int allocated_scratch = uc->send_scratch == NULL;
+    if (allocated_scratch)
+        uc->send_scratch = zmalloc(PROTO_REPLY_CHUNK_BYTES);
+    uint32_t index = st->free_buffer_slot;
+    tomoUring2BufferSlot *slot = &st->buffer_slots[index];
+    serverAssert(!slot->owner && !slot->base && !slot->quarantined);
+    st->free_buffer_slot = slot->next_free;
+    slot->next_free = TOMO_URING2_NO_SLOT;
+
+    struct iovec iov = {
+        .iov_base = uc->send_scratch,
+        .iov_len = PROTO_REPLY_CHUNK_BYTES,
+    };
+    __u64 tag = 0;
+    int rc = io_uring_register_buffers_update_tag(&st->ring, index, &iov,
+                                                   &tag, 1);
+    if (rc != 1) {
+        slot->next_free = st->free_buffer_slot;
+        st->free_buffer_slot = index;
+        if (allocated_scratch) {
+            zfree(uc->send_scratch);
+            uc->send_scratch = NULL;
+        }
+        return C_ERR;
+    }
+
+    slot->owner = uc;
+    slot->base = uc->send_scratch;
+    uc->fixed_buf_slot = index;
+    return C_OK;
+}
+
+static void tomoUring2ReleaseFixedBuffer(tomoUring2Client *uc) {
+    if (uc->fixed_buf_slot == TOMO_URING2_NO_SLOT) return;
+    tomoUring2Thread *st = uc->owner;
+    uint32_t index = uc->fixed_buf_slot;
+    serverAssert(st && st->buffer_table_registered);
+    serverAssert(index < st->buffer_slot_count);
+    tomoUring2BufferSlot *slot = &st->buffer_slots[index];
+    serverAssert(slot->owner == uc && slot->base == uc->send_scratch &&
+                 !slot->quarantined);
+
+    struct iovec empty = {0};
+    __u64 tag = 0;
+    int rc = io_uring_register_buffers_update_tag(&st->ring, index, &empty,
+                                                   &tag, 1);
+    uc->fixed_buf_slot = TOMO_URING2_NO_SLOT;
+    slot->owner = NULL;
+    if (rc == 1) {
+        slot->base = NULL;
+        slot->next_free = st->free_buffer_slot;
+        st->free_buffer_slot = index;
+    } else {
+        /* The old buffer must remain allocated while a failed resource update
+         * may still leave it pinned. Move the connection to a private copy and
+         * quarantine the table slot until ring teardown. */
+        char *replacement = zmalloc(PROTO_REPLY_CHUNK_BYTES);
+        if (uc->send_active && uc->send_len)
+            memcpy(replacement, uc->send_scratch, uc->send_len);
+        uc->send_scratch = replacement;
+        slot->quarantined = 1;
+        slot->next_free = TOMO_URING2_NO_SLOT;
+        serverLog(LL_WARNING,
+                  "tomokv io_uring mode 2 owner %d: fixed-buffer slot %u "
+                  "release failed (%s); slot quarantined",
+                  st->tid, index,
+                  rc < 0 ? strerror(-rc) : "short resource update");
+        URING2_STAT_BUMP(st, reg_fallbacks, 1);
+    }
+    tomoUring2BuildSendTemplate(uc);
+}
+
+static void tomoUring2RegisterClientResources(tomoUring2Client *uc) {
+    tomoUring2Thread *st = uc->owner;
+    if (tomoUring2AcquireFixedFile(uc) != C_OK)
+        URING2_STAT_BUMP(st, reg_fallbacks, 1);
+    if (tomoUring2AcquireFixedBuffer(uc) != C_OK)
+        URING2_STAT_BUMP(st, reg_fallbacks, 1);
+}
+
+static void tomoUring2ReleaseClientResources(tomoUring2Client *uc) {
+    tomoUring2ReleaseFixedBuffer(uc);
+    tomoUring2ReleaseFixedFile(uc);
 }
 
 static void tomoUring2UpdateMaxSubmit(tomoUring2Thread *st, unsigned n) {
@@ -302,9 +754,11 @@ static void tomoUring2RegrowSlots(tomoUring2Thread *st) {
     st->slot_count = new_count;
 }
 
-static struct io_uring_sqe *tomoUring2GetSqe(
+static struct io_uring_sqe *tomoUring2GetSqeFromImage(
     tomoUring2Thread *st, tomoUring2Completion *callback, void *owner,
-    tomoUring2OpKind kind, uint64_t *token) {
+    tomoUring2OpKind kind, uint64_t *token,
+    const struct io_uring_sqe *image) {
+    serverAssert(!st->in_cqe_walk);   /* freelist frontier is checked out by the CQE walk */
     if (st->free_slot == TOMO_URING2_NO_SLOT)
         tomoUring2RegrowSlots(st);
 
@@ -317,7 +771,10 @@ static struct io_uring_sqe *tomoUring2GetSqe(
         sqe = io_uring_get_sqe(&st->ring);
         if (!sqe) tomoUring2Fatal(st, "SQE after emergency submit", ENOSPC);
     }
-    memset(sqe, 0, sizeof(*sqe));
+    if (image)
+        memcpy(sqe, image, sizeof(*sqe));
+    else
+        memset(sqe, 0, sizeof(*sqe));
 
     uint32_t index = st->free_slot;
     tomoUring2CallbackSlot *slot = &st->slots[index];
@@ -352,6 +809,12 @@ static void tomoUring2ReturnRecvBuffer(tomoUring2Thread *st,
     io_uring_buf_ring_add(st->recv_buf_ring, buf, PROTO_IOBUF_LEN,
                           (unsigned short)bid, st->recv_buf_ring_mask, 0);
     io_uring_buf_ring_advance(st->recv_buf_ring, 1);
+}
+
+static inline struct io_uring_sqe *tomoUring2GetSqe(
+    tomoUring2Thread *st, tomoUring2Completion *callback, void *owner,
+    tomoUring2OpKind kind, uint64_t *token) {
+    return tomoUring2GetSqeFromImage(st, callback, owner, kind, token, NULL);
 }
 
 static void tomoUring2ArmRemove(tomoUring2Thread *st,
@@ -401,17 +864,22 @@ static void tomoUring2CancelPush(tomoUring2Thread *st,
     uc->cancel_queued = 1;
 }
 
-static void tomoUring2ParseRemove(tomoUring2Thread *st,
-                                  tomoUring2Client *uc) {
-    if (!uc->parse_queued) return;
-    if (uc->parse_prev) uc->parse_prev->parse_next = uc->parse_next;
-    else st->parse_head = uc->parse_next;
-    if (uc->parse_next) uc->parse_next->parse_prev = uc->parse_prev;
-    else st->parse_tail = uc->parse_prev;
+/* Ready-pass consumption is always from the head, so make the p1 harvest loop
+ * a predictable head-pop with no prev/tail selection branches. */
+static inline tomoUring2Client *tomoUring2ParsePop(
+    tomoUring2Thread *st) {
+    tomoUring2Client *uc = st->parse_head;
+    serverAssert(uc != NULL && uc->parse_queued && uc->parse_prev == NULL);
+    st->parse_head = uc->parse_next;
+    if (st->parse_head)
+        st->parse_head->parse_prev = NULL;
+    else
+        st->parse_tail = NULL;
     uc->parse_prev = uc->parse_next = NULL;
     uc->parse_queued = 0;
     serverAssert(st->parse_count > 0);
     st->parse_count--;
+    return uc;
 }
 
 static void tomoUring2ParsePush(tomoUring2Thread *st,
@@ -526,10 +994,11 @@ static void tomoUring2TryFinishDisarm(tomoUring2Client *uc) {
         tomoUring2ParsePush(uc->owner, uc);
 }
 
-static int tomoUring2SendCanPromote(const tomoUring2Client *uc) {
+static int tomoUring2SendCanPromote(const tomoUring2Client *uc,
+                                    const ConnectionType *tcp_type) {
     const client *c = uc->c;
     if (!c->conn || c->conn->fd != uc->fd ||
-        c->conn->type != connectionTypeTcp() ||
+        c->conn->type != tcp_type ||
         !(c->io_flags & CLIENT_IO_WRITE_ENABLED) ||
         c->buf_encoded || c->bufpos <= c->sentlen ||
         c->flags & (CLIENT_MASTER | CLIENT_SLAVE | CLIENT_INTERNAL |
@@ -556,11 +1025,10 @@ static int tomoUring2SendCanNoCopy(const tomoUring2Client *uc,
     return 1;
 }
 
-static int tomoUring2SendPromote(tomoUring2Thread *st,
-                                 tomoUring2Client *uc) {
+static size_t tomoUring2SendPromoteReady(tomoUring2Thread *st,
+                                         tomoUring2Client *uc) {
     client *c = uc->c;
     serverAssert(!uc->send_active);
-    if (!tomoUring2SendCanPromote(uc)) return C_ERR;
 
     size_t available = c->bufpos - c->sentlen;
     size_t take = min(available, (size_t)PROTO_REPLY_CHUNK_BYTES);
@@ -592,10 +1060,8 @@ static int tomoUring2SendPromote(tomoUring2Thread *st,
         URING2_STAT_BUMP(st, send_nocopy, 1);
     } else {
         URING2_STAT_BUMP(st, send_copy, 1);
-        URING2_STAT_BUMP(st, send_scratch_copies, 1);
-        URING2_STAT_BUMP(st, send_scratch_bytes, take);
     }
-    return C_OK;
+    return nocopy ? 0 : take;
 }
 
 static void tomoUring2SendClearActive(tomoUring2Thread *st,
@@ -612,6 +1078,7 @@ static void tomoUring2SendClearActive(tomoUring2Thread *st,
     uc->send_disarming = 0;
     uc->send_failed = 0;
     uc->send_nocopy = 0;
+    uc->send_fixed_buf_submitted = 0;
     uc->send_len = 0;
     uc->send_off = 0;
     uc->send_start = 0;
@@ -711,14 +1178,26 @@ static int tomoUring2StageSendCancels(tomoUring2Thread *st) {
 }
 
 static int tomoUring2StageSends(tomoUring2Thread *st) {
-    int staged = 0;
-    while (st->send_head && staged < (int)TOMO_URING2_SEND_BATCH_MAX) {
+    tomoUring2Client *ready[TOMO_URING2_SEND_BATCH_MAX];
+    const int owner_tid = st->tid;
+    const ConnectionType *tcp_type = connectionTypeTcp();
+    unsigned int sq_budget = io_uring_sq_space_left(&st->ring);
+    if (sq_budget > TOMO_URING2_SEND_BATCH_MAX)
+        sq_budget = TOMO_URING2_SEND_BATCH_MAX;
+    unsigned int ready_count = 0;
+    unsigned int scratch_copies = 0;
+    uint64_t scratch_bytes = 0;
+
+    /* First retire owner-list ceremony and pin every stable reply prefix.
+     * Limit the run to the SQ space already available: ordinary send staging
+     * never submits from inside this per-reply walk. */
+    while (st->send_head && ready_count < sq_budget) {
         tomoUring2Client *uc = st->send_head;
         if (uc->c->flags & CLIENT_PROTECTED) {
             tomoUring2SendRemove(st, uc);
             continue;
         }
-        if (uc->owner != st || uc->owner_tid != iotid ||
+        if (uc->owner != st || uc->owner_tid != owner_tid ||
             uc->mode == TOMO_URING2_CLIENT_CLOSE ||
             uc->mode == TOMO_URING2_CLIENT_TRANSIT ||
             !uc->c->conn || uc->c->conn->fd != uc->fd) {
@@ -727,23 +1206,57 @@ static int tomoUring2StageSends(tomoUring2Thread *st) {
                 tomoUring2SendClearActive(st, uc);
             continue;
         }
-        if (!uc->send_active && !tomoUring2SendCanPromote(uc)) {
+        if (!uc->send_active && !tomoUring2SendCanPromote(uc, tcp_type)) {
             tomoUring2SendRemove(st, uc);
             if (uc->c->bufpos || listLength(uc->c->reply))
                 putClientInPendingWriteQueue(uc->c);
             continue;
         }
-        if (!uc->send_active && tomoUring2SendPromote(st, uc) != C_OK) {
-            tomoUring2SendRemove(st, uc);
-            continue;
+        if (!uc->send_active) {
+            scratch_bytes += tomoUring2SendPromoteReady(st, uc);
+            if (!uc->send_nocopy) scratch_copies++;
         }
 
-        uint64_t token = 0;
-        struct io_uring_sqe *sqe = tomoUring2GetSqe(
-            st, tomoUring2SendCqe, uc, TOMO_URING2_OP_SEND, &token);
-        if (!sqe) break;
         tomoUring2SendRemove(st, uc);
         serverAssert(uc->send_active && !uc->send_submitted);
+        ready[ready_count++] = uc;
+    }
+
+    if (!ready_count) return 0;
+    if (scratch_copies)
+        URING2_STAT_BUMP(st, send_scratch_copies, scratch_copies);
+    if (scratch_bytes)
+        URING2_STAT_BUMP(st, send_scratch_bytes, scratch_bytes);
+
+    /* The second loop owns one contiguous SQ tail range. io_uring_get_sqe()
+     * therefore advances sequential ring slots with no reply-list work or
+     * eligibility branches interleaved between SEND preparations. */
+    serverAssert(io_uring_sq_space_left(&st->ring) >= ready_count);
+    for (unsigned int i = 0; i < ready_count; i++) {
+        tomoUring2Client *uc = ready[i];
+
+        uint64_t token = 0;
+        struct io_uring_sqe *sqe = tomoUring2GetSqeFromImage(
+            st, tomoUring2SendCqe, uc, TOMO_URING2_OP_SEND, &token,
+            &uc->send_sqe_template);
+        if (tomoUring2UseFixedFile(st, uc)) {
+            sqe->fd = (int)uc->fixed_file_slot;
+            sqe->flags |= IOSQE_FIXED_FILE;
+            URING2_STAT_BUMP(st, fixed_file_sqes, 1);
+        } else {
+            /* DEBUG TOMO-URINGREG 0 must reproduce the old raw-fd image. */
+            sqe->fd = uc->fd;
+            sqe->flags &= (unsigned char)~IOSQE_FIXED_FILE;
+        }
+        int use_fixed_buf = !uc->send_nocopy && tomoUring2UseFixedBuffer(st, uc);
+        if (use_fixed_buf) {
+            sqe->ioprio |= IORING_RECVSEND_FIXED_BUF;
+            sqe->buf_index = (uint16_t)uc->fixed_buf_slot;
+            URING2_STAT_BUMP(st, fixed_buf_sqes, 1);
+        } else {
+            sqe->ioprio &= (uint16_t)~IORING_RECVSEND_FIXED_BUF;
+            sqe->buf_index = 0;
+        }
         size_t remaining = uc->send_len - uc->send_off;
         const char *send_buf;
         if (uc->send_nocopy) {
@@ -754,16 +1267,19 @@ static int tomoUring2StageSends(tomoUring2Thread *st) {
         } else {
             send_buf = uc->send_scratch + uc->send_off;
         }
-        io_uring_prep_send(sqe, uc->fd, send_buf, remaining,
-                           MSG_NOSIGNAL);
+        serverAssert(remaining <= UINT32_MAX);
+        sqe->addr = (uint64_t)(uintptr_t)send_buf;
+        sqe->len = (uint32_t)remaining;
         uc->send_token = token;
         uc->send_submitted = 1;
         uc->send_main_seen = 0;
         uc->send_result_pending = 0;
-        URING2_STAT_BUMP(st, send_submitted, 1);
-        staged++;
+        uc->send_fixed_buf_submitted = use_fixed_buf;
     }
-    return staged;
+    URING2_STAT_BUMP(st, send_submitted, ready_count);
+    /* One pass-level increment witnesses every copied per-connection image. */
+    URING2_STAT_BUMP(st, sqe_template_hits, ready_count);
+    return (int)ready_count;
 }
 
 static int tomoUring2StageRecvs(tomoUring2Thread *st) {
@@ -786,8 +1302,11 @@ static int tomoUring2StageRecvs(tomoUring2Thread *st) {
         if (!sqe) break;
         tomoUring2ArmRemove(st, uc);
         int multishot = st->multishot_enabled && !st->multishot_rejected;
+        int sqe_fd = uc->fd;
+        int use_fixed_file = tomoUring2UseFixedFile(st, uc);
+        if (use_fixed_file) sqe_fd = (int)uc->fixed_file_slot;
         if (multishot) {
-            io_uring_prep_recv_multishot(sqe, uc->fd, NULL, 0, 0);
+            io_uring_prep_recv_multishot(sqe, sqe_fd, NULL, 0, 0);
             sqe->flags |= IOSQE_BUFFER_SELECT;
             sqe->buf_group = TOMO_URING2_RECV_BGID;
             URING2_STAT_BUMP(st, multishot_arms, 1);
@@ -800,9 +1319,13 @@ static int tomoUring2StageRecvs(tomoUring2Thread *st) {
              * clients were attached without one-shot storage. */
             if (!uc->recv_buf) uc->recv_buf = zmalloc(PROTO_IOBUF_LEN);
             serverAssert(uc->recv_buf != NULL);
-            io_uring_prep_recv(sqe, uc->fd, uc->recv_buf,
+            io_uring_prep_recv(sqe, sqe_fd, uc->recv_buf,
                                PROTO_IOBUF_LEN, 0);
             URING2_STAT_BUMP(st, recv_oneshot, 1);
+        }
+        if (use_fixed_file) {
+            sqe->flags |= IOSQE_FIXED_FILE;
+            URING2_STAT_BUMP(st, fixed_file_sqes, 1);
         }
         /* Helio uring_socket.cc:353-373: POLL_FIRST is conditional on the
          * prior receive's SOCK_NONEMPTY knowledge, never unconditional. */
@@ -860,7 +1383,7 @@ static void tomoUring2PollCqe(tomoUring2Thread *st, void *owner,
 static void tomoUring2RecvCqe(tomoUring2Thread *st, void *owner,
                               const struct io_uring_cqe *cqe) {
     tomoUring2Client *uc = owner;
-    tomoUring2AssertOwner(uc);
+    tomoUring2AssertOwnerInPass(st, uc);
     /* Do not consult the thread-wide capability here.  Another client's
      * rejected probe may have switched future arms to one-shot while this
      * already-submitted multishot request still owns F_MORE CQEs. */
@@ -907,9 +1430,6 @@ static void tomoUring2RecvCqe(tomoUring2Thread *st, void *owner,
     uc->socket_nonempty =
         cqe->res > 0 && uc->mode == TOMO_URING2_CLIENT_RUN &&
         (cqe->flags & IORING_CQE_F_SOCK_NONEMPTY) != 0;
-    if (uc->socket_nonempty)
-        URING2_STAT_BUMP(st, recv_sock_nonempty, 1);
-
     if (cqe->res > 0) {
         if (cqe->res > PROTO_IOBUF_LEN)
             tomoUring2Fatal(st, "receive CQE exceeds IO buffer", EPROTO);
@@ -982,7 +1502,7 @@ static void tomoUring2RecvCqe(tomoUring2Thread *st, void *owner,
 static void tomoUring2RecvCancelCqe(tomoUring2Thread *st, void *owner,
                                     const struct io_uring_cqe *cqe) {
     tomoUring2Client *uc = owner;
-    tomoUring2AssertOwner(uc);
+    tomoUring2AssertOwnerInPass(st, uc);
     if (cqe->user_data != uc->recv_cancel_token ||
         (cqe->flags & IORING_CQE_F_MORE))
         tomoUring2Fatal(st, "invalid receive-cancel CQE", EPROTO);
@@ -995,7 +1515,8 @@ static void tomoUring2RecvCancelCqe(tomoUring2Thread *st, void *owner,
     tomoUring2TryFinishDisarm(uc);
 }
 
-static void tomoUring2TryFinishSend(tomoUring2Client *uc) {
+static void tomoUring2TryFinishSend(tomoUring2Client *uc,
+                                    const ConnectionType *tcp_type) {
     tomoUring2Thread *st = uc->owner;
     if (uc->c->flags & CLIENT_PROTECTED) return;
     if (uc->send_result_pending || !uc->send_active || !uc->send_main_seen)
@@ -1042,7 +1563,7 @@ static void tomoUring2TryFinishSend(tomoUring2Client *uc) {
         /* Exactly one prefix is active per connection.  A later c->buf prefix
          * is copied only after this CQE; a legacy reply-list write cannot pass
          * it because ClientSendPending remains true through retirement. */
-        if (tomoUring2SendCanPromote(uc))
+        if (tomoUring2SendCanPromote(uc, tcp_type))
             tomoUring2SendPush(st, uc);
         else if (uc->c->bufpos || listLength(uc->c->reply))
             putClientInPendingWriteQueue(uc->c);
@@ -1051,8 +1572,19 @@ static void tomoUring2TryFinishSend(tomoUring2Client *uc) {
     }
 }
 
+typedef struct tomoUring2SendResultFold {
+    int owner_tid;
+    time_t unixtime;
+    int phase_trace_sample;
+    uint64_t bytes;
+    uint64_t writes;
+    uint64_t partial;
+    uint64_t errors;
+} tomoUring2SendResultFold;
+
 static void tomoUring2AccountSendBytes(tomoUring2Thread *st,
-                                       tomoUring2Client *uc, size_t n) {
+                                       tomoUring2Client *uc, size_t n,
+                                       tomoUring2SendResultFold *fold) {
     client *c = uc->c;
     if (uc->send_nocopy &&
         (c->buf != uc->send_direct_buf ||
@@ -1066,25 +1598,37 @@ static void tomoUring2AccountSendBytes(tomoUring2Thread *st,
         c->sentlen = 0;
         c->bufpos = 0;
     }
-    URING2_STAT_BUMP(st, send_bytes, n);
-    server.stat_io_writes_processed[iotid] += 1;
-    tomoRelaxedBump(server.netstat[iotid].out, n);
+    fold->bytes += n;
+    fold->writes++;
     clientTail(c)->net_output_bytes += n;
-    if (!(c->flags & CLIENT_MASTER)) clientTail(c)->lastinteraction = server.unixtime;
+    if (!(c->flags & CLIENT_MASTER))
+        clientTail(c)->lastinteraction = fold->unixtime;
 }
 
 static void tomoUring2ApplySendResult(tomoUring2Thread *st,
-                                      tomoUring2Client *uc) {
+                                      tomoUring2Client *uc,
+                                      tomoUring2SendResultFold *fold) {
     if (!uc->send_result_pending) return;
     serverAssert(!(uc->c->flags & CLIENT_PROTECTED));
     int res = uc->send_result;
     uc->send_result_pending = 0;
+    int used_fixed_buf = uc->send_fixed_buf_submitted;
+    uc->send_fixed_buf_submitted = 0;
+    if (used_fixed_buf &&
+        (res == -EINVAL || res == -EFAULT || res == -EOPNOTSUPP)) {
+        /* Ordinary SEND gained fixed-buffer support later than SEND_ZC.
+         * Treat an unsupported or rejected fixed-buffer image as a one-time
+         * per-connection downgrade and retry the untouched scratch prefix. */
+        tomoUring2ReleaseFixedBuffer(uc);
+        URING2_STAT_BUMP(st, reg_fallbacks, 1);
+        return;
+    }
     if (res > 0) {
-        tomoUring2AccountSendBytes(st, uc, (size_t)res);
-        if (__builtin_expect(server.phase_trace_sample != 0, 0))
+        tomoUring2AccountSendBytes(st, uc, (size_t)res, fold);
+        if (__builtin_expect(fold->phase_trace_sample != 0, 0))
             tomoPhaseSendDone(uc->c);
         if (uc->send_off < uc->send_len)
-            URING2_STAT_BUMP(st, send_partial, 1);
+            fold->partial++;
     } else if (res == -EAGAIN || res == -EINTR ||
                (res == -ECANCELED && !uc->send_disarming)) {
         /* Retry the same immutable scratch prefix after this CQE. */
@@ -1092,7 +1636,7 @@ static void tomoUring2ApplySendResult(tomoUring2Thread *st,
         /* Close-time cancellation; logical bytes remain in c->buf. */
     } else {
         uc->send_failed = 1;
-        URING2_STAT_BUMP(st, send_errors, 1);
+        fold->errors++;
         serverLog(LL_VERBOSE,
                   "Error writing to io_uring mode-2 client %llu: %s",
                   (unsigned long long)clientTail(uc->c)->id,
@@ -1101,28 +1645,68 @@ static void tomoUring2ApplySendResult(tomoUring2Thread *st,
     }
 }
 
+static void tomoUring2PublishSendResultFold(
+    tomoUring2Thread *st, const tomoUring2SendResultFold *fold) {
+    if (fold->bytes) {
+        URING2_STAT_BUMP(st, send_bytes, fold->bytes);
+        server.stat_io_writes_processed[fold->owner_tid] += fold->writes;
+        tomoRelaxedBump(server.netstat[fold->owner_tid].out, fold->bytes);
+    }
+    if (fold->partial)
+        URING2_STAT_BUMP(st, send_partial, fold->partial);
+    if (fold->errors)
+        URING2_STAT_BUMP(st, send_errors, fold->errors);
+}
+
+static void tomoUring2ProcessSendReadyBatch(
+    tomoUring2Thread *st, tomoUring2Client **ready, unsigned int count) {
+    tomoUring2SendResultFold fold = {
+        .owner_tid = st->tid,
+        .unixtime = server.unixtime,
+        .phase_trace_sample = server.phase_trace_sample,
+    };
+    const ConnectionType *tcp_type = connectionTypeTcp();
+
+    for (unsigned int i = 0; i < count; i++) {
+        tomoUring2Client *uc = ready[i];
+        if (!(uc->c->flags & CLIENT_PROTECTED))
+            tomoUring2ApplySendResult(st, uc, &fold);
+        tomoUring2TryFinishSend(uc, tcp_type);
+    }
+    tomoUring2PublishSendResultFold(st, &fold);
+    URING2_STAT_BUMP(st, send_ceremony_batches, 1);
+    URING2_STAT_BUMP(st, send_ceremony_batched_ops, count);
+}
+
+static void tomoUring2ApplySendResultScalar(tomoUring2Thread *st,
+                                             tomoUring2Client *uc) {
+    tomoUring2SendResultFold fold = {
+        .owner_tid = st->tid,
+        .unixtime = server.unixtime,
+        .phase_trace_sample = server.phase_trace_sample,
+    };
+    tomoUring2ApplySendResult(st, uc, &fold);
+    tomoUring2PublishSendResultFold(st, &fold);
+}
+
 static void tomoUring2SendCqe(tomoUring2Thread *st, void *owner,
                               const struct io_uring_cqe *cqe) {
     tomoUring2Client *uc = owner;
-    tomoUring2AssertOwner(uc);
+    tomoUring2AssertOwnerInPass(st, uc);
     if (!uc->send_active || !uc->send_submitted ||
         cqe->user_data != uc->send_token ||
         (cqe->flags & (IORING_CQE_F_MORE | IORING_CQE_F_NOTIF)))
         tomoUring2Fatal(st, "invalid ordinary SEND CQE", EPROTO);
-    URING2_STAT_BUMP(st, send_cqes, 1);
     uc->send_token = 0;
     uc->send_main_seen = 1;
     uc->send_result = cqe->res;
     uc->send_result_pending = 1;
-    if (!(uc->c->flags & CLIENT_PROTECTED))
-        tomoUring2ApplySendResult(st, uc);
-    tomoUring2TryFinishSend(uc);
 }
 
 static void tomoUring2SendCancelCqe(tomoUring2Thread *st, void *owner,
                                     const struct io_uring_cqe *cqe) {
     tomoUring2Client *uc = owner;
-    tomoUring2AssertOwner(uc);
+    tomoUring2AssertOwnerInPass(st, uc);
     if (cqe->user_data != uc->send_cancel_token ||
         (cqe->flags & IORING_CQE_F_MORE))
         tomoUring2Fatal(st, "invalid send-cancel CQE", EPROTO);
@@ -1132,7 +1716,7 @@ static void tomoUring2SendCancelCqe(tomoUring2Thread *st, void *owner,
     uc->send_cancel_token = 0;
     uc->send_cancel_submitted = 0;
     uc->send_cancel_seen = 1;
-    tomoUring2TryFinishSend(uc);
+    tomoUring2TryFinishSend(uc, connectionTypeTcp());
 }
 
 static void tomoUring2ResumeNow(tomoUring2Client *uc) {
@@ -1160,8 +1744,7 @@ static int tomoUring2ProcessReady(tomoUring2Thread *st,
     int processed = 0;
     unsigned budget = st->parse_count;
     while (budget-- && st->parse_head) {
-        tomoUring2Client *uc = st->parse_head;
-        tomoUring2ParseRemove(st, uc);
+        tomoUring2Client *uc = tomoUring2ParsePop(st);
         if (uc->in_callback) {
             tomoUring2ParsePush(st, uc);
             continue;
@@ -1213,34 +1796,87 @@ static int tomoUring2ProcessReady(tomoUring2Thread *st,
     return processed;
 }
 
-static void tomoUring2ProcessCqe(tomoUring2Thread *st,
-                                 const struct io_uring_cqe *kernel_cqe) {
-    /* Copy before advancing, matching Helio uring_proactor.cc:279-320. */
-    struct io_uring_cqe cqe = *kernel_cqe;
-    uint32_t index = (uint32_t)cqe.user_data;
-    uint32_t tag = (uint32_t)(cqe.user_data >> 32);
-    if (index >= st->slot_count)
-        tomoUring2Fatal(st, "CQE callback index", EPROTO);
-    tomoUring2CallbackSlot *slot = &st->slots[index];
-    if (!slot->in_use || !slot->callback || slot->tag != tag)
-        tomoUring2Fatal(st, "stale/foreign CQE callback tag", EPROTO);
+static unsigned int tomoUring2ProcessCqeBatch(
+    tomoUring2Thread *st, struct io_uring_cqe **kernel_cqes,
+    unsigned count) {
+    /* Slot storage and its free-list frontier are pass invariants. Retire the
+     * callback images in one tight array walk, keep the free frontier and
+     * pending count local, and fold per-kind stats once after the walk. */
+    tomoUring2CallbackSlot *slots = st->slots;
+    const uint32_t slot_count = st->slot_count;
+    /* The walk keeps the freelist frontier in a LOCAL; a callback that allocated an SQE slot
+     * (tomoUring2GetSqeFromImage pops st->free_slot) would be silently overwritten by the
+     * writeback below — double-allocated slot, misdirected completion. No callback does that
+     * today; the flag turns "one refactor away" into an assert. */
+    st->in_cqe_walk = 1;
+    uint32_t free_slot = st->free_slot;
+    uint32_t retired = 0;
+    uint64_t recv_cqes = 0;
+    uint64_t recv_bytes = 0;
+    uint64_t recv_sock_nonempty = 0;
+    unsigned int recv_ops = 0;
+    uint64_t send_cqes = 0;
+    tomoUring2Client *send_ready[TOMO_URING2_CQE_BATCH];
+    unsigned int send_ready_count = 0;
 
-    tomoUring2Completion *callback = slot->callback;
-    void *owner = slot->owner;
-    if (!(cqe.flags & IORING_CQE_F_MORE)) {
-        slot->callback = NULL;
-        slot->owner = NULL;
-        slot->tag = 0;
-        slot->kind = 0;
-        slot->in_use = 0;
-        slot->next_free = st->free_slot;
-        st->free_slot = index;
-        serverAssert(st->pending_slots > 0);
-        st->pending_slots--;
+    for (unsigned i = 0; i < count; i++) {
+        /* Copy before advancing, matching Helio uring_proactor.cc:279-320. */
+        struct io_uring_cqe cqe = *kernel_cqes[i];
+        uint32_t index = (uint32_t)cqe.user_data;
+        uint32_t tag = (uint32_t)(cqe.user_data >> 32);
+        if (index >= slot_count)
+            tomoUring2Fatal(st, "CQE callback index", EPROTO);
+        tomoUring2CallbackSlot *slot = &slots[index];
+        if (!slot->in_use || !slot->callback || slot->tag != tag)
+            tomoUring2Fatal(st, "stale/foreign CQE callback tag", EPROTO);
+
+        tomoUring2Completion *callback = slot->callback;
+        void *owner = slot->owner;
+        unsigned char kind = slot->kind;
+        if (!(cqe.flags & IORING_CQE_F_MORE)) {
+            slot->callback = NULL;
+            slot->owner = NULL;
+            slot->tag = 0;
+            slot->kind = 0;
+            slot->in_use = 0;
+            slot->next_free = free_slot;
+            free_slot = index;
+            retired++;
+        }
+        /* F_MORE deliberately leaves the indexed callback allocated for a
+         * multishot operation, exactly as Helio uring_proactor.cc:309-320. */
+        if (kind == TOMO_URING2_OP_RECV) {
+            recv_cqes++;
+            if (cqe.res > 0) {
+                recv_ops++;
+                recv_bytes += (uint64_t)cqe.res;
+                tomoUring2Client *uc = owner;
+                if (uc->mode == TOMO_URING2_CLIENT_RUN &&
+                    (cqe.flags & IORING_CQE_F_SOCK_NONEMPTY))
+                    recv_sock_nonempty++;
+            }
+        } else if (kind == TOMO_URING2_OP_SEND) {
+            send_cqes++;
+        }
+        callback(st, owner, &cqe);
+        if (kind == TOMO_URING2_OP_SEND) {
+            serverAssert(send_ready_count < TOMO_URING2_CQE_BATCH);
+            send_ready[send_ready_count++] = owner;
+        }
     }
-    /* F_MORE deliberately leaves the indexed callback allocated for a
-     * multishot operation, exactly as Helio uring_proactor.cc:309-320. */
-    callback(st, owner, &cqe);
+
+    serverAssert(st->pending_slots >= retired);
+    st->in_cqe_walk = 0;
+    st->free_slot = free_slot;
+    st->pending_slots -= retired;
+    if (send_ready_count)
+        tomoUring2ProcessSendReadyBatch(st, send_ready, send_ready_count);
+    if (recv_cqes) URING2_STAT_BUMP(st, recv_cqes, recv_cqes);
+    if (recv_bytes) URING2_STAT_BUMP(st, recv_bytes, recv_bytes);
+    if (recv_sock_nonempty)
+        URING2_STAT_BUMP(st, recv_sock_nonempty, recv_sock_nonempty);
+    if (send_cqes) URING2_STAT_BUMP(st, send_cqes, send_cqes);
+    return recv_ops;
 }
 
 static int tomoUring2ReapAe(aeEventLoop *el, int process_file_events) {
@@ -1251,7 +1887,11 @@ static int tomoUring2ReapAe(aeEventLoop *el, int process_file_events) {
 
     struct io_uring_cqe *cqes[TOMO_URING2_CQE_BATCH];
     unsigned total = 0;
+    unsigned int recv_ops = 0;
     int started = 0;
+    int input_batch = io_uring_cq_ready(&st->ring) != 0 ||
+                      (process_file_events && st->parse_count != 0);
+    if (input_batch) tomoUringInputBatchBegin();
     for (;;) {
         /* Gate the liburing batch helper with the userspace CQ count.  When
          * CQ is empty, io_uring_peek_batch_cqe() may itself enter the kernel
@@ -1262,13 +1902,18 @@ static int tomoUring2ReapAe(aeEventLoop *el, int process_file_events) {
         unsigned count = io_uring_peek_batch_cqe(
             &st->ring, cqes, TOMO_URING2_CQE_BATCH);
         if (count == 0) break;
+        /* A CQE can arrive after the entry sample above. Open the same scope
+         * before its callbacks so no harvested receive takes the scalar path. */
+        if (!input_batch) {
+            tomoUringInputBatchBegin();
+            input_batch = 1;
+        }
         if (!started) {
             URING2_STAT_BUMP(st, cq_drain_passes, 1);
             started = 1;
         }
         URING2_STAT_BUMP(st, cq_batches, 1);
-        for (unsigned i = 0; i < count; i++)
-            tomoUring2ProcessCqe(st, cqes[i]);
+        recv_ops += tomoUring2ProcessCqeBatch(st, cqes, count);
         io_uring_cq_advance(&st->ring, count);
         total += count;
         URING2_STAT_BUMP(st, cqes, count);
@@ -1276,7 +1921,14 @@ static int tomoUring2ReapAe(aeEventLoop *el, int process_file_events) {
          * the callbacks above ran (Helio uring_proactor.cc:347-359). */
     }
 
+    if (input_batch) tomoUringInputBatchHarvestDone();
     int processed = tomoUring2ProcessReady(st, process_file_events);
+    if (input_batch) tomoUringInputBatchEnd();
+    if (recv_ops) {
+        /* These two increments happen once per complete drain, not per CQE. */
+        URING2_STAT_BUMP(st, p1_batch_harvests, 1);
+        URING2_STAT_BUMP(st, recv_ceremony_batched_ops, recv_ops);
+    }
     uint64_t reported = (uint64_t)processed + total;
     if (reported > AE_URING_COUNT_MASK) reported = AE_URING_COUNT_MASK;
     int result = (int)reported;
@@ -1544,6 +2196,14 @@ static void tomoUring2CleanupThread(tomoUring2Thread *st) {
                       st->tid, strerror(-rc));
     }
     if (st->ring_initialized) {
+        if (st->buffer_table_registered) {
+            (void)io_uring_unregister_buffers(&st->ring);
+            st->buffer_table_registered = 0;
+        }
+        if (st->file_table_registered) {
+            (void)io_uring_unregister_files(&st->ring);
+            st->file_table_registered = 0;
+        }
         io_uring_queue_exit(&st->ring);
         st->ring_initialized = 0;
     }
@@ -1555,6 +2215,20 @@ static void tomoUring2CleanupThread(tomoUring2Thread *st) {
     st->recv_buf_ring_mask = 0;
     st->multishot_enabled = 0;
     st->multishot_rejected = 0;
+    if (st->buffer_slots) {
+        for (uint32_t i = 0; i < st->buffer_slot_count; i++) {
+            if (st->buffer_slots[i].quarantined)
+                zfree(st->buffer_slots[i].base);
+        }
+    }
+    zfree(st->buffer_slots);
+    st->buffer_slots = NULL;
+    st->buffer_slot_count = 0;
+    st->free_buffer_slot = TOMO_URING2_NO_SLOT;
+    zfree(st->file_slots);
+    st->file_slots = NULL;
+    st->file_slot_count = 0;
+    st->free_file_slot = TOMO_URING2_NO_SLOT;
     zfree(st->slots);
     st->slots = NULL;
     st->slot_count = 0;
@@ -1664,6 +2338,8 @@ static int tomoUring2InitThread(int tid, aeEventLoop *el) {
     }
 
     tomoUring2SetupRecvBufRing(st, &kv);
+    (void)tomoUring2InitFileTable(st);
+    (void)tomoUring2InitBufferTable(st);
 
     st->slot_count = params.sq_entries;
     st->slots = zcalloc(sizeof(*st->slots) * st->slot_count);
@@ -1693,7 +2369,8 @@ static int tomoUring2InitThread(int tid, aeEventLoop *el) {
     serverLog(LL_NOTICE,
               "tomokv io_uring mode 2 owner %d ready: kernel %s, liburing "
               "%d.%d, %u-entry staged ring, flags=%s%s, one issuer; "
-              "128-CQE drain-to-empty; POLL_FIRST=%s; RECV=%s; SEND=%s",
+              "128-CQE drain-to-empty; POLL_FIRST=%s; SEND scratch pinned "
+              "through CQE; RECV=%s; SEND=%s; fixed-files=%u; fixed-buffers=%u",
               tid, kv.release, liburing_major, liburing_minor,
               params.sq_entries,
               (params.flags & IORING_SETUP_SUBMIT_ALL) ? "SUBMIT_ALL" :
@@ -1705,7 +2382,9 @@ static int tomoUring2InitThread(int tid, aeEventLoop *el) {
               st->multishot_enabled ? "multishot+provided-ring" :
                                       "one-shot",
               server.uring_sendcopy_min ? "guarded-direct+scratch-fallback" :
-                                          "scratch-copy");
+                                          "scratch-copy",
+              st->file_table_registered ? st->file_slot_count : 0,
+              st->buffer_table_registered ? st->buffer_slot_count : 0);
     return C_OK;
 
 fail_ring:
@@ -1739,7 +2418,7 @@ static int tomoUring2ClientQueueWrite(client *c) {
     if (uc->mode == TOMO_URING2_CLIENT_CLOSE ||
         uc->mode == TOMO_URING2_CLIENT_TRANSIT ||
         (c->flags & (CLIENT_CLOSE_ASAP | CLIENT_PROTECTED)) ||
-        !tomoUring2SendCanPromote(uc))
+        !tomoUring2SendCanPromote(uc, connectionTypeTcp()))
         return C_ERR;
     tomoUring2SendPush(uc->owner, uc);
     return C_OK;
@@ -1761,6 +2440,8 @@ static int tomoUring2ClientAttach(client *c) {
     uc->owner = st;
     uc->owner_tid = iotid;
     uc->fd = c->conn->fd;
+    uc->fixed_file_slot = TOMO_URING2_NO_SLOT;
+    uc->fixed_buf_slot = TOMO_URING2_NO_SLOT;
     uc->recv_state = TOMO_URING2_RECV_IDLE;
     uc->mode = TOMO_URING2_CLIENT_RUN;
     uc->cancel_seen = 1;
@@ -1771,6 +2452,8 @@ static int tomoUring2ClientAttach(client *c) {
         zfree(uc);
         return C_ERR;
     }
+    tomoUring2RegisterClientResources(uc);
+    tomoUring2BuildSendTemplate(uc);
     clientTail(c)->uring = (struct tomoUringClient *)(void *)uc;
     tomoUring2ArmPush(st, uc);
     return C_OK;
@@ -1813,6 +2496,7 @@ static void tomoUring2ClientPublishTransit(client *c) {
     tomoUring2AssertOwner(uc);
     serverAssert(tomoUring2ClientMigrationReady(c));
     tomoUring2Thread *source = uc->owner;
+    tomoUring2ReleaseClientResources(uc);
     uc->mode = TOMO_URING2_CLIENT_TRANSIT;
     uc->socket_nonempty = 0;
     uc->owner = NULL;
@@ -1834,6 +2518,10 @@ static int tomoUring2ClientAdopt(client *c) {
         uc->recv_buf = zmalloc(PROTO_IOBUF_LEN);
     uc->owner = st;
     uc->owner_tid = iotid;
+    tomoUring2RegisterClientResources(uc);
+    /* The fixed index is ring-local. Rebuild before adopt can expose any
+     * owner work that stages a SEND or receive arm. */
+    tomoUring2BuildSendTemplate(uc);
     uc->socket_nonempty = 0;
     uc->mode = TOMO_URING2_CLIENT_MIGRATE;
     return C_OK;
@@ -1866,8 +2554,8 @@ static void tomoUring2ClientResume(client *c) {
     }
     if (uc->send_active) {
         if (uc->send_result_pending)
-            tomoUring2ApplySendResult(uc->owner, uc);
-        tomoUring2TryFinishSend(uc);
+            tomoUring2ApplySendResultScalar(uc->owner, uc);
+        tomoUring2TryFinishSend(uc, connectionTypeTcp());
         if (uc->mode == TOMO_URING2_CLIENT_CLOSE ||
             (c->flags & CLIENT_CLOSE_ASAP))
             return;
@@ -1920,6 +2608,8 @@ static void tomoUring2ClientRelease(client *c) {
     if (!uc) return;
     tomoUring2AssertOwner(uc);
     serverAssert(tomoUring2ClientCloseReady(c));
+    /* freeClient() closes conn->fd only after backend release returns. */
+    tomoUring2ReleaseClientResources(uc);
     clientTail(c)->uring = NULL;
     zfree(uc->recv_buf);
     zfree(uc->send_scratch);
@@ -1965,6 +2655,8 @@ void tomoUring2GetStats(tomoUring2Stats *out) {
     FOLD(cq_drain_passes);
     FOLD(cq_batches);
     FOLD(epoll_wakes);
+    FOLD(p1_batch_harvests);
+    FOLD(recv_ceremony_batched_ops);
     FOLD(recv_submitted);
     FOLD(recv_cqes);
     FOLD(recv_bytes);
@@ -1987,6 +2679,12 @@ void tomoUring2GetStats(tomoUring2Stats *out) {
     FOLD(send_nocopy);
     FOLD(send_copy);
     FOLD(send_cancel_submitted);
+    FOLD(send_ceremony_batches);
+    FOLD(send_ceremony_batched_ops);
+    FOLD(sqe_template_hits);
+    FOLD(fixed_file_sqes);
+    FOLD(fixed_buf_sqes);
+    FOLD(reg_fallbacks);
     FOLD(migration_acks);
     for (int i = 0; i <= TOMO_IO_THREADS_MAX; i++) {
         uint64_t v = tomoRelaxedRead(tomo_uring2[i].stats.sqes_max_batch);

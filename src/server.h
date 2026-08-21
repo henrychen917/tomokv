@@ -1515,6 +1515,15 @@ typedef struct {
 #define TOMO_RORD_TIER_ELEM  16    /* argv range <= this => C2 ELEM  */
 #define TOMO_RORD_TIER_SMALL 256   /* <= this => C3 SMALL */
 #define TOMO_RORD_TIER_MED   4096  /* <= this => C4 MED; else C5 BIG. getrange window is /64 (bytes->elems) */
+#define TOMO_RORD_CAP 64           /* reorder/staging window capacity (also the DEBUG window max) */
+/* DEBUG TOMO-RORDMASK: independently ablate the passes in the reorder stack. */
+#define TOMO_RORD_MASK_WORKER_GROUP 0x01
+#define TOMO_RORD_MASK_AGE_SLICE    0x02
+#define TOMO_RORD_MASK_DEP_FENCE    0x04
+#define TOMO_RORD_MASK_HEAD_PROMO   0x08
+#define TOMO_RORD_MASK_CLASS_SJF    0x10
+#define TOMO_RORD_MASK_BUCKET_GROUP 0x20
+#define TOMO_RORD_MASK_ALL          0x3F
 /* Shinjuku (reorder mode 3) per-class service-time proxy (relative). argmax(wait/SLO) => a short
  * class (small SLO) outranks a long one until the long one has waited proportionally longer.
  * Monotonic in class; values are relative, calibrate later. */
@@ -1843,6 +1852,18 @@ typedef union clientExecTail {
         int last_memory_type;
         redisAtomic int pending_read;
         uint8_t read_error;
+        /* p1direct per-conn mode state. All three are io-owner-written plain bytes:
+         * p1d_mode/p1d_streak are only ever touched by the owning io thread; p1d_inflight
+         * is set by the owner before the dispatch publish and cleared after the completion
+         * consume, so the worker-side phase-trace peek that reads it does so strictly
+         * inside the window where its value is 1 (race-free by publication order). They
+         * occupy the alignment hole after read_error — tail size unchanged. */
+        uint8_t p1d_mode;       /* TOMO_P1D_DIRECT (boot default) | TOMO_P1D_FC */
+        uint8_t p1d_inflight;   /* 1 while a DIRECT dispatch is in flight on ex */
+        uint8_t p1d_streak;     /* consecutive clean singleton rounds while in FC (saturating) */
+        /* IO-owned provenance for mode-2 cross-node reply prefetch. A bit is
+         * set when any worker producing this ring generation is remote. */
+        uint32_t prefetch_io_xnode_slots;
         /* Selected successful socket/CQE receive observation. Its P1 command
          * consumes this t0 into the pending-command handoff record. */
         uint64_t phase_recv_us;
@@ -1951,6 +1972,86 @@ _Static_assert(offsetof(client, prefetch_key_hash) == 136, "client prefetch stat
 _Static_assert(offsetof(client, reply_bytes) == 192, "client reply accounting left hot line 3");
 _Static_assert(offsetof(client, argc) == 276, "client argv state left hot line 4");
 #endif
+
+/* ===== p1 DIRECT-CLIENT: the EX_OWNED ownership window (design 2026-08-19) =============
+ *
+ * In DIRECT mode the dispatch hands the REAL client* to an ex thread (no fake wrapper).
+ * The window is delimited by the flag every dispatched execution object already carries:
+ * CLIENT_EX_PENDING on a NON-fake client == "an ex thread is executing on this real
+ * client right now". The owning io thread sets it immediately before the SPSC dispatch
+ * publish and clears it when it consumes the completion byte, so for the owner the flag
+ * is program-ordered; the worker observes it through the queue's release/acquire pair.
+ *
+ * While the window is open, EVERY io-side toucher must defer/skip this client:
+ *   - clientsCronRunClient (querybuf resize, obuf limit check, timeout processing,
+ *     output-buffer resize, fake-ring decay, memory sampling),
+ *   - CLIENT KILL / freeClient / freeClientAsync (record CLOSE_ASAP intent, act after
+ *     handback via the async-free walker, which already skips EX_PENDING clients),
+ *   - client-lb / flip connection migration (start walks skip; the handoff already
+ *     waits on tmClientQuiesced's dispatchid==flushid fence),
+ *   - the reply path's output-buffer-limit close (re-checked io-side at handback).
+ * Ex normally touches only exec-visible fields (argv, db context, c->buf/bufpos, reply
+ * metrics). With p1direct publish enabled, it may also issue one raw write on the stable
+ * plain-socket fd and advance the existing output cursor before publishing completion;
+ * it never mutates events, connection lifecycle, querybuf, or migration fields. */
+static inline int clientExOwnedReal(const client *c) {
+    return !c->isFake && (c->flags & CLIENT_EX_PENDING);
+}
+
+/* p1direct per-conn mode values (clientExecTail.p1d_mode). DIRECT is the boot state:
+ * the first command on a fresh conn is always a singleton. */
+#define TOMO_P1D_DIRECT 0
+#define TOMO_P1D_FC     1
+
+/* Flags that disqualify a conn from DIRECT dispatch outright. The fake path executes
+ * with a four-flag SUBSET (moveExecutionStateSlim), so a conn whose full flag word
+ * carries connection-scoped semantics the GET/SET proc or its reply path could observe
+ * (replication identities, reply silencing, tracking, teardown, migration, parks) must
+ * stay on the fake path where those flags are stripped for the execution object. */
+#define TOMO_P1D_DISQUALIFY_FLAGS \
+    (CLIENT_MULTI | CLIENT_BLOCKED | CLIENT_UNBLOCKED | CLIENT_SLAVE | CLIENT_MASTER | \
+     CLIENT_MONITOR | CLIENT_TRACKING | CLIENT_REPLY_OFF | CLIENT_REPLY_SKIP | \
+     CLIENT_REPLY_SKIP_NEXT | CLIENT_CLOSE_AFTER_REPLY | CLIENT_CLOSE_ASAP | \
+     CLIENT_CLOSE_AFTER_COMMAND | \
+     CLIENT_PROTECTED | CLIENT_MIGRATING | CLIENT_SCRIPT | CLIENT_MODULE | \
+     CLIENT_INTERNAL | CLIENT_ASM_MIGRATING | CLIENT_ASM_IMPORTING | CLIENT_PUSHING | \
+     CLIENT_PENDING_WRITE | CLIENT_PUBSUB)
+/* CLIENT_PUBSUB: PUBLISH delivery writes the SUBSCRIBER's c->buf from the publisher's io
+ * thread (addReplyPubsubMessage), and RESP3 subscribers may still issue GET. A DIRECT flight
+ * would widen that pre-existing two-writer window from the splice instant to the whole
+ * flight — subscribers stay on the fake path. */
+
+/* p1direct witness counters (anti-vacuous rule: every closed path ships a counter that
+ * proves it opened). One cache line per io identity, owner-incremented with plain stores;
+ * INFO folds the slots. INVARIANT: dispatches == handbacks at quiesce — a lasting gap is
+ * exactly the captured wedge signature (parsed+dispatched, argv held, events unarmed,
+ * conn starved forever). deferred_kills may be bumped from a non-owner thread (a killer
+ * thread records intent); that writer indexes its own slot, so slots stay single-writer. */
+typedef struct tomoP1DirectStats {
+    unsigned long long dispatches;          /* direct dispatches (io, at push) */
+    unsigned long long handbacks;           /* direct completions consumed (io, at drain) */
+    unsigned long long mode_to_fc;          /* per-conn DIRECT->FC transitions */
+    unsigned long long mode_to_direct;      /* per-conn FC->DIRECT transitions */
+    unsigned long long deferred_cron_touches;  /* clientsCronRunClient skipped an EX_OWNED conn */
+    unsigned long long deferred_migrations;    /* migration start/handoff deferred on EX_OWNED */
+    unsigned long long deferred_kills;         /* kill intent recorded on an EX_OWNED conn */
+    unsigned long long spill_fallbacks;        /* direct reply overflowed c->buf => conn -> FC */
+} __attribute__((aligned(CACHE_LINE_SIZE))) tomoP1DirectStats;
+_Static_assert(sizeof(tomoP1DirectStats) == CACHE_LINE_SIZE,
+               "p1direct witness slot must occupy exactly one owner line");
+extern tomoP1DirectStats tomo_p1d_stats[TOMO_IO_THREADS_MAX + 1];
+/* Master toggle (DEBUG TOMO-P1DIRECT <0|1>, default ON; 0 forces all-FC without touching
+ * per-conn mode state — the validation A/B lever). Deliberately NOT a config knob. */
+extern _Atomic int tomo_p1direct_enabled;
+/* Executor-side p1 reply publication. The modifiable config is mirrored into this
+ * read-mostly atomic so the disabled worker path is one predictable branch. */
+extern _Atomic int tomo_p1direct_publish_enabled;
+/* Non-io callers (a killer thread recording intent from a cold teardown path) fold
+ * into slot 0; the guard keeps a worker-range iotid from indexing out of bounds. */
+#define TOMO_P1D_BUMP(fieldname) do { \
+        int _p1d_slot = (iotid >= 0 && iotid <= TOMO_IO_THREADS_MAX) ? iotid : 0; \
+        tomo_p1d_stats[_p1d_slot].fieldname++; \
+    } while (0)
 
 /* Non-allocating cold-state readers. Call the subsystem initializer before a
  * write; these helpers deliberately return NULL for never-used state. */
@@ -3345,6 +3446,7 @@ struct redisServer {
      * that migration, so a competing ordinary arm cannot inherit a flip action. */
     int tm_mig_flip_action;
     int pipeline_ring_depth;
+    int tomo_p1direct_publish;  /* modifiable tomokv-p1direct-publish; default off */
     int ex_queue_size;
     unsigned int ex_queue_mask;
     /* (ex_dispatch_mask DELETED 2026-07-28: a v8 leftover — worker routing goes through the
@@ -4963,6 +5065,8 @@ int moduleHasKeyspaceChangeCallbacks(int type);
 /* pcmd */
 void initPendingCommand(pendingCommand *pcmd);
 void freePendingCommand(client *c, pendingCommand *pcmd);
+void pendingCommandReturnBatchBegin(void);
+void pendingCommandReturnBatchEnd(void);
 void addPendingCommand(pendingCommandList *queue, pendingCommand *cmd);
 pendingCommand *popPendingCommandFromHead(pendingCommandList *queue);
 pendingCommand *popPendingCommandFromTail(pendingCommandList *queue);
@@ -5051,6 +5155,9 @@ int isClientReadErrorFatal(client *c);
 int processInputBuffer(client *c);
 int appendClientInputFromUring(client *c, const void *buf, size_t len);
 int processClientInputFromUring(client *c);
+void tomoUringInputBatchBegin(void);
+void tomoUringInputBatchHarvestDone(void);
+void tomoUringInputBatchEnd(void);
 void acceptCommonHandler(connection *conn, int flags, char *ip);
 void readQueryFromClient(connection *conn);
 int prepareClientToWrite(client *c);
@@ -6347,6 +6454,12 @@ void persistCommand(client *c);
 void replicaofCommand(client *c);
 void roleCommand(client *c);
 extern int tm_flip_trace;
+extern int tomo_disp_window_forced_zero;
+extern int tomo_disp_window_forced_val;
+extern _Atomic int tomo_disp_window[TOMO_IO_THREADS_MAX + 1];
+extern int tomo_rord_mask;
+extern int tomo_rord_diag;
+extern int tomo_rord_unsafe_diag;
 extern int tm_rord_trace;
 void debugCommand(client *c);
 void msetCommand(client *c);

@@ -34,6 +34,8 @@ typedef struct tomoUring2Stats {
     uint64_t cq_drain_passes;
     uint64_t cq_batches;
     uint64_t epoll_wakes;
+    uint64_t p1_batch_harvests;
+    uint64_t recv_ceremony_batched_ops;
     uint64_t recv_submitted;
     uint64_t recv_cqes;
     uint64_t recv_bytes;
@@ -56,10 +58,18 @@ typedef struct tomoUring2Stats {
     uint64_t send_nocopy;
     uint64_t send_copy;
     uint64_t send_cancel_submitted;
+    uint64_t send_ceremony_batches;
+    uint64_t send_ceremony_batched_ops;
+    uint64_t sqe_template_hits;
+    uint64_t fixed_file_sqes;
+    uint64_t fixed_buf_sqes;
+    uint64_t reg_fallbacks;
     uint64_t migration_acks;
 } tomoUring2Stats;
 
 void tomoUring2GetStats(tomoUring2Stats *out);
+int tomoUring2RegistrationEnabled(void);
+void tomoUring2SetRegistrationEnabled(int enabled);
 
 /* Immutable-mode dispatch for the sole nonzero backend. */
 int tomoUringBackendInitThread(int tid, struct aeEventLoop *el);

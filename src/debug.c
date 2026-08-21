@@ -27,6 +27,7 @@
 #include "flip_u1.h"
 #include "flip_r10.h"
 #include "flip_m1.h"
+#include "uring2.h"
 
 #include <arpa/inet.h>
 #include <signal.h>
@@ -999,6 +1000,47 @@ NULL
             node = owner / server.ex_per_node;
         }
         addReplyLongLong(c, node);
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-uringreg") && c->argc == 3) {
+        /* DEBUG TOMO-URINGREG <0|1> -- A/B gate for registered file and SEND
+         * buffer SQE fields. Slots remain owned while disabled so toggling is
+         * safe with live connections and re-enabling is immediate. */
+        long on;
+        if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
+        if (on != 0 && on != 1) {
+            addReplyError(c, "TOMO-URINGREG expects 0 or 1");
+            return;
+        }
+        tomoUring2SetRegistrationEnabled((int)on);
+        addReplyStatus(c, on ? "uring registration ON" :
+                               "uring registration OFF (raw SQEs)");
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-p1direct") && c->argc == 3) {
+        /* DEBUG TOMO-P1DIRECT <0|1> -- master toggle for the p1 DIRECT-CLIENT mode,
+         * DEFAULTING ON. 0 forces every conn onto the fake path WITHOUT mutating per-conn
+         * mode state, so re-enabling restores the population instantly: this is the A/B
+         * lever the validation battery flips between arms (same class as TOMO-FLIPTRACE:
+         * a test hook, not a tunable — deliberately not a config knob). In-flight DIRECT
+         * commands complete normally; the toggle only gates NEW dispatches and mode
+         * transitions, so flipping it under load is always safe. */
+        long on;
+        if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
+        atomic_store_explicit(&tomo_p1direct_enabled, on != 0, memory_order_relaxed);
+        addReplyStatus(c, on != 0 ? "p1direct ON" : "p1direct OFF (all-FC)");
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-p1dpublish") && c->argc == 3) {
+        /* DEBUG TOMO-P1DPUBLISH <0|1> -- live A/B gate for executor-side socket
+         * publication of eligible p1direct replies. Keep the config's canonical
+         * value in step, and return the effective atomic value as an INTEGER so
+         * measurement suites can assert that the toggle actually took. */
+        long on;
+        if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
+        if (on != 0 && on != 1) {
+            addReplyError(c, "TOMO-P1DPUBLISH expects 0 or 1");
+            return;
+        }
+        server.tomo_p1direct_publish = (int)on;
+        atomic_store_explicit(&tomo_p1direct_publish_enabled, (int)on,
+                              memory_order_relaxed);
+        addReplyLongLong(c, atomic_load_explicit(&tomo_p1direct_publish_enabled,
+                                                 memory_order_relaxed));
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-fliptrace") && c->argc == 3) {
         /* DEBUG TOMO-FLIPTRACE <0|1> -- dense per-tick flip-controller trace. Test hook, same
          * class as TOMO-MODESHIFT: no default, no steady-state behaviour, just turns the firehose
@@ -1105,6 +1147,58 @@ NULL
         atomic_store_explicit(&tomo_atomic_memo_on, on != 0, memory_order_relaxed);
         addReplyStatus(c, on != 0 ? "atomic straddle memo ON"
                                   : "atomic straddle memo OFF (torn-hazard control arm)");
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-dispwindow") && c->argc == 3) {
+        /* DEBUG TOMO-DISPWINDOW <-1|0|N> -- diagnostic control of the SEDA window law's PUBLISHED
+         * value (the law itself keeps computing either way):
+         *   -1 or 1 = AUTO, the live law publishes
+         *    0      = forced 0 (pass-end flush only, pre-mechanism-A behaviour)
+         *    N > 1  = forced N on every io thread — sweeps window SIZE, which is how we separate
+         *             "early flush helps" from "how much early" (the staging supplement showed the
+         *             only measured reorder win is flush timing, not permutation).
+         * Integer reply so a suite can assert the value actually took. */
+        long want;
+        if (getLongFromObjectOrReply(c, c->argv[2], &want, NULL) != C_OK) return;
+        if (want < -1 || want > TOMO_RORD_CAP) {
+            addReplyErrorFormat(c, "TOMO-DISPWINDOW expects -1 (auto), 0, or 2..%d", TOMO_RORD_CAP);
+            return;
+        }
+        if (want == 1) want = -1;                 /* back-compat: 1 meant "restore auto" */
+        tomo_disp_window_forced_zero = (want == 0);
+        tomo_disp_window_forced_val = (want > 0) ? (int)want : -1;
+        if (want >= 0)
+            for (int t = 0; t <= TOMO_IO_THREADS_MAX; t++)
+                atomic_store_explicit(&tomo_disp_window[t], (int)want, memory_order_release);
+        addReplyLongLong(c, want);
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-rordmask") && c->argc == 3) {
+        /* DEBUG TOMO-RORDMASK <0..63> -- per-pass reorder ablation. Integer reply is intentional:
+         * measurement suites must assert the effective mask rather than trust an unverified OK. */
+        long requested;
+        if (getLongFromObjectOrReply(c, c->argv[2], &requested, NULL) != C_OK) return;
+        if (requested < 0 || requested > TOMO_RORD_MASK_ALL) {
+            addReplyError(c, "TOMO-RORDMASK expects an integer from 0 through 63");
+            return;
+        }
+        int mask = (int)requested;
+        /* Publish the sticky witness first: an INFO racing the mask store must never observe an
+         * unsafe mask with a zero unsafe_diag field. */
+        if (!(mask & TOMO_RORD_MASK_DEP_FENCE))
+            __atomic_store_n(&tomo_rord_unsafe_diag, 1, __ATOMIC_RELAXED);
+        int old = __atomic_exchange_n(&tomo_rord_mask, mask, __ATOMIC_RELEASE);
+        if ((old & TOMO_RORD_MASK_DEP_FENCE) && !(mask & TOMO_RORD_MASK_DEP_FENCE)) {
+            serverLog(LL_WARNING,
+                "DEBUG TOMO-RORDMASK disabled DEP_FENCE; same-connection same-key order is unsafe");
+        }
+        addReplyLongLong(c, mask);
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-rorddiag") && c->argc == 3) {
+        /* DEBUG TOMO-RORDDIAG <0|1> -- opt-in permutation-distance accounting. */
+        long on;
+        if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
+        if (on != 0 && on != 1) {
+            addReplyError(c, "TOMO-RORDDIAG expects 0 or 1");
+            return;
+        }
+        __atomic_store_n(&tomo_rord_diag, (int)on, __ATOMIC_RELAXED);
+        addReplyLongLong(c, on);
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-rordtrace") && c->argc == 3) {
         /* DEBUG TOMO-RORDTRACE <0|1> -- one-shot dump of the next reorder run's arrival vs emit
          * class sequence (class digit, upper=head-of-pipe, | = dependency fence). */

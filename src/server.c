@@ -734,7 +734,8 @@ __thread int tomo_access_trimmed = 0;
 /*============================ Internal prototypes ========================== */
 
 static inline int isShutdownInitiated(void);
-static inline int isCommandReusable(struct redisCommand *cmd, robj *commandArg);
+static inline int isCommandReusable(struct redisCommand *cmd, robj *previousArg,
+                                    robj *commandArg);
 int isReadyToShutdown(void);
 int finishShutdown(void);
 const char *replstateToString(int replstate);
@@ -1974,6 +1975,9 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     unsigned int tm_ring_stall_us;
     unsigned long long tm_drain_bytes;
     unsigned int tm_read_events;
+    /* DEBUG TOMO-RORDDIAG-only permutation distance. Appended in the struct's existing tail
+     * padding so none of the owner-written hot fields above move. */
+    unsigned long long rord_inversions;
 } tmIoSignal;
 
 /* WB-only input-specialization counters live outside tmIoSignal so wb=0 retains its exact
@@ -2698,10 +2702,12 @@ static int tomoGrowBackNode(int node, const char **err);
  * - It does not have subcommands (subcommands_dict == NULL).
  *   This preserves simplicity on the check and accounts for the majority of the use cases.
  * - Its full name matches the provided command argument. */
-static inline int isCommandReusable(struct redisCommand *cmd, robj *commandArg) {
+static inline int isCommandReusable(struct redisCommand *cmd, robj *previousArg,
+                                    robj *commandArg) {
     return cmd != NULL &&
            cmd->subcommands_dict == NULL &&
-           strcasecmp(cmd->fullname, commandArg->ptr) == 0;
+           ((previousArg != NULL && previousArg == commandArg) ||
+            strcasecmp(cmd->fullname, commandArg->ptr) == 0);
 }
 
 /* This macro tells if we are in the context of loading an AOF. */
@@ -3756,10 +3762,96 @@ void getExpansiveClientsInfo(size_t *in_usage, size_t *out_usage) {
     *out_usage = o;
 }
 
+/* p1direct witness slots (see server.h). Defined here so every consumer (networking.c
+ * kill deferral, iothread-driven cron, migration walks, the dispatch/drain) shares one
+ * array; INFO folds the per-io lines. */
+tomoP1DirectStats tomo_p1d_stats[TOMO_IO_THREADS_MAX + 1];
+
+/* p1 executor-publish witnesses are worker-owned, not IO-owned. Keep one
+ * isolated line per provisioned worker so the enabled path never contends on
+ * a global counter; INFO folds these cold. */
+typedef struct tomoP1DirectPublishStats {
+    _Atomic unsigned long long writes;       /* eligible raw write(2) attempts */
+    _Atomic unsigned long long bytes;        /* bytes accepted by the socket */
+    _Atomic unsigned long long partial;      /* non-negative short writes */
+    _Atomic unsigned long long eagain;       /* EAGAIN/EWOULDBLOCK fallbacks */
+    _Atomic unsigned long long ineligible;   /* DIRECT completions rejected post-exec */
+    char _pad[CACHE_LINE_SIZE - 5 * sizeof(unsigned long long)];
+} __attribute__((aligned(CACHE_LINE_SIZE))) tomoP1DirectPublishStats;
+_Static_assert(sizeof(tomoP1DirectPublishStats) == CACHE_LINE_SIZE,
+               "p1direct publish witness slot must occupy one worker line");
+static tomoP1DirectPublishStats tomo_p1d_pub_stats[TOMO_EX_THREADS_MAX];
+
+/* p1direct master toggle: DEBUG TOMO-P1DIRECT <0|1>, DEFAULT ON. 0 forces every conn
+ * onto the fake path WITHOUT mutating per-conn mode state (re-enable restores the
+ * previous per-conn modes instantly) — the A/B lever for validation. Not a config knob
+ * (no new knobs rule); a DEBUG test hook in the TOMO-MODESHIFT class. Relaxed atomics:
+ * one relaxed load on the DIRECT-eligible arm only; FC-mode conns never read it. */
+_Atomic int tomo_p1direct_enabled = 1;
+
+/* Modifiable tomokv-p1direct-publish mirror. Static zero initialization is
+ * the dark default; initServer publishes any startup override before workers
+ * exist, and the config apply hook handles live changes. */
+_Atomic int tomo_p1direct_publish_enabled = 0;
+
+/* p1direct FC -> DIRECT hysteresis run length. DERIVED, not invented (owner rule: no new
+ * magic numbers). The design's first choice — K from a measured input-noise estimator
+ * ("u1a-style machinery") — does not exist in this tree (grepped: no such apparatus), so
+ * the fallback derivation applies: reuse the flip controller's FLIP_SUSTAIN (= 8), this
+ * tree's established "persisted this long => not a transient" quantum. The mode switch is
+ * the exact self-influencing-controller shape FLIP_SUSTAIN was sized for: the actuator
+ * moves the signal (a DIRECT flight gates reads, which reshapes the very parse-round
+ * batching the promotion predicate observes — the flip controller's analogue is "a flip
+ * changes both saturations"), so promoting on the first clean round would chase the
+ * controller's own transient. FLIP_SUSTAIN's magnitude was validated against measured
+ * out-of-band rates (see the flip controller's settle-band table: 8 consecutive ticks is
+ * what makes 3-5% isolated out-of-band noise unable to fire a transition); the same
+ * absorb-isolated-noise role is wanted here — a stray pipelined burst inside an
+ * otherwise-p1 conn must not ping-pong the mode. A compile-time cross-check next to
+ * FLIP_SUSTAIN's definition keeps the two from drifting apart silently. */
+#define TOMO_P1D_SUSTAIN 8
+
+/* p1direct: is THIS command, RIGHT NOW, a clean singleton on a quiet conn? True iff
+ * dispatching the real client to ex is indistinguishable from the fake path except for
+ * the ceremony it skips. Evaluated on the owning io thread against io-owned state only.
+ *   - ring empty: zero in-flight executions of any kind for this conn;
+ *   - singleton parse round: the head being executed is the ONLY complete parsed
+ *     command (ready_len counts the head until moveExecutionState/commandProcessed
+ *     pops it) and the query buffer holds no undecoded tail — a second complete
+ *     command found behind this one is the owner's "detect pipe" trigger;
+ *   - clean output: the previous reply fully left (ex writes straight into c->buf, so
+ *     any unflushed prior bytes would be concurrently read by the io send path; this
+ *     is also the owner's "before the previous reply flushed" trigger), including an
+ *     io_uring SEND whose CQE has not retired the buffer reference;
+ *   - none of the disqualifying connection-scoped flags (see server.h). */
+static inline int tomoP1DirectCleanNow(client *c, clientExecTail *ct) {
+    if (ct->dispatchid != ct->flushid) return 0;
+    if (c->pending_cmds.ready_len > 1) return 0;
+    if (ct->querybuf && ct->qb_pos < sdslen(ct->querybuf)) return 0;
+    if (c->bufpos != 0 || c->sentlen != 0 || listLength(c->reply) != 0) return 0;
+    if (c->flags & TOMO_P1D_DISQUALIFY_FLAGS) return 0;
+    if (!c->conn) return 0;
+    if (server.io_uring && tomoUringBackendClientAttached(c) &&
+        tomoUringBackendClientSendPending(c)) return 0;
+    return 1;
+}
+
 /* Run cron tasks for a single client. Return 1 if the client should
  * be terminated, 0 otherwise. */
 int clientsCronRunClient(client *c) {
     mstime_t now = server.mstime;
+    /* p1direct EX_OWNED deferral: an ex thread is executing on this real client right now.
+     * Every service this cron performs touches io-owned state the direct execution is
+     * entitled to see stable — querybuf resize (parser bookkeeping), c->buf REALLOC
+     * (clientsCronResizeOutputBuffer would move the buffer ex's addReply is appending to),
+     * timeout/obuf-limit frees, fake-ring decay, memory sampling of a half-built reply.
+     * The flight is microseconds and this cron visits each client ~1Hz, so deferring one
+     * tick is invisible; the flag is set/cleared by THIS thread (the owner), so a plain
+     * read suffices — no fence (contrast ccfeef463: that Dekker pair spanned two threads). */
+    if (__builtin_expect(clientExOwnedReal(c), 0)) {
+        TOMO_P1D_BUMP(deferred_cron_touches);
+        return 0;
+    }
     /* The following functions do different service checks on the client.
      * The protocol is that they return non-zero if the client was
      * terminated. */
@@ -4635,7 +4727,13 @@ static inline int cdbSlotReady(client *real, int cdb, unsigned int slot) {
 }
 static inline void cdbSlotPublish(client *real, int cdb, unsigned int slot) {
     if (__builtin_expect(server.phase_trace_sample != 0, 0)) {
-        client *fake = slot < TOMO_PIPELINE_DEPTH_MAX ?
+        /* p1direct: during a DIRECT flight the slot has no live fake — fakeClients[slot]
+         * is at best an idle previous occupant, and stamping it would phase-trace a
+         * bystander. p1d_inflight is io-owner-written but STABLE across this publish
+         * (set before the dispatch publish that carried the job here, cleared only after
+         * the byte stored below is consumed), so the relaxed read is race-free. */
+        client *fake = (slot < TOMO_PIPELINE_DEPTH_MAX &&
+                        !clientTail(real)->p1d_inflight) ?
                        clientTail(real)->fakeClients[slot] : NULL;
         tomoPhasePublished(fake);
     }
@@ -5145,6 +5243,8 @@ static __thread tomoInputDispatchBatch tomo_input_dispatch;
  * relaxed load per staged dispatch. Read-mostly line, deliberately NOT on tm_io_sig (that line
  * is owner-written by the io thread; a main-written field there would false-share). */
 _Atomic int tomo_disp_window[TOMO_IO_THREADS_MAX + 1];
+int tomo_disp_window_forced_zero = 0;   /* DEBUG TOMO-DISPWINDOW diagnostic override */
+int tomo_disp_window_forced_val = -1;   /* >=0: hold every io thread's window at this value */
 static __thread int tomo_staged_cnt;   /* dispatches staged since this thread's last flush */
 
 /* ===================== ee451 D: the reorder (mechanism B — KNOB tomokv-reorder) ==============
@@ -5162,7 +5262,9 @@ static __thread int tomo_staged_cnt;   /* dispatches staged since this thread's 
  * emitted in arrival order — rather than risking a same-connection same-key swap.
  * Levels: 0 = path compiled around (no scratch write, direct push); 1 = partition + heads;
  * 2 = + class SJF + bucket grouping. Mutually exclusive with strict-order (so != 0). */
-#define TOMO_RORD_CAP 64
+int tomo_rord_mask = TOMO_RORD_MASK_ALL; /* DEBUG TOMO-RORDMASK, relaxed atomic access */
+int tomo_rord_diag = 0;                  /* DEBUG TOMO-RORDDIAG, relaxed atomic access */
+int tomo_rord_unsafe_diag = 0;           /* sticky once DEP_FENCE has been disabled */
 /* D5 aging: retain the accepted old displacement budget (32) only as a multiplier over measured
  * TIME. The actual bound is AGE_EWMAS * the slowest published class-service EWMA, so it follows the
  * workload instead of assuming that 32 displaced commands have a stable latency cost. */
@@ -5264,41 +5366,171 @@ static __thread uint32_t rord_hset_curgen;
 
 static void exDispatchDirect(int ex_id, client *fake);   /* the pre-D push path, defined below */
 
-/* D trace helper (armed-only, off the hot path): reproduce the emission order of ONE run into a
- * string without dispatching. Mirrors tomoReorderDrain's time slices, per-slice head pass, class-SJF
- * and bucket grouping exactly. cls char = class digit, upper=head, | separates the fenced tail. */
-static void tomoReorderTraceRun(int w, int r, const int *ridx, int fence_at, int lvl,
-                                const tomoRordAge *age_base) {
-    char arr[80], emt[80]; int ai = 0, ei = 0;
-    uint8_t used[TOMO_RORD_CAP]; for (int i = 0; i < r && i < TOMO_RORD_CAP; i++) used[i] = 0;
+static inline uint64_t tomoReorderDepKey(int idx) {
+    client *cid = tomo_rord.fk[idx]->parent ? tomo_rord.fk[idx]->parent : tomo_rord.fk[idx];
+    return tomo_rord.h[idx] ^ ((uint64_t)(uintptr_t)cid * 0x9E3779B97F4A7C15ull);
+}
+
+/* Diagnostic-only counterpart of the live generation-stamped fence scan. It uses local occupancy
+ * instead of consuming a live generation, so inversion accounting cannot perturb the real drain. */
+static int tomoReorderPlanFenceAt(const int *ord, int r) {
+    uint64_t key[TOMO_RORD_HSET];
+    uint8_t occupied[TOMO_RORD_HSET] = {0};
+    for (int a = 0; a < r; a++) {
+        uint64_t dep = tomoReorderDepKey(ord[a]);
+        unsigned slot = (unsigned)(dep ^ (dep >> 32)) & (TOMO_RORD_HSET - 1);
+        while (occupied[slot]) {
+            if (key[slot] == dep) return a;
+            slot = (slot + 1) & (TOMO_RORD_HSET - 1);
+        }
+        occupied[slot] = 1;
+        key[slot] = dep;
+    }
+    return r;
+}
+
+/* Produce one Shinjuku slice's emission permutation without dispatching. This is deliberately
+ * cold trace/diagnostic planning. Keep it structurally paired with tomoReorderEmitShinjuku below. */
+static void tomoReorderPlanShinjuku(const int *ord, int r, int mask, int *emit) {
+    if (!(mask & TOMO_RORD_MASK_CLASS_SJF)) {
+        for (int a = 0; a < r; a++) emit[a] = ord[a];
+        return;
+    }
+
+    uint8_t clspos[TOMO_SVC_CLASSES][TOMO_RORD_CAP];
+    int clen[TOMO_SVC_CLASSES] = {0}, ccur[TOMO_SVC_CLASSES] = {0};
+    if (!(mask & TOMO_RORD_MASK_DEP_FENCE)) {
+        int ne = 0;
+        for (int a = 0; a < r; a++) {
+            int c = tomo_rord.cls[ord[a]] & TOMO_CLS_MASK;
+            clspos[c][clen[c]++] = (uint8_t)a;
+        }
+        for (int c = 0; c < TOMO_SVC_CLASSES; c++)
+            for (int p = 0; p < clen[c]; p++) emit[ne++] = ord[clspos[c][p]];
+        return;
+    }
+
+    uint8_t blocked[TOMO_RORD_CAP];
+    int succ[TOMO_RORD_CAP];
+    uint64_t key[TOMO_RORD_HSET];
+    uint8_t occupied[TOMO_RORD_HSET] = {0};
+    int dep_pos[TOMO_RORD_HSET];
+    for (int a = 0; a < r; a++) {
+        int i = ord[a];
+        int c = tomo_rord.cls[i] & TOMO_CLS_MASK;
+        clspos[c][clen[c]++] = (uint8_t)a;
+        succ[a] = -1;
+        blocked[a] = 0;
+        uint64_t dep = tomoReorderDepKey(i);
+        unsigned slot = (unsigned)(dep ^ (dep >> 32)) & (TOMO_RORD_HSET - 1);
+        while (occupied[slot]) {
+            if (key[slot] == dep) {
+                succ[dep_pos[slot]] = a;
+                blocked[a] = 1;
+                break;
+            }
+            slot = (slot + 1) & (TOMO_RORD_HSET - 1);
+        }
+        occupied[slot] = 1;
+        key[slot] = dep;
+        dep_pos[slot] = a;
+    }
+    for (int ne = 0; ne < r; ne++) {
+        int pc = -1;
+        for (int c = 0; c < TOMO_SVC_CLASSES; c++)
+            if (ccur[c] < clen[c] && !blocked[clspos[c][ccur[c]]]) { pc = c; break; }
+        int a = clspos[pc][ccur[pc]++];
+        emit[ne] = ord[a];
+        if (succ[a] >= 0) blocked[succ[a]] = 0;
+    }
+}
+
+/* Reproduce one run's complete permutation without dispatching. The real emitter remains the hot
+ * path; this shared cold planner keeps the trace and the opt-in inversion counter honest for every
+ * mask combination, including Shinjuku. */
+static void tomoReorderPlanRun(int r, const int *ridx, int fence_at, int lvl, int mask,
+                               const tomoRordAge *age_base, int *emit) {
+    if (r <= 1 || lvl < 1) {
+        for (int i = 0; i < r; i++) emit[i] = ridx[i];
+        return;
+    }
+
     tomoRordAge age = *age_base;
-    tomoReorderAgeStartRun(&age, ridx, r);
+    if (mask & TOMO_RORD_MASK_AGE_SLICE) tomoReorderAgeStartRun(&age, ridx, r);
+    if (lvl == 3) {
+        int ne = 0;
+        for (int c0 = 0; c0 < r; ) {
+            int c1;
+            if (mask & TOMO_RORD_MASK_AGE_SLICE) {
+                int pinned;
+                c1 = tomoReorderAgeSlice(&age, ridx, c0, r, &pinned);
+            } else {
+                c1 = r;
+            }
+            tomoReorderPlanShinjuku(ridx + c0, c1 - c0, mask, emit + ne);
+            ne += c1 - c0;
+            c0 = c1;
+        }
+        return;
+    }
+
+    uint8_t used[TOMO_RORD_CAP] = {0};
+    int ne = 0;
+    #define PLAN_EMIT(K) do { emit[ne++] = ridx[K]; used[K] = 1; } while (0)
+    for (int c0 = 0; c0 < fence_at; ) {
+        int c1;
+        if (mask & TOMO_RORD_MASK_AGE_SLICE) {
+            int pinned;
+            c1 = tomoReorderAgeSlice(&age, ridx, c0, fence_at, &pinned);
+        } else {
+            c1 = fence_at;
+        }
+        if (mask & TOMO_RORD_MASK_HEAD_PROMO)
+            for (int i = c0; i < c1; i++)
+                if (tomo_rord.cls[ridx[i]] & 0x80) PLAN_EMIT(i);
+        if (mask & TOMO_RORD_MASK_CLASS_SJF) {
+            for (int cl = 0; cl < TOMO_SVC_CLASSES; cl++)
+                for (int i = c0; i < c1; i++) {
+                    if (used[i] || (tomo_rord.cls[ridx[i]] & TOMO_CLS_MASK) != cl) continue;
+                    PLAN_EMIT(i);
+                    if (lvl >= 2 && (mask & TOMO_RORD_MASK_BUCKET_GROUP)) {
+                        uint64_t bkt = tomo_rord.h[ridx[i]] & TOMO_BUCKET_MASK;
+                        for (int j = i + 1; j < c1; j++)
+                            if (!used[j] &&
+                                (tomo_rord.cls[ridx[j]] & TOMO_CLS_MASK) == cl &&
+                                (tomo_rord.h[ridx[j]] & TOMO_BUCKET_MASK) == bkt)
+                                PLAN_EMIT(j);
+                    }
+                }
+        } else {
+            for (int i = c0; i < c1; i++) if (!used[i]) PLAN_EMIT(i);
+        }
+        c0 = c1;
+    }
+    for (int i = fence_at; i < r; i++) if (!used[i]) PLAN_EMIT(i);
+    #undef PLAN_EMIT
+    debugServerAssert(ne == r);
+}
+
+/* D trace helper (armed-only, off the hot path). cls char = class digit, upper=head; | separates
+ * the mode-1/2 fenced tail. The shared planner above mirrors every active mask bit. */
+static void tomoReorderTraceRun(int w, int r, const int *ridx, int fence_at, int lvl, int mask,
+                                const tomoRordAge *age_base) {
+    char arr[80], emt[80];
+    int planned[TOMO_RORD_CAP];
+    int ai = 0, ei = 0;
+    tomoReorderPlanRun(r, ridx, fence_at, lvl, mask, age_base, planned);
     for (int i = 0; i < r && ai < 78; i++) {
         int c = tomo_rord.cls[ridx[i]] & TOMO_CLS_MASK;
         arr[ai++] = (tomo_rord.cls[ridx[i]] & 0x80) ? ('A' + c) : ('0' + c);
-        if (i == fence_at - 1 && fence_at < r) arr[ai++] = '|';
+        if (lvl != 3 && i == fence_at - 1 && fence_at < r) arr[ai++] = '|';
     }
     arr[ai] = 0;
-    #define EMITC(K) do { if (ei < 78) { int _c = tomo_rord.cls[ridx[K]] & TOMO_CLS_MASK; \
-        emt[ei++] = (tomo_rord.cls[ridx[K]] & 0x80) ? ('A'+_c) : ('0'+_c); used[K] = 1; } } while(0)
-    for (int c0 = 0; c0 < fence_at; ) {
-        int pinned;
-        int c1 = tomoReorderAgeSlice(&age, ridx, c0, fence_at, &pinned);
-        for (int i = c0; i < c1; i++) if (tomo_rord.cls[ridx[i]] & 0x80) EMITC(i);
-        for (int cl = 0; cl < TOMO_SVC_CLASSES; cl++)
-            for (int i = c0; i < c1; i++) {
-                if (used[i] || (tomo_rord.cls[ridx[i]] & TOMO_CLS_MASK) != cl) continue;
-                EMITC(i);
-                if (lvl >= 2) { uint64_t bkt = tomo_rord.h[ridx[i]] & TOMO_BUCKET_MASK;
-                    for (int j = i + 1; j < c1; j++)
-                        if (!used[j] && (tomo_rord.cls[ridx[j]] & TOMO_CLS_MASK) == cl &&
-                            (tomo_rord.h[ridx[j]] & TOMO_BUCKET_MASK) == bkt) EMITC(j); }
-            }
-        c0 = c1;
+    for (int e = 0; e < r && ei < 78; e++) {
+        if (lvl != 3 && e == fence_at && fence_at < r) emt[ei++] = '|';
+        int c = tomo_rord.cls[planned[e]] & TOMO_CLS_MASK;
+        emt[ei++] = (tomo_rord.cls[planned[e]] & 0x80) ? ('A' + c) : ('0' + c);
     }
-    if (fence_at < r && ei < 78) emt[ei++] = '|';
-    for (int i = fence_at; i < r; i++) if (!used[i]) EMITC(i);
-    #undef EMITC
     emt[ei] = 0;
     serverLog(LL_NOTICE, "[rord-trace] worker %d r=%d  arrival=[%s]  emitted=[%s]", w, r, arr, emt);
     tm_rord_trace = 0;   /* one-shot */
@@ -5310,7 +5542,23 @@ static void tomoReorderTraceRun(int w, int r, const int *ridx, int fence_at, int
  * connection, so cross-client same-key is free to reorder. Among ready commands, pick shortest
  * class first. The caller supplies consecutive time-bounded slices; dependencies spanning slices
  * are already satisfied because slices emit in arrival order. r <= TOMO_RORD_CAP. */
-static void tomoReorderEmitShinjuku(int w, const int *ord, int r) {
+static void tomoReorderEmitShinjuku(int w, const int *ord, int r, int mask) {
+    /* CLASS_SJF owns the dependency-aware selector as one unit. Arrival order needs neither the
+     * class lists nor dependency bookkeeping, so the ablated path exits before either is built. */
+    if (!(mask & TOMO_RORD_MASK_CLASS_SJF)) {
+        for (int a = 0; a < r; a++) exDispatchDirect(w, tomo_rord.fk[ord[a]]);
+        return;
+    }
+    /* DEP_FENCE is represented by Shinjuku's chain rather than a fenced tail. With it disabled,
+     * retain stable class-SJF but deliberately remove the same-connection/same-key constraint. */
+    if (!(mask & TOMO_RORD_MASK_DEP_FENCE)) {
+        for (int c = 0; c < TOMO_SVC_CLASSES; c++)
+            for (int a = 0; a < r; a++)
+                if ((tomo_rord.cls[ord[a]] & TOMO_CLS_MASK) == c)
+                    exDispatchDirect(w, tomo_rord.fk[ord[a]]);
+        return;
+    }
+
     uint8_t blocked[TOMO_RORD_CAP];
     int     succ[TOMO_RORD_CAP];
     /* per-class arrival-order position lists + cursors */
@@ -5330,9 +5578,7 @@ static void tomoReorderEmitShinjuku(int w, const int *ord, int r) {
          * and the reorder emits the read before the write => read-your-own-writes breaks. parent ?
          * parent : self gives both the same id; distinct real clients still differ (correctly free
          * to reorder). Was: ->parent alone (NULL-folds real clients to key-only, mismatching fakes). */
-        client *cid = tomo_rord.fk[i]->parent ? tomo_rord.fk[i]->parent : tomo_rord.fk[i];
-        uint64_t dep = tomo_rord.h[i] ^
-            ((uint64_t)(uintptr_t)cid * 0x9E3779B97F4A7C15ull);
+        uint64_t dep = tomoReorderDepKey(i);
         unsigned slot = (unsigned)(dep ^ (dep >> 32)) & (TOMO_RORD_HSET - 1);
         while (rord_hset_gen[slot] == g) {
             if (rord_hset_key[slot] == dep) { succ[rord_dep_pos[slot]] = a; blocked[a] = 1; break; }
@@ -5352,11 +5598,41 @@ static void tomoReorderEmitShinjuku(int w, const int *ord, int r) {
     }
 }
 
+/* Opt-in permutation distance. Run the cold planner before the live emitter mutates cls to 0xFF;
+ * the disabled path is one guard in tomoReorderDrain and performs no per-entry accounting. */
+static unsigned long long tomoReorderInversions(int n, const int *order, int lvl, int mask,
+                                                const tomoRordAge *age_base) {
+    unsigned long long total = 0;
+    int arrival_pos[TOMO_RORD_CAP];
+    int planned[TOMO_RORD_CAP];
+    for (int s0 = 0; s0 < n; ) {
+        int w = tomo_rord.ex[order[s0]];
+        int s1 = s0;
+        while (s1 < n && tomo_rord.ex[order[s1]] == w) s1++;
+        int r = s1 - s0;
+        int fence_at = r;
+        if (r > 1 && lvl >= 1 && lvl != 3 && (mask & TOMO_RORD_MASK_DEP_FENCE))
+            fence_at = tomoReorderPlanFenceAt(order + s0, r);
+        tomoReorderPlanRun(r, order + s0, fence_at, lvl, mask, age_base, planned);
+        for (int a = 0; a < r; a++) arrival_pos[order[s0 + a]] = a;
+        for (int e = 0; e < r; e++) {
+            int delta = e - arrival_pos[planned[e]];
+            total += (unsigned long long)(delta < 0 ? -delta : delta);
+        }
+        s0 = s1;
+    }
+    return total;
+}
+
 void tomoReorderDrain(void) {
     if (tomo_rord.n == 0) return;
     tomo_rord.draining = 1;
     int n = tomo_rord.n;
     int lvl = server.tomo_reorder;
+    /* Relaxed atomic access lets DEBUG toggle a live process without a C data race. Sample each
+     * control once, so every pass in this drain observes one coherent mask/diagnostic state. */
+    int mask = __atomic_load_n(&tomo_rord_mask, __ATOMIC_RELAXED);
+    int diag = __atomic_load_n(&tomo_rord_diag, __ATOMIC_RELAXED);
     tomoRordAge age_base;
     tomoReorderAgeSnapshot(&age_base);
     /* stable counting-scatter by worker: order[] holds indices grouped by ex id. Bounded by the
@@ -5364,7 +5640,7 @@ void tomoReorderDrain(void) {
      * few live workers, so zeroing+scanning all 128 buckets was a fixed O(TOMO_EX_THREADS_MAX) tax
      * per drain (doubled when the ex cap went 64->128). Output order[] is unchanged. */
     int order[TOMO_RORD_CAP];
-    {
+    if (mask & TOMO_RORD_MASK_WORKER_GROUP) {
         int mx = tomo_rord.ex[0];
         for (int i = 1; i < n; i++) if (tomo_rord.ex[i] > mx) mx = tomo_rord.ex[i];
         int cnt[TOMO_EX_THREADS_MAX], base[TOMO_EX_THREADS_MAX];
@@ -5373,7 +5649,12 @@ void tomoReorderDrain(void) {
         int acc = 0;
         for (int w = 0; w <= mx; w++) { base[w] = acc; acc += cnt[w]; }
         for (int i = 0; i < n; i++) order[base[tomo_rord.ex[i]]++] = i;
+    } else {
+        for (int i = 0; i < n; i++) order[i] = i;
     }
+    if (__builtin_expect(diag, 0))
+        tm_io_sig[iotid].rord_inversions +=
+            tomoReorderInversions(n, order, lvl, mask, &age_base);
     /* per-run emit */
     for (int s0 = 0; s0 < n; ) {
         int w = tomo_rord.ex[order[s0]];
@@ -5383,14 +5664,20 @@ void tomoReorderDrain(void) {
             for (int i = s0; i < s1; i++) exDispatchDirect(w, tomo_rord.fk[order[i]]);
         } else if (lvl == 3) {
             tm_io_sig[iotid].rord_runs++;
-            tomoRordAge age = age_base;
-            tomoReorderAgeStartRun(&age, order + s0, r);
-            for (int c0 = 0; c0 < r; ) {
-                int pinned;
-                int c1 = tomoReorderAgeSlice(&age, order + s0, c0, r, &pinned);
-                if (pinned) tm_io_sig[iotid].rord_age_pins++;
-                tomoReorderEmitShinjuku(w, order + s0 + c0, c1 - c0);
-                c0 = c1;
+            if (__builtin_expect(tm_rord_trace && r >= 4 && r < 70, 0))
+                tomoReorderTraceRun(w, r, order + s0, r, lvl, mask, &age_base);
+            if (mask & TOMO_RORD_MASK_AGE_SLICE) {
+                tomoRordAge age = age_base;
+                tomoReorderAgeStartRun(&age, order + s0, r);
+                for (int c0 = 0; c0 < r; ) {
+                    int pinned;
+                    int c1 = tomoReorderAgeSlice(&age, order + s0, c0, r, &pinned);
+                    if (pinned) tm_io_sig[iotid].rord_age_pins++;
+                    tomoReorderEmitShinjuku(w, order + s0 + c0, c1 - c0, mask);
+                    c0 = c1;
+                }
+            } else {
+                tomoReorderEmitShinjuku(w, order + s0, r, mask);
             }
         } else {
             tm_io_sig[iotid].rord_runs++;
@@ -5398,34 +5685,29 @@ void tomoReorderDrain(void) {
              * collision point — everything before the collision may still be emitted reordered,
              * the collision entry and everything after it go in arrival order. */
             int fence_at = r;
-            uint32_t hgen = ++rord_hset_curgen;
-            for (int a = 0; a < r; a++) {
-                int ia = order[s0 + a];
-                /* dependency key = (key-hash, OWNING CONNECTION). Redis guarantees command order
-                 * only WITHIN a connection, so only same-client same-key pairs must stay ordered;
-                 * same-key commands from DIFFERENT clients have no ordering guarantee and are free to
-                 * reorder. Mixing the parent ptr into the fence key loosens the guard to exactly
-                 * that -- on a hot key hammered by many connections the old key-only fence pinned the
-                 * whole run to arrival order (killing the SJF); now only each client's own
-                 * subsequence fences. (parent==NULL folds to key-only = the safe/strict side.) */
-                client *cida = tomo_rord.fk[ia]->parent ? tomo_rord.fk[ia]->parent : tomo_rord.fk[ia];
-                uint64_t da = tomo_rord.h[ia] ^
-                    ((uint64_t)(uintptr_t)cida * 0x9E3779B97F4A7C15ull);
-                unsigned slot = (unsigned)(da ^ (da >> 32)) & (TOMO_RORD_HSET - 1);
-                while (rord_hset_gen[slot] == hgen) {
-                    if (rord_hset_key[slot] == da) { fence_at = a; break; }
-                    slot = (slot + 1) & (TOMO_RORD_HSET - 1);
+            if (mask & TOMO_RORD_MASK_DEP_FENCE) {
+                uint32_t hgen = ++rord_hset_curgen;
+                for (int a = 0; a < r; a++) {
+                    int ia = order[s0 + a];
+                    /* dependency key = (key-hash, OWNING CONNECTION). Redis guarantees command
+                     * order only WITHIN a connection, so different clients remain free to reorder. */
+                    uint64_t da = tomoReorderDepKey(ia);
+                    unsigned slot = (unsigned)(da ^ (da >> 32)) & (TOMO_RORD_HSET - 1);
+                    while (rord_hset_gen[slot] == hgen) {
+                        if (rord_hset_key[slot] == da) { fence_at = a; break; }
+                        slot = (slot + 1) & (TOMO_RORD_HSET - 1);
+                    }
+                    if (fence_at != r) break;
+                    rord_hset_gen[slot] = hgen;
+                    rord_hset_key[slot] = da;
                 }
-                if (fence_at != r) break;
-                rord_hset_gen[slot] = hgen;
-                rord_hset_key[slot] = da;
             }
             if (fence_at < r) tm_io_sig[iotid].rord_fences++;
             /* D trace (ARMED-ONLY, zero hot-path cost): simulate the emission order into a string
              * and log, WITHOUT touching the real emit below. Guarded by the one-shot flag so the
              * millions-of-emits hot path never pays a per-emit branch. */
             if (__builtin_expect(tm_rord_trace && r >= 4 && r < 70, 0))
-                tomoReorderTraceRun(w, r, order + s0, fence_at, lvl, &age_base);
+                tomoReorderTraceRun(w, r, order + s0, fence_at, lvl, mask, &age_base);
             int emitted = 0;
             /* D5 time aging. Consecutive slices carry no more predicted service than remains in
              * the oldest entry's derived deadline. SJF, head promotion and bucket pulls stay inside
@@ -5433,39 +5715,85 @@ void tomoReorderDrain(void) {
              * Unlike the retired 32-entry chunks, the displacement allowance now contracts/expands
              * with measured command cost while retaining O(r * nclasses) emission. */
             tomoRordAge age = age_base;
-            tomoReorderAgeStartRun(&age, order + s0, r);
+            if (mask & TOMO_RORD_MASK_AGE_SLICE)
+                tomoReorderAgeStartRun(&age, order + s0, r);
             for (int c0 = 0; c0 < fence_at; ) {
-                int pinned;
-                int c1 = tomoReorderAgeSlice(&age, order + s0, c0, fence_at, &pinned);
-                if (pinned) tm_io_sig[iotid].rord_age_pins++;
+                int c1;
+                if (mask & TOMO_RORD_MASK_AGE_SLICE) {
+                    int pinned;
+                    c1 = tomoReorderAgeSlice(&age, order + s0, c0, fence_at, &pinned);
+                    if (pinned) tm_io_sig[iotid].rord_age_pins++;
+                } else {
+                    c1 = fence_at;
+                }
                 /* pass 1: heads, arrival order inside this time boundary (never demoted) */
-                for (int i = c0; i < c1; i++) {
-                    int idx = order[s0 + i];
-                    if (tomo_rord.cls[idx] & 0x80) {
-                        exDispatchDirect(w, tomo_rord.fk[idx]);
-                        tomo_rord.cls[idx] = 0xFF;               /* consumed */
-                        emitted++; tm_io_sig[iotid].rord_heads++;
+                if (mask & TOMO_RORD_MASK_HEAD_PROMO) {
+                    for (int i = c0; i < c1; i++) {
+                        int idx = order[s0 + i];
+                        if (tomo_rord.cls[idx] & 0x80) {
+                            exDispatchDirect(w, tomo_rord.fk[idx]);
+                            tomo_rord.cls[idx] = 0xFF;           /* consumed */
+                            emitted++; tm_io_sig[iotid].rord_heads++;
+                        }
                     }
                 }
                 /* pass 2: class SJF; same-bucket grouping cannot cross the time boundary */
-                for (int cl = 0; cl < TOMO_SVC_CLASSES; cl++) {
-                    for (int i = c0; i < c1; i++) {
-                        int idx = order[s0 + i];
-                        if (tomo_rord.cls[idx] != cl) continue;
-                        exDispatchDirect(w, tomo_rord.fk[idx]);
-                        tomo_rord.cls[idx] = 0xFF; emitted++;
-                        if (lvl >= 2) {
-                            uint64_t bkt = tomo_rord.h[idx] & TOMO_BUCKET_MASK;
-                            for (int j = i + 1; j < c1; j++) {
-                                int jdx = order[s0 + j];
-                                if (tomo_rord.cls[jdx] == cl &&
-                                    (tomo_rord.h[jdx] & TOMO_BUCKET_MASK) == bkt) {
-                                    exDispatchDirect(w, tomo_rord.fk[jdx]);
-                                    tomo_rord.cls[jdx] = 0xFF; emitted++;
-                                    tm_io_sig[iotid].rord_grouped++;
+                if (mask & TOMO_RORD_MASK_CLASS_SJF) {
+                    if (mask & TOMO_RORD_MASK_HEAD_PROMO) {
+                        /* Default arm: heads are already consumed, so retain the original exact
+                         * class-byte comparisons and counter behaviour. */
+                        for (int cl = 0; cl < TOMO_SVC_CLASSES; cl++) {
+                            for (int i = c0; i < c1; i++) {
+                                int idx = order[s0 + i];
+                                if (tomo_rord.cls[idx] != cl) continue;
+                                exDispatchDirect(w, tomo_rord.fk[idx]);
+                                tomo_rord.cls[idx] = 0xFF; emitted++;
+                                if (lvl >= 2 && (mask & TOMO_RORD_MASK_BUCKET_GROUP)) {
+                                    uint64_t bkt = tomo_rord.h[idx] & TOMO_BUCKET_MASK;
+                                    for (int j = i + 1; j < c1; j++) {
+                                        int jdx = order[s0 + j];
+                                        if (tomo_rord.cls[jdx] == cl &&
+                                            (tomo_rord.h[jdx] & TOMO_BUCKET_MASK) == bkt) {
+                                            exDispatchDirect(w, tomo_rord.fk[jdx]);
+                                            tomo_rord.cls[jdx] = 0xFF; emitted++;
+                                            tm_io_sig[iotid].rord_grouped++;
+                                        }
+                                    }
                                 }
                             }
                         }
+                    } else {
+                        /* Without head promotion, bit 7 is metadata rather than a consumed mark;
+                         * compare the underlying class so heads take their ordinary SJF slot. */
+                        for (int cl = 0; cl < TOMO_SVC_CLASSES; cl++) {
+                            for (int i = c0; i < c1; i++) {
+                                int idx = order[s0 + i];
+                                if ((tomo_rord.cls[idx] & TOMO_CLS_MASK) != cl) continue;
+                                exDispatchDirect(w, tomo_rord.fk[idx]);
+                                tomo_rord.cls[idx] = 0xFF; emitted++;
+                                if (lvl >= 2 && (mask & TOMO_RORD_MASK_BUCKET_GROUP)) {
+                                    uint64_t bkt = tomo_rord.h[idx] & TOMO_BUCKET_MASK;
+                                    for (int j = i + 1; j < c1; j++) {
+                                        int jdx = order[s0 + j];
+                                        if ((tomo_rord.cls[jdx] & TOMO_CLS_MASK) == cl &&
+                                            (tomo_rord.h[jdx] & TOMO_BUCKET_MASK) == bkt) {
+                                            exDispatchDirect(w, tomo_rord.fk[jdx]);
+                                            tomo_rord.cls[jdx] = 0xFF; emitted++;
+                                            tm_io_sig[iotid].rord_grouped++;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    /* Keep the same consumed marker as the two-pass path; only pass 2's choice
+                     * changes to arrival order within this slice. */
+                    for (int i = c0; i < c1; i++) {
+                        int idx = order[s0 + i];
+                        if (tomo_rord.cls[idx] == 0xFF) continue;
+                        exDispatchDirect(w, tomo_rord.fk[idx]);
+                        tomo_rord.cls[idx] = 0xFF; emitted++;
                     }
                 }
                 c0 = c1;
@@ -5815,8 +6143,8 @@ static inline void exDispatchPush(int ex_id, client *fake) {
         tomo_rord.ex[i]  = (uint8_t)ex_id;
         /* head-of-pipe: this dispatch is the client's oldest un-flushed (ring was empty when it
          * entered). dispatchid was incremented at stage; head iff it is now flushid+1. */
-        uint8_t hd = (fake->parent &&
-                      clientTail(fake->parent)->dispatchid == clientTail(fake->parent)->flushid + 1) ? 0x80 : 0;
+        client *hd_c = fake->parent ? fake->parent : fake;   /* DIRECT reals are their own pipe head */
+        uint8_t hd = (clientTail(hd_c)->dispatchid == clientTail(hd_c)->flushid + 1) ? 0x80 : 0;
         tomo_rord.cls[i] = (uint8_t)(tomoArgvClass(fake) & TOMO_CLS_MASK) | hd;
         tomo_rord.n = i + 1;
         tm_io_sig[iotid].disp_cnt++;
@@ -5877,11 +6205,13 @@ static void handleWorkerRepliesScan(void) {
     listNode *ln;
     listRewind(server.clients_pending_ex[iotid], &li);
     if (listLength(server.clients_pending_ex[iotid]) == 0) return;
+    const int uring_send_pass = server.io_uring != 0;
 
     /* Reassembly is the IO-side half of the same drain run. It can allocate reply cells and
      * release coordinator/result storage many times before the event loop can run INFO again,
      * so publish their exact net accounting once at the scan boundary. */
     zmalloc_stat_batch_begin();
+    pendingCommandReturnBatchBegin();
     while ((ln = listNext(&li))) {
         client *real = listNodeValue(ln);
         clientExecTail *rt = clientTail(real);
@@ -5902,6 +6232,25 @@ static void handleWorkerRepliesScan(void) {
          * real from the pending_worker list; freeClient will reclaim on the
          * next async-free pass. */
         if ((real->flags & CLIENT_CLOSE_ASAP) || !real->conn) {
+            /* p1direct teardown consume: the one in-flight execution IS the real client
+             * (no ring fake exists for this generation). Retire it without touching the
+             * conn; the async-free walker completes the deferred kill on its next pass,
+             * now that EX_PENDING is off and the ring is empty. */
+            if (__builtin_expect(rt->p1d_inflight != 0, 0)) {
+                unsigned int slot = rt->flushid & rt->ring_mask;
+                if (!cdbSlotReady(real, real->cdb, slot)) continue;  /* wait for worker */
+                cdbSlotClear(real, real->cdb, slot);
+                rt->p1d_inflight = 0;
+                real->flags &= ~CLIENT_EX_PENDING;
+                real->db = &server.db[real->db->id];   /* undo the worker-shard rebind */
+                TOMO_P1D_BUMP(handbacks);
+                commandProcessed(real);                /* retire the pcmd (mask-aware free) */
+                replyWorking--;
+                rt->flushid++;
+                debugServerAssert(rt->flushid == rt->dispatchid);
+                listUnlinkNode(server.clients_pending_ex[iotid], ln);
+                continue;
+            }
             while (rt->flushid != rt->dispatchid) {
                 unsigned int slot = rt->flushid & rt->ring_mask;
                 client *fake = rt->fakeClients[slot];
@@ -5985,6 +6334,73 @@ static void handleWorkerRepliesScan(void) {
          * a single writeToClient call at the end. */
         int spliced = 0;
         int close_asap = 0;
+
+        /* ee451: pipelined drain prefetch — "prefetch finished fc -> prefetch
+         * reply -> send response". The ready fakes were last written on a
+         * worker core, so they are cold in this IO thread's cache. Pass 1 warms
+         * the fake structs; pass 2 (structs now warm) prefetches each fake's
+         * reply payload (static buf + overflow list head), so the splice loop
+         * below copies hot memory. We walk the same ready prefix the splice
+         * loop will, stopping at the first not-ready slot. */
+        /* The old topology-blind two-pass drain walk remains deleted. Mode 2
+         * below warms only a completed generation proven cross-node. */
+
+        /* ===== p1direct handback consume ==================================================
+         * The one in-flight execution IS the real client; its reply already sits in the
+         * real c->buf (zero relocation). Consume the client-tagged ready byte, close the
+         * EX_OWNED window, retire the pcmd, and fall through to the SAME flush/unlink/wake
+         * tail the fake path uses. The ring is empty after the consume, so the fake walk
+         * below no-ops. The shared tail sees pending bytes after an ordinary/partial send,
+         * or no pending bytes after a full executor-side write. */
+        if (__builtin_expect(rt->p1d_inflight != 0, 0)) {
+            unsigned int slot = rt->flushid & rt->ring_mask;
+            debugServerAssert(rt->dispatchid - rt->flushid == 1 &&
+                              real->fake_slot == slot);
+            if (!cdbSlotReady(real, real->cdb, slot)) continue;  /* completion not published yet;
+                * the wake tail below must NOT re-drive this conn — its predicate requires
+                * ring-empty while p1d_inflight is set, and we skip it entirely here. */
+            /* The acquire above pairs with the worker's release store of this byte (the
+             * executor sig batch): every ex-side write — the socket syscall and resulting
+             * c->bufpos/c->sentlen cursor, plain-copy spill nodes, reply metrics, pcmd
+             * argv_released_mask — happened-before this point. In particular, bufpos==0
+             * is the published "executor already wrote it" state; an acquire consumer
+             * cannot observe ready while retaining the pre-send nonzero cursor.
+             * The EX_OWNED window closes HERE; from the next statement on, this thread owns
+             * the client again and every deferred toucher acts on its next pass. */
+            cdbSlotClear(real, real->cdb, slot);
+            rt->p1d_inflight = 0;
+            real->flags &= ~CLIENT_EX_PENDING;
+            real->db = &server.db[real->db->id];      /* undo the worker-shard rebind */
+            TOMO_P1D_BUMP(handbacks);
+            /* Spill fallback: a non-empty reply list means the reply did not fit c->buf.
+             * The command still completed correctly (plain-copy list nodes — the copy-avoid
+             * and str-ref paths are gated off for EX_OWNED reals — and writeToClient sends
+             * buf then list), but the conn leaves the small-reply lane: FC executes big
+             * replies on a fake with the S8 zero-copy machinery. */
+            if (__builtin_expect(listLength(real->reply) != 0, 0)) {
+                TOMO_P1D_BUMP(spill_fallbacks);
+                if (rt->p1d_mode == TOMO_P1D_DIRECT) {
+                    rt->p1d_mode = TOMO_P1D_FC;
+                    TOMO_P1D_BUMP(mode_to_fc);
+                }
+            }
+            commandProcessed(real);   /* the fake path's commandProcessed(fake) equivalent:
+                                       * pops+frees the attached pcmd; freePendingCommand
+                                       * honors argv_released_mask, so operands the worker
+                                       * already released are skipped (single-mutator). */
+            replyWorking--;
+            rt->flushid++;
+            /* Deferred obuf-limit check (EX_OWNED deferral site 5): io-side, in the same
+             * post-completion position the fake path runs it (AddReplyFromClient). */
+            if (closeClientOnOutputBufferLimitReached(real, 1)) {
+                listUnlinkNode(server.clients_pending_ex[iotid], ln);
+                continue;   /* CLOSE_ASAP recorded; teardown owns the reply */
+            }
+            /* Full executor publication left bufpos==0 and therefore no flush work.
+             * Partial/EAGAIN/error publication retained an ordinary pending reply (and
+             * partial progress in sentlen), so the unchanged shared tail finishes it. */
+            spliced = clientHasPendingReplies(real);
+        }
 
         while (rt->flushid != rt->dispatchid) {
             unsigned int slot = rt->flushid & rt->ring_mask;
@@ -6096,21 +6512,25 @@ static void handleWorkerRepliesScan(void) {
             rt->flushid++;
         }
 
-        /* With io_uring, queue one client write after splicing so it joins the
-         * owner-wide SEND batch. Knob 0 retains the existing immediate epoll
-         * write path byte-for-byte. */
+        /* With io_uring, hand the completed reply straight to the owner send
+         * run. The old pending-write list added and removed one list node per
+         * p1 reply before reaching this same queue. No bytes become visible
+         * until the owner-wide SQE pass and its single enter below, so the
+         * allocation-accounting batch remains open across all uring replies. */
         if (spliced && !close_asap) {
-            /* A response can let this client (or another IO thread) issue INFO immediately.
-             * Fold the whole client's reassembly before any bytes become externally visible. */
-            zmalloc_stat_batch_end();
-            if (server.io_uring && tomoUringBackendClientAttached(real)) {
-                putClientInPendingWriteQueue(real);
+            if (uring_send_pass && tomoUringBackendClientAttached(real)) {
+                if (tomoUringBackendClientQueueWrite(real) != C_OK)
+                    putClientInPendingWriteQueue(real);
             } else {
+                /* A synchronous response can let this client (or another IO
+                 * thread) issue INFO immediately. Fold this reassembly before
+                 * any bytes become externally visible. */
+                zmalloc_stat_batch_end();
                 (void)writeToClient(real, 0);
                 if (clientHasPendingReplies(real))
                     putClientInPendingWriteQueue(real);
+                zmalloc_stat_batch_begin();
             }
-            zmalloc_stat_batch_begin();
         }
 
         /* Ring fully drained and all ready slots consumed — drop off the
@@ -6134,17 +6554,27 @@ static void handleWorkerRepliesScan(void) {
          * bit here would leave a stale wait-list entry. */
         if ((real->flags & CLIENT_PIPELINE_STALLED) &&
             !(real->flags & CLIENT_ATOMIC_WINDOW_STALLED) &&
-            (rt->cs_barrier ? (rt->dispatchid == rt->flushid)
+            /* p1direct: a DIRECT flight parks the conn with PIPELINE_STALLED at dispatch;
+             * its wake condition is ring-EMPTY (the handback), exactly the cs_barrier
+             * shape — the generic one-slot-freed arm would re-drive the parser while ex
+             * still owns the client. Normally unreachable while in flight (the consume
+             * arm `continue`s on a pending completion), but any other route into this
+             * tail must keep the same gate. */
+            ((rt->cs_barrier || rt->p1d_inflight)
+                            ? (rt->dispatchid == rt->flushid)
                             : ((rt->dispatchid - rt->flushid) < rt->ring_size)))
         {
             real->flags &= ~CLIENT_PIPELINE_STALLED;
             /* This may execute INFO (or a maxmemory-sensitive command) inline. Make the
              * completed drain's accounting visible before re-entering the command parser. */
+            pendingCommandReturnBatchEnd();
             zmalloc_stat_batch_end();
             processInputBuffer(real);
             zmalloc_stat_batch_begin();
+            pendingCommandReturnBatchBegin();
         }
     }
+    pendingCommandReturnBatchEnd();
     zmalloc_stat_batch_end();
 }
 
@@ -8241,6 +8671,11 @@ void ensureLogicalDbInitialized(int id) {
 }
 
 void initServer(void) {
+    /* Config parsing is complete and no worker exists yet. Mirror the startup
+     * p1 publish value into the atomic used by the worker hot path. */
+    atomic_store_explicit(&tomo_p1direct_publish_enabled,
+                          server.tomo_p1direct_publish,
+                          memory_order_relaxed);
     /* The knob is immutable. Install the ae hook once so 0=off is a NULL
      * pointer for the lifetime of every event loop. */
     aeLoopStatsHook = server.phase_trace_sample ? tomoPhaseLoopIteration : NULL;
@@ -9599,6 +10034,8 @@ void tomoSvcTick(void) {
                  * publish 0 (= pass-end only) rather than a per-dispatch flush storm */
                 if (wnd <= 2) wnd = 0;
             }
+            /* diagnostic A/B: hold the published window (at 0, or at a forced size) */
+            if (tomo_disp_window_forced_zero || tomo_disp_window_forced_val >= 0) continue;
             int cur = atomic_load_explicit(&tomo_disp_window[t], memory_order_relaxed);
             int step = cur >> 2;                     /* 25% deadzone (0 -> always publish) */
             if (wnd > cur + step || wnd < cur - step)
@@ -10656,8 +11093,9 @@ void preprocessCommand(client *c, pendingCommand *pcmd) {
         debugServerAssert(pcmd->prev->flags & PENDING_CMD_DEBUG_CMD_INITIALIZED);
     }
     struct redisCommand *last_cmd = pcmd->prev ? pcmd->prev->cmd : clientTail(c)->lastcmd;
+    robj *last_arg = pcmd->prev && pcmd->prev->argc ? pcmd->prev->argv[0] : NULL;
 
-    if (isCommandReusable(last_cmd, pcmd->argv[0]))
+    if (isCommandReusable(last_cmd, last_arg, pcmd->argv[0]))
         pcmd->cmd = last_cmd;
     else
         pcmd->cmd = lookupCommand(pcmd->argv, pcmd->argc);
@@ -10678,6 +11116,29 @@ void preprocessCommand(client *c, pendingCommand *pcmd) {
     /* keysbuf is populated before publication and only entries below numkeys
      * are read. Initialize just the scalar header; after extraction, record
      * heap ownership even on an error return so terminal cleanup is exact. */
+    /* Exact-shape GET/SET have one fixed key at argv[1]. Fill the same cached
+     * key result directly instead of walking channel/key-spec metadata and a
+     * one-entry getkeys result. SET options retain the generic path because
+     * only argc==3 reaches this arm. */
+    redisCommandProc *proc = pcmd->cmd->proc;
+    if (likely((proc == getCommand && pcmd->argc == 2) ||
+               (proc == setCommand && pcmd->argc == 3)))
+    {
+        pcmd->keys_result.numkeys = 1;
+        pcmd->keys_result.size = MAX_KEYS_BUFFER;
+        pcmd->keys_result.keys = pcmd->keys_result.keysbuf;
+        pcmd->keys_result.keysbuf[0].pos = 1;
+        pcmd->keys_result.keysbuf[0].flags = proc == getCommand ?
+            (CMD_KEY_RO | CMD_KEY_ACCESS) : (CMD_KEY_OW | CMD_KEY_UPDATE);
+        if (server.cluster_enabled) {
+            sds key = pcmd->argv[1]->ptr;
+            pcmd->slot = (int)keyHashSlot(key, (int)sdslen(key));
+        }
+        pcmd->flags |= PENDING_CMD_KEYS_RESULT_VALID;
+        debugAssertPendingCommandKeysResult(pcmd);
+        return;
+    }
+
     pcmd->keys_result.numkeys = 0;
     pcmd->keys_result.size = MAX_KEYS_BUFFER;
     pcmd->keys_result.keys = NULL;
@@ -10786,7 +11247,7 @@ int processCommand(client *c) {
         /* The command may have been modified by modules (e.g., in CommandFilters callbacks),
          * so we need to look it up again. */
         if (!cmd) {
-            if (isCommandReusable(ct->lastcmd, c->argv[0]))
+            if (isCommandReusable(ct->lastcmd, NULL, c->argv[0]))
                 cmd = ct->lastcmd;
             else
                 cmd = lookupCommand(c->argv, c->argc);
@@ -11395,6 +11856,109 @@ int processCommand(client *c) {
             NOTIFY_KEY_MISS | NOTIFY_EXPIRED | NOTIFY_STRING | NOTIFY_NEW |
             NOTIFY_OVERWRITTEN | NOTIFY_TYPE_CHANGED))
         core_eligible = 0;
+
+    /* ===== p1 DIRECT-CLIENT dispatch (design 2026-08-19) ======================================
+     * At pipeline depth 1 the fake wrapper protects against an overlap that cannot exist:
+     * exactly one command is in flight, so the REAL client* is dispatched to ex, ex executes
+     * with c == the real client (addReply writes straight into the real c->buf), ex publishes
+     * this client's ready byte on the SAME EX->IO reply-discovery channel the ring uses
+     * (reply_cdb[cdb].ready[slot] — the byte lives on the real client, i.e. it IS the
+     * client-tagged bit). Normally the io drain flushes c->buf with zero relocation; with
+     * p1direct publish enabled, an eligible worker first writes that buffer directly and
+     * publishes the cleared output cursor with the same completion byte. No pcmd move, no
+     * fake acquire/retire, no small-reply relocation.
+     *
+     * ELIGIBILITY is the core-fake gate verbatim: the `core_eligible` value computed above is
+     * the ONE eligibility source (plain GET/SET shapes, no modules watching string keyspace,
+     * LOG_REQ_RES builds excluded). DIRECT adds only per-conn dynamic conditions
+     * (tomoP1DirectCleanNow) — never a second command list.
+     *
+     * OWNERSHIP: CLIENT_EX_PENDING on the real == the EX_OWNED window (see clientExOwnedReal;
+     * every io-side toucher defers). It also re-uses two existing gates verbatim: the read
+     * paths (readQueryFromClient / processClientInputFromUring) return immediately on the
+     * flag, so the parser can NEVER run concurrently with ex on this client, and
+     * _prepareClientToWrite returns C_OK without touching event registration, so ex's
+     * addReply never schedules a write. CLIENT_PIPELINE_STALLED parks this conn's execute
+     * loop (processCommandAndResetClient skips commandProcessed — the pcmd stays attached,
+     * ex is reading its argv — and processInputBuffer breaks); the drain's wake re-drives it
+     * after the handback consume, gated on ring-empty exactly like cs_barrier.
+     *
+     * HANDSHAKE FENCES (hard rule from ccfeef463): the dispatch->completion->consume chain
+     * introduces NO new cross-thread stall/recheck pair.
+     *   - completion visibility: worker release-stores the CDB byte, drain acquire-loads it
+     *     (the existing SPSC discipline);
+     *   - sleep-edge: a direct completion is published through the SAME executor sig batch
+     *     as every ring fake, so tomoCompletionWakePostBatch's store(published)->seq_cst
+     *     fence->load(armed) pairs with tomoCompletionWakeArm's store(armed)->seq_cst
+     *     fence->rescan — the already-fenced Dekker pair of the reply channel;
+     *   - the PIPELINE_STALLED park is set and cleared by the OWNING io thread only, and its
+     *     waker (the drain) runs on that same thread: program order closes it, no fence.
+     * A lost handback here reproduces the captured wedge signature (parsed+dispatched, argv
+     * held, events unarmed, conn starved forever) — which is why the witnesses below carry
+     * the dispatches==handbacks quiesce invariant. */
+    if (ct->p1d_mode == TOMO_P1D_DIRECT) {
+        /* Mode byte first (same tail line the hwm update above already dirtied); the
+         * toggle — a shared read-mostly line — is never loaded by a pipelined (FC-mode)
+         * conn. Toggle off: no dispatch AND no mode mutation (the A/B lever must not
+         * bleach the population it will re-measure). */
+        if (__builtin_expect(atomic_load_explicit(&tomo_p1direct_enabled,
+                                                  memory_order_relaxed), 1)) {
+            if (core_eligible && tomoP1DirectCleanNow(c, ct)) {
+                int ex_id = getWorkerForCommand(c);   /* stamps tomo_bkt/tomo_bkt_ptr/tomo_key_h */
+                c->cdb = cdbIndexFor(ex_id);
+                c->fake_slot = ct->dispatchid & ct->ring_mask;   /* ready-byte slot the drain consumes */
+                c->db = &server.exThreads[ex_id].db[c->db->id];  /* worker-shard rebind; undone at handback */
+                /* EX_OWNED window opens here; both flags must be visible to the worker via
+                 * the dispatch publish (exQueuePush release store) — set BEFORE the push. */
+                c->flags |= CLIENT_EX_PENDING | CLIENT_PIPELINE_STALLED;
+                ct->p1d_inflight = 1;
+                TOMO_P1D_BUMP(dispatches);
+                /* Ring is empty (CleanNow) => this conn is not on the flush-walk list. */
+                listLinkNodeTail(server.clients_pending_ex[iotid], &ct->clients_pending_ex_node);
+                replyWorking++;
+                exDispatchPush(ex_id, c);
+                ct->dispatchid++;
+                return C_OK;
+            }
+            /* Owner rule "switch to fc mode when detect pipe" — DIRECT -> FC is INSTANT
+             * and covers both triggers: a non-eligible command (core_eligible == 0) and a
+             * pipe signature (CleanNow == 0: a 2nd complete command behind this one, an
+             * undecoded querybuf tail, a previous reply not yet flushed, an in-flight
+             * execution, or a disqualifying flag). The safe direction: THIS command takes
+             * the existing fake path below, immediately. */
+            ct->p1d_mode = TOMO_P1D_FC;
+            ct->p1d_streak = 0;
+            TOMO_P1D_BUMP(mode_to_fc);
+        }
+    } else if (core_eligible && tomoP1DirectCleanNow(c, ct) &&
+               __builtin_expect(atomic_load_explicit(&tomo_p1direct_enabled,
+                                                     memory_order_relaxed), 1)) {
+        /* FC -> DIRECT hysteresis: only after TOMO_P1D_SUSTAIN consecutive clean singleton
+         * parse rounds with zero in-flight fakes (the same predicate a DIRECT dispatch
+         * requires, so a promoted conn's next round is dispatchable by construction). The
+         * Kth clean round itself still dispatches FC — the promotion applies "after K
+         * rounds", i.e. from the next command.
+         *
+         * DEEP-PIPE BUDGET: on a pipelined conn this arm costs the mode-byte test plus
+         * CleanNow's FIRST compare (dispatchid != flushid — both values this path already
+         * loaded for the hwm update above) for 15 of 16 commands in a p16 batch; only the
+         * batch head reaches the second test (ready_len), and the toggle line is loaded
+         * only on a fully CLEAN round (p1-shaped traffic). The streak byte shares the
+         * dispatchid line and is written only when it must change (a saturated-zero
+         * streak on a busy pipe never stores). */
+        if (ct->p1d_streak >= TOMO_P1D_SUSTAIN - 1) {
+            ct->p1d_mode = TOMO_P1D_DIRECT;
+            ct->p1d_streak = 0;
+            TOMO_P1D_BUMP(mode_to_direct);
+        } else {
+            ct->p1d_streak++;
+        }
+    } else if (ct->p1d_streak) {
+        ct->p1d_streak = 0;   /* a non-clean round breaks the run. (Toggle-off rounds also
+                               * land here and zero it: promotions are disabled, and the
+                               * run restarts honestly after re-enable — per-conn MODE is
+                               * what the A/B lever preserves, not a half-counted run.) */
+    }
     unsigned int fslot = ct->dispatchid & ct->ring_mask;
     /* 2s-auto D3: lazy-create the ring slot on first use (createClient leaves every slot NULL).
      * fake_slot is restamped after a resize because the allocation may move. */
@@ -23988,6 +24552,55 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             atomic_load_explicit(&tomo_atomic_cutover_fence_wait_us, memory_order_relaxed),
             atomic_load_explicit(&tomo_atomic_stale_owner_ops, memory_order_relaxed),
             atomic_load_explicit(&tomo_atomic_stale_owner_prunes, memory_order_relaxed));
+        /* p1direct witnesses: per-io-thread owner-written slots, folded here (COLD path —
+         * one pass over the io identity lines). INVARIANT at quiesce: dispatches ==
+         * handbacks; a lasting gap IS the wedge signature (parsed+dispatched, argv held,
+         * events unarmed, conn starved forever) — the wedge-scan reads exactly this pair.
+         * The deferral counters prove their gates OPENED (vacuous-validation rule): a
+         * migration-under-flight or kill-under-flight cell that ends with these at zero
+         * proved nothing. */
+        {
+            tomoP1DirectStats p1d = {0};
+            unsigned long long pub_writes = 0, pub_bytes = 0, pub_partial = 0;
+            unsigned long long pub_eagain = 0, pub_ineligible = 0;
+            for (int t = 0; t <= TOMO_IO_THREADS_MAX; t++) {
+                p1d.dispatches            += tomo_p1d_stats[t].dispatches;
+                p1d.handbacks             += tomo_p1d_stats[t].handbacks;
+                p1d.mode_to_fc            += tomo_p1d_stats[t].mode_to_fc;
+                p1d.mode_to_direct        += tomo_p1d_stats[t].mode_to_direct;
+                p1d.deferred_cron_touches += tomo_p1d_stats[t].deferred_cron_touches;
+                p1d.deferred_migrations   += tomo_p1d_stats[t].deferred_migrations;
+                p1d.deferred_kills        += tomo_p1d_stats[t].deferred_kills;
+                p1d.spill_fallbacks       += tomo_p1d_stats[t].spill_fallbacks;
+            }
+            for (int w = 0; w < TOMO_EX_THREADS_MAX; w++) {
+                pub_writes     += tomoRelaxedRead(tomo_p1d_pub_stats[w].writes);
+                pub_bytes      += tomoRelaxedRead(tomo_p1d_pub_stats[w].bytes);
+                pub_partial    += tomoRelaxedRead(tomo_p1d_pub_stats[w].partial);
+                pub_eagain     += tomoRelaxedRead(tomo_p1d_pub_stats[w].eagain);
+                pub_ineligible += tomoRelaxedRead(tomo_p1d_pub_stats[w].ineligible);
+            }
+            info = sdscatprintf(info,
+                "tomokv_p1direct_enabled:%d\r\n"
+                "tomokv_p1direct_dispatches:%llu\r\n"
+                "tomokv_p1direct_handbacks:%llu\r\n"
+                "tomokv_p1direct_mode_to_fc:%llu\r\n"
+                "tomokv_p1direct_mode_to_direct:%llu\r\n"
+                "tomokv_p1direct_deferred_cron_touches:%llu\r\n"
+                "tomokv_p1direct_deferred_migrations:%llu\r\n"
+                "tomokv_p1direct_deferred_kills:%llu\r\n"
+                "tomokv_p1direct_spill_fallbacks:%llu\r\n"
+                "tomokv_p1direct_pub_writes:%llu\r\n"
+                "tomokv_p1direct_pub_bytes:%llu\r\n"
+                "tomokv_p1direct_pub_partial:%llu\r\n"
+                "tomokv_p1direct_pub_eagain:%llu\r\n"
+                "tomokv_p1direct_pub_ineligible:%llu\r\n",
+                atomic_load_explicit(&tomo_p1direct_enabled, memory_order_relaxed),
+                p1d.dispatches, p1d.handbacks, p1d.mode_to_fc, p1d.mode_to_direct,
+                p1d.deferred_cron_touches, p1d.deferred_migrations,
+                p1d.deferred_kills, p1d.spill_fallbacks,
+                pub_writes, pub_bytes, pub_partial, pub_eagain, pub_ineligible);
+        }
         info = sdscatprintf(info, FMTARGS(
             "tomokv_flip_anchor_captures:%lu\r\n",
                 atomic_load_explicit(&tomo_flip_anchor_captures, memory_order_relaxed),
@@ -24189,10 +24802,23 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             unsigned long long rord_runs_sum=0, rord_heads_sum=0, rord_grouped_sum=0, rord_fences_sum=0;
             unsigned long long rord_age_pins_sum=0;
             unsigned int rord_worst_age_us=0;
+            unsigned long long rord_inversions_sum=0;
+            /* Acquire the published mask before its sticky witness. DEBUG publishes the witness
+             * first, so one INFO response cannot identify an unsafe mask as safe. */
+            int rord_mask_info = __atomic_load_n(&tomo_rord_mask, __ATOMIC_ACQUIRE);
+            int rord_unsafe_info = __atomic_load_n(&tomo_rord_unsafe_diag, __ATOMIC_RELAXED);
+            /* Window-law witnesses across ALL io threads, not just thread 1: a single-thread
+             * sample cannot tell "the law never engages" from "it engages on another thread",
+             * and mechanism A's keep-or-delete verdict rests on exactly that distinction. */
+            int disp_window_max = 0, disp_window_nonzero = 0;
             for (int _t = 0; _t <= TOMO_IO_THREADS_MAX; _t++) {
                 rord_runs_sum += tm_io_sig[_t].rord_runs; rord_heads_sum += tm_io_sig[_t].rord_heads;
                 rord_grouped_sum += tm_io_sig[_t].rord_grouped; rord_fences_sum += tm_io_sig[_t].rord_fences;
                 rord_age_pins_sum += tm_io_sig[_t].rord_age_pins;
+                rord_inversions_sum += tm_io_sig[_t].rord_inversions;
+                int _w = atomic_load_explicit(&tomo_disp_window[_t], memory_order_relaxed);
+                if (_w > disp_window_max) disp_window_max = _w;
+                if (_w > 0) disp_window_nonzero++;
             }
             /* Hoisted from the sdscatprintf argument list: a GNU ({...})
              * statement expression there trips -Wpedantic (braced-group in
@@ -24305,12 +24931,17 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "tomokv_svc_us_c3:%.2f\r\n", atomic_load_explicit(&tomo_svc_q8[3], memory_order_relaxed) / 256.0,
                 "tomokv_svc_min_us:%.2f\r\n", atomic_load_explicit(&tomo_svc_min_q8, memory_order_relaxed) / 256.0,
                 "tomokv_disp_window_io1:%d\r\n", atomic_load_explicit(&tomo_disp_window[1], memory_order_relaxed),
+                "tomokv_disp_window_max:%d\r\n", disp_window_max,
+                "tomokv_disp_window_nonzero:%d\r\n", disp_window_nonzero,
                 "tomokv_rord_runs:%llu\r\n", (unsigned long long)rord_runs_sum,
                 "tomokv_rord_heads:%llu\r\n", (unsigned long long)rord_heads_sum,
                 "tomokv_rord_grouped:%llu\r\n", (unsigned long long)rord_grouped_sum,
                 "tomokv_rord_fences:%llu\r\n", (unsigned long long)rord_fences_sum,
                 "tomokv_reorder_age_pins:%llu\r\n", (unsigned long long)rord_age_pins_sum,
                 "tomokv_rord_worst_age_us:%u\r\n", rord_worst_age_us,
+                "tomokv_rord_mask:%d\r\n", rord_mask_info,
+                "tomokv_rord_unsafe_diag:%d\r\n", rord_unsafe_info,
+                "tomokv_rord_inversions:%llu\r\n", rord_inversions_sum,
                 "tomokv_io_threads_counted:%d\r\n", nio,
                 "tomokv_ex_threads_counted:%d\r\n", wlive));
 
@@ -24348,6 +24979,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 (double)u2st.sqes_submitted / (double)u2st.enter_calls : 0.0;
             info = sdscatprintf(info, FMTARGS(
                 "tomokv_uring2_enabled:%d\r\n", server.io_uring != 0,
+                "tomokv_uring2_registration_enabled:%d\r\n", tomoUring2RegistrationEnabled(),
                 "tomokv_uring2_rings_ready:%llu\r\n", (unsigned long long)u2st.rings_ready,
                 "tomokv_uring2_setup_submit_all:%llu\r\n", (unsigned long long)u2st.setup_submit_all,
                 "tomokv_uring2_setup_defer_taskrun:%llu\r\n", (unsigned long long)u2st.setup_defer_taskrun,
@@ -24370,6 +25002,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "tomokv_uring2_cq_batches:%llu\r\n", (unsigned long long)u2st.cq_batches,
                 "tomokv_uring2_cqes_per_drain_pass:%.6f\r\n", u2_cqes_per_drain,
                 "tomokv_uring2_epoll_wakes:%llu\r\n", (unsigned long long)u2st.epoll_wakes,
+                "tomokv_uring2_p1_batch_harvests:%llu\r\n", (unsigned long long)u2st.p1_batch_harvests,
+                "tomokv_uring2_recv_ceremony_batched_ops:%llu\r\n", (unsigned long long)u2st.recv_ceremony_batched_ops,
                 "tomokv_uring2_recv_submitted:%llu\r\n", (unsigned long long)u2st.recv_submitted,
                 "tomokv_uring2_recv_cqes:%llu\r\n", (unsigned long long)u2st.recv_cqes,
                 "tomokv_uring2_recv_bytes:%llu\r\n", (unsigned long long)u2st.recv_bytes,
@@ -24385,6 +25019,12 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "tomokv_uring2_send_scratch_copies:%llu\r\n", (unsigned long long)u2st.send_scratch_copies,
                 "tomokv_uring2_send_scratch_bytes:%llu\r\n", (unsigned long long)u2st.send_scratch_bytes,
                 "tomokv_uring2_send_cancel_submitted:%llu\r\n", (unsigned long long)u2st.send_cancel_submitted,
+                "tomokv_uring2_send_ceremony_batches:%llu\r\n", (unsigned long long)u2st.send_ceremony_batches,
+                "tomokv_uring2_send_ceremony_batched_ops:%llu\r\n", (unsigned long long)u2st.send_ceremony_batched_ops,
+                "tomokv_uring2_sqe_template_hits:%llu\r\n", (unsigned long long)u2st.sqe_template_hits,
+                "tomokv_uring2_fixed_file_sqes:%llu\r\n", (unsigned long long)u2st.fixed_file_sqes,
+                "tomokv_uring2_fixed_buf_sqes:%llu\r\n", (unsigned long long)u2st.fixed_buf_sqes,
+                "tomokv_uring2_reg_fallbacks:%llu\r\n", (unsigned long long)u2st.reg_fallbacks,
                 "tomokv_uring2_migration_acks:%llu\r\n", (unsigned long long)u2st.migration_acks));
             info = sdscatprintf(info, FMTARGS(
                 "tomokv_uring_multishot_arms:%llu\r\n", (unsigned long long)u2st.multishot_arms,
@@ -25643,12 +26283,47 @@ static inline int isStatefulCommand(struct redisCommand *cmd) {
     return cmd && (cmd->tomo_route & TOMO_R_STATEFUL);
 }
 
+#ifdef DEBUG_ASSERTIONS
+/* Release builds omit reset stores whose next promotion has a dominating
+ * writer. Audit the full core-fake contract at the exact rearm point, including
+ * the atomic/auxiliary scalars whose stale reuse has caused production faults. */
+static void debugAssertCoreFakeRearm(const client *fake) {
+    int watch_worker;
+    unsigned int dirty_cas;
+    atomicGet(fake->tomo_watch_worker, watch_worker);
+    atomicGet(fake->tomo_dirty_cas, dirty_cas);
+
+    debugServerAssert(fake->isFake && !fake->has_exec_tail);
+    debugServerAssert(fake->current_pending_cmd == NULL);
+    debugServerAssert(fake->pending_cmds.head == NULL && fake->pending_cmds.tail == NULL);
+    debugServerAssert(fake->pending_cmds.len == 0 && fake->pending_cmds.ready_len == 0);
+    debugServerAssert(fake->all_argv_len_sum == 0);
+    debugServerAssert(fake->argc == 0 && fake->argv == NULL && fake->argv_len == 0);
+    debugServerAssert(fake->cmd == NULL);
+    debugServerAssert(fake->bufpos == 0 && fake->reply_bytes == 0 && fake->sentlen == 0);
+    debugServerAssert(!fake->buf_encoded && fake->last_header == NULL);
+    debugServerAssert(listLength(fake->reply) == 0);
+    debugServerAssert(fake->net_output_bytes_curr_cmd == 0);
+    debugServerAssert(fake->prefetch_key_hash_valid == 0);
+    debugServerAssert(fake->cluster_compatibility_check_slot == -2);
+    debugServerAssert(fake->tomo_local_worker == -1 && watch_worker == -1);
+    debugServerAssert(dirty_cas == 0 && fake->tomo_script_gate == 0);
+    debugServerAssert(fake->tomo_bkt_ptr == NULL);
+    debugServerAssert(fake->csgroup == NULL && fake->csparent == NULL);
+    debugServerAssert(!fake->tomo_read_snapshot_pinned);
+    debugServerAssert(!(fake->flags & CLIENT_EX_PENDING));
+}
+#endif
+
 /* 2s-auto T3 express-slim: a trimmed moveExecutionState for the express lane (GET/SET).
  * Skips ONLY lookedcmd/realcmd/reploff_next/read_error (unused by express commands —
  * sharding rejects MULTI/WATCH so these clients never reach here mid-transaction). It STILL
  * moves the pending command + argv accounting: commandProcessed(fake) frees the pcmd via
  * fake->pending_cmds, so skipping it would leak/double-free. */
 static void moveExecutionStateSlim(client *real, client *fake) {
+#ifdef DEBUG_ASSERTIONS
+    if (!fake->has_exec_tail) debugAssertCoreFakeRearm(fake);
+#endif
     fake->argc     = real->argc;
     fake->argv     = real->argv;
     fake->argv_len = real->argv_len;
@@ -26286,9 +26961,92 @@ static inline void tomoPollingYield(void) {
  * pass), read at the exExecFake exit. exExecFake has no worker parameter and grows none. */
 static __thread exThread *tm_cur_ex;
 
+/* Try the p1-only executor socket publication immediately before the existing
+ * ready-byte release store. A return leaves completion publication unchanged:
+ * full writes clear the ordinary output cursor, while every decline, short
+ * write, and error preserves the reply for the IO owner's normal send path. */
+static inline void tomoP1DirectPublishReply(client *real) {
+    if (!real || real->isFake || !real->has_exec_tail) return;
+
+    clientExecTail *rt = clientTail(real);
+    /* A fake completion also names its real parent. p1d_inflight is the
+     * generation tag that distinguishes the one DIRECT-real completion from
+     * those ordinary fake/group publications; do not instrument fake traffic
+     * as an ineligible p1 publish. */
+    if (!rt->p1d_inflight) return;
+
+    serverAssert(tm_cur_ex && tm_cur_ex->id >= 0 &&
+                 tm_cur_ex->id < TOMO_EX_THREADS_MAX);
+    tomoP1DirectPublishStats *pub = &tomo_p1d_pub_stats[tm_cur_ex->id];
+    connection *conn = real->conn;
+    uint64_t flags = real->flags;
+    unsigned int slot = rt->flushid & rt->ring_mask;
+
+    /* Reuse the dispatch disqualifier verbatim. The remaining checks are
+     * post-execution facts that only the worker can decide: still exactly p1,
+     * a wholly plain inline reply, a live raw-fd transport, and no IO-side
+     * close/write suppression pending. */
+    if (rt->p1d_mode != TOMO_P1D_DIRECT ||
+        rt->dispatchid - rt->flushid != 1 || real->fake_slot != slot ||
+        listLength(real->reply) != 0 || real->reply_bytes != 0 ||
+        real->buf_encoded || real->last_header ||
+        real->sentlen >= real->bufpos ||
+        (flags & TOMO_P1D_DISQUALIFY_FLAGS) ||
+        !(real->io_flags & CLIENT_IO_WRITE_ENABLED) ||
+        (real->io_flags & CLIENT_IO_CLOSE_ASAP) ||
+        !conn || conn->fd < 0 || connGetState(conn) != CONN_STATE_CONNECTED ||
+        (conn->flags & CONN_FLAG_CLOSE_SCHEDULED) ||
+        (conn->type != connectionTypeTcp() &&
+         conn->type != connectionTypeUnix()))
+    {
+        tomoRelaxedBump(pub->ineligible, 1);
+        return;
+    }
+
+    size_t want = real->bufpos - real->sentlen;
+    ssize_t nwritten = write(conn->fd, real->buf + real->sentlen, want);
+    int write_errno = nwritten < 0 ? errno : 0;
+    tomoRelaxedBump(pub->writes, 1);
+
+    if (nwritten < 0) {
+        if (write_errno == EAGAIN || write_errno == EWOULDBLOCK)
+            tomoRelaxedBump(pub->eagain, 1);
+        return;                 /* fatal errno stays IO-owned too */
+    }
+    if ((size_t)nwritten < want) tomoRelaxedBump(pub->partial, 1);
+    if (nwritten == 0) return;
+
+    size_t sent = (size_t)nwritten;
+    tomoRelaxedBump(pub->bytes, sent);
+    real->sentlen += sent;
+    tomoRelaxedBump(server.netstat[iotid].out, (long long)sent);
+    rt->net_output_bytes += sent;
+    if (__builtin_expect(server.phase_trace_sample != 0, 0))
+        tomoPhaseSendDone(real);
+    rt->lastinteraction = server.unixtime;
+
+    if (sent != want) return;   /* IO resumes at the published sentlen */
+
+    /* bufpos==0 is the IO-side "already written" state. Both cursor stores
+     * precede cdbSlotPublish's release store, so the drain's acquire-ready
+     * observation cannot see completion with the old nonzero cursor. */
+    real->bufpos = 0;
+    real->sentlen = 0;
+}
+
 static inline tomoCmdClockStamp exExecFake(client *fake, monotonic_raw entry_raw) {
     tomoCmdClockStamp exit_clock = {0, 0};
-    serverAssert(fake->isFake);
+    /* p1direct: a DIRECT dispatch pops the REAL client here — always EX_PENDING-marked and
+     * conn-backed. Everything below already works on it unmodified: current_client points at
+     * it (tomoKeyHashHint's EX_PENDING test holds), the proc's addReply lands in its own
+     * c->buf (the EX_PENDING arm of _prepareClientToWrite), the S2 bucket lock derives from
+     * the dispatch-stamped tomo_bkt, per-command stats/counts take the direct-proc arm
+     * (tomo_local_worker is -1 on reals for life), commands_processed increments the real's
+     * own counter (no drain fold needed), and the argv release below decrefs the pcmd
+     * operands with the worker as the sole shard-refcount mutator, exactly as for a fake —
+     * the pcmd stayed ATTACHED to the real (no move), and argv_released_mask tells the io
+     * side's later freePendingCommand which slots are already released. */
+    serverAssert(fake->isFake || ((fake->flags & CLIENT_EX_PENDING) && fake->conn));
     if (fake->cmd) {
         server.current_client[iotid].p = fake;
         server.executing_client[iotid].p = fake;
@@ -27403,7 +28161,7 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
                 worker->w_ewma_vsize = cur < 0 ? 0 : (unsigned int)cur;
             }
 
-            client *parent = fake->parent;
+            client *parent = fake->parent ? fake->parent : fake;
             if (__builtin_expect(server.wb_threads != 0, 0)) {
                 clientExecTail *prt = clientTail(parent);
                 unsigned int outstanding = tomoWbDispatchLoad(prt) -
@@ -27432,8 +28190,16 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
          * aggregate never carries completion bytes into another exSlice pass.
          * This loop is the worker's final access to each saved parent; after a
          * store, the IO owner may immediately retire that slot. */
-        for (int s = 0; s < sig_n; s++)
+        for (int s = 0; s < sig_n; s++) {
+            /* Disabled cost: one predictable read-mostly-global branch. The
+             * helper itself recognizes only the p1 DIRECT-real generation;
+             * fake and deep-pipe completions remain untouched. */
+            if (__builtin_expect(atomic_load_explicit(
+                                     &tomo_p1direct_publish_enabled,
+                                     memory_order_relaxed), 0))
+                tomoP1DirectPublishReply(sig_parents[s]);
             cdbSlotPublish(sig_parents[s], sig_cdb[s], sig_slots[s]);
+        }
         /* One publication/armed check per producer represented in this aggregate,
          * after all of that producer's ready bytes are visible. The arm exchange
          * coalesces the actual eventfd syscall to once per IO scan episode. */
@@ -30595,6 +31361,16 @@ void tmMigServiceOut(void) {
             listRewind(server.clients[id], &li);
             while (started < count && (ln = listNext(&li))) {
                 client *c = listNodeValue(ln);
+                /* p1direct EX_OWNED: an ex thread is executing on this real client (DIRECT
+                 * dispatch). Migration of an EX_OWNED conn must WAIT for handback — do not
+                 * even START it here (a start pauses reads and enrolls migration state on a
+                 * client whose execution identity is mid-flight). The walk just picks the
+                 * next migratable conn; the banked latent-P1 class this guards against is
+                 * a conn handed to another io thread while ex still writes its c->buf. */
+                if (__builtin_expect(clientExOwnedReal(c), 0)) {
+                    TOMO_P1D_BUMP(deferred_migrations);
+                    continue;
+                }
                 if (!(c->flags & CLIENT_MIGRATING) && tmClientMigratable(c)) {
                     tmMigStartClient(c); started++;
                 }
@@ -30653,6 +31429,12 @@ void tmMigServiceOut(void) {
         listRewind(server.clients[id], &li);
         while ((ln = listNext(&li))) {
             client *c = listNodeValue(ln);
+            /* p1direct EX_OWNED: defer the start until handback (this walk re-runs every
+             * pass, so a deferred conn is re-marked a few microseconds later). */
+            if (__builtin_expect(clientExOwnedReal(c), 0)) {
+                TOMO_P1D_BUMP(deferred_migrations);
+                continue;
+            }
             if (!(c->flags & CLIENT_MIGRATING) && tmClientMigratable(c)) tmMigStartClient(c);
         }
     }
@@ -30675,6 +31457,14 @@ void tmMigServiceOut(void) {
         if (!tmClientMigratable(c)) {
             if (!tmMigAbortClient(c)) continue;
             listDelNode(mb->migrating_out, ln);
+            continue;
+        }
+        /* p1direct EX_OWNED: a conn already enrolled (marked before its DIRECT dispatch, or
+         * raced by one) must WAIT for handback — tmClientQuiesced's dispatchid==flushid fence
+         * refuses it below; witness the deferral so a migration-under-flight cell can prove
+         * the wait fired rather than never being exercised (vacuous-validation rule). */
+        if (__builtin_expect(clientExOwnedReal(c), 0)) {
+            TOMO_P1D_BUMP(deferred_migrations);
             continue;
         }
         if (!tmClientQuiesced(c)) continue;    /* still draining in-flight / flushing replies */
@@ -32116,6 +32906,12 @@ static void tmR10DriveEpisode(int node, flipCtlState *fc, int ni, int ne);
                                 * not the config: one physical flip moves one thread, and the worst case that
                                 * can do is halve the worker side (w=2 -> w=1) on a fully
                                 * worker-bound load, ~2x. Beyond 3x, re-baseline (#74). */
+/* p1direct's FC->DIRECT run length is DERIVED from this constant (see TOMO_P1D_SUSTAIN's
+ * derivation comment at its definition). If FLIP_SUSTAIN is ever re-sized from new settle
+ * measurements, re-derive the p1direct value with it — this check makes silent drift a
+ * compile error rather than an undocumented second constant. */
+_Static_assert(TOMO_P1D_SUSTAIN == FLIP_SUSTAIN,
+               "p1direct hysteresis is derived from FLIP_SUSTAIN; re-derive, don't fork");
 #define FLIP_EPISODE_POOL_CUTOFF 16 /* owner compatibility boundary: configured per-node pools at
                                      * or below this retain the original judged climb */
 #define FLIP_EPISODE_EX_CHANGE 0.10 /* required absolute raw-EX-demand change before retrying a
