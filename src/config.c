@@ -3208,17 +3208,6 @@ static int applyTomoAtomicToggle(const char **err) {
     return 1;
 }
 
-/* CONFIG SET writes the canonical server field, then publishes the new p1
- * executor-side send gate to workers. Startup performs the same mirror in
- * initServer(), after config-file and command-line parsing have completed. */
-static int applyTomoP1DirectPublish(const char **err) {
-    UNUSED(err);
-    atomic_store_explicit(&tomo_p1direct_publish_enabled,
-                          server.tomo_p1direct_publish,
-                          memory_order_relaxed);
-    return 1;
-}
-
 standardConfig static_configs[] = {
     /* Bool configs */
     createBoolConfig("rdbchecksum", NULL, IMMUTABLE_CONFIG, server.rdb_checksum, 1, NULL, NULL),
@@ -3379,7 +3368,6 @@ standardConfig static_configs[] = {
      * connection and the per-client ring memory. -1 = auto (max 32, decays toward measured demand),
      * 0 = off (depth 1), N = static (rounded up to a power of two; the slot index is masked). */
     createIntConfig("tomokv-pipeline-depth",         NULL, IMMUTABLE_CONFIG, -1, TOMO_PIPELINE_DEPTH_MAX, server.pipeline_ring_depth, -1, INTEGER_CONFIG, NULL, NULL),
-    createBoolConfig("tomokv-p1direct-publish",      NULL, MODIFIABLE_CONFIG, server.tomo_p1direct_publish, 0, NULL, applyTomoP1DirectPublish),
     /* Compatibility parser surface from p1-diet. The flip lineage deliberately
      * retired the broad selectable prefetch machinery; these values remain
      * queryable/settable so every input configuration still parses. */
