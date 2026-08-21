@@ -3380,6 +3380,11 @@ standardConfig static_configs[] = {
      * 0 = off (depth 1), N = static (rounded up to a power of two; the slot index is masked). */
     createIntConfig("tomokv-pipeline-depth",         NULL, IMMUTABLE_CONFIG, -1, TOMO_PIPELINE_DEPTH_MAX, server.pipeline_ring_depth, -1, INTEGER_CONFIG, NULL, NULL),
     createBoolConfig("tomokv-p1direct-publish",      NULL, MODIFIABLE_CONFIG, server.tomo_p1direct_publish, 0, NULL, applyTomoP1DirectPublish),
+    /* Compatibility parser surface from p1-diet. The flip lineage deliberately
+     * retired the broad selectable prefetch machinery; these values remain
+     * queryable/settable so every input configuration still parses. */
+    createIntConfig("tomokv-prefetch-ex",            NULL, MODIFIABLE_CONFIG, 0, 2, server.prefetch_ex_level, 1, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-prefetch-io",            NULL, MODIFIABLE_CONFIG, 0, 2, server.prefetch_io_level, 0, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("tomokv-zerocopy-min-value",     NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.zerocopy_min_value, 1024, INTEGER_CONFIG, NULL, NULL), /* forward values >= N bytes zero-copy; measured +20-24% at 16-64KB. 0 = never. */
 
     createBoolConfig("rdbcompression", NULL, MODIFIABLE_CONFIG, server.rdb_compression, 1, NULL, NULL),

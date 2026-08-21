@@ -354,6 +354,17 @@ echo "=== convention A: -1 = auto ===" >> $OUT
 
   try tomokv-pipeline-depth 0
 
+  # p1-lineage compatibility parser surface. The broad selectable prefetch
+  # apparatus is retired, but existing configurations must remain accepted.
+  try tomokv-prefetch-ex 0
+  try tomokv-prefetch-ex 1
+  try tomokv-prefetch-ex 2
+  must_refuse tomokv-prefetch-ex 3 "compatibility range remains [0,2]"
+  try tomokv-prefetch-io 0
+  try tomokv-prefetch-io 1
+  try tomokv-prefetch-io 2
+  must_refuse tomokv-prefetch-io 3 "compatibility range remains [0,2]"
+
   must_refuse tomokv-reshard-chunk 0 "directive deleted; chunk planning is automatic"
 
   must_refuse tomokv-reshard-cool-margin-pct 0 "directive deleted; the legacy mean threshold is fixed"

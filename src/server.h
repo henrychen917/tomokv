@@ -3447,6 +3447,11 @@ struct redisServer {
     int tm_mig_flip_action;
     int pipeline_ring_depth;
     int tomo_p1direct_publish;  /* modifiable tomokv-p1direct-publish; default off */
+    /* Compatibility values for the p1-lineage selectors. The broad selectable
+     * prefetch apparatus was retired by the flip lineage; targeted storage and
+     * gather lookahead remain automatic. */
+    int prefetch_ex_level;
+    int prefetch_io_level;
     int ex_queue_size;
     unsigned int ex_queue_mask;
     /* (ex_dispatch_mask DELETED 2026-07-28: a v8 leftover — worker routing goes through the
