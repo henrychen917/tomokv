@@ -2139,6 +2139,23 @@ typedef struct csGroup {
     redisAtomic int msetnx_retry;       /* reservations blocked by an earlier pending owner */
     uint8_t *msetnx_state;              /* [nkeys], coordinator-visible reservation verdict */
     int snapshot_pinned;       /* snapshot-reading group uses its head's dispatch pin */
+    /* ---- D.1 straddle repair (restart-capable snapshot reads: MGET/EXISTS/TOUCH/PFCOUNT).
+     * straddle_fold is the union of the subs' per-command memo entries (each entry holds one
+     * tomoCommit reference, released at fold reset). Subs fold at disarm, BEFORE their pending
+     * decrement publishes them complete; the last sub validates the union against the frozen T
+     * and arms read_restart when a memoized record's marker landed at or below it (some sibling
+     * may have used the visible verdict another sub froze invisible) or when a sub's memo
+     * overflowed. The drain then re-waves the group with a fresh T instead of reassembling.
+     * own_order_limit is the connection's install-order watermark at dispatch: a restarted wave
+     * must treat own installs at/after it as invisible — they are program-order LATER writes
+     * that the first wave could not have observed (owner-queue FIFO), so neither ordinary
+     * visibility nor own-widening may pull them into this read. NULL fold = shape without a
+     * restart lever (memo still guards intra-sub stability there). */
+    _Atomic(tomoCommit *) *straddle_fold; /* [TOMO_STRADDLE_MEMO_MAX] */
+    redisAtomic int straddle_fold_n;      /* reserved fold slots; > MAX encodes fold overflow */
+    redisAtomic int read_restart;         /* drain must re-wave instead of reassembling */
+    uint64_t own_order_limit;             /* first own install order NOT visible to this read */
+    int straddle_eligible;                /* restart-capable shape, stamped at dispatch */
     redisAtomic long rcount;   /* DEL/EXISTS: summed integer result */
     /* ee451 (v11-F): cross-shard set-ops (SINTER/SUNION/SDIFF). Each per-key sub gathers its
      * set's members as freshly-allocated sds COPIES (private, refcount-free => safe to free on
@@ -3524,7 +3541,12 @@ struct redisServer {
         _Atomic unsigned long long atomic_read_slow_inflight_conflict;
         _Atomic unsigned long long atomic_read_slow_gate_closed_other;
         _Atomic long long flat_hash_reuses; /* guarded tomo_key_h consumed by a FLAT lookup */
-        char _pad[CACHE_LINE_SIZE - 7 * sizeof(long long)];
+        /* D.1 straddle-memo witnesses (single-writer per worker slot; folded at INFO).
+         * hits > 0 on a clean torn run is the anti-vacuous proof that the straddle path
+         * was actually exercised; peak is the per-command memo high-water mark. */
+        _Atomic unsigned long long straddle_memo_hits;
+        _Atomic unsigned long long straddle_memo_peak;
+        char _pad[2 * CACHE_LINE_SIZE - 9 * sizeof(long long)];
     } kstat[TOMO_IO_THREADS_MAX + 1 + TOMO_EX_THREADS_MAX] __attribute__((aligned(CACHE_LINE_SIZE)));
     /* ee451 (#B1): per-thread executed-command counters. stat_numcommands lived only in call(),
      * which worker threads never enter (they run cmd->proc directly from exExecFake, and the
@@ -5886,8 +5908,9 @@ void dbReplaceValueWithLink(redisDb *db, robj *key, robj **val, dictEntryLink li
 void setKey(client *c, redisDb *db, robj *key, robj **ioval, int flags);
 kvobj *setKeyVersioned(client *c, redisDb *db, robj *key, robj **ioval, int flags,
                        uint64_t version_seq, long long version_expire);
-void tomoApplyVersionStamp(kvobj *kv);
 void tomoCancelVersion(kvobj *kv);
+int tomoReopenReadFastAfterMarker(kvobj *member);
+void tomoAtomicBagPrefetchWitness(int owner, unsigned long long count);
 void tomoArmVersionRetire(kvobj *kv, uint64_t version_seq);
 void tomoVersionPruneAfterGrace(kvobj *anchor);
 void tomoVersionPruneOwnerAfterGrace(void *owner_record);
@@ -5927,6 +5950,55 @@ static inline int tomoPinnedReadSnapshot(uint64_t *snapshot) {
 }
 uint64_t tomoCurrentReadSnapshot(void);
 uint64_t tomoCommittedSeq(void);
+
+/* ---- D.1 straddle memo: reader side of unlatched commit publication ----
+ *
+ * The commit clock is a fetch_add counter of ASSIGNED timestamps; the group marker lands with
+ * its own release store afterwards. A snapshot reader's T therefore covers groups whose marker
+ * it may momentarily read as zero, and the predicate "0 < ts <= T => visible" is unstable for
+ * exactly those straddling records. The memo restores per-command stability: the FIRST verdict
+ * "invisible" (marker==0 || ts > T) taken for a commit record is frozen and reused for every
+ * other key this command resolves against the same record. The asymmetry keeps it cheap: a
+ * visible verdict (0 < ts <= T) can never change — markers are write-once and T is fixed — so
+ * it is never memoized; only straddling readers pay, and only for in-flight/above-T groups.
+ * Lifetime: one worker command's resolution (armed in csSubExec, reset per sub). The record
+ * pointers are QSBR-safe for that span — every prune requires post-marker grace and physical
+ * free a second post-unlink grace, and the resolving worker is inside its live region. */
+#define TOMO_STRADDLE_MEMO_MAX 8
+typedef struct tomoStraddleMemo {
+    const struct csGroup *g;              /* armed resolving group; NULL = disarmed */
+    tomoCommit *ent[TOMO_STRADDLE_MEMO_MAX];
+    int n;
+    int overflow;                          /* a 9th distinct unstable record appeared */
+} tomoStraddleMemo;
+extern __thread tomoStraddleMemo tomo_straddle_memo;
+/* DEBUG TOMO-ATOMICMEMO <0|1>: discriminating control — 0 keeps the unlatched fetch_add clock
+ * but disables memoization, so the torn suite can prove it still SEES this hazard class. */
+extern redisAtomic int tomo_atomic_memo_on;
+
+static inline int tomoStraddleMemoBlocks(tomoCommit *rec) {
+    tomoStraddleMemo *m = &tomo_straddle_memo;
+    for (int i = 0; i < m->n; i++)
+        if (m->ent[i] == rec) return 1;
+    return 0;
+}
+
+/* Pinned-fast-path fallthrough test (lookupKeyReadWithFlags): the owner-published read_head is
+ * a VISIBLE candidate, but if its commit record was already judged invisible by this command,
+ * the frozen verdict wins and the caller must fall through to the memo-aware resolver.
+ * A published ABSENCE (read_head == NULL) carries no metadata to attribute it — a group this
+ * command froze invisible (e.g. a straddling atomic DEL) may be what produced it, so with a
+ * non-empty memo absence is conservatively routed to the resolver too, where the tombstone's
+ * own record is memo-checked. A raw head without vmeta is a pre-atomic stable value. */
+static inline int tomoStraddleMemoBlocksFast(struct redisObject *read_head,
+                                             struct tomoVerMeta *read_meta) {
+    tomoStraddleMemo *m = &tomo_straddle_memo;
+    if (__builtin_expect(m->n == 0, 1)) return 0;
+    if (read_head == NULL) return 1;
+    if (read_meta == NULL) return 0;
+    tomoCommit *rec = atomic_load_explicit(&read_meta->commit, memory_order_acquire);
+    return rec != NULL && tomoStraddleMemoBlocks(rec);
+}
 void setKeyByLink(client *c, redisDb *db, robj *key, robj **valref, int flags, dictEntryLink *link);
 robj *dbRandomKey(redisDb *db);
 int dbGenericDelete(redisDb *db, robj *key, int async, int flags);

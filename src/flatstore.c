@@ -70,7 +70,7 @@ void flatRetirePayloadReady(dictEntry *payload) {
     } else if (p & (uintptr_t)FLAT_RETIRE_VMETA_BIT) {
         struct tomoVerMeta *vmeta = flatRetireSpecialPayload(payload);
         tomoAtomicCommitVersionRelease(vmeta);
-        zfree(vmeta);
+        tomoVerMetaPoolFree(vmeta);
     } else if (p & (uintptr_t)FLAT_RETIRE_OWNER_BIT) {
         tomoVersionPruneOwnerAfterGrace(flatRetireSpecialPayload(payload));
     } else {
@@ -93,7 +93,7 @@ void flatRetirePayloadDiscard(dictEntry *payload) {
     } else if (p & (uintptr_t)FLAT_RETIRE_VMETA_BIT) {
         struct tomoVerMeta *vmeta = flatRetireSpecialPayload(payload);
         tomoAtomicCommitVersionRelease(vmeta);
-        zfree(vmeta);
+        tomoVerMetaPoolFree(vmeta);
     } else if (p & (uintptr_t)FLAT_RETIRE_OWNER_BIT) {
         tomoVersionPruneOwnerDiscard(flatRetireSpecialPayload(payload));
     } else {

@@ -1093,6 +1093,18 @@ NULL
                 results[i].expected_moves, results[i].actual_io,
                 results[i].actual_ex, results[i].actual_moves);
         }
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-atomicmemo") && c->argc == 3) {
+        /* DEBUG TOMO-ATOMICMEMO <0|1> (default 1) -- D.1 discriminating control. 0 KEEPS the
+         * unlatched fetch_add commit clock but disables the reader-side straddle memo (and with
+         * it the fold/validate/restart machinery it feeds), re-exposing the raw marker-lands-
+         * mid-command hazard. The torn suite's ON-arm with the memo disabled MUST report torn>0;
+         * if it cannot, the suite is blind to this hazard class and a clean memo-enabled run is
+         * vacuous. Test hook, not a tunable: no config surface, no steady-state behaviour. */
+        long on;
+        if (getLongFromObjectOrReply(c, c->argv[2], &on, NULL) != C_OK) return;
+        atomic_store_explicit(&tomo_atomic_memo_on, on != 0, memory_order_relaxed);
+        addReplyStatus(c, on != 0 ? "atomic straddle memo ON"
+                                  : "atomic straddle memo OFF (torn-hazard control arm)");
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-rordtrace") && c->argc == 3) {
         /* DEBUG TOMO-RORDTRACE <0|1> -- one-shot dump of the next reorder run's arrival vs emit
          * class sequence (class digit, upper=head-of-pipe, | = dependency fence). */

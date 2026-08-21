@@ -37,12 +37,13 @@ retirer or observed by the parker's one self-wake.
 
 - `-1` (default): one sixteenth of maxmemory, or physical RAM when maxmemory is zero.
 - `0`: disabled; no reclaim-counter table is allocated at boot.
-- `N > 0`: an exact process-wide byte limit.
+- `N > 0`: the process-wide folded-byte admission target.
 
-Each atomic install is still charged to its immutable install owner for exact skew telemetry. At
-group completion, the shared commit record sums those charges and performs one process-pool RMW.
-The conservative group charge remains until the last version metadata from that group retires.
-This avoids one contended global RMW per key while allowing a skewed hot worker to borrow unused
+Each atomic install is charged to its immutable install owner. One owner record publishes its
+already-summed bytes to that owner's cache-line-isolated slot with a local load/store. The main
+controller folds all owner slots once per completed `serverCron` tick and release-replaces the
+process-wide snapshot; group publish and final commit release do not modify the global value.
+This removes both process-global RMWs per group while allowing a skewed hot worker to borrow unused
 capacity from other workers.
 
 The exact per-version owner charge survives while the version is linked, while its pre-unlink or
@@ -52,16 +53,22 @@ post-unlink QSBR grace is pinned, and while the value waits in a retire batch. I
 - when the sole surviving live value is promoted back to the raw representation.
 
 Owner counters are lazily allocated only for atomic mode with backpressure enabled and are
-separated by cache lines. The pooled counter is separately cache-line-isolated. The ordinary
-`tomokv-atomic no` path neither allocates nor touches this state.
+separated by cache lines. The folded snapshot is separately cache-line-isolated. The ordinary
+`tomokv-atomic no` path neither allocates nor touches the owner table.
 
-When the pooled charge exceeds its limit, a pressure edge is published. New atomic writes park at
-the same pre-ring gate as a full group window. Reads, already-admitted groups, owner-local
-publish/retirement, and worker QSBR reclaim continue to run. Releasing the last metadata reference of a charged
-group decrements the pool, refreshes pressure, and wakes parked IO loops once it is within budget.
-A charge rechecks the pool after publishing pressure: if a concurrent final release crossed below
-the cap before seeing that store, the existing clear-and-rescan protocol removes the otherwise
-stale gate without losing a racing new charge.
+When the folded snapshot exceeds its limit, new atomic writes park at the same pre-ring gate as a
+full group window. Reads, already-admitted groups, owner-local publish/retirement, and worker QSBR
+reclaim continue to run. Each version release immediately lowers its exact owner slot; the next
+controller fold which observes the total within budget clears the pressure mirror and wakes parked
+IO loops.
+
+The accounting staleness bound is one controller sampling interval: in an on-time loop the
+published value is at most `1000/server.hz` milliseconds old, and an update racing a fold is included
+by the next completed tick. If the event loop itself is delayed, the bound is correspondingly “the
+next completed controller tick,” like the other `serverCron` controllers. Admission can therefore
+temporarily undershoot or overshoot by bytes published/released during one interval. The limit is a
+soft backpressure target with process-memory hysteresis headroom (auto mode uses only 1/16 of the
+memory source), while `tomo_atomic_inflight` remains the exact simultaneous-group semaphore.
 
 ## Why there is no membership probe
 
@@ -78,12 +85,15 @@ participates in visibility, ordering, or writer admission.
 
 1. Commit-time sequencing publishes one shared timestamp only after the last owner-local publish; there is
    no per-connection registration FIFO or incomplete-group frontier.
-2. Reshard cutover still fences on `tomo_atomic_unsealed` plus install-owner lifecycle references;
-   the reclaim budget does not alter the flip controller.
+2. Reshard cutover still fences on the unsealed admission census plus install-owner lifecycle
+   references. The census is cache-line-sharded by originating IO/WB producer; after closing the
+   cutover gate, the coordinator folds every slot before consulting lifecycle references. The
+   reclaim budget does not alter the flip controller.
 3. A parked command owns no fake/group state. Its IO owner alone removes it from the parked list and
    retries it.
-4. A pressure clear and concurrent pooled charge cannot lose the pressure edge: clear happens
-   before a sequentially-consistent pool check, while a later charge republishes pressure.
+4. Admission reads the release-published folded byte snapshot directly. The pressure byte is only
+   its controller-published mirror for reclaim boosting and INFO, so it cannot create a divergent
+   admission decision.
 5. Disabling atomic mode makes the retry walk ignore both atomic gates, allowing parked commands to
    resume through the ordinary path.
 6. One group retirement creates at most one remote admission wake; a producer with an outstanding
@@ -100,6 +110,10 @@ INFO exposes:
 - `tomokv_atomic_reclaim_worker_max`
 - `tomokv_atomic_reclaim_pressure`
 - `tomokv_atomic_reclaim_stalls`
+- `tomokv_atomic_reclaim_folds`
+- `tomokv_atomic_admission_census_folds`
 
 Together these distinguish group-window saturation from memory backpressure and show that retained
-bytes drain after writer throttling engages.
+bytes drain after writer throttling engages. The admission-census witness advances only when a
+coordinator fold actually observes at least one admitted, unsealed group; an empty cutover does not
+satisfy the anti-vacuous check.

@@ -3,8 +3,8 @@
 ## Scope and guarantee
 
 With `tomokv-atomic` enabled, eligible cross-shard whole-value writes install one invisible version
-per key. Each install points to one shared `tomoCommit` and immediately publishes its stamped-index
-link from the allocating owner, while the new head and predecessor are already hot. The last owner
+per key. Each install points to one shared `tomoCommit`; its stamped-index link is initialized before
+the vmeta/table-head release publication, while the new head and predecessor are already hot. The last owner
 to decrement `tomoCommit::shards_remaining` assigns the commit timestamp and release-stores it into
 that shared record.
 
@@ -86,7 +86,7 @@ serializes only this constant-time two-store publication interval; it is not a s
 | `_Atomic uint64_t commit_ts` | Zero until the last successful owner publishes the single group marker. |
 | `_Atomic unsigned int refs` | One transient group reference plus version references, trimmed to the exact install count before deferred publication. |
 | `_Atomic unsigned int shards_remaining` | Distinct owner records that have not completed eager index publication and terminal reservation/cancellation work. |
-| `_Atomic size_t reclaim_bytes` | Final group total, stored by the last owner after the existing counter chain acquires all owner records. |
+| `int admission_slot` | Originating producer's cache-line-isolated unsealed-census slot, retired by the last owner. |
 | `void *owner_records` | Commit-owned stable `csMsetOwner[]`; it outlives `csGroup` until all version references retire. |
 | `csGroup *group` | Valid through marker/no-op completion, then cleared before the reply can retire the group. |
 
@@ -117,6 +117,15 @@ Relevant `tomoVerMeta` fields include the shared `commit`, physical `version_pre
 lifecycle identity, cancellation/retirement state, and `owner_next` for the local record chain.
 The retired embedded STAMP/PRUNE carriers are gone.
 
+Metadata is one fixed size class. Normal allocation and final QSBR retirement both run on the
+install worker, so a bounded TLS pool recycles that block in the same allocator arena. The bound
+derives from the existing atomic admission window (live writers times resident pipeline depth, or
+the explicit configuration), clamped to the flat retire-node pool cap; there is no new knob. A
+low-water trim every 4,096 worker slices returns capacity unused for a complete window and
+re-derives the bound; quiescent or non-owner frees bypass the pool. The pool is fed only by frees
+the QSBR/flat-retire machinery already licensed, so a block is never reusable earlier than the
+allocator itself could have reused it.
+
 `owner_ops_pending` remains a local lifetime guard. Installation release-stores one after linking
 the version into its owner record; the owner-epoch callback release-stores zero immediately before
 local pruning. It no longer counts queued cross-core operations or requires a locked decrement.
@@ -131,9 +140,10 @@ release-increments the real client's `mset_pending_count`.
 
 Each owner install prepends an invisible whole-value version to the physical chain, acquires its
 owner/bucket lifecycle reference, records its exact reclaim bytes, attaches the shared commit,
-appends the version to that owner's stable record, and release-publishes the new stamped-index head.
-The index entry is harmless until the common commit marker becomes nonzero. The predecessor index
-was inherited by the new head during allocation, so this needs no second hash/probe or chain search.
+and appends the version to that owner's stable record. The new metadata already contains self as
+its stamped head and the inherited predecessor index when the vmeta/table head is release-published;
+the entry is harmless while its commit pointer/marker is zero. The database slot resolved for the
+install is also carried into lifecycle acquisition, so neither step rehashes or republishes the key.
 
 Ordering within a group is record-local. Versions of one key necessarily have one owner, so that
 owner's append ordinal is sufficient for both duplicate-key tie-breaking and same-client install
@@ -145,7 +155,7 @@ count; installs no longer contend on a group-wide per-key counter.
 MSET and DEL are coalesced to one sub per distinct owner and their outcome is known before
 execution. While holding its ordinary worker lock, an owner:
 
-1. installs every key and publishes each invisible index link in the allocation pass;
+1. installs every key with its invisible index link already initialized in the allocation pass;
 2. folds its local reclaim-byte total once;
 3. places the record on its private post-marker list.
 
@@ -175,15 +185,14 @@ used only where the command is strictly key-dependent.
 
 The owner whose counter decrement observes one is the last local publisher. On success it advances
 the encoded clock and stores the shared marker. On cancellation it publishes no timestamp. It then
-performs no per-key work; only the distinct-owner byte fold is variable:
+performs no per-key or owner-array accounting work:
 
-1. sums the acquired owner-record byte totals and publishes one group reclaim charge;
-2. seals reshard lifecycle accounting;
-3. release-stores `FINAL_READY`;
-4. detaches the commit-owned owner array from `csGroup`;
-5. release-decrements the client's pending count;
-6. release-publishes the group-head CDB byte and posts the existing completion notifier;
-7. drops the transient group reference.
+1. seals the originating producer's reshard admission-census slot;
+2. release-stores `FINAL_READY`;
+3. detaches the commit-owned owner array from `csGroup`;
+4. release-decrements the client's pending count;
+5. release-publishes the group-head CDB byte and posts the existing completion notifier;
+6. drops the transient group reference.
 
 There is no MPSC hop or elected completion thread. CDB publication is the first point at which the
 origin IO thread may reassemble and free `csGroup`.
@@ -214,10 +223,34 @@ unless its command already pinned an older snapshot. A closed/superseded gate, a
 or an older pinned cut uses the full resolver, preserving normal snapshot and same-client RYOW
 semantics.
 
+Successful groups perform that re-census at the first owner PRUNE pass which acquire-observes the
+nonzero marker at or below the pass's frozen published frontier, before the owner record enters its
+first-grace lane. This is the earliest point at which current readers may see the complete group;
+the old predecessor can remain physically linked until grace-prune without keeping the gate closed.
+The census still refuses to open when any non-canceled sibling is unfinished and still selects the
+greatest committed rank. It runs under the key-owner lock, caches the answer before release-opening,
+and a later install supersedes the gate under that same lock. A reader pinned before this commit
+compares the cached winner's timestamp with its pinned cut and falls back to the bag resolver, so
+early reopening changes no snapshot semantics. INFO `tomokv_atomic_gate_early_reopens` counts only
+closed/superseded-to-open transitions at this pre-grace point.
+
 INFO reports `tomokv_atomic_read_fast` and `tomokv_atomic_read_slow`. The slow count is partitioned
 by `tomokv_atomic_read_slow_inflight_conflict` and
-`tomokv_atomic_read_slow_gate_closed_other`; raw values and misses are intentionally outside both
-fast/slow counters, so the fast count demonstrates that the version-bag gate actually fired.
+`tomokv_atomic_read_slow_gate_closed_other`. Reason classification deterministically samples one
+in every 64 slow reads per thread from the exact slow-counter ordinal and adds a weight of 64 to
+the selected class, avoiding a diagnostic second bag walk on the other 63 reads. The reason values
+are therefore scaled population estimates; `tomokv_atomic_read_slow_reason_samples` reports the
+unscaled selected population and witnesses that classification actually ran. Raw values and misses
+are intentionally outside both fast/slow counters, so the fast count demonstrates that the
+version-bag gate actually fired.
+
+Both physical and stamped predecessor accessors prefetch a non-null predecessor immediately after
+the acquire which discovers its address. Bag loops advance through those accessors, placing the
+prefetch at the transition into the next iteration without another dependent load. This covers the
+slow resolver's stamped walk, the NX reservation probe's physical walk, and both physical/stamped
+prune filters with no knob or read-side telemetry update. The owner-local
+`tomokv_atomic_bag_prefetches` witness counts actual non-null next nodes encountered by the two
+prune filters and is folded only for INFO.
 
 ## Retirement and backpressure
 
@@ -269,10 +302,20 @@ and `owner_ops_pending` lifetime transition. A future atomic diet must ablate pu
 retirement representation, readiness cadence, and counter folding separately, and must pass the
 MSETNX hammer, churn, tail-latency, and sustained-reclaim cells before those pieces are recombined.
 
-Each owner publishes its already-summed bytes to its cache-line-isolated worker slot once. The last
-owner's existing acquire-release counter chain makes all contiguous owner records readable; it sums
-them and performs the single global pool charge. The conservative charge remains until the final
-version metadata loses its commit reference.
+The current atomic-only diet isolates one publication component from that failed bundle: the
+invisible stamped link is initialized before the already-required vmeta/table-head release, while
+the validated tagged owner payload, `owner_ops_pending` transition, per-head readiness loads, and
+per-header drain accounting remain unchanged. Bucket carry and fixed-size vmeta recycling are
+independent install/allocation cuts; neither changes epoch retention or frontier cadence.
+Each mechanism carries a per-worker witness counter (INFO `tomokv_atomic_stamp_fold_installs`,
+`tomokv_atomic_vmeta_pool_hits`/`_recycles`, `tomokv_atomic_bucket_carry_hits`) so a validation
+run can prove the mechanism actually fired rather than passing vacuously with it dead.
+
+Each owner publishes its already-summed bytes to its cache-line-isolated worker slot once, and each
+version release subtracts its exact local charge. The main controller folds those slots into the
+process-wide admission snapshot once per tick. INFO `tomokv_atomic_reclaim_folds` witnesses that
+periodic fold and increments only when a tick actually consumes a nonzero live charge; no group
+publication or final commit release performs a global reclaim-byte RMW.
 
 INFO separates the remaining tail causes:
 
@@ -290,7 +333,7 @@ INFO separates the remaining tail causes:
 | Edge | Ordering and guarantee |
 | --- | --- |
 | Install metadata / local chain | Owner lock plus release attachment of the shared commit pointer. |
-| Local stamped index | Eager install-side release publication; reader acquire traversal. |
+| Local stamped index | Initialized before the vmeta/table-head release publication; reader acquire traversal. |
 | All owners to last owner | Acquire-release `shards_remaining` RMW modification-order chain. |
 | Group visibility | One release store to shared `commit_ts`; readers acquire it through resolution/clock ordering. |
 | Snapshot cut | Final commit-clock release; reader's single acquire sample. |

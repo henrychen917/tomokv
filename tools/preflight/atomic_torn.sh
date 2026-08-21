@@ -95,7 +95,7 @@ boot() {
         --save '' --appendonly no --protected-mode no --loglevel notice --logfile "$SRV_LOG" \
         --tomokv-nodes 2 --tomokv-pin-mode ccd --tomokv-thread-mode static \
         --tomokv-thread-io 8 --tomokv-thread-ex 8 --tomokv-key-lb 0 \
-        --tomokv-client-lb no --tomokv-atomic no >/dev/null 2>&1 &
+        --tomokv-client-lb no --tomokv-atomic no --enable-debug-command yes >/dev/null 2>&1 &
     SRV_PID=$!
     for i in $(seq 1 120); do
         if timeout 2 "$CLI" -p "$PORT" ping 2>/dev/null | grep -q '^PONG$'; then up=1; break; fi
@@ -283,6 +283,40 @@ run_checks() {
         fail atomic_on "rc=$PROBE_RC torn=${PROBE_TORN:-unreadable}; ${PROBE_LINE:-no output}" "torn ==0 after CONFIG SET tomokv-atomic yes"
     fi
     server_alive || { fail atomic_on_liveness "server not alive after atomic probe" "PONG"; return; }
+
+    # Anti-vacuity witness: the straddle memo must actually FIRE under the MGET-vs-MSET hammer,
+    # or the torn==0 above proves nothing about the memo path (only a counter proves the gate
+    # opened). Informational-fail (not liveness): a zero here means the probe workload no longer
+    # produces pin-straddling reads and the suite must be re-aimed.
+    memo_hits=$(timeout 5 "$CLI" -p "$PORT" info everything 2>/dev/null | tr -d '\r' | \
+        grep -oE 'tomokv_atomic_straddle_memo_hits:[0-9]+' | cut -d: -f2)
+    if [ -n "${memo_hits:-}" ] && [ "${memo_hits:-0}" -gt 0 ]; then
+        pass atomic_on_memo_fired "straddle_memo_hits=$memo_hits" "memo consulted >0 during ON probe"
+    else
+        fail atomic_on_memo_fired "straddle_memo_hits=${memo_hits:-absent}" "memo consulted >0 during ON probe"
+    fi
+
+    # DISCRIMINATING CONTROL for the D.1 straddle memo (owner vacuous-validation doctrine):
+    # atomic stays ON but per-command memoization is disabled — under the unlatched fetch_add
+    # clock this arm MUST tear, proving the suite can see the hazard class the memo closes.
+    # Gated by env so pre-D.1 binaries (no TOMO-ATOMICMEMO subcommand) skip cleanly.
+    if [ "${TOMO_MEMO_CONTROL_ARM:-0}" = 1 ]; then
+        memo_reply=$(timeout 5 "$CLI" -p "$PORT" debug tomo-atomicmemo 0 2>/dev/null | tr -d '\r')
+        case "$memo_reply" in
+        *ERR*|"")
+            fail atomic_memo_control "DEBUG TOMO-ATOMICMEMO reply=${memo_reply:-none}" "toggle accepted" ;;
+        *)
+            run_atomicity_probe atomic_memo_off
+            if [ "${PROBE_RC:-1}" = 0 ] && [ "${PROBE_TORN:-0}" -gt 0 ]; then
+                pass atomic_memo_control "torn=$PROBE_TORN with memo disabled; $PROBE_LINE" "torn >0 (memo is load-bearing)"
+            else
+                fail atomic_memo_control "rc=${PROBE_RC:-?} torn=${PROBE_TORN:-0}; window may not have opened" "torn >0 with memo off"
+            fi
+            timeout 5 "$CLI" -p "$PORT" debug tomo-atomicmemo 1 >/dev/null 2>&1
+            server_alive || { fail atomic_memo_liveness "server not alive after memo-control probe" "PONG"; return; }
+            ;;
+        esac
+    fi
 
     msx_rc=0
     timeout --signal=TERM --kill-after=5 45 taskset -c "$LOAD_CORES" \

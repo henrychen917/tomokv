@@ -67,6 +67,8 @@
 #ifndef __OBJECT_H
 #define __OBJECT_H
 
+#include "config.h"
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdatomic.h>
@@ -109,9 +111,12 @@ struct _kvstore;
  * and hands the reply back to the origin IO thread. */
 typedef struct tomoCommit {
     _Atomic uint64_t commit_ts;
-    _Atomic unsigned int refs;       /* group + version refs; made exact before deferred publish */
+    _Atomic unsigned int refs;       /* group + version refs, plus transient straddle-fold refs
+                                      * from foreign pinned readers (D.1); the terminal install
+                                      * decision trims unfilled reservations RELATIVELY, never
+                                      * by a blind store (csMsetInstallDone) */
     _Atomic unsigned int shards_remaining; /* owner-local publications not yet complete */
-    _Atomic size_t reclaim_bytes;    /* last-owner sum of the acquired owner-local byte totals */
+    int admission_slot;              /* producer-local cutover-census slot reserved for this group */
     void *owner_records;             /* commit-owned csMsetOwner[]; freed with this record */
     struct csGroup *group;
 } tomoCommit;
@@ -175,6 +180,15 @@ struct tomoVerMeta {
      * later walks the stable chain without a cross-core queue entry. */
     struct redisObject *owner_next;
 };
+
+/* atomdiet2: atomic versions allocate one fixed-size metadata block whose
+ * normal QSBR retirement runs on the installing worker. A bounded TLS pool
+ * there (src/server.c, sized from the atomic admission window) recycles the
+ * hot size class instead of returning every block to the allocator;
+ * non-owner/quiescent frees keep the generic allocator path. */
+struct tomoVerMeta *tomoVerMetaPoolAlloc(void);
+void tomoVerMetaPoolFree(struct tomoVerMeta *vmeta);
+void tomoVerMetaPoolTrim(void);
 
 _Static_assert(offsetof(struct tomoVerMeta, read_gate) ==
                offsetof(struct tomoVerMeta, detached) + 2 * sizeof(uint8_t),
@@ -259,7 +273,9 @@ static inline uint64_t tomoVersionCommitTs(const struct tomoVerMeta *vmeta) {
 
 static inline kvobj *kvobjVersionPrev(const kvobj *kv) {
     struct tomoVerMeta *vmeta = kvobjVmeta(kv);
-    return __atomic_load_n(&vmeta->version_prev, __ATOMIC_ACQUIRE);
+    kvobj *prev = __atomic_load_n(&vmeta->version_prev, __ATOMIC_ACQUIRE);
+    if (prev) redis_prefetch_read(prev);
+    return prev;
 }
 
 static inline void kvobjSetVersionPrev(kvobj *kv, kvobj *prev) {
@@ -269,7 +285,9 @@ static inline void kvobjSetVersionPrev(kvobj *kv, kvobj *prev) {
 
 static inline kvobj *kvobjStampedPrev(const kvobj *kv) {
     struct tomoVerMeta *vmeta = kvobjVmeta(kv);
-    return __atomic_load_n(&vmeta->stamped_prev, __ATOMIC_ACQUIRE);
+    kvobj *prev = __atomic_load_n(&vmeta->stamped_prev, __ATOMIC_ACQUIRE);
+    if (prev) redis_prefetch_read(prev);
+    return prev;
 }
 
 static inline void kvobjSetStampedPrev(kvobj *kv, kvobj *prev) {

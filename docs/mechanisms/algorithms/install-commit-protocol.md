@@ -12,9 +12,11 @@ Registration marks the group versioned and uncommitted, binds the real client, i
 
 There is one stable `csMsetOwner` record per distinct install owner. An owner appends each new
 whole-value version to its local record while installing it, acquires its owner/bucket lifecycle
-reference, records exact reclaim bytes, release-attaches the shared commit record, and immediately
-publishes the invisible local index link. The stable array is owned by `tomoCommit`, not by the
-reply lifetime.
+reference from the database slot already resolved for the install, records exact reclaim bytes,
+and release-attaches the shared commit record. The invisible local index link was initialized before
+the vmeta/table-head publication, so this phase has no second stamp or key hash. Fixed-size vmeta
+blocks come from a bounded install-worker TLS pool and return there after final QSBR retirement.
+The stable owner array is owned by `tomoCommit`, not by the reply lifetime.
 
 ## Phase B: owner-local publish
 
@@ -80,5 +82,5 @@ the reply, which follows marker and clock publication.
 
 See `src/server.c` (`csMsetRegister`, `csMsetRecordInstall`,
 `csMsetOwnerSliceDone`, `csMsetInstallDone`, `csMsetOwnerPublished`,
-`csMsetGroupComplete`, `csOwnerPublishStep`) and
+`csMsetGroupComplete`, `csOwnerPublishStep`), `src/db.c` (`tomoVerMetaNew`), and
 [commit-time timestamp ordering](commit-seq-ordering.md).
