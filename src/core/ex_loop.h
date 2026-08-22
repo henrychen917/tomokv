@@ -52,7 +52,6 @@ public:
 
         while (!self_->stop_flag().load(std::memory_order_relaxed)) {
             sig.iterations++;
-            self_->sample_depth();
 
             uint32_t did = 0;
             {
@@ -112,9 +111,7 @@ private:
     void execute(const Task& t) {
         Op& op = t.client->rob().at(t.op_id);
         Shard& sh = srv_->shard(op.shard);
-        // Records the op AND whether it was executed from this shard's home L3 domain. One compare
-        // and one increment, no atomics — the shard has a single owner.
-        sh.note_execution(self_->domain());
+        sh.stats().ops++;
 
         op.spec->handler(sh, op);
 

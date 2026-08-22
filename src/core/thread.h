@@ -32,7 +32,6 @@
 #include <vector>
 #include "shard.h"
 #include "signal.h"
-#include "../base/topology.h"
 
 namespace tomo {
 
@@ -66,26 +65,16 @@ public:
     // array would be megabytes per thread, nearly all of it untouched.
     void init(uint32_t id, Role r, uint32_t nthreads) {
         id_ = id;
-        role_.store(r, std::memory_order_relaxed);
+        role_ = r;
         nchan_     = nthreads;
         task_in_   = std::make_unique<TaskChan[]>(nthreads);
         client_in_ = std::make_unique<ClientChan[]>(nthreads);
     }
 
     uint32_t id()   const { return id_; }
-    Role     role() const { return role_.load(std::memory_order_acquire); }
+    Role     role() const { return role_; }
     uint32_t nchan() const { return nchan_; }
 
-    // Where this thread actually runs. Latched once the thread is pinned and running, because
-    // sched_getcpu() before that answers about the wrong cpu. A worker passes domain() to
-    // Shard::note_execution so the shard can tell local work from foreign work; that ratio is the
-    // signal a later flip/LB controller acts on.
-    void latch_placement(const Topology& topo) {
-        cpu_    = sched_getcpu();
-        domain_ = topo.domain_of(cpu_);
-    }
-    int      cpu()    const { return cpu_; }
-    uint32_t domain() const { return domain_; }
 
     TaskChan&   task_in(uint32_t producer)   { return task_in_[producer]; }
     ClientChan& client_in(uint32_t producer) { return client_in_[producer]; }
@@ -154,14 +143,6 @@ public:
     // fork was comparing two quantities that were not the same kind of thing.
     LoopSignals& sig() { return sig_; }
 
-    // Sample inbound pressure. Called once per loop iteration so depth_sum/depth_samples form a
-    // time-average rather than a spot reading, which is too noisy to control on.
-    void sample_depth() {
-        uint64_t d = 0;
-        for (uint32_t i = 0; i < nchan_; i++) d += task_in_[i].depth() + client_in_[i].depth();
-        sig_.depth_sum += d;
-        sig_.depth_samples++;
-    }
 
     // Arm/disarm every inbound channel around a block. Producers only pay a wake syscall while
     // these are armed. ALWAYS re-check the channels after arming and before actually blocking:
@@ -179,12 +160,9 @@ public:
 
 private:
     uint32_t          id_ = 0;
-    std::atomic<Role> role_{Role::Idle};
+    Role role_ = Role::Idle;   // static for the life of the process; no controller changes it
     std::atomic<bool> stop_{false};
     std::atomic<Ring*> ring_{nullptr};
-
-    int      cpu_    = -1;
-    uint32_t domain_ = kNoDomain;
 
     std::unique_ptr<TaskChan[]>   task_in_;
     std::unique_ptr<ClientChan[]> client_in_;

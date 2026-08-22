@@ -101,9 +101,6 @@ public:
                 // The reverse mapping is what the DISPATCH path reads. Assigning shards to workers
                 // without recording it leaves every op routing to thread 0.
                 set_worker_of_shard(sid, tid);
-                // Seed the home domain from the node so the first foreign-op comparison is against
-                // the INTENDED placement, not wherever it happened to run first.
-                shards_[sid]->note_migration(node.domain);
             }
         }
         return true;

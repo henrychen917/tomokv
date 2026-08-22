@@ -13,9 +13,10 @@
 // optimum landing ON the cache boundary rather than near it.
 //
 // STILL NOT A FENCE. Routing is unchanged: shard = f(key), worker = worker_of_shard[shard], one
-// atomic load. A key owned by node A can be dispatched by an io thread in node B — that costs the
-// cross-domain hop, and the foreign_ops counter on the shard measures exactly how often it happens.
-// A later LB moves work by storing a different thread id; nothing here forecloses that.
+// atomic load. A key owned by node A can still be dispatched by an io thread in node B; that costs
+// the cross-domain hop. Placement is decided once at boot and NOTHING changes it — there is no LB
+// and no controller. The indirection that would let one exist later is kept only because it costs
+// one atomic load either way.
 //
 // SPREAD IS PER NODE, matching the fork's `tomokv-thread-io`/`-ex`, so --spread 4:4 --nodes 2 means
 // eight io and eight ex threads in total. Per-node is the right unit because the split that matters
@@ -147,27 +148,5 @@ private:
     uint32_t total_threads_ = 0;
 };
 
-// ---------------------------------------------------------------------------------------------
-// THE MIGRATION CONTRACT. Moving a shard is a single store into worker_of_shard[]. What makes it
-// correct is the ordering around it:
-//
-//   1. Stop routing new ops to the old owner (the store does this; it is a release).
-//   2. WAIT for the old owner to finish what it already has — task_in.quiesced(), which tests the
-//      RETIRED frontier. head == tail only means "nothing left to pop"; the worker may still be
-//      executing what it popped.
-//   3. Only then may the new owner touch the shard's store.
-//
-// Skipping step 2 puts two threads in one FlatStore, which has no locks precisely because that is
-// supposed to be impossible — it would corrupt silently rather than crash.
-//
-// Written as a contract rather than an implementation because there is no LB yet and a half-built
-// migration path is worse than none.
-// ---------------------------------------------------------------------------------------------
-struct MigrationPlan {
-    int32_t  shard_id    = -1;
-    uint32_t from_thread = 0;
-    uint32_t to_thread   = 0;
-    size_t   cost_bytes  = 0;    // what the new domain must re-pull; Shard::migration_cost_bytes()
-};
 
 }  // namespace tomo

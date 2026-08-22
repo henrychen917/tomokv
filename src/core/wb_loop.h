@@ -49,7 +49,6 @@ public:
 
         while (!self_->stop_flag().load(std::memory_order_relaxed)) {
             sig.iterations++;
-            self_->sample_depth();
 
             uint32_t did = 0;
             {
