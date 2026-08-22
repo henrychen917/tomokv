@@ -70,6 +70,12 @@ public:
     // invalidates residency rather than moving memory — this is the price of that move.
     size_t resident_estimate() const { return static_cast<size_t>(cap_) * 8 + obj_bytes_; }
 
+    // Warm the slot this key will probe. Issued for a whole batch before any of it executes, so the
+    // DRAM round trips overlap each other instead of serialising one per operation. Worth +2-3% when
+    // DRAM-bound in the fork. This is a plain prefetch pass, NOT an AMAC-style interleaved state
+    // machine — that shape is explicitly out of scope.
+    void prefetch(uint64_t h) const { __builtin_prefetch(&slots_[slot_start(h)], 0, 3); }
+
     // Returns nullptr when absent. `h` is the full key hash; the caller already computed it to route.
     KvObj* find(uint64_t h, Slice key) const {
         const uint16_t tag = tag_of(h);
@@ -82,6 +88,24 @@ public:
             i = (i + 1) & mask_;
         }
         return nullptr;
+    }
+
+    // Overwrite an existing string value WITHOUT allocating, when the new value is exactly the same
+    // size as the old. That is not a narrow special case: a benchmark (and most caches) rewrite the
+    // same keyspace with a fixed value size, so this is the dominant SET path, and it turns
+    // malloc + memcpy + free into a single memcpy.
+    //
+    // Restricted to EXACTLY equal length and Enc::Raw on purpose. Allowing "new <= old" would let
+    // the object's real allocation drift away from what its header implies, which silently breaks
+    // kvobj_size() and therefore the resident accounting a migration is priced from.
+    bool try_overwrite(uint64_t h, Slice key, Slice val) {
+        KvObj* o = find(h, key);
+        if (!o) return false;
+        if (static_cast<Enc>(o->enc) != Enc::Raw) return false;
+        if (o->vlen != val.n) return false;
+        if (o->flags & KvObjFlags::HasTtl) return false;      // SET clears the TTL; take the slow path
+        std::memcpy(o->val_ptr(), val.p, val.n);
+        return true;
     }
 
     // Inserts or replaces. Takes ownership of `o`; frees any object it displaces.
@@ -202,14 +226,23 @@ public:
     // Single hash function for the whole server: the router takes its bucket from the low bits and
     // FlatStore mixes for its index. Both must agree, so it lives here.
     static uint64_t hash_key(Slice k) {
-        // FNV-1a for now — correct and dependency-free. TODO(hash): xxh3 from a vendored header;
-        // measure before adopting, the fork's win came from the mixer rather than the hash.
-        uint64_t h = 1469598103934665603ULL;
-        for (uint32_t i = 0; i < k.n; i++) {
-            h ^= static_cast<uint8_t>(k.p[i]);
-            h *= 1099511628211ULL;
-        }
-        return h;
+        // Word-at-a-time. FNV-1a costs one DEPENDENT multiply per byte, so a 20-character key is a
+        // 20-long dependency chain executed once per op on the hot path. Consuming 8 bytes per
+        // round cuts that to three, and the tail is read with two overlapping 8-byte loads rather
+        // than a byte loop (reading the last 8 bytes again is cheaper than branching per byte).
+        const uint8_t* p = reinterpret_cast<const uint8_t*>(k.p);
+        uint32_t n = k.n;
+        uint64_t h = 0x9e3779b97f4a7c15ULL ^ (static_cast<uint64_t>(n) * 0xff51afd7ed558ccdULL);
+
+        auto rd8 = [](const uint8_t* q) { uint64_t v; std::memcpy(&v, q, 8); return v; };
+        auto rd4 = [](const uint8_t* q) { uint32_t v; std::memcpy(&v, q, 4); return v; };
+
+        while (n >= 8) { h = mix64(h ^ rd8(p)); p += 8; n -= 8; }
+        if (n >= 4)    { h = mix64(h ^ ((static_cast<uint64_t>(rd4(p)) << 32) | rd4(p + n - 4))); }
+        else if (n)    { uint64_t t = p[0];
+                         t = (t << 16) | (static_cast<uint64_t>(p[n >> 1]) << 8) | p[n - 1];
+                         h = mix64(h ^ t); }
+        return mix64(h);
     }
 
 private:

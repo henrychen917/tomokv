@@ -22,6 +22,7 @@
 // can already pull 50 — so a migration is a real cost, and an LB that prices it at zero will thrash.
 // home_domain() and store().resident_estimate() exist so it can be priced instead of guessed.
 #pragma once
+#include <atomic>
 #include <cstdint>
 #include "../base/topology.h"
 #include "../store/flatstore.h"
@@ -64,6 +65,12 @@ public:
 
     // What moving this shard would cost: bytes the new domain must re-pull through the fabric.
     size_t migration_cost_bytes() const { return store_.resident_estimate(); }
+
+    // Published for cross-shard readers (DBSIZE, INFO). Updated once per executed batch rather than
+    // per op: a per-op store to a line that other threads poll is exactly the shared-line write the
+    // design avoids everywhere else. Slightly stale by construction, which is correct for a stat.
+    void publish_size() { published_size_.store(store_.size(), std::memory_order_relaxed); }
+    uint32_t published_size() const { return published_size_.load(std::memory_order_relaxed); }
 
     // Called by the executing worker on every op. `worker_domain` is that thread's L3 domain.
     // Cheap by construction: one compare and one increment, no atomics — the shard is single-owner.
@@ -108,6 +115,7 @@ private:
     uint32_t  bucket_begin_ = 0;
     uint32_t  bucket_end_   = 0;
     uint32_t  home_domain_  = kNoDomain;
+    std::atomic<uint32_t> published_size_{0};
     FlatStore store_;
     Stats     stats_;
 };

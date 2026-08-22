@@ -30,6 +30,10 @@ namespace tomo {
 // measure, not a result.
 inline constexpr uint32_t kExSpinBudget = 2048;
 
+// How many ops are gathered before executing, so their storage prefetches can overlap. Large enough
+// that the prefetches have time to land, small enough that the batch stays in L1.
+inline constexpr uint32_t kExecBatch = 32;
+
 class ExLoop {
 public:
     bool init(Server* srv, ThreadCtx* self, WbMode mode) {
@@ -81,9 +85,28 @@ private:
     // polling every possible producer. retire() happens inside the helper, AFTER execution — see
     // exqueue.h on why the retired frontier is separate from head.
     uint32_t drain_tasks() {
-        const uint32_t n = self_->drain_tasks([&](const Task& t) { execute(t); });
+        Task batch[kExecBatch];
+        uint32_t held = 0;
+        const uint32_t n = self_->drain_tasks([&](const Task& t) {
+            batch[held++] = t;
+            if (held == kExecBatch) { exec_batch(batch, held); held = 0; }
+        });
+        if (held) exec_batch(batch, held);
         self_->sig().ops += n;
         return n;
+    }
+
+    // Prefetch the whole batch's slots, THEN execute. Issuing the loads up front lets their DRAM
+    // round trips overlap instead of each op stalling on its own miss in turn.
+    void exec_batch(const Task* batch, uint32_t n) {
+        for (uint32_t i = 0; i < n; i++) {
+            const Op& op = batch[i].client->rob().at(batch[i].op_id);
+            if (op.shard >= 0) srv_->shard(op.shard).store().prefetch(op.hash);
+        }
+        for (uint32_t i = 0; i < n; i++) execute(batch[i]);
+        // One publish per batch, covering every shard this batch touched. Cheaper than tracking
+        // which ones changed, and this thread owns all of them.
+        for (Shard* sh : self_->shards()) sh->publish_size();
     }
 
     void execute(const Task& t) {

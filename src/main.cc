@@ -19,6 +19,7 @@
 #include "core/server.h"
 #include "core/io_loop.h"
 #include "core/ex_loop.h"
+#include "cmd/command.h"
 
 using namespace tomo;
 
@@ -91,6 +92,7 @@ int main(int argc, char** argv) {
     Server srv;
     if (!srv.init(cfg)) { std::fprintf(stderr, "server init failed\n"); return 1; }
     g_srv = &srv;
+    command_bind_server(&srv);
 
     const int lfd = make_listener(cfg.bind_addr, cfg.port);
     if (lfd < 0) return 1;

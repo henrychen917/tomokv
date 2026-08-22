@@ -5,6 +5,7 @@
 // adds rows here; it does not change the machinery.
 #include "command.h"
 #include "../core/shard.h"
+#include "../core/server.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
 #include "../store/kvobj.h"
@@ -38,6 +39,9 @@ static void cmd_set(Shard& sh, Op& op) {
     // v1 accepts SET key value only. The option surface (EX/PX/NX/XX/KEEPTTL/GET) is next, and it
     // stays single-shard — an expiry option that escapes into a multi-shard path was a real bug in
     // the fork.
+    // Fast path first: same-size overwrite of an existing key needs no allocation at all.
+    if (sh.store().try_overwrite(op.hash, op.key(), op.arg(2))) { reply_ok(op.reply); return; }
+
     KvObj* o = kvobj_new_string(op.key(), op.arg(2));
     if (!o) { reply_err(op.reply, "ERR out of memory"); return; }
     if (!sh.store().insert(op.hash, o)) {
@@ -80,6 +84,55 @@ static void cmd_incr(Shard& sh, Op& op) {
     reply_int(op.reply, v);
 }
 
+// ---- server-wide, answered on the IO thread ------------------------------------------------------
+// These read PUBLISHED per-shard counters, never another worker's store — reading a FlatStore this
+// thread does not own would race with its owner, and the store has no locks precisely because that
+// is supposed to be impossible.
+static Server* g_server = nullptr;
+void command_bind_server(Server* s) { g_server = s; }
+
+static void cmd_dbsize(Shard&, Op& op) {
+    uint64_t n = 0;
+    if (g_server) for (uint32_t i = 0; i < g_server->nshards(); i++)
+        n += g_server->shard(static_cast<int32_t>(i)).published_size();
+    reply_int(op.reply, static_cast<long long>(n));
+}
+
+static void cmd_info(Shard&, Op& op) {
+    char buf[1024];
+    uint64_t keys = 0, hits = 0, misses = 0, ops = 0;
+    uint32_t nsh = 0;
+    if (g_server) {
+        nsh = g_server->nshards();
+        for (uint32_t i = 0; i < nsh; i++) {
+            const Shard& sh = g_server->shard(static_cast<int32_t>(i));
+            keys += sh.published_size();
+            hits += sh.stats().hits; misses += sh.stats().misses; ops += sh.stats().ops;
+        }
+    }
+    int n = std::snprintf(buf, sizeof(buf),
+        "# Server\r\ntomokv_version:0.1-cpp\r\n"
+        "# Keyspace\r\ndb0:keys=%llu\r\n"
+        "# Stats\r\ntotal_commands_processed:%llu\r\nkeyspace_hits:%llu\r\nkeyspace_misses:%llu\r\n"
+        "# Tomo\r\ntomokv_shards:%u\r\n",
+        (unsigned long long)keys, (unsigned long long)ops,
+        (unsigned long long)hits, (unsigned long long)misses, nsh);
+    reply_bulk(op.reply, Slice(buf, static_cast<uint32_t>(n)));
+}
+
+// One keyspace by design (see the command-surface notes). SELECT 0 is accepted so clients that send
+// it blindly still work; anything else is a loud error rather than a silent lie.
+static void cmd_select(Shard&, Op& op) {
+    long long db = 0;
+    if (!parse_ll(op.arg(1), db) || db != 0) {
+        reply_err(op.reply, "ERR this server supports a single keyspace; only SELECT 0 is valid");
+        return;
+    }
+    reply_ok(op.reply);
+}
+
+static void cmd_config(Shard&, Op& op) { op.reply.append("*0\r\n", 4); }
+
 // Connection-local: never dispatched to a worker, so `sh` is unused.
 static void cmd_ping(Shard&, Op& op) {
     if (op.argc() == 2) reply_bulk(op.reply, op.arg(1));
@@ -100,6 +153,10 @@ static const CommandSpec kTable[] = {
     {"ping",       -1,   CmdFlags::ConnLocal,                       cmd_ping,       0,  0,  0},
     {"echo",        2,   CmdFlags::ConnLocal,                       cmd_echo,       0,  0,  0},
     {"command",    -1,   CmdFlags::ConnLocal | CmdFlags::Admin,     cmd_command,    0,  0,  0},
+    {"dbsize",      1,   CmdFlags::ConnLocal | CmdFlags::Admin,     cmd_dbsize,     0,  0,  0},
+    {"info",       -1,   CmdFlags::ConnLocal | CmdFlags::Admin,     cmd_info,       0,  0,  0},
+    {"select",      2,   CmdFlags::ConnLocal,                       cmd_select,     0,  0,  0},
+    {"config",     -2,   CmdFlags::ConnLocal | CmdFlags::Admin,     cmd_config,     0,  0,  0},
 };
 
 const CommandSpec* command_lookup(Slice name) {

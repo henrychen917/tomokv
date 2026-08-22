@@ -45,4 +45,8 @@ struct CommandSpec {
 // is measured, not assumed — a perfect hash is a later optimisation and only if it shows up.
 const CommandSpec* command_lookup(Slice name);
 
+class Server;
+// Lets the connection-local admin commands read published per-shard counters.
+void command_bind_server(Server* s);
+
 }  // namespace tomo
