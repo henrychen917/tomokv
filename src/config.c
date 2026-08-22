@@ -2308,6 +2308,30 @@ static sds numericConfigGet(standardConfig *config) {
     return sdsnew(buf);
 }
 
+/* The symmetric runtime pool deliberately rewrites io_per_node/ex_per_node from the
+ * operator's resolved boot split to the provisioning strides (one base IO plus the
+ * convertible-worker width).  Those stride fields remain the numeric configs' parse
+ * destinations because topology setup consumes them, but CONFIG GET must describe the
+ * immutable split the operator selected, not that internal layout. */
+static sds tomoThreadSplitConfigGet(standardConfig *config) {
+    /* Before initServer resolves the topology, retain the normal numeric behavior. */
+    if (server.tm_boot_io_live <= 0) return numericConfigGet(config);
+
+    int nodes = server.topo_nodes > 0 ? server.topo_nodes : 1;
+    int total;
+    if (!strcmp(config->name, "tomokv-thread-io")) {
+        total = server.tm_boot_io_live;
+    } else if (!strcmp(config->name, "tomokv-thread-ex")) {
+        total = server.tm_boot_w_live;
+    } else if (!strcmp(config->name, "tomokv-thread-wb")) {
+        total = server.wb_threads;
+    } else {
+        return numericConfigGet(config);
+    }
+    serverAssert(total >= 0 && total % nodes == 0);
+    return sdsfromlonglong(total / nodes);
+}
+
 static void numericConfigRewrite(standardConfig *config, const char *name, struct rewriteConfigState *state) {
     long long value = 0;
 
@@ -2337,6 +2361,24 @@ static void numericConfigRewrite(standardConfig *config, const char *name, struc
 
 #define createIntConfig(name, alias, flags, lower, upper, config_addr, default, num_conf_flags, is_valid, apply) \
     embedCommonNumericalConfig(name, alias, flags, lower, upper, config_addr, default, num_conf_flags, is_valid, apply) \
+        .numeric_type = NUMERIC_TYPE_INT, \
+        .config.i = &(config_addr) \
+    } \
+}
+
+/* Numeric parsing, validation, rewriting, and storage remain generic; only CONFIG GET is
+ * specialized.  Keeping this as a distinct constructor leaves every unrelated config's
+ * interface byte-for-byte identical to createIntConfig. */
+#define createIntConfigWithGetter(name, alias, _flags, lower, upper, config_addr, default, num_conf_flags, is_valid, apply, getter) { \
+    embedCommonConfig(name, alias, _flags) \
+    embedConfigInterface(numericConfigInit, numericConfigSet, getter, numericConfigRewrite, apply) \
+    .type = NUMERIC_CONFIG, \
+    .data.numeric = { \
+        .lower_bound = (lower), \
+        .upper_bound = (upper), \
+        .default_value = (default), \
+        .is_valid_fn = (is_valid), \
+        .flags = (num_conf_flags), \
         .numeric_type = NUMERIC_TYPE_INT, \
         .config.i = &(config_addr) \
     } \
@@ -3304,9 +3346,9 @@ standardConfig static_configs[] = {
      * everywhere, the IO-side
      * saturation signal can be deleted outright; if only 3 clears ZRANGE p1 entered from a settled
      * io7/ex1, the clip repair is load-bearing and belongs in whichever worker mode ships. */
-    createIntConfig("tomokv-thread-io",              NULL, IMMUTABLE_CONFIG, -1, TOMO_IO_THREADS_MAX, server.io_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* IO threads per node; WB=0 zero participates in affinity-derived 2:1 IO/EX default; -1=AUTO in WB mode */
-    createIntConfig("tomokv-thread-ex",              NULL, IMMUTABLE_CONFIG, -1, TOMO_EX_THREADS_MAX, server.ex_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* EX workers per node; WB=0 zero participates in affinity-derived 2:1 IO/EX default; -1=AUTO in WB mode */
-    createIntConfig("tomokv-thread-wb",              NULL, IMMUTABLE_CONFIG, -1, TOMO_WB_THREADS_MAX, server.wb_per_node, 0, INTEGER_CONFIG, NULL, NULL), /* 0=2-stage/no allocation; N=WB per node; -1=AUTO three-role sizing */
+    createIntConfigWithGetter("tomokv-thread-io",    NULL, IMMUTABLE_CONFIG, -1, TOMO_IO_THREADS_MAX, server.io_per_node, 0, INTEGER_CONFIG, NULL, NULL, tomoThreadSplitConfigGet), /* IO threads per node; WB=0 zero participates in affinity-derived 2:1 IO/EX default; -1=AUTO in WB mode */
+    createIntConfigWithGetter("tomokv-thread-ex",    NULL, IMMUTABLE_CONFIG, -1, TOMO_EX_THREADS_MAX, server.ex_per_node, 0, INTEGER_CONFIG, NULL, NULL, tomoThreadSplitConfigGet), /* EX workers per node; WB=0 zero participates in affinity-derived 2:1 IO/EX default; -1=AUTO in WB mode */
+    createIntConfigWithGetter("tomokv-thread-wb",    NULL, IMMUTABLE_CONFIG, -1, TOMO_WB_THREADS_MAX, server.wb_per_node, 0, INTEGER_CONFIG, NULL, NULL, tomoThreadSplitConfigGet), /* 0=2-stage/no allocation; N=WB per node; -1=AUTO three-role sizing */
     createIntConfig("tomokv-io-uring",               NULL, IMMUTABLE_CONFIG, 0, 2, server.io_uring, 0, INTEGER_CONFIG, NULL, NULL), /* 0=epoll; nonzero=the Helio-style staged/taskrun-aware ring (1 canonical, 2 = compat spelling). The old mode-1 unified SI|DTR ring was DELETED 2026-08-10 after losing 9/9 interleaved cells to this one. */
     createIntConfig("tomokv-wb-uring",               NULL, IMMUTABLE_CONFIG, -1, 4096, server.wb_uring, 0, INTEGER_CONFIG, NULL, NULL), /* 0=current write()/writev path; N=max SENDMSG SQEs per submit; -1=auto. Setup/probe/arm rejection falls back per WB. */
     createIntConfig("tomokv-uring-multishot",         NULL, IMMUTABLE_CONFIG, 0, 8192, server.uring_multishot, 0, INTEGER_CONFIG, NULL, NULL), /* 0=one-shot/no buffer ring; N=multishot receive with N provided buffers per IO thread (setup or arm rejection falls back per owner). */

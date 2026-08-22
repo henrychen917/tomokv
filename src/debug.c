@@ -981,15 +981,18 @@ NULL
                              md == 1 ? "IO" : (md == 2 ? "EX" : "?"),
                              tmIoThreadLoadPub(t), tmIoBusyPub(t));
         }
-        /* Worker zero is the fixed EX endpoint: grow-front never converts it,
-         * and therefore it likewise has no live IO identity for
-         * tmIoModePub(). The other workers' growth-slot identities occupy
-         * [io_threads, io_threads+tm_ngrow_io), making the next slot a stable,
-         * unique label for this final fixed role. */
+        /* Each node's local worker zero is a fixed EX endpoint: grow-front never
+         * converts it, so it has no live IO identity for tmIoModePub(). The other
+         * workers' growth-slot identities occupy
+         * [io_threads, io_threads+tm_ngrow_io), making the following slots stable,
+         * unique labels for these fixed roles. */
         if (server.num_workers > 0) {
+            int fixed_ex_roles = server.topo_nodes > 1 && server.tm_pool_symmetric
+                               ? server.topo_nodes : 1;
             int fixed_ex_slot = server.io_threads + server.tm_ngrow_io;
-            o = sdscatprintf(o, "io_slot %d mode=EX conns=0 busy=0\n",
-                             fixed_ex_slot);
+            for (int n = 0; n < fixed_ex_roles; n++)
+                o = sdscatprintf(o, "io_slot %d mode=EX conns=0 busy=0\n",
+                                 fixed_ex_slot + n);
         }
         addReplyVerbatim(c, o, sdslen(o), "txt");
         sdsfree(o);

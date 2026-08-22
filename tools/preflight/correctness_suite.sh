@@ -236,11 +236,10 @@ with socket.create_connection(("127.0.0.1", port), timeout=5) as sock:
 
 expected = {
     "tomokv-nodes": str(nodes),
-    # AUTO exposes its provisioned symmetric pool through CONFIG: one immutable
-    # base IO plus the other 15 convertible workers in each node. DEBUG below
-    # separately proves that the requested 8/8 (or 15/1) live split was applied.
-    "tomokv-thread-io": str(1 if mode == "auto" else io),
-    "tomokv-thread-ex": str(io + ex - 1 if mode == "auto" else ex),
+    # CONFIG describes the operator's resolved boot split. The DEBUG census below
+    # independently proves that the same split is live in the symmetric pool.
+    "tomokv-thread-io": str(io),
+    "tomokv-thread-ex": str(ex),
     "tomokv-thread-mode": mode,
 }
 if values != expected:

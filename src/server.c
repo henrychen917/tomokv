@@ -4767,11 +4767,12 @@ static tomoCompletionWakeSlot tomo_completion_wake[TOMO_IO_THREADS_MAX + 1]
     __attribute__((aligned(CACHE_LINE_SIZE)));
 #define TOMO_COMPLETION_RESCAN_MAX 4
 
-/* Maximum producer fanout one worker can see within a node. In AUTO the
- * configured split is converted into one base IO plus a symmetric pool, so
- * io_per_node becomes 1; ex_per_node is then the actual maximum IO width.
- * STATIC keeps the configured io_per_node unchanged. Latched once after that
- * conversion so worker batches pay one immutable load, not a topology branch. */
+/* Maximum producer fanout one worker can see within a node. In every controller
+ * mode the configured split is converted into one base IO plus a symmetric pool,
+ * so io_per_node becomes 1; ex_per_node is then the actual maximum IO width.
+ * STATIC differs only by keeping the controller inert after the boot split is
+ * birthed. Latched once after conversion so worker batches pay one immutable load,
+ * not a topology branch. */
 static int tomo_wide_producer_fanout;
 static inline int tomoWideProducerFanout(void) {
     return tomo_wide_producer_fanout;
@@ -24624,8 +24625,8 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             (unsigned long long)r10_info.cmp_flat);
         /* m1 targets/costs are atomic publications from the node controller owners. Target slots
          * expose the first two topology nodes requested by the experiment; the unsuffixed
-         * cost/depth gauges and both IO candidates are node 0. cio_source is the selected source;
-         * cio still equals the seed during a measured source's four-fold warm-up, when
+         * cost/depth gauges and both IO candidates are node 0. cex/cio_source are the selected
+         * sources; cio still equals the seed during a measured source's four-fold warm-up, when
          * cio_measured is zero. Actuation witnesses are process totals and remain zero outside
          * MODEL mode; every node's decisions remain visible in M1TRACE. */
         tomoM1Info m1_info;
@@ -24637,6 +24638,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_m1_cio_measured:%.6f\r\n"
             "tomokv_m1_cio_seed:%.6f\r\n"
             "tomokv_m1_cio_source:%s\r\n"
+            "tomokv_m1_cex_source:%s\r\n"
             "tomokv_m1_cex:%.6f\r\n"
             "tomokv_m1_depth:%.6f\r\n"
             "tomokv_m1_measured_classes:%d\r\n"
@@ -24666,6 +24668,7 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             m1_info.c_io_measured,
             m1_info.c_io_seed,
             tomoM1CostSourceName((tomoM1CostSource)m1_info.c_io_source),
+            tomoM1CostSourceName((tomoM1CostSource)m1_info.c_ex_source),
             m1_info.c_ex,
             m1_info.depth,
             m1_info.measured_classes,

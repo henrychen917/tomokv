@@ -183,6 +183,33 @@ wb_stage_smoke(){
   [ "${threads:-0}" -gt 0 ] 2>/dev/null && [ "${replies:-0}" -gt 0 ] 2>/dev/null
 }
 
+m1_costs_off_smoke(){
+  local loads
+  loads=$(grep -acF 'm1 cost priors:' $J/knob.log 2>/dev/null); loads=${loads:-0}
+  printf 'prior_load_lines=%s' "$loads"
+  [ "$loads" = 0 ]
+}
+
+m1_costs_load_smoke(){ # $1 fixture path
+  local fixture=$1 line
+  line=$(grep -aF 'm1 cost priors:' $J/knob.log 2>/dev/null | tail -1)
+  printf 'prior_load=%s' "${line:-missing}"
+  printf '%s\n' "$line" | grep -qF \
+    "m1 cost priors: loaded=1 skipped=0 compatibility=confirming file=$fixture"
+}
+
+m1_cost_source_smoke(){ # $1 immutable <ex,io> boot selection
+  local spec=$1 want_ex want_io info got_ex got_io
+  IFS=, read -r want_ex want_io <<< "$spec"
+  info=$(timeout 3 $CLI info stats 2>/dev/null) || return 1
+  got_ex=$(printf '%s\n' "$info" |
+    awk -F: '$1=="tomokv_m1_cex_source"{gsub(/\r/,"",$2); print $2; exit}')
+  got_io=$(printf '%s\n' "$info" |
+    awk -F: '$1=="tomokv_m1_cio_source"{gsub(/\r/,"",$2); print $2; exit}')
+  printf 'effective_ex=%s effective_io=%s' "${got_ex:-missing}" "${got_io:-missing}"
+  [ "$got_ex" = "$want_ex" ] && [ "$got_io" = "$want_io" ]
+}
+
 busypoll_privilege_refusal(){
   # Some kernels/builds may make busy-poll setup boot-fatal. Accept that host limitation only when
   # the log identifies busy-poll AND explicitly says privileges are the reason; all other refusals
@@ -265,6 +292,21 @@ try(){ # knob value [note [companion-flags [extra-smoke ["io ex wb"]]]]
       local wb_result
       wb_result=$(wb_stage_smoke) || extra_ok=0
       extra=" $wb_result"
+      ;;
+    m1-costs-off)
+      local m1_costs_result
+      m1_costs_result=$(m1_costs_off_smoke) || extra_ok=0
+      extra=" $m1_costs_result"
+      ;;
+    m1-costs-load)
+      local m1_costs_result
+      m1_costs_result=$(m1_costs_load_smoke "$val") || extra_ok=0
+      extra=" $m1_costs_result"
+      ;;
+    m1-cost-source)
+      local m1_source_result
+      m1_source_result=$(m1_cost_source_smoke "$val") || extra_ok=0
+      extra=" $m1_source_result"
       ;;
   esac
   local alive=$(timeout 2 $CLI ping 2>/dev/null | tr -d '\r')
@@ -489,6 +531,25 @@ echo "=== convention A: -1 = auto ===" >> $OUT
 
 echo "=== boolean levers ===" >> $OUT
   must_refuse tomokv-mset-move no "directive deleted; cross-shard MSET copies values"
+
+# M1's persisted priors are OFF by default. The enabled cell uses a self-contained compatible
+# prior under the suite scratch directory and requires the boot loader to install it as a
+# confirming row. Cost-source is an immutable <ex,io> pair: exercise the complete two-by-two
+# surface and verify the packed selection through the live INFO state, not CONFIG echo alone.
+M1_COST_FIXTURE=$J/m1-costs.fixture
+printf '%s\n' \
+  '# tomokv-costs v1 sha=knob-matrix date=1970-01-01T00:00:00Z backend=epoll atomic=0 nodes=2 io=2 ex=30' \
+  'cell cmd=get argc=2 bytes=<256B ex_us=1.250000 folds=9 state=frozen' \
+  > "$M1_COST_FIXTURE"
+try tomokv-costs-file "" "OFF/default: no persisted M1 priors are loaded" "" m1-costs-off
+try tomokv-costs-file "$M1_COST_FIXTURE" \
+  "scratch fixture: one compatible GET prior enters confirming state" "" m1-costs-load
+try tomokv-m1-cost-source measured,seed "default: measured EX and seed IO" "" m1-cost-source
+try tomokv-m1-cost-source seed,seed "compiled seed costs for both roles" "" m1-cost-source
+try tomokv-m1-cost-source measured,measured "measured costs for both roles" "" m1-cost-source
+try tomokv-m1-cost-source seed,measured "seed EX and measured IO" "" m1-cost-source
+must_refuse tomokv-m1-cost-source measured,off \
+  "each side of the immutable <ex,io> pair must be seed or measured"
 
 # Atomic visibility ships OFF. Enabled cells add a bounded mixed MSET8/MGET8 pipeline and require
 # the admission census to return to zero after the pipe drains; a pinned non-zero inflight count is

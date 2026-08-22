@@ -1640,8 +1640,8 @@ int tomoM1TraceEnabled(void) {
 
 void tomoM1InfoGet(tomoM1Info *info) {
     if (!info) return;
-    tomoM1CostSource io_source;
-    tomoM1CostSourcesGet(NULL, &io_source);
+    tomoM1CostSource ex_source, io_source;
+    tomoM1CostSourcesGet(&ex_source, &io_source);
     *info = (tomoM1Info) {
         .target_io_n0 = atomic_load_explicit(&tomo_m1_published[0].target_io,
                                              memory_order_relaxed),
@@ -1658,6 +1658,7 @@ void tomoM1InfoGet(tomoM1Info *info) {
         .depth = atomic_load_explicit(&tomo_m1_published[0].depth,
                                       memory_order_relaxed),
         .c_io_source = io_source,
+        .c_ex_source = ex_source,
         .moves_total = atomic_load_explicit(&tomo_m1_moves_total,
                                             memory_order_relaxed),
         .target_changes = atomic_load_explicit(&tomo_m1_target_changes,

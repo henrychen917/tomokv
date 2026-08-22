@@ -193,6 +193,7 @@ typedef struct tomoM1Info {
     double c_ex;
     double depth;
     int c_io_source;
+    int c_ex_source;
     int measured_classes;
     double ex_us[TOMO_M1_CLASS_COUNT];
     uint64_t moves_total;
