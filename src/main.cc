@@ -17,8 +17,10 @@
 #include <vector>
 
 #include "core/server.h"
+#include "base/alloc.h"
 #include "core/io_loop.h"
 #include "core/ex_loop.h"
+#include "core/wb_loop.h"
 #include "cmd/command.h"
 
 using namespace tomo;
@@ -72,15 +74,33 @@ int main(int argc, char** argv) {
         else if (!std::strcmp(argv[i], "--ex"))         cfg.ex_threads = static_cast<uint32_t>(std::atoi(next("4")));
         else if (!std::strcmp(argv[i], "--shards"))     cfg.shards = static_cast<uint32_t>(std::atoi(next("16")));
         else if (!std::strcmp(argv[i], "--nodes"))      cfg.nodes = static_cast<uint32_t>(std::atoi(next("0")));
+        else if (!std::strcmp(argv[i], "--wb"))         cfg.wb_threads = static_cast<uint32_t>(std::atoi(next("0")));
         else if (!std::strcmp(argv[i], "--no-pin"))     cfg.pin_threads = false;
+        else if (!std::strcmp(argv[i], "--mode")) {
+            const char* m = next("2s");
+            if      (!std::strcmp(m, "2s"))   cfg.wb_mode = WbMode::Io;
+            else if (!std::strcmp(m, "exwb")) cfg.wb_mode = WbMode::Ex;
+            else if (!std::strcmp(m, "3s"))   cfg.wb_mode = WbMode::Wb;
+            else { std::fprintf(stderr, "--mode must be 2s | exwb | 3s\n"); return 1; }
+        }
         else if (!std::strcmp(argv[i], "--help")) {
-            std::printf("usage: %s [--port N] [--bind A] [--io N] [--ex N] [--shards N]"
-                        " [--nodes N] [--no-pin]\n", argv[0]);
+            std::printf("usage: %s [--port N] [--bind A] [--io N] [--ex N] [--wb N] [--shards N]\n"
+                        "          [--nodes N] [--mode 2s|exwb|3s] [--no-pin]\n", argv[0]);
             return 0;
         }
     }
     if (cfg.io_threads == 0 || cfg.ex_threads == 0) {
         std::fprintf(stderr, "need at least one io and one ex thread\n");
+        return 1;
+    }
+    // 3-stage needs somewhere to send from. Refuse loudly rather than silently falling back to 2s,
+    // which would make a mode comparison quietly measure the same thing twice.
+    if (cfg.wb_mode == WbMode::Wb && cfg.wb_threads == 0) {
+        std::fprintf(stderr, "--mode 3s requires --wb N (N >= 1)\n");
+        return 1;
+    }
+    if (cfg.wb_mode != WbMode::Wb && cfg.wb_threads) {
+        std::fprintf(stderr, "--wb is only meaningful with --mode 3s\n");
         return 1;
     }
     if (cfg.shards > 256) { std::fprintf(stderr, "shards capped at 256\n"); return 1; }
@@ -98,8 +118,12 @@ int main(int argc, char** argv) {
     if (lfd < 0) return 1;
 
     srv.topo().dump(stdout);
-    std::printf("tomokv-cpp: %u io + %u ex, %u shard(s) over %u node(s), 2-stage, io_uring\n",
-                cfg.io_threads, cfg.ex_threads, cfg.shards, srv.placement().nnodes());
+    const char* mname = cfg.wb_mode == WbMode::Io ? "2s (io sends)"
+                      : cfg.wb_mode == WbMode::Ex ? "ex-wb (executor sends)"
+                                                  : "3s (dedicated wb sends)";
+    std::printf("tomokv-cpp: %u io + %u ex + %u wb, %u shard(s) over %u node(s), %s, io_uring, alloc=%s\n",
+                cfg.io_threads, cfg.ex_threads, cfg.wb_threads, cfg.shards,
+                srv.placement().nnodes(), mname, alloc_backend());
     for (uint32_t n = 0; n < srv.placement().nnodes(); n++) {
         const Node& nd = srv.placement().node(n);
         std::printf("  node %u: domain %u, %zu shard(s), worker(s)", nd.id, nd.domain, nd.shards.size());
@@ -111,7 +135,8 @@ int main(int argc, char** argv) {
 
     // Choose a cpu per thread. Workers take cpus from their own node so the shards they serve stay
     // in that node's L3; io threads spread across domains so no single domain carries all of them.
-    std::vector<int> io_cpu(cfg.io_threads, -1), ex_cpu(cfg.io_threads + cfg.ex_threads, -1);
+    std::vector<int> io_cpu(cfg.io_threads, -1),
+                     ex_cpu(cfg.io_threads + cfg.ex_threads + cfg.wb_threads, -1);
     if (cfg.pin_threads && srv.topo().ndomains()) {
         const uint32_t nd = srv.topo().ndomains();
         for (uint32_t i = 0; i < cfg.io_threads; i++) {
@@ -124,11 +149,17 @@ int main(int argc, char** argv) {
                 if (!node.cpus.empty())
                     ex_cpu[node.workers[k]] = node.cpus[(k + 1) % node.cpus.size()];
         }
+        // WB threads have no node of their own; spread them over the domains after the workers.
+        for (uint32_t k = 0; k < cfg.wb_threads; k++) {
+            const auto& cpus = srv.topo().cpus_in(k % nd);
+            ex_cpu[cfg.io_threads + cfg.ex_threads + k] = cpus[(2 + k) % cpus.size()];
+        }
     }
 
     std::vector<std::thread> pool;
     std::vector<IoLoop> ios(cfg.io_threads);
     std::vector<ExLoop> exs(cfg.ex_threads);
+    std::vector<WbLoop> wbs(cfg.wb_threads ? cfg.wb_threads : 1);
     for (uint32_t i = 0; i < srv.nthreads(); i++) g_threads.push_back(&srv.thread(i));
 
     // Workers first: an io thread that dispatches before its target worker exists would find no
@@ -139,16 +170,38 @@ int main(int argc, char** argv) {
             pin_to(ex_cpu[tid]);
             ThreadCtx& self = srv.thread(tid);
             self.latch_placement(srv.topo());       // after pinning: sched_getcpu is only now truthful
-            if (!exs[k].init(&srv, &self, WbMode::Io)) return;
+            bind_thread_arena();     // per-worker jemalloc arena; no-op without jemalloc
+            if (!exs[k].init(&srv, &self, cfg.wb_mode)) return;
             exs[k].run();
         });
     }
+    // WB threads next, for the same reason: an io thread must not hand a client to a sender that
+    // does not exist yet.
+    for (uint32_t k = 0; k < cfg.wb_threads; k++) {
+        const uint32_t tid = cfg.io_threads + cfg.ex_threads + k;
+        pool.emplace_back([&, k, tid] {
+            pin_to(ex_cpu.size() > tid ? ex_cpu[tid] : -1);
+            ThreadCtx& self = srv.thread(tid);
+            self.latch_placement(srv.topo());
+            if (!wbs[k].init(&srv, &self)) return;
+            wbs[k].run();
+        });
+    }
+
     for (uint32_t k = 0; k < cfg.io_threads; k++) {
         pool.emplace_back([&, k] {
             pin_to(io_cpu[k]);
             ThreadCtx& self = srv.thread(k);
             self.latch_placement(srv.topo());
-            if (!ios[k].init(&srv, &self, WbMode::Io, lfd)) return;
+            if (!ios[k].init(&srv, &self, cfg.wb_mode, lfd)) return;
+            // Who issues this io thread's sends. In 2s nobody else does; in ex-wb and 3s the client
+            // is handed to a partner thread, chosen round-robin so one sender does not take every
+            // io thread's traffic.
+            if (cfg.wb_mode == WbMode::Ex)
+                ios[k].set_send_target(&srv.thread(cfg.io_threads + (k % cfg.ex_threads)));
+            else if (cfg.wb_mode == WbMode::Wb)
+                ios[k].set_send_target(&srv.thread(cfg.io_threads + cfg.ex_threads +
+                                                   (k % cfg.wb_threads)));
             ios[k].run();
         });
     }

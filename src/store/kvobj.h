@@ -25,6 +25,7 @@
 #include <cstdlib>
 #include <new>
 #include "../base/slice.h"
+#include "../base/alloc.h"
 
 namespace tomo {
 
@@ -136,7 +137,7 @@ inline KvObj* kvobj_new_string(Slice key, Slice val, int64_t expire_at_ms = -1) 
     const Enc   enc     = (val.n <= kEmbedThreshold) ? Enc::Raw : Enc::Extern;
     const size_t n      = kvobj_alloc_size(key.n, val.n, has_ttl, enc);
 
-    void* mem = std::malloc(n);
+    void* mem = alloc_raw(n);
     if (!mem) return nullptr;
 
     auto* o  = static_cast<KvObj*>(mem);
@@ -155,31 +156,44 @@ inline KvObj* kvobj_new_string(Slice key, Slice val, int64_t expire_at_ms = -1) 
     if (enc == Enc::Raw) {
         std::memcpy(o->val_ptr(), val.p, val.n);
     } else {
-        void* ext = std::malloc(val.n);
-        if (!ext) { std::free(mem); return nullptr; }
+        void* ext = alloc_raw(val.n);
+        if (!ext) { free_sized(mem, n); return nullptr; }
         std::memcpy(ext, val.p, val.n);
         std::memcpy(o->val_ptr(), &ext, sizeof(void*));
     }
     return o;
 }
 
-// Footprint of this object, for the store's resident estimate. Recomputed rather than stored: an
-// extra size field in the header would cost every key 4 bytes to save an occasional multiply.
+// What this object ASKED the allocator for. Used to free it (sized free) and as the basis for its
+// capacity. Recomputed rather than stored: a size field would cost every key 4 bytes to save a
+// multiply, and the computation is a pure function of the header.
+inline size_t kvobj_request_size(const KvObj* o) {
+    return kvobj_alloc_size(o->klen(), o->vlen, (o->flags & KvObjFlags::HasTtl) != 0,
+                            static_cast<Enc>(o->enc));
+}
+
+// What the allocator actually handed back. The slack between request and class is already paid for,
+// and exposing it is what lets a SET whose value grew by a few bytes still avoid allocating.
+inline size_t kvobj_capacity(const KvObj* o) { return good_size(kvobj_request_size(o)); }
+
+// Real footprint, for the store's resident estimate: the size CLASS, not the request, plus any
+// external value block.
 inline size_t kvobj_size(const KvObj* o) {
-    const Enc e = static_cast<Enc>(o->enc);
-    size_t n = kvobj_alloc_size(o->klen(), o->vlen, (o->flags & KvObjFlags::HasTtl) != 0, e);
-    if (e == Enc::Extern) n += o->vlen;      // the separate value block counts too
+    size_t n = kvobj_capacity(o);
+    if (static_cast<Enc>(o->enc) == Enc::Extern) n += good_size(o->vlen);
     return n;
 }
 
 inline void kvobj_free(KvObj* o) {
     if (!o) return;
+    const size_t n = kvobj_request_size(o);          // compute BEFORE the value block is released
     if (static_cast<Enc>(o->enc) == Enc::Extern) {
         void* ext;
         std::memcpy(&ext, o->val_ptr(), sizeof(void*));
-        std::free(ext);
+        free_sized(ext, o->vlen);
     }
-    std::free(o);
+    // Sized free: ordinary free() has to look up how big the block was; we already know.
+    free_sized(o, n);
 }
 
 }  // namespace tomo

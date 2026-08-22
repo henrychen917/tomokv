@@ -20,12 +20,17 @@
 #include "placement.h"
 #include "../base/topology.h"
 #include "../net/conn.h"   // kRobWindow: one source of truth for the window size
+#include "../net/wb.h"     // WbMode
 
 namespace tomo {
 
 struct Config {
     uint32_t io_threads     = 4;
     uint32_t ex_threads     = 4;
+    // Only used by WbMode::Wb (the 3-stage shape). Zero for 2s and ex-wb, where the sends are issued
+    // by a thread that already exists.
+    uint32_t wb_threads     = 0;
+    WbMode   wb_mode        = WbMode::Io;
     // 0 means "one node per L3 domain", which is the measured optimum and therefore the default
     // rather than something an operator has to know to ask for.
     uint32_t nodes          = 0;
@@ -66,16 +71,24 @@ public:
         router_.build_uniform(static_cast<int32_t>(cfg.shards));
 
         // ---- threads -----------------------------------------------------------------------------
-        const uint32_t nthreads = cfg.io_threads + cfg.ex_threads;
+        // Layout is fixed and dense: [0, io) are Io, [io, io+ex) are Ex, [io+ex, end) are Wb. Every
+        // thread gets a channel from every other regardless of role, because a role change must not
+        // require re-wiring the mesh.
+        const uint32_t nthreads = cfg.io_threads + cfg.ex_threads + cfg.wb_threads;
         threads_.resize(nthreads);
         for (uint32_t i = 0; i < nthreads; i++) {
+            Role r = Role::Io;
+            if (i >= cfg.io_threads + cfg.ex_threads) r = Role::Wb;
+            else if (i >= cfg.io_threads)             r = Role::Ex;
             threads_[i] = std::make_unique<ThreadCtx>();
-            threads_[i]->init(i, i < cfg.io_threads ? Role::Io : Role::Ex, nthreads);
+            threads_[i]->init(i, r, nthreads);
         }
 
         // ---- nodes: default placement, aligned to shared L3 ---------------------------------------
+        // Shards are served by EX threads only; WB threads own no shard.
         std::vector<uint32_t> worker_ids;
-        for (uint32_t i = cfg.io_threads; i < nthreads; i++) worker_ids.push_back(i);
+        for (uint32_t i = cfg.io_threads; i < cfg.io_threads + cfg.ex_threads; i++)
+            worker_ids.push_back(i);
         placement_.build(topo_, cfg.nodes, cfg.shards,
                          static_cast<uint32_t>(worker_ids.size()));
         placement_.assign_workers(worker_ids);

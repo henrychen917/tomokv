@@ -95,16 +95,27 @@ public:
     // same keyspace with a fixed value size, so this is the dominant SET path, and it turns
     // malloc + memcpy + free into a single memcpy.
     //
-    // Restricted to EXACTLY equal length and Enc::Raw on purpose. Allowing "new <= old" would let
-    // the object's real allocation drift away from what its header implies, which silently breaks
-    // kvobj_size() and therefore the resident accounting a migration is priced from.
+    // The test is SAME SIZE CLASS, not same length. Asking for 88 bytes gets 96, so a value that
+    // grew or shrank by a few bytes still fits what was already paid for. Because good_size() is a
+    // pure function of the header, the class after the rewrite is recomputed identically — so
+    // kvobj_size() stays exact and the resident accounting a migration is priced from does not
+    // drift. That is why the condition is equality of CLASS rather than "new <= old", which would
+    // let the real allocation and the implied one diverge.
     bool try_overwrite(uint64_t h, Slice key, Slice val) {
         KvObj* o = find(h, key);
         if (!o) return false;
         if (static_cast<Enc>(o->enc) != Enc::Raw) return false;
-        if (o->vlen != val.n) return false;
         if (o->flags & KvObjFlags::HasTtl) return false;      // SET clears the TTL; take the slow path
+        if (val.n > kEmbedThreshold) return false;            // would have to become Enc::Extern
+
+        const bool has_ttl = false;
+        const size_t want = kvobj_alloc_size(o->klen(), val.n, has_ttl, Enc::Raw);
+        if (good_size(want) != kvobj_capacity(o)) return false;
+
+        obj_bytes_ -= kvobj_size(o);
+        o->vlen = val.n;
         std::memcpy(o->val_ptr(), val.p, val.n);
+        obj_bytes_ += kvobj_size(o);
         return true;
     }
 
