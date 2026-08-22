@@ -20,10 +20,9 @@ src/server.c:1000-1003, src/server.c:1082-1089,
 src/server.c:1178-1181)
 
 The fake carrier stores the selected generation in `tomo_read_snapshot_gen`, the MVCC commit
-timestamp in `tomo_read_snapshot`, and an atomic `tomo_read_snapshot_pinned` carrier. At WB=0 the
-carrier retains the legacy boolean value one. With a dedicated WB it stores the entry IO slot plus
-one, because receive ownership can migrate while the sticky WB retains terminal drain ownership.
-Exit atomically clears the carrier and uses that encoded entry slot in WB mode. The relationship to
+timestamp in `tomo_read_snapshot`, and an atomic `tomo_read_snapshot_pinned` carrier. The carrier
+retains the boolean value one while pinned; exit atomically clears it and uses the real client's IO
+owner slot. The relationship to
 the carrier ring is documented in [the fake-client ring](fake-client-ring.md), and the versions
 read under that snapshot are documented in
 [the per-key version bag](version-bag.md). (src/server.h:1909-1924,
@@ -137,8 +136,8 @@ src/db.c:366-395)
    (src/server.c:1187-1194)
 5. It relaxed-loads `gen = flat_batches_closed_n`, then relaxed-fetch-adds one to
    `pin_out[gen & FLAT_PIN_GEN_MASK]`. (src/server.c:1192-1195)
-6. It writes `gen` to the fake's `tomo_read_snapshot_gen`, release-stores either boolean one
-   (WB off) or entry-slot-plus-one (WB on) to `tomo_read_snapshot_pinned`, release-stores zero to
+6. It writes `gen` to the fake's `tomo_read_snapshot_gen`, release-stores boolean one to
+   `tomo_read_snapshot_pinned`, release-stores zero to
    `scan_lock`, and calls
    `FLAT_PUBLISH_FENCE()`. That final macro is a no-op on x86/x86-64 and a
    sequentially consistent thread fence on other targets. (src/server.c:1105-1114,
@@ -161,14 +160,14 @@ src/server.c:4320-4341)
 All three terminal drain shapes call `tomoReleaseReadSnapshot(fake)`: disconnected
 client teardown, output-limit close, and ordinary successful retirement. The
 helper returns immediately if the carrier is clear; otherwise an acquire-release exchange clears it
-exactly once. WB mode derives the original IO row from the exchanged value; WB-off retirement uses
-the still-owned real client. It then calls `flatGroupPinExit()`. (src/server.c:4045-4049,
+exactly once. Retirement derives the IO row from the still-owned real client and then calls
+`flatGroupPinExit()`. (src/server.c:4045-4049,
 src/server.c:4200-4207, src/server.c:4320-4341)
 
 `flatGroupPinExit(fake)` performs this exact sequence. (src/server.c:1202-1216)
 
-1. It range-asserts the slot selected by `tomoReleaseReadSnapshot`—the encoded entry IO slot in WB
-   mode or the connection owner in WB-off mode—and reads the generation saved in the fake.
+1. It range-asserts the connection-owner slot selected by `tomoReleaseReadSnapshot` and reads the
+   generation saved in the fake.
    (src/server.c)
 2. It executes a release fence, relaxed-fetch-subtracts one from
    `pin_out[gen & 4095]`, and asserts that the old cell count was positive.

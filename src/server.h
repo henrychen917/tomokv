@@ -449,6 +449,12 @@ extern int configOOMScoreAdjValuesDefaults[CONFIG_OOM_COUNT];
 /* Atomic MSET admission parked this client before taking a fake-ring slot. The
  * command remains at pending_cmds.head until its owning event loop retries it. */
 #define CLIENT_ATOMIC_WINDOW_STALLED (1ULL << 58)
+#if 0
+/* Retired EX-WB ring-generation markers. See the disabled executor write-back
+ * reference in server.c. */
+#define CLIENT_EXWB_HEAD (1ULL << 59)
+#define CLIENT_EXWB_REASSEMBLED (1ULL << 60)
+#endif
 /* Any flag that does not let optimize FLUSH SYNC to run it in bg as blocking client ASYNC */
 #define CLIENT_AVOID_BLOCKING_ASYNC_FLUSH (CLIENT_DENY_BLOCKING|CLIENT_MULTI|CLIENT_LUA_DEBUG|CLIENT_LUA_DEBUG_SYNC|CLIENT_MODULE)
 
@@ -1457,9 +1463,6 @@ typedef struct {
  *   - Worker threads: M threads executing GET/SET/DEL on per-worker DB
  *     replicas. Per-node count configured via `tomokv-thread-ex` ->
  *     server.ex_threads (explicit, max TOMO_EX_THREADS_MAX globally).
- *   - Optional write-back threads: `tomokv-thread-wb=0` keeps the authoritative
- *     IO->EX->IO path and allocates no WB state. N gives every network client one sticky WB
- *     reply/gather/send owner; -1 derives N from the physical-core remainder.
  *   - Per-client fake-client ring for pipelining. Depth configured via
  *     `tomokv-pipeline-depth` -> server.pipeline_ring_depth (AUTO resolves to 32,
  *     max TOMO_PIPELINE_DEPTH_MAX (currently 32). Must be a power of two.
@@ -1489,7 +1492,6 @@ typedef struct {
 #define TOMO_IO_THREADS_MAX 128
 /* TOMO_EX_THREADS_MAX lives in config.h so generic kvstore code can size owner slots without
  * depending on server internals. */
-#define TOMO_WB_THREADS_MAX 128
 
 /* ee451 (#B2): the iotid slot space — 0 = main, 1..io_threads-1 (+ flip growth slots) = IO
  * threads, TOMO_IO_THREADS_MAX+1+wid = worker wid. Every per-thread stats array (kstat, cmdstat,
@@ -1526,8 +1528,8 @@ typedef struct {
  *            one group's physical cores. Threads alternate groups within a multi-group node and
  *            use SMT siblings only after exhausting physical cores. DEFAULT.
  *   numa   — a node is a NUMA node. Threads are packed per NUMA node.
- *   static — placement comes verbatim from tomokv-pin-io / tomokv-pin-ex /
- *            tomokv-pin-wb (per role per node; WB is required only when enabled).
+ *   static — placement comes verbatim from tomokv-pin-io / tomokv-pin-ex
+ *            (per role per node).
  * WHICH PARTITIONING IS BETTER (ccd vs numa) IS AN OPEN QUESTION on the target hardware; it is
  * answered by measurement on the EPYC/Threadripper box, which is exactly why it is one knob. */
 #define TOMO_PIN_FLOAT  0
@@ -1538,8 +1540,7 @@ typedef struct {
 /* Roles for the static per-role-per-node pin specs. */
 #define TOMO_PIN_ROLE_IO 0
 #define TOMO_PIN_ROLE_EX 1
-#define TOMO_PIN_ROLE_WB 2
-#define TOMO_PIN_ROLE_COUNT 3
+#define TOMO_PIN_ROLE_COUNT 2
 
 #define TOMO_PIPELINE_DEPTH_MAX 32  /* fixed upper bound for the per-client fake/ready-slot arrays */
 /* ee451 (v8): virtual-bucket indirection for key->shard. bucket = hash & TOMO_BUCKET_MASK
@@ -1610,8 +1611,8 @@ typedef struct {
 #define PIPELINE_QUEUE_MASK (PIPELINE_DEPTH - 1) /* kept for back-compat; prefer c->ring_mask */
 /* ee451 (S5/atomics): multi-CDB reply signaling. Each CDB owns one independent
  * atomic byte per fake-ring slot and occupies exactly one cache line. A worker
- * release-stores 1 to the captured (cdb,slot); the boot-selected reply owner (origin IO at wb=0,
- * sticky WB otherwise) acquire-loads that exact byte and relaxed-stores 0 after consuming it.
+ * release-stores 1 to the captured (cdb,slot); the origin IO owner acquire-loads that exact byte
+ * and relaxed-stores 0 after consuming it.
  * Atomic finalization then uses a distinct drain-owner-published 0->1 generation to make the
  * committed group reply-ready.
  *
@@ -1722,7 +1723,7 @@ typedef union clientExecTail {
     struct {
         /* Keep the CDB pointer at full-client offset 320. Its pointee remains
          * cache-line isolated; this split must not add a dependent load to the
-         * EX->WB completion publication path. */
+         * EX completion publication path. */
         cdbSlots *reply_cdb;
         /* Connection-owned controller state. A fake never owns another fake
          * ring, which is the four-line hole removed by the core allocation. */
@@ -1767,12 +1768,7 @@ typedef union clientExecTail {
         listNode *client_list_node;
         listNode *io_thread_client_list_node;
         size_t last_memory_usage;
-        /* Boot modes are mutually exclusive: IO links this intrusive node in 2-stage mode;
-         * the sticky WB pointer occupies the same reserved bytes in 3-stage mode. */
-        union {
-            listNode clients_pending_ex_node;
-            struct tomoWbClient *wb;
-        };
+        listNode clients_pending_ex_node;
         listNode clients_pending_write_node;
         listNode pending_ref_reply_node;
         mstime_t buf_peak_last_reset_time;
@@ -1824,6 +1820,12 @@ typedef union clientExecTail {
         uint8_t p1d_mode;       /* TOMO_P1D_DIRECT (boot default) | TOMO_P1D_FC */
         uint8_t p1d_inflight;   /* 1 while a DIRECT dispatch is in flight on ex */
         uint8_t p1d_streak;     /* consecutive clean singleton rounds while in FC (saturating) */
+#if 0
+        /* Retired EX-WB claim mutex and bounded occupied-generation count.
+         * IO published inflight before any corresponding executor job. */
+        redisAtomic uint8_t exwb_send_owner;
+        redisAtomic uint8_t exwb_inflight;
+#endif
         /* IO-owned provenance for mode-2 cross-node reply prefetch. A bit is
          * set when any worker producing this ring generation is remote. */
         uint32_t prefetch_io_xnode_slots;
@@ -1888,8 +1890,7 @@ typedef struct client {
             size_t buf_usable_size;
             unsigned long long commands_processed;
 
-            /* 0 = no pin; wb=0 retains legacy boolean 1, WB mode stores entry IO slot + 1.
-             * Atomic because owner-local publication and a dedicated WB may observe it. */
+            /* 0 = no pin; 1 = pinned. Atomic for cross-thread publication. */
             redisAtomic unsigned int tomo_read_snapshot_pinned;
             unsigned int fake_slot;
             int cdb;
@@ -1958,6 +1959,31 @@ _Static_assert(offsetof(client, argc) == 276, "client argv state left hot line 4
 static inline int clientExOwnedReal(const client *c) {
     return !c->isFake && (c->flags & CLIENT_EX_PENDING);
 }
+
+#if 0
+/* Retired EX-WB ownership extension.  The selector and its server field are
+ * intentionally not retained: this block records only the implementation
+ * contract.  The atomic byte was both the socket-writer owner and the mutex
+ * excluding IO ring retirement while EX held iovecs into fake buffers. */
+#define TOMO_EXWB_SEND_NONE 0
+#define TOMO_EXWB_SEND_EX   1
+#define TOMO_EXWB_SEND_IO   2
+
+extern _Atomic int tomo_ex_wb_enabled;
+
+static inline int tomoExWbEnabled(void) {
+    return atomic_load_explicit(&tomo_ex_wb_enabled,
+                                memory_order_relaxed) != 0;
+}
+
+static inline int clientExOwnedReal(const client *c) {
+    return !c->isFake &&
+        ((c->flags & CLIENT_EX_PENDING) ||
+         (tomoExWbEnabled() &&
+          atomic_load_explicit(&clientTail(c)->exwb_send_owner,
+                               memory_order_acquire) == TOMO_EXWB_SEND_EX));
+}
+#endif
 
 /* p1direct per-conn mode values (clientExecTail.p1d_mode). DIRECT is the boot state:
  * the first command on a fresh conn is always a singleton. */
@@ -2036,7 +2062,7 @@ static inline clientCold *clientReplicationData(client *c) {
 /* ee451 (v7): cross-shard scatter-gather group. Lives on the GROUP HEAD fake (the ring
  * slot that represents one multi-key command). Each sub-fake runs the per-shard
  * subcommand on its worker; the LAST sub to complete (pending hits 0, release) publishes the
- * group head's completion byte. Sticky WB consumes that marker, advances any later stage or
+ * group head's completion byte. The IO owner consumes that marker, advances any later stage or
  * atomic commit, and finally reassembles the reply. Single-writer-per-key is preserved: each key
  * is still touched only by its owning shard's worker. */
 typedef enum { CS_MGET=0, CS_MSET, CS_DEL, CS_EXISTS, CS_KEYS, CS_SETOP, CS_RENAME,
@@ -2054,8 +2080,8 @@ struct sortXShardCtx;
 #define CS_SETOP_DIFF      2
 /* ee451 (universal xshard): 2-HOP phase machine. Read-then-write / move / conditional commands GATHER
  * on the SOURCE shard(s) in HOP1, then the active drain owner launches HOP2 to WRITE the serialized
- * result to the DEST shard. WB mode uses its dedicated producer lane; wb=0 retains the origin-IO
- * continuation. Data crossing shards is a private refcount-free DUMP/sds blob (S8-safe: no live robj
+ * result to the DEST shard. The origin IO lane launches the continuation. Data crossing shards is
+ * a private refcount-free DUMP/sds blob (S8-safe: no live robj
  * crosses a thread). */
 #define CS_PH_HOP1         0   /* default (zcalloc) => every 1-hop group is unaffected */
 #define CS_PH_HOP2         1
@@ -2482,10 +2508,10 @@ typedef struct exQueue {
 } exQueue;
 
 /* ee451 (S8): free-back ring. For zero-copy large-value replies, a worker
- * takes a +1 ref on the value and WB sends it by reference; the
+ * takes a +1 ref on the value and IO sends it by reference; the
  * matching decrRefCount must run on the OWNING WORKER (the sole mutator of that
  * shard's value refcounts) to avoid the cross-thread refcount race. After the
- * send, WB enqueues the value here; the worker drains and decrefs. The lane
+ * send, IO enqueues the value here; the worker drains and decrefs. The lane
  * namespace also retains IO producers used by inherited non-client paths.
  * One ring per producer identity => SPSC (producer = that identity's thread,
  * consumer = the owning worker). */
@@ -2527,9 +2553,7 @@ typedef struct freebackRing {
  * fields are _Atomic int (not the enum type), so the negative is representable.
  * The numeric values of IO/EX are UNCHANGED — DEBUG TOMO-IOLOAD prints them.
  *
- * WB is deliberately not a poly-thread mode in the unified binary. Dedicated WB threads have
- * their own event loops and remain outside the convertible IO/EX pool, so no checkpoint can adopt
- * that role. Adding TOMO_MODE_WB here would falsely expose it to the flip controller. */
+ */
 typedef enum {
     TOMO_MODE_UNSET = -1,
     TOMO_MODE_IO    = 1,
@@ -3329,8 +3353,8 @@ struct redisServer {
     int tm_boot_w_live;            /* workers LIVE at boot (num_workers_live seed, bucket-table split) */
     int tm_pool_symmetric;         /* 1 = the runtime-convertible remap above was applied */
     int tm_client_lb;          /* continuous client LB (tmClientBalanceCron); split from tm_flip_rebalance 2026-07-28 */
-    /* Tomo KV-dev custom threading/pipelining runtime state. io_threads/ex_threads/wb_threads
-     * come from redis.conf (`tomokv-thread-io`, `tomokv-thread-ex`, `tomokv-thread-wb`);
+    /* Tomo KV-dev custom threading/pipelining runtime state. io_threads/ex_threads
+     * come from redis.conf (`tomokv-thread-io`, `tomokv-thread-ex`);
      * pipeline_ring_depth comes from
      * `tomokv-pipeline-depth`, and ex_queue_size/ex_queue_mask are derived from the thread shape
      * (tomokv-ex-queue-depth is retired — see the derivation in initServer). */
@@ -3379,17 +3403,16 @@ struct redisServer {
     /* (tomokv-flip-signal DELETED 2026-08-10: the productive-work ratio is the only trigger
      * signal; see the tombstone note in server.c.) */
 
-    /* ee451 node-topology config (2026-07-22): IO+EX is the convertible pool and WB is a static
-     * role outside it. io_per_node + ex_per_node + wb_per_node <= cores_per_node. Global counts
-     * are DERIVED (nodes * per-node). thread_mode=static fixes IO/EX; auto may move only their
-     * boundary, never count or convert WB threads. */
+    /* ee451 node-topology config (2026-07-22): IO+EX is the convertible pool.
+     * io_per_node + ex_per_node <= cores_per_node. Global counts are DERIVED
+     * (nodes * per-node). thread_mode=static fixes IO/EX; auto may move their boundary. */
     int topo_nodes;            /* tomokv-nodes: node count. NOT necessarily a NUMA node — it owns
                                 * one or more adjacent shared-L3 groups in `ccd` mode and one NUMA
                                 * domain in `numa` mode. Hence topo_ (topology), not numa_. */
     int cores_per_node;        /* tomokv-cores-per-node; pool = topo_nodes * cores_per_node */
     int io_per_node;           /* provisioned base-IO stride per node; configured IO split in STATIC */
     int ex_per_node;           /* provisioned worker stride per node; configured EX split in STATIC;
-                                * IO+EX+WB stays within cores_per_node */
+                                * IO+EX stays within cores_per_node */
     /* (The ex_threads_min/max pair is GONE 2026-07-28, following the IO-side pair before it.
      * Their only reader was the reserve-thread quorum balancer, deleted with the reserve. The
      * bounds are structural, not numeric: grow-front refuses below 2 live workers in a node,
@@ -3419,12 +3442,6 @@ struct redisServer {
      * the adjacent-boundary-shift rebalancer). */
     uint8_t  ex_bucket_table[TOMO_BUCKETS];
     int      ex_bucket_end[TOMO_EX_THREADS_MAX];
-    /* WB-only configuration lives in the alignment tail before migration_active. Keeping it here
-     * preserves every pre-existing 2-stage configuration and dispatch-field offset when wb=0. */
-    int wb_threads;              /* GLOBAL dedicated WB count; 0 in authoritative 2-stage mode */
-    int wb_uring;                /* 0 = legacy write path; N = send SQEs per submit;
-                                  * -1 = auto batch cap. Unsupported rings fall back per WB. */
-    int wb_per_node;             /* dedicated WB threads per node; -1 config is resolved at boot */
     /* ee451 (v8d): online resharding = drain fence + ownership flip. migration_active is read once
      * (relaxed) per command on the hot path -> isolated on its own read-mostly cache line (written
      * only at migration start/end) to avoid false-sharing every IO core. The rest lives on a
@@ -3718,10 +3735,8 @@ struct redisServer {
     long long stat_unexpected_error_replies; /* Number of unexpected (aof-loading, replica to master, etc.) error replies */
     long long stat_total_error_replies; /* Total number of issued error replies ( command + rejected errors ) */
     long long stat_dump_payload_sanitizations; /* Number deep dump payloads integrity validations. */
-    /* WB lanes occupy the boot-reserved producer suffix below TOMO_IO_THREADS_MAX, so the
-     * authoritative 2-stage bounds already cover every IO/growth/WB writer identity. */
     redisAtomic long long stat_io_reads_processed[IO_THREADS_MAX_NUM]; /* Read events processed by IO */
-    redisAtomic long long stat_io_writes_processed[IO_THREADS_MAX_NUM]; /* Write events processed by IO / WB */
+    redisAtomic long long stat_io_writes_processed[IO_THREADS_MAX_NUM]; /* Write events processed by IO */
     redisAtomic long long stat_client_qbuf_limit_disconnections;  /* Total number of clients reached query buf length limit */
     long long stat_client_outbuf_limit_disconnections;  /* Total number of clients reached output buf length limit */
     long long stat_cluster_incompatible_ops; /* Number of operations that are incompatible with cluster mode */
@@ -4171,7 +4186,6 @@ struct redisServer {
     char *pin_io_spec;         /* tomokv-pin-io: per-role-per-node cpu spec, e.g.
                                 * "node0=0-3 node1=8,9,10,11". Used only with pin-mode static. */
     char *pin_ex_spec;         /* tomokv-pin-ex: same grammar, for the EX (worker) role. */
-    char *pin_wb_spec;         /* tomokv-pin-wb: same grammar, required in static pin mode. */
     int reshard_min_ops;         /* tomokv-key-lb: 0 = balancer OFF (nothing runs, nothing is
                                   * allocated); N = min mean shard ops/sec before a shard is a
                                   * migration candidate. Default 20000. */
@@ -4303,7 +4317,6 @@ struct pendingCommand {
     int slot;         /* The slot the command is executing against. Set to INVALID_CLUSTER_SLOT
                        * if no slot is being used or if the command has a cross slot error */
     uint8_t read_error;
-    uint8_t pool_owner; /* IO identity that parsed/allocated this record; WB returns it there. */
     uint64_t argv_released_mask; /* ee451 (v14 deepint): bit j set = worker released argv[j] (DB-aliased
                                   * ref); freePendingCommand skips it. Lets the worker signal releases
                                   * WITHOUT writing the io-owned argv[] array (the decref bounce). */
@@ -4992,7 +5005,6 @@ void moduleReleaseGIL(void);
 void moduleNotifyKeyspaceEvent(int type, const char *event, robj *key, int dbid);
 void firePostExecutionUnitJobs(void);
 void moduleCallCommandFilters(client *c);
-int moduleCommandFiltersActive(void);
 void modulePostExecutionUnitOperations(void);
 void ModuleForkDoneHandler(int exitcode, int bysignal);
 int TerminateModuleForkChild(int child_pid, int wait);
@@ -5633,10 +5645,6 @@ void usage(void);
 void updateDictResizePolicy(void);
 void populateCommandTable(void);
 void tomoReorderDrain(void);   /* stage-only TLS scratch -> lanes (flushExQueues top) */
-void tomoInputDispatchBatchBegin(client *c); /* 3s input: group express handoffs by EX lane */
-void tomoInputDispatchBatchEnd(void);
-void tomoIoInputRecvNote(void);              /* successful recv/CQE input-buffer census */
-void tomoIoParsedCommandsNote(unsigned int n);
 robj *commandNameIntern(const char *p, size_t len);  /* ee451 (v14): argv[0] interning */
 void resetCommandTableStats(dict* commands);
 void resetErrorTableStats(void);
@@ -6631,17 +6639,6 @@ void debugPauseProcess(void);
 
 //ee451 new
 void initIOThreads(void);
-void initWbThreads(void);
-void tomoWbNetworkingInit(void);
-void tomoWbAssignClient(client *c);
-void tomoWbFreeClient(client *c);
-int tomoWbClientBusy(client *c);
-int tomoWbInThread(void);
-void tomoWbRequestClose(client *c);
-void tomoWbLockClient(client *c);
-void tomoWbUnlockClient(client *c);
-void tomoWbSchedule(client *c, int force_wake);
-void tomoWbReferencesDrained(client *c);
 void discardClientReply(client *c);
 
 /* Worker thread functions */

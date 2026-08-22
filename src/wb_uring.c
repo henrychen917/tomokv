@@ -1,10 +1,20 @@
 /*
+ * RETIRED REFERENCE — dedicated three-stage write-back (IO -> EX -> WB).
+ *
  * Per-WB-thread io_uring SENDMSG batching.
  *
  * There is exactly one issuer pthread per ring.  Completion notification is
  * registered on the WB's existing eventfd, so producer-ready and CQ edges
  * share one event-loop wake without sharing any send-side state.
+ *
+ * Decoupling did not improve the clean path; only backpressure improved
+ * (p99 -13%). On the 25GbE NIC this design crashed when independently
+ * re-derived client WB pointers let unlock decrement a lock it never took.
+ * The defect did not reproduce on matched loopback runs. Kept disabled for
+ * the ground-up replacement design.
  */
+
+#if 0
 
 #include "server.h"
 #include "wb_uring.h"
@@ -124,7 +134,7 @@ static int tomoWbUringProbeSendmsg(tomoWbUring *ring) {
     struct io_uring_probe *probe = io_uring_get_probe_ring(&ring->ring);
     if (!probe) {
         serverLog(LL_WARNING,
-                  "tomokv-wb-uring owner %d could not probe kernel opcodes; "
+                  "retired WB sender-ring owner %d could not probe kernel opcodes; "
                   "falling back to write()/writev", ring->wb_id);
         return C_ERR;
     }
@@ -132,7 +142,7 @@ static int tomoWbUringProbeSendmsg(tomoWbUring *ring) {
     io_uring_free_probe(probe);
     if (!supported) {
         serverLog(LL_WARNING,
-                  "tomokv-wb-uring owner %d: SENDMSG is not supported; "
+                  "retired WB sender-ring owner %d: SENDMSG is not supported; "
                   "falling back to write()/writev", ring->wb_id);
         return C_ERR;
     }
@@ -158,7 +168,7 @@ static void tomoWbUringFailSubmit(tomoWbUring *ring, int rc) {
     tomoRelaxedSet(ring->stats.rings_ready, 0);
     WB_URING_STAT_BUMP(ring, submit_failures, 1);
     serverLog(LL_WARNING,
-              "tomokv-wb-uring owner %d submit failed: %s; closing %u "
+              "retired WB sender-ring owner %d submit failed: %s; closing %u "
               "ambiguous in-flight connection(s) and falling back to "
               "write()/writev", ring->wb_id, strerror(rc < 0 ? -rc : rc),
               ring->outstanding);
@@ -191,7 +201,7 @@ tomoWbUring *tomoWbUringCreate(int wb_id, unsigned batch_cap,
     if (liburing_major < 2 ||
         (liburing_major == 2 && liburing_minor < 4)) {
         serverLog(LL_WARNING,
-                  "tomokv-wb-uring owner %d requires liburing >= 2.4; "
+                  "retired WB sender-ring owner %d requires liburing >= 2.4; "
                   "loaded %d.%d, falling back to write()/writev", wb_id,
                   liburing_major, liburing_minor);
         zfree(ring);
@@ -201,7 +211,7 @@ tomoWbUring *tomoWbUringCreate(int wb_id, unsigned batch_cap,
     tomoWbKernelVersion kv;
     if (tomoWbKernelVersionGet(&kv) != C_OK) {
         serverLog(LL_WARNING,
-                  "tomokv-wb-uring owner %d could not identify the running "
+                  "retired WB sender-ring owner %d could not identify the running "
                   "kernel; falling back to write()/writev", wb_id);
         zfree(ring);
         return NULL;
@@ -218,7 +228,7 @@ tomoWbUring *tomoWbUringCreate(int wb_id, unsigned batch_cap,
     int rc = io_uring_queue_init_params(depth, &ring->ring, &params);
     if (rc < 0) {
         serverLog(LL_WARNING,
-                  "tomokv-wb-uring owner %d setup on kernel %s failed: %s; "
+                  "retired WB sender-ring owner %d setup on kernel %s failed: %s; "
                   "falling back to write()/writev", wb_id, kv.release,
                   strerror(-rc));
         zfree(ring);
@@ -230,7 +240,7 @@ tomoWbUring *tomoWbUringCreate(int wb_id, unsigned batch_cap,
         tomoWbUringProbeSendmsg(ring) != C_OK) {
         if (!(params.features & IORING_FEAT_NODROP))
             serverLog(LL_WARNING,
-                      "tomokv-wb-uring owner %d lacks IORING_FEAT_NODROP; "
+                      "retired WB sender-ring owner %d lacks IORING_FEAT_NODROP; "
                       "falling back to write()/writev", wb_id);
         tomoWbUringCloseRing(ring);
         zfree(ring);
@@ -240,7 +250,7 @@ tomoWbUring *tomoWbUringCreate(int wb_id, unsigned batch_cap,
     rc = io_uring_ring_dontfork(&ring->ring);
     if (rc < 0) {
         serverLog(LL_WARNING,
-                  "tomokv-wb-uring owner %d could not mark its ring "
+                  "retired WB sender-ring owner %d could not mark its ring "
                   "DONTFORK: %s; falling back to write()/writev", wb_id,
                   strerror(-rc));
         tomoWbUringCloseRing(ring);
@@ -250,7 +260,7 @@ tomoWbUring *tomoWbUringCreate(int wb_id, unsigned batch_cap,
     rc = io_uring_register_eventfd(&ring->ring, completion_eventfd);
     if (rc < 0) {
         serverLog(LL_WARNING,
-                  "tomokv-wb-uring owner %d could not register its "
+                  "retired WB sender-ring owner %d could not register its "
                   "completion eventfd: %s; falling back to write()/writev",
                   wb_id, strerror(-rc));
         tomoWbUringCloseRing(ring);
@@ -261,7 +271,7 @@ tomoWbUring *tomoWbUringCreate(int wb_id, unsigned batch_cap,
     ring->state = TOMO_WB_URING_READY;
     tomoRelaxedSet(ring->stats.rings_ready, 1);
     serverLog(LL_NOTICE,
-              "tomokv-wb-uring owner %d ready: kernel %s, liburing %d.%d, "
+              "retired WB sender-ring owner %d ready: kernel %s, liburing %d.%d, "
               "%u-entry ring, submission cap %u, flags=%s%s, one issuer",
               wb_id, kv.release, liburing_major, liburing_minor,
               params.sq_entries, batch_cap,
@@ -368,7 +378,7 @@ int tomoWbUringDrain(tomoWbUring *ring) {
                 tomoRelaxedSet(ring->stats.rings_ready, 0);
                 WB_URING_STAT_BUMP(ring, arm_fallbacks, 1);
                 serverLog(LL_WARNING,
-                          "tomokv-wb-uring owner %d received %s from "
+                          "retired WB sender-ring owner %d received %s from "
                           "SENDMSG despite a successful opcode probe; "
                           "falling back to write()/writev", ring->wb_id,
                           strerror(-cqes[i]->res));
@@ -468,3 +478,4 @@ void tomoWbUringAfterForkChild(tomoWbUring *ring) {
 }
 
 #endif /* HAVE_LIBURING */
+#endif /* retired three-stage WB reference */

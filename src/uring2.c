@@ -255,6 +255,10 @@ struct tomoUring2Client {
     unsigned send_failed : 1;
     unsigned send_nocopy : 1;
     unsigned send_fixed_buf_submitted : 1;
+#if 0
+    /* Retired EX-WB IO claim, held from SEND promotion through its CQE. */
+    unsigned send_claimed : 1;
+#endif
     size_t send_len;
     size_t send_off;
     size_t send_start;
@@ -1098,6 +1102,11 @@ static size_t tomoUring2SendPromoteReady(tomoUring2Thread *st,
                                          tomoUring2Client *uc) {
     client *c = uc->c;
     serverAssert(!uc->send_active);
+#if 0
+    /* EX-WB excluded executor writev and IO ring retirement while this SEND
+     * retained a pointer to client-owned output. */
+    serverAssert(uc->send_claimed);
+#endif
 
     size_t available = c->bufpos - c->sentlen;
     size_t take = min(available, (size_t)PROTO_REPLY_CHUNK_BYTES);
@@ -1152,6 +1161,12 @@ static void tomoUring2SendClearActive(tomoUring2Thread *st,
     uc->send_off = 0;
     uc->send_start = 0;
     uc->send_direct_buf = NULL;
+#if 0
+    if (uc->send_claimed) {
+        tomoExWbReleaseSendClaim(uc->c, TOMO_EXWB_SEND_IO);
+        uc->send_claimed = 0;
+    }
+#endif
 }
 
 static void tomoUring2RequestSendCancel(tomoUring2Client *uc) {
@@ -1277,8 +1292,28 @@ static int tomoUring2StageSends(tomoUring2Thread *st,
                 tomoUring2SendClearActive(st, uc);
             continue;
         }
+#if 0
+        /* Retired EX-WB claim acquisition. Contention returned the client to
+         * the normal pending-write queue; an ineligible SEND released a claim
+         * before taking that same fallback. */
+        if (!uc->send_active && !uc->send_claimed) {
+            if (!tomoExWbTrySendClaim(uc->c, TOMO_EXWB_SEND_IO)) {
+                tomoUring2SendRemove(st, uc);
+                if (uc->c->bufpos || listLength(uc->c->reply))
+                    putClientInPendingWriteQueue(uc->c);
+                continue;
+            }
+            uc->send_claimed = 1;
+        }
+#endif
         if (!uc->send_active && !tomoUring2SendCanPromote(uc, tcp_type)) {
             tomoUring2SendRemove(st, uc);
+#if 0
+            if (uc->send_claimed) {
+                tomoExWbReleaseSendClaim(uc->c, TOMO_EXWB_SEND_IO);
+                uc->send_claimed = 0;
+            }
+#endif
             if (uc->c->bufpos || listLength(uc->c->reply))
                 putClientInPendingWriteQueue(uc->c);
             continue;
@@ -2954,6 +2989,10 @@ static int tomoUring2ClientMigrationReady(const client *c) {
            uc->recv_state == TOMO_URING2_RECV_IDLE && !uc->arm_queued &&
            !uc->cancel_queued && !uc->cancel_submitted &&
            !uc->parse_queued && !uc->in_callback && !uc->send_active &&
+#if 0
+           /* Retired EX-WB SEND lifetime was also a migration fence. */
+           !uc->send_claimed &&
+#endif
            !uc->send_queued && !uc->send_cancel_queued &&
            !uc->send_cancel_submitted;
 }
@@ -3077,6 +3116,10 @@ static int tomoUring2ClientCloseReady(const client *c) {
            uc->recv_state == TOMO_URING2_RECV_IDLE && !uc->arm_queued &&
            !uc->cancel_queued && !uc->cancel_submitted &&
            !uc->parse_queued && !uc->in_callback && !uc->send_active &&
+#if 0
+           /* Retired EX-WB SEND lifetime was also a close fence. */
+           !uc->send_claimed &&
+#endif
            !uc->send_queued && !uc->send_cancel_queued &&
            !uc->send_cancel_submitted;
 }
@@ -3086,6 +3129,9 @@ static void tomoUring2ClientRelease(client *c) {
     if (!uc) return;
     tomoUring2AssertOwner(uc);
     serverAssert(tomoUring2ClientCloseReady(c));
+#if 0
+    serverAssert(!uc->send_claimed);
+#endif
     /* freeClient() closes conn->fd only after backend release returns. */
     tomoUring2ReleaseClientResources(uc);
     clientTail(c)->uring = NULL;

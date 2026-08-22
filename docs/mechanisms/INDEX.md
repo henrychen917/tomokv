@@ -10,7 +10,7 @@
 - [Cross-shard scatter/gather](../crossshard.md)
 - [Online resharding](../reshard-migration.md)
 - [Load balancing](../loadbalance-flip.md)
-- [Boot-selectable write-back stage](../writeback-stage.md)
+- [Retired write-back designs](../writeback-stage.md)
 
 Granular, code-derived docs for every named buffer, storage-lookahead pass, communication channel, and
 algorithm/calculation. Each file cites file:line and documents the real data structure + protocol.
@@ -32,7 +32,7 @@ Parent: the subsystem docs in `../` link down to these; the top-level `../../REA
 - [`prefetch/prefetch-engagement-counters.md`](prefetch/prefetch-engagement-counters.md) — storage-lookahead entry, gate, slot, and kvobj counters
 
 ## communication
-- [`communication/cdb-completion-bus.md`](communication/cdb-completion-bus.md) — `cdbSlotPublish` / `cdbSlotReady` / `cdbSlotClear` — EX-to-IO/WB reply-ready completion
+- [`communication/cdb-completion-bus.md`](communication/cdb-completion-bus.md) — `cdbSlotPublish` / `cdbSlotReady` / `cdbSlotClear` — EX-to-IO reply-ready completion
 - [`communication/migration-drain-fence.md`](communication/migration-drain-fence.md) — `migPushFenceIfNeeded` / `drain_ack` / `fence_acked` — migration cutover execu
 - [`communication/owner-lock.md`](communication/owner-lock.md) — `tomoWkrLock` / `tomoWkrTrylock` / `tomoWkrUnlock` / `tomoWkrLockPub` / `tomoWkr
 - [`communication/owner-local-publish.md`](communication/owner-local-publish.md) — eager owner-local indexing, last-owner marker publication, and owner-epoch retirement

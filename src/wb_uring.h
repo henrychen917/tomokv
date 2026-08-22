@@ -1,10 +1,16 @@
 /*
+ * RETIRED REFERENCE — dedicated three-stage write-back (IO -> EX -> WB).
+ *
  * Dedicated write-back io_uring sender.
  *
  * The ring is deliberately unaware of client/reply ownership.  Its caller
  * supplies one stable operation token and msghdr per connection, then handles
- * the CQE on the same WB thread that staged it.
+ * the CQE on the same WB thread that staged it. The clean-path decoupling
+ * premise was refuted; only backpressure improved (p99 -13%), and the design
+ * crashed on the 25GbE NIC through the WB lock/unlock pointer-rederive race.
+ * Kept disabled for the ground-up replacement design.
  */
+#if 0
 #ifndef TOMOKV_WB_URING_H
 #define TOMOKV_WB_URING_H
 
@@ -54,3 +60,4 @@ void tomoWbUringGetStats(const tomoWbUring *ring, tomoWbUringStats *out);
 void tomoWbUringAfterForkChild(tomoWbUring *ring);
 
 #endif
+#endif /* retired three-stage WB reference */

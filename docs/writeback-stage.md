@@ -1,161 +1,46 @@
-# Boot-selectable write-back stage
+# Retired write-back designs
 
-One binary supports two request/reply pipelines. The immutable `tomokv-thread-wb` value chooses the
-pipeline before threads or client-side state are allocated:
+TomoKV now has one live request/reply pipeline: `IO -> EX -> IO`. The executor write-back and
+dedicated write-back-stage implementations are retained in the source only as readable `#if 0`
+references for a ground-up replacement. Their selectors and runtime state are intentionally gone.
 
-| Value | Pipeline | Reply/send owner |
-| --- | --- | --- |
-| `0` (default) | `IO -> EX -> IO` | The connection's IO thread |
-| positive `N` | `IO -> EX -> WB` | One sticky WB thread per connection |
-| `-1` | `IO -> EX -> WB` | WB count is the physical-core-budget remainder |
+## Executor write-back (ex-wb)
 
-`N` is per topology node, like `tomokv-thread-io` and `tomokv-thread-ex`; the runtime totals are the
-per-node values multiplied by `tomokv-nodes`.
+Ex-wb let the EX worker that completed an ordered command claim the real connection and send its
+own contiguous ready prefix. The reference includes the connection claim, prefix gather, partial
+write cursor, IO fallback, and terminal cross-shard gather path.
 
-The zero value is an architectural boundary, not a dormant third stage. It retains the established
-two-stage parser, pending-client walk, adaptive completion polling, reply splice, socket writer, and
-IO/EX controller. WB event loops, ready words, slot pages, return pools, input counters, uring state,
-and static-WB pin matrices are not allocated. New WB configuration scalars occupy an existing
-alignment gap in `redisServer`, and the client tail overlays its legacy pending-EX list node with the
-WB pointer because the two owners cannot coexist. This keeps the existing structure sizes and
-two-stage field offsets unchanged.
+It lost best-versus-best throughput by 10.5–22.2% on loopback on both transports, including after a
+fire-and-forget submit ring removed syscall batching as an explanation. On 25GbE the deficit narrowed
+to 0.8–6.4%. The measured p1 throughput for both designs was flat at approximately
+`threads issuing sends * 90k`: the two-stage design gets send width from IO threads that both receive
+and send, while ex-wb must purchase receive width and send width in separate stages from one fixed
+thread budget.
 
-## Three-stage ownership
+## Dedicated write-back stage (3s/WB)
 
-With WB enabled, the roles are deliberately asymmetric:
+The three-stage design assigned each connection a sticky WB owner:
 
-1. IO owns accept, receive, protocol parsing, command identification, and EX dispatch.
-2. EX owns shard-local command execution and builds the command reply once on its fake client.
-3. The sticky WB consumes EX completion, advances post-EX cross-shard stages, gathers the ordered
-   reply prefix, and owns every socket write for that connection.
+1. IO accepted, received, parsed, and dispatched.
+2. EX executed and built replies.
+3. WB consumed ordered completions, advanced post-EX cross-shard work, and performed socket writes.
 
-Trivial traffic can still execute inline on IO, including PING, protocol/admission errors, and
-unauthenticated replies. Its completed output is handed to the sticky WB. IO does not inspect or
-mutate WB-owned pending-send state, install a writable handler, or send a dispatched reply. That
-single-writer rule also applies while a connection moves between IO owners: receive ownership can
-move, but its WB assignment remains stable and node-local.
+Decoupling did not improve the clean throughput path. Its only win was backpressure tail latency
+(p99 improved 13%). On the 25GbE NIC it crashed with `server.c:32318 'before > 0'`, SIGILL, in
+several threads at once. `tomoWbLockClient` and `tomoWbUnlockClient` independently re-derived
+`wc = clientTail(c)->wb`; if that pointer changed from NULL to non-NULL between the calls, unlock
+decremented a counter that lock had never incremented and unlocked a mutex it had never acquired.
+The defect did not reproduce on loopback at matched conditions, making it a NIC-only defect class.
 
-## Head-ready bitmap and fenced publication
+The disabled reference preserves the sticky owner, fenced head-ready bitmap, ordered drain,
+cross-shard continuation, lifetime protocol, and optional SENDMSG ring. It must not be interpreted
+as a supported mode or re-enabled piecemeal.
 
-Each accepted connection receives a stable slot on its WB. A WB owns compact 64-bit ready words,
-one bit per slot. The bit means that the connection's current ordered pipeline head needs WB
-inspection. There is no intrusive ready queue and no four-state client scheduler.
+## Source locations
 
-EX release-publishes a fake's CDB completion byte, executes a sequentially consistent fence, and
-then reads the connection's `flushid`. It relaxed-ORs the ready bit only when the completed slot is
-the ordered head. A deeper out-of-order completion sets no bit. After WB advances `flushid`, it
-executes the matching sequentially consistent fence before acquire-checking the new head's CDB byte.
+- `src/server.c`: disabled ex-wb and three-stage coordination, scheduling, and topology bodies.
+- `src/networking.c`: disabled WB client ownership, input, reply, and lifetime bodies.
+- `src/wb_uring.c` and `src/wb_uring.h`: disabled WB sender-ring implementation.
 
-Those two StoreLoad fences are the validated conditional protocol. They close the only lost-ready
-interleaving: EX cannot both miss that its completion became the head while WB misses that the new
-head had already completed. Replacing this with an unconditional ready-bit publication was measured
-and rejected; the conditional, fenced set-if-head protocol is intentional.
-
-Depth-one completions signal immediately. Under backlog, only a completion that becomes the ordered
-head performs the bitmap RMW. A per-WB `wake_pending` exchange creates one eventfd edge for an
-empty-to-ready episode and coalesces later producers while the WB is awake or draining. The consumer
-rotates its initial ready-word index, clears a bit only while holding a drain reference, and always
-performs the fence/new-head recheck before parking.
-
-## Ordered sends and wb-uring
-
-The default WB sender gathers a small ready prefix into the real client's contiguous buffer and
-uses one write. Larger or reference-bearing prefixes retain the existing splice/writev machinery.
-Worker-owned value references return through the WB producer lane to the owning EX worker; they are
-never decremented by WB.
-
-`tomokv-wb-uring` independently controls a per-WB SENDMSG ring:
-
-- `0` creates no WB sender ring and uses write/writev;
-- positive `N` caps cross-connection SENDMSG SQEs per submit;
-- `-1` derives a 32..512 cap from configured clients per WB.
-
-There is at most one send in flight per connection. Its pin owns the client buffers and referenced
-objects until the CQE consumes the sent prefix. A partial completion immediately chains the
-remainder; EAGAIN parks on that WB's writable event. The CQE resumes the same fenced client drain,
-so a later reply cannot overtake the partial send. Ring setup, SENDMSG probing, or unsupported CQEs
-fall back per WB to write/writev instead of making the server unavailable.
-
-AE_READABLE and receive-side io_uring remain IO-owned. AE_WRITABLE and the sender ring are WB-owned.
-TLS is rejected only when WB is enabled because split read/write owners cannot safely mutate one TLS
-session concurrently; `tomokv-thread-wb 0` retains the existing TLS behavior.
-
-## Post-EX cross-shard coordination
-
-EX remains responsible only for shard-local work. The last sub-fake release-publishes one common
-group-completion marker. In three-stage mode the sticky WB alone consumes that marker and performs
-the next action: gather/reassemble, launch a pipeline or two-hop continuation through its dedicated
-producer lane, or advance MSETNX/NX reservations. Parsed-command and sub-fake return objects are
-then posted to their origin IO pool.
-
-Atomic terminal publication is not a WB coordinator action. In both modes each install owner
-publishes locally and decrements the shared `shards_remaining`; its last decrementer assigns the
-timestamp, release-publishes the marker, detaches the commit-owned owner records from `csGroup`, and
-publishes the final CDB byte. That byte enters the ordinary IO scan at WB=0 or the fenced sticky-WB
-ready bitmap at WB>0. Owner records outlive reply reassembly through `tomoCommit` and retire through
-their owner-local epoch path, so neither drain mode can leave a stale record behind a freed group.
-
-## Client and slot lifetime
-
-Client construction assigns WB by connection node and client identity. Per-client slot metadata
-pages grow only on accept, never from completion producers or the ready scanner. Disconnect follows
-a quiescent recycle protocol:
-
-1. WB-originated close is posted to the connection IO mailbox.
-2. IO disables receive ownership and waits for fake-ring, action-mailbox, writable-registration,
-   ready-bit, drain-reference, and SENDMSG pins to clear.
-3. The WB slot pointer is removed, then the stable slot is recycled under the cold accept/disconnect
-   lock.
-
-This prevents a late CQE, bitmap scan, or EX completion from observing a new client through a reused
-slot.
-
-## Sizing and pinning
-
-The `wb=0` boundary keeps the existing two-role resolver unchanged. In WB mode, each of IO, EX,
-and WB is either an explicit positive per-node count or `-1` for AUTO:
-
-- `tomokv-thread-wb 0` runs the unchanged two-role resolver. With a zero core budget, the budget is
-  `io + ex`.
-- With all three WB-mode roles explicit, a zero core budget becomes `io + ex + wb`.
-- If any WB-mode role is `-1`, boot preserves explicit roles and divides the remaining core budget
-  evenly among AUTO roles. Indivisible remainder cores go to WB first, EX second, and IO last.
-- If AUTO is requested with a zero core budget, boot counts CPUs allowed by affinity/cgroups,
-  deduplicates SMT siblings into physical cores, and divides the result across topology nodes before
-  applying that same split rule.
-
-For example, `nodes=8`, `cores-per-node=8`, and all three role knobs set to `-1` resolve the same
-per-node `io=2`, `ex=3`, `wb=3` split as the reference tree: global totals of IO 16, EX 24, and WB
-24.
-
-Every enabled role must be positive and fit both the per-node core budget and its compiled global
-capacity. IO/growth/WB producer identities share the bounded producer-lane namespace, so an
-otherwise-valid role sum that exceeds that namespace is rejected at boot.
-
-`ccd` and `numa` placement put WB after the node's EX and IO logical ranges. Static placement needs
-`tomokv-pin-io` and `tomokv-pin-ex` in two-stage mode, and additionally requires complete
-`tomokv-pin-wb` coverage when WB is enabled. The WB static-pin matrix itself is allocated only in
-that enabled/static combination.
-
-## Flip boundary and known follow-up
-
-The flip controller remains a two-role IO/EX controller. With WB enabled it may still move the
-boundary inside the provisioned IO/EX pool, but WB count, placement, event loops, queues, client
-assignments, and producer lanes remain static. No thread can adopt a WB role through a polymorphic
-checkpoint.
-
-A future three-role controller is a known follow-up. This release intentionally does not invent one:
-the validated behavior is a static WB pool beside the existing independently validated IO/EX
-controller.
-
-## Observability and permanent gates
-
-`INFO` exposes WB busy/idle time, counted threads, ready drains and re-arms, replies, gather paths,
-wake edges/suppression, and wb-uring setup/submission/completion/fallback counters. At
-`tomokv-thread-wb 0`, these fields are zero and WB-only input batching fields are absent.
-
-`tools/notifyguard.sh` protects the fenced protocol, bitmap scheduler, sole send owner, slot
-quiescence, no-allocation split, dual cross-shard owners, and static-WB flip boundary. The knob
-matrix exercises WB off, explicit, AUTO, range failures, static pinning, and all wb-uring modes.
-`tools/preflight/wb0_parity.sh` is the permanent B,C,C,B canonical p16 GET gate against the retained
-`219ec74cc` artifact; it compares throughput, the INFO key surface, and idle/load RSS.
+The former WB=0 parity suite was removed from preflight because there is no longer a selectable WB
+mode: its comparison premise cannot fail meaningfully once the former WB=0 path is the sole path.

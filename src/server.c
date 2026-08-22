@@ -35,7 +35,6 @@
 #include "listpack.h"   /* xshard step 6: worker-side zset-listpack (member,score) gather */
 #include "chk.h"
 #include "uring2.h"
-#include "wb_uring.h"
 #include "flip_u1.h"
 #include "flip_r10.h"
 #include "flip_m1.h"
@@ -301,6 +300,20 @@ static inline void tmFlipRelease(void) {
 /* thread vars */
 __thread int iotid = 0;
 
+/*
+ * RETIRED REFERENCE — dedicated three-stage write-back (IO -> EX -> WB)
+ *
+ * The design gave each connection a sticky WB thread that gathered the ordered
+ * ready prefix and owned every send. Clean-path decoupling was refuted; its one
+ * win was backpressure p99 (-13%). On a 25GbE NIC it crashed at the former
+ * tomoWbUnlockClient `before > 0` assertion: lock and unlock independently
+ * re-derived clientTail(c)->wb, so a NULL -> non-NULL transition could make
+ * unlock decrement a counter and mutex it had never acquired. The defect did
+ * not reproduce on matched loopback runs, making it a NIC-only defect class.
+ *
+ * Kept under #if 0 as implementation reference for a ground-up replacement.
+ */
+#if 0
 /* ======================== dedicated write-back stage ========================
  * WB identities occupy ordinary EX-producer/freeback lanes immediately after every boot/growth
  * IO lane. The reserved owner-op lane stays last. WB can launch a later cross-shard stage without sharing
@@ -479,6 +492,366 @@ static inline int tomoWbReadyBitSet(tomoWbClient *wc) {
 
 int tomoWbInThread(void) {
     return tomo_wb_id >= 0;
+}
+#endif
+
+/*
+ * RETIRED REFERENCE — executor write-back (EX-WB)
+ *
+ * The executor that completed the ordered head claimed the real connection
+ * and issued one nonblocking writev for its contiguous ready prefix. Partial
+ * writes advanced the existing per-reply cursor; IO remained the fallback for
+ * gaps, spills, encoded references, TLS, and socket lifecycle work. The last
+ * scatter/gather sub could reassemble a terminal group before publishing it.
+ *
+ * EX-WB lost 10.5-22.2% best-vs-best on loopback on both transports, including
+ * after a fire-and-forget submit ring removed syscall batching as an objection.
+ * On the 25GbE wire the deficit narrowed to 0.8-6.4%. The measured p1 law was
+ * flat at (threads issuing sends) x about 90k for both designs: two-stage IO
+ * threads receive and send, while EX-WB must buy send width again at execute
+ * and cannot widen both stages from a fixed thread budget.
+ *
+ * Kept under #if 0 as implementation reference for the replacement design.
+ */
+#if 0
+#define CLIENT_EXWB_HEAD        (1ULL << 59)
+#define CLIENT_EXWB_REASSEMBLED (1ULL << 60)
+
+#define TOMO_EXWB_SEND_NONE 0
+#define TOMO_EXWB_SEND_EX   1
+#define TOMO_EXWB_SEND_IO   2
+
+/* These two bytes lived in clientExecTail. IO release-published the bounded
+ * occupied generation count before publishing its corresponding EX jobs. */
+typedef struct tomoExWbClientState {
+    _Atomic uint8_t send_owner;
+    _Atomic uint8_t inflight;
+} tomoExWbClientState;
+
+typedef struct tomoExWbClaimGuard {
+    client *c;
+    uint8_t owner;
+    uint8_t held;
+} tomoExWbClaimGuard;
+
+static inline int tomoExWbTrySendClaim(client *c, uint8_t owner) {
+    uint8_t expected = TOMO_EXWB_SEND_NONE;
+    return atomic_compare_exchange_strong_explicit(
+        &clientTail(c)->exwb_send_owner, &expected, owner,
+        memory_order_acquire, memory_order_relaxed);
+}
+
+static inline void tomoExWbReleaseSendClaim(client *c, uint8_t owner) {
+    debugServerAssert(c && !c->isFake && c->has_exec_tail);
+    debugServerAssert(atomic_load_explicit(&clientTail(c)->exwb_send_owner,
+                                           memory_order_relaxed) == owner);
+    atomic_store_explicit(&clientTail(c)->exwb_send_owner,
+                          TOMO_EXWB_SEND_NONE, memory_order_release);
+}
+
+static inline void tomoExWbClaimGuardRelease(tomoExWbClaimGuard *guard) {
+    if (!guard->held) return;
+    tomoExWbReleaseSendClaim(guard->c, guard->owner);
+    guard->held = 0;
+}
+
+static inline void tomoExWbClaimGuardCleanup(tomoExWbClaimGuard *guard) {
+    tomoExWbClaimGuardRelease(guard);
+}
+
+/* Worker-private witnesses. Nine counters occupy an exact two-line stride. */
+typedef struct tomoExWbStats {
+    _Atomic unsigned long long claims;
+    _Atomic unsigned long long claim_contended;
+    _Atomic unsigned long long flushes;
+    _Atomic unsigned long long replies;
+    _Atomic unsigned long long prefix_stopped_by_gap;
+    _Atomic unsigned long long partial;
+    _Atomic unsigned long long eagain;
+    _Atomic unsigned long long declined_state;
+    _Atomic unsigned long long gather_last_sub_sends;
+    char _pad[2 * CACHE_LINE_SIZE - 9 * sizeof(unsigned long long)];
+} __attribute__((aligned(CACHE_LINE_SIZE))) tomoExWbStats;
+_Static_assert(sizeof(tomoExWbStats) == 2 * CACHE_LINE_SIZE,
+               "executor write-back witness slot must occupy two lines");
+static tomoExWbStats tomo_exwb_stats[TOMO_EX_THREADS_MAX];
+static _Atomic unsigned long long tomo_exwb_io_fallback_flushes;
+
+/* Only the representation with a per-ring-slot lifetime and cursor was sent
+ * by EX: a plain inline fake buffer. */
+typedef struct tomoExWbPrefix {
+    struct iovec iov[TOMO_PIPELINE_DEPTH_MAX];
+    client *reply[TOMO_PIPELINE_DEPTH_MAX];
+    size_t bytes[TOMO_PIPELINE_DEPTH_MAX];
+    size_t total_bytes;
+    int replies;
+    int iovcnt;
+    int stopped_by_gap;
+} tomoExWbPrefix;
+
+static inline void tomoExWbConsumeInline(client *reply, size_t n) {
+    serverAssert(n > 0 && !reply->buf_encoded && !reply->last_header);
+    serverAssert(listLength(reply->reply) == 0 && reply->sentlen + n <= reply->bufpos);
+    reply->sentlen += n;
+    if (reply->sentlen == reply->bufpos) {
+        reply->sentlen = 0;
+        reply->bufpos = 0;
+    }
+}
+
+static void tomoExWbApplyWriteProgress(tomoExWbPrefix *prefix, size_t written) {
+    size_t remaining = written;
+    for (int i = 0; i < prefix->replies && remaining; i++) {
+        size_t take = min(remaining, prefix->bytes[i]);
+        tomoExWbConsumeInline(prefix->reply[i], take);
+        remaining -= take;
+    }
+    serverAssert(remaining == 0);
+}
+
+static ssize_t tomoExWbWritePreparedPrefix(int fd, tomoExWbPrefix *prefix,
+                                            int *write_errno) {
+    ssize_t nwritten = writev(fd, prefix->iov, prefix->iovcnt);
+    *write_errno = nwritten < 0 ? errno : 0;
+    if (nwritten > 0)
+        tomoExWbApplyWriteProgress(prefix, (size_t)nwritten);
+    return nwritten;
+}
+
+/* Build exactly the oldest contiguous READY prefix while the EX send claim
+ * excludes IO retirement. No concurrently IO-owned dispatchid read is needed. */
+static int tomoExWbPreparePrefix(client *real, tomoExWbPrefix *prefix) {
+    clientExecTail *rt = clientTail(real);
+    const int p1 = rt->p1d_inflight != 0;
+    memset(prefix, 0, sizeof(*prefix));
+
+    if (!p1 && (real->bufpos != 0 || real->sentlen != 0 ||
+                real->reply_bytes != 0 || listLength(real->reply) != 0))
+        return C_ERR;
+
+    unsigned int cursor = rt->flushid;
+    unsigned int occupied = atomic_load_explicit(&rt->exwb_inflight,
+                                                 memory_order_acquire);
+    unsigned int limit = p1 ? 1 : min(occupied, rt->ring_size);
+    for (unsigned int n = 0; n < limit; n++, cursor++) {
+        unsigned int slot = cursor & rt->ring_mask;
+        client *reply;
+        int cdb;
+
+        if (p1) {
+            reply = real;
+            cdb = real->cdb;
+        } else {
+            reply = rt->fakeClients[slot];
+            if (!reply) {
+                prefix->stopped_by_gap = 1;
+                break;
+            }
+            cdb = reply->cdb;
+        }
+
+        if (!cdbSlotReady(real, cdb, slot)) {
+            prefix->stopped_by_gap = 1;
+            break;
+        }
+        if ((reply->csgroup && !(reply->flags & CLIENT_EXWB_REASSEMBLED)) ||
+            reply->buf_encoded || reply->last_header ||
+            reply->reply_bytes != 0 || listLength(reply->reply) != 0 ||
+            reply->sentlen >= reply->bufpos)
+            return C_ERR;
+
+        size_t bytes = reply->bufpos - reply->sentlen;
+        prefix->reply[prefix->replies] = reply;
+        prefix->bytes[prefix->replies] = bytes;
+        prefix->iov[prefix->iovcnt].iov_base = reply->buf + reply->sentlen;
+        prefix->iov[prefix->iovcnt].iov_len = bytes;
+        prefix->total_bytes += bytes;
+        prefix->replies++;
+        prefix->iovcnt++;
+    }
+    return prefix->replies > 0 ? C_OK : C_ERR;
+}
+
+static int tomoExWbSocketEligible(client *real) {
+    connection *conn = real->conn;
+    uint64_t flags = real->flags;
+    if (!conn || conn->fd < 0 || connGetState(conn) != CONN_STATE_CONNECTED ||
+        (conn->flags & CONN_FLAG_CLOSE_SCHEDULED) ||
+        (conn->type != connectionTypeTcp() &&
+         conn->type != connectionTypeUnix()) ||
+        !(real->io_flags & CLIENT_IO_WRITE_ENABLED) ||
+        (real->io_flags & CLIENT_IO_CLOSE_ASAP) ||
+        (flags & (TOMO_P1D_DISQUALIFY_FLAGS | CLIENT_PROTOCOL_ERROR |
+                  CLIENT_REPL_RDB_CHANNEL)))
+        return 0;
+    return 1;
+}
+
+/* One nonblocking syscall, never a retry loop. A short write advances each
+ * reply's existing cursor; IO later splices only the remainder. */
+static void tomoExWbFlushClaimedPrefix(client *real, int ex_id) {
+    tomoExWbStats *stats = &tomo_exwb_stats[ex_id];
+    tomoExWbPrefix prefix;
+
+    if (!tomoExWbSocketEligible(real) ||
+        tomoExWbPreparePrefix(real, &prefix) != C_OK) {
+        tomoRelaxedBump(stats->declined_state, 1);
+        return;
+    }
+    if (prefix.stopped_by_gap)
+        tomoRelaxedBump(stats->prefix_stopped_by_gap, 1);
+
+    int write_errno;
+    ssize_t nwritten = tomoExWbWritePreparedPrefix(real->conn->fd, &prefix,
+                                                    &write_errno);
+    tomoRelaxedBump(stats->flushes, 1);
+    tomoRelaxedBump(stats->replies, (unsigned long long)prefix.replies);
+    if (nwritten < 0) {
+        if (write_errno == EAGAIN || write_errno == EWOULDBLOCK)
+            tomoRelaxedBump(stats->eagain, 1);
+        return;
+    }
+    if (nwritten == 0 || (size_t)nwritten < prefix.total_bytes)
+        tomoRelaxedBump(stats->partial, 1);
+
+    size_t reached = nwritten > 0 ? (size_t)nwritten : 0;
+    for (int i = 0; i < prefix.replies && reached; i++) {
+        if (prefix.reply[i]->csgroup &&
+            (prefix.reply[i]->flags & CLIENT_EXWB_REASSEMBLED))
+            tomoRelaxedBump(stats->gather_last_sub_sends, 1);
+        if (reached <= prefix.bytes[i]) break;
+        reached -= prefix.bytes[i];
+    }
+    if (nwritten > 0) {
+        tomoRelaxedBump(server.netstat[iotid].out, nwritten);
+        clientTail(real)->net_output_bytes += (size_t)nwritten;
+    }
+}
+
+/* Terminal gather reassembly was moved to the unique last executor. */
+static inline int tomoExWbGatherTerminal(const csGroup *g) {
+    if (g->versioned_write) return 0;
+    if (g->has_hop2) return g->phase == CS_PH_HOP2;
+    return !g->pipe_stage && !g->sort_stage;
+}
+
+static inline int tomoExWbGroupSubComplete(csGroup *g) {
+    if (g->nsub == 1) {
+        atomic_store_explicit(&g->pending, 0, memory_order_relaxed);
+        return 1;
+    }
+    return atomic_fetch_sub_explicit(&g->pending, 1,
+                                     memory_order_acq_rel) == 1;
+}
+
+/* IO stamped the generation at dispatch, before making the job visible to an
+ * executor.  Only the oldest unflushed fake could initiate an EX send; the
+ * bounded occupied count let that executor walk later READY generations
+ * without racing the IO-owned dispatch cursor.  P1 direct used the real
+ * client as its own head. */
+static void tomoExWbStampDispatch(client *real, client *fake) {
+    clientExecTail *rt = clientTail(real);
+    fake->flags &= ~(CLIENT_EXWB_HEAD | CLIENT_EXWB_REASSEMBLED);
+    if (rt->dispatchid == rt->flushid)
+        fake->flags |= CLIENT_EXWB_HEAD;
+    serverAssert(rt->dispatchid - rt->flushid < rt->ring_size);
+    atomic_store_explicit(&rt->exwb_inflight,
+                          (uint8_t)(rt->dispatchid - rt->flushid + 1),
+                          memory_order_release);
+}
+
+static void tomoExWbStampDirectDispatch(client *real) {
+    atomic_store_explicit(&clientTail(real)->exwb_inflight, 1,
+                          memory_order_release);
+}
+
+/* The final pending decrement acquired the complete sibling result image.
+ * It assembled terminal groups on the head but deliberately left all client
+ * and csGroup teardown to IO.  csReassemble's historical third argument was
+ * `reply_only`; it set CLIENT_EXWB_REASSEMBLED and returned before teardown. */
+static void tomoExWbReassembleTerminal(csGroup *g) {
+    client *head = g->head;
+    if (!tomoExWbGatherTerminal(g)) return;
+    serverAssert(!(head->flags & CLIENT_EX_PENDING));
+    head->flags |= CLIENT_EX_PENDING;
+    csReassemble(head, head, 1);
+    head->flags &= ~CLIENT_EX_PENDING;
+}
+
+/* This was the IO retirement half of reply-only reassembly. A full EX write
+ * left an empty fake; a partial write left sentlen at the exact remainder.
+ * AddReplyFromClient honored that cursor, then ordinary IO send machinery
+ * resumed the stream. */
+static int tomoExWbRetireReply(client *real, client *fake) {
+    int reassembled = (fake->flags & CLIENT_EXWB_REASSEMBLED) != 0;
+    if (fake->csgroup) {
+        csReassemble(reassembled ? NULL : real, fake, 0);
+        if (reassembled &&
+            (fake->bufpos != 0 || fake->reply_bytes != 0 ||
+             listLength(fake->reply) != 0))
+            AddReplyFromClient(real, fake);
+    } else if (fake->bufpos != 0 || fake->reply_bytes != 0 ||
+               listLength(fake->reply) != 0) {
+        AddReplyFromClient(real, fake);
+    }
+    return clientHasPendingReplies(real);
+}
+
+/* IO took the same claim around ready-ring retirement.  It released that
+ * claim before entering either send backend: writeToClient took a fresh
+ * synchronous claim, while io_uring held one from SEND promotion to CQE. */
+static int tomoExWbClaimIoDrain(client *real, tomoExWbClaimGuard *guard) {
+    *guard = (tomoExWbClaimGuard) {
+        .c = real, .owner = TOMO_EXWB_SEND_IO, .held = 0
+    };
+    if (!tomoExWbTrySendClaim(real, TOMO_EXWB_SEND_IO)) return C_ERR;
+    guard->held = 1;
+    return C_OK;
+}
+
+static void tomoExWbCountIoFallback(client *real) {
+    if (clientHasPendingReplies(real))
+        atomic_fetch_add_explicit(&tomo_exwb_io_fallback_flushes, 1,
+                                  memory_order_relaxed);
+}
+
+/* Worker-batch publication: claim each distinct ready HEAD before publishing
+ * its CDB byte, publish the whole batch, issue one prefix write, then release. */
+static void tomoExWbPublishBatch(client **parents, client **sources,
+                                 int *cdbs, uint8_t *slots, int n, int ex_id) {
+    client *claimed[WORKER_POP_BATCH];
+    int claimed_n = 0;
+    for (int s = 0; s < n; s++) {
+        client *real = parents[s];
+        client *source = sources[s];
+        int is_head = source == real
+            ? clientTail(real)->p1d_inflight != 0
+            : (source->flags & CLIENT_EXWB_HEAD) != 0;
+        if (!is_head) continue;
+        int duplicate = 0;
+        for (int k = 0; k < claimed_n; k++)
+            if (claimed[k] == real) { duplicate = 1; break; }
+        if (duplicate) continue;
+        if (tomoExWbTrySendClaim(real, TOMO_EXWB_SEND_EX)) {
+            claimed[claimed_n++] = real;
+            tomoRelaxedBump(tomo_exwb_stats[ex_id].claims, 1);
+        } else {
+            tomoRelaxedBump(tomo_exwb_stats[ex_id].claim_contended, 1);
+        }
+    }
+    for (int s = 0; s < n; s++)
+        cdbSlotPublish(parents[s], cdbs[s], slots[s]);
+    for (int k = 0; k < claimed_n; k++) {
+        tomoExWbFlushClaimedPrefix(claimed[k], ex_id);
+        tomoExWbReleaseSendClaim(claimed[k], TOMO_EXWB_SEND_EX);
+    }
+}
+#endif /* retired EX-WB reference */
+
+/* Highest live producer lane in the authoritative IO -> EX -> IO pipeline.
+ * This is exactly tomoProducerLaneHi()'s former wb_threads == 0 value. */
+static inline int tomoProducerLaneHi(void) {
+    return server.io_threads + server.tm_ngrow_io - 1;
 }
 
 /* ---- Debug request-phase decomposition -----------------------------------
@@ -758,11 +1131,11 @@ static void dispatchFanAll(client *head);   /* ee451 v10-B: KEYS fan to all work
 static void csStampRoute(struct redisCommand *c);  /* registry: tomo_route + cs_spec at populate */
 static int csGateReject(client *c);         /* registry: allowlist SAFE-GATE verdict (cold) */
 static void csRegistryBootAudit(void);      /* registry: initServer-time asserts + reject-set log */
-void tomoWbSchedule(client *c, int force_wake);
-static void tomoWbPostIo(client *c, unsigned int actions);
-static inline int tomoWbClosing(client *c);
 static int tomoAllowedLogicalCpuCount(void);
+#if 0
+/* Retired three-role AUTO sizing helper. */
 static int tomoAllowedPhysicalCpuCount(int *logical_out);
+#endif
 void renameGenericCommand(client *c, int nx);  /* db.c; same-shard TWOHOP runs the real proc on a worker */
 #define CS_MSETNX_PENDING  0
 #define CS_MSETNX_RESERVED 1
@@ -1912,7 +2285,7 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
                               * blocked poll time does not advance it, while zero-timeout drain
                               * spins do. The optional M1 measured-IO source folds it per dispatch;
                               * otherwise it remains diagnostic. Wraps at ~71min at 100%. */
-    int rob;            /* poll/notifier reply-ROB occupancy; unused and zero in WB mode */
+    int rob;            /* poll/notifier reply-ROB occupancy */
     /* ee451 (LB-1): does this io thread pin a conn that IO-EXIT could never drain (pubsub/blocked/
      * MULTI/...)? PUBLISHED BY THE OWNER, because server.clients[] is single-writer-per-slot and
      * main must not walk it — see step 5 of tmMigServiceOut(). _Atomic (relaxed) for
@@ -1932,7 +2305,6 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     /* ee451 (rate-balance saturation, 2026-08-03): the IO station's STANDING SEND BACKLOG --
      * clients holding replies this thread has not managed to write yet. Published by the owner
      * beside `rob`, same racy-read contract.
-     * In WB mode this is IO-built output awaiting the before-sleep handoff to the sticky sender.
      *
      * This is Q_IO in S_r = (A_r + Q_r) * U_r / C_r, and it must be THIS and not `rob`: rob is
      * poll-driven plus atomic notifier-backed replies still in flight ON WORKERS, so charging it to IO would attribute
@@ -1971,8 +2343,8 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     unsigned int tm_read_events;
 } tmIoSignal;
 
-/* WB-only input-specialization counters live outside tmIoSignal so wb=0 retains its exact
- * cache-line stride and faults no new stat pages. Allocated by initWbThreads before IO starts. */
+#if 0
+/* Retired three-stage input-specialization counters. */
 typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
     unsigned long long input_recv_calls;
     unsigned long long input_parsed_commands;
@@ -1983,6 +2355,7 @@ typedef struct __attribute__((aligned(CACHE_LINE_SIZE))) {
 _Static_assert(sizeof(tomoWbInputSignal) == CACHE_LINE_SIZE,
                "WB input counters must occupy one producer-private cache line");
 static tomoWbInputSignal *tomo_wb_input_sig;
+#endif
 
 /* Owner read-batch demand accumulators, callable from networking.c (tmIoSignal and the iotid TLS
  * are server.c-private). One call per successful read event; two adds, zero syscalls. */
@@ -2008,6 +2381,7 @@ void tomoIoDrainNote(unsigned int nread) {
     tm_io_sig[iotid].tm_read_events++;
 }
 
+#if 0
 void tomoIoInputRecvNote(void) {
     if (tomo_wb_input_sig && iotid >= 0 && iotid <= TOMO_IO_THREADS_MAX)
         tomo_wb_input_sig[iotid].input_recv_calls++;
@@ -2017,6 +2391,7 @@ void tomoIoParsedCommandsNote(unsigned int n) {
     if (n && tomo_wb_input_sig && iotid >= 0 && iotid <= TOMO_IO_THREADS_MAX)
         tomo_wb_input_sig[iotid].input_parsed_commands += n;
 }
+#endif
 
 /* Nestable wait episodes for server.c waits reached by an IO owner (queue/freeback backpressure,
  * polling yields, synchronization spins, and sched_yield). ae.c accounts the event-backend poll
@@ -2550,12 +2925,7 @@ static inline void flatGroupPinEnter(client *fake) {
     atomic_fetch_add_explicit(&ps->pin_out[gen & FLAT_PIN_GEN_MASK], 1, memory_order_relaxed);
     fake->tomo_read_snapshot_gen = gen;
     fake->tomo_read_snapshot = gen;
-    /* wb=0 retires on the same connection owner and retains the legacy boolean carrier. A sticky
-     * WB can retire after an IO handoff changed real->tid, so encode the immutable entry slot + 1
-     * in that mode. The exchange in tomoReleaseReadSnapshot recovers this exact row. */
-    unsigned int pin_owner = __builtin_expect(server.wb_threads == 0, 1)
-                           ? 1 : (unsigned int)s + 1;
-    atomic_store_explicit(&fake->tomo_read_snapshot_pinned, pin_owner,
+    atomic_store_explicit(&fake->tomo_read_snapshot_pinned, 1,
                           memory_order_release);
     atomic_store_explicit(&ps->scan_lock, 0, memory_order_release);
     if (ctl_held)
@@ -3598,23 +3968,9 @@ int clientsCronResizeOutputBuffer(client *c, mstime_t now_ms) {
     char *oldbuf = NULL;
     size_t buffer_target_shrink_size;
     size_t buffer_target_expand_size;
-    int wb_locked = 0;
-
     /* in case the resizing is disabled return immediately */
     if(!server.reply_buffer_resizing_enabled)
         return 0;
-
-    /* A dedicated WB may be appending to or sending from this buffer while
-     * cron runs on the main thread. Only inspect/reallocate it while holding
-     * the sidecar lock, and leave buffers carrying unsent bytes untouched. */
-    if (server.wb_threads > 0 && c->has_exec_tail && clientTail(c)->wb) {
-        tomoWbLockClient(c);
-        wb_locked = 1;
-        if (clientHasPendingReplies(c) || c->sentlen) {
-            tomoWbUnlockClient(c);
-            return 0;
-        }
-    }
 
     buffer_target_shrink_size = c->buf_usable_size/2;
     buffer_target_expand_size = c->buf_usable_size*2;
@@ -3626,7 +3982,6 @@ int clientsCronResizeOutputBuffer(client *c, mstime_t now_ms) {
      * zero-copy notification end the reference.
      */
     if (server.io_uring && tomoUringBackendClientSendPending(c)) {
-        if (wb_locked) tomoWbUnlockClient(c);
         return 0;
     }
 
@@ -3634,7 +3989,6 @@ int clientsCronResizeOutputBuffer(client *c, mstime_t now_ms) {
      * partially written payloadHeader pointer, so we can't
      * reallocate the buffer as it would invalidate this pointer. */
     if (c->buf_encoded) {
-        if (wb_locked) tomoWbUnlockClient(c);
         return 0;
     }
 
@@ -3668,7 +4022,6 @@ int clientsCronResizeOutputBuffer(client *c, mstime_t now_ms) {
         memcpy(c->buf,oldbuf,c->bufpos);
         zfree(oldbuf);
     }
-    if (wb_locked) tomoWbUnlockClient(c);
     return 0;
 }
 
@@ -4681,7 +5034,7 @@ static inline int cdbIndexFor(int ex_id) {
 /* ee451 (atomics): a reply completion is one SPSC flag, not a shared bitmap
  * update. EX is the 0->1 publisher for a worker-wave generation; after consuming a terminal
  * atomic marker, the active drain owner is the 0->1 publisher for the distinct reply-ready
- * generation. Origin IO is the sole clearer at wb=0; sticky WB is the sole clearer otherwise.
+ * generation. Origin IO is the sole clearer.
  * A ring slot cannot be reused (or re-armed for a later cross-shard stage) until it is cleared.
  *
  * Release/acquire is still load-bearing: the flag publishes the fake's reply
@@ -4706,23 +5059,6 @@ static inline void cdbSlotPublish(client *real, int cdb, unsigned int slot) {
     }
     clientExecTail *rt = clientTail(real);
     atomic_store_explicit(&rt->reply_cdb[cdb].ready[slot], 1, memory_order_release);
-
-    /* The 2-stage owner discovers this byte with its existing positional scan. */
-    if (__builtin_expect(server.wb_threads == 0, 1)) return;
-
-    /* Completion publication is deliberately cheaper for out-of-order depth. Only the producer
-     * that completed the connection's current flushid advertises the client; a deeper completion
-     * leaves no scheduling trace. When flushid advances, WB's clear-then-recheck observes and owns
-     * that already-published contiguous suffix. Slot reuse cannot wrap onto the current head while
-     * a prior generation remains in flight because dispatch is bounded by ring_size.
-     *
-     * The fence is the producer half of the StoreLoad handshake documented at
-     * tomoWbDrainReadyPass. Release/acquire alone would let this load miss WB's head advance while
-     * WB simultaneously misses the ready store, leaving done=1 with the client bit clear. */
-    atomic_thread_fence(memory_order_seq_cst); /* EX done->head StoreLoad fence */
-    unsigned int next_send = __atomic_load_n(&rt->flushid, __ATOMIC_ACQUIRE);
-    if ((next_send & rt->ring_mask) == slot)
-        tomoWbSetReady(real, 0);
 }
 static inline void cdbSlotClear(client *real, int cdb, unsigned int slot) {
     atomic_store_explicit(&clientTail(real)->reply_cdb[cdb].ready[slot], 0,
@@ -5187,6 +5523,7 @@ static __thread uint64_t ex_dirty_mask[TOMO_EX_MASK_WORDS];
  * lazily, valid for the process lifetime (lane blocks are never reallocated after initExThreads). */
 static __thread exQueue *tls_qbase[TOMO_EX_THREADS_MAX + 1];
 void flushExQueues(void);   /* defined below; used by the back-pressure path (A3) */
+#if 0
 static int exQueuePushBatch(exQueue *q, client *const *jobs, int n);
 
 /* 3s input specialization. One receive pass can fill at most the per-client
@@ -5203,6 +5540,7 @@ typedef struct {
     int draining;
 } tomoInputDispatchBatch;
 static __thread tomoInputDispatchBatch tomo_input_dispatch;
+#endif
 
 /* tomokv-reorder retains only its staging arm. Mode 0 dispatches directly; mode 1 holds
  * eligible fakes in this producer-private TLS buffer and emits them in arrival order at a flush
@@ -5264,10 +5602,9 @@ static void tomoReorderDrainConn(client *conn) {
  * directly on a staging path -- go through here. Dirty publication is a
  * separate edge so a bulk lane push sets the mask once, not once per job. */
 static inline exQueue *exQueueFor(int ex_id) {
-    /* queues[] has TOMO_IO_THREADS_MAX+1 producer lanes. Base/growth IO and fixed WB identities
-     * deliberately share that bounded lane namespace; EX identities start above it and may never
-     * index the matrix. This is the single funnel for the staging path, so one check covers both
-     * IO dispatch and WB-launched continuation stages.
+    /* queues[] has TOMO_IO_THREADS_MAX+1 producer lanes. Base/growth IO identities
+     * share that bounded lane namespace; EX identities start above it and may never
+     * index the matrix. This is the single funnel for the staging path.
      *
      * debugServerAssert, not serverAssert: this is per-dispatch hot. The property is structural —
      * which thread calls it — so it cannot start failing only under production load, and the ASAN /
@@ -5302,15 +5639,6 @@ static inline unsigned int exQueuePublishTracked(exThread *worker, exQueue *q,
     if (staged == published) return 0;
     unsigned int n = (staged - published) & server.ex_queue_mask;
     exHandoffPublishLane(worker, producer_lane);
-    /* Count only publications reached from a network-input scope. WB-launched
-     * continuation stages use the same producer matrix but are not input
-     * dispatch, and would otherwise dilute this counter. */
-    if (tomo_input_dispatch.depth > 0 &&
-        tomo_wb_input_sig && iotid >= 0 && iotid <= TOMO_IO_THREADS_MAX)
-    {
-        tomo_wb_input_sig[iotid].dispatch_commands += n;
-        tomo_wb_input_sig[iotid].dispatch_batches++;
-    }
     return n;
 }
 
@@ -5357,7 +5685,8 @@ static void exDispatchDirect(int ex_id, client *fake) {
     exHandoffPublish(&server.exThreads[ex_id]);       /* publish the just-pushed fake now */
 }
 
-/* Bulk form used by the 3s receive scope after it has grouped exact-shape
+#if 0
+/* Bulk form used by the retired 3s receive scope after it grouped exact-shape
  * GET/SET fakes by worker. Queue-full handling is the same exact
  * back-pressure as exDispatchDirect; only the producer-private writes are
  * coalesced. */
@@ -5477,31 +5806,12 @@ void tomoInputDispatchBatchEnd(void) {
         b->enabled = 0;
     }
 }
+#endif
 
 /* Stage-only admission front. Eligible mode-1 commands enter the TLS buffer; every exclusion —
  * sentinels, cross-shard subs, flush, strict-order mode, and mode 0 — takes the direct path behind
  * a drain barrier so the boundary cannot invert arrival order. */
 static inline void exDispatchPush(int ex_id, client *fake) {
-    if (__builtin_expect(server.wb_threads != 0, 0)) {
-        tomoInputDispatchBatch *ib = &tomo_input_dispatch;
-        if (ib->enabled && ib->depth == 1 && !ib->draining &&
-            ib->owner == fake->parent &&
-            fake->cmd && (fake->cmd->tomo_route & TOMO_R_EXPRESS) &&
-            ((fake->cmd->proc == getCommand && fake->argc == 2) ||
-             (fake->cmd->proc == setCommand && fake->argc == 3)) &&
-            !atomic_load_explicit(&server.migration_active, memory_order_relaxed))
-        {
-            int i = ib->n++;
-            ib->jobs[i] = fake;
-            ib->ex[i] = (uint8_t)ex_id;
-            if (ib->n == TOMO_PIPELINE_DEPTH_MAX) tomoInputDispatchBatchDrain();
-            return;
-        }
-        /* A cross-path boundary (general worker command, migration, or another
-         * connection) must land after this connection's earlier express prefix. */
-        if (ib->n) tomoInputDispatchBatchDrain();
-    }
-
     if (server.tomo_reorder == 1 && !tomo_stage.draining && server.strict_order == 0 &&
         fake->cmd && !fake->csparent &&
         (!fake->has_exec_tail ||
@@ -5553,12 +5863,7 @@ static inline void tomoReleaseReadSnapshot(client *fake) {
     unsigned int pinned = atomic_exchange_explicit(
         &fake->tomo_read_snapshot_pinned, 0, memory_order_acq_rel);
     if (!pinned) return;
-    /* Pure cross-shard reads may retire on their last worker. wb=0's boolean carrier can resolve
-     * through the still-owned real client; WB must use the entry slot encoded before dispatch,
-     * because receive ownership may have migrated while the sticky writer kept the fake alive. */
-    int slot = __builtin_expect(server.wb_threads == 0, 1)
-             ? (fake->parent ? fake->parent->tid : flat_slot_owned)
-             : (int)pinned - 1;
+    int slot = fake->parent ? fake->parent->tid : flat_slot_owned;
     flatGroupPinExit(fake, slot);
 }
 
@@ -5933,6 +6238,7 @@ static void handleWorkerRepliesScan(void) {
     zmalloc_stat_batch_end();
 }
 
+#if 0
 static void tomoWbHandoffPendingWrites(void) {
     list *pending = server.clients_pending_write[iotid];
     listIter li;
@@ -6629,6 +6935,7 @@ static void tomoWbNotifierHandler(aeEventLoop *el, int fd, void *clientData, int
     tomoWbDrainReady(w);
     flushExQueues();
 }
+#endif
 
 void handleWorkerReplies(void) {
     /* Publish all staged jobs once before the first scan. A rescan must not
@@ -6711,36 +7018,26 @@ void beforeSleepIO(struct aeEventLoop *eventLoop) {
      * active=0 races the flip, and a client still parked when the gate closed would never be woken
      * again. The cost of checking is one list-length load. */
     migReleaseParkedClients();
-    /* Publish the owner-local completion/backlog observations. In WB mode pend_write is only the
-     * short IO->WB construction handoff and is not a flip-controller WB signal. */
+    /* Publish the owner-local completion/backlog observations. */
     if (tomoThreadModeAdaptive()) {
-        if (server.wb_threads == 0)
-            tm_io_sig[iotid].rob = replyWorking + (int)tomo_atomic_reply_waiting;
+        tm_io_sig[iotid].rob = replyWorking + (int)tomo_atomic_reply_waiting;
         tm_io_sig[iotid].pend_write = server.clients_pending_write[iotid] ?
                                       listLength(server.clients_pending_write[iotid]) : 0;
     }
     /* ee451 (thread-modes v1.6): adopt any clients migrated INTO this thread FIRST, so they
      * are re-registered before the rest of the pass processes their sockets. */
     tmMigDrainInbox();
-    if (__builtin_expect(server.wb_threads == 0, 1)) {
-        connTypeProcessPendingData(eventLoop);
-        unsigned int atomic_reply_before = tomo_atomic_reply_waiting;
-        if (atomic_reply_before) tomoAtomicReplyWakeArm(iotid);
-        handleWorkerReplies();
-        tomoAtomicReleaseStalledClients();
-        /* A release may dispatch a replacement atomic command after the scan. */
-        if (tomo_atomic_reply_waiting)
-            tomoAtomicReplyWakeArm(iotid);
-        else if (atomic_reply_before)
-            tomoAtomicReplyWakeDisarm(iotid);
-        handleClientsWithPendingWrites();
-    } else {
-        tomoWbDrainIoActions();
-        connTypeProcessPendingData(eventLoop);
-        flushExQueues();
-        tomoAtomicReleaseStalledClients();
-        tomoWbHandoffPendingWrites();
-    }
+    connTypeProcessPendingData(eventLoop);
+    unsigned int atomic_reply_before = tomo_atomic_reply_waiting;
+    if (atomic_reply_before) tomoAtomicReplyWakeArm(iotid);
+    handleWorkerReplies();
+    tomoAtomicReleaseStalledClients();
+    /* A release may dispatch a replacement atomic command after the scan. */
+    if (tomo_atomic_reply_waiting)
+        tomoAtomicReplyWakeArm(iotid);
+    else if (atomic_reply_before)
+        tomoAtomicReplyWakeDisarm(iotid);
+    handleClientsWithPendingWrites();
     /* ee451 (thread-modes v1.6): start/complete outgoing migrations AFTER replies are flushed
      * (the quiesce fence needs it) and BEFORE the async-free pass (so a client that died
      * mid-drain is dropped from migrating_out before it is freed). */
@@ -6750,7 +7047,7 @@ void beforeSleepIO(struct aeEventLoop *eventLoop) {
     /* The sleep arm spans the whole hook, not just its first reply walk: an
      * atomic-window release above may dispatch a replacement after that walk.
      * With no final outstanding job there is no publisher left to consume it. */
-    if (__builtin_expect(server.wb_threads == 0 && exReplyWakeRecheck != 0, 0) &&
+    if (__builtin_expect(exReplyWakeRecheck != 0, 0) &&
         tomoCompletionWakeEnabled() && replyWorking <= 0)
         tomoCompletionWakeDisarm(iotid);
 
@@ -6785,7 +7082,6 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
             reshardCoordinatorTick();
     }
     migReleaseParkedClients();   /* ee451 (H2 handover): main is io slot 0 and parks clients too */
-    if (server.wb_threads > 0) tomoWbDrainIoActions();
     /* A peer owner may have completed its physical boundary edge and be waiting for the global
      * bookkeeping tail. This remains main-only and runs before node 0's possible direct actuator. */
     if (tmNumNodes() > 1) tmFlipMainTailTick();
@@ -6807,8 +7103,7 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
 
     /* Main is IO slot 0 too. */
     if (tomoThreadModeAdaptive()) {
-        if (server.wb_threads == 0)
-            tm_io_sig[iotid].rob = replyWorking + (int)tomo_atomic_reply_waiting;
+        tm_io_sig[iotid].rob = replyWorking + (int)tomo_atomic_reply_waiting;
         tm_io_sig[iotid].pend_write = server.clients_pending_write[iotid] ?
                                       listLength(server.clients_pending_write[iotid]) : 0;
     }
@@ -6820,12 +7115,7 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
         processed += connTypeProcessPendingData(server.el);
         if (server.aof_state == AOF_ON || server.aof_state == AOF_WAIT_REWRITE)
             flushAppendOnlyFile(0);
-        if (__builtin_expect(server.wb_threads == 0, 1))
-            processed += handleClientsWithPendingWrites();
-        else {
-            flushExQueues();
-            tomoWbHandoffPendingWrites();
-        }
+        processed += handleClientsWithPendingWrites();
         processed += freeClientsInAsyncFreeQueue();
 
         processClientsOfAllIOThreads();
@@ -6909,29 +7199,22 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
         }
     }
 
-    if (__builtin_expect(server.wb_threads == 0, 1)) {
-        /* Check for completed worker replies and feed them into the IO-owned write queue. */
-        unsigned int atomic_reply_before = tomo_atomic_reply_waiting;
-        if (atomic_reply_before) tomoAtomicReplyWakeArm(iotid);
-        handleWorkerReplies();
-        tomoAtomicReleaseStalledClients();
-        if (tomo_atomic_reply_waiting)
-            tomoAtomicReplyWakeArm(iotid);
-        else if (atomic_reply_before)
-            tomoAtomicReplyWakeDisarm(iotid);
+    /* Check for completed worker replies and feed them into the IO-owned write queue. */
+    unsigned int atomic_reply_before = tomo_atomic_reply_waiting;
+    if (atomic_reply_before) tomoAtomicReplyWakeArm(iotid);
+    handleWorkerReplies();
+    tomoAtomicReleaseStalledClients();
+    if (tomo_atomic_reply_waiting)
+        tomoAtomicReplyWakeArm(iotid);
+    else if (atomic_reply_before)
+        tomoAtomicReplyWakeDisarm(iotid);
 
-        /* Ordinary groups still poll memory; atomic-only groups sleep behind the notifier. */
-        if (replyWorking > 0 ||
-            (tomo_atomic_reply_waiting == 0 &&
-             listLength(server.clients_pending_ex[iotid]) > 0))
-            dont_sleep = 1;
-        handleClientsWithPendingWrites();
-    } else {
-        /* WB is the completion consumer and socket writer. Main remains a producer here. */
-        flushExQueues();
-        tomoAtomicReleaseStalledClients();
-        tomoWbHandoffPendingWrites();
-    }
+    /* Ordinary groups still poll memory; atomic-only groups sleep behind the notifier. */
+    if (replyWorking > 0 ||
+        (tomo_atomic_reply_waiting == 0 &&
+         listLength(server.clients_pending_ex[iotid]) > 0))
+        dont_sleep = 1;
+    handleClientsWithPendingWrites();
 
     putReplicasInPendingClientsToIOThreads();
 
@@ -7799,13 +8082,8 @@ void resetServerStats(void) {
     server.stat_sync_full = 0;
     server.stat_sync_partial_ok = 0;
     server.stat_sync_partial_err = 0;
-    /* wb=0 keeps the authoritative 2-stage reset footprint (through the first growth slot).
-     * WB mode clears only the reachable IO/growth/WB producer suffix; every such identity is
-     * below IO_THREADS_MAX_NUM by the boot capacity check. */
-    int stat_io_hi = server.wb_threads > 0
-        ? tomoWbLaneBase() + server.wb_threads - 1
-        : server.io_threads;
-    if (server.wb_threads > 0) serverAssert(stat_io_hi < IO_THREADS_MAX_NUM);
+    /* The authoritative two-stage reset footprint includes the first growth slot. */
+    int stat_io_hi = server.io_threads;
     for (j = 0; j <= stat_io_hi; j++) {
         atomicSet(server.stat_io_reads_processed[j], 0);
         atomicSet(server.stat_io_writes_processed[j], 0);
@@ -8162,8 +8440,7 @@ void initServer(void) {
         exit(1);
     }
 
-    /* wb=0 is the authoritative two-stage boot path and leaves every WB allocation unreachable. */
-    if (server.wb_per_node == 0) {
+    /* Authoritative two-stage boot path. */
     /* ee451 node-topology (2026-07-22): the pool is topo_nodes * cores_per_node threads, always
      * fully active. tomokv-thread-io / tomokv-thread-ex are PER NODE; io_threads / ex_threads are
      * the GLOBAL totals (nodes * per-node) that the rest of the server consumes. With neither role
@@ -8257,8 +8534,7 @@ void initServer(void) {
                   nodes, cpn, ipn, epn, server.io_threads, server.ex_threads,
                   tomoThreadModeConfigName(tomoThreadModeGet()), tomoPinModeName(server.pin_mode));
     }
-        server.wb_threads = 0;
-    } else {
+#if 0
     /* wb>0: validated three-role sizing. Each role accepts -1 as AUTO. AUTO
      * roles divide the available physical-core budget evenly, with indivisible
      * remainder cores assigned in the reference sizer's WB, EX, IO order. */
@@ -8276,7 +8552,7 @@ void initServer(void) {
             serverLog(LL_WARNING,
                 "FATAL: 3-stage mode requires io >= 1, ex >= 1, and wb >= 1 per node. "
                 "Use -1 to auto-derive a role; got tomokv-thread-io=%d "
-                "tomokv-thread-ex=%d tomokv-thread-wb=%d.",
+                "thread-ex=%d retired-wb-count=%d.",
                 server.io_per_node, server.ex_per_node, server.wb_per_node);
             exit(1);
         }
@@ -8349,8 +8625,8 @@ void initServer(void) {
         if (ipn + epn + wpn > cpn) {
             serverLog(LL_WARNING,
                       "FATAL: node topology invalid (tomokv-thread-io=%d tomokv-thread-ex=%d "
-                      "tomokv-thread-wb=%d tomokv-cores-per-node=%d): need thread-io + "
-                      "thread-ex + thread-wb <= cores-per-node.", ipn, epn, wpn, cpn);
+                      "retired-wb-count=%d tomokv-cores-per-node=%d): need io + ex + "
+                      "retired-wb <= cores-per-node.", ipn, epn, wpn, cpn);
             exit(1);
         }
 
@@ -8385,7 +8661,7 @@ void initServer(void) {
                   tomoThreadModeConfigName(tomoThreadModeGet()),
                   tomoPinModeName(server.pin_mode));
     }
-    }
+#endif
     /* ===== RUNTIME-CONVERTIBLE SYMMETRIC POOL. The io/ex split is a STARTING POINT and FLIP may
      * select a controller or a static target later. Historically the boot split also fixed the REACHABLE
      * range, in three stacked ways, and all three bit at once on `--tomokv-thread-io 7
@@ -8499,17 +8775,15 @@ void initServer(void) {
     aeIOPassEndHook = tomoFlushProducersAtPassEnd;
     aeIOCompletionHook = tomoCompletionWakeEnabled() ?
                          tomoCompletionPickupAfterEvents : NULL;
-    if (server.wb_threads > 0) aeIOCompletionHook = NULL;
 
-    /* WB owns ordinary EX-producer lanes after every possible IO/growth lane; the owner-op stamp
-     * lane follows those. All are indexed by the IO-sized queue/stat arrays, so reject an
+    /* All producer lanes are indexed by the IO-sized queue/stat arrays, so reject an
      * over-wide producer set before allocating anything. */
-    if (server.io_threads + server.tm_ngrow_io + server.wb_threads > TOMO_IO_THREADS_MAX) {
+    if (server.io_threads + server.tm_ngrow_io > TOMO_IO_THREADS_MAX) {
         serverLog(LL_WARNING,
-                  "FATAL: IO/growth/WB producer lanes need %d slots (io=%d growth=%d wb=%d), "
+                  "FATAL: IO/growth producer lanes need %d slots (io=%d growth=%d), "
                   "but the compiled producer limit is %d. Reduce the per-node thread counts.",
-                  server.io_threads + server.tm_ngrow_io + server.wb_threads,
-                  server.io_threads, server.tm_ngrow_io, server.wb_threads,
+                  server.io_threads + server.tm_ngrow_io,
+                  server.io_threads, server.tm_ngrow_io,
                   TOMO_IO_THREADS_MAX);
         exit(1);
     }
@@ -8527,7 +8801,7 @@ void initServer(void) {
     }
     /* ---- pinning: reject configurations that would be SILENTLY IGNORED --------------------
      * Role pin specs only mean anything with pin-mode static, and static means nothing without
-     * complete IO/EX/WB coverage. Either mismatch is fatal rather than quietly inert. */
+     * complete IO/EX coverage. Either mismatch is fatal rather than quietly inert. */
     tomoResolvePinConfig();
     /* KNOB CONVENTION (house rule): -1 = AUTO (self-derive), 0 = OFF (no allocation), N > 0 = STATIC.
      * These two used to treat 0 as AUTO, which made 0 mean the opposite of the rule (it allocated the
@@ -8553,7 +8827,7 @@ void initServer(void) {
          * counts io PRODUCERS but not the CLIENT count each one multiplexes, which dominates real
          * back-pressure — deriving below the old default measurably regressed throughput. AUTO may
          * only ever add headroom, never remove it. */
-        long want = 4L * (server.io_threads + server.wb_threads + 1) *
+        long want = 4L * (server.io_threads + 1) *
                     server.pipeline_ring_depth;
         long p2 = 2048;                       /* floor: deriving BELOW the old default regressed throughput */
         while (p2 < want && p2 < TOMO_EX_QUEUE_SIZE_MAX) p2 <<= 1;
@@ -8563,12 +8837,12 @@ void initServer(void) {
          * say so when the cap binds — silently clamping is how an undersized ring stays invisible. */
         if (want > TOMO_EX_QUEUE_SIZE_MAX)
             serverLog(LL_WARNING,
-                      "tomokv-ex-queue-depth auto -> %d (CLAMPED at max; 4 x (io_threads+wb_threads+1) x pipeline_depth = %ld). "
+                      "tomokv-ex-queue-depth auto -> %d (CLAMPED at max; 4 x (io_threads+1) x pipeline_depth = %ld). "
                       "Watch INFO tomokv_ex_queue_full: sustained growth means this ring is undersized.",
                       server.ex_queue_size, want);
         else
             serverLog(LL_NOTICE,
-                      "tomokv-ex-queue-depth auto -> %d (4 x (io_threads+wb_threads+1) x pipeline_depth = %ld, floored at 2048)",
+                      "tomokv-ex-queue-depth auto -> %d (4 x (io_threads+1) x pipeline_depth = %ld, floored at 2048)",
                       server.ex_queue_size, want);
     }
 
@@ -8960,13 +9234,13 @@ void initServer(void) {
                 "Error registering the readable event for the module pipe.");
     }
 
-    /* The main slot is initialized inside initServer(), before initWbThreads() may start the sink.
-     * Allocate the WB-only mailbox spine here so tmMigInitSlot can construct slot 0; wb=0 skips
-     * both the allocation and every mailbox branch. Auxiliary slots initialize later at IO boot. */
+#if 0
+    /* Retired three-stage mailbox allocation. */
     if (server.wb_threads > 0) {
         serverAssert(tomo_wb_io == NULL);
         tomo_wb_io = zcalloc(sizeof(*tomo_wb_io) * (TOMO_IO_THREADS_MAX + 1));
     }
+#endif
 
     /* Slot 0 (main) needs the same harmless event-loop wake fd as the auxiliary IO slots. It was
      * previously unused by connection migration; atomic-window retirement can now wake a main-
@@ -10417,19 +10691,6 @@ void preprocessCommand(client *c, pendingCommand *pcmd) {
 int processCommand(client *c) {
     clientExecTail *ct = clientTail(c);
 
-    /* Exact GET/SET entries may still be in the current receive scope's TLS
-     * batch. Any other command is an ordering boundary: in particular,
-     * cross-shard dispatch publishes its sub directly, and must not overtake a
-     * preceding SET that has not reached the owner lane yet. `lookedcmd` is the
-     * parser's preprocessed command and command filters disable this batching
-     * for the entire scope. */
-    struct redisCommand *input_cmd = ct->lookedcmd ? ct->lookedcmd : c->cmd;
-    if (__builtin_expect(server.wb_threads != 0, 0) && tomo_input_dispatch.n &&
-        (!input_cmd || !(input_cmd->tomo_route & TOMO_R_EXPRESS) ||
-         !((input_cmd->proc == getCommand && c->argc == 2) ||
-           (input_cmd->proc == setCommand && c->argc == 3))))
-        tomoInputDispatchBatchDrain();
-
     /* Script-fence release guard: fires on EVERY return of THIS invocation; no-op unless the
      * family block below acquired the gate. See tomoStwGuardEnd. */
     tomoStwGuard stw_guard __attribute__((cleanup(tomoStwGuardEnd))) = {0};
@@ -11248,16 +11509,9 @@ int processCommand(client *c) {
 
     tomoM1DispatchNote(fake->cmd, (unsigned int)fake->argc);
 
-    if (__builtin_expect(server.wb_threads == 0, 1)) {
-        /* The 2-stage owner scans only clients with an in-flight ring. */
-        if (ct->dispatchid == ct->flushid)
-            listLinkNodeTail(server.clients_pending_ex[iotid], &ct->clients_pending_ex_node);
-    } else {
-        /* Publish the generation before handing the fake to any executor. A completion may now
-         * wake WB immediately without racing an older dispatch frontier. Close/free also observes
-         * the slot as in flight before another thread can touch it. */
-        __atomic_add_fetch(&ct->dispatchid, 1, __ATOMIC_RELEASE);
-    }
+    /* The IO owner scans only clients with an in-flight ring. */
+    if (ct->dispatchid == ct->flushid)
+        listLinkNodeTail(server.clients_pending_ex[iotid], &ct->clients_pending_ex_node);
     /* ee451 (v7): cross-shard split. A multi-key command (MGET) is fanned out into
      * one single-key sub-fake per shard worker; the ring-slot `fake` becomes the group
      * head and is NOT itself worker-dispatched. Its completion byte is
@@ -11284,7 +11538,7 @@ int processCommand(client *c) {
         fake->cdb = cdbIndexFor(ex_id);
         fake->db = &server.exThreads[ex_id].db[fake->db->id];
         fake->flags |= CLIENT_EX_PENDING;
-        if (__builtin_expect(server.wb_threads == 0, 1)) replyWorking++;
+        replyWorking++;
         exDispatchPush(ex_id, fake);   /* ee451 (2s-dispatch-fix): was exQueuePush() w/ ignored return -> silent drop -> ring wedge */
     } else if (t6_worker >= 0) {
         /* One indivisible unit, one owner queue, one owner lock. The ring head itself is the
@@ -11338,7 +11592,7 @@ int processCommand(client *c) {
          * EVAL/FCALL carry code/function there, so hide the outer argc until exExecFake restores
          * it from the pending command. This leaves the ordinary prefetch/express loop unchanged. */
         fake->argc = 0;
-        if (__builtin_expect(server.wb_threads == 0, 1)) replyWorking++;
+        replyWorking++;
         /* T6 cannot enter the stage-only scratch. Drain any
          * older staged jobs, then place the indivisible unit directly on the owner FIFO. */
         if (tomo_stage.n) tomoReorderDrain();
@@ -11369,17 +11623,15 @@ int processCommand(client *c) {
          * counting those in replyWorking pins the IO loop for that whole span.
          * Track them separately: their stage/final publishers post the armed
          * notifier edge, and the ordinary ring-order reply drain still performs
-         * final reassembly. WB mode instead schedules its sticky completion owner. */
-        if (__builtin_expect(server.wb_threads == 0, 1)) {
-          if (atomic_write_admission) {
+         * final reassembly. */
+        if (atomic_write_admission) {
             /* Arm before csDispatch can publish the first sub. This also
              * covers a new atomic episode launched from a reply/window retry
              * after the pass's initial CDB scan. */
             if (tomo_atomic_reply_waiting++ == 0)
                 tomoAtomicReplyWakeArm(iotid);
-          } else {
+        } else {
             replyWorking++;
-          }
         }
         csDispatch(fake, csp, atomic_write_admission);  /* xshard registry: route kind from the row */
     } else if (canDispatchToWorker(fake)) {
@@ -11391,7 +11643,7 @@ int processCommand(client *c) {
         fake->cdb = cdbIndexFor(ex_id);
         fake->db = &server.exThreads[ex_id].db[fake->db->id];
         fake->flags |= CLIENT_EX_PENDING;
-        if (__builtin_expect(server.wb_threads == 0, 1)) replyWorking++;
+        replyWorking++;
 // fprintf(stderr, "worker [%s:%d] dispatching %s, real->id=%llu, fake idx=%u\n",
 //         __FILE__, __LINE__, fake->cmd->fullname,      /* <-- was c->cmd */
 //         (unsigned long long)c->id, c->dispatchid & PIPELINE_QUEUE_MASK);
@@ -11409,7 +11661,7 @@ int processCommand(client *c) {
          * is the only delivery path for ring fakes: it consumes the in-order ready
          * prefix and clears the flag in both live and closing retirement. */
         fake->flags |= CLIENT_EX_PENDING;
-        if (__builtin_expect(server.wb_threads == 0, 1)) replyWorking++;
+        replyWorking++;
         int flags = CMD_CALL_FULL;
 // fprintf(stderr, "inline [%s:%d] dispatching %s, real->id=%llu, fake idx=%u\n",
 //         __FILE__, __LINE__, fake->cmd->fullname,      /* <-- was c->cmd */
@@ -11427,7 +11679,7 @@ int processCommand(client *c) {
         cdbSlotPublish(fake->parent, fake->cdb, fake->fake_slot);
     }
     }   /* end express/T6/general routing */
-    if (__builtin_expect(server.wb_threads == 0, 1)) ct->dispatchid++;
+    ct->dispatchid++;
     return C_OK;
 }
 
@@ -13641,9 +13893,7 @@ static void csMsetGroupComplete(tomoCommit *commit) {
                           memory_order_release);
     client *real = g->mset_client;
     serverAssert(real != NULL && real == g->head->parent);
-    /* real->tid may change under IO handoff in WB mode. Only the two-stage notifier consumes it;
-     * the sticky writer is selected from immutable WB state by cdbSlotPublish. */
-    int producer_tid = __builtin_expect(server.wb_threads == 0, 1) ? real->tid : -1;
+    int producer_tid = real->tid;
     serverAssert(commit->owner_records == g->mset_owners ||
                  (commit->owner_records == NULL && g->mset_owners == NULL));
     g->mset_owners = NULL;
@@ -13656,10 +13906,8 @@ static void csMsetGroupComplete(tomoCommit *commit) {
     unsigned int before = atomic_fetch_sub_explicit(
         &clientTail(real)->mset_pending_count, 1, memory_order_release);
     serverAssert(before > 0);
-    /* cdbSlotPublish schedules the sticky WB in three-stage mode. Only wb=0 owns the separate
-     * notifier-backed IO wait count; do not touch its arm from an EX completion in WB mode. */
     cdbSlotPublish(real, g->head->cdb, g->head->fake_slot);
-    if (__builtin_expect(server.wb_threads == 0, 1)) tomoAtomicReplyWakePost(producer_tid);
+    tomoAtomicReplyWakePost(producer_tid);
     tomoCommitRelease(commit);             /* drop the transient group reference last */
     /* g may be reassembled and freed as soon as the CDB release is observed. */
 }
@@ -13667,7 +13915,7 @@ static void csMsetGroupComplete(tomoCommit *commit) {
 /* Every owner reaches this only after its eager index publications and any terminal local
  * reservation/cancellation work. The acq_rel RMW chain is the whole group rendezvous: non-last
  * owners return immediately; the last assigns the timestamp, publishes the single marker, and
- * publishes the common CDB completion; cdbSlotPublish selects the IO or sticky-WB drain owner. */
+ * publishes the common CDB completion for the IO drain owner. */
 static void csMsetOwnerPublished(tomoCommit *commit) {
     serverAssert(commit != NULL);
     unsigned int before = atomic_fetch_sub_explicit(&commit->shards_remaining, 1,
@@ -14889,7 +15137,7 @@ static void csInstallVersionTombstone(client *sub, csGroup *g, int nclass,
 }
 
 /* RENAMENX and COPY without REPLACE reserve the destination with the final whole-value version.
- * An earlier group's reservation is never bypassed: report retry so the WB coordinator requeues
+ * An earlier group's reservation is never bypassed: report retry so the IO coordinator requeues
  * this one-key wave behind the normal owner FIFO, exactly like MSETNX. */
 static void csNxDestReserveVersioned(client *sub, csGroup *g, int nclass,
                                      const char *event) {
@@ -15306,7 +15554,7 @@ static void csSubExec(client *sub) {
          * Per pair: encode, setKey (consumes the value ref; kvobjSet embeds it, swaps the slot to
          * the in-dict kvobj), then NULL the slot. The NULL is the crash fix: after setKey the slot
          * aliases the in-dict object whose refcount is owned by the dict and mutated ONLY by this
-         * worker; leaving an argv ref for csFreeSub to decref on WB RACED (non-atomic rc)
+         * worker; leaving an argv ref for csFreeSub to decref on IO RACED (non-atomic rc)
          * with a later same-key overwrite on this worker -> double free (object.c:608). Relinquish
          * on the worker. Migration effect is captured per key. */
         /* FLAT M-WRITE WAVES (tomokv batched core): all pairs are known up front, so stage the
@@ -16009,9 +16257,8 @@ static void csSubExec(client *sub) {
  *  1. BUMP ONLY, never rewound. A region handed out once is never handed out again, so the
  *     single memset in csGroupNew is the only zeroing needed -- csgCalloc is free on the inline
  *     path -- and a stale pointer can never alias a live one.
- *  2. SERIALIZED COORDINATOR. IO performs initial dispatch; wb=0 retains IO-side drain
- *     continuation, while WB mode performs HOP2, pipeline stages, and reassembly/teardown on the
- *     sticky owner. The connection construction lock (when present) and
+ *  2. SERIALIZED COORDINATOR. IO performs initial dispatch and retains the IO-side drain
+ *     continuation for HOP2, pipeline stages, and reassembly/teardown. The
  *     the CDB release/acquire handoff order worker results, so only one coordinator mutates the
  *     bump cursor at a time and the cursor itself needs no atomic operation.
  *     Worker-allocated payloads (setmem[i] member arrays, zscore[i]) stay on the heap and keep
@@ -16304,9 +16551,8 @@ static int csBuildCoalescedSubs(client *head, csGroup *g, int nkeys, int dbid,
 
 /* Reservations acquire owners in ascending worker order. That removes
  * cross-owner hold-and-wait cycles while preserving parallelism within every
- * normal owner queue. The initial wave uses the original IO producer; with WB enabled a conflict
- * wave is rebuilt on the connection's sticky WB producer lane. Either way its retry lands behind
- * the owner's FIFO. If the winning group's
+ * normal owner queue. A conflict wave is rebuilt on the connection's IO producer lane, so its
+ * retry lands behind the owner's FIFO. If the winning group's
  * local publish/cancel has not run by then, the retry observes the unresolved
  * zero-marker version as a reservation and yields instead of claiming the key. */
 static int csMsetnxAdvanceReservations(csGroup *g) {
@@ -16315,10 +16561,7 @@ static int csMsetnxAdvanceReservations(csGroup *g) {
         return 0;
 
     int register_group = !g->versioned_write;
-    /* Only the first reservation wave belongs to origin-IO dispatch. Once registration publishes
-     * the group, wb=0 retains its IO-side continuation; with WB enabled every retry/next-owner
-     * wave must come from the sticky owner. */
-    serverAssert(register_group || server.wb_threads == 0 || tomoWbInThread());
+    /* Only the first reservation wave needs registration; later waves remain IO continuations. */
 
     if (g->subs) {
         for (int i = 0; i < g->nsub; i++) csFreeSub(g->subs[i]);
@@ -16528,7 +16771,6 @@ static int csReadRestartAdvance(csGroup *g) {
  * destination, a final source-tombstone wave completes its two-install group; COPY's reserved
  * destination is already its only final install. */
 static int csAtomicNxAdvance(csGroup *g) {
-    if (server.wb_threads > 0) serverAssert(tomoWbInThread());
     if (!g->versioned_write || !g->version_nx || !g->version_nx_reserving)
         return 0;
 
@@ -17071,7 +17313,6 @@ static void csPipeSubExec(client *sub, csGroup *g) {
 /* Drain-side stage driver. Returns 1 = next stage dispatched (head stays in flight, caller
  * breaks like the HOP2 launch); 0 = pipeline finished or erred (caller reassembles now). */
 static int csPipeAdvance(csGroup *g) {
-    if (server.wb_threads > 0) serverAssert(tomoWbInThread());
     client *head = g->head;
     csAssertBarriered(head);   /* stage chain pushes from the drain: barrier MUST still be armed */
     const csCmdSpec *s = g->spec;
@@ -17509,7 +17750,7 @@ static void dispatchFanAll(client *head) {
 }
 
 /* ee451 v11-F: compute the set-op result from the gathered per-sub member arrays and emit it on
- * `dst`. Runs on the coordinator (WB drain) after the pending barrier, so every sub's setmem is
+ * `dst`. Runs on the IO coordinator after the pending barrier, so every sub's setmem is
  * visible. Builds temp set robjs (reusing setTypeAdd/IsMember — correct dedup + encoding) for the
  * membership tests INTER/DIFF need; UNION just dedups into one result set. */
 /* Build the UNION/INTER/DIFF result as a temp OBJ_SET (coordinator-owned, refcount 1 — never
@@ -17928,7 +18169,6 @@ static void csSortReleaseStage(csGroup *g) {
  * argv; csBuildCoalescedSubs takes its own refs before returning, so all derived originals can be
  * released immediately after the parallel wave is queued. */
 static int csSortStartDeref(csGroup *g, int stage, robj **keys, sds *fields, int nkeys) {
-    if (server.wb_threads > 0) serverAssert(tomoWbInThread());
     serverAssert(nkeys > 0 && keys != NULL && fields != NULL);
     client *head = g->head;
     csSortReleaseStage(g);
@@ -17994,7 +18234,6 @@ static void csSortFinish(csGroup *g) {
  * GET keys are not even expanded until the selected window exists. Returns 1 only when another
  * owner wave was queued and the group head must remain in flight. */
 static int csSortAdvance(csGroup *g) {
-    if (server.wb_threads > 0) serverAssert(tomoWbInThread());
     csAssertBarriered(g->head);
     robj **keys = NULL;
     sds *fields = NULL;
@@ -18248,10 +18487,9 @@ static void dispatchTwoHop(client *head, const csCmdSpec *s, int atomic_admissio
  * ORDER IS THE PROTOCOL: pending -> phase -> clear stale ready byte -> push.
  *  - pending before push: barrier armed before any worker can decrement.
  *  - phase before push: workers read g->phase in csSubExec.
- *  - slot-clear before FIRST push (this WB drain thread is the sole clearer):
+ *  - slot-clear before FIRST push (this IO drain thread is the sole clearer):
  *    the new hop's completion store must never be clobbered. */
 static void csHopCommit(csGroup *g, int nsub, int phase, const int *shards) {
-    if (server.wb_threads > 0) serverAssert(tomoWbInThread());
     atomic_store_explicit(&g->pending, nsub, memory_order_relaxed);
     g->phase = phase;
     client *head = g->head;
@@ -18259,8 +18497,8 @@ static void csHopCommit(csGroup *g, int nsub, int phase, const int *shards) {
     for (int i = 0; i < nsub; i++) csPushSpin(shards[i], g->subs[i]);
 }
 
-/* universal xshard: HOP2 launcher — runs on the WB DRAIN thread after the HOP1 barrier. WB owns a
- * dedicated producer lane for these continuations. Generalized off the registry-stamped g->h2sub[] plan: per-ctype
+/* universal xshard: HOP2 launcher — runs on the IO drain thread after the HOP1 barrier. IO owns
+ * the producer lane for these continuations. Generalized off the registry-stamped g->h2sub[] plan: per-ctype
  * PREP (may consume probe verdicts / build h2_payload / rewrite the plan), then free the HOP1
  * subs and launch the plan via csHopCommit. Returns 1 iff HOP2 sub(s) were pushed (head stays in
  * flight: no retire, flushid advance, or completion-count decrement). Returns 0 with HOP1 subs
@@ -18268,7 +18506,6 @@ static void csHopCommit(csGroup *g, int nsub, int phase, const int *shards) {
  * tears down). The head keeps its ring slot; ordinary groups retain polling while atomic groups
  * retain their notifier-backed wait. */
 static int csLaunchHop2(csGroup *g) {
-    if (server.wb_threads > 0) serverAssert(tomoWbInThread());
     client *head = g->head;
     csAssertBarriered(head);   /* HOP2 pushes from the drain: barrier MUST still be armed */
     int dbid = g->h2_dbid;
@@ -18588,7 +18825,6 @@ static inline void csMgetPrefetchResolved(robj **refs, int k, int nkeys) {
 }
 
 static void csReassemble(client *dst, client *head) {
-    if (server.wb_threads > 0) serverAssert(tomoWbInThread());
     csGroup *g = head->csgroup;
     /* ee451 (#B1): count the cross-shard command HERE — once, on the drain thread that retires the
      * group head — and NOT in csSubExec. A cross-shard command is fanned into one sub per owning
@@ -19061,8 +19297,8 @@ static void csReassemble(client *dst, client *head) {
      * point: stage/HOP2 advances return before it, while both live reply publication and the
      * CLOSE_ASAP/disconnect drain call it once and then clear head->csgroup. versioned_write is set
      * only by csMsetRegister after the pre-ring reservation, so every increment has this one
-     * decrement and no non-atomic group can decrement it. Final CDB publication schedules the
-     * sticky WB or notifies the owning IO loop to reach this decrement. One freed slot resumes one
+     * decrement and no non-atomic group can decrement it. Final CDB publication notifies the
+     * owning IO loop to reach this decrement. One freed slot resumes one
      * producer (or is consumed locally later in this same pass). */
     if (g->versioned_write) {
         int old = atomic_fetch_sub_explicit(&tomo_atomic_inflight, 1, memory_order_relaxed);
@@ -19455,9 +19691,9 @@ static int reshardArm(int lo, int hi, int src, int dst, int flip_action) {
     return reshardArmLocked(lo, hi, src, dst, flip_action);
 }
 
-/* ---- Cutover drain fence (Phase C). Each normal-lane producer (main/IO from its before-sleep,
- * fixed WB from tomoWbBeforeSleep) pushes ONE drain sentinel into A's queue[iotid] per cutover.
- * A executes them in queue order, proving every range primary or WB-launched continuation before
+/* ---- Cutover drain fence (Phase C). Each normal-lane producer (main/IO from its before-sleep)
+ * pushes ONE drain sentinel into A's queue[iotid] per cutover.
+ * A executes them in queue order, proving every range continuation before
  * the sentinel has retired. Idempotent per fence_gen via producer-thread-local state. ---- */
 static __thread uint64_t mig_local_fence_gen = 0;
 /* createFakeClient() reads only parent->tid/running_tid; a zeroed dummy is a valid parent for a
@@ -19548,7 +19784,7 @@ static int migHoldClientIfDraining(client *c) {
  * Called from beforeSleep/beforeSleepIO; one list-length load when nothing is parked.
  *
  * LIVENESS. A parked client is parked with an EMPTY ring by construction (the park happens before a
- * ring slot is taken), so the WB reply-drain re-drive — which only visits ready clients
+ * ring slot is taken), so the reply-drain re-drive — which only visits ready clients
  * that HAVE in-flight fakes — can never reach it. This sweep is what wakes it, and the coordinator
  * wakes every io thread while the fence is open (and once more at the flip) so a thread with no
  * other work still gets here. The release condition is simply "phase is no longer DRAINING", which
@@ -19671,15 +19907,13 @@ static uint64_t co_hb0;           /* (co_s_final went with the copy engine's iss
  *     so its queue is drained and retired by then.
  */
 static int migProducerLive(int t) {
-    int wb = t - tomoWbLaneBase();
-    if (wb >= 0 && wb < server.wb_threads) return 1; /* fixed-role WB threads never park */
     if (t == 0) return 1;                        /* main thread: always turning its own loop */
     struct polyThreadCtx *ctx = tmCtxForIotid(t);
     if (!ctx) return t < server.io_threads;      /* no poly apparatus: the base io threads are live */
     return atomic_load_explicit(&ctx->mode, memory_order_acquire) == TOMO_MODE_IO;
 }
 
-/* ee451 (H2): wake normal producer slot `t` so it reaches its IO/WB before-sleep and pushes its sentinel.
+/* ee451 (H2): wake normal producer slot `t` so it reaches its IO before-sleep and pushes its sentinel.
  * A producer asleep in epoll_wait has no reason to run — this is exactly why the fence used to
  * guess at idleness instead of proving it. We reuse the connection-migration mailbox notifier,
  * which is registered on that slot's OWN event loop, is what the control plane already uses to
@@ -19688,11 +19922,6 @@ static int migProducerLive(int t) {
  * it is the thread running this code, so there is nothing to wake. */
 static void migWakeProducer(int t) {
     if (t <= 0) return;
-    int wb = t - tomoWbLaneBase();
-    if (wb >= 0 && wb < server.wb_threads) {
-        triggerEventNotifier(tomo_wb_threads[wb].notifier);
-        return;
-    }
     tomoAtomicWakeProducer(t);
 }
 
@@ -19700,10 +19929,8 @@ static void reshardCoordinatorTick(void) {
     serverAssert(iotid == 0);
     int lo = server.migration.lo, hi = server.migration.hi;
     int src = server.migration.src, dst = server.migration.dst;
-    /* Producers = main/base IO + flip growth slots + fixed WB slots. WB can emit later-stage
-     * cross-shard work while gathering a reply, so it participates in the same migration fence
-     * and, as a sleeping class, receives a real notifier wake until its sentinel is consumed. */
-    int nprod = tomoWbLaneBase() + server.wb_threads;
+    /* Producers = main/base IO + flip growth slots. */
+    int nprod = server.io_threads + server.tm_ngrow_io;
 
     if (atomic_load_explicit(&co_state, memory_order_acquire) == CO_WAIT_CONVERGE) {
         /* Phase B-fence: the cold-copy convergence wait (scan_done, applied_seq >= issued_seq) was
@@ -20519,10 +20746,6 @@ void fakeRingAutoTune(void) {
  * skipped this cron for the fixed/eager/legacy modes is gone with them. */
 void fakeRingClientCron(client *c) {
     if (c->isFake || !c->conn) return;
-    /* With a dedicated WB, the cron owner can inspect/shrink the fake ring while WB is retiring
-     * replies. The helpers are no-ops at wb=0; otherwise they share the per-connection sidecar
-     * lock used by input construction and write-back. */
-    tomoWbLockClient(c);
     clientExecTail *ct = clientTail(c);
     /* D3 depth decay: shrink toward the EWMA of the TRUE per-window high-water (dispatch-
      * updated fake_ring_hwm_win, consumed+reset here) when the ring has been idle. Folding
@@ -20560,7 +20783,6 @@ void fakeRingClientCron(client *c) {
     }
     /* D1 buf width: grow is pure demand-pull at the spill site (networking.c); no controller
      * state to reset here (the dead pressure counters were removed in the review cleanup). */
-    tomoWbUnlockClient(c);
 }
 
 /* ee451 (post-flip re-level): a role-flip leaves a KNOWN skew (grow-back seeds the revived worker
@@ -23367,13 +23589,6 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             stat_total_writes_processed += writes;
             if (j != 0) stat_io_writes_processed += writes; /* Skip the main thread */
         }
-        for (int wb = 0; wb < server.wb_threads; wb++) {
-            int slot = tomoWbLane(wb);
-            atomicGet(server.stat_io_writes_processed[slot], writes);
-            info = sdscatprintf(info, "tomo_wb_thread_%d:writes=%lld\r\n", wb, writes);
-            stat_total_writes_processed += writes;
-            stat_io_writes_processed += writes;
-        }
         /* ee451 (thread-modes v1.6): per-tomokv-io-thread live connection counts. The loop
          * above runs upstream semantics (io_threads_num==1 here, so it only prints thread 0);
          * this breaks out every tomokv io slot's authoritative listLength so connection
@@ -23435,12 +23650,6 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 stat_total_writes_processed += writes;
                 if (j != 0) stat_io_writes_processed += writes; /* Skip the main thread */
             }
-            for (int wb = 0; wb < server.wb_threads; wb++) {
-                int slot = tomoWbLane(wb);
-                atomicGet(server.stat_io_writes_processed[slot], writes);
-                stat_total_writes_processed += writes;
-                stat_io_writes_processed += writes;
-            }
         }
 
         if (sections++) info = sdscat(info,"\r\n");
@@ -23448,19 +23657,9 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
          * that the derived worker dispatch ring is undersized. It back-pressures rather than growing, so
          * without this counter an undersized ring is invisible except as unexplained latency. */
         unsigned long long tomo_qfull = 0, tomo_qfull_cs = 0;
-        unsigned long long input_recv_calls = 0, input_parsed_commands = 0;
-        unsigned long long dispatch_commands = 0, dispatch_batches = 0;
         for (int _t = 0; _t <= TOMO_IO_THREADS_MAX; _t++) {
             tomo_qfull    += tm_io_sig[_t].q_full_events;
             tomo_qfull_cs += tm_io_sig[_t].q_full_cs_events;
-        }
-        if (tomo_wb_input_sig) {
-            for (int _t = 0; _t <= TOMO_IO_THREADS_MAX; _t++) {
-                input_recv_calls += tomo_wb_input_sig[_t].input_recv_calls;
-                input_parsed_commands += tomo_wb_input_sig[_t].input_parsed_commands;
-                dispatch_commands += tomo_wb_input_sig[_t].dispatch_commands;
-                dispatch_batches += tomo_wb_input_sig[_t].dispatch_batches;
-            }
         }
         unsigned long long tomo_handoff_missed = 0;   /* sparse-handoff protocol oracle: MUST be 0 */
         if (server.exThreads)
@@ -23751,21 +23950,6 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_fake_tail_promotions:%llu\r\n",
             atomic_load_explicit(&tomo_fake_core_allocs, memory_order_relaxed),
             atomic_load_explicit(&tomo_fake_tail_promotions, memory_order_relaxed));
-        /* Raw numerators/denominators exist only with the WB input specialization. */
-        if (server.wb_threads > 0)
-            info = sdscatprintf(info,
-                "tomokv_io_input_recv_syscalls:%llu\r\n"
-                "tomokv_io_input_parsed_commands:%llu\r\n"
-                "tomokv_io_parsed_cmds_per_syscall:%.6f\r\n"
-                "tomokv_io_dispatch_commands:%llu\r\n"
-                "tomokv_io_dispatch_batches:%llu\r\n"
-                "tomokv_io_dispatch_batch_size:%.6f\r\n",
-                input_recv_calls,
-                input_parsed_commands,
-                input_recv_calls ? (double)input_parsed_commands / (double)input_recv_calls : 0.0,
-                dispatch_commands,
-                dispatch_batches,
-                dispatch_batches ? (double)dispatch_commands / (double)dispatch_batches : 0.0);
         /* Keep the lifecycle witnesses outside the already-large FMTARGS block. ref_waits is the
          * non-vacuous proof: it increments only when group completion reached zero but old-owner
          * local-retire/grace work for the migrating range was still outstanding. Both stale-owner
@@ -23997,31 +24181,15 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
          * samples and divide each productive-work delta by (live threads * wall * 1000):
          * tm_work_us on IO and tm_productive_us on EX are the direction-ratio numerators;
          * tm_busy_us is the raw EX demand/capacity counter and the paired A/B observation.
-         * WB busy/idle bracket its event-loop work/epoll-wait boundary with one clock pair per
-         * turn, but WB is a fixed role and never enters the IO/EX flip ratio.
          *
          * tm_idle_us remains the legacy zero-event-episode measure. tm_wait_us is the new epoll
          * wait measure; both remain beside productive work so one pair of INFO snapshots can
          * compare all three observations. Wait is explicitly unsupported under uring because
-         * DEFER_TASKRUN makes completion work inseparable from the wait syscall. WB count deltas
-         * are cumulative too; drain_clients/drains is the ready-side batching factor. */
+         * DEFER_TASKRUN makes completion work inseparable from the wait syscall. */
         {
             unsigned long long io_stall_total = 0, io_drain_total = 0, io_revents_total = 0;
             unsigned long long io_work = 0, io_busy = 0, ex_busy = 0, ex_productive = 0;
             unsigned long long io_idle = 0, io_wait = 0, ex_idle = 0;
-            unsigned long long wb_busy = 0, wb_idle = 0, wb_drains = 0;
-            unsigned long long wb_drain_clients = 0, wb_drain_rearms = 0, wb_replies = 0;
-            unsigned long long wb_direct_prefix = 0, wb_direct_declined = 0;
-            unsigned long long wb_general_splice = 0, wb_wake_edges = 0;
-            unsigned long long wb_wake_suppressed = 0;
-            unsigned long long wb_uring_rings_ready = 0, wb_uring_init_fallbacks = 0;
-            unsigned long long wb_uring_send_arms = 0, wb_uring_send_cqes = 0;
-            unsigned long long wb_uring_send_bytes = 0, wb_uring_send_partial = 0;
-            unsigned long long wb_uring_send_rearms = 0, wb_uring_send_errors = 0;
-            unsigned long long wb_uring_send_declined = 0, wb_uring_sqes_staged = 0;
-            unsigned long long wb_uring_sqes_submitted = 0, wb_uring_submit_calls = 0;
-            unsigned long long wb_uring_max_submit = 0, wb_uring_arm_fallbacks = 0;
-            unsigned long long wb_uring_submit_failures = 0;
             int io_hi = server.io_threads + server.tm_ngrow_io, nio = 0;
             for (int t = 1; t <= io_hi && t <= TOMO_IO_THREADS_MAX; t++) {
                 polyThreadCtx *ic = tmCtxForIotid(t);
@@ -24041,45 +24209,6 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 { ex_busy += server.exThreads[w].tm_busy_us;
                   ex_productive += server.exThreads[w].tm_productive_us;
                   ex_idle += server.exThreads[w].tm_idle_us; }
-            int nwb = 0;
-            for (int wb = 0; tomo_wb_threads && wb < server.wb_threads; wb++) {
-                tomoWbThread *w = &tomo_wb_threads[wb];
-                wb_busy += w->tm_busy_us;
-                wb_idle += w->tm_idle_us;
-                wb_drains += w->drains;
-                wb_drain_clients += w->drain_clients;
-                wb_drain_rearms += w->drain_rearms;
-                wb_replies += w->replies;
-                wb_direct_prefix += w->direct_prefix;
-                wb_direct_declined += w->direct_declined;
-                wb_general_splice += w->general_splice;
-                wb_uring_init_fallbacks += w->uring_init_fallbacks;
-                wb_uring_send_arms += w->uring_send_arms;
-                wb_uring_send_cqes += w->uring_send_cqes;
-                wb_uring_send_bytes += w->uring_send_bytes;
-                wb_uring_send_partial += w->uring_send_partial;
-                wb_uring_send_rearms += w->uring_send_rearms;
-                wb_uring_send_errors += w->uring_send_errors;
-                wb_uring_send_declined += w->uring_send_declined;
-                tomoWbUringStats ust;
-                tomoWbUring *ring = atomic_load_explicit(&w->uring,
-                                                          memory_order_acquire);
-                tomoWbUringGetStats(ring, &ust);
-                wb_uring_rings_ready += ust.rings_ready;
-                wb_uring_sqes_staged += ust.sqes_staged;
-                wb_uring_sqes_submitted += ust.sqes_submitted;
-                wb_uring_submit_calls += ust.submit_calls;
-                if (ust.max_submit > wb_uring_max_submit)
-                    wb_uring_max_submit = ust.max_submit;
-                wb_uring_arm_fallbacks += ust.arm_fallbacks;
-                wb_uring_submit_failures += ust.submit_failures;
-                nwb++;
-            }
-            if (tomo_wb_wake_lanes)
-                for (int t = 0; t < TOMO_STAT_SLOTS; t++) {
-                    wb_wake_edges += tomoRelaxedRead(tomo_wb_wake_lanes[t].edges);
-                    wb_wake_suppressed += tomoRelaxedRead(tomo_wb_wake_lanes[t].suppressed);
-                }
             info = sdscatprintf(info, FMTARGS(
                 "tomokv_io_work_us:%llu\r\n", io_work,
                 "tomokv_io_busy_us:%llu\r\n", io_busy,
@@ -24092,34 +24221,6 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
             "tomokv_io_drain_bytes:%llu\r\n", io_drain_total,
             "tomokv_io_read_events:%llu\r\n", io_revents_total,
                 "tomokv_ex_idle_us:%llu\r\n", ex_idle,
-                "tomokv_wb_busy_us:%llu\r\n", wb_busy,
-                "tomokv_wb_idle_us:%llu\r\n", wb_idle,
-                "tomokv_wb_threads_counted:%d\r\n", nwb,
-                "tomokv_wb_drains:%llu\r\n", wb_drains,
-                "tomokv_wb_drain_clients:%llu\r\n", wb_drain_clients,
-                "tomokv_wb_drain_rearms:%llu\r\n", wb_drain_rearms,
-                "tomokv_wb_replies:%llu\r\n", wb_replies,
-                "tomokv_wb_direct_prefix:%llu\r\n", wb_direct_prefix,
-                "tomokv_wb_direct_declined:%llu\r\n", wb_direct_declined,
-                "tomokv_wb_general_splice:%llu\r\n", wb_general_splice,
-                "tomokv_wb_wake_edges:%llu\r\n", wb_wake_edges,
-                "tomokv_wb_wake_suppressed:%llu\r\n", wb_wake_suppressed,
-                "tomokv_wb_uring_configured:%d\r\n", server.wb_uring,
-                "tomokv_wb_uring_rings_ready:%llu\r\n", wb_uring_rings_ready,
-                "tomokv_wb_uring_init_fallbacks:%llu\r\n", wb_uring_init_fallbacks,
-                "tomokv_wb_uring_send_arms:%llu\r\n", wb_uring_send_arms,
-                "tomokv_wb_uring_send_cqes:%llu\r\n", wb_uring_send_cqes,
-                "tomokv_wb_uring_send_bytes:%llu\r\n", wb_uring_send_bytes,
-                "tomokv_wb_uring_send_partial:%llu\r\n", wb_uring_send_partial,
-                "tomokv_wb_uring_send_rearms:%llu\r\n", wb_uring_send_rearms,
-                "tomokv_wb_uring_send_errors:%llu\r\n", wb_uring_send_errors,
-                "tomokv_wb_uring_send_declined:%llu\r\n", wb_uring_send_declined,
-                "tomokv_wb_uring_sqes_staged:%llu\r\n", wb_uring_sqes_staged,
-                "tomokv_wb_uring_sqes_submitted:%llu\r\n", wb_uring_sqes_submitted,
-                "tomokv_wb_uring_submit_calls:%llu\r\n", wb_uring_submit_calls,
-                "tomokv_wb_uring_max_submit:%llu\r\n", wb_uring_max_submit,
-                "tomokv_wb_uring_arm_fallbacks:%llu\r\n", wb_uring_arm_fallbacks,
-                "tomokv_wb_uring_submit_failures:%llu\r\n", wb_uring_submit_failures,
                 "tomokv_io_threads_counted:%d\r\n", nio,
                 "tomokv_ex_threads_counted:%d\r\n", wlive));
 
@@ -24955,13 +25056,6 @@ void setupChildSignalHandlers(void) {
 void closeChildUnusedResourceAfterFork(void) {
     closeListeningSockets(0);
     tomoUringBackendAfterForkChild();
-    if (tomo_wb_threads) {
-        for (int wb = 0; wb < server.wb_threads; wb++) {
-            tomoWbUring *ring = atomic_load_explicit(
-                &tomo_wb_threads[wb].uring, memory_order_acquire);
-            tomoWbUringAfterForkChild(ring);
-        }
-    }
     if (server.cluster_enabled && server.cluster_config_file_lock_fd != -1)
         close(server.cluster_config_file_lock_fd);  /* don't care if this fails */
 
@@ -25673,18 +25767,14 @@ void flushExQueues(void) {
         m &= m - 1;
         if (__builtin_expect(w >= nw, 0)) continue;   /* slot retired since it was staged */
         exQueue *q = &ex[w].queues[iotid];
-        if (__builtin_expect(server.wb_threads == 0, 1)) {
-            unsigned int published = atomic_load_explicit(&q->tail, memory_order_relaxed);
-            if (q->staged_tail != published)
-                exHandoffPublish(&ex[w]);
-        } else {
-            exQueuePublishTracked(&ex[w], q, (unsigned int)iotid);
-        }
+        unsigned int published = atomic_load_explicit(&q->tail, memory_order_relaxed);
+        if (q->staged_tail != published)
+            exHandoffPublish(&ex[w]);
       }
     }
 }
 
-/* ee451 (S8): the current producer lane (normally WB for client replies) enqueues a value for its
+/* ee451 (S8): the current IO producer lane enqueues a value for its
  * owning worker to decrRefCount. The decref MUST happen on the worker (sole
  * mutator of that shard's refcounts) — decref'ing here would race it. If the
  * ring is momentarily full (rare; only >=16KB zero-copy replies use it), spin
@@ -25715,7 +25805,7 @@ static inline void freebackDrainAll(exThread *worker) {
      * (io_threads..io_threads+tm_ngrow_io-1) and can push zero-copy reply-value decrefs into
      * freeback[that slot]; the owning worker must drain those slots too, else the 16-entry ring
      * fills and freebackPush spins forever (wedging that producer + leaking every forwarded value).
-     * Growth IO and fixed WB slots are alloc-sized and empty until live, so extra iterations are
+     * Growth IO slots are alloc-sized and empty until live, so extra iterations are
      * no-ops. */
     int nfb = tomoProducerLaneHi();
     int drained = 0;
@@ -25751,7 +25841,7 @@ int exQueuePush(exQueue *q, client *c) {
     /* strict-order: stamp arrival at enqueue (producer side, monotonic within this queue).
      * Gated so the default (off) hot path pays nothing. */
     if (__builtin_expect(server.strict_order != 0, 0)) c->arrival_us = getMonotonicUs();
-    /* ee451 (S4): STAGE into jobs[] but do not publish `tail` here. The current IO or WB producer
+    /* ee451 (S4): STAGE into jobs[] but do not publish `tail` here. The current IO producer
      * publishes all staged jobs with one release-store per queue at flushExQueues(), batching up to
      * pipeline_depth cross-CCD release-stores into one. staged_tail is the
      * producer-private write frontier (>= published tail). */
@@ -25784,7 +25874,8 @@ int exQueuePush(exQueue *q, client *c) {
     return 0;
 }
 
-/* Producer-private bulk append. The caller has already ruled out strict-order
+#if 0
+/* Producer-private bulk append used only by the retired 3s receive batch. The caller has already ruled out strict-order
  * stamping and grouped all jobs for this one SPSC lane. cached_head may lag the
  * consumer, so it can only underestimate space; refresh once when that
  * conservative snapshot cannot fit the requested prefix. Returns the number
@@ -25810,6 +25901,7 @@ static int exQueuePushBatch(exQueue *q, client *const *jobs, int n) {
     q->staged_tail = (tail + add) & mask;
     return (int)add;
 }
+#endif
 /* Drain up to `max` fakes in one pass. Same SPSC semantics; the available
  * count is computed against the consumer-private cached_tail, refreshed with a
  * single acquire-load of the real tail only when the cache shows empty. We copy
@@ -26519,8 +26611,7 @@ static void exSliceInit(exThread *worker, exSliceCtx *ctx) {
     /* flip: scan the flip growth producer slots too (a converted worker running as an IO thread
      * dispatches from io_slot in [io_threads, io_threads+tm_ngrow_io)). Their queues are allocated
      * at init and stay empty until that slot goes live, so scanning them idle is a no-op. Without
-     * this the worker never drains a grown IO thread's dispatch queue and its replies never return.
-     * Fixed WB lanes are producers too; the retired owner-op lane is not. */
+     * this the worker never drains a grown IO thread's dispatch queue and its replies never return. */
     ctx->nq = tomoProducerLaneHi() + 1;
     /* the scan bound may never exceed the allocated lanes (tm_ngrow_io <= num_workers holds by
      * construction of the pool split; this converts a violation into a boot-time scream instead
@@ -26591,8 +26682,8 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
     int phase_pops = 0;
     monotonic_raw tm_productive_raw = 0;
     monotonic_raw tm_raw_pass_mark = 0;
-    /* ee451 (S8): decref any zero-copy reply values producer lanes handed
-     * back after sending — normally from WB, and done here so the shard's value
+    /* ee451 (S8): decref any zero-copy reply values IO producer lanes handed
+     * back after sending, done here so the shard's value
      * refcounts are only ever mutated by this thread. */
     freebackDrainAll(worker);
 
@@ -26984,9 +27075,8 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
         tomoRelaxedBump(worker->ops_total, (uint64_t)n);   /* ee451 (v8d): monotonic load signal for the EWMA balancer (numa: _Atomic single-writer idiom) */
 
         /* Backlogged connections retain batch publication. A depth-1 connection publishes at the
-         * command boundary below, so its WB hop does not include the rest of this worker batch.
-         * Retain only (parent,slot), never fake pointers: sticky WB may recycle a fake immediately
-         * after its slot is published. Ordinary and non-versioned group records retain the full
+         * command boundary below. Retain only (parent,slot), never fake pointers: the IO drain may
+         * recycle a fake immediately after its slot is published. Ordinary and non-versioned group records retain the full
          * independent (parent,cdb,slot) identity instead of folding slots into a locked-OR word;
          * never retain fake/group pointers because their drain owner may recycle them as soon as
          * the slot is published. */
@@ -27185,8 +27275,7 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
                             /* Atomic groups are absent from replyWorking: the
                              * CDB publication therefore carries an explicit,
                              * armed EX->IO edge for this intermediate stage. */
-                            if (__builtin_expect(server.wb_threads == 0, 1))
-                                tomoAtomicReplyWakePost(hp->tid);
+                            tomoAtomicReplyWakePost(hp->tid);
                         } else {
                             csM1ServiceAccum(worker, g);
                             csMsetInstallDone(g);
@@ -27252,20 +27341,7 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
             }
 
             client *parent = fake->parent ? fake->parent : fake;
-            if (__builtin_expect(server.wb_threads != 0, 0)) {
-                clientExecTail *prt = clientTail(parent);
-                unsigned int outstanding = tomoWbDispatchLoad(prt) -
-                    __atomic_load_n(&prt->flushid, __ATOMIC_ACQUIRE);
-                if (outstanding <= 1) {
-                    /* This is the worker's final access to fake before release publication.
-                     * cdbSlotPublish immediately advertises it when it is the ordered head;
-                     * wake_pending coalesces work that arrives while WB is awake. */
-                    cdbSlotPublish(parent, ctx->wcdb, fake->fake_slot);
-                    j++;
-                    continue;
-                }
-            }
-            /* Authoritative wb=0 completion record, also used for backlogged WB clients. */
+            /* Authoritative completion record. */
             sig_parents[sig_n] = parent;
             sig_cdb[sig_n] = ctx->wcdb;
             sig_slots[sig_n] = (uint8_t)fake->fake_slot;
@@ -27285,7 +27361,7 @@ static int exSlice(polyThreadCtx *poly_ctx, exThread *worker, exSliceCtx *ctx,
         /* One publication/armed check per producer represented in this aggregate,
          * after all of that producer's ready bytes are visible. The arm exchange
          * coalesces the actual eventfd syscall to once per IO scan episode. */
-        if (__builtin_expect(server.wb_threads == 0 && tomoCompletionWakeEnabled(), 0) &&
+        if (__builtin_expect(tomoCompletionWakeEnabled(), 0) &&
             (sig_n != 0 || group_completed))
             tomoCompletionWakePostBatch(popped_lanes, popped_n);
 
@@ -27520,8 +27596,9 @@ static int tomoAllowedLogicalCpuCount(void) {
 
 /* Count the process's allowed physical cores with the same thread-sibling leader used by the
  * SMT-aware pinning order. Counting CPU_COUNT() here made an 8-core/16-thread cpuset auto-size to
- * sixteen IO+EX+WB threads. A cpuset may expose only the non-leader sibling of a core, so dedupe by
+ * sixteen IO+EX threads. A cpuset may expose only the non-leader sibling of a core, so dedupe by
  * the topology leader even when that leader itself is outside the allowed set. */
+#if 0
 static int tomoAllowedPhysicalCpuCount(int *logical_out) {
     if (logical_out) *logical_out = 0;
 #ifdef __linux__
@@ -27554,6 +27631,7 @@ static int tomoAllowedPhysicalCpuCount(int *logical_out) {
     return 0;
 #endif
 }
+#endif
 /* domain id of cpu `c`: by_numa ? its NUMA node : its L3 cache id. -1 = unknown. */
 static int coreDomainId(int c, int by_numa) {
     char p[160];
@@ -27915,26 +27993,21 @@ static const char *tomoPinModeName(int mode) {
     }
 }
 
-/* Preserve the authoritative IO/EX static-pin matrices exactly. The optional WB row is allocated
- * only for a WB-enabled static-pin boot, so wb=0 reserves and touches no WB placement table. */
+/* Preserve the authoritative IO/EX static-pin matrices exactly. */
 static int  tomo_pin_cpu[2][TOMO_NODES_MAX][TOMO_EX_THREADS_MAX];
 static int  tomo_pin_n[2][TOMO_NODES_MAX];
-static int (*tomo_pin_wb_cpu)[TOMO_EX_THREADS_MAX];
-static int *tomo_pin_wb_n;
 static int  tomo_pin_loaded = 0;
 
 static inline int tomoPinCount(int role, int node) {
-    return role == TOMO_PIN_ROLE_WB ? tomo_pin_wb_n[node] : tomo_pin_n[role][node];
+    return tomo_pin_n[role][node];
 }
 
 static inline int tomoPinCpuAt(int role, int node, int idx) {
-    return role == TOMO_PIN_ROLE_WB ? tomo_pin_wb_cpu[node][idx]
-                                    : tomo_pin_cpu[role][node][idx];
+    return tomo_pin_cpu[role][node][idx];
 }
 
 static const char *tomoPinRoleName(int role) {
     if (role == TOMO_PIN_ROLE_EX) return "ex";
-    if (role == TOMO_PIN_ROLE_WB) return "wb";
     return "io";
 }
 
@@ -28048,13 +28121,12 @@ int tomoPinSpecParse(const char *spec, const char *knob, int *out, int *out_n, c
 static void tomoResolvePinConfig(void) {
     const char *spec_io = server.pin_io_spec ? server.pin_io_spec : "";
     const char *spec_ex = server.pin_ex_spec ? server.pin_ex_spec : "";
-    const char *spec_wb = server.pin_wb_spec ? server.pin_wb_spec : "";
-    int have_spec = (*spec_io || *spec_ex || *spec_wb);
+    int have_spec = (*spec_io || *spec_ex);
 
     if (server.pin_mode != TOMO_PIN_STATIC) {
         if (have_spec) {
             serverLog(LL_WARNING,
-                "FATAL: tomokv-pin-io / tomokv-pin-ex / tomokv-pin-wb are only used with "
+                "FATAL: tomokv-pin-io / tomokv-pin-ex are only used with "
                 "tomokv-pin-mode static, "
                 "but tomokv-pin-mode is '%s'. Refusing to ignore them silently — either set "
                 "tomokv-pin-mode static or drop the specs.", tomoPinModeName(server.pin_mode));
@@ -28062,31 +28134,17 @@ static void tomoResolvePinConfig(void) {
         }
         return;
     }
-    if (!*spec_io || !*spec_ex || (server.wb_threads > 0 && !*spec_wb)) {
-        if (server.wb_threads == 0)
-            serverLog(LL_WARNING,
-                "FATAL: tomokv-pin-mode static requires tomokv-pin-io and tomokv-pin-ex. "
-                "Got io=\"%s\" ex=\"%s\".", spec_io, spec_ex);
-        else
-            serverLog(LL_WARNING,
-                "FATAL: tomokv-pin-mode static with WB enabled requires tomokv-pin-io, "
-                "tomokv-pin-ex, and tomokv-pin-wb. Got io=\"%s\" ex=\"%s\" wb=\"%s\".",
-                spec_io, spec_ex, spec_wb);
+    if (!*spec_io || !*spec_ex) {
+        serverLog(LL_WARNING,
+            "FATAL: tomokv-pin-mode static requires tomokv-pin-io and tomokv-pin-ex. "
+            "Got io=\"%s\" ex=\"%s\".", spec_io, spec_ex);
         exit(1);
-    }
-    if (server.wb_threads > 0) {
-        serverAssert(tomo_pin_wb_cpu == NULL && tomo_pin_wb_n == NULL);
-        tomo_pin_wb_cpu = zcalloc(sizeof(*tomo_pin_wb_cpu) * TOMO_NODES_MAX);
-        tomo_pin_wb_n = zcalloc(sizeof(*tomo_pin_wb_n) * TOMO_NODES_MAX);
     }
     const char *err = NULL;
     if (!tomoPinSpecParse(spec_io, "tomokv-pin-io", &tomo_pin_cpu[TOMO_PIN_ROLE_IO][0][0],
                           &tomo_pin_n[TOMO_PIN_ROLE_IO][0], &err) ||
         !tomoPinSpecParse(spec_ex, "tomokv-pin-ex", &tomo_pin_cpu[TOMO_PIN_ROLE_EX][0][0],
-                          &tomo_pin_n[TOMO_PIN_ROLE_EX][0], &err) ||
-        (server.wb_threads > 0 &&
-         !tomoPinSpecParse(spec_wb, "tomokv-pin-wb", &tomo_pin_wb_cpu[0][0],
-                           tomo_pin_wb_n, &err))) {
+                          &tomo_pin_n[TOMO_PIN_ROLE_EX][0], &err)) {
         serverLog(LL_WARNING, "FATAL: %s", err ? err : "invalid pin spec");
         exit(1);
     }
@@ -28109,13 +28167,6 @@ static void tomoResolvePinConfig(void) {
                           tomo_pin_n[TOMO_PIN_ROLE_EX][n], need_ex);
                 exit(1);
             }
-            if (server.wb_threads > 0 &&
-                tomo_pin_wb_n[n] < server.wb_per_node) {
-                serverLog(LL_WARNING, "FATAL: tomokv-pin-wb gives node%d %d cpu(s) but "
-                          "tomokv-thread-wb needs %d.", n,
-                          tomo_pin_wb_n[n], server.wb_per_node);
-                exit(1);
-            }
         }
     } else {
         /* Coverage: every node needs at least as many cpus as it has threads of that role. */
@@ -28132,25 +28183,14 @@ static void tomoResolvePinConfig(void) {
                           tomo_pin_n[TOMO_PIN_ROLE_EX][n], server.ex_per_node);
                 exit(1);
             }
-            if (server.wb_threads > 0 &&
-                tomo_pin_wb_n[n] < server.wb_per_node) {
-                serverLog(LL_WARNING, "FATAL: tomokv-pin-wb gives node%d %d cpu(s) but "
-                          "tomokv-thread-wb is %d — every WB thread must have a cpu.", n,
-                          tomo_pin_wb_n[n], server.wb_per_node);
-                exit(1);
-            }
         }
     }
     tomo_pin_loaded = 1;
-    if (server.wb_threads > 0)
-        serverLog(LL_NOTICE, "tomokv pin-mode static: io=\"%s\" ex=\"%s\" wb=\"%s\"",
-                  spec_io, spec_ex, spec_wb);
-    else
-        serverLog(LL_NOTICE, "tomokv pin-mode static: io=\"%s\" ex=\"%s\" (WB off)",
-                  spec_io, spec_ex);
+    serverLog(LL_NOTICE, "tomokv pin-mode static: io=\"%s\" ex=\"%s\"",
+              spec_io, spec_ex);
 }
 
-/* `role` is TOMO_PIN_ROLE_IO / _EX / _WB with `node` + `idx_in_node` identifying the thread within its
+/* `role` is TOMO_PIN_ROLE_IO / _EX with `node` + `idx_in_node` identifying the thread within its
  * node; role < 0 means "no role identity", which cannot use a static spec. */
 static void pinThreadToCoreN(pthread_t thread, const char *what, int core_idx,
                              int role, int node, int idx_in_node) {
@@ -28258,12 +28298,10 @@ void exBindNumaLocal(int ex_id) {
  * (workers 0..W-1 then IO 0..io-1 globally), which scattered a node's threads across CCDs. */
 static int tomoLogicalCore(int role, int node, int idx_in_node) {
     int cpn = server.cores_per_node > 0 ? server.cores_per_node
-                                        : server.ex_per_node + server.io_per_node +
-                                          server.wb_per_node;
+                                        : server.ex_per_node + server.io_per_node;
     int base = node * cpn;
     if (role == TOMO_PIN_ROLE_EX) return base + idx_in_node;
-    if (role == TOMO_PIN_ROLE_IO) return base + server.ex_per_node + idx_in_node;
-    return base + server.ex_per_node + server.io_per_node + idx_in_node;
+    return base + server.ex_per_node + idx_in_node;
 }
 
 static void pinExToCore(pthread_t thread, int ex_id) {
@@ -28302,6 +28340,8 @@ void pinIOThreadToCore(pthread_t thread, int io_id) {
                      TOMO_PIN_ROLE_IO, node, idx);
 }
 
+#if 0
+/* Retired three-stage WB pinning; see the reference header near the WB types. */
 static void pinWbToCore(pthread_t thread, int wb_id) {
     char what[40]; snprintf(what, sizeof what, "WB thread %d", wb_id);
     int wpn = server.wb_per_node > 0 ? server.wb_per_node : 1;
@@ -28309,6 +28349,7 @@ static void pinWbToCore(pthread_t thread, int wb_id) {
     pinThreadToCoreN(thread, what, tomoLogicalCore(TOMO_PIN_ROLE_WB, node, idx),
                      TOMO_PIN_ROLE_WB, node, idx);
 }
+#endif
 
 /* ---- ee451 (thread-modes v1, step 2): poly-thread context registry ----
  * One flat array, allocated in initIOThreads (the first thread-spawning init):
@@ -28470,7 +28511,7 @@ void initExThreads(void) {
      * sizeof(exQueue) is a CACHE_LINE multiple, so the freeback base stays line-aligned; the
      * asserts make that loud rather than a silent false-share if an allocator change breaks it. */
     {
-        int nlanes = server.io_threads + server.num_workers + server.wb_threads + 1;
+        int nlanes = server.io_threads + server.num_workers + 1;
         if (nlanes > TOMO_IO_THREADS_MAX + 1) nlanes = TOMO_IO_THREADS_MAX + 1;
         for (int w = 0; w < server.num_workers; w++) {
             exThread *et = &server.exThreads[w];
@@ -28499,7 +28540,7 @@ void initExThreads(void) {
         /* flip: init queues/freeback for EVERY possible producer slot, including the growth io
          * slots [io_threads .. io_threads+ngrow_io) that a converted worker will run as an IO
          * thread. Without this, the 2nd+ grow-front conversion pushes to an uninitialized queue
-         * (crash). Fixed WB producer lanes must be initialized as well. */
+         * (crash). */
         int nprod_slots = tomoProducerLaneHi();
         for (int t = 0; t <= nprod_slots; t++) {
             exQueueInit(&server.exThreads[i].queues[t]);
@@ -28572,6 +28613,9 @@ void initExThreads(void) {
     }
 }
 
+#if 0
+/* Retired three-stage WB thread construction; see the reference header near the
+ * dedicated WB types above. */
 static void *tomoWbThreadMain(void *arg) {
     tomoWbThread *w = arg;
     tomo_wb_id = w->id;
@@ -28619,7 +28663,7 @@ void initWbThreads(void) {
         serverLog(LL_WARNING,
                   "FATAL: TomoKV WB mode does not support TLS connections: split "
                   "IO-read / WB-write ownership would concurrently mutate one TLS session. "
-                  "Disable TLS or boot this binary with tomokv-thread-wb 0.");
+                  "Disable TLS or disable the retired WB stage.");
         exit(1);
     }
 
@@ -28627,7 +28671,7 @@ void initWbThreads(void) {
 #ifndef HAVE_LIBURING
     if (server.wb_uring != 0)
         serverLog(LL_WARNING,
-                  "tomokv-wb-uring requested, but this binary has no "
+                  "retired WB sender ring requested, but this binary has no "
                   "liburing support; every WB will use write()/writev");
 #endif
     tomo_wb_threads = zcalloc(sizeof(*tomo_wb_threads) * (size_t)server.wb_threads);
@@ -28684,6 +28728,7 @@ void initWbThreads(void) {
                   "tomokv WB pool held static; the existing two-role controller may move only "
                   "the IO/EX boundary (three-role flipping is not implemented)");
 }
+#endif
 
 
 
@@ -28850,7 +28895,7 @@ static inline void tmIoBusyBegin(void) {
  * pass. Returns the number of events processed (0 = idle pass). idle_wait_us is
  * negative for a base IO thread's normal indefinite wait. A converted IO thread
  * uses a bounded wait so late dormant-EX work is observed without relying on an
- * event-loop wakeup. In WB mode worker completion is not an IO event.
+ * event-loop wakeup.
  *
  * aeProcessEventsIO returns both explicitly bracketed productive work and the epoll/drain WAIT
  * span for this pass. ioSlice publishes both beside the legacy zero-event idle counter; server.c
@@ -28990,9 +29035,8 @@ static inline void tmAdoptExIdentity(polyThreadCtx *ctx, exSliceCtx *exctx) {
  *           never just change role — then adopts the EX identity and starts slicing its
  *           (empty, unrouted) shard. tmFlipTick seeds it a bucket range afterwards.
  *
- * Birth is UNSET->preset (IO or EX) at the first checkpoint. Any other target — including WB,
- * whose dedicated threads never enter the convertible pool — or a mode whose binding is NULL or
- * 0/UNSET is refused. */
+ * Birth is UNSET->preset (IO or EX) at the first checkpoint. Any other target, or a mode whose
+ * binding is NULL or 0/UNSET, is refused. */
 static void setPolyThreadName(const polyThreadCtx *ctx, int mode) {
     char name[16];
 
@@ -29203,9 +29247,9 @@ void *polyThreadMain(void *arg) {
                 }
                 break;
             default:
-                /* No PARKED, no WB: the only modes a thread of this fork can hold are IO and EX,
-                 * and both flips now go straight between them (the two-step through a resting
-                 * mode is gone). Anything else — UNSET as a TARGET, WB, a zeroed field — is a
+                /* The only modes a thread of this fork can hold are IO and EX, and both flips now
+                 * go straight between them (the two-step through a resting mode is gone).
+                 * Anything else — UNSET as a TARGET or a zeroed field — is a
                  * control-plane bug, refused here rather than adopted. */
                 ok = 0;
                 break;
@@ -29986,7 +30030,6 @@ static int tmClientMigratable(client *c) {
 /* The per-conn quiesce fence (see the file header). */
 static int tmClientQuiesced(client *c) {
     clientExecTail *ct = clientTail(c);
-    if (tomoWbClientBusy(c)) return 0;                    /* no WB list/event/mailbox ownership */
     if (ct->dispatchid != ct->flushid) return 0;             /* ring not empty (in-flight fakes) */
     if (clientHasPendingReplies(c)) return 0;              /* static buf / reply list not empty */
     if (c->flags & CLIENT_PENDING_WRITE) return 0;         /* queued for a socket write */
@@ -30322,7 +30365,7 @@ static void tomoScriptRejoinIfScrammed(void) {
 
 /* Surgically detach a quiesced client from THIS thread's per-iotid structures, hand it to
  * `dest`'s inbox, and wake dest. At quiesce the client sits only in clients[iotid] +
- * clients_index[iotid]: its ring and sticky WB are idle, no output remains in the construction or
+ * clients_index[iotid]: its ring is idle, no output remains in the construction or
  * reference queues, and a migratable client is absent from unblocked_clients. Runs on the owning
  * source thread; dest re-registers on its own loop. */
 static void tmMigHandoff(client *c, int dest) {
@@ -30769,12 +30812,6 @@ void tmMigInitSlot(int io_slot, aeEventLoop *el) {
     if (mb->notifier)
         aeCreateFileEvent(el, getReadEventFd(mb->notifier), AE_READABLE,
                           tmMigNotifierHandler, mb->notifier);
-    if (server.wb_threads > 0) {
-        tomoWbIoMailbox *wmb = &tomo_wb_io[io_slot];
-        wmb->inbox = listCreate();
-        pthread_mutex_init(&wmb->lock, NULL);
-        atomic_store_explicit(&wmb->n, 0, memory_order_relaxed);
-    }
 }
 
 /* Control-plane entry (main thread) for DEBUG TOMO-MODESHIFT 5|6. Picks the
@@ -31390,7 +31427,11 @@ void tomoM1IoCostCountersGet(int io_slot, uint32_t *busy_us, uint32_t *dispatche
     if (dispatches) *dispatches = tm_io_sig[io_slot].disp_cnt;
 }
 
-/* WB is sticky for the lifetime of the connection. Migration stays within a node, so preserving
+#if 0
+/* Retired three-stage per-client WB ownership; see the reference header near
+ * the dedicated WB types above.
+ *
+ * WB was sticky for the lifetime of the connection. Migration stays within a node, so preserving
  * the assignment also preserves locality. When enabled, the client sidecar is the only
  * per-connection WB allocation; wb=0 never calls this subsystem. */
 static tomoWbSlotPage *tomoWbCreateSlotPage(void) {
@@ -31586,6 +31627,7 @@ static inline int tomoWbClosing(client *c) {
     return (wc && atomic_load_explicit(&wc->close_requested, memory_order_acquire)) ||
            (__atomic_load_n(&c->flags, __ATOMIC_ACQUIRE) & CLIENT_CLOSE_ASAP) || !c->conn;
 }
+#endif
 
 /* Abort delivery follows the controller's ownership partition. The legacy scalar is retained for
  * the frozen one-node path; multi-node owners publish to distinct atomic slots so peer controllers
@@ -32183,7 +32225,6 @@ static void tmFlipRearmNodeLocked(int node, int io, int ex) {
     tomoU1Shape shape = {
         .io = (uint16_t)io,
         .ex = (uint16_t)ex,
-        .wb = (uint16_t)(server.wb_threads > 0 ? server.wb_per_node : 0),
     };
     r10ctl[node].node = node;
     r10ctl[node].origin = shape;
@@ -32347,7 +32388,6 @@ static void tmR10BeginEpisode(int node, flipCtlState *fc, int ni, int ne) {
     tomoU1Shape shape = {
         .io = (uint16_t)ni,
         .ex = (uint16_t)ne,
-        .wb = (uint16_t)(server.wb_threads > 0 ? server.wb_per_node : 0),
     };
     int min_io = server.tm_pool_symmetric
                ? 1 : (tmNumNodes() == 1 ? server.io_threads : server.io_per_node);
@@ -32402,7 +32442,6 @@ static void tmR10DriveEpisode(int node, flipCtlState *fc, int ni, int ne) {
         .shape = {
             .io = (uint16_t)ni,
             .ex = (uint16_t)ne,
-            .wb = (uint16_t)(server.wb_threads > 0 ? server.wb_per_node : 0),
         },
         .ops_mean = fc->mean,
         .sigma = tomoU1Sigma(node),
@@ -32430,7 +32469,6 @@ static int tmR10DeadArmReady(int node, flipCtlState *fc, int ni, int ne) {
     tomoU1Shape shape = {
         .io = (uint16_t)ni,
         .ex = (uint16_t)ne,
-        .wb = (uint16_t)(server.wb_threads > 0 ? server.wb_per_node : 0),
     };
     if (!tomoU1ShapeEqual(window.shape, shape) || !isfinite(window.mean) ||
         fpclassify(window.mean) == FP_ZERO || fpclassify(window.mean) == FP_SUBNORMAL)
@@ -33387,7 +33425,6 @@ static void tomoFlipController(void) {
             tomoU1Shape shape = {
                 .io = (uint16_t)shape_io,
                 .ex = (uint16_t)shape_ex,
-                .wb = (uint16_t)(server.wb_threads > 0 ? server.wb_per_node : 0),
             };
             tomoU1Feed(node, ops_delta, ops_elapsed_ms, shape, (uint64_t)now);
         }
@@ -33457,9 +33494,6 @@ static void tomoFlipController(void) {
          *             up with demand; unlike productive execution density it is a capacity signal.
          *
          * Q_IO/Q_EX remain observations and idle evidence; they are not ratio operands. */
-        /* With WB enabled this remains deliberately a two-role IO/EX controller. q_io observes
-         * only the short IO->WB construction handoff; WB readiness/socket backlog is excluded,
-         * and the boot-sized WB pool never participates in a role flip. */
         double dt_s = node_wall_ms > 0 ? (double)node_wall_ms / 1000.0 : 0.25;
         double c_ex = inst * dt_s;                        /* commands retired this tick */
         long q_io = 0;
@@ -33493,8 +33527,6 @@ static void tomoFlipController(void) {
          * which removes idle-spin CPU without losing enter-internal taskwork. EX sums only
          * command-execution..result-publication spans for direction; its retained
          * first-pop..work-pass-end occupancy supplies demand/capacity separately.
-         * With WB enabled, the reply/write portion is the IO->WB handoff only; WB work remains
-         * outside this controller's signal and the WB pool remains static.
          *
          * Slot 0 remains outside the measured/movable IO pool: main runs aeMain rather than
          * ioSlice. io_live_node is therefore both the denominator and the exact pool whose one
@@ -33689,7 +33721,6 @@ static void tomoFlipController(void) {
             tomoU1Shape held_shape = {
                 .io = (uint16_t)ni,
                 .ex = (uint16_t)ne,
-                .wb = (uint16_t)(server.wb_threads > 0 ? server.wb_per_node : 0),
             };
             tomoR10BeginGateTick(&r10_begin_gate[node], held_shape,
                                  inst, fc->mean, tomoU1Sigma(node),
@@ -34601,7 +34632,6 @@ static void tomoFlipController(void) {
                 tomoU1Shape shape = {
                     .io = (uint16_t)ni,
                     .ex = (uint16_t)ne,
-                    .wb = (uint16_t)(server.wb_threads > 0 ? server.wb_per_node : 0),
                 };
                 tomoR10Abandon(&r10ctl[node], shape, TOMO_R10_BACKSTOP_IDLE);
                 tmR10RecordAnchor(node);
@@ -35709,9 +35739,6 @@ int main(int argc, char **argv) {
 
     zmalloc_thread_stats_register("main");   /* DEBUG TOMO-JESTATS (one mallctl, once) */
     initServer();
-    /* When enabled, start the sink before SO_REUSEPORT IO listeners so no accepted connection can
-     * observe an assigned but inert sticky WB. wb=0 deliberately skips the call entirely. */
-    if (server.wb_threads > 0) initWbThreads();
     initIOThreads();
     if (background || server.pidfile) createPidFile();
     if (server.set_proc_title) redisSetProcTitle(NULL);

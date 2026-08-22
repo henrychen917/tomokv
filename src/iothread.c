@@ -21,10 +21,6 @@ static list *mainThreadPendingClients[IO_THREADS_MAX_NUM]; /* Pending clients fr
 static pthread_mutex_t mainThreadPendingClientsMutexes[IO_THREADS_MAX_NUM]; /* Mutex for pending clients */
 static eventNotifier* mainThreadPendingClientsNotifiers[IO_THREADS_MAX_NUM]; /* Notifier for pending clients */
 
-static inline int clientHasDedicatedWb(client *c) {
-    return server.wb_threads > 0 && c->has_exec_tail && clientTail(c)->wb != NULL;
-}
-
 /* Send the clients to the main thread for processing when the number of clients
  * in pending list reaches IO_THREAD_MAX_PENDING_CLIENTS, or check_size is 0. */
 static inline void sendPendingClientsToMainThreadIfNeeded(IOThread *t, int check_size) {
@@ -198,8 +194,6 @@ void keepClientInMainThread(client *c) {
     tryUnlinkClientFromPendingRefReply(c, 0);
     /* Main thread starts to manage it. */
     server.io_threads_clients_num[c->tid]++;
-    /* WB remains the send-side owner after the receive side moves to main. */
-    if (clientHasDedicatedWb(c)) tomoWbSchedule(c, 1);
 }
 
 /* If the client is managed by IO thread, we should fetch it from IO thread
@@ -630,10 +624,8 @@ int processClientsFromIOThread(IOThread *t) {
         /* We may have pending replies if io thread may not finish writing
          * reply to client, so we did not put the client in pending write
          * queue. And we should do that first since we may keep the client
-         * in main thread instead of returning to io threads. Dedicated WB
-         * clients are re-driven only after write-enable is restored. */
-        if (!clientHasDedicatedWb(c) &&
-            !(c->flags & CLIENT_PENDING_WRITE) && clientHasPendingReplies(c))
+         * in main thread instead of returning to io threads. */
+        if (!(c->flags & CLIENT_PENDING_WRITE) && clientHasPendingReplies(c))
             putClientInPendingWriteQueue(c);
 
         /* The client only can be processed in the main thread, otherwise data
@@ -726,8 +718,8 @@ void handleClientsFromMainThread(struct aeEventLoop *ae, int fd, void *ptr, int 
 
 /* Processing clients that have finished executing commands from the main thread.
  * If the client is not binded to the event loop, we should bind it first and
- * install read handler. Dedicated WB clients hand their send side back to WB;
- * legacy clients write pending replies here and install a write handler if needed. */
+ * install read handler. Clients write pending replies here and install a write
+ * handler if needed. */
 int processClientsFromMainThread(IOThread *t) {
     pthread_mutex_lock(&t->pending_clients_mutex);
     listJoin(t->processing_clients, t->pending_clients);
@@ -771,11 +763,7 @@ int processClientsFromMainThread(IOThread *t) {
             connSetReadHandler(c->conn, readQueryFromClient);
         }
 
-        /* A dedicated WB owns the send side. Re-drive it after write-enable is
-         * restored without inspecting or mutating its reply state here. */
-        if (clientHasDedicatedWb(c)) {
-            tomoWbSchedule(c, 1);
-        } else if (clientHasPendingReplies(c)) {
+        if (clientHasPendingReplies(c)) {
             writeToClient(c, 0);
             if (!(c->io_flags & CLIENT_IO_CLOSE_ASAP) && clientHasPendingReplies(c)) {
                 connSetWriteHandler(c->conn, sendReplyToClient);

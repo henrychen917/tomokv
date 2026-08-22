@@ -11693,7 +11693,8 @@ void moduleCallCommandFilters(client *c) {
     }
 }
 
-/* The WB-enabled input batch keeps parsed express commands off the worker rings until
+#if 0
+/* Retired three-stage input-batch helper. The WB-enabled input batch kept parsed express commands off the worker rings until
  * the end of the current receive pass. A command filter is allowed to replace and
  * resize argv, or to turn GET/SET into an arbitrary command, so its presence selects
  * the ordinary per-command handoff path for the whole pass. Queried once per input
@@ -11701,6 +11702,7 @@ void moduleCallCommandFilters(client *c) {
 int moduleCommandFiltersActive(void) {
     return moduleCommandFilters && listLength(moduleCommandFilters) != 0;
 }
+#endif
 
 /* Return the number of arguments a filtered command has.  The number of
  * arguments include the command itself.

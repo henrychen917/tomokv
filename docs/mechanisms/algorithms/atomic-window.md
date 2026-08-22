@@ -86,7 +86,7 @@ participates in visibility, ordering, or writer admission.
 1. Commit-time sequencing publishes one shared timestamp only after the last owner-local publish; there is
    no per-connection registration FIFO or incomplete-group frontier.
 2. Reshard cutover still fences on the unsealed admission census plus install-owner lifecycle
-   references. The census is cache-line-sharded by originating IO/WB producer; after closing the
+   references. The census is cache-line-sharded by originating IO producer; after closing the
    cutover gate, the coordinator folds every slot before consulting lifecycle references. The
    reclaim budget does not alter the flip controller.
 3. A parked command owns no fake/group state. Its IO owner alone removes it from the parked list and

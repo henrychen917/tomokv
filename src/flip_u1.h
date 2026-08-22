@@ -12,7 +12,6 @@
 typedef struct tomoU1Shape {
     uint16_t io;
     uint16_t ex;
-    uint16_t wb;
 } tomoU1Shape;
 
 typedef struct tomoU1Window {

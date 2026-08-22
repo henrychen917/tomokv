@@ -79,7 +79,7 @@ static int tomoU1NodeValid(int node) {
 }
 
 int tomoU1ShapeEqual(tomoU1Shape a, tomoU1Shape b) {
-    return a.io == b.io && a.ex == b.ex && a.wb == b.wb;
+    return a.io == b.io && a.ex == b.ex;
 }
 
 static int tomoU1RelativeDelta(double a, double b, double *relative) {
@@ -209,10 +209,7 @@ static const char *tomoU1VerdictName(tomoU1CmpResult verdict) {
 }
 
 static void tomoU1ShapeString(char *buf, size_t size, tomoU1Shape shape) {
-    if (shape.wb != 0)
-        snprintf(buf, size, "io%u/ex%u/wb%u", shape.io, shape.ex, shape.wb);
-    else
-        snprintf(buf, size, "io%u/ex%u", shape.io, shape.ex);
+    snprintf(buf, size, "io%u/ex%u", shape.io, shape.ex);
 }
 
 static void tomoU1TraceWindow(int node, const tomoU1NodeState *state,

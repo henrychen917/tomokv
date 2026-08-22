@@ -47,13 +47,13 @@ preflight_cpuset_within_server() { # Linux cpulist on stdin; true iff every cpu 
   '
 }
 
-preflight_assert_standard_boot() { # server-log server-pid [io-per-node ex-per-node [wb-per-node]]
-  local log=$1 pid=$2 want_io=${3:-} want_ex=${4:-} want_wb=${5:-0}
+preflight_assert_standard_boot() { # server-log server-pid [io-per-node ex-per-node]
+  local log=$1 pid=$2 want_io=${3:-} want_ex=${4:-}
   local i n line cpus bad=0 live_tasks=0
 
   if [ -n "$want_io" ] && [ -n "$want_ex" ]; then
-    if [ $((want_io + want_ex + want_wb)) -ne "$PREFLIGHT_CORES_PER_NODE" ]; then
-      echo "BOOT-GEOMETRY FAIL: io=$want_io ex=$want_ex wb=$want_wb is not a 16-thread/node split" >&2
+    if [ $((want_io + want_ex)) -ne "$PREFLIGHT_CORES_PER_NODE" ]; then
+      echo "BOOT-GEOMETRY FAIL: io=$want_io ex=$want_ex is not a 16-thread/node split" >&2
       return 1
     fi
   fi
@@ -69,7 +69,7 @@ preflight_assert_standard_boot() { # server-log server-pid [io-per-node ex-per-n
   # Pin records are emitted just after the listener starts. Give them a bounded moment to
   # reach the logfile; never turn a missing/renamed record into a green absence check.
   for i in $(seq 1 50); do
-    n=$(grep -cE "^${pid}:[A-Z] .* (IO thread|Worker|WB thread) [0-9]+ pinned to core [0-9]+ " "$log" 2>/dev/null || true)
+    n=$(grep -cE "^${pid}:[A-Z] .* (IO thread|Worker) [0-9]+ pinned to core [0-9]+ " "$log" 2>/dev/null || true)
     [ "${n:-0}" -ge 32 ] && break
     kill -0 "$pid" 2>/dev/null || break
     sleep 0.1
@@ -79,30 +79,23 @@ preflight_assert_standard_boot() { # server-log server-pid [io-per-node ex-per-n
     return 1
   }
 
-  grep -qE "^${pid}:[A-Z] .*tomokv topology: 2 node\(s\) x 16 cores \(io [0-9]+ \+ ex [0-9]+( \+ wb [0-9]+)? per node\)" "$log" 2>/dev/null || {
+  grep -qE "^${pid}:[A-Z] .*tomokv topology: 2 node\(s\) x 16 cores \(io [0-9]+ \+ ex [0-9]+ per node\)" "$log" 2>/dev/null || {
     echo "BOOT-GEOMETRY FAIL: missing 2 node(s) x 16 cores topology line in $log" >&2
     return 1
   }
   if [ -n "$want_io" ] && [ -n "$want_ex" ]; then
-    if [ "$want_wb" -gt 0 ]; then
-      grep -qE "^${pid}:[A-Z] .*tomokv topology: 2 node\(s\) x 16 cores \(io $want_io \+ ex $want_ex \+ wb $want_wb per node\)" "$log" 2>/dev/null || {
-        echo "BOOT-GEOMETRY FAIL: boot did not materialize requested io=$want_io ex=$want_ex wb=$want_wb in $log" >&2
-        return 1
-      }
-    else
-      grep -qE "^${pid}:[A-Z] .*tomokv topology: 2 node\(s\) x 16 cores \(io $want_io \+ ex $want_ex per node\)" "$log" 2>/dev/null || {
-        echo "BOOT-GEOMETRY FAIL: boot did not materialize requested io=$want_io ex=$want_ex in $log" >&2
-        return 1
-      }
-    fi
+    grep -qE "^${pid}:[A-Z] .*tomokv topology: 2 node\(s\) x 16 cores \(io $want_io \+ ex $want_ex per node\)" "$log" 2>/dev/null || {
+      echo "BOOT-GEOMETRY FAIL: boot did not materialize requested io=$want_io ex=$want_ex in $log" >&2
+      return 1
+    }
   fi
   # The topology line itself is authoritative even when callers did not pass expected io/ex.
   line=$(grep -E "^${pid}:[A-Z] .*tomokv topology: 2 node\(s\) x 16 cores " "$log" | tail -1)
   local split
   split=$(printf '%s\n' "$line" |
-    sed -nE 's/.*\(io ([0-9]+) \+ ex ([0-9]+)( \+ wb ([0-9]+))? per node\).*/\1 \2 \4/p')
+    sed -nE 's/.*\(io ([0-9]+) \+ ex ([0-9]+) per node\).*/\1 \2/p')
   set -- $split
-  [ "$#" -ge 2 ] && [ "$#" -le 3 ] && [ $(( $1 + $2 + ${3:-0} )) -eq 16 ] || {
+  [ "$#" -eq 2 ] && [ $(( $1 + $2 )) -eq 16 ] || {
     echo "BOOT-GEOMETRY FAIL: topology is not a 16-thread/node budget: $line" >&2
     return 1
   }
@@ -136,7 +129,7 @@ preflight_assert_standard_boot() { # server-log server-pid [io-per-node ex-per-n
   while IFS= read -r cpus; do
     n=$((n+1))
     [ "$cpus" -ge 0 ] 2>/dev/null && [ "$cpus" -le 31 ] 2>/dev/null || bad=1
-  done < <(sed -nE "s/^${pid}:[A-Z] .* (IO thread|Worker|WB thread) [0-9]+ pinned to core ([0-9]+) .*/\2/p" "$log")
+  done < <(sed -nE "s/^${pid}:[A-Z] .* (IO thread|Worker) [0-9]+ pinned to core ([0-9]+) .*/\2/p" "$log")
   if [ "$n" -lt 32 ] || [ "$bad" != 0 ]; then
     echo "BOOT-PIN FAIL: pinned records=$n outside_0_31=$bad in $log" >&2
     return 1

@@ -50,7 +50,7 @@ taskset -c "$SERVER_CORES" "$BIN" \
   --port "$PORT" --bind 127.0.0.1 --dir "$WORK" \
   --tomokv-nodes 2 --tomokv-cores-per-node 16 \
   --tomokv-thread-mode static --tomokv-thread-io 8 --tomokv-thread-ex 8 \
-  --tomokv-thread-wb 0 --tomokv-pin-mode ccd --tomokv-client-lb no \
+  --tomokv-pin-mode ccd --tomokv-client-lb no \
   --tomokv-atomic no --tomokv-io-uring 1 \
   --tomokv-uring-multishot 256 --tomokv-uring-sendcopy-min 4096 \
   --lua-time-limit 50 --save '' --appendonly no --protected-mode no \

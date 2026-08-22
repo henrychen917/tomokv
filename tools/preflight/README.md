@@ -5,13 +5,10 @@ full comparison benchmark, requires a `GO` from `preflight.sh` on the exact bina
 `comp_inter.sh` (and any future comparison harness) enforces it mechanically: no fresh sha-matched
 `preflight.GO` stamp → refusal to start.
 
-    TOMO_WB0_BASELINE_BIN=/path/to/219ec74cc/redis-server \
-      tools/preflight/preflight.sh <path/to/unified/redis-server>        # full (~2-4h)
-    TOMO_WB0_BASELINE_BIN=/path/to/219ec74cc/redis-server SMOKE=1 \
-      tools/preflight/preflight.sh <path/to/unified/redis-server>        # quick pass (~20 min)
+    tools/preflight/preflight.sh <path/to/redis-server>        # full (~2-4h)
+    SMOKE=1 tools/preflight/preflight.sh <path/to/redis-server> # quick pass (~20 min)
 
-Suites: knob matrix (−1/0/N semantics) · permanent WB=0 parity against the retained two-stage
-artifact · FLATSTORE/QSBR correctness · numa=2 · script-fence battery
+Suites: knob matrix (−1/0/N semantics) · FLATSTORE/QSBR correctness · numa=2 · script-fence battery
 · atomic torn-read/P0/RSS discrimination · feature sweep (oracle equivalence vs stock Redis,
 toggle semantics, persistence, known-issues ledger) · controller conformance (SHIFT / ENVELOPE /
 NOREG / AUTO==STATIC with timestamp-based stabilization verdicts; client + key + flip LB
@@ -95,16 +92,7 @@ receive `TOMO_PORT`; standalone callers must provide their required port. CPU-se
 variables are accepted only when they exactly equal the certification partitions above. Suites
 verify port exclusivity and terminate only child PIDs they started.
 
-`wb0_parity.sh` requires `TOMO_WB0_BASELINE_BIN` to name the preserved binary built from
-`219ec74cc`; full preflight fails closed when it is missing. It runs one thermal-balanced B,C,C,B
-p16 GET cell and compares mean throughput, INFO keys (allowing only zero-valued `tomokv_wb_*`
-additions), and idle/load RSS. Its port/CPU defaults can be overridden with
-`TOMO_WB0_PARITY_PORT`, `TOMO_WB0_PARITY_SERVER_CORES`, and
-`TOMO_WB0_PARITY_LOADGEN_CORES`; tolerances use `TOMO_WB0_OPS_TOL_PCT`,
-`TOMO_WB0_RSS_TOL_PCT`, and `TOMO_WB0_RSS_TOL_KB`.
-
-`container_write_perf.sh` uses `TOMO_CONTAINER_BASELINE_BIN` when supplied, otherwise the same
-required `TOMO_WB0_BASELINE_BIN` artifact. It runs B,C,C,B samples for HGET/HSET, LRANGE/RPUSH,
+`container_write_perf.sh` uses the required `TOMO_CONTAINER_BASELINE_BIN` artifact. It runs B,C,C,B samples for HGET/HSET, LRANGE/RPUSH,
 ZRANGE/ZADD, and SMEMBERS/SADD with a one-sided 4% regression tolerance
 (`TOMO_CONTAINER_TOL_PCT`). `SMOKE=1` shortens each sample from 10 seconds to 3 seconds without
 dropping any command or anti-vacuity check.

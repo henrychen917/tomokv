@@ -77,7 +77,6 @@ static int tomoR10ShapeAtRung(const tomoR10Node *climb, int rung,
     *shape = (tomoU1Shape) {
         .io = (uint16_t)io,
         .ex = (uint16_t)ex,
-        .wb = climb->origin.wb,
     };
     return 1;
 }
@@ -345,8 +344,8 @@ int tomoR10SelfTest(tomoR10SelfTestResult results[TOMO_R10_SELFTEST_CASES]) {
     for (int case_id = 0; case_id < TOMO_R10_SELFTEST_CASES; case_id++) {
         tomoR10SelfTestContext context = {
             .case_id = case_id,
-            .origin = { .io = 8, .ex = 8, .wb = 0 },
-            .shape = { .io = 8, .ex = 8, .wb = 0 },
+            .origin = { .io = 8, .ex = 8 },
+            .shape = { .io = 8, .ex = 8 },
             .min_rung_seen = 0,
             .max_rung_seen = 0,
         };

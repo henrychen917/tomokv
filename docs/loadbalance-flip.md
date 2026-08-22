@@ -2,8 +2,6 @@
 
 This document describes the implementation in the current tree.  It treats executable branches and data accesses as authoritative; known comment/code disagreements are collected in [Comment/code discrepancies](#commentcode-discrepancies).
 
-When `tomokv-thread-wb` is positive or AUTO-derived, WB is a separate fixed-role pool. The existing controller continues to convert IO and EX only; it never changes WB count, placement, client assignment, or producer lanes. Three-role flipping is a known follow-up, not part of this release. See [Boot-selectable write-back stage](writeback-stage.md#flip-boundary-and-known-follow-up).
-
 ## What the three mechanisms move
 
 | Mechanism | What it changes | Actual control surface | Invocation | Source |
@@ -17,8 +15,7 @@ The three decisions are separate but share actuators: a flip can invoke the buck
 ## Operator surface as implemented
 
 - `tomokv-thread-mode` is an immutable enum with `auto=0` and `static=1`, defaulting to `auto`; initialization sets `server.thread_auto = (server.thread_mode == TOMO_THREAD_MODE_AUTO)` and leaves the poly-thread execution model enabled in both modes. `src/server.h:1525-1531`, `src/config.c:170-175`, `src/config.c:3219`, `src/server.c:5614-5625`
-- `tomokv-thread-io` and `tomokv-thread-ex` are immutable starting counts per logical node. The `wb=0` resolver is unchanged; with WB enabled, either may be `-1` and share the core budget with other AUTO roles. Boot rejects a non-positive resolved side and sets provisioned global totals to `nodes * per-node count`.
-- `tomokv-thread-wb` is immutable: `0` keeps the two-stage path, positive `N` creates that many fixed WB threads per node, and `-1` enables WB as an AUTO role. AUTO preserves explicit role counts, divides the remaining budget equally, and assigns spare cores in WB/EX/IO order. WB remains absent from `tomoThreadMode`, so no flip checkpoint can adopt it.
+- `tomokv-thread-io` and `tomokv-thread-ex` are immutable starting counts per logical node. Boot rejects a non-positive resolved side and sets provisioned global totals to `nodes * per-node count`.
 - No config entry named `tomokv-flip`, `tomokv-flip-signal`, or `tomokv-flip-rebalance` is created in the load-balancing/config block; the productive-work signal is hardcoded and flip-time client backfill is derived as `server.tm_flip_rebalance = server.thread_auto`. `src/config.c:3212-3311`, `src/server.c:5621-5625`, `src/server.c:25014-25016`, `src/server.c:25631-25641`
 - `tomokv-key-lb=N` supplies the key-LB mean-load floor, and `tomokv-reshard-fence-timeout=N` supplies a separate modifiable cutover watchdog in milliseconds, with range `0..INT_MAX`, default `10000`, and zero meaning no timeout. `src/config.c:3292-3303`, `src/server.h:4121-4123`
 - `tomokv-client-lb` gates only new continuous rebalance requests; the IO-loop migration service continues to run, so changing the knob to false does not cancel a request or handoff already in progress. `src/server.c:24029-24034`, `src/server.c:4406-4417`
