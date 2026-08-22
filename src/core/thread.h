@@ -32,6 +32,7 @@
 #include <vector>
 #include "shard.h"
 #include "signal.h"
+#include "../base/topology.h"
 
 namespace tomo {
 
@@ -74,6 +75,17 @@ public:
     uint32_t id()   const { return id_; }
     Role     role() const { return role_.load(std::memory_order_acquire); }
     uint32_t nchan() const { return nchan_; }
+
+    // Where this thread actually runs. Latched once the thread is pinned and running, because
+    // sched_getcpu() before that answers about the wrong cpu. A worker passes domain() to
+    // Shard::note_execution so the shard can tell local work from foreign work; that ratio is the
+    // signal a later flip/LB controller acts on.
+    void latch_placement(const Topology& topo) {
+        cpu_    = sched_getcpu();
+        domain_ = topo.domain_of(cpu_);
+    }
+    int      cpu()    const { return cpu_; }
+    uint32_t domain() const { return domain_; }
 
     TaskChan&   task_in(uint32_t producer)   { return task_in_[producer]; }
     ClientChan& client_in(uint32_t producer) { return client_in_[producer]; }
@@ -121,6 +133,9 @@ private:
     std::atomic<Role> role_{Role::Idle};
     std::atomic<bool> stop_{false};
     std::atomic<Ring*> ring_{nullptr};
+
+    int      cpu_    = -1;
+    uint32_t domain_ = kNoDomain;
 
     std::unique_ptr<TaskChan[]>   task_in_;
     std::unique_ptr<ClientChan[]> client_in_;

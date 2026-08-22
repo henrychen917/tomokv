@@ -4,7 +4,12 @@
 // THAT IS THE RULE, and it is worth stating because it is easy to violate by accident. A counter
 // bumped per command from a struct every thread shares is a shared-line write on the hot path, and
 // at this thread count it shows up immediately. Per-command counters live in Shard::Stats or
-// ThreadCtx::Stats, both of which are single-writer; INFO sums them on request.
+// LoopSignals, both single-writer; INFO sums them on request.
+//
+// THE ONE MUTABLE HOT-PATH STRUCTURE is shard_owner_: shard id -> thread id, one atomic load per
+// dispatch. That indirection is deliberate and it is what makes pointer-handoff load balancing
+// possible later — an LB moves a shard by storing a different thread id, with no data movement and
+// no change to routing. See placement.h for the ordering contract that makes such a move safe.
 #pragma once
 #include <atomic>
 #include <cstdint>
@@ -12,22 +17,27 @@
 #include <vector>
 #include "shard.h"
 #include "thread.h"
+#include "placement.h"
+#include "../base/topology.h"
 #include "../net/conn.h"   // kRobWindow: one source of truth for the window size
 
 namespace tomo {
 
 struct Config {
-    // Geometry. Defaults follow the measured node rule: one node per last-level-cache domain
-    // (8 physical cores on Bergamo = 1 CCX = 1 L3). See the architecture notes, 1.2.
     uint32_t io_threads     = 4;
     uint32_t ex_threads     = 4;
-    uint32_t shards         = 8;      // shards >= ex_threads; a worker may run several
+    // 0 means "one node per L3 domain", which is the measured optimum and therefore the default
+    // rather than something an operator has to know to ask for.
+    uint32_t nodes          = 0;
+    // Shards should outnumber workers: a shard is the unit of migration, so more shards gives the
+    // LB finer granularity. Too many and each one's working set stops being worth its own table.
+    uint32_t shards         = 16;
     uint16_t port           = 6379;
     const char* bind_addr   = "127.0.0.1";
 
-    // Placement. Pinning is relative to the process's ALLOWED cpu set, so taskset confines both the
-    // process and its topology grouping — that property is what lets independent benchmark lanes
-    // share one box, and it was a real bug when it was absent (threads silently floated).
+    // Pinning is relative to the process's ALLOWED cpu set, so taskset confines both the process and
+    // its topology grouping — that property is what lets independent benchmark lanes share one box,
+    // and its absence was a real bug (threads silently floated instead of erroring).
     bool     pin_threads    = true;
 
     uint32_t rob_window     = kRobWindow;
@@ -42,6 +52,9 @@ public:
 
     bool init(const Config& cfg) {
         cfg_ = cfg;
+        topo_.discover();
+
+        // ---- shards: bucket ranges, fixed for the life of the process ----------------------------
         shards_.resize(cfg.shards);
         const uint32_t per = kNumBuckets / cfg.shards;
         for (uint32_t i = 0; i < cfg.shards; i++) {
@@ -52,32 +65,49 @@ public:
         }
         router_.build_uniform(static_cast<int32_t>(cfg.shards));
 
-        threads_.resize(cfg.io_threads + cfg.ex_threads);
-        for (uint32_t i = 0; i < threads_.size(); i++) {
+        // ---- threads -----------------------------------------------------------------------------
+        const uint32_t nthreads = cfg.io_threads + cfg.ex_threads;
+        threads_.resize(nthreads);
+        for (uint32_t i = 0; i < nthreads; i++) {
             threads_[i] = std::make_unique<ThreadCtx>();
-            threads_[i]->init(i, i < cfg.io_threads ? Role::Io : Role::Ex,
-                              static_cast<uint32_t>(threads_.size()));
+            threads_[i]->init(i, i < cfg.io_threads ? Role::Io : Role::Ex, nthreads);
         }
-        // Round-robin shards onto workers. Deliberately a plain assignment rather than a policy:
-        // rebalancing is the flip controller's job later, and it moves SHARDS, never keys.
-        for (uint32_t s = 0; s < cfg.shards; s++) {
-            const uint32_t tid = cfg.io_threads + (s % cfg.ex_threads);
-            threads_[tid]->shards().push_back(shards_[s].get());
-            // The reverse mapping is what the DISPATCH path reads to find a shard's worker. Assigning
-            // shards to workers without recording it leaves every op routing to thread 0.
-            set_worker_of_shard(static_cast<int32_t>(s), tid);
+
+        // ---- nodes: default placement, aligned to shared L3 ---------------------------------------
+        std::vector<uint32_t> worker_ids;
+        for (uint32_t i = cfg.io_threads; i < nthreads; i++) worker_ids.push_back(i);
+        placement_.build(topo_, cfg.nodes, cfg.shards,
+                         static_cast<uint32_t>(worker_ids.size()));
+        placement_.assign_workers(worker_ids);
+
+        for (uint32_t n = 0; n < placement_.nnodes(); n++) {
+            const Node& node = placement_.node(n);
+            if (node.workers.empty()) continue;
+            for (size_t k = 0; k < node.shards.size(); k++) {
+                const int32_t  sid = node.shards[k];
+                const uint32_t tid = node.workers[k % node.workers.size()];
+                threads_[tid]->shards().push_back(shards_[sid].get());
+                // The reverse mapping is what the DISPATCH path reads. Assigning shards to workers
+                // without recording it leaves every op routing to thread 0.
+                set_worker_of_shard(sid, tid);
+                // Seed the shard's home domain from its node, so the first foreign-op comparison is
+                // against the INTENDED placement rather than against wherever it happened to run.
+                shards_[sid]->note_migration(node.domain);
+            }
         }
         return true;
     }
 
-    const Config& cfg() const { return cfg_; }
-    Router&       router()    { return router_; }
-    Shard&        shard(int32_t i) { return *shards_[i]; }
-    ThreadCtx&    thread(uint32_t i) { return *threads_[i]; }
-    uint32_t      nthreads() const { return static_cast<uint32_t>(threads_.size()); }
+    const Config&    cfg()        const { return cfg_; }
+    const Topology&  topo()       const { return topo_; }
+    Placement&       placement()        { return placement_; }
+    Router&          router()           { return router_; }
+    Shard&           shard(int32_t i)   { return *shards_[i]; }
+    ThreadCtx&       thread(uint32_t i) { return *threads_[i]; }
+    uint32_t         nthreads()   const { return static_cast<uint32_t>(threads_.size()); }
+    uint32_t         nshards()    const { return static_cast<uint32_t>(shards_.size()); }
 
-    // Which worker thread currently executes a shard. Read on the dispatch path, written only when
-    // shards are reassigned, so it is atomic rather than locked.
+    // One atomic load on the dispatch path; one atomic store is how an LB moves work.
     uint32_t worker_of_shard(int32_t shard_id) const {
         return shard_owner_[shard_id].load(std::memory_order_acquire);
     }
@@ -89,8 +119,10 @@ public:
     std::atomic<bool>&     shutting_down()  { return shutting_down_; }
 
 private:
-    Config cfg_;
-    Router router_;
+    Config    cfg_;
+    Topology  topo_;
+    Placement placement_;
+    Router    router_;
     std::vector<std::unique_ptr<Shard>>     shards_;
     std::vector<std::unique_ptr<ThreadCtx>> threads_;
 

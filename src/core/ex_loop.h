@@ -93,7 +93,9 @@ private:
     void execute(const Task& t) {
         Op& op = t.client->rob().at(t.op_id);
         Shard& sh = srv_->shard(op.shard);
-        sh.stats().ops++;
+        // Records the op AND whether it was executed from this shard's home L3 domain. One compare
+        // and one increment, no atomics — the shard has a single owner.
+        sh.note_execution(self_->domain());
 
         op.spec->handler(sh, op);
 

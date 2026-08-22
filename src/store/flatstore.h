@@ -1,12 +1,15 @@
 // flatstore.h — the keyspace table. Replaces Redis's dict/kvstore (NOT its RDB, which is a
 // persistence format we have not built).
 //
-// ONE TABLE PER WORKER. This is the decision that shapes the whole file. In the fork the table was
-// per-NODE and shared by several workers, which forced it to be lock-free with QSBR reclamation —
-// not because ownership was shared (it never was; ownership is per key) but because open addressing
-// lets worker A's probe walk through slots holding worker B's keys. Give each worker its own table
-// and that entire class of problem disappears: no atomics, no CAS, no epoch reclamation, no probe
-// interference. Locality improves too — one warm table header per worker rather than per node.
+// ONE TABLE PER SHARD, and a shard is executed by exactly one worker at a time. In the fork the
+// table was per-NODE and shared by several workers, which forced it to be lock-free with QSBR
+// reclamation — not because ownership was shared (it never was; ownership is per key) but because
+// open addressing lets worker A's probe walk through slots holding worker B's keys. One table per
+// shard removes that entire class of problem: no atomics, no CAS, no epoch reclamation, no probe
+// interference. Locality improves too — one warm table header per shard rather than per node.
+//
+// Per SHARD rather than per WORKER is what makes migration possible: reassigning a shard to another
+// worker moves ownership without copying a key. See shard.h on why that move is not free.
 //
 // So everything below is plain single-threaded code, and that is a deliberate result rather than a
 // simplification to be fixed later.
@@ -62,6 +65,11 @@ public:
     uint32_t size() const { return live_; }
     uint32_t capacity() const { return cap_; }
 
+    // What a migration of this shard would have to re-pull through the fabric. An L3 domain is
+    // filled by access, not allocated into, so moving a shard to a worker in another domain
+    // invalidates residency rather than moving memory — this is the price of that move.
+    size_t resident_estimate() const { return static_cast<size_t>(cap_) * 8 + obj_bytes_; }
+
     // Returns nullptr when absent. `h` is the full key hash; the caller already computed it to route.
     KvObj* find(uint64_t h, Slice key) const {
         const uint16_t tag = tag_of(h);
@@ -94,12 +102,15 @@ public:
                 if (first_tomb >= 0) { slots_[first_tomb] = make_word(tag, o); tombs_--; }
                 else                 { slots_[i] = make_word(tag, o); }
                 live_++;
+                obj_bytes_ += kvobj_size(o);
                 return true;
             }
             KvObj* cur = ptr_of(w);
             if (!cur) { if (first_tomb < 0) first_tomb = static_cast<int32_t>(i); }
             else if (tag_of_word(w) == tag && cur->key() == key) {
+                obj_bytes_ -= kvobj_size(cur);
                 kvobj_free(cur);                  // replace in place; live_ unchanged
+                obj_bytes_ += kvobj_size(o);
                 slots_[i] = make_word(tag, o);
                 return true;
             }
@@ -116,6 +127,7 @@ public:
             if (w == 0) return false;
             KvObj* o = ptr_of(w);
             if (o && tag_of_word(w) == tag && o->key() == key) {
+                obj_bytes_ -= kvobj_size(o);
                 kvobj_free(o);
                 slots_[i] = kTombBit;             // DEAD: non-zero, ptr == 0
                 live_--; tombs_++;
@@ -166,7 +178,7 @@ private:
         uint32_t  oldc  = cap_;
         const bool double_it = (live_ * 200 >= cap_ * kLoadPct);   // live alone past half the trigger
         alloc_table(double_it ? cap_ * 2 : cap_);
-        live_ = 0; tombs_ = 0;
+        live_ = 0; tombs_ = 0; obj_bytes_ = 0;
         for (uint32_t i = 0; i < oldc; i++) {
             if (KvObj* o = ptr_of(old[i])) {
                 // Rehash from the key: nothing stores the hash, which is what keeps the slot 8 bytes.
@@ -178,6 +190,7 @@ private:
     }
 
     void insert_no_grow(uint64_t h, KvObj* o) {
+        obj_bytes_ += kvobj_size(o);
         const uint16_t tag = tag_of(h);
         uint32_t i = slot_start(h);
         while (slots_[i] != 0) i = (i + 1) & mask_;
@@ -205,6 +218,7 @@ private:
     uint32_t  mask_  = 0;
     uint32_t  live_  = 0;
     uint32_t  tombs_ = 0;
+    size_t    obj_bytes_ = 0;
 };
 
 }  // namespace tomo

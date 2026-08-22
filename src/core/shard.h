@@ -1,31 +1,40 @@
-// shard.h — the unit of OWNERSHIP. Not a thread, not the server.
+// shard.h — the unit of OWNERSHIP and of MIGRATION.
 //
-// A shard owns a contiguous range of the 16,384 routing buckets, and with it every key that hashes
-// into that range. Because ownership is per shard and each shard has its own FlatStore, exactly one
-// thread ever touches a given key or a given table. That is the invariant the whole design rests on
-// and everything cheap follows from it:
+// A shard owns a contiguous range of the 16,384 routing buckets and every key hashing into it, plus
+// its own FlatStore. Exactly one thread touches a given shard at a time, which is the invariant the
+// whole design rests on: no locks, no atomics in the store, no refcounts, no QSBR — DEL can free
+// immediately because no other thread can be reading.
 //
-//   - the store needs no locks and no atomics
-//   - a value needs no refcount
-//   - DEL can free immediately; no reader on another thread can hold the object
-//   - QSBR / epoch reclamation is not needed in v1 at all
+// NO NODE LAYER. The keyspace is one flat set of shards over the whole server; there is no NUMA or
+// L3 partitioning of it. That is a deliberate simplification and it gives up a measured gain — on
+// this box, partitioning at one L3 domain per node was worth +22.3% on set_p16 and +14.2% on mget8,
+// with the optimum landing exactly ON the cache boundary. The structures below stay locality-AWARE
+// so a later flip/LB controller can recover that gain by PLACEMENT rather than by partitioning.
 //
-// Shards are deliberately decoupled from threads. A worker thread executes one or more shards, and
-// which shards it executes can change — that is what makes thread-mode switching and resharding
-// possible without moving any key. Ownership moves by reassigning a shard, never by copying data.
+// SHARDS ARE DECOUPLED FROM THREADS ON PURPOSE. A worker executes one or more shards, and which
+// shards it executes can change. Ownership therefore moves by reassigning a shard, never by copying
+// a key — which is also what makes resharding O(1).
+//
+// MIGRATION IS NOT FREE, and this is the part that is easy to get wrong. An L3 domain is filled by
+// access, not allocated into. Moving a shard from a worker in domain A to one in domain B does not
+// move its memory; it invalidates its residency, and the new worker must re-pull the working set
+// through the fabric. On this box a CCX-to-fabric link saturates near 51 GB/s while a single core
+// can already pull 50 — so a migration is a real cost, and an LB that prices it at zero will thrash.
+// home_domain() and store().resident_estimate() exist so it can be priced instead of guessed.
 #pragma once
 #include <cstdint>
+#include "../base/topology.h"
 #include "../store/flatstore.h"
 
 namespace tomo {
 
-// 16,384 buckets, as in the fork. Chosen so a shard count change reassigns bucket ranges rather
-// than rehashing keys: a key's bucket never changes, only which shard owns that bucket.
+// 16,384 buckets. Chosen so changing the shard count reassigns bucket RANGES rather than rehashing
+// keys: a key's bucket never changes, only which shard owns that bucket.
 inline constexpr uint32_t kNumBuckets = 16384;
 inline constexpr uint32_t kBucketMask = kNumBuckets - 1;
 
 // The router takes the LOW bits. FlatStore mixes before indexing so its slot choice stays
-// independent of these bits — see the clustering trap in flatstore.h.
+// independent of these — see the clustering trap in flatstore.h.
 inline uint32_t bucket_of(uint64_t hash) { return static_cast<uint32_t>(hash) & kBucketMask; }
 
 class Shard {
@@ -40,7 +49,7 @@ public:
         bucket_end_   = bucket_end;
     }
 
-    int32_t  id()    const { return id_; }
+    int32_t  id() const { return id_; }
     bool     owns(uint32_t bucket) const { return bucket >= bucket_begin_ && bucket < bucket_end_; }
     uint32_t bucket_begin() const { return bucket_begin_; }
     uint32_t bucket_end()   const { return bucket_end_; }
@@ -48,28 +57,64 @@ public:
     FlatStore&       store()       { return store_; }
     const FlatStore& store() const { return store_; }
 
-    // Per-shard counters. Kept here rather than globally so no two threads write the same line;
-    // INFO sums them. A global counter incremented per command is a shared-line write on the hot
-    // path and shows up immediately at this thread count.
+    // ---- locality --------------------------------------------------------------------------------
+    // The L3 domain this shard's working set is currently resident in — i.e. the domain of the
+    // worker that has been executing it. Set on first execution and on migration.
+    uint32_t home_domain() const { return home_domain_; }
+
+    // What moving this shard would cost: bytes the new domain must re-pull through the fabric.
+    size_t migration_cost_bytes() const { return store_.resident_estimate(); }
+
+    // Called by the executing worker on every op. `worker_domain` is that thread's L3 domain.
+    // Cheap by construction: one compare and one increment, no atomics — the shard is single-owner.
+    void note_execution(uint32_t worker_domain) {
+        stats_.ops++;
+        if (home_domain_ == kNoDomain) { home_domain_ = worker_domain; return; }
+        if (worker_domain != home_domain_) stats_.foreign_ops++;
+    }
+
+    // Records that ownership moved to a worker in `new_domain`. Residency is now stale.
+    void note_migration(uint32_t new_domain) {
+        if (new_domain != home_domain_) {
+            stats_.migrations++;
+            stats_.migrated_bytes += migration_cost_bytes();
+            home_domain_ = new_domain;
+        }
+    }
+
+    // Per-shard counters, single-writer so no two threads share a line. INFO sums them; a global
+    // counter incremented per command would be a shared-line write on the hot path.
     struct Stats {
-        uint64_t ops       = 0;
-        uint64_t hits      = 0;
-        uint64_t misses    = 0;
-        uint64_t expired   = 0;
+        uint64_t ops           = 0;
+        uint64_t hits          = 0;
+        uint64_t misses        = 0;
+        uint64_t expired       = 0;
+        // THE actionable locality signal: ops executed by a worker in a different L3 domain than the
+        // one holding this shard's working set. A high ratio means placement is wrong, and it is the
+        // number a flip/LB controller should act on — not a guess from thread ids or core counts.
+        uint64_t foreign_ops   = 0;
+        uint64_t migrations    = 0;
+        uint64_t migrated_bytes = 0;
     };
     Stats& stats() { return stats_; }
+    const Stats& stats() const { return stats_; }
+
+    double foreign_ratio() const {
+        return stats_.ops ? static_cast<double>(stats_.foreign_ops) / static_cast<double>(stats_.ops) : 0.0;
+    }
 
 private:
     int32_t   id_ = -1;
     uint32_t  bucket_begin_ = 0;
     uint32_t  bucket_end_   = 0;
+    uint32_t  home_domain_  = kNoDomain;
     FlatStore store_;
     Stats     stats_;
 };
 
 // Maps bucket -> shard id. A plain array: one indexed load on the hot path, and reassigning
-// ownership is a write here rather than a data move. This is also what makes O(1) resharding
-// possible — flip the owner of a bucket range without copying a single key.
+// ownership is a write here rather than a data move. This is what makes O(1) resharding possible —
+// flip the owner of a bucket range without copying a single key.
 class Router {
 public:
     void build_uniform(int32_t nshards) {
@@ -85,8 +130,8 @@ public:
     int32_t nshards() const { return nshards_; }
 
 private:
-    int32_t  nshards_ = 0;
-    int32_t  owner_[kNumBuckets] = {};
+    int32_t nshards_ = 0;
+    int32_t owner_[kNumBuckets] = {};
 };
 
 }  // namespace tomo

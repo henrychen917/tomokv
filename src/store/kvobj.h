@@ -163,6 +163,15 @@ inline KvObj* kvobj_new_string(Slice key, Slice val, int64_t expire_at_ms = -1) 
     return o;
 }
 
+// Footprint of this object, for the store's resident estimate. Recomputed rather than stored: an
+// extra size field in the header would cost every key 4 bytes to save an occasional multiply.
+inline size_t kvobj_size(const KvObj* o) {
+    const Enc e = static_cast<Enc>(o->enc);
+    size_t n = kvobj_alloc_size(o->klen(), o->vlen, (o->flags & KvObjFlags::HasTtl) != 0, e);
+    if (e == Enc::Extern) n += o->vlen;      // the separate value block counts too
+    return n;
+}
+
 inline void kvobj_free(KvObj* o) {
     if (!o) return;
     if (static_cast<Enc>(o->enc) == Enc::Extern) {
