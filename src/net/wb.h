@@ -35,7 +35,6 @@
 #include <cstdint>
 #include <mutex>
 #include "conn.h"
-#include "../exec/exqueue.h"
 #include "uring.h"
 
 namespace tomo {
@@ -135,10 +134,5 @@ private:
     WbMode mode_ = WbMode::Io;
     Stats  stats_;
 };
-
-// Hand-off queue used when the sender is NOT the thread that produced the replies (Ex and Wb modes).
-// Reuses the SPSC ring: one producer (an IO or EX thread), one consumer (the sending thread).
-// `queued` on the WbLink keeps a client from being enqueued twice.
-using ReadyQueue = ExQueue<Client*, 1024>;
 
 }  // namespace tomo

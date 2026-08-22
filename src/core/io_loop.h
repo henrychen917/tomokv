@@ -1,19 +1,19 @@
 // io_loop.h — the IO stage. Accepts, receives, parses, routes, publishes, retires, and (in Io mode)
 // sends.
 //
+// EVERY CROSS-THREAD SIGNAL HERE IS A Channel, and every measurement is a LoopSignals field, so this
+// loop is comparable with the EX and WB loops through one interface. See signal.h.
+//
+//   out  task_in of the shard's owner        a parsed op to execute
+//   in   client_in from workers              "you have completed ops to retire"
+//   out  client_in of the sender             "you have bytes to write"   (Ex and Wb modes)
+//
 // WHAT MOVES BETWEEN MODES, AND WHAT DOES NOT. The ROB is ALWAYS drained by the IO thread that owns
-// the connection, in every mode. Only the send syscall moves. That is a deliberate narrowing:
-//
-//   - The ROB's producer side (acquire/publish) is the parser, which is this thread. Letting another
-//     thread also retire from it would make dispatch_id/flush_id a cross-thread pair and put the
-//     window accounting into a race for no measured benefit.
-//   - The question the Ex and Wb modes exist to answer is "does it help to have a different thread
-//     issue the send?" — and staging bytes here while another thread issues the write tests exactly
-//     that.
-//
-// It is therefore NOT a byte-for-byte reproduction of the fork's ex-wb, which had the executor build
-// and send its own contiguous ready prefix without returning to IO. Saying so here so nobody later
-// reads a result from this mode as a verdict on that design.
+// the connection, in every mode. Only the send syscall moves. Letting a second thread retire from
+// the ROB would make dispatch_id/flush_id a cross-thread pair for no measured benefit. So this is
+// NOT a byte-for-byte reproduction of the fork's ex-wb, which had the executor build and send its
+// own contiguous ready prefix without returning to IO — said here so no result from that mode is
+// misread as a verdict on that design.
 #pragma once
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -22,6 +22,7 @@
 #include <cstdio>
 #include <vector>
 #include "server.h"
+#include "signal.h"
 #include "../net/conn.h"
 #include "../net/resp.h"
 #include "../net/uring.h"
@@ -37,26 +38,41 @@ public:
     bool init(Server* srv, ThreadCtx* self, WbMode mode, int listen_fd) {
         srv_ = srv; self_ = self; listen_fd_ = listen_fd;
         if (!ring_.init(4096)) return false;
+        self_->set_ring(&ring_);
         wb_.bind(&ring_, mode);
         return true;
     }
 
     Ring& ring() { return ring_; }
 
-    // In Ex/Wb modes, where this thread stages bytes but another issues the send.
-    void set_send_target(ReadyQueue* q, Ring* target_ring) {
-        send_q_ = q; target_ring_ = target_ring;
-    }
+    // Ex/Wb modes: this thread stages ordered bytes, `sender` issues the write.
+    void set_send_target(ThreadCtx* sender) { sender_ = sender; }
 
     void run() {
         arm_accept();
+        LoopSignals& sig = self_->sig();
         while (!self_->stop_flag().load(std::memory_order_relaxed)) {
-            ring_.submit_and_wait(1);
-            ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
-            // A worker that finished an op wakes this ring, so by the time we get here some ROBs may
-            // have completed entries. Retiring is O(clients with work), not O(all clients).
-            flush_ready();
-            self_->stats().loop_spins++;
+            sig.iterations++;
+            self_->sample_depth();
+
+            uint32_t did = 0;
+            {
+                Span busy(sig.busy_ns);
+                did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
+                did += collect_retire_work();
+                did += flush_ready();
+            }
+            sig.cpu_ns = thread_cpu_ns();
+
+            if (did) continue;
+
+            // Nothing to do: declare intent to block, re-check (a producer may have pushed between
+            // the last drain and the flag being set), then wait.
+            Span idle(sig.idle_ns);
+            self_->arm_blocked();
+            if (!self_->any_inbound()) ring_.submit_and_wait(1);
+            else                       ring_.submit();
+            self_->clear_blocked();
         }
     }
 
@@ -89,15 +105,14 @@ private:
                 if (!wb_.on_send_complete(*c, c->wb(), cqe->res)) close_client(c);
                 break;
             }
-            case UrKind::Wake:  break;         // a worker poked us; flush_ready() does the work
+            case UrKind::Wake:  self_->sig().wakes_recv++; break;
             case UrKind::Close: break;
         }
     }
 
     void on_accept(io_uring_cqe* cqe) {
         if (cqe->res < 0) { arm_accept(); return; }
-        int fd = cqe->res;
-        int one = 1;
+        int fd = cqe->res, one = 1;
         setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
 
         auto* c = new Client(fd);
@@ -105,9 +120,7 @@ private:
         c->set_io_thread(self_->id());
         self_->clients().push_back(c);
         arm_recv(c);
-
-        // Multishot re-arms itself; if the kernel dropped it, arm again.
-        if (!(cqe->flags & IORING_CQE_F_MORE)) arm_accept();
+        if (!(cqe->flags & IORING_CQE_F_MORE)) arm_accept();   // multishot dropped: re-arm
     }
 
     void on_recv(Client* c, int res) {
@@ -117,14 +130,15 @@ private:
         if (!c->closing()) arm_recv(c);
     }
 
-    // ---- parse -> route -> publish ----------------------------------------------------------------
+    // ---- parse -> route -> publish -----------------------------------------------------------------
     void parse_and_dispatch(Client* c) {
         Conn& conn = c->conn();
         Rob<kRobWindow>& rob = c->rob();
+        LoopSignals& sig = self_->sig();
 
         for (;;) {
             Op* op = rob.acquire();
-            if (!op) break;                    // window full: backpressure, let replies drain first
+            if (!op) break;                    // window full: backpressure; let replies drain first
 
             uint32_t pos = conn.rpos();
             const char* err = nullptr;
@@ -133,97 +147,113 @@ private:
 
             if (pr == ParseResult::Incomplete) break;
             if (pr == ParseResult::Error) {
-                reply_err(op->reply, err ? err : "ERR protocol error");
-                op->state.store(OpState::Done, std::memory_order_release);
-                rob.publish();
-                conn.advance_parse(conn.rlen() - conn.rpos());   // resync by discarding
+                finish_locally(c, *op, err ? err : "ERR protocol error");
+                conn.advance_parse(conn.rlen() - conn.rpos());
                 c->mark_closing();
                 break;
             }
             conn.advance_parse(pos - conn.rpos());
 
             const CommandSpec* spec = command_lookup(op->cmd_name());
-            if (!spec) {
-                reply_err(op->reply, "ERR unknown command");
-                op->state.store(OpState::Done, std::memory_order_release);
-                rob.publish();
-                continue;
-            }
-            if ((spec->arity >= 0 && static_cast<int32_t>(op->argc()) != spec->arity) ||
-                (spec->arity <  0 && static_cast<int32_t>(op->argc()) < -spec->arity)) {
-                reply_err(op->reply, "ERR wrong number of arguments");
-                op->state.store(OpState::Done, std::memory_order_release);
-                rob.publish();
-                continue;
+            if (!spec) { finish_locally(c, *op, "ERR unknown command"); continue; }
+            const int32_t argc = static_cast<int32_t>(op->argc());
+            if ((spec->arity >= 0 && argc != spec->arity) || (spec->arity < 0 && argc < -spec->arity)) {
+                finish_locally(c, *op, "ERR wrong number of arguments"); continue;
             }
             op->spec = spec;
 
-            // Connection-local commands never reach a worker — that is the cheapest class and the
-            // one most easily wasted by routing it anyway.
+            // Connection-local commands never reach a worker — the cheapest class, and the one most
+            // easily wasted by routing it anyway.
             if (spec->flags & CmdFlags::ConnLocal) {
-                spec->handler(srv_->shard(0), *op);           // shard unused for this class
+                spec->handler(srv_->shard(0), *op);
                 op->state.store(OpState::Done, std::memory_order_release);
                 rob.publish();
+                mark_active(c);
                 continue;
             }
 
             op->hash  = FlatStore::hash_key(op->key());
             op->shard = srv_->router().shard_of(op->hash);
-            const uint32_t worker = srv_->worker_of_shard(op->shard);
+            ThreadCtx& worker = srv_->thread(srv_->worker_of_shard(op->shard));
 
             Task t{c, rob.dispatch_id()};
-            if (!srv_->thread(worker).inbox(self_->id()).push(t)) {
-                // NEVER drop a full queue on the floor: the reply would be lost and the connection
-                // would wedge waiting for it. That exact bug shipped in the fork.
-                self_->stats().queue_full++;
-                break;                                          // leave the op unpublished; retry later
+            if (!worker.task_in(self_->id()).send(t, ring_, sig)) {
+                // NEVER drop a refused push: the reply would be lost and the connection would wedge
+                // waiting for it. Leave the op unpublished and retry on a later pass.
+                break;
             }
             rob.publish();
-            self_->stats().ops_dispatched++;
-            if (!active_.count(c)) { active_.insert(c); }
+            sig.ops++;
+            mark_active(c);
         }
     }
 
-    // ---- retire -> stage bytes -> send or hand off ------------------------------------------------
-    void flush_ready() {
+    void finish_locally(Client* c, Op& op, const char* err) {
+        reply_err(op.reply, err);
+        op.state.store(OpState::Done, std::memory_order_release);
+        c->rob().publish();
+        mark_active(c);
+    }
+
+    void mark_active(Client* c) { if (!active_.count(c)) active_.insert(c); }
+
+    // ---- inbound: workers telling us a client has completed ops -----------------------------------
+    uint32_t collect_retire_work() {
+        uint32_t n = 0;
+        for (uint32_t p = 0; p < self_->nchan(); p++) {
+            auto& ch = self_->client_in(p);
+            Client* c = nullptr;
+            while (ch.recv(c)) {
+                c->retire_queued().store(false, std::memory_order_release);
+                mark_active(c);
+                ch.retire();
+                n++;
+            }
+        }
+        return n;
+    }
+
+    // ---- retire -> stage bytes -> send or hand off -------------------------------------------------
+    uint32_t flush_ready() {
+        uint32_t work = 0;
         for (auto it = active_.begin(); it != active_.end();) {
             Client* c = *it;
             Conn& conn = c->conn();
             const uint32_t n = c->rob().drain([&](Op& op) {
                 conn.wbuf().append(op.reply.data(), op.reply.size());
             });
-            if (n) self_->stats().replies_sent += n;
+            work += n;
 
             if (c->rob().quiesced()) conn.reset_rbuf_at_quiescence();
 
             if (conn.wbuf().size() > conn.wsent()) {
-                if (wb_.mode() == WbMode::Io) {
-                    wb_.pump(*c, c->wb());                       // this thread sends
-                } else {
-                    handoff(c);                                  // another thread sends
-                }
+                if (wb_.mode() == WbMode::Io) { if (wb_.pump(*c, c->wb())) work++; }
+                else                          { if (handoff(c)) work++; }
             }
-            if (c->rob().quiesced() && conn.write_drained()) it = active_.erase(it);
+            if (c->rob().quiesced() && conn.write_drained() && !c->closing())
+                it = active_.erase(it);
+            else if (c->closing() && c->safe_to_release()) { it = active_.erase(it); close_client(c); }
             else ++it;
         }
+        return work;
     }
 
-    void handoff(Client* c) {
+    bool handoff(Client* c) {
         bool expected = false;
         if (!c->wb().queued.compare_exchange_strong(expected, true, std::memory_order_acq_rel))
-            return;                                              // already queued; do not double-enqueue
-        if (!send_q_ || !send_q_->push(c)) {
+            return false;                                    // already queued; do not double-enqueue
+        if (!sender_ || !sender_->client_in(self_->id()).send(c, ring_, self_->sig())) {
             c->wb().queued.store(false, std::memory_order_release);
-            return;
+            return false;
         }
         wb_.stats().handoffs++;
-        if (target_ring_) ring_.msg_to(*target_ring_, ur_tag(UrKind::Wake, nullptr));
+        return true;
     }
 
     void close_client(Client* c) {
         c->mark_closing();
-        // A connection may only be released at the quiescence fence: a worker may still hold a Task
-        // that resolves through this ROB. Anything else is a use-after-free under pipelining.
+        // Release only at the quiescence fence: a worker may still hold a Task that resolves through
+        // this ROB. Anything else is a use-after-free under pipelining.
         if (!c->safe_to_release()) return;
         active_.erase(c);
         auto& v = self_->clients();
@@ -233,21 +263,20 @@ private:
         delete c;
     }
 
-    Server*     srv_ = nullptr;
-    ThreadCtx*  self_ = nullptr;
-    int         listen_fd_ = -1;
-    Ring        ring_;
-    WbEngine    wb_;
-    ReadyQueue* send_q_ = nullptr;       // Ex/Wb modes
-    Ring*       target_ring_ = nullptr;
+    Server*    srv_  = nullptr;
+    ThreadCtx* self_ = nullptr;
+    ThreadCtx* sender_ = nullptr;      // Ex/Wb modes
+    int        listen_fd_ = -1;
+    Ring       ring_;
+    WbEngine   wb_;
 
-    // Clients with work outstanding. Deliberately not a scan of every client per iteration: at
-    // 10k+ connections that scan is the loop's dominant cost.
+    // Clients with work outstanding. Populated by dispatch and by the retire channel, never by
+    // scanning every client: at 10k+ connections that scan dominates the loop.
     struct PtrSet {
+        using It = std::vector<Client*>::iterator;
         std::vector<Client*> v;
         bool count(Client* c) const { for (auto* p : v) if (p == c) return true; return false; }
         void insert(Client* c) { v.push_back(c); }
-        using It = std::vector<Client*>::iterator;
         It   begin() { return v.begin(); }
         It   end()   { return v.end(); }
         It   erase(It it) { return v.erase(it); }

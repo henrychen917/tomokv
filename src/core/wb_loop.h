@@ -1,23 +1,27 @@
-// wb_loop.h — the dedicated write-back stage (WbMode::Wb, the 3-stage shape).
+// wb_loop.h — the dedicated write-back stage (WbMode::Wb, the 3-stage shape). Same Channel
+// signalling and same LoopSignals units as the IO and EX loops (see signal.h).
+//
+//   in   client_in from IO threads      "you have bytes to write"
 //
 // THIS FILE IS SHORT ON PURPOSE. Every piece of send logic lives in WbEngine, shared with the IO and
 // EX loops; a dedicated write-back thread is a scheduling choice, not a different implementation. If
-// this file ever starts growing its own send path, the abstraction has failed and the three modes
-// have quietly become three implementations that will drift apart.
+// this file ever grows its own send path, the abstraction has failed and the three modes have
+// quietly become three implementations that will drift apart.
 //
-// WHAT THIS THREAD OWNS: the send side of connections it is handed, and nothing else. It does not
+// WHAT THIS THREAD OWNS: the send side of connections handed to it, and nothing else. It does not
 // parse, does not execute, does not touch the ROB. Bytes arrive already ordered in the client's
-// write buffer — the owning IO thread retired them in ROB order before handing the client over.
+// write buffer, because the owning IO thread retired them in ROB order before handing the client on.
 //
 // THE EXPECTED RESULT IS THAT THIS LOSES, and it is built anyway so that is measured rather than
-// asserted. p1 throughput is (threads that ISSUE SENDS) x ~90k, so moving sends onto dedicated
-// threads buys send width a second time out of a fixed budget instead of getting it free from io
-// threads that already receive. The fork also found this shape crashed on a real NIC through the
-// lock asymmetry that WbGuard now makes structurally impossible — so this is the mode most worth
-// re-testing on the wire.
+// asserted. p1 throughput is (threads that ISSUE SENDS) x ~90k, so dedicating threads to sending
+// buys send width a second time out of a fixed budget instead of getting it free from io threads
+// that already receive. The fork also found this shape crashed on a real NIC through a lock
+// asymmetry that WbGuard now makes structurally impossible — so it is the mode most worth re-testing
+// on the wire.
 #pragma once
 #include <cstdint>
 #include "server.h"
+#include "signal.h"
 #include "../net/conn.h"
 #include "../net/uring.h"
 #include "../net/wb.h"
@@ -31,49 +35,71 @@ public:
     bool init(Server* srv, ThreadCtx* self) {
         srv_ = srv; self_ = self;
         if (!ring_.init(2048)) return false;
+        self_->set_ring(&ring_);
         wb_.bind(&ring_, WbMode::Wb);
         return true;
     }
 
-    Ring&       ring()    { return ring_; }
-    ReadyQueue& ready_q() { return ready_; }
-    WbEngine&   engine()  { return wb_; }
+    Ring&     ring()   { return ring_; }
+    WbEngine& engine() { return wb_; }
 
     void run() {
-        uint32_t idle = 0;
+        LoopSignals& sig = self_->sig();
+        uint32_t idle_spins = 0;
+
         while (!self_->stop_flag().load(std::memory_order_relaxed)) {
-            uint32_t did = drain_ready();
+            sig.iterations++;
+            self_->sample_depth();
 
-            ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
+            uint32_t did = 0;
+            {
+                Span busy(sig.busy_ns);
+                did += drain_send_requests();
+                did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
+            }
+            sig.cpu_ns = thread_cpu_ns();
 
-            if (did) { idle = 0; continue; }
-            if (++idle < kWbSpinBudget) { __builtin_ia32_pause(); continue; }
-            idle = 0;
-            ring_.submit_and_wait(1);
-            ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
+            if (did) { idle_spins = 0; continue; }
+
+            if (++idle_spins < kWbSpinBudget) { sig.spins++; __builtin_ia32_pause(); continue; }
+            idle_spins = 0;
+
+            Span idle(sig.idle_ns);
+            self_->arm_blocked();
+            if (!self_->any_inbound()) ring_.submit_and_wait(1);
+            else                       ring_.submit();
+            self_->clear_blocked();
         }
     }
 
 private:
-    uint32_t drain_ready() {
+    uint32_t drain_send_requests() {
         uint32_t n = 0;
-        Client* c = nullptr;
-        while (ready_.pop(c)) {
-            // Clear `queued` BEFORE pumping. If it were cleared after, a producer staging more bytes
-            // during the pump would see queued == true, skip the enqueue, and those bytes would sit
-            // unsent until some unrelated event happened to re-queue the client — a stall that only
-            // appears under load and looks like a lost reply.
-            c->wb().queued.store(false, std::memory_order_release);
-            wb_.pump(*c, c->wb());
-            n++;
+        for (uint32_t p = 0; p < self_->nchan(); p++) {
+            auto& ch = self_->client_in(p);
+            Client* c = nullptr;
+            while (ch.recv(c)) {
+                // Clear BEFORE pumping — see the identical note in ex_loop.h. Clearing after strands
+                // bytes staged during the pump.
+                c->wb().queued.store(false, std::memory_order_release);
+                wb_.pump(*c, c->wb());
+                ch.retire();
+                n++;
+            }
         }
+        self_->sig().ops += n;
         return n;
     }
 
     void on_cqe(io_uring_cqe* cqe) {
-        if (ur_kind(cqe->user_data) == UrKind::Send) {
-            Client* c = ur_ptr<Client>(cqe->user_data);
-            wb_.on_send_complete(*c, c->wb(), cqe->res);
+        switch (ur_kind(cqe->user_data)) {
+            case UrKind::Send: {
+                Client* c = ur_ptr<Client>(cqe->user_data);
+                wb_.on_send_complete(*c, c->wb(), cqe->res);
+                break;
+            }
+            case UrKind::Wake: self_->sig().wakes_recv++; break;
+            default: break;
         }
     }
 
@@ -81,7 +107,6 @@ private:
     ThreadCtx* self_ = nullptr;
     Ring       ring_;
     WbEngine   wb_;
-    ReadyQueue ready_;
 };
 
 }  // namespace tomo

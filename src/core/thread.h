@@ -1,48 +1,58 @@
-// thread.h — one server thread, and the role it is currently playing.
+// thread.h — one server thread, the role it is currently playing, and its inbound channels.
 //
 // ROLE IS STATE, NOT TYPE. A thread is an IO thread or a worker because of a field, not because of
-// its class. That is deliberate: the whole point of the flip controller is that the io:ex split is
-// a runtime decision, and the optimal split differs by workload (measured: ~16:1 io:ex at p1,
-// scaling as 16:1/depth as pipelining deepens). Encoding the role in the type system would make the
-// one thing we most need to change at runtime the one thing we cannot.
+// its class. That is deliberate: the io:ex split is a runtime decision and the optimal split differs
+// by workload (measured: ~16:1 io:ex at p1, scaling as 16:1/depth as pipelining deepens). Encoding
+// the role in the type system would make the one thing we most need to change at runtime the one
+// thing we cannot.
 //
-// WHAT EACH ROLE OWNS
-//   Io : a set of connections. Parses, routes, publishes ops, drains ROBs, writes replies.
-//   Ex : a set of SHARDS. Consumes ops from its inboxes, executes against its own FlatStore.
+// EVERY THREAD HAS THE SAME TWO INBOUND CHANNELS, whatever its role. What arrives on them differs;
+// their shape, units and wake semantics do not. That uniformity is what lets a flip/LB controller
+// read all three loops through one interface instead of special-casing each:
 //
-// Nothing is owned by both. A role change therefore means handing over a set — connections or
-// shards — and that is only safe at a quiescence point. The conversion protocol is deliberately not
-// implemented yet; the struct is shaped so it can be, and the constraint is written down here
-// rather than discovered later:
+//   task_in_[p]     from producer p    IO -> EX   a parsed op to execute
+//   client_in_[p]   from producer p    EX -> IO   "you have completed ops to retire"
+//                                      IO -> EX   "you have bytes to send"      (WbMode::Ex)
+//                                      IO -> WB   "you have bytes to send"      (WbMode::Wb)
+//
+// client_in_ is unambiguous despite serving three directions, because a thread has exactly one role
+// at a time: an IO thread's client_in_ is always retire-work, a WB thread's is always send-work.
+//
+// One channel PER PRODUCER, which is what keeps each ring genuinely SPSC. The alternative is one
+// MPSC inbox per consumer, costing an atomic RMW per push from every producer; the fork measured
+// this handoff as instruction volume rather than stalls, so removing the RMW is the direct lever.
 //
 //   TODO(flip): converting Ex -> Io must first drain every inbox and hand its shards to another
 //   worker; converting Io -> Ex must first migrate its connections and reach rob.quiesced() on each.
-//   A conversion that loses or duplicates a thread breaks pool accounting — that was a real P0 in
-//   the fork, where role conversion lost or gained a thread outright.
+//   A conversion that loses or duplicates a thread breaks pool accounting — a real P0 in the fork.
 #pragma once
 #include <atomic>
 #include <cstdint>
 #include <memory>
 #include <vector>
 #include "shard.h"
-#include "../exec/exqueue.h"
+#include "signal.h"
 
 namespace tomo {
 
 class Client;
+class Ring;
 
-inline constexpr uint32_t kMaxThreads   = 128;
-inline constexpr uint32_t kInboxSlots   = 1024;   // per (io, ex) ring
+inline constexpr uint32_t kMaxThreads = 128;
+inline constexpr uint32_t kInboxSlots = 1024;
 
-enum class Role : uint8_t { Idle = 0, Io = 1, Ex = 2 };
+enum class Role : uint8_t { Idle = 0, Io = 1, Ex = 2, Wb = 3 };
 
-// What travels through an inbox. A handle rather than a raw Op*: the worker resolves it through the
-// client's ROB, so a slot that has been recycled cannot be reached through a stale pointer. The
-// client itself cannot be torn down while any op is in flight — that is the quiescence fence.
+// What travels on task_in_. A handle rather than a raw Op*: the worker resolves it through the
+// client's ROB, so a recycled slot cannot be reached through a stale pointer. The client itself
+// cannot be torn down while any op is in flight — that is the quiescence fence.
 struct Task {
     Client*  client = nullptr;
     uint64_t op_id  = 0;
 };
+
+using TaskChan   = Channel<Task, kInboxSlots>;
+using ClientChan = Channel<Client*, kInboxSlots>;
 
 class ThreadCtx {
 public:
@@ -50,48 +60,59 @@ public:
     ThreadCtx(const ThreadCtx&) = delete;
     ThreadCtx& operator=(const ThreadCtx&) = delete;
 
-    // `nthreads` sizes the inbox array. It must be the TOTAL thread count, not the io count: any
-    // thread can become an IO thread through a role change, so any thread may produce into this
-    // worker's inboxes.
-    //
-    // MEMORY SCALES AS O(threads^2) AND THAT IS THE COST OF SPSC. Each ring is ~16 KB, so a fixed
-    // 128-wide array would be 2.1 MB per thread and ~270 MB at 128 threads — nearly all of it
-    // untouched. Sizing to the live thread count instead makes a 16-thread server 256 KB per thread.
-    // If we ever run wide enough for this to bite, the fix is a smaller ring, not an MPSC inbox:
-    // MPSC costs an atomic RMW per push from every producer, and the fork measured this handoff as
-    // instruction volume rather than stalls.
+    // `nthreads` is the TOTAL thread count, not the io count: any thread can become a producer
+    // through a role change. Sized to the live count rather than kMaxThreads — a fixed 128-wide
+    // array would be megabytes per thread, nearly all of it untouched.
     void init(uint32_t id, Role r, uint32_t nthreads) {
         id_ = id;
         role_.store(r, std::memory_order_relaxed);
-        ninbox_ = nthreads;
-        inbox_  = std::make_unique<ExQueue<Task, kInboxSlots>[]>(nthreads);
+        nchan_     = nthreads;
+        task_in_   = std::make_unique<TaskChan[]>(nthreads);
+        client_in_ = std::make_unique<ClientChan[]>(nthreads);
     }
 
     uint32_t id()   const { return id_; }
     Role     role() const { return role_.load(std::memory_order_acquire); }
+    uint32_t nchan() const { return nchan_; }
 
-    // ---- Ex side -------------------------------------------------------------------------------
-    // One inbox per producing IO thread makes every ring genuinely SPSC. The alternative — a single
-    // MPSC inbox per worker — costs an atomic RMW per push from every producer, and the fork
-    // measured this handoff as instruction volume rather than stalls, so removing the RMW is the
-    // direct lever.
-    ExQueue<Task, kInboxSlots>& inbox(uint32_t io_thread_id) { return inbox_[io_thread_id]; }
-    uint32_t ninbox() const { return ninbox_; }
+    TaskChan&   task_in(uint32_t producer)   { return task_in_[producer]; }
+    ClientChan& client_in(uint32_t producer) { return client_in_[producer]; }
 
-    std::vector<Shard*>& shards() { return shards_; }
+    // The ring peers poke to wake this thread. Published once at startup, read by producers.
+    void  set_ring(Ring* r) { ring_.store(r, std::memory_order_release); }
+    Ring* ring() const      { return ring_.load(std::memory_order_acquire); }
 
-    // ---- Io side -------------------------------------------------------------------------------
-    std::vector<Client*>& clients() { return clients_; }
+    std::vector<Shard*>&  shards()  { return shards_; }    // Ex role
+    std::vector<Client*>& clients() { return clients_; }   // Io role
 
-    // ---- both ----------------------------------------------------------------------------------
-    struct Stats {
-        uint64_t ops_dispatched = 0;   // Io: published to a worker
-        uint64_t ops_executed   = 0;   // Ex: taken from an inbox and run
-        uint64_t replies_sent   = 0;
-        uint64_t queue_full     = 0;   // push() refused; backpressure fired
-        uint64_t loop_spins     = 0;
-    };
-    Stats& stats() { return stats_; }
+    // The single reporting surface. Every loop fills the same fields in the same units, so a
+    // controller compares like with like — the failure mode behind every balancer defect in the
+    // fork was comparing two quantities that were not the same kind of thing.
+    LoopSignals& sig() { return sig_; }
+
+    // Sample inbound pressure. Called once per loop iteration so depth_sum/depth_samples form a
+    // time-average rather than a spot reading, which is too noisy to control on.
+    void sample_depth() {
+        uint64_t d = 0;
+        for (uint32_t i = 0; i < nchan_; i++) d += task_in_[i].depth() + client_in_[i].depth();
+        sig_.depth_sum += d;
+        sig_.depth_samples++;
+    }
+
+    // Arm/disarm every inbound channel around a block. Producers only pay a wake syscall while
+    // these are armed. ALWAYS re-check the channels after arming and before actually blocking:
+    // a producer that pushed just before the flag was set would not have woken us.
+    void arm_blocked() {
+        for (uint32_t i = 0; i < nchan_; i++) { task_in_[i].arm_blocked(); client_in_[i].arm_blocked(); }
+    }
+    void clear_blocked() {
+        for (uint32_t i = 0; i < nchan_; i++) { task_in_[i].clear_blocked(); client_in_[i].clear_blocked(); }
+    }
+    bool any_inbound() const {
+        for (uint32_t i = 0; i < nchan_; i++)
+            if (task_in_[i].depth() || client_in_[i].depth()) return true;
+        return false;
+    }
 
     std::atomic<bool>& stop_flag() { return stop_; }
 
@@ -99,15 +120,15 @@ private:
     uint32_t          id_ = 0;
     std::atomic<Role> role_{Role::Idle};
     std::atomic<bool> stop_{false};
+    std::atomic<Ring*> ring_{nullptr};
 
-    // Allocated once at init to the live thread count and never resized, so a role change can
-    // never reallocate a queue another thread is pushing into.
-    std::unique_ptr<ExQueue<Task, kInboxSlots>[]> inbox_;
-    uint32_t ninbox_ = 0;
+    std::unique_ptr<TaskChan[]>   task_in_;
+    std::unique_ptr<ClientChan[]> client_in_;
+    uint32_t nchan_ = 0;
 
-    std::vector<Shard*>  shards_;    // Ex role
-    std::vector<Client*> clients_;   // Io role
-    Stats stats_;
+    std::vector<Shard*>  shards_;
+    std::vector<Client*> clients_;
+    LoopSignals          sig_;
 };
 
 }  // namespace tomo

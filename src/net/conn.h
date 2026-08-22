@@ -144,10 +144,16 @@ public:
 
     WbLink& wb() { return wb_; }
 
+    // Set by a worker before it tells the owning IO thread this client has ops to retire; cleared by
+    // that IO thread when it picks the client up. Without it, a pipelined burst of N completions
+    // enqueues the same client N times and the retire channel fills with duplicates.
+    std::atomic<bool>& retire_queued() { return retire_queued_; }
+
 private:
     Conn            conn_;
     Rob<kRobWindow> rob_;
     WbLink          wb_;
+    std::atomic<bool> retire_queued_{false};
     uint64_t        id_ = 0;
     uint32_t        io_thread_ = 0;
     bool            closing_ = false;
