@@ -18,6 +18,7 @@
 #include "connection.h"
 #include "bio.h"
 #include "flip_m1.h"
+#include "uring2.h"
 
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -3250,6 +3251,22 @@ static int applyTomoAtomicToggle(const char **err) {
     return 1;
 }
 
+/* CONFIG SET owns the plain canonical values; IO owners consume one packed
+ * max/min atomic snapshot per event-loop pass, so a max->min transaction
+ * cannot expose a transient conflict. */
+static int applyTomoUring2BatchConfig(const char **err) {
+    if (server.uring2_max_sqes_per_enter != 0 &&
+        server.uring2_min_sqes_per_enter != 0) {
+        *err = "tomokv-uring2-max-sqes-per-enter and "
+               "tomokv-uring2-min-sqes-per-enter cannot both be non-zero";
+        return 0;
+    }
+    tomoUring2SetBatchConfig(server.uring2_max_sqes_per_enter,
+                             server.uring2_min_sqes_per_enter,
+                             server.uring2_batch_wait_us);
+    return 1;
+}
+
 standardConfig static_configs[] = {
     /* Bool configs */
     createBoolConfig("rdbchecksum", NULL, IMMUTABLE_CONFIG, server.rdb_checksum, 1, NULL, NULL),
@@ -3353,6 +3370,9 @@ standardConfig static_configs[] = {
     createIntConfig("tomokv-wb-uring",               NULL, IMMUTABLE_CONFIG, -1, 4096, server.wb_uring, 0, INTEGER_CONFIG, NULL, NULL), /* 0=current write()/writev path; N=max SENDMSG SQEs per submit; -1=auto. Setup/probe/arm rejection falls back per WB. */
     createIntConfig("tomokv-uring-multishot",         NULL, IMMUTABLE_CONFIG, 0, 8192, server.uring_multishot, 0, INTEGER_CONFIG, NULL, NULL), /* 0=one-shot/no buffer ring; N=multishot receive with N provided buffers per IO thread (setup or arm rejection falls back per owner). */
     createIntConfig("tomokv-uring-sendcopy-min",       NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.uring_sendcopy_min, 0, INTEGER_CONFIG, NULL, NULL), /* 0=always copy; N=direct-send an eligible plain c->buf prefix when its staged length is <=N bytes. */
+    createIntConfig("tomokv-uring2-max-sqes-per-enter", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.uring2_max_sqes_per_enter, 0, INTEGER_CONFIG, NULL, applyTomoUring2BatchConfig), /* SEND-stage diagnostic axis: 0=unchanged pass-end submission; N=submit early at N staged SQEs, never wait. Mutually exclusive with min. */
+    createIntConfig("tomokv-uring2-min-sqes-per-enter", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.uring2_min_sqes_per_enter, 0, INTEGER_CONFIG, NULL, applyTomoUring2BatchConfig), /* Opposite SEND-stage diagnostic: N holds a short batch only when batch-wait-us is positive; pass end always escapes. Mutually exclusive with max. */
+    createIntConfig("tomokv-uring2-batch-wait-us",     NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.uring2_batch_wait_us, 0, INTEGER_CONFIG, NULL, applyTomoUring2BatchConfig), /* Bound for min-SQE purchased batching; 0 makes min advisory/no-wait. */
 
     /* ================= PINNING =============================================================
      * pin-io / pin-ex / pin-wb are PER ROLE PER NODE and are used ONLY with pin-mode static. Setting

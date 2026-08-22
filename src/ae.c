@@ -801,6 +801,35 @@ int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us,
     return processed;
 }
 
+/* A completion backend may need to wait on its native poll fd without
+ * recursively entering aeProcessEventsIO (which would enter the same uring a
+ * second time).  Dispatch only the file callbacks that are ready now, using
+ * the identical IO-thread callback ordering above.  The caller owns uring
+ * reap, before-sleep progress, and pass-end hooks around this narrow helper. */
+int aeProcessReadyFileEvents(aeEventLoop *eventLoop) {
+    if (eventLoop->maxfd == -1) return 0;
+
+    struct timeval nowait = {0};
+    int numevents = aeApiPoll(eventLoop, &nowait);
+    for (int j = 0; j < numevents; j++) {
+        int fd = eventLoop->fired[j].fd;
+        aeFileEvent *fe = &eventLoop->events[fd];
+        int mask = eventLoop->fired[j].mask;
+        int fired = 0;
+
+        if (fe->mask & mask & AE_READABLE) {
+            fe->rfileProc(eventLoop, fd, fe->clientData, mask);
+            fired++;
+            fe = &eventLoop->events[fd];
+        }
+        if (fe->mask & mask & AE_WRITABLE) {
+            if (!fired || fe->wfileProc != fe->rfileProc)
+                fe->wfileProc(eventLoop, fd, fe->clientData, mask);
+        }
+    }
+    return numevents;
+}
+
 
 /* Wait for milliseconds until the given file descriptor becomes
  * writable/readable/exception */

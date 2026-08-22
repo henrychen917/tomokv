@@ -8645,6 +8645,16 @@ void ensureLogicalDbInitialized(int id) {
 }
 
 void initServer(void) {
+    if (server.uring2_max_sqes_per_enter != 0 &&
+        server.uring2_min_sqes_per_enter != 0) {
+        serverLog(LL_WARNING,
+            "FATAL: tomokv-uring2-max-sqes-per-enter and "
+            "tomokv-uring2-min-sqes-per-enter cannot both be non-zero");
+        exit(1);
+    }
+    tomoUring2SetBatchConfig(server.uring2_max_sqes_per_enter,
+                             server.uring2_min_sqes_per_enter,
+                             server.uring2_batch_wait_us);
     /* The knob is immutable. Install the ae hook once so 0=off is a NULL
      * pointer for the lifetime of every event loop. */
     aeLoopStatsHook = server.phase_trace_sample ? tomoPhaseLoopIteration : NULL;
@@ -24931,6 +24941,9 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 (double)u2st.cqes / (double)u2st.cq_drain_passes : 0.0;
             double u2_sqes_per_enter = u2st.enter_calls ?
                 (double)u2st.sqes_submitted / (double)u2st.enter_calls : 0.0;
+            double u2_batch_wait_us_mean = u2st.batch_waits ?
+                (double)u2st.batch_wait_ns /
+                    ((double)u2st.batch_waits * 1000.0) : 0.0;
             info = sdscatprintf(info, FMTARGS(
                 "tomokv_uring2_enabled:%d\r\n", server.io_uring != 0,
                 "tomokv_uring2_registration_enabled:%d\r\n", tomoUring2RegistrationEnabled(),
@@ -24945,6 +24958,11 @@ sds genRedisInfoString(dict *section_dict, int all_sections, int everything) {
                 "tomokv_uring2_sqes_submitted:%llu\r\n", (unsigned long long)u2st.sqes_submitted,
                 "tomokv_uring2_sqes_max_batch:%llu\r\n", (unsigned long long)u2st.sqes_max_batch,
                 "tomokv_uring2_enter_calls:%llu\r\n", (unsigned long long)u2st.enter_calls,
+                "tomokv_uring2_cap_submits:%llu\r\n", (unsigned long long)u2st.cap_submits,
+                "tomokv_uring2_batch_waits:%llu\r\n", (unsigned long long)u2st.batch_waits,
+                "tomokv_uring2_batch_filled:%llu\r\n", (unsigned long long)u2st.batch_filled,
+                "tomokv_uring2_batch_escapes:%llu\r\n", (unsigned long long)u2st.batch_escapes,
+                "tomokv_uring2_batch_wait_us_mean:%.6f\r\n", u2_batch_wait_us_mean,
                 "tomokv_uring2_submit_getevents_calls:%llu\r\n", (unsigned long long)u2st.submit_getevents_calls,
                 "tomokv_uring2_taskrun_flag_enters:%llu\r\n", (unsigned long long)u2st.taskrun_flag_enters,
                 "tomokv_uring2_wait_calls:%llu\r\n", (unsigned long long)u2st.wait_calls,

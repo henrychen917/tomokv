@@ -3390,6 +3390,13 @@ struct redisServer {
     /* tomokv-uring-sendcopy-min: 0 = always copy the staged prefix; N = send
      * eligible plain c->buf prefixes of at most N bytes without a copy. */
     int uring_sendcopy_min;
+    /* tomokv-uring2-max-sqes-per-enter: 0 = pass-end submit only; N =
+     * diagnostic cap that submits staged SQEs early without waiting. */
+    int uring2_max_sqes_per_enter;
+    /* The opposite send-batching diagnostic: a positive minimum may hold a
+     * short pass for at most uring2_batch_wait_us before submitting it. */
+    int uring2_min_sqes_per_enter;
+    int uring2_batch_wait_us;
     /* FLATSTORE is UNCONDITIONAL as of 2026-07-28 (thredis_flat_store / flat_load_pct deleted):
      * a shared node db (shared_node_dbs) is always a flat table, and the resize trigger uses the
      * FLAT_LOAD_PCT compile-time target. `shared_node_dbs` alone is the predicate everywhere. */

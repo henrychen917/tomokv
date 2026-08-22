@@ -29,10 +29,15 @@
 #include <stdatomic.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include <sys/utsname.h>
 #include <unistd.h>
 
 static _Atomic int tomo_uring2_registration_enabled = 0;
+/* High/low halves are max/min. One atomic word makes their exclusion and a
+ * CONFIG SET max->min switch visible as one control-plane publication. */
+static _Atomic uint64_t tomo_uring2_batch_ends = 0;
+static _Atomic int tomo_uring2_batch_wait_us = 0;
 
 int tomoUring2RegistrationEnabled(void) {
     return atomic_load_explicit(&tomo_uring2_registration_enabled,
@@ -44,7 +49,45 @@ void tomoUring2SetRegistrationEnabled(int enabled) {
                           memory_order_relaxed);
 }
 
+int tomoUring2MaxSqesPerEnter(void) {
+    return (int)(atomic_load_explicit(&tomo_uring2_batch_ends,
+                                      memory_order_acquire) >> 32);
+}
+
+int tomoUring2MinSqesPerEnter(void) {
+    return (int)(uint32_t)atomic_load_explicit(&tomo_uring2_batch_ends,
+                                               memory_order_acquire);
+}
+
+int tomoUring2BatchWaitUs(void) {
+    return atomic_load_explicit(&tomo_uring2_batch_wait_us,
+                                memory_order_relaxed);
+}
+
+void tomoUring2SetBatchConfig(int max_sqes, int min_sqes, int wait_us) {
+    serverAssert(max_sqes >= 0 && min_sqes >= 0 && wait_us >= 0);
+    serverAssert(max_sqes == 0 || min_sqes == 0);
+
+    atomic_store_explicit(&tomo_uring2_batch_wait_us, wait_us,
+                          memory_order_relaxed);
+    uint64_t ends = (uint64_t)(uint32_t)max_sqes << 32 |
+                    (uint32_t)min_sqes;
+    atomic_store_explicit(&tomo_uring2_batch_ends, ends,
+                          memory_order_release);
+}
+
 #ifdef HAVE_LIBURING
+
+static void tomoUring2GetBatchConfig(unsigned *max_sqes,
+                                     unsigned *min_sqes,
+                                     unsigned *wait_us) {
+    uint64_t ends = atomic_load_explicit(&tomo_uring2_batch_ends,
+                                         memory_order_acquire);
+    *max_sqes = (unsigned)(ends >> 32);
+    *min_sqes = (unsigned)(uint32_t)ends;
+    *wait_us = (unsigned)atomic_load_explicit(&tomo_uring2_batch_wait_us,
+                                              memory_order_relaxed);
+}
 
 #include <liburing.h>
 
@@ -92,6 +135,11 @@ typedef struct tomoUring2AtomicStats {
     _Atomic uint64_t sqes_submitted;
     _Atomic uint64_t sqes_max_batch;
     _Atomic uint64_t enter_calls;
+    _Atomic uint64_t cap_submits;
+    _Atomic uint64_t batch_waits;
+    _Atomic uint64_t batch_filled;
+    _Atomic uint64_t batch_escapes;
+    _Atomic uint64_t batch_wait_ns;
     _Atomic uint64_t submit_getevents_calls;
     _Atomic uint64_t taskrun_flag_enters;
     _Atomic uint64_t wait_calls;
@@ -237,6 +285,7 @@ struct __attribute__((aligned(CACHE_LINE_SIZE))) tomoUring2Thread {
     pthread_t issuer;
     int state;                    /* 0 uninitialized, 1 ready, -1 failed */
     int ring_initialized;
+    unsigned max_sqes_per_enter; /* Owner-local effective cap for this pass. */
     unsigned kernel_major;
     unsigned kernel_minor;
     unsigned poll_first_supported : 1;
@@ -295,6 +344,26 @@ static tomoUring2Thread tomo_uring2[TOMO_IO_THREADS_MAX + 1]
 
 #define URING2_STAT_BUMP(st, field, amount) \
     tomoRelaxedBump((st)->stats.field, (uint64_t)(amount))
+
+typedef struct tomoUring2CapPass {
+    unsigned cap;
+    int blocked;
+    int submit_at_cap;
+} tomoUring2CapPass;
+
+static int tomoUring2TaskrunPending(tomoUring2Thread *st);
+static int tomoUring2SubmitAndGetEvents(tomoUring2Thread *st,
+                                        int taskrun_pending);
+static int tomoUring2CapFinishBatch(tomoUring2Thread *st,
+                                    tomoUring2CapPass *pass);
+
+static unsigned tomoUring2CapRoom(const tomoUring2Thread *st,
+                                  const tomoUring2CapPass *pass) {
+    unsigned ready = io_uring_sq_ready(&st->ring);
+    unsigned room = ready < pass->cap ? pass->cap - ready : 0;
+    unsigned physical = io_uring_sq_space_left(&st->ring);
+    return room < physical ? room : physical;
+}
 
 static tomoUring2Client *tomoUring2ClientOf(const client *c) {
     return c ? (tomoUring2Client *)(void *)clientTail(c)->uring : NULL;
@@ -1177,13 +1246,15 @@ static int tomoUring2StageSendCancels(tomoUring2Thread *st) {
     return staged;
 }
 
-static int tomoUring2StageSends(tomoUring2Thread *st) {
+static int tomoUring2StageSends(tomoUring2Thread *st,
+                                unsigned int max_batch) {
     tomoUring2Client *ready[TOMO_URING2_SEND_BATCH_MAX];
     const int owner_tid = st->tid;
     const ConnectionType *tcp_type = connectionTypeTcp();
     unsigned int sq_budget = io_uring_sq_space_left(&st->ring);
-    if (sq_budget > TOMO_URING2_SEND_BATCH_MAX)
-        sq_budget = TOMO_URING2_SEND_BATCH_MAX;
+    if (max_batch > TOMO_URING2_SEND_BATCH_MAX)
+        max_batch = TOMO_URING2_SEND_BATCH_MAX;
+    if (sq_budget > max_batch) sq_budget = max_batch;
     unsigned int ready_count = 0;
     unsigned int scratch_copies = 0;
     uint64_t scratch_bytes = 0;
@@ -1345,6 +1416,195 @@ static int tomoUring2StageRecvs(tomoUring2Thread *st) {
         staged++;
     }
     return staged;
+}
+
+/* The cap-on path is deliberately separate from the ordinary staging loops.
+ * With cap=0 those loops above remain the exact pass-end-only path: one
+ * relaxed cap load and one predictable branch per pass, with no per-SQE cap
+ * test.  The bounded copies below stop only at an earlier submit boundary and
+ * resume the same owner list immediately afterward. */
+static void tomoUring2StageRecvCancelsCapped(tomoUring2Thread *st,
+                                             tomoUring2CapPass *pass) {
+    while (st->cancel_head && !pass->blocked) {
+        unsigned budget = tomoUring2CapRoom(st, pass);
+        if (budget == 0) {
+            if (tomoUring2CapFinishBatch(st, pass) != C_OK) break;
+            continue;
+        }
+
+        unsigned staged = 0;
+        while (st->cancel_head && staged < budget) {
+            tomoUring2Client *uc = st->cancel_head;
+            serverAssert(uc->recv_state == TOMO_URING2_RECV_DISARMING);
+            serverAssert(uc->recv_token != 0);
+            uint64_t token = 0;
+            struct io_uring_sqe *sqe = tomoUring2GetSqe(
+                st, tomoUring2RecvCancelCqe, uc,
+                TOMO_URING2_OP_RECV_CANCEL, &token);
+            if (!sqe) break;
+            tomoUring2CancelRemove(st, uc);
+            io_uring_prep_cancel64(sqe, uc->recv_token, 0);
+            uc->recv_cancel_token = token;
+            uc->cancel_submitted = 1;
+            URING2_STAT_BUMP(st, recv_cancel_submitted, 1);
+            staged++;
+        }
+        if (staged == 0 ||
+            tomoUring2CapFinishBatch(st, pass) != C_OK)
+            break;
+    }
+}
+
+static void tomoUring2StageSendCancelsCapped(tomoUring2Thread *st,
+                                             tomoUring2CapPass *pass) {
+    while (st->send_cancel_head && !pass->blocked) {
+        unsigned budget = tomoUring2CapRoom(st, pass);
+        if (budget == 0) {
+            if (tomoUring2CapFinishBatch(st, pass) != C_OK) break;
+            continue;
+        }
+
+        unsigned staged = 0;
+        while (st->send_cancel_head && staged < budget) {
+            tomoUring2Client *uc = st->send_cancel_head;
+            serverAssert(uc->send_active && uc->send_submitted &&
+                         uc->send_token);
+            uint64_t token = 0;
+            struct io_uring_sqe *sqe = tomoUring2GetSqe(
+                st, tomoUring2SendCancelCqe, uc,
+                TOMO_URING2_OP_SEND_CANCEL, &token);
+            if (!sqe) break;
+            tomoUring2SendCancelRemove(st, uc);
+            io_uring_prep_cancel64(sqe, uc->send_token, 0);
+            uc->send_cancel_token = token;
+            uc->send_cancel_submitted = 1;
+            URING2_STAT_BUMP(st, send_cancel_submitted, 1);
+            staged++;
+        }
+        if (staged == 0 ||
+            tomoUring2CapFinishBatch(st, pass) != C_OK)
+            break;
+    }
+}
+
+static void tomoUring2StageSendsCapped(tomoUring2Thread *st,
+                                       tomoUring2CapPass *pass) {
+    /* Preserve the ordinary pass's selection ceiling.  Early enters divide
+     * this one natural send run; they never make the pass select a second run. */
+    unsigned pass_budget = io_uring_sq_space_left(&st->ring);
+    if (pass_budget > TOMO_URING2_SEND_BATCH_MAX)
+        pass_budget = TOMO_URING2_SEND_BATCH_MAX;
+    unsigned staged = 0;
+
+    while (st->send_head && staged < pass_budget && !pass->blocked) {
+        unsigned room = tomoUring2CapRoom(st, pass);
+        if (room == 0) {
+            if (tomoUring2CapFinishBatch(st, pass) != C_OK) break;
+            continue;
+        }
+        unsigned budget = pass_budget - staged;
+        if (budget > room) budget = room;
+        int n = tomoUring2StageSends(st, budget);
+        if (n <= 0) break;
+        staged += (unsigned)n;
+        if (tomoUring2CapFinishBatch(st, pass) != C_OK) break;
+    }
+}
+
+static void tomoUring2StageRecvsCapped(tomoUring2Thread *st,
+                                       tomoUring2CapPass *pass) {
+    while (st->arm_head && !pass->blocked) {
+        unsigned budget = tomoUring2CapRoom(st, pass);
+        if (budget == 0) {
+            if (tomoUring2CapFinishBatch(st, pass) != C_OK) break;
+            continue;
+        }
+
+        unsigned staged = 0;
+        while (st->arm_head && staged < budget) {
+            tomoUring2Client *uc = st->arm_head;
+            if (uc->recv_state != TOMO_URING2_RECV_ARM_PENDING ||
+                uc->mode != TOMO_URING2_CLIENT_RUN ||
+                !uc->c->conn || uc->c->conn->fd != uc->fd) {
+                tomoUring2ArmRemove(st, uc);
+                if (uc->recv_state == TOMO_URING2_RECV_ARM_PENDING)
+                    uc->recv_state = TOMO_URING2_RECV_IDLE;
+                uc->socket_nonempty = 0;
+                continue;
+            }
+
+            uint64_t token = 0;
+            struct io_uring_sqe *sqe = tomoUring2GetSqe(
+                st, tomoUring2RecvCqe, uc, TOMO_URING2_OP_RECV, &token);
+            if (!sqe) break;
+            tomoUring2ArmRemove(st, uc);
+            int multishot = st->multishot_enabled && !st->multishot_rejected;
+            int sqe_fd = uc->fd;
+            int use_fixed_file = tomoUring2UseFixedFile(st, uc);
+            if (use_fixed_file) sqe_fd = (int)uc->fixed_file_slot;
+            if (multishot) {
+                io_uring_prep_recv_multishot(sqe, sqe_fd, NULL, 0, 0);
+                sqe->flags |= IOSQE_BUFFER_SELECT;
+                sqe->buf_group = TOMO_URING2_RECV_BGID;
+                URING2_STAT_BUMP(st, multishot_arms, 1);
+                if (uc->multishot_armed_once)
+                    URING2_STAT_BUMP(st, multishot_rearms, 1);
+                else
+                    uc->multishot_armed_once = 1;
+            } else {
+                if (!uc->recv_buf) uc->recv_buf = zmalloc(PROTO_IOBUF_LEN);
+                serverAssert(uc->recv_buf != NULL);
+                io_uring_prep_recv(sqe, sqe_fd, uc->recv_buf,
+                                   PROTO_IOBUF_LEN, 0);
+                URING2_STAT_BUMP(st, recv_oneshot, 1);
+            }
+            if (use_fixed_file) {
+                sqe->flags |= IOSQE_FIXED_FILE;
+                URING2_STAT_BUMP(st, fixed_file_sqes, 1);
+            }
+            if (st->poll_first_supported && !uc->socket_nonempty) {
+                sqe->ioprio |= IORING_RECVSEND_POLL_FIRST;
+                URING2_STAT_BUMP(st, recv_poll_first, 1);
+            }
+            uc->socket_nonempty = 0;
+            uc->recv_token = token;
+            uc->recv_multishot = multishot;
+            uc->recv_state = TOMO_URING2_RECV_ARMED;
+            uc->cancel_seen = 0;
+            uc->terminal_seen = 0;
+            URING2_STAT_BUMP(st, recv_submitted, 1);
+            staged++;
+        }
+        if (staged == 0 ||
+            tomoUring2CapFinishBatch(st, pass) != C_OK)
+            break;
+    }
+}
+
+static void tomoUring2StageCappedPass(tomoUring2Thread *st, unsigned cap,
+                                      int submit_at_cap, int stage_poll) {
+    tomoUring2CapPass pass = {
+        .cap = cap,
+        .submit_at_cap = submit_at_cap,
+    };
+
+    /* A short prior enter may leave exactly one capped batch pending.  Retry it
+     * before adding another SQE, through the same nonblocking helper. */
+    if (io_uring_sq_ready(&st->ring) >= cap &&
+        tomoUring2CapFinishBatch(st, &pass) != C_OK)
+        return;
+
+    if (stage_poll && st->poll_needs_arm && !st->poll_ready_unconsumed) {
+        (void)tomoUring2QueueEpollPoll(st);
+        if (tomoUring2CapFinishBatch(st, &pass) != C_OK) return;
+    }
+    tomoUring2StageRecvCancelsCapped(st, &pass);
+    if (pass.blocked) return;
+    tomoUring2StageSendCancelsCapped(st, &pass);
+    if (pass.blocked) return;
+    tomoUring2StageSendsCapped(st, &pass);
+    if (pass.blocked) return;
+    tomoUring2StageRecvsCapped(st, &pass);
 }
 
 static void tomoUring2QueueRecvIfRunning(tomoUring2Client *uc) {
@@ -1978,6 +2238,184 @@ static int tomoUring2SubmitAndGetEvents(tomoUring2Thread *st,
     return rc > 0 ? rc : 0;
 }
 
+static int tomoUring2CapFinishBatch(tomoUring2Thread *st,
+                                    tomoUring2CapPass *pass) {
+    unsigned before = io_uring_sq_ready(&st->ring);
+    if (before < pass->cap) {
+        /* A requested diagnostic boundary may exceed the physical SQ. Stop
+         * staging and let pass end submit the full ring; never fall into the
+         * generic SQ-full emergency submit from inside a min-batch hold. */
+        if (io_uring_sq_space_left(&st->ring) == 0) {
+            pass->blocked = 1;
+            return C_ERR;
+        }
+        return C_OK;
+    }
+
+    /* Activation waits until a pre-existing SQ remainder fits the requested
+     * cap, and bounded staging stops exactly at it. */
+    debugServerAssert(before == pass->cap || !pass->submit_at_cap);
+    if (!pass->submit_at_cap) {
+        pass->blocked = 1;
+        return C_ERR;
+    }
+    URING2_STAT_BUMP(st, cap_submits, 1);
+    (void)tomoUring2SubmitAndGetEvents(st, tomoUring2TaskrunPending(st));
+
+    /* A short submit may leave a partial batch; continue only into the room it
+     * actually freed.  EINTR/EBUSY leave the full batch in place, so stop owner
+     * staging and let the unchanged pass-end call perform its normal retry. */
+    if (io_uring_sq_ready(&st->ring) >= pass->cap) {
+        pass->blocked = 1;
+        return C_ERR;
+    }
+    return C_OK;
+}
+
+static uint64_t tomoUring2MonotonicNs(void) {
+    struct timespec ts;
+    if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0)
+        tomoUring2Fatal(NULL, "clock_gettime(CLOCK_MONOTONIC)", errno);
+    return (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
+}
+
+/* Run DEFER_TASKRUN work without publishing any userspace SQ tail.  This is
+ * the crucial difference from io_uring_submit_and_get_events while a short
+ * min-batch is being held. */
+static void tomoUring2RunTaskworkNoSubmit(tomoUring2Thread *st) {
+    URING2_STAT_BUMP(st, enter_calls, 1);
+    int rc = io_uring_enter(st->ring.ring_fd, 0, 0,
+                            IORING_ENTER_GETEVENTS, NULL);
+    if (rc >= 0 || rc == -EINTR || rc == -EBUSY) return;
+    tomoUring2Fatal(st, "batch-wait io_uring GETEVENTS", rc);
+}
+
+/* Complete one productive iteration of the bounded wait.  Ring CQEs are
+ * retired before parser callbacks, native epoll callbacks are dispatched
+ * nonblocking, and the ordinary before-sleep hook then harvests worker
+ * replies and queues their SEND work.  Calling aeProcessEventsIO here would
+ * recursively enter this ring, so ae exposes the narrow native-only helper. */
+static void tomoUring2BatchWaitProgress(tomoUring2Thread *st,
+                                        int native_ready_hint) {
+    if (tomoUring2TaskrunPending(st))
+        tomoUring2RunTaskworkNoSubmit(st);
+
+    int rr = tomoUring2ReapAe(st->el, 1);
+    int poll_cqe_ready = (rr & AE_URING_EPOLL_READY) != 0;
+    if (native_ready_hint || poll_cqe_ready)
+        (void)aeProcessReadyFileEvents(st->el);
+    if (poll_cqe_ready)
+        tomoUring2EpollDrainedAe(st->el);
+
+    if (st->el->beforesleep)
+        st->el->beforesleep(st->el);
+}
+
+static int tomoUring2StagePollIfItFills(tomoUring2Thread *st,
+                                        unsigned min_sqes) {
+    unsigned ready = io_uring_sq_ready(&st->ring);
+    if (ready >= min_sqes) return 1;
+    if (!st->poll_needs_arm || st->poll_ready_unconsumed || st->poll_armed ||
+        io_uring_sq_space_left(&st->ring) == 0 || ready + 1 < min_sqes)
+        return 0;
+    (void)tomoUring2QueueEpollPoll(st);
+    return io_uring_sq_ready(&st->ring) >= min_sqes;
+}
+
+/* Hold one short, non-empty SQ batch. ppoll sleeps on both completion
+ * sources: the ring fd for socket CQEs/taskwork and the native epoll fd for
+ * worker/migration notifiers while the usual POLL_ADD rearm is deliberately
+ * not submitted. Every wake drains useful work before another bounded poll.
+ * The caller always performs the pass-end submit after this returns. */
+static void tomoUring2WaitForMinBatch(tomoUring2Thread *st,
+                                      unsigned min_sqes,
+                                      unsigned wait_us) {
+    uint64_t start_ns = tomoUring2MonotonicNs();
+    uint64_t wait_ns = (uint64_t)wait_us * 1000ULL;
+    uint64_t deadline_ns = start_ns + wait_ns;
+    uint64_t blocked_ns = 0;
+    URING2_STAT_BUMP(st, batch_waits, 1);
+
+    int filled = 0;
+    for (;;) {
+        tomoUring2StageCappedPass(st, UINT_MAX, 0, 0);
+        if (io_uring_sq_ready(&st->ring) >= min_sqes ||
+            tomoUring2StagePollIfItFills(st, min_sqes)) {
+            filled = 1;
+            break;
+        }
+
+        uint64_t now_ns = tomoUring2MonotonicNs();
+        if (now_ns >= deadline_ns) {
+            /* One final nonblocking harvest closes the race with a worker or
+             * CQ publication at the deadline; it never extends the poll. */
+            tomoUring2BatchWaitProgress(st, 0);
+            tomoUring2StageCappedPass(st, UINT_MAX, 0, 0);
+            if (io_uring_sq_ready(&st->ring) >= min_sqes ||
+                tomoUring2StagePollIfItFills(st, min_sqes))
+                filled = 1;
+            break;
+        }
+
+        /* A completion already visible at this boundary is drained, never
+         * slept behind. This branch also materializes deferred taskwork with
+         * to_submit=0, so held SQEs remain held. */
+        if (io_uring_cq_ready(&st->ring) ||
+            tomoUring2TaskrunPending(st) ||
+            st->poll_ready_unconsumed) {
+            tomoUring2BatchWaitProgress(st, 0);
+            continue;
+        }
+
+        uint64_t remaining_ns = deadline_ns - now_ns;
+        struct timespec timeout = {
+            .tv_sec = (time_t)(remaining_ns / 1000000000ULL),
+            .tv_nsec = (long)(remaining_ns % 1000000000ULL),
+        };
+        struct pollfd pfds[2] = {
+            {.fd = st->ring.ring_fd, .events = POLLIN},
+            {.fd = st->epoll_fd, .events = POLLIN},
+        };
+        uint64_t poll_start_ns = tomoUring2MonotonicNs();
+        int rc = ppoll(pfds, 2, &timeout, NULL);
+        blocked_ns += tomoUring2MonotonicNs() - poll_start_ns;
+        if (rc < 0 && errno != EINTR)
+            tomoUring2Fatal(st, "batch-wait ppoll", errno);
+
+        if (rc == 0) {
+            /* The requested absolute remainder expired. Harvest once, then
+             * return to the caller's unconditional pass-end submit. */
+            tomoUring2BatchWaitProgress(st, 0);
+            tomoUring2StageCappedPass(st, UINT_MAX, 0, 0);
+            if (io_uring_sq_ready(&st->ring) >= min_sqes ||
+                tomoUring2StagePollIfItFills(st, min_sqes))
+                filled = 1;
+            break;
+        }
+
+        int ring_ready = rc > 0 &&
+            (pfds[0].revents & (POLLIN | POLLERR | POLLHUP));
+        int native_ready = rc > 0 &&
+            (pfds[1].revents & (POLLIN | POLLERR | POLLHUP));
+        if (rc > 0 && (pfds[0].revents & POLLNVAL))
+            tomoUring2Fatal(st, "batch-wait ring fd", EBADF);
+        if (rc > 0 && (pfds[1].revents & POLLNVAL))
+            tomoUring2Fatal(st, "batch-wait epoll fd", EBADF);
+        if (ring_ready || tomoUring2TaskrunPending(st))
+            tomoUring2RunTaskworkNoSubmit(st);
+        tomoUring2BatchWaitProgress(st, native_ready);
+    }
+
+    /* Report time inside the wait primitive, excluding CQ/native callback
+     * work performed between polls. Kernel timeout wakeup/scheduling delay is
+     * intentionally visible rather than clamped to the requested budget. */
+    URING2_STAT_BUMP(st, batch_wait_ns, blocked_ns);
+    if (filled)
+        URING2_STAT_BUMP(st, batch_filled, 1);
+    else
+        URING2_STAT_BUMP(st, batch_escapes, 1);
+}
+
 static int tomoUring2Wait(tomoUring2Thread *st, struct timeval *tvp) {
     int rc;
     /* A CQE may race with the caller's empty check.  Recheck before choosing
@@ -2033,14 +2471,54 @@ static int tomoUring2EnterAe(aeEventLoop *el, struct timeval *tvp) {
     if (!pthread_equal(st->issuer, pthread_self()))
         tomoUring2Fatal(st, "enter from second issuer pthread", EPERM);
 
+    /* Dispatch batching (IO -> EX) is tomo_disp_window/flushExQueues(). These
+     * independent max/min diagnostics measure send-side SQ batching. Max can
+     * only divide a natural pass; min may purchase a larger pass with its
+     * explicitly bounded completion-aware wait. */
+    unsigned requested_cap, requested_min, batch_wait_us;
+    tomoUring2GetBatchConfig(&requested_cap, &requested_min,
+                             &batch_wait_us);
+    debugServerAssert(requested_cap == 0 || requested_min == 0);
+    unsigned ready_before_pass = io_uring_sq_ready(&st->ring);
+    if (requested_cap == 0 || ready_before_pass <= requested_cap)
+        st->max_sqes_per_enter = requested_cap;
+
     /* Helpers only enqueue intrusive owner work.  This is the sole ordinary
-     * SQE staging/submission point for the loop turn. */
-    if (st->poll_needs_arm && !st->poll_ready_unconsumed)
-        (void)tomoUring2QueueEpollPoll(st);
-    (void)tomoUring2StageRecvCancels(st);
-    (void)tomoUring2StageSendCancels(st);
-    (void)tomoUring2StageSends(st);
-    (void)tomoUring2StageRecvs(st);
+     * SQE staging/submission point for the loop turn.  Both knobs at zero --
+     * and advisory min with wait=0 -- deliberately retain the former call
+     * sequence byte for byte. */
+    if (__builtin_expect(st->max_sqes_per_enter == 0 &&
+                         (requested_min == 0 || batch_wait_us == 0), 1)) {
+        if (st->poll_needs_arm && !st->poll_ready_unconsumed)
+            (void)tomoUring2QueueEpollPoll(st);
+        (void)tomoUring2StageRecvCancels(st);
+        (void)tomoUring2StageSendCancels(st);
+        (void)tomoUring2StageSends(st, TOMO_URING2_SEND_BATCH_MAX);
+        (void)tomoUring2StageRecvs(st);
+    } else if (st->max_sqes_per_enter != 0) {
+        tomoUring2StageCappedPass(st, st->max_sqes_per_enter, 1, 1);
+    } else {
+        /* Keep the POLL_ADD rearm out of a held SQ tail. ppoll watches the
+         * native epoll fd directly until target or timeout, then pass end
+         * stages the rearm with everything else. */
+        tomoUring2StageCappedPass(st, UINT_MAX, 0, 0);
+        unsigned staged = io_uring_sq_ready(&st->ring);
+        int reached = staged >= requested_min ||
+                      tomoUring2StagePollIfItFills(st, requested_min);
+        int completion_pending = io_uring_cq_ready(&st->ring) ||
+                                 tomoUring2TaskrunPending(st) ||
+                                 st->poll_ready_unconsumed;
+        if (!reached && staged != 0 && ready_before_pass == 0 &&
+            !completion_pending) {
+            tomoUring2WaitForMinBatch(st, requested_min, batch_wait_us);
+        }
+        /* Timeout, target, a pre-existing SQ remainder, and a pending CQE all
+         * converge here: pass end submits whatever exists, unconditionally
+         * with respect to fill level. */
+        if (st->poll_needs_arm && !st->poll_ready_unconsumed &&
+            io_uring_sq_space_left(&st->ring) != 0)
+            (void)tomoUring2QueueEpollPoll(st);
+    }
 
     int deferred_owner_work =
         st->cancel_head || st->send_cancel_head || st->send_head ||
@@ -2647,6 +3125,11 @@ void tomoUring2GetStats(tomoUring2Stats *out) {
     FOLD(sqes_staged);
     FOLD(sqes_submitted);
     FOLD(enter_calls);
+    FOLD(cap_submits);
+    FOLD(batch_waits);
+    FOLD(batch_filled);
+    FOLD(batch_escapes);
+    FOLD(batch_wait_ns);
     FOLD(submit_getevents_calls);
     FOLD(taskrun_flag_enters);
     FOLD(wait_calls);
@@ -2719,6 +3202,144 @@ static void tomoUring2ClientRelease(client *c) { UNUSED(c); }
 void tomoUring2GetStats(tomoUring2Stats *out) { memset(out, 0, sizeof(*out)); }
 
 #endif /* HAVE_LIBURING */
+
+/* DEBUG TOMO-URING2CAPSELFTEST uses a byte-level submit trace rather than a
+ * live owner ring, so it is deterministic and also runs in non-uring builds.
+ * The model has the same policy boundary as the live path: positive N flushes
+ * immediately at N, while zero and the final remainder flush only at pass end. */
+#define TOMO_URING2_CAP_TEST_REPLIES 7U
+#define TOMO_URING2_CAP_TEST_BYTES   16U
+
+typedef struct tomoUring2CapTestReply {
+    uint32_t ordinal;
+    uint32_t len;
+    unsigned char bytes[TOMO_URING2_CAP_TEST_BYTES];
+} tomoUring2CapTestReply;
+
+typedef struct tomoUring2CapTestTrace {
+    tomoUring2CapTestReply pending[TOMO_URING2_CAP_TEST_REPLIES];
+    tomoUring2CapTestReply submitted[TOMO_URING2_CAP_TEST_REPLIES];
+    unsigned pending_count;
+    unsigned submitted_count;
+    unsigned batches[TOMO_URING2_CAP_TEST_REPLIES];
+    unsigned batch_count;
+    unsigned cap_submits;
+    unsigned pass_end_submits;
+    unsigned max_sqes;
+    unsigned char wire[TOMO_URING2_CAP_TEST_REPLIES *
+                       TOMO_URING2_CAP_TEST_BYTES];
+    unsigned wire_len;
+} tomoUring2CapTestTrace;
+
+static const tomoUring2CapTestReply tomo_uring2_cap_test_replies[
+    TOMO_URING2_CAP_TEST_REPLIES] = {
+    {0, 5, {'+', 'O', 'K', '\r', '\n'}},
+    {1, 9, {'$', '3', '\r', '\n', 'o', 'n', 'e', '\r', '\n'}},
+    {2, 4, {':', '7', '\r', '\n'}},
+    {3, 10, {'$', '4', '\r', '\n', 0x00, 0x7f, 0x80, 0xff, '\r', '\n'}},
+    {4, 5, {'+', 'T', 'W', 'O', '\n'}},
+    {5, 5, {'_', '\r', '\n', 'x', 'y'}},
+    {6, 6, {'*', '0', '\r', '\n', '!', '\n'}},
+};
+
+static void tomoUring2CapTestFlush(tomoUring2CapTestTrace *trace,
+                                   int cap_triggered) {
+    unsigned n = trace->pending_count;
+    serverAssert(n != 0);
+    serverAssert(trace->batch_count < TOMO_URING2_CAP_TEST_REPLIES);
+    trace->batches[trace->batch_count++] = n;
+    if (n > trace->max_sqes) trace->max_sqes = n;
+    if (cap_triggered) trace->cap_submits++;
+    else trace->pass_end_submits++;
+
+    for (unsigned i = 0; i < n; i++) {
+        const tomoUring2CapTestReply *reply = &trace->pending[i];
+        serverAssert(trace->submitted_count < TOMO_URING2_CAP_TEST_REPLIES);
+        trace->submitted[trace->submitted_count++] = *reply;
+        serverAssert(trace->wire_len + reply->len <= sizeof(trace->wire));
+        memcpy(trace->wire + trace->wire_len, reply->bytes, reply->len);
+        trace->wire_len += reply->len;
+    }
+    trace->pending_count = 0;
+}
+
+static void tomoUring2CapTestRun(unsigned cap, unsigned reply_count,
+                                 tomoUring2CapTestTrace *trace) {
+    memset(trace, 0, sizeof(*trace));
+    serverAssert(reply_count <= TOMO_URING2_CAP_TEST_REPLIES);
+    for (unsigned i = 0; i < reply_count; i++) {
+        trace->pending[trace->pending_count++] =
+            tomo_uring2_cap_test_replies[i];
+        if (cap && trace->pending_count == cap)
+            tomoUring2CapTestFlush(trace, 1);
+    }
+    if (trace->pending_count) tomoUring2CapTestFlush(trace, 0);
+}
+
+static void tomoUring2CapTestLegacy(unsigned reply_count,
+                                    tomoUring2CapTestTrace *trace) {
+    memset(trace, 0, sizeof(*trace));
+    serverAssert(reply_count <= TOMO_URING2_CAP_TEST_REPLIES);
+    for (unsigned i = 0; i < reply_count; i++)
+        trace->pending[trace->pending_count++] =
+            tomo_uring2_cap_test_replies[i];
+    if (trace->pending_count) tomoUring2CapTestFlush(trace, 0);
+}
+
+int tomoUring2CapSelfTest(
+    tomoUring2CapSelfTestResult results[TOMO_URING2_CAP_SELFTEST_CASES]) {
+    tomoUring2CapTestTrace capped, off, legacy, below;
+    tomoUring2CapTestRun(3, TOMO_URING2_CAP_TEST_REPLIES, &capped);
+    tomoUring2CapTestRun(0, TOMO_URING2_CAP_TEST_REPLIES, &off);
+    tomoUring2CapTestLegacy(TOMO_URING2_CAP_TEST_REPLIES, &legacy);
+    tomoUring2CapTestRun(8, 2, &below);
+
+    int bounded = capped.max_sqes <= 3 && capped.batch_count == 3 &&
+                  capped.batches[0] == 3 && capped.batches[1] == 3 &&
+                  capped.batches[2] == 1 && capped.cap_submits == 2 &&
+                  capped.pass_end_submits == 1;
+    int ordered_full =
+        capped.submitted_count == legacy.submitted_count &&
+        capped.wire_len == legacy.wire_len &&
+        memcmp(capped.submitted, legacy.submitted,
+               sizeof(capped.submitted)) == 0 &&
+        memcmp(capped.wire, legacy.wire, capped.wire_len) == 0;
+    int zero_identical =
+        memcmp(&off, &legacy, sizeof(off)) == 0;
+    int below_pass_end = below.max_sqes == 2 && below.cap_submits == 0 &&
+                         below.pass_end_submits == 1 &&
+                         below.submitted_count == 2;
+
+    results[0] = (tomoUring2CapSelfTestResult) {
+        .name = "no-enter-exceeds-cap", .passed = bounded, .cap = 3,
+        .max_sqes = capped.max_sqes, .cap_submits = capped.cap_submits,
+        .pass_end_submits = capped.pass_end_submits,
+        .replies = capped.submitted_count, .bytes = capped.wire_len,
+    };
+    results[1] = (tomoUring2CapSelfTestResult) {
+        .name = "reply-order-and-full-bytes", .passed = ordered_full, .cap = 3,
+        .max_sqes = capped.max_sqes, .cap_submits = capped.cap_submits,
+        .pass_end_submits = capped.pass_end_submits,
+        .replies = capped.submitted_count, .bytes = capped.wire_len,
+    };
+    results[2] = (tomoUring2CapSelfTestResult) {
+        .name = "min-max-zero-legacy-submit-sequence",
+        .passed = zero_identical,
+        .cap = 0, .max_sqes = off.max_sqes,
+        .cap_submits = off.cap_submits,
+        .pass_end_submits = off.pass_end_submits,
+        .replies = off.submitted_count, .bytes = off.wire_len,
+    };
+    results[3] = (tomoUring2CapSelfTestResult) {
+        .name = "below-cap-still-pass-end-submits", .passed = below_pass_end,
+        .cap = 8, .max_sqes = below.max_sqes,
+        .cap_submits = below.cap_submits,
+        .pass_end_submits = below.pass_end_submits,
+        .replies = below.submitted_count, .bytes = below.wire_len,
+    };
+
+    return bounded && ordered_full && zero_identical && below_pass_end;
+}
 
 /* Immutable runtime dispatch. The old mode-1 unified SI|DTR ring was DELETED 2026-08-10
  * (owner decision; the Helio-style ring beat it 9/9 across p1/p32/mixed): any nonzero

@@ -152,6 +152,10 @@ typedef struct aeIOAccounting {
 } aeIOAccounting;
 int aeProcessEventsIO(aeEventLoop *eventLoop, int idle_wait_us,
                       aeIOAccounting *accounting);
+/* Nonblocking native-backend dispatch used by a completion backend while it
+ * performs its own bounded wait. It neither enters/reaps uring nor runs time
+ * events or pass hooks. */
+int aeProcessReadyFileEvents(aeEventLoop *eventLoop);
 int aeWait(int fd, int mask, long long milliseconds);
 void aeMain(aeEventLoop *eventLoop);
 char *aeGetApiName(void);

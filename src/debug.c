@@ -1016,6 +1016,22 @@ NULL
         tomoUring2SetRegistrationEnabled((int)on);
         addReplyStatus(c, on ? "uring registration ON" :
                                "uring registration OFF (raw SQEs)");
+    } else if (!strcasecmp(c->argv[1]->ptr,"tomo-uring2capselftest") &&
+               c->argc == 2) {
+        /* DEBUG TOMO-URING2CAPSELFTEST -- deterministic submit-boundary and
+         * byte-stream checks; it does not touch the live ring or cap. */
+        tomoUring2CapSelfTestResult results[TOMO_URING2_CAP_SELFTEST_CASES];
+        tomoUring2CapSelfTest(results);
+        addReplyArrayLen(c, TOMO_URING2_CAP_SELFTEST_CASES);
+        for (int i = 0; i < TOMO_URING2_CAP_SELFTEST_CASES; i++) {
+            addReplyStatusFormat(c,
+                "%s %s cap=%u max_sqes=%u cap_submits=%u "
+                "pass_end_submits=%u replies=%u bytes=%u",
+                results[i].passed ? "OK" : "FAIL", results[i].name,
+                results[i].cap, results[i].max_sqes,
+                results[i].cap_submits, results[i].pass_end_submits,
+                results[i].replies, results[i].bytes);
+        }
     } else if (!strcasecmp(c->argv[1]->ptr,"tomo-p1direct") && c->argc == 3) {
         /* DEBUG TOMO-P1DIRECT <0|1> -- master toggle for the p1 DIRECT-CLIENT mode,
          * DEFAULTING ON. 0 forces every conn onto the fake path WITHOUT mutating per-conn

@@ -58,6 +58,22 @@ must_refuse(){ # $1 = knob, $2 = value, $3 = why boot must fail
   else ok "$knob=$val refused as designed ($why)"; fi
 }
 
+must_refuse_pair(){ # knob1 value1 knob2 value2 why the combination is fatal
+  local knob1=$1 val1=$2 knob2=$3 val2=$4 why=$5
+  kb_kill; sleep 1
+  taskset -c "$SERVER_CORES" $KB --port $PORT --tomokv-nodes 2 --tomokv-pin-mode ccd \
+    --tomokv-thread-io 8 --tomokv-thread-ex 8 --$knob1 "$val1" --$knob2 "$val2" \
+    --save '' --protected-mode no --logfile '' >/dev/null 2>&1 &
+  sleep 2
+  local up=0; timeout 2 $CLI ping 2>/dev/null | grep -q PONG && up=1
+  kb_kill
+  if [ "$up" = 1 ]; then
+    bad "$knob1=$val1 + $knob2=$val2 WAS ACCEPTED but must be refused ($why)"
+  else
+    ok "$knob1=$val1 + $knob2=$val2 refused as designed ($why)"
+  fi
+}
+
 atomic_mixed_smoke(){
   # MSET8/MGET8 over 64 keys: enough pipelined overlap to enter atomic completion, but still a
   # small smoke cell rather than another benchmark.
@@ -477,6 +493,21 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   try tomokv-uring-sendcopy-min 64 "direct-send eligible staged prefixes of at most 64 bytes"
   must_refuse tomokv-uring-sendcopy-min -1 "below the declared minimum -- 0=off"
   must_refuse tomokv-uring-sendcopy-min 2147483648 "above the declared INT_MAX byte threshold"
+
+  try tomokv-uring2-max-sqes-per-enter 0 "OFF: unchanged pass-end-only send batching"
+  try tomokv-uring2-max-sqes-per-enter 8 "cap send batches at 8 SQEs without waiting"
+  must_refuse tomokv-uring2-max-sqes-per-enter -1 "below the declared minimum -- 0=off"
+  must_refuse tomokv-uring2-max-sqes-per-enter 2147483648 "above the declared INT_MAX SQE cap"
+  try tomokv-uring2-min-sqes-per-enter 0 "OFF: no purchased send batching"
+  try tomokv-uring2-min-sqes-per-enter 32 "advisory minimum with the default zero wait bound"
+  must_refuse tomokv-uring2-min-sqes-per-enter -1 "below the declared minimum -- 0=off"
+  must_refuse tomokv-uring2-min-sqes-per-enter 2147483648 "above the declared INT_MAX SQE target"
+  try tomokv-uring2-batch-wait-us 0 "OFF: a configured minimum never waits"
+  try tomokv-uring2-batch-wait-us 50 "50us bound, inert while the minimum is zero"
+  must_refuse tomokv-uring2-batch-wait-us -1 "below the declared minimum -- 0=no wait"
+  must_refuse tomokv-uring2-batch-wait-us 2147483648 "above the declared INT_MAX microsecond bound"
+  must_refuse_pair tomokv-uring2-max-sqes-per-enter 8 \
+    tomokv-uring2-min-sqes-per-enter 32 "opposite ends of one batching axis"
 
   # The f3a8292ee shared-SQPOLL arm measured -78%, and ede26f59a's enter
   # coalescer was a wash. Neither experiment's config row or implementation is

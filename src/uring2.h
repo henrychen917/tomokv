@@ -26,6 +26,11 @@ typedef struct tomoUring2Stats {
     uint64_t sqes_submitted;
     uint64_t sqes_max_batch;
     uint64_t enter_calls;
+    uint64_t cap_submits;
+    uint64_t batch_waits;
+    uint64_t batch_filled;
+    uint64_t batch_escapes;
+    uint64_t batch_wait_ns;
     uint64_t submit_getevents_calls;
     uint64_t taskrun_flag_enters;
     uint64_t wait_calls;
@@ -70,6 +75,25 @@ typedef struct tomoUring2Stats {
 void tomoUring2GetStats(tomoUring2Stats *out);
 int tomoUring2RegistrationEnabled(void);
 void tomoUring2SetRegistrationEnabled(int enabled);
+int tomoUring2MaxSqesPerEnter(void);
+int tomoUring2MinSqesPerEnter(void);
+int tomoUring2BatchWaitUs(void);
+void tomoUring2SetBatchConfig(int max_sqes, int min_sqes, int wait_us);
+
+#define TOMO_URING2_CAP_SELFTEST_CASES 4
+typedef struct tomoUring2CapSelfTestResult {
+    const char *name;
+    int passed;
+    unsigned cap;
+    unsigned max_sqes;
+    unsigned cap_submits;
+    unsigned pass_end_submits;
+    unsigned replies;
+    unsigned bytes;
+} tomoUring2CapSelfTestResult;
+
+int tomoUring2CapSelfTest(
+    tomoUring2CapSelfTestResult results[TOMO_URING2_CAP_SELFTEST_CASES]);
 
 /* Immutable-mode dispatch for the sole nonzero backend. */
 int tomoUringBackendInitThread(int tid, struct aeEventLoop *el);
