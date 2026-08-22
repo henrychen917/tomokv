@@ -16,7 +16,9 @@ artifact · FLATSTORE/QSBR correctness · numa=2 · script-fence battery
 toggle semantics, persistence, known-issues ledger) · controller conformance (SHIFT / ENVELOPE /
 NOREG / AUTO==STATIC with timestamp-based stabilization verdicts; client + key + flip LB
 families) · Arm C multishot/direct-send re-entry through `processEventsWhileBlocked` · flip
-landing/convergence against in-suite statics · bounded stress.
+landing/convergence against in-suite statics · persistent-socket p1-direct/pipeline transitions
+with byte-exact replies · populated m1 cost-table ordering · paired container read/write
+performance against the retained baseline · bounded stress.
 
 Verdicts: `FAIL` → NO-GO. `SUSPECT` → doesn't block, printed loudly (sanity-gate rule: stop and
 look, never average a bad number away). Every run is archived to
@@ -87,10 +89,11 @@ entry from silently hiding either a harness failure or a behavior change.
 ## Harness environment
 
 All wired suites receive `TOMO_PREFLIGHT_DIR`, `TOMO_BIN`, `TOMO_RESULT_FILE`,
-`TOMO_SERVER_CORES=0-31`, and `TOMO_LOADGEN_CORES=32-127,160-255`. The full-box landing and atomic
-suites additionally receive `TOMO_PORT`; standalone callers must provide their required port.
-CPU-set environment variables are accepted only when they exactly equal the certification
-partitions above. Suites verify port exclusivity and terminate only child PIDs they started.
+`TOMO_SERVER_CORES=0-31`, and `TOMO_LOADGEN_CORES=32-127,160-255`. Suites that own a dedicated
+listener—including landing, atomic, p1 transition, m1 cost sanity, and container performance—also
+receive `TOMO_PORT`; standalone callers must provide their required port. CPU-set environment
+variables are accepted only when they exactly equal the certification partitions above. Suites
+verify port exclusivity and terminate only child PIDs they started.
 
 `wb0_parity.sh` requires `TOMO_WB0_BASELINE_BIN` to name the preserved binary built from
 `219ec74cc`; full preflight fails closed when it is missing. It runs one thermal-balanced B,C,C,B
@@ -99,5 +102,16 @@ additions), and idle/load RSS. Its port/CPU defaults can be overridden with
 `TOMO_WB0_PARITY_PORT`, `TOMO_WB0_PARITY_SERVER_CORES`, and
 `TOMO_WB0_PARITY_LOADGEN_CORES`; tolerances use `TOMO_WB0_OPS_TOL_PCT`,
 `TOMO_WB0_RSS_TOL_PCT`, and `TOMO_WB0_RSS_TOL_KB`.
+
+`container_write_perf.sh` uses `TOMO_CONTAINER_BASELINE_BIN` when supplied, otherwise the same
+required `TOMO_WB0_BASELINE_BIN` artifact. It runs B,C,C,B samples for HGET/HSET, LRANGE/RPUSH,
+ZRANGE/ZADD, and SMEMBERS/SADD with a one-sided 4% regression tolerance
+(`TOMO_CONTAINER_TOL_PCT`). `SMOKE=1` shortens each sample from 10 seconds to 3 seconds without
+dropping any command or anti-vacuity check.
+
+`p1_pipeline_transition.sh` keeps 48 raw sockets open while cycling p1-heavy depths; smoke mode
+shortens 40 seconds to 8. `m1_cost_sanity.sh` reduces its mixed population window from 45 seconds
+to 25 and its key count from 1000 to 200. Missing witnesses/frozen cells remain blocking in both
+modes—the short mode changes duration, not the proof obligation.
 
 Baselines (`command_baselines.tsv`) update only via `UPDATE_BASELINES=1`, never silently.

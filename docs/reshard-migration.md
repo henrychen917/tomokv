@@ -164,13 +164,13 @@ Within one published `exQueue` lane, the intended proof is implemented as follow
 
 The execution-site ack is essential: `exQueuePopBatch` advances `head` before execution, so queue emptiness cannot prove that the popped batch has retired. The separate post-batch `retired` store is the code's quiescence proof for a lane with no live producer. (`src/server.c:21024-21054`, `src/server.c:22254-22263`)
 
-That proof is not unconditional in the current implementation because admission reordering has a pre-queue TLS buffer. With `server.tomo_reorder > 0` and `server.strict_order == 0`, eligible ordinary commands are stored in `tomo_rord` before any worker-ring slot is written; the sentinel bypasses `exDispatchPush`'s drain barrier by calling `csPushSpin` directly. (`src/server.c:3505-3533`, `src/server.c:3986-4021`, `src/server.c:15634-15641`)
+That proof is not unconditional in the current implementation because stage-only mode has a pre-queue TLS buffer. With `server.tomo_reorder == 1` and `server.strict_order == 0`, eligible ordinary commands are stored in `tomo_stage` before any worker-ring slot is written; the sentinel bypasses `exDispatchPush`'s drain barrier by calling `csPushSpin` directly. (`src/server.c`)
 
-On IO threads, `beforeSleepIO` pushes the sentinel before `handleWorkerReplies`; `handleWorkerReplies` calls `flushExQueues`, and `flushExQueues` is what drains `tomo_rord`. An older range command can therefore still be in TLS scratch when the sentinel is published, and the later scratch drain enqueues it to the worker ID captured before `DRAINING`. (`src/server.c:3710-3748`, `src/server.c:3989-4018`, `src/server.c:4387-4411`, `src/server.c:4120-4126`, `src/server.c:20852-20861`)
+On IO threads, `beforeSleepIO` pushes the sentinel before `handleWorkerReplies`; `handleWorkerReplies` calls `flushExQueues`, and `flushExQueues` is what drains `tomo_stage`. An older command can therefore still be in TLS scratch when the sentinel is published, and the later arrival-order scratch drain enqueues it to the worker ID captured before `DRAINING`. (`src/server.c`)
 
-The same ordering can occur when the pre-ring range gate encounters `DRAINING`: `migHoldClientIfDraining` pushes the sentinel immediately, without first draining `tomo_rord`. (`src/server.c:15696-15711`, `src/server.c:3986-4021`)
+The same ordering can occur when the pre-ring range gate encounters `DRAINING`: `migHoldClientIfDraining` pushes the sentinel immediately, without first draining `tomo_stage`. (`src/server.c:15696-15711`, `src/server.c:3986-4021`)
 
-Consequently, the dispatch comment's assertion that every old-owner command necessarily lands ahead of the producer's sentinel is true for work already in the SPSC queue, but not for work still in reorder scratch. (`src/server.c:8483-8492`, `src/server.c:3505-3519`, `src/server.c:20859-20861`)
+Consequently, the dispatch comment's assertion that every old-owner command necessarily lands ahead of the producer's sentinel is true for work already in the SPSC queue, but not for work still in stage-only scratch. (`src/server.c`)
 
 Fence generations make sentinel production idempotent, but the marker carries no generation: it contains only a non-NULL pointer, and the worker unconditionally writes the current global `fence_acked[i]`. The timeout branch does not remove queued markers, while a later drain resets the same ack array; the execution handler therefore cannot distinguish a late marker belonging to an older cutover. (`src/server.c:15630-15641`, `src/server.c:15936-15944`, `src/server.c:16011-16040`, `src/server.c:22096-22105`)
 
@@ -245,7 +245,7 @@ The diffusion chunk starts as `((Lh - Lc) / (2 * Lh)) * source_range`, is raised
 | Ownership publication precedes retry | Table/boundary writes precede the release store of `MIG_FLIPPED`; parked clients only retry after phase is no longer `MIG_DRAINING`. | `src/server.c:15724-15735`, `src/server.c:16051-16070` |
 | Teardown publication is last | Destination heartbeat advances three times, `co_state` becomes idle, then `migration_active` is release-cleared. | `src/server.c:16087-16119` |
 
-The invariants above do not close the reorder-scratch and generationless-marker gaps described in [The FIFO-sentinel argument and its actual boundary](#the-fifo-sentinel-argument-and-its-actual-boundary). (`src/server.c:3505-3533`, `src/server.c:15634-15641`, `src/server.c:20852-20861`, `src/server.c:22096-22105`)
+The invariants above do not close the stage-only-scratch and generationless-marker gaps described in [The FIFO-sentinel argument and its actual boundary](#the-fifo-sentinel-argument-and-its-actual-boundary). (`src/server.c`)
 
 ## Comment/code discrepancies
 
@@ -258,7 +258,7 @@ The invariants above do not close the reorder-scratch and generationless-marker 
 | Fence header says source execution decrements a `fence_count` | No fence counter is decremented; worker execution release-stores one indexed `fence_acked[i]`. | `src/server.c:15626-15629`, `src/server.c:22096-22105` |
 | `reshardBeginCutover` says it spawns a detached coordinator | It CAS-arms the main-thread `co_state`; the actual coordinator is ticked from `beforeSleep`. | `src/server.c:16147-16155`, `src/server.c:4438-4448`, `src/server.c:15804-15811` |
 | Producer-count prose still mentions a roughly 2 ms idle ack | Current dead-lane ack requires `retired == tail`; the timeout-based apparent-empty rule is not present. | `src/server.c:15854-15863`, `src/server.c:15985-16010` |
-| Dispatch FIFO proof says all pre-sentinel work lands ahead of the marker | Work still in `tomo_rord` is not in the queue, while migration markers call `csPushSpin` directly and can be published before `flushExQueues` drains that scratch. | `src/server.c:8483-8492`, `src/server.c:3505-3533`, `src/server.c:15634-15641`, `src/server.c:20852-20861` |
+| Dispatch FIFO proof says all pre-sentinel work lands ahead of the marker | Work still in `tomo_stage` is not in the queue, while migration markers call `csPushSpin` directly and can be published before `flushExQueues` drains that scratch. | `src/server.c:8483-8492`, `src/server.c:3505-3533`, `src/server.c:15634-15641`, `src/server.c:20852-20861` |
 | Flip prose calls the table write phase/gen-gated | Table entries are plain bytes, `migration.gen` has transition increments but routing does not load it, and the dispatch phase acquire is conditional on a relaxed active load. | `src/server.c:8334-8336`, `src/server.c:9533-9555`, `src/server.c:15696-15698`, `src/server.c:16051-16057` |
 | Cron prose names `tomokv-reshard-auto` | The implementation gates on `server.reshard_min_ops`, configured as `tomokv-key-lb`. | `src/server.c:2943-2946`, `src/server.c:16797-16810`, `src/config.c:3292` |
 | Balancer prose calls samples “ops/sec” | The controller subtracts consecutive counters once per nominal cron tick and performs no elapsed-time normalization. | `src/server.c:16184-16188`, `src/server.c:16882-16898` |
@@ -280,7 +280,7 @@ The invariants above do not close the reorder-scratch and generationless-marker 
 | Balancer and fence configuration fields | `src/server.h:3279-3291`, `src/server.h:4117-4123` |
 | Configuration names/defaults | `src/config.c:3292-3303` |
 | Cron and event-loop integration | `src/server.c:2943-2947`, `src/server.c:4387-4395`, `src/server.c:4438-4449` |
-| Reorder scratch and dispatch barrier | `src/server.c:3505-3533`, `src/server.c:3986-4021`, `src/server.c:20852-20861` |
+| Stage-only scratch and dispatch barrier | `src/server.c` |
 | Initial bucket ownership | `src/server.c:5902-5929` |
 | Physical database aliasing | `src/server.c:6108-6137` |
 | Key-to-worker routing | `src/server.c:9533-9555` |

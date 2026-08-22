@@ -399,8 +399,7 @@ for n in [1,2,7,8,9,15,16,17,31,32,33,64,100]:
     if got!=n: bad.append(f"N={n}:got{got}")
 rec("mget-arity-across-subwaves", not bad, ",".join(bad[:5]))
 
-# 3. SAME-KEY WRITE CHAIN then read (retire-aware reordering could invert same-client same-key
-#    writes if its partition were unstable).
+# 3. SAME-KEY WRITE CHAIN then read (stage-only draining must retain same-client FIFO order).
 bad=0
 for r in range(R(400)):
     k=f"chain:{r}"

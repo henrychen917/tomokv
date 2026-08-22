@@ -1,7 +1,7 @@
 #!/bin/bash
 # atomic_correctness.sh — the 2x16c atomic gauntlet, promoted from the 2026-08 job harness to a
 # checked-in gate suite. Covers the full atomic visibility contract at the default topology:
-# torn multi-key reads (x2 rounds), RYOW at reorder 0 and 3 (each with connection churn),
+# torn multi-key reads (x2 rounds), RYOW with direct and stage-only dispatch (each with connection churn),
 # plain-GET RYOW, monotonic visibility, DEL/MSET tearing, MSETNX races + serializability, and a
 # mixed 1:1 payoff cell that must complete with the admission census drained (the 2026-08-10
 # completion-wedge signature). Engagement coverage also lives in simnode2_features.sh. Port 5974
@@ -50,9 +50,9 @@ zero torn-a  timeout 30 taskset -c "$LOAD_CORES" python3 "$SD/atomicity_test.py"
 zero torn-b  timeout 30 taskset -c "$LOAD_CORES" python3 "$SD/atomicity_test.py" $PORT 5 8
 zero ryow-r0 timeout 25 taskset -c "$LOAD_CORES" python3 "$SD/client_correctness.py" $PORT 8000 8
 zero ryow-r0-churn timeout 25 taskset -c "$LOAD_CORES" python3 "$SD/client_correctness.py" $PORT 8000 8 --churn
-CLI config set tomokv-reorder 3 >/dev/null
-zero ryow-r3 timeout 25 taskset -c "$LOAD_CORES" python3 "$SD/client_correctness.py" $PORT 8000 8
-zero ryow-r3-churn timeout 25 taskset -c "$LOAD_CORES" python3 "$SD/client_correctness.py" $PORT 8000 8 --churn
+CLI config set tomokv-reorder 1 >/dev/null
+zero ryow-r1 timeout 25 taskset -c "$LOAD_CORES" python3 "$SD/client_correctness.py" $PORT 8000 8
+zero ryow-r1-churn timeout 25 taskset -c "$LOAD_CORES" python3 "$SD/client_correctness.py" $PORT 8000 8 --churn
 CLI config set tomokv-reorder 0 >/dev/null
 zero plainget timeout 25 taskset -c "$LOAD_CORES" python3 "$SD/mset_getryow.py" $PORT 5000 8
 zero monotonic timeout 20 taskset -c "$LOAD_CORES" python3 "$SD/monotonic_vis.py" $PORT 5 8 2

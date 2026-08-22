@@ -124,8 +124,8 @@ current IO thread's bit for the target worker in `ex_dirty_mask` before returnin
 producer in `flushExQueues()`. (src/server.c:3470-3494,
 src/server.c:3882-3907)
 
-`flushExQueues()` first drains any reorder scratch, resets the producer's staged
-window count, snapshots and clears each live word of its dirty-worker mask, and
+`flushExQueues()` first drains any stage-only scratch in arrival order, snapshots
+and clears each live word of its dirty-worker mask, and
 visits only the set worker bits. For each such queue it relaxed-loads `tail`; only
 when `staged_tail != tail` does it release-store `staged_tail` to `tail` and then
 advertise that lane to the worker. (src/server.c:20859-20891)
@@ -267,7 +267,7 @@ release-store that value to this queue's `retired`. (src/server.c:22068-22263)
 
 | Caller or observer | Use of `exQueue` |
 | --- | --- |
-| `exDispatchPush()` / `exDispatchDirect()` | Ordinary express and worker-routed fake dispatch; the reorder front may hold candidates before eventually calling the direct ring path, while the indivisible T6 route flushes reorder state and calls `exDispatchDirect()` for its selected worker. (src/server.c:3986-4022, src/server.c:8494-8563, src/server.c:8591-8604) |
+| `exDispatchPush()` / `exDispatchDirect()` | Ordinary express and worker-routed fake dispatch; mode 1 may hold candidates in a stage-only TLS scratch before calling the direct ring path in arrival order, while the indivisible T6 route flushes staging and calls `exDispatchDirect()` for its selected worker. (`src/server.c`) |
 | `csPushSpin()` | Immediate-publish cross-shard sub-fakes and worker flush sentinels with lossless full-ring backpressure. (src/server.c:12544-12586, src/server.c:15437-15463) |
 | `flushExQueues()` | Batch-publishes every queue staged by the current IO identity and advertises each published lane. (src/server.c:20852-20892) |
 | `exSlice()` | Harvests lane advertisements, pops normal batches in sparse or strict-arrival order, executes them, publishes reply completions, and advances `retired`. (src/server.c:21920-22003, src/server.c:22242-22280) |

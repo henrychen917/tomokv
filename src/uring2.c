@@ -2471,8 +2471,8 @@ static int tomoUring2EnterAe(aeEventLoop *el, struct timeval *tvp) {
     if (!pthread_equal(st->issuer, pthread_self()))
         tomoUring2Fatal(st, "enter from second issuer pthread", EPERM);
 
-    /* Dispatch batching (IO -> EX) is tomo_disp_window/flushExQueues(). These
-     * independent max/min diagnostics measure send-side SQ batching. Max can
+    /* IO -> EX staging has its own flushExQueues boundaries. These independent
+     * max/min diagnostics measure send-side SQ batching. Max can
      * only divide a natural pass; min may purchase a larger pass with its
      * explicitly bounded completion-aware wait. */
     unsigned requested_cap, requested_min, batch_wait_us;

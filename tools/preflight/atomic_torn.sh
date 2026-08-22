@@ -259,7 +259,7 @@ run_soak() {
 }
 
 run_checks() {
-    local cfg_reply cfg_state msx_rc msx_line ping markers
+    local cfg_reply cfg_state memo_hits msx_rc msx_line ping markers
 
     run_atomicity_probe atomic_off
     if [ "$PROBE_RC" = 0 ] && case "$PROBE_TORN" in ''|*[!0-9]*) false ;; *) [ "$PROBE_TORN" -gt 0 ] ;; esac; then

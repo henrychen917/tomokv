@@ -530,14 +530,14 @@ echo "=== convention A: -1 = auto ===" >> $OUT
   try tomokv-phase-trace 1000 "sampling arm: 1-in-N request-phase tracing still boots and serves"
   must_refuse tomokv-phase-trace -1 "below the declared minimum -- this knob spells off as 0"
 
-  # Surviving D-feature knob: SEDA reorder.
-  try tomokv-reorder 0 "OFF: admission-time reorder inert, no scratch write"
-  try tomokv-reorder 1 "partition-by-worker only"
-  try tomokv-reorder 2 "chunk-bounded SJF class ordering + bucket grouping"
-  try tomokv-reorder 3 "dependency-aware exact SJF (Shinjuku arm; range [0,3])"
+  # Two-state staging knob. Permutation modes 2 and 3 are retired and must be rejected.
+  try tomokv-reorder 0 "default: direct dispatch, no stage scratch write"
+  try tomokv-reorder 1 "stage-only: TLS accumulation with arrival-order drain"
   must_refuse tomokv-reorder -1 "below the declared minimum -- 0=off"
+  must_refuse tomokv-reorder 2 "removed permutation mode -- valid range is 0..1"
+  must_refuse tomokv-reorder 3 "removed Shinjuku mode -- valid range is 0..1"
   # RYOW behavior is owned by client_correctness.py as invoked by gauntlet_ownread.sh: reorder 0
-  # and 3, each with and without same-key churn. Those are job harnesses, not checked-in suites.
+  # and 1, each with and without same-key churn. Those are job harnesses, not checked-in suites.
 
 # RETIRED knobs must be REJECTED, not silently accepted. A retired name that still boots means
 # either the knob was not really retired or a shim is swallowing it -- both hide a config error

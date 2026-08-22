@@ -36,13 +36,11 @@ Those formulas follow from the explicit alignment on `head`, `tail`, and `jobs` 
 
 Each worker allocates `nlanes = min(io_threads + num_workers + 1, TOMO_IO_THREADS_MAX + 1)` queues contiguously, using `qbytes = sizeof(exQueue) * nlanes`; the free-back-ring block follows, and runtime assertions require both bases to be cache-line aligned. Initialization calls `exQueueInit` only for the live producer indices `0 .. io_threads + tm_ngrow_io - 1`; the extra allocation remains a layout-compatible spare after deletion of the atomic owner-operation lane. (`src/server.c`)
 
-### Auxiliary publication and early-flush storage
+### Auxiliary publication and stage-only storage
 
 The producer's dirty-worker buffer is thread-local `uint64_t ex_dirty_mask[TOMO_EX_MASK_WORDS]`. `TOMO_EX_MASK_WORDS = (128 + 63) / 64 = 2`, so it is exactly 16 bytes; the same thread sets and consumes it without atomics. The separate thread-local lane-base cache is `exQueue *tls_qbase[129]`, exactly `129 * sizeof(exQueue *)` bytes, or 1,032 bytes on LP64. Neither declaration has explicit cache-line alignment or padding, and the source declares no relative placement between the two TLS objects; each thread owns its own instances. ([src/server.c:3470-3494](../../../src/server.c#L3470-L3494), [src/server.h:1487](../../../src/server.h#L1487), [src/server.h:2317-2319](../../../src/server.h#L2317-L2319))
 
-The adaptive threshold buffer is `_Atomic int tomo_disp_window[129]`, exactly `129 * sizeof(_Atomic int)` bytes, or 516 bytes where an atomic `int` is four bytes; the declaration has no size assertion, explicit cache-line alignment, or per-element padding. Its main-thread publisher uses release stores and each IO identity uses a relaxed load because the value controls scheduling rather than payload visibility. The per-producer count is a plain thread-local `int tomo_staged_cnt`. ([src/server.c:3496-3503](../../../src/server.c#L3496-L3503), [src/server.c:3918-3928](../../../src/server.c#L3918-L3928), [src/server.c:6638-6657](../../../src/server.c#L6638-L6657), [src/server.h:1486](../../../src/server.h#L1486))
-
-The reorder buffer is one thread-local structure with fields `client *fk[64]`, `uint64_t h[64]`, `uint8_t ex[64]`, `uint8_t cls[64]`, two `int` fields `n` and `draining`, and `uint64_t win_us`, in that order. Its source-exact member payload is `64*sizeof(client *) + 64*sizeof(uint64_t) + 128*sizeof(uint8_t) + 2*sizeof(int) + sizeof(uint64_t)` plus any ABI padding; on the conventional LP64 layout no internal padding is needed and the total is 1,168 bytes. It has no explicit cache-line alignment or pad fields and is private to its IO thread. ([src/server.c:3505-3533](../../../src/server.c#L3505-L3533))
+The stage-only buffer is one thread-local structure with fields `client *fk[64]`, `uint8_t ex[64]`, and two `int` fields, `n` and `draining`, in that order. Its source-exact member payload is `64*sizeof(client *) + 64*sizeof(uint8_t) + 2*sizeof(int)` plus any ABI padding; on the conventional LP64 layout no internal padding is needed and the total is 584 bytes. It has no explicit cache-line alignment or pad fields and is private to its IO thread. (`src/server.c`)
 
 Each worker's pop destination is `client *batch[WORKER_POP_BATCH]`, the final member of its private `exSliceCtx`. It is exactly `16*sizeof(client *)` bytes because `WORKER_POP_BATCH` is 16, or 128 bytes on LP64. The array has no explicit alignment or cache-line padding; the whole context is an automatic `exctx` in `polyThreadMain`, and only that worker passes the scratch to the pop and execution code. ([src/server.h:2329-2333](../../../src/server.h#L2329-L2333), [src/server.c:21680-21711](../../../src/server.c#L21680-L21711), [src/server.c:23196-23200](../../../src/server.c#L23196-L23200))
 
@@ -73,39 +71,25 @@ Normal dispatch obtains the queue only through `exQueueFor`: it debug-asserts an
 
 ## Staged-tail publication
 
-`flushExQueues` first drains any reorder scratch and resets the thread-local staged-dispatch count. If `server.exThreads` is null it returns; otherwise it snapshots and clears each live word of this IO thread's `ex_dirty_mask` and walks set worker bits with `ctz`. ([src/server.c:20859-20883](../../../src/server.c#L20859-L20883)) For each still-valid worker, it relaxed-loads published `tail`; only when `staged_tail != tail` does it release-store `staged_tail` to `tail` and then advertise the lane to that worker. ([src/server.c:20883-20889](../../../src/server.c#L20883-L20889)) The release-store makes all earlier plain `jobs[]` stores visible to a consumer whose acquire-load observes the new tail. ([src/server.c:20852-20858](../../../src/server.c#L20852-L20858), [src/server.c:21031-21038](../../../src/server.c#L21031-L21038))
+`flushExQueues` first drains any stage-only scratch in arrival order. If `server.exThreads` is null it returns; otherwise it snapshots and clears each live word of this IO thread's `ex_dirty_mask` and walks set worker bits with `ctz`. (`src/server.c`) For each still-valid worker, it relaxed-loads published `tail`; only when `staged_tail != tail` does it release-store `staged_tail` to `tail` and then advertise the lane to that worker. The release-store makes all earlier plain `jobs[]` stores visible to a consumer whose acquire-load observes the new tail. (`src/server.c`)
 
 Advertisement is ordered after `tail`: `exHandoffAdvertiseLane` release-`fetch_or`s bit `t & 63` in `q_summary[t >> 6]`; in multiword mode, an empty-to-nonempty word also release-`fetch_or`s its word bit into `q_top`. ([src/server.c:3445-3463](../../../src/server.c#L3445-L3463)) The worker acquire-exchanges the summary to zero **before** draining, so a publish during a drain sets a fresh bit rather than being erased. Strict-order mode and every 64th handoff pass use a dense scan instead of relying on the summary. ([src/server.h:1558](../../../src/server.h#L1558), [src/server.c:21908-21919](../../../src/server.c#L21908-L21919), [src/server.c:21923-21946](../../../src/server.c#L21923-L21946)) In the non-strict scan, a lane from which a batch was popped is put in `residual` and release-advertised again at pass end, making a following pass recheck for remaining or newly arrived work. ([src/server.c:21970-21989](../../../src/server.c#L21970-L21989), [src/server.c:22266-22280](../../../src/server.c#L22266-L22280))
 
-## Every publication and early-flush branch
+## Every publication and flush branch
 
 ### Normal successful dispatch
 
-After a direct `exQueuePush` succeeds, the non-reorder-drain path relaxed-loads this IO identity's `tomo_disp_window` value `w`. If `w > 0`, it preincrements thread-local `tomo_staged_cnt`; when the result is at least `w`, it resets the counter and calls `flushExQueues`. ([src/server.c:3910-3929](../../../src/server.c#L3910-L3929)) A zero window means there is no threshold flush; the normal `C_OK` parse fallthrough and the pre-reply-drain path still flush. ([src/networking.c:4705-4717](../../../src/networking.c#L4705-L4717), [src/server.c:4120-4125](../../../src/server.c#L4120-L4125))
+After a direct `exQueuePush` succeeds, `exDispatchDirect` marks that worker lane dirty and returns. There is no adaptive dispatch-count threshold; the normal parse-end and pre-reply-drain boundaries publish the staged ring prefixes. (`src/server.c`, `src/networking.c`)
 
-The main-thread service tick recomputes the window as follows:
+### Stage-only capacity
 
-```text
-svc_mean  = sum(delta service_us) / sum(delta service_ops), or 0
-qd_mean   = mean(worker.tm_qdepth_ewma_q4 / 16)
-svc_min   = tomo_svc_min_q8 / 256
-B         = max(svc_min, qd_mean * svc_mean / 8)
-lambda_t  = unsigned(dispatch_count_t - previous_count_t) / 1,000,000
-w_hi      = WORKER_POP_BATCH * max(num_workers, 1)
-candidate = 1 + trunc(lambda_t * B)
-```
-
-The tick calculates those exact values from per-class deltas and worker queue-depth EWMAs. ([src/server.c:6592-6620](../../../src/server.c#L6592-L6620), [src/server.c:6622-6648](../../../src/server.c#L6622-L6648)) It starts the published candidate at zero; computes it only when total service ops and `B` are positive; clamps it to `w_hi`; converts values `<= 2` back to zero; and release-stores it only when it lies outside `cur +/- (cur >> 2)`. ([src/server.c:6638-6657](../../../src/server.c#L6638-L6657)) `WORKER_POP_BATCH` is 16, so the upper clamp is `16 * max(num_workers, 1)`. ([src/server.h:2329-2333](../../../src/server.h#L2329-L2333), [src/server.c:6638](../../../src/server.c#L6638)) The dispatch hot path consumes the published value with a relaxed load because it is a scheduling threshold, not a payload publication. ([src/server.c:3920-3926](../../../src/server.c#L3920-L3926))
-
-### Reorder-window threshold
-
-When reorder admission accepts a candidate, it stages the fake in the thread-local reorder scratch rather than in `exQueue`. It drains and flushes when the scratch reaches `TOMO_RORD_CAP` (`64`) or when `w > 0 && scratch_count >= w`; that branch also resets `tomo_staged_cnt`. ([src/server.c:3505-3520](../../../src/server.c#L3505-L3520), [src/server.c:3986-4017](../../../src/server.c#L3986-L4017)) While reorder scratch is being emitted, `exDispatchDirect` suppresses its own adaptive count, so the scratch boundary supplies the one threshold decision. ([src/server.c:3918-3928](../../../src/server.c#L3918-L3928), [src/server.c:3989-4017](../../../src/server.c#L3989-L4017))
+With `tomokv-reorder=1`, eligible dispatches first enter the TLS stage-only scratch. `tomoReorderDrain` walks its entries from index zero to `n-1`, calling `exDispatchDirect` in exactly arrival order. Reaching the fixed capacity of 64 drains the scratch and calls `flushExQueues`; every ordinary flush boundary also drains a partial scratch before publishing ring tails. (`src/server.c`)
 
 ### Parse-end and pre-reply-drain flushes
 
 On its normal `C_OK` fallthrough, `processInputBuffer` calls `flushExQueues` after its parse loop, publishing one connection's staged parse batch before returning. A `processCommandAndResetClient` result of `C_ERR` returns immediately and bypasses that parse-end call. ([src/networking.c:4658-4667](../../../src/networking.c#L4658-L4667), [src/networking.c:4705-4717](../../../src/networking.c#L4705-L4717)) `handleWorkerReplies` also calls it before examining any completion, and both the custom IO `beforeSleepIO` path and the main before-sleep path call `handleWorkerReplies`. ([src/server.c:4120-4125](../../../src/server.c#L4120-L4125), [src/server.c:4387-4412](../../../src/server.c#L4387-L4412), [src/server.c:4560-4568](../../../src/server.c#L4560-L4568))
 
-The migration before-sleep paths push their sentinel before that `handleWorkerReplies` flush. An ordinary fake already retained in the separate reorder scratch can therefore be emitted after the sentinel; this is the source-coded limit detailed in [the migration fence note](migration-drain-fence.md#coded-temporal-exclusion-limit). ([src/server.c:3986-4018](../../../src/server.c#L3986-L4018), [src/server.c:4387-4412](../../../src/server.c#L4387-L4412), [src/server.c:4438-4448](../../../src/server.c#L4438-L4448))
+The migration before-sleep paths push their sentinel before that `handleWorkerReplies` flush. An ordinary fake already retained in the separate stage-only scratch can therefore be emitted after the sentinel; this is the source-coded limit detailed in [the migration fence note](migration-drain-fence.md#coded-temporal-exclusion-limit). (`src/server.c`)
 
 ### Full normal ring
 
@@ -145,7 +129,7 @@ Accordingly, `retired == tail` is the execution-quiescence predicate for an unpu
 - Cross-shard subs and worker sentinels reach `exQueuePush` through `csPushSpin`. ([src/server.c:12544-12586](../../../src/server.c#L12544-L12586), [src/server.c:15446-15462](../../../src/server.c#L15446-L15462), [src/server.c:15627-15640](../../../src/server.c#L15627-L15640))
 - `exQueuePopBatch` is called by the normal `exSlice` producer-lane scan. Atomic publication does not call it. (`src/server.c`)
 - `exQueuePopOrdered` is called only by `exSlice`'s strict-order branch after its global head scan. ([src/server.c:21954-21968](../../../src/server.c#L21954-L21968))
-- `flushExQueues` is called by adaptive direct-dispatch and reorder thresholds, both full-ring retry helpers, the top of `handleWorkerReplies`, and the normal `C_OK` end of `processInputBuffer`. ([src/server.c:3919-3956](../../../src/server.c#L3919-L3956), [src/server.c:4012-4017](../../../src/server.c#L4012-L4017), [src/server.c:4120-4125](../../../src/server.c#L4120-L4125), [src/server.c:12564-12579](../../../src/server.c#L12564-L12579), [src/networking.c:4658-4667](../../../src/networking.c#L4658-L4667), [src/networking.c:4705-4717](../../../src/networking.c#L4705-L4717))
+- `flushExQueues` is called at stage-only capacity, by both full-ring retry helpers, at the top of `handleWorkerReplies`, and at the normal `C_OK` end of `processInputBuffer`. (`src/server.c`, `src/networking.c`)
 
 ## Enforced invariants
 
@@ -153,5 +137,5 @@ Accordingly, `retired == tail` is the execution-quiescence predicate for an unpu
 - Producer slot writes happen before the release-store of `tail`; consumer slot reads happen after an acquire-load of `tail`. ([src/server.c:20852-20858](../../../src/server.c#L20852-L20858), [src/server.c:20960-20968](../../../src/server.c#L20960-L20968), [src/server.c:21031-21038](../../../src/server.c#L21031-L21038))
 - The consumer copies a slot's pointer before release-advancing `head`; that advance licenses producer reuse of the pointer-array slot only in the queue sense. Job execution completion is represented separately by `retired` and by the fake's completion byte. ([src/server.c:21040-21053](../../../src/server.c#L21040-L21053), [src/server.h:2448-2461](../../../src/server.h#L2448-L2461), [src/server.c:22242-22263](../../../src/server.c#L22242-L22263))
 - Full and empty remain distinguishable because one physical slot is never admitted as live work. ([src/server.c:20834-20839](../../../src/server.c#L20834-L20839))
-- A successful stage is eventually published at an adaptive threshold, reorder boundary, parse end, pre-drain point, or an immediate back-pressure/cross-shard publication; none of the direct `exQueuePush` callers ignores `-1`. ([src/server.c:3919-3960](../../../src/server.c#L3919-L3960), [src/server.c:4012-4017](../../../src/server.c#L4012-L4017), [src/server.c:12544-12586](../../../src/server.c#L12544-L12586), [src/networking.c:4705-4715](../../../src/networking.c#L4705-L4715), [src/server.c:4120-4125](../../../src/server.c#L4120-L4125))
+- A successful stage is eventually published at stage-only capacity, parse end, a pre-drain point, or an immediate back-pressure/cross-shard publication; none of the direct `exQueuePush` callers ignores `-1`. (`src/server.c`, `src/networking.c`)
 - Both pop variants consume only a FIFO prefix of one lane; strict-order changes lane selection and prefix ceiling, not per-lane FIFO order. ([src/server.c:21003-21022](../../../src/server.c#L21003-L21022), [src/server.c:21024-21054](../../../src/server.c#L21024-L21054), [src/server.c:21954-21975](../../../src/server.c#L21954-L21975))

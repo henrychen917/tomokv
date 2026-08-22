@@ -6,13 +6,14 @@
 # few representative KNOWN-correct invocations per family; Part B runs many connections, each deterministic
 # on its OWN keys with per-connection-VARIED parameters, and verifies every reply — that is the net that
 # catches the "command stashes per-invocation state in a process global" class across worker threads.
-# Runs at reorder=0 AND reorder=2 (the drain path must not corrupt results either).
+# Runs with direct dispatch and arrival-order stage-only dispatch (the drain path must not corrupt
+# results either).
 # io_uring mode-2 note: this broad command-family sweep intentionally remains on the default network
 # mode. Its dedicated correctness cell must build USE_URING=yes and boot --tomokv-io-uring 1; the
 # discriminating assertions are no stalled completions under DEFER_TASKRUN and byte-exact FIFO replies
 # for pipelined/large responses (GET/SET coverage by itself does not distinguish the enter/order bugs).
 #
-# CASE cmd-coverage-r{0,2}
+# CASE cmd-coverage-r{0,1}
 #   OUT OF SPEC: boot times out, or cmd_coverage.py reports any failing command-family check or any
 #   concurrency-sweep mismatch (per-connection result diverges from its own deterministic expectation).
 set -u
@@ -50,7 +51,7 @@ boot(){ # $1 = reorder
   echo -e "cmd-coverage-r$1\tFAIL\tboot timeout" >>"$OUT"; return 1
 }
 rc=0
-for R in 0 2; do
+for R in 0 1; do
   boot "$R" || { rc=1; stop; continue; }
   detail=$(taskset -c "$LOAD_CORES" python3 "$GATE" $PORT "r$R" 2>&1); prc=$?
   if [ $prc -eq 0 ]; then echo -e "cmd-coverage-r$R\tPASS\t$(echo "$detail"|tail -1)" >>"$OUT"

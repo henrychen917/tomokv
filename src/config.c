@@ -3338,7 +3338,7 @@ standardConfig static_configs[] = {
      * flip controller may move away from it; under `static` it is held until runtime selection. The
      * starting point matters for measurement reproducibility: a benchmark that starts at a
      * different split spends its window converging instead of measuring. */
-    createIntConfig("tomokv-reorder", NULL, MODIFIABLE_CONFIG, 0, 3, server.tomo_reorder, 0, INTEGER_CONFIG, NULL, NULL),
+    createIntConfig("tomokv-reorder", NULL, MODIFIABLE_CONFIG, 0, 1, server.tomo_reorder, 0, INTEGER_CONFIG, NULL, NULL),
     createAtomicEnumConfig("tomokv-thread-mode",     NULL, MODIFIABLE_CONFIG, tomokv_thread_mode_enum, server.thread_mode, TOMO_THREAD_MODE_AUTO, NULL, tomoFlipSetMode),
     /* WHICH quantity the flip controller's TRIGGER reads. Levels, so a sweep is one-dimensional;
      * everything downstream of the trigger (momentum hill-climb, throughput judge, walk-back,

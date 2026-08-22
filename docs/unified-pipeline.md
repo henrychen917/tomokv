@@ -36,7 +36,7 @@ sizing `df93a326a`, and gather prefetch `96c2009c8`.
   `tomokv-uring-multishot` and `tomokv-uring-sendcopy-min`, both defaulting to zero.
 - `tomokv-uring2-max-sqes-per-enter` is the send-batching diagnostic cap: zero keeps the existing
   pass-end submit, while positive N only submits earlier. It is separate from IO-to-EX dispatch
-  batching (`tomo_disp_window` / `DEBUG TOMO-DISPWINDOW`).
+  staging and its ordinary `flushExQueues` boundaries.
 - The mutually-exclusive `tomokv-uring2-min-sqes-per-enter` holds only a non-empty short SQ tail;
   positive `tomokv-uring2-batch-wait-us` bounds a completion-aware `ppoll`/CQ-drain loop, while
   zero remains advisory. Timeout always escapes through the ordinary pass-end submit.

@@ -39,8 +39,8 @@ Seed table (16c EPYC, d32, cache-resident; per-op us):
 2. TABLE: per-command ex cost + io cost curve keyed by batch depth. Sources, in order:
    (a) seed constants from this doc; (b) `make caltable` auto-calibration battery (bound-cell
    micro-runs, emits the table; gate spot-checks freshness); (c) sampled live self-measurement
-   — rdtsc on 1/256 ex commands, EWMA per class (per-op timing on EVERY command was the
-   measured reorder tax; 1/256 sampling is noise). (c) absorbs value sizes, DRAM-bound cost
+   — rdtsc on 1/256 ex commands, EWMA per class (per-op timing on EVERY command had a
+   measured hot-path tax; 1/256 sampling is noise). (c) absorbs value sizes, DRAM-bound cost
    inflation, and every ex-side code change — the owner's stated maintenance downside.
 
    CONFIG-AWARENESS (owner: "config aware, workload aware"): workload-aware = the detection

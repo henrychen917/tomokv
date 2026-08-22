@@ -62,9 +62,13 @@ wins both.
 
 ## Knob A/B at 16 GB (interleaved, ±0.15% floor)
 
-- `tomokv-reorder 2`: GET p32 **+2.4%**, mixed 1:9 **+2.3%**, hot-key (gaussian)
-  +2.2% — first box where reorder pays. Level 3 = level 2 throughput with a worse
-  tail. Recommend default 2 on multi-CCD (pending regime sweep).
+- This first-light sweep appeared to show a gain from the former permutation mode, but the later
+  2026-08-20 regime campaign did not reproduce it: worst cells lost 5% throughput and raised p99
+  38–53%, while a worker-group-only ablation still cost 2.4%. Modes 2 and 3 and the SEDA window law
+  were therefore deleted.
+- `tomokv-reorder 1` now means stage-only arrival-order draining. It remains default-off because
+  it helped homogeneous GET in one high-connection cell (+2.0% ops, -13% p99.9) but hurt mixed
+  GET+ZRANGE.
 - The retired operand-pipeline and IO/message-prefetch experiments were washes
   (±1%) at 64 B values. Owner-side storage lookahead remains shipped.
 

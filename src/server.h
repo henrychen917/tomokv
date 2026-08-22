@@ -1491,43 +1491,6 @@ typedef struct {
  * depending on server internals. */
 #define TOMO_WB_THREADS_MAX 128
 
-/* ee451 D (2026-08-05): static cost class, stamped once at populateCommandTable. C0/C1 are the
- * point ops (read/write split because GET/SET dominate), C2 bounded-element container ops, C3
- * range/aggregate (O(n) reply). The class picks the BUCKET; the per-class dynamic svc EWMA
- * supplies the MAGNITUDE (this is what separates 64B from 64KB regimes). */
-/* ee451 #89: SIX cost classes (was 4). The reorder SJF sorts by these, so finer tiers isolate the
- * genuinely-expensive commands (full scans, 16MB GETRANGE) from the merely-medium ones instead of
- * lumping every range op into one bucket. Class is now 3 bits (tomo_cls & 0x07, values 0..5); the
- * argv-range flag moved to bit 3 (0x08); head-of-pipe stays bit 7 (0x80). Ordering low->high is
- * cheapest->dearest, which is exactly the emit order. */
-#define TOMO_SVC_CLASSES 6
-#define TOMO_CLS_PREAD  0   /* very-short read  (GET, EXISTS, TTL, STRLEN)                ~20us */
-#define TOMO_CLS_PWRITE 1   /* very-short write (SET, INCR, DEL, EXPIRE)                  ~20us */
-#define TOMO_CLS_ELEM   2   /* bounded 1-elem container op + tiny bounded range (<=16)    ~20-60us */
-#define TOMO_CLS_SMALL  3   /* small bounded range (<=256 elems)                          ~100-500us */
-#define TOMO_CLS_MED    4   /* medium range (<=4096) + medium whole-collection reads      ~0.5-4ms */
-#define TOMO_CLS_BIG    5   /* large/unbounded range + heavy whole-collection (SORT/SCAN) ~4-44ms */
-#define TOMO_CLS_RANGE  TOMO_CLS_BIG      /* back-compat alias: the default "range" tier is the big one */
-#define TOMO_CLS_MASK   0x07              /* 3 bits of class */
-/* bit 3: this range command's argv[2],argv[3] are an index window (ZRANGE/ZREVRANGE/LRANGE/GETRANGE);
- * tomoArgvClass parses it and demotes the static C5 to the size-appropriate tier. */
-#define TOMO_CLS_ARGV_RANGE 0x08
-#define TOMO_RORD_TIER_ELEM  16    /* argv range <= this => C2 ELEM  */
-#define TOMO_RORD_TIER_SMALL 256   /* <= this => C3 SMALL */
-#define TOMO_RORD_TIER_MED   4096  /* <= this => C4 MED; else C5 BIG. getrange window is /64 (bytes->elems) */
-#define TOMO_RORD_CAP 64           /* reorder/staging window capacity (also the DEBUG window max) */
-/* DEBUG TOMO-RORDMASK: independently ablate the passes in the reorder stack. */
-#define TOMO_RORD_MASK_WORKER_GROUP 0x01
-#define TOMO_RORD_MASK_AGE_SLICE    0x02
-#define TOMO_RORD_MASK_DEP_FENCE    0x04
-#define TOMO_RORD_MASK_HEAD_PROMO   0x08
-#define TOMO_RORD_MASK_CLASS_SJF    0x10
-#define TOMO_RORD_MASK_BUCKET_GROUP 0x20
-#define TOMO_RORD_MASK_ALL          0x3F
-/* Shinjuku (reorder mode 3) per-class service-time proxy (relative). argmax(wait/SLO) => a short
- * class (small SLO) outranks a long one until the long one has waited proportionally longer.
- * Monotonic in class; values are relative, calibrate later. */
-static const uint32_t TOMO_CLS_SLO[TOMO_SVC_CLASSES] = { 1, 1, 4, 64, 1024, 16384 };
 /* ee451 (#B2): the iotid slot space — 0 = main, 1..io_threads-1 (+ flip growth slots) = IO
  * threads, TOMO_IO_THREADS_MAX+1+wid = worker wid. Every per-thread stats array (kstat, cmdstat,
  * netstat, errstat, cmdstat_percmd) is dimensioned by it; spelled once so they cannot drift. */
@@ -2687,12 +2650,6 @@ typedef struct exThread {
      * The residual is the one that matters for balance: it means the role is starved of CPU, not
      * of threads, so growing that role cannot help. */
     unsigned int tm_idle_us;
-    /* ee451 D svc plane: per-class execution time, FULL population — the duration is computed
-     * anyway for cmdstats at the exExecFake exit, so this is two plain adds on the owner's own
-     * line. Swept 1 Hz by tomoSvcTick into the published svc EWMAs. Wrap-safe cumulative. */
-    unsigned int svc_us[TOMO_SVC_CLASSES];
-    unsigned int svc_ops[TOMO_SVC_CLASSES];
-    unsigned int rord_worst_age_us;  /* ee451 D: worst stage->exec wait seen (reorder bound check) */
     unsigned int tm_busy_us;         /* Raw request-pass occupancy: first pop -> work-pass end.
                                       * Feeds demand/capacity gates and INFO/A-B; it includes
                                       * scanning/bookkeeping after a pop. Wraps at ~71min. */
@@ -4200,10 +4157,8 @@ struct redisServer {
      * unconditional property of the fork, folded into the code at its use sites. */
     int strict_order;          /* cross-IO-thread strict ordering: 0=off (batched rotation), 1=strict (global-oldest first), N>=2=eps of (N-1)us to retain batching. default 0. */
     int phase_trace_sample;    /* tomokv-phase-trace: 0=off; N samples one P1 request in N per IO owner. */
-    int tomo_reorder;          /* ee451 D: admission reorder level. 0=off (no machinery on the
-                                * path), 1=worker partition (structural), 2=+class SJF + same-key
-                                * guard + same-bucket grouping. Mutually exclusive with
-                                * strict_order (reorder defers). default 0. */
+    int tomo_reorder;          /* 0=direct dispatch (default), 1=TLS stage-only with arrival-order
+                                * drain. Staging is disabled while strict_order is active. */
     int tomo_atomic;           /* tomokv-atomic: commit-time MVCC for eligible whole-value groups. */
     char *tomo_m1_costs_file;  /* optional boot priors for the m1 argv-shape cost registry. */
     char *tomo_m1_cost_source; /* immutable "ex,io" source pair for the M1 cost model. */
@@ -4745,9 +4700,6 @@ struct redisCommand {
                                * replaces per-op proc-pointer compare chains on dispatch. TOMO_R_* */
     const struct csCmdSpec *cs_spec; /* ee451 (xshard registry): row or NULL, stamped at populate
                                * (struct END for the same positional-init reason as tomo_route) */
-    /* ee451 D: TOMO_CLS_* cost class (stamped at table init). TAIL member on purpose —
-     * commands.def initializes this struct POSITIONALLY, so new fields must trail. */
-    uint8_t tomo_cls;
     /* m1 workload class. Also tail-only for commands.def positional initialization. */
     uint8_t tomo_m1_class;
     /* m1 argv-shape cache. Each release-published word carries bucket ids, dense cell id,
@@ -5680,8 +5632,7 @@ void serverLogRawFromHandler(int level, const char *msg);
 void usage(void);
 void updateDictResizePolicy(void);
 void populateCommandTable(void);
-void tomoSvcTick(void);   /* ee451 D: 1 Hz svc-plane fold */
-void tomoReorderDrain(void);   /* ee451 D: reorder scratch -> lanes (flushExQueues top) */
+void tomoReorderDrain(void);   /* stage-only TLS scratch -> lanes (flushExQueues top) */
 void tomoInputDispatchBatchBegin(client *c); /* 3s input: group express handoffs by EX lane */
 void tomoInputDispatchBatchEnd(void);
 void tomoIoInputRecvNote(void);              /* successful recv/CQE input-buffer census */
@@ -6460,13 +6411,6 @@ void persistCommand(client *c);
 void replicaofCommand(client *c);
 void roleCommand(client *c);
 extern int tm_flip_trace;
-extern int tomo_disp_window_forced_zero;
-extern int tomo_disp_window_forced_val;
-extern _Atomic int tomo_disp_window[TOMO_IO_THREADS_MAX + 1];
-extern int tomo_rord_mask;
-extern int tomo_rord_diag;
-extern int tomo_rord_unsafe_diag;
-extern int tm_rord_trace;
 void debugCommand(client *c);
 void msetCommand(client *c);
 void msetnxCommand(client *c);

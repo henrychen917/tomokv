@@ -51,6 +51,6 @@ should lift toward the measured 712-765k ceiling — re-tune the default window 
 
 ## Acceptance (same gauntlet + hammer + 40s asserted soak, plus)
 - p32 HOT 200c pure atomic MSET8 >= 600k/s (target: beat shipped 618k; ceiling ~765k).
-- torn 0.000% x8, RYOW 0 (reorder 0+3+churn), 1:9 mix >= shipped (309k/2.78M), OFF parity, no
+- torn 0.000% x8, RYOW 0 (historical direct/permutation/churn arms), 1:9 mix >= shipped (309k/2.78M), OFF parity, no
   crash/wedge in 40s, plain-GET-vs-snapshot-MGET agreement spot-check (I7), promotion verified
   (a hammered key returns to vmeta-free fast path after quiesce — expose a DEBUG/INFO counter).

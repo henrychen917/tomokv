@@ -509,8 +509,8 @@ def sc_script(c, ns):
 def sc_pipeline_order(c, ns):
     """Same-client pipelined ordering is a hard invariant here (the cs_barrier defect
     class). Interleave single-key and MULTI-KEY commands on ONE connection: the
-    multi-key ones take the scatter/gather path, and reordering against neighbours
-    would corrupt this sequence."""
+    multi-key ones take the scatter/gather path, and a bad stage/direct boundary against
+    neighbouring commands would corrupt this sequence."""
     k, m1, m2 = f"{ns}:po", f"{ns}:po_a", f"{ns}:po_b"
     c.cmd("DEL", k, m1, m2)
     cmds, want = [], []

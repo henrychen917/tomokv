@@ -16,11 +16,11 @@
 #   2. reclaim_correctness.sh  FLATSTORE/QSBR data correctness
 #   3. numa2_validate.sh       2-simnode correctness
 #   3b. simnode2_features.sh   2x16c, 2-simnode engagement gate for prefetch mode-2,
-#                              atomic visibility/reorder aging, and the atomic+reorder soak
+#                              atomic visibility/stage-only ordering, and the atomic+staging soak
 #   3c. atomic_correctness.sh  2x16c atomic visibility gauntlet (torn/RYOW/monotonic/msetnx +
 #                              completion-wedge drain), promoted from the job harness
-#   3d. atomic_torn.sh         torn-read discriminator, runtime atomic-on proof, MSETNX P0
-#                              survival, and bounded-RSS multi-key atomic mini-soak
+#   3d. atomic_torn.sh         torn-read discriminator, runtime atomic-on + straddle-memo
+#                              engagement proof, MSETNX P0 survival, and bounded-RSS mini-soak
 #   3e. satfill_stress.sh      N x saturating 40M uniform fill: flat resize-storm crash guard
 #                              (task #117, ~10%/fill pre-fix), promoted per the owner rule —
 #                              a harness that catches a bug joins the gate
@@ -32,6 +32,8 @@
 #   5b. keylb_veto.sh          the balancer's hot-KEY veto ENGAGES on per-bucket
 #                              evidence, a multi-bucket skew still migrates, and
 #                              the window-off arm does not reach it
+#   5c. p1_pipeline_transition.sh  raw-socket p1-direct <-> pipeline reply/order
+#                              correctness with bidirectional mode witnesses
 #   6. feature_sweep.sh        oracle equivalence vs stock Redis + toggles +
 #                              persistence + known-issues ledger
 #   6. controller_sweep.sh     controller/allocator conformance: SHIFT,
@@ -39,8 +41,9 @@
 #                              anti-thrash, client/key/flip LB families)
 #   6b. flip_landing.sh        2x16c landing/convergence matrix with timestamp verdicts
 #                              and discovered landed/neighbor static references
-#   7. command_sweep.sh        per-command-type throughput by DISPATCH CLASS
-#                              vs committed baselines (75%/90% FAIL/SUSPECT)
+#   6c. m1_cost_sanity.sh      populated measured-cost ordering and long-range floor
+#   7. container_write_perf.sh HSET/RPUSH/ZADD/SADD beside matching reads, B,C,C,B
+#                              against the stored known-good artifact
 #   8. stress_reclaim.sh       bounded stress spot-check (DUR from mode)
 #
 # Verdict rules: any FAIL => NO-GO. SUSPECT => listed loudly, does not block
@@ -130,6 +133,9 @@ FLIP_LANDING_PORT=${TOMO_FLIP_LANDING_PORT:-5980}
 ATOMIC_TORN_PORT=${TOMO_ATOMIC_TORN_PORT:-5981}
 WB0_PARITY_PORT=${TOMO_WB0_PARITY_PORT:-5982}
 URING_ARM_C_PORT=${TOMO_URING_ARM_C_PORT:-5983}
+P1_TRANSITION_PORT=${TOMO_P1_TRANSITION_PORT:-5984}
+CONTAINER_PERF_PORT=${TOMO_CONTAINER_PERF_PORT:-5985}
+M1_COST_SANITY_PORT=${TOMO_M1_COST_SANITY_PORT:-5986}
 WB0_PARITY_SERVER_CORES=${TOMO_WB0_PARITY_SERVER_CORES:-0-7}
 WB0_PARITY_LOADGEN_CORES=${TOMO_WB0_PARITY_LOADGEN_CORES:-16-23}
 say(){ echo "$@" | tee -a $REPORT; }
@@ -155,7 +161,7 @@ if [ "${TOMO_LANE_MODE:-0}" != 1 ] && pgrep -x memtier_benchma >/dev/null 2>&1; 
   exit 1
 fi
 # Every private comm this tree launches a server under. All are ours; none is `redis-server`.
-_OURS="redis-pf redis-wb0b redis-wb0c redis-corr redis-fence redis-veto redis-knob redis-rs redis-armrace redis-n2 redis-numcmd redis-rcrace redis-xslookup redis-exnest"
+_OURS="redis-pf redis-wb0b redis-wb0c redis-cpb redis-cpc redis-corr redis-fence redis-veto redis-knob redis-rs redis-armrace redis-n2 redis-numcmd redis-rcrace redis-xslookup redis-exnest"
 reap_ours(){ # $1 = suite that just finished
   local c leaked=""
   for c in $_OURS; do pgrep -x "$c" >/dev/null 2>&1 && { leaked="$leaked $c"; pkill -9 -x "$c" 2>/dev/null; }; done
@@ -189,7 +195,7 @@ run_suite(){ # $1 script $2 result $3 fail-regex $4 suspect-regex [$5 port $6 se
   # QUIET GATE (2026-08-11): reaped != drained. Wait (bounded) until no listener remains on the
   # suite port range before grading/continuing, so the next suite never boots into a dying server.
   for _q in $(seq 1 20); do
-    ss -ltn 2>/dev/null | grep -qE ':(597[0-9]|598[0-3])\s' || break
+    ss -ltn 2>/dev/null | grep -qE ':(597[0-9]|598[0-6])\s' || break
     sleep 0.5
   done
   local f=0 s=0 k=0
@@ -272,13 +278,25 @@ run_suite $SD/exec_nesting.sh        $PF/exec_nesting.out       $'\tFAIL'
 # SCRIPT KILL and nonzero multishot/direct-send counters.
 run_suite $SD/uring_arm_c_pewb.sh     $PF/uring_arm_c_pewb.out   $'\tFAIL' '' \
   "$URING_ARM_C_PORT" "$GATE_SERVER_CORES" "$GATE_LOADGEN_CORES"
+# A connection can begin in p1-direct and then pipeline on that same socket. The raw driver
+# alternates depths per round and validates each response value in-order, while the INFO witnesses
+# reject a clean but vacuous run unless both mode directions fired and dispatches drained back to
+# handbacks. MISMATCH is retained in the failing result row for dropped/crossed reply triage.
+run_suite $SD/p1_pipeline_transition.sh $PF/p1_pipeline_transition.out $'\tFAIL$' '' \
+  "$P1_TRANSITION_PORT" "$GATE_SERVER_CORES" "$GATE_LOADGEN_CORES"
 # Command-coverage: representative KNOWN-correct check per command family (Part A) + a concurrency race
 # sweep (Part B). Here because SORT shipped the same class exec_nesting guards for one counter, but in a
 # command's REPLY: sortCompare read process-global server.sort_desc/alpha, so concurrent SORTs with
 # different DESC/ALPHA on different workers returned wrong-direction results (19 mis-sorts, now fixed).
 # Part B — many conns, each deterministic on its own keys with per-conn-varied params — is the net for
-# that whole "per-invocation state stashed in a process global" class. Runs at reorder 0 and 2.
+# that whole "per-invocation state stashed in a process global" class. Runs in direct and
+# stage-only modes.
 run_suite $SD/cmd_coverage.sh        $PF/cmd_coverage.out       $'\tFAIL'
+# Measured m1 cells are only useful if longer shapes cost more. This cell fills/finalizes exact
+# GET/SET/MGET-2/8/16/ZRANGE-300 rows under one static workload and fails closed on an absent row,
+# non-monotonic MGET costs, or a range cost below SET (the observed under-measurement signature).
+run_suite $SD/m1_cost_sanity.sh      $PF/m1_cost_sanity.out      $'\tFAIL$' '' \
+  "$M1_COST_SANITY_PORT" "$GATE_SERVER_CORES" "$GATE_LOADGEN_CORES"
 # Hot-KEY veto. Here because the veto is the one balancer gate whose failure mode is SILENCE: it
 # refuses to migrate, so a build in which it can never engage looks identical to a build in which
 # nothing needed vetoing, and that is precisely the state this fork shipped in. The suite asserts
@@ -288,6 +306,12 @@ run_suite $SD/cmd_coverage.sh        $PF/cmd_coverage.out       $'\tFAIL'
 run_suite $SD/keylb_veto.sh          $PF/keylb_veto.out         $'\tFAIL'
 run_suite $SD/d_reorder.sh            $PF/d_reorder.out           $'\tFAIL'
 run_suite $SD/feature_sweep.sh       $PF/feature_sweep.tsv        $'\tFAIL' $'\tSUSPECT'
+# The retired command_sweep was client-bound and cannot be revived as a server-performance gate.
+# This targeted replacement uses the campaign's 48-thread p16 apparatus and samples the preserved
+# known-good binary B,C,C,B. The four container writes sit beside their read controls and every
+# command gets a one-sided stored-baseline regression verdict.
+run_suite $SD/container_write_perf.sh $PF/container_write_perf.out $'\tFAIL$' '' \
+  "$CONTAINER_PERF_PORT" "$GATE_SERVER_CORES" "$GATE_LOADGEN_CORES"
 # ee451 2026-08-12: the flip timing suites (controller_sweep, flip_updown) measure per-role
 # MICROSECONDS + absolute p32 throughput. After ~90 min of heavy correctness suites (esp. satfill's
 # 40M fill) the box is warm and these read ~17% low and mis-flip at the io5/io6 p32 boundary — a

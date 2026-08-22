@@ -1,5 +1,5 @@
 #!/bin/bash
-# simnode2_features.sh — gate suite: atomic visibility and reorder aging exercised under
+# simnode2_features.sh — gate suite: atomic visibility and arrival-order staging exercised under
 # --tomokv-nodes 2. Single-node runs are identity checks only; this suite is the multi-node
 # engagement and correctness gate.
 # Port 5975 is exclusive to this suite (#73: no port sharing between suites).
@@ -51,8 +51,8 @@ sleep 2; INF=$(stat tomokv_atomic_inflight)
 req "1to1 serves (${V:-0})" '[ "${V:-0}" -gt "$ATOMIC_SERVE_FLOOR" ]'
 req "inflight drains ($INF)" '[ "${INF:-1}" = 0 ]'
 
-echo "=== simnode2_features: atomic + reorder soak ==="
-req "boot atomic+reorder" 'boot --tomokv-atomic yes --tomokv-reorder 3'
+echo "=== simnode2_features: atomic + stage-only soak ==="
+req "boot atomic+stage-only" 'boot --tomokv-atomic yes --tomokv-reorder 1'
 seed
 T=$(timeout 30 taskset -c "$LOAD_CORES" python3 "$SD/atomicity_test.py" $PORT 5 8 2>&1 | grep -oE 'torn_reads=[0-9]+' | cut -d= -f2)
 req "torn=0 all-on (got ${T:-none})" '[ "${T:-1}" = 0 ]'
