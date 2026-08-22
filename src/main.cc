@@ -33,30 +33,6 @@ static void on_signal(int) {
     for (auto* t : g_threads) t->stop_flag().store(true, std::memory_order_relaxed);
 }
 
-static int make_listener(const char* addr, uint16_t port) {
-    int fd = ::socket(AF_INET, SOCK_STREAM, 0);
-    if (fd < 0) { std::perror("socket"); return -1; }
-    int one = 1;
-    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
-
-    sockaddr_in sa{};
-    sa.sin_family = AF_INET;
-    sa.sin_port   = htons(port);
-    if (::inet_pton(AF_INET, addr, &sa.sin_addr) != 1) {
-        std::fprintf(stderr, "bad bind address: %s\n", addr);
-        ::close(fd); return -1;
-    }
-    if (::bind(fd, reinterpret_cast<sockaddr*>(&sa), sizeof(sa)) != 0) {
-        std::perror("bind"); ::close(fd); return -1;
-    }
-    // Backlog, not a nicety. A benchmark opens every connection up front, so the accept queue must
-    // hold the whole burst; at a backlog of 1024 a 1024-connection run overflowed it, the SYNs were
-    // dropped, and memtier reported ZERO ops with no error line -- which looks like a server hang
-    // and is not one. Capped by net.core.somaxconn regardless of what we ask for.
-    if (::listen(fd, 16384) != 0) { std::perror("listen"); ::close(fd); return -1; }
-    return fd;
-}
-
 // Pins to one cpu. Relative to the process's ALLOWED set by construction, because the caller takes
 // the cpu from Topology, which intersects with sched_getaffinity. A pin to a cpu outside the mask
 // silently leaves the thread floating rather than erroring — that was a real bug in the fork.
@@ -133,8 +109,13 @@ int main(int argc, char** argv) {
     g_srv = &srv;
     command_bind_server(&srv);
 
-    const int lfd = make_listener(cfg.bind_addr, cfg.port);
-    if (lfd < 0) return 1;
+    // Probe once so a bad address or an already-bound port fails here with a clear message rather
+    // than inside six threads at once. Each io thread then opens its OWN SO_REUSEPORT listener.
+    {
+        const int probe = IoLoop::make_reuseport_listener(cfg.bind_addr, cfg.port);
+        if (probe < 0) { std::perror("bind"); return 1; }
+        ::close(probe);
+    }
 
     srv.topo().dump(stdout);
     const char* mname = cfg.wb_mode == WbMode::Io ? "2s (io sends)"
@@ -206,7 +187,7 @@ int main(int argc, char** argv) {
                 pin_for(tid);
                 ThreadCtx& self = srv.thread(tid);
                 self.latch_placement(srv.topo());
-                if (!ios[tid].init(&srv, &self, cfg.wb_mode, lfd)) return;
+                if (!ios[tid].init(&srv, &self, cfg.wb_mode, cfg.bind_addr, cfg.port)) return;
                 // Who issues this io thread's sends. Chosen from its OWN node so the handoff stays
                 // inside one L3, and round-robin within the node so one sender does not absorb every
                 // io thread's traffic.
@@ -221,7 +202,6 @@ int main(int argc, char** argv) {
     }
 
     for (auto& t : pool) t.join();
-    ::close(lfd);
 
     // One line of accounting on the way out. Cheap, and the absence of it is how a run ends with no
     // evidence of what it did.
@@ -234,6 +214,19 @@ int main(int argc, char** argv) {
     for (uint32_t i = 0; i < srv.nthreads(); i++) {
         const LoopSignals& s = srv.thread(i).sig();
         acc += s.accepts; aerr += s.accept_err; arearm += s.accept_rearm; starved += s.sqe_starved;
+    }
+    // Per-thread breakdown. The aggregate hides the thing you actually need: whether a stage is
+    // saturated, starved, or spending its life in the kernel waiting to be told there is work.
+    std::printf("\n%-6s %-4s %12s %10s %9s %9s %9s %9s %8s\n",
+                "thread","role","ops","iters","busy_ms","idle_ms","cpu_ms","wake_tx","wake_rx");
+    for (uint32_t i = 0; i < srv.nthreads(); i++) {
+        const LoopSignals& s = srv.thread(i).sig();
+        const Role r = srv.thread(i).role();
+        std::printf("t%-5u %-4s %12llu %10llu %9.1f %9.1f %9.1f %9llu %8llu\n", i,
+                    r == Role::Io ? "io" : r == Role::Ex ? "ex" : "wb",
+                    (unsigned long long)s.ops, (unsigned long long)s.iterations,
+                    s.busy_ns / 1e6, s.idle_ns / 1e6, s.cpu_ns / 1e6,
+                    (unsigned long long)s.wakes_sent, (unsigned long long)s.wakes_recv);
     }
     std::printf("shutdown: dispatched=%llu executed=%llu accepts=%llu accept_err=%llu "
                 "rearm=%llu sqe_starved=%llu\n",

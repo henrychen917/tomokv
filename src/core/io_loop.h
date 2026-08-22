@@ -15,6 +15,7 @@
 // own contiguous ready prefix without returning to IO — said here so no result from that mode is
 // misread as a verdict on that design.
 #pragma once
+#include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <sys/socket.h>
@@ -36,12 +37,44 @@ inline constexpr uint32_t kRecvChunk = 16 * 1024;
 
 class IoLoop {
 public:
-    bool init(Server* srv, ThreadCtx* self, WbMode mode, int listen_fd) {
-        srv_ = srv; self_ = self; listen_fd_ = listen_fd;
+    // ONE LISTENING SOCKET PER IO THREAD, via SO_REUSEPORT.
+    //
+    // Sharing a single listen fd across io threads does NOT distribute connections: every thread
+    // arms a multishot accept on it and the kernel satisfies them all from one ring. Measured
+    // consequence with 6 io threads and 577 connections — t5 took every single one and t0..t4 sat
+    // idle for the entire run, so the server was really running on one io thread. It looked like a
+    // latency problem (uniform ~3.5 ms at p1) and was actually a distribution problem.
+    //
+    // With SO_REUSEPORT the kernel hashes each incoming connection to one of the listening sockets,
+    // which spreads them across threads without any userspace handoff. Note this is safe WITHIN one
+    // process; two SERVER PROCESSES sharing a port is the failure mode that once faked data loss,
+    // so a boot must still verify nothing else holds the port.
+    bool init(Server* srv, ThreadCtx* self, WbMode mode, const char* addr, uint16_t port) {
+        srv_ = srv; self_ = self;
+        listen_fd_ = make_reuseport_listener(addr, port);
+        if (listen_fd_ < 0) return false;
         if (!ring_.init(4096)) return false;
         self_->set_ring(&ring_);
         wb_.bind(&ring_, mode);
         return true;
+    }
+
+    ~IoLoop() { if (listen_fd_ >= 0) ::close(listen_fd_); }
+
+    static int make_reuseport_listener(const char* addr, uint16_t port) {
+        int fd = ::socket(AF_INET, SOCK_STREAM, 0);
+        if (fd < 0) return -1;
+        int one = 1;
+        setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
+        setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &one, sizeof(one));
+        sockaddr_in sa{};
+        sa.sin_family = AF_INET;
+        sa.sin_port   = htons(port);
+        if (::inet_pton(AF_INET, addr, &sa.sin_addr) != 1) { ::close(fd); return -1; }
+        if (::bind(fd, reinterpret_cast<sockaddr*>(&sa), sizeof(sa)) != 0) { ::close(fd); return -1; }
+        // Backlog must hold a benchmark's whole opening burst; capped by net.core.somaxconn anyway.
+        if (::listen(fd, 16384) != 0) { ::close(fd); return -1; }
+        return fd;
     }
 
     Ring& ring() { return ring_; }
@@ -72,14 +105,14 @@ public:
             // PREPARED during the work section but only reach the kernel on submit; taking
             // the busy path without submitting strands them in the SQ forever, and the peer
             // that is waiting on that wake never runs.
-            if (did) { ring_.submit(); continue; }
+            if (did) { ring_.submit_and_reap(); continue; }
 
             // Nothing to do: declare intent to block, re-check (a producer may have pushed between
             // the last drain and the flag being set), then wait.
             Span idle(sig.idle_ns);
             self_->arm_blocked();
             if (!self_->any_inbound()) ring_.submit_and_wait(1);
-            else                       ring_.submit();
+            else                       ring_.submit_and_reap();
             self_->clear_blocked();
         }
     }

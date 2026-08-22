@@ -76,6 +76,19 @@ public:
 
     int submit() { pending_ = 0; return io_uring_submit(&r_); }
 
+    // Submit AND run pending completion work.
+    //
+    // THIS IS NOT AN OPTIMISATION, IT IS REQUIRED UNDER DEFER_TASKRUN. That flag defers completion
+    // processing until the thread enters the kernel asking for events; a plain io_uring_submit()
+    // does not ask. So a busy loop that submits and then reads the CQ sees it EMPTY -- not because
+    // nothing finished, but because nothing has been allowed to finish yet. Completions only surface
+    // when the loop eventually parks, which turns every request's latency into "however long until
+    // this thread next runs out of work".
+    //
+    // Measured cost of getting this wrong: a uniform ~3.9 ms per operation at p1, matching p99
+    // exactly, i.e. paid by every request rather than a tail.
+    int submit_and_reap() { pending_ = 0; return io_uring_submit_and_get_events(&r_); }
+
     // Submit whatever is queued and block until a completion arrives OR the timeout expires.
     // The timeout is not decoration: without it a thread parked here never re-reads its stop flag,
     // so shutdown hangs and the process has to be SIGKILLed. It also bounds the damage from any

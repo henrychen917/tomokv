@@ -67,7 +67,7 @@ public:
             // PREPARED during the work section but only reach the kernel on submit; taking
             // the busy path without submitting strands them in the SQ forever, and the peer
             // that is waiting on that wake never runs.
-            if (did) { ring_.submit(); idle_spins = 0; continue; }
+            if (did) { ring_.submit_and_reap(); idle_spins = 0; continue; }
 
             if (++idle_spins < kExSpinBudget) { sig.spins++; __builtin_ia32_pause(); continue; }
             idle_spins = 0;
@@ -75,7 +75,7 @@ public:
             Span idle(sig.idle_ns);
             self_->arm_blocked();
             if (!self_->any_inbound()) ring_.submit_and_wait(1);
-            else                       ring_.submit();
+            else                       ring_.submit_and_reap();
             self_->clear_blocked();
         }
     }
