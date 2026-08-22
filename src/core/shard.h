@@ -15,11 +15,12 @@
 // shards it executes can change. Ownership therefore moves by reassigning a shard, never by copying
 // a key — which is also what makes resharding O(1).
 //
-// NO LB, NO FLIP, NOTHING DYNAMIC. Placement is decided once at boot and never changes. The
-// indirection that would let it change later (worker_of_shard) still exists because it costs one
-// atomic load either way, but nothing rewrites it and no counters exist to drive a controller.
-// Speculative scaffolding for a controller that does not exist is hot-path work and reader
-// attention spent on nothing.
+// MIGRATION IS NOT FREE, and this is the part that is easy to get wrong. An L3 domain is filled by
+// access, not allocated into. Moving a shard from a worker in domain A to one in domain B does not
+// move its memory; it invalidates its residency, and the new worker must re-pull the working set
+// through the fabric. On this box a CCX-to-fabric link saturates near 51 GB/s while a single core
+// can already pull 50 — so a migration is a real cost, and an LB that prices it at zero will thrash.
+// home_domain() and store().resident_estimate() exist so it can be priced instead of guessed.
 #pragma once
 #include <atomic>
 #include <cstdint>
@@ -57,11 +58,36 @@ public:
     FlatStore&       store()       { return store_; }
     const FlatStore& store() const { return store_; }
 
+    // ---- locality --------------------------------------------------------------------------------
+    // The L3 domain this shard's working set is currently resident in — i.e. the domain of the
+    // worker that has been executing it. Set on first execution and on migration.
+    uint32_t home_domain() const { return home_domain_; }
+
+    // What moving this shard would cost: bytes the new domain must re-pull through the fabric.
+    size_t migration_cost_bytes() const { return store_.resident_estimate(); }
+
     // Published for cross-shard readers (DBSIZE, INFO). Updated once per executed batch rather than
-    // per op: a per-op store to a line other threads poll is exactly the shared-line write the design
-    // avoids everywhere else. Slightly stale by construction, which is correct for a stat.
+    // per op: a per-op store to a line that other threads poll is exactly the shared-line write the
+    // design avoids everywhere else. Slightly stale by construction, which is correct for a stat.
     void publish_size() { published_size_.store(store_.size(), std::memory_order_relaxed); }
     uint32_t published_size() const { return published_size_.load(std::memory_order_relaxed); }
+
+    // Called by the executing worker on every op. `worker_domain` is that thread's L3 domain.
+    // Cheap by construction: one compare and one increment, no atomics — the shard is single-owner.
+    void note_execution(uint32_t worker_domain) {
+        stats_.ops++;
+        if (home_domain_ == kNoDomain) { home_domain_ = worker_domain; return; }
+        if (worker_domain != home_domain_) stats_.foreign_ops++;
+    }
+
+    // Records that ownership moved to a worker in `new_domain`. Residency is now stale.
+    void note_migration(uint32_t new_domain) {
+        if (new_domain != home_domain_) {
+            stats_.migrations++;
+            stats_.migrated_bytes += migration_cost_bytes();
+            home_domain_ = new_domain;
+        }
+    }
 
     // Per-shard counters, single-writer so no two threads share a line. INFO sums them; a global
     // counter incremented per command would be a shared-line write on the hot path.
@@ -70,15 +96,25 @@ public:
         uint64_t hits          = 0;
         uint64_t misses        = 0;
         uint64_t expired       = 0;
+        // THE actionable locality signal: ops executed by a worker in a different L3 domain than the
+        // one holding this shard's working set. A high ratio means placement is wrong, and it is the
+        // number a flip/LB controller should act on — not a guess from thread ids or core counts.
+        uint64_t foreign_ops   = 0;
+        uint64_t migrations    = 0;
+        uint64_t migrated_bytes = 0;
     };
     Stats& stats() { return stats_; }
     const Stats& stats() const { return stats_; }
 
+    double foreign_ratio() const {
+        return stats_.ops ? static_cast<double>(stats_.foreign_ops) / static_cast<double>(stats_.ops) : 0.0;
+    }
 
 private:
     int32_t   id_ = -1;
     uint32_t  bucket_begin_ = 0;
     uint32_t  bucket_end_   = 0;
+    uint32_t  home_domain_  = kNoDomain;
     std::atomic<uint32_t> published_size_{0};
     FlatStore store_;
     Stats     stats_;

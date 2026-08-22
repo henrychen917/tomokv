@@ -62,8 +62,10 @@ struct LoopSignals {
     uint64_t idle_ns    = 0;    // wall time blocked or spinning with nothing to do
     uint64_t cpu_ns     = 0;    // thread CPU time; the DEFER_TASKRUN-proof busyness reading
 
-    // ---- backpressure --------------------------------------------------------------------------
-    uint64_t full_events   = 0; // outbound push refused; real backpressure, not a guess
+    // ---- pressure ----------------------------------------------------------------------------
+    uint64_t depth_sum     = 0; // sum of sampled inbound depths, in ENTRIES
+    uint64_t depth_samples = 0; // divide to get a time-average rather than a spot reading
+    uint64_t full_events   = 0; // outbound push refused: real backpressure, not a guess
 
     // ---- signalling --------------------------------------------------------------------------
     uint64_t wakes_sent = 0;
@@ -80,6 +82,9 @@ struct LoopSignals {
     double utilisation() const {
         const uint64_t t = busy_ns + idle_ns;
         return t ? static_cast<double>(busy_ns) / static_cast<double>(t) : 0.0;
+    }
+    double avg_depth() const {
+        return depth_samples ? static_cast<double>(depth_sum) / static_cast<double>(depth_samples) : 0.0;
     }
 };
 

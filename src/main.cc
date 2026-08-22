@@ -164,6 +164,7 @@ int main(int argc, char** argv) {
             pool.emplace_back([&, tid] {
                 pin_for(tid);
                 ThreadCtx& self = srv.thread(tid);
+                self.latch_placement(srv.topo());   // after pinning: sched_getcpu is only now truthful
                 bind_thread_arena();                // per-worker jemalloc arena; no-op without it
                 if (!exs[tid].init(&srv, &self, cfg.wb_mode)) return;
                 exs[tid].run();
@@ -172,6 +173,7 @@ int main(int argc, char** argv) {
             pool.emplace_back([&, tid] {
                 pin_for(tid);
                 ThreadCtx& self = srv.thread(tid);
+                self.latch_placement(srv.topo());
                 if (!wbs[tid].init(&srv, &self)) return;
                 wbs[tid].run();
             });
@@ -184,6 +186,7 @@ int main(int argc, char** argv) {
             pool.emplace_back([&, tid, k, n] {
                 pin_for(tid);
                 ThreadCtx& self = srv.thread(tid);
+                self.latch_placement(srv.topo());
                 if (!ios[tid].init(&srv, &self, cfg.wb_mode, cfg.bind_addr, cfg.port)) return;
                 // Who issues this io thread's sends. Chosen from its OWN node so the handoff stays
                 // inside one L3, and round-robin within the node so one sender does not absorb every
