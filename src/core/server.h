@@ -25,11 +25,14 @@
 namespace tomo {
 
 struct Config {
-    uint32_t io_threads     = 4;
-    uint32_t ex_threads     = 4;
+    // PER NODE, matching the fork's tomokv-thread-io / -ex. Per-node is the right unit because the
+    // split that matters is the one INSIDE a node, where the io->ex handoff actually happens; with
+    // --nodes 2 --spread 4:4 the server runs eight io and eight ex threads in total.
+    uint32_t io_per_node    = 4;
+    uint32_t ex_per_node    = 4;
     // Only used by WbMode::Wb (the 3-stage shape). Zero for 2s and ex-wb, where the sends are issued
     // by a thread that already exists.
-    uint32_t wb_threads     = 0;
+    uint32_t wb_per_node    = 0;
     WbMode   wb_mode        = WbMode::Io;
     // 0 means "one node per L3 domain", which is the measured optimum and therefore the default
     // rather than something an operator has to know to ask for.
@@ -58,6 +61,9 @@ public:
     bool init(const Config& cfg) {
         cfg_ = cfg;
         topo_.discover();
+        placement_.build(topo_, cfg.nodes, cfg.shards,
+                         cfg.io_per_node, cfg.ex_per_node, cfg.wb_per_node);
+        placement_.assign_threads();
 
         // ---- shards: bucket ranges, fixed for the life of the process ----------------------------
         shards_.resize(cfg.shards);
@@ -70,41 +76,33 @@ public:
         }
         router_.build_uniform(static_cast<int32_t>(cfg.shards));
 
-        // ---- threads -----------------------------------------------------------------------------
-        // Layout is fixed and dense: [0, io) are Io, [io, io+ex) are Ex, [io+ex, end) are Wb. Every
-        // thread gets a channel from every other regardless of role, because a role change must not
-        // require re-wiring the mesh.
-        const uint32_t nthreads = cfg.io_threads + cfg.ex_threads + cfg.wb_threads;
+        // ---- threads, grouped BY NODE ---------------------------------------------------------
+        // Thread ids are dense and node-major, so a node's io and ex threads are adjacent and land
+        // in the same L3 domain when pinned. Every thread still gets a channel from every other
+        // regardless of role, because a role change must not require re-wiring the mesh.
+        const uint32_t nthreads = placement_.total_threads();
         threads_.resize(nthreads);
         for (uint32_t i = 0; i < nthreads; i++) {
-            Role r = Role::Io;
-            if (i >= cfg.io_threads + cfg.ex_threads) r = Role::Wb;
-            else if (i >= cfg.io_threads)             r = Role::Ex;
             threads_[i] = std::make_unique<ThreadCtx>();
-            threads_[i]->init(i, r, nthreads);
+            threads_[i]->init(i, placement_.role_of(i), nthreads);
         }
 
-        // ---- nodes: default placement, aligned to shared L3 ---------------------------------------
-        // Shards are served by EX threads only; WB threads own no shard.
-        std::vector<uint32_t> worker_ids;
-        for (uint32_t i = cfg.io_threads; i < cfg.io_threads + cfg.ex_threads; i++)
-            worker_ids.push_back(i);
-        placement_.build(topo_, cfg.nodes, cfg.shards,
-                         static_cast<uint32_t>(worker_ids.size()));
-        placement_.assign_workers(worker_ids);
-
+        // ---- shards onto their OWN node's workers -----------------------------------------------
+        // A node's shards are served by that node's ex threads, so the dispatch hop and the
+        // completion pointer stay inside one L3. Cross-node dispatch still happens whenever a key
+        // lands elsewhere; Shard::foreign_ops measures exactly how often.
         for (uint32_t n = 0; n < placement_.nnodes(); n++) {
             const Node& node = placement_.node(n);
-            if (node.workers.empty()) continue;
+            if (node.ex.empty()) continue;
             for (size_t k = 0; k < node.shards.size(); k++) {
                 const int32_t  sid = node.shards[k];
-                const uint32_t tid = node.workers[k % node.workers.size()];
+                const uint32_t tid = node.ex[k % node.ex.size()];
                 threads_[tid]->shards().push_back(shards_[sid].get());
                 // The reverse mapping is what the DISPATCH path reads. Assigning shards to workers
                 // without recording it leaves every op routing to thread 0.
                 set_worker_of_shard(sid, tid);
-                // Seed the shard's home domain from its node, so the first foreign-op comparison is
-                // against the INTENDED placement rather than against wherever it happened to run.
+                // Seed the home domain from the node so the first foreign-op comparison is against
+                // the INTENDED placement, not wherever it happened to run first.
                 shards_[sid]->note_migration(node.domain);
             }
         }

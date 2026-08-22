@@ -1,18 +1,46 @@
 // flatstore.h — the keyspace table. Replaces Redis's dict/kvstore (NOT its RDB, which is a
 // persistence format we have not built).
 //
-// ONE TABLE PER SHARD, and a shard is executed by exactly one worker at a time. In the fork the
-// table was per-NODE and shared by several workers, which forced it to be lock-free with QSBR
-// reclamation — not because ownership was shared (it never was; ownership is per key) but because
-// open addressing lets worker A's probe walk through slots holding worker B's keys. One table per
-// shard removes that entire class of problem: no atomics, no CAS, no epoch reclamation, no probe
-// interference. Locality improves too — one warm table header per shard rather than per node.
+// ONE TABLE PER SHARD, executed by exactly one worker at a time. In the fork the table was per-NODE
+// and shared by several workers, which forced it to be lock-free with QSBR — not because ownership
+// was shared (it never was; ownership is per key) but because open addressing lets worker A's probe
+// walk through slots holding worker B's keys. One table per shard removes that whole class of
+// problem: no atomics, no CAS, no epoch reclamation, no probe interference.
 //
-// Per SHARD rather than per WORKER is what makes migration possible: reassigning a shard to another
-// worker moves ownership without copying a key. See shard.h on why that move is not free.
+// ============================================================================================
+// WHAT IS NEVER COPIED, AND WHAT MOVES
 //
-// So everything below is plain single-threaded code, and that is a deliberate result rather than a
-// simplification to be fixed later.
+//   KvObj (key + value bytes)   NEVER copied and NEVER moved, by anything, ever. A key's storage is
+//                               allocated once and freed once. Every operation below moves at most
+//                               an 8-byte slot word that POINTS at it.
+//
+//   Shard migration (LB)        moves NOTHING AT ALL. Reassigning a shard to another worker is one
+//                               atomic store of a thread id into worker_of_shard[]. No table is
+//                               touched, no pointer is rehashed. Pure handoff.
+//
+//   Table resize                rehashes 8-byte SLOT WORDS into a larger or smaller array, because
+//                               an open-addressed slot index is a function of the capacity. This is
+//                               pointer movement, not data movement — the objects those pointers
+//                               name do not budge.
+//
+// ============================================================================================
+// RESIZE IS INCREMENTAL. NOTHING STOPS THE WORLD.
+//
+// Rehashing a large table in one pass is a multi-second stall on the write tail — the fork measured
+// exactly that and had to move to serve-while-copy to turn a 2.4 s p99.99 into 39 ms. So this works
+// the way Redis's dict does: allocate the new table, keep the old one, and migrate a BOUNDED number
+// of slots on every subsequent operation. No operation pays more than that bound, so the tail stays
+// flat while the table grows underneath the workload.
+//
+//   t_[0]  the CURRENT table. Every insert goes here. Always present.
+//   t_[1]  the OLD table, present only while rehashing. Drains, then is freed.
+//
+// THE RESURRECTION HAZARD, easy to get wrong and silently wrong. A key can still sit in the old
+// table when a new value for it is inserted into the current one. Delete the current copy and the
+// old one becomes visible again — the key returns from the dead. So insert evicts any old-table copy
+// first, and erase checks both tables. Exactly ONE copy of a key exists at any instant, which is the
+// invariant every lookup depends on.
+// ============================================================================================
 //
 // SLOT ENCODING — one 8-byte word, eight slots per cache line:
 //
@@ -24,11 +52,11 @@
 //   ptr != 0              LIVE
 //   word != 0, ptr == 0   DEAD   tombstone; reusable, never stops a probe
 //
-// THE CLUSTERING TRAP, worth keeping in the comment because it cost real time: the router consumes
-// the LOW bits of the same hash that indexes this table. Index the table with `h & mask` and the
-// routing bits are frozen for every key a given worker owns — only 1/nshards of slots are natural
-// homes, and linear probing degenerates into kilo-slot runs. Measured at ~6,600 probes per lookup.
-// slot_start() therefore mixes the hash again before taking the index; that alone was worth 2.5-2.7x.
+// THE CLUSTERING TRAP, kept because it cost real time: the router consumes the LOW bits of the same
+// hash that indexes this table. Index with `h & mask` and the routing bits are frozen for every key
+// a shard owns — only 1/nshards of slots are natural homes, and linear probing degenerates into
+// kilo-slot runs. Measured at ~6,600 probes per lookup. slot_start() mixes again before taking the
+// index; that alone was worth 2.5-2.7x.
 #pragma once
 #include <cstdint>
 #include <cstdlib>
@@ -49,68 +77,57 @@ inline uint64_t mix64(uint64_t h) {
 
 class FlatStore {
 public:
-    static constexpr uint64_t kPtrMask  = (1ULL << 48) - 1;
-    static constexpr uint64_t kTombBit  = 1ULL << 48;
-    static constexpr int      kLoadPct  = 70;
-    static constexpr uint32_t kMinCap   = 64;    // never shrink below this; churn is not worth it
+    static constexpr uint64_t kPtrMask = (1ULL << 48) - 1;
+    static constexpr uint64_t kTombBit = 1ULL << 48;
+    static constexpr int      kLoadPct = 70;
+    static constexpr uint32_t kMinCap  = 64;
 
-    explicit FlatStore(uint32_t initial_cap = 1024) { alloc_table(round_pow2(initial_cap)); }
+    // OLD slots examined per operation. Large enough that a rehash finishes well before the table
+    // needs another, small enough that no single operation visibly stalls. Bounded per op is the
+    // entire point.
+    static constexpr uint32_t kRehashSlotsPerOp = 8;
+
+    explicit FlatStore(uint32_t initial_cap = 1024) { alloc_table(0, round_pow2(initial_cap)); }
     ~FlatStore() {
-        for (uint32_t i = 0; i < cap_; i++)
-            if (KvObj* o = obj_at(i)) kvobj_free(o);
-        std::free(slots_);
+        for (int t = 0; t < 2; t++)
+            if (tab_[t]) {
+                for (uint32_t i = 0; i < cap_[t]; i++)
+                    if (KvObj* o = ptr_of(tab_[t][i])) kvobj_free(o);
+                std::free(tab_[t]);
+            }
     }
     FlatStore(const FlatStore&) = delete;
     FlatStore& operator=(const FlatStore&) = delete;
 
-    uint32_t size() const { return live_; }
-    uint32_t capacity() const { return cap_; }
+    bool     rehashing() const { return tab_[1] != nullptr; }
+    uint32_t size() const { return live_[0] + live_[1]; }
+    uint32_t capacity() const { return cap_[0] + cap_[1]; }
 
-    // What a migration of this shard would have to re-pull through the fabric. An L3 domain is
-    // filled by access, not allocated into, so moving a shard to a worker in another domain
-    // invalidates residency rather than moving memory — this is the price of that move.
-    size_t resident_estimate() const { return static_cast<size_t>(cap_) * 8 + obj_bytes_; }
+    // What a migration of this shard would cost the NEW domain to re-pull through the fabric. Not a
+    // copy cost — nothing is copied — but an L3 domain is filled by access, so a shard that moves
+    // has to be read back in on the other side.
+    size_t resident_estimate() const {
+        return static_cast<size_t>(cap_[0] + cap_[1]) * 8 + obj_bytes_;
+    }
 
-    // Warm the slot this key will probe. Issued for a whole batch before any of it executes, so the
-    // DRAM round trips overlap each other instead of serialising one per operation. Worth +2-3% when
-    // DRAM-bound in the fork. This is a plain prefetch pass, NOT an AMAC-style interleaved state
-    // machine — that shape is explicitly out of scope.
-    void prefetch(uint64_t h) const { __builtin_prefetch(&slots_[slot_start(h)], 0, 3); }
-
-    // Returns nullptr when absent. `h` is the full key hash; the caller already computed it to route.
-    KvObj* find(uint64_t h, Slice key) const {
-        const uint16_t tag = tag_of(h);
-        uint32_t i = slot_start(h);
-        for (uint32_t probes = 0; probes <= cap_; probes++) {
-            const uint64_t w = slots_[i];
-            if (w == 0) return nullptr;                    // EMPTY — the only stop
-            KvObj* o = ptr_of(w);
-            if (o && tag_of_word(w) == tag && o->key() == key) return o;
-            i = (i + 1) & mask_;
-        }
+    KvObj* find(uint64_t h, Slice key) {
+        if (rehashing()) rehash_step();
+        if (KvObj* o = find_in(0, h, key)) return o;
+        if (rehashing()) return find_in(1, h, key);
         return nullptr;
     }
 
-    // Overwrite an existing string value WITHOUT allocating, when the new value is exactly the same
-    // size as the old. That is not a narrow special case: a benchmark (and most caches) rewrite the
-    // same keyspace with a fixed value size, so this is the dominant SET path, and it turns
-    // malloc + memcpy + free into a single memcpy.
-    //
-    // The test is SAME SIZE CLASS, not same length. Asking for 88 bytes gets 96, so a value that
-    // grew or shrank by a few bytes still fits what was already paid for. Because good_size() is a
-    // pure function of the header, the class after the rewrite is recomputed identically — so
-    // kvobj_size() stays exact and the resident accounting a migration is priced from does not
-    // drift. That is why the condition is equality of CLASS rather than "new <= old", which would
-    // let the real allocation and the implied one diverge.
+    // Same-size-CLASS overwrite, allocation-free. Asking for 88 bytes gets 96, so a value that grew
+    // or shrank a little still fits what was already paid for. The test is equality of CLASS rather
+    // than "new <= old" because good_size() is recomputed from the header — letting the real
+    // allocation and the implied one diverge would silently break the resident estimate.
     bool try_overwrite(uint64_t h, Slice key, Slice val) {
         KvObj* o = find(h, key);
         if (!o) return false;
         if (static_cast<Enc>(o->enc) != Enc::Raw) return false;
-        if (o->flags & KvObjFlags::HasTtl) return false;      // SET clears the TTL; take the slow path
+        if (o->flags & KvObjFlags::HasTtl) return false;      // SET clears the TTL; slow path
         if (val.n > kEmbedThreshold) return false;            // would have to become Enc::Extern
-
-        const bool has_ttl = false;
-        const size_t want = kvobj_alloc_size(o->klen(), val.n, has_ttl, Enc::Raw);
+        const size_t want = kvobj_alloc_size(o->klen(), val.n, false, Enc::Raw);
         if (good_size(want) != kvobj_capacity(o)) return false;
 
         obj_bytes_ -= kvobj_size(o);
@@ -120,147 +137,47 @@ public:
         return true;
     }
 
-    // Inserts or replaces. Takes ownership of `o`; frees any object it displaces.
-    // Returns false only if the table could not grow.
+    // Takes ownership of `o`; frees anything it displaces.
     bool insert(uint64_t h, KvObj* o) {
-        if ((live_ + tombs_ + 1) * 100 >= cap_ * kLoadPct) {
-            if (!grow()) return false;
-        }
-        const uint16_t tag = tag_of(h);
-        const Slice    key = o->key();
-        uint32_t i = slot_start(h);
-        int32_t  first_tomb = -1;
-
-        for (uint32_t probes = 0; probes <= cap_; probes++) {
-            const uint64_t w = slots_[i];
-            if (w == 0) {
-                // Reuse an earlier tombstone if we passed one — keeps runs short.
-                if (first_tomb >= 0) { slots_[first_tomb] = make_word(tag, o); tombs_--; }
-                else                 { slots_[i] = make_word(tag, o); }
-                live_++;
-                obj_bytes_ += kvobj_size(o);
-                return true;
-            }
-            KvObj* cur = ptr_of(w);
-            if (!cur) { if (first_tomb < 0) first_tomb = static_cast<int32_t>(i); }
-            else if (tag_of_word(w) == tag && cur->key() == key) {
-                obj_bytes_ -= kvobj_size(cur);
-                kvobj_free(cur);                  // replace in place; live_ unchanged
-                obj_bytes_ += kvobj_size(o);
-                slots_[i] = make_word(tag, o);
-                return true;
-            }
-            i = (i + 1) & mask_;
-        }
-        return false;   // unreachable while the load factor holds
+        if (rehashing()) rehash_step();
+        else             maybe_start_grow();
+        // Evict any copy still in the old table FIRST, or it outlives a later delete of the new one
+        // and the key resurrects — see the header.
+        if (rehashing()) erase_in(1, h, o->key());
+        return insert_into(0, h, o);
     }
 
     bool erase(uint64_t h, Slice key) {
-        const uint16_t tag = tag_of(h);
-        uint32_t i = slot_start(h);
-        for (uint32_t probes = 0; probes <= cap_; probes++) {
-            const uint64_t w = slots_[i];
-            if (w == 0) return false;
-            KvObj* o = ptr_of(w);
-            if (o && tag_of_word(w) == tag && o->key() == key) {
-                obj_bytes_ -= kvobj_size(o);
-                kvobj_free(o);
-                slots_[i] = kTombBit;             // DEAD: non-zero, ptr == 0
-                live_--; tombs_++;
-                // SHRINK, with hysteresis wide enough that a table cannot oscillate. Grow triggers
-                // at kLoadPct and leaves the table at kLoadPct/2; shrinking only below kLoadPct/4
-                // keeps those two well apart, so a workload sitting near a boundary does not rebuild
-                // on every other operation. Same rule as the fork.
-                if (cap_ > kMinCap && live_ * 400 <= cap_ * kLoadPct) rebuild(cap_ / 2);
-                return true;
-            }
-            i = (i + 1) & mask_;
-        }
+        if (rehashing()) rehash_step();
+        if (erase_in(0, h, key)) { maybe_start_shrink(); return true; }
+        if (rehashing() && erase_in(1, h, key)) { maybe_start_shrink(); return true; }
         return false;
     }
 
     template <typename Fn>
     void for_each(Fn&& fn) const {
-        for (uint32_t i = 0; i < cap_; i++)
-            if (KvObj* o = obj_at(i)) fn(o);
+        for (int t = 0; t < 2; t++)
+            if (tab_[t])
+                for (uint32_t i = 0; i < cap_[t]; i++)
+                    if (KvObj* o = ptr_of(tab_[t][i])) fn(o);
     }
 
-private:
-    static uint32_t round_pow2(uint32_t v) { uint32_t p = 8; while (p < v) p <<= 1; return p; }
-    static uint16_t tag_of(uint64_t h)     { return static_cast<uint16_t>((h >> 49) & 0x7fff); }
-    static uint16_t tag_of_word(uint64_t w){ return static_cast<uint16_t>((w >> 49) & 0x7fff); }
-    static KvObj*   ptr_of(uint64_t w)     { return reinterpret_cast<KvObj*>(w & kPtrMask); }
-    static uint64_t make_word(uint16_t tag, KvObj* o) {
-        return (static_cast<uint64_t>(tag) << 49) | reinterpret_cast<uint64_t>(o);
-    }
-    KvObj* obj_at(uint32_t i) const { return ptr_of(slots_[i]); }
-
-    // The mixer that keeps the index independent of the router's low bits — see the header comment.
-    uint32_t slot_start(uint64_t h) const { return static_cast<uint32_t>(mix64(h)) & mask_; }
-
-    void alloc_table(uint32_t cap) {
-        slots_ = static_cast<uint64_t*>(std::calloc(cap, sizeof(uint64_t)));   // calloc: EMPTY == 0
-        cap_   = cap;
-        mask_  = cap - 1;
+    // Warm the slots this key will probe, for a whole batch before any of it executes, so the DRAM
+    // round trips overlap. A plain prefetch pass, not an AMAC-style interleaved state machine.
+    void prefetch(uint64_t h) const {
+        if (tab_[0]) __builtin_prefetch(&tab_[0][slot_start(0, h)], 0, 3);
+        if (tab_[1]) __builtin_prefetch(&tab_[1][slot_start(1, h)], 0, 3);
     }
 
-    // REBUILD, not necessarily GROW. The load trigger counts live + tombstones, so a delete-heavy
-    // workload trips it with almost no live keys. Doubling on that would inflate the table forever
-    // on a keyspace that never grows. So double only when the LIVE set alone justifies it; otherwise
-    // rebuild at the same size, which costs the same pass and reclaims every tombstone.
-    // (Ported from the fork, which carries exactly this rule.)
-    //
-    // v1 rebuild is stop-the-world for THIS WORKER only — every other shard keeps serving, which is
-    // already far better than a global rehash. It is still not free: the fork measured multi-second
-    // write-tail stalls from resize and had to move to serve-while-copy (p99.99 39 ms, 59x better).
-    // TODO(resize): incremental/serve-while-copy before any large-keyspace latency claim.
-    bool grow() {
-        const bool double_it = (live_ * 200 >= cap_ * kLoadPct);   // live alone past half the trigger
-        rebuild(double_it ? cap_ * 2 : cap_);
-        return true;
-    }
-
-    // Rehash every live entry into a table of `newcap`. Used for grow, in-place tombstone reclaim,
-    // and shrink — one code path so the three cannot drift apart.
-    void rebuild(uint32_t newcap) {
-        uint64_t* old  = slots_;
-        uint32_t  oldc = cap_;
-        if (newcap < kMinCap) newcap = kMinCap;
-        alloc_table(newcap);
-        live_ = 0; tombs_ = 0; obj_bytes_ = 0;
-        for (uint32_t i = 0; i < oldc; i++) {
-            if (KvObj* o = ptr_of(old[i])) {
-                // Rehash from the key: nothing stores the hash, which is what keeps the slot 8 bytes.
-                insert_no_grow(hash_key(o->key()), o);
-            }
-        }
-        std::free(old);
-    }
-
-    void insert_no_grow(uint64_t h, KvObj* o) {
-        obj_bytes_ += kvobj_size(o);
-        const uint16_t tag = tag_of(h);
-        uint32_t i = slot_start(h);
-        while (slots_[i] != 0) i = (i + 1) & mask_;
-        slots_[i] = make_word(tag, o);
-        live_++;
-    }
-
-public:
-    // Single hash function for the whole server: the router takes its bucket from the low bits and
-    // FlatStore mixes for its index. Both must agree, so it lives here.
+    // One hash for the whole server: the router takes its bucket from the low bits and FlatStore
+    // mixes for its index, so both must agree and it lives here. Word-at-a-time, because FNV-1a
+    // costs one DEPENDENT multiply per byte and a 20-character key is then a 20-long chain.
     static uint64_t hash_key(Slice k) {
-        // Word-at-a-time. FNV-1a costs one DEPENDENT multiply per byte, so a 20-character key is a
-        // 20-long dependency chain executed once per op on the hot path. Consuming 8 bytes per
-        // round cuts that to three, and the tail is read with two overlapping 8-byte loads rather
-        // than a byte loop (reading the last 8 bytes again is cheaper than branching per byte).
         const uint8_t* p = reinterpret_cast<const uint8_t*>(k.p);
         uint32_t n = k.n;
         uint64_t h = 0x9e3779b97f4a7c15ULL ^ (static_cast<uint64_t>(n) * 0xff51afd7ed558ccdULL);
-
         auto rd8 = [](const uint8_t* q) { uint64_t v; std::memcpy(&v, q, 8); return v; };
         auto rd4 = [](const uint8_t* q) { uint32_t v; std::memcpy(&v, q, 4); return v; };
-
         while (n >= 8) { h = mix64(h ^ rd8(p)); p += 8; n -= 8; }
         if (n >= 4)    { h = mix64(h ^ ((static_cast<uint64_t>(rd4(p)) << 32) | rd4(p + n - 4))); }
         else if (n)    { uint64_t t = p[0];
@@ -270,12 +187,148 @@ public:
     }
 
 private:
-    uint64_t* slots_ = nullptr;
-    uint32_t  cap_   = 0;
-    uint32_t  mask_  = 0;
-    uint32_t  live_  = 0;
-    uint32_t  tombs_ = 0;
-    size_t    obj_bytes_ = 0;
+    static uint32_t round_pow2(uint32_t v) { uint32_t p = kMinCap; while (p < v) p <<= 1; return p; }
+    static uint16_t tag_of(uint64_t h)      { return static_cast<uint16_t>((h >> 49) & 0x7fff); }
+    static uint16_t tag_of_word(uint64_t w) { return static_cast<uint16_t>((w >> 49) & 0x7fff); }
+    static KvObj*   ptr_of(uint64_t w)      { return reinterpret_cast<KvObj*>(w & kPtrMask); }
+    static uint64_t make_word(uint16_t tag, KvObj* o) {
+        return (static_cast<uint64_t>(tag) << 49) | reinterpret_cast<uint64_t>(o);
+    }
+    uint32_t slot_start(int t, uint64_t h) const { return static_cast<uint32_t>(mix64(h)) & mask_[t]; }
+
+    void alloc_table(int t, uint32_t cap) {
+        tab_[t]   = static_cast<uint64_t*>(std::calloc(cap, sizeof(uint64_t)));  // EMPTY == 0
+        cap_[t]   = cap;
+        mask_[t]  = cap - 1;
+        live_[t]  = 0;
+        tombs_[t] = 0;
+    }
+
+    KvObj* find_in(int t, uint64_t h, Slice key) const {
+        if (!tab_[t]) return nullptr;
+        const uint16_t tag = tag_of(h);
+        uint32_t i = slot_start(t, h);
+        for (uint32_t probes = 0; probes <= cap_[t]; probes++) {
+            const uint64_t w = tab_[t][i];
+            if (w == 0) return nullptr;                     // EMPTY — the only stop
+            KvObj* o = ptr_of(w);
+            if (o && tag_of_word(w) == tag && o->key() == key) return o;
+            i = (i + 1) & mask_[t];
+        }
+        return nullptr;
+    }
+
+    bool insert_into(int t, uint64_t h, KvObj* o) {
+        const uint16_t tag = tag_of(h);
+        const Slice    key = o->key();
+        uint32_t i = slot_start(t, h);
+        int32_t  first_tomb = -1;
+        for (uint32_t probes = 0; probes <= cap_[t]; probes++) {
+            const uint64_t w = tab_[t][i];
+            if (w == 0) {
+                if (first_tomb >= 0) { tab_[t][first_tomb] = make_word(tag, o); tombs_[t]--; }
+                else                 { tab_[t][i] = make_word(tag, o); }
+                live_[t]++;
+                obj_bytes_ += kvobj_size(o);
+                return true;
+            }
+            KvObj* cur = ptr_of(w);
+            if (!cur) { if (first_tomb < 0) first_tomb = static_cast<int32_t>(i); }
+            else if (tag_of_word(w) == tag && cur->key() == key) {
+                obj_bytes_ -= kvobj_size(cur);
+                kvobj_free(cur);                            // replace in place; live_ unchanged
+                obj_bytes_ += kvobj_size(o);
+                tab_[t][i] = make_word(tag, o);
+                return true;
+            }
+            i = (i + 1) & mask_[t];
+        }
+        return false;   // unreachable while the load factor holds
+    }
+
+    bool erase_in(int t, uint64_t h, Slice key) {
+        if (!tab_[t]) return false;
+        const uint16_t tag = tag_of(h);
+        uint32_t i = slot_start(t, h);
+        for (uint32_t probes = 0; probes <= cap_[t]; probes++) {
+            const uint64_t w = tab_[t][i];
+            if (w == 0) return false;
+            KvObj* o = ptr_of(w);
+            if (o && tag_of_word(w) == tag && o->key() == key) {
+                obj_bytes_ -= kvobj_size(o);
+                kvobj_free(o);
+                tab_[t][i] = kTombBit;                      // DEAD: non-zero, ptr == 0
+                live_[t]--; tombs_[t]++;
+                return true;
+            }
+            i = (i + 1) & mask_[t];
+        }
+        return false;
+    }
+
+    // ---- incremental resize -----------------------------------------------------------------
+    void maybe_start_grow() {
+        if ((live_[0] + tombs_[0] + 1) * 100 < cap_[0] * kLoadPct) return;
+        // Double only when the LIVE set alone justifies it. The trigger counts tombstones, so a
+        // delete-heavy workload trips it with almost no live keys and doubling there would inflate
+        // the table forever. Otherwise rehash at the same size, which costs the same walk and
+        // reclaims every tombstone.
+        const bool double_it = (live_[0] * 200 >= cap_[0] * kLoadPct);
+        start_rehash(double_it ? cap_[0] * 2 : cap_[0]);
+    }
+
+    void maybe_start_shrink() {
+        if (rehashing() || cap_[0] <= kMinCap) return;
+        // Hysteresis: grow triggers at kLoadPct and leaves the table at kLoadPct/2, so shrinking
+        // only below kLoadPct/4 keeps the two far enough apart that a workload sitting near a
+        // boundary cannot rebuild on every other operation.
+        if (live_[0] * 400 <= cap_[0] * kLoadPct) start_rehash(cap_[0] / 2);
+    }
+
+    // Demote the current table to the old slot and install a fresh one. NOTHING is copied here —
+    // that is the whole point; the slot-word migration is spread across later operations.
+    void start_rehash(uint32_t newcap) {
+        if (rehashing()) return;                            // one at a time; finish before starting
+        if (newcap < kMinCap) newcap = kMinCap;
+        tab_[1]  = tab_[0];  cap_[1] = cap_[0];  mask_[1] = mask_[0];
+        live_[1] = live_[0]; tombs_[1] = tombs_[0];
+        alloc_table(0, newcap);
+        rehash_pos_ = 0;
+    }
+
+    // Move a BOUNDED number of SLOT WORDS from the old table to the current one. Called at the head
+    // of every operation, so the cost is amortised and no single operation stalls. The KvObjs those
+    // words point at are not touched.
+    void rehash_step() {
+        uint32_t budget = kRehashSlotsPerOp;
+        while (budget && rehash_pos_ < cap_[1]) {
+            const uint64_t w = tab_[1][rehash_pos_];
+            if (KvObj* o = ptr_of(w)) {
+                // TOMBSTONE, not EMPTY. Writing 0 here would terminate any probe run passing
+                // through this slot, making every key that probed past it unreachable in the old
+                // table for the rest of the rehash — a silent, transient, load-dependent miss.
+                tab_[1][rehash_pos_] = kTombBit;
+                live_[1]--; tombs_[1]++;
+                obj_bytes_ -= kvobj_size(o);                // insert_into adds it back
+                insert_into(0, hash_key(o->key()), o);      // rehash from the key: no hash is stored
+            }
+            rehash_pos_++;
+            budget--;
+        }
+        if (rehash_pos_ >= cap_[1]) {
+            std::free(tab_[1]);
+            tab_[1] = nullptr; cap_[1] = 0; mask_[1] = 0; live_[1] = 0; tombs_[1] = 0;
+            rehash_pos_ = 0;
+        }
+    }
+
+    uint64_t* tab_[2]   = {nullptr, nullptr};
+    uint32_t  cap_[2]   = {0, 0};
+    uint32_t  mask_[2]  = {0, 0};
+    uint32_t  live_[2]  = {0, 0};
+    uint32_t  tombs_[2] = {0, 0};
+    uint32_t  rehash_pos_ = 0;
+    size_t    obj_bytes_  = 0;
 };
 
 }  // namespace tomo
