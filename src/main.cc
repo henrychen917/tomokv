@@ -49,7 +49,11 @@ static int make_listener(const char* addr, uint16_t port) {
     if (::bind(fd, reinterpret_cast<sockaddr*>(&sa), sizeof(sa)) != 0) {
         std::perror("bind"); ::close(fd); return -1;
     }
-    if (::listen(fd, 1024) != 0) { std::perror("listen"); ::close(fd); return -1; }
+    // Backlog, not a nicety. A benchmark opens every connection up front, so the accept queue must
+    // hold the whole burst; at a backlog of 1024 a 1024-connection run overflowed it, the SYNs were
+    // dropped, and memtier reported ZERO ops with no error line -- which looks like a server hang
+    // and is not one. Capped by net.core.somaxconn regardless of what we ask for.
+    if (::listen(fd, 16384) != 0) { std::perror("listen"); ::close(fd); return -1; }
     return fd;
 }
 
@@ -72,6 +76,18 @@ int main(int argc, char** argv) {
         else if (!std::strcmp(argv[i], "--bind"))       cfg.bind_addr = next("127.0.0.1");
         else if (!std::strcmp(argv[i], "--io"))         cfg.io_threads = static_cast<uint32_t>(std::atoi(next("4")));
         else if (!std::strcmp(argv[i], "--ex"))         cfg.ex_threads = static_cast<uint32_t>(std::atoi(next("4")));
+        // THE STATIC SPREAD KNOB. "io:ex" or "io:ex:wb". Everything is static -- there is no
+        // controller and nothing rebalances at runtime, by design for now.
+        else if (!std::strcmp(argv[i], "--spread")) {
+            const char* v = next("4:4");
+            unsigned a = 0, b = 0, c = 0;
+            const int got = std::sscanf(v, "%u:%u:%u", &a, &b, &c);
+            if (got < 2 || a == 0 || b == 0) {
+                std::fprintf(stderr, "--spread wants io:ex or io:ex:wb (e.g. 4:4 or 3:3:2)\n");
+                return 1;
+            }
+            cfg.io_threads = a; cfg.ex_threads = b; cfg.wb_threads = (got == 3 ? c : 0);
+        }
         else if (!std::strcmp(argv[i], "--shards"))     cfg.shards = static_cast<uint32_t>(std::atoi(next("16")));
         else if (!std::strcmp(argv[i], "--nodes"))      cfg.nodes = static_cast<uint32_t>(std::atoi(next("0")));
         else if (!std::strcmp(argv[i], "--wb"))         cfg.wb_threads = static_cast<uint32_t>(std::atoi(next("0")));
@@ -84,8 +100,11 @@ int main(int argc, char** argv) {
             else { std::fprintf(stderr, "--mode must be 2s | exwb | 3s\n"); return 1; }
         }
         else if (!std::strcmp(argv[i], "--help")) {
-            std::printf("usage: %s [--port N] [--bind A] [--io N] [--ex N] [--wb N] [--shards N]\n"
-                        "          [--nodes N] [--mode 2s|exwb|3s] [--no-pin]\n", argv[0]);
+            std::printf("usage: %s [--port N] [--bind A] [--shards N] [--nodes N] [--no-pin]\n"
+                        "  two knobs, everything static:\n"
+                        "    --mode   2s | exwb | 3s     which stage issues the sends\n"
+                        "    --spread io:ex[:wb]         the thread split, e.g. 4:4 or 3:3:2\n",
+                        argv[0]);
             return 0;
         }
     }
@@ -216,7 +235,15 @@ int main(int argc, char** argv) {
         const LoopSignals& s = srv.thread(i).sig();
         (i < cfg.io_threads ? disp : ops) += s.ops;
     }
-    std::printf("shutdown: dispatched=%llu executed=%llu\n",
-                static_cast<unsigned long long>(disp), static_cast<unsigned long long>(ops));
+    uint64_t acc = 0, aerr = 0, arearm = 0, starved = 0;
+    for (uint32_t i = 0; i < srv.nthreads(); i++) {
+        const LoopSignals& s = srv.thread(i).sig();
+        acc += s.accepts; aerr += s.accept_err; arearm += s.accept_rearm; starved += s.sqe_starved;
+    }
+    std::printf("shutdown: dispatched=%llu executed=%llu accepts=%llu accept_err=%llu "
+                "rearm=%llu sqe_starved=%llu\n",
+                static_cast<unsigned long long>(disp), static_cast<unsigned long long>(ops),
+                static_cast<unsigned long long>(acc), static_cast<unsigned long long>(aerr),
+                static_cast<unsigned long long>(arearm), static_cast<unsigned long long>(starved));
     return 0;
 }

@@ -59,6 +59,9 @@ public:
             uint32_t did = 0;
             {
                 Span busy(sig.busy_ns);
+                // A dropped accept re-arm means the server stops taking connections entirely, so it
+                // is retried every pass until it lands.
+                if (accept_pending_) arm_accept();
                 did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
                 did += collect_retire_work();
                 did += flush_ready();
@@ -85,9 +88,14 @@ private:
     // ---- submission -----------------------------------------------------------------------------
     void arm_accept() {
         io_uring_sqe* s = ring_.sqe();
+        // sqe() can still return null when the submission queue is saturated. Writing through it
+        // corrupts memory, and losing the accept re-arm silently stops the server taking
+        // connections at all — so this is checked, counted, and retried on the next pass.
+        if (!s) { self_->sig().sqe_starved++; accept_pending_ = true; return; }
         io_uring_prep_multishot_accept(s, listen_fd_, nullptr, nullptr, 0);
         s->user_data = ur_tag(UrKind::Accept, nullptr);
         ring_.note_pending();
+        accept_pending_ = false;
     }
 
     // ONE recv in flight per connection. While it is armed the kernel holds a raw pointer into the
@@ -100,6 +108,7 @@ private:
         char* dst = c->conn().read_space(kRecvChunk, avail, c->rob().quiesced());
         if (!dst) return;                      // no usable space yet: let the ROB drain first
         io_uring_sqe* s = ring_.sqe();
+        if (!s) { self_->sig().sqe_starved++; return; }   // retried from flush_ready next pass
         io_uring_prep_recv(s, c->conn().fd(), dst, avail, 0);
         s->user_data = ur_tag(UrKind::Recv, c);
         ring_.note_pending();
@@ -122,7 +131,14 @@ private:
     }
 
     void on_accept(io_uring_cqe* cqe) {
-        if (cqe->res < 0) { arm_accept(); return; }
+        if (cqe->res < 0) {
+            // Do not swallow this silently: a failing accept with no trace is indistinguishable from
+            // a hung server, which is exactly how the 1024-connection failure presented.
+            self_->sig().accept_err++;
+            arm_accept();
+            return;
+        }
+        self_->sig().accepts++;
         int fd = cqe->res, one = 1;
         setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
 
@@ -131,7 +147,10 @@ private:
         c->set_io_thread(self_->id());
         self_->clients().push_back(c);
         arm_recv(c);
-        if (!(cqe->flags & IORING_CQE_F_MORE)) arm_accept();   // multishot dropped: re-arm
+        if (!(cqe->flags & IORING_CQE_F_MORE)) {               // multishot dropped: re-arm
+            self_->sig().accept_rearm++;
+            arm_accept();
+        }
     }
 
     void on_recv(Client* c, int res) {
@@ -306,6 +325,7 @@ private:
     int        listen_fd_ = -1;
     Ring       ring_;
     WbEngine   wb_;
+    bool       accept_pending_ = false;
 
     // Clients with work outstanding. Populated by dispatch and by the retire channel, never by
     // scanning every client: at 10k+ connections that scan dominates the loop.

@@ -52,6 +52,7 @@ public:
     static constexpr uint64_t kPtrMask  = (1ULL << 48) - 1;
     static constexpr uint64_t kTombBit  = 1ULL << 48;
     static constexpr int      kLoadPct  = 70;
+    static constexpr uint32_t kMinCap   = 64;    // never shrink below this; churn is not worth it
 
     explicit FlatStore(uint32_t initial_cap = 1024) { alloc_table(round_pow2(initial_cap)); }
     ~FlatStore() {
@@ -166,6 +167,11 @@ public:
                 kvobj_free(o);
                 slots_[i] = kTombBit;             // DEAD: non-zero, ptr == 0
                 live_--; tombs_++;
+                // SHRINK, with hysteresis wide enough that a table cannot oscillate. Grow triggers
+                // at kLoadPct and leaves the table at kLoadPct/2; shrinking only below kLoadPct/4
+                // keeps those two well apart, so a workload sitting near a boundary does not rebuild
+                // on every other operation. Same rule as the fork.
+                if (cap_ > kMinCap && live_ * 400 <= cap_ * kLoadPct) rebuild(cap_ / 2);
                 return true;
             }
             i = (i + 1) & mask_;
@@ -209,10 +215,18 @@ private:
     // write-tail stalls from resize and had to move to serve-while-copy (p99.99 39 ms, 59x better).
     // TODO(resize): incremental/serve-while-copy before any large-keyspace latency claim.
     bool grow() {
-        uint64_t* old   = slots_;
-        uint32_t  oldc  = cap_;
         const bool double_it = (live_ * 200 >= cap_ * kLoadPct);   // live alone past half the trigger
-        alloc_table(double_it ? cap_ * 2 : cap_);
+        rebuild(double_it ? cap_ * 2 : cap_);
+        return true;
+    }
+
+    // Rehash every live entry into a table of `newcap`. Used for grow, in-place tombstone reclaim,
+    // and shrink — one code path so the three cannot drift apart.
+    void rebuild(uint32_t newcap) {
+        uint64_t* old  = slots_;
+        uint32_t  oldc = cap_;
+        if (newcap < kMinCap) newcap = kMinCap;
+        alloc_table(newcap);
         live_ = 0; tombs_ = 0; obj_bytes_ = 0;
         for (uint32_t i = 0; i < oldc; i++) {
             if (KvObj* o = ptr_of(old[i])) {
@@ -221,7 +235,6 @@ private:
             }
         }
         std::free(old);
-        return true;
     }
 
     void insert_no_grow(uint64_t h, KvObj* o) {

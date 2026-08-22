@@ -4,8 +4,14 @@ JEDIR    ?= /home/user/Projects/refs/jemalloc/_install
 # size-class table in alloc.h. Set JE=0 to force that path (useful for A/B-ing the allocator).
 JE       ?= 1
 ifeq ($(JE),1)
-  JEFLAGS := -DTOMO_JEMALLOC -I$(JEDIR)/include
-  JELIBS  := $(JEDIR)/lib/libjemalloc.a -ldl
+  # Prefer the system package; fall back to the copy built from refs/.
+  ifneq ($(wildcard /usr/include/jemalloc/jemalloc.h),)
+    JEFLAGS := -DTOMO_JEMALLOC
+    JELIBS  := -ljemalloc
+  else
+    JEFLAGS := -DTOMO_JEMALLOC -I$(JEDIR)/include
+    JELIBS  := $(JEDIR)/lib/libjemalloc.a -ldl
+  endif
 else
   JEFLAGS :=
   JELIBS  :=
