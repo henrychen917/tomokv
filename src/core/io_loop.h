@@ -110,6 +110,11 @@ public:
 
             // Nothing to do: declare intent to block, re-check (a producer may have pushed between
             // the last drain and the flag being set), then wait.
+            // Mask-independent sweep before parking. The mask is a hint for the hot path; it must
+            // not be the only thing that can find queued work, or one lost bit wedges a connection
+            // forever. Runs only when this thread has already concluded it has nothing to do.
+            if (sweep()) { ring_.submit_and_reap(); continue; }
+
             Span idle(sig.idle_ns);
             self_->arm_blocked();
             if (!self_->any_inbound()) ring_.submit_and_wait(1);
@@ -305,8 +310,10 @@ private:
         if (!c->retire_queued().compare_exchange_strong(expected, true, std::memory_order_acq_rel))
             return;                                     // already queued; one message covers the batch
         ThreadCtx& snd = srv_->thread(c->sender_thread());
-        if (!snd.post_client(self_->id(), c, ring_, self_->sig()))
+        if (!snd.post_client(self_->id(), c, ring_, self_->sig())) {
+            self_->sig().notify_drop++;
             c->retire_queued().store(false, std::memory_order_release);   // retry on a later pass
+        }
     }
 
     void mark_active(Client* c) {
@@ -318,11 +325,14 @@ private:
     // ---- inbound: workers telling us a client has completed ops -----------------------------------
     // Inbound from workers (2-stage: "ops are Done") or from the sender ("I retired something, you
     // may be unstuck"). Either way the answer is the same: put the client back in the active set.
-    uint32_t collect_retire_work() {
-        return self_->drain_clients([&](Client* c) {
+    uint32_t sweep() { return collect_retire_work(true) + flush_ready(); }
+
+    uint32_t collect_retire_work(bool unmasked = false) {
+        auto take = [&](Client* c) {
             c->retire_queued().store(false, std::memory_order_release);
             mark_active(c);
-        });
+        };
+        return unmasked ? self_->drain_clients_unmasked(take) : self_->drain_clients(take);
     }
 
     // ---- retire -> stage bytes -> send or hand off -------------------------------------------------

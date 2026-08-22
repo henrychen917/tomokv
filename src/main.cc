@@ -210,10 +210,11 @@ int main(int argc, char** argv) {
         const LoopSignals& s = srv.thread(i).sig();
         (srv.thread(i).role() == Role::Io ? disp : ops) += s.ops;
     }
-    uint64_t acc = 0, aerr = 0, arearm = 0, starved = 0;
+    uint64_t acc = 0, aerr = 0, arearm = 0, starved = 0, ndrop = 0;
     for (uint32_t i = 0; i < srv.nthreads(); i++) {
         const LoopSignals& s = srv.thread(i).sig();
         acc += s.accepts; aerr += s.accept_err; arearm += s.accept_rearm; starved += s.sqe_starved;
+        ndrop += s.notify_drop;
     }
     // Per-thread breakdown. The aggregate hides the thing you actually need: whether a stage is
     // saturated, starved, or spending its life in the kernel waiting to be told there is work.
@@ -244,23 +245,55 @@ int main(int argc, char** argv) {
     }
     // And the smoking gun: connections still holding work at shutdown, by WHICH kind.
     uint64_t stuck_rob = 0, stuck_wr = 0, live = 0;
+    uint64_t st_done = 0, st_issued = 0, st_free = 0, st_flag = 0;
     for (uint32_t i = 0; i < srv.nthreads(); i++)
         for (Client* c : srv.thread(i).clients()) {
             if (!c) continue;
             live++;
-            if (!c->rob().quiesced())          stuck_rob++;
+            if (!c->rob().quiesced()) {
+                stuck_rob++;
+                // THE DEDUP FLAG ON A STRANDED CLIENT. retire_queued is the whole notification
+                // protocol: a worker claims the client by CASing it false->true and then posts it to
+                // the sender, and the sender clears it before serving. So on a client whose replies
+                // are Done and unretired there are exactly two stories, and this bit tells them apart:
+                //   true  -> someone claimed it and the post never took effect (claim leaked)
+                //   false -> nobody was holding a claim, so the notification was simply never made
+                if (c->retire_queued().load(std::memory_order_acquire)) st_flag++;
+                std::printf("  stranded conn: claims=%u defers=%u serves=%u inflight=%u flag=%d\n",
+                            c->wb().n_claims.load(std::memory_order_relaxed),
+                            c->wb().n_defers.load(std::memory_order_relaxed),
+                            c->wb().n_serves.load(std::memory_order_relaxed),
+                            c->rob().in_flight(),
+                            (int)c->retire_queued().load(std::memory_order_acquire));
+                // WHICH KIND OF STRANDED. The counts above prove ops were dispatched and never
+                // retired; they cannot say why. The state of each un-retired slot does:
+                //   Done   -> it executed and the sender was never told  (a lost-notification bug)
+                //   Issued -> it never executed at all                   (a lost-dispatch bug)
+                // Those need opposite fixes, so guessing between them is how you fix the wrong one.
+                for (uint64_t i = c->rob().flush_id(), d = c->rob().dispatch_id(); i != d; i++) {
+                    switch (c->rob().at(i).state.load(std::memory_order_acquire)) {
+                        case OpState::Done:   st_done++;   break;
+                        case OpState::Issued: st_issued++; break;
+                        default:              st_free++;   break;
+                    }
+                }
+            }
             if (!c->conn().nothing_to_write()) stuck_wr++;
         }
     std::printf("wb: retired=%llu sends=%llu/%llu short=%llu err=%llu bytes=%llu\n",
                 (unsigned long long)w.retired, (unsigned long long)w.sends_completed,
                 (unsigned long long)w.sends_submitted, (unsigned long long)w.short_writes,
                 (unsigned long long)w.send_errors, (unsigned long long)w.bytes_sent);
-    std::printf("stuck: live_conns=%llu rob_not_quiesced=%llu unsent_bytes_pending=%llu\n",
-                (unsigned long long)live, (unsigned long long)stuck_rob, (unsigned long long)stuck_wr);
+    std::printf("stuck: live_conns=%llu rob_not_quiesced=%llu unsent_bytes_pending=%llu"
+                " | slots done=%llu issued=%llu free=%llu flag_set=%llu\n",
+                (unsigned long long)live, (unsigned long long)stuck_rob, (unsigned long long)stuck_wr,
+                (unsigned long long)st_done, (unsigned long long)st_issued, (unsigned long long)st_free,
+                (unsigned long long)st_flag);
     std::printf("shutdown: dispatched=%llu executed=%llu accepts=%llu accept_err=%llu "
-                "rearm=%llu sqe_starved=%llu\n",
+                "rearm=%llu sqe_starved=%llu notify_drop=%llu\n",
                 static_cast<unsigned long long>(disp), static_cast<unsigned long long>(ops),
                 static_cast<unsigned long long>(acc), static_cast<unsigned long long>(aerr),
-                static_cast<unsigned long long>(arearm), static_cast<unsigned long long>(starved));
+                static_cast<unsigned long long>(arearm), static_cast<unsigned long long>(starved),
+                static_cast<unsigned long long>(ndrop));
     return 0;
 }

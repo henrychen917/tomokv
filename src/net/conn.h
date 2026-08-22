@@ -160,6 +160,16 @@ struct WbLink {
 
     // Already sitting in some ready queue; keeps a client from being enqueued twice.
     std::atomic<bool> queued{false};
+
+    // FORENSICS for the stranded-reply class. Every stranded op is a notification that was owed and
+    // never delivered, and these three say which link of the chain dropped it:
+    //   claims  -- a worker won the CAS and became responsible for posting this client
+    //   defers  -- a worker lost the CAS and deferred to whoever holds the claim
+    //   serves  -- the sender actually ran serve() on it
+    // serves < claims on a stranded client means a claim was made and never turned into a serve.
+    std::atomic<uint32_t> n_claims{0};
+    std::atomic<uint32_t> n_defers{0};
+    std::atomic<uint32_t> n_serves{0};
 };
 
 class Client {

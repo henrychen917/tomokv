@@ -73,6 +73,11 @@ public:
             if (++idle_spins < kExSpinBudget) { sig.spins++; __builtin_ia32_pause(); continue; }
             idle_spins = 0;
 
+            // Mask-independent sweep before parking. The mask is a hint for the hot path; it must
+            // not be the only thing that can find queued work, or one lost bit wedges a connection
+            // forever. Runs only when this thread has already concluded it has nothing to do.
+            if (sweep()) { ring_.submit_and_reap(); continue; }
+
             Span idle(sig.idle_ns);
             self_->arm_blocked();
             if (!self_->any_inbound()) ring_.submit_and_wait(1);
@@ -85,13 +90,14 @@ private:
     // Visits only the IO threads that actually have work for us, via the notify mask, rather than
     // polling every possible producer. retire() happens inside the helper, AFTER execution — see
     // exqueue.h on why the retired frontier is separate from head.
-    uint32_t drain_tasks() {
+    uint32_t drain_tasks(bool unmasked = false) {
         Task batch[kExecBatch];
         uint32_t held = 0;
-        const uint32_t n = self_->drain_tasks([&](const Task& t) {
+        auto take = [&](const Task& t) {
             batch[held++] = t;
             if (held == kExecBatch) { exec_batch(batch, held); held = 0; }
-        });
+        };
+        const uint32_t n = unmasked ? self_->drain_tasks_unmasked(take) : self_->drain_tasks(take);
         if (held) exec_batch(batch, held);
         self_->sig().ops += n;
         return n;
@@ -132,16 +138,24 @@ private:
     // that client N times.
     void notify_sender(Client* c) {
         bool expected = false;
-        if (!c->retire_queued().compare_exchange_strong(expected, true, std::memory_order_acq_rel))
+        if (!c->retire_queued().compare_exchange_strong(expected, true, std::memory_order_acq_rel)) {
+            c->wb().n_defers.fetch_add(1, std::memory_order_relaxed);
             return;
+        }
+        c->wb().n_claims.fetch_add(1, std::memory_order_relaxed);
         ThreadCtx& snd = srv_->thread(c->sender_thread());
-        if (!snd.post_client(self_->id(), c, ring_, self_->sig()))
+        if (!snd.post_client(self_->id(), c, ring_, self_->sig())) {
+            self_->sig().notify_drop++;
             c->retire_queued().store(false, std::memory_order_release);   // retry on a later pass
+        }
     }
 
     // WbMode::Ex only: IO staged ordered bytes and handed us the client to write them.
-    uint32_t drain_send_requests() {
-        return self_->drain_clients([&](Client* c) {
+    // Both inbound kinds, ignoring the mask entirely.
+    uint32_t sweep() { return drain_tasks(true) + drain_send_requests(true); }
+
+    uint32_t drain_send_requests(bool unmasked = false) {
+        auto take = [&](Client* c) {
             // Clear BEFORE serving. Clearing after lets a worker that finishes an op mid-serve see
             // queued == true, skip the enqueue, and strand that reply until something unrelated
             // re-queues the client.
@@ -151,7 +165,8 @@ private:
                 ThreadCtx& io = srv_->thread(c->io_thread());
                 io.post_client(self_->id(), c, ring_, self_->sig());
             });
-        });
+        };
+        return unmasked ? self_->drain_clients_unmasked(take) : self_->drain_clients(take);
     }
 
     void on_cqe(io_uring_cqe* cqe) {

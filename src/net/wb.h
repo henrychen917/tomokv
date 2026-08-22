@@ -76,6 +76,7 @@ public:
     // Returns true if it did anything, so a caller can tell progress from an empty poll.
     template <typename NotifyIo>
     bool serve(Client& c, NotifyIo&& notify_io) {
+        c.wb().n_serves.fetch_add(1, std::memory_order_relaxed);
         Conn& conn = c.conn();
         const uint32_t retired = c.rob().drain([&](Op& op) {
             conn.fill_buf().append(op.reply.data(), op.reply.size());

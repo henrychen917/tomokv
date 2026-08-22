@@ -185,6 +185,29 @@ public:
     // the queue push is the release store the blocked_ protocol was designed to pair with. Checking
     // both means no reasoning about mask staleness can cost us a wakeup -- and a scan of a handful of
     // channels is free for a thread that by definition has nothing else to do.
+    // MASK-INDEPENDENT DRAIN. The fast path asks the notify mask "who has work" and visits only
+    // those channels, which is what keeps discovery O(active producers) instead of O(threads). The
+    // cost of that is a hard dependency on the mask being perfect: a bit that goes missing for any
+    // reason leaves a queued item that NOTHING will ever look at again, and the connection waiting on
+    // that reply wedges permanently. We measured exactly that -- 209 connections holding a posted,
+    // never-served claim while the sender sat idle.
+    //
+    // So the mask stays the hot path and stops being load-bearing for correctness. A thread about to
+    // park scans every channel directly; if the mask told the truth, the scan finds nothing and costs
+    // a handful of loads, and it only runs when the thread has already decided it has no work.
+    template <typename Fn> uint32_t drain_tasks_unmasked(Fn&& fn) {
+        uint32_t n = 0; Task t;
+        for (uint32_t p = 0; p < nchan_; p++)
+            while (task_in_[p].recv(t)) { fn(t); task_in_[p].retire(); n++; }
+        return n;
+    }
+    template <typename Fn> uint32_t drain_clients_unmasked(Fn&& fn) {
+        uint32_t n = 0; Client* c = nullptr;
+        for (uint32_t p = 0; p < nchan_; p++)
+            while (client_in_[p].recv(c)) { fn(c); client_in_[p].retire(); n++; }
+        return n;
+    }
+
     bool any_inbound() const {
         if (task_notify_.any() || client_notify_.any()) return true;
         for (uint32_t i = 0; i < nchan_; i++)
