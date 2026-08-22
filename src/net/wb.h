@@ -74,13 +74,18 @@ public:
         if (g.link().send_inflight) return false;          // preserve one-send-per-socket ordering
 
         Conn& conn = c.conn();
-        const size_t total = conn.wbuf().size();
+        // Nothing outstanding, so if the send buffer is fully written we may promote the fill
+        // buffer. This is the ONLY point at which the two swap, and it is safe precisely because
+        // send_inflight is false here.
+        if (conn.write_drained() && conn.has_pending_fill()) conn.swap_buffers();
+
+        const size_t total = conn.send_buf().size();
         const size_t sent  = conn.wsent();
         if (sent >= total) return false;                   // nothing to do
 
         io_uring_sqe* s = ring_->sqe();
         if (!s) return false;
-        io_uring_prep_send(s, conn.fd(), conn.wbuf().data() + sent, total - sent, MSG_NOSIGNAL);
+        io_uring_prep_send(s, conn.fd(), conn.send_buf().data() + sent, total - sent, MSG_NOSIGNAL);
         s->user_data = ur_tag(UrKind::Send, &c);
         ring_->note_pending();
 
@@ -105,8 +110,10 @@ public:
                 conn.commit_write(static_cast<uint32_t>(res));
                 stats_.bytes_sent += static_cast<uint64_t>(res);
                 if (conn.write_drained()) {
-                    conn.reset_wbuf();
                     stats_.sends_completed++;
+                    // More replies may have accumulated in the fill buffer while this send was in
+                    // flight; resubmit so they go out rather than waiting for an unrelated event.
+                    if (conn.has_pending_fill()) resubmit = true;
                 } else {
                     // Short write. Not an error and not rare under load — the remainder must go out
                     // before anything else is appended, or the stream reorders.

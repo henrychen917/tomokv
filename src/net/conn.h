@@ -105,12 +105,33 @@ public:
         }
     }
 
-    // ---- write side ----------------------------------------------------------------------------
-    SmallBuf<kWbufInline>& wbuf() { return wbuf_; }
+    // ---- write side: DOUBLE BUFFERED, and that is a correctness requirement ------------------
+    //
+    // A send in flight hands the kernel a raw pointer into the write buffer. Appending a reply to
+    // that same buffer can grow it, and growing means malloc + memcpy + FREE OF THE OLD BLOCK — the
+    // block the kernel is still reading from. It presents as occasional corrupted or missing replies
+    // under pipelining only, because it needs a reply to land while a send is outstanding. Exactly
+    // the same shape as the recv-buffer realloc bug, on the other side of the connection.
+    //
+    // So: replies always append to the FILL buffer, sends always read the SEND buffer, and the two
+    // swap only at a point where no send is outstanding. Neither buffer is ever touched by both
+    // sides at once, which makes the bug impossible rather than unlikely.
+    SmallBuf<kWbufInline>& fill_buf() { return buf_[fill_]; }
+    SmallBuf<kWbufInline>& send_buf() { return buf_[fill_ ^ 1]; }
+
+    bool     has_pending_fill() const { return buf_[fill_].size() > 0; }
     uint32_t wsent() const { return wsent_; }
     void     commit_write(uint32_t n) { wsent_ += n; }
-    bool     write_drained() const { return wsent_ >= wbuf_.size(); }
-    void     reset_wbuf() { wbuf_.clear(); wsent_ = 0; }
+    bool     write_drained() const { return wsent_ >= buf_[fill_ ^ 1].size(); }
+
+    // Promote the fill buffer to be the send buffer. Only legal when no send is outstanding, which
+    // is the caller's invariant (WbLink::send_inflight).
+    void swap_buffers() {
+        buf_[fill_ ^ 1].clear();      // old send buffer is fully written; recycle it as the next fill
+        fill_ ^= 1;
+        wsent_ = 0;
+    }
+    bool nothing_to_write() const { return buf_[fill_].size() == 0 && write_drained(); }
 
 private:
     int       fd_   = -1;
@@ -119,8 +140,9 @@ private:
     uint32_t  rpos_ = 0;      // bytes parsed
     size_t    rcap_ = 0;
 
-    SmallBuf<kWbufInline> wbuf_;
-    uint32_t  wsent_ = 0;
+    SmallBuf<kWbufInline> buf_[2];
+    uint32_t  fill_  = 0;         // index of the buffer replies append to
+    uint32_t  wsent_ = 0;         // bytes of the SEND buffer already written
     bool      recv_armed_ = false;
 };
 

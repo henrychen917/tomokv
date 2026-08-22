@@ -166,12 +166,18 @@ private:
                 c->mark_closing();
                 break;
             }
-            conn.advance_parse(pos - conn.rpos());
+            // The parse cursor is deliberately NOT advanced here. It advances only once this op is
+            // certain to be answered — see the dispatch-refusal path below for why.
+            const uint32_t consumed = pos - conn.rpos();
 
             const CommandSpec* spec = command_lookup(op->cmd_name());
-            if (!spec) { finish_locally(c, *op, "ERR unknown command"); continue; }
+            if (!spec) {
+                conn.advance_parse(consumed);
+                finish_locally(c, *op, "ERR unknown command"); continue;
+            }
             const int32_t argc = static_cast<int32_t>(op->argc());
             if ((spec->arity >= 0 && argc != spec->arity) || (spec->arity < 0 && argc < -spec->arity)) {
+                conn.advance_parse(consumed);
                 finish_locally(c, *op, "ERR wrong number of arguments"); continue;
             }
             op->spec = spec;
@@ -179,6 +185,7 @@ private:
             // Connection-local commands never reach a worker — the cheapest class, and the one most
             // easily wasted by routing it anyway.
             if (spec->flags & CmdFlags::ConnLocal) {
+                conn.advance_parse(consumed);
                 spec->handler(srv_->shard(0), *op);
                 op->state.store(OpState::Done, std::memory_order_release);
                 rob.publish();
@@ -192,10 +199,16 @@ private:
 
             Task t{c, rob.dispatch_id()};
             if (!worker.post_task(self_->id(), t, ring_, sig)) {
-                // NEVER drop a refused push: the reply would be lost and the connection would wedge
-                // waiting for it. Leave the op unpublished and retry on a later pass.
+                // A REFUSED PUSH MUST LEAVE NO TRACE. Advancing the parse cursor before this point
+                // consumed the command's bytes while publishing no op, so the client waited forever
+                // for a reply that would never be produced and the connection wedged. This is not an
+                // edge case: with enough io threads feeding few workers the inbox fills routinely,
+                // and it hung a benchmark within seconds at io6/ex2. Leaving the cursor untouched
+                // means the command is simply re-parsed on a later pass, once retiring has freed
+                // inbox space.
                 break;
             }
+            conn.advance_parse(consumed);
             rob.publish();
             sig.ops++;
             mark_active(c);
@@ -226,7 +239,7 @@ private:
             Client* c = *it;
             Conn& conn = c->conn();
             const uint32_t n = c->rob().drain([&](Op& op) {
-                conn.wbuf().append(op.reply.data(), op.reply.size());
+                conn.fill_buf().append(op.reply.data(), op.reply.size());
             });
             work += n;
 
@@ -243,11 +256,18 @@ private:
 
             arm_recv(c);
 
-            if (conn.wbuf().size() > conn.wsent()) {
+            if (!conn.nothing_to_write()) {
                 if (wb_.mode() == WbMode::Io) { if (wb_.pump(*c, c->wb())) work++; }
                 else                          { if (handoff(c)) work++; }
             }
-            if (c->rob().quiesced() && conn.write_drained() && !c->closing())
+            // A client may only leave the active set when there is nothing left to do for it in
+            // ANY of the three senses: no op in flight, nothing left to write, and NO UNPARSED INPUT.
+            // Dropping the last condition wedges the connection: a refused dispatch deliberately
+            // leaves bytes unparsed, the ROB then drains to quiescent, the client is erased, and
+            // nothing ever revisits it — while the peer waits for replies to commands it already
+            // sent and therefore never sends more, so no recv completion arrives to revive it.
+            const bool more_input = conn.rpos() < conn.rlen();
+            if (c->rob().quiesced() && conn.nothing_to_write() && !more_input && !c->closing())
                 it = active_.erase(it);
             else if (c->closing() && c->safe_to_release()) { it = active_.erase(it); close_client(c); }
             else ++it;
