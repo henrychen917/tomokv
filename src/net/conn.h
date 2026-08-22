@@ -30,6 +30,12 @@
 #include "rob.h"
 #include "../base/slice.h"
 
+#ifdef TOMO_WEDGE_FORENSICS
+#define TOMO_FORENSIC(x) do { x; } while (0)
+#else
+#define TOMO_FORENSIC(x) do { } while (0)
+#endif
+
 namespace tomo {
 
 inline constexpr uint32_t kRobWindow    = 64;          // max in-flight ops per connection
@@ -167,9 +173,14 @@ struct WbLink {
     //   defers  -- a worker lost the CAS and deferred to whoever holds the claim
     //   serves  -- the sender actually ran serve() on it
     // serves < claims on a stranded client means a claim was made and never turned into a serve.
+    // OFF BY DEFAULT. n_defers fires on every deferred notify -- two orders of magnitude more often
+    // than n_claims -- so leaving these compiled in puts an atomic RMW on the hot path to serve a
+    // diagnostic that has already done its job. Build with -DTOMO_WEDGE_FORENSICS to get them back.
+#ifdef TOMO_WEDGE_FORENSICS
     std::atomic<uint32_t> n_claims{0};
     std::atomic<uint32_t> n_defers{0};
     std::atomic<uint32_t> n_serves{0};
+#endif
 };
 
 class Client {

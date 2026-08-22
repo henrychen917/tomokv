@@ -259,12 +259,14 @@ int main(int argc, char** argv) {
                 //   true  -> someone claimed it and the post never took effect (claim leaked)
                 //   false -> nobody was holding a claim, so the notification was simply never made
                 if (c->retire_queued().load(std::memory_order_acquire)) st_flag++;
+#ifdef TOMO_WEDGE_FORENSICS
                 std::printf("  stranded conn: claims=%u defers=%u serves=%u inflight=%u flag=%d\n",
                             c->wb().n_claims.load(std::memory_order_relaxed),
                             c->wb().n_defers.load(std::memory_order_relaxed),
                             c->wb().n_serves.load(std::memory_order_relaxed),
                             c->rob().in_flight(),
                             (int)c->retire_queued().load(std::memory_order_acquire));
+#endif
                 // WHICH KIND OF STRANDED. The counts above prove ops were dispatched and never
                 // retired; they cannot say why. The state of each un-retired slot does:
                 //   Done   -> it executed and the sender was never told  (a lost-notification bug)

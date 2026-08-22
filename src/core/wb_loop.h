@@ -93,6 +93,17 @@ private:
             // Clear BEFORE serving — see the identical note in ex_loop.h.
             c->retire_queued().store(false, std::memory_order_release);
             c->wb().queued.store(false, std::memory_order_release);
+            // THE CLEAR MUST LAND BEFORE THE DRAIN READS, and a release store does not guarantee
+            // that. store(release) followed by the loads inside serve() is a StoreLoad pair, the one
+            // reordering x86 permits, so the CPU may sink this clear past the drain. The window that
+            // opens is precise and fatal: a worker finishes an op, CASes, still sees the flag set,
+            // defers without posting; the drain runs before that op is Done and retires nothing; then
+            // the clear lands, with no claim outstanding and nobody left to notify. The reply is
+            // stranded forever.
+            //
+            // Found because a diagnostic counter hid it: fetch_add is a LOCKed RMW on x86, i.e. a full
+            // fence, so the instrumented build was accidentally correct and the clean one wedged.
+            std::atomic_thread_fence(std::memory_order_seq_cst);
             wb_.serve(*c, [&] {
                 ThreadCtx& io = srv_->thread(c->io_thread());
                 io.post_client(self_->id(), c, ring_, self_->sig());
