@@ -37,6 +37,7 @@ inline constexpr uint32_t kRecvChunk = 16 * 1024;
 
 class IoLoop {
 public:
+    WbEngine& engine() { return wb_; }
     // ONE LISTENING SOCKET PER IO THREAD, via SO_REUSEPORT.
     //
     // Sharing a single listen fd across io threads does NOT distribute connections: every thread
@@ -251,8 +252,20 @@ private:
             op->shard = srv_->router().shard_of(op->hash);
             ThreadCtx& worker = srv_->thread(srv_->worker_of_shard(op->shard));
 
+            // PUBLISH BEFORE DISPATCH. The old order posted the task first and published after, which
+            // left a window of two instructions in which a worker could receive the task, execute it,
+            // mark it Done and notify the sender -- all while dispatch_ still excluded the op. The
+            // sender then woke, drained a ROB that did not yet contain the op, retired nothing, and
+            // went back to sleep having spent its one notification. Nothing ever notified again, so
+            // the reply sat Done in the ROB forever.
+            //
+            // It cost 3 lost replies in 87 million and wedged the connection permanently. Invisible in
+            // 2-stage, where io is the sender and re-drains its own active set unprompted; fatal in
+            // ex-wb and 3-stage, where the sender only ever looks when it is told to.
             Task t{c, rob.dispatch_id()};
+            rob.publish();
             if (!worker.post_task(self_->id(), t, ring_, sig)) {
+                rob.unpublish();          // a refused push must leave NO trace -- including in the ROB
                 // A REFUSED PUSH MUST LEAVE NO TRACE. Advancing the parse cursor before this point
                 // consumed the command's bytes while publishing no op, so the client waited forever
                 // for a reply that would never be produced and the connection wedged. This is not an
@@ -263,7 +276,6 @@ private:
                 break;
             }
             conn.advance_parse(consumed);
-            rob.publish();
             sig.ops++;
             mark_active(c);
         }

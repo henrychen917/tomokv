@@ -36,6 +36,7 @@ inline constexpr uint32_t kExecBatch = 32;
 
 class ExLoop {
 public:
+    WbEngine& engine() { return wb_; }
     bool init(Server* srv, ThreadCtx* self, WbMode mode) {
         srv_ = srv; self_ = self;
         if (!ring_.init(1024)) return false;

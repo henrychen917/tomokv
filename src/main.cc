@@ -228,6 +228,35 @@ int main(int argc, char** argv) {
                     s.busy_ns / 1e6, s.idle_ns / 1e6, s.cpu_ns / 1e6,
                     (unsigned long long)s.wakes_sent, (unsigned long long)s.wakes_recv);
     }
+    // WHERE DID THE REPLIES GO. dispatched==executed only proves the STORE finished its work; it
+    // says nothing about whether the answer reached the socket. These three levels localise a stall
+    // to one hop: retired < executed means replies are stranded in the ROB (the sender was never
+    // told). retired == executed with bytes_sent short means they are staged but unsent (the pump
+    // was never re-triggered). Both looked identical from outside before this existed.
+    WbEngine::Stats w{};
+    auto addw = [&](const WbEngine::Stats& x) {
+        w.sends_submitted += x.sends_submitted; w.sends_completed += x.sends_completed;
+        w.short_writes    += x.short_writes;    w.send_errors     += x.send_errors;
+        w.bytes_sent      += x.bytes_sent;      w.retired         += x.retired;
+    };
+    for (uint32_t i = 0; i < srv.nthreads(); i++) {
+        addw(ios[i].engine().stats()); addw(exs[i].engine().stats()); addw(wbs[i].engine().stats());
+    }
+    // And the smoking gun: connections still holding work at shutdown, by WHICH kind.
+    uint64_t stuck_rob = 0, stuck_wr = 0, live = 0;
+    for (uint32_t i = 0; i < srv.nthreads(); i++)
+        for (Client* c : srv.thread(i).clients()) {
+            if (!c) continue;
+            live++;
+            if (!c->rob().quiesced())          stuck_rob++;
+            if (!c->conn().nothing_to_write()) stuck_wr++;
+        }
+    std::printf("wb: retired=%llu sends=%llu/%llu short=%llu err=%llu bytes=%llu\n",
+                (unsigned long long)w.retired, (unsigned long long)w.sends_completed,
+                (unsigned long long)w.sends_submitted, (unsigned long long)w.short_writes,
+                (unsigned long long)w.send_errors, (unsigned long long)w.bytes_sent);
+    std::printf("stuck: live_conns=%llu rob_not_quiesced=%llu unsent_bytes_pending=%llu\n",
+                (unsigned long long)live, (unsigned long long)stuck_rob, (unsigned long long)stuck_wr);
     std::printf("shutdown: dispatched=%llu executed=%llu accepts=%llu accept_err=%llu "
                 "rearm=%llu sqe_starved=%llu\n",
                 static_cast<unsigned long long>(disp), static_cast<unsigned long long>(ops),

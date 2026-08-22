@@ -48,7 +48,11 @@ public:
         io_uring_params p{};
         // SINGLE_ISSUER: promises only one thread submits, letting the kernel drop internal locking.
         // DEFER_TASKRUN: completions are processed when we wait, not via IPI on the submitting cpu.
-        p.flags = IORING_SETUP_SINGLE_ISSUER | IORING_SETUP_DEFER_TASKRUN;
+        // SUBMIT_ALL: keep submitting after an SQE fails validation instead of stopping at it. We
+        // batch many SQEs per enter by design, so the default behaviour would silently strand every
+        // later SQE in the batch -- including recv re-arms belonging to unrelated connections -- and
+        // present as one connection's fault stalling several others.
+        p.flags = IORING_SETUP_SINGLE_ISSUER | IORING_SETUP_DEFER_TASKRUN | IORING_SETUP_SUBMIT_ALL;
         int rc = io_uring_queue_init_params(entries, &r_, &p);
         if (rc < 0) {
             // Fall back rather than refuse to boot: an older kernel should still run, just slower.

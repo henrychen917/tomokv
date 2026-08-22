@@ -71,6 +71,12 @@ public:
     // because the parser may abandon a half-built op without advancing the ROB.
     void publish() { dispatch_.store(dispatch_id() + 1, std::memory_order_release); }
 
+    // Undo the last publish(). Only legal while the op is still un-dispatched, i.e. no worker can
+    // have marked it Done -- which is exactly the refused-dispatch path. Safe even if a sender has
+    // already observed the higher dispatch_: it can only have seen the slot as not-Done and stopped,
+    // because retirement never touches an op that is not Done.
+    void unpublish() { dispatch_.store(dispatch_id() - 1, std::memory_order_release); }
+
     // ---- consumer side (whichever stage sends) -------------------------------------------------
     // Retire every completed op from the head, in order, handing each reply to `sink`. Stops at the
     // first op still running — a later op finishing early must wait, which is the whole point.

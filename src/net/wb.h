@@ -110,7 +110,7 @@ public:
         if (sent >= total) return false;                   // nothing to do
 
         io_uring_sqe* s = ring_->sqe();
-        if (!s) return false;
+        if (!s) { stats_.sqe_starved++; return false; }
         io_uring_prep_send(s, conn.fd(), conn.send_buf().data() + sent, total - sent, MSG_NOSIGNAL);
         s->user_data = ur_tag(UrKind::Send, &c);
         ring_->note_pending();
@@ -157,6 +157,7 @@ public:
         uint64_t sends_completed = 0;
         uint64_t short_writes    = 0;
         uint64_t send_errors     = 0;
+        uint64_t sqe_starved     = 0;   // pump could not get an SQE; bytes stay staged
         uint64_t bytes_sent      = 0;
         uint64_t retired         = 0;   // ops retired from ROBs by this sender
         uint64_t handoffs        = 0;   // clients passed to another thread's ready queue
