@@ -95,23 +95,79 @@ private:
     uint64_t  t0_;
 };
 
+// ---------------------------------------------------------------------------------------------
+// NotifyMask — the "where should I look" bitmap. One bit per producer.
+//
+// WITHOUT IT every consumer polls every producer's channel each iteration: at 128 threads that is
+// 128 loads to discover that one of them has work. The mask turns that into one load plus a
+// find-first-set per non-empty producer, so the cost tracks the number of ACTIVE producers rather
+// than the number of possible ones.
+//
+// THE RMW TRAP, which is the whole reason this is not just a fetch_or: a blind atomic OR per push is
+// a read-modify-write on a line shared with every other producer of that consumer. SPSC exists
+// precisely to avoid per-push RMWs, so adding one here would give back what the queue design bought.
+// Hence the read-first guard below: once a producer's bit is set it stays set until the consumer
+// takes it, so a busy producer pays a shared-line READ and no write at all. Reads scale; writes
+// serialise.
+//
+// THE ORDERING THAT MAKES IT CORRECT. The consumer must TAKE (exchange to zero) before draining,
+// never after:
+//
+//      take bits -> drain those channels          correct
+//      drain channels -> clear bits               LOSES a push that landed mid-drain
+//
+// In the wrong order a producer that pushes between the drain and the clear has its bit wiped, and
+// its item sits in the queue until something unrelated happens to notify again. Same shape as the
+// queued-flag ordering in the WB path.
+// ---------------------------------------------------------------------------------------------
+class NotifyMask {
+public:
+    static constexpr uint32_t kBits  = 128;
+    static constexpr uint32_t kWords = kBits / 64;
+
+    // Producer side. One relaxed load in the common case; the RMW is paid only on the empty->flagged
+    // transition, which under load is rare.
+    void set(uint32_t producer) {
+        const uint64_t bit = 1ull << (producer & 63);
+        auto& w = words_[(producer >> 6) & (kWords - 1)];
+        if (w.load(std::memory_order_relaxed) & bit) return;   // already flagged: no write
+        w.fetch_or(bit, std::memory_order_release);
+    }
+
+    // Consumer side. Takes and clears one word's worth of flags. Acquire pairs with the producer's
+    // release so the queue contents behind the bit are visible.
+    uint64_t take(uint32_t word) {
+        return words_[word].exchange(0, std::memory_order_acquire);
+    }
+
+    bool any() const {
+        for (uint32_t i = 0; i < kWords; i++)
+            if (words_[i].load(std::memory_order_relaxed)) return true;
+        return false;
+    }
+
+private:
+    std::atomic<uint64_t> words_[kWords] = {};
+};
+
 // One directed cross-thread handoff. SPSC queue + a wake that is only paid when the peer is asleep.
 template <typename T, uint32_t Cap>
 class Channel {
 public:
-    // `peer` is the ring to poke when the consumer is blocked. Null means "consumer polls".
-    void bind_peer(Ring* peer) { peer_ = peer; }
-
     // ---- producer side --------------------------------------------------------------------------
     // Returns false when full. A false MUST be handled — never dropped. Losing a queued item here
     // loses a reply and wedges the connection waiting for it, which is precisely the bug that
     // shipped in the fork.
-    bool send(T v, Ring& my_ring, LoopSignals& sig) {
+    // `peer_ring` is the CONSUMER's ring, passed in rather than bound at construction: a bound
+    // pointer would need every thread's ring to exist before any channel is wired, and getting that
+    // startup order wrong leaves the pointer null and NO WAKE IS EVER SENT — a consumer that blocks
+    // then sleeps forever on a non-empty queue. Passing it makes the dependency impossible to forget.
+    bool send(T v, Ring& my_ring, LoopSignals& sig, Ring* peer_ring) {
         if (!q_.push(v)) { sig.full_events++; return false; }
         // Only pay a syscall if the consumer is actually blocked. Under load it is spinning and
         // will see the item on its next pass, so the common case costs one relaxed atomic read.
-        if (peer_ && blocked_.load(std::memory_order_acquire)) {
-            my_ring.msg_to(*peer_, ur_tag(UrKind::Wake, nullptr));
+        if (peer_ring && blocked_.load(std::memory_order_acquire)) {
+            my_ring.msg_to(*peer_ring, ur_tag(UrKind::Wake, nullptr));
             sig.wakes_sent++;
         }
         return true;
@@ -134,7 +190,6 @@ public:
 
 private:
     ExQueue<T, Cap>   q_;
-    Ring*             peer_ = nullptr;
     std::atomic<bool> blocked_{false};
 };
 

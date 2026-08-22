@@ -15,6 +15,8 @@
 // the blocked flag, re-check, and block. Producers only pay a wake syscall while that flag is armed.
 #pragma once
 #include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 #include "server.h"
 #include "signal.h"
 #include "../net/conn.h"
@@ -57,7 +59,11 @@ public:
             }
             sig.cpu_ns = thread_cpu_ns();
 
-            if (did) { idle_spins = 0; continue; }
+            // Flush prepared SQEs before looping. Recv re-arms and cross-ring wakes are
+            // PREPARED during the work section but only reach the kernel on submit; taking
+            // the busy path without submitting strands them in the SQ forever, and the peer
+            // that is waiting on that wake never runs.
+            if (did) { ring_.submit(); idle_spins = 0; continue; }
 
             if (++idle_spins < kExSpinBudget) { sig.spins++; __builtin_ia32_pause(); continue; }
             idle_spins = 0;
@@ -71,21 +77,11 @@ public:
     }
 
 private:
+    // Visits only the IO threads that actually have work for us, via the notify mask, rather than
+    // polling every possible producer. retire() happens inside the helper, AFTER execution — see
+    // exqueue.h on why the retired frontier is separate from head.
     uint32_t drain_tasks() {
-        uint32_t n = 0;
-        const uint32_t nch = self_->nchan();
-        // Round-robin the producers so one busy IO thread cannot starve the others. Starting where
-        // we left off rather than at 0 is what makes it fair.
-        for (uint32_t k = 0; k < nch; k++) {
-            auto& ch = self_->task_in((rr_ + k) % nch);
-            Task t;
-            while (ch.recv(t)) {
-                execute(t);
-                ch.retire();              // AFTER execution — see exqueue.h on why this is separate
-                n++;
-            }
-        }
-        if (nch) rr_ = (rr_ + 1) % nch;
+        const uint32_t n = self_->drain_tasks([&](const Task& t) { execute(t); });
         self_->sig().ops += n;
         return n;
     }
@@ -113,27 +109,19 @@ private:
         if (!c->retire_queued().compare_exchange_strong(expected, true, std::memory_order_acq_rel))
             return;
         ThreadCtx& io = srv_->thread(c->io_thread());
-        if (!io.client_in(self_->id()).send(c, ring_, self_->sig()))
+        if (!io.post_client(self_->id(), c, ring_, self_->sig()))
             c->retire_queued().store(false, std::memory_order_release);   // retry on a later pass
     }
 
     // WbMode::Ex only: IO staged ordered bytes and handed us the client to write them.
     uint32_t drain_send_requests() {
-        uint32_t n = 0;
-        for (uint32_t p = 0; p < self_->nchan(); p++) {
-            auto& ch = self_->client_in(p);
-            Client* c = nullptr;
-            while (ch.recv(c)) {
-                // Clear BEFORE pumping: clearing after lets a producer staging bytes mid-pump see
-                // queued == true, skip the enqueue, and strand those bytes until something unrelated
-                // re-queues the client.
-                c->wb().queued.store(false, std::memory_order_release);
-                wb_.pump(*c, c->wb());
-                ch.retire();
-                n++;
-            }
-        }
-        return n;
+        return self_->drain_clients([&](Client* c) {
+            // Clear BEFORE pumping: clearing after lets a producer staging bytes mid-pump see
+            // queued == true, skip the enqueue, and strand those bytes until something unrelated
+            // re-queues the client.
+            c->wb().queued.store(false, std::memory_order_release);
+            wb_.pump(*c, c->wb());
+        });
     }
 
     void on_cqe(io_uring_cqe* cqe) {
@@ -152,7 +140,6 @@ private:
     ThreadCtx* self_ = nullptr;
     Ring       ring_;
     WbEngine   wb_;
-    uint32_t   rr_ = 0;
 };
 
 }  // namespace tomo

@@ -56,25 +56,44 @@ public:
     uint32_t rpos() const { return rpos_; }
     void     advance_parse(uint32_t n) { rpos_ += n; }
 
-    // Space to recv() into, growing if needed. Returns nullptr when the soft cap is reached, which
-    // is the signal to stop reading and let the ROB drain.
-    char* read_space(size_t want, size_t& out_avail) {
-        if (rlen_ + want > rcap_) {
-            if (rcap_ >= kRbufSoftCap) { out_avail = 0; return nullptr; }
+    // Space to recv() into. Returns nullptr to mean "do not read right now".
+    //
+    // GROWING IS ONLY LEGAL WHEN NOTHING IS IN FLIGHT, and that is the whole subtlety. realloc MOVES
+    // the buffer, and every in-flight op's argv Slices point into it — so a grow while ops are
+    // outstanding leaves workers reading freed memory. It presents as a key that hashed correctly at
+    // parse time but reads as zeros in the handler, which looks like a store bug and is not one.
+    // (Guarding only the memmove in reset_rbuf_at_quiescence is NOT enough; realloc moves it too.)
+    //
+    // So when we cannot grow, we return the free tail if it is big enough to be worth a recv, and
+    // otherwise nothing at all — the ROB drains, quiescence arrives, the buffer resets, and reading
+    // resumes. That is backpressure, not a stall.
+    static constexpr size_t kMinRecv = 2048;
+
+    char* read_space(size_t want, size_t& out_avail, bool may_grow) {
+        size_t avail = rcap_ - rlen_;
+        if (avail < want && may_grow && rcap_ < kRbufSoftCap) {
             size_t ncap = rcap_ * 2;
-            while (ncap < rlen_ + want) ncap *= 2;
+            while (ncap < rlen_ + want && ncap < kRbufSoftCap) ncap *= 2;
             char* n = static_cast<char*>(std::realloc(rbuf_, ncap));
-            if (!n) { out_avail = 0; return nullptr; }
-            rbuf_ = n;
-            rcap_ = ncap;
+            if (n) { rbuf_ = n; rcap_ = ncap; avail = rcap_ - rlen_; }
         }
-        out_avail = rcap_ - rlen_;
+        if (avail < kMinRecv) { out_avail = 0; return nullptr; }
+        out_avail = avail;
         return rbuf_ + rlen_;
     }
     void commit_read(size_t n) { rlen_ += static_cast<uint32_t>(n); }
 
-    // Safe ONLY at a quiescence point — see the header comment. Preserves any partially received
-    // command at the tail, because that tail has no Slices pointing at it yet.
+    // Exactly one recv may be outstanding, and while it is, the kernel holds a RAW POINTER into
+    // this buffer. Nothing may move or reallocate it until that recv completes — see
+    // reset_rbuf_at_quiescence().
+    bool recv_armed() const { return recv_armed_; }
+    void set_recv_armed(bool v) { recv_armed_ = v; }
+
+    // Safe ONLY when the ROB is quiescent AND no recv is in flight. Both conditions matter and they
+    // are different: quiescence means no Slice into this buffer is still referenced by an op, while
+    // !recv_armed means the KERNEL is not holding a pointer into it. Violating the second corrupts
+    // the heap — the recv lands at a stale offset, or into freed memory if the realloc below runs.
+    // Preserves any partially received command at the tail, which has no Slices pointing at it yet.
     void reset_rbuf_at_quiescence() {
         const uint32_t rest = rlen_ - rpos_;
         if (rest && rpos_) std::memmove(rbuf_, rbuf_ + rpos_, rest);
@@ -102,6 +121,7 @@ private:
 
     SmallBuf<kWbufInline> wbuf_;
     uint32_t  wsent_ = 0;
+    bool      recv_armed_ = false;
 };
 
 // Per-client send-side state. Defined here rather than in wb.h because Client owns it and wb.h

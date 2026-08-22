@@ -90,6 +90,58 @@ public:
     TaskChan&   task_in(uint32_t producer)   { return task_in_[producer]; }
     ClientChan& client_in(uint32_t producer) { return client_in_[producer]; }
 
+    // ---- posting (producer side) ---------------------------------------------------------------
+    // Push AND flag, in that order. Flagging before the push would let the consumer take the bit,
+    // find an empty queue, and clear it while the item is still in flight.
+    bool post_task(uint32_t from, const Task& t, Ring& my_ring, LoopSignals& sig) {
+        if (!task_in_[from].send(t, my_ring, sig, ring())) return false;
+        task_notify_.set(from);
+        return true;
+    }
+    bool post_client(uint32_t from, Client* c, Ring& my_ring, LoopSignals& sig) {
+        if (!client_in_[from].send(c, my_ring, sig, ring())) return false;
+        client_notify_.set(from);
+        return true;
+    }
+
+    // ---- draining (consumer side) ---------------------------------------------------------------
+    // Visits only FLAGGED producers, so cost tracks active producers rather than possible ones. The
+    // bits are TAKEN before the channels are drained -- see NotifyMask on why the reverse order
+    // loses a push that lands mid-drain.
+    template <typename Fn>
+    uint32_t drain_tasks(Fn&& fn) {
+        uint32_t n = 0;
+        for (uint32_t w = 0; w < NotifyMask::kWords; w++) {
+            uint64_t bits = task_notify_.take(w);
+            while (bits) {
+                const uint32_t b = static_cast<uint32_t>(__builtin_ctzll(bits));
+                bits &= bits - 1;
+                const uint32_t p = w * 64 + b;
+                if (p >= nchan_) continue;
+                Task t;
+                while (task_in_[p].recv(t)) { fn(t); task_in_[p].retire(); n++; }
+            }
+        }
+        return n;
+    }
+
+    template <typename Fn>
+    uint32_t drain_clients(Fn&& fn) {
+        uint32_t n = 0;
+        for (uint32_t w = 0; w < NotifyMask::kWords; w++) {
+            uint64_t bits = client_notify_.take(w);
+            while (bits) {
+                const uint32_t b = static_cast<uint32_t>(__builtin_ctzll(bits));
+                bits &= bits - 1;
+                const uint32_t p = w * 64 + b;
+                if (p >= nchan_) continue;
+                Client* c = nullptr;
+                while (client_in_[p].recv(c)) { fn(c); client_in_[p].retire(); n++; }
+            }
+        }
+        return n;
+    }
+
     // The ring peers poke to wake this thread. Published once at startup, read by producers.
     void  set_ring(Ring* r) { ring_.store(r, std::memory_order_release); }
     Ring* ring() const      { return ring_.load(std::memory_order_acquire); }
@@ -120,11 +172,8 @@ public:
     void clear_blocked() {
         for (uint32_t i = 0; i < nchan_; i++) { task_in_[i].clear_blocked(); client_in_[i].clear_blocked(); }
     }
-    bool any_inbound() const {
-        for (uint32_t i = 0; i < nchan_; i++)
-            if (task_in_[i].depth() || client_in_[i].depth()) return true;
-        return false;
-    }
+    // Two loads instead of a scan of every channel. Used to re-check after arming the blocked flag.
+    bool any_inbound() const { return task_notify_.any() || client_notify_.any(); }
 
     std::atomic<bool>& stop_flag() { return stop_; }
 
@@ -139,6 +188,8 @@ private:
 
     std::unique_ptr<TaskChan[]>   task_in_;
     std::unique_ptr<ClientChan[]> client_in_;
+    NotifyMask task_notify_;      // "which producers have ops for me"
+    NotifyMask client_notify_;    // "which producers have clients for me"
     uint32_t nchan_ = 0;
 
     std::vector<Shard*>  shards_;

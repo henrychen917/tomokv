@@ -20,6 +20,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <cstdio>
+#include <cstdlib>
 #include <vector>
 #include "server.h"
 #include "signal.h"
@@ -64,7 +65,11 @@ public:
             }
             sig.cpu_ns = thread_cpu_ns();
 
-            if (did) continue;
+            // Flush prepared SQEs before looping. Recv re-arms and cross-ring wakes are
+            // PREPARED during the work section but only reach the kernel on submit; taking
+            // the busy path without submitting strands them in the SQ forever, and the peer
+            // that is waiting on that wake never runs.
+            if (did) { ring_.submit(); continue; }
 
             // Nothing to do: declare intent to block, re-check (a producer may have pushed between
             // the last drain and the flag being set), then wait.
@@ -85,14 +90,20 @@ private:
         ring_.note_pending();
     }
 
+    // ONE recv in flight per connection. While it is armed the kernel holds a raw pointer into the
+    // read buffer, so nothing may move or realloc that buffer until the completion arrives.
     void arm_recv(Client* c) {
+        if (c->conn().recv_armed() || c->closing()) return;
         size_t avail = 0;
-        char* dst = c->conn().read_space(kRecvChunk, avail);
-        if (!dst) return;                      // soft cap hit: stop reading until the ROB drains
+        // may_grow ONLY at quiescence: realloc moves the buffer that every in-flight argv Slice
+        // points into. See Conn::read_space.
+        char* dst = c->conn().read_space(kRecvChunk, avail, c->rob().quiesced());
+        if (!dst) return;                      // no usable space yet: let the ROB drain first
         io_uring_sqe* s = ring_.sqe();
         io_uring_prep_recv(s, c->conn().fd(), dst, avail, 0);
         s->user_data = ur_tag(UrKind::Recv, c);
         ring_.note_pending();
+        c->conn().set_recv_armed(true);
     }
 
     // ---- completions ----------------------------------------------------------------------------
@@ -124,10 +135,13 @@ private:
     }
 
     void on_recv(Client* c, int res) {
+        c->conn().set_recv_armed(false);       // the kernel has released its pointer
         if (res <= 0) { close_client(c); return; }
         c->conn().commit_read(static_cast<size_t>(res));
         parse_and_dispatch(c);
-        if (!c->closing()) arm_recv(c);
+        // Deliberately NOT re-armed here. flush_ready() re-arms AFTER it may have reset the read
+        // buffer; arming first would leave the kernel holding a pointer that the reset then moves.
+        mark_active(c);
     }
 
     // ---- parse -> route -> publish -----------------------------------------------------------------
@@ -177,7 +191,7 @@ private:
             ThreadCtx& worker = srv_->thread(srv_->worker_of_shard(op->shard));
 
             Task t{c, rob.dispatch_id()};
-            if (!worker.task_in(self_->id()).send(t, ring_, sig)) {
+            if (!worker.post_task(self_->id(), t, ring_, sig)) {
                 // NEVER drop a refused push: the reply would be lost and the connection would wedge
                 // waiting for it. Leave the op unpublished and retry on a later pass.
                 break;
@@ -199,18 +213,10 @@ private:
 
     // ---- inbound: workers telling us a client has completed ops -----------------------------------
     uint32_t collect_retire_work() {
-        uint32_t n = 0;
-        for (uint32_t p = 0; p < self_->nchan(); p++) {
-            auto& ch = self_->client_in(p);
-            Client* c = nullptr;
-            while (ch.recv(c)) {
-                c->retire_queued().store(false, std::memory_order_release);
-                mark_active(c);
-                ch.retire();
-                n++;
-            }
-        }
-        return n;
+        return self_->drain_clients([&](Client* c) {
+            c->retire_queued().store(false, std::memory_order_release);
+            mark_active(c);
+        });
     }
 
     // ---- retire -> stage bytes -> send or hand off -------------------------------------------------
@@ -224,7 +230,18 @@ private:
             });
             work += n;
 
-            if (c->rob().quiesced()) conn.reset_rbuf_at_quiescence();
+            // Reset only when the ROB is quiescent AND no recv is outstanding — see conn.h. Then
+            // re-arm, in that order.
+            if (c->rob().quiesced() && !conn.recv_armed()) conn.reset_rbuf_at_quiescence();
+
+            // RE-PARSE THE BUFFERED REMAINDER. parse_and_dispatch stops when the ROB window fills,
+            // and it is otherwise only driven by recv completions — so a client that sends a whole
+            // pipeline in ONE write gets exactly `window` replies and then hangs forever, because no
+            // further recv ever arrives to restart parsing. Retiring frees window slots, so this is
+            // the point at which the rest of the buffer becomes parseable.
+            if (!c->closing() && conn.rpos() < conn.rlen()) parse_and_dispatch(c);
+
+            arm_recv(c);
 
             if (conn.wbuf().size() > conn.wsent()) {
                 if (wb_.mode() == WbMode::Io) { if (wb_.pump(*c, c->wb())) work++; }
@@ -242,7 +259,7 @@ private:
         bool expected = false;
         if (!c->wb().queued.compare_exchange_strong(expected, true, std::memory_order_acq_rel))
             return false;                                    // already queued; do not double-enqueue
-        if (!sender_ || !sender_->client_in(self_->id()).send(c, ring_, self_->sig())) {
+        if (!sender_ || !sender_->post_client(self_->id(), c, ring_, self_->sig())) {
             c->wb().queued.store(false, std::memory_order_release);
             return false;
         }

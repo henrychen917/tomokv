@@ -59,7 +59,11 @@ public:
             }
             sig.cpu_ns = thread_cpu_ns();
 
-            if (did) { idle_spins = 0; continue; }
+            // Flush prepared SQEs before looping. Recv re-arms and cross-ring wakes are
+            // PREPARED during the work section but only reach the kernel on submit; taking
+            // the busy path without submitting strands them in the SQ forever, and the peer
+            // that is waiting on that wake never runs.
+            if (did) { ring_.submit(); idle_spins = 0; continue; }
 
             if (++idle_spins < kWbSpinBudget) { sig.spins++; __builtin_ia32_pause(); continue; }
             idle_spins = 0;
@@ -74,19 +78,12 @@ public:
 
 private:
     uint32_t drain_send_requests() {
-        uint32_t n = 0;
-        for (uint32_t p = 0; p < self_->nchan(); p++) {
-            auto& ch = self_->client_in(p);
-            Client* c = nullptr;
-            while (ch.recv(c)) {
-                // Clear BEFORE pumping — see the identical note in ex_loop.h. Clearing after strands
-                // bytes staged during the pump.
-                c->wb().queued.store(false, std::memory_order_release);
-                wb_.pump(*c, c->wb());
-                ch.retire();
-                n++;
-            }
-        }
+        const uint32_t n = self_->drain_clients([&](Client* c) {
+            // Clear BEFORE pumping — see the identical note in ex_loop.h. Clearing after strands
+            // bytes staged during the pump.
+            c->wb().queued.store(false, std::memory_order_release);
+            wb_.pump(*c, c->wb());
+        });
         self_->sig().ops += n;
         return n;
     }

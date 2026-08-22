@@ -76,10 +76,20 @@ public:
 
     int submit() { pending_ = 0; return io_uring_submit(&r_); }
 
-    // Submit whatever is queued and block until at least one completion is available.
-    int submit_and_wait(unsigned want = 1) {
+    // Submit whatever is queued and block until a completion arrives OR the timeout expires.
+    // The timeout is not decoration: without it a thread parked here never re-reads its stop flag,
+    // so shutdown hangs and the process has to be SIGKILLed. It also bounds the damage from any
+    // missed wake — the loop recovers on the next tick instead of sleeping forever.
+    int submit_and_wait(unsigned want = 1, unsigned timeout_ms = 50) {
         pending_ = 0;
-        return io_uring_submit_and_wait(&r_, want);
+        __kernel_timespec ts{};
+        ts.tv_sec  = timeout_ms / 1000;
+        ts.tv_nsec = static_cast<long long>(timeout_ms % 1000) * 1000000LL;
+        // cqe_ptr is written through UNCONDITIONALLY by liburing — passing nullptr segfaults inside
+        // the library rather than returning an error. The value is then ignored here on purpose:
+        // completions are drained by for_each_cqe, which advances the ring once for the whole batch.
+        io_uring_cqe* cqe = nullptr;
+        return io_uring_submit_and_wait_timeout(&r_, &cqe, want, &ts, nullptr);
     }
 
     // Batch-drain completions. `fn(cqe)` per completion; the ring advances once at the end, which
