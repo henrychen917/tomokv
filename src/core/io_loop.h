@@ -178,6 +178,7 @@ private:
         auto* c = new Client(fd);
         c->set_id(srv_->next_client_id().fetch_add(1, std::memory_order_relaxed));
         c->set_io_thread(self_->id());
+        c->set_sender_thread(sender_ ? sender_->id() : self_->id());
         self_->clients().push_back(c);
         arm_recv(c);
         if (!(cqe->flags & IORING_CQE_F_MORE)) {               // multishot dropped: re-arm
@@ -242,6 +243,7 @@ private:
                 op->state.store(OpState::Done, std::memory_order_release);
                 rob.publish();
                 mark_active(c);
+                notify_sender_if_remote(c);
                 continue;
             }
 
@@ -272,6 +274,27 @@ private:
         op.state.store(OpState::Done, std::memory_order_release);
         c->rob().publish();
         mark_active(c);
+        notify_sender_if_remote(c);
+    }
+
+    // THE OP NOBODY WOULD OTHERWISE REPORT. Most ops are completed by a worker, and the worker tells
+    // the sender. But PING, DBSIZE, INFO, an unknown command and a bad arity are all finished right
+    // here on the io thread -- no worker ever sees them, so no worker ever notifies. In 2-stage that
+    // is invisible because io is itself the sender and retires on the same pass. In ex-wb and 3-stage
+    // the reply is published into the ROB and then simply waits, forever, for a message that is never
+    // sent.
+    //
+    // It is deterministic, not a race, and it hides in plain sight: any pipeline containing a single
+    // keyed command drains the whole ROB and looks fine. Only a LONE keyless command hangs -- which is
+    // exactly what a health check, a handshake, or `redis-cli ping` sends.
+    void notify_sender_if_remote(Client* c) {
+        if (c->sender_is_io()) return;                  // 2-stage: we retire it ourselves
+        bool expected = false;
+        if (!c->retire_queued().compare_exchange_strong(expected, true, std::memory_order_acq_rel))
+            return;                                     // already queued; one message covers the batch
+        ThreadCtx& snd = srv_->thread(c->sender_thread());
+        if (!snd.post_client(self_->id(), c, ring_, self_->sig()))
+            c->retire_queued().store(false, std::memory_order_release);   // retry on a later pass
     }
 
     void mark_active(Client* c) {
@@ -281,6 +304,8 @@ private:
     }
 
     // ---- inbound: workers telling us a client has completed ops -----------------------------------
+    // Inbound from workers (2-stage: "ops are Done") or from the sender ("I retired something, you
+    // may be unstuck"). Either way the answer is the same: put the client back in the active set.
     uint32_t collect_retire_work() {
         return self_->drain_clients([&](Client* c) {
             c->retire_queued().store(false, std::memory_order_release);
@@ -289,58 +314,47 @@ private:
     }
 
     // ---- retire -> stage bytes -> send or hand off -------------------------------------------------
+    // The io thread's own work per active client. In 2-stage it also owns the reply side and calls
+    // serve() here; in ex-wb and 3-stage the sender does that on its own thread and io only keeps
+    // the READ side moving — reclaim the buffer once nothing points into it, and re-arm.
     uint32_t flush_ready() {
         uint32_t work = 0;
         for (auto it = active_.begin(); it != active_.end();) {
             Client* c = *it;
             Conn& conn = c->conn();
-            const uint32_t n = c->rob().drain([&](Op& op) {
-                conn.fill_buf().append(op.reply.data(), op.reply.size());
-            });
-            work += n;
+
+            if (c->sender_is_io()) {
+                if (wb_.serve(*c, [] {})) work++;      // 2-stage: same thread, no notification
+            }
 
             // Reset only when the ROB is quiescent AND no recv is outstanding — see conn.h. Then
             // re-arm, in that order.
             if (c->rob().quiesced() && !conn.recv_armed()) conn.reset_rbuf_at_quiescence();
 
-            // RE-PARSE THE BUFFERED REMAINDER. parse_and_dispatch stops when the ROB window fills,
-            // and it is otherwise only driven by recv completions — so a client that sends a whole
-            // pipeline in ONE write gets exactly `window` replies and then hangs forever, because no
-            // further recv ever arrives to restart parsing. Retiring frees window slots, so this is
-            // the point at which the rest of the buffer becomes parseable.
-            if (!c->closing() && conn.rpos() < conn.rlen()) parse_and_dispatch(c);
+            // Re-parse the buffered remainder. parse_and_dispatch stops when the ROB window fills
+            // and is otherwise only driven by recv completions, so a client that sent a whole
+            // pipeline in ONE write would get `window` replies and then hang. Retiring frees slots,
+            // which is what makes the rest parseable.
+            if (!c->closing() && conn.rpos() < conn.rlen()) { parse_and_dispatch(c); work++; }
 
             arm_recv(c);
 
-            if (!conn.nothing_to_write()) {
-                if (wb_.mode() == WbMode::Io) { if (wb_.pump(*c, c->wb())) work++; }
-                else                          { if (handoff(c)) work++; }
-            }
-            // A client may only leave the active set when there is nothing left to do for it in
-            // ANY of the three senses: no op in flight, nothing left to write, and NO UNPARSED INPUT.
-            // Dropping the last condition wedges the connection: a refused dispatch deliberately
-            // leaves bytes unparsed, the ROB then drains to quiescent, the client is erased, and
-            // nothing ever revisits it — while the peer waits for replies to commands it already
-            // sent and therefore never sends more, so no recv completion arrives to revive it.
+            // If we still cannot progress, say so: the sender will poke us once retiring has freed
+            // a slot or unpinned the buffer. Without this the io thread can sit with a full window
+            // and no recv armed, waiting for an event that never arrives.
+            const bool stuck = (conn.rpos() < conn.rlen() && c->rob().full()) ||
+                               (!conn.recv_armed() && !c->closing());
+            c->needs_io_wake().store(stuck, std::memory_order_release);
+
             const bool more_input = conn.rpos() < conn.rlen();
-            if (c->rob().quiesced() && conn.nothing_to_write() && !more_input && !c->closing())
-                { c->set_in_active(false); it = active_.erase(it); }
-            else if (c->closing() && c->safe_to_release()) { c->set_in_active(false); it = active_.erase(it); close_client(c); }
-            else ++it;
+            const bool done = c->rob().quiesced() && !more_input && !stuck &&
+                              (!c->sender_is_io() || conn.nothing_to_write());
+            if (done && !c->closing()) { c->set_in_active(false); it = active_.erase(it); }
+            else if (c->closing() && c->safe_to_release()) {
+                c->set_in_active(false); it = active_.erase(it); close_client(c);
+            } else ++it;
         }
         return work;
-    }
-
-    bool handoff(Client* c) {
-        bool expected = false;
-        if (!c->wb().queued.compare_exchange_strong(expected, true, std::memory_order_acq_rel))
-            return false;                                    // already queued; do not double-enqueue
-        if (!sender_ || !sender_->post_client(self_->id(), c, ring_, self_->sig())) {
-            c->wb().queued.store(false, std::memory_order_release);
-            return false;
-        }
-        wb_.stats().handoffs++;
-        return true;
     }
 
     void close_client(Client* c) {

@@ -94,13 +94,15 @@ public:
     // Push AND flag, in that order. Flagging before the push would let the consumer take the bit,
     // find an empty queue, and clear it while the item is still in flight.
     bool post_task(uint32_t from, const Task& t, Ring& my_ring, LoopSignals& sig) {
-        if (!task_in_[from].send(t, my_ring, sig, ring())) return false;
-        task_notify_.set(from);
+        if (!task_in_[from].push(t, sig)) return false;
+        // Publish the bit FIRST, wake only if we are the producer that raised it. Order matters more
+        // than it looks -- see Channel::push/wake.
+        if (task_notify_.set(from)) task_in_[from].wake(my_ring, sig, ring());
         return true;
     }
     bool post_client(uint32_t from, Client* c, Ring& my_ring, LoopSignals& sig) {
-        if (!client_in_[from].send(c, my_ring, sig, ring())) return false;
-        client_notify_.set(from);
+        if (!client_in_[from].push(c, sig)) return false;
+        if (client_notify_.set(from)) client_in_[from].wake(my_ring, sig, ring());
         return true;
     }
 
@@ -168,12 +170,27 @@ public:
     // a producer that pushed just before the flag was set would not have woken us.
     void arm_blocked() {
         for (uint32_t i = 0; i < nchan_; i++) { task_in_[i].arm_blocked(); client_in_[i].arm_blocked(); }
+        // The other half of the Dekker pair. Declaring intent to block is a store; the any_inbound()
+        // that follows is a load of a different location. Without this fence the CPU may hoist that
+        // load above the store, and a producer that ran in between sees blocked_ == false while we
+        // see an empty mask. Sleep path only -- it costs nothing where it runs.
+        std::atomic_thread_fence(std::memory_order_seq_cst);
     }
     void clear_blocked() {
         for (uint32_t i = 0; i < nchan_; i++) { task_in_[i].clear_blocked(); client_in_[i].clear_blocked(); }
     }
     // Two loads instead of a scan of every channel. Used to re-check after arming the blocked flag.
-    bool any_inbound() const { return task_notify_.any() || client_notify_.any(); }
+    // Asked ONLY on the way to sleep, which is why it can afford to be thorough. The mask is the fast
+    // "where do I look" hint for the drain path; here we also look at the queues themselves, because
+    // the queue push is the release store the blocked_ protocol was designed to pair with. Checking
+    // both means no reasoning about mask staleness can cost us a wakeup -- and a scan of a handful of
+    // channels is free for a thread that by definition has nothing else to do.
+    bool any_inbound() const {
+        if (task_notify_.any() || client_notify_.any()) return true;
+        for (uint32_t i = 0; i < nchan_; i++)
+            if (task_in_[i].depth() || client_in_[i].depth()) return true;
+        return false;
+    }
 
     std::atomic<bool>& stop_flag() { return stop_; }
 

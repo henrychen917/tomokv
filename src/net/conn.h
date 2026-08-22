@@ -174,6 +174,19 @@ public:
     uint32_t io_thread() const { return io_thread_; }
     void set_io_thread(uint32_t t) { io_thread_ = t; }
 
+    // Which thread retires this client's ROB and issues its sends. In 2-stage that IS the io
+    // thread; in ex-wb it is an executor, in 3-stage a dedicated write-back thread. Everything on
+    // the reply side belongs to this thread and nothing else touches the write buffer.
+    uint32_t sender_thread() const { return sender_thread_; }
+    void set_sender_thread(uint32_t t) { sender_thread_ = t; }
+    bool sender_is_io() const { return sender_thread_ == io_thread_; }
+
+    // Set by the io thread when it CANNOT make progress until the ROB advances — the window is full
+    // or the read buffer has no room. The sender checks it after retiring and pokes io only then,
+    // so the common case costs no cross-thread message at all. Without it the io thread can sit
+    // with a full window and no recv armed, waiting for an event that never comes.
+    std::atomic<bool>& needs_io_wake() { return needs_io_wake_; }
+
     uint64_t id() const { return id_; }
     void set_id(uint64_t v) { id_ = v; }
 
@@ -203,6 +216,8 @@ private:
     Rob<kRobWindow> rob_;
     WbLink          wb_;
     std::atomic<bool> retire_queued_{false};
+    std::atomic<bool> needs_io_wake_{false};
+    uint32_t          sender_thread_ = 0;
     bool              in_active_ = false;
     uint64_t        id_ = 0;
     uint32_t        io_thread_ = 0;

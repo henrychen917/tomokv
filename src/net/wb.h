@@ -67,6 +67,32 @@ public:
     WbMode mode() const { return mode_; }
     Ring&  ring()       { return *ring_; }
 
+    // THE WHOLE REPLY SIDE, in one call, run by whichever stage owns sending for this client.
+    //
+    // Retire completed ops IN ORDER, stage their bytes, and write. All three belong together and all
+    // three belong to the sender: if the io thread retired and merely handed bytes over, only the
+    // send syscall would move between modes and an "ex-wb" measured that way would not be ex-wb.
+    //
+    // Returns true if it did anything, so a caller can tell progress from an empty poll.
+    template <typename NotifyIo>
+    bool serve(Client& c, NotifyIo&& notify_io) {
+        Conn& conn = c.conn();
+        const uint32_t retired = c.rob().drain([&](Op& op) {
+            conn.fill_buf().append(op.reply.data(), op.reply.size());
+        });
+        bool did = retired != 0;
+        if (!conn.nothing_to_write()) did |= pump(c, c.wb());
+
+        // Poke the io thread only if it told us it was stuck. Retiring may have freed a ROB slot or
+        // unpinned the read buffer, and io cannot discover that on its own without polling.
+        if (retired && c.needs_io_wake().load(std::memory_order_acquire)) {
+            c.needs_io_wake().store(false, std::memory_order_release);
+            notify_io();
+        }
+        stats_.retired += retired;
+        return did;
+    }
+
     // Try to push whatever this client has buffered. Safe to call spuriously: if nothing is pending
     // or a send is already outstanding it does nothing. Returns true if a send was submitted.
     bool pump(Client& c, WbLink& link) {
@@ -132,6 +158,7 @@ public:
         uint64_t short_writes    = 0;
         uint64_t send_errors     = 0;
         uint64_t bytes_sent      = 0;
+        uint64_t retired         = 0;   // ops retired from ROBs by this sender
         uint64_t handoffs        = 0;   // clients passed to another thread's ready queue
     };
     Stats& stats() { return stats_; }

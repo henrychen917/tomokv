@@ -122,28 +122,34 @@ private:
         // op.reply becomes visible through this one store.
         op.state.store(OpState::Done, std::memory_order_release);
 
-        notify_owner(t.client);
+        notify_sender(t.client);
     }
 
-    // Tell the owning IO thread it has something to retire. Deduplicated: a pipelined burst of N
-    // completions on one client must not enqueue that client N times.
-    void notify_owner(Client* c) {
+    // Tell this client's SENDER it has completed ops. The sender — io in 2-stage, an executor in
+    // ex-wb, a write-back thread in 3-stage — is what retires the ROB and writes, so it is what
+    // needs waking. Deduplicated: a pipelined burst of N completions on one client must not enqueue
+    // that client N times.
+    void notify_sender(Client* c) {
         bool expected = false;
         if (!c->retire_queued().compare_exchange_strong(expected, true, std::memory_order_acq_rel))
             return;
-        ThreadCtx& io = srv_->thread(c->io_thread());
-        if (!io.post_client(self_->id(), c, ring_, self_->sig()))
+        ThreadCtx& snd = srv_->thread(c->sender_thread());
+        if (!snd.post_client(self_->id(), c, ring_, self_->sig()))
             c->retire_queued().store(false, std::memory_order_release);   // retry on a later pass
     }
 
     // WbMode::Ex only: IO staged ordered bytes and handed us the client to write them.
     uint32_t drain_send_requests() {
         return self_->drain_clients([&](Client* c) {
-            // Clear BEFORE pumping: clearing after lets a producer staging bytes mid-pump see
-            // queued == true, skip the enqueue, and strand those bytes until something unrelated
+            // Clear BEFORE serving. Clearing after lets a worker that finishes an op mid-serve see
+            // queued == true, skip the enqueue, and strand that reply until something unrelated
             // re-queues the client.
+            c->retire_queued().store(false, std::memory_order_release);
             c->wb().queued.store(false, std::memory_order_release);
-            wb_.pump(*c, c->wb());
+            wb_.serve(*c, [&] {
+                ThreadCtx& io = srv_->thread(c->io_thread());
+                io.post_client(self_->id(), c, ring_, self_->sig());
+            });
         });
     }
 

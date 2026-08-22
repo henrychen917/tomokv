@@ -8,9 +8,13 @@
 // this file ever grows its own send path, the abstraction has failed and the three modes have
 // quietly become three implementations that will drift apart.
 //
-// WHAT THIS THREAD OWNS: the send side of connections handed to it, and nothing else. It does not
-// parse, does not execute, does not touch the ROB. Bytes arrive already ordered in the client's
-// write buffer, because the owning IO thread retired them in ROB order before handing the client on.
+// WHAT THIS THREAD OWNS: the ENTIRE reply side of the connections handed to it. It retires the ROB
+// in order, stages the bytes, and writes them. It does not parse and does not execute.
+//
+// That division is the point. If io retired and merely handed bytes over, the only thing moving
+// between modes would be the send syscall, and a "3-stage" measured that way would not be
+// 3-stage — reply assembly and buffer staging would still be io's work. With the ROB drained here,
+// everything after execution leaves the io thread together.
 //
 // THE EXPECTED RESULT IS THAT THIS LOSES, and it is built anyway so that is measured rather than
 // asserted. p1 throughput is (threads that ISSUE SENDS) x ~90k, so dedicating threads to sending
@@ -79,10 +83,13 @@ public:
 private:
     uint32_t drain_send_requests() {
         const uint32_t n = self_->drain_clients([&](Client* c) {
-            // Clear BEFORE pumping — see the identical note in ex_loop.h. Clearing after strands
-            // bytes staged during the pump.
+            // Clear BEFORE serving — see the identical note in ex_loop.h.
+            c->retire_queued().store(false, std::memory_order_release);
             c->wb().queued.store(false, std::memory_order_release);
-            wb_.pump(*c, c->wb());
+            wb_.serve(*c, [&] {
+                ThreadCtx& io = srv_->thread(c->io_thread());
+                io.post_client(self_->id(), c, ring_, self_->sig());
+            });
         });
         self_->sig().ops += n;
         return n;

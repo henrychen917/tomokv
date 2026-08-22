@@ -133,11 +133,18 @@ public:
 
     // Producer side. One relaxed load in the common case; the RMW is paid only on the empty->flagged
     // transition, which under load is rare.
-    void set(uint32_t producer) {
+    //
+    // RETURNS TRUE only when THIS producer performed the transition, and that answer is what decides
+    // who owns the wake — see the Dekker note on Channel::wake(). A producer that finds the bit
+    // already set owes no wake: the bit is still set, so the consumer has not taken it yet, so the
+    // consumer is still going to take it and drain this channel, and our item is already in the queue
+    // by then. The seq_cst on the RMW is load-bearing, not decoration: it is the full fence that keeps
+    // the store of the bit from being reordered after the load of blocked_ in wake().
+    bool set(uint32_t producer) {
         const uint64_t bit = 1ull << (producer & 63);
         auto& w = words_[(producer >> 6) & (kWords - 1)];
-        if (w.load(std::memory_order_relaxed) & bit) return;   // already flagged: no write
-        w.fetch_or(bit, std::memory_order_release);
+        if (w.load(std::memory_order_relaxed) & bit) return false;   // already flagged: no write
+        return (w.fetch_or(bit, std::memory_order_seq_cst) & bit) == 0;
     }
 
     // Consumer side. Takes and clears one word's worth of flags. Acquire pairs with the producer's
@@ -168,15 +175,29 @@ public:
     // pointer would need every thread's ring to exist before any channel is wired, and getting that
     // startup order wrong leaves the pointer null and NO WAKE IS EVER SENT — a consumer that blocks
     // then sleeps forever on a non-empty queue. Passing it makes the dependency impossible to forget.
-    bool send(T v, Ring& my_ring, LoopSignals& sig, Ring* peer_ring) {
+    // SPLIT IN TWO ON PURPOSE. The consumer's decision to sleep is made by reading the notify mask,
+    // so the mask bit must be published BETWEEN the push and the wake decision. When this was one
+    // call that set the bit afterwards, the producer read blocked_ before the bit existed and the
+    // consumer read the bit before the producer wrote it -- both sides saw "nothing to do" and an
+    // isolated request hung forever. Pipelined traffic hid it, because the next request re-poked the
+    // consumer; only a lone command exposed it.
+    bool push(T v, LoopSignals& sig) {
         if (!q_.push(v)) { sig.full_events++; return false; }
-        // Only pay a syscall if the consumer is actually blocked. Under load it is spinning and
-        // will see the item on its next pass, so the common case costs one relaxed atomic read.
+        return true;
+    }
+
+    // Call ONLY when the caller performed the mask's empty->flagged transition. That RMW is a full
+    // fence, which is what makes this load safe: without it, store(blocked_)/load(mask) on the
+    // consumer and store(mask)/load(blocked_) here are a Dekker pair, and x86 permits exactly the one
+    // reordering (StoreLoad) that lets both sides miss each other.
+    //
+    // Only pay a syscall if the consumer is actually blocked. Under load it is spinning and will see
+    // the item on its next pass, so the common case costs one relaxed atomic read.
+    void wake(Ring& my_ring, LoopSignals& sig, Ring* peer_ring) {
         if (peer_ring && blocked_.load(std::memory_order_acquire)) {
             my_ring.msg_to(*peer_ring, ur_tag(UrKind::Wake, nullptr));
             sig.wakes_sent++;
         }
-        return true;
     }
 
     // ---- consumer side --------------------------------------------------------------------------
