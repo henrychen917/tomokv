@@ -274,7 +274,11 @@ private:
         mark_active(c);
     }
 
-    void mark_active(Client* c) { if (!active_.count(c)) active_.insert(c); }
+    void mark_active(Client* c) {
+        if (c->in_active()) return;          // one load, not a scan of the whole set
+        c->set_in_active(true);
+        active_.insert(c);
+    }
 
     // ---- inbound: workers telling us a client has completed ops -----------------------------------
     uint32_t collect_retire_work() {
@@ -320,8 +324,8 @@ private:
             // sent and therefore never sends more, so no recv completion arrives to revive it.
             const bool more_input = conn.rpos() < conn.rlen();
             if (c->rob().quiesced() && conn.nothing_to_write() && !more_input && !c->closing())
-                it = active_.erase(it);
-            else if (c->closing() && c->safe_to_release()) { it = active_.erase(it); close_client(c); }
+                { c->set_in_active(false); it = active_.erase(it); }
+            else if (c->closing() && c->safe_to_release()) { c->set_in_active(false); it = active_.erase(it); close_client(c); }
             else ++it;
         }
         return work;
@@ -344,6 +348,7 @@ private:
         // Release only at the quiescence fence: a worker may still hold a Task that resolves through
         // this ROB. Anything else is a use-after-free under pipelining.
         if (!c->safe_to_release()) return;
+        c->set_in_active(false);
         active_.erase(c);
         auto& v = self_->clients();
         for (size_t i = 0; i < v.size(); i++)
@@ -365,12 +370,16 @@ private:
     struct PtrSet {
         using It = std::vector<Client*>::iterator;
         std::vector<Client*> v;
-        bool count(Client* c) const { for (auto* p : v) if (p == c) return true; return false; }
         void insert(Client* c) { v.push_back(c); }
         It   begin() { return v.begin(); }
         It   end()   { return v.end(); }
-        It   erase(It it) { return v.erase(it); }
-        void erase(Client* c) { for (size_t i = 0; i < v.size(); i++) if (v[i] == c) { v.erase(v.begin() + i); return; } }
+        // Swap-with-back rather than vector::erase: order in the active set carries no meaning, and
+        // erase() shifts every element after the removed one.
+        It   erase(It it) { *it = v.back(); v.pop_back(); return it; }
+        void erase(Client* c) {
+            for (size_t i = 0; i < v.size(); i++)
+                if (v[i] == c) { v[i] = v.back(); v.pop_back(); return; }
+        }
     } active_;
 };
 

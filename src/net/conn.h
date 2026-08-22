@@ -186,6 +186,13 @@ public:
 
     WbLink& wb() { return wb_; }
 
+    // Membership in its io thread's active set, as a FLAG rather than a search. The set was a
+    // vector with a linear scan, so marking a client active cost one pointer compare per client
+    // already in it — on every operation. At ~85 clients per io thread that is 85 compares per op
+    // to answer a question the client can answer about itself in one load.
+    bool in_active() const { return in_active_; }
+    void set_in_active(bool v) { in_active_ = v; }
+
     // Set by a worker before it tells the owning IO thread this client has ops to retire; cleared by
     // that IO thread when it picks the client up. Without it, a pipelined burst of N completions
     // enqueues the same client N times and the retire channel fills with duplicates.
@@ -196,6 +203,7 @@ private:
     Rob<kRobWindow> rob_;
     WbLink          wb_;
     std::atomic<bool> retire_queued_{false};
+    bool              in_active_ = false;
     uint64_t        id_ = 0;
     uint32_t        io_thread_ = 0;
     bool            closing_ = false;
