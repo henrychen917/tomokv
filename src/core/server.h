@@ -12,6 +12,7 @@
 #include <vector>
 #include "shard.h"
 #include "thread.h"
+#include "../net/conn.h"   // kRobWindow: one source of truth for the window size
 
 namespace tomo {
 
@@ -60,8 +61,11 @@ public:
         // Round-robin shards onto workers. Deliberately a plain assignment rather than a policy:
         // rebalancing is the flip controller's job later, and it moves SHARDS, never keys.
         for (uint32_t s = 0; s < cfg.shards; s++) {
-            ThreadCtx& w = *threads_[cfg.io_threads + (s % cfg.ex_threads)];
-            w.shards().push_back(shards_[s].get());
+            const uint32_t tid = cfg.io_threads + (s % cfg.ex_threads);
+            threads_[tid]->shards().push_back(shards_[s].get());
+            // The reverse mapping is what the DISPATCH path reads to find a shard's worker. Assigning
+            // shards to workers without recording it leaves every op routing to thread 0.
+            set_worker_of_shard(static_cast<int32_t>(s), tid);
         }
         return true;
     }

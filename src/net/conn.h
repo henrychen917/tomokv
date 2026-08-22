@@ -25,6 +25,8 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <atomic>
+#include <mutex>
 #include "rob.h"
 #include "../base/slice.h"
 
@@ -102,6 +104,22 @@ private:
     uint32_t  wsent_ = 0;
 };
 
+// Per-client send-side state. Defined here rather than in wb.h because Client owns it and wb.h
+// already depends on this file. Only wb.h touches the contents.
+struct WbLink {
+    // Contended only when the sender is not the connection's IO thread — i.e. in Ex and Wb modes.
+    // In Io mode WbGuard never touches it, so the shipping path pays nothing for its existence.
+    std::mutex m;
+
+    // Exactly ONE send may be outstanding per connection. Two concurrent sends on one socket can
+    // complete out of order and interleave bytes, which corrupts the stream in a way that looks
+    // like a protocol bug anywhere but here.
+    bool send_inflight = false;
+
+    // Already sitting in some ready queue; keeps a client from being enqueued twice.
+    std::atomic<bool> queued{false};
+};
+
 class Client {
 public:
     explicit Client(int fd) : conn_(fd) {}
@@ -124,9 +142,12 @@ public:
     bool closing() const { return closing_; }
     void mark_closing() { closing_ = true; }
 
+    WbLink& wb() { return wb_; }
+
 private:
     Conn            conn_;
     Rob<kRobWindow> rob_;
+    WbLink          wb_;
     uint64_t        id_ = 0;
     uint32_t        io_thread_ = 0;
     bool            closing_ = false;
