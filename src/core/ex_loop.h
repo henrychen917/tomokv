@@ -225,7 +225,12 @@ private:
                 bits &= bits - 1;
                 Client* c = self_->wb_slot_client(w * 64 + b);
                 if (!c || c->dead()) continue;
-                if (c->closing()) { release_owned(c); continue; }
+                // A closing conn is released only once DRAINED -- until then it must be SERVED like
+                // any other, or its in-flight replies never retire and io waits on a quiesce that
+                // cannot come. (Same rule as io's budget FIFO: only corpses are skippable.)
+                if (c->closing() && c->rob().quiesced() && c->out().nothing_to_write()) {
+                    release_owned(c); continue;
+                }
                 c->retire_queued().store(false, std::memory_order_release);
                 std::atomic_thread_fence(std::memory_order_seq_cst);
                 if (wb_.serve(*c, [&] {
@@ -288,8 +293,10 @@ private:
             // First contact from a connection assigned to us: adopt -- assign a ready-mask slot so
             // every later completion is one bit instead of a channel entry.
             if (wb_.mode() == WbMode::Ex) {
-                if (c->closing()) { release_owned(c); return; }   // io asked us to let go
-                if (!c->ex_adopted()) adopt(c);
+                if (c->closing() && c->rob().quiesced() && c->out().nothing_to_write()) {
+                    release_owned(c); return;              // io asked us to let go, and it is drained
+                }
+                if (!c->closing() && !c->ex_adopted()) adopt(c);
             }
             // Clear BEFORE serving. Clearing after lets a worker that finishes an op mid-serve see
             // queued == true, skip the enqueue, and strand that reply until something unrelated

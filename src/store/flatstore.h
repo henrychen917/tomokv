@@ -66,6 +66,47 @@
 namespace tomo {
 
 // 64-bit finalizer (murmur3 fmix64). Cheap, and it decorrelates the index bits from the router's.
+// ---- hash hardening ---------------------------------------------------------------------------
+// Collisions are a CORRECTNESS non-event (find_in compares full key bytes after the tag filter)
+// but a deterministic public hash is a DoS surface: craft keys sharing the low 14 bits and one
+// thread does all the work; craft keys sharing slot_start and the probe runs the clustering
+// pathology on purpose. Two layers, both keyed at boot from the kernel:
+//   - the default mix64 path folds a random seed, killing offline precomputation for free;
+//   - --hash siphash switches to SipHash-1-2 (redis's choice since 4.0), the principled PRF
+//     answer for adversarial deployments, at a measured (small) per-op cost.
+// The kind is a boot-time enum read through one perfectly-predicted branch -- not a function
+// pointer, which would tax every hash with an indirect call.
+enum class HashKind : uint8_t { Mix64Seeded = 0, SipHash12 = 1 };
+inline HashKind  g_hash_kind = HashKind::Mix64Seeded;
+inline uint64_t  g_hash_seed = 0;          // set once at boot, before any thread runs
+inline uint64_t  g_sip_k0 = 0, g_sip_k1 = 0;
+
+inline uint64_t rotl64(uint64_t x, int b) { return (x << b) | (x >> (64 - b)); }
+
+// SipHash-1-2, reference-faithful, little-endian loads via memcpy.
+inline uint64_t siphash12(const char* p, size_t n) {
+    uint64_t v0 = 0x736f6d6570736575ULL ^ g_sip_k0;
+    uint64_t v1 = 0x646f72616e646f6dULL ^ g_sip_k1;
+    uint64_t v2 = 0x6c7967656e657261ULL ^ g_sip_k0;
+    uint64_t v3 = 0x7465646279746573ULL ^ g_sip_k1;
+    auto round = [&] {
+        v0 += v1; v1 = rotl64(v1, 13); v1 ^= v0; v0 = rotl64(v0, 32);
+        v2 += v3; v3 = rotl64(v3, 16); v3 ^= v2;
+        v0 += v3; v3 = rotl64(v3, 21); v3 ^= v0;
+        v2 += v1; v1 = rotl64(v1, 17); v1 ^= v2; v2 = rotl64(v2, 32);
+    };
+    const size_t end = n & ~size_t(7);
+    for (size_t i = 0; i < end; i += 8) {
+        uint64_t m; std::memcpy(&m, p + i, 8);
+        v3 ^= m; round(); v0 ^= m;
+    }
+    uint64_t b = static_cast<uint64_t>(n) << 56;
+    for (size_t i = end; i < n; i++) b |= static_cast<uint64_t>(static_cast<unsigned char>(p[i])) << (8 * (i - end));
+    v3 ^= b; round(); v0 ^= b;
+    v2 ^= 0xff; round(); round();
+    return v0 ^ v1 ^ v2 ^ v3;
+}
+
 inline uint64_t mix64(uint64_t h) {
     h ^= h >> 33;
     h *= 0xff51afd7ed558ccdULL;
@@ -173,9 +214,14 @@ public:
     // mixes for its index, so both must agree and it lives here. Word-at-a-time, because FNV-1a
     // costs one DEPENDENT multiply per byte and a 20-character key is then a 20-long chain.
     static uint64_t hash_key(Slice k) {
+        if (g_hash_kind == HashKind::SipHash12) return siphash12(k.p, k.n);
+        return hash_key_mix(k);
+    }
+
+    static uint64_t hash_key_mix(Slice k) {
         const uint8_t* p = reinterpret_cast<const uint8_t*>(k.p);
         uint32_t n = k.n;
-        uint64_t h = 0x9e3779b97f4a7c15ULL ^ (static_cast<uint64_t>(n) * 0xff51afd7ed558ccdULL);
+        uint64_t h = (0x9e3779b97f4a7c15ULL ^ (static_cast<uint64_t>(n) * 0xff51afd7ed558ccdULL)) ^ g_hash_seed;
         auto rd8 = [](const uint8_t* q) { uint64_t v; std::memcpy(&v, q, 8); return v; };
         auto rd4 = [](const uint8_t* q) { uint32_t v; std::memcpy(&v, q, 4); return v; };
         while (n >= 8) { h = mix64(h ^ rd8(p)); p += 8; n -= 8; }

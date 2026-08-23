@@ -12,6 +12,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <sys/random.h>
 #include <string>
 #include <thread>
 #include <vector>
@@ -45,6 +46,16 @@ static void pin_to(int cpu) {
 }
 
 int main(int argc, char** argv) {
+    // Hash key material, before anything hashes. getrandom never fails for 24 bytes on any kernel
+    // we run; if it somehow does, a zero seed degrades to the old deterministic behavior rather
+    // than refusing to boot.
+    {
+        uint64_t buf[3] = {};
+        if (getrandom(buf, sizeof(buf), 0) == sizeof(buf)) {
+            g_hash_seed = buf[0]; g_sip_k0 = buf[1]; g_sip_k1 = buf[2];
+        }
+    }
+
     Config cfg;
     bool saw_place = false;
     bool saw_legacy_placement = false;
@@ -72,6 +83,12 @@ int main(int argc, char** argv) {
         else if (!std::strcmp(argv[i], "--send-target")) cfg.send_target = next("");
         else if (!std::strcmp(argv[i], "--nodes"))    { saw_legacy_placement = true; cfg.nodes = static_cast<uint32_t>(std::atoi(next("0"))); }
         else if (!std::strcmp(argv[i], "--no-pin"))     cfg.pin_threads = false;
+        else if (!std::strcmp(argv[i], "--hash")) {
+            const char* h = next("mix64");
+            if      (!std::strcmp(h, "mix64"))   g_hash_kind = HashKind::Mix64Seeded;
+            else if (!std::strcmp(h, "siphash")) g_hash_kind = HashKind::SipHash12;
+            else { std::fprintf(stderr, "--hash must be mix64 | siphash\n"); return 1; }
+        }
         else if (!std::strcmp(argv[i], "--node-cpus")) {
             saw_legacy_placement = true;
             // Operator-declared topology: comma-separated node cpu lists, '-' for ranges, '+' to
