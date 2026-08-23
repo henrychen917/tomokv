@@ -201,6 +201,13 @@ private:
         c->set_id(srv_->next_client_id().fetch_add(1, std::memory_order_relaxed));
         c->set_ifid_thread(self_->id());
         c->set_sender_thread(sender_ ? sender_->id() : self_->id());
+        // Item 5: the connection's wb protocol, for life (until a flip changes it at the fence).
+        // Owned = we send for it ourselves; Fixed = one designated remote sender. Nobody is Shared
+        // today, so no serve anywhere takes a lock.
+        c->set_proto(c->sender_is_io() ? WbProto::Owned : WbProto::Fixed);
+        // Owned connections get their ready-mask slot immediately -- WE are the sender. Remote
+        // senders assign at adoption (their first channel contact).
+        if (c->sender_is_io()) c->set_wb_slot(self_->assign_wb_slot(c));
         self_->clients().push_back(c);
         arm_recv(c);
         if (!(cqe->flags & IORING_CQE_F_MORE)) {               // multishot dropped: re-arm
@@ -261,6 +268,26 @@ private:
             // easily wasted by routing it anyway.
             if (spec->flags & CmdFlags::ConnLocal) {
                 conn.advance_parse(consumed);
+                // Item 6: session-mutating commands run HERE, on the connection's single parse
+                // thread -- which is the whole reason Session state never needs a lock and handlers
+                // never need a Client. SELECT is the only one so far.
+                if (op->argc() == 2) {
+                    Slice n = op->cmd_name();
+                    if (n.n == 6 && (n.p[0] == 's' || n.p[0] == 'S')) {
+                        char buf[16] = {};
+                        std::memcpy(buf, n.p, 6);
+                        for (auto& ch : buf) ch = static_cast<char>(std::tolower(ch));
+                        if (!std::strncmp(buf, "select", 6)) {
+                            uint64_t v = 0; uint32_t pp = 0;
+                            Slice a = op->arg(1);
+                            (void)parse_len_crlf; // (index parsed simply below)
+                            for (uint32_t k = 0; k < a.n && a.p[k] >= '0' && a.p[k] <= '9'; k++)
+                                v = v * 10 + static_cast<uint64_t>(a.p[k] - '0');
+                            (void)pp;
+                            c->session().db_index = static_cast<uint32_t>(v);
+                        }
+                    }
+                }
                 spec->handler(srv_->shard(0), *op);
                 op->state.store(OpState::Done, std::memory_order_release);
                 rob.publish();
@@ -269,6 +296,7 @@ private:
                 continue;
             }
 
+            op->db    = static_cast<uint8_t>(c->session().db_index);
             op->hash  = FlatStore::hash_key(op->key());
             op->shard = srv_->router().shard_of(op->hash);
             ThreadCtx& worker = srv_->thread(srv_->worker_of_shard(op->shard));
@@ -285,7 +313,7 @@ private:
             // ex-wb and 3-stage, where the sender only ever looks when it is told to.
             Task t{c, rob.dispatch_id()};
             rob.publish();
-            if (!worker.post_task(self_->id(), t, ring_, sig)) {
+            if (!worker.post_task_quiet(self_->id(), t, sig)) {
                 rob.unpublish();          // a refused push must leave NO trace -- including in the ROB
                 // A REFUSED PUSH MUST LEAVE NO TRACE. Advancing the parse cursor before this point
                 // consumed the command's bytes while publishing no op, so the client waited forever
@@ -298,7 +326,15 @@ private:
             }
             conn.advance_parse(consumed);
             sig.ops++;
+            touched_[op->shard >= 0 ? srv_->worker_of_shard(op->shard) : 0] = true;
             mark_active(c);
+        }
+        // Item 2: one notify per worker per parse pass, not per op. The pushes above are already
+        // visible in the queues; this publishes the "look here" bit and pays the wake decision once.
+        for (uint32_t wkr = 0; wkr < kMaxThreads; wkr++) {
+            if (!touched_[wkr]) continue;
+            touched_[wkr] = false;
+            srv_->thread(wkr).flush_task_notify(self_->id(), ring_, sig);
         }
     }
 
@@ -349,7 +385,19 @@ private:
             c->retire_queued().store(false, std::memory_order_release);
             mark_active(c);
         };
-        return unmasked ? self_->drain_clients_unmasked(take) : self_->drain_clients(take);
+        uint32_t n = unmasked ? self_->drain_clients_unmasked(take) : self_->drain_clients(take);
+        // The ready-mask path: workers set one bit per completed-work burst; we map slot -> client
+        // and put it back in the active set. Take-then-serve ordering, same as every mask here.
+        for (uint32_t w = 0; w < ReadyMask::kWords; w++) {
+            uint64_t bits = self_->ready().take(w);
+            while (bits) {
+                const uint32_t b = static_cast<uint32_t>(__builtin_ctzll(bits));
+                bits &= bits - 1;
+                Client* c = self_->wb_slot_client(w * 64 + b);
+                if (c && !c->dead()) { mark_active(c); n++; }
+            }
+        }
+        return n;
     }
 
     // ---- retire -> stage bytes -> send or hand off -------------------------------------------------
@@ -411,6 +459,23 @@ private:
         auto& v = self_->clients();
         for (size_t i = 0; i < v.size(); i++)
             if (v[i] == c) { v[i] = v.back(); v.pop_back(); break; }
+        // Remote sender still holds our slot (its table maps a bit to this pointer): ask it to let
+        // go and try again next pass. The claimed post doubles as the request; the sender releases
+        // the slot when it sees closing, and safe_to_release's !retire_queued gate has already
+        // proven the claim path clean by the time we get here -- so a fresh claim is deliverate.
+        if (!c->sender_is_io() && c->wb_slot() != Client::kNoWbSlot) {
+            bool expected = false;
+            if (c->retire_queued().compare_exchange_strong(expected, true, std::memory_order_acq_rel)) {
+                ThreadCtx& snd = srv_->thread(c->sender_thread());
+                if (!snd.post_client(self_->id(), c, ring_, self_->sig()))
+                    c->retire_queued().store(false, std::memory_order_release);
+            }
+            return;                                        // freed only after the sender releases
+        }
+        if (c->sender_is_io()) {
+            self_->release_wb_slot(c->wb_slot());
+            c->set_wb_slot(Client::kNoWbSlot);
+        }
         ::close(c->in().fd());
         // NOT delete. A poke-path post (serve's needs_io_wake notify) carries no claim flag, so one
         // may still sit un-consumed in our inbound channels naming this client. Every such entry was
@@ -433,6 +498,7 @@ private:
     Server*    srv_  = nullptr;
     ThreadCtx* self_ = nullptr;
     ThreadCtx* sender_ = nullptr;      // Ex/Wb modes
+    bool touched_[kMaxThreads] = {};   // workers fed during the current parse pass
     std::vector<Client*> dead_next_;   // corpses parked this iteration
     std::vector<Client*> dead_ready_;  // corpses freed at the next prologue
     int        listen_fd_ = -1;

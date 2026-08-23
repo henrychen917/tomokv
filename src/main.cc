@@ -68,6 +68,15 @@ int main(int argc, char** argv) {
         else if (!std::strcmp(argv[i], "--nodes"))      cfg.nodes = static_cast<uint32_t>(std::atoi(next("0")));
         else if (!std::strcmp(argv[i], "--wb"))         cfg.wb_per_node = static_cast<uint32_t>(std::atoi(next("0")));
         else if (!std::strcmp(argv[i], "--no-pin"))     cfg.pin_threads = false;
+        else if (!std::strcmp(argv[i], "--wb")) {
+            // Item 3: the honest knob. After wb-drains-ROB, write-back PLACEMENT is the only thing
+            // the old mode names varied, so name the dimension: who sends. --mode stays an alias.
+            const char* m = next("ifid");
+            if      (!std::strcmp(m, "ifid")) cfg.wb_mode = WbMode::Io;
+            else if (!std::strcmp(m, "ex"))   cfg.wb_mode = WbMode::Ex;
+            else if (!std::strcmp(m, "own"))  cfg.wb_mode = WbMode::Wb;
+            else { std::fprintf(stderr, "--wb must be ifid | ex | own\n"); return 1; }
+        }
         else if (!std::strcmp(argv[i], "--mode")) {
             const char* m = next("2s");
             if      (!std::strcmp(m, "2s"))   cfg.wb_mode = WbMode::Io;

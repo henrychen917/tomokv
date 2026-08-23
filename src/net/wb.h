@@ -53,8 +53,12 @@ enum class WbMode : uint8_t { Io = 0, Ex = 1, Wb = 2 };
 // arrived at statically instead of by identity.
 class WbGuard {
 public:
-    WbGuard(WbLink& link, WbMode mode)
-        : link_(&link), locked_(mode == WbMode::Ex) {
+    // Item 5: the lock decision is the CONNECTION's protocol, not the binary's mode. Today every
+    // connection has exactly one sender for life (Owned or Fixed), so no serve anywhere takes a
+    // lock; Shared is the tag a flip will stamp -- at the quiescence fence -- on the day a
+    // connection genuinely has more than one server.
+    WbGuard(WbLink& link, WbProto proto)
+        : link_(&link), locked_(proto == WbProto::Shared) {
         if (locked_) link_->m.lock();
     }
     ~WbGuard() { if (locked_) link_->m.unlock(); }
@@ -92,7 +96,7 @@ public:
     // Returns true if it did anything, so a caller can tell progress from an empty poll.
     template <typename NotifyIo>
     bool serve(Client& c, NotifyIo&& notify_io) {
-        WbGuard g(c.wb(), mode_);
+        WbGuard g(c.wb(), c.proto());
         return serve_locked(c, notify_io);
     }
 
@@ -104,7 +108,7 @@ public:
     // alternative is the Dekker discipline that cost this codebase five commits.
     template <typename NotifyIo>
     bool try_serve(Client& c, NotifyIo&& notify_io) {
-        if (mode_ == WbMode::Ex) {                       // the only multi-server mode -- see WbGuard
+        if (c.proto() == WbProto::Shared) {              // the only multi-server protocol
             if (!c.wb().m.try_lock()) return false;
             const bool did = serve_locked(c, notify_io);
             c.wb().m.unlock();
@@ -148,7 +152,7 @@ public:
     // Try to push whatever this client has buffered. Safe to call spuriously: if nothing is pending
     // or a send is already outstanding it does nothing. Returns true if a send was submitted.
     bool pump(Client& c, WbLink& link) {
-        WbGuard g(link, mode_);
+        WbGuard g(link, c.proto());
         return pump_locked(c, g.link());
     }
 
@@ -181,7 +185,7 @@ public:
     bool on_send_complete(Client& c, WbLink& link, int res) {
         bool resubmit = false;
         {
-            WbGuard g(link, mode_);
+            WbGuard g(link, c.proto());
             g.link().send_inflight = false;
 
             if (res < 0) {

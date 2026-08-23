@@ -127,6 +127,42 @@ private:
 // its item sits in the queue until something unrelated happens to notify again. Same shape as the
 // queued-flag ordering in the WB path.
 // ---------------------------------------------------------------------------------------------
+// ReadyMask — per-SENDER "which of my clients has completed work" bits, one bit per wb slot.
+//
+// THE #19/#20 DESIGN, ported: workers signal reply-readiness by setting an IDEMPOTENT bit in the
+// sender's mask instead of posting the Client* through a channel. Three properties fall out, and
+// each one retires a bug class this tree has already paid for:
+//   - no claim protocol: a bit set twice is one bit, so the CAS-claim dance (and its StoreLoad
+//     fence discipline) is not needed on this path;
+//   - no pointers in flight: a channel entry can outlive the client (the teardown UAF); a bit
+//     cannot -- the sender maps slot -> client through a table IT owns and IT clears;
+//   - no stranding: the bit stays set until the sender takes it, and any completion after a take
+//     re-sets it, so "both sides walk away" is unrepresentable.
+// Same take-then-serve ordering as NotifyMask; same read-first guard so a busy producer pays a
+// shared-line read, not an RMW. set() returns true on the empty->flagged transition (that RMW is a
+// full fence) -- the caller who gets true owes the park-wake, exactly like the channel protocol.
+class ReadyMask {
+public:
+    static constexpr uint32_t kSlots = 1024;
+    static constexpr uint32_t kWords = kSlots / 64;
+
+    bool set(uint32_t slot) {
+        const uint64_t bit = 1ull << (slot & 63);
+        auto& w = words_[(slot >> 6) % kWords];
+        if (w.load(std::memory_order_relaxed) & bit) return false;
+        return (w.fetch_or(bit, std::memory_order_seq_cst) & bit) == 0;
+    }
+    uint64_t take(uint32_t word) { return words_[word].exchange(0, std::memory_order_acquire); }
+    bool any() const {
+        for (uint32_t i = 0; i < kWords; i++)
+            if (words_[i].load(std::memory_order_relaxed)) return true;
+        return false;
+    }
+
+private:
+    alignas(64) std::atomic<uint64_t> words_[kWords] = {};
+};
+
 class NotifyMask {
 public:
     static constexpr uint32_t kBits  = 128;

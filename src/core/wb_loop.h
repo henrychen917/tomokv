@@ -59,6 +59,7 @@ public:
             {
                 Span busy(sig.busy_ns);
                 did += drain_send_requests();
+                did += serve_ready();
                 did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
             }
             sig.cpu_ns = thread_cpu_ns();
@@ -86,10 +87,44 @@ public:
     }
 
 private:
-    uint32_t sweep() { return drain_send_requests(true); }
+    uint32_t sweep() { return drain_send_requests(true) + serve_ready(); }
+
+    // Identical to the ex-wb sender's mask serve -- 3s differs only in having no execute duty.
+    uint32_t serve_ready() {
+        uint32_t did = 0;
+        for (uint32_t w = 0; w < ReadyMask::kWords; w++) {
+            uint64_t bits = self_->ready().take(w);
+            while (bits) {
+                const uint32_t b = static_cast<uint32_t>(__builtin_ctzll(bits));
+                bits &= bits - 1;
+                Client* c = self_->wb_slot_client(w * 64 + b);
+                if (!c || c->dead()) continue;
+                if (c->closing()) { release_owned(c); continue; }
+                c->retire_queued().store(false, std::memory_order_release);
+                std::atomic_thread_fence(std::memory_order_seq_cst);
+                if (wb_.serve(*c, [&] {
+                        ThreadCtx& io = srv_->thread(c->ifid_thread());
+                        io.post_client(self_->id(), c, ring_, self_->sig());
+                    })) did++;
+            }
+        }
+        return did;
+    }
+
+    void release_owned(Client* c) {
+        self_->release_wb_slot(c->wb_slot());
+        c->set_wb_slot(Client::kNoWbSlot);
+        // The close request travelled here as a CLAIMED post, and io's release gate requires the
+        // claim clear -- leave it set and the free blocks forever. Clearing it is also the last
+        // store this thread ever makes through this pointer.
+        c->retire_queued().store(false, std::memory_order_release);
+    }
 
     uint32_t drain_send_requests(bool unmasked = false) {
         auto take = [&](Client* c) {
+            if (c->closing()) { release_owned(c); return; }       // io asked us to let go
+            if (c->wb_slot() == Client::kNoWbSlot)                 // first contact: adopt
+                c->set_wb_slot(self_->assign_wb_slot(c));
             // Clear BEFORE serving — see the identical note in ex_loop.h.
             c->retire_queued().store(false, std::memory_order_release);
             c->wb().queued.store(false, std::memory_order_release);

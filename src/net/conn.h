@@ -41,7 +41,10 @@ namespace tomo {
 inline constexpr uint32_t kRobWindow    = 64;          // max in-flight ops per connection
 inline constexpr size_t   kRbufInitial  = 16 * 1024;
 inline constexpr size_t   kRbufSoftCap  = 1 * 1024 * 1024;  // stop reading past this until drained
-inline constexpr size_t   kWbufInline   = 16 * 1024;
+// Item 4: 512B inline, heap beyond. Two 16KB inline buffers made every connection carry 32KB of
+// worst-case staging whether it ever pipelined or not; SmallBuf grows on demand and clear() keeps
+// the allocation, so a busy connection pays ONE grow to its working size and idles at 1KB + that.
+inline constexpr size_t   kWbufInline   = 512;
 
 // Per-client send-side state. Defined here rather than in wb.h because Client owns it and wb.h
 // already depends on this file. Only wb.h touches the contents.
@@ -217,6 +220,20 @@ private:
 
 
 
+// Item 5: the per-connection wb protocol, assigned at accept and changeable ONLY at the quiescence
+// fence. This is what a future flip flips. WbGuard keys on it -- and since every mode today gives a
+// connection exactly one sender for its whole life (2s: its io thread; ex-wb: its designated
+// executor; 3s: its wb thread), nobody is Shared and no serve takes a lock. Shared exists for the
+// day a flip or an opportunistic path genuinely multi-serves a connection.
+enum class WbProto : uint8_t { Owned = 0, Fixed = 1, Shared = 2 };
+
+// Item 6: connection-lived execution-side state -- the third lifetime. Lives on the ifid side
+// (session-mutating commands are ConnLocal and run there, single-threaded per connection); handlers
+// never see it, they see the snapshot the parser stamps into each op.
+struct Session {
+    uint32_t db_index = 0;
+};
+
 class Client {
 public:
     explicit Client(int fd) : in_(fd), out_(fd) {}
@@ -285,6 +302,18 @@ public:
     // list. Written and read only by that one thread — a plain bool by design.
     bool ex_adopted() const { return ex_adopted_; }
     void set_ex_adopted(bool v) { ex_adopted_ = v; }
+
+    // The sender's ready-mask slot for this connection. Written by the SENDER (assign at adoption,
+    // kNoWbSlot at release), read by every worker deciding how to signal completion. A stale read
+    // falls back to the channel path, which is always correct -- so relaxed is enough.
+    static constexpr uint32_t kNoWbSlot = UINT32_MAX;
+    uint32_t wb_slot() const { return wb_slot_.load(std::memory_order_relaxed); }
+    void set_wb_slot(uint32_t s) { wb_slot_.store(s, std::memory_order_release); }
+
+    WbProto proto() const { return proto_; }
+    void set_proto(WbProto p) { proto_ = p; }
+
+    Session& session() { return session_; }
     void set_in_active(bool v) { in_active_ = v; }
 
     // Set by a worker before it tells the owning IO thread this client has ops to retire; cleared by
@@ -304,6 +333,9 @@ private:
     bool              in_active_ = false;
     bool              ex_adopted_ = false;
     bool              dead_ = false;
+    WbProto           proto_ = WbProto::Owned;
+    std::atomic<uint32_t> wb_slot_{kNoWbSlot};
+    Session           session_;
     uint64_t        id_ = 0;
     uint32_t        ifid_thread_ = 0;
     bool            closing_ = false;

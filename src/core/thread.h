@@ -100,6 +100,19 @@ public:
         if (task_notify_.set(from)) task_in_[from].wake(my_ring, sig, ring());
         return true;
     }
+
+    // Item 2 (dispatch batching): push without notifying, then one flush per (producer, consumer)
+    // pair per parse pass. A 32-deep pipeline used to pay 32 bit-publishes and 32 wake decisions; it
+    // now pays 32 ring pushes and ONE of each. Safe against the park race the split reintroduces:
+    // a consumer deciding to sleep between our push and our flush re-checks QUEUE DEPTHS in
+    // any_inbound(), not just masks -- the depth check exists precisely so no notification scheme
+    // has to be perfect.
+    bool post_task_quiet(uint32_t from, const Task& t, LoopSignals& sig) {
+        return task_in_[from].push(t, sig);
+    }
+    void flush_task_notify(uint32_t from, Ring& my_ring, LoopSignals& sig) {
+        if (task_notify_.set(from)) task_in_[from].wake(my_ring, sig, ring());
+    }
     bool post_client(uint32_t from, Client* c, Ring& my_ring, LoopSignals& sig) {
         if (!client_in_[from].push(c, sig)) return false;
         if (client_notify_.set(from)) client_in_[from].wake(my_ring, sig, ring());
@@ -169,6 +182,7 @@ public:
     // these are armed. ALWAYS re-check the channels after arming and before actually blocking:
     // a producer that pushed just before the flag was set would not have woken us.
     void arm_blocked() {
+        parked_.store(true, std::memory_order_release);
         for (uint32_t i = 0; i < nchan_; i++) { task_in_[i].arm_blocked(); client_in_[i].arm_blocked(); }
         // The other half of the Dekker pair. Declaring intent to block is a store; the any_inbound()
         // that follows is a load of a different location. Without this fence the CPU may hoist that
@@ -177,6 +191,7 @@ public:
         std::atomic_thread_fence(std::memory_order_seq_cst);
     }
     void clear_blocked() {
+        parked_.store(false, std::memory_order_release);
         for (uint32_t i = 0; i < nchan_; i++) { task_in_[i].clear_blocked(); client_in_[i].clear_blocked(); }
     }
     // Two loads instead of a scan of every channel. Used to re-check after arming the blocked flag.
@@ -208,7 +223,39 @@ public:
         return n;
     }
 
+    // ---- the wb slot table: this thread AS A SENDER --------------------------------------------
+    // Maps ready-mask bit -> the client it names. Owned and mutated ONLY by this thread; producers
+    // never touch it -- they read the slot index off the Client and set a bit.
+    static constexpr uint32_t kNoWbSlot = UINT32_MAX;
+
+    uint32_t assign_wb_slot(Client* c) {
+        uint32_t s;
+        if (!free_slots_.empty()) { s = free_slots_.back(); free_slots_.pop_back(); }
+        else if (slots_.size() < ReadyMask::kSlots) { s = static_cast<uint32_t>(slots_.size()); slots_.push_back(nullptr); }
+        else return kNoWbSlot;                    // table full: caller stays on the channel path
+        slots_[s] = c;
+        return s;
+    }
+    void release_wb_slot(uint32_t s) {
+        if (s == kNoWbSlot || s >= slots_.size()) return;
+        slots_[s] = nullptr;
+        free_slots_.push_back(s);
+    }
+    Client* wb_slot_client(uint32_t s) { return s < slots_.size() ? slots_[s] : nullptr; }
+
+    ReadyMask& ready() { return ready_; }
+
+    // Producer side of the park protocol: called by whoever performed the empty->flagged transition
+    // on this thread's ready mask (that RMW is the fence the load below leans on).
+    void wake_if_parked(Ring& my_ring, LoopSignals& sig) {
+        if (ring_ && parked_.load(std::memory_order_acquire)) {
+            my_ring.msg_to(*ring_, ur_tag(UrKind::Wake, nullptr));
+            sig.wakes_sent++;
+        }
+    }
+
     bool any_inbound() const {
+        if (ready_.any()) return true;
         if (task_notify_.any() || client_notify_.any()) return true;
         for (uint32_t i = 0; i < nchan_; i++)
             if (task_in_[i].depth() || client_in_[i].depth()) return true;
@@ -228,6 +275,10 @@ private:
 
     std::unique_ptr<TaskChan[]>   task_in_;
     std::unique_ptr<ClientChan[]> client_in_;
+    ReadyMask  ready_;                     // as a sender: which of my clients completed work
+    std::vector<Client*>  slots_;          // slot -> client, sender-owned
+    std::vector<uint32_t> free_slots_;
+    std::atomic<bool>     parked_{false};
     NotifyMask task_notify_;      // "which producers have ops for me"
     NotifyMask client_notify_;    // "which producers have clients for me"
     uint32_t nchan_ = 0;

@@ -70,7 +70,7 @@ public:
             {
                 Span busy(sig.busy_ns);
                 did += drain_tasks();
-                if (wb_.mode() == WbMode::Ex) { did += drain_send_requests(); did += poll_owned(); }
+                if (wb_.mode() == WbMode::Ex) { did += drain_send_requests(); did += serve_ready(); }
                 did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
             }
             sig.cpu_ns = thread_cpu_ns();
@@ -161,9 +161,23 @@ private:
     // that client N times.
     void notify_sender(Client* c) {
         const uint32_t target = c->sender_thread();
-        // ex-wb, own connection: the poll pass discovers this completion within the same loop
-        // iteration, so a self-post would only queue work we are about to find anyway.
-        if (target == self_->id()) return;
+        ThreadCtx& snd = srv_->thread(target);
+        // THE READY-MASK PATH (#19/#20 ported): once the sender has assigned this connection a
+        // slot, completion signalling is one idempotent bit -- no claim, no channel entry, no
+        // pointer in flight. The empty->flagged RMW is the fence; whoever performs it owes the
+        // park-wake. A worker completing work for ITS OWN connections sets its own bit and its own
+        // serve pass finds it -- no wake needed, the thread is by definition awake.
+        const uint32_t slot = c->wb_slot();
+        if (slot != Client::kNoWbSlot) {
+            if (snd.ready().set(slot) && target != self_->id())
+                snd.wake_if_parked(ring_, self_->sig());
+            return;
+        }
+        // No slot yet: first contact. For OUR OWN connection we adopt right here -- the channel post
+        // exists to carry the pointer across threads, and there is no gap to cross. For someone
+        // else's, the claimed post carries it to them; they adopt on receipt. Either way this path
+        // runs once per connection.
+        if (target == self_->id()) { adopt(c); snd.ready().set(c->wb_slot()); return; }
         notify_sender_to(c, target);
     }
 
@@ -181,46 +195,62 @@ private:
         }
     }
 
-    // The iteration that replaces notification. For each owned connection: serve if the head is
-    // retirable or bytes are pending. The serve sequence is IDENTICAL to the channel path — clear
-    // the claim, fence (the defect-5 StoreLoad discipline), then serve — because a poll-serve and a
-    // channel-serve race the same workers.
-    uint32_t poll_owned() {
+    // Mask-driven serve: exactly the slots workers flagged, instead of iterating every owned
+    // connection. Take-then-serve; the serve sequence stays clear+fence+serve (defect-5 StoreLoad
+    // discipline) because a mask-serve races the same workers a channel-serve did.
+    uint32_t serve_ready() {
         uint32_t did = 0;
-        for (size_t i = 0; i < owned_.size();) {
-            ExClient& e = owned_[i];
-            Rob<kRobWindow>& rob = e.out->rob();
-            const bool head_ready = !rob.quiesced() &&
-                rob.at(rob.flush_id()).state.load(std::memory_order_acquire) == OpState::Done;
-            if (head_ready || !e.out->nothing_to_write()) {
-                e.c->retire_queued().store(false, std::memory_order_release);
+        for (uint32_t w = 0; w < ReadyMask::kWords; w++) {
+            uint64_t bits = self_->ready().take(w);
+            while (bits) {
+                const uint32_t b = static_cast<uint32_t>(__builtin_ctzll(bits));
+                bits &= bits - 1;
+                Client* c = self_->wb_slot_client(w * 64 + b);
+                if (!c || c->dead()) continue;
+                if (c->closing()) { release_owned(c); continue; }
+                c->retire_queued().store(false, std::memory_order_release);
                 std::atomic_thread_fence(std::memory_order_seq_cst);
-                if (wb_.serve(*e.c, [&] {
-                        ThreadCtx& io = srv_->thread(e.c->ifid_thread());
-                        io.post_client(self_->id(), e.c, ring_, self_->sig());
+                if (wb_.serve(*c, [&] {
+                        ThreadCtx& io = srv_->thread(c->ifid_thread());
+                        io.post_client(self_->id(), c, ring_, self_->sig());
                     })) did++;
             }
-            // The connection is gone once io could release it: closing, quiesced, drained. Drop it
-            // from the owned list; io owns the actual teardown.
-            if (e.c->closing() && e.c->safe_to_release() && e.out->nothing_to_write()) {
-                e.c->set_ex_adopted(false);
-                owned_[i] = owned_.back(); owned_.pop_back();
-            } else i++;
         }
         return did;
     }
 
+    void adopt(Client* c) {
+        c->set_ex_adopted(true);
+        owned_.push_back(ExClient{c, &c->out()});
+        c->set_wb_slot(self_->assign_wb_slot(c));
+    }
+
+    // The sender's half of the teardown handshake. io refuses to free while our slot still maps a
+    // bit to this pointer; we let go the moment we see closing, and the store of kNoWbSlot is the
+    // release io is waiting on. After this we never touch the client again.
+    void release_owned(Client* c) {
+        self_->release_wb_slot(c->wb_slot());
+        c->set_wb_slot(Client::kNoWbSlot);
+        // The close request travelled here as a CLAIMED post, and io's release gate requires the
+        // claim clear -- leave it set and the free blocks forever. Clearing it is also the last
+        // store this thread ever makes through this pointer.
+        c->retire_queued().store(false, std::memory_order_release);
+        c->set_ex_adopted(false);
+        for (size_t i = 0; i < owned_.size(); i++)
+            if (owned_[i].c == c) { owned_[i] = owned_.back(); owned_.pop_back(); break; }
+    }
+
     // WbMode::Ex only: IO staged ordered bytes and handed us the client to write them.
     // Both inbound kinds, ignoring the mask entirely.
-    uint32_t sweep() { return drain_tasks(true) + drain_send_requests(true) + poll_owned(); }
+    uint32_t sweep() { return drain_tasks(true) + drain_send_requests(true) + serve_ready(); }
 
     uint32_t drain_send_requests(bool unmasked = false) {
         auto take = [&](Client* c) {
-            // First contact from a connection assigned to us: take it into the owned list. From now
-            // on the poll pass discovers its work; the channel is only its park-wake.
-            if (wb_.mode() == WbMode::Ex && !c->ex_adopted()) {
-                c->set_ex_adopted(true);
-                owned_.push_back(ExClient{c, &c->out()});
+            // First contact from a connection assigned to us: adopt -- assign a ready-mask slot so
+            // every later completion is one bit instead of a channel entry.
+            if (wb_.mode() == WbMode::Ex) {
+                if (c->closing()) { release_owned(c); return; }   // io asked us to let go
+                if (!c->ex_adopted()) adopt(c);
             }
             // Clear BEFORE serving. Clearing after lets a worker that finishes an op mid-serve see
             // queued == true, skip the enqueue, and strand that reply until something unrelated
