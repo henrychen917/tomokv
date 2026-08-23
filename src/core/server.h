@@ -38,6 +38,8 @@ struct Config {
     uint32_t nodes          = 0;
     const char* node_cpus   = nullptr;   // operator-declared topology; null = self-discover
     const char* place       = nullptr;   // complete role@cpu list; null = lower legacy knobs
+    const char* shard_home  = nullptr;   // optional complete shard:ex_tid map
+    const char* send_target = nullptr;   // optional ifid_tid:sender_tid overrides
     // Shards should outnumber workers: a shard is the unit of migration, so more shards gives the
     // LB finer granularity. Too many and each one's working set stops being worth its own table.
     uint32_t shards         = 16;
@@ -61,6 +63,10 @@ public:
 
     bool init(const Config& cfg) {
         cfg_ = cfg;
+        if (cfg.shards == 0 || cfg.shards > 256) {
+            std::fprintf(stderr, "shards must be between 1 and 256\n");
+            return false;
+        }
         // Declared topology wins over discovery -- the operator is saying "build exactly these
         // nodes", including shapes discovery would never produce (cross-CCX nodes, SMT pairs,
         // deliberate mis-placement). A declaration that fails to parse or names cpus outside the
@@ -99,16 +105,12 @@ public:
             return false;
         }
 
-        // Sender selection is boot-time placement state. Keeping the tid directly on each ifid
-        // avoids topology walks when an IO loop starts and makes legacy and explicit placement use
-        // the identical launch path.
-        const std::vector<uint32_t>& senders = cfg.wb_mode == WbMode::Ex
-            ? placement_.ex_threads() : placement_.wb_threads();
-        for (size_t k = 0; k < placement_.ifid_threads().size(); k++) {
-            const uint32_t tid = placement_.ifid_threads()[k];
-            placement_.thread(tid).send_target = cfg.wb_mode == WbMode::Io
-                ? tid : senders[k % senders.size()];
-        }
+        // Sender and shard maps are resolved exactly once at boot. The loops consume the resulting
+        // tids directly; parsing never leaks onto a request path.
+        const Role sender_role = cfg.wb_mode == WbMode::Io ? Role::Ifid
+                               : cfg.wb_mode == WbMode::Ex ? Role::Ex : Role::Wb;
+        if (!placement_.assign_send_targets(sender_role, cfg.send_target)) return false;
+        if (!placement_.assign_shard_homes(cfg.shards, cfg.shard_home)) return false;
 
         // ---- shards: bucket ranges, fixed for the life of the process ----------------------------
         shards_.resize(cfg.shards);
@@ -135,9 +137,8 @@ public:
         // ---- shards directly onto workers ------------------------------------------------------
         // Locality resolution stops at the individual EX thread. There is no contiguous node range:
         // the default is one flat round-robin across every executor in thread-id order.
-        const std::vector<uint32_t>& executors = placement_.ex_threads();
         for (uint32_t sid = 0; sid < cfg.shards; sid++) {
-            const uint32_t tid = executors[sid % executors.size()];
+            const uint32_t tid = placement_.shard_home(sid);
             threads_[tid]->shards().push_back(shards_[sid].get());
             // The reverse mapping is the ONE load on dispatch and the ONE release store used by a
             // future migration. Do not mirror ownership in another synchronised structure.

@@ -68,6 +68,8 @@ int main(int argc, char** argv) {
             cfg.ifid_per_node = a; cfg.ex_per_node = b; cfg.wb_per_node = (got == 3 ? c : 0);
         }
         else if (!std::strcmp(argv[i], "--shards"))     cfg.shards = static_cast<uint32_t>(std::atoi(next("16")));
+        else if (!std::strcmp(argv[i], "--shard-home")) cfg.shard_home = next("");
+        else if (!std::strcmp(argv[i], "--send-target")) cfg.send_target = next("");
         else if (!std::strcmp(argv[i], "--nodes"))    { saw_legacy_placement = true; cfg.nodes = static_cast<uint32_t>(std::atoi(next("0"))); }
         else if (!std::strcmp(argv[i], "--no-pin"))     cfg.pin_threads = false;
         else if (!std::strcmp(argv[i], "--node-cpus")) {
@@ -101,6 +103,8 @@ int main(int argc, char** argv) {
             std::printf("usage: %s [--port N] [--bind A] [--shards N] [--no-pin]\n"
                         "  explicit per-thread placement:\n"
                         "    --place role@cpu,...        dense tid order, e.g. ifid@0,ex@2,wb@4\n"
+                        "    --shard-home shard:tid,...  complete shard-to-executor map\n"
+                        "    --send-target ifid:tid,...  override exwb/3s sender targets\n"
                         "  legacy placement sugar:\n"
                         "    --nodes N                   L3-domain nodes (0 = all discovered)\n"
                         "    --node-cpus LIST            declared node cpu groups, ranges joined by +\n"

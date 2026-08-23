@@ -44,7 +44,7 @@ public:
         if (n == 0) n = 1;
         if (nshards < n) n = nshards ? nshards : 1;   // every node must own at least one shard
         const uint64_t total = static_cast<uint64_t>(n) *
-                               (ifid_per_node + ex_per_node + wb_per_node);
+                               (static_cast<uint64_t>(ifid_per_node) + ex_per_node + wb_per_node);
         if (total > kMaxThreads) {
             std::fprintf(stderr, "placement: %llu threads exceeds the %u-thread channel limit\n",
                          static_cast<unsigned long long>(total), kMaxThreads);
@@ -112,6 +112,112 @@ public:
         return true;
     }
 
+    // Shard ownership is a flat shard->EX tid table. A manual map must be complete because mixing
+    // an accidental omission with defaults would make a supposedly controlled placement measure a
+    // different layout. Runtime dispatch still reads Server::shard_owner_ exactly once.
+    bool assign_shard_homes(uint32_t nshards, const char* spec) {
+        shard_home_.assign(nshards, kNoThread);
+        if (!spec) {
+            for (uint32_t sid = 0; sid < nshards; sid++)
+                shard_home_[sid] = ex_[sid % ex_.size()];
+            return true;
+        }
+        if (!*spec) {
+            std::fprintf(stderr, "--shard-home must contain shard:thread pairs\n");
+            return false;
+        }
+
+        std::vector<bool> seen(nshards, false);
+        const char* p = spec;
+        while (*p) {
+            uint32_t sid = 0, tid = 0;
+            if (!parse_pair(p, sid, tid)) {
+                std::fprintf(stderr, "--shard-home: expected shard:thread pairs near '%s'\n", p);
+                return false;
+            }
+            if (sid >= nshards) {
+                std::fprintf(stderr, "--shard-home: shard %u is outside 0..%u\n", sid, nshards - 1);
+                return false;
+            }
+            if (tid >= threads_.size() || threads_[tid].role != Role::Ex) {
+                std::fprintf(stderr, "--shard-home: thread %u is not an ex thread\n", tid);
+                return false;
+            }
+            if (seen[sid]) {
+                std::fprintf(stderr, "--shard-home: shard %u is assigned more than once\n", sid);
+                return false;
+            }
+            seen[sid] = true;
+            shard_home_[sid] = tid;
+            if (*p == '\0') break;
+            p++;
+            if (!*p) {
+                std::fprintf(stderr, "--shard-home: trailing comma\n");
+                return false;
+            }
+        }
+        for (uint32_t sid = 0; sid < nshards; sid++) {
+            if (!seen[sid]) {
+                std::fprintf(stderr, "--shard-home: shard %u has no owner (manual maps must be complete)\n", sid);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Defaults deliberately span ALL eligible threads rather than preserving legacy node groups.
+    // Explicit pairs are overrides, so operators can pin only the exceptional IFID relationships
+    // while the rest retain deterministic round-robin assignment.
+    bool assign_send_targets(Role sender_role, const char* spec) {
+        const std::vector<uint32_t>* senders = nullptr;
+        if (sender_role == Role::Ex) senders = &ex_;
+        else if (sender_role == Role::Wb) senders = &wb_;
+
+        for (size_t k = 0; k < ifid_.size(); k++)
+            threads_[ifid_[k]].send_target = senders ? (*senders)[k % senders->size()] : ifid_[k];
+
+        if (!spec) return true;
+        if (!senders) {
+            std::fprintf(stderr, "--send-target is only meaningful with --mode exwb or --mode 3s\n");
+            return false;
+        }
+        if (!*spec) {
+            std::fprintf(stderr, "--send-target must contain ifid_tid:sender_tid pairs\n");
+            return false;
+        }
+
+        std::vector<bool> seen(threads_.size(), false);
+        const char* p = spec;
+        while (*p) {
+            uint32_t ifid_tid = 0, sender_tid = 0;
+            if (!parse_pair(p, ifid_tid, sender_tid)) {
+                std::fprintf(stderr, "--send-target: expected ifid_tid:sender_tid pairs near '%s'\n", p);
+                return false;
+            }
+            if (ifid_tid >= threads_.size() || threads_[ifid_tid].role != Role::Ifid) {
+                std::fprintf(stderr, "--send-target: thread %u is not an ifid thread\n", ifid_tid);
+                return false;
+            }
+            if (sender_tid >= threads_.size() || threads_[sender_tid].role != sender_role) {
+                std::fprintf(stderr, "--send-target: thread %u has the wrong sender role\n", sender_tid);
+                return false;
+            }
+            if (seen[ifid_tid]) {
+                std::fprintf(stderr, "--send-target: ifid thread %u is assigned more than once\n", ifid_tid);
+                return false;
+            }
+            seen[ifid_tid] = true;
+            threads_[ifid_tid].send_target = sender_tid;
+            if (*p == '\0') break;
+            p++;
+            if (!*p) {
+                std::fprintf(stderr, "--send-target: trailing comma\n");
+                return false;
+            }
+        }
+        return true;
+    }
+
     uint32_t total_threads() const { return static_cast<uint32_t>(threads_.size()); }
 
     ThreadPlacement&       thread(uint32_t tid)       { return threads_[tid]; }
@@ -124,6 +230,7 @@ public:
     Role role_of(uint32_t tid) const { return threads_[tid].role; }
     int cpu_of_thread(uint32_t tid) const { return threads_[tid].cpu; }
     uint32_t domain_of_thread(uint32_t tid) const { return threads_[tid].domain; }
+    uint32_t shard_home(uint32_t sid) const { return shard_home_[sid]; }
 
 private:
     void clear() {
@@ -131,6 +238,7 @@ private:
         ifid_.clear();
         ex_.clear();
         wb_.clear();
+        shard_home_.clear();
     }
 
     void append(Role role, int cpu, uint32_t domain) {
@@ -143,10 +251,27 @@ private:
         return cpus.empty() ? -1 : cpus[slot % cpus.size()];
     }
 
+    static bool parse_u32(const char*& p, uint32_t& out) {
+        if (*p < '0' || *p > '9') return false;
+        char* end = nullptr;
+        const unsigned long value = std::strtoul(p, &end, 10);
+        if (value > UINT32_MAX) return false;
+        out = static_cast<uint32_t>(value);
+        p = end;
+        return true;
+    }
+
+    static bool parse_pair(const char*& p, uint32_t& left, uint32_t& right) {
+        if (!parse_u32(p, left) || *p != ':') return false;
+        p++;
+        return parse_u32(p, right) && (*p == ',' || *p == '\0');
+    }
+
     std::vector<ThreadPlacement> threads_;
     std::vector<uint32_t> ifid_;
     std::vector<uint32_t> ex_;
     std::vector<uint32_t> wb_;
+    std::vector<uint32_t> shard_home_;
 };
 
 // ---------------------------------------------------------------------------------------------
