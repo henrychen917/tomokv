@@ -326,16 +326,23 @@ private:
             }
             conn.advance_parse(consumed);
             sig.ops++;
-            touched_[op->shard >= 0 ? srv_->worker_of_shard(op->shard) : 0] = true;
+            {
+                const uint32_t wkr = static_cast<uint32_t>(srv_->worker_of_shard(op->shard));
+                if (!touched_[wkr]) { touched_[wkr] = true; touched_list_[ntouched_++] = wkr; }
+            }
             mark_active(c);
         }
         // Item 2: one notify per worker per parse pass, not per op. The pushes above are already
         // visible in the queues; this publishes the "look here" bit and pays the wake decision once.
-        for (uint32_t wkr = 0; wkr < kMaxThreads; wkr++) {
-            if (!touched_[wkr]) continue;
+        // The touched set is a LIST, not a scan: the first version swept all 128 thread slots per
+        // pass, which at p1 is 128 loads per op and measured -2.5% -- the batching win eaten by its
+        // own bookkeeping.
+        for (uint32_t i = 0; i < ntouched_; i++) {
+            const uint32_t wkr = touched_list_[i];
             touched_[wkr] = false;
             srv_->thread(wkr).flush_task_notify(self_->id(), ring_, sig);
         }
+        ntouched_ = 0;
     }
 
     void finish_locally(Client* c, Op& op, const char* err) {
@@ -498,7 +505,9 @@ private:
     Server*    srv_  = nullptr;
     ThreadCtx* self_ = nullptr;
     ThreadCtx* sender_ = nullptr;      // Ex/Wb modes
-    bool touched_[kMaxThreads] = {};   // workers fed during the current parse pass
+    bool     touched_[kMaxThreads] = {};      // dedupe flags for the current parse pass
+    uint32_t touched_list_[kMaxThreads] = {}; // the workers actually fed, dense
+    uint32_t ntouched_ = 0;
     std::vector<Client*> dead_next_;   // corpses parked this iteration
     std::vector<Client*> dead_ready_;  // corpses freed at the next prologue
     int        listen_fd_ = -1;
