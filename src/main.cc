@@ -59,16 +59,19 @@ int main(int argc, char** argv) {
     Config cfg;
     bool saw_place = false;
     bool saw_legacy_placement = false;
+    bool saw_ratio = false;
+    bool saw_spread_family = false;   // --spread/--io/--ex/--nodes; --node-cpus is NOT in it,
+                                      // because declared topology composes with --ratio
     for (int i = 1; i < argc; i++) {
         auto next = [&](const char* d) { return (i + 1 < argc) ? argv[++i] : d; };
         if      (!std::strcmp(argv[i], "--port"))       cfg.port = static_cast<uint16_t>(std::atoi(next("6379")));
         else if (!std::strcmp(argv[i], "--bind"))       cfg.bind_addr = next("127.0.0.1");
-        else if (!std::strcmp(argv[i], "--io"))       { saw_legacy_placement = true; cfg.ifid_per_node = static_cast<uint32_t>(std::atoi(next("4"))); }
-        else if (!std::strcmp(argv[i], "--ex"))       { saw_legacy_placement = true; cfg.ex_per_node = static_cast<uint32_t>(std::atoi(next("4"))); }
+        else if (!std::strcmp(argv[i], "--io"))       { saw_legacy_placement = true; saw_spread_family = true; cfg.ifid_per_node = static_cast<uint32_t>(std::atoi(next("4"))); }
+        else if (!std::strcmp(argv[i], "--ex"))       { saw_legacy_placement = true; saw_spread_family = true; cfg.ex_per_node = static_cast<uint32_t>(std::atoi(next("4"))); }
         // THE STATIC SPREAD KNOB. "io:ex" or "io:ex:wb". Everything is static -- there is no
         // controller and nothing rebalances at runtime, by design for now.
         else if (!std::strcmp(argv[i], "--spread")) {
-            saw_legacy_placement = true;
+            saw_legacy_placement = true; saw_spread_family = true;
             const char* v = next("4:4");
             unsigned a = 0, b = 0, c = 0;
             const int got = std::sscanf(v, "%u:%u:%u", &a, &b, &c);
@@ -78,10 +81,24 @@ int main(int argc, char** argv) {
             }
             cfg.ifid_per_node = a; cfg.ex_per_node = b; cfg.wb_per_node = (got == 3 ? c : 0);
         }
+        // WHOLE-SERVER role counts, evenly spread across L3 domains by the server itself.
+        // This is the runtime replacement for authoring --place strings offline, and the knob a
+        // flip controller will drive: counts in, placement out, no per-node arithmetic.
+        else if (!std::strcmp(argv[i], "--ratio")) {
+            saw_ratio = true;
+            const char* v = next("");
+            unsigned a = 0, b = 0, c = 0;
+            const int got = std::sscanf(v, "%u:%u:%u", &a, &b, &c);
+            if (got < 2 || a == 0 || b == 0) {
+                std::fprintf(stderr, "--ratio wants global ifid:ex or ifid:ex:wb (e.g. 30:34 or 15:2:15)\n");
+                return 1;
+            }
+            cfg.even_ifid = a; cfg.even_ex = b; cfg.even_wb = (got == 3 ? c : 0);
+        }
         else if (!std::strcmp(argv[i], "--shards"))     cfg.shards = static_cast<uint32_t>(std::atoi(next("16")));
         else if (!std::strcmp(argv[i], "--shard-home")) cfg.shard_home = next("");
         else if (!std::strcmp(argv[i], "--send-target")) cfg.send_target = next("");
-        else if (!std::strcmp(argv[i], "--nodes"))    { saw_legacy_placement = true; cfg.nodes = static_cast<uint32_t>(std::atoi(next("0"))); }
+        else if (!std::strcmp(argv[i], "--nodes"))    { saw_legacy_placement = true; saw_spread_family = true; cfg.nodes = static_cast<uint32_t>(std::atoi(next("0"))); }
         else if (!std::strcmp(argv[i], "--no-pin"))     cfg.pin_threads = false;
         else if (!std::strcmp(argv[i], "--hash")) {
             const char* h = next("mix64");
@@ -120,6 +137,7 @@ int main(int argc, char** argv) {
             std::printf("usage: %s [--port N] [--bind A] [--shards N] [--no-pin]\n"
                         "  explicit per-thread placement:\n"
                         "    --place role@cpu,...        dense tid order; roles are ifid, ex, wb\n"
+                        "    --ratio ifid:ex[:wb]        GLOBAL counts, server spreads them evenly over L3s\n"
                         "    --shard-home shard:tid,...  complete shard-to-executor map\n"
                         "    --send-target ifid:tid,...  override exwb/3s sender targets\n"
                         "  legacy placement sugar:\n"
@@ -142,17 +160,29 @@ int main(int argc, char** argv) {
         std::fprintf(stderr, "--place cannot be combined with --nodes, --spread, --node-cpus, --io, or --ex\n");
         return 1;
     }
-    if (!saw_place && (cfg.ifid_per_node == 0 || cfg.ex_per_node == 0)) {
+    if (saw_ratio && (saw_place || saw_spread_family)) {
+        std::fprintf(stderr, "--ratio cannot be combined with --place, --spread, --nodes, --io, or --ex\n");
+        return 1;
+    }
+    if (saw_ratio && cfg.wb_mode == WbMode::Wb && cfg.even_wb == 0) {
+        std::fprintf(stderr, "--mode 3s needs a wb count: --ratio ifid:ex:wb\n");
+        return 1;
+    }
+    if (saw_ratio && cfg.wb_mode != WbMode::Wb && cfg.even_wb) {
+        std::fprintf(stderr, "the wb field of --ratio is only meaningful with --mode 3s\n");
+        return 1;
+    }
+    if (!saw_place && !saw_ratio && (cfg.ifid_per_node == 0 || cfg.ex_per_node == 0)) {
         std::fprintf(stderr, "need at least one io and one ex thread per node\n");
         return 1;
     }
     // 3-stage needs somewhere to send from. Refuse loudly rather than silently falling back to 2s,
     // which would make a mode comparison quietly measure the same thing twice.
-    if (!saw_place && cfg.wb_mode == WbMode::Wb && cfg.wb_per_node == 0) {
+    if (!saw_place && !saw_ratio && cfg.wb_mode == WbMode::Wb && cfg.wb_per_node == 0) {
         std::fprintf(stderr, "--mode 3s needs a wb count: --spread io:ex:wb\n");
         return 1;
     }
-    if (!saw_place && cfg.wb_mode != WbMode::Wb && cfg.wb_per_node) {
+    if (!saw_place && !saw_ratio && cfg.wb_mode != WbMode::Wb && cfg.wb_per_node) {
         std::fprintf(stderr, "the wb field of --spread is only meaningful with --mode 3s\n");
         return 1;
     }

@@ -62,6 +62,67 @@ public:
         return true;
     }
 
+    // EVEN GLOBAL PLACEMENT. Counts are whole-server, so shapes no per-node grammar can express
+    // (15:2:15) are first-class. Each role is spread across the L3 domains as evenly as integer
+    // division allows and roles are interleaved within a domain, so sender pairing stays local.
+    //
+    // This is also the flip-era invariant in batch form: a runtime controller changing one thread's
+    // role keeps these same quotas incrementally -- pick the convert candidate from the domain
+    // whose count for the shrinking role sits above quota and whose count for the growing role
+    // sits below it. Placement stays a pure function of (counts, topology); no node layer.
+    bool build_even(const Topology& topo, uint32_t n_ifid, uint32_t n_ex, uint32_t n_wb) {
+        clear();
+        const uint32_t nd = topo.ndomains() ? topo.ndomains() : 1;
+        const uint64_t total = static_cast<uint64_t>(n_ifid) + n_ex + n_wb;
+        uint64_t cap = 0;
+        for (uint32_t d = 0; d < nd; d++) cap += topo.cpus_in(d).size();
+        if (total > cap) {
+            std::fprintf(stderr, "--ratio: %llu threads but only %llu allowed cpus\n",
+                         static_cast<unsigned long long>(total),
+                         static_cast<unsigned long long>(cap));
+            return false;
+        }
+        if (total > kMaxThreads) {
+            std::fprintf(stderr, "--ratio: %llu threads exceeds the %u-thread channel limit\n",
+                         static_cast<unsigned long long>(total), kMaxThreads);
+            return false;
+        }
+        std::vector<uint32_t> qi(nd), qe(nd), qw(nd);
+        auto spread = [nd](uint32_t count, std::vector<uint32_t>& q) {
+            for (uint32_t d = 0; d < nd; d++) q[d] = count / nd + (d < count % nd ? 1u : 0u);
+        };
+        spread(n_ifid, qi); spread(n_ex, qe); spread(n_wb, qw);
+        // Capacity fix-up for domains of unequal size (declared topologies): shed ex first -- it is
+        // the most placement-indifferent role -- into the domain with the most free cpus.
+        for (uint32_t d = 0; d < nd; d++) {
+            while (qi[d] + qe[d] + qw[d] > topo.cpus_in(d).size()) {
+                uint32_t tgt = kNoDomain;
+                uint64_t best_room = 0;
+                for (uint32_t o = 0; o < nd; o++) {
+                    if (o == d) continue;
+                    const uint64_t used = qi[o] + qe[o] + qw[o];
+                    const uint64_t have = topo.cpus_in(o).size();
+                    if (have > used && have - used > best_room) { best_room = have - used; tgt = o; }
+                }
+                if (tgt == kNoDomain) {
+                    std::fprintf(stderr, "--ratio: no domain has room to rebalance\n");
+                    return false;
+                }
+                if      (qe[d]) { qe[d]--; qe[tgt]++; }
+                else if (qi[d]) { qi[d]--; qi[tgt]++; }
+                else            { qw[d]--; qw[tgt]++; }
+            }
+        }
+        for (uint32_t d = 0; d < nd; d++) {
+            const std::vector<int>& cpus = topo.cpus_in(d);
+            uint32_t slot = 0;
+            for (uint32_t k = 0; k < qi[d]; k++) append(Role::Ifid, cpus[slot++], d);
+            for (uint32_t k = 0; k < qe[d]; k++) append(Role::Ex,   cpus[slot++], d);
+            for (uint32_t k = 0; k < qw[d]; k++) append(Role::Wb,   cpus[slot++], d);
+        }
+        return true;
+    }
+
     // --place is intentionally a small, strict language. Boot configuration should fail at the
     // first typo instead of accepting a partial placement and letting unpinned threads float.
     bool build_explicit(const Topology& topo, const char* spec) {

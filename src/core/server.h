@@ -38,6 +38,11 @@ struct Config {
     uint32_t nodes          = 0;
     const char* node_cpus   = nullptr;   // operator-declared topology; null = self-discover
     const char* place       = nullptr;   // complete role@cpu list; null = lower legacy knobs
+    // Whole-server role counts for even placement (--ratio). All zero = unset. Unlike the per-node
+    // fields above these express any global shape, and they are what a flip controller would vary.
+    uint32_t even_ifid      = 0;
+    uint32_t even_ex        = 0;
+    uint32_t even_wb        = 0;
     const char* shard_home  = nullptr;   // optional complete shard:ex_tid map
     const char* send_target = nullptr;   // optional ifid_tid:sender_tid overrides
     // Shards should outnumber workers: a shard is the unit of migration, so more shards gives the
@@ -87,6 +92,8 @@ public:
         }
         const bool placed = cfg.place
             ? placement_.build_explicit(topo_, cfg.place)
+            : (cfg.even_ifid | cfg.even_ex | cfg.even_wb)
+            ? placement_.build_even(topo_, cfg.even_ifid, cfg.even_ex, cfg.even_wb)
             : placement_.build_legacy(topo_, cfg.nodes, cfg.shards,
                                       cfg.ifid_per_node, cfg.ex_per_node, cfg.wb_per_node);
         if (!placed) return false;
