@@ -263,6 +263,11 @@ public:
     // already in it — on every operation. At ~85 clients per io thread that is 85 compares per op
     // to answer a question the client can answer about itself in one load.
     bool in_active() const { return in_active_; }
+
+    // ex-wb only: whether the designated executor-sender has taken this connection into its owned
+    // list. Written and read only by that one thread — a plain bool by design.
+    bool ex_adopted() const { return ex_adopted_; }
+    void set_ex_adopted(bool v) { ex_adopted_ = v; }
     void set_in_active(bool v) { in_active_ = v; }
 
     // Set by a worker before it tells the owning IO thread this client has ops to retire; cleared by
@@ -280,6 +285,7 @@ private:
     std::atomic<bool> needs_io_wake_{false};
     uint32_t          sender_thread_ = 0;
     bool              in_active_ = false;
+    bool              ex_adopted_ = false;
     uint64_t        id_ = 0;
     uint32_t        ifid_thread_ = 0;
     bool            closing_ = false;

@@ -36,14 +36,15 @@
 // retirement is strictly in order, the oldest live op is always slot(flush_id) — so every byte
 // before that op's rbuf_off is dead. No refcounting, no generation numbers.
 //
-// SLOTS ARE POINTERS, NOT VALUES. An ExecContext is ~328 bytes; held by value a 64-slot ROB is
-// ~21KB resident per connection whether it ever pipelines or not — and per-connection residency is
-// a number this project is measured on. Held as pointers the ring is 512 bytes, and a context is
-// materialized the FIRST time its slot is reached: a p1 connection materializes one, a 32-deep
-// pipeliner thirty-two, and each is then recycled in place forever ("flushed" logically at retire —
-// state goes Free — never returned to the allocator until the connection dies). Steady-state
-// allocator traffic is zero, which is the lever that actually matters; jemalloc serves the one-time
-// materializations and needs no pool in front of it.
+// SLOTS ARE CHUNKED, NOT INLINE AND NOT SCATTERED. An ExecContext is ~328 bytes; held by value a
+// 64-slot ROB is ~21KB resident per connection whether it ever pipelines or not. The first pointer
+// version fixed that with one heap Op per slot — and measured a −3% SET p32 regression, because 64
+// scattered allocations lost the sequential locality the drain used to get from the inline array
+// for free. So: contexts materialize in CONTIGUOUS CHUNKS of eight, on the first touch of any slot
+// in the chunk. A p1 connection holds one chunk (~2.6KB), a 32-deep pipeliner four, and the drain
+// walks sequential memory within every chunk. Each context recycles in place forever ("flushed"
+// logically at retire — state goes Free — never returned to the allocator until the connection
+// dies); steady-state allocator traffic is zero, and jemalloc needs no pool in front of it.
 #pragma once
 #include <atomic>
 #include <cstdint>
@@ -72,8 +73,7 @@ public:
     // and the sender only ever dereference slots that a publish made real.
     Op* acquire() {
         if (full()) return nullptr;
-        Op*& op = slots_[dispatch_id() & kMask];
-        if (!op) op = new Op();
+        Op* op = slot(static_cast<uint32_t>(dispatch_id()) & kMask, true);
         op->reset();
         return op;
     }
@@ -98,7 +98,7 @@ public:
         uint64_t f = flush_.load(std::memory_order_relaxed);
         uint32_t n = 0;
         while (f != d) {
-            Op& op = *slots_[f & kMask];
+            Op& op = *slot(static_cast<uint32_t>(f) & kMask, false);
             if (op.state.load(std::memory_order_acquire) != OpState::Done) break;
             sink(op);                                   // the acquire above orders the reply bytes
             op.state.store(OpState::Free, std::memory_order_relaxed);
@@ -115,17 +115,29 @@ public:
     // when quiesced, meaning the whole buffer is reclaimable.
     uint32_t pinned_rbuf_off() const {
         if (quiesced()) return UINT32_MAX;
-        return slots_[flush_id() & kMask]->rbuf_off;
+        return slot(static_cast<uint32_t>(flush_id()) & kMask, false)->rbuf_off;
     }
 
     // Slot access for the worker side, which addresses ops by id rather than by pointer so a stale
     // pointer can never outlive a recycle.
-    Op& at(uint64_t id) { return *slots_[id & kMask]; }
+    Op& at(uint64_t id) { return *slot(static_cast<uint32_t>(id) & kMask, false); }
 
-    ~Rob() { for (uint32_t i = 0; i < Capacity; i++) delete slots_[i]; }
+    ~Rob() { for (uint32_t i = 0; i < kChunks; i++) delete[] chunks_[i]; }
 
 private:
-    Op* slots_[Capacity] = {};
+    static constexpr uint32_t kChunkOps = 8;
+    static constexpr uint32_t kChunks   = Capacity / kChunkOps;
+    static_assert(Capacity % kChunkOps == 0);
+
+    // may_grow is true only from acquire() — the parser. Everyone else dereferences ground the
+    // parser already materialized.
+    Op* slot(uint32_t idx, bool may_grow) {
+        Op*& ch = chunks_[idx / kChunkOps];
+        if (!ch && may_grow) ch = new Op[kChunkOps];
+        return &ch[idx % kChunkOps];
+    }
+
+    Op* chunks_[kChunks] = {};
     // Separate cache lines: the producer writes dispatch_ while the consumer writes flush_, and
     // sharing a line would make every publish invalidate the consumer's copy and vice versa.
     alignas(64) std::atomic<uint64_t> dispatch_{0};

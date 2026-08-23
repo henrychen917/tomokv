@@ -34,6 +34,17 @@ inline constexpr uint32_t kExSpinBudget = 2048;
 // that the prefetches have time to land, small enough that the batch stays in L1.
 inline constexpr uint32_t kExecBatch = 32;
 
+// EX-WB'S CLIENT CONTEXT (owner design). In ex-wb the designated executor-sender OWNS the reply
+// side of its connections, so it holds them the way redis's client holds its output machinery: a
+// per-connection struct binding the Client to its ConnOut, kept in the executor's own list. The
+// consequence is that DISCOVERY BECOMES ITERATION: every loop pass the executor walks what it owns
+// and serves any connection whose head is ready, instead of waiting for a channel message to tell
+// it where to look. The deduped notify stays — but demoted to a park-wake, not the data path.
+struct ExClient {
+    Client*  c   = nullptr;
+    ConnOut* out = nullptr;    // cached: the half this thread owns; saves the hop through Client
+};
+
 class ExLoop {
 public:
     WbEngine& engine() { return wb_; }
@@ -59,7 +70,7 @@ public:
             {
                 Span busy(sig.busy_ns);
                 did += drain_tasks();
-                if (wb_.mode() == WbMode::Ex) did += drain_send_requests();
+                if (wb_.mode() == WbMode::Ex) { did += drain_send_requests(); did += poll_owned(); }
                 did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
             }
             sig.cpu_ns = thread_cpu_ns();
@@ -148,7 +159,13 @@ private:
     // ex-wb, a write-back thread in 3-stage — is what retires the ROB and writes, so it is what
     // needs waking. Deduplicated: a pipelined burst of N completions on one client must not enqueue
     // that client N times.
-    void notify_sender(Client* c) { notify_sender_to(c, c->sender_thread()); }
+    void notify_sender(Client* c) {
+        const uint32_t target = c->sender_thread();
+        // ex-wb, own connection: the poll pass discovers this completion within the same loop
+        // iteration, so a self-post would only queue work we are about to find anyway.
+        if (target == self_->id()) return;
+        notify_sender_to(c, target);
+    }
 
     void notify_sender_to(Client* c, uint32_t target) {
         bool expected = false;
@@ -164,12 +181,47 @@ private:
         }
     }
 
+    // The iteration that replaces notification. For each owned connection: serve if the head is
+    // retirable or bytes are pending. The serve sequence is IDENTICAL to the channel path — clear
+    // the claim, fence (the defect-5 StoreLoad discipline), then serve — because a poll-serve and a
+    // channel-serve race the same workers.
+    uint32_t poll_owned() {
+        uint32_t did = 0;
+        for (size_t i = 0; i < owned_.size();) {
+            ExClient& e = owned_[i];
+            Rob<kRobWindow>& rob = e.out->rob();
+            const bool head_ready = !rob.quiesced() &&
+                rob.at(rob.flush_id()).state.load(std::memory_order_acquire) == OpState::Done;
+            if (head_ready || !e.out->nothing_to_write()) {
+                e.c->retire_queued().store(false, std::memory_order_release);
+                std::atomic_thread_fence(std::memory_order_seq_cst);
+                if (wb_.serve(*e.c, [&] {
+                        ThreadCtx& io = srv_->thread(e.c->ifid_thread());
+                        io.post_client(self_->id(), e.c, ring_, self_->sig());
+                    })) did++;
+            }
+            // The connection is gone once io could release it: closing, quiesced, drained. Drop it
+            // from the owned list; io owns the actual teardown.
+            if (e.c->closing() && e.c->safe_to_release() && e.out->nothing_to_write()) {
+                e.c->set_ex_adopted(false);
+                owned_[i] = owned_.back(); owned_.pop_back();
+            } else i++;
+        }
+        return did;
+    }
+
     // WbMode::Ex only: IO staged ordered bytes and handed us the client to write them.
     // Both inbound kinds, ignoring the mask entirely.
-    uint32_t sweep() { return drain_tasks(true) + drain_send_requests(true); }
+    uint32_t sweep() { return drain_tasks(true) + drain_send_requests(true) + poll_owned(); }
 
     uint32_t drain_send_requests(bool unmasked = false) {
         auto take = [&](Client* c) {
+            // First contact from a connection assigned to us: take it into the owned list. From now
+            // on the poll pass discovers its work; the channel is only its park-wake.
+            if (wb_.mode() == WbMode::Ex && !c->ex_adopted()) {
+                c->set_ex_adopted(true);
+                owned_.push_back(ExClient{c, &c->out()});
+            }
             // Clear BEFORE serving. Clearing after lets a worker that finishes an op mid-serve see
             // queued == true, skip the enqueue, and strand that reply until something unrelated
             // re-queues the client.
@@ -210,6 +262,7 @@ private:
     ThreadCtx* self_ = nullptr;
     Ring       ring_;
     WbEngine   wb_;
+    std::vector<ExClient> owned_;      // ex-wb: the connections whose reply side this thread owns
 };
 
 }  // namespace tomo
