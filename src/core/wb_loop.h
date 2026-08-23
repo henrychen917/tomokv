@@ -103,7 +103,9 @@ private:
                 bits &= bits - 1;
                 Client* c = self_->wb_slot_client(w * 64 + b);
                 if (!c || c->dead()) continue;
-                if (c->closing()) { release_owned(c); continue; }
+                if (c->closing() && c->rob().quiesced() && c->out().nothing_to_write()) {
+                    release_owned(c); continue;
+                }
                 c->retire_queued().store(false, std::memory_order_release);
                 std::atomic_thread_fence(std::memory_order_seq_cst);
                 if (wb_.serve(*c, [&] {
@@ -147,8 +149,10 @@ private:
 
     uint32_t drain_send_requests(bool unmasked = false) {
         auto take = [&](Client* c) {
-            if (c->closing()) { release_owned(c); return; }       // io asked us to let go
-            if (c->wb_slot() == Client::kNoWbSlot)                 // first contact: adopt
+            if (c->closing() && c->rob().quiesced() && c->out().nothing_to_write()) {
+                release_owned(c); return;                  // io asked us to let go, and it is drained
+            }
+            if (!c->closing() && c->wb_slot() == Client::kNoWbSlot)   // first contact: adopt
                 c->set_wb_slot(self_->assign_wb_slot(c));
             // Clear BEFORE serving — see the identical note in ex_loop.h.
             c->retire_queued().store(false, std::memory_order_release);

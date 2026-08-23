@@ -492,17 +492,25 @@ private:
     void close_client(Client* c) {
         c->mark_closing();
         // Release only at the quiescence fence: a worker may still hold a Task that resolves through
-        // this ROB. Anything else is a use-after-free under pipelining.
-        if (!c->safe_to_release()) return;
+        // this ROB. Anything else is a use-after-free under pipelining. (The retryable wait paths,
+        // with their mark_active leak guard, are below.)
         c->set_in_active(false);
         active_.erase(c);
         auto& v = self_->clients();
         for (size_t i = 0; i < v.size(); i++)
             if (v[i] == c) { v[i] = v.back(); v.pop_back(); break; }
         // Remote sender still holds our slot (its table maps a bit to this pointer): ask it to let
-        // go and try again next pass. The claimed post doubles as the request; the sender releases
-        // the slot when it sees closing, and safe_to_release's !retire_queued gate has already
-        // proven the claim path clean by the time we get here -- so a fresh claim is deliverate.
+        // go and try again. THE RETRY IS THE LOAD-BEARING PART: this client left the active set
+        // when it went quiet, so nothing revisits it unless we put it back -- and the first version
+        // of this path returned without doing so, leaking the ENTIRE client (ROB chunks + grown
+        // buffers, ~137KB) on every remote-mode disconnect. Measured: +130MB RSS per bench round,
+        // linear, until the box died. mark_active() re-enters the client into flush_ready's closing
+        // branch, which calls back here every pass until the sender lets go.
+        // ORDER MATTERS: quiesce first, release-request second. Asking the sender to let go while
+        // ops are still in flight makes it drop the slot, after which completions fall back to the
+        // channel where the closing branch refuses to serve -- the replies never retire, the conn
+        // never quiesces, and the "wait" is forever. Only a quiesced, claim-free conn may ask.
+        if (!c->safe_to_release()) { mark_active(c); return; }
         if (!c->sender_is_io() && c->wb_slot() != Client::kNoWbSlot) {
             bool expected = false;
             if (c->retire_queued().compare_exchange_strong(expected, true, std::memory_order_acq_rel)) {
@@ -510,6 +518,7 @@ private:
                 if (!snd.post_client(self_->id(), c, ring_, self_->sig()))
                     c->retire_queued().store(false, std::memory_order_release);
             }
+            mark_active(c);                                // keep retrying until the release lands
             return;                                        // freed only after the sender releases
         }
         if (c->sender_is_io()) {
