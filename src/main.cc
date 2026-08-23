@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
         auto next = [&](const char* d) { return (i + 1 < argc) ? argv[++i] : d; };
         if      (!std::strcmp(argv[i], "--port"))       cfg.port = static_cast<uint16_t>(std::atoi(next("6379")));
         else if (!std::strcmp(argv[i], "--bind"))       cfg.bind_addr = next("127.0.0.1");
-        else if (!std::strcmp(argv[i], "--io"))         cfg.io_per_node = static_cast<uint32_t>(std::atoi(next("4")));
+        else if (!std::strcmp(argv[i], "--io"))         cfg.ifid_per_node = static_cast<uint32_t>(std::atoi(next("4")));
         else if (!std::strcmp(argv[i], "--ex"))         cfg.ex_per_node = static_cast<uint32_t>(std::atoi(next("4")));
         // THE STATIC SPREAD KNOB. "io:ex" or "io:ex:wb". Everything is static -- there is no
         // controller and nothing rebalances at runtime, by design for now.
@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
                 std::fprintf(stderr, "--spread wants io:ex or io:ex:wb (e.g. 4:4 or 3:3:2)\n");
                 return 1;
             }
-            cfg.io_per_node = a; cfg.ex_per_node = b; cfg.wb_per_node = (got == 3 ? c : 0);
+            cfg.ifid_per_node = a; cfg.ex_per_node = b; cfg.wb_per_node = (got == 3 ? c : 0);
         }
         else if (!std::strcmp(argv[i], "--shards"))     cfg.shards = static_cast<uint32_t>(std::atoi(next("16")));
         else if (!std::strcmp(argv[i], "--nodes"))      cfg.nodes = static_cast<uint32_t>(std::atoi(next("0")));
@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
             return 0;
         }
     }
-    if (cfg.io_per_node == 0 || cfg.ex_per_node == 0) {
+    if (cfg.ifid_per_node == 0 || cfg.ex_per_node == 0) {
         std::fprintf(stderr, "need at least one io and one ex thread per node\n");
         return 1;
     }
@@ -123,12 +123,13 @@ int main(int argc, char** argv) {
                                                   : "3s (dedicated wb sends)";
     std::printf("tomokv-cpp: %u node(s) x (%u io + %u ex + %u wb) = %u threads, %u shard(s), %s,"
                 " io_uring, alloc=%s\n",
-                srv.placement().nnodes(), cfg.io_per_node, cfg.ex_per_node, cfg.wb_per_node,
+                srv.placement().nnodes(), cfg.ifid_per_node, cfg.ex_per_node, cfg.wb_per_node,
                 srv.nthreads(), cfg.shards, mname, alloc_backend());
     for (uint32_t n = 0; n < srv.placement().nnodes(); n++) {
         const Node& nd = srv.placement().node(n);
-        std::printf("  node %u: L3 domain %u, %zu shard(s), io[", nd.id, nd.domain, nd.shards.size());
-        for (size_t i = 0; i < nd.io.size(); i++) std::printf("%st%u", i ? "," : "", nd.io[i]);
+        std::printf("  node %u: L3 domain %u, %zu shard(s), %s[", nd.id, nd.domain, nd.shards.size(),
+                    cfg.wb_mode == WbMode::Wb ? "ifid" : "io");
+        for (size_t i = 0; i < nd.ifid.size(); i++) std::printf("%st%u", i ? "," : "", nd.ifid[i]);
         std::printf("] ex[");
         for (size_t i = 0; i < nd.ex.size(); i++) std::printf("%st%u", i ? "," : "", nd.ex[i]);
         std::printf("]");
@@ -181,8 +182,8 @@ int main(int argc, char** argv) {
 
     for (uint32_t n = 0; n < srv.placement().nnodes(); n++) {
         const Node& node = srv.placement().node(n);
-        for (size_t k = 0; k < node.io.size(); k++) {
-            const uint32_t tid = node.io[k];
+        for (size_t k = 0; k < node.ifid.size(); k++) {
+            const uint32_t tid = node.ifid[k];
             pool.emplace_back([&, tid, k, n] {
                 pin_for(tid);
                 ThreadCtx& self = srv.thread(tid);
@@ -208,7 +209,7 @@ int main(int argc, char** argv) {
     uint64_t ops = 0, disp = 0;
     for (uint32_t i = 0; i < srv.nthreads(); i++) {
         const LoopSignals& s = srv.thread(i).sig();
-        (srv.thread(i).role() == Role::Io ? disp : ops) += s.ops;
+        (srv.thread(i).role() == Role::Ifid ? disp : ops) += s.ops;
     }
     uint64_t acc = 0, aerr = 0, arearm = 0, starved = 0, ndrop = 0;
     for (uint32_t i = 0; i < srv.nthreads(); i++) {
@@ -224,7 +225,10 @@ int main(int argc, char** argv) {
         const LoopSignals& s = srv.thread(i).sig();
         const Role r = srv.thread(i).role();
         std::printf("t%-5u %-4s %12llu %10llu %9.1f %9.1f %9.1f %9llu %8llu\n", i,
-                    r == Role::Io ? "io" : r == Role::Ex ? "ex" : "wb",
+                    // The ROLE is ifid; the 2s/exwb composition renders it "io" because there it
+                    // also carries wb. Pure parse (3s) prints as what it is.
+                    r == Role::Ifid ? (cfg.wb_mode == WbMode::Wb ? "ifid" : "io")
+                                    : r == Role::Ex ? "ex" : "wb",
                     (unsigned long long)s.ops, (unsigned long long)s.iterations,
                     s.busy_ns / 1e6, s.idle_ns / 1e6, s.cpu_ns / 1e6,
                     (unsigned long long)s.wakes_sent, (unsigned long long)s.wakes_recv);
@@ -281,7 +285,7 @@ int main(int argc, char** argv) {
                     }
                 }
             }
-            if (!c->conn().nothing_to_write()) stuck_wr++;
+            if (!c->out().nothing_to_write()) stuck_wr++;
         }
     std::printf("wb: retired=%llu sends=%llu/%llu short=%llu err=%llu bytes=%llu"
                 " serves=%llu empty=%llu\n",

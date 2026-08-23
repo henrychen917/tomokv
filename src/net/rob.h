@@ -35,6 +35,15 @@
 // READ-BUFFER PINNING STILL FALLS OUT. argv Slices point into the connection's read buffer. Because
 // retirement is strictly in order, the oldest live op is always slot(flush_id) — so every byte
 // before that op's rbuf_off is dead. No refcounting, no generation numbers.
+//
+// SLOTS ARE POINTERS, NOT VALUES. An ExecContext is ~328 bytes; held by value a 64-slot ROB is
+// ~21KB resident per connection whether it ever pipelines or not — and per-connection residency is
+// a number this project is measured on. Held as pointers the ring is 512 bytes, and a context is
+// materialized the FIRST time its slot is reached: a p1 connection materializes one, a 32-deep
+// pipeliner thirty-two, and each is then recycled in place forever ("flushed" logically at retire —
+// state goes Free — never returned to the allocator until the connection dies). Steady-state
+// allocator traffic is zero, which is the lever that actually matters; jemalloc serves the one-time
+// materializations and needs no pool in front of it.
 #pragma once
 #include <atomic>
 #include <cstdint>
@@ -59,9 +68,12 @@ public:
     // Claim the next slot to fill. Null when the window is full — the caller must stop parsing and
     // let the sender drain. That backpressure is what bounds memory under a client that pipelines
     // without reading, and dropping it is how a server OOMs on one misbehaving connection.
+    // Materialization happens HERE and only here — the parser is the sole allocator, so workers
+    // and the sender only ever dereference slots that a publish made real.
     Op* acquire() {
         if (full()) return nullptr;
-        Op* op = &slots_[dispatch_id() & kMask];
+        Op*& op = slots_[dispatch_id() & kMask];
+        if (!op) op = new Op();
         op->reset();
         return op;
     }
@@ -86,7 +98,7 @@ public:
         uint64_t f = flush_.load(std::memory_order_relaxed);
         uint32_t n = 0;
         while (f != d) {
-            Op& op = slots_[f & kMask];
+            Op& op = *slots_[f & kMask];
             if (op.state.load(std::memory_order_acquire) != OpState::Done) break;
             sink(op);                                   // the acquire above orders the reply bytes
             op.state.store(OpState::Free, std::memory_order_relaxed);
@@ -103,15 +115,17 @@ public:
     // when quiesced, meaning the whole buffer is reclaimable.
     uint32_t pinned_rbuf_off() const {
         if (quiesced()) return UINT32_MAX;
-        return slots_[flush_id() & kMask].rbuf_off;
+        return slots_[flush_id() & kMask]->rbuf_off;
     }
 
     // Slot access for the worker side, which addresses ops by id rather than by pointer so a stale
     // pointer can never outlive a recycle.
-    Op& at(uint64_t id) { return slots_[id & kMask]; }
+    Op& at(uint64_t id) { return *slots_[id & kMask]; }
+
+    ~Rob() { for (uint32_t i = 0; i < Capacity; i++) delete slots_[i]; }
 
 private:
-    Op slots_[Capacity];
+    Op* slots_[Capacity] = {};
     // Separate cache lines: the producer writes dispatch_ while the consumer writes flush_, and
     // sharing a line would make every publish invalidate the consumer's copy and vice versa.
     alignas(64) std::atomic<uint64_t> dispatch_{0};

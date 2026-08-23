@@ -42,7 +42,7 @@ class Ring;
 inline constexpr uint32_t kMaxThreads = 128;
 inline constexpr uint32_t kInboxSlots = 1024;
 
-enum class Role : uint8_t { Idle = 0, Io = 1, Ex = 2, Wb = 3 };
+enum class Role : uint8_t { Idle = 0, Ifid = 1, Ex = 2, Wb = 3 };
 
 // What travels on task_in_. A handle rather than a raw Op*: the worker resolves it through the
 // client's ROB, so a recycled slot cannot be reached through a stale pointer. The client itself
@@ -149,7 +149,7 @@ public:
     Ring* ring() const      { return ring_.load(std::memory_order_acquire); }
 
     std::vector<Shard*>&  shards()  { return shards_; }    // Ex role
-    std::vector<Client*>& clients() { return clients_; }   // Io role
+    std::vector<Client*>& clients() { return clients_; }   // Ifid role
 
     // The single reporting surface. Every loop fills the same fields in the same units, so a
     // controller compares like with like — the failure mode behind every balancer defect in the

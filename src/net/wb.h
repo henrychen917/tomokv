@@ -42,10 +42,19 @@ namespace tomo {
 enum class WbMode : uint8_t { Io = 0, Ex = 1, Wb = 2 };
 
 // RAII. Resolves once, releases what it resolved. See the header comment.
+//
+// WHO NEEDS THE LOCK, derived from what the serving thread OWNS at that moment:
+//   Io  (2s)   owns the whole client -- no other server can exist.           NO LOCK
+//   Wb  (3s)   owns ConnOut alone, STATICALLY -- one fixed sender, and nothing else ever
+//              touches the send side (io never serves it, ex only notifies). NO LOCK
+//   Ex  (exwb) owns nothing of the conn -- any executor may flush at head while the owning
+//              io thread sweeps as backstop: genuinely multi-server.         LOCK
+// The Wb elision is not an optimisation gamble; it is the same fact that makes Io lock-free,
+// arrived at statically instead of by identity.
 class WbGuard {
 public:
     WbGuard(WbLink& link, WbMode mode)
-        : link_(&link), locked_(mode != WbMode::Io) {
+        : link_(&link), locked_(mode == WbMode::Ex) {
         if (locked_) link_->m.lock();
     }
     ~WbGuard() { if (locked_) link_->m.unlock(); }
@@ -73,29 +82,65 @@ public:
     // three belong to the sender: if the io thread retired and merely handed bytes over, only the
     // send syscall would move between modes and an "ex-wb" measured that way would not be ex-wb.
     //
+    // WHO MAY CALL. In Io mode, only the owning io thread -- no lock exists or is needed. In Wb mode,
+    // only the connection's dedicated sender. In EX MODE, ANYONE: the executor that just completed
+    // the head flushes it inline, and the owning io thread sweeps as the backstop -- so the whole
+    // serve (drain + stage + send), not just the pump, runs under the connection's WbLink lock. The
+    // ROB stays SPSC because the lock makes "exactly one consumer at any instant" true dynamically,
+    // which is the same invariant a fixed consumer provides statically.
+    //
     // Returns true if it did anything, so a caller can tell progress from an empty poll.
     template <typename NotifyIo>
     bool serve(Client& c, NotifyIo&& notify_io) {
+        WbGuard g(c.wb(), mode_);
+        return serve_locked(c, notify_io);
+    }
+
+    // The executor's opportunistic entry: never blocks. If the lock is busy, someone is already
+    // draining this connection -- and if OUR op's Done landed after their drain passed its slot, the
+    // reply has "slipped". Slips are HARMLESS by design, not by luck: the caller notifies the owning
+    // io thread on a false return, and io's backstop pass retires anything a race left behind. That
+    // backstop is what lets the head-check be a cheap hint instead of a fenced protocol -- the
+    // alternative is the Dekker discipline that cost this codebase five commits.
+    template <typename NotifyIo>
+    bool try_serve(Client& c, NotifyIo&& notify_io) {
+        if (mode_ == WbMode::Ex) {                       // the only multi-server mode -- see WbGuard
+            if (!c.wb().m.try_lock()) return false;
+            const bool did = serve_locked(c, notify_io);
+            c.wb().m.unlock();
+            (void)did;
+            return true;
+        }
+        serve_locked(c, notify_io);
+        return true;
+    }
+
+    // Lock-assumed core of serve(). Callers hold the WbLink lock (or are in Io mode, where no other
+    // server can exist).
+    template <typename NotifyIo>
+    bool serve_locked(Client& c, NotifyIo&& notify_io) {
         TOMO_FORENSIC(c.wb().n_serves.fetch_add(1, std::memory_order_relaxed));
         stats_.serves++;
-        Conn& conn = c.conn();
+        ConnOut& conn = c.out();
         const uint32_t retired = c.rob().drain([&](Op& op) {
             conn.fill_buf().append(op.reply.data(), op.reply.size());
         });
         bool did = retired != 0;
-        if (!conn.nothing_to_write()) did |= pump(c, c.wb());
+        if (!conn.nothing_to_write()) did |= pump_locked(c, c.wb());
 
         // Poke the io thread only if it told us it was stuck. Retiring may have freed a ROB slot or
         // unpinned the read buffer, and io cannot discover that on its own without polling.
-        if (retired && c.needs_io_wake().load(std::memory_order_acquire)) {
+        // In Io mode the serving thread IS io -- the flag is its own, and the flush_ready pass that
+        // called us re-evaluates stuck-ness right after, so the load would answer a question the
+        // caller is about to answer better.
+        if (mode_ != WbMode::Io && retired && c.needs_io_wake().load(std::memory_order_acquire)) {
             c.needs_io_wake().store(false, std::memory_order_release);
             notify_io();
         }
         stats_.retired += retired;
-        // A serve that retires nothing is a wake the sender could not act on: some op completed, but
-        // not the HEAD, so in-order retirement had nothing to do. This counter sizes the win of
-        // notifying only on head-completion before anyone builds it. Meaningful in ex-wb/3s only --
-        // in 2s serve() doubles as a polling path from flush_ready and empties are expected.
+        // A serve that retires nothing. In 3s this is a wake the sender could not act on. In 2s and
+        // ex-wb it is mostly the POLLING paths (io's flush_ready pass, the backstop) finding nothing,
+        // which is expected and cheap -- interpret per mode.
         if (!retired) stats_.serves_empty++;
         return did;
     }
@@ -104,9 +149,13 @@ public:
     // or a send is already outstanding it does nothing. Returns true if a send was submitted.
     bool pump(Client& c, WbLink& link) {
         WbGuard g(link, mode_);
-        if (g.link().send_inflight) return false;          // preserve one-send-per-socket ordering
+        return pump_locked(c, g.link());
+    }
 
-        Conn& conn = c.conn();
+    bool pump_locked(Client& c, WbLink& link) {
+        if (link.send_inflight) return false;              // preserve one-send-per-socket ordering
+
+        ConnOut& conn = c.out();
         // Nothing outstanding, so if the send buffer is fully written we may promote the fill
         // buffer. This is the ONLY point at which the two swap, and it is safe precisely because
         // send_inflight is false here.
@@ -122,7 +171,7 @@ public:
         s->user_data = ur_tag(UrKind::Send, &c);
         ring_->note_pending();
 
-        g.link().send_inflight = true;
+        link.send_inflight = true;
         stats_.sends_submitted++;
         return true;
     }
@@ -139,7 +188,7 @@ public:
                 if (res == -EAGAIN || res == -EINTR) { resubmit = true; }
                 else { stats_.send_errors++; return false; }
             } else {
-                Conn& conn = c.conn();
+                ConnOut& conn = c.out();
                 conn.commit_write(static_cast<uint32_t>(res));
                 stats_.bytes_sent += static_cast<uint64_t>(res);
                 if (conn.write_drained()) {

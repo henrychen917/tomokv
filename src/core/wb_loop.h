@@ -105,7 +105,7 @@ private:
             // fence, so the instrumented build was accidentally correct and the clean one wedged.
             std::atomic_thread_fence(std::memory_order_seq_cst);
             wb_.serve(*c, [&] {
-                ThreadCtx& io = srv_->thread(c->io_thread());
+                ThreadCtx& io = srv_->thread(c->ifid_thread());
                 io.post_client(self_->id(), c, ring_, self_->sig());
             });
         };

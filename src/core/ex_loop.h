@@ -129,21 +129,35 @@ private:
         // op.reply becomes visible through this one store.
         op.state.store(OpState::Done, std::memory_order_release);
 
+        // Both remote-sender modes notify the connection's FIXED sender: the designated executor
+        // in ex-wb, the dedicated wb thread in 3s. The claim flag dedupes a burst into one post.
+        //
+        // OPPORTUNISTIC FLUSH-AT-HEAD (any executor flushes when it completes the head, io sweeps
+        // as backstop -- the fork's exwb shape) was built here twice and REVERTED twice, with the
+        // interleaved wire A/B as the record: fixed sender 8.1-8.5M get_p32 / 722k get_p1, per-op
+        // flush 4.1M, batch-end flush 4.7M with a get_p1 wedge and a crawling SET fill. The fork
+        // made that design work with per-client ready-bit machinery this tree does not have yet;
+        // without it the head-hint misses constantly and the recovery clock is io's 50ms park.
+        // Port the ready-mask first; do not re-attempt this with notifies.
         notify_sender(t.client);
     }
+
+
 
     // Tell this client's SENDER it has completed ops. The sender — io in 2-stage, an executor in
     // ex-wb, a write-back thread in 3-stage — is what retires the ROB and writes, so it is what
     // needs waking. Deduplicated: a pipelined burst of N completions on one client must not enqueue
     // that client N times.
-    void notify_sender(Client* c) {
+    void notify_sender(Client* c) { notify_sender_to(c, c->sender_thread()); }
+
+    void notify_sender_to(Client* c, uint32_t target) {
         bool expected = false;
         if (!c->retire_queued().compare_exchange_strong(expected, true, std::memory_order_acq_rel)) {
             TOMO_FORENSIC(c->wb().n_defers.fetch_add(1, std::memory_order_relaxed));
             return;
         }
         TOMO_FORENSIC(c->wb().n_claims.fetch_add(1, std::memory_order_relaxed));
-        ThreadCtx& snd = srv_->thread(c->sender_thread());
+        ThreadCtx& snd = srv_->thread(target);
         if (!snd.post_client(self_->id(), c, ring_, self_->sig())) {
             self_->sig().notify_drop++;
             c->retire_queued().store(false, std::memory_order_release);   // retry on a later pass
@@ -173,7 +187,7 @@ private:
             // fence, so the instrumented build was accidentally correct and the clean one wedged.
             std::atomic_thread_fence(std::memory_order_seq_cst);
             wb_.serve(*c, [&] {
-                ThreadCtx& io = srv_->thread(c->io_thread());
+                ThreadCtx& io = srv_->thread(c->ifid_thread());
                 io.post_client(self_->id(), c, ring_, self_->sig());
             });
         };

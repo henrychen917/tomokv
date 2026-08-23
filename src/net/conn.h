@@ -43,15 +43,58 @@ inline constexpr size_t   kRbufInitial  = 16 * 1024;
 inline constexpr size_t   kRbufSoftCap  = 1 * 1024 * 1024;  // stop reading past this until drained
 inline constexpr size_t   kWbufInline   = 16 * 1024;
 
-class Conn {
+// Per-client send-side state. Defined here rather than in wb.h because Client owns it and wb.h
+// already depends on this file. Only wb.h touches the contents.
+struct WbLink {
+    // Contended only when the sender is not the connection's IO thread — i.e. in Ex and Wb modes.
+    // In Io mode WbGuard never touches it, so the shipping path pays nothing for its existence.
+    std::mutex m;
+
+    // Exactly ONE send may be outstanding per connection. Two concurrent sends on one socket can
+    // complete out of order and interleave bytes, which corrupts the stream in a way that looks
+    // like a protocol bug anywhere but here.
+    bool send_inflight = false;
+
+    // Already sitting in some ready queue; keeps a client from being enqueued twice.
+    std::atomic<bool> queued{false};
+
+    // FORENSICS for the stranded-reply class. Every stranded op is a notification that was owed and
+    // never delivered, and these three say which link of the chain dropped it:
+    //   claims  -- a worker won the CAS and became responsible for posting this client
+    //   defers  -- a worker lost the CAS and deferred to whoever holds the claim
+    //   serves  -- the sender actually ran serve() on it
+    // serves < claims on a stranded client means a claim was made and never turned into a serve.
+    // OFF BY DEFAULT. n_defers fires on every deferred notify -- two orders of magnitude more often
+    // than n_claims -- so leaving these compiled in puts an atomic RMW on the hot path to serve a
+    // diagnostic that has already done its job. Build with -DTOMO_WEDGE_FORENSICS to get them back.
+#ifdef TOMO_WEDGE_FORENSICS
+    std::atomic<uint32_t> n_claims{0};
+    std::atomic<uint32_t> n_defers{0};
+    std::atomic<uint32_t> n_serves{0};
+#endif
+};
+
+// ============================================================================================
+// SPLIT BY OWNER, per the owner's design. ConnIn is everything the parsing thread (ifid) touches;
+// ConnOut is everything the sending thread touches — INCLUDING THE ROB, because retirement belongs
+// to the reply side: ifid publishes into it, the sender drains it, and in 3-stage the entire out
+// half is handed to the connection's wb destination at accept. What the serving thread owns at that
+// moment differs per mode (2s: the whole client; 3s: ConnOut alone, statically; ex-wb: no conn at
+// all — a context and a reply, borrowing ConnOut under a try-lock), and two objects with disjoint
+// owners cannot false-share by construction — which retires both measured collision sites
+// (rpos_ vs buf[0].len_ on line 0 whenever fill_==0, and fill_/wsent_ vs recv_armed_).
+// The fd is duplicated into both halves — four bytes each, so neither side ever reads a line the
+// other writes just to name the socket.
+// ============================================================================================
+class ConnIn {
 public:
-    explicit Conn(int fd) : fd_(fd) {
+    explicit ConnIn(int fd) : fd_(fd) {
         rbuf_ = static_cast<char*>(std::malloc(kRbufInitial));
         rcap_ = kRbufInitial;
     }
-    ~Conn() { std::free(rbuf_); }
-    Conn(const Conn&) = delete;
-    Conn& operator=(const Conn&) = delete;
+    ~ConnIn() { std::free(rbuf_); }
+    ConnIn(const ConnIn&) = delete;
+    ConnIn& operator=(const ConnIn&) = delete;
 
     int  fd() const { return fd_; }
     void set_fd(int fd) { fd_ = fd; }
@@ -111,6 +154,30 @@ public:
         }
     }
 
+private:
+    int       fd_   = -1;
+    char*     rbuf_ = nullptr;
+    uint32_t  rlen_ = 0;      // bytes received
+    uint32_t  rpos_ = 0;      // bytes parsed
+    size_t    rcap_ = 0;
+    bool      recv_armed_ = false;
+};
+
+// The reply side, owned by whichever thread sends for this connection: the ROB the parser publishes
+// contexts into and the sender retires from, the WbLink that arbitrates ex-wb's shared access, and
+// the double-buffered write side.
+class ConnOut {
+public:
+    explicit ConnOut(int fd) : fd_(fd) {}
+    ConnOut(const ConnOut&) = delete;
+    ConnOut& operator=(const ConnOut&) = delete;
+
+    int  fd() const { return fd_; }
+    void set_fd(int fd) { fd_ = fd; }
+
+    Rob<kRobWindow>& rob()  { return rob_; }
+    WbLink&          link() { return link_; }
+
     // ---- write side: DOUBLE BUFFERED, and that is a correctness requirement ------------------
     //
     // A send in flight hands the kernel a raw pointer into the write buffer. Appending a reply to
@@ -141,66 +208,37 @@ public:
 
 private:
     int       fd_   = -1;
-    char*     rbuf_ = nullptr;
-    uint32_t  rlen_ = 0;      // bytes received
-    uint32_t  rpos_ = 0;      // bytes parsed
-    size_t    rcap_ = 0;
-
-    SmallBuf<kWbufInline> buf_[2];
     uint32_t  fill_  = 0;         // index of the buffer replies append to
     uint32_t  wsent_ = 0;         // bytes of the SEND buffer already written
-    bool      recv_armed_ = false;
+    Rob<kRobWindow> rob_;
+    WbLink          link_;
+    SmallBuf<kWbufInline> buf_[2];
 };
 
-// Per-client send-side state. Defined here rather than in wb.h because Client owns it and wb.h
-// already depends on this file. Only wb.h touches the contents.
-struct WbLink {
-    // Contended only when the sender is not the connection's IO thread — i.e. in Ex and Wb modes.
-    // In Io mode WbGuard never touches it, so the shipping path pays nothing for its existence.
-    std::mutex m;
 
-    // Exactly ONE send may be outstanding per connection. Two concurrent sends on one socket can
-    // complete out of order and interleave bytes, which corrupts the stream in a way that looks
-    // like a protocol bug anywhere but here.
-    bool send_inflight = false;
-
-    // Already sitting in some ready queue; keeps a client from being enqueued twice.
-    std::atomic<bool> queued{false};
-
-    // FORENSICS for the stranded-reply class. Every stranded op is a notification that was owed and
-    // never delivered, and these three say which link of the chain dropped it:
-    //   claims  -- a worker won the CAS and became responsible for posting this client
-    //   defers  -- a worker lost the CAS and deferred to whoever holds the claim
-    //   serves  -- the sender actually ran serve() on it
-    // serves < claims on a stranded client means a claim was made and never turned into a serve.
-    // OFF BY DEFAULT. n_defers fires on every deferred notify -- two orders of magnitude more often
-    // than n_claims -- so leaving these compiled in puts an atomic RMW on the hot path to serve a
-    // diagnostic that has already done its job. Build with -DTOMO_WEDGE_FORENSICS to get them back.
-#ifdef TOMO_WEDGE_FORENSICS
-    std::atomic<uint32_t> n_claims{0};
-    std::atomic<uint32_t> n_defers{0};
-    std::atomic<uint32_t> n_serves{0};
-#endif
-};
 
 class Client {
 public:
-    explicit Client(int fd) : conn_(fd) {}
+    explicit Client(int fd) : in_(fd), out_(fd) {}
     Client(const Client&) = delete;
     Client& operator=(const Client&) = delete;
 
-    Conn&            conn() { return conn_; }
-    Rob<kRobWindow>& rob()  { return rob_; }
+    // The two halves, by owner. Parse-side code takes in(); reply-side code takes out(); a function
+    // that needs both is a function that should be split.
+    ConnIn&  in()  { return in_; }
+    ConnOut& out() { return out_; }
 
-    uint32_t io_thread() const { return io_thread_; }
-    void set_io_thread(uint32_t t) { io_thread_ = t; }
+    Rob<kRobWindow>& rob()  { return out_.rob(); }
+
+    uint32_t ifid_thread() const { return ifid_thread_; }
+    void set_ifid_thread(uint32_t t) { ifid_thread_ = t; }
 
     // Which thread retires this client's ROB and issues its sends. In 2-stage that IS the io
     // thread; in ex-wb it is an executor, in 3-stage a dedicated write-back thread. Everything on
     // the reply side belongs to this thread and nothing else touches the write buffer.
     uint32_t sender_thread() const { return sender_thread_; }
     void set_sender_thread(uint32_t t) { sender_thread_ = t; }
-    bool sender_is_io() const { return sender_thread_ == io_thread_; }
+    bool sender_is_io() const { return sender_thread_ == ifid_thread_; }
 
     // Set by the io thread when it CANNOT make progress until the ROB advances — the window is full
     // or the read buffer has no room. The sender checks it after retiring and pokes io only then,
@@ -213,12 +251,12 @@ public:
 
     // A connection may only be closed or migrated when nothing is in flight; otherwise a worker is
     // still holding a Task that resolves through this client's ROB. One test, everywhere.
-    bool safe_to_release() const { return rob_.quiesced(); }
+    bool safe_to_release() { return out_.rob().quiesced(); }
 
     bool closing() const { return closing_; }
     void mark_closing() { closing_ = true; }
 
-    WbLink& wb() { return wb_; }
+    WbLink& wb() { return out_.link(); }
 
     // Membership in its io thread's active set, as a FLAG rather than a search. The set was a
     // vector with a linear scan, so marking a client active cost one pointer compare per client
@@ -233,15 +271,17 @@ public:
     std::atomic<bool>& retire_queued() { return retire_queued_; }
 
 private:
-    Conn            conn_;
-    Rob<kRobWindow> rob_;
-    WbLink          wb_;
-    std::atomic<bool> retire_queued_{false};
+    // Each half on its own cache-line start; the shared coordination flags on a third. The halves
+    // already cannot false-share internally (disjoint owners); the alignas keeps the BOUNDARY between
+    // them and the flags clean too.
+    alignas(64) ConnIn  in_;
+    alignas(64) ConnOut out_;
+    alignas(64) std::atomic<bool> retire_queued_{false};
     std::atomic<bool> needs_io_wake_{false};
     uint32_t          sender_thread_ = 0;
     bool              in_active_ = false;
     uint64_t        id_ = 0;
-    uint32_t        io_thread_ = 0;
+    uint32_t        ifid_thread_ = 0;
     bool            closing_ = false;
 };
 

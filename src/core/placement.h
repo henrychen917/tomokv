@@ -34,7 +34,7 @@ struct Node {
     uint32_t              id     = 0;
     uint32_t              domain = kNoDomain;   // the L3 domain this node is pinned into
     std::vector<int32_t>  shards;               // shard ids homed here
-    std::vector<uint32_t> io;                   // io thread ids in this node
+    std::vector<uint32_t> ifid;                 // ifid thread ids in this node (the recv/parse role)
     std::vector<uint32_t> ex;                   // ex thread ids in this node
     std::vector<uint32_t> wb;                   // wb thread ids in this node (3s only)
     std::vector<int>      cpus;                 // cpus of the domain, for pinning
@@ -49,7 +49,7 @@ public:
     // ex thread of its own, so more nodes than we can staff would leave some with none. A node with
     // no threads is not a node, and silently creating one produces shards nobody serves.
     void build(const Topology& topo, uint32_t want_nodes, uint32_t nshards,
-               uint32_t io_per_node, uint32_t ex_per_node, uint32_t wb_per_node) {
+               uint32_t ifid_per_node, uint32_t ex_per_node, uint32_t wb_per_node) {
         nodes_.clear();
         const uint32_t nd = topo.ndomains() ? topo.ndomains() : 1;
         uint32_t n = want_nodes ? want_nodes : nd;
@@ -57,7 +57,7 @@ public:
         if (n == 0) n = 1;
         if (nshards < n) n = nshards ? nshards : 1;   // every node must own at least one shard
 
-        io_per_node_ = io_per_node ? io_per_node : 1;
+        ifid_per_node_ = ifid_per_node ? ifid_per_node : 1;
         ex_per_node_ = ex_per_node ? ex_per_node : 1;
         wb_per_node_ = wb_per_node;
         nnodes_      = n;
@@ -86,7 +86,7 @@ public:
     void assign_threads() {
         uint32_t tid = 0;
         for (auto& node : nodes_) {
-            for (uint32_t k = 0; k < io_per_node_; k++) node.io.push_back(tid++);
+            for (uint32_t k = 0; k < ifid_per_node_; k++) node.ifid.push_back(tid++);
             for (uint32_t k = 0; k < ex_per_node_; k++) node.ex.push_back(tid++);
             for (uint32_t k = 0; k < wb_per_node_; k++) node.wb.push_back(tid++);
         }
@@ -95,7 +95,7 @@ public:
 
     uint32_t nnodes()        const { return nnodes_; }
     uint32_t total_threads() const { return total_threads_; }
-    uint32_t io_per_node()   const { return io_per_node_; }
+    uint32_t ifid_per_node()   const { return ifid_per_node_; }
     uint32_t ex_per_node()   const { return ex_per_node_; }
     uint32_t wb_per_node()   const { return wb_per_node_; }
 
@@ -106,7 +106,7 @@ public:
     // Role of a thread id, derived from the same dense layout assign_threads() built.
     Role role_of(uint32_t tid) const {
         for (const auto& n : nodes_) {
-            for (uint32_t t : n.io) if (t == tid) return Role::Io;
+            for (uint32_t t : n.ifid) if (t == tid) return Role::Ifid;
             for (uint32_t t : n.ex) if (t == tid) return Role::Ex;
             for (uint32_t t : n.wb) if (t == tid) return Role::Wb;
         }
@@ -115,7 +115,7 @@ public:
 
     uint32_t node_of_thread(uint32_t tid) const {
         for (const auto& n : nodes_) {
-            for (uint32_t t : n.io) if (t == tid) return n.id;
+            for (uint32_t t : n.ifid) if (t == tid) return n.id;
             for (uint32_t t : n.ex) if (t == tid) return n.id;
             for (uint32_t t : n.wb) if (t == tid) return n.id;
         }
@@ -127,7 +127,7 @@ public:
     int cpu_of_thread(uint32_t tid) const {
         for (const auto& n : nodes_) {
             uint32_t slot = 0;
-            for (uint32_t t : n.io) { if (t == tid) return pick(n, slot); slot++; }
+            for (uint32_t t : n.ifid) { if (t == tid) return pick(n, slot); slot++; }
             for (uint32_t t : n.ex) { if (t == tid) return pick(n, slot); slot++; }
             for (uint32_t t : n.wb) { if (t == tid) return pick(n, slot); slot++; }
         }
@@ -141,7 +141,7 @@ private:
 
     std::vector<Node> nodes_;
     uint32_t nnodes_        = 0;
-    uint32_t io_per_node_   = 1;
+    uint32_t ifid_per_node_   = 1;
     uint32_t ex_per_node_   = 1;
     uint32_t wb_per_node_   = 0;
     uint32_t total_threads_ = 0;

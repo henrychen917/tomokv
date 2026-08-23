@@ -28,7 +28,7 @@ struct Config {
     // PER NODE, matching the fork's tomokv-thread-io / -ex. Per-node is the right unit because the
     // split that matters is the one INSIDE a node, where the io->ex handoff actually happens; with
     // --nodes 2 --spread 4:4 the server runs eight io and eight ex threads in total.
-    uint32_t io_per_node    = 4;
+    uint32_t ifid_per_node    = 4;
     uint32_t ex_per_node    = 4;
     // Only used by WbMode::Wb (the 3-stage shape). Zero for 2s and ex-wb, where the sends are issued
     // by a thread that already exists.
@@ -62,7 +62,7 @@ public:
         cfg_ = cfg;
         topo_.discover();
         placement_.build(topo_, cfg.nodes, cfg.shards,
-                         cfg.io_per_node, cfg.ex_per_node, cfg.wb_per_node);
+                         cfg.ifid_per_node, cfg.ex_per_node, cfg.wb_per_node);
         placement_.assign_threads();
 
         // ---- shards: bucket ranges, fixed for the life of the process ----------------------------

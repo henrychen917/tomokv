@@ -35,6 +35,21 @@ namespace tomo {
 
 inline constexpr uint32_t kRecvChunk = 16 * 1024;
 
+// THE FIVE LOOPS. Each mode composes threads from five specialised loop shapes, distinguished by
+// what the thread OWNS while serving -- the shape is fixed at init by the WbMode the engines are
+// bound with, so the hot paths carry no mode branches that matter:
+//
+//   io    IoLoop + WbMode::Io   recv+parse+retire+send; owns the whole client        (2s)
+//   io*   IoLoop + WbMode::Ex   recv+parse only in practice (sender is a fixed executor);
+//                               keeps the read side moving and wakes on sender pokes (exwb)
+//   ifid  IoLoop + WbMode::Wb   recv+parse only; sender_is_io is never true, so the
+//                               serve path is dead and ConnOut is never touched      (3s)
+//   ex    ExLoop + WbMode::Wb   execute+notify; never sends                          (3s)
+//   exwb  ExLoop + WbMode::Ex   execute + serve its own conns' channel (fixed sender);
+//                               flush-at-head awaits the ready-mask port -- see ex_loop (exwb)
+//   wb    WbLoop                retire+send, channel-fed, ConnOut owned STATICALLY --
+//                               which is why its serve takes no lock (see WbGuard)   (3s)
+
 class IoLoop {
 public:
     WbEngine& engine() { return wb_; }
@@ -140,18 +155,18 @@ private:
     // ONE recv in flight per connection. While it is armed the kernel holds a raw pointer into the
     // read buffer, so nothing may move or realloc that buffer until the completion arrives.
     void arm_recv(Client* c) {
-        if (c->conn().recv_armed() || c->closing()) return;
+        if (c->in().recv_armed() || c->closing()) return;
         size_t avail = 0;
         // may_grow ONLY at quiescence: realloc moves the buffer that every in-flight argv Slice
         // points into. See Conn::read_space.
-        char* dst = c->conn().read_space(kRecvChunk, avail, c->rob().quiesced());
+        char* dst = c->in().read_space(kRecvChunk, avail, c->rob().quiesced());
         if (!dst) return;                      // no usable space yet: let the ROB drain first
         io_uring_sqe* s = ring_.sqe();
         if (!s) { self_->sig().sqe_starved++; return; }   // retried from flush_ready next pass
-        io_uring_prep_recv(s, c->conn().fd(), dst, avail, 0);
+        io_uring_prep_recv(s, c->in().fd(), dst, avail, 0);
         s->user_data = ur_tag(UrKind::Recv, c);
         ring_.note_pending();
-        c->conn().set_recv_armed(true);
+        c->in().set_recv_armed(true);
     }
 
     // ---- completions ----------------------------------------------------------------------------
@@ -183,7 +198,7 @@ private:
 
         auto* c = new Client(fd);
         c->set_id(srv_->next_client_id().fetch_add(1, std::memory_order_relaxed));
-        c->set_io_thread(self_->id());
+        c->set_ifid_thread(self_->id());
         c->set_sender_thread(sender_ ? sender_->id() : self_->id());
         self_->clients().push_back(c);
         arm_recv(c);
@@ -194,9 +209,9 @@ private:
     }
 
     void on_recv(Client* c, int res) {
-        c->conn().set_recv_armed(false);       // the kernel has released its pointer
+        c->in().set_recv_armed(false);       // the kernel has released its pointer
         if (res <= 0) { close_client(c); return; }
-        c->conn().commit_read(static_cast<size_t>(res));
+        c->in().commit_read(static_cast<size_t>(res));
         parse_and_dispatch(c);
         // Deliberately NOT re-armed here. flush_ready() re-arms AFTER it may have reset the read
         // buffer; arming first would leave the kernel holding a pointer that the reset then moves.
@@ -205,7 +220,7 @@ private:
 
     // ---- parse -> route -> publish -----------------------------------------------------------------
     void parse_and_dispatch(Client* c) {
-        Conn& conn = c->conn();
+        ConnIn& conn = c->in();
         Rob<kRobWindow>& rob = c->rob();
         LoopSignals& sig = self_->sig();
 
@@ -343,10 +358,15 @@ private:
         uint32_t work = 0;
         for (auto it = active_.begin(); it != active_.end();) {
             Client* c = *it;
-            Conn& conn = c->conn();
+            ConnIn& conn = c->in();
 
             if (c->sender_is_io()) {
-                if (wb_.serve(*c, [] {})) work++;      // 2-stage: same thread, no notification
+                // 2-stage: same thread, no lock exists, try_serve == serve. Ex-wb: this same call is
+                // THE BACKSTOP -- io nominally owns the send side and sweeps for replies the
+                // executors' head-races slipped -- but it must never BLOCK on a lock an executor
+                // holds; a busy lock means someone is already draining, and a slipped tail is caught
+                // on the next pass because an unquiesced ROB keeps the client in the active set.
+                if (wb_.try_serve(*c, [] {})) work++;
             }
 
             // Reset only when the ROB is quiescent AND no recv is outstanding — see conn.h. Then
@@ -370,7 +390,7 @@ private:
 
             const bool more_input = conn.rpos() < conn.rlen();
             const bool done = c->rob().quiesced() && !more_input && !stuck &&
-                              (!c->sender_is_io() || conn.nothing_to_write());
+                              (!c->sender_is_io() || c->out().nothing_to_write());
             if (done && !c->closing()) { c->set_in_active(false); it = active_.erase(it); }
             else if (c->closing() && c->safe_to_release()) {
                 c->set_in_active(false); it = active_.erase(it); close_client(c);
@@ -389,7 +409,7 @@ private:
         auto& v = self_->clients();
         for (size_t i = 0; i < v.size(); i++)
             if (v[i] == c) { v[i] = v.back(); v.pop_back(); break; }
-        ::close(c->conn().fd());
+        ::close(c->in().fd());
         delete c;
     }
 
