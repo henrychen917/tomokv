@@ -306,8 +306,6 @@ public:
 
     // ex-wb only: whether the designated executor-sender has taken this connection into its owned
     // list. Written and read only by that one thread — a plain bool by design.
-    bool ex_adopted() const { return ex_adopted_; }
-    void set_ex_adopted(bool v) { ex_adopted_ = v; }
 
     // The sender's ready-mask slot for this connection. Written by the SENDER (assign at adoption,
     // kNoWbSlot at release), read by every worker deciding how to signal completion. A stale read
@@ -337,7 +335,6 @@ private:
     std::atomic<bool> needs_io_wake_{false};
     uint32_t          sender_thread_ = 0;
     bool              in_active_ = false;
-    bool              ex_adopted_ = false;
     bool              serve_pending_ = false;
     bool              dead_ = false;
     WbProto           proto_ = WbProto::Owned;

@@ -12,7 +12,6 @@
 //
 //   task_in_[p]     from producer p    IO -> EX   a parsed op to execute
 //   client_in_[p]   from producer p    EX -> IO   "you have completed ops to retire"
-//                                      IO -> EX   "you have bytes to send"      (WbMode::Ex)
 //                                      IO -> WB   "you have bytes to send"      (WbMode::Wb)
 //
 // client_in_ is unambiguous despite serving three directions, because a thread has exactly one role

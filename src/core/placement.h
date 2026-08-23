@@ -29,7 +29,7 @@ struct ThreadPlacement {
     Role     role        = Role::Idle;
     int      cpu         = -1;
     uint32_t domain      = kNoDomain;
-    uint32_t send_target = kNoThread;  // self in 2s; an ex/wb tid in exwb/3s
+    uint32_t send_target = kNoThread;  // self in 2s; a wb tid in 3s
 };
 
 class Placement {
@@ -232,8 +232,7 @@ public:
     // while the rest retain deterministic round-robin assignment.
     bool assign_send_targets(Role sender_role, const char* spec) {
         const std::vector<uint32_t>* senders = nullptr;
-        if (sender_role == Role::Ex) senders = &ex_;
-        else if (sender_role == Role::Wb) senders = &wb_;
+        if (sender_role == Role::Wb) senders = &wb_;
 
         for (size_t k = 0; k < ifid_.size(); k++)
             // THE ONE SURVIVING NODE RULE (owner): the sender for a connection's ConnOut must share the
@@ -266,7 +265,7 @@ public:
 
         if (!spec) return true;
         if (!senders) {
-            std::fprintf(stderr, "--send-target is only meaningful with --mode exwb or --mode 3s\n");
+            std::fprintf(stderr, "--send-target is only meaningful with --mode 3s\n");
             return false;
         }
         if (!*spec) {

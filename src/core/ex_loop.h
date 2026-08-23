@@ -1,13 +1,11 @@
-// ex_loop.h — the EX stage. Executes ops against the shards it owns, and in WbMode::Ex also issues
-// sends. Same Channel signalling and same LoopSignals units as the IO and WB loops (see signal.h).
+// ex_loop.h — the EX stage. Executes ops against the shards it owns; a sender (io in 2s, wb in 3s)
+// turns the completions into bytes. Same Channel signalling and LoopSignals units as io/wb loops.
 //
 //   in   task_in from IO threads         a parsed op to execute
-//   out  client_in of the owning IO      "you have completed ops to retire"
-//   in   client_in from IO threads       "you have bytes to write"      (WbMode::Ex only)
+//   out  ready-mask bit / client_in      "you have completed ops to retire" to the FIXED sender
 //
-// A worker owns no file descriptors when it is only executing, so its "events" are channel entries.
-// It still owns a Ring, because in Ex mode it issues sends and because it needs somewhere to receive
-// wakes.
+// A worker owns no file descriptors, so its "events" are channel entries. It still owns a Ring
+// because it needs somewhere to receive wakes.
 //
 // WAITING IS THE INTERESTING PART. A worker with an empty inbox must not spin a core at 100% — that
 // is a real cost at 64 workers and it distorts every utilisation reading a controller might use. It
@@ -34,17 +32,6 @@ inline constexpr uint32_t kExSpinBudget = 2048;
 // that the prefetches have time to land, small enough that the batch stays in L1.
 inline constexpr uint32_t kExecBatch = 32;
 
-// EX-WB'S CLIENT CONTEXT (owner design). In ex-wb the designated executor-sender OWNS the reply
-// side of its connections, so it holds them the way redis's client holds its output machinery: a
-// per-connection struct binding the Client to its ConnOut, kept in the executor's own list. The
-// consequence is that DISCOVERY BECOMES ITERATION: every loop pass the executor walks what it owns
-// and serves any connection whose head is ready, instead of waiting for a channel message to tell
-// it where to look. The deduped notify stays — but demoted to a park-wake, not the data path.
-struct ExClient {
-    Client*  c   = nullptr;
-    ConnOut* out = nullptr;    // cached: the half this thread owns; saves the hop through Client
-};
-
 class ExLoop {
 public:
     WbEngine& engine() { return wb_; }
@@ -70,18 +57,6 @@ public:
             {
                 Span busy(sig.busy_ns);
                 did += drain_tasks();
-                if (wb_.mode() == WbMode::Ex) {
-                    did += drain_send_requests();
-                    did += serve_ready();
-                    // The Law-2 backstop the mask port dropped: every K iterations, walk the OWNED
-                    // list and serve by ROB STATE, ignoring the mask entirely. A signal scheme may
-                    // be fast; the state is what is true. K trades straggler latency (K iterations,
-                    // microseconds busy) against iteration cost; it never runs per op.
-                    if (++owned_sweep_tick_ >= kOwnedSweepEvery) {
-                        owned_sweep_tick_ = 0;
-                        did += sweep_owned_state();
-                    }
-                }
                 did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
             }
             sig.cpu_ns = thread_cpu_ns();
@@ -112,6 +87,10 @@ private:
     // Visits only the IO threads that actually have work for us, via the notify mask, rather than
     // polling every possible producer. retire() happens inside the helper, AFTER execution — see
     // exqueue.h on why the retired frontier is separate from head.
+    // Mask-independent: the state backstop behind the notify hint, run only when this thread has
+    // already concluded it has nothing to do.
+    uint32_t sweep() { return drain_tasks(true); }
+
     uint32_t drain_tasks(bool unmasked = false) {
         Task batch[kExecBatch];
         uint32_t held = 0;
@@ -151,33 +130,27 @@ private:
         // op.reply becomes visible through this one store.
         op.state.store(OpState::Done, std::memory_order_release);
 
-        // Both remote-sender modes notify the connection's FIXED sender: the designated executor
-        // in ex-wb, the dedicated wb thread in 3s. The claim flag dedupes a burst into one post.
-        //
-        // OPPORTUNISTIC FLUSH-AT-HEAD (any executor flushes when it completes the head, io sweeps
-        // as backstop -- the fork's exwb shape) was built here twice and REVERTED twice, with the
-        // interleaved wire A/B as the record: fixed sender 8.1-8.5M get_p32 / 722k get_p1, per-op
-        // flush 4.1M, batch-end flush 4.7M with a get_p1 wedge and a crawling SET fill. The fork
-        // made that design work with per-client ready-bit machinery this tree does not have yet;
-        // without it the head-hint misses constantly and the recovery clock is io's 50ms park.
-        // Port the ready-mask first; do not re-attempt this with notifies.
+        // Notify the connection's FIXED sender (io in 2s, wb in 3s); the claim flag dedupes a
+        // burst into one post. EXECUTOR-ISSUED SENDS ARE A CLOSED DOOR: the exwb mode (executor
+        // sends its own completed prefix) was built, measured #1 in zero cells across every size
+        // and pipe depth, and deleted 2026-08-24 -- send work rides the scarce ex role, nearly
+        // free at p1 and ruinous at p32. Flush-at-head-from-ex was separately built twice and
+        // reverted twice before that (fixed sender 8.1-8.5M get_p32 vs 4.1-4.7M with wedges).
         notify_sender(t.client);
     }
 
 
 
-    // Tell this client's SENDER it has completed ops. The sender — io in 2-stage, an executor in
-    // ex-wb, a write-back thread in 3-stage — is what retires the ROB and writes, so it is what
-    // needs waking. Deduplicated: a pipelined burst of N completions on one client must not enqueue
-    // that client N times.
+    // Tell this client's SENDER it has completed ops. The sender — io in 2-stage, a write-back
+    // thread in 3-stage — is what retires the ROB and writes, so it is what needs waking.
+    // Deduplicated: a pipelined burst of N completions on one client must not enqueue it N times.
     void notify_sender(Client* c) {
         const uint32_t target = c->sender_thread();
         ThreadCtx& snd = srv_->thread(target);
         // THE READY-MASK PATH (#19/#20 ported): once the sender has assigned this connection a
         // slot, completion signalling is one idempotent bit -- no claim, no channel entry, no
         // pointer in flight. The empty->flagged RMW is the fence; whoever performs it owes the
-        // park-wake. A worker completing work for ITS OWN connections sets its own bit and its own
-        // serve pass finds it -- no wake needed, the thread is by definition awake.
+        // park-wake.
         const uint32_t slot = c->wb_slot();
         if (slot != Client::kNoWbSlot) {
             // FENCE BEFORE THE READ-FIRST CHECK -- defect 5's exact shape, third appearance. Our
@@ -187,15 +160,12 @@ private:
             // our op before the Done lands, and nobody ever signals again. Twelve connections were
             // stranded exactly this way at 4 nodes, where cross-CCD coherence stretches the window.
             std::atomic_thread_fence(std::memory_order_seq_cst);
-            if (snd.ready().set(slot) && target != self_->id())
+            if (snd.ready().set(slot))
                 snd.wake_if_parked(ring_, self_->sig());
             return;
         }
-        // No slot yet: first contact. For OUR OWN connection we adopt right here -- the channel post
-        // exists to carry the pointer across threads, and there is no gap to cross. For someone
-        // else's, the claimed post carries it to them; they adopt on receipt. Either way this path
-        // runs once per connection.
-        if (target == self_->id()) { adopt(c); snd.ready().set(c->wb_slot()); return; }
+        // No slot yet: first contact. The claimed post carries the pointer to the sender, which
+        // adopts on receipt. Runs once per connection. (An executor is never its own sender.)
         notify_sender_to(c, target);
     }
 
@@ -213,134 +183,15 @@ private:
         }
     }
 
-    // Mask-driven serve: exactly the slots workers flagged, instead of iterating every owned
-    // connection. Take-then-serve; the serve sequence stays clear+fence+serve (defect-5 StoreLoad
-    // discipline) because a mask-serve races the same workers a channel-serve did.
-    uint32_t serve_ready() {
-        uint32_t did = 0;
-        for (uint32_t w = 0; w < ReadyMask::kWords; w++) {
-            uint64_t bits = self_->ready().take(w);
-            while (bits) {
-                const uint32_t b = static_cast<uint32_t>(__builtin_ctzll(bits));
-                bits &= bits - 1;
-                Client* c = self_->wb_slot_client(w * 64 + b);
-                if (!c || c->dead()) continue;
-                // A closing conn is released only once DRAINED -- until then it must be SERVED like
-                // any other, or its in-flight replies never retire and io waits on a quiesce that
-                // cannot come. (Same rule as io's budget FIFO: only corpses are skippable.)
-                if (c->closing() && c->rob().quiesced() && c->out().nothing_to_write()) {
-                    release_owned(c); continue;
-                }
-                c->retire_queued().store(false, std::memory_order_release);
-                std::atomic_thread_fence(std::memory_order_seq_cst);
-                if (wb_.serve(*c, [&] {
-                        ThreadCtx& io = srv_->thread(c->ifid_thread());
-                        io.post_client(self_->id(), c, ring_, self_->sig());
-                    })) did++;
-            }
-        }
-        return did;
-    }
-
-    void adopt(Client* c) {
-        c->set_ex_adopted(true);
-        owned_.push_back(ExClient{c, &c->out()});
-        c->set_wb_slot(self_->assign_wb_slot(c));
-    }
-
-    // Serve every owned connection whose ROB HEAD is retirable, straight from state. This is what
-    // catches a lost mask signal; it must exist for the mask to be allowed its fast path.
-    uint32_t sweep_owned_state() {
-        uint32_t did = 0;
-        for (size_t i = 0; i < owned_.size(); i++) {
-            Client* c = owned_[i].c;
-            if (!c || c->dead() || c->closing()) continue;
-            Rob<kRobWindow>& rob = owned_[i].out->rob();
-            if (rob.quiesced()) continue;
-            if (rob.at(rob.flush_id()).state.load(std::memory_order_acquire) != OpState::Done)
-                continue;
-            c->retire_queued().store(false, std::memory_order_release);
-            std::atomic_thread_fence(std::memory_order_seq_cst);
-            if (wb_.serve(*c, [&] {
-                    ThreadCtx& io = srv_->thread(c->ifid_thread());
-                    io.post_client(self_->id(), c, ring_, self_->sig());
-                })) did++;
-        }
-        return did;
-    }
-
-    // The sender's half of the teardown handshake. io refuses to free while our slot still maps a
-    // bit to this pointer; we let go the moment we see closing, and the store of kNoWbSlot is the
-    // release io is waiting on. After this we never touch the client again.
-    void release_owned(Client* c) {
-        self_->release_wb_slot(c->wb_slot());
-        c->set_wb_slot(Client::kNoWbSlot);
-        // The close request travelled here as a CLAIMED post, and io's release gate requires the
-        // claim clear -- leave it set and the free blocks forever. Clearing it is also the last
-        // store this thread ever makes through this pointer.
-        c->retire_queued().store(false, std::memory_order_release);
-        c->set_ex_adopted(false);
-        for (size_t i = 0; i < owned_.size(); i++)
-            if (owned_[i].c == c) { owned_[i] = owned_.back(); owned_.pop_back(); break; }
-    }
-
-    // WbMode::Ex only: IO staged ordered bytes and handed us the client to write them.
-    // Both inbound kinds, ignoring the mask entirely.
-    uint32_t sweep() { return drain_tasks(true) + drain_send_requests(true) + serve_ready(); }
-
-    uint32_t drain_send_requests(bool unmasked = false) {
-        auto take = [&](Client* c) {
-            // First contact from a connection assigned to us: adopt -- assign a ready-mask slot so
-            // every later completion is one bit instead of a channel entry.
-            if (wb_.mode() == WbMode::Ex) {
-                if (c->closing() && c->rob().quiesced() && c->out().nothing_to_write()) {
-                    release_owned(c); return;              // io asked us to let go, and it is drained
-                }
-                if (!c->closing() && !c->ex_adopted()) adopt(c);
-            }
-            // Clear BEFORE serving. Clearing after lets a worker that finishes an op mid-serve see
-            // queued == true, skip the enqueue, and strand that reply until something unrelated
-            // re-queues the client.
-            c->retire_queued().store(false, std::memory_order_release);
-            c->wb().queued.store(false, std::memory_order_release);
-            // THE CLEAR MUST LAND BEFORE THE DRAIN READS, and a release store does not guarantee
-            // that. store(release) followed by the loads inside serve() is a StoreLoad pair, the one
-            // reordering x86 permits, so the CPU may sink this clear past the drain. The window that
-            // opens is precise and fatal: a worker finishes an op, CASes, still sees the flag set,
-            // defers without posting; the drain runs before that op is Done and retires nothing; then
-            // the clear lands, with no claim outstanding and nobody left to notify. The reply is
-            // stranded forever.
-            //
-            // Found because a diagnostic counter hid it: fetch_add is a LOCKed RMW on x86, i.e. a full
-            // fence, so the instrumented build was accidentally correct and the clean one wedged.
-            std::atomic_thread_fence(std::memory_order_seq_cst);
-            wb_.serve(*c, [&] {
-                ThreadCtx& io = srv_->thread(c->ifid_thread());
-                io.post_client(self_->id(), c, ring_, self_->sig());
-            });
-        };
-        return unmasked ? self_->drain_clients_unmasked(take) : self_->drain_clients(take);
-    }
-
     void on_cqe(io_uring_cqe* cqe) {
-        switch (ur_kind(cqe->user_data)) {
-            case UrKind::Send: {
-                Client* c = ur_ptr<Client>(cqe->user_data);
-                wb_.on_send_complete(*c, c->wb(), cqe->res);
-                break;
-            }
-            case UrKind::Wake: self_->sig().wakes_recv++; break;
-            default: break;
-        }
+        // Executors issue no sends; the ring exists for wakes.
+        if (ur_kind(cqe->user_data) == UrKind::Wake) self_->sig().wakes_recv++;
     }
 
     Server*    srv_  = nullptr;
     ThreadCtx* self_ = nullptr;
     Ring       ring_;
-    WbEngine   wb_;
-    std::vector<ExClient> owned_;      // ex-wb: the connections whose reply side this thread owns
-    static constexpr uint32_t kOwnedSweepEvery = 64;
-    uint32_t owned_sweep_tick_ = 0;
+    WbEngine   wb_;    // never serves here; kept so the stats plumbing stays uniform across loops
 };
 
 }  // namespace tomo

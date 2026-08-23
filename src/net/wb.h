@@ -1,18 +1,20 @@
 // wb.h — write-back: turning completed replies into bytes on a socket.
 //
-// THE SEND LOGIC IS THE SAME IN ALL THREE MODES. What differs is only WHICH THREAD runs it. So the
-// logic lives here once and each loop calls it; the modes are a scheduling decision, not three
+// THE SEND LOGIC IS THE SAME IN BOTH MODES. What differs is only WHICH THREAD runs it. So the
+// logic lives here once and each loop calls it; the modes are a scheduling decision, not two
 // implementations.
 //
 //   WbMode::Io   2-stage.   The IO thread that owns the connection also sends.       (default)
-//   WbMode::Ex   ex-wb.     The executor sends its own completed prefix.
 //   WbMode::Wb   3-stage.   A dedicated write-back thread owns the send side.
 //
-// The fork measured Io as the winner and the reason generalises: p1 throughput is
-// (threads that ISSUE SENDS) x ~90k, and a 2-stage server buys send width once because its io
-// threads both receive and send, while Ex and Wb must buy it a second time out of the same thread
-// budget. That is a property of the architecture rather than of the implementation, so the other two
-// modes are kept as measurable alternatives, not as expected wins.
+// (WbMode::Ex -- the executor sending its own completed prefix -- existed and was DELETED
+// 2026-08-24: #1 in zero measured cells. Send work rides the scarce ex role: nearly free at p1,
+// ruinous at p32. The p1 width law explains its old small-size p1 second places, and 2s dominates
+// those anyway.)
+//
+// The width law (2026-08-24): p1 throughput = min(recv lanes, send lanes) x per-lane rate; a 2s io
+// thread is both lanes at once, so 2s buys width ~twice as cheaply and owns p1. 3s protects ex from
+// send work and wins high-core high-pipe (64c p32) and overload.
 //
 // ============================================================================================
 // THE LOCK BUG THIS FILE EXISTS TO PREVENT
@@ -39,7 +41,7 @@
 
 namespace tomo {
 
-enum class WbMode : uint8_t { Io = 0, Ex = 1, Wb = 2 };
+enum class WbMode : uint8_t { Io = 0, Wb = 1 };
 
 // RAII. Resolves once, releases what it resolved. See the header comment.
 //
@@ -47,10 +49,10 @@ enum class WbMode : uint8_t { Io = 0, Ex = 1, Wb = 2 };
 //   Io  (2s)   owns the whole client -- no other server can exist.           NO LOCK
 //   Wb  (3s)   owns ConnOut alone, STATICALLY -- one fixed sender, and nothing else ever
 //              touches the send side (io never serves it, ex only notifies). NO LOCK
-//   Ex  (exwb) owns nothing of the conn -- any executor may flush at head while the owning
-//              io thread sweeps as backstop: genuinely multi-server.         LOCK
 // The Wb elision is not an optimisation gamble; it is the same fact that makes Io lock-free,
-// arrived at statically instead of by identity.
+// arrived at statically instead of by identity. (The deleted exwb mode was the one genuinely
+// multi-server shape; WbProto::Shared remains as the tag a future flip stamps when a connection
+// really does have more than one server.)
 class WbGuard {
 public:
     // Item 5: the lock decision is the CONNECTION's protocol, not the binary's mode. Today every

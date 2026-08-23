@@ -29,8 +29,7 @@ struct Config {
     // the same per-thread placement table that --place builds directly.
     uint32_t ifid_per_node    = 4;
     uint32_t ex_per_node    = 4;
-    // Only used by WbMode::Wb (the 3-stage shape). Zero for 2s and ex-wb, where the sends are issued
-    // by a thread that already exists.
+    // Only used by WbMode::Wb (the 3-stage shape). Zero for 2s, where io already sends.
     uint32_t wb_per_node    = 0;
     WbMode   wb_mode        = WbMode::Io;
     // 0 means "one node per L3 domain", which is the measured optimum and therefore the default
@@ -112,8 +111,7 @@ public:
 
         // Sender and shard maps are resolved exactly once at boot. The loops consume the resulting
         // tids directly; parsing never leaks onto a request path.
-        const Role sender_role = cfg.wb_mode == WbMode::Io ? Role::Ifid
-                               : cfg.wb_mode == WbMode::Ex ? Role::Ex : Role::Wb;
+        const Role sender_role = cfg.wb_mode == WbMode::Io ? Role::Ifid : Role::Wb;
         if (!placement_.assign_send_targets(sender_role, cfg.send_target)) return false;
         if (!placement_.assign_shard_homes(cfg.shards, cfg.shard_home)) return false;
 

@@ -41,13 +41,9 @@ inline constexpr uint32_t kRecvChunk = 16 * 1024;
 // bound with, so the hot paths carry no mode branches that matter:
 //
 //   io    IoLoop + WbMode::Io   recv+parse+retire+send; owns the whole client        (2s)
-//   io*   IoLoop + WbMode::Ex   recv+parse only in practice (sender is a fixed executor);
-//                               keeps the read side moving and wakes on sender pokes (exwb)
 //   ifid  IoLoop + WbMode::Wb   recv+parse only; sender_is_io is never true, so the
 //                               serve path is dead and ConnOut is never touched      (3s)
-//   ex    ExLoop + WbMode::Wb   execute+notify; never sends                          (3s)
-//   exwb  ExLoop + WbMode::Ex   execute + serve its own conns' channel (fixed sender);
-//                               flush-at-head awaits the ready-mask port -- see ex_loop (exwb)
+//   ex    ExLoop                execute+notify; never sends
 //   wb    WbLoop                retire+send, channel-fed, ConnOut owned STATICALLY --
 //                               which is why its serve takes no lock (see WbGuard)   (3s)
 

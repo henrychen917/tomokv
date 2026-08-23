@@ -122,16 +122,14 @@ int main(int argc, char** argv) {
             // the old mode names varied, so name the dimension: who sends. --mode stays an alias.
             const char* m = next("ifid");
             if      (!std::strcmp(m, "ifid")) cfg.wb_mode = WbMode::Io;
-            else if (!std::strcmp(m, "ex"))   cfg.wb_mode = WbMode::Ex;
             else if (!std::strcmp(m, "own"))  cfg.wb_mode = WbMode::Wb;
-            else { std::fprintf(stderr, "--wb must be ifid | ex | own\n"); return 1; }
+            else { std::fprintf(stderr, "--wb must be ifid | own\n"); return 1; }
         }
         else if (!std::strcmp(argv[i], "--mode")) {
             const char* m = next("2s");
             if      (!std::strcmp(m, "2s"))   cfg.wb_mode = WbMode::Io;
-            else if (!std::strcmp(m, "exwb")) cfg.wb_mode = WbMode::Ex;
             else if (!std::strcmp(m, "3s"))   cfg.wb_mode = WbMode::Wb;
-            else { std::fprintf(stderr, "--mode must be 2s | exwb | 3s\n"); return 1; }
+            else { std::fprintf(stderr, "--mode must be 2s | 3s\n"); return 1; }
         }
         else if (!std::strcmp(argv[i], "--help")) {
             std::printf("usage: %s [--port N] [--bind A] [--shards N] [--no-pin]\n"
@@ -146,7 +144,7 @@ int main(int argc, char** argv) {
                         "    --spread io:ex[:wb]         per-node split, e.g. 4:4 or 3:3:2\n"
                         "    --io N / --ex N             legacy per-node role counts\n"
                         "  pipeline:\n"
-                        "    --mode 2s | exwb | 3s       which stage issues the sends\n"
+                        "    --mode 2s | 3s              which stage issues the sends\n"
                         "    --wb ifid | ex | own        sender-placement alias for --mode\n",
                         argv[0]);
             return 0;
@@ -210,7 +208,6 @@ int main(int argc, char** argv) {
 
     srv.topo().dump(stdout);
     const char* mname = cfg.wb_mode == WbMode::Io ? "2s (io sends)"
-                      : cfg.wb_mode == WbMode::Ex ? "ex-wb (executor sends)"
                                                   : "3s (dedicated wb sends)";
     std::printf("tomokv-cpp: %u threads (%zu ifid + %zu ex + %zu wb), %u shard(s), %s,"
                 " io_uring, alloc=%s\n", srv.nthreads(),
