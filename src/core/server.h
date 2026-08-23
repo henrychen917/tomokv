@@ -67,11 +67,9 @@ public:
             std::fprintf(stderr, "shards must be between 1 and 256\n");
             return false;
         }
-        // Declared topology wins over discovery -- the operator is saying "build exactly these
-        // nodes", including shapes discovery would never produce (cross-CCX nodes, SMT pairs,
-        // deliberate mis-placement). A declaration that fails to parse or names cpus outside the
-        // affinity mask fails the BOOT, loudly: a topology experiment silently falling back to
-        // auto-discovery would measure the wrong thing and report it as a result.
+        // Declared topology is a legacy lowering input and therefore cannot accompany --place.
+        // A declaration that fails to parse or names cpus outside the affinity mask fails the BOOT,
+        // loudly: silently falling back to discovery would measure a different layout.
         if (cfg.place && cfg.node_cpus && *cfg.node_cpus) {
             std::fprintf(stderr, "fatal: --place and --node-cpus are mutually exclusive\n");
             return false;

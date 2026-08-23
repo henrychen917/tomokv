@@ -102,14 +102,17 @@ int main(int argc, char** argv) {
         else if (!std::strcmp(argv[i], "--help")) {
             std::printf("usage: %s [--port N] [--bind A] [--shards N] [--no-pin]\n"
                         "  explicit per-thread placement:\n"
-                        "    --place role@cpu,...        dense tid order, e.g. ifid@0,ex@2,wb@4\n"
+                        "    --place role@cpu,...        dense tid order; roles are ifid, ex, wb\n"
                         "    --shard-home shard:tid,...  complete shard-to-executor map\n"
                         "    --send-target ifid:tid,...  override exwb/3s sender targets\n"
                         "  legacy placement sugar:\n"
                         "    --nodes N                   L3-domain nodes (0 = all discovered)\n"
                         "    --node-cpus LIST            declared node cpu groups, ranges joined by +\n"
-                        "    --mode   2s | exwb | 3s     which stage issues the sends\n"
-                        "    --spread io:ex[:wb]         the thread split, e.g. 4:4 or 3:3:2\n",
+                        "    --spread io:ex[:wb]         per-node split, e.g. 4:4 or 3:3:2\n"
+                        "    --io N / --ex N             legacy per-node role counts\n"
+                        "  pipeline:\n"
+                        "    --mode 2s | exwb | 3s       which stage issues the sends\n"
+                        "    --wb ifid | ex | own        sender-placement alias for --mode\n",
                         argv[0]);
             return 0;
         }

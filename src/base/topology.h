@@ -1,8 +1,8 @@
 // topology.h — what the machine actually looks like, discovered rather than assumed.
 //
-// NODES ARE ALIGNED TO SHARED L3, and this file is what discovers where those boundaries are. On
-// this box the node optimum lands exactly ON the cache boundary — 8 physical cores, one CCX, one
-// 16 MB L3 — and was worth +22.3% on set_p16 and +14.2% on mget8 versus one wide node.
+// DOMAINS ARE SHARED-L3 CPU GROUPS, and this file discovers those boundaries without imposing a
+// placement unit on them. Individual threads may be placed anywhere in the allowed affinity mask;
+// the domain lookup says which cache each chosen cpu belongs to.
 //
 // Nothing here DECIDES placement (that is placement.h) and nothing here is consulted on the hot
 // path. It records what a later flip/LB controller needs in order to decide:
@@ -39,12 +39,10 @@ public:
     // Discovers L3 domains for the CPUs this process is ALLOWED to run on. Respecting the affinity
     // mask matters: under taskset the machine's full topology is not what we get, and assuming
     // otherwise is how threads end up "placed" onto cpus they can never run on.
-    // OPERATOR-DECLARED TOPOLOGY (the fork's tomokv-nodes/pin-mode side of the coin). The spec
-    // names each node's cpus explicitly -- "0-7,8-15" builds two declared domains -- and discovery
-    // is bypassed entirely, so an experiment can span CCX boundaries, build uneven nodes, pair SMT
-    // siblings, or deliberately mis-place threads to measure what that costs. The declaration is
-    // still intersected with the affinity mask: a cpu the process cannot run on is a config error
-    // worth failing loudly on, not silently pinning to.
+    // OPERATOR-DECLARED TOPOLOGY is retained for the legacy --node-cpus lowering. "0-7,8-15"
+    // builds two declared domains and bypasses discovery, so legacy experiments can still build
+    // shapes discovery would never produce. The declaration is intersected with the affinity mask:
+    // a cpu the process cannot run on is a config error worth failing loudly, not silently pinning.
     bool declare(const char* spec) {
         cpu_set_t allowed;
         CPU_ZERO(&allowed);
