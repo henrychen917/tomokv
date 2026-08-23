@@ -15,6 +15,7 @@
 // own contiguous ready prefix without returning to IO — said here so no result from that mode is
 // misread as a verdict on that design.
 #pragma once
+#include <deque>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -291,7 +292,7 @@ private:
                 spec->handler(srv_->shard(0), *op);
                 op->state.store(OpState::Done, std::memory_order_release);
                 rob.publish();
-                if (c->sender_is_io()) c->set_serve_pending(true);
+                enqueue_serve(c);
                 mark_active(c);
                 notify_sender_if_remote(c);
                 continue;
@@ -350,7 +351,7 @@ private:
         reply_err(op.reply, err);
         op.state.store(OpState::Done, std::memory_order_release);
         c->rob().publish();
-        if (c->sender_is_io()) c->set_serve_pending(true);
+        enqueue_serve(c);
         mark_active(c);
         notify_sender_if_remote(c);
     }
@@ -392,6 +393,7 @@ private:
     uint32_t collect_retire_work(bool unmasked = false) {
         auto take = [&](Client* c) {
             c->retire_queued().store(false, std::memory_order_release);
+            enqueue_serve(c);                    // a posted client is a serve request
             mark_active(c);
         };
         uint32_t n = unmasked ? self_->drain_clients_unmasked(take) : self_->drain_clients(take);
@@ -406,7 +408,7 @@ private:
                 const uint32_t b = static_cast<uint32_t>(__builtin_ctzll(bits));
                 bits &= bits - 1;
                 Client* c = self_->wb_slot_client(w * 64 + b);
-                if (c && !c->dead()) { c->set_serve_pending(true); mark_active(c); n++; }
+                if (c && !c->dead()) { enqueue_serve(c); mark_active(c); n++; }
             }
         }
         return n;
@@ -420,17 +422,17 @@ private:
         uint32_t work = 0;
         backstop_pass_ = (++flush_tick_ >= kFlushBackstopEvery);
         if (backstop_pass_) flush_tick_ = 0;
+
+        // PHASE 1 -- the read side, every active conn, BEFORE any serving. At 2048 conns the old
+        // interleaved pass collapsed loop iterations 7.5x: each pass walked ~100 conns doing serve
+        // and send work while drained recvs sat un-armed, sockets backed up, and arrivals went
+        // bursty (113k park/wake round-trips where 22k belonged). Arming first keeps the arrival
+        // stream flowing no matter how deep the reply backlog is -- which is exactly the property
+        // that made 3s hold flat (-3.7%) at the conn count where 2s lost 21%.
         for (auto it = active_.begin(); it != active_.end();) {
             Client* c = *it;
             ConnIn& conn = c->in();
-
-            if (c->sender_is_io() && (c->serve_pending() || backstop_pass_)) {
-                // Serve ON SIGNAL (or on the periodic Law-2 backstop pass), never as a poll. The
-                // signal is the worker's ready bit for cross-thread completions and the inline flag
-                // for same-thread ones; the backstop catches anything a race loses.
-                c->set_serve_pending(false);
-                if (wb_.try_serve(*c, [] {})) work++;
-            }
+            if (backstop_pass_ && c->sender_is_io() && !c->serve_pending()) enqueue_serve(c);
 
             // Reset only when the ROB is quiescent AND no recv is outstanding — see conn.h. Then
             // re-arm, in that order.
@@ -452,14 +454,39 @@ private:
             c->needs_io_wake().store(stuck, std::memory_order_release);
 
             const bool more_input = conn.rpos() < conn.rlen();
-            const bool done = c->rob().quiesced() && !more_input && !stuck &&
+            const bool done = c->rob().quiesced() && !more_input && !stuck && !c->serve_pending() &&
                               (!c->sender_is_io() || c->out().nothing_to_write());
             if (done && !c->closing()) { c->set_in_active(false); it = active_.erase(it); }
             else if (c->closing() && c->safe_to_release()) {
                 c->set_in_active(false); it = active_.erase(it); close_client(c);
             } else ++it;
         }
+
+        // PHASE 2 -- serve AT MOST kServeBudget conns from the FIFO. Bounding the pass is the
+        // fourth application of the same law (per-pass work scales with what the pass does, not
+        // with connection count): the leftovers stay queued, did > 0 keeps the loop from parking,
+        // and FIFO order is arrival-order fairness across connections. Under overload the queue is
+        // the latency -- which is the correct place for overload to live; throughput stays at peak.
+        uint32_t served = 0;
+        while (served < kServeBudget && !pending_serve_.empty()) {
+            Client* c = pending_serve_.front();
+            pending_serve_.pop_front();
+            c->set_serve_pending(false);
+            // Closing conns MUST still be served -- their ROB has to drain before quiesce can let
+            // close_client finish. Only corpses (freed-pending) are skippable.
+            if (c->dead()) continue;
+            served++;
+            if (wb_.try_serve(*c, [] {})) work++;
+        }
+        work += served;
         return work;
+    }
+
+    void enqueue_serve(Client* c) {
+        if (!c->sender_is_io()) return;                 // remote-sender conns are not ours to serve
+        if (c->serve_pending()) return;                 // already queued
+        c->set_serve_pending(true);
+        pending_serve_.push_back(c);
     }
 
     void close_client(Client* c) {
@@ -512,6 +539,11 @@ private:
     ThreadCtx* self_ = nullptr;
     ThreadCtx* sender_ = nullptr;      // Ex/Wb modes
     static constexpr uint32_t kFlushBackstopEvery = 64;
+    // Serves per pass. Sized so a pass's serve work stays comparable to its recv work: ~16 serves
+    // x a ~32-op prefix each is one CQ batch worth of replies. The queue, not the pass, absorbs
+    // overload.
+    static constexpr uint32_t kServeBudget = 16;
+    std::deque<Client*> pending_serve_;
     uint32_t flush_tick_ = 0;
     bool     backstop_pass_ = false;
     bool touched_[kMaxThreads] = {};      // dedupe flags for the current parse pass
