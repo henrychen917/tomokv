@@ -70,7 +70,18 @@ public:
             {
                 Span busy(sig.busy_ns);
                 did += drain_tasks();
-                if (wb_.mode() == WbMode::Ex) { did += drain_send_requests(); did += serve_ready(); }
+                if (wb_.mode() == WbMode::Ex) {
+                    did += drain_send_requests();
+                    did += serve_ready();
+                    // The Law-2 backstop the mask port dropped: every K iterations, walk the OWNED
+                    // list and serve by ROB STATE, ignoring the mask entirely. A signal scheme may
+                    // be fast; the state is what is true. K trades straggler latency (K iterations,
+                    // microseconds busy) against iteration cost; it never runs per op.
+                    if (++owned_sweep_tick_ >= kOwnedSweepEvery) {
+                        owned_sweep_tick_ = 0;
+                        did += sweep_owned_state();
+                    }
+                }
                 did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
             }
             sig.cpu_ns = thread_cpu_ns();
@@ -169,6 +180,13 @@ private:
         // serve pass finds it -- no wake needed, the thread is by definition awake.
         const uint32_t slot = c->wb_slot();
         if (slot != Client::kNoWbSlot) {
+            // FENCE BEFORE THE READ-FIRST CHECK -- defect 5's exact shape, third appearance. Our
+            // caller stored Done; ReadyMask::set() begins with a relaxed LOAD of the word, and TSO
+            // lets that load run ahead of the store draining. Unfenced, it can read a stale 1 from
+            // a signal the sender is consuming RIGHT NOW: we skip our set, the sender's drain reads
+            // our op before the Done lands, and nobody ever signals again. Twelve connections were
+            // stranded exactly this way at 4 nodes, where cross-CCD coherence stretches the window.
+            std::atomic_thread_fence(std::memory_order_seq_cst);
             if (snd.ready().set(slot) && target != self_->id())
                 snd.wake_if_parked(ring_, self_->sig());
             return;
@@ -223,6 +241,27 @@ private:
         c->set_ex_adopted(true);
         owned_.push_back(ExClient{c, &c->out()});
         c->set_wb_slot(self_->assign_wb_slot(c));
+    }
+
+    // Serve every owned connection whose ROB HEAD is retirable, straight from state. This is what
+    // catches a lost mask signal; it must exist for the mask to be allowed its fast path.
+    uint32_t sweep_owned_state() {
+        uint32_t did = 0;
+        for (size_t i = 0; i < owned_.size(); i++) {
+            Client* c = owned_[i].c;
+            if (!c || c->dead() || c->closing()) continue;
+            Rob<kRobWindow>& rob = owned_[i].out->rob();
+            if (rob.quiesced()) continue;
+            if (rob.at(rob.flush_id()).state.load(std::memory_order_acquire) != OpState::Done)
+                continue;
+            c->retire_queued().store(false, std::memory_order_release);
+            std::atomic_thread_fence(std::memory_order_seq_cst);
+            if (wb_.serve(*c, [&] {
+                    ThreadCtx& io = srv_->thread(c->ifid_thread());
+                    io.post_client(self_->id(), c, ring_, self_->sig());
+                })) did++;
+        }
+        return did;
     }
 
     // The sender's half of the teardown handshake. io refuses to free while our slot still maps a
@@ -293,6 +332,8 @@ private:
     Ring       ring_;
     WbEngine   wb_;
     std::vector<ExClient> owned_;      // ex-wb: the connections whose reply side this thread owns
+    static constexpr uint32_t kOwnedSweepEvery = 64;
+    uint32_t owned_sweep_tick_ = 0;
 };
 
 }  // namespace tomo

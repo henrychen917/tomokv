@@ -60,6 +60,10 @@ public:
                 Span busy(sig.busy_ns);
                 did += drain_send_requests();
                 did += serve_ready();
+                if (++slot_sweep_tick_ >= kSlotSweepEvery) {
+                    slot_sweep_tick_ = 0;
+                    did += sweep_slot_state();
+                }
                 did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
             }
             sig.cpu_ns = thread_cpu_ns();
@@ -107,6 +111,27 @@ private:
                         io.post_client(self_->id(), c, ring_, self_->sig());
                     })) did++;
             }
+        }
+        return did;
+    }
+
+    // The Law-2 state backstop, mirroring ex_loop::sweep_owned_state: every K iterations serve by
+    // ROB STATE across the whole slot table, ignoring the mask. What the mask loses, this finds.
+    uint32_t sweep_slot_state() {
+        uint32_t did = 0;
+        for (uint32_t s = 0; s < ReadyMask::kSlots; s++) {
+            Client* c = self_->wb_slot_client(s);
+            if (!c || c->dead() || c->closing()) continue;
+            Rob<kRobWindow>& rob = c->rob();
+            if (rob.quiesced()) continue;
+            if (rob.at(rob.flush_id()).state.load(std::memory_order_acquire) != OpState::Done)
+                continue;
+            c->retire_queued().store(false, std::memory_order_release);
+            std::atomic_thread_fence(std::memory_order_seq_cst);
+            if (wb_.serve(*c, [&] {
+                    ThreadCtx& io = srv_->thread(c->ifid_thread());
+                    io.post_client(self_->id(), c, ring_, self_->sig());
+                })) did++;
         }
         return did;
     }
@@ -165,6 +190,8 @@ private:
     ThreadCtx* self_ = nullptr;
     Ring       ring_;
     WbEngine   wb_;
+    static constexpr uint32_t kSlotSweepEvery = 64;
+    uint32_t slot_sweep_tick_ = 0;
 };
 
 }  // namespace tomo
