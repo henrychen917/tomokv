@@ -15,6 +15,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <vector>
+#include <map>
 #include "shard.h"
 #include "thread.h"
 #include "../base/topology.h"
@@ -174,7 +175,33 @@ public:
         else if (sender_role == Role::Wb) senders = &wb_;
 
         for (size_t k = 0; k < ifid_.size(); k++)
-            threads_[ifid_[k]].send_target = senders ? (*senders)[k % senders->size()] : ifid_[k];
+            // THE ONE SURVIVING NODE RULE (owner): the sender for a connection's ConnOut must share the
+            // accepting ifid's L3 domain -- ConnIn/ConnOut/ROB form a seam that must not cross a CCX.
+            // Default pairing therefore round-robins only over SAME-DOMAIN senders, per domain; the
+            // global list is a fallback for degenerate placements (a domain with ifid but no sender),
+            // taken with a loud warning because every op on those conns will pay the fabric.
+            {
+                uint32_t tid = ifid_[k];
+                const uint32_t dom = threads_[tid].domain;
+                uint32_t chosen = tid;                       // 2s: self
+                if (senders) {
+                    uint32_t local = 0, pick = kNoThread;
+                    for (uint32_t s2 : *senders) if (threads_[s2].domain == dom) local++;
+                    if (local) {
+                        uint32_t want = local_rr_[dom]++ % local, seen = 0;
+                        for (uint32_t s2 : *senders)
+                            if (threads_[s2].domain == dom && seen++ == want) { pick = s2; break; }
+                    } else {
+                        pick = (*senders)[k % senders->size()];
+                        std::fprintf(stderr,
+                            "placement: WARNING ifid t%u (L3 %u) has no same-domain sender; "
+                            "pairing cross-domain with t%u (L3 %u) -- every reply pays the fabric\n",
+                            tid, dom, pick, threads_[pick].domain);
+                    }
+                    chosen = pick;
+                }
+                threads_[tid].send_target = chosen;
+            }
 
         if (!spec) return true;
         if (!senders) {
@@ -207,6 +234,11 @@ public:
                 return false;
             }
             seen[ifid_tid] = true;
+            if (threads_[ifid_tid].domain != threads_[sender_tid].domain)
+                std::fprintf(stderr,
+                    "placement: WARNING --send-target pairs ifid t%u (L3 %u) with t%u (L3 %u) "
+                    "ACROSS domains -- deliberate experiments only; every reply pays the fabric\n",
+                    ifid_tid, threads_[ifid_tid].domain, sender_tid, threads_[sender_tid].domain);
             threads_[ifid_tid].send_target = sender_tid;
             if (*p == '\0') break;
             p++;
@@ -271,6 +303,7 @@ private:
     std::vector<uint32_t> ifid_;
     std::vector<uint32_t> ex_;
     std::vector<uint32_t> wb_;
+    std::map<uint32_t, uint32_t> local_rr_;   // per-domain round-robin cursors for sender pairing
     std::vector<uint32_t> shard_home_;
 };
 
