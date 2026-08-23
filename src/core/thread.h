@@ -12,7 +12,7 @@
 //
 //   task_in_[p]     from producer p    IO -> EX   a parsed op to execute
 //   client_in_[p]   from producer p    EX -> IO   "you have completed ops to retire"
-//                                      IO -> WB   "you have bytes to send"      (WbMode::Wb)
+//                                      IO -> WB   "you have bytes to send"      (delegated conns)
 //
 // client_in_ is unambiguous despite serving three directions, because a thread has exactly one role
 // at a time: an IO thread's client_in_ is always retire-work, a WB thread's is always send-work.

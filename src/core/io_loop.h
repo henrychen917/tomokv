@@ -37,15 +37,15 @@ namespace tomo {
 inline constexpr uint32_t kRecvChunk = 16 * 1024;
 
 // THE FIVE LOOPS. Each mode composes threads from five specialised loop shapes, distinguished by
-// what the thread OWNS while serving -- the shape is fixed at init by the WbMode the engines are
-// bound with, so the hot paths carry no mode branches that matter:
+// what the thread OWNS while serving -- fixed PER CONNECTION at accept by sender_thread(), so the
+// hot paths carry no mode branches, only per-conn ownership checks:
 //
-//   io    IoLoop + WbMode::Io   recv+parse+retire+send; owns the whole client        (2s)
-//   ifid  IoLoop + WbMode::Wb   recv+parse only; sender_is_io is never true, so the
-//                               serve path is dead and ConnOut is never touched      (3s)
-//   ex    ExLoop                execute+notify; never sends
-//   wb    WbLoop                retire+send, channel-fed, ConnOut owned STATICALLY --
-//                               which is why its serve takes no lock (see WbGuard)   (3s)
+//   io    IoLoop, self-served conns       recv+parse+retire+send; owns the whole client
+//   ifid  IoLoop, delegated conns         recv+parse only; sender_is_io false, so the
+//                                         serve path never runs and ConnOut is never touched
+//   ex    ExLoop                          execute+notify; never sends
+//   wb    WbLoop                          retire+send, channel-fed, ConnOut owned STATICALLY --
+//                                         which is why its serve takes no lock (see WbGuard)
 
 class IoLoop {
 public:
@@ -62,13 +62,13 @@ public:
     // which spreads them across threads without any userspace handoff. Note this is safe WITHIN one
     // process; two SERVER PROCESSES sharing a port is the failure mode that once faked data loss,
     // so a boot must still verify nothing else holds the port.
-    bool init(Server* srv, ThreadCtx* self, WbMode mode, const char* addr, uint16_t port) {
+    bool init(Server* srv, ThreadCtx* self, const char* addr, uint16_t port) {
         srv_ = srv; self_ = self;
         listen_fd_ = make_reuseport_listener(addr, port);
         if (listen_fd_ < 0) return false;
         if (!ring_.init(4096)) return false;
         self_->set_ring(&ring_);
-        wb_.bind(&ring_, mode);
+        wb_.bind(&ring_);
         return true;
     }
 

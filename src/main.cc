@@ -1,8 +1,8 @@
 // main.cc — boot, thread launch, pinning, shutdown.
 //
-// 2-STAGE ONLY FOR NOW (WbMode::Io): io threads receive, parse, dispatch, retire and send; workers
-// execute. That is the shape the fork measured as the winner, and it is the one to get correct
-// first. The Ex and Wb modes exist in the tree but are not wired to a launch path yet.
+// ONE SERVER, NO MODES. The sender is a per-connection property (Client::sender_thread). A
+// placement without wb threads self-serves every conn (the old 2s); one with wb threads delegates
+// conns to them at accept (the old 3s). --mode survives only as a structural assertion.
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -57,6 +57,7 @@ int main(int argc, char** argv) {
     }
 
     Config cfg;
+    int  want_wb = -1;        // --mode/--wb assertion: -1 unasserted, 0 = no wb threads, 1 = some
     bool saw_place = false;
     bool saw_legacy_placement = false;
     bool saw_ratio = false;
@@ -118,17 +119,18 @@ int main(int argc, char** argv) {
             cfg.place = next("");
         }
         else if (!std::strcmp(argv[i], "--wb")) {
-            // Item 3: the honest knob. After wb-drains-ROB, write-back PLACEMENT is the only thing
-            // the old mode names varied, so name the dimension: who sends. --mode stays an alias.
+            // Compatibility spelling of --mode; both are now ASSERTIONS about the placement, not
+            // switches -- wb threads present = delegated sends, absent = self-served. The flag
+            // exists so a script that believes it booted 3s fails loudly if the shape says 2s.
             const char* m = next("ifid");
-            if      (!std::strcmp(m, "ifid")) cfg.wb_mode = WbMode::Io;
-            else if (!std::strcmp(m, "own"))  cfg.wb_mode = WbMode::Wb;
+            if      (!std::strcmp(m, "ifid")) want_wb = 0;
+            else if (!std::strcmp(m, "own"))  want_wb = 1;
             else { std::fprintf(stderr, "--wb must be ifid | own\n"); return 1; }
         }
         else if (!std::strcmp(argv[i], "--mode")) {
             const char* m = next("2s");
-            if      (!std::strcmp(m, "2s"))   cfg.wb_mode = WbMode::Io;
-            else if (!std::strcmp(m, "3s"))   cfg.wb_mode = WbMode::Wb;
+            if      (!std::strcmp(m, "2s"))   want_wb = 0;
+            else if (!std::strcmp(m, "3s"))   want_wb = 1;
             else { std::fprintf(stderr, "--mode must be 2s | 3s\n"); return 1; }
         }
         else if (!std::strcmp(argv[i], "--help")) {
@@ -162,12 +164,12 @@ int main(int argc, char** argv) {
         std::fprintf(stderr, "--ratio cannot be combined with --place, --spread, --nodes, --io, or --ex\n");
         return 1;
     }
-    if (saw_ratio && cfg.wb_mode == WbMode::Wb && cfg.even_wb == 0) {
-        std::fprintf(stderr, "--mode 3s needs a wb count: --ratio ifid:ex:wb\n");
+    if (saw_ratio && want_wb == 1 && cfg.even_wb == 0) {
+        std::fprintf(stderr, "--mode 3s asserts wb threads: --ratio ifid:ex:wb\n");
         return 1;
     }
-    if (saw_ratio && cfg.wb_mode != WbMode::Wb && cfg.even_wb) {
-        std::fprintf(stderr, "the wb field of --ratio is only meaningful with --mode 3s\n");
+    if (saw_ratio && want_wb == 0 && cfg.even_wb) {
+        std::fprintf(stderr, "--mode 2s asserts no wb threads, but --ratio has a wb count\n");
         return 1;
     }
     if (!saw_place && !saw_ratio && (cfg.ifid_per_node == 0 || cfg.ex_per_node == 0)) {
@@ -176,12 +178,12 @@ int main(int argc, char** argv) {
     }
     // 3-stage needs somewhere to send from. Refuse loudly rather than silently falling back to 2s,
     // which would make a mode comparison quietly measure the same thing twice.
-    if (!saw_place && !saw_ratio && cfg.wb_mode == WbMode::Wb && cfg.wb_per_node == 0) {
-        std::fprintf(stderr, "--mode 3s needs a wb count: --spread io:ex:wb\n");
+    if (!saw_place && !saw_ratio && want_wb == 1 && cfg.wb_per_node == 0) {
+        std::fprintf(stderr, "--mode 3s asserts wb threads: --spread io:ex:wb\n");
         return 1;
     }
-    if (!saw_place && !saw_ratio && cfg.wb_mode != WbMode::Wb && cfg.wb_per_node) {
-        std::fprintf(stderr, "the wb field of --spread is only meaningful with --mode 3s\n");
+    if (!saw_place && !saw_ratio && want_wb == 0 && cfg.wb_per_node) {
+        std::fprintf(stderr, "--mode 2s asserts no wb threads, but --spread has a wb count\n");
         return 1;
     }
     if (cfg.shards == 0 || cfg.shards > 256) {
@@ -207,8 +209,14 @@ int main(int argc, char** argv) {
     }
 
     srv.topo().dump(stdout);
-    const char* mname = cfg.wb_mode == WbMode::Io ? "2s (io sends)"
-                                                  : "3s (dedicated wb sends)";
+    // The posture is a fact of the placement now, not a flag; assert it if the operator claimed one.
+    const bool has_wb = !srv.placement().wb_threads().empty();
+    if (want_wb >= 0 && has_wb != (want_wb == 1)) {
+        std::fprintf(stderr, "--mode asserts %s but the placement has %s wb threads\n",
+                     want_wb ? "3s" : "2s", has_wb ? "" : "no");
+        return 1;
+    }
+    const char* mname = has_wb ? "3s posture (delegated sends)" : "2s posture (io sends)";
     std::printf("tomokv-cpp: %u threads (%zu ifid + %zu ex + %zu wb), %u shard(s), %s,"
                 " io_uring, alloc=%s\n", srv.nthreads(),
                 srv.placement().ifid_threads().size(), srv.placement().ex_threads().size(),
@@ -247,7 +255,7 @@ int main(int argc, char** argv) {
             ThreadCtx& self = srv.thread(tid);
             self.latch_placement(srv.topo());   // after pinning: sched_getcpu is only now truthful
             bind_thread_arena();                // per-worker jemalloc arena; no-op without it
-            if (!exs[tid].init(&srv, &self, cfg.wb_mode)) return;
+            if (!exs[tid].init(&srv, &self)) return;
             exs[tid].run();
         });
     for (uint32_t tid : srv.placement().wb_threads())
@@ -264,7 +272,7 @@ int main(int argc, char** argv) {
             pin_for(tid);
             ThreadCtx& self = srv.thread(tid);
             self.latch_placement(srv.topo());
-            if (!ios[tid].init(&srv, &self, cfg.wb_mode, cfg.bind_addr, cfg.port)) return;
+            if (!ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port)) return;
             const uint32_t sender = srv.placement().thread(tid).send_target;
             if (sender != tid) ios[tid].set_send_target(&srv.thread(sender));
             ios[tid].run();
@@ -293,9 +301,9 @@ int main(int argc, char** argv) {
         const LoopSignals& s = srv.thread(i).sig();
         const Role r = srv.thread(i).role();
         std::printf("t%-5u %-4s %12llu %10llu %9.1f %9.1f %9.1f %9llu %8llu\n", i,
-                    // The ROLE is ifid; the 2s/exwb composition renders it "io" because there it
-                    // also carries wb. Pure parse (3s) prints as what it is.
-                    r == Role::Ifid ? (cfg.wb_mode == WbMode::Wb ? "ifid" : "io")
+                    // The ROLE is ifid; a self-sending thread renders as "io" because it also
+                    // carries wb. A thread whose conns are delegated prints as pure parse.
+                    r == Role::Ifid ? (srv.placement().thread(i).send_target == i ? "io" : "ifid")
                                     : r == Role::Ex ? "ex" : "wb",
                     (unsigned long long)s.ops, (unsigned long long)s.iterations,
                     s.busy_ns / 1e6, s.idle_ns / 1e6, s.cpu_ns / 1e6,

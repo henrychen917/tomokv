@@ -1,13 +1,12 @@
 // wb.h — write-back: turning completed replies into bytes on a socket.
 //
-// THE SEND LOGIC IS THE SAME IN BOTH MODES. What differs is only WHICH THREAD runs it. So the
-// logic lives here once and each loop calls it; the modes are a scheduling decision, not two
-// implementations.
+// THE SEND LOGIC IS THE SAME FOR EVERY SENDER. Which thread runs it is a PER-CONNECTION property:
+// Client::sender_thread(), assigned at accept (today: the accepting io thread itself, or its
+// placement-paired wb — reproducing the old 2s/3s exactly), re-assignable later only through a
+// quiesce fence. There is no server-wide mode; "2s" and "3s" are postures of one server, W=0 or
+// W>0 in --ratio.
 //
-//   WbMode::Io   2-stage.   The IO thread that owns the connection also sends.       (default)
-//   WbMode::Wb   3-stage.   A dedicated write-back thread owns the send side.
-//
-// (WbMode::Ex -- the executor sending its own completed prefix -- existed and was DELETED
+// (Executor-issued sends (exwb) existed and were DELETED
 // 2026-08-24: #1 in zero measured cells. Send work rides the scarce ex role: nearly free at p1,
 // ruinous at p32. The p1 width law explains its old small-size p1 second places, and 2s dominates
 // those anyway.)
@@ -40,8 +39,6 @@
 #include "uring.h"
 
 namespace tomo {
-
-enum class WbMode : uint8_t { Io = 0, Wb = 1 };
 
 // RAII. Resolves once, releases what it resolved. See the header comment.
 //
@@ -77,9 +74,8 @@ private:
 // Per-thread send engine. Every loop that sends owns one and calls the same two methods.
 class WbEngine {
 public:
-    void bind(Ring* ring, WbMode mode) { ring_ = ring; mode_ = mode; }
+    void bind(Ring* ring) { ring_ = ring; }
 
-    WbMode mode() const { return mode_; }
     Ring&  ring()       { return *ring_; }
 
     // THE WHOLE REPLY SIDE, in one call, run by whichever stage owns sending for this client.
@@ -136,17 +132,17 @@ public:
 
         // Poke the io thread only if it told us it was stuck. Retiring may have freed a ROB slot or
         // unpinned the read buffer, and io cannot discover that on its own without polling.
-        // In Io mode the serving thread IS io -- the flag is its own, and the flush_ready pass that
-        // called us re-evaluates stuck-ness right after, so the load would answer a question the
-        // caller is about to answer better.
-        if (mode_ != WbMode::Io && retired && c.needs_io_wake().load(std::memory_order_acquire)) {
+        // Per-conn: for a SELF-SERVED conn the serving thread IS io -- the flag is its own, and the
+        // flush_ready pass that called us re-evaluates stuck-ness right after, so the load would
+        // answer a question the caller is about to answer better.
+        if (!c.sender_is_io() && retired && c.needs_io_wake().load(std::memory_order_acquire)) {
             c.needs_io_wake().store(false, std::memory_order_release);
             notify_io();
         }
         stats_.retired += retired;
-        // A serve that retires nothing. In 3s this is a wake the sender could not act on. In 2s and
-        // ex-wb it is mostly the POLLING paths (io's flush_ready pass, the backstop) finding nothing,
-        // which is expected and cheap -- interpret per mode.
+        // A serve that retires nothing. For a delegated conn this is a wake the sender could not
+        // act on; for a self-served one it is mostly the POLLING paths (io's flush_ready pass, the
+        // backstop) finding nothing, which is expected and cheap -- interpret per shape.
         if (!retired) stats_.serves_empty++;
         return did;
     }
@@ -230,7 +226,6 @@ public:
 
 private:
     Ring*  ring_ = nullptr;
-    WbMode mode_ = WbMode::Io;
     Stats  stats_;
 };
 

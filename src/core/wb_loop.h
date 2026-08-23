@@ -1,12 +1,12 @@
-// wb_loop.h — the dedicated write-back stage (WbMode::Wb, the 3-stage shape). Same Channel
+// wb_loop.h — the dedicated write-back stage (the conns whose sender is a wb thread). Same Channel
 // signalling and same LoopSignals units as the IO and EX loops (see signal.h).
 //
 //   in   client_in from IO threads      "you have bytes to write"
 //
 // THIS FILE IS SHORT ON PURPOSE. Every piece of send logic lives in WbEngine, shared with the IO and
 // EX loops; a dedicated write-back thread is a scheduling choice, not a different implementation. If
-// this file ever grows its own send path, the abstraction has failed and the three modes have
-// quietly become three implementations that will drift apart.
+// this file ever grows its own send path, the abstraction has failed and the sender kinds have
+// quietly become separate implementations that will drift apart.
 //
 // WHAT THIS THREAD OWNS: the ENTIRE reply side of the connections handed to it. It retires the ROB
 // in order, stages the bytes, and writes them. It does not parse and does not execute.
@@ -40,7 +40,7 @@ public:
         srv_ = srv; self_ = self;
         if (!ring_.init(2048)) return false;
         self_->set_ring(&ring_);
-        wb_.bind(&ring_, WbMode::Wb);
+        wb_.bind(&ring_);
         return true;
     }
 

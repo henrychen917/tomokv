@@ -20,7 +20,7 @@
 #include "placement.h"
 #include "../base/topology.h"
 #include "../net/conn.h"   // kRobWindow: one source of truth for the window size
-#include "../net/wb.h"     // WbMode
+#include "../net/wb.h"
 
 namespace tomo {
 
@@ -29,9 +29,9 @@ struct Config {
     // the same per-thread placement table that --place builds directly.
     uint32_t ifid_per_node    = 4;
     uint32_t ex_per_node    = 4;
-    // Only used by WbMode::Wb (the 3-stage shape). Zero for 2s, where io already sends.
+    // Zero means no dedicated senders (every conn self-served -- the old 2s). Nonzero adds wb
+    // threads and delegates conns to them at accept (the old 3s). One server, two postures.
     uint32_t wb_per_node    = 0;
-    WbMode   wb_mode        = WbMode::Io;
     // 0 means "one node per L3 domain", which is the measured optimum and therefore the default
     // rather than something an operator has to know to ask for.
     uint32_t nodes          = 0;
@@ -100,18 +100,11 @@ public:
             std::fprintf(stderr, "placement needs at least one ifid and one ex thread\n");
             return false;
         }
-        if (cfg.wb_mode == WbMode::Wb && placement_.wb_threads().empty()) {
-            std::fprintf(stderr, "3s placement needs at least one wb thread\n");
-            return false;
-        }
-        if (cfg.wb_mode != WbMode::Wb && !placement_.wb_threads().empty()) {
-            std::fprintf(stderr, "wb threads are only meaningful with --mode 3s\n");
-            return false;
-        }
-
         // Sender and shard maps are resolved exactly once at boot. The loops consume the resulting
-        // tids directly; parsing never leaks onto a request path.
-        const Role sender_role = cfg.wb_mode == WbMode::Io ? Role::Ifid : Role::Wb;
+        // tids directly; parsing never leaks onto a request path. Wb threads in the placement mean
+        // conns are delegated to them; none means every conn is self-served. Both are the same
+        // server -- the sender is a per-connection property, not a mode.
+        const Role sender_role = placement_.wb_threads().empty() ? Role::Ifid : Role::Wb;
         if (!placement_.assign_send_targets(sender_role, cfg.send_target)) return false;
         if (!placement_.assign_shard_homes(cfg.shards, cfg.shard_home)) return false;
 
