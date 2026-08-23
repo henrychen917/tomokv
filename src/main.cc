@@ -239,6 +239,7 @@ int main(int argc, char** argv) {
         w.sends_submitted += x.sends_submitted; w.sends_completed += x.sends_completed;
         w.short_writes    += x.short_writes;    w.send_errors     += x.send_errors;
         w.bytes_sent      += x.bytes_sent;      w.retired         += x.retired;
+        w.serves          += x.serves;          w.serves_empty    += x.serves_empty;
     };
     for (uint32_t i = 0; i < srv.nthreads(); i++) {
         addw(ios[i].engine().stats()); addw(exs[i].engine().stats()); addw(wbs[i].engine().stats());
@@ -282,10 +283,12 @@ int main(int argc, char** argv) {
             }
             if (!c->conn().nothing_to_write()) stuck_wr++;
         }
-    std::printf("wb: retired=%llu sends=%llu/%llu short=%llu err=%llu bytes=%llu\n",
+    std::printf("wb: retired=%llu sends=%llu/%llu short=%llu err=%llu bytes=%llu"
+                " serves=%llu empty=%llu\n",
                 (unsigned long long)w.retired, (unsigned long long)w.sends_completed,
                 (unsigned long long)w.sends_submitted, (unsigned long long)w.short_writes,
-                (unsigned long long)w.send_errors, (unsigned long long)w.bytes_sent);
+                (unsigned long long)w.send_errors, (unsigned long long)w.bytes_sent,
+                (unsigned long long)w.serves, (unsigned long long)w.serves_empty);
     std::printf("stuck: live_conns=%llu rob_not_quiesced=%llu unsent_bytes_pending=%llu"
                 " | slots done=%llu issued=%llu free=%llu flag_set=%llu\n",
                 (unsigned long long)live, (unsigned long long)stuck_rob, (unsigned long long)stuck_wr,

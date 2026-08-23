@@ -77,6 +77,7 @@ public:
     template <typename NotifyIo>
     bool serve(Client& c, NotifyIo&& notify_io) {
         TOMO_FORENSIC(c.wb().n_serves.fetch_add(1, std::memory_order_relaxed));
+        stats_.serves++;
         Conn& conn = c.conn();
         const uint32_t retired = c.rob().drain([&](Op& op) {
             conn.fill_buf().append(op.reply.data(), op.reply.size());
@@ -91,6 +92,11 @@ public:
             notify_io();
         }
         stats_.retired += retired;
+        // A serve that retires nothing is a wake the sender could not act on: some op completed, but
+        // not the HEAD, so in-order retirement had nothing to do. This counter sizes the win of
+        // notifying only on head-completion before anyone builds it. Meaningful in ex-wb/3s only --
+        // in 2s serve() doubles as a polling path from flush_ready and empties are expected.
+        if (!retired) stats_.serves_empty++;
         return did;
     }
 
@@ -159,6 +165,8 @@ public:
         uint64_t short_writes    = 0;
         uint64_t send_errors     = 0;
         uint64_t sqe_starved     = 0;   // pump could not get an SQE; bytes stay staged
+        uint64_t serves          = 0;
+        uint64_t serves_empty    = 0;   // serve() retired nothing: a wake with no head-ready
         uint64_t bytes_sent      = 0;
         uint64_t retired         = 0;   // ops retired from ROBs by this sender
         uint64_t handoffs        = 0;   // clients passed to another thread's ready queue
