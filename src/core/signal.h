@@ -152,7 +152,15 @@ public:
         if (w.load(std::memory_order_relaxed) & bit) return false;
         return (w.fetch_or(bit, std::memory_order_seq_cst) & bit) == 0;
     }
-    uint64_t take(uint32_t word) { return words_[word].exchange(0, std::memory_order_acquire); }
+    // Load-first: an exchange is a locked RMW that takes the line exclusive even when the word is
+    // zero -- and these words are fetch_or'd by workers on OTHER CCDs, so an unconditional 16-word
+    // exchange sweep per loop pass bounces contended lines for nothing. The relaxed load costs a
+    // shared-line read; a zero word is the common case and now stays shared. A bit set between the
+    // load and a skipped exchange is not lost: it is still set, and the next pass takes it.
+    uint64_t take(uint32_t word) {
+        if (!words_[word].load(std::memory_order_relaxed)) return 0;
+        return words_[word].exchange(0, std::memory_order_acquire);
+    }
     bool any() const {
         for (uint32_t i = 0; i < kWords; i++)
             if (words_[i].load(std::memory_order_relaxed)) return true;

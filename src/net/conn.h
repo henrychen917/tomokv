@@ -296,6 +296,12 @@ public:
     // vector with a linear scan, so marking a client active cost one pointer compare per client
     // already in it — on every operation. At ~85 clients per io thread that is 85 compares per op
     // to answer a question the client can answer about itself in one load.
+    // 2s only, io-thread-local: this conn's ready bit fired (or an inline completion landed) since
+    // io last served it. flush_ready serves ONLY flagged conns; unflagged actives get read-side
+    // upkeep and the periodic backstop. Plain bool -- one thread.
+    bool serve_pending() const { return serve_pending_; }
+    void set_serve_pending(bool v) { serve_pending_ = v; }
+
     bool in_active() const { return in_active_; }
 
     // ex-wb only: whether the designated executor-sender has taken this connection into its owned
@@ -332,6 +338,7 @@ private:
     uint32_t          sender_thread_ = 0;
     bool              in_active_ = false;
     bool              ex_adopted_ = false;
+    bool              serve_pending_ = false;
     bool              dead_ = false;
     WbProto           proto_ = WbProto::Owned;
     std::atomic<uint32_t> wb_slot_{kNoWbSlot};

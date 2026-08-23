@@ -291,6 +291,7 @@ private:
                 spec->handler(srv_->shard(0), *op);
                 op->state.store(OpState::Done, std::memory_order_release);
                 rob.publish();
+                if (c->sender_is_io()) c->set_serve_pending(true);
                 mark_active(c);
                 notify_sender_if_remote(c);
                 continue;
@@ -349,6 +350,7 @@ private:
         reply_err(op.reply, err);
         op.state.store(OpState::Done, std::memory_order_release);
         c->rob().publish();
+        if (c->sender_is_io()) c->set_serve_pending(true);
         mark_active(c);
         notify_sender_if_remote(c);
     }
@@ -393,15 +395,18 @@ private:
             mark_active(c);
         };
         uint32_t n = unmasked ? self_->drain_clients_unmasked(take) : self_->drain_clients(take);
-        // The ready-mask path: workers set one bit per completed-work burst; we map slot -> client
-        // and put it back in the active set. Take-then-serve ordering, same as every mask here.
+        // The ready-mask path: workers set one bit per completed-work burst; we map slot -> client,
+        // flag it FOR SERVING, and put it back in the active set. The flag is the point: serving
+        // every active conn every pass measured 93% EMPTY serves at 8 nodes -- 526M drain-checks
+        // that each pulled a remote worker's cache line to learn there was nothing to do. Targeted
+        // serving turns the poll into a response.
         for (uint32_t w = 0; w < ReadyMask::kWords; w++) {
             uint64_t bits = self_->ready().take(w);
             while (bits) {
                 const uint32_t b = static_cast<uint32_t>(__builtin_ctzll(bits));
                 bits &= bits - 1;
                 Client* c = self_->wb_slot_client(w * 64 + b);
-                if (c && !c->dead()) { mark_active(c); n++; }
+                if (c && !c->dead()) { c->set_serve_pending(true); mark_active(c); n++; }
             }
         }
         return n;
@@ -413,16 +418,17 @@ private:
     // the READ side moving — reclaim the buffer once nothing points into it, and re-arm.
     uint32_t flush_ready() {
         uint32_t work = 0;
+        backstop_pass_ = (++flush_tick_ >= kFlushBackstopEvery);
+        if (backstop_pass_) flush_tick_ = 0;
         for (auto it = active_.begin(); it != active_.end();) {
             Client* c = *it;
             ConnIn& conn = c->in();
 
-            if (c->sender_is_io()) {
-                // 2-stage: same thread, no lock exists, try_serve == serve. Ex-wb: this same call is
-                // THE BACKSTOP -- io nominally owns the send side and sweeps for replies the
-                // executors' head-races slipped -- but it must never BLOCK on a lock an executor
-                // holds; a busy lock means someone is already draining, and a slipped tail is caught
-                // on the next pass because an unquiesced ROB keeps the client in the active set.
+            if (c->sender_is_io() && (c->serve_pending() || backstop_pass_)) {
+                // Serve ON SIGNAL (or on the periodic Law-2 backstop pass), never as a poll. The
+                // signal is the worker's ready bit for cross-thread completions and the inline flag
+                // for same-thread ones; the backstop catches anything a race loses.
+                c->set_serve_pending(false);
                 if (wb_.try_serve(*c, [] {})) work++;
             }
 
@@ -505,7 +511,10 @@ private:
     Server*    srv_  = nullptr;
     ThreadCtx* self_ = nullptr;
     ThreadCtx* sender_ = nullptr;      // Ex/Wb modes
-    bool     touched_[kMaxThreads] = {};      // dedupe flags for the current parse pass
+    static constexpr uint32_t kFlushBackstopEvery = 64;
+    uint32_t flush_tick_ = 0;
+    bool     backstop_pass_ = false;
+    bool touched_[kMaxThreads] = {};      // dedupe flags for the current parse pass
     uint32_t touched_list_[kMaxThreads] = {}; // the workers actually fed, dense
     uint32_t ntouched_ = 0;
     std::vector<Client*> dead_next_;   // corpses parked this iteration
