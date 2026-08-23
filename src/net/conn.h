@@ -251,7 +251,24 @@ public:
 
     // A connection may only be closed or migrated when nothing is in flight; otherwise a worker is
     // still holding a Task that resolves through this client's ROB. One test, everywhere.
-    bool safe_to_release() { return out_.rob().quiesced(); }
+    // A connection may be freed only when (a) nothing is in flight through its ROB AND (b) no
+    // Client* naming it can still surface from a notification channel. (b) is what the ASAN
+    // use-after-free proved: a worker posts the client for retirement, io serves it through
+    // flush_ready instead, the ROB quiesces, the peer disconnects, close frees the client -- and
+    // io then drains its channel into freed memory. The claim flag covers every CLAIMED post: it is
+    // set before posting and cleared only when the consumer takes the entry, and after quiescence
+    // no new claim can ever be made (no op will complete again), so requiring it false here is
+    // race-free. Unclaimed posts (the needs_io_wake pokes) are covered by the owning io thread's
+    // deferred-free list -- see IoLoop::close_client.
+    bool safe_to_release() {
+        return out_.rob().quiesced() &&
+               !retire_queued_.load(std::memory_order_acquire);
+    }
+
+    // Torn down but not yet freed: still legal to READ (it sits on the io thread's deferred-free
+    // list for one loop iteration), but no longer part of any working set.
+    bool dead() const { return dead_; }
+    void mark_dead() { dead_ = true; }
 
     bool closing() const { return closing_; }
     void mark_closing() { closing_ = true; }
@@ -286,6 +303,7 @@ private:
     uint32_t          sender_thread_ = 0;
     bool              in_active_ = false;
     bool              ex_adopted_ = false;
+    bool              dead_ = false;
     uint64_t        id_ = 0;
     uint32_t        ifid_thread_ = 0;
     bool            closing_ = false;

@@ -104,6 +104,7 @@ public:
         while (!self_->stop_flag().load(std::memory_order_relaxed)) {
             sig.iterations++;
             self_->sample_depth();
+            reap_dead();               // free clients dead for a full iteration -- see close_client
 
             uint32_t did = 0;
             {
@@ -332,6 +333,7 @@ private:
     }
 
     void mark_active(Client* c) {
+        if (c->dead()) return;               // a corpse from the deferred-free list: entry consumed, nothing to do
         if (c->in_active()) return;          // one load, not a scan of the whole set
         c->set_in_active(true);
         active_.insert(c);
@@ -410,12 +412,29 @@ private:
         for (size_t i = 0; i < v.size(); i++)
             if (v[i] == c) { v[i] = v.back(); v.pop_back(); break; }
         ::close(c->in().fd());
-        delete c;
+        // NOT delete. A poke-path post (serve's needs_io_wake notify) carries no claim flag, so one
+        // may still sit un-consumed in our inbound channels naming this client. Every such entry was
+        // pushed BEFORE this point, and channels are FIFO with their mask bits set -- so ONE full
+        // collect_retire_work pass consumes all of them. Park the corpse for one loop iteration and
+        // free it at the top of the one after; the drain lambda skips dead clients.
+        c->mark_dead();
+        dead_next_.push_back(c);
+    }
+
+    // Free everything that has been dead for a full iteration. Called once per loop pass, BEFORE
+    // this pass's drains, so a corpse parked in pass N is freed in pass N+2's prologue -- after the
+    // whole of pass N+1 (including its channel drains) ran with the corpse still readable.
+    void reap_dead() {
+        for (Client* c : dead_ready_) delete c;
+        dead_ready_.clear();
+        dead_ready_.swap(dead_next_);
     }
 
     Server*    srv_  = nullptr;
     ThreadCtx* self_ = nullptr;
     ThreadCtx* sender_ = nullptr;      // Ex/Wb modes
+    std::vector<Client*> dead_next_;   // corpses parked this iteration
+    std::vector<Client*> dead_ready_;  // corpses freed at the next prologue
     int        listen_fd_ = -1;
     Ring       ring_;
     WbEngine   wb_;
