@@ -25,9 +25,8 @@
 namespace tomo {
 
 struct Config {
-    // PER NODE, matching the fork's tomokv-thread-io / -ex. Per-node is the right unit because the
-    // split that matters is the one INSIDE a node, where the io->ex handoff actually happens; with
-    // --nodes 2 --spread 4:4 the server runs eight io and eight ex threads in total.
+    // Legacy sugar is per node: --nodes 2 --spread 4:4 lowers to eight ifid and eight ex entries in
+    // the same per-thread placement table that --place builds directly.
     uint32_t ifid_per_node    = 4;
     uint32_t ex_per_node    = 4;
     // Only used by WbMode::Wb (the 3-stage shape). Zero for 2s and ex-wb, where the sends are issued
@@ -38,6 +37,7 @@ struct Config {
     // rather than something an operator has to know to ask for.
     uint32_t nodes          = 0;
     const char* node_cpus   = nullptr;   // operator-declared topology; null = self-discover
+    const char* place       = nullptr;   // complete role@cpu list; null = lower legacy knobs
     // Shards should outnumber workers: a shard is the unit of migration, so more shards gives the
     // LB finer granularity. Too many and each one's working set stops being worth its own table.
     uint32_t shards         = 16;
@@ -66,17 +66,49 @@ public:
         // deliberate mis-placement). A declaration that fails to parse or names cpus outside the
         // affinity mask fails the BOOT, loudly: a topology experiment silently falling back to
         // auto-discovery would measure the wrong thing and report it as a result.
+        if (cfg.place && cfg.node_cpus && *cfg.node_cpus) {
+            std::fprintf(stderr, "fatal: --place and --node-cpus are mutually exclusive\n");
+            return false;
+        }
         if (cfg.node_cpus && *cfg.node_cpus) {
             if (!topo_.declare(cfg.node_cpus)) {
                 std::fprintf(stderr, "fatal: --node-cpus '%s' invalid\n", cfg.node_cpus);
                 return false;
             }
         } else {
-            topo_.discover();
+            if (!topo_.discover()) {
+                std::fprintf(stderr, "fatal: could not discover any allowed cpu\n");
+                return false;
+            }
         }
-        placement_.build(topo_, cfg.nodes, cfg.shards,
-                         cfg.ifid_per_node, cfg.ex_per_node, cfg.wb_per_node);
-        placement_.assign_threads();
+        const bool placed = cfg.place
+            ? placement_.build_explicit(topo_, cfg.place)
+            : placement_.build_legacy(topo_, cfg.nodes, cfg.shards,
+                                      cfg.ifid_per_node, cfg.ex_per_node, cfg.wb_per_node);
+        if (!placed) return false;
+        if (placement_.ifid_threads().empty() || placement_.ex_threads().empty()) {
+            std::fprintf(stderr, "placement needs at least one ifid and one ex thread\n");
+            return false;
+        }
+        if (cfg.wb_mode == WbMode::Wb && placement_.wb_threads().empty()) {
+            std::fprintf(stderr, "3s placement needs at least one wb thread\n");
+            return false;
+        }
+        if (cfg.wb_mode != WbMode::Wb && !placement_.wb_threads().empty()) {
+            std::fprintf(stderr, "wb threads are only meaningful with --mode 3s\n");
+            return false;
+        }
+
+        // Sender selection is boot-time placement state. Keeping the tid directly on each ifid
+        // avoids topology walks when an IO loop starts and makes legacy and explicit placement use
+        // the identical launch path.
+        const std::vector<uint32_t>& senders = cfg.wb_mode == WbMode::Ex
+            ? placement_.ex_threads() : placement_.wb_threads();
+        for (size_t k = 0; k < placement_.ifid_threads().size(); k++) {
+            const uint32_t tid = placement_.ifid_threads()[k];
+            placement_.thread(tid).send_target = cfg.wb_mode == WbMode::Io
+                ? tid : senders[k % senders.size()];
+        }
 
         // ---- shards: bucket ranges, fixed for the life of the process ----------------------------
         shards_.resize(cfg.shards);
@@ -89,10 +121,10 @@ public:
         }
         router_.build_uniform(static_cast<int32_t>(cfg.shards));
 
-        // ---- threads, grouped BY NODE ---------------------------------------------------------
-        // Thread ids are dense and node-major, so a node's io and ex threads are adjacent and land
-        // in the same L3 domain when pinned. Every thread still gets a channel from every other
-        // regardless of role, because a role change must not require re-wiring the mesh.
+        // ---- threads ---------------------------------------------------------------------------
+        // Every front-end has already lowered to dense per-thread entries. Every thread still gets
+        // a channel from every other regardless of role, because a role change must not require
+        // re-wiring the mesh.
         const uint32_t nthreads = placement_.total_threads();
         threads_.resize(nthreads);
         for (uint32_t i = 0; i < nthreads; i++) {
@@ -100,24 +132,19 @@ public:
             threads_[i]->init(i, placement_.role_of(i), nthreads);
         }
 
-        // ---- shards onto their OWN node's workers -----------------------------------------------
-        // A node's shards are served by that node's ex threads, so the dispatch hop and the
-        // completion pointer stay inside one L3. Cross-node dispatch still happens whenever a key
-        // lands elsewhere; Shard::foreign_ops measures exactly how often.
-        for (uint32_t n = 0; n < placement_.nnodes(); n++) {
-            const Node& node = placement_.node(n);
-            if (node.ex.empty()) continue;
-            for (size_t k = 0; k < node.shards.size(); k++) {
-                const int32_t  sid = node.shards[k];
-                const uint32_t tid = node.ex[k % node.ex.size()];
-                threads_[tid]->shards().push_back(shards_[sid].get());
-                // The reverse mapping is what the DISPATCH path reads. Assigning shards to workers
-                // without recording it leaves every op routing to thread 0.
-                set_worker_of_shard(sid, tid);
-                // Seed the home domain from the node so the first foreign-op comparison is against
-                // the INTENDED placement, not wherever it happened to run first.
-                shards_[sid]->note_migration(node.domain);
-            }
+        // ---- shards directly onto workers ------------------------------------------------------
+        // Locality resolution stops at the individual EX thread. There is no contiguous node range:
+        // the default is one flat round-robin across every executor in thread-id order.
+        const std::vector<uint32_t>& executors = placement_.ex_threads();
+        for (uint32_t sid = 0; sid < cfg.shards; sid++) {
+            const uint32_t tid = executors[sid % executors.size()];
+            threads_[tid]->shards().push_back(shards_[sid].get());
+            // The reverse mapping is the ONE load on dispatch and the ONE release store used by a
+            // future migration. Do not mirror ownership in another synchronised structure.
+            set_worker_of_shard(static_cast<int32_t>(sid), tid);
+            // Seed residency from this exact thread's cpu domain, so note_execution compares at
+            // thread resolution even when adjacent tids live in different L3 domains.
+            shards_[sid]->note_migration(placement_.domain_of_thread(tid));
         }
         return true;
     }

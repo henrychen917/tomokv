@@ -46,15 +46,18 @@ static void pin_to(int cpu) {
 
 int main(int argc, char** argv) {
     Config cfg;
+    bool saw_place = false;
+    bool saw_legacy_placement = false;
     for (int i = 1; i < argc; i++) {
         auto next = [&](const char* d) { return (i + 1 < argc) ? argv[++i] : d; };
         if      (!std::strcmp(argv[i], "--port"))       cfg.port = static_cast<uint16_t>(std::atoi(next("6379")));
         else if (!std::strcmp(argv[i], "--bind"))       cfg.bind_addr = next("127.0.0.1");
-        else if (!std::strcmp(argv[i], "--io"))         cfg.ifid_per_node = static_cast<uint32_t>(std::atoi(next("4")));
-        else if (!std::strcmp(argv[i], "--ex"))         cfg.ex_per_node = static_cast<uint32_t>(std::atoi(next("4")));
+        else if (!std::strcmp(argv[i], "--io"))       { saw_legacy_placement = true; cfg.ifid_per_node = static_cast<uint32_t>(std::atoi(next("4"))); }
+        else if (!std::strcmp(argv[i], "--ex"))       { saw_legacy_placement = true; cfg.ex_per_node = static_cast<uint32_t>(std::atoi(next("4"))); }
         // THE STATIC SPREAD KNOB. "io:ex" or "io:ex:wb". Everything is static -- there is no
         // controller and nothing rebalances at runtime, by design for now.
         else if (!std::strcmp(argv[i], "--spread")) {
+            saw_legacy_placement = true;
             const char* v = next("4:4");
             unsigned a = 0, b = 0, c = 0;
             const int got = std::sscanf(v, "%u:%u:%u", &a, &b, &c);
@@ -65,13 +68,18 @@ int main(int argc, char** argv) {
             cfg.ifid_per_node = a; cfg.ex_per_node = b; cfg.wb_per_node = (got == 3 ? c : 0);
         }
         else if (!std::strcmp(argv[i], "--shards"))     cfg.shards = static_cast<uint32_t>(std::atoi(next("16")));
-        else if (!std::strcmp(argv[i], "--nodes"))      cfg.nodes = static_cast<uint32_t>(std::atoi(next("0")));
+        else if (!std::strcmp(argv[i], "--nodes"))    { saw_legacy_placement = true; cfg.nodes = static_cast<uint32_t>(std::atoi(next("0"))); }
         else if (!std::strcmp(argv[i], "--no-pin"))     cfg.pin_threads = false;
         else if (!std::strcmp(argv[i], "--node-cpus")) {
+            saw_legacy_placement = true;
             // Operator-declared topology: comma-separated node cpu lists, '-' for ranges, '+' to
             // glue disjoint ranges into one node. "--node-cpus 0-3,4-7" = two declared nodes on one
             // CCX -- a shape discovery would never produce, which is the point.
             cfg.node_cpus = next("");
+        }
+        else if (!std::strcmp(argv[i], "--place")) {
+            saw_place = true;
+            cfg.place = next("");
         }
         else if (!std::strcmp(argv[i], "--wb")) {
             // Item 3: the honest knob. After wb-drains-ROB, write-back PLACEMENT is the only thing
@@ -90,8 +98,12 @@ int main(int argc, char** argv) {
             else { std::fprintf(stderr, "--mode must be 2s | exwb | 3s\n"); return 1; }
         }
         else if (!std::strcmp(argv[i], "--help")) {
-            std::printf("usage: %s [--port N] [--bind A] [--shards N] [--nodes N] [--no-pin]\n"
-                        "  two knobs, everything static:\n"
+            std::printf("usage: %s [--port N] [--bind A] [--shards N] [--no-pin]\n"
+                        "  explicit per-thread placement:\n"
+                        "    --place role@cpu,...        dense tid order, e.g. ifid@0,ex@2,wb@4\n"
+                        "  legacy placement sugar:\n"
+                        "    --nodes N                   L3-domain nodes (0 = all discovered)\n"
+                        "    --node-cpus LIST            declared node cpu groups, ranges joined by +\n"
                         "    --mode   2s | exwb | 3s     which stage issues the sends\n"
                         "    --spread io:ex[:wb]         the thread split, e.g. 4:4 or 3:3:2\n",
                         argv[0]);
@@ -102,21 +114,28 @@ int main(int argc, char** argv) {
             return 1;
         }
     }
-    if (cfg.ifid_per_node == 0 || cfg.ex_per_node == 0) {
+    if (saw_place && saw_legacy_placement) {
+        std::fprintf(stderr, "--place cannot be combined with --nodes, --spread, --node-cpus, --io, or --ex\n");
+        return 1;
+    }
+    if (!saw_place && (cfg.ifid_per_node == 0 || cfg.ex_per_node == 0)) {
         std::fprintf(stderr, "need at least one io and one ex thread per node\n");
         return 1;
     }
     // 3-stage needs somewhere to send from. Refuse loudly rather than silently falling back to 2s,
     // which would make a mode comparison quietly measure the same thing twice.
-    if (cfg.wb_mode == WbMode::Wb && cfg.wb_per_node == 0) {
+    if (!saw_place && cfg.wb_mode == WbMode::Wb && cfg.wb_per_node == 0) {
         std::fprintf(stderr, "--mode 3s needs a wb count: --spread io:ex:wb\n");
         return 1;
     }
-    if (cfg.wb_mode != WbMode::Wb && cfg.wb_per_node) {
+    if (!saw_place && cfg.wb_mode != WbMode::Wb && cfg.wb_per_node) {
         std::fprintf(stderr, "the wb field of --spread is only meaningful with --mode 3s\n");
         return 1;
     }
-    if (cfg.shards > 256) { std::fprintf(stderr, "shards capped at 256\n"); return 1; }
+    if (cfg.shards == 0 || cfg.shards > 256) {
+        std::fprintf(stderr, "shards must be between 1 and 256\n");
+        return 1;
+    }
 
     std::signal(SIGINT,  on_signal);
     std::signal(SIGTERM, on_signal);
@@ -139,30 +158,24 @@ int main(int argc, char** argv) {
     const char* mname = cfg.wb_mode == WbMode::Io ? "2s (io sends)"
                       : cfg.wb_mode == WbMode::Ex ? "ex-wb (executor sends)"
                                                   : "3s (dedicated wb sends)";
-    std::printf("tomokv-cpp: %u node(s) x (%u io + %u ex + %u wb) = %u threads, %u shard(s), %s,"
-                " io_uring, alloc=%s\n",
-                srv.placement().nnodes(), cfg.ifid_per_node, cfg.ex_per_node, cfg.wb_per_node,
-                srv.nthreads(), cfg.shards, mname, alloc_backend());
-    for (uint32_t n = 0; n < srv.placement().nnodes(); n++) {
-        const Node& nd = srv.placement().node(n);
-        std::printf("  node %u: L3 domain %u, %zu shard(s), %s[", nd.id, nd.domain, nd.shards.size(),
-                    cfg.wb_mode == WbMode::Wb ? "ifid" : "io");
-        for (size_t i = 0; i < nd.ifid.size(); i++) std::printf("%st%u", i ? "," : "", nd.ifid[i]);
-        std::printf("] ex[");
-        for (size_t i = 0; i < nd.ex.size(); i++) std::printf("%st%u", i ? "," : "", nd.ex[i]);
-        std::printf("]");
-        if (!nd.wb.empty()) { std::printf(" wb["); 
-            for (size_t i = 0; i < nd.wb.size(); i++) std::printf("%st%u", i ? "," : "", nd.wb[i]);
-            std::printf("]"); }
+    std::printf("tomokv-cpp: %u threads (%zu ifid + %zu ex + %zu wb), %u shard(s), %s,"
+                " io_uring, alloc=%s\n", srv.nthreads(),
+                srv.placement().ifid_threads().size(), srv.placement().ex_threads().size(),
+                srv.placement().wb_threads().size(), cfg.shards, mname, alloc_backend());
+    for (const ThreadPlacement& p : srv.placement().threads()) {
+        const char* role = p.role == Role::Ifid ? "ifid" : p.role == Role::Ex ? "ex" : "wb";
+        std::printf("  thread t%u: role=%s cpu=%d L3=%u shards=%zu send=", p.id, role, p.cpu,
+                    p.domain, srv.thread(p.id).shards().size());
+        if (p.send_target == kNoThread) std::printf("-");
+        else if (p.send_target == p.id) std::printf("self");
+        else std::printf("t%u", p.send_target);
         std::printf("\n");
     }
     std::printf("listening on %s:%u\n", cfg.bind_addr, cfg.port);
     std::fflush(stdout);
 
-    // Placement decides every cpu: a node's threads take distinct cpus from that node's L3 domain,
-    // so its io->ex handoff stays inside one cache. Pinning is relative to the process's ALLOWED set
-    // by construction, because Topology intersects with sched_getaffinity — a pin outside the mask
-    // leaves the thread silently floating rather than erroring.
+    // Placement decides every cpu directly. Pinning is relative to the process's ALLOWED set by
+    // construction because both discovery and --place validation intersect with sched affinity.
     const uint32_t nthreads = srv.nthreads();
     std::vector<std::thread> pool;
     std::vector<IoLoop> ios(nthreads);
@@ -177,48 +190,34 @@ int main(int argc, char** argv) {
     // Workers and senders BEFORE io: an io thread that dispatches or hands off to a thread whose
     // ring does not exist yet would find nothing to wake, and the work would sit until something
     // unrelated poked the peer.
-    for (uint32_t n = 0; n < srv.placement().nnodes(); n++) {
-        const Node& node = srv.placement().node(n);
-        for (uint32_t tid : node.ex)
-            pool.emplace_back([&, tid] {
-                pin_for(tid);
-                ThreadCtx& self = srv.thread(tid);
-                self.latch_placement(srv.topo());   // after pinning: sched_getcpu is only now truthful
-                bind_thread_arena();                // per-worker jemalloc arena; no-op without it
-                if (!exs[tid].init(&srv, &self, cfg.wb_mode)) return;
-                exs[tid].run();
-            });
-        for (uint32_t tid : node.wb)
-            pool.emplace_back([&, tid] {
-                pin_for(tid);
-                ThreadCtx& self = srv.thread(tid);
-                self.latch_placement(srv.topo());
-                if (!wbs[tid].init(&srv, &self)) return;
-                wbs[tid].run();
-            });
-    }
+    for (uint32_t tid : srv.placement().ex_threads())
+        pool.emplace_back([&, tid] {
+            pin_for(tid);
+            ThreadCtx& self = srv.thread(tid);
+            self.latch_placement(srv.topo());   // after pinning: sched_getcpu is only now truthful
+            bind_thread_arena();                // per-worker jemalloc arena; no-op without it
+            if (!exs[tid].init(&srv, &self, cfg.wb_mode)) return;
+            exs[tid].run();
+        });
+    for (uint32_t tid : srv.placement().wb_threads())
+        pool.emplace_back([&, tid] {
+            pin_for(tid);
+            ThreadCtx& self = srv.thread(tid);
+            self.latch_placement(srv.topo());
+            if (!wbs[tid].init(&srv, &self)) return;
+            wbs[tid].run();
+        });
 
-    for (uint32_t n = 0; n < srv.placement().nnodes(); n++) {
-        const Node& node = srv.placement().node(n);
-        for (size_t k = 0; k < node.ifid.size(); k++) {
-            const uint32_t tid = node.ifid[k];
-            pool.emplace_back([&, tid, k, n] {
-                pin_for(tid);
-                ThreadCtx& self = srv.thread(tid);
-                self.latch_placement(srv.topo());
-                if (!ios[tid].init(&srv, &self, cfg.wb_mode, cfg.bind_addr, cfg.port)) return;
-                // Who issues this io thread's sends. Chosen from its OWN node so the handoff stays
-                // inside one L3, and round-robin within the node so one sender does not absorb every
-                // io thread's traffic.
-                const Node& nd = srv.placement().node(n);
-                if (cfg.wb_mode == WbMode::Ex && !nd.ex.empty())
-                    ios[tid].set_send_target(&srv.thread(nd.ex[k % nd.ex.size()]));
-                else if (cfg.wb_mode == WbMode::Wb && !nd.wb.empty())
-                    ios[tid].set_send_target(&srv.thread(nd.wb[k % nd.wb.size()]));
-                ios[tid].run();
-            });
-        }
-    }
+    for (uint32_t tid : srv.placement().ifid_threads())
+        pool.emplace_back([&, tid] {
+            pin_for(tid);
+            ThreadCtx& self = srv.thread(tid);
+            self.latch_placement(srv.topo());
+            if (!ios[tid].init(&srv, &self, cfg.wb_mode, cfg.bind_addr, cfg.port)) return;
+            const uint32_t sender = srv.placement().thread(tid).send_target;
+            if (sender != tid) ios[tid].set_send_target(&srv.thread(sender));
+            ios[tid].run();
+        });
 
     for (auto& t : pool) t.join();
 

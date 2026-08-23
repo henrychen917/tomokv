@@ -1,28 +1,19 @@
-// placement.h — nodes, thread assignment, shard homing, and the migration contract.
+// placement.h — per-thread role/cpu placement and the shard migration contract.
 //
-// A NODE IS A COMPLETE UNIT: its own io threads, its own ex threads, its own shards, all pinned into
-// ONE shared-L3 domain. That is the whole point and it is what the previous version was missing — it
-// homed shards on nodes but let io threads land anywhere, so the io->ex handoff crossed L3 domains
-// on nearly every operation, which is exactly the traffic a node exists to keep local.
+// THREAD IS THE LOCALITY UNIT. Each dense thread id has one role, one cpu and therefore one L3
+// domain. There is deliberately no node layer between a thread and those facts: SMT siblings,
+// cross-CCX layouts and deliberately asymmetric experiments all fit the same representation.
 //
-// WHAT THE NODE BUYS. The dispatch hop moves a Task into a worker's inbox and the completion moves a
-// pointer back; both are cache-line transfers between two threads. Inside one L3 those stay in that
-// cache. Across domains they cross the fabric, where a CCX link saturates near 51 GB/s and a single
-// core can already pull 50. On this box, sizing a node to exactly one L3 domain (8 physical cores,
-// one CCX, 16 MB) was worth +22.3% on set_p16 and +14.2% on mget8 versus one wide node, with the
-// optimum landing ON the cache boundary rather than near it.
-//
-// STILL NOT A FENCE. Routing is unchanged: shard = f(key), worker = worker_of_shard[shard], one
-// atomic load. A key owned by node A can be dispatched by an io thread in node B — that costs the
-// cross-domain hop, and the foreign_ops counter on the shard measures exactly how often it happens.
-// A later LB moves work by storing a different thread id; nothing here forecloses that.
-//
-// SPREAD IS PER NODE, matching the fork's `tomokv-thread-io`/`-ex`, so --spread 4:4 --nodes 2 means
-// eight io and eight ex threads in total. Per-node is the right unit because the split that matters
-// is the one inside a node, where the handoff actually happens.
+// The legacy node/spread interface is only a lowering rule. It still creates the same node-major
+// role and cpu sequence as before, then discards the temporary grouping. From that point onward the
+// server cannot tell whether placement came from --place or from --nodes/--spread, which prevents
+// the two front-ends from acquiring subtly different routing or launch behaviour.
 #pragma once
 #include <atomic>
 #include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <vector>
 #include "shard.h"
 #include "thread.h"
@@ -30,121 +21,132 @@
 
 namespace tomo {
 
-struct Node {
-    uint32_t              id     = 0;
-    uint32_t              domain = kNoDomain;   // the L3 domain this node is pinned into
-    std::vector<int32_t>  shards;               // shard ids homed here
-    std::vector<uint32_t> ifid;                 // ifid thread ids in this node (the recv/parse role)
-    std::vector<uint32_t> ex;                   // ex thread ids in this node
-    std::vector<uint32_t> wb;                   // wb thread ids in this node (3s only)
-    std::vector<int>      cpus;                 // cpus of the domain, for pinning
+inline constexpr uint32_t kNoThread = UINT32_MAX;
+
+struct ThreadPlacement {
+    uint32_t id          = 0;
+    Role     role        = Role::Idle;
+    int      cpu         = -1;
+    uint32_t domain      = kNoDomain;
+    uint32_t send_target = kNoThread;  // self in 2s; an ex/wb tid in exwb/3s
 };
 
 class Placement {
 public:
-    // `want_nodes == 0` means one node per L3 domain, which is the measured optimum and therefore
-    // the default rather than something an operator has to know to ask for.
-    //
-    // CLAMPED BY BOTH the domain count and the thread budget: a node needs at least one io and one
-    // ex thread of its own, so more nodes than we can staff would leave some with none. A node with
-    // no threads is not a node, and silently creating one produces shards nobody serves.
-    void build(const Topology& topo, uint32_t want_nodes, uint32_t nshards,
-               uint32_t ifid_per_node, uint32_t ex_per_node, uint32_t wb_per_node) {
-        nodes_.clear();
+    // Preserve the old CLI's exact lowering: node-major ids, role-major within each node, and cpus
+    // selected in domain order (wrapping only when a node has more threads than allowed cpus).
+    bool build_legacy(const Topology& topo, uint32_t want_nodes, uint32_t nshards,
+                      uint32_t ifid_per_node, uint32_t ex_per_node, uint32_t wb_per_node) {
+        clear();
         const uint32_t nd = topo.ndomains() ? topo.ndomains() : 1;
         uint32_t n = want_nodes ? want_nodes : nd;
         if (n > nd) n = nd;                     // never more nodes than L3 domains
         if (n == 0) n = 1;
         if (nshards < n) n = nshards ? nshards : 1;   // every node must own at least one shard
-
-        ifid_per_node_ = ifid_per_node ? ifid_per_node : 1;
-        ex_per_node_ = ex_per_node ? ex_per_node : 1;
-        wb_per_node_ = wb_per_node;
-        nnodes_      = n;
-
+        const uint64_t total = static_cast<uint64_t>(n) *
+                               (ifid_per_node + ex_per_node + wb_per_node);
+        if (total > kMaxThreads) {
+            std::fprintf(stderr, "placement: %llu threads exceeds the %u-thread channel limit\n",
+                         static_cast<unsigned long long>(total), kMaxThreads);
+            return false;
+        }
         for (uint32_t i = 0; i < n; i++) {
-            Node node;
-            node.id     = i;
-            node.domain = i % nd;
-            node.cpus   = topo.cpus_in(node.domain);
-            nodes_.push_back(std::move(node));
-        }
-        // Contiguous shard ranges per node, so a node owns a contiguous bucket range and a scan does
-        // not have to touch every node.
-        const uint32_t per = nshards / n;
-        for (uint32_t s = 0; s < nshards; s++) {
-            uint32_t ni = per ? (s / per) : 0;
-            if (ni >= n) ni = n - 1;
-            nodes_[ni].shards.push_back(static_cast<int32_t>(s));
-        }
-    }
-
-    // Thread ids are dense and grouped BY NODE, so a node's io and ex threads are adjacent and land
-    // in the same domain when pinned:
-    //     node0: io... ex... wb...   node1: io... ex... wb...   ...
-    // Grouping by node rather than by role is what keeps a node's handoff inside one L3.
-    void assign_threads() {
-        uint32_t tid = 0;
-        for (auto& node : nodes_) {
-            for (uint32_t k = 0; k < ifid_per_node_; k++) node.ifid.push_back(tid++);
-            for (uint32_t k = 0; k < ex_per_node_; k++) node.ex.push_back(tid++);
-            for (uint32_t k = 0; k < wb_per_node_; k++) node.wb.push_back(tid++);
-        }
-        total_threads_ = tid;
-    }
-
-    uint32_t nnodes()        const { return nnodes_; }
-    uint32_t total_threads() const { return total_threads_; }
-    uint32_t ifid_per_node()   const { return ifid_per_node_; }
-    uint32_t ex_per_node()   const { return ex_per_node_; }
-    uint32_t wb_per_node()   const { return wb_per_node_; }
-
-    Node&       node(uint32_t i)       { return nodes_[i]; }
-    const Node& node(uint32_t i) const { return nodes_[i]; }
-    const std::vector<Node>& nodes() const { return nodes_; }
-
-    // Role of a thread id, derived from the same dense layout assign_threads() built.
-    Role role_of(uint32_t tid) const {
-        for (const auto& n : nodes_) {
-            for (uint32_t t : n.ifid) if (t == tid) return Role::Ifid;
-            for (uint32_t t : n.ex) if (t == tid) return Role::Ex;
-            for (uint32_t t : n.wb) if (t == tid) return Role::Wb;
-        }
-        return Role::Idle;
-    }
-
-    uint32_t node_of_thread(uint32_t tid) const {
-        for (const auto& n : nodes_) {
-            for (uint32_t t : n.ifid) if (t == tid) return n.id;
-            for (uint32_t t : n.ex) if (t == tid) return n.id;
-            for (uint32_t t : n.wb) if (t == tid) return n.id;
-        }
-        return 0;
-    }
-
-    // Which cpu a thread should pin to. Threads of a node take distinct cpus from that node's domain
-    // so they share its L3 without sharing a core.
-    int cpu_of_thread(uint32_t tid) const {
-        for (const auto& n : nodes_) {
+            const uint32_t domain = i % nd;
+            const std::vector<int>& cpus = topo.cpus_in(domain);
             uint32_t slot = 0;
-            for (uint32_t t : n.ifid) { if (t == tid) return pick(n, slot); slot++; }
-            for (uint32_t t : n.ex) { if (t == tid) return pick(n, slot); slot++; }
-            for (uint32_t t : n.wb) { if (t == tid) return pick(n, slot); slot++; }
+            for (uint32_t k = 0; k < ifid_per_node; k++) append(Role::Ifid, pick(cpus, slot++), domain);
+            for (uint32_t k = 0; k < ex_per_node; k++) append(Role::Ex, pick(cpus, slot++), domain);
+            for (uint32_t k = 0; k < wb_per_node; k++) append(Role::Wb, pick(cpus, slot++), domain);
         }
-        return -1;
+        return true;
     }
+
+    // --place is intentionally a small, strict language. Boot configuration should fail at the
+    // first typo instead of accepting a partial placement and letting unpinned threads float.
+    bool build_explicit(const Topology& topo, const char* spec) {
+        clear();
+        if (!spec || !*spec) {
+            std::fprintf(stderr, "--place must contain role@cpu entries\n");
+            return false;
+        }
+        const char* p = spec;
+        while (*p) {
+            Role role = Role::Idle;
+            if (!std::strncmp(p, "ifid@", 5)) {
+                role = Role::Ifid; p += 5;
+            } else if (!std::strncmp(p, "ex@", 3)) {
+                role = Role::Ex; p += 3;
+            } else if (!std::strncmp(p, "wb@", 3)) {
+                role = Role::Wb; p += 3;
+            } else {
+                std::fprintf(stderr, "--place: expected ifid@cpu, ex@cpu, or wb@cpu near '%s'\n", p);
+                return false;
+            }
+            if (*p < '0' || *p > '9') {
+                std::fprintf(stderr, "--place: expected a non-negative cpu near '%s'\n", p);
+                return false;
+            }
+            char* end = nullptr;
+            const long cpu = std::strtol(p, &end, 10);
+            if (cpu < 0 || cpu >= CPU_SETSIZE || (*end != ',' && *end != '\0')) {
+                std::fprintf(stderr, "--place: invalid cpu near '%s'\n", p);
+                return false;
+            }
+            const uint32_t domain = topo.domain_of(static_cast<int>(cpu));
+            if (domain == kNoDomain) {
+                std::fprintf(stderr, "--place: cpu %ld is outside the affinity mask\n", cpu);
+                return false;
+            }
+            if (threads_.size() == kMaxThreads) {
+                std::fprintf(stderr, "--place exceeds the %u-thread channel limit\n", kMaxThreads);
+                return false;
+            }
+            append(role, static_cast<int>(cpu), domain);
+            if (*end == '\0') break;
+            p = end + 1;
+            if (!*p) {
+                std::fprintf(stderr, "--place: trailing comma\n");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    uint32_t total_threads() const { return static_cast<uint32_t>(threads_.size()); }
+
+    ThreadPlacement&       thread(uint32_t tid)       { return threads_[tid]; }
+    const ThreadPlacement& thread(uint32_t tid) const { return threads_[tid]; }
+    const std::vector<ThreadPlacement>& threads() const { return threads_; }
+    const std::vector<uint32_t>& ifid_threads() const { return ifid_; }
+    const std::vector<uint32_t>& ex_threads()   const { return ex_; }
+    const std::vector<uint32_t>& wb_threads()   const { return wb_; }
+
+    Role role_of(uint32_t tid) const { return threads_[tid].role; }
+    int cpu_of_thread(uint32_t tid) const { return threads_[tid].cpu; }
+    uint32_t domain_of_thread(uint32_t tid) const { return threads_[tid].domain; }
 
 private:
-    static int pick(const Node& n, uint32_t slot) {
-        return n.cpus.empty() ? -1 : n.cpus[slot % n.cpus.size()];
+    void clear() {
+        threads_.clear();
+        ifid_.clear();
+        ex_.clear();
+        wb_.clear();
     }
 
-    std::vector<Node> nodes_;
-    uint32_t nnodes_        = 0;
-    uint32_t ifid_per_node_   = 1;
-    uint32_t ex_per_node_   = 1;
-    uint32_t wb_per_node_   = 0;
-    uint32_t total_threads_ = 0;
+    void append(Role role, int cpu, uint32_t domain) {
+        const uint32_t tid = static_cast<uint32_t>(threads_.size());
+        threads_.push_back(ThreadPlacement{tid, role, cpu, domain, kNoThread});
+        (role == Role::Ifid ? ifid_ : role == Role::Ex ? ex_ : wb_).push_back(tid);
+    }
+
+    static int pick(const std::vector<int>& cpus, uint32_t slot) {
+        return cpus.empty() ? -1 : cpus[slot % cpus.size()];
+    }
+
+    std::vector<ThreadPlacement> threads_;
+    std::vector<uint32_t> ifid_;
+    std::vector<uint32_t> ex_;
+    std::vector<uint32_t> wb_;
 };
 
 // ---------------------------------------------------------------------------------------------
