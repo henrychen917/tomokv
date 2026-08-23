@@ -37,6 +37,7 @@ struct Config {
     // 0 means "one node per L3 domain", which is the measured optimum and therefore the default
     // rather than something an operator has to know to ask for.
     uint32_t nodes          = 0;
+    const char* node_cpus   = nullptr;   // operator-declared topology; null = self-discover
     // Shards should outnumber workers: a shard is the unit of migration, so more shards gives the
     // LB finer granularity. Too many and each one's working set stops being worth its own table.
     uint32_t shards         = 16;
@@ -60,7 +61,19 @@ public:
 
     bool init(const Config& cfg) {
         cfg_ = cfg;
-        topo_.discover();
+        // Declared topology wins over discovery -- the operator is saying "build exactly these
+        // nodes", including shapes discovery would never produce (cross-CCX nodes, SMT pairs,
+        // deliberate mis-placement). A declaration that fails to parse or names cpus outside the
+        // affinity mask fails the BOOT, loudly: a topology experiment silently falling back to
+        // auto-discovery would measure the wrong thing and report it as a result.
+        if (cfg.node_cpus && *cfg.node_cpus) {
+            if (!topo_.declare(cfg.node_cpus)) {
+                std::fprintf(stderr, "fatal: --node-cpus '%s' invalid\n", cfg.node_cpus);
+                return false;
+            }
+        } else {
+            topo_.discover();
+        }
         placement_.build(topo_, cfg.nodes, cfg.shards,
                          cfg.ifid_per_node, cfg.ex_per_node, cfg.wb_per_node);
         placement_.assign_threads();

@@ -39,6 +39,49 @@ public:
     // Discovers L3 domains for the CPUs this process is ALLOWED to run on. Respecting the affinity
     // mask matters: under taskset the machine's full topology is not what we get, and assuming
     // otherwise is how threads end up "placed" onto cpus they can never run on.
+    // OPERATOR-DECLARED TOPOLOGY (the fork's tomokv-nodes/pin-mode side of the coin). The spec
+    // names each node's cpus explicitly -- "0-7,8-15" builds two declared domains -- and discovery
+    // is bypassed entirely, so an experiment can span CCX boundaries, build uneven nodes, pair SMT
+    // siblings, or deliberately mis-place threads to measure what that costs. The declaration is
+    // still intersected with the affinity mask: a cpu the process cannot run on is a config error
+    // worth failing loudly on, not silently pinning to.
+    bool declare(const char* spec) {
+        cpu_set_t allowed;
+        CPU_ZERO(&allowed);
+        if (sched_getaffinity(0, sizeof(allowed), &allowed) != 0) return false;
+        domain_of_.assign(CPU_SETSIZE, kNoDomain);
+        domains_.clear();
+
+        const char* p = spec;
+        while (*p) {
+            std::vector<int> cpus;
+            while (*p && *p != ',') {
+                char* end = nullptr;
+                long a = std::strtol(p, &end, 10);
+                if (end == p) return false;
+                long b = a;
+                if (*end == '-') { p = end + 1; b = std::strtol(p, &end, 10); if (end == p) return false; }
+                for (long c = a; c <= b; c++) {
+                    if (c < 0 || c >= CPU_SETSIZE) return false;
+                    if (!CPU_ISSET(c, &allowed)) {
+                        std::fprintf(stderr, "topology: declared cpu %ld is outside the affinity mask\n", c);
+                        return false;
+                    }
+                    cpus.push_back(static_cast<int>(c));
+                }
+                p = end;
+                if (*p == '+') p++;                      // "0-3+8-11" glues ranges into one node
+            }
+            if (!cpus.empty()) {
+                const uint32_t id = static_cast<uint32_t>(domains_.size());
+                for (int c : cpus) domain_of_[c] = id;
+                domains_.push_back(std::move(cpus));
+            }
+            if (*p == ',') p++;
+        }
+        return !domains_.empty();
+    }
+
     bool discover() {
         cpu_set_t allowed;
         CPU_ZERO(&allowed);

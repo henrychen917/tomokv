@@ -66,8 +66,13 @@ int main(int argc, char** argv) {
         }
         else if (!std::strcmp(argv[i], "--shards"))     cfg.shards = static_cast<uint32_t>(std::atoi(next("16")));
         else if (!std::strcmp(argv[i], "--nodes"))      cfg.nodes = static_cast<uint32_t>(std::atoi(next("0")));
-        else if (!std::strcmp(argv[i], "--wb"))         cfg.wb_per_node = static_cast<uint32_t>(std::atoi(next("0")));
         else if (!std::strcmp(argv[i], "--no-pin"))     cfg.pin_threads = false;
+        else if (!std::strcmp(argv[i], "--node-cpus")) {
+            // Operator-declared topology: comma-separated node cpu lists, '-' for ranges, '+' to
+            // glue disjoint ranges into one node. "--node-cpus 0-3,4-7" = two declared nodes on one
+            // CCX -- a shape discovery would never produce, which is the point.
+            cfg.node_cpus = next("");
+        }
         else if (!std::strcmp(argv[i], "--wb")) {
             // Item 3: the honest knob. After wb-drains-ROB, write-back PLACEMENT is the only thing
             // the old mode names varied, so name the dimension: who sends. --mode stays an alias.
@@ -91,6 +96,10 @@ int main(int argc, char** argv) {
                         "    --spread io:ex[:wb]         the thread split, e.g. 4:4 or 3:3:2\n",
                         argv[0]);
             return 0;
+        }
+        else {
+            std::fprintf(stderr, "unknown argument '%s' (see --help)\n", argv[i]);
+            return 1;
         }
     }
     if (cfg.ifid_per_node == 0 || cfg.ex_per_node == 0) {
