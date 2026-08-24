@@ -78,6 +78,12 @@ public:
     size_t memory_bytes() const {
         return hashes_.capacity() * sizeof(uint64_t) + states_.capacity() * sizeof(uint8_t);
     }
+    void clear() {
+        hashes_.clear();
+        states_.clear();
+        live_ = tombs_ = 0;
+        cursor_ = 0;
+    }
 
     bool insert(uint64_t hash) {
         if (hashes_.empty() && !allocate(16)) return false;
@@ -269,6 +275,8 @@ public:
     bool     rehashing() const { return tab_[1] != nullptr; }
     uint32_t size() const { return live_[0] + live_[1]; }
     uint32_t capacity() const { return cap_[0] + cap_[1]; }
+    size_t object_bytes() const { return obj_bytes_; }
+    uint32_t expire_count() const { return expires_.size(); }
 
     // What a migration of this shard would cost the NEW domain to re-pull through the fabric. Not a
     // copy cost — nothing is copied — but an L3 domain is filled by access, so a shard that moves
@@ -432,6 +440,69 @@ public:
             if (tab_[t])
                 for (uint32_t i = 0; i < cap_[t]; i++)
                     if (KvObj* o = ptr_of(tab_[t][i])) fn(o);
+    }
+
+    // FLUSH is intentionally proportional to the table capacity it discards. Borrowed string
+    // values move to the existing retirement list, so a send already in flight remains valid.
+    void clear() {
+        for (int t = 0; t < 2; t++) {
+            if (!tab_[t]) continue;
+            for (uint32_t i = 0; i < cap_[t]; i++)
+                if (KvObj* o = ptr_of(tab_[t][i])) retire_obj(o);
+            std::free(tab_[t]);
+            tab_[t] = nullptr;
+            cap_[t] = mask_[t] = live_[t] = tombs_[t] = 0;
+        }
+        expires_.clear();
+        rehash_pos_ = 0;
+        alloc_table(0, 1024);
+    }
+
+    // RANDOMKEY starts at a pseudo-random physical slot and wraps at most once through both
+    // tables. Lazy expiry is performed on the owner before a key is exposed.
+    KvObj* random_live(uint64_t random) {
+        const uint64_t total = static_cast<uint64_t>(cap_[0]) + cap_[1];
+        if (!total || size() == 0) return nullptr;
+        const uint64_t start_pos = random % total;
+        for (uint64_t step = 0; step < total; step++) {
+            uint64_t pos = start_pos + step;
+            if (pos >= total) pos -= total;
+            const int t = pos < cap_[0] ? 0 : 1;
+            const uint32_t slot = static_cast<uint32_t>(pos - (t ? cap_[0] : 0));
+            KvObj* o = ptr_of(tab_[t][slot]);
+            if (!o) continue;
+            if (!(o->flags & KvObjFlags::HasTtl) || o->expire_at_ms() > cached_now_ms_) return o;
+            const uint64_t h = hash_key(o->key());
+            erase_in(t, h, o->key());
+            if (expired_counter_) (*expired_counter_)++;
+        }
+        return nullptr;
+    }
+
+    // Cursor layout inside one shard: bit 32 selects the rehash table and bits 31..0 hold the next
+    // physical slot. COUNT is a slot-work hint, so one call never hides an unbounded sparse-table
+    // walk. A stable keyspace is covered completely; mutation may duplicate or omit entries, like
+    // Redis's SCAN family.
+    template <typename Fn>
+    uint64_t scan(uint64_t cursor, uint32_t count, Fn&& fn) {
+        uint32_t t = static_cast<uint32_t>((cursor >> 32) & 1u);
+        uint32_t pos = static_cast<uint32_t>(cursor);
+        uint32_t checked = 0;
+        while (t < 2 && checked < count) {
+            if (!tab_[t] || pos >= cap_[t]) { t++; pos = 0; continue; }
+            KvObj* o = ptr_of(tab_[t][pos++]);
+            checked++;
+            if (!o) continue;
+            if ((o->flags & KvObjFlags::HasTtl) && o->expire_at_ms() <= cached_now_ms_) {
+                const uint64_t h = hash_key(o->key());
+                erase_in(static_cast<int>(t), h, o->key());
+                if (expired_counter_) (*expired_counter_)++;
+                continue;
+            }
+            fn(o);
+        }
+        while (t < 2 && (!tab_[t] || pos >= cap_[t])) { t++; pos = 0; }
+        return t >= 2 ? 0 : (static_cast<uint64_t>(t) << 32) | pos;
     }
 
     // Warm the slots this key will probe, for a whole batch before any of it executes, so the DRAM

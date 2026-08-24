@@ -5,7 +5,6 @@
 // server metadata or published shard counters.
 #include "command.h"
 #include "../core/shard.h"
-#include "../core/server.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
 #include "../store/kvobj.h"
@@ -732,52 +731,6 @@ void cmd_object(Shard& sh, Op& op) {
     reply_bulk(op.sink(), Slice(name, static_cast<uint32_t>(std::strlen(name))));
 }
 
-// These read PUBLISHED counters only. An IO thread must never inspect a worker-owned FlatStore.
-Server* g_server = nullptr;
-
-void cmd_dbsize(Shard&, Op& op) {
-    uint64_t n = 0;
-    if (g_server) for (uint32_t i = 0; i < g_server->nshards(); i++)
-        n += g_server->shard(static_cast<int32_t>(i)).published_size();
-    reply_int(op.sink(), static_cast<long long>(n));
-}
-
-void cmd_info(Shard&, Op& op) {
-    char buf[1024];
-    uint64_t keys = 0, hits = 0, misses = 0, ops = 0;
-    uint32_t nsh = 0;
-    if (g_server) {
-        nsh = g_server->nshards();
-        for (uint32_t i = 0; i < nsh; i++) {
-            const Shard& sh = g_server->shard(static_cast<int32_t>(i));
-            keys += sh.published_size();
-            hits += sh.stats().hits; misses += sh.stats().misses; ops += sh.stats().ops;
-        }
-    }
-    int n = std::snprintf(buf, sizeof(buf),
-        "# Server\r\ntomokv_version:0.1-cpp\r\n"
-        "# Keyspace\r\ndb0:keys=%llu\r\n"
-        "# Stats\r\ntotal_commands_processed:%llu\r\nkeyspace_hits:%llu\r\nkeyspace_misses:%llu\r\n"
-        "# Tomo\r\ntomokv_shards:%u\r\n",
-        (unsigned long long)keys, (unsigned long long)ops,
-        (unsigned long long)hits, (unsigned long long)misses, nsh);
-    reply_bulk(op.sink(), Slice(buf, static_cast<uint32_t>(n)));
-}
-
-void cmd_select(Shard&, Op& op) {
-    long long db = 0;
-    if (!parse_ll(op.arg(1), db) || db != 0) {
-        reply_err(op.sink(), "ERR this server supports a single keyspace; only SELECT 0 is valid");
-        return;
-    }
-    reply_ok(op.sink());
-}
-
-void cmd_config(Shard&, Op& op)  { reply_array_header(op.sink(), 0); }
-void cmd_ping(Shard&, Op& op)    { if (op.argc() == 2) reply_bulk(op.sink(), op.arg(1)); else reply_pong(op.sink()); }
-void cmd_echo(Shard&, Op& op)    { reply_bulk(op.sink(), op.arg(1)); }
-void cmd_command(Shard&, Op& op) { reply_array_header(op.sink(), 0); }
-
 static const CommandSpec kTable[] = {
     // name          min max flags                                  handler          first last step
     {"GET",           2,  2,  CmdFlags::Readonly,                    cmd_get,          1,  1,  1},
@@ -810,18 +763,9 @@ static const CommandSpec kTable[] = {
     {"PEXPIRETIME",   2,  2,  CmdFlags::Readonly,                    cmd_pexpiretime,  1,  1,  1},
     {"TYPE",          2,  2,  CmdFlags::Readonly,                    cmd_type,         1,  1,  1},
     {"OBJECT",        3,  3,  CmdFlags::Readonly | CmdFlags::Admin,  cmd_object,       2,  2,  1},
-    {"PING",          1, -1,  CmdFlags::ConnLocal,                   cmd_ping,         0,  0,  0},
-    {"ECHO",          2,  2,  CmdFlags::ConnLocal,                   cmd_echo,         0,  0,  0},
-    {"COMMAND",       1, -1,  CmdFlags::ConnLocal | CmdFlags::Admin, cmd_command,      0,  0,  0},
-    {"DBSIZE",        1,  1,  CmdFlags::ConnLocal | CmdFlags::Admin, cmd_dbsize,       0,  0,  0},
-    {"INFO",          1, -1,  CmdFlags::ConnLocal | CmdFlags::Admin, cmd_info,         0,  0,  0},
-    {"SELECT",        2,  2,  CmdFlags::ConnLocal,                   cmd_select,       0,  0,  0},
-    {"CONFIG",        2, -1,  CmdFlags::ConnLocal | CmdFlags::Admin, cmd_config,       0,  0,  0},
 };
 
 }  // namespace
-
-void command_bind_server(Server* server) { g_server = server; }
 
 CommandTable string_command_table() {
     return {kTable, sizeof(kTable) / sizeof(kTable[0])};

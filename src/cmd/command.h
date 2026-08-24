@@ -23,6 +23,10 @@ struct CmdFlags {
     static constexpr uint32_t Readonly  = 1u << 1;
     static constexpr uint32_t Admin     = 1u << 2;
     static constexpr uint32_t ConnLocal = 1u << 3;   // answered on the IO thread; never dispatched
+    static constexpr uint32_t AllShards = 1u << 4;   // one public op, one owner task per shard
+    static constexpr uint32_t RandomShard = 1u << 5; // keyless op routed by the IO thread's PRNG
+    static constexpr uint32_t CursorShard = 1u << 6; // shard id is encoded in argv[1]'s cursor
+    static constexpr uint32_t ConfigRoute = 1u << 7; // GET is IO-local; SET fans out as control work
 };
 
 using CmdHandler = void (*)(Shard&, Op&);
@@ -41,6 +45,10 @@ struct CommandSpec {
     int16_t     first_key;
     int16_t     last_key;
     int16_t     key_step;
+
+    // Dense boot-assigned id. Family tables leave this zero; commands.cc copies their rows into
+    // registry-owned storage and assigns the final value before any server thread starts.
+    uint16_t    id = 0;
 };
 
 struct CommandTable {
@@ -48,21 +56,41 @@ struct CommandTable {
     size_t             size;
 };
 
-// Every family owns its table; the registry calls all five even while four are empty foundations.
+// Every family owns its table; the registry calls all six even while four type lanes are empty
+// foundations.
 CommandTable string_command_table();
 CommandTable hash_command_table();
 CommandTable list_command_table();
 CommandTable set_command_table();
 CommandTable zset_command_table();
+CommandTable server_command_table();
 
 // Built once before threads start. Lookup hashes the uppercase-normalized bytes into an open-
 // addressed table; the load factor is capped at 1/2 so ordinary command names land in one probe.
 bool command_registry_init();
 const CommandSpec* command_lookup(Slice name);
 bool command_arity_ok(const CommandSpec& spec, uint32_t argc);
+uint32_t command_registry_size();
+const CommandSpec* command_registry_at(uint32_t id);
 
 class Server;
+class Client;
+class ThreadCtx;
 // Lets the connection-local admin commands read published per-shard counters.
 void command_bind_server(Server* s);
+
+// ConnLocal handlers retain the small, uniform CmdHandler ABI. IO binds this thread-local context
+// only around the synchronous handler call; executors never see a Client or a socket.
+void command_set_local_context(Client* client, ThreadCtx* thread);
+
+// CLIENT LIST metadata is kept out of Client so its 1984-byte footprint remains locked.
+void command_client_connected(Client* client, const char* addr);
+void command_client_disconnected(Client* client);
+
+// Special routing helpers. Validation writes a complete error reply into op on failure.
+bool command_prepare_scan_route(Server& server, Op& op);
+bool command_validate_all_shards(Op& op);
+bool command_config_routes_all_shards(Op& op);
+bool command_validate_config_set(Op& op);
 
 }  // namespace tomo

@@ -7,8 +7,11 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/un.h>
 #include <unistd.h>
 #include <csignal>
+#include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -74,6 +77,7 @@ int main(int argc, char** argv) {
         auto next = [&](const char* d) { return (i + 1 < argc) ? argv[++i] : d; };
         if      (!std::strcmp(argv[i], "--port"))       cfg.port = static_cast<uint16_t>(std::atoi(next("6379")));
         else if (!std::strcmp(argv[i], "--bind"))       cfg.bind_addr = next("127.0.0.1");
+        else if (!std::strcmp(argv[i], "--unixsocket")) cfg.unixsocket = next("");
         // WHOLE-SERVER role counts, evenly spread across L3 domains by the server itself.
         // This is the runtime replacement for authoring --place strings offline, and the knob a
         // flip controller will drive: counts in, placement out, no per-node arithmetic.
@@ -148,7 +152,7 @@ int main(int argc, char** argv) {
             if (std::strcmp(m, "2s")) { std::fprintf(stderr, "3s was deleted 2026-08-24; this server is pure 2s\n"); return 1; }
         }
         else if (!std::strcmp(argv[i], "--help")) {
-            std::printf("usage: %s [--port N] [--bind A] [--shards N] [--zc-min N] [--no-pin]\n"
+            std::printf("usage: %s [--port N] [--bind A] [--unixsocket PATH] [--shards N] [--zc-min N] [--no-pin]\n"
                         "  placement (pure 2s; default = even io/ex split over all allowed cpus):\n"
                         "    --ratio io:ex               GLOBAL counts, spread evenly over L3 domains\n"
                         "    --place role@cpu,...        explicit per-thread; roles are ifid, ex\n"
@@ -196,6 +200,44 @@ int main(int argc, char** argv) {
         ::close(probe);
     }
 
+    int unix_listener = -1;
+    if (cfg.unixsocket && *cfg.unixsocket) {
+        struct stat st{};
+        if (::lstat(cfg.unixsocket, &st) == 0) {
+            if (!S_ISSOCK(st.st_mode)) {
+                std::fprintf(stderr, "refusing to replace non-socket unix path '%s'\n", cfg.unixsocket);
+                return 1;
+            }
+            sockaddr_un sa{};
+            sa.sun_family = AF_UNIX;
+            if (std::strlen(cfg.unixsocket) >= sizeof(sa.sun_path)) {
+                std::fprintf(stderr, "unixsocket path is too long\n");
+                return 1;
+            }
+            std::memcpy(sa.sun_path, cfg.unixsocket, std::strlen(cfg.unixsocket) + 1);
+            const int probe_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+            if (probe_fd < 0) { std::perror("socket unixsocket probe"); return 1; }
+            if (::connect(probe_fd, reinterpret_cast<sockaddr*>(&sa), sizeof(sa)) == 0) {
+                ::close(probe_fd);
+                std::fprintf(stderr, "unixsocket path '%s' is already accepting connections\n",
+                             cfg.unixsocket);
+                return 1;
+            }
+            const int connect_error = errno;
+            ::close(probe_fd);
+            if (connect_error != ECONNREFUSED && connect_error != ENOENT) {
+                errno = connect_error;
+                std::perror("connect unixsocket probe");
+                return 1;
+            }
+            if (::unlink(cfg.unixsocket) != 0) { std::perror("unlink unixsocket"); return 1; }
+        } else if (errno != ENOENT) {
+            std::perror("stat unixsocket"); return 1;
+        }
+        unix_listener = IoLoop::make_unix_listener(cfg.unixsocket);
+        if (unix_listener < 0) { std::perror("bind unixsocket"); return 1; }
+    }
+
     srv.topo().dump(stdout);
     const char* mname = "2s (io sends)";
     std::printf("tomokv-cpp: %u threads (%zu io + %zu ex), %u shard(s), %s,"
@@ -209,6 +251,7 @@ int main(int argc, char** argv) {
         std::printf("self\n");
     }
     std::printf("listening on %s:%u\n", cfg.bind_addr, cfg.port);
+    if (unix_listener >= 0) std::printf("listening on unix:%s\n", cfg.unixsocket);
     std::fflush(stdout);
 
     // Placement decides every cpu directly. Pinning is relative to the process's ALLOWED set by
@@ -236,16 +279,19 @@ int main(int argc, char** argv) {
             exs[tid].run();
         });
 
+    const uint32_t unix_owner = srv.placement().ifid_threads().front();
     for (uint32_t tid : srv.placement().ifid_threads())
         pool.emplace_back([&, tid] {
             pin_for(tid);
             ThreadCtx& self = srv.thread(tid);
             self.latch_placement(srv.topo());
-            if (!ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port)) return;
+            const int unix_fd = tid == unix_owner ? unix_listener : -1;
+            if (!ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, unix_fd)) return;
             ios[tid].run();
         });
 
     for (auto& t : pool) t.join();
+    if (cfg.unixsocket && *cfg.unixsocket) ::unlink(cfg.unixsocket);
 
     // One line of accounting on the way out. Cheap, and the absence of it is how a run ends with no
     // evidence of what it did.

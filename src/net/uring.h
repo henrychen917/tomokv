@@ -28,6 +28,7 @@ enum class UrKind : uint8_t {
     Send   = 3,
     Close  = 4,
     Wake   = 5,   // cross-ring notification via msg_ring
+    UnixAccept = 6,
 };
 
 inline uint64_t ur_tag(UrKind k, void* p) {

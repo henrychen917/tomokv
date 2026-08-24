@@ -253,6 +253,7 @@ public:
     void retire()          { q_.retire(); }
     bool quiesced() const  { return q_.quiesced(); }
     uint32_t depth() const { return q_.depth(); }
+    uint32_t producer_free_slots() const { return q_.producer_free_slots(); }
 
     // Declare intent to block, so producers know a wake is worth its syscall. Set it, then re-check
     // the queue before actually blocking: without that re-check a producer that pushed just before

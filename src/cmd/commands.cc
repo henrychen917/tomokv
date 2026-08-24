@@ -1,7 +1,7 @@
 // commands.cc — boot-built aggregate command index.
 //
-// Command ownership stays in t_*.cc. This file knows only how to validate and index rows, so five
-// lanes can add commands independently without editing a central handler switch.
+// Command ownership stays in t_*.cc. This file knows only how to validate and index rows, so the
+// type lanes and server-compat lane can add commands without a central handler switch.
 #include "command.h"
 
 #include <cstdio>
@@ -13,6 +13,7 @@ namespace tomo {
 namespace {
 
 struct Registry {
+    std::vector<CommandSpec> entries;
     std::vector<const CommandSpec*> slots;
     uint32_t mask = 0;
     bool built = false;
@@ -52,7 +53,7 @@ bool command_registry_init() {
     if (g_registry.built) return true;
     const CommandTable families[] = {
         string_command_table(), hash_command_table(), list_command_table(),
-        set_command_table(), zset_command_table(),
+        set_command_table(), zset_command_table(), server_command_table(),
     };
     size_t total = 0;
     for (const CommandTable& family : families) total += family.size;
@@ -65,28 +66,43 @@ bool command_registry_init() {
     }
     g_registry.mask = static_cast<uint32_t>(cap - 1);
 
-    for (const CommandTable& family : families) {
-        for (size_t i = 0; i < family.size; i++) {
-            const CommandSpec* spec = &family.specs[i];
-            const size_t n = std::strlen(spec->name);
-            if (n == 0 || spec->min_arity < 1 ||
-                (spec->max_arity >= 0 && spec->max_arity < spec->min_arity) ||
-                spec->first_key < 0 || spec->key_step < 0 ||
-                (!(spec->flags & CmdFlags::ConnLocal) && spec->first_key >= spec->min_arity)) {
-                std::fprintf(stderr, "invalid command registry row '%s'\n", spec->name);
+    try {
+        g_registry.entries.reserve(total);
+        for (const CommandTable& family : families)
+            for (size_t i = 0; i < family.size; i++) {
+                CommandSpec copy = family.specs[i];
+                copy.id = static_cast<uint16_t>(g_registry.entries.size());
+                g_registry.entries.push_back(copy);
+            }
+    } catch (const std::bad_alloc&) {
+        g_registry.entries.clear();
+        g_registry.slots.clear();
+        return false;
+    }
+
+    for (const CommandSpec& entry : g_registry.entries) {
+        const CommandSpec* spec = &entry;
+        const size_t n = std::strlen(spec->name);
+        if (n == 0 || spec->min_arity < 1 ||
+            (spec->max_arity >= 0 && spec->max_arity < spec->min_arity) ||
+            spec->first_key < 0 || spec->key_step < 0 ||
+            (!(spec->flags & (CmdFlags::ConnLocal | CmdFlags::AllShards |
+                              CmdFlags::RandomShard | CmdFlags::CursorShard |
+                              CmdFlags::ConfigRoute)) &&
+             spec->first_key >= spec->min_arity)) {
+            std::fprintf(stderr, "invalid command registry row '%s'\n", spec->name);
+            return false;
+        }
+        size_t pos = command_hash(spec->name, n) & g_registry.mask;
+        while (g_registry.slots[pos]) {
+            if (command_equal(Slice(spec->name, static_cast<uint32_t>(n)),
+                              g_registry.slots[pos]->name)) {
+                std::fprintf(stderr, "duplicate command registry row '%s'\n", spec->name);
                 return false;
             }
-            size_t pos = command_hash(spec->name, n) & g_registry.mask;
-            while (g_registry.slots[pos]) {
-                if (command_equal(Slice(spec->name, static_cast<uint32_t>(n)),
-                                  g_registry.slots[pos]->name)) {
-                    std::fprintf(stderr, "duplicate command registry row '%s'\n", spec->name);
-                    return false;
-                }
-                pos = (pos + 1) & g_registry.mask;
-            }
-            g_registry.slots[pos] = spec;
+            pos = (pos + 1) & g_registry.mask;
         }
+        g_registry.slots[pos] = spec;
     }
     g_registry.built = true;
     return true;
@@ -107,6 +123,14 @@ const CommandSpec* command_lookup(Slice name) {
 bool command_arity_ok(const CommandSpec& spec, uint32_t argc) {
     return argc >= static_cast<uint32_t>(spec.min_arity) &&
            (spec.max_arity < 0 || argc <= static_cast<uint32_t>(spec.max_arity));
+}
+
+uint32_t command_registry_size() {
+    return static_cast<uint32_t>(g_registry.entries.size());
+}
+
+const CommandSpec* command_registry_at(uint32_t id) {
+    return id < g_registry.entries.size() ? &g_registry.entries[id] : nullptr;
 }
 
 }  // namespace tomo

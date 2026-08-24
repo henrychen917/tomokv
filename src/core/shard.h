@@ -59,8 +59,10 @@ public:
     uint32_t bucket_begin() const { return bucket_begin_; }
     uint32_t bucket_end()   const { return bucket_end_; }
     uint32_t zc_min()       const { return zc_min_; }
+    void set_zc_min(uint32_t value) { zc_min_ = value; }
     int64_t  now_ms()       const { return now_ms_; }
     const TypeLimits& type_limits() const { return type_limits_; }
+    void set_type_limits(const TypeLimits& value) { type_limits_ = value; }
 
     void set_cached_now_ms(int64_t now_ms) {
         now_ms_ = now_ms;
@@ -82,8 +84,18 @@ public:
     // Published for cross-shard readers (DBSIZE, INFO). Updated once per executed batch rather than
     // per op: a per-op store to a line that other threads poll is exactly the shared-line write the
     // design avoids everywhere else. Slightly stale by construction, which is correct for a stat.
-    void publish_size() { published_size_.store(store_.size(), std::memory_order_relaxed); }
+    void publish_size() {
+        published_size_.store(store_.size(), std::memory_order_relaxed);
+        published_obj_bytes_.store(store_.object_bytes(), std::memory_order_relaxed);
+        published_expires_.store(store_.expire_count(), std::memory_order_relaxed);
+    }
     uint32_t published_size() const { return published_size_.load(std::memory_order_relaxed); }
+    uint64_t published_obj_bytes() const {
+        return published_obj_bytes_.load(std::memory_order_relaxed);
+    }
+    uint32_t published_expires() const {
+        return published_expires_.load(std::memory_order_relaxed);
+    }
 
     // Called by the executing worker on every op. `worker_domain` is that thread's L3 domain.
     // Cheap by construction: one compare and one increment, no atomics — the shard is single-owner.
@@ -131,6 +143,8 @@ private:
     int64_t   now_ms_       = 0;
     uint32_t  home_domain_  = kNoDomain;
     std::atomic<uint32_t> published_size_{0};
+    std::atomic<uint64_t> published_obj_bytes_{0};
+    std::atomic<uint32_t> published_expires_{0};
     FlatStore store_;
     Stats     stats_;
     TypeLimits type_limits_;

@@ -43,6 +43,15 @@ public:
         return true;
     }
 
+    // Producer-only group reservation check. Unlike depth(), this acquire-refreshes the consumer
+    // frontier and is safe for the all-or-nothing scatter preflight. The producer performs no
+    // intervening unrelated pushes between this check and its group enqueue.
+    uint32_t producer_free_slots() const {
+        const uint32_t tail = tail_.load(std::memory_order_relaxed);
+        const uint32_t head = head_.load(std::memory_order_acquire);
+        return Capacity - (tail - head);
+    }
+
     // Consumer side.
     bool pop(T& out) {
         const uint32_t h = head_.load(std::memory_order_relaxed);
