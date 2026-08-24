@@ -167,7 +167,40 @@ def gen_set(rng):
     ]
     return ops
 
-gens = {"string": gen_string, "set": gen_set}
+def gen_list(rng):
+    keys = ["l%d" % i for i in range(10)]
+    vals = ["a", "bb", "ccc", "x" * 80, "v-%d" % 0] + ["item%d" % i for i in range(12)]
+    ops = []
+    def K(): return rng.choice(keys)
+    def V(): return rng.choice(vals)
+    for _ in range(3500):
+        c = rng.randrange(16)
+        if   c in (0,1): ops.append(["LPUSH", K()] + [V() for _ in range(rng.randrange(1,4))])
+        elif c in (2,3): ops.append(["RPUSH", K()] + [V() for _ in range(rng.randrange(1,4))])
+        elif c == 4: ops.append(["LPUSHX", K(), V()])
+        elif c == 5: ops.append(["RPUSHX", K(), V()])
+        elif c == 6: ops.append(["LPOP", K()] if rng.randrange(2) else ["LPOP", K(), str(rng.randrange(0,4))])
+        elif c == 7: ops.append(["RPOP", K()] if rng.randrange(2) else ["RPOP", K(), str(rng.randrange(0,4))])
+        elif c == 8: ops.append(["LLEN", K()])
+        elif c == 9: ops.append(["LRANGE", K(), str(rng.randrange(-8,8)), str(rng.randrange(-8,8))])
+        elif c == 10: ops.append(["LINDEX", K(), str(rng.randrange(-10,10))])
+        elif c == 11: ops.append(["LSET", K(), str(rng.randrange(-6,6)), V()])
+        elif c == 12: ops.append(["LINSERT", K(), rng.choice(["BEFORE","AFTER"]), V(), V()])
+        elif c == 13: ops.append(["LREM", K(), str(rng.randrange(-3,4)), V()])
+        elif c == 14: ops.append(["LTRIM", K(), str(rng.randrange(-6,6)), str(rng.randrange(-6,6))])
+        elif c == 15: ops.append(["LPOS", K(), V()] + (["RANK", str(rng.choice([-2,-1,1,2])), "COUNT", str(rng.randrange(0,3))] if rng.randrange(2) else []))
+    ops += [
+        ["DEL","dl"], ["RPUSH","dl","a","b","c"], ["LTRIM","dl","1","0"], ["EXISTS","dl"],
+        ["RPUSH","dl2","a"], ["LINSERT","dl2","BEFORE","missing","x"], ["LLEN","dl2"],
+        ["LPOS","dl2","a","RANK","-1"], ["LPOS","missinglist","a"],
+        ["RPUSH","big"] + ["e%d" % i for i in range(300)], ["LLEN","big"], ["LRANGE","big","250","260"],
+        ["LPOP","big","5"], ["RPOP","big","5"], ["LREM","big","0","e100"], ["LLEN","big"],
+        ["SET","strk","v"], ["LPUSH","strk","x"], ["LLEN","strk"],
+        ["LSET","missinglist","0","v"], ["LPOP","missinglist","2"],
+    ]
+    return ops
+
+gens = {"string": gen_string, "set": gen_set, "list": gen_list}
 ops = gens[SUITE](rng)
 
 ts, tf = conn(TH, TP)
