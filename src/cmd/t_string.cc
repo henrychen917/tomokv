@@ -10,7 +10,11 @@
 #include "../net/resp.h"
 #include "../store/kvobj.h"
 
+#include <algorithm>
+#include <cerrno>
+#include <cctype>
 #include <climits>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -31,7 +35,10 @@ bool eq_icase(Slice s, const char* lit) {
     return true;
 }
 
-// Kept for the existing INCR/SELECT behavior. Expiry parsing below is strict and overflow-aware.
+inline constexpr uint64_t kProtoMaxBulkLen = 512ull * 1024 * 1024;
+inline constexpr size_t kLongDoubleChars = 5 * 1024;
+
+// Kept for SELECT behavior. String integer commands use the strict Redis parser below.
 bool parse_ll(Slice s, long long& out) {
     if (s.n == 0 || s.n > 20) return false;
     char tmp[24];
@@ -43,13 +50,21 @@ bool parse_ll(Slice s, long long& out) {
 }
 
 bool parse_i64(Slice s, int64_t& out) {
-    if (s.n == 0) return false;
+    // Redis's string2ll accepts only the representation that formatting the resulting integer
+    // produces again: no leading '+', leading zeroes, or negative zero.
+    if (s.n == 0 || s.n >= 32) return false;
     uint32_t pos = 0;
     bool negative = false;
     if (s.p[pos] == '-') {
         negative = true;
         if (++pos == s.n) return false;
     }
+    if (s.p[pos] == '0') {
+        if (negative || pos + 1 != s.n) return false;
+        out = 0;
+        return true;
+    }
+    if (s.p[pos] < '1' || s.p[pos] > '9') return false;
     uint64_t value = 0;
     const uint64_t limit = negative ? (uint64_t{1} << 63) : static_cast<uint64_t>(INT64_MAX);
     for (; pos < s.n; pos++) {
@@ -65,6 +80,96 @@ bool parse_i64(Slice s, int64_t& out) {
         out = static_cast<int64_t>(value);
     }
     return true;
+}
+
+bool parse_long_double(Slice s, long double& out) {
+    if (s.n == 0 || s.n >= kLongDoubleChars) return false;
+    char text[kLongDoubleChars];
+    std::memcpy(text, s.p, s.n);
+    text[s.n] = '\0';
+
+    errno = 0;
+    char* end = nullptr;
+    const long double value = std::strtold(text, &end);
+    if (std::isspace(static_cast<unsigned char>(text[0])) || end != text + s.n ||
+        (errno == ERANGE && (std::isinf(value) || std::fpclassify(value) == FP_ZERO)) ||
+        errno == EINVAL || std::isnan(value)) {
+        return false;
+    }
+    out = value;
+    return true;
+}
+
+uint32_t format_long_double(char* text, size_t capacity, long double value) {
+    // Redis's LD_STR_HUMAN mode intentionally uses fixed notation with 17 fractional digits,
+    // trims the fractional zero suffix, and canonicalizes negative zero.
+    int n = std::snprintf(text, capacity, "%.17Lf", value);
+    if (n < 0 || static_cast<size_t>(n) >= capacity) return 0;
+    if (char* dot = static_cast<char*>(std::memchr(text, '.', static_cast<size_t>(n)))) {
+        char* end = text + n;
+        while (end > dot + 1 && end[-1] == '0') end--;
+        if (end == dot + 1) end = dot;
+        n = static_cast<int>(end - text);
+    }
+    if (n == 2 && text[0] == '-' && text[1] == '0') {
+        text[0] = '0';
+        n = 1;
+    }
+    text[n] = '\0';
+    return static_cast<uint32_t>(n);
+}
+
+Slice string_bytes(const KvObj* o, char (&integer)[24]) {
+    if (!o->is_int()) return o->str_value();
+    return Slice(integer, i64_to_dec(integer, o->int_value()));
+}
+
+enum class StoreResult : uint8_t { Stored, Oom, InsertFailed };
+
+void clear_reply(Op& op);
+
+StoreResult store_string(Shard& sh, Slice key, uint64_t hash, Slice value, int64_t expire_at_ms,
+                         bool integer_encode) {
+    int64_t integer = 0;
+    if (integer_encode && parse_i64(value, integer)) {
+        KvObj* replacement = kvobj_new_int(key, integer, expire_at_ms);
+        if (!replacement) return StoreResult::Oom;
+        if (!sh.store().insert(hash, replacement)) {
+            kvobj_free(replacement);
+            return StoreResult::InsertFailed;
+        }
+        return StoreResult::Stored;
+    }
+
+    // try_overwrite is the only in-place raw mutation. It rejects TTL-bearing and borrowed values;
+    // the replacement path below then lets FlatStore retain any borrowed old allocation.
+    if (expire_at_ms == -1 && sh.store().try_overwrite(hash, key, value))
+        return StoreResult::Stored;
+
+    KvObj* replacement = kvobj_new_string(key, value, expire_at_ms);
+    if (!replacement) return StoreResult::Oom;
+    if (!sh.store().insert(hash, replacement)) {
+        kvobj_free(replacement);
+        return StoreResult::InsertFailed;
+    }
+    return StoreResult::Stored;
+}
+
+StoreResult store_integer(Shard& sh, Slice key, uint64_t hash, int64_t value,
+                          int64_t expire_at_ms) {
+    KvObj* replacement = kvobj_new_int(key, value, expire_at_ms);
+    if (!replacement) return StoreResult::Oom;
+    if (!sh.store().insert(hash, replacement)) {
+        kvobj_free(replacement);
+        return StoreResult::InsertFailed;
+    }
+    return StoreResult::Stored;
+}
+
+void reply_store_error(Op& op, StoreResult result, bool discard_existing_reply = false) {
+    if (discard_existing_reply) clear_reply(op);
+    if (result == StoreResult::Oom) reply_err(op.sink(), "ERR out of memory");
+    else reply_err(op.sink(), "ERR keyspace insert failed");
 }
 
 void reply_invalid_expire(Op& op, const char* command) {
@@ -97,7 +202,7 @@ void cmd_get(Shard& sh, Op& op) {
     sh.stats().hits++;
     auto sink = op.sink();
     if (!obj_type_check(o, Type::String, sink)) return;
-    if (o->is_int()) { reply_int(op.sink(), o->int_value()); return; }
+    if (o->is_int()) { reply_string_bulk(op, o); return; }
     const Slice value = o->str_value();
     const uint32_t zc_min = sh.zc_min();
     if (zc_min && value.n >= zc_min) {
@@ -175,19 +280,10 @@ bool parse_set_options(Shard& sh, Op& op, SetOptions& options) {
 }
 
 void cmd_set(Shard& sh, Op& op) {
-    // Preserve the allocation-free, byte-identical v1 path for SET key value.
+    // Preserve the allocation-free raw fast path while still applying Redis integer encoding.
     if (op.argc() == 3) {
-        if (sh.store().try_overwrite(op.hash, op.key(), op.arg(2))) {
-            reply_ok(op.sink());
-            return;
-        }
-        KvObj* o = kvobj_new_string(op.key(), op.arg(2));
-        if (!o) { reply_err(op.sink(), "ERR out of memory"); return; }
-        if (!sh.store().insert(op.hash, o)) {
-            kvobj_free(o);
-            reply_err(op.sink(), "ERR keyspace insert failed");
-            return;
-        }
+        const StoreResult result = store_string(sh, op.key(), op.hash, op.arg(2), -1, true);
+        if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
         reply_ok(op.sink());
         return;
     }
@@ -216,18 +312,8 @@ void cmd_set(Shard& sh, Op& op) {
         if (!options.get) reply_ok(op.sink());
         return;
     }
-    KvObj* replacement = kvobj_new_string(op.key(), op.arg(2), expire);
-    if (!replacement) {
-        if (options.get) clear_reply(op);
-        reply_err(op.sink(), "ERR out of memory");
-        return;
-    }
-    if (!sh.store().insert(op.hash, replacement)) {
-        kvobj_free(replacement);
-        if (options.get) clear_reply(op);
-        reply_err(op.sink(), "ERR keyspace insert failed");
-        return;
-    }
+    const StoreResult result = store_string(sh, op.key(), op.hash, op.arg(2), expire, true);
+    if (result != StoreResult::Stored) { reply_store_error(op, result, options.get); return; }
     if (!options.get) reply_ok(op.sink());
 }
 
@@ -297,31 +383,227 @@ void cmd_exists(Shard& sh, Op& op) {
     reply_int(op.sink(), sh.store().find(op.hash, op.key()) ? 1 : 0);
 }
 
-void cmd_incr(Shard& sh, Op& op) {
+void cmd_append(Shard& sh, Op& op) {
     KvObj* o = sh.store().find(op.hash, op.key());
-    long long value = 0;
+    if (!o) {
+        const StoreResult result = store_string(sh, op.key(), op.hash, op.arg(2), -1, true);
+        if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
+        reply_int(op.sink(), op.arg(2).n);
+        return;
+    }
+    auto sink = op.sink();
+    if (!obj_type_check(o, Type::String, sink)) return;
+
+    char integer[24];
+    const Slice old = string_bytes(o, integer);
+    // A raw empty append changes no observable value or encoding. Integer encoding is the one
+    // exception: Redis's append path materializes it even when the appended byte count is zero.
+    if (op.arg(2).n == 0 && !o->is_int()) { reply_int(op.sink(), old.n); return; }
+    const uint64_t total = static_cast<uint64_t>(old.n) + op.arg(2).n;
+    if (total > kProtoMaxBulkLen) {
+        reply_err(op.sink(), "ERR string exceeds maximum allowed size (proto-max-bulk-len)");
+        return;
+    }
+    char* merged = static_cast<char*>(std::malloc(total ? static_cast<size_t>(total) : 1));
+    if (!merged) { reply_err(op.sink(), "ERR out of memory"); return; }
+    std::memcpy(merged, old.p, old.n);
+    std::memcpy(merged + old.n, op.arg(2).p, op.arg(2).n);
+    const int64_t expire = o->expire_at_ms();
+    const StoreResult result = store_string(
+        sh, op.key(), op.hash, Slice(merged, static_cast<uint32_t>(total)), expire, false);
+    std::free(merged);
+    if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
+    reply_int(op.sink(), static_cast<long long>(total));
+}
+
+void cmd_strlen(Shard& sh, Op& op) {
+    KvObj* o = sh.store().find(op.hash, op.key());
+    if (!o) { reply_int(op.sink(), 0); return; }
+    auto sink = op.sink();
+    if (!obj_type_check(o, Type::String, sink)) return;
+    if (!o->is_int()) { reply_int(op.sink(), o->str_value().n); return; }
+    char integer[24];
+    reply_int(op.sink(), string_bytes(o, integer).n);
+}
+
+void cmd_getrange(Shard& sh, Op& op) {
+    int64_t start = 0, end = 0;
+    if (!parse_i64(op.arg(2), start) || !parse_i64(op.arg(3), end)) {
+        reply_err(op.sink(), "ERR value is not an integer or out of range");
+        return;
+    }
+    KvObj* o = sh.store().find(op.hash, op.key());
+    if (!o) { reply_emptystr(op.sink()); return; }
+    auto sink = op.sink();
+    if (!obj_type_check(o, Type::String, sink)) return;
+
+    char integer[24];
+    const Slice value = string_bytes(o, integer);
+    const int64_t length = value.n;
+    if (start < 0 && end < 0 && start > end) { reply_emptystr(op.sink()); return; }
+    if (start < 0) start = length + start;
+    if (end < 0) end = length + end;
+    if (start < 0) start = 0;
+    if (end < 0) end = 0;
+    if (end >= length) end = length - 1;
+    if (start > end || length == 0) { reply_emptystr(op.sink()); return; }
+    reply_bulk(op.sink(), Slice(value.p + start, static_cast<uint32_t>(end - start + 1)));
+}
+
+void cmd_setrange(Shard& sh, Op& op) {
+    int64_t offset = 0;
+    if (!parse_i64(op.arg(2), offset)) {
+        reply_err(op.sink(), "ERR value is not an integer or out of range");
+        return;
+    }
+    if (offset < 0) { reply_err(op.sink(), "ERR offset is out of range"); return; }
+
+    KvObj* o = sh.store().find(op.hash, op.key());
+    if (o) {
+        auto sink = op.sink();
+        if (!obj_type_check(o, Type::String, sink)) return;
+    }
+    if (op.arg(3).n == 0) {
+        if (!o) { reply_int(op.sink(), 0); return; }
+        char integer[24];
+        reply_int(op.sink(), string_bytes(o, integer).n);
+        return;
+    }
+
+    const uint64_t write_end = static_cast<uint64_t>(offset) + op.arg(3).n;
+    if (write_end > kProtoMaxBulkLen) {
+        reply_err(op.sink(), "ERR string exceeds maximum allowed size (proto-max-bulk-len)");
+        return;
+    }
+    char integer[24];
+    const Slice old = o ? string_bytes(o, integer) : Slice("", 0);
+    const uint32_t new_length = static_cast<uint32_t>(std::max<uint64_t>(old.n, write_end));
+    char* changed = static_cast<char*>(std::malloc(new_length));
+    if (!changed) { reply_err(op.sink(), "ERR out of memory"); return; }
+    std::memcpy(changed, old.p, old.n);
+    if (new_length > old.n) std::memset(changed + old.n, 0, new_length - old.n);
+    std::memcpy(changed + offset, op.arg(3).p, op.arg(3).n);
+    const int64_t expire = o ? o->expire_at_ms() : -1;
+    const StoreResult result =
+        store_string(sh, op.key(), op.hash, Slice(changed, new_length), expire, false);
+    std::free(changed);
+    if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
+    reply_int(op.sink(), new_length);
+}
+
+void cmd_getset(Shard& sh, Op& op) {
+    KvObj* old = sh.store().find(op.hash, op.key());
+    auto sink = op.sink();
+    if (!obj_type_check(old, Type::String, sink)) return;
+    reply_string_bulk(op, old);
+    const StoreResult result = store_string(sh, op.key(), op.hash, op.arg(2), -1, true);
+    if (result != StoreResult::Stored) { reply_store_error(op, result, true); return; }
+}
+
+void cmd_setnx(Shard& sh, Op& op) {
+    if (sh.store().find(op.hash, op.key())) { reply_int(op.sink(), 0); return; }
+    const StoreResult result = store_string(sh, op.key(), op.hash, op.arg(2), -1, true);
+    if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
+    reply_int(op.sink(), 1);
+}
+
+void setex_generic(Shard& sh, Op& op, ExpireKind kind, const char* command) {
+    int64_t expire = -1;
+    if (!expiry_at(sh, op.arg(2), kind, expire)) {
+        reply_invalid_expire(op, command);
+        return;
+    }
+    const StoreResult result = store_string(sh, op.key(), op.hash, op.arg(3), expire, true);
+    if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
+    reply_ok(op.sink());
+}
+
+void cmd_setex(Shard& sh, Op& op)  { setex_generic(sh, op, ExpireKind::Ex, "setex"); }
+void cmd_psetex(Shard& sh, Op& op) { setex_generic(sh, op, ExpireKind::Px, "psetex"); }
+
+void incr_decr(Shard& sh, Op& op, int64_t increment) {
+    KvObj* o = sh.store().find(op.hash, op.key());
+    int64_t old = 0;
     int64_t expire = -1;
     if (o) {
         auto sink = op.sink();
         if (!obj_type_check(o, Type::String, sink)) return;
-        if (o->is_int()) value = o->int_value();
-        else if (!parse_ll(o->str_value(), value)) {
+        if (o->is_int()) old = o->int_value();
+        else if (!parse_i64(o->str_value(), old)) {
             reply_err(op.sink(), "ERR value is not an integer or out of range");
-            return;
-        }
-        if (value == LLONG_MAX) {
-            reply_err(op.sink(), "ERR increment or decrement would overflow");
             return;
         }
         expire = o->expire_at_ms();
     }
-    value++;
-    char buf[24];
-    int n = std::snprintf(buf, sizeof(buf), "%lld", value);
-    KvObj* replacement = kvobj_new_string(op.key(), Slice(buf, static_cast<uint32_t>(n)), expire);
-    if (!replacement) { reply_err(op.sink(), "ERR out of memory"); return; }
-    sh.store().insert(op.hash, replacement);
+    int64_t value = 0;
+    if (__builtin_add_overflow(old, increment, &value)) {
+        reply_err(op.sink(), "ERR increment or decrement would overflow");
+        return;
+    }
+    const StoreResult result = store_integer(sh, op.key(), op.hash, value, expire);
+    if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
     reply_int(op.sink(), value);
+}
+
+void cmd_incr(Shard& sh, Op& op) { incr_decr(sh, op, 1); }
+void cmd_decr(Shard& sh, Op& op) { incr_decr(sh, op, -1); }
+
+void cmd_incrby(Shard& sh, Op& op) {
+    int64_t increment = 0;
+    if (!parse_i64(op.arg(2), increment)) {
+        reply_err(op.sink(), "ERR value is not an integer or out of range");
+        return;
+    }
+    incr_decr(sh, op, increment);
+}
+
+void cmd_decrby(Shard& sh, Op& op) {
+    int64_t decrement = 0;
+    if (!parse_i64(op.arg(2), decrement)) {
+        reply_err(op.sink(), "ERR value is not an integer or out of range");
+        return;
+    }
+    if (decrement == INT64_MIN) {
+        reply_err(op.sink(), "ERR decrement would overflow");
+        return;
+    }
+    incr_decr(sh, op, -decrement);
+}
+
+void cmd_incrbyfloat(Shard& sh, Op& op) {
+    KvObj* o = sh.store().find(op.hash, op.key());
+    if (o) {
+        auto sink = op.sink();
+        if (!obj_type_check(o, Type::String, sink)) return;
+    }
+
+    long double value = 0;
+    if (o) {
+        if (o->is_int()) value = static_cast<long double>(o->int_value());
+        else if (!parse_long_double(o->str_value(), value)) {
+            reply_err(op.sink(), "ERR value is not a valid float");
+            return;
+        }
+    }
+    long double increment = 0;
+    if (!parse_long_double(op.arg(2), increment)) {
+        reply_err(op.sink(), "ERR value is not a valid float");
+        return;
+    }
+    value += increment;
+    if (std::isnan(value) || std::isinf(value)) {
+        reply_err(op.sink(), "ERR increment would produce NaN or Infinity");
+        return;
+    }
+
+    char text[kLongDoubleChars];
+    const uint32_t length = format_long_double(text, sizeof(text), value);
+    if (length == 0) { reply_err(op.sink(), "ERR out of memory"); return; }
+    const int64_t expire = o ? o->expire_at_ms() : -1;
+    const StoreResult result =
+        store_string(sh, op.key(), op.hash, Slice(text, length), expire, false);
+    if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
+    reply_bulk(op.sink(), Slice(text, length));
 }
 
 enum class ExpireCondition : uint8_t { Always, Nx, Xx, Gt, Lt };
@@ -500,11 +782,23 @@ static const CommandSpec kTable[] = {
     // name          min max flags                                  handler          first last step
     {"GET",           2,  2,  CmdFlags::Readonly,                    cmd_get,          1,  1,  1},
     {"SET",           3, -1,  CmdFlags::Write,                       cmd_set,          1,  1,  1},
+    {"APPEND",        3,  3,  CmdFlags::Write,                       cmd_append,       1,  1,  1},
+    {"STRLEN",        2,  2,  CmdFlags::Readonly,                    cmd_strlen,       1,  1,  1},
+    {"GETRANGE",      4,  4,  CmdFlags::Readonly,                    cmd_getrange,     1,  1,  1},
+    {"SETRANGE",      4,  4,  CmdFlags::Write,                       cmd_setrange,     1,  1,  1},
+    {"GETSET",        3,  3,  CmdFlags::Write,                       cmd_getset,       1,  1,  1},
+    {"SETNX",         3,  3,  CmdFlags::Write,                       cmd_setnx,        1,  1,  1},
+    {"SETEX",         4,  4,  CmdFlags::Write,                       cmd_setex,        1,  1,  1},
+    {"PSETEX",        4,  4,  CmdFlags::Write,                       cmd_psetex,       1,  1,  1},
     {"GETEX",         2,  4,  CmdFlags::Write,                       cmd_getex,        1,  1,  1},
     {"GETDEL",        2,  2,  CmdFlags::Write,                       cmd_getdel,       1,  1,  1},
     {"DEL",           2,  2,  CmdFlags::Write,                       cmd_del,          1,  1,  1},
     {"EXISTS",        2,  2,  CmdFlags::Readonly,                    cmd_exists,       1,  1,  1},
     {"INCR",          2,  2,  CmdFlags::Write,                       cmd_incr,         1,  1,  1},
+    {"DECR",          2,  2,  CmdFlags::Write,                       cmd_decr,         1,  1,  1},
+    {"INCRBY",        3,  3,  CmdFlags::Write,                       cmd_incrby,       1,  1,  1},
+    {"DECRBY",        3,  3,  CmdFlags::Write,                       cmd_decrby,       1,  1,  1},
+    {"INCRBYFLOAT",   3,  3,  CmdFlags::Write,                       cmd_incrbyfloat,  1,  1,  1},
     {"EXPIRE",        3,  4,  CmdFlags::Write,                       cmd_expire,       1,  1,  1},
     {"PEXPIRE",       3,  4,  CmdFlags::Write,                       cmd_pexpire,      1,  1,  1},
     {"EXPIREAT",      3,  4,  CmdFlags::Write,                       cmd_expireat,     1,  1,  1},
