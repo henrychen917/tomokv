@@ -135,7 +135,11 @@ inline size_t kvobj_alloc_size(uint32_t klen, uint32_t vlen, bool has_ttl, Enc e
 inline KvObj* kvobj_new_string(Slice key, Slice val, int64_t expire_at_ms = -1) {
     const bool  has_ttl = expire_at_ms >= 0;
     const Enc   enc     = (val.n <= kEmbedThreshold) ? Enc::Raw : Enc::Extern;
-    const size_t n      = kvobj_alloc_size(key.n, val.n, has_ttl, enc);
+    // Request the CLASS-ROUNDED size explicitly. try_overwrite writes up to good_size(request),
+    // which is only within the allocation if the allocation asked for it: on jemalloc the class
+    // rounds up anyway (zero cost), on an exact allocator (ASAN, glibc) requesting the raw size
+    // made that write a heap overflow -- a 3-byte corruption the gate's RYOW-under-ASAN caught.
+    const size_t n      = good_size(kvobj_alloc_size(key.n, val.n, has_ttl, enc));
 
     void* mem = alloc_raw(n);
     if (!mem) return nullptr;
@@ -156,7 +160,7 @@ inline KvObj* kvobj_new_string(Slice key, Slice val, int64_t expire_at_ms = -1) 
     if (enc == Enc::Raw) {
         std::memcpy(o->val_ptr(), val.p, val.n);
     } else {
-        void* ext = alloc_raw(val.n);
+        void* ext = alloc_raw(good_size(val.n));   // same contract as the main block
         if (!ext) { free_sized(mem, n); return nullptr; }
         std::memcpy(ext, val.p, val.n);
         std::memcpy(o->val_ptr(), &ext, sizeof(void*));
@@ -186,11 +190,11 @@ inline size_t kvobj_size(const KvObj* o) {
 
 inline void kvobj_free(KvObj* o) {
     if (!o) return;
-    const size_t n = kvobj_request_size(o);          // compute BEFORE the value block is released
+    const size_t n = good_size(kvobj_request_size(o));   // compute BEFORE the value block is released
     if (static_cast<Enc>(o->enc) == Enc::Extern) {
         void* ext;
         std::memcpy(&ext, o->val_ptr(), sizeof(void*));
-        free_sized(ext, o->vlen);
+        free_sized(ext, good_size(o->vlen));       // frees mirror the rounded requests
     }
     // Sized free: ordinary free() has to look up how big the block was; we already know.
     free_sized(o, n);
