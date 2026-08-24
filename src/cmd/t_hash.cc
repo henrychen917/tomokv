@@ -552,7 +552,7 @@ bool decode_pair(const Compact::Entry& entry, PairView& out) {
     return false;
 }
 
-bool compact_find(const HashVal& hash, Slice wanted, PairView& out) {
+bool compact_find(const CollectionRef& hash, Slice wanted, PairView& out) {
     for (auto it = hash.begin(); it != hash.end(); ++it) {
         PairView pair;
         if (decode_pair(*it, pair) && pair.field == wanted) {
@@ -564,21 +564,59 @@ bool compact_find(const HashVal& hash, Slice wanted, PairView& out) {
 }
 
 template <typename Fn>
-void compact_for_each(const HashVal& hash, Fn&& fn) {
+void compact_for_each(const CollectionRef& hash, Fn&& fn) {
     for (auto it = hash.begin(); it != hash.end(); ++it) {
         PairView pair;
         if (decode_pair(*it, pair)) fn(pair);
     }
 }
 
-uint64_t expanded_allocation(const HashVal& hash) {
-    return hash.fields ? sizeof(HashFieldMap) + hash.fields->allocation_bytes() : 0;
+uint64_t hash_compact_payload(const CollectionRef& hash) {
+    return hash.is_embedded() ? hash.aux0()
+                              : hash.external_as<HashVal>()->compact_payload_bytes;
 }
 
-bool promote_hash(HashVal& hash) {
-    auto* map = new (std::nothrow) HashFieldMap(hash.random_state);
+void set_hash_compact_payload(CollectionRef& hash, uint64_t bytes) {
+    if (hash.is_embedded()) hash.set_aux0(bytes);
+    else hash.external_as<HashVal>()->compact_payload_bytes = bytes;
+}
+
+uint64_t hash_random_state(const CollectionRef& hash) {
+    return hash.is_embedded() ? hash.aux1() : hash.external_as<HashVal>()->random_state;
+}
+
+void set_hash_random_state(CollectionRef& hash, uint64_t state) {
+    if (hash.is_embedded()) hash.set_aux1(state);
+    else hash.external_as<HashVal>()->random_state = state;
+}
+
+HashFieldMap* hash_fields(const CollectionRef& hash) {
+    return hash.external_as<HashVal>()->fields;
+}
+
+uint64_t hash_random_bounded(CollectionRef& hash, uint64_t bound) {
+    if (!bound) return 0;
+    uint64_t state = hash_random_state(hash);
+    uint64_t value = state;
+    value ^= value >> 12;
+    value ^= value << 25;
+    value ^= value >> 27;
+    state = value;
+    set_hash_random_state(hash, state);
+    value *= 0x2545f4914f6cdd1dULL;
+    return static_cast<uint64_t>((static_cast<unsigned __int128>(value) * bound) >> 64);
+}
+
+uint64_t expanded_allocation(const CollectionRef& hash) {
+    HashFieldMap* fields = hash_fields(hash);
+    return fields ? sizeof(HashFieldMap) + fields->allocation_bytes() : 0;
+}
+
+bool promote_hash(CollectionRef& hash) {
+    HashVal* external = hash.external_as<HashVal>();
+    auto* map = new (std::nothrow) HashFieldMap(hash_random_state(hash));
     if (!map) return false;
-    if (!map->initialize(hash.field_count())) {
+    if (!map->initialize(hash.entries())) {
         delete map;
         return false;
     }
@@ -586,29 +624,29 @@ bool promote_hash(HashVal& hash) {
     compact_for_each(hash, [&](const PairView& pair) {
         if (ok && !map->build_insert(pair.field, pair.value)) ok = false;
     });
-    if (!ok || map->size() != hash.field_count()) {
+    if (!ok || map->size() != hash.entries()) {
         delete map;
         return false;
     }
 
-    const uint32_t logical_entries = hash.field_count();
-    const uint64_t logical_payload = hash.compact_payload_bytes;
-    hash.fields = map;
-    hash.promote(CollectionEncoding::Hashtable, expanded_allocation(hash),
-                 logical_entries, logical_payload);
-    hash.compact_payload_bytes = 0;
+    const uint32_t logical_entries = hash.entries();
+    const uint64_t logical_payload = hash_compact_payload(hash);
+    external->fields = map;
+    external->promote(CollectionEncoding::Hashtable, expanded_allocation(hash),
+                      logical_entries, logical_payload);
+    external->compact_payload_bytes = 0;
     return true;
 }
 
 enum class HashSetKind : uint8_t { Inserted, Updated, Oom };
 
-HashSetKind hash_set(HashVal& hash, const CompactLimit& limit, Slice field, Slice value) {
+HashSetKind hash_set(CollectionRef& hash, const CompactLimit& limit, Slice field, Slice value) {
     if (hash.encoding() == CollectionEncoding::Compact) {
         PairView old;
         const bool exists = compact_find(hash, field, old);
-        if (!exists && hash.field_count() == std::numeric_limits<uint32_t>::max())
+        if (!exists && hash.entries() == std::numeric_limits<uint32_t>::max())
             return HashSetKind::Oom;
-        const uint32_t resulting_entries = hash.field_count() + (exists ? 0u : 1u);
+        const uint32_t resulting_entries = hash.entries() + (exists ? 0u : 1u);
         const uint32_t incoming_max = std::max(field.n, value.n);
         // This is the conversion decision: two maintained/scalar reads and the current write's
         // lengths. It never scans existing fields or bytes to decide whether promotion is needed.
@@ -621,70 +659,72 @@ HashSetKind hash_set(HashVal& hash, const CompactLimit& limit, Slice field, Slic
             if (exists) {
                 if (!hash.replace(old.entry, Slice(encoded.data(), static_cast<uint32_t>(encoded.size()))))
                     return HashSetKind::Oom;
-                hash.compact_payload_bytes = hash.compact_payload_bytes - old.value.n + value.n;
+                set_hash_compact_payload(hash,
+                    hash_compact_payload(hash) - old.value.n + value.n);
                 return HashSetKind::Updated;
             }
             if (!hash.append(Slice(encoded.data(), static_cast<uint32_t>(encoded.size()))))
                 return HashSetKind::Oom;
-            hash.compact_payload_bytes += static_cast<uint64_t>(field.n) + value.n;
+            set_hash_compact_payload(hash,
+                hash_compact_payload(hash) + static_cast<uint64_t>(field.n) + value.n);
             return HashSetKind::Inserted;
         }
     }
 
-    HashFieldMap::SetResult result = hash.fields->set(field, value);
+    HashVal* external = hash.external_as<HashVal>();
+    HashFieldMap::SetResult result = external->fields->set(field, value);
     const uint64_t allocation = expanded_allocation(hash);
     if (result.kind == HashFieldMap::SetKind::Inserted) {
-        hash.note_expanded_insert(field.n + value.n, allocation);
+        external->note_expanded_insert(field.n + value.n, allocation);
         return HashSetKind::Inserted;
     }
     if (result.kind == HashFieldMap::SetKind::Updated) {
-        hash.note_expanded_replace(result.old_field_len + result.old_value_len,
-                                   field.n + value.n, allocation);
+        external->note_expanded_replace(result.old_field_len + result.old_value_len,
+                                        field.n + value.n, allocation);
         return HashSetKind::Updated;
     }
     // A bounded rehash step may have completed before a later allocation failed. Refresh the
     // maintained allocation total even though the logical field/value set did not change.
-    hash.note_expanded_replace(0, 0, allocation);
+    external->note_expanded_replace(0, 0, allocation);
     return HashSetKind::Oom;
 }
 
-bool hash_get(const HashVal& hash, Slice field, Slice& value) {
+bool hash_get(const CollectionRef& hash, Slice field, Slice& value) {
     if (hash.encoding() == CollectionEncoding::Compact) {
         PairView pair;
         if (!compact_find(hash, field, pair)) return false;
         value = pair.value;
         return true;
     }
-    const HashFieldMap::Node* node = hash.fields->find(field);
+    const HashFieldMap::Node* node = hash_fields(hash)->find(field);
     if (!node) return false;
     value = Slice(node->value.data(), static_cast<uint32_t>(node->value.size()));
     return true;
 }
 
-bool hash_erase(HashVal& hash, Slice field) {
+bool hash_erase(CollectionRef& hash, Slice field) {
     if (hash.encoding() == CollectionEncoding::Compact) {
         PairView pair;
         if (!compact_find(hash, field, pair)) return false;
         const uint64_t payload = static_cast<uint64_t>(pair.field.n) + pair.value.n;
         if (!hash.erase(pair.entry)) return false;
-        hash.compact_payload_bytes -= payload;
+        set_hash_compact_payload(hash, hash_compact_payload(hash) - payload);
         return true;
     }
-    const HashFieldMap::EraseResult result = hash.fields->erase(field);
+    HashVal* external = hash.external_as<HashVal>();
+    const HashFieldMap::EraseResult result = external->fields->erase(field);
     if (!result.erased) {
-        hash.note_expanded_replace(0, 0, expanded_allocation(hash));
+        external->note_expanded_replace(0, 0, expanded_allocation(hash));
         return false;
     }
-    hash.note_expanded_delete(result.field_len + result.value_len, expanded_allocation(hash));
+    external->note_expanded_delete(result.field_len + result.value_len, expanded_allocation(hash));
     return true;
 }
 
-HashVal* as_hash(KvObj* object) {
-    return static_cast<HashVal*>(object->external_ptr());
-}
+CollectionRef as_hash(KvObj* object) { return CollectionRef(object); }
 
 bool attach_new_hash(Shard& shard, Op& op, HashVal* hash) {
-    KvObj* object = kvobj_new_hash(op.key(), hash);
+    KvObj* object = kvobj_adopt_hash(op.key(), hash);
     if (!object) {
         delete hash;
         reply_err(op.sink(), "ERR out of memory");
@@ -700,11 +740,57 @@ if (inserted_ != FlatStore::InsertResult::Inserted) {
     return true;
 }
 
+bool externalize_hash(Shard& shard, Op& op, KvObj*& object) {
+    CollectionRef source(object);
+    if (!source.is_embedded()) return true;
+    auto* value = new (std::nothrow) HashVal;
+    if (!value) { reply_err(op.sink(), "ERR out of memory"); return false; }
+    for (const Compact::Entry entry : source.compact()) {
+        if (!value->append(entry.value)) {
+            delete value;
+            reply_err(op.sink(), "ERR out of memory");
+            return false;
+        }
+    }
+    value->compact_payload_bytes = hash_compact_payload(source);
+    value->random_state = hash_random_state(source);
+    KvObj* replacement = kvobj_new_hash(object->key(), value, object->expire_at_ms());
+    if (!replacement) {
+        delete value;
+        reply_err(op.sink(), "ERR out of memory");
+        return false;
+    }
+    replacement->set_eviction_meta(object->eviction_meta());
+    const FlatStore::InsertResult inserted = shard.store().insert(op.hash, replacement);
+    if (inserted != FlatStore::InsertResult::Inserted) {
+        kvobj_free(replacement);
+        if (inserted == FlatStore::InsertResult::MaxmemoryOom) reply_maxmemory_oom(op);
+        else reply_err(op.sink(), "ERR keyspace insert failed");
+        return false;
+    }
+    object = replacement;
+    return true;
+}
+
+bool ensure_hash_write_capacity(Shard& shard, Op& op, KvObj*& object,
+                                uint32_t additional_entries, uint64_t additional_encoded,
+                                uint32_t incoming_max) {
+    if (!object) return true;
+    CollectionRef hash(object);
+    if (!hash.is_embedded()) return true;
+    const CompactLimit& limit = shard.type_limits().hash;
+    const uint64_t resulting_entries = static_cast<uint64_t>(hash.entries()) + additional_entries;
+    if (hash.embedded_bytes_fit(hash.compact().encoded_bytes() + additional_encoded) &&
+        resulting_entries <= limit.max_entries && incoming_max <= limit.max_value)
+        return true;
+    return externalize_hash(shard, op, object);
+}
+
 void reply_wrong_arity(Op& op) {
     reply_err(op.sink(), "ERR wrong number of arguments");
 }
 
-bool preconvert_hset(HashVal& hash, const CompactLimit& limit, const Op& op) {
+bool preconvert_hset(CollectionRef& hash, const CompactLimit& limit, const Op& op) {
     if (hash.encoding() != CollectionEncoding::Compact) return true;
     const uint32_t incoming_fields = (op.argc() - 2) / 2;
     bool promote = incoming_fields > limit.max_entries;
@@ -798,31 +884,41 @@ void cmd_hset(Shard& shard, Op& op) {
     KvObj* object = shard.store().find(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return;
 
-    HashVal* hash = object ? as_hash(object) : new (std::nothrow) HashVal(op.hash);
-    if (!hash) {
+    uint64_t additional_encoded = 0;
+    uint32_t incoming_max = 0;
+    for (uint32_t i = 2; i < op.argc(); i += 2) {
+        const uint32_t pair_bytes = uleb_size(op.arg(i).n) + op.arg(i).n + op.arg(i + 1).n;
+        additional_encoded += Compact::entry_encoded_size(pair_bytes);
+        incoming_max = std::max(incoming_max, std::max(op.arg(i).n, op.arg(i + 1).n));
+    }
+    if (!ensure_hash_write_capacity(shard, op, object, (op.argc() - 2) / 2,
+                                    additional_encoded, incoming_max)) return;
+    HashVal* owned = object ? nullptr : new (std::nothrow) HashVal(op.hash);
+    if (!object && !owned) {
         reply_err(op.sink(), "ERR out of memory");
         return;
     }
+    CollectionRef hash = object ? as_hash(object) : CollectionRef(owned);
     ObjectSizeTracker size_tracker(shard.store(), object);   // existing object: track growth
     // Wide fresh HSET/HMSET must not repeatedly scan an ever-growing Compact. As Redis, Valkey,
     // and the optimized fork do, use only the incoming pair count/lengths to pre-promote when the
     // command itself cannot fit; duplicates may conservatively over-promote, never under-promote.
-    if (!preconvert_hset(*hash, shard.type_limits().hash, op)) {
-        if (!object) delete hash;
+    if (!preconvert_hset(hash, shard.type_limits().hash, op)) {
+        if (!object) delete owned;
         reply_err(op.sink(), "ERR out of memory");
         return;
     }
     uint32_t created = 0;
     for (uint32_t i = 2; i < op.argc(); i += 2) {
-        const HashSetKind result = hash_set(*hash, shard.type_limits().hash, op.arg(i), op.arg(i + 1));
+        const HashSetKind result = hash_set(hash, shard.type_limits().hash, op.arg(i), op.arg(i + 1));
         if (result == HashSetKind::Oom) {
-            if (!object) delete hash;
+            if (!object) delete owned;
             reply_err(op.sink(), "ERR out of memory");
             return;
         }
         created += result == HashSetKind::Inserted;
     }
-    if (!object && !attach_new_hash(shard, op, hash)) return;
+    if (!object && !attach_new_hash(shard, op, owned)) return;
     if (op.cmd_name().eq_icase("hmset")) reply_ok(op.sink());
     else reply_int(op.sink(), created);
 }
@@ -832,24 +928,29 @@ void cmd_hsetnx(Shard& shard, Op& op) {
     if (!obj_type_check(object, Type::Hash, op.sink())) return;
     if (object) {
         Slice ignored;
-        if (hash_get(*as_hash(object), op.arg(2), ignored)) {
+        if (hash_get(as_hash(object), op.arg(2), ignored)) {
             reply_int(op.sink(), 0);
             return;
         }
     }
 
-    HashVal* hash = object ? as_hash(object) : new (std::nothrow) HashVal(op.hash);
-    if (!hash) {
+    const uint32_t pair_bytes = uleb_size(op.arg(2).n) + op.arg(2).n + op.arg(3).n;
+    if (!ensure_hash_write_capacity(shard, op, object, 1,
+                                    Compact::entry_encoded_size(pair_bytes),
+                                    std::max(op.arg(2).n, op.arg(3).n))) return;
+    HashVal* owned = object ? nullptr : new (std::nothrow) HashVal(op.hash);
+    if (!object && !owned) {
         reply_err(op.sink(), "ERR out of memory");
         return;
     }
+    CollectionRef hash = object ? as_hash(object) : CollectionRef(owned);
     ObjectSizeTracker size_tracker(shard.store(), object);
-    if (hash_set(*hash, shard.type_limits().hash, op.arg(2), op.arg(3)) == HashSetKind::Oom) {
-        if (!object) delete hash;
+    if (hash_set(hash, shard.type_limits().hash, op.arg(2), op.arg(3)) == HashSetKind::Oom) {
+        if (!object) delete owned;
         reply_err(op.sink(), "ERR out of memory");
         return;
     }
-    if (!object && !attach_new_hash(shard, op, hash)) return;
+    if (!object && !attach_new_hash(shard, op, owned)) return;
     reply_int(op.sink(), 1);
 }
 
@@ -857,7 +958,7 @@ void cmd_hget(Shard& shard, Op& op) {
     KvObj* object = shard.store().find(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return;
     Slice value;
-    if (!object || !hash_get(*as_hash(object), op.arg(2), value)) reply_nil(op.sink());
+    if (!object || !hash_get(as_hash(object), op.arg(2), value)) reply_nil(op.sink());
     else reply_bulk(op.sink(), value);
 }
 
@@ -867,7 +968,7 @@ void cmd_hmget(Shard& shard, Op& op) {
     reply_array_header(op.sink(), op.argc() - 2);
     for (uint32_t i = 2; i < op.argc(); i++) {
         Slice value;
-        if (!object || !hash_get(*as_hash(object), op.arg(i), value)) reply_nil(op.sink());
+        if (!object || !hash_get(as_hash(object), op.arg(i), value)) reply_nil(op.sink());
         else reply_bulk(op.sink(), value);
     }
 }
@@ -879,13 +980,13 @@ void cmd_hdel(Shard& shard, Op& op) {
         reply_int(op.sink(), 0);
         return;
     }
-    HashVal* hash = as_hash(object);
+    CollectionRef hash = as_hash(object);
     ObjectSizeTracker size_tracker(shard.store(), object);
     uint32_t deleted = 0;
     for (uint32_t i = 2; i < op.argc(); i++) {
-        if (!hash_erase(*hash, op.arg(i))) continue;
+        if (!hash_erase(hash, op.arg(i))) continue;
         deleted++;
-        if (hash->field_count() == 0) {
+        if (hash.entries() == 0) {
             size_tracker.finish();               // account the shrink; erase subtracts the rest
             shard.store().erase(op.hash, op.key());
             break;
@@ -897,21 +998,21 @@ void cmd_hdel(Shard& shard, Op& op) {
 void cmd_hlen(Shard& shard, Op& op) {
     KvObj* object = shard.store().find(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return;
-    reply_int(op.sink(), object ? as_hash(object)->field_count() : 0);
+    reply_int(op.sink(), object ? as_hash(object).entries() : 0);
 }
 
 void cmd_hexists(Shard& shard, Op& op) {
     KvObj* object = shard.store().find(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return;
     Slice value;
-    reply_int(op.sink(), object && hash_get(*as_hash(object), op.arg(2), value) ? 1 : 0);
+    reply_int(op.sink(), object && hash_get(as_hash(object), op.arg(2), value) ? 1 : 0);
 }
 
 void cmd_hstrlen(Shard& shard, Op& op) {
     KvObj* object = shard.store().find(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return;
     Slice value;
-    reply_int(op.sink(), object && hash_get(*as_hash(object), op.arg(2), value) ? value.n : 0);
+    reply_int(op.sink(), object && hash_get(as_hash(object), op.arg(2), value) ? value.n : 0);
 }
 
 void cmd_hincrby(Shard& shard, Op& op) {
@@ -925,7 +1026,7 @@ void cmd_hincrby(Shard& shard, Op& op) {
 
     int64_t old_value = 0;
     Slice old_text;
-    if (object && hash_get(*as_hash(object), op.arg(2), old_text) &&
+    if (object && hash_get(as_hash(object), op.arg(2), old_text) &&
         !parse_i64(old_text, old_value)) {
         reply_err(op.sink(), "ERR hash value is not an integer");
         return;
@@ -939,19 +1040,24 @@ void cmd_hincrby(Shard& shard, Op& op) {
     char text[24];
     const uint32_t length = i64_to_dec(text, value);
 
-    HashVal* hash = object ? as_hash(object) : new (std::nothrow) HashVal(op.hash);
-    if (!hash) {
+    const uint32_t encoded = Compact::entry_encoded_size(
+        uleb_size(op.arg(2).n) + op.arg(2).n + length);
+    if (!ensure_hash_write_capacity(shard, op, object, 1, encoded,
+                                    std::max(op.arg(2).n, length))) return;
+    HashVal* owned = object ? nullptr : new (std::nothrow) HashVal(op.hash);
+    if (!object && !owned) {
         reply_err(op.sink(), "ERR out of memory");
         return;
     }
+    CollectionRef hash = object ? as_hash(object) : CollectionRef(owned);
     ObjectSizeTracker size_tracker(shard.store(), object);
-    if (hash_set(*hash, shard.type_limits().hash, op.arg(2), Slice(text, length)) ==
+    if (hash_set(hash, shard.type_limits().hash, op.arg(2), Slice(text, length)) ==
         HashSetKind::Oom) {
-        if (!object) delete hash;
+        if (!object) delete owned;
         reply_err(op.sink(), "ERR out of memory");
         return;
     }
-    if (!object && !attach_new_hash(shard, op, hash)) return;
+    if (!object && !attach_new_hash(shard, op, owned)) return;
     reply_int(op.sink(), value);
 }
 
@@ -970,7 +1076,7 @@ void cmd_hincrbyfloat(Shard& shard, Op& op) {
 
     long double old_value = 0;
     Slice old_text;
-    if (object && hash_get(*as_hash(object), op.arg(2), old_text) &&
+    if (object && hash_get(as_hash(object), op.arg(2), old_text) &&
         !parse_long_double(old_text, old_value)) {
         reply_err(op.sink(), "ERR hash value is not a float");
         return;
@@ -987,19 +1093,24 @@ void cmd_hincrbyfloat(Shard& shard, Op& op) {
         return;
     }
 
-    HashVal* hash = object ? as_hash(object) : new (std::nothrow) HashVal(op.hash);
-    if (!hash) {
+    const uint32_t encoded = Compact::entry_encoded_size(
+        uleb_size(op.arg(2).n) + op.arg(2).n + length);
+    if (!ensure_hash_write_capacity(shard, op, object, 1, encoded,
+                                    std::max(op.arg(2).n, length))) return;
+    HashVal* owned = object ? nullptr : new (std::nothrow) HashVal(op.hash);
+    if (!object && !owned) {
         reply_err(op.sink(), "ERR out of memory");
         return;
     }
+    CollectionRef hash = object ? as_hash(object) : CollectionRef(owned);
     ObjectSizeTracker size_tracker(shard.store(), object);
-    if (hash_set(*hash, shard.type_limits().hash, op.arg(2), Slice(text, length)) ==
+    if (hash_set(hash, shard.type_limits().hash, op.arg(2), Slice(text, length)) ==
         HashSetKind::Oom) {
-        if (!object) delete hash;
+        if (!object) delete owned;
         reply_err(op.sink(), "ERR out of memory");
         return;
     }
-    if (!object && !attach_new_hash(shard, op, hash)) return;
+    if (!object && !attach_new_hash(shard, op, owned)) return;
     reply_bulk(op.sink(), Slice(text, length));
 }
 
@@ -1012,9 +1123,9 @@ void generic_getall(Shard& shard, Op& op, GetAllMode mode) {
         reply_array_header(op.sink(), 0);
         return;
     }
-    const HashVal& hash = *as_hash(object);
+    CollectionRef hash = as_hash(object);
     const uint64_t multiplier = mode == GetAllMode::Both ? 2 : 1;
-    reply_array_header(op.sink(), static_cast<uint64_t>(hash.field_count()) * multiplier);
+    reply_array_header(op.sink(), static_cast<uint64_t>(hash.entries()) * multiplier);
     auto emit = [&](Slice field, Slice value) {
         if (mode != GetAllMode::Values) reply_bulk(op.sink(), field);
         if (mode != GetAllMode::Fields) reply_bulk(op.sink(), value);
@@ -1022,7 +1133,7 @@ void generic_getall(Shard& shard, Op& op, GetAllMode mode) {
     if (hash.encoding() == CollectionEncoding::Compact) {
         compact_for_each(hash, [&](const PairView& pair) { emit(pair.field, pair.value); });
     } else {
-        hash.fields->for_each([&](const HashFieldMap::Node& node) {
+        hash_fields(hash)->for_each([&](const HashFieldMap::Node& node) {
             emit(Slice(node.field.data(), static_cast<uint32_t>(node.field.size())),
                  Slice(node.value.data(), static_cast<uint32_t>(node.value.size())));
         });
@@ -1201,7 +1312,7 @@ void cmd_hscan(Shard& shard, Op& op) {
     ScanOptions options;
     if (!parse_scan_options(op, options)) return;
 
-    const HashVal& hash = *as_hash(object);
+    CollectionRef hash = as_hash(object);
     std::vector<ScanItem> items;
     try {
         if (hash.encoding() == CollectionEncoding::Compact) {
@@ -1220,14 +1331,14 @@ void cmd_hscan(Shard& shard, Op& op) {
                 if (!options.use_pattern || glob_match(options.pattern, pair.field))
                     items.push_back({pair.field, pair.value});
             }
-            cursor = position >= hash.field_count() ? 0 : position;
+            cursor = position >= hash.entries() ? 0 : position;
         } else {
             uint64_t sampled = 0;
             uint64_t iterations = 0;
             const uint64_t max_iterations = options.count > UINT64_MAX / 10
                                                 ? UINT64_MAX : options.count * 10;
             do {
-                cursor = hash.fields->scan(cursor, [&](const HashFieldMap::Node& node) {
+                cursor = hash_fields(hash)->scan(cursor, [&](const HashFieldMap::Node& node) {
                     sampled++;
                     const Slice field(node.field.data(), static_cast<uint32_t>(node.field.size()));
                     if (!options.use_pattern || glob_match(options.pattern, field))
@@ -1247,19 +1358,19 @@ void cmd_hscan(Shard& shard, Op& op) {
     reply_scan(op, cursor, items, options.no_values);
 }
 
-bool compact_pairs(const HashVal& hash, std::vector<PairView>& pairs) {
+bool compact_pairs(const CollectionRef& hash, std::vector<PairView>& pairs) {
     try {
-        pairs.reserve(hash.field_count());
+        pairs.reserve(hash.entries());
         compact_for_each(hash, [&](const PairView& pair) { pairs.push_back(pair); });
     } catch (const std::bad_alloc&) {
         return false;
     } catch (const std::length_error&) {
         return false;
     }
-    return pairs.size() == hash.field_count();
+    return pairs.size() == hash.entries();
 }
 
-bool select_unique(HashVal& hash, uint32_t population, uint32_t count,
+bool select_unique(CollectionRef& hash, uint32_t population, uint32_t count,
                    std::vector<uint32_t>& selected) {
     try {
         selected.reserve(count);
@@ -1268,7 +1379,7 @@ bool select_unique(HashVal& hash, uint32_t population, uint32_t count,
             for (uint32_t i = 0; i < population; i++) all[i] = i;
             for (uint32_t i = 0; i < count; i++) {
                 const uint32_t chosen = i + static_cast<uint32_t>(
-                    hash.random_bounded(static_cast<uint64_t>(population - i)));
+                    hash_random_bounded(hash, static_cast<uint64_t>(population - i)));
                 std::swap(all[i], all[chosen]);
                 selected.push_back(all[i]);
             }
@@ -1277,7 +1388,7 @@ bool select_unique(HashVal& hash, uint32_t population, uint32_t count,
         std::unordered_set<uint32_t> seen;
         seen.reserve(static_cast<size_t>(count) * 2);
         while (selected.size() < count) {
-            const uint32_t candidate = static_cast<uint32_t>(hash.random_bounded(population));
+            const uint32_t candidate = static_cast<uint32_t>(hash_random_bounded(hash, population));
             if (seen.insert(candidate).second) selected.push_back(candidate);
         }
         return true;
@@ -1324,8 +1435,8 @@ void cmd_hrandfield(Shard& shard, Op& op) {
         else reply_array_header(op.sink(), 0);
         return;
     }
-    HashVal& hash = *as_hash(object);
-    const uint32_t population = hash.field_count();
+    CollectionRef hash = as_hash(object);
+    const uint32_t population = hash.entries();
     if (!population) {
         if (op.argc() == 2) reply_nil(op.sink());
         else reply_array_header(op.sink(), 0);
@@ -1340,13 +1451,13 @@ void cmd_hrandfield(Shard& shard, Op& op) {
     auto pair_at = [&](uint32_t index) -> std::pair<Slice, Slice> {
         if (hash.encoding() == CollectionEncoding::Compact)
             return {compact[index].field, compact[index].value};
-        const HashFieldMap::Node& node = hash.fields->at(index);
+        const HashFieldMap::Node& node = hash_fields(hash)->at(index);
         return {Slice(node.field.data(), static_cast<uint32_t>(node.field.size())),
                 Slice(node.value.data(), static_cast<uint32_t>(node.value.size()))};
     };
 
     if (op.argc() == 2) {
-        const auto pair = pair_at(static_cast<uint32_t>(hash.random_bounded(population)));
+        const auto pair = pair_at(static_cast<uint32_t>(hash_random_bounded(hash, population)));
         reply_bulk(op.sink(), pair.first);
         return;
     }
@@ -1361,7 +1472,7 @@ void cmd_hrandfield(Shard& shard, Op& op) {
     if (!unique) {
         reply_array_header(op.sink(), requested * (with_values ? 2 : 1));
         for (uint64_t i = 0; i < requested; i++) {
-            const auto pair = pair_at(static_cast<uint32_t>(hash.random_bounded(population)));
+            const auto pair = pair_at(static_cast<uint32_t>(hash_random_bounded(hash, population)));
             reply_bulk(op.sink(), pair.first);
             if (with_values) reply_bulk(op.sink(), pair.second);
         }
@@ -1420,11 +1531,11 @@ namespace {
 // Logical hash payload: per pair [u32 flen][field][u32 vlen][value], encoding byte 0.  The walk is
 // representation-agnostic; load rebuilds through hash_set so encoding follows the CURRENT limits.
 template <typename Fn>
-void hash_walk(const HashVal& hash, Fn&& fn) {
+void hash_walk(const CollectionRef& hash, Fn&& fn) {
     if (hash.encoding() == CollectionEncoding::Compact) {
         compact_for_each(hash, [&](const PairView& pair) { fn(pair.field, pair.value); });
     } else {
-        hash.fields->for_each([&](const HashFieldMap::Node& node) {
+        hash_fields(hash)->for_each([&](const HashFieldMap::Node& node) {
             fn(Slice(node.field.data(), static_cast<uint32_t>(node.field.size())),
                Slice(node.value.data(), static_cast<uint32_t>(node.value.size())));
         });
@@ -1438,7 +1549,7 @@ SnapshotHookStatus hash_snapshot_begin(const KvObj& object, SnapshotSaveCursor& 
     cursor.object = &object;
     encoding = 0;
     uint64_t total = 0;
-    hash_walk(*as_hash(const_cast<KvObj*>(&object)),
+    hash_walk(as_hash(const_cast<KvObj*>(&object)),
               [&](Slice f, Slice v) { total += 8ull + f.n + v.n; });
     cursor.total = total;
     return SnapshotHookStatus::Ok;
@@ -1448,7 +1559,7 @@ SnapshotHookStatus hash_snapshot_read(SnapshotSaveCursor& cursor, uint8_t* desti
                                       size_t capacity, size_t& written) {
     written = 0;
     if (!cursor.object) return SnapshotHookStatus::Corrupt;
-    const HashVal& hash = *as_hash(const_cast<KvObj*>(cursor.object));
+    CollectionRef hash = as_hash(const_cast<KvObj*>(cursor.object));
     SnapshotElementEmitter e{destination, capacity};
     uint64_t idx = 0;
     bool stopped = false;
@@ -1480,6 +1591,7 @@ SnapshotHookStatus hash_snapshot_load(Slice key, uint8_t encoding, int64_t expir
         seed = (seed ^ static_cast<uint8_t>(key.p[i])) * 0x100000001b3ull;
     HashVal* hash = new (std::nothrow) HashVal(seed);
     if (!hash) return SnapshotHookStatus::Oom;
+    CollectionRef hash_ref(hash);
     const uint8_t* p = reinterpret_cast<const uint8_t*>(payload.p);
     uint64_t left = payload.n;
     while (left) {
@@ -1494,12 +1606,12 @@ SnapshotHookStatus hash_snapshot_load(Slice key, uint8_t encoding, int64_t expir
         if (left < vlen) { delete hash; return SnapshotHookStatus::Corrupt; }
         const Slice value(reinterpret_cast<const char*>(p), vlen);
         p += vlen; left -= vlen;
-        if (hash_set(*hash, limits.hash, field, value) == HashSetKind::Oom) {
+        if (hash_set(hash_ref, limits.hash, field, value) == HashSetKind::Oom) {
             delete hash;
             return SnapshotHookStatus::Oom;
         }
     }
-    result = kvobj_new_hash(key, hash, expire_at_ms);
+    result = kvobj_adopt_hash(key, hash, expire_at_ms);
     if (!result) { delete hash; return SnapshotHookStatus::Oom; }
     return SnapshotHookStatus::Ok;
 }

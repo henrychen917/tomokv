@@ -864,7 +864,8 @@ int tuple_compare(double score, Slice member, double other_score, Slice other_me
     return bytes_compare(member, other_member);
 }
 
-bool compact_find(const ZsetVal& value, Slice wanted, Compact::Entry* found, double* score_out) {
+bool compact_find(const CollectionRef& value, Slice wanted, Compact::Entry* found,
+                  double* score_out) {
     for (const Compact::Entry entry : value.compact()) {
         double score;
         Slice member;
@@ -878,7 +879,7 @@ bool compact_find(const ZsetVal& value, Slice wanted, Compact::Entry* found, dou
     return false;
 }
 
-uint32_t compact_insert_offset(const ZsetVal& value, double score, Slice member) {
+uint32_t compact_insert_offset(const CollectionRef& value, double score, Slice member) {
     for (const Compact::Entry entry : value.compact()) {
         double other_score;
         Slice other_member;
@@ -889,7 +890,11 @@ uint32_t compact_insert_offset(const ZsetVal& value, double score, Slice member)
     return static_cast<uint32_t>(value.compact().encoded_bytes());
 }
 
-bool promote_zset(ZsetVal& value) {
+ZsetData* zset_expanded(const CollectionRef& value) {
+    return value.external_as<ZsetVal>()->expanded;
+}
+
+bool promote_zset(CollectionRef& value) {
     ZsetData* data = ZsetData::create();
     if (!data || !data->reserve(value.entries())) {
         delete data;
@@ -903,15 +908,16 @@ bool promote_zset(ZsetVal& value) {
             return false;
         }
     }
-    value.expanded = data;
-    value.promote(CollectionEncoding::Btree, data->allocation_bytes());
+    ZsetVal* external = value.external_as<ZsetVal>();
+    external->expanded = data;
+    external->promote(CollectionEncoding::Btree, data->allocation_bytes());
     return true;
 }
 
-bool zset_get_score(const ZsetVal& value, Slice member, double& score) {
+bool zset_get_score(const CollectionRef& value, Slice member, double& score) {
     if (value.encoding() == CollectionEncoding::Compact)
         return compact_find(value, member, nullptr, &score);
-    ZsetNode* node = value.expanded->find(member);
+    ZsetNode* node = zset_expanded(value)->find(member);
     if (!node) return false;
     score = node->score;
     return true;
@@ -919,7 +925,7 @@ bool zset_get_score(const ZsetVal& value, Slice member, double& score) {
 
 enum class AddOutcome : uint8_t { Added, Updated, Unchanged, Noop, Oom, Nan };
 
-AddOutcome zset_add_one(ZsetVal& value, const CompactLimit& limit, double input_score,
+AddOutcome zset_add_one(CollectionRef& value, const CompactLimit& limit, double input_score,
                         Slice member, bool nx, bool xx, bool gt, bool lt, bool incr,
                         double& resulting_score) {
     if (value.encoding() == CollectionEncoding::Compact) {
@@ -957,7 +963,8 @@ AddOutcome zset_add_one(ZsetVal& value, const CompactLimit& limit, double input_
         }
     }
 
-    ZsetNode* existing = value.expanded->find(member);
+    ZsetVal* external = value.external_as<ZsetVal>();
+    ZsetNode* existing = external->expanded->find(member);
     if (existing) {
         if (nx) return AddOutcome::Noop;
         const double old_score = existing->score;
@@ -966,14 +973,14 @@ AddOutcome zset_add_one(ZsetVal& value, const CompactLimit& limit, double input_
         if ((lt && score >= old_score) || (gt && score <= old_score)) return AddOutcome::Noop;
         resulting_score = score;
         if (score == old_score) return AddOutcome::Unchanged;
-        value.expanded->update_score(existing, score);
+        external->expanded->update_score(existing, score);
         return AddOutcome::Updated;
     }
     if (xx) return AddOutcome::Noop;
     resulting_score = input_score;
-    if (!value.expanded->insert(input_score, member)) return AddOutcome::Oom;
-    value.note_expanded_insert(member.n + kCompactScoreBytes,
-                               value.expanded->allocation_bytes());
+    if (!external->expanded->insert(input_score, member)) return AddOutcome::Oom;
+    external->note_expanded_insert(member.n + kCompactScoreBytes,
+                                   external->expanded->allocation_bytes());
     return AddOutcome::Added;
 }
 
@@ -983,9 +990,7 @@ KvObj* lookup_zset(Shard& shard, Op& op) {
     return object;
 }
 
-ZsetVal* zset_value(KvObj* object) {
-    return static_cast<ZsetVal*>(object->external_ptr());
-}
+CollectionRef zset_value(KvObj* object) { return CollectionRef(object); }
 
 void reply_oom(Op& op) { reply_err(op.sink(), "ERR out of memory"); }
 
@@ -1002,7 +1007,7 @@ void reply_cursor(Op& op, uint64_t cursor) {
 struct CompactItems {
     std::vector<Compact::Entry> entries;
 
-    bool load(const ZsetVal& value) {
+    bool load(const CollectionRef& value) {
         try {
             entries.reserve(value.entries());
             for (const Compact::Entry entry : value.compact()) entries.push_back(entry);
@@ -1013,6 +1018,50 @@ struct CompactItems {
         }
     }
 };
+
+bool externalize_zset(Shard& shard, Op& op, KvObj*& object) {
+    CollectionRef source(object);
+    if (!source.is_embedded()) return true;
+    auto* value = new (std::nothrow) ZsetVal;
+    if (!value) { reply_oom(op); return false; }
+    for (const Compact::Entry entry : source.compact()) {
+        if (!value->append(entry.value)) {
+            delete value;
+            reply_oom(op);
+            return false;
+        }
+    }
+    KvObj* replacement = kvobj_new_zset(object->key(), value, object->expire_at_ms());
+    if (!replacement) {
+        delete value;
+        reply_oom(op);
+        return false;
+    }
+    replacement->set_eviction_meta(object->eviction_meta());
+    const FlatStore::InsertResult inserted = shard.store().insert(op.hash, replacement);
+    if (inserted != FlatStore::InsertResult::Inserted) {
+        kvobj_free(replacement);
+        if (inserted == FlatStore::InsertResult::MaxmemoryOom) reply_maxmemory_oom(op);
+        else reply_err(op.sink(), "ERR keyspace insert failed");
+        return false;
+    }
+    object = replacement;
+    return true;
+}
+
+bool ensure_zset_write_capacity(Shard& shard, Op& op, KvObj*& object,
+                                uint32_t additional_entries, uint64_t additional_encoded,
+                                uint32_t incoming_max) {
+    if (!object) return true;
+    CollectionRef value(object);
+    if (!value.is_embedded()) return true;
+    const CompactLimit& limit = shard.type_limits().zset;
+    if (value.embedded_bytes_fit(value.compact().encoded_bytes() + additional_encoded) &&
+        static_cast<uint64_t>(value.entries()) + additional_entries <= limit.max_entries &&
+        incoming_max <= limit.max_value)
+        return true;
+    return externalize_zset(shard, op, object);
+}
 
 void emit_item(Op& op, Slice member, double score, bool withscores) {
     reply_bulk(op.sink(), member);
@@ -1086,20 +1135,29 @@ void cmd_zadd_generic(Shard& shard, Op& op, bool force_incr) {
     }
 
     const bool new_key = object == nullptr;
-    ZsetVal* value = new_key ? new (std::nothrow) ZsetVal : zset_value(object);
-    if (!value) {
+    uint64_t additional_encoded = 0;
+    uint32_t incoming_max = 0;
+    for (const ParsedScoreMember& pair : pairs) {
+        additional_encoded += Compact::entry_encoded_size(kCompactScoreBytes + pair.member.n);
+        incoming_max = std::max(incoming_max, pair.member.n);
+    }
+    if (!ensure_zset_write_capacity(shard, op, object, pair_count,
+                                    additional_encoded, incoming_max)) return;
+    ZsetVal* owned = new_key ? new (std::nothrow) ZsetVal : nullptr;
+    if (new_key && !owned) {
         reply_oom(op);
         return;
     }
+    CollectionRef value = new_key ? CollectionRef(owned) : zset_value(object);
     ObjectSizeTracker size_tracker(shard.store(), object);
 
     uint64_t added = 0, updated = 0, processed = 0;
     double last_score = 0;
     for (const ParsedScoreMember& pair : pairs) {
-        const AddOutcome outcome = zset_add_one(*value, shard.type_limits().zset, pair.score,
+        const AddOutcome outcome = zset_add_one(value, shard.type_limits().zset, pair.score,
                                                 pair.member, nx, xx, gt, lt, incr, last_score);
         if (outcome == AddOutcome::Oom || outcome == AddOutcome::Nan) {
-            if (new_key) delete value;
+            if (new_key) delete owned;
             if (outcome == AddOutcome::Oom) reply_oom(op);
             else reply_err(op.sink(), "ERR resulting score is not a number (NaN)");
             return;
@@ -1109,10 +1167,10 @@ void cmd_zadd_generic(Shard& shard, Op& op, bool force_incr) {
         if (outcome != AddOutcome::Noop) processed++;
     }
 
-    if (new_key && value->entries()) {
-        KvObj* header = kvobj_new_zset(op.key(), value);
+    if (new_key && value.entries()) {
+        KvObj* header = kvobj_adopt_zset(op.key(), owned);
         if (!header) {
-            delete value;
+            delete owned;
             reply_oom(op);
             return;
         }
@@ -1124,7 +1182,7 @@ if (inserted_ != FlatStore::InsertResult::Inserted) {
     return;
         }
     } else if (new_key) {
-        delete value;
+        delete owned;
     }
 
     if (incr) {
@@ -1146,7 +1204,7 @@ void cmd_zscore(Shard& shard, Op& op) {
         return;
     }
     double score;
-    if (!zset_get_score(*zset_value(object), op.arg(2), score)) reply_nil(op.sink());
+    if (!zset_get_score(zset_value(object), op.arg(2), score)) reply_nil(op.sink());
     else reply_double(op.sink(), score);
 }
 
@@ -1156,7 +1214,7 @@ void cmd_zmscore(Shard& shard, Op& op) {
     reply_array_header(op.sink(), op.argc() - 2);
     for (uint32_t i = 2; i < op.argc(); i++) {
         double score;
-        if (!object || !zset_get_score(*zset_value(object), op.arg(i), score))
+        if (!object || !zset_get_score(zset_value(object), op.arg(i), score))
             reply_nil(op.sink());
         else
             reply_double(op.sink(), score);
@@ -1166,7 +1224,7 @@ void cmd_zmscore(Shard& shard, Op& op) {
 void cmd_zcard(Shard& shard, Op& op) {
     KvObj* object = lookup_zset(shard, op);
     if (object == reinterpret_cast<KvObj*>(-1)) return;
-    reply_int(op.sink(), object ? zset_value(object)->entries() : 0);
+    reply_int(op.sink(), object ? zset_value(object).entries() : 0);
 }
 
 void cmd_zcount(Shard& shard, Op& op) {
@@ -1181,7 +1239,7 @@ void cmd_zcount(Shard& shard, Op& op) {
         reply_int(op.sink(), 0);
         return;
     }
-    const ZsetVal& value = *zset_value(object);
+    CollectionRef value = zset_value(object);
     uint64_t count = 0;
     if (value.encoding() == CollectionEncoding::Compact) {
         for (const Compact::Entry entry : value.compact()) {
@@ -1192,7 +1250,7 @@ void cmd_zcount(Shard& shard, Op& op) {
                 count++;
         }
     } else {
-        count = value.expanded->count_by_score(range);
+        count = zset_expanded(value)->count_by_score(range);
     }
     reply_int(op.sink(), static_cast<long long>(count));
 }
@@ -1209,7 +1267,7 @@ void cmd_zlexcount(Shard& shard, Op& op) {
         reply_int(op.sink(), 0);
         return;
     }
-    const ZsetVal& value = *zset_value(object);
+    CollectionRef value = zset_value(object);
     uint64_t count = 0;
     if (value.encoding() == CollectionEncoding::Compact) {
         bool started = false;
@@ -1225,7 +1283,7 @@ void cmd_zlexcount(Shard& shard, Op& op) {
             count++;
         }
     } else {
-        count = value.expanded->count_by_lex(range);
+        count = zset_expanded(value)->count_by_lex(range);
     }
     reply_int(op.sink(), static_cast<long long>(count));
 }
@@ -1243,7 +1301,7 @@ void cmd_zrank_generic(Shard& shard, Op& op, bool reverse) {
         else reply_nil(op.sink());
         return;
     }
-    const ZsetVal& value = *zset_value(object);
+    CollectionRef value = zset_value(object);
     uint64_t rank = 0;
     double score = 0;
     bool found = false;
@@ -1258,10 +1316,10 @@ void cmd_zrank_generic(Shard& shard, Op& op, bool reverse) {
             rank++;
         }
     } else {
-        ZsetNode* node = value.expanded->find(op.arg(2));
+        ZsetNode* node = zset_expanded(value)->find(op.arg(2));
         if (node) {
             score = node->score;
-            rank = value.expanded->rank_of(node) - 1;
+            rank = zset_expanded(value)->rank_of(node) - 1;
             found = true;
         }
     }
@@ -1286,7 +1344,7 @@ void cmd_zrem(Shard& shard, Op& op) {
         reply_int(op.sink(), 0);
         return;
     }
-    ZsetVal& value = *zset_value(object);
+    CollectionRef value = zset_value(object);
     ObjectSizeTracker size_tracker(shard.store(), object);
     uint64_t removed = 0;
     if (value.encoding() == CollectionEncoding::Compact) {
@@ -1296,10 +1354,11 @@ void cmd_zrem(Shard& shard, Op& op) {
         }
     } else {
         for (uint32_t i = 2; i < op.argc(); i++) {
-            ZsetNode* node = value.expanded->find(op.arg(i));
+            ZsetVal* external = value.external_as<ZsetVal>();
+            ZsetNode* node = external->expanded->find(op.arg(i));
             if (!node) continue;
-            const uint32_t payload = value.expanded->erase_node(node);
-            value.note_expanded_delete(payload, value.expanded->allocation_bytes());
+            const uint32_t payload = external->expanded->erase_node(node);
+            external->note_expanded_delete(payload, external->expanded->allocation_bytes());
             removed++;
         }
     }
@@ -1308,7 +1367,7 @@ void cmd_zrem(Shard& shard, Op& op) {
     reply_int(op.sink(), static_cast<long long>(removed));
 }
 
-RemovalResult compact_erase_rank(ZsetVal& value, int64_t start, int64_t stop) {
+RemovalResult compact_erase_rank(CollectionRef& value, int64_t start, int64_t stop) {
     RemovalResult result;
     CompactItems items;
     if (!items.load(value)) return result;
@@ -1327,7 +1386,7 @@ RemovalResult compact_erase_rank(ZsetVal& value, int64_t start, int64_t stop) {
     return result;
 }
 
-RemovalResult compact_erase_score(ZsetVal& value, const ScoreRange& range) {
+RemovalResult compact_erase_score(CollectionRef& value, const ScoreRange& range) {
     RemovalResult result;
     uint32_t first = 0, last = 0;
     bool found = false;
@@ -1350,7 +1409,7 @@ RemovalResult compact_erase_score(ZsetVal& value, const ScoreRange& range) {
     return result;
 }
 
-RemovalResult compact_erase_lex(ZsetVal& value, const LexRange& range) {
+RemovalResult compact_erase_lex(CollectionRef& value, const LexRange& range) {
     RemovalResult result;
     uint32_t first = 0, last = 0;
     bool found = false;
@@ -1373,11 +1432,11 @@ RemovalResult compact_erase_lex(ZsetVal& value, const LexRange& range) {
     return result;
 }
 
-void finish_range_delete(Shard& shard, Op& op, ZsetVal& value, RemovalResult result,
+void finish_range_delete(Shard& shard, Op& op, CollectionRef& value, RemovalResult result,
                          bool expanded, ObjectSizeTracker& size_tracker) {
     if (expanded && result.count)
-        value.note_expanded_delete_many(result.count, result.payload,
-                                        value.expanded->allocation_bytes());
+        value.external_as<ZsetVal>()->note_expanded_delete_many(
+            result.count, result.payload, zset_expanded(value)->allocation_bytes());
     size_tracker.finish();                       // account the shrink before any whole-key erase
     if (!value.entries()) shard.store().erase(op.hash, op.key());
     reply_int(op.sink(), result.count);
@@ -1395,7 +1454,7 @@ void cmd_zremrangebyrank(Shard& shard, Op& op) {
         reply_int(op.sink(), 0);
         return;
     }
-    ZsetVal& value = *zset_value(object);
+    CollectionRef value = zset_value(object);
     ObjectSizeTracker size_tracker(shard.store(), object);
     if (value.encoding() == CollectionEncoding::Compact) {
         finish_range_delete(shard, op, value, compact_erase_rank(value, start, stop), false,
@@ -1409,8 +1468,8 @@ void cmd_zremrangebyrank(Shard& shard, Op& op) {
     RemovalResult result;
     if (start <= stop && start < length && stop >= 0) {
         if (stop >= length) stop = length - 1;
-        result = value.expanded->erase_rank_range(static_cast<uint64_t>(start + 1),
-                                                  static_cast<uint64_t>(stop + 1));
+        result = zset_expanded(value)->erase_rank_range(static_cast<uint64_t>(start + 1),
+                                                        static_cast<uint64_t>(stop + 1));
     }
     finish_range_delete(shard, op, value, result, true, size_tracker);
 }
@@ -1427,12 +1486,12 @@ void cmd_zremrangebyscore(Shard& shard, Op& op) {
         reply_int(op.sink(), 0);
         return;
     }
-    ZsetVal& value = *zset_value(object);
+    CollectionRef value = zset_value(object);
     ObjectSizeTracker size_tracker(shard.store(), object);
     const bool expanded = value.encoding() != CollectionEncoding::Compact;
     RemovalResult result;
     if (!score_range_empty(range))
-        result = expanded ? value.expanded->erase_score_range(range)
+        result = expanded ? zset_expanded(value)->erase_score_range(range)
                           : compact_erase_score(value, range);
     finish_range_delete(shard, op, value, result, expanded, size_tracker);
 }
@@ -1449,12 +1508,12 @@ void cmd_zremrangebylex(Shard& shard, Op& op) {
         reply_int(op.sink(), 0);
         return;
     }
-    ZsetVal& value = *zset_value(object);
+    CollectionRef value = zset_value(object);
     ObjectSizeTracker size_tracker(shard.store(), object);
     const bool expanded = value.encoding() != CollectionEncoding::Compact;
     RemovalResult result;
     if (!lex_range_empty(range))
-        result = expanded ? value.expanded->erase_lex_range(range)
+        result = expanded ? zset_expanded(value)->erase_lex_range(range)
                           : compact_erase_lex(value, range);
     finish_range_delete(shard, op, value, result, expanded, size_tracker);
 }
@@ -1518,7 +1577,7 @@ uint64_t limited_count(uint64_t available, int64_t limit) {
     return std::min<uint64_t>(available, static_cast<uint64_t>(limit));
 }
 
-void emit_rank_range(Op& op, const ZsetVal& value, int64_t start, int64_t stop,
+void emit_rank_range(Op& op, const CollectionRef& value, int64_t start, int64_t stop,
                      bool reverse, bool withscores) {
     const int64_t length = static_cast<int64_t>(value.entries());
     if (start < 0) start += length;
@@ -1551,7 +1610,7 @@ void emit_rank_range(Op& op, const ZsetVal& value, int64_t start, int64_t stop,
 
     const uint64_t first_rank = reverse ? static_cast<uint64_t>(length - start)
                                         : static_cast<uint64_t>(start + 1);
-    ZsetNode* node = value.expanded->by_rank(first_rank);
+    ZsetNode* node = zset_expanded(value)->by_rank(first_rank);
     reply_array_header(op.sink(), count * (withscores ? 2 : 1));
     for (uint64_t i = 0; i < count && node; i++) {
         emit_item(op, node_member(node), node->score, withscores);
@@ -1559,7 +1618,7 @@ void emit_rank_range(Op& op, const ZsetVal& value, int64_t start, int64_t stop,
     }
 }
 
-void emit_score_range(Op& op, const ZsetVal& value, const ScoreRange& range,
+void emit_score_range(Op& op, const CollectionRef& value, const ScoreRange& range,
                       const RangeOptions& options) {
     if (score_range_empty(range) || options.offset < 0 || options.limit == 0) {
         reply_array_header(op.sink(), 0);
@@ -1609,8 +1668,8 @@ void emit_score_range(Op& op, const ZsetVal& value, const ScoreRange& range,
         return;
     }
 
-    if (!value.expanded->first_by_score(range, &first_rank) ||
-        !value.expanded->last_by_score(range, &last_rank)) {
+    if (!zset_expanded(value)->first_by_score(range, &first_rank) ||
+        !zset_expanded(value)->last_by_score(range, &last_rank)) {
         reply_array_header(op.sink(), 0);
         return;
     }
@@ -1622,7 +1681,7 @@ void emit_score_range(Op& op, const ZsetVal& value, const ScoreRange& range,
     }
     const uint64_t count = limited_count(available - offset, options.limit);
     const uint64_t start_rank = options.reverse ? last_rank - offset : first_rank + offset;
-    ZsetNode* node = value.expanded->by_rank(start_rank);
+    ZsetNode* node = zset_expanded(value)->by_rank(start_rank);
     reply_array_header(op.sink(), count * (options.withscores ? 2 : 1));
     for (uint64_t i = 0; i < count && node; i++) {
         emit_item(op, node_member(node), node->score, options.withscores);
@@ -1630,7 +1689,7 @@ void emit_score_range(Op& op, const ZsetVal& value, const ScoreRange& range,
     }
 }
 
-void emit_lex_range(Op& op, const ZsetVal& value, const LexRange& range,
+void emit_lex_range(Op& op, const CollectionRef& value, const LexRange& range,
                     const RangeOptions& options) {
     if (lex_range_empty(range) || options.offset < 0 || options.limit == 0) {
         reply_array_header(op.sink(), 0);
@@ -1681,8 +1740,8 @@ void emit_lex_range(Op& op, const ZsetVal& value, const LexRange& range,
         return;
     }
 
-    if (!value.expanded->first_by_lex(range, &first_rank) ||
-        !value.expanded->last_by_lex(range, &last_rank)) {
+    if (!zset_expanded(value)->first_by_lex(range, &first_rank) ||
+        !zset_expanded(value)->last_by_lex(range, &last_rank)) {
         reply_array_header(op.sink(), 0);
         return;
     }
@@ -1694,7 +1753,7 @@ void emit_lex_range(Op& op, const ZsetVal& value, const LexRange& range,
     }
     const uint64_t count = limited_count(available - offset, options.limit);
     const uint64_t start_rank = options.reverse ? last_rank - offset : first_rank + offset;
-    ZsetNode* node = value.expanded->by_rank(start_rank);
+    ZsetNode* node = zset_expanded(value)->by_rank(start_rank);
     reply_array_header(op.sink(), count);
     for (uint64_t i = 0; i < count && node; i++) {
         reply_bulk(op.sink(), node_member(node));
@@ -1740,7 +1799,7 @@ void cmd_zrange_generic(Shard& shard, Op& op, RangeKind initial_kind,
         reply_array_header(op.sink(), 0);
         return;
     }
-    const ZsetVal& value = *zset_value(object);
+    CollectionRef value = zset_value(object);
     if (options.kind == RangeKind::Rank)
         emit_rank_range(op, value, rank_start, rank_stop, options.reverse, options.withscores);
     else if (options.kind == RangeKind::Score)
@@ -1786,7 +1845,7 @@ void cmd_zpop_generic(Shard& shard, Op& op, bool maximum) {
         reply_array_header(op.sink(), 0);
         return;
     }
-    ZsetVal& value = *zset_value(object);
+    CollectionRef value = zset_value(object);
     ObjectSizeTracker size_tracker(shard.store(), object);
     const uint64_t take = std::min<uint64_t>(static_cast<uint64_t>(requested), value.entries());
 
@@ -1810,17 +1869,18 @@ void cmd_zpop_generic(Shard& shard, Op& op, bool maximum) {
         removed = compact_erase_rank(value, first, last);
     } else {
         const uint64_t start_rank = maximum ? value.entries() : 1;
-        ZsetNode* node = value.expanded->by_rank(start_rank);
+        ZsetNode* node = zset_expanded(value)->by_rank(start_rank);
         reply_array_header(op.sink(), take * 2);
         for (uint64_t i = 0; i < take && node; i++) {
             emit_item(op, node_member(node), node->score, true);
             node = maximum ? node->backward : node->level[0].forward;
         }
         removed = maximum
-                      ? value.expanded->erase_rank_range(value.entries() - take + 1, value.entries())
-                      : value.expanded->erase_rank_range(1, take);
-        value.note_expanded_delete_many(removed.count, removed.payload,
-                                        value.expanded->allocation_bytes());
+                      ? zset_expanded(value)->erase_rank_range(value.entries() - take + 1,
+                                                               value.entries())
+                      : zset_expanded(value)->erase_rank_range(1, take);
+        value.external_as<ZsetVal>()->note_expanded_delete_many(
+            removed.count, removed.payload, zset_expanded(value)->allocation_bytes());
     }
     size_tracker.finish();
     if (!value.entries()) shard.store().erase(op.hash, op.key());
@@ -1829,13 +1889,13 @@ void cmd_zpop_generic(Shard& shard, Op& op, bool maximum) {
 void cmd_zpopmin(Shard& shard, Op& op) { cmd_zpop_generic(shard, op, false); }
 void cmd_zpopmax(Shard& shard, Op& op) { cmd_zpop_generic(shard, op, true); }
 
-bool get_item_by_zero_rank(const ZsetVal& value, const CompactItems* compact, uint64_t rank,
+bool get_item_by_zero_rank(const CollectionRef& value, const CompactItems* compact, uint64_t rank,
                            Slice& member, double& score) {
     if (value.encoding() == CollectionEncoding::Compact) {
         if (!compact || rank >= compact->entries.size()) return false;
         return compact_decode(compact->entries[static_cast<size_t>(rank)], score, member);
     }
-    ZsetNode* node = value.expanded->by_rank(rank + 1);
+    ZsetNode* node = zset_expanded(value)->by_rank(rank + 1);
     if (!node) return false;
     member = node_member(node);
     score = node->score;
@@ -1867,7 +1927,7 @@ void cmd_zrandmember(Shard& shard, Op& op) {
         else reply_nil(op.sink());
         return;
     }
-    const ZsetVal& value = *zset_value(object);
+    CollectionRef value = zset_value(object);
     CompactItems compact;
     CompactItems* compact_ptr = nullptr;
     if (value.encoding() == CollectionEncoding::Compact) {
@@ -1884,7 +1944,7 @@ void cmd_zrandmember(Shard& shard, Op& op) {
         if (value.encoding() == CollectionEncoding::Compact) {
             get_item_by_zero_rank(value, compact_ptr, random_bounded(value.entries()), member, score);
         } else {
-            ZsetNode* node = value.expanded->by_member.random_node();
+            ZsetNode* node = zset_expanded(value)->by_member.random_node();
             member = node_member(node);
             score = node->score;
         }
@@ -1913,7 +1973,7 @@ void cmd_zrandmember(Shard& shard, Op& op) {
                 get_item_by_zero_rank(value, compact_ptr, random_bounded(value.entries()), member,
                                       score);
             } else {
-                ZsetNode* node = value.expanded->by_member.random_node();
+                ZsetNode* node = zset_expanded(value)->by_member.random_node();
                 member = node_member(node);
                 score = node->score;
             }
@@ -1928,7 +1988,7 @@ void cmd_zrandmember(Shard& shard, Op& op) {
             nodes.reserve(static_cast<size_t>(count));
             if (count == value.entries() || count > value.entries() / 3) {
                 nodes.reserve(value.entries());
-                for (ZsetNode* node = value.expanded->header->level[0].forward; node;
+                for (ZsetNode* node = zset_expanded(value)->header->level[0].forward; node;
                      node = node->level[0].forward)
                     nodes.push_back(node);
                 for (uint64_t i = 0; i < count; i++) {
@@ -1940,7 +2000,7 @@ void cmd_zrandmember(Shard& shard, Op& op) {
                 std::unordered_set<ZsetNode*> selected;
                 selected.reserve(static_cast<size_t>(count));
                 while (nodes.size() < count) {
-                    ZsetNode* node = value.expanded->by_member.random_node();
+                    ZsetNode* node = zset_expanded(value)->by_member.random_node();
                     if (selected.insert(node).second) nodes.push_back(node);
                 }
             }
@@ -2114,7 +2174,7 @@ void cmd_zscan(Shard& shard, Op& op) {
         }
     }
 
-    const ZsetVal& value = *zset_value(object);
+    CollectionRef value = zset_value(object);
     std::vector<ScanItem> result;
     if (value.encoding() == CollectionEncoding::Compact) {
         try {
@@ -2134,7 +2194,7 @@ void cmd_zscan(Shard& shard, Op& op) {
 
     uint64_t next_cursor = 0;
     try {
-        next_cursor = value.expanded->by_member.scan(cursor, count, [&](ZsetNode* node) {
+        next_cursor = zset_expanded(value)->by_member.scan(cursor, count, [&](ZsetNode* node) {
                 const Slice member = node_member(node);
                 if (!use_pattern || glob_match(pattern, member))
                     result.push_back({member, node->score});
@@ -2182,7 +2242,7 @@ namespace {
 // encoding byte 0.  Load re-adds through zset_add_one, so compact/skiplist follow CURRENT limits
 // and inserting in sorted order keeps the compact ordered-insert scan O(1) per element.
 template <typename Fn>
-bool zset_walk(const ZsetVal& value, Fn&& fn) {
+bool zset_walk(const CollectionRef& value, Fn&& fn) {
     if (value.encoding() == CollectionEncoding::Compact) {
         for (const Compact::Entry entry : value.compact()) {
             double score;
@@ -2192,7 +2252,7 @@ bool zset_walk(const ZsetVal& value, Fn&& fn) {
         }
         return true;
     }
-    for (const ZsetNode* node = value.expanded->header->level[0].forward; node;
+    for (const ZsetNode* node = zset_expanded(value)->header->level[0].forward; node;
          node = node->level[0].forward)
         if (!fn(node->score, node_member(node))) return true;
     return true;
@@ -2205,7 +2265,7 @@ SnapshotHookStatus zset_snapshot_begin(const KvObj& object, SnapshotSaveCursor& 
     cursor.object = &object;
     encoding = 0;
     uint64_t total = 0;
-    if (!zset_walk(*zset_value(const_cast<KvObj*>(&object)),
+    if (!zset_walk(zset_value(const_cast<KvObj*>(&object)),
                    [&](double, Slice member) { total += 12ull + member.n; return true; }))
         return SnapshotHookStatus::Corrupt;
     cursor.total = total;
@@ -2216,7 +2276,7 @@ SnapshotHookStatus zset_snapshot_read(SnapshotSaveCursor& cursor, uint8_t* desti
                                       size_t capacity, size_t& written) {
     written = 0;
     if (!cursor.object) return SnapshotHookStatus::Corrupt;
-    const ZsetVal& value = *zset_value(const_cast<KvObj*>(cursor.object));
+    CollectionRef value = zset_value(const_cast<KvObj*>(cursor.object));
     SnapshotElementEmitter e{destination, capacity};
     uint64_t idx = 0;
     bool stopped = false;
@@ -2248,6 +2308,7 @@ SnapshotHookStatus zset_snapshot_load(Slice key, uint8_t encoding, int64_t expir
     if (encoding != 0) return SnapshotHookStatus::Corrupt;
     auto* value = new (std::nothrow) ZsetVal;
     if (!value) return SnapshotHookStatus::Oom;
+    CollectionRef value_ref(value);
     const uint8_t* p = reinterpret_cast<const uint8_t*>(payload.p);
     uint64_t left = payload.n;
     while (left) {
@@ -2261,11 +2322,11 @@ SnapshotHookStatus zset_snapshot_load(Slice key, uint8_t encoding, int64_t expir
         const Slice member(reinterpret_cast<const char*>(p), mlen);
         p += mlen; left -= mlen;
         double out;
-        const AddOutcome outcome = zset_add_one(*value, limits.zset, score, member,
+        const AddOutcome outcome = zset_add_one(value_ref, limits.zset, score, member,
                                                 false, false, false, false, false, out);
         if (outcome != AddOutcome::Added) { delete value; return SnapshotHookStatus::Corrupt; }
     }
-    result = kvobj_new_zset(key, value, expire_at_ms);
+    result = kvobj_adopt_zset(key, value, expire_at_ms);
     if (!result) { delete value; return SnapshotHookStatus::Oom; }
     return SnapshotHookStatus::Ok;
 }

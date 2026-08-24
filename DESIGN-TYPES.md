@@ -63,15 +63,19 @@ is the existing, explicit borrow exception).
 ## `KvObj` and collection ownership
 
 `Type` is `String`, `Hash`, `List`, `Set`, or `Zset`. Strings retain `Raw`, `Int`, and `Extern`
-storage. Every non-string is `Enc::Extern`; the pointer names exactly one of `HashVal`, `ListVal`,
-`SetVal`, or `ZsetVal` from `src/store/typeval.h`.
+storage. A small collection uses `Enc::Compact`: 32 bytes of unaligned-safe scalar metadata and the
+packed `Compact` byte stream live directly after the key in the `KvObj` allocation. When that tail
+cannot fit the object's paid allocator class (or exceeds the 192-byte embed ceiling), it moves
+one-way to `Enc::Extern`; the pointer then names exactly one of `HashVal`, `ListVal`, `SetVal`, or
+`ZsetVal` from `src/store/typeval.h`.
 
 `kvobj_free()` switches on `Type` and deletes the concrete struct. There is no base class, virtual
 destructor, callback pointer, or refcount. A lane may add its expanded C++ container as a member of
 its concrete struct; its ordinary destructor then remains behind the same outer switch. The
-`OwnsExtern` flag exists only for TTL re-headering: a collection pointer is transferred to the new
-header before the old header retires, so exactly one header destroys it. Strings are copied during
-re-headering because their bytes may still be borrowed by the existing zero-copy GET path.
+`OwnsExtern` flag exists only for TTL re-headering: an external collection pointer is transferred
+to the new header before the old header retires, so exactly one header destroys it. Embedded
+collections are copied into a newly sized single block. Strings are copied during re-headering
+because their bytes may still be borrowed by the existing zero-copy GET path.
 
 Use `obj_type_check(o, wanted, op.sink())` after lookup. A missing object is accepted as an empty
 key; a present mismatch emits exactly `WRONGTYPE Operation against a key holding the wrong kind of
@@ -99,10 +103,17 @@ demotion, it needs explicit hysteresis and an O(1) eligibility signal.
 [ULEB128 payload length][payload bytes][ULEB128 payload length][payload bytes]...
 ```
 
-There is no outer header or reverse-length suffix. `size()`, `payload_bytes()`, `encoded_bytes()`,
-and `capacity_bytes()` are O(1). Iteration is forward through `Iterator` or `first`/`next` entries.
-`append`, `replace`, and `erase` update entry and payload totals at the same time they move bytes.
-Every mutation invalidates prior `Entry` slices and offsets.
+There is no stored outer header or reverse-length suffix. The resident `KvObj` tail supplies its
+entry/byte counters; the external `Compact` keeps the same counters in its wrapper. `size()`,
+`payload_bytes()`, `encoded_bytes()`, and `capacity_bytes()` are O(1). Iteration is forward through
+`Iterator` or `first`/`next` entries. `append`, `replace`, and `erase` update entry and payload totals
+at the same time they move bytes. Every mutation invalidates prior `Entry` slices and offsets.
+
+An external `Compact` has no side index through 16 entries. Small access linearly decodes the
+bounded byte stream; crossing that cutover builds the circular offset index exactly once and keeps
+it thereafter. Embedded collections never have a side index. All offset-taking APIs use logical
+offsets; `Compact::logical(Entry)` is the only bridge from an external entry's absolute buffer
+offset.
 
 Lane code mutates through `CompactValue::append/replace/erase`, not through a rescanning helper.
 Before a compact write it computes the resulting logical entry count and checks
@@ -153,8 +164,9 @@ existing bounded incremental-rehash step, never by keyspace size. An active dele
 that shard's size for IO-side `DBSIZE`.
 
 TTL mutation keeps the deadline in `KvObj`'s existing optional layout. Updating an existing TTL is
-in-place. Adding or removing the optional field creates a replacement header; strings copy their
-value, while collection ownership moves as described above. `SET` clears TTL by default, supports
+in-place. Adding or removing the optional field creates a replacement header; strings and embedded
+collections copy their value, while external collection ownership moves as described above. `SET`
+clears TTL by default, supports
 `KEEPTTL`, and `INCR` preserves an existing TTL.
 
 The implemented generic surface is `EXPIRE`, `PEXPIRE`, `EXPIREAT`, `PEXPIREAT` (including
@@ -169,9 +181,10 @@ IO-local `DBSIZE`. String extensions are SET's `EX|PX|EXAT|PXAT|NX|XX|KEEPTTL|GE
 2. Register uppercase names with min/max arity, flags, handler, and exact key range. Multi-key
    commands still require the future scatter/gather lowering; metadata alone does not authorize a
    handler to touch foreign shards.
-3. Allocate the concrete value, fill `CompactValue`, and wrap it with `kvobj_new_hash/list/set/zset`.
-   The wrapper takes ownership only after it returns a non-null `KvObj`; delete the value yourself
-   if header allocation fails.
+3. Allocate the concrete value and fill `CompactValue`, then attach it with
+   `kvobj_adopt_hash/list/set/zset`. A fitting compact value is copied into the `KvObj` tail and the
+   temporary wrapper is destroyed; an expanded or oversized value remains external. Ownership is
+   consumed only after a non-null `KvObj` is returned.
 4. Lookup through `sh.store().find`, call `obj_type_check`, and use the shard's matching
    `type_limits()` entry. Delete the top-level key when the last collection element is removed.
 5. Make conversion eligibility O(1), build the expanded backing once, call `promote()` last, and

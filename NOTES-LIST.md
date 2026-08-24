@@ -3,10 +3,11 @@
 ## Representation and node bounds
 
 `ListVal` starts as one `Compact`. `Compact` keeps the foundation's byte format unchanged:
-`[ULEB128 length][payload]...`. It now keeps unused byte space at both ends plus a circular
-in-memory offset index. That makes LPUSH/RPUSH/LPOP/RPOP amortized O(1) in element count (plus the
-bytes of the element); occasional byte/offset-vector growth is geometric. The side index is not
-part of the stored Compact byte format.
+`[ULEB128 length][payload]...`. It keeps unused byte space at both ends and adds its circular
+in-memory offset index lazily only after 16 entries. Endpoint writes remain amortized O(1) in
+element count (plus bytes moved when the gap recenters); small indexed access rescans the bounded
+blob. Occasional byte/index growth is geometric and allocator-class rounded. The side index is not
+part of the stored Compact byte format, and the `KvObj`-embedded form never allocates one.
 
 Promotion is one-way to a quicklist-style doubly linked list of `ListNode`. Every node owns a
 `Compact`. Normal nodes are bounded by both:

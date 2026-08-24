@@ -723,14 +723,8 @@ void cmd_type(Shard& sh, Op& op) {
 }
 
 const char* collection_encoding(const KvObj* o) {
-    CollectionEncoding encoding = CollectionEncoding::Compact;
-    switch (static_cast<Type>(o->type)) {
-        case Type::Hash: encoding = static_cast<HashVal*>(o->external_ptr())->encoding(); break;
-        case Type::List: encoding = static_cast<ListVal*>(o->external_ptr())->encoding(); break;
-        case Type::Set:  encoding = static_cast<SetVal*>(o->external_ptr())->encoding(); break;
-        case Type::Zset: encoding = static_cast<ZsetVal*>(o->external_ptr())->encoding(); break;
-        case Type::String: return o->is_int() ? "int" : "raw";
-    }
+    if (static_cast<Type>(o->type) == Type::String) return o->is_int() ? "int" : "raw";
+    const CollectionEncoding encoding = CollectionRef(const_cast<KvObj*>(o)).encoding();
     switch (encoding) {
         case CollectionEncoding::Compact:   return "compact";
         case CollectionEncoding::Hashtable: return "hashtable";

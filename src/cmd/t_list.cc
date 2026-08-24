@@ -61,7 +61,7 @@ bool parse_i64(Slice s, int64_t& out) {
     return true;
 }
 
-ListVal* list_value(KvObj* o) { return static_cast<ListVal*>(o->external_ptr()); }
+CollectionRef list_value(KvObj* object) { return CollectionRef(object); }
 
 // ObjectSizeTracker now lives in flatstore.h (shared by every family).
 
@@ -148,39 +148,40 @@ bool expanded_pop(ListVal& list, bool left, uint32_t& payload_size) {
 
 class ListCursor {
 public:
-    static ListCursor seek(const ListVal& list, uint32_t logical_index) {
+    static ListCursor seek(const CollectionRef& list, uint32_t logical_index) {
         ListCursor cur;
         if (logical_index >= list.entries()) return cur;
-        cur.list_ = &list;
         cur.global_ = logical_index;
         if (list.encoding() == CollectionEncoding::Compact) {
-            cur.pack_ = &list.compact();
+            cur.pack_ = list.compact();
             cur.local_ = logical_index;
             cur.valid_ = true;
             return cur;
         }
 
+        const ListVal* expanded = list.external_as<ListVal>();
+
         if (logical_index <= list.entries() / 2) {
             uint32_t remaining = logical_index;
-            cur.node_ = list.head;
+            cur.node_ = expanded->head;
             while (cur.node_ && remaining >= cur.node_->values.size()) {
                 remaining -= cur.node_->values.size();
                 cur.node_ = cur.node_->next;
             }
             if (cur.node_) {
-                cur.pack_ = &cur.node_->values;
+                cur.pack_ = CompactView(const_cast<Compact*>(&cur.node_->values));
                 cur.local_ = remaining;
                 cur.valid_ = true;
             }
         } else {
             uint32_t remaining = list.entries() - logical_index - 1;
-            cur.node_ = list.tail;
+            cur.node_ = expanded->tail;
             while (cur.node_ && remaining >= cur.node_->values.size()) {
                 remaining -= cur.node_->values.size();
                 cur.node_ = cur.node_->prev;
             }
             if (cur.node_) {
-                cur.pack_ = &cur.node_->values;
+                cur.pack_ = CompactView(const_cast<Compact*>(&cur.node_->values));
                 cur.local_ = cur.node_->values.size() - remaining - 1;
                 cur.valid_ = true;
             }
@@ -188,7 +189,7 @@ public:
         return cur;
     }
 
-    static ListCursor edge(const ListVal& list, bool reverse) {
+    static ListCursor edge(const CollectionRef& list, bool reverse) {
         ListCursor cur = seek(list, reverse ? list.entries() - 1 : 0);
         cur.reverse_ = reverse;
         return cur;
@@ -196,13 +197,13 @@ public:
 
     bool valid() const { return valid_; }
     uint32_t position() const { return global_; }
-    bool get(Compact::Entry& out) const { return valid_ && pack_->at(local_, out); }
+    bool get(Compact::Entry& out) const { return valid_ && pack_.at(local_, out); }
 
     void next() {
         if (!valid_) return;
         if (!reverse_) {
             global_++;
-            if (local_ + 1 < pack_->size()) {
+            if (local_ + 1 < pack_.size()) {
                 local_++;
                 return;
             }
@@ -215,7 +216,7 @@ public:
                 valid_ = false;
                 return;
             }
-            pack_ = &node_->values;
+            pack_ = CompactView(const_cast<Compact*>(&node_->values));
             local_ = 0;
         } else {
             if (global_) global_--;
@@ -232,26 +233,55 @@ public:
                 valid_ = false;
                 return;
             }
-            pack_ = &node_->values;
-            local_ = pack_->size() - 1;
+            pack_ = CompactView(const_cast<Compact*>(&node_->values));
+            local_ = pack_.size() - 1;
         }
     }
 
 private:
-    const ListVal*  list_ = nullptr;
     const ListNode* node_ = nullptr;
-    const Compact*  pack_ = nullptr;
+    CompactView      pack_;
     uint32_t        local_ = 0;
     uint32_t        global_ = 0;
     bool            reverse_ = false;
     bool            valid_ = false;
 };
 
-bool append_all_expanded(const ListVal& source, ListVal& destination) {
+bool append_all_expanded(const CollectionRef& source, ListVal& destination) {
     for (ListCursor cur = ListCursor::edge(source, false); cur.valid(); cur.next()) {
         Compact::Entry entry;
         if (!cur.get(entry) || !expanded_push(destination, entry.value, false)) return false;
     }
+    return true;
+}
+
+bool externalize_list(Shard& shard, Op& op, KvObj*& object) {
+    CollectionRef source(object);
+    if (!source.is_embedded()) return true;
+    auto* value = new (std::nothrow) ListVal;
+    if (!value) { reply_oom(op); return false; }
+    for (const Compact::Entry entry : source.compact()) {
+        if (!value->append(entry.value)) {
+            delete value;
+            reply_oom(op);
+            return false;
+        }
+    }
+    KvObj* replacement = kvobj_new_list(object->key(), value, object->expire_at_ms());
+    if (!replacement) {
+        delete value;
+        reply_oom(op);
+        return false;
+    }
+    replacement->set_eviction_meta(object->eviction_meta());
+    const FlatStore::InsertResult inserted = shard.store().insert(op.hash, replacement);
+    if (inserted != FlatStore::InsertResult::Inserted) {
+        kvobj_free(replacement);
+        if (inserted == FlatStore::InsertResult::MaxmemoryOom) reply_maxmemory_oom(op);
+        else reply_err(op.sink(), "ERR keyspace insert failed");
+        return false;
+    }
+    object = replacement;
     return true;
 }
 
@@ -311,7 +341,8 @@ void push_generic(Shard& shard, Op& op, bool left, bool only_existing) {
                 list->note_expanded_insert(op.arg(i).n, allocation);
         }
 
-        KvObj* fresh = kvobj_new_list(op.key(), list);
+        const uint32_t final_entries = list->entries();
+        KvObj* fresh = kvobj_adopt_list(op.key(), list);
         if (!fresh) { delete list; reply_oom(op); return; }
         const FlatStore::InsertResult inserted_ = shard.store().insert(op.hash, fresh);
 if (inserted_ != FlatStore::InsertResult::Inserted) {
@@ -320,11 +351,24 @@ if (inserted_ != FlatStore::InsertResult::Inserted) {
     else reply_err(op.sink(), "ERR keyspace insert failed");
     return;
         }
-        reply_int(op.sink(), list->entries());
+        reply_int(op.sink(), final_entries);
         return;
     }
 
-    ListVal& list = *list_value(object);
+    CollectionRef before = list_value(object);
+    const uint64_t resulting_encoded = before.compact().encoded_bytes() + [&] {
+        uint64_t bytes = 0;
+        for (uint32_t i = 2; i < op.argc(); i++)
+            bytes += Compact::entry_encoded_size(op.arg(i).n);
+        return bytes;
+    }();
+    if (before.is_embedded() &&
+        (!before.embedded_bytes_fit(resulting_encoded) ||
+         !before.list_fits(shard.type_limits().list, before.entries() + added,
+                           before.payload_bytes() + incoming_payload))) {
+        if (!externalize_list(shard, op, object)) return;
+    }
+    CollectionRef list = list_value(object);
     ObjectSizeTracker size_tracker(shard.store(), object);
     if (static_cast<uint64_t>(list.entries()) + added > std::numeric_limits<uint32_t>::max()) {
         reply_err(op.sink(), "ERR list exceeds maximum allowed size");
@@ -345,16 +389,18 @@ if (inserted_ != FlatStore::InsertResult::Inserted) {
             for (uint32_t i = 2; i < op.argc(); i++) {
                 if (!expanded_push(staging, op.arg(i), left)) { reply_oom(op); return; }
             }
-            adopt_nodes(list, staging);
-            const uint64_t allocation = list.node_allocation_bytes;
-            list.promote(CollectionEncoding::Deque, allocation);
+            ListVal* expanded = list.external_as<ListVal>();
+            adopt_nodes(*expanded, staging);
+            const uint64_t allocation = expanded->node_allocation_bytes;
+            expanded->promote(CollectionEncoding::Deque, allocation);
             for (uint32_t i = 2; i < op.argc(); i++)
-                list.note_expanded_insert(op.arg(i).n, allocation);
+                expanded->note_expanded_insert(op.arg(i).n, allocation);
         }
     } else {
+        ListVal* expanded = list.external_as<ListVal>();
         for (uint32_t i = 2; i < op.argc(); i++) {
-            if (!expanded_push(list, op.arg(i), left)) { reply_oom(op); return; }
-            list.note_expanded_insert(op.arg(i).n, list.node_allocation_bytes);
+            if (!expanded_push(*expanded, op.arg(i), left)) { reply_oom(op); return; }
+            expanded->note_expanded_insert(op.arg(i).n, expanded->node_allocation_bytes);
         }
     }
     reply_int(op.sink(), list.entries());
@@ -383,7 +429,7 @@ void pop_generic(Shard& shard, Op& op, bool left) {
         return;
     }
     if (!obj_type_check(object, Type::List, op.sink())) return;
-    ListVal& list = *list_value(object);
+    CollectionRef list = list_value(object);
     ObjectSizeTracker size_tracker(shard.store(), object);
 
     if (!list.entries()) {
@@ -404,7 +450,7 @@ void pop_generic(Shard& shard, Op& op, bool left) {
         Compact::Entry edge;
         const bool found = list.encoding() == CollectionEncoding::Compact
             ? (left ? list.compact().first(edge) : list.compact().last(edge))
-            : expanded_edge(list, left, edge);
+            : expanded_edge(*list.external_as<ListVal>(), left, edge);
         if (!found) break;
         reply_bulk(op.sink(), edge.value);
 
@@ -413,8 +459,9 @@ void pop_generic(Shard& shard, Op& op, bool left) {
             if (left) list.pop_front(&payload);
             else list.pop_back(&payload);
         } else {
-            expanded_pop(list, left, payload);
-            list.note_expanded_delete(payload, list.node_allocation_bytes);
+            ListVal* expanded = list.external_as<ListVal>();
+            expanded_pop(*expanded, left, payload);
+            expanded->note_expanded_delete(payload, expanded->node_allocation_bytes);
         }
     }
     if (!list.entries()) {
@@ -429,7 +476,7 @@ void cmd_rpop(Shard& shard, Op& op) { pop_generic(shard, op, false); }
 void cmd_llen(Shard& shard, Op& op) {
     KvObj* object = shard.store().find(op.hash, op.key());
     if (!obj_type_check(object, Type::List, op.sink())) return;
-    reply_int(op.sink(), object ? list_value(object)->entries() : 0);
+    reply_int(op.sink(), object ? list_value(object).entries() : 0);
 }
 
 void cmd_lindex(Shard& shard, Op& op) {
@@ -439,7 +486,7 @@ void cmd_lindex(Shard& shard, Op& op) {
     int64_t index = 0;
     if (!parse_i64(op.arg(2), index)) { reply_integer_error(op); return; }
 
-    const ListVal& list = *list_value(object);
+    CollectionRef list = list_value(object);
     uint32_t normalized = 0;
     if (!normalize_index(index, list.entries(), normalized)) { reply_nil(op.sink()); return; }
     ListCursor cur = ListCursor::seek(list, normalized);
@@ -458,7 +505,7 @@ void cmd_lrange(Shard& shard, Op& op) {
     if (!object) { reply_array_header(op.sink(), 0); return; }
     if (!obj_type_check(object, Type::List, op.sink())) return;
 
-    const ListVal& list = *list_value(object);
+    CollectionRef list = list_value(object);
     uint32_t first = 0, count = 0;
     if (!normalize_range(start, stop, list.entries(), first, count)) {
         reply_array_header(op.sink(), 0);
@@ -472,7 +519,7 @@ void cmd_lrange(Shard& shard, Op& op) {
     }
 }
 
-bool build_replaced(const ListVal& source, uint32_t index, Slice value, ListVal& output) {
+bool build_replaced(const CollectionRef& source, uint32_t index, Slice value, ListVal& output) {
     for (ListCursor cur = ListCursor::edge(source, false); cur.valid(); cur.next()) {
         Compact::Entry entry;
         if (!cur.get(entry)) return false;
@@ -488,18 +535,27 @@ void cmd_lset(Shard& shard, Op& op) {
     int64_t index = 0;
     if (!parse_i64(op.arg(2), index)) { reply_integer_error(op); return; }
 
-    ListVal& list = *list_value(object);
-    ObjectSizeTracker size_tracker(shard.store(), object);
+    CollectionRef initial = list_value(object);
     uint32_t normalized = 0;
-    if (!normalize_index(index, list.entries(), normalized)) {
+    if (!normalize_index(index, initial.entries(), normalized)) {
         reply_err(op.sink(), "ERR index out of range");
         return;
     }
-    ListCursor old_cursor = ListCursor::seek(list, normalized);
+    ListCursor old_cursor = ListCursor::seek(initial, normalized);
     Compact::Entry old_entry;
     if (!old_cursor.get(old_entry)) { reply_err(op.sink(), "ERR index out of range"); return; }
     const uint32_t old_payload = old_entry.value.n;
     const Slice replacement = op.arg(3);
+    const uint64_t resulting_encoded = initial.compact().encoded_bytes() - old_entry.span +
+                                       Compact::entry_encoded_size(replacement.n);
+    if (initial.is_embedded() &&
+        (!initial.embedded_bytes_fit(resulting_encoded) ||
+         !initial.list_fits(shard.type_limits().list, initial.entries(),
+                            initial.payload_bytes() - old_payload + replacement.n))) {
+        if (!externalize_list(shard, op, object)) return;
+    }
+    CollectionRef list = list_value(object);
+    ObjectSizeTracker size_tracker(shard.store(), object);
 
     if (list.encoding() == CollectionEncoding::Compact &&
         list.list_fits(shard.type_limits().list, list.entries(),
@@ -510,11 +566,12 @@ void cmd_lset(Shard& shard, Op& op) {
     } else {
         ListVal staging;
         if (!build_replaced(list, normalized, replacement, staging)) { reply_oom(op); return; }
-        adopt_nodes(list, staging);
-        const uint64_t allocation = list.node_allocation_bytes;
+        ListVal* expanded = list.external_as<ListVal>();
+        adopt_nodes(*expanded, staging);
+        const uint64_t allocation = expanded->node_allocation_bytes;
         if (list.encoding() == CollectionEncoding::Compact)
-            list.promote(CollectionEncoding::Deque, allocation);
-        list.note_expanded_replace(old_payload, replacement.n, allocation);
+            expanded->promote(CollectionEncoding::Deque, allocation);
+        expanded->note_expanded_replace(old_payload, replacement.n, allocation);
     }
     reply_ok(op.sink());
 }
@@ -527,7 +584,16 @@ void cmd_linsert(Shard& shard, Op& op) {
     KvObj* object = shard.store().find(op.hash, op.key());
     if (!object) { reply_int(op.sink(), 0); return; }
     if (!obj_type_check(object, Type::List, op.sink())) return;
-    ListVal& list = *list_value(object);
+    CollectionRef initial = list_value(object);
+    const uint64_t resulting_encoded = initial.compact().encoded_bytes() +
+                                       Compact::entry_encoded_size(op.arg(4).n);
+    if (initial.is_embedded() &&
+        (!initial.embedded_bytes_fit(resulting_encoded) ||
+         !initial.list_fits(shard.type_limits().list, initial.entries() + 1,
+                            initial.payload_bytes() + op.arg(4).n))) {
+        if (!externalize_list(shard, op, object)) return;
+    }
+    CollectionRef list = list_value(object);
     ObjectSizeTracker size_tracker(shard.store(), object);
 
     // Redis performs the append-size conversion before seeking the pivot so it never has to keep
@@ -539,8 +605,9 @@ void cmd_linsert(Shard& shard, Op& op) {
                          list.payload_bytes() + op.arg(4).n))) {
         ListVal staging;
         if (!append_all_expanded(list, staging)) { reply_oom(op); return; }
-        adopt_nodes(list, staging);
-        list.promote(CollectionEncoding::Deque, list.node_allocation_bytes);
+        ListVal* expanded = list.external_as<ListVal>();
+        adopt_nodes(*expanded, staging);
+        expanded->promote(CollectionEncoding::Deque, expanded->node_allocation_bytes);
     }
 
     uint32_t pivot_index = 0;
@@ -577,11 +644,12 @@ void cmd_linsert(Shard& shard, Op& op) {
             if (cur.position() == pivot_index && !before &&
                 !expanded_push(staging, inserted, false)) { reply_oom(op); return; }
         }
-        adopt_nodes(list, staging);
-        const uint64_t allocation = list.node_allocation_bytes;
+        ListVal* expanded = list.external_as<ListVal>();
+        adopt_nodes(*expanded, staging);
+        const uint64_t allocation = expanded->node_allocation_bytes;
         if (list.encoding() == CollectionEncoding::Compact)
-            list.promote(CollectionEncoding::Deque, allocation);
-        list.note_expanded_insert(inserted.n, allocation);
+            expanded->promote(CollectionEncoding::Deque, allocation);
+        expanded->note_expanded_insert(inserted.n, allocation);
     }
     reply_int(op.sink(), list.entries());
 }
@@ -597,7 +665,7 @@ void cmd_lrem(Shard& shard, Op& op) {
     KvObj* object = shard.store().find(op.hash, op.key());
     if (!object) { reply_int(op.sink(), 0); return; }
     if (!obj_type_check(object, Type::List, op.sink())) return;
-    ListVal& list = *list_value(object);
+    CollectionRef list = list_value(object);
     ObjectSizeTracker size_tracker(shard.store(), object);
 
     uint32_t matches = 0;
@@ -644,9 +712,10 @@ void cmd_lrem(Shard& shard, Op& op) {
     if (list.encoding() == CollectionEncoding::Compact) {
         list.replace_compact(std::move(compact));
     } else {
-        adopt_nodes(list, staging);
-        list.note_expanded_delete_many(remove_count, removed_payload,
-                                       list.node_allocation_bytes);
+        ListVal* expanded = list.external_as<ListVal>();
+        adopt_nodes(*expanded, staging);
+        expanded->note_expanded_delete_many(remove_count, removed_payload,
+                                            expanded->node_allocation_bytes);
     }
     reply_int(op.sink(), remove_count);
 }
@@ -660,7 +729,7 @@ void cmd_ltrim(Shard& shard, Op& op) {
     KvObj* object = shard.store().find(op.hash, op.key());
     if (!object) { reply_ok(op.sink()); return; }
     if (!obj_type_check(object, Type::List, op.sink())) return;
-    ListVal& list = *list_value(object);
+    CollectionRef list = list_value(object);
     ObjectSizeTracker size_tracker(shard.store(), object);
 
     uint32_t first = 0, keep = 0;
@@ -689,8 +758,10 @@ void cmd_ltrim(Shard& shard, Op& op) {
     if (list.encoding() == CollectionEncoding::Compact) {
         list.replace_compact(std::move(compact));
     } else {
-        adopt_nodes(list, staging);
-        list.note_expanded_delete_many(removed, removed_payload, list.node_allocation_bytes);
+        ListVal* expanded = list.external_as<ListVal>();
+        adopt_nodes(*expanded, staging);
+        expanded->note_expanded_delete_many(removed, removed_payload,
+                                            expanded->node_allocation_bytes);
     }
     reply_ok(op.sink());
 }
@@ -748,7 +819,7 @@ void cmd_lpos(Shard& shard, Op& op) {
         return;
     }
     if (!obj_type_check(object, Type::List, op.sink())) return;
-    const ListVal& list = *list_value(object);
+    CollectionRef list = list_value(object);
     const bool reverse = options.rank < 0;
     const uint64_t wanted_rank = reverse ? static_cast<uint64_t>(-options.rank)
                                          : static_cast<uint64_t>(options.rank);
@@ -822,7 +893,7 @@ SnapshotHookStatus list_snapshot_begin(const KvObj& object, SnapshotSaveCursor& 
     cursor = {};
     cursor.object = &object;
     encoding = 0;
-    const ListVal& list = *list_value(const_cast<KvObj*>(&object));
+    CollectionRef list = list_value(const_cast<KvObj*>(&object));
     cursor.total = 4ull * list.entries() + list.payload_bytes();
     return SnapshotHookStatus::Ok;
 }
@@ -831,7 +902,7 @@ SnapshotHookStatus list_snapshot_read(SnapshotSaveCursor& cursor, uint8_t* desti
                                       size_t capacity, size_t& written) {
     written = 0;
     if (!cursor.object) return SnapshotHookStatus::Corrupt;
-    const ListVal& list = *list_value(const_cast<KvObj*>(cursor.object));
+    CollectionRef list = list_value(const_cast<KvObj*>(cursor.object));
     SnapshotElementEmitter e{destination, capacity};
     uint64_t idx = cursor.lane[0];
     bool stopped = false;
@@ -891,7 +962,7 @@ SnapshotHookStatus list_snapshot_load(Slice key, uint8_t encoding, int64_t expir
             p += 4ull + len; left -= 4ull + len;
         }
     }
-    result = kvobj_new_list(key, list, expire_at_ms);
+    result = kvobj_adopt_list(key, list, expire_at_ms);
     if (!result) { delete list; return SnapshotHookStatus::Oom; }
     return SnapshotHookStatus::Ok;
 }
