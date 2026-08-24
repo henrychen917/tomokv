@@ -95,6 +95,29 @@ public:
         return true;
     }
 
+    // Insert at an entry boundary. `offset == encoded_bytes()` appends. ZSET uses this to keep its
+    // compact tuples ordered without rebuilding (and rescanning) the whole container.
+    bool insert(uint32_t offset, Slice value) {
+        if (entries_ == std::numeric_limits<uint32_t>::max() || offset > data_.size()) return false;
+        const uint32_t hdr = varint_size(value.n);
+        const size_t span = static_cast<size_t>(hdr) + value.n;
+        const size_t old = data_.size();
+        if (span > std::numeric_limits<uint32_t>::max() ||
+            old > std::numeric_limits<uint32_t>::max() - span) return false;
+        try {
+            data_.resize(old + span);
+        } catch (const std::bad_alloc&) {
+            return false;
+        }
+        uint8_t* base = data_.data();
+        std::memmove(base + offset + span, base + offset, old - offset);
+        encode_varint(base + offset, value.n);
+        if (value.n) std::memcpy(base + offset + hdr, value.p, value.n);
+        entries_++;
+        payload_bytes_ += value.n;
+        return true;
+    }
+
     bool replace(const Entry& old_entry, Slice value) {
         Entry checked;
         if (!decode(old_entry.offset, checked) || checked.span != old_entry.span) return false;
@@ -135,6 +158,31 @@ public:
         data_.resize(data_.size() - checked.span);
         entries_--;
         payload_bytes_ -= checked.value.n;
+        return true;
+    }
+
+    // Erase the half-open byte interval [first_offset,last_offset). Both offsets must be entry
+    // boundaries supplied by the current container. Accounting walks only the entries removed;
+    // the trailing memmove touches only the bytes whose position actually changes.
+    bool erase_range(uint32_t first_offset, uint32_t last_offset) {
+        if (first_offset > last_offset || last_offset > data_.size()) return false;
+        if (first_offset == last_offset) return true;
+        uint32_t removed = 0;
+        uint64_t payload = 0;
+        uint32_t off = first_offset;
+        while (off < last_offset) {
+            Entry e;
+            if (!decode(off, e) || e.offset + e.span > last_offset) return false;
+            removed++;
+            payload += e.value.n;
+            off += e.span;
+        }
+        if (off != last_offset) return false;
+        std::memmove(data_.data() + first_offset, data_.data() + last_offset,
+                     data_.size() - last_offset);
+        data_.resize(data_.size() - (last_offset - first_offset));
+        entries_ -= removed;
+        payload_bytes_ -= payload;
         return true;
     }
 
@@ -215,10 +263,16 @@ public:
     Compact::Iterator end()   const { return compact_.end(); }
 
     bool append(Slice value) { return is_compact() && compact_.append(value); }
+    bool insert(uint32_t offset, Slice value) {
+        return is_compact() && compact_.insert(offset, value);
+    }
     bool replace(const Compact::Entry& entry, Slice value) {
         return is_compact() && compact_.replace(entry, value);
     }
     bool erase(const Compact::Entry& entry) { return is_compact() && compact_.erase(entry); }
+    bool erase_range(uint32_t first_offset, uint32_t last_offset) {
+        return is_compact() && compact_.erase_range(first_offset, last_offset);
+    }
 
     bool compact_fits(const CompactLimit& limit, uint32_t resulting_entries,
                       uint32_t incoming_max_value) const {
@@ -250,6 +304,12 @@ public:
         expanded_payload_bytes_ -= payload_bytes;
         expanded_allocation_bytes_ = allocation_bytes;
     }
+    void note_expanded_delete_many(uint32_t entries, uint64_t payload_bytes,
+                                   uint64_t allocation_bytes) {
+        expanded_entries_ -= entries;
+        expanded_payload_bytes_ -= payload_bytes;
+        expanded_allocation_bytes_ = allocation_bytes;
+    }
     void note_expanded_replace(uint32_t old_bytes, uint32_t new_bytes,
                                uint64_t allocation_bytes) {
         expanded_payload_bytes_ = expanded_payload_bytes_ - old_bytes + new_bytes;
@@ -271,6 +331,13 @@ private:
 struct HashVal : CompactValue {};
 struct ListVal : CompactValue {};
 struct SetVal  : CompactValue {};
-struct ZsetVal : CompactValue {};
+struct ZsetData;
+struct ZsetVal : CompactValue {
+    ZsetData* expanded = nullptr;
+    ~ZsetVal();
+    ZsetVal() = default;
+    ZsetVal(const ZsetVal&) = delete;
+    ZsetVal& operator=(const ZsetVal&) = delete;
+};
 
 }  // namespace tomo

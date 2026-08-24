@@ -10,6 +10,8 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <charconv>
+#include <cmath>
 #include "../base/slice.h"
 #include "../exec/op.h"
 
@@ -190,28 +192,13 @@ template <typename Buf> inline void reply_bulk(Buf&& b, Slice s) {
 // round trip, and the fractional trim avoids retaining zeroes before an exponent on libc variants
 // that choose the fixed form.
 template <typename Buf> inline void reply_double(Buf&& b, double value) {
-    char text[128];
-    int n = std::snprintf(text, sizeof(text), "%.17g", value);
-    if (n < 0) { reply_bulk(b, Slice("0", 1)); return; }
-    char* exponent = static_cast<char*>(std::memchr(text, 'e', static_cast<size_t>(n)));
-    if (!exponent) exponent = static_cast<char*>(std::memchr(text, 'E', static_cast<size_t>(n)));
-    char* number_end = exponent ? exponent : text + n;
-    char* dot = static_cast<char*>(std::memchr(text, '.', static_cast<size_t>(number_end - text)));
-    if (dot) {
-        char* trimmed = number_end;
-        while (trimmed > dot + 1 && trimmed[-1] == '0') trimmed--;
-        if (trimmed == dot + 1) trimmed = dot;
-        if (trimmed != number_end) {
-            if (exponent) {
-                const size_t suffix = static_cast<size_t>(text + n - exponent);
-                std::memmove(trimmed, exponent, suffix);
-                n = static_cast<int>((trimmed - text) + suffix);
-            } else {
-                n = static_cast<int>(trimmed - text);
-            }
-        }
-    }
-    reply_bulk(b, Slice(text, static_cast<uint32_t>(n)));
+    // SHORTEST ROUND-TRIP, exactly redis's fpconv_dtoa family -- %.17g emitted
+    // -0.014999999999999999 where redis says -0.015, and the zset differ caught 91 of those.
+    // std::to_chars(double) is the same grisu/ryu class: the shortest form that parses back equal.
+    if (std::isinf(value)) { reply_bulk(b, value > 0 ? Slice("inf", 3) : Slice("-inf", 4)); return; }
+    char text[64];
+    const auto res = std::to_chars(text, text + sizeof(text), value);
+    reply_bulk(b, Slice(text, static_cast<uint32_t>(res.ptr - text)));
 }
 
 }  // namespace tomo
