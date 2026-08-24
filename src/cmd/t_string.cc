@@ -179,8 +179,9 @@ void clear_reply(Op& op) {
 
 }  // namespace
 
-XshardStringStoreResult xshard_store_string(Shard& shard, Slice key, uint64_t hash, Slice value) {
-    switch (store_string(shard, key, hash, value, -1, true)) {
+XshardStringStoreResult xshard_store_string(Shard& shard, Slice key, uint64_t hash, Slice value,
+                                             bool integer_encode) {
+    switch (store_string(shard, key, hash, value, -1, integer_encode)) {
         case StoreResult::Stored: return XshardStringStoreResult::Stored;
         case StoreResult::Oom: return XshardStringStoreResult::Oom;
         case StoreResult::InsertFailed: return XshardStringStoreResult::InsertFailed;
@@ -515,6 +516,244 @@ void cmd_setrange(Shard& sh, Op& op) {
     reply_int(op.sink(), new_length);
 }
 
+bool parse_bit_offset(Op& op, Slice argument, uint64_t& offset) {
+    int64_t parsed = 0;
+    if (!parse_i64(argument, parsed) || parsed < 0 ||
+        (static_cast<uint64_t>(parsed) >> 3) >= kProtoMaxBulkLen) {
+        reply_err(op.sink(), "ERR bit offset is not an integer or out of range");
+        return false;
+    }
+    offset = static_cast<uint64_t>(parsed);
+    return true;
+}
+
+void cmd_setbit(Shard& sh, Op& op) {
+    uint64_t offset = 0;
+    if (!parse_bit_offset(op, op.arg(2), offset)) return;
+    int64_t bit_value = 0;
+    if (!parse_i64(op.arg(3), bit_value) || (bit_value != 0 && bit_value != 1)) {
+        reply_err(op.sink(), "ERR bit is not an integer or out of range");
+        return;
+    }
+
+    KvObj* o = sh.store().find(op.hash, op.key());
+    if (o) {
+        auto sink = op.sink();
+        if (!obj_type_check(o, Type::String, sink)) return;
+    }
+    char integer[24];
+    const Slice old = o ? string_bytes(o, integer) : Slice("", 0);
+    const uint32_t byte = static_cast<uint32_t>(offset >> 3);
+    const uint8_t mask = static_cast<uint8_t>(1u << (7 - (offset & 7)));
+    const int old_bit = byte < old.n && (static_cast<uint8_t>(old.p[byte]) & mask) ? 1 : 0;
+    const uint32_t new_length = std::max<uint32_t>(old.n, byte + 1);
+
+    // Redis materializes integer-encoded strings before a bit write, even when the selected bit
+    // already has the requested value. Raw values with no growth and no change remain untouched.
+    if (o && !o->is_int() && new_length == old.n && old_bit == bit_value) {
+        reply_int(op.sink(), old_bit);
+        return;
+    }
+
+    char* changed = static_cast<char*>(std::malloc(new_length));
+    if (!changed) { reply_err(op.sink(), "ERR out of memory"); return; }
+    if (old.n) std::memcpy(changed, old.p, old.n);
+    if (new_length > old.n) std::memset(changed + old.n, 0, new_length - old.n);
+    uint8_t& selected = reinterpret_cast<uint8_t*>(changed)[byte];
+    selected = bit_value ? static_cast<uint8_t>(selected | mask)
+                         : static_cast<uint8_t>(selected & ~mask);
+    const int64_t expire = o ? o->expire_at_ms() : -1;
+    const StoreResult result =
+        store_string(sh, op.key(), op.hash, Slice(changed, new_length), expire, false);
+    std::free(changed);
+    if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
+    reply_int(op.sink(), old_bit);
+}
+
+void cmd_getbit(Shard& sh, Op& op) {
+    uint64_t offset = 0;
+    if (!parse_bit_offset(op, op.arg(2), offset)) return;
+    KvObj* o = sh.store().find(op.hash, op.key());
+    if (!o) { reply_int(op.sink(), 0); return; }
+    auto sink = op.sink();
+    if (!obj_type_check(o, Type::String, sink)) return;
+    char integer[24];
+    const Slice value = string_bytes(o, integer);
+    const uint64_t byte = offset >> 3;
+    const uint8_t mask = static_cast<uint8_t>(1u << (7 - (offset & 7)));
+    const bool set = byte < value.n && (static_cast<uint8_t>(value.p[byte]) & mask);
+    reply_int(op.sink(), set ? 1 : 0);
+}
+
+uint64_t bitmap_popcount(const uint8_t* bytes, size_t length) {
+    uint64_t count = 0;
+    while (length >= sizeof(uint64_t)) {
+        uint64_t word;
+        std::memcpy(&word, bytes, sizeof(word));
+        count += static_cast<uint64_t>(__builtin_popcountll(word));
+        bytes += sizeof(word);
+        length -= sizeof(word);
+    }
+    while (length--) count += static_cast<uint64_t>(__builtin_popcount(*bytes++));
+    return count;
+}
+
+bool parse_bitmap_unit(Op& op, Slice unit, bool& bits) {
+    if (eq_icase(unit, "bit")) bits = true;
+    else if (eq_icase(unit, "byte")) bits = false;
+    else { reply_syntax(op.sink()); return false; }
+    return true;
+}
+
+void cmd_bitcount(Shard& sh, Op& op) {
+    int64_t start = 0, end = 0;
+    bool bit_unit = false;
+    const bool ranged = op.argc() == 4 || op.argc() == 5;
+    if (ranged) {
+        if (!parse_i64(op.arg(2), start) || !parse_i64(op.arg(3), end)) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        if (op.argc() == 5 && !parse_bitmap_unit(op, op.arg(4), bit_unit)) return;
+    } else if (op.argc() != 2) {
+        reply_syntax(op.sink());
+        return;
+    }
+
+    KvObj* o = sh.store().find(op.hash, op.key());
+    if (!o) { reply_int(op.sink(), 0); return; }
+    auto sink = op.sink();
+    if (!obj_type_check(o, Type::String, sink)) return;
+    char integer[24];
+    const Slice value = string_bytes(o, integer);
+    if (!ranged) {
+        reply_int(op.sink(), static_cast<long long>(bitmap_popcount(
+            reinterpret_cast<const uint8_t*>(value.p), value.n)));
+        return;
+    }
+
+    int64_t total = bit_unit ? static_cast<int64_t>(value.n) * 8 : value.n;
+    if (start < 0 && end < 0 && start > end) { reply_int(op.sink(), 0); return; }
+    if (start < 0) start = total + start;
+    if (end < 0) end = total + end;
+    if (start < 0) start = 0;
+    if (end < 0) end = 0;
+    if (end >= total) end = total - 1;
+    if (start > end) { reply_int(op.sink(), 0); return; }
+
+    const uint8_t* bytes = reinterpret_cast<const uint8_t*>(value.p);
+    if (!bit_unit) {
+        reply_int(op.sink(), static_cast<long long>(
+            bitmap_popcount(bytes + start, static_cast<size_t>(end - start + 1))));
+        return;
+    }
+
+    const uint64_t first_byte = static_cast<uint64_t>(start) >> 3;
+    const uint64_t last_byte = static_cast<uint64_t>(end) >> 3;
+    const uint8_t first_mask = static_cast<uint8_t>(0xffu >> (start & 7));
+    const uint8_t last_mask = static_cast<uint8_t>((0xffu << (7 - (end & 7))) & 0xffu);
+    uint64_t count = 0;
+    if (first_byte == last_byte) {
+        count = static_cast<uint64_t>(__builtin_popcount(
+            static_cast<unsigned>(bytes[first_byte] & first_mask & last_mask)));
+    } else {
+        count += static_cast<uint64_t>(__builtin_popcount(
+            static_cast<unsigned>(bytes[first_byte] & first_mask)));
+        if (last_byte > first_byte + 1)
+            count += bitmap_popcount(bytes + first_byte + 1,
+                                     static_cast<size_t>(last_byte - first_byte - 1));
+        count += static_cast<uint64_t>(__builtin_popcount(
+            static_cast<unsigned>(bytes[last_byte] & last_mask)));
+    }
+    reply_int(op.sink(), static_cast<long long>(count));
+}
+
+int64_t bitmap_find_bit(const uint8_t* bytes, uint64_t start, uint64_t end, bool wanted) {
+    uint64_t pos = start;
+    while (pos <= end && (pos & 7)) {
+        if (((bytes[pos >> 3] >> (7 - (pos & 7))) & 1u) == wanted)
+            return static_cast<int64_t>(pos);
+        pos++;
+    }
+    while (pos + 7 <= end) {
+        const uint8_t byte = bytes[pos >> 3];
+        if ((wanted && byte != 0) || (!wanted && byte != 0xff)) {
+            for (uint32_t bit = 0; bit < 8; bit++)
+                if (((byte >> (7 - bit)) & 1u) == wanted)
+                    return static_cast<int64_t>(pos + bit);
+        }
+        pos += 8;
+    }
+    while (pos <= end) {
+        if (((bytes[pos >> 3] >> (7 - (pos & 7))) & 1u) == wanted)
+            return static_cast<int64_t>(pos);
+        pos++;
+    }
+    return -1;
+}
+
+void cmd_bitpos(Shard& sh, Op& op) {
+    int64_t bit = 0;
+    if (!parse_i64(op.arg(2), bit)) {
+        reply_err(op.sink(), "ERR value is not an integer or out of range");
+        return;
+    }
+    if (bit != 0 && bit != 1) {
+        reply_err(op.sink(), "ERR The bit argument must be 1 or 0.");
+        return;
+    }
+
+    const bool ranged = op.argc() >= 4;
+    const bool end_given = op.argc() >= 5;
+    bool bit_unit = false;
+    int64_t start = 0, end = 0;
+    if (ranged) {
+        if (!parse_i64(op.arg(3), start)) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        // Redis validates the unit before parsing the end when both are supplied.
+        if (op.argc() == 6 && !parse_bitmap_unit(op, op.arg(5), bit_unit)) return;
+        if (end_given && !parse_i64(op.arg(4), end)) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+    }
+
+    KvObj* o = sh.store().find(op.hash, op.key());
+    if (!o) { reply_int(op.sink(), bit ? -1 : 0); return; }
+    auto sink = op.sink();
+    if (!obj_type_check(o, Type::String, sink)) return;
+    char integer[24];
+    const Slice value = string_bytes(o, integer);
+    int64_t total = bit_unit ? static_cast<int64_t>(value.n) * 8 : value.n;
+
+    if (!ranged) {
+        start = 0;
+        end = static_cast<int64_t>(value.n) - 1;
+    } else {
+        if (!end_given)
+            end = bit_unit ? static_cast<int64_t>(value.n) * 8 + 7
+                           : static_cast<int64_t>(value.n) - 1;
+        if (start < 0) start = total + start;
+        if (end < 0) end = total + end;
+        if (start < 0) start = 0;
+        if (end < 0) end = 0;
+        if (end >= total) end = total - 1;
+    }
+    if (start > end) { reply_int(op.sink(), -1); return; }
+
+    const uint64_t first_bit = bit_unit ? static_cast<uint64_t>(start)
+                                        : static_cast<uint64_t>(start) * 8;
+    const uint64_t last_bit = bit_unit ? static_cast<uint64_t>(end)
+                                       : static_cast<uint64_t>(end) * 8 + 7;
+    int64_t position = bitmap_find_bit(reinterpret_cast<const uint8_t*>(value.p),
+                                       first_bit, last_bit, bit != 0);
+    if (position == -1 && bit == 0 && !end_given)
+        position = static_cast<int64_t>(value.n) * 8;
+    reply_int(op.sink(), position);
+}
+
 void cmd_getset(Shard& sh, Op& op) {
     KvObj* old = sh.store().find(op.hash, op.key());
     auto sink = op.sink();
@@ -760,6 +999,12 @@ static const CommandSpec kTable[] = {
     {"STRLEN",        2,  2,  CmdFlags::Readonly,                    cmd_strlen,       1,  1,  1},
     {"GETRANGE",      4,  4,  CmdFlags::Readonly,                    cmd_getrange,     1,  1,  1},
     {"SETRANGE",      4,  4,  CmdFlags::Write | CmdFlags::DenyOom,                       cmd_setrange,     1,  1,  1},
+    {"SETBIT",        4,  4,  CmdFlags::Write | CmdFlags::DenyOom,                       cmd_setbit,       1,  1,  1},
+    {"GETBIT",        3,  3,  CmdFlags::Readonly,                    cmd_getbit,       1,  1,  1},
+    {"BITCOUNT",      2,  5,  CmdFlags::Readonly,                    cmd_bitcount,     1,  1,  1},
+    {"BITPOS",        3,  6,  CmdFlags::Readonly,                    cmd_bitpos,       1,  1,  1},
+    {"BITOP",         4, -1,  CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,
+                                                                               cmd_xshard_only, 2, -1, 1},
     {"GETSET",        3,  3,  CmdFlags::Write | CmdFlags::DenyOom,                       cmd_getset,       1,  1,  1},
     {"SETNX",         3,  3,  CmdFlags::Write | CmdFlags::DenyOom,                       cmd_setnx,        1,  1,  1},
     {"SETEX",         4,  4,  CmdFlags::Write | CmdFlags::DenyOom,                       cmd_setex,        1,  1,  1},
