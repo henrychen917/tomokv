@@ -1,0 +1,5 @@
+# name        cores  ratio  shards pipe lg      t   conns rw   ref_ops
+# refs pinned 2026-08-24 (pre-reboot kernel; re-pin after the mitigations=off reboot)
+p1_8c         0-7    7:1    16     1    64-79   16  512   0:1  890000
+p32_32c_get   0-31   18:14  64     32   64-127  64  512   0:1  22900000
+p32_32c_set   0-31   18:14  64     32   64-127  64  512   1:0  20700000

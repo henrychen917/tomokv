@@ -1,0 +1,127 @@
+#!/bin/bash
+# PRE-PUSH GATE for tomokv-cpp (pure 2s baseline).
+#
+#   tests/gate.sh quick   loopback only, ~3 min: build (release+ASAN), footprint locks, boot
+#                         matrix, smoke, torture, RYOW, shutdown invariants, counter-fired
+#                         assertions, idle-CPU ceiling. Runs on any machine.
+#   tests/gate.sh full    quick + torture-under-ASAN + NIC regression cells vs tests/gate_refs.txt
+#                         (needs the 25GbE netns rig and the scratchpad niclib).
+#
+# The vacuous-validation rule is load-bearing here: every section proves its mechanism FIRED
+# (counters, accepts, direct>0), not merely that nothing crashed. A gate that can pass while
+# testing nothing is worse than no gate.
+set -u
+cd "$(dirname "$0")/.."
+TIER=${1:-quick}
+PORT=${GATE_PORT:-7899}
+CORES=${GATE_CORES:-0-7}
+PASS=0; FAIL=0
+say(){ printf '  %-52s %s\n' "$1" "$2"; }
+ok(){ say "$1" "ok"; PASS=$((PASS+1)); }
+bad(){ say "$1" "FAIL${2:+ ($2)}"; FAIL=$((FAIL+1)); }
+
+# ---- 1. builds (the static_asserts on sizeof(Op)/sizeof(Client) gate here) -------------------
+make -j >/dev/null 2>&1 && ok "release build (+footprint locks)" || bad "release build"
+ASAN=/tmp/tomokv-gate-asan
+g++ -std=c++20 -O1 -g -fsanitize=address -march=native -pthread -I. \
+    src/main.cc src/cmd/commands.cc -o $ASAN -luring -pthread 2>/dev/null \
+    && ok "ASAN build" || bad "ASAN build"
+
+# ---- 2. boot matrix: deleted flags stay dead; live grammar boots ------------------------------
+./build/tomokv --mode 3s      2>&1 | grep -q "deleted" && ok "reject --mode 3s"   || bad "reject --mode 3s"
+./build/tomokv --spread 4:4   2>&1 | grep -q "unknown"  && ok "reject --spread"    || bad "reject --spread"
+./build/tomokv --nodes 2      2>&1 | grep -q "unknown"  && ok "reject --nodes"     || bad "reject --nodes"
+./build/tomokv --ratio 4:4:2  2>&1 | grep -q "deleted"  && ok "reject 3-part ratio"|| bad "reject 3-part ratio"
+
+boot(){ # binary -> pid ; server log to $SRVLOG
+  SRVLOG=$(mktemp /tmp/gate-srv.XXXXXX)
+  timeout 900 taskset -c $CORES "$1" --port $PORT --bind 127.0.0.1 --shards 16 --ratio 6:2 \
+      > "$SRVLOG" 2>&1 &
+  SRV=$!
+  for _ in $(seq 50); do ./build/tomokv --help >/dev/null 2>&1
+    (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null && return 0; sleep 0.2; done
+  return 1
+}
+stop(){ kill -TERM $SRV 2>/dev/null; wait $SRV 2>/dev/null; }
+
+# ---- 3. correctness: smoke + torture + RYOW on the release build ------------------------------
+boot ./build/tomokv || bad "release boot"
+python3 tests/../tests/torture.py 127.0.0.1 $PORT >/tmp/gate-tort.txt 2>&1 \
+    && ok "torture battery" || bad "torture battery" "see /tmp/gate-tort.txt"
+python3 tests/ryow.py 127.0.0.1 $PORT >/tmp/gate-ryow.txt 2>&1 \
+    && ok "RYOW battery" || bad "RYOW battery" "see /tmp/gate-ryow.txt"
+# idle-CPU ceiling: after the batteries, an idle server must not burn cores
+C0=$(awk '{print $14+$15}' /proc/$SRV/stat 2>/dev/null || echo 0); sleep 5
+C1=$(awk '{print $14+$15}' /proc/$SRV/stat 2>/dev/null || echo 0)
+J=$((C1-C0))   # jiffies over 5s across all threads; 8 threads @ 50ms-timeout heartbeat ~= tens
+[ "$J" -lt 200 ] && ok "idle CPU ceiling ($J jiffies/5s)" || bad "idle CPU ceiling" "$J jiffies/5s"
+stop
+# shutdown invariants + fired counters, from the TERM dump
+grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
+    && ok "shutdown invariants (nothing stuck)" || bad "shutdown invariants"
+D=$(grep -oE "direct=[0-9]+" "$SRVLOG" | head -1 | cut -d= -f2)
+[ -n "$D" ] && [ "$D" -gt 0 ] && ok "direct-reply fired (direct=$D)" || bad "direct-reply fired"
+R=$(grep -oE "dispatched=[0-9]+" "$SRVLOG" | cut -d= -f2)
+E=$(grep -oE "executed=[0-9]+"  "$SRVLOG" | cut -d= -f2)
+[ -n "$R" ] && [ "$R" = "$E" ] && ok "dispatched==executed ($R)" || bad "dispatched==executed" "$R vs $E"
+
+if [ "$TIER" = quick ]; then
+  echo; echo "GATE(quick): $PASS ok, $FAIL FAIL"; [ $FAIL -eq 0 ] || exit 1; exit 0
+fi
+
+# ---- 4. full tier: torture under ASAN ---------------------------------------------------------
+boot $ASAN || bad "ASAN boot"
+python3 tests/torture.py 127.0.0.1 $PORT >/tmp/gate-tort-asan.txt 2>&1 \
+    && ok "torture under ASAN" || bad "torture under ASAN"
+python3 tests/ryow.py 127.0.0.1 $PORT >/tmp/gate-ryow-asan.txt 2>&1 \
+    && ok "RYOW under ASAN" || bad "RYOW under ASAN"
+stop
+grep -q "ERROR: AddressSanitizer" "$SRVLOG" && bad "ASAN clean" || ok "ASAN clean"
+
+# ---- 5. full tier: NIC regression cells vs pinned refs ----------------------------------------
+SPD=${GATE_SCRATCH:-/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad}
+if [ -f "$SPD/niclib.sh" ] && [ -f tests/gate_refs.txt ]; then
+  ( set -u
+    . "$SPD/niclib.sh"; . "$SPD/procsafe.sh"
+    NIC_PORT=6380; NIC_CLI_BIN=$SPD/bins/cli; BL_LOGDIR=$(mktemp -d)
+    nic_assert_link || exit 9
+    nic_tune >/dev/null 2>&1 || true
+    CPP=$(pwd)/build/tomokv; KMAX=2000000
+    run_cell(){ # name cores ratio shards pipe lg t conns ratio_rw
+      nic_kill_srv $NIC_PORT
+      NIC_SRV_CORES=$2 nic_boot "gate_$1" "$CPP" --port $NIC_PORT --bind $NIC_SRV_IP --ratio $3 --shards $4 || return 1
+      NIC_TO=1200 NIC_LG_CORES=$6 nic_memtier -t 16 -c 4 --pipeline=32 --ratio=1:0 --key-pattern=P:P \
+          --key-minimum=1 --key-maximum=$KMAX -n allkeys -d 64 >/dev/null 2>&1
+      local f=$BL_LOGDIR/g_$1.log
+      NIC_TO=90 NIC_LG_CORES=$6 nic_memtier -t $7 -c $(( $8 / $7 )) --pipeline=$5 --ratio=$9 \
+          --key-pattern=R:R --key-minimum=1 --key-maximum=$KMAX --test-time=15 -d 64 \
+          --distinct-client-seed > "$f" 2>&1
+      tr '\r' '\n' < "$f" | grep -E '^Totals' | tail -1 | awk '{print $2}'
+    }
+    RC=0
+    while read -r name cores ratio shards pipe lg t conns rw ref; do
+      case "$name" in \#*|"") continue;; esac
+      got=$(run_cell "$name" "$cores" "$ratio" "$shards" "$pipe" "$lg" "$t" "$conns" "$rw")
+      python3 - "$name" "$got" "$ref" <<'PY' || RC=1
+import sys
+name, got, ref = sys.argv[1], float(sys.argv[2] or 0), float(sys.argv[3])
+d = (got - ref) / ref * 100
+status = "ok" if d >= -3.0 else "FAIL"
+print(f"  regression {name:<28} {got/1e6:.2f}M vs ref {ref/1e6:.2f}M ({d:+.1f}%)  {status}")
+sys.exit(0 if d >= -3.0 else 1)
+PY
+    done < tests/gate_refs.txt
+    nic_kill_srv $NIC_PORT
+    exit $RC
+  )
+  case $? in
+    0) ok "NIC regression cells (all within -3%)";;
+    9) say "NIC regression cells" "SKIPPED (no rig)";;
+    *) bad "NIC regression cells";;
+  esac
+else
+  say "NIC regression cells" "SKIPPED (no rig/refs)"
+fi
+
+echo; echo "GATE(full): $PASS ok, $FAIL FAIL"
+[ $FAIL -eq 0 ] || exit 1

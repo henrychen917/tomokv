@@ -275,4 +275,8 @@ private:
     std::atomic<uint32_t> wb_slot_{kNoWbSlot};
 };
 
+// Same footprint law as Op: Client is per-connection resident memory and its io-hot head is
+// layout-tuned. Growing it is allowed -- knowingly.
+static_assert(sizeof(Client) == 1408, "Client grew: re-check the io-hot line packing and idle RSS");
+
 }  // namespace tomo

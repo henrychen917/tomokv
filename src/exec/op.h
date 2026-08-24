@@ -156,4 +156,9 @@ private:
     uint32_t argc_      = 0;
 };
 
+// THE FOOTPRINT LOCK (owner law, 2026-08-24): +16 bytes on Op measured -3.7% at 64c p32 -- at
+// the DRAM wall, ROB footprint is throughput. Growing Op requires paying for it elsewhere in the
+// struct (kInlineReply bought the direct-reply fields) or re-earning the size with an A/B.
+static_assert(sizeof(Op) == 336, "Op grew: pay for it inside the struct or re-run the 64c A/B");
+
 }  // namespace tomo
