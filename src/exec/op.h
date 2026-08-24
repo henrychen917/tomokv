@@ -36,8 +36,11 @@ enum class OpState : uint8_t {
 // Most commands are 2-3 arguments (GET k / SET k v / DEL k). Spill only for the multi-key forms.
 inline constexpr uint32_t kInlineArgv = 8;
 
-// A GET reply for a 64-byte value is ~72 bytes, so 128 inline keeps the common case allocation-free.
-inline constexpr size_t kInlineReply = 128;
+// A GET reply for a 64-byte value is ~72 bytes, so 112 inline keeps the common case allocation-
+// free. 112, not 128: the direct-reply fields below took 16 bytes, and paying them out of the
+// inline reply keeps sizeof(Op) at 336 -- the 128 version measured -3.7% at 64c p32, where the
+// server sits on the DRAM wall and ROB footprint is the price of everything.
+inline constexpr size_t kInlineReply = 112;
 
 class Op {
 public:

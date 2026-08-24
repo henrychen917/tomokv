@@ -49,10 +49,6 @@ inline constexpr size_t   kWbufInline   = 512;
 // Per-client send-side state. Defined here rather than in wb.h because Client owns it and wb.h
 // already depends on this file. Only wb.h touches the contents.
 struct WbLink {
-    // Contended only when the sender is not the connection's IO thread — i.e. in Ex and Wb modes.
-    // In Io mode WbGuard never touches it, so the shipping path pays nothing for its existence.
-    std::mutex m;
-
     // Exactly ONE send may be outstanding per connection. Two concurrent sends on one socket can
     // complete out of order and interleave bytes, which corrupts the stream in a way that looks
     // like a protocol bug anywhere but here.
@@ -91,11 +87,6 @@ struct WbLink {
 // ============================================================================================
 class ConnIn {
 public:
-    // io-local memory of the last parse pass's dispatch count. A conn whose passes carry one op is
-    // p1-ish; the direct-reply eligibility check consults this so DELEGATED batchy conns never pay
-    // the cross-thread flush_/out() reads for a candidacy that cannot qualify.
-    uint8_t last_batch() const { return last_batch_; }
-    void    set_last_batch(uint32_t n) { last_batch_ = static_cast<uint8_t>(n > 255 ? 255 : n); }
 
     explicit ConnIn(int fd) : fd_(fd) {
         rbuf_ = static_cast<char*>(std::malloc(kRbufInitial));
@@ -164,7 +155,6 @@ public:
     }
 
 private:
-    uint8_t last_batch_ = 0;
     int       fd_   = -1;
     char*     rbuf_ = nullptr;
     uint32_t  rlen_ = 0;      // bytes received
@@ -232,7 +222,6 @@ private:
 // connection exactly one sender for its whole life (2s: its io thread; ex-wb: its designated
 // executor; 3s: its wb thread), nobody is Shared and no serve takes a lock. Shared exists for the
 // day a flip or an opportunistic path genuinely multi-serves a connection.
-enum class WbProto : uint8_t { Owned = 0, Fixed = 1, Shared = 2 };
 
 // Item 6: connection-lived execution-side state -- the third lifetime. Lives on the ifid side
 // (session-mutating commands are ConnLocal and run there, single-threaded per connection); handlers
@@ -260,15 +249,11 @@ public:
     // Which thread retires this client's ROB and issues its sends. In 2-stage that IS the io
     // thread; in ex-wb it is an executor, in 3-stage a dedicated write-back thread. Everything on
     // the reply side belongs to this thread and nothing else touches the write buffer.
-    uint32_t sender_thread() const { return sender_thread_; }
-    void set_sender_thread(uint32_t t) { sender_thread_ = t; }
-    bool sender_is_io() const { return sender_thread_ == ifid_thread_; }
 
     // Set by the io thread when it CANNOT make progress until the ROB advances — the window is full
     // or the read buffer has no room. The sender checks it after retiring and pokes io only then,
     // so the common case costs no cross-thread message at all. Without it the io thread can sit
     // with a full window and no recv armed, waiting for an event that never comes.
-    std::atomic<bool>& needs_io_wake() { return needs_io_wake_; }
 
     uint64_t id() const { return id_; }
     void set_id(uint64_t v) { id_ = v; }
@@ -282,7 +267,6 @@ public:
     // io then drains its channel into freed memory. The claim flag covers every CLAIMED post: it is
     // set before posting and cleared only when the consumer takes the entry, and after quiescence
     // no new claim can ever be made (no op will complete again), so requiring it false here is
-    // race-free. Unclaimed posts (the needs_io_wake pokes) are covered by the owning io thread's
     // deferred-free list -- see IoLoop::close_client.
     bool safe_to_release() {
         return out_.rob().quiesced() &&
@@ -321,8 +305,6 @@ public:
     uint32_t wb_slot() const { return wb_slot_.load(std::memory_order_relaxed); }
     void set_wb_slot(uint32_t s) { wb_slot_.store(s, std::memory_order_release); }
 
-    WbProto proto() const { return proto_; }
-    void set_proto(WbProto p) { proto_ = p; }
 
     Session& session() { return session_; }
     void set_in_active(bool v) { in_active_ = v; }
@@ -339,12 +321,9 @@ private:
     alignas(64) ConnIn  in_;
     alignas(64) ConnOut out_;
     alignas(64) std::atomic<bool> retire_queued_{false};
-    std::atomic<bool> needs_io_wake_{false};
-    uint32_t          sender_thread_ = 0;
     bool              in_active_ = false;
     bool              serve_pending_ = false;
     bool              dead_ = false;
-    WbProto           proto_ = WbProto::Owned;
     std::atomic<uint32_t> wb_slot_{kNoWbSlot};
     Session           session_;
     uint64_t        id_ = 0;

@@ -15,7 +15,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <vector>
-#include <map>
 #include "shard.h"
 #include "thread.h"
 #include "../base/topology.h"
@@ -29,7 +28,6 @@ struct ThreadPlacement {
     Role     role        = Role::Idle;
     int      cpu         = -1;
     uint32_t domain      = kNoDomain;
-    uint32_t send_target = kNoThread;  // self in 2s; a wb tid in 3s
 };
 
 class Placement {
@@ -37,7 +35,7 @@ public:
     // Preserve the old CLI's exact lowering: node-major ids, role-major within each node, and cpus
     // selected in domain order (wrapping only when a node has more threads than allowed cpus).
     bool build_legacy(const Topology& topo, uint32_t want_nodes, uint32_t nshards,
-                      uint32_t ifid_per_node, uint32_t ex_per_node, uint32_t wb_per_node) {
+                      uint32_t ifid_per_node, uint32_t ex_per_node) {
         clear();
         const uint32_t nd = topo.ndomains() ? topo.ndomains() : 1;
         uint32_t n = want_nodes ? want_nodes : nd;
@@ -45,7 +43,7 @@ public:
         if (n == 0) n = 1;
         if (nshards < n) n = nshards ? nshards : 1;   // every node must own at least one shard
         const uint64_t total = static_cast<uint64_t>(n) *
-                               (static_cast<uint64_t>(ifid_per_node) + ex_per_node + wb_per_node);
+                               (static_cast<uint64_t>(ifid_per_node) + ex_per_node);
         if (total > kMaxThreads) {
             std::fprintf(stderr, "placement: %llu threads exceeds the %u-thread channel limit\n",
                          static_cast<unsigned long long>(total), kMaxThreads);
@@ -57,7 +55,6 @@ public:
             uint32_t slot = 0;
             for (uint32_t k = 0; k < ifid_per_node; k++) append(Role::Ifid, pick(cpus, slot++), domain);
             for (uint32_t k = 0; k < ex_per_node; k++) append(Role::Ex, pick(cpus, slot++), domain);
-            for (uint32_t k = 0; k < wb_per_node; k++) append(Role::Wb, pick(cpus, slot++), domain);
         }
         return true;
     }
@@ -70,10 +67,10 @@ public:
     // role keeps these same quotas incrementally -- pick the convert candidate from the domain
     // whose count for the shrinking role sits above quota and whose count for the growing role
     // sits below it. Placement stays a pure function of (counts, topology); no node layer.
-    bool build_even(const Topology& topo, uint32_t n_ifid, uint32_t n_ex, uint32_t n_wb) {
+    bool build_even(const Topology& topo, uint32_t n_ifid, uint32_t n_ex) {
         clear();
         const uint32_t nd = topo.ndomains() ? topo.ndomains() : 1;
-        const uint64_t total = static_cast<uint64_t>(n_ifid) + n_ex + n_wb;
+        const uint64_t total = static_cast<uint64_t>(n_ifid) + n_ex;
         uint64_t cap = 0;
         for (uint32_t d = 0; d < nd; d++) cap += topo.cpus_in(d).size();
         if (total > cap) {
@@ -87,20 +84,20 @@ public:
                          static_cast<unsigned long long>(total), kMaxThreads);
             return false;
         }
-        std::vector<uint32_t> qi(nd), qe(nd), qw(nd);
+        std::vector<uint32_t> qi(nd), qe(nd);
         auto spread = [nd](uint32_t count, std::vector<uint32_t>& q) {
             for (uint32_t d = 0; d < nd; d++) q[d] = count / nd + (d < count % nd ? 1u : 0u);
         };
-        spread(n_ifid, qi); spread(n_ex, qe); spread(n_wb, qw);
+        spread(n_ifid, qi); spread(n_ex, qe);
         // Capacity fix-up for domains of unequal size (declared topologies): shed ex first -- it is
         // the most placement-indifferent role -- into the domain with the most free cpus.
         for (uint32_t d = 0; d < nd; d++) {
-            while (qi[d] + qe[d] + qw[d] > topo.cpus_in(d).size()) {
+            while (qi[d] + qe[d] > topo.cpus_in(d).size()) {
                 uint32_t tgt = kNoDomain;
                 uint64_t best_room = 0;
                 for (uint32_t o = 0; o < nd; o++) {
                     if (o == d) continue;
-                    const uint64_t used = qi[o] + qe[o] + qw[o];
+                    const uint64_t used = qi[o] + qe[o];
                     const uint64_t have = topo.cpus_in(o).size();
                     if (have > used && have - used > best_room) { best_room = have - used; tgt = o; }
                 }
@@ -108,9 +105,8 @@ public:
                     std::fprintf(stderr, "--ratio: no domain has room to rebalance\n");
                     return false;
                 }
-                if      (qe[d]) { qe[d]--; qe[tgt]++; }
-                else if (qi[d]) { qi[d]--; qi[tgt]++; }
-                else            { qw[d]--; qw[tgt]++; }
+                if (qe[d]) { qe[d]--; qe[tgt]++; }
+                else       { qi[d]--; qi[tgt]++; }
             }
         }
         for (uint32_t d = 0; d < nd; d++) {
@@ -118,7 +114,6 @@ public:
             uint32_t slot = 0;
             for (uint32_t k = 0; k < qi[d]; k++) append(Role::Ifid, cpus[slot++], d);
             for (uint32_t k = 0; k < qe[d]; k++) append(Role::Ex,   cpus[slot++], d);
-            for (uint32_t k = 0; k < qw[d]; k++) append(Role::Wb,   cpus[slot++], d);
         }
         return true;
     }
@@ -138,10 +133,8 @@ public:
                 role = Role::Ifid; p += 5;
             } else if (!std::strncmp(p, "ex@", 3)) {
                 role = Role::Ex; p += 3;
-            } else if (!std::strncmp(p, "wb@", 3)) {
-                role = Role::Wb; p += 3;
             } else {
-                std::fprintf(stderr, "--place: expected ifid@cpu, ex@cpu, or wb@cpu near '%s'\n", p);
+                std::fprintf(stderr, "--place: expected ifid@cpu or ex@cpu near '%s'\n", p);
                 return false;
             }
             if (*p < '0' || *p > '9') {
@@ -227,89 +220,6 @@ public:
         return true;
     }
 
-    // Defaults deliberately span ALL eligible threads rather than preserving legacy node groups.
-    // Explicit pairs are overrides, so operators can pin only the exceptional IFID relationships
-    // while the rest retain deterministic round-robin assignment.
-    bool assign_send_targets(Role sender_role, const char* spec) {
-        const std::vector<uint32_t>* senders = nullptr;
-        if (sender_role == Role::Wb) senders = &wb_;
-
-        for (size_t k = 0; k < ifid_.size(); k++)
-            // THE ONE SURVIVING NODE RULE (owner): the sender for a connection's ConnOut must share the
-            // accepting ifid's L3 domain -- ConnIn/ConnOut/ROB form a seam that must not cross a CCX.
-            // Default pairing therefore round-robins only over SAME-DOMAIN senders, per domain; the
-            // global list is a fallback for degenerate placements (a domain with ifid but no sender),
-            // taken with a loud warning because every op on those conns will pay the fabric.
-            {
-                uint32_t tid = ifid_[k];
-                const uint32_t dom = threads_[tid].domain;
-                uint32_t chosen = tid;                       // 2s: self
-                if (senders) {
-                    uint32_t local = 0, pick = kNoThread;
-                    for (uint32_t s2 : *senders) if (threads_[s2].domain == dom) local++;
-                    if (local) {
-                        uint32_t want = local_rr_[dom]++ % local, seen = 0;
-                        for (uint32_t s2 : *senders)
-                            if (threads_[s2].domain == dom && seen++ == want) { pick = s2; break; }
-                    } else {
-                        pick = (*senders)[k % senders->size()];
-                        std::fprintf(stderr,
-                            "placement: WARNING ifid t%u (L3 %u) has no same-domain sender; "
-                            "pairing cross-domain with t%u (L3 %u) -- every reply pays the fabric\n",
-                            tid, dom, pick, threads_[pick].domain);
-                    }
-                    chosen = pick;
-                }
-                threads_[tid].send_target = chosen;
-            }
-
-        if (!spec) return true;
-        if (!senders) {
-            std::fprintf(stderr, "--send-target is only meaningful with --mode 3s\n");
-            return false;
-        }
-        if (!*spec) {
-            std::fprintf(stderr, "--send-target must contain ifid_tid:sender_tid pairs\n");
-            return false;
-        }
-
-        std::vector<bool> seen(threads_.size(), false);
-        const char* p = spec;
-        while (*p) {
-            uint32_t ifid_tid = 0, sender_tid = 0;
-            if (!parse_pair(p, ifid_tid, sender_tid)) {
-                std::fprintf(stderr, "--send-target: expected ifid_tid:sender_tid pairs near '%s'\n", p);
-                return false;
-            }
-            if (ifid_tid >= threads_.size() || threads_[ifid_tid].role != Role::Ifid) {
-                std::fprintf(stderr, "--send-target: thread %u is not an ifid thread\n", ifid_tid);
-                return false;
-            }
-            if (sender_tid >= threads_.size() || threads_[sender_tid].role != sender_role) {
-                std::fprintf(stderr, "--send-target: thread %u has the wrong sender role\n", sender_tid);
-                return false;
-            }
-            if (seen[ifid_tid]) {
-                std::fprintf(stderr, "--send-target: ifid thread %u is assigned more than once\n", ifid_tid);
-                return false;
-            }
-            seen[ifid_tid] = true;
-            if (threads_[ifid_tid].domain != threads_[sender_tid].domain)
-                std::fprintf(stderr,
-                    "placement: WARNING --send-target pairs ifid t%u (L3 %u) with t%u (L3 %u) "
-                    "ACROSS domains -- deliberate experiments only; every reply pays the fabric\n",
-                    ifid_tid, threads_[ifid_tid].domain, sender_tid, threads_[sender_tid].domain);
-            threads_[ifid_tid].send_target = sender_tid;
-            if (*p == '\0') break;
-            p++;
-            if (!*p) {
-                std::fprintf(stderr, "--send-target: trailing comma\n");
-                return false;
-            }
-        }
-        return true;
-    }
-
     uint32_t total_threads() const { return static_cast<uint32_t>(threads_.size()); }
 
     ThreadPlacement&       thread(uint32_t tid)       { return threads_[tid]; }
@@ -317,7 +227,6 @@ public:
     const std::vector<ThreadPlacement>& threads() const { return threads_; }
     const std::vector<uint32_t>& ifid_threads() const { return ifid_; }
     const std::vector<uint32_t>& ex_threads()   const { return ex_; }
-    const std::vector<uint32_t>& wb_threads()   const { return wb_; }
 
     Role role_of(uint32_t tid) const { return threads_[tid].role; }
     int cpu_of_thread(uint32_t tid) const { return threads_[tid].cpu; }
@@ -329,14 +238,13 @@ private:
         threads_.clear();
         ifid_.clear();
         ex_.clear();
-        wb_.clear();
         shard_home_.clear();
     }
 
     void append(Role role, int cpu, uint32_t domain) {
         const uint32_t tid = static_cast<uint32_t>(threads_.size());
-        threads_.push_back(ThreadPlacement{tid, role, cpu, domain, kNoThread});
-        (role == Role::Ifid ? ifid_ : role == Role::Ex ? ex_ : wb_).push_back(tid);
+        threads_.push_back(ThreadPlacement{tid, role, cpu, domain});
+        (role == Role::Ifid ? ifid_ : ex_).push_back(tid);
     }
 
     static int pick(const std::vector<int>& cpus, uint32_t slot) {
@@ -362,8 +270,6 @@ private:
     std::vector<ThreadPlacement> threads_;
     std::vector<uint32_t> ifid_;
     std::vector<uint32_t> ex_;
-    std::vector<uint32_t> wb_;
-    std::map<uint32_t, uint32_t> local_rr_;   // per-domain round-robin cursors for sender pairing
     std::vector<uint32_t> shard_home_;
 };
 

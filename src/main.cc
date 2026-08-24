@@ -1,8 +1,8 @@
 // main.cc — boot, thread launch, pinning, shutdown.
 //
-// ONE SERVER, NO MODES. The sender is a per-connection property (Client::sender_thread). A
-// placement without wb threads self-serves every conn (the old 2s); one with wb threads delegates
-// conns to them at accept (the old 3s). --mode survives only as a structural assertion.
+// PURE 2s (owner ruling 2026-08-24): io threads receive, parse, dispatch, retire and send;
+// executors execute. The 3s posture was measured exhaustively and deleted -- see wb.h's header
+// for the evidence. --mode/--wb survive only to reject scripts that still ask for 3s.
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -21,7 +21,6 @@
 #include "base/alloc.h"
 #include "core/io_loop.h"
 #include "core/ex_loop.h"
-#include "core/wb_loop.h"
 #include "cmd/command.h"
 
 using namespace tomo;
@@ -57,7 +56,6 @@ int main(int argc, char** argv) {
     }
 
     Config cfg;
-    int  want_wb = -1;        // --mode/--wb assertion: -1 unasserted, 0 = no wb threads, 1 = some
     bool saw_place = false;
     bool saw_legacy_placement = false;
     bool saw_ratio = false;
@@ -69,18 +67,18 @@ int main(int argc, char** argv) {
         else if (!std::strcmp(argv[i], "--bind"))       cfg.bind_addr = next("127.0.0.1");
         else if (!std::strcmp(argv[i], "--io"))       { saw_legacy_placement = true; saw_spread_family = true; cfg.ifid_per_node = static_cast<uint32_t>(std::atoi(next("4"))); }
         else if (!std::strcmp(argv[i], "--ex"))       { saw_legacy_placement = true; saw_spread_family = true; cfg.ex_per_node = static_cast<uint32_t>(std::atoi(next("4"))); }
-        // THE STATIC SPREAD KNOB. "io:ex" or "io:ex:wb". Everything is static -- there is no
-        // controller and nothing rebalances at runtime, by design for now.
+        // THE STATIC SPREAD KNOB. "io:ex". Everything is static -- there is no controller and
+        // nothing rebalances at runtime, by design for now.
         else if (!std::strcmp(argv[i], "--spread")) {
             saw_legacy_placement = true; saw_spread_family = true;
             const char* v = next("4:4");
             unsigned a = 0, b = 0, c = 0;
             const int got = std::sscanf(v, "%u:%u:%u", &a, &b, &c);
-            if (got < 2 || a == 0 || b == 0) {
-                std::fprintf(stderr, "--spread wants io:ex or io:ex:wb (e.g. 4:4 or 3:3:2)\n");
+            if (got != 2 || a == 0 || b == 0) {
+                std::fprintf(stderr, "--spread wants io:ex (e.g. 4:4); 3s was deleted 2026-08-24\n");
                 return 1;
             }
-            cfg.ifid_per_node = a; cfg.ex_per_node = b; cfg.wb_per_node = (got == 3 ? c : 0);
+            cfg.ifid_per_node = a; cfg.ex_per_node = b;
         }
         // WHOLE-SERVER role counts, evenly spread across L3 domains by the server itself.
         // This is the runtime replacement for authoring --place strings offline, and the knob a
@@ -90,15 +88,14 @@ int main(int argc, char** argv) {
             const char* v = next("");
             unsigned a = 0, b = 0, c = 0;
             const int got = std::sscanf(v, "%u:%u:%u", &a, &b, &c);
-            if (got < 2 || a == 0 || b == 0) {
-                std::fprintf(stderr, "--ratio wants global ifid:ex or ifid:ex:wb (e.g. 30:34 or 15:2:15)\n");
+            if (got != 2 || a == 0 || b == 0) {
+                std::fprintf(stderr, "--ratio wants global ifid:ex (e.g. 30:34); 3s was deleted 2026-08-24\n");
                 return 1;
             }
-            cfg.even_ifid = a; cfg.even_ex = b; cfg.even_wb = (got == 3 ? c : 0);
+            cfg.even_ifid = a; cfg.even_ex = b;
         }
         else if (!std::strcmp(argv[i], "--shards"))     cfg.shards = static_cast<uint32_t>(std::atoi(next("16")));
         else if (!std::strcmp(argv[i], "--shard-home")) cfg.shard_home = next("");
-        else if (!std::strcmp(argv[i], "--send-target")) cfg.send_target = next("");
         else if (!std::strcmp(argv[i], "--nodes"))    { saw_legacy_placement = true; saw_spread_family = true; cfg.nodes = static_cast<uint32_t>(std::atoi(next("0"))); }
         else if (!std::strcmp(argv[i], "--no-pin"))     cfg.pin_threads = false;
         else if (!std::strcmp(argv[i], "--hash")) {
@@ -119,19 +116,13 @@ int main(int argc, char** argv) {
             cfg.place = next("");
         }
         else if (!std::strcmp(argv[i], "--wb")) {
-            // Compatibility spelling of --mode; both are now ASSERTIONS about the placement, not
-            // switches -- wb threads present = delegated sends, absent = self-served. The flag
-            // exists so a script that believes it booted 3s fails loudly if the shape says 2s.
+            // Compat: pure 2s is the only server. Accept the 2s spelling, reject the rest loudly.
             const char* m = next("ifid");
-            if      (!std::strcmp(m, "ifid")) want_wb = 0;
-            else if (!std::strcmp(m, "own"))  want_wb = 1;
-            else { std::fprintf(stderr, "--wb must be ifid | own\n"); return 1; }
+            if (std::strcmp(m, "ifid")) { std::fprintf(stderr, "3s was deleted 2026-08-24; this server is pure 2s\n"); return 1; }
         }
         else if (!std::strcmp(argv[i], "--mode")) {
             const char* m = next("2s");
-            if      (!std::strcmp(m, "2s"))   want_wb = 0;
-            else if (!std::strcmp(m, "3s"))   want_wb = 1;
-            else { std::fprintf(stderr, "--mode must be 2s | 3s\n"); return 1; }
+            if (std::strcmp(m, "2s")) { std::fprintf(stderr, "3s was deleted 2026-08-24; this server is pure 2s\n"); return 1; }
         }
         else if (!std::strcmp(argv[i], "--help")) {
             std::printf("usage: %s [--port N] [--bind A] [--shards N] [--no-pin]\n"
@@ -164,28 +155,12 @@ int main(int argc, char** argv) {
         std::fprintf(stderr, "--ratio cannot be combined with --place, --spread, --nodes, --io, or --ex\n");
         return 1;
     }
-    if (saw_ratio && want_wb == 1 && cfg.even_wb == 0) {
-        std::fprintf(stderr, "--mode 3s asserts wb threads: --ratio ifid:ex:wb\n");
-        return 1;
-    }
-    if (saw_ratio && want_wb == 0 && cfg.even_wb) {
-        std::fprintf(stderr, "--mode 2s asserts no wb threads, but --ratio has a wb count\n");
-        return 1;
-    }
     if (!saw_place && !saw_ratio && (cfg.ifid_per_node == 0 || cfg.ex_per_node == 0)) {
         std::fprintf(stderr, "need at least one io and one ex thread per node\n");
         return 1;
     }
     // 3-stage needs somewhere to send from. Refuse loudly rather than silently falling back to 2s,
     // which would make a mode comparison quietly measure the same thing twice.
-    if (!saw_place && !saw_ratio && want_wb == 1 && cfg.wb_per_node == 0) {
-        std::fprintf(stderr, "--mode 3s asserts wb threads: --spread io:ex:wb\n");
-        return 1;
-    }
-    if (!saw_place && !saw_ratio && want_wb == 0 && cfg.wb_per_node) {
-        std::fprintf(stderr, "--mode 2s asserts no wb threads, but --spread has a wb count\n");
-        return 1;
-    }
     if (cfg.shards == 0 || cfg.shards > 256) {
         std::fprintf(stderr, "shards must be between 1 and 256\n");
         return 1;
@@ -209,26 +184,16 @@ int main(int argc, char** argv) {
     }
 
     srv.topo().dump(stdout);
-    // The posture is a fact of the placement now, not a flag; assert it if the operator claimed one.
-    const bool has_wb = !srv.placement().wb_threads().empty();
-    if (want_wb >= 0 && has_wb != (want_wb == 1)) {
-        std::fprintf(stderr, "--mode asserts %s but the placement has %s wb threads\n",
-                     want_wb ? "3s" : "2s", has_wb ? "" : "no");
-        return 1;
-    }
-    const char* mname = has_wb ? "3s posture (delegated sends)" : "2s posture (io sends)";
-    std::printf("tomokv-cpp: %u threads (%zu ifid + %zu ex + %zu wb), %u shard(s), %s,"
+    const char* mname = "2s (io sends)";
+    std::printf("tomokv-cpp: %u threads (%zu io + %zu ex), %u shard(s), %s,"
                 " io_uring, alloc=%s\n", srv.nthreads(),
                 srv.placement().ifid_threads().size(), srv.placement().ex_threads().size(),
-                srv.placement().wb_threads().size(), cfg.shards, mname, alloc_backend());
+                cfg.shards, mname, alloc_backend());
     for (const ThreadPlacement& p : srv.placement().threads()) {
         const char* role = p.role == Role::Ifid ? "ifid" : p.role == Role::Ex ? "ex" : "wb";
         std::printf("  thread t%u: role=%s cpu=%d L3=%u shards=%zu send=", p.id, role, p.cpu,
                     p.domain, srv.thread(p.id).shards().size());
-        if (p.send_target == kNoThread) std::printf("-");
-        else if (p.send_target == p.id) std::printf("self");
-        else std::printf("t%u", p.send_target);
-        std::printf("\n");
+        std::printf("self\n");
     }
     std::printf("listening on %s:%u\n", cfg.bind_addr, cfg.port);
     std::fflush(stdout);
@@ -239,7 +204,6 @@ int main(int argc, char** argv) {
     std::vector<std::thread> pool;
     std::vector<IoLoop> ios(nthreads);
     std::vector<ExLoop> exs(nthreads);
-    std::vector<WbLoop> wbs(nthreads);
     for (uint32_t i = 0; i < nthreads; i++) g_threads.push_back(&srv.thread(i));
 
     auto pin_for = [&](uint32_t tid) {
@@ -258,14 +222,6 @@ int main(int argc, char** argv) {
             if (!exs[tid].init(&srv, &self)) return;
             exs[tid].run();
         });
-    for (uint32_t tid : srv.placement().wb_threads())
-        pool.emplace_back([&, tid] {
-            pin_for(tid);
-            ThreadCtx& self = srv.thread(tid);
-            self.latch_placement(srv.topo());
-            if (!wbs[tid].init(&srv, &self)) return;
-            wbs[tid].run();
-        });
 
     for (uint32_t tid : srv.placement().ifid_threads())
         pool.emplace_back([&, tid] {
@@ -273,8 +229,6 @@ int main(int argc, char** argv) {
             ThreadCtx& self = srv.thread(tid);
             self.latch_placement(srv.topo());
             if (!ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port)) return;
-            const uint32_t sender = srv.placement().thread(tid).send_target;
-            if (sender != tid) ios[tid].set_send_target(&srv.thread(sender));
             ios[tid].run();
         });
 
@@ -303,8 +257,7 @@ int main(int argc, char** argv) {
         std::printf("t%-5u %-4s %12llu %10llu %9.1f %9.1f %9.1f %9llu %8llu\n", i,
                     // The ROLE is ifid; a self-sending thread renders as "io" because it also
                     // carries wb. A thread whose conns are delegated prints as pure parse.
-                    r == Role::Ifid ? (srv.placement().thread(i).send_target == i ? "io" : "ifid")
-                                    : r == Role::Ex ? "ex" : "wb",
+                    r == Role::Ifid ? "io" : "ex",
                     (unsigned long long)s.ops, (unsigned long long)s.iterations,
                     s.busy_ns / 1e6, s.idle_ns / 1e6, s.cpu_ns / 1e6,
                     (unsigned long long)s.wakes_sent, (unsigned long long)s.wakes_recv);
@@ -323,7 +276,7 @@ int main(int argc, char** argv) {
         w.serves          += x.serves;          w.serves_empty    += x.serves_empty;
     };
     for (uint32_t i = 0; i < srv.nthreads(); i++) {
-        addw(ios[i].engine().stats()); addw(exs[i].engine().stats()); addw(wbs[i].engine().stats());
+        addw(ios[i].engine().stats()); addw(exs[i].engine().stats());
     }
     // And the smoking gun: connections still holding work at shutdown, by WHICH kind.
     uint64_t stuck_rob = 0, stuck_wr = 0, live = 0;

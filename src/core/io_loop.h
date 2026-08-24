@@ -37,15 +37,10 @@ namespace tomo {
 inline constexpr uint32_t kRecvChunk = 16 * 1024;
 
 // THE FIVE LOOPS. Each mode composes threads from five specialised loop shapes, distinguished by
-// what the thread OWNS while serving -- fixed PER CONNECTION at accept by sender_thread(), so the
-// hot paths carry no mode branches, only per-conn ownership checks:
+// what the thread OWNS while serving (pure 2s, owner ruling 2026-08-24):
 //
-//   io    IoLoop, self-served conns       recv+parse+retire+send; owns the whole client
-//   ifid  IoLoop, delegated conns         recv+parse only; sender_is_io false, so the
-//                                         serve path never runs and ConnOut is never touched
-//   ex    ExLoop                          execute+notify; never sends
-//   wb    WbLoop                          retire+send, channel-fed, ConnOut owned STATICALLY --
-//                                         which is why its serve takes no lock (see WbGuard)
+//   io    IoLoop    recv+parse+retire+send; owns the whole client
+//   ex    ExLoop    execute+notify; never sends
 
 class IoLoop {
 public:
@@ -93,7 +88,6 @@ public:
     Ring& ring() { return ring_; }
 
     // Ex/Wb modes: this thread stages ordered bytes, `sender` issues the write.
-    void set_send_target(ThreadCtx* sender) { sender_ = sender; }
 
     void run() {
         arm_accept();
@@ -197,14 +191,8 @@ private:
         auto* c = new Client(fd);
         c->set_id(srv_->next_client_id().fetch_add(1, std::memory_order_relaxed));
         c->set_ifid_thread(self_->id());
-        c->set_sender_thread(sender_ ? sender_->id() : self_->id());
-        // Item 5: the connection's wb protocol, for life (until a flip changes it at the fence).
-        // Owned = we send for it ourselves; Fixed = one designated remote sender. Nobody is Shared
-        // today, so no serve anywhere takes a lock.
-        c->set_proto(c->sender_is_io() ? WbProto::Owned : WbProto::Fixed);
-        // Owned connections get their ready-mask slot immediately -- WE are the sender. Remote
-        // senders assign at adoption (their first channel contact).
-        if (c->sender_is_io()) c->set_wb_slot(self_->assign_wb_slot(c));
+        // The ready-mask slot is assigned immediately: WE are the sender, for life.
+        c->set_wb_slot(self_->assign_wb_slot(c));
         self_->clients().push_back(c);
         arm_recv(c);
         if (!(cqe->flags & IORING_CQE_F_MORE)) {               // multishot dropped: re-arm
@@ -229,7 +217,6 @@ private:
         Rob<kRobWindow>& rob = c->rob();
         LoopSignals& sig = self_->sig();
         bool head_candidate = true;   // only the pass's FIRST dispatch can be the direct head
-        uint32_t dispatched_this_pass = 0;
 
         for (;;) {
             Op* op = rob.acquire();
@@ -292,7 +279,6 @@ private:
                 rob.publish();
                 enqueue_serve(c);
                 mark_active(c);
-                notify_sender_if_remote(c);
                 continue;
             }
 
@@ -319,8 +305,7 @@ private:
             // cross-thread load and cost -2..-4% at p32 for a candidate that can never qualify.
             if (head_candidate) {
                 head_candidate = false;
-                if ((c->sender_is_io() || conn.last_batch() <= 1) &&
-                    rob.in_flight() == 0 && c->out().nothing_to_write()) {
+                if (rob.in_flight() == 0 && c->out().nothing_to_write()) {
                     SmallBuf<kWbufInline>& fb = c->out().fill_buf();
                     op->direct     = fb.data();
                     op->direct_cap = static_cast<uint32_t>(fb.cap());
@@ -341,14 +326,12 @@ private:
             }
             conn.advance_parse(consumed);
             sig.ops++;
-            dispatched_this_pass++;
             {
                 const uint32_t wkr = static_cast<uint32_t>(srv_->worker_of_shard(op->shard));
                 if (!touched_[wkr]) { touched_[wkr] = true; touched_list_[ntouched_++] = wkr; }
             }
             mark_active(c);
         }
-        conn.set_last_batch(dispatched_this_pass);
         // Item 2: one notify per worker per parse pass, not per op. The pushes above are already
         // visible in the queues; this publishes the "look here" bit and pays the wake decision once.
         // The touched set is a LIST, not a scan: the first version swept all 128 thread slots per
@@ -368,29 +351,6 @@ private:
         c->rob().publish();
         enqueue_serve(c);
         mark_active(c);
-        notify_sender_if_remote(c);
-    }
-
-    // THE OP NOBODY WOULD OTHERWISE REPORT. Most ops are completed by a worker, and the worker tells
-    // the sender. But PING, DBSIZE, INFO, an unknown command and a bad arity are all finished right
-    // here on the io thread -- no worker ever sees them, so no worker ever notifies. In 2-stage that
-    // is invisible because io is itself the sender and retires on the same pass. In ex-wb and 3-stage
-    // the reply is published into the ROB and then simply waits, forever, for a message that is never
-    // sent.
-    //
-    // It is deterministic, not a race, and it hides in plain sight: any pipeline containing a single
-    // keyed command drains the whole ROB and looks fine. Only a LONE keyless command hangs -- which is
-    // exactly what a health check, a handshake, or `redis-cli ping` sends.
-    void notify_sender_if_remote(Client* c) {
-        if (c->sender_is_io()) return;                  // 2-stage: we retire it ourselves
-        bool expected = false;
-        if (!c->retire_queued().compare_exchange_strong(expected, true, std::memory_order_acq_rel))
-            return;                                     // already queued; one message covers the batch
-        ThreadCtx& snd = srv_->thread(c->sender_thread());
-        if (!snd.post_client(self_->id(), c, ring_, self_->sig())) {
-            self_->sig().notify_drop++;
-            c->retire_queued().store(false, std::memory_order_release);   // retry on a later pass
-        }
     }
 
     void mark_active(Client* c) {
@@ -447,7 +407,7 @@ private:
         for (auto it = active_.begin(); it != active_.end();) {
             Client* c = *it;
             ConnIn& conn = c->in();
-            if (backstop_pass_ && c->sender_is_io() && !c->serve_pending()) enqueue_serve(c);
+            if (backstop_pass_ && !c->serve_pending()) enqueue_serve(c);
 
             // Reset only when the ROB is quiescent AND no recv is outstanding — see conn.h. Then
             // re-arm, in that order.
@@ -461,16 +421,15 @@ private:
 
             arm_recv(c);
 
-            // If we still cannot progress, say so: the sender will poke us once retiring has freed
-            // a slot or unpinned the buffer. Without this the io thread can sit with a full window
-            // and no recv armed, waiting for an event that never arrives.
+            // Progress marker: a full window with unparsed bytes (or an unarmed recv) means this
+            // conn must stay active so later passes retry once retiring frees slots. We are our own
+            // sender, so no poke protocol is needed -- the flush_ready pass IS the retry.
             const bool stuck = (conn.rpos() < conn.rlen() && c->rob().full()) ||
                                (!conn.recv_armed() && !c->closing());
-            c->needs_io_wake().store(stuck, std::memory_order_release);
 
             const bool more_input = conn.rpos() < conn.rlen();
             const bool done = c->rob().quiesced() && !more_input && !stuck && !c->serve_pending() &&
-                              (!c->sender_is_io() || c->out().nothing_to_write());
+                              c->out().nothing_to_write();
             if (done && !c->closing()) { c->set_in_active(false); it = active_.erase(it); }
             else if (c->closing() && c->safe_to_release()) {
                 c->set_in_active(false); it = active_.erase(it); close_client(c);
@@ -491,14 +450,13 @@ private:
             // close_client finish. Only corpses (freed-pending) are skippable.
             if (c->dead()) continue;
             served++;
-            if (wb_.try_serve(*c, [] {})) work++;
+            if (wb_.serve(*c)) work++;
         }
         work += served;
         return work;
     }
 
     void enqueue_serve(Client* c) {
-        if (!c->sender_is_io()) return;                 // remote-sender conns are not ours to serve
         if (c->serve_pending()) return;                 // already queued
         c->set_serve_pending(true);
         pending_serve_.push_back(c);
@@ -514,36 +472,17 @@ private:
         auto& v = self_->clients();
         for (size_t i = 0; i < v.size(); i++)
             if (v[i] == c) { v[i] = v.back(); v.pop_back(); break; }
-        // Remote sender still holds our slot (its table maps a bit to this pointer): ask it to let
-        // go and try again. THE RETRY IS THE LOAD-BEARING PART: this client left the active set
-        // when it went quiet, so nothing revisits it unless we put it back -- and the first version
-        // of this path returned without doing so, leaking the ENTIRE client (ROB chunks + grown
-        // buffers, ~137KB) on every remote-mode disconnect. Measured: +130MB RSS per bench round,
-        // linear, until the box died. mark_active() re-enters the client into flush_ready's closing
-        // branch, which calls back here every pass until the sender lets go.
-        // ORDER MATTERS: quiesce first, release-request second. Asking the sender to let go while
-        // ops are still in flight makes it drop the slot, after which completions fall back to the
-        // channel where the closing branch refuses to serve -- the replies never retire, the conn
-        // never quiesces, and the "wait" is forever. Only a quiesced, claim-free conn may ask.
+        // THE RETRY IS THE LOAD-BEARING PART of this wait: the client left the active set when it
+        // went quiet, so nothing revisits it unless mark_active puts it back -- returning without
+        // doing so leaked the entire client (~137KB) per disconnect once. Only a quiesced,
+        // claim-free conn may release its slot and die.
         if (!c->safe_to_release()) { mark_active(c); return; }
-        if (!c->sender_is_io() && c->wb_slot() != Client::kNoWbSlot) {
-            bool expected = false;
-            if (c->retire_queued().compare_exchange_strong(expected, true, std::memory_order_acq_rel)) {
-                ThreadCtx& snd = srv_->thread(c->sender_thread());
-                if (!snd.post_client(self_->id(), c, ring_, self_->sig()))
-                    c->retire_queued().store(false, std::memory_order_release);
-            }
-            mark_active(c);                                // keep retrying until the release lands
-            return;                                        // freed only after the sender releases
-        }
-        if (c->sender_is_io()) {
-            self_->release_wb_slot(c->wb_slot());
-            c->set_wb_slot(Client::kNoWbSlot);
-        }
+        self_->release_wb_slot(c->wb_slot());
+        c->set_wb_slot(Client::kNoWbSlot);
         ::close(c->in().fd());
-        // NOT delete. A poke-path post (serve's needs_io_wake notify) carries no claim flag, so one
-        // may still sit un-consumed in our inbound channels naming this client. Every such entry was
-        // pushed BEFORE this point, and channels are FIFO with their mask bits set -- so ONE full
+        // NOT delete. An ex-side claimed post may still sit un-consumed in our inbound channels
+        // naming this client. Every such entry was pushed BEFORE this point, and channels are FIFO
+        // with their mask bits set -- so ONE full
         // collect_retire_work pass consumes all of them. Park the corpse for one loop iteration and
         // free it at the top of the one after; the drain lambda skips dead clients.
         c->mark_dead();
@@ -561,7 +500,6 @@ private:
 
     Server*    srv_  = nullptr;
     ThreadCtx* self_ = nullptr;
-    ThreadCtx* sender_ = nullptr;      // Ex/Wb modes
     static constexpr uint32_t kFlushBackstopEvery = 64;
     // Serves per pass. Sized so a pass's serve work stays comparable to its recv work: ~16 serves
     // x a ~32-op prefix each is one CQ batch worth of replies. The queue, not the pass, absorbs

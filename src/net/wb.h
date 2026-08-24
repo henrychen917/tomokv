@@ -1,10 +1,13 @@
 // wb.h — write-back: turning completed replies into bytes on a socket.
 //
-// THE SEND LOGIC IS THE SAME FOR EVERY SENDER. Which thread runs it is a PER-CONNECTION property:
-// Client::sender_thread(), assigned at accept (today: the accepting io thread itself, or its
-// placement-paired wb — reproducing the old 2s/3s exactly), re-assignable later only through a
-// quiesce fence. There is no server-wide mode; "2s" and "3s" are postures of one server, W=0 or
-// W>0 in --ratio.
+// PURE 2s (owner ruling 2026-08-24): the io thread that owns a connection is its only sender,
+// for life. The 3s posture (dedicated wb threads) was measured and deleted -- its one win was
+// +2-4% at 64c p32 (deep pipe + ex-scarce, the split tax amortized), and it lost everything
+// else: p1 -22..-35%, p32<=32c -8%, overload -8% with double the tail, large values tied at the
+// wire wall with worse tail. The depth sweep (p1..p32: -33% -> +4%, crossover ~p16-32) is the
+// architecture story: the split's per-op tax (extra kernel transitions, Client/sock line
+// migration, one hop) amortizes with batching, and only then can decoupled edges convert saved
+// cores into ex. One base is worth more than that corner.
 //
 // (Executor-issued sends (exwb) existed and were DELETED
 // 2026-08-24: #1 in zero measured cells. Send work rides the scarce ex role: nearly free at p1,
@@ -34,42 +37,15 @@
 #pragma once
 #include <atomic>
 #include <cstdint>
-#include <mutex>
 #include "conn.h"
 #include "uring.h"
 
 namespace tomo {
 
-// RAII. Resolves once, releases what it resolved. See the header comment.
-//
-// WHO NEEDS THE LOCK, derived from what the serving thread OWNS at that moment:
-//   Io  (2s)   owns the whole client -- no other server can exist.           NO LOCK
-//   Wb  (3s)   owns ConnOut alone, STATICALLY -- one fixed sender, and nothing else ever
-//              touches the send side (io never serves it, ex only notifies). NO LOCK
-// The Wb elision is not an optimisation gamble; it is the same fact that makes Io lock-free,
-// arrived at statically instead of by identity. (The deleted exwb mode was the one genuinely
-// multi-server shape; WbProto::Shared remains as the tag a future flip stamps when a connection
-// really does have more than one server.)
-class WbGuard {
-public:
-    // Item 5: the lock decision is the CONNECTION's protocol, not the binary's mode. Today every
-    // connection has exactly one sender for life (Owned or Fixed), so no serve anywhere takes a
-    // lock; Shared is the tag a flip will stamp -- at the quiescence fence -- on the day a
-    // connection genuinely has more than one server.
-    WbGuard(WbLink& link, WbProto proto)
-        : link_(&link), locked_(proto == WbProto::Shared) {
-        if (locked_) link_->m.lock();
-    }
-    ~WbGuard() { if (locked_) link_->m.unlock(); }
-    WbGuard(const WbGuard&) = delete;
-    WbGuard& operator=(const WbGuard&) = delete;
-
-    WbLink& link() { return *link_; }
-
-private:
-    WbLink* const link_;     // captured once; const so it cannot be re-pointed
-    const bool    locked_;
-};
+// THE LOCK BUG note above is preserved as history: WbGuard died with the multi-sender designs
+// (exwb, then 3s). In pure 2s exactly one thread -- the connection's io thread -- ever touches the
+// send side, so there is nothing to lock and no object to re-derive. If a future flip ever puts
+// two servers on one connection, resurrect the guard from git history, not from memory.
 
 // Per-thread send engine. Every loop that sends owns one and calls the same two methods.
 class WbEngine {
@@ -89,38 +65,10 @@ public:
     // the head flushes it inline, and the owning io thread sweeps as the backstop -- so the whole
     // serve (drain + stage + send), not just the pump, runs under the connection's WbLink lock. The
     // ROB stays SPSC because the lock makes "exactly one consumer at any instant" true dynamically,
-    // which is the same invariant a fixed consumer provides statically.
-    //
-    // Returns true if it did anything, so a caller can tell progress from an empty poll.
-    template <typename NotifyIo>
-    bool serve(Client& c, NotifyIo&& notify_io) {
-        WbGuard g(c.wb(), c.proto());
-        return serve_locked(c, notify_io);
-    }
-
-    // The executor's opportunistic entry: never blocks. If the lock is busy, someone is already
-    // draining this connection -- and if OUR op's Done landed after their drain passed its slot, the
-    // reply has "slipped". Slips are HARMLESS by design, not by luck: the caller notifies the owning
-    // io thread on a false return, and io's backstop pass retires anything a race left behind. That
-    // backstop is what lets the head-check be a cheap hint instead of a fenced protocol -- the
-    // alternative is the Dekker discipline that cost this codebase five commits.
-    template <typename NotifyIo>
-    bool try_serve(Client& c, NotifyIo&& notify_io) {
-        if (c.proto() == WbProto::Shared) {              // the only multi-server protocol
-            if (!c.wb().m.try_lock()) return false;
-            const bool did = serve_locked(c, notify_io);
-            c.wb().m.unlock();
-            (void)did;
-            return true;
-        }
-        serve_locked(c, notify_io);
-        return true;
-    }
-
-    // Lock-assumed core of serve(). Callers hold the WbLink lock (or are in Io mode, where no other
-    // server can exist).
-    template <typename NotifyIo>
-    bool serve_locked(Client& c, NotifyIo&& notify_io) {
+    // Retire completed ops IN ORDER, stage their bytes, and write. Owned and run only by the
+    // connection's io thread. Returns true if it did anything, so a caller can tell progress from
+    // an empty poll.
+    bool serve(Client& c) {
         TOMO_FORENSIC(c.wb().n_serves.fetch_add(1, std::memory_order_relaxed));
         stats_.serves++;
         ConnOut& conn = c.out();
@@ -132,21 +80,10 @@ public:
             if (!op.reply.empty()) conn.fill_buf().append(op.reply.data(), op.reply.size());
         });
         bool did = retired != 0;
-        if (!conn.nothing_to_write()) did |= pump_locked(c, c.wb());
-
-        // Poke the io thread only if it told us it was stuck. Retiring may have freed a ROB slot or
-        // unpinned the read buffer, and io cannot discover that on its own without polling.
-        // Per-conn: for a SELF-SERVED conn the serving thread IS io -- the flag is its own, and the
-        // flush_ready pass that called us re-evaluates stuck-ness right after, so the load would
-        // answer a question the caller is about to answer better.
-        if (!c.sender_is_io() && retired && c.needs_io_wake().load(std::memory_order_acquire)) {
-            c.needs_io_wake().store(false, std::memory_order_release);
-            notify_io();
-        }
+        if (!conn.nothing_to_write()) did |= pump(c, c.wb());
         stats_.retired += retired;
-        // A serve that retires nothing. For a delegated conn this is a wake the sender could not
-        // act on; for a self-served one it is mostly the POLLING paths (io's flush_ready pass, the
-        // backstop) finding nothing, which is expected and cheap -- interpret per shape.
+        // A serve that retires nothing: the POLLING paths (flush_ready, the backstop) finding
+        // nothing, which is expected and cheap.
         if (!retired) stats_.serves_empty++;
         return did;
     }
@@ -154,11 +91,6 @@ public:
     // Try to push whatever this client has buffered. Safe to call spuriously: if nothing is pending
     // or a send is already outstanding it does nothing. Returns true if a send was submitted.
     bool pump(Client& c, WbLink& link) {
-        WbGuard g(link, c.proto());
-        return pump_locked(c, g.link());
-    }
-
-    bool pump_locked(Client& c, WbLink& link) {
         if (link.send_inflight) return false;              // preserve one-send-per-socket ordering
 
         ConnOut& conn = c.out();
@@ -187,8 +119,7 @@ public:
     bool on_send_complete(Client& c, WbLink& link, int res) {
         bool resubmit = false;
         {
-            WbGuard g(link, c.proto());
-            g.link().send_inflight = false;
+            link.send_inflight = false;
 
             if (res < 0) {
                 if (res == -EAGAIN || res == -EINTR) { resubmit = true; }

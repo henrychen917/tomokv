@@ -130,8 +130,8 @@ private:
         // op.reply becomes visible through this one store.
         op.state.store(OpState::Done, std::memory_order_release);
 
-        // Notify the connection's FIXED sender (io in 2s, wb in 3s); the claim flag dedupes a
-        // burst into one post. EXECUTOR-ISSUED SENDS ARE A CLOSED DOOR: the exwb mode (executor
+        // Notify the connection's io thread; the claim flag dedupes a burst into one post.
+        // EXECUTOR-ISSUED SENDS ARE A CLOSED DOOR: the exwb mode (executor
         // sends its own completed prefix) was built, measured #1 in zero cells across every size
         // and pipe depth, and deleted 2026-08-24 -- send work rides the scarce ex role, nearly
         // free at p1 and ruinous at p32. Flush-at-head-from-ex was separately built twice and
@@ -141,11 +141,11 @@ private:
 
 
 
-    // Tell this client's SENDER it has completed ops. The sender — io in 2-stage, a write-back
-    // thread in 3-stage — is what retires the ROB and writes, so it is what needs waking.
-    // Deduplicated: a pipelined burst of N completions on one client must not enqueue it N times.
+    // Tell this client's io thread it has completed ops -- it retires the ROB and writes, so it is
+    // what needs waking. Deduplicated: a pipelined burst of N completions on one client must not
+    // enqueue it N times.
     void notify_sender(Client* c) {
-        const uint32_t target = c->sender_thread();
+        const uint32_t target = c->ifid_thread();
         ThreadCtx& snd = srv_->thread(target);
         // THE READY-MASK PATH (#19/#20 ported): once the sender has assigned this connection a
         // slot, completion signalling is one idempotent bit -- no claim, no channel entry, no

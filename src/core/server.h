@@ -29,9 +29,6 @@ struct Config {
     // the same per-thread placement table that --place builds directly.
     uint32_t ifid_per_node    = 4;
     uint32_t ex_per_node    = 4;
-    // Zero means no dedicated senders (every conn self-served -- the old 2s). Nonzero adds wb
-    // threads and delegates conns to them at accept (the old 3s). One server, two postures.
-    uint32_t wb_per_node    = 0;
     // 0 means "one node per L3 domain", which is the measured optimum and therefore the default
     // rather than something an operator has to know to ask for.
     uint32_t nodes          = 0;
@@ -41,9 +38,7 @@ struct Config {
     // fields above these express any global shape, and they are what a flip controller would vary.
     uint32_t even_ifid      = 0;
     uint32_t even_ex        = 0;
-    uint32_t even_wb        = 0;
     const char* shard_home  = nullptr;   // optional complete shard:ex_tid map
-    const char* send_target = nullptr;   // optional ifid_tid:sender_tid overrides
     // Shards should outnumber workers: a shard is the unit of migration, so more shards gives the
     // LB finer granularity. Too many and each one's working set stops being worth its own table.
     uint32_t shards         = 16;
@@ -91,21 +86,16 @@ public:
         }
         const bool placed = cfg.place
             ? placement_.build_explicit(topo_, cfg.place)
-            : (cfg.even_ifid | cfg.even_ex | cfg.even_wb)
-            ? placement_.build_even(topo_, cfg.even_ifid, cfg.even_ex, cfg.even_wb)
+            : (cfg.even_ifid | cfg.even_ex)
+            ? placement_.build_even(topo_, cfg.even_ifid, cfg.even_ex)
             : placement_.build_legacy(topo_, cfg.nodes, cfg.shards,
-                                      cfg.ifid_per_node, cfg.ex_per_node, cfg.wb_per_node);
+                                      cfg.ifid_per_node, cfg.ex_per_node);
         if (!placed) return false;
         if (placement_.ifid_threads().empty() || placement_.ex_threads().empty()) {
             std::fprintf(stderr, "placement needs at least one ifid and one ex thread\n");
             return false;
         }
-        // Sender and shard maps are resolved exactly once at boot. The loops consume the resulting
-        // tids directly; parsing never leaks onto a request path. Wb threads in the placement mean
-        // conns are delegated to them; none means every conn is self-served. Both are the same
-        // server -- the sender is a per-connection property, not a mode.
-        const Role sender_role = placement_.wb_threads().empty() ? Role::Ifid : Role::Wb;
-        if (!placement_.assign_send_targets(sender_role, cfg.send_target)) return false;
+        // Shard maps are resolved exactly once at boot; parsing never leaks onto a request path.
         if (!placement_.assign_shard_homes(cfg.shards, cfg.shard_home)) return false;
 
         // ---- shards: bucket ranges, fixed for the life of the process ----------------------------

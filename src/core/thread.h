@@ -12,7 +12,6 @@
 //
 //   task_in_[p]     from producer p    IO -> EX   a parsed op to execute
 //   client_in_[p]   from producer p    EX -> IO   "you have completed ops to retire"
-//                                      IO -> WB   "you have bytes to send"      (delegated conns)
 //
 // client_in_ is unambiguous despite serving three directions, because a thread has exactly one role
 // at a time: an IO thread's client_in_ is always retire-work, a WB thread's is always send-work.
@@ -41,7 +40,7 @@ class Ring;
 inline constexpr uint32_t kMaxThreads = 128;
 inline constexpr uint32_t kInboxSlots = 1024;
 
-enum class Role : uint8_t { Idle = 0, Ifid = 1, Ex = 2, Wb = 3 };
+enum class Role : uint8_t { Idle = 0, Ifid = 1, Ex = 2 };
 
 // What travels on task_in_. A handle rather than a raw Op*: the worker resolves it through the
 // client's ROB, so a recycled slot cannot be reached through a stale pointer. The client itself
