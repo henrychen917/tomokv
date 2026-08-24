@@ -50,7 +50,13 @@ namespace tomo {
 // Per-thread send engine. Every loop that sends owns one and calls the same two methods.
 class WbEngine {
 public:
-    void bind(Ring* ring) { ring_ = ring; }
+    using ReleaseFn = void (*)(void*, int32_t, const char*);
+
+    void bind(Ring* ring, void* release_ctx = nullptr, ReleaseFn release_fn = nullptr) {
+        ring_ = ring;
+        release_ctx_ = release_ctx;
+        release_fn_ = release_fn;
+    }
 
     Ring&  ring()       { return *ring_; }
 
@@ -73,11 +79,30 @@ public:
         stats_.serves++;
         Client& conn = c;
         const uint32_t retired = c.rob().drain([&](Op& op) {
+            if (op.zc_ptr) {
+                // Anything already staged is older than this op. Once sealed, every subsequent
+                // reply uses segments until the queue drains, so no fill-buffer append can jump a
+                // borrowed value that is only partially written.
+                conn.seal_fill_segment();
+                conn.append_buf_segment(op.direct, op.direct_len,
+                                        op.reply.data(), op.reply.size());
+                conn.append_borrow_segment(op.zc_ptr, op.zc_len, op.zc_shard);
+                conn.append_static_segment(kCrlf, sizeof(kCrlf));
+                if (op.direct_len) stats_.direct++;
+                return;
+            }
+
             // Direct bytes are already in the fill buffer; publishing the length is the whole
             // "copy". A reply that outgrew the region spilled to op.reply -- emit it AFTER the
             // direct part so the RESP stream stays in order.
-            if (op.direct_len) { conn.fill_buf().commit_raw(op.direct_len); stats_.direct++; }
-            if (!op.reply.empty()) conn.fill_buf().append(op.reply.data(), op.reply.size());
+            if (conn.has_pending_segments()) {
+                conn.append_buf_segment(op.direct, op.direct_len,
+                                        op.reply.data(), op.reply.size());
+                if (op.direct_len) stats_.direct++;
+            } else {
+                if (op.direct_len) { conn.fill_buf().commit_raw(op.direct_len); stats_.direct++; }
+                if (!op.reply.empty()) conn.fill_buf().append(op.reply.data(), op.reply.size());
+            }
         });
         bool did = retired != 0;
         if (!conn.nothing_to_write()) did |= pump(c);
@@ -94,6 +119,33 @@ public:
         if (c.send_inflight()) return false;               // preserve one-send-per-socket ordering
 
         Client& conn = c;
+        // A legacy contiguous send may predate the first borrowed reply. It remains the wire head
+        // until drained; the segment queue starts strictly after it.
+        const size_t legacy_total = conn.send_buf().size();
+        const size_t legacy_sent  = conn.wsent();
+        if (legacy_sent < legacy_total)
+            return submit_legacy(c, legacy_total, legacy_sent);
+
+        if (conn.has_pending_segments()) {
+            bool has_borrow = false;
+            uint32_t total = 0;
+            const uint32_t niov = conn.build_segment_iov(has_borrow, total);
+            if (!niov) return false;
+
+            io_uring_sqe* s = ring_->sqe();
+            if (!s) { stats_.sqe_starved++; return false; }
+            io_uring_prep_sendmsg(s, conn.fd(), conn.send_msg(), MSG_NOSIGNAL);
+            s->user_data = ur_tag(UrKind::Send, &c);
+            ring_->note_pending();
+
+            conn.set_segmented_send(true);
+            conn.set_send_requested(total);
+            conn.set_send_inflight(true);
+            stats_.sends_submitted++;
+            if (has_borrow) stats_.zc_sends++;
+            return true;
+        }
+
         // Nothing outstanding, so if the send buffer is fully written we may promote the fill
         // buffer. This is the ONLY point at which the two swap, and it is safe precisely because
         // send_inflight is false here.
@@ -101,17 +153,7 @@ public:
 
         const size_t total = conn.send_buf().size();
         const size_t sent  = conn.wsent();
-        if (sent >= total) return false;                   // nothing to do
-
-        io_uring_sqe* s = ring_->sqe();
-        if (!s) { stats_.sqe_starved++; return false; }
-        io_uring_prep_send(s, conn.fd(), conn.send_buf().data() + sent, total - sent, MSG_NOSIGNAL);
-        s->user_data = ur_tag(UrKind::Send, &c);
-        ring_->note_pending();
-
-        c.set_send_inflight(true);
-        stats_.sends_submitted++;
-        return true;
+        return sent < total ? submit_legacy(c, total, sent) : false;
     }
 
     // Completion handler. `res` is the CQE result: bytes written, or negative errno.
@@ -126,23 +168,54 @@ public:
                 else { stats_.send_errors++; return false; }
             } else {
                 Client& conn = c;
-                conn.commit_write(static_cast<uint32_t>(res));
+                if (conn.segmented_send()) {
+                    stats_.zc_bytes += conn.consume_segments(static_cast<uint32_t>(res),
+                        [&](int32_t shard, const char* ptr) { release(shard, ptr); });
+                } else {
+                    conn.commit_write(static_cast<uint32_t>(res));
+                }
                 stats_.bytes_sent += static_cast<uint64_t>(res);
-                if (conn.write_drained()) {
+                if (static_cast<uint32_t>(res) < conn.send_requested()) stats_.short_writes++;
+                const bool drained = conn.segmented_send()
+                    ? !conn.has_pending_segments()
+                    : conn.write_drained();
+                if (drained) {
                     stats_.sends_completed++;
                     // More replies may have accumulated in the fill buffer while this send was in
                     // flight; resubmit so they go out rather than waiting for an unrelated event.
-                    if (conn.has_pending_fill()) resubmit = true;
+                    if (conn.has_pending_fill() || conn.has_pending_segments()) resubmit = true;
                 } else {
-                    // Short write. Not an error and not rare under load — the remainder must go out
-                    // before anything else is appended, or the stream reorders.
+                    // This includes a short write and a full 16-iovec window with more queued
+                    // segments. Both resume from the queue's (head index, byte offset) frontier.
                     resubmit = true;
-                    stats_.short_writes++;
                 }
             }
         }
         if (resubmit) pump(c);
         return true;
+    }
+
+    // A closed connection cannot send remaining segments. If a sendmsg is still in flight its
+    // iovecs remain pinned until the CQE; otherwise every BORROW is returned immediately.
+    void teardown(Client& c) {
+        if (c.send_inflight()) return;
+        c.release_all_segments([&](int32_t shard, const char* ptr) { release(shard, ptr); });
+    }
+
+    // Dead clients still receive their send CQE during the deferred-free window. Consume whatever
+    // reached the wire, then release both the completed and unsent BORROW segments exactly once.
+    void on_dead_send_complete(Client& c, int res) {
+        c.set_send_inflight(false);
+        if (res > 0) {
+            if (c.segmented_send()) {
+                stats_.zc_bytes += c.consume_segments(static_cast<uint32_t>(res),
+                    [&](int32_t shard, const char* ptr) { release(shard, ptr); });
+            } else {
+                c.commit_write(static_cast<uint32_t>(res));
+            }
+            stats_.bytes_sent += static_cast<uint64_t>(res);
+        }
+        teardown(c);
     }
 
     struct Stats {
@@ -157,11 +230,38 @@ public:
         uint64_t retired         = 0;   // ops retired from ROBs by this sender
         uint64_t direct          = 0;   // replies formatted in place by the worker (c->buf trick)
         uint64_t handoffs        = 0;   // clients passed to another thread's ready queue
+        uint64_t zc_sends        = 0;   // sendmsg submissions whose iovecs include a BORROW
+        uint64_t zc_bytes        = 0;   // borrowed value bytes reported complete by the kernel
+        uint64_t zc_releases     = 0;   // BORROW segments returned on completion or teardown
     };
     Stats& stats() { return stats_; }
 
 private:
+    bool submit_legacy(Client& c, size_t total, size_t sent) {
+        static constexpr size_t kMaxSendBytes = 0x7ffff000u;
+        const size_t request = std::min(total - sent, kMaxSendBytes);
+        io_uring_sqe* s = ring_->sqe();
+        if (!s) { stats_.sqe_starved++; return false; }
+        io_uring_prep_send(s, c.fd(), c.send_buf().data() + sent, request, MSG_NOSIGNAL);
+        s->user_data = ur_tag(UrKind::Send, &c);
+        ring_->note_pending();
+
+        c.set_segmented_send(false);
+        c.set_send_requested(static_cast<uint32_t>(request));
+        c.set_send_inflight(true);
+        stats_.sends_submitted++;
+        return true;
+    }
+
+    void release(int32_t shard, const char* ptr) {
+        stats_.zc_releases++;
+        if (release_fn_) release_fn_(release_ctx_, shard, ptr);
+    }
+
+    inline static constexpr char kCrlf[2] = {'\r', '\n'};
     Ring*  ring_ = nullptr;
+    void*  release_ctx_ = nullptr;
+    ReleaseFn release_fn_ = nullptr;
     Stats  stats_;
 };
 

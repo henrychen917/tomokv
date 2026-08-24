@@ -44,6 +44,18 @@ static void pin_to(int cpu) {
     pthread_setaffinity_np(pthread_self(), sizeof(set), &set);
 }
 
+static bool parse_u32(const char* s, uint32_t& out) {
+    if (!s || !*s) return false;
+    uint64_t v = 0;
+    for (const char* p = s; *p; p++) {
+        if (*p < '0' || *p > '9') return false;
+        v = v * 10 + static_cast<uint64_t>(*p - '0');
+        if (v > UINT32_MAX) return false;
+    }
+    out = static_cast<uint32_t>(v);
+    return true;
+}
+
 int main(int argc, char** argv) {
     // Hash key material, before anything hashes. getrandom never fails for 24 bytes on any kernel
     // we run; if it somehow does, a zero seed degrades to the old deterministic behavior rather
@@ -77,6 +89,13 @@ int main(int argc, char** argv) {
             cfg.even_ifid = a; cfg.even_ex = b;
         }
         else if (!std::strcmp(argv[i], "--shards"))     cfg.shards = static_cast<uint32_t>(std::atoi(next("16")));
+        else if (!std::strcmp(argv[i], "--zc-min")) {
+            const char* v = next(nullptr);
+            if (!parse_u32(v, cfg.zc_min)) {
+                std::fprintf(stderr, "--zc-min wants a uint32 byte count (0 disables; 16384 suggested when enabled)\n");
+                return 1;
+            }
+        }
         else if (!std::strcmp(argv[i], "--shard-home")) cfg.shard_home = next("");
         else if (!std::strcmp(argv[i], "--no-pin"))     cfg.pin_threads = false;
         else if (!std::strcmp(argv[i], "--hash")) {
@@ -105,12 +124,13 @@ int main(int argc, char** argv) {
             if (std::strcmp(m, "2s")) { std::fprintf(stderr, "3s was deleted 2026-08-24; this server is pure 2s\n"); return 1; }
         }
         else if (!std::strcmp(argv[i], "--help")) {
-            std::printf("usage: %s [--port N] [--bind A] [--shards N] [--no-pin]\n"
+            std::printf("usage: %s [--port N] [--bind A] [--shards N] [--zc-min N] [--no-pin]\n"
                         "  placement (pure 2s; default = even io/ex split over all allowed cpus):\n"
                         "    --ratio io:ex               GLOBAL counts, spread evenly over L3 domains\n"
                         "    --place role@cpu,...        explicit per-thread; roles are ifid, ex\n"
                         "    --node-cpus LIST            declared L3 topology, ranges joined by +\n"
                         "    --shard-home shard:tid,...  complete shard-to-executor map\n"
+                        "    --zc-min N                  zero-copy GET replies for values >= N (0=off)\n"
                         "  misc: --hash mix64|siphash; --mode 2s and --wb ifid accepted for\n"
                         "  script compat (anything else is rejected: 3s was deleted 2026-08-24)\n",
                         argv[0]);
@@ -235,6 +255,8 @@ int main(int argc, char** argv) {
         w.short_writes    += x.short_writes;    w.send_errors     += x.send_errors;
         w.bytes_sent      += x.bytes_sent;      w.retired         += x.retired;
         w.direct          += x.direct;
+        w.zc_sends        += x.zc_sends;        w.zc_bytes        += x.zc_bytes;
+        w.zc_releases     += x.zc_releases;
         w.serves          += x.serves;          w.serves_empty    += x.serves_empty;
     };
     for (uint32_t i = 0; i < srv.nthreads(); i++) {
@@ -277,13 +299,14 @@ int main(int argc, char** argv) {
                     }
                 }
             }
-            if (!c->nothing_to_write()) stuck_wr++;
-        }
+            if (!c->nothing_to_write()) stuck_wr++;        }
     std::printf("wb: retired=%llu direct=%llu sends=%llu/%llu short=%llu err=%llu bytes=%llu"
-                " serves=%llu empty=%llu\n",
+                " zc_sends=%llu zc_bytes=%llu zc_releases=%llu serves=%llu empty=%llu\n",
                 (unsigned long long)w.retired, (unsigned long long)w.direct, (unsigned long long)w.sends_completed,
                 (unsigned long long)w.sends_submitted, (unsigned long long)w.short_writes,
                 (unsigned long long)w.send_errors, (unsigned long long)w.bytes_sent,
+                (unsigned long long)w.zc_sends, (unsigned long long)w.zc_bytes,
+                (unsigned long long)w.zc_releases,
                 (unsigned long long)w.serves, (unsigned long long)w.serves_empty);
     std::printf("stuck: live_conns=%llu rob_not_quiesced=%llu unsent_bytes_pending=%llu"
                 " | slots done=%llu issued=%llu free=%llu flag_set=%llu\n",

@@ -56,6 +56,7 @@ public:
             uint32_t did = 0;
             {
                 Span busy(sig.busy_ns);
+                did += drain_releases();
                 did += drain_tasks();
                 did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
             }
@@ -77,7 +78,7 @@ public:
 
             Span idle(sig.idle_ns);
             self_->arm_blocked();
-            if (!self_->any_inbound()) ring_.submit_and_wait(1);
+            if (!self_->any_ex_inbound()) ring_.submit_and_wait(1);
             else                       ring_.submit_and_reap();
             self_->clear_blocked();
         }
@@ -89,7 +90,15 @@ private:
     // exqueue.h on why the retired frontier is separate from head.
     // Mask-independent: the state backstop behind the notify hint, run only when this thread has
     // already concluded it has nothing to do.
-    uint32_t sweep() { return drain_tasks(true); }
+    uint32_t sweep() { return drain_releases(true) + drain_tasks(true); }
+
+    uint32_t drain_releases(bool unmasked = false) {
+        auto take = [&](const BorrowRelease& r) {
+            // Routing targets the shard's current owner; only that thread may touch this registry.
+            srv_->shard(r.shard).store().unborrow(r.ptr);
+        };
+        return unmasked ? self_->drain_releases_unmasked(take) : self_->drain_releases(take);
+    }
 
     uint32_t drain_tasks(bool unmasked = false) {
         Task batch[kExecBatch];

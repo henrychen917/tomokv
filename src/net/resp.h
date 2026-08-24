@@ -143,6 +143,15 @@ template <typename Buf> inline void reply_int(Buf&& b, long long v) {
     b.advance(static_cast<size_t>(q - p));
 }
 
+template <typename Buf> inline void reply_bulk_header(Buf&& b, uint32_t len) {
+    char* p = b.reserve(24);
+    char* q = p;
+    *q++ = '$';
+    q += u64_to_dec(q, len);
+    *q++ = '\r'; *q++ = '\n';
+    b.advance(static_cast<size_t>(q - p));
+}
+
 // ONE reserve, ONE memcpy, no snprintf and no re-entry into the buffer. The previous version did a
 // reserve plus three appends, and each append re-checked capacity — for a reply whose total size is
 // known exactly before a byte is written.

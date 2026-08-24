@@ -61,6 +61,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <vector>
 #include "kvobj.h"
 
 namespace tomo {
@@ -136,6 +137,10 @@ public:
                     if (KvObj* o = ptr_of(tab_[t][i])) kvobj_free(o);
                 std::free(tab_[t]);
             }
+        // Retired objects no longer appear in either table. They remain here only because an io
+        // thread may still be handing their value bytes to the kernel.
+        for (const Borrow& b : borrows_)
+            if (b.retired) kvobj_free(b.retired);
     }
     FlatStore(const FlatStore&) = delete;
     FlatStore& operator=(const FlatStore&) = delete;
@@ -148,7 +153,7 @@ public:
     // copy cost — nothing is copied — but an L3 domain is filled by access, so a shard that moves
     // has to be read back in on the other side.
     size_t resident_estimate() const {
-        return static_cast<size_t>(cap_[0] + cap_[1]) * 8 + obj_bytes_;
+        return static_cast<size_t>(cap_[0] + cap_[1]) * 8 + obj_bytes_ + pending_bytes_;
     }
 
     KvObj* find(uint64_t h, Slice key) {
@@ -171,12 +176,47 @@ public:
         const size_t want = kvobj_alloc_size(o->klen(), val.n, false, Enc::Raw);
         if (good_size(want) != kvobj_capacity(o)) return false;
 
+        // In-place overwrite is the one mutation that would change bytes without retiring their
+        // allocation. With no outstanding borrows this is one predicted branch and no lookup.
+        if (outstanding_borrows_ && is_borrowed(o->str_value().p)) return false;
+
         obj_bytes_ -= kvobj_size(o);
         o->vlen = val.n;
         std::memcpy(o->val_ptr(), val.p, val.n);
         obj_bytes_ += kvobj_size(o);
         return true;
     }
+
+    // Called by GET on the shard owner before publishing the Op. Pointer identity is sufficient:
+    // an allocation cannot be reused while it is either table-owned or retained as `retired`.
+    void borrow(const char* ptr) {
+        outstanding_borrows_++;
+        for (Borrow& b : borrows_)
+            if (b.ptr == ptr) { b.refs++; return; }
+        borrows_.push_back(Borrow{ptr, 1, nullptr});
+    }
+
+    // Called only by the shard owner after an io-thread release crosses back through its channel.
+    // The last reference is also the point at which a logically removed object may be destroyed.
+    void unborrow(const char* ptr) {
+        for (size_t i = 0; i < borrows_.size(); i++) {
+            Borrow& b = borrows_[i];
+            if (b.ptr != ptr) continue;
+            if (b.refs == 0 || outstanding_borrows_ == 0) return;
+            b.refs--;
+            outstanding_borrows_--;
+            if (b.refs) return;
+            if (b.retired) {
+                pending_bytes_ -= kvobj_size(b.retired);
+                kvobj_free(b.retired);
+            }
+            b = borrows_.back();
+            borrows_.pop_back();
+            return;
+        }
+    }
+
+    uint32_t outstanding_borrows() const { return outstanding_borrows_; }
 
     // Takes ownership of `o`; frees anything it displaces.
     bool insert(uint64_t h, KvObj* o) {
@@ -233,6 +273,12 @@ public:
     }
 
 private:
+    struct Borrow {
+        const char* ptr;
+        uint32_t    refs;
+        KvObj*      retired;
+    };
+
     static uint32_t round_pow2(uint32_t v) { uint32_t p = kMinCap; while (p < v) p <<= 1; return p; }
     static uint16_t tag_of(uint64_t h)      { return static_cast<uint16_t>((h >> 49) & 0x7fff); }
     static uint16_t tag_of_word(uint64_t w) { return static_cast<uint16_t>((w >> 49) & 0x7fff); }
@@ -281,8 +327,7 @@ private:
             KvObj* cur = ptr_of(w);
             if (!cur) { if (first_tomb < 0) first_tomb = static_cast<int32_t>(i); }
             else if (tag_of_word(w) == tag && cur->key() == key) {
-                obj_bytes_ -= kvobj_size(cur);
-                kvobj_free(cur);                            // replace in place; live_ unchanged
+                retire_obj(cur);                            // replace in place; live_ unchanged
                 obj_bytes_ += kvobj_size(o);
                 tab_[t][i] = make_word(tag, o);
                 return true;
@@ -301,8 +346,7 @@ private:
             if (w == 0) return false;
             KvObj* o = ptr_of(w);
             if (o && tag_of_word(w) == tag && o->key() == key) {
-                obj_bytes_ -= kvobj_size(o);
-                kvobj_free(o);
+                retire_obj(o);
                 tab_[t][i] = kTombBit;                      // DEAD: non-zero, ptr == 0
                 live_[t]--; tombs_[t]++;
                 return true;
@@ -310,6 +354,28 @@ private:
             i = (i + 1) & mask_[t];
         }
         return false;
+    }
+
+    bool is_borrowed(const char* ptr) const {
+        for (const Borrow& b : borrows_)
+            if (b.ptr == ptr) return true;
+        return false;
+    }
+
+    // Logical removal updates the live-store footprint immediately. Physical destruction is the
+    // common case and pays one branch; registry work exists only while some wire borrow is live.
+    void retire_obj(KvObj* o) {
+        const size_t bytes = kvobj_size(o);
+        obj_bytes_ -= bytes;
+        if (outstanding_borrows_ == 0) { kvobj_free(o); return; }
+        const char* ptr = o->is_int() ? nullptr : o->str_value().p;
+        for (Borrow& b : borrows_) {
+            if (b.ptr != ptr) continue;
+            b.retired = o;
+            pending_bytes_ += bytes;
+            return;
+        }
+        kvobj_free(o);
     }
 
     // ---- incremental resize -----------------------------------------------------------------
@@ -375,6 +441,9 @@ private:
     uint32_t  tombs_[2] = {0, 0};
     uint32_t  rehash_pos_ = 0;
     size_t    obj_bytes_  = 0;
+    size_t    pending_bytes_ = 0;
+    uint32_t  outstanding_borrows_ = 0;
+    std::vector<Borrow> borrows_;
 };
 
 }  // namespace tomo
