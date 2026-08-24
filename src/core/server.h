@@ -52,6 +52,7 @@ struct Config {
 
     uint32_t rob_window     = kRobWindow;
     uint32_t embed_threshold = 192;   // re-measure against this allocation shape, not the fork's
+    uint32_t zc_min         = 0;      // 0 disables borrowed GET replies; 16KB is the suggested gate
 };
 
 class Server {
@@ -105,7 +106,7 @@ public:
             const uint32_t b0 = i * per;
             const uint32_t b1 = (i + 1 == cfg.shards) ? kNumBuckets : (i + 1) * per;
             shards_[i] = std::make_unique<Shard>();
-            shards_[i]->init(static_cast<int32_t>(i), b0, b1);
+            shards_[i]->init(static_cast<int32_t>(i), b0, b1, cfg.zc_min);
         }
         router_.build_uniform(static_cast<int32_t>(cfg.shards));
 

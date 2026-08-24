@@ -2,8 +2,8 @@
 //
 // A shard owns a contiguous range of the 16,384 routing buckets and every key hashing into it, plus
 // its own FlatStore. Exactly one thread touches a given shard at a time, which is the invariant the
-// whole design rests on: no locks, no atomics in the store, no refcounts, no QSBR — DEL can free
-// immediately because no other thread can be reading.
+// whole design rests on: no locks, no atomics in the store, no cross-thread refcounts, no QSBR.
+// DEL frees immediately unless the allocation is explicitly borrowed by the wire send path.
 //
 // NO NODE LAYER. The keyspace is one flat set of shards over the whole server; there is no NUMA or
 // L3 partitioning of it. That is a deliberate simplification and it gives up a measured gain — on
@@ -44,16 +44,18 @@ public:
     Shard(const Shard&) = delete;
     Shard& operator=(const Shard&) = delete;
 
-    void init(int32_t id, uint32_t bucket_begin, uint32_t bucket_end) {
+    void init(int32_t id, uint32_t bucket_begin, uint32_t bucket_end, uint32_t zc_min = 0) {
         id_ = id;
         bucket_begin_ = bucket_begin;
         bucket_end_   = bucket_end;
+        zc_min_ = zc_min;
     }
 
     int32_t  id() const { return id_; }
     bool     owns(uint32_t bucket) const { return bucket >= bucket_begin_ && bucket < bucket_end_; }
     uint32_t bucket_begin() const { return bucket_begin_; }
     uint32_t bucket_end()   const { return bucket_end_; }
+    uint32_t zc_min()       const { return zc_min_; }
 
     FlatStore&       store()       { return store_; }
     const FlatStore& store() const { return store_; }
@@ -114,6 +116,7 @@ private:
     int32_t   id_ = -1;
     uint32_t  bucket_begin_ = 0;
     uint32_t  bucket_end_   = 0;
+    uint32_t  zc_min_       = 0;
     uint32_t  home_domain_  = kNoDomain;
     std::atomic<uint32_t> published_size_{0};
     FlatStore store_;

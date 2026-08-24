@@ -6,15 +6,16 @@
 // the role in the type system would make the one thing we most need to change at runtime the one
 // thing we cannot.
 //
-// EVERY THREAD HAS THE SAME TWO INBOUND CHANNELS, whatever its role. What arrives on them differs;
+// EVERY THREAD HAS THE SAME THREE INBOUND CHANNELS, whatever its role. What arrives on them differs;
 // their shape, units and wake semantics do not. That uniformity is what lets a flip/LB controller
 // read all three loops through one interface instead of special-casing each:
 //
 //   task_in_[p]     from producer p    IO -> EX   a parsed op to execute
 //   client_in_[p]   from producer p    EX -> IO   "you have completed ops to retire"
+//   release_in_[p]  from producer p    IO -> EX   a FlatStore value borrow is off the wire
 //
-// client_in_ is unambiguous despite serving three directions, because a thread has exactly one role
-// at a time: an IO thread's client_in_ is always retire-work, a WB thread's is always send-work.
+// A thread's current role determines which channel families are active; keeping the arrays uniform
+// means a future role change does not rewire the producer mesh.
 //
 // One channel PER PRODUCER, which is what keeps each ring genuinely SPSC. The alternative is one
 // MPSC inbox per consumer, costing an atomic RMW per push from every producer; the fork measured
@@ -50,8 +51,14 @@ struct Task {
     uint64_t op_id  = 0;
 };
 
+struct BorrowRelease {
+    int32_t     shard = -1;
+    const char* ptr   = nullptr;
+};
+
 using TaskChan   = Channel<Task, kInboxSlots>;
 using ClientChan = Channel<Client*, kInboxSlots>;
+using ReleaseChan = Channel<BorrowRelease, kInboxSlots>;
 
 class ThreadCtx {
 public:
@@ -68,6 +75,7 @@ public:
         nchan_     = nthreads;
         task_in_   = std::make_unique<TaskChan[]>(nthreads);
         client_in_ = std::make_unique<ClientChan[]>(nthreads);
+        release_in_ = std::make_unique<ReleaseChan[]>(nthreads);
     }
 
     uint32_t id()   const { return id_; }
@@ -87,6 +95,7 @@ public:
 
     TaskChan&   task_in(uint32_t producer)   { return task_in_[producer]; }
     ClientChan& client_in(uint32_t producer) { return client_in_[producer]; }
+    ReleaseChan& release_in(uint32_t producer) { return release_in_[producer]; }
 
     // ---- posting (producer side) ---------------------------------------------------------------
     // Push AND flag, in that order. Flagging before the push would let the consumer take the bit,
@@ -114,6 +123,11 @@ public:
     bool post_client(uint32_t from, Client* c, Ring& my_ring, LoopSignals& sig) {
         if (!client_in_[from].push(c, sig)) return false;
         if (client_notify_.set(from)) client_in_[from].wake(my_ring, sig, ring());
+        return true;
+    }
+    bool post_release(uint32_t from, const BorrowRelease& r, Ring& my_ring, LoopSignals& sig) {
+        if (!release_in_[from].push(r, sig)) return false;
+        if (release_notify_.set(from)) release_in_[from].wake(my_ring, sig, ring());
         return true;
     }
 
@@ -155,6 +169,23 @@ public:
         return n;
     }
 
+    template <typename Fn>
+    uint32_t drain_releases(Fn&& fn) {
+        uint32_t n = 0;
+        for (uint32_t w = 0; w < NotifyMask::kWords; w++) {
+            uint64_t bits = release_notify_.take(w);
+            while (bits) {
+                const uint32_t b = static_cast<uint32_t>(__builtin_ctzll(bits));
+                bits &= bits - 1;
+                const uint32_t p = w * 64 + b;
+                if (p >= nchan_) continue;
+                BorrowRelease r;
+                while (release_in_[p].recv(r)) { fn(r); release_in_[p].retire(); n++; }
+            }
+        }
+        return n;
+    }
+
     // The ring peers poke to wake this thread. Published once at startup, read by producers.
     void  set_ring(Ring* r) { ring_.store(r, std::memory_order_release); }
     Ring* ring() const      { return ring_.load(std::memory_order_acquire); }
@@ -171,7 +202,8 @@ public:
     // time-average rather than a spot reading, which is too noisy to control on.
     void sample_depth() {
         uint64_t d = 0;
-        for (uint32_t i = 0; i < nchan_; i++) d += task_in_[i].depth() + client_in_[i].depth();
+        for (uint32_t i = 0; i < nchan_; i++)
+            d += task_in_[i].depth() + client_in_[i].depth() + release_in_[i].depth();
         sig_.depth_sum += d;
         sig_.depth_samples++;
     }
@@ -181,16 +213,20 @@ public:
     // a producer that pushed just before the flag was set would not have woken us.
     void arm_blocked() {
         parked_.store(true, std::memory_order_release);
-        for (uint32_t i = 0; i < nchan_; i++) { task_in_[i].arm_blocked(); client_in_[i].arm_blocked(); }
-        // The other half of the Dekker pair. Declaring intent to block is a store; the any_inbound()
-        // that follows is a load of a different location. Without this fence the CPU may hoist that
-        // load above the store, and a producer that ran in between sees blocked_ == false while we
-        // see an empty mask. Sleep path only -- it costs nothing where it runs.
+        for (uint32_t i = 0; i < nchan_; i++) {
+            task_in_[i].arm_blocked(); client_in_[i].arm_blocked(); release_in_[i].arm_blocked();
+        }
+        // The other half of the Dekker pair. Declaring intent to block is a store; the role-specific
+        // inbound check that follows is a load of a different location. Without this fence the CPU
+        // may hoist that load above the store, and a producer that ran in between sees blocked_ ==
+        // false while we see an empty mask. Sleep path only -- it costs nothing where it runs.
         std::atomic_thread_fence(std::memory_order_seq_cst);
     }
     void clear_blocked() {
         parked_.store(false, std::memory_order_release);
-        for (uint32_t i = 0; i < nchan_; i++) { task_in_[i].clear_blocked(); client_in_[i].clear_blocked(); }
+        for (uint32_t i = 0; i < nchan_; i++) {
+            task_in_[i].clear_blocked(); client_in_[i].clear_blocked(); release_in_[i].clear_blocked();
+        }
     }
     // Two loads instead of a scan of every channel. Used to re-check after arming the blocked flag.
     // Asked ONLY on the way to sleep, which is why it can afford to be thorough. The mask is the fast
@@ -218,6 +254,12 @@ public:
         uint32_t n = 0; Client* c = nullptr;
         for (uint32_t p = 0; p < nchan_; p++)
             while (client_in_[p].recv(c)) { fn(c); client_in_[p].retire(); n++; }
+        return n;
+    }
+    template <typename Fn> uint32_t drain_releases_unmasked(Fn&& fn) {
+        uint32_t n = 0; BorrowRelease r;
+        for (uint32_t p = 0; p < nchan_; p++)
+            while (release_in_[p].recv(r)) { fn(r); release_in_[p].retire(); n++; }
         return n;
     }
 
@@ -252,11 +294,20 @@ public:
         }
     }
 
-    bool any_inbound() const {
+    // Park predicates must match what the current loop can actually drain. A generic union of all
+    // channel families turns one misrouted/stale entry into a permanent busy-spin: the loop sees
+    // work forever, but none of its drain functions can consume that family.
+    bool any_io_inbound() const {
         if (ready_.any()) return true;
-        if (task_notify_.any() || client_notify_.any()) return true;
+        if (client_notify_.any()) return true;
         for (uint32_t i = 0; i < nchan_; i++)
-            if (task_in_[i].depth() || client_in_[i].depth()) return true;
+            if (client_in_[i].depth()) return true;
+        return false;
+    }
+    bool any_ex_inbound() const {
+        if (task_notify_.any() || release_notify_.any()) return true;
+        for (uint32_t i = 0; i < nchan_; i++)
+            if (task_in_[i].depth() || release_in_[i].depth()) return true;
         return false;
     }
 
@@ -273,12 +324,14 @@ private:
 
     std::unique_ptr<TaskChan[]>   task_in_;
     std::unique_ptr<ClientChan[]> client_in_;
+    std::unique_ptr<ReleaseChan[]> release_in_;
     ReadyMask  ready_;                     // as a sender: which of my clients completed work
     std::vector<Client*>  slots_;          // slot -> client, sender-owned
     std::vector<uint32_t> free_slots_;
     std::atomic<bool>     parked_{false};
     NotifyMask task_notify_;      // "which producers have ops for me"
     NotifyMask client_notify_;    // "which producers have clients for me"
+    NotifyMask release_notify_;   // "which producers returned store borrows to me"
     uint32_t nchan_ = 0;
 
     std::vector<Shard*>  shards_;

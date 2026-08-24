@@ -35,6 +35,11 @@
 #include <cstdlib>
 #include <cstring>
 #include <atomic>
+#include <algorithm>
+#include <limits>
+#include <utility>
+#include <sys/socket.h>
+#include <sys/uio.h>
 #include "rob.h"
 #include "../base/slice.h"
 
@@ -67,6 +72,147 @@ inline constexpr size_t   kWbufShed     = 64 * 1024;   // reply staging above th
 // they see the snapshot the parser stamps into each op.
 struct Session {
     uint32_t db_index = 0;
+};
+
+enum class SegmentKind : uint8_t { Buf = 0, Borrow = 1, Static = 2 };
+
+struct ReplySegment {
+    SegmentKind kind  = SegmentKind::Static;
+    const char* ptr   = nullptr;
+    uint32_t    len   = 0;
+    int32_t     shard = -1;
+};
+
+// Metadata stays inline for the common [header, value, CRLF] case. BUF payloads own independent
+// blocks because queue growth and continued retirement must never move bytes named by an in-flight
+// sendmsg. BORROW and STATIC payloads are non-owning under their respective lifetime protocols.
+template <uint32_t Inline>
+class SegmentQueue {
+public:
+    SegmentQueue() = default;
+    ~SegmentQueue() { clear_without_releases(); if (segs_ != inline_) std::free(segs_); }
+    SegmentQueue(const SegmentQueue&) = delete;
+    SegmentQueue& operator=(const SegmentQueue&) = delete;
+
+    bool empty() const { return size_ == 0; }
+    uint32_t size() const { return size_; }
+
+    void append_buf(const char* ptr, size_t len) {
+        while (len) {
+            const size_t take = std::min(len, static_cast<size_t>(std::numeric_limits<uint32_t>::max()));
+            char* copy = static_cast<char*>(std::malloc(take));
+            std::memcpy(copy, ptr, take);
+            push(ReplySegment{SegmentKind::Buf, copy, static_cast<uint32_t>(take), -1});
+            ptr += take;
+            len -= take;
+        }
+    }
+
+    void append_buf(const char* a, size_t an, const char* b, size_t bn) {
+        const size_t total = an + bn;
+        if (!total) return;
+        char* copy = static_cast<char*>(std::malloc(total));
+        if (an) std::memcpy(copy, a, an);
+        if (bn) std::memcpy(copy + an, b, bn);
+        push(ReplySegment{SegmentKind::Buf, copy, static_cast<uint32_t>(total), -1});
+    }
+
+    void append_borrow(const char* ptr, uint32_t len, int32_t shard) {
+        push(ReplySegment{SegmentKind::Borrow, ptr, len, shard});
+    }
+    void append_static(const char* ptr, uint32_t len) {
+        push(ReplySegment{SegmentKind::Static, ptr, len, -1});
+    }
+
+    uint32_t build_iov(iovec* out, uint32_t cap, uint32_t byte_cap,
+                       bool& has_borrow, uint32_t& bytes) const {
+        uint32_t n = 0;
+        bytes = 0;
+        has_borrow = false;
+        for (uint32_t i = 0; i < size_ && n < cap && bytes < byte_cap; i++) {
+            const ReplySegment& s = segs_[head_ + i];
+            const uint32_t off = i == 0 ? offset_ : 0;
+            if (off >= s.len) continue;
+            const uint32_t len = std::min(s.len - off, byte_cap - bytes);
+            out[n].iov_base = const_cast<char*>(s.ptr + off);
+            out[n].iov_len = len;
+            has_borrow |= s.kind == SegmentKind::Borrow;
+            bytes += len;
+            n++;
+        }
+        return n;
+    }
+
+    template <typename ReleaseFn>
+    uint64_t consume(uint32_t bytes, ReleaseFn&& release) {
+        uint64_t borrowed = 0;
+        while (bytes && size_) {
+            ReplySegment& s = segs_[head_];
+            const uint32_t avail = s.len - offset_;
+            const uint32_t take = std::min(bytes, avail);
+            if (s.kind == SegmentKind::Borrow) borrowed += take;
+            offset_ += take;
+            bytes -= take;
+            if (offset_ != s.len) break;
+            if (s.kind == SegmentKind::Borrow) release(s.shard, s.ptr);
+            pop_front();
+        }
+        return borrowed;
+    }
+
+    template <typename ReleaseFn>
+    void release_all(ReleaseFn&& release) {
+        for (uint32_t i = 0; i < size_; i++) {
+            ReplySegment& s = segs_[head_ + i];
+            if (s.kind == SegmentKind::Borrow) release(s.shard, s.ptr);
+            else if (s.kind == SegmentKind::Buf) std::free(const_cast<char*>(s.ptr));
+        }
+        head_ = size_ = offset_ = 0;
+    }
+
+private:
+    void push(const ReplySegment& s) {
+        if (head_ + size_ == cap_) make_tail_room();
+        segs_[head_ + size_++] = s;
+    }
+
+    void make_tail_room() {
+        if (head_) {
+            std::memmove(segs_, segs_ + head_, size_ * sizeof(ReplySegment));
+            head_ = 0;
+            return;
+        }
+        const uint32_t ncap = cap_ * 2;
+        auto* next = static_cast<ReplySegment*>(std::malloc(ncap * sizeof(ReplySegment)));
+        std::memcpy(next, segs_, size_ * sizeof(ReplySegment));
+        if (segs_ != inline_) std::free(segs_);
+        segs_ = next;
+        cap_ = ncap;
+    }
+
+    void pop_front() {
+        ReplySegment& s = segs_[head_];
+        if (s.kind == SegmentKind::Buf) std::free(const_cast<char*>(s.ptr));
+        head_++;
+        size_--;
+        offset_ = 0;
+        if (!size_) head_ = 0;
+    }
+
+    void clear_without_releases() {
+        for (uint32_t i = 0; i < size_; i++) {
+            ReplySegment& s = segs_[head_ + i];
+            if (s.kind == SegmentKind::Buf) std::free(const_cast<char*>(s.ptr));
+        }
+        head_ = size_ = offset_ = 0;
+    }
+
+    ReplySegment  inline_[Inline];
+    ReplySegment* segs_ = inline_;
+    uint32_t      head_ = 0;       // segment index at the wire frontier
+    uint32_t      size_ = 0;
+    uint32_t      cap_ = Inline;
+    uint32_t      offset_ = 0;     // byte offset within head_; only the head may be partial
 };
 
 class Client {
@@ -180,13 +326,54 @@ public:
         fill_ ^= 1;
         wsent_ = 0;
     }
-    bool nothing_to_write() const { return buf_[fill_].size() == 0 && write_drained(); }
+    bool nothing_to_write() const {
+        return buf_[fill_].size() == 0 && write_drained() && segments_.empty();
+    }
+
+    // Seal ordinary staged bytes before the first borrowed reply. Clearing the fill buffer after
+    // copying leaves the existing send buffer untouched, so an older send already in flight stays
+    // ahead of every new segment.
+    void seal_fill_segment() {
+        SmallBuf<kWbufInline>& b = fill_buf();
+        if (!b.empty()) { segments_.append_buf(b.data(), b.size()); b.clear(); }
+    }
+    void append_buf_segment(const char* ptr, size_t len) { segments_.append_buf(ptr, len); }
+    void append_buf_segment(const char* a, size_t an, const char* b, size_t bn) {
+        segments_.append_buf(a, an, b, bn);
+    }
+    void append_borrow_segment(const char* ptr, uint32_t len, int32_t shard) {
+        segments_.append_borrow(ptr, len, shard);
+    }
+    void append_static_segment(const char* ptr, uint32_t len) { segments_.append_static(ptr, len); }
+    bool has_pending_segments() const { return !segments_.empty(); }
+    uint32_t segments_size() const { return segments_.size(); }
+    uint32_t build_segment_iov(bool& has_borrow, uint32_t& bytes) {
+        const uint32_t n = segments_.build_iov(send_iov_, kMaxSendIov, kMaxSendBytes,
+                                               has_borrow, bytes);
+        std::memset(&send_msg_, 0, sizeof(send_msg_));
+        send_msg_.msg_iov = send_iov_;
+        send_msg_.msg_iovlen = n;
+        return n;
+    }
+    msghdr* send_msg() { return &send_msg_; }
+    template <typename ReleaseFn>
+    uint64_t consume_segments(uint32_t bytes, ReleaseFn&& release) {
+        return segments_.consume(bytes, std::forward<ReleaseFn>(release));
+    }
+    template <typename ReleaseFn>
+    void release_all_segments(ReleaseFn&& release) {
+        segments_.release_all(std::forward<ReleaseFn>(release));
+    }
 
     // Exactly ONE send may be outstanding per connection. Two concurrent sends on one socket can
     // complete out of order and interleave bytes, which corrupts the stream in a way that looks
     // like a protocol bug anywhere but here.
     bool send_inflight() const { return send_inflight_; }
     void set_send_inflight(bool v) { send_inflight_ = v; }
+    bool segmented_send() const { return segmented_send_; }
+    void set_segmented_send(bool v) { segmented_send_ = v; }
+    uint32_t send_requested() const { return send_requested_; }
+    void set_send_requested(uint32_t n) { send_requested_ = n; }
 
     // ---- io-thread bookkeeping -----------------------------------------------------------------
     uint64_t id() const { return id_; }
@@ -195,8 +382,8 @@ public:
     void set_ifid_thread(uint32_t t) { ifid_thread_ = t; }
     Session& session() { return session_; }
 
-    // Torn down but not yet freed: still legal to READ (it sits on the io thread's deferred-free
-    // list for one loop iteration), but no longer part of any working set.
+    // Torn down but not yet freed: still legal to READ while outstanding CQEs retire (it sits on
+    // the io thread's deferred-free list), but no longer part of any working set.
     bool dead() const { return dead_; }
     void mark_dead() { dead_ = true; }
     bool closing() const { return closing_; }
@@ -254,6 +441,8 @@ private:
     uint32_t  wsent_ = 0;         // bytes of the SEND buffer already written
     bool      recv_armed_    = false;
     bool      send_inflight_ = false;
+    bool      segmented_send_ = false;
+    uint32_t  send_requested_ = 0;
     bool      serve_pending_ = false;
     bool      in_active_     = false;
     bool      closing_       = false;
@@ -269,6 +458,13 @@ private:
 
     // --- write buffers (ex writes the direct-reply DATA region inside; header fields io-only) ---
     SmallBuf<kWbufInline> buf_[2];
+
+    // sendmsg reads both the iovec array and msghdr asynchronously, so both live with the Client.
+    static constexpr uint32_t kMaxSendIov = 16;
+    static constexpr uint32_t kMaxSendBytes = 0x7ffff000u;  // Linux MAX_RW_COUNT; CQE res is int
+    SegmentQueue<8> segments_;
+    iovec           send_iov_[kMaxSendIov] = {};
+    msghdr          send_msg_ = {};
 
     // --- executor-facing atomics, on their own line ---------------------------------------------
     alignas(64) std::atomic<bool>     retire_queued_{false};

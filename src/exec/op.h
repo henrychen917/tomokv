@@ -1,9 +1,9 @@
 // op.h — one in-flight command. This is the execution context, and it is the ring slot of the ROB.
 //
 // GENERALITY BEYOND STRINGS comes from the reply representation, not from a type hierarchy: the
-// worker writes RESP bytes straight into the Op's own buffer. A command that returns a hash, a
-// range, or a nested array writes exactly the same way a GET does, so adding types later needs no
-// change here. Nothing in Op knows what a value is.
+// worker writes RESP bytes straight into the Op's own buffer. The one exception is the explicit
+// borrowed-byte descriptor used by large GETs; it describes lifetime and routing, not a value type.
+// A command that returns a hash, a range, or a nested array still uses the same byte sink.
 //
 // LIFETIME, which is the subtle part. argv entries are Slices INTO the connection's read buffer —
 // that is what makes parsing zero-copy. So the read buffer must stay pinned until this Op retires.
@@ -38,8 +38,9 @@ inline constexpr uint32_t kInlineArgv = 8;
 
 // A GET reply for a 64-byte value is ~72 bytes, so 112 inline keeps the common case allocation-
 // free. 112, not 128: the direct-reply fields below took 16 bytes, and paying them out of the
-// inline reply keeps sizeof(Op) at 336 -- the 128 version measured -3.7% at 64c p32, where the
-// server sits on the DRAM wall and ROB footprint is the price of everything.
+// inline reply kept the pre-borrow Op at 336 bytes -- the 128 version measured -3.7% at 64c p32,
+// where the server sits on the DRAM wall and ROB footprint is the price of everything. The borrow
+// descriptor is another required 16 bytes; it is cleared with the rest of the slot on reuse.
 inline constexpr size_t kInlineReply = 112;
 
 class Op {
@@ -57,6 +58,9 @@ public:
         reply.clear();
         direct = nullptr;
         direct_cap = direct_len = 0;
+        zc_ptr = nullptr;
+        zc_len = 0;
+        zc_shard = -1;
         state.store(OpState::Free, std::memory_order_relaxed);
     }
 
@@ -118,6 +122,13 @@ public:
     char*    direct     = nullptr;
     uint32_t direct_cap = 0;
     uint32_t direct_len = 0;
+
+    // A borrowed GET value is published with Done exactly like reply bytes. The pointer names
+    // FlatStore-owned memory; the shard id is the return address for the eventual io->ex release.
+    // No Client or socket state crosses to the executor through this descriptor.
+    const char* zc_ptr   = nullptr;
+    uint32_t    zc_len   = 0;
+    int32_t     zc_shard = -1;
 
     // The only cross-thread field. Acquire/release on this orders everything else.
     std::atomic<OpState> state{OpState::Free};

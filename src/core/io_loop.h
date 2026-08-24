@@ -62,7 +62,9 @@ public:
         if (listen_fd_ < 0) return false;
         if (!ring_.init(4096)) return false;
         self_->set_ring(&ring_);
-        wb_.bind(&ring_);
+        wb_.bind(&ring_, this, [](void* ctx, int32_t shard, const char* ptr) {
+            static_cast<IoLoop*>(ctx)->queue_borrow_release(shard, ptr);
+        });
         return true;
     }
 
@@ -102,6 +104,7 @@ public:
                 // is retried every pass until it lands.
                 if (accept_pending_) arm_accept();
                 did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
+                did += flush_borrow_releases();
                 did += collect_retire_work();
                 did += flush_ready();
             }
@@ -122,7 +125,7 @@ public:
 
             Span idle(sig.idle_ns);
             self_->arm_blocked();
-            if (!self_->any_inbound()) ring_.submit_and_wait(1);
+            if (!self_->any_io_inbound()) ring_.submit_and_wait(1);
             else                       ring_.submit_and_reap();
             self_->clear_blocked();
         }
@@ -166,7 +169,11 @@ private:
             case UrKind::Recv:   on_recv(ur_ptr<Client>(cqe->user_data), cqe->res); break;
             case UrKind::Send: {
                 Client* c = ur_ptr<Client>(cqe->user_data);
-                if (c->dead()) break;   // corpse: its fd is closed, its CQEs are noise
+                if (c->dead()) {
+                    // sendmsg's msghdr/iovecs and borrowed payload remain live through this CQE.
+                    wb_.on_dead_send_complete(*c, cqe->res);
+                    break;
+                }
                 if (!wb_.on_send_complete(*c, cqe->res)) close_client(c);
                 break;
             }
@@ -202,6 +209,10 @@ private:
 
     void on_recv(Client* c, int res) {
         c->set_recv_armed(false);       // the kernel has released its pointer
+        // A send error can close the fd while this recv is still owned by io_uring. The Client stays
+        // alive until this CQE arrives, but it is a corpse: positive bytes must not resurrect it by
+        // parsing and dispatching new Tasks after the teardown quiescence fence.
+        if (c->dead()) return;
         if (res <= 0) { close_client(c); return; }
         c->commit_read(static_cast<size_t>(res));
         parse_and_dispatch(c);
@@ -363,7 +374,26 @@ private:
     // ---- inbound: workers telling us a client has completed ops -----------------------------------
     // Inbound from workers: "ops are Done" -- the claimed-post fallback for a conn with no
     // ready-mask slot. Either way the answer is the same: put the client back in the active set.
-    uint32_t sweep() { return collect_retire_work(true) + flush_ready(); }
+    uint32_t sweep() {
+        return flush_borrow_releases() + collect_retire_work(true) + flush_ready();
+    }
+
+    void queue_borrow_release(int32_t shard, const char* ptr) {
+        pending_releases_.push_back(BorrowRelease{shard, ptr});
+        flush_borrow_releases();
+    }
+
+    uint32_t flush_borrow_releases() {
+        uint32_t n = 0;
+        while (!pending_releases_.empty()) {
+            const BorrowRelease r = pending_releases_.front();
+            ThreadCtx& owner = srv_->thread(srv_->worker_of_shard(r.shard));
+            if (!owner.post_release(self_->id(), r, ring_, self_->sig())) break;
+            pending_releases_.pop_front();
+            n++;
+        }
+        return n;
+    }
 
     uint32_t collect_retire_work(bool unmasked = false) {
         auto take = [&](Client* c) {
@@ -485,6 +515,7 @@ private:
         if (!c->safe_to_release()) { mark_active(c); return; }
         self_->release_wb_slot(c->wb_slot());
         c->set_wb_slot(Client::kNoWbSlot);
+        wb_.teardown(*c);
         ::close(c->fd());
         // NOT delete. An ex-side claimed post may still sit un-consumed in our inbound channels
         // naming this client. Every such entry was pushed BEFORE this point, and channels are FIFO
@@ -499,9 +530,19 @@ private:
     // this pass's drains, so a corpse parked in pass N is freed in pass N+2's prologue -- after the
     // whole of pass N+1 (including its channel drains) ran with the corpse still readable.
     void reap_dead() {
-        for (Client* c : dead_ready_) delete c;
-        dead_ready_.clear();
-        dead_ready_.swap(dead_next_);
+        // Two prologues remain the minimum grace period. Any network CQE that has not surfaced yet
+        // extends it. Send pins msghdr/iovecs/BORROWs; recv pins both its buffer and the Client* in
+        // user_data. Deleting before either completion lets a late CQE operate on a recycled client.
+        for (size_t i = 0; i < dead_ready_.size();) {
+            Client* c = dead_ready_[i];
+            if (c->send_inflight() || c->recv_armed()) { i++; continue; }
+            wb_.teardown(*c);
+            delete c;
+            dead_ready_[i] = dead_ready_.back();
+            dead_ready_.pop_back();
+        }
+        dead_ready_.insert(dead_ready_.end(), dead_next_.begin(), dead_next_.end());
+        dead_next_.clear();
     }
 
     Server*    srv_  = nullptr;
@@ -512,6 +553,7 @@ private:
     // overload.
     static constexpr uint32_t kServeBudget = 16;
     std::deque<Client*> pending_serve_;
+    std::deque<BorrowRelease> pending_releases_;
     uint32_t flush_tick_ = 0;
     bool     backstop_pass_ = false;
     bool touched_[kMaxThreads] = {};      // dedupe flags for the current parse pass

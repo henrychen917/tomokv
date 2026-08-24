@@ -32,7 +32,17 @@ static void cmd_get(Shard& sh, Op& op) {
     if (!o) { sh.stats().misses++; reply_nil(op.sink()); return; }
     sh.stats().hits++;
     if (o->is_int()) { reply_int(op.sink(), o->int_value()); return; }
-    reply_bulk(op.sink(), o->str_value());
+    const Slice value = o->str_value();
+    const uint32_t zc_min = sh.zc_min();
+    if (zc_min && value.n >= zc_min) {
+        reply_bulk_header(op.sink(), value.n);
+        op.zc_ptr = value.p;
+        op.zc_len = value.n;
+        op.zc_shard = sh.id();
+        sh.store().borrow(value.p);
+        return;
+    }
+    reply_bulk(op.sink(), value);
 }
 
 static void cmd_set(Shard& sh, Op& op) {
