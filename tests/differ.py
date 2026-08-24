@@ -309,13 +309,13 @@ ops = gens[SUITE](rng)
 ts, tf = conn(TH, TP)
 os_, of = conn(OH, OP)
 # clean slates on BOTH sides: the oracle is long-lived across runs; residue there while the
-# target boots fresh makes every op diff from op 0 (bit us on zset 2026-08-24). No FLUSHALL on the
-# target yet (multi-shard cmds arrive with scatter-gather), so DEL every key the stream will touch
-# (arg 1 in every suite); replies are drained, NOT diffed (residue makes 0/1 differ legitimately).
-touched = sorted({o[1] for o in ops if len(o) > 1})
+# target boots fresh makes every op diff from op 0 (bit us on zset 2026-08-24). FLUSHALL (the
+# target grew one with i-compat) rather than a DEL preamble: DEL-by-harvested-arg-1 missed any
+# key a command names elsewhere (RENAME/STORE destinations live in arg 2+), which would re-open
+# the residue trap for cross-shard suites. Replies are drained, NOT diffed.
 for cs, cf in ((ts, tf), (os_, of)):
-    cs.sendall(b"".join(enc(["DEL", k]) for k in touched))
-    for _ in touched: read_reply(cf)
+    cs.sendall(enc(["FLUSHALL"]))
+    if read_reply(cf)[:1] != b"+": raise RuntimeError("FLUSHALL failed on clean-slate")
 diffs = 0
 BATCH = 64
 for i in range(0, len(ops), BATCH):
