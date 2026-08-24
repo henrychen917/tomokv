@@ -49,7 +49,13 @@ struct ObjectImage {
 // Integers are at most 20 bytes including the sign.  Tiny raw strings use the same inline lane;
 // anything larger is cheaper to retain through FlatStore's existing borrow registry.
 struct ValueSlot {
-    static constexpr uint32_t kInline = 24;
+    // Inline-copy cutover for gathered values. 24 was sized for integers; at 64B-class values it
+    // pushed EVERY gather through the borrow path, whose bookkeeping (registry entry + segment
+    // iov + release round-trip through the owner channel) costs more than a small memcpy — the
+    // fork copies once at reassembly for exactly this reason (its OPT-1 keeps refs, but its
+    // values cross as one copy into the reply). Borrow now reserves for genuinely large values
+    // where wire zero-copy pays, mirroring the zc-min philosophy on the single-shard path.
+    static constexpr uint32_t kInline = 120;
     const char* ptr = nullptr;
     uint32_t len = 0;
     int32_t shard = -1;
