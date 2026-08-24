@@ -34,7 +34,33 @@ def read_reply(f):
         return line + b"".join(read_reply(f) for _ in range(n))
     raise ValueError(repr(line[:24]))
 
+def parse_reply(r):
+    # decode one serialized reply into a python structure for normalization
+    if r[:1] == b"*" and not r.startswith(b"*-1"):
+        # split header + elements (only flat arrays of bulks/ints needed here)
+        items = []
+        rest = r[r.index(b"\r\n")+2:]
+        while rest:
+            if rest[:1] == b"$":
+                if rest.startswith(b"$-1"):
+                    items.append(None); rest = rest[rest.index(b"\r\n")+2:]
+                else:
+                    n = int(rest[1:rest.index(b"\r\n")])
+                    body_at = rest.index(b"\r\n")+2
+                    items.append(rest[body_at:body_at+n]); rest = rest[body_at+n+2:]
+            elif rest[:1] in b":+-":
+                items.append(rest[:rest.index(b"\r\n")]); rest = rest[rest.index(b"\r\n")+2:]
+            else: return None
+        return items
+    return None
+
+SORTED_SET_REPLIES = {"SMEMBERS", "SPOPSHAPE", "HKEYS", "HVALS"}
+
 def normalize(cmdname, r):
+    if cmdname in SORTED_SET_REPLIES:
+        it = parse_reply(r)
+        if it is not None:
+            return b"SORTED:" + b",".join(sorted(x if x is not None else b"<nil>" for x in it))
     # TTL/PTTL race by wall time between servers: bucket to second granularity.
     if cmdname in ("TTL", "PTTL", "EXPIRETIME", "PEXPIRETIME") and r[:1] == b":":
         try:
@@ -104,7 +130,44 @@ def gen_string(rng):
     return [o for o in ops if o[0] != "OBJECTENCODINGSKIP"]
 
 rng = random.Random(SEED)
-gens = {"string": gen_string}
+def gen_set(rng):
+    keys = ["set%d" % i for i in range(12)]
+    ints = [str(rng.randrange(-100, 100)) for _ in range(40)] + ["9223372036854775807", "-9223372036854775808", "0", "-0", "007"]
+    strs = ["a", "bb", "hello", "x" * 70, "binm"] + ["member-%d" % i for i in range(8)]
+    ops = []
+    def K(): return rng.choice(keys)
+    def members(pool, k):
+        return [rng.choice(pool) for _ in range(k)]
+    for _ in range(3500):
+        c = rng.randrange(14)
+        pool = ints if rng.randrange(3) else (ints + strs)
+        if   c in (0,1,2): ops.append(["SADD", K()] + members(pool, rng.randrange(1, 6)))
+        elif c == 3: ops.append(["SREM", K()] + members(pool, rng.randrange(1, 4)))
+        elif c == 4: ops.append(["SISMEMBER", K(), rng.choice(pool)])
+        elif c == 5: ops.append(["SMISMEMBER", K()] + members(pool, rng.randrange(1, 4)))
+        elif c == 6: ops.append(["SCARD", K()])
+        elif c == 7: ops.append(["SMEMBERS", K()])
+        elif c == 8: ops.append(["DEL", K()])
+        elif c == 9: ops.append(["EXISTS", K()])
+        elif c == 10: ops.append(["TYPE", K()])
+        elif c == 11: ops.append(["SADD", K()] + members(strs, rng.randrange(1, 4)))
+        elif c == 12: ops.append(["GET", K()])                    # WRONGTYPE path
+        elif c == 13: ops.append(["SADD", "grow"] + ["g%d" % rng.randrange(400) for _ in range(5)])
+    # directed: conversions + WRONGTYPE + edge counts (deterministic only)
+    ops += [
+        ["DEL", "iv"], ["SADD", "iv"] + [str(i) for i in range(200)], ["SCARD", "iv"],   # int compact -> table
+        ["SADD", "iv", "notint"], ["SCARD", "iv"], ["SMEMBERS", "iv"],
+        ["DEL", "big"], ["SADD", "big", "y" * 100], ["SCARD", "big"],                    # value > 64 forces table
+        ["SET", "str", "v"], ["SADD", "str", "m"], ["SCARD", "str"],
+        ["SADD", "one", "solo"], ["SPOP", "one"], ["EXISTS", "one"],                      # SPOP deterministic on 1-elem
+        ["SADD", "one2", "solo2"], ["SRANDMEMBER", "one2"], ["SPOP", "one2", "1"],
+        ["SPOP", "missingset"], ["SPOP", "missingset", "3"], ["SRANDMEMBER", "missingset"],
+        ["SRANDMEMBER", "missingset", "5"], ["SRANDMEMBER", "missingset", "-5"],
+        ["SMISMEMBER", "missingset", "a", "b"],
+    ]
+    return ops
+
+gens = {"string": gen_string, "set": gen_set}
 ops = gens[SUITE](rng)
 
 ts, tf = conn(TH, TP)
