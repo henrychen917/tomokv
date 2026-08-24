@@ -415,7 +415,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterDispatch& dispatch)
                 const uint32_t tail = first + count;
                 if (tail < op.argc()) {
                     uint64_t limit = 0;
-                    if (tail + 2 != op.argc() || !op.arg(tail).eq_icase("LIMIT") ||
+                    if (tail + 2 != op.argc() || !op.arg(tail).eq_icase("limit") ||
                         !parse_u64(op.arg(tail + 1), limit)) {
                         reply_syntax(op.sink());
                         xshard_destroy(state); dispatch.state = nullptr; return ScatterPrepare::Error;
@@ -430,8 +430,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterDispatch& dispatch)
 
         if (kind == Kind::Copy) {
             for (uint32_t i = 3; i < op.argc();) {
-                if (op.arg(i).eq_icase("REPLACE")) { state->copy_replace = true; i++; }
-                else if (op.arg(i).eq_icase("DB") && i + 1 < op.argc()) {
+                if (op.arg(i).eq_icase("replace")) { state->copy_replace = true; i++; }
+                else if (op.arg(i).eq_icase("db") && i + 1 < op.argc()) {
                     uint64_t db = 0;
                     if (!parse_u64(op.arg(i + 1), db) || db != 0) {
                         reply_err(op.sink(), "ERR DB index is out of range");
@@ -445,13 +445,13 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterDispatch& dispatch)
             }
         }
         if (kind == Kind::Lmove) {
-            if (!(op.arg(3).eq_icase("LEFT") || op.arg(3).eq_icase("RIGHT")) ||
-                !(op.arg(4).eq_icase("LEFT") || op.arg(4).eq_icase("RIGHT"))) {
+            if (!(op.arg(3).eq_icase("left") || op.arg(3).eq_icase("right")) ||
+                !(op.arg(4).eq_icase("left") || op.arg(4).eq_icase("right"))) {
                 reply_syntax(op.sink());
                 xshard_destroy(state); dispatch.state = nullptr; return ScatterPrepare::Error;
             }
-            state->from_left = op.arg(3).eq_icase("LEFT");
-            state->to_left = op.arg(4).eq_icase("LEFT");
+            state->from_left = op.arg(3).eq_icase("left");
+            state->to_left = op.arg(4).eq_icase("left");
         } else if (kind == Kind::Rpoplpush) {
             state->from_left = false; state->to_left = true;
         }
@@ -712,6 +712,8 @@ bool finish_phase1(ScatterState& state, Op& op, std::vector<uint32_t>& phase2) {
         case Kind::Smove: {
             const ObjectImage& source = state.images[1];
             const ObjectImage& dest = state.images[2];
+            // Fork-source semantics (t_set.c smoveCommand): absent source replies 0 BEFORE any
+            // type check; only then source and (if present) dest types are validated.
             if (!source.present) { reply_int(op.sink(), 0); return true; }
             if (!image_type(source, Type::Set) || !image_type(dest, Type::Set)) {
                 reply_wrongtype(op.sink()); return true;
@@ -739,6 +741,8 @@ bool finish_phase1(ScatterState& state, Op& op, std::vector<uint32_t>& phase2) {
         case Kind::Rpoplpush: {
             const ObjectImage& source = state.images[1];
             const ObjectImage& dest = state.images[2];
+            // Fork-source semantics (t_list.c lmoveGenericCommand): absent source replies nil and
+            // the destination is NEVER examined; a present wrong-type source (then dest) errors.
             if (!source.present) { reply_nil(op.sink()); return true; }
             if (!image_type(source, Type::List) || !image_type(dest, Type::List)) {
                 reply_wrongtype(op.sink()); return true;
