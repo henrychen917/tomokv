@@ -57,29 +57,11 @@ int main(int argc, char** argv) {
 
     Config cfg;
     bool saw_place = false;
-    bool saw_legacy_placement = false;
     bool saw_ratio = false;
-    bool saw_spread_family = false;   // --spread/--io/--ex/--nodes; --node-cpus is NOT in it,
-                                      // because declared topology composes with --ratio
     for (int i = 1; i < argc; i++) {
         auto next = [&](const char* d) { return (i + 1 < argc) ? argv[++i] : d; };
         if      (!std::strcmp(argv[i], "--port"))       cfg.port = static_cast<uint16_t>(std::atoi(next("6379")));
         else if (!std::strcmp(argv[i], "--bind"))       cfg.bind_addr = next("127.0.0.1");
-        else if (!std::strcmp(argv[i], "--io"))       { saw_legacy_placement = true; saw_spread_family = true; cfg.ifid_per_node = static_cast<uint32_t>(std::atoi(next("4"))); }
-        else if (!std::strcmp(argv[i], "--ex"))       { saw_legacy_placement = true; saw_spread_family = true; cfg.ex_per_node = static_cast<uint32_t>(std::atoi(next("4"))); }
-        // THE STATIC SPREAD KNOB. "io:ex". Everything is static -- there is no controller and
-        // nothing rebalances at runtime, by design for now.
-        else if (!std::strcmp(argv[i], "--spread")) {
-            saw_legacy_placement = true; saw_spread_family = true;
-            const char* v = next("4:4");
-            unsigned a = 0, b = 0, c = 0;
-            const int got = std::sscanf(v, "%u:%u:%u", &a, &b, &c);
-            if (got != 2 || a == 0 || b == 0) {
-                std::fprintf(stderr, "--spread wants io:ex (e.g. 4:4); 3s was deleted 2026-08-24\n");
-                return 1;
-            }
-            cfg.ifid_per_node = a; cfg.ex_per_node = b;
-        }
         // WHOLE-SERVER role counts, evenly spread across L3 domains by the server itself.
         // This is the runtime replacement for authoring --place strings offline, and the knob a
         // flip controller will drive: counts in, placement out, no per-node arithmetic.
@@ -96,7 +78,6 @@ int main(int argc, char** argv) {
         }
         else if (!std::strcmp(argv[i], "--shards"))     cfg.shards = static_cast<uint32_t>(std::atoi(next("16")));
         else if (!std::strcmp(argv[i], "--shard-home")) cfg.shard_home = next("");
-        else if (!std::strcmp(argv[i], "--nodes"))    { saw_legacy_placement = true; saw_spread_family = true; cfg.nodes = static_cast<uint32_t>(std::atoi(next("0"))); }
         else if (!std::strcmp(argv[i], "--no-pin"))     cfg.pin_threads = false;
         else if (!std::strcmp(argv[i], "--hash")) {
             const char* h = next("mix64");
@@ -105,7 +86,6 @@ int main(int argc, char** argv) {
             else { std::fprintf(stderr, "--hash must be mix64 | siphash\n"); return 1; }
         }
         else if (!std::strcmp(argv[i], "--node-cpus")) {
-            saw_legacy_placement = true;
             // Operator-declared topology: comma-separated node cpu lists, '-' for ranges, '+' to
             // glue disjoint ranges into one node. "--node-cpus 0-3,4-7" = two declared nodes on one
             // CCX -- a shape discovery would never produce, which is the point.
@@ -126,19 +106,13 @@ int main(int argc, char** argv) {
         }
         else if (!std::strcmp(argv[i], "--help")) {
             std::printf("usage: %s [--port N] [--bind A] [--shards N] [--no-pin]\n"
-                        "  explicit per-thread placement:\n"
-                        "    --place role@cpu,...        dense tid order; roles are ifid, ex, wb\n"
-                        "    --ratio ifid:ex[:wb]        GLOBAL counts, server spreads them evenly over L3s\n"
+                        "  placement (pure 2s; default = even io/ex split over all allowed cpus):\n"
+                        "    --ratio io:ex               GLOBAL counts, spread evenly over L3 domains\n"
+                        "    --place role@cpu,...        explicit per-thread; roles are ifid, ex\n"
+                        "    --node-cpus LIST            declared L3 topology, ranges joined by +\n"
                         "    --shard-home shard:tid,...  complete shard-to-executor map\n"
-                        "    --send-target ifid:tid,...  override exwb/3s sender targets\n"
-                        "  legacy placement sugar:\n"
-                        "    --nodes N                   L3-domain nodes (0 = all discovered)\n"
-                        "    --node-cpus LIST            declared node cpu groups, ranges joined by +\n"
-                        "    --spread io:ex[:wb]         per-node split, e.g. 4:4 or 3:3:2\n"
-                        "    --io N / --ex N             legacy per-node role counts\n"
-                        "  pipeline:\n"
-                        "    --mode 2s | 3s              which stage issues the sends\n"
-                        "    --wb ifid | ex | own        sender-placement alias for --mode\n",
+                        "  misc: --hash mix64|siphash; --mode 2s and --wb ifid accepted for\n"
+                        "  script compat (anything else is rejected: 3s was deleted 2026-08-24)\n",
                         argv[0]);
             return 0;
         }
@@ -147,20 +121,10 @@ int main(int argc, char** argv) {
             return 1;
         }
     }
-    if (saw_place && saw_legacy_placement) {
-        std::fprintf(stderr, "--place cannot be combined with --nodes, --spread, --node-cpus, --io, or --ex\n");
+    if (saw_ratio && saw_place) {
+        std::fprintf(stderr, "--ratio and --place are mutually exclusive\n");
         return 1;
     }
-    if (saw_ratio && (saw_place || saw_spread_family)) {
-        std::fprintf(stderr, "--ratio cannot be combined with --place, --spread, --nodes, --io, or --ex\n");
-        return 1;
-    }
-    if (!saw_place && !saw_ratio && (cfg.ifid_per_node == 0 || cfg.ex_per_node == 0)) {
-        std::fprintf(stderr, "need at least one io and one ex thread per node\n");
-        return 1;
-    }
-    // 3-stage needs somewhere to send from. Refuse loudly rather than silently falling back to 2s,
-    // which would make a mode comparison quietly measure the same thing twice.
     if (cfg.shards == 0 || cfg.shards > 256) {
         std::fprintf(stderr, "shards must be between 1 and 256\n");
         return 1;
@@ -255,8 +219,6 @@ int main(int argc, char** argv) {
         const LoopSignals& s = srv.thread(i).sig();
         const Role r = srv.thread(i).role();
         std::printf("t%-5u %-4s %12llu %10llu %9.1f %9.1f %9.1f %9llu %8llu\n", i,
-                    // The ROLE is ifid; a self-sending thread renders as "io" because it also
-                    // carries wb. A thread whose conns are delegated prints as pure parse.
                     r == Role::Ifid ? "io" : "ex",
                     (unsigned long long)s.ops, (unsigned long long)s.iterations,
                     s.busy_ns / 1e6, s.idle_ns / 1e6, s.cpu_ns / 1e6,

@@ -25,15 +25,8 @@
 namespace tomo {
 
 struct Config {
-    // Legacy sugar is per node: --nodes 2 --spread 4:4 lowers to eight ifid and eight ex entries in
-    // the same per-thread placement table that --place builds directly.
-    uint32_t ifid_per_node    = 4;
-    uint32_t ex_per_node    = 4;
-    // 0 means "one node per L3 domain", which is the measured optimum and therefore the default
-    // rather than something an operator has to know to ask for.
-    uint32_t nodes          = 0;
     const char* node_cpus   = nullptr;   // operator-declared topology; null = self-discover
-    const char* place       = nullptr;   // complete role@cpu list; null = lower legacy knobs
+    const char* place       = nullptr;   // complete role@cpu list; null = --ratio / default
     // Whole-server role counts for even placement (--ratio). All zero = unset. Unlike the per-node
     // fields above these express any global shape, and they are what a flip controller would vary.
     uint32_t even_ifid      = 0;
@@ -84,12 +77,18 @@ public:
                 return false;
             }
         }
+        // Default shape: an even io/ex split of every allowed cpu, io taking the odd one out --
+        // the measured 2s center (4:4-class) generalized to any core count.
+        uint32_t di = cfg.even_ifid, de = cfg.even_ex;
+        if (!cfg.place && !(di | de)) {
+            uint32_t n = 0;
+            for (uint32_t d = 0; d < topo_.ndomains(); d++)
+                n += static_cast<uint32_t>(topo_.cpus_in(d).size());
+            di = n - n / 2; de = n / 2;
+        }
         const bool placed = cfg.place
             ? placement_.build_explicit(topo_, cfg.place)
-            : (cfg.even_ifid | cfg.even_ex)
-            ? placement_.build_even(topo_, cfg.even_ifid, cfg.even_ex)
-            : placement_.build_legacy(topo_, cfg.nodes, cfg.shards,
-                                      cfg.ifid_per_node, cfg.ex_per_node);
+            : placement_.build_even(topo_, di, de);
         if (!placed) return false;
         if (placement_.ifid_threads().empty() || placement_.ex_threads().empty()) {
             std::fprintf(stderr, "placement needs at least one ifid and one ex thread\n");

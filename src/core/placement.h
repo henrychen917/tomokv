@@ -3,11 +3,7 @@
 // THREAD IS THE LOCALITY UNIT. Each dense thread id has one role, one cpu and therefore one L3
 // domain. There is deliberately no node layer between a thread and those facts: SMT siblings,
 // cross-CCX layouts and deliberately asymmetric experiments all fit the same representation.
-//
-// The legacy node/spread interface is only a lowering rule. It still creates the same node-major
-// role and cpu sequence as before, then discards the temporary grouping. From that point onward the
-// server cannot tell whether placement came from --place or from --nodes/--spread, which prevents
-// the two front-ends from acquiring subtly different routing or launch behaviour.
+
 #pragma once
 #include <atomic>
 #include <cstdint>
@@ -32,33 +28,6 @@ struct ThreadPlacement {
 
 class Placement {
 public:
-    // Preserve the old CLI's exact lowering: node-major ids, role-major within each node, and cpus
-    // selected in domain order (wrapping only when a node has more threads than allowed cpus).
-    bool build_legacy(const Topology& topo, uint32_t want_nodes, uint32_t nshards,
-                      uint32_t ifid_per_node, uint32_t ex_per_node) {
-        clear();
-        const uint32_t nd = topo.ndomains() ? topo.ndomains() : 1;
-        uint32_t n = want_nodes ? want_nodes : nd;
-        if (n > nd) n = nd;                     // never more nodes than L3 domains
-        if (n == 0) n = 1;
-        if (nshards < n) n = nshards ? nshards : 1;   // every node must own at least one shard
-        const uint64_t total = static_cast<uint64_t>(n) *
-                               (static_cast<uint64_t>(ifid_per_node) + ex_per_node);
-        if (total > kMaxThreads) {
-            std::fprintf(stderr, "placement: %llu threads exceeds the %u-thread channel limit\n",
-                         static_cast<unsigned long long>(total), kMaxThreads);
-            return false;
-        }
-        for (uint32_t i = 0; i < n; i++) {
-            const uint32_t domain = i % nd;
-            const std::vector<int>& cpus = topo.cpus_in(domain);
-            uint32_t slot = 0;
-            for (uint32_t k = 0; k < ifid_per_node; k++) append(Role::Ifid, pick(cpus, slot++), domain);
-            for (uint32_t k = 0; k < ex_per_node; k++) append(Role::Ex, pick(cpus, slot++), domain);
-        }
-        return true;
-    }
-
     // EVEN GLOBAL PLACEMENT. Counts are whole-server, so shapes no per-node grammar can express
     // (15:2:15) are first-class. Each role is spread across the L3 domains as evenly as integer
     // division allows and roles are interleaved within a domain, so sender pairing stays local.
@@ -247,9 +216,6 @@ private:
         (role == Role::Ifid ? ifid_ : ex_).push_back(tid);
     }
 
-    static int pick(const std::vector<int>& cpus, uint32_t slot) {
-        return cpus.empty() ? -1 : cpus[slot % cpus.size()];
-    }
 
     static bool parse_u32(const char*& p, uint32_t& out) {
         if (*p < '0' || *p > '9') return false;

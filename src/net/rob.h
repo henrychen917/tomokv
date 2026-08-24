@@ -6,8 +6,8 @@
 // the name is not an analogy: dispatch_id is the issue pointer, flush_id is the commit pointer, and
 // a slot retires only when every older slot has retired.
 //
-//   dispatch_id  next id to issue     — advanced by the PARSER (an io thread)
-//   flush_id     next id to retire    — advanced by the SENDER (io, ex or wb, depending on mode)
+//   dispatch_id  next id to issue     — advanced at parse
+//   flush_id     next id to retire    — advanced at retire (both by the connection's io thread)
 //   slot(id)     id & mask
 //   in_flight    dispatch_id - flush_id
 //
@@ -16,21 +16,12 @@
 //   exactly this and nothing else.
 //
 // ============================================================================================
-// THE TWO ENDS CAN BE DIFFERENT THREADS, and that is the point of the 3-stage and ex-wb modes.
-//
-//   producer (io)     fills a slot, then RELEASES dispatch_id
-//   consumer (sender) ACQUIRES dispatch_id, reads the slot, then RELEASES flush_id
-//   producer          ACQUIRES flush_id to learn which slots are free again
-//
-// That is a plain SPSC handshake on two counters, which is why they are atomics rather than plain
-// integers. In 2-stage mode both ends are the same thread and the atomics degrade to ordinary loads
-// and stores on x86 — the mode costs nothing when unused.
-//
-// WHY IT MATTERS THAT THE SENDER RETIRES. If the io thread retires and merely hands the bytes to a
-// sender, the only thing that actually moves between modes is the send syscall — everything else
-// still runs on io, so an "ex-wb" measured that way is not ex-wb. With the sender draining the ROB,
-// reply assembly, buffer staging and the write all leave the io thread together, which is the
-// design the fork's 3-stage actually had.
+// WHAT CROSSES THREADS, in pure 2s: the io thread owns BOTH counters (it parses and it retires).
+// The executor only ever touches individual Op slots — reached through chunk pointers published
+// with release/acquire, contents ordered by the Op's own state handshake (Issued/Done). The two
+// counters stay atomics anyway: on x86 the same-thread case degrades to ordinary loads and stores
+// (zero cost), and dispatch_id == flush_id is the quiescence fence a future connection MIGRATION
+// between io threads must read from the other side — demoting them buys nothing and closes a door.
 //
 // READ-BUFFER PINNING STILL FALLS OUT. argv Slices point into the connection's read buffer. Because
 // retirement is strictly in order, the oldest live op is always slot(flush_id) — so every byte
