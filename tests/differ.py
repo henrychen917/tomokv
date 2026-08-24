@@ -57,6 +57,11 @@ def parse_reply(r):
 SORTED_SET_REPLIES = {"SMEMBERS", "SPOPSHAPE", "HKEYS", "HVALS"}
 
 def normalize(cmdname, r):
+    if cmdname == "HGETALL" and r[:1] == b"*" and not r.startswith(b"*-1"):
+        it = parse_reply(r)
+        if it is not None and len(it) % 2 == 0:
+            pairs = sorted((it[i], it[i+1]) for i in range(0, len(it), 2))
+            return b"HSORTED:" + b";".join(b"%s=%s" % p for p in pairs)
     if cmdname in SORTED_SET_REPLIES:
         it = parse_reply(r)
         if it is not None:
@@ -245,7 +250,60 @@ def gen_zset(rng):
     ]
     return ops
 
-gens = {"string": gen_string, "set": gen_set, "list": gen_list, "zset": gen_zset}
+
+def gen_hash(rng):
+    keys = ["h%d" % i for i in range(12)]
+    fields = ["f%d" % i for i in range(20)] + ["", "bin\x00fld", "F" * 80]
+    vals = ["", "x", "hello world", "12345", "-7", "9223372036854775807", "1e100",
+            "v" * 120, "\x00\x01\xff"]
+    nums = ["1", "-3", "100", "9223372036854775807", "-9223372036854775808", "notanum"]
+    floats = ["0.1", "-3.5e2", "1e100", "nan", "abc", "5.0e3", "10.5"]
+    ops = []
+    def K(): return rng.choice(keys)
+    def F(): return rng.choice(fields)
+    for _ in range(3500):
+        c = rng.randrange(16)
+        if   c in (0, 1, 2):
+            pairs = []
+            for _ in range(rng.randrange(1, 4)): pairs += [F(), rng.choice(vals)]
+            ops.append(["HSET", K()] + pairs)
+        elif c == 3: ops.append(["HGET", K(), F()])
+        elif c == 4: ops.append(["HDEL", K()] + [F() for _ in range(rng.randrange(1, 3))])
+        elif c == 5: ops.append(["HMGET", K()] + [F() for _ in range(rng.randrange(1, 4))])
+        elif c == 6: ops.append(["HSETNX", K(), F(), rng.choice(vals)])
+        elif c == 7: ops.append(["HLEN", K()])
+        elif c == 8: ops.append(["HEXISTS", K(), F()])
+        elif c == 9: ops.append(["HSTRLEN", K(), F()])
+        elif c == 10: ops.append(["HINCRBY", K(), rng.choice(fields[:6]), rng.choice(nums)])
+        elif c == 11: ops.append(["HINCRBYFLOAT", K(), rng.choice(fields[:6]), rng.choice(floats)])
+        elif c == 12: ops.append([rng.choice(["HGETALL", "HKEYS", "HVALS"]), K()])
+        elif c == 13: ops.append(["DEL", K()])
+        elif c == 14: ops.append([rng.choice(["TYPE", "EXISTS", "HLEN"]), K()])
+        elif c == 15: ops.append(["HSET", "hgrow"] + ["g%d" % rng.randrange(300), rng.choice(vals)])
+    # directed: promotion, big values, binary, WRONGTYPE, deterministic HRANDFIELD forms
+    ops += [
+        ["DEL", "hp"], ["HSET", "hp"] + sum((["p%d" % i, "v%d" % i] for i in range(200)), []),
+        ["HLEN", "hp"], ["HGET", "hp", "p150"], ["HGETALL", "hp"],
+        ["DEL", "hbig"], ["HSET", "hbig", "f", "Y" * 100], ["HSTRLEN", "hbig", "f"],
+        ["HSET", "hnul", "a\x00b", "c\x00d"], ["HGET", "hnul", "a\x00b"], ["HGETALL", "hnul"],
+        ["HSET", "hemp", "", ""], ["HGET", "hemp", ""], ["HSTRLEN", "hemp", ""], ["HLEN", "hemp"],
+        ["SET", "hstr", "v"], ["HSET", "hstr", "f", "v"], ["HGET", "hstr", "f"],
+        ["HSET", "h0", "wt", "x"], ["GET", "h0"], ["APPEND", "h0", "y"],
+        ["HRANDFIELD", "missingh"], ["HRANDFIELD", "missingh", "3"],
+        ["HRANDFIELD", "missingh", "-3"], ["HRANDFIELD", "missingh", "3", "WITHVALUES"],
+        ["DEL", "hone"], ["HSET", "hone", "solo", "sv"],
+        ["HRANDFIELD", "hone"], ["HRANDFIELD", "hone", "5"], ["HRANDFIELD", "hone", "-4"],
+        ["HRANDFIELD", "hone", "5", "WITHVALUES"], ["HRANDFIELD", "hone", "0"],
+        ["HSET", "hdelall", "a", "1", "b", "2"], ["HDEL", "hdelall", "a", "b"],
+        ["EXISTS", "hdelall"], ["TYPE", "hdelall"],
+        ["HSETNX", "hnx", "f", "first"], ["HSETNX", "hnx", "f", "second"], ["HGET", "hnx", "f"],
+        ["HINCRBY", "hof", "f", "9223372036854775807"], ["HINCRBY", "hof", "f", "1"],
+        ["HSET", "hif", "f", "5"], ["HINCRBYFLOAT", "hif", "f", "0.1"], ["HGET", "hif", "f"],
+        ["HMGET", "missingh2", "a", "b", "c"],
+    ]
+    return ops
+
+gens = {"string": gen_string, "set": gen_set, "list": gen_list, "zset": gen_zset, "hash": gen_hash}
 ops = gens[SUITE](rng)
 
 ts, tf = conn(TH, TP)
