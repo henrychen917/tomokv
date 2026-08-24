@@ -78,6 +78,23 @@ python3 tests/ryow.py 127.0.0.1 $PORT >/tmp/gate-ryow-asan.txt 2>&1 \
 stop
 grep -q "ERROR: AddressSanitizer" "$SRVLOG" && bad "ASAN clean" || ok "ASAN clean"
 
+# ---- 4b. full tier: zero-copy borrow lifetime (release+ASAN) ----------------------------------
+zcboot(){ SRVLOG=$(mktemp /tmp/gate-srv.XXXXXX)
+  timeout 900 taskset -c $CORES "$1" --port $PORT --bind 127.0.0.1 --shards 16 --ratio 6:2       --zc-min 16384 > "$SRVLOG" 2>&1 &
+  SRV=$!
+  for _ in $(seq 50); do (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null && return 0; sleep 0.2; done
+  return 1
+}
+zcboot ./build/tomokv || bad "zc boot"
+python3 tests/zc.py 127.0.0.1 $PORT >/tmp/gate-zc.txt 2>&1     && ok "zc borrow battery" || bad "zc borrow battery" "see /tmp/gate-zc.txt"
+stop
+ZS=$(grep -oE "zc_sends=[0-9]+" "$SRVLOG" | cut -d= -f2)
+[ -n "$ZS" ] && [ "$ZS" -gt 0 ] && ok "zc fired (zc_sends=$ZS)" || bad "zc fired"
+zcboot $ASAN || bad "zc ASAN boot"
+python3 tests/zc.py 127.0.0.1 $PORT >/tmp/gate-zc-asan.txt 2>&1     && ok "zc borrow battery under ASAN" || bad "zc borrow battery under ASAN"
+stop
+grep -q "ERROR: AddressSanitizer" "$SRVLOG" && bad "zc ASAN clean" || ok "zc ASAN clean"
+
 # ---- 5. full tier: NIC regression cells vs pinned refs ----------------------------------------
 SPD=${GATE_SCRATCH:-/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad}
 if [ -f "$SPD/niclib.sh" ] && [ -f tests/gate_refs.txt ]; then
