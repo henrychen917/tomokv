@@ -16,6 +16,8 @@
 #include <vector>
 
 namespace tomo {
+
+void reply_maxmemory_oom(Op& op);
 namespace {
 
 // Redis/Valkey/our fork map list-max-listpack-size=-2 to 8 KiB. Dragonfly's QList uses the same
@@ -328,10 +330,12 @@ void push_generic(Shard& shard, Op& op, bool left, bool only_existing) {
 
         KvObj* fresh = kvobj_new_list(op.key(), list);
         if (!fresh) { delete list; reply_oom(op); return; }
-        if (!shard.store().insert(op.hash, fresh)) {
-            kvobj_free(fresh);
-            reply_err(op.sink(), "ERR keyspace insert failed");
-            return;
+        const FlatStore::InsertResult inserted_ = shard.store().insert(op.hash, fresh);
+if (inserted_ != FlatStore::InsertResult::Inserted) {
+    kvobj_free(fresh);
+    if (inserted_ == FlatStore::InsertResult::MaxmemoryOom) reply_maxmemory_oom(op);
+    else reply_err(op.sink(), "ERR keyspace insert failed");
+    return;
         }
         reply_int(op.sink(), list->entries());
         return;

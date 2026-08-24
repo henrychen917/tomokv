@@ -22,6 +22,8 @@
 
 namespace tomo {
 
+void reply_maxmemory_oom(Op& op);
+
 namespace {
 
 constexpr uint8_t kZslMaxLevel = 32;
@@ -1112,10 +1114,12 @@ void cmd_zadd_generic(Shard& shard, Op& op, bool force_incr) {
             reply_oom(op);
             return;
         }
-        if (!shard.store().insert(op.hash, header)) {
-            kvobj_free(header);
-            reply_err(op.sink(), "ERR keyspace insert failed");
-            return;
+        const FlatStore::InsertResult inserted_ = shard.store().insert(op.hash, header);
+if (inserted_ != FlatStore::InsertResult::Inserted) {
+    kvobj_free(header);
+    if (inserted_ == FlatStore::InsertResult::MaxmemoryOom) reply_maxmemory_oom(op);
+    else reply_err(op.sink(), "ERR keyspace insert failed");
+    return;
         }
     } else if (new_key) {
         delete value;

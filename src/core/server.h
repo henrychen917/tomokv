@@ -51,7 +51,17 @@ struct Config {
                                          // DEFAULT ON (owner: hardcode a consistent gain): -4.1%
                                          // server cycles at d16K on the wire-walled NIC, +20-24%
                                          // class on unwalled wires per the fork's history. 0 = off.
+    uint64_t maxmemory      = 0;         // bytes; zero removes all eviction-path work.
+    MaxmemoryPolicy maxmemory_policy = MaxmemoryPolicy::NoEviction;
+    uint32_t maxmemory_samples = 5;
     TypeLimits type_limits;
+};
+
+struct MaxmemoryConfigSnapshot {
+    uint64_t version;
+    uint64_t maxmemory;
+    MaxmemoryPolicy policy;
+    uint32_t samples;
 };
 
 class Server {
@@ -66,6 +76,15 @@ public:
             std::fprintf(stderr, "shards must be between 1 and 256\n");
             return false;
         }
+        if (cfg.maxmemory_samples == 0 || cfg.maxmemory_samples > 64) {
+            std::fprintf(stderr, "maxmemory-samples must be between 1 and 64\n");
+            return false;
+        }
+        live_maxmemory_.store(cfg.maxmemory, std::memory_order_relaxed);
+        live_maxmemory_policy_.store(static_cast<uint8_t>(cfg.maxmemory_policy),
+                                     std::memory_order_relaxed);
+        live_maxmemory_samples_.store(cfg.maxmemory_samples, std::memory_order_relaxed);
+        live_config_version_.store(2, std::memory_order_release);  // even versions are stable
         // Declared topology is a legacy lowering input and therefore cannot accompany --place.
         // A declaration that fails to parse or names cpus outside the affinity mask fails the BOOT,
         // loudly: silently falling back to discovery would measure a different layout.
@@ -163,7 +182,67 @@ public:
     std::atomic<uint64_t>& next_client_id() { return next_client_id_; }
     std::atomic<bool>&     shutting_down()  { return shutting_down_; }
 
+    MaxmemoryConfigSnapshot maxmemory_config_snapshot() const {
+        // CONFIG writers make version odd around a change. Executors take this coherent snapshot
+        // once per pass; no atomic reaches an individual operation or store lookup.
+        for (;;) {
+            MaxmemoryConfigSnapshot snapshot;
+            snapshot.version = live_config_version_.load(std::memory_order_acquire);
+            if (snapshot.version & 1) continue;
+            snapshot.maxmemory = live_maxmemory_.load(std::memory_order_relaxed);
+            snapshot.policy = static_cast<MaxmemoryPolicy>(
+                live_maxmemory_policy_.load(std::memory_order_relaxed));
+            snapshot.samples = live_maxmemory_samples_.load(std::memory_order_relaxed);
+            if (live_config_version_.load(std::memory_order_acquire) == snapshot.version)
+                return snapshot;
+        }
+    }
+    bool maxmemory_config_snapshot_if_changed(uint64_t known_version,
+                                              MaxmemoryConfigSnapshot& snapshot) const {
+        // The unchanged per-pass case is one acquire load. Field loads and the retry loop exist
+        // only after CONFIG has published a different stable version.
+        const uint64_t version = live_config_version_.load(std::memory_order_acquire);
+        if (version == known_version) return false;
+        snapshot = maxmemory_config_snapshot();
+        return snapshot.version != known_version;
+    }
+    void set_maxmemory(uint64_t value) {
+        set_maxmemory_config(value, MaxmemoryPolicy::NoEviction, 0, true, false, false);
+    }
+    void set_maxmemory_policy(MaxmemoryPolicy value) {
+        set_maxmemory_config(0, value, 0, false, true, false);
+    }
+    void set_maxmemory_samples(uint32_t value) {
+        set_maxmemory_config(0, MaxmemoryPolicy::NoEviction, value, false, false, true);
+    }
+    void set_maxmemory_config(uint64_t memory, MaxmemoryPolicy policy, uint32_t samples,
+                              bool set_memory = true, bool set_policy = true,
+                              bool set_samples = true) {
+        const uint64_t write_version = begin_live_config_update();
+        if (set_memory) live_maxmemory_.store(memory, std::memory_order_relaxed);
+        if (set_policy)
+            live_maxmemory_policy_.store(static_cast<uint8_t>(policy), std::memory_order_relaxed);
+        if (set_samples) live_maxmemory_samples_.store(samples, std::memory_order_relaxed);
+        end_live_config_update(write_version);
+    }
+
 private:
+    uint64_t begin_live_config_update() {
+        uint64_t version = live_config_version_.load(std::memory_order_acquire);
+        for (;;) {
+            if (version & 1) {
+                version = live_config_version_.load(std::memory_order_acquire);
+                continue;
+            }
+            if (live_config_version_.compare_exchange_weak(
+                    version, version + 1, std::memory_order_acq_rel, std::memory_order_acquire))
+                return version + 1;
+        }
+    }
+    void end_live_config_update(uint64_t write_version) {
+        live_config_version_.store(write_version + 1, std::memory_order_release);
+    }
+
     Config    cfg_;
     Topology  topo_;
     Placement placement_;
@@ -174,6 +253,11 @@ private:
     std::atomic<uint32_t> shard_owner_[256] = {};
     std::atomic<uint64_t> next_client_id_{1};
     std::atomic<bool>     shutting_down_{false};
+    std::atomic<uint64_t> live_config_version_{0};
+    std::atomic<uint64_t> live_maxmemory_{0};
+    std::atomic<uint8_t>  live_maxmemory_policy_{
+        static_cast<uint8_t>(MaxmemoryPolicy::NoEviction)};
+    std::atomic<uint32_t> live_maxmemory_samples_{5};
 };
 
 }  // namespace tomo

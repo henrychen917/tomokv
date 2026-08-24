@@ -59,6 +59,19 @@ static bool parse_u32(const char* s, uint32_t& out) {
     return true;
 }
 
+static bool parse_u64(const char* s, uint64_t& out) {
+    if (!s || !*s) return false;
+    uint64_t v = 0;
+    for (const char* p = s; *p; p++) {
+        if (*p < '0' || *p > '9') return false;
+        const uint32_t digit = static_cast<uint32_t>(*p - '0');
+        if (v > (UINT64_MAX - digit) / 10) return false;
+        v = v * 10 + digit;
+    }
+    out = v;
+    return true;
+}
+
 int main(int argc, char** argv) {
     // Hash key material, before anything hashes. getrandom never fails for 24 bytes on any kernel
     // we run; if it somehow does, a zero seed degrades to the old deterministic behavior rather
@@ -93,6 +106,26 @@ int main(int argc, char** argv) {
             cfg.even_ifid = a; cfg.even_ex = b;
         }
         else if (!std::strcmp(argv[i], "--shards"))     cfg.shards = static_cast<uint32_t>(std::atoi(next("16")));
+        else if (!std::strcmp(argv[i], "--maxmemory")) {
+            if (!parse_u64(next(nullptr), cfg.maxmemory)) {
+                std::fprintf(stderr, "--maxmemory wants a uint64 byte count (0 disables)\n");
+                return 1;
+            }
+        }
+        else if (!std::strcmp(argv[i], "--maxmemory-policy")) {
+            const char* value = next(nullptr);
+            if (!value || !parse_maxmemory_policy(value, cfg.maxmemory_policy)) {
+                std::fprintf(stderr, "--maxmemory-policy wants a Redis maxmemory policy\n");
+                return 1;
+            }
+        }
+        else if (!std::strcmp(argv[i], "--maxmemory-samples")) {
+            if (!parse_u32(next(nullptr), cfg.maxmemory_samples) ||
+                cfg.maxmemory_samples == 0 || cfg.maxmemory_samples > 64) {
+                std::fprintf(stderr, "--maxmemory-samples must be between 1 and 64\n");
+                return 1;
+            }
+        }
         else if (!std::strcmp(argv[i], "--hash-max-compact-entries")) {
             if (!parse_u32(next(nullptr), cfg.type_limits.hash.max_entries)) return 1;
         }
@@ -159,6 +192,8 @@ int main(int argc, char** argv) {
                         "    --node-cpus LIST            declared L3 topology, ranges joined by +\n"
                         "    --shard-home shard:tid,...  complete shard-to-executor map\n"
                         "    --zc-min N                  zero-copy GET replies for values >= N (0=off)\n"
+                        "  cache: --maxmemory BYTES --maxmemory-policy POLICY\n"
+                        "         --maxmemory-samples N (1..64, default 5)\n"
                         "  compact encodings: --{hash,list,set,zset}-max-compact-{entries,value} N\n"
                         "  misc: --hash mix64|siphash; --mode 2s and --wb ifid accepted for\n"
                         "  script compat (anything else is rejected: 3s was deleted 2026-08-24)\n",

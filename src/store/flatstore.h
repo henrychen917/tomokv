@@ -61,7 +61,9 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
 #include <vector>
+#include "eviction.h"
 #include "kvobj.h"
 
 namespace tomo {
@@ -125,6 +127,22 @@ public:
             if (states_[pos] == kLive) fn(hashes_[pos]);
         }
         return checked;
+    }
+
+    // Best-effort random live hash selection. Both the random probes and sparse-table cursor
+    // fallback are bounded; callers count a miss as part of their sampling budget.
+    bool random_hash(uint64_t random, uint32_t attempts, uint64_t& out) {
+        if (hashes_.empty() || live_ == 0) return false;
+        for (uint32_t i = 0; i < attempts; i++) {
+            const size_t pos = static_cast<size_t>(mix64(random + i)) & (hashes_.size() - 1);
+            if (states_[pos] == kLive) { out = hashes_[pos]; return true; }
+        }
+        for (uint32_t i = 0; i < attempts; i++) {
+            if (cursor_ >= hashes_.size()) cursor_ = 0;
+            const size_t pos = cursor_++;
+            if (states_[pos] == kLive) { out = hashes_[pos]; return true; }
+        }
+        return false;
     }
 
 private:
@@ -256,6 +274,16 @@ public:
     // entire point.
     static constexpr uint32_t kRehashSlotsPerOp = 8;
 
+    // Eight slot bytes at the 70% target load cost 11.43 bytes per live key. Accounting rounds
+    // that stable-state estimate to 12; transient dual tables, tombstones and allocator metadata
+    // are deliberately outside the maxmemory model and documented in NOTES-EVICT.md.
+    static constexpr size_t   kSlotOverheadPerKey = 12;
+    static constexpr uint32_t kEvictionsPerOp = 16;
+    static constexpr uint32_t kSampleProbeAttempts = 16;
+
+    enum class InsertResult : uint8_t { Inserted, MaxmemoryOom, Failed };
+    enum class OverwriteResult : uint8_t { Updated, NotPossible, MaxmemoryOom };
+
     explicit FlatStore(uint32_t initial_cap = 1024) { alloc_table(0, round_pow2(initial_cap)); }
     ~FlatStore() {
         for (int t = 0; t < 2; t++)
@@ -275,8 +303,15 @@ public:
     bool     rehashing() const { return tab_[1] != nullptr; }
     uint32_t size() const { return live_[0] + live_[1]; }
     uint32_t capacity() const { return cap_[0] + cap_[1]; }
-    size_t object_bytes() const { return obj_bytes_; }
+    size_t   object_bytes() const { return obj_bytes_; }
+    size_t   obj_bytes() const { return obj_bytes_; }
     uint32_t expire_count() const { return expires_.size(); }
+    size_t   accounted_bytes() const {
+        const size_t keys = size();
+        if (keys > (std::numeric_limits<size_t>::max() - obj_bytes_) / kSlotOverheadPerKey)
+            return std::numeric_limits<size_t>::max();
+        return obj_bytes_ + keys * kSlotOverheadPerKey;
+    }
 
     // What a migration of this shard would cost the NEW domain to re-pull through the fabric. Not a
     // copy cost — nothing is copied — but an L3 domain is filled by access, so a shard that moves
@@ -296,35 +331,47 @@ public:
 
     KvObj* find(uint64_t h, Slice key) {
         if (rehashing()) rehash_step();
-        if (KvObj* o = find_in(0, h, key)) return live_or_expire(0, h, key, o);
+        KvObj* found = nullptr;
+        if (KvObj* o = find_in(0, h, key)) found = live_or_expire(0, h, key, o);
         if (rehashing()) {
-            if (KvObj* o = find_in(1, h, key)) return live_or_expire(1, h, key, o);
+            if (!found)
+                if (KvObj* o = find_in(1, h, key)) found = live_or_expire(1, h, key, o);
         }
-        return nullptr;
+        // The entire disabled-feature read tax: one predicted branch, no metadata write.
+        if (__builtin_expect(maxmemory_enabled_, false) && found) touch(found);
+        return found;
     }
 
     // Same-size-CLASS overwrite, allocation-free. Asking for 88 bytes gets 96, so a value that grew
     // or shrank a little still fits what was already paid for. The test is equality of CLASS rather
     // than "new <= old" because good_size() is recomputed from the header — letting the real
     // allocation and the implied one diverge would silently break the resident estimate.
-    bool try_overwrite(uint64_t h, Slice key, Slice val) {
-        KvObj* o = find(h, key);
-        if (!o) return false;
-        if (static_cast<Enc>(o->enc) != Enc::Raw) return false;
-        if (o->flags & KvObjFlags::HasTtl) return false;      // SET clears the TTL; slow path
-        if (val.n > kEmbedThreshold) return false;            // would have to become Enc::Extern
+    OverwriteResult try_overwrite(uint64_t h, Slice key, Slice val) {
+        KvObj* o = find_without_touch(h, key);
+        if (!o) return OverwriteResult::NotPossible;
+        if (static_cast<Enc>(o->enc) != Enc::Raw) return OverwriteResult::NotPossible;
+        if (o->flags & KvObjFlags::HasTtl) return OverwriteResult::NotPossible;  // SET clears TTL
+        if (val.n > kEmbedThreshold) return OverwriteResult::NotPossible;       // becomes Extern
         const size_t want = kvobj_alloc_size(o->klen(), val.n, false, Enc::Raw);
-        if (good_size(want) != kvobj_capacity(o)) return false;
+        if (good_size(want) != kvobj_capacity(o)) return OverwriteResult::NotPossible;
 
         // In-place overwrite is the one mutation that would change bytes without retiring their
         // allocation. With no outstanding borrows this is one predicted branch and no lookup.
-        if (outstanding_borrows_ && is_borrowed(o->str_value().p)) return false;
+        if (outstanding_borrows_ && is_borrowed(o->str_value().p))
+            return OverwriteResult::NotPossible;
+
+        // The entire disabled-feature write tax is this branch. When enabled, the target key is
+        // protected while make_room_for() evicts other candidates.
+        if (__builtin_expect(maxmemory_enabled_, false)) {
+            if (!make_room_for(key, good_size(want))) return OverwriteResult::MaxmemoryOom;
+            touch(o);
+        }
 
         obj_bytes_ -= kvobj_size(o);
         o->vlen = val.n;
         std::memcpy(o->val_ptr(), val.p, val.n);
         obj_bytes_ += kvobj_size(o);
-        return true;
+        return OverwriteResult::Updated;
     }
 
     // Called by GET on the shard owner before publishing the Op. Pointer identity is sufficient:
@@ -359,9 +406,18 @@ public:
     uint32_t outstanding_borrows() const { return outstanding_borrows_; }
 
     void set_cached_now_ms(int64_t now_ms) { cached_now_ms_ = now_ms; }
+    void set_cached_lru_clock(uint8_t clock) { cached_lru_clock_ = clock; }
     void bind_expired_counter(uint64_t* counter) { expired_counter_ = counter; }
+    void bind_evicted_counter(uint64_t* counter) { evicted_counter_ = counter; }
+    void configure_maxmemory(bool enabled, uint64_t shard_limit, MaxmemoryPolicy policy,
+                             uint32_t samples) {
+        maxmemory_enabled_ = enabled;
+        maxmemory_limit_ = shard_limit;
+        maxmemory_policy_ = policy;
+        maxmemory_samples_ = samples == 0 ? 1 : (samples > 64 ? 64 : samples);
+    }
 
-    enum class TtlResult : uint8_t { Missing, NoChange, Updated, Oom };
+    enum class TtlResult : uint8_t { Missing, NoChange, Updated, Oom, MaxmemoryOom };
 
     TtlResult set_expire(uint64_t h, Slice key, int64_t expire_at_ms) {
         KvObj* old = find(h, key);
@@ -404,10 +460,16 @@ public:
         return removed;
     }
 
-    // Takes ownership of `o`; frees anything it displaces.
-    bool insert(uint64_t h, KvObj* o) {
+    // Takes ownership of `o` only on success; frees anything it displaces.
+    InsertResult insert(uint64_t h, KvObj* o) {
         if (rehashing()) rehash_step();
         else             maybe_start_grow();
+        // Disabled maxmemory pays one predicted branch and does no metadata write or accounting
+        // work. Enabled admission is bounded to kEvictionsPerOp victim deletions.
+        if (__builtin_expect(maxmemory_enabled_, false)) {
+            if (!make_room_for(o->key(), kvobj_size(o))) return InsertResult::MaxmemoryOom;
+            if (o->eviction_meta() == 0) initialize_meta(o);
+        }
         // Evict any copy still in the old table FIRST, or it outlives a later delete of the new one
         // and the key resurrects — see the header.
         if (rehashing()) {
@@ -415,7 +477,7 @@ public:
             if (erase_in(1, h, o->key(), &expired) && expired && expired_counter_)
                 (*expired_counter_)++;
         }
-        return insert_into(0, h, o, true);
+        return insert_into(0, h, o, true) ? InsertResult::Inserted : InsertResult::Failed;
     }
 
     bool erase(uint64_t h, Slice key) {
@@ -550,6 +612,164 @@ private:
     }
     uint32_t slot_start(int t, uint64_t h) const { return static_cast<uint32_t>(mix64(h)) & mask_[t]; }
 
+    KvObj* find_without_touch(uint64_t h, Slice key) {
+        if (rehashing()) rehash_step();
+        if (KvObj* o = find_in(0, h, key)) return live_or_expire(0, h, key, o);
+        if (rehashing())
+            if (KvObj* o = find_in(1, h, key)) return live_or_expire(1, h, key, o);
+        return nullptr;
+    }
+
+    uint64_t next_random() {
+        // xorshift64*: shard-owner-only state, used only while maxmemory is enabled.
+        uint64_t x = random_state_;
+        x ^= x >> 12; x ^= x << 25; x ^= x >> 27;
+        random_state_ = x;
+        return x * 2685821657736338717ULL;
+    }
+
+    uint8_t lru_clock() const { return cached_lru_clock_; }
+
+    void initialize_meta(KvObj* o) {
+        if (maxmemory_policy_is_lru(maxmemory_policy_)) {
+            o->set_eviction_meta(lru_clock());
+        } else if (maxmemory_policy_is_lfu(maxmemory_policy_)) {
+            o->set_eviction_meta(5);
+        }
+    }
+
+    void touch(KvObj* o) {
+        if (maxmemory_policy_is_lru(maxmemory_policy_)) {
+            o->set_eviction_meta(lru_clock());
+            return;
+        }
+        if (!maxmemory_policy_is_lfu(maxmemory_policy_)) return;
+
+        uint8_t count = o->eviction_meta();
+        if (count == 0) count = 5;
+        // Redis-style logarithmic increment with its default factor 10, compressed to five bits.
+        const uint32_t base = count > 5 ? static_cast<uint32_t>(count - 5) : 0;
+        const uint32_t denominator = base * 10 + 1;
+        if (count < 31 && next_random() % denominator == 0) count++;
+        o->set_eviction_meta(count);
+    }
+
+    KvObj* random_allkeys_candidate() {
+        const uint64_t total_cap = static_cast<uint64_t>(cap_[0]) + cap_[1];
+        if (total_cap == 0 || size() == 0) return nullptr;
+        for (uint32_t attempt = 0; attempt < kSampleProbeAttempts; attempt++) {
+            uint64_t pos = next_random() % total_cap;
+            const int table = pos < cap_[0] ? 0 : 1;
+            if (table == 1) pos -= cap_[0];
+            if (KvObj* o = ptr_of(tab_[table][pos])) return o;
+        }
+        // Sparse-table backstop. It remains bounded and advances between calls rather than
+        // restarting at slot zero and repeatedly missing the same empty prefix.
+        for (uint32_t attempt = 0; attempt < kSampleProbeAttempts; attempt++) {
+            if (sample_cursor_ >= total_cap) sample_cursor_ = 0;
+            uint64_t pos = sample_cursor_++;
+            const int table = pos < cap_[0] ? 0 : 1;
+            if (table == 1) pos -= cap_[0];
+            if (KvObj* o = ptr_of(tab_[table][pos])) return o;
+        }
+        return nullptr;
+    }
+
+    KvObj* random_volatile_candidate() {
+        uint64_t hash = 0;
+        if (!expires_.random_hash(next_random(), kSampleProbeAttempts, hash)) return nullptr;
+        KvObj* o = find_hash_in(0, hash);
+        if (!o && rehashing()) o = find_hash_in(1, hash);
+        return o;
+    }
+
+    KvObj* choose_victim(Slice protected_key) {
+        KvObj* best = nullptr;
+        KvObj* seen[64];
+        uint32_t seen_count = 0;
+        uint64_t best_score = 0;
+        for (uint32_t i = 0; i < maxmemory_samples_; i++) {
+            KvObj* candidate = maxmemory_policy_is_volatile(maxmemory_policy_)
+                ? random_volatile_candidate() : random_allkeys_candidate();
+            if (!candidate || candidate->key() == protected_key) continue;
+            bool duplicate = false;
+            for (uint32_t j = 0; j < seen_count; j++)
+                if (seen[j] == candidate) { duplicate = true; break; }
+            if (duplicate) continue;
+            seen[seen_count++] = candidate;
+
+            uint64_t score = 0;
+            switch (maxmemory_policy_) {
+                case MaxmemoryPolicy::AllKeysRandom:
+                case MaxmemoryPolicy::VolatileRandom:
+                    score = next_random();
+                    break;
+                case MaxmemoryPolicy::AllKeysLru:
+                case MaxmemoryPolicy::VolatileLru: {
+                    const uint8_t age = static_cast<uint8_t>(
+                        (lru_clock() - candidate->eviction_meta()) & 0x1f);
+                    score = (static_cast<uint64_t>(age) << 56) | (next_random() & ((1ULL << 56) - 1));
+                    break;
+                }
+                case MaxmemoryPolicy::AllKeysLfu:
+                case MaxmemoryPolicy::VolatileLfu: {
+                    // With only five free header bits, sampling is also the bounded aging event:
+                    // one count is forgotten whenever a key competes for eviction.
+                    uint8_t count = candidate->eviction_meta();
+                    if (count) candidate->set_eviction_meta(--count);
+                    score = (static_cast<uint64_t>(31 - count) << 56) |
+                            (next_random() & ((1ULL << 56) - 1));
+                    break;
+                }
+                case MaxmemoryPolicy::VolatileTtl:
+                    score = std::numeric_limits<uint64_t>::max() -
+                            static_cast<uint64_t>(candidate->expire_at_ms());
+                    break;
+                case MaxmemoryPolicy::NoEviction:
+                    return nullptr;
+            }
+            if (!best || score > best_score) { best = candidate; best_score = score; }
+        }
+        return best;
+    }
+
+    size_t projected_bytes(Slice key, size_t incoming_bytes) const {
+        const uint64_t hash = hash_key(key);
+        KvObj* old = find_in(0, hash, key);
+        if (!old && rehashing()) old = find_in(1, hash, key);
+
+        size_t used = accounted_bytes();
+        if (old) {
+            const size_t old_bytes = kvobj_size(old);
+            used = used >= old_bytes ? used - old_bytes : 0;
+        } else if (used > std::numeric_limits<size_t>::max() - kSlotOverheadPerKey) {
+            return std::numeric_limits<size_t>::max();
+        } else {
+            used += kSlotOverheadPerKey;
+        }
+        if (incoming_bytes > std::numeric_limits<size_t>::max() - used)
+            return std::numeric_limits<size_t>::max();
+        return used + incoming_bytes;
+    }
+
+    bool make_room_for(Slice protected_key, size_t incoming_bytes) {
+        if (projected_bytes(protected_key, incoming_bytes) <= maxmemory_limit_) return true;
+        if (maxmemory_policy_ == MaxmemoryPolicy::NoEviction) return false;
+
+        uint32_t budget = kEvictionsPerOp;
+        while (budget-- && projected_bytes(protected_key, incoming_bytes) > maxmemory_limit_) {
+            KvObj* victim = choose_victim(protected_key);
+            if (!victim) return false;
+            const uint64_t hash = hash_key(victim->key());
+            const Slice key = victim->key();
+            const uint32_t before = size();
+            const bool live = erase(hash, key);
+            if (size() == before) return false;
+            if (live && evicted_counter_) (*evicted_counter_)++;
+        }
+        return projected_bytes(protected_key, incoming_bytes) <= maxmemory_limit_;
+    }
+
     void alloc_table(int t, uint32_t cap) {
         tab_[t]   = static_cast<uint64_t*>(std::calloc(cap, sizeof(uint64_t)));  // EMPTY == 0
         cap_[t]   = cap;
@@ -662,19 +882,22 @@ private:
     TtlResult rewrite_expire(uint64_t h, KvObj* old, int64_t expire_at_ms) {
         KvObj* replacement = kvobj_reheader(old, expire_at_ms);
         if (!replacement) return TtlResult::Oom;
+        if (maxmemory_enabled_) replacement->set_eviction_meta(old->eviction_meta());
 
         const bool moves_collection = static_cast<Type>(old->type) != Type::String;
         if (moves_collection) {
             old->flags &= static_cast<uint8_t>(~KvObjFlags::OwnsExtern);
             replacement->flags |= KvObjFlags::OwnsExtern;
         }
-        if (!insert(h, replacement)) {
+        const InsertResult inserted = insert(h, replacement);
+        if (inserted != InsertResult::Inserted) {
             if (moves_collection) {
                 old->flags |= KvObjFlags::OwnsExtern;
                 replacement->flags &= static_cast<uint8_t>(~KvObjFlags::OwnsExtern);
             }
             kvobj_free(replacement);
-            return TtlResult::Oom;
+            return inserted == InsertResult::MaxmemoryOom
+                ? TtlResult::MaxmemoryOom : TtlResult::Oom;
         }
         return TtlResult::Updated;
     }
@@ -770,7 +993,15 @@ private:
     std::vector<Borrow> borrows_;
     ExpireIndex expires_;
     int64_t     cached_now_ms_ = 0;
+    uint8_t     cached_lru_clock_ = 0;
     uint64_t*   expired_counter_ = nullptr;
+    uint64_t*   evicted_counter_ = nullptr;
+    bool        maxmemory_enabled_ = false;
+    uint64_t    maxmemory_limit_ = 0;
+    MaxmemoryPolicy maxmemory_policy_ = MaxmemoryPolicy::NoEviction;
+    uint32_t    maxmemory_samples_ = 5;
+    uint64_t    random_state_ = 0x9e3779b97f4a7c15ULL;
+    uint64_t    sample_cursor_ = 0;
 };
 
 }  // namespace tomo

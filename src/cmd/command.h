@@ -56,8 +56,7 @@ struct CommandTable {
     size_t             size;
 };
 
-// Every family owns its table; the registry calls all six even while four type lanes are empty
-// foundations.
+// Every family owns its table; the registry calls every type table plus the server/admin table.
 CommandTable string_command_table();
 CommandTable hash_command_table();
 CommandTable list_command_table();

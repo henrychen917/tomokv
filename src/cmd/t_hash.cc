@@ -28,6 +28,8 @@
 
 namespace tomo {
 
+void reply_maxmemory_oom(Op& op);
+
 class HashFieldMap {
 public:
     struct Node {
@@ -687,10 +689,12 @@ bool attach_new_hash(Shard& shard, Op& op, HashVal* hash) {
         reply_err(op.sink(), "ERR out of memory");
         return false;
     }
-    if (!shard.store().insert(op.hash, object)) {
-        kvobj_free(object);
-        reply_err(op.sink(), "ERR keyspace insert failed");
-        return false;
+    const FlatStore::InsertResult inserted_ = shard.store().insert(op.hash, object);
+if (inserted_ != FlatStore::InsertResult::Inserted) {
+    kvobj_free(object);
+    if (inserted_ == FlatStore::InsertResult::MaxmemoryOom) reply_maxmemory_oom(op);
+    else reply_err(op.sink(), "ERR keyspace insert failed");
+    return false;
     }
     return true;
 }

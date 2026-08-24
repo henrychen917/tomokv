@@ -11,6 +11,7 @@
 #include "../net/conn.h"
 #include "../net/resp.h"
 #include "../store/kvobj.h"
+#include "../store/eviction.h"
 
 #include <algorithm>
 #include <cctype>
@@ -211,8 +212,10 @@ void init_config(const Config& cfg) {
     g_config.clear();
     g_config.push_back({"save", ConfigKind::String, ""});
     g_config.push_back({"appendonly", ConfigKind::Bool, "no"});
-    add_config("maxmemory", ConfigKind::Bytes, 0);
-    g_config.push_back({"maxmemory-policy", ConfigKind::Policy, "noeviction"});
+    add_config("maxmemory", ConfigKind::Bytes, cfg.maxmemory);
+    g_config.push_back({"maxmemory-policy", ConfigKind::Policy,
+                        maxmemory_policy_name(cfg.maxmemory_policy)});
+    add_config("maxmemory-samples", ConfigKind::Unsigned, cfg.maxmemory_samples);
     add_config("timeout", ConfigKind::Unsigned, 0);
     add_config("databases", ConfigKind::Unsigned, 1);
     add_config("proto-max-bulk-len", ConfigKind::Bytes, 512ull * 1024 * 1024);
@@ -265,6 +268,8 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out) {
             if (!parse_u64(input, value)) return false;
             if ((std::strstr(entry.name, "compact") || !std::strcmp(entry.name, "zc-min")) &&
                 value > UINT32_MAX) return false;
+            if (!std::strcmp(entry.name, "maxmemory-samples") && (value == 0 || value > 64))
+                return false;
             out = std::to_string(value);
             return true;
         }
@@ -540,6 +545,29 @@ void cmd_config(Shard& sh, Op& op) {
                 for (auto& update : updates) update.first->value = update.second;
         }
 
+        // Eviction config is process-global (odd/even snapshot read by owners each pass); publish
+        // it once from shard 0's task rather than per shard.
+        if (sh.id() == 0 && g_server) {
+            MaxmemoryConfigSnapshot desired = g_server->maxmemory_config_snapshot();
+            bool set_memory = false, set_policy = false, set_samples = false;
+            for (const auto& update : updates) {
+                const Slice text(update.second.data(),
+                                 static_cast<uint32_t>(update.second.size()));
+                if (!std::strcmp(update.first->name, "maxmemory")) {
+                    parse_u64(text, desired.maxmemory); set_memory = true;
+                } else if (!std::strcmp(update.first->name, "maxmemory-policy")) {
+                    parse_maxmemory_policy(text.sv(), desired.policy); set_policy = true;
+                } else if (!std::strcmp(update.first->name, "maxmemory-samples")) {
+                    uint64_t samples = 0;
+                    parse_u64(text, samples);
+                    desired.samples = static_cast<uint32_t>(samples); set_samples = true;
+                }
+            }
+            if (set_memory || set_policy || set_samples)
+                g_server->set_maxmemory_config(desired.maxmemory, desired.policy, desired.samples,
+                                               set_memory, set_policy, set_samples);
+        }
+
         TypeLimits limits = sh.type_limits();
         for (const auto& update : updates) {
             uint64_t value = 0;
@@ -568,7 +596,8 @@ bool info_section(Op& op, const char* wanted) {
 
 void cmd_info(Shard&, Op& op) {
     std::string body;
-    uint64_t keys = 0, expires = 0, obj_bytes = 0, hits = 0, misses = 0, expired = 0;
+    uint64_t keys = 0, expires = 0, obj_bytes = 0, hits = 0, misses = 0, expired = 0,
+             evicted = 0;
     uint64_t total_ops = 0, connections = 0, rejected = 0;
     if (g_server) {
         for (uint32_t i = 0; i < g_server->nshards(); i++) {
@@ -576,6 +605,7 @@ void cmd_info(Shard&, Op& op) {
             keys += sh.published_size(); expires += sh.published_expires();
             obj_bytes += sh.published_obj_bytes();
             hits += sh.stats().hits; misses += sh.stats().misses; expired += sh.stats().expired;
+            evicted += sh.published_evicted();
         }
         for (uint32_t t = 0; t < g_server->nthreads(); t++) {
             for (uint32_t id = 0; id < command_registry_size(); id++)
@@ -617,11 +647,12 @@ void cmd_info(Shard&, Op& op) {
     if (info_section(op, "STATS")) {
         appendf(body, "# Stats\r\ntotal_connections_received:%llu\r\nrejected_connections:%llu\r\n"
                       "total_commands_processed:%llu\r\nkeyspace_hits:%llu\r\nkeyspace_misses:%llu\r\n"
-                      "expired_keys:%llu\r\nevicted_keys:0\r\ninstantaneous_ops_per_sec:0\r\n"
+                      "expired_keys:%llu\r\nevicted_keys:%llu\r\ninstantaneous_ops_per_sec:0\r\n"
                       "total_net_input_bytes:0\r\ntotal_net_output_bytes:0\r\n",
                 static_cast<unsigned long long>(connections), static_cast<unsigned long long>(rejected),
                 static_cast<unsigned long long>(total_ops), static_cast<unsigned long long>(hits),
-                static_cast<unsigned long long>(misses), static_cast<unsigned long long>(expired));
+                static_cast<unsigned long long>(misses), static_cast<unsigned long long>(expired),
+                static_cast<unsigned long long>(evicted));
     }
     if (info_section(op, "COMMANDSTATS")) {
         body += "# Commandstats\r\n";

@@ -24,6 +24,8 @@
 
 namespace tomo {
 
+void reply_maxmemory_oom(Op& op);
+
 // ---- SetMemberTable --------------------------------------------------------------------------
 
 uint32_t SetMemberTable::capacity_for(uint32_t entries) {
@@ -746,10 +748,12 @@ void cmd_sadd(Shard& shard, Op& op) {
             reply_err(op.sink(), "ERR out of memory");
             return;
         }
-        if (!shard.store().insert(op.hash, object)) {
-            kvobj_free(object);
-            reply_err(op.sink(), "ERR keyspace insert failed");
-            return;
+        const FlatStore::InsertResult inserted_ = shard.store().insert(op.hash, object);
+if (inserted_ != FlatStore::InsertResult::Inserted) {
+    kvobj_free(object);
+    if (inserted_ == FlatStore::InsertResult::MaxmemoryOom) reply_maxmemory_oom(op);
+    else reply_err(op.sink(), "ERR keyspace insert failed");
+    return;
         }
     }
     reply_int(op.sink(), added);

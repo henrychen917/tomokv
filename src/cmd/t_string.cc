@@ -1,8 +1,7 @@
 // t_string.cc — string commands and type-agnostic keyspace commands.
 //
-// Handlers execute only on the shard owner and emit RESP through Op::Sink. The sole exceptions are
-// rows marked ConnLocal: their handlers run on the connection's IO owner and touch only immutable
-// server metadata or published shard counters.
+// Handlers execute only on the shard owner and emit RESP through Op::Sink. Connection-local server
+// commands live in t_server.cc.
 #include "command.h"
 #include "../core/shard.h"
 #include "../exec/op.h"
@@ -19,6 +18,9 @@
 #include <cstring>
 
 namespace tomo {
+
+void reply_maxmemory_oom(Op& op);  // defined below with tomo:: linkage; families share it
+
 namespace {
 
 bool eq_icase(Slice s, const char* lit) {
@@ -123,9 +125,19 @@ Slice string_bytes(const KvObj* o, char (&integer)[24]) {
     return Slice(integer, i64_to_dec(integer, o->int_value()));
 }
 
-enum class StoreResult : uint8_t { Stored, Oom, InsertFailed };
+enum class StoreResult : uint8_t { Stored, Oom, InsertFailed, MaxmemoryOom };
 
 void clear_reply(Op& op);
+
+// FlatStore's insert/try_overwrite return admission enums (i-evict); every string write funnels
+// through here so eviction OOM surfaces once, not at each call site.
+StoreResult map_insert(FlatStore& store, uint64_t hash, KvObj* replacement) {
+    const FlatStore::InsertResult inserted = store.insert(hash, replacement);
+    if (inserted == FlatStore::InsertResult::Inserted) return StoreResult::Stored;
+    kvobj_free(replacement);
+    return inserted == FlatStore::InsertResult::MaxmemoryOom ? StoreResult::MaxmemoryOom
+                                                             : StoreResult::InsertFailed;
+}
 
 StoreResult store_string(Shard& sh, Slice key, uint64_t hash, Slice value, int64_t expire_at_ms,
                          bool integer_encode) {
@@ -133,41 +145,33 @@ StoreResult store_string(Shard& sh, Slice key, uint64_t hash, Slice value, int64
     if (integer_encode && parse_i64(value, integer)) {
         KvObj* replacement = kvobj_new_int(key, integer, expire_at_ms);
         if (!replacement) return StoreResult::Oom;
-        if (!sh.store().insert(hash, replacement)) {
-            kvobj_free(replacement);
-            return StoreResult::InsertFailed;
-        }
-        return StoreResult::Stored;
+        return map_insert(sh.store(), hash, replacement);
     }
 
     // try_overwrite is the only in-place raw mutation. It rejects TTL-bearing and borrowed values;
     // the replacement path below then lets FlatStore retain any borrowed old allocation.
-    if (expire_at_ms == -1 && sh.store().try_overwrite(hash, key, value))
-        return StoreResult::Stored;
+    if (expire_at_ms == -1) {
+        const FlatStore::OverwriteResult overwritten = sh.store().try_overwrite(hash, key, value);
+        if (overwritten == FlatStore::OverwriteResult::Updated) return StoreResult::Stored;
+        if (overwritten == FlatStore::OverwriteResult::MaxmemoryOom) return StoreResult::MaxmemoryOom;
+    }
 
     KvObj* replacement = kvobj_new_string(key, value, expire_at_ms);
     if (!replacement) return StoreResult::Oom;
-    if (!sh.store().insert(hash, replacement)) {
-        kvobj_free(replacement);
-        return StoreResult::InsertFailed;
-    }
-    return StoreResult::Stored;
+    return map_insert(sh.store(), hash, replacement);
 }
 
 StoreResult store_integer(Shard& sh, Slice key, uint64_t hash, int64_t value,
                           int64_t expire_at_ms) {
     KvObj* replacement = kvobj_new_int(key, value, expire_at_ms);
     if (!replacement) return StoreResult::Oom;
-    if (!sh.store().insert(hash, replacement)) {
-        kvobj_free(replacement);
-        return StoreResult::InsertFailed;
-    }
-    return StoreResult::Stored;
+    return map_insert(sh.store(), hash, replacement);
 }
 
 void reply_store_error(Op& op, StoreResult result, bool discard_existing_reply = false) {
     if (discard_existing_reply) clear_reply(op);
-    if (result == StoreResult::Oom) reply_err(op.sink(), "ERR out of memory");
+    if (result == StoreResult::MaxmemoryOom) reply_maxmemory_oom(op);
+    else if (result == StoreResult::Oom) reply_err(op.sink(), "ERR out of memory");
     else reply_err(op.sink(), "ERR keyspace insert failed");
 }
 
@@ -181,6 +185,15 @@ void clear_reply(Op& op) {
     op.direct_len = 0;
     op.reply.clear();
 }
+
+}  // namespace
+
+// tomo:: linkage: every type family replies this exact text on admission failure.
+void reply_maxmemory_oom(Op& op) {
+    reply_err(op.sink(), "OOM command not allowed when used memory > 'maxmemory'.");
+}
+
+namespace {
 
 void reply_string_bulk(Op& op, const KvObj* o) {
     if (!o) { reply_nil(op.sink()); return; }
@@ -359,9 +372,10 @@ void cmd_getex(Shard& sh, Op& op) {
     } else if (persist) {
         result = sh.store().persist(op.hash, op.key());
     }
-    if (result == FlatStore::TtlResult::Oom) {
+    if (result == FlatStore::TtlResult::Oom || result == FlatStore::TtlResult::MaxmemoryOom) {
         clear_reply(op);
-        reply_err(op.sink(), "ERR out of memory");
+        if (result == FlatStore::TtlResult::MaxmemoryOom) reply_maxmemory_oom(op);
+        else reply_err(op.sink(), "ERR out of memory");
     }
 }
 
@@ -649,8 +663,9 @@ void expire_generic(Shard& sh, Op& op, bool absolute, bool seconds, const char* 
         return;
     }
     const FlatStore::TtlResult result = sh.store().set_expire(op.hash, op.key(), when);
-    if (result == FlatStore::TtlResult::Oom) {
-        reply_err(op.sink(), "ERR out of memory");
+    if (result == FlatStore::TtlResult::Oom || result == FlatStore::TtlResult::MaxmemoryOom) {
+        if (result == FlatStore::TtlResult::MaxmemoryOom) reply_maxmemory_oom(op);
+        else reply_err(op.sink(), "ERR out of memory");
         return;
     }
     reply_int(op.sink(), result == FlatStore::TtlResult::Updated ? 1 : 0);
@@ -682,8 +697,9 @@ void cmd_pexpiretime(Shard& sh, Op& op) { ttl_generic(sh, op, true,  true); }
 
 void cmd_persist(Shard& sh, Op& op) {
     const FlatStore::TtlResult result = sh.store().persist(op.hash, op.key());
-    if (result == FlatStore::TtlResult::Oom) {
-        reply_err(op.sink(), "ERR out of memory");
+    if (result == FlatStore::TtlResult::Oom || result == FlatStore::TtlResult::MaxmemoryOom) {
+        if (result == FlatStore::TtlResult::MaxmemoryOom) reply_maxmemory_oom(op);
+        else reply_err(op.sink(), "ERR out of memory");
         return;
     }
     reply_int(op.sink(), result == FlatStore::TtlResult::Updated ? 1 : 0);
