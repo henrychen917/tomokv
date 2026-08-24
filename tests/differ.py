@@ -54,7 +54,8 @@ def parse_reply(r):
         return items
     return None
 
-SORTED_SET_REPLIES = {"SMEMBERS", "SPOPSHAPE", "HKEYS", "HVALS"}
+SORTED_SET_REPLIES = {"SMEMBERS", "SPOPSHAPE", "HKEYS", "HVALS",
+                      "KEYS", "SINTER", "SUNION", "SDIFF"}
 
 def normalize(cmdname, r):
     if cmdname == "HGETALL" and r[:1] == b"*" and not r.startswith(b"*-1"):
@@ -303,7 +304,90 @@ def gen_hash(rng):
     ]
     return ops
 
-gens = {"string": gen_string, "set": gen_set, "list": gen_list, "zset": gen_zset, "hash": gen_hash}
+def gen_xshard(rng):
+    # Long, unrelated names spread across the full router instead of clustering in a small prefix.
+    keys = ["xs:%02d:%s" % (i, "".join(rng.choice("abcdef0123456789") for _ in range(38)))
+            for i in range(48)]
+    setkeys = keys[:16]
+    listkeys = keys[16:28]
+    strkeys = keys[28:]
+    members = ["m%d" % i for i in range(18)] + ["long-member-" + "x" * 60]
+    values = ["", "v", "hello", "42", "value-" + "y" * 90]
+    ops = []
+
+    def ks(n, pool=keys): return [rng.choice(pool) for _ in range(n)]
+    def pairs(n):
+        out = []
+        for key in ks(n): out += [key, rng.choice(values)]
+        return out
+
+    # Establish all three value families, then continually collide and delete them below.
+    for key in strkeys: ops.append(["SET", key, rng.choice(values)])
+    for key in setkeys: ops.append(["SADD", key] + rng.sample(members, rng.randrange(1, 6)))
+    for key in listkeys: ops.append(["RPUSH", key] + rng.sample(members, rng.randrange(1, 6)))
+
+    for _ in range(4200):
+        c = rng.randrange(28)
+        if c == 0: ops.append(["MGET"] + ks(rng.randrange(2, 8)))
+        elif c == 1: ops.append(["MSET"] + pairs(rng.randrange(2, 7)))
+        elif c == 2: ops.append(["DEL"] + ks(rng.randrange(2, 7)))
+        elif c == 3: ops.append(["UNLINK"] + ks(rng.randrange(2, 7)))
+        elif c == 4: ops.append(["EXISTS"] + ks(rng.randrange(2, 8)))
+        elif c == 5: ops.append(["TOUCH"] + ks(rng.randrange(2, 8)))
+        elif c == 6: ops.append(["MSETNX"] + pairs(rng.randrange(2, 6)))
+        elif c == 7: ops.append(["RENAME", rng.choice(keys), rng.choice(keys)])
+        elif c == 8: ops.append(["RENAMENX", rng.choice(keys), rng.choice(keys)])
+        elif c == 9:
+            ops.append(["COPY", rng.choice(keys), rng.choice(keys)] +
+                       (["REPLACE"] if rng.randrange(2) else []))
+        elif c == 10: ops.append(["SMOVE", rng.choice(setkeys), rng.choice(setkeys), rng.choice(members)])
+        elif c == 11:
+            ops.append(["LMOVE", rng.choice(listkeys), rng.choice(listkeys),
+                        rng.choice(["LEFT", "RIGHT"]), rng.choice(["LEFT", "RIGHT"])])
+        elif c == 12: ops.append(["RPOPLPUSH", rng.choice(listkeys), rng.choice(listkeys)])
+        elif c == 13: ops.append(["SINTER"] + ks(rng.randrange(2, 6), setkeys))
+        elif c == 14: ops.append(["SUNION"] + ks(rng.randrange(2, 6), setkeys))
+        elif c == 15: ops.append(["SDIFF"] + ks(rng.randrange(2, 6), setkeys))
+        elif c == 16: ops.append(["SINTERSTORE", rng.choice(keys)] + ks(rng.randrange(2, 5), setkeys))
+        elif c == 17: ops.append(["SUNIONSTORE", rng.choice(keys)] + ks(rng.randrange(2, 5), setkeys))
+        elif c == 18: ops.append(["SDIFFSTORE", rng.choice(keys)] + ks(rng.randrange(2, 5), setkeys))
+        elif c == 19:
+            src = ks(rng.randrange(1, 5), setkeys)
+            ops.append(["SINTERCARD", str(len(src))] + src +
+                       (["LIMIT", str(rng.randrange(0, 5))] if rng.randrange(2) else []))
+        elif c == 20: ops.append(["SET", rng.choice(keys), rng.choice(values)])
+        elif c == 21: ops.append(["SADD", rng.choice(keys), rng.choice(members), rng.choice(members)])
+        elif c == 22: ops.append(["RPUSH", rng.choice(keys), rng.choice(members)])
+        elif c == 23: ops.append(["KEYS", rng.choice(["xs:*", "xs:0?:*", "*member*", "no-match-*"])])
+        elif c == 24: ops.append(["GET", rng.choice(keys)])
+        elif c == 25: ops.append(["SMEMBERS", rng.choice(setkeys)])
+        elif c == 26: ops.append(["LRANGE", rng.choice(listkeys), "0", "-1"])
+        else: ops.append(["TYPE", rng.choice(keys)])
+
+    # Directed edge semantics. These names are also long enough to avoid accidentally sharing one
+    # shard in small deployments; the implementation still handles same-owner coalescing.
+    a, b, c, d = keys[0], keys[17], keys[31], keys[45]
+    ops += [
+        ["DEL", a, b, c, d],
+        ["RENAME", a, a],                                      # missing self -> no such key
+        ["SET", a, "self"], ["RENAME", a, a], ["GET", a],
+        ["RENAMENX", a, a],
+        ["SET", b, "old"], ["COPY", a, b], ["GET", b],
+        ["COPY", a, b, "REPLACE"], ["GET", b],
+        ["SET", c, "hit"], ["DEL", d],
+        ["MSETNX", b, "would-change", c, "blocked", d, "would-create"],
+        ["MGET", b, c, d],
+        ["DEL", a, b, c, d], ["SADD", a, "x", "y", "z"], ["SADD", b, "y", "z", "q"],
+        ["SET", c, "wrong-destination"],
+        ["SINTERSTORE", c, a, b], ["SMEMBERS", c],
+        ["SUNIONSTORE", c, a, b], ["SMEMBERS", c],
+        ["SDIFFSTORE", c, a, b], ["SMEMBERS", c],
+        ["KEYS", "xs:*"], ["KEYS", "xs:0?:*"], ["KEYS", "does-not-match-*"],
+    ]
+    return ops
+
+gens = {"string": gen_string, "set": gen_set, "list": gen_list, "zset": gen_zset,
+        "hash": gen_hash, "xshard": gen_xshard}
 ops = gens[SUITE](rng)
 
 ts, tf = conn(TH, TP)

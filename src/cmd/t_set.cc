@@ -1073,6 +1073,14 @@ static const CommandSpec kTable[] = {
     {"SPOP",          2,  3, CmdFlags::Write,     cmd_spop,          1,  1,  1},
     {"SRANDMEMBER",   2,  3, CmdFlags::Readonly,  cmd_srandmember,   1,  1,  1},
     {"SSCAN",         3, -1, CmdFlags::Readonly,  cmd_sscan,         1,  1,  1},
+    {"SMOVE",         4,  4, CmdFlags::Write | CmdFlags::MultiShard,cmd_xshard_only,1,2,1},
+    {"SINTER",        2, -1, CmdFlags::Readonly | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
+    {"SUNION",        2, -1, CmdFlags::Readonly | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
+    {"SDIFF",         2, -1, CmdFlags::Readonly | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
+    {"SINTERCARD",    3, -1, CmdFlags::Readonly | CmdFlags::MultiShard,cmd_xshard_only,2,-1,1},
+    {"SINTERSTORE",   3, -1, CmdFlags::Write | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
+    {"SUNIONSTORE",   3, -1, CmdFlags::Write | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
+    {"SDIFFSTORE",    3, -1, CmdFlags::Write | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
 };
 
 }  // namespace

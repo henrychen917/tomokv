@@ -25,6 +25,7 @@
 #include "../net/uring.h"
 #include "../net/wb.h"
 #include "../cmd/command.h"
+#include "../cmd/xshard.h"
 
 namespace tomo {
 
@@ -67,9 +68,13 @@ public:
                 Span busy(sig.busy_ns);
                 did += snapshot_control_pass();
                 did += drain_releases();
-                if (!snapshot_blocks_tasks())
-                    did += snapshot_owner_state_ == SnapshotOwnerState::None
-                               ? drain_tasks() : drain_tasks_snapshot();
+                if (!snapshot_blocks_tasks()) {
+                    did += service_xshard_retries();
+                    if (xshard_retries_.empty()) did += service_ordered_deferred();
+                    if (xshard_retries_.empty() && ordered_deferred_.empty())
+                        did += snapshot_owner_state_ == SnapshotOwnerState::None
+                                   ? drain_tasks() : drain_tasks_snapshot();
+                }
                 did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
             }
             sig.cpu_ns = thread_cpu_ns();
@@ -115,9 +120,13 @@ private:
     // already concluded it has nothing to do.
     uint32_t sweep() {
         uint32_t n = snapshot_control_pass() + drain_releases(true);
-        if (!snapshot_blocks_tasks())
-            n += snapshot_owner_state_ == SnapshotOwnerState::None
-                     ? drain_tasks(true) : drain_tasks_snapshot(true);
+        if (!snapshot_blocks_tasks()) {
+            n += service_xshard_retries();
+            if (xshard_retries_.empty()) n += service_ordered_deferred();
+            if (xshard_retries_.empty() && ordered_deferred_.empty())
+                n += snapshot_owner_state_ == SnapshotOwnerState::None
+                         ? drain_tasks(true) : drain_tasks_snapshot(true);
+        }
         return n + active_expire_cycle();
     }
 
@@ -325,23 +334,34 @@ private:
 
     bool execute_snapshot_task(const Task& task, bool capture_writes) {
         Op& op = task.client->rob().at(task.op_id);
-        Shard& shard = srv_->shard(op.shard);
+        const int32_t sid = task.shard >= 0 ? task.shard : op.shard;
+        Shard& shard = srv_->shard(sid);
         if (capture_writes && (op.spec->flags & CmdFlags::Write)) {
-            const FlatStore::SnapshotWriteResult result =
-                shard.store().snapshot_prepare_write(op.hash, op.key());
+            const FlatStore::SnapshotWriteResult result = task.scatter
+                ? xshard_snapshot_prepare(task, shard)
+                : shard.store().snapshot_prepare_write(op.hash, op.key());
             if (result == FlatStore::SnapshotWriteResult::Pending) return false;
             if (result == FlatStore::SnapshotWriteResult::Error) {
                 snapshot_manager_->fail(snapshot_epoch_, "snapshot pre-image serialization failed");
                 return false;
             }
         }
-        execute(task);
+        if (!execute(task)) return false;
         shard.publish_size();
         return true;
     }
 
     void schedule_snapshot_task(const Task& task) {
-        const int32_t sid = task.client->rob().at(task.op_id).shard;
+        // A bounded scatter continuation is still the oldest task on this owner.  Holding later
+        // work here preserves the queue-order RYOW argument without installing a conn barrier for
+        // KEYS.  Snapshot-gated scatter writes use the same ordering hold while Pending.
+        if (!xshard_retries_.empty()) { ordered_deferred_.push_back(task); return; }
+        if (task.scatter) {
+            if (!execute_snapshot_task(task, true)) xshard_retries_.push_back(task);
+            return;
+        }
+        const Op& op = task.client->rob().at(task.op_id);
+        const int32_t sid = task.shard >= 0 ? task.shard : op.shard;
         auto& queue = snapshot_backlogs_[static_cast<uint32_t>(sid)];
         if (!queue.empty() || !execute_snapshot_task(task, true)) queue.push_back(task);
     }
@@ -371,6 +391,10 @@ private:
     // Prefetch the whole batch's slots, THEN execute. Issuing the loads up front lets their DRAM
     // round trips overlap instead of each op stalling on its own miss in turn.
     void exec_batch(const Task* batch, uint32_t n) {
+        if (!xshard_retries_.empty()) {
+            for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
+            return;
+        }
         for (uint32_t i = 0; i < n; i++) {
             const Op& op = batch[i].client->rob().at(batch[i].op_id);
             const int32_t shard = batch[i].shard >= 0 ? batch[i].shard : op.shard;
@@ -378,13 +402,18 @@ private:
                 !(op.spec->flags & (CmdFlags::CursorShard | CmdFlags::RandomShard)))
                 srv_->shard(shard).store().prefetch(op.hash);
         }
-        for (uint32_t i = 0; i < n; i++) execute(batch[i]);
+        for (uint32_t i = 0; i < n; i++) {
+            if (execute(batch[i])) continue;
+            xshard_retries_.push_back(batch[i]);
+            for (uint32_t j = i + 1; j < n; j++) ordered_deferred_.push_back(batch[j]);
+            break;
+        }
         // One publish per batch, covering every shard this batch touched. Cheaper than tracking
         // which ones changed, and this thread owns all of them.
         for (Shard* sh : self_->shards()) sh->publish_size();
     }
 
-    void execute(const Task& t) {
+    bool execute(const Task& t) {
         Op& op = t.client->rob().at(t.op_id);
         const int32_t shard_id = t.shard >= 0 ? t.shard : op.shard;
         Shard& sh = srv_->shard(shard_id);
@@ -395,21 +424,20 @@ private:
 
         if (!t.scatter) self_->note_command(op.spec->id);
 
-        // Growth gate (wrinkle fix 2026-08-25): collection growth mutates behind a stable KvObj and
-        // never crosses insert-admission, so an HSET-only workload could blow through maxmemory
-        // unbounded. One predicted-false flag test per op when disabled.
-        if (__builtin_expect(op.spec->flags & CmdFlags::DenyOom, false) &&
-            !sh.store().budget_admit(op.key())) {
+        if (t.scatter) {
+            if (xshard_execute(t, sh, op) == ScatterTaskResult::Retry) return false;
+            sh.publish_size();
+            if (xshard_complete(*srv_, *self_, ring_, t, op) == ScatterFinish::Waiting) return true;
+        } else if (__builtin_expect(op.spec->flags & CmdFlags::DenyOom, false) &&
+                   !sh.store().budget_admit(op.key())) {
+            // Growth gate (wrinkle fix 2026-08-25): collection growth mutates behind a stable
+            // KvObj and never crosses insert-admission, so an HSET-only workload could blow
+            // through maxmemory unbounded. One predicted-false flag test per op when disabled.
+            // Scatter tasks bypass it -- their writes replace whole objects through insert-level
+            // admission on the apply hop.
             reply_maxmemory_oom(op);
         } else {
             op.spec->handler(sh, op);
-        }
-
-        if (t.scatter) {
-            sh.publish_size();
-            if (t.scatter->pending.fetch_sub(1, std::memory_order_acq_rel) != 1) return;
-            reply_ok(op.sink());
-            delete t.scatter;
         }
 
         // Release pairs with the IO thread's acquire on Done: everything the handler wrote into
@@ -423,6 +451,32 @@ private:
         // free at p1 and ruinous at p32. Flush-at-head-from-ex was separately built twice and
         // reverted twice before that (fixed sender 8.1-8.5M get_p32 vs 4.1-4.7M with wedges).
         notify_sender(t.client);
+        return true;
+    }
+
+    uint32_t service_xshard_retries() {
+        if (xshard_retries_.empty()) return 0;
+        const Task task = xshard_retries_.front();
+        xshard_retries_.pop_front();
+        const bool complete = snapshot_owner_state_ == SnapshotOwnerState::None
+            ? execute(task) : execute_snapshot_task(task, true);
+        if (!complete) xshard_retries_.push_back(task);
+        return 1;  // one bounded KEYS pass (or one snapshot-gate attempt) per executor iteration
+    }
+
+    uint32_t service_ordered_deferred() {
+        uint32_t work = 0;
+        while (work < kExecBatch && !ordered_deferred_.empty() && xshard_retries_.empty()) {
+            const Task task = ordered_deferred_.front();
+            ordered_deferred_.pop_front();
+            if (snapshot_owner_state_ == SnapshotOwnerState::None) {
+                if (!execute(task)) xshard_retries_.push_back(task);
+            } else {
+                schedule_snapshot_task(task);
+            }
+            work++;
+        }
+        return work;
     }
 
 
@@ -494,6 +548,8 @@ private:
     std::vector<uint8_t> snapshot_done_shards_;
     std::vector<std::unique_ptr<SnapshotChunk>> snapshot_pending_chunks_;
     std::vector<std::deque<Task>> snapshot_backlogs_;
+    std::deque<Task> xshard_retries_;
+    std::deque<Task> ordered_deferred_;
 };
 
 }  // namespace tomo

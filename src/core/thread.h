@@ -38,12 +38,9 @@ namespace tomo {
 class Client;
 class Ring;
 
-// Heap-side state for the deliberately rare all-shard commands. It keeps the public Op footprint
-// fixed: each owner decrements after its store work, and only the last owner completes the ROB op.
-struct ScatterState {
-    explicit ScatterState(uint32_t count) : pending(count) {}
-    std::atomic<uint32_t> pending;
-};
+// Heap-side multi-shard state is deliberately opaque here.  Its vectors, result slots and phase
+// bookkeeping live in cmd/xshard so neither Task nor the footprint-locked Op grows.
+struct ScatterState;
 
 inline constexpr uint32_t kMaxThreads = 128;
 inline constexpr uint32_t kInboxSlots = 1024;

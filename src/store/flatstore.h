@@ -721,6 +721,24 @@ public:
         alloc_table(0, 1024);
     }
 
+    // FLUSH after its scatter gate has prepared every frozen pre-image.  Preserve both table
+    // allocations and their slot numbering until the capture walker releases its cursor; turn all
+    // live entries into ordinary tombstones instead of freeing the tables as clear() does.
+    void clear_during_snapshot() {
+        for (int t = 0; t < 2; t++) {
+            if (!tab_[t]) continue;
+            for (uint32_t i = 0; i < cap_[t]; i++) {
+                if (KvObj* object = ptr_of(tab_[t][i])) {
+                    retire_obj(object);
+                    tab_[t][i] = kTombBit;
+                    live_[t]--;
+                    tombs_[t]++;
+                }
+            }
+        }
+        expires_.clear();
+    }
+
     // RANDOMKEY starts at a pseudo-random physical slot and wraps at most once through both
     // tables. Lazy expiry is performed on the owner before a key is exposed.
     KvObj* random_live(uint64_t random) {
@@ -757,6 +775,10 @@ public:
             checked++;
             if (!o) continue;
             if ((o->flags & KvObjFlags::HasTtl) && o->expire_at_ms() <= cached_now_ms_) {
+                // During capture the frozen table is the cut, not a normal mutable scan source.
+                // Report the key logically absent but leave its slot for snapshot traversal, just
+                // like find()/active_expire().  KEYS uses this bounded scan while capture runs.
+                if (snapshot_active_ && t == 1) continue;
                 const uint64_t h = hash_key(o->key());
                 erase_in(static_cast<int>(t), h, o->key());
                 if (expired_counter_) (*expired_counter_)++;

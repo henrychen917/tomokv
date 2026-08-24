@@ -32,6 +32,7 @@ struct CmdFlags {
     // reply BEFORE its handler runs. DEL/expiry/read commands stay ungated so an over-budget shard
     // can always be drained.
     static constexpr uint32_t DenyOom = 1u << 8;
+    static constexpr uint32_t MultiShard = 1u << 9;  // command-specific scatter/gather lowering
 };
 
 using CmdHandler = void (*)(Shard&, Op&);
@@ -98,5 +99,9 @@ bool command_prepare_scan_route(Server& server, Op& op);
 bool command_validate_all_shards(Op& op);
 bool command_config_routes_all_shards(Op& op);
 bool command_validate_config_set(Op& op);
+
+// Registry placeholder for commands whose implementation is the multi-shard lowering itself.
+// Reaching it as an ordinary single-shard handler is an internal routing error.
+void cmd_xshard_only(Shard& shard, Op& op);
 
 }  // namespace tomo

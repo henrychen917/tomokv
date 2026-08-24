@@ -88,7 +88,7 @@ bool command_registry_init() {
             spec->first_key < 0 || spec->key_step < 0 ||
             (!(spec->flags & (CmdFlags::ConnLocal | CmdFlags::AllShards |
                               CmdFlags::RandomShard | CmdFlags::CursorShard |
-                              CmdFlags::ConfigRoute)) &&
+                              CmdFlags::ConfigRoute | CmdFlags::MultiShard)) &&
              spec->first_key >= spec->min_arity)) {
             std::fprintf(stderr, "invalid command registry row '%s'\n", spec->name);
             return false;

@@ -32,6 +32,7 @@
 #include "../net/uring.h"
 #include "../net/wb.h"
 #include "../cmd/command.h"
+#include "../cmd/xshard.h"
 #include "../snapshot/snapshot.h"
 
 namespace tomo {
@@ -355,7 +356,17 @@ private:
             }
             if (!command_arity_ok(*spec, op->argc())) {
                 conn.advance_parse(consumed);
-                finish_locally(c, *op, "ERR wrong number of arguments"); continue;
+                char message[128];
+                char command[64];
+                const size_t name_len = std::min(std::strlen(spec->name), sizeof(command) - 1);
+                for (size_t i = 0; i < name_len; i++) {
+                    const char ch = spec->name[i];
+                    command[i] = (ch >= 'A' && ch <= 'Z') ? static_cast<char>(ch + ('a' - 'A')) : ch;
+                }
+                command[name_len] = '\0';
+                std::snprintf(message, sizeof(message),
+                              "ERR wrong number of arguments for '%s' command", command);
+                finish_locally(c, *op, message); continue;
             }
             op->spec = spec;
             const bool config_scatter = (spec->flags & CmdFlags::ConfigRoute) &&
@@ -380,35 +391,29 @@ private:
             }
 
             op->db    = static_cast<uint8_t>(c->session().db_index);
-            if ((spec->flags & CmdFlags::AllShards) || config_scatter) {
-                const bool valid = config_scatter ? command_validate_config_set(*op)
-                                                  : command_validate_all_shards(*op);
-                if (!valid) {
-                    conn.advance_parse(consumed);
-                    finish_prebuilt(c, *op);
-                    continue;
-                }
+            ScatterDispatch scatter_dispatch;
+            const ScatterPrepare scatter_prepared = xshard_prepare(*srv_, *op, scatter_dispatch);
+            if (scatter_prepared == ScatterPrepare::Error) {
+                conn.advance_parse(consumed);
+                finish_prebuilt(c, *op);
+                continue;
+            }
+            if (scatter_prepared == ScatterPrepare::Ready) {
                 uint32_t needed[kMaxThreads] = {};
-                for (uint32_t sid = 0; sid < srv_->nshards(); sid++)
-                    needed[srv_->worker_of_shard(static_cast<int32_t>(sid))]++;
+                for (int32_t sid : scatter_dispatch.shards)
+                    needed[srv_->worker_of_shard(sid)]++;
                 bool room = true;
                 for (uint32_t tid = 0; tid < srv_->nthreads(); tid++)
                     if (needed[tid] && srv_->thread(tid).task_free_slots(self_->id()) < needed[tid]) {
                         room = false; break;
                     }
-                if (!room) break;
-                auto* scatter = new (std::nothrow) ScatterState(srv_->nshards());
-                if (!scatter) {
-                    conn.advance_parse(consumed);
-                    finish_locally(c, *op, "ERR out of memory");
-                    continue;
-                }
+                if (!room) { xshard_destroy(scatter_dispatch.state); break; }
                 const uint64_t op_id = rob.dispatch_id();
                 rob.publish();
-                for (uint32_t sid = 0; sid < srv_->nshards(); sid++) {
-                    const uint32_t tid = srv_->worker_of_shard(static_cast<int32_t>(sid));
+                for (int32_t sid : scatter_dispatch.shards) {
+                    const uint32_t tid = srv_->worker_of_shard(sid);
                     ThreadCtx& owner = srv_->thread(tid);
-                    const Task task{c, op_id, static_cast<int32_t>(sid), scatter};
+                    const Task task{c, op_id, sid, scatter_dispatch.state};
                     // Capacity was checked for this producer's SPSC channel before any push. Its
                     // only concurrent actor is the consumer, which can only create more room.
                     if (!owner.post_task_quiet(self_->id(), task, sig)) std::abort();
@@ -418,7 +423,7 @@ private:
                 conn.advance_parse(consumed);
                 sig.ops++;
                 head_candidate = false;
-                c->set_scatter_barrier(true);
+                if (scatter_dispatch.barrier) c->set_scatter_barrier(true);
                 mark_active(c);
                 continue;
             }
