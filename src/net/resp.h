@@ -124,17 +124,17 @@ inline uint32_t i64_to_dec(char* dst, int64_t v) {
 }
 
 // ---- reply formatting. Handlers call these; they append RESP into the op's own buffer. ----------
-template <typename Buf> inline void reply_ok(Buf& b)   { b.append("+OK\r\n", 5); }
-template <typename Buf> inline void reply_nil(Buf& b)  { b.append("$-1\r\n", 5); }
-template <typename Buf> inline void reply_pong(Buf& b) { b.append("+PONG\r\n", 7); }
+template <typename Buf> inline void reply_ok(Buf&& b)   { b.append("+OK\r\n", 5); }
+template <typename Buf> inline void reply_nil(Buf&& b)  { b.append("$-1\r\n", 5); }
+template <typename Buf> inline void reply_pong(Buf&& b) { b.append("+PONG\r\n", 7); }
 
-template <typename Buf> inline void reply_err(Buf& b, const char* msg) {
+template <typename Buf> inline void reply_err(Buf&& b, const char* msg) {
     b.push_back('-'); b.append(msg, std::strlen(msg)); b.append("\r\n", 2);
 }
-template <typename Buf> inline void reply_simple(Buf& b, const char* msg) {
+template <typename Buf> inline void reply_simple(Buf&& b, const char* msg) {
     b.push_back('+'); b.append(msg, std::strlen(msg)); b.append("\r\n", 2);
 }
-template <typename Buf> inline void reply_int(Buf& b, long long v) {
+template <typename Buf> inline void reply_int(Buf&& b, long long v) {
     char* p = b.reserve(24);
     char* q = p;
     *q++ = ':';
@@ -146,7 +146,7 @@ template <typename Buf> inline void reply_int(Buf& b, long long v) {
 // ONE reserve, ONE memcpy, no snprintf and no re-entry into the buffer. The previous version did a
 // reserve plus three appends, and each append re-checked capacity — for a reply whose total size is
 // known exactly before a byte is written.
-template <typename Buf> inline void reply_bulk(Buf& b, Slice s) {
+template <typename Buf> inline void reply_bulk(Buf&& b, Slice s) {
     char* p = b.reserve(24 + static_cast<size_t>(s.n) + 2);
     char* q = p;
     *q++ = '$';

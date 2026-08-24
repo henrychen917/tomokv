@@ -228,6 +228,8 @@ private:
         ConnIn& conn = c->in();
         Rob<kRobWindow>& rob = c->rob();
         LoopSignals& sig = self_->sig();
+        bool head_candidate = true;   // only the pass's FIRST dispatch can be the direct head
+        uint32_t dispatched_this_pass = 0;
 
         for (;;) {
             Op* op = rob.acquire();
@@ -309,6 +311,21 @@ private:
             // It cost 3 lost replies in 87 million and wedged the connection permanently. Invisible in
             // 2-stage, where io is the sender and re-drains its own active set unprompted; fatal in
             // ex-wb and 3-stage, where the sender only ever looks when it is told to.
+            // DIRECT-REPLY eligibility (owner's c->buf trick): this op is the ROB head and the
+            // fill buffer is empty, so its bytes can be formatted in place by the worker. True for
+            // every op at depth 1 and for the head of each fresh batch at depth. Evaluated ONLY for
+            // the first dispatch of the pass: later ops cannot be head, and the in_flight() read
+            // touches flush_, a line the sender writes -- checked per op it became a per-op
+            // cross-thread load and cost -2..-4% at p32 for a candidate that can never qualify.
+            if (head_candidate) {
+                head_candidate = false;
+                if ((c->sender_is_io() || conn.last_batch() <= 1) &&
+                    rob.in_flight() == 0 && c->out().nothing_to_write()) {
+                    SmallBuf<kWbufInline>& fb = c->out().fill_buf();
+                    op->direct     = fb.data();
+                    op->direct_cap = static_cast<uint32_t>(fb.cap());
+                }
+            }
             Task t{c, rob.dispatch_id()};
             rob.publish();
             if (!worker.post_task_quiet(self_->id(), t, sig)) {
@@ -324,12 +341,14 @@ private:
             }
             conn.advance_parse(consumed);
             sig.ops++;
+            dispatched_this_pass++;
             {
                 const uint32_t wkr = static_cast<uint32_t>(srv_->worker_of_shard(op->shard));
                 if (!touched_[wkr]) { touched_[wkr] = true; touched_list_[ntouched_++] = wkr; }
             }
             mark_active(c);
         }
+        conn.set_last_batch(dispatched_this_pass);
         // Item 2: one notify per worker per parse pass, not per op. The pushes above are already
         // visible in the queues; this publishes the "look here" bit and pays the wake decision once.
         // The touched set is a LIST, not a scan: the first version swept all 128 thread slots per

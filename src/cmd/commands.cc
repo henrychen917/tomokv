@@ -29,10 +29,10 @@ static bool parse_ll(Slice s, long long& out) {
 // ---- handlers -----------------------------------------------------------------------------------
 static void cmd_get(Shard& sh, Op& op) {
     KvObj* o = sh.store().find(op.hash, op.key());
-    if (!o) { sh.stats().misses++; reply_nil(op.reply); return; }
+    if (!o) { sh.stats().misses++; reply_nil(op.sink()); return; }
     sh.stats().hits++;
-    if (o->is_int()) { reply_int(op.reply, o->int_value()); return; }
-    reply_bulk(op.reply, o->str_value());
+    if (o->is_int()) { reply_int(op.sink(), o->int_value()); return; }
+    reply_bulk(op.sink(), o->str_value());
 }
 
 static void cmd_set(Shard& sh, Op& op) {
@@ -40,26 +40,26 @@ static void cmd_set(Shard& sh, Op& op) {
     // stays single-shard — an expiry option that escapes into a multi-shard path was a real bug in
     // the fork.
     // Fast path first: same-size overwrite of an existing key needs no allocation at all.
-    if (sh.store().try_overwrite(op.hash, op.key(), op.arg(2))) { reply_ok(op.reply); return; }
+    if (sh.store().try_overwrite(op.hash, op.key(), op.arg(2))) { reply_ok(op.sink()); return; }
 
     KvObj* o = kvobj_new_string(op.key(), op.arg(2));
-    if (!o) { reply_err(op.reply, "ERR out of memory"); return; }
+    if (!o) { reply_err(op.sink(), "ERR out of memory"); return; }
     if (!sh.store().insert(op.hash, o)) {
         kvobj_free(o);
-        reply_err(op.reply, "ERR keyspace insert failed");
+        reply_err(op.sink(), "ERR keyspace insert failed");
         return;
     }
-    reply_ok(op.reply);
+    reply_ok(op.sink());
 }
 
 static void cmd_del(Shard& sh, Op& op) {
     // Single-key in v1. Multi-key DEL is class C — independent per key, fan out and count — and
     // needs the scatter-gather path, not a loop here.
-    reply_int(op.reply, sh.store().erase(op.hash, op.key()) ? 1 : 0);
+    reply_int(op.sink(), sh.store().erase(op.hash, op.key()) ? 1 : 0);
 }
 
 static void cmd_exists(Shard& sh, Op& op) {
-    reply_int(op.reply, sh.store().find(op.hash, op.key()) ? 1 : 0);
+    reply_int(op.sink(), sh.store().find(op.hash, op.key()) ? 1 : 0);
 }
 
 static void cmd_incr(Shard& sh, Op& op) {
@@ -68,7 +68,7 @@ static void cmd_incr(Shard& sh, Op& op) {
     if (o) {
         if (o->is_int()) v = o->int_value();
         else if (!parse_ll(o->str_value(), v)) {
-            reply_err(op.reply, "ERR value is not an integer or out of range");
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
             return;
         }
     }
@@ -79,9 +79,9 @@ static void cmd_incr(Shard& sh, Op& op) {
     char buf[24];
     int n = std::snprintf(buf, sizeof(buf), "%lld", v);
     KvObj* no = kvobj_new_string(op.key(), Slice(buf, static_cast<uint32_t>(n)));
-    if (!no) { reply_err(op.reply, "ERR out of memory"); return; }
+    if (!no) { reply_err(op.sink(), "ERR out of memory"); return; }
     sh.store().insert(op.hash, no);
-    reply_int(op.reply, v);
+    reply_int(op.sink(), v);
 }
 
 // ---- server-wide, answered on the IO thread ------------------------------------------------------
@@ -95,7 +95,7 @@ static void cmd_dbsize(Shard&, Op& op) {
     uint64_t n = 0;
     if (g_server) for (uint32_t i = 0; i < g_server->nshards(); i++)
         n += g_server->shard(static_cast<int32_t>(i)).published_size();
-    reply_int(op.reply, static_cast<long long>(n));
+    reply_int(op.sink(), static_cast<long long>(n));
 }
 
 static void cmd_info(Shard&, Op& op) {
@@ -117,7 +117,7 @@ static void cmd_info(Shard&, Op& op) {
         "# Tomo\r\ntomokv_shards:%u\r\n",
         (unsigned long long)keys, (unsigned long long)ops,
         (unsigned long long)hits, (unsigned long long)misses, nsh);
-    reply_bulk(op.reply, Slice(buf, static_cast<uint32_t>(n)));
+    reply_bulk(op.sink(), Slice(buf, static_cast<uint32_t>(n)));
 }
 
 // One keyspace by design (see the command-surface notes). SELECT 0 is accepted so clients that send
@@ -125,20 +125,20 @@ static void cmd_info(Shard&, Op& op) {
 static void cmd_select(Shard&, Op& op) {
     long long db = 0;
     if (!parse_ll(op.arg(1), db) || db != 0) {
-        reply_err(op.reply, "ERR this server supports a single keyspace; only SELECT 0 is valid");
+        reply_err(op.sink(), "ERR this server supports a single keyspace; only SELECT 0 is valid");
         return;
     }
-    reply_ok(op.reply);
+    reply_ok(op.sink());
 }
 
 static void cmd_config(Shard&, Op& op) { op.reply.append("*0\r\n", 4); }
 
 // Connection-local: never dispatched to a worker, so `sh` is unused.
 static void cmd_ping(Shard&, Op& op) {
-    if (op.argc() == 2) reply_bulk(op.reply, op.arg(1));
-    else                reply_pong(op.reply);
+    if (op.argc() == 2) reply_bulk(op.sink(), op.arg(1));
+    else                reply_pong(op.sink());
 }
-static void cmd_echo(Shard&, Op& op)    { reply_bulk(op.reply, op.arg(1)); }
+static void cmd_echo(Shard&, Op& op)    { reply_bulk(op.sink(), op.arg(1)); }
 static void cmd_command(Shard&, Op& op) { op.reply.append("*0\r\n", 4); }
 
 // ---- the table ----------------------------------------------------------------------------------

@@ -125,7 +125,11 @@ public:
         stats_.serves++;
         ConnOut& conn = c.out();
         const uint32_t retired = c.rob().drain([&](Op& op) {
-            conn.fill_buf().append(op.reply.data(), op.reply.size());
+            // Direct bytes are already in the fill buffer; publishing the length is the whole
+            // "copy". A reply that outgrew the region spilled to op.reply -- emit it AFTER the
+            // direct part so the RESP stream stays in order.
+            if (op.direct_len) { conn.fill_buf().commit_raw(op.direct_len); stats_.direct++; }
+            if (!op.reply.empty()) conn.fill_buf().append(op.reply.data(), op.reply.size());
         });
         bool did = retired != 0;
         if (!conn.nothing_to_write()) did |= pump_locked(c, c.wb());
@@ -220,6 +224,7 @@ public:
         uint64_t serves_empty    = 0;   // serve() retired nothing: a wake with no head-ready
         uint64_t bytes_sent      = 0;
         uint64_t retired         = 0;   // ops retired from ROBs by this sender
+        uint64_t direct          = 0;   // replies formatted in place by the worker (c->buf trick)
         uint64_t handoffs        = 0;   // clients passed to another thread's ready queue
     };
     Stats& stats() { return stats_; }

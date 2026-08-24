@@ -18,6 +18,8 @@
 #pragma once
 #include <atomic>
 #include <cstdint>
+#include <cstring>
+#include <string_view>
 #include "../base/slice.h"
 
 namespace tomo {
@@ -50,6 +52,8 @@ public:
         spec  = nullptr;
         shard = -1;
         reply.clear();
+        direct = nullptr;
+        direct_cap = direct_len = 0;
         state.store(OpState::Free, std::memory_order_relaxed);
     }
 
@@ -92,10 +96,51 @@ public:
     uint32_t rbuf_off = 0;
     uint8_t  db       = 0;              // session snapshot at parse -- handlers never see Session
 
-    SmallBuf<kInlineReply> reply;           // worker writes RESP here
+    SmallBuf<kInlineReply> reply;           // worker writes RESP here (the spill/general sink)
+
+    // DIRECT REPLY (owner's c->buf trick, both postures). When io dispatches an op that is the ROB
+    // HEAD of a connection with an EMPTY fill buffer, it points `direct` at that buffer's storage.
+    // The worker then formats RESP bytes straight into their final destination and only records the
+    // length here; the SENDER publishes the length into the buffer at in-order retire (commit_raw).
+    // The bytes cross threads under the same Done release/acquire as everything else; the buffer's
+    // SIZE is only ever written by the sender, so no new sharing is introduced. Nothing can move or
+    // grow the buffer in the window: there are no prior unretired ops (head) and no staged bytes
+    // (empty), so no append and no fill/send swap can occur before our own retire.
+    // Replies that do not fit fall back to `reply` mid-op; retire emits direct bytes first, then the
+    // spill, preserving RESP order. This is NOT exwb: the send syscall stays with the sender.
+    char*    direct     = nullptr;
+    uint32_t direct_cap = 0;
+    uint32_t direct_len = 0;
 
     // The only cross-thread field. Acquire/release on this orders everything else.
     std::atomic<OpState> state{OpState::Free};
+
+    // The handler-facing reply sink: prefers the direct region while the whole reply fits, spills
+    // to op.reply otherwise. Same interface as SmallBuf, so the resp.h helpers take either.
+    class Sink {
+    public:
+        explicit Sink(Op& o) : op_(o) {}
+        char* reserve(size_t n) {
+            if (op_.direct && op_.reply.empty() &&
+                op_.direct_len + n <= op_.direct_cap) {
+                last_direct_ = true;
+                return op_.direct + op_.direct_len;
+            }
+            last_direct_ = false;
+            return op_.reply.reserve(n);
+        }
+        void advance(size_t n) {
+            if (last_direct_) op_.direct_len += static_cast<uint32_t>(n);
+            else              op_.reply.advance(n);
+        }
+        void append(const char* s, size_t n) { char* p = reserve(n); std::memcpy(p, s, n); advance(n); }
+        void append(std::string_view s) { append(s.data(), s.size()); }
+        void push_back(char ch) { char* p = reserve(1); *p = ch; advance(1); }
+    private:
+        Op&  op_;
+        bool last_direct_ = false;
+    };
+    Sink sink() { return Sink(*this); }
 
 private:
     Slice    argv_inline_[kInlineArgv];

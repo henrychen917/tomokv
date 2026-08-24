@@ -91,6 +91,12 @@ struct WbLink {
 // ============================================================================================
 class ConnIn {
 public:
+    // io-local memory of the last parse pass's dispatch count. A conn whose passes carry one op is
+    // p1-ish; the direct-reply eligibility check consults this so DELEGATED batchy conns never pay
+    // the cross-thread flush_/out() reads for a candidacy that cannot qualify.
+    uint8_t last_batch() const { return last_batch_; }
+    void    set_last_batch(uint32_t n) { last_batch_ = static_cast<uint8_t>(n > 255 ? 255 : n); }
+
     explicit ConnIn(int fd) : fd_(fd) {
         rbuf_ = static_cast<char*>(std::malloc(kRbufInitial));
         rcap_ = kRbufInitial;
@@ -158,6 +164,7 @@ public:
     }
 
 private:
+    uint8_t last_batch_ = 0;
     int       fd_   = -1;
     char*     rbuf_ = nullptr;
     uint32_t  rlen_ = 0;      // bytes received

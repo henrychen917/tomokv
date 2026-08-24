@@ -60,6 +60,11 @@ public:
     size_t size() const { return len_; }
     bool   empty() const { return len_ == 0; }
     void   clear() { len_ = 0; }          // keeps the allocation for reuse
+    size_t cap() const { return cap_; }
+
+    // Publish n bytes that a WORKER already wrote past len_ (the direct-reply path). Only the
+    // owning sender calls this, at in-order retire; the writer honored cap(), so no grow here.
+    void commit_raw(size_t n) { len_ += n; }
 
     // Drops any heap growth and returns to the inline buffer. Called when a slot is recycled after
     // an unusually large reply, so one big reply does not permanently inflate every ring slot.
