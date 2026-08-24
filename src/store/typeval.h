@@ -8,6 +8,7 @@
 #include <cstring>
 #include <limits>
 #include <new>
+#include <utility>
 #include <vector>
 #include "../base/slice.h"
 
@@ -30,66 +31,85 @@ struct TypeLimits {
 };
 
 // [ULEB128 payload length][payload bytes], repeated to EOF. There is no container header and no
-// back-length: the lanes emit forward ranges, and paying an extra suffix on every element would
-// buy machinery they do not need. Cursor offsets are invalidated by every mutation.
+// back-length. The byte vector is a gap-at-the-ends buffer and offsets_ is a circular side index;
+// together they let the list lane mutate either end in amortized O(1) without adding bytes to the
+// wire/storage format. Interior mutations still move the affected suffix. Every mutation
+// invalidates prior Entry slices and offsets.
 class Compact {
 public:
     struct Entry {
         Slice    value;
         uint32_t offset = 0;
         uint32_t span   = 0;   // varint + payload
+        uint32_t index  = 0;
     };
 
     class Iterator {
     public:
         Iterator() = default;
-        Entry operator*() const { Entry e; owner_->decode(offset_, e); return e; }
-        Iterator& operator++() {
-            Entry e;
-            if (owner_->decode(offset_, e)) offset_ += e.span;
-            return *this;
-        }
+        Entry operator*() const { Entry e; owner_->at(index_, e); return e; }
+        Iterator& operator++() { index_++; return *this; }
         bool operator==(const Iterator& rhs) const {
-            return owner_ == rhs.owner_ && offset_ == rhs.offset_;
+            return owner_ == rhs.owner_ && index_ == rhs.index_;
         }
         bool operator!=(const Iterator& rhs) const { return !(*this == rhs); }
 
     private:
         friend class Compact;
-        Iterator(const Compact* owner, uint32_t offset) : owner_(owner), offset_(offset) {}
+        Iterator(const Compact* owner, uint32_t index) : owner_(owner), index_(index) {}
         const Compact* owner_ = nullptr;
-        uint32_t       offset_ = 0;
+        uint32_t       index_ = 0;
     };
 
     uint32_t size()          const { return entries_; }
     uint64_t payload_bytes() const { return payload_bytes_; }
-    size_t   encoded_bytes() const { return data_.size(); }
-    size_t   capacity_bytes() const { return data_.capacity(); }
+    size_t   encoded_bytes() const { return end_ - begin_; }
+    size_t   capacity_bytes() const {
+        return data_.capacity() + offsets_.capacity() * sizeof(uint32_t);
+    }
     bool     empty()         const { return entries_ == 0; }
-    const uint8_t* data()    const { return data_.data(); }
+    const uint8_t* data()    const { return data_.data() + begin_; }
+
+    static uint32_t entry_encoded_size(uint32_t payload_size) {
+        return varint_size(payload_size) + payload_size;
+    }
 
     Iterator begin() const { return Iterator(this, 0); }
-    Iterator end()   const { return Iterator(this, static_cast<uint32_t>(data_.size())); }
+    Iterator end()   const { return Iterator(this, entries_); }
 
-    bool first(Entry& out) const { return decode(0, out); }
+    bool at(uint32_t index, Entry& out) const {
+        if (index >= entries_) return false;
+        return decode(offset_at(index), index, out);
+    }
+    bool first(Entry& out) const { return at(0, out); }
+    bool last(Entry& out) const { return entries_ && at(entries_ - 1, out); }
     bool next(const Entry& cur, Entry& out) const {
-        const uint64_t off = static_cast<uint64_t>(cur.offset) + cur.span;
-        if (off > data_.size()) return false;
-        return decode(static_cast<uint32_t>(off), out);
+        return cur.index < entries_ && at(cur.index + 1, out);
     }
 
     bool append(Slice value) {
         if (entries_ == std::numeric_limits<uint32_t>::max()) return false;
         const uint32_t hdr = varint_size(value.n);
-        const size_t old = data_.size();
-        if (old > std::numeric_limits<uint32_t>::max() - hdr - value.n) return false;
-        try {
-            data_.resize(old + hdr + value.n);
-        } catch (const std::bad_alloc&) {
-            return false;
-        }
-        encode_varint(data_.data() + old, value.n);
-        if (value.n) std::memcpy(data_.data() + old + hdr, value.p, value.n);
+        const uint32_t span = hdr + value.n;
+        if (!ensure_space(0, span) || !ensure_offset_space()) return false;
+        encode_varint(data_.data() + end_, value.n);
+        if (value.n) std::memcpy(data_.data() + end_ + hdr, value.p, value.n);
+        offset_push_back(end_);
+        end_ += span;
+        entries_++;
+        payload_bytes_ += value.n;
+        return true;
+    }
+
+    bool prepend(Slice value) {
+        if (entries_ == std::numeric_limits<uint32_t>::max()) return false;
+        const uint32_t hdr = varint_size(value.n);
+        const uint32_t span = hdr + value.n;
+        if (!ensure_space(span, 0) || !ensure_offset_space()) return false;
+        begin_ -= span;
+        encode_varint(data_.data() + begin_, value.n);
+        if (value.n) std::memcpy(data_.data() + begin_ + hdr, value.p, value.n);
+        offset_push_front(begin_);
         entries_++;
         payload_bytes_ += value.n;
         return true;
@@ -97,49 +117,82 @@ public:
 
     bool replace(const Entry& old_entry, Slice value) {
         Entry checked;
-        if (!decode(old_entry.offset, checked) || checked.span != old_entry.span) return false;
+        if (!at(old_entry.index, checked) || checked.offset != old_entry.offset ||
+            checked.span != old_entry.span) return false;
 
         const uint32_t hdr = varint_size(value.n);
-        const size_t new_span = static_cast<size_t>(hdr) + value.n;
-        const size_t old_span = checked.span;
-        const size_t old_size = data_.size();
-        const size_t tail = old_size - checked.offset - old_span;
+        const uint32_t new_span = hdr + value.n;
+        const uint32_t old_span = checked.span;
         if (new_span > old_span) {
-            const size_t grow = new_span - old_span;
-            if (old_size > std::numeric_limits<uint32_t>::max() - grow) return false;
-            try {
-                data_.resize(old_size + grow);
-            } catch (const std::bad_alloc&) {
-                return false;
-            }
+            if (!ensure_space(0, new_span - old_span)) return false;
+            if (!at(old_entry.index, checked)) return false;  // ensure_space may relocate.
         }
 
         uint8_t* base = data_.data();
+        const uint32_t tail = end_ - checked.offset - old_span;
         if (new_span != old_span) {
             std::memmove(base + checked.offset + new_span,
                          base + checked.offset + old_span, tail);
+            const int64_t delta = static_cast<int64_t>(new_span) - old_span;
+            for (uint32_t i = checked.index + 1; i < entries_; i++)
+                offset_set(i, static_cast<uint32_t>(static_cast<int64_t>(offset_at(i)) + delta));
+            end_ = static_cast<uint32_t>(static_cast<int64_t>(end_) + delta);
         }
         encode_varint(base + checked.offset, value.n);
         if (value.n) std::memcpy(base + checked.offset + hdr, value.p, value.n);
-        if (new_span < old_span) data_.resize(old_size - (old_span - new_span));
         payload_bytes_ = payload_bytes_ - checked.value.n + value.n;
         return true;
     }
 
+    bool insert_before(const Entry& entry, Slice value) {
+        return insert_at(entry.index, entry, value, false);
+    }
+    bool insert_after(const Entry& entry, Slice value) {
+        return insert_at(entry.index + 1, entry, value, true);
+    }
+
     bool erase(const Entry& entry) {
         Entry checked;
-        if (!decode(entry.offset, checked) || checked.span != entry.span) return false;
-        const size_t tail = data_.size() - checked.offset - checked.span;
+        if (!at(entry.index, checked) || checked.offset != entry.offset ||
+            checked.span != entry.span) return false;
+        const uint32_t tail = end_ - checked.offset - checked.span;
         std::memmove(data_.data() + checked.offset,
                      data_.data() + checked.offset + checked.span, tail);
-        data_.resize(data_.size() - checked.span);
+        for (uint32_t i = checked.index + 1; i < entries_; i++)
+            offset_set(i - 1, offset_at(i) - checked.span);
+        end_ -= checked.span;
         entries_--;
         payload_bytes_ -= checked.value.n;
         return true;
     }
 
+    bool pop_front(uint32_t* payload_size = nullptr) {
+        Entry entry;
+        if (!first(entry)) return false;
+        if (payload_size) *payload_size = entry.value.n;
+        begin_ += entry.span;
+        offset_pop_front();
+        entries_--;
+        payload_bytes_ -= entry.value.n;
+        if (!entries_) begin_ = end_;
+        return true;
+    }
+
+    bool pop_back(uint32_t* payload_size = nullptr) {
+        Entry entry;
+        if (!last(entry)) return false;
+        if (payload_size) *payload_size = entry.value.n;
+        end_ = entry.offset;
+        entries_--;
+        payload_bytes_ -= entry.value.n;
+        if (!entries_) begin_ = end_;
+        return true;
+    }
+
     void clear() {
         data_.clear();
+        begin_ = end_ = 0;
+        offset_head_ = 0;
         entries_ = 0;
         payload_bytes_ = 0;
     }
@@ -159,21 +212,115 @@ private:
         *dst = static_cast<uint8_t>(value);
     }
 
-    bool decode(uint32_t offset, Entry& out) const {
-        if (offset >= data_.size()) return false;
+    uint32_t offset_slot(uint32_t index) const {
+        return static_cast<uint32_t>((static_cast<uint64_t>(offset_head_) + index) % offsets_.size());
+    }
+    uint32_t offset_at(uint32_t index) const { return offsets_[offset_slot(index)]; }
+    void offset_set(uint32_t index, uint32_t value) { offsets_[offset_slot(index)] = value; }
+
+    bool ensure_offset_space() {
+        if (entries_ < offsets_.size()) return true;
+        uint64_t wanted = offsets_.empty() ? 8 : static_cast<uint64_t>(offsets_.size()) * 2;
+        if (wanted <= entries_) wanted = static_cast<uint64_t>(entries_) + 1;
+        if (wanted > std::numeric_limits<uint32_t>::max()) return false;
+        std::vector<uint32_t> next_offsets;
+        try {
+            next_offsets.resize(static_cast<size_t>(wanted));
+        } catch (const std::bad_alloc&) {
+            return false;
+        }
+        for (uint32_t i = 0; i < entries_; i++) next_offsets[i] = offset_at(i);
+        offsets_.swap(next_offsets);
+        offset_head_ = 0;
+        return true;
+    }
+
+    void offset_push_back(uint32_t value) { offset_set(entries_, value); }
+    void offset_push_front(uint32_t value) {
+        offset_head_ = offset_head_ ? offset_head_ - 1
+                                    : static_cast<uint32_t>(offsets_.size() - 1);
+        offsets_[offset_head_] = value;
+    }
+    void offset_pop_front() {
+        offset_head_++;
+        if (offset_head_ == offsets_.size()) offset_head_ = 0;
+    }
+    bool ensure_space(uint32_t front, uint32_t back) {
+        if (front <= begin_ && static_cast<uint64_t>(end_) + back <= data_.size()) return true;
+        const uint64_t active = end_ - begin_;
+        const uint64_t required = active + front + back;
+        if (required > std::numeric_limits<uint32_t>::max()) return false;
+        uint64_t wanted = data_.size();
+        if (wanted < required) {
+            wanted = data_.empty() ? 64 : static_cast<uint64_t>(data_.size()) * 2;
+            if (wanted < required) wanted = required;
+        }
+        if (wanted > std::numeric_limits<uint32_t>::max())
+            wanted = std::numeric_limits<uint32_t>::max();
+
+        uint64_t new_begin = (wanted - active) / 2;
+        if (new_begin < front) new_begin = front;
+        if (wanted - active - new_begin < back) new_begin = wanted - active - back;
+        if (new_begin < front) return false;
+
+        const int64_t delta = static_cast<int64_t>(new_begin) - begin_;
+        if (wanted == data_.size()) {
+            if (active) std::memmove(data_.data() + new_begin, data_.data() + begin_, active);
+        } else {
+            std::vector<uint8_t> next_data;
+            try {
+                next_data.resize(static_cast<size_t>(wanted));
+            } catch (const std::bad_alloc&) {
+                return false;
+            }
+            if (active) std::memcpy(next_data.data() + new_begin, data_.data() + begin_, active);
+            data_.swap(next_data);
+        }
+        for (uint32_t i = 0; i < entries_; i++)
+            offset_set(i, static_cast<uint32_t>(static_cast<int64_t>(offset_at(i)) + delta));
+        begin_ = static_cast<uint32_t>(new_begin);
+        end_ = static_cast<uint32_t>(new_begin + active);
+        return true;
+    }
+
+    bool insert_at(uint32_t index, const Entry& old_entry, Slice value, bool after) {
+        if (entries_ == std::numeric_limits<uint32_t>::max() || index > entries_) return false;
+        Entry checked;
+        if (!at(old_entry.index, checked) || checked.offset != old_entry.offset ||
+            checked.span != old_entry.span) return false;
+        const uint32_t span = entry_encoded_size(value.n);
+        if (!ensure_space(0, span) || !ensure_offset_space()) return false;
+        if (!at(old_entry.index, checked)) return false;
+        const uint32_t pos = after ? checked.offset + checked.span : checked.offset;
+        const uint32_t tail = end_ - pos;
+        std::memmove(data_.data() + pos + span, data_.data() + pos, tail);
+        for (uint32_t i = entries_; i > index; i--)
+            offset_set(i, offset_at(i - 1) + span);
+        offset_set(index, pos);
+        end_ += span;
+        const uint32_t hdr = varint_size(value.n);
+        encode_varint(data_.data() + pos, value.n);
+        if (value.n) std::memcpy(data_.data() + pos + hdr, value.p, value.n);
+        entries_++;
+        payload_bytes_ += value.n;
+        return true;
+    }
+
+    bool decode(uint32_t offset, uint32_t index, Entry& out) const {
+        if (offset < begin_ || offset >= end_) return false;
         uint32_t value = 0;
         uint32_t shift = 0;
         uint32_t pos = offset;
-        for (uint32_t n = 0; n < 5 && pos < data_.size(); n++, pos++) {
+        for (uint32_t n = 0; n < 5 && pos < end_; n++, pos++) {
             const uint8_t byte = data_[pos];
             if (shift == 28 && (byte & 0xf0)) return false;
             value |= static_cast<uint32_t>(byte & 0x7f) << shift;
             if (!(byte & 0x80)) {
                 const uint32_t hdr = pos - offset + 1;
                 const uint64_t end = static_cast<uint64_t>(offset) + hdr + value;
-                if (end > data_.size()) return false;
+                if (end > end_) return false;
                 out = Entry{Slice(reinterpret_cast<const char*>(data_.data() + offset + hdr), value),
-                            offset, hdr + value};
+                            offset, hdr + value, index};
                 return true;
             }
             shift += 7;
@@ -182,6 +329,10 @@ private:
     }
 
     std::vector<uint8_t> data_;
+    std::vector<uint32_t> offsets_;
+    uint32_t              begin_ = 0;
+    uint32_t              end_ = 0;
+    uint32_t              offset_head_ = 0;
     uint32_t              entries_ = 0;
     uint64_t              payload_bytes_ = 0;
 };
@@ -215,10 +366,28 @@ public:
     Compact::Iterator end()   const { return compact_.end(); }
 
     bool append(Slice value) { return is_compact() && compact_.append(value); }
+    bool prepend(Slice value) { return is_compact() && compact_.prepend(value); }
     bool replace(const Compact::Entry& entry, Slice value) {
         return is_compact() && compact_.replace(entry, value);
     }
+    bool insert_before(const Compact::Entry& entry, Slice value) {
+        return is_compact() && compact_.insert_before(entry, value);
+    }
+    bool insert_after(const Compact::Entry& entry, Slice value) {
+        return is_compact() && compact_.insert_after(entry, value);
+    }
     bool erase(const Compact::Entry& entry) { return is_compact() && compact_.erase(entry); }
+    bool pop_front(uint32_t* payload_size = nullptr) {
+        return is_compact() && compact_.pop_front(payload_size);
+    }
+    bool pop_back(uint32_t* payload_size = nullptr) {
+        return is_compact() && compact_.pop_back(payload_size);
+    }
+    bool replace_compact(Compact&& replacement) {
+        if (!is_compact()) return false;
+        compact_ = std::move(replacement);
+        return true;
+    }
 
     bool compact_fits(const CompactLimit& limit, uint32_t resulting_entries,
                       uint32_t incoming_max_value) const {
@@ -250,9 +419,18 @@ public:
         expanded_payload_bytes_ -= payload_bytes;
         expanded_allocation_bytes_ = allocation_bytes;
     }
+    void note_expanded_delete_many(uint32_t entries, uint64_t payload_bytes,
+                                   uint64_t allocation_bytes) {
+        expanded_entries_ -= entries;
+        expanded_payload_bytes_ -= payload_bytes;
+        expanded_allocation_bytes_ = allocation_bytes;
+    }
     void note_expanded_replace(uint32_t old_bytes, uint32_t new_bytes,
                                uint64_t allocation_bytes) {
         expanded_payload_bytes_ = expanded_payload_bytes_ - old_bytes + new_bytes;
+        expanded_allocation_bytes_ = allocation_bytes;
+    }
+    void note_expanded_allocation(uint64_t allocation_bytes) {
         expanded_allocation_bytes_ = allocation_bytes;
     }
 
@@ -269,7 +447,29 @@ private:
 // Separate concrete types make the outer destructor switch exhaustive and give each follow-up lane
 // a stable place to add its expanded backing structure without changing KvObj or Op.
 struct HashVal : CompactValue {};
-struct ListVal : CompactValue {};
+struct ListNode {
+    ListNode* prev = nullptr;
+    ListNode* next = nullptr;
+    Compact   values;
+};
+
+struct ListVal : CompactValue {
+    ListVal() = default;
+    ListVal(const ListVal&) = delete;
+    ListVal& operator=(const ListVal&) = delete;
+    ~ListVal() {
+        ListNode* node = head;
+        while (node) {
+            ListNode* next = node->next;
+            delete node;
+            node = next;
+        }
+    }
+
+    ListNode* head = nullptr;
+    ListNode* tail = nullptr;
+    uint64_t  node_allocation_bytes = 0;
+};
 struct SetVal  : CompactValue {};
 struct ZsetVal : CompactValue {};
 

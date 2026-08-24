@@ -278,6 +278,14 @@ public:
                expires_.memory_bytes();
     }
 
+    // Collection values grow and shrink behind a stable KvObj header. The shard owner brackets
+    // such a mutation with kvobj_size() samples and reports the delta here so later erase/rehash
+    // subtracts the same footprint that is currently charged. Single-owner: no atomic or lock.
+    void note_object_size_change(size_t before, size_t after) {
+        if (after >= before) obj_bytes_ += after - before;
+        else obj_bytes_ -= before - after;
+    }
+
     KvObj* find(uint64_t h, Slice key) {
         if (rehashing()) rehash_step();
         if (KvObj* o = find_in(0, h, key)) return live_or_expire(0, h, key, o);
