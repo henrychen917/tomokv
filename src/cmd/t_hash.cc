@@ -1,9 +1,1410 @@
+// t_hash.cc — Redis-compatible single-key hash commands.
+//
+// Compact hashes keep one length-delimited field/value pair per Compact entry. Expanded hashes
+// use a shard-owned open-addressed field index and a dense deque of entries. The index resizes
+// incrementally; no store-path lock, atomic, or whole-hash resize walk is introduced here.
 #include "command.h"
-#include <array>
+#include "../core/shard.h"
+#include "../exec/op.h"
+#include "../net/resp.h"
+#include "../store/kvobj.h"
+
+#include <algorithm>
+#include <cerrno>
+#include <cctype>
+#include <climits>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <deque>
+#include <limits>
+#include <new>
+#include <stdexcept>
+#include <string>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
 namespace tomo {
-CommandTable hash_command_table() {
-    static const std::array<CommandSpec, 0> kTable{};
-    return {kTable.data(), kTable.size()};
+
+class HashFieldMap {
+public:
+    struct Node {
+        uint64_t hash = 0;
+        std::string field;
+        std::string value;
+
+        Node(uint64_t h, Slice f, Slice v)
+            : hash(h), field(f.p ? f.p : "", f.n), value(v.p ? v.p : "", v.n) {}
+    };
+
+    enum class SetKind : uint8_t { Inserted, Updated, Oom };
+    struct SetResult {
+        SetKind kind = SetKind::Oom;
+        uint32_t old_field_len = 0;
+        uint32_t old_value_len = 0;
+    };
+    struct EraseResult {
+        bool erased = false;
+        uint32_t field_len = 0;
+        uint32_t value_len = 0;
+    };
+
+    explicit HashFieldMap(uint64_t seed) : seed_(seed ? seed : 0x6a09e667f3bcc909ULL) {}
+    ~HashFieldMap() {
+        std::free(tab_[0]);
+        std::free(tab_[1]);
+    }
+    HashFieldMap(const HashFieldMap&) = delete;
+    HashFieldMap& operator=(const HashFieldMap&) = delete;
+
+    bool initialize(uint32_t expected) {
+        if (tab_[0]) return true;
+        uint32_t cap = kMinCap;
+        while (static_cast<uint64_t>(expected) * 100 >= static_cast<uint64_t>(cap) * kLoadPct) {
+            if (cap > (uint32_t{1} << 30)) return false;
+            cap <<= 1;
+        }
+        return allocate_initial(cap);
+    }
+
+    bool build_insert(Slice field, Slice value) {
+        if (!tab_[0] && !initialize(1)) return false;
+        const uint64_t hash = field_hash(field);
+        try {
+            nodes_.emplace_back(hash, field, value);
+        } catch (const std::bad_alloc&) {
+            return false;
+        } catch (const std::length_error&) {
+            return false;
+        }
+        const uint32_t index = static_cast<uint32_t>(nodes_.size() - 1);
+        if (!insert_bucket(0, hash, index)) {
+            nodes_.pop_back();
+            return false;
+        }
+        node_bytes_ += node_memory(nodes_.back());
+        return true;
+    }
+
+    const Node* find(Slice field) const {
+        const uint64_t hash = field_hash(field);
+        if (const Bucket* b = find_bucket_in(0, hash, field)) return &nodes_[b->node_index];
+        if (rehashing())
+            if (const Bucket* b = find_bucket_in(1, hash, field)) return &nodes_[b->node_index];
+        return nullptr;
+    }
+
+    SetResult set(Slice field, Slice value) {
+        rehash_step();
+        const uint64_t hash = field_hash(field);
+        Bucket* found = find_bucket(hash, field);
+        if (found) {
+            Node& node = nodes_[found->node_index];
+            std::string replacement;
+            try {
+                replacement.assign(value.p ? value.p : "", value.n);
+            } catch (const std::bad_alloc&) {
+                return {SetKind::Oom, 0, 0};
+            } catch (const std::length_error&) {
+                return {SetKind::Oom, 0, 0};
+            }
+            const uint32_t old_value_len = static_cast<uint32_t>(node.value.size());
+            const uint64_t old_storage = string_storage(node.value);
+            node.value.swap(replacement);
+            node_bytes_ = node_bytes_ - old_storage + string_storage(node.value);
+            return {SetKind::Updated, static_cast<uint32_t>(node.field.size()), old_value_len};
+        }
+
+        if (nodes_.size() >= std::numeric_limits<uint32_t>::max() || !prepare_insert())
+            return {SetKind::Oom, 0, 0};
+        try {
+            nodes_.emplace_back(hash, field, value);
+        } catch (const std::bad_alloc&) {
+            return {SetKind::Oom, 0, 0};
+        } catch (const std::length_error&) {
+            return {SetKind::Oom, 0, 0};
+        }
+        const uint32_t index = static_cast<uint32_t>(nodes_.size() - 1);
+        if (!insert_bucket(0, hash, index)) {
+            nodes_.pop_back();
+            return {SetKind::Oom, 0, 0};
+        }
+        node_bytes_ += node_memory(nodes_.back());
+        return {SetKind::Inserted, 0, 0};
+    }
+
+    EraseResult erase(Slice field) {
+        rehash_step();
+        const uint64_t hash = field_hash(field);
+        int victim_table = 0;
+        Bucket* victim = find_bucket_in(0, hash, field);
+        if (!victim && rehashing()) {
+            victim = find_bucket_in(1, hash, field);
+            victim_table = 1;
+        }
+        if (!victim) return {};
+
+        const uint32_t victim_pos = static_cast<uint32_t>(victim - tab_[victim_table]);
+        const uint32_t index = victim->node_index;
+        Node& removed = nodes_[index];
+        const EraseResult result{true, static_cast<uint32_t>(removed.field.size()),
+                                static_cast<uint32_t>(removed.value.size())};
+        const uint64_t removed_memory = node_memory(removed);
+
+        unlink_scan_bucket(victim_table, victim_pos);
+        victim->state = kTomb;
+        live_[victim_table]--;
+        tombs_[victim_table]++;
+
+        const uint32_t last = static_cast<uint32_t>(nodes_.size() - 1);
+        if (index != last) {
+            Node& moved = nodes_[last];
+            Bucket* moved_bucket = find_bucket(moved.hash, as_slice(moved.field));
+            std::swap(nodes_[index], nodes_[last]);
+            if (moved_bucket) moved_bucket->node_index = index;
+        }
+        nodes_.pop_back();
+        node_bytes_ -= removed_memory;
+        maybe_start_shrink();
+        return result;
+    }
+
+    uint32_t size() const { return static_cast<uint32_t>(nodes_.size()); }
+    const Node& at(uint32_t index) const { return nodes_[index]; }
+    uint64_t allocation_bytes() const { return table_bytes_ + node_bytes_; }
+
+    template <typename Fn>
+    void for_each(Fn&& fn) const {
+        for (const Node& node : nodes_) fn(node);
+    }
+
+    // One cursor step scans a logical HOME bucket through its intrusive scan chain, not just one
+    // physical linear-probe slot. That makes displacement irrelevant and restores the premise
+    // used by Redis dictScan's reverse-mask proof. During resize both the smaller home bucket and
+    // every expansion of it in the larger table are visited before the cursor advances.
+    template <typename Fn>
+    uint64_t scan(uint64_t cursor, Fn&& fn) const {
+        if (nodes_.empty() || !tab_[0]) return 0;
+        if (!rehashing()) {
+            scan_home(0, static_cast<uint32_t>(cursor) & mask_[0], fn);
+            return advance_cursor(cursor, mask_[0]);
+        }
+
+        if (mask_[0] == mask_[1]) {
+            const uint32_t home = static_cast<uint32_t>(cursor) & mask_[0];
+            scan_home(0, home, fn);
+            scan_home(1, home, fn);
+            return advance_cursor(cursor, mask_[0]);
+        }
+
+        int small = cap_[0] < cap_[1] ? 0 : 1;
+        int large = small ^ 1;
+        const uint64_t small_mask = mask_[small];
+        const uint64_t large_mask = mask_[large];
+        scan_home(small, static_cast<uint32_t>(cursor & small_mask), fn);
+        do {
+            scan_home(large, static_cast<uint32_t>(cursor & large_mask), fn);
+            cursor |= ~large_mask;
+            cursor = reverse_bits(cursor);
+            cursor++;
+            cursor = reverse_bits(cursor);
+        } while (cursor & (small_mask ^ large_mask));
+        return cursor;
+    }
+
+private:
+    struct Bucket {
+        uint64_t hash = 0;
+        uint32_t node_index = 0;
+        // One intrusive list per logical home bucket makes scan work proportional to entries
+        // emitted from that bucket even when linear probing forms a long physical cluster. Links
+        // are one-based so calloc's zero is the null link.
+        uint32_t home_head = 0;
+        uint32_t scan_next = 0;
+        uint32_t scan_prev = 0;
+        uint8_t state = 0;
+        uint8_t pad[3] = {};
+    };
+
+    static constexpr uint8_t kEmpty = 0;
+    static constexpr uint8_t kLive = 1;
+    static constexpr uint8_t kTomb = 2;
+    static constexpr uint32_t kMinCap = 8;
+    static constexpr uint32_t kLoadPct = 70;
+    static constexpr uint32_t kRehashBucketsPerWrite = 8;
+
+    static Slice as_slice(const std::string& s) {
+        return Slice(s.data(), static_cast<uint32_t>(s.size()));
+    }
+    static uint64_t string_storage(const std::string& s) {
+        return static_cast<uint64_t>(s.capacity()) + 1;
+    }
+    static uint64_t node_memory(const Node& node) {
+        return sizeof(Node) + string_storage(node.field) + string_storage(node.value);
+    }
+    static uint64_t mix(uint64_t value) {
+        value ^= value >> 33;
+        value *= 0xff51afd7ed558ccdULL;
+        value ^= value >> 33;
+        value *= 0xc4ceb9fe1a85ec53ULL;
+        value ^= value >> 33;
+        return value;
+    }
+
+    uint64_t field_hash(Slice field) const {
+        const uint8_t* p = reinterpret_cast<const uint8_t*>(field.p);
+        uint32_t n = field.n;
+        uint64_t hash = seed_ ^ (static_cast<uint64_t>(n) * 0x9e3779b97f4a7c15ULL);
+        while (n >= 8) {
+            uint64_t word;
+            std::memcpy(&word, p, 8);
+            hash = mix(hash ^ word);
+            p += 8;
+            n -= 8;
+        }
+        uint64_t tail = 0;
+        if (n) std::memcpy(&tail, p, n);
+        return mix(hash ^ tail ^ (static_cast<uint64_t>(field.n) << 32));
+    }
+
+    bool rehashing() const { return tab_[1] != nullptr; }
+
+    bool allocate_initial(uint32_t cap) {
+        Bucket* table = static_cast<Bucket*>(std::calloc(cap, sizeof(Bucket)));
+        if (!table) return false;
+        tab_[0] = table;
+        cap_[0] = cap;
+        mask_[0] = cap - 1;
+        table_bytes_ += static_cast<uint64_t>(cap) * sizeof(Bucket);
+        return true;
+    }
+
+    bool start_resize(uint32_t cap) {
+        if (rehashing()) return true;
+        Bucket* table = static_cast<Bucket*>(std::calloc(cap, sizeof(Bucket)));
+        if (!table) return false;
+        tab_[1] = tab_[0];
+        cap_[1] = cap_[0];
+        mask_[1] = mask_[0];
+        live_[1] = live_[0];
+        tombs_[1] = tombs_[0];
+        tab_[0] = table;
+        cap_[0] = cap;
+        mask_[0] = cap - 1;
+        live_[0] = tombs_[0] = 0;
+        rehash_pos_ = 0;
+        table_bytes_ += static_cast<uint64_t>(cap) * sizeof(Bucket);
+        return true;
+    }
+
+    bool prepare_insert() {
+        if (!tab_[0] && !allocate_initial(kMinCap)) return false;
+        if (rehashing()) return true;
+        const uint64_t occupied = static_cast<uint64_t>(live_[0]) + tombs_[0] + 1;
+        if ((static_cast<uint64_t>(live_[0]) + 1) * 100 >=
+            static_cast<uint64_t>(cap_[0]) * kLoadPct) {
+            if (cap_[0] > (uint32_t{1} << 30)) return false;
+            return start_resize(cap_[0] << 1);
+        }
+        if (occupied * 100 >= static_cast<uint64_t>(cap_[0]) * 85 && tombs_[0] > live_[0] / 2)
+            (void)start_resize(cap_[0]);
+        return true;
+    }
+
+    void maybe_start_shrink() {
+        if (rehashing() || cap_[0] <= kMinCap) return;
+        if (static_cast<uint64_t>(nodes_.size()) * 100 <=
+            static_cast<uint64_t>(cap_[0]) * 15)
+            (void)start_resize(cap_[0] >> 1);
+    }
+
+    bool insert_bucket(int table, uint64_t hash, uint32_t node_index) {
+        uint32_t pos = static_cast<uint32_t>(hash) & mask_[table];
+        int32_t first_tomb = -1;
+        for (uint32_t probes = 0; probes < cap_[table]; probes++) {
+            Bucket& bucket = tab_[table][pos];
+            if (bucket.state == kEmpty) {
+                if (first_tomb >= 0) {
+                    pos = static_cast<uint32_t>(first_tomb);
+                    tombs_[table]--;
+                }
+                link_scan_bucket(table, pos, hash, node_index);
+                live_[table]++;
+                return true;
+            }
+            if (bucket.state == kTomb && first_tomb < 0) first_tomb = static_cast<int32_t>(pos);
+            pos = (pos + 1) & mask_[table];
+        }
+        if (first_tomb >= 0) {
+            link_scan_bucket(table, static_cast<uint32_t>(first_tomb), hash, node_index);
+            live_[table]++;
+            tombs_[table]--;
+            return true;
+        }
+        return false;
+    }
+
+    const Bucket* find_bucket_in(int table, uint64_t hash, Slice field) const {
+        if (!tab_[table]) return nullptr;
+        uint32_t pos = static_cast<uint32_t>(hash) & mask_[table];
+        for (uint32_t probes = 0; probes < cap_[table]; probes++) {
+            const Bucket& bucket = tab_[table][pos];
+            if (bucket.state == kEmpty) return nullptr;
+            if (bucket.state == kLive && bucket.hash == hash &&
+                as_slice(nodes_[bucket.node_index].field) == field)
+                return &bucket;
+            pos = (pos + 1) & mask_[table];
+        }
+        return nullptr;
+    }
+
+    Bucket* find_bucket_in(int table, uint64_t hash, Slice field) {
+        return const_cast<Bucket*>(
+            static_cast<const HashFieldMap*>(this)->find_bucket_in(table, hash, field));
+    }
+    Bucket* find_bucket(uint64_t hash, Slice field) {
+        if (Bucket* b = find_bucket_in(0, hash, field)) return b;
+        return rehashing() ? find_bucket_in(1, hash, field) : nullptr;
+    }
+
+    void link_scan_bucket(int table, uint32_t pos, uint64_t hash, uint32_t node_index) {
+        Bucket& bucket = tab_[table][pos];
+        const uint32_t saved_home_head = bucket.home_head;
+        bucket.hash = hash;
+        bucket.node_index = node_index;
+        bucket.state = kLive;
+        bucket.scan_prev = 0;
+
+        const uint32_t home = static_cast<uint32_t>(hash) & mask_[table];
+        const uint32_t old_head = tab_[table][home].home_head;
+        bucket.scan_next = old_head;
+        if (old_head) tab_[table][old_head - 1].scan_prev = pos + 1;
+        tab_[table][home].home_head = pos + 1;
+
+        // When this physical slot is itself a different logical bucket's home, its home-head is
+        // independent of the entry now stored in the slot and must survive slot reuse.
+        if (pos != home) bucket.home_head = saved_home_head;
+    }
+
+    void unlink_scan_bucket(int table, uint32_t pos) {
+        Bucket& bucket = tab_[table][pos];
+        const uint32_t home = static_cast<uint32_t>(bucket.hash) & mask_[table];
+        if (bucket.scan_prev)
+            tab_[table][bucket.scan_prev - 1].scan_next = bucket.scan_next;
+        else
+            tab_[table][home].home_head = bucket.scan_next;
+        if (bucket.scan_next)
+            tab_[table][bucket.scan_next - 1].scan_prev = bucket.scan_prev;
+        bucket.scan_next = bucket.scan_prev = 0;
+    }
+
+    void rehash_step() {
+        if (!rehashing()) return;
+        uint32_t budget = kRehashBucketsPerWrite;
+        while (budget && rehash_pos_ < cap_[1]) {
+            Bucket& old = tab_[1][rehash_pos_];
+            if (old.state == kLive) {
+                if (!insert_bucket(0, old.hash, old.node_index)) return;
+                unlink_scan_bucket(1, rehash_pos_);
+                old.state = kTomb;
+                live_[1]--;
+                tombs_[1]++;
+            }
+            rehash_pos_++;
+            budget--;
+        }
+        if (rehash_pos_ == cap_[1]) {
+            table_bytes_ -= static_cast<uint64_t>(cap_[1]) * sizeof(Bucket);
+            std::free(tab_[1]);
+            tab_[1] = nullptr;
+            cap_[1] = mask_[1] = live_[1] = tombs_[1] = rehash_pos_ = 0;
+        }
+    }
+
+    static uint64_t reverse_bits(uint64_t value) {
+        value = ((value & 0x5555555555555555ULL) << 1) |
+                ((value >> 1) & 0x5555555555555555ULL);
+        value = ((value & 0x3333333333333333ULL) << 2) |
+                ((value >> 2) & 0x3333333333333333ULL);
+        value = ((value & 0x0f0f0f0f0f0f0f0fULL) << 4) |
+                ((value >> 4) & 0x0f0f0f0f0f0f0f0fULL);
+        value = ((value & 0x00ff00ff00ff00ffULL) << 8) |
+                ((value >> 8) & 0x00ff00ff00ff00ffULL);
+        value = ((value & 0x0000ffff0000ffffULL) << 16) |
+                ((value >> 16) & 0x0000ffff0000ffffULL);
+        return (value << 32) | (value >> 32);
+    }
+
+    static uint64_t advance_cursor(uint64_t cursor, uint64_t mask) {
+        cursor |= ~mask;
+        cursor = reverse_bits(cursor);
+        cursor++;
+        return reverse_bits(cursor);
+    }
+
+    template <typename Fn>
+    void scan_home(int table, uint32_t home, Fn& fn) const {
+        uint32_t link = tab_[table][home].home_head;
+        while (link) {
+            const Bucket& bucket = tab_[table][link - 1];
+            const uint32_t next = bucket.scan_next;
+            if (bucket.state == kLive) fn(nodes_[bucket.node_index]);
+            link = next;
+        }
+    }
+
+    uint64_t seed_ = 0;
+    Bucket* tab_[2] = {nullptr, nullptr};
+    uint32_t cap_[2] = {0, 0};
+    uint32_t mask_[2] = {0, 0};
+    uint32_t live_[2] = {0, 0};
+    uint32_t tombs_[2] = {0, 0};
+    uint32_t rehash_pos_ = 0;
+    uint64_t table_bytes_ = 0;
+    uint64_t node_bytes_ = 0;
+    std::deque<Node> nodes_;
+};
+
+HashVal::HashVal(uint64_t seed) {
+    random_state = seed ^ 0xd1b54a32d192ed03ULL;
+    if (!random_state) random_state = 0x9e3779b97f4a7c15ULL;
 }
+
+HashVal::~HashVal() { delete fields; }
+
+uint64_t HashVal::random_bounded(uint64_t bound) {
+    if (!bound) return 0;
+    uint64_t value = random_state;
+    value ^= value >> 12;
+    value ^= value << 25;
+    value ^= value >> 27;
+    random_state = value;
+    value *= 0x2545f4914f6cdd1dULL;
+    return static_cast<uint64_t>((static_cast<unsigned __int128>(value) * bound) >> 64);
+}
+
+namespace {
+
+struct PairView {
+    Compact::Entry entry;
+    Slice field;
+    Slice value;
+};
+
+uint32_t uleb_size(uint32_t value) {
+    uint32_t size = 1;
+    while (value >= 0x80) {
+        value >>= 7;
+        size++;
+    }
+    return size;
+}
+
+void encode_uleb(char* dst, uint32_t value) {
+    while (value >= 0x80) {
+        *dst++ = static_cast<char>((value & 0x7f) | 0x80);
+        value >>= 7;
+    }
+    *dst = static_cast<char>(value);
+}
+
+bool encode_pair(Slice field, Slice value, std::string& out) {
+    const uint32_t header = uleb_size(field.n);
+    const uint64_t total = static_cast<uint64_t>(header) + field.n + value.n;
+    if (total > std::numeric_limits<uint32_t>::max()) return false;
+    try {
+        out.resize(static_cast<size_t>(total));
+    } catch (const std::bad_alloc&) {
+        return false;
+    } catch (const std::length_error&) {
+        return false;
+    }
+    encode_uleb(out.data(), field.n);
+    if (field.n) std::memcpy(out.data() + header, field.p, field.n);
+    if (value.n) std::memcpy(out.data() + header + field.n, value.p, value.n);
+    return true;
+}
+
+bool decode_pair(const Compact::Entry& entry, PairView& out) {
+    uint32_t field_len = 0;
+    uint32_t shift = 0;
+    uint32_t pos = 0;
+    for (uint32_t n = 0; n < 5 && pos < entry.value.n; n++, pos++) {
+        const uint8_t byte = static_cast<uint8_t>(entry.value.p[pos]);
+        if (shift == 28 && (byte & 0xf0)) return false;
+        field_len |= static_cast<uint32_t>(byte & 0x7f) << shift;
+        if (!(byte & 0x80)) {
+            const uint32_t header = pos + 1;
+            if (field_len > entry.value.n - header) return false;
+            out.entry = entry;
+            out.field = Slice(entry.value.p + header, field_len);
+            out.value = Slice(entry.value.p + header + field_len,
+                              entry.value.n - header - field_len);
+            return true;
+        }
+        shift += 7;
+    }
+    return false;
+}
+
+bool compact_find(const HashVal& hash, Slice wanted, PairView& out) {
+    for (auto it = hash.begin(); it != hash.end(); ++it) {
+        PairView pair;
+        if (decode_pair(*it, pair) && pair.field == wanted) {
+            out = pair;
+            return true;
+        }
+    }
+    return false;
+}
+
+template <typename Fn>
+void compact_for_each(const HashVal& hash, Fn&& fn) {
+    for (auto it = hash.begin(); it != hash.end(); ++it) {
+        PairView pair;
+        if (decode_pair(*it, pair)) fn(pair);
+    }
+}
+
+uint64_t expanded_allocation(const HashVal& hash) {
+    return hash.fields ? sizeof(HashFieldMap) + hash.fields->allocation_bytes() : 0;
+}
+
+bool promote_hash(HashVal& hash) {
+    auto* map = new (std::nothrow) HashFieldMap(hash.random_state);
+    if (!map) return false;
+    if (!map->initialize(hash.field_count())) {
+        delete map;
+        return false;
+    }
+    bool ok = true;
+    compact_for_each(hash, [&](const PairView& pair) {
+        if (ok && !map->build_insert(pair.field, pair.value)) ok = false;
+    });
+    if (!ok || map->size() != hash.field_count()) {
+        delete map;
+        return false;
+    }
+
+    const uint32_t logical_entries = hash.field_count();
+    const uint64_t logical_payload = hash.compact_payload_bytes;
+    hash.fields = map;
+    hash.promote(CollectionEncoding::Hashtable, expanded_allocation(hash),
+                 logical_entries, logical_payload);
+    hash.compact_payload_bytes = 0;
+    return true;
+}
+
+enum class HashSetKind : uint8_t { Inserted, Updated, Oom };
+
+HashSetKind hash_set(HashVal& hash, const CompactLimit& limit, Slice field, Slice value) {
+    if (hash.encoding() == CollectionEncoding::Compact) {
+        PairView old;
+        const bool exists = compact_find(hash, field, old);
+        if (!exists && hash.field_count() == std::numeric_limits<uint32_t>::max())
+            return HashSetKind::Oom;
+        const uint32_t resulting_entries = hash.field_count() + (exists ? 0u : 1u);
+        const uint32_t incoming_max = std::max(field.n, value.n);
+        // This is the conversion decision: two maintained/scalar reads and the current write's
+        // lengths. It never scans existing fields or bytes to decide whether promotion is needed.
+        if (!hash.compact_fits(limit, resulting_entries, incoming_max) && !promote_hash(hash))
+            return HashSetKind::Oom;
+
+        if (hash.encoding() == CollectionEncoding::Compact) {
+            std::string encoded;
+            if (!encode_pair(field, value, encoded)) return HashSetKind::Oom;
+            if (exists) {
+                if (!hash.replace(old.entry, Slice(encoded.data(), static_cast<uint32_t>(encoded.size()))))
+                    return HashSetKind::Oom;
+                hash.compact_payload_bytes = hash.compact_payload_bytes - old.value.n + value.n;
+                return HashSetKind::Updated;
+            }
+            if (!hash.append(Slice(encoded.data(), static_cast<uint32_t>(encoded.size()))))
+                return HashSetKind::Oom;
+            hash.compact_payload_bytes += static_cast<uint64_t>(field.n) + value.n;
+            return HashSetKind::Inserted;
+        }
+    }
+
+    HashFieldMap::SetResult result = hash.fields->set(field, value);
+    const uint64_t allocation = expanded_allocation(hash);
+    if (result.kind == HashFieldMap::SetKind::Inserted) {
+        hash.note_expanded_insert(field.n + value.n, allocation);
+        return HashSetKind::Inserted;
+    }
+    if (result.kind == HashFieldMap::SetKind::Updated) {
+        hash.note_expanded_replace(result.old_field_len + result.old_value_len,
+                                   field.n + value.n, allocation);
+        return HashSetKind::Updated;
+    }
+    // A bounded rehash step may have completed before a later allocation failed. Refresh the
+    // maintained allocation total even though the logical field/value set did not change.
+    hash.note_expanded_replace(0, 0, allocation);
+    return HashSetKind::Oom;
+}
+
+bool hash_get(const HashVal& hash, Slice field, Slice& value) {
+    if (hash.encoding() == CollectionEncoding::Compact) {
+        PairView pair;
+        if (!compact_find(hash, field, pair)) return false;
+        value = pair.value;
+        return true;
+    }
+    const HashFieldMap::Node* node = hash.fields->find(field);
+    if (!node) return false;
+    value = Slice(node->value.data(), static_cast<uint32_t>(node->value.size()));
+    return true;
+}
+
+bool hash_erase(HashVal& hash, Slice field) {
+    if (hash.encoding() == CollectionEncoding::Compact) {
+        PairView pair;
+        if (!compact_find(hash, field, pair)) return false;
+        const uint64_t payload = static_cast<uint64_t>(pair.field.n) + pair.value.n;
+        if (!hash.erase(pair.entry)) return false;
+        hash.compact_payload_bytes -= payload;
+        return true;
+    }
+    const HashFieldMap::EraseResult result = hash.fields->erase(field);
+    if (!result.erased) {
+        hash.note_expanded_replace(0, 0, expanded_allocation(hash));
+        return false;
+    }
+    hash.note_expanded_delete(result.field_len + result.value_len, expanded_allocation(hash));
+    return true;
+}
+
+HashVal* as_hash(KvObj* object) {
+    return static_cast<HashVal*>(object->external_ptr());
+}
+
+bool attach_new_hash(Shard& shard, Op& op, HashVal* hash) {
+    KvObj* object = kvobj_new_hash(op.key(), hash);
+    if (!object) {
+        delete hash;
+        reply_err(op.sink(), "ERR out of memory");
+        return false;
+    }
+    if (!shard.store().insert(op.hash, object)) {
+        kvobj_free(object);
+        reply_err(op.sink(), "ERR keyspace insert failed");
+        return false;
+    }
+    return true;
+}
+
+void reply_wrong_arity(Op& op) {
+    reply_err(op.sink(), "ERR wrong number of arguments");
+}
+
+bool preconvert_hset(HashVal& hash, const CompactLimit& limit, const Op& op) {
+    if (hash.encoding() != CollectionEncoding::Compact) return true;
+    const uint32_t incoming_fields = (op.argc() - 2) / 2;
+    bool promote = incoming_fields > limit.max_entries;
+    for (uint32_t i = 2; !promote && i < op.argc(); i++)
+        promote = op.arg(i).n > limit.max_value;
+    return !promote || promote_hash(hash);
+}
+
+bool parse_i64(Slice text, int64_t& value) {
+    if (text.n == 0 || text.n >= 21) return false;
+    if (text.n == 1 && text.p[0] == '0') {
+        value = 0;
+        return true;
+    }
+    uint32_t pos = 0;
+    bool negative = false;
+    if (text.p[0] == '-') {
+        negative = true;
+        if (++pos == text.n) return false;
+    }
+    if (text.p[pos] < '1' || text.p[pos] > '9') return false;
+    uint64_t magnitude = static_cast<uint64_t>(text.p[pos++] - '0');
+    for (; pos < text.n; pos++) {
+        const char ch = text.p[pos];
+        if (ch < '0' || ch > '9') return false;
+        const uint32_t digit = static_cast<uint32_t>(ch - '0');
+        if (magnitude > (std::numeric_limits<uint64_t>::max() - digit) / 10) return false;
+        magnitude = magnitude * 10 + digit;
+    }
+    const uint64_t limit = negative ? (uint64_t{1} << 63) : static_cast<uint64_t>(INT64_MAX);
+    if (magnitude > limit) return false;
+    if (negative)
+        value = magnitude == (uint64_t{1} << 63) ? INT64_MIN : -static_cast<int64_t>(magnitude);
+    else
+        value = static_cast<int64_t>(magnitude);
+    return true;
+}
+
+bool parse_cursor(Slice text, uint64_t& value) {
+    if (text.n == 0) return false;
+    uint64_t parsed = 0;
+    for (uint32_t i = 0; i < text.n; i++) {
+        const char ch = text.p[i];
+        if (ch < '0' || ch > '9') return false;
+        const uint32_t digit = static_cast<uint32_t>(ch - '0');
+        if (parsed > (std::numeric_limits<uint64_t>::max() - digit) / 10) return false;
+        parsed = parsed * 10 + digit;
+    }
+    value = parsed;
+    return true;
+}
+
+bool parse_long_double(Slice text, long double& value) {
+    constexpr size_t kFloatBuffer = 5 * 1024;
+    if (text.n == 0 || text.n >= kFloatBuffer ||
+        std::isspace(static_cast<unsigned char>(text.p[0])))
+        return false;
+    char buffer[kFloatBuffer];
+    std::memcpy(buffer, text.p, text.n);
+    buffer[text.n] = '\0';
+    errno = 0;
+    char* end = nullptr;
+    const long double parsed = std::strtold(buffer, &end);
+    if (end != buffer + text.n || errno == EINVAL || std::isnan(parsed) ||
+        (errno == ERANGE && (std::isinf(parsed) || std::fpclassify(parsed) == FP_ZERO)))
+        return false;
+    value = parsed;
+    return true;
+}
+
+uint32_t format_long_double(char* buffer, size_t capacity, long double value) {
+    int length = std::snprintf(buffer, capacity, "%.17Lf", value);
+    if (length <= 0 || static_cast<size_t>(length) >= capacity) return 0;
+    char* dot = static_cast<char*>(std::memchr(buffer, '.', static_cast<size_t>(length)));
+    if (dot) {
+        while (length > 0 && buffer[length - 1] == '0') length--;
+        if (length > 0 && buffer[length - 1] == '.') length--;
+    }
+    if (length == 2 && buffer[0] == '-' && buffer[1] == '0') {
+        buffer[0] = '0';
+        length = 1;
+    }
+    return static_cast<uint32_t>(length);
+}
+
+void cmd_hset(Shard& shard, Op& op) {
+    if (op.argc() & 1u) {
+        reply_wrong_arity(op);
+        return;
+    }
+    KvObj* object = shard.store().find(op.hash, op.key());
+    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+
+    HashVal* hash = object ? as_hash(object) : new (std::nothrow) HashVal(op.hash);
+    if (!hash) {
+        reply_err(op.sink(), "ERR out of memory");
+        return;
+    }
+    // Wide fresh HSET/HMSET must not repeatedly scan an ever-growing Compact. As Redis, Valkey,
+    // and the optimized fork do, use only the incoming pair count/lengths to pre-promote when the
+    // command itself cannot fit; duplicates may conservatively over-promote, never under-promote.
+    if (!preconvert_hset(*hash, shard.type_limits().hash, op)) {
+        if (!object) delete hash;
+        reply_err(op.sink(), "ERR out of memory");
+        return;
+    }
+    uint32_t created = 0;
+    for (uint32_t i = 2; i < op.argc(); i += 2) {
+        const HashSetKind result = hash_set(*hash, shard.type_limits().hash, op.arg(i), op.arg(i + 1));
+        if (result == HashSetKind::Oom) {
+            if (!object) delete hash;
+            reply_err(op.sink(), "ERR out of memory");
+            return;
+        }
+        created += result == HashSetKind::Inserted;
+    }
+    if (!object && !attach_new_hash(shard, op, hash)) return;
+    if (op.cmd_name().eq_icase("hmset")) reply_ok(op.sink());
+    else reply_int(op.sink(), created);
+}
+
+void cmd_hsetnx(Shard& shard, Op& op) {
+    KvObj* object = shard.store().find(op.hash, op.key());
+    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+    if (object) {
+        Slice ignored;
+        if (hash_get(*as_hash(object), op.arg(2), ignored)) {
+            reply_int(op.sink(), 0);
+            return;
+        }
+    }
+
+    HashVal* hash = object ? as_hash(object) : new (std::nothrow) HashVal(op.hash);
+    if (!hash) {
+        reply_err(op.sink(), "ERR out of memory");
+        return;
+    }
+    if (hash_set(*hash, shard.type_limits().hash, op.arg(2), op.arg(3)) == HashSetKind::Oom) {
+        if (!object) delete hash;
+        reply_err(op.sink(), "ERR out of memory");
+        return;
+    }
+    if (!object && !attach_new_hash(shard, op, hash)) return;
+    reply_int(op.sink(), 1);
+}
+
+void cmd_hget(Shard& shard, Op& op) {
+    KvObj* object = shard.store().find(op.hash, op.key());
+    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+    Slice value;
+    if (!object || !hash_get(*as_hash(object), op.arg(2), value)) reply_nil(op.sink());
+    else reply_bulk(op.sink(), value);
+}
+
+void cmd_hmget(Shard& shard, Op& op) {
+    KvObj* object = shard.store().find(op.hash, op.key());
+    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+    reply_array_header(op.sink(), op.argc() - 2);
+    for (uint32_t i = 2; i < op.argc(); i++) {
+        Slice value;
+        if (!object || !hash_get(*as_hash(object), op.arg(i), value)) reply_nil(op.sink());
+        else reply_bulk(op.sink(), value);
+    }
+}
+
+void cmd_hdel(Shard& shard, Op& op) {
+    KvObj* object = shard.store().find(op.hash, op.key());
+    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+    if (!object) {
+        reply_int(op.sink(), 0);
+        return;
+    }
+    HashVal* hash = as_hash(object);
+    uint32_t deleted = 0;
+    for (uint32_t i = 2; i < op.argc(); i++) {
+        if (!hash_erase(*hash, op.arg(i))) continue;
+        deleted++;
+        if (hash->field_count() == 0) {
+            shard.store().erase(op.hash, op.key());
+            break;
+        }
+    }
+    reply_int(op.sink(), deleted);
+}
+
+void cmd_hlen(Shard& shard, Op& op) {
+    KvObj* object = shard.store().find(op.hash, op.key());
+    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+    reply_int(op.sink(), object ? as_hash(object)->field_count() : 0);
+}
+
+void cmd_hexists(Shard& shard, Op& op) {
+    KvObj* object = shard.store().find(op.hash, op.key());
+    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+    Slice value;
+    reply_int(op.sink(), object && hash_get(*as_hash(object), op.arg(2), value) ? 1 : 0);
+}
+
+void cmd_hstrlen(Shard& shard, Op& op) {
+    KvObj* object = shard.store().find(op.hash, op.key());
+    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+    Slice value;
+    reply_int(op.sink(), object && hash_get(*as_hash(object), op.arg(2), value) ? value.n : 0);
+}
+
+void cmd_hincrby(Shard& shard, Op& op) {
+    int64_t increment = 0;
+    if (!parse_i64(op.arg(3), increment)) {
+        reply_err(op.sink(), "ERR value is not an integer or out of range");
+        return;
+    }
+    KvObj* object = shard.store().find(op.hash, op.key());
+    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+
+    int64_t old_value = 0;
+    Slice old_text;
+    if (object && hash_get(*as_hash(object), op.arg(2), old_text) &&
+        !parse_i64(old_text, old_value)) {
+        reply_err(op.sink(), "ERR hash value is not an integer");
+        return;
+    }
+    if ((increment > 0 && old_value > INT64_MAX - increment) ||
+        (increment < 0 && old_value < INT64_MIN - increment)) {
+        reply_err(op.sink(), "ERR increment or decrement would overflow");
+        return;
+    }
+    const int64_t value = old_value + increment;
+    char text[24];
+    const uint32_t length = i64_to_dec(text, value);
+
+    HashVal* hash = object ? as_hash(object) : new (std::nothrow) HashVal(op.hash);
+    if (!hash) {
+        reply_err(op.sink(), "ERR out of memory");
+        return;
+    }
+    if (hash_set(*hash, shard.type_limits().hash, op.arg(2), Slice(text, length)) ==
+        HashSetKind::Oom) {
+        if (!object) delete hash;
+        reply_err(op.sink(), "ERR out of memory");
+        return;
+    }
+    if (!object && !attach_new_hash(shard, op, hash)) return;
+    reply_int(op.sink(), value);
+}
+
+void cmd_hincrbyfloat(Shard& shard, Op& op) {
+    long double increment = 0;
+    if (!parse_long_double(op.arg(3), increment)) {
+        reply_err(op.sink(), "ERR value is not a valid float");
+        return;
+    }
+    if (std::isinf(increment)) {
+        reply_err(op.sink(), "ERR value is NaN or Infinity");
+        return;
+    }
+    KvObj* object = shard.store().find(op.hash, op.key());
+    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+
+    long double old_value = 0;
+    Slice old_text;
+    if (object && hash_get(*as_hash(object), op.arg(2), old_text) &&
+        !parse_long_double(old_text, old_value)) {
+        reply_err(op.sink(), "ERR hash value is not a float");
+        return;
+    }
+    const long double value = old_value + increment;
+    if (std::isnan(value) || std::isinf(value)) {
+        reply_err(op.sink(), "ERR increment would produce NaN or Infinity");
+        return;
+    }
+    char text[5 * 1024];
+    const uint32_t length = format_long_double(text, sizeof(text), value);
+    if (!length) {
+        reply_err(op.sink(), "ERR increment would produce NaN or Infinity");
+        return;
+    }
+
+    HashVal* hash = object ? as_hash(object) : new (std::nothrow) HashVal(op.hash);
+    if (!hash) {
+        reply_err(op.sink(), "ERR out of memory");
+        return;
+    }
+    if (hash_set(*hash, shard.type_limits().hash, op.arg(2), Slice(text, length)) ==
+        HashSetKind::Oom) {
+        if (!object) delete hash;
+        reply_err(op.sink(), "ERR out of memory");
+        return;
+    }
+    if (!object && !attach_new_hash(shard, op, hash)) return;
+    reply_bulk(op.sink(), Slice(text, length));
+}
+
+enum class GetAllMode : uint8_t { Fields, Values, Both };
+
+void generic_getall(Shard& shard, Op& op, GetAllMode mode) {
+    KvObj* object = shard.store().find(op.hash, op.key());
+    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+    if (!object) {
+        reply_array_header(op.sink(), 0);
+        return;
+    }
+    const HashVal& hash = *as_hash(object);
+    const uint64_t multiplier = mode == GetAllMode::Both ? 2 : 1;
+    reply_array_header(op.sink(), static_cast<uint64_t>(hash.field_count()) * multiplier);
+    auto emit = [&](Slice field, Slice value) {
+        if (mode != GetAllMode::Values) reply_bulk(op.sink(), field);
+        if (mode != GetAllMode::Fields) reply_bulk(op.sink(), value);
+    };
+    if (hash.encoding() == CollectionEncoding::Compact) {
+        compact_for_each(hash, [&](const PairView& pair) { emit(pair.field, pair.value); });
+    } else {
+        hash.fields->for_each([&](const HashFieldMap::Node& node) {
+            emit(Slice(node.field.data(), static_cast<uint32_t>(node.field.size())),
+                 Slice(node.value.data(), static_cast<uint32_t>(node.value.size())));
+        });
+    }
+}
+
+void cmd_hgetall(Shard& shard, Op& op) { generic_getall(shard, op, GetAllMode::Both); }
+void cmd_hkeys(Shard& shard, Op& op) { generic_getall(shard, op, GetAllMode::Fields); }
+void cmd_hvals(Shard& shard, Op& op) { generic_getall(shard, op, GetAllMode::Values); }
+
+bool glob_match_impl(const char* pattern, uint32_t pattern_len,
+                     const char* string, uint32_t string_len,
+                     bool& skip_longer_matches, uint32_t nesting) {
+    if (nesting > 1000) return false;
+    while (pattern_len && string_len) {
+        switch (pattern[0]) {
+            case '*': {
+                while (pattern_len > 1 && pattern[1] == '*') {
+                    pattern++;
+                    pattern_len--;
+                }
+                if (pattern_len == 1) return true;
+                while (string_len) {
+                    if (glob_match_impl(pattern + 1, pattern_len - 1,
+                                        string, string_len, skip_longer_matches, nesting + 1))
+                        return true;
+                    if (skip_longer_matches) return false;
+                    string++;
+                    string_len--;
+                }
+                skip_longer_matches = true;
+                return false;
+            }
+            case '?':
+                string++;
+                string_len--;
+                break;
+            case '[': {
+                pattern++;
+                pattern_len--;
+                bool negate = pattern_len && pattern[0] == '^';
+                if (negate) {
+                    pattern++;
+                    pattern_len--;
+                }
+                bool matched = false;
+                while (true) {
+                    if (pattern_len >= 2 && pattern[0] == '\\') {
+                        pattern++;
+                        pattern_len--;
+                        if (pattern[0] == string[0]) matched = true;
+                    } else if (pattern_len == 0) {
+                        pattern--;
+                        pattern_len++;
+                        break;
+                    } else if (pattern[0] == ']') {
+                        break;
+                    } else if (pattern_len >= 3 && pattern[1] == '-') {
+                        unsigned char start = static_cast<unsigned char>(pattern[0]);
+                        unsigned char end = static_cast<unsigned char>(pattern[2]);
+                        const unsigned char ch = static_cast<unsigned char>(string[0]);
+                        if (start > end) std::swap(start, end);
+                        if (ch >= start && ch <= end) matched = true;
+                        pattern += 2;
+                        pattern_len -= 2;
+                    } else if (pattern[0] == string[0]) {
+                        matched = true;
+                    }
+                    pattern++;
+                    pattern_len--;
+                }
+                if (negate) matched = !matched;
+                if (!matched) return false;
+                string++;
+                string_len--;
+                break;
+            }
+            case '\\':
+                if (pattern_len >= 2) {
+                    pattern++;
+                    pattern_len--;
+                }
+                [[fallthrough]];
+            default:
+                if (pattern[0] != string[0]) return false;
+                string++;
+                string_len--;
+                break;
+        }
+        pattern++;
+        pattern_len--;
+        if (!string_len) {
+            while (pattern_len && pattern[0] == '*') {
+                pattern++;
+                pattern_len--;
+            }
+            break;
+        }
+    }
+    return pattern_len == 0 && string_len == 0;
+}
+
+bool glob_match(Slice pattern, Slice string) {
+    bool skip_longer_matches = false;
+    return glob_match_impl(pattern.p, pattern.n, string.p, string.n,
+                           skip_longer_matches, 0);
+}
+
+struct ScanOptions {
+    Slice pattern;
+    uint64_t count = 10;
+    bool use_pattern = false;
+    bool no_values = false;
+};
+
+bool parse_scan_options(Op& op, ScanOptions& options) {
+    for (uint32_t i = 3; i < op.argc();) {
+        const Slice option = op.arg(i);
+        if (option.eq_icase("match") && i + 1 < op.argc()) {
+            options.pattern = op.arg(i + 1);
+            options.use_pattern = !(options.pattern.n == 1 && options.pattern.p[0] == '*');
+            i += 2;
+        } else if (option.eq_icase("count") && i + 1 < op.argc()) {
+            int64_t count = 0;
+            if (!parse_i64(op.arg(i + 1), count)) {
+                reply_err(op.sink(), "ERR value is not an integer or out of range");
+                return false;
+            }
+            if (count < 1) {
+                reply_syntax(op.sink());
+                return false;
+            }
+            options.count = static_cast<uint64_t>(count);
+            i += 2;
+        } else if (option.eq_icase("novalues")) {
+            options.no_values = true;
+            i++;
+        } else {
+            reply_syntax(op.sink());
+            return false;
+        }
+    }
+    return true;
+}
+
+struct ScanItem {
+    Slice field;
+    Slice value;
+};
+
+void reply_scan(Op& op, uint64_t cursor, const std::vector<ScanItem>& items, bool no_values) {
+    char text[24];
+    const uint32_t length = u64_to_dec(text, cursor);
+    reply_array_header(op.sink(), 2);
+    reply_bulk(op.sink(), Slice(text, length));
+    reply_array_header(op.sink(), static_cast<uint64_t>(items.size()) * (no_values ? 1 : 2));
+    for (const ScanItem& item : items) {
+        reply_bulk(op.sink(), item.field);
+        if (!no_values) reply_bulk(op.sink(), item.value);
+    }
+}
+
+void cmd_hscan(Shard& shard, Op& op) {
+    uint64_t cursor = 0;
+    if (!parse_cursor(op.arg(2), cursor)) {
+        reply_err(op.sink(), "ERR invalid cursor");
+        return;
+    }
+    KvObj* object = shard.store().find(op.hash, op.key());
+    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+    if (!object) {
+        // Redis returns the empty scan reply before parsing trailing options for a missing key.
+        reply_scan(op, 0, {}, false);
+        return;
+    }
+    ScanOptions options;
+    if (!parse_scan_options(op, options)) return;
+
+    const HashVal& hash = *as_hash(object);
+    std::vector<ScanItem> items;
+    try {
+        if (hash.encoding() == CollectionEncoding::Compact) {
+            const uint64_t start = cursor;
+            uint64_t position = 0;
+            uint64_t sampled = 0;
+            for (auto it = hash.begin(); it != hash.end(); ++it) {
+                PairView pair;
+                if (!decode_pair(*it, pair)) continue;
+                if (position++ < start) continue;
+                if (sampled >= options.count) {
+                    position--;
+                    break;
+                }
+                sampled++;
+                if (!options.use_pattern || glob_match(options.pattern, pair.field))
+                    items.push_back({pair.field, pair.value});
+            }
+            cursor = position >= hash.field_count() ? 0 : position;
+        } else {
+            uint64_t sampled = 0;
+            uint64_t iterations = 0;
+            const uint64_t max_iterations = options.count > UINT64_MAX / 10
+                                                ? UINT64_MAX : options.count * 10;
+            do {
+                cursor = hash.fields->scan(cursor, [&](const HashFieldMap::Node& node) {
+                    sampled++;
+                    const Slice field(node.field.data(), static_cast<uint32_t>(node.field.size()));
+                    if (!options.use_pattern || glob_match(options.pattern, field))
+                        items.push_back({field, Slice(node.value.data(),
+                                                     static_cast<uint32_t>(node.value.size()))});
+                });
+                iterations++;
+            } while (cursor && sampled < options.count && iterations < max_iterations);
+        }
+    } catch (const std::bad_alloc&) {
+        reply_err(op.sink(), "ERR out of memory");
+        return;
+    } catch (const std::length_error&) {
+        reply_err(op.sink(), "ERR out of memory");
+        return;
+    }
+    reply_scan(op, cursor, items, options.no_values);
+}
+
+bool compact_pairs(const HashVal& hash, std::vector<PairView>& pairs) {
+    try {
+        pairs.reserve(hash.field_count());
+        compact_for_each(hash, [&](const PairView& pair) { pairs.push_back(pair); });
+    } catch (const std::bad_alloc&) {
+        return false;
+    } catch (const std::length_error&) {
+        return false;
+    }
+    return pairs.size() == hash.field_count();
+}
+
+bool select_unique(HashVal& hash, uint32_t population, uint32_t count,
+                   std::vector<uint32_t>& selected) {
+    try {
+        selected.reserve(count);
+        if (static_cast<uint64_t>(count) * 3 > population) {
+            std::vector<uint32_t> all(population);
+            for (uint32_t i = 0; i < population; i++) all[i] = i;
+            for (uint32_t i = 0; i < count; i++) {
+                const uint32_t chosen = i + static_cast<uint32_t>(
+                    hash.random_bounded(static_cast<uint64_t>(population - i)));
+                std::swap(all[i], all[chosen]);
+                selected.push_back(all[i]);
+            }
+            return true;
+        }
+        std::unordered_set<uint32_t> seen;
+        seen.reserve(static_cast<size_t>(count) * 2);
+        while (selected.size() < count) {
+            const uint32_t candidate = static_cast<uint32_t>(hash.random_bounded(population));
+            if (seen.insert(candidate).second) selected.push_back(candidate);
+        }
+        return true;
+    } catch (const std::bad_alloc&) {
+        return false;
+    } catch (const std::length_error&) {
+        return false;
+    }
+}
+
+void cmd_hrandfield(Shard& shard, Op& op) {
+    int64_t signed_count = 0;
+    bool with_values = false;
+    if (op.argc() >= 3) {
+        if (!parse_i64(op.arg(2), signed_count)) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        if (signed_count == INT64_MIN) {
+            reply_outofrange(op.sink());
+            return;
+        }
+        if (op.argc() > 4) {
+            reply_syntax(op.sink());
+            return;
+        }
+        if (op.argc() == 4) {
+            if (!op.arg(3).eq_icase("withvalues")) {
+                reply_syntax(op.sink());
+                return;
+            }
+            with_values = true;
+            if (signed_count < -INT64_MAX / 2 || signed_count > INT64_MAX / 2) {
+                reply_outofrange(op.sink());
+                return;
+            }
+        }
+    }
+
+    KvObj* object = shard.store().find(op.hash, op.key());
+    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+    if (!object) {
+        if (op.argc() == 2) reply_nil(op.sink());
+        else reply_array_header(op.sink(), 0);
+        return;
+    }
+    HashVal& hash = *as_hash(object);
+    const uint32_t population = hash.field_count();
+    if (!population) {
+        if (op.argc() == 2) reply_nil(op.sink());
+        else reply_array_header(op.sink(), 0);
+        return;
+    }
+
+    std::vector<PairView> compact;
+    if (hash.encoding() == CollectionEncoding::Compact && !compact_pairs(hash, compact)) {
+        reply_err(op.sink(), "ERR out of memory");
+        return;
+    }
+    auto pair_at = [&](uint32_t index) -> std::pair<Slice, Slice> {
+        if (hash.encoding() == CollectionEncoding::Compact)
+            return {compact[index].field, compact[index].value};
+        const HashFieldMap::Node& node = hash.fields->at(index);
+        return {Slice(node.field.data(), static_cast<uint32_t>(node.field.size())),
+                Slice(node.value.data(), static_cast<uint32_t>(node.value.size()))};
+    };
+
+    if (op.argc() == 2) {
+        const auto pair = pair_at(static_cast<uint32_t>(hash.random_bounded(population)));
+        reply_bulk(op.sink(), pair.first);
+        return;
+    }
+    if (signed_count == 0) {
+        reply_array_header(op.sink(), 0);
+        return;
+    }
+
+    const bool unique = signed_count > 0;
+    const uint64_t requested = unique ? static_cast<uint64_t>(signed_count)
+                                      : static_cast<uint64_t>(-signed_count);
+    if (!unique) {
+        reply_array_header(op.sink(), requested * (with_values ? 2 : 1));
+        for (uint64_t i = 0; i < requested; i++) {
+            const auto pair = pair_at(static_cast<uint32_t>(hash.random_bounded(population)));
+            reply_bulk(op.sink(), pair.first);
+            if (with_values) reply_bulk(op.sink(), pair.second);
+        }
+        return;
+    }
+
+    const uint32_t count = requested >= population ? population : static_cast<uint32_t>(requested);
+    if (count == population) {
+        reply_array_header(op.sink(), static_cast<uint64_t>(count) * (with_values ? 2 : 1));
+        for (uint32_t i = 0; i < count; i++) {
+            const auto pair = pair_at(i);
+            reply_bulk(op.sink(), pair.first);
+            if (with_values) reply_bulk(op.sink(), pair.second);
+        }
+        return;
+    }
+
+    std::vector<uint32_t> selected;
+    if (!select_unique(hash, population, count, selected)) {
+        reply_err(op.sink(), "ERR out of memory");
+        return;
+    }
+    reply_array_header(op.sink(), static_cast<uint64_t>(selected.size()) * (with_values ? 2 : 1));
+    for (uint32_t index : selected) {
+        const auto pair = pair_at(index);
+        reply_bulk(op.sink(), pair.first);
+        if (with_values) reply_bulk(op.sink(), pair.second);
+    }
+}
+
+static const CommandSpec kTable[] = {
+    // name          min max flags                handler             first last step
+    {"HSET",          4, -1, CmdFlags::Write,    cmd_hset,              1,  1,  1},
+    {"HMSET",         4, -1, CmdFlags::Write,    cmd_hset,              1,  1,  1},
+    {"HSETNX",        4,  4, CmdFlags::Write,    cmd_hsetnx,            1,  1,  1},
+    {"HGET",          3,  3, CmdFlags::Readonly, cmd_hget,              1,  1,  1},
+    {"HMGET",         3, -1, CmdFlags::Readonly, cmd_hmget,             1,  1,  1},
+    {"HDEL",          3, -1, CmdFlags::Write,    cmd_hdel,              1,  1,  1},
+    {"HLEN",          2,  2, CmdFlags::Readonly, cmd_hlen,              1,  1,  1},
+    {"HEXISTS",       3,  3, CmdFlags::Readonly, cmd_hexists,           1,  1,  1},
+    {"HSTRLEN",       3,  3, CmdFlags::Readonly, cmd_hstrlen,           1,  1,  1},
+    {"HINCRBY",       4,  4, CmdFlags::Write,    cmd_hincrby,           1,  1,  1},
+    {"HINCRBYFLOAT",  4,  4, CmdFlags::Write,    cmd_hincrbyfloat,      1,  1,  1},
+    {"HGETALL",       2,  2, CmdFlags::Readonly, cmd_hgetall,           1,  1,  1},
+    {"HKEYS",         2,  2, CmdFlags::Readonly, cmd_hkeys,             1,  1,  1},
+    {"HVALS",         2,  2, CmdFlags::Readonly, cmd_hvals,             1,  1,  1},
+    {"HRANDFIELD",    2, -1, CmdFlags::Readonly, cmd_hrandfield,        1,  1,  1},
+    {"HSCAN",         3, -1, CmdFlags::Readonly, cmd_hscan,             1,  1,  1},
+};
+
+}  // namespace
+
+CommandTable hash_command_table() {
+    return {kTable, sizeof(kTable) / sizeof(kTable[0])};
+}
+
 }  // namespace tomo

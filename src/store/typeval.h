@@ -240,6 +240,19 @@ public:
         encoding_ = to;
     }
 
+    // Hash Compact entries each hold one encoded field/value pair. The outer Compact entry count
+    // is therefore already the logical hash length, but its payload includes the pair's small
+    // field-length prefix. Let that lane install its maintained logical payload total without
+    // teaching the type-independent container about a hash-specific inner format.
+    void promote(CollectionEncoding to, uint64_t expanded_allocation_bytes,
+                 uint32_t logical_entries, uint64_t logical_payload_bytes) {
+        expanded_entries_ = logical_entries;
+        expanded_payload_bytes_ = logical_payload_bytes;
+        expanded_allocation_bytes_ = expanded_allocation_bytes;
+        compact_.clear();
+        encoding_ = to;
+    }
+
     void note_expanded_insert(uint32_t payload_bytes, uint64_t allocation_bytes) {
         expanded_entries_++;
         expanded_payload_bytes_ += payload_bytes;
@@ -268,7 +281,23 @@ private:
 
 // Separate concrete types make the outer destructor switch exhaustive and give each follow-up lane
 // a stable place to add its expanded backing structure without changing KvObj or Op.
-struct HashVal : CompactValue {};
+class HashFieldMap;
+
+struct HashVal : CompactValue {
+    explicit HashVal(uint64_t seed = 0);
+    ~HashVal();
+    HashVal(const HashVal&) = delete;
+    HashVal& operator=(const HashVal&) = delete;
+
+    uint32_t field_count() const { return entries(); }
+    uint64_t random_bounded(uint64_t bound);
+
+    // Exact field+value bytes for the packed-pair representation. Compact::payload_bytes() also
+    // includes each pair's inner field-length prefix, so it cannot serve as the hash logical total.
+    uint64_t compact_payload_bytes = 0;
+    uint64_t random_state = 0;
+    HashFieldMap* fields = nullptr;
+};
 struct ListVal : CompactValue {};
 struct SetVal  : CompactValue {};
 struct ZsetVal : CompactValue {};
