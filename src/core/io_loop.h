@@ -166,6 +166,7 @@ private:
             case UrKind::Recv:   on_recv(ur_ptr<Client>(cqe->user_data), cqe->res); break;
             case UrKind::Send: {
                 Client* c = ur_ptr<Client>(cqe->user_data);
+                if (c->dead()) break;   // corpse: its fd is closed, its CQEs are noise
                 if (!wb_.on_send_complete(*c, cqe->res)) close_client(c);
                 break;
             }
@@ -462,6 +463,12 @@ private:
     }
 
     void close_client(Client* c) {
+        // IDEMPOTENT, and that is load-bearing: an abrupt disconnect can close a conn twice --
+        // once when the recv fails and again when the in-flight reply's send CQE comes back
+        // failed. The second call found the client already parked on the deferred-free list and
+        // parked it AGAIN: a double delete, one reap later. Caught by the torture battery's RST
+        // churn under ASAN; latent since the first teardown path was written.
+        if (c->dead()) return;
         c->mark_closing();
         // Release only at the quiescence fence: a worker may still hold a Task that resolves through
         // this ROB. Anything else is a use-after-free under pipelining. (The retryable wait paths,
