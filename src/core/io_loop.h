@@ -70,6 +70,13 @@ public:
         self_->set_ring(&ring_);
         wb_.bind(&ring_, this, [](void* ctx, int32_t shard, const char* ptr) {
             static_cast<IoLoop*>(ctx)->queue_borrow_release(shard, ptr);
+        }, this, [](void* ctx, Client& client, Op& op) {
+            auto* loop = static_cast<IoLoop*>(ctx);
+            if (op.has_scatter_state())
+                xshard_retire(client, op, loop->scatter_pool_, loop->self_->id(), loop,
+                    [](void* release_ctx, int32_t shard, const char* ptr) {
+                        static_cast<IoLoop*>(release_ctx)->queue_borrow_release(shard, ptr);
+                    });
         });
         return true;
     }
@@ -392,7 +399,8 @@ private:
 
             op->db    = static_cast<uint8_t>(c->session().db_index);
             ScatterDispatch scatter_dispatch;
-            const ScatterPrepare scatter_prepared = xshard_prepare(*srv_, *op, scatter_dispatch);
+            const ScatterPrepare scatter_prepared =
+                xshard_prepare(*srv_, *op, scatter_pool_, self_->id(), scatter_dispatch);
             if (scatter_prepared == ScatterPrepare::Error) {
                 conn.advance_parse(consumed);
                 finish_prebuilt(c, *op);
@@ -400,17 +408,24 @@ private:
             }
             if (scatter_prepared == ScatterPrepare::Ready) {
                 uint32_t needed[kMaxThreads] = {};
-                for (int32_t sid : scatter_dispatch.shards)
+                for (uint32_t i = 0; i < scatter_dispatch.nshards; i++) {
+                    const int32_t sid = xshard_dispatch_shard(scatter_dispatch, i);
                     needed[srv_->worker_of_shard(sid)]++;
+                }
                 bool room = true;
                 for (uint32_t tid = 0; tid < srv_->nthreads(); tid++)
                     if (needed[tid] && srv_->thread(tid).task_free_slots(self_->id()) < needed[tid]) {
                         room = false; break;
                     }
-                if (!room) { xshard_destroy(scatter_dispatch.state); break; }
+                if (!room) {
+                    xshard_destroy(scatter_dispatch.state, scatter_pool_, self_->id());
+                    break;
+                }
                 const uint64_t op_id = rob.dispatch_id();
+                op->attach_scatter_state(scatter_dispatch.state);
                 rob.publish();
-                for (int32_t sid : scatter_dispatch.shards) {
+                for (uint32_t i = 0; i < scatter_dispatch.nshards; i++) {
+                    const int32_t sid = xshard_dispatch_shard(scatter_dispatch, i);
                     const uint32_t tid = srv_->worker_of_shard(sid);
                     ThreadCtx& owner = srv_->thread(tid);
                     const Task task{c, op_id, sid, scatter_dispatch.state};
@@ -751,6 +766,7 @@ private:
     std::deque<Client*> pending_serve_;
     std::deque<BorrowRelease> pending_releases_;
     std::deque<Client*> pending_handoffs_;
+    ScatterArenaPool scatter_pool_;          // touched only by this connection-owning IO thread
     uint32_t flush_tick_ = 0;
     bool     backstop_pass_ = false;
     bool touched_[kMaxThreads] = {};      // dedupe flags for the current parse pass

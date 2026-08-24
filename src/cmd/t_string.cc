@@ -390,11 +390,21 @@ void cmd_getdel(Shard& sh, Op& op) {
 }
 
 void cmd_del(Shard& sh, Op& op) {
-    reply_int(op.sink(), sh.store().erase(op.hash, op.key()) ? 1 : 0);
+    uint64_t removed = 0;
+    for (uint32_t i = 1; i < op.argc(); i++) {
+        const uint64_t hash = i == 1 ? op.hash : FlatStore::hash_key(op.arg(i));
+        removed += sh.store().erase(hash, op.arg(i));
+    }
+    reply_int(op.sink(), static_cast<long long>(removed));
 }
 
 void cmd_exists(Shard& sh, Op& op) {
-    reply_int(op.sink(), sh.store().find(op.hash, op.key()) ? 1 : 0);
+    uint64_t found = 0;
+    for (uint32_t i = 1; i < op.argc(); i++) {
+        const uint64_t hash = i == 1 ? op.hash : FlatStore::hash_key(op.arg(i));
+        found += sh.store().find(hash, op.arg(i)) != nullptr;
+    }
+    reply_int(op.sink(), static_cast<long long>(found));
 }
 
 void cmd_append(Shard& sh, Op& op) {

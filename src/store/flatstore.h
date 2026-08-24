@@ -527,10 +527,12 @@ public:
     // Called by GET on the shard owner before publishing the Op. Pointer identity is sufficient:
     // an allocation cannot be reused while it is either table-owned or retained as `retired`.
     void borrow(const char* ptr) {
-        outstanding_borrows_++;
         for (Borrow& b : borrows_)
-            if (b.ptr == ptr) { b.refs++; return; }
+            if (b.ptr == ptr) { b.refs++; outstanding_borrows_++; return; }
         borrows_.push_back(Borrow{ptr, 1, nullptr});
+        // Publish the count only after push_back succeeds. A failed registry growth must not leave
+        // an unreturnable phantom borrow behind (cross-shard MGET can recover as an OOM reply).
+        outstanding_borrows_++;
     }
 
     // Called only by the shard owner after an io-thread release crosses back through its channel.

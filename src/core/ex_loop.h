@@ -341,7 +341,9 @@ private:
         if (capture_writes && (op.spec->flags & CmdFlags::Write)) {
             const FlatStore::SnapshotWriteResult result = task.scatter
                 ? xshard_snapshot_prepare(task, shard)
-                : shard.store().snapshot_prepare_write(op.hash, op.key());
+                : xshard_is_local(op)
+                    ? xshard_local_snapshot_prepare(op, shard)
+                    : shard.store().snapshot_prepare_write(op.hash, op.key());
             if (result == FlatStore::SnapshotWriteResult::Pending) return false;
             if (result == FlatStore::SnapshotWriteResult::Error) {
                 snapshot_manager_->fail(snapshot_epoch_, "snapshot pre-image serialization failed");

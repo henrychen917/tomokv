@@ -26,6 +26,7 @@ namespace tomo {
 
 struct CommandSpec;
 class  Client;
+struct ScatterState;
 
 enum class OpState : uint8_t {
     Free   = 0,   // slot is reusable
@@ -45,6 +46,8 @@ inline constexpr size_t kInlineReply = 96;
 
 class Op {
 public:
+    static constexpr int32_t kScatterStateMarker = -2;
+    static constexpr int32_t kLocalXshardMarker  = -3;
     Op() = default;
     ~Op() { std::free(argv_heap_); }
     Op(const Op&) = delete;
@@ -159,6 +162,30 @@ public:
         bool last_direct_ = false;
     };
     Sink sink() { return Sink(*this); }
+
+    bool has_scatter_state() const {
+        return zc_ptr != nullptr && zc_shard == kScatterStateMarker;
+    }
+    ScatterState* scatter_state() const {
+        return has_scatter_state()
+            ? reinterpret_cast<ScatterState*>(const_cast<char*>(zc_ptr)) : nullptr;
+    }
+    void attach_scatter_state(ScatterState* state_) {
+        zc_ptr = reinterpret_cast<const char*>(state_);
+        zc_len = 0;
+        zc_shard = kScatterStateMarker;
+    }
+    void detach_scatter_state() {
+        zc_ptr = nullptr;
+        zc_len = 0;
+        zc_shard = -1;
+    }
+    void mark_local_xshard() {
+        zc_ptr = nullptr;
+        zc_len = 0;                 // snapshot write-gate cursor
+        zc_shard = kLocalXshardMarker;
+    }
+    bool local_xshard() const { return zc_shard == kLocalXshardMarker; }
 
 private:
     Slice    argv_inline_[kInlineArgv];

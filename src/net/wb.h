@@ -51,11 +51,15 @@ namespace tomo {
 class WbEngine {
 public:
     using ReleaseFn = void (*)(void*, int32_t, const char*);
+    using RetireFn = void (*)(void*, Client&, Op&);
 
-    void bind(Ring* ring, void* release_ctx = nullptr, ReleaseFn release_fn = nullptr) {
+    void bind(Ring* ring, void* release_ctx = nullptr, ReleaseFn release_fn = nullptr,
+              void* retire_ctx = nullptr, RetireFn retire_fn = nullptr) {
         ring_ = ring;
         release_ctx_ = release_ctx;
         release_fn_ = release_fn;
+        retire_ctx_ = retire_ctx;
+        retire_fn_ = retire_fn;
     }
 
     Ring&  ring()       { return *ring_; }
@@ -79,6 +83,10 @@ public:
         stats_.serves++;
         Client& conn = c;
         const uint32_t retired = c.rob().drain([&](Op& op) {
+            // Cross-shard completion publishes descriptors/state, not bytes.  The connection's IO
+            // owner turns those into the final ordered reply here, before the generic staging path
+            // inspects the (possibly repurposed) zero-copy fields.
+            if (retire_fn_) retire_fn_(retire_ctx_, conn, op);
             if (op.zc_ptr) {
                 // Anything already staged is older than this op. Once sealed, every subsequent
                 // reply uses segments until the queue drains, so no fill-buffer append can jump a
@@ -262,6 +270,8 @@ private:
     Ring*  ring_ = nullptr;
     void*  release_ctx_ = nullptr;
     ReleaseFn release_fn_ = nullptr;
+    void*  retire_ctx_ = nullptr;
+    RetireFn retire_fn_ = nullptr;
     Stats  stats_;
 };
 
