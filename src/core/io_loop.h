@@ -6,7 +6,6 @@
 //
 //   out  task_in of the shard's owner        a parsed op to execute
 //   in   client_in from workers              "you have completed ops to retire"
-//   out  client_in of the sender             "you have bytes to write"   (Ex and Wb modes)
 //
 // WHAT MOVES BETWEEN MODES, AND WHAT DOES NOT. The ROB is ALWAYS drained by the IO thread that owns
 // the connection, in every mode. Only the send syscall moves. Letting a second thread retire from
@@ -87,7 +86,6 @@ public:
 
     Ring& ring() { return ring_; }
 
-    // Ex/Wb modes: this thread stages ordered bytes, `sender` issues the write.
 
     void run() {
         arm_accept();
@@ -295,8 +293,9 @@ private:
             // the reply sat Done in the ROB forever.
             //
             // It cost 3 lost replies in 87 million and wedged the connection permanently. Invisible in
-            // 2-stage, where io is the sender and re-drains its own active set unprompted; fatal in
-            // ex-wb and 3-stage, where the sender only ever looks when it is told to.
+            // 2-stage, where io is the sender and re-drains its own active set unprompted; it was
+            // FATAL in the deleted remote-sender modes, and the ordering is kept because it is
+            // simply correct: publish, then tell.
             // DIRECT-REPLY eligibility (owner's c->buf trick): this op is the ROB head and the
             // fill buffer is empty, so its bytes can be formatted in place by the worker. True for
             // every op at depth 1 and for the head of each fresh batch at depth. Evaluated ONLY for
@@ -361,8 +360,8 @@ private:
     }
 
     // ---- inbound: workers telling us a client has completed ops -----------------------------------
-    // Inbound from workers (2-stage: "ops are Done") or from the sender ("I retired something, you
-    // may be unstuck"). Either way the answer is the same: put the client back in the active set.
+    // Inbound from workers: "ops are Done" -- the claimed-post fallback for a conn with no
+    // ready-mask slot. Either way the answer is the same: put the client back in the active set.
     uint32_t sweep() { return collect_retire_work(true) + flush_ready(); }
 
     uint32_t collect_retire_work(bool unmasked = false) {
