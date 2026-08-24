@@ -19,7 +19,9 @@ struct Task;
 struct ScatterDispatch;
 
 enum class XshardStringStoreResult : uint8_t { Stored, Oom, InsertFailed, Maxmemory };
-XshardStringStoreResult xshard_store_string(Shard& shard, Slice key, uint64_t hash, Slice value);
+XshardStringStoreResult xshard_store_string(Shard& shard, Slice key, uint64_t hash, Slice value,
+                                             int64_t expire_at_ms = -1,
+                                             bool integer_encode = true);
 
 enum class ScatterPrepare : uint8_t { NotScatter, Ready, Error };
 enum class ScatterTaskResult : uint8_t { Complete, Retry };

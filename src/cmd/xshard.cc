@@ -2,6 +2,7 @@
 #include "xshard.h"
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <cstdlib>
 #include <cstring>
@@ -13,6 +14,7 @@
 #include <vector>
 
 #include "command.h"
+#include "hll.h"
 #include "../core/server.h"
 #include "../core/thread.h"
 #include "../exec/op.h"
@@ -27,12 +29,14 @@ void reply_maxmemory_oom(Op& op);  // shared canonical spelling from t_string.cc
 namespace {
 
 enum class Kind : uint8_t {
-    AllShards, DbsizeExact, Mget, Mset, Del, Unlink, Exists, Touch, Keys, Msetnx,
+    AllShards, DbsizeExact, Mget, Mset, Del, Unlink, Exists, Touch, Keys, Pfcount, Msetnx,
     Rename, Renamenx, Copy, Smove, Lmove, Rpoplpush,
-    Sinter, Sunion, Sdiff, Sintercard, Sinterstore, Sunionstore, Sdiffstore,
+    Sinter, Sunion, Sdiff, Sintercard, Sinterstore, Sunionstore, Sdiffstore, Pfmerge,
 };
 
-enum class WorkError : uint8_t { None, WrongType, Oom, Maxmemory, InsertFailed, Corrupt };
+enum class WorkError : uint8_t {
+    None, WrongType, BadHll, CorruptHll, Oom, Maxmemory, InsertFailed, Corrupt
+};
 enum class FinalReply : uint8_t {
     None, Ok, Integer, Nil, Bulk, Array, Work, NoSuchKey, SameObject, QueueFull, Internal
 };
@@ -116,7 +120,8 @@ bool classify(const Op& op, Kind& kind) {
     static constexpr Entry entries[] = {
         {"MGET", Kind::Mget}, {"MSET", Kind::Mset}, {"DEL", Kind::Del},
         {"UNLINK", Kind::Unlink}, {"EXISTS", Kind::Exists}, {"TOUCH", Kind::Touch},
-        {"KEYS", Kind::Keys}, {"MSETNX", Kind::Msetnx}, {"RENAME", Kind::Rename},
+        {"KEYS", Kind::Keys}, {"PFCOUNT", Kind::Pfcount}, {"MSETNX", Kind::Msetnx},
+        {"PFMERGE", Kind::Pfmerge}, {"RENAME", Kind::Rename},
         {"RENAMENX", Kind::Renamenx}, {"COPY", Kind::Copy}, {"SMOVE", Kind::Smove},
         {"LMOVE", Kind::Lmove}, {"RPOPLPUSH", Kind::Rpoplpush},
         {"SINTER", Kind::Sinter}, {"SUNION", Kind::Sunion}, {"SDIFF", Kind::Sdiff},
@@ -194,8 +199,9 @@ WorkError apply_image(Shard& shard, Slice key, uint64_t hash, const ObjectImage&
                                                            : WorkError::InsertFailed;
 }
 
-WorkError store_xstring(Shard& shard, Slice key, uint64_t hash, Slice value) {
-    switch (xshard_store_string(shard, key, hash, value)) {
+WorkError store_xstring(Shard& shard, Slice key, uint64_t hash, Slice value,
+                        int64_t expire_at_ms = -1, bool integer_encode = true) {
+    switch (xshard_store_string(shard, key, hash, value, expire_at_ms, integer_encode)) {
         case XshardStringStoreResult::Stored: return WorkError::None;
         case XshardStringStoreResult::Oom: return WorkError::Oom;
         case XshardStringStoreResult::Maxmemory: return WorkError::Maxmemory;
@@ -312,6 +318,10 @@ bool erase_member(std::vector<std::string>& values, Slice wanted) {
 
 void reply_work_error(Op& op, WorkError error) {
     if (error == WorkError::WrongType) reply_wrongtype(op.sink());
+    else if (error == WorkError::BadHll)
+        reply_err(op.sink(), "WRONGTYPE Key is not a valid HyperLogLog string value.");
+    else if (error == WorkError::CorruptHll)
+        reply_err(op.sink(), "INVALIDOBJ Corrupted HLL object detected");
     else if (error == WorkError::Maxmemory) reply_maxmemory_oom(op);
     else if (error == WorkError::Oom) reply_err(op.sink(), "ERR out of memory");
     else if (error == WorkError::InsertFailed) reply_err(op.sink(), "ERR keyspace insert failed");
@@ -374,7 +384,8 @@ bool first_error(const ScatterState& state, WorkError& error) {
     for (uint32_t gi = 0; gi < state.nsub; gi++) {
         const ShardGroup& group = state.groups[gi];
         if (group.error != WorkError::None) { error = group.error; return true; }
-        if (!state.status || !(state.kind == Kind::Mset || is_two_hop(state.kind))) continue;
+        if (!state.status || !(state.kind == Kind::Mset || state.kind == Kind::Pfcount ||
+                               is_two_hop(state.kind))) continue;
         for (uint32_t i = 0; i < group.count; i++) {
             const WorkError value = static_cast<WorkError>(state.status[state.key_order[group.begin + i]]);
             if (value != WorkError::None) { error = value; return true; }
@@ -401,9 +412,12 @@ uint32_t key_arg_for(Kind kind, uint32_t key, uint32_t) {
 bool has_values(Kind kind) { return kind == Kind::Mget || kind == Kind::Msetnx; }
 bool has_status(Kind kind) {
     return kind == Kind::Mset || kind == Kind::Del || kind == Kind::Unlink ||
-           kind == Kind::Exists || kind == Kind::Touch || is_two_hop(kind);
+           kind == Kind::Exists || kind == Kind::Touch || kind == Kind::Pfcount ||
+           is_two_hop(kind);
 }
-bool has_images(Kind kind) { return is_two_hop(kind) && kind != Kind::Msetnx; }
+bool has_images(Kind kind) {
+    return kind == Kind::Pfcount || (is_two_hop(kind) && kind != Kind::Msetnx);
+}
 
 size_t arena_layout_bytes(Kind kind, uint32_t key_count, uint32_t group_cap) {
     size_t off = sizeof(ScatterState);
@@ -547,6 +561,80 @@ bool compute_setop(ScatterState& state) {
     return true;
 }
 
+WorkError merge_hll_image(const ObjectImage& image,
+                          std::array<uint8_t, hll::kRegisters>& maximum,
+                          bool& any_dense) {
+    if (!image.present) return WorkError::None;
+    if (image.type != Type::String) return WorkError::WrongType;
+    if (static_cast<Enc>(image.encoding) == Enc::Int ||
+        static_cast<Enc>(image.encoding) == Enc::Compact)
+        return WorkError::BadHll;
+    const Slice value(reinterpret_cast<const char*>(image.payload.data()),
+                      static_cast<uint32_t>(image.payload.size()));
+    if (!hll::header_valid(value)) return WorkError::BadHll;
+    any_dense |= hll::is_dense(value);
+    return hll::merge_registers(value, maximum) ? WorkError::None : WorkError::CorruptHll;
+}
+
+void finish_pfcount(ScatterState& state) {
+    WorkError error;
+    if (first_error(state, error)) {
+        state.final_reply = FinalReply::Work;
+        state.final_error = error;
+        return;
+    }
+    std::array<uint8_t, hll::kRegisters> maximum{};
+    bool any_dense = false;
+    for (uint32_t i = 0; i < state.key_count; i++) {
+        error = merge_hll_image(state.images[i], maximum, any_dense);
+        if (error != WorkError::None) {
+            state.final_reply = FinalReply::Work;
+            state.final_error = error;
+            return;
+        }
+    }
+    state.final_reply = FinalReply::Integer;
+    state.final_integer = static_cast<long long>(hll::count_registers(maximum));
+}
+
+bool compute_pfmerge(ScatterState& state) {
+    std::array<uint8_t, hll::kRegisters> maximum{};
+    bool any_dense = false;
+    for (uint32_t i = 0; i < state.key_count; i++) {
+        const WorkError error = merge_hll_image(state.images[i], maximum, any_dense);
+        if (error != WorkError::None) {
+            state.final_reply = FinalReply::Work;
+            state.final_error = error;
+            return false;
+        }
+    }
+
+    const ObjectImage& destination = state.images[0];
+    const Slice destination_value(
+        destination.present ? reinterpret_cast<const char*>(destination.payload.data()) : nullptr,
+        destination.present ? static_cast<uint32_t>(destination.payload.size()) : 0);
+    std::string merged;
+    try {
+        if (!hll::merge_result(destination_value, destination.present, maximum, any_dense, merged)) {
+            state.final_reply = FinalReply::Work;
+            state.final_error = WorkError::CorruptHll;
+            return false;
+        }
+        ObjectImage& apply = state.apply[0];
+        apply = ObjectImage{};
+        apply.present = true;
+        apply.type = Type::String;
+        apply.encoding = static_cast<uint8_t>(Enc::Extern);
+        apply.expire_at_ms = destination.present ? destination.expire_at_ms : -1;
+        apply.payload.assign(merged.begin(), merged.end());
+    } catch (const std::bad_alloc&) {
+        state.final_reply = FinalReply::Work;
+        state.final_error = WorkError::Oom;
+        return false;
+    }
+    return true;
+}
+
 // True means phase one is terminal. False means hop2[] is complete and ready for one all-or-none
 // capacity preflight/publication.
 bool finish_phase1(ScatterState& state, Op& op) {
@@ -556,6 +644,11 @@ bool finish_phase1(ScatterState& state, Op& op) {
     }
 
     switch (state.kind) {
+        case Kind::Pfmerge:
+            if (!compute_pfmerge(state)) return true;
+            state.hop2[0] = 0;
+            state.hop2_count = 1;
+            return false;
         case Kind::Msetnx:
             for (uint32_t i = 0; i < state.key_count; i++)
                 if (state.values[i].kind != ValueKind::Nil) {
@@ -706,6 +799,7 @@ void finish_phase2(ScatterState& state) {
         case Kind::Sinterstore:
         case Kind::Sunionstore:
         case Kind::Sdiffstore: state.final_reply = FinalReply::Integer; break;
+        case Kind::Pfmerge: state.final_reply = FinalReply::Ok; break;
         case Kind::Lmove:
         case Kind::Rpoplpush: state.final_reply = FinalReply::Bulk; break;
         default: state.final_reply = FinalReply::Internal; break;
@@ -778,6 +872,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     // The ordinary handlers are already the optimal one-key path.
     if ((kind == Kind::Del || kind == Kind::Unlink || kind == Kind::Exists ||
          kind == Kind::Touch) && op.argc() == 2) return ScatterPrepare::NotScatter;
+    if (kind == Kind::Pfcount && op.argc() == 2) return ScatterPrepare::NotScatter;
 
     if (all_shards) {
         const bool valid = (op.spec->flags & CmdFlags::ConfigRoute)
@@ -864,7 +959,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     if (key_count) {
         bool same_owner = true;
         for (uint32_t i = 1; i < key_count; i++) same_owner &= routes[i].shard == routes[0].shard;
-        if (same_owner) {
+        if (same_owner && kind != Kind::Pfcount && kind != Kind::Pfmerge) {
             op.shard = routes[0].shard;
             op.hash = routes[0].hash;
             op.mark_local_xshard();
@@ -1027,9 +1122,20 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op) {
             for (uint32_t i = 0; i < group.count; i++) {
                 const uint32_t pos = state.key_order[group.begin + i];
                 const KeyRef& key = state.keys[pos];
-                WorkError result = state.kind == Kind::Msetnx
-                    ? store_xstring(shard, op.arg(key.arg), key.hash, op.arg(key.arg + 1))
-                    : apply_image(shard, op.arg(key.arg), key.hash, state.apply[pos]);
+                WorkError result;
+                if (state.kind == Kind::Msetnx) {
+                    result = store_xstring(shard, op.arg(key.arg), key.hash, op.arg(key.arg + 1));
+                } else if (state.kind == Kind::Pfmerge) {
+                    const ObjectImage& image = state.apply[pos];
+                    const Slice value(reinterpret_cast<const char*>(image.payload.data()),
+                                      static_cast<uint32_t>(image.payload.size()));
+                    // PFMERGE is a string command even though its bytes are structured. Hop two
+                    // installs through the same string funnel as SET and preserves destination TTL.
+                    result = store_xstring(shard, op.arg(key.arg), key.hash, value,
+                                           image.expire_at_ms, false);
+                } else {
+                    result = apply_image(shard, op.arg(key.arg), key.hash, state.apply[pos]);
+                }
                 state.status[pos] = static_cast<uint8_t>(result);
             }
             return ScatterTaskResult::Complete;
@@ -1134,6 +1240,10 @@ ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
         return ScatterFinish::Waiting;
     if (state.phase == 2) {
         finish_phase2(state);
+        return ScatterFinish::Final;
+    }
+    if (state.kind == Kind::Pfcount) {
+        finish_pfcount(state);
         return ScatterFinish::Final;
     }
     if (!is_two_hop(state.kind)) return ScatterFinish::Final;

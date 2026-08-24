@@ -33,6 +33,10 @@ struct CmdFlags {
     // can always be drained.
     static constexpr uint32_t DenyOom = 1u << 8;
     static constexpr uint32_t MultiShard = 1u << 9;  // command-specific scatter/gather lowering
+    // Logically read-only command with a physical value update that needs snapshot pre-image
+    // capture. PFCOUNT uses this for Redis's cached-cardinality bytes; it remains reported as
+    // readonly and is not maxmemory admission gated.
+    static constexpr uint32_t SnapshotWrite = 1u << 10;
 };
 
 using CmdHandler = void (*)(Shard&, Op&);
