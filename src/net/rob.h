@@ -101,6 +101,7 @@ public:
             Op& op = *slot(static_cast<uint32_t>(f) & kMask, false);
             if (op.state.load(std::memory_order_acquire) != OpState::Done) break;
             sink(op);                                   // the acquire above orders the reply bytes
+            if (op.oversized()) op.shrink();            // bounded retention: bursts do not pin heap
             op.state.store(OpState::Free, std::memory_order_relaxed);
             f++;
             n++;

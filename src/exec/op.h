@@ -81,11 +81,15 @@ public:
     Slice cmd_name() const { return argc_ ? arg(0) : Slice{}; }
     Slice key() const { return argc_ > 1 ? arg(1) : Slice{}; }   // v1: key is always argv[1]
 
-    // Recycles heap growth so one MSET-1000 does not permanently inflate every ring slot.
+    // Recycles heap growth so one MSET-1000 or one 64MB reply does not permanently inflate every
+    // ring slot. Called from Rob::drain at retire, gated so the common case (inline argv, inline
+    // reply) pays one predictable branch and frees nothing.
+    static constexpr size_t kShrinkKeep = 4096;   // reply heap above this is a burst, not a working size
     void shrink() {
         if (argv_heap_) { std::free(argv_heap_); argv_heap_ = nullptr; argv_cap_ = 0; }
         reply.shrink_to_inline();
     }
+    bool oversized() const { return argv_heap_ != nullptr || reply.cap() > kShrinkKeep; }
 
     // ---- fields --------------------------------------------------------------------------------
     const CommandSpec* spec  = nullptr;

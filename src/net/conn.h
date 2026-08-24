@@ -60,6 +60,7 @@ inline constexpr size_t   kRbufHardCap  = 512ull * 1024 * 1024 + 64 * 1024;  // 
 // worst-case staging whether it ever pipelined or not; SmallBuf grows on demand and clear() keeps
 // the allocation, so a busy connection pays ONE grow to its working size and idles at 1KB + that.
 inline constexpr size_t   kWbufInline   = 512;
+inline constexpr size_t   kWbufShed     = 64 * 1024;   // reply staging above this is a burst; shed it
 
 // Item 6: connection-lived execution-side state -- the third lifetime. Session-mutating commands
 // are ConnLocal and run on the io thread, single-threaded per connection; handlers never see it,
@@ -134,6 +135,12 @@ public:
         if (rest && rpos_) std::memmove(rbuf_, rbuf_ + rpos_, rest);
         rlen_ = rest;
         rpos_ = 0;
+        // Also shed burst-grown WRITE buffers here. The guard is size()==0 itself: a buffer with
+        // a send in flight (or staged bytes) always has size > 0 and is skipped, so shrinking can
+        // never truncate bytes the kernel or the sender still references -- the same invariant
+        // that makes the rbuf shed below safe, enforced per buffer instead of by caller contract.
+        for (auto& b : buf_)
+            if (b.size() == 0 && b.cap() > kWbufShed) b.shrink_to_inline();
         // Shed an oversized command's growth -- but ONLY once the buffer is EMPTY. Shrinking with
         // rest > 0 truncates the allocation underneath rlen_, and the next recv lands past the end
         // of a 16KB block. That exact bug shipped for ~20 minutes: the hard-cap growth fix armed
