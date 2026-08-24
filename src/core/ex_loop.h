@@ -54,6 +54,9 @@ public:
 
         while (!self_->stop_flag().load(std::memory_order_relaxed)) {
             cached_now_ms_ = realtime_ms();
+            refresh_maxmemory_config();
+            if (maxmemory_enabled_)
+                cached_lru_clock_ = static_cast<uint8_t>((cached_now_ms_ / 1000 / 256) & 0x1f);
             sig.iterations++;
             self_->sample_depth();
 
@@ -89,6 +92,17 @@ public:
     }
 
 private:
+    void refresh_maxmemory_config() {
+        MaxmemoryConfigSnapshot snapshot;
+        if (!srv_->maxmemory_config_snapshot_if_changed(maxmemory_config_version_, snapshot)) return;
+        const bool enabled = snapshot.maxmemory != 0;
+        const uint64_t shard_limit = snapshot.maxmemory / srv_->nshards();
+        for (Shard* sh : self_->shards())
+            sh->configure_maxmemory(enabled, shard_limit, snapshot.policy, snapshot.samples);
+        maxmemory_enabled_ = enabled;
+        maxmemory_config_version_ = snapshot.version;
+    }
+
     // Visits only the IO threads that actually have work for us, via the notify mask, rather than
     // polling every possible producer. retire() happens inside the helper, AFTER execution — see
     // exqueue.h on why the retired frontier is separate from head.
@@ -115,7 +129,7 @@ private:
         for (uint32_t i = 0; i < visits; i++) {
             if (expire_shard_cursor_ >= shards.size()) expire_shard_cursor_ = 0;
             Shard* sh = shards[expire_shard_cursor_++];
-            sh->set_cached_now_ms(cached_now_ms_);
+            sh->set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
             const uint32_t n = sh->active_expire(base + (i < extra ? 1 : 0));
             if (n) sh->publish_size();
             removed += n;
@@ -160,7 +174,7 @@ private:
     void execute(const Task& t) {
         Op& op = t.client->rob().at(t.op_id);
         Shard& sh = srv_->shard(op.shard);
-        sh.set_cached_now_ms(cached_now_ms_);
+        sh.set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
         // Records the op AND whether it was executed from this shard's home L3 domain. One compare
         // and one increment, no atomics — the shard has a single owner.
         sh.note_execution(self_->domain());
@@ -235,6 +249,9 @@ private:
     WbEngine   wb_;    // never serves here; kept so the stats plumbing stays uniform across loops
     int64_t    cached_now_ms_ = 0;
     size_t     expire_shard_cursor_ = 0;
+    uint64_t   maxmemory_config_version_ = 0;
+    bool       maxmemory_enabled_ = false;
+    uint8_t    cached_lru_clock_ = 0;
 };
 
 }  // namespace tomo

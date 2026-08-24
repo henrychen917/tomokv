@@ -13,7 +13,7 @@
 //     traffic is a shared-line write. A KvObj is owned outright by one shard: copy or move, never
 //     share. There is no shared-integer cache either.
 //  3. NOTHING STORED THAT THE TABLE ALREADY HAS. FlatStore's slot carries a 15-bit tag, so no hash
-//     is kept here. No LRU/LFU field unless eviction is compiled in.
+//     is kept here. Optional LRU/LFU state steals proven-spare header bits; it adds no field.
 //
 // BUDGET (this is a test, not an aspiration — see bench/kvobj_footprint):
 //   16-byte key + 64-byte value, no TTL  ->  target < 85 B all-in.
@@ -48,6 +48,9 @@ struct KvObjFlags {
     // Re-headering a collection moves this ownership bit to the replacement before FlatStore
     // retires the old header. Both headers briefly name the pointer; exactly one may destroy it.
     static constexpr uint8_t OwnsExtern = 1u << 2;
+    // Bits 3..7 are the optional five-bit eviction metadata. They are never written while
+    // maxmemory is disabled. See KvObj::eviction_meta().
+    static constexpr uint8_t LayoutMask = HasTtl | KeyExt | OwnsExtern;
 };
 
 // Header is exactly 8 bytes. Fields are ordered so the hot ones (type/enc/flags) share one word.
@@ -57,6 +60,11 @@ struct KvObj {
     uint8_t  flags;     // KvObjFlags
     uint8_t  klen8;     // key length when < 255; 255 means "see the u32 after the header"
     uint32_t vlen;      // inline value length, or external length when Enc::Extern
+
+    uint8_t eviction_meta() const { return static_cast<uint8_t>(flags >> 3); }
+    void set_eviction_meta(uint8_t meta) {
+        flags = static_cast<uint8_t>((flags & KvObjFlags::LayoutMask) | ((meta & 0x1f) << 3));
+    }
 
     // ---- layout arithmetic -------------------------------------------------------------------
     // Everything after the header is optional and positional, so all offsets are computed rather
@@ -243,12 +251,16 @@ inline KvObj* kvobj_new_zset(Slice key, ZsetVal* value, int64_t expire_at_ms = -
 // move their external ownership in FlatStore::rewrite_expire().
 inline KvObj* kvobj_reheader(KvObj* src, int64_t expire_at_ms) {
     const Type type = static_cast<Type>(src->type);
+    KvObj* replacement = nullptr;
     if (type == Type::String) {
-        if (src->is_int()) return kvobj_new_int(src->key(), src->int_value(), expire_at_ms);
-        return kvobj_new_string(src->key(), src->str_value(), expire_at_ms);
+        replacement = src->is_int()
+            ? kvobj_new_int(src->key(), src->int_value(), expire_at_ms)
+            : kvobj_new_string(src->key(), src->str_value(), expire_at_ms);
+    } else {
+        replacement = kvobj_new_typeval(src->key(), type, src->external_ptr(), src->vlen,
+                                        expire_at_ms, false);
     }
-    return kvobj_new_typeval(src->key(), type, src->external_ptr(), src->vlen,
-                             expire_at_ms, false);
+    return replacement;
 }
 
 // What this object ASKED the allocator for. Used to free it (sized free) and as the basis for its

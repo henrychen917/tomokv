@@ -52,6 +52,7 @@ public:
         zc_min_ = zc_min;
         type_limits_ = type_limits;
         store_.bind_expired_counter(&stats_.expired);
+        store_.bind_evicted_counter(&stats_.evicted);
     }
 
     int32_t  id() const { return id_; }
@@ -62,9 +63,14 @@ public:
     int64_t  now_ms()       const { return now_ms_; }
     const TypeLimits& type_limits() const { return type_limits_; }
 
-    void set_cached_now_ms(int64_t now_ms) {
+    void set_cached_now_ms(int64_t now_ms, uint8_t lru_clock = 0) {
         now_ms_ = now_ms;
         store_.set_cached_now_ms(now_ms);
+        store_.set_cached_lru_clock(lru_clock);
+    }
+    void configure_maxmemory(bool enabled, uint64_t shard_limit, MaxmemoryPolicy policy,
+                             uint32_t samples) {
+        store_.configure_maxmemory(enabled, shard_limit, policy, samples);
     }
     uint32_t active_expire(uint32_t budget) { return store_.active_expire(budget); }
 
@@ -82,8 +88,14 @@ public:
     // Published for cross-shard readers (DBSIZE, INFO). Updated once per executed batch rather than
     // per op: a per-op store to a line that other threads poll is exactly the shared-line write the
     // design avoids everywhere else. Slightly stale by construction, which is correct for a stat.
-    void publish_size() { published_size_.store(store_.size(), std::memory_order_relaxed); }
+    void publish_size() {
+        published_size_.store(store_.size(), std::memory_order_relaxed);
+        published_evicted_.store(stats_.evicted, std::memory_order_relaxed);
+    }
     uint32_t published_size() const { return published_size_.load(std::memory_order_relaxed); }
+    uint64_t published_evicted() const {
+        return published_evicted_.load(std::memory_order_relaxed);
+    }
 
     // Called by the executing worker on every op. `worker_domain` is that thread's L3 domain.
     // Cheap by construction: one compare and one increment, no atomics — the shard is single-owner.
@@ -109,6 +121,7 @@ public:
         uint64_t hits          = 0;
         uint64_t misses        = 0;
         uint64_t expired       = 0;
+        uint64_t evicted       = 0;
         // THE actionable locality signal: ops executed by a worker in a different L3 domain than the
         // one holding this shard's working set. A high ratio means placement is wrong, and it is the
         // number a flip/LB controller should act on — not a guess from thread ids or core counts.
@@ -131,6 +144,7 @@ private:
     int64_t   now_ms_       = 0;
     uint32_t  home_domain_  = kNoDomain;
     std::atomic<uint32_t> published_size_{0};
+    std::atomic<uint64_t> published_evicted_{0};
     FlatStore store_;
     Stats     stats_;
     TypeLimits type_limits_;

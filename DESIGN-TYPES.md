@@ -36,8 +36,9 @@ Each family owns one static `CommandSpec` table and exports a `CommandTable` vie
 | `src/cmd/t_list.cc` | `list_command_table()` | List lane |
 | `src/cmd/t_set.cc` | `set_command_table()` | Set lane |
 | `src/cmd/t_zset.cc` | `zset_command_table()` | Sorted-set lane |
+| `src/cmd/t_server.cc` | `server_command_table()` | Connection-local server/admin commands |
 
-`src/cmd/commands.cc` calls all five exports at boot and builds a load-factor-at-most-1/2 linear-
+`src/cmd/commands.cc` calls all six exports at boot and builds a load-factor-at-most-1/2 linear-
 probe table. Hashing uppercases ASCII bytes as it reads them; canonical table names are uppercase.
 Lookup normally checks one slot and confirms the normalized bytes, so aliases cannot arise from a
 hash collision.

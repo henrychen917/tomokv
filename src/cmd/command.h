@@ -48,12 +48,13 @@ struct CommandTable {
     size_t             size;
 };
 
-// Every family owns its table; the registry calls all five even while four are empty foundations.
+// Every family owns its table; the registry calls every type table plus the server/admin table.
 CommandTable string_command_table();
 CommandTable hash_command_table();
 CommandTable list_command_table();
 CommandTable set_command_table();
 CommandTable zset_command_table();
+CommandTable server_command_table();
 
 // Built once before threads start. Lookup hashes the uppercase-normalized bytes into an open-
 // addressed table; the load factor is capped at 1/2 so ordinary command names land in one probe.
