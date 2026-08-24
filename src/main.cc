@@ -253,6 +253,10 @@ int main(int argc, char** argv) {
     std::signal(SIGTERM, on_signal);
     std::signal(SIGPIPE, SIG_IGN);      // send() errors arrive as -EPIPE on the CQE instead
 
+    if (!good_size_matches_allocator()) {
+        std::fprintf(stderr, "good_size() disagrees with the allocator's size classes\n");
+        return 1;
+    }
     Server srv;
     if (!srv.init(cfg)) { std::fprintf(stderr, "server init failed\n"); return 1; }
     g_srv = &srv;

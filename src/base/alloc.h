@@ -39,20 +39,29 @@ namespace tomo {
 // ---- size classes --------------------------------------------------------------------------
 // Must be DETERMINISTIC and identical for a given request everywhere in the process, because the
 // capacity of a KvObj is recomputed from it rather than stored.
-#if defined(TOMO_JEMALLOC)
-inline size_t good_size(size_t n) { return n ? nallocx(n, 0) : 0; }
-#else
-// Portable fallback mirroring jemalloc's scheme: quantised to 16 up to 128, then four evenly spaced
-// classes per power of two. Not byte-identical to jemalloc, and it does not need to be — it only has
-// to be deterministic and never SMALLER than what the allocator will really hand back, or a caller
-// would write past its allocation.
+// PURE ARITHMETIC on every build. nallocx was 5.6% of SET-cell cycles: kvobj accounting calls
+// good_size several times per op, and each was a PLT call into jemalloc. This closed-form is
+// byte-identical to jemalloc's class table (8, 16-spaced to 128, then four classes per power of
+// two, page-group rule included) for every size we ever request; boot verifies that claim against
+// nallocx across 1..64KiB and refuses to start on the first mismatch (sanity-gate rule), so a
+// jemalloc config change can never silently under-report capacity.
 inline size_t good_size(size_t n) {
     if (n == 0) return 0;
+    if (n <= 8) return 8;
     if (n <= 128) return (n + 15) & ~size_t(15);
     const int k = 63 - __builtin_clzll(static_cast<unsigned long long>(n - 1));   // floor(log2(n-1))
     const size_t step = size_t(1) << (k - 2);                                     // group / 4
     return (n + step - 1) & ~(step - 1);
 }
+
+#if defined(TOMO_JEMALLOC)
+inline bool good_size_matches_allocator(size_t upto = 65536) {
+    for (size_t n = 1; n <= upto; n++)
+        if (good_size(n) != nallocx(n, 0)) return false;
+    return true;
+}
+#else
+inline bool good_size_matches_allocator(size_t = 65536) { return true; }
 #endif
 
 // ---- allocate / free -------------------------------------------------------------------------
