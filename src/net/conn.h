@@ -48,7 +48,14 @@ namespace tomo {
 
 inline constexpr uint32_t kRobWindow    = 64;          // max in-flight ops per connection
 inline constexpr size_t   kRbufInitial  = 16 * 1024;
-inline constexpr size_t   kRbufSoftCap  = 1 * 1024 * 1024;  // stop reading past this until drained
+inline constexpr size_t   kRbufSoftCap  = 1 * 1024 * 1024;  // stop BUFFERING BACKLOG past this
+// The parser accepts redis-compatible bulks (512MB). A single command must therefore be allowed to
+// exceed the soft cap, or a 2MB SET stalls its connection forever: the parser reports Incomplete,
+// read_space refuses to grow, and neither side can ever make progress -- a silent wedge with no
+// error, found by the perfected-checkpoint audit. The soft cap bounds BACKLOG (many buffered
+// commands); one oversized in-flight command may grow to the protocol bound. Memory tracks bytes
+// actually received, and reset_rbuf_at_quiescence sheds the growth after the command completes.
+inline constexpr size_t   kRbufHardCap  = 512ull * 1024 * 1024 + 64 * 1024;  // parser bound + slack
 // Item 4: 512B inline, heap beyond. Two 16KB inline buffers made every connection carry 32KB of
 // worst-case staging whether it ever pipelined or not; SmallBuf grows on demand and clear() keeps
 // the allocation, so a busy connection pays ONE grow to its working size and idles at 1KB + that.
@@ -94,9 +101,14 @@ public:
 
     char* read_space(size_t want, size_t& out_avail, bool may_grow) {
         size_t avail = rcap_ - rlen_;
-        if (avail < want && may_grow && rcap_ < kRbufSoftCap) {
+        // Past the soft cap, growth continues ONLY while the entire buffer is one incomplete
+        // command (rpos_ == 0 after the quiescence reset: nothing parsed, nothing in flight --
+        // which is also what makes may_grow true). Backlog never grows past the soft cap.
+        const size_t cap = (rpos_ == 0) ? kRbufHardCap : kRbufSoftCap;
+        if (avail < want && may_grow && rcap_ < cap) {
             size_t ncap = rcap_ * 2;
-            while (ncap < rlen_ + want && ncap < kRbufSoftCap) ncap *= 2;
+            while (ncap < rlen_ + want && ncap < cap) ncap *= 2;
+            if (ncap > cap) ncap = cap;
             char* n = static_cast<char*>(std::realloc(rbuf_, ncap));
             if (n) { rbuf_ = n; rcap_ = ncap; avail = rcap_ - rlen_; }
         }
@@ -122,7 +134,11 @@ public:
         if (rest && rpos_) std::memmove(rbuf_, rbuf_ + rpos_, rest);
         rlen_ = rest;
         rpos_ = 0;
-        if (rcap_ > kRbufSoftCap) {          // shed one huge request's growth
+        // Shed an oversized command's growth -- but ONLY once the buffer is EMPTY. Shrinking with
+        // rest > 0 truncates the allocation underneath rlen_, and the next recv lands past the end
+        // of a 16KB block. That exact bug shipped for ~20 minutes: the hard-cap growth fix armed
+        // this previously-unreachable branch, and a 2MB SET died with EFAULT mid-stream.
+        if (rlen_ == 0 && rcap_ > kRbufSoftCap) {
             char* n = static_cast<char*>(std::realloc(rbuf_, kRbufInitial));
             if (n) { rbuf_ = n; rcap_ = kRbufInitial; }
         }
