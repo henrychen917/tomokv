@@ -4,6 +4,9 @@
 #include <algorithm>
 #include <array>
 #include <atomic>
+#include <cctype>
+#include <charconv>
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <limits>
@@ -33,6 +36,7 @@ enum class Kind : uint8_t {
     Rename, Renamenx, Copy, Smove, Lmove, Rpoplpush,
     Sinter, Sunion, Sdiff, Sintercard, Sinterstore, Sunionstore, Sdiffstore,
     Bitop, Pfmerge,
+    Lmpop, Zmpop, Zrangestore, Sort,
 };
 
 enum class BitOperation : uint8_t { And, Or, Xor, Not };
@@ -41,7 +45,8 @@ enum class WorkError : uint8_t {
     None, WrongType, BadHll, CorruptHll, Oom, Maxmemory, InsertFailed, Corrupt
 };
 enum class FinalReply : uint8_t {
-    None, Ok, Integer, Nil, Bulk, Array, Work, NoSuchKey, SameObject, QueueFull, Internal
+    None, Ok, Integer, Nil, NullArray, Bulk, Array, Lmpop, Zmpop, SortConversion,
+    Work, NoSuchKey, SameObject, QueueFull, Internal
 };
 enum class ValueKind : uint8_t { Nil, Inline, Borrow };
 
@@ -49,6 +54,7 @@ struct ObjectImage {
     bool present = false;
     Type type = Type::String;
     uint8_t encoding = 0;
+    uint32_t entries = 0;
     int64_t expire_at_ms = -1;
     std::vector<uint8_t> payload;
 };
@@ -100,6 +106,7 @@ struct KeyRef {
 struct ResultHeap {
     std::string bulk;
     std::vector<std::string> members;
+    std::vector<double> scores;
 };
 
 struct RouteKey {
@@ -125,6 +132,163 @@ bool parse_u64(Slice s, uint64_t& value) {
     return true;
 }
 
+bool parse_i64(Slice s, int64_t& out) {
+    if (!s.n) return false;
+    uint32_t pos = 0;
+    bool negative = false;
+    if (s.p[pos] == '-') {
+        negative = true;
+        if (++pos == s.n) return false;
+    }
+    uint64_t value = 0;
+    const uint64_t limit = negative ? (uint64_t{1} << 63)
+                                    : static_cast<uint64_t>(std::numeric_limits<int64_t>::max());
+    for (; pos < s.n; pos++) {
+        const uint8_t c = static_cast<uint8_t>(s.p[pos]);
+        if (c < '0' || c > '9') return false;
+        const uint32_t digit = c - '0';
+        if (value > (limit - digit) / 10) return false;
+        value = value * 10 + digit;
+    }
+    out = negative ? (value == (uint64_t{1} << 63)
+                          ? std::numeric_limits<int64_t>::min()
+                          : -static_cast<int64_t>(value))
+                   : static_cast<int64_t>(value);
+    return true;
+}
+
+void reply_invalid_integer(Op& op) {
+    reply_err(op.sink(), "ERR value is not an integer or out of range");
+}
+
+bool parse_mpop(Op& op, Kind kind, uint32_t& numkeys, bool& edge, uint64_t& count) {
+    int64_t parsed_numkeys = 0;
+    if (!parse_i64(op.arg(1), parsed_numkeys)) {
+        reply_invalid_integer(op);
+        return false;
+    }
+    if (parsed_numkeys < 1) {
+        reply_err(op.sink(), "ERR numkeys should be greater than 0");
+        return false;
+    }
+    if (static_cast<uint64_t>(parsed_numkeys) > UINT32_MAX ||
+        static_cast<uint64_t>(parsed_numkeys) + 2 >= op.argc()) {
+        reply_syntax(op.sink());
+        return false;
+    }
+    numkeys = static_cast<uint32_t>(parsed_numkeys);
+    const uint32_t edge_arg = 2 + numkeys;
+    if (kind == Kind::Lmpop) {
+        if (op.arg(edge_arg).eq_icase("left")) edge = false;
+        else if (op.arg(edge_arg).eq_icase("right")) edge = true;
+        else { reply_syntax(op.sink()); return false; }
+    } else {
+        if (op.arg(edge_arg).eq_icase("min")) edge = false;
+        else if (op.arg(edge_arg).eq_icase("max")) edge = true;
+        else { reply_syntax(op.sink()); return false; }
+    }
+    count = 1;
+    bool count_seen = false;
+    for (uint32_t i = edge_arg + 1; i < op.argc(); i++) {
+        if (count_seen || !op.arg(i).eq_icase("count") || i + 1 >= op.argc()) {
+            reply_syntax(op.sink());
+            return false;
+        }
+        int64_t parsed_count = 0;
+        if (!parse_i64(op.arg(++i), parsed_count)) {
+            reply_invalid_integer(op);
+            return false;
+        }
+        if (parsed_count < 1) {
+            reply_err(op.sink(), "ERR count should be greater than 0");
+            return false;
+        }
+        count = static_cast<uint64_t>(parsed_count);
+        count_seen = true;
+    }
+    return true;
+}
+
+enum class ImageRangeKind : uint8_t { Rank, Score, Lex };
+
+struct ImageRangeOptions {
+    ImageRangeKind kind = ImageRangeKind::Rank;
+    bool reverse = false;
+    bool limit_seen = false;
+    int64_t offset = 0;
+    int64_t limit = -1;
+};
+
+bool parse_zrangestore_options(Op& op, ImageRangeOptions& options) {
+    bool kind_seen = false;
+    bool reverse_seen = false;
+    for (uint32_t i = 5; i < op.argc(); i++) {
+        if (!kind_seen && op.arg(i).eq_icase("byscore")) {
+            options.kind = ImageRangeKind::Score;
+            kind_seen = true;
+        } else if (!kind_seen && op.arg(i).eq_icase("bylex")) {
+            options.kind = ImageRangeKind::Lex;
+            kind_seen = true;
+        } else if (!reverse_seen && op.arg(i).eq_icase("rev")) {
+            options.reverse = true;
+            reverse_seen = true;
+        } else if (op.arg(i).eq_icase("limit") && i + 2 < op.argc()) {
+            if (!parse_i64(op.arg(i + 1), options.offset) ||
+                !parse_i64(op.arg(i + 2), options.limit)) {
+                reply_invalid_integer(op);
+                return false;
+            }
+            options.limit_seen = true;
+            i += 2;
+        } else {
+            reply_syntax(op.sink());
+            return false;
+        }
+    }
+    if (options.limit_seen && options.kind == ImageRangeKind::Rank) {
+        reply_err(op.sink(),
+                  "ERR syntax error, LIMIT is only supported in combination with either BYSCORE or BYLEX");
+        return false;
+    }
+    return true;
+}
+
+struct SortOptions {
+    bool alpha = false;
+    bool descending = false;
+    bool store = false;
+    uint32_t store_arg = 0;
+    int64_t offset = 0;
+    int64_t count = -1;
+};
+
+bool parse_sort_options(Op& op, SortOptions& options) {
+    for (uint32_t i = 2; i < op.argc(); i++) {
+        if (op.arg(i).eq_icase("alpha")) {
+            options.alpha = true;
+        } else if (op.arg(i).eq_icase("asc")) {
+            options.descending = false;
+        } else if (op.arg(i).eq_icase("desc")) {
+            options.descending = true;
+        } else if (op.arg(i).eq_icase("limit") && i + 2 < op.argc()) {
+            if (!parse_i64(op.arg(i + 1), options.offset) ||
+                !parse_i64(op.arg(i + 2), options.count)) {
+                reply_invalid_integer(op);
+                return false;
+            }
+            i += 2;
+        } else if (op.arg(i).eq_icase("store") && i + 1 < op.argc()) {
+            options.store = true;
+            options.store_arg = ++i;
+        } else {
+            // BY/GET patterns are deliberately outside this command slice and are syntax errors.
+            reply_syntax(op.sink());
+            return false;
+        }
+    }
+    return true;
+}
+
 void set_oom(Op& op) { reply_err(op.sink(), "ERR out of memory"); }
 
 bool classify(const Op& op, Kind& kind) {
@@ -140,6 +304,8 @@ bool classify(const Op& op, Kind& kind) {
         {"SINTERCARD", Kind::Sintercard}, {"SINTERSTORE", Kind::Sinterstore},
         {"SUNIONSTORE", Kind::Sunionstore}, {"SDIFFSTORE", Kind::Sdiffstore},
         {"BITOP", Kind::Bitop},
+        {"LMPOP", Kind::Lmpop}, {"ZMPOP", Kind::Zmpop},
+        {"ZRANGESTORE", Kind::Zrangestore}, {"SORT", Kind::Sort},
     };
     for (const Entry& entry : entries)
         if (name_is(op, entry.name)) { kind = entry.kind; return true; }
@@ -174,6 +340,7 @@ bool serialize_object(KvObj* object, ObjectImage& image) {
     if (!object) return true;
     image.present = true;
     image.type = static_cast<Type>(object->type);
+    if (image.type != Type::String) image.entries = CollectionRef(object).entries();
     image.expire_at_ms = object->expire_at_ms();
     const SnapshotTypeHooks& hooks = snapshot_type_hooks(image.type);
     SnapshotSaveCursor cursor;
@@ -252,6 +419,7 @@ bool encode_elements(const std::vector<std::string>& elements, ObjectImage& imag
         image.present = true;
         image.type = type;
         image.encoding = 0;
+        image.entries = static_cast<uint32_t>(elements.size());
         image.expire_at_ms = expire_at_ms;
         image.payload.resize(static_cast<size_t>(total));
     } catch (const std::bad_alloc&) {
@@ -303,6 +471,137 @@ bool decode_string_image(const ObjectImage& image, std::string& value, WorkError
     return true;
 }
 
+int binary_compare(Slice a, Slice b) {
+    const uint32_t common = std::min(a.n, b.n);
+    const int cmp = common ? std::memcmp(a.p, b.p, common) : 0;
+    if (cmp != 0) return cmp < 0 ? -1 : 1;
+    if (a.n == b.n) return 0;
+    return a.n < b.n ? -1 : 1;
+}
+
+bool parse_double_value(Slice input, double& out) {
+    if (!input.n) return false;
+    bool negative = false;
+    Slice word = input;
+    if (word.p[0] == '+' || word.p[0] == '-') {
+        negative = word.p[0] == '-';
+        word.p++;
+        word.n--;
+    }
+    if (word.eq_icase("inf") || word.eq_icase("infinity")) {
+        out = negative ? -std::numeric_limits<double>::infinity()
+                       : std::numeric_limits<double>::infinity();
+        return true;
+    }
+    const char* begin = input.p + (input.p[0] == '+');
+    const char* end = input.p + input.n;
+    if (begin == end) return false;
+    auto result = std::from_chars(begin, end, out, std::chars_format::general);
+    return result.ec == std::errc{} && result.ptr == end && !std::isnan(out);
+}
+
+struct ImageScoreRange {
+    double min = 0;
+    double max = 0;
+    bool min_exclusive = false;
+    bool max_exclusive = false;
+};
+
+bool parse_image_score_range(Slice min, Slice max, ImageScoreRange& range) {
+    if (min.n && min.p[0] == '(') { range.min_exclusive = true; min.p++; min.n--; }
+    if (max.n && max.p[0] == '(') { range.max_exclusive = true; max.p++; max.n--; }
+    return parse_double_value(min, range.min) && parse_double_value(max, range.max);
+}
+
+enum class ImageInfinity : int8_t { Minus = -1, Finite = 0, Plus = 1 };
+struct ImageLexBound {
+    ImageInfinity infinity = ImageInfinity::Finite;
+    Slice value;
+    bool exclusive = false;
+};
+struct ImageLexRange { ImageLexBound min, max; };
+
+bool parse_image_lex_bound(Slice input, ImageLexBound& bound) {
+    if (input.n == 1 && input.p[0] == '-') {
+        bound.infinity = ImageInfinity::Minus;
+        bound.exclusive = true;
+        return true;
+    }
+    if (input.n == 1 && input.p[0] == '+') {
+        bound.infinity = ImageInfinity::Plus;
+        bound.exclusive = true;
+        return true;
+    }
+    if (!input.n || (input.p[0] != '(' && input.p[0] != '[')) return false;
+    bound.exclusive = input.p[0] == '(';
+    bound.value = Slice(input.p + 1, input.n - 1);
+    return true;
+}
+
+int member_bound_compare(Slice member, const ImageLexBound& bound) {
+    if (bound.infinity == ImageInfinity::Minus) return 1;
+    if (bound.infinity == ImageInfinity::Plus) return -1;
+    return binary_compare(member, bound.value);
+}
+
+struct ImageRangeSpec {
+    int64_t rank_start = 0;
+    int64_t rank_stop = 0;
+    ImageScoreRange score;
+    ImageLexRange lex;
+};
+
+bool parse_zrangestore_range(Op& op, const ImageRangeOptions& options, ImageRangeSpec& range) {
+    uint32_t min_arg = 3, max_arg = 4;
+    if (options.reverse && options.kind != ImageRangeKind::Rank) std::swap(min_arg, max_arg);
+    if (options.kind == ImageRangeKind::Rank) {
+        if (!parse_i64(op.arg(min_arg), range.rank_start) ||
+            !parse_i64(op.arg(max_arg), range.rank_stop)) {
+            reply_invalid_integer(op);
+            return false;
+        }
+    } else if (options.kind == ImageRangeKind::Score) {
+        if (!parse_image_score_range(op.arg(min_arg), op.arg(max_arg), range.score)) {
+            reply_err(op.sink(), "ERR min or max is not a float");
+            return false;
+        }
+    } else if (!parse_image_lex_bound(op.arg(min_arg), range.lex.min) ||
+               !parse_image_lex_bound(op.arg(max_arg), range.lex.max)) {
+        reply_err(op.sink(), "ERR min or max not valid string range item");
+        return false;
+    }
+    return true;
+}
+
+struct ZImageItem {
+    std::string member;
+    double score = 0;
+};
+
+bool decode_zset_image(const ObjectImage& image, std::vector<ZImageItem>& items) {
+    items.clear();
+    const uint8_t* p = image.payload.data();
+    uint64_t left = image.payload.size();
+    try {
+        items.reserve(image.entries);
+        while (left) {
+            if (left < 12) return false;
+            const uint64_t bits = snapshot_get_u64(p);
+            double score;
+            std::memcpy(&score, &bits, sizeof(score));
+            const uint32_t len = snapshot_get_u32(p + 8);
+            p += 12; left -= 12;
+            if (left < len || std::isnan(score)) return false;
+            items.push_back({std::string(reinterpret_cast<const char*>(p), len), score});
+            p += len; left -= len;
+        }
+    } catch (const std::bad_alloc&) {
+        items.clear();
+        return false;
+    }
+    return true;
+}
+
 bool compute_bitop(const ObjectImage* images, uint32_t first, uint32_t count, Slice operation_name,
                    ObjectImage& output, long long& output_length, WorkError& error) {
     BitOperation operation;
@@ -348,6 +647,165 @@ bool compute_bitop(const ObjectImage* images, uint32_t first, uint32_t count, Sl
         return false;
     }
     return true;
+}
+
+bool encode_zset_image(const std::vector<ZImageItem>& items, ObjectImage& image) {
+    uint64_t total = 0;
+    for (const ZImageItem& item : items) total += 12ull + item.member.size();
+    if (total > UINT32_MAX || items.size() > UINT32_MAX) return false;
+    try {
+        image = ObjectImage{};
+        image.present = true;
+        image.type = Type::Zset;
+        image.encoding = 0;
+        image.entries = static_cast<uint32_t>(items.size());
+        image.expire_at_ms = -1;
+        image.payload.resize(static_cast<size_t>(total));
+    } catch (const std::bad_alloc&) {
+        return false;
+    }
+    uint8_t* p = image.payload.data();
+    for (const ZImageItem& item : items) {
+        uint64_t bits;
+        std::memcpy(&bits, &item.score, sizeof(bits));
+        snapshot_put_u64(p, bits);
+        snapshot_put_u32(p + 8, static_cast<uint32_t>(item.member.size()));
+        if (!item.member.empty()) std::memcpy(p + 12, item.member.data(), item.member.size());
+        p += 12 + item.member.size();
+    }
+    return true;
+}
+
+bool select_zrange(const std::vector<ZImageItem>& input, const ImageRangeOptions& options,
+                   const ImageRangeSpec& range, std::vector<ZImageItem>& selected) {
+    selected.clear();
+    try {
+        if (options.kind == ImageRangeKind::Rank) {
+            int64_t start = range.rank_start;
+            int64_t stop = range.rank_stop;
+            const int64_t size = static_cast<int64_t>(input.size());
+            if (start < 0) start += size;
+            if (stop < 0) stop += size;
+            if (start < 0) start = 0;
+            if (start > stop || start >= size || stop < 0) return true;
+            if (stop >= size) stop = size - 1;
+            selected.reserve(static_cast<size_t>(stop - start + 1));
+            for (int64_t i = start; i <= stop; i++) {
+                const size_t index = options.reverse ? static_cast<size_t>(size - i - 1)
+                                                     : static_cast<size_t>(i);
+                selected.push_back(input[index]);
+            }
+            return true;
+        }
+
+        if (options.offset < 0 || options.limit == 0) return true;
+        std::vector<size_t> matches;
+        matches.reserve(input.size());
+        bool started = false;
+        for (size_t i = 0; i < input.size(); i++) {
+            const Slice member(input[i].member.data(), static_cast<uint32_t>(input[i].member.size()));
+            bool at_or_after = false;
+            bool at_or_before = false;
+            if (options.kind == ImageRangeKind::Score) {
+                at_or_after = range.score.min_exclusive
+                    ? input[i].score > range.score.min : input[i].score >= range.score.min;
+                at_or_before = range.score.max_exclusive
+                    ? input[i].score < range.score.max : input[i].score <= range.score.max;
+            } else {
+                const int lo = member_bound_compare(member, range.lex.min);
+                const int hi = member_bound_compare(member, range.lex.max);
+                at_or_after = range.lex.min.exclusive ? lo > 0 : lo >= 0;
+                at_or_before = range.lex.max.exclusive ? hi < 0 : hi <= 0;
+            }
+            if (!started && !at_or_after) continue;
+            if (!at_or_before) break;
+            started = true;
+            matches.push_back(i);
+        }
+        const uint64_t offset = static_cast<uint64_t>(options.offset);
+        if (offset >= matches.size()) return true;
+        const uint64_t available = matches.size() - offset;
+        const uint64_t take = options.limit < 0
+            ? available : std::min<uint64_t>(available, static_cast<uint64_t>(options.limit));
+        selected.reserve(static_cast<size_t>(take));
+        for (uint64_t i = 0; i < take; i++) {
+            const size_t match = options.reverse
+                ? matches[matches.size() - 1 - static_cast<size_t>(offset + i)]
+                : matches[static_cast<size_t>(offset + i)];
+            selected.push_back(input[match]);
+        }
+    } catch (const std::bad_alloc&) {
+        selected.clear();
+        return false;
+    }
+    return true;
+}
+
+bool sort_number(const std::string& text, double& number) {
+    if (text.empty() || std::isspace(static_cast<unsigned char>(text[0]))) return false;
+    return parse_double_value(Slice(text.data(), static_cast<uint32_t>(text.size())), number);
+}
+
+WorkError sort_image(const ObjectImage& image, const SortOptions& options,
+                     std::vector<std::string>& output, bool& conversion_error) {
+    conversion_error = false;
+    output.clear();
+    if (!image.present) return WorkError::None;
+    if (image.type != Type::List && image.type != Type::Set && image.type != Type::Zset)
+        return WorkError::WrongType;
+    try {
+        if (image.type == Type::Zset) {
+            std::vector<ZImageItem> zitems;
+            if (!decode_zset_image(image, zitems)) return WorkError::Corrupt;
+            output.reserve(zitems.size());
+            for (ZImageItem& item : zitems) output.push_back(std::move(item.member));
+        } else if (!decode_elements(image, output)) {
+            return WorkError::Corrupt;
+        }
+
+        struct SortItem {
+            std::string value;
+            double score = 0;
+        };
+        std::vector<SortItem> items;
+        items.reserve(output.size());
+        for (std::string& value : output) {
+            SortItem item{std::move(value), 0};
+            if (!options.alpha && !sort_number(item.value, item.score)) conversion_error = true;
+            items.push_back(std::move(item));
+        }
+        output.clear();
+        if (conversion_error) return WorkError::None;
+
+        auto compare = [&](const SortItem& a, const SortItem& b) {
+            int cmp = 0;
+            if (!options.alpha) {
+                if (a.score < b.score) cmp = -1;
+                else if (a.score > b.score) cmp = 1;
+                else cmp = binary_compare(
+                    Slice(a.value.data(), static_cast<uint32_t>(a.value.size())),
+                    Slice(b.value.data(), static_cast<uint32_t>(b.value.size())));
+            } else if (options.store) {
+                cmp = binary_compare(Slice(a.value.data(), static_cast<uint32_t>(a.value.size())),
+                                     Slice(b.value.data(), static_cast<uint32_t>(b.value.size())));
+            } else {
+                cmp = std::strcoll(a.value.c_str(), b.value.c_str());
+            }
+            return options.descending ? cmp > 0 : cmp < 0;
+        };
+        std::sort(items.begin(), items.end(), compare);
+
+        const int64_t size = static_cast<int64_t>(items.size());
+        const int64_t start = std::min<int64_t>(std::max<int64_t>(options.offset, 0), size);
+        const int64_t wanted = std::min<int64_t>(std::max<int64_t>(options.count, -1), size);
+        const int64_t end = wanted < 0 ? size : std::min<int64_t>(size, start + wanted);
+        output.reserve(static_cast<size_t>(std::max<int64_t>(end - start, 0)));
+        for (int64_t i = start; i < end; i++) output.push_back(std::move(items[i].value));
+        return WorkError::None;
+    } catch (const std::bad_alloc&) {
+        output.clear();
+        return WorkError::Oom;
+    }
 }
 
 bool glob_match(const char* pattern, size_t pn, const char* text, size_t tn) {
@@ -443,6 +901,7 @@ struct ScatterState {
     bool copy_replace = false;
     bool from_left = false;
     bool to_left = false;
+    bool pop_edge = false;                 // RIGHT for LMPOP, MAX for ZMPOP
     uint32_t owner_io = 0;
     uint32_t arena_bytes = 0;
     uint32_t key_count = 0;
@@ -452,8 +911,13 @@ struct ScatterState {
     uint32_t set_first = 0;
     uint32_t set_count = 0;
     uint32_t hop2_count = 0;
+    uint32_t selected = std::numeric_limits<uint32_t>::max();
     uint64_t sinter_limit = 0;
+    uint64_t pop_count = 1;
     long long final_integer = 0;
+    ImageRangeOptions range_options;
+    ImageRangeSpec range_spec;
+    SortOptions sort_options;
     ShardGroup* groups = nullptr;
     KeyRef* keys = nullptr;
     uint32_t* key_order = nullptr;
@@ -492,20 +956,26 @@ bool first_error(const ScatterState& state, WorkError& error) {
     return false;
 }
 
-uint32_t key_count_for(Kind kind, const Op& op, uint32_t sinter_count) {
+uint32_t key_count_for(Kind kind, const Op& op, uint32_t sinter_count,
+                       uint32_t mpop_count, bool sort_store) {
     if (kind == Kind::AllShards || kind == Kind::DbsizeExact || kind == Kind::Keys) return 0;
     if (kind == Kind::Mset || kind == Kind::Msetnx) return (op.argc() - 1) / 2;
     if (kind == Kind::Bitop) return op.argc() - 2;
     if (kind == Kind::Rename || kind == Kind::Renamenx || kind == Kind::Copy ||
         kind == Kind::Smove || kind == Kind::Lmove || kind == Kind::Rpoplpush) return 2;
     if (kind == Kind::Sintercard) return sinter_count;
+    if (kind == Kind::Lmpop || kind == Kind::Zmpop) return mpop_count;
+    if (kind == Kind::Zrangestore) return 2;
+    if (kind == Kind::Sort) return sort_store ? 2 : 1;
     return op.argc() - 1;
 }
 
-uint32_t key_arg_for(Kind kind, uint32_t key, uint32_t) {
+uint32_t key_arg_for(Kind kind, uint32_t key, uint32_t, uint32_t sort_store_arg) {
     if (kind == Kind::Mset || kind == Kind::Msetnx) return 1 + key * 2;
     if (kind == Kind::Bitop) return 2 + key;
     if (kind == Kind::Sintercard) return 2 + key;
+    if (kind == Kind::Lmpop || kind == Kind::Zmpop) return 2 + key;
+    if (kind == Kind::Sort && sort_store_arg) return key == 0 ? sort_store_arg : 1;
     return 1 + key;
 }
 
@@ -870,6 +1340,85 @@ bool finish_phase1(ScatterState& state, Op& op) {
             state.hop2[0] = 0;
             state.hop2_count = 1;
             return false;
+        case Kind::Lmpop:
+        case Kind::Zmpop: {
+            const Type wanted = state.kind == Kind::Lmpop ? Type::List : Type::Zset;
+            for (uint32_t i = 0; i < state.key_count; i++) {
+                const ObjectImage& probe = state.images[i];
+                if (!probe.present) continue;
+                if (probe.type != wanted) {
+                    state.final_reply = FinalReply::Work;
+                    state.final_error = WorkError::WrongType;
+                    return true;
+                }
+                if (!probe.entries) continue;
+                if (!ensure_result(state)) {
+                    state.final_reply = FinalReply::Work;
+                    state.final_error = WorkError::Oom;
+                    return true;
+                }
+                state.selected = i;
+                state.hop2[0] = i;
+                state.hop2_count = 1;
+                return false;
+            }
+            state.final_reply = FinalReply::NullArray;
+            return true;
+        }
+        case Kind::Zrangestore: {
+            const ObjectImage& source = state.images[1];
+            if (source.present && source.type != Type::Zset) {
+                state.final_reply = FinalReply::Work;
+                state.final_error = WorkError::WrongType;
+                return true;
+            }
+            std::vector<ZImageItem> input, selected;
+            if (source.present && !decode_zset_image(source, input)) {
+                state.final_reply = FinalReply::Work;
+                state.final_error = WorkError::Oom;
+                return true;
+            }
+            if (!select_zrange(input, state.range_options, state.range_spec, selected)) {
+                state.final_reply = FinalReply::Work;
+                state.final_error = WorkError::Oom;
+                return true;
+            }
+            if (selected.empty()) state.apply[0] = ObjectImage{};
+            else if (!encode_zset_image(selected, state.apply[0])) {
+                state.final_reply = FinalReply::Work;
+                state.final_error = WorkError::Oom;
+                return true;
+            }
+            state.final_integer = static_cast<long long>(selected.size());
+            state.hop2[0] = 0;
+            state.hop2_count = 1;
+            return false;
+        }
+        case Kind::Sort: {
+            std::vector<std::string> output;
+            bool conversion_error = false;
+            const WorkError error = sort_image(state.images[1], state.sort_options,
+                                               output, conversion_error);
+            if (error != WorkError::None) {
+                state.final_reply = FinalReply::Work;
+                state.final_error = error;
+                return true;
+            }
+            if (conversion_error) {
+                state.final_reply = FinalReply::SortConversion;
+                return true;
+            }
+            if (output.empty()) state.apply[0] = ObjectImage{};
+            else if (!encode_elements(output, state.apply[0], Type::List, -1)) {
+                state.final_reply = FinalReply::Work;
+                state.final_error = WorkError::Oom;
+                return true;
+            }
+            state.final_integer = static_cast<long long>(output.size());
+            state.hop2[0] = 0;
+            state.hop2_count = 1;
+            return false;
+        }
         default:
             if (is_plain_setop(state.kind) || state.kind == Kind::Sintercard || is_store_setop(state.kind)) {
                 if (!compute_setop(state)) return true;
@@ -912,6 +1461,16 @@ void finish_phase2(ScatterState& state) {
         case Kind::Pfmerge: state.final_reply = FinalReply::Ok; break;
         case Kind::Lmove:
         case Kind::Rpoplpush: state.final_reply = FinalReply::Bulk; break;
+        case Kind::Lmpop:
+            state.final_reply = state.result && !state.result->members.empty()
+                ? FinalReply::Lmpop : FinalReply::NullArray;
+            break;
+        case Kind::Zmpop:
+            state.final_reply = state.result && !state.result->members.empty()
+                ? FinalReply::Zmpop : FinalReply::NullArray;
+            break;
+        case Kind::Zrangestore:
+        case Kind::Sort: state.final_reply = FinalReply::Integer; break;
         default: state.final_reply = FinalReply::Internal; break;
     }
 }
@@ -1034,6 +1593,24 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         }
     }
 
+    uint32_t mpop_count = 0;
+    bool pop_edge = false;
+    uint64_t pop_count = 1;
+    if ((kind == Kind::Lmpop || kind == Kind::Zmpop) &&
+        !parse_mpop(op, kind, mpop_count, pop_edge, pop_count))
+        return ScatterPrepare::Error;
+
+    ImageRangeOptions range_options;
+    ImageRangeSpec range_spec;
+    if (kind == Kind::Zrangestore &&
+        (!parse_zrangestore_options(op, range_options) ||
+         !parse_zrangestore_range(op, range_options, range_spec)))
+        return ScatterPrepare::Error;
+
+    SortOptions sort_options;
+    if (kind == Kind::Sort && !parse_sort_options(op, sort_options))
+        return ScatterPrepare::Error;
+
     bool copy_replace = false, from_left = false, to_left = false;
     if (kind == Kind::Copy) {
         for (uint32_t i = 3; i < op.argc();) {
@@ -1063,7 +1640,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         from_left = false; to_left = true;
     }
 
-    const uint32_t key_count = key_count_for(kind, op, sinter_count);
+    const uint32_t key_count = key_count_for(kind, op, sinter_count, mpop_count,
+                                             sort_options.store);
     RouteKey route_stack[kRouteStack];
     RouteKey* routes = route_stack;
     if (key_count > kRouteStack) {
@@ -1071,7 +1649,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         if (!routes) { set_oom(op); return ScatterPrepare::Error; }
     }
     for (uint32_t i = 0; i < key_count; i++) {
-        const uint32_t arg = key_arg_for(kind, i, sinter_count);
+        const uint32_t arg = key_arg_for(kind, i, sinter_count, sort_options.store_arg);
         const uint64_t hash = FlatStore::hash_key(op.arg(arg));
         routes[i] = RouteKey{hash, arg, server.router().shard_of(hash)};
     }
@@ -1089,7 +1667,9 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         }
     }
 
-    uint32_t phase1_first = (is_store_setop(kind) || kind == Kind::Bitop) ? 1u : 0u;
+    uint32_t phase1_first = (is_store_setop(kind) || kind == Kind::Bitop ||
+                             kind == Kind::Zrangestore ||
+                             (kind == Kind::Sort && sort_options.store)) ? 1u : 0u;
     uint32_t group_cap = 0;
     if (kind == Kind::AllShards || kind == Kind::DbsizeExact || kind == Kind::Keys) {
         group_cap = server.nshards();
@@ -1123,7 +1703,12 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     state->copy_replace = copy_replace;
     state->from_left = from_left;
     state->to_left = to_left;
+    state->pop_edge = pop_edge;
+    state->pop_count = pop_count;
     state->sinter_limit = sinter_limit;
+    state->range_options = range_options;
+    state->range_spec = range_spec;
+    state->sort_options = sort_options;
     if (kind == Kind::Sintercard) { state->set_first = 0; state->set_count = sinter_count; }
     else if (is_store_setop(kind)) { state->set_first = 1; state->set_count = key_count - 1; }
     else if (is_plain_setop(kind)) { state->set_first = 0; state->set_count = key_count; }
@@ -1165,16 +1750,33 @@ FlatStore::SnapshotWriteResult xshard_local_snapshot_prepare(Op& op, Shard& shar
     Kind kind;
     if (!classify(op, kind)) return FlatStore::SnapshotWriteResult::Ready;
     uint32_t count = 0;
+    uint32_t mpop_count = 0;
+    bool pop_edge = false;
+    uint64_t pop_count = 1;
+    SortOptions sort_options;
+    if (kind == Kind::Lmpop || kind == Kind::Zmpop) {
+        if (!parse_mpop(op, kind, mpop_count, pop_edge, pop_count))
+            return FlatStore::SnapshotWriteResult::Error;
+    }
+    if (kind == Kind::Sort) {
+        if (!parse_sort_options(op, sort_options)) return FlatStore::SnapshotWriteResult::Error;
+        if (!sort_options.store) return FlatStore::SnapshotWriteResult::Ready;
+    }
     auto arg_at = [&](uint32_t i) -> uint32_t {
         if (kind == Kind::Mset || kind == Kind::Msetnx) return 1 + i * 2;
         if (kind == Kind::Bitop) return 2;
         if (kind == Kind::Copy) return 2;
         if (is_store_setop(kind)) return 1;
+        if (kind == Kind::Lmpop || kind == Kind::Zmpop) return 2 + i;
+        if (kind == Kind::Zrangestore) return 1;
+        if (kind == Kind::Sort) return sort_options.store_arg;
         return 1 + i;
     };
     if (kind == Kind::Mset || kind == Kind::Msetnx) count = (op.argc() - 1) / 2;
     else if (kind == Kind::Del || kind == Kind::Unlink) count = op.argc() - 1;
     else if (kind == Kind::Copy || is_store_setop(kind) || kind == Kind::Bitop) count = 1;
+    else if (kind == Kind::Lmpop || kind == Kind::Zmpop) count = mpop_count;
+    else if (kind == Kind::Zrangestore || kind == Kind::Sort) count = 1;
     else if (kind == Kind::Rename || kind == Kind::Renamenx || kind == Kind::Smove ||
              kind == Kind::Lmove || kind == Kind::Rpoplpush) count = 2;
     else return FlatStore::SnapshotWriteResult::Ready;
@@ -1241,6 +1843,25 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op) {
     ShardGroup& group = *group_for(state, shard.id());
     try {
         if (state.phase == 2) {
+            if (state.kind == Kind::Lmpop || state.kind == Kind::Zmpop) {
+                const uint32_t pos = state.key_order[group.begin];
+                const KeyRef& key = state.keys[pos];
+                ResultHeap* result = ensure_result(state);
+                if (!result) {
+                    state.status[pos] = static_cast<uint8_t>(WorkError::Oom);
+                    return ScatterTaskResult::Complete;
+                }
+                const XshardPopResult popped = state.kind == Kind::Lmpop
+                    ? xshard_pop_list(shard, op.arg(key.arg), key.hash, !state.pop_edge,
+                                      state.pop_count, result->members)
+                    : xshard_pop_zset(shard, op.arg(key.arg), key.hash, state.pop_edge,
+                                      state.pop_count, result->members, result->scores);
+                if (popped == XshardPopResult::WrongType)
+                    state.status[pos] = static_cast<uint8_t>(WorkError::WrongType);
+                else if (popped == XshardPopResult::Oom)
+                    state.status[pos] = static_cast<uint8_t>(WorkError::Oom);
+                return ScatterTaskResult::Complete;
+            }
             for (uint32_t i = 0; i < group.count; i++) {
                 const uint32_t pos = state.key_order[group.begin + i];
                 const KeyRef& key = state.keys[pos];
@@ -1354,6 +1975,20 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op) {
                         state.values[pos].kind = ValueKind::Inline;
                 }
                 return ScatterTaskResult::Complete;
+            case Kind::Lmpop:
+            case Kind::Zmpop:
+                for (uint32_t i = 0; i < group.count; i++) {
+                    const uint32_t pos = state.key_order[group.begin + i];
+                    const KeyRef& key = state.keys[pos];
+                    KvObj* object = shard.store().find(key.hash, op.arg(key.arg));
+                    ObjectImage& probe = state.images[pos];
+                    if (!object) continue;
+                    probe.present = true;
+                    probe.type = static_cast<Type>(object->type);
+                    const Type wanted = state.kind == Kind::Lmpop ? Type::List : Type::Zset;
+                    if (probe.type == wanted) probe.entries = CollectionRef(object).entries();
+                }
+                return ScatterTaskResult::Complete;
             default:
                 for (uint32_t i = 0; i < group.count; i++) {
                     const uint32_t pos = state.key_order[group.begin + i];
@@ -1436,6 +2071,7 @@ void assemble_final(Client& client, Op& op, ScatterState& state) {
             case FinalReply::Ok: reply_ok(op.sink()); break;
             case FinalReply::Integer: reply_int(op.sink(), state.final_integer); break;
             case FinalReply::Nil: reply_nil(op.sink()); break;
+            case FinalReply::NullArray: reply_null_array(op.sink()); break;
             case FinalReply::Bulk:
                 reply_bulk(op.sink(), Slice(state.result->bulk.data(),
                                             static_cast<uint32_t>(state.result->bulk.size())));
@@ -1444,6 +2080,27 @@ void assemble_final(Client& client, Op& op, ScatterState& state) {
                 reply_array_header(op.sink(), state.result->members.size());
                 for (const std::string& member : state.result->members)
                     reply_bulk(op.sink(), Slice(member.data(), static_cast<uint32_t>(member.size())));
+                break;
+            case FinalReply::Lmpop:
+                reply_array_header(op.sink(), 2);
+                reply_bulk(op.sink(), op.arg(state.keys[state.selected].arg));
+                reply_array_header(op.sink(), state.result->members.size());
+                for (const std::string& member : state.result->members)
+                    reply_bulk(op.sink(), Slice(member.data(), static_cast<uint32_t>(member.size())));
+                break;
+            case FinalReply::Zmpop:
+                reply_array_header(op.sink(), 2);
+                reply_bulk(op.sink(), op.arg(state.keys[state.selected].arg));
+                reply_array_header(op.sink(), state.result->members.size());
+                for (size_t i = 0; i < state.result->members.size(); i++) {
+                    reply_array_header(op.sink(), 2);
+                    const std::string& member = state.result->members[i];
+                    reply_bulk(op.sink(), Slice(member.data(), static_cast<uint32_t>(member.size())));
+                    reply_double(op.sink(), state.result->scores[i]);
+                }
+                break;
+            case FinalReply::SortConversion:
+                reply_err(op.sink(), "ERR One or more scores can't be converted into double");
                 break;
             case FinalReply::Work: reply_work_error(op, state.final_error); break;
             case FinalReply::NoSuchKey: reply_err(op.sink(), "ERR no such key"); break;
@@ -1596,6 +2253,105 @@ void cmd_xshard_only(Shard& shard, Op& op) {
         if (error != WorkError::None) reply_work_error(op, error);
         else if (kind == Kind::Mset) reply_ok(op.sink());
         else reply_int(op.sink(), 1);
+        return;
+    }
+    if (kind == Kind::Lmpop || kind == Kind::Zmpop) {
+        uint32_t numkeys = 0;
+        bool edge = false;
+        uint64_t count = 1;
+        if (!parse_mpop(op, kind, numkeys, edge, count)) return;
+        uint32_t selected_arg = 0;
+        const Type wanted = kind == Kind::Lmpop ? Type::List : Type::Zset;
+        for (uint32_t i = 0; i < numkeys; i++) {
+            const uint32_t arg = 2 + i;
+            const uint64_t hash = FlatStore::hash_key(op.arg(arg));
+            KvObj* object = shard.store().find(hash, op.arg(arg));
+            if (!object) continue;
+            if (static_cast<Type>(object->type) != wanted) {
+                reply_wrongtype(op.sink());
+                return;
+            }
+            if (CollectionRef(object).entries()) { selected_arg = arg; break; }
+        }
+        if (!selected_arg) { reply_null_array(op.sink()); return; }
+
+        std::vector<std::string> members;
+        std::vector<double> scores;
+        const uint64_t hash = FlatStore::hash_key(op.arg(selected_arg));
+        const XshardPopResult popped = kind == Kind::Lmpop
+            ? xshard_pop_list(shard, op.arg(selected_arg), hash, !edge, count, members)
+            : xshard_pop_zset(shard, op.arg(selected_arg), hash, edge, count, members, scores);
+        if (popped == XshardPopResult::WrongType) { reply_wrongtype(op.sink()); return; }
+        if (popped == XshardPopResult::Oom) { set_oom(op); return; }
+        if (popped == XshardPopResult::Missing) { reply_null_array(op.sink()); return; }
+        reply_array_header(op.sink(), 2);
+        reply_bulk(op.sink(), op.arg(selected_arg));
+        reply_array_header(op.sink(), members.size());
+        for (size_t i = 0; i < members.size(); i++) {
+            if (kind == Kind::Zmpop) reply_array_header(op.sink(), 2);
+            reply_bulk(op.sink(), Slice(members[i].data(), static_cast<uint32_t>(members[i].size())));
+            if (kind == Kind::Zmpop) reply_double(op.sink(), scores[i]);
+        }
+        return;
+    }
+    if (kind == Kind::Zrangestore) {
+        ImageRangeOptions options;
+        ImageRangeSpec range;
+        if (!parse_zrangestore_options(op, options) ||
+            !parse_zrangestore_range(op, options, range)) return;
+        ObjectImage source;
+        const uint64_t source_hash = FlatStore::hash_key(op.arg(2));
+        KvObj* object = shard.store().find(source_hash, op.arg(2));
+        if (object && static_cast<Type>(object->type) != Type::Zset) {
+            reply_wrongtype(op.sink());
+            return;
+        }
+        if (object && !serialize_object(object, source)) { set_oom(op); return; }
+        std::vector<ZImageItem> input, selected;
+        if (source.present && !decode_zset_image(source, input)) { set_oom(op); return; }
+        if (!select_zrange(input, options, range, selected)) { set_oom(op); return; }
+        ObjectImage destination;
+        if (!selected.empty() && !encode_zset_image(selected, destination)) { set_oom(op); return; }
+        WorkError error = apply_image(shard, op.arg(1), FlatStore::hash_key(op.arg(1)), destination);
+        if (error != WorkError::None) reply_work_error(op, error);
+        else reply_int(op.sink(), static_cast<long long>(selected.size()));
+        return;
+    }
+    if (kind == Kind::Sort) {
+        SortOptions options;
+        if (!parse_sort_options(op, options)) return;
+        ObjectImage source;
+        KvObj* object = shard.store().find(FlatStore::hash_key(op.arg(1)), op.arg(1));
+        if (object && static_cast<Type>(object->type) != Type::List &&
+            static_cast<Type>(object->type) != Type::Set &&
+            static_cast<Type>(object->type) != Type::Zset) {
+            reply_wrongtype(op.sink());
+            return;
+        }
+        if (object && !serialize_object(object, source)) { set_oom(op); return; }
+        std::vector<std::string> output;
+        bool conversion_error = false;
+        const WorkError sorted = sort_image(source, options, output, conversion_error);
+        if (sorted != WorkError::None) { reply_work_error(op, sorted); return; }
+        if (conversion_error) {
+            reply_err(op.sink(), "ERR One or more scores can't be converted into double");
+            return;
+        }
+        if (!options.store) {
+            reply_array_header(op.sink(), output.size());
+            for (const std::string& value : output)
+                reply_bulk(op.sink(), Slice(value.data(), static_cast<uint32_t>(value.size())));
+            return;
+        }
+        ObjectImage destination;
+        if (!output.empty() && !encode_elements(output, destination, Type::List, -1)) {
+            set_oom(op);
+            return;
+        }
+        const Slice key = op.arg(options.store_arg);
+        const WorkError stored = apply_image(shard, key, FlatStore::hash_key(key), destination);
+        if (stored != WorkError::None) reply_work_error(op, stored);
+        else reply_int(op.sink(), static_cast<long long>(output.size()));
         return;
     }
 

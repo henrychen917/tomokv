@@ -3,6 +3,7 @@
 // Small lists are one Compact. Expanded lists are a doubly linked list of Compact nodes; all
 // ownership remains on the shard executor and no collection storage is borrowed by replies.
 #include "command.h"
+#include "xshard.h"
 #include "../core/shard.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
@@ -876,11 +877,58 @@ static const CommandSpec kTable[] = {
     {"LREM",       4,  4, CmdFlags::Write,    cmd_lrem,       1,  1,  1},
     {"LTRIM",      4,  4, CmdFlags::Write,    cmd_ltrim,      1,  1,  1},
     {"LPOS",       3, -1, CmdFlags::Readonly, cmd_lpos,       1,  1,  1},
-    {"LMOVE",      5,  5, CmdFlags::Write | CmdFlags::MultiShard,cmd_xshard_only,1,2,1},
-    {"RPOPLPUSH",  3,  3, CmdFlags::Write | CmdFlags::MultiShard,cmd_xshard_only,1,2,1},
+    {"LMPOP",      4, -1, CmdFlags::Write | CmdFlags::MultiShard,cmd_xshard_only,2,-1,1},
+    {"LMOVE",      5,  5, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,cmd_xshard_only,1,2,1},
+    {"RPOPLPUSH",  3,  3, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,cmd_xshard_only,1,2,1},
 };
 
 }  // namespace
+
+XshardPopResult xshard_pop_list(Shard& shard, Slice key, uint64_t hash, bool left,
+                                uint64_t count, std::vector<std::string>& elements) {
+    elements.clear();
+    KvObj* object = shard.store().find(hash, key);
+    if (!object) return XshardPopResult::Missing;
+    if (static_cast<Type>(object->type) != Type::List) return XshardPopResult::WrongType;
+    CollectionRef list = list_value(object);
+    if (!list.entries()) return XshardPopResult::Missing;
+    const uint32_t take = static_cast<uint32_t>(
+        std::min<uint64_t>(count, static_cast<uint64_t>(list.entries())));
+    try {
+        elements.reserve(take);
+        for (ListCursor cur = ListCursor::edge(list, !left);
+             cur.valid() && elements.size() < take; cur.next()) {
+            Compact::Entry entry;
+            if (!cur.get(entry)) return XshardPopResult::Oom;
+            elements.emplace_back(entry.value.p, entry.value.n);
+        }
+    } catch (const std::bad_alloc&) {
+        elements.clear();
+        return XshardPopResult::Oom;
+    }
+    if (elements.size() != take) {
+        elements.clear();
+        return XshardPopResult::Oom;
+    }
+
+    ObjectSizeTracker size_tracker(shard.store(), object);
+    for (uint32_t i = 0; i < take; i++) {
+        uint32_t payload = 0;
+        if (list.encoding() == CollectionEncoding::Compact) {
+            if (left) list.pop_front(&payload);
+            else list.pop_back(&payload);
+        } else {
+            ListVal* expanded = list.external_as<ListVal>();
+            expanded_pop(*expanded, left, payload);
+            expanded->note_expanded_delete(payload, expanded->node_allocation_bytes);
+        }
+    }
+    if (!list.entries()) {
+        size_tracker.finish();
+        shard.store().erase(hash, key);
+    }
+    return XshardPopResult::Popped;
+}
 
 
 namespace {

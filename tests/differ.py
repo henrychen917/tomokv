@@ -2,7 +2,7 @@
 # DIFFERENTIAL battery: run one deterministic command stream against the TARGET (tomokv-cpp) and
 # the ORACLE (the optimized Redis fork -- byte-exact redis semantics) and diff every reply.
 #   python3 tests/differ.py <target_host> <target_port> <oracle_host> <oracle_port> <suite> [seed]
-# Exit 0 iff zero diffs. Suites cover each type lane, cross-shard lowering, bitmaps, and HLL.
+# Exit 0 iff zero diffs. Suites: string (more added per type lane).
 import socket, sys, random
 
 TH, TP, OH, OP = sys.argv[1], int(sys.argv[2]), sys.argv[3], int(sys.argv[4])
@@ -469,6 +469,9 @@ def gen_bitmap(rng):
         ["SETBIT", a, "-1", "1"], ["SETBIT", a, "1", "2"],
         ["SADD", "bitmap-wrongtype", "x"], ["SET", c, "keep"],
         ["BITOP", "OR", c, a, "bitmap-wrongtype"], ["GET", c],
+    ]
+    return ops
+
 def gen_hll(rng):
     keys = ["hll:%02d:%s" % (i, "".join(rng.choice("abcdef0123456789") for _ in range(30)))
             for i in range(18)]
@@ -539,8 +542,139 @@ def gen_hll(rng):
     ]
     return ops
 
-gens = {"string": gen_string, "set": gen_set, "list": gen_list, "zset": gen_zset,
-        "hash": gen_hash, "xshard": gen_xshard, "bitmap": gen_bitmap, "hll": gen_hll}
+def gen_cgaps(rng):
+    # Container-gap commands deliberately use long unrelated names so their numkeys/STORE forms
+    # exercise both scatter-v2 and same-owner coalescing across ordinary shard counts.
+    keys = ["cg:%02d:%s" % (i, "".join(rng.choice("abcdef0123456789") for _ in range(34)))
+            for i in range(48)]
+    lists = keys[:14]
+    zsets = keys[14:28]
+    numeric = keys[28:38]
+    alpha = keys[38:44]
+    dests = keys[44:]
+    nums = ["-10", "-2", "0", "1", "2", "10", "3.5", "1e2", "+4", "001"]
+    words = ["a", "aa", "b", "z", "10", "2", "item-3", "item-20"]
+    ops = []
+
+    for key in lists:
+        ops.append(["RPUSH", key] + [rng.choice(words) for _ in range(rng.randrange(1, 6))])
+    for key in zsets:
+        pairs = []
+        for n in range(rng.randrange(1, 6)):
+            pairs += [str(rng.randrange(-8, 9)), "zm-%d-%d" % (keys.index(key), n)]
+        ops.append(["ZADD", key] + pairs)
+    for key in numeric:
+        ops.append([rng.choice(["RPUSH", "SADD"]), key] +
+                   [rng.choice(nums) for _ in range(rng.randrange(1, 7))])
+    for key in alpha:
+        ops.append([rng.choice(["RPUSH", "SADD"]), key] +
+                   [rng.choice(words) for _ in range(rng.randrange(1, 7))])
+
+    for _ in range(3200):
+        c = rng.randrange(18)
+        if c == 0:
+            ops.append(["LPOS", rng.choice(lists), rng.choice(words), "RANK",
+                        str(rng.choice([-4, -2, -1, 1, 2, 4]))])
+        elif c == 1:
+            ops.append(["LPOS", rng.choice(lists), rng.choice(words), "RANK",
+                        str(rng.choice([-3, -1, 1, 3])), "COUNT", str(rng.randrange(0, 5)),
+                        "MAXLEN", str(rng.randrange(0, 8))])
+        elif c == 2:
+            chosen = [rng.choice(lists) for _ in range(rng.randrange(1, 6))]
+            ops.append(["LMPOP", str(len(chosen))] + chosen +
+                       [rng.choice(["LEFT", "RIGHT"]), "COUNT", str(rng.randrange(1, 7))])
+        elif c == 3:
+            chosen = [rng.choice(zsets) for _ in range(rng.randrange(1, 6))]
+            ops.append(["ZMPOP", str(len(chosen))] + chosen +
+                       [rng.choice(["MIN", "MAX"]), "COUNT", str(rng.randrange(1, 7))])
+        elif c == 4:
+            ops.append(["RPUSH", rng.choice(lists)] + [rng.choice(words) for _ in range(rng.randrange(1, 4))])
+        elif c == 5:
+            ops.append(["ZADD", rng.choice(zsets), str(rng.randrange(-20, 21)), rng.choice(words)])
+        elif c == 6:
+            ops.append(["ZRANGESTORE", rng.choice(dests), rng.choice(zsets),
+                        str(rng.randrange(-6, 3)), str(rng.randrange(-2, 7))] +
+                       (["REV"] if rng.randrange(2) else []))
+        elif c == 7:
+            ops.append(["ZRANGESTORE", rng.choice(dests), rng.choice(zsets),
+                        rng.choice(["-inf", "(0", "2"]), rng.choice(["+inf", "10", "(8"]),
+                        "BYSCORE"] + (["LIMIT", str(rng.randrange(-1, 4)),
+                                       str(rng.randrange(-1, 5))] if rng.randrange(2) else []) +
+                       (["REV"] if rng.randrange(2) else []))
+        elif c == 8:
+            ops.append(["SORT", rng.choice(numeric)] +
+                       (["DESC"] if rng.randrange(2) else ["ASC"]) +
+                       (["LIMIT", str(rng.randrange(-2, 5)), str(rng.randrange(-2, 6))]
+                        if rng.randrange(2) else []))
+        elif c == 9:
+            ops.append(["SORT", rng.choice(alpha), "ALPHA", rng.choice(["ASC", "DESC"])])
+        elif c == 10:
+            ops.append(["SORT", rng.choice(numeric), "LIMIT", str(rng.randrange(-2, 5)),
+                        str(rng.randrange(-2, 6)), "STORE", rng.choice(dests)])
+        elif c == 11:
+            ops.append(["SORT", rng.choice(alpha + zsets), "ALPHA", "STORE", rng.choice(dests),
+                        rng.choice(["ASC", "DESC"])])
+        elif c == 12: ops.append(["DEL", rng.choice(lists)])
+        elif c == 13: ops.append(["DEL", rng.choice(zsets)])
+        elif c == 14: ops.append(["LRANGE", rng.choice(dests), "0", "-1"])
+        elif c == 15: ops.append(["ZRANGE", rng.choice(dests), "0", "-1", "WITHSCORES"])
+        elif c == 16: ops.append(["TYPE", rng.choice(dests)])
+        else: ops.append(["EXISTS", rng.choice(keys)])
+
+    # Directed byte-exact edges requested by the container-gap mission.
+    l0, l1, l2, lbig = lists[:4]
+    z0, z1, z2, zbig = zsets[:4]
+    d0, d1 = dests[:2]
+    n0, a0 = numeric[0], alpha[0]
+    ops += [
+        ["DEL", l0, l1, l2], ["RPUSH", l0, "a", "x", "a", "y", "a"],
+        ["LPOS", l0, "a", "RANK", "-1"],
+        ["LPOS", l0, "a", "RANK", "-2", "COUNT", "0", "MAXLEN", "0"],
+        ["LPOS", l0, "a", "RANK", "-2", "COUNT", "5", "MAXLEN", "2"],
+        ["RPUSH", l1, "first", "second", "third"],
+        ["LMPOP", "3", l2, l1, l0, "LEFT", "COUNT", "99"],
+        ["LRANGE", l0, "0", "-1"], ["LRANGE", l1, "0", "-1"],
+        ["DEL", l0, l1, l2], ["LMPOP", "3", l0, l1, l2, "RIGHT", "COUNT", "2"],
+        ["LMPOP", "0", l0, "LEFT"], ["LMPOP", "1", l0, "LEFT", "COUNT", "0"],
+        ["SET", l0, "wrong"], ["RPUSH", l1, "winner"],
+        ["LMPOP", "2", l0, l1, "LEFT"], ["LMPOP", "2", l1, l0, "LEFT"],
+        ["DEL", z0, z1, z2], ["ZADD", z1, "1", "one", "2", "two", "3", "three"],
+        ["ZMPOP", "3", z0, z1, z2, "MAX", "COUNT", "99"],
+        ["ZRANGE", z1, "0", "-1", "WITHSCORES"],
+        ["DEL", z0, z1, z2], ["ZMPOP", "3", z0, z1, z2, "MIN", "COUNT", "2"],
+        ["ZMPOP", "0", z0, "MIN"], ["ZMPOP", "1", z0, "MAX", "COUNT", "0"],
+        ["SET", z0, "wrong"], ["ZADD", z1, "1", "winner"],
+        ["ZMPOP", "2", z0, z1, "MIN"], ["ZMPOP", "2", z1, z0, "MIN"],
+        ["DEL", lbig], ["RPUSH", lbig] +
+            [("L%03d-" % i) + "x" * 72 for i in range(115)],
+        ["LMPOP", "1", lbig, "RIGHT", "COUNT", "112"], ["LLEN", lbig],
+        ["DEL", zbig], ["ZADD", zbig] +
+            sum(([str(i), "Z%03d" % i] for i in range(200)), []),
+        ["ZMPOP", "1", zbig, "MIN", "COUNT", "197"], ["ZCARD", zbig],
+
+        ["DEL", z0, d0], ["ZADD", z0, "0", "a", "1", "b", "2", "c", "3", "d"],
+        ["ZRANGESTORE", d0, z0, "1", "-2"], ["ZRANGE", d0, "0", "-1", "WITHSCORES"],
+        ["ZRANGESTORE", d0, z0, "+inf", "-inf", "BYSCORE", "REV", "LIMIT", "0", "2"],
+        ["ZRANGE", d0, "0", "-1", "WITHSCORES"],
+        ["ZRANGESTORE", d0, z0, "9", "0"], ["EXISTS", d0],
+        ["ZADD", z0, "0", "aa", "0", "ab", "0", "ba"],
+        ["ZRANGESTORE", d0, z0, "+", "[aa", "BYLEX", "REV", "LIMIT", "0", "2"],
+        ["ZRANGE", d0, "0", "-1", "WITHSCORES"],
+
+        ["DEL", n0, a0, d0, d1], ["RPUSH", n0, "10", "2", "-1", "3.5"],
+        ["SORT", n0], ["SORT", n0, "DESC", "LIMIT", "1", "2"],
+        ["RPUSH", a0, "10", "2", "apple"], ["SORT", a0], ["SORT", a0, "ALPHA"],
+        ["SET", d0, "wrong-type-destination"], ["SORT", a0, "ALPHA", "STORE", d0],
+        ["TYPE", d0], ["LRANGE", d0, "0", "-1"],
+        ["DEL", z2], ["ZADD", z2, "8", "10", "1", "2", "3", "-1"],
+        ["SORT", z2], ["SORT", z2, "ALPHA", "DESC"],
+        ["SET", d1, "preserve-on-error"], ["SORT", a0, "STORE", d1], ["GET", d1],
+    ]
+    return ops
+
+gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset,
+        "hash": gen_hash, "xshard": gen_xshard, "bitmap": gen_bitmap, "hll": gen_hll,
+        "cgaps": gen_cgaps}
 ops = gens[SUITE](rng)
 
 ts, tf = conn(TH, TP)
@@ -554,10 +688,10 @@ for cs, cf in ((ts, tf), (os_, of)):
     cs.sendall(enc(["FLUSHALL"]))
     if read_reply(cf)[:1] != b"+": raise RuntimeError("FLUSHALL failed on clean-slate")
 diffs = 0
-# HLL's directed promotion stream uses many-argument PFADDs and byte-sized GET oracles; keep its
-# pipeline chunks below the target's fixed read-buffer rollover so the suite tests HLL semantics,
-# not an unrelated transport boundary.
-BATCH = 16 if SUITE == "hll" else 64
+# HLL's directed promotion stream uses many-argument PFADDs and byte-sized GET oracles, and the
+# cgaps suite carries wide numkeys forms; keep their pipeline chunks below the target's fixed
+# read-buffer rollover so the suites test semantics, not an unrelated transport boundary.
+BATCH = 16 if SUITE in ("hll", "cgaps") else 64
 for i in range(0, len(ops), BATCH):
     chunk = ops[i:i + BATCH]
     payload = b"".join(enc(o) for o in chunk)

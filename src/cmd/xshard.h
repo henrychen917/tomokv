@@ -3,6 +3,8 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <string>
+#include <vector>
 #include "../store/flatstore.h"
 
 namespace tomo {
@@ -22,6 +24,17 @@ enum class XshardStringStoreResult : uint8_t { Stored, Oom, InsertFailed, Maxmem
 XshardStringStoreResult xshard_store_string(Shard& shard, Slice key, uint64_t hash, Slice value,
                                              int64_t expire_at_ms = -1,
                                              bool integer_encode = true);
+
+// Multi-key pops choose a key after their first-hop probes, then ask that key's live owner to do
+// the mutation.  Keeping these helpers in the type lanes preserves their cursor/encoding rules and
+// the ObjectSizeTracker finish-before-erase contract instead of replaying a stale whole-object
+// image on hop two.
+enum class XshardPopResult : uint8_t { Popped, Missing, WrongType, Oom };
+XshardPopResult xshard_pop_list(Shard& shard, Slice key, uint64_t hash, bool left,
+                                uint64_t count, std::vector<std::string>& elements);
+XshardPopResult xshard_pop_zset(Shard& shard, Slice key, uint64_t hash, bool maximum,
+                                uint64_t count, std::vector<std::string>& members,
+                                std::vector<double>& scores);
 
 enum class ScatterPrepare : uint8_t { NotScatter, Ready, Error };
 enum class ScatterTaskResult : uint8_t { Complete, Retry };
