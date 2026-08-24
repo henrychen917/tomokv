@@ -8,6 +8,8 @@
 #include <cstring>
 #include <limits>
 #include <new>
+#include <string>
+#include <utility>
 #include <vector>
 #include "../base/slice.h"
 
@@ -95,6 +97,33 @@ public:
         return true;
     }
 
+    // Insert at an entry boundary. Set's integer compact uses this to retain numeric order; the
+    // offset is found with binary search over its fixed-width entries, so deciding where to insert
+    // never rescans the collection. As with every Compact mutation, prior Entries are invalidated.
+    bool insert(uint32_t offset, Slice value) {
+        if (entries_ == std::numeric_limits<uint32_t>::max() || offset > data_.size()) return false;
+        if (offset != data_.size()) {
+            Entry boundary;
+            if (!decode(offset, boundary)) return false;
+        }
+        const uint32_t hdr = varint_size(value.n);
+        const size_t span = static_cast<size_t>(hdr) + value.n;
+        const size_t old = data_.size();
+        if (old > std::numeric_limits<uint32_t>::max() - span) return false;
+        try {
+            data_.resize(old + span);
+        } catch (const std::bad_alloc&) {
+            return false;
+        }
+        uint8_t* base = data_.data();
+        std::memmove(base + offset + span, base + offset, old - offset);
+        encode_varint(base + offset, value.n);
+        if (value.n) std::memcpy(base + offset + hdr, value.p, value.n);
+        entries_++;
+        payload_bytes_ += value.n;
+        return true;
+    }
+
     bool replace(const Entry& old_entry, Slice value) {
         Entry checked;
         if (!decode(old_entry.offset, checked) || checked.span != old_entry.span) return false;
@@ -143,6 +172,8 @@ public:
         entries_ = 0;
         payload_bytes_ = 0;
     }
+
+    bool at_offset(uint32_t offset, Entry& out) const { return decode(offset, out); }
 
 private:
     static uint32_t varint_size(uint32_t value) {
@@ -215,6 +246,9 @@ public:
     Compact::Iterator end()   const { return compact_.end(); }
 
     bool append(Slice value) { return is_compact() && compact_.append(value); }
+    bool insert(uint32_t offset, Slice value) {
+        return is_compact() && compact_.insert(offset, value);
+    }
     bool replace(const Compact::Entry& entry, Slice value) {
         return is_compact() && compact_.replace(entry, value);
     }
@@ -256,6 +290,22 @@ public:
         expanded_allocation_bytes_ = allocation_bytes;
     }
 
+protected:
+    // Set's sorted integer compact is binary (2/4/8-byte payloads), so its logical member byte
+    // total differs from Compact::payload_bytes(). These two hooks keep the common representation
+    // and promotion ordering while allowing that one type-specific distinction.
+    void replace_compact(Compact&& replacement) {
+        if (is_compact()) compact_ = std::move(replacement);
+    }
+    void promote_with_payload(CollectionEncoding to, uint64_t expanded_allocation_bytes,
+                              uint64_t logical_payload_bytes) {
+        expanded_entries_ = compact_.size();
+        expanded_payload_bytes_ = logical_payload_bytes;
+        expanded_allocation_bytes_ = expanded_allocation_bytes;
+        compact_.clear();
+        encoding_ = to;
+    }
+
 private:
     bool is_compact() const { return encoding_ == CollectionEncoding::Compact; }
 
@@ -270,7 +320,85 @@ private:
 // a stable place to add its expanded backing structure without changing KvObj or Op.
 struct HashVal : CompactValue {};
 struct ListVal : CompactValue {};
-struct SetVal  : CompactValue {};
+
+// Expanded SET backing. Membership uses open addressing; live_slots_ is a dense side index used
+// only for O(1) uniform random selection/removal. Slots never move on erase, which also makes a
+// cursor stable between table rebuilds. A rebuild increments generation_ so SSCAN can restart and
+// preserve its full-iteration guarantee (duplicates remain permitted, as in Redis).
+class SetMemberTable {
+public:
+    enum class InsertResult : uint8_t { Inserted, Exists, Oom };
+    static constexpr uint32_t npos = std::numeric_limits<uint32_t>::max();
+
+    SetMemberTable() = default;
+    SetMemberTable(const SetMemberTable&) = delete;
+    SetMemberTable& operator=(const SetMemberTable&) = delete;
+    SetMemberTable(SetMemberTable&&) noexcept = default;
+    SetMemberTable& operator=(SetMemberTable&&) noexcept = default;
+
+    uint32_t size() const { return live_; }
+    uint32_t slot_count() const { return static_cast<uint32_t>(slots_.size()); }
+    uint32_t generation() const { return generation_; }
+    uint64_t allocation_bytes() const;
+
+    bool reserve(uint32_t entries);
+    uint32_t find(Slice value, uint64_t hash) const;
+    InsertResult insert(Slice value, uint64_t hash);
+    bool erase(Slice value, uint64_t hash, uint32_t& erased_bytes);
+    bool erase_at(uint32_t slot, uint32_t& erased_bytes);
+    uint32_t random_slot(uint64_t random) const;
+    uint32_t slot_for_dense(uint32_t dense_index) const;
+    bool live_at(uint32_t slot) const;
+    Slice value_at(uint32_t slot) const;
+
+private:
+    enum : uint8_t { Empty = 0, Live = 1, Tomb = 2 };
+    struct Slot {
+        std::string value;
+        uint64_t hash = 0;
+        uint32_t dense_pos = 0;
+        uint8_t state = Empty;
+    };
+
+    static uint32_t capacity_for(uint32_t entries);
+    bool ensure_insert_capacity();
+    bool rehash(uint32_t capacity);
+    uint32_t find_insert_slot(Slice value, uint64_t hash, bool& exists) const;
+
+    std::vector<Slot> slots_;
+    std::vector<uint32_t> live_slots_;
+    uint32_t live_ = 0;
+    uint32_t tombs_ = 0;
+    uint32_t generation_ = 1;
+    uint64_t string_capacity_bytes_ = 0;
+};
+
+inline uint64_t SetMemberTable::allocation_bytes() const {
+    return static_cast<uint64_t>(slots_.capacity()) * sizeof(Slot) +
+           static_cast<uint64_t>(live_slots_.capacity()) * sizeof(uint32_t) +
+           string_capacity_bytes_;
+}
+
+enum class SetSmallEncoding : uint8_t { Integer = 0, Generic = 1 };
+
+struct SetVal : CompactValue {
+    size_t allocation_bytes() const {
+        return CompactValue::allocation_bytes() +
+               static_cast<uint64_t>(offsets.capacity()) * sizeof(uint32_t);
+    }
+    void adopt_compact(Compact&& replacement) { replace_compact(std::move(replacement)); }
+    void finish_table_promotion(uint64_t logical_payload_bytes) {
+        std::vector<uint32_t>().swap(offsets);
+        promote_with_payload(CollectionEncoding::Hashtable, table.allocation_bytes(),
+                             logical_payload_bytes);
+    }
+
+    SetSmallEncoding small_encoding = SetSmallEncoding::Integer;
+    uint8_t int_width = 2;
+    uint32_t max_member_bytes = 0;  // conservative high-water mark; never requires a delete scan
+    std::vector<uint32_t> offsets;  // generic Compact entry starts; integer starts are fixed-width
+    SetMemberTable table;
+};
 struct ZsetVal : CompactValue {};
 
 }  // namespace tomo
