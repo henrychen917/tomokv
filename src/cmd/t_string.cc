@@ -9,6 +9,7 @@
 #include "../exec/op.h"
 #include "../net/resp.h"
 #include "../store/kvobj.h"
+#include "../snapshot/format.h"
 
 #include <climits>
 #include <cstdio>
@@ -476,9 +477,12 @@ void cmd_info(Shard&, Op& op) {
         "# Server\r\ntomokv_version:0.1-cpp\r\n"
         "# Keyspace\r\ndb0:keys=%llu\r\n"
         "# Stats\r\ntotal_commands_processed:%llu\r\nkeyspace_hits:%llu\r\nkeyspace_misses:%llu\r\n"
+        "# Persistence\r\nrdb_bgsave_in_progress:%u\r\nlast_save_time:%lld\r\n"
         "# Tomo\r\ntomokv_shards:%u\r\n",
         (unsigned long long)keys, (unsigned long long)ops,
-        (unsigned long long)hits, (unsigned long long)misses, nsh);
+        (unsigned long long)hits, (unsigned long long)misses,
+        g_server && g_server->snapshot().in_progress() ? 1u : 0u,
+        static_cast<long long>(g_server ? g_server->snapshot().last_save_time() : 0), nsh);
     reply_bulk(op.sink(), Slice(buf, static_cast<uint32_t>(n)));
 }
 
@@ -491,7 +495,50 @@ void cmd_select(Shard&, Op& op) {
     reply_ok(op.sink());
 }
 
-void cmd_config(Shard&, Op& op)  { reply_array_header(op.sink(), 0); }
+void config_pair(Op& op, const char* key, const std::string& value) {
+    reply_bulk(op.sink(), Slice(key, static_cast<uint32_t>(std::strlen(key))));
+    reply_bulk(op.sink(), Slice(value.data(), static_cast<uint32_t>(value.size())));
+}
+
+void cmd_config(Shard&, Op& op) {
+    if (op.argc() != 3 || !eq_icase(op.arg(1), "GET") || !g_server) {
+        reply_array_header(op.sink(), 0);
+        return;
+    }
+    const Slice pattern = op.arg(2);
+    const bool all = pattern.n == 1 && pattern.p[0] == '*';
+    const bool want_dir = all || eq_icase(pattern, "dir");
+    const bool want_name = all || eq_icase(pattern, "dbfilename");
+    reply_array_header(op.sink(), (want_dir ? 2 : 0) + (want_name ? 2 : 0));
+    if (want_dir) config_pair(op, "dir", g_server->snapshot().dir());
+    if (want_name) config_pair(op, "dbfilename", g_server->snapshot().dbfilename());
+}
+
+void snapshot_command(Op& op, bool blocking) {
+    if (!g_server) { reply_err(op.sink(), "ERR snapshot subsystem is unavailable"); return; }
+    const SnapshotIoContext context = snapshot_io_context();
+    if (!context.thread || !context.ring) {
+        reply_err(op.sink(), "ERR snapshot command has no IO owner");
+        return;
+    }
+    std::string error;
+    const SnapshotManager::StartResult result = g_server->snapshot().start(
+        *g_server, *context.thread, *context.ring, blocking, error);
+    if (result == SnapshotManager::StartResult::Busy) {
+        reply_err(op.sink(), "ERR Background save already in progress");
+    } else if (result == SnapshotManager::StartResult::Failed) {
+        std::string message = "ERR ";
+        message += error.empty() ? "snapshot failed" : error;
+        reply_err(op.sink(), message.c_str());
+    } else if (blocking) {
+        reply_ok(op.sink());
+    } else {
+        reply_simple(op.sink(), "Background saving started");
+    }
+}
+
+void cmd_save(Shard&, Op& op) { snapshot_command(op, true); }
+void cmd_bgsave(Shard&, Op& op) { snapshot_command(op, false); }
 void cmd_ping(Shard&, Op& op)    { if (op.argc() == 2) reply_bulk(op.sink(), op.arg(1)); else reply_pong(op.sink()); }
 void cmd_echo(Shard&, Op& op)    { reply_bulk(op.sink(), op.arg(1)); }
 void cmd_command(Shard&, Op& op) { reply_array_header(op.sink(), 0); }
@@ -523,9 +570,65 @@ static const CommandSpec kTable[] = {
     {"INFO",          1, -1,  CmdFlags::ConnLocal | CmdFlags::Admin, cmd_info,         0,  0,  0},
     {"SELECT",        2,  2,  CmdFlags::ConnLocal,                   cmd_select,       0,  0,  0},
     {"CONFIG",        2, -1,  CmdFlags::ConnLocal | CmdFlags::Admin, cmd_config,       0,  0,  0},
+    {"SAVE",          1,  1,  CmdFlags::ConnLocal | CmdFlags::Admin, cmd_save,         0,  0,  0},
+    {"BGSAVE",        1,  1,  CmdFlags::ConnLocal | CmdFlags::Admin, cmd_bgsave,       0,  0,  0},
 };
 
 }  // namespace
+
+namespace {
+
+SnapshotHookStatus string_snapshot_begin(const KvObj& object, SnapshotSaveCursor& cursor,
+                                         uint8_t& encoding) {
+    if (static_cast<Type>(object.type) != Type::String) return SnapshotHookStatus::Corrupt;
+    cursor = {};
+    cursor.object = &object;
+    encoding = object.enc;
+    cursor.total = object.is_int() ? sizeof(int64_t) : object.str_value().n;
+    return SnapshotHookStatus::Ok;
+}
+
+SnapshotHookStatus string_snapshot_read(SnapshotSaveCursor& cursor, uint8_t* destination,
+                                        size_t capacity, size_t& written) {
+    written = 0;
+    if (!cursor.object || cursor.offset > cursor.total) return SnapshotHookStatus::Corrupt;
+    const size_t take = static_cast<size_t>(
+        std::min<uint64_t>(capacity, cursor.total - cursor.offset));
+    if (!take) return SnapshotHookStatus::Ok;
+    if (cursor.object->is_int()) {
+        uint8_t bytes[8];
+        snapshot_put_u64(bytes, static_cast<uint64_t>(cursor.object->int_value()));
+        std::memcpy(destination, bytes + cursor.offset, take);
+    } else {
+        const Slice value = cursor.object->str_value();
+        std::memcpy(destination, value.p + cursor.offset, take);
+    }
+    cursor.offset += take;
+    written = take;
+    return SnapshotHookStatus::Ok;
+}
+
+SnapshotHookStatus string_snapshot_load(Slice key, uint8_t encoding, int64_t expire_at_ms,
+                                        Slice payload, KvObj*& result) {
+    result = nullptr;
+    const Enc enc = static_cast<Enc>(encoding);
+    if (enc == Enc::Int) {
+        if (payload.n != sizeof(int64_t)) return SnapshotHookStatus::Corrupt;
+        result = kvobj_new_int(key, static_cast<int64_t>(snapshot_get_u64(
+                                    reinterpret_cast<const uint8_t*>(payload.p))), expire_at_ms);
+    } else if (enc == Enc::Raw || enc == Enc::Extern) {
+        result = kvobj_new_string(key, payload, expire_at_ms);
+    } else {
+        return SnapshotHookStatus::Corrupt;
+    }
+    return result ? SnapshotHookStatus::Ok : SnapshotHookStatus::Oom;
+}
+
+}  // namespace
+
+SnapshotTypeHooks string_snapshot_hooks() {
+    return {string_snapshot_begin, string_snapshot_read, string_snapshot_load};
+}
 
 void command_bind_server(Server* server) { g_server = server; }
 

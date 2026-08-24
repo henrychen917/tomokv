@@ -28,6 +28,7 @@ enum class UrKind : uint8_t {
     Send   = 3,
     Close  = 4,
     Wake   = 5,   // cross-ring notification via msg_ring
+    SnapshotStart = 6,  // epoch barrier request; pointer is SnapshotManager
 };
 
 inline uint64_t ur_tag(UrKind k, void* p) {

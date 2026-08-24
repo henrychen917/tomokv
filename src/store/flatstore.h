@@ -58,11 +58,14 @@
 // kilo-slot runs. Measured at ~6,600 probes per lookup. slot_start() mixes again before taking the
 // index; that alone was worth 2.5-2.7x.
 #pragma once
+#include <algorithm>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include <vector>
 #include "kvobj.h"
+#include "../snapshot/format.h"
 
 namespace tomo {
 
@@ -252,6 +255,7 @@ public:
 
     explicit FlatStore(uint32_t initial_cap = 1024) { alloc_table(0, round_pow2(initial_cap)); }
     ~FlatStore() {
+        if (snapshot_new_tab_) std::free(snapshot_new_tab_);
         for (int t = 0; t < 2; t++)
             if (tab_[t]) {
                 for (uint32_t i = 0; i < cap_[t]; i++)
@@ -270,6 +274,146 @@ public:
     uint32_t size() const { return live_[0] + live_[1]; }
     uint32_t capacity() const { return cap_[0] + cap_[1]; }
 
+    enum class SnapshotWriteResult : uint8_t { Ready, Pending, Error };
+
+    // Phase 1 of the cut barrier.  Existing incremental rehashing is completed in its ordinary
+    // bounded steps; only then is a fresh post-cut table allocated.  Resize remains suppressed
+    // while prepared, so the owner can keep serving until the later freeze barrier without making
+    // this allocation stale.  snapshot_mark() is then only a pointer swap at the epoch boundary.
+    SnapshotWriteResult snapshot_prepare(uint64_t epoch, int64_t cut_ms) {
+        if (snapshot_active_) return SnapshotWriteResult::Error;
+        if (rehashing()) {
+            rehash_step();
+            return SnapshotWriteResult::Pending;
+        }
+        if (snapshot_prepared_) return SnapshotWriteResult::Ready;
+        uint64_t wanted = static_cast<uint64_t>(cap_[0]) * 2;
+        if (wanted > UINT32_MAX) return SnapshotWriteResult::Error;
+        const uint32_t cap = round_pow2(static_cast<uint32_t>(wanted));
+        snapshot_new_tab_ = static_cast<uint64_t*>(std::calloc(cap, sizeof(uint64_t)));
+        if (!snapshot_new_tab_) return SnapshotWriteResult::Error;
+        snapshot_new_cap_ = cap;
+        snapshot_epoch_ = epoch;
+        snapshot_cut_ms_ = cut_ms;
+        snapshot_prepared_ = true;
+        return SnapshotWriteResult::Ready;
+    }
+
+    // Phase 2 of the cut barrier: no owner is executing an operation while these swaps run.  The
+    // old table becomes the immutable-layout snapshot table (values may change only after their
+    // pre-image has been serialized), and all new keys land in the fresh current table.
+    bool snapshot_mark(int32_t shard_id, int64_t cut_ms) {
+        if (!snapshot_prepared_ || snapshot_active_ || rehashing()) return false;
+        tab_[1] = tab_[0]; cap_[1] = cap_[0]; mask_[1] = mask_[0];
+        live_[1] = live_[0]; tombs_[1] = tombs_[0];
+        tab_[0] = snapshot_new_tab_; cap_[0] = snapshot_new_cap_; mask_[0] = cap_[0] - 1;
+        live_[0] = tombs_[0] = 0;
+        snapshot_new_tab_ = nullptr; snapshot_new_cap_ = 0; snapshot_prepared_ = false;
+        rehash_pos_ = 0;
+        snapshot_active_ = true;
+        snapshot_shard_id_ = shard_id;
+        snapshot_cut_ms_ = cut_ms;
+        snapshot_pos_ = 0;
+        snapshot_sequence_ = 0;
+        snapshot_records_ = 0;
+        snapshot_failed_ = false;
+        snapshot_finished_ = false;
+        snapshot_build_ = make_snapshot_chunk(SnapshotFrameBegin);
+        snapshot_ready_.reset();
+        snapshot_record_ = {};
+        return snapshot_build_ != nullptr;
+    }
+
+    bool snapshot_active() const { return snapshot_active_; }
+    bool snapshot_failed() const { return snapshot_failed_; }
+    bool snapshot_finished() const { return snapshot_finished_; }
+
+    // Called by the owner before a Write command.  A slot behind the traversal cursor was already
+    // dumped.  A slot ahead of it is serialized incrementally and marked with kTombBit; traversal
+    // later sees that mark, clears it, and skips the now-post-cut value.
+    uint64_t snapshot_preimages() const { return snapshot_preimages_; }
+
+    SnapshotWriteResult snapshot_prepare_write(uint64_t h, Slice key) {
+        if (!snapshot_active_) return SnapshotWriteResult::Ready;
+        if (snapshot_failed_) return SnapshotWriteResult::Error;
+        if (find_in(0, h, key)) return SnapshotWriteResult::Ready;  // born/moved after the cut
+        uint32_t slot = 0;
+        KvObj* object = find_slot_in(1, h, key, slot);
+        if (!object || slot < snapshot_pos_ || (tab_[1][slot] & kTombBit))
+            return SnapshotWriteResult::Ready;
+        if ((object->flags & KvObjFlags::HasTtl) && object->expire_at_ms() <= snapshot_cut_ms_) {
+            tab_[1][slot] |= kTombBit;             // absent at the cut; traversal must skip it
+            return SnapshotWriteResult::Ready;
+        }
+        if (snapshot_record_.active) return SnapshotWriteResult::Pending;
+        if (!snapshot_start_record(object, slot, true)) return SnapshotWriteResult::Error;
+        snapshot_preimages_++;   // FIRED-proof: >0 in any real mutate-during-capture run
+        return SnapshotWriteResult::Pending;
+    }
+
+    // CPU work on the owner, bounded by both bytes and examined slots.  It never writes a file.
+    uint32_t snapshot_progress(uint32_t byte_budget, uint32_t slot_budget) {
+        if (!snapshot_active_ || snapshot_failed_ || snapshot_ready_) return 0;
+        uint32_t work = 0;
+        while (byte_budget && !snapshot_ready_ && !snapshot_failed_) {
+            if (snapshot_record_.active) {
+                const uint32_t before = byte_budget;
+                snapshot_progress_record(byte_budget);
+                work += before - byte_budget;
+                if (snapshot_record_.active || snapshot_ready_) break;
+                continue;
+            }
+            if (snapshot_pos_ >= cap_[1]) {
+                snapshot_finish_stream();
+                break;
+            }
+            if (!slot_budget) break;
+            const uint32_t slot = snapshot_pos_;
+            const uint64_t word = tab_[1][slot];
+            KvObj* object = ptr_of(word);
+            slot_budget--; work++;
+            if (!object) { snapshot_pos_++; continue; }
+            if (word & kTombBit) {
+                tab_[1][slot] = word & ~kTombBit;
+                snapshot_pos_++;
+                continue;
+            }
+            if ((object->flags & KvObjFlags::HasTtl) &&
+                object->expire_at_ms() <= snapshot_cut_ms_) {
+                snapshot_pos_++;
+                continue;
+            }
+            if (!snapshot_start_record(object, slot, false)) break;
+        }
+        return work;
+    }
+
+    std::unique_ptr<SnapshotChunk> snapshot_take_chunk() {
+        return std::move(snapshot_ready_);
+    }
+
+    void snapshot_handoff_complete() {
+        if (!snapshot_finished_) return;
+        snapshot_active_ = false;
+        snapshot_shard_id_ = -1;
+        snapshot_build_.reset();
+        snapshot_ready_.reset();
+        snapshot_record_ = {};
+        // tab_[1] is now an ordinary old table.  Subsequent operations merge it with the existing
+        // bounded rehash step; successful post-cut inserts were capacity-gated so the destination
+        // can hold the complete logical set.
+    }
+
+    void snapshot_cancel() {
+        if (snapshot_new_tab_) std::free(snapshot_new_tab_);
+        snapshot_new_tab_ = nullptr; snapshot_new_cap_ = 0; snapshot_prepared_ = false;
+        snapshot_active_ = false; snapshot_failed_ = false; snapshot_finished_ = false;
+        snapshot_build_.reset(); snapshot_ready_.reset(); snapshot_record_ = {};
+        snapshot_shard_id_ = -1;
+        // Any pre-image marks still live in tab_[1] are harmless to normal lookup and are cleared
+        // as the ordinary rehash moves those slot words back through make_word().
+    }
+
     // What a migration of this shard would cost the NEW domain to re-pull through the fabric. Not a
     // copy cost — nothing is copied — but an L3 domain is filled by access, so a shard that moves
     // has to be read back in on the other side.
@@ -279,7 +423,7 @@ public:
     }
 
     KvObj* find(uint64_t h, Slice key) {
-        if (rehashing()) rehash_step();
+        if (rehashing() && !snapshot_active_) rehash_step();
         if (KvObj* o = find_in(0, h, key)) return live_or_expire(0, h, key, o);
         if (rehashing()) {
             if (KvObj* o = find_in(1, h, key)) return live_or_expire(1, h, key, o);
@@ -369,6 +513,9 @@ public:
     // object from its full hash follows only that hash's FlatStore probe run; it never scans the
     // table or keyspace.
     uint32_t active_expire(uint32_t budget) {
+        // Expiry after the cut is a post-cut deletion.  Leaving the object physically present lets
+        // traversal serialize its absolute deadline; find() still reports it logically absent.
+        if (snapshot_active_) return 0;
         if (rehashing()) rehash_step();
         uint32_t removed = 0;
         expires_.sample(budget, [&](uint64_t h) {
@@ -390,8 +537,26 @@ public:
 
     // Takes ownership of `o`; frees anything it displaces.
     bool insert(uint64_t h, KvObj* o) {
-        if (rehashing()) rehash_step();
-        else             maybe_start_grow();
+        const bool capturing = rehashing() && snapshot_active_;
+        if (rehashing()) {
+            if (!capturing) rehash_step();
+        } else {
+            maybe_start_grow();
+        }
+        // Preparation normally has the same cost as the original insert path.  Only an actually
+        // full prepared table consults this state and refuses a new key rather than resizing it.
+        if (live_[0] + tombs_[0] + 1 >= cap_[0] && snapshot_prepared_ &&
+            !find_in(0, h, o->key())) return false;
+        if (capturing) {
+            const bool exists = find_in(0, h, o->key()) || find_in(1, h, o->key());
+            // The fresh table is deliberately overprovisioned at the cut.  Refuse only genuinely
+            // new keys once the complete logical set would no longer fit; replacements preserve
+            // cardinality.  This is an ordinary insert failure, never snapshot corruption.
+            // Count current-table tombstones as promised destination slots too.  Otherwise a
+            // churn-heavy capture could leave enough logical capacity but no EMPTY terminating
+            // slot, and the post-capture merge would be unable to place a frozen pointer.
+            if (!exists && live_[0] + tombs_[0] + live_[1] + 1 >= cap_[0]) return false;
+        }
         // Evict any copy still in the old table FIRST, or it outlives a later delete of the new one
         // and the key resurrects — see the header.
         if (rehashing()) {
@@ -403,7 +568,7 @@ public:
     }
 
     bool erase(uint64_t h, Slice key) {
-        if (rehashing()) rehash_step();
+        if (rehashing() && !snapshot_active_) rehash_step();
         bool expired = false;
         if (erase_in(0, h, key, &expired)) {
             maybe_start_shrink();
@@ -456,6 +621,145 @@ public:
     }
 
 private:
+    static constexpr uint32_t kSnapshotRecordTag = 0x44434552;  // "RECD", little endian
+    static constexpr uint32_t kSnapshotRecordHeader = 32;
+
+    struct SnapshotRecordState {
+        bool active = false;
+        bool preimage = false;
+        uint32_t slot = 0;
+        uint8_t header[kSnapshotRecordHeader] = {};
+        uint32_t header_offset = 0;
+        uint32_t key_offset = 0;
+        SnapshotSaveCursor value;
+        SnapshotTypeHooks hooks{};
+    };
+
+    std::unique_ptr<SnapshotChunk> make_snapshot_chunk(uint32_t flags) {
+        try {
+            auto chunk = std::make_unique<SnapshotChunk>();
+            chunk->sid = snapshot_shard_id_;
+            chunk->sequence = snapshot_sequence_++;
+            chunk->flags = flags;
+            chunk->bytes.reserve(kSnapshotChunkBytes);
+            return chunk;
+        } catch (const std::bad_alloc&) {
+            snapshot_failed_ = true;
+            return nullptr;
+        }
+    }
+
+    void snapshot_seal(uint32_t flags) {
+        if (!snapshot_build_ || snapshot_ready_) return;
+        snapshot_build_->flags |= flags;
+        snapshot_ready_ = std::move(snapshot_build_);
+    }
+
+    uint32_t snapshot_emit(const uint8_t* source, uint32_t length, uint32_t& budget) {
+        uint32_t emitted = 0;
+        while (length && budget && !snapshot_ready_ && !snapshot_failed_) {
+            if (!snapshot_build_) snapshot_build_ = make_snapshot_chunk(0);
+            if (!snapshot_build_) break;
+            const uint32_t room = kSnapshotChunkBytes -
+                                  static_cast<uint32_t>(snapshot_build_->bytes.size());
+            const uint32_t take = std::min({length, budget, room});
+            try {
+                snapshot_build_->bytes.insert(snapshot_build_->bytes.end(), source, source + take);
+            } catch (const std::bad_alloc&) {
+                snapshot_failed_ = true;
+                break;
+            }
+            source += take; length -= take; budget -= take; emitted += take;
+            if (snapshot_build_->bytes.size() == kSnapshotChunkBytes) snapshot_seal(0);
+        }
+        return emitted;
+    }
+
+    bool snapshot_start_record(const KvObj* object, uint32_t slot, bool preimage) {
+        SnapshotRecordState state;
+        state.active = true;
+        state.preimage = preimage;
+        state.slot = slot;
+        state.hooks = snapshot_type_hooks(static_cast<Type>(object->type));
+        uint8_t encoding = 0;
+        const SnapshotHookStatus status = state.hooks.begin_save(*object, state.value, encoding);
+        if (status != SnapshotHookStatus::Ok) {
+            snapshot_failed_ = true;
+            return false;
+        }
+        snapshot_put_u32(state.header + 0, kSnapshotRecordTag);
+        state.header[4] = object->type;
+        state.header[5] = encoding;
+        state.header[6] = state.header[7] = 0;
+        snapshot_put_u32(state.header + 8, object->klen());
+        snapshot_put_u32(state.header + 12, 0);
+        snapshot_put_u64(state.header + 16, state.value.total);
+        snapshot_put_u64(state.header + 24, static_cast<uint64_t>(object->expire_at_ms()));
+        snapshot_record_ = state;
+        return true;
+    }
+
+    void snapshot_progress_record(uint32_t& budget) {
+        SnapshotRecordState& state = snapshot_record_;
+        const KvObj* object = state.value.object;
+        if (!state.active || !object) { snapshot_failed_ = true; return; }
+
+        if (state.header_offset < kSnapshotRecordHeader) {
+            const uint32_t n = snapshot_emit(state.header + state.header_offset,
+                                             kSnapshotRecordHeader - state.header_offset, budget);
+            state.header_offset += n;
+            if (state.header_offset != kSnapshotRecordHeader || snapshot_ready_) return;
+        }
+        if (state.key_offset < object->klen()) {
+            const uint32_t n = snapshot_emit(
+                reinterpret_cast<const uint8_t*>(object->key_ptr()) + state.key_offset,
+                object->klen() - state.key_offset, budget);
+            state.key_offset += n;
+            if (state.key_offset != object->klen() || snapshot_ready_) return;
+        }
+        while (state.value.offset < state.value.total && budget && !snapshot_ready_) {
+            if (!snapshot_build_) snapshot_build_ = make_snapshot_chunk(0);
+            if (!snapshot_build_) return;
+            const size_t room = kSnapshotChunkBytes - snapshot_build_->bytes.size();
+            const size_t capacity = std::min<size_t>(room, budget);
+            const size_t old_size = snapshot_build_->bytes.size();
+            try {
+                snapshot_build_->bytes.resize(old_size + capacity);
+            } catch (const std::bad_alloc&) {
+                snapshot_failed_ = true;
+                return;
+            }
+            size_t written = 0;
+            const SnapshotHookStatus status = state.hooks.read_save(
+                state.value, snapshot_build_->bytes.data() + old_size, capacity, written);
+            if (status != SnapshotHookStatus::Ok || written > capacity ||
+                (written == 0 && state.value.offset < state.value.total)) {
+                snapshot_build_->bytes.resize(old_size);
+                snapshot_failed_ = true;
+                return;
+            }
+            snapshot_build_->bytes.resize(old_size + written);
+            budget -= static_cast<uint32_t>(written);
+            if (snapshot_build_->bytes.size() == kSnapshotChunkBytes) snapshot_seal(0);
+        }
+        if (state.value.offset != state.value.total || snapshot_ready_) return;
+
+        const bool preimage = state.preimage;
+        const uint32_t slot = state.slot;
+        snapshot_record_ = {};
+        snapshot_records_++;
+        if (preimage) tab_[1][slot] |= kTombBit;
+        else          snapshot_pos_++;
+    }
+
+    void snapshot_finish_stream() {
+        if (snapshot_finished_ || snapshot_ready_ || snapshot_record_.active) return;
+        if (!snapshot_build_) snapshot_build_ = make_snapshot_chunk(0);
+        if (!snapshot_build_) return;
+        snapshot_seal(SnapshotFrameEnd);
+        snapshot_finished_ = true;
+    }
+
     struct Borrow {
         const char* ptr;
         uint32_t    refs;
@@ -493,6 +797,20 @@ private:
         return nullptr;
     }
 
+    KvObj* find_slot_in(int t, uint64_t h, Slice key, uint32_t& slot) const {
+        if (!tab_[t]) return nullptr;
+        const uint16_t tag = tag_of(h);
+        uint32_t i = slot_start(t, h);
+        for (uint32_t probes = 0; probes <= cap_[t]; probes++) {
+            const uint64_t w = tab_[t][i];
+            if (w == 0) return nullptr;
+            KvObj* o = ptr_of(w);
+            if (o && tag_of_word(w) == tag && o->key() == key) { slot = i; return o; }
+            i = (i + 1) & mask_[t];
+        }
+        return nullptr;
+    }
+
     KvObj* find_hash_in(int t, uint64_t h) const {
         if (!tab_[t]) return nullptr;
         const uint16_t tag = tag_of(h);
@@ -513,6 +831,7 @@ private:
         // read occurs here; the executor refreshed cached_now_ms_ once for its loop pass.
         if (!(o->flags & KvObjFlags::HasTtl)) return o;
         if (o->expire_at_ms() > cached_now_ms_) return o;
+        if (snapshot_active_ && t == 1) return nullptr;
         erase_in(t, h, key);
         if (expired_counter_) (*expired_counter_)++;
         return nullptr;
@@ -626,6 +945,7 @@ private:
     // ---- incremental resize -----------------------------------------------------------------
     void maybe_start_grow() {
         if ((live_[0] + tombs_[0] + 1) * 100 < cap_[0] * kLoadPct) return;
+        if (snapshot_prepared_) return;
         // Double only when the LIVE set alone justifies it. The trigger counts tombstones, so a
         // delete-heavy workload trips it with almost no live keys and doubling there would inflate
         // the table forever. Otherwise rehash at the same size, which costs the same walk and
@@ -639,7 +959,9 @@ private:
         // Hysteresis: grow triggers at kLoadPct and leaves the table at kLoadPct/2, so shrinking
         // only below kLoadPct/4 keeps the two far enough apart that a workload sitting near a
         // boundary cannot rebuild on every other operation.
-        if (live_[0] * 400 <= cap_[0] * kLoadPct) start_rehash(cap_[0] / 2);
+        if (live_[0] * 400 > cap_[0] * kLoadPct) return;
+        if (snapshot_prepared_) return;
+        start_rehash(cap_[0] / 2);
     }
 
     // Demote the current table to the old slot and install a fresh one. NOTHING is copied here —
@@ -692,6 +1014,26 @@ private:
     ExpireIndex expires_;
     int64_t     cached_now_ms_ = 0;
     uint64_t*   expired_counter_ = nullptr;
+
+    // Snapshot state is owner-only.  No atomics or locks enter FlatStore, and the ordinary lookup
+    // still searches exactly t_[0] then t_[1] — during capture those already-existing tables mean
+    // "post-cut" and "frozen cut" respectively.
+    bool snapshot_prepared_ = false;
+    bool snapshot_active_ = false;
+    bool snapshot_failed_ = false;
+    bool snapshot_finished_ = false;
+    uint64_t snapshot_epoch_ = 0;
+    int64_t snapshot_cut_ms_ = 0;
+    int32_t snapshot_shard_id_ = -1;
+    uint64_t* snapshot_new_tab_ = nullptr;
+    uint32_t snapshot_new_cap_ = 0;
+    uint32_t snapshot_pos_ = 0;
+    uint64_t snapshot_preimages_ = 0;   // pre-images emitted ahead of the cursor (write-gate fired)
+    uint32_t snapshot_sequence_ = 0;
+    uint64_t snapshot_records_ = 0;
+    SnapshotRecordState snapshot_record_;
+    std::unique_ptr<SnapshotChunk> snapshot_build_;
+    std::unique_ptr<SnapshotChunk> snapshot_ready_;
 };
 
 }  // namespace tomo

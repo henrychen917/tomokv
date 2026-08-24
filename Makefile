@@ -19,7 +19,7 @@ endif
 CXXFLAGS ?= -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread
 LDLIBS   ?= -luring -pthread
 SRC      := src/main.cc src/cmd/commands.cc src/cmd/t_string.cc src/cmd/t_hash.cc \
-            src/cmd/t_list.cc src/cmd/t_set.cc src/cmd/t_zset.cc
+            src/cmd/t_list.cc src/cmd/t_set.cc src/cmd/t_zset.cc src/snapshot/snapshot.cc
 BIN      := build/tomokv
 
 all: $(BIN)

@@ -17,6 +17,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
+#include <deque>
 #include "server.h"
 #include "signal.h"
 #include "../net/conn.h"
@@ -60,8 +61,11 @@ public:
             uint32_t did = 0;
             {
                 Span busy(sig.busy_ns);
+                did += snapshot_control_pass();
                 did += drain_releases();
-                did += drain_tasks();
+                if (!snapshot_blocks_tasks())
+                    did += snapshot_owner_state_ == SnapshotOwnerState::None
+                               ? drain_tasks() : drain_tasks_snapshot();
                 did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
             }
             sig.cpu_ns = thread_cpu_ns();
@@ -95,7 +99,11 @@ private:
     // Mask-independent: the state backstop behind the notify hint, run only when this thread has
     // already concluded it has nothing to do.
     uint32_t sweep() {
-        return drain_releases(true) + drain_tasks(true) + active_expire_cycle();
+        uint32_t n = snapshot_control_pass() + drain_releases(true);
+        if (!snapshot_blocks_tasks())
+            n += snapshot_owner_state_ == SnapshotOwnerState::None
+                     ? drain_tasks(true) : drain_tasks_snapshot(true);
+        return n + active_expire_cycle();
     }
 
     static int64_t realtime_ms() {
@@ -105,6 +113,7 @@ private:
     }
 
     uint32_t active_expire_cycle() {
+        if (snapshot_blocks_tasks()) return 0;
         auto& shards = self_->shards();
         if (shards.empty()) return 0;
         uint32_t removed = 0;
@@ -142,6 +151,206 @@ private:
         if (held) exec_batch(batch, held);
         self_->sig().ops += n;
         return n;
+    }
+
+    enum class SnapshotOwnerState : uint8_t {
+        None, Preparing, Prepared, Frozen, Marked, Capturing, Draining
+    };
+
+    bool snapshot_blocks_tasks() const {
+        if (snapshot_owner_state_ == SnapshotOwnerState::Frozen ||
+            snapshot_owner_state_ == SnapshotOwnerState::Marked) return true;
+        return snapshot_owner_state_ == SnapshotOwnerState::Capturing &&
+               snapshot_manager_ && snapshot_manager_->blocking();
+    }
+
+    void begin_snapshot(SnapshotManager* manager) {
+        if (!manager || snapshot_owner_state_ != SnapshotOwnerState::None) return;
+        snapshot_manager_ = manager;
+        snapshot_epoch_ = manager->epoch();
+        snapshot_was_cancelled_ = false;
+        snapshot_owner_state_ = SnapshotOwnerState::Preparing;
+        snapshot_prepare_cursor_ = 0;
+        snapshot_progress_cursor_ = 0;
+        snapshot_done_shards_.assign(srv_->nshards(), 0);
+        snapshot_pending_chunks_.clear();
+        snapshot_pending_chunks_.resize(srv_->nshards());
+        snapshot_backlogs_.clear();
+        snapshot_backlogs_.resize(srv_->nshards());
+    }
+
+    uint32_t snapshot_control_pass() {
+        if (snapshot_owner_state_ == SnapshotOwnerState::None) return 0;
+        SnapshotManager::Phase phase = snapshot_manager_->phase();
+        if (phase == SnapshotManager::Phase::Failed &&
+            snapshot_owner_state_ != SnapshotOwnerState::Draining) {
+            for (Shard* shard : self_->shards()) shard->store().snapshot_cancel();
+            snapshot_pending_chunks_.clear();
+            snapshot_was_cancelled_ = true;
+            snapshot_owner_state_ = SnapshotOwnerState::Draining;
+            return 1;
+        }
+
+        if (snapshot_owner_state_ == SnapshotOwnerState::Preparing) {
+            auto& shards = self_->shards();
+            if (snapshot_prepare_cursor_ < shards.size()) {
+                FlatStore::SnapshotWriteResult result = shards[snapshot_prepare_cursor_]
+                    ->store().snapshot_prepare(snapshot_epoch_, 0);
+                if (result == FlatStore::SnapshotWriteResult::Error) {
+                    snapshot_manager_->fail(snapshot_epoch_, "could not prepare shard snapshot");
+                    return 1;
+                }
+                if (result == FlatStore::SnapshotWriteResult::Ready) snapshot_prepare_cursor_++;
+                return 1;
+            }
+            snapshot_owner_state_ = SnapshotOwnerState::Prepared;
+            snapshot_manager_->owner_ready(snapshot_epoch_);
+            return 1;
+        }
+
+        if (snapshot_owner_state_ == SnapshotOwnerState::Prepared &&
+            phase == SnapshotManager::Phase::Freeze) {
+            snapshot_owner_state_ = SnapshotOwnerState::Frozen;
+            snapshot_manager_->owner_frozen(snapshot_epoch_);
+            return 1;
+        }
+        if (snapshot_owner_state_ == SnapshotOwnerState::Frozen &&
+            phase == SnapshotManager::Phase::Mark) {
+            for (Shard* shard : self_->shards()) {
+                if (!shard->store().snapshot_mark(shard->id(), snapshot_manager_->cut_ms())) {
+                    snapshot_manager_->fail(snapshot_epoch_, "could not mark shard snapshot epoch");
+                    return 1;
+                }
+            }
+            snapshot_owner_state_ = SnapshotOwnerState::Marked;
+            snapshot_manager_->owner_marked(snapshot_epoch_);
+            return 1;
+        }
+        if (snapshot_owner_state_ == SnapshotOwnerState::Marked &&
+            phase == SnapshotManager::Phase::Capture) {
+            snapshot_owner_state_ = SnapshotOwnerState::Capturing;
+            return 1;
+        }
+        if (snapshot_owner_state_ == SnapshotOwnerState::Capturing &&
+            phase == SnapshotManager::Phase::Capture) {
+            return progress_snapshot_capture();
+        }
+        if (snapshot_owner_state_ == SnapshotOwnerState::Draining) {
+            const uint32_t n = service_snapshot_backlogs(kExecBatch, false);
+            if (snapshot_backlogs_empty()) {
+                if (snapshot_was_cancelled_) snapshot_manager_->owner_cancelled(snapshot_epoch_);
+                else                         snapshot_manager_->owner_finished(snapshot_epoch_);
+                snapshot_owner_state_ = SnapshotOwnerState::None;
+                snapshot_manager_ = nullptr;
+            }
+            return n;
+        }
+        return 0;
+    }
+
+    uint32_t progress_snapshot_capture() {
+        auto& shards = self_->shards();
+        if (shards.empty()) {
+            snapshot_owner_state_ = SnapshotOwnerState::Draining;
+            return 1;
+        }
+        uint32_t work = 0;
+        const uint32_t wanted_sid = snapshot_manager_->save_current_shard();
+        for (size_t visits = 0; visits < shards.size(); visits++) {
+            if (snapshot_progress_cursor_ >= shards.size()) snapshot_progress_cursor_ = 0;
+            Shard* shard = shards[snapshot_progress_cursor_++];
+            const uint32_t sid = static_cast<uint32_t>(shard->id());
+            if (snapshot_done_shards_[sid]) continue;
+            if (snapshot_manager_->blocking() && sid != wanted_sid) continue;
+
+            auto& pending = snapshot_pending_chunks_[sid];
+            if (!pending) pending = shard->store().snapshot_take_chunk();
+            if (pending) {
+                const bool end = (pending->flags & SnapshotFrameEnd) != 0;
+                if (!snapshot_manager_->post_chunk(self_->id(), pending, ring_, self_->sig())) return work;
+                work++;
+                if (end) {
+                    shard->store().snapshot_handoff_complete();
+                    snapshot_done_shards_[sid] = 1;
+                }
+            }
+            if (!snapshot_done_shards_[sid]) {
+                work += shard->store().snapshot_progress(kSnapshotChunkBytes, 256);
+                if (shard->store().snapshot_failed()) {
+                    snapshot_manager_->fail(snapshot_epoch_, "snapshot type serialization failed");
+                    return work + 1;
+                }
+                if (!pending) pending = shard->store().snapshot_take_chunk();
+                if (pending) {
+                    const bool end = (pending->flags & SnapshotFrameEnd) != 0;
+                    if (!snapshot_manager_->post_chunk(self_->id(), pending, ring_, self_->sig()))
+                        return work;
+                    work++;
+                    if (end) {
+                        shard->store().snapshot_handoff_complete();
+                        snapshot_done_shards_[sid] = 1;
+                    }
+                }
+            }
+            break;  // one shard, one bounded byte/slot budget per executor pass
+        }
+        bool all_done = true;
+        for (Shard* shard : shards)
+            all_done &= snapshot_done_shards_[static_cast<uint32_t>(shard->id())] != 0;
+        if (all_done) {
+            snapshot_owner_state_ = SnapshotOwnerState::Draining;
+        }
+        return work;
+    }
+
+    bool snapshot_backlogs_empty() const {
+        for (const auto& queue : snapshot_backlogs_) if (!queue.empty()) return false;
+        return true;
+    }
+
+    bool execute_snapshot_task(const Task& task, bool capture_writes) {
+        Op& op = task.client->rob().at(task.op_id);
+        Shard& shard = srv_->shard(op.shard);
+        if (capture_writes && (op.spec->flags & CmdFlags::Write)) {
+            const FlatStore::SnapshotWriteResult result =
+                shard.store().snapshot_prepare_write(op.hash, op.key());
+            if (result == FlatStore::SnapshotWriteResult::Pending) return false;
+            if (result == FlatStore::SnapshotWriteResult::Error) {
+                snapshot_manager_->fail(snapshot_epoch_, "snapshot pre-image serialization failed");
+                return false;
+            }
+        }
+        execute(task);
+        shard.publish_size();
+        return true;
+    }
+
+    void schedule_snapshot_task(const Task& task) {
+        const int32_t sid = task.client->rob().at(task.op_id).shard;
+        auto& queue = snapshot_backlogs_[static_cast<uint32_t>(sid)];
+        if (!queue.empty() || !execute_snapshot_task(task, true)) queue.push_back(task);
+    }
+
+    uint32_t service_snapshot_backlogs(uint32_t budget, bool capture_writes = true) {
+        uint32_t n = 0;
+        for (Shard* shard : self_->shards()) {
+            auto& queue = snapshot_backlogs_[static_cast<uint32_t>(shard->id())];
+            while (budget && !queue.empty()) {
+                if (!execute_snapshot_task(queue.front(), capture_writes)) break;
+                queue.pop_front(); budget--; n++;
+            }
+            if (!budget) break;
+        }
+        return n;
+    }
+
+    uint32_t drain_tasks_snapshot(bool unmasked = false) {
+        auto take = [&](const Task& task) { schedule_snapshot_task(task); };
+        const uint32_t n = unmasked ? self_->drain_tasks_unmasked(take) : self_->drain_tasks(take);
+        self_->sig().ops += n;
+        // Retire at least as many deferred Tasks as this drain can add, plus one batch of old debt;
+        // otherwise a saturated post-capture owner could remain in Draining forever.
+        return n + service_snapshot_backlogs(kExecBatch + n);
     }
 
     // Prefetch the whole batch's slots, THEN execute. Issuing the loads up front lets their DRAM
@@ -227,6 +436,8 @@ private:
     void on_cqe(io_uring_cqe* cqe) {
         // Executors issue no sends; the ring exists for wakes.
         if (ur_kind(cqe->user_data) == UrKind::Wake) self_->sig().wakes_recv++;
+        else if (ur_kind(cqe->user_data) == UrKind::SnapshotStart)
+            begin_snapshot(ur_ptr<SnapshotManager>(cqe->user_data));
     }
 
     Server*    srv_  = nullptr;
@@ -235,6 +446,15 @@ private:
     WbEngine   wb_;    // never serves here; kept so the stats plumbing stays uniform across loops
     int64_t    cached_now_ms_ = 0;
     size_t     expire_shard_cursor_ = 0;
+    SnapshotManager* snapshot_manager_ = nullptr;
+    SnapshotOwnerState snapshot_owner_state_ = SnapshotOwnerState::None;
+    uint64_t snapshot_epoch_ = 0;
+    bool snapshot_was_cancelled_ = false;
+    size_t snapshot_prepare_cursor_ = 0;
+    size_t snapshot_progress_cursor_ = 0;
+    std::vector<uint8_t> snapshot_done_shards_;
+    std::vector<std::unique_ptr<SnapshotChunk>> snapshot_pending_chunks_;
+    std::vector<std::deque<Task>> snapshot_backlogs_;
 };
 
 }  // namespace tomo

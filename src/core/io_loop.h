@@ -30,6 +30,7 @@
 #include "../net/uring.h"
 #include "../net/wb.h"
 #include "../cmd/command.h"
+#include "../snapshot/snapshot.h"
 
 namespace tomo {
 
@@ -104,6 +105,8 @@ public:
                 // is retried every pass until it lands.
                 if (accept_pending_) arm_accept();
                 did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
+                if (srv_->snapshot().writer_is(self_->id()))
+                    did += srv_->snapshot().writer_pass(*self_, ring_);
                 did += flush_borrow_releases();
                 did += collect_retire_work();
                 did += flush_ready();
@@ -178,6 +181,7 @@ private:
                 break;
             }
             case UrKind::Wake:  self_->sig().wakes_recv++; break;
+            case UrKind::SnapshotStart: break;  // epoch broadcasts target executor rings only
             case UrKind::Close: break;
         }
     }
@@ -287,7 +291,9 @@ private:
                         }
                     }
                 }
+                snapshot_bind_io(self_, &ring_);
                 spec->handler(srv_->shard(0), *op);
+                snapshot_bind_io(nullptr, nullptr);
                 op->state.store(OpState::Done, std::memory_order_release);
                 rob.publish();
                 enqueue_serve(c);
@@ -380,7 +386,10 @@ private:
     // Inbound from workers: "ops are Done" -- the claimed-post fallback for a conn with no
     // ready-mask slot. Either way the answer is the same: put the client back in the active set.
     uint32_t sweep() {
-        return flush_borrow_releases() + collect_retire_work(true) + flush_ready();
+        uint32_t work = flush_borrow_releases() + collect_retire_work(true) + flush_ready();
+        if (srv_->snapshot().writer_is(self_->id()))
+            work += srv_->snapshot().writer_pass(*self_, ring_, true);
+        return work;
     }
 
     void queue_borrow_release(int32_t shard, const char* ptr) {

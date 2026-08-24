@@ -21,6 +21,7 @@
 #include "../base/topology.h"
 #include "../net/conn.h"   // kRobWindow: one source of truth for the window size
 #include "../net/wb.h"
+#include "../snapshot/snapshot.h"
 
 namespace tomo {
 
@@ -37,6 +38,9 @@ struct Config {
     uint32_t shards         = 16;
     uint16_t port           = 6379;
     const char* bind_addr   = "127.0.0.1";
+    const char* dir         = ".";
+    const char* dbfilename  = "dump.tomo";
+    const char* load_path   = nullptr;
 
     // Pinning is relative to the process's ALLOWED cpu set, so taskset confines both the process and
     // its topology grouping — that property is what lets independent benchmark lanes share one box,
@@ -137,6 +141,9 @@ public:
             // thread resolution even when adjacent tids live in different L3 domains.
             shards_[sid]->note_migration(placement_.domain_of_thread(tid));
         }
+        snapshot_.init(nthreads, cfg.shards,
+                       static_cast<uint32_t>(placement_.ex_threads().size()),
+                       cfg.dir, cfg.dbfilename);
         return true;
     }
 
@@ -148,6 +155,8 @@ public:
     ThreadCtx&       thread(uint32_t i) { return *threads_[i]; }
     uint32_t         nthreads()   const { return static_cast<uint32_t>(threads_.size()); }
     uint32_t         nshards()    const { return static_cast<uint32_t>(shards_.size()); }
+    SnapshotManager& snapshot()         { return snapshot_; }
+    const SnapshotManager& snapshot() const { return snapshot_; }
 
     // One atomic load on the dispatch path; one atomic store is how an LB moves work.
     uint32_t worker_of_shard(int32_t shard_id) const {
@@ -167,6 +176,7 @@ private:
     Router    router_;
     std::vector<std::unique_ptr<Shard>>     shards_;
     std::vector<std::unique_ptr<ThreadCtx>> threads_;
+    SnapshotManager snapshot_;
 
     std::atomic<uint32_t> shard_owner_[256] = {};
     std::atomic<uint64_t> next_client_id_{1};
