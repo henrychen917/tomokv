@@ -1,0 +1,602 @@
+#include "snapshot.h"
+
+#include <cerrno>
+#include <chrono>
+#include <cstdio>
+#include <cstring>
+#include <fcntl.h>
+#include <limits>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <thread>
+#include <unistd.h>
+
+#include "../core/server.h"
+#include "../core/thread.h"
+#include "../net/uring.h"
+#include "../store/flatstore.h"
+
+namespace tomo {
+namespace {
+
+constexpr uint8_t kFileMagic[8] = {'T','O','M','O','S','N','P','\0'};
+constexpr uint32_t kFileHeaderBytes = 80;
+constexpr uint32_t kFrameHeaderBytes = 32;
+constexpr uint32_t kFooterBytes = 32;
+constexpr uint32_t kFrameTag = 0x4d415246;   // "FRAM"
+constexpr uint32_t kFooterTag = 0x454e4f44;  // "DONE"
+constexpr uint32_t kRecordTag = 0x44434552;  // "RECD"
+constexpr uint32_t kRecordHeaderBytes = 32;
+constexpr uint32_t kWriterFramesPerPass = 8;
+
+thread_local SnapshotIoContext tls_io_context;
+
+int64_t realtime_ms() {
+    timespec ts{};
+    ::clock_gettime(CLOCK_REALTIME, &ts);
+    return static_cast<int64_t>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000;
+}
+
+bool write_all(int fd, const uint8_t* p, size_t n) {
+    while (n) {
+        const ssize_t written = ::write(fd, p, n);
+        if (written < 0) {
+            if (errno == EINTR) continue;
+            return false;
+        }
+        if (written == 0) return false;
+        p += written;
+        n -= static_cast<size_t>(written);
+    }
+    return true;
+}
+
+bool read_all_fd(int fd, std::vector<uint8_t>& out, std::string& error) {
+    struct stat st{};
+    if (::fstat(fd, &st) != 0 || st.st_size < 0) {
+        error = "could not stat snapshot";
+        return false;
+    }
+    try {
+        out.resize(static_cast<size_t>(st.st_size));
+    } catch (const std::bad_alloc&) {
+        error = "out of memory reading snapshot";
+        return false;
+    }
+    size_t off = 0;
+    while (off < out.size()) {
+        const ssize_t n = ::read(fd, out.data() + off, out.size() - off);
+        if (n < 0 && errno == EINTR) continue;
+        if (n <= 0) { error = "short snapshot read"; return false; }
+        off += static_cast<size_t>(n);
+    }
+    return true;
+}
+
+const char* hook_error(SnapshotHookStatus status) {
+    switch (status) {
+        case SnapshotHookStatus::Unsupported: return "snapshot contains an unsupported value type";
+        case SnapshotHookStatus::Corrupt: return "corrupt snapshot type payload";
+        case SnapshotHookStatus::Oom: return "out of memory loading snapshot";
+        case SnapshotHookStatus::Ok: break;
+    }
+    return "snapshot type hook failed";
+}
+
+}  // namespace
+
+const SnapshotTypeHooks& snapshot_type_hooks(Type type) {
+    static const SnapshotTypeHooks hooks[] = {
+        string_snapshot_hooks(), hash_snapshot_hooks(), list_snapshot_hooks(),
+        set_snapshot_hooks(), zset_snapshot_hooks(),
+    };
+    const uint32_t index = static_cast<uint32_t>(type);
+    return hooks[index < 5 ? index : 0];
+}
+
+void snapshot_bind_io(ThreadCtx* thread, Ring* ring) { tls_io_context = {thread, ring}; }
+SnapshotIoContext snapshot_io_context() { return tls_io_context; }
+
+SnapshotManager::~SnapshotManager() {
+    abort_file();
+    if (chunk_in_) {
+        for (uint32_t p = 0; p < nthreads_; p++) {
+            SnapshotChunk* chunk = nullptr;
+            while (chunk_in_[p].recv(chunk)) { delete chunk; chunk_in_[p].retire(); }
+        }
+    }
+}
+
+void SnapshotManager::init(uint32_t nthreads, uint32_t nshards, uint32_t executor_count,
+                           const char* dir, const char* dbfilename) {
+    nthreads_ = nthreads;
+    nshards_ = nshards;
+    executor_count_ = executor_count;
+    dir_ = (dir && *dir) ? dir : ".";
+    dbfilename_ = (dbfilename && *dbfilename) ? dbfilename : "dump.tomo";
+    final_path_ = dir_ + "/" + dbfilename_;
+    chunk_in_ = std::make_unique<ChunkChan[]>(nthreads_);
+    next_sequence_.assign(nshards_, 0);
+    saw_begin_.assign(nshards_, 0);
+    saw_end_.assign(nshards_, 0);
+}
+
+void SnapshotManager::set_error(const char* text) {
+    std::lock_guard<std::mutex> lock(error_mu_);
+    error_ = text ? text : "snapshot failed";
+}
+
+SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& writer,
+                                                     Ring& writer_ring, bool is_blocking,
+                                                     std::string& error) {
+    Phase expected = Phase::Idle;
+    if (!phase_.compare_exchange_strong(expected, Phase::Preparing,
+                                        std::memory_order_acq_rel)) {
+        error = "Background save already in progress";
+        return StartResult::Busy;
+    }
+
+    const uint64_t next_epoch = epoch_.fetch_add(1, std::memory_order_relaxed) + 1;
+    epoch_.store(next_epoch, std::memory_order_release);
+    ready_owners_.store(0, std::memory_order_relaxed);
+    frozen_owners_.store(0, std::memory_order_relaxed);
+    marked_owners_.store(0, std::memory_order_relaxed);
+    cancelled_owners_.store(0, std::memory_order_relaxed);
+    finished_owners_.store(0, std::memory_order_relaxed);
+    blocking_.store(is_blocking, std::memory_order_relaxed);
+    save_current_shard_.store(0, std::memory_order_relaxed);
+    writer_tid_.store(writer.id(), std::memory_order_relaxed);
+    writer_ring_.store(&writer_ring, std::memory_order_release);
+    server_ = &server;
+    writer_failed_.store(false, std::memory_order_relaxed);
+    frame_count_ = 0;
+    ended_shards_ = 0;
+    writer_cursor_ = 0;
+    std::fill(next_sequence_.begin(), next_sequence_.end(), 0);
+    std::fill(saw_begin_.begin(), saw_begin_.end(), 0);
+    std::fill(saw_end_.begin(), saw_end_.end(), 0);
+    {
+        std::lock_guard<std::mutex> lock(error_mu_);
+        error_.clear();
+    }
+
+    char suffix[96];
+    std::snprintf(suffix, sizeof(suffix), ".tmp.%ld.%llu", static_cast<long>(::getpid()),
+                  static_cast<unsigned long long>(next_epoch));
+    temp_path_ = final_path_ + suffix;
+    fd_ = ::open(temp_path_.c_str(), O_CREAT | O_EXCL | O_WRONLY | O_CLOEXEC, 0600);
+    if (fd_ < 0) {
+        error = "could not create snapshot temporary file";
+        phase_.store(Phase::Idle, std::memory_order_release);
+        writer_tid_.store(UINT32_MAX, std::memory_order_relaxed);
+        return StartResult::Failed;
+    }
+
+    // The target CQE is the epoch broadcast.  Every executor observes it between operation batches.
+    for (uint32_t tid : server.placement().ex_threads()) {
+        Ring* target = server.thread(tid).ring();
+        while (!target && !server.shutting_down().load(std::memory_order_relaxed)) {
+            std::this_thread::yield();
+            target = server.thread(tid).ring();
+        }
+        if (!target || !writer_ring.msg_to(*target, ur_tag(UrKind::SnapshotStart, this))) {
+            set_error("could not broadcast snapshot epoch");
+            phase_.store(Phase::Failed, std::memory_order_release);
+            break;
+        }
+    }
+    writer_ring.submit_and_reap();
+
+    while (phase() == Phase::Preparing &&
+           ready_owners_.load(std::memory_order_acquire) != executor_count_)
+        std::this_thread::yield();
+    if (phase() == Phase::Preparing) {
+        phase_.store(Phase::Freeze, std::memory_order_release);
+        for (uint32_t tid : server.placement().ex_threads())
+            if (Ring* target = server.thread(tid).ring())
+                writer_ring.msg_to(*target, ur_tag(UrKind::Wake, nullptr));
+        writer_ring.submit_and_reap();
+    }
+    while (phase() == Phase::Freeze &&
+           frozen_owners_.load(std::memory_order_acquire) != executor_count_)
+        std::this_thread::yield();
+    if (phase() == Phase::Freeze) {
+        cut_ms_.store(realtime_ms(), std::memory_order_release);
+        phase_.store(Phase::Mark, std::memory_order_release);
+        for (uint32_t tid : server.placement().ex_threads())
+            if (Ring* target = server.thread(tid).ring())
+                writer_ring.msg_to(*target, ur_tag(UrKind::Wake, nullptr));
+        writer_ring.submit_and_reap();
+    }
+    while (phase() == Phase::Mark &&
+           marked_owners_.load(std::memory_order_acquire) != executor_count_)
+        std::this_thread::yield();
+
+    if (phase() != Phase::Mark) {
+        while (cancelled_owners_.load(std::memory_order_acquire) +
+                   finished_owners_.load(std::memory_order_acquire) != executor_count_)
+            std::this_thread::yield();
+        abort_file();
+        phase_.store(Phase::Idle, std::memory_order_release);
+        std::lock_guard<std::mutex> lock(error_mu_);
+        error = error_.empty() ? "snapshot start failed" : error_;
+        return StartResult::Failed;
+    }
+
+    // Release the epoch barrier before touching the file.  Executors may fill their bounded
+    // channels, but this command's IO thread is still the sole writer and writes the header before
+    // its loop can drain a frame.
+    phase_.store(Phase::Capture, std::memory_order_release);
+    for (uint32_t tid : server.placement().ex_threads())
+        if (Ring* target = server.thread(tid).ring())
+            writer_ring.msg_to(*target, ur_tag(UrKind::Wake, nullptr));
+    writer_ring.submit_and_reap();
+    if (!write_header()) {
+        fail(next_epoch, "could not write snapshot header");
+        while (cancelled_owners_.load(std::memory_order_acquire) +
+                   finished_owners_.load(std::memory_order_acquire) != executor_count_)
+            std::this_thread::yield();
+        discard_chunks();
+        abort_file();
+        phase_.store(Phase::Idle, std::memory_order_release);
+        std::lock_guard<std::mutex> lock(error_mu_);
+        error = error_.empty() ? "snapshot start failed" : error_;
+        return StartResult::Failed;
+    }
+    if (!is_blocking) return StartResult::Started;
+
+    while (phase() == Phase::Capture) {
+        writer_pass(writer, writer_ring, true);
+        writer_ring.submit_and_reap();
+        std::this_thread::yield();
+    }
+    if (phase() == Phase::Failed) {
+        while (cancelled_owners_.load(std::memory_order_acquire) +
+                   finished_owners_.load(std::memory_order_acquire) != executor_count_) {
+            writer_pass(writer, writer_ring, true);
+            std::this_thread::yield();
+        }
+        abort_file();
+        phase_.store(Phase::Idle, std::memory_order_release);
+        std::lock_guard<std::mutex> lock(error_mu_);
+        error = error_.empty() ? "snapshot failed" : error_;
+        return StartResult::Failed;
+    }
+    if (writer_failed_.load(std::memory_order_relaxed)) {
+        std::lock_guard<std::mutex> lock(error_mu_);
+        error = error_.empty() ? "snapshot finalization failed" : error_;
+        return StartResult::Failed;
+    }
+    return StartResult::Started;
+}
+
+void SnapshotManager::owner_ready(uint64_t value) {
+    if (value == epoch()) ready_owners_.fetch_add(1, std::memory_order_acq_rel);
+}
+void SnapshotManager::owner_frozen(uint64_t value) {
+    if (value == epoch()) frozen_owners_.fetch_add(1, std::memory_order_acq_rel);
+}
+void SnapshotManager::owner_marked(uint64_t value) {
+    if (value == epoch()) marked_owners_.fetch_add(1, std::memory_order_acq_rel);
+}
+void SnapshotManager::owner_cancelled(uint64_t value) {
+    if (value == epoch()) cancelled_owners_.fetch_add(1, std::memory_order_acq_rel);
+}
+void SnapshotManager::owner_finished(uint64_t value) {
+    if (value == epoch()) finished_owners_.fetch_add(1, std::memory_order_acq_rel);
+}
+void SnapshotManager::fail(uint64_t value, const char* reason) {
+    if (value != epoch()) return;
+    set_error(reason);
+    Phase current = phase();
+    while (current != Phase::Idle && current != Phase::Failed &&
+           !phase_.compare_exchange_weak(current, Phase::Failed, std::memory_order_acq_rel)) {}
+}
+
+bool SnapshotManager::post_chunk(uint32_t producer, std::unique_ptr<SnapshotChunk>& chunk,
+                                 Ring& producer_ring, LoopSignals& signals) {
+    if (!chunk || producer >= nthreads_) return false;
+    SnapshotChunk* raw = chunk.get();
+    if (!chunk_in_[producer].push(raw, signals)) return false;
+    chunk.release();
+    if (chunk_notify_.set(producer) && !blocking()) {
+        Ring* target = writer_ring_.load(std::memory_order_acquire);
+        chunk_in_[producer].wake(producer_ring, signals, target);
+    }
+    return true;
+}
+
+bool SnapshotManager::write_header() {
+    uint8_t h[kFileHeaderBytes] = {};
+    std::memcpy(h, kFileMagic, sizeof(kFileMagic));
+    snapshot_put_u32(h + 8, kSnapshotFormatVersion);
+    snapshot_put_u32(h + 12, kFileHeaderBytes);
+    snapshot_put_u32(h + 16, nshards_);
+    snapshot_put_u32(h + 20, static_cast<uint32_t>(g_hash_kind));
+    snapshot_put_u64(h + 24, epoch());
+    snapshot_put_u64(h + 32, static_cast<uint64_t>(cut_ms()));
+    snapshot_put_u64(h + 40, g_hash_seed);
+    snapshot_put_u64(h + 48, g_sip_k0);
+    snapshot_put_u64(h + 56, g_sip_k1);
+    snapshot_put_u64(h + 64, snapshot_checksum(h, 64));
+    return write_all(fd_, h, sizeof(h));
+}
+
+bool SnapshotManager::write_frame(const SnapshotChunk& chunk) {
+    if (chunk.sid < 0 || static_cast<uint32_t>(chunk.sid) >= nshards_) return false;
+    const uint32_t sid = static_cast<uint32_t>(chunk.sid);
+    if (chunk.sequence != next_sequence_[sid]++ || saw_end_[sid]) return false;
+    if (chunk.flags & SnapshotFrameBegin) {
+        if (saw_begin_[sid]) return false;
+        saw_begin_[sid] = 1;
+    } else if (!saw_begin_[sid]) {
+        return false;
+    }
+    uint8_t h[kFrameHeaderBytes] = {};
+    snapshot_put_u32(h + 0, kFrameTag);
+    snapshot_put_u32(h + 4, sid);
+    snapshot_put_u32(h + 8, chunk.sequence);
+    snapshot_put_u32(h + 12, chunk.flags);
+    snapshot_put_u32(h + 16, static_cast<uint32_t>(chunk.bytes.size()));
+    snapshot_put_u64(h + 20, snapshot_checksum(chunk.bytes.data(), chunk.bytes.size()));
+    if (!write_all(fd_, h, sizeof(h)) ||
+        !write_all(fd_, chunk.bytes.data(), chunk.bytes.size())) return false;
+    frame_count_++;
+    if (chunk.flags & SnapshotFrameEnd) {
+        saw_end_[sid] = 1;
+        ended_shards_++;
+        if (blocking()) {
+            const uint32_t next = sid + 1;
+            save_current_shard_.store(next, std::memory_order_release);
+            if (server_ && next < nshards_) {
+                ThreadCtx& owner = server_->thread(server_->worker_of_shard(static_cast<int32_t>(next)));
+                Ring* source = writer_ring_.load(std::memory_order_acquire);
+                if (source && owner.ring()) source->msg_to(*owner.ring(), ur_tag(UrKind::Wake, nullptr));
+            }
+        }
+    }
+    return true;
+}
+
+bool SnapshotManager::finish_file() {
+    uint8_t footer[kFooterBytes] = {};
+    snapshot_put_u32(footer + 0, kFooterTag);
+    snapshot_put_u32(footer + 4, nshards_);
+    snapshot_put_u64(footer + 8, epoch());
+    snapshot_put_u64(footer + 16, frame_count_);
+    snapshot_put_u64(footer + 24, snapshot_checksum(footer, 24));
+    if (!write_all(fd_, footer, sizeof(footer)) || ::fdatasync(fd_) != 0) return false;
+    if (::close(fd_) != 0) { fd_ = -1; return false; }
+    fd_ = -1;
+    if (::rename(temp_path_.c_str(), final_path_.c_str()) != 0) return false;
+    const int dfd = ::open(dir_.c_str(), O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+    if (dfd < 0) return false;
+    const bool dir_synced = ::fsync(dfd) == 0;
+    const bool dir_closed = ::close(dfd) == 0;
+    if (!dir_synced || !dir_closed) return false;
+    last_save_time_.store(realtime_ms() / 1000, std::memory_order_relaxed);
+    writer_tid_.store(UINT32_MAX, std::memory_order_relaxed);
+    writer_ring_.store(nullptr, std::memory_order_release);
+    server_ = nullptr;
+    phase_.store(Phase::Idle, std::memory_order_release);
+    return true;
+}
+
+void SnapshotManager::abort_file() {
+    if (fd_ >= 0) { ::close(fd_); fd_ = -1; }
+    if (!temp_path_.empty()) (void)::unlink(temp_path_.c_str());
+    writer_tid_.store(UINT32_MAX, std::memory_order_relaxed);
+    writer_ring_.store(nullptr, std::memory_order_release);
+    server_ = nullptr;
+}
+
+void SnapshotManager::discard_chunks() {
+    for (uint32_t word = 0; word < NotifyMask::kWords; word++) (void)chunk_notify_.take(word);
+    for (uint32_t producer = 0; producer < nthreads_; producer++) {
+        SnapshotChunk* chunk = nullptr;
+        while (chunk_in_[producer].recv(chunk)) {
+            delete chunk;
+            chunk_in_[producer].retire();
+        }
+    }
+}
+
+uint32_t SnapshotManager::writer_pass(ThreadCtx& writer, Ring&, bool drain_all) {
+    if (writer.id() != writer_tid_.load(std::memory_order_relaxed)) return 0;
+    if (phase() == Phase::Failed) {
+        if (cancelled_owners_.load(std::memory_order_acquire) +
+                finished_owners_.load(std::memory_order_acquire) == executor_count_) {
+            discard_chunks();
+            abort_file();
+            phase_.store(Phase::Idle, std::memory_order_release);
+        }
+        return 0;
+    }
+    if (phase() != Phase::Capture) return 0;
+
+    uint32_t budget = drain_all ? 64 : kWriterFramesPerPass;
+    uint32_t consumed = 0;
+    for (uint32_t word = 0; word < NotifyMask::kWords && budget; word++) {
+        uint64_t bits = chunk_notify_.take(word);
+        while (bits && budget) {
+            const uint32_t bit = static_cast<uint32_t>(__builtin_ctzll(bits));
+            bits &= bits - 1;
+            const uint32_t producer = word * 64 + bit;
+            if (producer >= nthreads_) continue;
+            SnapshotChunk* chunk = nullptr;
+            while (budget && chunk_in_[producer].recv(chunk)) {
+                const bool ok = write_frame(*chunk);
+                delete chunk;
+                chunk_in_[producer].retire();
+                budget--; consumed++;
+                if (!ok) { fail(epoch(), "snapshot file write failed"); return consumed; }
+            }
+            if (chunk_in_[producer].depth()) chunk_notify_.set(producer);
+        }
+        // Preserve producers not visited because this pass hit its work budget.
+        while (bits) {
+            const uint32_t bit = static_cast<uint32_t>(__builtin_ctzll(bits));
+            bits &= bits - 1;
+            chunk_notify_.set(word * 64 + bit);
+        }
+    }
+    // Mask-independent backstop on the writer's sleep/SAVE path, matching the request channels:
+    // notify bits are a discovery optimization, never the sole correctness mechanism.
+    if (drain_all && consumed == 0) {
+        for (uint32_t producer = 0; producer < nthreads_ && budget; producer++) {
+            SnapshotChunk* chunk = nullptr;
+            while (budget && chunk_in_[producer].recv(chunk)) {
+                const bool ok = write_frame(*chunk);
+                delete chunk;
+                chunk_in_[producer].retire();
+                budget--; consumed++;
+                if (!ok) { fail(epoch(), "snapshot file write failed"); return consumed; }
+            }
+        }
+    }
+    if (ended_shards_ == nshards_ &&
+        finished_owners_.load(std::memory_order_acquire) == executor_count_ && !finish_file()) {
+        set_error("could not finalize snapshot file");
+        writer_failed_.store(true, std::memory_order_relaxed);
+        abort_file();
+        phase_.store(Phase::Idle, std::memory_order_release);
+    }
+    return consumed;
+}
+
+std::unique_ptr<SnapshotLoadPlan> snapshot_read_plan(const char* path, uint32_t expected_shards,
+                                                     std::string& error) {
+    const int fd = ::open(path, O_RDONLY | O_CLOEXEC);
+    if (fd < 0) { error = "could not open snapshot"; return nullptr; }
+    std::vector<uint8_t> file;
+    const bool read_ok = read_all_fd(fd, file, error);
+    ::close(fd);
+    if (!read_ok) return nullptr;
+    if (file.size() < kFileHeaderBytes + kFooterBytes ||
+        std::memcmp(file.data(), kFileMagic, sizeof(kFileMagic)) != 0 ||
+        snapshot_get_u32(file.data() + 8) != kSnapshotFormatVersion ||
+        snapshot_get_u32(file.data() + 12) != kFileHeaderBytes ||
+        snapshot_get_u64(file.data() + 64) != snapshot_checksum(file.data(), 64)) {
+        error = "invalid snapshot header";
+        return nullptr;
+    }
+    auto plan = std::make_unique<SnapshotLoadPlan>();
+    plan->shard_count = snapshot_get_u32(file.data() + 16);
+    if (plan->shard_count != expected_shards) {
+        error = "snapshot shard count does not match --shards";
+        return nullptr;
+    }
+    plan->hash_kind = snapshot_get_u32(file.data() + 20);
+    if (plan->hash_kind > static_cast<uint32_t>(HashKind::SipHash12)) {
+        error = "snapshot uses an unknown hash kind";
+        return nullptr;
+    }
+    plan->epoch = snapshot_get_u64(file.data() + 24);
+    plan->cut_ms = static_cast<int64_t>(snapshot_get_u64(file.data() + 32));
+    plan->hash_seed = snapshot_get_u64(file.data() + 40);
+    plan->sip_k0 = snapshot_get_u64(file.data() + 48);
+    plan->sip_k1 = snapshot_get_u64(file.data() + 56);
+    plan->sections.resize(plan->shard_count);
+    std::vector<uint32_t> sequence(plan->shard_count, 0);
+    std::vector<uint8_t> began(plan->shard_count, 0), ended(plan->shard_count, 0);
+
+    size_t pos = kFileHeaderBytes;
+    uint64_t frames = 0;
+    while (pos + kFooterBytes <= file.size() && snapshot_get_u32(file.data() + pos) == kFrameTag) {
+        if (pos + kFrameHeaderBytes > file.size()) { error = "truncated snapshot frame"; return nullptr; }
+        const uint8_t* h = file.data() + pos;
+        const uint32_t sid = snapshot_get_u32(h + 4);
+        const uint32_t seq = snapshot_get_u32(h + 8);
+        const uint32_t flags = snapshot_get_u32(h + 12);
+        const uint32_t len = snapshot_get_u32(h + 16);
+        const uint64_t checksum = snapshot_get_u64(h + 20);
+        pos += kFrameHeaderBytes;
+        if (sid >= plan->shard_count || seq != sequence[sid]++ || ended[sid] ||
+            pos + len > file.size() || checksum != snapshot_checksum(file.data() + pos, len)) {
+            error = "invalid snapshot frame";
+            return nullptr;
+        }
+        if (flags & SnapshotFrameBegin) {
+            if (began[sid]) { error = "duplicate shard section"; return nullptr; }
+            began[sid] = 1;
+        } else if (!began[sid]) { error = "shard section has no begin frame"; return nullptr; }
+        try {
+            plan->sections[sid].insert(plan->sections[sid].end(), file.data() + pos,
+                                       file.data() + pos + len);
+        } catch (const std::bad_alloc&) {
+            error = "out of memory assembling shard sections";
+            return nullptr;
+        }
+        pos += len;
+        if (flags & SnapshotFrameEnd) ended[sid] = 1;
+        frames++;
+    }
+    if (pos + kFooterBytes != file.size() || snapshot_get_u32(file.data() + pos) != kFooterTag ||
+        snapshot_get_u32(file.data() + pos + 4) != plan->shard_count ||
+        snapshot_get_u64(file.data() + pos + 8) != plan->epoch ||
+        snapshot_get_u64(file.data() + pos + 16) != frames ||
+        snapshot_get_u64(file.data() + pos + 24) != snapshot_checksum(file.data() + pos, 24)) {
+        error = "snapshot has no valid completion footer";
+        return nullptr;
+    }
+    for (uint32_t sid = 0; sid < plan->shard_count; sid++) {
+        if (!began[sid] || !ended[sid]) { error = "incomplete shard section"; return nullptr; }
+    }
+    return plan;
+}
+
+bool snapshot_load_owned(const SnapshotLoadPlan& plan, Server& server, ThreadCtx& owner,
+                         std::string& error) {
+    const int64_t now = realtime_ms();
+    for (Shard* shard : owner.shards()) {
+        const uint32_t sid = static_cast<uint32_t>(shard->id());
+        const std::vector<uint8_t>& section = plan.sections[sid];
+        size_t pos = 0;
+        shard->set_cached_now_ms(now);
+        while (pos < section.size()) {
+            if (section.size() - pos < kRecordHeaderBytes) { error = "truncated record"; return false; }
+            const uint8_t* h = section.data() + pos;
+            if (snapshot_get_u32(h) != kRecordTag) { error = "invalid record tag"; return false; }
+            const uint8_t type_raw = h[4];
+            const uint8_t encoding = h[5];
+            const uint32_t key_len = snapshot_get_u32(h + 8);
+            const uint64_t payload_len = snapshot_get_u64(h + 16);
+            const int64_t expire = static_cast<int64_t>(snapshot_get_u64(h + 24));
+            pos += kRecordHeaderBytes;
+            if (type_raw > static_cast<uint8_t>(Type::Zset) || payload_len > UINT32_MAX ||
+                static_cast<uint64_t>(section.size() - pos) <
+                    static_cast<uint64_t>(key_len) + payload_len) {
+                error = "invalid record lengths";
+                return false;
+            }
+            const Slice key(reinterpret_cast<const char*>(section.data() + pos), key_len);
+            pos += key_len;
+            const Slice payload(reinterpret_cast<const char*>(section.data() + pos),
+                                static_cast<uint32_t>(payload_len));
+            pos += static_cast<size_t>(payload_len);
+            if (expire >= 0 && expire <= now) continue;
+            const uint64_t hash = FlatStore::hash_key(key);
+            if (server.router().shard_of(hash) != shard->id()) {
+                error = "snapshot key is in the wrong shard section";
+                return false;
+            }
+            if (shard->store().find(hash, key)) { error = "duplicate snapshot key"; return false; }
+            KvObj* object = nullptr;
+            const SnapshotHookStatus status = snapshot_type_hooks(static_cast<Type>(type_raw)).load(
+                key, encoding, expire, payload, shard->type_limits(), object);
+            if (status != SnapshotHookStatus::Ok || !object) {
+                error = hook_error(status);
+                return false;
+            }
+            if (shard->store().insert(hash, object) != FlatStore::InsertResult::Inserted) {
+                kvobj_free(object);
+                error = "could not insert loaded key";
+                return false;
+            }
+        }
+        shard->publish_size();
+    }
+    return true;
+}
+
+}  // namespace tomo

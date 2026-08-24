@@ -19,6 +19,7 @@
 #include "../core/shard.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
+#include "../snapshot/format.h"
 
 namespace tomo {
 
@@ -2163,6 +2164,107 @@ static const CommandSpec kTable[] = {
 };
 
 }  // namespace
+
+
+namespace {
+
+// Logical zset payload: per element [u64 score bits][u32 mlen][member] in (score,member) order,
+// encoding byte 0.  Load re-adds through zset_add_one, so compact/skiplist follow CURRENT limits
+// and inserting in sorted order keeps the compact ordered-insert scan O(1) per element.
+template <typename Fn>
+bool zset_walk(const ZsetVal& value, Fn&& fn) {
+    if (value.encoding() == CollectionEncoding::Compact) {
+        for (const Compact::Entry entry : value.compact()) {
+            double score;
+            Slice member;
+            if (!compact_decode(entry, score, member)) return false;
+            if (!fn(score, member)) return true;
+        }
+        return true;
+    }
+    for (const ZsetNode* node = value.expanded->header->level[0].forward; node;
+         node = node->level[0].forward)
+        if (!fn(node->score, node_member(node))) return true;
+    return true;
+}
+
+SnapshotHookStatus zset_snapshot_begin(const KvObj& object, SnapshotSaveCursor& cursor,
+                                       uint8_t& encoding) {
+    if (static_cast<Type>(object.type) != Type::Zset) return SnapshotHookStatus::Corrupt;
+    cursor = {};
+    cursor.object = &object;
+    encoding = 0;
+    uint64_t total = 0;
+    if (!zset_walk(*zset_value(const_cast<KvObj*>(&object)),
+                   [&](double, Slice member) { total += 12ull + member.n; return true; }))
+        return SnapshotHookStatus::Corrupt;
+    cursor.total = total;
+    return SnapshotHookStatus::Ok;
+}
+
+SnapshotHookStatus zset_snapshot_read(SnapshotSaveCursor& cursor, uint8_t* destination,
+                                      size_t capacity, size_t& written) {
+    written = 0;
+    if (!cursor.object) return SnapshotHookStatus::Corrupt;
+    const ZsetVal& value = *zset_value(const_cast<KvObj*>(cursor.object));
+    SnapshotElementEmitter e{destination, capacity};
+    uint64_t idx = 0;
+    bool stopped = false;
+    const bool walked = zset_walk(value, [&](double score, Slice member) {
+        if (idx < cursor.lane[0]) { idx++; return true; }
+        e.pos = 0;
+        e.resume = idx == cursor.lane[0] ? cursor.lane[1] : 0;
+        uint64_t bits;
+        std::memcpy(&bits, &score, sizeof(bits));
+        if (!(e.put_u64(bits) && e.put_u32(member.n) && e.put(member.p, member.n))) {
+            cursor.lane[0] = idx;
+            cursor.lane[1] = e.pos;
+            stopped = true;
+            return false;
+        }
+        idx++;
+        return true;
+    });
+    if (!walked) return SnapshotHookStatus::Corrupt;
+    if (!stopped) { cursor.lane[0] = idx; cursor.lane[1] = 0; }
+    cursor.offset += e.out;
+    written = e.out;
+    return SnapshotHookStatus::Ok;
+}
+
+SnapshotHookStatus zset_snapshot_load(Slice key, uint8_t encoding, int64_t expire_at_ms,
+                                      Slice payload, const TypeLimits& limits, KvObj*& result) {
+    result = nullptr;
+    if (encoding != 0) return SnapshotHookStatus::Corrupt;
+    auto* value = new (std::nothrow) ZsetVal;
+    if (!value) return SnapshotHookStatus::Oom;
+    const uint8_t* p = reinterpret_cast<const uint8_t*>(payload.p);
+    uint64_t left = payload.n;
+    while (left) {
+        if (left < 12) { delete value; return SnapshotHookStatus::Corrupt; }
+        uint64_t bits = snapshot_get_u64(p);
+        double score;
+        std::memcpy(&score, &bits, sizeof(score));
+        const uint32_t mlen = snapshot_get_u32(p + 8);
+        p += 12; left -= 12;
+        if (left < mlen || std::isnan(score)) { delete value; return SnapshotHookStatus::Corrupt; }
+        const Slice member(reinterpret_cast<const char*>(p), mlen);
+        p += mlen; left -= mlen;
+        double out;
+        const AddOutcome outcome = zset_add_one(*value, limits.zset, score, member,
+                                                false, false, false, false, false, out);
+        if (outcome != AddOutcome::Added) { delete value; return SnapshotHookStatus::Corrupt; }
+    }
+    result = kvobj_new_zset(key, value, expire_at_ms);
+    if (!result) { delete value; return SnapshotHookStatus::Oom; }
+    return SnapshotHookStatus::Ok;
+}
+
+}  // namespace
+
+SnapshotTypeHooks zset_snapshot_hooks() {
+    return {zset_snapshot_begin, zset_snapshot_read, zset_snapshot_load};
+}
 
 CommandTable zset_command_table() {
     return {kTable, sizeof(kTable) / sizeof(kTable[0])};

@@ -12,11 +12,13 @@
 #include <unistd.h>
 #include <csignal>
 #include <cerrno>
+#include <condition_variable>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <sys/random.h>
 #include <string>
+#include <mutex>
 #include <thread>
 #include <vector>
 
@@ -126,6 +128,9 @@ int main(int argc, char** argv) {
                 return 1;
             }
         }
+        else if (!std::strcmp(argv[i], "--dir"))        cfg.dir = next(".");
+        else if (!std::strcmp(argv[i], "--dbfilename")) cfg.dbfilename = next("dump.tomo");
+        else if (!std::strcmp(argv[i], "--load"))       cfg.load_path = next("");
         else if (!std::strcmp(argv[i], "--hash-max-compact-entries")) {
             if (!parse_u32(next(nullptr), cfg.type_limits.hash.max_entries)) return 1;
         }
@@ -194,6 +199,7 @@ int main(int argc, char** argv) {
                         "    --zc-min N                  zero-copy GET replies for values >= N (0=off)\n"
                         "  cache: --maxmemory BYTES --maxmemory-policy POLICY\n"
                         "         --maxmemory-samples N (1..64, default 5)\n"
+                        "  persistence: --dir PATH --dbfilename NAME --load PATH\n"
                         "  compact encodings: --{hash,list,set,zset}-max-compact-{entries,value} N\n"
                         "  misc: --hash mix64|siphash; --mode 2s and --wb ifid accepted for\n"
                         "  script compat (anything else is rejected: 3s was deleted 2026-08-24)\n",
@@ -213,9 +219,34 @@ int main(int argc, char** argv) {
         std::fprintf(stderr, "shards must be between 1 and 256\n");
         return 1;
     }
+    if (!cfg.dir || !*cfg.dir || !cfg.dbfilename || !*cfg.dbfilename ||
+        std::strchr(cfg.dbfilename, '/')) {
+        std::fprintf(stderr, "--dir must be non-empty and --dbfilename must be a plain filename\n");
+        return 1;
+    }
+    if (cfg.load_path && !*cfg.load_path) {
+        std::fprintf(stderr, "--load requires a non-empty path\n");
+        return 1;
+    }
     if (!command_registry_init()) {
         std::fprintf(stderr, "command registry init failed\n");
         return 1;
+    }
+
+    std::unique_ptr<SnapshotLoadPlan> load_plan;
+    if (cfg.load_path) {
+        std::string error;
+        load_plan = snapshot_read_plan(cfg.load_path, cfg.shards, error);
+        if (!load_plan) {
+            std::fprintf(stderr, "snapshot load plan failed: %s\n", error.c_str());
+            return 1;
+        }
+        // The router consumes the keyed hash, so its key material is part of the persisted format.
+        // Restore it before Server::init builds shard ownership and before any loaded key is hashed.
+        g_hash_kind = static_cast<HashKind>(load_plan->hash_kind);
+        g_hash_seed = load_plan->hash_seed;
+        g_sip_k0 = load_plan->sip_k0;
+        g_sip_k1 = load_plan->sip_k1;
     }
 
     std::signal(SIGINT,  on_signal);
@@ -227,14 +258,8 @@ int main(int argc, char** argv) {
     g_srv = &srv;
     command_bind_server(&srv);
 
-    // Probe once so a bad address or an already-bound port fails here with a clear message rather
-    // than inside six threads at once. Each io thread then opens its OWN SO_REUSEPORT listener.
-    {
-        const int probe = IoLoop::make_reuseport_listener(cfg.bind_addr, cfg.port);
-        if (probe < 0) { std::perror("bind"); return 1; }
-        ::close(probe);
-    }
-
+    // The bind probe moved AFTER the boot load: no listener may exist until every owner has
+    // decoded its shard sections (see the post-load probe below).
     int unix_listener = -1;
     if (cfg.unixsocket && *cfg.unixsocket) {
         struct stat st{};
@@ -285,8 +310,6 @@ int main(int argc, char** argv) {
                     p.domain, srv.thread(p.id).shards().size());
         std::printf("self\n");
     }
-    std::printf("listening on %s:%u\n", cfg.bind_addr, cfg.port);
-    if (unix_listener >= 0) std::printf("listening on unix:%s\n", cfg.unixsocket);
     std::fflush(stdout);
 
     // Placement decides every cpu directly. Pinning is relative to the process's ALLOWED set by
@@ -295,6 +318,11 @@ int main(int argc, char** argv) {
     std::vector<std::thread> pool;
     std::vector<IoLoop> ios(nthreads);
     std::vector<ExLoop> exs(nthreads);
+    std::mutex load_mu;
+    std::condition_variable load_cv;
+    uint32_t loaders_done = 0;
+    bool load_ok = true;
+    std::string load_error;
     for (uint32_t i = 0; i < nthreads; i++) g_threads.push_back(&srv.thread(i));
 
     auto pin_for = [&](uint32_t tid) {
@@ -310,9 +338,49 @@ int main(int argc, char** argv) {
             ThreadCtx& self = srv.thread(tid);
             self.latch_placement(srv.topo());   // after pinning: sched_getcpu is only now truthful
             bind_thread_arena();                // per-worker jemalloc arena; no-op without it
-            if (!exs[tid].init(&srv, &self)) return;
+            bool ok = exs[tid].init(&srv, &self);
+            std::string local_error;
+            if (ok && load_plan) ok = snapshot_load_owned(*load_plan, srv, self, local_error);
+            {
+                std::lock_guard<std::mutex> lock(load_mu);
+                if (!ok) {
+                    load_ok = false;
+                    if (load_error.empty())
+                        load_error = local_error.empty() ? "executor initialization failed" : local_error;
+                }
+                loaders_done++;
+            }
+            load_cv.notify_one();
+            if (!ok) return;
             exs[tid].run();
         });
+
+    // Main performed every read(2); the real owning executor threads now deserialize their own
+    // shard sections in parallel.  No listener exists until all owners report success.
+    {
+        std::unique_lock<std::mutex> lock(load_mu);
+        load_cv.wait(lock, [&] {
+            return loaders_done == static_cast<uint32_t>(srv.placement().ex_threads().size());
+        });
+    }
+    if (!load_ok) {
+        for (uint32_t i = 0; i < nthreads; i++) srv.thread(i).stop_flag().store(true);
+        for (auto& thread : pool) thread.join();
+        std::fprintf(stderr, "snapshot load failed: %s\n", load_error.c_str());
+        return 1;
+    }
+
+    // Probe only after boot load. Each io thread then opens its own SO_REUSEPORT listener.
+    {
+        const int probe = IoLoop::make_reuseport_listener(cfg.bind_addr, cfg.port);
+        if (probe < 0) {
+            std::perror("bind");
+            for (uint32_t i = 0; i < nthreads; i++) srv.thread(i).stop_flag().store(true);
+            for (auto& thread : pool) thread.join();
+            return 1;
+        }
+        ::close(probe);
+    }
 
     const uint32_t unix_owner = srv.placement().ifid_threads().front();
     for (uint32_t tid : srv.placement().ifid_threads())
@@ -324,6 +392,10 @@ int main(int argc, char** argv) {
             if (!ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, unix_fd)) return;
             ios[tid].run();
         });
+
+    std::printf("listening on %s:%u\n", cfg.bind_addr, cfg.port);
+    if (unix_listener >= 0) std::printf("listening on unix:%s\n", cfg.unixsocket);
+    std::fflush(stdout);
 
     for (auto& t : pool) t.join();
     if (cfg.unixsocket && *cfg.unixsocket) ::unlink(cfg.unixsocket);

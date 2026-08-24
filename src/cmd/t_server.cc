@@ -12,6 +12,7 @@
 #include "../net/resp.h"
 #include "../store/kvobj.h"
 #include "../store/eviction.h"
+#include "../snapshot/snapshot.h"
 
 #include <algorithm>
 #include <cctype>
@@ -211,6 +212,9 @@ void init_config(const Config& cfg) {
     std::lock_guard<std::mutex> lock(g_config_mu);
     g_config.clear();
     g_config.push_back({"save", ConfigKind::String, ""});
+    g_config.push_back({"dir", ConfigKind::String, (cfg.dir && *cfg.dir) ? cfg.dir : "."});
+    g_config.push_back({"dbfilename", ConfigKind::String,
+                        (cfg.dbfilename && *cfg.dbfilename) ? cfg.dbfilename : "dump.tomo"});
     g_config.push_back({"appendonly", ConfigKind::Bool, "no"});
     add_config("maxmemory", ConfigKind::Bytes, cfg.maxmemory);
     g_config.push_back({"maxmemory-policy", ConfigKind::Policy,
@@ -300,6 +304,9 @@ bool collect_config_updates(Op& op,
             msg.append(op.arg(i).p, op.arg(i).n); msg.push_back('\'');
             reply_err(op.sink(), msg.c_str()); return false;
         }
+        if (!std::strcmp(item->name, "dir") || !std::strcmp(item->name, "dbfilename")) {
+            reply_err(op.sink(), "ERR parameter is immutable at runtime"); return false;
+        }
         std::string value;
         if (!normalize_config(*item, op.arg(i + 1), value)) {
             std::string msg = "ERR Invalid argument '";
@@ -310,6 +317,35 @@ bool collect_config_updates(Op& op,
         updates.emplace_back(item, std::move(value));
     }
     return true;
+}
+
+void snapshot_command(Op& op, bool blocking) {
+    if (!g_server) { reply_err(op.sink(), "ERR snapshot subsystem is unavailable"); return; }
+    const SnapshotIoContext context = snapshot_io_context();
+    if (!context.thread || !context.ring) {
+        reply_err(op.sink(), "ERR snapshot command has no IO owner");
+        return;
+    }
+    std::string error;
+    const SnapshotManager::StartResult result = g_server->snapshot().start(
+        *g_server, *context.thread, *context.ring, blocking, error);
+    if (result == SnapshotManager::StartResult::Busy) {
+        reply_err(op.sink(), "ERR Background save already in progress");
+    } else if (result == SnapshotManager::StartResult::Failed) {
+        std::string message = "ERR ";
+        message += error.empty() ? "snapshot failed" : error;
+        reply_err(op.sink(), message.c_str());
+    } else if (blocking) {
+        reply_ok(op.sink());
+    } else {
+        reply_simple(op.sink(), "Background saving started");
+    }
+}
+
+void cmd_save(Shard&, Op& op) { snapshot_command(op, true); }
+void cmd_bgsave(Shard&, Op& op) { snapshot_command(op, false); }
+void cmd_lastsave(Shard&, Op& op) {
+    reply_int(op.sink(), g_server ? static_cast<long long>(g_server->snapshot().last_save_time()) : 0);
 }
 
 void cmd_ping(Shard&, Op& op) {
@@ -644,6 +680,18 @@ void cmd_info(Shard&, Op& op) {
                 alloc_backend(), static_cast<unsigned long long>(allocated),
                 static_cast<unsigned long long>(resident));
     }
+    if (info_section(op, "PERSISTENCE")) {
+        uint64_t preimages = 0;
+        if (g_server)
+            for (uint32_t i = 0; i < g_server->nshards(); i++)
+                preimages += g_server->shard(static_cast<int32_t>(i)).store().snapshot_preimages();
+        appendf(body,
+                "# Persistence\r\nrdb_bgsave_in_progress:%u\r\nrdb_last_save_time:%lld\r\n"
+                "snapshot_preimages:%llu\r\n",
+                g_server && g_server->snapshot().in_progress() ? 1u : 0u,
+                static_cast<long long>(g_server ? g_server->snapshot().last_save_time() : 0),
+                static_cast<unsigned long long>(preimages));
+    }
     if (info_section(op, "STATS")) {
         appendf(body, "# Stats\r\ntotal_connections_received:%llu\r\nrejected_connections:%llu\r\n"
                       "total_commands_processed:%llu\r\nkeyspace_hits:%llu\r\nkeyspace_misses:%llu\r\n"
@@ -759,6 +807,9 @@ void cmd_scan(Shard& sh, Op& op) {
 static const CommandSpec kTable[] = {
     // name       min max flags                                                    handler        first last step
     {"PING",       1,  2, CmdFlags::ConnLocal,                                    cmd_ping,       0,  0, 0},
+    {"SAVE",       1,  1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_save,       0,  0, 0},
+    {"BGSAVE",     1,  2, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_bgsave,     0,  0, 0},
+    {"LASTSAVE",   1,  1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_lastsave,   0,  0, 0},
     {"ECHO",       2,  2, CmdFlags::ConnLocal,                                    cmd_echo,       0,  0, 0},
     {"AUTH",       2,  3, CmdFlags::ConnLocal,                                    cmd_auth,       0,  0, 0},
     {"HELLO",      1,  2, CmdFlags::ConnLocal,                                    cmd_hello,      0,  0, 0},

@@ -8,6 +8,7 @@
 #include "../core/shard.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
+#include "../snapshot/format.h"
 #include "../store/kvobj.h"
 
 #include <algorithm>
@@ -1071,6 +1072,81 @@ static const CommandSpec kTable[] = {
 };
 
 }  // namespace
+
+
+namespace {
+
+// Logical set payload: per member [u32 len][bytes], encoding byte 0.  Load re-adds members through
+// add_member, so int-compact/generic-compact/hashtable follow the CURRENT limits.
+SnapshotHookStatus set_snapshot_begin(const KvObj& object, SnapshotSaveCursor& cursor,
+                                      uint8_t& encoding) {
+    if (static_cast<Type>(object.type) != Type::Set) return SnapshotHookStatus::Corrupt;
+    cursor = {};
+    cursor.object = &object;
+    encoding = 0;
+    uint64_t total = 0;
+    for_each_member(*as_set(const_cast<KvObj*>(&object)),
+                    [&](Slice member) { total += 4ull + member.n; });
+    cursor.total = total;
+    return SnapshotHookStatus::Ok;
+}
+
+SnapshotHookStatus set_snapshot_read(SnapshotSaveCursor& cursor, uint8_t* destination,
+                                     size_t capacity, size_t& written) {
+    written = 0;
+    if (!cursor.object) return SnapshotHookStatus::Corrupt;
+    const SetVal& set = *as_set(const_cast<KvObj*>(cursor.object));
+    SnapshotElementEmitter e{destination, capacity};
+    uint64_t idx = 0;
+    bool stopped = false;
+    for_each_member(set, [&](Slice member) {
+        if (stopped) { idx++; return; }
+        if (idx < cursor.lane[0]) { idx++; return; }
+        e.pos = 0;
+        e.resume = idx == cursor.lane[0] ? cursor.lane[1] : 0;
+        if (!(e.put_u32(member.n) && e.put(member.p, member.n))) {
+            cursor.lane[0] = idx;
+            cursor.lane[1] = e.pos;
+            stopped = true;
+        }
+        idx++;
+    });
+    if (!stopped) { cursor.lane[0] = idx; cursor.lane[1] = 0; }
+    cursor.offset += e.out;
+    written = e.out;
+    return SnapshotHookStatus::Ok;
+}
+
+SnapshotHookStatus set_snapshot_load(Slice key, uint8_t encoding, int64_t expire_at_ms,
+                                     Slice payload, const TypeLimits& limits, KvObj*& result) {
+    result = nullptr;
+    if (encoding != 0) return SnapshotHookStatus::Corrupt;
+    auto* set = new (std::nothrow) SetVal;
+    if (!set) return SnapshotHookStatus::Oom;
+    const uint8_t* p = reinterpret_cast<const uint8_t*>(payload.p);
+    uint64_t left = payload.n;
+    while (left) {
+        if (left < 4) { delete set; return SnapshotHookStatus::Corrupt; }
+        const uint32_t len = snapshot_get_u32(p);
+        p += 4; left -= 4;
+        if (left < len) { delete set; return SnapshotHookStatus::Corrupt; }
+        const Slice member(reinterpret_cast<const char*>(p), len);
+        p += len; left -= len;
+        if (add_member(*set, member, limits.set) == AddResult::Oom) {
+            delete set;
+            return SnapshotHookStatus::Oom;
+        }
+    }
+    result = kvobj_new_set(key, set, expire_at_ms);
+    if (!result) { delete set; return SnapshotHookStatus::Oom; }
+    return SnapshotHookStatus::Ok;
+}
+
+}  // namespace
+
+SnapshotTypeHooks set_snapshot_hooks() {
+    return {set_snapshot_begin, set_snapshot_read, set_snapshot_load};
+}
 
 CommandTable set_command_table() {
     return {kTable, sizeof(kTable) / sizeof(kTable[0])};

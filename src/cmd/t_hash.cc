@@ -7,6 +7,7 @@
 #include "../core/shard.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
+#include "../snapshot/format.h"
 #include "../store/kvobj.h"
 
 #include <algorithm>
@@ -1406,6 +1407,102 @@ static const CommandSpec kTable[] = {
 };
 
 }  // namespace
+
+
+namespace {
+
+// Logical hash payload: per pair [u32 flen][field][u32 vlen][value], encoding byte 0.  The walk is
+// representation-agnostic; load rebuilds through hash_set so encoding follows the CURRENT limits.
+template <typename Fn>
+void hash_walk(const HashVal& hash, Fn&& fn) {
+    if (hash.encoding() == CollectionEncoding::Compact) {
+        compact_for_each(hash, [&](const PairView& pair) { fn(pair.field, pair.value); });
+    } else {
+        hash.fields->for_each([&](const HashFieldMap::Node& node) {
+            fn(Slice(node.field.data(), static_cast<uint32_t>(node.field.size())),
+               Slice(node.value.data(), static_cast<uint32_t>(node.value.size())));
+        });
+    }
+}
+
+SnapshotHookStatus hash_snapshot_begin(const KvObj& object, SnapshotSaveCursor& cursor,
+                                       uint8_t& encoding) {
+    if (static_cast<Type>(object.type) != Type::Hash) return SnapshotHookStatus::Corrupt;
+    cursor = {};
+    cursor.object = &object;
+    encoding = 0;
+    uint64_t total = 0;
+    hash_walk(*as_hash(const_cast<KvObj*>(&object)),
+              [&](Slice f, Slice v) { total += 8ull + f.n + v.n; });
+    cursor.total = total;
+    return SnapshotHookStatus::Ok;
+}
+
+SnapshotHookStatus hash_snapshot_read(SnapshotSaveCursor& cursor, uint8_t* destination,
+                                      size_t capacity, size_t& written) {
+    written = 0;
+    if (!cursor.object) return SnapshotHookStatus::Corrupt;
+    const HashVal& hash = *as_hash(const_cast<KvObj*>(cursor.object));
+    SnapshotElementEmitter e{destination, capacity};
+    uint64_t idx = 0;
+    bool stopped = false;
+    hash_walk(hash, [&](Slice f, Slice v) {
+        if (stopped) { idx++; return; }
+        if (idx < cursor.lane[0]) { idx++; return; }
+        e.pos = 0;
+        e.resume = idx == cursor.lane[0] ? cursor.lane[1] : 0;
+        const bool ok = e.put_u32(f.n) && e.put(f.p, f.n) && e.put_u32(v.n) && e.put(v.p, v.n);
+        if (!ok) {
+            cursor.lane[0] = idx;
+            cursor.lane[1] = e.pos;
+            stopped = true;
+        }
+        idx++;
+    });
+    if (!stopped) { cursor.lane[0] = idx; cursor.lane[1] = 0; }
+    cursor.offset += e.out;
+    written = e.out;
+    return SnapshotHookStatus::Ok;
+}
+
+SnapshotHookStatus hash_snapshot_load(Slice key, uint8_t encoding, int64_t expire_at_ms,
+                                      Slice payload, const TypeLimits& limits, KvObj*& result) {
+    result = nullptr;
+    if (encoding != 0) return SnapshotHookStatus::Corrupt;
+    uint64_t seed = 0xcbf29ce484222325ull;
+    for (uint32_t i = 0; i < key.n; i++)
+        seed = (seed ^ static_cast<uint8_t>(key.p[i])) * 0x100000001b3ull;
+    HashVal* hash = new (std::nothrow) HashVal(seed);
+    if (!hash) return SnapshotHookStatus::Oom;
+    const uint8_t* p = reinterpret_cast<const uint8_t*>(payload.p);
+    uint64_t left = payload.n;
+    while (left) {
+        if (left < 4) { delete hash; return SnapshotHookStatus::Corrupt; }
+        const uint32_t flen = snapshot_get_u32(p);
+        p += 4; left -= 4;
+        if (left < static_cast<uint64_t>(flen) + 4) { delete hash; return SnapshotHookStatus::Corrupt; }
+        const Slice field(reinterpret_cast<const char*>(p), flen);
+        p += flen; left -= flen;
+        const uint32_t vlen = snapshot_get_u32(p);
+        p += 4; left -= 4;
+        if (left < vlen) { delete hash; return SnapshotHookStatus::Corrupt; }
+        const Slice value(reinterpret_cast<const char*>(p), vlen);
+        p += vlen; left -= vlen;
+        if (hash_set(*hash, limits.hash, field, value) == HashSetKind::Oom) {
+            delete hash;
+            return SnapshotHookStatus::Oom;
+        }
+    }
+    result = kvobj_new_hash(key, hash, expire_at_ms);
+    if (!result) { delete hash; return SnapshotHookStatus::Oom; }
+    return SnapshotHookStatus::Ok;
+}
+
+}  // namespace
+
+SnapshotTypeHooks hash_snapshot_hooks() {
+    return {hash_snapshot_begin, hash_snapshot_read, hash_snapshot_load};
+}
 
 CommandTable hash_command_table() {
     return {kTable, sizeof(kTable) / sizeof(kTable[0])};

@@ -32,6 +32,7 @@
 #include "../net/uring.h"
 #include "../net/wb.h"
 #include "../cmd/command.h"
+#include "../snapshot/snapshot.h"
 
 namespace tomo {
 
@@ -140,6 +141,8 @@ private:
                 if constexpr (HasUnix) if (unix_accept_pending_) arm_accept(true);
                 did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
                 if constexpr (HasUnix) did += flush_handoffs();
+                if (srv_->snapshot().writer_is(self_->id()))
+                    did += srv_->snapshot().writer_pass(*self_, ring_);
                 did += flush_borrow_releases();
                 did += collect_retire_work<HasUnix>();
                 did += flush_ready();
@@ -218,6 +221,7 @@ private:
                 break;
             }
             case UrKind::Wake:  self_->sig().wakes_recv++; break;
+            case UrKind::SnapshotStart: break;  // epoch broadcasts target executor rings only
             case UrKind::Close: break;
         }
     }
@@ -364,7 +368,9 @@ private:
                 conn.advance_parse(consumed);
                 self_->note_command(spec->id);
                 command_set_local_context(c, self_);
+                snapshot_bind_io(self_, &ring_);
                 spec->handler(srv_->shard(0), *op);
+                snapshot_bind_io(nullptr, nullptr);
                 command_set_local_context(nullptr, nullptr);
                 op->state.store(OpState::Done, std::memory_order_release);
                 rob.publish();
@@ -535,7 +541,10 @@ private:
     uint32_t sweep() {
         uint32_t work = 0;
         if constexpr (HasUnix) work += flush_handoffs();
-        return work + flush_borrow_releases() + collect_retire_work<HasUnix>(true) + flush_ready();
+        work += flush_borrow_releases() + collect_retire_work<HasUnix>(true) + flush_ready();
+        if (srv_->snapshot().writer_is(self_->id()))
+            work += srv_->snapshot().writer_pass(*self_, ring_, true);
+        return work;
     }
 
     void queue_borrow_release(int32_t shard, const char* ptr) {

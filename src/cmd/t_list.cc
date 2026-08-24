@@ -6,6 +6,7 @@
 #include "../core/shard.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
+#include "../snapshot/format.h"
 #include "../store/kvobj.h"
 
 #include <algorithm>
@@ -825,6 +826,97 @@ static const CommandSpec kTable[] = {
 };
 
 }  // namespace
+
+
+namespace {
+
+// Logical list payload: per element [u32 len][bytes], front to back, encoding byte 0.  ListCursor
+// resumes the walk at lane[0] in O(min(i, n-i)) instead of a front rescan per chunk.
+SnapshotHookStatus list_snapshot_begin(const KvObj& object, SnapshotSaveCursor& cursor,
+                                       uint8_t& encoding) {
+    if (static_cast<Type>(object.type) != Type::List) return SnapshotHookStatus::Corrupt;
+    cursor = {};
+    cursor.object = &object;
+    encoding = 0;
+    const ListVal& list = *list_value(const_cast<KvObj*>(&object));
+    cursor.total = 4ull * list.entries() + list.payload_bytes();
+    return SnapshotHookStatus::Ok;
+}
+
+SnapshotHookStatus list_snapshot_read(SnapshotSaveCursor& cursor, uint8_t* destination,
+                                      size_t capacity, size_t& written) {
+    written = 0;
+    if (!cursor.object) return SnapshotHookStatus::Corrupt;
+    const ListVal& list = *list_value(const_cast<KvObj*>(cursor.object));
+    SnapshotElementEmitter e{destination, capacity};
+    uint64_t idx = cursor.lane[0];
+    bool stopped = false;
+    for (ListCursor cur = ListCursor::seek(list, static_cast<uint32_t>(idx)); cur.valid();
+         cur.next(), idx++) {
+        Compact::Entry entry;
+        if (!cur.get(entry)) return SnapshotHookStatus::Corrupt;
+        e.pos = 0;
+        e.resume = idx == cursor.lane[0] ? cursor.lane[1] : 0;
+        if (!(e.put_u32(entry.value.n) && e.put(entry.value.p, entry.value.n))) {
+            cursor.lane[0] = idx;
+            cursor.lane[1] = e.pos;
+            stopped = true;
+            break;
+        }
+    }
+    if (!stopped) { cursor.lane[0] = idx; cursor.lane[1] = 0; }
+    cursor.offset += e.out;
+    written = e.out;
+    return SnapshotHookStatus::Ok;
+}
+
+SnapshotHookStatus list_snapshot_load(Slice key, uint8_t encoding, int64_t expire_at_ms,
+                                      Slice payload, const TypeLimits& limits, KvObj*& result) {
+    result = nullptr;
+    if (encoding != 0) return SnapshotHookStatus::Corrupt;
+    auto* list = new (std::nothrow) ListVal;
+    if (!list) return SnapshotHookStatus::Oom;
+    // First pass: count and validate, so the compact-vs-deque decision mirrors a fresh RPUSH.
+    const uint8_t* p = reinterpret_cast<const uint8_t*>(payload.p);
+    uint64_t left = payload.n, count = 0, bytes = 0;
+    while (left) {
+        if (left < 4) { delete list; return SnapshotHookStatus::Corrupt; }
+        const uint32_t len = snapshot_get_u32(p);
+        if (left - 4 < len) { delete list; return SnapshotHookStatus::Corrupt; }
+        count++; bytes += len;
+        p += 4ull + len; left -= 4ull + len;
+    }
+    const bool compact = list->list_fits(limits.list, static_cast<uint32_t>(count), bytes);
+    p = reinterpret_cast<const uint8_t*>(payload.p);
+    left = payload.n;
+    while (left) {
+        const uint32_t len = snapshot_get_u32(p);
+        const Slice value(reinterpret_cast<const char*>(p) + 4, len);
+        p += 4ull + len; left -= 4ull + len;
+        const bool ok = compact ? list->append(value) : expanded_push(*list, value, false);
+        if (!ok) { delete list; return SnapshotHookStatus::Oom; }
+    }
+    if (!compact) {
+        const uint64_t allocation = list->node_allocation_bytes;
+        list->promote(CollectionEncoding::Deque, allocation);
+        p = reinterpret_cast<const uint8_t*>(payload.p);
+        left = payload.n;
+        while (left) {
+            const uint32_t len = snapshot_get_u32(p);
+            list->note_expanded_insert(len, allocation);
+            p += 4ull + len; left -= 4ull + len;
+        }
+    }
+    result = kvobj_new_list(key, list, expire_at_ms);
+    if (!result) { delete list; return SnapshotHookStatus::Oom; }
+    return SnapshotHookStatus::Ok;
+}
+
+}  // namespace
+
+SnapshotTypeHooks list_snapshot_hooks() {
+    return {list_snapshot_begin, list_snapshot_read, list_snapshot_load};
+}
 
 CommandTable list_command_table() {
     return {kTable, sizeof(kTable) / sizeof(kTable[0])};

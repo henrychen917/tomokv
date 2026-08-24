@@ -6,6 +6,7 @@
 #include "../core/shard.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
+#include "../snapshot/format.h"
 #include "../store/kvobj.h"
 
 #include <algorithm>
@@ -782,6 +783,60 @@ static const CommandSpec kTable[] = {
 };
 
 }  // namespace
+
+namespace {
+
+SnapshotHookStatus string_snapshot_begin(const KvObj& object, SnapshotSaveCursor& cursor,
+                                         uint8_t& encoding) {
+    if (static_cast<Type>(object.type) != Type::String) return SnapshotHookStatus::Corrupt;
+    cursor = {};
+    cursor.object = &object;
+    encoding = object.enc;
+    cursor.total = object.is_int() ? sizeof(int64_t) : object.str_value().n;
+    return SnapshotHookStatus::Ok;
+}
+
+SnapshotHookStatus string_snapshot_read(SnapshotSaveCursor& cursor, uint8_t* destination,
+                                        size_t capacity, size_t& written) {
+    written = 0;
+    if (!cursor.object || cursor.offset > cursor.total) return SnapshotHookStatus::Corrupt;
+    const size_t take = static_cast<size_t>(
+        std::min<uint64_t>(capacity, cursor.total - cursor.offset));
+    if (!take) return SnapshotHookStatus::Ok;
+    if (cursor.object->is_int()) {
+        uint8_t bytes[8];
+        snapshot_put_u64(bytes, static_cast<uint64_t>(cursor.object->int_value()));
+        std::memcpy(destination, bytes + cursor.offset, take);
+    } else {
+        const Slice value = cursor.object->str_value();
+        std::memcpy(destination, value.p + cursor.offset, take);
+    }
+    cursor.offset += take;
+    written = take;
+    return SnapshotHookStatus::Ok;
+}
+
+SnapshotHookStatus string_snapshot_load(Slice key, uint8_t encoding, int64_t expire_at_ms,
+                                        Slice payload, const TypeLimits&, KvObj*& result) {
+    result = nullptr;
+    const Enc enc = static_cast<Enc>(encoding);
+    if (enc == Enc::Int) {
+        if (payload.n != sizeof(int64_t)) return SnapshotHookStatus::Corrupt;
+        result = kvobj_new_int(key, static_cast<int64_t>(snapshot_get_u64(
+                                    reinterpret_cast<const uint8_t*>(payload.p))), expire_at_ms);
+    } else if (enc == Enc::Raw || enc == Enc::Extern) {
+        result = kvobj_new_string(key, payload, expire_at_ms);
+    } else {
+        return SnapshotHookStatus::Corrupt;
+    }
+    return result ? SnapshotHookStatus::Ok : SnapshotHookStatus::Oom;
+}
+
+}  // namespace
+
+SnapshotTypeHooks string_snapshot_hooks() {
+    return {string_snapshot_begin, string_snapshot_read, string_snapshot_load};
+}
 
 CommandTable string_command_table() {
     return {kTable, sizeof(kTable) / sizeof(kTable[0])};
