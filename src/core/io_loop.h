@@ -257,8 +257,7 @@ private:
                 conn.advance_parse(consumed);
                 finish_locally(c, *op, "ERR unknown command"); continue;
             }
-            const int32_t argc = static_cast<int32_t>(op->argc());
-            if ((spec->arity >= 0 && argc != spec->arity) || (spec->arity < 0 && argc < -spec->arity)) {
+            if (!command_arity_ok(*spec, op->argc())) {
                 conn.advance_parse(consumed);
                 finish_locally(c, *op, "ERR wrong number of arguments"); continue;
             }
@@ -297,7 +296,9 @@ private:
             }
 
             op->db    = static_cast<uint8_t>(c->session().db_index);
-            op->hash  = FlatStore::hash_key(op->key());
+            // The key position is registry metadata. OBJECT ENCODING is the first command whose
+            // route key is not argv[1], and future multi-key lowering consumes the same range.
+            op->hash  = FlatStore::hash_key(op->arg(static_cast<uint32_t>(spec->first_key)));
             op->shard = srv_->router().shard_of(op->hash);
             ThreadCtx& worker = srv_->thread(srv_->worker_of_shard(op->shard));
 

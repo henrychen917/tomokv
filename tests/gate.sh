@@ -24,7 +24,7 @@ bad(){ say "$1" "FAIL${2:+ ($2)}"; FAIL=$((FAIL+1)); }
 make -j >/dev/null 2>&1 && ok "release build (+footprint locks)" || bad "release build"
 ASAN=/tmp/tomokv-gate-asan
 g++ -std=c++20 -O1 -g -fsanitize=address -march=native -pthread -I. \
-    src/main.cc src/cmd/commands.cc -o $ASAN -luring -pthread 2>/dev/null \
+    src/main.cc src/cmd/*.cc -o $ASAN -luring -pthread 2>/dev/null \
     && ok "ASAN build" || bad "ASAN build"
 
 # ---- 2. boot matrix: deleted flags stay dead; live grammar boots ------------------------------

@@ -127,6 +127,17 @@ inline uint32_t i64_to_dec(char* dst, int64_t v) {
 template <typename Buf> inline void reply_ok(Buf&& b)   { b.append("+OK\r\n", 5); }
 template <typename Buf> inline void reply_nil(Buf&& b)  { b.append("$-1\r\n", 5); }
 template <typename Buf> inline void reply_pong(Buf&& b) { b.append("+PONG\r\n", 7); }
+template <typename Buf> inline void reply_null_array(Buf&& b) { b.append("*-1\r\n", 5); }
+template <typename Buf> inline void reply_emptystr(Buf&& b) { b.append("$0\r\n\r\n", 6); }
+template <typename Buf> inline void reply_wrongtype(Buf&& b) {
+    b.append("-WRONGTYPE Operation against a key holding the wrong kind of value\r\n", 68);
+}
+template <typename Buf> inline void reply_syntax(Buf&& b) {
+    b.append("-ERR syntax error\r\n", 19);
+}
+template <typename Buf> inline void reply_outofrange(Buf&& b) {
+    b.append("-ERR value is out of range\r\n", 28);
+}
 
 template <typename Buf> inline void reply_err(Buf&& b, const char* msg) {
     b.push_back('-'); b.append(msg, std::strlen(msg)); b.append("\r\n", 2);
@@ -139,6 +150,15 @@ template <typename Buf> inline void reply_int(Buf&& b, long long v) {
     char* q = p;
     *q++ = ':';
     q += i64_to_dec(q, v);
+    *q++ = '\r'; *q++ = '\n';
+    b.advance(static_cast<size_t>(q - p));
+}
+
+template <typename Buf> inline void reply_array_header(Buf&& b, uint64_t n) {
+    char* p = b.reserve(24);
+    char* q = p;
+    *q++ = '*';
+    q += u64_to_dec(q, n);
     *q++ = '\r'; *q++ = '\n';
     b.advance(static_cast<size_t>(q - p));
 }
@@ -164,6 +184,34 @@ template <typename Buf> inline void reply_bulk(Buf&& b, Slice s) {
     std::memcpy(q, s.p, s.n); q += s.n;
     *q++ = '\r'; *q++ = '\n';
     b.advance(static_cast<size_t>(q - p));
+}
+
+// RESP2 has no native double. Redis sends the canonical text as a bulk string; %.17g preserves a
+// round trip, and the fractional trim avoids retaining zeroes before an exponent on libc variants
+// that choose the fixed form.
+template <typename Buf> inline void reply_double(Buf&& b, double value) {
+    char text[128];
+    int n = std::snprintf(text, sizeof(text), "%.17g", value);
+    if (n < 0) { reply_bulk(b, Slice("0", 1)); return; }
+    char* exponent = static_cast<char*>(std::memchr(text, 'e', static_cast<size_t>(n)));
+    if (!exponent) exponent = static_cast<char*>(std::memchr(text, 'E', static_cast<size_t>(n)));
+    char* number_end = exponent ? exponent : text + n;
+    char* dot = static_cast<char*>(std::memchr(text, '.', static_cast<size_t>(number_end - text)));
+    if (dot) {
+        char* trimmed = number_end;
+        while (trimmed > dot + 1 && trimmed[-1] == '0') trimmed--;
+        if (trimmed == dot + 1) trimmed = dot;
+        if (trimmed != number_end) {
+            if (exponent) {
+                const size_t suffix = static_cast<size_t>(text + n - exponent);
+                std::memmove(trimmed, exponent, suffix);
+                n = static_cast<int>((trimmed - text) + suffix);
+            } else {
+                n = static_cast<int>(trimmed - text);
+            }
+        }
+    }
+    reply_bulk(b, Slice(text, static_cast<uint32_t>(n)));
 }
 
 }  // namespace tomo

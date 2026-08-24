@@ -49,6 +49,7 @@ struct Config {
                                          // DEFAULT ON (owner: hardcode a consistent gain): -4.1%
                                          // server cycles at d16K on the wire-walled NIC, +20-24%
                                          // class on unwalled wires per the fork's history. 0 = off.
+    TypeLimits type_limits;
 };
 
 class Server {
@@ -108,7 +109,7 @@ public:
             const uint32_t b0 = i * per;
             const uint32_t b1 = (i + 1 == cfg.shards) ? kNumBuckets : (i + 1) * per;
             shards_[i] = std::make_unique<Shard>();
-            shards_[i]->init(static_cast<int32_t>(i), b0, b1, cfg.zc_min);
+            shards_[i]->init(static_cast<int32_t>(i), b0, b1, cfg.zc_min, cfg.type_limits);
         }
         router_.build_uniform(static_cast<int32_t>(cfg.shards));
 

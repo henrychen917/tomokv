@@ -1,0 +1,9 @@
+#include "command.h"
+#include <array>
+
+namespace tomo {
+CommandTable set_command_table() {
+    static const std::array<CommandSpec, 0> kTable{};
+    return {kTable.data(), kTable.size()};
+}
+}  // namespace tomo

@@ -89,6 +89,30 @@ int main(int argc, char** argv) {
             cfg.even_ifid = a; cfg.even_ex = b;
         }
         else if (!std::strcmp(argv[i], "--shards"))     cfg.shards = static_cast<uint32_t>(std::atoi(next("16")));
+        else if (!std::strcmp(argv[i], "--hash-max-compact-entries")) {
+            if (!parse_u32(next(nullptr), cfg.type_limits.hash.max_entries)) return 1;
+        }
+        else if (!std::strcmp(argv[i], "--hash-max-compact-value")) {
+            if (!parse_u32(next(nullptr), cfg.type_limits.hash.max_value)) return 1;
+        }
+        else if (!std::strcmp(argv[i], "--list-max-compact-entries")) {
+            if (!parse_u32(next(nullptr), cfg.type_limits.list.max_entries)) return 1;
+        }
+        else if (!std::strcmp(argv[i], "--list-max-compact-value")) {
+            if (!parse_u32(next(nullptr), cfg.type_limits.list.max_value)) return 1;
+        }
+        else if (!std::strcmp(argv[i], "--set-max-compact-entries")) {
+            if (!parse_u32(next(nullptr), cfg.type_limits.set.max_entries)) return 1;
+        }
+        else if (!std::strcmp(argv[i], "--set-max-compact-value")) {
+            if (!parse_u32(next(nullptr), cfg.type_limits.set.max_value)) return 1;
+        }
+        else if (!std::strcmp(argv[i], "--zset-max-compact-entries")) {
+            if (!parse_u32(next(nullptr), cfg.type_limits.zset.max_entries)) return 1;
+        }
+        else if (!std::strcmp(argv[i], "--zset-max-compact-value")) {
+            if (!parse_u32(next(nullptr), cfg.type_limits.zset.max_value)) return 1;
+        }
         else if (!std::strcmp(argv[i], "--zc-min")) {
             const char* v = next(nullptr);
             if (!parse_u32(v, cfg.zc_min)) {
@@ -131,6 +155,7 @@ int main(int argc, char** argv) {
                         "    --node-cpus LIST            declared L3 topology, ranges joined by +\n"
                         "    --shard-home shard:tid,...  complete shard-to-executor map\n"
                         "    --zc-min N                  zero-copy GET replies for values >= N (0=off)\n"
+                        "  compact encodings: --{hash,list,set,zset}-max-compact-{entries,value} N\n"
                         "  misc: --hash mix64|siphash; --mode 2s and --wb ifid accepted for\n"
                         "  script compat (anything else is rejected: 3s was deleted 2026-08-24)\n",
                         argv[0]);
@@ -147,6 +172,10 @@ int main(int argc, char** argv) {
     }
     if (cfg.shards == 0 || cfg.shards > 256) {
         std::fprintf(stderr, "shards must be between 1 and 256\n");
+        return 1;
+    }
+    if (!command_registry_init()) {
+        std::fprintf(stderr, "command registry init failed\n");
         return 1;
     }
 

@@ -12,9 +12,11 @@
 // also must not sleep so eagerly that it pays a wakeup per op under load. So: spin briefly, then arm
 // the blocked flag, re-check, and block. Producers only pay a wake syscall while that flag is armed.
 #pragma once
+#include <algorithm>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <ctime>
 #include "server.h"
 #include "signal.h"
 #include "../net/conn.h"
@@ -31,6 +33,7 @@ inline constexpr uint32_t kExSpinBudget = 2048;
 // How many ops are gathered before executing, so their storage prefetches can overlap. Large enough
 // that the prefetches have time to land, small enough that the batch stays in L1.
 inline constexpr uint32_t kExecBatch = 32;
+inline constexpr uint32_t kActiveExpireChecks = 20;
 
 class ExLoop {
 public:
@@ -50,6 +53,7 @@ public:
         uint32_t idle_spins = 0;
 
         while (!self_->stop_flag().load(std::memory_order_relaxed)) {
+            cached_now_ms_ = realtime_ms();
             sig.iterations++;
             self_->sample_depth();
 
@@ -90,7 +94,34 @@ private:
     // exqueue.h on why the retired frontier is separate from head.
     // Mask-independent: the state backstop behind the notify hint, run only when this thread has
     // already concluded it has nothing to do.
-    uint32_t sweep() { return drain_releases(true) + drain_tasks(true); }
+    uint32_t sweep() {
+        return drain_releases(true) + drain_tasks(true) + active_expire_cycle();
+    }
+
+    static int64_t realtime_ms() {
+        timespec ts{};
+        ::clock_gettime(CLOCK_REALTIME, &ts);
+        return static_cast<int64_t>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000;
+    }
+
+    uint32_t active_expire_cycle() {
+        auto& shards = self_->shards();
+        if (shards.empty()) return 0;
+        uint32_t removed = 0;
+        const uint32_t visits = static_cast<uint32_t>(
+            std::min<size_t>(shards.size(), kActiveExpireChecks));
+        const uint32_t base = kActiveExpireChecks / visits;
+        const uint32_t extra = kActiveExpireChecks % visits;
+        for (uint32_t i = 0; i < visits; i++) {
+            if (expire_shard_cursor_ >= shards.size()) expire_shard_cursor_ = 0;
+            Shard* sh = shards[expire_shard_cursor_++];
+            sh->set_cached_now_ms(cached_now_ms_);
+            const uint32_t n = sh->active_expire(base + (i < extra ? 1 : 0));
+            if (n) sh->publish_size();
+            removed += n;
+        }
+        return removed;
+    }
 
     uint32_t drain_releases(bool unmasked = false) {
         auto take = [&](const BorrowRelease& r) {
@@ -129,6 +160,7 @@ private:
     void execute(const Task& t) {
         Op& op = t.client->rob().at(t.op_id);
         Shard& sh = srv_->shard(op.shard);
+        sh.set_cached_now_ms(cached_now_ms_);
         // Records the op AND whether it was executed from this shard's home L3 domain. One compare
         // and one increment, no atomics — the shard has a single owner.
         sh.note_execution(self_->domain());
@@ -201,6 +233,8 @@ private:
     ThreadCtx* self_ = nullptr;
     Ring       ring_;
     WbEngine   wb_;    // never serves here; kept so the stats plumbing stays uniform across loops
+    int64_t    cached_now_ms_ = 0;
+    size_t     expire_shard_cursor_ = 0;
 };
 
 }  // namespace tomo

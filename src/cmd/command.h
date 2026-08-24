@@ -9,6 +9,7 @@
 // commands (first_key == 1); the multi-key forms need the key range so a command can be split
 // across shards and reassembled, which is why the fields exist now rather than being added later.
 #pragma once
+#include <cstddef>
 #include <cstdint>
 #include "../base/slice.h"
 
@@ -28,9 +29,10 @@ using CmdHandler = void (*)(Shard&, Op&);
 
 struct CommandSpec {
     const char* name;
-    // Exact argument count including the command itself, or NEGATIVE for "at least |arity|".
-    // Checked before dispatch so a malformed command never reaches a worker.
-    int32_t     arity;
+    // Inclusive counts, including the command itself. max_arity == -1 means unbounded. Keeping both
+    // bounds in the row avoids type handlers growing their own subtly different arity parsers.
+    int32_t     min_arity;
+    int32_t     max_arity;
     uint32_t    flags;
     CmdHandler  handler;
 
@@ -41,9 +43,23 @@ struct CommandSpec {
     int16_t     key_step;
 };
 
-// Case-insensitive lookup over the static table. v1 uses a linear scan: the table is tiny and this
-// is measured, not assumed — a perfect hash is a later optimisation and only if it shows up.
+struct CommandTable {
+    const CommandSpec* specs;
+    size_t             size;
+};
+
+// Every family owns its table; the registry calls all five even while four are empty foundations.
+CommandTable string_command_table();
+CommandTable hash_command_table();
+CommandTable list_command_table();
+CommandTable set_command_table();
+CommandTable zset_command_table();
+
+// Built once before threads start. Lookup hashes the uppercase-normalized bytes into an open-
+// addressed table; the load factor is capped at 1/2 so ordinary command names land in one probe.
+bool command_registry_init();
 const CommandSpec* command_lookup(Slice name);
+bool command_arity_ok(const CommandSpec& spec, uint32_t argc);
 
 class Server;
 // Lets the connection-local admin commands read published per-shard counters.

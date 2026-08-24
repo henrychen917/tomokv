@@ -44,11 +44,14 @@ public:
     Shard(const Shard&) = delete;
     Shard& operator=(const Shard&) = delete;
 
-    void init(int32_t id, uint32_t bucket_begin, uint32_t bucket_end, uint32_t zc_min = 0) {
+    void init(int32_t id, uint32_t bucket_begin, uint32_t bucket_end, uint32_t zc_min,
+              const TypeLimits& type_limits) {
         id_ = id;
         bucket_begin_ = bucket_begin;
         bucket_end_   = bucket_end;
         zc_min_ = zc_min;
+        type_limits_ = type_limits;
+        store_.bind_expired_counter(&stats_.expired);
     }
 
     int32_t  id() const { return id_; }
@@ -56,6 +59,14 @@ public:
     uint32_t bucket_begin() const { return bucket_begin_; }
     uint32_t bucket_end()   const { return bucket_end_; }
     uint32_t zc_min()       const { return zc_min_; }
+    int64_t  now_ms()       const { return now_ms_; }
+    const TypeLimits& type_limits() const { return type_limits_; }
+
+    void set_cached_now_ms(int64_t now_ms) {
+        now_ms_ = now_ms;
+        store_.set_cached_now_ms(now_ms);
+    }
+    uint32_t active_expire(uint32_t budget) { return store_.active_expire(budget); }
 
     FlatStore&       store()       { return store_; }
     const FlatStore& store() const { return store_; }
@@ -117,10 +128,12 @@ private:
     uint32_t  bucket_begin_ = 0;
     uint32_t  bucket_end_   = 0;
     uint32_t  zc_min_       = 0;
+    int64_t   now_ms_       = 0;
     uint32_t  home_domain_  = kNoDomain;
     std::atomic<uint32_t> published_size_{0};
     FlatStore store_;
     Stats     stats_;
+    TypeLimits type_limits_;
 };
 
 // Maps bucket -> shard id. A plain array: one indexed load on the hot path, and reassigning

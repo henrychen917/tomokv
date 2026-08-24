@@ -66,6 +66,127 @@
 
 namespace tomo {
 
+inline uint64_t mix64(uint64_t h);
+
+// Expiring hashes only, not keys or object pointers: object replacement never invalidates this
+// index. State is a byte sidecar so all 64-bit hash values remain representable while occupied
+// slots themselves stay densely packed. Sampling advances a persistent cursor and examines at most
+// its caller's budget, including empty slots; no pass can accidentally turn into a keyspace walk.
+class ExpireIndex {
+public:
+    uint32_t size() const { return live_; }
+    size_t memory_bytes() const {
+        return hashes_.capacity() * sizeof(uint64_t) + states_.capacity() * sizeof(uint8_t);
+    }
+
+    bool insert(uint64_t hash) {
+        if (hashes_.empty() && !allocate(16)) return false;
+        if ((live_ + tombs_ + 1) * 100 >= hashes_.size() * 70) {
+            const size_t cap = live_ * 2 >= hashes_.size() ? hashes_.size() * 2 : hashes_.size();
+            if (!rehash(cap)) return false;
+        }
+        return insert_raw(hash);
+    }
+
+    bool erase(uint64_t hash) {
+        if (hashes_.empty()) return false;
+        size_t pos = start(hash);
+        for (size_t probes = 0; probes < hashes_.size(); probes++) {
+            if (states_[pos] == kEmpty) return false;
+            if (states_[pos] == kLive && hashes_[pos] == hash) {
+                states_[pos] = kTomb;
+                live_--; tombs_++;
+                if (live_ == 0) {
+                    std::memset(states_.data(), 0, states_.size());
+                    tombs_ = 0;
+                    cursor_ = 0;
+                }
+                return true;
+            }
+            pos = (pos + 1) & (hashes_.size() - 1);
+        }
+        return false;
+    }
+
+    template <typename Fn>
+    uint32_t sample(uint32_t budget, Fn&& fn) {
+        if (hashes_.empty() || live_ == 0) return 0;
+        uint32_t checked = 0;
+        while (checked < budget && !hashes_.empty() && live_) {
+            if (cursor_ >= hashes_.size()) cursor_ = 0;
+            const size_t pos = cursor_++;
+            checked++;
+            if (states_[pos] == kLive) fn(hashes_[pos]);
+        }
+        return checked;
+    }
+
+private:
+    static constexpr uint8_t kEmpty = 0;
+    static constexpr uint8_t kLive  = 1;
+    static constexpr uint8_t kTomb  = 2;
+
+    bool allocate(size_t cap) {
+        try {
+            hashes_.assign(cap, 0);
+            states_.assign(cap, kEmpty);
+        } catch (const std::bad_alloc&) {
+            hashes_.clear(); states_.clear();
+            return false;
+        }
+        return true;
+    }
+
+    size_t start(uint64_t hash) const { return static_cast<size_t>(mix64(hash)) & (hashes_.size() - 1); }
+
+    bool insert_raw(uint64_t hash) {
+        size_t pos = start(hash);
+        size_t first_tomb = hashes_.size();
+        for (size_t probes = 0; probes < hashes_.size(); probes++) {
+            if (states_[pos] == kEmpty) {
+                if (first_tomb != hashes_.size()) { pos = first_tomb; tombs_--; }
+                hashes_[pos] = hash;
+                states_[pos] = kLive;
+                live_++;
+                return true;
+            }
+            if (states_[pos] == kTomb) {
+                if (first_tomb == hashes_.size()) first_tomb = pos;
+            } else if (hashes_[pos] == hash) {
+                return true;
+            }
+            pos = (pos + 1) & (hashes_.size() - 1);
+        }
+        return false;
+    }
+
+    bool rehash(size_t cap) {
+        std::vector<uint64_t> old_hashes;
+        std::vector<uint8_t> old_states;
+        try {
+            old_hashes = std::move(hashes_);
+            old_states = std::move(states_);
+            hashes_.assign(cap, 0);
+            states_.assign(cap, kEmpty);
+        } catch (const std::bad_alloc&) {
+            hashes_ = std::move(old_hashes);
+            states_ = std::move(old_states);
+            return false;
+        }
+        live_ = tombs_ = 0;
+        cursor_ = 0;
+        for (size_t i = 0; i < old_hashes.size(); i++)
+            if (old_states[i] == kLive) insert_raw(old_hashes[i]);
+        return true;
+    }
+
+    std::vector<uint64_t> hashes_;
+    std::vector<uint8_t>  states_;
+    uint32_t live_ = 0;
+    uint32_t tombs_ = 0;
+    size_t   cursor_ = 0;
+};
+
 // 64-bit finalizer (murmur3 fmix64). Cheap, and it decorrelates the index bits from the router's.
 // ---- hash hardening ---------------------------------------------------------------------------
 // Collisions are a CORRECTNESS non-event (find_in compares full key bytes after the tag filter)
@@ -153,13 +274,16 @@ public:
     // copy cost — nothing is copied — but an L3 domain is filled by access, so a shard that moves
     // has to be read back in on the other side.
     size_t resident_estimate() const {
-        return static_cast<size_t>(cap_[0] + cap_[1]) * 8 + obj_bytes_ + pending_bytes_;
+        return static_cast<size_t>(cap_[0] + cap_[1]) * 8 + obj_bytes_ + pending_bytes_ +
+               expires_.memory_bytes();
     }
 
     KvObj* find(uint64_t h, Slice key) {
         if (rehashing()) rehash_step();
-        if (KvObj* o = find_in(0, h, key)) return o;
-        if (rehashing()) return find_in(1, h, key);
+        if (KvObj* o = find_in(0, h, key)) return live_or_expire(0, h, key, o);
+        if (rehashing()) {
+            if (KvObj* o = find_in(1, h, key)) return live_or_expire(1, h, key, o);
+        }
         return nullptr;
     }
 
@@ -218,20 +342,79 @@ public:
 
     uint32_t outstanding_borrows() const { return outstanding_borrows_; }
 
+    void set_cached_now_ms(int64_t now_ms) { cached_now_ms_ = now_ms; }
+    void bind_expired_counter(uint64_t* counter) { expired_counter_ = counter; }
+
+    enum class TtlResult : uint8_t { Missing, NoChange, Updated, Oom };
+
+    TtlResult set_expire(uint64_t h, Slice key, int64_t expire_at_ms) {
+        KvObj* old = find(h, key);
+        if (!old) return TtlResult::Missing;
+        if (old->flags & KvObjFlags::HasTtl) {
+            old->set_expire_at_ms(expire_at_ms);
+            expires_.insert(h);
+            return TtlResult::Updated;
+        }
+        return rewrite_expire(h, old, expire_at_ms);
+    }
+
+    TtlResult persist(uint64_t h, Slice key) {
+        KvObj* old = find(h, key);
+        if (!old) return TtlResult::Missing;
+        if (!(old->flags & KvObjFlags::HasTtl)) return TtlResult::NoChange;
+        return rewrite_expire(h, old, -1);
+    }
+
+    // Returns expired keys removed, while `budget` bounds examined expire-index slots. Finding an
+    // object from its full hash follows only that hash's FlatStore probe run; it never scans the
+    // table or keyspace.
+    uint32_t active_expire(uint32_t budget) {
+        if (rehashing()) rehash_step();
+        uint32_t removed = 0;
+        expires_.sample(budget, [&](uint64_t h) {
+            KvObj* o = find_hash_in(0, h);
+            if (!o && rehashing()) o = find_hash_in(1, h);
+            if (!o || !(o->flags & KvObjFlags::HasTtl)) {
+                expires_.erase(h);       // stale tracker after a replacement or collision
+                return;
+            }
+            if (o->expire_at_ms() > cached_now_ms_) return;
+            const Slice key = o->key();
+            if (erase_in(0, h, key) || (rehashing() && erase_in(1, h, key))) {
+                removed++;
+                if (expired_counter_) (*expired_counter_)++;
+            }
+        });
+        return removed;
+    }
+
     // Takes ownership of `o`; frees anything it displaces.
     bool insert(uint64_t h, KvObj* o) {
         if (rehashing()) rehash_step();
         else             maybe_start_grow();
         // Evict any copy still in the old table FIRST, or it outlives a later delete of the new one
         // and the key resurrects — see the header.
-        if (rehashing()) erase_in(1, h, o->key());
-        return insert_into(0, h, o);
+        if (rehashing()) {
+            bool expired = false;
+            if (erase_in(1, h, o->key(), &expired) && expired && expired_counter_)
+                (*expired_counter_)++;
+        }
+        return insert_into(0, h, o, true);
     }
 
     bool erase(uint64_t h, Slice key) {
         if (rehashing()) rehash_step();
-        if (erase_in(0, h, key)) { maybe_start_shrink(); return true; }
-        if (rehashing() && erase_in(1, h, key)) { maybe_start_shrink(); return true; }
+        bool expired = false;
+        if (erase_in(0, h, key, &expired)) {
+            maybe_start_shrink();
+            if (expired && expired_counter_) (*expired_counter_)++;
+            return !expired;
+        }
+        if (rehashing() && erase_in(1, h, key, &expired)) {
+            maybe_start_shrink();
+            if (expired && expired_counter_) (*expired_counter_)++;
+            return !expired;
+        }
         return false;
     }
 
@@ -310,7 +493,32 @@ private:
         return nullptr;
     }
 
-    bool insert_into(int t, uint64_t h, KvObj* o) {
+    KvObj* find_hash_in(int t, uint64_t h) const {
+        if (!tab_[t]) return nullptr;
+        const uint16_t tag = tag_of(h);
+        uint32_t i = slot_start(t, h);
+        for (uint32_t probes = 0; probes <= cap_[t]; probes++) {
+            const uint64_t w = tab_[t][i];
+            if (w == 0) return nullptr;
+            KvObj* o = ptr_of(w);
+            if (o && tag_of_word(w) == tag && hash_key(o->key()) == h &&
+                (o->flags & KvObjFlags::HasTtl)) return o;
+            i = (i + 1) & mask_[t];
+        }
+        return nullptr;
+    }
+
+    KvObj* live_or_expire(int t, uint64_t h, Slice key, KvObj* o) {
+        // This is the non-expiring-key tax: one flags branch after the ordinary lookup. No clock
+        // read occurs here; the executor refreshed cached_now_ms_ once for its loop pass.
+        if (!(o->flags & KvObjFlags::HasTtl)) return o;
+        if (o->expire_at_ms() > cached_now_ms_) return o;
+        erase_in(t, h, key);
+        if (expired_counter_) (*expired_counter_)++;
+        return nullptr;
+    }
+
+    bool insert_into(int t, uint64_t h, KvObj* o, bool track_expire) {
         const uint16_t tag = tag_of(h);
         const Slice    key = o->key();
         uint32_t i = slot_start(t, h);
@@ -322,14 +530,25 @@ private:
                 else                 { tab_[t][i] = make_word(tag, o); }
                 live_[t]++;
                 obj_bytes_ += kvobj_size(o);
+                if (track_expire) {
+                    if (o->flags & KvObjFlags::HasTtl) expires_.insert(h);
+                    else                                  expires_.erase(h);
+                }
                 return true;
             }
             KvObj* cur = ptr_of(w);
             if (!cur) { if (first_tomb < 0) first_tomb = static_cast<int32_t>(i); }
             else if (tag_of_word(w) == tag && cur->key() == key) {
+                if (track_expire && (cur->flags & KvObjFlags::HasTtl) &&
+                    cur->expire_at_ms() <= cached_now_ms_ && expired_counter_)
+                    (*expired_counter_)++;
                 retire_obj(cur);                            // replace in place; live_ unchanged
                 obj_bytes_ += kvobj_size(o);
                 tab_[t][i] = make_word(tag, o);
+                if (track_expire) {
+                    if (o->flags & KvObjFlags::HasTtl) expires_.insert(h);
+                    else                                  expires_.erase(h);
+                }
                 return true;
             }
             i = (i + 1) & mask_[t];
@@ -337,7 +556,7 @@ private:
         return false;   // unreachable while the load factor holds
     }
 
-    bool erase_in(int t, uint64_t h, Slice key) {
+    bool erase_in(int t, uint64_t h, Slice key, bool* was_expired = nullptr) {
         if (!tab_[t]) return false;
         const uint16_t tag = tag_of(h);
         uint32_t i = slot_start(t, h);
@@ -346,14 +565,39 @@ private:
             if (w == 0) return false;
             KvObj* o = ptr_of(w);
             if (o && tag_of_word(w) == tag && o->key() == key) {
+                if (was_expired) {
+                    *was_expired = (o->flags & KvObjFlags::HasTtl) &&
+                                   o->expire_at_ms() <= cached_now_ms_;
+                }
                 retire_obj(o);
                 tab_[t][i] = kTombBit;                      // DEAD: non-zero, ptr == 0
                 live_[t]--; tombs_[t]++;
+                expires_.erase(h);
                 return true;
             }
             i = (i + 1) & mask_[t];
         }
         return false;
+    }
+
+    TtlResult rewrite_expire(uint64_t h, KvObj* old, int64_t expire_at_ms) {
+        KvObj* replacement = kvobj_reheader(old, expire_at_ms);
+        if (!replacement) return TtlResult::Oom;
+
+        const bool moves_collection = static_cast<Type>(old->type) != Type::String;
+        if (moves_collection) {
+            old->flags &= static_cast<uint8_t>(~KvObjFlags::OwnsExtern);
+            replacement->flags |= KvObjFlags::OwnsExtern;
+        }
+        if (!insert(h, replacement)) {
+            if (moves_collection) {
+                old->flags |= KvObjFlags::OwnsExtern;
+                replacement->flags &= static_cast<uint8_t>(~KvObjFlags::OwnsExtern);
+            }
+            kvobj_free(replacement);
+            return TtlResult::Oom;
+        }
+        return TtlResult::Updated;
     }
 
     bool is_borrowed(const char* ptr) const {
@@ -368,7 +612,8 @@ private:
         const size_t bytes = kvobj_size(o);
         obj_bytes_ -= bytes;
         if (outstanding_borrows_ == 0) { kvobj_free(o); return; }
-        const char* ptr = o->is_int() ? nullptr : o->str_value().p;
+        const char* ptr = (static_cast<Type>(o->type) == Type::String && !o->is_int())
+                              ? o->str_value().p : nullptr;
         for (Borrow& b : borrows_) {
             if (b.ptr != ptr) continue;
             b.retired = o;
@@ -422,7 +667,7 @@ private:
                 tab_[1][rehash_pos_] = kTombBit;
                 live_[1]--; tombs_[1]++;
                 obj_bytes_ -= kvobj_size(o);                // insert_into adds it back
-                insert_into(0, hash_key(o->key()), o);      // rehash from the key: no hash is stored
+                insert_into(0, hash_key(o->key()), o, false); // rehash from key: hash is not stored
             }
             rehash_pos_++;
             budget--;
@@ -444,6 +689,9 @@ private:
     size_t    pending_bytes_ = 0;
     uint32_t  outstanding_borrows_ = 0;
     std::vector<Borrow> borrows_;
+    ExpireIndex expires_;
+    int64_t     cached_now_ms_ = 0;
+    uint64_t*   expired_counter_ = nullptr;
 };
 
 }  // namespace tomo
