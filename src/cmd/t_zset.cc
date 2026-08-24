@@ -1,4 +1,5 @@
 #include "command.h"
+#include "xshard.h"
 
 #include <algorithm>
 #include <array>
@@ -2231,9 +2232,79 @@ static const CommandSpec kTable[] = {
     {"ZPOPMAX",              2,  3, CmdFlags::Write,    cmd_zpopmax,               1,  1,  1},
     {"ZRANDMEMBER",          2,  4, CmdFlags::Readonly, cmd_zrandmember,           1,  1,  1},
     {"ZSCAN",                3, -1, CmdFlags::Readonly, cmd_zscan,                 1,  1,  1},
+    {"ZMPOP",                4, -1, CmdFlags::Write | CmdFlags::MultiShard,cmd_xshard_only,2,-1,1},
+    {"ZRANGESTORE",          5, -1, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,cmd_xshard_only,1,2,1},
 };
 
 }  // namespace
+
+XshardPopResult xshard_pop_zset(Shard& shard, Slice key, uint64_t hash, bool maximum,
+                                uint64_t count, std::vector<std::string>& members,
+                                std::vector<double>& scores) {
+    members.clear();
+    scores.clear();
+    KvObj* object = shard.store().find(hash, key);
+    if (!object) return XshardPopResult::Missing;
+    if (static_cast<Type>(object->type) != Type::Zset) return XshardPopResult::WrongType;
+    CollectionRef value = zset_value(object);
+    if (!value.entries()) return XshardPopResult::Missing;
+    const uint32_t take = static_cast<uint32_t>(
+        std::min<uint64_t>(count, static_cast<uint64_t>(value.entries())));
+    try {
+        members.reserve(take);
+        scores.reserve(take);
+        if (value.encoding() == CollectionEncoding::Compact) {
+            CompactItems items;
+            if (!items.load(value)) return XshardPopResult::Oom;
+            for (uint32_t i = 0; i < take; i++) {
+                const size_t index = maximum ? items.entries.size() - 1 - i : i;
+                double score;
+                Slice member;
+                if (!compact_decode(items.entries[index], score, member))
+                    return XshardPopResult::Oom;
+                members.emplace_back(member.p, member.n);
+                scores.push_back(score);
+            }
+        } else {
+            ZsetNode* node = zset_expanded(value)->by_rank(maximum ? value.entries() : 1);
+            for (uint32_t i = 0; i < take && node; i++) {
+                const Slice member = node_member(node);
+                members.emplace_back(member.p, member.n);
+                scores.push_back(node->score);
+                node = maximum ? node->backward : node->level[0].forward;
+            }
+        }
+    } catch (const std::bad_alloc&) {
+        members.clear();
+        scores.clear();
+        return XshardPopResult::Oom;
+    }
+    if (members.size() != take || scores.size() != take) {
+        members.clear();
+        scores.clear();
+        return XshardPopResult::Oom;
+    }
+
+    ObjectSizeTracker size_tracker(shard.store(), object);
+    if (value.encoding() == CollectionEncoding::Compact) {
+        for (uint32_t i = 0; i < take; i++) {
+            uint32_t payload = 0;
+            if (maximum) value.pop_back(&payload);
+            else value.pop_front(&payload);
+        }
+    } else {
+        RemovalResult removed = maximum
+            ? zset_expanded(value)->erase_rank_range(value.entries() - take + 1, value.entries())
+            : zset_expanded(value)->erase_rank_range(1, take);
+        value.external_as<ZsetVal>()->note_expanded_delete_many(
+            removed.count, removed.payload, zset_expanded(value)->allocation_bytes());
+    }
+    if (!value.entries()) {
+        size_tracker.finish();
+        shard.store().erase(hash, key);
+    }
+    return XshardPopResult::Popped;
+}
 
 
 namespace {

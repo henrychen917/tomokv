@@ -837,6 +837,7 @@ static const CommandSpec kTable[] = {
     {"RANDOMKEY",  1,  1, CmdFlags::Readonly | CmdFlags::RandomShard,             cmd_randomkey,  0,  0, 0},
     {"SCAN",       2, -1, CmdFlags::Readonly | CmdFlags::CursorShard,             cmd_scan,       0,  0, 0},
     {"KEYS",       2,  2, CmdFlags::Readonly | CmdFlags::Admin | CmdFlags::MultiShard,cmd_xshard_only,0,0,0},
+    {"SORT",       2, -1, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,cmd_xshard_only,1,1,1},
 };
 
 }  // namespace
