@@ -20,6 +20,7 @@
 #include "server.h"
 #include "signal.h"
 #include "../net/conn.h"
+#include "../net/resp.h"
 #include "../net/uring.h"
 #include "../net/wb.h"
 #include "../cmd/command.h"
@@ -149,7 +150,10 @@ private:
     void exec_batch(const Task* batch, uint32_t n) {
         for (uint32_t i = 0; i < n; i++) {
             const Op& op = batch[i].client->rob().at(batch[i].op_id);
-            if (op.shard >= 0) srv_->shard(op.shard).store().prefetch(op.hash);
+            const int32_t shard = batch[i].shard >= 0 ? batch[i].shard : op.shard;
+            if (shard >= 0 && !batch[i].scatter &&
+                !(op.spec->flags & (CmdFlags::CursorShard | CmdFlags::RandomShard)))
+                srv_->shard(shard).store().prefetch(op.hash);
         }
         for (uint32_t i = 0; i < n; i++) execute(batch[i]);
         // One publish per batch, covering every shard this batch touched. Cheaper than tracking
@@ -159,13 +163,23 @@ private:
 
     void execute(const Task& t) {
         Op& op = t.client->rob().at(t.op_id);
-        Shard& sh = srv_->shard(op.shard);
+        const int32_t shard_id = t.shard >= 0 ? t.shard : op.shard;
+        Shard& sh = srv_->shard(shard_id);
         sh.set_cached_now_ms(cached_now_ms_);
         // Records the op AND whether it was executed from this shard's home L3 domain. One compare
         // and one increment, no atomics — the shard has a single owner.
         sh.note_execution(self_->domain());
 
+        if (!t.scatter) self_->note_command(op.spec->id);
+
         op.spec->handler(sh, op);
+
+        if (t.scatter) {
+            sh.publish_size();
+            if (t.scatter->pending.fetch_sub(1, std::memory_order_acq_rel) != 1) return;
+            reply_ok(op.sink());
+            delete t.scatter;
+        }
 
         // Release pairs with the IO thread's acquire on Done: everything the handler wrote into
         // op.reply becomes visible through this one store.

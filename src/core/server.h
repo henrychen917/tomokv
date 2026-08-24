@@ -21,6 +21,7 @@
 #include "../base/topology.h"
 #include "../net/conn.h"   // kRobWindow: one source of truth for the window size
 #include "../net/wb.h"
+#include "../cmd/command.h"
 
 namespace tomo {
 
@@ -37,6 +38,7 @@ struct Config {
     uint32_t shards         = 16;
     uint16_t port           = 6379;
     const char* bind_addr   = "127.0.0.1";
+    const char* unixsocket  = nullptr;
 
     // Pinning is relative to the process's ALLOWED cpu set, so taskset confines both the process and
     // its topology grouping — that property is what lets independent benchmark lanes share one box,
@@ -122,6 +124,7 @@ public:
         for (uint32_t i = 0; i < nthreads; i++) {
             threads_[i] = std::make_unique<ThreadCtx>();
             threads_[i]->init(i, placement_.role_of(i), nthreads);
+            threads_[i]->init_command_counts(command_registry_size());
         }
 
         // ---- shards directly onto workers ------------------------------------------------------

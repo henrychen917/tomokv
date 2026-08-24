@@ -19,9 +19,11 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <sys/socket.h>
+#include <sys/un.h>
 #include <unistd.h>
 #include <cstdio>
 #include <cstdlib>
+#include <new>
 #include <vector>
 #include "server.h"
 #include "signal.h"
@@ -56,10 +58,12 @@ public:
     // which spreads them across threads without any userspace handoff. Note this is safe WITHIN one
     // process; two SERVER PROCESSES sharing a port is the failure mode that once faked data loss,
     // so a boot must still verify nothing else holds the port.
-    bool init(Server* srv, ThreadCtx* self, const char* addr, uint16_t port) {
+    bool init(Server* srv, ThreadCtx* self, const char* addr, uint16_t port,
+              int unix_listen_fd = -1) {
         srv_ = srv; self_ = self;
         listen_fd_ = make_reuseport_listener(addr, port);
         if (listen_fd_ < 0) return false;
+        unix_listen_fd_ = unix_listen_fd;
         if (!ring_.init(4096)) return false;
         self_->set_ring(&ring_);
         wb_.bind(&ring_, this, [](void* ctx, int32_t shard, const char* ptr) {
@@ -68,7 +72,11 @@ public:
         return true;
     }
 
-    ~IoLoop() { if (listen_fd_ >= 0) ::close(listen_fd_); }
+    ~IoLoop() {
+        if (listen_fd_ >= 0) ::close(listen_fd_);
+        if (unix_listen_fd_ >= 0) ::close(unix_listen_fd_);
+        for (Client* c : pending_handoffs_) { ::close(c->fd()); delete c; }
+    }
 
     static int make_reuseport_listener(const char* addr, uint16_t port) {
         int fd = ::socket(AF_INET, SOCK_STREAM, 0);
@@ -86,11 +94,37 @@ public:
         return fd;
     }
 
+    // Linux does not provide TCP-style SO_REUSEPORT distribution for filesystem AF_UNIX paths:
+    // the pathname is a unique bind key. One listener is therefore armed by one IO thread, which
+    // round-robins accepted Client handles through the existing per-producer client channels.
+    static int make_unix_listener(const char* path) {
+        sockaddr_un sa{};
+        if (!path || !*path || std::strlen(path) >= sizeof(sa.sun_path)) return -1;
+        int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+        if (fd < 0) return -1;
+        sa.sun_family = AF_UNIX;
+        std::memcpy(sa.sun_path, path, std::strlen(path) + 1);
+        if (::bind(fd, reinterpret_cast<sockaddr*>(&sa), sizeof(sa)) != 0 ||
+            ::listen(fd, 16384) != 0) {
+            ::close(fd); return -1;
+        }
+        return fd;
+    }
+
     Ring& ring() { return ring_; }
 
-
     void run() {
-        arm_accept();
+        if (unix_listen_fd_ >= 0 || (srv_->cfg().unixsocket && *srv_->cfg().unixsocket))
+            run_loop<true>();
+        else
+            run_loop<false>();
+    }
+
+private:
+    template <bool HasUnix>
+    void run_loop() {
+        arm_accept(false);
+        if constexpr (HasUnix) if (unix_listen_fd_ >= 0) arm_accept(true);
         LoopSignals& sig = self_->sig();
         while (!self_->stop_flag().load(std::memory_order_relaxed)) {
             sig.iterations++;
@@ -102,10 +136,12 @@ public:
                 Span busy(sig.busy_ns);
                 // A dropped accept re-arm means the server stops taking connections entirely, so it
                 // is retried every pass until it lands.
-                if (accept_pending_) arm_accept();
+                if (accept_pending_) arm_accept(false);
+                if constexpr (HasUnix) if (unix_accept_pending_) arm_accept(true);
                 did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
+                if constexpr (HasUnix) did += flush_handoffs();
                 did += flush_borrow_releases();
-                did += collect_retire_work();
+                did += collect_retire_work<HasUnix>();
                 did += flush_ready();
             }
             sig.cpu_ns = thread_cpu_ns();
@@ -121,7 +157,7 @@ public:
             // Mask-independent sweep before parking. The mask is a hint for the hot path; it must
             // not be the only thing that can find queued work, or one lost bit wedges a connection
             // forever. Runs only when this thread has already concluded it has nothing to do.
-            if (sweep()) { ring_.submit_and_reap(); continue; }
+            if (sweep<HasUnix>()) { ring_.submit_and_reap(); continue; }
 
             Span idle(sig.idle_ns);
             self_->arm_blocked();
@@ -131,18 +167,21 @@ public:
         }
     }
 
-private:
     // ---- submission -----------------------------------------------------------------------------
-    void arm_accept() {
+    void arm_accept(bool unix_socket) {
         io_uring_sqe* s = ring_.sqe();
         // sqe() can still return null when the submission queue is saturated. Writing through it
         // corrupts memory, and losing the accept re-arm silently stops the server taking
         // connections at all — so this is checked, counted, and retried on the next pass.
-        if (!s) { self_->sig().sqe_starved++; accept_pending_ = true; return; }
-        io_uring_prep_multishot_accept(s, listen_fd_, nullptr, nullptr, 0);
-        s->user_data = ur_tag(UrKind::Accept, nullptr);
+        if (!s) {
+            self_->sig().sqe_starved++;
+            (unix_socket ? unix_accept_pending_ : accept_pending_) = true;
+            return;
+        }
+        io_uring_prep_multishot_accept(s, unix_socket ? unix_listen_fd_ : listen_fd_, nullptr, nullptr, 0);
+        s->user_data = ur_tag(unix_socket ? UrKind::UnixAccept : UrKind::Accept, nullptr);
         ring_.note_pending();
-        accept_pending_ = false;
+        (unix_socket ? unix_accept_pending_ : accept_pending_) = false;
     }
 
     // ONE recv in flight per connection. While it is armed the kernel holds a raw pointer into the
@@ -165,7 +204,8 @@ private:
     // ---- completions ----------------------------------------------------------------------------
     void on_cqe(io_uring_cqe* cqe) {
         switch (ur_kind(cqe->user_data)) {
-            case UrKind::Accept: on_accept(cqe); break;
+            case UrKind::Accept: on_accept(cqe, false); break;
+            case UrKind::UnixAccept: on_accept(cqe, true); break;
             case UrKind::Recv:   on_recv(ur_ptr<Client>(cqe->user_data), cqe->res); break;
             case UrKind::Send: {
                 Client* c = ur_ptr<Client>(cqe->user_data);
@@ -182,33 +222,84 @@ private:
         }
     }
 
-    void on_accept(io_uring_cqe* cqe) {
+    void on_accept(io_uring_cqe* cqe, bool unix_socket) {
         if (cqe->res < 0) {
             // Do not swallow this silently: a failing accept with no trace is indistinguishable from
             // a hung server, which is exactly how the 1024-connection failure presented.
             self_->sig().accept_err++;
-            arm_accept();
+            arm_accept(unix_socket);
             return;
         }
         self_->sig().accepts++;
-        int fd = cqe->res, one = 1;
-        setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
-
-        auto* c = new Client(fd);
+        int fd = cqe->res;
+        auto* c = new (std::nothrow) Client(fd);
+        if (!c) {
+            ::close(fd);
+            self_->sig().accept_err++;
+            if (!(cqe->flags & IORING_CQE_F_MORE)) {
+                self_->sig().accept_rearm++;
+                arm_accept(unix_socket);
+            }
+            return;
+        }
         c->set_id(srv_->next_client_id().fetch_add(1, std::memory_order_relaxed));
+        if (unix_socket) {
+            const auto& ios = srv_->placement().ifid_threads();
+            const uint32_t target = ios[unix_rr_++ % ios.size()];
+            c->set_ifid_thread(target);
+            if (target == self_->id()) adopt_client(c, true);
+            else if (!srv_->thread(target).post_client(self_->id(), c, ring_, self_->sig()))
+                pending_handoffs_.push_back(c);
+        } else {
+            c->set_ifid_thread(self_->id());
+            adopt_client(c, false);
+        }
+        if (!(cqe->flags & IORING_CQE_F_MORE)) {               // multishot dropped: re-arm
+            self_->sig().accept_rearm++;
+            arm_accept(unix_socket);
+        }
+    }
+
+    std::string peer_address(int fd, bool unix_socket) const {
+        if (unix_socket) return std::string(srv_->cfg().unixsocket ? srv_->cfg().unixsocket : "unix") + ":0";
+        sockaddr_in peer{};
+        socklen_t len = sizeof(peer);
+        char ip[INET_ADDRSTRLEN] = "unknown";
+        if (::getpeername(fd, reinterpret_cast<sockaddr*>(&peer), &len) == 0)
+            ::inet_ntop(AF_INET, &peer.sin_addr, ip, sizeof(ip));
+        char out[INET_ADDRSTRLEN + 16];
+        std::snprintf(out, sizeof(out), "%s:%u", ip, ntohs(peer.sin_port));
+        return out;
+    }
+
+    void adopt_client(Client* c, bool unix_socket) {
+        if (!unix_socket) {
+            int one = 1;
+            setsockopt(c->fd(), IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
+        }
         c->set_ifid_thread(self_->id());
         // The ready-mask slot is assigned immediately: WE are the sender, for life.
         c->set_wb_slot(self_->assign_wb_slot(c));
         self_->clients().push_back(c);
+        const std::string addr = peer_address(c->fd(), unix_socket);
+        command_client_connected(c, addr.c_str());
         arm_recv(c);
         // Reachability, not optimism: if that arm starved for an SQE, nothing else names this
         // conn -- it would sit accepted and silent forever (audit finding). The active set's
         // phase-1 re-arms it until the recv lands; one wasted visit if the arm succeeded.
         mark_active(c);
-        if (!(cqe->flags & IORING_CQE_F_MORE)) {               // multishot dropped: re-arm
-            self_->sig().accept_rearm++;
-            arm_accept();
+    }
+
+    uint32_t flush_handoffs() {
+        uint32_t sent = 0;
+        while (!pending_handoffs_.empty()) {
+            Client* c = pending_handoffs_.front();
+            ThreadCtx& target = srv_->thread(c->ifid_thread());
+            if (!target.post_client(self_->id(), c, ring_, self_->sig())) break;
+            pending_handoffs_.pop_front();
+            sent++;
         }
+        return sent;
     }
 
     void on_recv(Client* c, int res) {
@@ -233,6 +324,7 @@ private:
         bool head_candidate = true;   // only the pass's FIRST dispatch can be the direct head
 
         for (;;) {
+            if (c->scatter_barrier()) break;   // all-shards op in flight: see conn.h
             Op* op = rob.acquire();
             if (!op) break;                    // window full: backpressure; let replies drain first
 
@@ -262,32 +354,18 @@ private:
                 finish_locally(c, *op, "ERR wrong number of arguments"); continue;
             }
             op->spec = spec;
+            const bool config_scatter = (spec->flags & CmdFlags::ConfigRoute) &&
+                                        command_config_routes_all_shards(*op);
 
             // Connection-local commands never reach a worker — the cheapest class, and the one most
             // easily wasted by routing it anyway.
-            if (spec->flags & CmdFlags::ConnLocal) {
+            if ((spec->flags & CmdFlags::ConnLocal) ||
+                ((spec->flags & CmdFlags::ConfigRoute) && !config_scatter)) {
                 conn.advance_parse(consumed);
-                // Item 6: session-mutating commands run HERE, on the connection's single parse
-                // thread -- which is the whole reason Session state never needs a lock and handlers
-                // never need a Client. SELECT is the only one so far.
-                if (op->argc() == 2) {
-                    Slice n = op->cmd_name();
-                    if (n.n == 6 && (n.p[0] == 's' || n.p[0] == 'S')) {
-                        char buf[16] = {};
-                        std::memcpy(buf, n.p, 6);
-                        for (auto& ch : buf) ch = static_cast<char>(std::tolower(ch));
-                        if (!std::strncmp(buf, "select", 6)) {
-                            uint64_t v = 0; uint32_t pp = 0;
-                            Slice a = op->arg(1);
-                            (void)parse_len_crlf; // (index parsed simply below)
-                            for (uint32_t k = 0; k < a.n && a.p[k] >= '0' && a.p[k] <= '9'; k++)
-                                v = v * 10 + static_cast<uint64_t>(a.p[k] - '0');
-                            (void)pp;
-                            c->session().db_index = static_cast<uint32_t>(v);
-                        }
-                    }
-                }
+                self_->note_command(spec->id);
+                command_set_local_context(c, self_);
                 spec->handler(srv_->shard(0), *op);
+                command_set_local_context(nullptr, nullptr);
                 op->state.store(OpState::Done, std::memory_order_release);
                 rob.publish();
                 enqueue_serve(c);
@@ -296,10 +374,73 @@ private:
             }
 
             op->db    = static_cast<uint8_t>(c->session().db_index);
+            if ((spec->flags & CmdFlags::AllShards) || config_scatter) {
+                const bool valid = config_scatter ? command_validate_config_set(*op)
+                                                  : command_validate_all_shards(*op);
+                if (!valid) {
+                    conn.advance_parse(consumed);
+                    finish_prebuilt(c, *op);
+                    continue;
+                }
+                uint32_t needed[kMaxThreads] = {};
+                for (uint32_t sid = 0; sid < srv_->nshards(); sid++)
+                    needed[srv_->worker_of_shard(static_cast<int32_t>(sid))]++;
+                bool room = true;
+                for (uint32_t tid = 0; tid < srv_->nthreads(); tid++)
+                    if (needed[tid] && srv_->thread(tid).task_free_slots(self_->id()) < needed[tid]) {
+                        room = false; break;
+                    }
+                if (!room) break;
+                auto* scatter = new (std::nothrow) ScatterState(srv_->nshards());
+                if (!scatter) {
+                    conn.advance_parse(consumed);
+                    finish_locally(c, *op, "ERR out of memory");
+                    continue;
+                }
+                const uint64_t op_id = rob.dispatch_id();
+                rob.publish();
+                for (uint32_t sid = 0; sid < srv_->nshards(); sid++) {
+                    const uint32_t tid = srv_->worker_of_shard(static_cast<int32_t>(sid));
+                    ThreadCtx& owner = srv_->thread(tid);
+                    const Task task{c, op_id, static_cast<int32_t>(sid), scatter};
+                    // Capacity was checked for this producer's SPSC channel before any push. Its
+                    // only concurrent actor is the consumer, which can only create more room.
+                    if (!owner.post_task_quiet(self_->id(), task, sig)) std::abort();
+                    if (!touched_[tid]) { touched_[tid] = true; touched_list_[ntouched_++] = tid; }
+                }
+                self_->note_command(spec->id); // one public command, not one count per shard task
+                conn.advance_parse(consumed);
+                sig.ops++;
+                head_candidate = false;
+                c->set_scatter_barrier(true);
+                mark_active(c);
+                continue;
+            }
+
             // The key position is registry metadata. OBJECT ENCODING is the first command whose
             // route key is not argv[1], and future multi-key lowering consumes the same range.
-            op->hash  = FlatStore::hash_key(op->arg(static_cast<uint32_t>(spec->first_key)));
-            op->shard = srv_->router().shard_of(op->hash);
+            if (spec->flags & CmdFlags::CursorShard) {
+                if (!command_prepare_scan_route(*srv_, *op)) {
+                    conn.advance_parse(consumed);
+                    finish_prebuilt(c, *op);
+                    continue;
+                }
+            } else if (spec->flags & CmdFlags::RandomShard) {
+                uint64_t random = next_random();
+                uint32_t start = static_cast<uint32_t>(random % srv_->nshards());
+                uint32_t chosen = start;
+                for (uint32_t n = 0; n < srv_->nshards(); n++) {
+                    const uint32_t candidate = (start + n) % srv_->nshards();
+                    if (srv_->shard(static_cast<int32_t>(candidate)).published_size()) {
+                        chosen = candidate; break;
+                    }
+                }
+                op->hash = random;
+                op->shard = static_cast<int32_t>(chosen);
+            } else {
+                op->hash  = FlatStore::hash_key(op->arg(static_cast<uint32_t>(spec->first_key)));
+                op->shard = srv_->router().shard_of(op->hash);
+            }
             ThreadCtx& worker = srv_->thread(srv_->worker_of_shard(op->shard));
 
             // PUBLISH BEFORE DISPATCH. The old order posted the task first and published after, which
@@ -327,7 +468,7 @@ private:
                     op->direct_cap = static_cast<uint32_t>(fb.cap());
                 }
             }
-            Task t{c, rob.dispatch_id()};
+            Task t{c, rob.dispatch_id(), -1, nullptr};
             rob.publish();
             if (!worker.post_task_quiet(self_->id(), t, sig)) {
                 rob.unpublish();          // a refused push must leave NO trace -- including in the ROB
@@ -363,10 +504,21 @@ private:
 
     void finish_locally(Client* c, Op& op, const char* err) {
         reply_err(op.reply, err);
+        finish_prebuilt(c, op);
+    }
+
+    void finish_prebuilt(Client* c, Op& op) {
         op.state.store(OpState::Done, std::memory_order_release);
         c->rob().publish();
         enqueue_serve(c);
         mark_active(c);
+    }
+
+    uint64_t next_random() {
+        random_state_ ^= random_state_ << 13;
+        random_state_ ^= random_state_ >> 7;
+        random_state_ ^= random_state_ << 17;
+        return random_state_;
     }
 
     void mark_active(Client* c) {
@@ -379,8 +531,11 @@ private:
     // ---- inbound: workers telling us a client has completed ops -----------------------------------
     // Inbound from workers: "ops are Done" -- the claimed-post fallback for a conn with no
     // ready-mask slot. Either way the answer is the same: put the client back in the active set.
+    template <bool HasUnix>
     uint32_t sweep() {
-        return flush_borrow_releases() + collect_retire_work(true) + flush_ready();
+        uint32_t work = 0;
+        if constexpr (HasUnix) work += flush_handoffs();
+        return work + flush_borrow_releases() + collect_retire_work<HasUnix>(true) + flush_ready();
     }
 
     void queue_borrow_release(int32_t shard, const char* ptr) {
@@ -400,8 +555,17 @@ private:
         return n;
     }
 
+    template <bool HasUnix>
     uint32_t collect_retire_work(bool unmasked = false) {
         auto take = [&](Client* c) {
+            // AF_UNIX accept handoffs use this existing channel without claiming retirement.
+            // Executor completions always CAS retire_queued false->true before posting, so the bit
+            // distinguishes the two meanings without adding a Client field or a catalog lock here.
+            if constexpr (HasUnix)
+                if (!c->retire_queued().load(std::memory_order_acquire)) {
+                    adopt_client(c, true);
+                    return;
+                }
             c->retire_queued().store(false, std::memory_order_release);
             enqueue_serve(c);                    // a posted client is a serve request
             mark_active(c);
@@ -446,6 +610,7 @@ private:
 
             // Reset only when the ROB is quiescent AND no recv is outstanding — see conn.h. Then
             // re-arm, in that order.
+            if (c->scatter_barrier() && c->rob().quiesced()) c->set_scatter_barrier(false);
             if (c->rob().quiesced() && !conn.recv_armed()) conn.reset_rbuf_at_quiescence();
 
             // Re-parse the buffered remainder. parse_and_dispatch stops when the ROB window fills
@@ -524,6 +689,7 @@ private:
         // doing so leaked the entire client (~137KB) per disconnect once. Only a quiesced,
         // claim-free conn may release its slot and die.
         if (!c->safe_to_release()) { mark_active(c); return; }
+        command_client_disconnected(c);
         self_->release_wb_slot(c->wb_slot());
         c->set_wb_slot(Client::kNoWbSlot);
         wb_.teardown(*c);
@@ -570,6 +736,7 @@ private:
     static constexpr uint32_t kServeBudget = 16;
     std::deque<Client*> pending_serve_;
     std::deque<BorrowRelease> pending_releases_;
+    std::deque<Client*> pending_handoffs_;
     uint32_t flush_tick_ = 0;
     bool     backstop_pass_ = false;
     bool touched_[kMaxThreads] = {};      // dedupe flags for the current parse pass
@@ -578,9 +745,13 @@ private:
     std::vector<Client*> dead_next_;   // corpses parked this iteration
     std::vector<Client*> dead_ready_;  // corpses freed at the next prologue
     int        listen_fd_ = -1;
+    int        unix_listen_fd_ = -1;
     Ring       ring_;
     WbEngine   wb_;
     bool       accept_pending_ = false;
+    bool       unix_accept_pending_ = false;
+    uint64_t   unix_rr_ = 0;
+    uint64_t   random_state_ = 0x9e3779b97f4a7c15ULL;
 
     // Clients with work outstanding. Populated by dispatch and by the retire channel, never by
     // scanning every client: at 10k+ connections that scan dominates the loop.

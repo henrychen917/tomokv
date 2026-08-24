@@ -38,6 +38,13 @@ namespace tomo {
 class Client;
 class Ring;
 
+// Heap-side state for the deliberately rare all-shard commands. It keeps the public Op footprint
+// fixed: each owner decrements after its store work, and only the last owner completes the ROB op.
+struct ScatterState {
+    explicit ScatterState(uint32_t count) : pending(count) {}
+    std::atomic<uint32_t> pending;
+};
+
 inline constexpr uint32_t kMaxThreads = 128;
 inline constexpr uint32_t kInboxSlots = 1024;
 
@@ -49,6 +56,8 @@ enum class Role : uint8_t { Idle = 0, Ifid = 1, Ex = 2 };
 struct Task {
     Client*  client = nullptr;
     uint64_t op_id  = 0;
+    int32_t  shard  = -1;       // -1 means use Op::shard (the ordinary single-shard path)
+    ScatterState* scatter = nullptr;
 };
 
 struct BorrowRelease {
@@ -78,6 +87,11 @@ public:
         release_in_ = std::make_unique<ReleaseChan[]>(nthreads);
     }
 
+    void init_command_counts(uint32_t count) {
+        command_count_size_ = count;
+        command_counts_ = count ? std::make_unique<uint64_t[]>(count) : nullptr;
+    }
+
     uint32_t id()   const { return id_; }
     Role     role() const { return role_.load(std::memory_order_acquire); }
     uint32_t nchan() const { return nchan_; }
@@ -96,6 +110,15 @@ public:
     TaskChan&   task_in(uint32_t producer)   { return task_in_[producer]; }
     ClientChan& client_in(uint32_t producer) { return client_in_[producer]; }
     ReleaseChan& release_in(uint32_t producer) { return release_in_[producer]; }
+
+    // The producer is the only writer. INFO's exceptional aggregation reads these cold arrays;
+    // ordinary command execution performs one non-atomic increment in thread-private memory.
+    void note_command(uint16_t id) {
+        if (id < command_count_size_) command_counts_[id]++;
+    }
+    uint64_t command_calls(uint32_t id) const {
+        return id < command_count_size_ ? command_counts_[id] : 0;
+    }
 
     // ---- posting (producer side) ---------------------------------------------------------------
     // Push AND flag, in that order. Flagging before the push would let the consumer take the bit,
@@ -116,6 +139,9 @@ public:
     // has to be perfect.
     bool post_task_quiet(uint32_t from, const Task& t, LoopSignals& sig) {
         return task_in_[from].push(t, sig);
+    }
+    uint32_t task_free_slots(uint32_t from) const {
+        return task_in_[from].producer_free_slots();
     }
     void flush_task_notify(uint32_t from, Ring& my_ring, LoopSignals& sig) {
         if (task_notify_.set(from)) task_in_[from].wake(my_ring, sig, ring());
@@ -325,6 +351,8 @@ private:
     std::unique_ptr<TaskChan[]>   task_in_;
     std::unique_ptr<ClientChan[]> client_in_;
     std::unique_ptr<ReleaseChan[]> release_in_;
+    std::unique_ptr<uint64_t[]> command_counts_;
+    uint32_t command_count_size_ = 0;
     ReadyMask  ready_;                     // as a sender: which of my clients completed work
     std::vector<Client*>  slots_;          // slot -> client, sender-owned
     std::vector<uint32_t> free_slots_;

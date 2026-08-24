@@ -393,6 +393,14 @@ public:
     // conn's ready bit fired since io last served it. Plain bools — one thread.
     bool serve_pending() const { return serve_pending_; }
     void set_serve_pending(bool v) { serve_pending_ = v; }
+    // An in-flight all-shards scatter (FLUSHALL/FLUSHDB/CONFIG SET fan-out) is a parse barrier:
+    // commands behind it on this conn must observe post-scatter state (ConnLocal readers like
+    // DBSIZE/INFO execute at parse time, so without the barrier they snapshot early and a
+    // pipelined FLUSHALL;DBSIZE answers the PRE-flush count). Set only on successful publish;
+    // cleared at ROB quiescence — the scatter is necessarily the newest op, since nothing parses
+    // behind it. Same-client read-your-own-writes hazard: a sanctioned stall.
+    bool scatter_barrier() const { return scatter_barrier_; }
+    void set_scatter_barrier(bool v) { scatter_barrier_ = v; }
     bool in_active() const { return in_active_; }
     void set_in_active(bool v) { in_active_ = v; }
 
@@ -448,6 +456,7 @@ private:
     bool      in_active_     = false;
     bool      closing_       = false;
     bool      dead_          = false;
+    bool      scatter_barrier_ = false;  // pads out the existing bool run; sizeof unchanged
 
     // --- cold io state --------------------------------------------------------------------------
     uint64_t  id_ = 0;
