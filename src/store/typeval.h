@@ -65,6 +65,10 @@ public:
     uint32_t size()          const { return entries_; }
     uint64_t payload_bytes() const { return payload_bytes_; }
     size_t   encoded_bytes() const { return end_ - begin_; }
+    // Logical offset of an entry (0 = first byte). Entry.offset is ABSOLUTE (buffer-internal);
+    // every offset-taking API here (decode/at_offset/insert/erase_range) takes LOGICAL. This is
+    // the only sanctioned bridge between the two spaces -- zset's ordered inserts live on it.
+    uint32_t logical(const Entry& entry) const { return entry.offset - begin_; }
     size_t   capacity_bytes() const {
         return data_.capacity() + offsets_.capacity() * sizeof(uint32_t);
     }
@@ -222,6 +226,38 @@ public:
         end_ = entry.offset;
         entries_--;
         payload_bytes_ -= entry.value.n;
+        if (!entries_) begin_ = end_;
+        return true;
+    }
+
+    // Erase the half-open LOGICAL byte interval [first_logical,last_logical). Both bounds must be
+    // entry boundaries of the current container (last_logical == encoded_bytes() erases the tail).
+    // ZREMRANGEBY{RANK,SCORE,LEX} on compact zsets. Accounting walks only the removed entries; the
+    // index fix-up slides the surviving tail slots down, same O(entries) bound as insert.
+    bool erase_range(uint32_t first_logical, uint32_t last_logical) {
+        if (first_logical > last_logical || last_logical > end_ - begin_) return false;
+        if (first_logical == last_logical) return true;
+        Entry head;
+        if (!decode(first_logical, head)) return false;
+        const uint32_t first_abs = begin_ + first_logical;
+        const uint32_t last_abs = begin_ + last_logical;
+        uint32_t removed = 0;
+        uint64_t payload = 0;
+        uint32_t off = first_abs;
+        while (off < last_abs) {
+            Entry e;
+            if (!decode(off - begin_, e) || e.offset + e.span > last_abs) return false;
+            removed++;
+            payload += e.value.n;
+            off += e.span;
+        }
+        const uint32_t span = last_abs - first_abs;
+        std::memmove(data_.data() + first_abs, data_.data() + last_abs, end_ - last_abs);
+        end_ -= span;
+        for (uint32_t i = head.index; i + removed < entries_; i++)
+            offset_set(i, offset_at(i + removed) - span);
+        entries_ -= removed;
+        payload_bytes_ -= payload;
         if (!entries_) begin_ = end_;
         return true;
     }
@@ -442,6 +478,9 @@ public:
     bool pop_back(uint32_t* payload_size = nullptr) {
         return is_compact() && compact_.pop_back(payload_size);
     }
+    bool erase_range(uint32_t first_logical, uint32_t last_logical) {
+        return is_compact() && compact_.erase_range(first_logical, last_logical);
+    }
     bool replace_compact(Compact&& replacement) {
         if (!is_compact()) return false;
         compact_ = std::move(replacement);
@@ -622,6 +661,13 @@ struct SetVal : CompactValue {
     std::vector<uint32_t> offsets;  // generic Compact entry starts; integer starts are fixed-width
     SetMemberTable table;
 };
-struct ZsetVal : CompactValue {};
+struct ZsetData;
+struct ZsetVal : CompactValue {
+    ZsetData* expanded = nullptr;
+    ~ZsetVal();
+    ZsetVal() = default;
+    ZsetVal(const ZsetVal&) = delete;
+    ZsetVal& operator=(const ZsetVal&) = delete;
+};
 
 }  // namespace tomo

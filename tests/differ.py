@@ -200,14 +200,64 @@ def gen_list(rng):
     ]
     return ops
 
-gens = {"string": gen_string, "set": gen_set, "list": gen_list}
+def gen_zset(rng):
+    keys = ["z%d" % i for i in range(8)]
+    mems = ["m%d" % i for i in range(20)] + ["alpha", "beta", "x" * 70]
+    scores = ["1", "2.5", "-3", "0", "1e3", "-1.5e-2", "inf", "-inf", "3.0000000000000004", "9007199254740993"]
+    ops = []
+    def K(): return rng.choice(keys)
+    def M(): return rng.choice(mems)
+    def S(): return rng.choice(scores)
+    for _ in range(3500):
+        c = rng.randrange(20)
+        if   c in (0,1,2): ops.append(["ZADD", K()] + sum([[S(), M()] for _ in range(rng.randrange(1,4))], []))
+        elif c == 3: ops.append(["ZADD", K(), rng.choice(["NX","XX","GT","LT"]), S(), M()])
+        elif c == 4: ops.append(["ZADD", K(), "XX", "CH", S(), M()])
+        elif c == 5: ops.append(["ZADD", K(), "INCR", S(), M()])
+        elif c == 6: ops.append(["ZSCORE", K(), M()])
+        elif c == 7: ops.append(["ZMSCORE", K(), M(), M()])
+        elif c == 8: ops.append(["ZINCRBY", K(), S(), M()])
+        elif c == 9: ops.append(["ZCARD", K()])
+        elif c == 10: ops.append(["ZCOUNT", K(), rng.choice(["-inf","0","(1"]), rng.choice(["+inf","10","(5"])])
+        elif c == 11: ops.append(["ZRANGE", K(), str(rng.randrange(-5,5)), str(rng.randrange(-5,5))] + (["WITHSCORES"] if rng.randrange(2) else []))
+        elif c == 12: ops.append(["ZRANGE", K(), rng.choice(["-inf","(0","2"]), rng.choice(["+inf","8","(9"]), "BYSCORE"] + (["WITHSCORES"] if rng.randrange(2) else []))
+        elif c == 13: ops.append(["ZRANGEBYSCORE", K(), "-inf", "+inf", "LIMIT", str(rng.randrange(0,3)), str(rng.randrange(-1,4))])
+        elif c == 14: ops.append(["ZRANK", K(), M()] + (["WITHSCORE"] if rng.randrange(2) else []))
+        elif c == 15: ops.append(["ZREVRANK", K(), M()])
+        elif c == 16: ops.append(["ZREM", K(), M(), M()])
+        elif c == 17: ops.append(["ZPOPMIN", K()] if rng.randrange(2) else ["ZPOPMAX", K(), str(rng.randrange(0,3))])
+        elif c == 18: ops.append(["ZREMRANGEBYRANK", K(), str(rng.randrange(-4,3)), str(rng.randrange(-3,4))])
+        elif c == 19: ops.append(["ZREMRANGEBYSCORE", K(), rng.choice(["-inf","(0"]), rng.choice(["+inf","5"])])
+    ops += [
+        ["DEL","lex"], ["ZADD","lex","0","a","0","b","0","c","0","d"],
+        ["ZRANGEBYLEX","lex","-","+"], ["ZRANGEBYLEX","lex","[b","(d"], ["ZRANGEBYLEX","lex","(a","[c"],
+        ["ZREVRANGEBYLEX","lex","+","-"], ["ZLEXCOUNT","lex","-","+"], ["ZLEXCOUNT","lex","[b","+"],
+        ["ZRANGE","lex","(a","[c","BYLEX"], ["ZRANGE","lex","+","-","BYLEX","REV"],
+        ["ZREMRANGEBYLEX","lex","[b","[c"], ["ZRANGE","lex","-","+","BYLEX"],
+        ["ZADD","cf","NX","GT","1","m"], ["ZADD","cf","GT","LT","1","m"],
+        ["ZADD","nan1","INCR","inf","m"], ["ZADD","nan1","INCR","-inf","m"],
+        ["ZINCRBY","nan2","inf","m"], ["ZINCRBY","nan2","-inf","m"],
+        ["ZADD","big"] + sum([["%d" % i, "bm%d" % i] for i in range(200)], []),
+        ["ZCARD","big"], ["ZRANGE","big","95","105","WITHSCORES"], ["ZRANK","big","bm150"],
+        ["ZPOPMIN","big","3"], ["ZPOPMAX","big","3"], ["ZCOUNT","big","(10","(20"],
+        ["SET","strz","v"], ["ZADD","strz","1","m"], ["ZSCORE","strz","m"],
+        ["ZPOPMIN","missing"], ["ZPOPMIN","missing","5"], ["ZRANK","missing","x","WITHSCORE"],
+    ]
+    return ops
+
+gens = {"string": gen_string, "set": gen_set, "list": gen_list, "zset": gen_zset}
 ops = gens[SUITE](rng)
 
 ts, tf = conn(TH, TP)
 os_, of = conn(OH, OP)
-# clean slates
-for s, f in ((ts, tf), (os_, of)):
-    s.sendall(enc(["FLUSHALL"])) if SUITE == "never" else None
+# clean slates on BOTH sides: the oracle is long-lived across runs; residue there while the
+# target boots fresh makes every op diff from op 0 (bit us on zset 2026-08-24). No FLUSHALL on the
+# target yet (multi-shard cmds arrive with scatter-gather), so DEL every key the stream will touch
+# (arg 1 in every suite); replies are drained, NOT diffed (residue makes 0/1 differ legitimately).
+touched = sorted({o[1] for o in ops if len(o) > 1})
+for cs, cf in ((ts, tf), (os_, of)):
+    cs.sendall(b"".join(enc(["DEL", k]) for k in touched))
+    for _ in touched: read_reply(cf)
 diffs = 0
 BATCH = 64
 for i in range(0, len(ops), BATCH):
