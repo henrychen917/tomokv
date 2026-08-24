@@ -30,7 +30,10 @@ enum class Kind : uint8_t {
     AllShards, DbsizeExact, Mget, Mset, Del, Unlink, Exists, Touch, Keys, Msetnx,
     Rename, Renamenx, Copy, Smove, Lmove, Rpoplpush,
     Sinter, Sunion, Sdiff, Sintercard, Sinterstore, Sunionstore, Sdiffstore,
+    Bitop,
 };
+
+enum class BitOperation : uint8_t { And, Or, Xor, Not };
 
 enum class WorkError : uint8_t { None, WrongType, Oom, Maxmemory, InsertFailed, Corrupt };
 enum class FinalReply : uint8_t {
@@ -122,6 +125,7 @@ bool classify(const Op& op, Kind& kind) {
         {"SINTER", Kind::Sinter}, {"SUNION", Kind::Sunion}, {"SDIFF", Kind::Sdiff},
         {"SINTERCARD", Kind::Sintercard}, {"SINTERSTORE", Kind::Sinterstore},
         {"SUNIONSTORE", Kind::Sunionstore}, {"SDIFFSTORE", Kind::Sdiffstore},
+        {"BITOP", Kind::Bitop},
     };
     for (const Entry& entry : entries)
         if (name_is(op, entry.name)) { kind = entry.kind; return true; }
@@ -194,8 +198,9 @@ WorkError apply_image(Shard& shard, Slice key, uint64_t hash, const ObjectImage&
                                                            : WorkError::InsertFailed;
 }
 
-WorkError store_xstring(Shard& shard, Slice key, uint64_t hash, Slice value) {
-    switch (xshard_store_string(shard, key, hash, value)) {
+WorkError store_xstring(Shard& shard, Slice key, uint64_t hash, Slice value,
+                        bool integer_encode = true) {
+    switch (xshard_store_string(shard, key, hash, value, integer_encode)) {
         case XshardStringStoreResult::Stored: return WorkError::None;
         case XshardStringStoreResult::Oom: return WorkError::Oom;
         case XshardStringStoreResult::Maxmemory: return WorkError::Maxmemory;
@@ -242,6 +247,91 @@ bool encode_elements(const std::vector<std::string>& elements, ObjectImage& imag
     for (const std::string& element : elements) {
         snapshot_put_u32(p, static_cast<uint32_t>(element.size())); p += 4;
         std::memcpy(p, element.data(), element.size()); p += element.size();
+    }
+    return true;
+}
+
+bool bitop_operation(Slice name, BitOperation& operation) {
+    if (name.eq_icase("and")) operation = BitOperation::And;
+    else if (name.eq_icase("or")) operation = BitOperation::Or;
+    else if (name.eq_icase("xor")) operation = BitOperation::Xor;
+    else if (name.eq_icase("not")) operation = BitOperation::Not;
+    else return false;
+    return true;
+}
+
+bool decode_string_image(const ObjectImage& image, std::string& value, WorkError& error) {
+    value.clear();
+    if (!image.present) return true;
+    if (image.type != Type::String) { error = WorkError::WrongType; return false; }
+    try {
+        const Enc encoding = static_cast<Enc>(image.encoding);
+        if (encoding == Enc::Int) {
+            if (image.payload.size() != sizeof(int64_t)) {
+                error = WorkError::Corrupt;
+                return false;
+            }
+            char integer[24];
+            const int64_t decoded = static_cast<int64_t>(snapshot_get_u64(image.payload.data()));
+            value.assign(integer, i64_to_dec(integer, decoded));
+        } else if (encoding == Enc::Raw || encoding == Enc::Extern) {
+            if (!image.payload.empty())
+                value.assign(reinterpret_cast<const char*>(image.payload.data()),
+                             image.payload.size());
+        } else {
+            error = WorkError::Corrupt;
+            return false;
+        }
+    } catch (const std::bad_alloc&) {
+        error = WorkError::Oom;
+        return false;
+    }
+    return true;
+}
+
+bool compute_bitop(const ObjectImage* images, uint32_t first, uint32_t count, Slice operation_name,
+                   ObjectImage& output, long long& output_length, WorkError& error) {
+    BitOperation operation;
+    if (!bitop_operation(operation_name, operation)) {
+        error = WorkError::Corrupt;
+        return false;
+    }
+    std::vector<std::string> sources;
+    try {
+        sources.resize(count);
+        size_t max_length = 0;
+        for (uint32_t i = 0; i < count; i++) {
+            if (!decode_string_image(images[first + i], sources[i], error)) return false;
+            max_length = std::max(max_length, sources[i].size());
+        }
+        output = ObjectImage{};
+        output_length = static_cast<long long>(max_length);
+        if (!max_length) return true;
+
+        output.present = true;
+        output.type = Type::String;
+        output.encoding = static_cast<uint8_t>(Enc::Raw);
+        output.expire_at_ms = -1;
+        output.payload.resize(max_length);
+        for (size_t byte = 0; byte < max_length; byte++) {
+            uint8_t result = byte < sources[0].size()
+                ? static_cast<uint8_t>(sources[0][byte]) : 0;
+            if (operation == BitOperation::Not) {
+                result = static_cast<uint8_t>(~result);
+            } else {
+                for (uint32_t source = 1; source < count; source++) {
+                    const uint8_t next = byte < sources[source].size()
+                        ? static_cast<uint8_t>(sources[source][byte]) : 0;
+                    if (operation == BitOperation::And) result &= next;
+                    else if (operation == BitOperation::Or) result |= next;
+                    else result ^= next;
+                }
+            }
+            output.payload[byte] = result;
+        }
+    } catch (const std::bad_alloc&) {
+        error = WorkError::Oom;
+        return false;
     }
     return true;
 }
@@ -386,6 +476,7 @@ bool first_error(const ScatterState& state, WorkError& error) {
 uint32_t key_count_for(Kind kind, const Op& op, uint32_t sinter_count) {
     if (kind == Kind::AllShards || kind == Kind::DbsizeExact || kind == Kind::Keys) return 0;
     if (kind == Kind::Mset || kind == Kind::Msetnx) return (op.argc() - 1) / 2;
+    if (kind == Kind::Bitop) return op.argc() - 2;
     if (kind == Kind::Rename || kind == Kind::Renamenx || kind == Kind::Copy ||
         kind == Kind::Smove || kind == Kind::Lmove || kind == Kind::Rpoplpush) return 2;
     if (kind == Kind::Sintercard) return sinter_count;
@@ -394,6 +485,7 @@ uint32_t key_count_for(Kind kind, const Op& op, uint32_t sinter_count) {
 
 uint32_t key_arg_for(Kind kind, uint32_t key, uint32_t) {
     if (kind == Kind::Mset || kind == Kind::Msetnx) return 1 + key * 2;
+    if (kind == Kind::Bitop) return 2 + key;
     if (kind == Kind::Sintercard) return 2 + key;
     return 1 + key;
 }
@@ -668,6 +760,15 @@ bool finish_phase1(ScatterState& state, Op& op) {
             }
             return false;
         }
+        case Kind::Bitop:
+            if (!compute_bitop(state.images, 1, state.key_count - 1, op.arg(1), state.apply[0],
+                               state.final_integer, state.final_error)) {
+                state.final_reply = FinalReply::Work;
+                return true;
+            }
+            state.hop2[0] = 0;
+            state.hop2_count = 1;
+            return false;
         default:
             if (is_plain_setop(state.kind) || state.kind == Kind::Sintercard || is_store_setop(state.kind)) {
                 if (!compute_setop(state)) return true;
@@ -706,6 +807,7 @@ void finish_phase2(ScatterState& state) {
         case Kind::Sinterstore:
         case Kind::Sunionstore:
         case Kind::Sdiffstore: state.final_reply = FinalReply::Integer; break;
+        case Kind::Bitop: state.final_reply = FinalReply::Integer; break;
         case Kind::Lmove:
         case Kind::Rpoplpush: state.final_reply = FinalReply::Bulk; break;
         default: state.final_reply = FinalReply::Internal; break;
@@ -790,6 +892,17 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
             : "ERR wrong number of arguments for 'msetnx' command");
         return ScatterPrepare::Error;
     }
+    if (kind == Kind::Bitop) {
+        BitOperation operation;
+        if (!bitop_operation(op.arg(1), operation)) {
+            reply_syntax(op.sink());
+            return ScatterPrepare::Error;
+        }
+        if (operation == BitOperation::Not && op.argc() != 4) {
+            reply_err(op.sink(), "ERR BITOP NOT must be called with a single source key.");
+            return ScatterPrepare::Error;
+        }
+    }
 
     uint64_t sinter_limit = 0;
     uint32_t sinter_count = 0;
@@ -873,7 +986,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         }
     }
 
-    uint32_t phase1_first = is_store_setop(kind) ? 1u : 0u;
+    uint32_t phase1_first = (is_store_setop(kind) || kind == Kind::Bitop) ? 1u : 0u;
     uint32_t group_cap = 0;
     if (kind == Kind::AllShards || kind == Kind::DbsizeExact || kind == Kind::Keys) {
         group_cap = server.nshards();
@@ -951,13 +1064,14 @@ FlatStore::SnapshotWriteResult xshard_local_snapshot_prepare(Op& op, Shard& shar
     uint32_t count = 0;
     auto arg_at = [&](uint32_t i) -> uint32_t {
         if (kind == Kind::Mset || kind == Kind::Msetnx) return 1 + i * 2;
+        if (kind == Kind::Bitop) return 2;
         if (kind == Kind::Copy) return 2;
         if (is_store_setop(kind)) return 1;
         return 1 + i;
     };
     if (kind == Kind::Mset || kind == Kind::Msetnx) count = (op.argc() - 1) / 2;
     else if (kind == Kind::Del || kind == Kind::Unlink) count = op.argc() - 1;
-    else if (kind == Kind::Copy || is_store_setop(kind)) count = 1;
+    else if (kind == Kind::Copy || is_store_setop(kind) || kind == Kind::Bitop) count = 1;
     else if (kind == Kind::Rename || kind == Kind::Renamenx || kind == Kind::Smove ||
              kind == Kind::Lmove || kind == Kind::Rpoplpush) count = 2;
     else return FlatStore::SnapshotWriteResult::Ready;
@@ -1027,9 +1141,24 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op) {
             for (uint32_t i = 0; i < group.count; i++) {
                 const uint32_t pos = state.key_order[group.begin + i];
                 const KeyRef& key = state.keys[pos];
-                WorkError result = state.kind == Kind::Msetnx
-                    ? store_xstring(shard, op.arg(key.arg), key.hash, op.arg(key.arg + 1))
-                    : apply_image(shard, op.arg(key.arg), key.hash, state.apply[pos]);
+                WorkError result;
+                if (state.kind == Kind::Msetnx) {
+                    result = store_xstring(shard, op.arg(key.arg), key.hash, op.arg(key.arg + 1));
+                } else if (state.kind == Kind::Bitop) {
+                    const ObjectImage& image = state.apply[pos];
+                    if (!image.present) {
+                        shard.store().erase(key.hash, op.arg(key.arg));
+                        result = WorkError::None;
+                    } else {
+                        result = store_xstring(
+                            shard, op.arg(key.arg), key.hash,
+                            Slice(reinterpret_cast<const char*>(image.payload.data()),
+                                  static_cast<uint32_t>(image.payload.size())),
+                            false);
+                    }
+                } else {
+                    result = apply_image(shard, op.arg(key.arg), key.hash, state.apply[pos]);
+                }
                 state.status[pos] = static_cast<uint8_t>(result);
             }
             return ScatterTaskResult::Complete;
@@ -1353,7 +1482,8 @@ void cmd_xshard_only(Shard& shard, Op& op) {
     std::vector<ObjectImage> images, apply;
     try { images.resize(op.argc()); apply.resize(op.argc()); }
     catch (const std::bad_alloc&) { set_oom(op); return; }
-    uint32_t gather_first = is_store_setop(kind) ? 2 :
+    uint32_t gather_first = kind == Kind::Bitop ? 3 :
+                            is_store_setop(kind) ? 2 :
                             kind == Kind::Sintercard ? 2 : 1;
     uint32_t gather_end = op.argc();
     if (kind == Kind::Rename || kind == Kind::Renamenx || kind == Kind::Copy ||
@@ -1439,6 +1569,29 @@ void cmd_xshard_only(Shard& shard, Op& op) {
         }
         if (error != WorkError::None) reply_work_error(op, error);
         else reply_bulk(op.sink(), Slice(moved.data(), static_cast<uint32_t>(moved.size())));
+        return;
+    }
+    if (kind == Kind::Bitop) {
+        ObjectImage output;
+        long long output_length = 0;
+        if (!compute_bitop(images.data(), 3, op.argc() - 3, op.arg(1), output,
+                           output_length, error)) {
+            reply_work_error(op, error);
+            return;
+        }
+        const Slice destination = op.arg(2);
+        const uint64_t hash = FlatStore::hash_key(destination);
+        if (!output.present) {
+            shard.store().erase(hash, destination);
+        } else {
+            error = store_xstring(
+                shard, destination, hash,
+                Slice(reinterpret_cast<const char*>(output.payload.data()),
+                      static_cast<uint32_t>(output.payload.size())),
+                false);
+        }
+        if (error != WorkError::None) reply_work_error(op, error);
+        else reply_int(op.sink(), output_length);
         return;
     }
     if (is_plain_setop(kind) || kind == Kind::Sintercard || is_store_setop(kind)) {

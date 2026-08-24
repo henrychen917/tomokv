@@ -2,7 +2,7 @@
 # DIFFERENTIAL battery: run one deterministic command stream against the TARGET (tomokv-cpp) and
 # the ORACLE (the optimized Redis fork -- byte-exact redis semantics) and diff every reply.
 #   python3 tests/differ.py <target_host> <target_port> <oracle_host> <oracle_port> <suite> [seed]
-# Exit 0 iff zero diffs. Suites: string (more added per type lane).
+# Exit 0 iff zero diffs. Suites cover each type lane plus cross-shard and bitmap commands.
 import socket, sys, random
 
 TH, TP, OH, OP = sys.argv[1], int(sys.argv[2]), sys.argv[3], int(sys.argv[4])
@@ -386,8 +386,94 @@ def gen_xshard(rng):
     ]
     return ops
 
+def gen_bitmap(rng):
+    # Long, unrelated key names make random BITOPs exercise both localfast and cross-shard paths.
+    keys = ["bm:%02d:%s" % (i, "".join(rng.choice("abcdef0123456789") for _ in range(30)))
+            for i in range(24)]
+    ops = []
+    values = [b"", b"\x00", b"\xff", b"\x80\x01", b"hello", b"12345",
+              bytes(range(16)), b"\x00\xff\x55\xaa" * 8]
+    def K(): return rng.choice(keys)
+    def R(): return str(rng.randrange(-80, 96))
+
+    for _ in range(4200):
+        c = rng.randrange(16)
+        if c in (0, 1, 2):
+            ops.append(["SETBIT", K(), str(rng.randrange(0, 1024)), str(rng.randrange(2))])
+        elif c in (3, 4):
+            ops.append(["GETBIT", K(), str(rng.randrange(0, 1536))])
+        elif c == 5:
+            ops.append(["BITCOUNT", K()])
+        elif c == 6:
+            ops.append(["BITCOUNT", K(), R(), R()])
+        elif c == 7:
+            ops.append(["BITCOUNT", K(), R(), R(), rng.choice(["BYTE", "BIT"])])
+        elif c == 8:
+            ops.append(["BITPOS", K(), str(rng.randrange(2))])
+        elif c == 9:
+            ops.append(["BITPOS", K(), str(rng.randrange(2)), R()])
+        elif c == 10:
+            ops.append(["BITPOS", K(), str(rng.randrange(2)), R(), R()])
+        elif c == 11:
+            ops.append(["BITPOS", K(), str(rng.randrange(2)), R(), R(),
+                        rng.choice(["BYTE", "BIT"])])
+        elif c == 12:
+            operation = rng.choice(["AND", "OR", "XOR"])
+            ops.append(["BITOP", operation, K()] + [K() for _ in range(rng.randrange(1, 5))])
+        elif c == 13:
+            ops.append(["BITOP", "NOT", K(), K()])
+        elif c == 14:
+            ops.append([rng.choice(["SET", "APPEND"]), K(), rng.choice(values)])
+        else:
+            ops.append([rng.choice(["GET", "STRLEN", "DEL"]), K()])
+
+    a, b, c, d, e = keys[:5]
+    ops += [
+        # MSB-first indexing, zero-filled growth, reads beyond the physical string.
+        ["DEL", a], ["SETBIT", a, "0", "1"], ["SETBIT", a, "7", "1"],
+        ["SETBIT", a, "15", "1"], ["SETBIT", a, "79", "1"],
+        ["GETBIT", a, "0"], ["GETBIT", a, "1"], ["GETBIT", a, "79"],
+        ["GETBIT", a, "80"], ["STRLEN", a], ["GET", a],
+
+        # Negative clamping and BYTE versus BIT ranges, including partial edge bytes.
+        ["SET", b, b"\xf0\x0f\x81"],
+        ["BITCOUNT", b], ["BITCOUNT", b, "-2", "-1"],
+        ["BITCOUNT", b, "-100", "100", "BYTE"],
+        ["BITCOUNT", b, "3", "18", "BIT"],
+        ["BITCOUNT", b, "-17", "-2", "BIT"],
+        ["BITCOUNT", b, "-1", "-2", "BIT"],
+        ["BITPOS", b, "1"], ["BITPOS", b, "0", "1"],
+        ["BITPOS", b, "1", "4", "18", "BIT"],
+        ["BITPOS", b, "0", "4", "18", "BIT"],
+        ["BITPOS", b, "0", "0", "0", "BYTE"],
+        ["BITPOS", b, "0", "99"],
+
+        # Missing sources are empty, shorter inputs zero-extend, and an empty result deletes dest.
+        ["SET", a, b"\xff\x0f\xaa"], ["SET", b, b"\x0f\xf0"], ["DEL", c, d, e],
+        ["BITOP", "AND", c, a, b], ["GET", c], ["STRLEN", c],
+        ["BITOP", "OR", d, a, b, e], ["GET", d],
+        ["BITOP", "XOR", e, a, b], ["GET", e],
+        ["BITOP", "NOT", c, b], ["GET", c],
+        ["BITOP", "AND", d, "bitmap-missing-1", "bitmap-missing-2"],
+        ["EXISTS", d], ["STRLEN", d],
+
+        # Destination/source aliasing and ordinary string-command interoperability.
+        ["SET", a, "hello"], ["APPEND", a, b"\x00\xff"], ["SETBIT", a, "9", "1"],
+        ["GETRANGE", a, "0", "-1"], ["STRLEN", a], ["BITCOUNT", a],
+        ["BITOP", "XOR", a, a, b], ["GET", a], ["GETBIT", a, "9"],
+        ["SET", e, "12345"], ["SETBIT", e, "3", "0"], ["GET", e],
+        ["APPEND", e, "tail"], ["BITPOS", e, "1"], ["GETRANGE", e, "0", "-1"],
+
+        # Exact parser/type failures must not mutate the destination.
+        ["BITOP", "NOT", c, a, b], ["BITOP", "NOPE", c, a],
+        ["SETBIT", a, "-1", "1"], ["SETBIT", a, "1", "2"],
+        ["SADD", "bitmap-wrongtype", "x"], ["SET", c, "keep"],
+        ["BITOP", "OR", c, a, "bitmap-wrongtype"], ["GET", c],
+    ]
+    return ops
+
 gens = {"string": gen_string, "set": gen_set, "list": gen_list, "zset": gen_zset,
-        "hash": gen_hash, "xshard": gen_xshard}
+        "hash": gen_hash, "xshard": gen_xshard, "bitmap": gen_bitmap}
 ops = gens[SUITE](rng)
 
 ts, tf = conn(TH, TP)

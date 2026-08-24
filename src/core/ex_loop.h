@@ -433,7 +433,7 @@ private:
             sh.publish_size();
             if (xshard_complete(*srv_, *self_, ring_, t, op) == ScatterFinish::Waiting) return true;
         } else if (__builtin_expect(op.spec->flags & CmdFlags::DenyOom, false) &&
-                   !sh.store().budget_admit(op.key())) {
+                   !sh.store().budget_admit(op.arg(static_cast<uint32_t>(op.spec->first_key)))) {
             // Growth gate (wrinkle fix 2026-08-25): collection growth mutates behind a stable
             // KvObj and never crosses insert-admission, so an HSET-only workload could blow
             // through maxmemory unbounded. One predicted-false flag test per op when disabled.
