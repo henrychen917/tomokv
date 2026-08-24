@@ -147,18 +147,18 @@ private:
     // ONE recv in flight per connection. While it is armed the kernel holds a raw pointer into the
     // read buffer, so nothing may move or realloc that buffer until the completion arrives.
     void arm_recv(Client* c) {
-        if (c->in().recv_armed() || c->closing()) return;
+        if (c->recv_armed() || c->closing()) return;
         size_t avail = 0;
         // may_grow ONLY at quiescence: realloc moves the buffer that every in-flight argv Slice
         // points into. See Conn::read_space.
-        char* dst = c->in().read_space(kRecvChunk, avail, c->rob().quiesced());
+        char* dst = c->read_space(kRecvChunk, avail, c->rob().quiesced());
         if (!dst) return;                      // no usable space yet: let the ROB drain first
         io_uring_sqe* s = ring_.sqe();
         if (!s) { self_->sig().sqe_starved++; return; }   // retried from flush_ready next pass
-        io_uring_prep_recv(s, c->in().fd(), dst, avail, 0);
+        io_uring_prep_recv(s, c->fd(), dst, avail, 0);
         s->user_data = ur_tag(UrKind::Recv, c);
         ring_.note_pending();
-        c->in().set_recv_armed(true);
+        c->set_recv_armed(true);
     }
 
     // ---- completions ----------------------------------------------------------------------------
@@ -168,7 +168,7 @@ private:
             case UrKind::Recv:   on_recv(ur_ptr<Client>(cqe->user_data), cqe->res); break;
             case UrKind::Send: {
                 Client* c = ur_ptr<Client>(cqe->user_data);
-                if (!wb_.on_send_complete(*c, c->wb(), cqe->res)) close_client(c);
+                if (!wb_.on_send_complete(*c, cqe->res)) close_client(c);
                 break;
             }
             case UrKind::Wake:  self_->sig().wakes_recv++; break;
@@ -202,9 +202,9 @@ private:
     }
 
     void on_recv(Client* c, int res) {
-        c->in().set_recv_armed(false);       // the kernel has released its pointer
+        c->set_recv_armed(false);       // the kernel has released its pointer
         if (res <= 0) { close_client(c); return; }
-        c->in().commit_read(static_cast<size_t>(res));
+        c->commit_read(static_cast<size_t>(res));
         parse_and_dispatch(c);
         // Deliberately NOT re-armed here. flush_ready() re-arms AFTER it may have reset the read
         // buffer; arming first would leave the kernel holding a pointer that the reset then moves.
@@ -213,7 +213,7 @@ private:
 
     // ---- parse -> route -> publish -----------------------------------------------------------------
     void parse_and_dispatch(Client* c) {
-        ConnIn& conn = c->in();
+        Client& conn = *c;
         Rob<kRobWindow>& rob = c->rob();
         LoopSignals& sig = self_->sig();
         bool head_candidate = true;   // only the pass's FIRST dispatch can be the direct head
@@ -305,8 +305,8 @@ private:
             // cross-thread load and cost -2..-4% at p32 for a candidate that can never qualify.
             if (head_candidate) {
                 head_candidate = false;
-                if (rob.in_flight() == 0 && c->out().nothing_to_write()) {
-                    SmallBuf<kWbufInline>& fb = c->out().fill_buf();
+                if (rob.in_flight() == 0 && c->nothing_to_write()) {
+                    SmallBuf<kWbufInline>& fb = c->fill_buf();
                     op->direct     = fb.data();
                     op->direct_cap = static_cast<uint32_t>(fb.cap());
                 }
@@ -406,7 +406,7 @@ private:
         // that made 3s hold flat (-3.7%) at the conn count where 2s lost 21%.
         for (auto it = active_.begin(); it != active_.end();) {
             Client* c = *it;
-            ConnIn& conn = c->in();
+            Client& conn = *c;
             if (backstop_pass_ && !c->serve_pending()) enqueue_serve(c);
 
             // Reset only when the ROB is quiescent AND no recv is outstanding — see conn.h. Then
@@ -429,7 +429,7 @@ private:
 
             const bool more_input = conn.rpos() < conn.rlen();
             const bool done = c->rob().quiesced() && !more_input && !stuck && !c->serve_pending() &&
-                              c->out().nothing_to_write();
+                              c->nothing_to_write();
             if (done && !c->closing()) { c->set_in_active(false); it = active_.erase(it); }
             else if (c->closing() && c->safe_to_release()) {
                 c->set_in_active(false); it = active_.erase(it); close_client(c);
@@ -479,7 +479,7 @@ private:
         if (!c->safe_to_release()) { mark_active(c); return; }
         self_->release_wb_slot(c->wb_slot());
         c->set_wb_slot(Client::kNoWbSlot);
-        ::close(c->in().fd());
+        ::close(c->fd());
         // NOT delete. An ex-side claimed post may still sit un-consumed in our inbound channels
         // naming this client. Every such entry was pushed BEFORE this point, and channels are FIFO
         // with their mask bits set -- so ONE full

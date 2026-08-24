@@ -63,15 +63,15 @@ public:
     // WHO MAY CALL. In Io mode, only the owning io thread -- no lock exists or is needed. In Wb mode,
     // only the connection's dedicated sender. In EX MODE, ANYONE: the executor that just completed
     // the head flushes it inline, and the owning io thread sweeps as the backstop -- so the whole
-    // serve (drain + stage + send), not just the pump, runs under the connection's WbLink lock. The
+    // serve (drain + stage + send) is one io-thread-local pass. The
     // ROB stays SPSC because the lock makes "exactly one consumer at any instant" true dynamically,
     // Retire completed ops IN ORDER, stage their bytes, and write. Owned and run only by the
     // connection's io thread. Returns true if it did anything, so a caller can tell progress from
     // an empty poll.
     bool serve(Client& c) {
-        TOMO_FORENSIC(c.wb().n_serves.fetch_add(1, std::memory_order_relaxed));
+        TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed));
         stats_.serves++;
-        ConnOut& conn = c.out();
+        Client& conn = c;
         const uint32_t retired = c.rob().drain([&](Op& op) {
             // Direct bytes are already in the fill buffer; publishing the length is the whole
             // "copy". A reply that outgrew the region spilled to op.reply -- emit it AFTER the
@@ -80,7 +80,7 @@ public:
             if (!op.reply.empty()) conn.fill_buf().append(op.reply.data(), op.reply.size());
         });
         bool did = retired != 0;
-        if (!conn.nothing_to_write()) did |= pump(c, c.wb());
+        if (!conn.nothing_to_write()) did |= pump(c);
         stats_.retired += retired;
         // A serve that retires nothing: the POLLING paths (flush_ready, the backstop) finding
         // nothing, which is expected and cheap.
@@ -90,10 +90,10 @@ public:
 
     // Try to push whatever this client has buffered. Safe to call spuriously: if nothing is pending
     // or a send is already outstanding it does nothing. Returns true if a send was submitted.
-    bool pump(Client& c, WbLink& link) {
-        if (link.send_inflight) return false;              // preserve one-send-per-socket ordering
+    bool pump(Client& c) {
+        if (c.send_inflight()) return false;               // preserve one-send-per-socket ordering
 
-        ConnOut& conn = c.out();
+        Client& conn = c;
         // Nothing outstanding, so if the send buffer is fully written we may promote the fill
         // buffer. This is the ONLY point at which the two swap, and it is safe precisely because
         // send_inflight is false here.
@@ -109,23 +109,23 @@ public:
         s->user_data = ur_tag(UrKind::Send, &c);
         ring_->note_pending();
 
-        link.send_inflight = true;
+        c.set_send_inflight(true);
         stats_.sends_submitted++;
         return true;
     }
 
     // Completion handler. `res` is the CQE result: bytes written, or negative errno.
     // Returns false when the connection should be torn down.
-    bool on_send_complete(Client& c, WbLink& link, int res) {
+    bool on_send_complete(Client& c, int res) {
         bool resubmit = false;
         {
-            link.send_inflight = false;
+            c.set_send_inflight(false);
 
             if (res < 0) {
                 if (res == -EAGAIN || res == -EINTR) { resubmit = true; }
                 else { stats_.send_errors++; return false; }
             } else {
-                ConnOut& conn = c.out();
+                Client& conn = c;
                 conn.commit_write(static_cast<uint32_t>(res));
                 stats_.bytes_sent += static_cast<uint64_t>(res);
                 if (conn.write_drained()) {
@@ -141,7 +141,7 @@ public:
                 }
             }
         }
-        if (resubmit) pump(c, link);
+        if (resubmit) pump(c);
         return true;
     }
 

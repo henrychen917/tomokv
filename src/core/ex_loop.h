@@ -172,10 +172,10 @@ private:
     void notify_sender_to(Client* c, uint32_t target) {
         bool expected = false;
         if (!c->retire_queued().compare_exchange_strong(expected, true, std::memory_order_acq_rel)) {
-            TOMO_FORENSIC(c->wb().n_defers.fetch_add(1, std::memory_order_relaxed));
+            TOMO_FORENSIC(c->n_defers.fetch_add(1, std::memory_order_relaxed));
             return;
         }
-        TOMO_FORENSIC(c->wb().n_claims.fetch_add(1, std::memory_order_relaxed));
+        TOMO_FORENSIC(c->n_claims.fetch_add(1, std::memory_order_relaxed));
         ThreadCtx& snd = srv_->thread(target);
         if (!snd.post_client(self_->id(), c, ring_, self_->sig())) {
             self_->sig().notify_drop++;

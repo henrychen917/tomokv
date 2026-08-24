@@ -296,9 +296,9 @@ int main(int argc, char** argv) {
                 if (c->retire_queued().load(std::memory_order_acquire)) st_flag++;
 #ifdef TOMO_WEDGE_FORENSICS
                 std::printf("  stranded conn: claims=%u defers=%u serves=%u inflight=%u flag=%d\n",
-                            c->wb().n_claims.load(std::memory_order_relaxed),
-                            c->wb().n_defers.load(std::memory_order_relaxed),
-                            c->wb().n_serves.load(std::memory_order_relaxed),
+                            c->n_claims.load(std::memory_order_relaxed),
+                            c->n_defers.load(std::memory_order_relaxed),
+                            c->n_serves.load(std::memory_order_relaxed),
                             c->rob().in_flight(),
                             (int)c->retire_queued().load(std::memory_order_acquire));
 #endif
@@ -315,7 +315,7 @@ int main(int argc, char** argv) {
                     }
                 }
             }
-            if (!c->out().nothing_to_write()) stuck_wr++;
+            if (!c->nothing_to_write()) stuck_wr++;
         }
     std::printf("wb: retired=%llu direct=%llu sends=%llu/%llu short=%llu err=%llu bytes=%llu"
                 " serves=%llu empty=%llu\n",
