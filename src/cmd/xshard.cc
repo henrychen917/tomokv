@@ -1064,7 +1064,12 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op) {
                     } else {
                         const Slice value = object->str_value();
                         slot.len = value.n;
-                        if (value.n <= ValueSlot::kInline) {
+                        // ONE knob for every copy-vs-zero-copy decision (owner unification
+                        // 2026-08-26): the gather cutover is min(zc-min, slot capacity), the same
+                        // zc-min that governs single-shard GET borrows. Live via CONFIG SET.
+                        const uint32_t cutover =
+                            std::min<uint32_t>(shard.zc_min(), ValueSlot::kInline);
+                        if (value.n <= cutover) {
                             if (value.n) std::memcpy(slot.small, value.p, value.n);
                             slot.kind = ValueKind::Inline;
                         } else {
