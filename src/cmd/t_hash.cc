@@ -803,6 +803,7 @@ void cmd_hset(Shard& shard, Op& op) {
         reply_err(op.sink(), "ERR out of memory");
         return;
     }
+    ObjectSizeTracker size_tracker(shard.store(), object);   // existing object: track growth
     // Wide fresh HSET/HMSET must not repeatedly scan an ever-growing Compact. As Redis, Valkey,
     // and the optimized fork do, use only the incoming pair count/lengths to pre-promote when the
     // command itself cannot fit; duplicates may conservatively over-promote, never under-promote.
@@ -842,6 +843,7 @@ void cmd_hsetnx(Shard& shard, Op& op) {
         reply_err(op.sink(), "ERR out of memory");
         return;
     }
+    ObjectSizeTracker size_tracker(shard.store(), object);
     if (hash_set(*hash, shard.type_limits().hash, op.arg(2), op.arg(3)) == HashSetKind::Oom) {
         if (!object) delete hash;
         reply_err(op.sink(), "ERR out of memory");
@@ -878,11 +880,13 @@ void cmd_hdel(Shard& shard, Op& op) {
         return;
     }
     HashVal* hash = as_hash(object);
+    ObjectSizeTracker size_tracker(shard.store(), object);
     uint32_t deleted = 0;
     for (uint32_t i = 2; i < op.argc(); i++) {
         if (!hash_erase(*hash, op.arg(i))) continue;
         deleted++;
         if (hash->field_count() == 0) {
+            size_tracker.finish();               // account the shrink; erase subtracts the rest
             shard.store().erase(op.hash, op.key());
             break;
         }
@@ -940,6 +944,7 @@ void cmd_hincrby(Shard& shard, Op& op) {
         reply_err(op.sink(), "ERR out of memory");
         return;
     }
+    ObjectSizeTracker size_tracker(shard.store(), object);
     if (hash_set(*hash, shard.type_limits().hash, op.arg(2), Slice(text, length)) ==
         HashSetKind::Oom) {
         if (!object) delete hash;
@@ -987,6 +992,7 @@ void cmd_hincrbyfloat(Shard& shard, Op& op) {
         reply_err(op.sink(), "ERR out of memory");
         return;
     }
+    ObjectSizeTracker size_tracker(shard.store(), object);
     if (hash_set(*hash, shard.type_limits().hash, op.arg(2), Slice(text, length)) ==
         HashSetKind::Oom) {
         if (!object) delete hash;
@@ -1388,17 +1394,17 @@ void cmd_hrandfield(Shard& shard, Op& op) {
 
 static const CommandSpec kTable[] = {
     // name          min max flags                handler             first last step
-    {"HSET",          4, -1, CmdFlags::Write,    cmd_hset,              1,  1,  1},
-    {"HMSET",         4, -1, CmdFlags::Write,    cmd_hset,              1,  1,  1},
-    {"HSETNX",        4,  4, CmdFlags::Write,    cmd_hsetnx,            1,  1,  1},
+    {"HSET",          4, -1, CmdFlags::Write | CmdFlags::DenyOom,    cmd_hset,              1,  1,  1},
+    {"HMSET",         4, -1, CmdFlags::Write | CmdFlags::DenyOom,    cmd_hset,              1,  1,  1},
+    {"HSETNX",        4,  4, CmdFlags::Write | CmdFlags::DenyOom,    cmd_hsetnx,            1,  1,  1},
     {"HGET",          3,  3, CmdFlags::Readonly, cmd_hget,              1,  1,  1},
     {"HMGET",         3, -1, CmdFlags::Readonly, cmd_hmget,             1,  1,  1},
     {"HDEL",          3, -1, CmdFlags::Write,    cmd_hdel,              1,  1,  1},
     {"HLEN",          2,  2, CmdFlags::Readonly, cmd_hlen,              1,  1,  1},
     {"HEXISTS",       3,  3, CmdFlags::Readonly, cmd_hexists,           1,  1,  1},
     {"HSTRLEN",       3,  3, CmdFlags::Readonly, cmd_hstrlen,           1,  1,  1},
-    {"HINCRBY",       4,  4, CmdFlags::Write,    cmd_hincrby,           1,  1,  1},
-    {"HINCRBYFLOAT",  4,  4, CmdFlags::Write,    cmd_hincrbyfloat,      1,  1,  1},
+    {"HINCRBY",       4,  4, CmdFlags::Write | CmdFlags::DenyOom,    cmd_hincrby,           1,  1,  1},
+    {"HINCRBYFLOAT",  4,  4, CmdFlags::Write | CmdFlags::DenyOom,    cmd_hincrbyfloat,      1,  1,  1},
     {"HGETALL",       2,  2, CmdFlags::Readonly, cmd_hgetall,           1,  1,  1},
     {"HKEYS",         2,  2, CmdFlags::Readonly, cmd_hkeys,             1,  1,  1},
     {"HVALS",         2,  2, CmdFlags::Readonly, cmd_hvals,             1,  1,  1},

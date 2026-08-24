@@ -395,7 +395,15 @@ private:
 
         if (!t.scatter) self_->note_command(op.spec->id);
 
-        op.spec->handler(sh, op);
+        // Growth gate (wrinkle fix 2026-08-25): collection growth mutates behind a stable KvObj and
+        // never crosses insert-admission, so an HSET-only workload could blow through maxmemory
+        // unbounded. One predicted-false flag test per op when disabled.
+        if (__builtin_expect(op.spec->flags & CmdFlags::DenyOom, false) &&
+            !sh.store().budget_admit(op.key())) {
+            reply_maxmemory_oom(op);
+        } else {
+            op.spec->handler(sh, op);
+        }
 
         if (t.scatter) {
             sh.publish_size();

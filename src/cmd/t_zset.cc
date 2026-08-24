@@ -1091,6 +1091,7 @@ void cmd_zadd_generic(Shard& shard, Op& op, bool force_incr) {
         reply_oom(op);
         return;
     }
+    ObjectSizeTracker size_tracker(shard.store(), object);
 
     uint64_t added = 0, updated = 0, processed = 0;
     double last_score = 0;
@@ -1286,6 +1287,7 @@ void cmd_zrem(Shard& shard, Op& op) {
         return;
     }
     ZsetVal& value = *zset_value(object);
+    ObjectSizeTracker size_tracker(shard.store(), object);
     uint64_t removed = 0;
     if (value.encoding() == CollectionEncoding::Compact) {
         for (uint32_t i = 2; i < op.argc(); i++) {
@@ -1301,6 +1303,7 @@ void cmd_zrem(Shard& shard, Op& op) {
             removed++;
         }
     }
+    size_tracker.finish();                       // account the shrink before any whole-key erase
     if (!value.entries()) shard.store().erase(op.hash, op.key());
     reply_int(op.sink(), static_cast<long long>(removed));
 }
@@ -1371,10 +1374,11 @@ RemovalResult compact_erase_lex(ZsetVal& value, const LexRange& range) {
 }
 
 void finish_range_delete(Shard& shard, Op& op, ZsetVal& value, RemovalResult result,
-                         bool expanded) {
+                         bool expanded, ObjectSizeTracker& size_tracker) {
     if (expanded && result.count)
         value.note_expanded_delete_many(result.count, result.payload,
                                         value.expanded->allocation_bytes());
+    size_tracker.finish();                       // account the shrink before any whole-key erase
     if (!value.entries()) shard.store().erase(op.hash, op.key());
     reply_int(op.sink(), result.count);
 }
@@ -1392,8 +1396,10 @@ void cmd_zremrangebyrank(Shard& shard, Op& op) {
         return;
     }
     ZsetVal& value = *zset_value(object);
+    ObjectSizeTracker size_tracker(shard.store(), object);
     if (value.encoding() == CollectionEncoding::Compact) {
-        finish_range_delete(shard, op, value, compact_erase_rank(value, start, stop), false);
+        finish_range_delete(shard, op, value, compact_erase_rank(value, start, stop), false,
+                            size_tracker);
         return;
     }
     const int64_t length = static_cast<int64_t>(value.entries());
@@ -1406,7 +1412,7 @@ void cmd_zremrangebyrank(Shard& shard, Op& op) {
         result = value.expanded->erase_rank_range(static_cast<uint64_t>(start + 1),
                                                   static_cast<uint64_t>(stop + 1));
     }
-    finish_range_delete(shard, op, value, result, true);
+    finish_range_delete(shard, op, value, result, true, size_tracker);
 }
 
 void cmd_zremrangebyscore(Shard& shard, Op& op) {
@@ -1422,12 +1428,13 @@ void cmd_zremrangebyscore(Shard& shard, Op& op) {
         return;
     }
     ZsetVal& value = *zset_value(object);
+    ObjectSizeTracker size_tracker(shard.store(), object);
     const bool expanded = value.encoding() != CollectionEncoding::Compact;
     RemovalResult result;
     if (!score_range_empty(range))
         result = expanded ? value.expanded->erase_score_range(range)
                           : compact_erase_score(value, range);
-    finish_range_delete(shard, op, value, result, expanded);
+    finish_range_delete(shard, op, value, result, expanded, size_tracker);
 }
 
 void cmd_zremrangebylex(Shard& shard, Op& op) {
@@ -1443,12 +1450,13 @@ void cmd_zremrangebylex(Shard& shard, Op& op) {
         return;
     }
     ZsetVal& value = *zset_value(object);
+    ObjectSizeTracker size_tracker(shard.store(), object);
     const bool expanded = value.encoding() != CollectionEncoding::Compact;
     RemovalResult result;
     if (!lex_range_empty(range))
         result = expanded ? value.expanded->erase_lex_range(range)
                           : compact_erase_lex(value, range);
-    finish_range_delete(shard, op, value, result, expanded);
+    finish_range_delete(shard, op, value, result, expanded, size_tracker);
 }
 
 enum class RangeKind : uint8_t { Auto, Rank, Score, Lex };
@@ -1779,6 +1787,7 @@ void cmd_zpop_generic(Shard& shard, Op& op, bool maximum) {
         return;
     }
     ZsetVal& value = *zset_value(object);
+    ObjectSizeTracker size_tracker(shard.store(), object);
     const uint64_t take = std::min<uint64_t>(static_cast<uint64_t>(requested), value.entries());
 
     RemovalResult removed;
@@ -1813,6 +1822,7 @@ void cmd_zpop_generic(Shard& shard, Op& op, bool maximum) {
         value.note_expanded_delete_many(removed.count, removed.payload,
                                         value.expanded->allocation_bytes());
     }
+    size_tracker.finish();
     if (!value.entries()) shard.store().erase(op.hash, op.key());
 }
 
@@ -2138,10 +2148,10 @@ void cmd_zscan(Shard& shard, Op& op) {
 
 static const CommandSpec kTable[] = {
     // name                  min max flags               handler                 first last step
-    {"ZADD",                 4, -1, CmdFlags::Write,    cmd_zadd,                  1,  1,  1},
+    {"ZADD",                 4, -1, CmdFlags::Write | CmdFlags::DenyOom,    cmd_zadd,                  1,  1,  1},
     {"ZSCORE",               3,  3, CmdFlags::Readonly, cmd_zscore,                1,  1,  1},
     {"ZMSCORE",              3, -1, CmdFlags::Readonly, cmd_zmscore,               1,  1,  1},
-    {"ZINCRBY",              4,  4, CmdFlags::Write,    cmd_zincrby,               1,  1,  1},
+    {"ZINCRBY",              4,  4, CmdFlags::Write | CmdFlags::DenyOom,    cmd_zincrby,               1,  1,  1},
     {"ZCARD",                2,  2, CmdFlags::Readonly, cmd_zcard,                 1,  1,  1},
     {"ZCOUNT",               4,  4, CmdFlags::Readonly, cmd_zcount,                1,  1,  1},
     {"ZRANGE",               4, -1, CmdFlags::Readonly, cmd_zrange,                1,  1,  1},

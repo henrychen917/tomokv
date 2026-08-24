@@ -613,6 +613,32 @@ public:
         return removed;
     }
 
+    // Pre-execution budget gate for growth commands (CmdFlags::DenyOom), redis-style: over-budget
+    // shards evict (policy permitting) until under, else the command is refused. The mutation is
+    // NOT sized -- like redis, one op may overshoot and the next gated op pays it back. Suspended
+    // during capture for the same reason admission is (victims are not pre-imaged).
+    bool budget_admit(Slice protected_key) {
+        if (!__builtin_expect(maxmemory_enabled_, false)) return true;
+        if (snapshot_active_) return true;
+        // NOT make_room_for: projected_bytes subtracts the protected key's own size (replacement
+        // semantics), so the very key being grown always "fits". The gate asks the raw question:
+        // is the shard over budget NOW; evict others, never the op's key; else refuse.
+        if (accounted_bytes() <= maxmemory_limit_) return true;
+        if (maxmemory_policy_ == MaxmemoryPolicy::NoEviction) return false;
+        uint32_t budget = kEvictionsPerOp;
+        while (budget-- && accounted_bytes() > maxmemory_limit_) {
+            KvObj* victim = choose_victim(protected_key);
+            if (!victim) return false;
+            const uint64_t hash = hash_key(victim->key());
+            const Slice key = victim->key();
+            const uint32_t before = size();
+            const bool live = erase(hash, key);
+            if (size() == before) return false;
+            if (live && evicted_counter_) (*evicted_counter_)++;
+        }
+        return accounted_bytes() <= maxmemory_limit_;
+    }
+
     // Takes ownership of `o` only on success; frees anything it displaces.
     InsertResult insert(uint64_t h, KvObj* o) {
         const bool capturing = rehashing() && snapshot_active_;
@@ -1354,6 +1380,35 @@ private:
     SnapshotRecordState snapshot_record_;
     std::unique_ptr<SnapshotChunk> snapshot_build_;
     std::unique_ptr<SnapshotChunk> snapshot_ready_;
+};
+
+
+// RAII bracket for any mutation of an EXISTING object: samples kvobj_size before, reports the
+// delta to the owning store after, so obj_bytes_ tracks external collection growth/shrink. Every
+// family handler that mutates a found object must hold one (missing brackets were invisible on
+// the way up and UNDERFLOWED obj_bytes_ on delete -- caught 2026-08-25). Single-owner: no atomics.
+class ObjectSizeTracker {
+public:
+    ObjectSizeTracker(FlatStore& store, KvObj* object)
+        : store_(store), object_(object), before_(object ? kvobj_size(object) : 0) {}
+    ~ObjectSizeTracker() { finish(); }
+    ObjectSizeTracker(const ObjectSizeTracker&) = delete;
+    ObjectSizeTracker& operator=(const ObjectSizeTracker&) = delete;
+
+    void finish() {
+        if (!object_) return;
+        store_.note_object_size_change(before_, kvobj_size(object_));
+        object_ = nullptr;
+    }
+
+    // For paths that erase the object inside the bracket: the store already subtracted the full
+    // current size in erase(); reporting a delta on top would double-count.
+    void cancel() { object_ = nullptr; }
+
+private:
+    FlatStore& store_;
+    KvObj*     object_;
+    size_t     before_;
 };
 
 }  // namespace tomo

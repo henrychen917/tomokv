@@ -699,6 +699,7 @@ void cmd_sadd(Shard& shard, Op& op) {
         reply_err(op.sink(), "ERR out of memory");
         return;
     }
+    ObjectSizeTracker size_tracker(shard.store(), object);
 
     const CompactLimit& limit = shard.type_limits().set;
     const uint32_t hint = op.argc() - 2;
@@ -769,8 +770,10 @@ void cmd_srem(Shard& shard, Op& op) {
     auto sink = op.sink();
     if (!obj_type_check(object, Type::Set, sink)) return;
     SetVal* set = as_set(object);
+    ObjectSizeTracker size_tracker(shard.store(), object);
     uint32_t removed = 0;
     for (uint32_t i = 2; i < op.argc(); i++) removed += remove_member(*set, op.arg(i));
+    size_tracker.finish();                       // account the shrink before any whole-key erase
     if (set->entries() == 0) shard.store().erase(op.hash, op.key());
     reply_int(op.sink(), removed);
 }
@@ -859,6 +862,7 @@ void cmd_spop(Shard& shard, Op& op) {
         return;
     }
 
+    ObjectSizeTracker size_tracker(shard.store(), object);   // partial pop: track the shrink
     // Compact deletion would move bytes proportional to the collection. Promote once (charged to
     // the preceding compact writes), then every random pick and tombstone delete is O(1).
     if (set->encoding() != CollectionEncoding::Hashtable &&
@@ -1060,7 +1064,7 @@ void cmd_sscan(Shard& shard, Op& op) {
 
 static const CommandSpec kTable[] = {
     // name          min max flags                handler          first last step
-    {"SADD",          3, -1, CmdFlags::Write,     cmd_sadd,          1,  1,  1},
+    {"SADD",          3, -1, CmdFlags::Write | CmdFlags::DenyOom,     cmd_sadd,          1,  1,  1},
     {"SREM",          3, -1, CmdFlags::Write,     cmd_srem,          1,  1,  1},
     {"SISMEMBER",     3,  3, CmdFlags::Readonly,  cmd_sismember,     1,  1,  1},
     {"SMISMEMBER",    3, -1, CmdFlags::Readonly,  cmd_smismember,    1,  1,  1},

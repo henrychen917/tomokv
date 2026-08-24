@@ -63,25 +63,7 @@ bool parse_i64(Slice s, int64_t& out) {
 
 ListVal* list_value(KvObj* o) { return static_cast<ListVal*>(o->external_ptr()); }
 
-class ObjectSizeTracker {
-public:
-    ObjectSizeTracker(FlatStore& store, KvObj* object)
-        : store_(store), object_(object), before_(kvobj_size(object)) {}
-    ~ObjectSizeTracker() { finish(); }
-    ObjectSizeTracker(const ObjectSizeTracker&) = delete;
-    ObjectSizeTracker& operator=(const ObjectSizeTracker&) = delete;
-
-    void finish() {
-        if (!object_) return;
-        store_.note_object_size_change(before_, kvobj_size(object_));
-        object_ = nullptr;
-    }
-
-private:
-    FlatStore& store_;
-    KvObj*     object_;
-    size_t     before_;
-};
+// ObjectSizeTracker now lives in flatstore.h (shared by every family).
 
 void clear_nodes(ListVal& list) {
     ListNode* node = list.head;
@@ -809,17 +791,17 @@ void cmd_lpos(Shard& shard, Op& op) {
 
 static const CommandSpec kTable[] = {
     // name       min max flags               handler       first last step
-    {"LPUSH",      3, -1, CmdFlags::Write,    cmd_lpush,      1,  1,  1},
-    {"RPUSH",      3, -1, CmdFlags::Write,    cmd_rpush,      1,  1,  1},
-    {"LPUSHX",     3, -1, CmdFlags::Write,    cmd_lpushx,     1,  1,  1},
-    {"RPUSHX",     3, -1, CmdFlags::Write,    cmd_rpushx,     1,  1,  1},
+    {"LPUSH",      3, -1, CmdFlags::Write | CmdFlags::DenyOom,    cmd_lpush,      1,  1,  1},
+    {"RPUSH",      3, -1, CmdFlags::Write | CmdFlags::DenyOom,    cmd_rpush,      1,  1,  1},
+    {"LPUSHX",     3, -1, CmdFlags::Write | CmdFlags::DenyOom,    cmd_lpushx,     1,  1,  1},
+    {"RPUSHX",     3, -1, CmdFlags::Write | CmdFlags::DenyOom,    cmd_rpushx,     1,  1,  1},
     {"LPOP",       2,  3, CmdFlags::Write,    cmd_lpop,       1,  1,  1},
     {"RPOP",       2,  3, CmdFlags::Write,    cmd_rpop,       1,  1,  1},
     {"LLEN",       2,  2, CmdFlags::Readonly, cmd_llen,       1,  1,  1},
     {"LRANGE",     4,  4, CmdFlags::Readonly, cmd_lrange,     1,  1,  1},
     {"LINDEX",     3,  3, CmdFlags::Readonly, cmd_lindex,     1,  1,  1},
-    {"LSET",       4,  4, CmdFlags::Write,    cmd_lset,       1,  1,  1},
-    {"LINSERT",    5,  5, CmdFlags::Write,    cmd_linsert,    1,  1,  1},
+    {"LSET",       4,  4, CmdFlags::Write | CmdFlags::DenyOom,    cmd_lset,       1,  1,  1},
+    {"LINSERT",    5,  5, CmdFlags::Write | CmdFlags::DenyOom,    cmd_linsert,    1,  1,  1},
     {"LREM",       4,  4, CmdFlags::Write,    cmd_lrem,       1,  1,  1},
     {"LTRIM",      4,  4, CmdFlags::Write,    cmd_ltrim,      1,  1,  1},
     {"LPOS",       3, -1, CmdFlags::Readonly, cmd_lpos,       1,  1,  1},

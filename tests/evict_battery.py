@@ -131,6 +131,34 @@ elif SECTION == "lfu":
     check("allkeys-lfu: eviction FIRED", ev and ev > 0, "evicted=%s" % ev)
     check("allkeys-lfu: hot 20 mostly survive", hot >= 15, hot)
 
+elif SECTION == "growth":
+    # wrinkle fix: collection growth must respect maxmemory (pre-exec DENYOOM gate).
+    must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "noeviction")
+    oom = None; i = 0
+    while i < 60000 and oom is None:          # one hash, grown far past the whole-server budget
+        s.sendall(enc(["HSET", "bigh", "f%d" % i, "v" * 100]))
+        r = rr()
+        if isinstance(r, bytes) and r.startswith(b"-"): oom = r
+        i += 1
+    check("growth: HSET on one hash hits OOM", oom is not None, (oom or b"")[:40])
+    check("growth: exact redis OOM text",
+          oom == b"-OOM command not allowed when used memory > 'maxmemory'.")
+    check("growth: reads still served", cmd("HLEN", "bigh")[:1] == b":")
+    check("growth: DEL allowed while over budget", cmd("DEL", "bigh") == b":1")
+    ok_after = cmd("HSET", "bigh2", "f", "v")
+    check("growth: writes recover after DEL", ok_after == b":1", ok_after)
+    must("CONFIG", "SET", "maxmemory-policy", "allkeys-lru")
+    fill("filler", 3000)
+    grown = 0; stopped = False
+    for j in range(40000):
+        s.sendall(enc(["RPUSH", "bigl", "x" * 100]))
+        r = rr()
+        if isinstance(r, bytes) and r.startswith(b"-"): stopped = True; break
+        grown += 1
+    ev = info_num("evicted_keys")
+    check("growth: allkeys-lru evicts others for list growth", ev and ev > 0, "evicted=%s" % ev)
+    check("growth: gate closes once nothing evictable remains", stopped, "grew %d then %s" % (grown, "OOM" if stopped else "never stopped"))
+
 elif SECTION == "config":
     must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "allkeys-lru")
     fill("cfg", 3000)

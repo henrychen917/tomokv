@@ -27,6 +27,11 @@ struct CmdFlags {
     static constexpr uint32_t RandomShard = 1u << 5; // keyless op routed by the IO thread's PRNG
     static constexpr uint32_t CursorShard = 1u << 6; // shard id is encoded in argv[1]'s cursor
     static constexpr uint32_t ConfigRoute = 1u << 7; // GET is IO-local; SET fans out as control work
+    // Growth commands, gated by the pre-execution maxmemory check (redis DENYOOM): if the shard is
+    // over budget and eviction cannot bring it under, the command is refused with the exact OOM
+    // reply BEFORE its handler runs. DEL/expiry/read commands stay ungated so an over-budget shard
+    // can always be drained.
+    static constexpr uint32_t DenyOom = 1u << 8;
 };
 
 using CmdHandler = void (*)(Shard&, Op&);
@@ -75,6 +80,8 @@ const CommandSpec* command_registry_at(uint32_t id);
 class Server;
 class Client;
 class ThreadCtx;
+struct Op;
+void reply_maxmemory_oom(Op& op);  // defined in t_string.cc, tomo:: linkage
 // Lets the connection-local admin commands read published per-shard counters.
 void command_bind_server(Server* s);
 
