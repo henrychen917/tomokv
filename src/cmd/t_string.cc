@@ -3,6 +3,7 @@
 // Handlers execute only on the shard owner and emit RESP through Op::Sink. Connection-local server
 // commands live in t_server.cc.
 #include "command.h"
+#include "hll.h"
 #include "xshard.h"
 #include "../core/shard.h"
 #include "../exec/op.h"
@@ -18,6 +19,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <string>
 
 namespace tomo {
 
@@ -180,8 +182,8 @@ void clear_reply(Op& op) {
 }  // namespace
 
 XshardStringStoreResult xshard_store_string(Shard& shard, Slice key, uint64_t hash, Slice value,
-                                             bool integer_encode) {
-    switch (store_string(shard, key, hash, value, -1, integer_encode)) {
+                                             int64_t expire_at_ms, bool integer_encode) {
+    switch (store_string(shard, key, hash, value, expire_at_ms, integer_encode)) {
         case StoreResult::Stored: return XshardStringStoreResult::Stored;
         case StoreResult::Oom: return XshardStringStoreResult::Oom;
         case StoreResult::InsertFailed: return XshardStringStoreResult::InsertFailed;
@@ -869,6 +871,100 @@ void cmd_incrbyfloat(Shard& sh, Op& op) {
     reply_bulk(op.sink(), Slice(text, length));
 }
 
+void reply_hll_bad_header(Op& op) {
+    reply_err(op.sink(), "WRONGTYPE Key is not a valid HyperLogLog string value.");
+}
+
+void reply_hll_corrupt(Op& op) {
+    reply_err(op.sink(), "INVALIDOBJ Corrupted HLL object detected");
+}
+
+bool hll_object_image(KvObj* object, Op& op, Slice& image) {
+    if (static_cast<Type>(object->type) != Type::String) {
+        reply_wrongtype(op.sink());
+        return false;
+    }
+    if (object->is_int()) {
+        reply_hll_bad_header(op);
+        return false;
+    }
+    image = object->str_value();
+    if (!hll::header_valid(image)) {
+        reply_hll_bad_header(op);
+        return false;
+    }
+    return true;
+}
+
+void cmd_pfadd(Shard& sh, Op& op) {
+    KvObj* object = sh.store().find(op.hash, op.key());
+    Slice current;
+    if (object && !hll_object_image(object, op, current)) return;
+
+    std::string image;
+    try {
+        image = object ? std::string(current.p, current.n) : hll::create_sparse();
+    } catch (const std::bad_alloc&) {
+        reply_err(op.sink(), "ERR out of memory");
+        return;
+    }
+
+    bool updated = object == nullptr;  // Redis treats creation itself as an update.
+    try {
+        for (uint32_t i = 2; i < op.argc(); i++) {
+            const int result = hll::add(image, op.arg(i));
+            if (result < 0) { reply_hll_corrupt(op); return; }
+            updated |= result != 0;
+        }
+    } catch (const std::bad_alloc&) {
+        reply_err(op.sink(), "ERR out of memory");
+        return;
+    }
+    if (!updated) { reply_int(op.sink(), 0); return; }
+
+    hll::invalidate_cache(image);
+    const int64_t expire_at_ms = object ? object->expire_at_ms() : -1;
+    const StoreResult stored = store_string(
+        sh, op.key(), op.hash, Slice(image.data(), static_cast<uint32_t>(image.size())),
+        expire_at_ms, false);
+    if (stored != StoreResult::Stored) { reply_store_error(op, stored); return; }
+    reply_int(op.sink(), 1);
+}
+
+void cmd_pfcount(Shard& sh, Op& op) {
+    // Multi-key PFCOUNT is intercepted by SCATTER-V2 before dispatch. Keeping this handler strictly
+    // single-owner also makes its cached-cardinality byte update safe without synchronization.
+    if (op.argc() != 2) {
+        reply_err(op.sink(), "ERR internal cross-shard routing error");
+        return;
+    }
+    KvObj* object = sh.store().find(op.hash, op.key());
+    if (!object) { reply_int(op.sink(), 0); return; }
+    Slice current;
+    if (!hll_object_image(object, op, current)) return;
+    if (hll::cache_valid(current)) {
+        reply_int(op.sink(), static_cast<long long>(hll::cached_count(current)));
+        return;
+    }
+
+    bool corrupt = false;
+    const uint64_t cardinality = hll::count(current, corrupt);
+    if (corrupt) { reply_hll_corrupt(op); return; }
+    std::string image;
+    try {
+        image.assign(current.p, current.n);
+    } catch (const std::bad_alloc&) {
+        reply_err(op.sink(), "ERR out of memory");
+        return;
+    }
+    hll::set_cached_count(image, cardinality);
+    const StoreResult stored = store_string(
+        sh, op.key(), op.hash, Slice(image.data(), static_cast<uint32_t>(image.size())),
+        object->expire_at_ms(), false);
+    if (stored != StoreResult::Stored) { reply_store_error(op, stored); return; }
+    reply_int(op.sink(), static_cast<long long>(cardinality));
+}
+
 enum class ExpireCondition : uint8_t { Always, Nx, Xx, Gt, Lt };
 
 bool parse_expire_condition(Op& op, ExpireCondition& condition) {
@@ -1026,6 +1122,9 @@ static const CommandSpec kTable[] = {
     {"INCRBY",        3,  3,  CmdFlags::Write | CmdFlags::DenyOom,                       cmd_incrby,       1,  1,  1},
     {"DECRBY",        3,  3,  CmdFlags::Write | CmdFlags::DenyOom,                       cmd_decrby,       1,  1,  1},
     {"INCRBYFLOAT",   3,  3,  CmdFlags::Write | CmdFlags::DenyOom,                       cmd_incrbyfloat,  1,  1,  1},
+    {"PFADD",         3, -1,  CmdFlags::Write | CmdFlags::DenyOom,                        cmd_pfadd,        1,  1,  1},
+    {"PFCOUNT",       2, -1,  CmdFlags::Readonly | CmdFlags::SnapshotWrite | CmdFlags::MultiShard,cmd_pfcount,1,-1,1},
+    {"PFMERGE",       2, -1,  CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard, cmd_xshard_only, 1, -1,  1},
     {"EXPIRE",        3,  4,  CmdFlags::Write,                       cmd_expire,       1,  1,  1},
     {"PEXPIRE",       3,  4,  CmdFlags::Write,                       cmd_pexpire,      1,  1,  1},
     {"EXPIREAT",      3,  4,  CmdFlags::Write,                       cmd_expireat,     1,  1,  1},

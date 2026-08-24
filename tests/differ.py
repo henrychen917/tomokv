@@ -2,7 +2,7 @@
 # DIFFERENTIAL battery: run one deterministic command stream against the TARGET (tomokv-cpp) and
 # the ORACLE (the optimized Redis fork -- byte-exact redis semantics) and diff every reply.
 #   python3 tests/differ.py <target_host> <target_port> <oracle_host> <oracle_port> <suite> [seed]
-# Exit 0 iff zero diffs. Suites cover each type lane plus cross-shard and bitmap commands.
+# Exit 0 iff zero diffs. Suites cover each type lane, cross-shard lowering, bitmaps, and HLL.
 import socket, sys, random
 
 TH, TP, OH, OP = sys.argv[1], int(sys.argv[2]), sys.argv[3], int(sys.argv[4])
@@ -469,11 +469,78 @@ def gen_bitmap(rng):
         ["SETBIT", a, "-1", "1"], ["SETBIT", a, "1", "2"],
         ["SADD", "bitmap-wrongtype", "x"], ["SET", c, "keep"],
         ["BITOP", "OR", c, a, "bitmap-wrongtype"], ["GET", c],
+def gen_hll(rng):
+    keys = ["hll:%02d:%s" % (i, "".join(rng.choice("abcdef0123456789") for _ in range(30)))
+            for i in range(18)]
+    elements = ["e:%04d" % i for i in range(700)] + ["", "nul\x00byte", "\xff\x00binary"]
+    ops = []
+
+    # Random PFADD streams deliberately repeat both elements within one call and across calls.
+    # GET/STRLEN make the HYLL bytes themselves part of the differential contract, not just counts.
+    for _ in range(1800):
+        key = rng.choice(keys)
+        chosen = [rng.choice(elements) for _ in range(rng.randrange(1, 6))]
+        if rng.randrange(4) == 0: chosen.append(chosen[0])
+        ops.append(["PFADD", key] + chosen)
+        action = rng.randrange(10)
+        if action < 3: ops.append(["PFCOUNT", key])
+        elif action == 3: ops.append(["PFCOUNT"] + [rng.choice(keys) for _ in range(rng.randrange(2, 6))])
+        elif action == 4: ops.append(["STRLEN", key])
+        elif action == 5: ops.append(["GET", key])
+
+    sparse, dense = "hll:sparse", "hll:dense"
+    ops += [
+        ["DEL", sparse, dense],
+        ["PFADD", sparse, "a", "b", "a", "c"], ["PFCOUNT", sparse],
+        ["GET", sparse], ["STRLEN", sparse],
+        ["PFADD", sparse, "a", "b", "c"], ["PFCOUNT", sparse], ["GET", sparse],
+    ]
+
+    # Cross the default 3000-byte sparse ceiling, then compare the fixed 12304-byte dense image.
+    for base in range(0, 5000, 64):
+        ops.append(["PFADD", dense] + ["dense:%05d" % i for i in range(base, min(base + 64, 5000))])
+    ops += [["PFCOUNT", dense], ["STRLEN", dense], ["GET", dense]]
+
+    # Overlapping sources include a pre-existing destination because Redis merges argv[1] too.
+    dst, left, right = "hll:merge:dst", "hll:merge:left", "hll:merge:right"
+    for base in range(0, 1000, 50):
+        ops.append(["PFADD", left] + ["overlap:%04d" % i for i in range(base, base + 50)])
+    for base in range(500, 1500, 50):
+        ops.append(["PFADD", right] + ["overlap:%04d" % i for i in range(base, base + 50)])
+    for base in range(1200, 1700, 50):
+        ops.append(["PFADD", dst] + ["overlap:%04d" % i for i in range(base, base + 50)])
+    ops += [
+        ["PFCOUNT", left, right, dst], ["PFMERGE", dst, left, right],
+        ["STRLEN", dst], ["GET", dst], ["PFCOUNT", dst],
+        ["PFCOUNT", left, right, dst], ["STRLEN", dst], ["GET", dst],
+        ["PFADD", "hll:small-left", "a", "b", "c"],
+        ["PFADD", "hll:small-right", "b", "c", "d"],
+        ["PFADD", "hll:small-dst", "d", "e"],
+        ["PFMERGE", "hll:small-dst", "hll:small-left", "hll:small-right"],
+        ["STRLEN", "hll:small-dst"], ["GET", "hll:small-dst"],
+        ["PFCOUNT", "hll:small-dst"], ["GET", "hll:small-dst"],
+        ["PFMERGE", "hll:empty-dst", "hll:missing-a", "hll:missing-b"],
+        ["PFCOUNT", "hll:empty-dst"], ["GET", "hll:empty-dst"],
+        ["PFMERGE", "hll:empty-dst"], ["GET", "hll:empty-dst"],
+    ]
+
+    # Distinguish a non-string WRONGTYPE, a string with a bad HLL header, and a valid header whose
+    # sparse stream is corrupt. The invalid cache bit forces PFCOUNT to decode the corrupt stream.
+    corrupt = b"HYLL\x01\x00\x00\x00" + b"\x00" * 7 + b"\x80" + b"\x00"
+    ops += [
+        ["SADD", "hll:set-type", "x"], ["PFCOUNT", "hll:set-type"],
+        ["PFADD", "hll:set-type", "x"], ["PFMERGE", "hll:merge-type", "hll:set-type"],
+        ["SET", "hll:bad", "not-a-hyperloglog"], ["PFCOUNT", "hll:bad"],
+        ["PFADD", "hll:bad", "x"], ["PFMERGE", "hll:merge-bad", "hll:bad"],
+        ["SET", "hll:int-bad", "42"], ["PFCOUNT", "hll:int-bad"],
+        ["PFADD", "hll:int-bad", "x"], ["PFMERGE", "hll:merge-int-bad", "hll:int-bad"],
+        ["SET", "hll:corrupt", corrupt], ["PFCOUNT", "hll:corrupt"],
+        ["PFADD", "hll:corrupt", "x"], ["PFMERGE", "hll:merge-corrupt", "hll:corrupt"],
     ]
     return ops
 
 gens = {"string": gen_string, "set": gen_set, "list": gen_list, "zset": gen_zset,
-        "hash": gen_hash, "xshard": gen_xshard, "bitmap": gen_bitmap}
+        "hash": gen_hash, "xshard": gen_xshard, "bitmap": gen_bitmap, "hll": gen_hll}
 ops = gens[SUITE](rng)
 
 ts, tf = conn(TH, TP)
@@ -487,7 +554,10 @@ for cs, cf in ((ts, tf), (os_, of)):
     cs.sendall(enc(["FLUSHALL"]))
     if read_reply(cf)[:1] != b"+": raise RuntimeError("FLUSHALL failed on clean-slate")
 diffs = 0
-BATCH = 64
+# HLL's directed promotion stream uses many-argument PFADDs and byte-sized GET oracles; keep its
+# pipeline chunks below the target's fixed read-buffer rollover so the suite tests HLL semantics,
+# not an unrelated transport boundary.
+BATCH = 16 if SUITE == "hll" else 64
 for i in range(0, len(ops), BATCH):
     chunk = ops[i:i + BATCH]
     payload = b"".join(enc(o) for o in chunk)

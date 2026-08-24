@@ -96,7 +96,9 @@ one shard, IO does not allocate an arena and does not publish scatter tasks. It 
 local multi-key command and sends one ordinary `Task` to that owner. The owner runs the complete
 multi-key loop directly and emits the same command reply as the previous semantics. This covers
 reads, writes, moves, and set operations; one-key DEL/UNLINK/EXISTS/TOUCH continue through their
-existing ordinary handlers.
+existing ordinary handlers. HLL is the intentional exception: multi-key PFCOUNT and every PFMERGE
+always use their image-gather SCATTER-V2 shapes, even when routing finds only one owner; only
+single-key PFCOUNT remains an ordinary owner operation.
 
 Local multi-key writes reuse the otherwise idle zero-copy length field as their per-key snapshot
 gate cursor. A `Pending` pre-image resumes at exactly the same key without arena allocation and

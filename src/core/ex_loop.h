@@ -338,7 +338,8 @@ private:
         Op& op = task.client->rob().at(task.op_id);
         const int32_t sid = task.shard >= 0 ? task.shard : op.shard;
         Shard& shard = srv_->shard(sid);
-        if (capture_writes && (op.spec->flags & CmdFlags::Write)) {
+        if (capture_writes &&
+            (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
             const FlatStore::SnapshotWriteResult result = task.scatter
                 ? xshard_snapshot_prepare(task, shard)
                 : xshard_is_local(op)
