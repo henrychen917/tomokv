@@ -3,6 +3,7 @@
 // Handlers execute only on the shard owner and emit RESP through Op::Sink. Connection-local server
 // commands live in t_server.cc.
 #include "command.h"
+#include "xshard.h"
 #include "../core/shard.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
@@ -39,17 +40,6 @@ bool eq_icase(Slice s, const char* lit) {
 
 inline constexpr uint64_t kProtoMaxBulkLen = 512ull * 1024 * 1024;
 inline constexpr size_t kLongDoubleChars = 5 * 1024;
-
-// Kept for SELECT behavior. String integer commands use the strict Redis parser below.
-bool parse_ll(Slice s, long long& out) {
-    if (s.n == 0 || s.n > 20) return false;
-    char tmp[24];
-    std::memcpy(tmp, s.p, s.n);
-    tmp[s.n] = '\0';
-    char* end = nullptr;
-    out = std::strtoll(tmp, &end, 10);
-    return end == tmp + s.n;
-}
 
 bool parse_i64(Slice s, int64_t& out) {
     // Redis's string2ll accepts only the representation that formatting the resulting integer
@@ -188,6 +178,16 @@ void clear_reply(Op& op) {
 }
 
 }  // namespace
+
+XshardStringStoreResult xshard_store_string(Shard& shard, Slice key, uint64_t hash, Slice value) {
+    switch (store_string(shard, key, hash, value, -1, true)) {
+        case StoreResult::Stored: return XshardStringStoreResult::Stored;
+        case StoreResult::Oom: return XshardStringStoreResult::Oom;
+        case StoreResult::InsertFailed: return XshardStringStoreResult::InsertFailed;
+        case StoreResult::MaxmemoryOom: return XshardStringStoreResult::Maxmemory;
+    }
+    return XshardStringStoreResult::InsertFailed;
+}
 
 // tomo:: linkage: every type family replies this exact text on admission failure.
 void reply_maxmemory_oom(Op& op) {
@@ -762,8 +762,16 @@ static const CommandSpec kTable[] = {
     {"PSETEX",        4,  4,  CmdFlags::Write,                       cmd_psetex,       1,  1,  1},
     {"GETEX",         2,  4,  CmdFlags::Write,                       cmd_getex,        1,  1,  1},
     {"GETDEL",        2,  2,  CmdFlags::Write,                       cmd_getdel,       1,  1,  1},
-    {"DEL",           2,  2,  CmdFlags::Write,                       cmd_del,          1,  1,  1},
-    {"EXISTS",        2,  2,  CmdFlags::Readonly,                    cmd_exists,       1,  1,  1},
+    {"DEL",           2, -1,  CmdFlags::Write | CmdFlags::MultiShard,cmd_del,          1, -1,  1},
+    {"UNLINK",        2, -1,  CmdFlags::Write | CmdFlags::MultiShard,cmd_del,          1, -1,  1},
+    {"EXISTS",        2, -1,  CmdFlags::Readonly | CmdFlags::MultiShard,cmd_exists,    1, -1,  1},
+    {"TOUCH",         2, -1,  CmdFlags::Readonly | CmdFlags::MultiShard,cmd_exists,    1, -1,  1},
+    {"MGET",          2, -1,  CmdFlags::Readonly | CmdFlags::MultiShard,cmd_xshard_only,1,-1, 1},
+    {"MSET",          3, -1,  CmdFlags::Write | CmdFlags::MultiShard,cmd_xshard_only,  1, -1,  2},
+    {"MSETNX",        3, -1,  CmdFlags::Write | CmdFlags::MultiShard,cmd_xshard_only,  1, -1,  2},
+    {"RENAME",        3,  3,  CmdFlags::Write | CmdFlags::MultiShard,cmd_xshard_only,  1,  2,  1},
+    {"RENAMENX",      3,  3,  CmdFlags::Write | CmdFlags::MultiShard,cmd_xshard_only,  1,  2,  1},
+    {"COPY",          3, -1,  CmdFlags::Write | CmdFlags::MultiShard,cmd_xshard_only,  1,  2,  1},
     {"INCR",          2,  2,  CmdFlags::Write,                       cmd_incr,         1,  1,  1},
     {"DECR",          2,  2,  CmdFlags::Write,                       cmd_decr,         1,  1,  1},
     {"INCRBY",        3,  3,  CmdFlags::Write,                       cmd_incrby,       1,  1,  1},

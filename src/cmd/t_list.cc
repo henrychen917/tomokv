@@ -823,6 +823,8 @@ static const CommandSpec kTable[] = {
     {"LREM",       4,  4, CmdFlags::Write,    cmd_lrem,       1,  1,  1},
     {"LTRIM",      4,  4, CmdFlags::Write,    cmd_ltrim,      1,  1,  1},
     {"LPOS",       3, -1, CmdFlags::Readonly, cmd_lpos,       1,  1,  1},
+    {"LMOVE",      5,  5, CmdFlags::Write | CmdFlags::MultiShard,cmd_xshard_only,1,2,1},
+    {"RPOPLPUSH",  3,  3, CmdFlags::Write | CmdFlags::MultiShard,cmd_xshard_only,1,2,1},
 };
 
 }  // namespace

@@ -27,6 +27,7 @@ struct CmdFlags {
     static constexpr uint32_t RandomShard = 1u << 5; // keyless op routed by the IO thread's PRNG
     static constexpr uint32_t CursorShard = 1u << 6; // shard id is encoded in argv[1]'s cursor
     static constexpr uint32_t ConfigRoute = 1u << 7; // GET is IO-local; SET fans out as control work
+    static constexpr uint32_t MultiShard = 1u << 8;  // command-specific scatter/gather lowering
 };
 
 using CmdHandler = void (*)(Shard&, Op&);
@@ -91,5 +92,9 @@ bool command_prepare_scan_route(Server& server, Op& op);
 bool command_validate_all_shards(Op& op);
 bool command_config_routes_all_shards(Op& op);
 bool command_validate_config_set(Op& op);
+
+// Registry placeholder for commands whose implementation is the multi-shard lowering itself.
+// Reaching it as an ordinary single-shard handler is an internal routing error.
+void cmd_xshard_only(Shard& shard, Op& op);
 
 }  // namespace tomo

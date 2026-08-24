@@ -732,7 +732,15 @@ void cmd_dbsize(Shard&, Op& op) {
 // publish_size after clear: publications otherwise happen only at executor batch boundaries, so an
 // idle shard would advertise its pre-flush count forever (DBSIZE stuck at stale totals).
 void cmd_flush(Shard& sh, Op&) {
-    sh.store().clear();
+    if (sh.store().snapshot_active()) {
+        // The scatter snapshot gate has serialized every frozen pre-image before this handler is
+        // reached.  Keep the frozen table allocation/cursor alive for the capture walker: clear()
+        // frees both tables, which was the pre-existing FLUSH-under-capture bug.  Logical erases
+        // retain the table geometry and leave ordinary tombstones for traversal to cross safely.
+        sh.store().clear_during_snapshot();
+    } else {
+        sh.store().clear();
+    }
     sh.publish_size();
 }
 
@@ -824,6 +832,7 @@ static const CommandSpec kTable[] = {
     {"FLUSHDB",    1,  2, CmdFlags::Write | CmdFlags::Admin | CmdFlags::AllShards,cmd_flush,      0,  0, 0},
     {"RANDOMKEY",  1,  1, CmdFlags::Readonly | CmdFlags::RandomShard,             cmd_randomkey,  0,  0, 0},
     {"SCAN",       2, -1, CmdFlags::Readonly | CmdFlags::CursorShard,             cmd_scan,       0,  0, 0},
+    {"KEYS",       2,  2, CmdFlags::Readonly | CmdFlags::Admin | CmdFlags::MultiShard,cmd_xshard_only,0,0,0},
 };
 
 }  // namespace
