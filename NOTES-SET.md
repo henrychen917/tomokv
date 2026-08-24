@@ -5,7 +5,7 @@
 | Internal form | Admission and layout | Lookup / random pick | `OBJECT ENCODING` |
 | --- | --- | --- | --- |
 | Integer Compact | Every member is a strict, losslessly round-trippable signed 64-bit decimal. Values are numerically sorted and stored as fixed 2-, 4-, or 8-byte Compact payloads. | Binary search; a random index maps directly to `(width + 1) * index` because the Compact length header is one byte. | `compact` |
-| Generic Compact | Arbitrary binary-safe members, bounded by `set.max_entries` and `set.max_value`. A maintained offset vector names each Compact entry. | Bounded packed scan for membership; O(1) random-index lookup through the offset vector. | `compact` |
+| Generic Compact | Arbitrary binary-safe members, bounded by `set.max_entries` and `set.max_value`. No set-specific offset vector is retained. | Bounded packed scan for membership and random-index selection. | `compact` |
 | `SetMemberTable` | One-way expanded form: power-of-two, linear-probed open addressing with tombstones. Each live slot owns one string. | Expected O(1) membership. A dense vector of live slot numbers provides uniform O(1) random selection and swap-delete maintenance. | `hashtable` |
 
 The project exposes one set threshold pair, defaulting to 128 entries / 64 bytes. Redis and Valkey
@@ -17,7 +17,7 @@ only to 8 bytes.
 `SetVal::max_member_bytes` is a conservative high-water mark. Inserts update it in O(1); deletes do
 not rescan to reduce it. A stale maximum can cause an earlier promotion, but can never retain an
 oversized Compact or recreate the fork's O(n)-per-write conversion-decision regression. Expanded
-entry, payload, table-allocation, and offset-allocation totals are maintained alongside mutations.
+entry, payload, and table-allocation totals are maintained alongside mutations.
 
 ## Upgrade rules
 
@@ -49,7 +49,8 @@ O(1), and each representation transition occurs once. No ordinary expanded write
 ## Random selection and removal
 
 - Integer Compact chooses a uniform logical index and decodes its fixed-width slot directly.
-- Generic Compact chooses a uniform logical index and follows the maintained entry offset.
+- Generic Compact chooses a uniform logical index and linearly decodes to it. Small sets trade that
+  bounded scan for eliminating the per-object side allocation.
 - Hashtable selection chooses a uniform position in the dense live-slot vector. Deletion marks the
   selected table slot tombstoned and swap-deletes its dense-vector entry, all O(1) apart from the
   selected member's own allocation/free cost.

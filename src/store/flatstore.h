@@ -1263,7 +1263,8 @@ private:
         if (!replacement) return TtlResult::Oom;
         if (maxmemory_enabled_) replacement->set_eviction_meta(old->eviction_meta());
 
-        const bool moves_collection = static_cast<Type>(old->type) != Type::String;
+        const bool moves_collection = static_cast<Type>(old->type) != Type::String &&
+                                      static_cast<Enc>(old->enc) == Enc::Extern;
         if (moves_collection) {
             old->flags &= static_cast<uint8_t>(~KvObjFlags::OwnsExtern);
             replacement->flags |= KvObjFlags::OwnsExtern;

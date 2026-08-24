@@ -11,6 +11,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include "../base/alloc.h"
 #include "../base/slice.h"
 
 namespace tomo {
@@ -32,12 +33,14 @@ struct TypeLimits {
 };
 
 // [ULEB128 payload length][payload bytes], repeated to EOF. There is no container header and no
-// back-length. The byte vector is a gap-at-the-ends buffer and offsets_ is a circular side index;
-// together they let the list lane mutate either end in amortized O(1) without adding bytes to the
-// wire/storage format. Interior mutations still move the affected suffix. Every mutation
-// invalidates prior Entry slices and offsets.
+// back-length. The byte vector is a gap-at-the-ends buffer. Its circular side index is deliberately
+// absent through kIndexCutover entries: Redis/Valkey's listpack and Dragonfly's packed small values
+// establish that a linear walk of a few cache-resident bytes beats another allocation. Once the
+// collection crosses the cutover the index is built once and retained. Interior mutations still
+// move the affected suffix. Every mutation invalidates prior Entry slices and offsets.
 class Compact {
 public:
+    static constexpr uint32_t kIndexCutover = 16;
     struct Entry {
         Slice    value;
         uint32_t offset = 0;
@@ -48,8 +51,17 @@ public:
     class Iterator {
     public:
         Iterator() = default;
-        Entry operator*() const { Entry e; owner_->at(index_, e); return e; }
-        Iterator& operator++() { index_++; return *this; }
+        Entry operator*() const {
+            Entry entry;
+            owner_->at_known_offset(logical_, index_, entry);
+            return entry;
+        }
+        Iterator& operator++() {
+            Entry entry;
+            if (owner_->at_known_offset(logical_, index_, entry)) logical_ += entry.span;
+            index_++;
+            return *this;
+        }
         bool operator==(const Iterator& rhs) const {
             return owner_ == rhs.owner_ && index_ == rhs.index_;
         }
@@ -57,9 +69,11 @@ public:
 
     private:
         friend class Compact;
-        Iterator(const Compact* owner, uint32_t index) : owner_(owner), index_(index) {}
+        Iterator(const Compact* owner, uint32_t index, uint32_t logical)
+            : owner_(owner), index_(index), logical_(logical) {}
         const Compact* owner_ = nullptr;
         uint32_t       index_ = 0;
+        uint32_t       logical_ = 0;
     };
 
     uint32_t size()          const { return entries_; }
@@ -70,7 +84,8 @@ public:
     // the only sanctioned bridge between the two spaces -- zset's ordered inserts live on it.
     uint32_t logical(const Entry& entry) const { return entry.offset - begin_; }
     size_t   capacity_bytes() const {
-        return data_.capacity() + offsets_.capacity() * sizeof(uint32_t);
+        return (data_.capacity() ? good_size(data_.capacity()) : 0) +
+               (offsets_.capacity() ? good_size(offsets_.capacity() * sizeof(uint32_t)) : 0);
     }
     bool     empty()         const { return entries_ == 0; }
     const uint8_t* data()    const { return data_.data() + begin_; }
@@ -79,24 +94,39 @@ public:
         return varint_size(payload_size) + payload_size;
     }
 
-    Iterator begin() const { return Iterator(this, 0); }
-    Iterator end()   const { return Iterator(this, entries_); }
+    Iterator begin() const { return Iterator(this, 0, 0); }
+    Iterator end()   const { return Iterator(this, entries_, end_ - begin_); }
 
     bool at(uint32_t index, Entry& out) const {
         if (index >= entries_) return false;
-        return decode(offset_at(index), index, out);
+        if (!offsets_.empty()) return decode(offset_at(index), index, out);
+        uint32_t offset = begin_;
+        for (uint32_t i = 0; i <= index; i++) {
+            if (!decode(offset, i, out)) return false;
+            if (i != index) offset += out.span;
+        }
+        return true;
     }
     bool first(Entry& out) const { return at(0, out); }
     bool last(Entry& out) const { return entries_ && at(entries_ - 1, out); }
     bool next(const Entry& cur, Entry& out) const {
-        return cur.index < entries_ && at(cur.index + 1, out);
+        if (cur.index + 1 >= entries_) return false;
+        Entry checked;
+        return decode(cur.offset, cur.index, checked) && checked.span == cur.span &&
+               decode(cur.offset + cur.span, cur.index + 1, out);
+    }
+
+    // Sequential cursors already know both coordinates. Avoid sending them through the arbitrary
+    // logical-offset lookup, which intentionally rescans while the lazy side index is absent.
+    bool at_known_offset(uint32_t logical, uint32_t index, Entry& out) const {
+        return index < entries_ && logical < end_ - begin_ && decode(begin_ + logical, index, out);
     }
 
     bool append(Slice value) {
         if (entries_ == std::numeric_limits<uint32_t>::max()) return false;
         const uint32_t hdr = varint_size(value.n);
         const uint32_t span = hdr + value.n;
-        if (!ensure_space(0, span) || !ensure_offset_space()) return false;
+        if (!ensure_space(0, span) || !ensure_offset_space(entries_ + 1)) return false;
         encode_varint(data_.data() + end_, value.n);
         if (value.n) std::memcpy(data_.data() + end_ + hdr, value.p, value.n);
         offset_push_back(end_);
@@ -110,7 +140,7 @@ public:
         if (entries_ == std::numeric_limits<uint32_t>::max()) return false;
         const uint32_t hdr = varint_size(value.n);
         const uint32_t span = hdr + value.n;
-        if (!ensure_space(span, 0) || !ensure_offset_space()) return false;
+        if (!ensure_space(span, 0) || !ensure_offset_space(entries_ + 1)) return false;
         begin_ -= span;
         encode_varint(data_.data() + begin_, value.n);
         if (value.n) std::memcpy(data_.data() + begin_ + hdr, value.p, value.n);
@@ -120,10 +150,9 @@ public:
         return true;
     }
 
-    // Insert at an entry boundary. Set's integer compact uses this to retain numeric order; the
-    // offset is found with binary search over its fixed-width entries, so deciding where to insert
-    // never rescans the collection. As with every Compact mutation, prior Entries are invalidated.
-    // Insert at an ABSOLUTE offset previously produced by decode/at_offset (or end_ to append).
+    // Insert at a LOGICAL entry boundary. Set's integer compact uses this to retain numeric order;
+    // the offset is derived arithmetically from its fixed-width entries. As with every Compact
+    // mutation, prior Entries are invalidated.
     // Written for the set lane's sorted mid-inserts; the original predated the two-ended buffer
     // and the circular offset index and maintained neither -- the first cross-lane merge crashed
     // on offsets_.size()==0 (SIGFPE in offset_slot) the moment an int-compact promoted. The suffix
@@ -138,10 +167,12 @@ public:
         const uint32_t at_index = boundary.index;
         const uint32_t hdr = varint_size(value.n);
         const uint32_t span = hdr + value.n;
-        if (!ensure_space(0, span) || !ensure_offset_space()) return false;
+        if (!ensure_space(0, span) || !ensure_offset_space(entries_ + 1)) return false;
         uint8_t* base = data_.data();
         // ensure_space may have shifted begin_; recompute the splice point from the entry index.
-        const uint32_t off = offset_at(at_index);
+        Entry splice;
+        if (!at(at_index, splice)) return false;
+        const uint32_t off = splice.offset;
         std::memmove(base + off + span, base + off, end_ - off);
         encode_varint(base + off, value.n);
         if (value.n) std::memcpy(base + off + hdr, value.p, value.n);
@@ -150,9 +181,11 @@ public:
         payload_bytes_ += value.n;
         // Index fix-up: one new slot at the back, then slide [at_index, entries_-1) up by one
         // position and shift their byte offsets by span; finally place the new entry's offset.
-        for (uint32_t i = entries_ - 1; i > at_index; i--)
-            offset_set(i, offset_at(i - 1) + span);
-        offset_set(at_index, off);
+        if (!offsets_.empty()) {
+            for (uint32_t i = entries_ - 1; i > at_index; i--)
+                offset_set(i, offset_at(i - 1) + span);
+            offset_set(at_index, off);
+        }
         return true;
     }
 
@@ -175,8 +208,9 @@ public:
             std::memmove(base + checked.offset + new_span,
                          base + checked.offset + old_span, tail);
             const int64_t delta = static_cast<int64_t>(new_span) - old_span;
-            for (uint32_t i = checked.index + 1; i < entries_; i++)
-                offset_set(i, static_cast<uint32_t>(static_cast<int64_t>(offset_at(i)) + delta));
+            if (!offsets_.empty())
+                for (uint32_t i = checked.index + 1; i < entries_; i++)
+                    offset_set(i, static_cast<uint32_t>(static_cast<int64_t>(offset_at(i)) + delta));
             end_ = static_cast<uint32_t>(static_cast<int64_t>(end_) + delta);
         }
         encode_varint(base + checked.offset, value.n);
@@ -199,8 +233,9 @@ public:
         const uint32_t tail = end_ - checked.offset - checked.span;
         std::memmove(data_.data() + checked.offset,
                      data_.data() + checked.offset + checked.span, tail);
-        for (uint32_t i = checked.index + 1; i < entries_; i++)
-            offset_set(i - 1, offset_at(i) - checked.span);
+        if (!offsets_.empty())
+            for (uint32_t i = checked.index + 1; i < entries_; i++)
+                offset_set(i - 1, offset_at(i) - checked.span);
         end_ -= checked.span;
         entries_--;
         payload_bytes_ -= checked.value.n;
@@ -254,8 +289,9 @@ public:
         const uint32_t span = last_abs - first_abs;
         std::memmove(data_.data() + first_abs, data_.data() + last_abs, end_ - last_abs);
         end_ -= span;
-        for (uint32_t i = head.index; i + removed < entries_; i++)
-            offset_set(i, offset_at(i + removed) - span);
+        if (!offsets_.empty())
+            for (uint32_t i = head.index; i + removed < entries_; i++)
+                offset_set(i, offset_at(i + removed) - span);
         entries_ -= removed;
         payload_bytes_ -= payload;
         if (!entries_) begin_ = end_;
@@ -263,7 +299,8 @@ public:
     }
 
     void clear() {
-        data_.clear();
+        std::vector<uint8_t>().swap(data_);
+        std::vector<uint32_t>().swap(offsets_);
         begin_ = end_ = 0;
         offset_head_ = 0;
         entries_ = 0;
@@ -293,10 +330,14 @@ private:
     uint32_t offset_at(uint32_t index) const { return offsets_[offset_slot(index)]; }
     void offset_set(uint32_t index, uint32_t value) { offsets_[offset_slot(index)] = value; }
 
-    bool ensure_offset_space() {
-        if (entries_ < offsets_.size()) return true;
-        uint64_t wanted = offsets_.empty() ? 8 : static_cast<uint64_t>(offsets_.size()) * 2;
-        if (wanted <= entries_) wanted = static_cast<uint64_t>(entries_) + 1;
+    bool ensure_offset_space(uint32_t resulting_entries) {
+        if (offsets_.empty() && resulting_entries <= kIndexCutover) return true;
+        if (resulting_entries <= offsets_.size()) return true;
+        uint64_t wanted = offsets_.empty() ? resulting_entries
+                                           : static_cast<uint64_t>(offsets_.size()) * 3 / 2;
+        if (wanted < resulting_entries) wanted = resulting_entries;
+        const size_t wanted_bytes = good_size(static_cast<size_t>(wanted) * sizeof(uint32_t));
+        wanted = wanted_bytes / sizeof(uint32_t);
         if (wanted > std::numeric_limits<uint32_t>::max()) return false;
         std::vector<uint32_t> next_offsets;
         try {
@@ -304,19 +345,33 @@ private:
         } catch (const std::bad_alloc&) {
             return false;
         }
-        for (uint32_t i = 0; i < entries_; i++) next_offsets[i] = offset_at(i);
+        if (offsets_.empty()) {
+            uint32_t offset = begin_;
+            for (uint32_t i = 0; i < entries_; i++) {
+                next_offsets[i] = offset;
+                Entry entry;
+                if (!decode(offset, i, entry)) return false;
+                offset += entry.span;
+            }
+        } else {
+            for (uint32_t i = 0; i < entries_; i++) next_offsets[i] = offset_at(i);
+        }
         offsets_.swap(next_offsets);
         offset_head_ = 0;
         return true;
     }
 
-    void offset_push_back(uint32_t value) { offset_set(entries_, value); }
+    void offset_push_back(uint32_t value) {
+        if (!offsets_.empty()) offset_set(entries_, value);
+    }
     void offset_push_front(uint32_t value) {
+        if (offsets_.empty()) return;
         offset_head_ = offset_head_ ? offset_head_ - 1
                                     : static_cast<uint32_t>(offsets_.size() - 1);
         offsets_[offset_head_] = value;
     }
     void offset_pop_front() {
+        if (offsets_.empty()) return;
         offset_head_++;
         if (offset_head_ == offsets_.size()) offset_head_ = 0;
     }
@@ -327,8 +382,9 @@ private:
         if (required > std::numeric_limits<uint32_t>::max()) return false;
         uint64_t wanted = data_.size();
         if (wanted < required) {
-            wanted = data_.empty() ? 64 : static_cast<uint64_t>(data_.size()) * 2;
+            wanted = data_.empty() ? 32 : static_cast<uint64_t>(data_.size()) * 3 / 2;
             if (wanted < required) wanted = required;
+            wanted = good_size(static_cast<size_t>(wanted));
         }
         if (wanted > std::numeric_limits<uint32_t>::max())
             wanted = std::numeric_limits<uint32_t>::max();
@@ -351,8 +407,9 @@ private:
             if (active) std::memcpy(next_data.data() + new_begin, data_.data() + begin_, active);
             data_.swap(next_data);
         }
-        for (uint32_t i = 0; i < entries_; i++)
-            offset_set(i, static_cast<uint32_t>(static_cast<int64_t>(offset_at(i)) + delta));
+        if (!offsets_.empty())
+            for (uint32_t i = 0; i < entries_; i++)
+                offset_set(i, static_cast<uint32_t>(static_cast<int64_t>(offset_at(i)) + delta));
         begin_ = static_cast<uint32_t>(new_begin);
         end_ = static_cast<uint32_t>(new_begin + active);
         return true;
@@ -364,14 +421,16 @@ private:
         if (!at(old_entry.index, checked) || checked.offset != old_entry.offset ||
             checked.span != old_entry.span) return false;
         const uint32_t span = entry_encoded_size(value.n);
-        if (!ensure_space(0, span) || !ensure_offset_space()) return false;
+        if (!ensure_space(0, span) || !ensure_offset_space(entries_ + 1)) return false;
         if (!at(old_entry.index, checked)) return false;
         const uint32_t pos = after ? checked.offset + checked.span : checked.offset;
         const uint32_t tail = end_ - pos;
         std::memmove(data_.data() + pos + span, data_.data() + pos, tail);
-        for (uint32_t i = entries_; i > index; i--)
-            offset_set(i, offset_at(i - 1) + span);
-        offset_set(index, pos);
+        if (!offsets_.empty()) {
+            for (uint32_t i = entries_; i > index; i--)
+                offset_set(i, offset_at(i - 1) + span);
+            offset_set(index, pos);
+        }
         end_ += span;
         const uint32_t hdr = varint_size(value.n);
         encode_varint(data_.data() + pos, value.n);
@@ -381,15 +440,25 @@ private:
         return true;
     }
 
-    // LOGICAL-offset decode for callers that track offsets rather than indexes (the set lane's
-    // offset vector, and its fixed-width index*span arithmetic). Logical offset 0 is the first
-    // entry regardless of the two-ended buffer's begin_ -- absolute offsets shift whenever
-    // ensure_space recenters, so exposing them would silently invalidate every stored offset
-    // (that exact bug wedged the first cross-lane merge). The Entry's LOAD-BEARING index is
-    // derived by binary search over the offset index; O(log n) at compact scale.
+    // LOGICAL-offset decode for callers that track offsets rather than indexes (including set's
+    // fixed-width index*span arithmetic). Logical offset 0 is the first entry regardless of the
+    // two-ended buffer's begin_ -- absolute offsets shift whenever ensure_space recenters, so
+    // exposing them would silently invalidate every stored offset (that exact bug wedged the first
+    // cross-lane merge). Without the lazy index this rescans; after cutover the Entry's load-bearing
+    // index is derived by binary search over the circular offset index.
     bool decode(uint32_t logical, Entry& out) const {
         if (entries_ == 0) return false;
         const uint32_t abs = begin_ + logical;
+        if (offsets_.empty()) {
+            uint32_t offset = begin_;
+            for (uint32_t index = 0; index < entries_; index++) {
+                if (offset == abs) return decode(offset, index, out);
+                Entry entry;
+                if (!decode(offset, index, entry) || offset > abs) return false;
+                offset += entry.span;
+            }
+            return false;
+        }
         uint32_t lo = 0, hi = entries_ - 1;
         while (lo < hi) {
             const uint32_t mid = lo + (hi - lo) / 2;
@@ -454,6 +523,7 @@ public:
     }
 
     const Compact& compact() const { return compact_; }
+    Compact& mutable_compact() { return compact_; }
     Compact::Iterator begin() const { return compact_.begin(); }
     Compact::Iterator end()   const { return compact_.end(); }
 
@@ -673,13 +743,8 @@ inline uint64_t SetMemberTable::allocation_bytes() const {
 enum class SetSmallEncoding : uint8_t { Integer = 0, Generic = 1 };
 
 struct SetVal : CompactValue {
-    size_t allocation_bytes() const {
-        return CompactValue::allocation_bytes() +
-               static_cast<uint64_t>(offsets.capacity()) * sizeof(uint32_t);
-    }
     void adopt_compact(Compact&& replacement) { replace_compact(std::move(replacement)); }
     void finish_table_promotion(uint64_t logical_payload_bytes) {
-        std::vector<uint32_t>().swap(offsets);
         promote_with_payload(CollectionEncoding::Hashtable, table.allocation_bytes(),
                              logical_payload_bytes);
     }
@@ -687,7 +752,6 @@ struct SetVal : CompactValue {
     SetSmallEncoding small_encoding = SetSmallEncoding::Integer;
     uint8_t int_width = 2;
     uint32_t max_member_bytes = 0;  // conservative high-water mark; never requires a delete scan
-    std::vector<uint32_t> offsets;  // generic Compact entry starts; integer starts are fixed-width
     SetMemberTable table;
 };
 struct ZsetData;
