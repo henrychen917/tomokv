@@ -45,7 +45,10 @@ struct Config {
 
     uint32_t rob_window     = kRobWindow;
     uint32_t embed_threshold = 192;   // re-measure against this allocation shape, not the fork's
-    uint32_t zc_min         = 0;      // 0 disables borrowed GET replies; 16KB is the suggested gate
+    uint32_t zc_min         = 16384;     // zero-copy GET replies at >= this value length.
+                                         // DEFAULT ON (owner: hardcode a consistent gain): -4.1%
+                                         // server cycles at d16K on the wire-walled NIC, +20-24%
+                                         // class on unwalled wires per the fork's history. 0 = off.
 };
 
 class Server {
