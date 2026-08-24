@@ -220,6 +220,7 @@ public:
     // race-free.
     bool safe_to_release() {
         return rob_.quiesced() &&
+               !recv_armed_ && !send_inflight_ &&        // the KERNEL holds no pointer into us
                !retire_queued_.load(std::memory_order_acquire);
     }
 

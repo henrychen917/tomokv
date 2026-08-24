@@ -194,6 +194,10 @@ private:
         c->set_wb_slot(self_->assign_wb_slot(c));
         self_->clients().push_back(c);
         arm_recv(c);
+        // Reachability, not optimism: if that arm starved for an SQE, nothing else names this
+        // conn -- it would sit accepted and silent forever (audit finding). The active set's
+        // phase-1 re-arms it until the recv lands; one wasted visit if the arm succeeded.
+        mark_active(c);
         if (!(cqe->flags & IORING_CQE_F_MORE)) {               // multishot dropped: re-arm
             self_->sig().accept_rearm++;
             arm_accept();
@@ -469,7 +473,13 @@ private:
         // parked it AGAIN: a double delete, one reap later. Caught by the torture battery's RST
         // churn under ASAN; latent since the first teardown path was written.
         if (c->dead()) return;
-        c->mark_closing();
+        if (!c->closing()) {
+            c->mark_closing();
+            // Break any in-flight recv/send NOW: safe_to_release refuses to free while the kernel
+            // holds a buffer pointer (recv_armed / send_inflight), and those only clear when their
+            // CQEs come back -- which a half-open peer might never trigger on its own.
+            ::shutdown(c->fd(), SHUT_RDWR);
+        }
         // Release only at the quiescence fence: a worker may still hold a Task that resolves through
         // this ROB. Anything else is a use-after-free under pipelining. (The retryable wait paths,
         // with their mark_active leak guard, are below.)
@@ -499,9 +509,18 @@ private:
     // this pass's drains, so a corpse parked in pass N is freed in pass N+2's prologue -- after the
     // whole of pass N+1 (including its channel drains) ran with the corpse still readable.
     void reap_dead() {
-        for (Client* c : dead_ready_) delete c;
-        dead_ready_.clear();
-        dead_ready_.swap(dead_next_);
+        // A corpse can sit in pending_serve_ LONGER than two passes (the budget serves 16 per
+        // pass); freeing it while the FIFO still holds the pointer is a use-after-free on the
+        // pop's own bookkeeping (audit finding). serve_pending() is the FIFO membership flag, so
+        // it is exactly the extra fence needed: hold such corpses for another round.
+        size_t keep = 0;
+        for (Client* c : dead_ready_) {
+            if (c->serve_pending()) dead_ready_[keep++] = c;
+            else                    delete c;
+        }
+        dead_ready_.resize(keep);
+        dead_ready_.insert(dead_ready_.end(), dead_next_.begin(), dead_next_.end());
+        dead_next_.clear();
     }
 
     Server*    srv_  = nullptr;
