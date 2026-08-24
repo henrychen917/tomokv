@@ -55,12 +55,15 @@ struct ValueSlot {
     // fork copies once at reassembly for exactly this reason (its OPT-1 keeps refs, but its
     // values cross as one copy into the reply). Borrow now reserves for genuinely large values
     // where wire zero-copy pays, mirroring the zc-min philosophy on the single-shard path.
-    static constexpr uint32_t kInline = 120;
+    static constexpr uint32_t kInline = 1024;
     const char* ptr = nullptr;
     uint32_t len = 0;
     int32_t shard = -1;
     ValueKind kind = ValueKind::Nil;
-    char small[kInline] = {};
+    // Deliberately UNINITIALIZED: placement-new value-init was zeroing kInline bytes per slot per
+    // op (8KB of memset per MGET-8 at the 1KB slot -- measured -34% at 64B values). Only the first
+    // `len` bytes are ever written and read.
+    char small[kInline];
 };
 
 struct GroupAux {

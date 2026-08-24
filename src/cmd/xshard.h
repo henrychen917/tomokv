@@ -43,7 +43,7 @@ private:
     friend void xshard_retire(Client&, Op&, ScatterArenaPool&, uint32_t, void*,
                               void (*)(void*, int32_t, const char*));
     static constexpr uint32_t kCached = 64;
-    static constexpr size_t kCommonBytes = 8192;
+    static constexpr size_t kCommonBytes = 16384;  // holds MGET-8 layouts at the 1KB inline slot
     void* acquire(size_t bytes, bool& pooled);
     void release(void* ptr, bool pooled);
     void* cached_[kCached] = {};
