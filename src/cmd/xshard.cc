@@ -1874,11 +1874,16 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op) {
                         shard.store().erase(key.hash, op.arg(key.arg));
                         result = WorkError::None;
                     } else {
+                        // BITOP overwrites the destination like SET: TTL cleared (-1), and the
+                        // result must stay raw bytes -- never integer-encoded -- so GET
+                        // round-trips exactly. Positional args: expire_at_ms BEFORE
+                        // integer_encode (a bare `false` here lands in expire_at_ms as
+                        // "expired at epoch 0" and stores a dead key).
                         result = store_xstring(
                             shard, op.arg(key.arg), key.hash,
                             Slice(reinterpret_cast<const char*>(image.payload.data()),
                                   static_cast<uint32_t>(image.payload.size())),
-                            false);
+                            -1, false);
                     }
                 } else if (state.kind == Kind::Pfmerge) {
                     const ObjectImage& image = state.apply[pos];
@@ -2460,11 +2465,12 @@ void cmd_xshard_only(Shard& shard, Op& op) {
         if (!output.present) {
             shard.store().erase(hash, destination);
         } else {
+            // Same contract as the scatter hop-2 arm: -1 clears TTL, raw encoding only.
             error = store_xstring(
                 shard, destination, hash,
                 Slice(reinterpret_cast<const char*>(output.payload.data()),
                       static_cast<uint32_t>(output.payload.size())),
-                false);
+                -1, false);
         }
         if (error != WorkError::None) reply_work_error(op, error);
         else reply_int(op.sink(), output_length);
