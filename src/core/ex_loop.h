@@ -43,6 +43,7 @@ public:
     WbEngine& engine() { return wb_; }
     bool init(Server* srv, ThreadCtx* self) {
         srv_ = srv; self_ = self;
+        lru_clock_shift_ = static_cast<uint8_t>(srv->cfg().lru_clock_shift);
         if (!ring_.init(1024)) return false;
         self_->set_ring(&ring_);
         wb_.bind(&ring_);
@@ -59,7 +60,8 @@ public:
             cached_now_ms_ = realtime_ms();
             refresh_maxmemory_config();
             if (maxmemory_enabled_)
-                cached_lru_clock_ = static_cast<uint8_t>((cached_now_ms_ / 1000 / 256) & 0x1f);
+                cached_lru_clock_ = static_cast<uint8_t>(
+                    (static_cast<uint64_t>(cached_now_ms_ / 1000) >> lru_clock_shift_) & 0x1f);
             sig.iterations++;
             self_->sample_depth();
 
@@ -539,6 +541,7 @@ private:
     uint64_t   maxmemory_config_version_ = 0;
     bool       maxmemory_enabled_ = false;
     uint8_t    cached_lru_clock_ = 0;
+    uint8_t    lru_clock_shift_ = 8;   // latched from cfg at loop start; 1<<N seconds per bucket
     SnapshotManager* snapshot_manager_ = nullptr;
     SnapshotOwnerState snapshot_owner_state_ = SnapshotOwnerState::None;
     uint64_t snapshot_epoch_ = 0;

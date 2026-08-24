@@ -26,7 +26,7 @@ void reply_maxmemory_oom(Op& op);  // shared canonical spelling from t_string.cc
 namespace {
 
 enum class Kind : uint8_t {
-    AllShards, Mget, Mset, Del, Unlink, Exists, Touch, Keys, Msetnx,
+    AllShards, DbsizeExact, Mget, Mset, Del, Unlink, Exists, Touch, Keys, Msetnx,
     Rename, Renamenx, Copy, Smove, Lmove, Rpoplpush,
     Sinter, Sunion, Sdiff, Sintercard, Sinterstore, Sunionstore, Sdiffstore,
 };
@@ -69,6 +69,7 @@ struct ScatterState {
     // read sets, versions or retries; validate/apply remain separate so those can land here later.
     uint64_t epoch = 0;
     Kind kind = Kind::AllShards;
+    std::atomic<uint64_t> exact_sum{0};   // DBSIZE NOW accumulator (control-plane, off store paths)
     uint8_t phase = 1;
     bool barrier = false;
     bool copy_replace = false;
@@ -355,7 +356,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterDispatch& dispatch)
                             ((op.spec->flags & CmdFlags::ConfigRoute) &&
                              command_config_routes_all_shards(op));
     Kind kind;
-    if (all_shards) kind = Kind::AllShards;
+    if (all_shards)
+        kind = op.cmd_name().eq_icase("dbsize") ? Kind::DbsizeExact : Kind::AllShards;
     else if (!(op.spec->flags & CmdFlags::MultiShard) || !classify(op, kind))
         return ScatterPrepare::NotScatter;
 
@@ -383,7 +385,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterDispatch& dispatch)
     dispatch.barrier = state->barrier;
 
     try {
-        if (kind == Kind::AllShards || kind == Kind::Keys) {
+        if (kind == Kind::AllShards || kind == Kind::DbsizeExact || kind == Kind::Keys) {
             activate_all(server, *state, dispatch.shards);
         } else if (kind == Kind::Mget || kind == Kind::Del || kind == Kind::Unlink ||
                    kind == Kind::Exists || kind == Kind::Touch) {
@@ -542,6 +544,9 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op) {
         switch (state.kind) {
             case Kind::AllShards:
                 op.spec->handler(shard, op);
+                return ScatterTaskResult::Complete;
+            case Kind::DbsizeExact:
+                state.exact_sum.fetch_add(shard.store().size(), std::memory_order_relaxed);
                 return ScatterTaskResult::Complete;
             case Kind::Mget:
                 for (uint32_t arg : group.args) {
@@ -840,6 +845,10 @@ ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
         if (first_error(state, error)) reply_work_error(op, error);
         else switch (state.kind) {
             case Kind::AllShards: reply_ok(op.sink()); break;
+            case Kind::DbsizeExact:
+                reply_int(op.sink(),
+                          static_cast<long long>(state.exact_sum.load(std::memory_order_relaxed)));
+                break;
             case Kind::Mget:
                 reply_array_header(op.sink(), op.argc() - 1);
                 for (uint32_t arg = 1; arg < op.argc(); arg++) {

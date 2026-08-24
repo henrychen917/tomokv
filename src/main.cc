@@ -108,6 +108,14 @@ int main(int argc, char** argv) {
             cfg.even_ifid = a; cfg.even_ex = b;
         }
         else if (!std::strcmp(argv[i], "--shards"))     cfg.shards = static_cast<uint32_t>(std::atoi(next("16")));
+        else if (!std::strcmp(argv[i], "--lru-clock-shift")) {
+            uint64_t shift = 0;
+            if (!parse_u64(next(nullptr), shift) || shift > 16) {
+                std::fprintf(stderr, "--lru-clock-shift wants 0..16 (bucket = 1<<N seconds)\n");
+                return 1;
+            }
+            cfg.lru_clock_shift = static_cast<uint32_t>(shift);
+        }
         else if (!std::strcmp(argv[i], "--maxmemory")) {
             if (!parse_u64(next(nullptr), cfg.maxmemory)) {
                 std::fprintf(stderr, "--maxmemory wants a uint64 byte count (0 disables)\n");
@@ -197,7 +205,8 @@ int main(int argc, char** argv) {
                         "    --node-cpus LIST            declared L3 topology, ranges joined by +\n"
                         "    --shard-home shard:tid,...  complete shard-to-executor map\n"
                         "    --zc-min N                  zero-copy GET replies for values >= N (0=off)\n"
-                        "  cache: --maxmemory BYTES --maxmemory-policy POLICY\n"
+                        "  cache: --maxmemory BYTES --maxmemory-policy POLICY (allkeys-lfu\n"
+                        "         recommended for cache duty) --lru-clock-shift N (bucket=1<<N s)\n"
                         "         --maxmemory-samples N (1..64, default 5)\n"
                         "  persistence: --dir PATH --dbfilename NAME --load PATH\n"
                         "  compact encodings: --{hash,list,set,zset}-max-compact-{entries,value} N\n"

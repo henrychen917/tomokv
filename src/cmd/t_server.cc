@@ -723,6 +723,10 @@ void cmd_info(Shard&, Op& op) {
 }
 
 void cmd_dbsize(Shard&, Op& op) {
+    if (op.argc() == 2 && !eq_icase(op.arg(1), "NOW")) {
+        reply_err(op.sink(), "ERR unknown DBSIZE option");
+        return;
+    }
     uint64_t keys = 0;
     if (g_server) for (uint32_t i = 0; i < g_server->nshards(); i++)
         keys += g_server->shard(static_cast<int32_t>(i)).published_size();
@@ -827,7 +831,7 @@ static const CommandSpec kTable[] = {
     {"CONFIG",     2, -1, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_config,     0,  0, 0},
     {"INFO",       1,  2, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_info,       0,  0, 0},
     {"SELECT",     2,  2, CmdFlags::ConnLocal,                                    cmd_select,     0,  0, 0},
-    {"DBSIZE",     1,  1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_dbsize,     0,  0, 0},
+        {"DBSIZE",     1,  2, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_dbsize,     0,  0, 0},
     {"FLUSHALL",   1,  2, CmdFlags::Write | CmdFlags::Admin | CmdFlags::AllShards,cmd_flush,      0,  0, 0},
     {"FLUSHDB",    1,  2, CmdFlags::Write | CmdFlags::Admin | CmdFlags::AllShards,cmd_flush,      0,  0, 0},
     {"RANDOMKEY",  1,  1, CmdFlags::Readonly | CmdFlags::RandomShard,             cmd_randomkey,  0,  0, 0},
@@ -882,10 +886,16 @@ bool command_validate_all_shards(Op& op) {
 }
 
 bool command_config_routes_all_shards(Op& op) {
+    // The conditional-scatter route: CONFIG SET fans out; DBSIZE NOW (owner request 2026-08-25)
+    // is the exact-on-demand variant -- each owner counts its own store at execution time, so the
+    // reply reflects everything already dispatched ahead of it on every shard, with none of the
+    // batch-boundary publication lag the plain DBSIZE reads.
+    if (op.cmd_name().eq_icase("dbsize")) return op.argc() == 2 && eq_icase(op.arg(1), "NOW");
     return op.argc() >= 2 && eq_icase(op.arg(1), "SET");
 }
 
 bool command_validate_config_set(Op& op) {
+    if (op.cmd_name().eq_icase("dbsize")) return true;   // DBSIZE NOW needs no further validation
     std::lock_guard<std::mutex> lock(g_config_mu);
     std::vector<std::pair<ConfigValue*, std::string>> updates;
     return collect_config_updates(op, updates);
