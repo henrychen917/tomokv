@@ -119,27 +119,36 @@ public:
     // Insert at an entry boundary. Set's integer compact uses this to retain numeric order; the
     // offset is found with binary search over its fixed-width entries, so deciding where to insert
     // never rescans the collection. As with every Compact mutation, prior Entries are invalidated.
-    bool insert(uint32_t offset, Slice value) {
-        if (entries_ == std::numeric_limits<uint32_t>::max() || offset > data_.size()) return false;
-        if (offset != data_.size()) {
-            Entry boundary;
-            if (!decode(offset, boundary)) return false;
-        }
+    // Insert at an ABSOLUTE offset previously produced by decode/at_offset (or end_ to append).
+    // Written for the set lane's sorted mid-inserts; the original predated the two-ended buffer
+    // and the circular offset index and maintained neither -- the first cross-lane merge crashed
+    // on offsets_.size()==0 (SIGFPE in offset_slot) the moment an int-compact promoted. The suffix
+    // shift plus a linear index fix-up is O(entries) -- bounded by the compact thresholds, and the
+    // byte memmove was already O(bytes) anyway.
+    bool insert(uint32_t logical, Slice value) {
+        if (entries_ == std::numeric_limits<uint32_t>::max()) return false;
+        if (logical == end_ - begin_) return append(value);
+        const uint32_t offset = logical;
+        Entry boundary;
+        if (!decode(offset, boundary)) return false;
+        const uint32_t at_index = boundary.index;
         const uint32_t hdr = varint_size(value.n);
-        const size_t span = static_cast<size_t>(hdr) + value.n;
-        const size_t old = data_.size();
-        if (old > std::numeric_limits<uint32_t>::max() - span) return false;
-        try {
-            data_.resize(old + span);
-        } catch (const std::bad_alloc&) {
-            return false;
-        }
+        const uint32_t span = hdr + value.n;
+        if (!ensure_space(0, span) || !ensure_offset_space()) return false;
         uint8_t* base = data_.data();
-        std::memmove(base + offset + span, base + offset, old - offset);
-        encode_varint(base + offset, value.n);
-        if (value.n) std::memcpy(base + offset + hdr, value.p, value.n);
+        // ensure_space may have shifted begin_; recompute the splice point from the entry index.
+        const uint32_t off = offset_at(at_index);
+        std::memmove(base + off + span, base + off, end_ - off);
+        encode_varint(base + off, value.n);
+        if (value.n) std::memcpy(base + off + hdr, value.p, value.n);
+        end_ += span;
         entries_++;
         payload_bytes_ += value.n;
+        // Index fix-up: one new slot at the back, then slide [at_index, entries_-1) up by one
+        // position and shift their byte offsets by span; finally place the new entry's offset.
+        for (uint32_t i = entries_ - 1; i > at_index; i--)
+            offset_set(i, offset_at(i - 1) + span);
+        offset_set(at_index, off);
         return true;
     }
 
@@ -336,6 +345,23 @@ private:
         return true;
     }
 
+    // LOGICAL-offset decode for callers that track offsets rather than indexes (the set lane's
+    // offset vector, and its fixed-width index*span arithmetic). Logical offset 0 is the first
+    // entry regardless of the two-ended buffer's begin_ -- absolute offsets shift whenever
+    // ensure_space recenters, so exposing them would silently invalidate every stored offset
+    // (that exact bug wedged the first cross-lane merge). The Entry's LOAD-BEARING index is
+    // derived by binary search over the offset index; O(log n) at compact scale.
+    bool decode(uint32_t logical, Entry& out) const {
+        if (entries_ == 0) return false;
+        const uint32_t abs = begin_ + logical;
+        uint32_t lo = 0, hi = entries_ - 1;
+        while (lo < hi) {
+            const uint32_t mid = lo + (hi - lo) / 2;
+            if (offset_at(mid) < abs) lo = mid + 1; else hi = mid;
+        }
+        if (offset_at(lo) != abs) return false;
+        return decode(abs, lo, out);
+    }
     bool decode(uint32_t offset, uint32_t index, Entry& out) const {
         if (offset < begin_ || offset >= end_) return false;
         uint32_t value = 0;
@@ -471,9 +497,6 @@ protected:
     // Set's sorted integer compact is binary (2/4/8-byte payloads), so its logical member byte
     // total differs from Compact::payload_bytes(). These two hooks keep the common representation
     // and promotion ordering while allowing that one type-specific distinction.
-    void replace_compact(Compact&& replacement) {
-        if (is_compact()) compact_ = std::move(replacement);
-    }
     void promote_with_payload(CollectionEncoding to, uint64_t expanded_allocation_bytes,
                               uint64_t logical_payload_bytes) {
         expanded_entries_ = compact_.size();
