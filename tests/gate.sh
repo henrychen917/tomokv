@@ -2,8 +2,9 @@
 # PRE-PUSH GATE for tomokv-cpp (pure 2s baseline).
 #
 #   tests/gate.sh quick   loopback only, ~3 min: build (release+ASAN), footprint locks, boot
-#                         matrix, smoke, torture, RYOW, shutdown invariants, counter-fired
-#                         assertions, idle-CPU ceiling. Runs on any machine.
+#                         matrix, smoke, torture, RYOW, atomic torn/mixed-write/window gates,
+#                         shutdown invariants, counter-fired assertions, idle-CPU ceiling. Runs on
+#                         any machine.
 #   tests/gate.sh full    quick + torture-under-ASAN + NIC regression cells vs tests/gate_refs.txt
 #                         (needs the 25GbE netns rig and the scratchpad niclib).
 #
@@ -34,8 +35,9 @@ g++ -std=c++20 -O1 -g -fsanitize=address -march=native -pthread -I. \
 ./build/tomokv --ratio 4:4:2  2>&1 | grep -q "deleted"  && ok "reject 3-part ratio"|| bad "reject 3-part ratio"
 
 boot(){ # binary -> pid ; server log to $SRVLOG
+  local bin=$1; shift
   SRVLOG=$(mktemp /tmp/gate-srv.XXXXXX)
-  timeout 900 taskset -c $CORES "$1" --port $PORT --bind 127.0.0.1 --shards 16 --ratio 6:2 \
+  timeout 900 taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --shards 16 --ratio 6:2 "$@" \
       > "$SRVLOG" 2>&1 &
   SRV=$!
   for _ in $(seq 50); do ./build/tomokv --help >/dev/null 2>&1
@@ -65,16 +67,31 @@ R=$(grep -oE "dispatched=[0-9]+" "$SRVLOG" | cut -d= -f2)
 E=$(grep -oE "executed=[0-9]+"  "$SRVLOG" | cut -d= -f2)
 [ -n "$R" ] && [ "$R" = "$E" ] && ok "dispatched==executed ($R)" || bad "dispatched==executed" "$R vs $E"
 
+# Explicit ON boot plus the non-vacuous epoch-MVCC gates. atomic_torn includes its own OFF control,
+# predecessor/promotion counters, overlapping writers, window liveness, and live CONFIG flips.
+boot ./build/tomokv --atomic 1 || bad "atomic release boot"
+python3 tests/atomic_torn.py 127.0.0.1 $PORT >/tmp/gate-atomic-torn.txt 2>&1 \
+    && ok "atomic torn/window battery" || bad "atomic torn/window battery" "see /tmp/gate-atomic-torn.txt"
+python3 tests/atomic_ryow.py 127.0.0.1 $PORT >/tmp/gate-atomic-ryow.txt 2>&1 \
+    && ok "atomic RYOW/mixed-write battery" || bad "atomic RYOW/mixed-write battery" "see /tmp/gate-atomic-ryow.txt"
+stop
+grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
+    && ok "atomic shutdown invariants" || bad "atomic shutdown invariants"
+
 if [ "$TIER" = quick ]; then
   echo; echo "GATE(quick): $PASS ok, $FAIL FAIL"; [ $FAIL -eq 0 ] || exit 1; exit 0
 fi
 
 # ---- 4. full tier: torture under ASAN ---------------------------------------------------------
-boot $ASAN || bad "ASAN boot"
+boot $ASAN --atomic 1 || bad "ASAN boot"
 python3 tests/torture.py 127.0.0.1 $PORT >/tmp/gate-tort-asan.txt 2>&1 \
     && ok "torture under ASAN" || bad "torture under ASAN"
 python3 tests/ryow.py 127.0.0.1 $PORT >/tmp/gate-ryow-asan.txt 2>&1 \
     && ok "RYOW under ASAN" || bad "RYOW under ASAN"
+python3 tests/atomic_torn.py 127.0.0.1 $PORT >/tmp/gate-atomic-torn-asan.txt 2>&1 \
+    && ok "atomic torn/window under ASAN" || bad "atomic torn/window under ASAN"
+python3 tests/atomic_ryow.py 127.0.0.1 $PORT >/tmp/gate-atomic-ryow-asan.txt 2>&1 \
+    && ok "atomic RYOW under ASAN" || bad "atomic RYOW under ASAN"
 stop
 grep -q "ERROR: AddressSanitizer" "$SRVLOG" && bad "ASAN clean" || ok "ASAN clean"
 

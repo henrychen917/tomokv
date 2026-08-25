@@ -11,6 +11,7 @@
 // possible later — an LB moves a shard by storing a different thread id, with no data movement and
 // no change to routing. See placement.h for the ordering contract that makes such a move safe.
 #pragma once
+#include <algorithm>
 #include <atomic>
 #include <cstdint>
 #include <memory>
@@ -64,6 +65,8 @@ struct Config {
     // for fast-shifting working sets; for real cache duty allkeys-lfu discriminates with no clock
     // at all and is the recommended default.
     uint32_t lru_clock_shift = 8;
+    uint32_t atomic          = 0;         // epoch-MVCC atomic multi-key lane; zero is fully off
+    uint32_t atomic_window   = 256;       // in-flight atomic writes; zero is unlimited
     TypeLimits type_limits;
 };
 
@@ -76,6 +79,8 @@ struct MaxmemoryConfigSnapshot {
 
 class Server {
 public:
+    static constexpr uint64_t kAtomicEnabledBit = uint64_t{1} << 63;
+
     Server() = default;
     Server(const Server&) = delete;
     Server& operator=(const Server&) = delete;
@@ -94,6 +99,9 @@ public:
         live_maxmemory_policy_.store(static_cast<uint8_t>(cfg.maxmemory_policy),
                                      std::memory_order_relaxed);
         live_maxmemory_samples_.store(cfg.maxmemory_samples, std::memory_order_relaxed);
+        atomic_activity_.store(cfg.atomic ? kAtomicEnabledBit : 0,
+                               std::memory_order_relaxed);
+        live_atomic_window_.store(cfg.atomic_window, std::memory_order_relaxed);
         live_config_version_.store(2, std::memory_order_release);  // even versions are stable
         // Declared topology is a legacy lowering input and therefore cannot accompany --place.
         // A declaration that fails to parse or names cpus outside the affinity mask fails the BOOT,
@@ -141,6 +149,7 @@ public:
             const uint32_t b1 = (i + 1 == cfg.shards) ? kNumBuckets : (i + 1) * per;
             shards_[i] = std::make_unique<Shard>();
             shards_[i]->init(static_cast<int32_t>(i), b0, b1, cfg.zc_min, cfg.type_limits);
+            shards_[i]->bind_atomic_state(&commit_seq_, &atomic_activity_);
         }
         router_.build_uniform(static_cast<int32_t>(cfg.shards));
 
@@ -155,6 +164,8 @@ public:
             threads_[i]->init(i, placement_.role_of(i), nthreads);
             threads_[i]->init_command_counts(command_registry_size());
         }
+        for (uint32_t i = 0; i < nthreads; i++)
+            atomic_read_floors_[i].store(UINT64_MAX, std::memory_order_relaxed);
 
         // ---- shards directly onto workers ------------------------------------------------------
         // Locality resolution stops at the individual EX thread. There is no contiguous node range:
@@ -196,6 +207,69 @@ public:
 
     std::atomic<uint64_t>& next_client_id() { return next_client_id_; }
     std::atomic<bool>&     shutting_down()  { return shutting_down_; }
+
+    uint64_t atomic_mode_state() const {
+        return atomic_activity_.load(std::memory_order_acquire);
+    }
+    bool atomic_enabled() const { return atomic_mode_state() & kAtomicEnabledBit; }
+    uint32_t atomic_window() const {
+        return live_atomic_window_.load(std::memory_order_acquire);
+    }
+    void set_atomic_enabled(bool enabled) {
+        if (enabled) atomic_activity_.fetch_or(kAtomicEnabledBit, std::memory_order_release);
+        else atomic_activity_.fetch_and(~kAtomicEnabledBit, std::memory_order_release);
+    }
+    void set_atomic_window(uint32_t window) {
+        live_atomic_window_.store(window, std::memory_order_release);
+    }
+    bool atomic_tracking_active() const {
+        return atomic_mode_state() != 0;
+    }
+    bool atomic_try_admit() {
+        const uint32_t window = atomic_window();
+        uint64_t current = atomic_inflight_.load(std::memory_order_relaxed);
+        for (;;) {
+            if (window && current >= window) {
+                atomic_window_stalls_.fetch_add(1, std::memory_order_relaxed);
+                return false;
+            }
+            if (atomic_inflight_.compare_exchange_weak(
+                    current, current + 1, std::memory_order_acq_rel,
+                    std::memory_order_relaxed)) {
+                atomic_groups_.fetch_add(1, std::memory_order_relaxed);
+                atomic_activity_.fetch_add(1, std::memory_order_release);
+                return true;
+            }
+        }
+    }
+    void atomic_retire_group() {
+        atomic_inflight_.fetch_sub(1, std::memory_order_release);
+        atomic_activity_.fetch_sub(1, std::memory_order_release);
+    }
+    uint64_t atomic_commit() {
+        return commit_seq_.fetch_add(1, std::memory_order_seq_cst) + 1;
+    }
+    uint64_t atomic_snapshot() const { return commit_seq_.load(std::memory_order_seq_cst); }
+    void publish_atomic_read_floor(uint32_t thread, uint64_t floor) {
+        atomic_read_floors_[thread].store(floor, std::memory_order_seq_cst);
+    }
+    uint64_t atomic_read_floor() const {
+        // Lifetime invariant: promotion frees only versions whose tickets are strictly below this
+        // minimum and no newer than its pre-floor commit cutoff. Snapshot registration publishes
+        // then confirms commit_seq; these seq_cst operations ensure a cleanup that missed the
+        // publication has an older cutoff. Thus no active IO snapshot can later dereference a
+        // freed loser. UINT64_MAX means no registered reader constrains the floor.
+        uint64_t floor = UINT64_MAX;
+        for (uint32_t i = 0; i < nthreads(); i++)
+            floor = std::min(floor,
+                             atomic_read_floors_[i].load(std::memory_order_seq_cst));
+        return floor;
+    }
+    uint64_t atomic_groups() const { return atomic_groups_.load(std::memory_order_relaxed); }
+    uint64_t atomic_inflight() const { return atomic_inflight_.load(std::memory_order_relaxed); }
+    uint64_t atomic_window_stalls() const {
+        return atomic_window_stalls_.load(std::memory_order_relaxed);
+    }
 
     MaxmemoryConfigSnapshot maxmemory_config_snapshot() const {
         // CONFIG writers make version odd around a change. Executors take this coherent snapshot
@@ -274,6 +348,15 @@ private:
     std::atomic<uint8_t>  live_maxmemory_policy_{
         static_cast<uint8_t>(MaxmemoryPolicy::NoEviction)};
     std::atomic<uint32_t> live_maxmemory_samples_{5};
+    std::atomic<uint32_t> live_atomic_window_{256};
+    std::atomic<uint64_t> commit_seq_{0};
+    std::atomic<uint64_t> atomic_inflight_{0};
+    std::atomic<uint64_t> atomic_groups_{0};
+    std::atomic<uint64_t> atomic_window_stalls_{0};
+    // Enabled is the high bit; every admitted group and live record contributes one low-bit unit.
+    // Dispatch therefore decides OFF/ON/draining with one acquire load and one predictable test.
+    std::atomic<uint64_t> atomic_activity_{0};
+    std::atomic<uint64_t> atomic_read_floors_[kMaxThreads] = {};
 };
 
 }  // namespace tomo

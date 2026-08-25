@@ -335,6 +335,7 @@ private:
     }
 
     bool execute_snapshot_task(const Task& task, bool capture_writes) {
+        if (!task.client) return execute(task);
         Op& op = task.client->rob().at(task.op_id);
         const int32_t sid = task.shard >= 0 ? task.shard : op.shard;
         Shard& shard = srv_->shard(sid);
@@ -357,6 +358,7 @@ private:
     }
 
     void schedule_snapshot_task(const Task& task) {
+        if (!task.client) { execute(task); return; }
         // A bounded scatter continuation is still the oldest task on this owner.  Holding later
         // work here preserves the queue-order RYOW argument without installing a conn barrier for
         // KEYS.  Snapshot-gated scatter writes use the same ordering hold while Pending.
@@ -401,6 +403,7 @@ private:
             return;
         }
         for (uint32_t i = 0; i < n; i++) {
+            if (!batch[i].client) continue;
             const Op& op = batch[i].client->rob().at(batch[i].op_id);
             const int32_t shard = batch[i].shard >= 0 ? batch[i].shard : op.shard;
             if (shard >= 0 && !batch[i].scatter &&
@@ -419,6 +422,13 @@ private:
     }
 
     bool execute(const Task& t) {
+        if (!t.client) {
+            Shard& cleanup = srv_->shard(t.shard);
+            cleanup.set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
+            xshard_cleanup_shard(*srv_, cleanup, 32);
+            cleanup.publish_size();
+            return true;
+        }
         Op& op = t.client->rob().at(t.op_id);
         const int32_t shard_id = t.shard >= 0 ? t.shard : op.shard;
         Shard& sh = srv_->shard(shard_id);
@@ -442,7 +452,15 @@ private:
             // admission on the apply hop.
             reply_maxmemory_oom(op);
         } else {
-            op.spec->handler(sh, op);
+            // The side-map pointer is the sole default-off branch. When null, handlers take their
+            // original byte-identical path with no epoch loads, allocations, or cleanup work.
+            if (__builtin_expect(sh.store().atomic_has_records(), false)) {
+                const bool execute_handler = xshard_plain_prepare(*srv_, sh, op);
+                if (execute_handler) op.spec->handler(sh, op);
+                xshard_plain_finish(sh);
+            } else {
+                op.spec->handler(sh, op);
+            }
         }
 
         // Release pairs with the IO thread's acquire on Done: everything the handler wrote into

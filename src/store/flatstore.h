@@ -59,17 +59,23 @@
 // index; that alone was worth 2.5-2.7x.
 #pragma once
 #include <algorithm>
+#include <atomic>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <limits>
 #include <memory>
+#include <new>
+#include <string>
+#include <unordered_map>
 #include <vector>
 #include "eviction.h"
 #include "kvobj.h"
 #include "../snapshot/format.h"
 
 namespace tomo {
+
+struct ScatterState;
 
 inline uint64_t mix64(uint64_t h);
 
@@ -266,6 +272,32 @@ inline uint64_t mix64(uint64_t h) {
 }
 
 class FlatStore {
+    struct AtomicRecord;
+    struct AtomicVersion {
+        KvObj* value = nullptr;
+        ScatterState* group = nullptr;
+        std::atomic<uint64_t>* group_epoch = nullptr;
+        std::atomic<uint32_t>* group_refs = nullptr;
+        std::atomic<bool>* group_aborted = nullptr;
+        AtomicVersion* next = nullptr;
+        AtomicRecord* prepared_record = nullptr;
+        uint64_t epoch = 0;                 // plain single-key writes; group writes use group_epoch
+        bool physical = false;
+        bool prepared = false;
+    };
+    struct AtomicRecord {
+        std::string key;
+        AtomicVersion* head = nullptr;
+        AtomicVersion* physical = nullptr;
+        AtomicRecord* sweep_next = nullptr;
+        AtomicRecord* sweep_prev = nullptr;
+        uint32_t count = 0;
+    };
+    struct AtomicVersionMap {
+        std::unordered_map<uint64_t, AtomicRecord*> records;
+        AtomicRecord* cursor = nullptr;
+    };
+
 public:
     static constexpr uint64_t kPtrMask = (1ULL << 48) - 1;
     static constexpr uint64_t kTombBit = 1ULL << 48;
@@ -289,6 +321,9 @@ public:
 
     explicit FlatStore(uint32_t initial_cap = 1024) { alloc_table(0, round_pow2(initial_cap)); }
     ~FlatStore() {
+        // At process teardown no reader survives. Collapse MVCC records first so the ordinary
+        // table destructor below remains the unique owner of each promoted winner.
+        atomic_promote_all_for_shutdown();
         if (snapshot_new_tab_) std::free(snapshot_new_tab_);
         for (int t = 0; t < 2; t++)
             if (tab_[t]) {
@@ -304,17 +339,320 @@ public:
     FlatStore(const FlatStore&) = delete;
     FlatStore& operator=(const FlatStore&) = delete;
 
+    // Main calls this only after every IO/ex thread has joined. It releases group references before
+    // IO-owned arena pools are destroyed; the destructor repeats it harmlessly for early exits.
+    void atomic_shutdown_release_records() { atomic_promote_all_for_shutdown(); }
+
     bool     rehashing() const { return tab_[1] != nullptr; }
     uint32_t size() const { return live_[0] + live_[1]; }
     uint32_t capacity() const { return cap_[0] + cap_[1]; }
-    size_t   object_bytes() const { return obj_bytes_; }
-    size_t   obj_bytes() const { return obj_bytes_; }
+    size_t   object_bytes() const { return obj_bytes_ + atomic_version_bytes_; }
+    size_t   obj_bytes() const { return obj_bytes_ + atomic_version_bytes_; }
     uint32_t expire_count() const { return expires_.size(); }
     size_t   accounted_bytes() const {
         const size_t keys = size();
-        if (keys > (std::numeric_limits<size_t>::max() - obj_bytes_) / kSlotOverheadPerKey)
+        const size_t objects = obj_bytes_ + atomic_version_bytes_;
+        if (keys > (std::numeric_limits<size_t>::max() - objects) / kSlotOverheadPerKey)
             return std::numeric_limits<size_t>::max();
-        return obj_bytes_ + keys * kSlotOverheadPerKey;
+        return objects + keys * kSlotOverheadPerKey;
+    }
+
+    // Epoch-MVCC is a side-map so KvObj remains byte-identical. These bindings are installed once
+    // at boot; the null map pointer below is the complete disabled-feature tax on store accesses.
+    void bind_atomic_state(std::atomic<uint64_t>* commit_seq,
+                           std::atomic<uint64_t>* activity,
+                           uint64_t* predecessor_reads, uint64_t* chain_max,
+                           uint64_t* promotions, uint64_t* records_freed) {
+        atomic_commit_seq_ = commit_seq;
+        atomic_activity_ = activity;
+        atomic_predecessor_reads_ = predecessor_reads;
+        atomic_chain_max_ = chain_max;
+        atomic_promotions_ = promotions;
+        atomic_records_freed_ = records_freed;
+    }
+
+    bool atomic_has_records() const { return atomic_versions_ != nullptr; }
+    bool atomic_has_record(uint64_t hash) const {
+        return atomic_versions_ && atomic_versions_->records.find(hash) !=
+                                      atomic_versions_->records.end();
+    }
+    void atomic_set_read_epoch(uint64_t epoch) { atomic_read_epoch_ = epoch; }
+    void atomic_clear_read_epoch() { atomic_read_epoch_ = UINT64_MAX; }
+
+    // A prepared node is allocated and its key record is materialized during validate. Apply only
+    // relinks pointers and slot words and therefore cannot fail.
+    bool atomic_prepare_version(uint64_t hash, Slice key, ScatterState* group,
+                                std::atomic<uint64_t>* group_epoch,
+                                std::atomic<uint32_t>* group_refs,
+                                std::atomic<bool>* group_aborted, void*& prepared) {
+        prepared = nullptr;
+        if (!atomic_versions_) {
+            auto* versions = new (std::nothrow) AtomicVersionMap;
+            if (!versions) return false;
+            atomic_versions_ = versions;
+        }
+        AtomicRecord* record = nullptr;
+        auto found = atomic_versions_->records.find(hash);
+        if (found == atomic_versions_->records.end()) {
+            auto* predecessor = new (std::nothrow) AtomicVersion;
+            auto* created = new (std::nothrow) AtomicRecord;
+            if (!predecessor || !created) {
+                delete predecessor;
+                delete created;
+                if (atomic_versions_->records.empty()) {
+                    delete atomic_versions_;
+                    atomic_versions_ = nullptr;
+                }
+                return false;
+            }
+            try {
+                created->key.assign(key.p, key.n);
+                auto inserted = atomic_versions_->records.emplace(hash, created);
+                if (!inserted.second) {
+                    delete predecessor;
+                    delete created;
+                    record = inserted.first->second;
+                } else {
+                    record = created;
+                    predecessor->value = find_without_touch(hash, key);
+                    predecessor->physical = predecessor->value != nullptr;
+                    record->head = record->physical = predecessor;
+                    record->count = 1;
+                    atomic_link_record(*record);
+                    if (atomic_activity_)
+                        atomic_activity_->fetch_add(1, std::memory_order_release);
+                    atomic_note_chain(record->count);
+                }
+            } catch (const std::bad_alloc&) {
+                delete predecessor;
+                delete created;
+                if (atomic_versions_->records.empty()) {
+                    delete atomic_versions_;
+                    atomic_versions_ = nullptr;
+                }
+                return false;
+            }
+        } else {
+            record = found->second;
+        }
+
+        auto* node = new (std::nothrow) AtomicVersion;
+        if (!node) return false;
+        node->group = group;
+        node->group_epoch = group_epoch;
+        node->group_refs = group_refs;
+        node->group_aborted = group_aborted;
+        node->prepared_record = record;
+        node->prepared = true;
+        node->next = record->head;
+        record->head = node;
+        record->count++;
+        if (node->group_refs) node->group_refs->fetch_add(1, std::memory_order_relaxed);
+        atomic_note_chain(record->count);
+        prepared = node;
+        return true;
+    }
+
+    void atomic_discard_prepared(void*& prepared) {
+        auto* node = static_cast<AtomicVersion*>(prepared);
+        if (!node) return;
+        AtomicRecord* record = node->prepared_record;
+        if (record) {
+            AtomicVersion** link = &record->head;
+            while (*link && *link != node) link = &(*link)->next;
+            if (*link == node) {
+                *link = node->next;
+                record->count--;
+            }
+        }
+        if (node->value) {
+            atomic_version_bytes_ -= kvobj_size(node->value);
+            kvobj_free(node->value);
+        }
+        if (node->group_refs)
+            node->group_refs->fetch_sub(1, std::memory_order_release);
+        delete node;
+        prepared = nullptr;
+    }
+
+    // Reserve enough current-table slots for a whole owner apply pass. It may allocate or reject
+    // during validate; once it returns true, atomic_install_prepared cannot hit a capacity failure.
+    bool atomic_reserve_slots(uint32_t additional) {
+        if (!additional) return true;
+        if (static_cast<uint64_t>(live_[0] + tombs_[0] + additional) < cap_[0]) return true;
+        if (rehashing() || snapshot_prepared_) return false;
+        uint64_t wanted = cap_[0];
+        const uint64_t live_after = static_cast<uint64_t>(live_[0]) + additional;
+        while (live_after * 100 >= wanted * kLoadPct) {
+            wanted *= 2;
+            if (wanted > UINT32_MAX) return false;
+        }
+        auto* fresh = static_cast<uint64_t*>(std::calloc(static_cast<size_t>(wanted),
+                                                         sizeof(uint64_t)));
+        if (!fresh) return false;
+        tab_[1] = tab_[0]; cap_[1] = cap_[0]; mask_[1] = mask_[0];
+        live_[1] = live_[0]; tombs_[1] = tombs_[0];
+        tab_[0] = fresh; cap_[0] = static_cast<uint32_t>(wanted); mask_[0] = cap_[0] - 1;
+        live_[0] = tombs_[0] = 0;
+        rehash_pos_ = 0;
+        return true;
+    }
+
+    bool atomic_admit(Slice protected_key, const KvObj* incoming) {
+        const size_t bytes = incoming ? kvobj_size(incoming) : 0;
+        if (!__builtin_expect(maxmemory_enabled_, false) || snapshot_active_) {
+            atomic_version_bytes_ += bytes;
+            return true;
+        }
+        auto fits = [&] {
+            const size_t used = accounted_bytes();
+            return bytes <= maxmemory_limit_ && used <= maxmemory_limit_ - bytes;
+        };
+        if (fits()) { atomic_version_bytes_ += bytes; return true; }
+        if (maxmemory_policy_ == MaxmemoryPolicy::NoEviction) return false;
+        uint32_t budget = kEvictionsPerOp;
+        while (budget-- && !fits()) {
+            KvObj* victim = choose_victim(protected_key);
+            if (!victim) return false;
+            const uint64_t hash = hash_key(victim->key());
+            const Slice key = victim->key();
+            if (atomic_has_record(hash)) continue;
+            const uint32_t before = size();
+            const bool live = erase(hash, key);
+            if (size() == before) return false;
+            if (live && evicted_counter_) (*evicted_counter_)++;
+        }
+        if (!fits()) return false;
+        atomic_version_bytes_ += bytes;
+        return true;
+    }
+
+    void atomic_stage_prepared(void* prepared, KvObj*& value) {
+        auto* node = static_cast<AtomicVersion*>(prepared);
+        if (!node || !node->prepared || node->value) std::abort();
+        node->value = value;
+        value = nullptr;
+    }
+
+    void atomic_install_prepared(uint64_t hash, Slice key, void*& prepared,
+                                 uint64_t plain_epoch = 0, bool activate_plain = false) {
+        auto* node = static_cast<AtomicVersion*>(prepared);
+        prepared = nullptr;
+        auto it = atomic_versions_->records.find(hash);
+        AtomicRecord& record = *it->second;
+        if (node->prepared_record != &record || !node->prepared) std::abort();
+        node->prepared_record = nullptr;
+        node->prepared = false;
+        node->epoch = plain_epoch;
+
+        if (record.physical && record.physical->value) {
+            KvObj* detached = atomic_detach_physical(hash, key);
+            if (!detached) std::abort();
+            record.physical->physical = false;
+            atomic_version_bytes_ += kvobj_size(detached);
+        }
+        record.physical = node;
+        node->physical = node->value != nullptr;
+        if (node->value) {
+            atomic_version_bytes_ -= kvobj_size(node->value);
+            atomic_attach_physical(hash, node->value);
+        }
+        if (activate_plain) {
+            atomic_active_record_ = &record;
+            atomic_active_node_ = node;
+            atomic_read_epoch_ = plain_epoch;
+        }
+    }
+
+    void atomic_finish_plain() {
+        atomic_active_record_ = nullptr;
+        atomic_active_node_ = nullptr;
+        atomic_read_epoch_ = UINT64_MAX;
+    }
+
+    KvObj* atomic_resolve(uint64_t hash, Slice key, uint64_t snapshot) {
+        if (!atomic_versions_) return find_without_touch(hash, key);
+        auto it = atomic_versions_->records.find(hash);
+        if (it == atomic_versions_->records.end()) return find_without_touch(hash, key);
+        AtomicRecord& record = *it->second;
+        AtomicVersion* winner = nullptr;
+        uint64_t winner_epoch = 0;
+        // Chains are deliberately NOT ticket sorted: owners may install G1/G2 in opposite orders
+        // on different keys. Visibility is the order-independent argmax of committed tickets.
+        for (AtomicVersion* version = record.head; version; version = version->next) {
+            if (version->prepared) continue;
+            const uint64_t epoch = atomic_epoch(*version);
+            if (version->group && epoch == 0) continue;
+            if (epoch <= snapshot && (!winner || epoch > winner_epoch)) {
+                winner = version;
+                winner_epoch = epoch;
+            }
+        }
+        if (winner && winner != record.physical && atomic_predecessor_reads_)
+            (*atomic_predecessor_reads_)++;
+        if (!winner || !winner->value) return nullptr;
+        if ((winner->value->flags & KvObjFlags::HasTtl) &&
+            winner->value->expire_at_ms() <= cached_now_ms_) return nullptr;
+        return winner->value;
+    }
+
+    bool atomic_promote_key(uint64_t hash, uint64_t floor, uint64_t cleanup_cutoff) {
+        if (!atomic_versions_ || snapshot_active_) return false;
+        auto it = atomic_versions_->records.find(hash);
+        if (it == atomic_versions_->records.end()) return false;
+        return atomic_promote_record(it, floor, cleanup_cutoff);
+    }
+
+    uint32_t atomic_sweep(uint64_t floor, uint64_t cleanup_cutoff, uint32_t budget) {
+        if (!atomic_versions_ || snapshot_active_ || !budget) return 0;
+        uint32_t promoted = 0;
+        while (budget-- && atomic_versions_ && atomic_versions_->cursor) {
+            AtomicRecord* record = atomic_versions_->cursor;
+            AtomicRecord* next = record->sweep_next;
+            const uint64_t hash = hash_key(Slice(record->key.data(),
+                                                  static_cast<uint32_t>(record->key.size())));
+            auto it = atomic_versions_->records.find(hash);
+            const bool did = it != atomic_versions_->records.end() &&
+                             atomic_promote_record(it, floor, cleanup_cutoff);
+            if (did) promoted++;
+            else if (atomic_versions_) atomic_versions_->cursor = next;
+        }
+        return promoted;
+    }
+
+    // FLUSH is outside the cross-shard atomic set, but it must coexist with live records. Prepare
+    // every node first, then give this owner's logical clear one ordinary committed ticket. The
+    // subsequent table clear sees tombstones for recorded keys, so protected predecessors remain
+    // detached in their chains while unrelated plain keys are reclaimed immediately.
+    bool atomic_tombstone_all() {
+        if (!atomic_versions_ || atomic_versions_->records.empty()) return true;
+        struct PreparedClear { uint64_t hash; AtomicVersion* node; };
+        std::vector<PreparedClear> prepared;
+        try { prepared.reserve(atomic_versions_->records.size()); }
+        catch (const std::bad_alloc&) { return false; }
+        for (const auto& entry : atomic_versions_->records) {
+            AtomicRecord* record = entry.second;
+            void* opaque = nullptr;
+            const Slice key(record->key.data(), static_cast<uint32_t>(record->key.size()));
+            if (!atomic_prepare_version(entry.first, key, nullptr, nullptr, nullptr, nullptr,
+                                        opaque)) {
+                for (PreparedClear& item : prepared) {
+                    void* discard = item.node;
+                    atomic_discard_prepared(discard);
+                }
+                return false;
+            }
+            prepared.push_back(PreparedClear{entry.first, static_cast<AtomicVersion*>(opaque)});
+        }
+
+        const uint64_t ticket = atomic_commit_seq_->fetch_add(1, std::memory_order_seq_cst) + 1;
+        for (PreparedClear& item : prepared) {
+            AtomicRecord* record = item.node->prepared_record;
+            const Slice key(record->key.data(), static_cast<uint32_t>(record->key.size()));
+            void* opaque = item.node;
+            atomic_install_prepared(item.hash, key, opaque, ticket);
+        }
+        return true;
     }
 
     enum class SnapshotWriteResult : uint8_t { Ready, Pending, Error };
@@ -461,7 +799,8 @@ public:
     // copy cost — nothing is copied — but an L3 domain is filled by access, so a shard that moves
     // has to be read back in on the other side.
     size_t resident_estimate() const {
-        return static_cast<size_t>(cap_[0] + cap_[1]) * 8 + obj_bytes_ + pending_bytes_ +
+        return static_cast<size_t>(cap_[0] + cap_[1]) * 8 + obj_bytes_ +
+               atomic_version_bytes_ + pending_bytes_ +
                expires_.memory_bytes();
     }
 
@@ -476,10 +815,15 @@ public:
     KvObj* find(uint64_t h, Slice key) {
         if (rehashing() && !snapshot_active_) rehash_step();
         KvObj* found = nullptr;
-        if (KvObj* o = find_in(0, h, key)) found = live_or_expire(0, h, key, o);
-        if (rehashing()) {
-            if (!found)
-                if (KvObj* o = find_in(1, h, key)) found = live_or_expire(1, h, key, o);
+        if (__builtin_expect(atomic_versions_ != nullptr, false) &&
+            atomic_versions_->records.find(h) != atomic_versions_->records.end()) {
+            found = atomic_resolve(h, key, atomic_read_epoch_);
+        } else {
+            if (KvObj* o = find_in(0, h, key)) found = live_or_expire(0, h, key, o);
+            if (rehashing()) {
+                if (!found)
+                    if (KvObj* o = find_in(1, h, key)) found = live_or_expire(1, h, key, o);
+            }
         }
         // The entire disabled-feature read tax: one predicted branch, no metadata write.
         if (__builtin_expect(maxmemory_enabled_, false) && found) touch(found);
@@ -491,7 +835,9 @@ public:
     // than "new <= old" because good_size() is recomputed from the header — letting the real
     // allocation and the implied one diverge would silently break the resident estimate.
     OverwriteResult try_overwrite(uint64_t h, Slice key, Slice val) {
-        KvObj* o = find_without_touch(h, key);
+        if (atomic_versions_ && atomic_versions_->records.find(h) != atomic_versions_->records.end() &&
+            !atomic_active_node_) return OverwriteResult::NotPossible;
+        KvObj* o = atomic_active_node_ ? atomic_active_node_->value : find_without_touch(h, key);
         if (!o) return OverwriteResult::NotPossible;
         if (static_cast<Enc>(o->enc) != Enc::Raw) return OverwriteResult::NotPossible;
         if (o->flags & KvObjFlags::HasTtl) return OverwriteResult::NotPossible;  // SET clears TTL
@@ -599,6 +945,7 @@ public:
         if (rehashing()) rehash_step();
         uint32_t removed = 0;
         expires_.sample(budget, [&](uint64_t h) {
+            if (atomic_has_record(h)) return;  // promotion resolves TTL on the winning version
             KvObj* o = find_hash_in(0, h);
             if (!o && rehashing()) o = find_hash_in(1, h);
             if (!o || !(o->flags & KvObjFlags::HasTtl)) {
@@ -643,6 +990,11 @@ public:
 
     // Takes ownership of `o` only on success; frees anything it displaces.
     InsertResult insert(uint64_t h, KvObj* o) {
+        if (__builtin_expect(atomic_active_node_ != nullptr, false) &&
+            atomic_active_record_ && atomic_active_record_->key.size() == o->key().n &&
+            (o->key().n == 0 || std::memcmp(atomic_active_record_->key.data(),
+                                            o->key().p, o->key().n) == 0))
+            return atomic_replace_active(h, o);
         const bool capturing = rehashing() && snapshot_active_;
         if (rehashing()) {
             if (!capturing) rehash_step();
@@ -684,6 +1036,10 @@ public:
     }
 
     bool erase(uint64_t h, Slice key) {
+        if (__builtin_expect(atomic_active_node_ != nullptr, false) && atomic_active_record_ &&
+            atomic_active_record_->key.size() == key.n &&
+            (key.n == 0 || std::memcmp(atomic_active_record_->key.data(), key.p, key.n) == 0))
+            return atomic_erase_active(h, key);
         if (rehashing() && !snapshot_active_) rehash_step();
         bool expired = false;
         if (erase_in(0, h, key, &expired)) {
@@ -967,6 +1323,198 @@ private:
         KvObj*      retired;
     };
 
+    static uint64_t atomic_epoch(const AtomicVersion& version) {
+        return version.group_epoch
+            ? version.group_epoch->load(std::memory_order_acquire) : version.epoch;
+    }
+
+    void atomic_note_chain(uint32_t count) {
+        if (atomic_chain_max_ && count > *atomic_chain_max_) *atomic_chain_max_ = count;
+    }
+
+    void atomic_link_record(AtomicRecord& record) {
+        if (!atomic_versions_->cursor) {
+            record.sweep_next = record.sweep_prev = &record;
+            atomic_versions_->cursor = &record;
+            return;
+        }
+        AtomicRecord* cursor = atomic_versions_->cursor;
+        record.sweep_next = cursor;
+        record.sweep_prev = cursor->sweep_prev;
+        cursor->sweep_prev->sweep_next = &record;
+        cursor->sweep_prev = &record;
+    }
+
+    void atomic_unlink_record(AtomicRecord& record) {
+        if (record.sweep_next == &record) {
+            atomic_versions_->cursor = nullptr;
+        } else {
+            record.sweep_prev->sweep_next = record.sweep_next;
+            record.sweep_next->sweep_prev = record.sweep_prev;
+            if (atomic_versions_->cursor == &record)
+                atomic_versions_->cursor = record.sweep_next;
+        }
+    }
+
+    KvObj* atomic_detach_physical(uint64_t hash, Slice key) {
+        auto detach = [&](int table) -> KvObj* {
+            if (!tab_[table]) return nullptr;
+            const uint16_t tag = tag_of(hash);
+            uint32_t slot = slot_start(table, hash);
+            for (uint32_t probes = 0; probes <= cap_[table]; probes++) {
+                const uint64_t word = tab_[table][slot];
+                if (word == 0) return nullptr;
+                KvObj* object = ptr_of(word);
+                if (object && tag_of_word(word) == tag && object->key() == key) {
+                    tab_[table][slot] = kTombBit;
+                    live_[table]--; tombs_[table]++;
+                    obj_bytes_ -= kvobj_size(object);
+                    expires_.erase(hash);
+                    return object;
+                }
+                slot = (slot + 1) & mask_[table];
+            }
+            return nullptr;
+        };
+        if (KvObj* object = detach(0)) return object;
+        return rehashing() ? detach(1) : nullptr;
+    }
+
+    void atomic_attach_physical(uint64_t hash, KvObj* object) {
+        // Validation reserved the slot. Failure here is an invariant violation, not an abort path:
+        // some shards may already have installed this infallible phase.
+        if (!insert_into(0, hash, object, true)) std::abort();
+    }
+
+    void retire_detached_obj(KvObj* object) {
+        if (!object) return;
+        if (outstanding_borrows_ == 0) { kvobj_free(object); return; }
+        const char* ptr = (static_cast<Type>(object->type) == Type::String && !object->is_int())
+                              ? object->str_value().p : nullptr;
+        for (Borrow& borrow : borrows_) {
+            if (borrow.ptr != ptr) continue;
+            borrow.retired = object;
+            pending_bytes_ += kvobj_size(object);
+            return;
+        }
+        kvobj_free(object);
+    }
+
+    InsertResult atomic_replace_active(uint64_t hash, KvObj* replacement) {
+        if (__builtin_expect(maxmemory_enabled_, false) && !snapshot_active_) {
+            if (!make_room_for(replacement->key(), kvobj_size(replacement)))
+                return InsertResult::MaxmemoryOom;
+            if (replacement->eviction_meta() == 0) initialize_meta(replacement);
+        }
+        AtomicVersion& node = *atomic_active_node_;
+        if (node.value) {
+            KvObj* old = atomic_detach_physical(hash, node.value->key());
+            if (!old) std::abort();
+            node.physical = false;
+            retire_detached_obj(old);
+        }
+        node.value = replacement;
+        node.physical = true;
+        atomic_active_record_->physical = &node;
+        atomic_attach_physical(hash, replacement);
+        return InsertResult::Inserted;
+    }
+
+    bool atomic_erase_active(uint64_t hash, Slice key) {
+        AtomicVersion& node = *atomic_active_node_;
+        KvObj* old = node.value ? atomic_detach_physical(hash, key) : nullptr;
+        if (node.value && !old) std::abort();
+        const bool live = old && (!(old->flags & KvObjFlags::HasTtl) ||
+                                  old->expire_at_ms() > cached_now_ms_);
+        node.value = nullptr;
+        node.physical = false;
+        atomic_active_record_->physical = &node;
+        retire_detached_obj(old);
+        return live;
+    }
+
+    bool atomic_promote_record(std::unordered_map<uint64_t, AtomicRecord*>::iterator it,
+        uint64_t floor, uint64_t cleanup_cutoff) {
+        AtomicRecord& record = *it->second;
+        AtomicVersion* winner = nullptr;
+        uint64_t winner_epoch = 0;
+        for (AtomicVersion* version = record.head; version; version = version->next) {
+            if (version->prepared) {
+                const bool aborted = version->group_aborted &&
+                    version->group_aborted->load(std::memory_order_acquire);
+                if (!aborted) return false;
+                continue;
+            }
+            const uint64_t epoch = atomic_epoch(*version);
+            if ((version->group && epoch == 0) || epoch >= floor || epoch > cleanup_cutoff)
+                return false;
+            if (!winner || epoch > winner_epoch) {
+                winner = version;
+                winner_epoch = epoch;
+            }
+        }
+
+        const uint64_t hash = it->first;
+        const Slice key(record.key.data(), static_cast<uint32_t>(record.key.size()));
+        if (record.physical && record.physical != winner && record.physical->value) {
+            KvObj* loser = atomic_detach_physical(hash, key);
+            if (!loser) std::abort();
+            record.physical->physical = false;
+            record.physical->value = nullptr;
+            retire_detached_obj(loser);
+        }
+        if (winner && winner != record.physical && winner->value) {
+            atomic_version_bytes_ -= kvobj_size(winner->value);
+            atomic_attach_physical(hash, winner->value);
+            winner->physical = true;
+        }
+
+        AtomicVersion* version = record.head;
+        while (version) {
+            AtomicVersion* next = version->next;
+            if (version != winner && version->value) {
+                if (!version->physical) atomic_version_bytes_ -= kvobj_size(version->value);
+                retire_detached_obj(version->value);
+            }
+            if (version->group_refs)
+                version->group_refs->fetch_sub(1, std::memory_order_release);
+            if (atomic_records_freed_) (*atomic_records_freed_)++;
+            delete version;
+            version = next;
+        }
+
+        atomic_unlink_record(record);
+        delete &record;
+        atomic_versions_->records.erase(it);
+        if (atomic_activity_)
+            atomic_activity_->fetch_sub(1, std::memory_order_release);
+        if (atomic_promotions_) (*atomic_promotions_)++;
+        if (atomic_versions_->records.empty()) {
+            delete atomic_versions_;
+            atomic_versions_ = nullptr;
+        }
+        return true;
+    }
+
+    void atomic_promote_all_for_shutdown() {
+        if (!atomic_versions_) return;
+        for (auto& entry : atomic_versions_->records) {
+            AtomicRecord* record = entry.second;
+            for (AtomicVersion* version = record->head; version;) {
+                AtomicVersion* next = version->next;
+                if (!version->physical && version->value) retire_detached_obj(version->value);
+                if (version->group_refs)
+                    version->group_refs->fetch_sub(1, std::memory_order_relaxed);
+                delete version;
+                version = next;
+            }
+            delete record;
+        }
+        delete atomic_versions_;
+        atomic_versions_ = nullptr;
+        atomic_version_bytes_ = 0;
+    }
+
     static uint32_t round_pow2(uint32_t v) { uint32_t p = kMinCap; while (p < v) p <<= 1; return p; }
     static uint16_t tag_of(uint64_t h)      { return static_cast<uint16_t>((h >> 49) & 0x7fff); }
     static uint16_t tag_of_word(uint64_t w) { return static_cast<uint16_t>((w >> 49) & 0x7fff); }
@@ -1056,6 +1604,7 @@ private:
             KvObj* candidate = maxmemory_policy_is_volatile(maxmemory_policy_)
                 ? random_volatile_candidate() : random_allkeys_candidate();
             if (!candidate || candidate->key() == protected_key) continue;
+            if (atomic_has_record(hash_key(candidate->key()))) continue;
             bool duplicate = false;
             for (uint32_t j = 0; j < seen_count; j++)
                 if (seen[j] == candidate) { duplicate = true; break; }
@@ -1371,6 +1920,7 @@ private:
     uint32_t  tombs_[2] = {0, 0};
     uint32_t  rehash_pos_ = 0;
     size_t    obj_bytes_  = 0;
+    size_t    atomic_version_bytes_ = 0;
     size_t    pending_bytes_ = 0;
     uint32_t  outstanding_borrows_ = 0;
     std::vector<Borrow> borrows_;
@@ -1385,6 +1935,20 @@ private:
     uint32_t    maxmemory_samples_ = 5;
     uint64_t    random_state_ = 0x9e3779b97f4a7c15ULL;
     uint64_t    sample_cursor_ = 0;
+
+    // Null until the first atomic group reaches this owner, and deleted again after promotion
+    // drains the last record. This preserves the default-off layout of every KvObj and leaves only
+    // one predictable pointer branch in store operations while records exist nowhere on a shard.
+    AtomicVersionMap* atomic_versions_ = nullptr;
+    AtomicRecord* atomic_active_record_ = nullptr;
+    AtomicVersion* atomic_active_node_ = nullptr;
+    uint64_t atomic_read_epoch_ = UINT64_MAX;
+    std::atomic<uint64_t>* atomic_commit_seq_ = nullptr;
+    std::atomic<uint64_t>* atomic_activity_ = nullptr;
+    uint64_t* atomic_predecessor_reads_ = nullptr;
+    uint64_t* atomic_chain_max_ = nullptr;
+    uint64_t* atomic_promotions_ = nullptr;
+    uint64_t* atomic_records_freed_ = nullptr;
 
     // Snapshot state is owner-only.  No atomics or locks enter FlatStore, and the ordinary lookup
     // still searches exactly t_[0] then t_[1] — during capture those already-existing tables mean

@@ -48,6 +48,7 @@ inline constexpr uint32_t kRecvChunk = 16 * 1024;
 class IoLoop {
 public:
     WbEngine& engine() { return wb_; }
+    uint32_t reap_atomic_deferred() { return scatter_pool_.reap_deferred(); }
     // ONE LISTENING SOCKET PER IO THREAD, via SO_REUSEPORT.
     //
     // Sharing a single listen fd across io threads does NOT distribute connections: every thread
@@ -73,7 +74,8 @@ public:
         }, this, [](void* ctx, Client& client, Op& op) {
             auto* loop = static_cast<IoLoop*>(ctx);
             if (op.has_scatter_state())
-                xshard_retire(client, op, loop->scatter_pool_, loop->self_->id(), loop,
+                xshard_retire(*loop->srv_, *loop->self_, loop->ring_, client, op,
+                    loop->scatter_pool_, loop->self_->id(), loop,
                     [](void* release_ctx, int32_t shard, const char* ptr) {
                         static_cast<IoLoop*>(release_ctx)->queue_borrow_release(shard, ptr);
                     });
@@ -139,6 +141,7 @@ private:
             sig.iterations++;
             self_->sample_depth();
             reap_dead();               // free clients dead for a full iteration -- see close_client
+            scatter_pool_.reap_deferred();
 
             uint32_t did = 0;
             {
@@ -405,6 +408,13 @@ private:
                 conn.advance_parse(consumed);
                 finish_prebuilt(c, *op);
                 continue;
+            }
+            if (scatter_prepared == ScatterPrepare::Backpressure) {
+                // Leave the parsed frame unconsumed. The ordinary connection barrier prevents
+                // younger commands on this socket from passing it; the active set retries while
+                // this IO thread continues serving every other connection.
+                c->set_scatter_barrier(true);
+                break;
             }
             if (scatter_prepared == ScatterPrepare::Ready) {
                 uint32_t needed[kMaxThreads] = {};

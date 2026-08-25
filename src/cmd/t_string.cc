@@ -192,6 +192,13 @@ XshardStringStoreResult xshard_store_string(Shard& shard, Slice key, uint64_t ha
     return XshardStringStoreResult::InsertFailed;
 }
 
+KvObj* xshard_make_string(Slice key, Slice value, int64_t expire_at_ms, bool integer_encode) {
+    int64_t integer = 0;
+    if (integer_encode && parse_i64(value, integer))
+        return kvobj_new_int(key, integer, expire_at_ms);
+    return kvobj_new_string(key, value, expire_at_ms);
+}
+
 // tomo:: linkage: every type family replies this exact text on admission failure.
 void reply_maxmemory_oom(Op& op) {
     reply_err(op.sink(), "OOM command not allowed when used memory > 'maxmemory'.");

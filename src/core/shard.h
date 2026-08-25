@@ -74,6 +74,14 @@ public:
                              uint32_t samples) {
         store_.configure_maxmemory(enabled, shard_limit, policy, samples);
     }
+    void bind_atomic_state(std::atomic<uint64_t>* commit_seq,
+                           std::atomic<uint64_t>* activity) {
+        store_.bind_atomic_state(commit_seq, activity,
+                                 &stats_.atomic_predecessor_reads,
+                                 &stats_.atomic_chain_max,
+                                 &stats_.atomic_promotions,
+                                 &stats_.atomic_records_freed);
+    }
     uint32_t active_expire(uint32_t budget) { return store_.active_expire(budget); }
 
     FlatStore&       store()       { return store_; }
@@ -138,6 +146,10 @@ public:
         uint64_t foreign_ops   = 0;
         uint64_t migrations    = 0;
         uint64_t migrated_bytes = 0;
+        uint64_t atomic_predecessor_reads = 0;
+        uint64_t atomic_chain_max = 0;
+        uint64_t atomic_promotions = 0;
+        uint64_t atomic_records_freed = 0;
     };
     Stats& stats() { return stats_; }
     const Stats& stats() const { return stats_; }

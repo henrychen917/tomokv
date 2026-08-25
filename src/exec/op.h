@@ -68,7 +68,7 @@ public:
     }
 
     bool push_arg(Slice s) {
-        if (argc_ < kInlineArgv) { argv_inline_[argc_++] = s; return true; }
+        if (!argv_heap_ && argc_ < kInlineArgv) { argv_inline_[argc_++] = s; return true; }
         const uint32_t need = argc_ + 1;
         if (need > argv_cap_) {
             uint32_t ncap = argv_cap_ ? argv_cap_ * 2 : kInlineArgv * 2;
