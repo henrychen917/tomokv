@@ -174,6 +174,269 @@ def hammer(prefix, atomic, seconds=2.0, writers=2, readers=4, keys=None):
     return torn, reads, errors, signature(final_values), completed
 
 
+def rename_hammer(prefix, atomic, keys, seconds=2.0, readers=6):
+    config("atomic", atomic)
+    left, right = keys
+    init = Resp()
+    init.cmd("DEL", left, right)
+    init.cmd("SET", left, "rename-value")
+    init.close()
+    stop = threading.Event()
+    start = threading.Barrier(readers + 1)
+    lock = threading.Lock()
+    invalid = 0
+    reads = 0
+    errors = []
+
+    def writer():
+        client = Resp()
+        source, destination = left, right
+        try:
+            start.wait()
+            while not stop.is_set():
+                if client.cmd("RENAME", source, destination) != b"OK":
+                    raise AssertionError("RENAME did not return OK")
+                source, destination = destination, source
+        except Exception as exc:
+            with lock:
+                errors.append("writer:%s" % exc)
+        finally:
+            client.close()
+
+    def reader(rid):
+        nonlocal invalid, reads
+        client = Resp()
+        try:
+            start.wait()
+            while not stop.is_set():
+                values = client.cmd("MGET", left, right)
+                good = ((values[0] == b"rename-value" and values[1] is None) or
+                        (values[0] is None and values[1] == b"rename-value"))
+                with lock:
+                    reads += 1
+                    invalid += not good
+        except Exception as exc:
+            with lock:
+                errors.append("reader%d:%s" % (rid, exc))
+        finally:
+            client.close()
+
+    threads = [threading.Thread(target=writer, daemon=True)] + [
+        threading.Thread(target=reader, args=(i,), daemon=True) for i in range(readers)]
+    for thread in threads:
+        thread.start()
+    time.sleep(seconds)
+    stop.set()
+    for thread in threads:
+        thread.join(timeout=10)
+    final = Resp()
+    final_values = final.cmd("MGET", left, right)
+    final.close()
+    final_good = ((final_values[0] == b"rename-value" and final_values[1] is None) or
+                  (final_values[0] is None and final_values[1] == b"rename-value"))
+    return invalid, reads, errors, final_good
+
+
+def find_torn_rename_pair(prefix):
+    """Use the OFF race itself to prove that a pair spans executor owners."""
+    last = (-1, 0, ["no pair tried"], False)
+    for candidate in range(32):
+        pair = ("%s:%d:a" % (prefix, candidate), "%s:%d:b" % (prefix, candidate))
+        last = rename_hammer(prefix, 0, pair, seconds=0.35, readers=6)
+        if last[0] > 0 and not last[2]:
+            return pair, last
+    return None, last
+
+
+def sinterstore_hammer(prefix, atomic, sources, seconds=2.0):
+    config("atomic", atomic)
+    left, right = sources
+    destination = prefix + ":dst"
+    init = Resp()
+    init.cmd("DEL", left, right, destination)
+    init.cmd("SADD", left, "base", "moving")
+    init.cmd("SADD", right, "base")
+    init.cmd("SINTERSTORE", destination, left, right)
+    init.close()
+    stop = threading.Event()
+    start = threading.Barrier(8)
+    lock = threading.Lock()
+    invalid = 0
+    reads = 0
+    errors = []
+
+    def mover():
+        client = Resp()
+        source, target = left, right
+        try:
+            start.wait()
+            while not stop.is_set():
+                if client.cmd("SMOVE", source, target, "moving") != 1:
+                    raise AssertionError("SMOVE lost the moving member")
+                source, target = target, source
+        except Exception as exc:
+            with lock:
+                errors.append("mover:%s" % exc)
+        finally:
+            client.close()
+
+    def storer(sid):
+        client = Resp()
+        try:
+            start.wait()
+            while not stop.is_set():
+                if client.cmd("SINTERSTORE", destination, left, right) < 1:
+                    raise AssertionError("SINTERSTORE lost the stable intersection")
+        except Exception as exc:
+            with lock:
+                errors.append("storer%d:%s" % (sid, exc))
+        finally:
+            client.close()
+
+    def reader(rid):
+        nonlocal invalid, reads
+        client = Resp()
+        try:
+            start.wait()
+            while not stop.is_set():
+                stored = set(client.cmd("SMEMBERS", destination))
+                # Read the sources too: set values cannot be observed with GET/MGET, so
+                # SISMEMBER is the type-correct analogue. At every valid cut exactly one source
+                # contains "moving", hence no valid SINTERSTORE image contains it.
+                client.cmd("SISMEMBER", left, "moving")
+                client.cmd("SISMEMBER", right, "moving")
+                with lock:
+                    reads += 1
+                    invalid += stored != {b"base"}
+        except Exception as exc:
+            with lock:
+                errors.append("reader%d:%s" % (rid, exc))
+        finally:
+            client.close()
+
+    threads = ([threading.Thread(target=mover, daemon=True)] +
+               [threading.Thread(target=storer, args=(i,), daemon=True) for i in range(3)] +
+               [threading.Thread(target=reader, args=(i,), daemon=True) for i in range(4)])
+    for thread in threads:
+        thread.start()
+    time.sleep(seconds)
+    stop.set()
+    for thread in threads:
+        thread.join(timeout=10)
+    final = Resp()
+    final_members = set(final.cmd("SMEMBERS", destination))
+    final.close()
+    return invalid, reads, errors, final_members == {b"base"}
+
+
+def lmpop_accounting(prefix, atomic, keys, racers=16, elements=2048):
+    config("atomic", atomic)
+    empty, source = keys
+    expected = [("%s:%05d" % (prefix, i)).encode() for i in range(elements)]
+    init = Resp()
+    init.cmd("DEL", empty, source)
+    for begin in range(0, elements, 256):
+        init.cmd("RPUSH", source, *expected[begin:begin + 256])
+    init.close()
+    start = threading.Barrier(racers)
+    lock = threading.Lock()
+    popped = []
+    errors = []
+
+    def racer(rid):
+        local = []
+        client = Resp()
+        try:
+            start.wait()
+            while True:
+                result = client.cmd("LMPOP", "2", empty, source, "LEFT", "COUNT", "7")
+                if result is None:
+                    break
+                if result[0] != source.encode():
+                    raise AssertionError("LMPOP selected %r" % (result[0],))
+                local.extend(result[1])
+        except Exception as exc:
+            with lock:
+                errors.append("racer%d:%s" % (rid, exc))
+        finally:
+            with lock:
+                popped.extend(local)
+            client.close()
+
+    threads = [threading.Thread(target=racer, args=(i,), daemon=True) for i in range(racers)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=20)
+    final = Resp()
+    remaining = final.cmd("LLEN", source)
+    final.close()
+    exact = (not any(thread.is_alive() for thread in threads) and not errors and remaining == 0 and
+             len(popped) == elements and len(set(popped)) == elements and
+             sorted(popped) == expected)
+    return exact, len(popped), errors, remaining
+
+
+def conditional_races(prefix, atomic, command, sources, destination, rounds=200):
+    config("atomic", atomic)
+    outputs = [[None, None] for _ in range(rounds)]
+    start = threading.Barrier(3)
+    finish = threading.Barrier(3)
+    errors = []
+
+    def contender(index):
+        client = Resp()
+        try:
+            for iteration in range(rounds):
+                start.wait()
+                outputs[iteration][index] = client.cmd(command, sources[index], destination)
+                finish.wait()
+        except Exception as exc:
+            errors.append("contender%d:%s" % (index, exc))
+        finally:
+            client.close()
+
+    threads = [threading.Thread(target=contender, args=(i,), daemon=True) for i in range(2)]
+    for thread in threads:
+        thread.start()
+    admin = Resp()
+    anomalies = 0
+    for iteration in range(rounds):
+        admin.cmd("MSET", sources[0], "winner-a", sources[1], "winner-b")
+        admin.cmd("DEL", destination)
+        start.wait()
+        finish.wait()
+        values = admin.cmd("MGET", sources[0], sources[1], destination)
+        replies = outputs[iteration]
+        if sorted(replies) != [0, 1] or values[2] not in (b"winner-a", b"winner-b"):
+            anomalies += 1
+            continue
+        if command == "RENAMENX":
+            expected_sources = ([None, b"winner-b"] if values[2] == b"winner-a"
+                                else [b"winner-a", None])
+            anomalies += values[:2] != expected_sources
+        else:
+            anomalies += values[:2] != [b"winner-a", b"winner-b"]
+    admin.close()
+    for thread in threads:
+        thread.join(timeout=10)
+    return anomalies, errors, any(thread.is_alive() for thread in threads)
+
+
+def find_conditional_race_keys(prefix, command, source, destination):
+    """Find a second source that makes the OFF two-contender gate observable."""
+    last = (-1, ["no candidate tried"], False)
+    for candidate in range(32):
+        other = "%s:%d" % (prefix, candidate)
+        if other in (source, destination):
+            continue
+        last = conditional_races(
+            prefix, 0, command, (source, other), destination, rounds=64)
+        if last[0] > 0 and not last[1] and not last[2]:
+            return other, last
+    return None, last
+
+
 # Gate-open proof: the test must actually catch the old first-hop physical tear.
 off_torn, off_reads, off_errors, _, _ = hammer(
     "at:off", 0, seconds=3.0, writers=4, readers=8)
@@ -238,6 +501,81 @@ note("overlapping atomic writers never mix", ov_torn == 0 and ov_reads > 0 and n
 note("promotion leaves one exact final group",
      ov_final not in (None, b"TORN") and ov_final in ov_completed,
      "final=%r completed=%d" % (ov_final, len(ov_completed)))
+
+# Broadened movers: RENAME publishes the source tombstone and destination image with one ticket.
+# Discover a cross-owner pair with the OFF tear, then reuse it for the atomic assertion.
+mover_pair, rename_off = find_torn_rename_pair("at:rename-route")
+if mover_pair is None:
+    rename_on = (-1, 0, ["no cross-owner pair found"], False)
+else:
+    rename_on = rename_hammer("at:rename-on", 1, mover_pair, seconds=2.0)
+note("OFF control exposes torn RENAME",
+     rename_off[0] > 0 and rename_off[1] > 0 and not rename_off[2],
+     "invalid=%d reads=%d errors=%r" % rename_off[:3])
+note("ON RENAME/MGET has exactly one live image",
+     rename_on[0] == 0 and rename_on[1] > 0 and not rename_on[2] and rename_on[3],
+     "invalid=%d reads=%d final=%r errors=%r" %
+     (rename_on[0], rename_on[1], rename_on[3], rename_on[2]))
+
+# Store-family cut consistency. The member moves atomically between two sources, so every valid
+# cut has intersection {base}; observing "moving" in the stored result proves a mixed source cut.
+store_pair = mover_pair
+if store_pair is None:
+    store_off = store_on = (-1, 0, ["no cross-shard pair found"], False)
+else:
+    store_off = sinterstore_hammer("at:store-off", 0, store_pair, seconds=2.5)
+    store_on = sinterstore_hammer("at:store-on", 1, store_pair, seconds=2.0)
+note("OFF control exposes impossible SINTERSTORE image",
+     store_off[0] > 0 and store_off[1] > 0 and not store_off[2],
+     "invalid=%d reads=%d errors=%r" % store_off[:3])
+note("ON SINTERSTORE image matches one source cut",
+     store_on[0] == 0 and store_on[1] > 0 and not store_on[2] and store_on[3],
+     "invalid=%d reads=%d final=%r errors=%r" %
+     (store_on[0], store_on[1], store_on[3], store_on[2]))
+
+# Probe-to-pop races use an empty first key and one shrinking list on a different owner. OFF must
+# retain Redis's per-command accounting too; ON additionally exercises fresh-cut owner retries.
+pop_pair = mover_pair
+if pop_pair is None:
+    pop_off = pop_on = (False, 0, ["no cross-shard pair found"], -1)
+else:
+    pop_off = lmpop_accounting("at:lmpop-off", 0, pop_pair)
+    pop_on = lmpop_accounting("at:lmpop-on", 1, pop_pair)
+note("OFF LMPOP racers preserve element accounting",
+     pop_off[0], "popped=%d remaining=%d errors=%r" %
+     (pop_off[1], pop_off[3], pop_off[2]))
+note("ON LMPOP racers pop every element exactly once",
+     pop_on[0], "popped=%d remaining=%d errors=%r" %
+     (pop_on[1], pop_on[3], pop_on[2]))
+
+# Conditional movers reserve the destination at owner validation. A losing group may already have
+# installed its source image privately; abandonment must keep every such candidate invisible.
+conditional_pair = mover_pair
+renamenx_third, renamenx_off = (find_conditional_race_keys(
+    "at:renamenx-third", "RENAMENX", conditional_pair[0], conditional_pair[1])
+    if conditional_pair else (None, (-1, ["no cross-owner pair found"], False)))
+copy_third, copy_off = (find_conditional_race_keys(
+    "at:copy-third", "COPY", conditional_pair[0], conditional_pair[1])
+    if conditional_pair else (None, (-1, ["no cross-owner pair found"], False)))
+if conditional_pair is None or renamenx_third is None or copy_third is None:
+    renamenx_off = renamenx_on = copy_off = copy_on = (
+        -1, ["no conditional cross-shard keys found"], False)
+else:
+    conditional_destination = conditional_pair[1]
+    renamenx_on = conditional_races(
+        "at:renamenx-on", 1, "RENAMENX",
+        (conditional_pair[0], renamenx_third), conditional_destination)
+    copy_on = conditional_races(
+        "at:copy-on", 1, "COPY",
+        (conditional_pair[0], copy_third), conditional_destination)
+note("OFF control exposes RENAMENX losing race", renamenx_off[0] > 0 and not renamenx_off[1],
+     "anomalies=%d errors=%r alive=%r" % renamenx_off)
+note("ON RENAMENX loser is invisible", renamenx_on[0] == 0 and not renamenx_on[1] and
+     not renamenx_on[2], "anomalies=%d errors=%r alive=%r" % renamenx_on)
+note("OFF control exposes COPY losing race", copy_off[0] > 0 and not copy_off[1],
+     "anomalies=%d errors=%r alive=%r" % copy_off)
+note("ON COPY loser is invisible", copy_on[0] == 0 and not copy_on[1] and not copy_on[2],
+     "anomalies=%d errors=%r alive=%r" % copy_on)
 
 # Admission liveness: with a one-group window, the second frame in one received pipeline reaches
 # admission before owner notifications for the first are flushed. This makes the fired assertion

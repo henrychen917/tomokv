@@ -1,10 +1,12 @@
 # Opt-in epoch-MVCC atomics
 
-`--atomic 1` makes `MSET`, `MSETNX`, multi-key `DEL`, and `UNLINK` atomic across shards. `MGET`,
-`EXISTS`, `TOUCH`, `KEYS`, and exact `DBSIZE` resolve one committed cut while tracking is active.
-The default is `--atomic 0`; a shard with no pending group entry follows the original store path,
-allocates nothing, and pays one predicted branch. `--atomic-window` defaults to 256 admitted atomic
-write groups (zero is unlimited). Both knobs are numeric and live through `CONFIG SET/GET`.
+`--atomic 1` makes the write groups for `MSET`, `MSETNX`, multi-key `DEL`, `UNLINK`, the STORE
+family, and the cross-shard mover family atomic. `LMPOP` and `ZMPOP` also revalidate their selected
+owner before mutating it. `MGET`, `EXISTS`, `TOUCH`, `KEYS`, and exact `DBSIZE` resolve one committed
+cut while tracking is active. The default is `--atomic 0`; a shard with no pending group entry
+follows the original store path, allocates nothing, and pays one predicted branch.
+`--atomic-window` defaults to 256 admitted atomic write groups (zero is unlimited). Both knobs are
+numeric and live through `CONFIG SET/GET`.
 
 ## ATOMICS V3: group-scoped pending entries
 
@@ -219,6 +221,90 @@ Zero-copy passed at atomic 0 and 1 in release and ASAN, with the send counter fi
 capture battery completed run plus restart/load verification on a 95MB dump containing 100,000
 950-byte values. Redis 8.9.241 differential runs produced zero diffs for string (4,033 ops), xshard
 (4,276), and cgaps (3,310) at both atomic 0 and 1. The drain-list shutdown checks remained clean.
+
+## ATOMICS BROADENING
+
+This lane changes only atomic wiring around the existing cross-shard computations. The MVCC store
+and publication engine is unchanged. Before implementation, the Redis fork was audited at
+`origin/2s-atomic-broaden` (`d85101b89`), including the broadening sequence `ab6c552d4`,
+`799782f9a`, and `d85101b89`. Command history was read from the original RENAME/RENAMENX/COPY/SMOVE,
+set-store, BITOP/PFMERGE, LMOVE/RPOPLPUSH, LMPOP/ZMPOP, ZRANGESTORE, and SORT STORE ports
+(`4c478f7a9`, `8db12728a`, `e32a666cc`, `2f5b50324`, `41a5bc479`, `483299c3f`, `5d5fdf2aa`, and
+`cc6acde5f`). The later SORT top-k and coalesced/reduced set-op work (`95b4aa476`, `7de0c1dff`,
+`ffab83154`, and `59dcc51f9`) and the correctness repairs (`0c52842bc`, `1c8a7c660`) were checked as
+well. No compute path was replaced or reverted.
+
+### Publication mechanisms
+
+1. **STORE family.** `BITOP`, `PFMERGE`, `ZRANGESTORE`, `SORT STORE`, `SINTERSTORE`, `SUNIONSTORE`,
+   and `SDIFFSTORE` keep their existing one-cut source gather and compute. Hop 2 now installs the
+   single destination through one pending group entry. An empty result installs the same null
+   candidate/tombstone used by atomic DEL. Capacity and maxmemory admission complete before the
+   first physical exchange.
+2. **Movers.** `RENAMENX`, `COPY`, `SMOVE`, `LMOVE`, and `RPOPLPUSH` materialize every mutated image,
+   preflight each owner pass, park both predecessors, and release-publish one shared ticket.
+   RENAMENX and COPY-without-REPLACE decide destination existence on the destination owner just
+   before install; a competing candidate is treated as a reservation and deferred, while a failed
+   condition release-abandons every already-installed candidate. RENAME has a specialized one-pass
+   composition: the source owner reads the current typed object, prepares the destination image,
+   installs its source tombstone, and release-signals the destination owner. A destination task
+   waiting for that image enters the existing owner-local deferred queue, so neither executor idles
+   and source-before-destination ordering is preserved when both shards share an executor.
+3. **Pops.** LMPOP/ZMPOP hop 2 performs the actual pop against the owner's latest value. If the
+   selected container became empty after the probe, the group discards the stale decision, takes a
+   fresh cut, and probes the original argument order again. It performs at most eight fresh-cut
+   reselections before the terminal nil arm; owner work continues while retries are routed.
+
+Same-owner commands retain the original localfast handlers, and `--atomic 0` retains the existing
+scatter/two-hop paths. Every broadened write pass preserves the command's DenyOom gate and also uses
+owner-side capacity plus maxmemory admission before installing a candidate. The signed
+`sizeof(Op)==336` and `sizeof(Client)==1984` locks are unchanged.
+
+### Concurrent and compatibility validation
+
+`tests/atomic_torn.py` now has four non-serial broadening arms. A rotating cross-owner RENAME is
+sampled through MGET and requires exactly one live image; SINTERSTORE races an atomically moving set
+member and rejects any destination impossible at one source cut; 16 LMPOP racers account for all
+2,048 list elements exactly once; and two-contender RENAMENX/COPY races prove the losing installed
+candidate remains invisible. The RENAME, store, and conditional controls first require the
+corresponding anomaly with atomic mode off, so the ON assertions cannot pass behind a closed gate.
+Sets cannot be observed through GET/MGET without WRONGTYPE, so the store arm uses SMEMBERS plus the
+type-correct SISMEMBER source observations.
+
+The final release run passed atomic torn, atomic RYOW, torture, and plain RYOW at both knob values.
+The broadened torn and RYOW batteries also passed under ASAN/UBSAN with no sanitizer or leak report.
+The post-review repository quick gate completed `17 ok, 0 FAIL`.
+Zero-copy passed at atomic 0 and 1 with `zc_sends=40`, `zc_bytes=83886080`, and `zc_releases=40` in
+each run. The flush-capture restart/load protocol passed at both knob values: each run captured a
+95MB image containing 100,000 950-byte values, observed the live database empty after FLUSH, then
+restarted with `--load` and recovered exactly 100,000 keys with zero bad samples.
+
+All nine Redis 8.6.2 differential suites produced zero diffs at atomic 0 (seed 11) and atomic 1
+(seed 7): string 4,033, list 3,521, set 3,524, zset 3,531, hash 3,545, xshard 4,276, bitmap 4,262,
+HLL 3,049/3,057, and command gaps 3,310 operations. A separate typed RENAME arm moved 64
+list/set/hash/zset values with their TTLs intact and every source absent. Shutdown drain invariants
+were clean in release and sanitizer runs.
+
+### 15-second fork-floor cells
+
+The C++ OFF/ON cells used 16 shards, an 8-core 6:2 placement on server CPUs
+`240-243,248-251`, and load CPUs `244-247,252-255`. The driver used 64 connections, pipeline 32,
+1,024 per-connection rotating key pairs, and 32-byte string values. LMPOP throughput counts only
+LMPOP completions; each target has one companion RPUSH so the selected list remains live. The
+reference is the requested `origin/2s-atomic-broaden` tip `d85101b89` with `tomokv-atomic yes`, using
+the supplied `/tmp/claude-1000/f8.conf` pattern verbatim (eight cores, AUTO 4 IO / 4 executor) on the
+same host. `tests/broaden_bench.cc` is the reproducible cell driver.
+
+| p32 target command | C++ OFF/s | C++ ON/s | ON/OFF | fork ON/s | C++ ON/fork |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| BITOP-2 | 662,359 | 505,722 | 76.4% | 291,162 | 173.7% |
+| RENAME hammer | 701,312 | 622,438 | 88.8% | 576,926 | 107.9% |
+| SINTERSTORE-2 | 526,219 | 412,855 | 78.5% | 239,548 | 172.3% |
+| LMPOP-2 | 676,983 | 647,194 | 95.6% | 291,036 | 222.4% |
+
+Every target completed with zero protocol or command errors. All four C++ ON cells clear their own
+fork-ON floor; the narrowest margin is RENAME at +7.9%. These are local acceptance measurements;
+the owner verdict run remains authoritative.
 
 ## ATOMICS V2 performance rework (historical)
 

@@ -825,7 +825,8 @@ bool finish_phase1(ScatterState& state, Op& op) {
                 state.final_integer = 0;
                 return true;
             }
-            if (state.kind == Kind::Renamenx && state.images[1].present) {
+            if (state.kind == Kind::Renamenx && !state.atomic_apply &&
+                state.images[1].present) {
                 state.final_reply = FinalReply::Integer; state.final_integer = 0; return true;
             }
             try {
@@ -840,7 +841,8 @@ bool finish_phase1(ScatterState& state, Op& op) {
         }
         case Kind::Copy:
             if (same_key(op)) { state.final_reply = FinalReply::SameObject; return true; }
-            if (!state.images[0].present || (state.images[1].present && !state.copy_replace)) {
+            if (!state.images[0].present ||
+                (!state.atomic_apply && state.images[1].present && !state.copy_replace)) {
                 state.final_reply = FinalReply::Integer; state.final_integer = 0; return true;
             }
             try { state.apply[1] = state.images[0]; }
@@ -1050,7 +1052,22 @@ bool finish_phase1(ScatterState& state, Op& op) {
 void finish_phase2(ScatterState& state) {
     WorkError error;
     if (first_error(state, error)) {
+        if (state.atomic_apply) state.aborted.store(true, std::memory_order_release);
         state.final_reply = FinalReply::Work; state.final_error = error; return;
+    }
+    if (state.atomic_direct && state.final_reply != FinalReply::None) return;
+    if (state.atomic_apply) {
+        if (state.conditional_failed.load(std::memory_order_acquire)) {
+            state.final_reply = FinalReply::Integer;
+            state.final_integer = 0;
+            return;
+        }
+        if (state.aborted.load(std::memory_order_acquire)) {
+            state.final_reply = FinalReply::Internal;
+            return;
+        }
+        const uint64_t ticket = state.server->atomic_commit();
+        state.epoch.store(ticket, std::memory_order_release);
     }
     switch (state.kind) {
         case Kind::Msetnx: state.final_reply = FinalReply::Integer; state.final_integer = 1; break;

@@ -55,6 +55,227 @@ WorkError begin_plain_version(Server& server, Shard& shard, Slice key, uint64_t 
     return WorkError::None;
 }
 
+ScatterTaskResult execute_atomic_direct_rename(const Task& task, Shard& shard, Op& op,
+                                               uint32_t owner_thread_id) {
+    ScatterState& state = *task.scatter;
+    ShardGroup& group = *group_for(state, shard.id());
+    bool source_group = false;
+    for (uint32_t i = 0; i < group.count; i++)
+        source_group |= state.key_order[group.begin + i] == 0;
+
+    if (!source_group) {
+        const uint8_t ready = state.direct_ready.load(std::memory_order_acquire);
+        if (ready == 0) return ScatterTaskResult::Retry;
+        if (ready == 2 || state.aborted.load(std::memory_order_acquire))
+            return ScatterTaskResult::Complete;
+        return execute_atomic_apply(task, shard, op, owner_thread_id);
+    }
+
+    const KeyRef& source_key = state.keys[0];
+    KvObj* source = shard.store().find(source_key.hash, op.arg(source_key.arg));
+    if (!source) {
+        state.final_reply = FinalReply::NoSuchKey;
+        state.aborted.store(true, std::memory_order_release);
+        state.direct_ready.store(2, std::memory_order_release);
+        return ScatterTaskResult::Complete;
+    }
+
+    KeyRef& destination_key = state.keys[1];
+    ObjectImage& destination = state.apply[1];
+    destination.present = true;
+    destination.type = static_cast<Type>(source->type);
+    destination.expire_at_ms = source->expire_at_ms();
+    KvObj* clone = nullptr;
+    if (destination.type == Type::String) {
+        clone = source->is_int()
+            ? kvobj_new_int(op.arg(destination_key.arg), source->int_value(),
+                            destination.expire_at_ms)
+            : xshard_make_string(op.arg(destination_key.arg), source->str_value(),
+                                 destination.expire_at_ms, false);
+    } else {
+        if (!serialize_object(source, destination)) {
+            group.error = WorkError::Oom;
+        } else {
+            const SnapshotTypeHooks& hooks = snapshot_type_hooks(destination.type);
+            const Slice payload(reinterpret_cast<const char*>(destination.payload.data()),
+                                static_cast<uint32_t>(destination.payload.size()));
+            if (!hooks.load) {
+                group.error = WorkError::Corrupt;
+            } else {
+                const SnapshotHookStatus loaded = hooks.load(
+                    op.arg(destination_key.arg), destination.encoding,
+                    destination.expire_at_ms, payload, shard.type_limits(), clone);
+                if (loaded != SnapshotHookStatus::Ok || !clone)
+                    group.error = loaded == SnapshotHookStatus::Oom
+                        ? WorkError::Oom : WorkError::Corrupt;
+            }
+        }
+    }
+    if (!clone || group.error != WorkError::None) {
+        if (clone) kvobj_free(clone);
+        if (group.error == WorkError::None) group.error = WorkError::Oom;
+        state.aborted.store(true, std::memory_order_release);
+        state.direct_ready.store(2, std::memory_order_release);
+        return ScatterTaskResult::Complete;
+    }
+    destination_key.stable_object = clone;
+    destination_key.key_anchor = clone;
+    state.direct_ready.store(1, std::memory_order_release);
+    return execute_atomic_apply(task, shard, op, owner_thread_id);
+}
+
+ScatterTaskResult execute_atomic_apply(const Task& task, Shard& shard, Op& op,
+                                       uint32_t owner_thread_id) {
+    ScatterState& state = *task.scatter;
+    ShardGroup& group = *group_for(state, shard.id());
+    FlatStore& store = shard.store();
+
+    // The phase-one destination observation is sufficient for computing an unconditional image.
+    // NX decisions are different: their precondition must still hold at the owner immediately
+    // before installation. The owner cannot interleave another task between this validation and
+    // the physical exchange.
+    if (!state.aborted.load(std::memory_order_acquire) &&
+        (state.kind == Kind::Renamenx ||
+         (state.kind == Kind::Copy && !state.copy_replace))) {
+        for (uint32_t i = 0; i < group.count; i++) {
+            const uint32_t pos = state.key_order[group.begin + i];
+            if (pos != 1) continue;
+            const KeyRef& key = state.keys[pos];
+            store.atomic_clear_read_epoch();
+            if (store.find(key.hash, op.arg(key.arg))) {
+                state.conditional_failed.store(true, std::memory_order_release);
+                state.aborted.store(true, std::memory_order_release);
+                return ScatterTaskResult::Complete;
+            }
+            if (store.atomic_has_record(key.hash, op.arg(key.arg))) {
+                // A foreign undecided value is deliberately invisible to ordinary reads. For an
+                // NX validator it is a reservation: let its group decide, then re-run validation.
+                // Raw table iteration is reached only on this uncommon collision arm and avoids
+                // adding a query to the frozen MVCC engine.
+                bool physical_candidate = false;
+                store.for_each([&](KvObj* object) {
+                    physical_candidate |= object->key() == op.arg(key.arg);
+                });
+                if (physical_candidate) return ScatterTaskResult::Retry;
+            }
+        }
+    }
+    if (state.aborted.load(std::memory_order_acquire))
+        return ScatterTaskResult::Complete;
+
+    if (!store.atomic_prepare_capacity(group.count)) {
+        group.error = WorkError::InsertFailed;
+        state.aborted.store(true, std::memory_order_release);
+        return ScatterTaskResult::Complete;
+    }
+
+    // Materialize the entire owner pass before admission or any exchange. This makes loader OOM
+    // and corrupt images pure validation failures, and leaves the normal install loop infallible.
+    for (uint32_t i = 0; i < group.count; i++) {
+        const uint32_t pos = state.key_order[group.begin + i];
+        KeyRef& key = state.keys[pos];
+        const Slice key_slice = op.arg(key.arg);
+        const ObjectImage& image = state.apply[pos];
+        // RENAME/COPY string sources can hand an already materialized, unlinked destination
+        // object across the hop. Its source owner built it while the bytes were hot, avoiding a
+        // serialize-vector/load round trip; key_anchor remains the ownership bit until install.
+        if (key.stable_object) continue;
+        KvObj* value = nullptr;
+        if (image.present) {
+            const SnapshotTypeHooks& hooks = snapshot_type_hooks(image.type);
+            const Slice payload(reinterpret_cast<const char*>(image.payload.data()),
+                                static_cast<uint32_t>(image.payload.size()));
+            if (!hooks.load) {
+                group.error = WorkError::Corrupt;
+                state.aborted.store(true, std::memory_order_release);
+                return ScatterTaskResult::Complete;
+            }
+            const SnapshotHookStatus loaded = hooks.load(
+                key_slice, image.encoding, image.expire_at_ms, payload,
+                shard.type_limits(), value);
+            if (loaded != SnapshotHookStatus::Ok || !value) {
+                group.error = loaded == SnapshotHookStatus::Oom
+                    ? WorkError::Oom : WorkError::Corrupt;
+                state.aborted.store(true, std::memory_order_release);
+                return ScatterTaskResult::Complete;
+            }
+        } else {
+            // A tombstone has no installed value from which the pending entry can borrow key
+            // identity. Keep a tiny arena-owned anchor alive until the record itself retires.
+            value = xshard_make_string(key_slice, Slice{});
+            if (!value) {
+                group.error = WorkError::Oom;
+                state.aborted.store(true, std::memory_order_release);
+                return ScatterTaskResult::Complete;
+            }
+        }
+        key.stable_object = value;
+        key.key_anchor = value;
+    }
+
+    uint32_t admitted = 0;
+    for (; admitted < group.count; admitted++) {
+        const uint32_t pos = state.key_order[group.begin + admitted];
+        KeyRef& key = state.keys[pos];
+        KvObj* incoming = state.apply[pos].present ? key.stable_object : nullptr;
+        if (!store.atomic_admit(op.arg(key.arg), incoming)) break;
+    }
+    if (admitted != group.count) {
+        for (uint32_t i = 0; i < admitted; i++) {
+            const uint32_t pos = state.key_order[group.begin + i];
+            store.atomic_unadmit(state.apply[pos].present ? state.keys[pos].stable_object : nullptr);
+        }
+        group.error = WorkError::Maxmemory;
+        state.aborted.store(true, std::memory_order_release);
+        return ScatterTaskResult::Complete;
+    }
+
+    const uint32_t owner_slot = state.server->executor_slot(owner_thread_id);
+    if (owner_slot >= state.owner_slots) std::abort();
+    auto* owner_refs = &state.owner_record_refs[owner_slot].nodes;
+    void* pending_entry = store.atomic_prepare_group(
+        &state, group.begin, group.count, &state.epoch, &state.record_refs,
+        &state.aborted, state.origin_conn_id, owner_refs, group.membership);
+    if (!pending_entry) {
+        for (uint32_t i = 0; i < group.count; i++) {
+            const uint32_t pos = state.key_order[group.begin + i];
+            store.atomic_unadmit(state.apply[pos].present ? state.keys[pos].stable_object : nullptr);
+        }
+        group.error = WorkError::Oom;
+        state.aborted.store(true, std::memory_order_release);
+        return ScatterTaskResult::Complete;
+    }
+    if (state.aborted.load(std::memory_order_acquire)) {
+        for (uint32_t i = 0; i < group.count; i++) {
+            const uint32_t pos = state.key_order[group.begin + i];
+            store.atomic_unadmit(state.apply[pos].present ? state.keys[pos].stable_object : nullptr);
+        }
+        store.atomic_discard_group(pending_entry);
+        return ScatterTaskResult::Complete;
+    }
+
+    size_t parked_bytes = 0;
+    size_t installed_bytes = 0;
+    for (uint32_t i = 0; i < group.count; i++) {
+        const uint32_t pos = state.key_order[group.begin + i];
+        KeyRef& key = state.keys[pos];
+        KvObj* value = state.apply[pos].present ? key.stable_object : nullptr;
+        KvObj* old = store.atomic_install_group(
+            pending_entry, key.hash, op.arg(key.arg), value);
+        if (old) parked_bytes += kvobj_size(old);
+        if (value) {
+            installed_bytes += kvobj_size(value);
+            key.key_anchor = nullptr; // the store owns the installed candidate
+        }
+    }
+    store.atomic_finish_group_install(parked_bytes, installed_bytes);
+    store.atomic_publish_group(pending_entry);
+    if (*owner_refs == 0)
+        state.record_refs.fetch_add(1, std::memory_order_release);
+    (*owner_refs)++;
+    return ScatterTaskResult::Complete;
+}
+
 }  // namespace
 
 uint64_t xshard_atomic_key_hash(const ScatterState* state, uint32_t ordered_index) {
@@ -366,7 +587,18 @@ FlatStore::SnapshotWriteResult xshard_snapshot_prepare(const Task& task, Shard& 
 
 bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op& op) {
     (void)server;
-    if (!task.client || !op.atomic_hazard()) return false;
+    if (!task.client) return false;
+    if (task.scatter) {
+        ScatterState& state = *task.scatter;
+        if (state.atomic_direct && state.direct_ready.load(std::memory_order_acquire) == 0) {
+            ShardGroup* group = group_for(state, shard.id());
+            bool source_group = false;
+            for (uint32_t i = 0; group && i < group->count; i++)
+                source_group |= state.key_order[group->begin + i] == 0;
+            if (!source_group) return true;
+        }
+    }
+    if (!op.atomic_hazard()) return false;
     const uint64_t origin_conn_id = task.client->id();
     if (task.scatter) {
         ScatterState& state = *task.scatter;
