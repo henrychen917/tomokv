@@ -475,15 +475,38 @@ public:
         prepared = nullptr;
     }
 
-    // Reserve enough current-table slots for a whole owner apply pass. It may allocate or reject
-    // during validate; once it returns true, atomic_install_prepared cannot hit a capacity failure.
-    bool atomic_reserve_slots(uint32_t additional) {
-        if (!additional) return true;
-        if (static_cast<uint64_t>(live_[0] + tombs_[0] + additional) < cap_[0]) return true;
-        if (rehashing() || snapshot_prepared_) return false;
+    // Guarantee room in table 0 for a whole owner apply pass of `additional` keys, running the
+    // SAME resize discipline as the ordinary insert() path so the atomic path shares its two hard
+    // guarantees: (1) grow at kLoadPct (70%), not at 100% -- a table run to full has no free slot
+    // and insert_into would fail; (2) reclaim tombstones. Every atomic detach leaves a tombstone,
+    // and DELETE passes attach nothing, so without a reclaiming trigger on every pass (this is
+    // called for deletes too, unlike the old value-writes-only reserve) tombstones fill the table.
+    // Once it returns true, atomic_install_prepared / atomic_attach_physical cannot hit a capacity
+    // failure. Returns false only on real OOM (calloc) or a locked snapshot with no raw room.
+    bool atomic_prepare_capacity(uint32_t additional) {
+        if (rehashing()) {
+            if (!snapshot_active_) {
+                // Keep drain ahead of fill: advance at least `additional` keys' worth of slots so
+                // table 0 cannot fill before this rehash finishes (mirrors insert()'s 1-key : 8-slot
+                // ratio, generalised to a whole apply pass).
+                uint32_t steps = additional / kRehashSlotsPerOp + 1;
+                while (steps-- && rehashing()) rehash_step();
+            }
+            if (rehashing())
+                return static_cast<uint64_t>(live_[0] + tombs_[0] + additional) < cap_[0];
+            // fell through: rehash completed, re-evaluate against the merged table below.
+        }
+        if (static_cast<uint64_t>(live_[0] + tombs_[0] + additional) * 100 <
+            static_cast<uint64_t>(cap_[0]) * kLoadPct)
+            return true;
+        if (snapshot_prepared_)
+            return static_cast<uint64_t>(live_[0] + tombs_[0] + additional) < cap_[0];
+        // Size for the LIVE set plus the pass (tombstones are dropped by the coming rehash). When
+        // tombstones dominate and the live set is small this leaves `wanted == cap_[0]`: a same-size
+        // rehash that reclaims them, exactly maybe_start_grow()'s policy.
         uint64_t wanted = cap_[0];
-        const uint64_t live_after = static_cast<uint64_t>(live_[0]) + additional;
-        while (live_after * 100 >= wanted * kLoadPct) {
+        const uint64_t need = static_cast<uint64_t>(live_[0]) + additional;
+        while (need * 100 >= wanted * kLoadPct) {
             wanted *= 2;
             if (wanted > UINT32_MAX) return false;
         }

@@ -420,7 +420,7 @@ WorkError begin_plain_version(Server& server, Shard& shard, Slice key, uint64_t 
 
     void* prepared = nullptr;
     if (!store.atomic_prepare_version(hash, key, nullptr, nullptr, nullptr, nullptr, prepared) ||
-        !store.atomic_reserve_slots(1) || !store.atomic_admit(key, clone)) {
+        !store.atomic_prepare_capacity(1) || !store.atomic_admit(key, clone)) {
         if (prepared) store.atomic_discard_prepared(prepared);
         if (clone) kvobj_free(clone);
         store.atomic_clear_read_epoch();
@@ -2084,8 +2084,11 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op) {
     } read_epoch(shard.store(), state.snapshot);
     try {
         if (state.atomic_write && state.phase == 1) {
-            const bool writes_values = state.kind == Kind::Mset || state.kind == Kind::Msetnx;
-            if (writes_values && !shard.store().atomic_reserve_slots(group.count)) {
+            // Every atomic write pass -- value-writes AND deletes -- must run the capacity/
+            // tombstone-reclaim trigger: detaches tombstone regardless of kind, so a delete-only
+            // stream would otherwise fill the table with unreclaimed tombstones and crash a later
+            // attach. group.count is a safe over-estimate for the delete case (no net new keys).
+            if (!shard.store().atomic_prepare_capacity(group.count)) {
                 group.error = WorkError::InsertFailed;
                 return ScatterTaskResult::Complete;
             }
