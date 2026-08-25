@@ -37,6 +37,7 @@ struct CmdFlags {
     // capture. PFCOUNT uses this for Redis's cached-cardinality bytes; it remains reported as
     // readonly and is not maxmemory admission gated.
     static constexpr uint32_t SnapshotWrite = 1u << 10;
+    static constexpr uint32_t PubSub = 1u << 11;       // IO-owned async command; never touches a shard
 };
 
 using CmdHandler = void (*)(Shard&, Op&);
@@ -97,6 +98,9 @@ void command_set_local_context(Client* client, ThreadCtx* thread);
 // CLIENT LIST metadata is kept out of Client so its 1984-byte footprint remains locked.
 void command_client_connected(Client* client, const char* addr);
 void command_client_disconnected(Client* client);
+
+// The IO-side pub/sub matcher shares the Redis-compatible glob implementation used by SCAN.
+bool command_glob_match(Slice pattern, Slice text);
 
 // Special routing helpers. Validation writes a complete error reply into op on failure.
 bool command_prepare_scan_route(Server& server, Op& op);

@@ -415,6 +415,15 @@ void cmd_reset(Shard&, Op& op) {
     reply_simple(op.sink(), "RESET");
 }
 
+void cmd_quit(Shard&, Op& op) {
+    reply_ok(op.sink());
+    if (g_client) g_client->mark_closing();
+}
+
+void cmd_pubsub_only(Shard&, Op& op) {
+    reply_err(op.sink(), "ERR internal pubsub routing error");
+}
+
 void cmd_client(Shard&, Op& op) {
     const Slice sub = op.arg(1);
     if (eq_icase(sub, "ID") && op.argc() == 2) {
@@ -729,7 +738,10 @@ void cmd_info(Shard&, Op& op) {
                       "atomic_promotions:%llu\r\natomic_window_stalls:%llu\r\n"
                       "atomic_records_freed:%llu\r\natomic_entries:%llu\r\n"
                       "atomic_pending_entries:%llu\r\natomic_localfast:%llu\r\n"
-                      "atomic_credit_pool:%u\r\natomic_credit_debt:%u\r\n",
+                      "atomic_credit_pool:%u\r\natomic_credit_debt:%u\r\n"
+                      "pubsub_channels:%llu\r\npubsub_subscriptions:%llu\r\n"
+                      "pubsub_patterns:%llu\r\npubsub_home_entries:%llu\r\n"
+                      "pubsub_inflight:%llu\r\npubsub_pending_commands:%llu\r\n",
                 static_cast<unsigned long long>(connections), static_cast<unsigned long long>(rejected),
                 static_cast<unsigned long long>(total_ops), static_cast<unsigned long long>(hits),
                 static_cast<unsigned long long>(misses), static_cast<unsigned long long>(expired),
@@ -747,7 +759,13 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(atomic_pending_entries),
                 static_cast<unsigned long long>(atomic_localfast),
                 g_server ? g_server->atomic_credit_pool() : 0,
-                g_server ? g_server->atomic_credit_debt() : 0);
+                g_server ? g_server->atomic_credit_debt() : 0,
+                static_cast<unsigned long long>(g_server ? g_server->pubsub_active_channels() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->pubsub_subscriptions() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->pubsub_pattern_subscriptions() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->pubsub_home_entries() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->pubsub_inflight() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->pubsub_pending() : 0));
     }
     if (info_section(op, "COMMANDSTATS")) {
         body += "# Commandstats\r\n";
@@ -873,6 +891,13 @@ static const CommandSpec kTable[] = {
     {"AUTH",       2,  3, CmdFlags::ConnLocal,                                    cmd_auth,       0,  0, 0},
     {"HELLO",      1,  2, CmdFlags::ConnLocal,                                    cmd_hello,      0,  0, 0},
     {"RESET",      1,  1, CmdFlags::ConnLocal,                                    cmd_reset,      0,  0, 0},
+    {"QUIT",       1,  1, CmdFlags::ConnLocal,                                    cmd_quit,       0,  0, 0},
+    {"SUBSCRIBE",   2, -1, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
+    {"UNSUBSCRIBE", 1, -1, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
+    {"PSUBSCRIBE",  2, -1, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
+    {"PUNSUBSCRIBE",1, -1, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
+    {"PUBLISH",     3,  3, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
+    {"PUBSUB",      2, -1, CmdFlags::ConnLocal | CmdFlags::PubSub | CmdFlags::Admin,cmd_pubsub_only,0,0,0},
     {"CLIENT",     2, -1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_client,     0,  0, 0},
     {"COMMAND",    1, -1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_command,    0,  0, 0},
     {"CONFIG",     2, -1, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_config,     0,  0, 0},
@@ -888,6 +913,10 @@ static const CommandSpec kTable[] = {
 };
 
 }  // namespace
+
+bool command_glob_match(Slice pattern, Slice text) {
+    return glob_match(pattern, text);
+}
 
 void command_bind_server(Server* server) {
     g_server = server;

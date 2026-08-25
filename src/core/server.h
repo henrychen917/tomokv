@@ -380,6 +380,49 @@ public:
         end_live_config_update(write_version);
     }
 
+    // Pub/sub is IO-owned. These atomics are reporting/lifetime gauges only and are never read or
+    // written by the plain key-command path.
+    void pubsub_event_created() { pubsub_inflight_.fetch_add(1, std::memory_order_relaxed); }
+    void pubsub_event_retired() {
+        if (pubsub_inflight_.fetch_sub(1, std::memory_order_relaxed) == 0) std::abort();
+    }
+    void pubsub_pending_started() { pubsub_pending_.fetch_add(1, std::memory_order_relaxed); }
+    void pubsub_pending_finished() {
+        if (pubsub_pending_.fetch_sub(1, std::memory_order_relaxed) == 0) std::abort();
+    }
+    void pubsub_home_entry_added() { pubsub_home_entries_.fetch_add(1, std::memory_order_relaxed); }
+    void pubsub_home_entry_removed() {
+        if (pubsub_home_entries_.fetch_sub(1, std::memory_order_relaxed) == 0) std::abort();
+    }
+    void pubsub_active_channel_added() {
+        pubsub_active_channels_.fetch_add(1, std::memory_order_relaxed);
+    }
+    void pubsub_active_channel_removed() {
+        if (pubsub_active_channels_.fetch_sub(1, std::memory_order_relaxed) == 0) std::abort();
+    }
+    void pubsub_subscription_added(bool pattern) {
+        (pattern ? pubsub_pattern_subscriptions_ : pubsub_subscriptions_)
+            .fetch_add(1, std::memory_order_relaxed);
+    }
+    void pubsub_subscription_removed(bool pattern) {
+        auto& value = pattern ? pubsub_pattern_subscriptions_ : pubsub_subscriptions_;
+        if (value.fetch_sub(1, std::memory_order_relaxed) == 0) std::abort();
+    }
+    uint64_t pubsub_inflight() const { return pubsub_inflight_.load(std::memory_order_relaxed); }
+    uint64_t pubsub_pending() const { return pubsub_pending_.load(std::memory_order_relaxed); }
+    uint64_t pubsub_home_entries() const {
+        return pubsub_home_entries_.load(std::memory_order_relaxed);
+    }
+    uint64_t pubsub_active_channels() const {
+        return pubsub_active_channels_.load(std::memory_order_relaxed);
+    }
+    uint64_t pubsub_subscriptions() const {
+        return pubsub_subscriptions_.load(std::memory_order_relaxed);
+    }
+    uint64_t pubsub_pattern_subscriptions() const {
+        return pubsub_pattern_subscriptions_.load(std::memory_order_relaxed);
+    }
+
 private:
     static constexpr uint32_t kAtomicLeaseBatch = 8;
 
@@ -497,6 +540,12 @@ private:
     std::atomic<uint64_t> atomic_activity_{0};
     std::atomic<uint64_t> atomic_read_floors_[kMaxThreads] = {};
     std::atomic<uint64_t> atomic_snapshot_completions_[kMaxThreads] = {};
+    std::atomic<uint64_t> pubsub_inflight_{0};
+    std::atomic<uint64_t> pubsub_pending_{0};
+    std::atomic<uint64_t> pubsub_home_entries_{0};
+    std::atomic<uint64_t> pubsub_active_channels_{0};
+    std::atomic<uint64_t> pubsub_subscriptions_{0};
+    std::atomic<uint64_t> pubsub_pattern_subscriptions_{0};
 };
 
 }  // namespace tomo
