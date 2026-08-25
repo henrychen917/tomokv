@@ -310,6 +310,9 @@ struct ScatterState {
     uint16_t* shard_groups = nullptr;
     OwnerRecordRefs* owner_record_refs = nullptr;
     ResultHeap* result = nullptr;
+    // Non-null only after a parked BLMOVE/BRPOPLPUSH is resumed by its owning IO. The blocking
+    // context remains independently refcounted while this ordinary scatter owns the Op marker.
+    BlockingState* blocking_origin = nullptr;
 };
 
 static_assert(sizeof(ScatterState) + 8 * (sizeof(ShardGroup) + sizeof(KeyRef) +
@@ -862,7 +865,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         for (uint32_t i = 1; i < key_count; i++) same_owner &= routes[i].shard == routes[0].shard;
         // Common same-owner commands retain localfast. If an atomic window touches one of their
         // keys, the owner resolves it through the short pending-entry list and clones only writes.
-        if (same_owner && kind != Kind::Pfcount && kind != Kind::Pfmerge) {
+        if (same_owner && kind != Kind::Pfcount && kind != Kind::Pfmerge &&
+            !(op.spec->flags & CmdFlags::Blocking)) {
             op.shard = routes[0].shard;
             op.hash = routes[0].hash;
             op.mark_local_xshard();
@@ -1540,6 +1544,8 @@ ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
     }
     if (state.phase == 2) {
         finish_phase2(state);
+        if (__builtin_expect(server.blocking_waiters() != 0, false))
+            blocking_atomic_published(server, self, ring, state);
         return ScatterFinish::Final;
     }
     if (state.kind == Kind::Pfcount) {
@@ -1581,6 +1587,7 @@ void xshard_retire(Server& server, ThreadCtx& self, Ring& ring, Client& client, 
             pool.unregister_snapshot(server, state);
         client.atomic_group_finished();
     }
+    if (state->blocking_origin) blocking_scatter_retire(server, client, *state);
     op.detach_scatter_state();
     xshard_destroy(state, pool, owner_io);
 }

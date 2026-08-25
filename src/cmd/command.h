@@ -37,6 +37,9 @@ struct CmdFlags {
     // capture. PFCOUNT uses this for Redis's cached-cardinality bytes; it remains reported as
     // readonly and is not maxmemory admission gated.
     static constexpr uint32_t SnapshotWrite = 1u << 10;
+    // A blocking collection command is lowered before ordinary scatter routing.  Its issued ROB
+    // slot is also a connection parse barrier until an owner supplies data or a timeout reply.
+    static constexpr uint32_t Blocking = 1u << 11;
 };
 
 using CmdHandler = void (*)(Shard&, Op&);

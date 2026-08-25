@@ -406,6 +406,8 @@ public:
     // soon as any group retires, parsing may resume without waiting for this connection's ROB.
     bool atomic_backpressure() const { return atomic_backpressure_; }
     void set_atomic_backpressure(bool v) { atomic_backpressure_ = v; }
+    bool blocked() const { return blocked_; }
+    void set_blocked(bool value) { blocked_ = value; }
     // The owning IO thread captures this into each Op before dispatch. Executors never read Client
     // atomic bookkeeping: doing so pulled this tail cache line across cores for every shard task
     // and regressed the pure-MGET cell even when no atomic group existed.
@@ -472,6 +474,7 @@ private:
     bool      dead_          = false;
     bool      scatter_barrier_ = false;  // pads out the existing bool run; sizeof unchanged
     bool      atomic_backpressure_ = false;
+    bool      blocked_ = false;
 
     // --- cold io state --------------------------------------------------------------------------
     uint64_t  id_ = 0;

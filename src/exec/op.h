@@ -27,6 +27,7 @@ namespace tomo {
 struct CommandSpec;
 class  Client;
 struct ScatterState;
+struct BlockingState;
 
 enum class OpState : uint8_t {
     Free   = 0,   // slot is reusable
@@ -48,6 +49,7 @@ class Op {
 public:
     static constexpr int32_t kScatterStateMarker = -2;
     static constexpr int32_t kLocalXshardMarker  = -3;
+    static constexpr int32_t kBlockingStateMarker = -4;
     Op() = default;
     ~Op() { std::free(argv_heap_); }
     Op(const Op&) = delete;
@@ -195,6 +197,24 @@ public:
         zc_shard = kLocalXshardMarker;
     }
     bool local_xshard() const { return zc_shard == kLocalXshardMarker; }
+
+    bool has_blocking_state() const {
+        return zc_ptr != nullptr && zc_shard == kBlockingStateMarker;
+    }
+    BlockingState* blocking_state() const {
+        return has_blocking_state()
+            ? reinterpret_cast<BlockingState*>(const_cast<char*>(zc_ptr)) : nullptr;
+    }
+    void attach_blocking_state(BlockingState* state_) {
+        zc_ptr = reinterpret_cast<const char*>(state_);
+        zc_len = 0;
+        zc_shard = kBlockingStateMarker;
+    }
+    void detach_blocking_state() {
+        zc_ptr = nullptr;
+        zc_len = 0;
+        zc_shard = -1;
+    }
 
 private:
     static constexpr uint8_t kAtomicHazard = 1u << 0;

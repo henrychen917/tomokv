@@ -32,6 +32,7 @@
 #include "../net/uring.h"
 #include "../net/wb.h"
 #include "../cmd/command.h"
+#include "../cmd/blocking.h"
 #include "../cmd/xshard.h"
 #include "../snapshot/snapshot.h"
 
@@ -79,6 +80,8 @@ public:
                     [](void* release_ctx, int32_t shard, const char* ptr) {
                         static_cast<IoLoop*>(release_ctx)->queue_borrow_release(shard, ptr);
                     });
+            else if (op.has_blocking_state())
+                blocking_retire(*loop->srv_, client, op);
         });
         return true;
     }
@@ -406,6 +409,62 @@ private:
             // cross-shard atomic group was already in flight. Set the immutable bit before the
             // current group increments the count, so a group never treats itself as a predecessor.
             if (c->has_atomic_group_io()) op->mark_atomic_hazard();
+
+            if (spec->flags & CmdFlags::Blocking) {
+                // A blocking command is a connection barrier, including against older frames.
+                // Waiting to issue it until the ROB head preserves same-connection program order
+                // without teaching the owner registry about younger operations.
+                if (rob.in_flight() != 0) break;
+                BlockingDispatch dispatch;
+                const BlockingPrepare prepared = blocking_prepare(
+                    *srv_, *c, *op, rob.dispatch_id(), dispatch);
+                if (prepared == BlockingPrepare::Error) {
+                    conn.advance_parse(consumed);
+                    finish_prebuilt(c, *op);
+                    continue;
+                }
+                uint32_t needed[kMaxThreads] = {};
+                for (uint32_t i = 0; i < dispatch.nshards; i++) {
+                    const int32_t sid = blocking_dispatch_shard(dispatch, i);
+                    needed[srv_->worker_of_shard(sid)]++;
+                }
+                bool room = true;
+                for (uint32_t tid = 0; tid < srv_->nthreads(); tid++) {
+                    if (needed[tid] &&
+                        srv_->thread(tid).task_free_slots(self_->id()) < needed[tid]) {
+                        room = false;
+                        break;
+                    }
+                }
+                if (!room) {
+                    blocking_destroy_unpublished(dispatch.state);
+                    break;
+                }
+                const uint64_t op_id = rob.dispatch_id();
+                op->attach_blocking_state(dispatch.state);
+                blocking_start(dispatch.state, dispatch.nshards);
+                rob.publish();
+                for (uint32_t i = 0; i < dispatch.nshards; i++) {
+                    const int32_t sid = blocking_dispatch_shard(dispatch, i);
+                    const uint32_t tid = srv_->worker_of_shard(sid);
+                    ThreadCtx& owner = srv_->thread(tid);
+                    const Task task{c, op_id, sid,
+                                    reinterpret_cast<ScatterState*>(dispatch.state)};
+                    if (!owner.post_task_quiet(self_->id(), task, sig)) std::abort();
+                    if (!touched_[tid]) {
+                        touched_[tid] = true;
+                        touched_list_[ntouched_++] = tid;
+                    }
+                }
+                self_->note_command(spec->id);
+                conn.advance_parse(consumed);
+                sig.ops++;
+                c->set_blocked(true);
+                c->set_scatter_barrier(true);
+                mark_active(c);
+                break;
+            }
+
             ScatterDispatch scatter_dispatch;
             const ScatterPrepare scatter_prepared =
                 xshard_prepare(*srv_, *op, scatter_pool_, self_->id(), c->id(), scatter_dispatch);
@@ -724,7 +783,14 @@ private:
 
             // Reset only when the ROB is quiescent AND no recv is outstanding — see conn.h. Then
             // re-arm, in that order.
-            if (c->scatter_barrier() && c->rob().quiesced()) c->set_scatter_barrier(false);
+            if (c->scatter_barrier()) {
+                if (c->blocked() &&
+                    blocking_resume_move(*srv_, *self_, ring_, *c, scatter_pool_)) {
+                    enqueue_serve(c);
+                    work++;
+                }
+                if (c->rob().quiesced()) c->set_scatter_barrier(false);
+            }
             if (c->atomic_backpressure() && srv_->atomic_can_admit(self_->id()) &&
                 scatter_pool_.can_register_snapshot())
                 c->set_atomic_backpressure(false);
@@ -792,6 +858,8 @@ private:
         if (c->dead()) return;
         if (!c->closing()) {
             c->mark_closing();
+            if (c->blocked() && blocking_cancel_client(*srv_, *self_, ring_, *c))
+                enqueue_serve(c);
             // Break any in-flight recv/send NOW: safe_to_release refuses to free while the kernel
             // holds a buffer pointer (recv_armed / send_inflight), and those only clear when their
             // CQEs come back -- which a half-open peer might never trigger on its own.
