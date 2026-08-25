@@ -37,6 +37,9 @@ struct CmdFlags {
     // capture. PFCOUNT uses this for Redis's cached-cardinality bytes; it remains reported as
     // readonly and is not maxmemory admission gated.
     static constexpr uint32_t SnapshotWrite = 1u << 10;
+    // EVAL/EVALSHA discover their declared KEYS range from argv[2]. Validation and routing happen
+    // on IO; the resulting ordinary task executes the interpreter on exactly one shard owner.
+    static constexpr uint32_t ScriptRoute = 1u << 11;
 };
 
 using CmdHandler = void (*)(Shard&, Op&);
@@ -73,6 +76,7 @@ CommandTable list_command_table();
 CommandTable set_command_table();
 CommandTable zset_command_table();
 CommandTable server_command_table();
+CommandTable scripting_command_table();
 
 // Built once before threads start. Lookup hashes the uppercase-normalized bytes into an open-
 // addressed table; the load factor is capped at 1/2 so ordinary command names land in one probe.
@@ -103,6 +107,9 @@ bool command_prepare_scan_route(Server& server, Op& op);
 bool command_validate_all_shards(Op& op);
 bool command_config_routes_all_shards(Op& op);
 bool command_validate_config_set(Op& op);
+bool command_prepare_script_route(Server& server, Op& op);
+bool command_script_key_range(const Op& op, uint32_t& first, uint32_t& count);
+void scripting_bind_server(Server* server);
 
 // Registry placeholder for commands whose implementation is the multi-shard lowering itself.
 // Reaching it as an ordinary single-shard handler is an internal routing error.

@@ -891,6 +891,7 @@ static const CommandSpec kTable[] = {
 
 void command_bind_server(Server* server) {
     g_server = server;
+    scripting_bind_server(server);
     g_started_monotonic_ns = now_ns();
     if (server) init_config(server->cfg());
 }
@@ -915,6 +916,8 @@ void command_client_disconnected(Client* client) {
 }
 
 bool command_prepare_scan_route(Server& server, Op& op) {
+    if (op.spec->flags & CmdFlags::ScriptRoute)
+        return command_prepare_script_route(server, op);
     uint64_t cursor = 0;
     if (!parse_u64(op.arg(1), cursor) || (cursor & kScanInnerMask) > kMaxInnerCursor) {
         reply_err(op.sink(), "ERR invalid cursor"); return false;

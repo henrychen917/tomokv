@@ -592,6 +592,17 @@ public:
         maxmemory_samples_ = samples == 0 ? 1 : (samples > 64 ? 64 : samples);
     }
 
+    // An atomic script can roll back every declared key, but an eviction victim is deliberately
+    // outside that declaration. Keep maxmemory admission enabled while making it non-evicting for
+    // the duration of the one owner task, so a failed script cannot leave an unrelated victim
+    // behind. The owner restores the live policy before it takes another task.
+    MaxmemoryPolicy script_suspend_eviction() {
+        const MaxmemoryPolicy previous = maxmemory_policy_;
+        if (maxmemory_enabled_) maxmemory_policy_ = MaxmemoryPolicy::NoEviction;
+        return previous;
+    }
+    void script_restore_eviction(MaxmemoryPolicy policy) { maxmemory_policy_ = policy; }
+
     enum class TtlResult : uint8_t { Missing, NoChange, Updated, Oom, MaxmemoryOom };
 
     TtlResult set_expire(uint64_t h, Slice key, int64_t expire_at_ms) {
