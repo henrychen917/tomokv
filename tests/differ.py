@@ -696,13 +696,24 @@ for i in range(0, len(ops), BATCH):
     chunk = ops[i:i + BATCH]
     payload = b"".join(enc(o) for o in chunk)
     ts.sendall(payload); os_.sendall(payload)
-    for o in chunk:
-        a = normalize(o[0], read_reply(tf))
-        b = normalize(o[0], read_reply(of))
+    for j, o in enumerate(chunk):
+        try:
+            a = normalize(o[0], read_reply(tf))
+        except TimeoutError:
+            print("  TIMEOUT target op %d: %r" % (i + j, o[:8]), flush=True)
+            raise
+        try:
+            b = normalize(o[0], read_reply(of))
+        except TimeoutError:
+            print("  TIMEOUT oracle op %d: %r" % (i + j, o[:8]), flush=True)
+            raise
         if a != b:
             diffs += 1
             if diffs <= 12:
-                print("  DIFF %r\n    target: %r\n    oracle: %r" % (o[:4], a[:96], b[:96]))
+                shown_a = a if o[0].upper() == "KEYS" else a[:96]
+                shown_b = b if o[0].upper() == "KEYS" else b[:96]
+                print("  DIFF op %d %r\n    target: %r\n    oracle: %r" %
+                      (i + j, o[:4], shown_a, shown_b))
 ts.close(); os_.close()
 print("DIFFER %s: %d ops, %d diffs -> %s" % (SUITE, len(ops), diffs, "PASS" if diffs == 0 else "FAIL"))
 sys.exit(1 if diffs else 0)

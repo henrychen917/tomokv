@@ -48,6 +48,7 @@ inline constexpr uint32_t kRecvChunk = 16 * 1024;
 class IoLoop {
 public:
     WbEngine& engine() { return wb_; }
+    uint32_t reap_atomic_deferred() { return scatter_pool_.reap_deferred(); }
     // ONE LISTENING SOCKET PER IO THREAD, via SO_REUSEPORT.
     //
     // Sharing a single listen fd across io threads does NOT distribute connections: every thread
@@ -73,7 +74,8 @@ public:
         }, this, [](void* ctx, Client& client, Op& op) {
             auto* loop = static_cast<IoLoop*>(ctx);
             if (op.has_scatter_state())
-                xshard_retire(client, op, loop->scatter_pool_, loop->self_->id(), loop,
+                xshard_retire(*loop->srv_, *loop->self_, loop->ring_, client, op,
+                    loop->scatter_pool_, loop->self_->id(), loop,
                     [](void* release_ctx, int32_t shard, const char* ptr) {
                         static_cast<IoLoop*>(release_ctx)->queue_borrow_release(shard, ptr);
                     });
@@ -139,6 +141,7 @@ private:
             sig.iterations++;
             self_->sample_depth();
             reap_dead();               // free clients dead for a full iteration -- see close_client
+            scatter_pool_.reap_deferred();
 
             uint32_t did = 0;
             {
@@ -148,6 +151,7 @@ private:
                 if (accept_pending_) arm_accept(false);
                 if constexpr (HasUnix) if (unix_accept_pending_) arm_accept(true);
                 did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
+                did += scatter_pool_.refresh_snapshot_floor(*srv_, self_->id());
                 if constexpr (HasUnix) did += flush_handoffs();
                 if (srv_->snapshot().writer_is(self_->id()))
                     did += srv_->snapshot().writer_pass(*self_, ring_);
@@ -336,7 +340,7 @@ private:
         bool head_candidate = true;   // only the pass's FIRST dispatch can be the direct head
 
         for (;;) {
-            if (c->scatter_barrier()) break;   // all-shards op in flight: see conn.h
+            if (c->scatter_barrier() || c->atomic_backpressure()) break;
             Op* op = rob.acquire();
             if (!op) break;                    // window full: backpressure; let replies drain first
 
@@ -400,11 +404,17 @@ private:
             op->db    = static_cast<uint8_t>(c->session().db_index);
             ScatterDispatch scatter_dispatch;
             const ScatterPrepare scatter_prepared =
-                xshard_prepare(*srv_, *op, scatter_pool_, self_->id(), scatter_dispatch);
+                xshard_prepare(*srv_, *op, scatter_pool_, self_->id(), c->id(), scatter_dispatch);
             if (scatter_prepared == ScatterPrepare::Error) {
                 conn.advance_parse(consumed);
                 finish_prebuilt(c, *op);
                 continue;
+            }
+            if (scatter_prepared == ScatterPrepare::Backpressure) {
+                // Leave this frame unconsumed and retry it when a window slot retires. TCP framing
+                // naturally keeps younger frames behind it; no ROB-quiescence barrier is needed.
+                c->set_atomic_backpressure(true);
+                break;
             }
             if (scatter_prepared == ScatterPrepare::Ready) {
                 uint32_t needed[kMaxThreads] = {};
@@ -640,13 +650,20 @@ private:
             // Reset only when the ROB is quiescent AND no recv is outstanding — see conn.h. Then
             // re-arm, in that order.
             if (c->scatter_barrier() && c->rob().quiesced()) c->set_scatter_barrier(false);
+            if (c->atomic_backpressure() && srv_->atomic_can_admit() &&
+                scatter_pool_.can_register_snapshot())
+                c->set_atomic_backpressure(false);
             if (c->rob().quiesced() && !conn.recv_armed()) conn.reset_rbuf_at_quiescence();
 
             // Re-parse the buffered remainder. parse_and_dispatch stops when the ROB window fills
             // and is otherwise only driven by recv completions, so a client that sent a whole
             // pipeline in ONE write would get `window` replies and then hang. Retiring frees slots,
             // which is what makes the rest parseable.
-            if (!c->closing() && conn.rpos() < conn.rlen()) { parse_and_dispatch(c); work++; }
+            if (!c->closing() && conn.rpos() < conn.rlen() && !c->scatter_barrier() &&
+                !c->atomic_backpressure()) {
+                parse_and_dispatch(c);
+                work++;
+            }
 
             arm_recv(c);
 

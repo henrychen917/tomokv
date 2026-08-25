@@ -24,6 +24,11 @@ enum class XshardStringStoreResult : uint8_t { Stored, Oom, InsertFailed, Maxmem
 XshardStringStoreResult xshard_store_string(Shard& shard, Slice key, uint64_t hash, Slice value,
                                              int64_t expire_at_ms = -1,
                                              bool integer_encode = true);
+KvObj* xshard_make_string(Slice key, Slice value, int64_t expire_at_ms = -1,
+                          bool integer_encode = true);
+KvObj* xshard_make_atomic_string(Shard& shard, Slice key, Slice value,
+                                 int64_t expire_at_ms = -1,
+                                 bool integer_encode = true);
 
 // Multi-key pops choose a key after their first-hop probes, then ask that key's live owner to do
 // the mutation.  Keeping these helpers in the type lanes preserves their cursor/encoding rules and
@@ -36,7 +41,7 @@ XshardPopResult xshard_pop_zset(Shard& shard, Slice key, uint64_t hash, bool max
                                 uint64_t count, std::vector<std::string>& members,
                                 std::vector<double>& scores);
 
-enum class ScatterPrepare : uint8_t { NotScatter, Ready, Error };
+enum class ScatterPrepare : uint8_t { NotScatter, Ready, Backpressure, Error };
 enum class ScatterTaskResult : uint8_t { Complete, Retry };
 enum class ScatterFinish : uint8_t { Waiting, Final };
 
@@ -53,16 +58,27 @@ public:
 
 private:
     friend ScatterPrepare xshard_prepare(Server&, Op&, ScatterArenaPool&, uint32_t,
-                                          ScatterDispatch&);
+                                          uint64_t, ScatterDispatch&);
     friend void xshard_destroy(ScatterState*, ScatterArenaPool&, uint32_t);
-    friend void xshard_retire(Client&, Op&, ScatterArenaPool&, uint32_t, void*,
-                              void (*)(void*, int32_t, const char*));
+    friend void xshard_retire(Server&, ThreadCtx&, Ring&, Client&, Op&, ScatterArenaPool&,
+                              uint32_t, void*, void (*)(void*, int32_t, const char*));
     static constexpr uint32_t kCached = 64;
     static constexpr size_t kCommonBytes = 16384;  // holds MGET-8 layouts at the 1KB inline slot
     void* acquire(size_t bytes, bool& pooled);
     void release(void* ptr, bool pooled);
+    bool register_snapshot(Server& server, ScatterState* state);
+    void unregister_snapshot(Server& server, ScatterState* state);
+    void defer_destroy(ScatterState* state);
+public:
+    uint32_t reap_deferred();
+    uint32_t refresh_snapshot_floor(Server& server, uint32_t owner_io);
+    bool can_register_snapshot() const;
+private:
     void* cached_[kCached] = {};
     uint32_t count_ = 0;
+    std::vector<ScatterState*> active_snapshots_;
+    std::vector<ScatterState*> deferred_destroy_;
+    uint64_t observed_snapshot_completions_ = 0;
 };
 
 struct ScatterDispatch {
@@ -74,14 +90,16 @@ struct ScatterDispatch {
 // Parses command-specific options and coalesces request key positions by shard.  Error means a
 // complete RESP error is already in op; Ready owns `state` until destroy or final completion.
 ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
-                              uint32_t owner_io, ScatterDispatch& dispatch);
+                              uint32_t owner_io, uint64_t origin_conn_id,
+                              ScatterDispatch& dispatch);
 int32_t xshard_dispatch_shard(const ScatterDispatch& dispatch, uint32_t index);
 void xshard_destroy(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_io);
 
 // Called by the connection-owning IO thread immediately before the ROB slot is staged.  It builds
 // final RESP bytes/segments, transfers every gathered borrow to the connection segment queue, and
 // then returns the arena to this IO thread's pool.
-void xshard_retire(Client& client, Op& op, ScatterArenaPool& pool, uint32_t owner_io,
+void xshard_retire(Server& server, ThreadCtx& self, Ring& ring, Client& client, Op& op,
+                   ScatterArenaPool& pool, uint32_t owner_io,
                    void* release_ctx, void (*release_fn)(void*, int32_t, const char*));
 
 // Same-owner commands are ordinary tasks (Task::scatter == nullptr).  The marker and gate cursor
@@ -94,11 +112,22 @@ FlatStore::SnapshotWriteResult xshard_local_snapshot_prepare(Op& op, Shard& shar
 FlatStore::SnapshotWriteResult xshard_snapshot_prepare(const Task& task, Shard& shard);
 
 // Executes one bounded owner pass.  KEYS may return Retry; all other tasks complete in one pass.
-ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op);
+ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
+                                 uint32_t owner_thread_id);
+bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op& op);
+bool xshard_tasks_share_key(const Task& older, Op& older_op,
+                            const Task& younger, Op& younger_op, int32_t shard_id);
 
 // Counts a completed owner and, for the last owner, either serializes the final reply or publishes
 // a fully-preflighted second hop.  Final means the caller must publish OpState::Done and notify IO.
 ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
                               const Task& task, Op& op);
+
+// Ordinary one-key operations only enter this path when their key already has an MVCC record.
+// Reads bind the current committed cut; writes first install a deep-cloned, freshly-ticketed
+// version so collection handlers may continue mutating in place without touching a predecessor.
+bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_conn_id);
+void xshard_plain_finish(Shard& shard);
+uint32_t xshard_cleanup_shard(Server& server, Shard& shard, uint32_t budget = 8);
 
 }  // namespace tomo

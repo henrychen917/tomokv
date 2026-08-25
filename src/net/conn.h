@@ -401,6 +401,11 @@ public:
     // behind it. Same-client read-your-own-writes hazard: a sanctioned stall.
     bool scatter_barrier() const { return scatter_barrier_; }
     void set_scatter_barrier(bool v) { scatter_barrier_ = v; }
+    // Resource backpressure is deliberately distinct from the semantic scatter barrier. It keeps
+    // this connection's unconsumed frame parked only while the global memory valve is full; as
+    // soon as any group retires, parsing may resume without waiting for this connection's ROB.
+    bool atomic_backpressure() const { return atomic_backpressure_; }
+    void set_atomic_backpressure(bool v) { atomic_backpressure_ = v; }
     bool in_active() const { return in_active_; }
     void set_in_active(bool v) { in_active_ = v; }
 
@@ -457,6 +462,7 @@ private:
     bool      closing_       = false;
     bool      dead_          = false;
     bool      scatter_barrier_ = false;  // pads out the existing bool run; sizeof unchanged
+    bool      atomic_backpressure_ = false;
 
     // --- cold io state --------------------------------------------------------------------------
     uint64_t  id_ = 0;

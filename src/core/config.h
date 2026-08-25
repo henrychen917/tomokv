@@ -72,6 +72,14 @@ struct Config {
     // for fast-shifting working sets; for real cache duty allkeys-lfu discriminates with no clock
     // at all and is the recommended default.               (boot-only)
     uint32_t lru_clock_shift = 8;
+
+    // ---- atomics (both live via CONFIG SET) --------------------------------------------------
+    uint32_t atomic          = 0;        // epoch-MVCC atomic multi-key lane (MSET/MSETNX/DEL/
+                                         // UNLINK write groups; MGET/EXISTS/TOUCH snapshot reads).
+                                         // 0 = fully off: no allocation, plain paths byte-identical.
+    uint32_t atomic_window   = 256;      // in-flight atomic write groups; 0 = unlimited. A memory
+                                         // valve, not an ordering device -- tickets are drawn at
+                                         // the publish, so no arrival-order frontier exists.
     TypeLimits type_limits;              // 8 compact-encoding limits, all live via CONFIG SET
 };
 
@@ -205,6 +213,18 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 return kConfigError;
             }
         }
+        else if (!std::strcmp(a, "--atomic")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.atomic) || cfg.atomic > 1) {
+                std::fprintf(stderr, "--atomic wants 0 or 1\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--atomic-window")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.atomic_window)) {
+                std::fprintf(stderr, "--atomic-window wants a uint32 (0 is unlimited)\n");
+                return kConfigError;
+            }
+        }
         else if (!std::strcmp(a, "--shard-home")) cfg.shard_home = next("");
         else if (!std::strcmp(a, "--no-pin"))     cfg.pin_threads = false;
         else if (!std::strcmp(a, "--hash")) {
@@ -246,6 +266,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "         recommended for cache duty) --lru-clock-shift N (bucket=1<<N s)\n"
                         "         --maxmemory-samples N (1..64, default 5)\n"
                         "  persistence: --dir PATH --dbfilename NAME --load PATH\n"
+                        "  atomics: --atomic 0|1 --atomic-window N (default 256; 0=unlimited)\n"
                         "  compact encodings: --{hash,list,set,zset}-max-compact-{entries,value} N\n"
                         "  misc: --hash mix64|siphash\n"
                         "  (pure 2s is the only server; --mode/--wb/--nodes died with 3s, 2026-08)\n",

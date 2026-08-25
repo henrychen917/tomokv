@@ -570,6 +570,42 @@ inline size_t kvobj_alloc_size(uint32_t klen, uint32_t vlen, bool has_ttl, Enc e
 // Builds a String KvObj. `val` is copied when it fits the embed threshold, otherwise a second block
 // holds it and this one keeps the pointer. Returns nullptr on OOM rather than throwing: the worker
 // loop reports an error reply instead of unwinding.
+inline KvObj* kvobj_init_raw_string(void* mem, Slice key, Slice val,
+                                    int64_t expire_at_ms = -1) {
+    if (!mem || val.n > kEmbedThreshold) return nullptr;
+    const bool has_ttl = expire_at_ms >= 0;
+    auto* o = static_cast<KvObj*>(mem);
+    o->type = static_cast<uint8_t>(Type::String);
+    o->enc = static_cast<uint8_t>(Enc::Raw);
+    o->flags = static_cast<uint8_t>((has_ttl ? KvObjFlags::HasTtl : 0) |
+                                    (key.n >= 255 ? KvObjFlags::KeyExt : 0));
+    o->klen8 = static_cast<uint8_t>(key.n >= 255 ? 255 : key.n);
+    o->vlen = val.n;
+    if (key.n >= 255) { uint32_t k = key.n; std::memcpy(o->tail(), &k, 4); }
+    if (has_ttl) o->set_expire_at_ms(expire_at_ms);
+    if (key.n) std::memcpy(o->key_ptr(), key.p, key.n);
+    if (val.n) std::memcpy(o->val_ptr(), val.p, val.n);
+    return o;
+}
+
+inline KvObj* kvobj_init_int(void* mem, Slice key, int64_t value,
+                             int64_t expire_at_ms = -1) {
+    if (!mem) return nullptr;
+    const bool has_ttl = expire_at_ms >= 0;
+    auto* o = static_cast<KvObj*>(mem);
+    o->type = static_cast<uint8_t>(Type::String);
+    o->enc = static_cast<uint8_t>(Enc::Int);
+    o->flags = static_cast<uint8_t>((has_ttl ? KvObjFlags::HasTtl : 0) |
+                                    (key.n >= 255 ? KvObjFlags::KeyExt : 0));
+    o->klen8 = static_cast<uint8_t>(key.n >= 255 ? 255 : key.n);
+    o->vlen = 0;
+    if (key.n >= 255) { uint32_t k = key.n; std::memcpy(o->tail(), &k, 4); }
+    if (has_ttl) o->set_expire_at_ms(expire_at_ms);
+    if (key.n) std::memcpy(o->key_ptr(), key.p, key.n);
+    o->set_int_value(value);
+    return o;
+}
+
 inline KvObj* kvobj_new_string(Slice key, Slice val, int64_t expire_at_ms = -1) {
     const bool  has_ttl = expire_at_ms >= 0;
     const Enc   enc     = (val.n <= kEmbedThreshold) ? Enc::Raw : Enc::Extern;
@@ -582,23 +618,20 @@ inline KvObj* kvobj_new_string(Slice key, Slice val, int64_t expire_at_ms = -1) 
     void* mem = alloc_raw(n);
     if (!mem) return nullptr;
 
-    auto* o  = static_cast<KvObj*>(mem);
-    o->type  = static_cast<uint8_t>(Type::String);
-    o->enc   = static_cast<uint8_t>(enc);
-    o->flags = static_cast<uint8_t>((has_ttl ? KvObjFlags::HasTtl : 0) |
-                                    (key.n >= 255 ? KvObjFlags::KeyExt : 0) |
-                                    (enc == Enc::Extern ? KvObjFlags::OwnsExtern : 0));
-    o->klen8 = static_cast<uint8_t>(key.n >= 255 ? 255 : key.n);
-    o->vlen  = val.n;
-
-    if (key.n >= 255) { uint32_t k = key.n; std::memcpy(o->tail(), &k, 4); }
-    if (has_ttl)      { o->set_expire_at_ms(expire_at_ms); }
-
-    std::memcpy(o->key_ptr(), key.p, key.n);
-
+    auto* o = static_cast<KvObj*>(mem);
     if (enc == Enc::Raw) {
-        std::memcpy(o->val_ptr(), val.p, val.n);
+        return kvobj_init_raw_string(mem, key, val, expire_at_ms);
     } else {
+        o->type  = static_cast<uint8_t>(Type::String);
+        o->enc   = static_cast<uint8_t>(enc);
+        o->flags = static_cast<uint8_t>((has_ttl ? KvObjFlags::HasTtl : 0) |
+                                        (key.n >= 255 ? KvObjFlags::KeyExt : 0) |
+                                        KvObjFlags::OwnsExtern);
+        o->klen8 = static_cast<uint8_t>(key.n >= 255 ? 255 : key.n);
+        o->vlen  = val.n;
+        if (key.n >= 255) { uint32_t k = key.n; std::memcpy(o->tail(), &k, 4); }
+        if (has_ttl) o->set_expire_at_ms(expire_at_ms);
+        if (key.n) std::memcpy(o->key_ptr(), key.p, key.n);
         void* ext = alloc_raw(good_size(val.n));   // same contract as the main block
         if (!ext) { free_sized(mem, n); return nullptr; }
         std::memcpy(ext, val.p, val.n);
@@ -613,18 +646,7 @@ inline KvObj* kvobj_new_int(Slice key, int64_t value, int64_t expire_at_ms = -1)
     void* mem = alloc_raw(n);
     if (!mem) return nullptr;
 
-    auto* o = static_cast<KvObj*>(mem);
-    o->type = static_cast<uint8_t>(Type::String);
-    o->enc = static_cast<uint8_t>(Enc::Int);
-    o->flags = static_cast<uint8_t>((has_ttl ? KvObjFlags::HasTtl : 0) |
-                                    (key.n >= 255 ? KvObjFlags::KeyExt : 0));
-    o->klen8 = static_cast<uint8_t>(key.n >= 255 ? 255 : key.n);
-    o->vlen = 0;
-    if (key.n >= 255) { uint32_t k = key.n; std::memcpy(o->tail(), &k, 4); }
-    if (has_ttl) o->set_expire_at_ms(expire_at_ms);
-    std::memcpy(o->key_ptr(), key.p, key.n);
-    o->set_int_value(value);
-    return o;
+    return kvobj_init_int(mem, key, value, expire_at_ms);
 }
 
 inline KvObj* kvobj_new_typeval(Slice key, Type type, void* value, uint32_t value_size,

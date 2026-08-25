@@ -224,6 +224,8 @@ void init_config(const Config& cfg) {
     add_config("databases", ConfigKind::Unsigned, 1);
     add_config("proto-max-bulk-len", ConfigKind::Bytes, 512ull * 1024 * 1024);
     add_config("zc-min", ConfigKind::Unsigned, cfg.zc_min);
+    add_config("atomic", ConfigKind::Unsigned, cfg.atomic);
+    add_config("atomic-window", ConfigKind::Unsigned, cfg.atomic_window);
     add_config("hash-max-compact-entries", ConfigKind::Unsigned, cfg.type_limits.hash.max_entries);
     add_config("hash-max-compact-value", ConfigKind::Unsigned, cfg.type_limits.hash.max_value);
     add_config("list-max-compact-entries", ConfigKind::Unsigned, cfg.type_limits.list.max_entries);
@@ -274,6 +276,8 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out) {
                 value > UINT32_MAX) return false;
             if (!std::strcmp(entry.name, "maxmemory-samples") && (value == 0 || value > 64))
                 return false;
+            if (!std::strcmp(entry.name, "atomic") && value > 1) return false;
+            if (!std::strcmp(entry.name, "atomic-window") && value > UINT32_MAX) return false;
             out = std::to_string(value);
             return true;
         }
@@ -602,6 +606,14 @@ void cmd_config(Shard& sh, Op& op) {
             if (set_memory || set_policy || set_samples)
                 g_server->set_maxmemory_config(desired.maxmemory, desired.policy, desired.samples,
                                                set_memory, set_policy, set_samples);
+            for (const auto& update : updates) {
+                uint64_t value = 0;
+                if (!parse_u64(Slice(update.second.data(), update.second.size()), value)) continue;
+                if (!std::strcmp(update.first->name, "atomic"))
+                    g_server->set_atomic_enabled(value != 0);
+                else if (!std::strcmp(update.first->name, "atomic-window"))
+                    g_server->set_atomic_window(static_cast<uint32_t>(value));
+            }
         }
 
         TypeLimits limits = sh.type_limits();
@@ -635,6 +647,10 @@ void cmd_info(Shard&, Op& op) {
     uint64_t keys = 0, expires = 0, obj_bytes = 0, hits = 0, misses = 0, expired = 0,
              evicted = 0;
     uint64_t total_ops = 0, connections = 0, rejected = 0;
+    uint64_t atomic_predecessor_reads = 0, atomic_chain_max = 0,
+             atomic_promotions = 0, atomic_records_freed = 0,
+             atomic_entries = 0, atomic_pending_entries = 0,
+             atomic_cleanup_fast = 0, atomic_cleanup_slow = 0;
     if (g_server) {
         for (uint32_t i = 0; i < g_server->nshards(); i++) {
             const Shard& sh = g_server->shard(static_cast<int32_t>(i));
@@ -642,6 +658,14 @@ void cmd_info(Shard&, Op& op) {
             obj_bytes += sh.published_obj_bytes();
             hits += sh.stats().hits; misses += sh.stats().misses; expired += sh.stats().expired;
             evicted += sh.published_evicted();
+            atomic_predecessor_reads += sh.stats().atomic_predecessor_reads;
+            atomic_chain_max = std::max(atomic_chain_max, sh.stats().atomic_chain_max);
+            atomic_promotions += sh.stats().atomic_promotions;
+            atomic_records_freed += sh.stats().atomic_records_freed;
+            atomic_entries += sh.stats().atomic_entries;
+            atomic_pending_entries += sh.store().atomic_pending_entries();
+            atomic_cleanup_fast += sh.store().atomic_cleanup_fast();
+            atomic_cleanup_slow += sh.store().atomic_cleanup_slow();
         }
         for (uint32_t t = 0; t < g_server->nthreads(); t++) {
             for (uint32_t id = 0; id < command_registry_size(); id++)
@@ -696,11 +720,28 @@ void cmd_info(Shard&, Op& op) {
         appendf(body, "# Stats\r\ntotal_connections_received:%llu\r\nrejected_connections:%llu\r\n"
                       "total_commands_processed:%llu\r\nkeyspace_hits:%llu\r\nkeyspace_misses:%llu\r\n"
                       "expired_keys:%llu\r\nevicted_keys:%llu\r\ninstantaneous_ops_per_sec:0\r\n"
-                      "total_net_input_bytes:0\r\ntotal_net_output_bytes:0\r\n",
+                      "total_net_input_bytes:0\r\ntotal_net_output_bytes:0\r\n"
+                      "atomic_groups:%llu\r\natomic_inflight:%llu\r\n"
+                      "atomic_predecessor_reads:%llu\r\natomic_chain_max:%llu\r\n"
+                      "atomic_cleanup_fast:%llu\r\natomic_cleanup_slow:%llu\r\n"
+                      "atomic_promotions:%llu\r\natomic_window_stalls:%llu\r\n"
+                      "atomic_records_freed:%llu\r\natomic_entries:%llu\r\n"
+                      "atomic_pending_entries:%llu\r\n",
                 static_cast<unsigned long long>(connections), static_cast<unsigned long long>(rejected),
                 static_cast<unsigned long long>(total_ops), static_cast<unsigned long long>(hits),
                 static_cast<unsigned long long>(misses), static_cast<unsigned long long>(expired),
-                static_cast<unsigned long long>(evicted));
+                static_cast<unsigned long long>(evicted),
+                static_cast<unsigned long long>(g_server ? g_server->atomic_groups() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->atomic_inflight() : 0),
+                static_cast<unsigned long long>(atomic_predecessor_reads),
+                static_cast<unsigned long long>(atomic_chain_max),
+                static_cast<unsigned long long>(atomic_cleanup_fast),
+                static_cast<unsigned long long>(atomic_cleanup_slow),
+                static_cast<unsigned long long>(atomic_promotions),
+                static_cast<unsigned long long>(g_server ? g_server->atomic_window_stalls() : 0),
+                static_cast<unsigned long long>(atomic_records_freed),
+                static_cast<unsigned long long>(atomic_entries),
+                static_cast<unsigned long long>(atomic_pending_entries));
     }
     if (info_section(op, "COMMANDSTATS")) {
         body += "# Commandstats\r\n";

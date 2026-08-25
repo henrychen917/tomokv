@@ -272,6 +272,13 @@ int main(int argc, char** argv) {
     for (auto& t : pool) t.join();
     if (cfg.unixsocket && *cfg.unixsocket) ::unlink(cfg.unixsocket);
 
+    // All owners and readers are quiescent. Release pending-entry references before IoLoop destruction,
+    // then return their deferred ScatterState arenas to the correct IO-owned pools. Server normally
+    // outlives those pools, so leaving this to FlatStore destructors would leak the retained arenas.
+    for (uint32_t sid = 0; sid < srv.nshards(); sid++)
+        srv.shard(static_cast<int32_t>(sid)).store().atomic_shutdown_release_records();
+    for (IoLoop& io : ios) io.reap_atomic_deferred();
+
     // One line of accounting on the way out. Cheap, and the absence of it is how a run ends with no
     // evidence of what it did.
     uint64_t ops = 0, disp = 0;
