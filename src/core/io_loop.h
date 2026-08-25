@@ -339,7 +339,7 @@ private:
         bool head_candidate = true;   // only the pass's FIRST dispatch can be the direct head
 
         for (;;) {
-            if (c->scatter_barrier()) break;   // all-shards op in flight: see conn.h
+            if (c->scatter_barrier() || c->atomic_backpressure()) break;
             Op* op = rob.acquire();
             if (!op) break;                    // window full: backpressure; let replies drain first
 
@@ -403,17 +403,16 @@ private:
             op->db    = static_cast<uint8_t>(c->session().db_index);
             ScatterDispatch scatter_dispatch;
             const ScatterPrepare scatter_prepared =
-                xshard_prepare(*srv_, *op, scatter_pool_, self_->id(), scatter_dispatch);
+                xshard_prepare(*srv_, *op, scatter_pool_, self_->id(), c->id(), scatter_dispatch);
             if (scatter_prepared == ScatterPrepare::Error) {
                 conn.advance_parse(consumed);
                 finish_prebuilt(c, *op);
                 continue;
             }
             if (scatter_prepared == ScatterPrepare::Backpressure) {
-                // Leave the parsed frame unconsumed. The ordinary connection barrier prevents
-                // younger commands on this socket from passing it; the active set retries while
-                // this IO thread continues serving every other connection.
-                c->set_scatter_barrier(true);
+                // Leave this frame unconsumed and retry it when a window slot retires. TCP framing
+                // naturally keeps younger frames behind it; no ROB-quiescence barrier is needed.
+                c->set_atomic_backpressure(true);
                 break;
             }
             if (scatter_prepared == ScatterPrepare::Ready) {
@@ -650,13 +649,19 @@ private:
             // Reset only when the ROB is quiescent AND no recv is outstanding — see conn.h. Then
             // re-arm, in that order.
             if (c->scatter_barrier() && c->rob().quiesced()) c->set_scatter_barrier(false);
+            if (c->atomic_backpressure() && srv_->atomic_can_admit())
+                c->set_atomic_backpressure(false);
             if (c->rob().quiesced() && !conn.recv_armed()) conn.reset_rbuf_at_quiescence();
 
             // Re-parse the buffered remainder. parse_and_dispatch stops when the ROB window fills
             // and is otherwise only driven by recv completions, so a client that sent a whole
             // pipeline in ONE write would get `window` replies and then hang. Retiring frees slots,
             // which is what makes the rest parseable.
-            if (!c->closing() && conn.rpos() < conn.rlen()) { parse_and_dispatch(c); work++; }
+            if (!c->closing() && conn.rpos() < conn.rlen() && !c->scatter_barrier() &&
+                !c->atomic_backpressure()) {
+                parse_and_dispatch(c);
+                work++;
+            }
 
             arm_recv(c);
 

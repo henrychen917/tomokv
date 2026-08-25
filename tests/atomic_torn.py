@@ -184,6 +184,13 @@ on_torn, on_reads, on_errors, _, _ = hammer("at:on", 1, seconds=2.5)
 after = stats()
 pred_delta = after.get("atomic_predecessor_reads", 0) - before.get("atomic_predecessor_reads", 0)
 promo_delta = after.get("atomic_promotions", 0) - before.get("atomic_promotions", 0)
+# V2 batches reclamation on owner passes and the 50ms low-frequency sweep instead of posting a
+# cleanup task for every retired group. Give that deliberately cold path one bounded tick to fire.
+deadline = time.time() + 1.5
+while promo_delta == 0 and time.time() < deadline:
+    time.sleep(0.05)
+    after = stats()
+    promo_delta = after.get("atomic_promotions", 0) - before.get("atomic_promotions", 0)
 note("ON MSET-8/MGET-8 torn-free", on_torn == 0 and on_reads > 0 and not on_errors,
      "torn=%d reads=%d errors=%r" % (on_torn, on_reads, on_errors))
 note("ON exercised predecessor resolution", pred_delta > 0, "delta=%d" % pred_delta)

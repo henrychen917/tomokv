@@ -158,6 +158,9 @@ public:
         // a channel from every other regardless of role, because a role change must not require
         // re-wiring the mesh.
         const uint32_t nthreads = placement_.total_threads();
+        for (uint32_t i = 0; i < kMaxThreads; i++) executor_slots_[i] = UINT8_MAX;
+        for (uint32_t slot = 0; slot < placement_.ex_threads().size(); slot++)
+            executor_slots_[placement_.ex_threads()[slot]] = static_cast<uint8_t>(slot);
         threads_.resize(nthreads);
         for (uint32_t i = 0; i < nthreads; i++) {
             threads_[i] = std::make_unique<ThreadCtx>();
@@ -204,6 +207,9 @@ public:
     void set_worker_of_shard(int32_t shard_id, uint32_t thread_id) {
         shard_owner_[shard_id].store(thread_id, std::memory_order_release);
     }
+    uint32_t executor_slot(uint32_t thread_id) const {
+        return thread_id < kMaxThreads ? executor_slots_[thread_id] : UINT8_MAX;
+    }
 
     std::atomic<uint64_t>& next_client_id() { return next_client_id_; }
     std::atomic<bool>&     shutting_down()  { return shutting_down_; }
@@ -224,6 +230,10 @@ public:
     }
     bool atomic_tracking_active() const {
         return atomic_mode_state() != 0;
+    }
+    bool atomic_can_admit() const {
+        const uint32_t window = atomic_window();
+        return !window || atomic_inflight_.load(std::memory_order_acquire) < window;
     }
     bool atomic_try_admit() {
         const uint32_t window = atomic_window();
@@ -255,8 +265,10 @@ public:
     }
     uint64_t atomic_read_floor() const {
         // Lifetime invariant: promotion frees only versions whose tickets are strictly below this
-        // minimum and no newer than its pre-floor commit cutoff. Snapshot registration publishes
-        // then confirms commit_seq; these seq_cst operations ensure a cleanup that missed the
+        // minimum and no newer than its pre-floor commit cutoff. Readers publish the successor of
+        // their inclusive cut, so the winner at that cut is eligible to become the sole physical
+        // representation. Snapshot registration publishes then confirms commit_seq; these
+        // seq_cst operations ensure a cleanup that missed the
         // publication has an older cutoff. Thus no active IO snapshot can later dereference a
         // freed loser. UINT64_MAX means no registered reader constrains the floor.
         uint64_t floor = UINT64_MAX;
@@ -341,6 +353,7 @@ private:
     SnapshotManager snapshot_;
 
     std::atomic<uint32_t> shard_owner_[256] = {};
+    uint8_t executor_slots_[kMaxThreads] = {};
     std::atomic<uint64_t> next_client_id_{1};
     std::atomic<bool>     shutting_down_{false};
     std::atomic<uint64_t> live_config_version_{0};

@@ -71,6 +71,7 @@ public:
                 did += snapshot_control_pass();
                 did += drain_releases();
                 if (!snapshot_blocks_tasks()) {
+                    did += service_atomic_deferred();
                     did += service_xshard_retries();
                     if (xshard_retries_.empty()) did += service_ordered_deferred();
                     if (xshard_retries_.empty() && ordered_deferred_.empty())
@@ -123,13 +124,14 @@ private:
     uint32_t sweep() {
         uint32_t n = snapshot_control_pass() + drain_releases(true);
         if (!snapshot_blocks_tasks()) {
+            n += service_atomic_deferred();
             n += service_xshard_retries();
             if (xshard_retries_.empty()) n += service_ordered_deferred();
             if (xshard_retries_.empty() && ordered_deferred_.empty())
                 n += snapshot_owner_state_ == SnapshotOwnerState::None
                          ? drain_tasks(true) : drain_tasks_snapshot(true);
         }
-        return n + active_expire_cycle();
+        return n + active_expire_cycle() + atomic_cleanup_cycle(64);
     }
 
     static int64_t realtime_ms() {
@@ -156,6 +158,19 @@ private:
             removed += n;
         }
         return removed;
+    }
+
+    uint32_t atomic_cleanup_cycle(uint32_t budget) {
+        auto& shards = self_->shards();
+        if (shards.empty() || !budget) return 0;
+        for (size_t visited = 0; visited < shards.size(); visited++) {
+            if (atomic_cleanup_cursor_ >= shards.size()) atomic_cleanup_cursor_ = 0;
+            Shard* shard = shards[atomic_cleanup_cursor_++];
+            if (!shard->store().atomic_has_records()) continue;
+            shard->set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
+            return xshard_cleanup_shard(*srv_, *shard, budget);
+        }
+        return 0;
     }
 
     uint32_t drain_releases(bool unmasked = false) {
@@ -419,6 +434,16 @@ private:
         // One publish per batch, covering every shard this batch touched. Cheaper than tracking
         // which ones changed, and this thread owns all of them.
         for (Shard* sh : self_->shards()) sh->publish_size();
+        // Reclamation is owner-batched rather than one posted task per completed group. Amortize
+        // the pass itself across four inbox batches, then retire enough records to keep pace with
+        // an all-scatter write stream; sweep() remains the low-traffic backstop.
+        // A bounded table walker resumes from a physical slot cursor. Do not promote a side-only
+        // insert into an already-passed slot between its passes; the final side-map pass would then
+        // (correctly) see a physical representative and the walker would omit the key.
+        if (xshard_retries_.empty() && ++atomic_cleanup_tick_ == 4) {
+            atomic_cleanup_tick_ = 0;
+            atomic_cleanup_cycle(256);
+        }
     }
 
     bool execute(const Task& t) {
@@ -433,6 +458,11 @@ private:
         const int32_t shard_id = t.shard >= 0 ? t.shard : op.shard;
         Shard& sh = srv_->shard(shard_id);
         sh.set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
+        if (has_atomic_deferred_predecessor(t, op, shard_id) ||
+            xshard_task_should_defer(*srv_, sh, t, op)) {
+            atomic_deferred_.push_back(t);
+            return true;
+        }
         // Records the op AND whether it was executed from this shard's home L3 domain. One compare
         // and one increment, no atomics — the shard has a single owner.
         sh.note_execution(self_->domain());
@@ -440,7 +470,7 @@ private:
         if (!t.scatter) self_->note_command(op.spec->id);
 
         if (t.scatter) {
-            if (xshard_execute(t, sh, op) == ScatterTaskResult::Retry) return false;
+            if (xshard_execute(t, sh, op, self_->id()) == ScatterTaskResult::Retry) return false;
             sh.publish_size();
             if (xshard_complete(*srv_, *self_, ring_, t, op) == ScatterFinish::Waiting) return true;
         } else if (__builtin_expect(op.spec->flags & CmdFlags::DenyOom, false) &&
@@ -449,13 +479,13 @@ private:
             // KvObj and never crosses insert-admission, so an HSET-only workload could blow
             // through maxmemory unbounded. One predicted-false flag test per op when disabled.
             // Scatter tasks bypass it -- their writes replace whole objects through insert-level
-            // admission on the apply hop.
+            // admission in their owner pass.
             reply_maxmemory_oom(op);
         } else {
             // The side-map pointer is the sole default-off branch. When null, handlers take their
             // original byte-identical path with no epoch loads, allocations, or cleanup work.
             if (__builtin_expect(sh.store().atomic_has_records(), false)) {
-                const bool execute_handler = xshard_plain_prepare(*srv_, sh, op);
+                const bool execute_handler = xshard_plain_prepare(*srv_, sh, op, t.client->id());
                 if (execute_handler) op.spec->handler(sh, op);
                 xshard_plain_finish(sh);
             } else {
@@ -485,6 +515,36 @@ private:
             ? execute(task) : execute_snapshot_task(task, true);
         if (!complete) xshard_retries_.push_back(task);
         return 1;  // one bounded KEYS pass (or one snapshot-gate attempt) per executor iteration
+    }
+
+    uint32_t service_atomic_deferred() {
+        if (atomic_deferred_.empty()) return 0;
+        const Task task = atomic_deferred_.front();
+        atomic_deferred_.pop_front();
+        Op& op = task.client->rob().at(task.op_id);
+        const int32_t shard_id = task.shard >= 0 ? task.shard : op.shard;
+        Shard& shard = srv_->shard(shard_id);
+        shard.set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
+        if (has_atomic_deferred_predecessor(task, op, shard_id) ||
+            xshard_task_should_defer(*srv_, shard, task, op)) {
+            atomic_deferred_.push_back(task);
+            // Keep polling the decision without preventing normal inbox drains. At low traffic this
+            // also prevents an owner sleeping after another worker publishes the dependency.
+            return 1;
+        }
+        const bool complete = snapshot_owner_state_ == SnapshotOwnerState::None
+            ? execute(task) : execute_snapshot_task(task, true);
+        if (!complete) xshard_retries_.push_back(task);
+        return 1;
+    }
+
+    bool has_atomic_deferred_predecessor(const Task& task, Op& op, int32_t shard_id) {
+        for (const Task& older : atomic_deferred_) {
+            if (older.client != task.client || older.op_id >= task.op_id) continue;
+            Op& older_op = older.client->rob().at(older.op_id);
+            if (xshard_tasks_share_key(older, older_op, task, op, shard_id)) return true;
+        }
+        return false;
     }
 
     uint32_t service_ordered_deferred() {
@@ -559,6 +619,8 @@ private:
     WbEngine   wb_;    // never serves here; kept so the stats plumbing stays uniform across loops
     int64_t    cached_now_ms_ = 0;
     size_t     expire_shard_cursor_ = 0;
+    size_t     atomic_cleanup_cursor_ = 0;
+    uint8_t    atomic_cleanup_tick_ = 0;
     uint64_t   maxmemory_config_version_ = 0;
     bool       maxmemory_enabled_ = false;
     uint8_t    cached_lru_clock_ = 0;
@@ -572,6 +634,7 @@ private:
     std::vector<uint8_t> snapshot_done_shards_;
     std::vector<std::unique_ptr<SnapshotChunk>> snapshot_pending_chunks_;
     std::vector<std::deque<Task>> snapshot_backlogs_;
+    std::deque<Task> atomic_deferred_;
     std::deque<Task> xshard_retries_;
     std::deque<Task> ordered_deferred_;
 };

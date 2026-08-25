@@ -199,6 +199,23 @@ KvObj* xshard_make_string(Slice key, Slice value, int64_t expire_at_ms, bool int
     return kvobj_new_string(key, value, expire_at_ms);
 }
 
+KvObj* xshard_make_atomic_string(Shard& shard, Slice key, Slice value,
+                                 int64_t expire_at_ms, bool integer_encode) {
+    int64_t integer = 0;
+    const bool has_ttl = expire_at_ms >= 0;
+    if (integer_encode && parse_i64(value, integer)) {
+        const size_t allocation = good_size(
+            kvobj_alloc_size(key.n, 0, has_ttl, Enc::Int));
+        void* memory = shard.store().atomic_acquire_value_block(allocation);
+        return kvobj_init_int(memory, key, integer, expire_at_ms);
+    }
+    if (value.n > kEmbedThreshold) return kvobj_new_string(key, value, expire_at_ms);
+    const size_t allocation = good_size(
+        kvobj_alloc_size(key.n, value.n, has_ttl, Enc::Raw));
+    void* memory = shard.store().atomic_acquire_value_block(allocation);
+    return kvobj_init_raw_string(memory, key, value, expire_at_ms);
+}
+
 // tomo:: linkage: every type family replies this exact text on admission failure.
 void reply_maxmemory_oom(Op& op) {
     reply_err(op.sink(), "OOM command not allowed when used memory > 'maxmemory'.");

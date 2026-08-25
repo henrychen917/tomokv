@@ -384,17 +384,17 @@ WorkError apply_image(Shard& shard, Slice key, uint64_t hash, const ObjectImage&
 }
 
 WorkError begin_plain_version(Server& server, Shard& shard, Slice key, uint64_t hash,
-                              uint64_t snapshot) {
+                              uint64_t snapshot, uint64_t origin_conn_id) {
     FlatStore& store = shard.store();
     const uint64_t cleanup_cutoff = server.atomic_snapshot();
-    store.atomic_promote_key(hash, server.atomic_read_floor(), cleanup_cutoff);
-    if (!store.atomic_has_record(hash)) {
-        if (snapshot != UINT64_MAX) store.atomic_set_read_epoch(snapshot);
+    store.atomic_promote_key(hash, key, server.atomic_read_floor(), cleanup_cutoff);
+    if (!store.atomic_has_record(hash, key)) {
+        if (snapshot != UINT64_MAX) store.atomic_set_read_context(snapshot, origin_conn_id);
         return WorkError::None;
     }
 
     if (snapshot == UINT64_MAX) snapshot = server.atomic_snapshot();
-    store.atomic_set_read_epoch(snapshot);
+    store.atomic_set_read_context(snapshot, origin_conn_id);
     KvObj* visible = store.find(hash, key);
     KvObj* clone = nullptr;
     if (visible) {
@@ -419,7 +419,8 @@ WorkError begin_plain_version(Server& server, Shard& shard, Slice key, uint64_t 
     }
 
     void* prepared = nullptr;
-    if (!store.atomic_prepare_version(hash, key, nullptr, nullptr, nullptr, nullptr, prepared) ||
+    if (!store.atomic_prepare_version(hash, key, nullptr, nullptr, nullptr, nullptr,
+                                      origin_conn_id, prepared) ||
         !store.atomic_prepare_capacity(1) || !store.atomic_admit(key, clone)) {
         if (prepared) store.atomic_discard_prepared(prepared);
         if (clone) kvobj_free(clone);
@@ -939,6 +940,12 @@ void reply_work_error(Op& op, WorkError error) {
 
 }  // namespace
 
+struct alignas(64) OwnerRecordRefs {
+    // A slot is touched only by its executor: every shard mapped to one owner is serialized there.
+    // Cache-line spacing prevents cleanup on distinct owners from bouncing a shared counter line.
+    uint32_t nodes = 0;
+};
+
 struct ScatterState {
     std::atomic<uint32_t> pending{0};
     // Zero means installs are still private. The last owner draws and release-publishes the ticket;
@@ -964,6 +971,8 @@ struct ScatterState {
     bool retired = false;
     bool two_hop = false;
     uint32_t owner_io = 0;
+    uint32_t owner_slots = 0;
+    uint64_t origin_conn_id = 0;
     Server* server = nullptr;
     uint32_t arena_bytes = 0;
     uint32_t key_count = 0;
@@ -989,8 +998,7 @@ struct ScatterState {
     ObjectImage* images = nullptr;
     ObjectImage* apply = nullptr;
     uint32_t* hop2 = nullptr;
-    KvObj** atomic_values = nullptr;
-    void** atomic_nodes = nullptr;
+    OwnerRecordRefs* owner_record_refs = nullptr;
     ResultHeap* result = nullptr;
 };
 
@@ -1048,8 +1056,45 @@ uint32_t key_arg_for(Kind kind, uint32_t key, uint32_t, uint32_t sort_store_arg)
     return 1 + key;
 }
 
-bool has_values(Kind kind) { return kind == Kind::Mget || kind == Kind::Msetnx; }
-bool has_status(Kind kind) {
+template <typename Fn>
+void for_each_touched_key(Op& op, Fn&& fn) {
+    Kind kind;
+    if (!classify(op, kind)) {
+        if (op.argc() > 1) fn(op.hash, op.key());
+        return;
+    }
+    uint32_t sinter_count = 0;
+    uint32_t mpop_count = 0;
+    bool sort_store = false;
+    uint32_t sort_store_arg = 0;
+    if (kind == Kind::Sintercard) {
+        uint64_t parsed = 0;
+        if (parse_u64(op.arg(1), parsed) && parsed <= UINT32_MAX)
+            sinter_count = static_cast<uint32_t>(parsed);
+    } else if (kind == Kind::Lmpop || kind == Kind::Zmpop) {
+        int64_t parsed = 0;
+        if (parse_i64(op.arg(1), parsed) && parsed > 0 && parsed <= UINT32_MAX)
+            mpop_count = static_cast<uint32_t>(parsed);
+    } else if (kind == Kind::Sort) {
+        SortOptions options;
+        if (parse_sort_options(op, options)) {
+            sort_store = options.store;
+            sort_store_arg = options.store_arg;
+        }
+    }
+    const uint32_t count = key_count_for(kind, op, sinter_count, mpop_count, sort_store);
+    for (uint32_t i = 0; i < count; i++) {
+        const uint32_t arg = key_arg_for(kind, i, sinter_count, sort_store_arg);
+        const Slice key = op.arg(arg);
+        fn(FlatStore::hash_key(key), key);
+    }
+}
+
+bool has_values(Kind kind, bool atomic_write) {
+    return kind == Kind::Mget || (kind == Kind::Msetnx && !atomic_write);
+}
+bool has_status(Kind kind, bool atomic_write) {
+    if (atomic_write && (kind == Kind::Mset || kind == Kind::Msetnx)) return false;
     return kind == Kind::Mset || kind == Kind::Del || kind == Kind::Unlink ||
            kind == Kind::Exists || kind == Kind::Touch || kind == Kind::Pfcount ||
            is_two_hop(kind);
@@ -1059,23 +1104,20 @@ bool has_images(Kind kind) {
 }
 
 size_t arena_layout_bytes(Kind kind, uint32_t key_count, uint32_t group_cap,
-                          bool atomic_write) {
+                          bool atomic_write, uint32_t owner_slots) {
     size_t off = sizeof(ScatterState);
     carve_size<ShardGroup>(off, group_cap);
     carve_size<KeyRef>(off, key_count);
     carve_size<uint32_t>(off, key_count);             // key_order
-    if (has_values(kind)) carve_size<ValueSlot>(off, key_count);
-    if (has_status(kind)) carve_size<uint8_t>(off, key_count);
+    if (has_values(kind, atomic_write)) carve_size<ValueSlot>(off, key_count);
+    if (has_status(kind, atomic_write)) carve_size<uint8_t>(off, key_count);
     if (has_images(kind)) {
         carve_size<ObjectImage>(off, key_count);
         carve_size<ObjectImage>(off, key_count);
     }
-    if (is_two_hop(kind) || atomic_write)
+    if (is_two_hop(kind) && !atomic_write)
         carve_size<uint32_t>(off, key_count);  // complete hop-2 plan
-    if (atomic_write) {
-        carve_size<KvObj*>(off, key_count);
-        carve_size<void*>(off, key_count);
-    }
+    if (atomic_write) carve_size<OwnerRecordRefs>(off, owner_slots);
     return off;
 }
 
@@ -1095,17 +1137,17 @@ void init_arena_arrays(ScatterState& state) {
     state.groups = carve_at<ShardGroup>(base, off, state.group_cap);
     state.keys = carve_at<KeyRef>(base, off, state.key_count);
     state.key_order = carve_at<uint32_t>(base, off, state.key_count);
-    if (has_values(state.kind)) state.values = carve_at<ValueSlot>(base, off, state.key_count);
-    if (has_status(state.kind)) state.status = carve_at<uint8_t>(base, off, state.key_count);
+    if (has_values(state.kind, state.atomic_write))
+        state.values = carve_at<ValueSlot>(base, off, state.key_count);
+    if (has_status(state.kind, state.atomic_write))
+        state.status = carve_at<uint8_t>(base, off, state.key_count);
     if (has_images(state.kind)) {
         state.images = carve_at<ObjectImage>(base, off, state.key_count);
         state.apply = carve_at<ObjectImage>(base, off, state.key_count);
     }
     if (state.two_hop) state.hop2 = carve_at<uint32_t>(base, off, state.key_count);
-    if (state.atomic_write) {
-        state.atomic_values = carve_at<KvObj*>(base, off, state.key_count);
-        state.atomic_nodes = carve_at<void*>(base, off, state.key_count);
-    }
+    if (state.atomic_write)
+        state.owner_record_refs = carve_at<OwnerRecordRefs>(base, off, state.owner_slots);
 
     for (uint32_t i = 0; state.groups && i < state.group_cap; i++)
         new (&state.groups[i]) ShardGroup;
@@ -1114,10 +1156,8 @@ void init_arena_arrays(ScatterState& state) {
     for (uint32_t i = 0; state.values && i < state.key_count; i++) new (&state.values[i]) ValueSlot;
     if (state.status) std::memset(state.status, 0, state.key_count);
     if (state.hop2) std::memset(state.hop2, 0, sizeof(uint32_t) * state.key_count);
-    if (state.atomic_values)
-        std::memset(state.atomic_values, 0, sizeof(KvObj*) * state.key_count);
-    if (state.atomic_nodes)
-        std::memset(state.atomic_nodes, 0, sizeof(void*) * state.key_count);
+    for (uint32_t i = 0; state.owner_record_refs && i < state.owner_slots; i++)
+        new (&state.owner_record_refs[i]) OwnerRecordRefs;
     for (uint32_t i = 0; state.images && i < state.key_count; i++) new (&state.images[i]) ObjectImage;
     for (uint32_t i = 0; state.apply && i < state.key_count; i++) new (&state.apply[i]) ObjectImage;
 }
@@ -1621,10 +1661,6 @@ void free_state_contents(ScatterState& state) {
     for (uint32_t i = 0; i < state.group_cap; i++) delete state.groups[i].aux;
     for (uint32_t i = 0; state.images && i < state.key_count; i++) state.images[i].~ObjectImage();
     for (uint32_t i = 0; state.apply && i < state.key_count; i++) state.apply[i].~ObjectImage();
-    for (uint32_t i = 0; state.atomic_values && i < state.key_count; i++) {
-        if (!state.atomic_values[i]) continue;
-        kvobj_free(state.atomic_values[i]);
-    }
     delete state.result;
     state.contents_freed = true;
 }
@@ -1648,24 +1684,39 @@ void ScatterArenaPool::release(void* ptr, bool pooled) {
     else std::free(ptr);
 }
 
+namespace {
+
+uint64_t snapshot_exclusive_floor(uint64_t snapshot) {
+    return snapshot == UINT64_MAX ? UINT64_MAX : snapshot + 1;
+}
+
+uint64_t active_snapshot_floor(const std::vector<ScatterState*>& active_snapshots) {
+    uint64_t floor = UINT64_MAX;
+    for (ScatterState* active : active_snapshots)
+        floor = std::min(floor, snapshot_exclusive_floor(active->snapshot));
+    return floor;
+}
+
+}  // namespace
+
 bool ScatterArenaPool::register_snapshot(Server& server, ScatterState* state) {
     try { active_snapshots_.push_back(state); }
     catch (const std::bad_alloc&) { return false; }
     state->snapshot_registered = true;
-    uint64_t floor = UINT64_MAX;
-    for (ScatterState* active : active_snapshots_) floor = std::min(floor, active->snapshot);
+    uint64_t floor = active_snapshot_floor(active_snapshots_);
     server.publish_atomic_read_floor(state->owner_io, floor);
 
-    // Publishing a cut is a hazard-pointer handshake. Cleanup may have sampled the old floor
+    // Publish the successor of each inclusive read cut. A version visible at the oldest snapshot
+    // is then strictly below the floor and may become the sole physical representation without
+    // violating the freeing invariant. Publishing the cut is a hazard-pointer handshake: cleanup
+    // may have sampled the old floor
     // between our first commit_seq load and the store above. If a commit raced through that
     // window, adopt the confirmed (newer) cut; cleanup can only have retained its winner. If the
     // sequence is unchanged, promotion of that winner is also a valid representation of our cut.
     const uint64_t confirmed = server.atomic_snapshot();
     if (confirmed != state->snapshot) {
         state->snapshot = confirmed;
-        floor = UINT64_MAX;
-        for (ScatterState* active : active_snapshots_)
-            floor = std::min(floor, active->snapshot);
+        floor = active_snapshot_floor(active_snapshots_);
         server.publish_atomic_read_floor(state->owner_io, floor);
     }
     return true;
@@ -1680,9 +1731,8 @@ void ScatterArenaPool::unregister_snapshot(Server& server, ScatterState* state) 
         break;
     }
     state->snapshot_registered = false;
-    uint64_t floor = UINT64_MAX;
-    for (ScatterState* active : active_snapshots_) floor = std::min(floor, active->snapshot);
-    server.publish_atomic_read_floor(state->owner_io, floor);
+    server.publish_atomic_read_floor(state->owner_io,
+                                     active_snapshot_floor(active_snapshots_));
 }
 
 void ScatterArenaPool::defer_destroy(ScatterState* state) {
@@ -1709,7 +1759,8 @@ uint32_t ScatterArenaPool::reap_deferred() {
 }
 
 ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
-                              uint32_t owner_io, ScatterDispatch& dispatch) {
+                              uint32_t owner_io, uint64_t origin_conn_id,
+                              ScatterDispatch& dispatch) {
     const bool all_shards = (op.spec->flags & CmdFlags::AllShards) ||
                             ((op.spec->flags & CmdFlags::ConfigRoute) &&
                              command_config_routes_all_shards(op));
@@ -1844,12 +1895,10 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     if (key_count) {
         bool same_owner = true;
         for (uint32_t i = 1; i < key_count; i++) same_owner &= routes[i].shard == routes[0].shard;
-        // While records survive, every localfast multi-key command must use the scatter lane too:
-        // its phase-specific wrappers resolve every input and version every destination. Letting a
-        // mover/store op fall into its local handler could replace a physical value still named by
-        // a record. Atomic mode off with an empty map retains the exact original localfast path.
-        const bool needs_mvcc_scatter = atomic_write || tracking;
-        if (same_owner && !needs_mvcc_scatter && kind != Kind::Pfcount && kind != Kind::Pfmerge) {
+        // The decision is finalized on the owner, where the side-map is legal to probe. Common
+        // uncontended same-owner commands therefore retain localfast under tracking; surviving
+        // touched records resolve inline, with writes cloning only their recorded keys.
+        if (same_owner && kind != Kind::Pfcount && kind != Kind::Pfmerge) {
             op.shard = routes[0].shard;
             op.hash = routes[0].hash;
             op.mark_local_xshard();
@@ -1865,9 +1914,12 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     if (kind == Kind::AllShards || kind == Kind::DbsizeExact || kind == Kind::Keys) {
         group_cap = server.nshards();
     } else {
-        uint8_t seen[256] = {};
-        for (uint32_t i = phase1_first; i < key_count; i++)
-            if (!seen[routes[i].shard]++) group_cap++;
+        for (uint32_t i = phase1_first; i < key_count; i++) {
+            bool first = true;
+            for (uint32_t prior = phase1_first; prior < i; prior++)
+                if (routes[prior].shard == routes[i].shard) { first = false; break; }
+            group_cap += first;
+        }
     }
     bool admitted = false;
     if (atomic_write) {
@@ -1877,7 +1929,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         }
         admitted = true;
     }
-    const size_t bytes = arena_layout_bytes(kind, key_count, group_cap, atomic_write);
+    const size_t bytes = arena_layout_bytes(
+        kind, key_count, group_cap, atomic_write, server.nthreads());
     if (bytes == std::numeric_limits<size_t>::max() || bytes > UINT32_MAX) {
         if (admitted) server.atomic_retire_group();
         if (routes != route_stack) delete[] routes;
@@ -1895,12 +1948,14 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     auto* state = new (memory) ScatterState;
     state->kind = kind;
     state->atomic_write = atomic_write;
-    state->two_hop = is_two_hop(kind) || atomic_write;
+    state->two_hop = is_two_hop(kind) && !atomic_write;
     state->barrier = state->two_hop || all_shards;
     state->admitted = admitted;
     state->server = &server;
     state->pooled = pooled;
     state->owner_io = owner_io;
+    state->owner_slots = static_cast<uint32_t>(server.placement().ex_threads().size());
+    state->origin_conn_id = origin_conn_id;
     state->arena_bytes = static_cast<uint32_t>(bytes);
     state->key_count = key_count;
     state->group_cap = group_cap;
@@ -1914,7 +1969,11 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     state->range_options = range_options;
     state->range_spec = range_spec;
     state->sort_options = sort_options;
-    if (tracking && key_count) state->snapshot = server.atomic_snapshot();
+    // MSET is a blind replacement. Registering a read cut for it only pins predecessors across a
+    // deep pipeline; MSETNX and delete still need their one dispatch snapshot for existence.
+    if (tracking && (key_count || kind == Kind::Keys || kind == Kind::DbsizeExact) &&
+        !(atomic_write && kind == Kind::Mset))
+        state->snapshot = server.atomic_snapshot();
     if (kind == Kind::Sintercard) { state->set_first = 0; state->set_count = sinter_count; }
     else if (is_store_setop(kind)) { state->set_first = 1; state->set_count = key_count - 1; }
     else if (is_plain_setop(kind)) { state->set_first = 0; state->set_count = key_count; }
@@ -2062,7 +2121,84 @@ FlatStore::SnapshotWriteResult xshard_snapshot_prepare(const Task& task, Shard& 
     return FlatStore::SnapshotWriteResult::Ready;
 }
 
-ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op) {
+bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op& op) {
+    (void)server;
+    FlatStore& store = shard.store();
+    if (!store.atomic_has_records() || !task.client) return false;
+    const uint64_t origin_conn_id = task.client->id();
+    if (task.scatter) {
+        ScatterState& state = *task.scatter;
+        ShardGroup* group = group_for(state, shard.id());
+        // KEYS/DBSIZE/all-shards commands have a zero-key group for every shard: logically they
+        // touch the whole owner, so any own undecided node is their precise program-order hazard.
+        if (!group || state.key_count == 0)
+            return store.atomic_has_any_own_undecided(origin_conn_id, &state);
+        for (uint32_t i = 0; i < group->count; i++) {
+            const uint32_t pos = state.key_order[group->begin + i];
+            const KeyRef& key = state.keys[pos];
+            if (store.atomic_has_own_undecided(
+                    key.hash, op.arg(key.arg), origin_conn_id, &state)) return true;
+        }
+        return false;
+    }
+
+    bool own_undecided = false;
+    auto check_own = [&](uint64_t hash, Slice key) {
+        own_undecided |= store.atomic_has_own_undecided(hash, key, origin_conn_id);
+    };
+    if (op.local_xshard()) for_each_touched_key(op, check_own);
+    else check_own(op.hash, op.key());
+    if (own_undecided) return true;
+
+    // Committed records never park a localfast write. xshard_plain_prepare() materializes one
+    // direct plain version for each surviving touched record and the original same-owner handler
+    // mutates those versions inline. Only an own undecided predecessor above is a true hazard.
+    return false;
+}
+
+namespace {
+
+template <typename Fn>
+bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+    if (task.scatter) {
+        ScatterState& state = *task.scatter;
+        ShardGroup* group = group_for(state, shard_id);
+        if (!group) return state.key_count == 0;  // all-shards command
+        for (uint32_t i = 0; i < group->count; i++) {
+            const uint32_t pos = state.key_order[group->begin + i];
+            const KeyRef& key = state.keys[pos];
+            fn(key.hash, op.arg(key.arg));
+        }
+        return false;
+    }
+    if (op.local_xshard()) {
+        for_each_touched_key(op, std::forward<Fn>(fn));
+    } else {
+        fn(op.hash, op.key());
+    }
+    return false;
+}
+
+}  // namespace
+
+bool xshard_tasks_share_key(const Task& older, Op& older_op,
+                            const Task& younger, Op& younger_op, int32_t shard_id) {
+    if (!older.client || older.client != younger.client || older.op_id >= younger.op_id)
+        return false;
+    bool overlap = false;
+    const bool older_all = for_each_task_key(older, older_op, shard_id,
+        [&](uint64_t older_hash, Slice older_key) {
+            const bool younger_all = for_each_task_key(younger, younger_op, shard_id,
+                [&](uint64_t younger_hash, Slice younger_key) {
+                    overlap |= older_hash == younger_hash && older_key == younger_key;
+                });
+            overlap |= younger_all;
+        });
+    return overlap || older_all;
+}
+
+ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
+                                 uint32_t owner_thread_id) {
     ScatterState& state = *task.scatter;
     ShardGroup& group = *group_for(state, shard.id());
     if (!state.atomic_write && shard.store().atomic_has_records()) {
@@ -2070,46 +2206,55 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op) {
         const uint64_t floor = state.server->atomic_read_floor();
         for (uint32_t i = 0; i < group.count; i++) {
             const uint32_t pos = state.key_order[group.begin + i];
-            shard.store().atomic_promote_key(state.keys[pos].hash, floor, cleanup_cutoff);
+            const KeyRef& key = state.keys[pos];
+            shard.store().atomic_promote_key(
+                key.hash, op.arg(key.arg), floor, cleanup_cutoff);
         }
     }
     struct ReadEpochGuard {
         FlatStore& store;
         bool bound;
-        ReadEpochGuard(FlatStore& store_, uint64_t snapshot)
+        ReadEpochGuard(FlatStore& store_, uint64_t snapshot, uint64_t origin_conn_id)
             : store(store_), bound(snapshot != UINT64_MAX) {
-            if (bound) store.atomic_set_read_epoch(snapshot);
+            if (bound) store.atomic_set_read_context(snapshot, origin_conn_id);
         }
         ~ReadEpochGuard() { if (bound) store.atomic_clear_read_epoch(); }
-    } read_epoch(shard.store(), state.snapshot);
+    } read_epoch(shard.store(), state.snapshot, state.origin_conn_id);
     try {
-        if (state.atomic_write && state.phase == 1) {
-            // Every atomic write pass -- value-writes AND deletes -- must run the capacity/
-            // tombstone-reclaim trigger: detaches tombstone regardless of kind, so a delete-only
-            // stream would otherwise fill the table with unreclaimed tombstones and crash a later
-            // attach. group.count is a safe over-estimate for the delete case (no net new keys).
+        if (state.atomic_write) {
+            // One owner pass does capacity/admission, record+node preparation, and the invisible
+            // side-record install. A refusal abandons the group; already-installed nodes stay
+            // hidden at epoch zero and normal owner sweeps reclaim them.
             if (!shard.store().atomic_prepare_capacity(group.count)) {
                 group.error = WorkError::InsertFailed;
+                state.aborted.store(true, std::memory_order_release);
                 return ScatterTaskResult::Complete;
             }
+            const uint32_t owner_slot = state.server->executor_slot(owner_thread_id);
+            if (owner_slot >= state.owner_slots) std::abort();
+            auto* owner_refs = &state.owner_record_refs[owner_slot].nodes;
+            uint32_t installed = 0;
             for (uint32_t i = 0; i < group.count; i++) {
+                if (state.aborted.load(std::memory_order_acquire)) break;
                 const uint32_t pos = state.key_order[group.begin + i];
                 const KeyRef& key = state.keys[pos];
                 const Slice key_slice = op.arg(key.arg);
+                void* prepared = nullptr;
                 if (!shard.store().atomic_prepare_version(
                         key.hash, key_slice, &state, &state.epoch, &state.record_refs,
-                        &state.aborted, state.atomic_nodes[pos])) {
-                    if (state.kind == Kind::Del || state.kind == Kind::Unlink)
-                        group.error = WorkError::Oom;
-                    else
-                        state.status[pos] = static_cast<uint8_t>(WorkError::Oom);
-                    continue;
+                        &state.aborted, state.origin_conn_id, prepared)) {
+                    group.error = WorkError::Oom;
+                    state.aborted.store(true, std::memory_order_release);
+                    break;
                 }
 
                 KvObj* visible = state.kind == Kind::Mset
                     ? nullptr : shard.store().find(key.hash, key_slice);
-                if (state.kind == Kind::Msetnx && visible)
-                    state.values[pos].kind = ValueKind::Inline;
+                if (state.kind == Kind::Msetnx && visible) {
+                    state.aborted.store(true, std::memory_order_release);
+                    shard.store().atomic_discard_prepared(prepared);
+                    break;
+                }
                 if (state.kind == Kind::Del || state.kind == Kind::Unlink) {
                     bool duplicate = false;
                     for (uint32_t prior = 0; prior < i; prior++) {
@@ -2119,43 +2264,53 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op) {
                         if (duplicate) break;
                     }
                     state.status[pos] = visible && !duplicate;
+                    shard.store().atomic_install_prepared(key.hash, key_slice, prepared, 0, false,
+                                                          true, owner_refs);
+                    installed++;
                     continue;
                 }
 
-                KvObj* value = xshard_make_string(key_slice, op.arg(key.arg + 1));
+                KvObj* value = xshard_make_atomic_string(
+                    shard, key_slice, op.arg(key.arg + 1));
                 if (!value) {
-                    state.status[pos] = static_cast<uint8_t>(WorkError::Oom);
-                    continue;
+                    group.error = WorkError::Oom;
+                    state.aborted.store(true, std::memory_order_release);
+                    shard.store().atomic_install_prepared(key.hash, key_slice, prepared, 0, false,
+                                                          true, owner_refs);
+                    installed++;
+                    break;
                 }
                 if (!shard.store().atomic_admit(key_slice, value)) {
-                    kvobj_free(value);
-                    state.status[pos] = static_cast<uint8_t>(WorkError::Maxmemory);
-                    continue;
+                    shard.store().atomic_discard_value(value);
+                    group.error = WorkError::Maxmemory;
+                    state.aborted.store(true, std::memory_order_release);
+                    shard.store().atomic_install_prepared(key.hash, key_slice, prepared, 0, false,
+                                                          true, owner_refs);
+                    installed++;
+                    break;
                 }
-                state.atomic_values[pos] = value;
-                shard.store().atomic_stage_prepared(state.atomic_nodes[pos],
-                                                     state.atomic_values[pos]);
+                shard.store().atomic_stage_prepared(prepared, value);
+                shard.store().atomic_install_prepared(key.hash, key_slice, prepared, 0, false,
+                                                      true, owner_refs);
+                installed++;
+            }
+            if (installed) {
+                if (*owner_refs == 0)
+                    state.record_refs.fetch_add(1, std::memory_order_release);
+                *owner_refs += installed;
             }
             return ScatterTaskResult::Complete;
         }
 
         if (state.phase == 2) {
-            if (state.atomic_write) {
-                for (uint32_t i = 0; i < group.count; i++) {
-                    const uint32_t pos = state.key_order[group.begin + i];
-                    const KeyRef& key = state.keys[pos];
-                    shard.store().atomic_install_prepared(
-                        key.hash, op.arg(key.arg), state.atomic_nodes[pos]);
-                }
-                return ScatterTaskResult::Complete;
-            }
             if (state.kind == Kind::Lmpop || state.kind == Kind::Zmpop) {
                 const uint32_t pos = state.key_order[group.begin];
                 const KeyRef& key = state.keys[pos];
                 bool plain_active = false;
-                if (shard.store().atomic_has_record(key.hash)) {
+                if (shard.store().atomic_has_record(key.hash, op.arg(key.arg))) {
                     const WorkError prepared = begin_plain_version(
-                        *state.server, shard, op.arg(key.arg), key.hash, state.snapshot);
+                        *state.server, shard, op.arg(key.arg), key.hash, state.snapshot,
+                        state.origin_conn_id);
                     if (prepared != WorkError::None) {
                         state.status[pos] = static_cast<uint8_t>(prepared);
                         return ScatterTaskResult::Complete;
@@ -2184,9 +2339,10 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op) {
                 const uint32_t pos = state.key_order[group.begin + i];
                 const KeyRef& key = state.keys[pos];
                 bool plain_active = false;
-                if (shard.store().atomic_has_record(key.hash)) {
+                if (shard.store().atomic_has_record(key.hash, op.arg(key.arg))) {
                     const WorkError prepared = begin_plain_version(
-                        *state.server, shard, op.arg(key.arg), key.hash, state.snapshot);
+                        *state.server, shard, op.arg(key.arg), key.hash, state.snapshot,
+                        state.origin_conn_id);
                     if (prepared != WorkError::None) {
                         state.status[pos] = static_cast<uint8_t>(prepared);
                         continue;
@@ -2240,7 +2396,8 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op) {
                 op.spec->handler(shard, op);
                 return ScatterTaskResult::Complete;
             case Kind::DbsizeExact:
-                state.exact_sum.fetch_add(shard.store().size(), std::memory_order_relaxed);
+                state.exact_sum.fetch_add(
+                    shard.store().atomic_resolved_size(state.snapshot), std::memory_order_relaxed);
                 return ScatterTaskResult::Complete;
             case Kind::Mget:
                 for (uint32_t i = 0; i < group.count; i++) {
@@ -2277,9 +2434,10 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op) {
                     const uint32_t pos = state.key_order[group.begin + i];
                     const KeyRef& key = state.keys[pos];
                     bool plain_active = false;
-                    if (shard.store().atomic_has_record(key.hash)) {
+                    if (shard.store().atomic_has_record(key.hash, op.arg(key.arg))) {
                         const WorkError prepared = begin_plain_version(
-                            *state.server, shard, op.arg(key.arg), key.hash, state.snapshot);
+                            *state.server, shard, op.arg(key.arg), key.hash, state.snapshot,
+                            state.origin_conn_id);
                         if (prepared != WorkError::None) {
                             state.status[pos] = static_cast<uint8_t>(prepared);
                             continue;
@@ -2297,9 +2455,10 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op) {
                     const uint32_t pos = state.key_order[group.begin + i];
                     const KeyRef& key = state.keys[pos];
                     bool plain_active = false;
-                    if (shard.store().atomic_has_record(key.hash)) {
+                    if (shard.store().atomic_has_record(key.hash, op.arg(key.arg))) {
                         const WorkError prepared = begin_plain_version(
-                            *state.server, shard, op.arg(key.arg), key.hash, state.snapshot);
+                            *state.server, shard, op.arg(key.arg), key.hash, state.snapshot,
+                            state.origin_conn_id);
                         if (prepared != WorkError::None) {
                             group.error = prepared;
                             continue;
@@ -2323,10 +2482,17 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op) {
                 const Slice pattern = op.arg(1);
                 group.scan_cursor = shard.store().scan(group.scan_cursor, 256, [&](KvObj* object) {
                     const Slice key = object->key();
+                    const uint64_t hash = FlatStore::hash_key(key);
+                    if (shard.store().atomic_physical_key_visible(hash, key, state.snapshot) &&
+                        glob_match(pattern.p, pattern.n, key.p, key.n))
+                        group.aux->keys_result.emplace_back(key.p, key.n);
+                });
+                if (group.scan_cursor) return ScatterTaskResult::Retry;
+                shard.store().atomic_for_each_side_key(state.snapshot, [&](Slice key) {
                     if (glob_match(pattern.p, pattern.n, key.p, key.n))
                         group.aux->keys_result.emplace_back(key.p, key.n);
                 });
-                return group.scan_cursor ? ScatterTaskResult::Retry : ScatterTaskResult::Complete;
+                return ScatterTaskResult::Complete;
             }
             case Kind::Msetnx:
                 for (uint32_t i = 0; i < group.count; i++) {
@@ -2373,16 +2539,34 @@ ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
     ScatterState& state = *task.scatter;
     if (state.pending.fetch_sub(1, std::memory_order_acq_rel) != 1)
         return ScatterFinish::Waiting;
-    if (state.phase == 2) {
-        if (state.atomic_write) {
-            const uint64_t ticket = server.atomic_commit();
-            state.epoch.store(ticket, std::memory_order_release);
+    if (state.atomic_write) {
+        WorkError error;
+        if (first_error(state, error)) {
+            state.aborted.store(true, std::memory_order_release);
+            state.final_reply = FinalReply::Work;
+            state.final_error = error;
+            return ScatterFinish::Final;
+        }
+        if (state.aborted.load(std::memory_order_acquire)) {
+            // MSETNX existence is a normal failed condition, not a work error. Its installed
+            // candidates (if another owner got that far) remain forever invisible at epoch zero.
             if (state.kind == Kind::Msetnx) {
                 state.final_reply = FinalReply::Integer;
-                state.final_integer = 1;
+                state.final_integer = 0;
+            } else {
+                state.final_reply = FinalReply::Internal;
             }
             return ScatterFinish::Final;
         }
+        const uint64_t ticket = server.atomic_commit();
+        state.epoch.store(ticket, std::memory_order_release);
+        if (state.kind == Kind::Msetnx) {
+            state.final_reply = FinalReply::Integer;
+            state.final_integer = 1;
+        }
+        return ScatterFinish::Final;
+    }
+    if (state.phase == 2) {
         finish_phase2(state);
         return ScatterFinish::Final;
     }
@@ -2392,11 +2576,9 @@ ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
     }
     if (!state.two_hop) return ScatterFinish::Final;
     if (finish_phase1(state, op)) {
-        if (state.atomic_write) state.aborted.store(true, std::memory_order_release);
         return ScatterFinish::Final;
     }
     if (publish_phase2(server, self, ring, task, state)) return ScatterFinish::Waiting;
-    if (state.atomic_write) state.aborted.store(true, std::memory_order_release);
     return ScatterFinish::Final;
 }
 
@@ -2527,6 +2709,8 @@ void assemble_final(Client& client, Op& op, ScatterState& state) {
 void xshard_retire(Server& server, ThreadCtx& self, Ring& ring, Client& client, Op& op,
                    ScatterArenaPool& pool, uint32_t owner_io,
                    void* release_ctx, void (*release_fn)(void*, int32_t, const char*)) {
+    (void)self;
+    (void)ring;
     ScatterState* state = op.scatter_state();
     if (!state) return;
     assemble_final(client, op, *state);
@@ -2542,23 +2726,11 @@ void xshard_retire(Server& server, ThreadCtx& self, Ring& ring, Client& client, 
         }
     }
     if (state->atomic_write) {
-        // Staged values live in owner-linked nodes. Free only arena-owned scratch before asking
-        // each owner to promote committed nodes or reclaim nodes from an aborted validation.
+        // Installed nodes retain only the compact group decision fields. Reclamation is batched by
+        // each owner on later passes; retirement posts no per-group cleanup fan-out.
         free_state_contents(*state);
         if (state->snapshot_registered)
             pool.unregister_snapshot(server, state);
-        bool posted[kMaxThreads] = {};
-        uint8_t seen[256] = {};
-        for (uint32_t i = 0; i < state->key_count; i++) {
-            const int32_t sid = state->keys[i].shard;
-            if (seen[sid]++) continue;
-            const uint32_t tid = server.worker_of_shard(sid);
-            const Task cleanup{nullptr, 0, sid, nullptr};
-            if (server.thread(tid).post_task_quiet(self.id(), cleanup, self.sig()))
-                posted[tid] = true;
-        }
-        for (uint32_t tid = 0; tid < server.nthreads(); tid++)
-            if (posted[tid]) server.thread(tid).flush_task_notify(self.id(), ring, self.sig());
     }
     op.detach_scatter_state();
     xshard_destroy(state, pool, owner_io);
@@ -2899,18 +3071,54 @@ void cmd_xshard_only(Shard& shard, Op& op) {
     reply_err(op.sink(), "ERR internal cross-shard completion error");
 }
 
-bool xshard_plain_prepare(Server& server, Shard& shard, Op& op) {
+bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_conn_id) {
     FlatStore& store = shard.store();
     if (!store.atomic_has_records()) return true;
     const uint64_t cleanup_cutoff = server.atomic_snapshot();
-    store.atomic_promote_key(op.hash, server.atomic_read_floor(), cleanup_cutoff);
-    if (!store.atomic_has_record(op.hash)) return true;
-    const uint64_t snapshot = server.atomic_snapshot();
-    if (!(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
-        store.atomic_set_read_epoch(snapshot);
+    const uint64_t floor = server.atomic_read_floor();
+    if (op.local_xshard()) {
+        struct RecordedKey { uint64_t hash; Slice key; };
+        std::vector<RecordedKey> recorded;
+        bool allocation_failed = false;
+        for_each_touched_key(op, [&](uint64_t hash, Slice key) {
+            if (allocation_failed) return;
+            store.atomic_promote_key(hash, key, floor, cleanup_cutoff);
+            if (!store.atomic_has_record(hash, key)) return;
+            for (const RecordedKey& prior : recorded)
+                if (prior.hash == hash && prior.key == key) return;
+            try { recorded.push_back(RecordedKey{hash, key}); }
+            catch (const std::bad_alloc&) { allocation_failed = true; }
+        });
+        if (allocation_failed) { set_oom(op); return false; }
+        if (recorded.empty()) return true;
+
+        const uint64_t snapshot = server.atomic_snapshot();
+        if (!(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
+            store.atomic_set_read_context(snapshot, origin_conn_id);
+            return true;
+        }
+        if (!store.atomic_reserve_plain_context(static_cast<uint32_t>(recorded.size()))) {
+            set_oom(op);
+            return false;
+        }
+        for (const RecordedKey& item : recorded) {
+            const WorkError result = begin_plain_version(
+                server, shard, item.key, item.hash, snapshot, origin_conn_id);
+            if (result == WorkError::None) continue;
+            reply_work_error(op, result);
+            return false;
+        }
         return true;
     }
-    const WorkError result = begin_plain_version(server, shard, op.key(), op.hash, snapshot);
+    store.atomic_promote_key(op.hash, op.key(), floor, cleanup_cutoff);
+    if (!store.atomic_has_record(op.hash, op.key())) return true;
+    const uint64_t snapshot = server.atomic_snapshot();
+    if (!(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
+        store.atomic_set_read_context(snapshot, origin_conn_id);
+        return true;
+    }
+    const WorkError result = begin_plain_version(
+        server, shard, op.key(), op.hash, snapshot, origin_conn_id);
     if (result == WorkError::None) return true;
     reply_work_error(op, result);
     return false;

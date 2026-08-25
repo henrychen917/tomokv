@@ -73,8 +73,8 @@ note("enable atomic lane", admin.cmd("CONFIG", "SET", "atomic", "1") == b"OK")
 keys = ["ary:k%d" % i for i in range(8)]
 admin.cmd("DEL", *keys)
 
-# One write command is a connection barrier. Send all three frames at once to prove that the parser
-# does not issue the plain GET or snapshot MGET ahead of the atomic MSET's commit.
+# Atomic writes carry no parse barrier. Send all three frames at once to prove that the owner-side
+# same-key hazard alone preserves RYOW for both a plain GET and snapshot MGET.
 c = Resp()
 burst = (frame(*mset_args(keys, "ryow:one")) + frame("GET", keys[0]) +
          frame("MGET", *keys))
@@ -85,8 +85,23 @@ note("atomic MSET then plain GET/MGET RYOW",
      "replies=%r/%r/%r" % (r1, r2, r3))
 c.close()
 
-# MSETNX's insert decision is fixed by validate and the connection barrier makes the second command
-# observe the first command's committed result even when both frames arrive in one recv.
+# The same precise hazard applies to a younger plain write: it must not physically run before the
+# older atomic group decides, even though both frames were parsed and dispatched together.
+orderkeys = ["ary:order%d" % i for i in range(8)]
+admin.cmd("DEL", *orderkeys)
+c = Resp()
+c.sock.sendall(frame(*mset_args(orderkeys, "order:atomic")) +
+               frame("SET", orderkeys[0], "order:plain") +
+               frame("MGET", *orderkeys))
+o1, o2, ov = c.read(), c.read(), c.read()
+note("atomic MSET then plain SET keeps same-key program order",
+     o1 == b"OK" and o2 == b"OK" and
+     ov == [b"order:plain"] + [b"order:atomic"] * 7,
+     "replies=%r/%r values=%r" % (o1, o2, ov))
+c.close()
+
+# MSETNX's decision is made in its one owner pass. A younger same-key command waits at the owner and
+# observes the first committed result even when both frames arrive in one recv.
 nxkeys = ["ary:nx%d" % i for i in range(8)]
 admin.cmd("DEL", *nxkeys)
 c = Resp()
@@ -97,10 +112,89 @@ for key in nxkeys:
     second.extend((key, "nx:second"))
 c.sock.sendall(frame(*first) + frame(*second) + frame("MGET", *nxkeys))
 n1, n2, nv = c.read(), c.read(), c.read()
-note("MSETNX validate/apply serial semantics",
+note("MSETNX single-hop serial semantics",
      n1 == 1 and n2 == 0 and nv == [b"nx:first"] * 8,
      "replies=%r/%r values=%r" % (n1, n2, nv))
 c.close()
+
+# An MSETNX group may have installed candidates on other owners before one owner discovers an
+# existing key. Epoch zero plus abandonment must hide those candidates from foreign readers and
+# from the originating connection's pipelined read alike.
+leakkeys = ["ary:abandon%d" % i for i in range(8)]
+admin.cmd("DEL", *leakkeys)
+admin.cmd("SET", leakkeys[0], "abandon:guard")
+leak_stop = threading.Event()
+leak_errors = []
+leak_reads = 0
+
+
+def leak_reader():
+    global leak_reads
+    reader = Resp()
+    try:
+        while not leak_stop.is_set():
+            values = reader.cmd("MGET", *leakkeys[1:])
+            leak_reads += 1
+            if any(value is not None for value in values):
+                leak_errors.append("foreign observed %r" % (values,))
+                break
+    except Exception as exc:
+        leak_errors.append("foreign:%s" % exc)
+    finally:
+        reader.close()
+
+
+thread = threading.Thread(target=leak_reader, daemon=True)
+thread.start()
+c = Resp()
+try:
+    for seq in range(256):
+        args = ["MSETNX"]
+        for key in leakkeys:
+            args.extend((key, "abandon:leak:%d" % seq))
+        c.sock.sendall(frame(*args) + frame("MGET", *leakkeys))
+        failed, own = c.read(), c.read()
+        if failed != 0 or own != [b"abandon:guard"] + [None] * 7:
+            leak_errors.append("own observed seq=%d reply=%r values=%r" % (seq, failed, own))
+            break
+finally:
+    c.close()
+    leak_stop.set()
+    thread.join(timeout=10)
+note("abandoned MSETNX candidates are never observable",
+     not thread.is_alive() and leak_reads > 0 and not leak_errors,
+     "reads=%d errors=%r" % (leak_reads, leak_errors))
+
+# Cross-key atomics on one connection must be admitted concurrently. A tiny window makes overlap
+# directly observable (the third frame stalls admission), and the rate comparison guards against a
+# future accidental return of the full connection barrier.
+admin.cmd("CONFIG", "SET", "atomic-window", "2")
+stall_before = int(admin.cmd("INFO", "STATS").split(b"atomic_window_stalls:", 1)[1].split(b"\r\n", 1)[0])
+c = Resp()
+burst_count = 24
+burst = bytearray()
+for seq in range(burst_count):
+    burst += frame(*mset_args(["ary:overlap:%d:%d" % (seq, i) for i in range(8)], str(seq)))
+started = time.perf_counter()
+c.sock.sendall(burst)
+overlap_ok = all(c.read() == b"OK" for _ in range(burst_count))
+pipelined_elapsed = time.perf_counter() - started
+c.close()
+stall_after = int(admin.cmd("INFO", "STATS").split(b"atomic_window_stalls:", 1)[1].split(b"\r\n", 1)[0])
+admin.cmd("CONFIG", "SET", "atomic-window", "256")
+
+c = Resp()
+started = time.perf_counter()
+for seq in range(burst_count):
+    c.cmd(*mset_args(["ary:serial:%d:%d" % (seq, i) for i in range(8)], str(seq)))
+serial_elapsed = time.perf_counter() - started
+c.close()
+pipe_rate = burst_count / max(pipelined_elapsed, 1e-9)
+serial_rate = burst_count / max(serial_elapsed, 1e-9)
+note("cross-key atomics on one connection overlap",
+     overlap_ok and stall_after > stall_before and pipe_rate > serial_rate * 1.10,
+     "stalls=%d pipe=%.0f/s serial=%.0f/s" %
+     (stall_after - stall_before, pipe_rate, serial_rate))
 
 
 def consistent_or_absent(values):
