@@ -169,6 +169,8 @@ public:
         }
         for (uint32_t i = 0; i < nthreads; i++)
             atomic_read_floors_[i].store(UINT64_MAX, std::memory_order_relaxed);
+        for (uint32_t i = 0; i < nthreads; i++)
+            atomic_snapshot_completions_[i].store(0, std::memory_order_relaxed);
 
         // ---- shards directly onto workers ------------------------------------------------------
         // Locality resolution stops at the individual EX thread. There is no contiguous node range:
@@ -218,6 +220,7 @@ public:
         return atomic_activity_.load(std::memory_order_acquire);
     }
     bool atomic_enabled() const { return atomic_mode_state() & kAtomicEnabledBit; }
+    bool atomic_work_active() const { return (atomic_mode_state() & ~kAtomicEnabledBit) != 0; }
     uint32_t atomic_window() const {
         return live_atomic_window_.load(std::memory_order_acquire);
     }
@@ -262,6 +265,12 @@ public:
     uint64_t atomic_snapshot() const { return commit_seq_.load(std::memory_order_seq_cst); }
     void publish_atomic_read_floor(uint32_t thread, uint64_t floor) {
         atomic_read_floors_[thread].store(floor, std::memory_order_seq_cst);
+    }
+    void note_atomic_snapshot_complete(uint32_t thread) {
+        atomic_snapshot_completions_[thread].fetch_add(1, std::memory_order_release);
+    }
+    uint64_t atomic_snapshot_completions(uint32_t thread) const {
+        return atomic_snapshot_completions_[thread].load(std::memory_order_acquire);
     }
     uint64_t atomic_read_floor() const {
         // Lifetime invariant: promotion frees only versions whose tickets are strictly below this
@@ -370,6 +379,7 @@ private:
     // Dispatch therefore decides OFF/ON/draining with one acquire load and one predictable test.
     std::atomic<uint64_t> atomic_activity_{0};
     std::atomic<uint64_t> atomic_read_floors_[kMaxThreads] = {};
+    std::atomic<uint64_t> atomic_snapshot_completions_[kMaxThreads] = {};
 };
 
 }  // namespace tomo

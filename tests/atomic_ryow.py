@@ -210,6 +210,7 @@ stop = threading.Event()
 race_errors = []
 torn = 0
 reads = 0
+race_samples = []
 lock = threading.Lock()
 
 
@@ -245,7 +246,9 @@ def race_reader():
             values = client.cmd("MGET", *racekeys)
             with lock:
                 reads += 1
-                if not consistent_or_absent(values): torn += 1
+                if not consistent_or_absent(values):
+                    torn += 1
+                    if len(race_samples) < 5: race_samples.append(values)
     except Exception as exc:
         race_errors.append("read:%s" % exc)
     finally:
@@ -260,7 +263,8 @@ time.sleep(2.0)
 stop.set()
 for thread in threads: thread.join(timeout=10)
 note("DEL-vs-MSET is all-or-nothing", torn == 0 and reads > 0 and not race_errors,
-     "torn=%d reads=%d errors=%r" % (torn, reads, race_errors))
+     "torn=%d reads=%d errors=%r samples=%r" %
+     (torn, reads, race_errors, race_samples))
 
 # A plain SET on a recorded key receives its own ticket. If it wins a read cut, the other seven
 # keys must still agree on one complete atomic predecessor; if an atomic group wins, all eight agree.

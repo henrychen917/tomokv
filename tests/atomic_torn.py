@@ -2,6 +2,7 @@
 """Epoch-MVCC torn-read, overlapping-writer, window, and live-flip gate."""
 
 import socket
+import struct
 import sys
 import threading
 import time
@@ -208,42 +209,34 @@ note("promotion leaves one exact final group",
      ov_final not in (None, b"TORN") and ov_final in ov_completed,
      "final=%r completed=%d" % (ov_final, len(ov_completed)))
 
-# Admission liveness: with a one-group window, concurrent large groups must generate stalls and all
-# stalled connections must resume after retire. Large values widen the admission interval without
-# adding sleeps or server-side parking.
+# Admission liveness: with a one-group window, the second frame in one received pipeline reaches
+# admission before owner notifications for the first are flushed. This makes the fired assertion
+# deterministic instead of depending on Python threads winning a scheduling race.
 config("atomic", 1)
 config("atomic-window", 1)
 window_before = stats().get("atomic_window_stalls", 0)
 window_run = format(time.time_ns() & 0xfffffff, "x")
-gate = threading.Barrier(17)
 window_errors = []
-
-
-def window_writer(wid):
-    client = Resp()
-    # Thousands of tombstones make validate long enough for other IO threads to encounter the
-    # global admission cap; unlike large values, the frames themselves stay cheap to receive.
-    keys = ["aw%s:%x:%x" % (window_run, wid, i) for i in range(512)]
-    try:
-        gate.wait()
-        if not isinstance(client.cmd("DEL", *keys), int):
+window_client = Resp()
+window_frames = []
+for sequence in range(64):
+    args = ["MSET"]
+    for key_index in range(8):
+        args.extend(("aw%s:%x:%x" % (window_run, sequence, key_index),
+                     "window:%x" % sequence))
+    window_frames.append(frame(*args))
+try:
+    window_client.sock.sendall(b"".join(window_frames))
+    for _ in window_frames:
+        if window_client.read() != b"OK":
             raise AssertionError("bad window reply")
-    except Exception as exc:
-        window_errors.append(str(exc))
-    finally:
-        client.close()
-
-
-window_threads = [threading.Thread(target=window_writer, args=(i,), daemon=True) for i in range(16)]
-for thread in window_threads:
-    thread.start()
-gate.wait()
-for thread in window_threads:
-    thread.join(timeout=30)
+except Exception as exc:
+    window_errors.append(str(exc))
+finally:
+    window_client.close()
 window_after = stats().get("atomic_window_stalls", 0)
 note("atomic-window stalls and resumes",
-     all(not thread.is_alive() for thread in window_threads) and not window_errors and
-     window_after > window_before,
+     not window_errors and window_after > window_before,
      "stalls=%d errors=%r" % (window_after - window_before, window_errors))
 config("atomic-window", 256)
 
@@ -282,6 +275,45 @@ flip_final = signature(check.cmd("MGET", *flip_keys))
 check.close()
 note("CONFIG SET atomic flip under load", not thread.is_alive() and not flip_errors and
      flip_final == b"flip:final", "errors=%r final=%r" % (flip_errors, flip_final))
+
+# Connection churn is a direct lifetime arm for group entries: the Op and its read-buffer pins may
+# retire as soon as the disconnected client's work completes, while owner cleanup can retain the
+# ScatterState key span until its last entry is promoted.
+churn_before = stats().get("atomic_entries", 0)
+for i in range(300):
+    try:
+        sock = socket.create_connection((HOST, PORT), timeout=10)
+        keys = ["at:churn:%d:k%d" % (i, k) for k in range(8)]
+        payload = bytearray()
+        for seq in range(3):
+            args = ["MSET"]
+            for key in keys:
+                args.extend((key, "churn:%d:%d" % (i, seq)))
+            payload += frame(*args)
+        sock.sendall(payload)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, struct.pack("ii", 1, 0))
+        sock.close()
+    except OSError:
+        pass
+
+deadline = time.time() + 5
+churn_after = stats()
+while (churn_after.get("atomic_inflight", -1) != 0 or
+       churn_after.get("atomic_pending_entries", -1) != 0) and time.time() < deadline:
+    time.sleep(0.05)
+    churn_after = stats()
+probe = Resp()
+probe_keys = ["at:churn:probe:k%d" % k for k in range(8)]
+probe_ok = mset(probe, probe_keys, "churn:probe") == b"OK"
+probe_ok = probe_ok and signature(probe.cmd("MGET", *probe_keys)) == b"churn:probe"
+probe.close()
+note("atomic connection churn drains retained entries",
+     probe_ok and churn_after.get("atomic_entries", 0) > churn_before and
+     churn_after.get("atomic_inflight", -1) == 0 and
+     churn_after.get("atomic_pending_entries", -1) == 0,
+     "entries=%d inflight=%d pending=%d" %
+     (churn_after.get("atomic_entries", 0) - churn_before,
+      churn_after.get("atomic_inflight", -1), churn_after.get("atomic_pending_entries", -1)))
 
 print("ATOMIC_TORN " + ("PASS" if FAIL == 0 else "FAIL %d" % FAIL), flush=True)
 sys.exit(1 if FAIL else 0)

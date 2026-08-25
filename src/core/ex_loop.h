@@ -163,14 +163,16 @@ private:
     uint32_t atomic_cleanup_cycle(uint32_t budget) {
         auto& shards = self_->shards();
         if (shards.empty() || !budget) return 0;
+        uint32_t work = 0;
         for (size_t visited = 0; visited < shards.size(); visited++) {
             if (atomic_cleanup_cursor_ >= shards.size()) atomic_cleanup_cursor_ = 0;
             Shard* shard = shards[atomic_cleanup_cursor_++];
             if (!shard->store().atomic_has_records()) continue;
             shard->set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
-            return xshard_cleanup_shard(*srv_, *shard, budget);
+            work += xshard_cleanup_shard(*srv_, *shard, budget - work);
+            if (work >= budget) break;
         }
-        return 0;
+        return work;
     }
 
     uint32_t drain_releases(bool unmasked = false) {
@@ -434,14 +436,9 @@ private:
         // One publish per batch, covering every shard this batch touched. Cheaper than tracking
         // which ones changed, and this thread owns all of them.
         for (Shard* sh : self_->shards()) sh->publish_size();
-        // Reclamation is owner-batched rather than one posted task per completed group. Amortize
-        // the pass itself across four inbox batches, then retire enough records to keep pace with
-        // an all-scatter write stream; sweep() remains the low-traffic backstop.
-        // A bounded table walker resumes from a physical slot cursor. Do not promote a side-only
-        // insert into an already-passed slot between its passes; the final side-map pass would then
-        // (correctly) see a physical representative and the walker would omit the key.
-        if (xshard_retries_.empty() && ++atomic_cleanup_tick_ == 4) {
-            atomic_cleanup_tick_ = 0;
+        // Reclamation is owner-batched rather than one posted task per completed group. Visit the
+        // owned shards after each atomic batch so their pending-entry lists stay short.
+        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
             atomic_cleanup_cycle(256);
         }
     }
@@ -482,8 +479,8 @@ private:
             // admission in their owner pass.
             reply_maxmemory_oom(op);
         } else {
-            // The side-map pointer is the sole default-off branch. When null, handlers take their
-            // original byte-identical path with no epoch loads, allocations, or cleanup work.
+            // A null pending-entry list is the sole common-path branch. With no cross-shard window,
+            // handlers take their original path with no epoch loads, allocations, or cleanup work.
             if (__builtin_expect(sh.store().atomic_has_records(), false)) {
                 const bool execute_handler = xshard_plain_prepare(*srv_, sh, op, t.client->id());
                 if (execute_handler) op.spec->handler(sh, op);
@@ -620,7 +617,6 @@ private:
     int64_t    cached_now_ms_ = 0;
     size_t     expire_shard_cursor_ = 0;
     size_t     atomic_cleanup_cursor_ = 0;
-    uint8_t    atomic_cleanup_tick_ = 0;
     uint64_t   maxmemory_config_version_ = 0;
     bool       maxmemory_enabled_ = false;
     uint8_t    cached_lru_clock_ = 0;

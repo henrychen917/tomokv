@@ -80,7 +80,8 @@ public:
                                  &stats_.atomic_predecessor_reads,
                                  &stats_.atomic_chain_max,
                                  &stats_.atomic_promotions,
-                                 &stats_.atomic_records_freed);
+                                 &stats_.atomic_records_freed,
+                                 &stats_.atomic_entries);
     }
     uint32_t active_expire(uint32_t budget) { return store_.active_expire(budget); }
 
@@ -150,6 +151,7 @@ public:
         uint64_t atomic_chain_max = 0;
         uint64_t atomic_promotions = 0;
         uint64_t atomic_records_freed = 0;
+        uint64_t atomic_entries = 0;
     };
     Stats& stats() { return stats_; }
     const Stats& stats() const { return stats_; }

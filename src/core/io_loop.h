@@ -151,6 +151,7 @@ private:
                 if (accept_pending_) arm_accept(false);
                 if constexpr (HasUnix) if (unix_accept_pending_) arm_accept(true);
                 did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
+                did += scatter_pool_.refresh_snapshot_floor(*srv_, self_->id());
                 if constexpr (HasUnix) did += flush_handoffs();
                 if (srv_->snapshot().writer_is(self_->id()))
                     did += srv_->snapshot().writer_pass(*self_, ring_);
@@ -649,7 +650,8 @@ private:
             // Reset only when the ROB is quiescent AND no recv is outstanding — see conn.h. Then
             // re-arm, in that order.
             if (c->scatter_barrier() && c->rob().quiesced()) c->set_scatter_barrier(false);
-            if (c->atomic_backpressure() && srv_->atomic_can_admit())
+            if (c->atomic_backpressure() && srv_->atomic_can_admit() &&
+                scatter_pool_.can_register_snapshot())
                 c->set_atomic_backpressure(false);
             if (c->rob().quiesced() && !conn.recv_armed()) conn.reset_rbuf_at_quiescence();
 

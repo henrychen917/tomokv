@@ -426,7 +426,7 @@ int main(int argc, char** argv) {
     for (auto& t : pool) t.join();
     if (cfg.unixsocket && *cfg.unixsocket) ::unlink(cfg.unixsocket);
 
-    // All owners and readers are quiescent. Release side-map references before IoLoop destruction,
+    // All owners and readers are quiescent. Release pending-entry references before IoLoop destruction,
     // then return their deferred ScatterState arenas to the correct IO-owned pools. Server normally
     // outlives those pools, so leaving this to FlatStore destructors would leak the retained arenas.
     for (uint32_t sid = 0; sid < srv.nshards(); sid++)

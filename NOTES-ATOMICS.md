@@ -2,11 +2,104 @@
 
 `--atomic 1` makes `MSET`, `MSETNX`, multi-key `DEL`, and `UNLINK` atomic across shards. `MGET`,
 `EXISTS`, `TOUCH`, `KEYS`, and exact `DBSIZE` resolve one committed cut while tracking is active.
-The default is `--atomic 0`; a shard whose side-map pointer is null follows the original store path,
+The default is `--atomic 0`; a shard with no pending group entry follows the original store path,
 allocates nothing, and pays one predicted branch. `--atomic-window` defaults to 256 admitted atomic
 write groups (zero is unlimited). Both knobs are numeric and live through `CONFIG SET/GET`.
 
-## ATOMICS V2 performance rework
+## ATOMICS V3: group-scoped pending entries
+
+V3 deletes the V2 per-key record table and candidate-node chains. One atomic owner task now creates
+one pooled `AtomicEntry` for its shard span in `ScatterState::key_order`. The entry retains the group
+decision pointers, the span coordinates, one 64-bit hash-membership mask, and a trailing parallel
+array of displaced `KvObj*` predecessors. Key bytes are not copied: installed values supply stable
+keys, while DEL/UNLINK use arena-owned empty-string key anchors because their physical install is a
+tombstone. The steady write loop is therefore one physical replacement/erase and one parked-pointer
+store per key; group linking, decision references, and allocation are paid once per shard task.
+
+Each shard has a normally empty intrusive pending-entry list and a 64-bucket intrusive connection
+index used only for exact same-connection undecided hazards. With an empty list, point lookup and the
+ordinary write handlers are unchanged. With entries present, the resolver rejects most entries by
+the membership bit, checks the referenced span for exact key equality, and chooses the largest
+committed epoch not newer than the read cut. The oldest matching parked pointer is the base; each
+later parked pointer is the candidate immediately before that install, and the physical object is
+the newest candidate. Epoch-zero, abandoned, and too-new installs are skipped. This computation is
+order-independent for overlapping groups. Expired parked predecessors resolve absent.
+
+An ordinary write touching no pending entry stays on its original path. One that does touch an entry
+deep-clones the resolved value and installs a pooled one-key plain pseudo-entry with its own ticket,
+so existing in-place collection handlers cannot mutate a protected predecessor. Same-owner
+multi-key commands retain localfast and prepare every touched pseudo-entry before drawing tickets.
+
+Cleanup removes the contiguous decided prefix strictly below the global read floor and no newer
+than its pre-floor commit cutoff. Monotonic install/ticket order is proved in one linear pass and
+then cleanup only frees parked predecessors and unlinks entries. If tickets invert, membership and
+exact-key checks decide whether the same direct collapse is safe; an actual overlap uses a reusable
+transient argmax table. An abandoned prefix reinstalls its predecessor, or splices it into the first
+surviving occurrence of that key. This is the rollback-free abort. Output-materialized reads release
+their epoch floor before ordered socket retirement; zero-copy string results retain their existing
+store borrow instead. While atomic work is live, each IO admits at most eight unresolved snapshot
+groups so a deep MGET pipeline cannot pin thousands of entries and turn list resolution quadratic.
+
+No command path retains the V2 side map. The per-shard value and entry freelists remain because they
+remove steady-state allocator traffic. `atomic_records_freed` is kept as a compatibility counter but
+now counts retired group/plain entries; `atomic_entries` is the explicit cumulative entry gauge and
+`atomic_pending_entries` is the current live gauge. `atomic_cleanup_fast/slow` expose the monotonic
+and inversion/abort cleanup work.
+
+### V3 instruction and throughput audit
+
+The owner reference that motivated this lane was 504 cycles, 607 instructions, IPC 1.20, and 7.0
+cache misses per written key at 1.64M commands/s OFF, versus V2's 920 cycles, 1,979 instructions,
+IPC 2.15, and 15.8 misses at 859k commands/s ON. Thus V2 added 1,372 instructions/key, while the
+10% goal allowed about 60.
+
+The final V3 checkout was measured on 2026-08-25 with the same 8-core 6:2 placement: server CPUs
+`240-243,248-251`, executor counters on `243,251`, and memtier on `244-247,252-255`. Every cell used
+8 threads, 8 clients/thread, pipeline 32, 32-byte data, random command keys, and 30 seconds.
+
+| Pure `MSET-8`, 100k keys | Commands/s | cycles/key | instr/key | IPC | misses/key |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| V3 checkout, atomic OFF | 889,479 | 871 | 608 | 0.70 | 7.66 |
+| V3 checkout, atomic ON | 431,588 | 1,798 | 1,594 | 0.89 | 14.27 |
+
+V3 removes 385 instructions/key (19.5%) from the supplied V2 ON count, but the local ON tax is still
+986 instructions/key and throughput is 48.5% of OFF (`-51.5%`). Therefore the requested 10-15%
+pure-write target is **not met**. Sampling attributes the remaining executor instruction volume
+primarily to physical exchange, entry-prefix collapse, owner-task execution/completion, and
+same-connection hazard checks. Group scoping alone did not make cleanup and publication amortization
+cheap enough for the roughly 60-instruction allowance.
+
+| Final 30-second cell, 100k keys | OFF commands/s | ON commands/s | ON/OFF |
+| --- | ---: | ---: | ---: |
+| 1:1 `MSET-8:MGET-8` | 943,770 | 461,369 | 48.9% |
+| populated pure `MGET-8` | 1,586,424 | 1,393,772 | 87.9% |
+| single-key 1:1 `SET:GET` | 7,265,204 | 7,653,455 | 105.3% |
+| populated `MSETNX-8` | - | 580,888 | - |
+
+The mixed 20% target is also not met. Point reads and single-key writes do not create pending
+entries; single-key parity holds, while the cross-shard pure-read snapshot plumbing costs 12.1% in
+this run. A separate ON `MSET-8` 30-second sustained run with key maximum 100M completed at 418,484
+commands/s and drained to `atomic_pending_entries=0` (observed `DBSIZE=2,933,667` under memtier's
+shared random streams). The 100k final ON run likewise drained to zero and fired
+`atomic_entries=83,545,907`, `atomic_promotions=103,593,240`, and `atomic_chain_max=359`; predecessor
+reads are correctly zero in blind pure-write traffic.
+
+### V3 validation record
+
+The final quick gate reports `15 ok, 0 FAIL`; the release and ASAN builds enforce
+`sizeof(Op)==336` and `sizeof(Client)==1984`. The atomic batteries also pass under ASAN with no
+sanitizer report. Their non-vacuous observations include an OFF torn control, zero ON tears,
+overlapping writers with an exact final group, DEL-vs-MSET all-or-nothing, abandoned MSETNX
+invisibility, pipelined atomic/plain RYOW, 63 admission-window stalls, and connection churn ending at
+`inflight=0,pending=0`. One ASAN run moved predecessor reads by 5,456, promotions by 173,456, and
+retired 5,784 churn entries. Redis 8.9 differential runs for `string` (4,033 ops), `xshard` (4,276),
+and `cgaps` (3,310) each produced zero diffs at both `--atomic 0` and `--atomic 1`.
+
+The command templates remain `MSET __key__:0 __data__ ... __key__:7 __data__` and
+`MGET __key__:0 ... __key__:7`, passed via `--command-key-pattern=R`. The sustained arms use
+`--test-time 30 --key-minimum 1` with `--key-maximum 100000` and `100000000`, respectively.
+
+## ATOMICS V2 performance rework (historical)
 
 The measured 8-core loopback decomposition that motivated V2 was:
 
@@ -71,7 +164,7 @@ templates were `MSET[ NX] __key__:0 __data__ ... __key__:7 __data__` and
 each template. The populated `MSETNX` cell followed an `MSET` population pass over the same range.
 The single-key cells used the built-in `--ratio 1:1 --key-pattern=R:R` shape.
 
-## Representation and publication
+## V2 representation and publication (superseded)
 
 `KvObj` and the command/connection ABI sizes remain unchanged. A shard lazily creates its MVCC map
 on first tracked install. Each record owns a stable pooled key, a compact base value, and an
@@ -84,7 +177,7 @@ resolve through the record and cardinality is unchanged. Inserts and tombstones 
 until promotion. Publication alone changes visibility; there is no publish frontier, group lock,
 cross-client ordering wait, rollback, or physical-simultaneity requirement.
 
-## Visibility and same-connection order
+## V2 visibility and same-connection order (superseded)
 
 A tracked read selects the candidate with the largest nonzero committed epoch at or below its cut;
 the base predecessor is eligible at epoch zero. Foreign undecided candidates are ignored. A
@@ -103,7 +196,7 @@ existing handlers. This preserves old snapshots while retaining in-place collect
 Same-owner multi-key handlers reserve all required direct-version context before drawing tickets,
 so activation cannot fail halfway through publication.
 
-## Lifetime and promotion
+## V2 lifetime and promotion (superseded)
 
 Each IO thread publishes the minimum **exclusive** read floor of its active scatter groups: for an
 inclusive cut `S`, it publishes `S + 1` (or `UINT64_MAX` when inactive). The server floor is the
@@ -129,7 +222,7 @@ per-owner references reach zero.
 Turning atomic mode off affects only newly admitted commands. In-flight groups decide, readers keep
 consulting surviving maps, and the last record promotion drops the shard's tracking reference.
 
-## Admission, diagnostics, and validation
+## V2 admission, diagnostics, and validation (superseded)
 
 Admission reserves one memory-window slot before allocating the scatter arena. At the cap, prepare
 returns backpressure without consuming the RESP frame; other clients and owners continue. Group

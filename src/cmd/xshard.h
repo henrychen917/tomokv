@@ -71,11 +71,14 @@ private:
     void defer_destroy(ScatterState* state);
 public:
     uint32_t reap_deferred();
+    uint32_t refresh_snapshot_floor(Server& server, uint32_t owner_io);
+    bool can_register_snapshot() const;
 private:
     void* cached_[kCached] = {};
     uint32_t count_ = 0;
     std::vector<ScatterState*> active_snapshots_;
     std::vector<ScatterState*> deferred_destroy_;
+    uint64_t observed_snapshot_completions_ = 0;
 };
 
 struct ScatterDispatch {
