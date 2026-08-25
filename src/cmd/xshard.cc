@@ -1495,7 +1495,12 @@ bool finish_phase1(ScatterState& state, Op& op) {
         case Kind::Sort: {
             std::vector<std::string> output;
             bool conversion_error = false;
-            const WorkError error = sort_image(state.images[1], state.sort_options,
+            // Non-store SORT has ONE key at index 0; only the STORE form puts the destination at
+            // 0 and the source at 1. This arm historically ran only for STORE (localfast covered
+            // every single-key group), so the store-shaped indexing and the unconditional hop-2
+            // below sat unexercised until atomic tracking started routing same-owner groups here.
+            const ObjectImage& source = state.images[state.sort_options.store ? 1 : 0];
+            const WorkError error = sort_image(source, state.sort_options,
                                                output, conversion_error);
             if (error != WorkError::None) {
                 state.final_reply = FinalReply::Work;
@@ -1504,6 +1509,17 @@ bool finish_phase1(ScatterState& state, Op& op) {
             }
             if (conversion_error) {
                 state.final_reply = FinalReply::SortConversion;
+                return true;
+            }
+            if (!state.sort_options.store) {
+                ResultHeap* result = ensure_result(state);
+                if (!result) {
+                    state.final_reply = FinalReply::Work;
+                    state.final_error = WorkError::Oom;
+                    return true;
+                }
+                result->members = std::move(output);
+                state.final_reply = FinalReply::Array;
                 return true;
             }
             if (output.empty()) state.apply[0] = ObjectImage{};
