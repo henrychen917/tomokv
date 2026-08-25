@@ -28,7 +28,7 @@ g++ -std=c++20 -O1 -g -fsanitize=address -march=native -pthread -I. \
     && ok "ASAN build" || bad "ASAN build"
 
 # ---- 2. boot matrix: deleted flags stay dead; live grammar boots ------------------------------
-./build/tomokv --mode 3s      2>&1 | grep -q "deleted" && ok "reject --mode 3s"   || bad "reject --mode 3s"
+./build/tomokv --mode 3s      2>&1 | grep -q "unknown" && ok "reject --mode (flag deleted)" || bad "reject --mode (flag deleted)"
 ./build/tomokv --spread 4:4   2>&1 | grep -q "unknown"  && ok "reject --spread"    || bad "reject --spread"
 ./build/tomokv --nodes 2      2>&1 | grep -q "unknown"  && ok "reject --nodes"     || bad "reject --nodes"
 ./build/tomokv --ratio 4:4:2  2>&1 | grep -q "deleted"  && ok "reject 3-part ratio"|| bad "reject 3-part ratio"

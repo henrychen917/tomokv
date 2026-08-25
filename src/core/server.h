@@ -64,7 +64,7 @@ public:
         }
         if (cfg.node_cpus && *cfg.node_cpus) {
             if (!topo_.declare(cfg.node_cpus)) {
-                std::fprintf(stderr, "fatal: --node-cpus '%s' invalid\n", cfg.node_cpus);
+                std::fprintf(stderr, "fatal: --l3-domains '%s' invalid\n", cfg.node_cpus);
                 return false;
             }
         } else {

@@ -213,10 +213,12 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             else if (!std::strcmp(h, "siphash")) g_hash_kind = HashKind::SipHash12;
             else { std::fprintf(stderr, "--hash must be mix64 | siphash\n"); return kConfigError; }
         }
-        else if (!std::strcmp(a, "--node-cpus")) {
-            // Operator-declared topology: comma-separated node cpu lists, '-' for ranges, '+' to
-            // glue disjoint ranges into one node. "--node-cpus 0-3,4-7" = two declared nodes on one
-            // CCX -- a shape discovery would never produce, which is the point.
+        else if (!std::strcmp(a, "--l3-domains")) {
+            // Operator-declared topology: comma-separated per-domain cpu lists, '-' for ranges,
+            // '+' to glue disjoint ranges into one domain. "--l3-domains 0-3,4-7" = two declared
+            // domains on one CCX -- a shape discovery would never produce, which is the point.
+            // (Renamed from --node-cpus 2026-08-25: "nodes" as a server structure died with the
+            // fork; this declares L3 LOCALITY DOMAINS for placement spread, nothing more.)
             cfg.node_cpus = next("");
         }
         else if (!std::strcmp(a, "--place")) {
@@ -228,15 +230,6 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             st.place_source = source;
             cfg.place = next("");
         }
-        else if (!std::strcmp(a, "--wb")) {
-            // Compat: pure 2s is the only server. Accept the 2s spelling, reject the rest loudly.
-            const char* m = next("ifid");
-            if (std::strcmp(m, "ifid")) { std::fprintf(stderr, "3s was deleted 2026-08-24; this server is pure 2s\n"); return kConfigError; }
-        }
-        else if (!std::strcmp(a, "--mode")) {
-            const char* m = next("2s");
-            if (std::strcmp(m, "2s")) { std::fprintf(stderr, "3s was deleted 2026-08-24; this server is pure 2s\n"); return kConfigError; }
-        }
         else if (!std::strcmp(a, "--help")) {
             std::printf("usage: %s [conf-file] [--conf FILE] [--port N] [--bind A] [--unixsocket PATH]\n"
                         "       [--shards N] [--zc-min N] [--no-pin]\n"
@@ -246,7 +239,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  placement (pure 2s; default = even io/ex split over all allowed cpus):\n"
                         "    --ratio io:ex               GLOBAL counts, spread evenly over L3 domains\n"
                         "    --place role@cpu,...        explicit per-thread; roles are ifid, ex\n"
-                        "    --node-cpus LIST            declared L3 topology, ranges joined by +\n"
+                        "    --l3-domains LIST           declared L3 topology, ranges joined by +\n"
                         "    --shard-home shard:tid,...  complete shard-to-executor map\n"
                         "    --zc-min N                  zero-copy GET replies for values >= N (0=off)\n"
                         "  cache: --maxmemory BYTES --maxmemory-policy POLICY (allkeys-lfu\n"
@@ -254,8 +247,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "         --maxmemory-samples N (1..64, default 5)\n"
                         "  persistence: --dir PATH --dbfilename NAME --load PATH\n"
                         "  compact encodings: --{hash,list,set,zset}-max-compact-{entries,value} N\n"
-                        "  misc: --hash mix64|siphash; --mode 2s and --wb ifid accepted for\n"
-                        "  script compat (anything else is rejected: 3s was deleted 2026-08-24)\n",
+                        "  misc: --hash mix64|siphash\n"
+                        "  (pure 2s is the only server; --mode/--wb/--nodes died with 3s, 2026-08)\n",
                         prog);
             return kConfigHelp;
         }
