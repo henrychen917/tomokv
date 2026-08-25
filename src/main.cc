@@ -49,31 +49,6 @@ static void pin_to(int cpu) {
     pthread_setaffinity_np(pthread_self(), sizeof(set), &set);
 }
 
-static bool parse_u32(const char* s, uint32_t& out) {
-    if (!s || !*s) return false;
-    uint64_t v = 0;
-    for (const char* p = s; *p; p++) {
-        if (*p < '0' || *p > '9') return false;
-        v = v * 10 + static_cast<uint64_t>(*p - '0');
-        if (v > UINT32_MAX) return false;
-    }
-    out = static_cast<uint32_t>(v);
-    return true;
-}
-
-static bool parse_u64(const char* s, uint64_t& out) {
-    if (!s || !*s) return false;
-    uint64_t v = 0;
-    for (const char* p = s; *p; p++) {
-        if (*p < '0' || *p > '9') return false;
-        const uint32_t digit = static_cast<uint32_t>(*p - '0');
-        if (v > (UINT64_MAX - digit) / 10) return false;
-        v = v * 10 + digit;
-    }
-    out = v;
-    return true;
-}
-
 int main(int argc, char** argv) {
     // Hash key material, before anything hashes. getrandom never fails for 24 bytes on any kernel
     // we run; if it somehow does, a zero seed degrades to the old deterministic behavior rather
@@ -86,153 +61,37 @@ int main(int argc, char** argv) {
     }
 
     Config cfg;
-    bool saw_place = false;
-    bool saw_ratio = false;
+    ConfigParseState parse_state;
+    std::vector<std::string> token_store;      // owns conf-file tokens; Config keeps views into it
+    std::vector<const char*> conf_tokens, cli_tokens;
+
+    // Pre-scan: --conf FILE anywhere, or a bare first argument (redis-style ./tomokv tomokv.conf).
+    const char* conf_path = nullptr;
     for (int i = 1; i < argc; i++) {
-        auto next = [&](const char* d) { return (i + 1 < argc) ? argv[++i] : d; };
-        if      (!std::strcmp(argv[i], "--port"))       cfg.port = static_cast<uint16_t>(std::atoi(next("6379")));
-        else if (!std::strcmp(argv[i], "--bind"))       cfg.bind_addr = next("127.0.0.1");
-        else if (!std::strcmp(argv[i], "--unixsocket")) cfg.unixsocket = next("");
-        // WHOLE-SERVER role counts, evenly spread across L3 domains by the server itself.
-        // This is the runtime replacement for authoring --place strings offline, and the knob a
-        // flip controller will drive: counts in, placement out, no per-node arithmetic.
-        else if (!std::strcmp(argv[i], "--ratio")) {
-            saw_ratio = true;
-            const char* v = next("");
-            unsigned a = 0, b = 0, c = 0;
-            const int got = std::sscanf(v, "%u:%u:%u", &a, &b, &c);
-            if (got != 2 || a == 0 || b == 0) {
-                std::fprintf(stderr, "--ratio wants global ifid:ex (e.g. 30:34); 3s was deleted 2026-08-24\n");
-                return 1;
-            }
-            cfg.even_ifid = a; cfg.even_ex = b;
-        }
-        else if (!std::strcmp(argv[i], "--shards"))     cfg.shards = static_cast<uint32_t>(std::atoi(next("16")));
-        else if (!std::strcmp(argv[i], "--lru-clock-shift")) {
-            uint64_t shift = 0;
-            if (!parse_u64(next(nullptr), shift) || shift > 16) {
-                std::fprintf(stderr, "--lru-clock-shift wants 0..16 (bucket = 1<<N seconds)\n");
-                return 1;
-            }
-            cfg.lru_clock_shift = static_cast<uint32_t>(shift);
-        }
-        else if (!std::strcmp(argv[i], "--maxmemory")) {
-            if (!parse_u64(next(nullptr), cfg.maxmemory)) {
-                std::fprintf(stderr, "--maxmemory wants a uint64 byte count (0 disables)\n");
-                return 1;
-            }
-        }
-        else if (!std::strcmp(argv[i], "--maxmemory-policy")) {
-            const char* value = next(nullptr);
-            if (!value || !parse_maxmemory_policy(value, cfg.maxmemory_policy)) {
-                std::fprintf(stderr, "--maxmemory-policy wants a Redis maxmemory policy\n");
-                return 1;
-            }
-        }
-        else if (!std::strcmp(argv[i], "--maxmemory-samples")) {
-            if (!parse_u32(next(nullptr), cfg.maxmemory_samples) ||
-                cfg.maxmemory_samples == 0 || cfg.maxmemory_samples > 64) {
-                std::fprintf(stderr, "--maxmemory-samples must be between 1 and 64\n");
-                return 1;
-            }
-        }
-        else if (!std::strcmp(argv[i], "--dir"))        cfg.dir = next(".");
-        else if (!std::strcmp(argv[i], "--dbfilename")) cfg.dbfilename = next("dump.tomo");
-        else if (!std::strcmp(argv[i], "--load"))       cfg.load_path = next("");
-        else if (!std::strcmp(argv[i], "--hash-max-compact-entries")) {
-            if (!parse_u32(next(nullptr), cfg.type_limits.hash.max_entries)) return 1;
-        }
-        else if (!std::strcmp(argv[i], "--hash-max-compact-value")) {
-            if (!parse_u32(next(nullptr), cfg.type_limits.hash.max_value)) return 1;
-        }
-        else if (!std::strcmp(argv[i], "--list-max-compact-entries")) {
-            if (!parse_u32(next(nullptr), cfg.type_limits.list.max_entries)) return 1;
-        }
-        else if (!std::strcmp(argv[i], "--list-max-compact-value")) {
-            if (!parse_u32(next(nullptr), cfg.type_limits.list.max_value)) return 1;
-        }
-        else if (!std::strcmp(argv[i], "--set-max-compact-entries")) {
-            if (!parse_u32(next(nullptr), cfg.type_limits.set.max_entries)) return 1;
-        }
-        else if (!std::strcmp(argv[i], "--set-max-compact-value")) {
-            if (!parse_u32(next(nullptr), cfg.type_limits.set.max_value)) return 1;
-        }
-        else if (!std::strcmp(argv[i], "--zset-max-compact-entries")) {
-            if (!parse_u32(next(nullptr), cfg.type_limits.zset.max_entries)) return 1;
-        }
-        else if (!std::strcmp(argv[i], "--zset-max-compact-value")) {
-            if (!parse_u32(next(nullptr), cfg.type_limits.zset.max_value)) return 1;
-        }
-        else if (!std::strcmp(argv[i], "--zc-min")) {
-            const char* v = next(nullptr);
-            if (!parse_u32(v, cfg.zc_min)) {
-                std::fprintf(stderr, "--zc-min wants a uint32 byte count (0 disables; 16384 suggested when enabled)\n");
-                return 1;
-            }
-        }
-        else if (!std::strcmp(argv[i], "--shard-home")) cfg.shard_home = next("");
-        else if (!std::strcmp(argv[i], "--no-pin"))     cfg.pin_threads = false;
-        else if (!std::strcmp(argv[i], "--hash")) {
-            const char* h = next("mix64");
-            if      (!std::strcmp(h, "mix64"))   g_hash_kind = HashKind::Mix64Seeded;
-            else if (!std::strcmp(h, "siphash")) g_hash_kind = HashKind::SipHash12;
-            else { std::fprintf(stderr, "--hash must be mix64 | siphash\n"); return 1; }
-        }
-        else if (!std::strcmp(argv[i], "--node-cpus")) {
-            // Operator-declared topology: comma-separated node cpu lists, '-' for ranges, '+' to
-            // glue disjoint ranges into one node. "--node-cpus 0-3,4-7" = two declared nodes on one
-            // CCX -- a shape discovery would never produce, which is the point.
-            cfg.node_cpus = next("");
-        }
-        else if (!std::strcmp(argv[i], "--place")) {
-            saw_place = true;
-            cfg.place = next("");
-        }
-        else if (!std::strcmp(argv[i], "--wb")) {
-            // Compat: pure 2s is the only server. Accept the 2s spelling, reject the rest loudly.
-            const char* m = next("ifid");
-            if (std::strcmp(m, "ifid")) { std::fprintf(stderr, "3s was deleted 2026-08-24; this server is pure 2s\n"); return 1; }
-        }
-        else if (!std::strcmp(argv[i], "--mode")) {
-            const char* m = next("2s");
-            if (std::strcmp(m, "2s")) { std::fprintf(stderr, "3s was deleted 2026-08-24; this server is pure 2s\n"); return 1; }
-        }
-        else if (!std::strcmp(argv[i], "--help")) {
-            std::printf("usage: %s [--port N] [--bind A] [--unixsocket PATH] [--shards N] [--zc-min N] [--no-pin]\n"
-                        "  placement (pure 2s; default = even io/ex split over all allowed cpus):\n"
-                        "    --ratio io:ex               GLOBAL counts, spread evenly over L3 domains\n"
-                        "    --place role@cpu,...        explicit per-thread; roles are ifid, ex\n"
-                        "    --node-cpus LIST            declared L3 topology, ranges joined by +\n"
-                        "    --shard-home shard:tid,...  complete shard-to-executor map\n"
-                        "    --zc-min N                  zero-copy GET replies for values >= N (0=off)\n"
-                        "  cache: --maxmemory BYTES --maxmemory-policy POLICY (allkeys-lfu\n"
-                        "         recommended for cache duty) --lru-clock-shift N (bucket=1<<N s)\n"
-                        "         --maxmemory-samples N (1..64, default 5)\n"
-                        "  persistence: --dir PATH --dbfilename NAME --load PATH\n"
-                        "  compact encodings: --{hash,list,set,zset}-max-compact-{entries,value} N\n"
-                        "  misc: --hash mix64|siphash; --mode 2s and --wb ifid accepted for\n"
-                        "  script compat (anything else is rejected: 3s was deleted 2026-08-24)\n",
-                        argv[0]);
-            return 0;
-        }
-        else {
-            std::fprintf(stderr, "unknown argument '%s' (see --help)\n", argv[i]);
-            return 1;
+        if (!std::strcmp(argv[i], "--conf")) {
+            if (i + 1 >= argc) { std::fprintf(stderr, "--conf wants a file path\n"); return 1; }
+            conf_path = argv[++i];
+        } else if (i == 1 && argv[i][0] != '-') {
+            conf_path = argv[i];
+        } else {
+            cli_tokens.push_back(argv[i]);
         }
     }
-    if (saw_ratio && saw_place) {
-        std::fprintf(stderr, "--ratio and --place are mutually exclusive\n");
-        return 1;
+    if (conf_path) {
+        if (!load_conf_file(conf_path, token_store)) return 1;
+        for (const std::string& t : token_store) conf_tokens.push_back(t.c_str());
+        const int rc = parse_config_args(conf_tokens, cfg, parse_state, 1, argv[0]);
+        if (rc != kConfigParsed) {
+            if (rc == kConfigError) std::fprintf(stderr, "(while parsing %s)\n", conf_path);
+            return rc == kConfigHelp ? 0 : 1;
+        }
     }
-    if (cfg.shards == 0 || cfg.shards > 256) {
-        std::fprintf(stderr, "shards must be between 1 and 256\n");
-        return 1;
+    // CLI parses second so flags override the file.
+    {
+        const int rc = parse_config_args(cli_tokens, cfg, parse_state, 2, argv[0]);
+        if (rc != kConfigParsed) return rc == kConfigHelp ? 0 : 1;
     }
-    if (!cfg.dir || !*cfg.dir || !cfg.dbfilename || !*cfg.dbfilename ||
-        std::strchr(cfg.dbfilename, '/')) {
-        std::fprintf(stderr, "--dir must be non-empty and --dbfilename must be a plain filename\n");
-        return 1;
-    }
+    if (validate_config(cfg) != kConfigParsed) return 1;
     if (cfg.load_path && !*cfg.load_path) {
         std::fprintf(stderr, "--load requires a non-empty path\n");
         return 1;

@@ -18,6 +18,7 @@
 #include "shard.h"
 #include "thread.h"
 #include "placement.h"
+#include "config.h"        // struct Config: every runtime knob, one home
 #include "../base/topology.h"
 #include "../net/conn.h"   // kRobWindow: one source of truth for the window size
 #include "../net/wb.h"
@@ -25,47 +26,6 @@
 #include "../snapshot/snapshot.h"
 
 namespace tomo {
-
-struct Config {
-    const char* node_cpus   = nullptr;   // operator-declared topology; null = self-discover
-    const char* place       = nullptr;   // complete role@cpu list; null = --ratio / default
-    // Whole-server role counts for even placement (--ratio). All zero = unset. Unlike the per-node
-    // fields above these express any global shape, and they are what a flip controller would vary.
-    uint32_t even_ifid      = 0;
-    uint32_t even_ex        = 0;
-    const char* shard_home  = nullptr;   // optional complete shard:ex_tid map
-    // Shards should outnumber workers: a shard is the unit of migration, so more shards gives the
-    // LB finer granularity. Too many and each one's working set stops being worth its own table.
-    uint32_t shards         = 16;
-    uint16_t port           = 6379;
-    const char* bind_addr   = "127.0.0.1";
-    const char* unixsocket  = nullptr;
-    const char* dir         = ".";
-    const char* dbfilename  = "dump.tomo";
-    const char* load_path   = nullptr;
-
-    // Pinning is relative to the process's ALLOWED cpu set, so taskset confines both the process and
-    // its topology grouping — that property is what lets independent benchmark lanes share one box,
-    // and its absence was a real bug (threads silently floated instead of erroring).
-    bool     pin_threads    = true;
-
-    uint32_t rob_window     = kRobWindow;
-    uint32_t embed_threshold = 192;   // re-measure against this allocation shape, not the fork's
-    uint32_t zc_min         = 16384;     // zero-copy GET replies at >= this value length.
-                                         // DEFAULT ON (owner: hardcode a consistent gain): -4.1%
-                                         // server cycles at d16K on the wire-walled NIC, +20-24%
-                                         // class on unwalled wires per the fork's history. 0 = off.
-    uint64_t maxmemory      = 0;         // bytes; zero removes all eviction-path work.
-    MaxmemoryPolicy maxmemory_policy = MaxmemoryPolicy::NoEviction;
-    uint32_t maxmemory_samples = 5;
-    // LRU bucket = (1 << lru_clock_shift) seconds; 5 clock bits give 32 buckets, so the window
-    // before ages alias is 32 << shift seconds. Default 8 = 256s buckets / ~2h16m window: zero
-    // header bytes and right for cache-realistic timescales. Shrink it (e.g. 6 = 64s / ~34min)
-    // for fast-shifting working sets; for real cache duty allkeys-lfu discriminates with no clock
-    // at all and is the recommended default.
-    uint32_t lru_clock_shift = 8;
-    TypeLimits type_limits;
-};
 
 struct MaxmemoryConfigSnapshot {
     uint64_t version;

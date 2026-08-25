@@ -32,6 +32,9 @@ g++ -std=c++20 -O1 -g -fsanitize=address -march=native -pthread -I. \
 ./build/tomokv --spread 4:4   2>&1 | grep -q "unknown"  && ok "reject --spread"    || bad "reject --spread"
 ./build/tomokv --nodes 2      2>&1 | grep -q "unknown"  && ok "reject --nodes"     || bad "reject --nodes"
 ./build/tomokv --ratio 4:4:2  2>&1 | grep -q "deleted"  && ok "reject 3-part ratio"|| bad "reject 3-part ratio"
+./build/tomokv --conf /nonexistent-conf 2>&1 | grep -q "cannot open" && ok "reject missing conf" || bad "reject missing conf"
+printf 'florb 1\n' > /tmp/gate-bad.conf
+./build/tomokv /tmp/gate-bad.conf 2>&1 | grep -q "unknown argument" && ok "reject bad conf key" || bad "reject bad conf key"
 
 boot(){ # binary -> pid ; server log to $SRVLOG
   SRVLOG=$(mktemp /tmp/gate-srv.XXXXXX)
