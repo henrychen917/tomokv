@@ -59,8 +59,13 @@ public:
         live_maxmemory_samples_.store(cfg.maxmemory_samples, std::memory_order_relaxed);
         atomic_activity_.store(cfg.atomic ? kAtomicEnabledBit : 0,
                                std::memory_order_relaxed);
-        live_atomic_window_.store(cfg.atomic_window, std::memory_order_relaxed);
-        atomic_credit_pool_.store(cfg.atomic_window, std::memory_order_relaxed);
+        // AUTO resolves against the shard count: the measured three-point optimum (see config.h).
+        const uint32_t resolved_window = cfg.atomic_window == Config::kAtomicWindowAuto
+            ? std::min<uint32_t>(16u * cfg.shards, 1024u)
+            : cfg.atomic_window;
+        cfg_.atomic_window = resolved_window;
+        live_atomic_window_.store(resolved_window, std::memory_order_relaxed);
+        atomic_credit_pool_.store(resolved_window, std::memory_order_relaxed);
         live_config_version_.store(2, std::memory_order_release);  // even versions are stable
         // Declared topology is a legacy lowering input and therefore cannot accompany --place.
         // A declaration that fails to parse or names cpus outside the affinity mask fails the BOOT,

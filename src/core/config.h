@@ -77,9 +77,14 @@ struct Config {
     uint32_t atomic          = 0;        // epoch-MVCC atomic multi-key lane (MSET/MSETNX/DEL/
                                          // UNLINK write groups; MGET/EXISTS/TOUCH snapshot reads).
                                          // 0 = fully off: no allocation, plain paths byte-identical.
-    uint32_t atomic_window   = 256;      // in-flight atomic write groups; 0 = unlimited. A memory
-                                         // valve, not an ordering device -- tickets are drawn at
-                                         // the publish, so no arrival-order frontier exists.
+    // In-flight atomic write groups; 0 = unlimited; -1 (the default) = AUTO, resolved at boot to
+    // min(16 * shards, 1024). Measured three-point law (2026-08-26, MSET-8 p32 ks=100k): the
+    // optimum is 256 at 8c/16sh, 1024 at 32c/64sh AND 64c/128sh; larger windows flood the
+    // per-shard pending scans (8c at 1024 collapses 40x), unlimited loses ~25% at 32c+ and the
+    // default-256 left 2.3x on the table at 64c (796k -> 2.74M). A memory/backpressure valve,
+    // not an ordering device -- tickets are drawn at the publish, so no frontier exists.
+    static constexpr uint32_t kAtomicWindowAuto = UINT32_MAX;
+    uint32_t atomic_window   = kAtomicWindowAuto;
     TypeLimits type_limits;              // 8 compact-encoding limits, all live via CONFIG SET
 };
 
@@ -220,8 +225,10 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             }
         }
         else if (!std::strcmp(a, "--atomic-window")) {
-            if (!cfg_parse_u32(next(nullptr), cfg.atomic_window)) {
-                std::fprintf(stderr, "--atomic-window wants a uint32 (0 is unlimited)\n");
+            const char* v = next(nullptr);
+            if (v && !std::strcmp(v, "-1")) cfg.atomic_window = Config::kAtomicWindowAuto;
+            else if (!cfg_parse_u32(v, cfg.atomic_window)) {
+                std::fprintf(stderr, "--atomic-window wants a uint32, 0 = unlimited, -1 = auto\n");
                 return kConfigError;
             }
         }
