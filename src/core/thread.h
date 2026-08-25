@@ -27,10 +27,13 @@
 #pragma once
 #include <atomic>
 #include <cstdint>
+#include <deque>
 #include <memory>
+#include <mutex>
 #include <vector>
 #include "shard.h"
 #include "signal.h"
+#include "pubsub_event.h"
 #include "../base/topology.h"
 
 namespace tomo {
@@ -171,6 +174,23 @@ public:
         if (!release_in_[from].push(r, sig)) return false;
         if (release_notify_.set(from)) release_in_[from].wake(my_ring, sig, ring());
         return true;
+    }
+
+    // Pub/sub payloads use one cold MPSC inbox per owning IO, but wake through the existing
+    // client_in mesh.  `true` means the caller owns posting the single nullptr marker for this
+    // non-empty burst.  The mutex is never touched before the first pub/sub command.
+    bool post_pubsub_event(PubSubEvent* event) {
+        std::lock_guard<std::mutex> lock(pubsub_mu_);
+        pubsub_events_.push_back(event);
+        if (pubsub_notified_) return false;
+        pubsub_notified_ = true;
+        return true;
+    }
+
+    void take_pubsub_events(std::deque<PubSubEvent*>& out) {
+        std::lock_guard<std::mutex> lock(pubsub_mu_);
+        out.swap(pubsub_events_);
+        pubsub_notified_ = false;
     }
 
     // ---- draining (consumer side) ---------------------------------------------------------------
@@ -380,6 +400,12 @@ private:
     NotifyMask client_notify_;    // "which producers have clients for me"
     NotifyMask release_notify_;   // "which producers returned store borrows to me"
     uint32_t nchan_ = 0;
+
+    // IO-only cold path. A nullptr in client_in is the notification token; payload ownership
+    // moves through this queue and is retired by the destination IoLoop.
+    std::mutex pubsub_mu_;
+    std::deque<PubSubEvent*> pubsub_events_;
+    bool pubsub_notified_ = false;
 
     std::vector<Shard*>  shards_;
     std::vector<Client*> clients_;

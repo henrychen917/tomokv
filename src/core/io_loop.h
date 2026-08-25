@@ -24,6 +24,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <new>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include "server.h"
 #include "signal.h"
@@ -84,6 +87,7 @@ public:
     }
 
     ~IoLoop() {
+        if (self_) pubsub_shutdown_events();
         if (listen_fd_ >= 0) ::close(listen_fd_);
         if (unix_listen_fd_ >= 0) ::close(unix_listen_fd_);
         for (Client* c : pending_handoffs_) { ::close(c->fd()); delete c; }
@@ -132,6 +136,8 @@ public:
     }
 
 private:
+#include "pubsub.inc"
+
     template <bool HasUnix>
     void run_loop() {
         arm_accept(false);
@@ -383,6 +389,50 @@ private:
             const bool config_scatter = (spec->flags & CmdFlags::ConfigRoute) &&
                                         command_config_routes_all_shards(*op);
 
+            // RESP2 enters subscribed mode after its first subscription acknowledgement. Only the
+            // Redis subscriber command set is legal until the last subscription is removed.
+            const bool subscriber_mode = __builtin_expect(c->subscriber_mode(), false);
+            const bool subscription_control =
+                op->cmd_name().eq_icase("subscribe") ||
+                op->cmd_name().eq_icase("unsubscribe") ||
+                op->cmd_name().eq_icase("psubscribe") ||
+                op->cmd_name().eq_icase("punsubscribe");
+            if (subscriber_mode && op->cmd_name().eq_icase("ping")) {
+                conn.advance_parse(consumed);
+                self_->note_command(spec->id);
+                pubsub_reply_ping(*op);
+                finish_prebuilt(c, *op);
+                continue;
+            }
+            if (subscriber_mode && op->cmd_name().eq_icase("reset")) {
+                conn.advance_parse(consumed);
+                self_->note_command(spec->id);
+                pubsub_start_reset(c, *op);
+                sig.ops++;
+                mark_active(c);
+                break;
+            }
+            if (subscriber_mode && !subscription_control &&
+                !op->cmd_name().eq_icase("quit")) {
+                conn.advance_parse(consumed);
+                self_->note_command(spec->id);
+                pubsub_reply_restricted(*op);
+                finish_prebuilt(c, *op);
+                continue;
+            }
+            if (spec->flags & CmdFlags::PubSub) {
+                conn.advance_parse(consumed);
+                self_->note_command(spec->id);
+                const PubSubStartResult result = pubsub_start_command(c, *op);
+                if (result == PubSubStartResult::Async) {
+                    sig.ops++;
+                    mark_active(c);
+                    break;
+                }
+                finish_prebuilt(c, *op);
+                continue;
+            }
+
             // Connection-local commands never reach a worker — the cheapest class, and the one most
             // easily wasted by routing it anyway.
             if ((spec->flags & CmdFlags::ConnLocal) ||
@@ -398,6 +448,7 @@ private:
                 rob.publish();
                 enqueue_serve(c);
                 mark_active(c);
+                if (c->closing()) break;
                 continue;
             }
 
@@ -671,7 +722,12 @@ private:
 
     template <bool HasUnix>
     uint32_t collect_retire_work(bool unmasked = false) {
+        uint32_t pubsub_work = 0;
         auto take = [&](Client* c) {
+            if (!c) {
+                pubsub_work += pubsub_drain_events();
+                return;
+            }
             // AF_UNIX accept handoffs use this existing channel without claiming retirement.
             // Executor completions always CAS retire_queued false->true before posting, so the bit
             // distinguishes the two meanings without adding a Client field or a catalog lock here.
@@ -699,7 +755,7 @@ private:
                 if (c && !c->dead()) { enqueue_serve(c); mark_active(c); n++; }
             }
         }
-        return n;
+        return n + pubsub_work;
     }
 
     // ---- retire -> stage bytes -> send or hand off -------------------------------------------------
@@ -753,7 +809,11 @@ private:
                               c->nothing_to_write();
             if (done && !c->closing()) { c->set_in_active(false); it = active_.erase(it); }
             else if (c->closing() && c->safe_to_release()) {
-                c->set_in_active(false); it = active_.erase(it); close_client(c);
+                // Pub/sub teardown is asynchronous. Keep the client in place while home IOs
+                // acknowledge removal; erase+reinsert would invalidate this vector iterator and
+                // can turn one closing subscriber into a same-pass spin.
+                if (!pubsub_disconnect_ready(c)) { ++it; }
+                else { c->set_in_active(false); it = active_.erase(it); close_client(c); }
             } else ++it;
         }
 
@@ -800,6 +860,7 @@ private:
         // Release only at the quiescence fence: a worker may still hold a Task that resolves through
         // this ROB. Anything else is a use-after-free under pipelining. (The retryable wait paths,
         // with their mark_active leak guard, are below.)
+        if (!pubsub_disconnect_ready(c)) { mark_active(c); return; }
         c->set_in_active(false);
         active_.erase(c);
         auto& v = self_->clients();
