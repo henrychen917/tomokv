@@ -76,15 +76,22 @@ public:
 private:
     void* cached_[kCached] = {};
     uint32_t count_ = 0;
-    std::vector<ScatterState*> active_snapshots_;
+    // Only unresolved cuts participate in the floor. Atomic work bounds this set at eight; in a
+    // read-only interval it is ROB-bounded instead, so the cached minimum/count below make insert
+    // and arbitrary removal O(1) without weakening the exact published floor.
+    std::vector<ScatterState*> unresolved_snapshots_;
     std::vector<ScatterState*> deferred_destroy_;
     uint64_t observed_snapshot_completions_ = 0;
+    uint64_t unresolved_snapshot_floor_ = UINT64_MAX;
+    uint32_t unresolved_floor_refs_ = 0;
+    uint64_t published_snapshot_floor_ = UINT64_MAX;
 };
 
 struct ScatterDispatch {
     ScatterState* state = nullptr;
     uint32_t nshards = 0;
     bool barrier = false;
+    bool atomic_write = false;
 };
 
 // Parses command-specific options and coalesces request key positions by shard.  Error means a
@@ -129,5 +136,7 @@ ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
 bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_conn_id);
 void xshard_plain_finish(Shard& shard);
 uint32_t xshard_cleanup_shard(Server& server, Shard& shard, uint32_t budget = 8);
+uint32_t xshard_cleanup_shard_at(Shard& shard, uint64_t floor, uint64_t cleanup_cutoff,
+                                 uint32_t budget = 8);
 
 }  // namespace tomo

@@ -117,9 +117,21 @@ note("MSETNX single-hop serial semantics",
      "replies=%r/%r values=%r" % (n1, n2, nv))
 c.close()
 
+# Redis permits a duplicate key within one MSETNX and the final occurrence wins. The atomic owner
+# must test existence against the pre-command state, not mistake its first private install for an
+# external predecessor.
+dupkey = "ary:nx-duplicate"
+admin.cmd("DEL", dupkey)
+dup_result = admin.cmd("MSETNX", dupkey, "nx:early", dupkey, "nx:last")
+dup_value = admin.cmd("GET", dupkey)
+note("MSETNX duplicate key uses pre-command state",
+     dup_result == 1 and dup_value == b"nx:last",
+     "reply=%r value=%r" % (dup_result, dup_value))
+
 # An MSETNX group may have installed candidates on other owners before one owner discovers an
 # existing key. Epoch zero plus abandonment must hide those candidates from foreign readers and
-# from the originating connection's pipelined read alike.
+# from the originating connection's pipelined read alike. Values deliberately exceed the embedded
+# string cutover so this also exercises IO-prebuilt KvObj abandonment and owner-side admission.
 leakkeys = ["ary:abandon%d" % i for i in range(8)]
 admin.cmd("DEL", *leakkeys)
 admin.cmd("SET", leakkeys[0], "abandon:guard")
@@ -150,8 +162,9 @@ c = Resp()
 try:
     for seq in range(256):
         args = ["MSETNX"]
+        candidate = ("abandon:leak:%d:" % seq) + "x" * 512
         for key in leakkeys:
-            args.extend((key, "abandon:leak:%d" % seq))
+            args.extend((key, candidate))
         c.sock.sendall(frame(*args) + frame("MGET", *leakkeys))
         failed, own = c.read(), c.read()
         if failed != 0 or own != [b"abandon:guard"] + [None] * 7:

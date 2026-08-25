@@ -60,6 +60,7 @@ public:
         atomic_activity_.store(cfg.atomic ? kAtomicEnabledBit : 0,
                                std::memory_order_relaxed);
         live_atomic_window_.store(cfg.atomic_window, std::memory_order_relaxed);
+        atomic_credit_pool_.store(cfg.atomic_window, std::memory_order_relaxed);
         live_config_version_.store(2, std::memory_order_release);  // even versions are stable
         // Declared topology is a legacy lowering input and therefore cannot accompany --place.
         // A declaration that fails to parse or names cpus outside the affinity mask fails the BOOT,
@@ -159,6 +160,7 @@ public:
     uint32_t         nshards()    const { return static_cast<uint32_t>(shards_.size()); }
     SnapshotManager& snapshot()         { return snapshot_; }
     const SnapshotManager& snapshot() const { return snapshot_; }
+    const ThreadCtx& thread(uint32_t i) const { return *threads_[i]; }
 
     // One atomic load on the dispatch path; one atomic store is how an LB moves work.
     uint32_t worker_of_shard(int32_t shard_id) const {
@@ -183,39 +185,105 @@ public:
         return live_atomic_window_.load(std::memory_order_acquire);
     }
     void set_atomic_enabled(bool enabled) {
-        if (enabled) atomic_activity_.fetch_or(kAtomicEnabledBit, std::memory_order_release);
-        else atomic_activity_.fetch_and(~kAtomicEnabledBit, std::memory_order_release);
+        if (enabled) {
+            atomic_reconfigure_credits(atomic_window());
+            atomic_activity_.fetch_or(kAtomicEnabledBit, std::memory_order_release);
+        } else {
+            atomic_activity_.fetch_and(~kAtomicEnabledBit, std::memory_order_release);
+            atomic_reconfigure_credits(atomic_window());
+        }
     }
     void set_atomic_window(uint32_t window) {
-        live_atomic_window_.store(window, std::memory_order_release);
+        atomic_reconfigure_credits(window);
     }
     bool atomic_tracking_active() const {
         return atomic_mode_state() != 0;
     }
-    bool atomic_can_admit() const {
+    bool atomic_can_admit(uint32_t owner_io) const {
+        if (!(atomic_mode_state() & kAtomicEnabledBit)) return true;
+        const uint64_t generation = atomic_credit_generation_.load(std::memory_order_acquire);
+        if (generation & 1) return false;
         const uint32_t window = atomic_window();
-        return !window || atomic_inflight_.load(std::memory_order_acquire) < window;
+        if (!window) return true;
+        const AtomicAdmissionLease& lease = thread(owner_io).atomic_admission_lease();
+        return (lease.generation == generation && lease.available != 0) ||
+               atomic_credit_pool_.load(std::memory_order_acquire) != 0;
     }
-    bool atomic_try_admit() {
+    bool atomic_try_admit(uint32_t owner_io, uint64_t& admitted_generation) {
+        admitted_generation = 0;
+        if (!(atomic_mode_state() & kAtomicEnabledBit)) return false;
+        AtomicAdmissionLease& lease = thread(owner_io).atomic_admission_lease();
+        const uint64_t generation = atomic_credit_generation_.load(std::memory_order_acquire);
+        if (generation & 1) return false;
         const uint32_t window = atomic_window();
-        uint64_t current = atomic_inflight_.load(std::memory_order_relaxed);
-        for (;;) {
-            if (window && current >= window) {
+        if (lease.generation != generation) {
+            lease.generation = generation;
+            lease.available = 0; // the reconfiguration reset the global pool without old leases
+        }
+        if (window && lease.available == 0) {
+            atomic_credit_ops_.fetch_add(1, std::memory_order_acq_rel);
+            if (atomic_credit_generation_.load(std::memory_order_acquire) != generation) {
+                atomic_credit_ops_.fetch_sub(1, std::memory_order_release);
+                return false;
+            }
+            uint32_t available = atomic_credit_pool_.load(std::memory_order_relaxed);
+            bool borrowed = false;
+            while (available) {
+                const uint32_t take = std::min<uint32_t>(available, kAtomicLeaseBatch);
+                if (atomic_credit_pool_.compare_exchange_weak(
+                        available, available - take, std::memory_order_acq_rel,
+                        std::memory_order_relaxed)) {
+                    lease.available = take;
+                    borrowed = true;
+                    break;
+                }
+            }
+            atomic_credit_ops_.fetch_sub(1, std::memory_order_release);
+            if (!borrowed) {
                 atomic_window_stalls_.fetch_add(1, std::memory_order_relaxed);
                 return false;
             }
-            if (atomic_inflight_.compare_exchange_weak(
-                    current, current + 1, std::memory_order_acq_rel,
-                    std::memory_order_relaxed)) {
-                atomic_groups_.fetch_add(1, std::memory_order_relaxed);
-                atomic_activity_.fetch_add(1, std::memory_order_release);
-                return true;
+        }
+        if (window) lease.available--;
+        const bool first = lease.active++ == 0;
+        lease.published_active.store(lease.active, std::memory_order_release);
+        if (first) atomic_activity_.fetch_add(1, std::memory_order_release);
+        if (atomic_credit_generation_.load(std::memory_order_acquire) != generation ||
+            !(atomic_mode_state() & kAtomicEnabledBit)) {
+            lease.active--;
+            lease.published_active.store(lease.active, std::memory_order_release);
+            if (first) atomic_activity_.fetch_sub(1, std::memory_order_release);
+            atomic_release_admission_credit(lease, generation);
+            return false;
+        }
+        thread(owner_io).note_atomic_group();
+        admitted_generation = generation;
+        return true;
+    }
+    void atomic_retire_group(uint32_t owner_io, uint64_t admitted_generation) {
+        AtomicAdmissionLease& lease = thread(owner_io).atomic_admission_lease();
+        if (!lease.active) std::abort();
+        lease.active--;
+        lease.published_active.store(lease.active, std::memory_order_release);
+
+        atomic_release_admission_credit(lease, admitted_generation);
+
+        if (lease.active == 0) {
+            atomic_activity_.fetch_sub(1, std::memory_order_release);
+            // An idle IO must not strand its lease while a hot peer is window-stalled. The config
+            // generation plus credit_ops handshake makes returning this batch race-free.
+            const uint64_t generation = atomic_credit_generation_.load(std::memory_order_acquire);
+            if (atomic_window() && !(generation & 1) && lease.generation == generation &&
+                lease.available) {
+                const uint32_t returned = lease.available;
+                atomic_credit_ops_.fetch_add(1, std::memory_order_acq_rel);
+                if (atomic_credit_generation_.load(std::memory_order_acquire) == generation) {
+                    atomic_credit_pool_.fetch_add(returned, std::memory_order_release);
+                    lease.available = 0;
+                }
+                atomic_credit_ops_.fetch_sub(1, std::memory_order_release);
             }
         }
-    }
-    void atomic_retire_group() {
-        atomic_inflight_.fetch_sub(1, std::memory_order_release);
-        atomic_activity_.fetch_sub(1, std::memory_order_release);
     }
     uint64_t atomic_commit() {
         return commit_seq_.fetch_add(1, std::memory_order_seq_cst) + 1;
@@ -239,15 +307,33 @@ public:
         // publication has an older cutoff. Thus no active IO snapshot can later dereference a
         // freed loser. UINT64_MAX means no registered reader constrains the floor.
         uint64_t floor = UINT64_MAX;
-        for (uint32_t i = 0; i < nthreads(); i++)
+        // Only IO threads register read cuts. Executor slots are initialized to MAX and never
+        // publish, so scanning them merely repeats work in every owner cleanup pass.
+        for (uint32_t i : placement_.ifid_threads())
             floor = std::min(floor,
                              atomic_read_floors_[i].load(std::memory_order_seq_cst));
         return floor;
     }
-    uint64_t atomic_groups() const { return atomic_groups_.load(std::memory_order_relaxed); }
-    uint64_t atomic_inflight() const { return atomic_inflight_.load(std::memory_order_relaxed); }
+    uint64_t atomic_groups() const {
+        uint64_t groups = 0;
+        for (uint32_t io : placement_.ifid_threads()) groups += thread(io).atomic_groups();
+        return groups;
+    }
+    uint64_t atomic_inflight() const {
+        uint64_t inflight = 0;
+        for (uint32_t io : placement_.ifid_threads())
+            inflight += thread(io).atomic_admission_lease().published_active.load(
+                std::memory_order_acquire);
+        return inflight;
+    }
     uint64_t atomic_window_stalls() const {
         return atomic_window_stalls_.load(std::memory_order_relaxed);
+    }
+    uint32_t atomic_credit_pool() const {
+        return atomic_credit_pool_.load(std::memory_order_acquire);
+    }
+    uint32_t atomic_credit_debt() const {
+        return atomic_credit_debt_.load(std::memory_order_acquire);
     }
 
     MaxmemoryConfigSnapshot maxmemory_config_snapshot() const {
@@ -295,6 +381,77 @@ public:
     }
 
 private:
+    static constexpr uint32_t kAtomicLeaseBatch = 8;
+
+    void atomic_release_admission_credit(AtomicAdmissionLease& lease,
+                                         uint64_t admitted_generation) {
+        uint64_t generation = atomic_credit_generation_.load(std::memory_order_acquire);
+        while (generation & 1) {
+            __builtin_ia32_pause();
+            generation = atomic_credit_generation_.load(std::memory_order_acquire);
+        }
+        if (!atomic_window()) return;
+        if (admitted_generation == generation && lease.generation == generation) {
+            lease.available++;
+            return;
+        }
+        if (admitted_generation == generation) return;
+        uint32_t carry = lease.reconfig_carry.load(std::memory_order_relaxed);
+        while (carry && !lease.reconfig_carry.compare_exchange_weak(
+                              carry, carry - 1, std::memory_order_acq_rel,
+                              std::memory_order_relaxed)) {}
+        if (carry) atomic_return_reconfigured_credit(generation);
+    }
+
+    void atomic_return_reconfigured_credit(uint64_t generation) {
+        atomic_credit_ops_.fetch_add(1, std::memory_order_acq_rel);
+        if (atomic_credit_generation_.load(std::memory_order_acquire) == generation) {
+            uint32_t debt = atomic_credit_debt_.load(std::memory_order_relaxed);
+            while (debt && !atomic_credit_debt_.compare_exchange_weak(
+                               debt, debt - 1, std::memory_order_acq_rel,
+                               std::memory_order_relaxed)) {}
+            if (!debt) atomic_credit_pool_.fetch_add(1, std::memory_order_release);
+        }
+        atomic_credit_ops_.fetch_sub(1, std::memory_order_release);
+    }
+
+    void atomic_reconfigure_credits(uint32_t window) {
+        // Odd generations close admission while CONFIG takes an exact active-group snapshot.
+        // Borrow/return operations announce themselves so the rebuilt pool cannot race a credit
+        // mutation. IO-local available batches are intentionally discarded by the generation
+        // change; only published active groups survive into the new accounting epoch.
+        uint64_t generation = atomic_credit_generation_.load(std::memory_order_acquire);
+        for (;;) {
+            if (generation & 1) {
+                generation = atomic_credit_generation_.load(std::memory_order_acquire);
+                continue;
+            }
+            if (atomic_credit_generation_.compare_exchange_weak(
+                    generation, generation + 1, std::memory_order_acq_rel,
+                    std::memory_order_acquire))
+                break;
+        }
+        while (atomic_credit_ops_.load(std::memory_order_acquire) != 0)
+            __builtin_ia32_pause();
+
+        uint64_t active = 0;
+        for (uint32_t io : placement_.ifid_threads()) {
+            AtomicAdmissionLease& lease = thread(io).atomic_admission_lease();
+            const uint32_t live = lease.published_active.load(std::memory_order_acquire);
+            lease.reconfig_carry.store(live, std::memory_order_release);
+            active += live;
+        }
+        live_atomic_window_.store(window, std::memory_order_release);
+        const uint64_t bounded = std::min<uint64_t>(active, UINT32_MAX);
+        atomic_credit_pool_.store(
+            window && bounded < window ? window - static_cast<uint32_t>(bounded) : 0,
+            std::memory_order_release);
+        atomic_credit_debt_.store(
+            window && bounded > window ? static_cast<uint32_t>(bounded - window) : 0,
+            std::memory_order_release);
+        atomic_credit_generation_.store(generation + 2, std::memory_order_release);
+    }
+
     uint64_t begin_live_config_update() {
         uint64_t version = live_config_version_.load(std::memory_order_acquire);
         for (;;) {
@@ -330,9 +487,11 @@ private:
     std::atomic<uint32_t> live_maxmemory_samples_{5};
     std::atomic<uint32_t> live_atomic_window_{256};
     std::atomic<uint64_t> commit_seq_{0};
-    std::atomic<uint64_t> atomic_inflight_{0};
-    std::atomic<uint64_t> atomic_groups_{0};
     std::atomic<uint64_t> atomic_window_stalls_{0};
+    std::atomic<uint64_t> atomic_credit_generation_{2};
+    std::atomic<uint32_t> atomic_credit_pool_{0};
+    std::atomic<uint32_t> atomic_credit_debt_{0};
+    std::atomic<uint32_t> atomic_credit_ops_{0};
     // Enabled is the high bit; every admitted group and live record contributes one low-bit unit.
     // Dispatch therefore decides OFF/ON/draining with one acquire load and one predictable test.
     std::atomic<uint64_t> atomic_activity_{0};

@@ -109,23 +109,43 @@ uint64_t snapshot_exclusive_floor(uint64_t snapshot) {
     return snapshot == UINT64_MAX ? UINT64_MAX : snapshot + 1;
 }
 
-uint64_t active_snapshot_floor(const std::vector<ScatterState*>& active_snapshots) {
+struct SnapshotFloor {
     uint64_t floor = UINT64_MAX;
-    for (ScatterState* active : active_snapshots) {
-        if (active->snapshot_complete.load(std::memory_order_acquire)) continue;
-        floor = std::min(floor, snapshot_exclusive_floor(active->snapshot));
+    uint32_t refs = 0;
+};
+
+SnapshotFloor active_snapshot_floor(const std::vector<ScatterState*>& unresolved_snapshots) {
+    SnapshotFloor result;
+    for (ScatterState* active : unresolved_snapshots) {
+        const uint64_t cut = snapshot_exclusive_floor(active->snapshot);
+        if (cut < result.floor) {
+            result.floor = cut;
+            result.refs = 1;
+        } else if (cut == result.floor) {
+            result.refs++;
+        }
     }
-    return floor;
+    return result;
 }
 
 }  // namespace
 
 bool ScatterArenaPool::register_snapshot(Server& server, ScatterState* state) {
-    try { active_snapshots_.push_back(state); }
+    try { unresolved_snapshots_.push_back(state); }
     catch (const std::bad_alloc&) { return false; }
+    state->snapshot_slot = static_cast<uint32_t>(unresolved_snapshots_.size() - 1);
     state->snapshot_registered = true;
-    uint64_t floor = active_snapshot_floor(active_snapshots_);
-    server.publish_atomic_read_floor(state->owner_io, floor);
+    uint64_t cut = snapshot_exclusive_floor(state->snapshot);
+    if (cut < unresolved_snapshot_floor_) {
+        unresolved_snapshot_floor_ = cut;
+        unresolved_floor_refs_ = 1;
+    } else if (cut == unresolved_snapshot_floor_) {
+        unresolved_floor_refs_++;
+    }
+    if (unresolved_snapshot_floor_ != published_snapshot_floor_) {
+        published_snapshot_floor_ = unresolved_snapshot_floor_;
+        server.publish_atomic_read_floor(state->owner_io, unresolved_snapshot_floor_);
+    }
 
     // Publish the successor of each inclusive read cut. A version visible at the oldest snapshot
     // is then strictly below the floor and may become the sole physical representation without
@@ -136,40 +156,97 @@ bool ScatterArenaPool::register_snapshot(Server& server, ScatterState* state) {
     // sequence is unchanged, promotion of that winner is also a valid representation of our cut.
     const uint64_t confirmed = server.atomic_snapshot();
     if (confirmed != state->snapshot) {
+        const uint64_t old_cut = cut;
         state->snapshot = confirmed;
-        floor = active_snapshot_floor(active_snapshots_);
-        server.publish_atomic_read_floor(state->owner_io, floor);
+        cut = snapshot_exclusive_floor(confirmed);
+        if (old_cut == unresolved_snapshot_floor_) {
+            if (!unresolved_floor_refs_) std::abort();
+            unresolved_floor_refs_--;
+        }
+        if (cut < unresolved_snapshot_floor_) {
+            unresolved_snapshot_floor_ = cut;
+            unresolved_floor_refs_ = 1;
+        } else if (cut == unresolved_snapshot_floor_) {
+            unresolved_floor_refs_++;
+        }
+        if (!unresolved_floor_refs_) {
+            const SnapshotFloor exact = active_snapshot_floor(unresolved_snapshots_);
+            unresolved_snapshot_floor_ = exact.floor;
+            unresolved_floor_refs_ = exact.refs;
+        }
+        if (unresolved_snapshot_floor_ != published_snapshot_floor_) {
+            published_snapshot_floor_ = unresolved_snapshot_floor_;
+            server.publish_atomic_read_floor(state->owner_io, unresolved_snapshot_floor_);
+        }
     }
     return true;
 }
 
 void ScatterArenaPool::unregister_snapshot(Server& server, ScatterState* state) {
     if (!state->snapshot_registered) return;
-    for (size_t i = 0; i < active_snapshots_.size(); i++) {
-        if (active_snapshots_[i] != state) continue;
-        active_snapshots_[i] = active_snapshots_.back();
-        active_snapshots_.pop_back();
-        break;
+    const uint32_t slot = state->snapshot_slot;
+    if (slot != UINT32_MAX) {
+        if (slot >= unresolved_snapshots_.size() || unresolved_snapshots_[slot] != state)
+            std::abort();
+        const uint64_t cut = snapshot_exclusive_floor(state->snapshot);
+        if (cut == unresolved_snapshot_floor_) {
+            if (!unresolved_floor_refs_) std::abort();
+            unresolved_floor_refs_--;
+        }
+        ScatterState* moved = unresolved_snapshots_.back();
+        unresolved_snapshots_[slot] = moved;
+        moved->snapshot_slot = slot;
+        unresolved_snapshots_.pop_back();
+        state->snapshot_slot = UINT32_MAX;
     }
     state->snapshot_registered = false;
-    server.publish_atomic_read_floor(state->owner_io,
-                                     active_snapshot_floor(active_snapshots_));
+    if (!unresolved_floor_refs_) {
+        const SnapshotFloor exact = active_snapshot_floor(unresolved_snapshots_);
+        unresolved_snapshot_floor_ = exact.floor;
+        unresolved_floor_refs_ = exact.refs;
+    }
+    if (unresolved_snapshot_floor_ != published_snapshot_floor_) {
+        published_snapshot_floor_ = unresolved_snapshot_floor_;
+        server.publish_atomic_read_floor(state->owner_io, unresolved_snapshot_floor_);
+    }
 }
 
 uint32_t ScatterArenaPool::refresh_snapshot_floor(Server& server, uint32_t owner_io) {
     const uint64_t completed = server.atomic_snapshot_completions(owner_io);
     if (completed == observed_snapshot_completions_) return 0;
     observed_snapshot_completions_ = completed;
-    server.publish_atomic_read_floor(owner_io, active_snapshot_floor(active_snapshots_));
+    for (size_t i = 0; i < unresolved_snapshots_.size();) {
+        ScatterState* state = unresolved_snapshots_[i];
+        if (!state->snapshot_complete.load(std::memory_order_acquire)) {
+            i++;
+            continue;
+        }
+        const uint64_t cut = snapshot_exclusive_floor(state->snapshot);
+        if (cut == unresolved_snapshot_floor_) {
+            if (!unresolved_floor_refs_) std::abort();
+            unresolved_floor_refs_--;
+        }
+        ScatterState* moved = unresolved_snapshots_.back();
+        unresolved_snapshots_[i] = moved;
+        moved->snapshot_slot = static_cast<uint32_t>(i);
+        unresolved_snapshots_.pop_back();
+        state->snapshot_slot = UINT32_MAX;
+    }
+    if (!unresolved_floor_refs_) {
+        const SnapshotFloor exact = active_snapshot_floor(unresolved_snapshots_);
+        unresolved_snapshot_floor_ = exact.floor;
+        unresolved_floor_refs_ = exact.refs;
+    }
+    if (unresolved_snapshot_floor_ != published_snapshot_floor_) {
+        published_snapshot_floor_ = unresolved_snapshot_floor_;
+        server.publish_atomic_read_floor(owner_io, unresolved_snapshot_floor_);
+    }
     return 1;
 }
 
 bool ScatterArenaPool::can_register_snapshot() const {
     static constexpr uint32_t kSnapshotWindow = 8;
-    uint32_t unresolved = 0;
-    for (ScatterState* state : active_snapshots_)
-        unresolved += !state->snapshot_complete.load(std::memory_order_acquire);
-    return unresolved < kSnapshotWindow;
+    return unresolved_snapshots_.size() < kSnapshotWindow;
 }
 
 void ScatterArenaPool::defer_destroy(ScatterState* state) {
@@ -244,19 +321,17 @@ FlatStore::SnapshotWriteResult xshard_local_snapshot_prepare(Op& op, Shard& shar
 
 FlatStore::SnapshotWriteResult xshard_snapshot_prepare(const Task& task, Shard& shard) {
     ScatterState& state = *task.scatter;
-    ShardGroup* group_ptr = group_for(state, shard.id());
-    if (!group_ptr || !shard.store().snapshot_active()) return FlatStore::SnapshotWriteResult::Ready;
-    ShardGroup& group = *group_ptr;
-
-    if (state.phase == 1) {
-        if (!(state.kind == Kind::Mset || state.kind == Kind::Del || state.kind == Kind::Unlink ||
+    Op& op = task.client->rob().at(task.op_id);
+    auto prepare_group = [&](Shard& owner, ShardGroup& group) {
+        if (!owner.store().snapshot_active()) return FlatStore::SnapshotWriteResult::Ready;
+        if (state.phase == 1 &&
+            !(state.kind == Kind::Mset || state.kind == Kind::Del || state.kind == Kind::Unlink ||
               (state.atomic_write && state.kind == Kind::Msetnx))) {
-            if (state.kind == Kind::AllShards &&
-                (task.client->rob().at(task.op_id).spec->flags & CmdFlags::Write)) {
+            if (state.kind == Kind::AllShards && (op.spec->flags & CmdFlags::Write)) {
                 try {
                     if (!group.aux) group.aux = new GroupAux;
                     if (!group.aux->flush_keys_built) {
-                        shard.store().for_each([&](KvObj* object) {
+                        owner.store().for_each([&](KvObj* object) {
                             group.aux->flush_keys.emplace_back(object->key().p, object->key().n);
                         });
                         group.aux->flush_keys_built = true;
@@ -264,51 +339,54 @@ FlatStore::SnapshotWriteResult xshard_snapshot_prepare(const Task& task, Shard& 
                     while (group.snapshot_pos < group.aux->flush_keys.size()) {
                         const std::string& key = group.aux->flush_keys[group.snapshot_pos];
                         const Slice slice(key.data(), static_cast<uint32_t>(key.size()));
-                        const auto result = shard.store().snapshot_prepare_write(
+                        const auto result = owner.store().snapshot_prepare_write(
                             FlatStore::hash_key(slice), slice);
                         if (result != FlatStore::SnapshotWriteResult::Ready) return result;
                         group.snapshot_pos++;
                     }
-                    return FlatStore::SnapshotWriteResult::Ready;
                 } catch (const std::bad_alloc&) {
                     return FlatStore::SnapshotWriteResult::Error;
                 }
             }
             return FlatStore::SnapshotWriteResult::Ready;
         }
-    }
+        while (group.snapshot_pos < group.count) {
+            const uint32_t pos = state.key_order[group.begin + group.snapshot_pos];
+            const KeyRef& key = state.keys[pos];
+            const auto result = owner.store().snapshot_prepare_write(key.hash, op.arg(key.arg));
+            if (result != FlatStore::SnapshotWriteResult::Ready) return result;
+            group.snapshot_pos++;
+        }
+        return FlatStore::SnapshotWriteResult::Ready;
+    };
 
-    Op& op = task.client->rob().at(task.op_id);
-    while (group.snapshot_pos < group.count) {
-        const uint32_t pos = state.key_order[group.begin + group.snapshot_pos];
-        const KeyRef& key = state.keys[pos];
-        const auto result = shard.store().snapshot_prepare_write(key.hash, op.arg(key.arg));
-        if (result != FlatStore::SnapshotWriteResult::Ready) return result;
-        group.snapshot_pos++;
-    }
-    return FlatStore::SnapshotWriteResult::Ready;
+    ShardGroup* group = group_for(state, shard.id());
+    return group ? prepare_group(shard, *group) : FlatStore::SnapshotWriteResult::Ready;
 }
 
 bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op& op) {
     (void)server;
-    FlatStore& store = shard.store();
-    if (!store.atomic_has_records() || !task.client) return false;
+    if (!task.client || !op.atomic_hazard()) return false;
     const uint64_t origin_conn_id = task.client->id();
     if (task.scatter) {
         ScatterState& state = *task.scatter;
+        FlatStore& store = shard.store();
+        if (!store.atomic_has_records()) return false;
         ShardGroup* group = group_for(state, shard.id());
         // KEYS/DBSIZE/all-shards commands have a zero-key group for every shard: logically they
         // touch the whole owner, so any own undecided node is their precise program-order hazard.
         if (!group || state.key_count == 0)
             return store.atomic_has_any_own_undecided(origin_conn_id, &state);
         return store.atomic_group_has_own_undecided(
-            &state, group->count, origin_conn_id, [&](uint32_t i) {
+            &state, group->count, origin_conn_id, group->membership, [&](uint32_t i) {
                 const uint32_t pos = state.key_order[group->begin + i];
                 const KeyRef& key = state.keys[pos];
                 return std::pair<uint64_t, Slice>{key.hash, op.arg(key.arg)};
             });
     }
 
+    FlatStore& store = shard.store();
+    if (!store.atomic_has_records()) return false;
     bool own_undecided = false;
     auto check_own = [&](uint64_t hash, Slice key) {
         own_undecided |= store.atomic_has_own_undecided(hash, key, origin_conn_id);
@@ -390,13 +468,86 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
             store.atomic_set_read_context(snapshot, origin_conn_id);
             return true;
         }
+
+        struct PreparedLocal {
+            RecordedKey key;
+            void* entry = nullptr;
+            KvObj* clone = nullptr;
+            bool admitted = false;
+        };
+        std::vector<PreparedLocal> prepared;
+        WorkError failure = WorkError::None;
+        try { prepared.reserve(recorded.size()); }
+        catch (const std::bad_alloc&) { failure = WorkError::Oom; }
+        store.atomic_set_read_context(snapshot, origin_conn_id);
         for (const RecordedKey& item : recorded) {
-            const WorkError result = begin_plain_version(
-                server, shard, item.key, item.hash, snapshot, origin_conn_id);
-            if (result == WorkError::None) continue;
-            reply_work_error(op, result);
+            if (failure != WorkError::None) break;
+            PreparedLocal next{item};
+            KvObj* visible = store.find(item.hash, item.key);
+            if (visible) {
+                ObjectImage image;
+                if (!serialize_object(visible, image)) {
+                    failure = WorkError::Oom;
+                    break;
+                }
+                const SnapshotTypeHooks& hooks = snapshot_type_hooks(image.type);
+                const Slice payload(reinterpret_cast<const char*>(image.payload.data()),
+                                    static_cast<uint32_t>(image.payload.size()));
+                if (!hooks.load) {
+                    failure = WorkError::Corrupt;
+                    break;
+                }
+                const SnapshotHookStatus loaded = hooks.load(
+                    item.key, image.encoding, image.expire_at_ms, payload,
+                    shard.type_limits(), next.clone);
+                if (loaded != SnapshotHookStatus::Ok || !next.clone) {
+                    failure = loaded == SnapshotHookStatus::Oom
+                        ? WorkError::Oom : WorkError::Corrupt;
+                    break;
+                }
+            }
+            if (!store.atomic_prepare_plain(item.key, origin_conn_id, next.entry)) {
+                if (next.clone) kvobj_free(next.clone);
+                failure = WorkError::Oom;
+                break;
+            }
+            try { prepared.push_back(next); }
+            catch (const std::bad_alloc&) {
+                store.atomic_discard_plain(next.entry);
+                if (next.clone) kvobj_free(next.clone);
+                failure = WorkError::Oom;
+                break;
+            }
+        }
+        if (failure == WorkError::None &&
+            !store.atomic_prepare_capacity(static_cast<uint32_t>(prepared.size())))
+            failure = WorkError::InsertFailed;
+        for (PreparedLocal& item : prepared) {
+            if (failure != WorkError::None) break;
+            if (!store.atomic_admit(item.key.key, item.clone)) {
+                failure = WorkError::Oom;
+                break;
+            }
+            item.admitted = true;
+        }
+        if (failure != WorkError::None) {
+            for (PreparedLocal& item : prepared) {
+                store.atomic_discard_plain(item.entry);
+                if (item.admitted) store.atomic_unadmit(item.clone);
+                if (item.clone) kvobj_free(item.clone);
+            }
+            store.atomic_clear_read_epoch();
+            reply_work_error(op, failure);
             return false;
         }
+
+        // The ticket is drawn once, before any physical install. No other task can enter this shard
+        // until the handler finishes, so a snapshot that observes the ticket can only execute after
+        // every key is installed; an older one resolves every recorded predecessor at the same cut.
+        const uint64_t ticket = server.atomic_commit();
+        for (PreparedLocal& item : prepared)
+            store.atomic_install_plain(
+                item.key.hash, item.key.key, item.entry, item.clone, ticket);
         return true;
     }
     store.atomic_promote_key(op.hash, op.key(), floor, cleanup_cutoff);
@@ -422,7 +573,13 @@ uint32_t xshard_cleanup_shard(Server& server, Shard& shard, uint32_t budget) {
     // publish-then-confirm sequence and seq_cst ordering, a cleanup that missed a newly published
     // reader can never reclaim a version committed after that reader's chosen cut.
     const uint64_t cleanup_cutoff = server.atomic_snapshot();
-    return shard.store().atomic_sweep(server.atomic_read_floor(), cleanup_cutoff, budget);
+    return xshard_cleanup_shard_at(
+        shard, server.atomic_read_floor(), cleanup_cutoff, budget);
+}
+
+uint32_t xshard_cleanup_shard_at(Shard& shard, uint64_t floor, uint64_t cleanup_cutoff,
+                                 uint32_t budget) {
+    return shard.store().atomic_sweep(floor, cleanup_cutoff, budget);
 }
 
 }  // namespace tomo

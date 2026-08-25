@@ -402,6 +402,10 @@ private:
             }
 
             op->db    = static_cast<uint8_t>(c->session().db_index);
+            // This command only needs an owner-local same-connection pending lookup when an older
+            // cross-shard atomic group was already in flight. Set the immutable bit before the
+            // current group increments the count, so a group never treats itself as a predecessor.
+            if (c->has_atomic_group_io()) op->mark_atomic_hazard();
             ScatterDispatch scatter_dispatch;
             const ScatterPrepare scatter_prepared =
                 xshard_prepare(*srv_, *op, scatter_pool_, self_->id(), c->id(), scatter_dispatch);
@@ -417,31 +421,102 @@ private:
                 break;
             }
             if (scatter_prepared == ScatterPrepare::Ready) {
+                // Read-only/plain scatters keep the compact V3 dispatch arm. Constructing route and
+                // bundle arrays for MGET added work without helping its already-cheap individual
+                // queue stores. Atomic writes take the bundled arm below, where fan-out dominates.
+                if (!scatter_dispatch.atomic_write) {
+                    uint32_t needed[kMaxThreads] = {};
+                    for (uint32_t i = 0; i < scatter_dispatch.nshards; i++) {
+                        const int32_t sid = xshard_dispatch_shard(scatter_dispatch, i);
+                        needed[srv_->worker_of_shard(sid)]++;
+                    }
+                    bool room = true;
+                    for (uint32_t tid = 0; tid < srv_->nthreads(); tid++) {
+                        if (needed[tid] &&
+                            srv_->thread(tid).task_free_slots(self_->id()) < needed[tid]) {
+                            room = false;
+                            break;
+                        }
+                    }
+                    if (!room) {
+                        xshard_destroy(scatter_dispatch.state, scatter_pool_, self_->id());
+                        break;
+                    }
+                    const uint64_t op_id = rob.dispatch_id();
+                    op->attach_scatter_state(scatter_dispatch.state);
+                    rob.publish();
+                    for (uint32_t i = 0; i < scatter_dispatch.nshards; i++) {
+                        const int32_t sid = xshard_dispatch_shard(scatter_dispatch, i);
+                        const uint32_t tid = srv_->worker_of_shard(sid);
+                        ThreadCtx& owner = srv_->thread(tid);
+                        const Task task{c, op_id, sid, scatter_dispatch.state};
+                        if (!owner.post_task_quiet(self_->id(), task, sig)) std::abort();
+                        if (!touched_[tid]) {
+                            touched_[tid] = true;
+                            touched_list_[ntouched_++] = tid;
+                        }
+                    }
+                    self_->note_command(spec->id);
+                    conn.advance_parse(consumed);
+                    sig.ops++;
+                    head_candidate = false;
+                    if (scatter_dispatch.barrier) c->set_scatter_barrier(true);
+                    mark_active(c);
+                    continue;
+                }
+
                 uint32_t needed[kMaxThreads] = {};
+                uint32_t participants[kMaxThreads];
+                uint16_t routed_owner[256];
+                int32_t routed_shard[256];
+                uint32_t nparticipants = 0;
                 for (uint32_t i = 0; i < scatter_dispatch.nshards; i++) {
                     const int32_t sid = xshard_dispatch_shard(scatter_dispatch, i);
-                    needed[srv_->worker_of_shard(sid)]++;
+                    const uint32_t tid = srv_->worker_of_shard(sid);
+                    routed_shard[i] = sid;
+                    routed_owner[i] = static_cast<uint16_t>(tid);
+                    if (needed[tid]++ == 0) participants[nparticipants++] = tid;
                 }
                 bool room = true;
-                for (uint32_t tid = 0; tid < srv_->nthreads(); tid++)
-                    if (needed[tid] && srv_->thread(tid).task_free_slots(self_->id()) < needed[tid]) {
+                for (uint32_t p = 0; p < nparticipants; p++) {
+                    const uint32_t tid = participants[p];
+                    if (srv_->thread(tid).task_free_slots(self_->id()) < needed[tid]) {
                         room = false; break;
                     }
+                }
                 if (!room) {
                     xshard_destroy(scatter_dispatch.state, scatter_pool_, self_->id());
                     break;
                 }
                 const uint64_t op_id = rob.dispatch_id();
                 op->attach_scatter_state(scatter_dispatch.state);
+                c->atomic_group_started();
                 rob.publish();
+                Task posts[256];
+                uint16_t participant_begin[kMaxThreads];
+                uint32_t cursor = 0;
+                for (uint32_t p = 0; p < nparticipants; p++) {
+                    const uint32_t tid = participants[p];
+                    participant_begin[p] = static_cast<uint16_t>(cursor);
+                    cursor += needed[tid];
+                    needed[tid] = participant_begin[p]; // reuse as the fill cursor
+                }
                 for (uint32_t i = 0; i < scatter_dispatch.nshards; i++) {
-                    const int32_t sid = xshard_dispatch_shard(scatter_dispatch, i);
-                    const uint32_t tid = srv_->worker_of_shard(sid);
+                    const uint32_t tid = routed_owner[i];
+                    posts[needed[tid]++] = Task{
+                        c, op_id, routed_shard[i], scatter_dispatch.state};
+                }
+                if (cursor != scatter_dispatch.nshards) std::abort();
+                for (uint32_t p = 0; p < nparticipants; p++) {
+                    const uint32_t tid = participants[p];
+                    const uint32_t begin = participant_begin[p];
+                    const uint32_t end = p + 1 < nparticipants
+                        ? participant_begin[p + 1] : scatter_dispatch.nshards;
                     ThreadCtx& owner = srv_->thread(tid);
-                    const Task task{c, op_id, sid, scatter_dispatch.state};
-                    // Capacity was checked for this producer's SPSC channel before any push. Its
-                    // only concurrent actor is the consumer, which can only create more room.
-                    if (!owner.post_task_quiet(self_->id(), task, sig)) std::abort();
+                    // Capacity was checked before any push. Publish all of this group's tasks for
+                    // one executor with one queue-tail store; the parse-pass notify remains folded.
+                    if (!owner.post_tasks_quiet(
+                            self_->id(), posts + begin, end - begin, sig)) std::abort();
                     if (!touched_[tid]) { touched_[tid] = true; touched_list_[ntouched_++] = tid; }
                 }
                 self_->note_command(spec->id); // one public command, not one count per shard task
@@ -650,7 +725,7 @@ private:
             // Reset only when the ROB is quiescent AND no recv is outstanding — see conn.h. Then
             // re-arm, in that order.
             if (c->scatter_barrier() && c->rob().quiesced()) c->set_scatter_barrier(false);
-            if (c->atomic_backpressure() && srv_->atomic_can_admit() &&
+            if (c->atomic_backpressure() && srv_->atomic_can_admit(self_->id()) &&
                 scatter_pool_.can_register_snapshot())
                 c->set_atomic_backpressure(false);
             if (c->rob().quiesced() && !conn.recv_armed()) conn.reset_rbuf_at_quiescence();

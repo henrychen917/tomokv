@@ -24,7 +24,7 @@ BIN      := build/tomokv
 
 all: $(BIN)
 
-$(BIN): $(SRC) $(wildcard src/*/*.h) Makefile
+$(BIN): $(SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $(SRC) -o $@ $(JELIBS) $(LDLIBS)
 

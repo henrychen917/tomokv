@@ -47,6 +47,16 @@ inline constexpr uint32_t kInboxSlots = 1024;
 
 enum class Role : uint8_t { Idle = 0, Ifid = 1, Ex = 2 };
 
+// Admission credits are leased to the connection-owning IO. Plain fields have exactly one writer;
+// CONFIG/INFO consult only the published mirrors. No field names a shard or shard-side structure.
+struct alignas(64) AtomicAdmissionLease {
+    uint64_t generation = 0;
+    uint32_t available = 0;
+    uint32_t active = 0;
+    std::atomic<uint32_t> published_active{0};
+    std::atomic<uint32_t> reconfig_carry{0};
+};
+
 // What travels on task_in_. A handle rather than a raw Op*: the worker resolves it through the
 // client's ROB, so a recycled slot cannot be reached through a stale pointer. The client itself
 // cannot be torn down while any op is in flight — that is the quiescence fence.
@@ -116,6 +126,12 @@ public:
     uint64_t command_calls(uint32_t id) const {
         return id < command_count_size_ ? command_counts_[id] : 0;
     }
+    void note_atomic_group() { atomic_groups_++; }
+    uint64_t atomic_groups() const { return atomic_groups_; }
+    void note_atomic_localfast() { atomic_localfast_++; }
+    uint64_t atomic_localfast() const { return atomic_localfast_; }
+    AtomicAdmissionLease& atomic_admission_lease() { return atomic_admission_lease_; }
+    const AtomicAdmissionLease& atomic_admission_lease() const { return atomic_admission_lease_; }
 
     // ---- posting (producer side) ---------------------------------------------------------------
     // Push AND flag, in that order. Flagging before the push would let the consumer take the bit,
@@ -136,6 +152,9 @@ public:
     // has to be perfect.
     bool post_task_quiet(uint32_t from, const Task& t, LoopSignals& sig) {
         return task_in_[from].push(t, sig);
+    }
+    bool post_tasks_quiet(uint32_t from, const Task* tasks, uint32_t count, LoopSignals& sig) {
+        return task_in_[from].push_batch(tasks, count, sig);
     }
     uint32_t task_free_slots(uint32_t from) const {
         return task_in_[from].producer_free_slots();
@@ -350,6 +369,9 @@ private:
     std::unique_ptr<ReleaseChan[]> release_in_;
     std::unique_ptr<uint64_t[]> command_counts_;
     uint32_t command_count_size_ = 0;
+    uint64_t atomic_groups_ = 0;
+    uint64_t atomic_localfast_ = 0;
+    AtomicAdmissionLease atomic_admission_lease_;
     ReadyMask  ready_;                     // as a sender: which of my clients completed work
     std::vector<Client*>  slots_;          // slot -> client, sender-owned
     std::vector<uint32_t> free_slots_;

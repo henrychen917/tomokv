@@ -230,6 +230,10 @@ public:
         if (!q_.push(v)) { sig.full_events++; return false; }
         return true;
     }
+    bool push_batch(const T* values, uint32_t count, LoopSignals& sig) {
+        if (!q_.push_batch(values, count)) { sig.full_events++; return false; }
+        return true;
+    }
 
     // Call ONLY when the caller performed the mask's empty->flagged transition. That RMW is a full
     // fence, which is what makes this load safe: without it, store(blocked_)/load(mask) on the

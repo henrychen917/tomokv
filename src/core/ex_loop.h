@@ -163,13 +163,17 @@ private:
     uint32_t atomic_cleanup_cycle(uint32_t budget) {
         auto& shards = self_->shards();
         if (shards.empty() || !budget) return 0;
+        // Preserve the cutoff-before-floor handshake once for this owner pass, then reuse the exact
+        // pair for every owned shard. A stale-low floor is safe; reversing these loads is not.
+        const uint64_t cleanup_cutoff = srv_->atomic_snapshot();
+        const uint64_t floor = srv_->atomic_read_floor();
         uint32_t work = 0;
         for (size_t visited = 0; visited < shards.size(); visited++) {
             if (atomic_cleanup_cursor_ >= shards.size()) atomic_cleanup_cursor_ = 0;
             Shard* shard = shards[atomic_cleanup_cursor_++];
             if (!shard->store().atomic_has_records()) continue;
             shard->set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
-            work += xshard_cleanup_shard(*srv_, *shard, budget - work);
+            work += xshard_cleanup_shard_at(*shard, floor, cleanup_cutoff, budget - work);
             if (work >= budget) break;
         }
         return work;
@@ -467,7 +471,8 @@ private:
         if (!t.scatter) self_->note_command(op.spec->id);
 
         if (t.scatter) {
-            if (xshard_execute(t, sh, op, self_->id()) == ScatterTaskResult::Retry) return false;
+            const ScatterTaskResult result = xshard_execute(t, sh, op, self_->id());
+            if (result == ScatterTaskResult::Retry) return false;
             sh.publish_size();
             if (xshard_complete(*srv_, *self_, ring_, t, op) == ScatterFinish::Waiting) return true;
         } else if (__builtin_expect(op.spec->flags & CmdFlags::DenyOom, false) &&

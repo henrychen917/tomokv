@@ -43,6 +43,23 @@ public:
         return true;
     }
 
+    // Producer-side bundle publication. Capacity is checked against one refreshed consumer
+    // frontier and every slot is initialized before the single release-store of tail. This is the
+    // same SPSC proof as push(), but a scatter group that touches several shards on one executor
+    // pays one publication instead of one per shard task.
+    bool push_batch(const T* values, uint32_t count) {
+        if (!count) return true;
+        const uint32_t t = tail_.load(std::memory_order_relaxed);
+        const uint32_t next = t + count;
+        if (next - head_cached_ > Capacity) {
+            head_cached_ = head_.load(std::memory_order_acquire);
+            if (next - head_cached_ > Capacity) return false;
+        }
+        for (uint32_t i = 0; i < count; i++) slots_[(t + i) & kMask] = values[i];
+        tail_.store(next, std::memory_order_release);
+        return true;
+    }
+
     // Producer-only group reservation check. Unlike depth(), this acquire-refreshes the consumer
     // frontier and is safe for the all-or-nothing scatter preflight. The producer performs no
     // intervening unrelated pushes between this check and its group enqueue.

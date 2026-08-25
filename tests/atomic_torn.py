@@ -108,8 +108,9 @@ def signature(values):
     return heads[0] if all(head == heads[0] for head in heads) else b"TORN"
 
 
-def hammer(prefix, atomic, seconds=2.0, writers=2, readers=4):
-    keys = ["%s:k%d" % (prefix, i) for i in range(8)]
+def hammer(prefix, atomic, seconds=2.0, writers=2, readers=4, keys=None):
+    if keys is None:
+        keys = ["%s:k%d" % (prefix, i) for i in range(8)]
     config("atomic", atomic)
     init = Resp()
     mset(init, keys, "%s:init" % prefix)
@@ -199,6 +200,35 @@ note("ON exercised promotion", promo_delta > 0, "delta=%d" % promo_delta)
 note("atomic_inflight returns to idle", after.get("atomic_inflight", -1) == 0,
      "value=%d" % after.get("atomic_inflight", -1))
 
+# Same-owner write localfast is a separate atomic arm: no cross-shard publication window and no
+# group entry. The hash seed is randomized at boot, so discover a distinct-key MSET-2 pair by the
+# fired counter instead of copying an implementation hash into the test. With no concurrent load in
+# this discovery loop, the first counter transition proves both keys routed to one shard.
+local_pair = None
+probe = Resp()
+local_seen = stats().get("atomic_localfast", 0)
+for candidate in range(512):
+    pair = ["at:local:%d:a" % candidate, "at:local:%d:b" % candidate]
+    mset(probe, pair, "local:probe")
+    observed = stats().get("atomic_localfast", 0)
+    if observed > local_seen:
+        local_pair = pair
+        break
+    local_seen = observed
+probe.close()
+local_before = stats().get("atomic_localfast", 0)
+if local_pair is not None:
+    local_torn, local_reads, local_errors, _, _ = hammer(
+        "at:local", 1, seconds=2.0, writers=2, readers=4, keys=local_pair)
+else:
+    local_torn, local_reads, local_errors = -1, 0, ["no same-shard pair found"]
+local_after = stats().get("atomic_localfast", 0)
+note("same-owner atomic MSET-2 localfast is torn-free",
+     local_pair is not None and local_torn == 0 and local_reads > 0 and
+     not local_errors and local_after > local_before,
+     "keys=%r torn=%d reads=%d localfast=%d errors=%r" %
+     (local_pair, local_torn, local_reads, local_after - local_before, local_errors))
+
 # Two overlapping atomic writers on exactly the same key set. The final state after the cleanup
 # opportunity supplied by the last MGET must be one complete group, never the physical inversion.
 ov_torn, ov_reads, ov_errors, ov_final, ov_completed = hammer(
@@ -238,6 +268,72 @@ window_after = stats().get("atomic_window_stalls", 0)
 note("atomic-window stalls and resumes",
      not window_errors and window_after > window_before,
      "stalls=%d errors=%r" % (window_after - window_before, window_errors))
+config("atomic-window", 256)
+
+# Credit leases must preserve the exact configured bound while CONFIG changes it under load. A
+# shrink may inherit more already-admitted groups than the new limit; wait for that unavoidable
+# debt to retire, then prove no subsequent sample exceeds the bound. Finally, an idle system must
+# have returned every leased credit to the pool so a skewed next IO can consume the whole window.
+lease_stop = threading.Event()
+lease_errors = []
+
+
+def lease_writer(wid):
+    client = Resp()
+    keys = ["at:lease:%d:k%d" % (wid, key) for key in range(8)]
+    seq = 0
+    try:
+        while not lease_stop.is_set():
+            if mset(client, keys, "lease:%d:%d" % (wid, seq)) != b"OK":
+                raise AssertionError("bad lease reply")
+            seq += 1
+    except Exception as exc:
+        lease_errors.append("writer%d:%s" % (wid, exc))
+    finally:
+        client.close()
+
+
+lease_threads = [threading.Thread(target=lease_writer, args=(i,), daemon=True) for i in range(8)]
+for thread in lease_threads:
+    thread.start()
+for value in (31, 7, 19, 3):
+    if not config("atomic-window", value):
+        lease_errors.append("CONFIG atomic-window %d failed" % value)
+deadline = time.time() + 3
+bounded = False
+max_inflight = 0
+while time.time() < deadline:
+    sample = stats()
+    live = sample.get("atomic_inflight", 1000000)
+    debt = sample.get("atomic_credit_debt", 1000000)
+    if live <= 3 and debt == 0:
+        bounded = True
+        break
+    time.sleep(0.01)
+if bounded:
+    deadline = time.time() + 0.4
+    while time.time() < deadline:
+        live = stats().get("atomic_inflight", 1000000)
+        max_inflight = max(max_inflight, live)
+        if live > 3:
+            bounded = False
+            break
+lease_stop.set()
+for thread in lease_threads:
+    thread.join(timeout=10)
+deadline = time.time() + 3
+lease_after = stats()
+while lease_after.get("atomic_inflight", -1) != 0 and time.time() < deadline:
+    time.sleep(0.01)
+    lease_after = stats()
+note("atomic-window reconfiguration preserves bound and reclaims leases",
+     bounded and not any(thread.is_alive() for thread in lease_threads) and not lease_errors and
+     lease_after.get("atomic_inflight", -1) == 0 and
+     lease_after.get("atomic_credit_debt", -1) == 0 and
+     lease_after.get("atomic_credit_pool", -1) == 3,
+     "max=%d pool=%d debt=%d errors=%r" %
+     (max_inflight, lease_after.get("atomic_credit_pool", -1),
+      lease_after.get("atomic_credit_debt", -1), lease_errors))
 config("atomic-window", 256)
 
 # Live CONFIG flips under active traffic are a liveness/safety arm. OFF intervals deliberately do

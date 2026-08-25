@@ -58,6 +58,7 @@ public:
         argc_ = 0;
         spec  = nullptr;
         shard = -1;
+        route_flags_ = 0;
         reply.clear();
         direct = nullptr;
         direct_cap = direct_len = 0;
@@ -109,6 +110,14 @@ public:
     // Slices that point into it. See Rob::pinned_rbuf_off().
     uint32_t rbuf_off = 0;
     uint8_t  db       = 0;              // session snapshot at parse -- handlers never see Session
+
+    // IO knows whether this command was issued behind an unfinished cross-shard atomic group on
+    // the same connection. Capture that fact before publish so executors can skip the owner-local
+    // pending lookup without reading a remote Client cache line. The bit occupies existing padding
+    // before SmallBuf; Op's signed 336-byte footprint is unchanged.
+    void mark_atomic_hazard() { route_flags_ |= kAtomicHazard; }
+    bool atomic_hazard() const { return route_flags_ & kAtomicHazard; }
+    uint8_t route_flags_ = 0;
 
     SmallBuf<kInlineReply> reply;           // worker writes RESP here (the spill/general sink)
 
@@ -188,6 +197,7 @@ public:
     bool local_xshard() const { return zc_shard == kLocalXshardMarker; }
 
 private:
+    static constexpr uint8_t kAtomicHazard = 1u << 0;
     Slice    argv_inline_[kInlineArgv];
     Slice*   argv_heap_ = nullptr;
     uint32_t argv_cap_  = 0;

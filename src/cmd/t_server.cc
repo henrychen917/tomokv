@@ -650,7 +650,8 @@ void cmd_info(Shard&, Op& op) {
     uint64_t atomic_predecessor_reads = 0, atomic_chain_max = 0,
              atomic_promotions = 0, atomic_records_freed = 0,
              atomic_entries = 0, atomic_pending_entries = 0,
-             atomic_cleanup_fast = 0, atomic_cleanup_slow = 0;
+             atomic_cleanup_fast = 0, atomic_cleanup_slow = 0,
+             atomic_localfast = 0;
     if (g_server) {
         for (uint32_t i = 0; i < g_server->nshards(); i++) {
             const Shard& sh = g_server->shard(static_cast<int32_t>(i));
@@ -672,6 +673,7 @@ void cmd_info(Shard&, Op& op) {
                 total_ops += g_server->thread(t).command_calls(id);
             connections += g_server->thread(t).sig().accepts;
             rejected += g_server->thread(t).sig().accept_err;
+            atomic_localfast += g_server->thread(t).atomic_localfast();
         }
     }
     uint64_t connected = 0;
@@ -726,7 +728,8 @@ void cmd_info(Shard&, Op& op) {
                       "atomic_cleanup_fast:%llu\r\natomic_cleanup_slow:%llu\r\n"
                       "atomic_promotions:%llu\r\natomic_window_stalls:%llu\r\n"
                       "atomic_records_freed:%llu\r\natomic_entries:%llu\r\n"
-                      "atomic_pending_entries:%llu\r\n",
+                      "atomic_pending_entries:%llu\r\natomic_localfast:%llu\r\n"
+                      "atomic_credit_pool:%u\r\natomic_credit_debt:%u\r\n",
                 static_cast<unsigned long long>(connections), static_cast<unsigned long long>(rejected),
                 static_cast<unsigned long long>(total_ops), static_cast<unsigned long long>(hits),
                 static_cast<unsigned long long>(misses), static_cast<unsigned long long>(expired),
@@ -741,7 +744,10 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(g_server ? g_server->atomic_window_stalls() : 0),
                 static_cast<unsigned long long>(atomic_records_freed),
                 static_cast<unsigned long long>(atomic_entries),
-                static_cast<unsigned long long>(atomic_pending_entries));
+                static_cast<unsigned long long>(atomic_pending_entries),
+                static_cast<unsigned long long>(atomic_localfast),
+                g_server ? g_server->atomic_credit_pool() : 0,
+                g_server ? g_server->atomic_credit_debt() : 0);
     }
     if (info_section(op, "COMMANDSTATS")) {
         body += "# Commandstats\r\n";

@@ -406,6 +406,15 @@ public:
     // soon as any group retires, parsing may resume without waiting for this connection's ROB.
     bool atomic_backpressure() const { return atomic_backpressure_; }
     void set_atomic_backpressure(bool v) { atomic_backpressure_ = v; }
+    // The owning IO thread captures this into each Op before dispatch. Executors never read Client
+    // atomic bookkeeping: doing so pulled this tail cache line across cores for every shard task
+    // and regressed the pure-MGET cell even when no atomic group existed.
+    bool has_atomic_group_io() const { return atomic_groups_io_ != 0; }
+    void atomic_group_started() { ++atomic_groups_io_; }
+    void atomic_group_finished() {
+        if (!atomic_groups_io_) std::abort();
+        --atomic_groups_io_;
+    }
     bool in_active() const { return in_active_; }
     void set_in_active(bool v) { in_active_ = v; }
 
@@ -485,6 +494,7 @@ private:
     // --- executor-facing atomics, on their own line ---------------------------------------------
     alignas(64) std::atomic<bool>     retire_queued_{false};
     std::atomic<uint32_t> wb_slot_{kNoWbSlot};
+    uint32_t atomic_groups_io_ = 0; // connection-IO-owned; captured into Op before dispatch
 };
 
 // Same footprint law as Op: Client is per-connection resident memory and its io-hot head is

@@ -99,6 +99,127 @@ The command templates remain `MSET __key__:0 __data__ ... __key__:7 __data__` an
 `MGET __key__:0 ... __key__:7`, passed via `--command-key-pattern=R`. The sustained arms use
 `--test-time 30 --key-minimum 1` with `--key-maximum 100000` and `100000000`, respectively.
 
+## ATOMICS V4 write-path rework
+
+V4 keeps the shard-owner contract literal: an IO thread touches only its connection, Op/argv,
+ScatterState, admission lease, and fresh unlinked allocations. Every store probe, exchange,
+pending-entry link, resolution, promotion, and drain-list mutation remains on the shard's owning
+executor. The signed footprints remain `sizeof(Op)==336` and `sizeof(Client)==1984`; all atomic
+owner write passes still call `atomic_prepare_capacity` before their first physical install.
+
+### Lever accounting
+
+1. **Atomic same-owner localfast.** A same-shard atomic write lowers to one ordinary owner task. With
+   no pending entry on that shard it executes the original handler directly. With a recorded key it
+   prepares every touched clone and entry, performs one capacity/admission preflight, draws one
+   ticket, installs the complete local group, and then executes the handler. It creates no group
+   pending entry and parks only behind an exact same-connection predecessor. `INFO STATS` exposes
+   `atomic_localfast`; the new non-vacuous torn arm discovers a distinct-key same-shard MSET-2 pair
+   under the randomized hash seed and requires both counter movement and zero tears.
+2. **Atomic fan-out folding.** IO constructs the participant map once and publishes all shard tasks
+   for one destination executor with one SPSC tail store; the existing parse-pass wake fold provides
+   one notification per destination. Atomic completion decrements the shared group count once per
+   participating executor, then preserves the single final commit ticket and release publication.
+   Cleanup retirement posts no per-shard tasks. Non-atomic reads retain the compact V3 posting arm:
+   using the write bundle arrays for MGET was measured and removed as read-only overhead.
+3. **IO-side value prebuild.** Atomic MSET/MSETNX strings above the 192-byte embedded cutover are
+   allocated and copied on the owning IO, carried unlinked in KeyRef, and transferred only when the
+   shard owner installs them. Admission stays owner-side. Error and MSETNX-abandon paths free the
+   never-linked object from IO retirement. Prebuilding every value was also built, but regressed the
+   default MSET-8 cell by about 18% because it replaced the owner's warm value pool with generic
+   allocation; V4 therefore moves only the allocation/copy work that was already heap-backed.
+4. **Residual diet.** Membership bits are accumulated while the atomic participant map is built;
+   each pending entry is linked once after its complete owner install; aborted state is hoisted out
+   of the key loop; parked/installed byte accounting is folded to one gauge update per task. The
+   same-connection hazard is captured by the connection-owning IO in an immutable Op bit before
+   publish, so ordinary executor tasks never pull Client bookkeeping across cores. Per-shard reads
+   branch once on `atomic_has_records`; MGET specializes the complete owner loop so the no-pending
+   arm contains no per-key selector.
+5. **Per-owner completion.** Owner-local remaining counts turn the former 6.45 shared decrements per
+   random MSET-8 into at most the number of executors (two in the measured 6:2 placement), without
+   changing last-completer decision or publication ordering.
+6. **IO admission leases.** Each IO borrows up to eight window credits and accounts its active groups
+   locally. An odd/even generation and borrow/return handshake makes CONFIG reconfiguration exact;
+   shrink debt is repaid by retiring old-generation groups, idle IOs return unused batches, and a
+   flip rebuilds the pool from published active counts. The live test drives window 31 -> 7 -> 19 ->
+   3 under eight writers, checks the observed bound after shrink, and requires `pool=3,debt=0` after
+   drain. INFO exposes `atomic_credit_pool` and `atomic_credit_debt`.
+7. **Direct participant lookup.** Atomic writes have one direct shard-to-group map used by dispatch,
+   install, hazard, and completion. A stronger prototype replaced all of an executor's shard tasks
+   with one executable bundle and reduced task/shared-decrement count to two per group, but lost
+   3-7% from the larger execution/fairness unit; it was removed. V4 retains batched queue publication
+   plus per-owner completion, the positive part of that probe.
+8. **Contention index probe.** The adaptive pending-key index was implemented with owner-local build,
+   resolve, and teardown thresholds. Even inactive maintenance was measurable in pure write, while
+   active rebuild churn produced far more builds than useful resolves in the tested spans. Because
+   the binding requirement is zero cost in 9:1 and pure-write cells, the index was removed rather
+   than shipped always-on or with an unearned threshold.
+9. **Snapshot floor/cutoff fold.** Executor cleanup samples one cutoff/floor pair per owner cycle and
+   reuses it for every owned shard. IO snapshot registration maintains an exact cached minimum plus
+   reference count and O(1) state slots; completed reads behind the ROB are removed from the unresolved
+   set, unchanged floors are not republished, and only IO floor publishers are scanned by cleanup.
+
+Entry representation, mainline reclaim cadence, and the existing pools are otherwise unchanged, as
+required by the audit's KEEP-AS-IS results.
+
+### V4 measurements
+
+The final A/B was run on 2026-08-25 with server CPUs `240-243,248-251`, memtier CPUs
+`244-247,252-255`, 16 shards, ratio 6:2, t8/c8, pipeline 32, a 100k key range, random command keys,
+default 32-byte data, and 15 seconds per cell. V3 is the untouched b00458f1c split binary; V4 is this
+checkout. The populated MGET arm used the same deterministic 100k MSET pass before each binary.
+GSMM assigns equal ratios to GET, SET, MGET-8, and MSET-8.
+
+| 15-second atomic-ON cell | V3 commands/s | V4 commands/s | V4/V3 |
+| --- | ---: | ---: | ---: |
+| populated MGET-8 | 1,390,973 | 1,423,925 | 102.4% |
+| 9:1 MGET-8:MSET-8 | 685,224 | 737,730 | 107.7% |
+| 1:1 MGET-8:MSET-8 | 448,345 | 453,950 | 101.3% |
+| pure MSET-8 | 420,392 | 435,835 | 103.7% |
+| equal GET/SET/MGET-8/MSET-8 (GSMM) | 753,556 | 772,530 | 102.5% |
+
+The host was under different background load than the supplied verdict capture, so absolute rates
+are not compared across those runs. Applying the same-run V4/V3 ratios to the supplied V3 anchors
+gives 1.59M at 9:1, 867k at 1:1, 754k pure MSET-8, and 1.31M GSMM; the three write-heavy projections
+remain above the supplied fork-ON floors (1.07M, 618k, and 382k respectively). The owner verdict run
+remains authoritative for absolute acceptance.
+
+| Atomic-ON pure write arm | 16 shards commands/s | 8 shards commands/s |
+| --- | ---: | ---: |
+| MSET-2 | 1,162,776 | 1,208,473 |
+| MSET-4 | 755,552 | 770,722 |
+| MSET-8 | 466,287 | 498,299 |
+
+The 16-shard MSET-2/MSET-4 pass moved `atomic_localfast` by 1,103,073; the 8-shard MSET-2/4/8 pass
+moved it by 2,288,581. Thus the small-N/shard-count measurements exercise the direct arm rather than
+inferring it from total throughput.
+
+Executor-only `perf stat` on CPUs 243 and 251, collected concurrently with a 15-second MSET-8 arm,
+shows the following. V4's primary gain in this capture is lower cycles and cache misses rather than
+lower retired instruction count; the instruction diet did not yet close the remaining architectural
+gap to OFF.
+
+| MSET-8 executor metric/key | V3 | V4 | Change |
+| --- | ---: | ---: | ---: |
+| instructions | 1,584.8 | 1,591.7 | +0.4% |
+| cycles | 1,843.8 | 1,667.2 | -9.6% |
+| cache misses | 15.13 | 13.74 | -9.2% |
+| commands/s in the perf arm | 421,870 | 466,287 | +10.5% |
+
+### V4 validation record
+
+The full gate completed `27 ok, 0 FAIL` across release/ASAN correctness and both NIC regression
+cells. After the final floor and duplicate-MSETNX fixes, atomic torn and RYOW passed again in release
+and under ASAN/UBSAN with no sanitizer or leak report. Non-vacuous observations include OFF tears,
+zero ON tears, same-owner localfast movement, predecessor resolution and promotion, overlapping and
+abandoned writers, duplicate-key MSETNX last-value semantics, DEL-vs-MSET all-or-nothing, pipelined
+atomic/plain RYOW, live window shrink/grow/flip, and final `inflight=0,pending=0,pool=window,debt=0`.
+
+Zero-copy passed at atomic 0 and 1 in release and ASAN, with the send counter firing. The flush
+capture battery completed run plus restart/load verification on a 95MB dump containing 100,000
+950-byte values. Redis 8.9.241 differential runs produced zero diffs for string (4,033 ops), xshard
+(4,276), and cgaps (3,310) at both atomic 0 and 1. The drain-list shutdown checks remained clean.
+
 ## ATOMICS V2 performance rework (historical)
 
 The measured 8-core loopback decomposition that motivated V2 was:

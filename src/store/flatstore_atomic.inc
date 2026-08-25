@@ -61,11 +61,12 @@
     }
     template <typename KeyAt>
     bool atomic_group_has_own_undecided(const ScatterState* group, uint32_t count,
-                                        uint64_t origin_conn_id, KeyAt&& key_at) const {
+                                        uint64_t origin_conn_id, uint64_t membership,
+                                        KeyAt&& key_at) const {
         if (!atomic_pending_ || !group || !count) return false;
-        uint64_t membership = 0;
-        for (uint32_t i = 0; i < count; i++)
-            membership |= atomic_membership_bit(key_at(i).first);
+        if (!membership)
+            for (uint32_t i = 0; i < count; i++)
+                membership |= atomic_membership_bit(key_at(i).first);
         const uint32_t bucket = static_cast<uint32_t>(mix64(origin_conn_id)) & 63;
         for (AtomicEntry* entry = atomic_pending_->conn_heads[bucket]; entry;
              entry = entry->conn_next) {
@@ -115,7 +116,7 @@
                                std::atomic<uint64_t>* group_epoch,
                                std::atomic<uint32_t>* group_refs,
                                std::atomic<bool>* group_aborted, uint64_t origin_conn_id,
-                               uint32_t* owner_refs) {
+                               uint32_t* owner_refs, uint64_t membership) {
         if (!capacity || !atomic_ensure_pending()) return nullptr;
         AtomicEntry* entry = atomic_alloc_entry(capacity, 0);
         if (!entry) return nullptr;
@@ -127,6 +128,7 @@
         entry->owner_refs = owner_refs;
         entry->begin = begin;
         entry->capacity = capacity;
+        entry->membership = membership;
         return entry;
     }
 
@@ -146,11 +148,22 @@
         if (!entry || entry->count >= entry->capacity) std::abort();
         KvObj* old = atomic_exchange_physical(hash, key, value);
         entry->parked()[entry->count++] = old;
-        entry->membership |= atomic_membership_bit(hash);
-        if (old) atomic_version_bytes_ += kvobj_size(old);
-        if (value) atomic_version_bytes_ -= kvobj_size(value);
-        if (!entry->linked) atomic_link_entry(*entry);
         return old;
+    }
+
+    void atomic_finish_group_install(size_t parked_bytes, size_t installed_bytes) {
+        // atomic_admit charged every incoming object before its exchange. Once the whole shard pass
+        // is physical, only the displaced predecessors remain version bytes. Fold the owner-local
+        // gauge change into one write instead of mutating it twice for every installed key.
+        atomic_version_bytes_ += parked_bytes;
+        if (atomic_version_bytes_ < installed_bytes) std::abort();
+        atomic_version_bytes_ -= installed_bytes;
+    }
+
+    void atomic_publish_group(void* opaque) {
+        auto* entry = static_cast<AtomicEntry*>(opaque);
+        if (!entry || !entry->count || entry->linked) std::abort();
+        atomic_link_entry(*entry);
     }
 
 
@@ -229,6 +242,10 @@
         return true;
     }
 
+    void atomic_unadmit(const KvObj* incoming) {
+        if (incoming) atomic_version_bytes_ -= kvobj_size(incoming);
+    }
+
     void* atomic_acquire_value_block(size_t allocation) {
         allocation = good_size(allocation);
         if (!atomic_ensure_pending()) return nullptr;
@@ -288,6 +305,16 @@
 
     KvObj* atomic_resolve(uint64_t hash, Slice key, uint64_t snapshot) {
         return atomic_resolve_internal(hash, key, snapshot, true).value;
+    }
+
+    // A scatter owner hoists atomic_has_records() once before its per-key read loop. This direct arm
+    // retains find()'s bounded rehash progress but avoids reloading and retesting the pending-list
+    // pointer for every key in the group.
+    KvObj* atomic_find_tracked(uint64_t hash, Slice key) {
+        if (rehashing() && !snapshot_active_) rehash_step();
+        KvObj* found = atomic_resolve(hash, key, atomic_read_epoch_);
+        if (__builtin_expect(maxmemory_enabled_, false) && found) touch(found);
+        return found;
     }
 
     // Table walkers see one physical pointer per slot, while atomic tombstones may be pending-only.
