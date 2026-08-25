@@ -54,6 +54,7 @@ bool command_registry_init() {
     const CommandTable families[] = {
         string_command_table(), hash_command_table(), list_command_table(),
         set_command_table(), zset_command_table(), server_command_table(),
+        scripting_command_table(),
     };
     size_t total = 0;
     for (const CommandTable& family : families) total += family.size;
@@ -88,7 +89,8 @@ bool command_registry_init() {
             spec->first_key < 0 || spec->key_step < 0 ||
             (!(spec->flags & (CmdFlags::ConnLocal | CmdFlags::AllShards |
                               CmdFlags::RandomShard | CmdFlags::CursorShard |
-                              CmdFlags::ConfigRoute | CmdFlags::MultiShard)) &&
+                              CmdFlags::ConfigRoute | CmdFlags::MultiShard |
+                              CmdFlags::ScriptRoute)) &&
              spec->first_key >= spec->min_arity)) {
             std::fprintf(stderr, "invalid command registry row '%s'\n", spec->name);
             return false;

@@ -19,25 +19,25 @@ endif
 CXXFLAGS ?= -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread
 LDLIBS   ?= -luring -pthread
 SRC      := src/main.cc src/cmd/commands.cc src/cmd/xshard.cc src/cmd/hll.cc src/cmd/t_server.cc src/cmd/t_string.cc src/cmd/t_hash.cc \
-            src/cmd/t_list.cc src/cmd/t_set.cc src/cmd/t_zset.cc src/snapshot/snapshot.cc
+            src/cmd/t_list.cc src/cmd/t_set.cc src/cmd/t_zset.cc src/cmd/scripting.cc src/snapshot/snapshot.cc
 BIN      := build/tomokv
 
 all: $(BIN)
 
-$(BIN): $(SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+$(BIN): $(SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) $(wildcard third_party/lua/*) Makefile
 	@mkdir -p build
-	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $(SRC) -o $@ $(JELIBS) $(LDLIBS)
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $(SRC) -o $@ $(JELIBS) $(LDLIBS) -lm
 
 asan: CXXFLAGS += -fsanitize=address,undefined -fno-omit-frame-pointer -O1
 asan: BIN := build/tomokv-asan
 asan:
 	@mkdir -p build
-	$(CXX) $(CXXFLAGS) -I. $(SRC) -o build/tomokv-asan $(LDLIBS)
+	$(CXX) $(CXXFLAGS) -I. $(SRC) -o build/tomokv-asan $(LDLIBS) -lm
 
 tsan:
 	@mkdir -p build
 	$(CXX) -std=c++20 -O1 -g -Wall -Wextra -pthread -fsanitize=thread \
-	  -I. $(SRC) -o build/tomokv-tsan -luring -pthread
+	  -I. $(SRC) -o build/tomokv-tsan -luring -pthread -lm
 
 clean:
 	rm -rf build

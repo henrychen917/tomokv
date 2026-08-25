@@ -294,6 +294,15 @@ namespace {
 
 template <typename Fn>
 void for_each_touched_key(Op& op, Fn&& fn) {
+    if (op.spec->flags & CmdFlags::ScriptRoute) {
+        uint32_t first = 0, count = 0;
+        if (!command_script_key_range(op, first, count)) return;
+        for (uint32_t i = 0; i < count; i++) {
+            const Slice key = op.arg(first + i);
+            fn(FlatStore::hash_key(key), key);
+        }
+        return;
+    }
     Kind kind;
     if (!classify(op, kind)) {
         if (op.argc() > 1) fn(op.hash, op.key());
@@ -495,6 +504,19 @@ uint32_t ScatterArenaPool::reap_deferred() {
 }
 
 FlatStore::SnapshotWriteResult xshard_local_snapshot_prepare(Op& op, Shard& shard) {
+    if (op.spec->flags & CmdFlags::ScriptRoute) {
+        uint32_t first = 0, count = 0;
+        if (!command_script_key_range(op, first, count))
+            return FlatStore::SnapshotWriteResult::Error;
+        while (op.zc_len < count) {
+            const Slice key = op.arg(first + op.zc_len);
+            const auto result = shard.store().snapshot_prepare_write(
+                FlatStore::hash_key(key), key);
+            if (result != FlatStore::SnapshotWriteResult::Ready) return result;
+            op.zc_len++;
+        }
+        return FlatStore::SnapshotWriteResult::Ready;
+    }
     Kind kind;
     if (!classify(op, kind)) return FlatStore::SnapshotWriteResult::Ready;
     uint32_t count = 0;
