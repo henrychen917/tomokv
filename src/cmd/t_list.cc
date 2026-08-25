@@ -3,6 +3,7 @@
 // Small lists are one Compact. Expanded lists are a doubly linked list of Compact nodes; all
 // ownership remains on the shard executor and no collection storage is borrowed by replies.
 #include "command.h"
+#include "blocking.h"
 #include "xshard.h"
 #include "../core/shard.h"
 #include "../exec/op.h"
@@ -353,6 +354,7 @@ if (inserted_ != FlatStore::InsertResult::Inserted) {
     return;
         }
         reply_int(op.sink(), final_entries);
+        if (shard.has_blocking_waiters()) blocking_publish_list_op(shard, op);
         return;
     }
 
@@ -405,6 +407,7 @@ if (inserted_ != FlatStore::InsertResult::Inserted) {
         }
     }
     reply_int(op.sink(), list.entries());
+    if (shard.has_blocking_waiters()) blocking_publish_list_op(shard, op);
 }
 
 void cmd_lpush(Shard& shard, Op& op)  { push_generic(shard, op, true, false); }
@@ -877,6 +880,11 @@ static const CommandSpec kTable[] = {
     {"LREM",       4,  4, CmdFlags::Write,    cmd_lrem,       1,  1,  1},
     {"LTRIM",      4,  4, CmdFlags::Write,    cmd_ltrim,      1,  1,  1},
     {"LPOS",       3, -1, CmdFlags::Readonly, cmd_lpos,       1,  1,  1},
+    {"BLPOP",      3, -1, CmdFlags::Write | CmdFlags::Blocking | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
+    {"BRPOP",      3, -1, CmdFlags::Write | CmdFlags::Blocking | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
+    {"BLMPOP",     5, -1, CmdFlags::Write | CmdFlags::Blocking | CmdFlags::MultiShard,cmd_xshard_only,3,-1,1},
+    {"BLMOVE",     6,  6, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::Blocking | CmdFlags::MultiShard,cmd_xshard_only,1,2,1},
+    {"BRPOPLPUSH", 4,  4, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::Blocking | CmdFlags::MultiShard,cmd_xshard_only,1,2,1},
     {"LMPOP",      4, -1, CmdFlags::Write | CmdFlags::MultiShard,cmd_xshard_only,2,-1,1},
     {"LMOVE",      5,  5, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,cmd_xshard_only,1,2,1},
     {"RPOPLPUSH",  3,  3, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,cmd_xshard_only,1,2,1},

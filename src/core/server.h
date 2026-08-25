@@ -181,6 +181,25 @@ public:
     std::atomic<uint64_t>& next_client_id() { return next_client_id_; }
     std::atomic<bool>&     shutting_down()  { return shutting_down_; }
 
+    void blocking_client_parked() {
+        blocked_clients_.fetch_add(1, std::memory_order_relaxed);
+    }
+    void blocking_client_unparked() {
+        blocked_clients_.fetch_sub(1, std::memory_order_relaxed);
+    }
+    uint64_t blocked_clients() const {
+        return blocked_clients_.load(std::memory_order_relaxed);
+    }
+    void blocking_waiter_added() {
+        blocking_waiters_.fetch_add(1, std::memory_order_relaxed);
+    }
+    void blocking_waiter_removed() {
+        blocking_waiters_.fetch_sub(1, std::memory_order_relaxed);
+    }
+    uint64_t blocking_waiters() const {
+        return blocking_waiters_.load(std::memory_order_relaxed);
+    }
+
     uint64_t atomic_mode_state() const {
         return atomic_activity_.load(std::memory_order_acquire);
     }
@@ -528,6 +547,8 @@ private:
     uint8_t executor_slots_[kMaxThreads] = {};
     std::atomic<uint64_t> next_client_id_{1};
     std::atomic<bool>     shutting_down_{false};
+    std::atomic<uint64_t> blocked_clients_{0};
+    std::atomic<uint64_t> blocking_waiters_{0};
     std::atomic<uint64_t> live_config_version_{0};
     std::atomic<uint64_t> live_maxmemory_{0};
     std::atomic<uint8_t>  live_maxmemory_policy_{

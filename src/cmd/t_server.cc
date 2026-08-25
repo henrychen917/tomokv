@@ -660,7 +660,7 @@ void cmd_info(Shard&, Op& op) {
              atomic_promotions = 0, atomic_records_freed = 0,
              atomic_entries = 0, atomic_pending_entries = 0,
              atomic_cleanup_fast = 0, atomic_cleanup_slow = 0,
-             atomic_localfast = 0;
+             atomic_localfast = 0, blocking_waiters = 0;
     if (g_server) {
         for (uint32_t i = 0; i < g_server->nshards(); i++) {
             const Shard& sh = g_server->shard(static_cast<int32_t>(i));
@@ -676,6 +676,7 @@ void cmd_info(Shard&, Op& op) {
             atomic_pending_entries += sh.store().atomic_pending_entries();
             atomic_cleanup_fast += sh.store().atomic_cleanup_fast();
             atomic_cleanup_slow += sh.store().atomic_cleanup_slow();
+            blocking_waiters += sh.blocking_waiters();
         }
         for (uint32_t t = 0; t < g_server->nthreads(); t++) {
             for (uint32_t id = 0; id < command_registry_size(); id++)
@@ -696,8 +697,9 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(uptime));
     }
     if (info_section(op, "CLIENTS")) {
-        appendf(body, "# Clients\r\nconnected_clients:%llu\r\nblocked_clients:0\r\ntracking_clients:0\r\n",
-                static_cast<unsigned long long>(connected));
+        appendf(body, "# Clients\r\nconnected_clients:%llu\r\nblocked_clients:%llu\r\ntracking_clients:0\r\n",
+                static_cast<unsigned long long>(connected),
+                static_cast<unsigned long long>(g_server ? g_server->blocked_clients() : 0));
     }
     if (info_section(op, "MEMORY")) {
         size_t allocated = 0, resident = 0;
@@ -741,7 +743,8 @@ void cmd_info(Shard&, Op& op) {
                       "atomic_credit_pool:%u\r\natomic_credit_debt:%u\r\n"
                       "pubsub_channels:%llu\r\npubsub_subscriptions:%llu\r\n"
                       "pubsub_patterns:%llu\r\npubsub_home_entries:%llu\r\n"
-                      "pubsub_inflight:%llu\r\npubsub_pending_commands:%llu\r\n",
+                      "pubsub_inflight:%llu\r\npubsub_pending_commands:%llu\r\n"
+                      "blocking_waiters:%llu\r\n",
                 static_cast<unsigned long long>(connections), static_cast<unsigned long long>(rejected),
                 static_cast<unsigned long long>(total_ops), static_cast<unsigned long long>(hits),
                 static_cast<unsigned long long>(misses), static_cast<unsigned long long>(expired),
@@ -765,7 +768,8 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_pattern_subscriptions() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_home_entries() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_inflight() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->pubsub_pending() : 0));
+                static_cast<unsigned long long>(g_server ? g_server->pubsub_pending() : 0),
+                static_cast<unsigned long long>(blocking_waiters));
     }
     if (info_section(op, "COMMANDSTATS")) {
         body += "# Commandstats\r\n";

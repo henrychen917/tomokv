@@ -41,6 +41,7 @@ inline uint32_t bucket_of(uint64_t hash) { return static_cast<uint32_t>(hash) & 
 class Shard {
 public:
     Shard() = default;
+    ~Shard();
     Shard(const Shard&) = delete;
     Shard& operator=(const Shard&) = delete;
 
@@ -84,6 +85,20 @@ public:
                                  &stats_.atomic_entries);
     }
     uint32_t active_expire(uint32_t budget) { return store_.active_expire(budget); }
+
+    // The registry pointer and its map are owner-only.  Cross-thread INFO and atomic publication
+    // touch only these two atomics; ordinary shards retain one predicted-false waiter check.
+    bool has_blocking_waiters() const {
+        return blocking_waiters_.load(std::memory_order_relaxed) != 0;
+    }
+    uint64_t blocking_waiters() const {
+        return blocking_waiters_.load(std::memory_order_relaxed);
+    }
+    void set_blocking_dirty() { blocking_dirty_.store(true, std::memory_order_release); }
+    bool take_blocking_dirty() { return blocking_dirty_.exchange(false, std::memory_order_acquire); }
+    void*& blocking_registry_slot() { return blocking_registry_; }
+    void blocking_waiter_added() { blocking_waiters_.fetch_add(1, std::memory_order_relaxed); }
+    void blocking_waiter_removed() { blocking_waiters_.fetch_sub(1, std::memory_order_relaxed); }
 
     FlatStore&       store()       { return store_; }
     const FlatStore& store() const { return store_; }
@@ -174,6 +189,9 @@ private:
     FlatStore store_;
     Stats     stats_;
     TypeLimits type_limits_;
+    void* blocking_registry_ = nullptr;
+    std::atomic<uint64_t> blocking_waiters_{0};
+    std::atomic<bool> blocking_dirty_{false};
 };
 
 // Maps bucket -> shard id. A plain array: one indexed load on the hot path, and reassigning

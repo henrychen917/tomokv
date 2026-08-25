@@ -408,6 +408,8 @@ public:
     void set_atomic_backpressure(bool v) { atomic_backpressure_ = v; }
     bool subscriber_mode() const { return subscriber_mode_; }
     void set_subscriber_mode(bool v) { subscriber_mode_ = v; }
+    bool blocked() const { return blocked_; }
+    void set_blocked(bool value) { blocked_ = value; }
     // The owning IO thread captures this into each Op before dispatch. Executors never read Client
     // atomic bookkeeping: doing so pulled this tail cache line across cores for every shard task
     // and regressed the pure-MGET cell even when no atomic group existed.
@@ -475,6 +477,7 @@ private:
     bool      scatter_barrier_ = false;  // pads out the existing bool run; sizeof unchanged
     bool      atomic_backpressure_ = false;
     bool      subscriber_mode_ = false;  // IO-owned; consumes existing alignment padding
+    bool      blocked_ = false;
 
     // --- cold io state --------------------------------------------------------------------------
     uint64_t  id_ = 0;

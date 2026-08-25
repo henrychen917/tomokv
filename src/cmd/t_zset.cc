@@ -1,4 +1,5 @@
 #include "command.h"
+#include "blocking.h"
 #include "xshard.h"
 
 #include <algorithm>
@@ -1192,6 +1193,7 @@ if (inserted_ != FlatStore::InsertResult::Inserted) {
     } else {
         reply_int(op.sink(), static_cast<long long>(ch ? added + updated : added));
     }
+    if (processed && shard.has_blocking_waiters()) blocking_publish_zset_op(shard, op);
 }
 
 void cmd_zadd(Shard& shard, Op& op) { cmd_zadd_generic(shard, op, false); }
@@ -2232,6 +2234,9 @@ static const CommandSpec kTable[] = {
     {"ZPOPMAX",              2,  3, CmdFlags::Write,    cmd_zpopmax,               1,  1,  1},
     {"ZRANDMEMBER",          2,  4, CmdFlags::Readonly, cmd_zrandmember,           1,  1,  1},
     {"ZSCAN",                3, -1, CmdFlags::Readonly, cmd_zscan,                 1,  1,  1},
+    {"BZPOPMIN",             3, -1, CmdFlags::Write | CmdFlags::Blocking | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
+    {"BZPOPMAX",             3, -1, CmdFlags::Write | CmdFlags::Blocking | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
+    {"BZMPOP",               5, -1, CmdFlags::Write | CmdFlags::Blocking | CmdFlags::MultiShard,cmd_xshard_only,3,-1,1},
     {"ZMPOP",                4, -1, CmdFlags::Write | CmdFlags::MultiShard,cmd_xshard_only,2,-1,1},
     {"ZRANGESTORE",          5, -1, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,cmd_xshard_only,1,2,1},
 };

@@ -171,7 +171,8 @@ bool classify(const Op& op, Kind& kind) {
         {"KEYS", Kind::Keys}, {"PFCOUNT", Kind::Pfcount}, {"MSETNX", Kind::Msetnx},
         {"PFMERGE", Kind::Pfmerge}, {"RENAME", Kind::Rename},
         {"RENAMENX", Kind::Renamenx}, {"COPY", Kind::Copy}, {"SMOVE", Kind::Smove},
-        {"LMOVE", Kind::Lmove}, {"RPOPLPUSH", Kind::Rpoplpush},
+        {"LMOVE", Kind::Lmove}, {"BLMOVE", Kind::Lmove},
+        {"RPOPLPUSH", Kind::Rpoplpush}, {"BRPOPLPUSH", Kind::Rpoplpush},
         {"SINTER", Kind::Sinter}, {"SUNION", Kind::Sunion}, {"SDIFF", Kind::Sdiff},
         {"SINTERCARD", Kind::Sintercard}, {"SINTERSTORE", Kind::Sinterstore},
         {"SUNIONSTORE", Kind::Sunionstore}, {"SDIFFSTORE", Kind::Sdiffstore},
@@ -1488,7 +1489,12 @@ void cmd_xshard_only(Shard& shard, Op& op) {
             local_apply(shard, op, apply, {1, 2}, error);
         }
         if (error != WorkError::None) reply_work_error(op, error);
-        else reply_bulk(op.sink(), Slice(moved.data(), static_cast<uint32_t>(moved.size())));
+        else {
+            reply_bulk(op.sink(), Slice(moved.data(), static_cast<uint32_t>(moved.size())));
+            const Slice destination = op.arg(2);
+            blocking_publish_key(shard, FlatStore::hash_key(destination),
+                                 destination.p, destination.n);
+        }
         return;
     }
     if (kind == Kind::Bitop) {

@@ -25,6 +25,7 @@
 #include "../net/uring.h"
 #include "../net/wb.h"
 #include "../cmd/command.h"
+#include "../cmd/blocking.h"
 #include "../cmd/xshard.h"
 
 namespace tomo {
@@ -47,6 +48,7 @@ public:
         if (!ring_.init(1024)) return false;
         self_->set_ring(&ring_);
         wb_.bind(&ring_);
+        blocking_bind_executor(srv_, self_, &ring_);
         return true;
     }
 
@@ -77,6 +79,12 @@ public:
                     if (xshard_retries_.empty() && ordered_deferred_.empty())
                         did += snapshot_owner_state_ == SnapshotOwnerState::None
                                    ? drain_tasks() : drain_tasks_snapshot();
+                }
+                if (__builtin_expect(srv_->blocking_waiters() != 0, false) &&
+                    cached_now_ms_ >= blocking_beat_ms_) {
+                    did += blocking_owner_cycle(
+                        *srv_, *self_, ring_, cached_now_ms_, true);
+                    blocking_beat_ms_ = cached_now_ms_ + 10;
                 }
                 did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
             }
@@ -131,7 +139,10 @@ private:
                 n += snapshot_owner_state_ == SnapshotOwnerState::None
                          ? drain_tasks(true) : drain_tasks_snapshot(true);
         }
-        return n + active_expire_cycle() + atomic_cleanup_cycle(64);
+        n += active_expire_cycle() + atomic_cleanup_cycle(64);
+        if (__builtin_expect(srv_->blocking_waiters() != 0, false))
+            n += blocking_owner_cycle(*srv_, *self_, ring_, cached_now_ms_, true);
+        return n;
     }
 
     static int64_t realtime_ms() {
@@ -360,6 +371,19 @@ private:
         Op& op = task.client->rob().at(task.op_id);
         const int32_t sid = task.shard >= 0 ? task.shard : op.shard;
         Shard& shard = srv_->shard(sid);
+        if (op.has_blocking_state()) {
+            if (capture_writes) {
+                const BlockingSnapshotPrepare result =
+                    blocking_snapshot_prepare(task, shard, op);
+                if (result == BlockingSnapshotPrepare::Pending) return false;
+                if (result == BlockingSnapshotPrepare::Error) {
+                    snapshot_manager_->fail(
+                        snapshot_epoch_, "snapshot pre-image serialization failed");
+                    return false;
+                }
+            }
+            return execute(task);
+        }
         if (capture_writes &&
             (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
             const FlatStore::SnapshotWriteResult result = task.scatter
@@ -459,6 +483,10 @@ private:
         const int32_t shard_id = t.shard >= 0 ? t.shard : op.shard;
         Shard& sh = srv_->shard(shard_id);
         sh.set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
+        if (op.has_blocking_state()) {
+            sh.note_execution(self_->domain());
+            return blocking_execute(*srv_, *self_, ring_, t, sh, op);
+        }
         if (has_atomic_deferred_predecessor(t, op, shard_id) ||
             xshard_task_should_defer(*srv_, sh, t, op)) {
             atomic_deferred_.push_back(t);
@@ -473,6 +501,8 @@ private:
         if (t.scatter) {
             const ScatterTaskResult result = xshard_execute(t, sh, op, self_->id());
             if (result == ScatterTaskResult::Retry) return false;
+            if (__builtin_expect(sh.has_blocking_waiters(), false))
+                blocking_scatter_mutation_published(t, sh, op);
             sh.publish_size();
             if (xshard_complete(*srv_, *self_, ring_, t, op) == ScatterFinish::Waiting) return true;
         } else if (__builtin_expect(op.spec->flags & CmdFlags::DenyOom, false) &&
@@ -488,8 +518,15 @@ private:
             // handlers take their original path with no epoch loads, allocations, or cleanup work.
             if (__builtin_expect(sh.store().atomic_has_records(), false)) {
                 const bool execute_handler = xshard_plain_prepare(*srv_, sh, op, t.client->id());
+                const bool defer_blocking =
+                    __builtin_expect(sh.has_blocking_waiters(), false);
+                if (defer_blocking) blocking_defer_plain_publication(true);
                 if (execute_handler) op.spec->handler(sh, op);
                 xshard_plain_finish(sh);
+                if (defer_blocking) {
+                    blocking_defer_plain_publication(false);
+                    if (execute_handler) blocking_plain_mutation_published(sh, op);
+                }
             } else {
                 op.spec->handler(sh, op);
             }
@@ -620,6 +657,7 @@ private:
     Ring       ring_;
     WbEngine   wb_;    // never serves here; kept so the stats plumbing stays uniform across loops
     int64_t    cached_now_ms_ = 0;
+    int64_t    blocking_beat_ms_ = 0;
     size_t     expire_shard_cursor_ = 0;
     size_t     atomic_cleanup_cursor_ = 0;
     uint64_t   maxmemory_config_version_ = 0;

@@ -41,6 +41,9 @@ struct CmdFlags {
     // on IO; the resulting ordinary task executes the interpreter on exactly one shard owner.
     static constexpr uint32_t ScriptRoute = 1u << 11;
     static constexpr uint32_t PubSub = 1u << 12;       // IO-owned async command; never touches a shard
+    // A blocking collection command is lowered before ordinary scatter routing.  Its issued ROB
+    // slot is also a connection parse barrier until an owner supplies data or a timeout reply.
+    static constexpr uint32_t Blocking = 1u << 13;
 };
 
 using CmdHandler = void (*)(Shard&, Op&);
