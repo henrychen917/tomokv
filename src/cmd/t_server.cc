@@ -560,8 +560,9 @@ void cmd_auth(Shard&, Op& op) {
 
 void cmd_hello(Shard&, Op& op) {
     uint32_t next = 1;
-    uint64_t version = 2;
-    if (op.argc() >= 2) {
+    const bool has_version = op.argc() >= 2;
+    uint64_t version = g_client && g_client->resp3() ? 3 : 2;
+    if (has_version) {
         if (!parse_u64(op.arg(next++), version)) {
             reply_err(op.sink(), "ERR Protocol version is not an integer or out of range");
             return;
@@ -612,20 +613,18 @@ void cmd_hello(Shard&, Op& op) {
                   "NOAUTH HELLO must be called with the client already authenticated, otherwise the HELLO <proto> AUTH <user> <pass> option can be used to authenticate the client and select the RESP protocol version at the same time");
         return;
     }
-    if (version != 2) {
-        reply_err(op.sink(), "NOPROTO unsupported protocol version");
-        return;
-    }
     if (has_name) {
         std::lock_guard<std::mutex> lock(g_clients_mu);
         auto it = g_clients.find(g_client);
         if (it != g_clients.end()) it->second.name.assign(client_name.p, client_name.n);
     }
+    if (has_version && g_client) g_client->set_resp3(version == 3);
+    const bool resp3 = version == 3;
     auto sink = op.sink();
-    reply_array_header(sink, 14);
+    reply_map_header(sink, 7, resp3);
     reply_bulk(sink, Slice("server", 6)); reply_bulk(sink, Slice("redis", 5));
     reply_bulk(sink, Slice("version", 7)); reply_bulk(sink, Slice(kVersion, std::strlen(kVersion)));
-    reply_bulk(sink, Slice("proto", 5)); reply_int(sink, 2);
+    reply_bulk(sink, Slice("proto", 5)); reply_int(sink, static_cast<long long>(version));
     reply_bulk(sink, Slice("id", 2)); reply_int(sink, g_client ? static_cast<long long>(g_client->id()) : 0);
     reply_bulk(sink, Slice("mode", 4)); reply_bulk(sink, Slice("standalone", 10));
     reply_bulk(sink, Slice("role", 4)); reply_bulk(sink, Slice("master", 6));
@@ -650,6 +649,7 @@ void cmd_select(Shard&, Op& op) {
 void cmd_reset(Shard&, Op& op) {
     if (g_client) g_client->session().db_index = 0;
     if (g_client) {
+        g_client->set_resp3(false);
         g_client->set_acl_user_idx(kAclDefaultUser);
         g_client->set_authenticated(!g_server || !g_server->requirepass_enabled());
     }
@@ -759,7 +759,7 @@ void cmd_client(Shard&, Op& op) {
         reply_ok(op.sink());
     } else if (eq_icase(sub, "GETNAME") && op.argc() == 2) {
         ClientMeta meta = current_meta();
-        if (meta.name.empty()) reply_nil(op.sink());
+        if (meta.name.empty()) reply_null(op.sink(), op.resp3());
         else reply_bulk(op.sink(), Slice(meta.name.data(), meta.name.size()));
     } else if (eq_icase(sub, "SETINFO") && op.argc() == 4) {
         if (!valid_client_text(op.arg(3)) && op.arg(3).n != 0) {
@@ -777,14 +777,14 @@ void cmd_client(Shard&, Op& op) {
         ClientMeta meta = current_meta();
         std::string body;
         append_client_line(body, meta);
-        reply_bulk(op.sink(), Slice(body.data(), body.size()));
+        reply_verbatim(op.sink(), Slice(body.data(), body.size()), "txt", op.resp3());
     } else if (eq_icase(sub, "LIST") && op.argc() == 2) {
         std::string body;
         {
             std::lock_guard<std::mutex> lock(g_clients_mu);
             for (const auto& item : g_clients) append_client_line(body, item.second);
         }
-        reply_bulk(op.sink(), Slice(body.data(), body.size()));
+        reply_verbatim(op.sink(), Slice(body.data(), body.size()), "txt", op.resp3());
     } else if (eq_icase(sub, "NO-EVICT") && op.argc() == 3 &&
                (eq_icase(op.arg(2), "ON") || eq_icase(op.arg(2), "OFF"))) {
         reply_ok(op.sink());
@@ -806,8 +806,8 @@ void reply_command_flags(Op::Sink& sink, const CommandSpec& spec) {
     if (spec.flags & CmdFlags::ConnLocal) reply_bulk(sink, Slice("fast", 4));
 }
 
-void reply_command_info(Op::Sink& sink, const CommandSpec* spec) {
-    if (!spec) { reply_nil(sink); return; }
+void reply_command_info(Op::Sink& sink, const CommandSpec* spec, bool resp3) {
+    if (!spec) { reply_null(sink, resp3); return; }
     reply_array_header(sink, 10);
     const std::string name = lower_name(spec->name);
     reply_bulk(sink, Slice(name.data(), name.size()));
@@ -829,9 +829,9 @@ const char* command_group(const CommandSpec& spec) {
     return "generic";
 }
 
-void reply_command_docs(Op::Sink& sink, const CommandSpec& spec) {
+void reply_command_docs(Op::Sink& sink, const CommandSpec& spec, bool resp3) {
     // A RESP2 map is a flat array. These four fields are enough for redis-cli's live help parser.
-    reply_array_header(sink, 8);
+    reply_map_header(sink, 4, resp3);
     reply_bulk(sink, Slice("summary", 7));
     std::string summary = std::string("tomokv compatible ") + lower_name(spec.name) + " command";
     reply_bulk(sink, Slice(summary.data(), summary.size()));
@@ -848,7 +848,8 @@ void cmd_command(Shard&, Op& op) {
     if (op.argc() == 1) {
         const uint32_t count = command_registry_size();
         reply_array_header(sink, count);
-        for (uint32_t i = 0; i < count; i++) reply_command_info(sink, command_registry_at(i));
+        for (uint32_t i = 0; i < count; i++)
+            reply_command_info(sink, command_registry_at(i), op.resp3());
         return;
     }
     if (eq_icase(op.arg(1), "COUNT") && op.argc() == 2) {
@@ -859,12 +860,13 @@ void cmd_command(Shard&, Op& op) {
         if (op.argc() == 2) {
             const uint32_t count = command_registry_size();
             reply_array_header(sink, count);
-            for (uint32_t i = 0; i < count; i++) reply_command_info(sink, command_registry_at(i));
+            for (uint32_t i = 0; i < count; i++)
+                reply_command_info(sink, command_registry_at(i), op.resp3());
             return;
         }
         reply_array_header(sink, op.argc() - 2);
         for (uint32_t i = 2; i < op.argc(); i++)
-            reply_command_info(sink, command_lookup(op.arg(i)));
+            reply_command_info(sink, command_lookup(op.arg(i)), op.resp3());
         return;
     }
     if (eq_icase(op.arg(1), "DOCS")) {
@@ -875,11 +877,11 @@ void cmd_command(Shard&, Op& op) {
             for (uint32_t i = 2; i < op.argc(); i++)
                 if (const CommandSpec* spec = command_lookup(op.arg(i))) specs.push_back(spec);
         }
-        reply_array_header(sink, specs.size() * 2);
+        reply_map_header(sink, specs.size(), op.resp3());
         for (const CommandSpec* spec : specs) {
             const std::string name = lower_name(spec->name);
             reply_bulk(sink, Slice(name.data(), name.size()));
-            reply_command_docs(sink, *spec);
+            reply_command_docs(sink, *spec, op.resp3());
         }
         return;
     }
@@ -897,7 +899,7 @@ void cmd_config(Shard& sh, Op& op) {
             }
         }
         auto sink = op.sink();
-        reply_array_header(sink, matches.size() * 2);
+        reply_map_header(sink, matches.size(), op.resp3());
         for (const auto& item : matches) {
             reply_bulk(sink, Slice(item.first.data(), item.first.size()));
             reply_bulk(sink, Slice(item.second.data(), item.second.size()));
@@ -1299,7 +1301,7 @@ void cmd_info(Shard&, Op& op) {
         appendf(body, "db0:keys=%llu,expires=%llu,avg_ttl=0\r\n",
                 static_cast<unsigned long long>(keys), static_cast<unsigned long long>(expires));
     }
-    reply_bulk(op.sink(), Slice(body.data(), body.size()));
+    reply_verbatim(op.sink(), Slice(body.data(), body.size()), "txt", op.resp3());
 }
 
 void cmd_dbsize(Shard&, Op& op) {
@@ -1330,7 +1332,7 @@ void cmd_flush(Shard& sh, Op&) {
 
 void cmd_randomkey(Shard& sh, Op& op) {
     KvObj* obj = sh.store().random_live(op.hash);
-    if (!obj) reply_nil(op.sink());
+    if (!obj) reply_null(op.sink(), op.resp3());
     else reply_bulk(op.sink(), obj->key());
 }
 

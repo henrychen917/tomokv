@@ -1069,9 +1069,14 @@ bool ensure_zset_write_capacity(Shard& shard, Op& op, KvObj*& object,
     return externalize_zset<kNotify>(shard, op, object);
 }
 
-void emit_item(Op& op, Slice member, double score, bool withscores) {
+void emit_item(Op& op, Slice member, double score, bool withscores, bool nested = true) {
+    if (withscores && nested && op.resp3()) reply_array_header(op.sink(), 2);
     reply_bulk(op.sink(), member);
-    if (withscores) reply_double(op.sink(), score);
+    if (withscores) reply_double(op.sink(), score, op.resp3());
+}
+
+uint64_t scored_array_length(uint64_t count, bool withscores, bool resp3) {
+    return count * (withscores && !resp3 ? 2 : 1);
 }
 
 struct ParsedScoreMember {
@@ -1136,7 +1141,7 @@ void cmd_zadd_generic(Shard& shard, Op& op, bool force_incr) {
     KvObj* object = lookup_zset<kNotify>(shard, op);
     if (object == reinterpret_cast<KvObj*>(-1)) return;
     if (!object && xx) {
-        if (incr) reply_nil(op.sink());
+        if (incr) reply_null(op.sink(), op.resp3());
         else reply_int(op.sink(), 0);
         return;
     }
@@ -1193,8 +1198,8 @@ if (inserted_ != FlatStore::InsertResult::Inserted) {
     }
 
     if (incr) {
-        if (processed) reply_double(op.sink(), last_score);
-        else reply_nil(op.sink());
+        if (processed) reply_double(op.sink(), last_score, op.resp3());
+        else reply_null(op.sink(), op.resp3());
     } else {
         reply_int(op.sink(), static_cast<long long>(ch ? added + updated : added));
     }
@@ -1214,12 +1219,14 @@ void cmd_zscore(Shard& shard, Op& op) {
     KvObj* object = lookup_zset<kNotify>(shard, op);
     if (object == reinterpret_cast<KvObj*>(-1)) return;
     if (!object) {
-        reply_nil(op.sink());
+        reply_null(op.sink(), op.resp3());
         return;
     }
     double score;
-    if (!zset_get_score(zset_value(object), op.arg(2), score)) reply_nil(op.sink());
-    else reply_double(op.sink(), score);
+    if (!zset_get_score(zset_value(object), op.arg(2), score))
+        reply_null(op.sink(), op.resp3());
+    else
+        reply_double(op.sink(), score, op.resp3());
 }
 
 template <bool kNotify>
@@ -1230,9 +1237,9 @@ void cmd_zmscore(Shard& shard, Op& op) {
     for (uint32_t i = 2; i < op.argc(); i++) {
         double score;
         if (!object || !zset_get_score(zset_value(object), op.arg(i), score))
-            reply_nil(op.sink());
+            reply_null(op.sink(), op.resp3());
         else
-            reply_double(op.sink(), score);
+            reply_double(op.sink(), score, op.resp3());
     }
 }
 
@@ -1316,8 +1323,8 @@ void cmd_zrank_generic(Shard& shard, Op& op, bool reverse) {
     KvObj* object = lookup_zset<kNotify>(shard, op);
     if (object == reinterpret_cast<KvObj*>(-1)) return;
     if (!object) {
-        if (withscore) reply_null_array(op.sink());
-        else reply_nil(op.sink());
+        if (withscore) reply_null_array(op.sink(), op.resp3());
+        else reply_null(op.sink(), op.resp3());
         return;
     }
     CollectionRef value = zset_value(object);
@@ -1343,14 +1350,14 @@ void cmd_zrank_generic(Shard& shard, Op& op, bool reverse) {
         }
     }
     if (!found) {
-        if (withscore) reply_null_array(op.sink());
-        else reply_nil(op.sink());
+        if (withscore) reply_null_array(op.sink(), op.resp3());
+        else reply_null(op.sink(), op.resp3());
         return;
     }
     if (reverse) rank = value.entries() - rank - 1;
     if (withscore) reply_array_header(op.sink(), 2);
     reply_int(op.sink(), static_cast<long long>(rank));
-    if (withscore) reply_double(op.sink(), score);
+    if (withscore) reply_double(op.sink(), score, op.resp3());
 }
 
 template <bool kNotify>
@@ -1632,7 +1639,7 @@ void emit_rank_range(Op& op, const CollectionRef& value, int64_t start, int64_t 
             reply_oom(op);
             return;
         }
-        reply_array_header(op.sink(), count * (withscores ? 2 : 1));
+        reply_array_header(op.sink(), scored_array_length(count, withscores, op.resp3()));
         for (int64_t i = start; i <= stop; i++) {
             const size_t index = reverse ? static_cast<size_t>(length - i - 1)
                                          : static_cast<size_t>(i);
@@ -1647,7 +1654,7 @@ void emit_rank_range(Op& op, const CollectionRef& value, int64_t start, int64_t 
     const uint64_t first_rank = reverse ? static_cast<uint64_t>(length - start)
                                         : static_cast<uint64_t>(start + 1);
     ZsetNode* node = zset_expanded(value)->by_rank(first_rank);
-    reply_array_header(op.sink(), count * (withscores ? 2 : 1));
+    reply_array_header(op.sink(), scored_array_length(count, withscores, op.resp3()));
     for (uint64_t i = 0; i < count && node; i++) {
         emit_item(op, node_member(node), node->score, withscores);
         node = reverse ? node->backward : node->level[0].forward;
@@ -1691,7 +1698,8 @@ void emit_score_range(Op& op, const CollectionRef& value, const ScoreRange& rang
             return;
         }
         const uint64_t count = limited_count(available - offset, options.limit);
-        reply_array_header(op.sink(), count * (options.withscores ? 2 : 1));
+        reply_array_header(op.sink(),
+                           scored_array_length(count, options.withscores, op.resp3()));
         int64_t index = options.reverse ? static_cast<int64_t>(last_rank - 1 - offset)
                                         : static_cast<int64_t>(first_rank - 1 + offset);
         const int64_t step = options.reverse ? -1 : 1;
@@ -1718,7 +1726,7 @@ void emit_score_range(Op& op, const CollectionRef& value, const ScoreRange& rang
     const uint64_t count = limited_count(available - offset, options.limit);
     const uint64_t start_rank = options.reverse ? last_rank - offset : first_rank + offset;
     ZsetNode* node = zset_expanded(value)->by_rank(start_rank);
-    reply_array_header(op.sink(), count * (options.withscores ? 2 : 1));
+    reply_array_header(op.sink(), scored_array_length(count, options.withscores, op.resp3()));
     for (uint64_t i = 0; i < count && node; i++) {
         emit_item(op, node_member(node), node->score, options.withscores);
         node = options.reverse ? node->backward : node->level[0].forward;
@@ -1892,6 +1900,7 @@ void cmd_zpop_generic(Shard& shard, Op& op, bool maximum) {
     CollectionRef value = zset_value(object);
     ObjectSizeTracker size_tracker(shard.store(), object);
     const uint64_t take = std::min<uint64_t>(static_cast<uint64_t>(requested), value.entries());
+    const bool nested = op.resp3() && op.argc() == 3;
 
     RemovalResult removed;
     if (value.encoding() == CollectionEncoding::Compact) {
@@ -1900,12 +1909,13 @@ void cmd_zpop_generic(Shard& shard, Op& op, bool maximum) {
             reply_oom(op);
             return;
         }
-        reply_array_header(op.sink(), take * 2);
+        reply_array_header(op.sink(), nested ? take : take * 2);
         for (uint64_t i = 0; i < take; i++) {
             const size_t index = maximum ? items.entries.size() - 1 - i : i;
             double score;
             Slice member;
-            if (compact_decode(items.entries[index], score, member)) emit_item(op, member, score, true);
+            if (compact_decode(items.entries[index], score, member))
+                emit_item(op, member, score, true, nested);
         }
         const int64_t first = maximum ? static_cast<int64_t>(items.entries.size() - take) : 0;
         const int64_t last = maximum ? static_cast<int64_t>(items.entries.size() - 1)
@@ -1914,9 +1924,9 @@ void cmd_zpop_generic(Shard& shard, Op& op, bool maximum) {
     } else {
         const uint64_t start_rank = maximum ? value.entries() : 1;
         ZsetNode* node = zset_expanded(value)->by_rank(start_rank);
-        reply_array_header(op.sink(), take * 2);
+        reply_array_header(op.sink(), nested ? take : take * 2);
         for (uint64_t i = 0; i < take && node; i++) {
-            emit_item(op, node_member(node), node->score, true);
+            emit_item(op, node_member(node), node->score, true, nested);
             node = maximum ? node->backward : node->level[0].forward;
         }
         removed = maximum
@@ -1974,7 +1984,7 @@ void cmd_zrandmember(Shard& shard, Op& op) {
     if (object == reinterpret_cast<KvObj*>(-1)) return;
     if (!object) {
         if (has_count) reply_array_header(op.sink(), 0);
-        else reply_nil(op.sink());
+        else reply_null(op.sink(), op.resp3());
         return;
     }
     CollectionRef value = zset_value(object);
@@ -2015,7 +2025,7 @@ void cmd_zrandmember(Shard& shard, Op& op) {
     }
 
     if (!unique) {
-        reply_array_header(op.sink(), count * (withscores ? 2 : 1));
+        reply_array_header(op.sink(), scored_array_length(count, withscores, op.resp3()));
         for (uint64_t i = 0; i < count; i++) {
             Slice member;
             double score;
@@ -2058,7 +2068,7 @@ void cmd_zrandmember(Shard& shard, Op& op) {
             reply_oom(op);
             return;
         }
-        reply_array_header(op.sink(), count * (withscores ? 2 : 1));
+        reply_array_header(op.sink(), scored_array_length(count, withscores, op.resp3()));
         for (ZsetNode* node : nodes) emit_item(op, node_member(node), node->score, withscores);
         return;
     }
@@ -2086,7 +2096,7 @@ void cmd_zrandmember(Shard& shard, Op& op) {
         reply_oom(op);
         return;
     }
-    reply_array_header(op.sink(), count * (withscores ? 2 : 1));
+    reply_array_header(op.sink(), scored_array_length(count, withscores, op.resp3()));
     for (uint64_t rank : ranks) {
         Slice member;
         double score;
@@ -2182,7 +2192,10 @@ void reply_scan(Op& op, uint64_t cursor, const std::vector<ScanItem>& items) {
     reply_array_header(op.sink(), 2);
     reply_cursor(op, cursor);
     reply_array_header(op.sink(), items.size() * 2);
-    for (const ScanItem& item : items) emit_item(op, item.member, item.score, true);
+    for (const ScanItem& item : items) {
+        reply_bulk(op.sink(), item.member);
+        reply_double(op.sink(), item.score);  // ZSCAN scores stay bulk strings under RESP3.
+    }
 }
 
 template <bool kNotify>

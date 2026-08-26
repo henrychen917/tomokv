@@ -314,7 +314,7 @@ void reply_maxmemory_oom(Op& op) {
 namespace {
 
 void reply_string_bulk(Op& op, const KvObj* o) {
-    if (!o) { reply_nil(op.sink()); return; }
+    if (!o) { reply_null(op.sink(), op.resp3()); return; }
     if (o->is_int()) {
         char text[24];
         const uint32_t n = i64_to_dec(text, o->int_value());
@@ -329,7 +329,7 @@ void reply_string_bulk(Op& op, const KvObj* o) {
 template <bool kNotify, bool kAllowBorrow = true>
 void cmd_get(Shard& sh, Op& op) {
     KvObj* o = sh.store_find<kNotify>(op.hash, op.key());
-    if (!o) { sh.stats().misses++; reply_nil(op.sink()); return; }
+    if (!o) { sh.stats().misses++; reply_null(op.sink(), op.resp3()); return; }
     sh.stats().hits++;
     auto sink = op.sink();
     if (!obj_type_check(o, Type::String, sink)) return;
@@ -439,7 +439,7 @@ void cmd_set(Shard& sh, Op& op) {
         reply_string_bulk(op, old);
     }
     if ((options.nx && old) || (options.xx && !old)) {
-        if (!options.get) reply_nil(op.sink());
+        if (!options.get) reply_null(op.sink(), op.resp3());
         return;
     }
 
@@ -489,7 +489,7 @@ void cmd_set<false>(Shard& sh, Op& op) {
         reply_string_bulk(op, old);
     }
     if ((options.nx && old) || (options.xx && !old)) {
-        if (!options.get) reply_nil(op.sink());
+        if (!options.get) reply_null(op.sink(), op.resp3());
         return;
     }
 
@@ -531,7 +531,7 @@ void cmd_getex(Shard& sh, Op& op) {
     if (!parse_getex_options(op, kind, expire_arg, persist)) return;
 
     KvObj* o = sh.store_find<kNotify>(op.hash, op.key());
-    if (!o) { reply_nil(op.sink()); return; }
+    if (!o) { reply_null(op.sink(), op.resp3()); return; }
     auto sink = op.sink();
     if (!obj_type_check(o, Type::String, sink)) return;
 
@@ -564,7 +564,7 @@ void cmd_getex(Shard& sh, Op& op) {
 template <bool kNotify>
 void cmd_getdel(Shard& sh, Op& op) {
     KvObj* o = sh.store_find<kNotify>(op.hash, op.key());
-    if (!o) { reply_nil(op.sink()); return; }
+    if (!o) { reply_null(op.sink(), op.resp3()); return; }
     auto sink = op.sink();
     if (!obj_type_check(o, Type::String, sink)) return;
     reply_string_bulk(op, o);
@@ -1336,7 +1336,7 @@ template <bool kNotify>
 void cmd_object(Shard& sh, Op& op) {
     if (!eq_icase(op.arg(1), "ENCODING")) { reply_syntax(op.sink()); return; }
     KvObj* o = sh.store_find<kNotify>(op.hash, op.arg(2));
-    if (!o) { reply_nil(op.sink()); return; }
+    if (!o) { reply_null(op.sink(), op.resp3()); return; }
     const char* name = collection_encoding(o);
     reply_bulk(op.sink(), Slice(name, static_cast<uint32_t>(std::strlen(name))));
 }

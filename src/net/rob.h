@@ -62,10 +62,10 @@ public:
     // without reading, and dropping it is how a server OOMs on one misbehaving connection.
     // Materialization happens HERE and only here — the parser is the sole allocator, so workers
     // and the sender only ever dereference slots that a publish made real.
-    Op* acquire() {
+    Op* acquire(uint8_t route_flags = 0) {
         if (full()) return nullptr;
         Op* op = slot(static_cast<uint32_t>(dispatch_id()) & kMask, true);
-        op->reset();
+        op->reset(route_flags);
         return op;
     }
 

@@ -173,14 +173,16 @@
     }
 
     std::string pubsub_delivery_frame(const PubSubEvent& event,
-                                      const std::string* pattern) {
+                                      const std::string* pattern, bool resp3) {
         SmallBuf<128> frame;
         if (pattern) {
-            reply_array_header(frame, 4);
+            if (resp3) reply_push_header(frame, 4);
+            else reply_array_header(frame, 4);
             reply_bulk(frame, Slice("pmessage", 8));
             reply_bulk(frame, Slice(pattern->data(), pattern->size()));
         } else {
-            reply_array_header(frame, 3);
+            if (resp3) reply_push_header(frame, 3);
+            else reply_array_header(frame, 3);
             if (event.shard) reply_bulk(frame, Slice("smessage", 8));
             else reply_bulk(frame, Slice("message", 7));
         }
@@ -199,14 +201,27 @@
     }
 
     void pubsub_deliver(PubSubEvent& event) {
-        auto deliver = [&](uint64_t conn_id, const std::string& frame) {
+        std::string regular_resp2;
+        std::string regular_resp3;
+        auto deliver = [&](uint64_t conn_id, const std::string* pattern) {
             auto local_it = pubsub_local_.find(conn_id);
             if (local_it == pubsub_local_.end()) return;
             Client* client = local_it->second.client;
             if (!client || client->closing() || client->dead()) return;
+            const bool resp3 = client->resp3();
+            std::string pattern_frame;
+            const std::string* frame = nullptr;
+            if (pattern) {
+                pattern_frame = pubsub_delivery_frame(event, pattern, resp3);
+                frame = &pattern_frame;
+            } else {
+                std::string& cached = resp3 ? regular_resp3 : regular_resp2;
+                if (cached.empty()) cached = pubsub_delivery_frame(event, nullptr, resp3);
+                frame = &cached;
+            }
             auto pending_it = pubsub_pending_.find(conn_id);
             if (pending_it != pubsub_pending_.end()) {
-                pending_it->second.deferred.append(frame);
+                pending_it->second.deferred.append(*frame);
                 return;
             }
 
@@ -215,23 +230,18 @@
                 // RESP2 subscribed-mode commands are IO-local. Appending to the newest live Op
                 // keeps every command already parsed ahead of this push without Client state.
                 Op& tail = rob.at(rob.dispatch_id() - 1);
-                tail.reply.append(frame.data(), frame.size());
+                tail.reply.append(frame->data(), frame->size());
                 enqueue_serve(client);
                 mark_active(client);
                 return;
             }
-            pubsub_append_wire(client, frame);
+            pubsub_append_wire(client, *frame);
         };
 
         if (!event.items.empty()) {
-            const std::string frame = pubsub_delivery_frame(event, nullptr);
             for (const PubSubEventItem& target : event.items) {
-                if (target.changed) {
-                    const std::string pattern_frame = pubsub_delivery_frame(event, &target.value);
-                    deliver(target.count, pattern_frame);
-                } else {
-                    deliver(target.count, frame);
-                }
+                if (target.changed) deliver(target.count, &target.value);
+                else deliver(target.count, nullptr);
             }
         }
         if (event.kind == PubSubEventKind::DeliveryReply) {
@@ -468,7 +478,7 @@
     }
 
     void pubsub_append_ack(Op::Sink& sink, bool pattern, bool shard, bool subscribe,
-                           const std::string* value, uint64_t count) {
+                           const std::string* value, uint64_t count, bool resp3) {
         const char* label = nullptr;
         uint32_t label_len = 0;
         if (shard) {
@@ -481,10 +491,11 @@
             label = subscribe ? "subscribe" : "unsubscribe";
             label_len = subscribe ? 9 : 11;
         }
-        reply_array_header(sink, 3);
+        if (resp3) reply_push_header(sink, 3);
+        else reply_array_header(sink, 3);
         reply_bulk(sink, Slice(label, label_len));
         if (value) reply_bulk(sink, Slice(value->data(), value->size()));
-        else reply_nil(sink);
+        else reply_null(sink, resp3);
         reply_int(sink, static_cast<long long>(count));
     }
 
@@ -521,7 +532,7 @@
                         local, pending.pattern, pending.shard, pending.subscribe, item);
                     pubsub_append_ack(sink, pending.pattern, pending.shard, pending.subscribe, &item,
                         pending.shard ? pubsub_shard_subscription_count(local)
-                                      : pubsub_subscription_count(local));
+                                      : pubsub_subscription_count(local), op.resp3());
                 }
                 if (pending.subscribe && !pending.deferred.empty())
                     sink.append(pending.deferred.data(), pending.deferred.size());
@@ -812,7 +823,7 @@
                 pubsub_append_ack(sink, pattern, shard, false, nullptr,
                     local_it == pubsub_local_.end()
                         ? 0 : (shard ? pubsub_shard_subscription_count(local_it->second)
-                                     : pubsub_subscription_count(local_it->second)));
+                                     : pubsub_subscription_count(local_it->second)), op.resp3());
                 return PubSubStartResult::Sync;
             }
         }

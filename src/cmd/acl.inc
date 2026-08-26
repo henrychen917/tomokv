@@ -1175,7 +1175,7 @@ void acl_command_entry(IoLoop& loop, Client& client, Op& op) {
     if (sub.eq_icase("getuser") && op.argc() == 3) {
         std::lock_guard<std::mutex> lock(g_acl_mu);
         auto found = g_acl_names.find(std::string(op.arg(2).p, op.arg(2).n));
-        if (found == g_acl_names.end()) { reply_nil(op.sink()); return; }
+        if (found == g_acl_names.end()) { reply_null(op.sink(), op.resp3()); return; }
         AclUser* user = acl_slot(found->second);
         const AclUserImage image = acl_image(*user);
         auto sink = op.sink();

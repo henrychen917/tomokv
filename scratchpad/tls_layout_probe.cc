@@ -24,7 +24,7 @@ struct alignas(64) MirrorClient {
     bool      scatter_barrier_ = false;
     bool      atomic_backpressure_ = false;
     bool      subscriber_mode_ = false;
-    bool      blocked_ = false;
+    uint8_t   connection_flags_ = 0;
     uint64_t  id_ = 0;
     uint32_t  ifid_thread_ = 0;
     Session   session_;
@@ -61,7 +61,7 @@ int main() {
     SHOW(fd_); SHOW(rlen_); SHOW(rpos_); SHOW(last_interaction_s_); SHOW(rbuf_);
     SHOW(recv_armed_); SHOW(send_inflight_); SHOW(segmented_send_); SHOW(send_requested_);
     SHOW(serve_pending_); SHOW(in_active_); SHOW(closing_); SHOW(dead_); SHOW(scatter_barrier_);
-    SHOW(atomic_backpressure_); SHOW(subscriber_mode_); SHOW(blocked_); SHOW(id_);
+    SHOW(atomic_backpressure_); SHOW(subscriber_mode_); SHOW(connection_flags_); SHOW(id_);
     SHOW(retire_queued_); SHOW(wb_slot_); SHOW(atomic_groups_io_); SHOW(multi_session_);
     SHOW(watch_generation_); SHOW(watched_refs_); SHOW(watch_dirty_); SHOW(obuf_bytes_);
     SHOW(obuf_soft_since_s_); SHOW(obuf_tracking_); SHOW(authenticated_); SHOW(acl_user_idx_);

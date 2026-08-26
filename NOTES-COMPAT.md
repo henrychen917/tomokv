@@ -1,8 +1,9 @@
-# Client compatibility, INFO, and Unix sockets
+# Client compatibility, RESP3, INFO, and Unix sockets
 
-This lane is RESP2-only. It implements the Redis discovery and bookkeeping surface used by common
-clients and tools without moving sockets into executor threads or adding shared writes to the store
-path. The command handlers and registry rows are in `src/cmd/t_server.cc`.
+Connections start in RESP2 and may negotiate RESP3 with `HELLO 3`. The protocol is connection-local
+and is captured in each operation before dispatch, without moving sockets into executor threads or
+adding shared writes to the store path. The command handlers and registry rows are in
+`src/cmd/t_server.cc`; reply-only RESP3 builders are in `src/net/resp3.h`.
 
 ## Connection behavior studied
 
@@ -13,22 +14,74 @@ initialization was also checked in the official redis-py, go-redis, and Jedis re
 
 | Consumer | Connection/discovery calls relevant here | tomokv behavior |
 | --- | --- | --- |
-| redis-py | Optional `AUTH`, `CLIENT SETNAME`, `SELECT`, then best-effort `CLIENT SETINFO LIB-NAME` and `LIB-VER`; non-RESP2 configurations negotiate with `HELLO`. | Use `protocol=2`. `AUTH` reports the Redis no-password-configured error, db 0 is accepted, and both `SETINFO` forms are accepted. |
-| go-redis | Negotiates with `HELLO <protocol>`; a Redis error permits its legacy RESP2 fallback, followed as configured by `AUTH`, `SELECT`, `CLIENT SETNAME`, and pipelined `CLIENT SETINFO`. | `HELLO 3` deliberately returns `-NOPROTO`, enabling the fallback. Setting `Protocol: 2` avoids the failed probe. Only db 0 is supported. |
-| Jedis | Legacy/default-RESP2 configurations connect directly, then optionally issue `AUTH`, `SELECT`, and `CLIENT SETNAME`; configurations with protocol negotiation use `HELLO`. | Configure RESP2. The connection-local calls above are implemented; RESP3 negotiation is deliberately rejected. |
-| redis-cli | Defaults to RESP2; current interactive help obtains `COMMAND DOCS`; explicit `-3` sends `HELLO 3`. Cluster discovery also probes `CONFIG GET databases`. | Normal CLI sessions and live help receive correctly shaped RESP2 arrays. `-3` fails with `NOPROTO` by design. |
-| redis-benchmark | Before a run it probes `CONFIG GET save` and `CONFIG GET appendonly`; `-3` sends `HELLO 3`. | Both config keys exist. Use its default RESP2 mode. |
+| redis-py | Optional `AUTH`, `CLIENT SETNAME`, `SELECT`, then best-effort `CLIENT SETINFO LIB-NAME` and `LIB-VER`; non-RESP2 configurations negotiate with `HELLO`. | RESP2 and RESP3 negotiation are supported. `AUTH` reports the Redis no-password-configured error, db 0 is accepted, and both `SETINFO` forms are accepted. |
+| go-redis | Negotiates with `HELLO <protocol>`, followed as configured by `AUTH`, `SELECT`, `CLIENT SETNAME`, and pipelined `CLIENT SETINFO`. | Protocol 2 and 3 are supported; only db 0 is supported. |
+| Jedis | Legacy/default-RESP2 configurations connect directly; configurations with protocol negotiation use `HELLO`. | Both protocol modes and the connection-local initialization calls are supported. |
+| redis-cli | Defaults to RESP2; current interactive help obtains `COMMAND DOCS`; explicit `-3` sends `HELLO 3`. Cluster discovery also probes `CONFIG GET databases`. | Normal and `-3` sessions receive their protocol-native aggregate shapes. |
+| redis-benchmark | Before a run it probes `CONFIG GET save` and `CONFIG GET appendonly`; `-3` sends `HELLO 3`. | Both config keys and both protocol modes are supported. |
 | YCSB Redis binding | Uses ordinary RESP2 data commands and may configure authentication/database selection, depending on the binding version. | Run without a password and with database 0. Its `SET`/`GET` workload needs no compatibility extension beyond this lane. |
 
-`HELLO` and `HELLO 2` return the Redis RESP2 representation of the seven-field map: a 14-element
-flat array containing `server`, `version`, `proto`, `id`, `mode`, `role`, and `modules`. The server
-identity is `redis`, protocol is integer 2, mode is `standalone`, role is `master`, and modules is
-an empty array. `HELLO 3` returns `-NOPROTO unsupported protocol version`.
+`HELLO 2` returns the Redis RESP2 representation of the seven-field map, a 14-element flat array;
+`HELLO 3` returns a `%7` map. Both contain `server`, `version`, `proto`, `id`, `mode`, `role`, and
+`modules`. The server identity is `redis`, mode is `standalone`, role is `master`, and modules is an
+empty array. A bare `HELLO` is introspection and preserves the current protocol. `RESET` clears
+subscriptions and connection metadata and returns the connection to RESP2.
+
+## RESP3 reply contract
+
+Request parsing is unchanged: RESP3 connections continue to send the same RESP2 multibulk request
+grammar. Only reply framing varies, selected from the protocol bit captured in each `Op`.
+
+| Command or reply | RESP2 | RESP3 |
+| --- | --- | --- |
+| Null scalar / null aggregate | `$-1` / `*-1` | unified `_` null |
+| `CONFIG GET`, `HGETALL`, `COMMAND DOCS` | flat key/value array | map |
+| `HRANDFIELD WITHVALUES`, `ZRANDMEMBER WITHSCORES` | flat array | array of pairs |
+| `ZSCORE`, `ZMSCORE`, `ZINCRBY`, `ZADD INCR` | bulk score | native double |
+| `ZRANK`/`ZREVRANK WITHSCORE` | rank plus bulk score | rank plus native double |
+| scored `ZRANGE` family | flat member/score array | array of member/double pairs |
+| `ZPOPMIN`/`ZPOPMAX` with count | flat member/score array | array of member/double pairs |
+| `ZPOPMIN`/`ZPOPMAX` without count | flat two-element array | flat two-element array, with native double score |
+| `SMEMBERS`, `SINTER`, `SUNION`, `SDIFF`, `SPOP key count` | array | set |
+| `INFO`, `CLIENT INFO`, `CLIENT LIST` | bulk | `txt` verbatim string |
+| aborted `EXEC` | null array | null |
+| `XREAD` result | array of key/entries pairs | map from key to entries |
+| pub/sub acknowledgements and `message`/`pmessage`/`smessage` delivery, including keyspace notifications | array | push |
+| Lua RESP3 special values | RESP2 conversion | bool, map, set, double, big number, or verbatim string as requested by Lua/`redis.setresp` |
+
+Double payloads use shortest round-trip formatting, with `%.17g` only as a library fallback, and
+preserve Redis spellings such as `-0`, `inf`, `-inf`, and `nan`. `INCRBYFLOAT` and `ZSCAN` score
+payloads remain bulk strings. Membership/existence results such as `SISMEMBER` and `EXISTS` remain
+integers; they are not RESP3 booleans. `XPENDING`, `GEOPOS`, and `GEODIST` are not registered in
+this tree, so their audited Redis shapes are not claimed here. In Redis, `XPENDING`,
+`INCRBYFLOAT`, and `GEODIST`/`WITHDIST` do not change shape merely because RESP3 is active.
+
+RESP3 subscribers may run ordinary commands while subscribed; RESP2 retains Redis's restricted
+subscriber command set. Core commands do not emit attribute frames. `CLIENT TRACKING` is not built,
+so tracking invalidation push frames are intentionally out of scope; pub/sub and notification push
+frames do not depend on tracking.
+
+### RESP3 validation
+
+- The declaration-order mirror probe reports `sizeof(Client) == 1984` and `sizeof(Op) == 336`;
+  the connection flag remains at byte 55 and `Op::route_flags_` bit 2 carries RESP3.
+- All 12 differential suites pass against the Redis oracle in both protocols: `string`, `list`,
+  `set`, `zset`, `hash`, `xshard`, `bitmap`, `hll`, `cgaps`, `stream`, `spubsub`, and `notify`.
+  The RESP3-directed battery exercises 140 protocol/type/pubsub/notification/MULTI/Lua assertions.
+- An object-code comparison against base `0f920a52d` finds `reply_bulk<Op::Sink>` (477 bytes,
+  SHA-256 `bd5889cd...c6a4b2ac`) and `reply_int<Op::Sink>` (594 bytes, SHA-256
+  `d424a129...86b84ff`) byte-identical.
+- A matched 20-million-command loopback GET+SET cell used 64 clients, pipeline 32, server CPUs
+  248-251 in a 2:2 topology, and load CPUs 252-255. Base instructions/op were
+  1751.376 / 1753.627 / 1757.700 (median 1753.627); RESP3 code with a default RESP2 connection was
+  1750.201 / 1750.888 / 1741.019 (median 1750.201), a median delta of -3.427 instructions/op.
+- `GATE_PORT=7953 GATE_CORES=248-255 tests/gate.sh quick` passes all 80 checks, including the RESP3
+  battery under both atomic settings.
 
 `COMMAND` metadata is generated from the boot-built registry, including actual arity, flags, and
-legacy key positions. `COMMAND DOCS` is deliberately minimal but is a well-formed RESP2 map-as-flat-
-array with `summary`, `since`, `group`, and `complexity`, which is sufficient for current
-`redis-cli` live-help parsing. `COMMAND INFO` preserves one nil entry per unknown requested name.
+legacy key positions. `COMMAND DOCS` is deliberately minimal but is a well-formed map (a flat
+map-as-array in RESP2) with `summary`, `since`, `group`, and `complexity`, which is sufficient for
+current `redis-cli` live-help parsing. `COMMAND INFO` preserves one null entry per unknown name.
 
 Client names and library metadata live in a cold process catalog keyed by `Client*`, preserving
 `sizeof(Client) == 1984`. `CLIENT INFO` and `CLIENT LIST` expose at least `id`, `addr`, `name`, and
@@ -38,7 +91,8 @@ Client names and library metadata live in a cold process catalog keyed by `Clien
 
 The typed table contains `save`, `appendonly`, `maxmemory`, `maxmemory-policy`, `timeout`,
 `databases`, `proto-max-bulk-len`, `zc-min`, and all eight `*-max-compact-{entries,value}` settings.
-`CONFIG GET` matches Redis-style case-insensitive globs and returns flat name/value pairs.
+`CONFIG GET` matches Redis-style case-insensitive globs and returns flat name/value pairs in RESP2
+or a map in RESP3.
 `CONFIG SET` accepts one or more pairs, normalizes booleans and byte suffixes, rejects unknown
 settings, overflow, invalid policies, and malformed pair counts.
 
@@ -125,8 +179,9 @@ specialization with no handoff/channel discrimination or pending-handoff check i
 
 ## Suggested compile and manual tests
 
-The implementation was verified with a compile-only `make -j`; the server was not executed. A
-manual session can be run after starting a test instance separately:
+The directed protocol battery is `tests/resp3.py`; `tests/differ.py ... -3` runs each ordinary,
+stream, pub/sub, and notification suite after negotiating RESP3 with both TomoKV and its Redis
+oracle. A manual session can also be run against a test instance:
 
 ```sh
 PORT=6380
@@ -134,6 +189,8 @@ SOCK=/tmp/tomokv-compat.sock
 
 redis-cli -2 -p "$PORT" PING
 redis-cli -2 -p "$PORT" HELLO 2
+redis-cli -3 -p "$PORT" HELLO 3
+redis-cli -3 -p "$PORT" HGETALL compat:hash
 redis-cli -2 -p "$PORT" CLIENT SETNAME compat-check
 redis-cli -2 -p "$PORT" CLIENT GETNAME
 redis-cli -2 -p "$PORT" CLIENT SETINFO LIB-NAME redis-cli
@@ -168,7 +225,8 @@ create separate client ids. Also try interactive `HELP GET` to exercise `COMMAND
 
 Edge cases worth checking:
 
-- `HELLO nope`, `HELLO 1`, and `HELLO 3`; only `HELLO 2` succeeds.
+- Bare `HELLO`, `HELLO 2`, `HELLO 3`, `HELLO 1`, `HELLO 4`, `HELLO nope`, and `RESET` after
+  negotiation; only versions 2 and 3 succeed, and a bare call never changes the active version.
 - `AUTH secret` and `AUTH default secret`; both report that no password is configured.
 - invalid CLIENT subcommands, whitespace/control characters in names, unknown SETINFO attributes,
   and `CLIENT NO-EVICT` without `ON|OFF`.

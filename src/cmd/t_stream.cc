@@ -984,7 +984,7 @@ void range_generic(Shard& shard, Op& op, bool reverse) {
             else reply_syntax(op.sink());
             return;
         }
-        if (count == 0) { reply_null_array(op.sink()); return; }
+        if (count == 0) { reply_null_array(op.sink(), op.resp3()); return; }
     }
     StreamID start, end;
     if (!reverse) {
@@ -1044,7 +1044,7 @@ void cmd_xadd(Shard& shard, Op& op) {
     }
     KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Stream, op.sink())) return;
-    if (!object && options.nomkstream) { reply_nil(op.sink()); return; }
+    if (!object && options.nomkstream) { reply_null(op.sink(), op.resp3()); return; }
 
     StreamHeader header;
     if (object && !object_header(object, header)) {
@@ -1398,7 +1398,9 @@ StreamReadResult stream_xread_gather(Shard& shard, Slice key, uint64_t hash,
 }
 
 bool stream_reply_xread_payload(Op& op, Slice key, const std::vector<uint8_t>& payload) {
-    reply_array_header(op.sink(), 2);
+    // RESP3 models XREAD's outer result as key => entries, so the caller emits a map and this
+    // helper must not wrap each map entry in the RESP2 two-element pair array.
+    if (!op.resp3()) reply_array_header(op.sink(), 2);
     reply_bulk(op.sink(), key);
     return reply_range_payload(op, payload);
 }

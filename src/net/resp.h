@@ -225,3 +225,7 @@ template <typename Buf> inline void reply_double(Buf&& b, double value) {
 }
 
 }  // namespace tomo
+
+// RESP3 is reply-only. Keeping its protocol-selecting builders in a feature header leaves the
+// request parser and the established RESP2 reply_bulk/reply_int implementations untouched.
+#include "resp3.h"

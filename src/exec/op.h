@@ -57,11 +57,11 @@ public:
     Op& operator=(const Op&) = delete;
 
     // ---- built by the IO thread while parsing ------------------------------------------------
-    void reset() {
+    void reset(uint8_t route_flags = 0) {
         argc_ = 0;
         spec  = nullptr;
         shard = -1;
-        route_flags_ = 0;
+        route_flags_ = route_flags;
         reply.clear();
         direct = nullptr;
         direct_cap = direct_len = 0;
@@ -122,6 +122,8 @@ public:
     bool atomic_hazard() const { return route_flags_ & kAtomicHazard; }
     void mark_no_borrow() { route_flags_ |= kNoBorrow; }
     bool no_borrow() const { return route_flags_ & kNoBorrow; }
+    void mark_resp3() { route_flags_ |= kResp3; }
+    bool resp3() const { return route_flags_ & kResp3; }
     uint8_t route_flags_ = 0;
 
     SmallBuf<kInlineReply> reply;           // worker writes RESP here (the spill/general sink)
@@ -246,6 +248,7 @@ public:
 private:
     static constexpr uint8_t kAtomicHazard = 1u << 0;
     static constexpr uint8_t kNoBorrow = 1u << 1;
+    static constexpr uint8_t kResp3 = 1u << 2;
     Slice    argv_inline_[kInlineArgv];
     Slice*   argv_heap_ = nullptr;
     uint32_t argv_cap_  = 0;

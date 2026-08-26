@@ -442,8 +442,8 @@ void pop_generic(Shard& shard, Op& op, bool left) {
 
     KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!object) {
-        if (has_count) reply_null_array(op.sink());
-        else reply_nil(op.sink());
+        if (has_count) reply_null_array(op.sink(), op.resp3());
+        else reply_null(op.sink(), op.resp3());
         return;
     }
     if (!obj_type_check(object, Type::List, op.sink())) return;
@@ -451,8 +451,8 @@ void pop_generic(Shard& shard, Op& op, bool left) {
     ObjectSizeTracker size_tracker(shard.store(), object);
 
     if (!list.entries()) {
-        if (has_count) reply_null_array(op.sink());
-        else reply_nil(op.sink());
+        if (has_count) reply_null_array(op.sink(), op.resp3());
+        else reply_null(op.sink(), op.resp3());
         size_tracker.finish();
         shard.store_erase<kNotify>(op.hash, op.key());
         return;
@@ -506,17 +506,19 @@ void cmd_llen(Shard& shard, Op& op) {
 template <bool kNotify>
 void cmd_lindex(Shard& shard, Op& op) {
     KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
-    if (!object) { reply_nil(op.sink()); return; }
+    if (!object) { reply_null(op.sink(), op.resp3()); return; }
     if (!obj_type_check(object, Type::List, op.sink())) return;
     int64_t index = 0;
     if (!parse_i64(op.arg(2), index)) { reply_integer_error(op); return; }
 
     CollectionRef list = list_value(object);
     uint32_t normalized = 0;
-    if (!normalize_index(index, list.entries(), normalized)) { reply_nil(op.sink()); return; }
+    if (!normalize_index(index, list.entries(), normalized)) {
+        reply_null(op.sink(), op.resp3()); return;
+    }
     ListCursor cur = ListCursor::seek(list, normalized);
     Compact::Entry entry;
-    if (!cur.get(entry)) { reply_nil(op.sink()); return; }
+    if (!cur.get(entry)) { reply_null(op.sink(), op.resp3()); return; }
     reply_bulk(op.sink(), entry.value);
 }
 
@@ -862,7 +864,7 @@ void cmd_lpos(Shard& shard, Op& op) {
     KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!object) {
         if (options.count_given) reply_array_header(op.sink(), 0);
-        else reply_nil(op.sink());
+        else reply_null(op.sink(), op.resp3());
         return;
     }
     if (!obj_type_check(object, Type::List, op.sink())) return;
@@ -883,7 +885,7 @@ void cmd_lpos(Shard& shard, Op& op) {
                 return;
             }
         }
-        reply_nil(op.sink());
+        reply_null(op.sink(), op.resp3());
         return;
     }
 

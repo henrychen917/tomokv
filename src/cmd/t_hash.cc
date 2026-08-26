@@ -969,7 +969,8 @@ void cmd_hget(Shard& shard, Op& op) {
     KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return;
     Slice value;
-    if (!object || !hash_get(as_hash(object), op.arg(2), value)) reply_nil(op.sink());
+    if (!object || !hash_get(as_hash(object), op.arg(2), value))
+        reply_null(op.sink(), op.resp3());
     else reply_bulk(op.sink(), value);
 }
 
@@ -980,7 +981,8 @@ void cmd_hmget(Shard& shard, Op& op) {
     reply_array_header(op.sink(), op.argc() - 2);
     for (uint32_t i = 2; i < op.argc(); i++) {
         Slice value;
-        if (!object || !hash_get(as_hash(object), op.arg(i), value)) reply_nil(op.sink());
+        if (!object || !hash_get(as_hash(object), op.arg(i), value))
+            reply_null(op.sink(), op.resp3());
         else reply_bulk(op.sink(), value);
     }
 }
@@ -1150,12 +1152,16 @@ void generic_getall(Shard& shard, Op& op, GetAllMode mode) {
     KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return;
     if (!object) {
-        reply_array_header(op.sink(), 0);
+        if (mode == GetAllMode::Both) reply_map_header(op.sink(), 0, op.resp3());
+        else reply_array_header(op.sink(), 0);
         return;
     }
     CollectionRef hash = as_hash(object);
     const uint64_t multiplier = mode == GetAllMode::Both ? 2 : 1;
-    reply_array_header(op.sink(), static_cast<uint64_t>(hash.entries()) * multiplier);
+    if (mode == GetAllMode::Both)
+        reply_map_header(op.sink(), hash.entries(), op.resp3());
+    else
+        reply_array_header(op.sink(), static_cast<uint64_t>(hash.entries()) * multiplier);
     auto emit = [&](Slice field, Slice value) {
         if (mode != GetAllMode::Values) reply_bulk(op.sink(), field);
         if (mode != GetAllMode::Fields) reply_bulk(op.sink(), value);
@@ -1466,14 +1472,14 @@ void cmd_hrandfield(Shard& shard, Op& op) {
     KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return;
     if (!object) {
-        if (op.argc() == 2) reply_nil(op.sink());
+        if (op.argc() == 2) reply_null(op.sink(), op.resp3());
         else reply_array_header(op.sink(), 0);
         return;
     }
     CollectionRef hash = as_hash(object);
     const uint32_t population = hash.entries();
     if (!population) {
-        if (op.argc() == 2) reply_nil(op.sink());
+        if (op.argc() == 2) reply_null(op.sink(), op.resp3());
         else reply_array_header(op.sink(), 0);
         return;
     }
@@ -1505,9 +1511,11 @@ void cmd_hrandfield(Shard& shard, Op& op) {
     const uint64_t requested = unique ? static_cast<uint64_t>(signed_count)
                                       : static_cast<uint64_t>(-signed_count);
     if (!unique) {
-        reply_array_header(op.sink(), requested * (with_values ? 2 : 1));
+        const bool pairs = with_values && op.resp3();
+        reply_array_header(op.sink(), requested * (with_values && !pairs ? 2 : 1));
         for (uint64_t i = 0; i < requested; i++) {
             const auto pair = pair_at(static_cast<uint32_t>(hash_random_bounded(hash, population)));
+            if (pairs) reply_array_header(op.sink(), 2);
             reply_bulk(op.sink(), pair.first);
             if (with_values) reply_bulk(op.sink(), pair.second);
         }
@@ -1516,9 +1524,12 @@ void cmd_hrandfield(Shard& shard, Op& op) {
 
     const uint32_t count = requested >= population ? population : static_cast<uint32_t>(requested);
     if (count == population) {
-        reply_array_header(op.sink(), static_cast<uint64_t>(count) * (with_values ? 2 : 1));
+        const bool pairs = with_values && op.resp3();
+        reply_array_header(op.sink(), static_cast<uint64_t>(count) *
+                                      (with_values && !pairs ? 2 : 1));
         for (uint32_t i = 0; i < count; i++) {
             const auto pair = pair_at(i);
+            if (pairs) reply_array_header(op.sink(), 2);
             reply_bulk(op.sink(), pair.first);
             if (with_values) reply_bulk(op.sink(), pair.second);
         }
@@ -1530,9 +1541,12 @@ void cmd_hrandfield(Shard& shard, Op& op) {
         reply_err(op.sink(), "ERR out of memory");
         return;
     }
-    reply_array_header(op.sink(), static_cast<uint64_t>(selected.size()) * (with_values ? 2 : 1));
+    const bool pairs = with_values && op.resp3();
+    reply_array_header(op.sink(), static_cast<uint64_t>(selected.size()) *
+                                  (with_values && !pairs ? 2 : 1));
     for (uint32_t index : selected) {
         const auto pair = pair_at(index);
+        if (pairs) reply_array_header(op.sink(), 2);
         reply_bulk(op.sink(), pair.first);
         if (with_values) reply_bulk(op.sink(), pair.second);
     }

@@ -308,8 +308,8 @@ void blocking_count_parked(BlockingState& state) {
 }
 
 void blocking_reply_timeout(Op& op, BlockingKind kind) {
-    if (blocking_is_move(kind)) reply_nil(op.sink());
-    else reply_null_array(op.sink());
+    if (blocking_is_move(kind)) reply_null(op.sink(), op.resp3());
+    else reply_null_array(op.sink(), op.resp3());
 }
 
 void blocking_finish_cancelled(BlockingState& state, ThreadCtx* self, Ring* ring) {
@@ -512,7 +512,7 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
         reply_array_header(op.sink(), 3);
         reply_bulk(op.sink(), key_slice);
         reply_bulk(op.sink(), Slice(members[0].data(), static_cast<uint32_t>(members[0].size())));
-        reply_double(op.sink(), scores[0]);
+        reply_double(op.sink(), scores[0], op.resp3());
     } else {
         reply_array_header(op.sink(), 2);
         reply_bulk(op.sink(), key_slice);
@@ -521,7 +521,8 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
             if (state.kind == BlockingKind::Bzmpop) reply_array_header(op.sink(), 2);
             reply_bulk(op.sink(),
                        Slice(members[i].data(), static_cast<uint32_t>(members[i].size())));
-            if (state.kind == BlockingKind::Bzmpop) reply_double(op.sink(), scores[i]);
+            if (state.kind == BlockingKind::Bzmpop)
+                reply_double(op.sink(), scores[i], op.resp3());
         }
     }
     blocking_publish_completion(state, self, ring);

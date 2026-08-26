@@ -45,16 +45,27 @@ class Conn:
             return RespError(value.decode("utf-8", "replace"))
         if kind == b":":
             return int(value)
-        if kind == b"$":
+        if kind == b"_":
+            return None
+        if kind == b"#":
+            return value == b"t"
+        if kind in (b",", b"("):
+            return value
+        if kind in (b"$", b"=", b"!"):
             size = int(value)
             if size == -1:
                 return None
             data = self.file.read(size)
             assert self.file.read(2) == b"\r\n"
+            if kind == b"!":
+                return RespError(data.decode("utf-8", "replace"))
             return data
-        if kind == b"*":
+        if kind in (b"*", b"~", b">"):
             count = int(value)
             return None if count == -1 else [self.read() for _ in range(count)]
+        if kind in (b"%", b"|"):
+            count = int(value)
+            return {self.read(): self.read() for _ in range(count)}
         raise AssertionError("unknown RESP prefix %r" % kind)
 
     def close(self):
@@ -154,9 +165,10 @@ expect(hello_edges.command("HELLO", "2", "AUTH", "default", b"wrong",
 expect(hello_edges.command("CLIENT", "GETNAME"), b"hello-edge", "HELLO SETNAME applied")
 
 proto = Conn()
-expect(proto.command("HELLO", "3", "AUTH", "default", password),
-       "NOPROTO unsupported protocol version", "HELLO 3 valid credential NOPROTO")
-expect(proto.command("PING"), b"PONG", "valid HELLO 3 still authenticated")
+hello3 = proto.command("HELLO", "3", "AUTH", "default", password)
+if not isinstance(hello3, dict) or hello3.get(b"server") != b"redis" or hello3.get(b"proto") != 3:
+    raise AssertionError("HELLO 3 AUTH reply: %r" % (hello3,))
+expect(proto.command("PING"), b"PONG", "HELLO 3 authenticated connection")
 
 # Iterate every registered command at valid minimum arity. Only AUTH/HELLO/QUIT/RESET may escape
 # the pre-dispatch NOAUTH gate; command syntax is intentionally irrelevant after arity validation.

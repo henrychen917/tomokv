@@ -479,8 +479,21 @@ public:
     void set_atomic_backpressure(bool v) { atomic_backpressure_ = v; }
     bool subscriber_mode() const { return subscriber_mode_; }
     void set_subscriber_mode(bool v) { subscriber_mode_ = v; }
-    bool blocked() const { return blocked_; }
-    void set_blocked(bool value) { blocked_ = value; }
+    bool blocked() const { return connection_flags_ & kBlocked; }
+    void set_blocked(bool value) {
+        if (value) connection_flags_ |= kBlocked;
+        else connection_flags_ &= static_cast<uint8_t>(~kBlocked);
+    }
+    bool resp3() const { return connection_flags_ & kResp3; }
+    void set_resp3(bool value) {
+        if (value) connection_flags_ |= kResp3;
+        else connection_flags_ &= static_cast<uint8_t>(~kResp3);
+    }
+    // Bit 2 deliberately matches Op::route_flags_'s Resp3 assignment. Passing the byte through
+    // Op::reset folds protocol capture into the ROB's existing flags store: RESP2 pays one load,
+    // no mask and no branch. kBlocked occupies an Op-ignored high bit.
+    uint8_t op_route_flags() const { return connection_flags_; }
+    static constexpr size_t connection_flags_offset();
     // The owning IO thread captures this into each Op before dispatch. Executors never read Client
     // atomic bookkeeping: doing so pulled this tail cache line across cores for every shard task
     // and regressed the pure-MGET cell even when no atomic group existed.
@@ -584,7 +597,11 @@ private:
     bool      scatter_barrier_ = false;  // pads out the existing bool run; sizeof unchanged
     bool      atomic_backpressure_ = false;
     bool      subscriber_mode_ = false;  // IO-owned; consumes existing alignment padding
-    bool      blocked_ = false;
+    // The former blocked_ bool is a one-byte flag cell. RESP3 shares it instead of extending the
+    // already-full 48..55 bool run and moving id_ (which would grow the 64-byte-aligned Client).
+    static constexpr uint8_t kBlocked = 1u << 7;
+    static constexpr uint8_t kResp3 = 1u << 2;
+    uint8_t   connection_flags_ = 0;
 
     // --- cold io state --------------------------------------------------------------------------
     uint64_t  id_ = 0;
@@ -622,6 +639,9 @@ private:
 
 constexpr size_t Client::acl_user_idx_offset() { return offsetof(Client, acl_user_idx_); }
 static_assert(Client::acl_user_idx_offset() + sizeof(uint32_t) <= sizeof(Client));
+constexpr size_t Client::connection_flags_offset() { return offsetof(Client, connection_flags_); }
+static_assert(Client::connection_flags_offset() == 55,
+              "connection flags moved: re-run the declaration-order Client mirror probe");
 constexpr size_t Client::tls_slot_offset() { return offsetof(Client, tls_slot_); }
 static_assert(Client::tls_slot_offset() == 1980,
               "TLS slot moved: re-run the declaration-order Client mirror probe");

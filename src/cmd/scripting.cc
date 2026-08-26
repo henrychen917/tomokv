@@ -303,6 +303,7 @@ struct ScriptContext {
     uint64_t instructions = 0;
     uint32_t call_index = 0;
     bool timed_out = false;
+    uint8_t script_resp = 2;
     // Set per call from the handler variant that entered (clean vs notify registry row). The
     // sandbox closures are built once per persistent state, so notify-variance is a runtime flag
     // here rather than a template parameter — one predictable test per nested call.
@@ -429,6 +430,45 @@ bool push_resp_value(lua_State* state, const char* data, size_t size, size_t& po
         lua_pushnumber(state, static_cast<lua_Number>(value));
         return true;
     }
+    if (marker == '_') {
+        if (pos + 1 >= size || data[pos] != '\r' || data[pos + 1] != '\n') {
+            error = "invalid null command reply"; return false;
+        }
+        pos += 2;
+        lua_pushboolean(state, 0);
+        return true;
+    }
+    if (marker == '#') {
+        if (pos + 2 >= size || (data[pos] != 't' && data[pos] != 'f') ||
+            data[pos + 1] != '\r' || data[pos + 2] != '\n') {
+            error = "invalid boolean command reply"; return false;
+        }
+        lua_pushboolean(state, data[pos] == 't');
+        pos += 3;
+        return true;
+    }
+    if (marker == ',' || marker == '(') {
+        const size_t begin = pos;
+        while (pos + 1 < size && !(data[pos] == '\r' && data[pos + 1] == '\n')) pos++;
+        if (pos + 1 >= size) { error = "invalid scalar command reply"; return false; }
+        const size_t length = pos - begin;
+        pos += 2;
+        lua_createtable(state, 0, 1);
+        if (marker == ',') {
+            std::string text(data + begin, length);
+            char* end = nullptr;
+            const double value = std::strtod(text.c_str(), &end);
+            if (end != text.c_str() + text.size()) {
+                lua_pop(state, 1); error = "invalid double command reply"; return false;
+            }
+            lua_pushnumber(state, static_cast<lua_Number>(value));
+            lua_setfield(state, -2, "double");
+        } else {
+            lua_pushlstring(state, data + begin, length);
+            lua_setfield(state, -2, "big_number");
+        }
+        return true;
+    }
     if (marker == '$') {
         int64_t length = 0;
         if (!parse_decimal_line(data, size, pos, length) || length < -1) {
@@ -441,6 +481,23 @@ bool push_resp_value(lua_State* state, const char* data, size_t size, size_t& po
             error = "truncated bulk command reply"; return false;
         }
         lua_pushlstring(state, data + pos, static_cast<size_t>(length));
+        pos += static_cast<size_t>(length) + 2;
+        return true;
+    }
+    if (marker == '=') {
+        int64_t length = 0;
+        if (!parse_decimal_line(data, size, pos, length) || length < 4 ||
+            static_cast<uint64_t>(length) + 2 > size - pos || data[pos + 3] != ':' ||
+            data[pos + length] != '\r' || data[pos + length + 1] != '\n') {
+            error = "invalid verbatim command reply"; return false;
+        }
+        lua_createtable(state, 0, 1);
+        lua_createtable(state, 0, 2);
+        lua_pushlstring(state, data + pos, 3);
+        lua_setfield(state, -2, "format");
+        lua_pushlstring(state, data + pos + 4, static_cast<size_t>(length - 4));
+        lua_setfield(state, -2, "string");
+        lua_setfield(state, -2, "verbatim_string");
         pos += static_cast<size_t>(length) + 2;
         return true;
     }
@@ -458,6 +515,29 @@ bool push_resp_value(lua_State* state, const char* data, size_t size, size_t& po
                 return false;
             lua_rawseti(state, -2, static_cast<int>(i + 1));
         }
+        return true;
+    }
+    if (marker == '%' || marker == '~') {
+        int64_t count = 0;
+        if (!parse_decimal_line(data, size, pos, count) || count < 0 ||
+            count > static_cast<int64_t>(kReplyMaxElements)) {
+            error = "invalid aggregate command reply"; return false;
+        }
+        lua_createtable(state, 0, 1);
+        lua_createtable(state, 0, static_cast<int>(count));
+        for (int64_t i = 0; i < count; i++) {
+            bool child_error = false;
+            if (!push_resp_value(state, data, size, pos, depth + 1, false,
+                                 child_error, error)) return false;
+            if (marker == '%') {
+                if (!push_resp_value(state, data, size, pos, depth + 1, false,
+                                     child_error, error)) return false;
+            } else {
+                lua_pushboolean(state, 1);
+            }
+            lua_rawset(state, -3);
+        }
+        lua_setfield(state, -2, marker == '%' ? "map" : "set");
         return true;
     }
     error = "unsupported nested command reply";
@@ -519,6 +599,7 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                 nested.db = context->parent->db;
                 nested.hash = FlatStore::hash_key(key);
                 nested.shard = context->shard->id();
+                if (context->script_resp == 3) nested.mark_resp3();
                 if (context->notify)
                     notify_execute_source(*context->shard, nested,
                                           context->call_index++ * 0x10000u);
@@ -575,6 +656,19 @@ int redis_dispatch(lua_State* state, bool protected_call) {
 
 int redis_call(lua_State* state) { return redis_dispatch(state, false); }
 int redis_pcall(lua_State* state) { return redis_dispatch(state, true); }
+
+int redis_setresp(lua_State* state) {
+    auto* slot = static_cast<ScriptContext**>(lua_touserdata(state, lua_upvalueindex(1)));
+    ScriptContext* context = slot ? *slot : nullptr;
+    if (!context) return luaL_error(state, "redis.setresp() called outside a script");
+    if (lua_gettop(state) != 1)
+        return luaL_error(state, "redis.setresp() requires one argument.");
+    const int version = static_cast<int>(lua_tonumber(state, 1));
+    if (!lua_isnumber(state, 1) || (version != 2 && version != 3))
+        return luaL_error(state, "RESP version must be 2 or 3.");
+    context->script_resp = static_cast<uint8_t>(version);
+    return 0;
+}
 
 void remove_global(lua_State* state, const char* name) {
     lua_pushnil(state);
@@ -635,13 +729,16 @@ void create_sandbox_static(lua_State* state, ScriptContext** slot) {
     lua_pushnil(state); lua_setfield(state, -2, "randomseed");
     lua_pop(state, 1);
 
-    lua_createtable(state, 0, 2);
+    lua_createtable(state, 0, 3);
     lua_pushlightuserdata(state, slot);
     lua_pushcclosure(state, redis_call, 1);
     lua_setfield(state, -2, "call");
     lua_pushlightuserdata(state, slot);
     lua_pushcclosure(state, redis_pcall, 1);
     lua_setfield(state, -2, "pcall");
+    lua_pushlightuserdata(state, slot);
+    lua_pushcclosure(state, redis_setresp, 1);
+    lua_setfield(state, -2, "setresp");
     lua_setglobal(state, "redis");
 
     lua_pushlightuserdata(state, &g_hook_context_key);
@@ -682,15 +779,22 @@ void bind_call_tables(lua_State* state, ScriptContext& context) {
 }
 
 bool append_lua_result(lua_State* state, int index, SmallBuf<kInlineReply>& output,
-                       uint32_t depth, uint32_t& elements, std::string& error) {
+                       uint32_t depth, uint32_t& elements, std::string& error,
+                       bool outer_resp3, uint8_t script_resp) {
     if (depth > kReplyMaxDepth) { error = "script reply nesting is too deep"; return false; }
     index = index < 0 ? lua_gettop(state) + index + 1 : index;
     const int type = lua_type(state, index);
-    if (type == LUA_TNIL || (type == LUA_TBOOLEAN && !lua_toboolean(state, index))) {
-        reply_nil(output);
+    if (type == LUA_TNIL) {
+        reply_null(output, outer_resp3);
         return true;
     }
-    if (type == LUA_TBOOLEAN) { reply_int(output, 1); return true; }
+    if (type == LUA_TBOOLEAN) {
+        const bool value = lua_toboolean(state, index);
+        if (script_resp == 3) reply_bool(output, value, outer_resp3);
+        else if (value) reply_int(output, 1);
+        else reply_null(output, outer_resp3);
+        return true;
+    }
     if (type == LUA_TNUMBER) {
         const lua_Number number = lua_tonumber(state, index);
         if (!std::isfinite(number) || number < static_cast<lua_Number>(LLONG_MIN) ||
@@ -707,7 +811,7 @@ bool append_lua_result(lua_State* state, int index, SmallBuf<kInlineReply>& outp
         reply_bulk(output, Slice(value, static_cast<uint32_t>(length)));
         return true;
     }
-    if (type != LUA_TTABLE) { error = "script returned an unsupported Lua type"; return false; }
+    if (type != LUA_TTABLE) { reply_null(output, outer_resp3); return true; }
 
     lua_getfield(state, index, "err");
     if (!lua_isnil(state, -1)) {
@@ -730,6 +834,99 @@ bool append_lua_result(lua_State* state, int index, SmallBuf<kInlineReply>& outp
     }
     lua_pop(state, 1);
 
+    lua_getfield(state, index, "double");
+    if (lua_isnumber(state, -1)) {
+        const double value = static_cast<double>(lua_tonumber(state, -1));
+        lua_pop(state, 1);
+        reply_double(output, value, outer_resp3);
+        return true;
+    }
+    lua_pop(state, 1);
+
+    lua_getfield(state, index, "big_number");
+    if (lua_isstring(state, -1)) {
+        size_t length = 0;
+        const char* value = lua_tolstring(state, -1, &length);
+        std::string safe(value, length);
+        for (char& ch : safe) if (ch == '\r' || ch == '\n') ch = ' ';
+        lua_pop(state, 1);
+        reply_bignum(output, Slice(safe.data(), static_cast<uint32_t>(safe.size())), outer_resp3);
+        return true;
+    }
+    lua_pop(state, 1);
+
+    lua_getfield(state, index, "verbatim_string");
+    if (lua_istable(state, -1)) {
+        const int verbatim = lua_gettop(state);
+        lua_getfield(state, verbatim, "format");
+        size_t format_length = 0;
+        const char* format = lua_tolstring(state, -1, &format_length);
+        lua_getfield(state, verbatim, "string");
+        size_t value_length = 0;
+        const char* value = lua_tolstring(state, -1, &value_length);
+        if (format && format_length >= 3 && value && value_length <= UINT32_MAX) {
+            char ext[3] = {format[0], format[1], format[2]};
+            reply_verbatim(output, Slice(value, static_cast<uint32_t>(value_length)), ext,
+                           outer_resp3);
+            lua_pop(state, 3);
+            return true;
+        }
+        lua_pop(state, 2);
+    }
+    lua_pop(state, 1);
+
+    lua_getfield(state, index, "map");
+    if (lua_istable(state, -1)) {
+        const int map = lua_gettop(state);
+        uint32_t count = 0;
+        lua_pushnil(state);
+        while (lua_next(state, map)) {
+            lua_pop(state, 1);
+            if (++count > kReplyMaxElements) {
+                error = "script reply has too many elements"; return false;
+            }
+        }
+        reply_map_header(output, count, outer_resp3);
+        lua_pushnil(state);
+        while (lua_next(state, map)) {
+            lua_pushvalue(state, -2);
+            if (!append_lua_result(state, -1, output, depth + 1, elements, error,
+                                   outer_resp3, script_resp)) return false;
+            lua_pop(state, 1);
+            lua_pushvalue(state, -1);
+            if (!append_lua_result(state, -1, output, depth + 1, elements, error,
+                                   outer_resp3, script_resp)) return false;
+            lua_pop(state, 2);  // value copy, then original value; retain the iteration key
+        }
+        lua_pop(state, 1);
+        return true;
+    }
+    lua_pop(state, 1);
+
+    lua_getfield(state, index, "set");
+    if (lua_istable(state, -1)) {
+        const int set = lua_gettop(state);
+        uint32_t count = 0;
+        lua_pushnil(state);
+        while (lua_next(state, set)) {
+            lua_pop(state, 1);
+            if (++count > kReplyMaxElements) {
+                error = "script reply has too many elements"; return false;
+            }
+        }
+        reply_set_header(output, count, outer_resp3);
+        lua_pushnil(state);
+        while (lua_next(state, set)) {
+            lua_pushvalue(state, -2);
+            if (!append_lua_result(state, -1, output, depth + 1, elements, error,
+                                   outer_resp3, script_resp)) return false;
+            lua_pop(state, 2);  // key copy, then original value; retain the iteration key
+        }
+        lua_pop(state, 1);
+        return true;
+    }
+    lua_pop(state, 1);
+
     uint32_t count = 0;
     for (;;) {
         if (++elements > kReplyMaxElements) { error = "script reply has too many elements"; return false; }
@@ -742,7 +939,8 @@ bool append_lua_result(lua_State* state, int index, SmallBuf<kInlineReply>& outp
     reply_array_header(output, count);
     for (uint32_t i = 0; i < count; i++) {
         lua_rawgeti(state, index, static_cast<int>(i + 1));
-        const bool ok = append_lua_result(state, -1, output, depth + 1, elements, error);
+        const bool ok = append_lua_result(state, -1, output, depth + 1, elements, error,
+                                          outer_resp3, script_resp);
         lua_pop(state, 1);
         if (!ok) return false;
     }
@@ -857,7 +1055,7 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_h
     std::string conversion_error;
     uint32_t elements = 0;
     const bool converted = append_lua_result(
-        state, -1, result, 0, elements, conversion_error);
+        state, -1, result, 0, elements, conversion_error, op.resp3(), context.script_resp);
     lua_settop(state, 0);
     engine.current = nullptr;
     if (!converted) {

@@ -712,7 +712,7 @@ private:
 
         for (;;) {
             if (c->scatter_barrier() || c->atomic_backpressure()) break;
-            Op* op = rob.acquire();
+            Op* op = rob.acquire(conn.op_route_flags());
             if (!op) break;                    // window full: backpressure; let replies drain first
             uint32_t pos = conn.rpos();
             const char* err = nullptr;
@@ -775,6 +775,15 @@ private:
             // Redis subscriber command set is legal until the last subscription is removed.
             const bool subscriber_mode = __builtin_expect(c->subscriber_mode(), false);
             if (subscriber_mode) {
+                if (op->cmd_name().eq_icase("reset")) {
+                    conn.advance_parse(consumed);
+                    self_->note_command(spec->id);
+                    pubsub_start_reset(c, *op);
+                    sig.ops++;
+                    mark_active(c);
+                    break;
+                }
+                if (op->resp3()) goto subscriber_checks_done;
                 const bool subscription_control =
                     op->cmd_name().eq_icase("subscribe") ||
                     op->cmd_name().eq_icase("unsubscribe") ||
@@ -789,14 +798,6 @@ private:
                     finish_prebuilt(c, *op);
                     continue;
                 }
-                if (op->cmd_name().eq_icase("reset")) {
-                    conn.advance_parse(consumed);
-                    self_->note_command(spec->id);
-                    pubsub_start_reset(c, *op);
-                    sig.ops++;
-                    mark_active(c);
-                    break;
-                }
                 if (!subscription_control && !op->cmd_name().eq_icase("quit")) {
                     conn.advance_parse(consumed);
                     self_->note_command(spec->id);
@@ -805,6 +806,7 @@ private:
                     continue;
                 }
             }
+subscriber_checks_done:
             if (spec->flags & CmdFlags::PubSub) {
                 conn.advance_parse(consumed);
                 self_->note_command(spec->id);

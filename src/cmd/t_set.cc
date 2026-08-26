@@ -940,13 +940,13 @@ template <bool kNotify>
 void cmd_smembers(Shard& shard, Op& op) {
     KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!object) {
-        reply_array_header(op.sink(), 0);
+        reply_set_header(op.sink(), 0, op.resp3());
         return;
     }
     auto sink = op.sink();
     if (!obj_type_check(object, Type::Set, sink)) return;
     CollectionRef set = as_set(object);
-    reply_array_header(op.sink(), set.entries());
+    reply_set_header(op.sink(), set.entries(), op.resp3());
     for_each_member(set, [&](Slice member) { reply_bulk(op.sink(), member); });
 }
 
@@ -967,8 +967,8 @@ void cmd_spop(Shard& shard, Op& op) {
 
     KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!object) {
-        if (with_count) reply_array_header(op.sink(), 0);
-        else reply_nil(op.sink());
+        if (with_count) reply_set_header(op.sink(), 0, op.resp3());
+        else reply_null(op.sink(), op.resp3());
         return;
     }
     auto sink = op.sink();
@@ -977,12 +977,12 @@ void cmd_spop(Shard& shard, Op& op) {
     const uint32_t size = initial.entries();
     const uint64_t count = static_cast<uint64_t>(signed_count);
     if (count == 0) {
-        reply_array_header(op.sink(), 0);
+        reply_set_header(op.sink(), 0, op.resp3());
         return;
     }
 
     if (count >= size) {
-        if (with_count) reply_array_header(op.sink(), size);
+        if (with_count) reply_set_header(op.sink(), size, op.resp3());
         for_each_member(initial, [&](Slice member) { reply_bulk(op.sink(), member); });
         if constexpr (kNotify)
             notify_record(shard, op, NOTIFY_SET, NotifyEventId::Spop, op.key());
@@ -1001,7 +1001,7 @@ void cmd_spop(Shard& shard, Op& op) {
         return;
     }
     SetVal* expanded = set.external_as<SetVal>();
-    if (with_count) reply_array_header(op.sink(), count);
+    if (with_count) reply_set_header(op.sink(), count, op.resp3());
     for (uint64_t i = 0; i < count; i++) {
         const uint32_t slot = expanded->table.random_slot(random64());
         const Slice member = expanded->table.value_at(slot);
@@ -1053,7 +1053,7 @@ void cmd_srandmember(Shard& shard, Op& op) {
     KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!object) {
         if (with_count) reply_array_header(op.sink(), 0);
-        else reply_nil(op.sink());
+        else reply_null(op.sink(), op.resp3());
         return;
     }
     auto sink = op.sink();

@@ -301,6 +301,7 @@ bool prepare_commands(Server& server, MultiExecState& state,
             }
             command->kind = classify_multi_command(*command);
             if (!make_child_op(*command, db)) return false;
+            if (state.client->resp3()) command->op->mark_resp3();
             uint32_t acl_denied_arg = UINT32_MAX;
             const AclDeniedReason acl_denied = acl_check_queued(
                 state.client->acl_user_idx(), *command->queued.spec,
@@ -459,7 +460,7 @@ void set_state_reply(MultiExecState& state, Op& public_op) {
         return;
     }
     if (state.watch_failed.load(std::memory_order_acquire)) {
-        reply_null_array(public_op.sink());
+        reply_null_array(public_op.sink(), public_op.resp3());
         return;
     }
     if (state.aborted.load(std::memory_order_acquire)) {
@@ -704,7 +705,7 @@ void assemble_cross_reply(MultiCommand& command) {
     if (command.kind == MultiCommandKind::Mget) {
         reply_array_header(op.sink(), command.values.size());
         for (const MultiValue& value : command.values) {
-            if (!value.present) reply_nil(op.sink());
+            if (!value.present) reply_null(op.sink(), op.resp3());
             else reply_bulk(op.sink(), Slice(value.value.data(),
                                               static_cast<uint32_t>(value.value.size())));
         }

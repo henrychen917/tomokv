@@ -1110,7 +1110,7 @@ void assemble_mget(Client& client, Op& op, ScatterState& state, void* release_ct
         reply_array_header(op.sink(), state.key_count);
         for (uint32_t i = 0; i < state.key_count; i++) {
             const ValueSlot& slot = state.values[i];
-            if (slot.kind == ValueKind::Nil) reply_nil(op.sink());
+            if (slot.kind == ValueKind::Nil) reply_null(op.sink(), op.resp3());
             else if (slot.kind == ValueKind::Inline)
                 reply_bulk(op.sink(), Slice(slot.small, slot.len));
             else
@@ -1125,7 +1125,7 @@ void assemble_mget(Client& client, Op& op, ScatterState& state, void* release_ct
         reply_array_header(op.sink(), state.key_count);
         for (uint32_t i = 0; i < state.key_count; i++) {
             const ValueSlot& slot = state.values[i];
-            if (slot.kind == ValueKind::Nil) reply_nil(op.sink());
+            if (slot.kind == ValueKind::Nil) reply_null(op.sink(), op.resp3());
             else reply_bulk(op.sink(), Slice(slot.small, slot.len));
         }
         return;
@@ -1140,7 +1140,7 @@ void assemble_mget(Client& client, Op& op, ScatterState& state, void* release_ct
     reply_array_header(op.sink(), state.key_count);
     for (uint32_t i = 0; i < state.key_count; i++) {
         ValueSlot& slot = state.values[i];
-        if (slot.kind == ValueKind::Nil) reply_nil(op.sink());
+        if (slot.kind == ValueKind::Nil) reply_null(op.sink(), op.resp3());
         else if (slot.kind == ValueKind::Inline) reply_bulk(op.sink(), Slice(slot.small, slot.len));
         else {
             reply_bulk_header(op.sink(), slot.len);
@@ -1167,14 +1167,17 @@ void assemble_final(Client& client, Op& op, ScatterState& state, void* release_c
         switch (state.final_reply) {
             case FinalReply::Ok: reply_ok(op.sink()); break;
             case FinalReply::Integer: reply_int(op.sink(), state.final_integer); break;
-            case FinalReply::Nil: reply_nil(op.sink()); break;
-            case FinalReply::NullArray: reply_null_array(op.sink()); break;
+            case FinalReply::Nil: reply_null(op.sink(), op.resp3()); break;
+            case FinalReply::NullArray: reply_null_array(op.sink(), op.resp3()); break;
             case FinalReply::Bulk:
                 reply_bulk(op.sink(), Slice(state.result->bulk.data(),
                                             static_cast<uint32_t>(state.result->bulk.size())));
                 break;
             case FinalReply::Array:
-                reply_array_header(op.sink(), state.result->members.size());
+                if (is_plain_setop(state.kind))
+                    reply_set_header(op.sink(), state.result->members.size(), op.resp3());
+                else
+                    reply_array_header(op.sink(), state.result->members.size());
                 for (const std::string& member : state.result->members)
                     reply_bulk(op.sink(), Slice(member.data(), static_cast<uint32_t>(member.size())));
                 break;
@@ -1193,7 +1196,7 @@ void assemble_final(Client& client, Op& op, ScatterState& state, void* release_c
                     reply_array_header(op.sink(), 2);
                     const std::string& member = state.result->members[i];
                     reply_bulk(op.sink(), Slice(member.data(), static_cast<uint32_t>(member.size())));
-                    reply_double(op.sink(), state.result->scores[i]);
+                    reply_double(op.sink(), state.result->scores[i], op.resp3());
                 }
                 break;
             case FinalReply::SortConversion:
@@ -1229,8 +1232,9 @@ void assemble_final(Client& client, Op& op, ScatterState& state, void* release_c
             // that Mget threads through does not apply here.
             uint32_t ready = 0;
             for (uint32_t i = 0; i < state.key_count; i++) ready += state.images[i].present;
-            if (!ready) { reply_null_array(op.sink()); break; }
-            reply_array_header(op.sink(), ready);
+            if (!ready) { reply_null_array(op.sink(), op.resp3()); break; }
+            if (op.resp3()) reply_map_header(op.sink(), ready, true);
+            else reply_array_header(op.sink(), ready);
             for (uint32_t i = 0; i < state.key_count; i++) {
                 if (!state.images[i].present) continue;
                 if (!stream_reply_xread_payload(op, op.arg(state.keys[i].arg),
@@ -1327,7 +1331,9 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         for (uint32_t arg = 1; arg < op.argc(); arg++) {
             const uint64_t hash = arg == 1 ? op.hash : FlatStore::hash_key(op.arg(arg));
             KvObj* object = shard.store_find<kNotify>(hash, op.arg(arg));
-            if (!object || static_cast<Type>(object->type) != Type::String) { reply_nil(op.sink()); continue; }
+            if (!object || static_cast<Type>(object->type) != Type::String) {
+                reply_null(op.sink(), op.resp3()); continue;
+            }
             if (object->is_int()) {
                 char integer[24];
                 const uint32_t n = i64_to_dec(integer, object->int_value());
@@ -1357,9 +1363,10 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         else if (read == StreamReadResult::Oom) reply_err(op.sink(), "ERR out of memory");
         else if (read == StreamReadResult::Corrupt)
             reply_err(op.sink(), "ERR corrupt stream encoding");
-        else if (read != StreamReadResult::Ready) reply_null_array(op.sink());
+        else if (read != StreamReadResult::Ready) reply_null_array(op.sink(), op.resp3());
         else {
-            reply_array_header(op.sink(), 1);
+            if (op.resp3()) reply_map_header(op.sink(), 1, true);
+            else reply_array_header(op.sink(), 1);
             if (!stream_reply_xread_payload(op, key, payload))
                 reply_err(op.sink(), "ERR corrupt stream encoding");
         }
@@ -1403,7 +1410,7 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
             }
             if (CollectionRef(object).entries()) { selected_arg = arg; break; }
         }
-        if (!selected_arg) { reply_null_array(op.sink()); return; }
+        if (!selected_arg) { reply_null_array(op.sink(), op.resp3()); return; }
 
         std::vector<std::string> members;
         std::vector<double> scores;
@@ -1413,14 +1420,16 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
             : xshard_pop_zset(shard, op.arg(selected_arg), hash, edge, count, members, scores);
         if (popped == XshardPopResult::WrongType) { reply_wrongtype(op.sink()); return; }
         if (popped == XshardPopResult::Oom) { set_oom(op); return; }
-        if (popped == XshardPopResult::Missing) { reply_null_array(op.sink()); return; }
+        if (popped == XshardPopResult::Missing) {
+            reply_null_array(op.sink(), op.resp3()); return;
+        }
         reply_array_header(op.sink(), 2);
         reply_bulk(op.sink(), op.arg(selected_arg));
         reply_array_header(op.sink(), members.size());
         for (size_t i = 0; i < members.size(); i++) {
             if (kind == Kind::Zmpop) reply_array_header(op.sink(), 2);
             reply_bulk(op.sink(), Slice(members[i].data(), static_cast<uint32_t>(members[i].size())));
-            if (kind == Kind::Zmpop) reply_double(op.sink(), scores[i]);
+            if (kind == Kind::Zmpop) reply_double(op.sink(), scores[i], op.resp3());
         }
         return;
     }
@@ -1578,7 +1587,7 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         return;
     }
     if (kind == Kind::Lmove || kind == Kind::Rpoplpush) {
-        if (!images[1].present) { reply_nil(op.sink()); return; }
+        if (!images[1].present) { reply_null(op.sink(), op.resp3()); return; }
         if (!image_type(images[1], Type::List) || !image_type(images[2], Type::List)) {
             reply_wrongtype(op.sink()); return;
         }
@@ -1586,7 +1595,7 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         if (!decode_elements(images[1], src) || (images[2].present && !decode_elements(images[2], dst))) {
             set_oom(op); return;
         }
-        if (src.empty()) { reply_nil(op.sink()); return; }
+        if (src.empty()) { reply_null(op.sink(), op.resp3()); return; }
         const bool from_left = kind == Kind::Lmove ? op.arg(3).eq_icase("left") : false;
         const bool to_left = kind == Kind::Lmove ? op.arg(4).eq_icase("left") : true;
         std::string moved = from_left ? src.front() : src.back();
@@ -1667,7 +1676,7 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
             return;
         }
         if (is_plain_setop(kind)) {
-            reply_array_header(op.sink(), members.size());
+            reply_set_header(op.sink(), members.size(), op.resp3());
             for (const std::string& member : members)
                 reply_bulk(op.sink(), Slice(member.data(), static_cast<uint32_t>(member.size())));
             return;

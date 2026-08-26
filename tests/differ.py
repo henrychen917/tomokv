@@ -1,18 +1,26 @@
 #!/usr/bin/env python3
 # DIFFERENTIAL battery: run one deterministic command stream against the TARGET (tomokv-cpp) and
 # the ORACLE (the optimized Redis fork -- byte-exact redis semantics) and diff every reply.
-#   python3 tests/differ.py <target_host> <target_port> <oracle_host> <oracle_port> <suite> [seed]
+#   python3 tests/differ.py <target_host> <target_port> <oracle_host> <oracle_port> <suite> [seed] [-3]
 # Exit 0 iff zero diffs. Suites: string (more added per type lane).
 import socket, sys, random, re, time
 
 TH, TP, OH, OP = sys.argv[1], int(sys.argv[2]), sys.argv[3], int(sys.argv[4])
 SUITE = sys.argv[5]
-SEED = int(sys.argv[6]) if len(sys.argv) > 6 else 7
+EXTRA = sys.argv[6:]
+RESP3 = "-3" in EXTRA
+SEED = int(next((arg for arg in EXTRA if arg != "-3"), "7"))
 
 def conn(h, p):
     s = socket.create_connection((h, p), timeout=30)
     s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-    return s, s.makefile("rb")
+    f = s.makefile("rb")
+    if RESP3:
+        s.sendall(enc(["HELLO", "3"]))
+        hello = read_reply(f)
+        if not hello.startswith(b"%7\r\n"):
+            raise RuntimeError("HELLO 3 failed for %s:%d: %r" % (h, p, hello[:96]))
+    return s, f
 def enc(args):
     o = b"*%d\r\n" % len(args)
     for a in args:
@@ -23,49 +31,68 @@ def read_reply(f):
     line = f.readline()
     if not line: raise EOFError
     t = line[:1]
-    if t in b"+-:": return line
-    if t == b"$":
+    if t in b"+-:,_#(": return line
+    if t in (b"$", b"=", b"!"):
         n = int(line[1:-2])
         if n == -1: return line
         return line + f.read(n + 2)
-    if t == b"*":
+    if t in (b"*", b"~", b">"):
         n = int(line[1:-2])
         if n == -1: return line
         return line + b"".join(read_reply(f) for _ in range(n))
+    if t in (b"%", b"|"):
+        n = int(line[1:-2])
+        return line + b"".join(read_reply(f) for _ in range(n * 2))
     raise ValueError(repr(line[:24]))
 
 def parse_reply(r):
-    # decode one serialized reply into a python structure for normalization
-    if r[:1] == b"*" and not r.startswith(b"*-1"):
-        # split header + elements (only flat arrays of bulks/ints needed here)
-        items = []
-        rest = r[r.index(b"\r\n")+2:]
-        while rest:
-            if rest[:1] == b"$":
-                if rest.startswith(b"$-1"):
-                    items.append(None); rest = rest[rest.index(b"\r\n")+2:]
-                else:
-                    n = int(rest[1:rest.index(b"\r\n")])
-                    body_at = rest.index(b"\r\n")+2
-                    items.append(rest[body_at:body_at+n]); rest = rest[body_at+n+2:]
-            elif rest[:1] in b":+-":
-                items.append(rest[:rest.index(b"\r\n")]); rest = rest[rest.index(b"\r\n")+2:]
-            else: return None
-        return items
-    return None
+    # Decode serialized RESP2/RESP3 into a Python structure for unordered normalization.
+    def one(pos):
+        marker = r[pos:pos + 1]
+        end = r.index(b"\r\n", pos)
+        line = r[pos + 1:end]
+        next_pos = end + 2
+        if marker in b"+-:, #(".replace(b" ", b""):
+            return marker + line, next_pos
+        if marker == b"_": return None, next_pos
+        if marker in (b"$", b"=", b"!"):
+            length = int(line)
+            if length == -1: return None, next_pos
+            value = r[next_pos:next_pos + length]
+            return value, next_pos + length + 2
+        if marker in (b"*", b"~", b">"):
+            count = int(line)
+            if count == -1: return None, next_pos
+            values = []
+            for _ in range(count):
+                value, next_pos = one(next_pos)
+                values.append(value)
+            return values, next_pos
+        if marker in (b"%", b"|"):
+            values = []
+            for _ in range(int(line) * 2):
+                value, next_pos = one(next_pos)
+                values.append(value)
+            return values, next_pos
+        raise ValueError("unsupported RESP marker %r" % marker)
+    try:
+        value, consumed = one(0)
+        return value if consumed == len(r) else None
+    except (ValueError, IndexError):
+        return None
 
 SORTED_SET_REPLIES = {"SMEMBERS", "SPOPSHAPE", "HKEYS", "HVALS",
                       "KEYS", "SINTER", "SUNION", "SDIFF"}
 
 def normalize(cmdname, r):
-    if cmdname == "HGETALL" and r[:1] == b"*" and not r.startswith(b"*-1"):
+    if cmdname == "HGETALL" and r[:1] in (b"*", b"%") and not r.startswith(b"*-1"):
         it = parse_reply(r)
         if it is not None and len(it) % 2 == 0:
             pairs = sorted((it[i], it[i+1]) for i in range(0, len(it), 2))
             return b"HSORTED:" + b";".join(b"%s=%s" % p for p in pairs)
     if cmdname in SORTED_SET_REPLIES:
         it = parse_reply(r)
-        if it is not None:
+        if isinstance(it, list):
             return b"SORTED:" + b",".join(sorted(x if x is not None else b"<nil>" for x in it))
     # TTL/PTTL race by wall time between servers: bucket to second granularity.
     if cmdname in ("TTL", "PTTL", "EXPIRETIME", "PEXPIRETIME") and r[:1] == b":":
