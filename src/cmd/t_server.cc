@@ -234,7 +234,7 @@ void init_config(const Config& cfg) {
     g_config.push_back({"appendonly", ConfigKind::Bool, cfg.appendonly ? "yes" : "no", true});
     const char* appendfsync = cfg.appendfsync == AppendFsyncPolicy::Always ? "always" :
                               cfg.appendfsync == AppendFsyncPolicy::No ? "no" : "everysec";
-    g_config.push_back({"appendfsync", ConfigKind::Enum, appendfsync, true});
+    g_config.push_back({"appendfsync", ConfigKind::Enum, appendfsync});
     g_config.push_back({"appendfilename", ConfigKind::String, cfg.appendfilename, true});
     g_config.push_back({"appenddirname", ConfigKind::String, cfg.appenddirname, true});
     add_config("auto-aof-rewrite-percentage", ConfigKind::Unsigned,
@@ -930,6 +930,14 @@ void cmd_config(Shard& sh, Op& op) {
                     g_server->aof().set_timestamp_enabled(update.second == "yes");
                     continue;
                 }
+                if (!std::strcmp(update.first->name, "appendfsync")) {
+                    const AppendFsyncPolicy policy = update.second == "always"
+                        ? AppendFsyncPolicy::Always
+                        : update.second == "no" ? AppendFsyncPolicy::No
+                                                 : AppendFsyncPolicy::Everysec;
+                    g_server->aof().set_fsync_policy(policy);
+                    continue;
+                }
                 if (!parse_u64(Slice(update.second.data(), update.second.size()), value)) continue;
                 if (!std::strcmp(update.first->name, "atomic"))
                     g_server->set_atomic_enabled(value != 0);
@@ -1069,8 +1077,8 @@ void cmd_info(Shard&, Op& op) {
                 "aof_current_size:%llu\r\naof_pending_rewrite:0\r\n"
                 "aof_delayed_fsync:0\r\naof_records_written:%llu\r\n"
                 "aof_replayed_records:%llu\r\naof_groups_committed:%llu\r\n"
-                "aof_groups_skipped_on_replay:%llu\r\naof_fsyncs:0\r\n"
-                "aof_send_gate_waits:0\r\n",
+                "aof_groups_skipped_on_replay:%llu\r\naof_fsyncs:%llu\r\n"
+                "aof_send_gate_waits:%llu\r\n",
                 g_server && g_server->snapshot().in_progress() ? 1u : 0u,
                 static_cast<long long>(g_server ? g_server->snapshot().last_save_time() : 0),
                 static_cast<unsigned long long>(preimages),
@@ -1080,7 +1088,9 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(g_server ? g_server->aof().records_written() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().replayed_records() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().groups_committed() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->aof().groups_skipped() : 0));
+                static_cast<unsigned long long>(g_server ? g_server->aof().groups_skipped() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->aof().fsyncs() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->aof().send_gate_waits() : 0));
     }
     if (info_section(op, "STATS")) {
         appendf(body, "# Stats\r\ntotal_connections_received:%llu\r\nrejected_connections:%llu\r\n"

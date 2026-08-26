@@ -217,6 +217,65 @@ grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG
     && ok "AOF group shutdown invariants" || bad "AOF group shutdown invariants"
 sleep 5
 
+# ---- AOF sync policies, reply gate, idle sync, and durability-window recovery ----------------
+AOF_ALWAYS_DIR=$(mktemp -d /tmp/gate-aof-always.XXXXXX)
+AOF_ALWAYS_STATE=$AOF_ALWAYS_DIR/state.json
+boot ./build/tomokv --protected-mode no --atomic 1 --appendonly yes --appendfsync always \
+    --dir "$AOF_ALWAYS_DIR" || bad "AOF always purpose boot"
+python3 tests/aof_fsync.py 127.0.0.1 $PORT populate "$AOF_ALWAYS_STATE" always 512 \
+    >/tmp/gate-aof-always.txt 2>&1 \
+    && ok "AOF always sync + reply gate fired" \
+    || bad "AOF always sync + reply gate" "see /tmp/gate-aof-always.txt"
+kill -KILL $SRV 2>/dev/null
+wait $SRV 2>/dev/null
+sleep 5
+boot ./build/tomokv --protected-mode no --atomic 1 --appendonly yes --appendfsync always \
+    --dir "$AOF_ALWAYS_DIR" || bad "AOF always recovery boot"
+python3 tests/aof_fsync.py 127.0.0.1 $PORT verify "$AOF_ALWAYS_STATE" always 512 \
+    >>/tmp/gate-aof-always.txt 2>&1 \
+    && ok "AOF always acknowledged-prefix recovery" \
+    || bad "AOF always acknowledged-prefix recovery" "see /tmp/gate-aof-always.txt"
+stop
+sleep 5
+
+AOF_EVERY_DIR=$(mktemp -d /tmp/gate-aof-everysec.XXXXXX)
+AOF_EVERY_STATE=$AOF_EVERY_DIR/state.json
+AOF_EVERY_FILE=$AOF_EVERY_DIR/appendonlydir/appendonly.aof.1.incr.tomo
+boot ./build/tomokv --protected-mode no --atomic 1 --appendonly yes --appendfsync everysec \
+    --dir "$AOF_EVERY_DIR" || bad "AOF everysec purpose boot"
+python3 tests/aof_fsync.py 127.0.0.1 $PORT populate "$AOF_EVERY_STATE" everysec 512 \
+    >/tmp/gate-aof-everysec.txt 2>&1 \
+    && ok "AOF everysec write gate + idle sync fired" \
+    || bad "AOF everysec write gate + idle sync" "see /tmp/gate-aof-everysec.txt"
+kill -KILL $SRV 2>/dev/null
+wait $SRV 2>/dev/null
+AOF_EVERY_SIZE=$(stat -c %s "$AOF_EVERY_FILE" 2>/dev/null || echo 0)
+case "$AOF_EVERY_FILE" in
+  "$AOF_EVERY_DIR"/appendonlydir/*)
+    [ "$AOF_EVERY_SIZE" -gt 7 ] && truncate -s $((AOF_EVERY_SIZE-7)) "$AOF_EVERY_FILE" ;;
+  *) bad "AOF everysec tail target" ;;
+esac
+sleep 5
+boot ./build/tomokv --protected-mode no --atomic 1 --appendonly yes --appendfsync everysec \
+    --dir "$AOF_EVERY_DIR" || bad "AOF everysec recovery boot"
+python3 tests/aof_fsync.py 127.0.0.1 $PORT verify "$AOF_EVERY_STATE" everysec 512 \
+    >>/tmp/gate-aof-everysec.txt 2>&1 \
+    && grep -q "AOF warning: truncated AOF tail" "$SRVLOG" \
+    && ok "AOF everysec durability window + tail warning" \
+    || bad "AOF everysec durability window + tail warning" "see /tmp/gate-aof-everysec.txt"
+stop
+sleep 5
+
+AOF_NO_DIR=$(mktemp -d /tmp/gate-aof-no-sync.XXXXXX)
+boot ./build/tomokv --protected-mode no --atomic 0 --appendonly yes --appendfsync no \
+    --dir "$AOF_NO_DIR" || bad "AOF no-sync purpose boot"
+python3 tests/aof_fsync.py 127.0.0.1 $PORT populate "$AOF_NO_DIR/state.json" no 128 \
+    >/tmp/gate-aof-no-sync.txt 2>&1 \
+    && ok "AOF no-sync bypassed sync + reply gate" \
+    || bad "AOF no-sync bypass" "see /tmp/gate-aof-no-sync.txt"
+stop
+sleep 5
+
 AOF_OFF_DIR=$(mktemp -d /tmp/gate-aof-off.XXXXXX)
 boot ./build/tomokv --protected-mode no --appendonly no --dir "$AOF_OFF_DIR" \
     || bad "AOF-off negative-control boot"

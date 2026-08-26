@@ -180,7 +180,8 @@ public:
         snapshot_.init(nthreads, cfg.shards,
                        static_cast<uint32_t>(placement_.ex_threads().size()),
                        cfg.dir, cfg.dbfilename);
-        aof_.init(cfg, nthreads, cfg.shards, placement_.ifid_threads().back(), aof_replay);
+        aof_.init(*this, cfg, nthreads, cfg.shards,
+                  placement_.ifid_threads().back(), aof_replay);
         for (uint32_t sid = 0; sid < cfg.shards; sid++) {
             const uint32_t sequence = aof_replay && aof_replay->next_sequence.size() == cfg.shards
                 ? aof_replay->next_sequence[sid] : 0;

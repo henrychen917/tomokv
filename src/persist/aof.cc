@@ -10,6 +10,7 @@
 #include <new>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/uio.h>
 #include <thread>
 #include <unistd.h>
 
@@ -41,6 +42,12 @@ int64_t realtime_ms() {
     return static_cast<int64_t>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000;
 }
 
+int64_t monotonic_ms() {
+    timespec ts{};
+    ::clock_gettime(CLOCK_MONOTONIC, &ts);
+    return static_cast<int64_t>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000;
+}
+
 bool plain_name(const char* value) {
     return value && *value && !std::strchr(value, '/');
 }
@@ -56,6 +63,34 @@ bool write_counted(int fd, const uint8_t* bytes, size_t length, uint64_t& offset
         bytes += n;
         length -= static_cast<size_t>(n);
         offset += static_cast<uint64_t>(n);
+    }
+    return true;
+}
+
+bool write_frame_counted(int fd, const uint8_t* header, size_t header_length,
+                         const uint8_t* payload, size_t payload_length, uint64_t& offset) {
+    iovec vectors[2] = {
+        {const_cast<uint8_t*>(header), header_length},
+        {const_cast<uint8_t*>(payload), payload_length},
+    };
+    size_t first = 0;
+    while (first != 2) {
+        const ssize_t n = ::writev(fd, vectors + first, static_cast<int>(2 - first));
+        if (n < 0) {
+            if (errno == EINTR) continue;
+            return false;
+        }
+        if (n == 0) return false;
+        offset += static_cast<uint64_t>(n);
+        size_t consumed = static_cast<size_t>(n);
+        while (first != 2 && consumed >= vectors[first].iov_len) {
+            consumed -= vectors[first].iov_len;
+            first++;
+        }
+        if (first != 2 && consumed) {
+            vectors[first].iov_base = static_cast<uint8_t*>(vectors[first].iov_base) + consumed;
+            vectors[first].iov_len -= consumed;
+        }
     }
     return true;
 }
@@ -483,7 +518,8 @@ bool AofProducer::record_bytes(AofRecordKind kind, uint8_t type, uint8_t encodin
                                uint64_t payload_len, const SnapshotTypeHooks* hooks,
                                SnapshotSaveCursor* cursor, AofOwnerContext* context) {
     if (!manager_ || manager_->failed()) return false;
-    if (kind != AofRecordKind::Timestamp && !maybe_timestamp(realtime_ms(), context)) return false;
+    if (kind != AofRecordKind::Timestamp && manager_->timestamp_enabled() &&
+        !maybe_timestamp(realtime_ms(), context)) return false;
     if (payload_len > UINT32_MAX ||
         payload_len > UINT64_MAX - kRecordHeaderBytes - key.n) {
         manager_->fail("AOF record is too large");
@@ -618,9 +654,11 @@ AofManager::~AofManager() {
     discard_chunks();
 }
 
-void AofManager::init(const Config& config, uint32_t nthreads, uint32_t nshards,
+void AofManager::init(Server& server, const Config& config, uint32_t nthreads, uint32_t nshards,
                       uint32_t writer_tid, const AofReplayPlan* replay) {
+    server_ = &server;
     configured_ = config.appendonly;
+    fsync_policy_.store(config.appendfsync, std::memory_order_relaxed);
     if (!configured_) return;
     nthreads_ = nthreads;
     nshards_ = nshards;
@@ -760,6 +798,8 @@ bool AofManager::bind_writer(ThreadCtx& writer, Ring& ring, std::string& error) 
 bool AofManager::post_chunk(uint32_t producer, std::unique_ptr<AofChunk>& chunk,
                             Ring& producer_ring, LoopSignals& signals) {
     if (!recording() || !chunk || producer >= nthreads_) return false;
+    if (!chunk->post_sequence)
+        chunk->post_sequence = posted_sequence_.fetch_add(1, std::memory_order_acq_rel) + 1;
     AofChunk* raw = chunk.get();
     if (!chunk_in_[producer].push(raw, signals)) return false;
     chunk.release();
@@ -769,6 +809,84 @@ bool AofManager::post_chunk(uint32_t producer, std::unique_ptr<AofChunk>& chunk,
         chunk_in_[producer].wake(producer_ring, signals, target);
     }
     return true;
+}
+
+bool AofManager::reply_gate_ready(uint64_t target) const {
+    if (!recording() || target == 0 || fsync_policy() == AppendFsyncPolicy::No) return true;
+    const uint64_t frontier = fsync_policy() == AppendFsyncPolicy::Always
+        ? durable_sequence_.load(std::memory_order_acquire)
+        : written_sequence_.load(std::memory_order_acquire);
+    return frontier >= target;
+}
+
+void AofManager::register_send_gate_wait(uint32_t tid) {
+    if (tid >= nthreads_) return;
+    if (gate_waiters_.set(tid)) send_gate_waits_.fetch_add(1, std::memory_order_relaxed);
+}
+
+bool AofManager::mark_post_written(uint64_t sequence) {
+    if (!sequence) return false;
+    uint64_t frontier = written_sequence_.load(std::memory_order_relaxed);
+    if (sequence <= frontier) return false;
+    if (sequence != frontier + 1) {
+        try { return written_out_of_order_.insert(sequence).second; }
+        catch (const std::bad_alloc&) { return false; }
+    }
+    frontier = sequence;
+    while (written_out_of_order_.erase(frontier + 1)) frontier++;
+    written_sequence_.store(frontier, std::memory_order_release);
+    return true;
+}
+
+void AofManager::wake_gate_waiters(ThreadCtx& writer, Ring& ring) {
+    if (!server_) return;
+    for (uint32_t word = 0; word < NotifyMask::kWords; word++) {
+        uint64_t bits = gate_waiters_.take(word);
+        while (bits) {
+            const uint32_t bit = static_cast<uint32_t>(__builtin_ctzll(bits));
+            bits &= bits - 1;
+            const uint32_t tid = word * 64 + bit;
+            if (tid >= nthreads_ || server_->thread(tid).role() != Role::Ifid) continue;
+            Ring* target = server_->thread(tid).ring();
+            if (!target || !ring.msg_to(*target, ur_tag(UrKind::Wake, nullptr))) {
+                gate_waiters_.set(tid);
+                continue;
+            }
+            writer.sig().wakes_sent++;
+        }
+    }
+}
+
+uint32_t AofManager::maybe_submit_fsync(Ring& ring) {
+    const AppendFsyncPolicy policy = fsync_policy();
+    if (policy == AppendFsyncPolicy::No || fsync_inflight_ || fd_ < 0) return 0;
+    const uint64_t written = written_sequence_.load(std::memory_order_acquire);
+    const uint64_t durable = durable_sequence_.load(std::memory_order_acquire);
+    if (written <= durable) return 0;
+    const int64_t now = monotonic_ms();
+    if (policy == AppendFsyncPolicy::Everysec && now - last_fsync_ms_ < 1000) return 0;
+    io_uring_sqe* sqe = ring.sqe();
+    if (!sqe) return 0;
+    io_uring_prep_fsync(sqe, fd_, IORING_FSYNC_DATASYNC);
+    sqe->user_data = ur_tag(UrKind::AofFsync, this);
+    ring.note_pending();
+    fsync_target_ = written;
+    fsync_inflight_ = true;
+    last_fsync_ms_ = now;
+    return 1;
+}
+
+void AofManager::on_fsync_complete(ThreadCtx& writer, Ring& ring, int result) {
+    if (!fsync_inflight_) return;
+    fsync_inflight_ = false;
+    if (result < 0) {
+        fail("AOF data-sync failed");
+        wake_gate_waiters(writer, ring);
+        return;
+    }
+    durable_sequence_.store(fsync_target_, std::memory_order_release);
+    fsyncs_.fetch_add(1, std::memory_order_relaxed);
+    wake_gate_waiters(writer, ring);
 }
 
 bool AofManager::write_frame(const AofChunk& chunk) {
@@ -785,8 +903,8 @@ bool AofManager::write_frame(const AofChunk& chunk) {
     snapshot_put_u64(header + 24, snapshot_checksum(chunk.bytes.data(), chunk.bytes.size()));
     snapshot_put_u64(header + 32, snapshot_checksum(header, 32));
     const uint64_t frame_begin = file_offset_;
-    if (!write_counted(fd_, header, sizeof(header), file_offset_) ||
-        !write_counted(fd_, chunk.bytes.data(), chunk.bytes.size(), file_offset_)) {
+    if (!write_frame_counted(fd_, header, sizeof(header),
+                             chunk.bytes.data(), chunk.bytes.size(), file_offset_)) {
         const int truncate_result = ::ftruncate(fd_, static_cast<off_t>(last_good_offset_));
         (void)truncate_result;
         file_offset_ = last_good_offset_;
@@ -859,8 +977,8 @@ bool AofManager::write_group_commit(AofChunk& chunk) {
     snapshot_put_u32(header + 20, kFrameHeaderBytes);
     snapshot_put_u64(header + 24, snapshot_checksum(chunk.bytes.data(), chunk.bytes.size()));
     snapshot_put_u64(header + 32, snapshot_checksum(header, 32));
-    if (!write_counted(fd_, header, sizeof(header), file_offset_) ||
-        !write_counted(fd_, chunk.bytes.data(), chunk.bytes.size(), file_offset_)) {
+    if (!write_frame_counted(fd_, header, sizeof(header),
+                             chunk.bytes.data(), chunk.bytes.size(), file_offset_)) {
         const int truncate_result = ::ftruncate(fd_, static_cast<off_t>(last_good_offset_));
         (void)truncate_result;
         file_offset_ = last_good_offset_;
@@ -880,6 +998,10 @@ uint32_t AofManager::drain_pending_commits(uint32_t& budget) {
         if (!group_dependencies_ready(*chunk.group)) { index++; continue; }
         if (!write_group_commit(chunk)) {
             fail("AOF GCMT write failed");
+            return written;
+        }
+        if (!mark_post_written(chunk.post_sequence)) {
+            fail("AOF post frontier did not advance");
             return written;
         }
         pending_commits_.erase(pending_commits_.begin() + index);
@@ -917,6 +1039,7 @@ bool AofManager::drain_producer(uint32_t producer, uint32_t& budget, uint32_t& c
         }
         if (valid) valid = write_frame(*chunk);
         if (valid) note_group_fragment(*chunk);
+        if (valid) valid = mark_post_written(chunk->post_sequence);
         if (valid && (flags & AofFrameLargeEnd)) locked_producer_ = UINT32_MAX;
         delete chunk;
         chunk_in_[producer].retire();
@@ -932,14 +1055,17 @@ bool AofManager::drain_producer(uint32_t producer, uint32_t& budget, uint32_t& c
     return true;
 }
 
-uint32_t AofManager::writer_pass(ThreadCtx& writer, Ring&, bool drain_all) {
+uint32_t AofManager::writer_pass(ThreadCtx& writer, Ring& ring, bool drain_all) {
     if (!configured_ || writer.id() != writer_tid_ || fd_ < 0 || failed()) return 0;
+    const uint64_t written_before = written_sequence_.load(std::memory_order_relaxed);
     uint32_t budget = drain_all ? 256 : kWriterFramesPerPass;
     uint32_t consumed = 0;
     consumed += drain_pending_commits(budget);
     if (locked_producer_ != UINT32_MAX) {
         drain_producer(locked_producer_, budget, consumed);
-        return consumed;
+        if (written_sequence_.load(std::memory_order_relaxed) != written_before)
+            wake_gate_waiters(writer, ring);
+        return consumed + maybe_submit_fsync(ring);
     }
     for (uint32_t word = 0; word < NotifyMask::kWords && budget; word++) {
         uint64_t bits = chunk_notify_.take(word);
@@ -963,7 +1089,9 @@ uint32_t AofManager::writer_pass(ThreadCtx& writer, Ring&, bool drain_all) {
         }
     }
     if (budget) consumed += drain_pending_commits(budget);
-    return consumed;
+    if (written_sequence_.load(std::memory_order_relaxed) != written_before)
+        wake_gate_waiters(writer, ring);
+    return consumed + maybe_submit_fsync(ring);
 }
 
 bool AofManager::wait_until_drained(uint32_t timeout_ms) {

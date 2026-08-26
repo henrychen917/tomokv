@@ -19,6 +19,7 @@
 namespace tomo {
 
 class Config;
+enum class AppendFsyncPolicy : uint8_t;
 class FlatStore;
 class Op;
 class Ring;
@@ -63,6 +64,7 @@ struct AofGroupDecision {
 struct AofChunk {
     int32_t sid = -1;
     uint32_t sequence = 0;
+    uint64_t post_sequence = 0;
     uint32_t flags = 0;
     uint32_t records = 0;
     std::vector<uint8_t> bytes;
@@ -165,17 +167,24 @@ public:
     AofManager(const AofManager&) = delete;
     AofManager& operator=(const AofManager&) = delete;
 
-    void init(const Config& config, uint32_t nthreads, uint32_t nshards,
+    void init(Server& server, const Config& config, uint32_t nthreads, uint32_t nshards,
               uint32_t writer_tid, const AofReplayPlan* replay);
     bool bind_writer(ThreadCtx& writer, Ring& ring, std::string& error);
     void writer_shutdown(ThreadCtx& writer, Ring& ring);
     uint32_t writer_pass(ThreadCtx& writer, Ring& ring, bool drain_all = false);
+    void on_fsync_complete(ThreadCtx& writer, Ring& ring, int result);
     bool post_chunk(uint32_t producer, std::unique_ptr<AofChunk>& chunk,
                     Ring& producer_ring, LoopSignals& signals);
 
     bool configured() const { return configured_; }
     bool recording() const { return recording_.load(std::memory_order_acquire); }
     bool writer_is(uint32_t tid) const { return configured_ && tid == writer_tid_; }
+    AppendFsyncPolicy fsync_policy() const {
+        return fsync_policy_.load(std::memory_order_acquire);
+    }
+    void set_fsync_policy(AppendFsyncPolicy policy) {
+        fsync_policy_.store(policy, std::memory_order_release);
+    }
     bool timestamp_enabled() const { return timestamp_enabled_.load(std::memory_order_relaxed); }
     void set_timestamp_enabled(bool enabled) {
         timestamp_enabled_.store(enabled, std::memory_order_relaxed);
@@ -189,6 +198,15 @@ public:
     uint64_t groups_skipped() const { return groups_skipped_.load(std::memory_order_relaxed); }
     uint64_t current_size() const { return current_size_.load(std::memory_order_relaxed); }
     uint64_t pending_chunks() const { return pending_chunks_.load(std::memory_order_acquire); }
+    uint64_t posted_sequence() const {
+        return posted_sequence_.load(std::memory_order_acquire);
+    }
+    bool reply_gate_ready(uint64_t target) const;
+    void register_send_gate_wait(uint32_t tid);
+    uint64_t fsyncs() const { return fsyncs_.load(std::memory_order_relaxed); }
+    uint64_t send_gate_waits() const {
+        return send_gate_waits_.load(std::memory_order_relaxed);
+    }
     const std::string& last_error() const { return last_error_; }
     void debug_stop_after_group_fragments(uint64_t count) {
         debug_stop_after_fragments_.store(count, std::memory_order_release);
@@ -202,6 +220,9 @@ private:
     bool write_header();
     bool write_frame(const AofChunk& chunk);
     bool write_group_commit(AofChunk& chunk);
+    bool mark_post_written(uint64_t sequence);
+    uint32_t maybe_submit_fsync(Ring& ring);
+    void wake_gate_waiters(ThreadCtx& writer, Ring& ring);
     bool group_dependencies_ready(const AofGroupDecision& group) const;
     void note_group_fragment(const AofChunk& chunk);
     uint32_t drain_pending_commits(uint32_t& budget);
@@ -209,6 +230,7 @@ private:
     void discard_chunks();
 
     bool configured_ = false;
+    Server* server_ = nullptr;
     uint32_t nthreads_ = 0;
     uint32_t nshards_ = 0;
     uint32_t writer_tid_ = UINT32_MAX;
@@ -219,12 +241,18 @@ private:
     std::atomic<bool> failed_{false};
     std::atomic<bool> writer_ready_{false};
     std::atomic<uint64_t> pending_chunks_{0};
+    std::atomic<uint64_t> posted_sequence_{0};
+    std::atomic<uint64_t> written_sequence_{0};
+    std::atomic<uint64_t> durable_sequence_{0};
     std::atomic<uint64_t> records_written_{0};
     std::atomic<uint64_t> replayed_records_{0};
     std::atomic<uint64_t> groups_committed_{0};
     std::atomic<uint64_t> groups_skipped_{0};
     std::atomic<uint64_t> current_size_{0};
+    std::atomic<uint64_t> fsyncs_{0};
+    std::atomic<uint64_t> send_gate_waits_{0};
     std::atomic<bool> timestamp_enabled_{false};
+    std::atomic<AppendFsyncPolicy> fsync_policy_;
     std::atomic<uint64_t> debug_stop_after_fragments_{0};
     std::string directory_path_;
     std::string file_path_;
@@ -235,7 +263,12 @@ private:
     uint64_t large_record_offset_ = 0;
     uint32_t locked_producer_ = UINT32_MAX;
     uint32_t writer_cursor_ = 0;
+    bool fsync_inflight_ = false;
+    uint64_t fsync_target_ = 0;
+    int64_t last_fsync_ms_ = 0;
     std::vector<uint32_t> next_sequence_;
+    std::unordered_set<uint64_t> written_out_of_order_;
+    NotifyMask gate_waiters_;
     std::vector<std::unique_ptr<AofChunk>> pending_commits_;
 };
 

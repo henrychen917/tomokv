@@ -30,6 +30,7 @@ enum class UrKind : uint8_t {
     Wake   = 5,   // cross-ring notification via msg_ring
     UnixAccept = 6,
     SnapshotStart = 7,  // epoch barrier request; pointer is SnapshotManager
+    AofFsync = 8,       // asynchronous AOF data-sync; pointer is AofManager
 };
 
 inline uint64_t ur_tag(UrKind k, void* p) {

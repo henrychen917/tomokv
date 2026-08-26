@@ -312,6 +312,9 @@ private:
             }
             case UrKind::Wake:  self_->sig().wakes_recv++; break;
             case UrKind::SnapshotStart: break;  // epoch broadcasts target executor rings only
+            case UrKind::AofFsync:
+                srv_->aof().on_fsync_complete(*self_, ring_, cqe->res);
+                break;
             case UrKind::Close: break;
         }
     }
@@ -1035,6 +1038,17 @@ private:
         // with connection count): the leftovers stay queued, did > 0 keeps the loop from parking,
         // and FIFO order is arrival-order fairness across connections. Under overload the queue is
         // the latency -- which is the correct place for overload to live; throughput stays at peak.
+        if (!pending_serve_.empty()) {
+            AofManager& aof = srv_->aof();
+            if (!aof_gate_target_) aof_gate_target_ = aof.posted_sequence();
+            if (!aof.reply_gate_ready(aof_gate_target_)) {
+                aof.register_send_gate_wait(self_->id());
+                return work;
+            }
+            aof_gate_target_ = 0;
+        } else {
+            aof_gate_target_ = 0;
+        }
         uint32_t served = 0;
         while (served < kServeBudget && !pending_serve_.empty()) {
             Client* c = pending_serve_.front();
@@ -1228,6 +1242,7 @@ private:
     bool       unix_accept_pending_ = false;
     uint64_t   unix_rr_ = 0;
     uint64_t   random_state_ = 0x9e3779b97f4a7c15ULL;
+    uint64_t   aof_gate_target_ = 0;
 
     // Clients with work outstanding. Populated by dispatch and by the retire channel, never by
     // scanning every client: at 10k+ connections that scan dominates the loop.
