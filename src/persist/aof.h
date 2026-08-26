@@ -6,6 +6,7 @@
 #pragma once
 
 #include <atomic>
+#include <cstddef>
 #include <cstdint>
 #include <deque>
 #include <memory>
@@ -17,10 +18,13 @@
 #include "../core/signal.h"
 #include "../snapshot/format.h"
 
+struct io_uring_sqe;
+
 namespace tomo {
 
 class Config;
 enum class AppendFsyncPolicy : uint8_t;
+enum class PersistIoEngine : uint8_t;
 class FlatStore;
 class Op;
 class Ring;
@@ -182,7 +186,7 @@ public:
     bool bind_writer(ThreadCtx& writer, Ring& ring, std::string& error);
     void writer_shutdown(ThreadCtx& writer, Ring& ring);
     uint32_t writer_pass(ThreadCtx& writer, Ring& ring, bool drain_all = false);
-    void on_fsync_complete(ThreadCtx& writer, Ring& ring, int result);
+    void on_io_complete(ThreadCtx& writer, Ring& ring, void* request, int result);
     bool post_chunk(uint32_t producer, std::unique_ptr<AofChunk>& chunk,
                     Ring& producer_ring, LoopSignals& signals);
     bool request_rewrite();
@@ -277,16 +281,27 @@ public:
 
 private:
     using ChunkChan = Channel<AofChunk*, 64>;
-    bool write_header();
-    bool write_frame(const AofChunk& chunk);
-    bool write_group_commit(AofChunk& chunk);
+    bool write_header_normal();
+    bool write_header_uring(ThreadCtx& writer, Ring& ring, int fd, uint64_t& offset);
+    bool write_frame_normal(const AofChunk& chunk);
+    bool write_group_commit_normal(AofChunk& chunk);
+    bool prepare_group_commit(AofChunk& chunk, uint8_t* header);
+    bool submit_frame_uring(std::unique_ptr<AofChunk> chunk, bool group_commit,
+                            Ring& ring, io_uring_sqe*& last_write);
     bool mark_post_written(uint64_t sequence);
-    uint32_t maybe_submit_fsync(Ring& ring);
+    bool mark_post_submitted(uint64_t sequence);
+    bool mark_post_durable(uint64_t sequence);
+    uint32_t maybe_sync(ThreadCtx& writer, Ring& ring, io_uring_sqe* last_write);
     void wake_gate_waiters(ThreadCtx& writer, Ring& ring);
     bool group_dependencies_ready(const AofGroupDecision& group) const;
     void note_group_fragment(const AofChunk& chunk);
-    uint32_t drain_pending_commits(uint32_t& budget);
-    bool drain_producer(uint32_t producer, uint32_t& budget, uint32_t& consumed);
+    uint32_t drain_pending_commits(uint32_t& budget, Ring& ring, io_uring_sqe*& last_write);
+    bool drain_producer(uint32_t producer, uint32_t& budget, uint32_t& consumed,
+                        Ring& ring, io_uring_sqe*& last_write);
+    uint32_t pump_io_completions(ThreadCtx& writer, Ring& ring);
+    bool wait_control_write(ThreadCtx& writer, Ring& ring, int fd, const uint8_t* bytes,
+                            size_t length, uint64_t& offset);
+    bool wait_control_sync(ThreadCtx& writer, Ring& ring, int fd);
     void discard_chunks();
     bool persist_manifest(const std::string& base_name, uint64_t base_sequence,
                           uint64_t base_epoch, uint64_t base_commit,
@@ -301,6 +316,7 @@ private:
     bool schedule_rewrite(bool automatic);
 
     bool configured_ = false;
+    PersistIoEngine engine_;
     Server* server_ = nullptr;
     uint32_t nthreads_ = 0;
     uint32_t nshards_ = 0;
@@ -314,6 +330,7 @@ private:
     std::atomic<uint64_t> pending_chunks_{0};
     std::atomic<uint64_t> posted_sequence_{0};
     std::atomic<uint64_t> written_sequence_{0};
+    std::atomic<uint64_t> submitted_sequence_{0};
     std::atomic<uint64_t> durable_sequence_{0};
     std::atomic<uint64_t> records_written_{0};
     std::atomic<uint64_t> replayed_records_{0};
@@ -350,13 +367,19 @@ private:
     uint64_t file_offset_ = 0;
     uint64_t last_good_offset_ = 0;
     uint64_t large_record_offset_ = 0;
+    uint64_t failed_write_offset_ = UINT64_MAX;
     uint32_t locked_producer_ = UINT32_MAX;
     uint32_t writer_cursor_ = 0;
-    bool fsync_inflight_ = false;
-    uint64_t fsync_target_ = 0;
+    uint32_t io_inflight_ = 0;
+    uint32_t fsync_inflight_ = 0;
+    bool everysec_fsync_inflight_ = false;
     int64_t last_fsync_ms_ = 0;
     std::vector<uint32_t> next_sequence_;
     std::unordered_set<uint64_t> written_out_of_order_;
+    std::unordered_set<uint64_t> submitted_out_of_order_;
+    std::unordered_set<uint64_t> durable_out_of_order_;
+    void* current_uring_write_ = nullptr;
+    bool short_sync_needed_ = false;
     NotifyMask gate_waiters_;
     std::vector<std::unique_ptr<AofChunk>> pending_commits_;
     std::string base_name_;

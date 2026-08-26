@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <vector>
 
 namespace tomo {
 
@@ -30,10 +31,11 @@ enum class UrKind : uint8_t {
     Wake   = 5,   // cross-ring notification via msg_ring
     UnixAccept = 6,
     SnapshotStart = 7,  // epoch barrier request; pointer is SnapshotManager
-    AofFsync = 8,       // asynchronous AOF data-sync; pointer is AofManager
     TlsAccept = 9,
     TlsRecv = 10,
     TlsSend = 11,
+    AofIo = 12,         // persistence-engine request; pointer is writer-private request state
+    SnapshotIo = 13,    // persistence-engine request; pointer is writer-private request state
 };
 
 inline uint64_t ur_tag(UrKind k, void* p) {
@@ -84,6 +86,11 @@ public:
         return s;
     }
 
+    // A linked pair must not be split by sqe()'s full-ring flush between its two entries.
+    void ensure_sq_space(unsigned needed) {
+        if (io_uring_sq_space_left(&r_) < needed) submit();
+    }
+
     int submit() { pending_ = 0; return io_uring_submit(&r_); }
 
     // Submit AND run pending completion work.
@@ -119,11 +126,61 @@ public:
     // is a single store rather than one per completion.
     template <typename Fn>
     unsigned for_each_cqe(Fn&& fn) {
+        unsigned n = 0;
+        if (!deferred_cqes_.empty()) {
+            std::vector<io_uring_cqe> deferred;
+            deferred.swap(deferred_cqes_);
+            for (io_uring_cqe& cqe : deferred) { fn(&cqe); n++; }
+        }
         io_uring_cqe* cqe;
-        unsigned head, n = 0;
-        io_uring_for_each_cqe(&r_, head, cqe) { fn(cqe); n++; }
-        if (n) io_uring_cq_advance(&r_, n);
+        unsigned head, raw = 0;
+        raw_callback_active_ = true;
+        raw_callback_taken_ = false;
+        io_uring_for_each_cqe(&r_, head, cqe) {
+            raw++;
+            raw_callback_index_ = raw;
+            fn(cqe);
+            if (raw_callback_taken_) break;
+        }
+        raw_callback_active_ = false;
+        if (raw && !raw_callback_taken_) io_uring_cq_advance(&r_, raw);
+        raw_callback_taken_ = false;
+        raw_callback_index_ = 0;
+        n += raw;
         return n;
+    }
+
+    // A persistence command can deliberately occupy its IO owner (SAVE and the AOF rewrite mark).
+    // It still has to reap its own CQEs under DEFER_TASKRUN, but must not consume unrelated recv/send
+    // completions whose callbacks live in IoLoop. The filter handles matching CQEs and retains the
+    // rest for the loop's next ordinary for_each_cqe pass.
+    template <typename Fn>
+    unsigned for_each_cqe_filtered(Fn&& fn) {
+        // A blocking SAVE can enter here from inside the recv CQE callback that invoked it. Retire
+        // that already-processed prefix before looking at the CQ and tell the outer batch to stop;
+        // otherwise the current recv CQE is copied into deferred_cqes_ and delivered a second time.
+        if (raw_callback_active_ && !raw_callback_taken_) {
+            io_uring_cq_advance(&r_, raw_callback_index_);
+            raw_callback_taken_ = true;
+        }
+        unsigned consumed = 0;
+        std::vector<io_uring_cqe> keep;
+        keep.reserve(deferred_cqes_.size());
+        for (io_uring_cqe& cqe : deferred_cqes_) {
+            if (fn(&cqe)) consumed++;
+            else keep.push_back(cqe);
+        }
+        deferred_cqes_.swap(keep);
+
+        io_uring_cqe* cqe;
+        unsigned head, raw = 0;
+        io_uring_for_each_cqe(&r_, head, cqe) {
+            if (fn(cqe)) consumed++;
+            else deferred_cqes_.push_back(*cqe);
+            raw++;
+        }
+        if (raw) io_uring_cq_advance(&r_, raw);
+        return consumed;
     }
 
     void note_pending() { pending_++; }
@@ -145,6 +202,10 @@ private:
     bool     inited_   = false;
     bool     deferred_ = true;
     unsigned pending_  = 0;
+    std::vector<io_uring_cqe> deferred_cqes_;
+    bool raw_callback_active_ = false;
+    bool raw_callback_taken_ = false;
+    unsigned raw_callback_index_ = 0;
 };
 
 }  // namespace tomo

@@ -297,6 +297,8 @@ void init_config(const Config& cfg) {
     const char* appendfsync = cfg.appendfsync == AppendFsyncPolicy::Always ? "always" :
                               cfg.appendfsync == AppendFsyncPolicy::No ? "no" : "everysec";
     g_config.push_back({"appendfsync", ConfigKind::Enum, appendfsync});
+    g_config.push_back({"persist-io", ConfigKind::Enum,
+                        cfg.persist_io == PersistIoEngine::Normal ? "normal" : "uring", true});
     g_config.push_back({"appendfilename", ConfigKind::String, cfg.appendfilename, true});
     g_config.push_back({"appenddirname", ConfigKind::String, cfg.appenddirname, true});
     add_config("auto-aof-rewrite-percentage", ConfigKind::Unsigned,

@@ -96,6 +96,15 @@ int main() {
         !rejects({"--tls-prefer-server-ciphers", "1"}))
         fail("invalid TLS grammar was accepted");
 
+    tomo::Config persistence;
+    tomo::ConfigParseState persistence_state;
+    const std::vector<const char*> persistence_args = {"--persist-io", "NoRmAl"};
+    if (tomo::parse_config_args(persistence_args, persistence, persistence_state, 2, "test") !=
+            tomo::kConfigParsed ||
+        persistence.persist_io != tomo::PersistIoEngine::Normal ||
+        !rejects({"--persist-io", "hybrid"}))
+        fail("persist-io boot grammar differs");
+
     tomo::Config missing_ca;
     tomo::ConfigParseState missing_ca_state;
     const std::vector<const char*> missing_ca_args = {

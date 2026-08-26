@@ -395,8 +395,12 @@ private:
                 case UrKind::Send: on_plain_send_cqe(cqe); break;
                 case UrKind::Wake: self_->sig().wakes_recv++; break;
                 case UrKind::SnapshotStart: break;
-                case UrKind::AofFsync:
-                    srv_->aof().on_fsync_complete(*self_, ring_, cqe->res); break;
+                case UrKind::AofIo:
+                    srv_->aof().on_io_complete(*self_, ring_, ur_ptr<void>(cqe->user_data),
+                                               cqe->res); break;
+                case UrKind::SnapshotIo:
+                    srv_->snapshot().on_io_complete(*self_, ring_, ur_ptr<void>(cqe->user_data),
+                                                    cqe->res); break;
                 case UrKind::Close: break;
                 default: break;
             }
@@ -411,8 +415,12 @@ private:
                 case UrKind::TlsSend: on_tls_send_cqe(cqe); break;
                 case UrKind::Wake: self_->sig().wakes_recv++; break;
                 case UrKind::SnapshotStart: break;
-                case UrKind::AofFsync:
-                    srv_->aof().on_fsync_complete(*self_, ring_, cqe->res); break;
+                case UrKind::AofIo:
+                    srv_->aof().on_io_complete(*self_, ring_, ur_ptr<void>(cqe->user_data),
+                                               cqe->res); break;
+                case UrKind::SnapshotIo:
+                    srv_->snapshot().on_io_complete(*self_, ring_, ur_ptr<void>(cqe->user_data),
+                                                    cqe->res); break;
                 case UrKind::Close: break;
             }
         }

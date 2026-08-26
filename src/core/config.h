@@ -139,6 +139,9 @@ inline std::string cfg_client_output_buffer_limit_string(const ClientOutputBuffe
 
 enum class DebugCommandMode : uint8_t { No = 0, Yes = 1, Local = 2 };
 enum class AppendFsyncPolicy : uint8_t { Always = 0, Everysec = 1, No = 2 };
+// One boot-latched persistence engine governs both AOF and snapshot file data/sync operations.
+// Uring is the native default; normal exists as the syscall-path control and compatibility lane.
+enum class PersistIoEngine : uint8_t { Normal = 0, Uring = 1 };
 enum class TlsAuthClients : uint8_t { Yes = 0, No = 1, Optional = 2 };
 
 struct Config {
@@ -183,6 +186,7 @@ struct Config {
     const char* load_path   = nullptr;   // boot-only: load a dump before serving
     bool appendonly = false;
     AppendFsyncPolicy appendfsync = AppendFsyncPolicy::Everysec;
+    PersistIoEngine persist_io = PersistIoEngine::Uring;
     const char* appendfilename = "appendonly.aof";
     const char* appenddirname = "appendonlydir";
     uint32_t auto_aof_rewrite_percentage = 100;
@@ -515,6 +519,15 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 return kConfigError;
             }
         }
+        else if (!std::strcmp(a, "--persist-io")) {
+            const char* value = next(nullptr);
+            if (cfg_eq_icase(value, "normal")) cfg.persist_io = PersistIoEngine::Normal;
+            else if (cfg_eq_icase(value, "uring")) cfg.persist_io = PersistIoEngine::Uring;
+            else {
+                std::fprintf(stderr, "--persist-io wants normal or uring\n");
+                return kConfigError;
+            }
+        }
         else if (!std::strcmp(a, "--appendfilename")) cfg.appendfilename = next("appendonly.aof");
         else if (!std::strcmp(a, "--appenddirname")) cfg.appenddirname = next("appendonlydir");
         else if (!std::strcmp(a, "--auto-aof-rewrite-percentage")) {
@@ -645,6 +658,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "       --tls-prefer-server-ciphers yes|no\n"
                         "  notifications: --notify-keyspace-events FLAGS (default empty/off)\n"
                         "  persistence: --dir PATH --dbfilename NAME --load PATH\n"
+                        "    --persist-io normal|uring (boot-only; default uring; AOF + snapshot)\n"
                         "    --appendonly yes|no --appendfsync always|everysec|no\n"
                         "    --appendfilename NAME --appenddirname NAME\n"
                         "    --auto-aof-rewrite-percentage N --auto-aof-rewrite-min-size BYTES\n"

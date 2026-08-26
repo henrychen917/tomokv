@@ -180,7 +180,7 @@ public:
         }
         snapshot_.init(nthreads, cfg.shards,
                        static_cast<uint32_t>(placement_.ex_threads().size()),
-                       cfg.dir, cfg.dbfilename);
+                       cfg.dir, cfg.dbfilename, cfg.persist_io);
         aof_.init(*this, cfg, nthreads, cfg.shards,
                   placement_.ifid_threads().back(), aof_replay);
         for (uint32_t sid = 0; sid < cfg.shards; sid++) {

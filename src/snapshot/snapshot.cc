@@ -1,5 +1,7 @@
 #include "snapshot.h"
 
+#include <algorithm>
+#include <array>
 #include <cerrno>
 #include <chrono>
 #include <cstdio>
@@ -29,6 +31,27 @@ constexpr uint32_t kFooterTag = 0x454e4f44;  // "DONE"
 constexpr uint32_t kRecordTag = 0x44434552;  // "RECD"
 constexpr uint32_t kRecordHeaderBytes = 32;
 constexpr uint32_t kWriterFramesPerPass = 8;
+constexpr uint32_t kSnapshotMaxInflight = 64;
+
+enum SnapshotIoRole : uint8_t {
+    SnapshotIoHeader = 1,
+    SnapshotIoFrame = 2,
+    SnapshotIoFooter = 3,
+    SnapshotIoFileSync = 4,
+    SnapshotIoDirectorySync = 5,
+};
+
+struct SnapshotIoRequest {
+    SnapshotIoRole role = SnapshotIoFrame;
+    uint64_t epoch = 0;
+    int fd = -1;
+    uint64_t offset = 0;
+    size_t remaining = 0;
+    std::array<uint8_t, kFileHeaderBytes> header{};
+    std::unique_ptr<SnapshotChunk> chunk;
+    iovec vectors[2]{};
+    uint32_t vector_count = 0;
+};
 
 thread_local SnapshotIoContext tls_io_context;
 
@@ -49,6 +72,33 @@ bool write_all(int fd, const uint8_t* p, size_t n) {
         p += written;
         n -= static_cast<size_t>(written);
     }
+    return true;
+}
+
+void consume_iovecs(SnapshotIoRequest& request, size_t bytes) {
+    if (request.vector_count == 2 && bytes >= request.vectors[0].iov_len) {
+        bytes -= request.vectors[0].iov_len;
+        request.vectors[0] = request.vectors[1];
+        request.vector_count = 1;
+    }
+    if (request.vector_count == 1 && bytes >= request.vectors[0].iov_len) {
+        request.vector_count = 0;
+        return;
+    }
+    if (bytes && request.vector_count) {
+        request.vectors[0].iov_base =
+            static_cast<uint8_t*>(request.vectors[0].iov_base) + bytes;
+        request.vectors[0].iov_len -= bytes;
+    }
+}
+
+bool queue_snapshot_write(Ring& ring, SnapshotIoRequest& request) {
+    io_uring_sqe* sqe = ring.sqe();
+    if (!sqe || request.vector_count == 0) return false;
+    io_uring_prep_writev(sqe, request.fd, request.vectors,
+                         static_cast<unsigned>(request.vector_count), request.offset);
+    sqe->user_data = ur_tag(UrKind::SnapshotIo, &request);
+    ring.note_pending();
     return true;
 }
 
@@ -109,12 +159,14 @@ SnapshotManager::~SnapshotManager() {
 }
 
 void SnapshotManager::init(uint32_t nthreads, uint32_t nshards, uint32_t executor_count,
-                           const char* dir, const char* dbfilename) {
+                           const char* dir, const char* dbfilename,
+                           PersistIoEngine engine) {
     nthreads_ = nthreads;
     nshards_ = nshards;
     executor_count_ = executor_count;
     dir_ = (dir && *dir) ? dir : ".";
     dbfilename_ = (dbfilename && *dbfilename) ? dbfilename : "dump.tomo";
+    engine_ = engine;
     final_path_ = dir_ + "/" + dbfilename_;
     chunk_in_ = std::make_unique<ChunkChan[]>(nthreads_);
     next_sequence_.assign(nshards_, 0);
@@ -157,6 +209,11 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
     frame_count_ = 0;
     ended_shards_ = 0;
     writer_cursor_ = 0;
+    file_offset_ = 0;
+    io_inflight_ = 0;
+    header_complete_ = false;
+    footer_submitted_ = false;
+    directory_fd_ = -1;
     std::fill(next_sequence_.begin(), next_sequence_.end(), 0);
     std::fill(saw_begin_.begin(), saw_begin_.end(), 0);
     std::fill(saw_end_.begin(), saw_end_.end(), 0);
@@ -253,7 +310,9 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         if (Ring* target = server.thread(tid).ring())
             writer_ring.msg_to(*target, ur_tag(UrKind::Wake, nullptr));
     writer_ring.submit_and_reap();
-    if (!write_header()) {
+    const bool header_started = engine_ == PersistIoEngine::Normal
+        ? write_header_normal() : submit_header_uring(writer_ring);
+    if (!header_started) {
         fail(next_epoch, "could not write snapshot header");
         while (cancelled_owners_.load(std::memory_order_acquire) +
                    finished_owners_.load(std::memory_order_acquire) != executor_count_)
@@ -266,21 +325,27 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         error = error_.empty() ? "snapshot start failed" : error_;
         return StartResult::Failed;
     }
+    if (engine_ == PersistIoEngine::Uring) writer_ring.submit_and_reap();
     if (!is_blocking) return StartResult::Started;
 
     while (phase() == Phase::Capture) {
         writer_pass(writer, writer_ring, true);
         writer_ring.submit_and_reap();
+        if (engine_ == PersistIoEngine::Uring)
+            pump_io_completions(writer, writer_ring);
         std::this_thread::yield();
     }
     if (phase() == Phase::Failed) {
         while (cancelled_owners_.load(std::memory_order_acquire) +
-                   finished_owners_.load(std::memory_order_acquire) != executor_count_) {
+                   finished_owners_.load(std::memory_order_acquire) != executor_count_ ||
+               io_inflight_ != 0) {
             writer_pass(writer, writer_ring, true);
+            writer_ring.submit_and_reap();
+            if (engine_ == PersistIoEngine::Uring)
+                pump_io_completions(writer, writer_ring);
             std::this_thread::yield();
         }
-        abort_file();
-        phase_.store(Phase::Idle, std::memory_order_release);
+        writer_pass(writer, writer_ring, true);
         std::lock_guard<std::mutex> lock(error_mu_);
         error = error_.empty() ? "snapshot failed" : error_;
         return StartResult::Failed;
@@ -329,7 +394,7 @@ bool SnapshotManager::post_chunk(uint32_t producer, std::unique_ptr<SnapshotChun
     return true;
 }
 
-bool SnapshotManager::write_header() {
+bool SnapshotManager::write_header_normal() {
     uint8_t h[kFileHeaderBytes] = {};
     std::memcpy(h, kFileMagic, sizeof(kFileMagic));
     snapshot_put_u32(h + 8, kSnapshotFormatVersion);
@@ -342,10 +407,13 @@ bool SnapshotManager::write_header() {
     snapshot_put_u64(h + 48, g_sip_k0);
     snapshot_put_u64(h + 56, g_sip_k1);
     snapshot_put_u64(h + 64, snapshot_checksum(h, 64));
-    return write_all(fd_, h, sizeof(h));
+    if (!write_all(fd_, h, sizeof(h))) return false;
+    file_offset_ = sizeof(h);
+    header_complete_ = true;
+    return true;
 }
 
-bool SnapshotManager::write_frame(const SnapshotChunk& chunk) {
+bool SnapshotManager::validate_frame(const SnapshotChunk& chunk, uint8_t* h) {
     if (chunk.sid < 0 || static_cast<uint32_t>(chunk.sid) >= nshards_) return false;
     const uint32_t sid = static_cast<uint32_t>(chunk.sid);
     if (chunk.sequence != next_sequence_[sid]++ || saw_end_[sid]) return false;
@@ -355,15 +423,12 @@ bool SnapshotManager::write_frame(const SnapshotChunk& chunk) {
     } else if (!saw_begin_[sid]) {
         return false;
     }
-    uint8_t h[kFrameHeaderBytes] = {};
     snapshot_put_u32(h + 0, kFrameTag);
     snapshot_put_u32(h + 4, sid);
     snapshot_put_u32(h + 8, chunk.sequence);
     snapshot_put_u32(h + 12, chunk.flags);
     snapshot_put_u32(h + 16, static_cast<uint32_t>(chunk.bytes.size()));
     snapshot_put_u64(h + 20, snapshot_checksum(chunk.bytes.data(), chunk.bytes.size()));
-    if (!write_all(fd_, h, sizeof(h)) ||
-        !write_all(fd_, chunk.bytes.data(), chunk.bytes.size())) return false;
     frame_count_++;
     if (chunk.flags & SnapshotFrameEnd) {
         saw_end_[sid] = 1;
@@ -381,7 +446,102 @@ bool SnapshotManager::write_frame(const SnapshotChunk& chunk) {
     return true;
 }
 
-bool SnapshotManager::finish_file() {
+bool SnapshotManager::write_frame_normal(const SnapshotChunk& chunk) {
+    uint8_t h[kFrameHeaderBytes] = {};
+    if (!validate_frame(chunk, h)) return false;
+    if (!write_all(fd_, h, sizeof(h)) ||
+        !write_all(fd_, chunk.bytes.data(), chunk.bytes.size())) return false;
+    file_offset_ += sizeof(h) + chunk.bytes.size();
+    return true;
+}
+
+bool SnapshotManager::submit_header_uring(Ring& ring) {
+    auto* request = new (std::nothrow) SnapshotIoRequest();
+    if (!request) return false;
+    request->role = SnapshotIoHeader;
+    request->epoch = epoch();
+    request->fd = fd_;
+    std::memcpy(request->header.data(), kFileMagic, sizeof(kFileMagic));
+    snapshot_put_u32(request->header.data() + 8, kSnapshotFormatVersion);
+    snapshot_put_u32(request->header.data() + 12, kFileHeaderBytes);
+    snapshot_put_u32(request->header.data() + 16, nshards_);
+    snapshot_put_u32(request->header.data() + 20, static_cast<uint32_t>(g_hash_kind));
+    snapshot_put_u64(request->header.data() + 24, epoch());
+    snapshot_put_u64(request->header.data() + 32, static_cast<uint64_t>(cut_ms()));
+    snapshot_put_u64(request->header.data() + 40, g_hash_seed);
+    snapshot_put_u64(request->header.data() + 48, g_sip_k0);
+    snapshot_put_u64(request->header.data() + 56, g_sip_k1);
+    snapshot_put_u64(request->header.data() + 64,
+                     snapshot_checksum(request->header.data(), 64));
+    request->offset = 0;
+    request->remaining = kFileHeaderBytes;
+    request->vectors[0] = {request->header.data(), kFileHeaderBytes};
+    request->vector_count = 1;
+    if (!queue_snapshot_write(ring, *request)) { delete request; return false; }
+    file_offset_ = kFileHeaderBytes;
+    io_inflight_++;
+    return true;
+}
+
+bool SnapshotManager::submit_frame_uring(std::unique_ptr<SnapshotChunk> chunk, Ring& ring) {
+    auto* request = new (std::nothrow) SnapshotIoRequest();
+    if (!request) return false;
+    request->role = SnapshotIoFrame;
+    request->epoch = epoch();
+    request->fd = fd_;
+    if (!validate_frame(*chunk, request->header.data())) { delete request; return false; }
+    request->chunk = std::move(chunk);
+    request->offset = file_offset_;
+    request->remaining = kFrameHeaderBytes + request->chunk->bytes.size();
+    request->vectors[0] = {request->header.data(), kFrameHeaderBytes};
+    request->vectors[1] = {request->chunk->bytes.data(), request->chunk->bytes.size()};
+    request->vector_count = 2;
+    if (!queue_snapshot_write(ring, *request)) { delete request; return false; }
+    file_offset_ += request->remaining;
+    io_inflight_++;
+    return true;
+}
+
+bool SnapshotManager::submit_footer_uring(Ring& ring) {
+    auto* request = new (std::nothrow) SnapshotIoRequest();
+    if (!request) return false;
+    request->role = SnapshotIoFooter;
+    request->epoch = epoch();
+    request->fd = fd_;
+    snapshot_put_u32(request->header.data() + 0, kFooterTag);
+    snapshot_put_u32(request->header.data() + 4, nshards_);
+    snapshot_put_u64(request->header.data() + 8, epoch());
+    snapshot_put_u64(request->header.data() + 16, frame_count_);
+    snapshot_put_u64(request->header.data() + 24,
+                     snapshot_checksum(request->header.data(), 24));
+    request->offset = file_offset_;
+    request->remaining = kFooterBytes;
+    request->vectors[0] = {request->header.data(), kFooterBytes};
+    request->vector_count = 1;
+    if (!queue_snapshot_write(ring, *request)) { delete request; return false; }
+    file_offset_ += kFooterBytes;
+    footer_submitted_ = true;
+    io_inflight_++;
+    return true;
+}
+
+bool SnapshotManager::submit_sync_uring(Ring& ring, int fd, uint8_t role) {
+    auto* request = new (std::nothrow) SnapshotIoRequest();
+    if (!request) return false;
+    request->role = static_cast<SnapshotIoRole>(role);
+    request->epoch = epoch();
+    request->fd = fd;
+    io_uring_sqe* sqe = ring.sqe();
+    if (!sqe) { delete request; return false; }
+    io_uring_prep_fsync(sqe, fd,
+                        role == SnapshotIoDirectorySync ? 0 : IORING_FSYNC_DATASYNC);
+    sqe->user_data = ur_tag(UrKind::SnapshotIo, request);
+    ring.note_pending();
+    io_inflight_++;
+    return true;
+}
+
+bool SnapshotManager::finish_file_normal() {
     uint8_t footer[kFooterBytes] = {};
     snapshot_put_u32(footer + 0, kFooterTag);
     snapshot_put_u32(footer + 4, nshards_);
@@ -389,14 +549,32 @@ bool SnapshotManager::finish_file() {
     snapshot_put_u64(footer + 16, frame_count_);
     snapshot_put_u64(footer + 24, snapshot_checksum(footer, 24));
     if (!write_all(fd_, footer, sizeof(footer)) || ::fdatasync(fd_) != 0) return false;
+    file_offset_ += sizeof(footer);
+    return finish_file_metadata(nullptr);
+}
+
+bool SnapshotManager::finish_file_metadata(Ring* ring) {
     if (::close(fd_) != 0) { fd_ = -1; return false; }
     fd_ = -1;
     if (::rename(temp_path_.c_str(), final_path_.c_str()) != 0) return false;
     const int dfd = ::open(active_dir_.c_str(), O_RDONLY | O_DIRECTORY | O_CLOEXEC);
     if (dfd < 0) return false;
+    if (ring) {
+        directory_fd_ = dfd;
+        if (!submit_sync_uring(*ring, directory_fd_, SnapshotIoDirectorySync)) {
+            ::close(directory_fd_);
+            directory_fd_ = -1;
+            return false;
+        }
+        return true;
+    }
     const bool dir_synced = ::fsync(dfd) == 0;
     const bool dir_closed = ::close(dfd) == 0;
     if (!dir_synced || !dir_closed) return false;
+    return complete_file_success();
+}
+
+bool SnapshotManager::complete_file_success() {
     if (rewrite_ && !rewrite_->rewrite_complete(final_path_, epoch())) return false;
     last_save_time_.store(realtime_ms() / 1000, std::memory_order_relaxed);
     writer_tid_.store(UINT32_MAX, std::memory_order_relaxed);
@@ -407,8 +585,86 @@ bool SnapshotManager::finish_file() {
     return true;
 }
 
+void SnapshotManager::on_io_complete(ThreadCtx&, Ring& ring, void* opaque, int result) {
+    std::unique_ptr<SnapshotIoRequest> request(static_cast<SnapshotIoRequest*>(opaque));
+    if (!request) return;
+    if (request->epoch != epoch()) return;
+
+    auto finalization_failed = [&]() {
+        set_error("could not finalize snapshot file");
+        writer_failed_.store(true, std::memory_order_relaxed);
+        abort_file();
+        phase_.store(Phase::Idle, std::memory_order_release);
+    };
+
+    if (request->role == SnapshotIoHeader || request->role == SnapshotIoFrame ||
+        request->role == SnapshotIoFooter) {
+        if (result <= 0 || static_cast<size_t>(result) > request->remaining) {
+            if (io_inflight_) io_inflight_--;
+            if (request->role == SnapshotIoHeader)
+                fail(request->epoch, "could not write snapshot header");
+            else if (request->role == SnapshotIoFrame)
+                fail(request->epoch, "snapshot file write failed");
+            else
+                finalization_failed();
+            return;
+        }
+        request->remaining -= static_cast<size_t>(result);
+        request->offset += static_cast<uint64_t>(result);
+        consume_iovecs(*request, static_cast<size_t>(result));
+        if (request->remaining) {
+            SnapshotIoRequest* retry = request.release();
+            if (!queue_snapshot_write(ring, *retry)) {
+                request.reset(retry);
+                if (io_inflight_) io_inflight_--;
+                if (retry->role == SnapshotIoFrame)
+                    fail(retry->epoch, "snapshot file write failed");
+                else if (retry->role == SnapshotIoHeader)
+                    fail(retry->epoch, "could not write snapshot header");
+                else
+                    finalization_failed();
+            }
+            return;
+        }
+
+        const SnapshotIoRole role = request->role;
+        if (io_inflight_) io_inflight_--;
+        if (role == SnapshotIoHeader) {
+            header_complete_ = true;
+        } else if (role == SnapshotIoFooter &&
+                   !submit_sync_uring(ring, fd_, SnapshotIoFileSync)) {
+            finalization_failed();
+        }
+        return;
+    }
+
+    if (io_inflight_) io_inflight_--;
+    if (result < 0) {
+        finalization_failed();
+        return;
+    }
+    if (request->role == SnapshotIoFileSync) {
+        if (!finish_file_metadata(&ring)) finalization_failed();
+        return;
+    }
+    if (request->role == SnapshotIoDirectorySync) {
+        const bool closed = directory_fd_ >= 0 && ::close(directory_fd_) == 0;
+        directory_fd_ = -1;
+        if (!closed || !complete_file_success()) finalization_failed();
+    }
+}
+
+uint32_t SnapshotManager::pump_io_completions(ThreadCtx& writer, Ring& ring) {
+    return ring.for_each_cqe_filtered([&](io_uring_cqe* cqe) {
+        if (ur_kind(cqe->user_data) != UrKind::SnapshotIo) return false;
+        on_io_complete(writer, ring, ur_ptr<void>(cqe->user_data), cqe->res);
+        return true;
+    });
+}
+
 void SnapshotManager::abort_file() {
     if (fd_ >= 0) { ::close(fd_); fd_ = -1; }
+    if (directory_fd_ >= 0) { ::close(directory_fd_); directory_fd_ = -1; }
     if (!temp_path_.empty()) (void)::unlink(temp_path_.c_str());
     if (server_) server_->set_snapshot_atomic_barrier(false);
     writer_tid_.store(UINT32_MAX, std::memory_order_relaxed);
@@ -429,11 +685,12 @@ void SnapshotManager::discard_chunks() {
     }
 }
 
-uint32_t SnapshotManager::writer_pass(ThreadCtx& writer, Ring&, bool drain_all) {
+uint32_t SnapshotManager::writer_pass(ThreadCtx& writer, Ring& ring, bool drain_all) {
     if (writer.id() != writer_tid_.load(std::memory_order_relaxed)) return 0;
     if (phase() == Phase::Failed) {
         if (cancelled_owners_.load(std::memory_order_acquire) +
-                finished_owners_.load(std::memory_order_acquire) == executor_count_) {
+                finished_owners_.load(std::memory_order_acquire) == executor_count_ &&
+            io_inflight_ == 0) {
             discard_chunks();
             abort_file();
             phase_.store(Phase::Idle, std::memory_order_release);
@@ -441,9 +698,27 @@ uint32_t SnapshotManager::writer_pass(ThreadCtx& writer, Ring&, bool drain_all) 
         return 0;
     }
     if (phase() != Phase::Capture) return 0;
+    if (!header_complete_) return 0;
+    if (engine_ == PersistIoEngine::Uring && io_inflight_ >= kSnapshotMaxInflight) return 0;
 
     uint32_t budget = drain_all ? 64 : kWriterFramesPerPass;
+    if (engine_ == PersistIoEngine::Uring)
+        budget = std::min(budget, kSnapshotMaxInflight - io_inflight_);
     uint32_t consumed = 0;
+    auto consume_chunk = [&](uint32_t producer, SnapshotChunk* chunk) {
+        chunk_in_[producer].retire();
+        bool ok = false;
+        if (engine_ == PersistIoEngine::Normal) {
+            ok = write_frame_normal(*chunk);
+            delete chunk;
+        } else {
+            ok = submit_frame_uring(std::unique_ptr<SnapshotChunk>(chunk), ring);
+        }
+        budget--;
+        consumed++;
+        if (!ok) fail(epoch(), "snapshot file write failed");
+        return ok;
+    };
     for (uint32_t word = 0; word < NotifyMask::kWords && budget; word++) {
         uint64_t bits = chunk_notify_.take(word);
         while (bits && budget) {
@@ -453,11 +728,7 @@ uint32_t SnapshotManager::writer_pass(ThreadCtx& writer, Ring&, bool drain_all) 
             if (producer >= nthreads_) continue;
             SnapshotChunk* chunk = nullptr;
             while (budget && chunk_in_[producer].recv(chunk)) {
-                const bool ok = write_frame(*chunk);
-                delete chunk;
-                chunk_in_[producer].retire();
-                budget--; consumed++;
-                if (!ok) { fail(epoch(), "snapshot file write failed"); return consumed; }
+                if (!consume_chunk(producer, chunk)) return consumed;
             }
             if (chunk_in_[producer].depth()) chunk_notify_.set(producer);
         }
@@ -474,20 +745,21 @@ uint32_t SnapshotManager::writer_pass(ThreadCtx& writer, Ring&, bool drain_all) 
         for (uint32_t producer = 0; producer < nthreads_ && budget; producer++) {
             SnapshotChunk* chunk = nullptr;
             while (budget && chunk_in_[producer].recv(chunk)) {
-                const bool ok = write_frame(*chunk);
-                delete chunk;
-                chunk_in_[producer].retire();
-                budget--; consumed++;
-                if (!ok) { fail(epoch(), "snapshot file write failed"); return consumed; }
+                if (!consume_chunk(producer, chunk)) return consumed;
             }
         }
     }
     if (ended_shards_ == nshards_ &&
-        finished_owners_.load(std::memory_order_acquire) == executor_count_ && !finish_file()) {
-        set_error("could not finalize snapshot file");
-        writer_failed_.store(true, std::memory_order_relaxed);
-        abort_file();
-        phase_.store(Phase::Idle, std::memory_order_release);
+        finished_owners_.load(std::memory_order_acquire) == executor_count_ &&
+        io_inflight_ == 0 && !footer_submitted_) {
+        const bool finishing = engine_ == PersistIoEngine::Normal
+            ? finish_file_normal() : submit_footer_uring(ring);
+        if (!finishing) {
+            set_error("could not finalize snapshot file");
+            writer_failed_.store(true, std::memory_order_relaxed);
+            abort_file();
+            phase_.store(Phase::Idle, std::memory_order_release);
+        }
     }
     return consumed;
 }

@@ -1,6 +1,7 @@
 #include "aof.h"
 
 #include <algorithm>
+#include <array>
 #include <cerrno>
 #include <chrono>
 #include <csignal>
@@ -39,6 +40,77 @@ constexpr uint32_t kFrameTag = 0x4d524641;       // "AFRM"
 constexpr uint32_t kRecordHeaderBytes = 40;
 constexpr uint32_t kRecordTag = 0x43524f41;      // "AORC"
 constexpr uint32_t kWriterFramesPerPass = 16;
+constexpr uint32_t kAofAlwaysMaxChains = 8;
+
+enum AofIoRole : uint8_t { AofIoWrite = 1, AofIoSync = 2 };
+
+struct AofControlWait {
+    bool done = false;
+    int result = 0;
+};
+
+struct AofIoRequest {
+    AofIoRole role = AofIoWrite;
+    int fd = -1;
+    uint64_t offset = 0;
+    uint64_t safe_offset = 0;
+    size_t remaining = 0;
+    iovec vectors[2]{};
+    uint32_t vector_count = 0;
+    uint32_t vector_index = 0;
+    uint8_t header[kFileHeaderBytes]{};
+    std::vector<std::array<uint8_t, kFrameHeaderBytes>> frame_headers;
+    std::vector<std::unique_ptr<AofChunk>> chunks;
+    std::vector<iovec> batch_vectors;
+    AofIoRequest* batch_sync = nullptr;
+    AofControlWait* waiter = nullptr;
+    uint64_t sync_target = 0;
+    std::vector<uint64_t> sync_sequences;
+    bool contains_group_commit = false;
+    bool everysec = false;
+    bool had_short = false;
+};
+
+void consume_aof_iovecs(AofIoRequest& request, size_t bytes) {
+    iovec* vectors = request.batch_vectors.empty()
+        ? request.vectors : request.batch_vectors.data();
+    while (request.vector_count && bytes >= vectors[request.vector_index].iov_len) {
+        bytes -= vectors[request.vector_index].iov_len;
+        request.vector_index++;
+        request.vector_count--;
+    }
+    if (bytes && request.vector_count) {
+        iovec& vector = vectors[request.vector_index];
+        vector.iov_base = static_cast<uint8_t*>(vector.iov_base) + bytes;
+        vector.iov_len -= bytes;
+    }
+}
+
+io_uring_sqe* queue_aof_write(Ring& ring, AofIoRequest& request) {
+    if (!request.vector_count) return nullptr;
+    io_uring_sqe* sqe = ring.sqe();
+    if (!sqe) return nullptr;
+    iovec* vectors = request.batch_vectors.empty()
+        ? request.vectors : request.batch_vectors.data();
+    io_uring_prep_writev(sqe, request.fd, vectors + request.vector_index,
+                         static_cast<unsigned>(request.vector_count), request.offset);
+    sqe->user_data = ur_tag(UrKind::AofIo, &request);
+    ring.note_pending();
+    return sqe;
+}
+
+io_uring_sqe* queue_aof_sync(Ring& ring, AofIoRequest& request, bool drain) {
+    io_uring_sqe* sqe = ring.sqe();
+    if (!sqe) return nullptr;
+    io_uring_prep_fsync(sqe, request.fd, IORING_FSYNC_DATASYNC);
+    // Never use IOSQE_IO_DRAIN on this shared ring: multishot accepts are deliberately permanent
+    // earlier requests, so a drain can never issue. Ordering comes from the linked data write; a
+    // tail sync without a current write targets only the already-completed written frontier.
+    (void)drain;
+    sqe->user_data = ur_tag(UrKind::AofIo, &request);
+    ring.note_pending();
+    return sqe;
+}
 
 struct AofManifestData {
     std::string base_name;
@@ -803,6 +875,7 @@ void AofManager::init(Server& server, const Config& config, uint32_t nthreads, u
                       uint32_t writer_tid, const AofReplayPlan* replay) {
     server_ = &server;
     configured_ = config.appendonly;
+    engine_ = config.persist_io;
     fsync_policy_.store(config.appendfsync, std::memory_order_relaxed);
     auto_rewrite_percentage_.store(config.auto_aof_rewrite_percentage,
                                    std::memory_order_relaxed);
@@ -910,7 +983,7 @@ void AofManager::fail(const char* message) {
     std::fprintf(stderr, "AOF error: %s\n", last_error_.c_str());
 }
 
-bool AofManager::write_header() {
+bool AofManager::write_header_normal() {
     uint8_t header[kFileHeaderBytes] = {};
     std::memcpy(header, kFileMagic, sizeof(kFileMagic));
     snapshot_put_u32(header + 8, kFileVersion);
@@ -923,6 +996,62 @@ bool AofManager::write_header() {
     snapshot_put_u64(header + 48, g_sip_k1);
     snapshot_put_u64(header + 64, snapshot_checksum(header, 64));
     return write_counted(fd_, header, sizeof(header), file_offset_);
+}
+
+bool AofManager::wait_control_write(ThreadCtx& writer, Ring& ring, int fd,
+                                    const uint8_t* bytes, size_t length, uint64_t& offset) {
+    if (length > kFileHeaderBytes) return false;
+    auto* request = new (std::nothrow) AofIoRequest();
+    if (!request) return false;
+    AofControlWait wait;
+    request->fd = fd;
+    request->offset = offset;
+    request->remaining = length;
+    request->waiter = &wait;
+    std::memcpy(request->header, bytes, length);
+    request->vectors[0] = {request->header, length};
+    request->vector_count = 1;
+    if (!queue_aof_write(ring, *request)) { delete request; return false; }
+    io_inflight_++;
+    while (!wait.done) {
+        ring.submit_and_wait(1);
+        pump_io_completions(writer, ring);
+    }
+    if (wait.result < 0) return false;
+    offset += length;
+    return true;
+}
+
+bool AofManager::write_header_uring(ThreadCtx& writer, Ring& ring, int fd, uint64_t& offset) {
+    uint8_t header[kFileHeaderBytes] = {};
+    std::memcpy(header, kFileMagic, sizeof(kFileMagic));
+    snapshot_put_u32(header + 8, kFileVersion);
+    snapshot_put_u32(header + 12, kFileHeaderBytes);
+    snapshot_put_u32(header + 16, nshards_);
+    snapshot_put_u32(header + 20, static_cast<uint32_t>(g_hash_kind));
+    snapshot_put_u64(header + 24, static_cast<uint64_t>(realtime_ms()));
+    snapshot_put_u64(header + 32, g_hash_seed);
+    snapshot_put_u64(header + 40, g_sip_k0);
+    snapshot_put_u64(header + 48, g_sip_k1);
+    snapshot_put_u64(header + 64, snapshot_checksum(header, 64));
+    return wait_control_write(writer, ring, fd, header, sizeof(header), offset);
+}
+
+bool AofManager::wait_control_sync(ThreadCtx& writer, Ring& ring, int fd) {
+    auto* request = new (std::nothrow) AofIoRequest();
+    if (!request) return false;
+    AofControlWait wait;
+    request->role = AofIoSync;
+    request->fd = fd;
+    request->waiter = &wait;
+    if (!queue_aof_sync(ring, *request, true)) { delete request; return false; }
+    io_inflight_++;
+    fsync_inflight_++;
+    while (!wait.done) {
+        ring.submit_and_wait(1);
+        pump_io_completions(writer, ring);
+    }
+    return wait.result >= 0;
 }
 
 bool AofManager::bind_writer(ThreadCtx& writer, Ring& ring, std::string& error) {
@@ -945,7 +1074,8 @@ bool AofManager::bind_writer(ThreadCtx& writer, Ring& ring, std::string& error) 
         return false;
     }
     cleanup_unreferenced_files();
-    fd_ = ::open(file_path_.c_str(), O_CREAT | O_RDWR | O_APPEND | O_CLOEXEC, 0600);
+    const int append_flag = engine_ == PersistIoEngine::Normal ? O_APPEND : 0;
+    fd_ = ::open(file_path_.c_str(), O_CREAT | O_RDWR | append_flag | O_CLOEXEC, 0600);
     if (fd_ < 0) {
         error = "could not open AOF file";
         fail(error.c_str());
@@ -958,7 +1088,10 @@ bool AofManager::bind_writer(ThreadCtx& writer, Ring& ring, std::string& error) 
         return false;
     }
     file_offset_ = static_cast<uint64_t>(st.st_size);
-    if (file_offset_ == 0 && !write_header()) {
+    const bool header_ok = file_offset_ != 0 ||
+        (engine_ == PersistIoEngine::Normal ? write_header_normal()
+                                            : write_header_uring(writer, ring, fd_, file_offset_));
+    if (!header_ok) {
         error = "could not write AOF header";
         fail(error.c_str());
         return false;
@@ -1152,16 +1285,23 @@ bool AofManager::rewrite_mark(ThreadCtx& writer, Ring& ring, uint64_t snapshot_e
     }
     for (uint32_t pass = 0; pending_chunks() && pass < 100000; pass++) {
         const uint32_t work = writer_pass(writer, ring, true);
+        if (engine_ == PersistIoEngine::Uring) {
+            ring.submit_and_reap();
+            pump_io_completions(writer, ring);
+        }
         if (!work) std::this_thread::yield();
     }
     if (pending_chunks()) { error = "timed out draining AOF at rewrite mark"; return false; }
-    if (::fdatasync(fd_) != 0) { error = "could not sync old AOF increment"; return false; }
+    const bool old_synced = engine_ == PersistIoEngine::Normal
+        ? ::fdatasync(fd_) == 0 : wait_control_sync(writer, ring, fd_);
+    if (!old_synced) { error = "could not sync old AOF increment"; return false; }
 
     const uint64_t new_sequence = rewrite_target_sequence_;
     const std::string new_name = aof_segment_name(appendfilename_, new_sequence);
     const std::string new_path = directory_path_ + "/" + new_name;
-    const int new_fd = ::open(new_path.c_str(), O_CREAT | O_EXCL | O_RDWR | O_APPEND | O_CLOEXEC,
-                              0600);
+    const int append_flag = engine_ == PersistIoEngine::Normal ? O_APPEND : 0;
+    const int new_fd = ::open(new_path.c_str(),
+                              O_CREAT | O_EXCL | O_RDWR | append_flag | O_CLOEXEC, 0600);
     if (new_fd < 0) { error = "could not create new AOF increment"; return false; }
 
     const int old_fd = fd_;
@@ -1170,7 +1310,10 @@ bool AofManager::rewrite_mark(ThreadCtx& writer, Ring& ring, uint64_t snapshot_e
     fd_ = new_fd;
     file_offset_ = 0;
     last_good_offset_ = 0;
-    bool new_ok = write_header() && ::fdatasync(new_fd) == 0;
+    const bool header_ok = engine_ == PersistIoEngine::Normal
+        ? write_header_normal() : write_header_uring(writer, ring, new_fd, file_offset_);
+    const bool new_ok = header_ok && (engine_ == PersistIoEngine::Normal
+        ? ::fdatasync(new_fd) == 0 : wait_control_sync(writer, ring, new_fd));
     const uint64_t new_offset = file_offset_;
     fd_ = old_fd;
     file_offset_ = old_offset;
@@ -1328,6 +1471,34 @@ bool AofManager::mark_post_written(uint64_t sequence) {
     return true;
 }
 
+bool AofManager::mark_post_submitted(uint64_t sequence) {
+    if (!sequence) return false;
+    uint64_t frontier = submitted_sequence_.load(std::memory_order_relaxed);
+    if (sequence <= frontier) return false;
+    if (sequence != frontier + 1) {
+        try { return submitted_out_of_order_.insert(sequence).second; }
+        catch (const std::bad_alloc&) { return false; }
+    }
+    frontier = sequence;
+    while (submitted_out_of_order_.erase(frontier + 1)) frontier++;
+    submitted_sequence_.store(frontier, std::memory_order_release);
+    return true;
+}
+
+bool AofManager::mark_post_durable(uint64_t sequence) {
+    if (!sequence) return false;
+    uint64_t frontier = durable_sequence_.load(std::memory_order_relaxed);
+    if (sequence <= frontier) return true;
+    if (sequence != frontier + 1) {
+        try { return durable_out_of_order_.insert(sequence).second; }
+        catch (const std::bad_alloc&) { return false; }
+    }
+    frontier = sequence;
+    while (durable_out_of_order_.erase(frontier + 1)) frontier++;
+    durable_sequence_.store(frontier, std::memory_order_release);
+    return true;
+}
+
 void AofManager::wake_gate_waiters(ThreadCtx& writer, Ring& ring) {
     if (!server_) return;
     for (uint32_t word = 0; word < NotifyMask::kWords; word++) {
@@ -1347,39 +1518,249 @@ void AofManager::wake_gate_waiters(ThreadCtx& writer, Ring& ring) {
     }
 }
 
-uint32_t AofManager::maybe_submit_fsync(Ring& ring) {
+uint32_t AofManager::maybe_sync(ThreadCtx& writer, Ring& ring, io_uring_sqe* last_write) {
     const AppendFsyncPolicy policy = fsync_policy();
-    if (policy == AppendFsyncPolicy::No || fsync_inflight_ || fd_ < 0) return 0;
-    const uint64_t written = written_sequence_.load(std::memory_order_acquire);
+    AofIoRequest* write = static_cast<AofIoRequest*>(current_uring_write_);
+    if (write) {
+        try {
+            write->batch_vectors.reserve(write->chunks.size() * 2);
+            for (size_t index = 0; index < write->chunks.size(); index++) {
+                write->batch_vectors.push_back(
+                    {write->frame_headers[index].data(), kFrameHeaderBytes});
+                AofChunk& chunk = *write->chunks[index];
+                write->batch_vectors.push_back({chunk.bytes.data(), chunk.bytes.size()});
+            }
+        } catch (const std::bad_alloc&) {
+            for (size_t index = 0; index < write->chunks.size(); index++)
+                pending_chunks_.fetch_sub(1, std::memory_order_release);
+            delete write;
+            current_uring_write_ = nullptr;
+            fail("out of memory submitting AOF write batch");
+            return 0;
+        }
+        write->vector_count = static_cast<uint32_t>(write->batch_vectors.size());
+        ring.ensure_sq_space(2);
+        last_write = queue_aof_write(ring, *write);
+        if (!last_write) {
+            failed_write_offset_ = std::min(failed_write_offset_, write->safe_offset);
+            for (size_t index = 0; index < write->chunks.size(); index++)
+                pending_chunks_.fetch_sub(1, std::memory_order_release);
+            delete write;
+            current_uring_write_ = nullptr;
+            if (io_inflight_ == 0) {
+                const int truncate_result =
+                    ::ftruncate(fd_, static_cast<off_t>(failed_write_offset_));
+                (void)truncate_result;
+                file_offset_ = failed_write_offset_;
+                failed_write_offset_ = UINT64_MAX;
+            }
+            fail("AOF frame ordering or write failed");
+            return 0;
+        }
+        io_inflight_++;
+        current_uring_write_ = nullptr;
+    }
+    const bool always_batch = policy == AppendFsyncPolicy::Always && write;
+    if ((policy == AppendFsyncPolicy::No && !always_batch) || fd_ < 0) return 0;
+    const uint64_t target = engine_ == PersistIoEngine::Normal ||
+                            (policy == AppendFsyncPolicy::Everysec && !last_write)
+        ? written_sequence_.load(std::memory_order_acquire)
+        : submitted_sequence_.load(std::memory_order_acquire);
     const uint64_t durable = durable_sequence_.load(std::memory_order_acquire);
-    if (written <= durable) return 0;
+    if (target <= durable && !always_batch) return 0;
     const int64_t now = monotonic_ms();
     if (policy == AppendFsyncPolicy::Everysec && now - last_fsync_ms_ < 1000) return 0;
-    io_uring_sqe* sqe = ring.sqe();
-    if (!sqe) return 0;
-    io_uring_prep_fsync(sqe, fd_, IORING_FSYNC_DATASYNC);
-    sqe->user_data = ur_tag(UrKind::AofFsync, this);
-    ring.note_pending();
-    fsync_target_ = written;
-    fsync_inflight_ = true;
+
+    if (engine_ == PersistIoEngine::Normal) {
+        if (::fdatasync(fd_) != 0) {
+            fail("AOF data-sync failed");
+            wake_gate_waiters(writer, ring);
+            return 1;
+        }
+        durable_sequence_.store(target, std::memory_order_release);
+        fsyncs_.fetch_add(1, std::memory_order_relaxed);
+        last_fsync_ms_ = now;
+        wake_gate_waiters(writer, ring);
+        return 1;
+    }
+
+    if (policy == AppendFsyncPolicy::Everysec && everysec_fsync_inflight_) {
+        return 0;
+    }
+    if (policy == AppendFsyncPolicy::Always && !always_batch &&
+        fsync_inflight_ && !short_sync_needed_) return 0;
+    auto* request = new (std::nothrow) AofIoRequest();
+    if (!request) { fail("out of memory submitting AOF data-sync"); return 0; }
+    request->role = AofIoSync;
+    request->fd = fd_;
+    if (always_batch) {
+        try {
+            request->sync_sequences.reserve(write->chunks.size());
+            for (const auto& chunk : write->chunks)
+                request->sync_sequences.push_back(chunk->post_sequence);
+        } catch (const std::bad_alloc&) {
+            delete request;
+            fail("out of memory retaining AOF sync batch");
+            return 0;
+        }
+    } else {
+        request->sync_target = target;
+        if (policy == AppendFsyncPolicy::Always) short_sync_needed_ = false;
+    }
+    request->everysec = policy == AppendFsyncPolicy::Everysec;
+    if (last_write) last_write->flags |= IOSQE_IO_LINK;
+    io_uring_sqe* sqe = queue_aof_sync(ring, *request, true);
+    if (!sqe) {
+        if (last_write) last_write->flags &= ~IOSQE_IO_LINK;
+        delete request;
+        fail("AOF data-sync submission failed");
+        return 0;
+    }
+    if (always_batch) write->batch_sync = request;
+    io_inflight_++;
+    fsync_inflight_++;
+    if (request->everysec) everysec_fsync_inflight_ = true;
     last_fsync_ms_ = now;
     return 1;
 }
 
-void AofManager::on_fsync_complete(ThreadCtx& writer, Ring& ring, int result) {
-    if (!fsync_inflight_) return;
-    fsync_inflight_ = false;
+void AofManager::on_io_complete(ThreadCtx& writer, Ring& ring, void* opaque, int result) {
+    std::unique_ptr<AofIoRequest> request(static_cast<AofIoRequest*>(opaque));
+    if (!request) return;
+    auto truncate_failed_write_if_idle = [&]() {
+        if (failed_write_offset_ == UINT64_MAX || io_inflight_ != 0) return;
+        const int truncate_result =
+            ::ftruncate(fd_, static_cast<off_t>(failed_write_offset_));
+        (void)truncate_result;
+        file_offset_ = failed_write_offset_;
+        failed_write_offset_ = UINT64_MAX;
+    };
+    if (request->role == AofIoWrite) {
+        AofIoRequest* batch_sync = request->batch_sync;
+        request->batch_sync = nullptr;
+        if (result <= 0 || static_cast<size_t>(result) > request->remaining) {
+            if (io_inflight_) io_inflight_--;
+            if (request->waiter) {
+                request->waiter->result = result < 0 ? result : -EIO;
+                request->waiter->done = true;
+            } else if (!request->chunks.empty()) {
+                failed_write_offset_ = std::min(failed_write_offset_, request->safe_offset);
+                pending_chunks_.fetch_sub(request->chunks.size(), std::memory_order_release);
+                fail(request->contains_group_commit ? "AOF GCMT write failed"
+                                                    : "AOF frame ordering or write failed");
+                wake_gate_waiters(writer, ring);
+            }
+            truncate_failed_write_if_idle();
+            return;
+        }
+
+        request->remaining -= static_cast<size_t>(result);
+        request->offset += static_cast<uint64_t>(result);
+        consume_aof_iovecs(*request, static_cast<size_t>(result));
+        if (request->remaining) {
+            if (batch_sync) batch_sync->had_short = true;
+            AofIoRequest* retry = request.release();
+            retry->had_short = true;
+            io_uring_sqe* write_sqe = queue_aof_write(ring, *retry);
+            if (!write_sqe) {
+                request.reset(retry);
+                if (io_inflight_) io_inflight_--;
+                if (retry->waiter) {
+                    retry->waiter->result = -EIO;
+                    retry->waiter->done = true;
+                } else {
+                    failed_write_offset_ = std::min(failed_write_offset_, retry->safe_offset);
+                    pending_chunks_.fetch_sub(retry->chunks.size(), std::memory_order_release);
+                    fail("AOF frame ordering or write failed");
+                }
+                truncate_failed_write_if_idle();
+                return;
+            }
+            return;
+        }
+
+        if (io_inflight_) io_inflight_--;
+        truncate_failed_write_if_idle();
+        if (request->waiter) {
+            request->waiter->result = 0;
+            request->waiter->done = true;
+            return;
+        }
+        if (request->chunks.empty()) return;
+        for (const auto& chunk : request->chunks) {
+            if (!chunk->group_commit) note_group_fragment(*chunk);
+            if (!mark_post_written(chunk->post_sequence)) {
+                fail("AOF post frontier did not advance");
+                break;
+            }
+            records_written_.fetch_add(chunk->group_commit ? 1 : chunk->records,
+                                       std::memory_order_relaxed);
+            if (chunk->group_commit)
+                groups_committed_.fetch_add(1, std::memory_order_relaxed);
+        }
+        current_size_.store(base_size() + file_offset_, std::memory_order_relaxed);
+        pending_chunks_.fetch_sub(request->chunks.size(), std::memory_order_release);
+        if (request->had_short) short_sync_needed_ = true;
+        wake_gate_waiters(writer, ring);
+        return;
+    }
+
+    if (io_inflight_) io_inflight_--;
+    if (fsync_inflight_) fsync_inflight_--;
+    if (request->everysec) everysec_fsync_inflight_ = false;
+    truncate_failed_write_if_idle();
+    if (request->waiter) {
+        request->waiter->result = result < 0 ? result : 0;
+        request->waiter->done = true;
+        return;
+    }
     if (result < 0) {
         fail("AOF data-sync failed");
         wake_gate_waiters(writer, ring);
         return;
     }
-    durable_sequence_.store(fsync_target_, std::memory_order_release);
     fsyncs_.fetch_add(1, std::memory_order_relaxed);
+    if (!request->sync_sequences.empty()) {
+        if (request->had_short) {
+            short_sync_needed_ = true;
+        } else {
+            for (uint64_t sequence : request->sync_sequences) {
+                if (!mark_post_durable(sequence)) {
+                    fail("AOF durable frontier did not advance");
+                    break;
+                }
+            }
+        }
+    }
+    if (request->sync_target) {
+        const uint64_t written = written_sequence_.load(std::memory_order_acquire);
+        if (written >= request->sync_target) {
+            uint64_t durable = durable_sequence_.load(std::memory_order_relaxed);
+            if (request->sync_target > durable) durable = request->sync_target;
+            for (auto it = durable_out_of_order_.begin(); it != durable_out_of_order_.end();) {
+                if (*it <= durable) it = durable_out_of_order_.erase(it);
+                else ++it;
+            }
+            while (durable_out_of_order_.erase(durable + 1)) durable++;
+            durable_sequence_.store(durable, std::memory_order_release);
+        } else {
+            // A positive short write lets the linked sync run after only the prefix. The remainder
+            // is already resubmitted; force an immediate conservative sync after its CQE.
+            last_fsync_ms_ = 0;
+        }
+    }
     wake_gate_waiters(writer, ring);
 }
 
-bool AofManager::write_frame(const AofChunk& chunk) {
+uint32_t AofManager::pump_io_completions(ThreadCtx& writer, Ring& ring) {
+    return ring.for_each_cqe_filtered([&](io_uring_cqe* cqe) {
+        if (ur_kind(cqe->user_data) != UrKind::AofIo) return false;
+        on_io_complete(writer, ring, ur_ptr<void>(cqe->user_data), cqe->res);
+        return true;
+    });
+}
+
+bool AofManager::write_frame_normal(const AofChunk& chunk) {
     if (chunk.sid < 0 || static_cast<uint32_t>(chunk.sid) >= nshards_) return false;
     const uint32_t sid = static_cast<uint32_t>(chunk.sid);
     if (chunk.sequence != next_sequence_[sid]++) return false;
@@ -1435,7 +1816,7 @@ bool AofManager::group_dependencies_ready(const AofGroupDecision& group) const {
     return true;
 }
 
-bool AofManager::write_group_commit(AofChunk& chunk) {
+bool AofManager::prepare_group_commit(AofChunk& chunk, uint8_t* header) {
     if (!chunk.group || !group_dependencies_ready(*chunk.group)) return false;
     const uint64_t ticket = chunk.group->ticket.load(std::memory_order_acquire);
     if (!ticket || chunk.group->aborted.load(std::memory_order_acquire)) return false;
@@ -1459,7 +1840,6 @@ bool AofManager::write_group_commit(AofChunk& chunk) {
         pos += 8;
     }
 
-    uint8_t header[kFrameHeaderBytes] = {};
     snapshot_put_u32(header, kFrameTag);
     snapshot_put_u32(header + 4, UINT32_MAX);  // physical control stream
     snapshot_put_u32(header + 8, 0);           // control frames need no logical shard sequence
@@ -1467,6 +1847,12 @@ bool AofManager::write_group_commit(AofChunk& chunk) {
     snapshot_put_u32(header + 20, kFrameHeaderBytes);
     snapshot_put_u64(header + 24, snapshot_checksum(chunk.bytes.data(), chunk.bytes.size()));
     snapshot_put_u64(header + 32, snapshot_checksum(header, 32));
+    return true;
+}
+
+bool AofManager::write_group_commit_normal(AofChunk& chunk) {
+    uint8_t header[kFrameHeaderBytes] = {};
+    if (!prepare_group_commit(chunk, header)) return false;
     if (!write_frame_counted(fd_, header, sizeof(header),
                              chunk.bytes.data(), chunk.bytes.size(), file_offset_)) {
         const int truncate_result = ::ftruncate(fd_, static_cast<off_t>(last_good_offset_));
@@ -1481,28 +1867,102 @@ bool AofManager::write_group_commit(AofChunk& chunk) {
     return true;
 }
 
-uint32_t AofManager::drain_pending_commits(uint32_t& budget) {
+bool AofManager::submit_frame_uring(std::unique_ptr<AofChunk> chunk, bool group_commit,
+                                    Ring& ring, io_uring_sqe*& last_write) {
+    (void)ring;
+    (void)last_write;
+    auto* request = static_cast<AofIoRequest*>(current_uring_write_);
+    if (!request) {
+        request = new (std::nothrow) AofIoRequest();
+        if (!request) return false;
+        request->fd = fd_;
+        request->offset = file_offset_;
+        request->safe_offset = last_good_offset_;
+        try {
+            request->frame_headers.reserve(256);
+            request->chunks.reserve(256);
+        } catch (const std::bad_alloc&) {
+            delete request;
+            return false;
+        }
+        current_uring_write_ = request;
+    }
+    std::array<uint8_t, kFrameHeaderBytes> header{};
+    if (group_commit) {
+        if (!prepare_group_commit(*chunk, header.data())) return false;
+    } else {
+        if (chunk->sid < 0 || static_cast<uint32_t>(chunk->sid) >= nshards_) {
+            return false;
+        }
+        const uint32_t sid = static_cast<uint32_t>(chunk->sid);
+        if (chunk->sequence != next_sequence_[sid]++) return false;
+        snapshot_put_u32(header.data(), kFrameTag);
+        snapshot_put_u32(header.data() + 4, sid);
+        snapshot_put_u32(header.data() + 8, chunk->sequence);
+        snapshot_put_u32(header.data() + 12, chunk->flags);
+        snapshot_put_u32(header.data() + 16, static_cast<uint32_t>(chunk->bytes.size()));
+        snapshot_put_u32(header.data() + 20, kFrameHeaderBytes);
+        snapshot_put_u64(header.data() + 24,
+                         snapshot_checksum(chunk->bytes.data(), chunk->bytes.size()));
+        snapshot_put_u64(header.data() + 32, snapshot_checksum(header.data(), 32));
+    }
+
+    const uint32_t flags = chunk->flags;
+    const uint64_t post_sequence = chunk->post_sequence;
+    const size_t frame_bytes = kFrameHeaderBytes + chunk->bytes.size();
+    try {
+        request->frame_headers.push_back(header);
+        request->chunks.push_back(std::move(chunk));
+    } catch (const std::bad_alloc&) {
+        if (request->frame_headers.size() > request->chunks.size())
+            request->frame_headers.pop_back();
+        return false;
+    }
+    request->remaining += frame_bytes;
+    request->contains_group_commit |= group_commit;
+
+    const uint64_t frame_begin = file_offset_;
+    file_offset_ += frame_bytes;
+    if (flags & AofFrameLargeBegin) large_record_offset_ = frame_begin;
+    if (flags & AofFrameLargeEnd) last_good_offset_ = file_offset_;
+    else if (locked_producer_ == UINT32_MAX) last_good_offset_ = file_offset_;
+    if (group_commit) last_good_offset_ = file_offset_;
+    if (!mark_post_submitted(post_sequence)) {
+        fail("AOF submitted frontier did not advance");
+        return true;
+    }
+    return true;
+}
+
+uint32_t AofManager::drain_pending_commits(uint32_t& budget, Ring& ring,
+                                           io_uring_sqe*& last_write) {
     uint32_t written = 0;
     for (size_t index = 0; index < pending_commits_.size() && budget;) {
         AofChunk& chunk = *pending_commits_[index];
         if (!group_dependencies_ready(*chunk.group)) { index++; continue; }
-        if (!write_group_commit(chunk)) {
+        const bool ok = engine_ == PersistIoEngine::Normal
+            ? write_group_commit_normal(chunk)
+            : submit_frame_uring(std::move(pending_commits_[index]), true, ring, last_write);
+        if (!ok) {
             fail("AOF GCMT write failed");
             return written;
         }
-        if (!mark_post_written(chunk.post_sequence)) {
-            fail("AOF post frontier did not advance");
-            return written;
+        if (engine_ == PersistIoEngine::Normal) {
+            if (!mark_post_written(chunk.post_sequence)) {
+                fail("AOF post frontier did not advance");
+                return written;
+            }
+            pending_chunks_.fetch_sub(1, std::memory_order_release);
         }
         pending_commits_.erase(pending_commits_.begin() + index);
-        pending_chunks_.fetch_sub(1, std::memory_order_release);
         budget--;
         written++;
     }
     return written;
 }
 
-bool AofManager::drain_producer(uint32_t producer, uint32_t& budget, uint32_t& consumed) {
+bool AofManager::drain_producer(uint32_t producer, uint32_t& budget, uint32_t& consumed,
+                                Ring& ring, io_uring_sqe*& last_write) {
     AofChunk* chunk = nullptr;
     while (budget && chunk_in_[producer].recv(chunk)) {
         if (chunk->group_commit) {
@@ -1527,13 +1987,20 @@ bool AofManager::drain_producer(uint32_t producer, uint32_t& budget, uint32_t& c
         } else {
             if (locked_producer_ != producer || (flags & AofFrameLargeBegin)) valid = false;
         }
-        if (valid) valid = write_frame(*chunk);
-        if (valid) note_group_fragment(*chunk);
-        if (valid) valid = mark_post_written(chunk->post_sequence);
+        if (valid && engine_ == PersistIoEngine::Normal) valid = write_frame_normal(*chunk);
+        if (valid && engine_ == PersistIoEngine::Normal) note_group_fragment(*chunk);
+        if (valid && engine_ == PersistIoEngine::Normal)
+            valid = mark_post_written(chunk->post_sequence);
+        if (valid && engine_ == PersistIoEngine::Uring) {
+            std::unique_ptr<AofChunk> owned(chunk);
+            valid = submit_frame_uring(std::move(owned), false, ring, last_write);
+            chunk = nullptr;
+        }
         if (valid && (flags & AofFrameLargeEnd)) locked_producer_ = UINT32_MAX;
-        delete chunk;
+        if (engine_ == PersistIoEngine::Normal) delete chunk;
         chunk_in_[producer].retire();
-        pending_chunks_.fetch_sub(1, std::memory_order_release);
+        if (engine_ == PersistIoEngine::Normal || !valid)
+            pending_chunks_.fetch_sub(1, std::memory_order_release);
         budget--;
         consumed++;
         if (!valid) {
@@ -1547,17 +2014,25 @@ bool AofManager::drain_producer(uint32_t producer, uint32_t& budget, uint32_t& c
 
 uint32_t AofManager::writer_pass(ThreadCtx& writer, Ring& ring, bool drain_all) {
     if (!configured_ || writer.id() != writer_tid_ || fd_ < 0 || failed()) return 0;
+    if (engine_ == PersistIoEngine::Uring &&
+        fsync_policy() == AppendFsyncPolicy::Always &&
+        fsync_inflight_ >= kAofAlwaysMaxChains) return 0;
+    if (engine_ == PersistIoEngine::Uring &&
+        fsync_policy() == AppendFsyncPolicy::Everysec && io_inflight_ &&
+        monotonic_ms() - last_fsync_ms_ >= 1000) return 0;
     maybe_schedule_auto_rewrite();
     maybe_start_rewrite(writer, ring);
     const uint64_t written_before = written_sequence_.load(std::memory_order_relaxed);
-    uint32_t budget = drain_all ? 256 : kWriterFramesPerPass;
+    uint32_t budget = drain_all || engine_ == PersistIoEngine::Uring
+        ? 256 : kWriterFramesPerPass;
     uint32_t consumed = 0;
-    consumed += drain_pending_commits(budget);
+    io_uring_sqe* last_write = nullptr;
+    consumed += drain_pending_commits(budget, ring, last_write);
     if (locked_producer_ != UINT32_MAX) {
-        drain_producer(locked_producer_, budget, consumed);
+        drain_producer(locked_producer_, budget, consumed, ring, last_write);
         if (written_sequence_.load(std::memory_order_relaxed) != written_before)
             wake_gate_waiters(writer, ring);
-        return consumed + maybe_submit_fsync(ring);
+        return consumed + maybe_sync(writer, ring, last_write);
     }
     for (uint32_t word = 0; word < NotifyMask::kWords && budget; word++) {
         uint64_t bits = chunk_notify_.take(word);
@@ -1565,7 +2040,8 @@ uint32_t AofManager::writer_pass(ThreadCtx& writer, Ring& ring, bool drain_all) 
             const uint32_t bit = static_cast<uint32_t>(__builtin_ctzll(bits));
             bits &= bits - 1;
             const uint32_t producer = word * 64 + bit;
-            if (producer < nthreads_) drain_producer(producer, budget, consumed);
+            if (producer < nthreads_)
+                drain_producer(producer, budget, consumed, ring, last_write);
         }
         while (bits) {
             const uint32_t bit = static_cast<uint32_t>(__builtin_ctzll(bits));
@@ -1576,14 +2052,14 @@ uint32_t AofManager::writer_pass(ThreadCtx& writer, Ring& ring, bool drain_all) 
     if (drain_all && consumed == 0 && locked_producer_ == UINT32_MAX) {
         for (uint32_t visited = 0; visited < nthreads_ && budget; visited++) {
             const uint32_t producer = writer_cursor_++ % nthreads_;
-            drain_producer(producer, budget, consumed);
+            drain_producer(producer, budget, consumed, ring, last_write);
             if (locked_producer_ != UINT32_MAX) break;
         }
     }
-    if (budget) consumed += drain_pending_commits(budget);
+    if (budget) consumed += drain_pending_commits(budget, ring, last_write);
     if (written_sequence_.load(std::memory_order_relaxed) != written_before)
         wake_gate_waiters(writer, ring);
-    return consumed + maybe_submit_fsync(ring);
+    return consumed + maybe_sync(writer, ring, last_write);
 }
 
 bool AofManager::wait_until_drained(uint32_t timeout_ms) {
@@ -1601,14 +2077,23 @@ void AofManager::writer_shutdown(ThreadCtx& writer, Ring& ring) {
     if (!configured_ || writer.id() != writer_tid_ || fd_ < 0) return;
     for (uint32_t pass = 0; pending_chunks() && pass < 100000; pass++) {
         const uint32_t n = writer_pass(writer, ring, true);
+        if (engine_ == PersistIoEngine::Uring) {
+            ring.submit_and_reap();
+            pump_io_completions(writer, ring);
+        }
         if (!n) std::this_thread::yield();
+    }
+    while (engine_ == PersistIoEngine::Uring && io_inflight_) {
+        ring.submit_and_wait(1);
+        pump_io_completions(writer, ring);
     }
     if (locked_producer_ != UINT32_MAX) {
         const int truncate_result = ::ftruncate(fd_, static_cast<off_t>(large_record_offset_));
         (void)truncate_result;
         file_offset_ = large_record_offset_;
     }
-    (void)::fdatasync(fd_);
+    if (engine_ == PersistIoEngine::Normal) (void)::fdatasync(fd_);
+    else (void)wait_control_sync(writer, ring, fd_);
     (void)::close(fd_);
     fd_ = -1;
     recording_.store(false, std::memory_order_release);
@@ -1616,6 +2101,8 @@ void AofManager::writer_shutdown(ThreadCtx& writer, Ring& ring) {
 }
 
 void AofManager::discard_chunks() {
+    delete static_cast<AofIoRequest*>(current_uring_write_);
+    current_uring_write_ = nullptr;
     if (!chunk_in_) return;
     for (uint32_t producer = 0; producer < nthreads_; producer++) {
         AofChunk* chunk = nullptr;

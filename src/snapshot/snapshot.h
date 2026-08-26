@@ -14,6 +14,7 @@ namespace tomo {
 
 class Op;
 class AofManager;
+enum class PersistIoEngine : uint8_t;
 class Ring;
 class Server;
 class Shard;
@@ -49,12 +50,13 @@ public:
     SnapshotManager& operator=(const SnapshotManager&) = delete;
 
     void init(uint32_t nthreads, uint32_t nshards, uint32_t executor_count,
-              const char* dir, const char* dbfilename);
+              const char* dir, const char* dbfilename, PersistIoEngine engine);
 
     StartResult start(Server& server, ThreadCtx& writer, Ring& writer_ring, bool blocking,
                       std::string& error, AofManager* rewrite = nullptr,
                       const char* target_dir = nullptr, const char* target_filename = nullptr);
     uint32_t writer_pass(ThreadCtx& writer, Ring& writer_ring, bool drain_all = false);
+    void on_io_complete(ThreadCtx& writer, Ring& writer_ring, void* request, int result);
 
     Phase phase() const { return phase_.load(std::memory_order_acquire); }
     uint64_t epoch() const { return epoch_.load(std::memory_order_acquire); }
@@ -84,9 +86,17 @@ public:
 
 private:
     using ChunkChan = Channel<SnapshotChunk*, 64>;
-    bool write_header();
-    bool write_frame(const SnapshotChunk& chunk);
-    bool finish_file();
+    bool write_header_normal();
+    bool write_frame_normal(const SnapshotChunk& chunk);
+    bool finish_file_normal();
+    bool validate_frame(const SnapshotChunk& chunk, uint8_t* header);
+    bool submit_header_uring(Ring& ring);
+    bool submit_frame_uring(std::unique_ptr<SnapshotChunk> chunk, Ring& ring);
+    bool submit_footer_uring(Ring& ring);
+    bool submit_sync_uring(Ring& ring, int fd, uint8_t role);
+    bool finish_file_metadata(Ring* ring);
+    bool complete_file_success();
+    uint32_t pump_io_completions(ThreadCtx& writer, Ring& ring);
     void abort_file();
     void discard_chunks();
     void set_error(const char* text);
@@ -128,6 +138,12 @@ private:
     std::vector<uint8_t> saw_begin_;
     std::vector<uint8_t> saw_end_;
     AofManager* rewrite_ = nullptr;
+    PersistIoEngine engine_;
+    uint64_t file_offset_ = 0;
+    uint32_t io_inflight_ = 0;
+    bool header_complete_ = false;
+    bool footer_submitted_ = false;
+    int directory_fd_ = -1;
 };
 
 struct SnapshotIoContext {

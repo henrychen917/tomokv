@@ -172,6 +172,70 @@ python3 tests/snap_typed_roundtrip.py $PORT build_save >/tmp/gate-snap-typed.txt
     || bad "typed snapshot round-trip incl stream" "see /tmp/gate-snap-typed.txt"
 stop
 
+# ---- snapshot data/sync engines: cut, typed round-trip, and typed preimage race ----------------
+for PERSIST_IO in normal uring; do
+  SNAP_DIR=$(mktemp -d "/tmp/gate-snapshot-${PERSIST_IO}.XXXXXX")
+  boot ./build/tomokv --protected-mode no --persist-io "$PERSIST_IO" \
+      --dir "$SNAP_DIR" --dbfilename cut.tomo \
+      || bad "snapshot cut boot ($PERSIST_IO)"
+  python3 tests/snap_cut_battery.py "$PORT" save \
+      >"/tmp/gate-snapshot-cut-${PERSIST_IO}.txt" 2>&1 \
+      && ok "snapshot concurrent cut ($PERSIST_IO)" \
+      || bad "snapshot concurrent cut ($PERSIST_IO)" \
+             "see /tmp/gate-snapshot-cut-${PERSIST_IO}.txt"
+  stop
+  boot ./build/tomokv --protected-mode no --persist-io "$PERSIST_IO" \
+      --dir "$SNAP_DIR" --load "$SNAP_DIR/cut.tomo" \
+      || bad "snapshot cut reload boot ($PERSIST_IO)"
+  python3 tests/snap_cut_battery.py "$PORT" verify_cut \
+      >>"/tmp/gate-snapshot-cut-${PERSIST_IO}.txt" 2>&1 \
+      && ok "snapshot cut reload ($PERSIST_IO)" \
+      || bad "snapshot cut reload ($PERSIST_IO)" \
+             "see /tmp/gate-snapshot-cut-${PERSIST_IO}.txt"
+  stop
+
+  TYPED_DIR=$(mktemp -d "/tmp/gate-snapshot-typed-${PERSIST_IO}.XXXXXX")
+  boot ./build/tomokv --protected-mode no --persist-io "$PERSIST_IO" \
+      --dir "$TYPED_DIR" --dbfilename typed.tomo \
+      || bad "typed snapshot boot ($PERSIST_IO)"
+  python3 tests/snap_typed_roundtrip.py "$PORT" build_save \
+      >"/tmp/gate-snapshot-typed-${PERSIST_IO}.txt" 2>&1 \
+      && ok "typed snapshot save ($PERSIST_IO)" \
+      || bad "typed snapshot save ($PERSIST_IO)" \
+             "see /tmp/gate-snapshot-typed-${PERSIST_IO}.txt"
+  stop
+  boot ./build/tomokv --protected-mode no --persist-io "$PERSIST_IO" \
+      --dir "$TYPED_DIR" --load "$TYPED_DIR/typed.tomo" \
+      || bad "typed snapshot reload boot ($PERSIST_IO)"
+  python3 tests/snap_typed_roundtrip.py "$PORT" verify \
+      >>"/tmp/gate-snapshot-typed-${PERSIST_IO}.txt" 2>&1 \
+      && ok "typed snapshot reload ($PERSIST_IO)" \
+      || bad "typed snapshot reload ($PERSIST_IO)" \
+             "see /tmp/gate-snapshot-typed-${PERSIST_IO}.txt"
+  stop
+
+  RACE_DIR=$(mktemp -d "/tmp/gate-snapshot-race-${PERSIST_IO}.XXXXXX")
+  boot ./build/tomokv --protected-mode no --persist-io "$PERSIST_IO" \
+      --dir "$RACE_DIR" --dbfilename race.tomo \
+      || bad "typed snapshot race boot ($PERSIST_IO)"
+  python3 tests/snap_typed_race.py "$PORT" race \
+      >"/tmp/gate-snapshot-race-${PERSIST_IO}.txt" 2>&1 \
+      && grep -q 'PREIMAGE-FIRED PASS' "/tmp/gate-snapshot-race-${PERSIST_IO}.txt" \
+      && ok "typed snapshot preimage race ($PERSIST_IO)" \
+      || bad "typed snapshot preimage race ($PERSIST_IO)" \
+             "see /tmp/gate-snapshot-race-${PERSIST_IO}.txt"
+  stop
+  boot ./build/tomokv --protected-mode no --persist-io "$PERSIST_IO" \
+      --dir "$RACE_DIR" --load "$RACE_DIR/race.tomo" \
+      || bad "typed snapshot race reload boot ($PERSIST_IO)"
+  python3 tests/snap_typed_race.py "$PORT" verify \
+      >>"/tmp/gate-snapshot-race-${PERSIST_IO}.txt" 2>&1 \
+      && ok "typed snapshot race reload ($PERSIST_IO)" \
+      || bad "typed snapshot race reload ($PERSIST_IO)" \
+             "see /tmp/gate-snapshot-race-${PERSIST_IO}.txt"
+  stop
+done
+
 # ---- notify lane: integrated owner/retire seams plus both live atomic settings -----------------
 boot ./build/tomokv --notify-keyspace-events KEAmn || bad "feature battery boot + notify CLI knob"
 python3 tests/multi_exec.py 127.0.0.1 $PORT >/tmp/gate-multi.txt 2>&1 \
@@ -190,13 +254,22 @@ grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG
     && ok "feature battery shutdown invariants" || bad "feature battery shutdown invariants"
 
 # ---- AOF boot/replay + non-vacuous DEBUG LOADAOF ---------------------------------------------
-AOF_DIR=$(mktemp -d /tmp/gate-aof.XXXXXX)
+for PERSIST_IO in normal uring; do
+AOF_DIR=$(mktemp -d "/tmp/gate-aof-${PERSIST_IO}.XXXXXX")
 AOF_STATE=$AOF_DIR/state.json
 boot ./build/tomokv --protected-mode no --appendonly yes --appendfsync no \
-    --enable-debug-command yes --dir "$AOF_DIR" || bad "AOF purpose boot"
+    --persist-io "$PERSIST_IO" --enable-debug-command yes --dir "$AOF_DIR" \
+    || bad "AOF purpose boot ($PERSIST_IO)"
+PERSIST_GET=$(redis-cli -h 127.0.0.1 -p $PORT --raw CONFIG GET persist-io 2>/dev/null |
+    tail -1)
+PERSIST_SET=$(redis-cli -h 127.0.0.1 -p $PORT CONFIG SET persist-io "$PERSIST_IO" 2>&1)
+[ "$PERSIST_GET" = "$PERSIST_IO" ] && printf '%s' "$PERSIST_SET" | grep -q immutable \
+    && ok "persist-io surface + immutable ($PERSIST_IO)" \
+    || bad "persist-io surface + immutable ($PERSIST_IO)"
 python3 tests/aof.py 127.0.0.1 $PORT populate "$AOF_STATE" >/tmp/gate-aof.txt 2>&1 \
     && python3 tests/aof.py 127.0.0.1 $PORT loadaof "$AOF_STATE" >>/tmp/gate-aof.txt 2>&1 \
-    && ok "AOF byte-exact + DEBUG LOADAOF" || bad "AOF byte-exact + DEBUG LOADAOF" "see /tmp/gate-aof.txt"
+    && ok "AOF byte-exact + DEBUG LOADAOF ($PERSIST_IO)" \
+    || bad "AOF byte-exact + DEBUG LOADAOF ($PERSIST_IO)" "see /tmp/gate-aof.txt"
 AOF_PRE_MODEL=$(python3 tests/aof.py 127.0.0.1 $PORT snapshot "$AOF_DIR/dump.tomo" 2>>/tmp/gate-aof.txt)
 AOF_WRITTEN=$(redis-cli -h 127.0.0.1 -p $PORT INFO Persistence 2>/dev/null \
     | tr -d '\r' | sed -n 's/^aof_records_written://p')
@@ -206,7 +279,8 @@ kill -KILL $SRV 2>/dev/null
 wait $SRV 2>/dev/null
 sleep 5
 boot ./build/tomokv --protected-mode no --appendonly yes --appendfsync no \
-    --enable-debug-command yes --dir "$AOF_DIR" || bad "AOF replay boot"
+    --persist-io "$PERSIST_IO" --enable-debug-command yes --dir "$AOF_DIR" \
+    || bad "AOF replay boot ($PERSIST_IO)"
 python3 tests/aof.py 127.0.0.1 $PORT verify "$AOF_STATE" >>/tmp/gate-aof.txt 2>&1 \
     && ok "AOF process-restart replay" || bad "AOF process-restart replay" "see /tmp/gate-aof.txt"
 AOF_POST_MODEL=$(python3 tests/aof.py 127.0.0.1 $PORT snapshot "$AOF_DIR/dump.tomo" 2>>/tmp/gate-aof.txt)
@@ -222,10 +296,11 @@ stop
 sleep 5
 
 # ---- AOF atomic-group bracketing + directed interrupted-process recovery ---------------------
-AOF_GROUP_DIR=$(mktemp -d /tmp/gate-aof-group.XXXXXX)
+AOF_GROUP_DIR=$(mktemp -d "/tmp/gate-aof-group-${PERSIST_IO}.XXXXXX")
 AOF_GROUP_STATE=$AOF_GROUP_DIR/state.json
 boot ./build/tomokv --protected-mode no --atomic 1 --appendonly yes --appendfsync no \
-    --enable-debug-command yes --dir "$AOF_GROUP_DIR" || bad "AOF group purpose boot"
+    --persist-io "$PERSIST_IO" --enable-debug-command yes --dir "$AOF_GROUP_DIR" \
+    || bad "AOF group purpose boot ($PERSIST_IO)"
 python3 tests/aof_torn_group.py 127.0.0.1 $PORT prepare "$AOF_GROUP_STATE" \
     >/tmp/gate-aof-group.txt 2>&1 \
     && ok "AOF directed group interruption fired" \
@@ -233,7 +308,8 @@ python3 tests/aof_torn_group.py 127.0.0.1 $PORT prepare "$AOF_GROUP_STATE" \
 wait $SRV 2>/dev/null
 sleep 5
 boot ./build/tomokv --protected-mode no --atomic 1 --appendonly yes --appendfsync no \
-    --enable-debug-command yes --dir "$AOF_GROUP_DIR" || bad "AOF group recovery boot"
+    --persist-io "$PERSIST_IO" --enable-debug-command yes --dir "$AOF_GROUP_DIR" \
+    || bad "AOF group recovery boot ($PERSIST_IO)"
 python3 tests/aof_torn_group.py 127.0.0.1 $PORT verify "$AOF_GROUP_STATE" \
     >>/tmp/gate-aof-group.txt 2>&1 \
     && python3 tests/aof_torn_group.py 127.0.0.1 $PORT scan \
@@ -247,10 +323,11 @@ grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG
 sleep 5
 
 # ---- AOF sync policies, reply gate, idle sync, and durability-window recovery ----------------
-AOF_ALWAYS_DIR=$(mktemp -d /tmp/gate-aof-always.XXXXXX)
+AOF_ALWAYS_DIR=$(mktemp -d "/tmp/gate-aof-always-${PERSIST_IO}.XXXXXX")
 AOF_ALWAYS_STATE=$AOF_ALWAYS_DIR/state.json
 boot ./build/tomokv --protected-mode no --atomic 1 --appendonly yes --appendfsync always \
-    --dir "$AOF_ALWAYS_DIR" || bad "AOF always purpose boot"
+    --persist-io "$PERSIST_IO" --dir "$AOF_ALWAYS_DIR" \
+    || bad "AOF always purpose boot ($PERSIST_IO)"
 python3 tests/aof_fsync.py 127.0.0.1 $PORT populate "$AOF_ALWAYS_STATE" always 512 \
     >/tmp/gate-aof-always.txt 2>&1 \
     && ok "AOF always sync + reply gate fired" \
@@ -259,7 +336,8 @@ kill -KILL $SRV 2>/dev/null
 wait $SRV 2>/dev/null
 sleep 5
 boot ./build/tomokv --protected-mode no --atomic 1 --appendonly yes --appendfsync always \
-    --dir "$AOF_ALWAYS_DIR" || bad "AOF always recovery boot"
+    --persist-io "$PERSIST_IO" --dir "$AOF_ALWAYS_DIR" \
+    || bad "AOF always recovery boot ($PERSIST_IO)"
 python3 tests/aof_fsync.py 127.0.0.1 $PORT verify "$AOF_ALWAYS_STATE" always 512 \
     >>/tmp/gate-aof-always.txt 2>&1 \
     && ok "AOF always acknowledged-prefix recovery" \
@@ -267,11 +345,12 @@ python3 tests/aof_fsync.py 127.0.0.1 $PORT verify "$AOF_ALWAYS_STATE" always 512
 stop
 sleep 5
 
-AOF_EVERY_DIR=$(mktemp -d /tmp/gate-aof-everysec.XXXXXX)
+AOF_EVERY_DIR=$(mktemp -d "/tmp/gate-aof-everysec-${PERSIST_IO}.XXXXXX")
 AOF_EVERY_STATE=$AOF_EVERY_DIR/state.json
 AOF_EVERY_FILE=$AOF_EVERY_DIR/appendonlydir/appendonly.aof.1.incr.tomo
 boot ./build/tomokv --protected-mode no --atomic 1 --appendonly yes --appendfsync everysec \
-    --dir "$AOF_EVERY_DIR" || bad "AOF everysec purpose boot"
+    --persist-io "$PERSIST_IO" --dir "$AOF_EVERY_DIR" \
+    || bad "AOF everysec purpose boot ($PERSIST_IO)"
 python3 tests/aof_fsync.py 127.0.0.1 $PORT populate "$AOF_EVERY_STATE" everysec 512 \
     >/tmp/gate-aof-everysec.txt 2>&1 \
     && ok "AOF everysec write gate + idle sync fired" \
@@ -286,7 +365,8 @@ case "$AOF_EVERY_FILE" in
 esac
 sleep 5
 boot ./build/tomokv --protected-mode no --atomic 1 --appendonly yes --appendfsync everysec \
-    --dir "$AOF_EVERY_DIR" || bad "AOF everysec recovery boot"
+    --persist-io "$PERSIST_IO" --dir "$AOF_EVERY_DIR" \
+    || bad "AOF everysec recovery boot ($PERSIST_IO)"
 python3 tests/aof_fsync.py 127.0.0.1 $PORT verify "$AOF_EVERY_STATE" everysec 512 \
     >>/tmp/gate-aof-everysec.txt 2>&1 \
     && grep -q "AOF warning: truncated AOF tail" "$SRVLOG" \
@@ -295,9 +375,10 @@ python3 tests/aof_fsync.py 127.0.0.1 $PORT verify "$AOF_EVERY_STATE" everysec 51
 stop
 sleep 5
 
-AOF_NO_DIR=$(mktemp -d /tmp/gate-aof-no-sync.XXXXXX)
+AOF_NO_DIR=$(mktemp -d "/tmp/gate-aof-no-sync-${PERSIST_IO}.XXXXXX")
 boot ./build/tomokv --protected-mode no --atomic 0 --appendonly yes --appendfsync no \
-    --dir "$AOF_NO_DIR" || bad "AOF no-sync purpose boot"
+    --persist-io "$PERSIST_IO" --dir "$AOF_NO_DIR" \
+    || bad "AOF no-sync purpose boot ($PERSIST_IO)"
 python3 tests/aof_fsync.py 127.0.0.1 $PORT populate "$AOF_NO_DIR/state.json" no 128 \
     >/tmp/gate-aof-no-sync.txt 2>&1 \
     && ok "AOF no-sync bypassed sync + reply gate" \
@@ -305,29 +386,32 @@ python3 tests/aof_fsync.py 127.0.0.1 $PORT populate "$AOF_NO_DIR/state.json" no 
 stop
 sleep 5
 
-GATE_PORT=$PORT GATE_CORES=$CORES tests/aof_rewrite_matrix.sh \
+PERSIST_IO=$PERSIST_IO GATE_PORT=$PORT GATE_CORES=$CORES tests/aof_rewrite_matrix.sh \
     >/tmp/gate-aof-rewrite.txt 2>&1 \
     && ok "AOF rewrite atomic/stage/corruption matrix" \
     || bad "AOF rewrite matrix" "see /tmp/gate-aof-rewrite.txt"
 
-GATE_PORT=$PORT GATE_CORES=$CORES tests/aof_rewrite_trigger_matrix.sh \
+PERSIST_IO=$PERSIST_IO GATE_PORT=$PORT GATE_CORES=$CORES tests/aof_rewrite_trigger_matrix.sh \
     >/tmp/gate-aof-rewrite-trigger.txt 2>&1 \
     && ok "AOF rewrite triggers + observability matrix" \
     || bad "AOF rewrite triggers" "see /tmp/gate-aof-rewrite-trigger.txt"
 
-AOF_OFF_DIR=$(mktemp -d /tmp/gate-aof-off.XXXXXX)
-boot ./build/tomokv --protected-mode no --appendonly no --dir "$AOF_OFF_DIR" \
+AOF_OFF_DIR=$(mktemp -d "/tmp/gate-aof-off-${PERSIST_IO}.XXXXXX")
+boot ./build/tomokv --protected-mode no --persist-io "$PERSIST_IO" \
+    --appendonly no --dir "$AOF_OFF_DIR" \
     || bad "AOF-off negative-control boot"
 redis-cli -h 127.0.0.1 -p $PORT SET aof-negative-control must-disappear >/dev/null 2>&1
 kill -KILL $SRV 2>/dev/null
 wait $SRV 2>/dev/null
 sleep 5
-boot ./build/tomokv --protected-mode no --appendonly no --dir "$AOF_OFF_DIR" \
+boot ./build/tomokv --protected-mode no --persist-io "$PERSIST_IO" \
+    --appendonly no --dir "$AOF_OFF_DIR" \
     || bad "AOF-off negative-control reboot"
 AOF_OFF_SIZE=$(redis-cli -h 127.0.0.1 -p $PORT DBSIZE 2>/dev/null | tr -d '\r')
 [ "$AOF_OFF_SIZE" = 0 ] && [ ! -e "$AOF_OFF_DIR/appendonlydir" ] \
     && ok "AOF-off negative control lost data" || bad "AOF-off negative control"
 stop
+done
 
 # ---- TLS memory-BIO transport: independent listener, auth matrix, parser/teardown fences -------
 TLS_PORT=$((PORT+1))
