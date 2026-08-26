@@ -53,9 +53,20 @@ inline ParseResult parse_len_crlf(const char* buf, uint32_t len, uint32_t& pos,
 
 // Scans one command from buf[pos, len). On Ok, fills `op` and advances `pos` past the command.
 // On Incomplete, leaves pos untouched — more bytes are needed.
-inline ParseResult resp_parse(const char* buf, uint32_t len, uint32_t& pos, Op& op,
-                              const char** err, uint64_t max_multibulk = 1024 * 1024,
-                              uint64_t max_bulk = 512ull * 1024 * 1024) {
+//
+// The limits are a TEMPLATE variant, not runtime parameters: carrying them as arguments through
+// the hottest loop in the server (they were briefly defaulted parameters for the unauthenticated
+// pre-AUTH limits) cost +83 instructions/op on loopback and −5.1% on the wire p128 GET cell —
+// register-carried limits defeat the immediate-folding the comparisons had always compiled to.
+// The unlimited instantiation folds the constants exactly as the original code did; only the
+// pre-AUTH path (predicted-false at the call site) pays for real arguments.
+template <bool kLimited>
+inline ParseResult resp_parse_t(const char* buf, uint32_t len, uint32_t& pos, Op& op,
+                                const char** err, uint64_t max_multibulk, uint64_t max_bulk) {
+    if constexpr (!kLimited) {
+        max_multibulk = 1024 * 1024;
+        max_bulk = 512ull * 1024 * 1024;
+    }
     const uint32_t start = pos;
     if (pos >= len) return ParseResult::Incomplete;
 
@@ -107,6 +118,17 @@ inline ParseResult resp_parse(const char* buf, uint32_t len, uint32_t& pos, Op& 
     }
     pos = p;
     return ParseResult::Ok;
+}
+
+inline ParseResult resp_parse(const char* buf, uint32_t len, uint32_t& pos, Op& op,
+                              const char** err) {
+    return resp_parse_t<false>(buf, len, pos, op, err, 0, 0);
+}
+
+inline ParseResult resp_parse_limited(const char* buf, uint32_t len, uint32_t& pos, Op& op,
+                                      const char** err, uint64_t max_multibulk,
+                                      uint64_t max_bulk) {
+    return resp_parse_t<true>(buf, len, pos, op, err, max_multibulk, max_bulk);
 }
 
 // ---- integer formatting -------------------------------------------------------------------------

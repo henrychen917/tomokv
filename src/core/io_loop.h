@@ -482,10 +482,13 @@ private:
             uint32_t pos = conn.rpos();
             const char* err = nullptr;
             op->rbuf_off = pos;
+            // The authenticated/common path takes the constant-folded parser; only pre-AUTH
+            // connections (predicted false) pay real limit arguments. See resp.h for the
+            // +83 instr/op lesson behind this split.
             bool security_check = auth_required && !conn.authenticated();
-            ParseResult pr = resp_parse(conn.rbuf(), conn.rlen(), pos, *op, &err,
-                                        security_check ? 10 : 1024 * 1024,
-                                        security_check ? 16384 : 512ull * 1024 * 1024);
+            ParseResult pr = __builtin_expect(security_check, false)
+                ? resp_parse_limited(conn.rbuf(), conn.rlen(), pos, *op, &err, 10, 16384)
+                : resp_parse(conn.rbuf(), conn.rlen(), pos, *op, &err);
             security_check |= acl_active;
 
             if (pr == ParseResult::Incomplete) break;
