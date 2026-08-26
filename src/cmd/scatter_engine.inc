@@ -9,7 +9,7 @@
 namespace tomo {
 namespace {
 enum class Kind : uint8_t {
-    AllShards, DebugReload, DbsizeExact, Mget, Mset, Del, Unlink, Exists, Touch, Keys, Pfcount, Msetnx,
+    AllShards, DebugReload, DebugLoadAof, DbsizeExact, Mget, Mset, Del, Unlink, Exists, Touch, Keys, Pfcount, Msetnx,
     Rename, Renamenx, Copy, Smove, Lmove, Rpoplpush,
     Sinter, Sunion, Sdiff, Sintercard, Sinterstore, Sunionstore, Sdiffstore,
     Bitop, Pfmerge,
@@ -342,6 +342,7 @@ struct ScatterState {
     OwnerRecordRefs* owner_record_refs = nullptr;
     ResultHeap* result = nullptr;
     std::unique_ptr<SnapshotLoadPlan> reload_plan;
+    std::unique_ptr<AofReplayPlan> aof_reload_plan;
     // Non-null only after a parked BLMOVE/BRPOPLPUSH is resumed by its owning IO. The blocking
     // context remains independently refcounted while this ordinary scatter owns the Op marker.
     BlockingState* blocking_origin = nullptr;
@@ -417,7 +418,7 @@ bool first_error(const ScatterState& state, WorkError& error) {
 
 uint32_t key_count_for(Kind kind, const Op& op, uint32_t sinter_count,
                        uint32_t mpop_count, bool sort_store) {
-    if (kind == Kind::AllShards || kind == Kind::DebugReload ||
+    if (kind == Kind::AllShards || kind == Kind::DebugReload || kind == Kind::DebugLoadAof ||
         kind == Kind::DbsizeExact || kind == Kind::Keys) return 0;
     if (kind == Kind::Mset || kind == Kind::Msetnx) return (op.argc() - 1) / 2;
     if (kind == Kind::Bitop) return op.argc() - 2;
@@ -774,6 +775,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     Kind kind;
     if (all_shards)
         kind = op.cmd_name().eq_icase("dbsize") ? Kind::DbsizeExact :
+               op.cmd_name().eq_icase("debug") && op.arg(1).eq_icase("loadaof")
+                   ? Kind::DebugLoadAof :
                op.cmd_name().eq_icase("debug") ? Kind::DebugReload : Kind::AllShards;
     else if (!(op.spec->flags & CmdFlags::MultiShard) || !classify(op, kind))
         return ScatterPrepare::NotScatter;
@@ -789,6 +792,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     if (kind == Kind::Pfcount && op.argc() == 2) return ScatterPrepare::NotScatter;
 
     std::unique_ptr<SnapshotLoadPlan> reload_plan;
+    std::unique_ptr<AofReplayPlan> aof_reload_plan;
     if (all_shards) {
         if (kind == Kind::DebugReload) {
             if (!debug_command_allowed(server, origin_client)) {
@@ -822,6 +826,36 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                           "ERR Error trying to load the snapshot dump, check server logs.");
                 return ScatterPrepare::Error;
             }
+        } else if (kind == Kind::DebugLoadAof) {
+            if (!debug_command_allowed(server, origin_client)) {
+                reply_debug_command_denied(op);
+                return ScatterPrepare::Error;
+            }
+            if (!server.aof().configured()) {
+                reply_err(op.sink(), "ERR appendonly is disabled");
+                return ScatterPrepare::Error;
+            }
+            ThreadCtx& caller = server.thread(owner_io);
+            Ring* caller_ring = caller.ring();
+            if (server.aof().writer_is(owner_io) && caller_ring) {
+                while (server.aof().pending_chunks()) {
+                    if (!server.aof().writer_pass(caller, *caller_ring, true))
+                        std::this_thread::yield();
+                }
+            } else if (!server.aof().wait_until_drained(5000)) {
+                reply_err(op.sink(), "ERR timed out flushing AOF before reload");
+                return ScatterPrepare::Error;
+            }
+            bool exists = false;
+            std::string warning;
+            std::string error;
+            auto plan = aof_read_plan(server.aof().file_path().c_str(), server.nshards(),
+                                      false, exists, warning, error);
+            if (!plan || !exists) {
+                reply_err(op.sink(), "ERR Error trying to load the AOF, check server logs.");
+                return ScatterPrepare::Error;
+            }
+            aof_reload_plan = std::move(plan);
         } else {
             const bool valid = (op.spec->flags & CmdFlags::ConfigRoute)
                 ? command_validate_config_set(op) : command_validate_all_shards(op);
@@ -959,7 +993,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                              kind == Kind::Zrangestore ||
                              (kind == Kind::Sort && sort_options.store)) ? 1u : 0u;
     uint32_t group_cap = 0;
-    if (kind == Kind::AllShards || kind == Kind::DebugReload ||
+    if (kind == Kind::AllShards || kind == Kind::DebugReload || kind == Kind::DebugLoadAof ||
         kind == Kind::DbsizeExact || kind == Kind::Keys) {
         group_cap = server.nshards();
     } else if (atomic_write) {
@@ -1046,6 +1080,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     state->range_spec = range_spec;
     state->sort_options = sort_options;
     state->reload_plan = std::move(reload_plan);
+    state->aof_reload_plan = std::move(aof_reload_plan);
     // MSET is a blind replacement. Registering a read cut for it only pins predecessors across a
     // deep pipeline; MSETNX and delete still need their one dispatch snapshot for existence.
     if (needs_snapshot)
@@ -1087,7 +1122,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         return ScatterPrepare::Error;
     }
 
-    if (kind == Kind::AllShards || kind == Kind::DebugReload ||
+    if (kind == Kind::AllShards || kind == Kind::DebugReload || kind == Kind::DebugLoadAof ||
         kind == Kind::DbsizeExact || kind == Kind::Keys) {
         state->nsub = server.nshards();
         for (uint32_t sid = 0; sid < state->nsub; sid++) {
@@ -1134,6 +1169,88 @@ void xshard_destroy(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_
 }
 
 bool xshard_is_local(const Op& op) { return op.local_xshard(); }
+
+namespace { bool xshard_owner_mutation_phase(const ScatterState&, const Op&); }
+
+void xshard_aof_emit(const Task& task, Shard& shard, Op& op, AofOwnerContext& context) {
+    ScatterState& state = *task.scatter;
+    if (!xshard_owner_mutation_phase(state, op)) return;
+    // Step 2 owns private MVCC fragments and their GCMT ticket. Emitting a plain post-image here
+    // would over-promise atomicity, so the boot/replay step deliberately leaves groups untouched.
+    if (state.atomic_group) return;
+    if (state.kind == Kind::AllShards) {
+        if (op.cmd_name().eq_icase("flushdb") || op.cmd_name().eq_icase("flushall"))
+            (void)shard.store().aof().record_flush();
+        return;
+    }
+    if (state.kind == Kind::DebugReload || state.kind == Kind::DebugLoadAof ||
+        state.kind == Kind::DbsizeExact ||
+        state.kind == Kind::Keys) return;
+    ShardGroup* group = group_for(state, shard.id());
+    if (!group) return;
+    for (uint32_t i = 0; i < group->count; i++) {
+        const uint32_t pos = state.key_order[group->begin + i];
+        const KeyRef& key = state.keys[pos];
+        (void)shard.store().aof().record_post_image(
+            shard.store(), key.hash, op.arg(key.arg), context);
+    }
+}
+
+void xshard_aof_emit_local(Shard& shard, Op& op, AofOwnerContext& context) {
+    Kind kind;
+    if (!classify(op, kind)) return;
+    auto emit = [&](uint32_t arg) {
+        if (arg >= op.argc()) return;
+        const Slice key = op.arg(arg);
+        (void)shard.store().aof().record_post_image(
+            shard.store(), FlatStore::hash_key(key), key, context);
+    };
+    switch (kind) {
+        case Kind::Mset:
+        case Kind::Msetnx:
+            for (uint32_t arg = 1; arg < op.argc(); arg += 2) emit(arg);
+            break;
+        case Kind::Del:
+        case Kind::Unlink:
+            for (uint32_t arg = 1; arg < op.argc(); arg++) emit(arg);
+            break;
+        case Kind::Rename:
+        case Kind::Renamenx:
+        case Kind::Copy:
+        case Kind::Smove:
+        case Kind::Lmove:
+        case Kind::Rpoplpush:
+            emit(1); emit(2);
+            break;
+        case Kind::Sinterstore:
+        case Kind::Sunionstore:
+        case Kind::Sdiffstore:
+        case Kind::Pfmerge:
+        case Kind::Zrangestore:
+            emit(1);
+            break;
+        case Kind::Bitop:
+            emit(2);
+            break;
+        case Kind::Lmpop:
+        case Kind::Zmpop: {
+            uint32_t numkeys = 0;
+            bool edge = false;
+            uint64_t count = 1;
+            if (!parse_mpop(op, kind, numkeys, edge, count)) return;
+            for (uint32_t i = 0; i < numkeys; i++) emit(2 + i);
+            break;
+        }
+        case Kind::Sort: {
+            SortOptions options;
+            if (parse_sort_options(op, options) && options.store) emit(options.store_arg);
+            break;
+        }
+        default:
+            (void)aof_record_local_op(shard, op, context);
+            break;
+    }
+}
 
 namespace {
 
@@ -1499,6 +1616,17 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 std::string error;
                 if (!state.reload_plan ||
                     !snapshot_load_shard(*state.reload_plan, *state.server, shard, error)) {
+                    group.error = WorkError::Corrupt;
+                    return ScatterTaskResult::Complete;
+                }
+                return ScatterTaskResult::Complete;
+            }
+            case Kind::DebugLoadAof: {
+                if (!shard.store().atomic_tombstone_all()) return ScatterTaskResult::Retry;
+                shard.store().clear();
+                std::string error;
+                if (!state.aof_reload_plan ||
+                    !aof_load_shard(*state.aof_reload_plan, *state.server, shard, error)) {
                     group.error = WorkError::Corrupt;
                     return ScatterTaskResult::Complete;
                 }

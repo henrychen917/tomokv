@@ -138,6 +138,7 @@ inline std::string cfg_client_output_buffer_limit_string(const ClientOutputBuffe
 }
 
 enum class DebugCommandMode : uint8_t { No = 0, Yes = 1, Local = 2 };
+enum class AppendFsyncPolicy : uint8_t { Always = 0, Everysec = 1, No = 2 };
 
 struct Config {
     // ---- placement (boot-only) -------------------------------------------------------------
@@ -179,6 +180,13 @@ struct Config {
     const char* dir         = ".";
     const char* dbfilename  = "dump.tomo";
     const char* load_path   = nullptr;   // boot-only: load a dump before serving
+    bool appendonly = false;
+    AppendFsyncPolicy appendfsync = AppendFsyncPolicy::Everysec;
+    const char* appendfilename = "appendonly.aof";
+    const char* appenddirname = "appendonlydir";
+    uint32_t auto_aof_rewrite_percentage = 100;
+    uint64_t auto_aof_rewrite_min_size = 64ull * 1024 * 1024;
+    bool aof_timestamp_enabled = false;
 
     // ---- data path (live via CONFIG SET) ----------------------------------------------------
     uint32_t zc_min         = 16384;     // zero-copy GET replies at >= this value length.
@@ -431,6 +439,55 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         else if (!std::strcmp(a, "--dir"))        cfg.dir = next(".");
         else if (!std::strcmp(a, "--dbfilename")) cfg.dbfilename = next("dump.tomo");
         else if (!std::strcmp(a, "--load"))       cfg.load_path = next("");
+        else if (!std::strcmp(a, "--appendonly")) {
+            const char* value = next(nullptr);
+            if (cfg_eq_icase(value, "yes")) cfg.appendonly = true;
+            else if (cfg_eq_icase(value, "no")) cfg.appendonly = false;
+            else {
+                std::fprintf(stderr, "--appendonly wants yes or no\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--appendfsync")) {
+            const char* value = next(nullptr);
+            if (cfg_eq_icase(value, "always")) cfg.appendfsync = AppendFsyncPolicy::Always;
+            else if (cfg_eq_icase(value, "everysec")) cfg.appendfsync = AppendFsyncPolicy::Everysec;
+            else if (cfg_eq_icase(value, "no")) cfg.appendfsync = AppendFsyncPolicy::No;
+            else {
+                std::fprintf(stderr, "--appendfsync wants always, everysec or no\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--appendfilename")) cfg.appendfilename = next("appendonly.aof");
+        else if (!std::strcmp(a, "--appenddirname")) cfg.appenddirname = next("appendonlydir");
+        else if (!std::strcmp(a, "--auto-aof-rewrite-percentage")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.auto_aof_rewrite_percentage)) {
+                std::fprintf(stderr, "--auto-aof-rewrite-percentage wants an unsigned integer\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--auto-aof-rewrite-min-size")) {
+            if (!cfg_parse_memory(next(nullptr), cfg.auto_aof_rewrite_min_size)) {
+                std::fprintf(stderr, "--auto-aof-rewrite-min-size wants a byte count\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--aof-use-rdb-preamble")) {
+            const char* value = next(nullptr);
+            if (!cfg_eq_icase(value, "yes")) {
+                std::fprintf(stderr, "aof-use-rdb-preamble no is unsupported: the AOF base file is a TomoKV snapshot\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--aof-timestamp-enabled")) {
+            const char* value = next(nullptr);
+            if (cfg_eq_icase(value, "yes")) cfg.aof_timestamp_enabled = true;
+            else if (cfg_eq_icase(value, "no")) cfg.aof_timestamp_enabled = false;
+            else {
+                std::fprintf(stderr, "--aof-timestamp-enabled wants yes or no\n");
+                return kConfigError;
+            }
+        }
         else if (!std::strcmp(a, "--hash-max-compact-entries")) {
             if (!cfg_parse_u32(next(nullptr), cfg.type_limits.hash.max_entries)) return kConfigError;
         }
@@ -520,6 +577,10 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "          --tcp-backlog N --client-output-buffer-limit CLASS HARD SOFT SECONDS ...\n"
                         "  notifications: --notify-keyspace-events FLAGS (default empty/off)\n"
                         "  persistence: --dir PATH --dbfilename NAME --load PATH\n"
+                        "    --appendonly yes|no --appendfsync always|everysec|no\n"
+                        "    --appendfilename NAME --appenddirname NAME\n"
+                        "    --auto-aof-rewrite-percentage N --auto-aof-rewrite-min-size BYTES\n"
+                        "    --aof-use-rdb-preamble yes --aof-timestamp-enabled yes|no\n"
                         "  security: --requirepass PASSWORD --protected-mode 0|1|yes|no\n"
                         "            --enable-debug-command no|yes|local --aclfile PATH\n"
                         "            --user NAME RULE... --acl-pubsub-default allchannels|resetchannels\n"
@@ -552,6 +613,11 @@ inline int validate_config(const Config& cfg) {
     if (!cfg.dir || !*cfg.dir || !cfg.dbfilename || !*cfg.dbfilename ||
         std::strchr(cfg.dbfilename, '/')) {
         std::fprintf(stderr, "--dir must be non-empty and --dbfilename must be a plain filename\n");
+        return kConfigError;
+    }
+    if (!cfg.appendfilename || !*cfg.appendfilename || std::strchr(cfg.appendfilename, '/') ||
+        !cfg.appenddirname || !*cfg.appenddirname || std::strchr(cfg.appenddirname, '/')) {
+        std::fprintf(stderr, "--appendfilename and --appenddirname must be plain names\n");
         return kConfigError;
     }
     return kConfigParsed;

@@ -76,8 +76,7 @@ expect(client.command("CONFIG", "SET", "enable-debug-command", "no"),
        "ERR parameter is immutable at runtime", "boot-only config")
 expect(client.command("DEBUG", "SLEEP", "0"), b"OK", "DEBUG SLEEP")
 expect(client.command("DEBUG", "LOADAOF"),
-       "ERR DEBUG LOADAOF is not available until appendonly support is enabled",
-       "DEBUG LOADAOF stub")
+       "ERR appendonly is disabled", "DEBUG LOADAOF appendonly-off guard")
 expect(client.command("DEBUG", "JMAP"),
        "ERR unknown subcommand or wrong number of arguments for 'debug' command",
        "DEBUG JMAP intentionally absent")
@@ -125,4 +124,4 @@ for atomic in (0, 1):
 
 client.file.close()
 client.sock.close()
-print("debug: PASS (toggle fired, LOADAOF stub, mixed snapshot RELOAD atomic=0/1)")
+print("debug: PASS (toggle fired, LOADAOF off guard, mixed snapshot RELOAD atomic=0/1)")

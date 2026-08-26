@@ -28,6 +28,7 @@
 #include "../net/wb.h"
 #include "../cmd/command.h"
 #include "../snapshot/snapshot.h"
+#include "../persist/aof.h"
 
 namespace tomo {
 
@@ -59,7 +60,7 @@ public:
     Server(const Server&) = delete;
     Server& operator=(const Server&) = delete;
 
-    bool init(const Config& cfg) {
+    bool init(const Config& cfg, const AofReplayPlan* aof_replay = nullptr) {
         cfg_ = cfg;
         if (cfg.shards == 0 || cfg.shards > 256) {
             std::fprintf(stderr, "shards must be between 1 and 256\n");
@@ -179,6 +180,13 @@ public:
         snapshot_.init(nthreads, cfg.shards,
                        static_cast<uint32_t>(placement_.ex_threads().size()),
                        cfg.dir, cfg.dbfilename);
+        aof_.init(cfg, nthreads, cfg.shards, placement_.ifid_threads().back(), aof_replay);
+        for (uint32_t sid = 0; sid < cfg.shards; sid++) {
+            const uint32_t sequence = aof_replay && aof_replay->next_sequence.size() == cfg.shards
+                ? aof_replay->next_sequence[sid] : 0;
+            shards_[sid]->store().bind_aof(cfg.appendonly ? &aof_ : nullptr,
+                                           static_cast<int32_t>(sid), sequence);
+        }
         return true;
     }
 
@@ -192,6 +200,8 @@ public:
     uint32_t         nshards()    const { return static_cast<uint32_t>(shards_.size()); }
     SnapshotManager& snapshot()         { return snapshot_; }
     const SnapshotManager& snapshot() const { return snapshot_; }
+    AofManager& aof() { return aof_; }
+    const AofManager& aof() const { return aof_; }
     const ThreadCtx& thread(uint32_t i) const { return *threads_[i]; }
 
     // One atomic load on the dispatch path; one atomic store is how an LB moves work.
@@ -826,6 +836,7 @@ private:
     std::vector<std::unique_ptr<Shard>>     shards_;
     std::vector<std::unique_ptr<ThreadCtx>> threads_;
     SnapshotManager snapshot_;
+    AofManager aof_;
 
     std::atomic<uint32_t> shard_owner_[256] = {};
     uint8_t executor_slots_[kMaxThreads] = {};

@@ -19,6 +19,7 @@
 #include <sys/random.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -40,6 +41,7 @@
 #include "../net/resp.h"
 #include "../net/uring.h"
 #include "../snapshot/format.h"
+#include "../persist/aof.h"
 #include "../store/kvobj.h"
 
 

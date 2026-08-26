@@ -42,6 +42,7 @@
 #include "../cmd/notify.h"
 #include "../cmd/xshard.h"
 #include "../snapshot/snapshot.h"
+#include "../persist/aof.h"
 
 namespace tomo {
 
@@ -79,6 +80,13 @@ public:
         unix_listen_fd_ = unix_listen_fd;
         if (!ring_.init(4096)) return false;
         self_->set_ring(&ring_);
+        if (srv_->aof().configured()) {
+            std::string error;
+            if (!srv_->aof().bind_writer(*self_, ring_, error)) {
+                std::fprintf(stderr, "AOF writer init failed: %s\n", error.c_str());
+                return false;
+            }
+        }
         wb_.bind(&ring_, this, [](void* ctx, int32_t shard, const char* ptr) {
             static_cast<IoLoop*>(ctx)->queue_borrow_release(shard, ptr);
         }, this, [](void* ctx, Client& client, Op& op) {
@@ -215,6 +223,8 @@ private:
                 did += scatter_pool_.refresh_snapshot_floor(*srv_, self_->id());
                 if constexpr (HasUnix) did += flush_handoffs();
                 did += multi_owner_pass_entry(*this);
+                if (srv_->aof().writer_is(self_->id()))
+                    did += srv_->aof().writer_pass(*self_, ring_);
                 if (srv_->snapshot().writer_is(self_->id()))
                     did += srv_->snapshot().writer_pass(*self_, ring_);
                 did += flush_borrow_releases();
@@ -246,6 +256,8 @@ private:
             else                       ring_.submit_and_reap();
             self_->clear_blocked();
         }
+        if (srv_->aof().writer_is(self_->id()))
+            srv_->aof().writer_shutdown(*self_, ring_);
     }
 
     // ---- submission -----------------------------------------------------------------------------
@@ -892,6 +904,8 @@ private:
         work += flush_borrow_releases() + collect_retire_work<HasUnix>(true) + flush_ready();
         if (srv_->snapshot().writer_is(self_->id()))
             work += srv_->snapshot().writer_pass(*self_, ring_, true);
+        if (srv_->aof().writer_is(self_->id()))
+            work += srv_->aof().writer_pass(*self_, ring_, true);
         return work;
     }
 

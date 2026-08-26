@@ -29,6 +29,7 @@
 #include "../cmd/multi.h"
 #include "../cmd/notify.h"
 #include "../cmd/xshard.h"
+#include "../persist/aof.h"
 
 namespace tomo {
 
@@ -46,6 +47,7 @@ public:
     WbEngine& engine() { return wb_; }
     bool init(Server* srv, ThreadCtx* self) {
         srv_ = srv; self_ = self;
+        aof_manager_ = srv->aof().configured() ? &srv->aof() : nullptr;
         lru_clock_shift_ = static_cast<uint8_t>(srv->cfg().lru_clock_shift);
         if (!ring_.init(1024)) return false;
         self_->set_ring(&ring_);
@@ -91,6 +93,7 @@ public:
                         *srv_, *self_, ring_, cached_now_ms_, true);
                     blocking_beat_ms_ = cached_now_ms_ + 10;
                 }
+                did += aof_flush_pass();
                 did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
             }
             sig.cpu_ns = thread_cpu_ns();
@@ -166,7 +169,20 @@ private:
         n += drain_notify_keyless(self_->sig());
         if (__builtin_expect(srv_->blocking_waiters() != 0, false))
             n += blocking_owner_cycle(*srv_, *self_, ring_, cached_now_ms_, true);
+        n += aof_flush_pass();
         return n;
+    }
+
+    uint32_t aof_flush_pass() {
+        if (__builtin_expect(aof_manager_ == nullptr || !aof_manager_->recording(), true)) return 0;
+        AofOwnerContext context{self_->id(), &ring_, &self_->sig()};
+        uint32_t work = 0;
+        for (Shard* shard : self_->shards()) {
+            AofProducer& producer = shard->store().aof();
+            if (!producer.has_pending()) continue;
+            if (producer.flush(context)) work++;
+        }
+        return work;
     }
 
     static int64_t realtime_ms() {
@@ -553,6 +569,10 @@ private:
             if (result == ScatterTaskResult::Retry) return false;
             if (__builtin_expect(sh.has_blocking_waiters(), false))
                 blocking_scatter_mutation_published(t, sh, op);
+            if (__builtin_expect(aof_manager_ != nullptr, false)) {
+                AofOwnerContext context{self_->id(), &ring_, &self_->sig()};
+                xshard_aof_emit(t, sh, op, context);
+            }
             sh.publish_size();
             if (xshard_complete(*srv_, *self_, ring_, t, op) == ScatterFinish::Waiting) return true;
         } else if (__builtin_expect(op.spec->flags & CmdFlags::DenyOom, false) &&
@@ -584,6 +604,11 @@ private:
         if (!t.scatter && (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) &&
             __builtin_expect(sh.has_watches(), false))
             multi_plain_write_committed(sh, op);
+        if (!t.scatter && __builtin_expect(aof_manager_ != nullptr, false)) {
+            AofOwnerContext context{self_->id(), &ring_, &self_->sig()};
+            if (op.local_xshard()) xshard_aof_emit_local(sh, op, context);
+            else                   aof_record_local_op(sh, op, context);
+        }
 
         // Release pairs with the IO thread's acquire on Done: everything the handler wrote into
         // op.reply becomes visible through this one store.
@@ -725,6 +750,7 @@ private:
     size_t     expire_shard_cursor_ = 0;
     size_t     atomic_cleanup_cursor_ = 0;
     uint64_t   live_config_version_ = 0;
+    AofManager* aof_manager_ = nullptr;
     bool       maxmemory_enabled_ = false;
     uint8_t    cached_lru_clock_ = 0;
     uint8_t    lru_clock_shift_ = 8;   // latched from cfg at loop start; 1<<N seconds per bucket

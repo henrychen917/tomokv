@@ -207,7 +207,7 @@ void append_client_line(std::string& out, const ClientMeta& meta) {
 }
 
 enum class ConfigKind : uint8_t {
-    String, Bool, Unsigned, Bytes, Policy, ClientOutputBufferLimit, NotifyFlags
+    String, Bool, Unsigned, Bytes, Enum, Policy, ClientOutputBufferLimit, NotifyFlags
 };
 struct ConfigValue {
     const char* name;
@@ -231,7 +231,21 @@ void init_config(const Config& cfg) {
     g_config.push_back({"dir", ConfigKind::String, (cfg.dir && *cfg.dir) ? cfg.dir : "."});
     g_config.push_back({"dbfilename", ConfigKind::String,
                         (cfg.dbfilename && *cfg.dbfilename) ? cfg.dbfilename : "dump.tomo"});
-    g_config.push_back({"appendonly", ConfigKind::Bool, "no"});
+    g_config.push_back({"appendonly", ConfigKind::Bool, cfg.appendonly ? "yes" : "no", true});
+    const char* appendfsync = cfg.appendfsync == AppendFsyncPolicy::Always ? "always" :
+                              cfg.appendfsync == AppendFsyncPolicy::No ? "no" : "everysec";
+    g_config.push_back({"appendfsync", ConfigKind::Enum, appendfsync, true});
+    g_config.push_back({"appendfilename", ConfigKind::String, cfg.appendfilename, true});
+    g_config.push_back({"appenddirname", ConfigKind::String, cfg.appenddirname, true});
+    add_config("auto-aof-rewrite-percentage", ConfigKind::Unsigned,
+               cfg.auto_aof_rewrite_percentage);
+    g_config.back().immutable = true;
+    add_config("auto-aof-rewrite-min-size", ConfigKind::Bytes,
+               cfg.auto_aof_rewrite_min_size);
+    g_config.back().immutable = true;
+    g_config.push_back({"aof-use-rdb-preamble", ConfigKind::String, "yes"});
+    g_config.push_back({"aof-timestamp-enabled", ConfigKind::Bool,
+                        cfg.aof_timestamp_enabled ? "yes" : "no"});
     add_config("maxmemory", ConfigKind::Bytes, cfg.maxmemory);
     g_config.push_back({"maxmemory-policy", ConfigKind::Policy,
                         maxmemory_policy_name(cfg.maxmemory_policy)});
@@ -380,6 +394,11 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out) {
             out = std::to_string(value);
             return true;
         }
+        case ConfigKind::Enum:
+            if (eq_icase(input, "always")) { out = "always"; return true; }
+            if (eq_icase(input, "everysec")) { out = "everysec"; return true; }
+            if (eq_icase(input, "no")) { out = "no"; return true; }
+            return false;
         case ConfigKind::Policy: {
             static const char* policies[] = {"noeviction", "allkeys-lru", "allkeys-lfu",
                 "allkeys-random", "volatile-lru", "volatile-lfu", "volatile-random", "volatile-ttl"};
@@ -415,6 +434,12 @@ bool collect_config_updates(Op& op,
             std::string msg = "ERR Unknown option or number of arguments for CONFIG SET - '";
             msg.append(op.arg(i).p, op.arg(i).n); msg.push_back('\'');
             reply_err(op.sink(), msg.c_str()); return false;
+        }
+        if (!std::strcmp(item->name, "aof-use-rdb-preamble")) {
+            if (!eq_icase(op.arg(i + 1), "yes")) {
+                reply_err(op.sink(), "ERR aof-use-rdb-preamble no is unsupported: the AOF base file is a TomoKV snapshot");
+                return false;
+            }
         }
         if (item->immutable || !std::strcmp(item->name, "dir") ||
             !std::strcmp(item->name, "dbfilename") || !std::strcmp(item->name, "tcp-backlog")) {
@@ -632,7 +657,7 @@ void cmd_debug_impl(Shard&, Op& op) {
         return;
     }
     if (eq_icase(subcommand, "loadaof") && op.argc() == 2) {
-        reply_err(op.sink(), "ERR DEBUG LOADAOF is not available until appendonly support is enabled");
+        reply_err(op.sink(), "ERR internal DEBUG LOADAOF routing error");
         return;
     }
     if (eq_icase(subcommand, "reload") && op.argc() == 2) {
@@ -886,6 +911,9 @@ void cmd_config(Shard& sh, Op& op) {
                 }
                 if (!std::strcmp(update.first->name, "acl-pubsub-default")) {
                     acl_set_pubsub_default(update.second == "allchannels");
+                }
+                if (!std::strcmp(update.first->name, "aof-timestamp-enabled")) {
+                    g_server->aof().set_timestamp_enabled(update.second == "yes");
                     continue;
                 }
                 if (!parse_u64(Slice(update.second.data(), update.second.size()), value)) continue;
@@ -1020,10 +1048,25 @@ void cmd_info(Shard&, Op& op) {
                 preimages += g_server->shard(static_cast<int32_t>(i)).store().snapshot_preimages();
         appendf(body,
                 "# Persistence\r\nrdb_bgsave_in_progress:%u\r\nrdb_last_save_time:%lld\r\n"
-                "snapshot_preimages:%llu\r\n",
+                "snapshot_preimages:%llu\r\n"
+                "aof_enabled:%u\r\naof_rewrite_in_progress:0\r\n"
+                "aof_rewrite_scheduled:0\r\naof_last_bgrewrite_status:ok\r\n"
+                "aof_last_write_status:%s\r\naof_base_size:0\r\n"
+                "aof_current_size:%llu\r\naof_pending_rewrite:0\r\n"
+                "aof_delayed_fsync:0\r\naof_records_written:%llu\r\n"
+                "aof_replayed_records:%llu\r\naof_groups_committed:%llu\r\n"
+                "aof_groups_skipped_on_replay:%llu\r\naof_fsyncs:0\r\n"
+                "aof_send_gate_waits:0\r\n",
                 g_server && g_server->snapshot().in_progress() ? 1u : 0u,
                 static_cast<long long>(g_server ? g_server->snapshot().last_save_time() : 0),
-                static_cast<unsigned long long>(preimages));
+                static_cast<unsigned long long>(preimages),
+                g_server && g_server->aof().configured() ? 1u : 0u,
+                g_server && g_server->aof().failed() ? "err" : "ok",
+                static_cast<unsigned long long>(g_server ? g_server->aof().current_size() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->aof().records_written() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->aof().replayed_records() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->aof().groups_committed() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->aof().groups_skipped() : 0));
     }
     if (info_section(op, "STATS")) {
         appendf(body, "# Stats\r\ntotal_connections_received:%llu\r\nrejected_connections:%llu\r\n"
@@ -1348,7 +1391,8 @@ bool command_config_routes_all_shards(Op& op) {
     // batch-boundary publication lag the plain DBSIZE reads.
     if (op.cmd_name().eq_icase("dbsize")) return op.argc() == 2 && eq_icase(op.arg(1), "NOW");
     if (op.cmd_name().eq_icase("debug"))
-        return op.argc() == 2 && eq_icase(op.arg(1), "reload");
+        return op.argc() == 2 &&
+               (eq_icase(op.arg(1), "reload") || eq_icase(op.arg(1), "loadaof"));
     return op.argc() >= 2 && eq_icase(op.arg(1), "SET");
 }
 

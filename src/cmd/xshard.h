@@ -16,6 +16,7 @@ class Ring;
 class Server;
 class Shard;
 class ThreadCtx;
+struct AofOwnerContext;
 struct ScatterState;
 struct Task;
 struct ScatterDispatch;
@@ -116,6 +117,8 @@ void xshard_retire(Server& server, ThreadCtx& self, Ring& ring, Client& client, 
 // Same-owner commands are ordinary tasks (Task::scatter == nullptr).  The marker and gate cursor
 // reuse otherwise-idle zero-copy descriptor fields, preserving sizeof(Op).
 bool xshard_is_local(const Op& op);
+void xshard_aof_emit(const Task& task, Shard& shard, Op& op, AofOwnerContext& context);
+void xshard_aof_emit_local(Shard& shard, Op& op, AofOwnerContext& context);
 FlatStore::SnapshotWriteResult xshard_local_snapshot_prepare(Op& op, Shard& shard);
 
 // Snapshot write gate.  A scatter task may name several mutation keys; progress is remembered in

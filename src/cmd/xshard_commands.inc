@@ -1190,7 +1190,8 @@ void assemble_final(Client& client, Op& op, ScatterState& state) {
     if (first_error(state, error)) { reply_work_error(op, error); return; }
     switch (state.kind) {
         case Kind::AllShards:
-        case Kind::DebugReload: reply_ok(op.sink()); break;
+        case Kind::DebugReload:
+        case Kind::DebugLoadAof: reply_ok(op.sink()); break;
         case Kind::DbsizeExact:
             reply_int(op.sink(), static_cast<long long>(state.exact_sum.load(std::memory_order_relaxed)));
             break;

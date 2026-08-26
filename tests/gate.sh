@@ -28,7 +28,7 @@ bad(){ say "$1" "FAIL${2:+ ($2)}"; FAIL=$((FAIL+1)); }
 make -j >/dev/null 2>&1 && ok "release build (+footprint locks)" || bad "release build"
 ASAN=/tmp/tomokv-gate-asan
 g++ -std=c++20 -O1 -g -fsanitize=address -march=native -pthread -I. \
-    src/main.cc src/cmd/*.cc src/snapshot/*.cc -o $ASAN -luring -pthread 2>/dev/null \
+    src/main.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc -o $ASAN -luring -pthread 2>/dev/null \
     && ok "ASAN build" || bad "ASAN build"
 g++ -std=c++20 -O2 -I. tests/config_parser_test.cc -o /tmp/tomokv-config-parser-test \
     && /tmp/tomokv-config-parser-test \
@@ -55,7 +55,7 @@ boot(){ # binary -> pid ; server log to $SRVLOG
   (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null \
       && { say "port $PORT pre-boot guard" "FAIL (already accepting)"; return 1; }
   SRVLOG=$(mktemp /tmp/gate-srv.XXXXXX)
-  timeout 900 taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --shards 16 --ratio $GATE_RATIO "$@" \
+  taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --shards 16 --ratio $GATE_RATIO "$@" \
       > "$SRVLOG" 2>&1 &
   SRV=$!
   for _ in $(seq 50); do ./build/tomokv --help >/dev/null 2>&1
@@ -159,6 +159,52 @@ python3 tests/notify.py 127.0.0.1 $PORT >/tmp/gate-notify.txt 2>&1 \
 stop
 grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
     && ok "feature battery shutdown invariants" || bad "feature battery shutdown invariants"
+
+# ---- AOF boot/replay + non-vacuous DEBUG LOADAOF ---------------------------------------------
+AOF_DIR=$(mktemp -d /tmp/gate-aof.XXXXXX)
+AOF_STATE=$AOF_DIR/state.json
+boot ./build/tomokv --protected-mode no --appendonly yes --appendfsync no \
+    --enable-debug-command yes --dir "$AOF_DIR" || bad "AOF purpose boot"
+python3 tests/aof.py 127.0.0.1 $PORT populate "$AOF_STATE" >/tmp/gate-aof.txt 2>&1 \
+    && python3 tests/aof.py 127.0.0.1 $PORT loadaof "$AOF_STATE" >>/tmp/gate-aof.txt 2>&1 \
+    && ok "AOF byte-exact + DEBUG LOADAOF" || bad "AOF byte-exact + DEBUG LOADAOF" "see /tmp/gate-aof.txt"
+AOF_PRE_MODEL=$(python3 tests/aof.py 127.0.0.1 $PORT snapshot "$AOF_DIR/dump.tomo" 2>>/tmp/gate-aof.txt)
+AOF_WRITTEN=$(redis-cli -h 127.0.0.1 -p $PORT INFO Persistence 2>/dev/null \
+    | tr -d '\r' | sed -n 's/^aof_records_written://p')
+[ -n "$AOF_WRITTEN" ] && [ "$AOF_WRITTEN" -gt 0 ] \
+    && ok "AOF writer fired (records=$AOF_WRITTEN)" || bad "AOF writer fired"
+kill -KILL $SRV 2>/dev/null
+wait $SRV 2>/dev/null
+sleep 5
+boot ./build/tomokv --protected-mode no --appendonly yes --appendfsync no \
+    --enable-debug-command yes --dir "$AOF_DIR" || bad "AOF replay boot"
+python3 tests/aof.py 127.0.0.1 $PORT verify "$AOF_STATE" >>/tmp/gate-aof.txt 2>&1 \
+    && ok "AOF process-restart replay" || bad "AOF process-restart replay" "see /tmp/gate-aof.txt"
+AOF_POST_MODEL=$(python3 tests/aof.py 127.0.0.1 $PORT snapshot "$AOF_DIR/dump.tomo" 2>>/tmp/gate-aof.txt)
+[ -n "$AOF_PRE_MODEL" ] && [ "$AOF_PRE_MODEL" = "$AOF_POST_MODEL" ] \
+    && ok "AOF native snapshot streams byte-exact" || bad "AOF native snapshot streams byte-exact"
+AOF_REPLAYED=$(redis-cli -h 127.0.0.1 -p $PORT INFO Persistence 2>/dev/null \
+    | tr -d '\r' | sed -n 's/^aof_replayed_records://p')
+AOF_SKIPPED=$(redis-cli -h 127.0.0.1 -p $PORT INFO Persistence 2>/dev/null \
+    | tr -d '\r' | sed -n 's/^aof_groups_skipped_on_replay://p')
+[ -n "$AOF_REPLAYED" ] && [ "$AOF_REPLAYED" -gt 0 ] && [ -n "$AOF_SKIPPED" ] \
+    && ok "AOF replay fired (records=$AOF_REPLAYED skipped=$AOF_SKIPPED)" || bad "AOF replay fired"
+stop
+sleep 5
+
+AOF_OFF_DIR=$(mktemp -d /tmp/gate-aof-off.XXXXXX)
+boot ./build/tomokv --protected-mode no --appendonly no --dir "$AOF_OFF_DIR" \
+    || bad "AOF-off negative-control boot"
+redis-cli -h 127.0.0.1 -p $PORT SET aof-negative-control must-disappear >/dev/null 2>&1
+kill -KILL $SRV 2>/dev/null
+wait $SRV 2>/dev/null
+sleep 5
+boot ./build/tomokv --protected-mode no --appendonly no --dir "$AOF_OFF_DIR" \
+    || bad "AOF-off negative-control reboot"
+AOF_OFF_SIZE=$(redis-cli -h 127.0.0.1 -p $PORT DBSIZE 2>/dev/null | tr -d '\r')
+[ "$AOF_OFF_SIZE" = 0 ] && [ ! -e "$AOF_OFF_DIR/appendonlydir" ] \
+    && ok "AOF-off negative control lost data" || bad "AOF-off negative control"
+stop
 
 if [ "$TIER" = quick ]; then
   echo; echo "GATE(quick): $PASS ok, $FAIL FAIL"; [ $FAIL -eq 0 ] || exit 1; exit 0

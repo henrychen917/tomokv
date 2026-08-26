@@ -28,6 +28,7 @@
 #include "core/ex_loop.h"
 #include "cmd/command.h"
 #include "cmd/acl.h"
+#include "persist/aof.h"
 
 using namespace tomo;
 
@@ -102,8 +103,31 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    std::unique_ptr<AofReplayPlan> aof_plan;
+    if (cfg.appendonly) {
+        bool exists = false;
+        std::string warning, error;
+        const std::string path = aof_file_path(cfg);
+        aof_plan = aof_read_plan(path.c_str(), cfg.shards, true, exists, warning, error);
+        if (!error.empty()) {
+            std::fprintf(stderr, "AOF load plan failed: %s\n", error.c_str());
+            return 1;
+        }
+        if (!warning.empty()) std::fprintf(stderr, "AOF warning: %s\n", warning.c_str());
+        if (exists && !aof_plan) {
+            std::fprintf(stderr, "AOF load plan failed\n");
+            return 1;
+        }
+        if (aof_plan) {
+            g_hash_kind = static_cast<HashKind>(aof_plan->hash_kind);
+            g_hash_seed = aof_plan->hash_seed;
+            g_sip_k0 = aof_plan->sip_k0;
+            g_sip_k1 = aof_plan->sip_k1;
+        }
+    }
+
     std::unique_ptr<SnapshotLoadPlan> load_plan;
-    if (cfg.load_path) {
+    if (cfg.load_path && !aof_plan) {
         std::string error;
         load_plan = snapshot_read_plan(cfg.load_path, cfg.shards, error);
         if (!load_plan) {
@@ -127,7 +151,7 @@ int main(int argc, char** argv) {
         return 1;
     }
     Server srv;
-    if (!srv.init(cfg)) { std::fprintf(stderr, "server init failed\n"); return 1; }
+    if (!srv.init(cfg, aof_plan.get())) { std::fprintf(stderr, "server init failed\n"); return 1; }
     g_srv = &srv;
     command_bind_server(&srv);
     {
@@ -220,7 +244,8 @@ int main(int argc, char** argv) {
             bind_thread_arena();                // per-worker jemalloc arena; no-op without it
             bool ok = exs[tid].init(&srv, &self);
             std::string local_error;
-            if (ok && load_plan) ok = snapshot_load_owned(*load_plan, srv, self, local_error);
+            if (ok && aof_plan) ok = aof_load_owned(*aof_plan, srv, self, local_error);
+            else if (ok && load_plan) ok = snapshot_load_owned(*load_plan, srv, self, local_error);
             {
                 std::lock_guard<std::mutex> lock(load_mu);
                 if (!ok) {
@@ -246,7 +271,7 @@ int main(int argc, char** argv) {
     if (!load_ok) {
         for (uint32_t i = 0; i < nthreads; i++) srv.thread(i).stop_flag().store(true);
         for (auto& thread : pool) thread.join();
-        std::fprintf(stderr, "snapshot load failed: %s\n", load_error.c_str());
+        std::fprintf(stderr, "persistence load failed: %s\n", load_error.c_str());
         return 1;
     }
 

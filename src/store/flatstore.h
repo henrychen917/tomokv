@@ -74,6 +74,7 @@
 #include "kvobj.h"
 #include "atomic_mvcc.h"
 #include "../snapshot/format.h"
+#include "../persist/aof.h"
 
 namespace tomo {
 
@@ -324,6 +325,11 @@ public:
     size_t   object_bytes() const { return obj_bytes_ + atomic_version_bytes_; }
     size_t   obj_bytes() const { return obj_bytes_ + atomic_version_bytes_; }
     uint32_t expire_count() const { return expires_.size(); }
+    void bind_aof(AofManager* manager, int32_t sid, uint32_t next_sequence) {
+        aof_.init(manager, sid, next_sequence);
+    }
+    AofProducer& aof() { return aof_; }
+    const AofProducer& aof() const { return aof_; }
     size_t   accounted_bytes() const {
         const size_t keys = size();
         const size_t objects = obj_bytes_ + atomic_version_bytes_;
@@ -681,6 +687,7 @@ public:
             if (o->expire_at_ms() > cached_now_ms_) return;
             const Slice key = o->key();
             notify_flat_store_emit(this, NOTIFY_EXPIRED, NotifyEventId::Expired, key);
+            (void)aof_.record_delete(key);
             if (erase_in(0, h, key) || (rehashing() && erase_in(1, h, key))) {
                 removed++;
                 if (expired_counter_) (*expired_counter_)++;
@@ -707,6 +714,7 @@ public:
             if (!victim) return false;
             const uint64_t hash = hash_key(victim->key());
             const Slice key = victim->key();
+            (void)aof_.record_delete(key);
             const uint32_t before = size();
             const bool live = erase(hash, key);
             if (size() == before) return false;
@@ -862,6 +870,7 @@ public:
             if (!(o->flags & KvObjFlags::HasTtl) || o->expire_at_ms() > cached_now_ms_) return o;
             const uint64_t h = hash_key(o->key());
             notify_flat_store_emit(this, NOTIFY_EXPIRED, NotifyEventId::Expired, o->key());
+            (void)aof_.record_delete(o->key());
             erase_in(t, h, o->key());
             if (expired_counter_) (*expired_counter_)++;
         }
@@ -892,6 +901,7 @@ public:
                 // like find()/active_expire().  KEYS uses this bounded scan while capture runs.
                 if (snapshot_active_ && t == 1) continue;
                 notify_flat_store_emit(this, NOTIFY_EXPIRED, NotifyEventId::Expired, o->key());
+                (void)aof_.record_delete(o->key());
                 erase_in(static_cast<int>(t), h, o->key());
                 if (expired_counter_) (*expired_counter_)++;
                 continue;
@@ -1244,6 +1254,7 @@ private:
             if (!victim) return false;
             const uint64_t hash = hash_key(victim->key());
             const Slice key = victim->key();
+            (void)aof_.record_delete(key);
             const uint32_t before = size();
             const bool live = erase(hash, key);
             if (size() == before) return false;
@@ -1309,6 +1320,7 @@ private:
         if (!(o->flags & KvObjFlags::HasTtl)) return o;
         if (o->expire_at_ms() > cached_now_ms_) return o;
         if (snapshot_active_ && t == 1) return nullptr;
+        (void)aof_.record_delete(key);
         erase_in(t, h, key);
         if (expired_counter_) (*expired_counter_)++;
         return nullptr;
@@ -1530,6 +1542,7 @@ private:
     SnapshotRecordState snapshot_record_;
     std::unique_ptr<SnapshotChunk> snapshot_build_;
     std::unique_ptr<SnapshotChunk> snapshot_ready_;
+    AofProducer aof_;
 };
 
 
