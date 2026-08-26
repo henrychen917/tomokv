@@ -530,6 +530,18 @@ __attribute__((noinline)) AclDeniedReason acl_check_permission(
             }
         return AclDeniedReason::None;
     }
+    if (spec.flags & CmdFlags::StreamRoute) {
+        uint32_t streams = 1;
+        while (streams < argc && !get_arg(streams).eq_icase("streams")) streams++;
+        if (streams == argc || ((argc - streams - 1) & 1u)) return AclDeniedReason::None;
+        const uint32_t count = (argc - streams - 1) / 2;
+        for (uint32_t arg = streams + 1; arg < streams + 1 + count; arg++)
+            if (!acl_pattern_allowed(*perm, get_arg(arg))) {
+                if (denied_arg) *denied_arg = arg;
+                return AclDeniedReason::Key;
+            }
+        return AclDeniedReason::None;
+    }
     if (spec.first_key <= 0 || spec.key_step <= 0 || argc == 0)
         return AclDeniedReason::None;
     const uint32_t last = spec.last_key < 0 ? argc - 1 :

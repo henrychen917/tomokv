@@ -3,7 +3,7 @@
 # the ORACLE (the optimized Redis fork -- byte-exact redis semantics) and diff every reply.
 #   python3 tests/differ.py <target_host> <target_port> <oracle_host> <oracle_port> <suite> [seed]
 # Exit 0 iff zero diffs. Suites: string (more added per type lane).
-import socket, sys, random
+import socket, sys, random, re, time
 
 TH, TP, OH, OP = sys.argv[1], int(sys.argv[2]), sys.argv[3], int(sys.argv[4])
 SUITE = sys.argv[5]
@@ -203,6 +203,77 @@ def gen_list(rng):
         ["LPOP","big","5"], ["RPOP","big","5"], ["LREM","big","0","e100"], ["LLEN","big"],
         ["SET","strk","v"], ["LPUSH","strk","x"], ["LLEN","strk"],
         ["LSET","missinglist","0","v"], ["LPOP","missinglist","2"],
+    ]
+    return ops
+
+def gen_stream(rng):
+    """Explicit-ID primary arm. Approximate trim and wall-clock IDs are property-tested elsewhere."""
+    keys = ["xs%d" % i for i in range(12)]
+    next_id = {key: 0 for key in keys}
+    known = {key: [] for key in keys}
+    ops = []
+
+    def add(key):
+        next_id[key] += 1
+        ident = "%d-%d" % (next_id[key] // 7 + 1, next_id[key] % 7)
+        known[key].append(ident)
+        fields = ["f", "v%d" % next_id[key]]
+        if rng.randrange(3) == 0:
+            fields += ["g", "x%d" % rng.randrange(100)]
+        ops.append(["XADD", key, ident] + fields)
+
+    for key in keys:
+        add(key)
+    for _ in range(4000):
+        key = rng.choice(keys)
+        choice = rng.randrange(12)
+        if choice < 4:
+            add(key)
+        elif choice == 4:
+            ops.append(["XLEN", key])
+        elif choice == 5:
+            start = rng.choice(["-", "0-0", "(" + (rng.choice(known[key]) if known[key] else "0-0"),
+                                str(rng.randrange(0, 20))])
+            end = rng.choice(["+", "%d-%d" % (rng.randrange(1, 30), rng.randrange(0, 8))])
+            op = ["XRANGE", key, start, end]
+            if rng.randrange(2): op += ["COUNT", str(rng.randrange(0, 6))]
+            ops.append(op)
+        elif choice == 6:
+            end = rng.choice(["+", "%d-%d" % (rng.randrange(1, 30), rng.randrange(0, 8))])
+            start = rng.choice(["-", "(" + (rng.choice(known[key]) if known[key] else "0-0")])
+            op = ["XREVRANGE", key, end, start]
+            if rng.randrange(2): op += ["COUNT", str(rng.randrange(0, 6))]
+            ops.append(op)
+        elif choice == 7:
+            ids = [rng.choice(known[key]) if known[key] and rng.randrange(3) else
+                   "%d-%d" % (rng.randrange(1, 30), rng.randrange(0, 8))
+                   for _ in range(rng.randrange(1, 4))]
+            ops.append(["XDEL", key] + ids)
+        elif choice == 8:
+            ops.append(["XTRIM", key, "MAXLEN", "=", str(rng.randrange(0, 12))])
+        elif choice == 9:
+            ops.append(["XTRIM", key, "MINID", "=",
+                        "%d-%d" % (rng.randrange(1, 30), rng.randrange(0, 8))])
+        elif choice == 10:
+            cursor = rng.choice(known[key]) if known[key] and rng.randrange(2) else "0-0"
+            ops.append(["XREAD", "COUNT", str(rng.randrange(1, 5)), "STREAMS", key, cursor])
+        else:
+            second = rng.choice(keys)
+            c1 = rng.choice(known[key]) if known[key] and rng.randrange(2) else "0-0"
+            c2 = rng.choice(known[second]) if known[second] and rng.randrange(2) else "0-0"
+            ops.append(["XREAD", "COUNT", "2", "STREAMS", key, second, c1, c2])
+    ops += [
+        ["XADD", "edge", "0-0", "f", "v"], ["EXISTS", "edge"],
+        ["XADD", "edge", "1-0", "f", "v"], ["XADD", "edge", "1-0", "f", "dup"],
+        ["XADD", "edge", "1-*", "f", "auto-seq"], ["XADD", "edge", "1-*", "f", "auto-seq2"],
+        ["XRANGE", "edge", "1", "1"], ["XRANGE", "edge", "(1-0", "+"],
+        ["XRANGE", "edge", "-", "+", "COUNT", "0"],
+        ["XDEL", "edge", "1-0", "bad-id"], ["XLEN", "edge"],
+        ["XTRIM", "edge", "MAXLEN", "=", "0"], ["XLEN", "edge"],
+        ["XADD", "nomake", "NOMKSTREAM", "*", "f", "v"], ["EXISTS", "nomake"],
+        ["XADD", "edge", "MAXLEN", "=", "1", "LIMIT", "1", "2-0", "f", "v"],
+        ["SET", "stream-wrong", "v"], ["XLEN", "stream-wrong"],
+        ["XREAD", "STREAMS", "edge", "stream-wrong", "0-0", "0-0"],
     ]
     return ops
 
@@ -820,7 +891,7 @@ def run_notify_suite(rng):
     stream = []
     for i in range(160):
         stem = "nd:%d" % i
-        choice = rng.randrange(9)
+        choice = rng.randrange(10)
         if choice == 0:
             stream += [(["SET", stem, str(rng.randrange(1000))], 1)]
         elif choice == 1:
@@ -840,12 +911,17 @@ def run_notify_suite(rng):
         elif choice == 7:
             stream += [(["SET", stem + ":a", "v"], 1),
                        (["RENAME", stem + ":a", stem + ":z"], 2)]
-        else:
+        elif choice == 8:
             # Redis 7.4 only publishes the empty-result del when an old destination existed;
             # pre-seed it so this differential arm has one event on both sides. The directed
             # battery separately enforces this spec's stronger nonexistent-destination arm.
             stream += [(["SET", stem, "old"], 1),
                        (["SINTERSTORE", stem, stem + ":none-a", stem + ":none-z"], 1)]
+        else:
+            stream += [(["XADD", stem, "1-0", "f", "v"], 1),
+                       (["XADD", stem, "2-0", "f", "w"], 1),
+                       (["XDEL", stem, "1-0"], 1),
+                       (["XTRIM", stem, "MAXLEN", "=", "0"], 1)]
 
     diffs = 0
     events = 0
@@ -890,7 +966,7 @@ if SUITE == "notify":
 
 gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset,
         "hash": gen_hash, "xshard": gen_xshard, "bitmap": gen_bitmap, "hll": gen_hll,
-        "cgaps": gen_cgaps}
+        "cgaps": gen_cgaps, "stream": gen_stream}
 ops = gens[SUITE](rng)
 
 ts, tf = conn(TH, TP)
@@ -930,6 +1006,44 @@ for i in range(0, len(ops), BATCH):
                 shown_b = b if o[0].upper() == "KEYS" else b[:96]
                 print("  DIFF op %d %r\n    target: %r\n    oracle: %r" %
                       (i + j, o[:4], shown_a, shown_b))
+
+if SUITE == "stream":
+    # Auto IDs are clock-derived, and TomoKV intentionally refreshes its owner clock more
+    # coarsely. Validate each server structurally and monotonically instead of hiding the entire
+    # downstream command stream behind normalization.
+    prior = [None, None]
+    now_ms = int(time.time() * 1000)
+    for iteration in range(8):
+        for side, (sock, file) in enumerate(((ts, tf), (os_, of))):
+            sock.sendall(enc(["XADD", "stream:auto", "*", "f", str(iteration)]))
+            reply = read_reply(file)
+            match = re.fullmatch(br"\$([0-9]+)\r\n([0-9]+)-([0-9]+)\r\n", reply)
+            ok = match is not None
+            if ok:
+                ident = (int(match.group(2)), int(match.group(3)))
+                ok = abs(ident[0] - now_ms) < 10000 and (prior[side] is None or ident > prior[side])
+                prior[side] = ident
+            if not ok:
+                diffs += 1
+                print("  AUTO-ID PROPERTY FAIL side=%s iteration=%d reply=%r" %
+                      ("target" if side == 0 else "oracle", iteration, reply))
+
+    # '~' is deliberately exact on TomoKV and node-approximate on Redis. The compatibility
+    # contract is the property, not byte equality.
+    for sock, file in ((ts, tf), (os_, of)):
+        sock.sendall(enc(["DEL", "stream:approx"])); read_reply(file)
+        for ident in range(1, 251):
+            sock.sendall(enc(["XADD", "stream:approx", "%d-0" % ident, "f", "v"]))
+            read_reply(file)
+        sock.sendall(enc(["XTRIM", "stream:approx", "MAXLEN", "~", "25"]))
+        read_reply(file)
+        sock.sendall(enc(["XLEN", "stream:approx"]))
+        length_reply = read_reply(file)
+        try: length = int(length_reply[1:-2]) if length_reply[:1] == b":" else -1
+        except ValueError: length = -1
+        if length < 25:
+            diffs += 1
+            print("  APPROX-TRIM PROPERTY FAIL reply=%r" % length_reply)
 ts.close(); os_.close()
 print("DIFFER %s: %d ops, %d diffs -> %s" % (SUITE, len(ops), diffs, "PASS" if diffs == 0 else "FAIL"))
 sys.exit(1 if diffs else 0)

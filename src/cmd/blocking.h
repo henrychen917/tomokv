@@ -6,6 +6,7 @@
 #pragma once
 
 #include <cstdint>
+#include "../store/typeval.h"
 
 namespace tomo {
 
@@ -65,5 +66,8 @@ bool blocking_resume_move(Server& server, ThreadCtx& self, Ring& ring, Client& c
 bool blocking_cancel_client(Server& server, ThreadCtx& self, Ring& ring, Client& client);
 void blocking_retire(Server& server, Client& client, Op& op, ThreadCtx& thread);
 void blocking_scatter_retire(Server& server, Client& client, ScatterState& state);
+bool blocking_stream_bounds(const BlockingState* state, uint32_t key_index, StreamID& cursor,
+                            StreamID& upper, bool& bounded);
+bool blocking_wants_dispatch(const Op& op);
 
 }  // namespace tomo

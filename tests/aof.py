@@ -175,6 +175,13 @@ def populate():
     ok(*zargs)
     ok("ZADD", "z:infinity", "inf", "up", "-inf", "down")
 
+    ok("XADD", "x:compact", "10-0", "f", "v")
+    for i in range(300):
+        ok("XADD", "x:expanded", "%d-0" % (i + 1), "field",
+           "value-%03d-" % i + "Q" * 256)
+    ok("XDEL", "x:expanded", "90-0")
+    ok("XTRIM", "x:expanded", "MINID", "=", "51-0")
+
 
 PROBES = [
     ("DBSIZE",),
@@ -200,6 +207,10 @@ PROBES = [
     ("ZRANGE", "z:expanded", "0", "-1", "WITHSCORES"),
     ("ZSCORE", "z:infinity", "up"), ("ZSCORE", "z:infinity", "down"),
     ("OBJECT", "ENCODING", "z:compact"), ("OBJECT", "ENCODING", "z:expanded"),
+    ("TYPE", "x:compact"), ("XRANGE", "x:compact", "-", "+"),
+    ("OBJECT", "ENCODING", "x:compact"),
+    ("TYPE", "x:expanded"), ("XRANGE", "x:expanded", "-", "+"),
+    ("XLEN", "x:expanded"), ("OBJECT", "ENCODING", "x:expanded"),
 ]
 
 

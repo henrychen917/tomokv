@@ -613,6 +613,10 @@ private:
             if (c->has_atomic_group_io()) op->mark_atomic_hazard();
 
             if (spec->flags & CmdFlags::Blocking) {
+                // XREAD is registered as blocking so the ordinary GET/SET branch remains
+                // byte-for-byte the established hot gate. Its immediate form skips this lowering.
+                if ((spec->flags & CmdFlags::StreamRoute) && !blocking_wants_dispatch(*op))
+                    goto nonblocking_dispatch;
                 // A blocking command is a connection barrier, including against older frames.
                 // Waiting to issue it until the ROB head preserves same-connection program order
                 // without teaching the owner registry about younger operations.
@@ -667,6 +671,7 @@ private:
                 break;
             }
 
+nonblocking_dispatch:
             ScatterDispatch scatter_dispatch;
             const ScatterPrepare scatter_prepared =
                 xshard_prepare(*srv_, *op, scatter_pool_, self_->id(), c->id(), scatter_dispatch,

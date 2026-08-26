@@ -55,7 +55,8 @@ boot(){ # binary -> pid ; server log to $SRVLOG
   (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null \
       && { say "port $PORT pre-boot guard" "FAIL (already accepting)"; return 1; }
   SRVLOG=$(mktemp /tmp/gate-srv.XXXXXX)
-  taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --shards 16 --ratio $GATE_RATIO "$@" \
+  taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --protected-mode no \
+      --shards 16 --ratio $GATE_RATIO "$@" \
       > "$SRVLOG" 2>&1 &
   SRV=$!
   for _ in $(seq 50); do ./build/tomokv --help >/dev/null 2>&1
@@ -106,7 +107,7 @@ grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG
 # asserts its own mechanisms fired; the boot covers multi/blocking/pubsub+sharded/lua/limits.
 for AT in 0 1; do
   boot ./build/tomokv --atomic $AT || bad "feature battery boot (atomic $AT)"
-  for t in multi_exec blocking pubsub lua_scripting limits; do
+  for t in multi_exec blocking stream pubsub lua_scripting limits; do
     python3 tests/$t.py 127.0.0.1 $PORT >/tmp/gate-$t-$AT.txt 2>&1 \
         && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see /tmp/gate-$t-$AT.txt"
   done
@@ -142,6 +143,12 @@ boot ./build/tomokv --enable-debug-command local --dir "$DEBUG_DIR" --dbfilename
     || bad "DEBUG purpose boot"
 python3 tests/debug.py 127.0.0.1 $PORT >/tmp/gate-debug.txt 2>&1 \
     && ok "DEBUG toggle/reload battery" || bad "DEBUG toggle/reload battery" "see /tmp/gate-debug.txt"
+redis-cli -h 127.0.0.1 -p $PORT FLUSHALL >/dev/null 2>&1
+python3 tests/snap_typed_roundtrip.py $PORT build_save >/tmp/gate-snap-typed.txt 2>&1 \
+    && redis-cli -h 127.0.0.1 -p $PORT DEBUG RELOAD >/dev/null 2>&1 \
+    && python3 tests/snap_typed_roundtrip.py $PORT verify >>/tmp/gate-snap-typed.txt 2>&1 \
+    && ok "typed snapshot round-trip incl stream" \
+    || bad "typed snapshot round-trip incl stream" "see /tmp/gate-snap-typed.txt"
 stop
 
 # ---- notify lane: integrated owner/retire seams plus both live atomic settings -----------------

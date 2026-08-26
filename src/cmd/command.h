@@ -51,6 +51,9 @@ struct CmdFlags {
     // putting a notification branch in ExLoop::execute. (Bit 15 went to AclExempt in the ACL
     // merge; the shadow-row flag moved to bit 16 — it is registry-internal, nothing serializes it.)
     static constexpr uint32_t NotifySelected = 1u << 16;
+    // XREAD discovers its key half after the STREAMS token. The validated range is consumed by
+    // ACL/MULTI/scatter without pretending the trailing ID half contains keys.
+    static constexpr uint32_t StreamRoute = 1u << 17;
 };
 
 using CmdHandler = void (*)(Shard&, Op&);
@@ -107,6 +110,7 @@ CommandTable hash_command_table();
 CommandTable list_command_table();
 CommandTable set_command_table();
 CommandTable zset_command_table();
+CommandTable stream_command_table();
 CommandTable server_command_table();
 CommandTable scripting_command_table();
 

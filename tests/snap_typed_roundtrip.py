@@ -44,6 +44,14 @@ def build():
     for i in range(300): args+=[str(rng.uniform(-1e6,1e6)),"zx%d"%i]
     c.cmd(*(["ZADD","z:x"]+args))
     c.cmd("ZADD","z:inf","inf","up","-inf","down")
+    # stream: compact + expanded, tombstone, trimmed head, last_id and entries_added > length
+    c.cmd("XADD","x:c","10-0","f","v0")
+    c.cmd("XADD","x:c","10-1","f","v1")
+    c.cmd("XDEL","x:c","10-1")
+    for i in range(300):
+        c.cmd("XADD","x:x","%d-0"%(i+1),"f","v%03d"%i+("Q"*256))
+    c.cmd("XDEL","x:x","90-0")
+    c.cmd("XTRIM","x:x","MINID","=","51-0")
 KEYS_CHECK=[("TYPE","s:int"),("GET","s:int"),("GET","s:raw"),("GET","s:big"),("GET","s:bin"),
  ("TTL","s:ttl"),
  ("HGETALL","h:c"),("HGETALL","h:x"),("HGETALL","h:bin"),("HSTRLEN","h:bigv","f"),("HLEN","h:x"),
@@ -55,6 +63,10 @@ KEYS_CHECK=[("TYPE","s:int"),("GET","s:int"),("GET","s:raw"),("GET","s:big"),("G
  ("ZRANGE","z:c","0","-1","WITHSCORES"),("ZRANGE","z:x","0","-1","WITHSCORES"),
  ("ZSCORE","z:inf","up"),("ZSCORE","z:inf","down"),("ZCARD","z:x"),
  ("OBJECT","ENCODING","z:c"),("OBJECT","ENCODING","z:x"),
+ ("TYPE","x:c"),("XRANGE","x:c","-","+"),("XLEN","x:c"),
+ ("OBJECT","ENCODING","x:c"),
+ ("TYPE","x:x"),("XRANGE","x:x","-","+"),("XLEN","x:x"),
+ ("OBJECT","ENCODING","x:x"),
  ("DBSIZE",)]
 def norm(op, r):
     if op[0]=="TTL": return ("ttl>4000", isinstance(r,bytes) and r!=b":-2" and int(r[1:])>4000)

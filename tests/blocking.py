@@ -264,6 +264,28 @@ if atomic_pair:
     client.close()
 note("abandoned atomic push wakes nobody; publish wakes", atomic_ok, atomic_extra)
 
+# Stream cursors make readiness waiter-specific. A future cursor at the queue front must be
+# skipped so a satisfiable waiter behind it can wake from the same XADD.
+admin.cmd("XADD", "block:stream-skip", "1-0", "f", "seed")
+ahead_client, ahead_thread, ahead_result, ahead_errors = start_wait(
+    ("XREAD", "BLOCK", "700", "STREAMS", "block:stream-skip", "99-0"))
+wait_value(admin, "CLIENTS", "blocked_clients", 1)
+behind_client, behind_thread, behind_result, behind_errors = start_wait(
+    ("XREAD", "BLOCK", "1500", "STREAMS", "block:stream-skip", "1-0"))
+wait_value(admin, "CLIENTS", "blocked_clients", 2)
+admin.cmd("XADD", "block:stream-skip", "2-0", "f", "wake")
+behind_thread.join(1)
+skip_ok = (not behind_thread.is_alive() and ahead_thread.is_alive() and not behind_errors and
+           behind_result == [[[b"block:stream-skip", [[b"2-0", [b"f", b"wake"]]]]]])
+# The parser above reflects RESP nesting directly: XREAD => [ [key, [ [id, fields] ]] ].
+if not skip_ok and behind_result == [[b"block:stream-skip", [[b"2-0", [b"f", b"wake"]]]]]:
+    skip_ok = not behind_thread.is_alive() and ahead_thread.is_alive() and not behind_errors
+ahead_thread.join(2)
+skip_ok = skip_ok and not ahead_errors and ahead_result == [None]
+note("stream waiter skip semantics (different cursors)", skip_ok,
+     "behind=%r ahead=%r" % (behind_result, ahead_result))
+ahead_client.close(); behind_client.close()
+
 # Blocked sockets continue receiving only to observe EOF; they never parse. Closing all clients
 # must cancel their contexts and sweep every registry alias/gauge.
 churn = []

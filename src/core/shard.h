@@ -54,13 +54,14 @@ public:
     Shard& operator=(const Shard&) = delete;
 
     void init(Server* server, int32_t id, uint32_t bucket_begin, uint32_t bucket_end, uint32_t zc_min,
-              const TypeLimits& type_limits) {
+              const TypeLimits& type_limits, const StreamLimits& stream_limits) {
         server_ = server;
         id_ = id;
         bucket_begin_ = bucket_begin;
         bucket_end_   = bucket_end;
         zc_min_ = zc_min;
         type_limits_ = type_limits;
+        stream_limits_ = stream_limits;
         store_.bind_expired_counter(&stats_.expired);
         store_.bind_evicted_counter(&stats_.evicted);
         flat_notify_sink_.context = this;
@@ -78,6 +79,8 @@ public:
     int64_t  now_ms()       const { return now_ms_; }
     const TypeLimits& type_limits() const { return type_limits_; }
     void set_type_limits(const TypeLimits& value) { type_limits_ = value; }
+    const StreamLimits& stream_limits() const { return stream_limits_; }
+    void set_stream_limits(const StreamLimits& value) { stream_limits_ = value; }
 
     void set_cached_now_ms(int64_t now_ms, uint8_t lru_clock = 0) {
         now_ms_ = now_ms;
@@ -289,6 +292,7 @@ private:
     FlatStore store_;
     Stats     stats_;
     TypeLimits type_limits_;
+    StreamLimits stream_limits_;
     void* blocking_registry_ = nullptr;
     std::atomic<uint64_t> blocking_waiters_{0};
     std::atomic<bool> blocking_dirty_{false};

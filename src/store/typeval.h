@@ -6,6 +6,7 @@
 #pragma once
 #include <cstdint>
 #include <cstring>
+#include <deque>
 #include <limits>
 #include <new>
 #include <string>
@@ -31,6 +32,26 @@ struct TypeLimits {
     CompactLimit set {128, 64};
     CompactLimit zset{128, 64};
 };
+
+// Stream node budgets are roll-over limits, not compact-promotion thresholds. Zero disables the
+// corresponding axis, matching Redis's stream-node-max-* knobs.
+struct StreamLimits {
+    uint32_t node_max_bytes = 4096;
+    uint32_t node_max_entries = 100;
+};
+
+struct StreamID {
+    uint64_t ms = 0;
+    uint64_t seq = 0;
+};
+
+struct StreamHeader {
+    StreamID base_id{};
+    StreamID last_id{};
+    StreamID max_deleted_entry_id{};
+    uint64_t entries_added = 0;
+};
+static_assert(sizeof(StreamHeader) == 56, "stream packed header must remain 56 bytes");
 
 // [ULEB128 payload length][payload bytes], repeated to EOF. There is no container header and no
 // back-length. The byte vector is a gap-at-the-ends buffer. Its circular side index is deliberately
@@ -679,6 +700,39 @@ struct ListVal : CompactValue {
     ListNode* head = nullptr;
     ListNode* tail = nullptr;
     uint64_t  node_allocation_bytes = 0;
+};
+
+struct StreamNode {
+    Compact log;                         // entry 0 is a fixed StreamHeader record
+    StreamID base_id{};
+    StreamID last_id{};
+    uint32_t physical_entries = 0;
+    uint32_t live_entries = 0;
+};
+
+struct StreamNodeIndex {
+    StreamID base_id{};
+    uint32_t node = 0;
+};
+
+// Streams deliberately reuse CompactValue for the embedded-to-external one-way transition. Once
+// external, the authoritative log is the deque below and the base class's expanded counters track
+// live entries/payload for the common footprint/accounting machinery.
+struct StreamVal : CompactValue {
+    StreamVal() = default;
+    StreamVal(const StreamVal&) = delete;
+    StreamVal& operator=(const StreamVal&) = delete;
+
+    StreamHeader header{};
+    StreamID first_id{};
+    std::deque<StreamNode> nodes;
+    std::vector<StreamNodeIndex> index;
+    // Field dictionary immediately preceding the first record after a partial head trim. Keeping
+    // it once per stream lets the head Compact advance its front gap without rewriting the node.
+    std::vector<std::string> head_fields;
+    std::vector<std::string> tail_fields;
+    uint64_t node_allocation_bytes = 0;
+    void* groups = nullptr;               // phase-2, created on demand
 };
 
 

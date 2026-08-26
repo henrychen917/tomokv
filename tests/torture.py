@@ -119,5 +119,26 @@ try:
 except Exception as e:
     note("server alive after churn", False, str(e))
 
+# ---- 7. stream compact migration + equal-length tombstones under mutation ----
+try:
+    s = conn(); f = s.makefile("rb")
+    ids = []
+    for i in range(300):
+        s.sendall(cmd("XADD", "torture:stream", "%d-0" % (i + 1), "f", "v" * 24))
+        ids.append(read_reply(s, f))
+    ok = ids == [b"%d-0" % (i + 1) for i in range(300)]
+    burst = b"".join(cmd("XDEL", "torture:stream", "%d-0" % (i + 1))
+                     for i in range(0, 300, 2))
+    s.sendall(burst)
+    ok = ok and all(read_reply(s, f) == b"1" for _ in range(150))
+    s.sendall(cmd("XLEN", "torture:stream")); ok = ok and read_reply(s, f) == b"150"
+    s.sendall(cmd("XTRIM", "torture:stream", "MAXLEN", "=", "25"))
+    trimmed = read_reply(s, f)
+    s.sendall(cmd("XLEN", "torture:stream")); length = read_reply(s, f)
+    note("stream migration/tombstone/head-trim", ok and int(trimmed) == 125 and length == b"25")
+    s.close()
+except Exception as e:
+    note("stream migration/tombstone/head-trim", False, str(e))
+
 print("TORTURE " + ("PASS" if FAIL == 0 else "FAIL %d" % FAIL), flush=True)
 sys.exit(1 if FAIL else 0)

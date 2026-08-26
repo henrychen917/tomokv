@@ -217,6 +217,7 @@ struct Config {
     static constexpr uint32_t kAtomicWindowAuto = UINT32_MAX;
     uint32_t atomic_window   = kAtomicWindowAuto;
     TypeLimits type_limits;              // 8 compact-encoding limits, all live via CONFIG SET
+    StreamLimits stream_limits;          // macro-node roll-over budgets, live via CONFIG SET
 
     // Cold feature tail: never shift a pre-existing Config field because several boot-latched
     // values are loaded directly in executor code. Empty flag string = notifications off.
@@ -512,6 +513,12 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         else if (!std::strcmp(a, "--zset-max-compact-value")) {
             if (!cfg_parse_u32(next(nullptr), cfg.type_limits.zset.max_value)) return kConfigError;
         }
+        else if (!std::strcmp(a, "--stream-node-max-bytes")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.stream_limits.node_max_bytes)) return kConfigError;
+        }
+        else if (!std::strcmp(a, "--stream-node-max-entries")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.stream_limits.node_max_entries)) return kConfigError;
+        }
         else if (!std::strcmp(a, "--zc-min")) {
             const char* v = next(nullptr);
             if (!cfg_parse_u32(v, cfg.zc_min)) {
@@ -587,6 +594,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "            --acllog-max-len N\n"
                         "  atomics: --atomic 0|1 --atomic-window N (default 256; 0=unlimited)\n"
                         "  compact encodings: --{hash,list,set,zset}-max-compact-{entries,value} N\n"
+                        "  streams: --stream-node-max-bytes N --stream-node-max-entries N\n"
                         "  misc: --hash mix64|siphash\n"
                         "  (pure 2s is the only server; --mode/--wb/--nodes died with 3s, 2026-08)\n",
                         prog);

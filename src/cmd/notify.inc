@@ -71,6 +71,9 @@ const char* notify_event_name(NotifyEventId event) {
         case NotifyEventId::Zpopmin: return "zpopmin";
         case NotifyEventId::Zpopmax: return "zpopmax";
         case NotifyEventId::Zrangestore: return "zrangestore";
+        case NotifyEventId::Xadd: return "xadd";
+        case NotifyEventId::Xdel: return "xdel";
+        case NotifyEventId::Xtrim: return "xtrim";
         case NotifyEventId::Expired: return "expired";
         case NotifyEventId::Evicted: return "evicted";
         case NotifyEventId::Keymiss: return "keymiss";
@@ -117,6 +120,9 @@ uint32_t notify_event_priority(NotifyEventId event) {
         case NotifyEventId::Zpopmin:
         case NotifyEventId::Zpopmax:
         case NotifyEventId::Zrangestore:
+        case NotifyEventId::Xadd:
+        case NotifyEventId::Xdel:
+        case NotifyEventId::Xtrim:
         case NotifyEventId::RenameFrom:
         case NotifyEventId::RenameTo:
         case NotifyEventId::CopyTo: return 4;

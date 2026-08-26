@@ -89,10 +89,10 @@ const char* hook_error(SnapshotHookStatus status) {
 const SnapshotTypeHooks& snapshot_type_hooks(Type type) {
     static const SnapshotTypeHooks hooks[] = {
         string_snapshot_hooks(), hash_snapshot_hooks(), list_snapshot_hooks(),
-        set_snapshot_hooks(), zset_snapshot_hooks(),
+        set_snapshot_hooks(), zset_snapshot_hooks(), stream_snapshot_hooks(),
     };
     const uint32_t index = static_cast<uint32_t>(type);
-    return hooks[index < 5 ? index : 0];
+    return hooks[index < 6 ? index : 0];
 }
 
 void snapshot_bind_io(ThreadCtx* thread, Ring* ring) { tls_io_context = {thread, ring}; }
@@ -590,7 +590,7 @@ bool snapshot_load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& sh
         const uint64_t payload_len = snapshot_get_u64(h + 16);
         const int64_t expire = static_cast<int64_t>(snapshot_get_u64(h + 24));
         pos += kRecordHeaderBytes;
-        if (type_raw > static_cast<uint8_t>(Type::Zset) || payload_len > UINT32_MAX ||
+        if (type_raw > static_cast<uint8_t>(Type::Stream) || payload_len > UINT32_MAX ||
             static_cast<uint64_t>(section.size() - pos) <
                 static_cast<uint64_t>(key_len) + payload_len) {
             error = "invalid record lengths";

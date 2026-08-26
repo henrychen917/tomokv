@@ -194,7 +194,7 @@ try:
     # G1-G4: exact parser, atomic rejection, normalization, and the upstream n-after-A arm.
     grammar = [
         ("", ""), ("KA", "AK"), ("EA", "AE"), ("gKE", "gKE"),
-        ("$lshzxeKE", "$lshzxeKE"), ("gg", "g"), ("g$lshzxetd", "A"),
+        ("$lshzxetKE", "$lshzxetKE"), ("gg", "g"), ("g$lshzxetd", "A"),
         ("AKEn", "AKEn"),
     ]
     for supplied, canonical in grammar:
@@ -333,6 +333,17 @@ try:
     expect_e("z", ("ZADD", "z:add:plain", "1", "m"), [("zadd", "z:add:plain")], "ZADD")
     expect_e("z", ("ZADD", "z:add", "INCR", "1", "m"), [("zincr", "z:add")], "ZADD INCR")
     expect_e("z", ("ZINCRBY", "z:zincrby", "1", "m"), [("zincr", "z:zincrby")], "ZINCRBY")
+
+    setup(("XADD", "stream:mutate", "1-0", "f", "v"),
+          ("XADD", "stream:trim", "1-0", "f", "v"),
+          ("XADD", "stream:trim", "2-0", "f", "w"))
+    expect_e("t", ("XADD", "stream:add", "1-0", "f", "v"),
+             [("xadd", "stream:add")], "XADD")
+    expect_e("t", ("XDEL", "stream:mutate", "1-0"),
+             [("xdel", "stream:mutate")], "XDEL")
+    expect_none("Et", ("XDEL", "stream:mutate", "1-0"), "XDEL no-op")
+    expect_e("t", ("XTRIM", "stream:trim", "MAXLEN", "=", "1"),
+             [("xtrim", "stream:trim")], "XTRIM")
 
     # Cross-shard/store rows. Randomly seeded routing makes these names overwhelmingly split;
     # the same assertions also cover the local fast path when a pair happens to collide.

@@ -9,7 +9,7 @@
 namespace tomo {
 namespace {
 enum class Kind : uint8_t {
-    AllShards, DebugReload, DebugLoadAof, DbsizeExact, Mget, Mset, Del, Unlink, Exists, Touch, Keys, Pfcount, Msetnx,
+    AllShards, DebugReload, DebugLoadAof, DbsizeExact, Mget, Mset, Del, Unlink, Exists, Touch, Keys, Pfcount, Xread, Msetnx,
     Rename, Renamenx, Copy, Smove, Lmove, Rpoplpush,
     Sinter, Sunion, Sdiff, Sintercard, Sinterstore, Sunionstore, Sdiffstore,
     Bitop, Pfmerge,
@@ -324,12 +324,15 @@ struct ScatterState {
     uint32_t snapshot_slot = std::numeric_limits<uint32_t>::max(); // owning IO's unresolved set
     uint64_t sinter_limit = 0;
     uint64_t pop_count = 1;
+    uint64_t xread_count = 0;
     uint64_t snapshot = UINT64_MAX;
     uint64_t pop_retry_snapshot = UINT64_MAX;
     long long final_integer = 0;
     ImageRangeOptions range_options;
     ImageRangeSpec range_spec;
     SortOptions sort_options;
+    uint32_t xread_first_key = 0;
+    uint32_t xread_first_id = 0;
     ShardGroup* groups = nullptr;
     KeyRef* keys = nullptr;
     uint32_t* key_order = nullptr;
@@ -435,6 +438,7 @@ bool first_error(const ScatterState& state, WorkError& error) {
         const ShardGroup& group = state.groups[gi];
         if (group.error != WorkError::None) { error = group.error; return true; }
         if (!state.status || !(state.kind == Kind::Mset || state.kind == Kind::Pfcount ||
+                               state.kind == Kind::Xread ||
                                is_two_hop(state.kind))) continue;
         for (uint32_t i = 0; i < group.count; i++) {
             const WorkError value = static_cast<WorkError>(state.status[state.key_order[group.begin + i]]);
@@ -445,7 +449,7 @@ bool first_error(const ScatterState& state, WorkError& error) {
 }
 
 uint32_t key_count_for(Kind kind, const Op& op, uint32_t sinter_count,
-                       uint32_t mpop_count, bool sort_store) {
+                       uint32_t mpop_count, bool sort_store, uint32_t xread_count = 0) {
     if (kind == Kind::AllShards || kind == Kind::DebugReload || kind == Kind::DebugLoadAof ||
         kind == Kind::DbsizeExact || kind == Kind::Keys) return 0;
     if (kind == Kind::Mset || kind == Kind::Msetnx) return (op.argc() - 1) / 2;
@@ -456,15 +460,18 @@ uint32_t key_count_for(Kind kind, const Op& op, uint32_t sinter_count,
     if (kind == Kind::Lmpop || kind == Kind::Zmpop) return mpop_count;
     if (kind == Kind::Zrangestore) return 2;
     if (kind == Kind::Sort) return sort_store ? 2 : 1;
+    if (kind == Kind::Xread) return xread_count;
     return op.argc() - 1;
 }
 
-uint32_t key_arg_for(Kind kind, uint32_t key, uint32_t, uint32_t sort_store_arg) {
+uint32_t key_arg_for(Kind kind, uint32_t key, uint32_t, uint32_t sort_store_arg,
+                     uint32_t xread_first_key = 0) {
     if (kind == Kind::Mset || kind == Kind::Msetnx) return 1 + key * 2;
     if (kind == Kind::Bitop) return 2 + key;
     if (kind == Kind::Sintercard) return 2 + key;
     if (kind == Kind::Lmpop || kind == Kind::Zmpop) return 2 + key;
     if (kind == Kind::Sort && sort_store_arg) return key == 0 ? sort_store_arg : 1;
+    if (kind == Kind::Xread) return xread_first_key + key;
     return 1 + key;
 }
 
@@ -475,10 +482,11 @@ bool has_status(Kind kind, bool atomic_write) {
     if (atomic_write && (kind == Kind::Mset || kind == Kind::Msetnx)) return false;
     return kind == Kind::Mset || kind == Kind::Del || kind == Kind::Unlink ||
            kind == Kind::Exists || kind == Kind::Touch || kind == Kind::Pfcount ||
-           is_two_hop(kind);
+           kind == Kind::Xread || is_two_hop(kind);
 }
 bool has_images(Kind kind) {
-    return kind == Kind::Pfcount || (is_two_hop(kind) && kind != Kind::Msetnx);
+    return kind == Kind::Pfcount || kind == Kind::Xread ||
+           (is_two_hop(kind) && kind != Kind::Msetnx);
 }
 
 size_t arena_layout_bytes(Kind kind, uint32_t key_count, uint32_t group_cap,
@@ -957,6 +965,9 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     SortOptions sort_options;
     if (kind == Kind::Sort && !parse_sort_options(op, sort_options))
         return ScatterPrepare::Error;
+    StreamXreadArgs xread_options;
+    if (kind == Kind::Xread && !stream_parse_xread(op, xread_options))
+        return ScatterPrepare::Error;
     const bool atomic_apply = atomic_enabled && is_atomic_apply_kind(kind, sort_options.store);
     const bool atomic_pop = atomic_enabled && is_atomic_pop_kind(kind);
     const bool atomic_group = atomic_write || atomic_apply || atomic_pop;
@@ -992,7 +1003,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     }
 
     const uint32_t key_count = key_count_for(kind, op, sinter_count, mpop_count,
-                                             sort_options.store);
+                                             sort_options.store, xread_options.key_count);
     RouteKey route_stack[kRouteStack];
     RouteKey* routes = route_stack;
     if (key_count > kRouteStack) {
@@ -1000,7 +1011,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         if (!routes) { set_oom(op); return ScatterPrepare::Error; }
     }
     for (uint32_t i = 0; i < key_count; i++) {
-        const uint32_t arg = key_arg_for(kind, i, sinter_count, sort_options.store_arg);
+        const uint32_t arg = key_arg_for(kind, i, sinter_count, sort_options.store_arg,
+                                         xread_options.first_key);
         const uint64_t hash = FlatStore::hash_key(op.arg(arg));
         routes[i] = RouteKey{hash, arg, server.router().shard_of(hash)};
     }
@@ -1011,8 +1023,11 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         for (uint32_t i = 1; i < key_count; i++) same_owner &= routes[i].shard == routes[0].shard;
         // Common same-owner commands retain localfast. If an atomic window touches one of their
         // keys, the owner resolves it through the short pending-entry list and clones only writes.
+        const bool xread_local = kind == Kind::Xread && key_count == 1 &&
+                                 !xread_options.block;
         if (same_owner && kind != Kind::Pfcount && kind != Kind::Pfmerge &&
-            !(op.spec->flags & CmdFlags::Blocking)) {
+            (!(op.spec->flags & CmdFlags::Blocking) || xread_local) &&
+            (kind != Kind::Xread || xread_local)) {
             op.shard = routes[0].shard;
             op.hash = routes[0].hash;
             op.mark_local_xshard();
@@ -1108,6 +1123,9 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     state->to_left = to_left;
     state->pop_edge = pop_edge;
     state->pop_count = pop_count;
+    state->xread_count = xread_options.count;
+    state->xread_first_key = xread_options.first_key;
+    state->xread_first_id = xread_options.first_id;
     state->sinter_limit = sinter_limit;
     state->range_options = range_options;
     state->range_spec = range_spec;
@@ -1561,6 +1579,40 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
             if (pending_reads) gather.template operator()<true, false>();
             else if (notify) gather.template operator()<false, true>();
             else gather.template operator()<false, false>();
+            return ScatterTaskResult::Complete;
+        }
+
+        if (state.phase != 2 && state.kind == Kind::Xread) {
+            for (uint32_t i = 0; i < group.count; i++) {
+                const uint32_t pos = state.key_order[group.begin + i];
+                const KeyRef& key = state.keys[pos];
+                StreamID cursor{};
+                StreamID upper{};
+                bool latest = false;
+                bool bounded = false;
+                if (state.blocking_origin) {
+                    if (!blocking_stream_bounds(state.blocking_origin, pos, cursor,
+                                                upper, bounded)) {
+                        state.status[pos] = static_cast<uint8_t>(WorkError::Corrupt);
+                        continue;
+                    }
+                } else if (!stream_parse_xread_id(op.arg(state.xread_first_id + pos),
+                                                  cursor, latest)) {
+                    state.status[pos] = static_cast<uint8_t>(WorkError::Corrupt);
+                    continue;
+                }
+                ObjectImage& image = state.images[pos];
+                const StreamReadResult read = stream_xread_gather(
+                    shard, op.arg(key.arg), key.hash, cursor, latest, state.xread_count,
+                    image.payload, bounded ? &upper : nullptr);
+                image.present = read == StreamReadResult::Ready;
+                if (read == StreamReadResult::WrongType)
+                    state.status[pos] = static_cast<uint8_t>(WorkError::WrongType);
+                else if (read == StreamReadResult::Oom)
+                    state.status[pos] = static_cast<uint8_t>(WorkError::Oom);
+                else if (read == StreamReadResult::Corrupt)
+                    state.status[pos] = static_cast<uint8_t>(WorkError::Corrupt);
+            }
             return ScatterTaskResult::Complete;
         }
 

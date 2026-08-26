@@ -8,7 +8,7 @@
 namespace tomo {
 
 enum class BlockingKind : uint8_t {
-    Blpop, Brpop, Blmove, Brpoplpush, Blmpop, Bzmpop, Bzpopmin, Bzpopmax,
+    Blpop, Brpop, Blmove, Brpoplpush, Blmpop, Bzmpop, Bzpopmin, Bzpopmax, Xread,
 };
 
 enum class BlockingPhase : uint8_t {
@@ -23,6 +23,11 @@ struct BlockingKey {
     uint64_t hash = 0;
     int32_t shard = -1;
     BlockingProbe probe = BlockingProbe::Empty;  // written only by this key's owner
+    StreamID cursor{};
+    StreamID wake_upper{};
+    bool cursor_latest = false;
+    bool cursor_resolved = true;
+    bool wake_bounded = false;
 };
 
 struct BlockingGroup {
@@ -47,6 +52,7 @@ struct BlockingState {
     bool pop_left = true;
     uint64_t count = 1;
     uint32_t selected = UINT32_MAX;
+    uint32_t xread_first_id = 0;
     std::vector<BlockingKey> keys;
     std::vector<BlockingGroup> groups;
     std::atomic<NotifyBatch*> notify{nullptr};
@@ -95,7 +101,7 @@ Slice blocking_key_slice(const BlockingKey& key) {
 
 bool blocking_is_list(BlockingKind kind) {
     return kind != BlockingKind::Bzmpop && kind != BlockingKind::Bzpopmin &&
-           kind != BlockingKind::Bzpopmax;
+           kind != BlockingKind::Bzpopmax && kind != BlockingKind::Xread;
 }
 
 bool blocking_is_move(BlockingKind kind) {
@@ -133,6 +139,7 @@ bool blocking_classify(Op& op, BlockingKind& kind) {
     else if (!std::strcmp(name, "BZMPOP")) kind = BlockingKind::Bzmpop;
     else if (!std::strcmp(name, "BZPOPMIN")) kind = BlockingKind::Bzpopmin;
     else if (!std::strcmp(name, "BZPOPMAX")) kind = BlockingKind::Bzpopmax;
+    else if (!std::strcmp(name, "XREAD")) kind = BlockingKind::Xread;
     else return false;
     return true;
 }
@@ -212,12 +219,38 @@ bool blocking_validate(Op& op, BlockingState& state, uint32_t& first_key,
             }
             break;
         }
+        case BlockingKind::Xread: {
+            StreamXreadArgs parsed;
+            if (!stream_parse_xread(op, parsed)) return false;
+            if (!parsed.block) {
+                reply_err(op.sink(), "ERR internal blocking routing error");
+                return false;
+            }
+            first_key = parsed.first_key;
+            key_count = parsed.key_count;
+            state.xread_first_id = parsed.first_id;
+            state.count = parsed.count;
+            timeout_arg = UINT32_MAX;
+            if (parsed.block_ms) {
+                timespec now{};
+                ::clock_gettime(CLOCK_REALTIME, &now);
+                const uint64_t now_ms = static_cast<uint64_t>(now.tv_sec) * 1000 +
+                                        static_cast<uint64_t>(now.tv_nsec / 1000000);
+                if (parsed.block_ms > static_cast<uint64_t>(INT64_MAX) - now_ms) {
+                    reply_err(op.sink(), "ERR timeout is out of range");
+                    return false;
+                }
+                state.deadline_ms = static_cast<int64_t>(now_ms + parsed.block_ms);
+            }
+            break;
+        }
     }
 
     if (!key_count || static_cast<uint64_t>(first_key) + key_count > op.argc()) {
         reply_syntax(op.sink());
         return false;
     }
+    if (state.kind == BlockingKind::Xread) return true;
     double seconds = 0;
     if (!blocking_parse_timeout(op.arg(timeout_arg), seconds)) {
         reply_err(op.sink(), "ERR timeout is not a float or out of range");
@@ -300,13 +333,33 @@ void blocking_task_done(BlockingState& state, ThreadCtx& self, Ring& ring) {
 }
 
 BlockingProbe blocking_probe_key(Shard& shard, const BlockingState& state,
-                                 const BlockingKey& key) {
+                                 BlockingKey& key) {
     KvObj* object = shard.notify_carrier()
         ? shard.store_find<true>(key.hash, blocking_key_slice(key))
         : shard.store().find(key.hash, blocking_key_slice(key));
-    if (!object) return BlockingProbe::Empty;
-    const Type wanted = blocking_is_list(state.kind) ? Type::List : Type::Zset;
+    if (!object) {
+        if (state.kind == BlockingKind::Xread && key.cursor_latest && !key.cursor_resolved) {
+            key.cursor = {};
+            key.cursor_resolved = true;
+        }
+        return BlockingProbe::Empty;
+    }
+    const Type wanted = state.kind == BlockingKind::Xread ? Type::Stream :
+                        blocking_is_list(state.kind) ? Type::List : Type::Zset;
     if (static_cast<Type>(object->type) != wanted) return BlockingProbe::WrongType;
+    if (state.kind == BlockingKind::Xread) {
+        if (key.cursor_latest && !key.cursor_resolved) {
+            if (!stream_object_last_id(object, key.cursor)) return BlockingProbe::WrongType;
+            key.cursor_resolved = true;
+        }
+        if (!stream_object_has_live_after(object, key.cursor)) return BlockingProbe::Empty;
+        // Freeze this key at the owner-side readiness observation. Re-entry is asynchronous: a
+        // pipelined second XADD may execute before the scatter rerun, but Redis wakes the waiter
+        // for the first publication rather than widening that already-claimed reply.
+        if (!stream_object_last_id(object, key.wake_upper)) return BlockingProbe::WrongType;
+        key.wake_bounded = true;
+        return BlockingProbe::Ready;
+    }
     return CollectionRef(object).entries() ? BlockingProbe::Ready : BlockingProbe::Empty;
 }
 
@@ -314,7 +367,9 @@ BlockingProbe blocking_probe_key(Shard& shard, const BlockingState& state,
 // and a later waiter must not jump it. Stream waiters (XREAD BLOCK, later) are SKIPPED: each
 // waits on its own cursor into the same collection, so "not ready" is a property of the waiter,
 // not the key, and a stalled cursor must not strand an already-satisfiable waiter behind it.
-bool blocking_skip_when_not_ready(BlockingKind) { return false; }
+bool blocking_skip_when_not_ready(BlockingKind kind) {
+    return kind == BlockingKind::Xread;
+}
 
 bool blocking_pick(const BlockingState& state, uint32_t& selected, bool& wrong_type) {
     selected = UINT32_MAX;
@@ -466,7 +521,7 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
 }
 
 bool blocking_dispatch_selected(BlockingState& state, Shard& shard, ThreadCtx& self, Ring& ring) {
-    if (blocking_is_move(state.kind)) {
+    if (blocking_is_move(state.kind) || state.kind == BlockingKind::Xread) {
         blocking_request_move(state, self, ring);
         return true;
     }
@@ -604,7 +659,7 @@ private:
                 work++;
                 continue;
             }
-            const BlockingKey& key = state.keys[entry.key_index];
+            BlockingKey& key = state.keys[entry.key_index];
             if (blocking_probe_key(shard, state, key) != BlockingProbe::Ready) {
                 // Tri-state, not boolean: FIFO kinds stop the queue here (the front waiter owns
                 // the next push); skip-kinds (streams, later) step past a waiter whose own cursor
@@ -626,6 +681,11 @@ private:
             if (blocking_is_move(state.kind)) {
                 blocking_request_move(state, self, ring);
                 return work + 1;
+            }
+            if (state.kind == BlockingKind::Xread) {
+                blocking_request_move(state, self, ring);
+                work++;
+                continue;
             }
             if (!blocking_run_direct(state, shard, self, ring)) {
                 state.phase.store(BlockingPhase::Parked, std::memory_order_release);
@@ -764,8 +824,21 @@ BlockingPrepare blocking_prepare(Server& server, Client& client, Op& op, uint64_
             const Slice key = op.arg(first_key + i);
             const uint64_t hash = FlatStore::hash_key(key);
             const int32_t shard = server.router().shard_of(hash);
-            state->keys.push_back(BlockingKey{
-                std::string(key.p, key.n), hash, shard, BlockingProbe::Empty});
+            BlockingKey blocking_key;
+            blocking_key.key.assign(key.p, key.n);
+            blocking_key.hash = hash;
+            blocking_key.shard = shard;
+            if (state->kind == BlockingKind::Xread) {
+                if (!stream_parse_xread_id(op.arg(state->xread_first_id + i),
+                                           blocking_key.cursor,
+                                           blocking_key.cursor_latest)) {
+                    delete state;
+                    reply_err(op.sink(), "ERR Invalid stream ID specified as stream command argument");
+                    return BlockingPrepare::Error;
+                }
+                blocking_key.cursor_resolved = !blocking_key.cursor_latest;
+            }
+            state->keys.push_back(std::move(blocking_key));
             BlockingGroup* group = blocking_group_for(*state, shard);
             if (!group) {
                 state->groups.push_back(BlockingGroup{shard, {}});
@@ -823,7 +896,7 @@ bool blocking_execute(Server&, ThreadCtx& self, Ring& ring, const Task& task,
     }
     if (phase == BlockingPhase::Claimed) {
         bool complete = true;
-        if (blocking_is_move(state.kind)) {
+        if (blocking_is_move(state.kind) || state.kind == BlockingKind::Xread) {
             blocking_request_move(state, self, ring);
         } else if (!blocking_run_direct(state, shard, self, ring)) {
             blocking_reset_probes(state);
@@ -913,7 +986,8 @@ void blocking_plain_mutation_published(Shard& shard, Op& op) {
     const char* name = op.spec->name;
     if (!std::strcmp(name, "LPUSH") || !std::strcmp(name, "RPUSH") ||
         !std::strcmp(name, "LPUSHX") || !std::strcmp(name, "RPUSHX") ||
-        !std::strcmp(name, "ZADD") || !std::strcmp(name, "ZINCRBY"))
+        !std::strcmp(name, "ZADD") || !std::strcmp(name, "ZINCRBY") ||
+        !std::strcmp(name, "XADD"))
         blocking_publish_key(shard, op.hash, op.key().p, op.key().n);
     else if (!std::strcmp(name, "LMOVE") || !std::strcmp(name, "RPOPLPUSH")) {
         const Slice destination = op.arg(2);
@@ -1076,6 +1150,20 @@ void blocking_scatter_retire(Server& server, Client& client, ScatterState& state
         server.blocking_client_unparked();
     state.blocking_origin = nullptr;
     blocking_state_release(block);
+}
+
+bool blocking_stream_bounds(const BlockingState* state, uint32_t key_index, StreamID& cursor,
+                            StreamID& upper, bool& bounded) {
+    if (!state || state->kind != BlockingKind::Xread || key_index >= state->keys.size() ||
+        !state->keys[key_index].cursor_resolved) return false;
+    cursor = state->keys[key_index].cursor;
+    upper = state->keys[key_index].wake_upper;
+    bounded = state->keys[key_index].wake_bounded;
+    return true;
+}
+
+bool blocking_wants_dispatch(const Op& op) {
+    return stream_xread_has_block_option(op);
 }
 
 }  // namespace tomo

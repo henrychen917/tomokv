@@ -32,7 +32,9 @@
 
 namespace tomo {
 
-enum class Type : uint8_t { String = 0, Hash = 1, List = 2, Set = 3, Zset = 4 };
+enum class Type : uint8_t {
+    String = 0, Hash = 1, List = 2, Set = 3, Zset = 4, Stream = 5,
+};
 
 enum class Enc : uint8_t {
     Raw    = 0,   // value bytes inline in this block
@@ -717,6 +719,9 @@ inline KvObj* kvobj_new_set(Slice key, SetVal* value, int64_t expire_at_ms = -1)
 inline KvObj* kvobj_new_zset(Slice key, ZsetVal* value, int64_t expire_at_ms = -1) {
     return kvobj_new_typeval(key, Type::Zset, value, sizeof(*value), expire_at_ms);
 }
+inline KvObj* kvobj_new_stream(Slice key, StreamVal* value, int64_t expire_at_ms = -1) {
+    return kvobj_new_typeval(key, Type::Stream, value, sizeof(*value), expire_at_ms);
+}
 
 // Adopt helpers select the one-allocation compact form. On success ownership is consumed and the
 // caller's pointer is nulled; on failure it remains with the caller. This mirrors the old wrapper
@@ -767,6 +772,19 @@ inline KvObj* kvobj_adopt_zset(Slice key, ZsetVal*& value, int64_t expire_at_ms 
                             value->compact().encoded_bytes() <= kCollectionEmbedMax
         ? kvobj_new_embedded_typeval(key, Type::Zset, value->compact(), 0, 0, expire_at_ms)
         : kvobj_new_zset(key, value, expire_at_ms);
+    if (!object) return nullptr;
+    if (static_cast<Enc>(object->enc) == Enc::Compact) delete value;
+    value = nullptr;
+    return object;
+}
+
+inline KvObj* kvobj_adopt_stream(Slice key, StreamVal*& value, int64_t expire_at_ms = -1) {
+    KvObj* object = value->encoding() == CollectionEncoding::Compact &&
+                            value->compact().encoded_bytes() <= kCollectionEmbedMax
+        ? kvobj_new_embedded_typeval(key, Type::Stream, value->compact(),
+                                    value->header.last_id.ms, value->header.last_id.seq,
+                                    expire_at_ms)
+        : kvobj_new_stream(key, value, expire_at_ms);
     if (!object) return nullptr;
     if (static_cast<Enc>(object->enc) == Enc::Compact) delete value;
     value = nullptr;
@@ -848,6 +866,10 @@ inline size_t kvobj_size(const KvObj* o) {
             n += static_cast<ZsetVal*>(o->external_ptr())->allocation_bytes() +
                  good_size(sizeof(ZsetVal)) - sizeof(CompactValue);
             break;
+        case Type::Stream:
+            n += static_cast<StreamVal*>(o->external_ptr())->allocation_bytes() +
+                 good_size(sizeof(StreamVal)) - sizeof(CompactValue);
+            break;
     }
     return n;
 }
@@ -863,6 +885,7 @@ inline void kvobj_free(KvObj* o) {
             case Type::List: delete static_cast<ListVal*>(ext); break;
             case Type::Set:  delete static_cast<SetVal*>(ext); break;
             case Type::Zset: delete static_cast<ZsetVal*>(ext); break;
+            case Type::Stream: delete static_cast<StreamVal*>(ext); break;
         }
     }
     // Sized free: ordinary free() has to look up how big the block was; we already know.

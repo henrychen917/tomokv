@@ -72,6 +72,7 @@ SnapshotTypeHooks hash_snapshot_hooks();
 SnapshotTypeHooks list_snapshot_hooks();
 SnapshotTypeHooks set_snapshot_hooks();
 SnapshotTypeHooks zset_snapshot_hooks();
+SnapshotTypeHooks stream_snapshot_hooks();
 const SnapshotTypeHooks& snapshot_type_hooks(Type type);
 
 inline void snapshot_put_u32(uint8_t* p, uint32_t v) {

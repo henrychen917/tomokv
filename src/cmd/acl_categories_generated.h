@@ -188,6 +188,13 @@ inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"UNSUBSCRIBE", 0x0000000000009000ULL}, // pubsub slow
     {"UNWATCH", 0x0000000000084000ULL}, // fast transaction
     {"WATCH", 0x0000000000084000ULL}, // fast transaction
+    {"XADD", 0x0000000000004804ULL}, // write stream fast
+    {"XDEL", 0x0000000000004804ULL}, // write stream fast
+    {"XLEN", 0x0000000000004802ULL}, // read stream fast
+    {"XRANGE", 0x0000000000008802ULL}, // read stream slow
+    {"XREAD", 0x0000000000018802ULL}, // read stream slow blocking
+    {"XREVRANGE", 0x0000000000008802ULL}, // read stream slow
+    {"XTRIM", 0x0000000000008804ULL}, // write stream slow
     {"ZADD", 0x0000000000004014ULL}, // write sortedset fast
     {"ZCARD", 0x0000000000004012ULL}, // read sortedset fast
     {"ZCOUNT", 0x0000000000004012ULL}, // read sortedset fast

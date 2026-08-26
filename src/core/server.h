@@ -140,7 +140,8 @@ public:
             const uint32_t b0 = i * per;
             const uint32_t b1 = (i + 1 == cfg.shards) ? kNumBuckets : (i + 1) * per;
             shards_[i] = std::make_unique<Shard>();
-            shards_[i]->init(this, static_cast<int32_t>(i), b0, b1, cfg.zc_min, cfg.type_limits);
+            shards_[i]->init(this, static_cast<int32_t>(i), b0, b1, cfg.zc_min, cfg.type_limits,
+                             cfg.stream_limits);
             shards_[i]->bind_atomic_state(&commit_seq_, &atomic_activity_);
         }
         router_.build_uniform(static_cast<int32_t>(cfg.shards));

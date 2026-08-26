@@ -1301,6 +1301,7 @@ const char* type_name(const KvObj* o) {
         case Type::List:   return "list";
         case Type::Set:    return "set";
         case Type::Zset:   return "zset";
+        case Type::Stream: return "stream";
     }
     return "none";
 }
@@ -1313,6 +1314,8 @@ void cmd_type(Shard& sh, Op& op) {
 const char* collection_encoding(const KvObj* o) {
     if (static_cast<Type>(o->type) == Type::String) return o->is_int() ? "int" : "raw";
     const CollectionEncoding encoding = CollectionRef(const_cast<KvObj*>(o)).encoding();
+    if (static_cast<Type>(o->type) == Type::Stream &&
+        encoding != CollectionEncoding::Compact) return "stream";
     switch (encoding) {
         case CollectionEncoding::Compact:   return "compact";
         case CollectionEncoding::Hashtable: return "hashtable";

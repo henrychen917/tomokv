@@ -270,6 +270,10 @@ void init_config(const Config& cfg) {
     add_config("set-max-compact-value", ConfigKind::Unsigned, cfg.type_limits.set.max_value);
     add_config("zset-max-compact-entries", ConfigKind::Unsigned, cfg.type_limits.zset.max_entries);
     add_config("zset-max-compact-value", ConfigKind::Unsigned, cfg.type_limits.zset.max_value);
+    add_config("stream-node-max-bytes", ConfigKind::Unsigned,
+               cfg.stream_limits.node_max_bytes);
+    add_config("stream-node-max-entries", ConfigKind::Unsigned,
+               cfg.stream_limits.node_max_entries);
     g_config.push_back({"requirepass", ConfigKind::String,
                         cfg.requirepass ? cfg.requirepass : ""});
     g_config.push_back({"protected-mode", ConfigKind::Bool,
@@ -1006,6 +1010,7 @@ void cmd_config(Shard& sh, Op& op) {
         }
 
         TypeLimits limits = sh.type_limits();
+        StreamLimits stream_limits = sh.stream_limits();
         for (const auto& update : updates) {
             uint64_t value = 0;
             if (!parse_u64(Slice(update.second.data(), update.second.size()), value)) continue;
@@ -1019,8 +1024,11 @@ void cmd_config(Shard& sh, Op& op) {
             else if (!std::strcmp(update.first->name, "set-max-compact-value")) limits.set.max_value = v;
             else if (!std::strcmp(update.first->name, "zset-max-compact-entries")) limits.zset.max_entries = v;
             else if (!std::strcmp(update.first->name, "zset-max-compact-value")) limits.zset.max_value = v;
+            else if (!std::strcmp(update.first->name, "stream-node-max-bytes")) stream_limits.node_max_bytes = v;
+            else if (!std::strcmp(update.first->name, "stream-node-max-entries")) stream_limits.node_max_entries = v;
         }
         sh.set_type_limits(limits);
+        sh.set_stream_limits(stream_limits);
         return;
     }
     reply_syntax(op.sink());
@@ -1273,6 +1281,7 @@ const char* object_type(const KvObj* obj) {
         case Type::List: return "list";
         case Type::Set: return "set";
         case Type::Zset: return "zset";
+        case Type::Stream: return "stream";
     }
     return "none";
 }
@@ -1449,6 +1458,11 @@ void command_client_set_shard_subscriptions(Client* client, uint32_t count) {
 bool command_prepare_scan_route(Server& server, Op& op) {
     if (op.spec->flags & CmdFlags::ScriptRoute)
         return command_prepare_script_route(server, op);
+    if (op.spec->flags & CmdFlags::StreamRoute) {
+        if (op.local_xshard()) return true;
+        reply_err(op.sink(), "ERR internal XREAD local routing error");
+        return false;
+    }
     uint64_t cursor = 0;
     if (!parse_u64(op.arg(1), cursor) || (cursor & kScanInnerMask) > kMaxInnerCursor) {
         reply_err(op.sink(), "ERR invalid cursor"); return false;

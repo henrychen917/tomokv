@@ -1975,7 +1975,7 @@ bool aof_load_shard(const AofReplayPlan& plan, Server& server, Shard& shard,
             continue;
         }
         if ((kind != AofRecordKind::Put && kind != AofRecordKind::GroupPut) ||
-            type > static_cast<uint8_t>(Type::Zset)) {
+            type > static_cast<uint8_t>(Type::Stream)) {
             error = "invalid AOF value record";
             return false;
         }

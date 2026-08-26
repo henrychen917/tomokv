@@ -179,6 +179,7 @@ bool classify(const Op& op, Kind& kind) {
         {"BITOP", Kind::Bitop},
         {"LMPOP", Kind::Lmpop}, {"ZMPOP", Kind::Zmpop},
         {"ZRANGESTORE", Kind::Zrangestore}, {"SORT", Kind::Sort},
+        {"XREAD", Kind::Xread},
     };
     for (const Entry& entry : entries)
         if (name_is(op, entry.name)) { kind = entry.kind; return true; }
@@ -1196,6 +1197,21 @@ void assemble_final(Client& client, Op& op, ScatterState& state) {
             reply_int(op.sink(), static_cast<long long>(state.exact_sum.load(std::memory_order_relaxed)));
             break;
         case Kind::Mget: assemble_mget(client, op, state); break;
+        case Kind::Xread: {
+            uint32_t ready = 0;
+            for (uint32_t i = 0; i < state.key_count; i++) ready += state.images[i].present;
+            if (!ready) { reply_null_array(op.sink()); break; }
+            reply_array_header(op.sink(), ready);
+            for (uint32_t i = 0; i < state.key_count; i++) {
+                if (!state.images[i].present) continue;
+                if (!stream_reply_xread_payload(op, op.arg(state.keys[i].arg),
+                                                state.images[i].payload)) {
+                    reply_err(op.sink(), "ERR corrupt stream encoding");
+                    return;
+                }
+            }
+            break;
+        }
         case Kind::Mset: reply_ok(op.sink()); break;
         case Kind::Del:
         case Kind::Unlink:
@@ -1288,6 +1304,35 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
                 const uint32_t n = i64_to_dec(integer, object->int_value());
                 reply_bulk(op.sink(), Slice(integer, n));
             } else reply_bulk(op.sink(), object->str_value());
+        }
+        return;
+    }
+    if (kind == Kind::Xread) {
+        StreamXreadArgs parsed;
+        if (!stream_parse_xread(op, parsed)) return;
+        if (parsed.key_count != 1) {
+            reply_err(op.sink(), "ERR internal XREAD local routing error");
+            return;
+        }
+        StreamID cursor;
+        bool latest = false;
+        if (!stream_parse_xread_id(op.arg(parsed.first_id), cursor, latest)) {
+            reply_err(op.sink(), "ERR Invalid stream ID specified as stream command argument");
+            return;
+        }
+        std::vector<uint8_t> payload;
+        const Slice key = op.arg(parsed.first_key);
+        const StreamReadResult read = stream_xread_gather(
+            shard, key, FlatStore::hash_key(key), cursor, latest, parsed.count, payload);
+        if (read == StreamReadResult::WrongType) reply_wrongtype(op.sink());
+        else if (read == StreamReadResult::Oom) reply_err(op.sink(), "ERR out of memory");
+        else if (read == StreamReadResult::Corrupt)
+            reply_err(op.sink(), "ERR corrupt stream encoding");
+        else if (read != StreamReadResult::Ready) reply_null_array(op.sink());
+        else {
+            reply_array_header(op.sink(), 1);
+            if (!stream_reply_xread_payload(op, key, payload))
+                reply_err(op.sink(), "ERR corrupt stream encoding");
         }
         return;
     }

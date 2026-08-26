@@ -191,6 +191,16 @@ bool queued_copy(const Op& op, MultiQueuedCommand& out) {
 
 void command_key_args(const MultiQueuedCommand& queued, std::vector<uint32_t>& args) {
     const CommandSpec& spec = *queued.spec;
+    if (spec.flags & CmdFlags::StreamRoute) {
+        uint32_t streams = 1;
+        while (streams < queued.argv.size() &&
+               !Slice(queued.argv[streams].data(), queued.argv[streams].size()).eq_icase("streams"))
+            streams++;
+        if (streams == queued.argv.size() || ((queued.argv.size() - streams - 1) & 1u)) return;
+        const uint32_t count = static_cast<uint32_t>((queued.argv.size() - streams - 1) / 2);
+        for (uint32_t arg = streams + 1; arg < streams + 1 + count; arg++) args.push_back(arg);
+        return;
+    }
     if (spec.first_key <= 0 || spec.key_step <= 0) return;
     const uint32_t last = spec.last_key < 0
         ? static_cast<uint32_t>(queued.argv.size() - 1)
@@ -235,7 +245,8 @@ MultiCommandKind classify_multi_command(MultiCommand& command) {
         Slice(command.queued.argv[1].data(),
               static_cast<uint32_t>(command.queued.argv[1].size())).eq_icase("get"))
         return MultiCommandKind::IoLocal;
-    if (command.queued.spec->flags & CmdFlags::CursorShard) return MultiCommandKind::Scan;
+    if ((command.queued.spec->flags & CmdFlags::CursorShard) &&
+        !(command.queued.spec->flags & CmdFlags::StreamRoute)) return MultiCommandKind::Scan;
     if (command.key_args.empty()) return MultiCommandKind::Unsupported;
     bool same = true;
     for (size_t i = 1; i < command.key_shards.size(); i++)
