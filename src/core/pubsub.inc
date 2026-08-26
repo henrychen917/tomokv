@@ -190,7 +190,7 @@
         if (client->has_pending_segments())
             client->append_buf_segment(frame.data(), frame.size());
         else
-            client->fill_buf().append(frame.data(), frame.size());
+            client->append_fill(frame.data(), frame.size());
         enqueue_serve(client);
         mark_active(client);
     }

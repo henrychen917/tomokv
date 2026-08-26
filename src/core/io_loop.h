@@ -71,7 +71,7 @@ public:
     bool init(Server* srv, ThreadCtx* self, const char* addr, uint16_t port,
               int unix_listen_fd = -1) {
         srv_ = srv; self_ = self;
-        listen_fd_ = make_reuseport_listener(addr, port);
+        listen_fd_ = make_reuseport_listener(addr, port, srv_->cfg().tcp_backlog);
         if (listen_fd_ < 0) return false;
         unix_listen_fd_ = unix_listen_fd;
         if (!ring_.init(4096)) return false;
@@ -89,7 +89,9 @@ public:
             else if (op.has_blocking_state())
                 blocking_retire(*loop->srv_, client, op);
             else if (op.has_multi_state()) multi_retire_entry(*loop, client, op);
-        });
+        }, srv_->client_obuf_armed_ptr(), this, [](void* ctx, Client& client) {
+            return static_cast<IoLoop*>(ctx)->client_obuf_check(&client, true);
+        }, &cached_now_s_);
         return true;
     }
 
@@ -97,11 +99,15 @@ public:
         if (self_) pubsub_shutdown_events();
         if (listen_fd_ >= 0) ::close(listen_fd_);
         if (unix_listen_fd_ >= 0) ::close(unix_listen_fd_);
-        for (Client* c : pending_handoffs_) { ::close(c->fd()); delete c; }
+        for (Client* c : pending_handoffs_) {
+            ::close(c->fd());
+            srv_->client_released();
+            delete c;
+        }
         multi_shutdown_entry(*this);
     }
 
-    static int make_reuseport_listener(const char* addr, uint16_t port) {
+    static int make_reuseport_listener(const char* addr, uint16_t port, uint32_t backlog = 511) {
         int fd = ::socket(AF_INET, SOCK_STREAM, 0);
         if (fd < 0) return -1;
         int one = 1;
@@ -112,15 +118,14 @@ public:
         sa.sin_port   = htons(port);
         if (::inet_pton(AF_INET, addr, &sa.sin_addr) != 1) { ::close(fd); return -1; }
         if (::bind(fd, reinterpret_cast<sockaddr*>(&sa), sizeof(sa)) != 0) { ::close(fd); return -1; }
-        // Backlog must hold a benchmark's whole opening burst; capped by net.core.somaxconn anyway.
-        if (::listen(fd, 16384) != 0) { ::close(fd); return -1; }
+        if (::listen(fd, static_cast<int>(backlog)) != 0) { ::close(fd); return -1; }
         return fd;
     }
 
     // Linux does not provide TCP-style SO_REUSEPORT distribution for filesystem AF_UNIX paths:
     // the pathname is a unique bind key. One listener is therefore armed by one IO thread, which
     // round-robins accepted Client handles through the existing per-producer client channels.
-    static int make_unix_listener(const char* path) {
+    static int make_unix_listener(const char* path, uint32_t backlog = 511) {
         sockaddr_un sa{};
         if (!path || !*path || std::strlen(path) >= sizeof(sa.sun_path)) return -1;
         int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
@@ -128,7 +133,7 @@ public:
         sa.sun_family = AF_UNIX;
         std::memcpy(sa.sun_path, path, std::strlen(path) + 1);
         if (::bind(fd, reinterpret_cast<sockaddr*>(&sa), sizeof(sa)) != 0 ||
-            ::listen(fd, 16384) != 0) {
+            ::listen(fd, static_cast<int>(backlog)) != 0) {
             ::close(fd); return -1;
         }
         return fd;
@@ -158,6 +163,20 @@ private:
         if constexpr (HasUnix) if (unix_listen_fd_ >= 0) arm_accept(true);
         LoopSignals& sig = self_->sig();
         while (!self_->stop_flag().load(std::memory_order_relaxed)) {
+            const bool cron_armed = srv_->client_cron_armed();
+            if (__builtin_expect(cron_armed, false)) {
+                cached_now_ms_ = now_ns() / 1000000ull;
+                cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
+                if (!client_cron_was_armed_) {
+                    for (Client* c : self_->clients()) c->set_last_interaction_s(cached_now_s_);
+                    client_cron_beat_ms_ = cached_now_ms_;
+                }
+            } else if (__builtin_expect(client_cron_was_armed_, false)) {
+                // Turning the last client cron consumer off also retires output accounting once.
+                // The disabled write-back specialization then has no per-serve cleanup branch.
+                for (Client* c : self_->clients()) c->stop_obuf_tracking();
+            }
+            client_cron_was_armed_ = cron_armed;
             sig.iterations++;
             self_->sample_depth();
             reap_dead();               // free clients dead for a full iteration -- see close_client
@@ -179,6 +198,10 @@ private:
                 did += flush_borrow_releases();
                 did += collect_retire_work<HasUnix>();
                 did += flush_ready();
+                if (__builtin_expect(cron_armed && cached_now_ms_ >= client_cron_beat_ms_, false)) {
+                    did += client_cron_pass();
+                    client_cron_beat_ms_ = cached_now_ms_ + 100;
+                }
             }
             sig.cpu_ns = thread_cpu_ns();
 
@@ -269,6 +292,18 @@ private:
         }
         self_->sig().accepts++;
         int fd = cqe->res;
+        if (srv_->live_clients() >= srv_->maxclients()) {
+            static constexpr char kErr[] = "-ERR max number of clients reached\r\n";
+            (void)::send(fd, kErr, sizeof(kErr) - 1, MSG_NOSIGNAL | MSG_DONTWAIT);
+            ::close(fd);
+            srv_->note_rejected_conn();
+            self_->sig().accept_rejected++;
+            if (!(cqe->flags & IORING_CQE_F_MORE)) {
+                self_->sig().accept_rearm++;
+                arm_accept(unix_socket);
+            }
+            return;
+        }
         auto* c = new (std::nothrow) Client(fd);
         if (!c) {
             ::close(fd);
@@ -279,6 +314,7 @@ private:
             }
             return;
         }
+        srv_->client_accepted();
         c->set_id(srv_->next_client_id().fetch_add(1, std::memory_order_relaxed));
         if (unix_socket) {
             const auto& ios = srv_->placement().ifid_threads();
@@ -313,7 +349,19 @@ private:
         if (!unix_socket) {
             int one = 1;
             setsockopt(c->fd(), IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
+            const uint32_t interval = srv_->tcp_keepalive();
+            if (interval) {
+                setsockopt(c->fd(), SOL_SOCKET, SO_KEEPALIVE, &one, sizeof(one));
+                const int idle = static_cast<int>(interval);
+                const int intvl = std::max(1, idle / 3);
+                const int count = 3;
+                setsockopt(c->fd(), IPPROTO_TCP, TCP_KEEPIDLE, &idle, sizeof(idle));
+                setsockopt(c->fd(), IPPROTO_TCP, TCP_KEEPINTVL, &intvl, sizeof(intvl));
+                setsockopt(c->fd(), IPPROTO_TCP, TCP_KEEPCNT, &count, sizeof(count));
+            }
         }
+        c->set_last_interaction_s(cached_now_s_ ? cached_now_s_
+                                                : static_cast<uint32_t>(now_ns() / 1000000000ull));
         c->set_ifid_thread(self_->id());
         // The ready-mask slot is assigned immediately: WE are the sender, for life.
         c->set_wb_slot(self_->assign_wb_slot(c));
@@ -347,6 +395,7 @@ private:
         if (c->dead()) return;
         if (res <= 0) { close_client(c); return; }
         c->commit_read(static_cast<size_t>(res));
+        c->set_last_interaction_s(cached_now_s_);
         parse_and_dispatch(c);
         // Deliberately NOT re-armed here. flush_ready() re-arms AFTER it may have reset the read
         // buffer; arming first would leave the kernel holding a pointer that the reset then moves.
@@ -928,6 +977,68 @@ private:
         pending_serve_.push_back(c);
     }
 
+    bool client_obuf_check(Client* c, bool async) {
+        if (c->closing() || c->dead()) return false;
+        if (!srv_->client_obuf_armed()) {
+            c->stop_obuf_tracking();
+            return false;
+        }
+        c->start_obuf_tracking();
+        const ClientLimitsConfigSnapshot limits = srv_->client_limits_snapshot();
+        const ClientBufferLimit& limit = c->subscriber_mode() ? limits.pubsub : limits.normal;
+        const uint64_t used = c->obuf_bytes();
+        bool over = limit.hard_bytes && used >= limit.hard_bytes;
+        if (!over && limit.soft_bytes && used >= limit.soft_bytes) {
+            if (!c->obuf_soft_since_s()) c->set_obuf_soft_since_s(cached_now_s_);
+            else if (cached_now_s_ - c->obuf_soft_since_s() > limit.soft_seconds) over = true;
+        } else if (!over) {
+            c->set_obuf_soft_since_s(0);
+        }
+        if (!over) return false;
+
+        srv_->note_client_output_buffer_limit_disconnect();
+        if (async)
+            std::fprintf(stderr,
+                "Client id=%llu scheduled to be closed ASAP for overcoming of output buffer limits.\n",
+                static_cast<unsigned long long>(c->id()));
+        else
+            std::fprintf(stderr,
+                "Client id=%llu closed for overcoming of output buffer limits.\n",
+                static_cast<unsigned long long>(c->id()));
+        close_client(c);
+        return true;
+    }
+
+    uint32_t client_cron_pass() {
+        auto& clients = self_->clients();
+        const size_t initial = clients.size();
+        if (!initial) { client_cron_cursor_ = 0; return 0; }
+        size_t visits = initial / kClientCronBeatsPerSecond;
+        if (visits < kClientCronMinVisits)
+            visits = std::min(initial, static_cast<size_t>(kClientCronMinVisits));
+
+        const uint32_t timeout = srv_->timeout();
+        uint32_t work = 0;
+        for (size_t visited = 0; visited < visits && !clients.empty(); visited++) {
+            if (client_cron_cursor_ >= clients.size()) client_cron_cursor_ = 0;
+            Client* c = clients[client_cron_cursor_];
+            const size_t before = clients.size();
+            bool closed = false;
+            if (timeout && !c->blocked() && !c->subscriber_mode() && !c->closing() &&
+                cached_now_s_ - c->last_interaction_s() > timeout) {
+                close_client(c);
+                closed = true;
+            } else if (client_obuf_check(c, false)) {
+                closed = true;
+            }
+            work++;
+            // close_client removes by swap-with-back. Revisit this index so the swapped-in client
+            // is not skipped; if teardown is still pending, advance past the unchanged entry.
+            if (!closed || clients.size() == before) client_cron_cursor_++;
+        }
+        return work;
+    }
+
     void close_client(Client* c) {
         // IDEMPOTENT, and that is load-bearing: an abrupt disconnect can close a conn twice --
         // once when the recv fails and again when the in-flight reply's send CQE comes back
@@ -964,6 +1075,7 @@ private:
         c->set_wb_slot(Client::kNoWbSlot);
         wb_.teardown(*c);
         ::close(c->fd());
+        srv_->client_released();
         // NOT delete. An ex-side claimed post may still sit un-consumed in our inbound channels
         // naming this client. Every such entry was pushed BEFORE this point, and channels are FIFO
         // with their mask bits set -- so ONE full
@@ -1010,6 +1122,13 @@ private:
     ScatterArenaPool scatter_pool_;          // touched only by this connection-owning IO thread
     uint32_t flush_tick_ = 0;
     bool     backstop_pass_ = false;
+    static constexpr uint32_t kClientCronBeatsPerSecond = 10;
+    static constexpr uint32_t kClientCronMinVisits = 5;
+    uint64_t client_cron_beat_ms_ = 0;
+    size_t   client_cron_cursor_ = 0;
+    uint64_t cached_now_ms_ = 0;
+    uint32_t cached_now_s_ = 0;
+    bool     client_cron_was_armed_ = false;
     bool touched_[kMaxThreads] = {};      // dedupe flags for the current parse pass
     uint32_t touched_list_[kMaxThreads] = {}; // the workers actually fed, dense
     uint32_t ntouched_ = 0;

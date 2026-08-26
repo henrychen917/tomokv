@@ -195,7 +195,7 @@ void append_client_line(std::string& out, const ClientMeta& meta) {
             meta.lib_name.c_str(), meta.lib_ver.c_str(), meta.shard_subscriptions);
 }
 
-enum class ConfigKind : uint8_t { String, Bool, Unsigned, Bytes, Policy };
+enum class ConfigKind : uint8_t { String, Bool, Unsigned, Bytes, Policy, ClientOutputBufferLimit };
 struct ConfigValue {
     const char* name;
     ConfigKind kind;
@@ -204,6 +204,7 @@ struct ConfigValue {
 
 std::mutex g_config_mu;
 std::vector<ConfigValue> g_config;
+ClientOutputBufferLimits g_client_obuf_limits;
 
 void add_config(const char* name, ConfigKind kind, uint64_t value) {
     g_config.push_back(ConfigValue{name, kind, std::to_string(value)});
@@ -221,7 +222,13 @@ void init_config(const Config& cfg) {
     g_config.push_back({"maxmemory-policy", ConfigKind::Policy,
                         maxmemory_policy_name(cfg.maxmemory_policy)});
     add_config("maxmemory-samples", ConfigKind::Unsigned, cfg.maxmemory_samples);
-    add_config("timeout", ConfigKind::Unsigned, 0);
+    add_config("maxclients", ConfigKind::Unsigned, cfg.maxclients);
+    add_config("timeout", ConfigKind::Unsigned, cfg.timeout);
+    add_config("tcp-keepalive", ConfigKind::Unsigned, cfg.tcp_keepalive);
+    add_config("tcp-backlog", ConfigKind::Unsigned, cfg.tcp_backlog);
+    g_client_obuf_limits = cfg.client_output_buffer_limits;
+    g_config.push_back({"client-output-buffer-limit", ConfigKind::ClientOutputBufferLimit,
+                        cfg_client_output_buffer_limit_string(g_client_obuf_limits)});
     add_config("databases", ConfigKind::Unsigned, 1);
     add_config("proto-max-bulk-len", ConfigKind::Bytes, 512ull * 1024 * 1024);
     add_config("zc-min", ConfigKind::Unsigned, cfg.zc_min);
@@ -261,6 +268,27 @@ bool parse_bytes(Slice input, uint64_t& value) {
     return true;
 }
 
+bool parse_client_output_buffer_limit_slice(Slice input,
+                                            const ClientOutputBufferLimits& base,
+                                            ClientOutputBufferLimits& out,
+                                            const char*& error) {
+    std::vector<std::string> words;
+    size_t pos = 0;
+    while (pos < input.n) {
+        while (pos < input.n && (input.p[pos] == ' ' || input.p[pos] == '\t' ||
+                                 input.p[pos] == '\r' || input.p[pos] == '\n')) pos++;
+        const size_t begin = pos;
+        while (pos < input.n && input.p[pos] != ' ' && input.p[pos] != '\t' &&
+               input.p[pos] != '\r' && input.p[pos] != '\n') pos++;
+        if (pos > begin) words.emplace_back(input.p + begin, pos - begin);
+    }
+    std::vector<const char*> argv;
+    argv.reserve(words.size());
+    for (const std::string& word : words) argv.push_back(word.c_str());
+    out = base;
+    return cfg_parse_client_output_buffer_limit(argv.data(), argv.size(), out, error);
+}
+
 bool normalize_config(const ConfigValue& entry, Slice input, std::string& out) {
     switch (entry.kind) {
         case ConfigKind::String:
@@ -279,6 +307,12 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out) {
                 return false;
             if (!std::strcmp(entry.name, "atomic") && value > 1) return false;
             if (!std::strcmp(entry.name, "atomic-window") && value > UINT32_MAX) return false;
+            if (!std::strcmp(entry.name, "maxclients") && (value == 0 || value > UINT32_MAX))
+                return false;
+            if ((!std::strcmp(entry.name, "timeout") ||
+                 !std::strcmp(entry.name, "tcp-keepalive") ||
+                 !std::strcmp(entry.name, "tcp-backlog")) && value > INT_MAX)
+                return false;
             out = std::to_string(value);
             return true;
         }
@@ -295,6 +329,14 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out) {
                 if (eq_icase(input, policy)) { out = policy; return true; }
             return false;
         }
+        case ConfigKind::ClientOutputBufferLimit: {
+            ClientOutputBufferLimits parsed;
+            const char* error = nullptr;
+            if (!parse_client_output_buffer_limit_slice(input, g_client_obuf_limits,
+                                                        parsed, error)) return false;
+            out = cfg_client_output_buffer_limit_string(parsed);
+            return true;
+        }
     }
     return false;
 }
@@ -302,6 +344,7 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out) {
 bool collect_config_updates(Op& op,
                             std::vector<std::pair<ConfigValue*, std::string>>& updates) {
     if (op.argc() < 4 || (op.argc() & 1u) != 0) { reply_syntax(op.sink()); return false; }
+    ClientOutputBufferLimits obuf_scratch = g_client_obuf_limits;
     for (uint32_t i = 2; i < op.argc(); i += 2) {
         ConfigValue* item = find_config(op.arg(i));
         if (!item) {
@@ -309,11 +352,25 @@ bool collect_config_updates(Op& op,
             msg.append(op.arg(i).p, op.arg(i).n); msg.push_back('\'');
             reply_err(op.sink(), msg.c_str()); return false;
         }
-        if (!std::strcmp(item->name, "dir") || !std::strcmp(item->name, "dbfilename")) {
+        if (!std::strcmp(item->name, "dir") || !std::strcmp(item->name, "dbfilename") ||
+            !std::strcmp(item->name, "tcp-backlog")) {
             reply_err(op.sink(), "ERR parameter is immutable at runtime"); return false;
         }
         std::string value;
-        if (!normalize_config(*item, op.arg(i + 1), value)) {
+        bool normalized = false;
+        if (item->kind == ConfigKind::ClientOutputBufferLimit) {
+            ClientOutputBufferLimits parsed;
+            const char* error = nullptr;
+            normalized = parse_client_output_buffer_limit_slice(
+                op.arg(i + 1), obuf_scratch, parsed, error);
+            if (normalized) {
+                obuf_scratch = parsed;
+                value = cfg_client_output_buffer_limit_string(parsed);
+            }
+        } else {
+            normalized = normalize_config(*item, op.arg(i + 1), value);
+        }
+        if (!normalized) {
             std::string msg = "ERR Invalid argument '";
             msg.append(op.arg(i + 1).p, op.arg(i + 1).n);
             msg += "' for CONFIG SET '"; msg += item->name; msg.push_back('\'');
@@ -591,8 +648,19 @@ void cmd_config(Shard& sh, Op& op) {
             std::lock_guard<std::mutex> lock(g_config_mu);
             // IO validated before fan-out, so failure here can only mean internal table corruption.
             if (!collect_config_updates(op, updates)) return;
-            if (sh.id() == 0)
-                for (auto& update : updates) update.first->value = update.second;
+            if (sh.id() == 0) {
+                for (auto& update : updates) {
+                    update.first->value = update.second;
+                    if (!std::strcmp(update.first->name, "client-output-buffer-limit")) {
+                        ClientOutputBufferLimits parsed;
+                        const ClientOutputBufferLimits defaults;
+                        const char* error = nullptr;
+                        const Slice text(update.second.data(), update.second.size());
+                        if (parse_client_output_buffer_limit_slice(text, defaults, parsed, error))
+                            g_client_obuf_limits = parsed;
+                    }
+                }
+            }
         }
 
         // Eviction config is process-global (odd/even snapshot read by owners each pass); publish
@@ -623,6 +691,22 @@ void cmd_config(Shard& sh, Op& op) {
                     g_server->set_atomic_enabled(value != 0);
                 else if (!std::strcmp(update.first->name, "atomic-window"))
                     g_server->set_atomic_window(static_cast<uint32_t>(value));
+                else if (!std::strcmp(update.first->name, "maxclients"))
+                    g_server->set_maxclients(static_cast<uint32_t>(value));
+                else if (!std::strcmp(update.first->name, "timeout"))
+                    g_server->set_timeout(static_cast<uint32_t>(value));
+                else if (!std::strcmp(update.first->name, "tcp-keepalive"))
+                    g_server->set_tcp_keepalive(static_cast<uint32_t>(value));
+            }
+            for (const auto& update : updates) {
+                if (std::strcmp(update.first->name, "client-output-buffer-limit")) continue;
+                ClientOutputBufferLimits parsed;
+                const char* error = nullptr;
+                const Slice text(update.second.data(), update.second.size());
+                const ClientOutputBufferLimits defaults;
+                if (parse_client_output_buffer_limit_slice(text, defaults, parsed, error)) {
+                    g_server->set_client_output_buffer_limits(parsed);
+                }
             }
         }
 
@@ -683,12 +767,11 @@ void cmd_info(Shard&, Op& op) {
             for (uint32_t id = 0; id < command_registry_size(); id++)
                 total_ops += g_server->thread(t).command_calls(id);
             connections += g_server->thread(t).sig().accepts;
-            rejected += g_server->thread(t).sig().accept_err;
             atomic_localfast += g_server->thread(t).atomic_localfast();
         }
+        rejected = g_server->rejected_conns();
     }
-    uint64_t connected = 0;
-    { std::lock_guard<std::mutex> lock(g_clients_mu); connected = g_clients.size(); }
+    const uint64_t connected = g_server ? g_server->live_clients() : 0;
 
     if (info_section(op, "SERVER")) {
         const uint64_t uptime = g_started_monotonic_ns ? (now_ns() - g_started_monotonic_ns) / 1000000000ull : 0;
@@ -746,6 +829,7 @@ void cmd_info(Shard&, Op& op) {
                       "pubsubshard_channels:%llu\r\npubsubshard_subscriptions:%llu\r\n"
                       "pubsub_patterns:%llu\r\npubsub_home_entries:%llu\r\n"
                       "pubsub_inflight:%llu\r\npubsub_pending_commands:%llu\r\n"
+                      "client_output_buffer_limit_disconnections:%llu\r\n"
                       "blocking_waiters:%llu\r\n",
                 static_cast<unsigned long long>(connections), static_cast<unsigned long long>(rejected),
                 static_cast<unsigned long long>(total_ops), static_cast<unsigned long long>(hits),
@@ -773,6 +857,8 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_home_entries() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_inflight() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_pending() : 0),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->client_output_buffer_limit_disconnections() : 0),
                 static_cast<unsigned long long>(blocking_waiters));
     }
     if (info_section(op, "COMMANDSTATS")) {

@@ -19,8 +19,10 @@
 #pragma once
 
 #include <cstdint>
+#include <climits>
 #include <cstdio>
 #include <cstring>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -29,6 +31,109 @@
 #include "../store/flatstore.h"  // HashKind + g_hash_kind
 
 namespace tomo {
+
+inline bool cfg_parse_u32(const char* s, uint32_t& out);
+
+struct ClientBufferLimit {
+    uint64_t hard_bytes = 0;
+    uint64_t soft_bytes = 0;
+    uint32_t soft_seconds = 0;
+};
+
+struct ClientOutputBufferLimits {
+    ClientBufferLimit normal{};
+    ClientBufferLimit replica{256ull * 1024 * 1024, 64ull * 1024 * 1024, 60};
+    ClientBufferLimit pubsub{32ull * 1024 * 1024, 8ull * 1024 * 1024, 60};
+};
+
+inline bool cfg_eq_icase(const char* a, const char* b) {
+    if (!a || !b) return false;
+    while (*a && *b) {
+        unsigned char ac = static_cast<unsigned char>(*a++);
+        unsigned char bc = static_cast<unsigned char>(*b++);
+        if (ac >= 'A' && ac <= 'Z') ac = static_cast<unsigned char>(ac + ('a' - 'A'));
+        if (bc >= 'A' && bc <= 'Z') bc = static_cast<unsigned char>(bc + ('a' - 'A'));
+        if (ac != bc) return false;
+    }
+    return *a == *b;
+}
+
+// Redis memtoull grammar: bare bytes (or B), decimal K/M/G, binary KB/MB/GB.
+inline bool cfg_parse_memory(const char* input, uint64_t& out) {
+    if (!input || !*input || *input == '-') return false;
+    const char* suffix = input;
+    while (*suffix >= '0' && *suffix <= '9') suffix++;
+    if (suffix == input) return false;
+    if (static_cast<size_t>(suffix - input) >= 128) return false; // Redis memtoull buffer bound
+    uint64_t value = 0;
+    bool saturated = false;
+    for (const char* p = input; p != suffix; p++) {
+        const uint32_t digit = static_cast<uint32_t>(*p - '0');
+        if (!saturated) {
+            if (value > (UINT64_MAX - digit) / 10) {
+                value = UINT64_MAX;
+                saturated = true;
+            } else {
+                value = value * 10 + digit;
+            }
+        }
+    }
+    uint64_t mul = 1;
+    if (!*suffix || cfg_eq_icase(suffix, "b")) mul = 1;
+    else if (cfg_eq_icase(suffix, "k"))  mul = 1000;
+    else if (cfg_eq_icase(suffix, "kb")) mul = 1024;
+    else if (cfg_eq_icase(suffix, "m"))  mul = 1000ull * 1000;
+    else if (cfg_eq_icase(suffix, "mb")) mul = 1024ull * 1024;
+    else if (cfg_eq_icase(suffix, "g"))  mul = 1000ull * 1000 * 1000;
+    else if (cfg_eq_icase(suffix, "gb")) mul = 1024ull * 1024 * 1024;
+    else return false;
+    out = saturated || value > UINT64_MAX / mul ? UINT64_MAX : value * mul;
+    return true;
+}
+
+inline bool cfg_parse_client_output_buffer_limit(const char* const* args, size_t count,
+                                                  ClientOutputBufferLimits& limits,
+                                                  const char*& error) {
+    if (!count || count % 4) {
+        error = "Wrong number of arguments in buffer limit configuration.";
+        return false;
+    }
+    ClientOutputBufferLimits scratch = limits;
+    for (size_t i = 0; i < count; i += 4) {
+        ClientBufferLimit* target = nullptr;
+        if (cfg_eq_icase(args[i], "normal")) target = &scratch.normal;
+        else if (cfg_eq_icase(args[i], "slave") || cfg_eq_icase(args[i], "replica"))
+            target = &scratch.replica;
+        else if (cfg_eq_icase(args[i], "pubsub")) target = &scratch.pubsub;
+        if (!target || cfg_eq_icase(args[i], "master")) {
+            error = "Invalid client class specified in buffer limit configuration.";
+            return false;
+        }
+        uint64_t hard = 0, soft = 0;
+        uint32_t seconds = 0;
+        if (!cfg_parse_memory(args[i + 1], hard) || !cfg_parse_memory(args[i + 2], soft) ||
+            !cfg_parse_u32(args[i + 3], seconds) || seconds > INT_MAX) {
+            error = "Error in hard, soft or soft_seconds setting in buffer limit configuration.";
+            return false;
+        }
+        *target = ClientBufferLimit{hard, soft, seconds};
+    }
+    limits = scratch;
+    error = nullptr;
+    return true;
+}
+
+inline std::string cfg_client_output_buffer_limit_string(const ClientOutputBufferLimits& limits) {
+    return "normal " + std::to_string(limits.normal.hard_bytes) + " " +
+           std::to_string(limits.normal.soft_bytes) + " " +
+           std::to_string(limits.normal.soft_seconds) + " slave " +
+           std::to_string(limits.replica.hard_bytes) + " " +
+           std::to_string(limits.replica.soft_bytes) + " " +
+           std::to_string(limits.replica.soft_seconds) + " pubsub " +
+           std::to_string(limits.pubsub.hard_bytes) + " " +
+           std::to_string(limits.pubsub.soft_bytes) + " " +
+           std::to_string(limits.pubsub.soft_seconds);
+}
 
 struct Config {
     // ---- placement (boot-only) -------------------------------------------------------------
@@ -51,6 +156,11 @@ struct Config {
     uint16_t port           = 6379;
     const char* bind_addr   = "127.0.0.1";
     const char* unixsocket  = nullptr;
+    uint32_t maxclients     = 10000;     // live; accept-path pre-count safety valve
+    uint32_t timeout        = 0;         // live; idle seconds, 0 = disabled
+    uint32_t tcp_keepalive  = 300;       // live for newly accepted TCP clients, 0 = off
+    uint32_t tcp_backlog    = 511;       // boot-only, passed directly to listen(2)
+    ClientOutputBufferLimits client_output_buffer_limits;
 
     // ---- persistence (dir/dbfilename also live via CONFIG SET) ------------------------------
     const char* dir         = ".";
@@ -136,6 +246,57 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         if      (!std::strcmp(a, "--port"))       cfg.port = static_cast<uint16_t>(std::atoi(next("6379")));
         else if (!std::strcmp(a, "--bind"))       cfg.bind_addr = next("127.0.0.1");
         else if (!std::strcmp(a, "--unixsocket")) cfg.unixsocket = next("");
+        else if (!std::strcmp(a, "--maxclients")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.maxclients) || cfg.maxclients == 0) {
+                std::fprintf(stderr, "--maxclients must be between 1 and %u\n", UINT32_MAX);
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--timeout")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.timeout) || cfg.timeout > INT_MAX) {
+                std::fprintf(stderr, "--timeout must be between 0 and %d\n", INT_MAX);
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--tcp-keepalive")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.tcp_keepalive) || cfg.tcp_keepalive > INT_MAX) {
+                std::fprintf(stderr, "--tcp-keepalive must be between 0 and %d\n", INT_MAX);
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--tcp-backlog")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.tcp_backlog) || cfg.tcp_backlog > INT_MAX) {
+                std::fprintf(stderr, "--tcp-backlog must be between 0 and %d\n", INT_MAX);
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--client-output-buffer-limit")) {
+            const int begin = i + 1;
+            int end = begin;
+            while (end < argc && std::strncmp(args[end], "--", 2) != 0) end++;
+            std::vector<std::string> words;
+            for (int arg = begin; arg < end; arg++) {
+                const char* p = args[arg];
+                while (*p) {
+                    while (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n') p++;
+                    const char* start = p;
+                    while (*p && *p != ' ' && *p != '\t' && *p != '\r' && *p != '\n') p++;
+                    if (p != start) words.emplace_back(start, static_cast<size_t>(p - start));
+                }
+            }
+            std::vector<const char*> values;
+            values.reserve(words.size());
+            for (const std::string& word : words) values.push_back(word.c_str());
+            ClientOutputBufferLimits scratch = cfg.client_output_buffer_limits;
+            const char* error = nullptr;
+            if (!cfg_parse_client_output_buffer_limit(values.data(), values.size(),
+                                                       scratch, error)) {
+                std::fprintf(stderr, "--client-output-buffer-limit: %s\n", error);
+                return kConfigError;
+            }
+            cfg.client_output_buffer_limits = scratch;
+            i = end - 1;
+        }
         // WHOLE-SERVER role counts, evenly spread across L3 domains by the server itself.
         // This is the runtime replacement for authoring --place strings offline, and the knob a
         // flip controller will drive: counts in, placement out, no per-node arithmetic.
@@ -272,6 +433,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  cache: --maxmemory BYTES --maxmemory-policy POLICY (allkeys-lfu\n"
                         "         recommended for cache duty) --lru-clock-shift N (bucket=1<<N s)\n"
                         "         --maxmemory-samples N (1..64, default 5)\n"
+                        "  limits: --maxclients N --timeout SECONDS --tcp-keepalive SECONDS\n"
+                        "          --tcp-backlog N --client-output-buffer-limit CLASS HARD SOFT SECONDS ...\n"
                         "  persistence: --dir PATH --dbfilename NAME --load PATH\n"
                         "  atomics: --atomic 0|1 --atomic-window N (default 256; 0=unlimited)\n"
                         "  compact encodings: --{hash,list,set,zset}-max-compact-{entries,value} N\n"

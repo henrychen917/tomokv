@@ -211,6 +211,14 @@ private:
         head_ = size_ = offset_ = 0;
     }
 
+public:
+    uint64_t pending_bytes() const {
+        uint64_t bytes = 0;
+        for (uint32_t i = 0; i < size_; i++) bytes += segs_[head_ + i].len;
+        return bytes - offset_;
+    }
+
+private:
     ReplySegment  inline_[Inline];
     ReplySegment* segs_ = inline_;
     uint32_t      head_ = 0;       // segment index at the wire frontier
@@ -268,6 +276,8 @@ public:
         return rbuf_ + rlen_;
     }
     void commit_read(size_t n) { rlen_ += static_cast<uint32_t>(n); }
+    uint32_t last_interaction_s() const { return last_interaction_s_; }
+    void set_last_interaction_s(uint32_t value) { last_interaction_s_ = value; }
 
     // Exactly one recv may be outstanding, and while it is, the kernel holds a RAW POINTER into
     // this buffer. Nothing may move or reallocate it until that recv completes — see
@@ -317,10 +327,24 @@ public:
     // sides at once, which makes the bug impossible rather than unlikely.
     SmallBuf<kWbufInline>& fill_buf() { return buf_[fill_]; }
     SmallBuf<kWbufInline>& send_buf() { return buf_[fill_ ^ 1]; }
+    void append_fill(const char* ptr, size_t len) {
+        fill_buf().append(ptr, len);
+        if (obuf_tracking_) obuf_bytes_ += len;
+    }
+    void commit_fill(size_t len) {
+        fill_buf().commit_raw(len);
+        if (obuf_tracking_) obuf_bytes_ += len;
+    }
 
     bool     has_pending_fill() const { return buf_[fill_].size() > 0; }
     uint32_t wsent() const { return wsent_; }
-    void     commit_write(uint32_t n) { wsent_ += n; }
+    void     commit_write(uint32_t n) {
+        wsent_ += n;
+        if (obuf_tracking_) {
+            if (n > obuf_bytes_) std::abort();
+            obuf_bytes_ -= n;
+        }
+    }
     bool     write_drained() const { return wsent_ >= buf_[fill_ ^ 1].size(); }
 
     // Promote the fill buffer to be the send buffer. Only legal when no send is outstanding, which
@@ -341,14 +365,22 @@ public:
         SmallBuf<kWbufInline>& b = fill_buf();
         if (!b.empty()) { segments_.append_buf(b.data(), b.size()); b.clear(); }
     }
-    void append_buf_segment(const char* ptr, size_t len) { segments_.append_buf(ptr, len); }
+    void append_buf_segment(const char* ptr, size_t len) {
+        segments_.append_buf(ptr, len);
+        if (obuf_tracking_) obuf_bytes_ += len;
+    }
     void append_buf_segment(const char* a, size_t an, const char* b, size_t bn) {
         segments_.append_buf(a, an, b, bn);
+        if (obuf_tracking_) obuf_bytes_ += an + bn;
     }
     void append_borrow_segment(const char* ptr, uint32_t len, int32_t shard) {
         segments_.append_borrow(ptr, len, shard);
+        if (obuf_tracking_) obuf_bytes_ += len;
     }
-    void append_static_segment(const char* ptr, uint32_t len) { segments_.append_static(ptr, len); }
+    void append_static_segment(const char* ptr, uint32_t len) {
+        segments_.append_static(ptr, len);
+        if (obuf_tracking_) obuf_bytes_ += len;
+    }
     bool has_pending_segments() const { return !segments_.empty(); }
     uint32_t segments_size() const { return segments_.size(); }
     uint32_t build_segment_iov(bool& has_borrow, uint32_t& bytes) {
@@ -362,12 +394,34 @@ public:
     msghdr* send_msg() { return &send_msg_; }
     template <typename ReleaseFn>
     uint64_t consume_segments(uint32_t bytes, ReleaseFn&& release) {
-        return segments_.consume(bytes, std::forward<ReleaseFn>(release));
+        const uint64_t borrowed = segments_.consume(bytes, std::forward<ReleaseFn>(release));
+        if (obuf_tracking_) {
+            if (bytes > obuf_bytes_) std::abort();
+            obuf_bytes_ -= bytes;
+        }
+        return borrowed;
     }
     template <typename ReleaseFn>
     void release_all_segments(ReleaseFn&& release) {
         segments_.release_all(std::forward<ReleaseFn>(release));
+        obuf_bytes_ = 0;
     }
+
+    uint64_t obuf_bytes() const { return obuf_bytes_; }
+    void start_obuf_tracking() {
+        if (obuf_tracking_) return;
+        obuf_bytes_ = fill_buf().size() + (send_buf().size() - wsent_) +
+                      segments_.pending_bytes();
+        obuf_tracking_ = true;
+    }
+    void stop_obuf_tracking() {
+        if (!obuf_tracking_) return;
+        obuf_tracking_ = false;
+        obuf_bytes_ = 0;
+        obuf_soft_since_s_ = 0;
+    }
+    uint32_t obuf_soft_since_s() const { return obuf_soft_since_s_; }
+    void set_obuf_soft_since_s(uint32_t value) { obuf_soft_since_s_ = value; }
 
     // Exactly ONE send may be outstanding per connection. Two concurrent sends on one socket can
     // complete out of order and interleave bytes, which corrupts the stream in a way that looks
@@ -486,6 +540,7 @@ private:
     int       fd_   = -1;
     uint32_t  rlen_ = 0;          // bytes received
     uint32_t  rpos_ = 0;          // bytes parsed
+    uint32_t  last_interaction_s_ = 0; // monotonic whole seconds; occupies the rbuf_ alignment hole
     char*     rbuf_ = nullptr;
     size_t    rcap_ = 0;
     uint32_t  fill_  = 0;         // index of the buffer replies append to
@@ -529,6 +584,9 @@ private:
     std::atomic<uint64_t> watch_generation_{0};
     std::atomic<uint32_t> watched_refs_{0};
     std::atomic<bool> watch_dirty_{false};
+    uint64_t obuf_bytes_ = 0;          // fill + unsent send + segment bytes
+    uint32_t obuf_soft_since_s_ = 0;   // 0 = not continuously at/over the soft limit
+    bool obuf_tracking_ = false;        // enabled once per serve/cron arm, not per reply append
 };
 
 // Same footprint law as Op: Client is per-connection resident memory and its io-hot head is

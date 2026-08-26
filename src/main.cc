@@ -166,7 +166,7 @@ int main(int argc, char** argv) {
         } else if (errno != ENOENT) {
             std::perror("stat unixsocket"); return 1;
         }
-        unix_listener = IoLoop::make_unix_listener(cfg.unixsocket);
+        unix_listener = IoLoop::make_unix_listener(cfg.unixsocket, srv.cfg().tcp_backlog);
         if (unix_listener < 0) { std::perror("bind unixsocket"); return 1; }
     }
 
@@ -244,7 +244,8 @@ int main(int argc, char** argv) {
 
     // Probe only after boot load. Each io thread then opens its own SO_REUSEPORT listener.
     {
-        const int probe = IoLoop::make_reuseport_listener(cfg.bind_addr, cfg.port);
+        const int probe = IoLoop::make_reuseport_listener(
+            cfg.bind_addr, cfg.port, srv.cfg().tcp_backlog);
         if (probe < 0) {
             std::perror("bind");
             for (uint32_t i = 0; i < nthreads; i++) srv.thread(i).stop_flag().store(true);

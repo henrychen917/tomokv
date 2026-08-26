@@ -14,7 +14,9 @@
 #include <algorithm>
 #include <atomic>
 #include <cstdint>
+#include <climits>
 #include <memory>
+#include <sys/resource.h>
 #include <vector>
 #include "shard.h"
 #include "thread.h"
@@ -33,6 +35,13 @@ struct MaxmemoryConfigSnapshot {
     uint64_t maxmemory;
     MaxmemoryPolicy policy;
     uint32_t samples;
+};
+
+struct ClientLimitsConfigSnapshot {
+    uint64_t version = 0;
+    uint32_t timeout = 0;
+    ClientBufferLimit normal{};
+    ClientBufferLimit pubsub{};
 };
 
 class Server {
@@ -57,6 +66,11 @@ public:
         live_maxmemory_policy_.store(static_cast<uint8_t>(cfg.maxmemory_policy),
                                      std::memory_order_relaxed);
         live_maxmemory_samples_.store(cfg.maxmemory_samples, std::memory_order_relaxed);
+        live_maxclients_.store(cfg.maxclients, std::memory_order_relaxed);
+        live_timeout_.store(cfg.timeout, std::memory_order_relaxed);
+        live_tcp_keepalive_.store(cfg.tcp_keepalive, std::memory_order_relaxed);
+        store_client_output_buffer_limits(cfg.client_output_buffer_limits);
+        refresh_client_cron_armed();
         atomic_activity_.store(cfg.atomic ? kAtomicEnabledBit : 0,
                                std::memory_order_relaxed);
         // AUTO resolves against the shard count: the measured three-point optimum (see config.h).
@@ -102,6 +116,8 @@ public:
             std::fprintf(stderr, "placement needs at least one ifid and one ex thread\n");
             return false;
         }
+        if (!adjust_open_files_limit()) return false;
+        check_tcp_backlog_settings();
         // Shard maps are resolved exactly once at boot; parsing never leaks onto a request path.
         if (!placement_.assign_shard_homes(cfg.shards, cfg.shard_home)) return false;
 
@@ -180,6 +196,70 @@ public:
 
     std::atomic<uint64_t>& next_client_id() { return next_client_id_; }
     std::atomic<bool>&     shutting_down()  { return shutting_down_; }
+
+    uint32_t maxclients() const { return live_maxclients_.load(std::memory_order_relaxed); }
+    void set_maxclients(uint32_t value) {
+        live_maxclients_.store(value, std::memory_order_relaxed);
+    }
+    uint64_t live_clients() const { return live_clients_.load(std::memory_order_relaxed); }
+    void client_accepted() { live_clients_.fetch_add(1, std::memory_order_relaxed); }
+    void client_released() {
+        if (live_clients_.fetch_sub(1, std::memory_order_relaxed) == 0) std::abort();
+    }
+    void note_rejected_conn() { rejected_conns_.fetch_add(1, std::memory_order_relaxed); }
+    uint64_t rejected_conns() const { return rejected_conns_.load(std::memory_order_relaxed); }
+
+    uint32_t tcp_keepalive() const {
+        return live_tcp_keepalive_.load(std::memory_order_relaxed);
+    }
+    void set_tcp_keepalive(uint32_t value) {
+        live_tcp_keepalive_.store(value, std::memory_order_relaxed);
+    }
+    uint32_t timeout() const { return live_timeout_.load(std::memory_order_relaxed); }
+    bool client_cron_armed() const {
+        return client_cron_armed_.load(std::memory_order_relaxed);
+    }
+    const std::atomic<bool>* client_cron_armed_ptr() const { return &client_cron_armed_; }
+    const std::atomic<bool>* client_obuf_armed_ptr() const {
+        return &client_obuf_armed_;
+    }
+    bool client_obuf_armed() const {
+        return client_obuf_armed_.load(std::memory_order_relaxed);
+    }
+    void set_timeout(uint32_t value) {
+        const uint64_t version = begin_live_config_update();
+        live_timeout_.store(value, std::memory_order_relaxed);
+        refresh_client_cron_armed();
+        end_live_config_update(version);
+    }
+
+    ClientLimitsConfigSnapshot client_limits_snapshot() const {
+        for (;;) {
+            ClientLimitsConfigSnapshot out;
+            out.version = live_config_version_.load(std::memory_order_acquire);
+            if (out.version & 1) continue;
+            out.timeout = live_timeout_.load(std::memory_order_relaxed);
+            out.normal.hard_bytes = live_obuf_normal_hard_.load(std::memory_order_relaxed);
+            out.normal.soft_bytes = live_obuf_normal_soft_.load(std::memory_order_relaxed);
+            out.normal.soft_seconds = live_obuf_normal_seconds_.load(std::memory_order_relaxed);
+            out.pubsub.hard_bytes = live_obuf_pubsub_hard_.load(std::memory_order_relaxed);
+            out.pubsub.soft_bytes = live_obuf_pubsub_soft_.load(std::memory_order_relaxed);
+            out.pubsub.soft_seconds = live_obuf_pubsub_seconds_.load(std::memory_order_relaxed);
+            if (live_config_version_.load(std::memory_order_acquire) == out.version) return out;
+        }
+    }
+    void set_client_output_buffer_limits(const ClientOutputBufferLimits& limits) {
+        const uint64_t version = begin_live_config_update();
+        store_client_output_buffer_limits(limits);
+        refresh_client_cron_armed();
+        end_live_config_update(version);
+    }
+    void note_client_output_buffer_limit_disconnect() {
+        client_output_buffer_limit_disconnections_.fetch_add(1, std::memory_order_relaxed);
+    }
+    uint64_t client_output_buffer_limit_disconnections() const {
+        return client_output_buffer_limit_disconnections_.load(std::memory_order_relaxed);
+    }
 
     void blocking_client_parked() {
         blocked_clients_.fetch_add(1, std::memory_order_relaxed);
@@ -461,6 +541,75 @@ public:
 private:
     static constexpr uint32_t kAtomicLeaseBatch = 8;
 
+    bool adjust_open_files_limit() {
+        rlimit limit{};
+        if (::getrlimit(RLIMIT_NOFILE, &limit) != 0) {
+            std::perror("getrlimit(RLIMIT_NOFILE)");
+            return false;
+        }
+        const uint64_t reserve = 32 + placement_.ifid_threads().size() * 2;
+        const uint64_t wanted = static_cast<uint64_t>(cfg_.maxclients) + reserve;
+        if (limit.rlim_cur < wanted) {
+            rlimit raised = limit;
+            raised.rlim_cur = static_cast<rlim_t>(std::min<uint64_t>(wanted, limit.rlim_max));
+            if (::setrlimit(RLIMIT_NOFILE, &raised) == 0)
+                (void)::getrlimit(RLIMIT_NOFILE, &limit);
+        }
+        if (limit.rlim_cur >= wanted) return true;
+        if (limit.rlim_cur <= reserve) {
+            std::fprintf(stderr,
+                "Your current 'ulimit -n' of %llu is not enough for the server to start. "
+                "Please increase your open file limit to at least %llu. Exiting.\n",
+                static_cast<unsigned long long>(limit.rlim_cur),
+                static_cast<unsigned long long>(wanted));
+            return false;
+        }
+        const uint32_t reduced = static_cast<uint32_t>(std::min<uint64_t>(
+            limit.rlim_cur - reserve, UINT32_MAX));
+        cfg_.maxclients = reduced;
+        live_maxclients_.store(reduced, std::memory_order_relaxed);
+        std::fprintf(stderr,
+            "Current maximum open files is %llu. maxclients has been reduced to %u to compensate "
+            "for low ulimit. If you need higher maxclients increase 'ulimit -n'.\n",
+            static_cast<unsigned long long>(limit.rlim_cur), reduced);
+        return true;
+    }
+
+    void check_tcp_backlog_settings() const {
+        std::FILE* file = std::fopen("/proc/sys/net/core/somaxconn", "r");
+        if (!file) return;
+        int somaxconn = 0;
+        const bool read = std::fscanf(file, "%d", &somaxconn) == 1;
+        std::fclose(file);
+        if (read && somaxconn < static_cast<int>(cfg_.tcp_backlog))
+            std::fprintf(stderr,
+                "WARNING: The TCP backlog setting of %u cannot be enforced because "
+                "/proc/sys/net/core/somaxconn is set to the lower value of %d.\n",
+                cfg_.tcp_backlog, somaxconn);
+    }
+
+    void store_client_output_buffer_limits(const ClientOutputBufferLimits& limits) {
+        live_obuf_normal_hard_.store(limits.normal.hard_bytes, std::memory_order_relaxed);
+        live_obuf_normal_soft_.store(limits.normal.soft_bytes, std::memory_order_relaxed);
+        live_obuf_normal_seconds_.store(limits.normal.soft_seconds, std::memory_order_relaxed);
+        live_obuf_replica_hard_.store(limits.replica.hard_bytes, std::memory_order_relaxed);
+        live_obuf_replica_soft_.store(limits.replica.soft_bytes, std::memory_order_relaxed);
+        live_obuf_replica_seconds_.store(limits.replica.soft_seconds, std::memory_order_relaxed);
+        live_obuf_pubsub_hard_.store(limits.pubsub.hard_bytes, std::memory_order_relaxed);
+        live_obuf_pubsub_soft_.store(limits.pubsub.soft_bytes, std::memory_order_relaxed);
+        live_obuf_pubsub_seconds_.store(limits.pubsub.soft_seconds, std::memory_order_relaxed);
+    }
+
+    void refresh_client_cron_armed() {
+        const bool normal = live_obuf_normal_hard_.load(std::memory_order_relaxed) != 0 ||
+                            live_obuf_normal_soft_.load(std::memory_order_relaxed) != 0;
+        const bool pubsub = live_obuf_pubsub_hard_.load(std::memory_order_relaxed) != 0 ||
+                            live_obuf_pubsub_soft_.load(std::memory_order_relaxed) != 0;
+        client_obuf_armed_.store(normal || pubsub, std::memory_order_release);
+        client_cron_armed_.store(live_timeout_.load(std::memory_order_relaxed) != 0 ||
+                                 normal || pubsub, std::memory_order_release);
+    }
+
     void atomic_release_admission_credit(AtomicAdmissionLease& lease,
                                          uint64_t admitted_generation) {
         uint64_t generation = atomic_credit_generation_.load(std::memory_order_acquire);
@@ -558,6 +707,9 @@ private:
     uint8_t executor_slots_[kMaxThreads] = {};
     std::atomic<uint64_t> next_client_id_{1};
     std::atomic<bool>     shutting_down_{false};
+    std::atomic<uint64_t> live_clients_{0};
+    std::atomic<uint64_t> rejected_conns_{0};
+    std::atomic<uint64_t> client_output_buffer_limit_disconnections_{0};
     std::atomic<uint64_t> blocked_clients_{0};
     std::atomic<uint64_t> blocking_waiters_{0};
     std::atomic<uint64_t> live_config_version_{0};
@@ -565,6 +717,20 @@ private:
     std::atomic<uint8_t>  live_maxmemory_policy_{
         static_cast<uint8_t>(MaxmemoryPolicy::NoEviction)};
     std::atomic<uint32_t> live_maxmemory_samples_{5};
+    std::atomic<uint32_t> live_maxclients_{10000};
+    std::atomic<uint32_t> live_timeout_{0};
+    std::atomic<uint32_t> live_tcp_keepalive_{300};
+    std::atomic<bool> client_cron_armed_{true};
+    std::atomic<bool> client_obuf_armed_{true};
+    std::atomic<uint64_t> live_obuf_normal_hard_{0};
+    std::atomic<uint64_t> live_obuf_normal_soft_{0};
+    std::atomic<uint32_t> live_obuf_normal_seconds_{0};
+    std::atomic<uint64_t> live_obuf_replica_hard_{256ull * 1024 * 1024};
+    std::atomic<uint64_t> live_obuf_replica_soft_{64ull * 1024 * 1024};
+    std::atomic<uint32_t> live_obuf_replica_seconds_{60};
+    std::atomic<uint64_t> live_obuf_pubsub_hard_{32ull * 1024 * 1024};
+    std::atomic<uint64_t> live_obuf_pubsub_soft_{8ull * 1024 * 1024};
+    std::atomic<uint32_t> live_obuf_pubsub_seconds_{60};
     std::atomic<uint32_t> live_atomic_window_{256};
     std::atomic<uint64_t> commit_seq_{0};
     std::atomic<uint64_t> atomic_window_stalls_{0};

@@ -52,14 +52,22 @@ class WbEngine {
 public:
     using ReleaseFn = void (*)(void*, int32_t, const char*);
     using RetireFn = void (*)(void*, Client&, Op&);
+    using LimitFn = bool (*)(void*, Client&);
 
     void bind(Ring* ring, void* release_ctx = nullptr, ReleaseFn release_fn = nullptr,
-              void* retire_ctx = nullptr, RetireFn retire_fn = nullptr) {
+              void* retire_ctx = nullptr, RetireFn retire_fn = nullptr,
+              const std::atomic<bool>* limit_armed = nullptr,
+              void* limit_ctx = nullptr, LimitFn limit_fn = nullptr,
+              const uint32_t* cached_now_s = nullptr) {
         ring_ = ring;
         release_ctx_ = release_ctx;
         release_fn_ = release_fn;
         retire_ctx_ = retire_ctx;
         retire_fn_ = retire_fn;
+        limit_armed_ = limit_armed;
+        limit_ctx_ = limit_ctx;
+        limit_fn_ = limit_fn;
+        cached_now_s_ = cached_now_s;
     }
 
     Ring&  ring()       { return *ring_; }
@@ -79,46 +87,10 @@ public:
     // connection's io thread. Returns true if it did anything, so a caller can tell progress from
     // an empty poll.
     bool serve(Client& c) {
-        TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed));
-        stats_.serves++;
-        Client& conn = c;
-        const uint32_t retired = c.rob().drain([&](Op& op) {
-            // Cross-shard completion publishes descriptors/state, not bytes.  The connection's IO
-            // owner turns those into the final ordered reply here, before the generic staging path
-            // inspects the (possibly repurposed) zero-copy fields.
-            if (retire_fn_) retire_fn_(retire_ctx_, conn, op);
-            if (op.zc_ptr) {
-                // Anything already staged is older than this op. Once sealed, every subsequent
-                // reply uses segments until the queue drains, so no fill-buffer append can jump a
-                // borrowed value that is only partially written.
-                conn.seal_fill_segment();
-                conn.append_buf_segment(op.direct, op.direct_len,
-                                        op.reply.data(), op.reply.size());
-                conn.append_borrow_segment(op.zc_ptr, op.zc_len, op.zc_shard);
-                conn.append_static_segment(kCrlf, sizeof(kCrlf));
-                if (op.direct_len) stats_.direct++;
-                return;
-            }
-
-            // Direct bytes are already in the fill buffer; publishing the length is the whole
-            // "copy". A reply that outgrew the region spilled to op.reply -- emit it AFTER the
-            // direct part so the RESP stream stays in order.
-            if (conn.has_pending_segments()) {
-                conn.append_buf_segment(op.direct, op.direct_len,
-                                        op.reply.data(), op.reply.size());
-                if (op.direct_len) stats_.direct++;
-            } else {
-                if (op.direct_len) { conn.fill_buf().commit_raw(op.direct_len); stats_.direct++; }
-                if (!op.reply.empty()) conn.fill_buf().append(op.reply.data(), op.reply.size());
-            }
-        });
-        bool did = retired != 0;
-        if (!conn.nothing_to_write()) did |= pump(c);
-        stats_.retired += retired;
-        // A serve that retires nothing: the POLLING paths (flush_ready, the backstop) finding
-        // nothing, which is expected and cheap.
-        if (!retired) stats_.serves_empty++;
-        return did;
+        if (__builtin_expect(limit_armed_ &&
+                             limit_armed_->load(std::memory_order_relaxed), false))
+            return serve_impl<true>(c);
+        return serve_impl<false>(c);
     }
 
     // Try to push whatever this client has buffered. Safe to call spuriously: if nothing is pending
@@ -183,6 +155,7 @@ public:
                     conn.commit_write(static_cast<uint32_t>(res));
                 }
                 stats_.bytes_sent += static_cast<uint64_t>(res);
+                if (cached_now_s_) c.set_last_interaction_s(*cached_now_s_);
                 if (static_cast<uint32_t>(res) < conn.send_requested()) stats_.short_writes++;
                 const bool drained = conn.segmented_send()
                     ? !conn.has_pending_segments()
@@ -245,6 +218,64 @@ public:
     Stats& stats() { return stats_; }
 
 private:
+    template <bool TrackOutput>
+    bool serve_impl(Client& c) {
+        TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed));
+        stats_.serves++;
+        Client& conn = c;
+        if constexpr (TrackOutput) conn.start_obuf_tracking();
+        const uint32_t retired = c.rob().drain([&](Op& op) {
+            // Cross-shard completion publishes descriptors/state, not bytes.  The connection's IO
+            // owner turns those into the final ordered reply here, before the generic staging path
+            // inspects the (possibly repurposed) zero-copy fields.
+            if (retire_fn_) retire_fn_(retire_ctx_, conn, op);
+            if (op.zc_ptr) {
+                // Anything already staged is older than this op. Once sealed, every subsequent
+                // reply uses segments until the queue drains, so no fill-buffer append can jump a
+                // borrowed value that is only partially written.
+                conn.seal_fill_segment();
+                conn.append_buf_segment(op.direct, op.direct_len,
+                                        op.reply.data(), op.reply.size());
+                conn.append_borrow_segment(op.zc_ptr, op.zc_len, op.zc_shard);
+                conn.append_static_segment(kCrlf, sizeof(kCrlf));
+                if (op.direct_len) stats_.direct++;
+                return;
+            }
+
+            // Direct bytes are already in the fill buffer; publishing the length is the whole
+            // "copy". A reply that outgrew the region spilled to op.reply -- emit it AFTER the
+            // direct part so the RESP stream stays in order.
+            if (conn.has_pending_segments()) {
+                conn.append_buf_segment(op.direct, op.direct_len,
+                                        op.reply.data(), op.reply.size());
+                if (op.direct_len) stats_.direct++;
+            } else {
+                if (op.direct_len) {
+                    if constexpr (TrackOutput) conn.commit_fill(op.direct_len);
+                    else conn.fill_buf().commit_raw(op.direct_len);
+                    stats_.direct++;
+                }
+                if (!op.reply.empty()) {
+                    if constexpr (TrackOutput) conn.append_fill(op.reply.data(), op.reply.size());
+                    else conn.fill_buf().append(op.reply.data(), op.reply.size());
+                }
+            }
+        });
+        bool did = retired != 0;
+        if constexpr (TrackOutput) {
+            if (limit_fn_ && limit_fn_(limit_ctx_, c)) {
+                stats_.retired += retired;
+                if (!retired) stats_.serves_empty++;
+                return true;
+            }
+        }
+        if (!conn.nothing_to_write()) did |= pump(c);
+        stats_.retired += retired;
+        // A serve that retires nothing: the POLLING paths (flush_ready, the backstop) finding
+        // nothing, which is expected and cheap.
+        if (!retired) stats_.serves_empty++;
+        return did;
+    }
     bool submit_legacy(Client& c, size_t total, size_t sent) {
         static constexpr size_t kMaxSendBytes = 0x7ffff000u;
         const size_t request = std::min(total - sent, kMaxSendBytes);
@@ -272,6 +303,10 @@ private:
     ReleaseFn release_fn_ = nullptr;
     void*  retire_ctx_ = nullptr;
     RetireFn retire_fn_ = nullptr;
+    const std::atomic<bool>* limit_armed_ = nullptr;
+    void*  limit_ctx_ = nullptr;
+    LimitFn limit_fn_ = nullptr;
+    const uint32_t* cached_now_s_ = nullptr;
     Stats  stats_;
 };
 
