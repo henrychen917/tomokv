@@ -7,6 +7,7 @@
 #include "acl.h"
 #include "auth.h"
 #include "debug.h"
+#include "scripting.h"
 #include "../base/alloc.h"
 #include "../core/server.h"
 #include "../core/lbsignals.h"
@@ -313,6 +314,8 @@ void init_config(const Config& cfg) {
     g_config.push_back({"maxmemory-policy", ConfigKind::Policy,
                         maxmemory_policy_name(cfg.maxmemory_policy)});
     add_config("maxmemory-samples", ConfigKind::Unsigned, cfg.maxmemory_samples);
+    g_config.push_back({"script-instruction-limit", ConfigKind::Unsigned,
+                        std::to_string(cfg.script_instruction_limit), true});
     add_config("maxclients", ConfigKind::Unsigned, cfg.maxclients);
     add_config("timeout", ConfigKind::Unsigned, cfg.timeout);
     add_config("tcp-keepalive", ConfigKind::Unsigned, cfg.tcp_keepalive);
@@ -1257,6 +1260,8 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(g_server ? g_server->aof().auto_rewrite_backoff_skips() : 0));
     }
     if (info_section(op, "STATS")) {
+        const ScriptStats scripting = script_stats();
+        const FunctionStats functions = function_stats();
         appendf(body, "# Stats\r\ntotal_connections_received:%llu\r\nrejected_connections:%llu\r\n"
                       "total_commands_processed:%llu\r\nkeyspace_hits:%llu\r\nkeyspace_misses:%llu\r\n"
                       "expired_keys:%llu\r\nevicted_keys:%llu\r\ninstantaneous_ops_per_sec:0\r\n"
@@ -1289,7 +1294,14 @@ void cmd_info(Shard&, Op& op) {
                       "tls_ciphertext_output_bytes:%llu\r\ntls_plaintext_output_bytes:%llu\r\n"
                       "tls_zc_suppressed:%llu\r\n"
                       "tls_ktls_active:%llu\r\ntls_ktls_fallback:%llu\r\n"
-                      "blocking_waiters:%llu\r\n",
+                      "blocking_waiters:%llu\r\n"
+                      "number_of_cached_scripts:%llu\r\nnumber_of_libraries:%llu\r\n"
+                      "number_of_functions:%llu\r\n"
+                      "script_flush_generation:%llu\r\nscript_interpreter_builds:%llu\r\n"
+                      "script_chunk_cache_hits:%llu\r\nscript_chunk_cache_misses:%llu\r\n"
+                      "script_readonly_rejections:%llu\r\n"
+                      "function_generation:%llu\r\nfunction_calls:%llu\r\n"
+                      "function_thread_rebuilds:%llu\r\nfunction_readonly_rejections:%llu\r\n",
                 static_cast<unsigned long long>(connections), static_cast<unsigned long long>(rejected),
                 static_cast<unsigned long long>(total_ops), static_cast<unsigned long long>(hits),
                 static_cast<unsigned long long>(misses), static_cast<unsigned long long>(expired),
@@ -1350,7 +1362,19 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(tls_zc_suppressed),
                 static_cast<unsigned long long>(tls_ktls_active),
                 static_cast<unsigned long long>(tls_ktls_fallback),
-                static_cast<unsigned long long>(blocking_waiters));
+                static_cast<unsigned long long>(blocking_waiters),
+                static_cast<unsigned long long>(scripting.cached_scripts),
+                static_cast<unsigned long long>(functions.libraries),
+                static_cast<unsigned long long>(functions.functions),
+                static_cast<unsigned long long>(scripting.flush_generation),
+                static_cast<unsigned long long>(scripting.state_rebuilds),
+                static_cast<unsigned long long>(scripting.compile_hits),
+                static_cast<unsigned long long>(scripting.compile_misses),
+                static_cast<unsigned long long>(scripting.ro_rejections),
+                static_cast<unsigned long long>(functions.generation),
+                static_cast<unsigned long long>(functions.calls),
+                static_cast<unsigned long long>(functions.thread_rebuilds),
+                static_cast<unsigned long long>(functions.ro_rejections));
     }
     if (info_section(op, "COMMANDSTATS")) {
         body += "# Commandstats\r\n";

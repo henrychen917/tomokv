@@ -939,6 +939,12 @@ subscriber_checks_done:
             // easily wasted by routing it anyway.
             if ((spec->flags & CmdFlags::ConnLocal) ||
                 ((spec->flags & CmdFlags::ConfigRoute) && !config_scatter)) {
+                // SCRIPT/FUNCTION read and mutate state that in-flight EVAL/EVALSHA/FCALL
+                // activations produce or consume, so they observe same-connection program order
+                // through the ROB-head barrier the blocking lowering already uses. Everything
+                // else keeps the parse-time answer.
+                if (__builtin_expect((spec->flags & CmdFlags::OrderedLocal) != 0, false) &&
+                    rob.in_flight() != 0) break;
                 conn.advance_parse(consumed);
                 self_->note_command(spec->id);
                 command_set_local_context(c, self_);

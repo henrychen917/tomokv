@@ -3,7 +3,7 @@
 # the ORACLE (the optimized Redis fork -- byte-exact redis semantics) and diff every reply.
 #   python3 tests/differ.py <target_host> <target_port> <oracle_host> <oracle_port> <suite> [seed] [-3]
 # Exit 0 iff zero diffs. Suites: string (more added per type lane).
-import socket, sys, random, re, time
+import socket, sys, random, re, time, hashlib
 
 TH, TP, OH, OP = sys.argv[1], int(sys.argv[2]), sys.argv[3], int(sys.argv[4])
 SUITE = sys.argv[5]
@@ -84,7 +84,22 @@ def parse_reply(r):
 SORTED_SET_REPLIES = {"SMEMBERS", "SPOPSHAPE", "HKEYS", "HVALS",
                       "KEYS", "SINTER", "SUNION", "SDIFF"}
 
+def sort_nested(value):
+    # FUNCTION LIST enumerates libraries and their functions in hash order on Redis and in name
+    # order here; both are unordered by contract. Canonicalize any list whose elements are all
+    # lists (the library list, the function list) and leave flat key/value rows alone.
+    if not isinstance(value, list):
+        return value
+    out = [sort_nested(item) for item in value]
+    if out and all(isinstance(item, list) for item in out):
+        out.sort(key=repr)
+    return out
+
 def normalize(cmdname, r):
+    if cmdname == "FUNCTION" and r[:1] in (b"*", b"%"):
+        parsed = parse_reply(r)
+        if parsed is not None:
+            return b"FNSORTED:" + repr(sort_nested(parsed)).encode()
     if cmdname == "HGETALL" and r[:1] in (b"*", b"%") and not r.startswith(b"*-1"):
         it = parse_reply(r)
         if it is not None and len(it) % 2 == 0:
@@ -843,6 +858,152 @@ def gen_cgaps(rng):
     ]
     return ops
 
+def gen_script(rng):
+    # Scripting surface: EVAL / EVALSHA / EVAL_RO / EVALSHA_RO / SCRIPT LOAD|EXISTS|FLUSH and the
+    # FUNCTION library (FCALL / FCALL_RO / LIST / STATS).
+    #
+    # TWO STRUCTURAL LIMITS, both properties of TomoKV rather than of the suite:
+    #   * numkeys is 0 or 1. A script declaring two keys is routed to ONE owner here, so a pair
+    #     landing on different shards is a CROSSSLOT that vanilla Redis does not produce. The
+    #     single-owner law is the design, not a gap the differ should paper over.
+    #   * every redis.call names KEYS[i]. TomoKV enforces the declared range (Redis 7 only warns),
+    #     because routing happened before execution.
+    # Everything else — reply conversion, the error text including the " script: <sha>, on
+    # @user_script:<line>." tail, the read-only gate, the function metadata — is byte-compared.
+    keys = ["sc:%d" % i for i in range(24)]
+    values = ["1", "2", "-3", "abc", "", "10", "3.5", "hello world"]
+
+    def K():
+        return rng.choice(keys)
+
+    scripts = [
+        "return 1",
+        "return 'plain'",
+        "return {1,2,3,'x'}",
+        "return {ok='fine'}",
+        "return {err='handmade'}",
+        "return #KEYS",
+        "return ARGV[1]",
+        "return tostring(ARGV[1]) .. ':' .. tostring(#ARGV)",
+        "return redis.call('GET', KEYS[1])",
+        "return redis.call('SET', KEYS[1], ARGV[1])",
+        "return redis.call('INCR', KEYS[1])",
+        "return redis.call('APPEND', KEYS[1], ARGV[1])",
+        "return redis.call('STRLEN', KEYS[1])",
+        "return redis.call('EXISTS', KEYS[1])",
+        "return redis.call('TYPE', KEYS[1])",
+        "return redis.call('DEL', KEYS[1])",
+        "return {redis.call('SET', KEYS[1], ARGV[1]), redis.call('GET', KEYS[1])}",
+        "local v = redis.call('GET', KEYS[1]) if v then return v .. '!' else return false end",
+        "local r = redis.pcall('INCR', KEYS[1]) if r.err then return r.err end return r",
+        "return redis.call('LPUSH', KEYS[1], ARGV[1])",
+        "return redis.call('LRANGE', KEYS[1], 0, -1)",
+        "return redis.call('HSET', KEYS[1], 'f', ARGV[1])",
+        "return redis.call('HGETALL', KEYS[1])",
+        "return redis.call('ZADD', KEYS[1], 1, ARGV[1])",
+        "return redis.call('ZSCORE', KEYS[1], ARGV[1])",
+        "return redis.call('SADD', KEYS[1], ARGV[1])",
+        "return redis.call('SCARD', KEYS[1])",
+        "local a = 0 for i = 1, 20 do a = a + i end return a",
+    ]
+    keyless = ["return 1", "return 'plain'", "return {1,2,3,'x'}", "return {ok='fine'}",
+               "return {err='handmade'}", "return ARGV[1]", "return #KEYS",
+               "local a = 0 for i = 1, 20 do a = a + i end return a"]
+    # Deterministic error paths. Their replies carry the sha and the source line, so a divergence
+    # in either the message or the tail shows up as a diff.
+    broken = ["return (", "return redis.call('NOSUCHCOMMAND')", "error('kaput')",
+              "error({err='raised table'})", "return zzz_undefined",
+              "local x = nil\nreturn x.field"]
+    ro_writes = ["return redis.call('SET', KEYS[1], 'ro')",
+                 "return redis.call('INCR', KEYS[1])",
+                 "return redis.call('DEL', KEYS[1])",
+                 "return redis.call('LPUSH', KEYS[1], 'ro')"]
+
+    library = ("#!lua name=difflib\n"
+               "redis.register_function('dget', function(keys, args)\n"
+               "  return {redis.call('GET', keys[1]), #keys, #args}\n"
+               "end)\n"
+               "redis.register_function{function_name='dset',\n"
+               "  callback=function(keys, args) return redis.call('SET', keys[1], args[1]) end,\n"
+               "  description='diff writer'}\n"
+               "redis.register_function{function_name='dro',\n"
+               "  callback=function(keys, args) return redis.call('GET', keys[1]) end,\n"
+               "  flags={'no-writes'}, description='diff reader'}\n"
+               "redis.register_function{function_name='dcount',\n"
+               "  callback=function(keys, args) return #args end, flags={'no-writes'}}\n")
+    library2 = ("#!lua name=difflib2\n"
+                "redis.register_function('decho', function(keys, args) return args[1] end)\n")
+    functions = ["dget", "dset", "dro", "dcount"]
+
+    def sha(text):
+        return hashlib.sha1(text.encode()).hexdigest()
+
+    ops = [["SCRIPT", "FLUSH"], ["FUNCTION", "FLUSH"],
+           ["FUNCTION", "LOAD", library], ["FUNCTION", "LOAD", library2],
+           ["FUNCTION", "LOAD", library], ["FUNCTION", "LOAD", "REPLACE", library],
+           ["FUNCTION", "STATS"]]
+    for key in keys:
+        ops.append(["SET", key, rng.choice(values)])
+
+    loaded = []
+    for _ in range(4200):
+        pick = rng.randrange(100)
+        if pick < 20:
+            src = rng.choice(scripts)
+            ops.append(["EVAL", src, "1", K(), rng.choice(values)])
+        elif pick < 26:
+            src = rng.choice(keyless)
+            ops.append(["EVAL", src, "0", rng.choice(values)])
+        elif pick < 34:
+            src = rng.choice(scripts)
+            loaded.append(src)
+            ops.append(["SCRIPT", "LOAD", src])
+        elif pick < 44:
+            src = rng.choice(loaded) if loaded else scripts[0]
+            ops.append(["EVALSHA", sha(src), "1", K(), rng.choice(values)])
+        elif pick < 50:
+            wanted = [sha(rng.choice(scripts)) for _ in range(rng.randrange(1, 4))]
+            ops.append(["SCRIPT", "EXISTS"] + wanted)
+        elif pick < 58:
+            ops.append(["EVAL_RO", rng.choice(scripts), "1", K(), rng.choice(values)])
+        elif pick < 62:
+            ops.append(["EVAL_RO", rng.choice(ro_writes), "1", K()])
+        elif pick < 66:
+            src = rng.choice(loaded) if loaded else scripts[0]
+            ops.append(["EVALSHA_RO", sha(src), "1", K(), rng.choice(values)])
+        elif pick < 72:
+            ops.append(["EVAL", rng.choice(broken), "1", K()])
+        elif pick < 82:
+            name = rng.choice(functions)
+            ops.append(["FCALL", name, "1", K(), rng.choice(values)])
+        elif pick < 88:
+            name = rng.choice(functions)
+            ops.append(["FCALL_RO", name, "1", K(), rng.choice(values)])
+        elif pick < 90:
+            ops.append(["FCALL", "not_a_function", "1", K()])
+        elif pick < 92:
+            ops.append(["FUNCTION", "LIST"])
+        elif pick < 94:
+            ops.append(["FUNCTION", "LIST", "LIBRARYNAME", rng.choice(["difflib", "difflib2",
+                                                                       "absent"])])
+        elif pick < 95:
+            ops.append(["FUNCTION", "LIST", "WITHCODE"])
+        elif pick < 96:
+            ops.append(["FUNCTION", "STATS"])
+        elif pick < 97:
+            loaded = []
+            ops.append(["SCRIPT", "FLUSH", rng.choice(["SYNC", "ASYNC"])])
+        else:
+            key = K()
+            ops.append(rng.choice([["GET", key], ["SET", key, rng.choice(values)],
+                                   ["DEL", key], ["TYPE", key], ["STRLEN", key]]))
+    ops.append(["FUNCTION", "DELETE", "difflib2"])
+    ops.append(["FUNCTION", "LIST"])
+    ops.append(["FUNCTION", "FLUSH"])
+    ops.append(["FUNCTION", "LIST"])
+    ops.append(["SCRIPT", "FLUSH"])
+    return ops
+
 # Sharded pub/sub is stateful and has spontaneous delivery frames, so it cannot use the ordinary
 # one-request/one-reply pipeline below. Keep its whole differential driver in one mergeable block.
 def run_spubsub_differ(rng):
@@ -1343,7 +1504,8 @@ if SUITE == "wiredump":
 
 gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset,
         "hash": gen_hash, "xshard": gen_xshard, "bitmap": gen_bitmap, "hll": gen_hll,
-        "bitfield": gen_bitfield, "cgaps": gen_cgaps, "stream": gen_stream}
+        "bitfield": gen_bitfield, "cgaps": gen_cgaps, "stream": gen_stream,
+        "script": gen_script}
 ops = gens[SUITE](rng)
 
 ts, tf = conn(TH, TP)

@@ -55,6 +55,14 @@ struct CmdFlags {
     // XREAD discovers its key half after the STREAMS token. The validated range is consumed by
     // ACL/MULTI/scatter without pretending the trailing ID half contains keys.
     static constexpr uint32_t StreamRoute = 1u << 17;
+    // A connection-local command that must still observe same-connection PROGRAM order against
+    // ops already dispatched to executors. ConnLocal handlers normally answer at parse time, so a
+    // pipelined `EVAL x` + `SCRIPT EXISTS sha(x)` would ask the script store before the EVAL that
+    // populates it had run. Commands carrying this bit wait for the ROB to drain first — the same
+    // barrier the blocking lowering uses, and one predicted-false test inside a branch the
+    // GET/SET path never enters. Set on SCRIPT and FUNCTION: both read or mutate state that
+    // in-flight EVAL/EVALSHA/FCALL activations on the same connection produce or consume.
+    static constexpr uint32_t OrderedLocal = 1u << 18;
 };
 
 using CmdHandler = void (*)(Shard&, Op&);
@@ -114,6 +122,7 @@ CommandTable zset_command_table();
 CommandTable stream_command_table();
 CommandTable server_command_table();
 CommandTable scripting_command_table();
+CommandTable functions_command_table();
 
 // Built once before threads start. Lookup hashes the uppercase-normalized bytes into an open-
 // addressed table; the load factor is capped at 1/2 so ordinary command names land in one probe.

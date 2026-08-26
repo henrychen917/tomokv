@@ -5,6 +5,7 @@
 // The cache is the only cross-thread scripting object and is protected independently of shard data.
 #include "command.h"
 #include "notify.h"
+#include "scripting.h"
 
 #include <algorithm>
 #include <array>
@@ -45,13 +46,21 @@ namespace tomo {
 namespace {
 
 constexpr uint32_t kScriptMaxBytes = 1024 * 1024;
-constexpr uint64_t kInstructionLimit = 100000;
+constexpr uint64_t kDefaultInstructionLimit = 100000;
 constexpr int kHookInterval = 1000;
 constexpr uint32_t kReplyMaxDepth = 32;
 constexpr uint32_t kReplyMaxElements = 100000;
 
 Server* g_script_server = nullptr;
 char g_hook_context_key;
+// Latched at bind time from the config so the hook — which runs every kHookInterval VM
+// instructions — reads a plain global instead of walking Server. 0 = unlimited.
+uint64_t g_instruction_limit = kDefaultInstructionLimit;
+
+std::atomic<uint64_t> g_compile_hits{0};
+std::atomic<uint64_t> g_compile_misses{0};
+std::atomic<uint64_t> g_state_rebuilds{0};
+std::atomic<uint64_t> g_ro_rejections{0};
 
 uint32_t rotl32(uint32_t value, uint32_t bits) {
     return (value << bits) | (value >> (32 - bits));
@@ -141,6 +150,11 @@ public:
         scripts_.clear();
     }
 
+    uint64_t size() const {
+        std::lock_guard<std::mutex> lock(mu_);
+        return scripts_.size();
+    }
+
 private:
     mutable std::mutex mu_;
     std::unordered_map<std::string, std::string> scripts_;
@@ -173,6 +187,14 @@ void reply_text_error(Op& op, std::string_view kind, std::string_view detail) {
     sink.append("\r\n", 2);
 }
 
+// A script error already carries its own code word ("ERR ...", "WRONGTYPE ...", "My Error").
+void reply_raw_error(Op& op, std::string_view message) {
+    auto sink = op.sink();
+    sink.push_back('-');
+    sink.append(message.data(), message.size());
+    sink.append("\r\n", 2);
+}
+
 std::string clean_error(const char* text, size_t length) {
     const size_t take = std::min<size_t>(length, 2048);
     std::string result;
@@ -183,6 +205,11 @@ std::string clean_error(const char* text, size_t length) {
     }
     return result;
 }
+
+// Redis names the EVAL chunk "@user_script": the '@' tells Lua the name is a source path, so its
+// position prefix reads `user_script:1:` rather than `[string "user_script"]:1:`. Byte-for-byte
+// compatible error text starts here.
+constexpr const char* kEvalChunkName = "@user_script";
 
 bool validate_source(Slice source, std::string& error) {
     if (source.n > kScriptMaxBytes) {
@@ -195,7 +222,7 @@ bool validate_source(Slice source, std::string& error) {
     }
     lua_State* state = luaL_newstate();
     if (!state) { error = "out of memory"; return false; }
-    const int status = luaL_loadbuffer(state, source.p, source.n, "user_script");
+    const int status = luaL_loadbuffer(state, source.p, source.n, kEvalChunkName);
     if (status != 0) {
         size_t length = 0;
         const char* detail = lua_tolstring(state, -1, &length);
@@ -308,6 +335,12 @@ struct ScriptContext {
     // sandbox closures are built once per persistent state, so notify-variance is a runtime flag
     // here rather than a template parameter — one predictable test per nested call.
     bool notify = false;
+    // EVAL_RO / EVALSHA_RO / FCALL_RO, and any function carrying the no-writes flag. Checked at
+    // the redis.call dispatch site against the command row's Write bit.
+    bool readonly = false;
+    // Filled by the pcall message handler: the first Lua frame's line at the point of the error.
+    // Redis reports it in the " ... on @user_script:<line>." tail.
+    int error_line = 0;
 };
 
 // Persistent per-thread engine. Building luaL_newstate + the sandbox + recompiling the source on
@@ -339,11 +372,27 @@ void instruction_hook(lua_State* state, lua_Debug*) {
     ScriptContext* context = lua_context(state);
     if (!context) return;
     context->instructions += kHookInterval;
-    if (context->instructions > kInstructionLimit) {
+    if (context->instructions > g_instruction_limit) {
         context->timed_out = true;
         luaL_error(state, "script exceeded the %llu instruction limit",
-                   static_cast<unsigned long long>(kInstructionLimit));
+                   static_cast<unsigned long long>(g_instruction_limit));
     }
+}
+
+// pcall message handler. It must not change the error VALUE (Redis distinguishes a raised table
+// with an `err` field from a raised string), so it only records where the throw happened: the
+// first frame with a real source line, skipping the C frames of redis.call.
+int script_error_handler(lua_State* state) {
+    ScriptContext* context = lua_context(state);
+    if (context) {
+        lua_Debug frame;
+        for (int level = 1; level <= 24; level++) {
+            if (!lua_getstack(state, level, &frame)) break;
+            if (!lua_getinfo(state, "Sl", &frame)) break;
+            if (frame.currentline > 0) { context->error_line = frame.currentline; break; }
+        }
+    }
+    return 1;
 }
 
 bool command_name_is(const CommandSpec& spec, const char* expected) {
@@ -586,6 +635,15 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                           "ERR command '%s' is not allowed from scripts", spec->name);
             failed = true;
         }
+        // The read-only gate. CommandSpec::flags carries Write on every keyspace mutation
+        // (verified against the registry rows, e.g. PERSIST/DEL/SETBIT are Write, TOUCH/EXISTS
+        // are Readonly), so this needs no second whitelist.
+        if (!failed && context->readonly && (spec->flags & CmdFlags::Write)) {
+            std::snprintf(deferred_error, sizeof(deferred_error),
+                          "ERR Write commands are not allowed from read-only scripts.");
+            g_ro_rejections.fetch_add(1, std::memory_order_relaxed);
+            failed = true;
+        }
         if (!failed) {
             const uint32_t key_arg = static_cast<uint32_t>(spec->first_key);
             const Slice key = nested.arg(key_arg);
@@ -645,13 +703,14 @@ int redis_dispatch(lua_State* state, bool protected_call) {
     }
 
     if (!failed) return 1;
-    if (protected_call) {
-        lua_createtable(state, 0, 1);
-        lua_pushstring(state, deferred_error);
-        lua_setfield(state, -2, "err");
-        return 1;
-    }
-    return luaL_error(state, "%s", deferred_error);
+    lua_createtable(state, 0, 1);
+    lua_pushstring(state, deferred_error);
+    lua_setfield(state, -2, "err");
+    if (protected_call) return 1;
+    // RAISE A TABLE, not a string. Lua prepends `user_script:N: ` to a raised string; Redis's
+    // wire error for a failed redis.call has no position prefix (the position appears only in the
+    // trailing " ... on @user_script:N." clause), and a table carries none.
+    return lua_error(state);
 }
 
 int redis_call(lua_State* state) { return redis_dispatch(state, false); }
@@ -757,15 +816,16 @@ void create_sandbox_static(lua_State* state, ScriptContext** slot) {
     lua_pop(state, 1);
 }
 
-// Rebuilt per call: only the tables whose contents depend on the op.
-void bind_call_tables(lua_State* state, ScriptContext& context) {
+// Rebuilt per call: only the tables whose contents depend on the op. Leaves the two tables on the
+// stack (keys first, then args) for the FCALL parameter style; the EVAL style pops them into the
+// KEYS/ARGV globals.
+void push_call_tables(lua_State* state, ScriptContext& context) {
     lua_createtable(state, static_cast<int>(context.key_count), 0);
     for (uint32_t i = 0; i < context.key_count; i++) {
         const Slice key = context.parent->arg(context.key_first + i);
         lua_pushlstring(state, key.p, key.n);
         lua_rawseti(state, -2, static_cast<int>(i + 1));
     }
-    set_global_raw(state, "KEYS");
 
     const uint32_t argv_first = context.key_first + context.key_count;
     const uint32_t argv_count = context.parent->argc() - argv_first;
@@ -775,7 +835,12 @@ void bind_call_tables(lua_State* state, ScriptContext& context) {
         lua_pushlstring(state, value.p, value.n);
         lua_rawseti(state, -2, static_cast<int>(i + 1));
     }
+}
+
+void bind_call_globals(lua_State* state, ScriptContext& context) {
+    push_call_tables(state, context);
     set_global_raw(state, "ARGV");
+    set_global_raw(state, "KEYS");
 }
 
 bool append_lua_result(lua_State* state, int index, SmallBuf<kInlineReply>& output,
@@ -947,14 +1012,152 @@ bool append_lua_result(lua_State* state, int index, SmallBuf<kInlineReply>& outp
     return true;
 }
 
+// Builds the wire error for a failed activation, matching Redis 7 byte for byte:
+//   <message> script: <tag>, on @<chunk>:<line>.
+// A raised table with an `err` field contributes its string unchanged (that is how redis.call and
+// error({err=...}) travel); any other raised value is a Lua string that already carries its own
+// `user_script:N: ` position prefix and is presented as an ERR.
+std::string script_runtime_error(lua_State* state, const ScriptContext& context,
+                                 const ScriptInvocation& call) {
+    std::string message;
+    bool from_table = false;
+    if (lua_istable(state, -1)) {
+        lua_getfield(state, -1, "err");
+        if (lua_isstring(state, -1)) {
+            size_t length = 0;
+            const char* text = lua_tolstring(state, -1, &length);
+            message = clean_error(text, length);
+            from_table = true;
+        }
+        lua_pop(state, 1);
+    }
+    if (!from_table) {
+        size_t length = 0;
+        const char* text = lua_tolstring(state, -1, &length);
+        message = "ERR " + clean_error(text ? text : "runtime error", text ? length : 13);
+    }
+    char tail[1024];
+    std::snprintf(tail, sizeof(tail), " script: %.*s, on @%s:%d.",
+                  static_cast<int>(std::min<uint32_t>(call.tag.n, 512)), call.tag.p, call.chunk,
+                  context.error_line > 0 ? context.error_line : 1);
+    message += tail;
+    return message;
+}
+
+}  // namespace
+
+lua_State* script_thread_state() {
+    LuaEngine& engine = t_lua_engine;
+    if (engine.state &&
+        engine.flush_generation != g_script_flushes.load(std::memory_order_acquire)) {
+        // SCRIPT FLUSH invalidates every thread's compiled-chunk cache; rebuilding the whole
+        // state is the simple correct form and FLUSH is admin-cold. It also drops the FUNCTION
+        // library materialization, whose generation stamp lives in the same registry.
+        lua_close(engine.state);
+        engine.state = nullptr;
+    }
+    if (!engine.state) {
+        engine.state = luaL_newstate();
+        if (!engine.state) return nullptr;
+        engine.flush_generation = g_script_flushes.load(std::memory_order_acquire);
+        create_sandbox_static(engine.state, &engine.current);
+        lua_newtable(engine.state);
+        lua_setfield(engine.state, LUA_REGISTRYINDEX, "tomo_chunks");
+        g_state_rebuilds.fetch_add(1, std::memory_order_relaxed);
+    }
+    return engine.state;
+}
+
+lua_State* script_new_sandbox_state() {
+    static ScriptContext* null_slot = nullptr;
+    lua_State* state = luaL_newstate();
+    if (!state) return nullptr;
+    create_sandbox_static(state, &null_slot);
+    return state;
+}
+
+std::string script_clean_error(const char* text, size_t length) {
+    return clean_error(text, length);
+}
+
+void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
+    LuaEngine& engine = t_lua_engine;
+    lua_State* state = engine.state;
+    ScriptContext context{&shard, &op, call.key_first, call.key_count};
+    context.notify = call.notify;
+    context.readonly = call.readonly;
+    engine.current = &context;
+
+    ScriptUndo undo;
+    const bool atomic = g_script_server && g_script_server->atomic_enabled();
+    if (atomic && !undo.capture(shard, op, call.key_first, call.key_count)) {
+        lua_settop(state, 0);
+        engine.current = nullptr;
+        reply_text_error(op, "ERR", "out of memory preparing atomic script");
+        return;
+    }
+    ScriptEvictionGuard eviction_guard(shard, atomic);
+
+    // The message handler must sit BELOW the callable for lua_pcall; the callable arrived on top.
+    lua_pushcfunction(state, script_error_handler);
+    lua_insert(state, -2);
+    const int handler_index = lua_gettop(state) - 1;
+    int arguments = 0;
+    if (call.style == ScriptArgStyle::Params) {
+        push_call_tables(state, context);
+        arguments = 2;
+    } else {
+        bind_call_globals(state, context);
+    }
+
+    lua_sethook(state, instruction_hook, LUA_MASKCOUNT, kHookInterval);
+    const int status = lua_pcall(state, arguments, 1, handler_index);
+    lua_sethook(state, nullptr, 0, 0);
+    if (status != 0) {
+        const std::string error = script_runtime_error(state, context, call);
+        lua_settop(state, 0);
+        engine.current = nullptr;
+        const bool restored = !atomic || undo.rollback(shard);
+        if (call.notify && atomic && restored) notify_abort_op(op);
+        if (!restored) reply_text_error(op, "ERR", "atomic script rollback failed");
+        else if (context.timed_out) {
+            char busy[96];
+            std::snprintf(busy, sizeof(busy), "script exceeded the %llu instruction limit",
+                          static_cast<unsigned long long>(g_instruction_limit));
+            reply_text_error(op, "BUSY", busy);
+        } else reply_raw_error(op, error);
+        return;
+    }
+
+    SmallBuf<kInlineReply> result;
+    std::string conversion_error;
+    uint32_t elements = 0;
+    const bool converted = append_lua_result(
+        state, -1, result, 0, elements, conversion_error, op.resp3(), context.script_resp);
+    lua_settop(state, 0);
+    engine.current = nullptr;
+    if (!converted) {
+        const bool restored = !atomic || undo.rollback(shard);
+        if (call.notify && atomic && restored) notify_abort_op(op);
+        reply_text_error(op, "ERR", restored
+            ? std::string("Error running script: ") + conversion_error
+            : "atomic script rollback failed");
+        return;
+    }
+    op.sink().append(result.data(), result.size());
+}
+
+namespace {
+
 void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_hint,
-              bool notify) {
+              bool notify, bool readonly) {
     if (source.n > kScriptMaxBytes) {
         reply_text_error(op, "ERR", "script exceeds the 1 MiB limit");
         return;
     }
     if (source.n && static_cast<uint8_t>(source.p[0]) == 0x1b) {
-        reply_text_error(op, "ERR", "Error compiling script: binary chunks are not allowed");
+        reply_text_error(op, "ERR",
+                         "Error compiling script (new function): binary chunks are not allowed");
         return;
     }
     uint32_t key_first = 0, key_count = 0;
@@ -963,26 +1166,8 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_h
         return;
     }
 
-    LuaEngine& engine = t_lua_engine;
-    if (engine.state &&
-        engine.flush_generation != g_script_flushes.load(std::memory_order_acquire)) {
-        // SCRIPT FLUSH invalidates every thread's compiled-chunk cache; rebuilding the whole
-        // state is the simple correct form and FLUSH is admin-cold.
-        lua_close(engine.state);
-        engine.state = nullptr;
-    }
-    if (!engine.state) {
-        engine.state = luaL_newstate();
-        if (!engine.state) { reply_text_error(op, "ERR", "out of memory"); return; }
-        engine.flush_generation = g_script_flushes.load(std::memory_order_acquire);
-        create_sandbox_static(engine.state, &engine.current);
-        lua_newtable(engine.state);
-        lua_setfield(engine.state, LUA_REGISTRYINDEX, "tomo_chunks");
-    }
-    lua_State* state = engine.state;
-    ScriptContext context{&shard, &op, key_first, key_count};
-    context.notify = notify;
-    engine.current = &context;
+    lua_State* state = script_thread_state();
+    if (!state) { reply_text_error(op, "ERR", "out of memory"); return; }
 
     // Fetch the compiled chunk by sha, compiling at most once per thread per script.
     std::string sha_storage;
@@ -996,104 +1181,98 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_h
     lua_rawget(state, -2);
     if (lua_isnil(state, -1)) {
         lua_pop(state, 1);
-        const int compiled = luaL_loadbuffer(state, source.p, source.n, "user_script");
+        g_compile_misses.fetch_add(1, std::memory_order_relaxed);
+        const int compiled = luaL_loadbuffer(state, source.p, source.n, kEvalChunkName);
         if (compiled != 0) {
             size_t length = 0;
             const char* text = lua_tolstring(state, -1, &length);
             const std::string error =
                 clean_error(text ? text : "compile error", text ? length : 13);
             lua_settop(state, 0);
-            engine.current = nullptr;
-            reply_text_error(op, "ERR", std::string("Error compiling script: ") + error);
+            reply_text_error(op, "ERR",
+                             std::string("Error compiling script (new function): ") + error);
             return;
         }
         lua_pushlstring(state, sha.p, sha.n);
         lua_pushvalue(state, -2);
         lua_rawset(state, -4);
+    } else {
+        g_compile_hits.fetch_add(1, std::memory_order_relaxed);
     }
     lua_remove(state, -2);   // drop the chunk table, leaving the function on top
     if (cache_source) {
         std::string ignored;
         if (!g_scripts.store(source, ignored)) {
             lua_settop(state, 0);
-            engine.current = nullptr;
             reply_text_error(op, "ERR", "out of memory caching script");
             return;
         }
     }
 
-    ScriptUndo undo;
-    const bool atomic = g_script_server && g_script_server->atomic_enabled();
-    if (atomic && !undo.capture(shard, op, key_first, key_count)) {
-        lua_settop(state, 0);
-        engine.current = nullptr;
-        reply_text_error(op, "ERR", "out of memory preparing atomic script");
-        return;
-    }
-    ScriptEvictionGuard eviction_guard(shard, atomic);
-
-    bind_call_tables(state, context);
-    lua_sethook(state, instruction_hook, LUA_MASKCOUNT, kHookInterval);
-    const int status = lua_pcall(state, 0, 1, 0);
-    lua_sethook(state, nullptr, 0, 0);
-    if (status != 0) {
-        size_t length = 0;
-        const char* text = lua_tolstring(state, -1, &length);
-        const std::string error = clean_error(text ? text : "runtime error", text ? length : 13);
-        lua_settop(state, 0);
-        engine.current = nullptr;
-        const bool restored = !atomic || undo.rollback(shard);
-        if (notify && atomic && restored) notify_abort_op(op);
-        if (!restored) reply_text_error(op, "ERR", "atomic script rollback failed");
-        else if (context.timed_out)
-            reply_text_error(op, "BUSY", "script exceeded the 100000 instruction limit");
-        else reply_text_error(op, "ERR", std::string("Error running script: ") + error);
-        return;
-    }
-
-    SmallBuf<kInlineReply> result;
-    std::string conversion_error;
-    uint32_t elements = 0;
-    const bool converted = append_lua_result(
-        state, -1, result, 0, elements, conversion_error, op.resp3(), context.script_resp);
-    lua_settop(state, 0);
-    engine.current = nullptr;
-    if (!converted) {
-        const bool restored = !atomic || undo.rollback(shard);
-        if (notify && atomic && restored) notify_abort_op(op);
-        reply_text_error(op, "ERR", restored
-            ? std::string("Error running script: ") + conversion_error
-            : "atomic script rollback failed");
-        return;
-    }
-    op.sink().append(result.data(), result.size());
+    ScriptInvocation call;
+    call.key_first = key_first;
+    call.key_count = key_count;
+    call.style = ScriptArgStyle::Globals;
+    call.readonly = readonly;
+    call.notify = notify;
+    call.chunk = "user_script";
+    call.tag = sha;
+    script_execute(shard, op, call);
 }
 
-template <bool kNotify>
+template <bool kNotify, bool kSha, bool kReadonly>
 void cmd_eval(Shard& shard, Op& op) {
-    if (op.cmd_name().eq_icase("eval")) {
-        run_eval(shard, op, op.arg(1), true, Slice(), kNotify);
-        return;
+    if constexpr (!kSha) {
+        // cache_source = false: routing already stored this source, in program order.
+        run_eval(shard, op, op.arg(1), false, Slice(), kNotify, kReadonly);
+    } else {
+        std::string source;
+        if (!g_scripts.find(op.arg(1), source)) {
+            reply_text_error(op, "NOSCRIPT", "No matching script. Please use EVAL.");
+            return;
+        }
+        run_eval(shard, op, Slice(source.data(), static_cast<uint32_t>(source.size())), false,
+                 op.arg(1), kNotify, kReadonly);
     }
-    std::string source;
-    if (!g_scripts.find(op.arg(1), source)) {
-        reply_text_error(op, "NOSCRIPT", "No matching script. Please use EVAL.");
-        return;
-    }
-    run_eval(shard, op, Slice(source.data(), static_cast<uint32_t>(source.size())), false,
-             op.arg(1), kNotify);
+}
+
+void reply_script_wrong_args(Op& op, const char* sub) {
+    char text[96];
+    std::snprintf(text, sizeof(text), "wrong number of arguments for 'script|%s' command", sub);
+    reply_text_error(op, "ERR", text);
+}
+
+// Deliberately our own wording rather than Redis's help block: the subcommand set differs (no
+// interactive debugger) and the Redis text is source we do not copy.
+void reply_script_help(Op& op) {
+    static constexpr const char* lines[] = {
+        "SCRIPT <subcommand> [<arg> [value] [opt] ...]. Subcommands are:",
+        "DEBUG (YES|SYNC|NO)",
+        "    Only NO is supported; this server has no interactive script debugger.",
+        "EXISTS <sha1> [<sha1> ...]",
+        "    Return 1/0 per sha1 for scripts present in the process-wide script store.",
+        "FLUSH [ASYNC|SYNC]",
+        "    Drop every cached script. Both modes are synchronous here.",
+        "KILL",
+        "    Terminate the running script. Scripts are bounded by an instruction limit and",
+        "    always terminate on their own, so this reports NOTBUSY.",
+        "LOAD <script>",
+        "    Compile a script and add it to the script store, returning its sha1.",
+        "HELP",
+        "    Print this help.",
+    };
+    reply_array_header(op.sink(), sizeof(lines) / sizeof(lines[0]));
+    for (const char* line : lines) reply_simple(op.sink(), line);
 }
 
 void cmd_script(Shard&, Op& op) {
     const Slice subcommand = op.arg(1);
     if (subcommand.eq_icase("load")) {
-        if (op.argc() != 3) {
-            reply_text_error(op, "ERR", "wrong number of arguments for 'script|load' command");
-            return;
-        }
+        if (op.argc() != 3) { reply_script_wrong_args(op, "load"); return; }
         std::string compile_error;
         if (!validate_source(op.arg(2), compile_error)) {
-            reply_text_error(op, "ERR", std::string("Error compiling script: ") + compile_error);
+            reply_text_error(op, "ERR",
+                             std::string("Error compiling script (new function): ") + compile_error);
             return;
         }
         std::string sha;
@@ -1105,10 +1284,7 @@ void cmd_script(Shard&, Op& op) {
         return;
     }
     if (subcommand.eq_icase("exists")) {
-        if (op.argc() < 3) {
-            reply_text_error(op, "ERR", "wrong number of arguments for 'script|exists' command");
-            return;
-        }
+        if (op.argc() < 3) { reply_script_wrong_args(op, "exists"); return; }
         reply_array_header(op.sink(), op.argc() - 2);
         for (uint32_t i = 2; i < op.argc(); i++) reply_int(op.sink(), g_scripts.exists(op.arg(i)));
         return;
@@ -1116,7 +1292,7 @@ void cmd_script(Shard&, Op& op) {
     if (subcommand.eq_icase("flush")) {
         if (op.argc() > 3 || (op.argc() == 3 &&
             !(op.arg(2).eq_icase("sync") || op.arg(2).eq_icase("async")))) {
-            reply_syntax(op.sink());
+            reply_text_error(op, "ERR", "SCRIPT FLUSH only support SYNC|ASYNC option");
             return;
         }
         g_scripts.flush();
@@ -1124,21 +1300,75 @@ void cmd_script(Shard&, Op& op) {
         reply_ok(op.sink());
         return;
     }
-    reply_text_error(op, "ERR", "Unknown subcommand or wrong number of arguments for 'script'");
+    if (subcommand.eq_icase("kill")) {
+        if (op.argc() != 2) { reply_script_wrong_args(op, "kill"); return; }
+        // Scripts run to completion inside one owner task under a hard instruction limit, so no
+        // activation is ever observable from another connection. NOTBUSY is therefore not a
+        // placeholder — it is the only reachable answer.
+        reply_text_error(op, "NOTBUSY", "No scripts in execution right now.");
+        return;
+    }
+    if (subcommand.eq_icase("debug")) {
+        if (op.argc() != 3) { reply_script_wrong_args(op, "debug"); return; }
+        if (op.arg(2).eq_icase("no")) { reply_ok(op.sink()); return; }
+        if (op.arg(2).eq_icase("yes") || op.arg(2).eq_icase("sync")) {
+            reply_text_error(op, "ERR",
+                             "SCRIPT DEBUG YES|SYNC is not supported: this server has no "
+                             "interactive script debugger");
+            return;
+        }
+        reply_text_error(op, "ERR", "Use SCRIPT DEBUG YES/SYNC/NO");
+        return;
+    }
+    if (subcommand.eq_icase("help")) {
+        reply_script_help(op);
+        return;
+    }
+    char text[128];
+    std::snprintf(text, sizeof(text), "unknown subcommand '%.*s'. Try SCRIPT HELP.",
+                  static_cast<int>(std::min<uint32_t>(subcommand.n, 64)), subcommand.p);
+    reply_text_error(op, "ERR", text);
 }
 
 static const CommandSpec kTable[] = {
     // name       min max flags                                      handler     first last step
     {"EVAL",       3, -1, CmdFlags::Write | CmdFlags::CursorShard | CmdFlags::ScriptRoute,
-                cmd_eval<false>, 3, -1, 1, notify_handler<cmd_eval<true>>},
+                cmd_eval<false, false, false>, 3, -1, 1,
+                notify_handler<cmd_eval<true, false, false>>},
     {"EVALSHA",    3, -1, CmdFlags::Write | CmdFlags::CursorShard | CmdFlags::ScriptRoute,
-                cmd_eval<false>, 3, -1, 1, notify_handler<cmd_eval<true>>},
-    {"SCRIPT",     2, -1, CmdFlags::ConnLocal | CmdFlags::Admin,    cmd_script,    0,  0, 0},
+                cmd_eval<false, true, false>, 3, -1, 1,
+                notify_handler<cmd_eval<true, true, false>>},
+    // The _RO forms are Readonly, exactly as Redis flags them: no AOF post-image pass and no
+    // WATCH invalidation for an activation that cannot mutate. The atomic MVCC promotion still
+    // runs — it is keyed on the declared range, not on write-ness, which is what RYOW needs.
+    {"EVAL_RO",    3, -1, CmdFlags::Readonly | CmdFlags::CursorShard | CmdFlags::ScriptRoute,
+                cmd_eval<false, false, true>, 3, -1, 1,
+                notify_handler<cmd_eval<true, false, true>>},
+    {"EVALSHA_RO", 3, -1, CmdFlags::Readonly | CmdFlags::CursorShard | CmdFlags::ScriptRoute,
+                cmd_eval<false, true, true>, 3, -1, 1,
+                notify_handler<cmd_eval<true, true, true>>},
+    {"SCRIPT",     2, -1, CmdFlags::ConnLocal | CmdFlags::OrderedLocal | CmdFlags::Admin,
+                cmd_script,    0,  0, 0},
 };
 
 }  // namespace
 
-void scripting_bind_server(Server* server) { g_script_server = server; }
+void scripting_bind_server(Server* server) {
+    g_script_server = server;
+    if (server) g_instruction_limit = server->cfg().script_instruction_limit;
+    if (!g_instruction_limit) g_instruction_limit = UINT64_MAX;   // 0 = unlimited
+}
+
+ScriptStats script_stats() {
+    ScriptStats stats;
+    stats.cached_scripts = g_scripts.size();
+    stats.compile_hits = g_compile_hits.load(std::memory_order_relaxed);
+    stats.compile_misses = g_compile_misses.load(std::memory_order_relaxed);
+    stats.flush_generation = g_script_flushes.load(std::memory_order_relaxed);
+    stats.state_rebuilds = g_state_rebuilds.load(std::memory_order_relaxed);
+    stats.ro_rejections = g_ro_rejections.load(std::memory_order_relaxed);
+    return stats;
+}
 
 bool command_script_key_range(const Op& op, uint32_t& first, uint32_t& count) {
     first = 3;
@@ -1149,11 +1379,56 @@ bool command_script_key_range(const Op& op, uint32_t& first, uint32_t& count) {
     return count <= op.argc() - first;
 }
 
+// THE SCRIPT STORE IS MAINTAINED ON THE IO THREAD, in connection parse order.
+//
+// It has to be. The store is a process-wide side effect that one command produces (EVAL) and
+// another consumes (EVALSHA, SCRIPT EXISTS). Executors are per-shard and run concurrently, so two
+// ops of one pipelined batch whose declared keys land on different owners execute in an order the
+// ROB only restores for their REPLIES. Producing the store entry on the executor therefore let a
+// LATER EVAL arm an EARLIER EVALSHA — a real reordering, caught by the differ at 4236 ops.
+// Routing is the one stage that sees a connection's commands in order, so both halves live here:
+// EVAL validates and stores, EVALSHA resolves. (SCRIPT/FUNCTION close the same loop from the
+// other side with CmdFlags::OrderedLocal.)
+//
+// Compilation on the IO thread costs one throwaway lua_State per DISTINCT script, process-wide:
+// the second EVAL of the same source finds its sha already stored and skips it, exactly as
+// SCRIPT LOAD has always done.
+static bool script_route_store(Op& op) {
+    const char* name = op.spec ? op.spec->name : "";
+    if (!std::strncmp(name, "EVALSHA", 7)) {
+        if (g_scripts.exists(op.arg(1))) return true;
+        reply_text_error(op, "NOSCRIPT", "No matching script. Please use EVAL.");
+        return false;
+    }
+    if (std::strncmp(name, "EVAL", 4)) return true;      // FCALL / FCALL_RO own no source
+    const Slice source = op.arg(1);
+    if (source.n > kScriptMaxBytes) {
+        reply_text_error(op, "ERR", "script exceeds the 1 MiB limit");
+        return false;
+    }
+    const std::string sha = sha1_hex(source);
+    if (g_scripts.exists(Slice(sha.data(), static_cast<uint32_t>(sha.size())))) return true;
+    std::string compile_error;
+    if (!validate_source(source, compile_error)) {
+        reply_text_error(op, "ERR",
+                         std::string("Error compiling script (new function): ") + compile_error);
+        return false;
+    }
+    std::string ignored;
+    if (!g_scripts.store(source, ignored)) {
+        reply_text_error(op, "ERR", "out of memory caching script");
+        return false;
+    }
+    return true;
+}
+
 bool command_prepare_script_route(Server& server, Op& op) {
     uint32_t first = 0, count = 0;
     bool negative = false;
     if (!parse_nonnegative(op.arg(2), count, negative)) {
-        reply_text_error(op, "ERR", "value is not an integer or out of range");
+        // Same grammar, two Redis messages: EVAL reports the generic integer error, FCALL its own.
+        reply_text_error(op, "ERR", function_is_fcall(op)
+            ? "Bad number of keys provided" : "value is not an integer or out of range");
         return false;
     }
     if (negative) {
@@ -1165,6 +1440,9 @@ bool command_prepare_script_route(Server& server, Op& op) {
         reply_text_error(op, "ERR", "Number of keys can't be greater than number of args");
         return false;
     }
+    // After the numkeys grammar, before routing: Redis reports a bad key count ahead of a compile
+    // error, and this keeps that precedence.
+    if (!script_route_store(op)) return false;
     if (!count) {
         op.hash = 0;
         op.shard = 0;

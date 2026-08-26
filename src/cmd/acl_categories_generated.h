@@ -75,13 +75,18 @@ inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"ECHO", 0x0000000000044000ULL}, // fast connection
     {"EVAL", 0x0000000000108000ULL}, // slow scripting
     {"EVALSHA", 0x0000000000108000ULL}, // slow scripting
+    {"EVALSHA_RO", 0x0000000000108000ULL}, // slow scripting
+    {"EVAL_RO", 0x0000000000108000ULL}, // slow scripting
     {"EXEC", 0x0000000000088000ULL}, // slow transaction
     {"EXISTS", 0x0000000000004003ULL}, // keyspace read fast
     {"EXPIRE", 0x0000000000004005ULL}, // keyspace write fast
     {"EXPIREAT", 0x0000000000004005ULL}, // keyspace write fast
     {"EXPIRETIME", 0x0000000000004003ULL}, // keyspace read fast
+    {"FCALL", 0x0000000000108000ULL}, // slow scripting
+    {"FCALL_RO", 0x0000000000108000ULL}, // slow scripting
     {"FLUSHALL", 0x0000000000028005ULL}, // keyspace write slow dangerous
     {"FLUSHDB", 0x0000000000028005ULL}, // keyspace write slow dangerous
+    {"FUNCTION", 0x0000000000008000ULL}, // slow
     {"GET", 0x0000000000004082ULL}, // read string fast
     {"GETBIT", 0x0000000000004102ULL}, // read bitmap fast
     {"GETDEL", 0x0000000000004084ULL}, // write string fast

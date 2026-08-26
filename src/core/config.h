@@ -221,6 +221,16 @@ struct Config {
     // not an ordering device -- tickets are drawn at the publish, so no frontier exists.
     static constexpr uint32_t kAtomicWindowAuto = UINT32_MAX;
     uint32_t atomic_window   = kAtomicWindowAuto;
+    // ---- scripting -----------------------------------------------------------------------------
+    // Lua VM instructions an EVAL/FCALL activation may retire before it is aborted with BUSY.
+    // Scripts run inside one shard-owner task, so an unbounded script would park that owner's
+    // whole queue; this is the bound that makes SCRIPT KILL structurally unnecessary. Rounded up
+    // to the 1000-instruction hook interval. 0 = unlimited (opt out; an owner can then stall).
+    // Boot-only, and deliberately tomo-named: Redis's lua-time-limit/busy-reply-threshold is a
+    // wall-clock BUSY-reply threshold for a script that keeps running, which is a different
+    // mechanism, so borrowing the name would borrow the wrong semantics.
+    uint64_t script_instruction_limit = 100000;
+
     TypeLimits type_limits;              // 8 compact-encoding limits, all live via CONFIG SET
     StreamLimits stream_limits;          // macro-node roll-over budgets, live via CONFIG SET
 
@@ -619,6 +629,12 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 return kConfigError;
             }
         }
+        else if (!std::strcmp(a, "--script-instruction-limit")) {
+            if (!cfg_parse_u64(next(nullptr), cfg.script_instruction_limit)) {
+                std::fprintf(stderr, "--script-instruction-limit wants a uint64, 0 = unlimited\n");
+                return kConfigError;
+            }
+        }
         else if (!std::strcmp(a, "--shard-home")) cfg.shard_home = next("");
         else if (!std::strcmp(a, "--no-pin"))     cfg.pin_threads = false;
         else if (!std::strcmp(a, "--hash")) {
@@ -678,6 +694,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "            --user NAME RULE... --acl-pubsub-default allchannels|resetchannels\n"
                         "            --acllog-max-len N\n"
                         "  atomics: --atomic 0|1 --atomic-window N (default 256; 0=unlimited)\n"
+                        "  scripting: --script-instruction-limit N (default 100000; 0=unlimited)\n"
                         "  compact encodings: --{hash,list,set,zset}-max-compact-{entries,value} N\n"
                         "  streams: --stream-node-max-bytes N --stream-node-max-entries N\n"
                         "  misc: --hash mix64|siphash\n"

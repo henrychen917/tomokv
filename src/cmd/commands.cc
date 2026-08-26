@@ -71,7 +71,7 @@ bool command_registry_init(bool tls_enabled) {
     const CommandTable families[] = {
         string_command_table(), hash_command_table(), list_command_table(),
         set_command_table(), zset_command_table(), stream_command_table(), server_command_table(),
-        scripting_command_table(),
+        scripting_command_table(), functions_command_table(),
     };
     size_t total = 0;
     for (const CommandTable& family : families) total += family.size;
