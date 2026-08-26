@@ -577,6 +577,9 @@
             event->acl_permissions = permissions;
             pubsub_post(io, event);
         }
+        // Remote IOs are woken through their client-in channel. The local event has no wake
+        // marker, so consume it before returning or a same-IO client can retain revoked access.
+        pubsub_drain_events();
     }
 
     void pubsub_handle_event(PubSubEvent& event) {
