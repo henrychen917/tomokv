@@ -51,6 +51,7 @@ struct MultiCommand {
     std::atomic<uint32_t> stage{0};
     std::atomic<long long> integer{0};
     std::atomic<bool> condition_failed{false};
+    std::atomic<bool> finished{false};
     ScatterState* scatter = nullptr;
     uint32_t notify_order_base = 0;
 };
@@ -91,7 +92,11 @@ struct alignas(8) MultiExecState {
     std::vector<MultiWatchedKey> watched;
     std::vector<MultiWriteKey> write_keys;
     std::vector<int32_t> shards;
+    // IO builds these in transaction order. Each cursor has exactly one shard-owner writer.
+    std::vector<std::vector<uint32_t>> shard_commands;
+    std::vector<uint32_t> shard_cursors;
     std::vector<uint8_t> watch_shard_done;
+    std::vector<uint8_t> execution_joined;
     std::vector<uint8_t> final_shard_done;
     std::vector<uint8_t> execution_noted;
     std::vector<uint32_t> owner_record_refs;
@@ -103,7 +108,7 @@ struct alignas(8) MultiExecState {
     std::atomic<bool> watch_failed{false};
     std::atomic<bool> watch_phase_done{false};
     std::atomic<uint32_t> watch_pending{0};
-    std::atomic<uint32_t> command_index{0};
+    std::atomic<uint32_t> lists_pending{0};
     std::atomic<bool> finalizer_claimed{false};
     std::atomic<bool> finalized{false};
     std::atomic<uint32_t> tasks_pending{0};
@@ -262,6 +267,8 @@ void add_write_key(MultiExecState& state, const MultiCommand& command, uint32_t 
         key, FlatStore::hash_key(Slice(key.data(), static_cast<uint32_t>(key.size()))), shard});
 }
 
+bool command_has_owner_work(const MultiCommand& command);
+
 bool prepare_commands(Server& server, MultiExecState& state,
                       std::vector<MultiQueuedCommand>& queue, uint8_t db) {
     try {
@@ -371,6 +378,11 @@ bool prepare_commands(Server& server, MultiExecState& state,
                                    std::memory_order_relaxed);
             for (size_t i = 0; i < command->key_args.size(); i++) add_write_key(state, *command, i);
             for (int32_t shard : command->participants) add_shard(state.shards, shard);
+            const uint32_t command_index = static_cast<uint32_t>(state.commands.size());
+            if (command_has_owner_work(*command)) {
+                for (int32_t shard : command->participants)
+                    state.shard_commands[static_cast<uint32_t>(shard)].push_back(command_index);
+            }
             state.commands.push_back(std::move(command));
         }
     } catch (const std::bad_alloc&) {
@@ -391,7 +403,10 @@ MultiExecState* allocate_state(Server& server, Client& client, uint32_t owner_io
     state->kind = kind;
     try {
         state->owner_record_refs.assign(server.placement().ex_threads().size(), 0);
+        state->shard_commands.resize(server.nshards());
+        state->shard_cursors.assign(server.nshards(), 0);
         state->watch_shard_done.assign(server.nshards(), 0);
+        state->execution_joined.assign(server.nshards(), 0);
         state->final_shard_done.assign(server.nshards(), 0);
         state->execution_noted.assign(server.nshards(), 0);
     } catch (const std::bad_alloc&) {
@@ -411,6 +426,8 @@ MultiExecState* prepare_unwatch_state(Server& server, Client& client, uint32_t o
     state->watched = std::move(session.watched);
     for (const MultiWatchedKey& key : state->watched) add_shard(state->shards, key.shard);
     state->watch_pending.store(static_cast<uint32_t>(state->shards.size()),
+                               std::memory_order_relaxed);
+    state->lists_pending.store(static_cast<uint32_t>(state->shards.size()),
                                std::memory_order_relaxed);
     state->tasks_pending.store(static_cast<uint32_t>(state->shards.size()),
                                std::memory_order_relaxed);
@@ -512,8 +529,13 @@ MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard
     return MultiPrepareWrite::Ready;
 }
 
-bool command_touches_shard(const MultiCommand& command, int32_t shard) {
-    return contains_shard(command.participants, shard);
+bool command_has_owner_work(const MultiCommand& command) {
+    return command.kind != MultiCommandKind::Ping &&
+           command.kind != MultiCommandKind::Echo &&
+           command.kind != MultiCommandKind::UnwatchReply &&
+           command.kind != MultiCommandKind::IoLocal &&
+           command.kind != MultiCommandKind::Prebuilt &&
+           command.kind != MultiCommandKind::Unsupported;
 }
 
 bool prepare_local_write_keys(Server& server, MultiExecState& state, MultiCommand& command,
@@ -751,21 +773,30 @@ void finalize_reservations(MultiExecState& state, Shard& shard) {
     state.final_shard_done[static_cast<uint32_t>(shard.id())] = 1;
 }
 
-bool finish_command(MultiExecState& state, MultiCommand& command, uint32_t stage) {
-    if (command.pending.fetch_sub(1, std::memory_order_acq_rel) != 1) return false;
+void finish_command(MultiCommand& command, uint32_t stage) {
+    if (command.pending.fetch_sub(1, std::memory_order_acq_rel) != 1) return;
     if (command.kind == MultiCommandKind::Msetnx && stage == 0 &&
         !command.condition_failed.load(std::memory_order_acquire)) {
         command.pending.store(static_cast<uint32_t>(command.participants.size()),
                               std::memory_order_relaxed);
         command.stage.store(1, std::memory_order_release);
-        return false;
+        return;
     }
     if (command.kind != MultiCommandKind::Local &&
         command.kind != MultiCommandKind::Scan &&
         command.kind != MultiCommandKind::IoLocal &&
         command.kind != MultiCommandKind::Prebuilt) assemble_cross_reply(command);
-    state.command_index.fetch_add(1, std::memory_order_release);
-    return true;
+    command.finished.store(true, std::memory_order_release);
+}
+
+void assemble_ownerless_replies(MultiExecState& state) {
+    for (const auto& command : state.commands) {
+        if (command_has_owner_work(*command) ||
+            command->kind == MultiCommandKind::IoLocal ||
+            command->kind == MultiCommandKind::Prebuilt)
+            continue;
+        assemble_cross_reply(*command);
+    }
 }
 
 }  // namespace
@@ -842,6 +873,8 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
             return MultiIoAction::LocalDone;
         }
         state->watch_pending.store(static_cast<uint32_t>(state->shards.size()),
+                                   std::memory_order_relaxed);
+        state->lists_pending.store(static_cast<uint32_t>(state->shards.size()),
                                    std::memory_order_relaxed);
         state->tasks_pending.store(static_cast<uint32_t>(state->shards.size()),
                                    std::memory_order_relaxed);
@@ -933,6 +966,8 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
             return MultiIoAction::LocalDone;
         }
         state->watch_pending.store(static_cast<uint32_t>(state->shards.size()),
+                                   std::memory_order_relaxed);
+        state->lists_pending.store(static_cast<uint32_t>(state->shards.size()),
                                    std::memory_order_relaxed);
         state->tasks_pending.store(static_cast<uint32_t>(state->shards.size()),
                                    std::memory_order_relaxed);
@@ -1133,23 +1168,32 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
         if (!state.watch_phase_done.load(std::memory_order_acquire)) return MultiTaskResult::Retry;
     }
 
+    const uint32_t shard_id = static_cast<uint32_t>(shard.id());
+    std::vector<uint32_t>& command_list = state.shard_commands[shard_id];
+    uint32_t& cursor = state.shard_cursors[shard_id];
     if (state.kind != MultiStateKind::Execute ||
         state.final_reply == MultiFinalReply::ExecAbort ||
         state.watch_failed.load(std::memory_order_acquire)) {
-        state.command_index.store(static_cast<uint32_t>(state.commands.size()),
-                                  std::memory_order_release);
+        cursor = static_cast<uint32_t>(command_list.size());
     }
 
-    const uint32_t index = state.command_index.load(std::memory_order_acquire);
-    if (index < state.commands.size()) {
-        MultiCommand& command = *state.commands[index];
-        if (!command_touches_shard(command, shard.id())) return MultiTaskResult::Retry;
+    while (cursor < command_list.size()) {
+        MultiCommand& command = *state.commands[command_list[cursor]];
+        if (command.finished.load(std::memory_order_acquire)) {
+            cursor++;
+            continue;
+        }
         const uint32_t stage = command.stage.load(std::memory_order_acquire);
-        uint8_t& done = command.shard_done[static_cast<uint32_t>(shard.id())];
+        uint8_t& done = command.shard_done[shard_id];
         if (command.kind == MultiCommandKind::Xshard) {
-            if (!xshard_multi_child_has_group(*command.scatter, shard.id()))
+            if (!xshard_multi_child_has_group(*command.scatter, shard.id())) {
+                if (command.finished.load(std::memory_order_acquire)) continue;
                 return MultiTaskResult::Retry;
-            if (done == stage + 1) return MultiTaskResult::Retry;
+            }
+            if (done == stage + 1) {
+                if (command.finished.load(std::memory_order_acquire)) continue;
+                return MultiTaskResult::Retry;
+            }
             if (notify)
                 notify_execute_source(shard, *command.op, command.notify_order_base);
             const Task child_task{state.client, task.op_id, shard.id(), command.scatter};
@@ -1185,46 +1229,49 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                 if (notify)
                     notify_xshard_finished(shard, *command.op, *command.scatter);
                 assemble_final(*state.client, *command.op, *command.scatter);
-                state.command_index.fetch_add(1, std::memory_order_release);
+                command.finished.store(true, std::memory_order_release);
             }
+            continue;
+        }
+        if (done == stage + 1) {
+            if (command.finished.load(std::memory_order_acquire)) continue;
             return MultiTaskResult::Retry;
         }
-        if (done != stage + 1) {
-            bool executed = true;
-            if (state.aborted.load(std::memory_order_acquire)) {
-                // Still join the command barrier; another owner may already have installed a
-                // private candidate which the shared abort flag will hide.
-            } else if (command.kind == MultiCommandKind::Local ||
-                       command.kind == MultiCommandKind::Scan) {
-                executed = execute_local_command(server, state, command, shard, owner_thread_id);
-            } else if (command.kind == MultiCommandKind::Ping ||
-                       command.kind == MultiCommandKind::Echo ||
-                       command.kind == MultiCommandKind::UnwatchReply ||
-                       command.kind == MultiCommandKind::IoLocal ||
-                       command.kind == MultiCommandKind::Prebuilt ||
-                       command.kind == MultiCommandKind::Unsupported) {
-                // No owner-local data work; the last participant formats the result below.
-            } else {
-                executed = execute_cross_command(
-                    server, state, command, shard, owner_thread_id, stage);
-            }
-            if (!executed) return state.aborted.load(std::memory_order_acquire)
-                ? MultiTaskResult::Retry : MultiTaskResult::Retry;
-            done = static_cast<uint8_t>(stage + 1);
-            finish_command(state, command, stage);
+        bool executed = true;
+        if (state.aborted.load(std::memory_order_acquire)) {
+            // Still join the command barrier; another owner may already have installed a
+            // private candidate which the shared abort flag will hide.
+        } else if (command.kind == MultiCommandKind::Local ||
+                   command.kind == MultiCommandKind::Scan) {
+            executed = execute_local_command(server, state, command, shard, owner_thread_id);
+        } else {
+            executed = execute_cross_command(
+                server, state, command, shard, owner_thread_id, stage);
         }
-        return MultiTaskResult::Retry;
+        if (!executed) return MultiTaskResult::Retry;
+        done = static_cast<uint8_t>(stage + 1);
+        finish_command(command, stage);
     }
 
-    bool expected = false;
-    if (state.finalizer_claimed.compare_exchange_strong(
-            expected, true, std::memory_order_acq_rel)) {
-        if (state.watch_failed.load(std::memory_order_acquire))
-            state.aborted.store(true, std::memory_order_release);
-        if (!state.aborted.load(std::memory_order_acquire) &&
-            state.final_reply == MultiFinalReply::Exec)
-            state.epoch.store(server.atomic_commit(), std::memory_order_release);
-        state.finalized.store(true, std::memory_order_release);
+    uint8_t& joined = state.execution_joined[shard_id];
+    if (!joined) {
+        joined = 1;
+        // This first barrier publishes every list's owner work before the one commit decision.
+        // tasks_pending remains the post-decision lifetime barrier for state and reservations.
+        if (state.lists_pending.fetch_sub(1, std::memory_order_acq_rel) == 1) {
+            bool expected = false;
+            if (state.finalizer_claimed.compare_exchange_strong(
+                    expected, true, std::memory_order_acq_rel)) {
+                if (state.watch_failed.load(std::memory_order_acquire))
+                    state.aborted.store(true, std::memory_order_release);
+                if (!state.aborted.load(std::memory_order_acquire) &&
+                    state.final_reply == MultiFinalReply::Exec) {
+                    assemble_ownerless_replies(state);
+                    state.epoch.store(server.atomic_commit(), std::memory_order_release);
+                }
+                state.finalized.store(true, std::memory_order_release);
+            }
+        }
     }
     if (!state.finalized.load(std::memory_order_acquire)) return MultiTaskResult::Retry;
     finalize_reservations(state, shard);
