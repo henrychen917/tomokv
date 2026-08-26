@@ -46,9 +46,18 @@ struct CmdFlags {
     static constexpr uint32_t Blocking = 1u << 13;
     static constexpr uint32_t Transaction = 1u << 14; // MULTI/EXEC/WATCH controls, IO-owned
     static constexpr uint32_t AclExempt = 1u << 15;   // AUTH/HELLO/RESET/QUIT bypass ACL command bits
+    // Set only on the registry's armed shadow rows. It consumes no Op storage and lets the
+    // inherently-slower scatter/blocking/MULTI engines select their recording path without
+    // putting a notification branch in ExLoop::execute. (Bit 15 went to AclExempt in the ACL
+    // merge; the shadow-row flag moved to bit 16 — it is registry-internal, nothing serializes it.)
+    static constexpr uint32_t NotifySelected = 1u << 16;
 };
 
 using CmdHandler = void (*)(Shard&, Op&);
+
+// Registry placeholder pair for commands implemented by scatter/gather lowering.
+void cmd_xshard_only(Shard& shard, Op& op);
+void cmd_xshard_only_notify(Shard& shard, Op& op);
 
 struct CommandSpec {
     const char* name;
@@ -69,9 +78,23 @@ struct CommandSpec {
     // registry-owned storage and assigns the final value before any server thread starts.
     uint16_t    id = 0;
 
+    // Cold registry tail. `handler` is always the clean specialization. The IO thread selects a
+    // shadow row whose handler is `handler_notify` when its pass-local armed cache is true.
+    CmdHandler  handler_notify = nullptr;
+
+    constexpr CommandSpec(const char* name_, int32_t min_arity_, int32_t max_arity_,
+                          uint32_t flags_, CmdHandler handler_, int16_t first_key_,
+                          int16_t last_key_, int16_t key_step_,
+                          CmdHandler handler_notify_ = nullptr)
+        : name(name_), min_arity(min_arity_), max_arity(max_arity_), flags(flags_),
+          handler(handler_), first_key(first_key_), last_key(last_key_), key_step(key_step_),
+          handler_notify(handler_notify_ ? handler_notify_ :
+                         (handler_ == cmd_xshard_only ? cmd_xshard_only_notify : handler_)) {}
 };
 
-static_assert(sizeof(CommandSpec) == 40);
+// 48 = the ACL audit's measured 40 plus the notify v2 handler_notify tail pointer. Registry rows
+// are cold read-only data; the lock exists to catch accidental growth, not to forbid deliberate.
+static_assert(sizeof(CommandSpec) == 48);
 
 struct CommandTable {
     const CommandSpec* specs;
@@ -95,6 +118,7 @@ bool command_arity_ok(const CommandSpec& spec, uint32_t argc);
 uint32_t command_registry_size();
 const CommandSpec* command_registry_at(uint32_t id);
 uint64_t command_acl_category_mask(const CommandSpec& spec);
+const CommandSpec* command_notify_variant(const CommandSpec* spec);
 
 class Server;
 class Client;
@@ -127,6 +151,4 @@ void scripting_bind_server(Server* server);
 
 // Registry placeholder for commands whose implementation is the multi-shard lowering itself.
 // Reaching it as an ordinary single-shard handler is an internal routing error.
-void cmd_xshard_only(Shard& shard, Op& op);
-
 }  // namespace tomo

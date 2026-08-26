@@ -221,7 +221,7 @@
         pubsub_append_wire(client, frame);
     }
 
-    void pubsub_home_publish(PubSubEvent& request) {
+    void pubsub_home_publish(PubSubEvent& request, bool reply_to_publisher = true) {
         uint64_t receivers = 0;
         auto& index = request.shard ? pubsub_shard_channels_ : pubsub_channels_;
         auto exact = index.find(request.channel);
@@ -252,11 +252,45 @@
                 receivers++;
             }
         }
-        PubSubEvent* result = pubsub_new_event(PubSubEventKind::PublishResult);
-        result->conn_id = request.conn_id;
-        result->op_id = request.op_id;
-        result->count = receivers;
-        pubsub_post(request.origin_io, result);
+        if (reply_to_publisher) {
+            PubSubEvent* result = pubsub_new_event(PubSubEventKind::PublishResult);
+            result->conn_id = request.conn_id;
+            result->op_id = request.op_id;
+            result->count = receivers;
+            pubsub_post(request.origin_io, result);
+        }
+    }
+
+    void pubsub_notification_send(const std::shared_ptr<PubSubNotificationChain>& chain) {
+        if (!chain || chain->index >= chain->items.size()) std::abort();
+        PubSubNotificationItem& item = chain->items[chain->index];
+        PubSubEvent* request = pubsub_new_event(PubSubEventKind::NotificationRequest);
+        request->origin_io = chain->coordinator_io;
+        request->channel = std::move(item.channel);
+        request->message = std::move(item.message);
+        request->notification = chain;
+        pubsub_post(pubsub_home_for(request->channel), request);
+    }
+
+    void pubsub_notification_enqueue(std::shared_ptr<PubSubNotificationChain> chain) {
+        if (!chain || chain->items.empty()) return;
+        chain->coordinator_io = self_->id();
+        const bool start = pubsub_notification_chains_.empty();
+        pubsub_notification_chains_.push_back(std::move(chain));
+        if (start) pubsub_notification_send(pubsub_notification_chains_.front());
+    }
+
+    void pubsub_notification_continue(PubSubEvent& event) {
+        const std::shared_ptr<PubSubNotificationChain> chain = std::move(event.notification);
+        if (!chain || pubsub_notification_chains_.empty() ||
+            pubsub_notification_chains_.front() != chain) std::abort();
+        if (++chain->index < chain->items.size()) {
+            pubsub_notification_send(chain);
+            return;
+        }
+        pubsub_notification_chains_.pop_front();
+        if (!pubsub_notification_chains_.empty())
+            pubsub_notification_send(pubsub_notification_chains_.front());
     }
 
     void pubsub_handle_home_request(PubSubEvent& event) {
@@ -284,6 +318,15 @@
             }
             case PubSubEventKind::PublishRequest:
                 pubsub_home_publish(event);
+                break;
+            case PubSubEventKind::NotificationRequest:
+                pubsub_home_publish(event, false);
+                {
+                    PubSubEvent* continuation =
+                        pubsub_new_event(PubSubEventKind::NotificationContinue);
+                    continuation->notification = std::move(event.notification);
+                    pubsub_post(continuation->notification->coordinator_io, continuation);
+                }
                 break;
             case PubSubEventKind::ChannelsRequest: {
                 PubSubEvent* result = pubsub_new_event(PubSubEventKind::ChannelsResult);
@@ -584,8 +627,15 @@
 
     void pubsub_handle_event(PubSubEvent& event) {
         switch (event.kind) {
+            case PubSubEventKind::NotificationEnqueue:
+                pubsub_notification_enqueue(std::move(event.notification));
+                break;
+            case PubSubEventKind::NotificationContinue:
+                pubsub_notification_continue(event);
+                break;
             case PubSubEventKind::ModifyRequest:
             case PubSubEventKind::PublishRequest:
+            case PubSubEventKind::NotificationRequest:
             case PubSubEventKind::ChannelsRequest:
             case PubSubEventKind::NumsubRequest:
             case PubSubEventKind::NumpatRequest:
@@ -926,6 +976,7 @@
         events.insert(events.end(), pubsub_local_events_.begin(), pubsub_local_events_.end());
         pubsub_local_events_.clear();
         for (PubSubEvent* event : events) pubsub_delete_event(event);
+        pubsub_notification_chains_.clear();
     }
 
     std::unordered_map<std::string, std::vector<PubSubRef>> pubsub_channels_;

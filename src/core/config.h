@@ -209,6 +209,10 @@ struct Config {
     static constexpr uint32_t kAtomicWindowAuto = UINT32_MAX;
     uint32_t atomic_window   = kAtomicWindowAuto;
     TypeLimits type_limits;              // 8 compact-encoding limits, all live via CONFIG SET
+
+    // Cold feature tail: never shift a pre-existing Config field because several boot-latched
+    // values are loaded directly in executor code. Empty flag string = notifications off.
+    uint32_t notify_events = 0;
 };
 
 // ---- tiny local parsers (const char* flavors; the Slice flavors in the .cc files are separate) --
@@ -414,6 +418,16 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 return kConfigError;
             }
         }
+        else if (!std::strcmp(a, "--notify-keyspace-events")) {
+            const char* value = next(nullptr);
+            const Slice input(value ? value : "", value ? std::strlen(value) : 0);
+            uint32_t parsed = 0;
+            if (!value || !parse_notify_flags(input, parsed)) {
+                std::fprintf(stderr, "--notify-keyspace-events contains an invalid flag\n");
+                return kConfigError;
+            }
+            cfg.notify_events = parsed;
+        }
         else if (!std::strcmp(a, "--dir"))        cfg.dir = next(".");
         else if (!std::strcmp(a, "--dbfilename")) cfg.dbfilename = next("dump.tomo");
         else if (!std::strcmp(a, "--load"))       cfg.load_path = next("");
@@ -504,6 +518,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "         --maxmemory-samples N (1..64, default 5)\n"
                         "  limits: --maxclients N --timeout SECONDS --tcp-keepalive SECONDS\n"
                         "          --tcp-backlog N --client-output-buffer-limit CLASS HARD SOFT SECONDS ...\n"
+                        "  notifications: --notify-keyspace-events FLAGS (default empty/off)\n"
                         "  persistence: --dir PATH --dbfilename NAME --load PATH\n"
                         "  security: --requirepass PASSWORD --protected-mode 0|1|yes|no\n"
                         "            --enable-debug-command no|yes|local --aclfile PATH\n"
@@ -655,6 +670,11 @@ inline bool load_conf_file(const char* path, std::vector<std::string>& store) {
             continue;
         }
         if (words.empty()) continue;
+        // The Redis reference spelling for an empty notification mask is two quotes. This loader
+        // otherwise deliberately has no shell quoting grammar, so normalize that one exact token
+        // to the empty argv value consumed by the shared flag parser.
+        if (words[0] == "notify-keyspace-events" && words.size() == 2 && words[1] == "\"\"")
+            words[1].clear();
         if (words[0] == "pin") {
             if (words.size() != 2 || (words[1] != "yes" && words[1] != "no")) {
                 std::fprintf(stderr, "%s:%d: pin wants yes|no\n", path, lineno);

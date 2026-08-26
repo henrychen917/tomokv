@@ -228,7 +228,12 @@ private:
             // Cross-shard completion publishes descriptors/state, not bytes.  The connection's IO
             // owner turns those into the final ordered reply here, before the generic staging path
             // inspects the (possibly repurposed) zero-copy fields.
-            if (retire_fn_) retire_fn_(retire_ctx_, conn, op);
+            // Plain commands have no sidecar and take exactly the pre-notify zc_ptr branch. Special
+            // command state, borrowed values, and armed notification batches all already use this
+            // field, so their retirement hook nests behind that existing test.
+            if (op.zc_ptr) {
+                if (retire_fn_) retire_fn_(retire_ctx_, conn, op);
+            }
             if (op.zc_ptr) {
                 // Anything already staged is older than this op. Once sealed, every subsequent
                 // reply uses segments until the queue drains, so no fill-buffer append can jump a

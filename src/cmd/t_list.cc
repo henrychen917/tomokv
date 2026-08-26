@@ -4,6 +4,7 @@
 // ownership remains on the shard executor and no collection storage is borrowed by replies.
 #include "command.h"
 #include "blocking.h"
+#include "notify.h"
 #include "xshard.h"
 #include "../core/shard.h"
 #include "../exec/op.h"
@@ -257,6 +258,7 @@ bool append_all_expanded(const CollectionRef& source, ListVal& destination) {
     return true;
 }
 
+template <bool kNotify>
 bool externalize_list(Shard& shard, Op& op, KvObj*& object) {
     CollectionRef source(object);
     if (!source.is_embedded()) return true;
@@ -276,7 +278,7 @@ bool externalize_list(Shard& shard, Op& op, KvObj*& object) {
         return false;
     }
     replacement->set_eviction_meta(object->eviction_meta());
-    const FlatStore::InsertResult inserted = shard.store().insert(op.hash, replacement);
+    const FlatStore::InsertResult inserted = shard.store_insert<kNotify>(op.hash, replacement);
     if (inserted != FlatStore::InsertResult::Inserted) {
         kvobj_free(replacement);
         if (inserted == FlatStore::InsertResult::MaxmemoryOom) reply_maxmemory_oom(op);
@@ -308,8 +310,9 @@ bool normalize_range(int64_t start, int64_t stop, uint32_t size,
     return true;
 }
 
+template <bool kNotify>
 void push_generic(Shard& shard, Op& op, bool left, bool only_existing) {
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::List, op.sink())) return;
     if (!object && only_existing) {
         reply_int(op.sink(), 0);
@@ -346,13 +349,16 @@ void push_generic(Shard& shard, Op& op, bool left, bool only_existing) {
         const uint32_t final_entries = list->entries();
         KvObj* fresh = kvobj_adopt_list(op.key(), list);
         if (!fresh) { delete list; reply_oom(op); return; }
-        const FlatStore::InsertResult inserted_ = shard.store().insert(op.hash, fresh);
+        const FlatStore::InsertResult inserted_ = shard.store_insert<kNotify>(op.hash, fresh);
 if (inserted_ != FlatStore::InsertResult::Inserted) {
     kvobj_free(fresh);
     if (inserted_ == FlatStore::InsertResult::MaxmemoryOom) reply_maxmemory_oom(op);
     else reply_err(op.sink(), "ERR keyspace insert failed");
     return;
         }
+        if constexpr (kNotify)
+            notify_record(shard, op, NOTIFY_LIST,
+                          left ? NotifyEventId::Lpush : NotifyEventId::Rpush, op.key());
         reply_int(op.sink(), final_entries);
         if (shard.has_blocking_waiters()) blocking_publish_list_op(shard, op);
         return;
@@ -369,7 +375,7 @@ if (inserted_ != FlatStore::InsertResult::Inserted) {
         (!before.embedded_bytes_fit(resulting_encoded) ||
          !before.list_fits(shard.type_limits().list, before.entries() + added,
                            before.payload_bytes() + incoming_payload))) {
-        if (!externalize_list(shard, op, object)) return;
+        if (!externalize_list<kNotify>(shard, op, object)) return;
     }
     CollectionRef list = list_value(object);
     ObjectSizeTracker size_tracker(shard.store(), object);
@@ -406,15 +412,23 @@ if (inserted_ != FlatStore::InsertResult::Inserted) {
             expanded->note_expanded_insert(op.arg(i).n, expanded->node_allocation_bytes);
         }
     }
+    if constexpr (kNotify)
+        notify_record(shard, op, NOTIFY_LIST,
+                      left ? NotifyEventId::Lpush : NotifyEventId::Rpush, op.key());
     reply_int(op.sink(), list.entries());
     if (shard.has_blocking_waiters()) blocking_publish_list_op(shard, op);
 }
 
-void cmd_lpush(Shard& shard, Op& op)  { push_generic(shard, op, true, false); }
-void cmd_rpush(Shard& shard, Op& op)  { push_generic(shard, op, false, false); }
-void cmd_lpushx(Shard& shard, Op& op) { push_generic(shard, op, true, true); }
-void cmd_rpushx(Shard& shard, Op& op) { push_generic(shard, op, false, true); }
+template <bool kNotify>
+void cmd_lpush(Shard& shard, Op& op)  { push_generic<kNotify>(shard, op, true, false); }
+template <bool kNotify>
+void cmd_rpush(Shard& shard, Op& op)  { push_generic<kNotify>(shard, op, false, false); }
+template <bool kNotify>
+void cmd_lpushx(Shard& shard, Op& op) { push_generic<kNotify>(shard, op, true, true); }
+template <bool kNotify>
+void cmd_rpushx(Shard& shard, Op& op) { push_generic<kNotify>(shard, op, false, true); }
 
+template <bool kNotify>
 void pop_generic(Shard& shard, Op& op, bool left) {
     const bool has_count = op.argc() == 3;
     int64_t requested = 1;
@@ -426,7 +440,7 @@ void pop_generic(Shard& shard, Op& op, bool left) {
         }
     }
 
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!object) {
         if (has_count) reply_null_array(op.sink());
         else reply_nil(op.sink());
@@ -440,7 +454,7 @@ void pop_generic(Shard& shard, Op& op, bool left) {
         if (has_count) reply_null_array(op.sink());
         else reply_nil(op.sink());
         size_tracker.finish();
-        shard.store().erase(op.hash, op.key());
+        shard.store_erase<kNotify>(op.hash, op.key());
         return;
     }
 
@@ -468,23 +482,30 @@ void pop_generic(Shard& shard, Op& op, bool left) {
             expanded->note_expanded_delete(payload, expanded->node_allocation_bytes);
         }
     }
+    if constexpr (kNotify)
+        notify_record(shard, op, NOTIFY_LIST,
+                      left ? NotifyEventId::Lpop : NotifyEventId::Rpop, op.key());
     if (!list.entries()) {
         size_tracker.finish();
-        shard.store().erase(op.hash, op.key());
+        shard.store_erase<kNotify>(op.hash, op.key());
     }
 }
 
-void cmd_lpop(Shard& shard, Op& op) { pop_generic(shard, op, true); }
-void cmd_rpop(Shard& shard, Op& op) { pop_generic(shard, op, false); }
+template <bool kNotify>
+void cmd_lpop(Shard& shard, Op& op) { pop_generic<kNotify>(shard, op, true); }
+template <bool kNotify>
+void cmd_rpop(Shard& shard, Op& op) { pop_generic<kNotify>(shard, op, false); }
 
+template <bool kNotify>
 void cmd_llen(Shard& shard, Op& op) {
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::List, op.sink())) return;
     reply_int(op.sink(), object ? list_value(object).entries() : 0);
 }
 
+template <bool kNotify>
 void cmd_lindex(Shard& shard, Op& op) {
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!object) { reply_nil(op.sink()); return; }
     if (!obj_type_check(object, Type::List, op.sink())) return;
     int64_t index = 0;
@@ -499,13 +520,14 @@ void cmd_lindex(Shard& shard, Op& op) {
     reply_bulk(op.sink(), entry.value);
 }
 
+template <bool kNotify>
 void cmd_lrange(Shard& shard, Op& op) {
     int64_t start = 0, stop = 0;
     if (!parse_i64(op.arg(2), start) || !parse_i64(op.arg(3), stop)) {
         reply_integer_error(op);
         return;
     }
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!object) { reply_array_header(op.sink(), 0); return; }
     if (!obj_type_check(object, Type::List, op.sink())) return;
 
@@ -532,8 +554,9 @@ bool build_replaced(const CollectionRef& source, uint32_t index, Slice value, Li
     return true;
 }
 
+template <bool kNotify>
 void cmd_lset(Shard& shard, Op& op) {
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!object) { reply_err(op.sink(), "ERR no such key"); return; }
     if (!obj_type_check(object, Type::List, op.sink())) return;
     int64_t index = 0;
@@ -556,7 +579,7 @@ void cmd_lset(Shard& shard, Op& op) {
         (!initial.embedded_bytes_fit(resulting_encoded) ||
          !initial.list_fits(shard.type_limits().list, initial.entries(),
                             initial.payload_bytes() - old_payload + replacement.n))) {
-        if (!externalize_list(shard, op, object)) return;
+        if (!externalize_list<kNotify>(shard, op, object)) return;
     }
     CollectionRef list = list_value(object);
     ObjectSizeTracker size_tracker(shard.store(), object);
@@ -577,15 +600,18 @@ void cmd_lset(Shard& shard, Op& op) {
             expanded->promote(CollectionEncoding::Deque, allocation);
         expanded->note_expanded_replace(old_payload, replacement.n, allocation);
     }
+    if constexpr (kNotify)
+        notify_record(shard, op, NOTIFY_LIST, NotifyEventId::Lset, op.key());
     reply_ok(op.sink());
 }
 
+template <bool kNotify>
 void cmd_linsert(Shard& shard, Op& op) {
     bool before = false;
     if (op.arg(2).eq_icase("before")) before = true;
     else if (!op.arg(2).eq_icase("after")) { reply_syntax(op.sink()); return; }
 
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!object) { reply_int(op.sink(), 0); return; }
     if (!obj_type_check(object, Type::List, op.sink())) return;
     CollectionRef initial = list_value(object);
@@ -595,7 +621,7 @@ void cmd_linsert(Shard& shard, Op& op) {
         (!initial.embedded_bytes_fit(resulting_encoded) ||
          !initial.list_fits(shard.type_limits().list, initial.entries() + 1,
                             initial.payload_bytes() + op.arg(4).n))) {
-        if (!externalize_list(shard, op, object)) return;
+        if (!externalize_list<kNotify>(shard, op, object)) return;
     }
     CollectionRef list = list_value(object);
     ObjectSizeTracker size_tracker(shard.store(), object);
@@ -655,9 +681,12 @@ void cmd_linsert(Shard& shard, Op& op) {
             expanded->promote(CollectionEncoding::Deque, allocation);
         expanded->note_expanded_insert(inserted.n, allocation);
     }
+    if constexpr (kNotify)
+        notify_record(shard, op, NOTIFY_LIST, NotifyEventId::Linsert, op.key());
     reply_int(op.sink(), list.entries());
 }
 
+template <bool kNotify>
 void cmd_lrem(Shard& shard, Op& op) {
     int64_t requested = 0;
     if (!parse_i64(op.arg(2), requested)) { reply_integer_error(op); return; }
@@ -666,7 +695,7 @@ void cmd_lrem(Shard& shard, Op& op) {
         return;
     }
 
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!object) { reply_int(op.sink(), 0); return; }
     if (!obj_type_check(object, Type::List, op.sink())) return;
     CollectionRef list = list_value(object);
@@ -683,9 +712,11 @@ void cmd_lrem(Shard& shard, Op& op) {
         ? matches : static_cast<uint32_t>(std::min<uint64_t>(matches, limit));
     if (!remove_count) { reply_int(op.sink(), 0); return; }
     if (remove_count == list.entries()) {
+        if constexpr (kNotify)
+            notify_record(shard, op, NOTIFY_LIST, NotifyEventId::Lrem, op.key());
         reply_int(op.sink(), remove_count);
         size_tracker.finish();
-        shard.store().erase(op.hash, op.key());
+        shard.store_erase<kNotify>(op.hash, op.key());
         return;
     }
 
@@ -721,16 +752,19 @@ void cmd_lrem(Shard& shard, Op& op) {
         expanded->note_expanded_delete_many(remove_count, removed_payload,
                                             expanded->node_allocation_bytes);
     }
+    if constexpr (kNotify)
+        notify_record(shard, op, NOTIFY_LIST, NotifyEventId::Lrem, op.key());
     reply_int(op.sink(), remove_count);
 }
 
+template <bool kNotify>
 void cmd_ltrim(Shard& shard, Op& op) {
     int64_t start = 0, stop = 0;
     if (!parse_i64(op.arg(2), start) || !parse_i64(op.arg(3), stop)) {
         reply_integer_error(op);
         return;
     }
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!object) { reply_ok(op.sink()); return; }
     if (!obj_type_check(object, Type::List, op.sink())) return;
     CollectionRef list = list_value(object);
@@ -738,12 +772,18 @@ void cmd_ltrim(Shard& shard, Op& op) {
 
     uint32_t first = 0, keep = 0;
     if (!normalize_range(start, stop, list.entries(), first, keep)) {
+        if constexpr (kNotify)
+            notify_record(shard, op, NOTIFY_LIST, NotifyEventId::Ltrim, op.key());
         size_tracker.finish();
-        shard.store().erase(op.hash, op.key());
+        shard.store_erase<kNotify>(op.hash, op.key());
         reply_ok(op.sink());
         return;
     }
-    if (first == 0 && keep == list.entries()) { reply_ok(op.sink()); return; }
+    if (first == 0 && keep == list.entries()) {
+        if constexpr (kNotify)
+            notify_record(shard, op, NOTIFY_LIST, NotifyEventId::Ltrim, op.key());
+        reply_ok(op.sink()); return;
+    }
 
     uint64_t retained_payload = 0;
     Compact compact;
@@ -767,6 +807,8 @@ void cmd_ltrim(Shard& shard, Op& op) {
         expanded->note_expanded_delete_many(removed, removed_payload,
                                             expanded->node_allocation_bytes);
     }
+    if constexpr (kNotify)
+        notify_record(shard, op, NOTIFY_LIST, NotifyEventId::Ltrim, op.key());
     reply_ok(op.sink());
 }
 
@@ -812,11 +854,12 @@ bool parse_lpos_options(Op& op, LposOptions& options) {
     return true;
 }
 
+template <bool kNotify>
 void cmd_lpos(Shard& shard, Op& op) {
     LposOptions options;
     if (!parse_lpos_options(op, options)) return;
 
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!object) {
         if (options.count_given) reply_array_header(op.sink(), 0);
         else reply_nil(op.sink());
@@ -864,22 +907,24 @@ void cmd_lpos(Shard& shard, Op& op) {
     for (uint32_t position : positions) reply_int(op.sink(), position);
 }
 
+#define TOMO_HANDLER_PAIR(fn) fn<false>, 1, 1, 1, notify_handler<fn<true>>
+
 static const CommandSpec kTable[] = {
     // name       min max flags               handler       first last step
-    {"LPUSH",      3, -1, CmdFlags::Write | CmdFlags::DenyOom,    cmd_lpush,      1,  1,  1},
-    {"RPUSH",      3, -1, CmdFlags::Write | CmdFlags::DenyOom,    cmd_rpush,      1,  1,  1},
-    {"LPUSHX",     3, -1, CmdFlags::Write | CmdFlags::DenyOom,    cmd_lpushx,     1,  1,  1},
-    {"RPUSHX",     3, -1, CmdFlags::Write | CmdFlags::DenyOom,    cmd_rpushx,     1,  1,  1},
-    {"LPOP",       2,  3, CmdFlags::Write,    cmd_lpop,       1,  1,  1},
-    {"RPOP",       2,  3, CmdFlags::Write,    cmd_rpop,       1,  1,  1},
-    {"LLEN",       2,  2, CmdFlags::Readonly, cmd_llen,       1,  1,  1},
-    {"LRANGE",     4,  4, CmdFlags::Readonly, cmd_lrange,     1,  1,  1},
-    {"LINDEX",     3,  3, CmdFlags::Readonly, cmd_lindex,     1,  1,  1},
-    {"LSET",       4,  4, CmdFlags::Write | CmdFlags::DenyOom,    cmd_lset,       1,  1,  1},
-    {"LINSERT",    5,  5, CmdFlags::Write | CmdFlags::DenyOom,    cmd_linsert,    1,  1,  1},
-    {"LREM",       4,  4, CmdFlags::Write,    cmd_lrem,       1,  1,  1},
-    {"LTRIM",      4,  4, CmdFlags::Write,    cmd_ltrim,      1,  1,  1},
-    {"LPOS",       3, -1, CmdFlags::Readonly, cmd_lpos,       1,  1,  1},
+    {"LPUSH",      3, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_lpush)},
+    {"RPUSH",      3, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_rpush)},
+    {"LPUSHX",     3, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_lpushx)},
+    {"RPUSHX",     3, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_rpushx)},
+    {"LPOP",       2,  3, CmdFlags::Write,    TOMO_HANDLER_PAIR(cmd_lpop)},
+    {"RPOP",       2,  3, CmdFlags::Write,    TOMO_HANDLER_PAIR(cmd_rpop)},
+    {"LLEN",       2,  2, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_llen)},
+    {"LRANGE",     4,  4, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_lrange)},
+    {"LINDEX",     3,  3, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_lindex)},
+    {"LSET",       4,  4, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_lset)},
+    {"LINSERT",    5,  5, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_linsert)},
+    {"LREM",       4,  4, CmdFlags::Write,    TOMO_HANDLER_PAIR(cmd_lrem)},
+    {"LTRIM",      4,  4, CmdFlags::Write,    TOMO_HANDLER_PAIR(cmd_ltrim)},
+    {"LPOS",       3, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_lpos)},
     {"BLPOP",      3, -1, CmdFlags::Write | CmdFlags::Blocking | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
     {"BRPOP",      3, -1, CmdFlags::Write | CmdFlags::Blocking | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
     {"BLMPOP",     5, -1, CmdFlags::Write | CmdFlags::Blocking | CmdFlags::MultiShard,cmd_xshard_only,3,-1,1},
@@ -890,12 +935,15 @@ static const CommandSpec kTable[] = {
     {"RPOPLPUSH",  3,  3, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,cmd_xshard_only,1,2,1},
 };
 
+#undef TOMO_HANDLER_PAIR
+
 }  // namespace
 
 XshardPopResult xshard_pop_list(Shard& shard, Slice key, uint64_t hash, bool left,
                                 uint64_t count, std::vector<std::string>& elements) {
     elements.clear();
-    KvObj* object = shard.store().find(hash, key);
+    const bool notify = shard.notify_carrier() != nullptr;
+    KvObj* object = notify ? shard.store_find<true>(hash, key) : shard.store().find(hash, key);
     if (!object) return XshardPopResult::Missing;
     if (static_cast<Type>(object->type) != Type::List) return XshardPopResult::WrongType;
     CollectionRef list = list_value(object);
@@ -931,9 +979,13 @@ XshardPopResult xshard_pop_list(Shard& shard, Slice key, uint64_t hash, bool lef
             expanded->note_expanded_delete(payload, expanded->node_allocation_bytes);
         }
     }
+    if (Op* source = shard.notify_source())
+        notify_record(shard, *source, NOTIFY_LIST,
+                      left ? NotifyEventId::Lpop : NotifyEventId::Rpop, key);
     if (!list.entries()) {
         size_tracker.finish();
-        shard.store().erase(hash, key);
+        if (notify) shard.store_erase<true>(hash, key);
+        else shard.store().erase(hash, key);
     }
     return XshardPopResult::Popped;
 }

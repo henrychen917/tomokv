@@ -31,11 +31,12 @@
 
 namespace tomo {
 
-struct MaxmemoryConfigSnapshot {
+struct LiveConfigSnapshot {
     uint64_t version;
     uint64_t maxmemory;
     MaxmemoryPolicy policy;
     uint32_t samples;
+    uint32_t notify_events;
 };
 
 struct ClientLimitsConfigSnapshot {
@@ -80,6 +81,7 @@ public:
         security_flags_.store(cfg.requirepass && *cfg.requirepass ? kSecurityAuth : 0,
                               std::memory_order_relaxed);
         protected_mode_.store(cfg.protected_mode != 0, std::memory_order_relaxed);
+        live_notify_events_.store(cfg.notify_events, std::memory_order_relaxed);
         atomic_activity_.store(cfg.atomic ? kAtomicEnabledBit : 0,
                                std::memory_order_relaxed);
         // AUTO resolves against the shard count: the measured three-point optimum (see config.h).
@@ -137,7 +139,7 @@ public:
             const uint32_t b0 = i * per;
             const uint32_t b1 = (i + 1 == cfg.shards) ? kNumBuckets : (i + 1) * per;
             shards_[i] = std::make_unique<Shard>();
-            shards_[i]->init(static_cast<int32_t>(i), b0, b1, cfg.zc_min, cfg.type_limits);
+            shards_[i]->init(this, static_cast<int32_t>(i), b0, b1, cfg.zc_min, cfg.type_limits);
             shards_[i]->bind_atomic_state(&commit_seq_, &atomic_activity_);
         }
         router_.build_uniform(static_cast<int32_t>(cfg.shards));
@@ -529,28 +531,29 @@ public:
         return atomic_credit_debt_.load(std::memory_order_acquire);
     }
 
-    MaxmemoryConfigSnapshot maxmemory_config_snapshot() const {
+    LiveConfigSnapshot live_config_snapshot() const {
         // CONFIG writers make version odd around a change. Executors take this coherent snapshot
         // once per pass; no atomic reaches an individual operation or store lookup.
         for (;;) {
-            MaxmemoryConfigSnapshot snapshot;
+            LiveConfigSnapshot snapshot;
             snapshot.version = live_config_version_.load(std::memory_order_acquire);
             if (snapshot.version & 1) continue;
             snapshot.maxmemory = live_maxmemory_.load(std::memory_order_relaxed);
             snapshot.policy = static_cast<MaxmemoryPolicy>(
                 live_maxmemory_policy_.load(std::memory_order_relaxed));
             snapshot.samples = live_maxmemory_samples_.load(std::memory_order_relaxed);
+            snapshot.notify_events = live_notify_events_.load(std::memory_order_relaxed);
             if (live_config_version_.load(std::memory_order_acquire) == snapshot.version)
                 return snapshot;
         }
     }
-    bool maxmemory_config_snapshot_if_changed(uint64_t known_version,
-                                              MaxmemoryConfigSnapshot& snapshot) const {
+    bool live_config_snapshot_if_changed(uint64_t known_version,
+                                         LiveConfigSnapshot& snapshot) const {
         // The unchanged per-pass case is one acquire load. Field loads and the retry loop exist
         // only after CONFIG has published a different stable version.
         const uint64_t version = live_config_version_.load(std::memory_order_acquire);
         if (version == known_version) return false;
-        snapshot = maxmemory_config_snapshot();
+        snapshot = live_config_snapshot();
         return snapshot.version != known_version;
     }
     void set_maxmemory(uint64_t value) {
@@ -572,12 +575,45 @@ public:
         if (set_samples) live_maxmemory_samples_.store(samples, std::memory_order_relaxed);
         end_live_config_update(write_version);
     }
+    void set_notify_events(uint32_t value) {
+        const uint64_t write_version = begin_live_config_update();
+        live_notify_events_.store(value, std::memory_order_relaxed);
+        end_live_config_update(write_version);
+    }
+
+    bool pubsub_any_subscribers() const {
+        return pubsub_active_channels_.load(std::memory_order_relaxed) != 0 ||
+               pubsub_pattern_subscriptions_.load(std::memory_order_relaxed) != 0;
+    }
+    void notify_event_fired() { notify_events_fired_.fetch_add(1, std::memory_order_relaxed); }
+    void notify_event_dropped(uint64_t count = 1) {
+        notify_events_dropped_.fetch_add(count, std::memory_order_relaxed);
+    }
+    uint64_t notify_events_fired() const {
+        return notify_events_fired_.load(std::memory_order_relaxed);
+    }
+    uint64_t notify_events_dropped() const {
+        return notify_events_dropped_.load(std::memory_order_relaxed);
+    }
 
     // Pub/sub is IO-owned. These atomics are reporting/lifetime gauges only and are never read or
     // written by the plain key-command path.
     void pubsub_event_created() { pubsub_inflight_.fetch_add(1, std::memory_order_relaxed); }
     void pubsub_event_retired() {
         if (pubsub_inflight_.fetch_sub(1, std::memory_order_relaxed) == 0) std::abort();
+    }
+    bool pubsub_notification_reserve(uint64_t count, uint64_t limit) {
+        uint64_t current = pubsub_inflight_.load(std::memory_order_relaxed);
+        while (count <= limit && current <= limit - count) {
+            if (pubsub_inflight_.compare_exchange_weak(
+                    current, current + count, std::memory_order_relaxed,
+                    std::memory_order_relaxed)) return true;
+        }
+        return false;
+    }
+    void pubsub_notification_retire(uint64_t count) {
+        const uint64_t previous = pubsub_inflight_.fetch_sub(count, std::memory_order_relaxed);
+        if (previous < count) std::abort();
     }
     void pubsub_pending_started() { pubsub_pending_.fetch_add(1, std::memory_order_relaxed); }
     void pubsub_pending_finished() {
@@ -819,6 +855,7 @@ private:
     std::atomic<uint64_t> live_obuf_pubsub_hard_{32ull * 1024 * 1024};
     std::atomic<uint64_t> live_obuf_pubsub_soft_{8ull * 1024 * 1024};
     std::atomic<uint32_t> live_obuf_pubsub_seconds_{60};
+    std::atomic<uint32_t> live_notify_events_{0};
     std::atomic<uint32_t> live_atomic_window_{256};
     std::atomic<uint64_t> commit_seq_{0};
     std::atomic<uint64_t> atomic_window_stalls_{0};
@@ -851,6 +888,8 @@ private:
     std::atomic<uint64_t> acl_perm_retired_{0};
     std::atomic<uint64_t> acl_pubsub_clients_killed_{0};
     std::atomic<uint64_t> rejected_connections_{0};
+    std::atomic<uint64_t> notify_events_fired_{0};
+    std::atomic<uint64_t> notify_events_dropped_{0};
 };
 
 }  // namespace tomo

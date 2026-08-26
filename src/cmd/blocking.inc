@@ -31,6 +31,7 @@ struct BlockingGroup {
 };
 
 struct BlockingState {
+    ~BlockingState() { notify_discard_batch(notify.exchange(nullptr)); }
     std::atomic<uint32_t> refs{1};       // the Op/scatter owner plus one per registry alias
     std::atomic<uint32_t> active_tasks{0};
     std::atomic<uint32_t> pending{0};
@@ -48,6 +49,7 @@ struct BlockingState {
     uint32_t selected = UINT32_MAX;
     std::vector<BlockingKey> keys;
     std::vector<BlockingGroup> groups;
+    std::atomic<NotifyBatch*> notify{nullptr};
 };
 
 namespace {
@@ -299,7 +301,9 @@ void blocking_task_done(BlockingState& state, ThreadCtx& self, Ring& ring) {
 
 BlockingProbe blocking_probe_key(Shard& shard, const BlockingState& state,
                                  const BlockingKey& key) {
-    KvObj* object = shard.store().find(key.hash, blocking_key_slice(key));
+    KvObj* object = shard.notify_carrier()
+        ? shard.store_find<true>(key.hash, blocking_key_slice(key))
+        : shard.store().find(key.hash, blocking_key_slice(key));
     if (!object) return BlockingProbe::Empty;
     const Type wanted = blocking_is_list(state.kind) ? Type::List : Type::Zset;
     if (static_cast<Type>(object->type) != wanted) return BlockingProbe::WrongType;
@@ -794,6 +798,8 @@ void blocking_start(BlockingState* state, uint32_t tasks) {
 
 bool blocking_execute(Server&, ThreadCtx& self, Ring& ring, const Task& task,
                       Shard& shard, Op& op) {
+    const bool notify = (op.spec->flags & CmdFlags::NotifySelected) != 0;
+    NotifyExecutionScope notify_scope(shard, op, notify);
     BlockingState& state = *op.blocking_state();
     if (state.cancel_requested.load(std::memory_order_acquire)) {
         state.phase.store(BlockingPhase::Cancelled, std::memory_order_release);

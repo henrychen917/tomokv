@@ -52,6 +52,7 @@ struct MultiCommand {
     std::atomic<long long> integer{0};
     std::atomic<bool> condition_failed{false};
     ScatterState* scatter = nullptr;
+    uint32_t notify_order_base = 0;
 };
 
 enum class MultiStateKind : uint8_t { Execute, WatchAdd, Unwatch, Close };
@@ -73,6 +74,7 @@ struct MultiSession {
 };
 
 struct alignas(8) MultiExecState {
+    ~MultiExecState() { notify_discard_batch(notify.exchange(nullptr)); }
     MultiStateKind kind = MultiStateKind::Execute;
     MultiFinalReply final_reply = MultiFinalReply::Exec;
     Server* server = nullptr;
@@ -105,6 +107,7 @@ struct alignas(8) MultiExecState {
     std::atomic<bool> finalizer_claimed{false};
     std::atomic<bool> finalized{false};
     std::atomic<uint32_t> tasks_pending{0};
+    std::atomic<NotifyBatch*> notify{nullptr};
 };
 
 namespace {
@@ -265,6 +268,8 @@ bool prepare_commands(Server& server, MultiExecState& state,
         state.commands.reserve(queue.size());
         for (MultiQueuedCommand& queued : queue) {
             auto command = std::make_unique<MultiCommand>();
+            command->notify_order_base =
+                static_cast<uint32_t>(state.commands.size()) * 0x10000u;
             command->queued = std::move(queued);
             command_key_args(command->queued, command->key_args);
             command->key_shards.reserve(command->key_args.size());
@@ -555,6 +560,8 @@ bool prepare_local_write_keys(Server& server, MultiExecState& state, MultiComman
 bool execute_local_command(Server& server, MultiExecState& state, MultiCommand& command,
                            Shard& shard, uint32_t owner_thread_id) {
     if (!prepare_local_write_keys(server, state, command, shard, owner_thread_id)) return false;
+    if (command.op->spec->flags & CmdFlags::NotifySelected)
+        notify_execute_source(shard, *command.op, command.notify_order_base);
     shard.store().atomic_set_read_context(UINT64_MAX, state.origin_conn_id);
     command.op->spec->handler(shard, *command.op);
     complete_child_zc(shard, *command.op);
@@ -565,13 +572,17 @@ bool execute_local_command(Server& server, MultiExecState& state, MultiCommand& 
 bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& command,
                            Shard& shard, uint32_t owner_thread_id, uint32_t stage) {
     Op& op = *command.op;
+    const bool notify = (op.spec->flags & CmdFlags::NotifySelected) != 0;
+    if (notify)
+        notify_execute_source(shard, op, command.notify_order_base);
     shard.store().atomic_set_read_context(UINT64_MAX, state.origin_conn_id);
     if (command.kind == MultiCommandKind::Mget) {
         for (size_t i = 0; i < command.key_args.size(); i++) {
             if (command.key_shards[i] != shard.id()) continue;
             const uint32_t arg = command.key_args[i];
             const Slice key = op.arg(arg);
-            KvObj* object = shard.store().find(FlatStore::hash_key(key), key);
+            KvObj* object = notify ? shard.store_find<true>(FlatStore::hash_key(key), key)
+                                   : shard.store().find(FlatStore::hash_key(key), key);
             if (!object || static_cast<Type>(object->type) != Type::String) continue;
             MultiValue& value = command.values[i];
             if (object->is_int()) {
@@ -600,19 +611,21 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
                 state.aborted.store(true, std::memory_order_release);
                 break;
             }
-            const WorkError stored = store_xstring(
-                shard, key, FlatStore::hash_key(key), op.arg(arg + 1));
+            const WorkError stored = store_xstring_selected(
+                notify, shard, key, FlatStore::hash_key(key), op.arg(arg + 1));
             if (stored != WorkError::None) {
                 state.aborted.store(true, std::memory_order_release);
                 break;
             }
+            if (notify) notify_record(shard, op, NOTIFY_STRING, NotifyEventId::Set, key);
         }
     } else if (command.kind == MultiCommandKind::Msetnx) {
         for (size_t i = 0; i < command.key_args.size(); i++) {
             if (command.key_shards[i] != shard.id()) continue;
             const uint32_t arg = command.key_args[i];
             const Slice key = op.arg(arg);
-            if (shard.store().find(FlatStore::hash_key(key), key))
+            if (notify ? shard.store_find<true>(FlatStore::hash_key(key), key)
+                       : shard.store().find(FlatStore::hash_key(key), key))
                 command.condition_failed.store(true, std::memory_order_release);
         }
     } else if (command.kind == MultiCommandKind::Del) {
@@ -631,7 +644,8 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
                 state.aborted.store(true, std::memory_order_release);
                 break;
             }
-            removed += shard.store().erase(FlatStore::hash_key(key), key);
+            removed += notify ? shard.store_erase<true>(FlatStore::hash_key(key), key)
+                              : shard.store().erase(FlatStore::hash_key(key), key);
         }
         command.integer.fetch_add(removed, std::memory_order_relaxed);
     } else if (command.kind == MultiCommandKind::Exists) {
@@ -640,7 +654,8 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
             if (command.key_shards[i] != shard.id()) continue;
             const uint32_t arg = command.key_args[i];
             const Slice key = op.arg(arg);
-            found += shard.store().find(FlatStore::hash_key(key), key) != nullptr;
+            found += (notify ? shard.store_find<true>(FlatStore::hash_key(key), key)
+                             : shard.store().find(FlatStore::hash_key(key), key)) != nullptr;
         }
         command.integer.fetch_add(found, std::memory_order_relaxed);
     }
@@ -1101,6 +1116,11 @@ Task multi_make_task(Client* client, uint64_t op_id, int32_t shard, MultiExecSta
 
 MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shard,
                                    uint32_t owner_thread_id, uint32_t owner_domain) {
+    Op* carrier = task.client && task.op_id != UINT64_MAX
+        ? &task.client->rob().at(task.op_id) : nullptr;
+    if (!carrier) std::abort();
+    const bool notify = carrier && (carrier->spec->flags & CmdFlags::NotifySelected);
+    NotifyExecutionScope notify_scope(shard, *carrier, notify);
     const uintptr_t tagged = reinterpret_cast<uintptr_t>(task.scatter);
     auto& state = *reinterpret_cast<MultiExecState*>(tagged & ~kMultiTaskTag);
     uint8_t& noted = state.execution_noted[static_cast<uint32_t>(shard.id())];
@@ -1130,6 +1150,8 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
             if (!xshard_multi_child_has_group(*command.scatter, shard.id()))
                 return MultiTaskResult::Retry;
             if (done == stage + 1) return MultiTaskResult::Retry;
+            if (notify)
+                notify_execute_source(shard, *command.op, command.notify_order_base);
             const Task child_task{state.client, task.op_id, shard.id(), command.scatter};
             bool execute_child = true;
             if (command.scatter->atomic_pop && command.scatter->phase == 2) {
@@ -1160,6 +1182,8 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
             } else if (finished == MultiChildFinish::Final) {
                 if (command.scatter->aborted.load(std::memory_order_acquire))
                     state.aborted.store(true, std::memory_order_release);
+                if (notify)
+                    notify_xshard_finished(shard, *command.op, *command.scatter);
                 assemble_final(*state.client, *command.op, *command.scatter);
                 state.command_index.fetch_add(1, std::memory_order_release);
             }

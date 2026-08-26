@@ -5,6 +5,7 @@
 // open-addressed SetMemberTable. All objects and PRNG state are worker-local; no synchronization is
 // needed on a shard-owned value.
 #include "command.h"
+#include "notify.h"
 #include "../core/shard.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
@@ -707,6 +708,7 @@ void reply_empty_scan(Op& op) {
 
 CollectionRef as_set(KvObj* object) { return CollectionRef(object); }
 
+template <bool kNotify>
 bool externalize_set(Shard& shard, Op& op, KvObj*& object) {
     CollectionRef source(object);
     if (!source.is_embedded()) return true;
@@ -729,7 +731,7 @@ bool externalize_set(Shard& shard, Op& op, KvObj*& object) {
         return false;
     }
     replacement->set_eviction_meta(object->eviction_meta());
-    const FlatStore::InsertResult inserted = shard.store().insert(op.hash, replacement);
+    const FlatStore::InsertResult inserted = shard.store_insert<kNotify>(op.hash, replacement);
     if (inserted != FlatStore::InsertResult::Inserted) {
         kvobj_free(replacement);
         if (inserted == FlatStore::InsertResult::MaxmemoryOom) reply_maxmemory_oom(op);
@@ -740,6 +742,7 @@ bool externalize_set(Shard& shard, Op& op, KvObj*& object) {
     return true;
 }
 
+template <bool kNotify>
 bool ensure_set_add_capacity(Shard& shard, Op& op, KvObj*& object) {
     if (!object) return true;
     CollectionRef set(object);
@@ -778,7 +781,8 @@ bool ensure_set_add_capacity(Shard& shard, Op& op, KvObj*& object) {
         } else {
             for (uint32_t i = 0; i < set.entries(); i++) {
                 int64_t integer = 0;
-                if (!integer_at(set, i, integer)) return externalize_set(shard, op, object);
+                if (!integer_at(set, i, integer))
+                    return externalize_set<kNotify>(shard, op, object);
                 projected_encoded += Compact::entry_encoded_size(integer_text_length(integer));
             }
         }
@@ -794,17 +798,18 @@ bool ensure_set_add_capacity(Shard& shard, Op& op, KvObj*& object) {
         static_cast<uint64_t>(set.entries()) + hint <= limit.max_entries &&
         incoming_max <= limit.max_value)
         return true;
-    return externalize_set(shard, op, object);
+    return externalize_set<kNotify>(shard, op, object);
 }
 
+template <bool kNotify>
 void cmd_sadd(Shard& shard, Op& op) {
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (object) {
         auto sink = op.sink();
         if (!obj_type_check(object, Type::Set, sink)) return;
     }
 
-    if (!ensure_set_add_capacity(shard, op, object)) return;
+    if (!ensure_set_add_capacity<kNotify>(shard, op, object)) return;
     SetVal* owned = object ? nullptr : new (std::nothrow) SetVal;
     if (!object && !owned) {
         reply_err(op.sink(), "ERR out of memory");
@@ -862,7 +867,7 @@ void cmd_sadd(Shard& shard, Op& op) {
             reply_err(op.sink(), "ERR out of memory");
             return;
         }
-        const FlatStore::InsertResult inserted_ = shard.store().insert(op.hash, object);
+        const FlatStore::InsertResult inserted_ = shard.store_insert<kNotify>(op.hash, object);
 if (inserted_ != FlatStore::InsertResult::Inserted) {
     kvobj_free(object);
     if (inserted_ == FlatStore::InsertResult::MaxmemoryOom) reply_maxmemory_oom(op);
@@ -870,11 +875,14 @@ if (inserted_ != FlatStore::InsertResult::Inserted) {
     return;
         }
     }
+    if constexpr (kNotify) if (added)
+        notify_record(shard, op, NOTIFY_SET, NotifyEventId::Sadd, op.key());
     reply_int(op.sink(), added);
 }
 
+template <bool kNotify>
 void cmd_srem(Shard& shard, Op& op) {
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!object) {
         reply_int(op.sink(), 0);
         return;
@@ -886,12 +894,15 @@ void cmd_srem(Shard& shard, Op& op) {
     uint32_t removed = 0;
     for (uint32_t i = 2; i < op.argc(); i++) removed += remove_member(set, op.arg(i));
     size_tracker.finish();                       // account the shrink before any whole-key erase
-    if (set.entries() == 0) shard.store().erase(op.hash, op.key());
+    if constexpr (kNotify) if (removed)
+        notify_record(shard, op, NOTIFY_SET, NotifyEventId::Srem, op.key());
+    if (set.entries() == 0) shard.store_erase<kNotify>(op.hash, op.key());
     reply_int(op.sink(), removed);
 }
 
+template <bool kNotify>
 void cmd_sismember(Shard& shard, Op& op) {
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!object) {
         reply_int(op.sink(), 0);
         return;
@@ -901,8 +912,9 @@ void cmd_sismember(Shard& shard, Op& op) {
     reply_int(op.sink(), contains_member(as_set(object), op.arg(2)) ? 1 : 0);
 }
 
+template <bool kNotify>
 void cmd_smismember(Shard& shard, Op& op) {
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (object) {
         auto sink = op.sink();
         if (!obj_type_check(object, Type::Set, sink)) return;
@@ -912,8 +924,9 @@ void cmd_smismember(Shard& shard, Op& op) {
         reply_int(op.sink(), object && contains_member(as_set(object), op.arg(i)) ? 1 : 0);
 }
 
+template <bool kNotify>
 void cmd_scard(Shard& shard, Op& op) {
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!object) {
         reply_int(op.sink(), 0);
         return;
@@ -923,8 +936,9 @@ void cmd_scard(Shard& shard, Op& op) {
     reply_int(op.sink(), as_set(object).entries());
 }
 
+template <bool kNotify>
 void cmd_smembers(Shard& shard, Op& op) {
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!object) {
         reply_array_header(op.sink(), 0);
         return;
@@ -936,6 +950,7 @@ void cmd_smembers(Shard& shard, Op& op) {
     for_each_member(set, [&](Slice member) { reply_bulk(op.sink(), member); });
 }
 
+template <bool kNotify>
 void cmd_spop(Shard& shard, Op& op) {
     const bool with_count = op.argc() == 3;
     int64_t signed_count = 1;
@@ -950,7 +965,7 @@ void cmd_spop(Shard& shard, Op& op) {
         }
     }
 
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!object) {
         if (with_count) reply_array_header(op.sink(), 0);
         else reply_nil(op.sink());
@@ -969,11 +984,13 @@ void cmd_spop(Shard& shard, Op& op) {
     if (count >= size) {
         if (with_count) reply_array_header(op.sink(), size);
         for_each_member(initial, [&](Slice member) { reply_bulk(op.sink(), member); });
-        shard.store().erase(op.hash, op.key());
+        if constexpr (kNotify)
+            notify_record(shard, op, NOTIFY_SET, NotifyEventId::Spop, op.key());
+        shard.store_erase<kNotify>(op.hash, op.key());
         return;
     }
 
-    if (initial.is_embedded() && !externalize_set(shard, op, object)) return;
+    if (initial.is_embedded() && !externalize_set<kNotify>(shard, op, object)) return;
     CollectionRef set = as_set(object);
     ObjectSizeTracker size_tracker(shard.store(), object);   // partial pop: track the shrink
     // Compact deletion would move bytes proportional to the collection. Promote once (charged to
@@ -993,6 +1010,8 @@ void cmd_spop(Shard& shard, Op& op) {
         expanded->table.erase_at(slot, erased_bytes);
         expanded->note_expanded_delete(erased_bytes, expanded->table.allocation_bytes());
     }
+    if constexpr (kNotify)
+        notify_record(shard, op, NOTIFY_SET, NotifyEventId::Spop, op.key());
 }
 
 bool select_unique(uint32_t population, uint32_t count, std::vector<uint32_t>& picks) {
@@ -1016,6 +1035,7 @@ bool select_unique(uint32_t population, uint32_t count, std::vector<uint32_t>& p
     return true;
 }
 
+template <bool kNotify>
 void cmd_srandmember(Shard& shard, Op& op) {
     const bool with_count = op.argc() == 3;
     int64_t count = 1;
@@ -1030,7 +1050,7 @@ void cmd_srandmember(Shard& shard, Op& op) {
         }
     }
 
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!object) {
         if (with_count) reply_array_header(op.sink(), 0);
         else reply_nil(op.sink());
@@ -1110,13 +1130,14 @@ bool parse_scan_options(Op& op, ScanOptions& options) {
     return true;
 }
 
+template <bool kNotify>
 void cmd_sscan(Shard& shard, Op& op) {
     uint64_t cursor = 0;
     if (!parse_cursor(op.arg(2), cursor)) {
         reply_err(op.sink(), "ERR invalid cursor");
         return;
     }
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!object) {
         reply_empty_scan(op);
         return;
@@ -1176,17 +1197,19 @@ void cmd_sscan(Shard& shard, Op& op) {
     reply_scan(op, next_cursor, matches, table);
 }
 
+#define TOMO_HANDLER_PAIR(fn) fn<false>, 1, 1, 1, notify_handler<fn<true>>
+
 static const CommandSpec kTable[] = {
     // name          min max flags                handler          first last step
-    {"SADD",          3, -1, CmdFlags::Write | CmdFlags::DenyOom,     cmd_sadd,          1,  1,  1},
-    {"SREM",          3, -1, CmdFlags::Write,     cmd_srem,          1,  1,  1},
-    {"SISMEMBER",     3,  3, CmdFlags::Readonly,  cmd_sismember,     1,  1,  1},
-    {"SMISMEMBER",    3, -1, CmdFlags::Readonly,  cmd_smismember,    1,  1,  1},
-    {"SCARD",         2,  2, CmdFlags::Readonly,  cmd_scard,         1,  1,  1},
-    {"SMEMBERS",      2,  2, CmdFlags::Readonly,  cmd_smembers,      1,  1,  1},
-    {"SPOP",          2,  3, CmdFlags::Write,     cmd_spop,          1,  1,  1},
-    {"SRANDMEMBER",   2,  3, CmdFlags::Readonly,  cmd_srandmember,   1,  1,  1},
-    {"SSCAN",         3, -1, CmdFlags::Readonly,  cmd_sscan,         1,  1,  1},
+    {"SADD",          3, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_sadd)},
+    {"SREM",          3, -1, CmdFlags::Write,     TOMO_HANDLER_PAIR(cmd_srem)},
+    {"SISMEMBER",     3,  3, CmdFlags::Readonly,  TOMO_HANDLER_PAIR(cmd_sismember)},
+    {"SMISMEMBER",    3, -1, CmdFlags::Readonly,  TOMO_HANDLER_PAIR(cmd_smismember)},
+    {"SCARD",         2,  2, CmdFlags::Readonly,  TOMO_HANDLER_PAIR(cmd_scard)},
+    {"SMEMBERS",      2,  2, CmdFlags::Readonly,  TOMO_HANDLER_PAIR(cmd_smembers)},
+    {"SPOP",          2,  3, CmdFlags::Write,     TOMO_HANDLER_PAIR(cmd_spop)},
+    {"SRANDMEMBER",   2,  3, CmdFlags::Readonly,  TOMO_HANDLER_PAIR(cmd_srandmember)},
+    {"SSCAN",         3, -1, CmdFlags::Readonly,  TOMO_HANDLER_PAIR(cmd_sscan)},
     {"SMOVE",         4,  4, CmdFlags::Write | CmdFlags::MultiShard,cmd_xshard_only,1,2,1},
     {"SINTER",        2, -1, CmdFlags::Readonly | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
     {"SUNION",        2, -1, CmdFlags::Readonly | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
@@ -1196,6 +1219,8 @@ static const CommandSpec kTable[] = {
     {"SUNIONSTORE",   3, -1, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
     {"SDIFFSTORE",    3, -1, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
 };
+
+#undef TOMO_HANDLER_PAIR
 
 }  // namespace
 

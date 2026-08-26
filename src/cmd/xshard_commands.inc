@@ -1253,17 +1253,22 @@ bool compute_local_setop(Kind kind, const std::vector<ObjectImage>& images, uint
     }
 }
 
+template <bool kNotify>
 void local_apply(Shard& shard, Op& op, const std::vector<ObjectImage>& apply,
-                 const std::vector<uint32_t>& args, WorkError& error) {
+                 const std::vector<uint32_t>& args, WorkError& error,
+                 int32_t suppress_del_arg = -1) {
     for (uint32_t arg : args) {
-        const WorkError result = apply_image(shard, op.arg(arg), FlatStore::hash_key(op.arg(arg)), apply[arg]);
+        const WorkError result = apply_image<kNotify>(
+            shard, op.arg(arg), FlatStore::hash_key(op.arg(arg)), apply[arg],
+            static_cast<int32_t>(arg) == suppress_del_arg);
         if (error == WorkError::None && result != WorkError::None) error = result;
     }
 }
 
 }  // namespace
 
-void cmd_xshard_only(Shard& shard, Op& op) {
+template <bool kNotify>
+void cmd_xshard_only_impl(Shard& shard, Op& op) {
     if (!op.local_xshard()) {
         reply_err(op.sink(), "ERR internal cross-shard routing error");
         return;
@@ -1275,7 +1280,7 @@ void cmd_xshard_only(Shard& shard, Op& op) {
         reply_array_header(op.sink(), op.argc() - 1);
         for (uint32_t arg = 1; arg < op.argc(); arg++) {
             const uint64_t hash = arg == 1 ? op.hash : FlatStore::hash_key(op.arg(arg));
-            KvObj* object = shard.store().find(hash, op.arg(arg));
+            KvObj* object = shard.store_find<kNotify>(hash, op.arg(arg));
             if (!object || static_cast<Type>(object->type) != Type::String) { reply_nil(op.sink()); continue; }
             if (object->is_int()) {
                 char integer[24];
@@ -1288,15 +1293,17 @@ void cmd_xshard_only(Shard& shard, Op& op) {
     if (kind == Kind::Mset || kind == Kind::Msetnx) {
         if (kind == Kind::Msetnx) {
             for (uint32_t arg = 1; arg < op.argc(); arg += 2)
-                if (shard.store().find(FlatStore::hash_key(op.arg(arg)), op.arg(arg))) {
+                if (shard.store_find<kNotify>(FlatStore::hash_key(op.arg(arg)), op.arg(arg))) {
                     reply_int(op.sink(), 0); return;
                 }
         }
         WorkError error = WorkError::None;
         for (uint32_t arg = 1; arg < op.argc(); arg += 2) {
-            const WorkError result = store_xstring(shard, op.arg(arg), FlatStore::hash_key(op.arg(arg)),
-                                                   op.arg(arg + 1));
+            const WorkError result = store_xstring<kNotify>(
+                shard, op.arg(arg), FlatStore::hash_key(op.arg(arg)), op.arg(arg + 1));
             if (error == WorkError::None && result != WorkError::None) error = result;
+            if constexpr (kNotify) if (result == WorkError::None)
+                notify_record(shard, op, NOTIFY_STRING, NotifyEventId::Set, op.arg(arg));
         }
         if (error != WorkError::None) reply_work_error(op, error);
         else if (kind == Kind::Mset) reply_ok(op.sink());
@@ -1313,7 +1320,7 @@ void cmd_xshard_only(Shard& shard, Op& op) {
         for (uint32_t i = 0; i < numkeys; i++) {
             const uint32_t arg = 2 + i;
             const uint64_t hash = FlatStore::hash_key(op.arg(arg));
-            KvObj* object = shard.store().find(hash, op.arg(arg));
+            KvObj* object = shard.store_find<kNotify>(hash, op.arg(arg));
             if (!object) continue;
             if (static_cast<Type>(object->type) != wanted) {
                 reply_wrongtype(op.sink());
@@ -1349,7 +1356,7 @@ void cmd_xshard_only(Shard& shard, Op& op) {
             !parse_zrangestore_range(op, options, range)) return;
         ObjectImage source;
         const uint64_t source_hash = FlatStore::hash_key(op.arg(2));
-        KvObj* object = shard.store().find(source_hash, op.arg(2));
+        KvObj* object = shard.store_find<kNotify>(source_hash, op.arg(2));
         if (object && static_cast<Type>(object->type) != Type::Zset) {
             reply_wrongtype(op.sink());
             return;
@@ -1360,16 +1367,23 @@ void cmd_xshard_only(Shard& shard, Op& op) {
         if (!select_zrange(input, options, range, selected)) { set_oom(op); return; }
         ObjectImage destination;
         if (!selected.empty() && !encode_zset_image(selected, destination)) { set_oom(op); return; }
-        WorkError error = apply_image(shard, op.arg(1), FlatStore::hash_key(op.arg(1)), destination);
+        WorkError error = apply_image<kNotify>(
+            shard, op.arg(1), FlatStore::hash_key(op.arg(1)), destination, true);
         if (error != WorkError::None) reply_work_error(op, error);
-        else reply_int(op.sink(), static_cast<long long>(selected.size()));
+        else {
+            if constexpr (kNotify)
+                notify_record(shard, op, selected.empty() ? NOTIFY_GENERIC : NOTIFY_ZSET,
+                              selected.empty() ? NotifyEventId::Del : NotifyEventId::Zrangestore,
+                              op.arg(1));
+            reply_int(op.sink(), static_cast<long long>(selected.size()));
+        }
         return;
     }
     if (kind == Kind::Sort) {
         SortOptions options;
         if (!parse_sort_options(op, options)) return;
         ObjectImage source;
-        KvObj* object = shard.store().find(FlatStore::hash_key(op.arg(1)), op.arg(1));
+        KvObj* object = shard.store_find<kNotify>(FlatStore::hash_key(op.arg(1)), op.arg(1));
         if (object && static_cast<Type>(object->type) != Type::List &&
             static_cast<Type>(object->type) != Type::Set &&
             static_cast<Type>(object->type) != Type::Zset) {
@@ -1397,9 +1411,15 @@ void cmd_xshard_only(Shard& shard, Op& op) {
             return;
         }
         const Slice key = op.arg(options.store_arg);
-        const WorkError stored = apply_image(shard, key, FlatStore::hash_key(key), destination);
+        const WorkError stored = apply_image<kNotify>(
+            shard, key, FlatStore::hash_key(key), destination, true);
         if (stored != WorkError::None) reply_work_error(op, stored);
-        else reply_int(op.sink(), static_cast<long long>(output.size()));
+        else {
+            if constexpr (kNotify)
+                notify_record(shard, op, output.empty() ? NOTIFY_GENERIC : NOTIFY_LIST,
+                              output.empty() ? NotifyEventId::Del : NotifyEventId::Sortstore, key);
+            reply_int(op.sink(), static_cast<long long>(output.size()));
+        }
         return;
     }
 
@@ -1417,7 +1437,7 @@ void cmd_xshard_only(Shard& shard, Op& op) {
         uint64_t n = 0; parse_u64(op.arg(1), n); gather_end = 2 + static_cast<uint32_t>(n);
     }
     for (uint32_t arg = gather_first; arg < gather_end; arg++) {
-        KvObj* object = shard.store().find(FlatStore::hash_key(op.arg(arg)), op.arg(arg));
+        KvObj* object = shard.store_find<kNotify>(FlatStore::hash_key(op.arg(arg)), op.arg(arg));
         if (!serialize_object(object, images[arg])) { set_oom(op); return; }
     }
     WorkError error = WorkError::None;
@@ -1427,9 +1447,15 @@ void cmd_xshard_only(Shard& shard, Op& op) {
         if (kind == Kind::Renamenx && images[2].present) { reply_int(op.sink(), 0); return; }
         try { apply[2] = images[1]; apply[1] = ObjectImage{}; }
         catch (const std::bad_alloc&) { set_oom(op); return; }
-        local_apply(shard, op, apply, {2, 1}, error);
+        local_apply<kNotify>(shard, op, apply, {2, 1}, error, 1);
         if (error != WorkError::None) reply_work_error(op, error);
-        else if (kind == Kind::Rename) reply_ok(op.sink()); else reply_int(op.sink(), 1);
+        else {
+            if constexpr (kNotify) {
+                notify_record(shard, op, NOTIFY_GENERIC, NotifyEventId::RenameFrom, op.arg(1));
+                notify_record(shard, op, NOTIFY_GENERIC, NotifyEventId::RenameTo, op.arg(2));
+            }
+            if (kind == Kind::Rename) reply_ok(op.sink()); else reply_int(op.sink(), 1);
+        }
         return;
     }
     if (kind == Kind::Copy) {
@@ -1438,8 +1464,13 @@ void cmd_xshard_only(Shard& shard, Op& op) {
         for (uint32_t i = 3; i < op.argc(); i++) if (op.arg(i).eq_icase("replace")) replace = true;
         if (!images[1].present || (images[2].present && !replace)) { reply_int(op.sink(), 0); return; }
         try { apply[2] = images[1]; } catch (const std::bad_alloc&) { set_oom(op); return; }
-        local_apply(shard, op, apply, {2}, error);
-        if (error != WorkError::None) reply_work_error(op, error); else reply_int(op.sink(), 1);
+        local_apply<kNotify>(shard, op, apply, {2}, error);
+        if (error != WorkError::None) reply_work_error(op, error);
+        else {
+            if constexpr (kNotify)
+                notify_record(shard, op, NOTIFY_GENERIC, NotifyEventId::CopyTo, op.arg(2));
+            reply_int(op.sink(), 1);
+        }
         return;
     }
     if (kind == Kind::Smove) {
@@ -1460,8 +1491,15 @@ void cmd_xshard_only(Shard& shard, Op& op) {
         if (!encode_elements(dst, apply[2], Type::Set, images[2].present ? images[2].expire_at_ms : -1)) {
             set_oom(op); return;
         }
-        local_apply(shard, op, apply, {1, 2}, error);
-        if (error != WorkError::None) reply_work_error(op, error); else reply_int(op.sink(), 1);
+        local_apply<kNotify>(shard, op, apply, {1, 2}, error);
+        if (error != WorkError::None) reply_work_error(op, error);
+        else {
+            if constexpr (kNotify) {
+                notify_record(shard, op, NOTIFY_SET, NotifyEventId::Srem, op.arg(1));
+                notify_record(shard, op, NOTIFY_SET, NotifyEventId::Sadd, op.arg(2));
+            }
+            reply_int(op.sink(), 1);
+        }
         return;
     }
     if (kind == Kind::Lmove || kind == Kind::Rpoplpush) {
@@ -1481,7 +1519,7 @@ void cmd_xshard_only(Shard& shard, Op& op) {
         if (same_key(op)) {
             if (to_left) src.insert(src.begin(), moved); else src.push_back(moved);
             if (!encode_elements(src, apply[1], Type::List, images[1].expire_at_ms)) { set_oom(op); return; }
-            local_apply(shard, op, apply, {1}, error);
+            local_apply<kNotify>(shard, op, apply, {1}, error);
         } else {
             if (to_left) dst.insert(dst.begin(), moved); else dst.push_back(moved);
             if (src.empty()) apply[1] = ObjectImage{};
@@ -1489,10 +1527,16 @@ void cmd_xshard_only(Shard& shard, Op& op) {
             if (!encode_elements(dst, apply[2], Type::List, images[2].present ? images[2].expire_at_ms : -1)) {
                 set_oom(op); return;
             }
-            local_apply(shard, op, apply, {1, 2}, error);
+            local_apply<kNotify>(shard, op, apply, {1, 2}, error);
         }
         if (error != WorkError::None) reply_work_error(op, error);
         else {
+            if constexpr (kNotify) {
+                notify_record(shard, op, NOTIFY_LIST,
+                              from_left ? NotifyEventId::Lpop : NotifyEventId::Rpop, op.arg(1));
+                notify_record(shard, op, NOTIFY_LIST,
+                              to_left ? NotifyEventId::Lpush : NotifyEventId::Rpush, op.arg(2));
+            }
             reply_bulk(op.sink(), Slice(moved.data(), static_cast<uint32_t>(moved.size())));
             const Slice destination = op.arg(2);
             blocking_publish_key(shard, FlatStore::hash_key(destination),
@@ -1511,17 +1555,22 @@ void cmd_xshard_only(Shard& shard, Op& op) {
         const Slice destination = op.arg(2);
         const uint64_t hash = FlatStore::hash_key(destination);
         if (!output.present) {
-            shard.store().erase(hash, destination);
+            shard.store_erase<kNotify>(hash, destination, FlatStore::EraseEvent::None);
         } else {
             // Same contract as the scatter hop-2 arm: -1 clears TTL, raw encoding only.
-            error = store_xstring(
+            error = store_xstring<kNotify>(
                 shard, destination, hash,
                 Slice(reinterpret_cast<const char*>(output.payload.data()),
                       static_cast<uint32_t>(output.payload.size())),
                 -1, false);
         }
         if (error != WorkError::None) reply_work_error(op, error);
-        else reply_int(op.sink(), output_length);
+        else {
+            if constexpr (kNotify)
+                notify_record(shard, op, output.present ? NOTIFY_STRING : NOTIFY_GENERIC,
+                              output.present ? NotifyEventId::Set : NotifyEventId::Del, destination);
+            reply_int(op.sink(), output_length);
+        }
         return;
     }
     if (is_plain_setop(kind) || kind == Kind::Sintercard || is_store_setop(kind)) {
@@ -1550,12 +1599,32 @@ void cmd_xshard_only(Shard& shard, Op& op) {
         }
         if (members.empty()) apply[1] = ObjectImage{};
         else if (!encode_elements(members, apply[1], Type::Set, -1)) { set_oom(op); return; }
-        local_apply(shard, op, apply, {1}, error);
+        local_apply<kNotify>(shard, op, apply, {1}, error, 1);
         if (error != WorkError::None) reply_work_error(op, error);
-        else reply_int(op.sink(), static_cast<long long>(members.size()));
+        else {
+            NotifyEventId event = NotifyEventId::Sinterstore;
+            if (kind == Kind::Sunionstore) event = NotifyEventId::Sunionstore;
+            else if (kind == Kind::Sdiffstore) event = NotifyEventId::Sdiffstore;
+            if constexpr (kNotify)
+                notify_record(shard, op, members.empty() ? NOTIFY_GENERIC : NOTIFY_SET,
+                              members.empty() ? NotifyEventId::Del : event, op.arg(1));
+            reply_int(op.sink(), static_cast<long long>(members.size()));
+        }
         return;
     }
     reply_err(op.sink(), "ERR internal cross-shard completion error");
+}
+
+void cmd_xshard_only(Shard& shard, Op& op) {
+    cmd_xshard_only_impl<false>(shard, op);
+}
+
+void cmd_xshard_only_notify_body(Shard& shard, Op& op) {
+    cmd_xshard_only_impl<true>(shard, op);
+}
+
+void cmd_xshard_only_notify(Shard& shard, Op& op) {
+    notify_execute_handler(shard, op, cmd_xshard_only_notify_body);
 }
 
 }  // namespace tomo

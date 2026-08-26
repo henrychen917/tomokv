@@ -1,6 +1,7 @@
 #include "command.h"
 #include "blocking.h"
 #include "xshard.h"
+#include "notify.h"
 
 #include <algorithm>
 #include <array>
@@ -986,8 +987,9 @@ AddOutcome zset_add_one(CollectionRef& value, const CompactLimit& limit, double 
     return AddOutcome::Added;
 }
 
+template <bool kNotify>
 KvObj* lookup_zset(Shard& shard, Op& op) {
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Zset, op.sink())) return reinterpret_cast<KvObj*>(-1);
     return object;
 }
@@ -1021,6 +1023,7 @@ struct CompactItems {
     }
 };
 
+template <bool kNotify>
 bool externalize_zset(Shard& shard, Op& op, KvObj*& object) {
     CollectionRef source(object);
     if (!source.is_embedded()) return true;
@@ -1040,7 +1043,7 @@ bool externalize_zset(Shard& shard, Op& op, KvObj*& object) {
         return false;
     }
     replacement->set_eviction_meta(object->eviction_meta());
-    const FlatStore::InsertResult inserted = shard.store().insert(op.hash, replacement);
+    const FlatStore::InsertResult inserted = shard.store_insert<kNotify>(op.hash, replacement);
     if (inserted != FlatStore::InsertResult::Inserted) {
         kvobj_free(replacement);
         if (inserted == FlatStore::InsertResult::MaxmemoryOom) reply_maxmemory_oom(op);
@@ -1051,6 +1054,7 @@ bool externalize_zset(Shard& shard, Op& op, KvObj*& object) {
     return true;
 }
 
+template <bool kNotify>
 bool ensure_zset_write_capacity(Shard& shard, Op& op, KvObj*& object,
                                 uint32_t additional_entries, uint64_t additional_encoded,
                                 uint32_t incoming_max) {
@@ -1062,7 +1066,7 @@ bool ensure_zset_write_capacity(Shard& shard, Op& op, KvObj*& object,
         static_cast<uint64_t>(value.entries()) + additional_entries <= limit.max_entries &&
         incoming_max <= limit.max_value)
         return true;
-    return externalize_zset(shard, op, object);
+    return externalize_zset<kNotify>(shard, op, object);
 }
 
 void emit_item(Op& op, Slice member, double score, bool withscores) {
@@ -1075,6 +1079,7 @@ struct ParsedScoreMember {
     Slice member;
 };
 
+template <bool kNotify>
 void cmd_zadd_generic(Shard& shard, Op& op, bool force_incr) {
     bool nx = false, xx = false, gt = false, lt = false, ch = false;
     bool incr = force_incr;
@@ -1128,7 +1133,7 @@ void cmd_zadd_generic(Shard& shard, Op& op, bool force_incr) {
         pairs.push_back({score, op.arg(score_index + i * 2 + 1)});
     }
 
-    KvObj* object = lookup_zset(shard, op);
+    KvObj* object = lookup_zset<kNotify>(shard, op);
     if (object == reinterpret_cast<KvObj*>(-1)) return;
     if (!object && xx) {
         if (incr) reply_nil(op.sink());
@@ -1143,7 +1148,7 @@ void cmd_zadd_generic(Shard& shard, Op& op, bool force_incr) {
         additional_encoded += Compact::entry_encoded_size(kCompactScoreBytes + pair.member.n);
         incoming_max = std::max(incoming_max, pair.member.n);
     }
-    if (!ensure_zset_write_capacity(shard, op, object, pair_count,
+    if (!ensure_zset_write_capacity<kNotify>(shard, op, object, pair_count,
                                     additional_encoded, incoming_max)) return;
     ZsetVal* owned = new_key ? new (std::nothrow) ZsetVal : nullptr;
     if (new_key && !owned) {
@@ -1176,7 +1181,7 @@ void cmd_zadd_generic(Shard& shard, Op& op, bool force_incr) {
             reply_oom(op);
             return;
         }
-        const FlatStore::InsertResult inserted_ = shard.store().insert(op.hash, header);
+        const FlatStore::InsertResult inserted_ = shard.store_insert<kNotify>(op.hash, header);
 if (inserted_ != FlatStore::InsertResult::Inserted) {
     kvobj_free(header);
     if (inserted_ == FlatStore::InsertResult::MaxmemoryOom) reply_maxmemory_oom(op);
@@ -1193,14 +1198,20 @@ if (inserted_ != FlatStore::InsertResult::Inserted) {
     } else {
         reply_int(op.sink(), static_cast<long long>(ch ? added + updated : added));
     }
+    if constexpr (kNotify) if (processed)
+        notify_record(shard, op, NOTIFY_ZSET,
+                      incr ? NotifyEventId::Zincr : NotifyEventId::Zadd, op.key());
     if (processed && shard.has_blocking_waiters()) blocking_publish_zset_op(shard, op);
 }
 
-void cmd_zadd(Shard& shard, Op& op) { cmd_zadd_generic(shard, op, false); }
-void cmd_zincrby(Shard& shard, Op& op) { cmd_zadd_generic(shard, op, true); }
+template <bool kNotify>
+void cmd_zadd(Shard& shard, Op& op) { cmd_zadd_generic<kNotify>(shard, op, false); }
+template <bool kNotify>
+void cmd_zincrby(Shard& shard, Op& op) { cmd_zadd_generic<kNotify>(shard, op, true); }
 
+template <bool kNotify>
 void cmd_zscore(Shard& shard, Op& op) {
-    KvObj* object = lookup_zset(shard, op);
+    KvObj* object = lookup_zset<kNotify>(shard, op);
     if (object == reinterpret_cast<KvObj*>(-1)) return;
     if (!object) {
         reply_nil(op.sink());
@@ -1211,8 +1222,9 @@ void cmd_zscore(Shard& shard, Op& op) {
     else reply_double(op.sink(), score);
 }
 
+template <bool kNotify>
 void cmd_zmscore(Shard& shard, Op& op) {
-    KvObj* object = lookup_zset(shard, op);
+    KvObj* object = lookup_zset<kNotify>(shard, op);
     if (object == reinterpret_cast<KvObj*>(-1)) return;
     reply_array_header(op.sink(), op.argc() - 2);
     for (uint32_t i = 2; i < op.argc(); i++) {
@@ -1224,19 +1236,21 @@ void cmd_zmscore(Shard& shard, Op& op) {
     }
 }
 
+template <bool kNotify>
 void cmd_zcard(Shard& shard, Op& op) {
-    KvObj* object = lookup_zset(shard, op);
+    KvObj* object = lookup_zset<kNotify>(shard, op);
     if (object == reinterpret_cast<KvObj*>(-1)) return;
     reply_int(op.sink(), object ? zset_value(object).entries() : 0);
 }
 
+template <bool kNotify>
 void cmd_zcount(Shard& shard, Op& op) {
     ScoreRange range;
     if (!parse_score_range(op.arg(2), op.arg(3), range)) {
         reply_err(op.sink(), "ERR min or max is not a float");
         return;
     }
-    KvObj* object = lookup_zset(shard, op);
+    KvObj* object = lookup_zset<kNotify>(shard, op);
     if (object == reinterpret_cast<KvObj*>(-1)) return;
     if (!object || score_range_empty(range)) {
         reply_int(op.sink(), 0);
@@ -1258,13 +1272,14 @@ void cmd_zcount(Shard& shard, Op& op) {
     reply_int(op.sink(), static_cast<long long>(count));
 }
 
+template <bool kNotify>
 void cmd_zlexcount(Shard& shard, Op& op) {
     LexRange range;
     if (!parse_lex_range(op.arg(2), op.arg(3), range)) {
         reply_err(op.sink(), "ERR min or max not valid string range item");
         return;
     }
-    KvObj* object = lookup_zset(shard, op);
+    KvObj* object = lookup_zset<kNotify>(shard, op);
     if (object == reinterpret_cast<KvObj*>(-1)) return;
     if (!object || lex_range_empty(range)) {
         reply_int(op.sink(), 0);
@@ -1291,13 +1306,14 @@ void cmd_zlexcount(Shard& shard, Op& op) {
     reply_int(op.sink(), static_cast<long long>(count));
 }
 
+template <bool kNotify>
 void cmd_zrank_generic(Shard& shard, Op& op, bool reverse) {
     const bool withscore = op.argc() == 4;
     if (withscore && !op.arg(3).eq_icase("withscore")) {
         reply_syntax(op.sink());
         return;
     }
-    KvObj* object = lookup_zset(shard, op);
+    KvObj* object = lookup_zset<kNotify>(shard, op);
     if (object == reinterpret_cast<KvObj*>(-1)) return;
     if (!object) {
         if (withscore) reply_null_array(op.sink());
@@ -1337,11 +1353,14 @@ void cmd_zrank_generic(Shard& shard, Op& op, bool reverse) {
     if (withscore) reply_double(op.sink(), score);
 }
 
-void cmd_zrank(Shard& shard, Op& op) { cmd_zrank_generic(shard, op, false); }
-void cmd_zrevrank(Shard& shard, Op& op) { cmd_zrank_generic(shard, op, true); }
+template <bool kNotify>
+void cmd_zrank(Shard& shard, Op& op) { cmd_zrank_generic<kNotify>(shard, op, false); }
+template <bool kNotify>
+void cmd_zrevrank(Shard& shard, Op& op) { cmd_zrank_generic<kNotify>(shard, op, true); }
 
+template <bool kNotify>
 void cmd_zrem(Shard& shard, Op& op) {
-    KvObj* object = lookup_zset(shard, op);
+    KvObj* object = lookup_zset<kNotify>(shard, op);
     if (object == reinterpret_cast<KvObj*>(-1)) return;
     if (!object) {
         reply_int(op.sink(), 0);
@@ -1366,7 +1385,9 @@ void cmd_zrem(Shard& shard, Op& op) {
         }
     }
     size_tracker.finish();                       // account the shrink before any whole-key erase
-    if (!value.entries()) shard.store().erase(op.hash, op.key());
+    if constexpr (kNotify) if (removed)
+        notify_record(shard, op, NOTIFY_ZSET, NotifyEventId::Zrem, op.key());
+    if (!value.entries()) shard.store_erase<kNotify>(op.hash, op.key());
     reply_int(op.sink(), static_cast<long long>(removed));
 }
 
@@ -1435,23 +1456,33 @@ RemovalResult compact_erase_lex(CollectionRef& value, const LexRange& range) {
     return result;
 }
 
+template <bool kNotify>
 void finish_range_delete(Shard& shard, Op& op, CollectionRef& value, RemovalResult result,
                          bool expanded, ObjectSizeTracker& size_tracker) {
     if (expanded && result.count)
         value.external_as<ZsetVal>()->note_expanded_delete_many(
             result.count, result.payload, zset_expanded(value)->allocation_bytes());
     size_tracker.finish();                       // account the shrink before any whole-key erase
-    if (!value.entries()) shard.store().erase(op.hash, op.key());
+    if constexpr (kNotify) if (result.count) {
+        NotifyEventId event = NotifyEventId::Zremrangebyrank;
+        if (op.cmd_name().eq_icase("zremrangebyscore"))
+            event = NotifyEventId::Zremrangebyscore;
+        else if (op.cmd_name().eq_icase("zremrangebylex"))
+            event = NotifyEventId::Zremrangebylex;
+        notify_record(shard, op, NOTIFY_ZSET, event, op.key());
+    }
+    if (!value.entries()) shard.store_erase<kNotify>(op.hash, op.key());
     reply_int(op.sink(), result.count);
 }
 
+template <bool kNotify>
 void cmd_zremrangebyrank(Shard& shard, Op& op) {
     int64_t start, stop;
     if (!parse_i64(op.arg(2), start) || !parse_i64(op.arg(3), stop)) {
         reply_invalid_integer(op);
         return;
     }
-    KvObj* object = lookup_zset(shard, op);
+    KvObj* object = lookup_zset<kNotify>(shard, op);
     if (object == reinterpret_cast<KvObj*>(-1)) return;
     if (!object) {
         reply_int(op.sink(), 0);
@@ -1460,7 +1491,7 @@ void cmd_zremrangebyrank(Shard& shard, Op& op) {
     CollectionRef value = zset_value(object);
     ObjectSizeTracker size_tracker(shard.store(), object);
     if (value.encoding() == CollectionEncoding::Compact) {
-        finish_range_delete(shard, op, value, compact_erase_rank(value, start, stop), false,
+        finish_range_delete<kNotify>(shard, op, value, compact_erase_rank(value, start, stop), false,
                             size_tracker);
         return;
     }
@@ -1474,16 +1505,17 @@ void cmd_zremrangebyrank(Shard& shard, Op& op) {
         result = zset_expanded(value)->erase_rank_range(static_cast<uint64_t>(start + 1),
                                                         static_cast<uint64_t>(stop + 1));
     }
-    finish_range_delete(shard, op, value, result, true, size_tracker);
+    finish_range_delete<kNotify>(shard, op, value, result, true, size_tracker);
 }
 
+template <bool kNotify>
 void cmd_zremrangebyscore(Shard& shard, Op& op) {
     ScoreRange range;
     if (!parse_score_range(op.arg(2), op.arg(3), range)) {
         reply_err(op.sink(), "ERR min or max is not a float");
         return;
     }
-    KvObj* object = lookup_zset(shard, op);
+    KvObj* object = lookup_zset<kNotify>(shard, op);
     if (object == reinterpret_cast<KvObj*>(-1)) return;
     if (!object) {
         reply_int(op.sink(), 0);
@@ -1496,16 +1528,17 @@ void cmd_zremrangebyscore(Shard& shard, Op& op) {
     if (!score_range_empty(range))
         result = expanded ? zset_expanded(value)->erase_score_range(range)
                           : compact_erase_score(value, range);
-    finish_range_delete(shard, op, value, result, expanded, size_tracker);
+    finish_range_delete<kNotify>(shard, op, value, result, expanded, size_tracker);
 }
 
+template <bool kNotify>
 void cmd_zremrangebylex(Shard& shard, Op& op) {
     LexRange range;
     if (!parse_lex_range(op.arg(2), op.arg(3), range)) {
         reply_err(op.sink(), "ERR min or max not valid string range item");
         return;
     }
-    KvObj* object = lookup_zset(shard, op);
+    KvObj* object = lookup_zset<kNotify>(shard, op);
     if (object == reinterpret_cast<KvObj*>(-1)) return;
     if (!object) {
         reply_int(op.sink(), 0);
@@ -1518,7 +1551,7 @@ void cmd_zremrangebylex(Shard& shard, Op& op) {
     if (!lex_range_empty(range))
         result = expanded ? zset_expanded(value)->erase_lex_range(range)
                           : compact_erase_lex(value, range);
-    finish_range_delete(shard, op, value, result, expanded, size_tracker);
+    finish_range_delete<kNotify>(shard, op, value, result, expanded, size_tracker);
 }
 
 enum class RangeKind : uint8_t { Auto, Rank, Score, Lex };
@@ -1764,6 +1797,7 @@ void emit_lex_range(Op& op, const CollectionRef& value, const LexRange& range,
     }
 }
 
+template <bool kNotify>
 void cmd_zrange_generic(Shard& shard, Op& op, RangeKind initial_kind,
                         bool initial_reverse, bool unified) {
     RangeOptions options;
@@ -1796,7 +1830,7 @@ void cmd_zrange_generic(Shard& shard, Op& op, RangeKind initial_kind,
         }
     }
 
-    KvObj* object = lookup_zset(shard, op);
+    KvObj* object = lookup_zset<kNotify>(shard, op);
     if (object == reinterpret_cast<KvObj*>(-1)) return;
     if (!object) {
         reply_array_header(op.sink(), 0);
@@ -1811,25 +1845,32 @@ void cmd_zrange_generic(Shard& shard, Op& op, RangeKind initial_kind,
         emit_lex_range(op, value, lex_range, options);
 }
 
+template <bool kNotify>
 void cmd_zrange(Shard& shard, Op& op) {
-    cmd_zrange_generic(shard, op, RangeKind::Auto, false, true);
+    cmd_zrange_generic<kNotify>(shard, op, RangeKind::Auto, false, true);
 }
+template <bool kNotify>
 void cmd_zrevrange(Shard& shard, Op& op) {
-    cmd_zrange_generic(shard, op, RangeKind::Rank, true, false);
+    cmd_zrange_generic<kNotify>(shard, op, RangeKind::Rank, true, false);
 }
+template <bool kNotify>
 void cmd_zrangebyscore(Shard& shard, Op& op) {
-    cmd_zrange_generic(shard, op, RangeKind::Score, false, false);
+    cmd_zrange_generic<kNotify>(shard, op, RangeKind::Score, false, false);
 }
+template <bool kNotify>
 void cmd_zrevrangebyscore(Shard& shard, Op& op) {
-    cmd_zrange_generic(shard, op, RangeKind::Score, true, false);
+    cmd_zrange_generic<kNotify>(shard, op, RangeKind::Score, true, false);
 }
+template <bool kNotify>
 void cmd_zrangebylex(Shard& shard, Op& op) {
-    cmd_zrange_generic(shard, op, RangeKind::Lex, false, false);
+    cmd_zrange_generic<kNotify>(shard, op, RangeKind::Lex, false, false);
 }
+template <bool kNotify>
 void cmd_zrevrangebylex(Shard& shard, Op& op) {
-    cmd_zrange_generic(shard, op, RangeKind::Lex, true, false);
+    cmd_zrange_generic<kNotify>(shard, op, RangeKind::Lex, true, false);
 }
 
+template <bool kNotify>
 void cmd_zpop_generic(Shard& shard, Op& op, bool maximum) {
     int64_t requested = 1;
     if (op.argc() == 3) {
@@ -1842,7 +1883,7 @@ void cmd_zpop_generic(Shard& shard, Op& op, bool maximum) {
             return;
         }
     }
-    KvObj* object = lookup_zset(shard, op);
+    KvObj* object = lookup_zset<kNotify>(shard, op);
     if (object == reinterpret_cast<KvObj*>(-1)) return;
     if (!object || requested == 0) {
         reply_array_header(op.sink(), 0);
@@ -1886,11 +1927,16 @@ void cmd_zpop_generic(Shard& shard, Op& op, bool maximum) {
             removed.count, removed.payload, zset_expanded(value)->allocation_bytes());
     }
     size_tracker.finish();
-    if (!value.entries()) shard.store().erase(op.hash, op.key());
+    if constexpr (kNotify)
+        notify_record(shard, op, NOTIFY_ZSET,
+                      maximum ? NotifyEventId::Zpopmax : NotifyEventId::Zpopmin, op.key());
+    if (!value.entries()) shard.store_erase<kNotify>(op.hash, op.key());
 }
 
-void cmd_zpopmin(Shard& shard, Op& op) { cmd_zpop_generic(shard, op, false); }
-void cmd_zpopmax(Shard& shard, Op& op) { cmd_zpop_generic(shard, op, true); }
+template <bool kNotify>
+void cmd_zpopmin(Shard& shard, Op& op) { cmd_zpop_generic<kNotify>(shard, op, false); }
+template <bool kNotify>
+void cmd_zpopmax(Shard& shard, Op& op) { cmd_zpop_generic<kNotify>(shard, op, true); }
 
 bool get_item_by_zero_rank(const CollectionRef& value, const CompactItems* compact, uint64_t rank,
                            Slice& member, double& score) {
@@ -1905,6 +1951,7 @@ bool get_item_by_zero_rank(const CollectionRef& value, const CompactItems* compa
     return true;
 }
 
+template <bool kNotify>
 void cmd_zrandmember(Shard& shard, Op& op) {
     const bool has_count = op.argc() >= 3;
     const bool withscores = op.argc() == 4;
@@ -1923,7 +1970,7 @@ void cmd_zrandmember(Shard& shard, Op& op) {
         return;
     }
 
-    KvObj* object = lookup_zset(shard, op);
+    KvObj* object = lookup_zset<kNotify>(shard, op);
     if (object == reinterpret_cast<KvObj*>(-1)) return;
     if (!object) {
         if (has_count) reply_array_header(op.sink(), 0);
@@ -2138,13 +2185,14 @@ void reply_scan(Op& op, uint64_t cursor, const std::vector<ScanItem>& items) {
     for (const ScanItem& item : items) emit_item(op, item.member, item.score, true);
 }
 
+template <bool kNotify>
 void cmd_zscan(Shard& shard, Op& op) {
     uint64_t cursor;
     if (!parse_u64(op.arg(2), cursor)) {
         reply_err(op.sink(), "ERR invalid cursor");
         return;
     }
-    KvObj* object = lookup_zset(shard, op);
+    KvObj* object = lookup_zset<kNotify>(shard, op);
     if (object == reinterpret_cast<KvObj*>(-1)) return;
     if (!object) {
         reply_array_header(op.sink(), 2);
@@ -2209,37 +2257,41 @@ void cmd_zscan(Shard& shard, Op& op) {
     reply_scan(op, next_cursor, result);
 }
 
+#define TOMO_HANDLER_PAIR(fn) fn<false>, 1, 1, 1, notify_handler<fn<true>>
+
 static const CommandSpec kTable[] = {
     // name                  min max flags               handler                 first last step
-    {"ZADD",                 4, -1, CmdFlags::Write | CmdFlags::DenyOom,    cmd_zadd,                  1,  1,  1},
-    {"ZSCORE",               3,  3, CmdFlags::Readonly, cmd_zscore,                1,  1,  1},
-    {"ZMSCORE",              3, -1, CmdFlags::Readonly, cmd_zmscore,               1,  1,  1},
-    {"ZINCRBY",              4,  4, CmdFlags::Write | CmdFlags::DenyOom,    cmd_zincrby,               1,  1,  1},
-    {"ZCARD",                2,  2, CmdFlags::Readonly, cmd_zcard,                 1,  1,  1},
-    {"ZCOUNT",               4,  4, CmdFlags::Readonly, cmd_zcount,                1,  1,  1},
-    {"ZRANGE",               4, -1, CmdFlags::Readonly, cmd_zrange,                1,  1,  1},
-    {"ZRANGEBYSCORE",        4, -1, CmdFlags::Readonly, cmd_zrangebyscore,         1,  1,  1},
-    {"ZREVRANGEBYSCORE",     4, -1, CmdFlags::Readonly, cmd_zrevrangebyscore,      1,  1,  1},
-    {"ZRANGEBYLEX",          4, -1, CmdFlags::Readonly, cmd_zrangebylex,           1,  1,  1},
-    {"ZREVRANGEBYLEX",       4, -1, CmdFlags::Readonly, cmd_zrevrangebylex,        1,  1,  1},
-    {"ZREVRANGE",            4, -1, CmdFlags::Readonly, cmd_zrevrange,             1,  1,  1},
-    {"ZRANK",                3,  4, CmdFlags::Readonly, cmd_zrank,                 1,  1,  1},
-    {"ZREVRANK",             3,  4, CmdFlags::Readonly, cmd_zrevrank,              1,  1,  1},
-    {"ZREM",                 3, -1, CmdFlags::Write,    cmd_zrem,                  1,  1,  1},
-    {"ZREMRANGEBYRANK",      4,  4, CmdFlags::Write,    cmd_zremrangebyrank,       1,  1,  1},
-    {"ZREMRANGEBYSCORE",     4,  4, CmdFlags::Write,    cmd_zremrangebyscore,      1,  1,  1},
-    {"ZREMRANGEBYLEX",       4,  4, CmdFlags::Write,    cmd_zremrangebylex,        1,  1,  1},
-    {"ZLEXCOUNT",            4,  4, CmdFlags::Readonly, cmd_zlexcount,             1,  1,  1},
-    {"ZPOPMIN",              2,  3, CmdFlags::Write,    cmd_zpopmin,               1,  1,  1},
-    {"ZPOPMAX",              2,  3, CmdFlags::Write,    cmd_zpopmax,               1,  1,  1},
-    {"ZRANDMEMBER",          2,  4, CmdFlags::Readonly, cmd_zrandmember,           1,  1,  1},
-    {"ZSCAN",                3, -1, CmdFlags::Readonly, cmd_zscan,                 1,  1,  1},
+    {"ZADD",                 4, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_zadd)},
+    {"ZSCORE",               3,  3, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_zscore)},
+    {"ZMSCORE",              3, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_zmscore)},
+    {"ZINCRBY",              4,  4, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_zincrby)},
+    {"ZCARD",                2,  2, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_zcard)},
+    {"ZCOUNT",               4,  4, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_zcount)},
+    {"ZRANGE",               4, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_zrange)},
+    {"ZRANGEBYSCORE",        4, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_zrangebyscore)},
+    {"ZREVRANGEBYSCORE",     4, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_zrevrangebyscore)},
+    {"ZRANGEBYLEX",          4, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_zrangebylex)},
+    {"ZREVRANGEBYLEX",       4, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_zrevrangebylex)},
+    {"ZREVRANGE",            4, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_zrevrange)},
+    {"ZRANK",                3,  4, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_zrank)},
+    {"ZREVRANK",             3,  4, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_zrevrank)},
+    {"ZREM",                 3, -1, CmdFlags::Write,    TOMO_HANDLER_PAIR(cmd_zrem)},
+    {"ZREMRANGEBYRANK",      4,  4, CmdFlags::Write,    TOMO_HANDLER_PAIR(cmd_zremrangebyrank)},
+    {"ZREMRANGEBYSCORE",     4,  4, CmdFlags::Write,    TOMO_HANDLER_PAIR(cmd_zremrangebyscore)},
+    {"ZREMRANGEBYLEX",       4,  4, CmdFlags::Write,    TOMO_HANDLER_PAIR(cmd_zremrangebylex)},
+    {"ZLEXCOUNT",            4,  4, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_zlexcount)},
+    {"ZPOPMIN",              2,  3, CmdFlags::Write,    TOMO_HANDLER_PAIR(cmd_zpopmin)},
+    {"ZPOPMAX",              2,  3, CmdFlags::Write,    TOMO_HANDLER_PAIR(cmd_zpopmax)},
+    {"ZRANDMEMBER",          2,  4, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_zrandmember)},
+    {"ZSCAN",                3, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_zscan)},
     {"BZPOPMIN",             3, -1, CmdFlags::Write | CmdFlags::Blocking | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
     {"BZPOPMAX",             3, -1, CmdFlags::Write | CmdFlags::Blocking | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
     {"BZMPOP",               5, -1, CmdFlags::Write | CmdFlags::Blocking | CmdFlags::MultiShard,cmd_xshard_only,3,-1,1},
     {"ZMPOP",                4, -1, CmdFlags::Write | CmdFlags::MultiShard,cmd_xshard_only,2,-1,1},
     {"ZRANGESTORE",          5, -1, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,cmd_xshard_only,1,2,1},
 };
+
+#undef TOMO_HANDLER_PAIR
 
 }  // namespace
 
@@ -2248,7 +2300,8 @@ XshardPopResult xshard_pop_zset(Shard& shard, Slice key, uint64_t hash, bool max
                                 std::vector<double>& scores) {
     members.clear();
     scores.clear();
-    KvObj* object = shard.store().find(hash, key);
+    const bool notify = shard.notify_carrier() != nullptr;
+    KvObj* object = notify ? shard.store_find<true>(hash, key) : shard.store().find(hash, key);
     if (!object) return XshardPopResult::Missing;
     if (static_cast<Type>(object->type) != Type::Zset) return XshardPopResult::WrongType;
     CollectionRef value = zset_value(object);
@@ -2304,9 +2357,13 @@ XshardPopResult xshard_pop_zset(Shard& shard, Slice key, uint64_t hash, bool max
         value.external_as<ZsetVal>()->note_expanded_delete_many(
             removed.count, removed.payload, zset_expanded(value)->allocation_bytes());
     }
+    if (Op* source = shard.notify_source())
+        notify_record(shard, *source, NOTIFY_ZSET,
+                      maximum ? NotifyEventId::Zpopmax : NotifyEventId::Zpopmin, key);
     if (!value.entries()) {
         size_tracker.finish();
-        shard.store().erase(hash, key);
+        if (notify) shard.store_erase<true>(hash, key);
+        else shard.store().erase(hash, key);
     }
     return XshardPopResult::Popped;
 }

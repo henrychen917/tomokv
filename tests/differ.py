@@ -801,6 +801,92 @@ def run_spubsub_differ(rng):
 
 if SUITE == "spubsub":
     sys.exit(run_spubsub_differ(rng))
+# Notification differential is structurally different from command/reply suites: each side needs
+# a driver plus a pattern subscriber, and streams are compared at every known owner-side fire
+# point. The oracle for this suite must be vanilla Redis (see SPEC-WAVEA §0.2).
+def run_notify_suite(rng):
+    tds, tdf = conn(TH, TP); ods, odf = conn(OH, OP)
+    tls, tlf = conn(TH, TP); ols, olf = conn(OH, OP)
+    for sock, file in ((tds, tdf), (ods, odf)):
+        sock.sendall(enc(["CONFIG", "SET", "notify-keyspace-events", ""]))
+        if read_reply(file)[:1] != b"+": raise RuntimeError("notification disable failed")
+        sock.sendall(enc(["FLUSHALL"])); read_reply(file)
+        sock.sendall(enc(["CONFIG", "SET", "notify-keyspace-events", "EA"]))
+        if read_reply(file)[:1] != b"+": raise RuntimeError("notification enable failed")
+    for sock, file in ((tls, tlf), (ols, olf)):
+        sock.sendall(enc(["PSUBSCRIBE", "__keyevent@0__:*"]))
+        read_reply(file)
+
+    stream = []
+    for i in range(160):
+        stem = "nd:%d" % i
+        choice = rng.randrange(9)
+        if choice == 0:
+            stream += [(["SET", stem, str(rng.randrange(1000))], 1)]
+        elif choice == 1:
+            stream += [(["RPUSH", stem, "a", "b"], 1), (["LPOP", stem, "2"], 2)]
+        elif choice == 2:
+            stream += [(["SADD", stem, "a"], 1), (["SREM", stem, "a"], 2)]
+        elif choice == 3:
+            stream += [(["HSET", stem, "f", "v"], 1), (["HDEL", stem, "f"], 2)]
+        elif choice == 4:
+            stream += [(["ZADD", stem, "1", "m"], 1), (["ZREM", stem, "m"], 2)]
+        elif choice == 5:
+            stream += [(["MSET", stem + ":a", "1", stem + ":z", "2"], 2),
+                       (["DEL", stem + ":a", stem + ":z"], 2)]
+        elif choice == 6:
+            stream += [(["SET", stem, "v", "EX", "1000"], 2),
+                       (["PERSIST", stem], 1)]
+        elif choice == 7:
+            stream += [(["SET", stem + ":a", "v"], 1),
+                       (["RENAME", stem + ":a", stem + ":z"], 2)]
+        else:
+            # Redis 7.4 only publishes the empty-result del when an old destination existed;
+            # pre-seed it so this differential arm has one event on both sides. The directed
+            # battery separately enforces this spec's stronger nonexistent-destination arm.
+            stream += [(["SET", stem, "old"], 1),
+                       (["SINTERSTORE", stem, stem + ":none-a", stem + ":none-z"], 1)]
+
+    diffs = 0
+    events = 0
+    for i, (op, count) in enumerate(stream):
+        payload = enc(op)
+        tds.sendall(payload); ods.sendall(payload)
+        target_reply = read_reply(tdf); oracle_reply = read_reply(odf)
+        if target_reply != oracle_reply:
+            diffs += 1
+            if diffs <= 12:
+                print("  REPLY DIFF op %d %r\n    target: %r\n    oracle: %r" %
+                      (i, op[:5], target_reply[:96], oracle_reply[:96]))
+        for _ in range(count):
+            try:
+                target = parse_reply(read_reply(tlf))
+            except TimeoutError:
+                print("  TARGET TIMEOUT op %d %r expected_events=%d" % (i, op[:5], count))
+                return diffs + 1
+            try:
+                oracle = parse_reply(read_reply(olf))
+            except TimeoutError:
+                print("  ORACLE TIMEOUT op %d %r expected_events=%d" % (i, op[:5], count))
+                return diffs + 1
+            target_event = target[2:4] if target and len(target) == 4 else target
+            oracle_event = oracle[2:4] if oracle and len(oracle) == 4 else oracle
+            events += 1
+            if target_event != oracle_event:
+                diffs += 1
+                if diffs <= 12:
+                    print("  EVENT DIFF op %d %r\n    target: %r\n    oracle: %r" %
+                          (i, op[:5], target_event, oracle_event))
+    for sock in (tds, ods):
+        sock.sendall(enc(["CONFIG", "SET", "notify-keyspace-events", ""]))
+    read_reply(tdf); read_reply(odf)
+    for sock in (tds, ods, tls, ols): sock.close()
+    print("DIFFER notify: %d ops, %d events, %d diffs -> %s" %
+          (len(stream), events, diffs, "PASS" if diffs == 0 else "FAIL"))
+    return diffs
+
+if SUITE == "notify":
+    sys.exit(1 if run_notify_suite(rng) else 0)
 
 gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset,
         "hash": gen_hash, "xshard": gen_xshard, "bitmap": gen_bitmap, "hll": gen_hll,

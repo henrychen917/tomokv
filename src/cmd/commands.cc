@@ -15,6 +15,7 @@ namespace {
 
 struct Registry {
     std::vector<CommandSpec> entries;
+    std::vector<CommandSpec> notify_entries;
     std::vector<const CommandSpec*> slots;
     uint64_t acl_categories[256] = {};
     uint32_t mask = 0;
@@ -102,6 +103,20 @@ bool command_registry_init() {
             }
     } catch (const std::bad_alloc&) {
         g_registry.entries.clear();
+        g_registry.notify_entries.clear();
+        g_registry.slots.clear();
+        return false;
+    }
+
+    try {
+        g_registry.notify_entries = g_registry.entries;
+        for (CommandSpec& entry : g_registry.notify_entries) {
+            entry.flags |= CmdFlags::NotifySelected;
+            entry.handler = entry.handler_notify;
+        }
+    } catch (const std::bad_alloc&) {
+        g_registry.entries.clear();
+        g_registry.notify_entries.clear();
         g_registry.slots.clear();
         return false;
     }
@@ -167,6 +182,11 @@ const CommandSpec* command_registry_at(uint32_t id) {
 
 uint64_t command_acl_category_mask(const CommandSpec& spec) {
     return g_registry.acl_categories[spec.id];
+}
+
+const CommandSpec* command_notify_variant(const CommandSpec* spec) {
+    return spec && spec->id < g_registry.notify_entries.size()
+        ? &g_registry.notify_entries[spec->id] : spec;
 }
 
 }  // namespace tomo

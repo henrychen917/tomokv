@@ -226,6 +226,21 @@ public:
         zc_shard = -1;
     }
 
+    // Notifications deliberately consume no negative marker.  Bit 15 on shard-routed command
+    // specs makes a non-borrow zc pointer unambiguous; special commands keep their batch inside
+    // their already-marked heap state instead.
+    bool has_notify_state() const {
+        return zc_ptr != nullptr && zc_shard == -1;
+    }
+    void attach_notify_state(void* state_) {
+        zc_ptr = static_cast<const char*>(state_);
+        zc_len = 0;
+        zc_shard = -1;
+    }
+    void* notify_state() const {
+        return has_notify_state() ? const_cast<char*>(zc_ptr) : nullptr;
+    }
+
 private:
     static constexpr uint8_t kAtomicHazard = 1u << 0;
     Slice    argv_inline_[kInlineArgv];

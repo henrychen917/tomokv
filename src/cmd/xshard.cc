@@ -31,6 +31,7 @@
 #include "debug.h"
 #include "hll.h"
 #include "multi.h"
+#include "notify.h"
 #include "../core/io_loop.h"
 #include "../core/server.h"
 #include "../core/thread.h"
@@ -48,3 +49,4 @@
 #include "blocking.inc"
 #include "multi.inc"
 #include "auth.inc"
+#include "notify.inc"

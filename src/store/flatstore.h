@@ -70,6 +70,7 @@
 #include <vector>
 #include "../base/alloc.h"
 #include "eviction.h"
+#include "../cmd/notify.h"
 #include "kvobj.h"
 #include "atomic_mvcc.h"
 #include "../snapshot/format.h"
@@ -335,6 +336,7 @@ public:
     #include "flatstore_atomic.inc"
 
     enum class SnapshotWriteResult : uint8_t { Ready, Pending, Error };
+    enum class EraseEvent : uint8_t { Del, Evicted, None };
 
     // Phase 1 of the cut barrier.  Existing incremental rehashing is completed in its ordinary
     // bounded steps; only then is a fresh post-cut table allocated.  Resize remains suppressed
@@ -509,6 +511,18 @@ public:
         return found;
     }
 
+    KvObj* find_notify(uint64_t h, Slice key, FlatNotifySink* sink) {
+        KvObj* candidate = find_in(0, h, key);
+        if (!candidate && rehashing()) candidate = find_in(1, h, key);
+        const bool expired = candidate && (candidate->flags & KvObjFlags::HasTtl) &&
+                             candidate->expire_at_ms() <= cached_now_ms_ &&
+                             !(snapshot_active_ && candidate == find_in(1, h, key));
+        if (expired) notify_emit(sink, NOTIFY_EXPIRED, NotifyEventId::Expired, candidate->key());
+        KvObj* found = find(h, key);
+        if (!found) notify_emit(sink, NOTIFY_KEY_MISS, NotifyEventId::Keymiss, key);
+        return found;
+    }
+
     // Same-size-CLASS overwrite, allocation-free. Asking for 88 bytes gets 96, so a value that grew
     // or shrank a little still fits what was already paid for. The test is equality of CLASS rather
     // than "new <= old" because good_size() is recomputed from the header — letting the real
@@ -545,6 +559,11 @@ public:
         std::memcpy(o->val_ptr(), val.p, val.n);
         obj_bytes_ += kvobj_size(o);
         return OverwriteResult::Updated;
+    }
+
+    OverwriteResult try_overwrite_notify(uint64_t h, Slice key, Slice val,
+                                         FlatNotifySink*) {
+        return try_overwrite(h, key, val);
     }
 
     // Called by GET on the shard owner before publishing the Op. Pointer identity is sufficient:
@@ -616,8 +635,27 @@ public:
         return rewrite_expire(h, old, expire_at_ms);
     }
 
+    TtlResult set_expire_notify(uint64_t h, Slice key, int64_t expire_at_ms,
+                                FlatNotifySink* sink) {
+        KvObj* old = find_notify(h, key, sink);
+        if (!old) return TtlResult::Missing;
+        if (old->flags & KvObjFlags::HasTtl) {
+            old->set_expire_at_ms(expire_at_ms);
+            expires_.insert(h);
+            return TtlResult::Updated;
+        }
+        return rewrite_expire(h, old, expire_at_ms);
+    }
+
     TtlResult persist(uint64_t h, Slice key) {
         KvObj* old = find(h, key);
+        if (!old) return TtlResult::Missing;
+        if (!(old->flags & KvObjFlags::HasTtl)) return TtlResult::NoChange;
+        return rewrite_expire(h, old, -1);
+    }
+
+    TtlResult persist_notify(uint64_t h, Slice key, FlatNotifySink* sink) {
+        KvObj* old = find_notify(h, key, sink);
         if (!old) return TtlResult::Missing;
         if (!(old->flags & KvObjFlags::HasTtl)) return TtlResult::NoChange;
         return rewrite_expire(h, old, -1);
@@ -642,6 +680,7 @@ public:
             if (atomic_has_record(h, o->key())) return;  // promotion resolves the winning TTL
             if (o->expire_at_ms() > cached_now_ms_) return;
             const Slice key = o->key();
+            notify_flat_store_emit(this, NOTIFY_EXPIRED, NotifyEventId::Expired, key);
             if (erase_in(0, h, key) || (rehashing() && erase_in(1, h, key))) {
                 removed++;
                 if (expired_counter_) (*expired_counter_)++;
@@ -718,6 +757,20 @@ public:
         return insert_into(0, h, o, true) ? InsertResult::Inserted : InsertResult::Failed;
     }
 
+    InsertResult insert_notify(uint64_t h, KvObj* o, FlatNotifySink* sink) {
+        KvObj* candidate = find_in(0, h, o->key());
+        if (!candidate && rehashing()) candidate = find_in(1, h, o->key());
+        const bool expired = candidate && (candidate->flags & KvObjFlags::HasTtl) &&
+                             candidate->expire_at_ms() <= cached_now_ms_;
+        const bool report_new = !candidate || expired;
+        if (expired)
+            notify_emit(sink, NOTIFY_EXPIRED, NotifyEventId::Expired, candidate->key());
+        const InsertResult result = insert(h, o);
+        if (result == InsertResult::Inserted && report_new)
+            notify_emit(sink, NOTIFY_NEW, NotifyEventId::New, o->key());
+        return result;
+    }
+
     bool erase(uint64_t h, Slice key) {
         if (rehashing() && !snapshot_active_) rehash_step();
         bool expired = false;
@@ -732,6 +785,23 @@ public:
             return !expired;
         }
         return false;
+    }
+
+    bool erase_notify(uint64_t h, Slice key, FlatNotifySink* sink,
+                      EraseEvent event = EraseEvent::Del) {
+        KvObj* candidate = find_in(0, h, key);
+        if (!candidate && rehashing()) candidate = find_in(1, h, key);
+        if (candidate) {
+            const bool expired = (candidate->flags & KvObjFlags::HasTtl) &&
+                                 candidate->expire_at_ms() <= cached_now_ms_;
+            if (expired)
+                notify_emit(sink, NOTIFY_EXPIRED, NotifyEventId::Expired, candidate->key());
+            else if (event == EraseEvent::Del)
+                notify_emit(sink, NOTIFY_GENERIC, NotifyEventId::Del, candidate->key());
+            else if (event == EraseEvent::Evicted)
+                notify_emit(sink, NOTIFY_EVICTED, NotifyEventId::Evicted, candidate->key());
+        }
+        return erase(h, key);
     }
 
     template <typename Fn>
@@ -791,6 +861,7 @@ public:
             if (!o) continue;
             if (!(o->flags & KvObjFlags::HasTtl) || o->expire_at_ms() > cached_now_ms_) return o;
             const uint64_t h = hash_key(o->key());
+            notify_flat_store_emit(this, NOTIFY_EXPIRED, NotifyEventId::Expired, o->key());
             erase_in(t, h, o->key());
             if (expired_counter_) (*expired_counter_)++;
         }
@@ -820,6 +891,7 @@ public:
                 // Report the key logically absent but leave its slot for snapshot traversal, just
                 // like find()/active_expire().  KEYS uses this bounded scan while capture runs.
                 if (snapshot_active_ && t == 1) continue;
+                notify_flat_store_emit(this, NOTIFY_EXPIRED, NotifyEventId::Expired, o->key());
                 erase_in(static_cast<int>(t), h, o->key());
                 if (expired_counter_) (*expired_counter_)++;
                 continue;
@@ -1133,6 +1205,13 @@ private:
             }
             if (!best || score > best_score) { best = candidate; best_score = score; }
         }
+        if (best) {
+            const bool expired = (best->flags & KvObjFlags::HasTtl) &&
+                                 best->expire_at_ms() <= cached_now_ms_;
+            notify_flat_store_emit(this,
+                expired ? NOTIFY_EXPIRED : NOTIFY_EVICTED,
+                expired ? NotifyEventId::Expired : NotifyEventId::Evicted, best->key());
+        }
         return best;
     }
 
@@ -1271,6 +1350,12 @@ private:
             i = (i + 1) & mask_[t];
         }
         return false;   // unreachable while the load factor holds
+    }
+
+    static void notify_emit(FlatNotifySink* sink, uint32_t cls,
+                            NotifyEventId event, Slice key) {
+        if (sink && sink->enabled && sink->enabled(sink->context, cls) && sink->emit)
+            sink->emit(sink->context, cls, event, key);
     }
 
     bool erase_in(int t, uint64_t h, Slice key, bool* was_expired = nullptr) {

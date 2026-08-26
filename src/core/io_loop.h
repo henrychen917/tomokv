@@ -39,6 +39,7 @@
 #include "../cmd/auth.h"
 #include "../cmd/acl.h"
 #include "../cmd/multi.h"
+#include "../cmd/notify.h"
 #include "../cmd/xshard.h"
 #include "../snapshot/snapshot.h"
 
@@ -82,15 +83,25 @@ public:
             static_cast<IoLoop*>(ctx)->queue_borrow_release(shard, ptr);
         }, this, [](void* ctx, Client& client, Op& op) {
             auto* loop = static_cast<IoLoop*>(ctx);
-            if (op.has_scatter_state())
+            NotifyBatch* notifications = nullptr;
+            if (op.has_scatter_state()) {
+                notifications = notify_take_batch(op);
                 xshard_retire(*loop->srv_, *loop->self_, loop->ring_, client, op,
                     loop->scatter_pool_, loop->self_->id(), loop,
                     [](void* release_ctx, int32_t shard, const char* ptr) {
                         static_cast<IoLoop*>(release_ctx)->queue_borrow_release(shard, ptr);
                     });
-            else if (op.has_blocking_state())
+            } else if (op.has_blocking_state()) {
+                notifications = notify_take_batch(op);
                 blocking_retire(*loop->srv_, client, op, *loop->self_);
-            else if (op.has_multi_state()) multi_retire_entry(*loop, client, op);
+            } else if (op.has_multi_state()) {
+                notifications = notify_take_batch(op);
+                multi_retire_entry(*loop, client, op);
+            } else if (__builtin_expect(op.has_notify_state(), false)) {
+                notifications = notify_take_batch(op);
+            }
+            if (__builtin_expect(notifications != nullptr, false))
+                notify_retire_batch_entry(*loop, notifications);
         }, srv_->client_obuf_armed_ptr(), this, [](void* ctx, Client& client) {
             return static_cast<IoLoop*>(ctx)->client_obuf_check(&client, true);
         }, &cached_now_s_);
@@ -163,6 +174,8 @@ private:
     friend uint32_t multi_owner_reap_entry(IoLoop&);
     friend void multi_close_entry(IoLoop&, Client&);
     friend void multi_shutdown_entry(IoLoop&);
+    friend void notify_retire_batch_entry(IoLoop&, NotifyBatch*);
+    friend void notify_retire_entry(IoLoop&, Op&);
 #include "pubsub.inc"
 
     template <bool HasUnix>
@@ -171,6 +184,7 @@ private:
         if constexpr (HasUnix) if (unix_listen_fd_ >= 0) arm_accept(true);
         LoopSignals& sig = self_->sig();
         while (!self_->stop_flag().load(std::memory_order_relaxed)) {
+            refresh_notify_config();
             const bool cron_armed = srv_->client_cron_armed();
             if (__builtin_expect(cron_armed, false)) {
                 cached_now_ms_ = now_ns() / 1000000ull;
@@ -443,6 +457,7 @@ private:
         const uint8_t security_flags = srv_->security_flags();
         const bool auth_required = (security_flags & Server::kSecurityAuth) != 0;
         const bool acl_active = (security_flags & Server::kSecurityAcl) != 0;
+        const bool notify_armed = notify_armed_;
 
         for (;;) {
             if (c->scatter_barrier() || c->atomic_backpressure()) break;
@@ -488,6 +503,10 @@ private:
                               "ERR wrong number of arguments for '%s' command", command);
                 finish_locally(c, *op, message); continue;
             }
+            // The sole disabled-state notification decision on an ordinary operation. The
+            // executor receives a spec whose handler pointer is already the clean or armed
+            // specialization; no notification mask load reaches its execute path.
+            if (__builtin_expect(notify_armed, false)) spec = command_notify_variant(spec);
             op->spec = spec;
             if (__builtin_expect(security_check, false) &&
                 acl_dispatch_entry(*this, conn, *op, consumed, security_flags)) continue;
@@ -1085,6 +1104,13 @@ private:
         return work;
     }
 
+    void refresh_notify_config() {
+        LiveConfigSnapshot snapshot;
+        if (!srv_->live_config_snapshot_if_changed(notify_config_version_, snapshot)) return;
+        notify_armed_ = snapshot.notify_events != 0;
+        notify_config_version_ = snapshot.version;
+    }
+
     void close_client(Client* c) {
         // IDEMPOTENT, and that is load-bearing: an abrupt disconnect can close a conn twice --
         // once when the recv fails and again when the in-flight reply's send CQE comes back
@@ -1207,6 +1233,12 @@ private:
     } active_;
     std::vector<MultiExecState*> multi_deferred_;
     std::deque<MultiExecState*> pending_multi_cleanups_;
+    // Cold live-config cache. Appended so every pre-existing IoLoop field retains its offset.
+    uint64_t notify_config_version_ = 0;
+    bool notify_armed_ = false;
+    // Notification publications are sequenced through one coordinator IO. Keep this v2-only
+    // carriage at the true cold tail so the entire pre-notification IoLoop layout remains fixed.
+    std::deque<std::shared_ptr<PubSubNotificationChain>> pubsub_notification_chains_;
 };
 
 }  // namespace tomo

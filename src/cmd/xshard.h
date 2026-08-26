@@ -22,8 +22,11 @@ struct ScatterDispatch;
 
 enum class XshardStringStoreResult : uint8_t { Stored, Oom, InsertFailed, Maxmemory };
 XshardStringStoreResult xshard_store_string(Shard& shard, Slice key, uint64_t hash, Slice value,
-                                             int64_t expire_at_ms = -1,
-                                             bool integer_encode = true);
+                                            int64_t expire_at_ms = -1,
+                                            bool integer_encode = true);
+XshardStringStoreResult xshard_store_string_notify(Shard& shard, Slice key, uint64_t hash,
+                                                   Slice value, int64_t expire_at_ms = -1,
+                                                   bool integer_encode = true);
 KvObj* xshard_make_string(Slice key, Slice value, int64_t expire_at_ms = -1,
                           bool integer_encode = true);
 KvObj* xshard_make_atomic_string(Shard& shard, Slice key, Slice value,

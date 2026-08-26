@@ -143,6 +143,23 @@ python3 tests/debug.py 127.0.0.1 $PORT >/tmp/gate-debug.txt 2>&1 \
     && ok "DEBUG toggle/reload battery" || bad "DEBUG toggle/reload battery" "see /tmp/gate-debug.txt"
 stop
 
+# ---- notify lane: integrated owner/retire seams plus both live atomic settings -----------------
+boot ./build/tomokv --notify-keyspace-events KEAmn || bad "feature battery boot + notify CLI knob"
+python3 tests/multi_exec.py 127.0.0.1 $PORT >/tmp/gate-multi.txt 2>&1 \
+    && ok "MULTI feature battery" || bad "MULTI feature battery" "see /tmp/gate-multi.txt"
+python3 tests/blocking.py 127.0.0.1 $PORT >/tmp/gate-blocking.txt 2>&1 \
+    && ok "blocking feature battery" || bad "blocking feature battery" "see /tmp/gate-blocking.txt"
+python3 tests/pubsub.py 127.0.0.1 $PORT >/tmp/gate-pubsub.txt 2>&1 \
+    && ok "pubsub feature battery" || bad "pubsub feature battery" "see /tmp/gate-pubsub.txt"
+python3 tests/lua_scripting.py 127.0.0.1 $PORT >/tmp/gate-lua.txt 2>&1 \
+    && ok "Lua feature battery" || bad "Lua feature battery" "see /tmp/gate-lua.txt"
+python3 tests/notify.py 127.0.0.1 $PORT >/tmp/gate-notify.txt 2>&1 \
+    && ok "keyspace notification battery (atomic 0/1)" \
+    || bad "keyspace notification battery" "see /tmp/gate-notify.txt"
+stop
+grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
+    && ok "feature battery shutdown invariants" || bad "feature battery shutdown invariants"
+
 if [ "$TIER" = quick ]; then
   echo; echo "GATE(quick): $PASS ok, $FAIL FAIL"; [ $FAIL -eq 0 ] || exit 1; exit 0
 fi

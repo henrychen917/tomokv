@@ -4,6 +4,7 @@
 // use a shard-owned open-addressed field index and a dense deque of entries. The index resizes
 // incrementally; no store-path lock, atomic, or whole-hash resize walk is introduced here.
 #include "command.h"
+#include "notify.h"
 #include "../core/shard.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
@@ -723,6 +724,7 @@ bool hash_erase(CollectionRef& hash, Slice field) {
 
 CollectionRef as_hash(KvObj* object) { return CollectionRef(object); }
 
+template <bool kNotify>
 bool attach_new_hash(Shard& shard, Op& op, HashVal* hash) {
     KvObj* object = kvobj_adopt_hash(op.key(), hash);
     if (!object) {
@@ -730,7 +732,7 @@ bool attach_new_hash(Shard& shard, Op& op, HashVal* hash) {
         reply_err(op.sink(), "ERR out of memory");
         return false;
     }
-    const FlatStore::InsertResult inserted_ = shard.store().insert(op.hash, object);
+    const FlatStore::InsertResult inserted_ = shard.store_insert<kNotify>(op.hash, object);
 if (inserted_ != FlatStore::InsertResult::Inserted) {
     kvobj_free(object);
     if (inserted_ == FlatStore::InsertResult::MaxmemoryOom) reply_maxmemory_oom(op);
@@ -740,6 +742,7 @@ if (inserted_ != FlatStore::InsertResult::Inserted) {
     return true;
 }
 
+template <bool kNotify>
 bool externalize_hash(Shard& shard, Op& op, KvObj*& object) {
     CollectionRef source(object);
     if (!source.is_embedded()) return true;
@@ -761,7 +764,7 @@ bool externalize_hash(Shard& shard, Op& op, KvObj*& object) {
         return false;
     }
     replacement->set_eviction_meta(object->eviction_meta());
-    const FlatStore::InsertResult inserted = shard.store().insert(op.hash, replacement);
+    const FlatStore::InsertResult inserted = shard.store_insert<kNotify>(op.hash, replacement);
     if (inserted != FlatStore::InsertResult::Inserted) {
         kvobj_free(replacement);
         if (inserted == FlatStore::InsertResult::MaxmemoryOom) reply_maxmemory_oom(op);
@@ -772,6 +775,7 @@ bool externalize_hash(Shard& shard, Op& op, KvObj*& object) {
     return true;
 }
 
+template <bool kNotify>
 bool ensure_hash_write_capacity(Shard& shard, Op& op, KvObj*& object,
                                 uint32_t additional_entries, uint64_t additional_encoded,
                                 uint32_t incoming_max) {
@@ -783,7 +787,7 @@ bool ensure_hash_write_capacity(Shard& shard, Op& op, KvObj*& object,
     if (hash.embedded_bytes_fit(hash.compact().encoded_bytes() + additional_encoded) &&
         resulting_entries <= limit.max_entries && incoming_max <= limit.max_value)
         return true;
-    return externalize_hash(shard, op, object);
+    return externalize_hash<kNotify>(shard, op, object);
 }
 
 void reply_wrong_arity(Op& op) {
@@ -876,12 +880,13 @@ uint32_t format_long_double(char* buffer, size_t capacity, long double value) {
     return static_cast<uint32_t>(length);
 }
 
+template <bool kNotify>
 void cmd_hset(Shard& shard, Op& op) {
     if (op.argc() & 1u) {
         reply_wrong_arity(op);
         return;
     }
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return;
 
     uint64_t additional_encoded = 0;
@@ -891,7 +896,7 @@ void cmd_hset(Shard& shard, Op& op) {
         additional_encoded += Compact::entry_encoded_size(pair_bytes);
         incoming_max = std::max(incoming_max, std::max(op.arg(i).n, op.arg(i + 1).n));
     }
-    if (!ensure_hash_write_capacity(shard, op, object, (op.argc() - 2) / 2,
+    if (!ensure_hash_write_capacity<kNotify>(shard, op, object, (op.argc() - 2) / 2,
                                     additional_encoded, incoming_max)) return;
     HashVal* owned = object ? nullptr : new (std::nothrow) HashVal(op.hash);
     if (!object && !owned) {
@@ -918,13 +923,16 @@ void cmd_hset(Shard& shard, Op& op) {
         }
         created += result == HashSetKind::Inserted;
     }
-    if (!object && !attach_new_hash(shard, op, owned)) return;
+    if (!object && !attach_new_hash<kNotify>(shard, op, owned)) return;
+    if constexpr (kNotify)
+        notify_record(shard, op, NOTIFY_HASH, NotifyEventId::Hset, op.key());
     if (op.cmd_name().eq_icase("hmset")) reply_ok(op.sink());
     else reply_int(op.sink(), created);
 }
 
+template <bool kNotify>
 void cmd_hsetnx(Shard& shard, Op& op) {
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return;
     if (object) {
         Slice ignored;
@@ -935,7 +943,7 @@ void cmd_hsetnx(Shard& shard, Op& op) {
     }
 
     const uint32_t pair_bytes = uleb_size(op.arg(2).n) + op.arg(2).n + op.arg(3).n;
-    if (!ensure_hash_write_capacity(shard, op, object, 1,
+    if (!ensure_hash_write_capacity<kNotify>(shard, op, object, 1,
                                     Compact::entry_encoded_size(pair_bytes),
                                     std::max(op.arg(2).n, op.arg(3).n))) return;
     HashVal* owned = object ? nullptr : new (std::nothrow) HashVal(op.hash);
@@ -950,20 +958,24 @@ void cmd_hsetnx(Shard& shard, Op& op) {
         reply_err(op.sink(), "ERR out of memory");
         return;
     }
-    if (!object && !attach_new_hash(shard, op, owned)) return;
+    if (!object && !attach_new_hash<kNotify>(shard, op, owned)) return;
+    if constexpr (kNotify)
+        notify_record(shard, op, NOTIFY_HASH, NotifyEventId::Hset, op.key());
     reply_int(op.sink(), 1);
 }
 
+template <bool kNotify>
 void cmd_hget(Shard& shard, Op& op) {
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return;
     Slice value;
     if (!object || !hash_get(as_hash(object), op.arg(2), value)) reply_nil(op.sink());
     else reply_bulk(op.sink(), value);
 }
 
+template <bool kNotify>
 void cmd_hmget(Shard& shard, Op& op) {
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return;
     reply_array_header(op.sink(), op.argc() - 2);
     for (uint32_t i = 2; i < op.argc(); i++) {
@@ -973,8 +985,9 @@ void cmd_hmget(Shard& shard, Op& op) {
     }
 }
 
+template <bool kNotify>
 void cmd_hdel(Shard& shard, Op& op) {
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return;
     if (!object) {
         reply_int(op.sink(), 0);
@@ -983,45 +996,56 @@ void cmd_hdel(Shard& shard, Op& op) {
     CollectionRef hash = as_hash(object);
     ObjectSizeTracker size_tracker(shard.store(), object);
     uint32_t deleted = 0;
+    bool notified = false;
     for (uint32_t i = 2; i < op.argc(); i++) {
         if (!hash_erase(hash, op.arg(i))) continue;
         deleted++;
         if (hash.entries() == 0) {
+            if constexpr (kNotify) {
+                notify_record(shard, op, NOTIFY_HASH, NotifyEventId::Hdel, op.key());
+                notified = true;
+            }
             size_tracker.finish();               // account the shrink; erase subtracts the rest
-            shard.store().erase(op.hash, op.key());
+            shard.store_erase<kNotify>(op.hash, op.key());
             break;
         }
     }
+    if constexpr (kNotify) if (deleted && !notified)
+        notify_record(shard, op, NOTIFY_HASH, NotifyEventId::Hdel, op.key());
     reply_int(op.sink(), deleted);
 }
 
+template <bool kNotify>
 void cmd_hlen(Shard& shard, Op& op) {
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return;
     reply_int(op.sink(), object ? as_hash(object).entries() : 0);
 }
 
+template <bool kNotify>
 void cmd_hexists(Shard& shard, Op& op) {
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return;
     Slice value;
     reply_int(op.sink(), object && hash_get(as_hash(object), op.arg(2), value) ? 1 : 0);
 }
 
+template <bool kNotify>
 void cmd_hstrlen(Shard& shard, Op& op) {
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return;
     Slice value;
     reply_int(op.sink(), object && hash_get(as_hash(object), op.arg(2), value) ? value.n : 0);
 }
 
+template <bool kNotify>
 void cmd_hincrby(Shard& shard, Op& op) {
     int64_t increment = 0;
     if (!parse_i64(op.arg(3), increment)) {
         reply_err(op.sink(), "ERR value is not an integer or out of range");
         return;
     }
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return;
 
     int64_t old_value = 0;
@@ -1042,7 +1066,7 @@ void cmd_hincrby(Shard& shard, Op& op) {
 
     const uint32_t encoded = Compact::entry_encoded_size(
         uleb_size(op.arg(2).n) + op.arg(2).n + length);
-    if (!ensure_hash_write_capacity(shard, op, object, 1, encoded,
+    if (!ensure_hash_write_capacity<kNotify>(shard, op, object, 1, encoded,
                                     std::max(op.arg(2).n, length))) return;
     HashVal* owned = object ? nullptr : new (std::nothrow) HashVal(op.hash);
     if (!object && !owned) {
@@ -1057,10 +1081,13 @@ void cmd_hincrby(Shard& shard, Op& op) {
         reply_err(op.sink(), "ERR out of memory");
         return;
     }
-    if (!object && !attach_new_hash(shard, op, owned)) return;
+    if (!object && !attach_new_hash<kNotify>(shard, op, owned)) return;
+    if constexpr (kNotify)
+        notify_record(shard, op, NOTIFY_HASH, NotifyEventId::Hincrby, op.key());
     reply_int(op.sink(), value);
 }
 
+template <bool kNotify>
 void cmd_hincrbyfloat(Shard& shard, Op& op) {
     long double increment = 0;
     if (!parse_long_double(op.arg(3), increment)) {
@@ -1071,7 +1098,7 @@ void cmd_hincrbyfloat(Shard& shard, Op& op) {
         reply_err(op.sink(), "ERR value is NaN or Infinity");
         return;
     }
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return;
 
     long double old_value = 0;
@@ -1095,7 +1122,7 @@ void cmd_hincrbyfloat(Shard& shard, Op& op) {
 
     const uint32_t encoded = Compact::entry_encoded_size(
         uleb_size(op.arg(2).n) + op.arg(2).n + length);
-    if (!ensure_hash_write_capacity(shard, op, object, 1, encoded,
+    if (!ensure_hash_write_capacity<kNotify>(shard, op, object, 1, encoded,
                                     std::max(op.arg(2).n, length))) return;
     HashVal* owned = object ? nullptr : new (std::nothrow) HashVal(op.hash);
     if (!object && !owned) {
@@ -1110,14 +1137,17 @@ void cmd_hincrbyfloat(Shard& shard, Op& op) {
         reply_err(op.sink(), "ERR out of memory");
         return;
     }
-    if (!object && !attach_new_hash(shard, op, owned)) return;
+    if (!object && !attach_new_hash<kNotify>(shard, op, owned)) return;
+    if constexpr (kNotify)
+        notify_record(shard, op, NOTIFY_HASH, NotifyEventId::Hincrbyfloat, op.key());
     reply_bulk(op.sink(), Slice(text, length));
 }
 
 enum class GetAllMode : uint8_t { Fields, Values, Both };
 
+template <bool kNotify>
 void generic_getall(Shard& shard, Op& op, GetAllMode mode) {
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return;
     if (!object) {
         reply_array_header(op.sink(), 0);
@@ -1140,9 +1170,12 @@ void generic_getall(Shard& shard, Op& op, GetAllMode mode) {
     }
 }
 
-void cmd_hgetall(Shard& shard, Op& op) { generic_getall(shard, op, GetAllMode::Both); }
-void cmd_hkeys(Shard& shard, Op& op) { generic_getall(shard, op, GetAllMode::Fields); }
-void cmd_hvals(Shard& shard, Op& op) { generic_getall(shard, op, GetAllMode::Values); }
+template <bool kNotify>
+void cmd_hgetall(Shard& shard, Op& op) { generic_getall<kNotify>(shard, op, GetAllMode::Both); }
+template <bool kNotify>
+void cmd_hkeys(Shard& shard, Op& op) { generic_getall<kNotify>(shard, op, GetAllMode::Fields); }
+template <bool kNotify>
+void cmd_hvals(Shard& shard, Op& op) { generic_getall<kNotify>(shard, op, GetAllMode::Values); }
 
 bool glob_match_impl(const char* pattern, uint32_t pattern_len,
                      const char* string, uint32_t string_len,
@@ -1296,13 +1329,14 @@ void reply_scan(Op& op, uint64_t cursor, const std::vector<ScanItem>& items, boo
     }
 }
 
+template <bool kNotify>
 void cmd_hscan(Shard& shard, Op& op) {
     uint64_t cursor = 0;
     if (!parse_cursor(op.arg(2), cursor)) {
         reply_err(op.sink(), "ERR invalid cursor");
         return;
     }
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return;
     if (!object) {
         // Redis returns the empty scan reply before parsing trailing options for a missing key.
@@ -1399,6 +1433,7 @@ bool select_unique(CollectionRef& hash, uint32_t population, uint32_t count,
     }
 }
 
+template <bool kNotify>
 void cmd_hrandfield(Shard& shard, Op& op) {
     int64_t signed_count = 0;
     bool with_values = false;
@@ -1428,7 +1463,7 @@ void cmd_hrandfield(Shard& shard, Op& op) {
         }
     }
 
-    KvObj* object = shard.store().find(op.hash, op.key());
+    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return;
     if (!object) {
         if (op.argc() == 2) reply_nil(op.sink());
@@ -1503,25 +1538,29 @@ void cmd_hrandfield(Shard& shard, Op& op) {
     }
 }
 
+#define TOMO_HANDLER_PAIR(fn) fn<false>, 1, 1, 1, notify_handler<fn<true>>
+
 static const CommandSpec kTable[] = {
     // name          min max flags                handler             first last step
-    {"HSET",          4, -1, CmdFlags::Write | CmdFlags::DenyOom,    cmd_hset,              1,  1,  1},
-    {"HMSET",         4, -1, CmdFlags::Write | CmdFlags::DenyOom,    cmd_hset,              1,  1,  1},
-    {"HSETNX",        4,  4, CmdFlags::Write | CmdFlags::DenyOom,    cmd_hsetnx,            1,  1,  1},
-    {"HGET",          3,  3, CmdFlags::Readonly, cmd_hget,              1,  1,  1},
-    {"HMGET",         3, -1, CmdFlags::Readonly, cmd_hmget,             1,  1,  1},
-    {"HDEL",          3, -1, CmdFlags::Write,    cmd_hdel,              1,  1,  1},
-    {"HLEN",          2,  2, CmdFlags::Readonly, cmd_hlen,              1,  1,  1},
-    {"HEXISTS",       3,  3, CmdFlags::Readonly, cmd_hexists,           1,  1,  1},
-    {"HSTRLEN",       3,  3, CmdFlags::Readonly, cmd_hstrlen,           1,  1,  1},
-    {"HINCRBY",       4,  4, CmdFlags::Write | CmdFlags::DenyOom,    cmd_hincrby,           1,  1,  1},
-    {"HINCRBYFLOAT",  4,  4, CmdFlags::Write | CmdFlags::DenyOom,    cmd_hincrbyfloat,      1,  1,  1},
-    {"HGETALL",       2,  2, CmdFlags::Readonly, cmd_hgetall,           1,  1,  1},
-    {"HKEYS",         2,  2, CmdFlags::Readonly, cmd_hkeys,             1,  1,  1},
-    {"HVALS",         2,  2, CmdFlags::Readonly, cmd_hvals,             1,  1,  1},
-    {"HRANDFIELD",    2, -1, CmdFlags::Readonly, cmd_hrandfield,        1,  1,  1},
-    {"HSCAN",         3, -1, CmdFlags::Readonly, cmd_hscan,             1,  1,  1},
+    {"HSET",          4, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_hset)},
+    {"HMSET",         4, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_hset)},
+    {"HSETNX",        4,  4, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_hsetnx)},
+    {"HGET",          3,  3, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hget)},
+    {"HMGET",         3, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hmget)},
+    {"HDEL",          3, -1, CmdFlags::Write,    TOMO_HANDLER_PAIR(cmd_hdel)},
+    {"HLEN",          2,  2, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hlen)},
+    {"HEXISTS",       3,  3, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hexists)},
+    {"HSTRLEN",       3,  3, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hstrlen)},
+    {"HINCRBY",       4,  4, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_hincrby)},
+    {"HINCRBYFLOAT",  4,  4, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_hincrbyfloat)},
+    {"HGETALL",       2,  2, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hgetall)},
+    {"HKEYS",         2,  2, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hkeys)},
+    {"HVALS",         2,  2, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hvals)},
+    {"HRANDFIELD",    2, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hrandfield)},
+    {"HSCAN",         3, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hscan)},
 };
+
+#undef TOMO_HANDLER_PAIR
 
 }  // namespace
 

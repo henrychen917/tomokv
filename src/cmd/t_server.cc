@@ -206,7 +206,9 @@ void append_client_line(std::string& out, const ClientMeta& meta) {
             meta.shard_subscriptions);
 }
 
-enum class ConfigKind : uint8_t { String, Bool, Unsigned, Bytes, Policy, ClientOutputBufferLimit };
+enum class ConfigKind : uint8_t {
+    String, Bool, Unsigned, Bytes, Policy, ClientOutputBufferLimit, NotifyFlags
+};
 struct ConfigValue {
     const char* name;
     ConfigKind kind;
@@ -241,6 +243,8 @@ void init_config(const Config& cfg) {
     g_client_obuf_limits = cfg.client_output_buffer_limits;
     g_config.push_back({"client-output-buffer-limit", ConfigKind::ClientOutputBufferLimit,
                         cfg_client_output_buffer_limit_string(g_client_obuf_limits)});
+    g_config.push_back({"notify-keyspace-events", ConfigKind::NotifyFlags,
+                        serialize_notify_flags(cfg.notify_events)});
     add_config("databases", ConfigKind::Unsigned, 1);
     add_config("proto-max-bulk-len", ConfigKind::Bytes, 512ull * 1024 * 1024);
     add_config("zc-min", ConfigKind::Unsigned, cfg.zc_min);
@@ -389,6 +393,12 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out) {
             if (!parse_client_output_buffer_limit_slice(input, g_client_obuf_limits,
                                                         parsed, error)) return false;
             out = cfg_client_output_buffer_limit_string(parsed);
+            return true;
+        }
+        case ConfigKind::NotifyFlags: {
+            uint32_t flags = 0;
+            if (!parse_notify_flags(input, flags)) return false;
+            out = serialize_notify_flags(flags);
             return true;
         }
     }
@@ -822,10 +832,22 @@ void cmd_config(Shard& sh, Op& op) {
             }
         }
 
+        // CONFIG is already a barrier over every shard owner. Apply the notification sink on
+        // each owner task before that barrier replies, then publish the same mask through the
+        // live seqlock for subsequent per-pass snapshots. This closes the SET-then-command seam.
+        for (const auto& update : updates) {
+            if (std::strcmp(update.first->name, "notify-keyspace-events")) continue;
+            uint32_t flags = 0;
+            if (!parse_notify_flags(
+                    Slice(update.second.data(), static_cast<uint32_t>(update.second.size())),
+                    flags)) std::abort();
+            sh.set_notify_mask(flags);
+        }
+
         // Eviction config is process-global (odd/even snapshot read by owners each pass); publish
         // it once from shard 0's task rather than per shard.
         if (sh.id() == 0 && g_server) {
-            MaxmemoryConfigSnapshot desired = g_server->maxmemory_config_snapshot();
+            LiveConfigSnapshot desired = g_server->live_config_snapshot();
             bool set_memory = false, set_policy = false, set_samples = false;
             for (const auto& update : updates) {
                 const Slice text(update.second.data(),
@@ -843,6 +865,14 @@ void cmd_config(Shard& sh, Op& op) {
             if (set_memory || set_policy || set_samples)
                 g_server->set_maxmemory_config(desired.maxmemory, desired.policy, desired.samples,
                                                set_memory, set_policy, set_samples);
+            for (const auto& update : updates) {
+                if (std::strcmp(update.first->name, "notify-keyspace-events")) continue;
+                uint32_t flags = 0;
+                if (!parse_notify_flags(
+                        Slice(update.second.data(), static_cast<uint32_t>(update.second.size())),
+                        flags)) std::abort();
+                g_server->set_notify_events(flags);
+            }
             for (const auto& update : updates) {
                 uint64_t value = 0;
                 if (!std::strcmp(update.first->name, "requirepass")) {
@@ -1016,6 +1046,7 @@ void cmd_info(Shard&, Op& op) {
                       "pubsub_patterns:%llu\r\npubsub_home_entries:%llu\r\n"
                       "pubsub_inflight:%llu\r\npubsub_pending_commands:%llu\r\n"
                       "client_output_buffer_limit_disconnections:%llu\r\n"
+                      "notify_events_fired:%llu\r\nnotify_events_dropped:%llu\r\n"
                       "blocking_waiters:%llu\r\n",
                 static_cast<unsigned long long>(connections), static_cast<unsigned long long>(rejected),
                 static_cast<unsigned long long>(total_ops), static_cast<unsigned long long>(hits),
@@ -1054,6 +1085,8 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_pending() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->client_output_buffer_limit_disconnections() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->notify_events_fired() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->notify_events_dropped() : 0),
                 static_cast<unsigned long long>(blocking_waiters));
     }
     if (info_section(op, "COMMANDSTATS")) {

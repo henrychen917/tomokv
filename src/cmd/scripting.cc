@@ -4,6 +4,7 @@
 // owner, so Lua and every redis.call handler obey the ownership law without locks around a shard.
 // The cache is the only cross-thread scripting object and is protected independently of shard data.
 #include "command.h"
+#include "notify.h"
 
 #include <algorithm>
 #include <array>
@@ -300,7 +301,12 @@ struct ScriptContext {
     uint32_t key_first = 0;
     uint32_t key_count = 0;
     uint64_t instructions = 0;
+    uint32_t call_index = 0;
     bool timed_out = false;
+    // Set per call from the handler variant that entered (clean vs notify registry row). The
+    // sandbox closures are built once per persistent state, so notify-variance is a runtime flag
+    // here rather than a template parameter — one predictable test per nested call.
+    bool notify = false;
 };
 
 // Persistent per-thread engine. Building luaL_newstate + the sandbox + recompiling the source on
@@ -508,16 +514,22 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                               "ERR Script attempted to access an undeclared key");
                 failed = true;
             } else {
+                if (context->notify) spec = command_notify_variant(spec);
                 nested.spec = spec;
                 nested.db = context->parent->db;
                 nested.hash = FlatStore::hash_key(key);
                 nested.shard = context->shard->id();
+                if (context->notify)
+                    notify_execute_source(*context->shard, nested,
+                                          context->call_index++ * 0x10000u);
                 if ((spec->flags & CmdFlags::DenyOom) &&
                     !context->shard->store().budget_admit(key)) {
                     reply_maxmemory_oom(nested);
                 } else {
                     spec->handler(*context->shard, nested);
                 }
+                if (context->notify)
+                    notify_execute_source(*context->shard, *context->parent, 0);
                 if (nested.zc_ptr) {
                     try {
                         std::string borrowed(nested.zc_ptr, nested.zc_len);
@@ -737,7 +749,8 @@ bool append_lua_result(lua_State* state, int index, SmallBuf<kInlineReply>& outp
     return true;
 }
 
-void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_hint) {
+void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_hint,
+              bool notify) {
     if (source.n > kScriptMaxBytes) {
         reply_text_error(op, "ERR", "script exceeds the 1 MiB limit");
         return;
@@ -770,6 +783,7 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_h
     }
     lua_State* state = engine.state;
     ScriptContext context{&shard, &op, key_first, key_count};
+    context.notify = notify;
     engine.current = &context;
 
     // Fetch the compiled chunk by sha, compiling at most once per thread per script.
@@ -831,6 +845,7 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_h
         lua_settop(state, 0);
         engine.current = nullptr;
         const bool restored = !atomic || undo.rollback(shard);
+        if (notify && atomic && restored) notify_abort_op(op);
         if (!restored) reply_text_error(op, "ERR", "atomic script rollback failed");
         else if (context.timed_out)
             reply_text_error(op, "BUSY", "script exceeded the 100000 instruction limit");
@@ -847,6 +862,7 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_h
     engine.current = nullptr;
     if (!converted) {
         const bool restored = !atomic || undo.rollback(shard);
+        if (notify && atomic && restored) notify_abort_op(op);
         reply_text_error(op, "ERR", restored
             ? std::string("Error running script: ") + conversion_error
             : "atomic script rollback failed");
@@ -855,9 +871,10 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_h
     op.sink().append(result.data(), result.size());
 }
 
+template <bool kNotify>
 void cmd_eval(Shard& shard, Op& op) {
     if (op.cmd_name().eq_icase("eval")) {
-        run_eval(shard, op, op.arg(1), true, Slice());
+        run_eval(shard, op, op.arg(1), true, Slice(), kNotify);
         return;
     }
     std::string source;
@@ -866,7 +883,7 @@ void cmd_eval(Shard& shard, Op& op) {
         return;
     }
     run_eval(shard, op, Slice(source.data(), static_cast<uint32_t>(source.size())), false,
-             op.arg(1));
+             op.arg(1), kNotify);
 }
 
 void cmd_script(Shard&, Op& op) {
@@ -915,9 +932,9 @@ void cmd_script(Shard&, Op& op) {
 static const CommandSpec kTable[] = {
     // name       min max flags                                      handler     first last step
     {"EVAL",       3, -1, CmdFlags::Write | CmdFlags::CursorShard | CmdFlags::ScriptRoute,
-                                                                    cmd_eval,      3, -1, 1},
+                cmd_eval<false>, 3, -1, 1, notify_handler<cmd_eval<true>>},
     {"EVALSHA",    3, -1, CmdFlags::Write | CmdFlags::CursorShard | CmdFlags::ScriptRoute,
-                                                                    cmd_eval,      3, -1, 1},
+                cmd_eval<false>, 3, -1, 1, notify_handler<cmd_eval<true>>},
     {"SCRIPT",     2, -1, CmdFlags::ConnLocal | CmdFlags::Admin,    cmd_script,    0,  0, 0},
 };
 

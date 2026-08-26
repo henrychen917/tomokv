@@ -29,10 +29,13 @@
 #include <vector>
 #include "../base/topology.h"
 #include "../store/flatstore.h"
+#include "../cmd/notify.h"
 
 namespace tomo {
 
 class Client;
+class Op;
+class Server;
 
 // 16,384 buckets. Chosen so changing the shard count reassigns bucket RANGES rather than rehashing
 // keys: a key's bucket never changes, only which shard owns that bucket.
@@ -50,8 +53,9 @@ public:
     Shard(const Shard&) = delete;
     Shard& operator=(const Shard&) = delete;
 
-    void init(int32_t id, uint32_t bucket_begin, uint32_t bucket_end, uint32_t zc_min,
+    void init(Server* server, int32_t id, uint32_t bucket_begin, uint32_t bucket_end, uint32_t zc_min,
               const TypeLimits& type_limits) {
+        server_ = server;
         id_ = id;
         bucket_begin_ = bucket_begin;
         bucket_end_   = bucket_end;
@@ -59,6 +63,10 @@ public:
         type_limits_ = type_limits;
         store_.bind_expired_counter(&stats_.expired);
         store_.bind_evicted_counter(&stats_.evicted);
+        flat_notify_sink_.context = this;
+        flat_notify_sink_.enabled = notify_flat_enabled;
+        flat_notify_sink_.emit = notify_flat_emit;
+        notify_bind_flat_store(&store_, &flat_notify_sink_);
     }
 
     int32_t  id() const { return id_; }
@@ -91,6 +99,30 @@ public:
     }
     uint32_t active_expire(uint32_t budget) { return store_.active_expire(budget); }
 
+    // Refreshed once per executor pass through the existing live-config seqlock.  A null store
+    // sink is the complete off state: no notification allocation or callback is reachable.
+    void set_notify_mask(uint32_t mask) {
+        notify_mask_ = mask;
+    }
+    uint32_t notify_mask() const { return notify_mask_; }
+    void set_notify_context(Op* carrier, Op* source, uint32_t order_base) {
+        notify_carrier_ = carrier;
+        notify_source_ = source;
+        notify_order_base_ = order_base;
+    }
+    Op* notify_carrier() const { return notify_carrier_; }
+    Op* notify_source() const { return notify_source_; }
+    uint32_t notify_order_base() const { return notify_order_base_; }
+    std::unique_ptr<NotifyShardState>& notify_state_slot() { return notify_state_; }
+    void bind_notify_pending(bool* pending) { notify_pending_ = pending; }
+    void notify_output_created() {
+        if (notify_pending_) *notify_pending_ = true;
+    }
+    bool notify_output_pending() const {
+        return notify_state_ && !notify_state_->keyless.empty();
+    }
+    Server* server() const { return server_; }
+
     // The registry pointer and its map are owner-only.  Cross-thread INFO and atomic publication
     // touch only these two atomics; ordinary shards retain one predicted-false waiter check.
     bool has_blocking_waiters() const {
@@ -107,6 +139,39 @@ public:
 
     FlatStore&       store()       { return store_; }
     const FlatStore& store() const { return store_; }
+
+    template <bool kNotify>
+    KvObj* store_find(uint64_t hash, Slice key) {
+        if constexpr (kNotify) return store_.find_notify(hash, key, &flat_notify_sink_);
+        return store_.find(hash, key);
+    }
+    template <bool kNotify>
+    FlatStore::InsertResult store_insert(uint64_t hash, KvObj* object) {
+        if constexpr (kNotify) return store_.insert_notify(hash, object, &flat_notify_sink_);
+        return store_.insert(hash, object);
+    }
+    template <bool kNotify>
+    bool store_erase(uint64_t hash, Slice key,
+                     FlatStore::EraseEvent event = FlatStore::EraseEvent::Del) {
+        if constexpr (kNotify) return store_.erase_notify(hash, key, &flat_notify_sink_, event);
+        return store_.erase(hash, key);
+    }
+    template <bool kNotify>
+    FlatStore::OverwriteResult store_try_overwrite(uint64_t hash, Slice key, Slice value) {
+        if constexpr (kNotify)
+            return store_.try_overwrite_notify(hash, key, value, &flat_notify_sink_);
+        return store_.try_overwrite(hash, key, value);
+    }
+    template <bool kNotify>
+    FlatStore::TtlResult store_set_expire(uint64_t hash, Slice key, int64_t at) {
+        if constexpr (kNotify) return store_.set_expire_notify(hash, key, at, &flat_notify_sink_);
+        return store_.set_expire(hash, key, at);
+    }
+    template <bool kNotify>
+    FlatStore::TtlResult store_persist(uint64_t hash, Slice key) {
+        if constexpr (kNotify) return store_.persist_notify(hash, key, &flat_notify_sink_);
+        return store_.persist(hash, key);
+    }
 
     // WATCH state is touched only by this shard's executor.  The maps remain empty until the first
     // WATCH, so ordinary reads and writes allocate nothing and never enter registry code.
@@ -229,6 +294,16 @@ private:
     std::atomic<bool> blocking_dirty_{false};
     std::unordered_map<std::string, std::vector<WatchEntry>> watchers_;
     std::unordered_map<std::string, WatchReservation> watch_reservations_;
+    // Notification state is deliberately appended after every pre-existing field. In particular,
+    // server_ must never return to offset 8: doing so shifted the entire hot shard header in v1.
+    Server* server_ = nullptr;
+    FlatNotifySink flat_notify_sink_{};
+    uint32_t notify_mask_ = 0;
+    uint32_t notify_order_base_ = 0;
+    Op* notify_carrier_ = nullptr;
+    Op* notify_source_ = nullptr;
+    bool* notify_pending_ = nullptr;
+    std::unique_ptr<NotifyShardState> notify_state_;
 };
 
 // Maps bucket -> shard id. A plain array: one indexed load on the hot path, and reassigning

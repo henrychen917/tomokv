@@ -187,6 +187,20 @@ public:
         return true;
     }
 
+    // Keyless expiry/eviction events originate on EX.  Reserve the ordinary producer lane marker
+    // before making the payload visible, and never spin if that SPSC lane is full.  Holding the
+    // cold inbox mutex closes the marker-before-payload race with the IO consumer.
+    bool post_pubsub_event_nonblocking(uint32_t from, PubSubEvent* event,
+                                       Ring& producer_ring, LoopSignals& sig) {
+        std::lock_guard<std::mutex> lock(pubsub_mu_);
+        if (!pubsub_notified_) {
+            if (!post_client(from, nullptr, producer_ring, sig)) return false;
+            pubsub_notified_ = true;
+        }
+        pubsub_events_.push_back(event);
+        return true;
+    }
+
     void take_pubsub_events(std::deque<PubSubEvent*>& out) {
         std::lock_guard<std::mutex> lock(pubsub_mu_);
         out.swap(pubsub_events_);

@@ -6,6 +6,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -15,6 +16,9 @@ enum class PubSubEventKind : uint8_t {
     ModifyRequest,
     ModifyResult,
     PublishRequest,
+    NotificationEnqueue,
+    NotificationRequest,
+    NotificationContinue,
     PublishResult,
     Delivery,
     ChannelsRequest,
@@ -38,6 +42,17 @@ struct PubSubEventItem {
     std::string value;
 };
 
+struct PubSubNotificationItem {
+    std::string channel;
+    std::string message;
+};
+
+struct PubSubNotificationChain {
+    uint32_t coordinator_io = 0;
+    uint32_t index = 0;
+    std::vector<PubSubNotificationItem> items;
+};
+
 struct PubSubEvent {
     PubSubEventKind kind = PubSubEventKind::Delivery;
     uint32_t origin_io = 0;
@@ -54,6 +69,7 @@ struct PubSubEvent {
     std::string message;
     std::string pattern_text;
     std::vector<PubSubEventItem> items;
+    std::shared_ptr<PubSubNotificationChain> notification;
 };
 
 }  // namespace tomo

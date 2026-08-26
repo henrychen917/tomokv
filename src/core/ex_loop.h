@@ -27,6 +27,7 @@
 #include "../cmd/command.h"
 #include "../cmd/blocking.h"
 #include "../cmd/multi.h"
+#include "../cmd/notify.h"
 #include "../cmd/xshard.h"
 
 namespace tomo {
@@ -50,6 +51,8 @@ public:
         self_->set_ring(&ring_);
         wb_.bind(&ring_);
         blocking_bind_executor(srv_, self_, &ring_);
+        for (Shard* shard : self_->shards())
+            shard->bind_notify_pending(&notify_keyless_pending_);
         return true;
     }
 
@@ -61,7 +64,7 @@ public:
 
         while (!self_->stop_flag().load(std::memory_order_relaxed)) {
             cached_now_ms_ = realtime_ms();
-            refresh_maxmemory_config();
+            refresh_live_config();
             if (maxmemory_enabled_)
                 cached_lru_clock_ = static_cast<uint8_t>(
                     (static_cast<uint64_t>(cached_now_ms_ / 1000) >> lru_clock_shift_) & 0x1f);
@@ -96,7 +99,10 @@ public:
             // PREPARED during the work section but only reach the kernel on submit; taking
             // the busy path without submitting strands them in the SQ forever, and the peer
             // that is waiting on that wake never runs.
-            if (did) { ring_.submit_and_reap(); idle_spins = 0; continue; }
+            if (did) {
+                did += drain_notify_keyless(sig);
+                ring_.submit_and_reap(); idle_spins = 0; continue;
+            }
 
             if (++idle_spins < kExSpinBudget) { sig.spins++; __builtin_ia32_pause(); continue; }
             idle_spins = 0;
@@ -115,15 +121,29 @@ public:
     }
 
 private:
-    void refresh_maxmemory_config() {
-        MaxmemoryConfigSnapshot snapshot;
-        if (!srv_->maxmemory_config_snapshot_if_changed(maxmemory_config_version_, snapshot)) return;
+    void refresh_live_config() {
+        LiveConfigSnapshot snapshot;
+        if (!srv_->live_config_snapshot_if_changed(live_config_version_, snapshot)) return;
         const bool enabled = snapshot.maxmemory != 0;
         const uint64_t shard_limit = snapshot.maxmemory / srv_->nshards();
-        for (Shard* sh : self_->shards())
+        for (Shard* sh : self_->shards()) {
             sh->configure_maxmemory(enabled, shard_limit, snapshot.policy, snapshot.samples);
+            sh->set_notify_mask(snapshot.notify_events);
+        }
         maxmemory_enabled_ = enabled;
-        maxmemory_config_version_ = snapshot.version;
+        live_config_version_ = snapshot.version;
+    }
+
+    uint32_t drain_notify_keyless(LoopSignals& signals) {
+        if (__builtin_expect(!notify_keyless_pending_, true)) return 0;
+        notify_keyless_pending_ = false;
+        uint32_t work = 0;
+        for (Shard* shard : self_->shards()) {
+            work += notify_ex_pass_entry(
+                *srv_, *shard, self_->id(), *self_, ring_, signals);
+            notify_keyless_pending_ |= shard->notify_output_pending();
+        }
+        return work;
     }
 
     // Visits only the IO threads that actually have work for us, via the notify mask, rather than
@@ -143,6 +163,7 @@ private:
                          ? drain_tasks(true) : drain_tasks_snapshot(true);
         }
         n += active_expire_cycle() + atomic_cleanup_cycle(64);
+        n += drain_notify_keyless(self_->sig());
         if (__builtin_expect(srv_->blocking_waiters() != 0, false))
             n += blocking_owner_cycle(*srv_, *self_, ring_, cached_now_ms_, true);
         return n;
@@ -703,7 +724,7 @@ private:
     int64_t    blocking_beat_ms_ = 0;
     size_t     expire_shard_cursor_ = 0;
     size_t     atomic_cleanup_cursor_ = 0;
-    uint64_t   maxmemory_config_version_ = 0;
+    uint64_t   live_config_version_ = 0;
     bool       maxmemory_enabled_ = false;
     uint8_t    cached_lru_clock_ = 0;
     uint8_t    lru_clock_shift_ = 8;   // latched from cfg at loop start; 1<<N seconds per bucket
@@ -720,6 +741,7 @@ private:
     std::deque<Task> multi_retries_;
     std::deque<Task> xshard_retries_;
     std::deque<Task> ordered_deferred_;
+    bool       notify_keyless_pending_ = false;
 };
 
 }  // namespace tomo
