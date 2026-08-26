@@ -30,6 +30,9 @@ ASAN=/tmp/tomokv-gate-asan
 g++ -std=c++20 -O1 -g -fsanitize=address -march=native -pthread -I. \
     src/main.cc src/cmd/*.cc src/snapshot/*.cc -o $ASAN -luring -pthread 2>/dev/null \
     && ok "ASAN build" || bad "ASAN build"
+g++ -std=c++20 -O2 -I. tests/config_parser_test.cc -o /tmp/tomokv-config-parser-test \
+    && /tmp/tomokv-config-parser-test \
+    && ok "Redis config quoting + mid-value #" || bad "Redis config quoting + mid-value #"
 
 # ---- 2. boot matrix: deleted flags stay dead; live grammar boots ------------------------------
 ./build/tomokv --mode 3s      2>&1 | grep -q "unknown" && ok "reject --mode (flag deleted)" || bad "reject --mode (flag deleted)"

@@ -20,10 +20,12 @@
 
 #include <cstdint>
 #include <climits>
+#include <cctype>
 #include <cstdio>
 #include <cstring>
 #include <limits>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "../store/eviction.h"   // MaxmemoryPolicy + parse_maxmemory_policy
@@ -496,6 +498,93 @@ inline int validate_config(const Config& cfg) {
     return kConfigParsed;
 }
 
+inline bool cfg_is_hex_digit(char c) {
+    return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') ||
+           (c >= 'A' && c <= 'F');
+}
+
+inline uint8_t cfg_hex_digit(char c) {
+    if (c >= '0' && c <= '9') return static_cast<uint8_t>(c - '0');
+    if (c >= 'a' && c <= 'f') return static_cast<uint8_t>(c - 'a' + 10);
+    return static_cast<uint8_t>(c - 'A' + 10);
+}
+
+// Redis sdssplitargs grammar, used by config.c: double quotes recognize C-style escapes and
+// \xHH, single quotes recognize only \', and a closing quote must end the token. Quotes may start
+// after an unquoted prefix (`>"pass phrase"` is one ACL rule). A '#' has no special meaning here:
+// config.c treats it as a comment only when it is the first character of the trimmed line.
+inline bool cfg_split_args(const char* line, std::vector<std::string>& out) {
+    const char* p = line;
+    while (true) {
+        while (*p && std::isspace(static_cast<unsigned char>(*p))) p++;
+        if (!*p) return true;
+
+        std::string current;
+        bool in_double = false;
+        bool in_single = false;
+        bool done = false;
+        while (!done) {
+            if (in_double) {
+                if (*p == '\\' && p[1] == 'x' && cfg_is_hex_digit(p[2]) &&
+                    cfg_is_hex_digit(p[3])) {
+                    current.push_back(static_cast<char>((cfg_hex_digit(p[2]) << 4) |
+                                                        cfg_hex_digit(p[3])));
+                    p += 3;
+                } else if (*p == '\\' && p[1]) {
+                    p++;
+                    char c = *p;
+                    if (*p == 'n') c = '\n';
+                    else if (*p == 'r') c = '\r';
+                    else if (*p == 't') c = '\t';
+                    else if (*p == 'b') c = '\b';
+                    else if (*p == 'a') c = '\a';
+                    current.push_back(c);
+                } else if (*p == '"') {
+                    if (p[1] && !std::isspace(static_cast<unsigned char>(p[1]))) return false;
+                    done = true;
+                } else if (!*p) {
+                    return false;
+                } else {
+                    current.push_back(*p);
+                }
+            } else if (in_single) {
+                if (*p == '\\' && p[1] == '\'') {
+                    p++;
+                    current.push_back('\'');
+                } else if (*p == '\'') {
+                    if (p[1] && !std::isspace(static_cast<unsigned char>(p[1]))) return false;
+                    done = true;
+                } else if (!*p) {
+                    return false;
+                } else {
+                    current.push_back(*p);
+                }
+            } else {
+                switch (*p) {
+                case ' ':
+                case '\n':
+                case '\r':
+                case '\t':
+                case '\0':
+                    done = true;
+                    break;
+                case '"':
+                    in_double = true;
+                    break;
+                case '\'':
+                    in_single = true;
+                    break;
+                default:
+                    current.push_back(*p);
+                    break;
+                }
+            }
+            if (*p) p++;
+        }
+        out.push_back(std::move(current));
+    }
+}
+
 // Conf-file loader: translates `name value...` lines into the exact --flag token stream the CLI
 // parser consumes, so the file cannot drift from the flag grammar. `pin yes|no` maps to the
 // valueless --no-pin. Token storage lives in `store` (must outlive parsing — Config keeps
@@ -511,10 +600,16 @@ inline bool load_conf_file(const char* path, std::vector<std::string>& store) {
     bool ok = true;
     while (ok && std::fgets(line, sizeof(line), f)) {
         lineno++;
-        if (char* hash = std::strchr(line, '#')) *hash = '\0';
+        const char* first = line;
+        while (*first && std::isspace(static_cast<unsigned char>(*first))) first++;
+        if (*first == '#' || !*first) continue;
         std::vector<std::string> words;
-        for (char* p = std::strtok(line, " \t\r\n"); p; p = std::strtok(nullptr, " \t\r\n"))
-            words.emplace_back(p);
+        if (!cfg_split_args(first, words)) {
+            std::fprintf(stderr, "%s:%d: Unbalanced quotes in configuration line\n", path,
+                         lineno);
+            ok = false;
+            continue;
+        }
         if (words.empty()) continue;
         if (words[0] == "pin") {
             if (words.size() != 2 || (words[1] != "yes" && words[1] != "no")) {
