@@ -306,6 +306,12 @@ BlockingProbe blocking_probe_key(Shard& shard, const BlockingState& state,
     return CollectionRef(object).entries() ? BlockingProbe::Ready : BlockingProbe::Empty;
 }
 
+// Not-ready queue policy. FIFO kinds (lists, zsets) BLOCK: the front waiter owns the next push,
+// and a later waiter must not jump it. Stream waiters (XREAD BLOCK, later) are SKIPPED: each
+// waits on its own cursor into the same collection, so "not ready" is a property of the waiter,
+// not the key, and a stalled cursor must not strand an already-satisfiable waiter behind it.
+bool blocking_skip_when_not_ready(BlockingKind) { return false; }
+
 bool blocking_pick(const BlockingState& state, uint32_t& selected, bool& wrong_type) {
     selected = UINT32_MAX;
     wrong_type = false;
@@ -517,24 +523,45 @@ public:
                    ThreadCtx& self, Ring& ring) {
         uint32_t work = 0;
         for (BlockingQueue& queue : queues_) {
-            clean_stale(shard, queue, self, ring);
-            if (queue.waiters.empty()) continue;
-            BlockingState& state = *queue.waiters.front().state;
-            const BlockingPhase phase = state.phase.load(std::memory_order_acquire);
-            if (phase == BlockingPhase::Parked && state.deadline_ms &&
-                now_ms >= state.deadline_ms) {
-                BlockingPhase expected = BlockingPhase::Parked;
-                if (state.phase.compare_exchange_strong(
-                        expected, BlockingPhase::Completed, std::memory_order_acq_rel)) {
-                    Op& op = state.client->rob().at(state.op_id);
-                    blocking_reply_timeout(op, state.kind);
-                    remove_front_from_shard(shard, queue);
-                    blocking_publish_completion(state, self, ring);
-                    work++;
+            // Deadline/stale scan covers EVERY entry, not just the front: a waiter parked behind
+            // a longer-lived one still times out at ITS deadline (redis semantics), and dead
+            // entries (disconnects, completions from other queues) must not accumulate mid-queue
+            // behind a forever-waiter.
+            size_t i = 0;
+            while (i < queue.waiters.size()) {
+                BlockingState& state = *queue.waiters[i].state;
+                BlockingPhase phase = state.phase.load(std::memory_order_acquire);
+                if (state.cancel_requested.load(std::memory_order_acquire) &&
+                    blocking_phase_live(phase)) {
+                    if (state.phase.compare_exchange_strong(
+                            phase, BlockingPhase::Cancelled, std::memory_order_acq_rel,
+                            std::memory_order_acquire) &&
+                        state.active_tasks.load(std::memory_order_acquire) == 0)
+                        blocking_finish_cancelled(state, &self, &ring);
+                    phase = state.phase.load(std::memory_order_acquire);
                 }
-            } else if (check_values) {
-                work += service(shard, queue, now_ms, self, ring);
+                if (!blocking_phase_live(phase)) {
+                    remove_at_from_shard(shard, queue, i);
+                    work++;
+                    continue;
+                }
+                if (phase == BlockingPhase::Parked && state.deadline_ms &&
+                    now_ms >= state.deadline_ms) {
+                    BlockingPhase expected = BlockingPhase::Parked;
+                    if (state.phase.compare_exchange_strong(
+                            expected, BlockingPhase::Completed, std::memory_order_acq_rel)) {
+                        Op& op = state.client->rob().at(state.op_id);
+                        blocking_reply_timeout(op, state.kind);
+                        remove_at_from_shard(shard, queue, i);
+                        blocking_publish_completion(state, self, ring);
+                        work++;
+                        continue;
+                    }
+                }
+                i++;
             }
+            if (check_values && !queue.waiters.empty())
+                work += service(shard, queue, now_ms, self, ring);
         }
         erase_empty();
         return work;
@@ -548,46 +575,39 @@ private:
         return nullptr;
     }
 
-    void remove_front_from_shard(Shard& shard, BlockingQueue& queue) {
-        BlockingState* state = queue.waiters.front().state;
-        queue.waiters.pop_front();
+    void remove_at_from_shard(Shard& shard, BlockingQueue& queue, size_t index) {
+        BlockingState* state = queue.waiters[index].state;
+        queue.waiters.erase(queue.waiters.begin() + static_cast<ptrdiff_t>(index));
         shard.blocking_waiter_removed();
         state->server->blocking_waiter_removed();
         blocking_state_release(state);
     }
 
-    void clean_stale(Shard& shard, BlockingQueue& queue, ThreadCtx& self, Ring& ring) {
-        while (!queue.waiters.empty()) {
-            BlockingState& state = *queue.waiters.front().state;
-            BlockingPhase phase = state.phase.load(std::memory_order_acquire);
-            if (state.cancel_requested.load(std::memory_order_acquire) &&
-                blocking_phase_live(phase)) {
-                if (state.phase.compare_exchange_strong(
-                        phase, BlockingPhase::Cancelled, std::memory_order_acq_rel,
-                        std::memory_order_acquire) &&
-                    state.active_tasks.load(std::memory_order_acquire) == 0)
-                    blocking_finish_cancelled(state, &self, &ring);
-                phase = state.phase.load(std::memory_order_acquire);
-            }
-            if (blocking_phase_live(phase)) break;
-            remove_front_from_shard(shard, queue);
-        }
+    void remove_front_from_shard(Shard& shard, BlockingQueue& queue) {
+        remove_at_from_shard(shard, queue, 0);
     }
 
     uint32_t service(Shard& shard, BlockingQueue& queue, int64_t,
                      ThreadCtx& self, Ring& ring) {
         uint32_t work = 0;
-        while (!queue.waiters.empty()) {
-            BlockingEntry entry = queue.waiters.front();
+        size_t i = 0;
+        while (i < queue.waiters.size()) {
+            BlockingEntry entry = queue.waiters[i];
             BlockingState& state = *entry.state;
             BlockingPhase phase = state.phase.load(std::memory_order_acquire);
             if (!blocking_phase_live(phase)) {
-                remove_front_from_shard(shard, queue);
+                remove_at_from_shard(shard, queue, i);
                 work++;
                 continue;
             }
             const BlockingKey& key = state.keys[entry.key_index];
-            if (blocking_probe_key(shard, state, key) != BlockingProbe::Ready) return work;
+            if (blocking_probe_key(shard, state, key) != BlockingProbe::Ready) {
+                // Tri-state, not boolean: FIFO kinds stop the queue here (the front waiter owns
+                // the next push); skip-kinds (streams, later) step past a waiter whose own cursor
+                // is not satisfiable without stranding the ones behind it.
+                if (blocking_skip_when_not_ready(state.kind)) { i++; continue; }
+                return work;
+            }
             if (phase == BlockingPhase::Registering) {
                 blocking_atomic_min(state.candidate, entry.key_index);
                 if (state.phase.load(std::memory_order_acquire) != BlockingPhase::Registering)
@@ -598,7 +618,7 @@ private:
             if (!state.phase.compare_exchange_strong(
                     expected, BlockingPhase::Claimed, std::memory_order_acq_rel)) continue;
             state.selected = entry.key_index;
-            remove_front_from_shard(shard, queue);
+            remove_at_from_shard(shard, queue, i);
             if (blocking_is_move(state.kind)) {
                 blocking_request_move(state, self, ring);
                 return work + 1;
@@ -610,6 +630,8 @@ private:
             // Consume sequentially on the owner while the collection stays non-empty. This is
             // still FIFO handoff (one claimed context at a time), but a multi-element LPUSH/ZADD
             // does not strand later waiters behind data made ready by the same committed write.
+            // The scan resumes at the same index: the served entry's removal shifted the next
+            // waiter into position i.
             work++;
         }
         return work;

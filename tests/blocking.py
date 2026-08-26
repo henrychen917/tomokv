@@ -142,6 +142,23 @@ move_timeout = admin.cmd("BLMOVE", "block:no-source", "block:no-dest",
                          "RIGHT", "LEFT", "0.10")
 note("BLMOVE timeout replies nil", move_timeout is None and time.monotonic() - started >= 0.07)
 
+# A waiter's deadline is its own: a short-timeout waiter parked BEHIND a forever waiter must
+# still time out on schedule, and the forever waiter keeps its front-of-queue claim afterward.
+forever_client, forever_thread, forever_result, forever_errors = start_wait(
+    ("BRPOP", "block:behind", "0"))
+wait_value(admin, "CLIENTS", "blocked_clients", 1)
+started = time.monotonic()
+behind = admin.cmd("BRPOP", "block:behind", "0.15")
+elapsed = time.monotonic() - started
+note("second waiter times out behind a forever waiter",
+     behind is None and 0.10 <= elapsed <= 0.75, "elapsed=%.3f" % elapsed)
+admin.cmd("RPUSH", "block:behind", "front-value")
+forever_thread.join(3)
+note("forever waiter still served after later waiter's timeout",
+     bool(forever_result) and not forever_errors and forever_result[0][1] == b"front-value",
+     "result=%r errors=%r" % (forever_result, forever_errors))
+forever_client.close()
+
 # BLMPOP and all blocking zset reply shapes.
 client, thread, result, errors = start_wait(
     ("BLMPOP", "2", "2", "block:ma", "block:mb", "LEFT", "COUNT", "2"))
