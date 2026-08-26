@@ -75,18 +75,23 @@ inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"ECHO", 0x0000000000044000ULL}, // fast connection
     {"EVAL", 0x0000000000108000ULL}, // slow scripting
     {"EVALSHA", 0x0000000000108000ULL}, // slow scripting
-    {"EVALSHA_RO", 0x0000000000108000ULL}, // slow scripting
-    {"EVAL_RO", 0x0000000000108000ULL}, // slow scripting
     {"EXEC", 0x0000000000088000ULL}, // slow transaction
     {"EXISTS", 0x0000000000004003ULL}, // keyspace read fast
     {"EXPIRE", 0x0000000000004005ULL}, // keyspace write fast
     {"EXPIREAT", 0x0000000000004005ULL}, // keyspace write fast
     {"EXPIRETIME", 0x0000000000004003ULL}, // keyspace read fast
-    {"FCALL", 0x0000000000108000ULL}, // slow scripting
-    {"FCALL_RO", 0x0000000000108000ULL}, // slow scripting
     {"FLUSHALL", 0x0000000000028005ULL}, // keyspace write slow dangerous
     {"FLUSHDB", 0x0000000000028005ULL}, // keyspace write slow dangerous
-    {"FUNCTION", 0x0000000000008000ULL}, // slow
+    {"GEOADD", 0x0000000000008404ULL}, // write geo slow
+    {"GEODIST", 0x0000000000008402ULL}, // read geo slow
+    {"GEOHASH", 0x0000000000008402ULL}, // read geo slow
+    {"GEOPOS", 0x0000000000008402ULL}, // read geo slow
+    {"GEORADIUS", 0x0000000000008404ULL}, // write geo slow
+    {"GEORADIUSBYMEMBER", 0x0000000000008404ULL}, // write geo slow
+    {"GEORADIUSBYMEMBER_RO", 0x0000000000008402ULL}, // read geo slow
+    {"GEORADIUS_RO", 0x0000000000008402ULL}, // read geo slow
+    {"GEOSEARCH", 0x0000000000008402ULL}, // read geo slow
+    {"GEOSEARCHSTORE", 0x0000000000008404ULL}, // write geo slow
     {"GET", 0x0000000000004082ULL}, // read string fast
     {"GETBIT", 0x0000000000004102ULL}, // read bitmap fast
     {"GETDEL", 0x0000000000004084ULL}, // write string fast
@@ -197,25 +202,22 @@ inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"UNSUBSCRIBE", 0x0000000000009000ULL}, // pubsub slow
     {"UNWATCH", 0x0000000000084000ULL}, // fast transaction
     {"WATCH", 0x0000000000084000ULL}, // fast transaction
-    {"XACK", 0x0000000000004804ULL}, // write stream fast
     {"XADD", 0x0000000000004804ULL}, // write stream fast
-    {"XAUTOCLAIM", 0x0000000000004804ULL}, // write stream fast
-    {"XCLAIM", 0x0000000000004804ULL}, // write stream fast
     {"XDEL", 0x0000000000004804ULL}, // write stream fast
-    {"XGROUP", 0x0000000000008000ULL}, // slow
-    {"XINFO", 0x0000000000008000ULL}, // slow
     {"XLEN", 0x0000000000004802ULL}, // read stream fast
-    {"XPENDING", 0x0000000000008802ULL}, // read stream slow
     {"XRANGE", 0x0000000000008802ULL}, // read stream slow
     {"XREAD", 0x0000000000018802ULL}, // read stream slow blocking
-    {"XREADGROUP", 0x0000000000018804ULL}, // write stream slow blocking
     {"XREVRANGE", 0x0000000000008802ULL}, // read stream slow
-    {"XSETID", 0x0000000000004804ULL}, // write stream fast
     {"XTRIM", 0x0000000000008804ULL}, // write stream slow
     {"ZADD", 0x0000000000004014ULL}, // write sortedset fast
     {"ZCARD", 0x0000000000004012ULL}, // read sortedset fast
     {"ZCOUNT", 0x0000000000004012ULL}, // read sortedset fast
+    {"ZDIFF", 0x0000000000008012ULL}, // read sortedset slow
+    {"ZDIFFSTORE", 0x0000000000008014ULL}, // write sortedset slow
     {"ZINCRBY", 0x0000000000004014ULL}, // write sortedset fast
+    {"ZINTER", 0x0000000000008012ULL}, // read sortedset slow
+    {"ZINTERCARD", 0x0000000000008012ULL}, // read sortedset slow
+    {"ZINTERSTORE", 0x0000000000008014ULL}, // write sortedset slow
     {"ZLEXCOUNT", 0x0000000000004012ULL}, // read sortedset fast
     {"ZMPOP", 0x0000000000008014ULL}, // write sortedset slow
     {"ZMSCORE", 0x0000000000004012ULL}, // read sortedset fast
@@ -237,6 +239,8 @@ inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"ZREVRANK", 0x0000000000004012ULL}, // read sortedset fast
     {"ZSCAN", 0x0000000000008012ULL}, // read sortedset slow
     {"ZSCORE", 0x0000000000004012ULL}, // read sortedset fast
+    {"ZUNION", 0x0000000000008012ULL}, // read sortedset slow
+    {"ZUNIONSTORE", 0x0000000000008014ULL}, // write sortedset slow
 };
 inline constexpr std::size_t kAclCommandCategoryCount =
     sizeof(kAclCommandCategories) / sizeof(kAclCommandCategories[0]);

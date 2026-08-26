@@ -15,6 +15,7 @@
 #include <memory>
 #include <mutex>
 #include <new>
+#include <queue>
 #include <string>
 #include <sys/random.h>
 #include <sys/stat.h>
@@ -31,6 +32,7 @@
 #include "blocking.h"
 #include "debug.h"
 #include "hll.h"
+#include "geo.h"
 #include "multi.h"
 #include "notify.h"
 #include "t_stream.h"

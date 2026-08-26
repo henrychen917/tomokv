@@ -2,6 +2,7 @@
 #include "blocking.h"
 #include "xshard.h"
 #include "notify.h"
+#include "t_zset.h"
 
 #include <algorithm>
 #include <array>
@@ -2478,6 +2479,58 @@ SnapshotHookStatus zset_snapshot_load(Slice key, uint8_t encoding, int64_t expir
 }
 
 }  // namespace
+
+ZsetOwnerResult zset_owner_read(Shard& shard, Slice key, uint64_t hash, bool notify,
+                                std::vector<ZsetEntry>& entries, int64_t& expire_at_ms) {
+    entries.clear();
+    KvObj* object = notify ? shard.store_find<true>(hash, key) : shard.store().find(hash, key);
+    if (!object) { expire_at_ms = -1; return ZsetOwnerResult::Missing; }
+    if (static_cast<Type>(object->type) != Type::Zset) return ZsetOwnerResult::WrongType;
+    expire_at_ms = object->expire_at_ms();
+    try {
+        entries.reserve(CollectionRef(object).entries());
+        if (!zset_walk(zset_value(object), [&](double score, Slice member) {
+                entries.push_back({std::string(member.p, member.n), score});
+                return true;
+            })) return ZsetOwnerResult::Oom;
+    } catch (const std::bad_alloc&) {
+        entries.clear();
+        return ZsetOwnerResult::Oom;
+    }
+    return ZsetOwnerResult::Ok;
+}
+
+ZsetOwnerResult zset_owner_replace(Shard& shard, Slice key, uint64_t hash, bool notify,
+                                   const std::vector<ZsetEntry>& entries, int64_t expire_at_ms) {
+    if (entries.empty()) {
+        if (notify) shard.store_erase<true>(hash, key, FlatStore::EraseEvent::None);
+        else shard.store().erase(hash, key);
+        return ZsetOwnerResult::Ok;
+    }
+    auto* value = new (std::nothrow) ZsetVal;
+    if (!value) return ZsetOwnerResult::Oom;
+    CollectionRef ref(value);
+    for (const ZsetEntry& entry : entries) {
+        double resulting = 0;
+        const AddOutcome added = zset_add_one(ref, shard.type_limits().zset, entry.score,
+                                              Slice(entry.member.data(),
+                                                    static_cast<uint32_t>(entry.member.size())),
+                                              false, false, false, false, false, resulting);
+        if (added != AddOutcome::Added) {
+            delete value;
+            return ZsetOwnerResult::Oom;
+        }
+    }
+    KvObj* object = kvobj_adopt_zset(key, value, expire_at_ms);
+    if (!object) { delete value; return ZsetOwnerResult::Oom; }
+    const FlatStore::InsertResult inserted = notify
+        ? shard.store_insert<true>(hash, object)
+        : shard.store_insert<false>(hash, object);
+    if (inserted == FlatStore::InsertResult::Inserted) return ZsetOwnerResult::Ok;
+    kvobj_free(object);
+    return inserted == FlatStore::InsertResult::MaxmemoryOom
+        ? ZsetOwnerResult::Maxmemory : ZsetOwnerResult::InsertFailed;
+}
 
 SnapshotTypeHooks zset_snapshot_hooks() {
     return {zset_snapshot_begin, zset_snapshot_read, zset_snapshot_load};

@@ -119,6 +119,8 @@ CommandTable hash_command_table();
 CommandTable list_command_table();
 CommandTable set_command_table();
 CommandTable zset_command_table();
+CommandTable zset_ops_command_table();
+CommandTable geo_command_table();
 CommandTable stream_command_table();
 CommandTable stream_group_command_table();
 CommandTable server_command_table();

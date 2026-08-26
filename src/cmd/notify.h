@@ -96,7 +96,8 @@ enum class NotifyEventId : uint8_t {
     Sadd, Srem, Spop, Sinterstore, Sunionstore, Sdiffstore,
     Hset, Hincrby, Hincrbyfloat, Hdel,
     Zadd, Zincr, Zrem, Zremrangebyrank, Zremrangebyscore, Zremrangebylex,
-    Zpopmin, Zpopmax, Zrangestore,
+    Zpopmin, Zpopmax, Zrangestore, Zunionstore, Zinterstore, Zdiffstore,
+    Geosearchstore, Georadiusstore,
     Xadd, Xdel, Xtrim,
     Expired, Evicted, Keymiss, New,
 };

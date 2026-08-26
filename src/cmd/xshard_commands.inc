@@ -48,6 +48,101 @@ bool parse_i64(Slice s, int64_t& out) {
     return true;
 }
 
+void reply_invalid_integer(Op& op);
+
+bool parse_weight(Slice s, double& out) {
+    if (!s.n) return false;
+    Slice value = s;
+    if (value.p[0] == '+') {
+        value.p++;
+        value.n--;
+        if (!value.n) return false;
+    }
+    const char* end = value.p + value.n;
+    auto parsed = std::from_chars(value.p, end, out, std::chars_format::general);
+    return parsed.ec == std::errc{} && parsed.ptr == end && !std::isnan(out);
+}
+
+bool parse_zset_operation(Op& op, Kind kind, uint32_t& count,
+                          std::vector<double>& weights, ZAggregate& aggregate,
+                          bool& withscores, uint64_t& limit) {
+    const bool store = is_store_zsetop(kind);
+    const uint32_t num_arg = store ? 2 : 1;
+    int64_t parsed_count = 0;
+    if (!parse_i64(op.arg(num_arg), parsed_count)) {
+        reply_invalid_integer(op);
+        return false;
+    }
+    if (parsed_count < 1) {
+        if (kind == Kind::Zunion) reply_err(op.sink(), "ERR at least 1 input key is needed for 'zunion' command");
+        else if (kind == Kind::Zinter) reply_err(op.sink(), "ERR at least 1 input key is needed for 'zinter' command");
+        else if (kind == Kind::Zdiff) reply_err(op.sink(), "ERR at least 1 input key is needed for 'zdiff' command");
+        else if (kind == Kind::Zunionstore) reply_err(op.sink(), "ERR at least 1 input key is needed for 'zunionstore' command");
+        else if (kind == Kind::Zinterstore) reply_err(op.sink(), "ERR at least 1 input key is needed for 'zinterstore' command");
+        else if (kind == Kind::Zdiffstore) reply_err(op.sink(), "ERR at least 1 input key is needed for 'zdiffstore' command");
+        else reply_err(op.sink(), "ERR at least 1 input key is needed for 'zintercard' command");
+        return false;
+    }
+    if (static_cast<uint64_t>(parsed_count) > UINT32_MAX) {
+        reply_syntax(op.sink());
+        return false;
+    }
+    count = static_cast<uint32_t>(parsed_count);
+    const uint64_t tail64 = static_cast<uint64_t>(num_arg) + 1 + count;
+    if (tail64 > op.argc()) {
+        reply_syntax(op.sink());
+        return false;
+    }
+    uint32_t arg = static_cast<uint32_t>(tail64);
+    aggregate = ZAggregate::Sum;
+    withscores = false;
+    limit = 0;
+    try { weights.assign(count, 1.0); }
+    catch (const std::bad_alloc&) { reply_err(op.sink(), "ERR out of memory"); return false; }
+
+    if (kind == Kind::Zintercard) {
+        if (arg == op.argc()) return true;
+        int64_t parsed_limit = 0;
+        if (arg + 2 != op.argc() || !op.arg(arg).eq_icase("limit") ||
+            !parse_i64(op.arg(arg + 1), parsed_limit) || parsed_limit < 0) {
+            if (arg < op.argc() && op.arg(arg).eq_icase("limit") && arg + 1 < op.argc())
+                reply_err(op.sink(), "ERR LIMIT can't be negative");
+            else
+                reply_syntax(op.sink());
+            return false;
+        }
+        limit = static_cast<uint64_t>(parsed_limit);
+        return true;
+    }
+
+    const bool difference = kind == Kind::Zdiff || kind == Kind::Zdiffstore;
+    while (arg < op.argc()) {
+        if (!difference && op.arg(arg).eq_icase("weights") && arg + count < op.argc()) {
+            for (uint32_t i = 0; i < count; i++) {
+                if (!parse_weight(op.arg(arg + 1 + i), weights[i])) {
+                    reply_err(op.sink(), "ERR weight value is not a float");
+                    return false;
+                }
+            }
+            arg += count + 1;
+        } else if (!difference && op.arg(arg).eq_icase("aggregate") && arg + 1 < op.argc()) {
+            const Slice mode = op.arg(arg + 1);
+            if (mode.eq_icase("sum")) aggregate = ZAggregate::Sum;
+            else if (mode.eq_icase("min")) aggregate = ZAggregate::Min;
+            else if (mode.eq_icase("max")) aggregate = ZAggregate::Max;
+            else { reply_syntax(op.sink()); return false; }
+            arg += 2;
+        } else if (!store && op.arg(arg).eq_icase("withscores")) {
+            withscores = true;
+            arg++;
+        } else {
+            reply_syntax(op.sink());
+            return false;
+        }
+    }
+    return true;
+}
+
 void reply_invalid_integer(Op& op) {
     reply_err(op.sink(), "ERR value is not an integer or out of range");
 }
@@ -176,9 +271,16 @@ bool classify(const Op& op, Kind& kind) {
         {"SINTER", Kind::Sinter}, {"SUNION", Kind::Sunion}, {"SDIFF", Kind::Sdiff},
         {"SINTERCARD", Kind::Sintercard}, {"SINTERSTORE", Kind::Sinterstore},
         {"SUNIONSTORE", Kind::Sunionstore}, {"SDIFFSTORE", Kind::Sdiffstore},
+        {"ZUNION", Kind::Zunion}, {"ZINTER", Kind::Zinter}, {"ZDIFF", Kind::Zdiff},
+        {"ZINTERCARD", Kind::Zintercard}, {"ZUNIONSTORE", Kind::Zunionstore},
+        {"ZINTERSTORE", Kind::Zinterstore}, {"ZDIFFSTORE", Kind::Zdiffstore},
         {"BITOP", Kind::Bitop},
         {"LMPOP", Kind::Lmpop}, {"ZMPOP", Kind::Zmpop},
         {"ZRANGESTORE", Kind::Zrangestore}, {"SORT", Kind::Sort},
+        {"GEOSEARCHSTORE", Kind::Geosearchstore},
+        {"GEORADIUS", Kind::Georadius}, {"GEORADIUS_RO", Kind::Georadius},
+        {"GEORADIUSBYMEMBER", Kind::Georadiusbymember},
+        {"GEORADIUSBYMEMBER_RO", Kind::Georadiusbymember},
         {"XREAD", Kind::Xread}, {"XREADGROUP", Kind::Xreadgroup},
     };
     for (const Entry& entry : entries)
@@ -659,6 +761,8 @@ void reply_work_error(Op& op, WorkError error) {
     else if (error == WorkError::Maxmemory) reply_maxmemory_oom(op);
     else if (error == WorkError::Oom) reply_err(op.sink(), "ERR out of memory");
     else if (error == WorkError::InsertFailed) reply_err(op.sink(), "ERR keyspace insert failed");
+    else if (error == WorkError::GeoMember)
+        reply_err(op.sink(), "ERR could not decode requested zset member");
     else reply_err(op.sink(), "ERR internal cross-shard value error");
 }
 
@@ -698,6 +802,134 @@ bool compute_setop(ScatterState& state) {
             }
         }
         result_heap->members.assign(result.begin(), result.end());
+    } catch (const std::bad_alloc&) {
+        state.final_reply = FinalReply::Work;
+        state.final_error = WorkError::Oom;
+        return false;
+    }
+    return true;
+}
+
+bool decode_zsetop_input(const ObjectImage& image, std::vector<ZImageItem>& items,
+                         WorkError& error) {
+    items.clear();
+    if (!image.present) return true;
+    if (image.type == Type::Zset) {
+        if (!decode_zset_image(image, items)) { error = WorkError::Oom; return false; }
+    } else if (image.type == Type::Set) {
+        std::vector<std::string> members;
+        if (!decode_elements(image, members)) { error = WorkError::Oom; return false; }
+        try {
+            items.reserve(members.size());
+            for (std::string& member : members) items.push_back({std::move(member), 1.0});
+        } catch (const std::bad_alloc&) {
+            error = WorkError::Oom;
+            return false;
+        }
+    } else {
+        error = WorkError::WrongType;
+        return false;
+    }
+    std::sort(items.begin(), items.end(), [](const ZImageItem& a, const ZImageItem& b) {
+        return a.member < b.member;
+    });
+    return true;
+}
+
+bool compute_zsetop(ScatterState& state) {
+    ResultHeap* result = ensure_result(state);
+    if (!result) {
+        state.final_reply = FinalReply::Work;
+        state.final_error = WorkError::Oom;
+        return false;
+    }
+    result->members.clear();
+    result->scores.clear();
+    std::vector<std::vector<ZImageItem>> inputs;
+    try { inputs.resize(state.set_count); }
+    catch (const std::bad_alloc&) {
+        state.final_reply = FinalReply::Work;
+        state.final_error = WorkError::Oom;
+        return false;
+    }
+    WorkError error = WorkError::None;
+    for (uint32_t i = 0; i < state.set_count; i++) {
+        if (!decode_zsetop_input(state.images[state.set_first + i], inputs[i], error)) {
+            state.final_reply = FinalReply::Work;
+            state.final_error = error;
+            return false;
+        }
+    }
+
+    struct Cursor { uint32_t source; uint32_t index; };
+    auto later = [&](const Cursor& a, const Cursor& b) {
+        const std::string& am = inputs[a.source][a.index].member;
+        const std::string& bm = inputs[b.source][b.index].member;
+        if (am != bm) return am > bm;
+        return a.source > b.source;
+    };
+    std::priority_queue<Cursor, std::vector<Cursor>, decltype(later)> heap(later);
+    try {
+        for (uint32_t source = 0; source < inputs.size(); source++)
+            if (!inputs[source].empty()) heap.push({source, 0});
+        std::vector<ZImageItem> output;
+        while (!heap.empty()) {
+            const std::string member = inputs[heap.top().source][heap.top().index].member;
+            uint32_t seen = 0;
+            bool source_zero = false;
+            bool other_source = false;
+            bool have_score = false;
+            double score = 0;
+            while (!heap.empty()) {
+                const Cursor cursor = heap.top();
+                const ZImageItem& item = inputs[cursor.source][cursor.index];
+                if (item.member != member) break;
+                heap.pop();
+                seen++;
+                source_zero |= cursor.source == 0;
+                other_source |= cursor.source != 0;
+                double weighted = item.score * state.zset_weights[cursor.source];
+                if (std::isnan(weighted)) weighted = 0;
+                if (!have_score) {
+                    score = weighted;
+                    have_score = true;
+                } else if (state.zset_aggregate == ZAggregate::Min) {
+                    if (weighted < score ||
+                        (weighted == score && weighted == 0 && std::signbit(weighted)))
+                        score = weighted;
+                } else if (state.zset_aggregate == ZAggregate::Max) {
+                    if (weighted > score ||
+                        (weighted == score && weighted == 0 && !std::signbit(weighted)))
+                        score = weighted;
+                } else {
+                    score += weighted;
+                    if (std::isnan(score)) score = 0;
+                }
+                const uint32_t next = cursor.index + 1;
+                if (next < inputs[cursor.source].size()) heap.push({cursor.source, next});
+            }
+            bool include = false;
+            if (state.kind == Kind::Zunion || state.kind == Kind::Zunionstore)
+                include = true;
+            else if (state.kind == Kind::Zdiff || state.kind == Kind::Zdiffstore)
+                include = source_zero && !other_source;
+            else
+                include = seen == state.set_count;
+            if (include) output.push_back({member, score});
+            if (state.kind == Kind::Zintercard && state.zset_limit &&
+                output.size() >= state.zset_limit) break;
+        }
+        std::sort(output.begin(), output.end(), [](const ZImageItem& a, const ZImageItem& b) {
+            if (a.score < b.score) return true;
+            if (a.score > b.score) return false;
+            return a.member < b.member;
+        });
+        result->members.reserve(output.size());
+        result->scores.reserve(output.size());
+        for (ZImageItem& item : output) {
+            result->members.push_back(std::move(item.member));
+            result->scores.push_back(item.score);
+        }
     } catch (const std::bad_alloc&) {
         state.final_reply = FinalReply::Work;
         state.final_error = WorkError::Oom;
@@ -986,6 +1218,60 @@ bool finish_phase1(ScatterState& state, Op& op) {
             state.hop2_count = 1;
             return false;
         }
+        case Kind::Geosearchstore:
+        case Kind::Georadius:
+        case Kind::Georadiusbymember: {
+            if (!state.geo_store) { state.final_reply = FinalReply::Internal; return true; }
+            const ObjectImage& source = state.images[1];
+            if (source.present && source.type != Type::Zset) {
+                state.final_reply = FinalReply::Work;
+                state.final_error = WorkError::WrongType;
+                return true;
+            }
+            std::vector<ZImageItem> decoded;
+            if (source.present && !decode_zset_image(source, decoded)) {
+                state.final_reply = FinalReply::Work;
+                state.final_error = WorkError::Oom;
+                return true;
+            }
+            std::vector<ZsetEntry> input, output;
+            try {
+                input.reserve(decoded.size());
+                for (ZImageItem& item : decoded)
+                    input.push_back({std::move(item.member), item.score});
+            } catch (const std::bad_alloc&) {
+                state.final_reply = FinalReply::Work;
+                state.final_error = WorkError::Oom;
+                return true;
+            }
+            const GeoBuildResult built = geo_build_store(op, input, output);
+            if (built != GeoBuildResult::Ok) {
+                state.final_reply = FinalReply::Work;
+                state.final_error = built == GeoBuildResult::MissingMember
+                    ? WorkError::GeoMember : WorkError::Oom;
+                return true;
+            }
+            std::vector<ZImageItem> encoded;
+            try {
+                encoded.reserve(output.size());
+                for (ZsetEntry& item : output)
+                    encoded.push_back({std::move(item.member), item.score});
+            } catch (const std::bad_alloc&) {
+                state.final_reply = FinalReply::Work;
+                state.final_error = WorkError::Oom;
+                return true;
+            }
+            if (encoded.empty()) state.apply[0] = ObjectImage{};
+            else if (!encode_zset_image(encoded, state.apply[0])) {
+                state.final_reply = FinalReply::Work;
+                state.final_error = WorkError::Oom;
+                return true;
+            }
+            state.final_integer = static_cast<long long>(encoded.size());
+            state.hop2[0] = 0;
+            state.hop2_count = 1;
+            return false;
+        }
         case Kind::Sort: {
             std::vector<std::string> output;
             bool conversion_error = false;
@@ -1028,6 +1314,41 @@ bool finish_phase1(ScatterState& state, Op& op) {
             return false;
         }
         default:
+            if (is_any_zsetop(state.kind)) {
+                if (!compute_zsetop(state)) return true;
+                if (state.kind == Kind::Zintercard) {
+                    state.final_reply = FinalReply::Integer;
+                    state.final_integer = static_cast<long long>(state.result->members.size());
+                    return true;
+                }
+                if (is_plain_zsetop(state.kind)) {
+                    state.final_reply = FinalReply::Array;
+                    return true;
+                }
+                std::vector<ZImageItem> output;
+                try {
+                    output.reserve(state.result->members.size());
+                    for (size_t i = 0; i < state.result->members.size(); i++) {
+                        double score = state.result->scores[i];
+                        if (score == 0) score = std::abs(score);
+                        output.push_back({state.result->members[i], score});
+                    }
+                } catch (const std::bad_alloc&) {
+                    state.final_reply = FinalReply::Work;
+                    state.final_error = WorkError::Oom;
+                    return true;
+                }
+                if (output.empty()) state.apply[0] = ObjectImage{};
+                else if (!encode_zset_image(output, state.apply[0])) {
+                    state.final_reply = FinalReply::Work;
+                    state.final_error = WorkError::Oom;
+                    return true;
+                }
+                state.final_integer = static_cast<long long>(output.size());
+                state.hop2[0] = 0;
+                state.hop2_count = 1;
+                return false;
+            }
             if (is_plain_setop(state.kind) || state.kind == Kind::Sintercard || is_store_setop(state.kind)) {
                 if (!compute_setop(state)) return true;
                 if (state.kind == Kind::Sintercard) {
@@ -1081,7 +1402,10 @@ void finish_phase2(ScatterState& state) {
         case Kind::Smove:
         case Kind::Sinterstore:
         case Kind::Sunionstore:
-        case Kind::Sdiffstore: state.final_reply = FinalReply::Integer; break;
+        case Kind::Sdiffstore:
+        case Kind::Zunionstore:
+        case Kind::Zinterstore:
+        case Kind::Zdiffstore: state.final_reply = FinalReply::Integer; break;
         case Kind::Bitop: state.final_reply = FinalReply::Integer; break;
         case Kind::Pfmerge: state.final_reply = FinalReply::Ok; break;
         case Kind::Lmove:
@@ -1095,6 +1419,9 @@ void finish_phase2(ScatterState& state) {
                 ? FinalReply::Zmpop : FinalReply::NullArray;
             break;
         case Kind::Zrangestore:
+        case Kind::Geosearchstore:
+        case Kind::Georadius:
+        case Kind::Georadiusbymember:
         case Kind::Sort: state.final_reply = FinalReply::Integer; break;
         default: state.final_reply = FinalReply::Internal; break;
     }
@@ -1176,10 +1503,19 @@ void assemble_final(Client& client, Op& op, ScatterState& state, void* release_c
             case FinalReply::Array:
                 if (is_plain_setop(state.kind))
                     reply_set_header(op.sink(), state.result->members.size(), op.resp3());
+                else if (is_plain_zsetop(state.kind))
+                    reply_array_header(op.sink(), state.result->members.size() *
+                        (state.zset_withscores && !op.resp3() ? 2 : 1));
                 else
                     reply_array_header(op.sink(), state.result->members.size());
-                for (const std::string& member : state.result->members)
+                for (size_t i = 0; i < state.result->members.size(); i++) {
+                    const std::string& member = state.result->members[i];
+                    if (is_plain_zsetop(state.kind) && state.zset_withscores && op.resp3())
+                        reply_array_header(op.sink(), 2);
                     reply_bulk(op.sink(), Slice(member.data(), static_cast<uint32_t>(member.size())));
+                    if (is_plain_zsetop(state.kind) && state.zset_withscores)
+                        reply_double(op.sink(), state.result->scores[i], op.resp3());
+                }
                 break;
             case FinalReply::Lmpop:
                 reply_array_header(op.sink(), 2);
@@ -1340,6 +1676,10 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
                 reply_bulk(op.sink(), Slice(integer, n));
             } else reply_bulk(op.sink(), object->str_value());
         }
+        return;
+    }
+    if (is_geo_kind(kind)) {
+        cmd_geo_xshard_local(shard, op, kNotify);
         return;
     }
     if (kind == Kind::Xread) {
@@ -1511,6 +1851,8 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
     try { images.resize(op.argc()); apply.resize(op.argc()); }
     catch (const std::bad_alloc&) { set_oom(op); return; }
     uint32_t gather_first = kind == Kind::Bitop ? 3 :
+                            is_store_zsetop(kind) ? 3 :
+                            is_plain_zsetop(kind) || kind == Kind::Zintercard ? 2 :
                             is_store_setop(kind) ? 2 :
                             kind == Kind::Sintercard ? 2 : 1;
     uint32_t gather_end = op.argc();
@@ -1519,6 +1861,17 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         gather_end = 3;
     if (kind == Kind::Sintercard) {
         uint64_t n = 0; parse_u64(op.arg(1), n); gather_end = 2 + static_cast<uint32_t>(n);
+    }
+    uint32_t local_zset_count = 0;
+    uint64_t local_zset_limit = 0;
+    std::vector<double> local_zset_weights;
+    ZAggregate local_zset_aggregate = ZAggregate::Sum;
+    bool local_zset_withscores = false;
+    if (is_any_zsetop(kind)) {
+        if (!parse_zset_operation(op, kind, local_zset_count, local_zset_weights,
+                                  local_zset_aggregate, local_zset_withscores,
+                                  local_zset_limit)) return;
+        gather_end = gather_first + local_zset_count;
     }
     for (uint32_t arg = gather_first; arg < gather_end; arg++) {
         KvObj* object = shard.store_find<kNotify>(FlatStore::hash_key(op.arg(arg)), op.arg(arg));
@@ -1655,6 +2008,59 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
                               output.present ? NotifyEventId::Set : NotifyEventId::Del, destination);
             reply_int(op.sink(), output_length);
         }
+        return;
+    }
+    if (is_any_zsetop(kind)) {
+        ScatterState local;
+        ResultHeap result;
+        local.kind = kind;
+        local.images = images.data();
+        local.set_first = gather_first;
+        local.set_count = local_zset_count;
+        local.zset_limit = local_zset_limit;
+        local.zset_weights = std::move(local_zset_weights);
+        local.zset_aggregate = local_zset_aggregate;
+        local.zset_withscores = local_zset_withscores;
+        local.result = &result;
+        if (!compute_zsetop(local)) { reply_work_error(op, local.final_error); return; }
+        if (kind == Kind::Zintercard) {
+            reply_int(op.sink(), static_cast<long long>(result.members.size()));
+            return;
+        }
+        if (is_plain_zsetop(kind)) {
+            reply_array_header(op.sink(), result.members.size() *
+                (local_zset_withscores && !op.resp3() ? 2 : 1));
+            for (size_t i = 0; i < result.members.size(); i++) {
+                if (local_zset_withscores && op.resp3()) reply_array_header(op.sink(), 2);
+                reply_bulk(op.sink(), Slice(result.members[i].data(),
+                                             static_cast<uint32_t>(result.members[i].size())));
+                if (local_zset_withscores) reply_double(op.sink(), result.scores[i], op.resp3());
+            }
+            return;
+        }
+        std::vector<ZImageItem> output;
+        try {
+            output.reserve(result.members.size());
+            for (size_t i = 0; i < result.members.size(); i++) {
+                double score = result.scores[i];
+                if (score == 0) score = std::abs(score);
+                output.push_back({result.members[i], score});
+            }
+        } catch (const std::bad_alloc&) { set_oom(op); return; }
+        if (!output.empty() && !encode_zset_image(output, apply[1])) { set_oom(op); return; }
+        local_apply<kNotify>(shard, op, apply, {1}, error, 1);
+        if (error != WorkError::None) reply_work_error(op, error);
+        else {
+            if constexpr (kNotify) {
+                const NotifyEventId event = kind == Kind::Zunionstore
+                    ? NotifyEventId::Zunionstore : kind == Kind::Zinterstore
+                    ? NotifyEventId::Zinterstore : NotifyEventId::Zdiffstore;
+                notify_record(shard, op, output.empty() ? NOTIFY_GENERIC : NOTIFY_ZSET,
+                              output.empty() ? NotifyEventId::Del : event, op.arg(1));
+            }
+            reply_int(op.sink(), static_cast<long long>(output.size()));
+        }
+        local.result = nullptr;
         return;
     }
     if (is_plain_setop(kind) || kind == Kind::Sintercard || is_store_setop(kind)) {

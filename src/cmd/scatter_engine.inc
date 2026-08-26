@@ -12,14 +12,17 @@ enum class Kind : uint8_t {
     AllShards, DebugReload, DebugLoadAof, DbsizeExact, Mget, Mset, Del, Unlink, Exists, Touch, Keys, Pfcount, Xread, Xreadgroup, Msetnx,
     Rename, Renamenx, Copy, Smove, Lmove, Rpoplpush,
     Sinter, Sunion, Sdiff, Sintercard, Sinterstore, Sunionstore, Sdiffstore,
+    Zunion, Zinter, Zdiff, Zintercard, Zunionstore, Zinterstore, Zdiffstore,
     Bitop, Pfmerge,
     Lmpop, Zmpop, Zrangestore, Sort,
+    Geosearchstore, Georadius, Georadiusbymember,
 };
 
 enum class BitOperation : uint8_t { And, Or, Xor, Not };
+enum class ZAggregate : uint8_t { Sum, Min, Max };
 
 enum class WorkError : uint8_t {
-    None, WrongType, BadHll, CorruptHll, Oom, Maxmemory, InsertFailed, Corrupt
+    None, WrongType, BadHll, CorruptHll, Oom, Maxmemory, InsertFailed, Corrupt, GeoMember
 };
 enum class FinalReply : uint8_t {
     None, Ok, Integer, Nil, NullArray, Bulk, Array, Lmpop, Zmpop, SortConversion,
@@ -146,17 +149,31 @@ bool is_store_setop(Kind kind) {
 bool is_plain_setop(Kind kind) {
     return kind == Kind::Sinter || kind == Kind::Sunion || kind == Kind::Sdiff;
 }
+bool is_store_zsetop(Kind kind) {
+    return kind == Kind::Zunionstore || kind == Kind::Zinterstore ||
+           kind == Kind::Zdiffstore;
+}
+bool is_plain_zsetop(Kind kind) {
+    return kind == Kind::Zunion || kind == Kind::Zinter || kind == Kind::Zdiff;
+}
+bool is_any_zsetop(Kind kind) {
+    return is_plain_zsetop(kind) || is_store_zsetop(kind) || kind == Kind::Zintercard;
+}
+bool is_geo_kind(Kind kind) {
+    return kind == Kind::Geosearchstore || kind == Kind::Georadius ||
+           kind == Kind::Georadiusbymember;
+}
 bool is_atomic_write_kind(Kind kind) {
     return kind == Kind::Mset || kind == Kind::Msetnx || kind == Kind::Del ||
            kind == Kind::Unlink;
 }
 
-bool is_atomic_apply_kind(Kind kind, bool sort_store) {
+bool is_atomic_apply_kind(Kind kind, bool sort_store, bool geo_store = false) {
     return kind == Kind::Bitop || kind == Kind::Pfmerge ||
            kind == Kind::Rename || kind == Kind::Renamenx || kind == Kind::Copy ||
            kind == Kind::Smove || kind == Kind::Lmove || kind == Kind::Rpoplpush ||
-           is_store_setop(kind) || kind == Kind::Zrangestore ||
-           (kind == Kind::Sort && sort_store);
+           is_store_setop(kind) || is_store_zsetop(kind) || kind == Kind::Zrangestore ||
+           (kind == Kind::Sort && sort_store) || (is_geo_kind(kind) && geo_store);
 }
 
 bool is_atomic_pop_kind(Kind kind) {
@@ -323,6 +340,7 @@ struct ScatterState {
     uint32_t pop_retries = 0;
     uint32_t snapshot_slot = std::numeric_limits<uint32_t>::max(); // owning IO's unresolved set
     uint64_t sinter_limit = 0;
+    uint64_t zset_limit = 0;
     uint64_t pop_count = 1;
     uint64_t xread_count = 0;
     uint64_t snapshot = UINT64_MAX;
@@ -331,6 +349,13 @@ struct ScatterState {
     ImageRangeOptions range_options;
     ImageRangeSpec range_spec;
     SortOptions sort_options;
+    ZAggregate zset_aggregate = ZAggregate::Sum;
+    bool zset_withscores = false;
+    std::vector<double> zset_weights;
+    bool geo_store = false;
+    bool geo_store_distance = false;
+    uint32_t geo_source_arg = 1;
+    uint32_t geo_destination_arg = 0;
     uint32_t xread_first_key = 0;
     uint32_t xread_first_id = 0;
     ShardGroup* groups = nullptr;
@@ -418,6 +443,9 @@ bool parse_mpop(Op& op, Kind kind, uint32_t& numkeys, bool& edge, uint64_t& coun
 bool parse_zrangestore_options(Op& op, ImageRangeOptions& options);
 bool parse_zrangestore_range(Op& op, const ImageRangeOptions& options, ImageRangeSpec& range);
 bool parse_sort_options(Op& op, SortOptions& options);
+bool parse_zset_operation(Op& op, Kind kind, uint32_t& count,
+                          std::vector<double>& weights, ZAggregate& aggregate,
+                          bool& withscores, uint64_t& limit);
 void set_oom(Op& op);
 bool classify(const Op& op, Kind& kind);
 bool bitop_operation(Slice name, BitOperation& operation);
@@ -451,7 +479,8 @@ bool first_error(const ScatterState& state, WorkError& error) {
 }
 
 uint32_t key_count_for(Kind kind, const Op& op, uint32_t sinter_count,
-                       uint32_t mpop_count, bool sort_store, uint32_t xread_count = 0) {
+                       uint32_t mpop_count, bool sort_store, uint32_t xread_count = 0,
+                       uint32_t zset_count = 0, bool geo_store = false) {
     if (kind == Kind::AllShards || kind == Kind::DebugReload || kind == Kind::DebugLoadAof ||
         kind == Kind::DbsizeExact || kind == Kind::Keys) return 0;
     if (kind == Kind::Mset || kind == Kind::Msetnx) return (op.argc() - 1) / 2;
@@ -459,6 +488,8 @@ uint32_t key_count_for(Kind kind, const Op& op, uint32_t sinter_count,
     if (kind == Kind::Rename || kind == Kind::Renamenx || kind == Kind::Copy ||
         kind == Kind::Smove || kind == Kind::Lmove || kind == Kind::Rpoplpush) return 2;
     if (kind == Kind::Sintercard) return sinter_count;
+    if (is_any_zsetop(kind)) return zset_count + (is_store_zsetop(kind) ? 1 : 0);
+    if (is_geo_kind(kind)) return geo_store ? 2 : 1;
     if (kind == Kind::Lmpop || kind == Kind::Zmpop) return mpop_count;
     if (kind == Kind::Zrangestore) return 2;
     if (kind == Kind::Sort) return sort_store ? 2 : 1;
@@ -467,10 +498,15 @@ uint32_t key_count_for(Kind kind, const Op& op, uint32_t sinter_count,
 }
 
 uint32_t key_arg_for(Kind kind, uint32_t key, uint32_t, uint32_t sort_store_arg,
-                     uint32_t xread_first_key = 0) {
+                     uint32_t xread_first_key = 0, bool geo_store = false,
+                     uint32_t geo_source_arg = 1, uint32_t geo_destination_arg = 0) {
     if (kind == Kind::Mset || kind == Kind::Msetnx) return 1 + key * 2;
     if (kind == Kind::Bitop) return 2 + key;
     if (kind == Kind::Sintercard) return 2 + key;
+    if (is_any_zsetop(kind))
+        return is_store_zsetop(kind) ? (key == 0 ? 1 : 2 + key) : 2 + key;
+    if (is_geo_kind(kind))
+        return geo_store ? (key == 0 ? geo_destination_arg : geo_source_arg) : geo_source_arg;
     if (kind == Kind::Lmpop || kind == Kind::Zmpop) return 2 + key;
     if (kind == Kind::Sort && sort_store_arg) return key == 0 ? sort_store_arg : 1;
     if (kind == Kind::Xread || kind == Kind::Xreadgroup) return xread_first_key + key;
@@ -950,6 +986,20 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         }
     }
 
+    uint32_t zset_count = 0;
+    uint64_t zset_limit = 0;
+    std::vector<double> zset_weights;
+    ZAggregate zset_aggregate = ZAggregate::Sum;
+    bool zset_withscores = false;
+    if (is_any_zsetop(kind) &&
+        !parse_zset_operation(op, kind, zset_count, zset_weights, zset_aggregate,
+                              zset_withscores, zset_limit))
+        return ScatterPrepare::Error;
+
+    GeoRoute geo_route;
+    if (is_geo_kind(kind) && !geo_prepare_route(op, geo_route))
+        return ScatterPrepare::Error;
+
     uint32_t mpop_count = 0;
     bool pop_edge = false;
     uint64_t pop_count = 1;
@@ -977,7 +1027,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         xread_options.key_count = 1;
         xread_options.block = xreadgroup_options.block && xreadgroup_options.new_entries;
     }
-    const bool atomic_apply = atomic_enabled && is_atomic_apply_kind(kind, sort_options.store);
+    const bool atomic_apply = atomic_enabled &&
+        is_atomic_apply_kind(kind, sort_options.store, geo_route.store);
     const bool atomic_pop = atomic_enabled && is_atomic_pop_kind(kind);
     const bool atomic_group = atomic_write || atomic_apply || atomic_pop;
     const bool atomic_direct = atomic_apply && kind == Kind::Rename;
@@ -1012,7 +1063,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     }
 
     const uint32_t key_count = key_count_for(kind, op, sinter_count, mpop_count,
-                                             sort_options.store, xread_options.key_count);
+                                             sort_options.store, xread_options.key_count,
+                                             zset_count, geo_route.store);
     RouteKey route_stack[kRouteStack];
     RouteKey* routes = route_stack;
     if (key_count > kRouteStack) {
@@ -1021,7 +1073,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     }
     for (uint32_t i = 0; i < key_count; i++) {
         const uint32_t arg = key_arg_for(kind, i, sinter_count, sort_options.store_arg,
-                                         xread_options.first_key);
+                                         xread_options.first_key, geo_route.store,
+                                         geo_route.source_arg, geo_route.destination_arg);
         const uint64_t hash = FlatStore::hash_key(op.arg(arg));
         routes[i] = RouteKey{hash, arg, server.router().shard_of(hash)};
     }
@@ -1046,7 +1099,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         }
     }
 
-    uint32_t phase1_first = (is_store_setop(kind) || kind == Kind::Bitop ||
+    uint32_t phase1_first = (is_store_setop(kind) || is_store_zsetop(kind) ||
+                             (is_geo_kind(kind) && geo_route.store) || kind == Kind::Bitop ||
                              kind == Kind::Zrangestore ||
                              (kind == Kind::Sort && sort_options.store)) ? 1u : 0u;
     uint32_t group_cap = 0;
@@ -1136,6 +1190,14 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     state->xread_first_key = xread_options.first_key;
     state->xread_first_id = xread_options.first_id;
     state->sinter_limit = sinter_limit;
+    state->zset_limit = zset_limit;
+    state->zset_aggregate = zset_aggregate;
+    state->zset_withscores = zset_withscores;
+    state->zset_weights = std::move(zset_weights);
+    state->geo_store = geo_route.store;
+    state->geo_store_distance = geo_route.store_distance;
+    state->geo_source_arg = geo_route.source_arg;
+    state->geo_destination_arg = geo_route.destination_arg;
     state->range_options = range_options;
     state->range_spec = range_spec;
     state->sort_options = sort_options;
@@ -1149,6 +1211,11 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     if (kind == Kind::Sintercard) { state->set_first = 0; state->set_count = sinter_count; }
     else if (is_store_setop(kind)) { state->set_first = 1; state->set_count = key_count - 1; }
     else if (is_plain_setop(kind)) { state->set_first = 0; state->set_count = key_count; }
+    else if (is_store_zsetop(kind)) { state->set_first = 1; state->set_count = zset_count; }
+    else if (is_plain_zsetop(kind) || kind == Kind::Zintercard) {
+        state->set_first = 0;
+        state->set_count = zset_count;
+    }
     init_arena_arrays(*state);
     for (uint32_t i = 0; i < key_count; i++)
         state->keys[i] = KeyRef{routes[i].hash, routes[i].arg, routes[i].shard};
@@ -1313,6 +1380,9 @@ void xshard_aof_emit_local(Shard& shard, Op& op, AofOwnerContext& context) {
         case Kind::Sinterstore:
         case Kind::Sunionstore:
         case Kind::Sdiffstore:
+        case Kind::Zunionstore:
+        case Kind::Zinterstore:
+        case Kind::Zdiffstore:
         case Kind::Pfmerge:
         case Kind::Zrangestore:
             emit(1);
@@ -1337,6 +1407,13 @@ void xshard_aof_emit_local(Shard& shard, Op& op, AofOwnerContext& context) {
         case Kind::Sort: {
             SortOptions options;
             if (parse_sort_options(op, options) && options.store) emit(options.store_arg);
+            break;
+        }
+        case Kind::Geosearchstore:
+        case Kind::Georadius:
+        case Kind::Georadiusbymember: {
+            GeoRoute route;
+            if (geo_prepare_route(op, route) && route.store) emit(route.destination_arg);
             break;
         }
         default:
@@ -1729,6 +1806,8 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     const bool suppress_del =
                         ((state.kind == Kind::Rename || state.kind == Kind::Renamenx) && pos == 0) ||
                         ((state.kind == Kind::Bitop || is_store_setop(state.kind) ||
+                          is_store_zsetop(state.kind) ||
+                          (is_geo_kind(state.kind) && state.geo_store) ||
                           state.kind == Kind::Zrangestore ||
                           (state.kind == Kind::Sort && state.sort_options.store)) && pos == 0);
                     result = apply_image_selected(

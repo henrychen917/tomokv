@@ -431,6 +431,143 @@ def gen_zset(rng):
     ]
     return ops
 
+def gen_zsetops(rng):
+    zkeys = ["zo:z%d" % i for i in range(18)]
+    skeys = ["zo:s%d" % i for i in range(8)]
+    destinations = ["zo:d%d" % i for i in range(10)]
+    members = ["m%d" % i for i in range(20)] + ["shared", "tie"]
+    ops = []
+    for _ in range(4200):
+        c = rng.randrange(13)
+        if c <= 2:
+            key = rng.choice(zkeys)
+            pairs = []
+            for _ in range(rng.randrange(1, 4)):
+                pairs += [str(rng.randrange(-30, 31)), rng.choice(members)]
+            ops.append(["ZADD", key] + pairs)
+        elif c == 3:
+            ops.append(["SADD", rng.choice(skeys)] +
+                       [rng.choice(members) for _ in range(rng.randrange(1, 5))])
+        elif c == 4:
+            ops.append(["DEL", rng.choice(zkeys + skeys)])
+        elif c in (5, 6):
+            command = "ZUNION" if c == 5 else "ZINTER"
+            count = rng.randrange(1, 6)
+            keys = [rng.choice(zkeys + skeys) for _ in range(count)]
+            tail = []
+            if rng.randrange(2):
+                tail += ["WEIGHTS"] + [str(rng.randrange(-3, 4)) for _ in range(count)]
+            if rng.randrange(2): tail += ["AGGREGATE", rng.choice(["SUM", "MIN", "MAX"])]
+            if rng.randrange(2): tail += ["WITHSCORES"]
+            ops.append([command, str(count)] + keys + tail)
+        elif c == 7:
+            count = rng.randrange(1, 6)
+            ops.append(["ZDIFF", str(count)] +
+                       [rng.choice(zkeys + skeys) for _ in range(count)] +
+                       (["WITHSCORES"] if rng.randrange(2) else []))
+        elif c == 8:
+            count = rng.randrange(1, 6)
+            tail = [] if rng.randrange(2) else ["LIMIT", str(rng.randrange(0, 8))]
+            ops.append(["ZINTERCARD", str(count)] +
+                       [rng.choice(zkeys + skeys) for _ in range(count)] + tail)
+        elif c in (9, 10):
+            command = "ZUNIONSTORE" if c == 9 else "ZINTERSTORE"
+            count = rng.randrange(1, 6)
+            keys = [rng.choice(zkeys + skeys) for _ in range(count)]
+            tail = []
+            if rng.randrange(2):
+                tail += ["WEIGHTS"] + [str(rng.randrange(-3, 4)) for _ in range(count)]
+            if rng.randrange(2): tail += ["AGGREGATE", rng.choice(["SUM", "MIN", "MAX"])]
+            ops.append([command, rng.choice(destinations), str(count)] + keys + tail)
+        elif c == 11:
+            count = rng.randrange(1, 6)
+            ops.append(["ZDIFFSTORE", rng.choice(destinations), str(count)] +
+                       [rng.choice(zkeys + skeys) for _ in range(count)])
+        else:
+            ops.append(["ZRANGE", rng.choice(destinations), "0", "-1", "WITHSCORES"])
+    return ops
+
+def gen_geo(rng):
+    keys = ["geo:g%d" % i for i in range(10)]
+    destinations = ["geo:d%d" % i for i in range(10)]
+    points = [
+        ("13.361389", "38.115556", "palermo"),
+        ("15.087269", "37.502669", "catania"),
+        ("-73.985700", "40.748400", "nyc"),
+        ("139.691700", "35.689500", "tokyo"),
+        ("2.294500", "48.858400", "paris"),
+        ("151.209300", "-33.868800", "sydney"),
+    ]
+    units = ["m", "km", "ft", "mi"]
+    ops = []
+    for _ in range(4200):
+        c = rng.randrange(19)
+        key = rng.choice(keys)
+        lon, lat, member = rng.choice(points)
+        if c <= 3:
+            option = rng.choice([[], ["NX"], ["XX"], ["CH"], ["NX", "CH"], ["XX", "CH"]])
+            ops.append(["GEOADD", key] + option + [lon, lat, member])
+        elif c == 4:
+            ops.append(["GEOPOS", key, member, rng.choice(points)[2], "missing"])
+        elif c == 5:
+            ops.append(["GEOHASH", key, member, rng.choice(points)[2]])
+        elif c == 6:
+            ops.append(["GEODIST", key, member, rng.choice(points)[2], rng.choice(units)])
+        elif c in (7, 8):
+            center = rng.choice(points)
+            source = ["FROMMEMBER", center[2]] if c == 7 else ["FROMLONLAT", center[0], center[1]]
+            shape = ["BYRADIUS", str(rng.choice([1, 30, 200, 20000])), rng.choice(units)]
+            tail = rng.choice([["ASC"], ["DESC"], ["ASC", "WITHDIST"],
+                               ["ASC", "WITHHASH"], ["ASC", "WITHCOORD"],
+                               ["ASC", "WITHDIST", "WITHHASH", "WITHCOORD"],
+                               ["ASC", "COUNT", "2"], ["ASC", "COUNT", "1"]])
+            ops.append(["GEOSEARCH", key] + source + shape + tail)
+        elif c == 9:
+            center = rng.choice(points)
+            ops.append(["GEOSEARCH", key, "FROMLONLAT", center[0], center[1],
+                        "BYBOX", str(rng.choice([10, 500, 40000])),
+                        str(rng.choice([10, 500, 40000])), "km",
+                        rng.choice(["ASC", "DESC"])])
+        elif c in (10, 11):
+            center = rng.choice(points)
+            tail = ["STOREDIST"] if c == 11 else []
+            ops.append(["GEOSEARCHSTORE", rng.choice(destinations), key,
+                        "FROMMEMBER", center[2], "BYRADIUS",
+                        str(rng.choice([30, 200, 20000])), "km"] + tail)
+        elif c == 12:
+            center = rng.choice(points)
+            ops.append(["GEORADIUS", key, center[0], center[1],
+                        str(rng.choice([30, 200, 20000])), "km",
+                        rng.choice(["ASC", "DESC"]), "COUNT", "3"])
+        elif c == 13:
+            center = rng.choice(points)
+            ops.append(["GEORADIUS", key, center[0], center[1],
+                        str(rng.choice([30, 200, 20000])), "km", "STORE",
+                        rng.choice(destinations)])
+        elif c == 14:
+            center = rng.choice(points)
+            ops.append(["GEORADIUSBYMEMBER", key, center[2],
+                        str(rng.choice([30, 200, 20000])), "km",
+                        rng.choice(["ASC", "DESC"])])
+        elif c == 15:
+            center = rng.choice(points)
+            ops.append(["GEORADIUSBYMEMBER", key, center[2],
+                        str(rng.choice([30, 200, 20000])), "km",
+                        rng.choice(["STORE", "STOREDIST"]), rng.choice(destinations)])
+        elif c == 16:
+            center = rng.choice(points)
+            ops.append(["GEORADIUS_RO", key, center[0], center[1],
+                        str(rng.choice([30, 200, 20000])), "km",
+                        rng.choice(["ASC", "DESC"])])
+        elif c == 17:
+            center = rng.choice(points)
+            ops.append(["GEORADIUSBYMEMBER_RO", key, center[2],
+                        str(rng.choice([30, 200, 20000])), "km",
+                        rng.choice(["ASC", "DESC"])])
+        else:
+            ops.append(["ZCARD", rng.choice(destinations)])
+    return ops
+
 
 def gen_hash(rng):
     keys = ["h%d" % i for i in range(12)]
@@ -1573,7 +1710,8 @@ gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset
         "hash": gen_hash, "xshard": gen_xshard, "bitmap": gen_bitmap, "hll": gen_hll,
         "bitfield": gen_bitfield, "cgaps": gen_cgaps, "stream": gen_stream,
         "script": gen_script,
-        "streamgrp": gen_streamgrp}
+        "streamgrp": gen_streamgrp,
+        "zsetops": gen_zsetops, "geo": gen_geo}
 ops = gens[SUITE](rng)
 
 ts, tf = conn(TH, TP)

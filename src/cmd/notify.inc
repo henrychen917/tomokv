@@ -72,6 +72,11 @@ const char* notify_event_name(NotifyEventId event) {
         case NotifyEventId::Zpopmin: return "zpopmin";
         case NotifyEventId::Zpopmax: return "zpopmax";
         case NotifyEventId::Zrangestore: return "zrangestore";
+        case NotifyEventId::Zunionstore: return "zunionstore";
+        case NotifyEventId::Zinterstore: return "zinterstore";
+        case NotifyEventId::Zdiffstore: return "zdiffstore";
+        case NotifyEventId::Geosearchstore: return "geosearchstore";
+        case NotifyEventId::Georadiusstore: return "georadiusstore";
         case NotifyEventId::Xadd: return "xadd";
         case NotifyEventId::Xdel: return "xdel";
         case NotifyEventId::Xtrim: return "xtrim";
@@ -121,6 +126,11 @@ uint32_t notify_event_priority(NotifyEventId event) {
         case NotifyEventId::Zpopmin:
         case NotifyEventId::Zpopmax:
         case NotifyEventId::Zrangestore:
+        case NotifyEventId::Zunionstore:
+        case NotifyEventId::Zinterstore:
+        case NotifyEventId::Zdiffstore:
+        case NotifyEventId::Geosearchstore:
+        case NotifyEventId::Georadiusstore:
         case NotifyEventId::Xadd:
         case NotifyEventId::Xdel:
         case NotifyEventId::Xtrim:
@@ -645,6 +655,21 @@ void notify_xshard_finished(Shard& shard, Op& op, ScatterState& state) {
                 }
             }
             break;
+        case Kind::Zunionstore:
+        case Kind::Zinterstore:
+        case Kind::Zdiffstore:
+            if (state.final_reply == FinalReply::Integer) {
+                if (state.apply && state.apply[0].present) {
+                    emit_atomic_new(0, 1);
+                    const NotifyEventId event = state.kind == Kind::Zunionstore
+                        ? NotifyEventId::Zunionstore : state.kind == Kind::Zinterstore
+                        ? NotifyEventId::Zinterstore : NotifyEventId::Zdiffstore;
+                    emit(NOTIFY_ZSET, event, 1);
+                } else {
+                    emit(NOTIFY_GENERIC, NotifyEventId::Del, 1);
+                }
+            }
+            break;
         case Kind::Zrangestore:
             if (state.final_reply == FinalReply::Integer) {
                 if (state.apply && state.apply[0].present) {
@@ -652,6 +677,21 @@ void notify_xshard_finished(Shard& shard, Op& op, ScatterState& state) {
                     emit(NOTIFY_ZSET, NotifyEventId::Zrangestore, 1);
                 } else {
                     emit(NOTIFY_GENERIC, NotifyEventId::Del, 1);
+                }
+            }
+            break;
+        case Kind::Geosearchstore:
+        case Kind::Georadius:
+        case Kind::Georadiusbymember:
+            if (state.geo_store && state.final_reply == FinalReply::Integer) {
+                if (state.apply && state.apply[0].present) {
+                    emit_atomic_new(0, state.geo_destination_arg);
+                    const NotifyEventId event = state.kind == Kind::Geosearchstore
+                        ? NotifyEventId::Geosearchstore : NotifyEventId::Georadiusstore;
+                    emit(NOTIFY_ZSET, event,
+                         state.geo_destination_arg);
+                } else {
+                    emit(NOTIFY_GENERIC, NotifyEventId::Del, state.geo_destination_arg);
                 }
             }
             break;

@@ -312,6 +312,8 @@ void for_each_touched_key(Op& op, Fn&& fn) {
     uint32_t mpop_count = 0;
     bool sort_store = false;
     uint32_t sort_store_arg = 0;
+    uint32_t zset_count = 0;
+    GeoRoute geo_route;
     if (kind == Kind::Sintercard) {
         uint64_t parsed = 0;
         if (parse_u64(op.arg(1), parsed) && parsed <= UINT32_MAX)
@@ -326,10 +328,22 @@ void for_each_touched_key(Op& op, Fn&& fn) {
             sort_store = options.store;
             sort_store_arg = options.store_arg;
         }
+    } else if (is_any_zsetop(kind)) {
+        uint64_t limit = 0;
+        std::vector<double> weights;
+        ZAggregate aggregate = ZAggregate::Sum;
+        bool withscores = false;
+        if (!parse_zset_operation(op, kind, zset_count, weights, aggregate, withscores, limit))
+            return;
+    } else if (is_geo_kind(kind)) {
+        if (!geo_prepare_route(op, geo_route)) return;
     }
-    const uint32_t count = key_count_for(kind, op, sinter_count, mpop_count, sort_store);
+    const uint32_t count = key_count_for(kind, op, sinter_count, mpop_count, sort_store, 0,
+                                         zset_count, geo_route.store);
     for (uint32_t i = 0; i < count; i++) {
-        const uint32_t arg = key_arg_for(kind, i, sinter_count, sort_store_arg);
+        const uint32_t arg = key_arg_for(kind, i, sinter_count, sort_store_arg, 0,
+                                         geo_route.store, geo_route.source_arg,
+                                         geo_route.destination_arg);
         const Slice key = op.arg(arg);
         fn(FlatStore::hash_key(key), key);
     }
@@ -525,6 +539,7 @@ FlatStore::SnapshotWriteResult xshard_local_snapshot_prepare(Op& op, Shard& shar
     bool pop_edge = false;
     uint64_t pop_count = 1;
     SortOptions sort_options;
+    GeoRoute geo_route;
     if (kind == Kind::Lmpop || kind == Kind::Zmpop) {
         if (!parse_mpop(op, kind, mpop_count, pop_edge, pop_count))
             return FlatStore::SnapshotWriteResult::Error;
@@ -533,11 +548,16 @@ FlatStore::SnapshotWriteResult xshard_local_snapshot_prepare(Op& op, Shard& shar
         if (!parse_sort_options(op, sort_options)) return FlatStore::SnapshotWriteResult::Error;
         if (!sort_options.store) return FlatStore::SnapshotWriteResult::Ready;
     }
+    if (is_geo_kind(kind)) {
+        if (!geo_prepare_route(op, geo_route)) return FlatStore::SnapshotWriteResult::Error;
+        if (!geo_route.store) return FlatStore::SnapshotWriteResult::Ready;
+    }
     auto arg_at = [&](uint32_t i) -> uint32_t {
         if (kind == Kind::Mset || kind == Kind::Msetnx) return 1 + i * 2;
         if (kind == Kind::Bitop) return 2;
         if (kind == Kind::Copy) return 2;
-        if (is_store_setop(kind)) return 1;
+        if (is_store_setop(kind) || is_store_zsetop(kind)) return 1;
+        if (is_geo_kind(kind)) return geo_route.destination_arg;
         if (kind == Kind::Lmpop || kind == Kind::Zmpop) return 2 + i;
         if (kind == Kind::Zrangestore) return 1;
         if (kind == Kind::Sort) return sort_options.store_arg;
@@ -545,7 +565,9 @@ FlatStore::SnapshotWriteResult xshard_local_snapshot_prepare(Op& op, Shard& shar
     };
     if (kind == Kind::Mset || kind == Kind::Msetnx) count = (op.argc() - 1) / 2;
     else if (kind == Kind::Del || kind == Kind::Unlink) count = op.argc() - 1;
-    else if (kind == Kind::Copy || is_store_setop(kind) || kind == Kind::Bitop) count = 1;
+    else if (kind == Kind::Copy || is_store_setop(kind) || is_store_zsetop(kind) ||
+             kind == Kind::Bitop) count = 1;
+    else if (is_geo_kind(kind)) count = 1;
     else if (kind == Kind::Lmpop || kind == Kind::Zmpop) count = mpop_count;
     else if (kind == Kind::Zrangestore || kind == Kind::Sort) count = 1;
     else if (kind == Kind::Rename || kind == Kind::Renamenx || kind == Kind::Smove ||
