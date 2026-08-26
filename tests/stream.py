@@ -161,6 +161,9 @@ note("approximate '~' parses and behaves exact",
 # Immediate XREAD is a gather and preserves argument order, including multi-stream replies.
 admin.cmd("XADD", "stream:read-a", "1-0", "f", "a")
 admin.cmd("XADD", "stream:read-b", "1-0", "f", "b")
+note("XREAD immediate single-stream owner route",
+     admin.cmd("XREAD", "COUNT", "1", "STREAMS", "stream:read-a", "0-0") ==
+     [[b"stream:read-a", [xentry("1-0", "f", "a")]]])
 immediate = admin.cmd("XREAD", "COUNT", "1", "STREAMS",
                       "stream:read-b", "stream:read-a", "0-0", "0-0")
 note("XREAD immediate multi-stream argument order",

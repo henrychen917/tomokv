@@ -55,8 +55,7 @@ boot(){ # binary -> pid ; server log to $SRVLOG
   (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null \
       && { say "port $PORT pre-boot guard" "FAIL (already accepting)"; return 1; }
   SRVLOG=$(mktemp /tmp/gate-srv.XXXXXX)
-  taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --protected-mode no \
-      --shards 16 --ratio $GATE_RATIO "$@" \
+  taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --shards 16 --ratio $GATE_RATIO "$@" \
       > "$SRVLOG" 2>&1 &
   SRV=$!
   for _ in $(seq 50); do ./build/tomokv --help >/dev/null 2>&1
