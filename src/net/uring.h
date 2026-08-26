@@ -36,6 +36,8 @@ enum class UrKind : uint8_t {
     TlsSend = 11,
     AofIo = 12,         // persistence-engine request; pointer is writer-private request state
     SnapshotIo = 13,    // persistence-engine request; pointer is writer-private request state
+    TlsReadPoll = 14,
+    TlsWritePoll = 15,
 };
 
 inline uint64_t ur_tag(UrKind k, void* p) {

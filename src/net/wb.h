@@ -92,8 +92,17 @@ public:
     bool serve(Client& c) {
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_impl<true>(c);
-        return serve_impl<false>(c);
+            return serve_impl<true, false>(c);
+        return serve_impl<false, false>(c);
+    }
+
+    // kTLS uses the ordinary plaintext staging and send path. This separate instantiation only
+    // enforces/counts the pre-existing TLS no-borrow contract; plaintext clients pay no mode test.
+    bool serve_ktls(Client& c) {
+        if (__builtin_expect(limit_armed_ &&
+                             limit_armed_->load(std::memory_order_relaxed), false))
+            return serve_impl<true, true>(c);
+        return serve_impl<false, true>(c);
     }
 
     // TLS is a separate write-back variant selected by the IO owner. Plain serve()/pump() above
@@ -379,13 +388,16 @@ public:
     }
 
 private:
-    template <bool TrackOutput>
+    template <bool TrackOutput, bool TlsNoBorrow>
     bool serve_impl(Client& c) {
         TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed));
         stats_.serves++;
         Client& conn = c;
         if constexpr (TrackOutput) conn.start_obuf_tracking();
         const uint32_t retired = c.rob().drain([&](Op& op) {
+            if constexpr (TlsNoBorrow) {
+                if (op.no_borrow()) note_zc_suppressed_tls();
+            }
             // Cross-shard completion publishes descriptors/state, not bytes.  The connection's IO
             // owner turns those into the final ordered reply here, before the generic staging path
             // inspects the (possibly repurposed) zero-copy fields.
@@ -402,7 +414,13 @@ private:
                 conn.seal_fill_segment();
                 conn.append_buf_segment(op.direct, op.direct_len,
                                         op.reply.data(), op.reply.size());
-                conn.append_borrow_segment(op.zc_ptr, op.zc_len, op.zc_shard);
+                if constexpr (TlsNoBorrow) {
+                    conn.append_buf_segment(op.zc_ptr, op.zc_len);
+                    release(op.zc_shard, op.zc_ptr);
+                    note_zc_suppressed_tls();
+                } else {
+                    conn.append_borrow_segment(op.zc_ptr, op.zc_len, op.zc_shard);
+                }
                 conn.append_static_segment(kCrlf, sizeof(kCrlf));
                 if (op.direct_len) stats_.direct++;
                 return;

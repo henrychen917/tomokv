@@ -337,6 +337,7 @@ void init_config(const Config& cfg) {
                         cfg.tls_ciphersuites ? cfg.tls_ciphersuites : "", true});
     g_config.push_back({"tls-prefer-server-ciphers", ConfigKind::Bool,
                         cfg.tls_prefer_server_ciphers ? "yes" : "no", true});
+    g_config.push_back({"tls-ktls", ConfigKind::Bool, cfg.tls_ktls ? "yes" : "no", true});
     g_client_obuf_limits = cfg.client_output_buffer_limits;
     g_config.push_back({"client-output-buffer-limit", ConfigKind::ClientOutputBufferLimit,
                         cfg_client_output_buffer_limit_string(g_client_obuf_limits)});
@@ -1131,7 +1132,7 @@ void cmd_info(Shard&, Op& op) {
              tls_connections_freed = 0, tls_want_read = 0, tls_want_write = 0,
              tls_ciphertext_input = 0, tls_plaintext_input = 0,
              tls_ciphertext_output = 0, tls_plaintext_output = 0,
-             tls_zc_suppressed = 0;
+             tls_zc_suppressed = 0, tls_ktls_active = 0, tls_ktls_fallback = 0;
     if (g_server) {
         for (uint32_t i = 0; i < g_server->nshards(); i++) {
             const Shard& sh = g_server->shard(static_cast<int32_t>(i));
@@ -1172,6 +1173,8 @@ void cmd_info(Shard&, Op& op) {
             tls_ciphertext_output += sig.tls_ciphertext_output_bytes;
             tls_plaintext_output += sig.tls_plaintext_output_bytes;
             tls_zc_suppressed += sig.tls_zc_suppressed;
+            tls_ktls_active += sig.tls_ktls_active;
+            tls_ktls_fallback += sig.tls_ktls_fallback;
         }
         // Redis counts BOTH accept-time reject classes in rejected_connections: maxclients
         // (networking.c:1355) and protected-mode denials (networking.c:1306).
@@ -1283,6 +1286,7 @@ void cmd_info(Shard&, Op& op) {
                       "tls_ciphertext_input_bytes:%llu\r\ntls_plaintext_input_bytes:%llu\r\n"
                       "tls_ciphertext_output_bytes:%llu\r\ntls_plaintext_output_bytes:%llu\r\n"
                       "tls_zc_suppressed:%llu\r\n"
+                      "tls_ktls_active:%llu\r\ntls_ktls_fallback:%llu\r\n"
                       "blocking_waiters:%llu\r\n",
                 static_cast<unsigned long long>(connections), static_cast<unsigned long long>(rejected),
                 static_cast<unsigned long long>(total_ops), static_cast<unsigned long long>(hits),
@@ -1339,6 +1343,8 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(tls_ciphertext_output),
                 static_cast<unsigned long long>(tls_plaintext_output),
                 static_cast<unsigned long long>(tls_zc_suppressed),
+                static_cast<unsigned long long>(tls_ktls_active),
+                static_cast<unsigned long long>(tls_ktls_fallback),
                 static_cast<unsigned long long>(blocking_waiters));
     }
     if (info_section(op, "COMMANDSTATS")) {

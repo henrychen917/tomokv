@@ -1,12 +1,15 @@
-// tls.h — OpenSSL is an in-memory transport engine; io_uring remains the only socket owner.
+// tls.h — handshake and userspace-fallback TLS engine.
 //
-// The SSL object has a BIO pair, never an fd BIO. TlsConn performs no syscalls and knows nothing
-// about Ring or Client. The owning IO loop reserves/commits ciphertext on the external BIO and is
-// solely responsible for socket reads/writes. kTLS is intentionally a v2 concern.
+// A kTLS attempt starts with a non-blocking socket BIO so OpenSSL can install the kernel record
+// layer.  Once both directions engage, the SSL object becomes a cold lifetime holder and ordinary
+// io_uring recv/send owns application data.  Forced fallback uses the original BIO-pair engine;
+// automatic fallback uses it when neither direction engaged and retains the socket BIO when a
+// direction is already irreversible, preserving a valid userspace transport in either case.
 #pragma once
 
 #include <cstddef>
 #include <cstdint>
+#include <array>
 #include <memory>
 #include <string>
 
@@ -53,10 +56,18 @@ public:
     TlsConn(const TlsConn&) = delete;
     TlsConn& operator=(const TlsConn&) = delete;
 
-    bool init(const TlsContext& context, TlsAuthClients auth, std::string& error);
+    bool init(const TlsContext& context, TlsAuthClients auth, int fd, bool try_ktls,
+              std::string& error);
 
     bool handshaking() const { return state_ == State::Handshaking; }
-    bool connected() const { return state_ == State::Connected; }
+    bool connected() const { return userspace() || ktls(); }
+    bool userspace() const { return memory_userspace() || socket_userspace(); }
+    bool memory_userspace() const { return state_ == State::MemoryUserspace; }
+    bool socket_userspace() const { return state_ == State::SocketUserspace; }
+    bool memory_bio() const { return external_bio_ != nullptr; }
+    bool ktls() const { return state_ == State::Ktls; }
+    bool was_ktls() const { return ktls_engaged_; }
+    bool fd_handshake() const { return fd_handshake_; }
     bool failed() const { return state_ == State::Failed; }
     bool shutdown_started() const { return shutdown_started_; }
 
@@ -88,9 +99,23 @@ public:
     }
 
     const std::string& last_error() const { return last_error_; }
+    TlsOp wanted() const { return wanted_; }
+    bool poll_armed(TlsOp wanted) const {
+        return wanted == TlsOp::WantWrite ? write_poll_armed_ : read_poll_armed_;
+    }
+    void set_poll_armed(TlsOp wanted, bool armed) {
+        if (wanted == TlsOp::WantWrite) write_poll_armed_ = armed;
+        else read_poll_armed_ = armed;
+    }
+    bool any_poll_armed() const { return read_poll_armed_ || write_poll_armed_; }
 
 private:
-    enum class State : uint8_t { Handshaking, Connected, Failed };
+    friend class TlsContext;
+    enum class State : uint8_t { Handshaking, MemoryUserspace, SocketUserspace, Ktls, Failed };
+    static void keylog_callback(const SSL* ssl, const char* line);
+    bool install_tls13_rx();
+    bool install_memory_bio(std::string& error);
+    void restore_socket_flags();
     TlsOp funnel(int result, const char* operation);
     void record_error(const char* operation, int ssl_error);
 
@@ -101,7 +126,16 @@ private:
     uint32_t reserved_input_cap_ = 0;
     const char* pending_plain_ptr_ = nullptr;
     uint32_t pending_plain_len_ = 0;
+    int socket_fd_ = -1;
+    int saved_socket_flags_ = -1;
+    bool fd_handshake_ = false;
+    bool ktls_engaged_ = false;
+    bool read_poll_armed_ = false;
+    bool write_poll_armed_ = false;
     bool shutdown_started_ = false;
+    bool has_client_traffic_secret_ = false;
+    TlsOp wanted_ = TlsOp::Progress;
+    std::array<unsigned char, 32> client_traffic_secret_{};
     std::string last_error_;
 };
 

@@ -18,6 +18,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#include <poll.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
@@ -333,8 +334,8 @@ private:
 
     void arm_tls_recv(Client* c) {
         if (c->recv_armed() || c->closing()) return;
-        TlsConn* tls = tls_conn(c);
-        if (!tls) return;
+        TlsConn* tls = tls_engine(c);
+        if (!tls || !tls->memory_bio()) return;
         // Any engine output is submitted before another socket read. This is the memory-BIO
         // flush-before-read rule that prevents WANT_READ from hiding a required write.
         if (tls->output_pending()) {
@@ -361,6 +362,23 @@ private:
         c->set_recv_armed(true);
     }
 
+    void arm_tls_socket_poll(Client* c, TlsOp wanted) {
+        if (c->closing()) return;
+        TlsConn* tls = tls_engine(c);
+        if (!tls || tls->poll_armed(wanted)) return;
+        io_uring_sqe* s = ring_.sqe();
+        if (!s) { self_->sig().sqe_starved++; return; }
+        const unsigned mask = (wanted == TlsOp::WantWrite ? POLLOUT : POLLIN) |
+                              POLLERR | POLLHUP | POLLRDHUP;
+        io_uring_prep_poll_add(s, c->fd(), mask);
+        s->user_data = ur_tag(wanted == TlsOp::WantWrite
+                                  ? UrKind::TlsWritePoll : UrKind::TlsReadPoll, c);
+        ring_.note_pending();
+        // Reuse the existing kernel-reference fence: a poll CQE names Client just like recv.
+        tls->set_poll_armed(wanted, true);
+        c->set_recv_armed(true);
+    }
+
     // ---- completions ----------------------------------------------------------------------------
     void on_plain_send_cqe(io_uring_cqe* cqe) {
         Client* c = ur_ptr<Client>(cqe->user_data);
@@ -374,7 +392,7 @@ private:
 
     void on_tls_send_cqe(io_uring_cqe* cqe) {
         Client* c = ur_ptr<Client>(cqe->user_data);
-        TlsConn* tls = tls_conn(c);
+        TlsConn* tls = tls_engine(c);
         if (!tls) { close_client(c); return; }
         if (c->dead()) {
             wb_.on_dead_tls_send_complete(*c, *tls, cqe->res);
@@ -391,7 +409,7 @@ private:
             switch (ur_kind(cqe->user_data)) {
                 case UrKind::Accept: on_accept(cqe, UrKind::Accept); break;
                 case UrKind::UnixAccept: on_accept(cqe, UrKind::UnixAccept); break;
-                case UrKind::Recv: on_recv(ur_ptr<Client>(cqe->user_data), cqe->res); break;
+                case UrKind::Recv: on_recv<false>(ur_ptr<Client>(cqe->user_data), cqe->res); break;
                 case UrKind::Send: on_plain_send_cqe(cqe); break;
                 case UrKind::Wake: self_->sig().wakes_recv++; break;
                 case UrKind::SnapshotStart: break;
@@ -402,6 +420,8 @@ private:
                     srv_->snapshot().on_io_complete(*self_, ring_, ur_ptr<void>(cqe->user_data),
                                                     cqe->res); break;
                 case UrKind::Close: break;
+                case UrKind::TlsReadPoll: break;
+                case UrKind::TlsWritePoll: break;
                 default: break;
             }
         } else {
@@ -409,10 +429,16 @@ private:
                 case UrKind::Accept: on_accept(cqe, UrKind::Accept); break;
                 case UrKind::TlsAccept: on_accept(cqe, UrKind::TlsAccept); break;
                 case UrKind::UnixAccept: on_accept(cqe, UrKind::UnixAccept); break;
-                case UrKind::Recv: on_recv(ur_ptr<Client>(cqe->user_data), cqe->res); break;
+                case UrKind::Recv: on_recv<true>(ur_ptr<Client>(cqe->user_data), cqe->res); break;
                 case UrKind::TlsRecv: on_tls_recv(ur_ptr<Client>(cqe->user_data), cqe->res); break;
                 case UrKind::Send: on_plain_send_cqe(cqe); break;
                 case UrKind::TlsSend: on_tls_send_cqe(cqe); break;
+                case UrKind::TlsReadPoll:
+                    on_tls_socket_poll(ur_ptr<Client>(cqe->user_data), cqe->res,
+                                       TlsOp::WantRead); break;
+                case UrKind::TlsWritePoll:
+                    on_tls_socket_poll(ur_ptr<Client>(cqe->user_data), cqe->res,
+                                       TlsOp::WantWrite); break;
                 case UrKind::Wake: self_->sig().wakes_recv++; break;
                 case UrKind::SnapshotStart: break;
                 case UrKind::AofIo:
@@ -523,16 +549,22 @@ private:
         return (ntohl(peer.sin_addr.s_addr) & 0xff000000u) == 0x7f000000u;
     }
 
-    TlsConn* tls_conn(const Client* c) {
+    TlsConn* tls_slot_conn(const Client* c) {
         if (!c || !c->is_tls() || c->tls_slot() >= tls_slots_.size()) return nullptr;
         return tls_slots_[c->tls_slot()].get();
+    }
+
+    TlsConn* tls_engine(const Client* c) {
+        TlsConn* tls = tls_slot_conn(c);
+        return tls && !tls->ktls() ? tls : nullptr;
     }
 
     bool attach_tls(Client* c) {
         try {
             auto conn = std::make_unique<TlsConn>();
             std::string error;
-            if (!conn->init(*tls_context_, srv_->cfg().tls_auth_clients, error)) {
+            if (!conn->init(*tls_context_, srv_->cfg().tls_auth_clients, c->fd(),
+                            srv_->cfg().tls_ktls, error)) {
                 std::fprintf(stderr, "TLS connection init failed: %s\n", error.c_str());
                 return false;
             }
@@ -557,6 +589,10 @@ private:
         if (!c->is_tls()) return;
         const uint32_t slot = c->tls_slot();
         if (slot >= tls_slots_.size() || !tls_slots_[slot]) std::abort();
+        if (tls_slots_[slot]->was_ktls()) {
+            if (!self_->sig().tls_ktls_active) std::abort();
+            self_->sig().tls_ktls_active--;
+        }
         tls_slots_[slot].reset();
         tls_free_slots_.push_back(slot);
         c->set_tls_slot(Client::kNoTlsSlot);
@@ -588,8 +624,16 @@ private:
         const std::string laddr = socket_address(c->fd(), unix_socket, false);
         const uint64_t accepted_ms = cached_now_ms_ ? cached_now_ms_ : now_ns() / 1000000ull;
         command_client_connected(c, addr.c_str(), laddr.c_str(), unix_socket, accepted_ms);
-        if (tls_socket) arm_tls_recv(c);
-        else arm_recv(c);
+        if (tls_socket) {
+            TlsConn* tls = tls_slot_conn(c);
+            if (tls && tls->fd_handshake()) {
+                (void)drive_tls(c);
+                if (!c->closing() && tls->ktls()) arm_recv(c);
+                else if (!c->closing() && tls->memory_userspace()) arm_tls_recv(c);
+            } else {
+                arm_tls_recv(c);
+            }
+        } else arm_recv(c);
         // Reachability, not optimism: if that arm starved for an SQE, nothing else names this
         // conn -- it would sit accepted and silent forever (audit finding). The active set's
         // phase-1 re-arms it until the recv lands; one wasted visit if the arm succeeded.
@@ -608,6 +652,7 @@ private:
         return sent;
     }
 
+    template <bool HasTls>
     void on_recv(Client* c, int res) {
         c->set_recv_armed(false);       // the kernel has released its pointer
         // A send error can close the fd while this recv is still owned by io_uring. The Client stays
@@ -617,15 +662,54 @@ private:
         if (res <= 0) { close_client(c); return; }
         c->commit_read(static_cast<size_t>(res));
         c->set_last_interaction_s(cached_now_s_);
-        parse_and_dispatch<false>(c);
+        if constexpr (HasTls) {
+            if (c->is_tls()) parse_and_dispatch<true>(c);
+            else parse_and_dispatch<false>(c);
+        } else {
+            parse_and_dispatch<false>(c);
+        }
         // Deliberately NOT re-armed here. flush_ready() re-arms AFTER it may have reset the read
         // buffer; arming first would leave the kernel holding a pointer that the reset then moves.
         mark_active(c);
     }
 
     bool drive_tls(Client* c) {
-        TlsConn* tls = tls_conn(c);
+        TlsConn* tls = tls_slot_conn(c);
         if (!tls) return false;
+        if (tls->ktls()) return true;
+
+        if (tls->handshaking() && tls->fd_handshake()) {
+            const TlsOp result = tls->handshake();
+            if (result == TlsOp::WantRead || result == TlsOp::WantWrite) {
+                if (result == TlsOp::WantRead) self_->sig().tls_want_read++;
+                else self_->sig().tls_want_write++;
+                arm_tls_socket_poll(c, result);
+                return true;
+            }
+            if (result == TlsOp::Progress) {
+                self_->sig().tls_handshakes_completed++;
+                if (tls->ktls()) self_->sig().tls_ktls_active++;
+                else self_->sig().tls_ktls_fallback++;
+            } else {
+                self_->sig().tls_handshakes_failed++;
+                if (!tls->last_error().empty())
+                    std::fprintf(stderr, "TLS client %llu: %s\n",
+                                 static_cast<unsigned long long>(c->id()),
+                                 tls->last_error().c_str());
+                close_client(c);
+                return false;
+            }
+            if (tls->ktls()) return true;
+        }
+
+        if (tls->socket_userspace() && tls->has_pinned_plain()) {
+            (void)wb_.pump_tls(*c, *tls);
+            if (tls->has_pinned_plain()) {
+                arm_tls_socket_poll(c, tls->wanted());
+                return true;
+            }
+        }
+
         if (tls->output_pending() || c->send_inflight()) {
             (void)wb_.pump_tls(*c, *tls);
             return !tls->failed();
@@ -635,7 +719,10 @@ private:
             const TlsOp result = tls->handshake();
             if (result == TlsOp::WantRead) self_->sig().tls_want_read++;
             else if (result == TlsOp::WantWrite) self_->sig().tls_want_write++;
-            else if (result == TlsOp::Progress) self_->sig().tls_handshakes_completed++;
+            else if (result == TlsOp::Progress) {
+                self_->sig().tls_handshakes_completed++;
+                self_->sig().tls_ktls_fallback++;
+            }
             (void)wb_.pump_tls(*c, *tls);  // alerts and handshake flights are flushed first
             if (result == TlsOp::Error || result == TlsOp::GracefulEof) {
                 self_->sig().tls_handshakes_failed++;
@@ -664,10 +751,14 @@ private:
                 if (tls->output_pending()) { (void)wb_.pump_tls(*c, *tls); break; }
                 continue;
             }
-            if (result.op == TlsOp::WantRead) self_->sig().tls_want_read++;
+            if (result.op == TlsOp::WantRead) {
+                self_->sig().tls_want_read++;
+                if (tls->socket_userspace()) arm_tls_socket_poll(c, result.op);
+            }
             else if (result.op == TlsOp::WantWrite) {
                 self_->sig().tls_want_write++;
-                (void)wb_.pump_tls(*c, *tls);
+                if (tls->socket_userspace()) arm_tls_socket_poll(c, result.op);
+                else (void)wb_.pump_tls(*c, *tls);
             } else if (result.op == TlsOp::GracefulEof) {
                 (void)tls->shutdown();
                 (void)wb_.pump_tls(*c, *tls);
@@ -688,9 +779,20 @@ private:
         return !tls->failed();
     }
 
+    void on_tls_socket_poll(Client* c, int res, TlsOp wanted) {
+        TlsConn* tls = tls_slot_conn(c);
+        if (!tls) { close_client(c); return; }
+        tls->set_poll_armed(wanted, false);
+        c->set_recv_armed(tls->any_poll_armed());
+        if (c->dead()) return;
+        if (c->closing() || res < 0) { close_client(c); return; }
+        (void)drive_tls(c);
+        mark_active(c);
+    }
+
     void on_tls_recv(Client* c, int res) {
         c->set_recv_armed(false);
-        TlsConn* tls = tls_conn(c);
+        TlsConn* tls = tls_engine(c);
         if (!tls) { close_client(c); return; }
         if (c->dead()) { tls->abandon_input(); return; }
         if (res <= 0) {
@@ -1247,7 +1349,7 @@ nonblocking_dispatch:
             Client* c = *it;
             Client& conn = *c;
             TlsConn* tls = nullptr;
-            if constexpr (HasTls) tls = tls_conn(c);
+            if constexpr (HasTls) tls = tls_engine(c);
             if (backstop_pass_ && !c->serve_pending()) enqueue_serve(c);
 
             if constexpr (HasTls) {
@@ -1257,7 +1359,13 @@ nonblocking_dispatch:
                     // but SSL_read/SSL_accept consume the same direction and can move that
                     // frontier. Only the recv completion may drive inbound TLS while armed.
                     if (!c->closing() && !c->recv_armed()) (void)drive_tls(c);
-                    else (void)wb_.pump_tls(*c, *tls);
+                    else if (tls->userspace()) {
+                        (void)wb_.pump_tls(*c, *tls);
+                        if (tls->socket_userspace() && tls->has_pinned_plain())
+                            arm_tls_socket_poll(c, tls->wanted());
+                    }
+                    // A successful fd handshake can switch transport under drive_tls().
+                    tls = tls_engine(c);
                 }
             }
 
@@ -1283,7 +1391,7 @@ nonblocking_dispatch:
             if (!c->closing() && conn.rpos() < conn.rlen() && !c->scatter_barrier() &&
                 !c->atomic_backpressure()) {
                 if constexpr (HasTls) {
-                    if (tls) parse_and_dispatch<true>(c);
+                    if (c->is_tls()) parse_and_dispatch<true>(c);
                     else parse_and_dispatch<false>(c);
                 } else {
                     parse_and_dispatch<false>(c);
@@ -1292,8 +1400,8 @@ nonblocking_dispatch:
             }
 
             if constexpr (HasTls) {
-                if (tls) arm_tls_recv(c);
-                else arm_recv(c);
+                if (tls && tls->memory_bio()) arm_tls_recv(c);
+                else if (!tls) arm_recv(c);
             } else {
                 arm_recv(c);
             }
@@ -1344,9 +1452,13 @@ nonblocking_dispatch:
             if (c->dead()) continue;
             served++;
             if constexpr (HasTls) {
-                if (TlsConn* tls = tls_conn(c)) {
+                if (TlsConn* tls = tls_engine(c)) {
                     if (wb_.serve_tls(*c, *tls)) work++;
+                    if (tls->socket_userspace() && tls->has_pinned_plain())
+                        arm_tls_socket_poll(c, tls->wanted());
                     if (tls->failed()) close_client(c, tls->output_pending() || c->send_inflight());
+                } else if (TlsConn* slot = tls_slot_conn(c); slot && slot->ktls()) {
+                    if (wb_.serve_ktls(*c)) work++;
                 } else if (wb_.serve(*c)) {
                     work++;
                 }
@@ -1444,8 +1556,15 @@ nonblocking_dispatch:
             c->mark_closing();
             if (c->blocked() && blocking_cancel_client(*srv_, *self_, ring_, *c))
                 enqueue_serve(c);
-            TlsConn* tls = tls_conn(c);
-            if (tls && tls->connected() && !tls->shutdown_started()) {
+            TlsConn* slot_tls = tls_slot_conn(c);
+            if (slot_tls && slot_tls->ktls() && !c->send_inflight() &&
+                !slot_tls->shutdown_started()) {
+                // recv(EIO) is how kTLS reports peer close_notify. The first SSL_shutdown call
+                // emits our close_notify through TLS_TX without entering the application path.
+                (void)slot_tls->shutdown();
+            }
+            TlsConn* tls = tls_engine(c);
+            if (tls && tls->memory_userspace() && !tls->shutdown_started()) {
                 (void)tls->shutdown();
                 (void)wb_.pump_tls(*c, *tls);
             }
@@ -1456,7 +1575,7 @@ nonblocking_dispatch:
             if (!(drain_tls_output && pending_tls_output)) ::shutdown(c->fd(), SHUT_RDWR);
         }
         multi_close_entry(*this, *c);
-        if (TlsConn* tls = tls_conn(c)) {
+        if (TlsConn* tls = tls_engine(c)) {
             if (drain_tls_output && (tls->output_pending() || c->send_inflight())) {
                 mark_active(c);
                 return;

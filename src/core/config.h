@@ -240,6 +240,7 @@ struct Config {
     const char* tls_ciphers = nullptr;
     const char* tls_ciphersuites = nullptr;
     bool tls_prefer_server_ciphers = false;
+    bool tls_ktls = true;                 // tomo-only: try kernel TLS, silently fall back
 };
 
 // ---- tiny local parsers (const char* flavors; the Slice flavors in the .cc files are separate) --
@@ -327,6 +328,15 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             else if (cfg_eq_icase(value, "no")) cfg.tls_prefer_server_ciphers = false;
             else {
                 std::fprintf(stderr, "--tls-prefer-server-ciphers wants yes or no\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--tls-ktls")) {
+            const char* value = next(nullptr);
+            if (cfg_eq_icase(value, "yes")) cfg.tls_ktls = true;
+            else if (cfg_eq_icase(value, "no")) cfg.tls_ktls = false;
+            else {
+                std::fprintf(stderr, "--tls-ktls wants yes or no\n");
                 return kConfigError;
             }
         }
@@ -655,7 +665,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "       --tls-ca-cert-file PATH --tls-ca-cert-dir PATH\n"
                         "       --tls-auth-clients yes|no|optional --tls-protocols LIST\n"
                         "       --tls-ciphers LIST --tls-ciphersuites LIST\n"
-                        "       --tls-prefer-server-ciphers yes|no\n"
+                        "       --tls-prefer-server-ciphers yes|no --tls-ktls yes|no\n"
                         "  notifications: --notify-keyspace-events FLAGS (default empty/off)\n"
                         "  persistence: --dir PATH --dbfilename NAME --load PATH\n"
                         "    --persist-io normal|uring (boot-only; default uring; AOF + snapshot)\n"

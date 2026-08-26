@@ -99,6 +99,8 @@ struct LoopSignals {
     uint64_t tls_ciphertext_output_bytes = 0;
     uint64_t tls_plaintext_output_bytes = 0;
     uint64_t tls_zc_suppressed = 0;
+    uint64_t tls_ktls_active = 0;       // current bidirectionally-offloaded connections
+    uint64_t tls_ktls_fallback = 0;     // successful userspace-mode handshakes
 
     // Derived, computed on read so the hot path never divides.
     double utilisation() const {

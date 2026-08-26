@@ -394,7 +394,8 @@ int main(int argc, char** argv) {
     uint64_t tls_accepts = 0, tls_started = 0, tls_completed = 0, tls_failed = 0,
              tls_freed = 0, tls_want_read = 0, tls_want_write = 0,
              tls_cipher_in = 0, tls_plain_in = 0, tls_cipher_out = 0,
-             tls_plain_out = 0, tls_zc_suppressed = 0;
+             tls_plain_out = 0, tls_zc_suppressed = 0, tls_ktls_active = 0,
+             tls_ktls_fallback = 0;
     for (uint32_t i = 0; i < srv.nthreads(); i++) {
         const LoopSignals& s = srv.thread(i).sig();
         tls_accepts += s.tls_accepts;
@@ -409,6 +410,8 @@ int main(int argc, char** argv) {
         tls_cipher_out += s.tls_ciphertext_output_bytes;
         tls_plain_out += s.tls_plaintext_output_bytes;
         tls_zc_suppressed += s.tls_zc_suppressed;
+        tls_ktls_active += s.tls_ktls_active;
+        tls_ktls_fallback += s.tls_ktls_fallback;
     }
     // And the smoking gun: connections still holding work at shutdown, by WHICH kind.
     uint64_t stuck_rob = 0, stuck_wr = 0, live = 0;
@@ -458,13 +461,15 @@ int main(int argc, char** argv) {
                 (unsigned long long)w.serves, (unsigned long long)w.serves_empty);
     std::printf("tls: accepts=%llu handshakes=%llu/%llu failed=%llu freed=%llu"
                 " want_read=%llu want_write=%llu cipher_in=%llu plain_in=%llu"
-                " cipher_out=%llu plain_out=%llu zc_suppressed=%llu\n",
+                " cipher_out=%llu plain_out=%llu zc_suppressed=%llu"
+                " ktls_active=%llu ktls_fallback=%llu\n",
                 (unsigned long long)tls_accepts, (unsigned long long)tls_completed,
                 (unsigned long long)tls_started, (unsigned long long)tls_failed,
                 (unsigned long long)tls_freed, (unsigned long long)tls_want_read,
                 (unsigned long long)tls_want_write, (unsigned long long)tls_cipher_in,
                 (unsigned long long)tls_plain_in, (unsigned long long)tls_cipher_out,
-                (unsigned long long)tls_plain_out, (unsigned long long)tls_zc_suppressed);
+                (unsigned long long)tls_plain_out, (unsigned long long)tls_zc_suppressed,
+                (unsigned long long)tls_ktls_active, (unsigned long long)tls_ktls_fallback);
     std::printf("stuck: live_conns=%llu rob_not_quiesced=%llu unsent_bytes_pending=%llu"
                 " | slots done=%llu issued=%llu free=%llu flag_set=%llu\n",
                 (unsigned long long)live, (unsigned long long)stuck_rob, (unsigned long long)stuck_wr,

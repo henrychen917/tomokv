@@ -122,12 +122,15 @@ class Conn:
         self.sock = None
 
 
-def context(cert_dir, client="none", tls12=False):
+def context(cert_dir, client="none", tls12=False, tls13=False):
     ctx = ssl.create_default_context(cafile=os.path.join(cert_dir, "ca.crt"))
     ctx.check_hostname = True
     if tls12:
         ctx.minimum_version = ssl.TLSVersion.TLSv1_2
         ctx.maximum_version = ssl.TLSVersion.TLSv1_2
+    elif tls13:
+        ctx.minimum_version = ssl.TLSVersion.TLSv1_3
+        ctx.maximum_version = ssl.TLSVersion.TLSv1_3
     if client == "good":
         ctx.load_cert_chain(os.path.join(cert_dir, "client.crt"),
                             os.path.join(cert_dir, "client.key"))
@@ -279,22 +282,80 @@ def parse_stats(conn):
     return result
 
 
-def full_battery(host, tls_port, plain_port, cert_dir, mode):
+def handshake_matrix(host, tls_port, cert_dir, client_kind, admin, expect_ktls):
+    # Let the auth-matrix connections cross the IO loop's deferred-free fence so only the admin
+    # contributes to the active gauge before each mechanism assertion.
+    time.sleep(0.2)
+    baseline = parse_stats(admin)
+    if expect_ktls and int(baseline.get("tls_ktls_active", "0")) != 1:
+        raise AssertionError("kTLS active baseline is not the sole admin connection")
+    if not expect_ktls and int(baseline.get("tls_ktls_active", "0")) != 0:
+        raise AssertionError("forced fallback unexpectedly has an active kTLS connection")
+
+    for label, kwargs in (("TLSv1.2", {"tls12": True}),
+                          ("TLSv1.3", {"tls13": True})):
+        fallback_before = int(parse_stats(admin).get("tls_ktls_fallback", "0"))
+        probe = Conn(host, tls_port, context(cert_dir, client_kind, **kwargs))
+        if probe.sock.version() != label or probe.command("PING") != b"PONG":
+            raise AssertionError("%s handshake/RESP mismatch" % label)
+        stats = parse_stats(admin)
+        active_after = int(stats.get("tls_ktls_active", "0"))
+        fallback_after = int(stats.get("tls_ktls_fallback", "0"))
+        if expect_ktls:
+            if active_after < 2:
+                raise AssertionError("%s did not engage bidirectional kTLS" % label)
+        elif active_after != 0 or fallback_after <= fallback_before:
+            raise AssertionError("%s did not take forced userspace fallback" % label)
+        probe.close(graceful=True)
+        time.sleep(0.05)
+    print("  ok   TLS1.2 + TLS1.3 handshake matrix (%s)" %
+          ("kTLS" if expect_ktls else "forced fallback"), flush=True)
+
+
+def abrupt_midstream(host, tls_port, cert_dir, client_kind):
+    # Terminate in the middle of an inbound 1 MiB request body.
+    inbound = Conn(host, tls_port, context(cert_dir, client_kind), timeout=10)
+    request = frame("SET", "tls:abrupt-in", os.urandom(1024 * 1024))
+    inbound.sock.sendall(request[:len(request) // 2])
+    inbound.close(reset=True)
+
+    # Terminate while a 1 MiB response is being delivered in the opposite direction.
+    setup = Conn(host, tls_port, context(cert_dir, client_kind), timeout=10)
+    value = os.urandom(1024 * 1024)
+    if setup.command("SET", "tls:abrupt-out", value) != b"OK":
+        raise AssertionError("abrupt outbound setup failed")
+    setup.sock.sendall(frame("GET", "tls:abrupt-out"))
+    if not setup.sock.recv(4096):
+        raise AssertionError("abrupt outbound response never started")
+    setup.close(reset=True)
+    time.sleep(0.1)
+
+    control = Conn(host, tls_port, context(cert_dir, client_kind))
+    if control.command("PING") != b"PONG":
+        raise AssertionError("server did not recover after abrupt mid-stream disconnects")
+    control.close()
+    print("  ok   abrupt disconnects during 1MiB input and output", flush=True)
+
+
+def full_battery(host, tls_port, plain_port, cert_dir, mode, expect_ktls):
     client_kind = "good" if mode == "yes" else "none"
     admin = Conn(host, tls_port, context(cert_dir, client_kind), timeout=60)
     suppressed_before_get = int(parse_stats(admin).get("tls_zc_suppressed", "0"))
 
     config_reply = admin.command("CONFIG", "GET", "tls-*")
-    if not isinstance(config_reply, list) or len(config_reply) != 20:
+    if not isinstance(config_reply, list) or len(config_reply) != 22:
         raise AssertionError("CONFIG GET tls-* omitted a TLS knob: %r" % (config_reply,))
     config_values = dict(zip(config_reply[0::2], config_reply[1::2]))
     if (config_values.get(b"tls-port") != str(tls_port).encode() or
-            config_values.get(b"tls-auth-clients") != mode.encode()):
+            config_values.get(b"tls-auth-clients") != mode.encode() or
+            config_values.get(b"tls-ktls") != (b"yes" if expect_ktls else b"no")):
         raise AssertionError("CONFIG GET did not preserve TLS listener/auth values")
     immutable = admin.command("CONFIG", "SET", "tls-port", str(tls_port))
     if not isinstance(immutable, RuntimeError) or "immutable" not in str(immutable):
         raise AssertionError("CONFIG SET changed a boot-only TLS knob")
     print("  ok   all TLS knobs are visible and boot-only", flush=True)
+
+    handshake_matrix(host, tls_port, cert_dir, client_kind, admin, expect_ktls)
 
     values = [os.urandom(size) for size in (1024, 16384, 65536, 1024 * 1024, 8 * 1024 * 1024)]
     request = bytearray()
@@ -333,6 +394,7 @@ def full_battery(host, tls_port, plain_port, cert_dir, mode):
     print("  ok   RESET preserves TLS transport", flush=True)
 
     torn_record(host, tls_port, cert_dir)
+    abrupt_midstream(host, tls_port, cert_dir, client_kind)
 
     errors = []
     def worker(use_tls, index):
@@ -390,14 +452,22 @@ def full_battery(host, tls_port, plain_port, cert_dir, mode):
     time.sleep(0.3)
 
     stats = parse_stats(admin)
-    required_positive = ("tls_handshakes_completed", "tls_ciphertext_input_bytes",
-                         "tls_plaintext_input_bytes", "tls_ciphertext_output_bytes",
-                         "tls_plaintext_output_bytes", "tls_zc_suppressed",
+    required_positive = ("tls_handshakes_completed", "tls_zc_suppressed",
                          "plain_connections_received")
     missing = [name for name in required_positive if int(stats.get(name, "0")) <= 0]
     if missing:
         raise AssertionError("TLS mechanisms did not fire: %s" % ", ".join(missing))
-    print("  ok   TLS counters prove handshake/crypto/zc/plain arms fired", flush=True)
+    if expect_ktls:
+        if int(stats.get("tls_ktls_active", "0")) <= 0:
+            raise AssertionError("kTLS mechanism counter did not remain active")
+    else:
+        userspace_counters = ("tls_ciphertext_input_bytes", "tls_plaintext_input_bytes",
+                              "tls_ciphertext_output_bytes", "tls_plaintext_output_bytes")
+        missing = [name for name in userspace_counters if int(stats.get(name, "0")) <= 0]
+        if missing or int(stats.get("tls_ktls_active", "0")) != 0 or \
+                int(stats.get("tls_ktls_fallback", "0")) <= 0:
+            raise AssertionError("userspace TLS fallback did not fire: %s" % ", ".join(missing))
+    print("  ok   TLS counters prove handshake/transport/zc/plain arms fired", flush=True)
 
     admin.close(graceful=True)
 
@@ -410,6 +480,7 @@ def main():
     parser.add_argument("mode", nargs="?", choices=("yes", "optional", "no"))
     parser.add_argument("--plain-port", type=int)
     parser.add_argument("--full", action="store_true")
+    parser.add_argument("--expect-ktls", choices=("yes", "no"), default="yes")
     parser.add_argument("--generate", metavar="DIR")
     args = parser.parse_args()
     if args.generate:
@@ -421,7 +492,8 @@ def main():
     if args.full:
         if not args.plain_port:
             parser.error("--full requires --plain-port")
-        full_battery(args.host, args.tls_port, args.plain_port, args.cert_dir, args.mode)
+        full_battery(args.host, args.tls_port, args.plain_port, args.cert_dir, args.mode,
+                     args.expect_ktls == "yes")
     print("TLS PASS (%s)" % args.mode)
 
 
