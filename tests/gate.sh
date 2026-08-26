@@ -116,6 +116,14 @@ for AT in 0 1; do
       && ok "feature shutdown invariants (atomic $AT)" || bad "feature shutdown invariants (atomic $AT)"
 done
 
+# ---- LB signals: read-side battery needs the debug surface, hence its own boot ----------------
+for AT in 0 1; do
+  boot ./build/tomokv --atomic $AT --enable-debug-command yes || bad "lbsignals boot (atomic $AT)"
+  python3 tests/lbsignals.py 127.0.0.1 $PORT >/tmp/gate-lbsignals-$AT.txt 2>&1 \
+      && ok "lbsignals battery (atomic $AT)" || bad "lbsignals battery (atomic $AT)" "see /tmp/gate-lbsignals-$AT.txt"
+  stop
+done
+
 # ---- self-format DUMP/RESTORE survives the native snapshot/restart boundary ------------------
 DUMPRESTORE_DIR=$(mktemp -d /tmp/gate-dumprestore.XXXXXX)
 boot ./build/tomokv --atomic 1 --dir "$DUMPRESTORE_DIR" --dbfilename dumprestore.tomo \

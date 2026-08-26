@@ -9,6 +9,7 @@
 #include "debug.h"
 #include "../base/alloc.h"
 #include "../core/server.h"
+#include "../core/lbsignals.h"
 #include "../core/pubsub_event.h"
 #include "../core/thread.h"
 #include "../exec/op.h"
@@ -709,6 +710,14 @@ void cmd_reset(Shard&, Op& op) {
 
 void cmd_debug_impl(Shard&, Op& op) {
     const Slice subcommand = op.arg(1);
+    if (eq_icase(subcommand, "lbsignals") && op.argc() == 2) {
+        // Raw monotonic dump; windowing is the reader's job (two calls, subtract). See lbsignals.h.
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        std::string out;
+        lbsignals_format(lbsignals_capture(*g_server), out);
+        reply_verbatim(op.sink(), Slice(out.data(), out.size()), "txt", op.resp3());
+        return;
+    }
     if (eq_icase(subcommand, "sleep") && op.argc() == 3) {
         std::string text(op.arg(2).p, op.arg(2).n);
         char* end = nullptr;
@@ -1349,6 +1358,7 @@ void cmd_info(Shard&, Op& op) {
         appendf(body, "db0:keys=%llu,expires=%llu,avg_ttl=0\r\n",
                 static_cast<unsigned long long>(keys), static_cast<unsigned long long>(expires));
     }
+    if (g_server && info_section(op, "LB")) lbsignals_info_section(*g_server, body);
     reply_verbatim(op.sink(), Slice(body.data(), body.size()), "txt", op.resp3());
 }
 
