@@ -20,6 +20,7 @@ CXXFLAGS ?= -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread
 LDLIBS   ?= -luring -pthread
 SRC      := src/main.cc src/net/tls.cc src/cmd/commands.cc src/cmd/xshard.cc src/cmd/acl.cc src/cmd/hll.cc src/cmd/t_server.cc src/cmd/t_string.cc src/cmd/t_string_notify.cc src/cmd/t_hash.cc \
             src/cmd/t_list.cc src/cmd/t_set.cc src/cmd/t_zset.cc src/cmd/t_stream.cc src/cmd/scripting.cc src/snapshot/snapshot.cc src/persist/aof.cc
+SRC      += src/cmd/climon.cc
 LDLIBS   += -lssl -lcrypto
 BIN      := build/tomokv
 OBJ      := $(SRC:%.cc=build/%.o)

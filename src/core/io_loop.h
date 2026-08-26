@@ -493,15 +493,17 @@ private:
         rearm_accept(cqe, kind);
     }
 
-    std::string peer_address(int fd, bool unix_socket) const {
+    std::string socket_address(int fd, bool unix_socket, bool remote) const {
         if (unix_socket) return std::string(srv_->cfg().unixsocket ? srv_->cfg().unixsocket : "unix") + ":0";
-        sockaddr_in peer{};
-        socklen_t len = sizeof(peer);
+        sockaddr_in address{};
+        socklen_t len = sizeof(address);
         char ip[INET_ADDRSTRLEN] = "unknown";
-        if (::getpeername(fd, reinterpret_cast<sockaddr*>(&peer), &len) == 0)
-            ::inet_ntop(AF_INET, &peer.sin_addr, ip, sizeof(ip));
+        const int result = remote
+            ? ::getpeername(fd, reinterpret_cast<sockaddr*>(&address), &len)
+            : ::getsockname(fd, reinterpret_cast<sockaddr*>(&address), &len);
+        if (result == 0) ::inet_ntop(AF_INET, &address.sin_addr, ip, sizeof(ip));
         char out[INET_ADDRSTRLEN + 16];
-        std::snprintf(out, sizeof(out), "%s:%u", ip, ntohs(peer.sin_port));
+        std::snprintf(out, sizeof(out), "%s:%u", ip, ntohs(address.sin_port));
         return out;
     }
 
@@ -574,8 +576,10 @@ private:
         // The ready-mask slot is assigned immediately: WE are the sender, for life.
         c->set_wb_slot(self_->assign_wb_slot(c));
         self_->clients().push_back(c);
-        const std::string addr = peer_address(c->fd(), unix_socket);
-        command_client_connected(c, addr.c_str());
+        const std::string addr = socket_address(c->fd(), unix_socket, true);
+        const std::string laddr = socket_address(c->fd(), unix_socket, false);
+        const uint64_t accepted_ms = cached_now_ms_ ? cached_now_ms_ : now_ns() / 1000000ull;
+        command_client_connected(c, addr.c_str(), laddr.c_str(), unix_socket, accepted_ms);
         if (tls_socket) arm_tls_recv(c);
         else arm_recv(c);
         // Reachability, not optimism: if that arm starved for an SQE, nothing else names this
@@ -1570,6 +1574,9 @@ nonblocking_dispatch:
     const TlsContext* tls_context_ = nullptr;
     std::vector<std::unique_ptr<TlsConn>> tls_slots_;
     std::vector<uint32_t> tls_free_slots_;
+#include "../cmd/climon.inc"
+    // CLIENT is IO-owned. Pending requests retain only the origin IO's own Client pointer.
+    std::unordered_map<uint64_t, ClimonPending> climon_pending_;
 };
 
 }  // namespace tomo

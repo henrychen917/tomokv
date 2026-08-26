@@ -113,6 +113,7 @@ public:
     // Slot access for the worker side, which addresses ops by id rather than by pointer so a stale
     // pointer can never outlive a recycle.
     Op& at(uint64_t id) { return *slot(static_cast<uint32_t>(id) & kMask, false); }
+    const Op& at(uint64_t id) const { return const_cast<Rob*>(this)->at(id); }
 
     ~Rob() { for (uint32_t i = 0; i < kChunks; i++) delete[] chunks_[i]; }
 

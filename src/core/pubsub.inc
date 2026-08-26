@@ -460,9 +460,11 @@
         } else {
             if (values.erase(value)) srv_->pubsub_subscription_removed(pattern, shard);
         }
-        if (shard && local.client)
-            command_client_set_shard_subscriptions(
-                local.client, static_cast<uint32_t>(local.shard_channels.size()));
+        if (local.client)
+            command_client_set_subscriptions(
+                local.client, static_cast<uint32_t>(local.channels.size()),
+                static_cast<uint32_t>(local.patterns.size()),
+                static_cast<uint32_t>(local.shard_channels.size()));
     }
 
     static uint64_t pubsub_subscription_count(const PubSubLocalConn& local) {
@@ -509,7 +511,7 @@
         local.channels.clear();
         local.patterns.clear();
         local.shard_channels.clear();
-        if (local.client) command_client_set_shard_subscriptions(local.client, 0);
+        if (local.client) command_client_set_subscriptions(local.client, 0, 0, 0);
         if (local.client) local.client->set_subscriber_mode(false);
     }
 
@@ -714,6 +716,7 @@
     }
 
     void pubsub_handle_event(PubSubEvent& event) {
+        if (climon_handle_event(event)) return;
         switch (event.kind) {
             case PubSubEventKind::NotificationEnqueue:
                 pubsub_notification_enqueue(std::move(event.notification));
@@ -997,6 +1000,11 @@
 
     __attribute__((noinline, noipa)) PubSubStartResult pubsub_start_command(Client* client,
                                                                             Op& op) {
+        if (op.cmd_name().eq_icase("client")) {
+            const ClimonStartResult scatter = climon_start_client_command(client, op);
+            return scatter == ClimonStartResult::Async
+                ? PubSubStartResult::Async : PubSubStartResult::Sync;
+        }
         if (op.cmd_name().eq_icase("subscribe")) {
             if (srv_->acl_active() && !acl_pubsub_channel_entry(*client, op, false, *self_))
                 return PubSubStartResult::Sync;

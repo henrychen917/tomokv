@@ -1438,6 +1438,30 @@ void multi_session_destroy(MultiSession* session) {
     delete session;
 }
 
+bool multi_session_active(const Client& client) {
+    const MultiSession* session = client.multi_session();
+    return session && session->active;
+}
+
+uint32_t multi_session_queue_size(const Client& client) {
+    const MultiSession* session = client.multi_session();
+    return session && session->active ? static_cast<uint32_t>(session->queue.size()) : 0;
+}
+
+uint32_t multi_session_watch_size(const Client& client) {
+    const MultiSession* session = client.multi_session();
+    return session ? static_cast<uint32_t>(session->watched.size()) : 0;
+}
+
+uint64_t multi_session_memory(const Client& client) {
+    const MultiSession* session = client.multi_session();
+    if (!session) return 0;
+    uint64_t bytes = 0;
+    for (const MultiQueuedCommand& command : session->queue)
+        for (const std::string& arg : command.argv) bytes += arg.size();
+    return bytes;
+}
+
 namespace {
 
 std::string watch_key_string(Slice key) { return std::string(key.p, key.n); }

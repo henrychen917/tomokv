@@ -476,5 +476,6 @@ int main(int argc, char** argv) {
                 static_cast<unsigned long long>(acc), static_cast<unsigned long long>(aerr),
                 static_cast<unsigned long long>(arearm), static_cast<unsigned long long>(starved),
                 static_cast<unsigned long long>(ndrop));
+    acl_shutdown();
     return 0;
 }

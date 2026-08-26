@@ -251,6 +251,7 @@ public:
     char*    rbuf()      { return rbuf_; }
     uint32_t rlen() const { return rlen_; }
     uint32_t rpos() const { return rpos_; }
+    size_t rcap() const { return rcap_; }
     void     advance_parse(uint32_t n) { rpos_ += n; }
 
     // Space to recv() into. Returns nullptr to mean "do not read right now".
@@ -321,6 +322,7 @@ public:
 
     // ---- the ROB -------------------------------------------------------------------------------
     Rob<kRobWindow>& rob() { return rob_; }
+    const Rob<kRobWindow>& rob() const { return rob_; }
 
     // ---- write side: DOUBLE BUFFERED, and that is a correctness requirement ------------------
     //
@@ -370,6 +372,7 @@ public:
         const uint64_t send_remaining = send_size > wsent_ ? send_size - wsent_ : 0;
         return buf_[fill_].size() + send_remaining + segments_.byte_size();
     }
+    uint32_t output_list_length() const { return segments_.size(); }
 
     // Seal ordinary staged bytes before the first borrowed reply. Clearing the fill buffer after
     // copying leaves the existing send buffer untouched, so an older send already in flight stays
@@ -452,6 +455,7 @@ public:
     uint32_t ifid_thread() const { return ifid_thread_; }
     void set_ifid_thread(uint32_t t) { ifid_thread_ = t; }
     Session& session() { return session_; }
+    const Session& session() const { return session_; }
 
     // Torn down but not yet freed: still legal to READ while outstanding CQEs retire (it sits on
     // the io thread's deferred-free list), but no longer part of any working set.

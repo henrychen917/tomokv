@@ -83,14 +83,31 @@ legacy key positions. `COMMAND DOCS` is deliberately minimal but is a well-forme
 map-as-array in RESP2) with `summary`, `since`, `group`, and `complexity`, which is sufficient for
 current `redis-cli` live-help parsing. `COMMAND INFO` preserves one null entry per unknown name.
 
-Client names and library metadata live in a cold process catalog keyed by `Client*`, preserving
-`sizeof(Client) == 1984`. `CLIENT INFO` and `CLIENT LIST` expose at least `id`, `addr`, `name`, and
-`db`, plus the recorded library fields. `RESET` restores db 0 and clears name/library metadata.
+Client names and library metadata live in an IO-thread-local catalog keyed by the process-unique
+connection id. No process-global `Client*` catalog exists. `CLIENT LIST` and `CLIENT KILL` scatter
+ID-only requests to every IO; each IO formats or closes only clients it owns, and the origin gathers
+the replies while retaining the invoking ROB slot. No IO thread pauses and no `Client*` crosses an
+IO boundary.
+
+`CLIENT INFO` and every `CLIENT LIST` line use the vanilla Redis 7.4 field set and order exactly:
+
+```text
+id addr laddr fd name age idle flags db sub psub ssub multi watch qbuf qbuf-free argv-mem
+multi-mem rbs rbp obl oll omem tot-mem events cmd user redir resp lib-name lib-ver
+```
+
+Fork-only fields such as `io-thread` and `avg-pipeline-len` are intentionally absent. `LIST TYPE`
+and `LIST ID` are supported. `KILL` supports the old address form and the new `ID`, `ADDR`, `LADDR`,
+`TYPE`, `USER`, `SKIPME`, and `MAXAGE` filters; self-kill queues its reply before closing.
+`SETNAME`, `GETNAME`, `SETINFO`, `ID`, and `INFO` use the same owner-local metadata. `NO-EVICT` is
+parsed and reported but deliberately inert because TomoKV does not evict client connections.
+`RESET` restores db 0 and clears name/library metadata.
 
 ## CONFIG behavior
 
 The typed table contains `save`, `appendonly`, `maxmemory`, `maxmemory-policy`, `timeout`,
-`databases`, `proto-max-bulk-len`, `zc-min`, and all eight `*-max-compact-{entries,value}` settings.
+`databases`, `proto-max-bulk-len`, `zc-min`, and all eight
+`*-max-compact-{entries,value}` settings.
 `CONFIG GET` matches Redis-style case-insensitive globs and returns flat name/value pairs in RESP2
 or a map in RESP3.
 `CONFIG SET` accepts one or more pairs, normalizes booleans and byte suffixes, rejects unknown
@@ -141,7 +158,7 @@ the exceptional operation that sums those arrays.
 | `keyspace_hits`, `keyspace_misses`, `expired_keys` | Sum of shard-owner counters. |
 | `evicted_keys` | Zero placeholder; eviction is not implemented. |
 | `total_connections_received`, `rejected_connections` | Sum of per-IO accept/accept-error counters, including the Unix acceptor. |
-| `connected_clients` | Size of the cold client metadata catalog. |
+| `connected_clients` | Process-wide live-client gauge maintained by IO accept/release. |
 | `db0:keys`, `expires` | Sum of shard counts published by owners at batch boundaries. |
 
 The object byte/count/expiry publications occur at executor batch boundaries. INFO and DBSIZE can

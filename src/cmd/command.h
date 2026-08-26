@@ -11,6 +11,7 @@
 #pragma once
 #include <cstddef>
 #include <cstdint>
+#include <string>
 #include "../base/slice.h"
 
 namespace tomo {
@@ -146,6 +147,7 @@ class Server;
 class Client;
 class ThreadCtx;
 struct Op;
+struct PubSubEvent;
 void reply_maxmemory_oom(Op& op);  // defined in t_string.cc, tomo:: linkage
 // Lets the connection-local admin commands read published per-shard counters.
 void command_bind_server(Server* s);
@@ -154,10 +156,22 @@ void command_bind_server(Server* s);
 // only around the synchronous handler call; executors never see a Client or a socket.
 void command_set_local_context(Client* client, ThreadCtx* thread);
 
-// CLIENT LIST metadata is kept out of Client so its 1984-byte footprint remains locked.
-void command_client_connected(Client* client, const char* addr);
+// CLIENT metadata is owned by the connection's IO thread and keyed by process-unique id.  Scatter
+// messages never carry Client pointers; they ask each IO owner to inspect only its own clients.
+void command_client_connected(Client* client, const char* addr, const char* laddr,
+                              bool unix_socket, uint64_t now_ms);
 void command_client_disconnected(Client* client);
-void command_client_set_shard_subscriptions(Client* client, uint32_t count);
+void command_client_set_subscriptions(Client* client, uint32_t channels, uint32_t patterns,
+                                      uint32_t shard_channels);
+std::string command_client_info_line(const Client& client, uint64_t now_ms);
+bool command_client_filter_match(const Client& client, const PubSubEvent& event,
+                                 uint64_t now_ms);
+bool command_client_set_name(Client* client, Slice name);
+std::string command_client_name(const Client* client);
+bool command_client_set_info(Client* client, Slice option, Slice value);
+void command_client_set_no_evict(Client* client, bool enabled);
+bool command_client_no_evict(const Client* client);
+void command_client_reset_meta(Client* client);
 
 // The IO-side pub/sub matcher shares the Redis-compatible glob implementation used by SCAN.
 bool command_glob_match(Slice pattern, Slice text);

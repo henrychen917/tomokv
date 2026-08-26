@@ -71,6 +71,10 @@ uint32_t multi_reap_deferred(std::vector<MultiExecState*>& deferred);
 // entry; the returned state is dispatched exactly like an internal MULTI task (op_id == UINT64_MAX).
 MultiExecState* multi_prepare_close(Server& server, Client& client, uint32_t owner_io);
 void multi_session_destroy(MultiSession* session);
+bool multi_session_active(const Client& client);
+uint32_t multi_session_queue_size(const Client& client);
+uint32_t multi_session_watch_size(const Client& client);
+uint64_t multi_session_memory(const Client& client);
 
 // Ordinary owner-local write hook.  The false result means an EXEC still holds a WATCH validation
 // reservation on one of this command's keys and the task must be retried, not executed early.

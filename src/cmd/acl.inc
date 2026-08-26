@@ -13,6 +13,8 @@ bool g_acl_initialized = false;
 bool g_acl_pubsub_default_all = false;
 Server* g_acl_server = nullptr;
 std::string g_acl_filename;
+const AclPerm g_acl_denied_permissions;
+std::vector<const AclPerm*> g_acl_retired_permissions;
 
 struct AclLogEntry {
     uint64_t count = 1;
@@ -438,18 +440,24 @@ bool acl_publish_image_locked(AclUser* user, AclUserImage&& image) {
     const AclPerm* retired = user->perm.exchange(perm, std::memory_order_acq_rel);
     user->passwords = std::move(image.passwords);
     user->flags = image.flags;
-    if (retired && g_acl_server) g_acl_server->acl_perm_retired();
+    if (retired) {
+        g_acl_retired_permissions.push_back(retired);
+        if (g_acl_server) g_acl_server->acl_perm_retired();
+    }
     return true;
 }
 
 void acl_tombstone_user_locked(uint32_t index) {
     AclUser* user = acl_slot(index);
     if (!user) return;
-    static const AclPerm denied_permissions;
-    const AclPerm* retired = user->perm.exchange(&denied_permissions, std::memory_order_acq_rel);
+    const AclPerm* retired = user->perm.exchange(
+        &g_acl_denied_permissions, std::memory_order_acq_rel);
     user->passwords.clear();
     user->flags = AclUserDisabled | AclUserSanitize;
-    if (retired && g_acl_server) g_acl_server->acl_perm_retired();
+    if (retired) {
+        g_acl_retired_permissions.push_back(retired);
+        if (g_acl_server) g_acl_server->acl_perm_retired();
+    }
 }
 
 AclUser* acl_create_locked(AclUserImage&& image, uint32_t requested_index = UINT32_MAX) {
@@ -1004,6 +1012,28 @@ bool acl_initialize(Server& server, const Config& config, std::string& error) {
     return true;
 }
 
+void acl_shutdown() {
+    std::lock_guard<std::mutex> lock(g_acl_mu);
+    if (!g_acl_initialized) return;
+    // Published permissions are process-lifetime RCU objects while IO/executor readers are live.
+    // Shutdown runs after every worker joined, which is the first universal grace period and the
+    // only safe point at which both retired and current images can be reclaimed without an IO ack.
+    for (const AclPerm* permissions : g_acl_retired_permissions) delete permissions;
+    g_acl_retired_permissions.clear();
+    for (uint32_t index = 0; index < g_acl_next_index; index++) {
+        AclUser* user = g_acl_slots[index].exchange(nullptr, std::memory_order_acq_rel);
+        if (!user) continue;
+        const AclPerm* permissions = user->perm.load(std::memory_order_relaxed);
+        if (permissions && permissions != &g_acl_denied_permissions) delete permissions;
+        delete user;
+    }
+    g_acl_names.clear();
+    g_acl_next_index = 1;
+    g_acl_live_users = 0;
+    g_acl_initialized = false;
+    g_acl_server = nullptr;
+}
+
 void acl_update_default_requirepass(Server&, Slice password) {
     std::lock_guard<std::mutex> lock(g_acl_mu);
     if (!g_acl_initialized) return;
@@ -1031,6 +1061,14 @@ bool acl_authenticate(Slice username, Slice password, uint32_t& user_index) {
         if (!match) return false;
     }
     user_index = user->index;
+    return true;
+}
+
+bool acl_find_user(Slice username, uint32_t& user_index) {
+    std::lock_guard<std::mutex> lock(g_acl_mu);
+    auto found = g_acl_names.find(std::string(username.p, username.n));
+    if (found == g_acl_names.end() || !acl_slot(found->second)) return false;
+    user_index = found->second;
     return true;
 }
 

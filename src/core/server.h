@@ -616,6 +616,18 @@ public:
     uint64_t notify_events_dropped() const {
         return notify_events_dropped_.load(std::memory_order_relaxed);
     }
+    void client_scatter_started() {
+        client_scatter_requests_.fetch_add(1, std::memory_order_relaxed);
+    }
+    void client_scatter_io_replied() {
+        client_scatter_io_responses_.fetch_add(1, std::memory_order_relaxed);
+    }
+    uint64_t client_scatter_requests() const {
+        return client_scatter_requests_.load(std::memory_order_relaxed);
+    }
+    uint64_t client_scatter_io_responses() const {
+        return client_scatter_io_responses_.load(std::memory_order_relaxed);
+    }
 
     // Pub/sub is IO-owned. These atomics are reporting/lifetime gauges only and are never read or
     // written by the plain key-command path.
@@ -914,6 +926,9 @@ private:
     std::atomic<uint64_t> rejected_connections_{0};
     std::atomic<uint64_t> notify_events_fired_{0};
     std::atomic<uint64_t> notify_events_dropped_{0};
+    // Cold observability for proving CLIENT catalog work reached every IO owner.
+    std::atomic<uint64_t> client_scatter_requests_{0};
+    std::atomic<uint64_t> client_scatter_io_responses_{0};
 };
 
 }  // namespace tomo

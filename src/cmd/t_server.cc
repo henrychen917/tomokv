@@ -9,6 +9,7 @@
 #include "debug.h"
 #include "../base/alloc.h"
 #include "../core/server.h"
+#include "../core/pubsub_event.h"
 #include "../core/thread.h"
 #include "../exec/op.h"
 #include "../net/conn.h"
@@ -16,6 +17,7 @@
 #include "../store/kvobj.h"
 #include "../store/eviction.h"
 #include "../snapshot/snapshot.h"
+#include "multi.h"
 
 #include <algorithm>
 #include <arpa/inet.h>
@@ -168,18 +170,22 @@ void appendf(std::string& out, const char* fmt, ...) {
 }
 
 struct ClientMeta {
-    uint64_t id = 0;
     std::string addr;
+    std::string laddr;
     std::string name;
     std::string lib_name;
     std::string lib_ver;
-    std::string user = "default";
-    uint32_t db = 0;
+    uint64_t created_ms = 0;
+    uint32_t subscriptions = 0;
+    uint32_t pattern_subscriptions = 0;
     uint32_t shard_subscriptions = 0;
+    bool unix_socket = false;
+    bool no_evict = false;
 };
 
-std::mutex g_clients_mu;
-std::unordered_map<Client*, ClientMeta> g_clients;
+// One catalog per IO thread. It contains no cross-thread Client pointer and is keyed by the
+// process-unique connection id used on the IO-to-IO transport.
+thread_local std::unordered_map<uint64_t, ClientMeta> g_client_meta;
 
 bool valid_client_text(Slice value) {
     for (uint32_t i = 0; i < value.n; i++) {
@@ -189,21 +195,77 @@ bool valid_client_text(Slice value) {
     return true;
 }
 
-ClientMeta current_meta() {
-    std::lock_guard<std::mutex> lock(g_clients_mu);
-    auto it = g_clients.find(g_client);
-    if (it != g_clients.end()) return it->second;
-    ClientMeta fallback;
-    if (g_client) fallback.id = g_client->id();
-    fallback.addr = "unknown:0";
-    return fallback;
+ClientMeta* client_meta(Client* client) {
+    if (!client) return nullptr;
+    auto found = g_client_meta.find(client->id());
+    return found == g_client_meta.end() ? nullptr : &found->second;
 }
 
-void append_client_line(std::string& out, const ClientMeta& meta) {
-    appendf(out, "id=%llu addr=%s name=%s db=%u user=%s lib-name=%s lib-ver=%s ssub=%u\n",
-            static_cast<unsigned long long>(meta.id), meta.addr.c_str(), meta.name.c_str(), meta.db,
-            meta.user.c_str(), meta.lib_name.c_str(), meta.lib_ver.c_str(),
-            meta.shard_subscriptions);
+const ClientMeta* client_meta(const Client* client) {
+    return client_meta(const_cast<Client*>(client));
+}
+
+std::string client_info_line_impl(const Client& client, const ClientMeta& meta, uint64_t now_ms) {
+    char flags[16];
+    char* flag = flags;
+    if (client.subscriber_mode()) *flag++ = 'P';
+    if (multi_session_active(client)) *flag++ = 'x';
+    if (client.blocked()) *flag++ = 'b';
+    if (client.closing()) *flag++ = 'c';
+    if (meta.unix_socket) *flag++ = 'U';
+    if (meta.no_evict) *flag++ = 'e';
+    if (flag == flags) *flag++ = 'N';
+    *flag = '\0';
+
+    char events[3];
+    char* event = events;
+    if (!client.closing()) *event++ = 'r';
+    if (client.send_inflight() || client.buffered_output_bytes()) *event++ = 'w';
+    *event = '\0';
+
+    const uint64_t age = now_ms >= meta.created_ms ? (now_ms - meta.created_ms) / 1000 : 0;
+    const uint64_t now_s = now_ms / 1000;
+    const uint64_t idle = now_s >= client.last_interaction_s()
+        ? now_s - client.last_interaction_s() : 0;
+    const uint64_t qbuf = client.rlen() - client.rpos();
+    const uint64_t qbuf_free = client.rcap() >= client.rlen()
+        ? client.rcap() - client.rlen() : 0;
+    const uint64_t omem = client.buffered_output_bytes();
+    const uint64_t total_mem = sizeof(Client) + client.rcap() + omem +
+                               multi_session_memory(client);
+    const int64_t multi = multi_session_active(client)
+        ? static_cast<int64_t>(multi_session_queue_size(client)) : -1;
+    const char* username = acl_username(client.acl_user_idx());
+    std::string last_cmd = "NULL";
+    const uint64_t dispatched = client.rob().dispatch_id();
+    if (dispatched) {
+        const Op& last = client.rob().at(dispatched - 1);
+        if (last.spec) {
+            last_cmd.assign(last.spec->name);
+            for (char& ch : last_cmd)
+                if (ch >= 'A' && ch <= 'Z') ch = static_cast<char>(ch + ('a' - 'A'));
+        }
+    }
+
+    std::string out;
+    appendf(out,
+        "id=%llu addr=%s laddr=%s fd=%d name=%s age=%llu idle=%llu flags=%s db=%u "
+        "sub=%u psub=%u ssub=%u multi=%lld watch=%u qbuf=%llu qbuf-free=%llu "
+        "argv-mem=0 multi-mem=%llu rbs=%llu rbp=%llu obl=0 oll=%u omem=%llu "
+        "tot-mem=%llu events=%s cmd=%s user=%s redir=-1 resp=%u lib-name=%s lib-ver=%s\n",
+        static_cast<unsigned long long>(client.id()), meta.addr.c_str(), meta.laddr.c_str(),
+        client.fd(), meta.name.c_str(), static_cast<unsigned long long>(age),
+        static_cast<unsigned long long>(idle), flags, client.session().db_index,
+        meta.subscriptions, meta.pattern_subscriptions, meta.shard_subscriptions,
+        static_cast<long long>(multi), multi_session_watch_size(client),
+        static_cast<unsigned long long>(qbuf), static_cast<unsigned long long>(qbuf_free),
+        static_cast<unsigned long long>(multi_session_memory(client)),
+        static_cast<unsigned long long>(client.rcap()),
+        static_cast<unsigned long long>(client.rcap()), client.output_list_length(),
+        static_cast<unsigned long long>(omem), static_cast<unsigned long long>(total_mem),
+        events, last_cmd.c_str(), username, client.resp3() ? 3u : 2u,
+        meta.lib_name.c_str(), meta.lib_ver.c_str());
+    return out;
 }
 
 enum class ConfigKind : uint8_t {
@@ -321,11 +383,6 @@ bool authenticate_acl_user(Slice username, Slice password) {
     uint32_t index = kAclDefaultUser;
     if (!acl_authenticate(username, password, index)) return false;
     if (g_client) g_client->set_acl_user_idx(index);
-    if (g_client) {
-        std::lock_guard<std::mutex> lock(g_clients_mu);
-        auto found = g_clients.find(g_client);
-        if (found != g_clients.end()) found->second.user.assign(username.p, username.n);
-    }
     return true;
 }
 
@@ -613,11 +670,7 @@ void cmd_hello(Shard&, Op& op) {
                   "NOAUTH HELLO must be called with the client already authenticated, otherwise the HELLO <proto> AUTH <user> <pass> option can be used to authenticate the client and select the RESP protocol version at the same time");
         return;
     }
-    if (has_name) {
-        std::lock_guard<std::mutex> lock(g_clients_mu);
-        auto it = g_clients.find(g_client);
-        if (it != g_clients.end()) it->second.name.assign(client_name.p, client_name.n);
-    }
+    if (has_name) command_client_set_name(g_client, client_name);
     if (has_version && g_client) g_client->set_resp3(version == 3);
     const bool resp3 = version == 3;
     auto sink = op.sink();
@@ -638,11 +691,6 @@ void cmd_select(Shard&, Op& op) {
         return;
     }
     if (g_client) g_client->session().db_index = 0;
-    {
-        std::lock_guard<std::mutex> lock(g_clients_mu);
-        auto it = g_clients.find(g_client);
-        if (it != g_clients.end()) it->second.db = 0;
-    }
     reply_ok(op.sink());
 }
 
@@ -653,14 +701,7 @@ void cmd_reset(Shard&, Op& op) {
         g_client->set_acl_user_idx(kAclDefaultUser);
         g_client->set_authenticated(!g_server || !g_server->requirepass_enabled());
     }
-    {
-        std::lock_guard<std::mutex> lock(g_clients_mu);
-        auto it = g_clients.find(g_client);
-        if (it != g_clients.end()) {
-            it->second.name.clear(); it->second.lib_name.clear(); it->second.lib_ver.clear();
-            it->second.user = "default"; it->second.db = 0;
-        }
-    }
+    command_client_reset_meta(g_client);
     reply_simple(op.sink(), "RESET");
 }
 
@@ -753,40 +794,41 @@ void cmd_client(Shard&, Op& op) {
             reply_err(op.sink(), "ERR Client names cannot contain spaces, newlines or special characters.");
             return;
         }
-        std::lock_guard<std::mutex> lock(g_clients_mu);
-        auto it = g_clients.find(g_client);
-        if (it != g_clients.end()) it->second.name.assign(op.arg(2).p, op.arg(2).n);
+        command_client_set_name(g_client, op.arg(2));
         reply_ok(op.sink());
     } else if (eq_icase(sub, "GETNAME") && op.argc() == 2) {
-        ClientMeta meta = current_meta();
-        if (meta.name.empty()) reply_null(op.sink(), op.resp3());
-        else reply_bulk(op.sink(), Slice(meta.name.data(), meta.name.size()));
+        const std::string name = command_client_name(g_client);
+        if (name.empty()) reply_null(op.sink(), op.resp3());
+        else reply_bulk(op.sink(), Slice(name.data(), name.size()));
     } else if (eq_icase(sub, "SETINFO") && op.argc() == 4) {
-        if (!valid_client_text(op.arg(3)) && op.arg(3).n != 0) {
-            reply_err(op.sink(), "ERR lib-name/lib-ver cannot contain spaces, newlines or special characters.");
+        if (!eq_icase(op.arg(2), "LIB-NAME") && !eq_icase(op.arg(2), "LIB-VER")) {
+            std::string error = "ERR Unrecognized option '";
+            error.append(op.arg(2).p, op.arg(2).n);
+            error.push_back('\'');
+            reply_err(op.sink(), error.c_str());
             return;
         }
-        std::lock_guard<std::mutex> lock(g_clients_mu);
-        auto it = g_clients.find(g_client);
-        if (it == g_clients.end()) { reply_err(op.sink(), "ERR client metadata unavailable"); return; }
-        if (eq_icase(op.arg(2), "LIB-NAME")) it->second.lib_name.assign(op.arg(3).p, op.arg(3).n);
-        else if (eq_icase(op.arg(2), "LIB-VER")) it->second.lib_ver.assign(op.arg(3).p, op.arg(3).n);
-        else { reply_err(op.sink(), "ERR Unrecognized option or bad number of arguments for CLIENT SETINFO"); return; }
+        if (!valid_client_text(op.arg(3)) && op.arg(3).n != 0) {
+            std::string error = "ERR ";
+            error.append(op.arg(2).p, op.arg(2).n);
+            error += " cannot contain spaces, newlines or special characters.";
+            reply_err(op.sink(), error.c_str());
+            return;
+        }
+        if (!command_client_set_info(g_client, op.arg(2), op.arg(3))) {
+            reply_err(op.sink(), "ERR client metadata unavailable");
+            return;
+        }
         reply_ok(op.sink());
     } else if (eq_icase(sub, "INFO") && op.argc() == 2) {
-        ClientMeta meta = current_meta();
-        std::string body;
-        append_client_line(body, meta);
+        const std::string body = command_client_info_line(
+            *g_client, now_ns() / 1000000ull);
         reply_verbatim(op.sink(), Slice(body.data(), body.size()), "txt", op.resp3());
-    } else if (eq_icase(sub, "LIST") && op.argc() == 2) {
-        std::string body;
-        {
-            std::lock_guard<std::mutex> lock(g_clients_mu);
-            for (const auto& item : g_clients) append_client_line(body, item.second);
-        }
-        reply_verbatim(op.sink(), Slice(body.data(), body.size()), "txt", op.resp3());
+    } else if (eq_icase(sub, "LIST") || eq_icase(sub, "KILL")) {
+        reply_err(op.sink(), "ERR CLIENT scatter is unavailable in this execution context");
     } else if (eq_icase(sub, "NO-EVICT") && op.argc() == 3 &&
                (eq_icase(op.arg(2), "ON") || eq_icase(op.arg(2), "OFF"))) {
+        command_client_set_no_evict(g_client, eq_icase(op.arg(2), "ON"));
         reply_ok(op.sink());
     } else {
         reply_syntax(op.sink());
@@ -1222,6 +1264,7 @@ void cmd_info(Shard&, Op& op) {
                       "pubsub_inflight:%llu\r\npubsub_pending_commands:%llu\r\n"
                       "client_output_buffer_limit_disconnections:%llu\r\n"
                       "notify_events_fired:%llu\r\nnotify_events_dropped:%llu\r\n"
+                      "client_scatter_requests:%llu\r\nclient_scatter_io_responses:%llu\r\n"
                       "plain_connections_received:%llu\r\ntls_connections_received:%llu\r\n"
                       "tls_current_connections:%llu\r\ntls_handshakes_started:%llu\r\n"
                       "tls_handshakes_completed:%llu\r\ntls_handshakes_failed:%llu\r\n"
@@ -1269,6 +1312,9 @@ void cmd_info(Shard&, Op& op) {
                     g_server ? g_server->client_output_buffer_limit_disconnections() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->notify_events_fired() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->notify_events_dropped() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->client_scatter_requests() : 0),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->client_scatter_io_responses() : 0),
                 static_cast<unsigned long long>(plain_accepts),
                 static_cast<unsigned long long>(tls_accepts),
                 static_cast<unsigned long long>(tls_accepts - tls_connections_freed),
@@ -1425,7 +1471,7 @@ static const CommandSpec kTable[] = {
     {"PUBLISH",     3,  3, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
     {"SPUBLISH",    3,  3, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
     {"PUBSUB",      2, -1, CmdFlags::ConnLocal | CmdFlags::PubSub | CmdFlags::Admin,cmd_pubsub_only,0,0,0},
-    {"CLIENT",     2, -1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_client,     0,  0, 0},
+    {"CLIENT",     2, -1, CmdFlags::ConnLocal | CmdFlags::PubSub | CmdFlags::Admin,cmd_client,    0,  0, 0},
     {"COMMAND",    1, -1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_command,    0,  0, 0},
     {"CONFIG",     2, -1, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_config,     0,  0, 0},
     {"DEBUG",      2, -1, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_debug,      0,  0, 0},
@@ -1497,24 +1543,111 @@ void command_set_local_context(Client* client, ThreadCtx* thread) {
     g_thread = thread;
 }
 
-void command_client_connected(Client* client, const char* addr) {
+void command_client_connected(Client* client, const char* addr, const char* laddr,
+                              bool unix_socket, uint64_t now_ms) {
     if (!client) return;
     ClientMeta meta;
-    meta.id = client->id();
     meta.addr = addr ? addr : "unknown:0";
-    std::lock_guard<std::mutex> lock(g_clients_mu);
-    g_clients[client] = std::move(meta);
+    meta.laddr = laddr ? laddr : "unknown:0";
+    meta.unix_socket = unix_socket;
+    meta.created_ms = now_ms;
+    g_client_meta[client->id()] = std::move(meta);
 }
 
 void command_client_disconnected(Client* client) {
-    std::lock_guard<std::mutex> lock(g_clients_mu);
-    g_clients.erase(client);
+    if (client) g_client_meta.erase(client->id());
 }
 
-void command_client_set_shard_subscriptions(Client* client, uint32_t count) {
-    std::lock_guard<std::mutex> lock(g_clients_mu);
-    auto it = g_clients.find(client);
-    if (it != g_clients.end()) it->second.shard_subscriptions = count;
+void command_client_set_subscriptions(Client* client, uint32_t channels, uint32_t patterns,
+                                      uint32_t shard_channels) {
+    ClientMeta* meta = client_meta(client);
+    if (!meta) return;
+    meta->subscriptions = channels;
+    meta->pattern_subscriptions = patterns;
+    meta->shard_subscriptions = shard_channels;
+}
+
+std::string command_client_info_line(const Client& client, uint64_t now_ms) {
+    const ClientMeta* meta = client_meta(&client);
+    if (meta) return client_info_line_impl(client, *meta, now_ms);
+    ClientMeta fallback;
+    fallback.addr = fallback.laddr = "unknown:0";
+    fallback.created_ms = now_ms;
+    return client_info_line_impl(client, fallback, now_ms);
+}
+
+bool command_client_filter_match(const Client& client, const PubSubEvent& event,
+                                 uint64_t now_ms) {
+    const ClientMeta* meta = client_meta(&client);
+    if (!meta || client.dead() || client.closing()) return false;
+    if (event.client_skipme && client.id() == event.caller_id) return false;
+    if ((event.client_filter_mask & ClientFilterId) && client.id() != event.client_id)
+        return false;
+    if (event.client_filter_mask & ClientFilterIdList) {
+        bool found = false;
+        for (const PubSubEventItem& item : event.items) found |= item.count == client.id();
+        if (!found) return false;
+    }
+    if ((event.client_filter_mask & ClientFilterAddr) && meta->addr != event.client_addr)
+        return false;
+    if ((event.client_filter_mask & ClientFilterLaddr) && meta->laddr != event.client_laddr)
+        return false;
+    if ((event.client_filter_mask & ClientFilterUser) &&
+        event.client_user != acl_username(client.acl_user_idx())) return false;
+    if (event.client_filter_mask & ClientFilterMaxAge) {
+        const uint64_t age = now_ms >= meta->created_ms ? (now_ms - meta->created_ms) / 1000 : 0;
+        if (age < event.client_max_age) return false;
+    }
+    if (event.client_filter_mask & ClientFilterType) {
+        const bool pubsub = client.subscriber_mode();
+        switch (event.client_type) {
+            case ClientTypeFilter::Normal: if (pubsub) return false; break;
+            case ClientTypeFilter::Pubsub: if (!pubsub) return false; break;
+            case ClientTypeFilter::Master:
+            case ClientTypeFilter::Replica: return false;
+            case ClientTypeFilter::Any: break;
+        }
+    }
+    return true;
+}
+
+bool command_client_set_name(Client* client, Slice name) {
+    ClientMeta* meta = client_meta(client);
+    if (!meta) return false;
+    meta->name.assign(name.p, name.n);
+    return true;
+}
+
+std::string command_client_name(const Client* client) {
+    const ClientMeta* meta = client_meta(client);
+    return meta ? meta->name : std::string();
+}
+
+bool command_client_set_info(Client* client, Slice option, Slice value) {
+    ClientMeta* meta = client_meta(client);
+    if (!meta) return false;
+    if (eq_icase(option, "LIB-NAME")) meta->lib_name.assign(value.p, value.n);
+    else if (eq_icase(option, "LIB-VER")) meta->lib_ver.assign(value.p, value.n);
+    else return false;
+    return true;
+}
+
+void command_client_set_no_evict(Client* client, bool enabled) {
+    if (ClientMeta* meta = client_meta(client)) meta->no_evict = enabled;
+}
+
+bool command_client_no_evict(const Client* client) {
+    const ClientMeta* meta = client_meta(client);
+    return meta && meta->no_evict;
+}
+
+void command_client_reset_meta(Client* client) {
+    ClientMeta* meta = client_meta(client);
+    if (!meta) return;
+    meta->name.clear();
+    meta->lib_name.clear();
+    meta->lib_ver.clear();
+    meta->no_evict = false;
 }
 
 bool command_prepare_scan_route(Server& server, Op& op) {
