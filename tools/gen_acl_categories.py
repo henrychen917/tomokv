@@ -24,7 +24,6 @@ COMMAND_SOURCES = [
     "src/cmd/geo.cc",
     "src/cmd/t_stream.cc",
     "src/cmd/t_stream_groups.cc",
-    "src/cmd/serialize.cc",
     "src/cmd/t_server.cc",
     "src/cmd/scripting.cc",
     "src/cmd/functions.cc",

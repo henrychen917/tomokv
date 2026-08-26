@@ -75,13 +75,18 @@ inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"ECHO", 0x0000000000044000ULL}, // fast connection
     {"EVAL", 0x0000000000108000ULL}, // slow scripting
     {"EVALSHA", 0x0000000000108000ULL}, // slow scripting
+    {"EVALSHA_RO", 0x0000000000108000ULL}, // slow scripting
+    {"EVAL_RO", 0x0000000000108000ULL}, // slow scripting
     {"EXEC", 0x0000000000088000ULL}, // slow transaction
     {"EXISTS", 0x0000000000004003ULL}, // keyspace read fast
     {"EXPIRE", 0x0000000000004005ULL}, // keyspace write fast
     {"EXPIREAT", 0x0000000000004005ULL}, // keyspace write fast
     {"EXPIRETIME", 0x0000000000004003ULL}, // keyspace read fast
+    {"FCALL", 0x0000000000108000ULL}, // slow scripting
+    {"FCALL_RO", 0x0000000000108000ULL}, // slow scripting
     {"FLUSHALL", 0x0000000000028005ULL}, // keyspace write slow dangerous
     {"FLUSHDB", 0x0000000000028005ULL}, // keyspace write slow dangerous
+    {"FUNCTION", 0x0000000000008000ULL}, // slow
     {"GEOADD", 0x0000000000008404ULL}, // write geo slow
     {"GEODIST", 0x0000000000008402ULL}, // read geo slow
     {"GEOHASH", 0x0000000000008402ULL}, // read geo slow
@@ -202,12 +207,20 @@ inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"UNSUBSCRIBE", 0x0000000000009000ULL}, // pubsub slow
     {"UNWATCH", 0x0000000000084000ULL}, // fast transaction
     {"WATCH", 0x0000000000084000ULL}, // fast transaction
+    {"XACK", 0x0000000000004804ULL}, // write stream fast
     {"XADD", 0x0000000000004804ULL}, // write stream fast
+    {"XAUTOCLAIM", 0x0000000000004804ULL}, // write stream fast
+    {"XCLAIM", 0x0000000000004804ULL}, // write stream fast
     {"XDEL", 0x0000000000004804ULL}, // write stream fast
+    {"XGROUP", 0x0000000000008000ULL}, // slow
+    {"XINFO", 0x0000000000008000ULL}, // slow
     {"XLEN", 0x0000000000004802ULL}, // read stream fast
+    {"XPENDING", 0x0000000000008802ULL}, // read stream slow
     {"XRANGE", 0x0000000000008802ULL}, // read stream slow
     {"XREAD", 0x0000000000018802ULL}, // read stream slow blocking
+    {"XREADGROUP", 0x0000000000018804ULL}, // write stream slow blocking
     {"XREVRANGE", 0x0000000000008802ULL}, // read stream slow
+    {"XSETID", 0x0000000000004804ULL}, // write stream fast
     {"XTRIM", 0x0000000000008804ULL}, // write stream slow
     {"ZADD", 0x0000000000004014ULL}, // write sortedset fast
     {"ZCARD", 0x0000000000004012ULL}, // read sortedset fast
