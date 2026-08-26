@@ -517,6 +517,68 @@
         }
     }
 
+    void pubsub_handle_acl_event(PubSubEvent& event) {
+        const auto* permissions = static_cast<const AclPerm*>(event.acl_permissions);
+        const bool kill_all = event.kind == PubSubEventKind::AclUserDeleted;
+        std::vector<Client*> targets;
+        for (Client* client : self_->clients()) {
+            if (!client || client->dead() || client->closing() ||
+                client->acl_user_idx() != event.acl_user_index) continue;
+            bool subscribed = false;
+            bool violating = kill_all;
+            auto found = pubsub_local_.find(client->id());
+            if (found != pubsub_local_.end()) {
+                const PubSubLocalConn& local = found->second;
+                subscribed = pubsub_total_subscription_count(local) != 0;
+                if (!kill_all && permissions && !(permissions->flags & AclAllChannels)) {
+                    for (const std::string& pattern : local.patterns) {
+                        bool allowed = false;
+                        for (const std::string& acl_pattern : permissions->channel_patterns)
+                            allowed |= acl_pattern == pattern;
+                        violating |= !allowed;
+                    }
+                    for (const std::string& channel : local.channels) {
+                        const Slice value(channel.data(), static_cast<uint32_t>(channel.size()));
+                        bool allowed = false;
+                        for (const std::string& acl_pattern : permissions->channel_patterns)
+                            allowed |= command_glob_match(
+                                Slice(acl_pattern.data(), static_cast<uint32_t>(acl_pattern.size())),
+                                value);
+                        violating |= !allowed;
+                    }
+                    for (const std::string& channel : local.shard_channels) {
+                        const Slice value(channel.data(), static_cast<uint32_t>(channel.size()));
+                        bool allowed = false;
+                        for (const std::string& acl_pattern : permissions->channel_patterns)
+                            allowed |= command_glob_match(
+                                Slice(acl_pattern.data(), static_cast<uint32_t>(acl_pattern.size())),
+                                value);
+                        violating |= !allowed;
+                    }
+                }
+            }
+            if (!violating) continue;
+            targets.push_back(client);
+            if (subscribed) srv_->acl_pubsub_client_killed();
+        }
+        for (Client* client : targets) close_client(client);
+        if (kill_all) srv_->acl_kill_broadcast_finished();
+    }
+
+    void acl_broadcast_user_change(uint32_t user_index, const AclPerm* permissions,
+                                   bool deleted) {
+        if (deleted)
+            srv_->acl_kill_broadcast_started(srv_->placement().ifid_threads().size());
+        for (uint32_t io : srv_->placement().ifid_threads()) {
+            PubSubEvent* event = pubsub_new_event(
+                deleted ? PubSubEventKind::AclUserDeleted
+                        : PubSubEventKind::AclPermissionsChanged);
+            event->acl_user_index = user_index;
+            event->acl_permissions = permissions;
+            pubsub_post(io, event);
+        }
+    }
+
     void pubsub_handle_event(PubSubEvent& event) {
         switch (event.kind) {
             case PubSubEventKind::ModifyRequest:
@@ -527,6 +589,10 @@
             case PubSubEventKind::ResetRequest:
             case PubSubEventKind::CleanupRequest:
                 pubsub_handle_home_request(event);
+                break;
+            case PubSubEventKind::AclPermissionsChanged:
+            case PubSubEventKind::AclUserDeleted:
+                pubsub_handle_acl_event(event);
                 break;
             case PubSubEventKind::Delivery:
                 pubsub_deliver(event);
@@ -764,14 +830,34 @@
     }
 
     PubSubStartResult pubsub_start_command(Client* client, Op& op) {
-        if (op.cmd_name().eq_icase("subscribe")) return pubsub_start_modify(client, op, false, true);
+        if (op.cmd_name().eq_icase("subscribe")) {
+            if (srv_->acl_active() && !acl_pubsub_channel_entry(*client, op, false, self_->sig()))
+                return PubSubStartResult::Sync;
+            return pubsub_start_modify(client, op, false, true);
+        }
         if (op.cmd_name().eq_icase("unsubscribe")) return pubsub_start_modify(client, op, false, false);
-        if (op.cmd_name().eq_icase("psubscribe")) return pubsub_start_modify(client, op, true, true);
+        if (op.cmd_name().eq_icase("psubscribe")) {
+            if (srv_->acl_active() && !acl_pubsub_channel_entry(*client, op, true, self_->sig()))
+                return PubSubStartResult::Sync;
+            return pubsub_start_modify(client, op, true, true);
+        }
         if (op.cmd_name().eq_icase("punsubscribe")) return pubsub_start_modify(client, op, true, false);
-        if (op.cmd_name().eq_icase("ssubscribe")) return pubsub_start_modify(client, op, false, true, true);
+        if (op.cmd_name().eq_icase("ssubscribe")) {
+            if (srv_->acl_active() && !acl_pubsub_channel_entry(*client, op, false, self_->sig()))
+                return PubSubStartResult::Sync;
+            return pubsub_start_modify(client, op, false, true, true);
+        }
         if (op.cmd_name().eq_icase("sunsubscribe")) return pubsub_start_modify(client, op, false, false, true);
-        if (op.cmd_name().eq_icase("publish")) return pubsub_start_publish(client, op);
-        if (op.cmd_name().eq_icase("spublish")) return pubsub_start_publish(client, op, true);
+        if (op.cmd_name().eq_icase("publish")) {
+            if (srv_->acl_active() && !acl_pubsub_channel_entry(*client, op, false, self_->sig()))
+                return PubSubStartResult::Sync;
+            return pubsub_start_publish(client, op);
+        }
+        if (op.cmd_name().eq_icase("spublish")) {
+            if (srv_->acl_active() && !acl_pubsub_channel_entry(*client, op, false, self_->sig()))
+                return PubSubStartResult::Sync;
+            return pubsub_start_publish(client, op, true);
+        }
         if (!op.cmd_name().eq_icase("pubsub")) {
             reply_err(op.sink(), "ERR internal pubsub command error");
             return PubSubStartResult::Sync;

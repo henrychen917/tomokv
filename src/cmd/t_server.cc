@@ -173,6 +173,7 @@ struct ClientMeta {
     std::string name;
     std::string lib_name;
     std::string lib_ver;
+    std::string user = "default";
     uint32_t db = 0;
     uint32_t shard_subscriptions = 0;
 };
@@ -199,9 +200,10 @@ ClientMeta current_meta() {
 }
 
 void append_client_line(std::string& out, const ClientMeta& meta) {
-    appendf(out, "id=%llu addr=%s name=%s db=%u lib-name=%s lib-ver=%s ssub=%u\n",
+    appendf(out, "id=%llu addr=%s name=%s db=%u user=%s lib-name=%s lib-ver=%s ssub=%u\n",
             static_cast<unsigned long long>(meta.id), meta.addr.c_str(), meta.name.c_str(), meta.db,
-            meta.lib_name.c_str(), meta.lib_ver.c_str(), meta.shard_subscriptions);
+            meta.user.c_str(), meta.lib_name.c_str(), meta.lib_ver.c_str(),
+            meta.shard_subscriptions);
 }
 
 enum class ConfigKind : uint8_t { String, Bool, Unsigned, Bytes, Policy, ClientOutputBufferLimit };
@@ -256,6 +258,10 @@ void init_config(const Config& cfg) {
                         cfg.requirepass ? cfg.requirepass : ""});
     g_config.push_back({"protected-mode", ConfigKind::Bool,
                         cfg.protected_mode != 0 ? "yes" : "no"});
+    g_config.push_back({"aclfile", ConfigKind::String, cfg.aclfile ? cfg.aclfile : "", true});
+    g_config.push_back({"acl-pubsub-default", ConfigKind::String,
+                        cfg.acl_pubsub_allchannels ? "allchannels" : "resetchannels"});
+    add_config("acllog-max-len", ConfigKind::Unsigned, cfg.acllog_max_len);
     const char* debug_mode = cfg.enable_debug_command == DebugCommandMode::Yes ? "yes" :
                              cfg.enable_debug_command == DebugCommandMode::Local ? "local" : "no";
     g_config.push_back({"enable-debug-command", ConfigKind::String, debug_mode, true});
@@ -271,10 +277,16 @@ ConfigValue* find_config(Slice name) {
     return nullptr;
 }
 
-bool authenticate_default_user(Slice username, Slice password) {
-    const bool valid_user = eq_icase(username, "default");
-    const bool valid_password = g_server && auth_password_matches(*g_server, password);
-    return valid_user && valid_password;
+bool authenticate_acl_user(Slice username, Slice password) {
+    uint32_t index = kAclDefaultUser;
+    if (!acl_authenticate(username, password, index)) return false;
+    if (g_client) g_client->set_acl_user_idx(index);
+    if (g_client) {
+        std::lock_guard<std::mutex> lock(g_clients_mu);
+        auto found = g_clients.find(g_client);
+        if (found != g_clients.end()) found->second.user.assign(username.p, username.n);
+    }
+    return true;
 }
 
 bool parse_bytes(Slice input, uint64_t& value) {
@@ -319,6 +331,12 @@ bool parse_client_output_buffer_limit_slice(Slice input,
 bool normalize_config(const ConfigValue& entry, Slice input, std::string& out) {
     switch (entry.kind) {
         case ConfigKind::String:
+            if (!std::strcmp(entry.name, "acl-pubsub-default")) {
+                if (eq_icase(input, "allchannels")) out = "allchannels";
+                else if (eq_icase(input, "resetchannels")) out = "resetchannels";
+                else return false;
+                return true;
+            }
             out.assign(input.p, input.n);
             return true;
         case ConfigKind::Bool:
@@ -447,18 +465,15 @@ void cmd_ping(Shard&, Op& op) {
 void cmd_echo(Shard&, Op& op) { reply_bulk(op.sink(), op.arg(1)); }
 
 void cmd_auth(Shard&, Op& op) {
-    bool required = false;
     const Slice password = op.argc() == 2 ? op.arg(1) : op.arg(2);
-    const bool valid_password = g_server &&
-                                auth_password_matches(*g_server, password, &required);
-    if (op.argc() == 2 && !required) {
+    if (op.argc() == 2 && acl_default_nopass()) {
         reply_err(op.sink(), "ERR AUTH <password> called without any password configured for the default user. Are you sure your configuration is correct?");
         return;
     }
     const Slice username = op.argc() == 2 ? Slice("default", 7) : op.arg(1);
-    const bool valid_user = eq_icase(username, "default");
-    if (!valid_user || !valid_password) {
+    if (!authenticate_acl_user(username, password)) {
         if (g_server) g_server->note_auth_failure();
+        if (g_thread) g_thread->sig().acl_access_denied_auth++;
         reply_err(op.sink(), "WRONGPASS invalid username-password pair or user is disabled.");
         return;
     }
@@ -506,8 +521,9 @@ void cmd_hello(Shard&, Op& op) {
         }
     }
     if (has_auth) {
-        if (!authenticate_default_user(username, password)) {
+        if (!authenticate_acl_user(username, password)) {
             if (g_server) g_server->note_auth_failure();
+            if (g_thread) g_thread->sig().acl_access_denied_auth++;
             reply_err(op.sink(), "WRONGPASS invalid username-password pair or user is disabled.");
             return;
         }
@@ -556,14 +572,16 @@ void cmd_select(Shard&, Op& op) {
 
 void cmd_reset(Shard&, Op& op) {
     if (g_client) g_client->session().db_index = 0;
-    if (g_client)
+    if (g_client) {
+        g_client->set_acl_user_idx(kAclDefaultUser);
         g_client->set_authenticated(!g_server || !g_server->requirepass_enabled());
+    }
     {
         std::lock_guard<std::mutex> lock(g_clients_mu);
         auto it = g_clients.find(g_client);
         if (it != g_clients.end()) {
             it->second.name.clear(); it->second.lib_name.clear(); it->second.lib_ver.clear();
-            it->second.db = 0;
+            it->second.user = "default"; it->second.db = 0;
         }
     }
     reply_simple(op.sink(), "RESET");
@@ -829,6 +847,10 @@ void cmd_config(Shard& sh, Op& op) {
                     g_server->set_protected_mode(update.second == "yes");
                     continue;
                 }
+                if (!std::strcmp(update.first->name, "acl-pubsub-default")) {
+                    acl_set_pubsub_default(update.second == "allchannels");
+                    continue;
+                }
                 if (!parse_u64(Slice(update.second.data(), update.second.size()), value)) continue;
                 if (!std::strcmp(update.first->name, "atomic"))
                     g_server->set_atomic_enabled(value != 0);
@@ -884,6 +906,8 @@ void cmd_info(Shard&, Op& op) {
     uint64_t keys = 0, expires = 0, obj_bytes = 0, hits = 0, misses = 0, expired = 0,
              evicted = 0;
     uint64_t total_ops = 0, connections = 0, rejected = 0;
+    uint64_t acl_denied_cmd = 0, acl_denied_key = 0, acl_denied_channel = 0,
+             acl_denied_auth = 0;
     uint64_t atomic_predecessor_reads = 0, atomic_chain_max = 0,
              atomic_promotions = 0, atomic_records_freed = 0,
              atomic_entries = 0, atomic_pending_entries = 0,
@@ -911,6 +935,10 @@ void cmd_info(Shard&, Op& op) {
                 total_ops += g_server->thread(t).command_calls(id);
             connections += g_server->thread(t).sig().accepts;
             atomic_localfast += g_server->thread(t).atomic_localfast();
+            acl_denied_cmd += g_server->thread(t).sig().acl_access_denied_cmd;
+            acl_denied_key += g_server->thread(t).sig().acl_access_denied_key;
+            acl_denied_channel += g_server->thread(t).sig().acl_access_denied_channel;
+            acl_denied_auth += g_server->thread(t).sig().acl_access_denied_auth;
         }
         // Redis counts BOTH accept-time reject classes in rejected_connections: maxclients
         // (networking.c:1355) and protected-mode denials (networking.c:1306).
@@ -964,6 +992,9 @@ void cmd_info(Shard&, Op& op) {
                       "expired_keys:%llu\r\nevicted_keys:%llu\r\ninstantaneous_ops_per_sec:0\r\n"
                       "total_net_input_bytes:0\r\ntotal_net_output_bytes:0\r\n"
                       "auth_failures:%llu\r\n"
+                      "acl_access_denied_auth:%llu\r\nacl_access_denied_cmd:%llu\r\n"
+                      "acl_access_denied_key:%llu\r\nacl_access_denied_channel:%llu\r\n"
+                      "acl_pubsub_clients_killed:%llu\r\nacl_perm_retired:%llu\r\n"
                       "atomic_groups:%llu\r\natomic_inflight:%llu\r\n"
                       "atomic_predecessor_reads:%llu\r\natomic_chain_max:%llu\r\n"
                       "atomic_cleanup_fast:%llu\r\natomic_cleanup_slow:%llu\r\n"
@@ -982,6 +1013,14 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(misses), static_cast<unsigned long long>(expired),
                 static_cast<unsigned long long>(evicted),
                 static_cast<unsigned long long>(g_server ? g_server->auth_failures() : 0),
+                static_cast<unsigned long long>(acl_denied_auth),
+                static_cast<unsigned long long>(acl_denied_cmd),
+                static_cast<unsigned long long>(acl_denied_key),
+                static_cast<unsigned long long>(acl_denied_channel),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->acl_pubsub_clients_killed() : 0),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->acl_perm_retired_count() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->atomic_groups() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->atomic_inflight() : 0),
                 static_cast<unsigned long long>(atomic_predecessor_reads),

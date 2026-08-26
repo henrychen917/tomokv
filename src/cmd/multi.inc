@@ -163,7 +163,8 @@ bool command_forbidden_in_multi(const Op& op) {
            multi_name(op, "zrandmember") || multi_name(op, "hrandfield") ||
            multi_name(op, "subscribe") || multi_name(op, "unsubscribe") ||
            multi_name(op, "psubscribe") || multi_name(op, "punsubscribe") ||
-           multi_name(op, "ssubscribe") || multi_name(op, "sunsubscribe");
+           multi_name(op, "ssubscribe") || multi_name(op, "sunsubscribe") ||
+           multi_name(op, "acl");
 }
 
 bool queued_copy(const Op& op, MultiQueuedCommand& out) {
@@ -275,6 +276,29 @@ bool prepare_commands(Server& server, MultiExecState& state,
             }
             command->kind = classify_multi_command(*command);
             if (!make_child_op(*command, db)) return false;
+            const AclDeniedReason acl_denied =
+                acl_check_queued(state.client->acl_user_idx(), command->queued);
+            if (acl_denied != AclDeniedReason::None) {
+                const char* reason = acl_denied == AclDeniedReason::Command
+                    ? "no permission to execute the command or subcommand"
+                    : acl_denied == AclDeniedReason::Key
+                        ? "no permission to touch the specified keys"
+                        : acl_denied == AclDeniedReason::Channel
+                            ? "no permission to access one of the channels used as arguments"
+                            : "no permission";
+                std::string message =
+                    "NOPERM ACLs rules changed between the moment the transaction was accumulated and the EXEC call. This command is no longer allowed for the following reason: ";
+                message += reason;
+                reply_err(command->op->sink(), message.c_str());
+                command->kind = MultiCommandKind::Prebuilt;
+                command->key_args.clear();
+                command->key_shards.clear();
+                LoopSignals& signals = server.thread(state.owner_io).sig();
+                if (acl_denied == AclDeniedReason::Command) signals.acl_access_denied_cmd++;
+                else if (acl_denied == AclDeniedReason::Key) signals.acl_access_denied_key++;
+                else if (acl_denied == AclDeniedReason::Channel)
+                    signals.acl_access_denied_channel++;
+            }
             if (command->kind == MultiCommandKind::Scan &&
                 !command_prepare_scan_route(server, *command->op))
                 command->kind = MultiCommandKind::Prebuilt;

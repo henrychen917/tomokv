@@ -133,6 +133,7 @@ void auth_publish_requirepass(Server& server, Slice password) {
     const bool required = !password.empty();
     server.set_auth_config(required, required ? sha256_password(password)
                                               : std::array<uint64_t, 4>{});
+    acl_update_default_requirepass(server, password);
 }
 
 bool auth_password_matches(const Server& server, Slice password, bool* auth_required) {

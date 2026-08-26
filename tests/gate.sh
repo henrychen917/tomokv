@@ -45,6 +45,10 @@ python3 tools/gen_acl_categories.py --redis-root "${REDIS74_ROOT:-/tmp/claude-10
 ./build/tomokv --conf /nonexistent-conf 2>&1 | grep -q "cannot open" && ok "reject missing conf" || bad "reject missing conf"
 printf 'florb 1\n' > /tmp/gate-bad.conf
 ./build/tomokv /tmp/gate-bad.conf 2>&1 | grep -q "unknown argument" && ok "reject bad conf key" || bad "reject bad conf key"
+printf 'aclfile /tmp/gate-users.acl\nuser alice on nopass ~* &* +@all\n' > /tmp/gate-acl-mixed.conf
+./build/tomokv /tmp/gate-acl-mixed.conf 2>&1 | grep -q \
+    "Configuring Redis with users defined in redis.conf and at the same setting an ACL file path is invalid" \
+    && ok "reject aclfile + conf user lines" || bad "reject aclfile + conf user lines"
 
 boot(){ # binary -> pid ; server log to $SRVLOG
   local bin=$1; shift
@@ -68,6 +72,8 @@ python3 tests/ryow.py 127.0.0.1 $PORT >/tmp/gate-ryow.txt 2>&1 \
     && ok "RYOW battery" || bad "RYOW battery" "see /tmp/gate-ryow.txt"
 python3 tests/acl_categories.py 127.0.0.1 $PORT >/tmp/gate-acl-categories.txt 2>&1 \
     && ok "ACL category runtime table" || bad "ACL category runtime table" "see /tmp/gate-acl-categories.txt"
+python3 tests/acl.py 127.0.0.1 $PORT - >/tmp/gate-acl-nofile.txt 2>&1 \
+    && ok "ACL LOAD/SAVE no-file errors" || bad "ACL LOAD/SAVE no-file errors" "see /tmp/gate-acl-nofile.txt"
 # idle-CPU ceiling: after the batteries, an idle server must not burn cores
 C0=$(awk '{print $14+$15}' /proc/$SRV/stat 2>/dev/null || echo 0); sleep 5
 C1=$(awk '{print $14+$15}' /proc/$SRV/stat 2>/dev/null || echo 0)
@@ -116,6 +122,13 @@ done
 boot ./build/tomokv --requirepass gatepass || bad "auth purpose boot"
 python3 tests/auth.py 127.0.0.1 $PORT gatepass >/tmp/gate-auth.txt 2>&1 \
     && ok "AUTH/HELLO/protected state machine" || bad "AUTH/HELLO/protected state machine" "see /tmp/gate-auth.txt"
+stop
+ACL_DIR=$(mktemp -d /tmp/gate-acl.XXXXXX)
+ACL_FILE="$ACL_DIR/users.acl"
+: > "$ACL_FILE"
+boot ./build/tomokv --aclfile "$ACL_FILE" || bad "ACL purpose boot"
+python3 tests/acl.py 127.0.0.1 $PORT "$ACL_FILE" >/tmp/gate-acl.txt 2>&1 \
+    && ok "ACL grammar/enforcement/re-entry/persistence" || bad "ACL grammar/enforcement/re-entry/persistence" "see /tmp/gate-acl.txt"
 stop
 DEBUG_DIR=$(mktemp -d /tmp/gate-debug.XXXXXX)
 boot ./build/tomokv --enable-debug-command local --dir "$DEBUG_DIR" --dbfilename reload.tomo \

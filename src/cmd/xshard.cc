@@ -10,10 +10,16 @@
 #include <cstdlib>
 #include <cstring>
 #include <deque>
+#include <fcntl.h>
 #include <limits>
 #include <memory>
+#include <mutex>
 #include <new>
 #include <string>
+#include <sys/random.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>

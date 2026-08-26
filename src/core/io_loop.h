@@ -37,6 +37,7 @@
 #include "../cmd/command.h"
 #include "../cmd/blocking.h"
 #include "../cmd/auth.h"
+#include "../cmd/acl.h"
 #include "../cmd/multi.h"
 #include "../cmd/xshard.h"
 #include "../snapshot/snapshot.h"
@@ -88,7 +89,7 @@ public:
                         static_cast<IoLoop*>(release_ctx)->queue_borrow_release(shard, ptr);
                     });
             else if (op.has_blocking_state())
-                blocking_retire(*loop->srv_, client, op);
+                blocking_retire(*loop->srv_, client, op, loop->self_->sig());
             else if (op.has_multi_state()) multi_retire_entry(*loop, client, op);
         }, srv_->client_obuf_armed_ptr(), this, [](void* ctx, Client& client) {
             return static_cast<IoLoop*>(ctx)->client_obuf_check(&client, true);
@@ -152,6 +153,9 @@ public:
 private:
     friend bool multi_dispatch_entry(IoLoop&, Client&, Op&, uint32_t);
     friend bool auth_dispatch_entry(IoLoop&, Client&, Op&, uint32_t);
+    friend bool acl_dispatch_entry(IoLoop&, Client&, Op&, uint32_t, bool, bool);
+    friend void acl_command_entry(IoLoop&, Client&, Op&);
+    friend void acl_broadcast_user_change(IoLoop&, uint32_t, const AclPerm*, bool);
     friend void multi_retire_entry(IoLoop&, Client&, Op&);
     friend uint32_t multi_owner_pass_entry(IoLoop&);
     friend uint32_t multi_owner_reap_entry(IoLoop&);
@@ -332,6 +336,7 @@ private:
         }
         srv_->client_accepted();
         c->set_authenticated(!srv_->requirepass_enabled());
+        c->set_acl_user_idx(kAclDefaultUser);
         c->set_id(srv_->next_client_id().fetch_add(1, std::memory_order_relaxed));
         if (unix_socket) {
             const auto& ios = srv_->placement().ifid_threads();
@@ -433,7 +438,9 @@ private:
         Rob<kRobWindow>& rob = c->rob();
         LoopSignals& sig = self_->sig();
         bool head_candidate = true;   // only the pass's FIRST dispatch can be the direct head
-        const bool auth_required = srv_->requirepass_enabled();
+        const uint8_t security_flags = srv_->security_flags();
+        const bool auth_required = (security_flags & Server::kSecurityAuth) != 0;
+        const bool acl_active = (security_flags & Server::kSecurityAcl) != 0;
 
         for (;;) {
             if (c->scatter_barrier() || c->atomic_backpressure()) break;
@@ -479,8 +486,9 @@ private:
                 finish_locally(c, *op, message); continue;
             }
             op->spec = spec;
-            if (__builtin_expect(unauthenticated, false) &&
-                auth_dispatch_entry(*this, conn, *op, consumed)) continue;
+            if (__builtin_expect(unauthenticated || acl_active, false) &&
+                acl_dispatch_entry(*this, conn, *op, consumed,
+                                   unauthenticated, acl_active)) continue;
             if (__builtin_expect((spec->flags & CmdFlags::Transaction) != 0, false) ||
                 __builtin_expect(conn.multi_session() != nullptr, false)) {
                 if (multi_dispatch_entry(*this, conn, *op, consumed)) continue;
@@ -543,14 +551,18 @@ private:
                 self_->note_command(spec->id);
                 command_set_local_context(c, self_);
                 snapshot_bind_io(self_, &ring_);
-                spec->handler(srv_->shard(0), *op);
+                const bool acl_command = __builtin_expect(op->cmd_name().eq_icase("acl"), false);
+                if (acl_command)
+                    acl_command_entry(*this, conn, *op);
+                else
+                    spec->handler(srv_->shard(0), *op);
                 snapshot_bind_io(nullptr, nullptr);
                 command_set_local_context(nullptr, nullptr);
                 op->state.store(OpState::Done, std::memory_order_release);
                 rob.publish();
                 enqueue_serve(c);
                 mark_active(c);
-                if (c->closing()) break;
+                if (c->closing() || acl_command) break;
                 continue;
             }
 

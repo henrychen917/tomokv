@@ -170,6 +170,10 @@ struct Config {
     const char* requirepass = nullptr;   // empty/unset = off; live via CONFIG SET
     uint32_t protected_mode = 1;         // live 0|1; rejects unauthenticated non-loopback accepts
     DebugCommandMode enable_debug_command = DebugCommandMode::No; // boot-only: no|yes|local
+    const char* aclfile = nullptr;        // boot-only; empty/unset disables ACL LOAD/SAVE
+    uint32_t acl_pubsub_allchannels = 0;  // acl-pubsub-default: 0=resetchannels, 1=allchannels
+    uint64_t acllog_max_len = 128;        // live in L4; per-io-thread bound
+    std::vector<std::vector<std::string>> acl_users; // repeatable `user name rules...` lines
 
     // ---- persistence (dir/dbfilename also live via CONFIG SET) ------------------------------
     const char* dir         = ".";
@@ -307,6 +311,40 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             i = end - 1;
         }
         else if (!std::strcmp(a, "--requirepass")) cfg.requirepass = next("");
+        else if (!std::strcmp(a, "--aclfile")) cfg.aclfile = next("");
+        else if (!std::strcmp(a, "--user")) {
+            const int begin = i + 1;
+            int end = begin;
+            while (end < argc && std::strncmp(args[end], "--", 2) != 0) end++;
+            if (end - begin < 1) {
+                std::fprintf(stderr, "--user requires a username\n");
+                return kConfigError;
+            }
+            std::vector<std::string> definition;
+            try {
+                for (int arg = begin; arg < end; arg++) definition.emplace_back(args[arg]);
+                cfg.acl_users.push_back(std::move(definition));
+            } catch (const std::bad_alloc&) {
+                std::fprintf(stderr, "out of memory parsing --user\n");
+                return kConfigError;
+            }
+            i = end - 1;
+        }
+        else if (!std::strcmp(a, "--acl-pubsub-default")) {
+            const char* value = next(nullptr);
+            if (value && cfg_eq_icase(value, "allchannels")) cfg.acl_pubsub_allchannels = 1;
+            else if (value && cfg_eq_icase(value, "resetchannels")) cfg.acl_pubsub_allchannels = 0;
+            else {
+                std::fprintf(stderr, "--acl-pubsub-default wants allchannels or resetchannels\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--acllog-max-len")) {
+            if (!cfg_parse_u64(next(nullptr), cfg.acllog_max_len)) {
+                std::fprintf(stderr, "--acllog-max-len wants an unsigned integer\n");
+                return kConfigError;
+            }
+        }
         else if (!std::strcmp(a, "--protected-mode")) {
             const char* value = next(nullptr);
             if (value && (!std::strcmp(value, "1") || !std::strcmp(value, "yes")))
@@ -468,7 +506,9 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "          --tcp-backlog N --client-output-buffer-limit CLASS HARD SOFT SECONDS ...\n"
                         "  persistence: --dir PATH --dbfilename NAME --load PATH\n"
                         "  security: --requirepass PASSWORD --protected-mode 0|1|yes|no\n"
-                        "            --enable-debug-command no|yes|local\n"
+                        "            --enable-debug-command no|yes|local --aclfile PATH\n"
+                        "            --user NAME RULE... --acl-pubsub-default allchannels|resetchannels\n"
+                        "            --acllog-max-len N\n"
                         "  atomics: --atomic 0|1 --atomic-window N (default 256; 0=unlimited)\n"
                         "  compact encodings: --{hash,list,set,zset}-max-compact-{entries,value} N\n"
                         "  misc: --hash mix64|siphash\n"
@@ -486,6 +526,10 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
 
 // Post-parse validation shared by every source combination. Call once, after all token streams.
 inline int validate_config(const Config& cfg) {
+    if (cfg.aclfile && *cfg.aclfile && !cfg.acl_users.empty()) {
+        std::fprintf(stderr, "Configuring Redis with users defined in redis.conf and at the same setting an ACL file path is invalid. This setup is very likely to lead to configuration errors and security holes, please define either an ACL file or declare users directly in your redis.conf, but not both.\n");
+        return kConfigError;
+    }
     if (cfg.shards == 0 || cfg.shards > 256) {
         std::fprintf(stderr, "shards must be between 1 and 256\n");
         return kConfigError;

@@ -27,6 +27,7 @@
 #include "core/io_loop.h"
 #include "core/ex_loop.h"
 #include "cmd/command.h"
+#include "cmd/acl.h"
 
 using namespace tomo;
 
@@ -129,6 +130,13 @@ int main(int argc, char** argv) {
     if (!srv.init(cfg)) { std::fprintf(stderr, "server init failed\n"); return 1; }
     g_srv = &srv;
     command_bind_server(&srv);
+    {
+        std::string acl_error;
+        if (!acl_initialize(srv, cfg, acl_error)) {
+            std::fprintf(stderr, "%s\n", acl_error.c_str());
+            return 1;
+        }
+    }
 
     // The bind probe moved AFTER the boot load: no listener may exist until every owner has
     // decoded its shard sections (see the post-load probe below).

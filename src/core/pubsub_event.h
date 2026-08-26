@@ -27,6 +27,8 @@ enum class PubSubEventKind : uint8_t {
     ResetResult,
     CleanupRequest,
     CleanupResult,
+    AclPermissionsChanged,
+    AclUserDeleted,
 };
 
 struct PubSubEventItem {
@@ -46,6 +48,8 @@ struct PubSubEvent {
     bool shard = false;
     bool subscribe = false;
     uint64_t count = 0;
+    uint32_t acl_user_index = 0;
+    const void* acl_permissions = nullptr;  // immutable AclPerm; intentionally transport-opaque
     std::string channel;
     std::string message;
     std::string pattern_text;

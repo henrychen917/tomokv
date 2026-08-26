@@ -508,6 +508,9 @@ public:
     void clear_watch_dirty() { watch_dirty_.store(false, std::memory_order_release); }
     bool authenticated() const { return authenticated_; }
     void set_authenticated(bool value) { authenticated_ = value; }
+    uint32_t acl_user_idx() const { return acl_user_idx_; }
+    void set_acl_user_idx(uint32_t value) { acl_user_idx_ = value; }
+    static constexpr size_t acl_user_idx_offset();
     void watch_ref() { watched_refs_.fetch_add(1, std::memory_order_relaxed); }
     void watch_unref() {
         if (watched_refs_.fetch_sub(1, std::memory_order_acq_rel) == 0) std::abort();
@@ -603,7 +606,11 @@ private:
     uint32_t obuf_soft_since_s_ = 0;   // 0 = not continuously at/over the soft limit
     bool obuf_tracking_ = false;        // enabled once per serve/cron arm, not per reply append
     bool authenticated_ = false;        // requirepass state; shares the documented cold-tail hole
+    uint32_t acl_user_idx_ = 0;          // ACL user handle; occupies the final 4-byte aligned hole
 };
+
+constexpr size_t Client::acl_user_idx_offset() { return offsetof(Client, acl_user_idx_); }
+static_assert(Client::acl_user_idx_offset() + sizeof(uint32_t) <= sizeof(Client));
 
 // Same footprint law as Op: Client is per-connection resident memory and its io-hot head is
 // layout-tuned. Growing it is allowed -- knowingly. 1984 = 1408 + the zero-copy send state

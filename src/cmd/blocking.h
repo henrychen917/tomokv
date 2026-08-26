@@ -18,6 +18,7 @@ class ThreadCtx;
 class ScatterArenaPool;
 struct ScatterState;
 struct Task;
+struct LoopSignals;
 
 struct BlockingState;
 
@@ -62,7 +63,7 @@ void blocking_scatter_mutation_published(const Task& task, Shard& shard, Op& op)
 bool blocking_resume_move(Server& server, ThreadCtx& self, Ring& ring, Client& client,
                           ScatterArenaPool& pool);
 bool blocking_cancel_client(Server& server, ThreadCtx& self, Ring& ring, Client& client);
-void blocking_retire(Server& server, Client& client, Op& op);
+void blocking_retire(Server& server, Client& client, Op& op, LoopSignals& signals);
 void blocking_scatter_retire(Server& server, Client& client, ScatterState& state);
 
 }  // namespace tomo
