@@ -153,7 +153,9 @@ public:
 private:
     friend bool multi_dispatch_entry(IoLoop&, Client&, Op&, uint32_t);
     friend bool auth_dispatch_entry(IoLoop&, Client&, Op&, uint32_t);
-    friend bool acl_dispatch_entry(IoLoop&, Client&, Op&, uint32_t, bool, bool);
+    friend bool acl_dispatch_entry(IoLoop&, Client&, Op&, uint32_t, uint8_t);
+    friend bool acl_finish_dispatch_denial(IoLoop&, Client&, Op&, uint32_t,
+                                           AclDeniedReason, uint32_t);
     friend void acl_command_entry(IoLoop&, Client&, Op&);
     friend void acl_broadcast_user_change(IoLoop&, uint32_t, const AclPerm*, bool);
     friend void multi_retire_entry(IoLoop&, Client&, Op&);
@@ -450,10 +452,11 @@ private:
             uint32_t pos = conn.rpos();
             const char* err = nullptr;
             op->rbuf_off = pos;
-            const bool unauthenticated = auth_required && !conn.authenticated();
+            bool security_check = auth_required && !conn.authenticated();
             ParseResult pr = resp_parse(conn.rbuf(), conn.rlen(), pos, *op, &err,
-                                        unauthenticated ? 10 : 1024 * 1024,
-                                        unauthenticated ? 16384 : 512ull * 1024 * 1024);
+                                        security_check ? 10 : 1024 * 1024,
+                                        security_check ? 16384 : 512ull * 1024 * 1024);
+            security_check |= acl_active;
 
             if (pr == ParseResult::Incomplete) break;
             if (pr == ParseResult::Error) {
@@ -486,9 +489,8 @@ private:
                 finish_locally(c, *op, message); continue;
             }
             op->spec = spec;
-            if (__builtin_expect(unauthenticated || acl_active, false) &&
-                acl_dispatch_entry(*this, conn, *op, consumed,
-                                   unauthenticated, acl_active)) continue;
+            if (__builtin_expect(security_check, false) &&
+                acl_dispatch_entry(*this, conn, *op, consumed, security_flags)) continue;
             if (__builtin_expect((spec->flags & CmdFlags::Transaction) != 0, false) ||
                 __builtin_expect(conn.multi_session() != nullptr, false)) {
                 if (multi_dispatch_entry(*this, conn, *op, consumed)) continue;

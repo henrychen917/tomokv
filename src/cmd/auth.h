@@ -1,6 +1,7 @@
 // auth.h -- narrow IO hook for requirepass's pre-dispatch connection gate.
 #pragma once
 
+#include <array>
 #include <cstdint>
 
 namespace tomo {
@@ -17,5 +18,6 @@ bool auth_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consumed
 void auth_publish_requirepass(Server& server, Slice password);
 bool auth_password_matches(const Server& server, Slice password,
                            bool* auth_required = nullptr);
+std::array<uint64_t, 4> auth_password_digest(Slice password);
 
 }  // namespace tomo

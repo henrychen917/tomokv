@@ -278,7 +278,8 @@ bool prepare_commands(Server& server, MultiExecState& state,
             if (!make_child_op(*command, db)) return false;
             uint32_t acl_denied_arg = UINT32_MAX;
             const AclDeniedReason acl_denied = acl_check_queued(
-                state.client->acl_user_idx(), command->queued, &acl_denied_arg);
+                state.client->acl_user_idx(), *command->queued.spec,
+                command->queued.argv, &acl_denied_arg);
             if (acl_denied != AclDeniedReason::None) {
                 const char* reason = acl_denied == AclDeniedReason::Command
                     ? "no permission to execute the command or subcommand"
@@ -756,6 +757,11 @@ bool finish_command(MultiExecState& state, MultiCommand& command, uint32_t stage
 
 bool multi_queueing(const Client& client) {
     return client.multi_session() && client.multi_session()->active;
+}
+
+void multi_mark_queue_error(Client& client) {
+    MultiSession* session = client.multi_session();
+    if (session && session->active) session->queue_error = true;
 }
 
 MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t owner_io,

@@ -103,6 +103,10 @@ bool unauthenticated_output_limit_exceeded(const Client& client) {
 
 }  // namespace
 
+std::array<uint64_t, 4> auth_password_digest(Slice password) {
+    return sha256_password(password);
+}
+
 bool auth_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consumed) {
     if (unauthenticated_output_limit_exceeded(client)) {
         client.advance_parse(consumed);

@@ -45,6 +45,7 @@ struct CmdFlags {
     // slot is also a connection parse barrier until an owner supplies data or a timeout reply.
     static constexpr uint32_t Blocking = 1u << 13;
     static constexpr uint32_t Transaction = 1u << 14; // MULTI/EXEC/WATCH controls, IO-owned
+    static constexpr uint32_t AclExempt = 1u << 15;   // AUTH/HELLO/RESET/QUIT bypass ACL command bits
 };
 
 using CmdHandler = void (*)(Shard&, Op&);
@@ -68,12 +69,9 @@ struct CommandSpec {
     // registry-owned storage and assigns the final value before any server thread starts.
     uint16_t    id = 0;
 
-    // Generated from vanilla Redis 7.4 commands.def, including its implicit categories. Category
-    // rules compile eagerly into command bits, so this is read only on ACL admin/check paths.
-    uint64_t    acl_categories = 0;
 };
 
-static_assert(sizeof(CommandSpec) == 48);
+static_assert(sizeof(CommandSpec) == 40);
 
 struct CommandTable {
     const CommandSpec* specs;
@@ -96,6 +94,7 @@ const CommandSpec* command_lookup(Slice name);
 bool command_arity_ok(const CommandSpec& spec, uint32_t argc);
 uint32_t command_registry_size();
 const CommandSpec* command_registry_at(uint32_t id);
+uint64_t command_acl_category_mask(const CommandSpec& spec);
 
 class Server;
 class Client;

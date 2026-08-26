@@ -18,7 +18,6 @@ class ThreadCtx;
 struct CommandSpec;
 struct Config;
 struct LoopSignals;
-struct MultiQueuedCommand;
 struct Slice;
 
 inline constexpr uint32_t kAclDefaultUser = 0;
@@ -69,15 +68,18 @@ void acl_log_denial(ThreadCtx& thread, const Client& client, AclDeniedReason rea
                     AclLogContext context, Slice object, Slice username);
 
 // One guarded Wave-A/ACL dispatch call above subscriber-mode handling. True means a complete reply
-// was published locally. `unauthenticated` and `acl_active` are bits from one per-pass latch.
+// was published locally. `security_flags` is the one per-pass Wave-A/ACL latch.
 bool acl_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consumed,
-                        bool unauthenticated, bool acl_active);
+                        uint8_t security_flags);
+bool acl_finish_dispatch_denial(IoLoop& loop, Client& client, Op& op, uint32_t consumed,
+                                AclDeniedReason denied, uint32_t denied_arg);
 void acl_command_entry(IoLoop& loop, Client& client, Op& op);
 void acl_broadcast_user_change(IoLoop& loop, uint32_t user_index,
                                const AclPerm* permissions, bool deleted);
 
 bool acl_pubsub_channel_entry(Client& client, Op& op, bool pattern, ThreadCtx& thread);
-AclDeniedReason acl_check_queued(uint32_t user_index, const MultiQueuedCommand& command,
+AclDeniedReason acl_check_queued(uint32_t user_index, const CommandSpec& spec,
+                                 const std::vector<std::string>& argv,
                                  uint32_t* denied_arg = nullptr);
 void acl_recheck_blocking(Client& client, Op& op, ThreadCtx& thread);
 

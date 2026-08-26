@@ -123,7 +123,7 @@ private:
 
     // may_grow is true only from acquire() — the parser. Everyone else dereferences ground the
     // parser already materialized.
-    Op* slot(uint32_t idx, bool may_grow) {
+    __attribute__((always_inline)) Op* slot(uint32_t idx, bool may_grow) {
         Op*& ch = chunks_[idx / kChunkOps];
         if (!ch && may_grow) ch = new Op[kChunkOps];
         return &ch[idx % kChunkOps];

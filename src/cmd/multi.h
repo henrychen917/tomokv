@@ -36,6 +36,7 @@ enum class MultiTaskResult : uint8_t {
 MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t owner_io,
                               MultiExecState*& dispatch);
 bool multi_queueing(const Client& client);
+void multi_mark_queue_error(Client& client);
 
 // The IO loop deliberately contains only predicted-cold calls into these entries.  Keeping the
 // transaction dispatch and lifetime machinery in multi.inc preserves the layout of the ordinary

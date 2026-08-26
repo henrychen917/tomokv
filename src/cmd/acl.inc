@@ -116,8 +116,7 @@ std::string acl_hex_hash(const std::array<uint64_t, 4>& digest) {
 }
 
 bool acl_command_bit(const AclPerm& perm, uint32_t id) {
-    return id < kAclFutureCommandBit &&
-           (perm.allowed_commands[id >> 6] & (uint64_t{1} << (id & 63)));
+    return perm.allowed_commands[id >> 6] & (uint64_t{1} << (id & 63));
 }
 
 void acl_set_command_bit(AclPerm& perm, uint32_t id, bool value) {
@@ -181,7 +180,8 @@ bool acl_apply_command_rule(AclPerm& perm, Slice rule, std::string& error,
         }
         for (uint32_t id = 0; id < command_registry_size(); id++) {
             const CommandSpec* spec = command_registry_at(id);
-            if (spec->acl_categories & category->bit) acl_set_command_bit(perm, id, allow);
+            if (command_acl_category_mask(*spec) & category->bit)
+                acl_set_command_bit(perm, id, allow);
         }
         if (!allow) perm.flags &= ~AclAllCommands;
     } else {
@@ -273,7 +273,7 @@ bool acl_apply_rule(AclUserImage& image, Slice rule, std::string& error) {
         if (g_acl_pubsub_default_all) image.perm.flags |= AclAllChannels;
     } else if (rule.p[0] == '>' || rule.p[0] == '#') {
         std::array<uint64_t, 4> digest;
-        if (rule.p[0] == '>') digest = sha256_password(Slice(rule.p + 1, rule.n - 1));
+        if (rule.p[0] == '>') digest = auth_password_digest(Slice(rule.p + 1, rule.n - 1));
         else if (!acl_parse_hash(Slice(rule.p + 1, rule.n - 1), digest)) {
             error = "The password hash must be exactly 64 characters and contain only lowercase hexadecimal characters";
             return false;
@@ -284,7 +284,7 @@ bool acl_apply_rule(AclUserImage& image, Slice rule, std::string& error) {
         image.flags &= ~AclUserNoPass;
     } else if (rule.p[0] == '<' || rule.p[0] == '!') {
         std::array<uint64_t, 4> digest;
-        if (rule.p[0] == '<') digest = sha256_password(Slice(rule.p + 1, rule.n - 1));
+        if (rule.p[0] == '<') digest = auth_password_digest(Slice(rule.p + 1, rule.n - 1));
         else if (!acl_parse_hash(Slice(rule.p + 1, rule.n - 1), digest)) {
             error = "The password hash must be exactly 64 characters and contain only lowercase hexadecimal characters";
             return false;
@@ -486,26 +486,21 @@ bool acl_channel_allowed(const AclPerm& perm, Slice value, bool literal_pattern)
 }
 
 template <typename GetArg>
-AclDeniedReason acl_check_permission(uint32_t user_index, const CommandSpec& spec,
-                                     uint32_t argc, GetArg&& get_arg,
-                                     uint32_t* denied_arg = nullptr) {
-    if (denied_arg) *denied_arg = UINT32_MAX;
-    if (Slice(spec.name, static_cast<uint32_t>(std::strlen(spec.name))).eq_icase("auth") ||
-        Slice(spec.name, static_cast<uint32_t>(std::strlen(spec.name))).eq_icase("hello") ||
-        Slice(spec.name, static_cast<uint32_t>(std::strlen(spec.name))).eq_icase("reset") ||
-        Slice(spec.name, static_cast<uint32_t>(std::strlen(spec.name))).eq_icase("quit"))
-        return AclDeniedReason::None;
-    AclUser* user = acl_slot(user_index);
+__attribute__((noinline)) AclDeniedReason acl_check_permission(
+        uint32_t user_index, const CommandSpec& spec, uint32_t argc,
+        GetArg&& get_arg, uint32_t* denied_arg = nullptr) {
+    if (spec.flags & CmdFlags::AclExempt) return AclDeniedReason::None;
+    AclUser* user = g_acl_slots[user_index].load(std::memory_order_acquire);
     if (!user) return AclDeniedReason::Command;
     const AclPerm* perm = user->perm.load(std::memory_order_acquire);
     if (!perm) return AclDeniedReason::Command;
     if (!(perm->flags & AclAllCommands) && !acl_command_bit(*perm, spec.id))
         return AclDeniedReason::Command;
-    const Slice command(spec.name, static_cast<uint32_t>(std::strlen(spec.name)));
-    if ((command.eq_icase("eval") || command.eq_icase("evalsha")) &&
-        !(perm->flags & AclAllCommands)) return AclDeniedReason::Command;
+    if ((spec.flags & CmdFlags::ScriptRoute) && !(perm->flags & AclAllCommands))
+        return AclDeniedReason::Command;
     if (perm->flags & AclAllKeys) return AclDeniedReason::None;
 
+    const Slice command(spec.name, static_cast<uint32_t>(std::strlen(spec.name)));
     if (command.eq_icase("sort")) {
         for (uint32_t arg = 2; arg < argc; arg++) {
             if (get_arg(arg).eq_icase("by") || get_arg(arg).eq_icase("get")) {
@@ -766,7 +761,7 @@ void acl_reply_category(Op& op) {
     std::vector<const CommandSpec*> commands;
     for (uint32_t id = 0; id < command_registry_size(); id++) {
         const CommandSpec* spec = command_registry_at(id);
-        if (spec->acl_categories & category->bit) commands.push_back(spec);
+        if (command_acl_category_mask(*spec) & category->bit) commands.push_back(spec);
     }
     std::sort(commands.begin(), commands.end(), [](const CommandSpec* left,
                                                     const CommandSpec* right) {
@@ -953,7 +948,7 @@ bool acl_initialize(Server& server, const Config& config, std::string& error) {
     if (config.requirepass && *config.requirepass) {
         default_image.flags &= ~AclUserNoPass;
         default_image.passwords.push_back(
-            sha256_password(Slice(config.requirepass, std::strlen(config.requirepass))));
+            auth_password_digest(Slice(config.requirepass, std::strlen(config.requirepass))));
     }
     if (!acl_create_locked(std::move(default_image), kAclDefaultUser)) {
         error = "ACL initialization failed: out of memory";
@@ -1006,7 +1001,7 @@ void acl_update_default_requirepass(Server&, Slice password) {
     if (password.empty()) user->flags |= AclUserNoPass;
     else {
         user->flags &= ~AclUserNoPass;
-        user->passwords.push_back(sha256_password(password));
+        user->passwords.push_back(auth_password_digest(password));
     }
     acl_refresh_security_locked();
 }
@@ -1018,7 +1013,7 @@ bool acl_authenticate(Slice username, Slice password, uint32_t& user_index) {
     AclUser* user = acl_slot(found->second);
     if (!user || !(user->flags & AclUserEnabled)) return false;
     if (!(user->flags & AclUserNoPass)) {
-        const auto candidate = sha256_password(password);
+        const auto candidate = auth_password_digest(password);
         bool match = false;
         for (const auto& digest : user->passwords) match |= acl_digest_equal(candidate, digest);
         if (!match) return false;
@@ -1043,19 +1038,10 @@ void acl_set_pubsub_default(bool allchannels) {
     g_acl_pubsub_default_all = allchannels;
 }
 
-bool acl_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consumed,
-                        bool unauthenticated, bool acl_active) {
-    if (unauthenticated && auth_dispatch_entry(loop, client, op, consumed)) {
-        return true;
-    }
-    if (!acl_active) return false;
-    uint32_t denied_arg = UINT32_MAX;
-    const AclDeniedReason denied = acl_check_permission(
-        client.acl_user_idx(), *op.spec, op.argc(),
-        [&](uint32_t arg) { return op.arg(arg); }, &denied_arg);
-    if (denied == AclDeniedReason::None) return false;
-    if (MultiSession* session = client.multi_session(); session && session->active)
-        session->queue_error = true;
+__attribute__((cold, noinline)) bool acl_finish_dispatch_denial(
+        IoLoop& loop, Client& client, Op& op, uint32_t consumed,
+        AclDeniedReason denied, uint32_t denied_arg) {
+    multi_mark_queue_error(client);
     client.advance_parse(consumed);
     loop.self_->note_command(op.spec->id);
     acl_reply_denied(client, op, client.acl_user_idx(), denied, denied_arg, *loop.self_);
@@ -1063,11 +1049,42 @@ bool acl_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consumed,
     return true;
 }
 
-AclDeniedReason acl_check_queued(uint32_t user_index, const MultiQueuedCommand& command,
+bool acl_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consumed,
+                        uint8_t security_flags) {
+    const bool unauthenticated = (security_flags & Server::kSecurityAuth) &&
+                                 !client.authenticated();
+    const bool acl_active = (security_flags & Server::kSecurityAcl) != 0;
+    if (unauthenticated && auth_dispatch_entry(loop, client, op, consumed)) {
+        return true;
+    }
+    if (!acl_active) return false;
+
+    uint32_t denied_arg = UINT32_MAX;
+    AclDeniedReason denied = AclDeniedReason::None;
+    const CommandSpec& spec = *op.spec;
+    if (spec.flags & CmdFlags::AclExempt) return false;
+    AclUser* user = g_acl_slots[client.acl_user_idx()].load(std::memory_order_acquire);
+    const AclPerm* perm = user ? user->perm.load(std::memory_order_acquire) : nullptr;
+    if (!perm || (!(perm->flags & AclAllCommands) && !acl_command_bit(*perm, spec.id)) ||
+        ((spec.flags & CmdFlags::ScriptRoute) && !(perm->flags & AclAllCommands))) {
+        denied = AclDeniedReason::Command;
+    } else if (perm->flags & AclAllKeys) {
+        return false;
+    } else {
+        denied = acl_check_permission(
+            client.acl_user_idx(), spec, op.argc(),
+            [&](uint32_t arg) { return op.arg(arg); }, &denied_arg);
+    }
+    if (denied == AclDeniedReason::None) return false;
+    return acl_finish_dispatch_denial(loop, client, op, consumed, denied, denied_arg);
+}
+
+AclDeniedReason acl_check_queued(uint32_t user_index, const CommandSpec& spec,
+                                 const std::vector<std::string>& argv,
                                  uint32_t* denied_arg) {
-    return acl_check_permission(user_index, *command.spec,
-        static_cast<uint32_t>(command.argv.size()), [&](uint32_t arg) {
-            const std::string& value = command.argv[arg];
+    return acl_check_permission(user_index, spec,
+        static_cast<uint32_t>(argv.size()), [&](uint32_t arg) {
+            const std::string& value = argv[arg];
             return Slice(value.data(), static_cast<uint32_t>(value.size()));
         }, denied_arg);
 }

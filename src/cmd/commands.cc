@@ -16,6 +16,7 @@ namespace {
 struct Registry {
     std::vector<CommandSpec> entries;
     std::vector<const CommandSpec*> slots;
+    uint64_t acl_categories[256] = {};
     uint32_t mask = 0;
     bool built = false;
 };
@@ -39,7 +40,7 @@ uint64_t command_hash(const char* p, size_t n) {
     return h;
 }
 
-const AclCommandCategoryDefinition* command_acl_categories(const char* name) {
+const AclCommandCategoryDefinition* generated_acl_categories(const char* name) {
     size_t lo = 0, hi = kAclCommandCategoryCount;
     while (lo < hi) {
         const size_t mid = lo + (hi - lo) / 2;
@@ -71,6 +72,10 @@ bool command_registry_init() {
     };
     size_t total = 0;
     for (const CommandTable& family : families) total += family.size;
+    if (total > 255) {
+        std::fprintf(stderr, "command registry exceeds the reserved 255 ACL command bits\n");
+        return false;
+    }
     size_t cap = 8;
     while (cap < total * 2) cap <<= 1;
     try {
@@ -86,13 +91,13 @@ bool command_registry_init() {
             for (size_t i = 0; i < family.size; i++) {
                 CommandSpec copy = family.specs[i];
                 const AclCommandCategoryDefinition* categories =
-                    command_acl_categories(copy.name);
+                    generated_acl_categories(copy.name);
                 if (!categories) {
                     std::fprintf(stderr, "missing generated ACL categories for '%s'\n", copy.name);
                     return false;
                 }
                 copy.id = static_cast<uint16_t>(g_registry.entries.size());
-                copy.acl_categories = categories->categories;
+                g_registry.acl_categories[copy.id] = categories->categories;
                 g_registry.entries.push_back(copy);
             }
     } catch (const std::bad_alloc&) {
@@ -158,6 +163,10 @@ uint32_t command_registry_size() {
 
 const CommandSpec* command_registry_at(uint32_t id) {
     return id < g_registry.entries.size() ? &g_registry.entries[id] : nullptr;
+}
+
+uint64_t command_acl_category_mask(const CommandSpec& spec) {
+    return g_registry.acl_categories[spec.id];
 }
 
 }  // namespace tomo
