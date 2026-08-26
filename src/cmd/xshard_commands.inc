@@ -179,7 +179,7 @@ bool classify(const Op& op, Kind& kind) {
         {"BITOP", Kind::Bitop},
         {"LMPOP", Kind::Lmpop}, {"ZMPOP", Kind::Zmpop},
         {"ZRANGESTORE", Kind::Zrangestore}, {"SORT", Kind::Sort},
-        {"XREAD", Kind::Xread},
+        {"XREAD", Kind::Xread}, {"XREADGROUP", Kind::Xreadgroup},
     };
     for (const Entry& entry : entries)
         if (name_is(op, entry.name)) { kind = entry.kind; return true; }

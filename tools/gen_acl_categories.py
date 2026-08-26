@@ -21,6 +21,7 @@ COMMAND_SOURCES = [
     "src/cmd/t_set.cc",
     "src/cmd/t_zset.cc",
     "src/cmd/t_stream.cc",
+    "src/cmd/t_stream_groups.cc",
     "src/cmd/t_server.cc",
     "src/cmd/scripting.cc",
     "src/cmd/functions.cc",

@@ -319,6 +319,73 @@ def gen_stream(rng):
     ]
     return ops
 
+def gen_streamgrp(rng):
+    """Consumer-group mix with explicit stream IDs and no wall-clock-valued replies."""
+    keys = ["xg%d" % i for i in range(8)]
+    consumers = ["a", "b", "c", "d"]
+    next_id = {key: 5 for key in keys}
+    known = {key: ["%d-0" % i for i in range(1, 6)] for key in keys}
+    ops = []
+    for key in keys:
+        for ident in known[key]:
+            ops.append(["XADD", key, ident, "f", "v" + ident])
+        ops.append(["XGROUP", "CREATE", key, "g", "0-0", "ENTRIESREAD", "0"])
+
+    for _ in range(4000):
+        key = rng.choice(keys)
+        consumer = rng.choice(consumers)
+        choice = rng.randrange(16)
+        if choice in (0, 1, 2):
+            next_id[key] += 1
+            ident = "%d-0" % next_id[key]
+            known[key].append(ident)
+            ops.append(["XADD", key, ident, "f", "v" + ident])
+        elif choice == 3:
+            ops.append(["XREADGROUP", "GROUP", "g", consumer, "COUNT",
+                        str(rng.randrange(1, 5)), "STREAMS", key, ">"])
+        elif choice == 4:
+            cursor = rng.choice(["0-0"] + known[key])
+            ops.append(["XREADGROUP", "GROUP", "g", consumer, "COUNT", "3",
+                        "STREAMS", key, cursor])
+        elif choice == 5:
+            ids = [rng.choice(known[key]) for _ in range(rng.randrange(1, 4))]
+            ops.append(["XACK", key, "g"] + ids)
+        elif choice == 6:
+            ops.append(["XPENDING", key, "g"])
+        elif choice == 7:
+            ids = [rng.choice(known[key]) for _ in range(rng.randrange(1, 4))]
+            ops.append(["XCLAIM", key, "g", consumer, "0"] + ids + ["JUSTID"])
+        elif choice == 8:
+            ident = rng.choice(known[key])
+            ops.append(["XCLAIM", key, "g", consumer, "0", ident, "FORCE", "JUSTID"])
+        elif choice == 9:
+            start = rng.choice(["0-0"] + known[key])
+            ops.append(["XAUTOCLAIM", key, "g", consumer, "0", start,
+                        "COUNT", str(rng.randrange(1, 4)), "JUSTID"])
+        elif choice == 10:
+            ids = [rng.choice(known[key]) for _ in range(rng.randrange(1, 3))]
+            ops.append(["XDEL", key] + ids)
+        elif choice == 11:
+            ops.append(["XTRIM", key, "MAXLEN", "=", str(rng.randrange(2, 12))])
+        elif choice == 12:
+            ident = rng.choice(known[key])
+            read = int(ident.split("-", 1)[0])
+            ops.append(["XGROUP", "SETID", key, "g", ident,
+                        "ENTRIESREAD", str(read)])
+        elif choice == 13:
+            ops.append(["XGROUP", "CREATECONSUMER", key, "g", consumer])
+        elif choice == 14:
+            ops.append(["XGROUP", "DELCONSUMER", key, "g", consumer])
+        else:
+            ops.append(["XPENDING", key, "g"])
+    ops += [
+        ["XGROUP", "CREATE", keys[0], "g", "0-0"],
+        ["XACK", keys[0], "missing", "1-0"],
+        ["XPENDING", keys[0], "missing"],
+        ["XSETID", keys[0], "%d-0" % next_id[keys[0]]],
+    ]
+    return ops
+
 def gen_zset(rng):
     keys = ["z%d" % i for i in range(8)]
     mems = ["m%d" % i for i in range(20)] + ["alpha", "beta", "x" * 70]
@@ -1505,7 +1572,8 @@ if SUITE == "wiredump":
 gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset,
         "hash": gen_hash, "xshard": gen_xshard, "bitmap": gen_bitmap, "hll": gen_hll,
         "bitfield": gen_bitfield, "cgaps": gen_cgaps, "stream": gen_stream,
-        "script": gen_script}
+        "script": gen_script,
+        "streamgrp": gen_streamgrp}
 ops = gens[SUITE](rng)
 
 ts, tf = conn(TH, TP)
@@ -1541,8 +1609,8 @@ for i in range(0, len(ops), BATCH):
         if a != b:
             diffs += 1
             if diffs <= 12:
-                shown_a = a if o[0].upper() == "KEYS" else a[:96]
-                shown_b = b if o[0].upper() == "KEYS" else b[:96]
+                shown_a = a if o[0].upper() == "KEYS" else a[:256]
+                shown_b = b if o[0].upper() == "KEYS" else b[:256]
                 print("  DIFF op %d %r\n    target: %r\n    oracle: %r" %
                       (i + j, o[:4], shown_a, shown_b))
 

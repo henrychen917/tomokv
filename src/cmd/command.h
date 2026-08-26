@@ -120,6 +120,7 @@ CommandTable list_command_table();
 CommandTable set_command_table();
 CommandTable zset_command_table();
 CommandTable stream_command_table();
+CommandTable stream_group_command_table();
 CommandTable server_command_table();
 CommandTable scripting_command_table();
 CommandTable functions_command_table();

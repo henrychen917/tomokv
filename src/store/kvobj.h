@@ -868,7 +868,9 @@ inline size_t kvobj_size(const KvObj* o) {
             break;
         case Type::Stream:
             n += static_cast<StreamVal*>(o->external_ptr())->allocation_bytes() +
-                 good_size(sizeof(StreamVal)) - sizeof(CompactValue);
+                 good_size(sizeof(StreamVal)) - sizeof(CompactValue) +
+                 stream_groups_allocation_bytes(
+                     static_cast<StreamVal*>(o->external_ptr())->groups);
             break;
     }
     return n;

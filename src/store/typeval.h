@@ -722,6 +722,7 @@ struct StreamVal : CompactValue {
     StreamVal() = default;
     StreamVal(const StreamVal&) = delete;
     StreamVal& operator=(const StreamVal&) = delete;
+    ~StreamVal();
 
     StreamHeader header{};
     StreamID first_id{};
@@ -734,6 +735,12 @@ struct StreamVal : CompactValue {
     uint64_t node_allocation_bytes = 0;
     void* groups = nullptr;               // phase-2, created on demand
 };
+
+// Consumer-group state is intentionally opaque here: streams that never use XGROUP keep the
+// pointer null and allocate nothing. These two cold hooks let the generic value lifetime and
+// resident accounting remain correct without pulling maps/strings into the store header.
+void stream_groups_destroy(void* groups);
+uint64_t stream_groups_allocation_bytes(const void* groups);
 
 
 // Expanded SET backing. Membership uses open addressing; live_slots_ is a dense side index used

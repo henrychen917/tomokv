@@ -266,7 +266,18 @@ bool object_header(KvObj* object, StreamHeader& header) {
 bool update_object_header(KvObj* object, const StreamHeader& header) {
     CollectionRef stream(object);
     if (!stream.is_embedded()) {
-        stream.external_as<StreamVal>()->header = header;
+        StreamVal* value = stream.external_as<StreamVal>();
+        value->header = header;
+        // XGROUP MKSTREAM deliberately keeps an externally owned, internally compact empty log
+        // so it has a cold-state pointer without manufacturing a macro node. Keep that compact
+        // header authoritative for scanners as the first XADD arrives.
+        if (stream.encoding() == CollectionEncoding::Compact) {
+            Compact::Entry entry;
+            if (!stream.compact().at(0, entry)) return false;
+            const std::string bytes = header_bytes(header);
+            if (!stream.replace(entry, Slice(bytes.data(), static_cast<uint32_t>(bytes.size()))))
+                return false;
+        }
         return true;
     }
     Compact::Entry entry;
@@ -1311,6 +1322,101 @@ static const CommandSpec kTable[] = {
 
 }  // namespace
 
+bool stream_object_header(KvObj* object, StreamHeader& header) {
+    return object_header(object, header);
+}
+
+bool stream_object_update_header(KvObj* object, const StreamHeader& header) {
+    return update_object_header(object, header);
+}
+
+uint64_t stream_object_live_length(KvObj* object) { return stream_live_length(object); }
+
+uint64_t stream_object_physical_length(KvObj* object) {
+    uint64_t count = 0;
+    if (!object || !scan_object(object, [&](const RecordView&) { count++; return true; }))
+        return 0;
+    return count;
+}
+
+bool stream_object_first_live(KvObj* object, StreamID& id) {
+    return first_live_id(object, id);
+}
+
+bool stream_object_last_live(KvObj* object, StreamID& id) {
+    return last_live_id(object, id);
+}
+
+bool stream_object_collect(KvObj* object, const StreamID& start, bool exclusive,
+                           uint64_t count, bool include_deleted,
+                           std::vector<StreamOwnedEntry>& entries) {
+    entries.clear();
+    bool oom = false;
+    const bool ok = scan_object_from(object, start, [&](const RecordView& record) {
+        const int order = id_compare(record.id, start);
+        if (order < 0 || (exclusive && order == 0)) return true;
+        if (!include_deleted && (record.flags & kDeleted)) return true;
+        if (count && entries.size() >= count) return false;
+        try {
+            StreamOwnedEntry entry;
+            entry.id = record.id;
+            entry.deleted = (record.flags & kDeleted) != 0;
+            entry.fields.reserve(record.fields.size());
+            entry.values.reserve(record.values.size());
+            for (Slice field : record.fields) entry.fields.emplace_back(field.p, field.n);
+            for (Slice value : record.values) entry.values.emplace_back(value.p, value.n);
+            entries.push_back(std::move(entry));
+        } catch (const std::bad_alloc&) {
+            oom = true;
+            return false;
+        }
+        return true;
+    });
+    return ok && !oom;
+}
+
+bool stream_object_find(KvObj* object, const StreamID& id, StreamOwnedEntry& entry,
+                        bool& found) {
+    found = false;
+    std::vector<StreamOwnedEntry> records;
+    if (!stream_object_collect(object, id, false, 1, true, records)) return false;
+    if (!records.empty() && id_equal(records.front().id, id)) {
+        entry = std::move(records.front());
+        found = true;
+    }
+    return true;
+}
+
+bool stream_force_external(Shard& shard, Op& op, KvObj*& object, bool notify) {
+    return notify ? externalize_stream<true>(shard, op, object)
+                  : externalize_stream<false>(shard, op, object);
+}
+
+bool stream_create_empty_external(Shard& shard, Op& op, bool notify, KvObj*& object) {
+    object = nullptr;
+    auto* value = new (std::nothrow) StreamVal;
+    if (!value) { reply_err(op.sink(), "ERR out of memory"); return false; }
+    const std::string header = header_bytes(value->header);
+    if (!value->append(Slice(header.data(), static_cast<uint32_t>(header.size())))) {
+        delete value;
+        reply_err(op.sink(), "ERR out of memory");
+        return false;
+    }
+    KvObj* fresh = kvobj_new_stream(op.arg(2), value);
+    if (!fresh) { delete value; reply_err(op.sink(), "ERR out of memory"); return false; }
+    const FlatStore::InsertResult inserted = notify
+        ? shard.store_insert<true>(op.hash, fresh)
+        : shard.store_insert<false>(op.hash, fresh);
+    if (inserted != FlatStore::InsertResult::Inserted) {
+        kvobj_free(fresh);
+        if (inserted == FlatStore::InsertResult::MaxmemoryOom) reply_maxmemory_oom(op);
+        else reply_err(op.sink(), "ERR keyspace insert failed");
+        return false;
+    }
+    object = fresh;
+    return true;
+}
+
 bool stream_parse_xread_id(Slice input, StreamID& id, bool& latest) {
     latest = input.n == 1 && input.p[0] == '$';
     if (latest) { id = {}; return true; }
@@ -1353,6 +1459,14 @@ bool stream_parse_xread(Op& op, StreamXreadArgs& parsed) {
 }
 
 bool stream_xread_has_block_option(const Op& op) {
+    if (op.cmd_name().eq_icase("xreadgroup")) {
+        bool block = false;
+        uint32_t streams = 4;
+        for (; streams < op.argc() && !op.arg(streams).eq_icase("streams"); streams++)
+            block |= op.arg(streams).eq_icase("block");
+        return block && streams + 2 < op.argc() && op.argc() - streams == 3 &&
+               op.arg(streams + 2).n == 1 && op.arg(streams + 2).p[0] == '>';
+    }
     if (!op.cmd_name().eq_icase("xread")) return false;
     for (uint32_t i = 1; i < op.argc() && !op.arg(i).eq_icase("streams"); i++)
         if (op.arg(i).eq_icase("block")) return true;
@@ -1407,8 +1521,9 @@ bool stream_reply_xread_payload(Op& op, Slice key, const std::vector<uint8_t>& p
 
 namespace {
 
-// Snapshot format v1: [u32 version][56-byte header][u32 physical count], followed by physical
-// records [u64 ms][u64 seq][u8 deleted][u32 fields] ([u32 flen][field][u32 vlen][value])... .
+// Snapshot format v2: the v1 record sequence followed by the cold consumer-group blob. Load keeps
+// accepting v1. Group serialization lives in t_stream_groups.cc so ordinary streams do not pull
+// map machinery into this translation unit.
 uint64_t stream_snapshot_size(KvObj* object, uint32_t& physical) {
     uint64_t total = 4 + sizeof(StreamHeader) + 4; physical = 0;
     if (!scan_object(object, [&](const RecordView& record) {
@@ -1427,8 +1542,15 @@ SnapshotHookStatus stream_snapshot_begin(const KvObj& object, SnapshotSaveCursor
     encoding = CollectionRef(const_cast<KvObj*>(&object)).encoding() ==
                        CollectionEncoding::Compact ? 1 : 2;
     uint32_t physical = 0;
-    cursor.total = stream_snapshot_size(const_cast<KvObj*>(&object), physical);
+    const uint64_t records = stream_snapshot_size(const_cast<KvObj*>(&object), physical);
+    const CollectionRef stream(const_cast<KvObj*>(&object));
+    const void* groups = stream.is_embedded() ? nullptr
+        : stream.external_as<StreamVal>()->groups;
+    const uint64_t group_bytes = stream_groups_snapshot_size(groups);
+    cursor.total = records == UINT64_MAX || group_bytes > UINT64_MAX - records
+        ? UINT64_MAX : records + group_bytes;
     cursor.lane[2] = physical;
+    cursor.lane[3] = records;
     return cursor.total == UINT64_MAX ? SnapshotHookStatus::Corrupt : SnapshotHookStatus::Ok;
 }
 
@@ -1441,7 +1563,7 @@ SnapshotHookStatus stream_snapshot_read(SnapshotSaveCursor& cursor, uint8_t* des
     uint64_t index = cursor.lane[0];
     if (index == 0) {
         uint8_t meta[64]{};
-        snapshot_put_u32(meta, 1);
+        snapshot_put_u32(meta, 2);
         StreamHeader header;
         if (!object_header(object, header)) return SnapshotHookStatus::Corrupt;
         const std::string encoded_header = header_bytes(header);
@@ -1480,6 +1602,19 @@ SnapshotHookStatus stream_snapshot_read(SnapshotSaveCursor& cursor, uint8_t* des
     cursor.lane[0] = stopped ? physical : static_cast<uint64_t>(cursor.lane[2]) + 1;
     cursor.lane[1] = stopped ? emitter.pos : 0;
     cursor.offset += emitter.out; written = emitter.out;
+    if (!stopped && written < capacity && cursor.offset >= cursor.lane[3] &&
+        cursor.offset < cursor.total) {
+        CollectionRef stream(object);
+        const void* groups = stream.is_embedded() ? nullptr
+            : stream.external_as<StreamVal>()->groups;
+        size_t group_written = 0;
+        if (!stream_groups_snapshot_read(groups, cursor.offset - cursor.lane[3],
+                                         destination + written, capacity - written,
+                                         group_written))
+            return SnapshotHookStatus::Corrupt;
+        cursor.offset += group_written;
+        written += group_written;
+    }
     return SnapshotHookStatus::Ok;
 }
 
@@ -1490,7 +1625,8 @@ SnapshotHookStatus stream_snapshot_load(Slice key, uint8_t encoding, int64_t exp
         return SnapshotHookStatus::Corrupt;
     const uint8_t* p = reinterpret_cast<const uint8_t*>(payload.p);
     size_t left = payload.n;
-    if (snapshot_get_u32(p) != 1) return SnapshotHookStatus::Corrupt;
+    const uint32_t version = snapshot_get_u32(p);
+    if (version != 1 && version != 2) return SnapshotHookStatus::Corrupt;
     StreamHeader header;
     header.base_id = {snapshot_get_u64(p + 4), snapshot_get_u64(p + 12)};
     header.last_id = {snapshot_get_u64(p + 20), snapshot_get_u64(p + 28)};
@@ -1523,7 +1659,7 @@ SnapshotHookStatus stream_snapshot_load(Slice key, uint8_t encoding, int64_t exp
             records.push_back(std::move(record));
         } catch (const std::bad_alloc&) { return SnapshotHookStatus::Oom; }
     }
-    if (left) return SnapshotHookStatus::Corrupt;
+    if (version == 1 && left) return SnapshotHookStatus::Corrupt;
     auto* value = new (std::nothrow) StreamVal;
     if (!value) return SnapshotHookStatus::Oom;
     value->header = header;
@@ -1534,7 +1670,13 @@ SnapshotHookStatus stream_snapshot_load(Slice key, uint8_t encoding, int64_t exp
     } else if (!build_external(*value, header, records, StreamLimits{})) {
         delete value; return SnapshotHookStatus::Oom;
     }
-    result = kvobj_adopt_stream(key, value, expire_at_ms);
+    if (version == 2 && !stream_groups_snapshot_load(
+            *value, Slice(reinterpret_cast<const char*>(p), static_cast<uint32_t>(left)))) {
+        delete value;
+        return SnapshotHookStatus::Corrupt;
+    }
+    result = value->groups ? kvobj_new_stream(key, value, expire_at_ms)
+                           : kvobj_adopt_stream(key, value, expire_at_ms);
     if (!result) { delete value; return SnapshotHookStatus::Oom; }
     return SnapshotHookStatus::Ok;
 }

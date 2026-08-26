@@ -8,7 +8,7 @@
 namespace tomo {
 
 enum class BlockingKind : uint8_t {
-    Blpop, Brpop, Blmove, Brpoplpush, Blmpop, Bzmpop, Bzpopmin, Bzpopmax, Xread,
+    Blpop, Brpop, Blmove, Brpoplpush, Blmpop, Bzmpop, Bzpopmin, Bzpopmax, Xread, Xreadgroup,
 };
 
 enum class BlockingPhase : uint8_t {
@@ -16,7 +16,7 @@ enum class BlockingPhase : uint8_t {
     MoveRequested, Transferred, Completed, Cancelled,
 };
 
-enum class BlockingProbe : uint8_t { Empty, Ready, WrongType };
+enum class BlockingProbe : uint8_t { Empty, Ready, WrongType, MissingGroup, Oom };
 
 struct BlockingKey {
     std::string key;
@@ -56,6 +56,9 @@ struct BlockingState {
     uint64_t count = 1;
     uint32_t selected = UINT32_MAX;
     uint32_t xread_first_id = 0;
+    std::string stream_group;
+    std::string stream_consumer;
+    bool stream_consumer_prepared = false;
     std::vector<BlockingKey> keys;
     std::vector<BlockingGroup> groups;
     std::atomic<NotifyBatch*> notify{nullptr};
@@ -104,7 +107,8 @@ Slice blocking_key_slice(const BlockingKey& key) {
 
 bool blocking_is_list(BlockingKind kind) {
     return kind != BlockingKind::Bzmpop && kind != BlockingKind::Bzpopmin &&
-           kind != BlockingKind::Bzpopmax && kind != BlockingKind::Xread;
+           kind != BlockingKind::Bzpopmax && kind != BlockingKind::Xread &&
+           kind != BlockingKind::Xreadgroup;
 }
 
 bool blocking_is_move(BlockingKind kind) {
@@ -143,6 +147,7 @@ bool blocking_classify(Op& op, BlockingKind& kind) {
     else if (!std::strcmp(name, "BZPOPMIN")) kind = BlockingKind::Bzpopmin;
     else if (!std::strcmp(name, "BZPOPMAX")) kind = BlockingKind::Bzpopmax;
     else if (!std::strcmp(name, "XREAD")) kind = BlockingKind::Xread;
+    else if (!std::strcmp(name, "XREADGROUP")) kind = BlockingKind::Xreadgroup;
     else return false;
     return true;
 }
@@ -247,13 +252,41 @@ bool blocking_validate(Op& op, BlockingState& state, uint32_t& first_key,
             }
             break;
         }
+        case BlockingKind::Xreadgroup: {
+            StreamXreadGroupArgs parsed;
+            if (!stream_parse_xreadgroup(op, parsed) || !parsed.block || !parsed.new_entries) {
+                if (op.reply.empty()) reply_err(op.sink(), "ERR internal blocking routing error");
+                return false;
+            }
+            first_key = parsed.key_arg;
+            key_count = 1;
+            state.count = parsed.count;
+            timeout_arg = UINT32_MAX;
+            try {
+                state.stream_group.assign(op.arg(parsed.group_arg).p, op.arg(parsed.group_arg).n);
+                state.stream_consumer.assign(op.arg(parsed.consumer_arg).p,
+                                             op.arg(parsed.consumer_arg).n);
+            }
+            catch (const std::bad_alloc&) { reply_err(op.sink(), "ERR out of memory"); return false; }
+            if (parsed.block_ms) {
+                timespec now{};
+                ::clock_gettime(CLOCK_REALTIME, &now);
+                const uint64_t now_ms = static_cast<uint64_t>(now.tv_sec) * 1000 +
+                                        static_cast<uint64_t>(now.tv_nsec / 1000000);
+                if (parsed.block_ms > static_cast<uint64_t>(INT64_MAX) - now_ms) {
+                    reply_err(op.sink(), "ERR timeout is out of range"); return false;
+                }
+                state.deadline_ms = static_cast<int64_t>(now_ms + parsed.block_ms);
+            }
+            break;
+        }
     }
 
     if (!key_count || static_cast<uint64_t>(first_key) + key_count > op.argc()) {
         reply_syntax(op.sink());
         return false;
     }
-    if (state.kind == BlockingKind::Xread) return true;
+    if (state.kind == BlockingKind::Xread || state.kind == BlockingKind::Xreadgroup) return true;
     double seconds = 0;
     if (!blocking_parse_timeout(op.arg(timeout_arg), seconds)) {
         reply_err(op.sink(), "ERR timeout is not a float or out of range");
@@ -335,7 +368,7 @@ void blocking_task_done(BlockingState& state, ThreadCtx& self, Ring& ring) {
     }
 }
 
-BlockingProbe blocking_probe_key(Shard& shard, const BlockingState& state,
+BlockingProbe blocking_probe_key(Shard& shard, BlockingState& state,
                                  BlockingKey& key) {
     KvObj* object = shard.notify_carrier()
         ? shard.store_find<true>(key.hash, blocking_key_slice(key))
@@ -345,9 +378,11 @@ BlockingProbe blocking_probe_key(Shard& shard, const BlockingState& state,
             key.cursor = {};
             key.cursor_resolved = true;
         }
-        return BlockingProbe::Empty;
+        return state.kind == BlockingKind::Xreadgroup
+            ? BlockingProbe::MissingGroup : BlockingProbe::Empty;
     }
-    const Type wanted = state.kind == BlockingKind::Xread ? Type::Stream :
+    const Type wanted = (state.kind == BlockingKind::Xread ||
+                         state.kind == BlockingKind::Xreadgroup) ? Type::Stream :
                         blocking_is_list(state.kind) ? Type::List : Type::Zset;
     if (static_cast<Type>(object->type) != wanted) return BlockingProbe::WrongType;
     if (state.kind == BlockingKind::Xread) {
@@ -368,6 +403,27 @@ BlockingProbe blocking_probe_key(Shard& shard, const BlockingState& state,
         if (captured != StreamReadResult::Ready) key.wake_payload.clear();
         return BlockingProbe::Ready;
     }
+    if (state.kind == BlockingKind::Xreadgroup) {
+        const Slice group(state.stream_group.data(),
+                          static_cast<uint32_t>(state.stream_group.size()));
+        StreamGroupProbe probe;
+        if (!state.stream_consumer_prepared) {
+            probe = stream_group_prepare_waiter(
+                shard, blocking_key_slice(key), key.hash, group,
+                Slice(state.stream_consumer.data(),
+                      static_cast<uint32_t>(state.stream_consumer.size())));
+            if (probe != StreamGroupProbe::Oom && probe != StreamGroupProbe::MissingGroup &&
+                probe != StreamGroupProbe::WrongType && probe != StreamGroupProbe::Corrupt)
+                state.stream_consumer_prepared = true;
+        } else {
+            probe = stream_group_probe(shard, blocking_key_slice(key), key.hash, group);
+        }
+        if (probe == StreamGroupProbe::Ready) return BlockingProbe::Ready;
+        if (probe == StreamGroupProbe::Empty) return BlockingProbe::Empty;
+        if (probe == StreamGroupProbe::WrongType) return BlockingProbe::WrongType;
+        if (probe == StreamGroupProbe::Oom) return BlockingProbe::Oom;
+        return BlockingProbe::MissingGroup;
+    }
     return CollectionRef(object).entries() ? BlockingProbe::Ready : BlockingProbe::Empty;
 }
 
@@ -376,15 +432,26 @@ BlockingProbe blocking_probe_key(Shard& shard, const BlockingState& state,
 // waits on its own cursor into the same collection, so "not ready" is a property of the waiter,
 // not the key, and a stalled cursor must not strand an already-satisfiable waiter behind it.
 bool blocking_skip_when_not_ready(BlockingKind kind) {
-    return kind == BlockingKind::Xread;
+    return kind == BlockingKind::Xread || kind == BlockingKind::Xreadgroup;
 }
 
-bool blocking_pick(const BlockingState& state, uint32_t& selected, bool& wrong_type) {
+bool blocking_pick(const BlockingState& state, uint32_t& selected, bool& wrong_type,
+                   bool& missing_group, bool& oom) {
     selected = UINT32_MAX;
     wrong_type = false;
+    missing_group = false;
+    oom = false;
     for (uint32_t i = 0; i < state.keys.size(); i++) {
         if (state.keys[i].probe == BlockingProbe::WrongType) {
             wrong_type = true;
+            return true;
+        }
+        if (state.keys[i].probe == BlockingProbe::MissingGroup) {
+            missing_group = true;
+            return true;
+        }
+        if (state.keys[i].probe == BlockingProbe::Oom) {
+            oom = true;
             return true;
         }
         if (state.keys[i].probe == BlockingProbe::Ready) {
@@ -462,6 +529,18 @@ void blocking_finish_error(BlockingState& state, ThreadCtx& self, Ring& ring) {
     blocking_publish_completion(state, self, ring);
 }
 
+void blocking_finish_missing_group(BlockingState& state, ThreadCtx& self, Ring& ring) {
+    Op& op = state.client->rob().at(state.op_id);
+    stream_xreadgroup_reply_nogroup(op);
+    blocking_publish_completion(state, self, ring);
+}
+
+void blocking_finish_oom(BlockingState& state, ThreadCtx& self, Ring& ring) {
+    Op& op = state.client->rob().at(state.op_id);
+    reply_err(op.sink(), "ERR out of memory");
+    blocking_publish_completion(state, self, ring);
+}
+
 void blocking_fail_registration_oom(BlockingState& state, Op& op,
                                     ThreadCtx& self, Ring& ring) {
     BlockingPhase expected = BlockingPhase::Registering;
@@ -476,6 +555,11 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
     BlockingKey& key = state.keys[state.selected];
     const Slice key_slice = blocking_key_slice(key);
     Op& op = state.client->rob().at(state.op_id);
+    if (state.kind == BlockingKind::Xreadgroup) {
+        if (!stream_xreadgroup_execute(shard, op)) return false;
+        blocking_publish_completion(state, self, ring);
+        return true;
+    }
     bool plain_active = false;
     if (shard.store().atomic_has_record(key.hash, key_slice)) {
         const WorkError prepared = begin_plain_version(
@@ -742,15 +826,17 @@ bool blocking_finish_probe(BlockingState& state, Shard& shard, ThreadCtx& self, 
         return true;
     }
     uint32_t selected = UINT32_MAX;
-    bool wrong_type = false;
-    if (blocking_pick(state, selected, wrong_type)) {
+    bool wrong_type = false, missing_group = false, oom = false;
+    if (blocking_pick(state, selected, wrong_type, missing_group, oom)) {
         BlockingPhase expected = BlockingPhase::Probe;
-        const BlockingPhase desired = wrong_type ? BlockingPhase::Completed
-                                                 : BlockingPhase::Claimed;
+        const BlockingPhase desired = (wrong_type || missing_group || oom)
+            ? BlockingPhase::Completed : BlockingPhase::Claimed;
         if (!state.phase.compare_exchange_strong(
                 expected, desired, std::memory_order_acq_rel,
                 std::memory_order_acquire)) return true;
         if (wrong_type) { blocking_finish_error(state, self, ring); return true; }
+        if (missing_group) { blocking_finish_missing_group(state, self, ring); return true; }
+        if (oom) { blocking_finish_oom(state, self, ring); return true; }
         state.selected = selected;
         return blocking_dispatch_selected(state, shard, self, ring);
     }
@@ -769,8 +855,8 @@ bool blocking_finish_registration(BlockingState& state, Shard& shard,
         return true;
     }
     uint32_t selected = UINT32_MAX;
-    bool wrong_type = false;
-    const bool picked = blocking_pick(state, selected, wrong_type);
+    bool wrong_type = false, missing_group = false, oom = false;
+    const bool picked = blocking_pick(state, selected, wrong_type, missing_group, oom);
     const uint32_t signaled = state.candidate.load(std::memory_order_acquire);
     if (!picked && signaled != UINT32_MAX) selected = signaled;
     if (wrong_type) {
@@ -779,6 +865,22 @@ bool blocking_finish_registration(BlockingState& state, Shard& shard,
                 expected, BlockingPhase::Completed, std::memory_order_acq_rel,
                 std::memory_order_acquire))
             blocking_finish_error(state, self, ring);
+        return true;
+    }
+    if (missing_group) {
+        BlockingPhase expected = BlockingPhase::Registering;
+        if (state.phase.compare_exchange_strong(
+                expected, BlockingPhase::Completed, std::memory_order_acq_rel,
+                std::memory_order_acquire))
+            blocking_finish_missing_group(state, self, ring);
+        return true;
+    }
+    if (oom) {
+        BlockingPhase expected = BlockingPhase::Registering;
+        if (state.phase.compare_exchange_strong(
+                expected, BlockingPhase::Completed, std::memory_order_acq_rel,
+                std::memory_order_acquire))
+            blocking_finish_oom(state, self, ring);
         return true;
     }
     if (selected != UINT32_MAX) {

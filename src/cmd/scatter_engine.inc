@@ -9,7 +9,7 @@
 namespace tomo {
 namespace {
 enum class Kind : uint8_t {
-    AllShards, DebugReload, DebugLoadAof, DbsizeExact, Mget, Mset, Del, Unlink, Exists, Touch, Keys, Pfcount, Xread, Msetnx,
+    AllShards, DebugReload, DebugLoadAof, DbsizeExact, Mget, Mset, Del, Unlink, Exists, Touch, Keys, Pfcount, Xread, Xreadgroup, Msetnx,
     Rename, Renamenx, Copy, Smove, Lmove, Rpoplpush,
     Sinter, Sunion, Sdiff, Sintercard, Sinterstore, Sunionstore, Sdiffstore,
     Bitop, Pfmerge,
@@ -462,7 +462,7 @@ uint32_t key_count_for(Kind kind, const Op& op, uint32_t sinter_count,
     if (kind == Kind::Lmpop || kind == Kind::Zmpop) return mpop_count;
     if (kind == Kind::Zrangestore) return 2;
     if (kind == Kind::Sort) return sort_store ? 2 : 1;
-    if (kind == Kind::Xread) return xread_count;
+    if (kind == Kind::Xread || kind == Kind::Xreadgroup) return xread_count;
     return op.argc() - 1;
 }
 
@@ -473,7 +473,7 @@ uint32_t key_arg_for(Kind kind, uint32_t key, uint32_t, uint32_t sort_store_arg,
     if (kind == Kind::Sintercard) return 2 + key;
     if (kind == Kind::Lmpop || kind == Kind::Zmpop) return 2 + key;
     if (kind == Kind::Sort && sort_store_arg) return key == 0 ? sort_store_arg : 1;
-    if (kind == Kind::Xread) return xread_first_key + key;
+    if (kind == Kind::Xread || kind == Kind::Xreadgroup) return xread_first_key + key;
     return 1 + key;
 }
 
@@ -970,6 +970,13 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     StreamXreadArgs xread_options;
     if (kind == Kind::Xread && !stream_parse_xread(op, xread_options))
         return ScatterPrepare::Error;
+    StreamXreadGroupArgs xreadgroup_options;
+    if (kind == Kind::Xreadgroup) {
+        if (!stream_parse_xreadgroup(op, xreadgroup_options)) return ScatterPrepare::Error;
+        xread_options.first_key = xreadgroup_options.key_arg;
+        xread_options.key_count = 1;
+        xread_options.block = xreadgroup_options.block && xreadgroup_options.new_entries;
+    }
     const bool atomic_apply = atomic_enabled && is_atomic_apply_kind(kind, sort_options.store);
     const bool atomic_pop = atomic_enabled && is_atomic_pop_kind(kind);
     const bool atomic_group = atomic_write || atomic_apply || atomic_pop;
@@ -1025,11 +1032,11 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         for (uint32_t i = 1; i < key_count; i++) same_owner &= routes[i].shard == routes[0].shard;
         // Common same-owner commands retain localfast. If an atomic window touches one of their
         // keys, the owner resolves it through the short pending-entry list and clones only writes.
-        const bool xread_local = kind == Kind::Xread && key_count == 1 &&
-                                 !xread_options.block;
+        const bool xread_kind = kind == Kind::Xread || kind == Kind::Xreadgroup;
+        const bool xread_local = xread_kind && key_count == 1 && !xread_options.block;
         if (same_owner && kind != Kind::Pfcount && kind != Kind::Pfmerge &&
             (!(op.spec->flags & CmdFlags::Blocking) || xread_local) &&
-            (kind != Kind::Xread || xread_local)) {
+            (!xread_kind || xread_local)) {
             op.shard = routes[0].shard;
             op.hash = routes[0].hash;
             op.mark_local_xshard();
@@ -1313,6 +1320,11 @@ void xshard_aof_emit_local(Shard& shard, Op& op, AofOwnerContext& context) {
         case Kind::Bitop:
             emit(2);
             break;
+        case Kind::Xreadgroup: {
+            StreamXreadGroupArgs parsed;
+            if (stream_parse_xreadgroup(op, parsed)) emit(parsed.key_arg);
+            break;
+        }
         case Kind::Lmpop:
         case Kind::Zmpop: {
             uint32_t numkeys = 0;
