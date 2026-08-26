@@ -152,14 +152,18 @@ void destroy_multi_state(MultiExecState* state) {
 }
 
 bool command_forbidden_in_multi(const Op& op) {
-    // No blocking/subscription rows exist yet.  SAVE blocks the IO owner; the random families are
-    // deliberately outside the V1 deterministic contract.
+    // Subscription controls need the IO-owned async home protocol, which cannot run from an EXEC
+    // child. Reject all six controls uniformly; this is intentionally stricter than Redis for the
+    // four regular controls and matches it for SSUBSCRIBE/SUNSUBSCRIBE.
     const bool config_mutation = multi_name(op, "config") && op.argc() > 1 &&
                                  !op.arg(1).eq_icase("get");
     return multi_name(op, "save") || multi_name(op, "flushall") ||
            multi_name(op, "flushdb") || config_mutation || multi_name(op, "randomkey") ||
            multi_name(op, "spop") || multi_name(op, "srandmember") ||
-           multi_name(op, "zrandmember") || multi_name(op, "hrandfield");
+           multi_name(op, "zrandmember") || multi_name(op, "hrandfield") ||
+           multi_name(op, "subscribe") || multi_name(op, "unsubscribe") ||
+           multi_name(op, "psubscribe") || multi_name(op, "punsubscribe") ||
+           multi_name(op, "ssubscribe") || multi_name(op, "sunsubscribe");
 }
 
 bool queued_copy(const Op& op, MultiQueuedCommand& out) {

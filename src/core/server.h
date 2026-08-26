@@ -419,18 +419,22 @@ public:
     void pubsub_home_entry_removed() {
         if (pubsub_home_entries_.fetch_sub(1, std::memory_order_relaxed) == 0) std::abort();
     }
-    void pubsub_active_channel_added() {
-        pubsub_active_channels_.fetch_add(1, std::memory_order_relaxed);
-    }
-    void pubsub_active_channel_removed() {
-        if (pubsub_active_channels_.fetch_sub(1, std::memory_order_relaxed) == 0) std::abort();
-    }
-    void pubsub_subscription_added(bool pattern) {
-        (pattern ? pubsub_pattern_subscriptions_ : pubsub_subscriptions_)
+    void pubsub_active_channel_added(bool shard = false) {
+        (shard ? pubsub_shard_channels_ : pubsub_active_channels_)
             .fetch_add(1, std::memory_order_relaxed);
     }
-    void pubsub_subscription_removed(bool pattern) {
-        auto& value = pattern ? pubsub_pattern_subscriptions_ : pubsub_subscriptions_;
+    void pubsub_active_channel_removed(bool shard = false) {
+        auto& value = shard ? pubsub_shard_channels_ : pubsub_active_channels_;
+        if (value.fetch_sub(1, std::memory_order_relaxed) == 0) std::abort();
+    }
+    void pubsub_subscription_added(bool pattern, bool shard = false) {
+        (shard ? pubsub_shard_subscriptions_
+               : (pattern ? pubsub_pattern_subscriptions_ : pubsub_subscriptions_))
+            .fetch_add(1, std::memory_order_relaxed);
+    }
+    void pubsub_subscription_removed(bool pattern, bool shard = false) {
+        auto& value = shard ? pubsub_shard_subscriptions_
+                            : (pattern ? pubsub_pattern_subscriptions_ : pubsub_subscriptions_);
         if (value.fetch_sub(1, std::memory_order_relaxed) == 0) std::abort();
     }
     uint64_t pubsub_inflight() const { return pubsub_inflight_.load(std::memory_order_relaxed); }
@@ -446,6 +450,12 @@ public:
     }
     uint64_t pubsub_pattern_subscriptions() const {
         return pubsub_pattern_subscriptions_.load(std::memory_order_relaxed);
+    }
+    uint64_t pubsub_shard_channels() const {
+        return pubsub_shard_channels_.load(std::memory_order_relaxed);
+    }
+    uint64_t pubsub_shard_subscriptions() const {
+        return pubsub_shard_subscriptions_.load(std::memory_order_relaxed);
     }
 
 private:
@@ -573,6 +583,8 @@ private:
     std::atomic<uint64_t> pubsub_active_channels_{0};
     std::atomic<uint64_t> pubsub_subscriptions_{0};
     std::atomic<uint64_t> pubsub_pattern_subscriptions_{0};
+    std::atomic<uint64_t> pubsub_shard_channels_{0};
+    std::atomic<uint64_t> pubsub_shard_subscriptions_{0};
 };
 
 }  // namespace tomo

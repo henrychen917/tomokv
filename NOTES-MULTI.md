@@ -7,10 +7,12 @@
 - Unknown commands and arity failures mark the transaction dirty at queue time. `EXEC` then returns
   `EXECABORT` without executing any queued command. Errors found by a command while it executes stay
   in that command's EXEC array element.
-- Blocking/persistence and nondeterministic random-selection commands are rejected in MULTI with
-  `ERR Command not allowed inside a transaction`. The current table has no blocking/subscription
-  rows; blocking whole-keyspace/persistence operations, CONFIG mutations outside the data group,
-  `RANDOMKEY`, and the random-member/removal families are the explicit exclusions.
+- Blocking/persistence, all six subscription controls, and nondeterministic random-selection
+  commands are rejected in MULTI with `ERR Command not allowed inside a transaction`. Redis permits
+  the four regular subscription controls in MULTI for backward compatibility, but our IO-owned
+  async home protocol cannot execute as an EXEC child; rejecting all six controls is the explicit
+  divergence. Blocking whole-keyspace/persistence operations, CONFIG mutations outside the data
+  group, `RANDOMKEY`, and the random-member/removal families are the other exclusions.
 - Key-routed commands execute on the owning shard. Same-owner commands reuse their normal handler;
   general multi-owner commands reuse the existing scatter lowering. PING/ECHO and the common
   MGET/MSET/MSETNX/DEL/EXISTS forms have compact transaction paths. Connection-local commands return

@@ -24,6 +24,7 @@
         Client* client = nullptr;
         std::unordered_set<std::string> channels;
         std::unordered_set<std::string> patterns;
+        std::unordered_set<std::string> shard_channels;
         uint32_t pending = 0;
         uint32_t cleanup_remaining = 0;
         bool cleanup_started = false;
@@ -35,6 +36,7 @@
         uint64_t op_id = 0;
         uint32_t remaining = 0;
         bool pattern = false;
+        bool shard = false;
         bool subscribe = false;
         std::vector<std::string> items;
         std::vector<int8_t> changes;
@@ -89,19 +91,21 @@
         return std::find(refs.begin(), refs.end(), wanted) != refs.end();
     }
 
-    bool pubsub_home_add_channel(const std::string& channel, const PubSubRef& ref) {
-        auto [it, inserted] = pubsub_channels_.try_emplace(channel);
+    bool pubsub_home_add_channel(const std::string& channel, const PubSubRef& ref, bool shard) {
+        auto& index = shard ? pubsub_shard_channels_ : pubsub_channels_;
+        auto [it, inserted] = index.try_emplace(channel);
         std::vector<PubSubRef>& refs = it->second;
         if (pubsub_has_ref(refs, ref)) return false;
-        if (inserted || refs.empty()) srv_->pubsub_active_channel_added();
+        if (inserted || refs.empty()) srv_->pubsub_active_channel_added(shard);
         refs.push_back(ref);
         srv_->pubsub_home_entry_added();
         return true;
     }
 
-    bool pubsub_home_remove_channel(const std::string& channel, const PubSubRef& ref) {
-        auto it = pubsub_channels_.find(channel);
-        if (it == pubsub_channels_.end()) return false;
+    bool pubsub_home_remove_channel(const std::string& channel, const PubSubRef& ref, bool shard) {
+        auto& index = shard ? pubsub_shard_channels_ : pubsub_channels_;
+        auto it = index.find(channel);
+        if (it == index.end()) return false;
         std::vector<PubSubRef>& refs = it->second;
         auto found = std::find(refs.begin(), refs.end(), ref);
         if (found == refs.end()) return false;
@@ -109,8 +113,8 @@
         refs.pop_back();
         srv_->pubsub_home_entry_removed();
         if (refs.empty()) {
-            pubsub_channels_.erase(it);
-            srv_->pubsub_active_channel_removed();
+            index.erase(it);
+            srv_->pubsub_active_channel_removed(shard);
         }
         return true;
     }
@@ -135,8 +139,10 @@
         return false;
     }
 
-    void pubsub_home_cleanup(const PubSubRef& ref) {
-        for (auto it = pubsub_channels_.begin(); it != pubsub_channels_.end();) {
+    void pubsub_home_cleanup_channels(
+            std::unordered_map<std::string, std::vector<PubSubRef>>& index,
+            const PubSubRef& ref, bool shard) {
+        for (auto it = index.begin(); it != index.end();) {
             std::vector<PubSubRef>& refs = it->second;
             size_t out = 0;
             for (size_t i = 0; i < refs.size(); i++) {
@@ -145,12 +151,17 @@
             }
             refs.resize(out);
             if (refs.empty()) {
-                it = pubsub_channels_.erase(it);
-                srv_->pubsub_active_channel_removed();
+                it = index.erase(it);
+                srv_->pubsub_active_channel_removed(shard);
             } else {
                 ++it;
             }
         }
+    }
+
+    void pubsub_home_cleanup(const PubSubRef& ref) {
+        pubsub_home_cleanup_channels(pubsub_channels_, ref, false);
+        pubsub_home_cleanup_channels(pubsub_shard_channels_, ref, true);
         size_t out = 0;
         for (size_t i = 0; i < pubsub_patterns_.size(); i++) {
             if (pubsub_patterns_[i].ref == ref) srv_->pubsub_home_entry_removed();
@@ -167,7 +178,8 @@
             reply_bulk(frame, Slice(event.pattern_text.data(), event.pattern_text.size()));
         } else {
             reply_array_header(frame, 3);
-            reply_bulk(frame, Slice("message", 7));
+            if (event.shard) reply_bulk(frame, Slice("smessage", 8));
+            else reply_bulk(frame, Slice("message", 7));
         }
         reply_bulk(frame, Slice(event.channel.data(), event.channel.size()));
         reply_bulk(frame, Slice(event.message.data(), event.message.size()));
@@ -211,31 +223,34 @@
 
     void pubsub_home_publish(PubSubEvent& request) {
         uint64_t receivers = 0;
-        const PubSubRef publisher{request.origin_io, request.conn_id};
-        (void)publisher;
-        auto exact = pubsub_channels_.find(request.channel);
-        if (exact != pubsub_channels_.end()) {
+        auto& index = request.shard ? pubsub_shard_channels_ : pubsub_channels_;
+        auto exact = index.find(request.channel);
+        if (exact != index.end()) {
             for (const PubSubRef& ref : exact->second) {
                 PubSubEvent* delivery = pubsub_new_event(PubSubEventKind::Delivery);
                 delivery->conn_id = ref.conn;
+                delivery->shard = request.shard;
                 delivery->channel = request.channel;
                 delivery->message = request.message;
                 pubsub_post(ref.io, delivery);
                 receivers++;
             }
         }
-        const Slice channel(request.channel.data(), request.channel.size());
-        for (const PubSubPatternRef& entry : pubsub_patterns_) {
-            if (!command_glob_match(Slice(entry.pattern.data(), entry.pattern.size()), channel))
-                continue;
-            PubSubEvent* delivery = pubsub_new_event(PubSubEventKind::Delivery);
-            delivery->conn_id = entry.ref.conn;
-            delivery->pattern = true;
-            delivery->pattern_text = entry.pattern;
-            delivery->channel = request.channel;
-            delivery->message = request.message;
-            pubsub_post(entry.ref.io, delivery);
-            receivers++;
+        // Shard pub/sub is an exact-only namespace. Redis returns before its pattern walk too.
+        if (!request.shard) {
+            const Slice channel(request.channel.data(), request.channel.size());
+            for (const PubSubPatternRef& entry : pubsub_patterns_) {
+                if (!command_glob_match(Slice(entry.pattern.data(), entry.pattern.size()), channel))
+                    continue;
+                PubSubEvent* delivery = pubsub_new_event(PubSubEventKind::Delivery);
+                delivery->conn_id = entry.ref.conn;
+                delivery->pattern = true;
+                delivery->pattern_text = entry.pattern;
+                delivery->channel = request.channel;
+                delivery->message = request.message;
+                pubsub_post(entry.ref.io, delivery);
+                receivers++;
+            }
         }
         PubSubEvent* result = pubsub_new_event(PubSubEventKind::PublishResult);
         result->conn_id = request.conn_id;
@@ -252,6 +267,7 @@
                 result->conn_id = event.conn_id;
                 result->op_id = event.op_id;
                 result->pattern = event.pattern;
+                result->shard = event.shard;
                 result->subscribe = event.subscribe;
                 result->items = event.items;
                 for (PubSubEventItem& item : result->items) {
@@ -260,8 +276,8 @@
                             ? pubsub_home_add_pattern(item.value, ref)
                             : pubsub_home_remove_pattern(item.value, ref))
                         : (event.subscribe
-                            ? pubsub_home_add_channel(item.value, ref)
-                            : pubsub_home_remove_channel(item.value, ref));
+                            ? pubsub_home_add_channel(item.value, ref, event.shard)
+                            : pubsub_home_remove_channel(item.value, ref, event.shard));
                 }
                 pubsub_post(event.origin_io, result);
                 break;
@@ -274,7 +290,8 @@
                 result->conn_id = event.conn_id;
                 result->op_id = event.op_id;
                 const bool filtered = event.pattern;
-                for (const auto& item : pubsub_channels_) {
+                const auto& index = event.shard ? pubsub_shard_channels_ : pubsub_channels_;
+                for (const auto& item : index) {
                     if (filtered && !command_glob_match(
                             Slice(event.pattern_text.data(), event.pattern_text.size()),
                             Slice(item.first.data(), item.first.size())))
@@ -289,9 +306,10 @@
                 result->conn_id = event.conn_id;
                 result->op_id = event.op_id;
                 result->items = event.items;
+                const auto& index = event.shard ? pubsub_shard_channels_ : pubsub_channels_;
                 for (PubSubEventItem& item : result->items) {
-                    auto found = pubsub_channels_.find(item.value);
-                    item.count = found == pubsub_channels_.end() ? 0 : found->second.size();
+                    auto found = index.find(item.value);
+                    item.count = found == index.end() ? 0 : found->second.size();
                 }
                 pubsub_post(event.origin_io, result);
                 break;
@@ -324,25 +342,39 @@
         }
     }
 
-    void pubsub_account_local_change(PubSubLocalConn& local, bool pattern,
+    void pubsub_account_local_change(PubSubLocalConn& local, bool pattern, bool shard,
                                      bool subscribe, const std::string& value) {
-        auto& values = pattern ? local.patterns : local.channels;
+        auto& values = shard ? local.shard_channels : (pattern ? local.patterns : local.channels);
         if (subscribe) {
-            if (values.insert(value).second) srv_->pubsub_subscription_added(pattern);
+            if (values.insert(value).second) srv_->pubsub_subscription_added(pattern, shard);
         } else {
-            if (values.erase(value)) srv_->pubsub_subscription_removed(pattern);
+            if (values.erase(value)) srv_->pubsub_subscription_removed(pattern, shard);
         }
+        if (shard && local.client)
+            command_client_set_shard_subscriptions(
+                local.client, static_cast<uint32_t>(local.shard_channels.size()));
     }
 
     static uint64_t pubsub_subscription_count(const PubSubLocalConn& local) {
         return local.channels.size() + local.patterns.size();
     }
 
-    void pubsub_append_ack(Op::Sink& sink, bool pattern, bool subscribe,
+    static uint64_t pubsub_shard_subscription_count(const PubSubLocalConn& local) {
+        return local.shard_channels.size();
+    }
+
+    static uint64_t pubsub_total_subscription_count(const PubSubLocalConn& local) {
+        return pubsub_subscription_count(local) + pubsub_shard_subscription_count(local);
+    }
+
+    void pubsub_append_ack(Op::Sink& sink, bool pattern, bool shard, bool subscribe,
                            const std::string* value, uint64_t count) {
         const char* label = nullptr;
         uint32_t label_len = 0;
-        if (pattern) {
+        if (shard) {
+            label = subscribe ? "ssubscribe" : "sunsubscribe";
+            label_len = subscribe ? 10 : 12;
+        } else if (pattern) {
             label = subscribe ? "psubscribe" : "punsubscribe";
             label_len = subscribe ? 10 : 12;
         } else {
@@ -361,8 +393,12 @@
             srv_->pubsub_subscription_removed(false);
         for (size_t i = 0; i < local.patterns.size(); i++)
             srv_->pubsub_subscription_removed(true);
+        for (size_t i = 0; i < local.shard_channels.size(); i++)
+            srv_->pubsub_subscription_removed(false, true);
         local.channels.clear();
         local.patterns.clear();
+        local.shard_channels.clear();
+        if (local.client) command_client_set_shard_subscriptions(local.client, 0);
         if (local.client) local.client->set_subscriber_mode(false);
     }
 
@@ -382,13 +418,14 @@
                     sink.append(pending.deferred.data(), pending.deferred.size());
                 for (const std::string& item : pending.items) {
                     pubsub_account_local_change(
-                        local, pending.pattern, pending.subscribe, item);
-                    pubsub_append_ack(sink, pending.pattern, pending.subscribe, &item,
-                                      pubsub_subscription_count(local));
+                        local, pending.pattern, pending.shard, pending.subscribe, item);
+                    pubsub_append_ack(sink, pending.pattern, pending.shard, pending.subscribe, &item,
+                        pending.shard ? pubsub_shard_subscription_count(local)
+                                      : pubsub_subscription_count(local));
                 }
                 if (pending.subscribe && !pending.deferred.empty())
                     sink.append(pending.deferred.data(), pending.deferred.size());
-                client->set_subscriber_mode(pubsub_subscription_count(local) != 0);
+                client->set_subscriber_mode(pubsub_total_subscription_count(local) != 0);
                 break;
             case PubSubPendingKind::Publish:
                 reply_int(sink, static_cast<long long>(pending.count));
@@ -430,7 +467,7 @@
         srv_->pubsub_pending_finished();
         pubsub_pending_.erase(pending_it);
         if (!client->closing() && !local.pending && local.channels.empty() &&
-            local.patterns.empty() && !local.cleanup_started)
+            local.patterns.empty() && local.shard_channels.empty() && !local.cleanup_started)
             pubsub_local_.erase(local_it);
     }
 
@@ -554,11 +591,12 @@
     }
 
     PubSubStartResult pubsub_start_modify(Client* client, Op& op, bool pattern,
-                                          bool subscribe) {
+                                          bool subscribe, bool shard = false) {
         PubSubPending pending;
         pending.kind = PubSubPendingKind::Modify;
         pending.op_id = client->rob().dispatch_id();
         pending.pattern = pattern;
+        pending.shard = shard;
         pending.subscribe = subscribe;
 
         if (subscribe || op.argc() > 1) {
@@ -567,14 +605,17 @@
         } else {
             auto local_it = pubsub_local_.find(client->id());
             if (local_it != pubsub_local_.end()) {
-                const auto& values = pattern ? local_it->second.patterns : local_it->second.channels;
+                const auto& values = shard ? local_it->second.shard_channels
+                                           : (pattern ? local_it->second.patterns
+                                                      : local_it->second.channels);
                 pending.items.assign(values.begin(), values.end());
             }
             if (pending.items.empty()) {
                 auto sink = op.sink();
-                pubsub_append_ack(sink, pattern, false, nullptr,
+                pubsub_append_ack(sink, pattern, shard, false, nullptr,
                     local_it == pubsub_local_.end()
-                        ? 0 : pubsub_subscription_count(local_it->second));
+                        ? 0 : (shard ? pubsub_shard_subscription_count(local_it->second)
+                                     : pubsub_subscription_count(local_it->second)));
                 return PubSubStartResult::Sync;
             }
         }
@@ -587,6 +628,7 @@
             for (uint32_t io : ios) {
                 PubSubEvent* event = pubsub_new_event(PubSubEventKind::ModifyRequest);
                 event->pattern = true;
+                event->shard = false;
                 event->subscribe = subscribe;
                 event->target_io = io;
                 for (uint32_t i = 0; i < pending.items.size(); i++)
@@ -600,6 +642,7 @@
                 PubSubEvent*& event = homes[home];
                 if (!event) {
                     event = pubsub_new_event(PubSubEventKind::ModifyRequest);
+                    event->shard = shard;
                     event->subscribe = subscribe;
                     event->target_io = home;
                     events.push_back(event);
@@ -610,11 +653,12 @@
         return pubsub_begin_pending(client, std::move(pending), events);
     }
 
-    PubSubStartResult pubsub_start_publish(Client* client, Op& op) {
+    PubSubStartResult pubsub_start_publish(Client* client, Op& op, bool shard = false) {
         PubSubPending pending;
         pending.kind = PubSubPendingKind::Publish;
         pending.op_id = client->rob().dispatch_id();
         PubSubEvent* event = pubsub_new_event(PubSubEventKind::PublishRequest);
+        event->shard = shard;
         event->channel = pubsub_string(op.arg(1));
         event->message = pubsub_string(op.arg(2));
         event->target_io = pubsub_home_for(event->channel);
@@ -622,7 +666,7 @@
         return pubsub_begin_pending(client, std::move(pending), events);
     }
 
-    PubSubStartResult pubsub_start_channels(Client* client, Op& op) {
+    PubSubStartResult pubsub_start_channels(Client* client, Op& op, bool shard = false) {
         if (op.argc() > 3) {
             reply_syntax(op.sink());
             return PubSubStartResult::Sync;
@@ -634,6 +678,7 @@
         std::vector<PubSubEvent*> events;
         for (uint32_t io : srv_->placement().ifid_threads()) {
             PubSubEvent* event = pubsub_new_event(PubSubEventKind::ChannelsRequest);
+            event->shard = shard;
             event->pattern_text = pattern;
             event->pattern = op.argc() == 3;
             event->target_io = io;
@@ -642,7 +687,7 @@
         return pubsub_begin_pending(client, std::move(pending), events);
     }
 
-    PubSubStartResult pubsub_start_numsub(Client* client, Op& op) {
+    PubSubStartResult pubsub_start_numsub(Client* client, Op& op, bool shard = false) {
         if (op.argc() == 2) {
             reply_array_header(op.sink(), 0);
             return PubSubStartResult::Sync;
@@ -659,6 +704,7 @@
             PubSubEvent*& event = homes[home];
             if (!event) {
                 event = pubsub_new_event(PubSubEventKind::NumsubRequest);
+                event->shard = shard;
                 event->target_io = home;
                 events.push_back(event);
             }
@@ -694,19 +740,48 @@
         return pubsub_begin_pending(client, std::move(pending), events);
     }
 
+    PubSubStartResult pubsub_start_help(Op& op) {
+        static constexpr const char* kHelp[] = {
+            "PUBSUB <subcommand> [<arg> [value] [opt] ...]. Subcommands are:",
+            "CHANNELS [<pattern>]",
+            "    Return the currently active channels matching a <pattern> (default: '*').",
+            "NUMPAT",
+            "    Return number of subscriptions to patterns.",
+            "NUMSUB [<channel> ...]",
+            "    Return the number of subscribers for the specified channels, excluding",
+            "    pattern subscriptions(default: no channels).",
+            "SHARDCHANNELS [<pattern>]",
+            "    Return the currently active shard level channels matching a <pattern> (default: '*').",
+            "SHARDNUMSUB [<shardchannel> ...]",
+            "    Return the number of subscribers for the specified shard level channel(s)",
+            "HELP",
+            "    Print this help.",
+        };
+        auto sink = op.sink();
+        reply_array_header(sink, sizeof(kHelp) / sizeof(kHelp[0]));
+        for (const char* line : kHelp) reply_simple(sink, line);
+        return PubSubStartResult::Sync;
+    }
+
     PubSubStartResult pubsub_start_command(Client* client, Op& op) {
         if (op.cmd_name().eq_icase("subscribe")) return pubsub_start_modify(client, op, false, true);
         if (op.cmd_name().eq_icase("unsubscribe")) return pubsub_start_modify(client, op, false, false);
         if (op.cmd_name().eq_icase("psubscribe")) return pubsub_start_modify(client, op, true, true);
         if (op.cmd_name().eq_icase("punsubscribe")) return pubsub_start_modify(client, op, true, false);
+        if (op.cmd_name().eq_icase("ssubscribe")) return pubsub_start_modify(client, op, false, true, true);
+        if (op.cmd_name().eq_icase("sunsubscribe")) return pubsub_start_modify(client, op, false, false, true);
         if (op.cmd_name().eq_icase("publish")) return pubsub_start_publish(client, op);
+        if (op.cmd_name().eq_icase("spublish")) return pubsub_start_publish(client, op, true);
         if (!op.cmd_name().eq_icase("pubsub")) {
             reply_err(op.sink(), "ERR internal pubsub command error");
             return PubSubStartResult::Sync;
         }
+        if (op.arg(1).eq_icase("help") && op.argc() == 2) return pubsub_start_help(op);
         if (op.arg(1).eq_icase("channels")) return pubsub_start_channels(client, op);
         if (op.arg(1).eq_icase("numsub")) return pubsub_start_numsub(client, op);
         if (op.arg(1).eq_icase("numpat")) return pubsub_start_numpat(client, op);
+        if (op.arg(1).eq_icase("shardchannels")) return pubsub_start_channels(client, op, true);
+        if (op.arg(1).eq_icase("shardnumsub")) return pubsub_start_numsub(client, op, true);
         reply_err(op.sink(),
             "ERR Unknown subcommand or wrong number of arguments for 'PUBSUB'. Try PUBSUB HELP.");
         return PubSubStartResult::Sync;
@@ -735,7 +810,8 @@
         if (it == pubsub_local_.end()) return true;
         PubSubLocalConn& local = it->second;
         if (!local.cleanup_started) {
-            if (!local.pending && local.channels.empty() && local.patterns.empty()) {
+            if (!local.pending && local.channels.empty() && local.patterns.empty() &&
+                local.shard_channels.empty()) {
                 pubsub_local_.erase(it);
                 return true;
             }
@@ -764,6 +840,7 @@
     }
 
     std::unordered_map<std::string, std::vector<PubSubRef>> pubsub_channels_;
+    std::unordered_map<std::string, std::vector<PubSubRef>> pubsub_shard_channels_;
     std::vector<PubSubPatternRef> pubsub_patterns_;
     std::unordered_map<uint64_t, PubSubLocalConn> pubsub_local_;
     std::unordered_map<uint64_t, PubSubPending> pubsub_pending_;

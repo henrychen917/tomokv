@@ -411,33 +411,36 @@ private:
             // RESP2 enters subscribed mode after its first subscription acknowledgement. Only the
             // Redis subscriber command set is legal until the last subscription is removed.
             const bool subscriber_mode = __builtin_expect(c->subscriber_mode(), false);
-            const bool subscription_control =
-                op->cmd_name().eq_icase("subscribe") ||
-                op->cmd_name().eq_icase("unsubscribe") ||
-                op->cmd_name().eq_icase("psubscribe") ||
-                op->cmd_name().eq_icase("punsubscribe");
-            if (subscriber_mode && op->cmd_name().eq_icase("ping")) {
-                conn.advance_parse(consumed);
-                self_->note_command(spec->id);
-                pubsub_reply_ping(*op);
-                finish_prebuilt(c, *op);
-                continue;
-            }
-            if (subscriber_mode && op->cmd_name().eq_icase("reset")) {
-                conn.advance_parse(consumed);
-                self_->note_command(spec->id);
-                pubsub_start_reset(c, *op);
-                sig.ops++;
-                mark_active(c);
-                break;
-            }
-            if (subscriber_mode && !subscription_control &&
-                !op->cmd_name().eq_icase("quit")) {
-                conn.advance_parse(consumed);
-                self_->note_command(spec->id);
-                pubsub_reply_restricted(*op);
-                finish_prebuilt(c, *op);
-                continue;
+            if (subscriber_mode) {
+                const bool subscription_control =
+                    op->cmd_name().eq_icase("subscribe") ||
+                    op->cmd_name().eq_icase("unsubscribe") ||
+                    op->cmd_name().eq_icase("psubscribe") ||
+                    op->cmd_name().eq_icase("punsubscribe") ||
+                    op->cmd_name().eq_icase("ssubscribe") ||
+                    op->cmd_name().eq_icase("sunsubscribe");
+                if (op->cmd_name().eq_icase("ping")) {
+                    conn.advance_parse(consumed);
+                    self_->note_command(spec->id);
+                    pubsub_reply_ping(*op);
+                    finish_prebuilt(c, *op);
+                    continue;
+                }
+                if (op->cmd_name().eq_icase("reset")) {
+                    conn.advance_parse(consumed);
+                    self_->note_command(spec->id);
+                    pubsub_start_reset(c, *op);
+                    sig.ops++;
+                    mark_active(c);
+                    break;
+                }
+                if (!subscription_control && !op->cmd_name().eq_icase("quit")) {
+                    conn.advance_parse(consumed);
+                    self_->note_command(spec->id);
+                    pubsub_reply_restricted(*op);
+                    finish_prebuilt(c, *op);
+                    continue;
+                }
             }
             if (spec->flags & CmdFlags::PubSub) {
                 conn.advance_parse(consumed);

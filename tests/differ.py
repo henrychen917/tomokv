@@ -672,6 +672,136 @@ def gen_cgaps(rng):
     ]
     return ops
 
+# Sharded pub/sub is stateful and has spontaneous delivery frames, so it cannot use the ordinary
+# one-request/one-reply pipeline below. Keep its whole differential driver in one mergeable block.
+def run_spubsub_differ(rng):
+    import select
+
+    tp, tpf = conn(TH, TP)
+    op, opf = conn(OH, OP)
+    tl, tlf = conn(TH, TP)
+    ol, olf = conn(OH, OP)
+    diffs = 0
+    checks = 0
+
+    def compare(label, target, oracle, unordered=False):
+        nonlocal diffs, checks
+        checks += 1
+        if unordered:
+            target = normalize("SMEMBERS", target)
+            oracle = normalize("SMEMBERS", oracle)
+        if target != oracle:
+            diffs += 1
+            if diffs <= 12:
+                print("  DIFF %s\n    target: %r\n    oracle: %r" %
+                      (label, target[:160], oracle[:160]))
+
+    channels = ["spubsub:differ:%02d" % i for i in range(12)]
+    subscribed = set(channels[:5])
+    initial = ["SSUBSCRIBE"] + sorted(subscribed)
+    tl.sendall(enc(initial)); ol.sendall(enc(initial))
+    for index in range(len(subscribed)):
+        compare("initial SSUBSCRIBE %d" % index, read_reply(tlf), read_reply(olf))
+
+    # Randomized subscription changes, local receiver counts, deliveries, and introspection.
+    for sequence in range(600):
+        choice = rng.randrange(20)
+        channel = rng.choice(channels)
+        if choice < 12:
+            message = "payload:%d:%d" % (sequence, rng.randrange(1000000))
+            command = ["SPUBLISH", channel, message]
+            tp.sendall(enc(command)); op.sendall(enc(command))
+            target = read_reply(tpf); oracle = read_reply(opf)
+            compare("SPUBLISH %d" % sequence, target, oracle)
+            if channel in subscribed:
+                compare("smessage %d" % sequence, read_reply(tlf), read_reply(olf))
+        elif choice < 15:
+            command = ["SSUBSCRIBE", channel]
+            tl.sendall(enc(command)); ol.sendall(enc(command))
+            compare("SSUBSCRIBE %d" % sequence, read_reply(tlf), read_reply(olf))
+            subscribed.add(channel)
+        elif choice < 18:
+            command = ["SUNSUBSCRIBE", channel]
+            tl.sendall(enc(command)); ol.sendall(enc(command))
+            compare("SUNSUBSCRIBE %d" % sequence, read_reply(tlf), read_reply(olf))
+            subscribed.discard(channel)
+        elif choice == 18:
+            names = [rng.choice(channels) for _ in range(3)]
+            command = ["PUBSUB", "SHARDNUMSUB"] + names
+            tp.sendall(enc(command)); op.sendall(enc(command))
+            compare("SHARDNUMSUB %d" % sequence, read_reply(tpf), read_reply(opf))
+        else:
+            command = ["PUBSUB", "SHARDCHANNELS", "spubsub:differ:*"]
+            tp.sendall(enc(command)); op.sendall(enc(command))
+            compare("SHARDCHANNELS %d" % sequence, read_reply(tpf), read_reply(opf), True)
+
+    # Same bytes in regular/shard/pattern namespaces must not cross in either direction.
+    cross = channels[0]
+    if cross not in subscribed:
+        tl.sendall(enc(["SSUBSCRIBE", cross])); ol.sendall(enc(["SSUBSCRIBE", cross]))
+        compare("cross SSUBSCRIBE", read_reply(tlf), read_reply(olf))
+        subscribed.add(cross)
+    tr, trf = conn(TH, TP); ore, oref = conn(OH, OP)
+    tr.sendall(enc(["SUBSCRIBE", cross])); ore.sendall(enc(["SUBSCRIBE", cross]))
+    compare("cross SUBSCRIBE", read_reply(trf), read_reply(oref))
+    tp.sendall(enc(["SPUBLISH", cross, "shard-only"]))
+    op.sendall(enc(["SPUBLISH", cross, "shard-only"]))
+    compare("cross SPUBLISH", read_reply(tpf), read_reply(opf))
+    compare("cross smessage", read_reply(tlf), read_reply(olf))
+    target_ready = bool(select.select([tr], [], [], 0.15)[0])
+    oracle_ready = bool(select.select([ore], [], [], 0.15)[0])
+    compare("SPUBLISH regular silence", b":" + str(target_ready).encode(),
+            b":" + str(oracle_ready).encode())
+    if target_ready or oracle_ready:
+        diffs += 1
+
+    tp.sendall(enc(["PUBLISH", cross, "regular-only"]))
+    op.sendall(enc(["PUBLISH", cross, "regular-only"]))
+    compare("cross PUBLISH", read_reply(tpf), read_reply(opf))
+    compare("cross message", read_reply(trf), read_reply(oref))
+    target_ready = bool(select.select([tl], [], [], 0.15)[0])
+    oracle_ready = bool(select.select([ol], [], [], 0.15)[0])
+    compare("PUBLISH shard silence", b":" + str(target_ready).encode(),
+            b":" + str(oracle_ready).encode())
+    if target_ready or oracle_ready:
+        diffs += 1
+
+    pattern = "spubsub:differ:*"
+    tpat, tpatf = conn(TH, TP); opat, opatf = conn(OH, OP)
+    tpat.sendall(enc(["PSUBSCRIBE", pattern])); opat.sendall(enc(["PSUBSCRIBE", pattern]))
+    compare("cross PSUBSCRIBE", read_reply(tpatf), read_reply(opatf))
+    tp.sendall(enc(["SPUBLISH", cross, "no-pattern"]))
+    op.sendall(enc(["SPUBLISH", cross, "no-pattern"]))
+    compare("pattern SPUBLISH", read_reply(tpf), read_reply(opf))
+    compare("pattern smessage", read_reply(tlf), read_reply(olf))
+    target_ready = bool(select.select([tpat], [], [], 0.15)[0])
+    oracle_ready = bool(select.select([opat], [], [], 0.15)[0])
+    compare("SPUBLISH pattern silence", b":" + str(target_ready).encode(),
+            b":" + str(oracle_ready).encode())
+    if target_ready or oracle_ready:
+        diffs += 1
+
+    # No-argument unsubscribe order is dictionary-dependent; compare the frame multiset.
+    tl.sendall(enc(["SUNSUBSCRIBE"])); ol.sendall(enc(["SUNSUBSCRIBE"]))
+    frame_count = len(subscribed) if subscribed else 1
+    target_frames = [parse_reply(read_reply(tlf)) for _ in range(frame_count)]
+    oracle_frames = [parse_reply(read_reply(olf)) for _ in range(frame_count)]
+    def normalize_unsubscribe_all(frames):
+        labels = sorted(frame[0] for frame in frames)
+        channels_seen = sorted(frame[1] if frame[1] is not None else b"<nil>" for frame in frames)
+        counts = sorted(frame[2] for frame in frames)
+        return repr((labels, channels_seen, counts)).encode()
+    compare("SUNSUBSCRIBE all", normalize_unsubscribe_all(target_frames),
+            normalize_unsubscribe_all(oracle_frames))
+
+    for sock in (tp, op, tl, ol, tr, ore, tpat, opat): sock.close()
+    print("DIFFER spubsub: %d checks, %d diffs -> %s" %
+          (checks, diffs, "PASS" if diffs == 0 else "FAIL"))
+    return 1 if diffs else 0
+
+if SUITE == "spubsub":
+    sys.exit(run_spubsub_differ(rng))
+
 gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset,
         "hash": gen_hash, "xshard": gen_xshard, "bitmap": gen_bitmap, "hll": gen_hll,
         "cgaps": gen_cgaps}

@@ -43,6 +43,7 @@ struct PubSubEvent {
     uint64_t conn_id = 0;
     uint64_t op_id = 0;
     bool pattern = false;
+    bool shard = false;
     bool subscribe = false;
     uint64_t count = 0;
     std::string channel;

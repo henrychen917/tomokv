@@ -106,6 +106,7 @@ void command_set_local_context(Client* client, ThreadCtx* thread);
 // CLIENT LIST metadata is kept out of Client so its 1984-byte footprint remains locked.
 void command_client_connected(Client* client, const char* addr);
 void command_client_disconnected(Client* client);
+void command_client_set_shard_subscriptions(Client* client, uint32_t count);
 
 // The IO-side pub/sub matcher shares the Redis-compatible glob implementation used by SCAN.
 bool command_glob_match(Slice pattern, Slice text);

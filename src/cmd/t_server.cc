@@ -165,6 +165,7 @@ struct ClientMeta {
     std::string lib_name;
     std::string lib_ver;
     uint32_t db = 0;
+    uint32_t shard_subscriptions = 0;
 };
 
 std::mutex g_clients_mu;
@@ -189,9 +190,9 @@ ClientMeta current_meta() {
 }
 
 void append_client_line(std::string& out, const ClientMeta& meta) {
-    appendf(out, "id=%llu addr=%s name=%s db=%u lib-name=%s lib-ver=%s\n",
+    appendf(out, "id=%llu addr=%s name=%s db=%u lib-name=%s lib-ver=%s ssub=%u\n",
             static_cast<unsigned long long>(meta.id), meta.addr.c_str(), meta.name.c_str(), meta.db,
-            meta.lib_name.c_str(), meta.lib_ver.c_str());
+            meta.lib_name.c_str(), meta.lib_ver.c_str(), meta.shard_subscriptions);
 }
 
 enum class ConfigKind : uint8_t { String, Bool, Unsigned, Bytes, Policy };
@@ -742,6 +743,7 @@ void cmd_info(Shard&, Op& op) {
                       "atomic_pending_entries:%llu\r\natomic_localfast:%llu\r\n"
                       "atomic_credit_pool:%u\r\natomic_credit_debt:%u\r\n"
                       "pubsub_channels:%llu\r\npubsub_subscriptions:%llu\r\n"
+                      "pubsubshard_channels:%llu\r\npubsubshard_subscriptions:%llu\r\n"
                       "pubsub_patterns:%llu\r\npubsub_home_entries:%llu\r\n"
                       "pubsub_inflight:%llu\r\npubsub_pending_commands:%llu\r\n"
                       "blocking_waiters:%llu\r\n",
@@ -765,6 +767,8 @@ void cmd_info(Shard&, Op& op) {
                 g_server ? g_server->atomic_credit_debt() : 0,
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_active_channels() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_subscriptions() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->pubsub_shard_channels() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->pubsub_shard_subscriptions() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_pattern_subscriptions() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_home_entries() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_inflight() : 0),
@@ -904,7 +908,10 @@ static const CommandSpec kTable[] = {
     {"UNSUBSCRIBE", 1, -1, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
     {"PSUBSCRIBE",  2, -1, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
     {"PUNSUBSCRIBE",1, -1, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
+    {"SSUBSCRIBE",   2, -1, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
+    {"SUNSUBSCRIBE", 1, -1, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
     {"PUBLISH",     3,  3, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
+    {"SPUBLISH",    3,  3, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
     {"PUBSUB",      2, -1, CmdFlags::ConnLocal | CmdFlags::PubSub | CmdFlags::Admin,cmd_pubsub_only,0,0,0},
     {"CLIENT",     2, -1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_client,     0,  0, 0},
     {"COMMAND",    1, -1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_command,    0,  0, 0},
@@ -955,6 +962,12 @@ void command_client_connected(Client* client, const char* addr) {
 void command_client_disconnected(Client* client) {
     std::lock_guard<std::mutex> lock(g_clients_mu);
     g_clients.erase(client);
+}
+
+void command_client_set_shard_subscriptions(Client* client, uint32_t count) {
+    std::lock_guard<std::mutex> lock(g_clients_mu);
+    auto it = g_clients.find(client);
+    if (it != g_clients.end()) it->second.shard_subscriptions = count;
 }
 
 bool command_prepare_scan_route(Server& server, Op& op) {
