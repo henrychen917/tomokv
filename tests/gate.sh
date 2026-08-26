@@ -84,6 +84,20 @@ stop
 grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
     && ok "atomic shutdown invariants" || bad "atomic shutdown invariants"
 
+# ---- feature batteries: every shipped feature's directed test, BOTH atomic settings -----------
+# The gate accumulates a section per landed feature (owner rule). Each test is directed and
+# asserts its own mechanisms fired; the boot covers multi/blocking/pubsub+sharded/lua/limits.
+for AT in 0 1; do
+  boot ./build/tomokv --atomic $AT || bad "feature battery boot (atomic $AT)"
+  for t in multi_exec blocking pubsub lua_scripting limits; do
+    python3 tests/$t.py 127.0.0.1 $PORT >/tmp/gate-$t-$AT.txt 2>&1 \
+        && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see /tmp/gate-$t-$AT.txt"
+  done
+  stop
+  grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
+      && ok "feature shutdown invariants (atomic $AT)" || bad "feature shutdown invariants (atomic $AT)"
+done
+
 # ---- auth + audit DEBUG (purpose-booted; each test asserts its gate actually opened) -----------
 ./build/tomokv --protected-mode maybe 2>&1 | grep -q "protected-mode wants" \
     && ok "reject bad protected-mode" || bad "reject bad protected-mode"
