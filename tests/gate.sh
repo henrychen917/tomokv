@@ -192,6 +192,31 @@ AOF_SKIPPED=$(redis-cli -h 127.0.0.1 -p $PORT INFO Persistence 2>/dev/null \
 stop
 sleep 5
 
+# ---- AOF atomic-group bracketing + directed interrupted-process recovery ---------------------
+AOF_GROUP_DIR=$(mktemp -d /tmp/gate-aof-group.XXXXXX)
+AOF_GROUP_STATE=$AOF_GROUP_DIR/state.json
+boot ./build/tomokv --protected-mode no --atomic 1 --appendonly yes --appendfsync no \
+    --enable-debug-command yes --dir "$AOF_GROUP_DIR" || bad "AOF group purpose boot"
+python3 tests/aof_torn_group.py 127.0.0.1 $PORT prepare "$AOF_GROUP_STATE" \
+    >/tmp/gate-aof-group.txt 2>&1 \
+    && ok "AOF directed group interruption fired" \
+    || bad "AOF directed group interruption" "see /tmp/gate-aof-group.txt"
+wait $SRV 2>/dev/null
+sleep 5
+boot ./build/tomokv --protected-mode no --atomic 1 --appendonly yes --appendfsync no \
+    --enable-debug-command yes --dir "$AOF_GROUP_DIR" || bad "AOF group recovery boot"
+python3 tests/aof_torn_group.py 127.0.0.1 $PORT verify "$AOF_GROUP_STATE" \
+    >>/tmp/gate-aof-group.txt 2>&1 \
+    && python3 tests/aof_torn_group.py 127.0.0.1 $PORT scan \
+       "$AOF_GROUP_DIR/appendonlydir/appendonly.aof.1.incr.tomo" \
+       >>/tmp/gate-aof-group.txt 2>&1 \
+    && ok "AOF atomic-group recovery + writer order" \
+    || bad "AOF atomic-group recovery + writer order" "see /tmp/gate-aof-group.txt"
+stop
+grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
+    && ok "AOF group shutdown invariants" || bad "AOF group shutdown invariants"
+sleep 5
+
 AOF_OFF_DIR=$(mktemp -d /tmp/gate-aof-off.XXXXXX)
 boot ./build/tomokv --protected-mode no --appendonly no --dir "$AOF_OFF_DIR" \
     || bad "AOF-off negative-control boot"

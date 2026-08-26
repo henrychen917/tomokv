@@ -1,7 +1,9 @@
 #include "aof.h"
 
+#include <algorithm>
 #include <cerrno>
 #include <chrono>
+#include <csignal>
 #include <cstdio>
 #include <cstring>
 #include <fcntl.h>
@@ -149,7 +151,6 @@ std::unique_ptr<AofChunk> AofProducer::make_chunk(uint32_t flags) {
     try {
         auto chunk = std::make_unique<AofChunk>();
         chunk->sid = sid_;
-        chunk->sequence = sequence_++;
         chunk->flags = flags;
         chunk->bytes.reserve(kAofChunkBytes);
         return chunk;
@@ -157,6 +158,251 @@ std::unique_ptr<AofChunk> AofProducer::make_chunk(uint32_t flags) {
         if (manager_) manager_->fail("out of memory allocating AOF chunk");
         return nullptr;
     }
+}
+
+std::unique_ptr<AofChunk> AofProducer::make_group_chunk(uint32_t flags) {
+    try {
+        auto chunk = std::make_unique<AofChunk>();
+        chunk->sid = sid_;
+        chunk->flags = flags;
+        chunk->bytes.reserve(kAofChunkBytes);
+        return chunk;
+    } catch (const std::bad_alloc&) {
+        if (manager_) manager_->fail("out of memory allocating AOF group chunk");
+        return nullptr;
+    }
+}
+
+bool AofProducer::group_seal(PendingGroup& group, uint32_t flags) {
+    if (!group.build) return true;
+    group.build->flags |= flags;
+    try { group.chunks.push_back(std::move(group.build)); }
+    catch (const std::bad_alloc&) {
+        if (manager_) manager_->fail("out of memory retaining AOF group chunk");
+        return false;
+    }
+    return true;
+}
+
+bool AofProducer::group_emit(PendingGroup& group, const uint8_t* bytes, uint64_t length,
+                             bool large) {
+    while (length) {
+        if (!group.build) {
+            group.build = make_group_chunk(large && group.chunks.empty()
+                                           ? static_cast<uint32_t>(AofFrameLargeBegin) : 0);
+            if (!group.build) return false;
+        }
+        const size_t room = kAofChunkBytes - group.build->bytes.size();
+        if (!room) {
+            if (!group_seal(group, 0)) return false;
+            continue;
+        }
+        const size_t take = static_cast<size_t>(std::min<uint64_t>(length, room));
+        try { group.build->bytes.insert(group.build->bytes.end(), bytes, bytes + take); }
+        catch (const std::bad_alloc&) {
+            if (manager_) manager_->fail("out of memory staging AOF group bytes");
+            return false;
+        }
+        bytes += take;
+        length -= take;
+        if (large && group.build->bytes.size() == kAofChunkBytes && length)
+            if (!group_seal(group, 0)) return false;
+    }
+    return true;
+}
+
+bool AofProducer::record_group_bytes(PendingGroup& group, AofRecordKind kind, uint8_t type,
+                                     uint8_t encoding, Slice key, int64_t expire_at_ms,
+                                     const SnapshotTypeHooks* hooks,
+                                     SnapshotSaveCursor* cursor) {
+    const uint64_t payload_len = cursor ? cursor->total : 0;
+    if (payload_len > UINT32_MAX || payload_len > UINT64_MAX - kRecordHeaderBytes - key.n) {
+        if (manager_) manager_->fail("AOF group record is too large");
+        return false;
+    }
+    const uint64_t total = kRecordHeaderBytes + static_cast<uint64_t>(key.n) + payload_len;
+    const bool large = total > kAofChunkBytes;
+    if (large) {
+        if (!group_seal(group, 0)) return false;
+    } else if (group.build && group.build->bytes.size() + total > kAofChunkBytes) {
+        if (!group_seal(group, 0)) return false;
+    }
+    if (!group.build) {
+        group.build = make_group_chunk(
+            large ? static_cast<uint32_t>(AofFrameLargeBegin) : 0);
+        if (!group.build) return false;
+    }
+    // The fixed header always begins in one frame, so the owner can patch the final live ticket
+    // after the visibility publish without touching another owner's staging memory.
+    if (kAofChunkBytes - group.build->bytes.size() < kRecordHeaderBytes) {
+        if (!group_seal(group, 0)) return false;
+        group.build = make_group_chunk(
+            large ? static_cast<uint32_t>(AofFrameLargeBegin) : 0);
+        if (!group.build) return false;
+    }
+    const uint32_t ticket_offset = static_cast<uint32_t>(group.build->bytes.size() + 32);
+    try { group.build->group_ticket_offsets.push_back(ticket_offset); }
+    catch (const std::bad_alloc&) {
+        if (manager_) manager_->fail("out of memory staging AOF group ticket");
+        return false;
+    }
+
+    uint8_t header[kRecordHeaderBytes] = {};
+    snapshot_put_u32(header, kRecordTag);
+    header[4] = static_cast<uint8_t>(kind);
+    header[5] = type;
+    header[6] = encoding;
+    header[7] = 1;
+    snapshot_put_u32(header + 8, key.n);
+    snapshot_put_u32(header + 12, kRecordHeaderBytes);
+    snapshot_put_u64(header + 16, payload_len);
+    snapshot_put_u64(header + 24, static_cast<uint64_t>(expire_at_ms));
+    if (!group_emit(group, header, sizeof(header), large) ||
+        !group_emit(group, reinterpret_cast<const uint8_t*>(key.p), key.n, large)) return false;
+
+    if (hooks && cursor) {
+        while (cursor->offset < cursor->total) {
+            if (!group.build) {
+                group.build = make_group_chunk();
+                if (!group.build) return false;
+            }
+            size_t room = kAofChunkBytes - group.build->bytes.size();
+            if (!room) {
+                if (!group_seal(group, 0)) return false;
+                continue;
+            }
+            const size_t capacity = static_cast<size_t>(std::min<uint64_t>(
+                room, cursor->total - cursor->offset));
+            const size_t old_size = group.build->bytes.size();
+            try { group.build->bytes.resize(old_size + capacity); }
+            catch (const std::bad_alloc&) {
+                if (manager_) manager_->fail("out of memory staging AOF group value");
+                return false;
+            }
+            size_t written = 0;
+            const SnapshotHookStatus status = hooks->read_save(
+                *cursor, group.build->bytes.data() + old_size, capacity, written);
+            if (status != SnapshotHookStatus::Ok || written > capacity ||
+                (written == 0 && cursor->offset < cursor->total)) {
+                group.build->bytes.resize(old_size);
+                if (manager_) manager_->fail("AOF group serialization failed");
+                return false;
+            }
+            group.build->bytes.resize(old_size + written);
+        }
+    }
+    if (large) {
+        if (!group.build) return false;
+        group.build->records = 1;
+        return group_seal(group, AofFrameLargeEnd);
+    }
+    group.build->records++;
+    return true;
+}
+
+bool AofProducer::begin_group(const std::shared_ptr<AofGroupDecision>& decision) {
+    if (!enabled() || !decision) return !manager_ || !manager_->failed();
+    if (active_group_) {
+        manager_->fail("nested AOF group staging");
+        return false;
+    }
+    if (build_ && !seal(0, nullptr)) return false;
+    try {
+        staged_.emplace_back();
+        active_group_ = &staged_.back().group;
+        active_group_->decision = decision;
+        return true;
+    } catch (const std::bad_alloc&) {
+        manager_->fail("out of memory starting AOF group");
+        return false;
+    }
+}
+
+bool AofProducer::record_group_post_image_impl(FlatStore& store, uint64_t hash, Slice key,
+                                               bool physical) {
+    if (!active_group_) return false;
+    PendingGroup& group = *active_group_;
+    KvObj* object = physical ? store.aof_physical(hash, key) : store.find(hash, key);
+    if (!object) return record_group_bytes(group, AofRecordKind::GroupDel,
+                                           0, 0, key, -1, nullptr, nullptr);
+    const SnapshotTypeHooks& hooks = snapshot_type_hooks(static_cast<Type>(object->type));
+    SnapshotSaveCursor cursor;
+    uint8_t encoding = 0;
+    if (!hooks.begin_save || !hooks.read_save ||
+        hooks.begin_save(*object, cursor, encoding) != SnapshotHookStatus::Ok) {
+        manager_->fail("AOF group type serialization failed");
+        return false;
+    }
+    return record_group_bytes(group, AofRecordKind::GroupPut,
+                              object->type, encoding, object->key(),
+                              object->expire_at_ms(), &hooks, &cursor);
+}
+
+bool AofProducer::record_group_post_image(FlatStore& store, uint64_t hash, Slice key) {
+    return record_group_post_image_impl(store, hash, key, true);
+}
+
+bool AofProducer::record_group_visible_post_image(FlatStore& store, uint64_t hash, Slice key) {
+    return record_group_post_image_impl(store, hash, key, false);
+}
+
+bool AofProducer::finish_group() {
+    if (!active_group_) return false;
+    PendingGroup& group = *active_group_;
+    bool ok = group_seal(group, 0);
+    if (group.chunks.empty()) {
+        if (manager_) manager_->fail("AOF group has no fragments");
+        ok = false;
+    } else {
+        group.chunks.back()->group_fragment_last = true;
+    }
+    active_group_ = nullptr;
+    return ok;
+}
+
+bool AofProducer::make_ready(std::unique_ptr<AofChunk> chunk) {
+    if (!chunk) return true;
+    chunk->sid = sid_;
+    chunk->sequence = sequence_++;
+    try {
+        ready_.push_back(std::move(chunk));
+        return true;
+    } catch (const std::bad_alloc&) {
+        manager_->fail("out of memory publishing AOF chunk");
+        return false;
+    }
+}
+
+bool AofProducer::resolve_groups() {
+    if (active_group_) return false;
+    while (!staged_.empty()) {
+        StagedItem& item = staged_.front();
+        if (item.plain) {
+            if (!make_ready(std::move(item.plain))) return false;
+            staged_.pop_front();
+            continue;
+        }
+        PendingGroup& group = item.group;
+        if (group.decision->aborted.load(std::memory_order_acquire)) {
+            staged_.pop_front();
+            continue;
+        }
+        const uint64_t ticket = group.decision->ticket.load(std::memory_order_acquire);
+        if (!ticket) break;
+        for (auto& chunk : group.chunks) {
+            chunk->group = group.decision;
+            for (uint32_t offset : chunk->group_ticket_offsets) {
+                if (offset + sizeof(uint64_t) > chunk->bytes.size()) {
+                    manager_->fail("invalid AOF group ticket offset");
+                    return false;
+                }
+                snapshot_put_u64(chunk->bytes.data() + offset, ticket);
+            }
+            if (!make_ready(std::move(chunk))) return false;
+        }
+        staged_.pop_front();
+    }
+    return true;
 }
 
 bool AofProducer::post_ready(AofOwnerContext& context) {
@@ -173,7 +419,17 @@ bool AofProducer::post_ready(AofOwnerContext& context) {
 bool AofProducer::seal(uint32_t flags, AofOwnerContext* context) {
     if (!build_) return true;
     build_->flags |= flags;
-    ready_.push_back(std::move(build_));
+    try {
+        if (staged_.empty()) {
+            if (!make_ready(std::move(build_))) return false;
+        } else {
+            staged_.emplace_back();
+            staged_.back().plain = std::move(build_);
+        }
+    } catch (const std::bad_alloc&) {
+        manager_->fail("out of memory retaining ordered AOF chunk");
+        return false;
+    }
     if (!context) return true;
     while (!post_ready(*context)) {
         if (!manager_ || manager_->failed()) return false;
@@ -187,7 +443,8 @@ bool AofProducer::emit(const uint8_t* bytes, uint64_t length, bool large,
                        AofOwnerContext* context) {
     while (length) {
         if (!build_) {
-            build_ = make_chunk(large ? AofFrameLargeBegin : 0);
+            build_ = make_chunk(
+                large ? static_cast<uint32_t>(AofFrameLargeBegin) : 0);
             if (!build_) return false;
         }
         const size_t room = kAofChunkBytes - build_->bytes.size();
@@ -240,7 +497,8 @@ bool AofProducer::record_bytes(AofRecordKind kind, uint8_t type, uint8_t encodin
         if (!seal(0, context)) return false;
     }
     if (!build_) {
-        build_ = make_chunk(large ? AofFrameLargeBegin : 0);
+        build_ = make_chunk(
+            large ? static_cast<uint32_t>(AofFrameLargeBegin) : 0);
         if (!build_) return false;
     }
 
@@ -351,6 +609,7 @@ bool AofProducer::record_flush() {
 bool AofProducer::flush(AofOwnerContext& context) {
     if (!manager_) return true;
     if (build_ && !seal(0, nullptr)) return false;
+    if (!resolve_groups()) return false;
     return post_ready(context);
 }
 
@@ -376,7 +635,59 @@ void AofManager::init(const Config& config, uint32_t nthreads, uint32_t nshards,
     if (replay) {
         replayed_records_.store(replay->replayed_records, std::memory_order_relaxed);
         groups_skipped_.store(replay->groups_skipped, std::memory_order_relaxed);
+        groups_committed_.store(replay->committed_groups.size(), std::memory_order_relaxed);
     }
+}
+
+std::shared_ptr<AofGroupDecision> aof_create_group(
+        AofManager& manager, const std::vector<uint32_t>& participants) {
+    if (!manager.recording() || participants.empty()) return nullptr;
+    try {
+        auto group = std::make_shared<AofGroupDecision>();
+        group->participants = participants;
+        std::sort(group->participants.begin(), group->participants.end());
+        group->participants.erase(
+            std::unique(group->participants.begin(), group->participants.end()),
+            group->participants.end());
+        group->dependencies.resize(group->participants.size());
+        group->dependency_seen.assign(group->participants.size(), 0);
+        for (size_t i = 0; i < group->participants.size(); i++)
+            group->dependencies[i].sid = group->participants[i];
+        return group;
+    } catch (const std::bad_alloc&) {
+        manager.fail("out of memory allocating AOF group decision");
+        return nullptr;
+    }
+}
+
+void aof_abort_group(const std::shared_ptr<AofGroupDecision>& group) {
+    if (group) group->aborted.store(true, std::memory_order_release);
+}
+
+bool aof_commit_group(AofManager& manager, const std::shared_ptr<AofGroupDecision>& group,
+                      uint64_t ticket, AofOwnerContext& context) {
+    if (!group) return true;
+    if (!ticket || group->aborted.load(std::memory_order_acquire)) return false;
+    group->ticket.store(ticket, std::memory_order_release);
+    bool expected = false;
+    if (!group->commit_enqueued.compare_exchange_strong(
+            expected, true, std::memory_order_acq_rel)) return true;
+    std::unique_ptr<AofChunk> chunk;
+    try {
+        chunk = std::make_unique<AofChunk>();
+        chunk->sid = -1;
+        chunk->group = group;
+        chunk->group_commit = true;
+    } catch (const std::bad_alloc&) {
+        manager.fail("out of memory allocating AOF GCMT");
+        return false;
+    }
+    while (!manager.post_chunk(context.producer, chunk, *context.ring, *context.signals)) {
+        if (manager.failed()) return false;
+        context.ring->submit_and_reap();
+        std::this_thread::yield();
+    }
+    return true;
 }
 
 void AofManager::fail(const char* message) {
@@ -476,7 +787,8 @@ bool AofManager::write_frame(const AofChunk& chunk) {
     const uint64_t frame_begin = file_offset_;
     if (!write_counted(fd_, header, sizeof(header), file_offset_) ||
         !write_counted(fd_, chunk.bytes.data(), chunk.bytes.size(), file_offset_)) {
-        (void)::ftruncate(fd_, static_cast<off_t>(last_good_offset_));
+        const int truncate_result = ::ftruncate(fd_, static_cast<off_t>(last_good_offset_));
+        (void)truncate_result;
         file_offset_ = last_good_offset_;
         return false;
     }
@@ -488,9 +800,113 @@ bool AofManager::write_frame(const AofChunk& chunk) {
     return true;
 }
 
+void AofManager::note_group_fragment(const AofChunk& chunk) {
+    if (!chunk.group || !chunk.group_fragment_last || chunk.sid < 0) return;
+    AofGroupDecision& group = *chunk.group;
+    for (size_t index = 0; index < group.participants.size(); index++) {
+        if (group.participants[index] != static_cast<uint32_t>(chunk.sid)) continue;
+        group.dependencies[index].sequence = chunk.sequence;
+        group.dependency_seen[index] = 1;
+        uint64_t remaining = debug_stop_after_fragments_.load(std::memory_order_acquire);
+        while (remaining && !debug_stop_after_fragments_.compare_exchange_weak(
+                   remaining, remaining - 1, std::memory_order_acq_rel,
+                   std::memory_order_acquire)) {}
+        if (remaining == 1) {
+            ::raise(SIGKILL);
+            ::_exit(86);
+        }
+        return;
+    }
+    fail("AOF group fragment names a non-participant shard");
+}
+
+bool AofManager::group_dependencies_ready(const AofGroupDecision& group) const {
+    if (group.dependencies.size() != group.participants.size() ||
+        group.dependency_seen.size() != group.participants.size()) return false;
+    for (uint8_t seen : group.dependency_seen) if (!seen) return false;
+    return true;
+}
+
+bool AofManager::write_group_commit(AofChunk& chunk) {
+    if (!chunk.group || !group_dependencies_ready(*chunk.group)) return false;
+    const uint64_t ticket = chunk.group->ticket.load(std::memory_order_acquire);
+    if (!ticket || chunk.group->aborted.load(std::memory_order_acquire)) return false;
+    const uint64_t payload_len = 4 + chunk.group->dependencies.size() * 8;
+    try { chunk.bytes.assign(kRecordHeaderBytes + payload_len, 0); }
+    catch (const std::bad_alloc&) { return false; }
+    uint8_t* record = chunk.bytes.data();
+    snapshot_put_u32(record, kRecordTag);
+    record[4] = static_cast<uint8_t>(AofRecordKind::GroupCommit);
+    record[7] = 1;
+    snapshot_put_u32(record + 12, kRecordHeaderBytes);
+    snapshot_put_u64(record + 16, payload_len);
+    snapshot_put_u64(record + 24, static_cast<uint64_t>(-1));
+    snapshot_put_u64(record + 32, ticket);
+    snapshot_put_u32(record + kRecordHeaderBytes,
+                     static_cast<uint32_t>(chunk.group->dependencies.size()));
+    size_t pos = kRecordHeaderBytes + 4;
+    for (const AofGroupDependency& dependency : chunk.group->dependencies) {
+        snapshot_put_u32(record + pos, dependency.sid);
+        snapshot_put_u32(record + pos + 4, dependency.sequence);
+        pos += 8;
+    }
+
+    uint8_t header[kFrameHeaderBytes] = {};
+    snapshot_put_u32(header, kFrameTag);
+    snapshot_put_u32(header + 4, UINT32_MAX);  // physical control stream
+    snapshot_put_u32(header + 8, 0);           // control frames need no logical shard sequence
+    snapshot_put_u32(header + 16, static_cast<uint32_t>(chunk.bytes.size()));
+    snapshot_put_u32(header + 20, kFrameHeaderBytes);
+    snapshot_put_u64(header + 24, snapshot_checksum(chunk.bytes.data(), chunk.bytes.size()));
+    snapshot_put_u64(header + 32, snapshot_checksum(header, 32));
+    if (!write_counted(fd_, header, sizeof(header), file_offset_) ||
+        !write_counted(fd_, chunk.bytes.data(), chunk.bytes.size(), file_offset_)) {
+        const int truncate_result = ::ftruncate(fd_, static_cast<off_t>(last_good_offset_));
+        (void)truncate_result;
+        file_offset_ = last_good_offset_;
+        return false;
+    }
+    last_good_offset_ = file_offset_;
+    current_size_.store(file_offset_, std::memory_order_relaxed);
+    records_written_.fetch_add(1, std::memory_order_relaxed);
+    groups_committed_.fetch_add(1, std::memory_order_relaxed);
+    return true;
+}
+
+uint32_t AofManager::drain_pending_commits(uint32_t& budget) {
+    uint32_t written = 0;
+    for (size_t index = 0; index < pending_commits_.size() && budget;) {
+        AofChunk& chunk = *pending_commits_[index];
+        if (!group_dependencies_ready(*chunk.group)) { index++; continue; }
+        if (!write_group_commit(chunk)) {
+            fail("AOF GCMT write failed");
+            return written;
+        }
+        pending_commits_.erase(pending_commits_.begin() + index);
+        pending_chunks_.fetch_sub(1, std::memory_order_release);
+        budget--;
+        written++;
+    }
+    return written;
+}
+
 bool AofManager::drain_producer(uint32_t producer, uint32_t& budget, uint32_t& consumed) {
     AofChunk* chunk = nullptr;
     while (budget && chunk_in_[producer].recv(chunk)) {
+        if (chunk->group_commit) {
+            try { pending_commits_.emplace_back(chunk); }
+            catch (const std::bad_alloc&) {
+                delete chunk;
+                chunk_in_[producer].retire();
+                pending_chunks_.fetch_sub(1, std::memory_order_release);
+                fail("out of memory retaining AOF GCMT");
+                return false;
+            }
+            chunk_in_[producer].retire();
+            budget--;
+            consumed++;
+            continue;
+        }
         const uint32_t flags = chunk->flags;
         bool valid = true;
         if (locked_producer_ == UINT32_MAX) {
@@ -500,6 +916,7 @@ bool AofManager::drain_producer(uint32_t producer, uint32_t& budget, uint32_t& c
             if (locked_producer_ != producer || (flags & AofFrameLargeBegin)) valid = false;
         }
         if (valid) valid = write_frame(*chunk);
+        if (valid) note_group_fragment(*chunk);
         if (valid && (flags & AofFrameLargeEnd)) locked_producer_ = UINT32_MAX;
         delete chunk;
         chunk_in_[producer].retire();
@@ -519,6 +936,7 @@ uint32_t AofManager::writer_pass(ThreadCtx& writer, Ring&, bool drain_all) {
     if (!configured_ || writer.id() != writer_tid_ || fd_ < 0 || failed()) return 0;
     uint32_t budget = drain_all ? 256 : kWriterFramesPerPass;
     uint32_t consumed = 0;
+    consumed += drain_pending_commits(budget);
     if (locked_producer_ != UINT32_MAX) {
         drain_producer(locked_producer_, budget, consumed);
         return consumed;
@@ -544,6 +962,7 @@ uint32_t AofManager::writer_pass(ThreadCtx& writer, Ring&, bool drain_all) {
             if (locked_producer_ != UINT32_MAX) break;
         }
     }
+    if (budget) consumed += drain_pending_commits(budget);
     return consumed;
 }
 
@@ -565,7 +984,8 @@ void AofManager::writer_shutdown(ThreadCtx& writer, Ring& ring) {
         if (!n) std::this_thread::yield();
     }
     if (locked_producer_ != UINT32_MAX) {
-        (void)::ftruncate(fd_, static_cast<off_t>(large_record_offset_));
+        const int truncate_result = ::ftruncate(fd_, static_cast<off_t>(large_record_offset_));
+        (void)truncate_result;
         file_offset_ = large_record_offset_;
     }
     (void)::fdatasync(fd_);
@@ -648,25 +1068,32 @@ std::unique_ptr<AofReplayPlan> aof_read_plan(const char* path, uint32_t expected
             return nullptr;
         }
         const uint32_t sid = snapshot_get_u32(h + 4);
+        const bool control = sid == UINT32_MAX;
         const uint32_t sequence = snapshot_get_u32(h + 8);
         const uint32_t flags = snapshot_get_u32(h + 12);
         const uint32_t length = snapshot_get_u32(h + 16);
         const uint64_t checksum = snapshot_get_u64(h + 24);
         const size_t frame_pos = pos;
         pos += kFrameHeaderBytes;
-        if (sid >= plan->shard_count || sequence != plan->next_sequence[sid]++) {
+        if ((!control && (sid >= plan->shard_count || sequence != plan->next_sequence[sid]++)) ||
+            (control && (sequence != 0 || flags != 0))) {
             error = "invalid AOF shard frame sequence";
             ::close(fd);
             return nullptr;
         }
         if (file.size() - pos < length) {
-            plan->next_sequence[sid]--;
+            if (!control) plan->next_sequence[sid]--;
             torn = true;
             pos = frame_pos;
             break;
         }
         if (checksum != snapshot_checksum(file.data() + pos, length)) {
             error = "invalid AOF frame checksum";
+            ::close(fd);
+            return nullptr;
+        }
+        if (control && active_large) {
+            error = "AOF control record interleaves a large record";
             ::close(fd);
             return nullptr;
         }
@@ -677,6 +1104,11 @@ std::unique_ptr<AofReplayPlan> aof_read_plan(const char* path, uint32_t expected
                 return nullptr;
             }
             if (flags & AofFrameLargeBegin) {
+                if (control) {
+                    error = "AOF control record cannot be large";
+                    ::close(fd);
+                    return nullptr;
+                }
                 active_large = true;
                 large_sid = sid;
                 large_file_pos = frame_pos;
@@ -689,8 +1121,8 @@ std::unique_ptr<AofReplayPlan> aof_read_plan(const char* path, uint32_t expected
             return nullptr;
         }
         try {
-            plan->sections[sid].insert(plan->sections[sid].end(), file.data() + pos,
-                                       file.data() + pos + length);
+            std::vector<uint8_t>& section = control ? plan->control_section : plan->sections[sid];
+            section.insert(section.end(), file.data() + pos, file.data() + pos + length);
         } catch (const std::bad_alloc&) {
             error = "out of memory assembling AOF shard streams";
             ::close(fd);
@@ -726,6 +1158,43 @@ std::unique_ptr<AofReplayPlan> aof_read_plan(const char* path, uint32_t expected
     plan->valid_file_bytes = valid;
     ::close(fd);
 
+    size_t control_pos = 0;
+    while (control_pos < plan->control_section.size()) {
+        AofRecordKind kind;
+        uint8_t type = 0, encoding = 0;
+        uint32_t key_len = 0;
+        uint64_t payload_len = 0, group = 0;
+        int64_t expire = -1;
+        size_t next = 0;
+        if (!parse_record_bounds(plan->control_section, control_pos, kind, type, encoding,
+                                 key_len, payload_len, expire, group, next, error)) return nullptr;
+        const size_t payload_pos = control_pos + kRecordHeaderBytes + key_len;
+        if (kind != AofRecordKind::GroupCommit || key_len != 0 || !group || payload_len < 4) {
+            error = "invalid AOF GCMT record";
+            return nullptr;
+        }
+        const uint32_t count = snapshot_get_u32(plan->control_section.data() + payload_pos);
+        if (!count || payload_len != 4 + static_cast<uint64_t>(count) * 8) {
+            error = "invalid AOF GCMT participant vector";
+            return nullptr;
+        }
+        for (uint32_t index = 0; index < count; index++) {
+            const uint8_t* dependency = plan->control_section.data() + payload_pos + 4 + index * 8;
+            const uint32_t sid = snapshot_get_u32(dependency);
+            const uint32_t sequence = snapshot_get_u32(dependency + 4);
+            if (sid >= plan->shard_count || sequence >= plan->next_sequence[sid]) {
+                error = "AOF GCMT names a missing shard fragment";
+                return nullptr;
+            }
+        }
+        if (!plan->committed_groups.insert(group).second) {
+            error = "duplicate AOF GCMT ticket";
+            return nullptr;
+        }
+        plan->replayed_records++;
+        control_pos = next;
+    }
+
     for (uint32_t sid = 0; sid < plan->shard_count; sid++) {
         const auto& section = plan->sections[sid];
         size_t record_pos = 0;
@@ -739,12 +1208,14 @@ std::unique_ptr<AofReplayPlan> aof_read_plan(const char* path, uint32_t expected
             if (!parse_record_bounds(section, record_pos, kind, type, encoding, key_len,
                                      payload_len, expire, group, next, error)) return nullptr;
             (void)type; (void)encoding; (void)key_len; (void)payload_len; (void)expire;
-            if (kind < AofRecordKind::Put || kind > AofRecordKind::GroupCommit) {
+            if (kind < AofRecordKind::Put || kind > AofRecordKind::GroupDel) {
                 error = "unknown AOF record kind";
                 return nullptr;
             }
             if ((kind == AofRecordKind::GroupPut || kind == AofRecordKind::GroupDel) && !group)
                 { error = "AOF group fragment has no ticket"; return nullptr; }
+            if ((kind == AofRecordKind::GroupPut || kind == AofRecordKind::GroupDel) &&
+                !plan->committed_groups.count(group)) plan->groups_skipped++;
             plan->replayed_records++;
             record_pos = next;
         }
@@ -779,20 +1250,20 @@ bool aof_load_shard(const AofReplayPlan& plan, Server& server, Shard& shard,
             shard.store().clear();
             continue;
         }
-        if (kind == AofRecordKind::GroupPut || kind == AofRecordKind::GroupDel) {
-            // Step 2 graduates this path by filtering fragments against GCMT tickets.
-            continue;
-        }
+        if ((kind == AofRecordKind::GroupPut || kind == AofRecordKind::GroupDel) &&
+            !plan.committed_groups.count(group)) continue;
         const uint64_t hash = FlatStore::hash_key(key);
         if (server.router().shard_of(hash) != shard.id()) {
             error = "AOF key is in the wrong shard stream";
             return false;
         }
-        if (kind == AofRecordKind::Del || (expire >= 0 && expire <= now)) {
+        if (kind == AofRecordKind::Del || kind == AofRecordKind::GroupDel ||
+            (expire >= 0 && expire <= now)) {
             shard.store().erase(hash, key);
             continue;
         }
-        if (kind != AofRecordKind::Put || type > static_cast<uint8_t>(Type::Zset)) {
+        if ((kind != AofRecordKind::Put && kind != AofRecordKind::GroupPut) ||
+            type > static_cast<uint8_t>(Type::Zset)) {
             error = "invalid AOF value record";
             return false;
         }

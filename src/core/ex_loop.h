@@ -520,8 +520,10 @@ private:
         if (multi_task_tagged(t)) {
             Shard& shard = srv_->shard(t.shard);
             shard.set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
+            AofOwnerContext aof_context{self_->id(), &ring_, &self_->sig()};
             const MultiTaskResult result =
-                multi_execute_task(*srv_, t, shard, self_->id(), self_->domain());
+                multi_execute_task(*srv_, t, shard, self_->id(), self_->domain(),
+                                   aof_manager_ ? &aof_context : nullptr);
             shard.publish_size();
             if (result == MultiTaskResult::Retry) {
                 multi_retries_.push_back(t);

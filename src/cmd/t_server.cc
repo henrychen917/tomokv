@@ -656,6 +656,20 @@ void cmd_debug_impl(Shard&, Op& op) {
         reply_ok(op.sink());
         return;
     }
+    if (eq_icase(subcommand, "aof-stop-after-group-fragments") && op.argc() == 3) {
+        uint64_t count = 0;
+        if (!parse_u64(op.arg(2), count) || count == 0) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        if (!g_server || !g_server->aof().recording()) {
+            reply_err(op.sink(), "ERR appendonly is disabled");
+            return;
+        }
+        g_server->aof().debug_stop_after_group_fragments(count);
+        reply_ok(op.sink());
+        return;
+    }
     if (eq_icase(subcommand, "loadaof") && op.argc() == 2) {
         reply_err(op.sink(), "ERR internal DEBUG LOADAOF routing error");
         return;

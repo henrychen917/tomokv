@@ -343,6 +343,7 @@ struct ScatterState {
     ResultHeap* result = nullptr;
     std::unique_ptr<SnapshotLoadPlan> reload_plan;
     std::unique_ptr<AofReplayPlan> aof_reload_plan;
+    std::shared_ptr<AofGroupDecision> aof_group;
     // Non-null only after a parked BLMOVE/BRPOPLPUSH is resumed by its owning IO. The blocking
     // context remains independently refcounted while this ordinary scatter owns the Op marker.
     BlockingState* blocking_origin = nullptr;
@@ -377,6 +378,32 @@ std::atomic<bool>* publish_aborted(ScatterState& state) {
 ResultHeap* ensure_result(ScatterState& state) {
     if (!state.result) state.result = new (std::nothrow) ResultHeap;
     return state.result;
+}
+
+bool aof_prepare_scatter_group(ScatterState& state) {
+    if (!state.atomic_group || !state.server || !state.server->aof().recording()) return true;
+    std::vector<uint32_t> participants;
+    try {
+        participants.reserve(state.nsub);
+        for (uint32_t index = 0; index < state.nsub; index++)
+            participants.push_back(static_cast<uint32_t>(state.groups[index].shard));
+    } catch (const std::bad_alloc&) {
+        state.server->aof().fail("out of memory collecting AOF group participants");
+        return false;
+    }
+    state.aof_group = aof_create_group(state.server->aof(), participants);
+    return state.aof_group != nullptr;
+}
+
+void aof_abort_scatter_group(ScatterState& state) {
+    aof_abort_group(state.aof_group);
+}
+
+void aof_commit_scatter_group(ScatterState& state, ThreadCtx& owner, Ring& ring,
+                              uint64_t ticket) {
+    if (!state.aof_group) return;
+    AofOwnerContext context{owner.id(), &ring, &owner.sig()};
+    (void)aof_commit_group(state.server->aof(), state.aof_group, ticket, context);
 }
 
 // Whole-function moves put the engine before command and atomic helpers in the concatenation.
@@ -638,6 +665,12 @@ bool publish_phase2(Server& server, ThreadCtx& self, Ring& ring, const Task& tas
         }
     }
     state.phase = 2;
+    if (!state.external_epoch && !aof_prepare_scatter_group(state)) {
+        state.aborted.store(true, std::memory_order_release);
+        state.final_reply = FinalReply::Work;
+        state.final_error = WorkError::Oom;
+        return false;
+    }
     state.pending.store(initialize_owner_completion(state), std::memory_order_release);
     Task posts[256];
     uint16_t participant_begin[kMaxThreads];
@@ -1134,6 +1167,13 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         build_initial_groups(*state);
     }
     state->pending.store(initialize_owner_completion(*state), std::memory_order_relaxed);
+    if (state->atomic_group && !force_atomic &&
+        (state->atomic_write || state->atomic_direct) &&
+        !aof_prepare_scatter_group(*state)) {
+        xshard_destroy(state, pool, owner_io);
+        set_oom(op);
+        return ScatterPrepare::Error;
+    }
     dispatch.state = state;
     dispatch.nshards = state->nsub;
     dispatch.barrier = state->barrier;
@@ -1155,6 +1195,8 @@ void xshard_destroy(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_
         state->server->atomic_retire_group(state->owner_io, state->admission_generation);
         state->admitted = false;
     }
+    if (state->aof_group && state->aof_group->ticket.load(std::memory_order_acquire) == 0)
+        aof_abort_scatter_group(*state);
     const bool pooled = state->pooled;
     free_state_contents(*state);
     state->retired = true;
@@ -1175,9 +1217,27 @@ namespace { bool xshard_owner_mutation_phase(const ScatterState&, const Op&); }
 void xshard_aof_emit(const Task& task, Shard& shard, Op& op, AofOwnerContext& context) {
     ScatterState& state = *task.scatter;
     if (!xshard_owner_mutation_phase(state, op)) return;
-    // Step 2 owns private MVCC fragments and their GCMT ticket. Emitting a plain post-image here
-    // would over-promise atomicity, so the boot/replay step deliberately leaves groups untouched.
-    if (state.atomic_group) return;
+    if (state.atomic_group) {
+        if (!state.aof_group) return;
+        ShardGroup* group = group_for(state, shard.id());
+        if (!group || !group->count) return;
+        AofProducer& producer = shard.store().aof();
+        if (!producer.begin_group(state.aof_group)) return;
+        bool ok = true;
+        for (uint32_t i = 0; i < group->count; i++) {
+            const uint32_t pos = state.key_order[group->begin + i];
+            const KeyRef& key = state.keys[pos];
+            ok &= state.atomic_pop
+                ? producer.record_group_visible_post_image(
+                      shard.store(), key.hash, op.arg(key.arg))
+                : producer.record_group_post_image(
+                      shard.store(), key.hash, op.arg(key.arg));
+        }
+        ok &= producer.finish_group();
+        if (!ok) aof_abort_scatter_group(state);
+        (void)context;
+        return;
+    }
     if (state.kind == Kind::AllShards) {
         if (op.cmd_name().eq_icase("flushdb") || op.cmd_name().eq_icase("flushall"))
             (void)shard.store().aof().record_flush();
@@ -1802,6 +1862,8 @@ ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
     if (state.pending.fetch_sub(1, std::memory_order_acq_rel) != 1)
         return ScatterFinish::Waiting;
     if (state.atomic_pop && state.phase == 2 && state.pop_missed) {
+        aof_abort_scatter_group(state);
+        state.aof_group.reset();
         static constexpr uint32_t kMaxPopRetries = 8;
         if (state.pop_retries++ < kMaxPopRetries &&
             publish_pop_retry(server, self, ring, task, state))
@@ -1820,11 +1882,13 @@ ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
         WorkError error;
         if (first_error(state, error)) {
             state.aborted.store(true, std::memory_order_release);
+            aof_abort_scatter_group(state);
             state.final_reply = FinalReply::Work;
             state.final_error = error;
             return final();
         }
         if (state.aborted.load(std::memory_order_acquire)) {
+            aof_abort_scatter_group(state);
             // MSETNX existence is a normal failed condition, not a work error. Its installed
             // candidates (if another owner got that far) remain forever invisible at epoch zero.
             if (state.kind == Kind::Msetnx) {
@@ -1838,6 +1902,7 @@ ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
         if (!state.external_epoch) {
             const uint64_t ticket = server.atomic_commit();
             state.epoch.store(ticket, std::memory_order_release);
+            aof_commit_scatter_group(state, self, ring, ticket);
         }
         if (state.kind == Kind::Msetnx) {
             state.final_reply = FinalReply::Integer;
@@ -1847,6 +1912,19 @@ ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
     }
     if (state.phase == 2) {
         finish_phase2(state);
+        if (state.aof_group) {
+            uint64_t ticket = state.epoch.load(std::memory_order_acquire);
+            if (!ticket && state.atomic_pop &&
+                (state.final_reply == FinalReply::Lmpop ||
+                 state.final_reply == FinalReply::Zmpop)) {
+                ticket = server.atomic_commit();
+                state.epoch.store(ticket, std::memory_order_release);
+            }
+            if (ticket && !state.aborted.load(std::memory_order_acquire))
+                aof_commit_scatter_group(state, self, ring, ticket);
+            else
+                aof_abort_scatter_group(state);
+        }
         if (__builtin_expect(server.blocking_waiters() != 0, false))
             blocking_atomic_published(server, self, ring, state);
         return final();

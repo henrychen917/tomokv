@@ -7,8 +7,10 @@
 
 #include <atomic>
 #include <cstdint>
+#include <deque>
 #include <memory>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "../core/signal.h"
@@ -41,12 +43,33 @@ enum class AofRecordKind : uint8_t {
     GroupCommit = 7,
 };
 
+struct AofGroupDependency {
+    uint32_t sid = 0;
+    uint32_t sequence = 0;
+};
+
+// Allocated only for a live atomic group while AOF is enabled. Owners retain this decision while
+// serializing private candidates; the writer retains it until every named shard fragment precedes
+// the GCMT record. The dependency fields below are writer-private after construction.
+struct AofGroupDecision {
+    std::atomic<uint64_t> ticket{0};
+    std::atomic<bool> aborted{false};
+    std::atomic<bool> commit_enqueued{false};
+    std::vector<uint32_t> participants;
+    std::vector<AofGroupDependency> dependencies;
+    std::vector<uint8_t> dependency_seen;
+};
+
 struct AofChunk {
     int32_t sid = -1;
     uint32_t sequence = 0;
     uint32_t flags = 0;
     uint32_t records = 0;
     std::vector<uint8_t> bytes;
+    std::shared_ptr<AofGroupDecision> group;
+    std::vector<uint32_t> group_ticket_offsets;
+    bool group_fragment_last = false;
+    bool group_commit = false;
 };
 
 class AofReplayPlan {
@@ -61,6 +84,8 @@ public:
     uint64_t valid_file_bytes = 0;
     std::vector<uint32_t> next_sequence;
     std::vector<std::vector<uint8_t>> sections;
+    std::vector<uint8_t> control_section;
+    std::unordered_set<uint64_t> committed_groups;
 };
 
 struct AofOwnerContext {
@@ -83,10 +108,23 @@ public:
                                     uint64_t group = 0);
     bool record_delete(Slice key, uint64_t group = 0);
     bool record_flush();
+    bool begin_group(const std::shared_ptr<AofGroupDecision>& group);
+    bool record_group_post_image(FlatStore& store, uint64_t hash, Slice key);
+    bool record_group_visible_post_image(FlatStore& store, uint64_t hash, Slice key);
+    bool finish_group();
     bool flush(AofOwnerContext& context);
-    bool has_pending() const { return build_ || !ready_.empty(); }
+    bool has_pending() const { return build_ || !ready_.empty() || !staged_.empty(); }
 
 private:
+    struct PendingGroup {
+        std::shared_ptr<AofGroupDecision> decision;
+        std::unique_ptr<AofChunk> build;
+        std::vector<std::unique_ptr<AofChunk>> chunks;
+    };
+    struct StagedItem {
+        std::unique_ptr<AofChunk> plain;
+        PendingGroup group;
+    };
     bool record_post_image_impl(FlatStore& store, uint64_t hash, Slice key,
                                 AofOwnerContext* context, uint64_t group);
     bool record_bytes(AofRecordKind kind, uint8_t type, uint8_t encoding, Slice key,
@@ -98,6 +136,17 @@ private:
     bool post_ready(AofOwnerContext& context);
     bool maybe_timestamp(int64_t now_ms, AofOwnerContext* context);
     std::unique_ptr<AofChunk> make_chunk(uint32_t flags = 0);
+    std::unique_ptr<AofChunk> make_group_chunk(uint32_t flags = 0);
+    bool group_emit(PendingGroup& group, const uint8_t* bytes, uint64_t length, bool large);
+    bool group_seal(PendingGroup& group, uint32_t flags);
+    bool record_group_bytes(PendingGroup& group, AofRecordKind kind, uint8_t type,
+                            uint8_t encoding, Slice key, int64_t expire_at_ms,
+                            const SnapshotTypeHooks* hooks,
+                            SnapshotSaveCursor* cursor);
+    bool record_group_post_image_impl(FlatStore& store, uint64_t hash, Slice key,
+                                      bool physical);
+    bool make_ready(std::unique_ptr<AofChunk> chunk);
+    bool resolve_groups();
 
     AofManager* manager_ = nullptr;
     int32_t sid_ = -1;
@@ -105,6 +154,8 @@ private:
     int64_t timestamp_second_ = -1;
     std::unique_ptr<AofChunk> build_;
     std::vector<std::unique_ptr<AofChunk>> ready_;
+    std::deque<StagedItem> staged_;
+    PendingGroup* active_group_ = nullptr;
 };
 
 class AofManager {
@@ -139,6 +190,9 @@ public:
     uint64_t current_size() const { return current_size_.load(std::memory_order_relaxed); }
     uint64_t pending_chunks() const { return pending_chunks_.load(std::memory_order_acquire); }
     const std::string& last_error() const { return last_error_; }
+    void debug_stop_after_group_fragments(uint64_t count) {
+        debug_stop_after_fragments_.store(count, std::memory_order_release);
+    }
 
     void fail(const char* message);
     bool wait_until_drained(uint32_t timeout_ms);
@@ -147,6 +201,10 @@ private:
     using ChunkChan = Channel<AofChunk*, 64>;
     bool write_header();
     bool write_frame(const AofChunk& chunk);
+    bool write_group_commit(AofChunk& chunk);
+    bool group_dependencies_ready(const AofGroupDecision& group) const;
+    void note_group_fragment(const AofChunk& chunk);
+    uint32_t drain_pending_commits(uint32_t& budget);
     bool drain_producer(uint32_t producer, uint32_t& budget, uint32_t& consumed);
     void discard_chunks();
 
@@ -167,6 +225,7 @@ private:
     std::atomic<uint64_t> groups_skipped_{0};
     std::atomic<uint64_t> current_size_{0};
     std::atomic<bool> timestamp_enabled_{false};
+    std::atomic<uint64_t> debug_stop_after_fragments_{0};
     std::string directory_path_;
     std::string file_path_;
     std::string last_error_;
@@ -177,6 +236,7 @@ private:
     uint32_t locked_producer_ = UINT32_MAX;
     uint32_t writer_cursor_ = 0;
     std::vector<uint32_t> next_sequence_;
+    std::vector<std::unique_ptr<AofChunk>> pending_commits_;
 };
 
 std::string aof_directory_path(const Config& config);
@@ -190,5 +250,11 @@ bool aof_load_shard(const AofReplayPlan& plan, Server& server, Shard& shard,
                     std::string& error);
 
 bool aof_record_local_op(Shard& shard, Op& op, AofOwnerContext& context);
+
+std::shared_ptr<AofGroupDecision> aof_create_group(AofManager& manager,
+                                                   const std::vector<uint32_t>& participants);
+void aof_abort_group(const std::shared_ptr<AofGroupDecision>& group);
+bool aof_commit_group(AofManager& manager, const std::shared_ptr<AofGroupDecision>& group,
+                      uint64_t ticket, AofOwnerContext& context);
 
 }  // namespace tomo

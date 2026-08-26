@@ -17,6 +17,7 @@ class Shard;
 struct MultiExecState;
 struct MultiSession;
 struct Task;
+struct AofOwnerContext;
 
 enum class MultiIoAction : uint8_t {
     NotHandled,
@@ -58,7 +59,8 @@ void multi_abandon_unpublished(MultiExecState* state);
 bool multi_task_tagged(const Task& task);
 Task multi_make_task(Client* client, uint64_t op_id, int32_t shard, MultiExecState* state);
 MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shard,
-                                   uint32_t owner_thread_id, uint32_t owner_domain);
+                                   uint32_t owner_thread_id, uint32_t owner_domain,
+                                   AofOwnerContext* aof_context);
 
 // IO-side retirement owns state destruction.  Pending MVCC records may retain the shared epoch
 // after the EXEC reply, so those states are reaped when their owner-local record refs reach zero.

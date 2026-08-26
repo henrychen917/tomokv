@@ -330,6 +330,13 @@ public:
     }
     AofProducer& aof() { return aof_; }
     const AofProducer& aof() const { return aof_; }
+    // AOF group fragments describe the private candidate installed by this owner before its
+    // cross-shard visibility ticket is published. Logical find() must hide that candidate; this
+    // owner-only tap intentionally reads the newest physical representation instead.
+    KvObj* aof_physical(uint64_t hash, Slice key) const {
+        if (KvObj* object = find_in(0, hash, key)) return object;
+        return rehashing() ? find_in(1, hash, key) : nullptr;
+    }
     size_t   accounted_bytes() const {
         const size_t keys = size();
         const size_t objects = obj_bytes_ + atomic_version_bytes_;

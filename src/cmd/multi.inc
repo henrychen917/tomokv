@@ -98,6 +98,7 @@ struct alignas(8) MultiExecState {
     std::vector<uint8_t> watch_shard_done;
     std::vector<uint8_t> execution_joined;
     std::vector<uint8_t> final_shard_done;
+    std::vector<uint8_t> aof_shard_done;
     std::vector<uint8_t> execution_noted;
     std::vector<uint32_t> owner_record_refs;
     ScatterArenaPool scatter_pool;
@@ -113,6 +114,7 @@ struct alignas(8) MultiExecState {
     std::atomic<bool> finalized{false};
     std::atomic<uint32_t> tasks_pending{0};
     std::atomic<NotifyBatch*> notify{nullptr};
+    std::shared_ptr<AofGroupDecision> aof_group;
 };
 
 namespace {
@@ -408,6 +410,7 @@ MultiExecState* allocate_state(Server& server, Client& client, uint32_t owner_io
         state->watch_shard_done.assign(server.nshards(), 0);
         state->execution_joined.assign(server.nshards(), 0);
         state->final_shard_done.assign(server.nshards(), 0);
+        state->aof_shard_done.assign(server.nshards(), 0);
         state->execution_noted.assign(server.nshards(), 0);
     } catch (const std::bad_alloc&) {
         delete state;
@@ -951,6 +954,28 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
             session->queue.clear();
             return MultiIoAction::LocalDone;
         }
+        if (!state->write_keys.empty() && server.aof().recording()) {
+            std::vector<uint32_t> participants;
+            try {
+                participants.reserve(state->write_keys.size());
+                for (const MultiWriteKey& write : state->write_keys)
+                    participants.push_back(static_cast<uint32_t>(write.shard));
+            } catch (const std::bad_alloc&) {
+                destroy_multi_state(state);
+                reply_err(op.sink(), "ERR out of memory");
+                session->active = false;
+                session->queue.clear();
+                return MultiIoAction::LocalDone;
+            }
+            state->aof_group = aof_create_group(server.aof(), participants);
+            if (!state->aof_group) {
+                destroy_multi_state(state);
+                reply_err(op.sink(), "ERR out of memory");
+                session->active = false;
+                session->queue.clear();
+                return MultiIoAction::LocalDone;
+            }
+        }
         session->active = false;
         session->queue_error = false;
         session->queue.clear();
@@ -1149,8 +1174,29 @@ Task multi_make_task(Client* client, uint64_t op_id, int32_t shard, MultiExecSta
     return Task{client, op_id, shard, reinterpret_cast<ScatterState*>(tagged)};
 }
 
+bool multi_aof_emit_fragment(MultiExecState& state, Shard& shard) {
+    if (!state.aof_group) return true;
+    uint8_t& done = state.aof_shard_done[static_cast<uint32_t>(shard.id())];
+    if (done) return true;
+    uint32_t count = 0;
+    for (const MultiWriteKey& write : state.write_keys) count += write.shard == shard.id();
+    if (!count) { done = 1; return true; }
+    AofProducer& producer = shard.store().aof();
+    if (!producer.begin_group(state.aof_group)) return false;
+    bool ok = true;
+    for (const MultiWriteKey& write : state.write_keys) {
+        if (write.shard != shard.id()) continue;
+        const Slice key(write.key.data(), static_cast<uint32_t>(write.key.size()));
+        ok &= producer.record_group_post_image(shard.store(), write.hash, key);
+    }
+    ok &= producer.finish_group();
+    done = 1;
+    return ok;
+}
+
 MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shard,
-                                   uint32_t owner_thread_id, uint32_t owner_domain) {
+                                   uint32_t owner_thread_id, uint32_t owner_domain,
+                                   AofOwnerContext* aof_context) {
     Op* carrier = task.client && task.op_id != UINT64_MAX
         ? &task.client->rob().at(task.op_id) : nullptr;
     if (!carrier) std::abort();
@@ -1256,6 +1302,9 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
     uint8_t& joined = state.execution_joined[shard_id];
     if (!joined) {
         joined = 1;
+        // Each shard emits its AOF fragment exactly once, under the same join guard that
+        // publishes its list's owner work; a failed emit aborts the whole group (GCMT).
+        if (!multi_aof_emit_fragment(state, shard)) aof_abort_group(state.aof_group);
         // This first barrier publishes every list's owner work before the one commit decision.
         // tasks_pending remains the post-decision lifetime barrier for state and reservations.
         if (state.lists_pending.fetch_sub(1, std::memory_order_acq_rel) == 1) {
@@ -1267,7 +1316,13 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                 if (!state.aborted.load(std::memory_order_acquire) &&
                     state.final_reply == MultiFinalReply::Exec) {
                     assemble_ownerless_replies(state);
-                    state.epoch.store(server.atomic_commit(), std::memory_order_release);
+                    const uint64_t ticket = server.atomic_commit();
+                    state.epoch.store(ticket, std::memory_order_release);
+                    if (aof_context)
+                        (void)aof_commit_group(server.aof(), state.aof_group, ticket,
+                                               *aof_context);
+                } else {
+                    aof_abort_group(state.aof_group);
                 }
                 state.finalized.store(true, std::memory_order_release);
             }
