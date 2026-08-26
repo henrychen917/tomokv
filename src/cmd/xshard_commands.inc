@@ -1067,8 +1067,10 @@ void finish_phase2(ScatterState& state) {
             state.final_reply = FinalReply::Internal;
             return;
         }
-        const uint64_t ticket = state.server->atomic_commit();
-        state.epoch.store(ticket, std::memory_order_release);
+        if (!state.external_epoch) {
+            const uint64_t ticket = state.server->atomic_commit();
+            state.epoch.store(ticket, std::memory_order_release);
+        }
     }
     switch (state.kind) {
         case Kind::Msetnx: state.final_reply = FinalReply::Integer; state.final_integer = 1; break;

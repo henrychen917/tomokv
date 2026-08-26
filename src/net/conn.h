@@ -51,6 +51,10 @@
 
 namespace tomo {
 
+class Client;
+struct MultiSession;
+void multi_session_destroy(MultiSession* session);
+
 inline constexpr uint32_t kRobWindow    = 64;          // max in-flight ops per connection
 inline constexpr size_t   kRbufInitial  = 16 * 1024;
 inline constexpr size_t   kRbufSoftCap  = 1 * 1024 * 1024;  // stop BUFFERING BACKLOG past this
@@ -221,7 +225,7 @@ public:
         rbuf_ = static_cast<char*>(std::malloc(kRbufInitial));
         rcap_ = kRbufInitial;
     }
-    ~Client() { std::free(rbuf_); }
+    ~Client() { multi_session_destroy(multi_session_); std::free(rbuf_); }
     Client(const Client&) = delete;
     Client& operator=(const Client&) = delete;
 
@@ -422,6 +426,25 @@ public:
     bool in_active() const { return in_active_; }
     void set_in_active(bool v) { in_active_ = v; }
 
+    // MULTI/WATCH state is cold and allocated only on first use.  These fields consume padding in
+    // the executor-facing tail; the signed 1984-byte Client footprint remains unchanged.
+    MultiSession* multi_session() const { return multi_session_; }
+    void set_multi_session(MultiSession* state) { multi_session_ = state; }
+    uint64_t watch_generation() const {
+        return watch_generation_.load(std::memory_order_acquire);
+    }
+    uint64_t next_watch_generation() {
+        return watch_generation_.fetch_add(1, std::memory_order_acq_rel) + 1;
+    }
+    bool watch_dirty() const { return watch_dirty_.load(std::memory_order_acquire); }
+    void set_watch_dirty() { watch_dirty_.store(true, std::memory_order_release); }
+    void clear_watch_dirty() { watch_dirty_.store(false, std::memory_order_release); }
+    void watch_ref() { watched_refs_.fetch_add(1, std::memory_order_relaxed); }
+    void watch_unref() {
+        if (watched_refs_.fetch_sub(1, std::memory_order_acq_rel) == 0) std::abort();
+    }
+    uint32_t watched_refs() const { return watched_refs_.load(std::memory_order_acquire); }
+
     // ---- the ONLY cross-thread fields ----------------------------------------------------------
     // A connection may be freed only when (a) nothing is in flight through its ROB AND (b) no
     // Client* naming it can still surface from a notification channel. (b) is what the ASAN
@@ -434,7 +457,8 @@ public:
     bool safe_to_release() {
         return rob_.quiesced() &&
                !recv_armed_ && !send_inflight_ &&        // the KERNEL holds no pointer into us
-               !retire_queued_.load(std::memory_order_acquire);
+               !retire_queued_.load(std::memory_order_acquire) &&
+               watched_refs_.load(std::memory_order_acquire) == 0;
     }
 
     // Set by a worker before it tells the owning IO thread this client has ops to retire; cleared by
@@ -501,6 +525,10 @@ private:
     alignas(64) std::atomic<bool>     retire_queued_{false};
     std::atomic<uint32_t> wb_slot_{kNoWbSlot};
     uint32_t atomic_groups_io_ = 0; // connection-IO-owned; captured into Op before dispatch
+    MultiSession* multi_session_ = nullptr;
+    std::atomic<uint64_t> watch_generation_{0};
+    std::atomic<uint32_t> watched_refs_{0};
+    std::atomic<bool> watch_dirty_{false};
 };
 
 // Same footprint law as Op: Client is per-connection resident memory and its io-hot head is

@@ -885,6 +885,10 @@ void cmd_scan(Shard& sh, Op& op) {
     for (Slice key : keys) reply_bulk(sink, key);
 }
 
+void cmd_transaction_control(Shard&, Op& op) {
+    reply_err(op.sink(), "ERR internal transaction routing error");
+}
+
 static const CommandSpec kTable[] = {
     // name       min max flags                                                    handler        first last step
     {"PING",       1,  2, CmdFlags::ConnLocal,                                    cmd_ping,       0,  0, 0},
@@ -914,6 +918,11 @@ static const CommandSpec kTable[] = {
     {"SCAN",       2, -1, CmdFlags::Readonly | CmdFlags::CursorShard,             cmd_scan,       0,  0, 0},
     {"KEYS",       2,  2, CmdFlags::Readonly | CmdFlags::Admin | CmdFlags::MultiShard,cmd_xshard_only,0,0,0},
     {"SORT",       2, -1, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,cmd_xshard_only,1,1,1},
+    {"MULTI",      1,  1, CmdFlags::ConnLocal | CmdFlags::Transaction,              cmd_transaction_control,0,0,0},
+    {"EXEC",       1,  1, CmdFlags::ConnLocal | CmdFlags::Transaction,              cmd_transaction_control,0,0,0},
+    {"DISCARD",    1,  1, CmdFlags::ConnLocal | CmdFlags::Transaction,              cmd_transaction_control,0,0,0},
+    {"WATCH",      2, -1, CmdFlags::ConnLocal | CmdFlags::Transaction,              cmd_transaction_control,1,-1,1},
+    {"UNWATCH",    1,  1, CmdFlags::ConnLocal | CmdFlags::Transaction,              cmd_transaction_control,0,0,0},
 };
 
 }  // namespace

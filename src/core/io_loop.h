@@ -36,6 +36,7 @@
 #include "../net/wb.h"
 #include "../cmd/command.h"
 #include "../cmd/blocking.h"
+#include "../cmd/multi.h"
 #include "../cmd/xshard.h"
 #include "../snapshot/snapshot.h"
 
@@ -52,7 +53,9 @@ inline constexpr uint32_t kRecvChunk = 16 * 1024;
 class IoLoop {
 public:
     WbEngine& engine() { return wb_; }
-    uint32_t reap_atomic_deferred() { return scatter_pool_.reap_deferred(); }
+    uint32_t reap_atomic_deferred() {
+        return scatter_pool_.reap_deferred() + multi_owner_reap_entry(*this);
+    }
     // ONE LISTENING SOCKET PER IO THREAD, via SO_REUSEPORT.
     //
     // Sharing a single listen fd across io threads does NOT distribute connections: every thread
@@ -85,6 +88,7 @@ public:
                     });
             else if (op.has_blocking_state())
                 blocking_retire(*loop->srv_, client, op);
+            else if (op.has_multi_state()) multi_retire_entry(*loop, client, op);
         });
         return true;
     }
@@ -94,6 +98,7 @@ public:
         if (listen_fd_ >= 0) ::close(listen_fd_);
         if (unix_listen_fd_ >= 0) ::close(unix_listen_fd_);
         for (Client* c : pending_handoffs_) { ::close(c->fd()); delete c; }
+        multi_shutdown_entry(*this);
     }
 
     static int make_reuseport_listener(const char* addr, uint16_t port) {
@@ -139,6 +144,12 @@ public:
     }
 
 private:
+    friend bool multi_dispatch_entry(IoLoop&, Client&, Op&, uint32_t);
+    friend void multi_retire_entry(IoLoop&, Client&, Op&);
+    friend uint32_t multi_owner_pass_entry(IoLoop&);
+    friend uint32_t multi_owner_reap_entry(IoLoop&);
+    friend void multi_close_entry(IoLoop&, Client&);
+    friend void multi_shutdown_entry(IoLoop&);
 #include "pubsub.inc"
 
     template <bool HasUnix>
@@ -162,6 +173,7 @@ private:
                 did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
                 did += scatter_pool_.refresh_snapshot_floor(*srv_, self_->id());
                 if constexpr (HasUnix) did += flush_handoffs();
+                did += multi_owner_pass_entry(*this);
                 if (srv_->snapshot().writer_is(self_->id()))
                     did += srv_->snapshot().writer_pass(*self_, ring_);
                 did += flush_borrow_releases();
@@ -389,6 +401,10 @@ private:
                 finish_locally(c, *op, message); continue;
             }
             op->spec = spec;
+            if (__builtin_expect((spec->flags & CmdFlags::Transaction) != 0, false) ||
+                __builtin_expect(conn.multi_session() != nullptr, false)) {
+                if (multi_dispatch_entry(*this, conn, *op, consumed)) continue;
+            }
             const bool config_scatter = (spec->flags & CmdFlags::ConfigRoute) &&
                                         command_config_routes_all_shards(*op);
 
@@ -925,6 +941,7 @@ private:
             // CQEs come back -- which a half-open peer might never trigger on its own.
             ::shutdown(c->fd(), SHUT_RDWR);
         }
+        multi_close_entry(*this, *c);
         // Release only at the quiescence fence: a worker may still hold a Task that resolves through
         // this ROB. Anything else is a use-after-free under pipelining. (The retryable wait paths,
         // with their mark_active leak guard, are below.)
@@ -1020,6 +1037,8 @@ private:
                 if (v[i] == c) { v[i] = v.back(); v.pop_back(); return; }
         }
     } active_;
+    std::vector<MultiExecState*> multi_deferred_;
+    std::deque<MultiExecState*> pending_multi_cleanups_;
 };
 
 }  // namespace tomo

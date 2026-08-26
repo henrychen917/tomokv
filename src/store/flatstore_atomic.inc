@@ -277,6 +277,32 @@
         return true;
     }
 
+    // EXEC's heterogeneous owner work uses copied-key entries rather than ScatterState key spans,
+    // but otherwise participates in the identical MVCC list.  Every entry points at the one
+    // transaction epoch, so publishing that single ticket makes all owners visible together.
+    bool atomic_prepare_transaction(Slice key, uint64_t hash, uint64_t origin_conn_id,
+                                    std::atomic<uint64_t>* group_epoch,
+                                    std::atomic<uint32_t>* group_refs,
+                                    std::atomic<bool>* group_aborted, uint32_t* owner_refs,
+                                    void*& opaque) {
+        opaque = nullptr;
+        if (!atomic_ensure_pending()) return false;
+        AtomicEntry* entry = atomic_alloc_entry(1, key.n);
+        if (!entry) return false;
+        entry->capacity = 1;
+        entry->key_len = key.n;
+        entry->plain_hash = hash;
+        entry->origin_conn_id = origin_conn_id;
+        entry->group_epoch = group_epoch;
+        entry->group_refs = group_refs;
+        entry->group_aborted = group_aborted;
+        entry->owner_refs = owner_refs;
+        entry->membership = atomic_membership_bit(hash);
+        if (key.n) std::memcpy(entry->plain_key_data(), key.p, key.n);
+        opaque = entry;
+        return true;
+    }
+
     void atomic_discard_plain(void*& opaque) { atomic_discard_group(opaque); }
 
     void atomic_install_plain(uint64_t hash, Slice key, void*& opaque, KvObj*& value,
@@ -296,6 +322,21 @@
         value = nullptr;
         atomic_link_entry(*entry);
         atomic_read_epoch_ = epoch;
+    }
+
+    KvObj* atomic_install_transaction(uint64_t hash, Slice key, void*& opaque, KvObj*& value) {
+        auto* entry = static_cast<AtomicEntry*>(opaque);
+        opaque = nullptr;
+        if (!entry || !entry->plain() || !entry->group_epoch || entry->key_len != key.n ||
+            Slice(entry->plain_key_data(), entry->key_len) != key) std::abort();
+        KvObj* old = atomic_exchange_physical(hash, key, value);
+        entry->parked()[0] = old;
+        entry->count = 1;
+        if (old) atomic_version_bytes_ += kvobj_size(old);
+        if (value) atomic_version_bytes_ -= kvobj_size(value);
+        value = nullptr;
+        atomic_link_entry(*entry);
+        return old;
     }
 
     void atomic_finish_plain() {
@@ -531,9 +572,12 @@ private:
             if (owner.group_epoch && owner.group_aborted &&
                 owner.group_aborted->load(std::memory_order_acquire)) return;
             const uint64_t epoch = atomic_epoch(owner);
-            if (owner.group_epoch && epoch == 0) return;
             const bool own_committed = atomic_read_origin_conn_id_ != 0 &&
                 owner.origin_conn_id == atomic_read_origin_conn_id_;
+            // A transaction's own still-private installs are its RYOW overlay.  Foreign epoch-zero
+            // candidates remain invisible exactly as before; ordinary pipelined commands still
+            // defer on their own undecided predecessor before reaching this resolver.
+            if (owner.group_epoch && epoch == 0 && !own_committed) return;
             if (!(epoch <= snapshot || own_committed)) return;
             // Equal epochs are multiple physical installs inside one command; the later occurrence
             // is the command's final value. Distinct groups never share a ticket.

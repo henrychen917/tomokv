@@ -11,6 +11,7 @@
 #include <cstring>
 #include <deque>
 #include <limits>
+#include <memory>
 #include <new>
 #include <string>
 #include <unordered_set>
@@ -20,6 +21,8 @@
 #include "command.h"
 #include "blocking.h"
 #include "hll.h"
+#include "multi.h"
+#include "../core/io_loop.h"
 #include "../core/server.h"
 #include "../core/thread.h"
 #include "../exec/op.h"
@@ -34,3 +37,4 @@
 #include "xshard_commands.inc"
 #include "atomics_glue.inc"
 #include "blocking.inc"
+#include "multi.inc"

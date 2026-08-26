@@ -44,6 +44,7 @@ struct CmdFlags {
     // A blocking collection command is lowered before ordinary scatter routing.  Its issued ROB
     // slot is also a connection parse barrier until an owner supplies data or a timeout reply.
     static constexpr uint32_t Blocking = 1u << 13;
+    static constexpr uint32_t Transaction = 1u << 14; // MULTI/EXEC/WATCH controls, IO-owned
 };
 
 using CmdHandler = void (*)(Shard&, Op&);

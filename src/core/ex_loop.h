@@ -26,6 +26,7 @@
 #include "../net/wb.h"
 #include "../cmd/command.h"
 #include "../cmd/blocking.h"
+#include "../cmd/multi.h"
 #include "../cmd/xshard.h"
 
 namespace tomo {
@@ -73,6 +74,7 @@ public:
                 did += snapshot_control_pass();
                 did += drain_releases();
                 if (!snapshot_blocks_tasks()) {
+                    did += service_multi_retries();
                     did += service_atomic_deferred();
                     did += service_xshard_retries();
                     if (xshard_retries_.empty()) did += service_ordered_deferred();
@@ -132,6 +134,7 @@ private:
     uint32_t sweep() {
         uint32_t n = snapshot_control_pass() + drain_releases(true);
         if (!snapshot_blocks_tasks()) {
+            n += service_multi_retries();
             n += service_atomic_deferred();
             n += service_xshard_retries();
             if (xshard_retries_.empty()) n += service_ordered_deferred();
@@ -367,6 +370,9 @@ private:
     }
 
     bool execute_snapshot_task(const Task& task, bool capture_writes) {
+        // MULTI's tagged task owns its command images outside the public ROB and performs the
+        // snapshot pre-image gate per installed transaction key.  Never decode it as a normal op.
+        if (multi_task_tagged(task)) return execute(task);
         if (!task.client) return execute(task);
         Op& op = task.client->rob().at(task.op_id);
         const int32_t sid = task.shard >= 0 ? task.shard : op.shard;
@@ -403,6 +409,7 @@ private:
     }
 
     void schedule_snapshot_task(const Task& task) {
+        if (multi_task_tagged(task)) { execute(task); return; }
         if (!task.client) { execute(task); return; }
         // A bounded scatter continuation is still the oldest task on this owner.  Holding later
         // work here preserves the queue-order RYOW argument without installing a conn barrier for
@@ -472,6 +479,23 @@ private:
     }
 
     bool execute(const Task& t) {
+        if (multi_task_tagged(t)) {
+            Shard& shard = srv_->shard(t.shard);
+            shard.set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
+            const MultiTaskResult result =
+                multi_execute_task(*srv_, t, shard, self_->id(), self_->domain());
+            shard.publish_size();
+            if (result == MultiTaskResult::Retry) {
+                multi_retries_.push_back(t);
+                return true;
+            }
+            if (result == MultiTaskResult::Final) {
+                Op& public_op = t.client->rob().at(t.op_id);
+                public_op.state.store(OpState::Done, std::memory_order_release);
+                notify_sender(t.client);
+            }
+            return true;
+        }
         if (!t.client) {
             Shard& cleanup = srv_->shard(t.shard);
             cleanup.set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
@@ -492,6 +516,9 @@ private:
             atomic_deferred_.push_back(t);
             return true;
         }
+        if (!t.scatter && (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) &&
+            __builtin_expect(sh.has_watches(), false) && !multi_plain_write_ready(sh, op))
+            return false;
         // Records the op AND whether it was executed from this shard's home L3 domain. One compare
         // and one increment, no atomics — the shard has a single owner.
         sh.note_execution(self_->domain());
@@ -500,6 +527,7 @@ private:
 
         if (t.scatter) {
             const ScatterTaskResult result = xshard_execute(t, sh, op, self_->id());
+            xshard_watch_finish(t, sh, op, result);
             if (result == ScatterTaskResult::Retry) return false;
             if (__builtin_expect(sh.has_blocking_waiters(), false))
                 blocking_scatter_mutation_published(t, sh, op);
@@ -531,6 +559,9 @@ private:
                 op.spec->handler(sh, op);
             }
         }
+        if (!t.scatter && (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) &&
+            __builtin_expect(sh.has_watches(), false))
+            multi_plain_write_committed(sh, op);
 
         // Release pairs with the IO thread's acquire on Done: everything the handler wrote into
         // op.reply becomes visible through this one store.
@@ -554,6 +585,17 @@ private:
             ? execute(task) : execute_snapshot_task(task, true);
         if (!complete) xshard_retries_.push_back(task);
         return 1;  // one bounded KEYS pass (or one snapshot-gate attempt) per executor iteration
+    }
+
+    uint32_t service_multi_retries() {
+        if (multi_retries_.empty()) return 0;
+        const Task task = multi_retries_.front();
+        multi_retries_.pop_front();
+        // execute() requeues an unfinished transaction task on multi_retries_ itself.  Returning
+        // true here is work/progress, while ordinary inbox draining remains enabled so every shard
+        // participant gets its first turn at the command barrier.
+        execute(task);
+        return 1;
     }
 
     uint32_t service_atomic_deferred() {
@@ -674,6 +716,7 @@ private:
     std::vector<std::unique_ptr<SnapshotChunk>> snapshot_pending_chunks_;
     std::vector<std::deque<Task>> snapshot_backlogs_;
     std::deque<Task> atomic_deferred_;
+    std::deque<Task> multi_retries_;
     std::deque<Task> xshard_retries_;
     std::deque<Task> ordered_deferred_;
 };

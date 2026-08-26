@@ -50,6 +50,7 @@ public:
     static constexpr int32_t kScatterStateMarker = -2;
     static constexpr int32_t kLocalXshardMarker  = -3;
     static constexpr int32_t kBlockingStateMarker = -4;
+    static constexpr int32_t kMultiStateMarker   = -5;
     Op() = default;
     ~Op() { std::free(argv_heap_); }
     Op(const Op&) = delete;
@@ -197,6 +198,15 @@ public:
         zc_shard = kLocalXshardMarker;
     }
     bool local_xshard() const { return zc_shard == kLocalXshardMarker; }
+    void attach_multi_state(void* state_) {
+        zc_ptr = static_cast<const char*>(state_);
+        zc_len = 0;
+        zc_shard = kMultiStateMarker;
+    }
+    bool has_multi_state() const { return zc_ptr != nullptr && zc_shard == kMultiStateMarker; }
+    void* multi_state() const {
+        return has_multi_state() ? const_cast<char*>(zc_ptr) : nullptr;
+    }
 
     bool has_blocking_state() const {
         return zc_ptr != nullptr && zc_shard == kBlockingStateMarker;

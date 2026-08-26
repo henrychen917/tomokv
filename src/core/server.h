@@ -223,8 +223,8 @@ public:
     bool atomic_tracking_active() const {
         return atomic_mode_state() != 0;
     }
-    bool atomic_can_admit(uint32_t owner_io) const {
-        if (!(atomic_mode_state() & kAtomicEnabledBit)) return true;
+    bool atomic_can_admit(uint32_t owner_io, bool force = false) const {
+        if (!force && !(atomic_mode_state() & kAtomicEnabledBit)) return true;
         const uint64_t generation = atomic_credit_generation_.load(std::memory_order_acquire);
         if (generation & 1) return false;
         const uint32_t window = atomic_window();
@@ -233,9 +233,10 @@ public:
         return (lease.generation == generation && lease.available != 0) ||
                atomic_credit_pool_.load(std::memory_order_acquire) != 0;
     }
-    bool atomic_try_admit(uint32_t owner_io, uint64_t& admitted_generation) {
+    bool atomic_try_admit(uint32_t owner_io, uint64_t& admitted_generation,
+                          bool force = false) {
         admitted_generation = 0;
-        if (!(atomic_mode_state() & kAtomicEnabledBit)) return false;
+        if (!force && !(atomic_mode_state() & kAtomicEnabledBit)) return false;
         AtomicAdmissionLease& lease = thread(owner_io).atomic_admission_lease();
         const uint64_t generation = atomic_credit_generation_.load(std::memory_order_acquire);
         if (generation & 1) return false;
@@ -273,7 +274,7 @@ public:
         lease.published_active.store(lease.active, std::memory_order_release);
         if (first) atomic_activity_.fetch_add(1, std::memory_order_release);
         if (atomic_credit_generation_.load(std::memory_order_acquire) != generation ||
-            !(atomic_mode_state() & kAtomicEnabledBit)) {
+            (!force && !(atomic_mode_state() & kAtomicEnabledBit))) {
             lease.active--;
             lease.published_active.store(lease.active, std::memory_order_release);
             if (first) atomic_activity_.fetch_sub(1, std::memory_order_release);

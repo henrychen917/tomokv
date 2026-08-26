@@ -24,10 +24,15 @@
 #pragma once
 #include <atomic>
 #include <cstdint>
+#include <string>
+#include <unordered_map>
+#include <vector>
 #include "../base/topology.h"
 #include "../store/flatstore.h"
 
 namespace tomo {
+
+class Client;
 
 // 16,384 buckets. Chosen so changing the shard count reassigns bucket RANGES rather than rehashing
 // keys: a key's bucket never changes, only which shard owns that bucket.
@@ -102,6 +107,36 @@ public:
 
     FlatStore&       store()       { return store_; }
     const FlatStore& store() const { return store_; }
+
+    // WATCH state is touched only by this shard's executor.  The maps remain empty until the first
+    // WATCH, so ordinary reads and writes allocate nothing and never enter registry code.
+    struct WatchEntry { Client* client = nullptr; uint64_t generation = 0; };
+    struct WatchReservation {
+        const void* token = nullptr;
+        std::atomic<uint64_t>* epoch = nullptr;
+        std::atomic<bool>* aborted = nullptr;
+        std::atomic<uint32_t>* refs = nullptr;
+        Client* writer = nullptr;
+        uint64_t writer_generation = 0;
+        bool mutates = false;
+    };
+    bool has_watches() const { return !watchers_.empty() || !watch_reservations_.empty(); }
+    bool watch_add(Slice key, Client* client, uint64_t generation);
+    void watch_remove(Slice key, Client* client, uint64_t generation);
+    bool watch_validate_and_reserve(Slice key, Client* client, uint64_t generation,
+                                    const void* token, std::atomic<uint64_t>* epoch,
+                                    std::atomic<bool>* aborted,
+                                    std::atomic<uint32_t>* refs, bool mutates);
+    bool watch_write_ready(Slice key, const void* token = nullptr);
+    void watch_reserve_write(Slice key, Client* writer, uint64_t writer_generation,
+                             const void* token, std::atomic<uint64_t>* epoch,
+                             std::atomic<bool>* aborted, std::atomic<uint32_t>* refs);
+    void watch_write_committed(Slice key, Client* writer = nullptr,
+                               uint64_t writer_generation = 0);
+    bool watch_all_write_ready();
+    void watch_all_write_committed();
+    bool watch_finalize_reservation(const std::string& key);
+    void watch_prune_stale(const std::string& key);
 
     // ---- locality --------------------------------------------------------------------------------
     // The L3 domain this shard's working set is currently resident in — i.e. the domain of the
@@ -192,6 +227,8 @@ private:
     void* blocking_registry_ = nullptr;
     std::atomic<uint64_t> blocking_waiters_{0};
     std::atomic<bool> blocking_dirty_{false};
+    std::unordered_map<std::string, std::vector<WatchEntry>> watchers_;
+    std::unordered_map<std::string, WatchReservation> watch_reservations_;
 };
 
 // Maps bucket -> shard id. A plain array: one indexed load on the hot path, and reassigning

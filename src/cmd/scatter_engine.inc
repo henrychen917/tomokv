@@ -248,6 +248,10 @@ struct ScatterState {
     // pending group entries may retain this state after reply retirement, hence record_refs.
     std::atomic<uint64_t> epoch{0};
     std::atomic<uint32_t> record_refs{0};
+    // A watched-key reservation names the group decision too.  It holds this second lifetime pin
+    // until its owner shard consumes the published decision, including groups that install no
+    // MVCC record (for example a failed conditional write).
+    std::atomic<uint32_t> watch_refs{0};
     std::atomic<bool> aborted{false};
     std::atomic<bool> conditional_failed{false};
     std::atomic<uint8_t> direct_ready{0};     // 0=source pending, 1=image ready, 2=terminal
@@ -271,6 +275,10 @@ struct ScatterState {
     bool admitted = false;
     bool snapshot_registered = false;
     std::atomic<bool> snapshot_complete{false};
+    // A MULTI child retains its own routing/result lifetime but publishes through its parent's one
+    // ticket and abort word. Null is the ordinary one-command group path.
+    std::atomic<uint64_t>* external_epoch = nullptr;
+    std::atomic<bool>* external_aborted = nullptr;
     bool contents_freed = false;
     bool retired = false;
     bool two_hop = false;
@@ -330,6 +338,14 @@ ShardGroup* group_for(ScatterState& state, int32_t shard) {
     for (uint32_t i = 0; i < state.nsub; i++)
         if (state.groups[i].shard == shard) return &state.groups[i];
     return nullptr;
+}
+
+std::atomic<uint64_t>* publish_epoch(ScatterState& state) {
+    return state.external_epoch ? state.external_epoch : &state.epoch;
+}
+
+std::atomic<bool>* publish_aborted(ScatterState& state) {
+    return state.external_aborted ? state.external_aborted : &state.aborted;
 }
 
 ResultHeap* ensure_result(ScatterState& state) {
@@ -724,7 +740,7 @@ void ScatterArenaPool::release(void* ptr, bool pooled) {
 
 ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                               uint32_t owner_io, uint64_t origin_conn_id,
-                              ScatterDispatch& dispatch) {
+                              ScatterDispatch& dispatch, bool force_atomic) {
     const bool all_shards = (op.spec->flags & CmdFlags::AllShards) ||
                             ((op.spec->flags & CmdFlags::ConfigRoute) &&
                              command_config_routes_all_shards(op));
@@ -736,7 +752,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
 
     const uint64_t atomic_mode = server.atomic_mode_state();
     const bool tracking = atomic_mode != 0;
-    const bool atomic_enabled = atomic_mode & Server::kAtomicEnabledBit;
+    const bool atomic_enabled = force_atomic || (atomic_mode & Server::kAtomicEnabledBit);
     const bool atomic_write = atomic_enabled && is_atomic_write_kind(kind);
 
     // The ordinary handlers are already the optimal one-key path.
@@ -900,7 +916,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
             group_cap += first;
         }
     }
-    const bool needs_snapshot = tracking &&
+    const bool needs_snapshot = !force_atomic && tracking &&
         (key_count || kind == Kind::Keys || kind == Kind::DbsizeExact) &&
         !(atomic_write && kind == Kind::Mset);
     if (needs_snapshot && (atomic_mode & ~Server::kAtomicEnabledBit) &&
@@ -910,7 +926,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     }
     bool admitted = false;
     uint64_t admission_generation = 0;
-    if (atomic_group) {
+    if (atomic_group && !force_atomic) {
         if (!server.atomic_try_admit(owner_io, admission_generation)) {
             if (routes != route_stack) delete[] routes;
             return ScatterPrepare::Backpressure;
@@ -1041,7 +1057,8 @@ void xshard_destroy(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_
     const bool pooled = state->pooled;
     free_state_contents(*state);
     state->retired = true;
-    if (state->record_refs.load(std::memory_order_acquire) != 0) {
+    if (state->record_refs.load(std::memory_order_acquire) != 0 ||
+        state->watch_refs.load(std::memory_order_acquire) != 0) {
         pool.defer_destroy(state);
         return;
     }
@@ -1052,10 +1069,43 @@ void xshard_destroy(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_
 
 bool xshard_is_local(const Op& op) { return op.local_xshard(); }
 
+namespace {
+
+bool xshard_owner_mutation_phase(const ScatterState& state, const Op& op) {
+    if (!(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) return false;
+    if (state.atomic_write) return true;
+    if (state.atomic_apply || state.atomic_pop || state.two_hop) return state.phase == 2;
+    return true;
+}
+
+}  // namespace
+
 ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                                  uint32_t owner_thread_id) {
     ScatterState& state = *task.scatter;
     ShardGroup& group = *group_for(state, shard.id());
+    if (xshard_owner_mutation_phase(state, op) && shard.has_watches()) {
+        const void* token = state.atomic_group ? static_cast<const void*>(&state) : nullptr;
+        if (group.count == 0) {
+            if (!shard.watch_all_write_ready()) return ScatterTaskResult::Retry;
+        } else {
+            for (uint32_t i = 0; i < group.count; i++) {
+                const uint32_t pos = state.key_order[group.begin + i];
+                const KeyRef& key = state.keys[pos];
+                if (!shard.watch_write_ready(op.arg(key.arg), token))
+                    return ScatterTaskResult::Retry;
+            }
+            if (state.atomic_group) {
+                for (uint32_t i = 0; i < group.count; i++) {
+                    const uint32_t pos = state.key_order[group.begin + i];
+                    const KeyRef& key = state.keys[pos];
+                    shard.watch_reserve_write(
+                        op.arg(key.arg), task.client, task.client->watch_generation(), &state,
+                        publish_epoch(state), publish_aborted(state), &state.watch_refs);
+                }
+            }
+        }
+    }
     if (!state.atomic_write && shard.store().atomic_has_records()) {
         const uint64_t cleanup_cutoff = state.server->atomic_snapshot();
         const uint64_t floor = state.server->atomic_read_floor();
@@ -1098,8 +1148,8 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
             if (owner_slot >= state.owner_slots) std::abort();
             auto* owner_refs = &state.owner_record_refs[owner_slot].nodes;
             void* pending_entry = shard.store().atomic_prepare_group(
-                &state, group.begin, group.count, &state.epoch, &state.record_refs,
-                &state.aborted, state.origin_conn_id, owner_refs, group.membership);
+                &state, group.begin, group.count, publish_epoch(state), &state.record_refs,
+                publish_aborted(state), state.origin_conn_id, owner_refs, group.membership);
             if (!pending_entry) {
                 group.error = WorkError::Oom;
                 state.aborted.store(true, std::memory_order_release);
@@ -1248,7 +1298,8 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 const uint32_t pos = state.key_order[group.begin];
                 const KeyRef& key = state.keys[pos];
                 bool plain_active = false;
-                if (shard.store().atomic_has_record(key.hash, op.arg(key.arg))) {
+                if (!state.external_epoch &&
+                    shard.store().atomic_has_record(key.hash, op.arg(key.arg))) {
                     const WorkError prepared = begin_plain_version(
                         *state.server, shard, op.arg(key.arg), key.hash,
                         state.atomic_pop ? UINT64_MAX : state.snapshot, state.origin_conn_id);
@@ -1534,8 +1585,10 @@ ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
             }
             return ScatterFinish::Final;
         }
-        const uint64_t ticket = server.atomic_commit();
-        state.epoch.store(ticket, std::memory_order_release);
+        if (!state.external_epoch) {
+            const uint64_t ticket = server.atomic_commit();
+            state.epoch.store(ticket, std::memory_order_release);
+        }
         if (state.kind == Kind::Msetnx) {
             state.final_reply = FinalReply::Integer;
             state.final_integer = 1;
@@ -1558,6 +1611,84 @@ ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
     }
     if (publish_phase2(server, self, ring, task, state)) return ScatterFinish::Waiting;
     return ScatterFinish::Final;
+}
+
+enum class MultiChildFinish : uint8_t { Waiting, PhaseAdvanced, Final };
+
+void xshard_multi_child_bind(ScatterState& state, std::atomic<uint64_t>* epoch,
+                             std::atomic<bool>* aborted) {
+    state.external_epoch = epoch;
+    state.external_aborted = aborted;
+}
+
+bool xshard_multi_child_has_group(ScatterState& state, int32_t shard) {
+    return group_for(state, shard) != nullptr;
+}
+
+bool xshard_multi_child_records_done(const ScatterState& state) {
+    return state.record_refs.load(std::memory_order_acquire) == 0 &&
+           state.watch_refs.load(std::memory_order_acquire) == 0;
+}
+
+MultiChildFinish xshard_multi_child_complete(ScatterState& state, Op& op,
+                                             uint32_t owner_thread_id) {
+    if (state.atomic_write || (state.atomic_apply && state.phase == 2)) {
+        const uint32_t slot = state.server->executor_slot(owner_thread_id);
+        if (slot >= state.owner_slots) std::abort();
+        uint32_t& remaining = state.owner_record_refs[slot].remaining;
+        if (!remaining) std::abort();
+        if (--remaining != 0) return MultiChildFinish::Waiting;
+    }
+    if (state.pending.fetch_sub(1, std::memory_order_acq_rel) != 1)
+        return MultiChildFinish::Waiting;
+    if (state.atomic_pop && state.phase == 2 && state.pop_missed) {
+        state.final_reply = FinalReply::NullArray;
+        return MultiChildFinish::Final;
+    }
+    if (state.atomic_write) {
+        WorkError error;
+        if (first_error(state, error)) {
+            state.aborted.store(true, std::memory_order_release);
+            state.final_reply = FinalReply::Work;
+            state.final_error = error;
+            return MultiChildFinish::Final;
+        }
+        if (state.aborted.load(std::memory_order_acquire)) {
+            if (state.kind == Kind::Msetnx) {
+                state.final_reply = FinalReply::Integer;
+                state.final_integer = 0;
+            } else {
+                state.final_reply = FinalReply::Internal;
+            }
+            return MultiChildFinish::Final;
+        }
+        if (state.kind == Kind::Msetnx) {
+            state.final_reply = FinalReply::Integer;
+            state.final_integer = 1;
+        }
+        return MultiChildFinish::Final;
+    }
+    if (state.phase == 2) {
+        finish_phase2(state);
+        return MultiChildFinish::Final;
+    }
+    if (state.kind == Kind::Pfcount) {
+        finish_pfcount(state);
+        return MultiChildFinish::Final;
+    }
+    if (!state.two_hop) return MultiChildFinish::Final;
+    if (finish_phase1(state, op)) return MultiChildFinish::Final;
+
+    reset_groups(state);
+    build_groups(state, state.hop2, state.hop2_count);
+    if (state.owner_record_refs)
+        for (uint32_t slot = 0; slot < state.owner_slots; slot++) {
+            state.owner_record_refs[slot].remaining = 0;
+            state.owner_record_refs[slot].group_count = 0;
+        }
+    state.phase = 2;
+    state.pending.store(initialize_owner_completion(state), std::memory_order_release);
+    return MultiChildFinish::PhaseAdvanced;
 }
 
 void xshard_retire(Server& server, ThreadCtx& self, Ring& ring, Client& client, Op& op,

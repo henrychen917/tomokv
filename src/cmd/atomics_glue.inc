@@ -234,8 +234,8 @@ ScatterTaskResult execute_atomic_apply(const Task& task, Shard& shard, Op& op,
     if (owner_slot >= state.owner_slots) std::abort();
     auto* owner_refs = &state.owner_record_refs[owner_slot].nodes;
     void* pending_entry = store.atomic_prepare_group(
-        &state, group.begin, group.count, &state.epoch, &state.record_refs,
-        &state.aborted, state.origin_conn_id, owner_refs, group.membership);
+        &state, group.begin, group.count, publish_epoch(state), &state.record_refs,
+        publish_aborted(state), state.origin_conn_id, owner_refs, group.membership);
     if (!pending_entry) {
         for (uint32_t i = 0; i < group.count; i++) {
             const uint32_t pos = state.key_order[group.begin + i];
@@ -491,7 +491,8 @@ uint32_t ScatterArenaPool::reap_deferred() {
     uint32_t reaped = 0;
     for (size_t i = 0; i < deferred_destroy_.size();) {
         ScatterState* state = deferred_destroy_[i];
-        if (state->record_refs.load(std::memory_order_acquire) != 0) { i++; continue; }
+        if (state->record_refs.load(std::memory_order_acquire) != 0 ||
+            state->watch_refs.load(std::memory_order_acquire) != 0) { i++; continue; }
         const bool pooled = state->pooled;
         free_state_key_anchors(*state);
         state->~ScatterState();

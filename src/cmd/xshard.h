@@ -58,7 +58,7 @@ public:
 
 private:
     friend ScatterPrepare xshard_prepare(Server&, Op&, ScatterArenaPool&, uint32_t,
-                                          uint64_t, ScatterDispatch&);
+                                          uint64_t, ScatterDispatch&, bool);
     friend void xshard_destroy(ScatterState*, ScatterArenaPool&, uint32_t);
     friend void xshard_retire(Server&, ThreadCtx&, Ring&, Client&, Op&, ScatterArenaPool&,
                               uint32_t, void*, void (*)(void*, int32_t, const char*));
@@ -98,7 +98,7 @@ struct ScatterDispatch {
 // complete RESP error is already in op; Ready owns `state` until destroy or final completion.
 ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                               uint32_t owner_io, uint64_t origin_conn_id,
-                              ScatterDispatch& dispatch);
+                              ScatterDispatch& dispatch, bool force_atomic = false);
 int32_t xshard_dispatch_shard(const ScatterDispatch& dispatch, uint32_t index);
 void xshard_destroy(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_io);
 
@@ -121,6 +121,8 @@ FlatStore::SnapshotWriteResult xshard_snapshot_prepare(const Task& task, Shard& 
 // Executes one bounded owner pass.  KEYS may return Retry; all other tasks complete in one pass.
 ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                                  uint32_t owner_thread_id);
+void xshard_watch_finish(const Task& task, Shard& shard, Op& op,
+                         ScatterTaskResult result);
 bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op& op);
 bool xshard_tasks_share_key(const Task& older, Op& older_op,
                             const Task& younger, Op& younger_op, int32_t shard_id);
