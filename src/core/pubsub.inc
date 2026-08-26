@@ -834,30 +834,30 @@
 
     PubSubStartResult pubsub_start_command(Client* client, Op& op) {
         if (op.cmd_name().eq_icase("subscribe")) {
-            if (srv_->acl_active() && !acl_pubsub_channel_entry(*client, op, false, self_->sig()))
+            if (srv_->acl_active() && !acl_pubsub_channel_entry(*client, op, false, *self_))
                 return PubSubStartResult::Sync;
             return pubsub_start_modify(client, op, false, true);
         }
         if (op.cmd_name().eq_icase("unsubscribe")) return pubsub_start_modify(client, op, false, false);
         if (op.cmd_name().eq_icase("psubscribe")) {
-            if (srv_->acl_active() && !acl_pubsub_channel_entry(*client, op, true, self_->sig()))
+            if (srv_->acl_active() && !acl_pubsub_channel_entry(*client, op, true, *self_))
                 return PubSubStartResult::Sync;
             return pubsub_start_modify(client, op, true, true);
         }
         if (op.cmd_name().eq_icase("punsubscribe")) return pubsub_start_modify(client, op, true, false);
         if (op.cmd_name().eq_icase("ssubscribe")) {
-            if (srv_->acl_active() && !acl_pubsub_channel_entry(*client, op, false, self_->sig()))
+            if (srv_->acl_active() && !acl_pubsub_channel_entry(*client, op, false, *self_))
                 return PubSubStartResult::Sync;
             return pubsub_start_modify(client, op, false, true, true);
         }
         if (op.cmd_name().eq_icase("sunsubscribe")) return pubsub_start_modify(client, op, false, false, true);
         if (op.cmd_name().eq_icase("publish")) {
-            if (srv_->acl_active() && !acl_pubsub_channel_entry(*client, op, false, self_->sig()))
+            if (srv_->acl_active() && !acl_pubsub_channel_entry(*client, op, false, *self_))
                 return PubSubStartResult::Sync;
             return pubsub_start_publish(client, op);
         }
         if (op.cmd_name().eq_icase("spublish")) {
-            if (srv_->acl_active() && !acl_pubsub_channel_entry(*client, op, false, self_->sig()))
+            if (srv_->acl_active() && !acl_pubsub_channel_entry(*client, op, false, *self_))
                 return PubSubStartResult::Sync;
             return pubsub_start_publish(client, op, true);
         }

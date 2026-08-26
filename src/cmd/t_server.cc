@@ -289,6 +289,13 @@ bool authenticate_acl_user(Slice username, Slice password) {
     return true;
 }
 
+void note_acl_auth_denial(Op& op, Slice username) {
+    if (!g_thread || !g_client) return;
+    g_thread->sig().acl_access_denied_auth++;
+    acl_log_denial(*g_thread, *g_client, AclDeniedReason::Auth,
+                   AclLogContext::Toplevel, op.cmd_name(), username);
+}
+
 bool parse_bytes(Slice input, uint64_t& value) {
     uint32_t digits = 0;
     while (digits < input.n && input.p[digits] >= '0' && input.p[digits] <= '9') digits++;
@@ -473,7 +480,7 @@ void cmd_auth(Shard&, Op& op) {
     const Slice username = op.argc() == 2 ? Slice("default", 7) : op.arg(1);
     if (!authenticate_acl_user(username, password)) {
         if (g_server) g_server->note_auth_failure();
-        if (g_thread) g_thread->sig().acl_access_denied_auth++;
+        note_acl_auth_denial(op, username);
         reply_err(op.sink(), "WRONGPASS invalid username-password pair or user is disabled.");
         return;
     }
@@ -523,7 +530,7 @@ void cmd_hello(Shard&, Op& op) {
     if (has_auth) {
         if (!authenticate_acl_user(username, password)) {
             if (g_server) g_server->note_auth_failure();
-            if (g_thread) g_thread->sig().acl_access_denied_auth++;
+            note_acl_auth_denial(op, username);
             reply_err(op.sink(), "WRONGPASS invalid username-password pair or user is disabled.");
             return;
         }
@@ -862,6 +869,8 @@ void cmd_config(Shard& sh, Op& op) {
                     g_server->set_timeout(static_cast<uint32_t>(value));
                 else if (!std::strcmp(update.first->name, "tcp-keepalive"))
                     g_server->set_tcp_keepalive(static_cast<uint32_t>(value));
+                else if (!std::strcmp(update.first->name, "acllog-max-len"))
+                    acl_set_log_max_len(value);
             }
             for (const auto& update : updates) {
                 if (std::strcmp(update.first->name, "client-output-buffer-limit")) continue;

@@ -1049,10 +1049,10 @@ bool blocking_cancel_client(Server& server, ThreadCtx& self, Ring& ring, Client&
     return finished_here;
 }
 
-void blocking_retire(Server& server, Client& client, Op& op, LoopSignals& signals) {
+void blocking_retire(Server& server, Client& client, Op& op, ThreadCtx& thread) {
     BlockingState* state = op.blocking_state();
     if (!state) return;
-    acl_recheck_blocking(client, op, signals);
+    acl_recheck_blocking(client, op, thread);
     client.set_blocked(false);
     client.set_scatter_barrier(false);
     if (state->counted.exchange(false, std::memory_order_acq_rel))

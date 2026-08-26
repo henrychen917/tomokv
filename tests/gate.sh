@@ -128,7 +128,13 @@ ACL_FILE="$ACL_DIR/users.acl"
 : > "$ACL_FILE"
 boot ./build/tomokv --aclfile "$ACL_FILE" || bad "ACL purpose boot"
 python3 tests/acl.py 127.0.0.1 $PORT "$ACL_FILE" >/tmp/gate-acl.txt 2>&1 \
-    && ok "ACL grammar/enforcement/re-entry/persistence" || bad "ACL grammar/enforcement/re-entry/persistence" "see /tmp/gate-acl.txt"
+    && ok "ACL battery (atomic off)" || bad "ACL battery (atomic off)" "see /tmp/gate-acl.txt"
+stop
+ACL_ATOMIC_FILE="$ACL_DIR/users-atomic.acl"
+: > "$ACL_ATOMIC_FILE"
+boot ./build/tomokv --aclfile "$ACL_ATOMIC_FILE" --atomic 1 || bad "ACL atomic purpose boot"
+python3 tests/acl.py 127.0.0.1 $PORT "$ACL_ATOMIC_FILE" >/tmp/gate-acl-atomic.txt 2>&1 \
+    && ok "ACL battery (atomic on)" || bad "ACL battery (atomic on)" "see /tmp/gate-acl-atomic.txt"
 stop
 DEBUG_DIR=$(mktemp -d /tmp/gate-debug.XXXXXX)
 boot ./build/tomokv --enable-debug-command local --dir "$DEBUG_DIR" --dbfilename reload.tomo \

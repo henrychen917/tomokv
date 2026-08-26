@@ -89,7 +89,7 @@ public:
                         static_cast<IoLoop*>(release_ctx)->queue_borrow_release(shard, ptr);
                     });
             else if (op.has_blocking_state())
-                blocking_retire(*loop->srv_, client, op, loop->self_->sig());
+                blocking_retire(*loop->srv_, client, op, *loop->self_);
             else if (op.has_multi_state()) multi_retire_entry(*loop, client, op);
         }, srv_->client_obuf_armed_ptr(), this, [](void* ctx, Client& client) {
             return static_cast<IoLoop*>(ctx)->client_obuf_check(&client, true);

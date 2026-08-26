@@ -276,8 +276,9 @@ bool prepare_commands(Server& server, MultiExecState& state,
             }
             command->kind = classify_multi_command(*command);
             if (!make_child_op(*command, db)) return false;
-            const AclDeniedReason acl_denied =
-                acl_check_queued(state.client->acl_user_idx(), command->queued);
+            uint32_t acl_denied_arg = UINT32_MAX;
+            const AclDeniedReason acl_denied = acl_check_queued(
+                state.client->acl_user_idx(), command->queued, &acl_denied_arg);
             if (acl_denied != AclDeniedReason::None) {
                 const char* reason = acl_denied == AclDeniedReason::Command
                     ? "no permission to execute the command or subcommand"
@@ -298,6 +299,14 @@ bool prepare_commands(Server& server, MultiExecState& state,
                 else if (acl_denied == AclDeniedReason::Key) signals.acl_access_denied_key++;
                 else if (acl_denied == AclDeniedReason::Channel)
                     signals.acl_access_denied_channel++;
+                const uint32_t object_arg = acl_denied_arg < command->queued.argv.size()
+                    ? acl_denied_arg : 0;
+                const std::string& object = command->queued.argv[object_arg];
+                const char* username = acl_username(state.client->acl_user_idx());
+                acl_log_denial(server.thread(state.owner_io), *state.client, acl_denied,
+                    AclLogContext::Multi,
+                    Slice(object.data(), static_cast<uint32_t>(object.size())),
+                    Slice(username, static_cast<uint32_t>(std::strlen(username))));
             }
             if (command->kind == MultiCommandKind::Scan &&
                 !command_prepare_scan_route(server, *command->op))

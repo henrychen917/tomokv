@@ -6,6 +6,7 @@ Usage: tests/acl.py HOST PORT ACLFILE
 
 import glob
 import os
+import select
 import socket
 import sys
 import threading
@@ -13,6 +14,20 @@ import time
 
 
 HOST, PORT, ACLFILE = sys.argv[1], int(sys.argv[2]), sys.argv[3]
+
+
+def assert_notification_delivery_not_acl_checked():
+    """Keyspace notifications share pubsub_deliver and must bypass & rules."""
+    source_path = os.path.join(os.path.dirname(__file__), "..", "src", "core", "pubsub.inc")
+    with open(source_path, "r", encoding="utf-8") as source_file:
+        source = source_file.read()
+    start = source.index("    void pubsub_deliver(")
+    end = source.index("\n    void pubsub_home_publish(", start)
+    if "acl_" in source[start:end]:
+        raise AssertionError("pubsub delivery must not apply ACL channel rules")
+
+
+assert_notification_delivery_not_acl_checked()
 
 
 class RespError(Exception):
@@ -82,6 +97,11 @@ def fields(reply):
     return {reply[i]: reply[i + 1] for i in range(0, len(reply), 2)}
 
 
+def map_fields(reply):
+    assert isinstance(reply, list) and len(reply) == 20, reply
+    return {reply[i]: reply[i + 1] for i in range(0, len(reply), 2)}
+
+
 def stats(conn):
     body = conn.command("INFO", "STATS")
     result = {}
@@ -94,14 +114,15 @@ def stats(conn):
 
 
 def wait_closed(conn, timeout=6):
-    conn.sock.settimeout(0.2)
     deadline = time.time() + timeout
     while time.time() < deadline:
-        try:
-            conn.read()
-        except socket.timeout:
+        readable, _, _ = select.select([conn.sock], [], [], 0.2)
+        if not readable:
             continue
-        except (EOFError, ConnectionError, OSError):
+        try:
+            if conn.sock.recv(1, socket.MSG_PEEK) == b"":
+                return
+        except (ConnectionError, OSError):
             return
     raise AssertionError("connection was not closed by ACL revocation")
 
@@ -272,6 +293,39 @@ wait_closed(revoked)
 killed_after = stats(admin)[b"acl_pubsub_clients_killed"]
 expect(killed_after, killed_before + 1, "exact pubsub revocation count")
 
+# Per-IO ACL LOG stores vanilla's ten fields, deduplicates repeats for 60 seconds, and merges.
+expect(alice.command("GET", "b:1"), "NOPERM No permissions to access a key", "log repeat one")
+expect(alice.command("GET", "b:1"), "NOPERM No permissions to access a key", "log repeat two")
+bad_auth = Conn()
+expect(bad_auth.command("AUTH", "alice", "wrong"),
+       "WRONGPASS invalid username-password pair or user is disabled.", "auth log denial")
+bad_auth.close()
+log_entries = [map_fields(entry) for entry in admin.command("ACL", "LOG", 100)]
+expected_log_fields = {b"count", b"reason", b"context", b"object", b"username",
+                       b"age-seconds", b"client-info", b"entry-id",
+                       b"timestamp-created", b"timestamp-last-updated"}
+if not log_entries or any(set(entry) != expected_log_fields for entry in log_entries):
+    raise AssertionError("ACL LOG ten-field shape: %r" % log_entries)
+key_entry = next((entry for entry in log_entries
+                  if entry[b"reason"] == b"key" and entry[b"context"] == b"toplevel" and
+                  entry[b"object"] == b"b:1" and entry[b"username"] == b"alice"), None)
+if key_entry is None or key_entry[b"count"] < 2:
+    raise AssertionError("ACL LOG key dedup: %r" % key_entry)
+if not any(entry[b"reason"] == b"auth" and entry[b"object"].lower() == b"auth"
+           for entry in log_entries):
+    raise AssertionError("ACL LOG auth entry missing: %r" % log_entries)
+if not any(entry[b"reason"] == b"channel" and entry[b"object"] == b"other"
+           for entry in log_entries):
+    raise AssertionError("ACL LOG channel entry missing: %r" % log_entries)
+if not any(entry[b"context"] == b"multi" for entry in log_entries):
+    raise AssertionError("ACL LOG MULTI context missing: %r" % log_entries)
+expect(admin.command("ACL", "LOG", "RESET"), b"OK", "ACL LOG RESET")
+expect(admin.command("ACL", "LOG"), [], "ACL LOG empty after reset")
+expect(admin.command("CONFIG", "SET", "acllog-max-len", 0), b"OK", "disable ACL LOG")
+expect(alice.command("GET", "b:1"), "NOPERM No permissions to access a key", "denial with log off")
+expect(admin.command("ACL", "LOG"), [], "acllog-max-len zero allocates no entries")
+expect(admin.command("CONFIG", "SET", "acllog-max-len", 128), b"OK", "restore ACL LOG")
+
 # SAVE is the LIST serializer plus one LF per sorted user, using temp+fsync+rename.
 expect(admin.command("ACL", "SAVE"), b"OK", "ACL SAVE")
 with open(ACLFILE, "rb") as handle:
@@ -314,7 +368,7 @@ expect(admin.command("ACL", "GENPASS", 0),
        "GENPASS zero")
 
 final_stats = stats(admin)
-for counter in (b"acl_access_denied_cmd", b"acl_access_denied_key",
+for counter in (b"acl_access_denied_auth", b"acl_access_denied_cmd", b"acl_access_denied_key",
                 b"acl_access_denied_channel", b"acl_pubsub_clients_killed",
                 b"acl_perm_retired"):
     if final_stats.get(counter, 0) == 0:
@@ -322,4 +376,4 @@ for counter in (b"acl_access_denied_cmd", b"acl_access_denied_key",
 
 for connection in (blocked, alice, admin):
     connection.close()
-print("acl: PASS (grammar, AUTH, key/command/channel matrix, EXEC/blocking closure, revocation, SAVE/LOAD)")
+print("acl: PASS (grammar, AUTH, enforcement/closure, revocation, ACL LOG, SAVE/LOAD)")

@@ -14,6 +14,33 @@ bool g_acl_pubsub_default_all = false;
 Server* g_acl_server = nullptr;
 std::string g_acl_filename;
 
+struct AclLogEntry {
+    uint64_t count = 1;
+    AclDeniedReason reason = AclDeniedReason::None;
+    AclLogContext context = AclLogContext::Toplevel;
+    std::string object;
+    std::string username;
+    int64_t updated_ms = 0;
+    std::string client_info;
+    uint64_t entry_id = 0;
+    int64_t created_ms = 0;
+};
+
+struct AclLogStore {
+    std::mutex mutex;
+    std::deque<AclLogEntry> entries;
+};
+
+std::array<AclLogStore, kMaxThreads> g_acl_logs;
+std::atomic<uint64_t> g_acl_log_max_len{128};
+std::atomic<uint64_t> g_acl_log_next_id{0};
+
+int64_t acl_wall_milliseconds() {
+    timespec now{};
+    ::clock_gettime(CLOCK_REALTIME, &now);
+    return static_cast<int64_t>(now.tv_sec) * 1000 + now.tv_nsec / 1000000;
+}
+
 struct AclUserImage {
     std::string name;
     AclPerm perm;
@@ -460,7 +487,9 @@ bool acl_channel_allowed(const AclPerm& perm, Slice value, bool literal_pattern)
 
 template <typename GetArg>
 AclDeniedReason acl_check_permission(uint32_t user_index, const CommandSpec& spec,
-                                     uint32_t argc, GetArg&& get_arg) {
+                                     uint32_t argc, GetArg&& get_arg,
+                                     uint32_t* denied_arg = nullptr) {
+    if (denied_arg) *denied_arg = UINT32_MAX;
     if (Slice(spec.name, static_cast<uint32_t>(std::strlen(spec.name))).eq_icase("auth") ||
         Slice(spec.name, static_cast<uint32_t>(std::strlen(spec.name))).eq_icase("hello") ||
         Slice(spec.name, static_cast<uint32_t>(std::strlen(spec.name))).eq_icase("reset") ||
@@ -479,10 +508,15 @@ AclDeniedReason acl_check_permission(uint32_t user_index, const CommandSpec& spe
 
     if (command.eq_icase("sort")) {
         for (uint32_t arg = 2; arg < argc; arg++) {
-            if (get_arg(arg).eq_icase("by")) return AclDeniedReason::Key;
-            if (get_arg(arg).eq_icase("get")) return AclDeniedReason::Key;
+            if (get_arg(arg).eq_icase("by") || get_arg(arg).eq_icase("get")) {
+                if (denied_arg) *denied_arg = arg;
+                return AclDeniedReason::Key;
+            }
             if (get_arg(arg).eq_icase("store") && arg + 1 < argc &&
-                !acl_pattern_allowed(*perm, get_arg(arg + 1))) return AclDeniedReason::Key;
+                !acl_pattern_allowed(*perm, get_arg(arg + 1))) {
+                if (denied_arg) *denied_arg = arg + 1;
+                return AclDeniedReason::Key;
+            }
         }
     }
     if (spec.flags & CmdFlags::ScriptRoute) {
@@ -495,7 +529,10 @@ AclDeniedReason acl_check_permission(uint32_t user_index, const CommandSpec& spe
             count = count * 10 + static_cast<uint64_t>(text.p[i] - '0');
         }
         for (uint32_t arg = 3; arg < argc && arg < 3 + count; arg++)
-            if (!acl_pattern_allowed(*perm, get_arg(arg))) return AclDeniedReason::Key;
+            if (!acl_pattern_allowed(*perm, get_arg(arg))) {
+                if (denied_arg) *denied_arg = arg;
+                return AclDeniedReason::Key;
+            }
         return AclDeniedReason::None;
     }
     if (spec.first_key <= 0 || spec.key_step <= 0 || argc == 0)
@@ -504,16 +541,32 @@ AclDeniedReason acl_check_permission(uint32_t user_index, const CommandSpec& spe
         std::min<uint32_t>(static_cast<uint32_t>(spec.last_key), argc - 1);
     for (uint32_t arg = static_cast<uint32_t>(spec.first_key); arg <= last;
          arg += static_cast<uint32_t>(spec.key_step))
-        if (!acl_pattern_allowed(*perm, get_arg(arg))) return AclDeniedReason::Key;
+        if (!acl_pattern_allowed(*perm, get_arg(arg))) {
+            if (denied_arg) *denied_arg = arg;
+            return AclDeniedReason::Key;
+        }
     return AclDeniedReason::None;
 }
 
-void acl_reply_denied(Op& op, uint32_t user_index, AclDeniedReason reason,
-                      LoopSignals& signals) {
+void acl_reply_denied(Client& client, Op& op, uint32_t user_index, AclDeniedReason reason,
+                      uint32_t denied_arg, ThreadCtx& thread,
+                      AclLogContext context = AclLogContext::Toplevel) {
+    LoopSignals& signals = thread.sig();
+    const char* username_text = acl_username(user_index);
+    const Slice username(username_text, static_cast<uint32_t>(std::strlen(username_text)));
+    Slice object = op.cmd_name();
+    std::string normalized_command;
+    if (reason == AclDeniedReason::Command) {
+        normalized_command = acl_lower(op.cmd_name());
+        object = Slice(normalized_command.data(), static_cast<uint32_t>(normalized_command.size()));
+    }
+    if ((reason == AclDeniedReason::Key || reason == AclDeniedReason::Channel) &&
+        denied_arg < op.argc()) object = op.arg(denied_arg);
+    acl_log_denial(thread, client, reason, context, object, username);
     if (reason == AclDeniedReason::Command) {
         signals.acl_access_denied_cmd++;
         std::string message = "NOPERM User ";
-        message += acl_username(user_index);
+        message += username_text;
         message += " has no permissions to run the '";
         message += acl_lower(op.cmd_name());
         message += "' command";
@@ -729,7 +782,157 @@ void acl_reply_category(Op& op) {
 const char* kAclNoFileError =
     "ERR This Redis instance is not configured to use an ACL file. You may want to specify users via the ACL SETUSER command and then issue a CONFIG REWRITE (assuming you have a Redis configuration file set) in order to store users in the Redis configuration.";
 
+const char* acl_log_reason_name(AclDeniedReason reason) {
+    switch (reason) {
+        case AclDeniedReason::Command: return "command";
+        case AclDeniedReason::Key: return "key";
+        case AclDeniedReason::Channel: return "channel";
+        case AclDeniedReason::Auth: return "auth";
+        default: return "unknown";
+    }
+}
+
+const char* acl_log_context_name(AclLogContext context) {
+    switch (context) {
+        case AclLogContext::Toplevel: return "toplevel";
+        case AclLogContext::Multi: return "multi";
+        case AclLogContext::Lua: return "lua";
+        case AclLogContext::Module: return "module";
+    }
+    return "unknown";
+}
+
+void acl_log_reset() {
+    for (AclLogStore& store : g_acl_logs) {
+        std::lock_guard<std::mutex> lock(store.mutex);
+        store.entries.clear();
+    }
+}
+
+bool acl_parse_log_count(Slice value, int64_t& count) {
+    if (!value.n) return false;
+    bool negative = value.p[0] == '-';
+    uint32_t position = negative ? 1 : 0;
+    if (position == value.n) return false;
+    uint64_t parsed = 0;
+    for (; position < value.n; position++) {
+        const char byte = value.p[position];
+        if (byte < '0' || byte > '9') return false;
+        const uint32_t digit = static_cast<uint32_t>(byte - '0');
+        if (parsed > (static_cast<uint64_t>(INT64_MAX) + negative - digit) / 10) return false;
+        parsed = parsed * 10 + digit;
+    }
+    if (negative) {
+        count = parsed == static_cast<uint64_t>(INT64_MAX) + 1 ? INT64_MIN
+                                                               : -static_cast<int64_t>(parsed);
+    } else {
+        count = static_cast<int64_t>(parsed);
+    }
+    return true;
+}
+
+void acl_reply_log(Op& op) {
+    if (op.argc() == 3 && op.arg(2).eq_icase("reset")) {
+        acl_log_reset();
+        reply_ok(op.sink());
+        return;
+    }
+    int64_t requested = 10;
+    if (op.argc() == 3 && !acl_parse_log_count(op.arg(2), requested)) {
+        reply_err(op.sink(), "ERR value is not an integer or out of range");
+        return;
+    }
+    if (requested < 0) requested = 0;
+    std::vector<AclLogEntry> entries;
+    for (AclLogStore& store : g_acl_logs) {
+        std::lock_guard<std::mutex> lock(store.mutex);
+        entries.insert(entries.end(), store.entries.begin(), store.entries.end());
+    }
+    std::sort(entries.begin(), entries.end(), [](const AclLogEntry& left,
+                                                  const AclLogEntry& right) {
+        if (left.updated_ms != right.updated_ms) return left.updated_ms > right.updated_ms;
+        return left.entry_id > right.entry_id;
+    });
+    if (static_cast<uint64_t>(requested) < entries.size())
+        entries.resize(static_cast<size_t>(requested));
+    reply_array_header(op.sink(), entries.size());
+    const int64_t now = acl_wall_milliseconds();
+    for (const AclLogEntry& entry : entries) {
+        auto sink = op.sink();
+        reply_array_header(sink, 20);  // RESP2 encoding of vanilla's ten-field map
+        reply_bulk(sink, Slice("count", 5));
+        reply_int(sink, static_cast<long long>(entry.count));
+        reply_bulk(sink, Slice("reason", 6));
+        const char* reason = acl_log_reason_name(entry.reason);
+        reply_bulk(sink, Slice(reason, std::strlen(reason)));
+        reply_bulk(sink, Slice("context", 7));
+        const char* context = acl_log_context_name(entry.context);
+        reply_bulk(sink, Slice(context, std::strlen(context)));
+        reply_bulk(sink, Slice("object", 6));
+        reply_bulk(sink, Slice(entry.object.data(), entry.object.size()));
+        reply_bulk(sink, Slice("username", 8));
+        reply_bulk(sink, Slice(entry.username.data(), entry.username.size()));
+        reply_bulk(sink, Slice("age-seconds", 11));
+        reply_double(sink, std::max<int64_t>(0, now - entry.updated_ms) / 1000.0);
+        reply_bulk(sink, Slice("client-info", 11));
+        reply_bulk(sink, Slice(entry.client_info.data(), entry.client_info.size()));
+        reply_bulk(sink, Slice("entry-id", 8));
+        reply_int(sink, static_cast<long long>(entry.entry_id));
+        reply_bulk(sink, Slice("timestamp-created", 17));
+        reply_int(sink, static_cast<long long>(entry.created_ms));
+        reply_bulk(sink, Slice("timestamp-last-updated", 22));
+        reply_int(sink, static_cast<long long>(entry.updated_ms));
+    }
+}
+
 }  // namespace
+
+void acl_set_log_max_len(uint64_t max_len) {
+    g_acl_log_max_len.store(max_len, std::memory_order_release);
+    for (AclLogStore& store : g_acl_logs) {
+        std::lock_guard<std::mutex> lock(store.mutex);
+        while (store.entries.size() > max_len) store.entries.pop_back();
+    }
+}
+
+void acl_log_denial(ThreadCtx& thread, const Client& client, AclDeniedReason reason,
+                    AclLogContext context, Slice object, Slice username) {
+    uint64_t max_len = g_acl_log_max_len.load(std::memory_order_acquire);
+    if (!max_len || thread.id() >= g_acl_logs.size()) return;
+    const int64_t now = acl_wall_milliseconds();
+    AclLogEntry candidate;
+    candidate.reason = reason;
+    candidate.context = context;
+    candidate.object.assign(object.p, object.n);
+    candidate.username.assign(username.p, username.n);
+    candidate.updated_ms = now;
+    candidate.created_ms = now;
+    candidate.client_info = "id=" + std::to_string(client.id()) +
+        " addr=unknown:0 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0";
+
+    AclLogStore& store = g_acl_logs[thread.id()];
+    std::lock_guard<std::mutex> lock(store.mutex);
+    max_len = g_acl_log_max_len.load(std::memory_order_acquire);
+    if (!max_len) return;
+    const size_t scan = std::min<size_t>(10, store.entries.size());
+    for (size_t i = 0; i < scan; i++) {
+        AclLogEntry& old = store.entries[i];
+        if (old.reason != reason || old.context != context || old.object != candidate.object ||
+            old.username != candidate.username || now - old.updated_ms > 60000) continue;
+        old.count++;
+        old.updated_ms = now;
+        old.client_info = std::move(candidate.client_info);
+        if (i) {
+            AclLogEntry updated = std::move(old);
+            store.entries.erase(store.entries.begin() + static_cast<ptrdiff_t>(i));
+            store.entries.push_front(std::move(updated));
+        }
+        return;
+    }
+    candidate.entry_id = g_acl_log_next_id.fetch_add(1, std::memory_order_relaxed);
+    store.entries.push_front(std::move(candidate));
+    while (store.entries.size() > max_len) store.entries.pop_back();
+}
 
 void acl_broadcast_user_change(IoLoop& loop, uint32_t user_index,
                                const AclPerm* permissions, bool deleted) {
@@ -742,6 +945,7 @@ bool acl_initialize(Server& server, const Config& config, std::string& error) {
     g_acl_server = &server;
     g_acl_filename = config.aclfile ? config.aclfile : "";
     g_acl_pubsub_default_all = config.acl_pubsub_allchannels != 0;
+    g_acl_log_max_len.store(config.acllog_max_len, std::memory_order_relaxed);
     AclUserImage default_image = acl_new_image("default");
     default_image.flags = AclUserEnabled | AclUserNoPass | AclUserSanitize;
     default_image.perm.flags = AclAllKeys | AclAllChannels;
@@ -845,31 +1049,34 @@ bool acl_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consumed,
         return true;
     }
     if (!acl_active) return false;
+    uint32_t denied_arg = UINT32_MAX;
     const AclDeniedReason denied = acl_check_permission(
-        client.acl_user_idx(), *op.spec, op.argc(), [&](uint32_t arg) { return op.arg(arg); });
+        client.acl_user_idx(), *op.spec, op.argc(),
+        [&](uint32_t arg) { return op.arg(arg); }, &denied_arg);
     if (denied == AclDeniedReason::None) return false;
     if (MultiSession* session = client.multi_session(); session && session->active)
         session->queue_error = true;
     client.advance_parse(consumed);
     loop.self_->note_command(op.spec->id);
-    acl_reply_denied(op, client.acl_user_idx(), denied, loop.self_->sig());
+    acl_reply_denied(client, op, client.acl_user_idx(), denied, denied_arg, *loop.self_);
     loop.finish_prebuilt(&client, op);
     return true;
 }
 
-AclDeniedReason acl_check_queued(uint32_t user_index, const MultiQueuedCommand& command) {
+AclDeniedReason acl_check_queued(uint32_t user_index, const MultiQueuedCommand& command,
+                                 uint32_t* denied_arg) {
     return acl_check_permission(user_index, *command.spec,
         static_cast<uint32_t>(command.argv.size()), [&](uint32_t arg) {
             const std::string& value = command.argv[arg];
             return Slice(value.data(), static_cast<uint32_t>(value.size()));
-        });
+        }, denied_arg);
 }
 
-bool acl_pubsub_channel_entry(Client& client, Op& op, bool pattern, LoopSignals& signals) {
+bool acl_pubsub_channel_entry(Client& client, Op& op, bool pattern, ThreadCtx& thread) {
     AclUser* user = acl_slot(client.acl_user_idx());
     const AclPerm* perm = user ? user->perm.load(std::memory_order_acquire) : nullptr;
     if (!perm) {
-        acl_reply_denied(op, client.acl_user_idx(), AclDeniedReason::Channel, signals);
+        acl_reply_denied(client, op, client.acl_user_idx(), AclDeniedReason::Channel, 1, thread);
         return false;
     }
     if (perm->flags & AclAllChannels) return true;
@@ -879,20 +1086,23 @@ bool acl_pubsub_channel_entry(Client& client, Op& op, bool pattern, LoopSignals&
                            op.cmd_name().eq_icase("spublish")) ? 2 : op.argc();
     for (uint32_t arg = first; arg < last; arg++) {
         if (!acl_channel_allowed(*perm, op.arg(arg), pattern)) {
-            acl_reply_denied(op, client.acl_user_idx(), AclDeniedReason::Channel, signals);
+            acl_reply_denied(client, op, client.acl_user_idx(),
+                             AclDeniedReason::Channel, arg, thread);
             return false;
         }
     }
     return true;
 }
 
-void acl_recheck_blocking(Client& client, Op& op, LoopSignals& signals) {
+void acl_recheck_blocking(Client& client, Op& op, ThreadCtx& thread) {
     if (!g_acl_server || !g_acl_server->acl_active()) return;
+    uint32_t denied_arg = UINT32_MAX;
     const AclDeniedReason denied = acl_check_permission(
-        client.acl_user_idx(), *op.spec, op.argc(), [&](uint32_t arg) { return op.arg(arg); });
+        client.acl_user_idx(), *op.spec, op.argc(),
+        [&](uint32_t arg) { return op.arg(arg); }, &denied_arg);
     if (denied == AclDeniedReason::None) return;
     op.reply.clear();
-    acl_reply_denied(op, client.acl_user_idx(), denied, signals);
+    acl_reply_denied(client, op, client.acl_user_idx(), denied, denied_arg, thread);
 }
 
 void acl_command_entry(IoLoop& loop, Client& client, Op& op) {
@@ -1009,6 +1219,10 @@ void acl_command_entry(IoLoop& loop, Client& client, Op& op) {
         reply_int(op.sink(), deleted);
         return;
     }
+    if (sub.eq_icase("log") && (op.argc() == 2 || op.argc() == 3)) {
+        acl_reply_log(op);
+        return;
+    }
     if ((sub.eq_icase("load") || sub.eq_icase("save")) && g_acl_filename.empty()) {
         reply_err(op.sink(), kAclNoFileError);
         return;
@@ -1061,7 +1275,8 @@ void acl_command_entry(IoLoop& loop, Client& client, Op& op) {
             "ACL <subcommand> [<arg> [value] [opt] ...]. Subcommands are:",
             "CAT [<category>]", "DELUSER <username> [<username> ...]", "GENPASS [<bits>]",
             "GETUSER <username>", "LIST", "LOAD", "SAVE",
-            "SETUSER <username> [<rule> [<rule> ...]]", "USERS", "WHOAMI", "HELP"
+            "LOG [<count> | RESET]", "SETUSER <username> [<rule> [<rule> ...]]",
+            "USERS", "WHOAMI", "HELP"
         };
         reply_array_header(op.sink(), sizeof(help) / sizeof(help[0]));
         for (const char* line : help) reply_simple(op.sink(), line);
