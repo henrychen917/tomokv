@@ -135,6 +135,8 @@ inline std::string cfg_client_output_buffer_limit_string(const ClientOutputBuffe
            std::to_string(limits.pubsub.soft_seconds);
 }
 
+enum class DebugCommandMode : uint8_t { No = 0, Yes = 1, Local = 2 };
+
 struct Config {
     // ---- placement (boot-only) -------------------------------------------------------------
     const char* node_cpus   = nullptr;   // operator-declared topology; null = self-discover
@@ -161,6 +163,11 @@ struct Config {
     uint32_t tcp_keepalive  = 300;       // live for newly accepted TCP clients, 0 = off
     uint32_t tcp_backlog    = 511;       // boot-only, passed directly to listen(2)
     ClientOutputBufferLimits client_output_buffer_limits;
+
+    // ---- security / test commands ----------------------------------------------------------
+    const char* requirepass = nullptr;   // empty/unset = off; live via CONFIG SET
+    uint32_t protected_mode = 1;         // live 0|1; rejects unauthenticated non-loopback accepts
+    DebugCommandMode enable_debug_command = DebugCommandMode::No; // boot-only: no|yes|local
 
     // ---- persistence (dir/dbfilename also live via CONFIG SET) ------------------------------
     const char* dir         = ".";
@@ -296,6 +303,28 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             }
             cfg.client_output_buffer_limits = scratch;
             i = end - 1;
+        }
+        else if (!std::strcmp(a, "--requirepass")) cfg.requirepass = next("");
+        else if (!std::strcmp(a, "--protected-mode")) {
+            const char* value = next(nullptr);
+            if (value && (!std::strcmp(value, "1") || !std::strcmp(value, "yes")))
+                cfg.protected_mode = 1;
+            else if (value && (!std::strcmp(value, "0") || !std::strcmp(value, "no")))
+                cfg.protected_mode = 0;
+            else {
+                std::fprintf(stderr, "--protected-mode wants 0, 1, yes or no\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--enable-debug-command")) {
+            const char* value = next(nullptr);
+            if (value && !std::strcmp(value, "no")) cfg.enable_debug_command = DebugCommandMode::No;
+            else if (value && !std::strcmp(value, "yes")) cfg.enable_debug_command = DebugCommandMode::Yes;
+            else if (value && !std::strcmp(value, "local")) cfg.enable_debug_command = DebugCommandMode::Local;
+            else {
+                std::fprintf(stderr, "--enable-debug-command wants no, yes or local\n");
+                return kConfigError;
+            }
         }
         // WHOLE-SERVER role counts, evenly spread across L3 domains by the server itself.
         // This is the runtime replacement for authoring --place strings offline, and the knob a
@@ -436,6 +465,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  limits: --maxclients N --timeout SECONDS --tcp-keepalive SECONDS\n"
                         "          --tcp-backlog N --client-output-buffer-limit CLASS HARD SOFT SECONDS ...\n"
                         "  persistence: --dir PATH --dbfilename NAME --load PATH\n"
+                        "  security: --requirepass PASSWORD --protected-mode 0|1|yes|no\n"
+                        "            --enable-debug-command no|yes|local\n"
                         "  atomics: --atomic 0|1 --atomic-window N (default 256; 0=unlimited)\n"
                         "  compact encodings: --{hash,list,set,zset}-max-compact-{entries,value} N\n"
                         "  misc: --hash mix64|siphash\n"

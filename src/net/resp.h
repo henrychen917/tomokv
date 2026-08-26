@@ -54,7 +54,8 @@ inline ParseResult parse_len_crlf(const char* buf, uint32_t len, uint32_t& pos,
 // Scans one command from buf[pos, len). On Ok, fills `op` and advances `pos` past the command.
 // On Incomplete, leaves pos untouched — more bytes are needed.
 inline ParseResult resp_parse(const char* buf, uint32_t len, uint32_t& pos, Op& op,
-                              const char** err) {
+                              const char** err, uint64_t max_multibulk = 1024 * 1024,
+                              uint64_t max_bulk = 512ull * 1024 * 1024) {
     const uint32_t start = pos;
     if (pos >= len) return ParseResult::Incomplete;
 
@@ -85,7 +86,7 @@ inline ParseResult resp_parse(const char* buf, uint32_t len, uint32_t& pos, Op& 
 
     uint32_t p = pos + 1;                      // past '*'
     uint64_t nargs = 0;
-    ParseResult r = parse_len_crlf(buf, len, p, 1024 * 1024, nargs);
+    ParseResult r = parse_len_crlf(buf, len, p, max_multibulk, nargs);
     if (r == ParseResult::Incomplete) return ParseResult::Incomplete;
     if (r == ParseResult::Error || nargs == 0) { *err = "ERR invalid multibulk length"; return ParseResult::Error; }
 
@@ -94,7 +95,7 @@ inline ParseResult resp_parse(const char* buf, uint32_t len, uint32_t& pos, Op& 
         if (buf[p] != '$') { *err = "ERR expected '$'"; return ParseResult::Error; }
         p++;
         uint64_t blen = 0;
-        r = parse_len_crlf(buf, len, p, 512ull * 1024 * 1024, blen);
+        r = parse_len_crlf(buf, len, p, max_bulk, blen);
         if (r == ParseResult::Incomplete) { pos = start; return ParseResult::Incomplete; }
         if (r == ParseResult::Error) { *err = "ERR invalid bulk length"; return ParseResult::Error; }
         if (p + blen + 2 > len) { pos = start; return ParseResult::Incomplete; }

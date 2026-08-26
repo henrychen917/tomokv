@@ -545,57 +545,62 @@ std::unique_ptr<SnapshotLoadPlan> snapshot_read_plan(const char* path, uint32_t 
     return plan;
 }
 
-bool snapshot_load_owned(const SnapshotLoadPlan& plan, Server& server, ThreadCtx& owner,
+bool snapshot_load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& shard,
                          std::string& error) {
     const int64_t now = realtime_ms();
-    for (Shard* shard : owner.shards()) {
-        const uint32_t sid = static_cast<uint32_t>(shard->id());
-        const std::vector<uint8_t>& section = plan.sections[sid];
-        size_t pos = 0;
-        shard->set_cached_now_ms(now);
-        while (pos < section.size()) {
-            if (section.size() - pos < kRecordHeaderBytes) { error = "truncated record"; return false; }
-            const uint8_t* h = section.data() + pos;
-            if (snapshot_get_u32(h) != kRecordTag) { error = "invalid record tag"; return false; }
-            const uint8_t type_raw = h[4];
-            const uint8_t encoding = h[5];
-            const uint32_t key_len = snapshot_get_u32(h + 8);
-            const uint64_t payload_len = snapshot_get_u64(h + 16);
-            const int64_t expire = static_cast<int64_t>(snapshot_get_u64(h + 24));
-            pos += kRecordHeaderBytes;
-            if (type_raw > static_cast<uint8_t>(Type::Zset) || payload_len > UINT32_MAX ||
-                static_cast<uint64_t>(section.size() - pos) <
-                    static_cast<uint64_t>(key_len) + payload_len) {
-                error = "invalid record lengths";
-                return false;
-            }
-            const Slice key(reinterpret_cast<const char*>(section.data() + pos), key_len);
-            pos += key_len;
-            const Slice payload(reinterpret_cast<const char*>(section.data() + pos),
-                                static_cast<uint32_t>(payload_len));
-            pos += static_cast<size_t>(payload_len);
-            if (expire >= 0 && expire <= now) continue;
-            const uint64_t hash = FlatStore::hash_key(key);
-            if (server.router().shard_of(hash) != shard->id()) {
-                error = "snapshot key is in the wrong shard section";
-                return false;
-            }
-            if (shard->store().find(hash, key)) { error = "duplicate snapshot key"; return false; }
-            KvObj* object = nullptr;
-            const SnapshotHookStatus status = snapshot_type_hooks(static_cast<Type>(type_raw)).load(
-                key, encoding, expire, payload, shard->type_limits(), object);
-            if (status != SnapshotHookStatus::Ok || !object) {
-                error = hook_error(status);
-                return false;
-            }
-            if (shard->store().insert(hash, object) != FlatStore::InsertResult::Inserted) {
-                kvobj_free(object);
-                error = "could not insert loaded key";
-                return false;
-            }
+    const uint32_t sid = static_cast<uint32_t>(shard.id());
+    const std::vector<uint8_t>& section = plan.sections[sid];
+    size_t pos = 0;
+    shard.set_cached_now_ms(now);
+    while (pos < section.size()) {
+        if (section.size() - pos < kRecordHeaderBytes) { error = "truncated record"; return false; }
+        const uint8_t* h = section.data() + pos;
+        if (snapshot_get_u32(h) != kRecordTag) { error = "invalid record tag"; return false; }
+        const uint8_t type_raw = h[4];
+        const uint8_t encoding = h[5];
+        const uint32_t key_len = snapshot_get_u32(h + 8);
+        const uint64_t payload_len = snapshot_get_u64(h + 16);
+        const int64_t expire = static_cast<int64_t>(snapshot_get_u64(h + 24));
+        pos += kRecordHeaderBytes;
+        if (type_raw > static_cast<uint8_t>(Type::Zset) || payload_len > UINT32_MAX ||
+            static_cast<uint64_t>(section.size() - pos) <
+                static_cast<uint64_t>(key_len) + payload_len) {
+            error = "invalid record lengths";
+            return false;
         }
-        shard->publish_size();
+        const Slice key(reinterpret_cast<const char*>(section.data() + pos), key_len);
+        pos += key_len;
+        const Slice payload(reinterpret_cast<const char*>(section.data() + pos),
+                            static_cast<uint32_t>(payload_len));
+        pos += static_cast<size_t>(payload_len);
+        if (expire >= 0 && expire <= now) continue;
+        const uint64_t hash = FlatStore::hash_key(key);
+        if (server.router().shard_of(hash) != shard.id()) {
+            error = "snapshot key is in the wrong shard section";
+            return false;
+        }
+        if (shard.store().find(hash, key)) { error = "duplicate snapshot key"; return false; }
+        KvObj* object = nullptr;
+        const SnapshotHookStatus status = snapshot_type_hooks(static_cast<Type>(type_raw)).load(
+            key, encoding, expire, payload, shard.type_limits(), object);
+        if (status != SnapshotHookStatus::Ok || !object) {
+            error = hook_error(status);
+            return false;
+        }
+        if (shard.store().insert(hash, object) != FlatStore::InsertResult::Inserted) {
+            kvobj_free(object);
+            error = "could not insert loaded key";
+            return false;
+        }
     }
+    shard.publish_size();
+    return true;
+}
+
+bool snapshot_load_owned(const SnapshotLoadPlan& plan, Server& server, ThreadCtx& owner,
+                         std::string& error) {
+    for (Shard* shard : owner.shards())
+        if (!snapshot_load_shard(plan, server, *shard, error)) return false;
     return true;
 }
 

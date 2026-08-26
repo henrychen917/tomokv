@@ -4,6 +4,8 @@
 // IO-thread call. Client metadata lives in a cold, locked catalog here rather than enlarging the
 // 1984-byte Client. Store handlers still receive only (Shard&, Op&) and never touch a socket.
 #include "command.h"
+#include "auth.h"
+#include "debug.h"
 #include "../base/alloc.h"
 #include "../core/server.h"
 #include "../core/thread.h"
@@ -15,9 +17,13 @@
 #include "../snapshot/snapshot.h"
 
 #include <algorithm>
+#include <arpa/inet.h>
+#include <cerrno>
 #include <cctype>
+#include <cmath>
 #include <cstdarg>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <limits>
 #include <mutex>
@@ -26,6 +32,8 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+
+#include <sys/socket.h>
 
 namespace tomo {
 namespace {
@@ -200,6 +208,7 @@ struct ConfigValue {
     const char* name;
     ConfigKind kind;
     std::string value;
+    bool immutable = false;
 };
 
 std::mutex g_config_mu;
@@ -242,12 +251,29 @@ void init_config(const Config& cfg) {
     add_config("set-max-compact-value", ConfigKind::Unsigned, cfg.type_limits.set.max_value);
     add_config("zset-max-compact-entries", ConfigKind::Unsigned, cfg.type_limits.zset.max_entries);
     add_config("zset-max-compact-value", ConfigKind::Unsigned, cfg.type_limits.zset.max_value);
+    g_config.push_back({"requirepass", ConfigKind::String,
+                        cfg.requirepass ? cfg.requirepass : ""});
+    g_config.push_back({"protected-mode", ConfigKind::Bool,
+                        cfg.protected_mode != 0 ? "yes" : "no"});
+    const char* debug_mode = cfg.enable_debug_command == DebugCommandMode::Yes ? "yes" :
+                             cfg.enable_debug_command == DebugCommandMode::Local ? "local" : "no";
+    g_config.push_back({"enable-debug-command", ConfigKind::String, debug_mode, true});
+    if (g_server) {
+        const char* password = cfg.requirepass ? cfg.requirepass : "";
+        auth_publish_requirepass(*g_server, Slice(password, std::strlen(password)));
+    }
 }
 
 ConfigValue* find_config(Slice name) {
     for (ConfigValue& item : g_config)
         if (eq_icase(name, item.name)) return &item;
     return nullptr;
+}
+
+bool authenticate_default_user(Slice username, Slice password) {
+    const bool valid_user = eq_icase(username, "default");
+    const bool valid_password = g_server && auth_password_matches(*g_server, password);
+    return valid_user && valid_password;
 }
 
 bool parse_bytes(Slice input, uint64_t& value) {
@@ -297,6 +323,8 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out) {
         case ConfigKind::Bool:
             if (eq_icase(input, "yes")) { out = "yes"; return true; }
             if (eq_icase(input, "no")) { out = "no"; return true; }
+            if (input == Slice("1", 1)) { out = "yes"; return true; }
+            if (input == Slice("0", 1)) { out = "no"; return true; }
             return false;
         case ConfigKind::Unsigned: {
             uint64_t value = 0;
@@ -352,8 +380,8 @@ bool collect_config_updates(Op& op,
             msg.append(op.arg(i).p, op.arg(i).n); msg.push_back('\'');
             reply_err(op.sink(), msg.c_str()); return false;
         }
-        if (!std::strcmp(item->name, "dir") || !std::strcmp(item->name, "dbfilename") ||
-            !std::strcmp(item->name, "tcp-backlog")) {
+        if (item->immutable || !std::strcmp(item->name, "dir") ||
+            !std::strcmp(item->name, "dbfilename") || !std::strcmp(item->name, "tcp-backlog")) {
             reply_err(op.sink(), "ERR parameter is immutable at runtime"); return false;
         }
         std::string value;
@@ -418,21 +446,86 @@ void cmd_ping(Shard&, Op& op) {
 void cmd_echo(Shard&, Op& op) { reply_bulk(op.sink(), op.arg(1)); }
 
 void cmd_auth(Shard&, Op& op) {
-    (void)op;
-    reply_err(op.sink(), "ERR AUTH <password> called without any password configured for the default user. Are you sure your configuration is correct?");
+    bool required = false;
+    const Slice password = op.argc() == 2 ? op.arg(1) : op.arg(2);
+    const bool valid_password = g_server &&
+                                auth_password_matches(*g_server, password, &required);
+    if (op.argc() == 2 && !required) {
+        reply_err(op.sink(), "ERR AUTH <password> called without any password configured for the default user. Are you sure your configuration is correct?");
+        return;
+    }
+    const Slice username = op.argc() == 2 ? Slice("default", 7) : op.arg(1);
+    const bool valid_user = eq_icase(username, "default");
+    if (!valid_user || !valid_password) {
+        if (g_server) g_server->note_auth_failure();
+        reply_err(op.sink(), "WRONGPASS invalid username-password pair or user is disabled.");
+        return;
+    }
+    if (g_client) g_client->set_authenticated(true);
+    reply_ok(op.sink());
 }
 
 void cmd_hello(Shard&, Op& op) {
-    if (op.argc() == 2) {
-        uint64_t version = 0;
-        if (!parse_u64(op.arg(1), version)) {
+    uint32_t next = 1;
+    uint64_t version = 2;
+    if (op.argc() >= 2) {
+        if (!parse_u64(op.arg(next++), version)) {
             reply_err(op.sink(), "ERR Protocol version is not an integer or out of range");
             return;
         }
-        if (version != 2) {
+        if (version < 2 || version > 3) {
             reply_err(op.sink(), "NOPROTO unsupported protocol version");
             return;
         }
+    }
+
+    Slice username, password, client_name;
+    bool has_auth = false, has_name = false;
+    while (next < op.argc()) {
+        const Slice option = op.arg(next);
+        if (eq_icase(option, "auth") && next + 2 < op.argc()) {
+            username = op.arg(next + 1);
+            password = op.arg(next + 2);
+            has_auth = true;
+            next += 3;
+        } else if (eq_icase(option, "setname") && next + 1 < op.argc()) {
+            client_name = op.arg(next + 1);
+            if (!valid_client_text(client_name)) {
+                reply_err(op.sink(), "ERR Client names cannot contain spaces, newlines or special characters.");
+                return;
+            }
+            has_name = true;
+            next += 2;
+        } else {
+            std::string message = "ERR Syntax error in HELLO option '";
+            message.append(option.p, option.n);
+            message.push_back('\'');
+            reply_err(op.sink(), message.c_str());
+            return;
+        }
+    }
+    if (has_auth) {
+        if (!authenticate_default_user(username, password)) {
+            if (g_server) g_server->note_auth_failure();
+            reply_err(op.sink(), "WRONGPASS invalid username-password pair or user is disabled.");
+            return;
+        }
+        if (g_client) g_client->set_authenticated(true);
+    }
+    if (g_server && g_server->requirepass_enabled() &&
+        (!g_client || !g_client->authenticated())) {
+        reply_err(op.sink(),
+                  "NOAUTH HELLO must be called with the client already authenticated, otherwise the HELLO <proto> AUTH <user> <pass> option can be used to authenticate the client and select the RESP protocol version at the same time");
+        return;
+    }
+    if (version != 2) {
+        reply_err(op.sink(), "NOPROTO unsupported protocol version");
+        return;
+    }
+    if (has_name) {
+        std::lock_guard<std::mutex> lock(g_clients_mu);
+        auto it = g_clients.find(g_client);
+        if (it != g_clients.end()) it->second.name.assign(client_name.p, client_name.n);
     }
     auto sink = op.sink();
     reply_array_header(sink, 14);
@@ -462,6 +555,8 @@ void cmd_select(Shard&, Op& op) {
 
 void cmd_reset(Shard&, Op& op) {
     if (g_client) g_client->session().db_index = 0;
+    if (g_client)
+        g_client->set_authenticated(!g_server || !g_server->requirepass_enabled());
     {
         std::lock_guard<std::mutex> lock(g_clients_mu);
         auto it = g_clients.find(g_client);
@@ -471,6 +566,44 @@ void cmd_reset(Shard&, Op& op) {
         }
     }
     reply_simple(op.sink(), "RESET");
+}
+
+void cmd_debug_impl(Shard&, Op& op) {
+    const Slice subcommand = op.arg(1);
+    if (eq_icase(subcommand, "sleep") && op.argc() == 3) {
+        std::string text(op.arg(2).p, op.arg(2).n);
+        char* end = nullptr;
+        errno = 0;
+        const double seconds = std::strtod(text.c_str(), &end);
+        if (errno || end != text.c_str() + text.size() || !std::isfinite(seconds) || seconds < 0.0 ||
+            seconds > 86400.0) {
+            reply_err(op.sink(), "ERR value is not a valid float");
+            return;
+        }
+        const int64_t nanoseconds = static_cast<int64_t>(seconds * 1000000000.0);
+        timespec remaining{nanoseconds / 1000000000ll, nanoseconds % 1000000000ll};
+        while (::nanosleep(&remaining, &remaining) != 0 && errno == EINTR) {}
+        reply_ok(op.sink());
+        return;
+    }
+    if (eq_icase(subcommand, "set-active-expire") && op.argc() == 3) {
+        if (!(op.arg(2) == Slice("0", 1) || op.arg(2) == Slice("1", 1))) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        if (g_server) g_server->set_active_expire_enabled(op.arg(2).p[0] == '1');
+        reply_ok(op.sink());
+        return;
+    }
+    if (eq_icase(subcommand, "loadaof") && op.argc() == 2) {
+        reply_err(op.sink(), "ERR DEBUG LOADAOF is not available until appendonly support is enabled");
+        return;
+    }
+    if (eq_icase(subcommand, "reload") && op.argc() == 2) {
+        reply_err(op.sink(), "ERR internal DEBUG RELOAD routing error");
+        return;
+    }
+    reply_err(op.sink(), "ERR unknown subcommand or wrong number of arguments for 'debug' command");
 }
 
 void cmd_quit(Shard&, Op& op) {
@@ -686,6 +819,15 @@ void cmd_config(Shard& sh, Op& op) {
                                                set_memory, set_policy, set_samples);
             for (const auto& update : updates) {
                 uint64_t value = 0;
+                if (!std::strcmp(update.first->name, "requirepass")) {
+                    auth_publish_requirepass(
+                        *g_server, Slice(update.second.data(), update.second.size()));
+                    continue;
+                }
+                if (!std::strcmp(update.first->name, "protected-mode")) {
+                    g_server->set_protected_mode(update.second == "yes");
+                    continue;
+                }
                 if (!parse_u64(Slice(update.second.data(), update.second.size()), value)) continue;
                 if (!std::strcmp(update.first->name, "atomic"))
                     g_server->set_atomic_enabled(value != 0);
@@ -769,7 +911,9 @@ void cmd_info(Shard&, Op& op) {
             connections += g_server->thread(t).sig().accepts;
             atomic_localfast += g_server->thread(t).atomic_localfast();
         }
-        rejected = g_server->rejected_conns();
+        // Redis counts BOTH accept-time reject classes in rejected_connections: maxclients
+        // (networking.c:1355) and protected-mode denials (networking.c:1306).
+        rejected = g_server->rejected_conns() + g_server->rejected_connections();
     }
     const uint64_t connected = g_server ? g_server->live_clients() : 0;
 
@@ -818,6 +962,7 @@ void cmd_info(Shard&, Op& op) {
                       "total_commands_processed:%llu\r\nkeyspace_hits:%llu\r\nkeyspace_misses:%llu\r\n"
                       "expired_keys:%llu\r\nevicted_keys:%llu\r\ninstantaneous_ops_per_sec:0\r\n"
                       "total_net_input_bytes:0\r\ntotal_net_output_bytes:0\r\n"
+                      "auth_failures:%llu\r\n"
                       "atomic_groups:%llu\r\natomic_inflight:%llu\r\n"
                       "atomic_predecessor_reads:%llu\r\natomic_chain_max:%llu\r\n"
                       "atomic_cleanup_fast:%llu\r\natomic_cleanup_slow:%llu\r\n"
@@ -835,6 +980,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(total_ops), static_cast<unsigned long long>(hits),
                 static_cast<unsigned long long>(misses), static_cast<unsigned long long>(expired),
                 static_cast<unsigned long long>(evicted),
+                static_cast<unsigned long long>(g_server ? g_server->auth_failures() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->atomic_groups() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->atomic_inflight() : 0),
                 static_cast<unsigned long long>(atomic_predecessor_reads),
@@ -987,7 +1133,7 @@ static const CommandSpec kTable[] = {
     {"LASTSAVE",   1,  1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_lastsave,   0,  0, 0},
     {"ECHO",       2,  2, CmdFlags::ConnLocal,                                    cmd_echo,       0,  0, 0},
     {"AUTH",       2,  3, CmdFlags::ConnLocal,                                    cmd_auth,       0,  0, 0},
-    {"HELLO",      1,  2, CmdFlags::ConnLocal,                                    cmd_hello,      0,  0, 0},
+    {"HELLO",       1, -1, CmdFlags::ConnLocal,                                    cmd_hello,      0,  0, 0},
     {"RESET",      1,  1, CmdFlags::ConnLocal,                                    cmd_reset,      0,  0, 0},
     {"QUIT",       1,  1, CmdFlags::ConnLocal,                                    cmd_quit,       0,  0, 0},
     {"SUBSCRIBE",   2, -1, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
@@ -1002,6 +1148,7 @@ static const CommandSpec kTable[] = {
     {"CLIENT",     2, -1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_client,     0,  0, 0},
     {"COMMAND",    1, -1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_command,    0,  0, 0},
     {"CONFIG",     2, -1, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_config,     0,  0, 0},
+    {"DEBUG",      2, -1, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_debug,      0,  0, 0},
     {"INFO",       1,  2, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_info,       0,  0, 0},
     {"SELECT",     2,  2, CmdFlags::ConnLocal,                                    cmd_select,     0,  0, 0},
         {"DBSIZE",     1,  2, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_dbsize,     0,  0, 0},
@@ -1019,6 +1166,40 @@ static const CommandSpec kTable[] = {
 };
 
 }  // namespace
+
+bool debug_command_allowed(const Server& server, const Client* client) {
+    const DebugCommandMode mode = server.cfg().enable_debug_command;
+    if (mode == DebugCommandMode::Yes) return true;
+    if (mode != DebugCommandMode::Local || !client) return false;
+
+    sockaddr_storage peer{};
+    socklen_t length = sizeof(peer);
+    if (::getpeername(client->fd(), reinterpret_cast<sockaddr*>(&peer), &length) != 0)
+        return false;
+    if (peer.ss_family == AF_UNIX) return true;
+    if (peer.ss_family == AF_INET) {
+        const auto* address = reinterpret_cast<const sockaddr_in*>(&peer);
+        return (ntohl(address->sin_addr.s_addr) & 0xff000000u) == 0x7f000000u;
+    }
+    if (peer.ss_family == AF_INET6) {
+        const auto* address = reinterpret_cast<const sockaddr_in6*>(&peer);
+        return IN6_IS_ADDR_LOOPBACK(&address->sin6_addr);
+    }
+    return false;
+}
+
+void reply_debug_command_denied(Op& op) {
+    reply_err(op.sink(),
+              "ERR DEBUG command not allowed. If the enable-debug-command option is set to \"local\", you can run it from a local connection, otherwise you need to set this option in the configuration file, and then restart the server.");
+}
+
+void cmd_debug(Shard& shard, Op& op) {
+    if (!g_server || !debug_command_allowed(*g_server, g_client)) {
+        reply_debug_command_denied(op);
+        return;
+    }
+    cmd_debug_impl(shard, op);
+}
 
 bool command_glob_match(Slice pattern, Slice text) {
     return glob_match(pattern, text);
@@ -1083,6 +1264,8 @@ bool command_config_routes_all_shards(Op& op) {
     // reply reflects everything already dispatched ahead of it on every shard, with none of the
     // batch-boundary publication lag the plain DBSIZE reads.
     if (op.cmd_name().eq_icase("dbsize")) return op.argc() == 2 && eq_icase(op.arg(1), "NOW");
+    if (op.cmd_name().eq_icase("debug"))
+        return op.argc() == 2 && eq_icase(op.arg(1), "reload");
     return op.argc() >= 2 && eq_icase(op.arg(1), "SET");
 }
 

@@ -15,6 +15,7 @@ namespace tomo {
 class Op;
 class Ring;
 class Server;
+class Shard;
 class ThreadCtx;
 
 class SnapshotLoadPlan {
@@ -32,6 +33,8 @@ public:
 std::unique_ptr<SnapshotLoadPlan> snapshot_read_plan(const char* path, uint32_t expected_shards,
                                                      std::string& error);
 bool snapshot_load_owned(const SnapshotLoadPlan& plan, Server& server, ThreadCtx& owner,
+                         std::string& error);
+bool snapshot_load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& shard,
                          std::string& error);
 
 class SnapshotManager {

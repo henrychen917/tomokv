@@ -155,6 +155,7 @@ private:
     }
 
     uint32_t active_expire_cycle() {
+        if (!srv_->active_expire_enabled()) return 0;
         if (snapshot_blocks_tasks()) return 0;
         auto& shards = self_->shards();
         if (shards.empty()) return 0;

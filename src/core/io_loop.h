@@ -36,6 +36,7 @@
 #include "../net/wb.h"
 #include "../cmd/command.h"
 #include "../cmd/blocking.h"
+#include "../cmd/auth.h"
 #include "../cmd/multi.h"
 #include "../cmd/xshard.h"
 #include "../snapshot/snapshot.h"
@@ -150,6 +151,7 @@ public:
 
 private:
     friend bool multi_dispatch_entry(IoLoop&, Client&, Op&, uint32_t);
+    friend bool auth_dispatch_entry(IoLoop&, Client&, Op&, uint32_t);
     friend void multi_retire_entry(IoLoop&, Client&, Op&);
     friend uint32_t multi_owner_pass_entry(IoLoop&);
     friend uint32_t multi_owner_reap_entry(IoLoop&);
@@ -304,6 +306,20 @@ private:
             }
             return;
         }
+        if (__builtin_expect(srv_->protected_mode() && !srv_->requirepass_enabled() &&
+                             !peer_is_local(fd, unix_socket), false)) {
+            static constexpr char kDenied[] =
+                "-DENIED Redis is running in protected mode because protected mode is enabled and no password is set for the default user. In this mode connections are only accepted from the loopback interface. If you want to connect from external computers to Redis you may adopt one of the following solutions: 1) Just disable protected mode sending the command 'CONFIG SET protected-mode no' from the loopback interface by connecting to Redis from the same host the server is running, however MAKE SURE Redis is not publicly accessible from internet if you do so. Use CONFIG REWRITE to make this change permanent. 2) Alternatively you can just disable the protected mode by editing the Redis configuration file, and setting the protected mode option to 'no', and then restarting the server. 3) If you started the server manually just for testing, restart it with the '--protected-mode no' option. 4) Set up an authentication password for the default user. NOTE: You only need to do one of the above things in order for the server to start accepting connections from the outside.\r\n";
+            (void)::send(fd, kDenied, sizeof(kDenied) - 1, MSG_NOSIGNAL | MSG_DONTWAIT);
+            ::close(fd);
+            srv_->note_rejected_connection();
+            self_->sig().accept_rejected++;
+            if (!(cqe->flags & IORING_CQE_F_MORE)) {
+                self_->sig().accept_rearm++;
+                arm_accept(unix_socket);
+            }
+            return;
+        }
         auto* c = new (std::nothrow) Client(fd);
         if (!c) {
             ::close(fd);
@@ -315,6 +331,7 @@ private:
             return;
         }
         srv_->client_accepted();
+        c->set_authenticated(!srv_->requirepass_enabled());
         c->set_id(srv_->next_client_id().fetch_add(1, std::memory_order_relaxed));
         if (unix_socket) {
             const auto& ios = srv_->placement().ifid_threads();
@@ -343,6 +360,14 @@ private:
         char out[INET_ADDRSTRLEN + 16];
         std::snprintf(out, sizeof(out), "%s:%u", ip, ntohs(peer.sin_port));
         return out;
+    }
+
+    bool peer_is_local(int fd, bool unix_socket) const {
+        if (unix_socket) return true;
+        sockaddr_in peer{};
+        socklen_t len = sizeof(peer);
+        if (::getpeername(fd, reinterpret_cast<sockaddr*>(&peer), &len) != 0) return false;
+        return (ntohl(peer.sin_addr.s_addr) & 0xff000000u) == 0x7f000000u;
     }
 
     void adopt_client(Client* c, bool unix_socket) {
@@ -408,6 +433,7 @@ private:
         Rob<kRobWindow>& rob = c->rob();
         LoopSignals& sig = self_->sig();
         bool head_candidate = true;   // only the pass's FIRST dispatch can be the direct head
+        const bool auth_required = srv_->requirepass_enabled();
 
         for (;;) {
             if (c->scatter_barrier() || c->atomic_backpressure()) break;
@@ -417,7 +443,10 @@ private:
             uint32_t pos = conn.rpos();
             const char* err = nullptr;
             op->rbuf_off = pos;
-            ParseResult pr = resp_parse(conn.rbuf(), conn.rlen(), pos, *op, &err);
+            const bool unauthenticated = auth_required && !conn.authenticated();
+            ParseResult pr = resp_parse(conn.rbuf(), conn.rlen(), pos, *op, &err,
+                                        unauthenticated ? 10 : 1024 * 1024,
+                                        unauthenticated ? 16384 : 512ull * 1024 * 1024);
 
             if (pr == ParseResult::Incomplete) break;
             if (pr == ParseResult::Error) {
@@ -450,6 +479,8 @@ private:
                 finish_locally(c, *op, message); continue;
             }
             op->spec = spec;
+            if (__builtin_expect(unauthenticated, false) &&
+                auth_dispatch_entry(*this, conn, *op, consumed)) continue;
             if (__builtin_expect((spec->flags & CmdFlags::Transaction) != 0, false) ||
                 __builtin_expect(conn.multi_session() != nullptr, false)) {
                 if (multi_dispatch_entry(*this, conn, *op, consumed)) continue;
@@ -586,7 +617,8 @@ private:
 
             ScatterDispatch scatter_dispatch;
             const ScatterPrepare scatter_prepared =
-                xshard_prepare(*srv_, *op, scatter_pool_, self_->id(), c->id(), scatter_dispatch);
+                xshard_prepare(*srv_, *op, scatter_pool_, self_->id(), c->id(), scatter_dispatch,
+                               false, c);
             if (scatter_prepared == ScatterPrepare::Error) {
                 conn.advance_parse(consumed);
                 finish_prebuilt(c, *op);

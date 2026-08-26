@@ -9,7 +9,7 @@
 namespace tomo {
 namespace {
 enum class Kind : uint8_t {
-    AllShards, DbsizeExact, Mget, Mset, Del, Unlink, Exists, Touch, Keys, Pfcount, Msetnx,
+    AllShards, DebugReload, DbsizeExact, Mget, Mset, Del, Unlink, Exists, Touch, Keys, Pfcount, Msetnx,
     Rename, Renamenx, Copy, Smove, Lmove, Rpoplpush,
     Sinter, Sunion, Sdiff, Sintercard, Sinterstore, Sunionstore, Sdiffstore,
     Bitop, Pfmerge,
@@ -318,6 +318,7 @@ struct ScatterState {
     uint16_t* shard_groups = nullptr;
     OwnerRecordRefs* owner_record_refs = nullptr;
     ResultHeap* result = nullptr;
+    std::unique_ptr<SnapshotLoadPlan> reload_plan;
     // Non-null only after a parked BLMOVE/BRPOPLPUSH is resumed by its owning IO. The blocking
     // context remains independently refcounted while this ordinary scatter owns the Op marker.
     BlockingState* blocking_origin = nullptr;
@@ -392,7 +393,8 @@ bool first_error(const ScatterState& state, WorkError& error) {
 
 uint32_t key_count_for(Kind kind, const Op& op, uint32_t sinter_count,
                        uint32_t mpop_count, bool sort_store) {
-    if (kind == Kind::AllShards || kind == Kind::DbsizeExact || kind == Kind::Keys) return 0;
+    if (kind == Kind::AllShards || kind == Kind::DebugReload ||
+        kind == Kind::DbsizeExact || kind == Kind::Keys) return 0;
     if (kind == Kind::Mset || kind == Kind::Msetnx) return (op.argc() - 1) / 2;
     if (kind == Kind::Bitop) return op.argc() - 2;
     if (kind == Kind::Rename || kind == Kind::Renamenx || kind == Kind::Copy ||
@@ -740,13 +742,15 @@ void ScatterArenaPool::release(void* ptr, bool pooled) {
 
 ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                               uint32_t owner_io, uint64_t origin_conn_id,
-                              ScatterDispatch& dispatch, bool force_atomic) {
+                              ScatterDispatch& dispatch, bool force_atomic,
+                              Client* origin_client) {
     const bool all_shards = (op.spec->flags & CmdFlags::AllShards) ||
                             ((op.spec->flags & CmdFlags::ConfigRoute) &&
                              command_config_routes_all_shards(op));
     Kind kind;
     if (all_shards)
-        kind = op.cmd_name().eq_icase("dbsize") ? Kind::DbsizeExact : Kind::AllShards;
+        kind = op.cmd_name().eq_icase("dbsize") ? Kind::DbsizeExact :
+               op.cmd_name().eq_icase("debug") ? Kind::DebugReload : Kind::AllShards;
     else if (!(op.spec->flags & CmdFlags::MultiShard) || !classify(op, kind))
         return ScatterPrepare::NotScatter;
 
@@ -760,10 +764,45 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
          kind == Kind::Touch) && op.argc() == 2) return ScatterPrepare::NotScatter;
     if (kind == Kind::Pfcount && op.argc() == 2) return ScatterPrepare::NotScatter;
 
+    std::unique_ptr<SnapshotLoadPlan> reload_plan;
     if (all_shards) {
-        const bool valid = (op.spec->flags & CmdFlags::ConfigRoute)
-            ? command_validate_config_set(op) : command_validate_all_shards(op);
-        if (!valid) return ScatterPrepare::Error;
+        if (kind == Kind::DebugReload) {
+            if (!debug_command_allowed(server, origin_client)) {
+                reply_debug_command_denied(op);
+                return ScatterPrepare::Error;
+            }
+            ThreadCtx& writer = server.thread(owner_io);
+            Ring* writer_ring = writer.ring();
+            if (!writer_ring) {
+                reply_err(op.sink(), "ERR snapshot command has no IO owner");
+                return ScatterPrepare::Error;
+            }
+            std::string error;
+            const SnapshotManager::StartResult saved = server.snapshot().start(
+                server, writer, *writer_ring, true, error);
+            if (saved == SnapshotManager::StartResult::Busy) {
+                reply_err(op.sink(), "ERR Background save already in progress");
+                return ScatterPrepare::Error;
+            }
+            if (saved == SnapshotManager::StartResult::Failed) {
+                std::string message = "ERR ";
+                message += error.empty() ? "snapshot failed" : error;
+                reply_err(op.sink(), message.c_str());
+                return ScatterPrepare::Error;
+            }
+            const std::string path = server.snapshot().dir() + "/" +
+                                     server.snapshot().dbfilename();
+            reload_plan = snapshot_read_plan(path.c_str(), server.nshards(), error);
+            if (!reload_plan) {
+                reply_err(op.sink(),
+                          "ERR Error trying to load the snapshot dump, check server logs.");
+                return ScatterPrepare::Error;
+            }
+        } else {
+            const bool valid = (op.spec->flags & CmdFlags::ConfigRoute)
+                ? command_validate_config_set(op) : command_validate_all_shards(op);
+            if (!valid) return ScatterPrepare::Error;
+        }
     }
     if ((kind == Kind::Mset || kind == Kind::Msetnx) && (op.argc() & 1u) == 0) {
         reply_err(op.sink(), name_is(op, "MSET")
@@ -896,7 +935,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                              kind == Kind::Zrangestore ||
                              (kind == Kind::Sort && sort_options.store)) ? 1u : 0u;
     uint32_t group_cap = 0;
-    if (kind == Kind::AllShards || kind == Kind::DbsizeExact || kind == Kind::Keys) {
+    if (kind == Kind::AllShards || kind == Kind::DebugReload ||
+        kind == Kind::DbsizeExact || kind == Kind::Keys) {
         group_cap = server.nshards();
     } else if (atomic_write) {
         bool seen[256] = {};
@@ -981,6 +1021,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     state->range_options = range_options;
     state->range_spec = range_spec;
     state->sort_options = sort_options;
+    state->reload_plan = std::move(reload_plan);
     // MSET is a blind replacement. Registering a read cut for it only pins predecessors across a
     // deep pipeline; MSETNX and delete still need their one dispatch snapshot for existence.
     if (needs_snapshot)
@@ -1022,7 +1063,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         return ScatterPrepare::Error;
     }
 
-    if (kind == Kind::AllShards || kind == Kind::DbsizeExact || kind == Kind::Keys) {
+    if (kind == Kind::AllShards || kind == Kind::DebugReload ||
+        kind == Kind::DbsizeExact || kind == Kind::Keys) {
         state->nsub = server.nshards();
         for (uint32_t sid = 0; sid < state->nsub; sid++) {
             state->groups[sid].shard = sid;
@@ -1389,6 +1431,17 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     !shard.store().atomic_tombstone_all()) return ScatterTaskResult::Retry;
                 op.spec->handler(shard, op);
                 return ScatterTaskResult::Complete;
+            case Kind::DebugReload: {
+                if (!shard.store().atomic_tombstone_all()) return ScatterTaskResult::Retry;
+                shard.store().clear();
+                std::string error;
+                if (!state.reload_plan ||
+                    !snapshot_load_shard(*state.reload_plan, *state.server, shard, error)) {
+                    group.error = WorkError::Corrupt;
+                    return ScatterTaskResult::Complete;
+                }
+                return ScatterTaskResult::Complete;
+            }
             case Kind::DbsizeExact:
                 state.exact_sum.fetch_add(
                     shard.store().atomic_resolved_size(state.snapshot), std::memory_order_relaxed);

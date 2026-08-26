@@ -12,6 +12,7 @@
 // no change to routing. See placement.h for the ordering contract that makes such a move safe.
 #pragma once
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <cstdint>
 #include <climits>
@@ -44,6 +45,11 @@ struct ClientLimitsConfigSnapshot {
     ClientBufferLimit pubsub{};
 };
 
+struct AuthConfigSnapshot {
+    bool required;
+    std::array<uint64_t, 4> password_hash;
+};
+
 class Server {
 public:
     static constexpr uint64_t kAtomicEnabledBit = uint64_t{1} << 63;
@@ -71,6 +77,9 @@ public:
         live_tcp_keepalive_.store(cfg.tcp_keepalive, std::memory_order_relaxed);
         store_client_output_buffer_limits(cfg.client_output_buffer_limits);
         refresh_client_cron_armed();
+        requirepass_enabled_.store(cfg.requirepass && *cfg.requirepass,
+                                   std::memory_order_relaxed);
+        protected_mode_.store(cfg.protected_mode != 0, std::memory_order_relaxed);
         atomic_activity_.store(cfg.atomic ? kAtomicEnabledBit : 0,
                                std::memory_order_relaxed);
         // AUTO resolves against the shard count: the measured three-point optimum (see config.h).
@@ -278,6 +287,52 @@ public:
     }
     uint64_t blocking_waiters() const {
         return blocking_waiters_.load(std::memory_order_relaxed);
+    }
+
+    // The disabled AUTH fast path is one acquire load plus one predicted-not-taken branch in the
+    // IO parser. Password bytes remain in the cold CONFIG table; only AUTH and live CONFIG changes
+    // ever take its lock.
+    bool requirepass_enabled() const {
+        return requirepass_enabled_.load(std::memory_order_acquire);
+    }
+    AuthConfigSnapshot auth_config_snapshot() const {
+        for (;;) {
+            const uint64_t version = live_config_version_.load(std::memory_order_acquire);
+            if (version & 1) continue;
+            AuthConfigSnapshot snapshot;
+            snapshot.required = requirepass_enabled_.load(std::memory_order_relaxed);
+            for (uint32_t i = 0; i < snapshot.password_hash.size(); i++)
+                snapshot.password_hash[i] = live_requirepass_hash_[i].load(
+                    std::memory_order_relaxed);
+            if (live_config_version_.load(std::memory_order_acquire) == version) return snapshot;
+        }
+    }
+    void set_auth_config(bool required, const std::array<uint64_t, 4>& password_hash) {
+        const uint64_t write_version = begin_live_config_update();
+        for (uint32_t i = 0; i < password_hash.size(); i++)
+            live_requirepass_hash_[i].store(password_hash[i], std::memory_order_relaxed);
+        requirepass_enabled_.store(required, std::memory_order_relaxed);
+        end_live_config_update(write_version);
+    }
+    bool protected_mode() const {
+        return protected_mode_.load(std::memory_order_acquire);
+    }
+    void set_protected_mode(bool enabled) {
+        protected_mode_.store(enabled, std::memory_order_release);
+    }
+    bool active_expire_enabled() const {
+        return active_expire_enabled_.load(std::memory_order_relaxed);
+    }
+    void set_active_expire_enabled(bool enabled) {
+        active_expire_enabled_.store(enabled, std::memory_order_relaxed);
+    }
+    void note_auth_failure() { auth_failures_.fetch_add(1, std::memory_order_relaxed); }
+    uint64_t auth_failures() const { return auth_failures_.load(std::memory_order_relaxed); }
+    void note_rejected_connection() {
+        rejected_connections_.fetch_add(1, std::memory_order_relaxed);
+    }
+    uint64_t rejected_connections() const {
+        return rejected_connections_.load(std::memory_order_relaxed);
     }
 
     uint64_t atomic_mode_state() const {
@@ -751,6 +806,14 @@ private:
     std::atomic<uint64_t> pubsub_pattern_subscriptions_{0};
     std::atomic<uint64_t> pubsub_shard_channels_{0};
     std::atomic<uint64_t> pubsub_shard_subscriptions_{0};
+    // Security and DEBUG state is cold and appended after every pre-existing hot atomic so this
+    // feature cannot reshuffle cache-line sharing in dispatch, atomic admission, or pub/sub.
+    std::atomic<bool> requirepass_enabled_{false};
+    std::atomic<uint64_t> live_requirepass_hash_[4] = {};
+    std::atomic<bool> protected_mode_{true};
+    std::atomic<bool> active_expire_enabled_{true};
+    std::atomic<uint64_t> auth_failures_{0};
+    std::atomic<uint64_t> rejected_connections_{0};
 };
 
 }  // namespace tomo

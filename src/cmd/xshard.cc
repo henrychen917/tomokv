@@ -19,7 +19,9 @@
 #include <vector>
 
 #include "command.h"
+#include "auth.h"
 #include "blocking.h"
+#include "debug.h"
 #include "hll.h"
 #include "multi.h"
 #include "../core/io_loop.h"
@@ -38,3 +40,4 @@
 #include "atomics_glue.inc"
 #include "blocking.inc"
 #include "multi.inc"
+#include "auth.inc"

@@ -100,6 +100,14 @@ public:
 
     bool empty() const { return size_ == 0; }
     uint32_t size() const { return size_; }
+    uint64_t byte_size() const {
+        uint64_t bytes = 0;
+        for (uint32_t i = 0; i < size_; i++) {
+            const ReplySegment& segment = segs_[head_ + i];
+            bytes += segment.len - (i == 0 ? offset_ : 0);
+        }
+        return bytes;
+    }
 
     void append_buf(const char* ptr, size_t len) {
         while (len) {
@@ -357,6 +365,11 @@ public:
     bool nothing_to_write() const {
         return buf_[fill_].size() == 0 && write_drained() && segments_.empty();
     }
+    uint64_t buffered_output_bytes() const {
+        const size_t send_size = buf_[fill_ ^ 1].size();
+        const uint64_t send_remaining = send_size > wsent_ ? send_size - wsent_ : 0;
+        return buf_[fill_].size() + send_remaining + segments_.byte_size();
+    }
 
     // Seal ordinary staged bytes before the first borrowed reply. Clearing the fill buffer after
     // copying leaves the existing send buffer untouched, so an older send already in flight stays
@@ -493,6 +506,8 @@ public:
     bool watch_dirty() const { return watch_dirty_.load(std::memory_order_acquire); }
     void set_watch_dirty() { watch_dirty_.store(true, std::memory_order_release); }
     void clear_watch_dirty() { watch_dirty_.store(false, std::memory_order_release); }
+    bool authenticated() const { return authenticated_; }
+    void set_authenticated(bool value) { authenticated_ = value; }
     void watch_ref() { watched_refs_.fetch_add(1, std::memory_order_relaxed); }
     void watch_unref() {
         if (watched_refs_.fetch_sub(1, std::memory_order_acq_rel) == 0) std::abort();
@@ -587,6 +602,7 @@ private:
     uint64_t obuf_bytes_ = 0;          // fill + unsent send + segment bytes
     uint32_t obuf_soft_since_s_ = 0;   // 0 = not continuously at/over the soft limit
     bool obuf_tracking_ = false;        // enabled once per serve/cron arm, not per reply append
+    bool authenticated_ = false;        // requirepass state; shares the documented cold-tail hole
 };
 
 // Same footprint law as Op: Client is per-connection resident memory and its io-hot head is

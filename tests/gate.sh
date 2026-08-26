@@ -16,6 +16,9 @@ cd "$(dirname "$0")/.."
 TIER=${1:-quick}
 PORT=${GATE_PORT:-7899}
 CORES=${GATE_CORES:-0-7}
+NCORES=$(taskset -c "$CORES" nproc)
+if [ "$NCORES" -ge 8 ]; then GATE_RATIO=6:$((NCORES-6))
+else GATE_RATIO=$(((NCORES+1)/2)):$((NCORES-(NCORES+1)/2)); fi
 PASS=0; FAIL=0
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ok(){ say "$1" "ok"; PASS=$((PASS+1)); }
@@ -40,7 +43,7 @@ printf 'florb 1\n' > /tmp/gate-bad.conf
 boot(){ # binary -> pid ; server log to $SRVLOG
   local bin=$1; shift
   SRVLOG=$(mktemp /tmp/gate-srv.XXXXXX)
-  timeout 900 taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --shards 16 --ratio 6:2 "$@" \
+  timeout 900 taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --shards 16 --ratio $GATE_RATIO "$@" \
       > "$SRVLOG" 2>&1 &
   SRV=$!
   for _ in $(seq 50); do ./build/tomokv --help >/dev/null 2>&1
@@ -81,6 +84,22 @@ stop
 grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
     && ok "atomic shutdown invariants" || bad "atomic shutdown invariants"
 
+# ---- auth + audit DEBUG (purpose-booted; each test asserts its gate actually opened) -----------
+./build/tomokv --protected-mode maybe 2>&1 | grep -q "protected-mode wants" \
+    && ok "reject bad protected-mode" || bad "reject bad protected-mode"
+./build/tomokv --enable-debug-command maybe 2>&1 | grep -q "enable-debug-command wants" \
+    && ok "reject bad enable-debug-command" || bad "reject bad enable-debug-command"
+boot ./build/tomokv --requirepass gatepass || bad "auth purpose boot"
+python3 tests/auth.py 127.0.0.1 $PORT gatepass >/tmp/gate-auth.txt 2>&1 \
+    && ok "AUTH/HELLO/protected state machine" || bad "AUTH/HELLO/protected state machine" "see /tmp/gate-auth.txt"
+stop
+DEBUG_DIR=$(mktemp -d /tmp/gate-debug.XXXXXX)
+boot ./build/tomokv --enable-debug-command local --dir "$DEBUG_DIR" --dbfilename reload.tomo \
+    || bad "DEBUG purpose boot"
+python3 tests/debug.py 127.0.0.1 $PORT >/tmp/gate-debug.txt 2>&1 \
+    && ok "DEBUG toggle/reload battery" || bad "DEBUG toggle/reload battery" "see /tmp/gate-debug.txt"
+stop
+
 if [ "$TIER" = quick ]; then
   echo; echo "GATE(quick): $PASS ok, $FAIL FAIL"; [ $FAIL -eq 0 ] || exit 1; exit 0
 fi
@@ -100,7 +119,7 @@ grep -q "ERROR: AddressSanitizer" "$SRVLOG" && bad "ASAN clean" || ok "ASAN clea
 
 # ---- 4b. full tier: zero-copy borrow lifetime (release+ASAN) ----------------------------------
 zcboot(){ SRVLOG=$(mktemp /tmp/gate-srv.XXXXXX)
-  timeout 900 taskset -c $CORES "$1" --port $PORT --bind 127.0.0.1 --shards 16 --ratio 6:2       --zc-min 16384 > "$SRVLOG" 2>&1 &
+  timeout 900 taskset -c $CORES "$1" --port $PORT --bind 127.0.0.1 --shards 16 --ratio $GATE_RATIO       --zc-min 16384 > "$SRVLOG" 2>&1 &
   SRV=$!
   for _ in $(seq 50); do (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null && return 0; sleep 0.2; done
   return 1

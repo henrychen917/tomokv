@@ -58,7 +58,7 @@ public:
 
 private:
     friend ScatterPrepare xshard_prepare(Server&, Op&, ScatterArenaPool&, uint32_t,
-                                          uint64_t, ScatterDispatch&, bool);
+                                          uint64_t, ScatterDispatch&, bool, Client*);
     friend void xshard_destroy(ScatterState*, ScatterArenaPool&, uint32_t);
     friend void xshard_retire(Server&, ThreadCtx&, Ring&, Client&, Op&, ScatterArenaPool&,
                               uint32_t, void*, void (*)(void*, int32_t, const char*));
@@ -98,7 +98,8 @@ struct ScatterDispatch {
 // complete RESP error is already in op; Ready owns `state` until destroy or final completion.
 ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                               uint32_t owner_io, uint64_t origin_conn_id,
-                              ScatterDispatch& dispatch, bool force_atomic = false);
+                              ScatterDispatch& dispatch, bool force_atomic = false,
+                              Client* origin_client = nullptr);
 int32_t xshard_dispatch_shard(const ScatterDispatch& dispatch, uint32_t index);
 void xshard_destroy(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_io);
 
