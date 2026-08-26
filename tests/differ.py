@@ -1064,6 +1064,118 @@ def run_notify_suite(rng):
 if SUITE == "notify":
     sys.exit(1 if run_notify_suite(rng) else 0)
 
+# DUMP payloads have multiple equally valid encodings (TomoKV intentionally emits the simple
+# canonical RDB types), so byte-comparing the bulk strings would reject interoperability. This
+# suite cross-RESTOREs each side's payload into the other side and then byte-compares full reads.
+def run_wiredump_suite(rng):
+    ts, tf = conn(TH, TP); os_, of = conn(OH, OP)
+
+    def command(sock, file, args):
+        sock.sendall(enc(args))
+        return read_reply(file)
+
+    def payload(reply):
+        value = parse_reply(reply)
+        return value if isinstance(value, bytes) else None
+
+    def full_read(sock, file, kind, key):
+        if kind == "string": op = ["GET", key]
+        elif kind == "list": op = ["LRANGE", key, "0", "-1"]
+        elif kind == "hash": op = ["HGETALL", key]
+        elif kind == "set": op = ["SMEMBERS", key]
+        else: op = ["ZRANGE", key, "0", "-1", "WITHSCORES"]
+        return normalize(op[0], command(sock, file, op))
+
+    definitions = [
+        ("wd:string", "string", [["SET", "wd:string", "wire\x00value"]]),
+        ("wd:string-lzf", "string", [["SET", "wd:string-lzf", "repeat-" * 800]]),
+        ("wd:list", "list", [["RPUSH", "wd:list", "a", "2", "x" * 500]]),
+        ("wd:list-large", "list", [["RPUSH", "wd:list-large", "q" * 10000]]),
+        ("wd:hash", "hash", [["HSET", "wd:hash", "a", "1", "b", "value"]]),
+        ("wd:hash-large", "hash", [["HSET", "wd:hash-large", "field", "x" * 1000]]),
+        ("wd:set-int", "set", [["SADD", "wd:set-int", "-2", "1", "70000"]]),
+        ("wd:set", "set", [["SADD", "wd:set", "a", "bb", "m" * 100]]),
+        ("wd:zset", "zset", [["ZADD", "wd:zset", "-2", "lo", "1.5", "mid"]]),
+        ("wd:zset-large", "zset", [["ZADD", "wd:zset-large", "3.25", "z" * 100]]),
+    ]
+    pairs = ((ts, tf), (os_, of))
+    for sock, file in pairs:
+        if command(sock, file, ["FLUSHALL"])[:1] != b"+":
+            raise RuntimeError("wiredump FLUSHALL failed")
+    diffs = 0
+    checks = 0
+
+    for _, _, setup in definitions:
+        for operation in setup:
+            replies = [command(sock, file, operation) for sock, file in pairs]
+            if replies[0] != replies[1]:
+                diffs += 1
+
+    cached = []
+    for key, kind, _ in definitions:
+        target_dump = payload(command(ts, tf, ["DUMP", key]))
+        oracle_dump = payload(command(os_, of, ["DUMP", key]))
+        if target_dump is None or oracle_dump is None:
+            raise RuntimeError("wiredump seed DUMP failed for %s" % key)
+        cached.append((key, kind, target_dump, oracle_dump))
+
+    for iteration in range(4200):
+        key, kind, target_seed, oracle_seed = rng.choice(cached)
+        action = rng.randrange(5)
+        if action == 0:
+            # Cross the freshly produced payloads. The restored values have the same TTL and full
+            # content even though their legal wire representations differ.
+            target_dump = payload(command(ts, tf, ["DUMP", key]))
+            oracle_dump = payload(command(os_, of, ["DUMP", key]))
+            if target_dump is None or oracle_dump is None:
+                diffs += 1
+                continue
+            target_reply = command(ts, tf, ["RESTORE", "wd:cross", "600000",
+                                             oracle_dump, "REPLACE"])
+            oracle_reply = command(os_, of, ["RESTORE", "wd:cross", "600000",
+                                              target_dump, "REPLACE"])
+            if target_reply != oracle_reply or full_read(ts, tf, kind, "wd:cross") != \
+                    full_read(os_, of, kind, "wd:cross"):
+                diffs += 1
+        elif action == 1:
+            # Feed exactly the same randomly selected producer payload to both RESTORE parsers.
+            wire = target_seed if rng.randrange(2) else oracle_seed
+            options = ["REPLACE"]
+            ttl = "600000"
+            if rng.randrange(4) == 0:
+                ttl = str(int(time.time() * 1000) + 600000)
+                options.append("ABSTTL")
+            target_reply = command(ts, tf, ["RESTORE", "wd:restore", ttl, wire] + options)
+            oracle_reply = command(os_, of, ["RESTORE", "wd:restore", ttl, wire] + options)
+            if target_reply != oracle_reply or full_read(ts, tf, kind, "wd:restore") != \
+                    full_read(os_, of, kind, "wd:restore"):
+                diffs += 1
+        elif action == 2:
+            target_reply = command(ts, tf, ["EXISTS", key])
+            oracle_reply = command(os_, of, ["EXISTS", key])
+            if target_reply != oracle_reply:
+                diffs += 1
+        elif action == 3:
+            if full_read(ts, tf, kind, key) != full_read(os_, of, kind, key):
+                diffs += 1
+        else:
+            # This arm is a negative control until the first restore and a live-TTL check after it.
+            target_reply = normalize("PTTL", command(ts, tf, ["PTTL", "wd:restore"]))
+            oracle_reply = normalize("PTTL", command(os_, of, ["PTTL", "wd:restore"]))
+            if target_reply != oracle_reply:
+                diffs += 1
+        checks += 1
+        if diffs and diffs <= 12:
+            print("  WIREDUMP DIFF op %d action=%d key=%s" % (iteration, action, key))
+
+    ts.close(); os_.close()
+    print("DIFFER wiredump: %d ops, %d diffs -> %s" %
+          (checks, diffs, "PASS" if diffs == 0 else "FAIL"))
+    return diffs
+
+if SUITE == "wiredump":
+    sys.exit(1 if run_wiredump_suite(rng) else 0)
+
 gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset,
         "hash": gen_hash, "xshard": gen_xshard, "bitmap": gen_bitmap, "hll": gen_hll,
         "bitfield": gen_bitfield, "cgaps": gen_cgaps, "stream": gen_stream}

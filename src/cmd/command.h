@@ -138,11 +138,6 @@ void cmd_bitfield(Shard&, Op&);
 void cmd_bitfield_notify(Shard&, Op&);
 void cmd_bitfield_ro(Shard&, Op&);
 void cmd_bitfield_ro_notify(Shard&, Op&);
-void cmd_dump(Shard&, Op&);
-void cmd_dump_notify(Shard&, Op&);
-void cmd_restore(Shard&, Op&);
-void cmd_restore_notify(Shard&, Op&);
-
 class Server;
 class Client;
 class ThreadCtx;

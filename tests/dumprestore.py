@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Directed self-format DUMP/RESTORE codec, grammar, TTL, and restart battery."""
+"""Directed Redis-wire DUMP/RESTORE grammar, TTL, and restart battery."""
 
 import socket
+import struct
 import sys
 import time
 
@@ -77,8 +78,6 @@ def case_defs(prefix):
         (prefix + ":set:expanded", "set"),
         (prefix + ":zset:compact", "zset"),
         (prefix + ":zset:expanded", "zset"),
-        (prefix + ":stream:compact", "stream"),
-        (prefix + ":stream:expanded", "stream"),
     ]
 
 
@@ -146,7 +145,9 @@ def build_cases(prefix):
 
 
 def observation(key, kind):
-    common = (client.cmd("TYPE", key), client.cmd("OBJECT", "ENCODING", key))
+    # Redis-wire encodings are representation-independent: RESTORE may legitimately rebuild a
+    # different internal encoding while preserving the logical type and complete value.
+    common = (client.cmd("TYPE", key),)
     if kind == "string":
         value = client.cmd("GET", key)
     elif kind == "hash":
@@ -165,12 +166,33 @@ def observation(key, kind):
     return common + (value,)
 
 
+CRC_POLY = 0x95AC9329AC4BC9B5
+CRC_TABLE = []
+for table_index in range(256):
+    table_crc = table_index
+    for _ in range(8):
+        table_crc = ((table_crc >> 1) ^ CRC_POLY) if table_crc & 1 else table_crc >> 1
+    CRC_TABLE.append(table_crc)
+
+
+def crc64(payload):
+    value = 0
+    for byte in payload:
+        value = CRC_TABLE[(value ^ byte) & 0xff] ^ (value >> 8)
+    return value
+
+
+def reseal(value, version=12):
+    body = value + struct.pack("<H", version)
+    return body + struct.pack("<Q", crc64(body))
+
+
 def validate_envelope(payload, label):
     global checks
-    if not isinstance(payload, bytes) or len(payload) < 20:
+    if not isinstance(payload, bytes) or len(payload) < 12:
         raise AssertionError("%s: short/non-bulk envelope %r" % (label, payload))
-    if payload[:8] != b"TOMODMP\x00" or payload[8:10] != b"\x01\x80":
-        raise AssertionError("%s: bad magic/version %r" % (label, payload[:12]))
+    if payload[-10:-8] != b"\x0c\x00" or crc64(payload[:-8]) != struct.unpack("<Q", payload[-8:])[0]:
+        raise AssertionError("%s: bad RDB version/checksum" % label)
     checks += 1
 
 
@@ -249,12 +271,12 @@ def live_battery():
     corrupt_error = b"-ERR DUMP payload version or checksum are wrong"
     variants = [
         (b"", "empty"),
-        (payload[:19], "short"),
+        (payload[:9], "short"),
         (payload[:-1], "truncated checksum"),
-        (bytes([payload[0] ^ 1]) + payload[1:], "magic bit flip"),
-        (payload[:8] + bytes([payload[8] ^ 1]) + payload[9:], "version bit flip"),
-        (payload[:10] + bytes([255]) + payload[11:], "type corruption"),
-        (payload[:12] + bytes([payload[12] ^ 1]) + payload[13:], "payload bit flip"),
+        (bytes([payload[0] ^ 1]) + payload[1:], "type bit flip"),
+        (payload[:-10] + bytes([payload[-10] ^ 1]) + payload[-9:], "version bit flip"),
+        (b"\xff" + payload[1:], "type corruption"),
+        (payload[:2] + bytes([payload[2] ^ 1]) + payload[3:], "payload bit flip"),
         (payload[:-1] + bytes([payload[-1] ^ 1]), "checksum bit flip"),
     ]
     for index, (bad, label) in enumerate(variants):
@@ -262,11 +284,13 @@ def live_battery():
         expect(client.cmd("RESTORE", key, "0", bad), corrupt_error, label)
         expect(client.cmd("EXISTS", key), 0, label + " no mutation")
 
-    # A valid envelope whose per-type encoding byte is impossible reaches the hook and fails cleanly.
-    bad_encoding = payload[:11] + b"\xff" + payload[12:]
+    # A valid CRC with an unsupported RDB value type reaches the body decoder and fails cleanly.
+    bad_encoding = reseal(b"\xff\x00")
     expect(client.cmd("RESTORE", "dr:badencoding", "0", bad_encoding),
-           b"-ERR Bad data format", "snapshot hook rejects encoding")
-    expect(client.cmd("EXISTS", "dr:badencoding"), 0, "bad encoding no mutation")
+           b"-ERR Bad data format", "RDB decoder rejects unsupported type")
+    expect(client.cmd("EXISTS", "dr:badencoding"), 0, "unsupported type no mutation")
+    expect(client.cmd("DUMP", "dr:live:stream:compact"),
+           b"-ERR object could not be serialized", "stream DUMP scope cut")
     expect(client.cmd("FLUSHALL"), b"+OK", "cleanup")
 
 

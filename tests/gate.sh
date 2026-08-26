@@ -124,7 +124,7 @@ for AT in 0 1; do
   stop
 done
 
-# ---- self-format DUMP/RESTORE survives the native snapshot/restart boundary ------------------
+# ---- Redis-wire DUMP/RESTORE survives the native snapshot/restart boundary -------------------
 DUMPRESTORE_DIR=$(mktemp -d /tmp/gate-dumprestore.XXXXXX)
 boot ./build/tomokv --atomic 1 --dir "$DUMPRESTORE_DIR" --dbfilename dumprestore.tomo \
     || bad "DUMP/RESTORE restart preparation boot"

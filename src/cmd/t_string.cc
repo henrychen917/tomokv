@@ -6,6 +6,7 @@
 #include "hll.h"
 #include "xshard.h"
 #include "notify.h"
+#include "serialize.h"
 #include "../core/shard.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
