@@ -1100,6 +1100,21 @@ bool multi_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consume
 void multi_retire_entry(IoLoop& loop, Client& client, Op& op) {
     command_set_local_context(&client, loop.self_);
     snapshot_bind_io(loop.self_, &loop.ring_);
+    if (client.is_tls()) {
+        auto* state = static_cast<MultiExecState*>(op.multi_state());
+        if (state)
+            for (const auto& command : state->commands) {
+                ScatterState* scatter = command->scatter;
+                if (!scatter || scatter->kind != Kind::Mget || !scatter->values) continue;
+                for (uint32_t i = 0; i < scatter->key_count; i++) {
+                    ValueSlot& slot = scatter->values[i];
+                    if (slot.kind != ValueKind::Borrow) continue;
+                    loop.queue_borrow_release(slot.shard, slot.ptr);
+                    loop.wb_.note_zc_suppressed_tls();
+                    slot.kind = ValueKind::Nil;
+                }
+            }
+    }
     multi_retire(client, op, loop.multi_deferred_);
     snapshot_bind_io(nullptr, nullptr);
     command_set_local_context(nullptr, nullptr);
@@ -1285,7 +1300,8 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                     state.aborted.store(true, std::memory_order_release);
                 if (notify)
                     notify_xshard_finished(shard, *command.op, *command.scatter);
-                assemble_final(*state.client, *command.op, *command.scatter);
+                assemble_final(*state.client, *command.op, *command.scatter,
+                               nullptr, nullptr, nullptr);
                 command.finished.store(true, std::memory_order_release);
             }
             continue;

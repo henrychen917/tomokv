@@ -38,7 +38,9 @@
 #include <atomic>
 #include <cstdint>
 #include "conn.h"
+#include "tls.h"
 #include "uring.h"
+#include "../core/signal.h"
 
 namespace tomo {
 
@@ -58,7 +60,7 @@ public:
               void* retire_ctx = nullptr, RetireFn retire_fn = nullptr,
               const std::atomic<bool>* limit_armed = nullptr,
               void* limit_ctx = nullptr, LimitFn limit_fn = nullptr,
-              const uint32_t* cached_now_s = nullptr) {
+              const uint32_t* cached_now_s = nullptr, LoopSignals* tls_signals = nullptr) {
         ring_ = ring;
         release_ctx_ = release_ctx;
         release_fn_ = release_fn;
@@ -68,6 +70,7 @@ public:
         limit_ctx_ = limit_ctx;
         limit_fn_ = limit_fn;
         cached_now_s_ = cached_now_s;
+        tls_signals_ = tls_signals;
     }
 
     Ring&  ring()       { return *ring_; }
@@ -91,6 +94,15 @@ public:
                              limit_armed_->load(std::memory_order_relaxed), false))
             return serve_impl<true>(c);
         return serve_impl<false>(c);
+    }
+
+    // TLS is a separate write-back variant selected by the IO owner. Plain serve()/pump() above
+    // remain untouched and are the only instantiated path when tls-port is zero.
+    bool serve_tls(Client& c, TlsConn& tls) {
+        if (__builtin_expect(limit_armed_ &&
+                             limit_armed_->load(std::memory_order_relaxed), false))
+            return serve_tls_impl<true>(c, tls);
+        return serve_tls_impl<false>(c, tls);
     }
 
     // Try to push whatever this client has buffered. Safe to call spuriously: if nothing is pending
@@ -136,6 +148,89 @@ public:
         return sent < total ? submit_legacy(c, total, sent) : false;
     }
 
+    bool pump_tls(Client& c, TlsConn& tls) {
+        if (c.send_inflight()) return false;
+
+        // Ciphertext already materialized by OpenSSL is always the wire head. Its CQE advances only
+        // the external BIO cursor; it never advances Client's plaintext segment/wsent frontiers.
+        const char* cipher = nullptr;
+        const int cipher_bytes = tls.peek_output(cipher);
+        if (cipher_bytes > 0)
+            return submit_tls_cipher(c, cipher, static_cast<uint32_t>(cipher_bytes));
+        if (!tls.connected()) return false;
+
+        Client& conn = c;
+        const char* plain = nullptr;
+        size_t plain_bytes = 0;
+        bool segmented = false;
+
+        const size_t legacy_total = conn.send_buf().size();
+        const size_t legacy_sent = conn.wsent();
+        if (legacy_sent < legacy_total) {
+            plain = conn.send_buf().data() + legacy_sent;
+            plain_bytes = legacy_total - legacy_sent;
+        } else if (conn.has_pending_segments()) {
+            bool has_borrow = false;
+            uint32_t total = 0;
+            const uint32_t niov = conn.build_segment_iov(has_borrow, total);
+            if (!niov) return false;
+            // Both producers are gated before this point. Keep this defensive assertion close to
+            // encryption: a future producer must not silently resurrect borrowed TLS output.
+            if (has_borrow) std::abort();
+            plain = static_cast<const char*>(conn.send_msg()->msg_iov[0].iov_base);
+            plain_bytes = conn.send_msg()->msg_iov[0].iov_len;
+            segmented = true;
+        } else {
+            if (conn.write_drained() && conn.has_pending_fill()) conn.swap_buffers();
+            const size_t total = conn.send_buf().size();
+            const size_t sent = conn.wsent();
+            if (sent >= total) return false;
+            plain = conn.send_buf().data() + sent;
+            plain_bytes = total - sent;
+        }
+
+        if (tls.has_pinned_plain()) {
+            const char* pinned = nullptr;
+            size_t pinned_bytes = 0;
+            tls.pinned_plain(pinned, pinned_bytes);
+            // The retry contract is byte-identical. The client frontier cannot move on WANT_*.
+            if (pinned != plain || pinned_bytes > plain_bytes) std::abort();
+            plain = pinned;
+            plain_bytes = pinned_bytes;
+        }
+
+        const TlsIoResult encrypted = tls.write_plain(plain, plain_bytes);
+        if (encrypted.op == TlsOp::Progress) {
+            const uint32_t plain_accepted = encrypted.bytes;
+            if (segmented) {
+                (void)conn.consume_segments(plain_accepted,
+                    [&](int32_t shard, const char* ptr) { release(shard, ptr); });
+            } else {
+                conn.commit_write(plain_accepted);
+            }
+            stats_.tls_plaintext_bytes += plain_accepted;
+            if (tls_signals_) tls_signals_->tls_plaintext_output_bytes += plain_accepted;
+        } else if (encrypted.op == TlsOp::WantWrite) {
+            stats_.tls_want_write++;
+            if (tls_signals_) tls_signals_->tls_want_write++;
+        } else if (encrypted.op == TlsOp::WantRead) {
+            stats_.tls_want_read++;
+            if (tls_signals_) tls_signals_->tls_want_read++;
+        }
+        if (tls.failed()) {
+            if (!tls.last_error().empty())
+                std::fprintf(stderr, "TLS client %llu: %s\n",
+                             static_cast<unsigned long long>(c.id()),
+                             tls.last_error().c_str());
+            return false;
+        }
+
+        cipher = nullptr;
+        const int ready = tls.peek_output(cipher);
+        if (ready > 0) return submit_tls_cipher(c, cipher, static_cast<uint32_t>(ready));
+        return encrypted.op == TlsOp::Progress;
+    }
+
     // Completion handler. `res` is the CQE result: bytes written, or negative errno.
     // Returns false when the connection should be torn down.
     bool on_send_complete(Client& c, int res) {
@@ -176,6 +271,50 @@ public:
         return true;
     }
 
+    bool on_tls_send_complete(Client& c, TlsConn& tls, int res) {
+        c.set_send_inflight(false);
+        bool resubmit = false;
+        if (res < 0) {
+            if (res == -EAGAIN || res == -EINTR) resubmit = true;
+            else if (c.closing()) {
+                // A rejected handshake or an abrupt peer can make the alert/close_notify flight
+                // lose its race with socket teardown.  The connection is already doomed and no
+                // application reply is being lost, so drain the memory BIO instead of reporting a
+                // false data-path send error or keeping close_client waiting on unsendable bytes.
+                const char* pending = nullptr;
+                int bytes = 0;
+                while ((bytes = tls.peek_output(pending)) > 0)
+                    if (!tls.consume_output(static_cast<uint32_t>(bytes))) break;
+                return true;
+            } else { stats_.send_errors++; return false; }
+        } else if (res == 0) {
+            if (c.closing()) {
+                const char* pending = nullptr;
+                int bytes = 0;
+                while ((bytes = tls.peek_output(pending)) > 0)
+                    if (!tls.consume_output(static_cast<uint32_t>(bytes))) break;
+                return true;
+            }
+            stats_.send_errors++;
+            return false;
+        } else {
+            const uint32_t cipher_sent = static_cast<uint32_t>(res);
+            if (!tls.consume_output(cipher_sent)) {
+                stats_.send_errors++;
+                return false;
+            }
+            stats_.bytes_sent += cipher_sent;
+            stats_.tls_ciphertext_bytes += cipher_sent;
+            if (tls_signals_) tls_signals_->tls_ciphertext_output_bytes += cipher_sent;
+            if (cached_now_s_) c.set_last_interaction_s(*cached_now_s_);
+            if (cipher_sent < c.send_requested()) stats_.short_writes++;
+            else stats_.sends_completed++;
+            resubmit = true;
+        }
+        if (resubmit) pump_tls(c, tls);
+        return !tls.failed();
+    }
+
     // A closed connection cannot send remaining segments. If a sendmsg is still in flight its
     // iovecs remain pinned until the CQE; otherwise every BORROW is returned immediately.
     void teardown(Client& c) {
@@ -199,6 +338,19 @@ public:
         teardown(c);
     }
 
+    void on_dead_tls_send_complete(Client& c, TlsConn& tls, int res) {
+        c.set_send_inflight(false);
+        if (res > 0) {
+            const uint32_t cipher_sent = static_cast<uint32_t>(res);
+            if (tls.consume_output(cipher_sent)) {
+                stats_.bytes_sent += cipher_sent;
+                stats_.tls_ciphertext_bytes += cipher_sent;
+                if (tls_signals_) tls_signals_->tls_ciphertext_output_bytes += cipher_sent;
+            }
+        }
+        teardown(c);
+    }
+
     struct Stats {
         uint64_t sends_submitted = 0;
         uint64_t sends_completed = 0;
@@ -214,8 +366,17 @@ public:
         uint64_t zc_sends        = 0;   // sendmsg submissions whose iovecs include a BORROW
         uint64_t zc_bytes        = 0;   // borrowed value bytes reported complete by the kernel
         uint64_t zc_releases     = 0;   // BORROW segments returned on completion or teardown
+        uint64_t zc_suppressed_tls = 0; // borrows copied+released before TLS encryption
+        uint64_t tls_plaintext_bytes = 0;
+        uint64_t tls_ciphertext_bytes = 0;
+        uint64_t tls_want_read = 0;
+        uint64_t tls_want_write = 0;
     };
     Stats& stats() { return stats_; }
+    void note_zc_suppressed_tls() {
+        stats_.zc_suppressed_tls++;
+        if (tls_signals_) tls_signals_->tls_zc_suppressed++;
+    }
 
 private:
     template <bool TrackOutput>
@@ -281,6 +442,56 @@ private:
         if (!retired) stats_.serves_empty++;
         return did;
     }
+
+    template <bool TrackOutput>
+    bool serve_tls_impl(Client& c, TlsConn& tls) {
+        TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed));
+        stats_.serves++;
+        Client& conn = c;
+        if constexpr (TrackOutput) conn.start_obuf_tracking();
+        const uint32_t retired = c.rob().drain([&](Op& op) {
+            if (op.no_borrow()) note_zc_suppressed_tls();
+            if (op.zc_ptr && retire_fn_) retire_fn_(retire_ctx_, conn, op);
+            if (op.zc_ptr) {
+                conn.seal_fill_segment();
+                conn.append_buf_segment(op.direct, op.direct_len,
+                                        op.reply.data(), op.reply.size());
+                conn.append_buf_segment(op.zc_ptr, op.zc_len);
+                conn.append_static_segment(kCrlf, sizeof(kCrlf));
+                release(op.zc_shard, op.zc_ptr);
+                note_zc_suppressed_tls();
+                if (op.direct_len) stats_.direct++;
+                return;
+            }
+            if (conn.has_pending_segments()) {
+                conn.append_buf_segment(op.direct, op.direct_len,
+                                        op.reply.data(), op.reply.size());
+                if (op.direct_len) stats_.direct++;
+            } else {
+                if (op.direct_len) {
+                    if constexpr (TrackOutput) conn.commit_fill(op.direct_len);
+                    else conn.fill_buf().commit_raw(op.direct_len);
+                    stats_.direct++;
+                }
+                if (!op.reply.empty()) {
+                    if constexpr (TrackOutput) conn.append_fill(op.reply.data(), op.reply.size());
+                    else conn.fill_buf().append(op.reply.data(), op.reply.size());
+                }
+            }
+        });
+        bool did = retired != 0;
+        if constexpr (TrackOutput) {
+            if (limit_fn_ && limit_fn_(limit_ctx_, c)) {
+                stats_.retired += retired;
+                if (!retired) stats_.serves_empty++;
+                return true;
+            }
+        }
+        if (!conn.nothing_to_write() || tls.output_pending()) did |= pump_tls(c, tls);
+        stats_.retired += retired;
+        if (!retired) stats_.serves_empty++;
+        return did;
+    }
     bool submit_legacy(Client& c, size_t total, size_t sent) {
         static constexpr size_t kMaxSendBytes = 0x7ffff000u;
         const size_t request = std::min(total - sent, kMaxSendBytes);
@@ -292,6 +503,18 @@ private:
 
         c.set_segmented_send(false);
         c.set_send_requested(static_cast<uint32_t>(request));
+        c.set_send_inflight(true);
+        stats_.sends_submitted++;
+        return true;
+    }
+
+    bool submit_tls_cipher(Client& c, const char* cipher, uint32_t bytes) {
+        io_uring_sqe* s = ring_->sqe();
+        if (!s) { stats_.sqe_starved++; return false; }
+        io_uring_prep_send(s, c.fd(), cipher, bytes, MSG_NOSIGNAL);
+        s->user_data = ur_tag(UrKind::TlsSend, &c);
+        ring_->note_pending();
+        c.set_send_requested(bytes);
         c.set_send_inflight(true);
         stats_.sends_submitted++;
         return true;
@@ -312,6 +535,7 @@ private:
     void*  limit_ctx_ = nullptr;
     LimitFn limit_fn_ = nullptr;
     const uint32_t* cached_now_s_ = nullptr;
+    LoopSignals* tls_signals_ = nullptr;
     Stats  stats_;
 };
 

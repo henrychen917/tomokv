@@ -16,6 +16,8 @@ namespace {
 struct Registry {
     std::vector<CommandSpec> entries;
     std::vector<CommandSpec> notify_entries;
+    std::vector<CommandSpec> tls_entries;
+    std::vector<CommandSpec> tls_notify_entries;
     std::vector<const CommandSpec*> slots;
     uint64_t acl_categories[256] = {};
     uint32_t mask = 0;
@@ -64,7 +66,7 @@ bool command_equal(Slice input, const char* canonical) {
 
 }  // namespace
 
-bool command_registry_init() {
+bool command_registry_init(bool tls_enabled) {
     if (g_registry.built) return true;
     const CommandTable families[] = {
         string_command_table(), hash_command_table(), list_command_table(),
@@ -104,6 +106,8 @@ bool command_registry_init() {
     } catch (const std::bad_alloc&) {
         g_registry.entries.clear();
         g_registry.notify_entries.clear();
+        g_registry.tls_entries.clear();
+        g_registry.tls_notify_entries.clear();
         g_registry.slots.clear();
         return false;
     }
@@ -117,8 +121,28 @@ bool command_registry_init() {
     } catch (const std::bad_alloc&) {
         g_registry.entries.clear();
         g_registry.notify_entries.clear();
+        g_registry.tls_entries.clear();
+        g_registry.tls_notify_entries.clear();
         g_registry.slots.clear();
         return false;
+    }
+    if (tls_enabled) {
+        try {
+            g_registry.tls_entries = g_registry.entries;
+            g_registry.tls_notify_entries = g_registry.notify_entries;
+            for (size_t i = 0; i < g_registry.entries.size(); i++) {
+                if (std::strcmp(g_registry.entries[i].name, "GET")) continue;
+                g_registry.tls_entries[i].handler = cmd_get_tls;
+                g_registry.tls_notify_entries[i].handler = cmd_get_tls_notify;
+            }
+        } catch (const std::bad_alloc&) {
+            g_registry.entries.clear();
+            g_registry.notify_entries.clear();
+            g_registry.tls_entries.clear();
+            g_registry.tls_notify_entries.clear();
+            g_registry.slots.clear();
+            return false;
+        }
     }
     if (g_registry.entries.size() != kAclCommandCategoryCount) {
         std::fprintf(stderr, "generated ACL category table has %zu rows for %zu commands\n",
@@ -187,6 +211,14 @@ uint64_t command_acl_category_mask(const CommandSpec& spec) {
 const CommandSpec* command_notify_variant(const CommandSpec* spec) {
     return spec && spec->id < g_registry.notify_entries.size()
         ? &g_registry.notify_entries[spec->id] : spec;
+}
+
+const CommandSpec* command_tls_variant(const CommandSpec* spec) {
+    if (!spec || g_registry.tls_entries.empty() || spec->id >= g_registry.tls_entries.size())
+        return spec;
+    return (spec->flags & CmdFlags::NotifySelected)
+        ? &g_registry.tls_notify_entries[spec->id]
+        : &g_registry.tls_entries[spec->id];
 }
 
 }  // namespace tomo

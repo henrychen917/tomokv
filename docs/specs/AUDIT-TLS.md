@@ -1151,3 +1151,73 @@ soak harness.
 | `Makefile` | `-lssl -lcrypto`; `TLS=0` escape mirroring `JE=0` at `:5-18` |
 | `tests/gen-certs.sh` | **new** — retargeted from `redis/utils/gen-test-certs.sh` |
 | `tests/gate.sh` | arms 1–4 as new sections, modelled on 4b (`:101-117`) |
+
+---
+
+## Implementation receipt — 2026-08-27, base `420b4d492`
+
+This implementation uses an OpenSSL memory-BIO pair. `TlsConn` contains no fd BIO, socket, ring or
+syscall; io_uring remains the sole socket owner. kTLS was not implemented and remains explicitly
+deferred to v2.
+
+The audit's offset-12 placement was stale on this base: `last_interaction_s_` now occupies bytes
+12..16. The mirror-struct probe in `scratchpad/tls_layout_probe.cc` re-derived the remaining
+four-byte tail hole and places `tls_slot_` at offset **1980**. The compiled locks are
+`sizeof(Client) == 1984` and `sizeof(Op) == 336`.
+
+The receive-side quantity split is structural: socket CQEs commit ciphertext only to the external
+BIO, while only positive `SSL_read` results advance the Client RESP buffer. The directed TLS 1.2
+torn-record arm sends all but the last byte of a record, verifies that no reply or parser progress
+escapes, supplies the final byte, and then verifies the torn command plus a following command remain
+synchronized. The send side likewise names and advances `plain_accepted` separately from
+`cipher_sent`.
+
+GET's FlatStore borrow is disabled with a copy-only handler variant selected only by
+`parse_and_dispatch<true>`; the plaintext handler has no transport load or branch. The cross-shard
+MGET producer is gated independently at assembly. Gate counters prove both TLS suppression sites
+fired. Plaintext GET and SET handler bodies match the base instruction stream after normalizing
+link-relative target displacements (1724 and 2786 bytes respectively).
+
+### Plaintext instruction parity (`tls-port 0`)
+
+Measurement used the exact base worktree, 2 IO + 2 executor threads on CPUs 248-251, load on
+252-255, memtier 8x8 clients, pipeline 32, 64-byte values, 64,000,000 operations per repeat, and
+three repeats. Values are retired server instructions per operation; the delta is post minus base.
+The hardware-counter spread is recorded because it is wider than one instruction, while the
+normalized hot handler bodies provide the byte-level off-state check.
+
+| Cell | base median | TLS code, `tls-port 0` median | delta instr/op | regression bar |
+|---|---:|---:|---:|---:|
+| GET hit, p32 | 2937.199 | 2926.599 | **-10.600** | pass (`<= +1`) |
+| SET, p32 | 3242.915 | 3241.681 | **-1.234** | pass (`<= +1`) |
+
+Repeat ranges were GET base 2906.637-2980.990, post 2884.831-2930.328; SET base
+3239.648-3247.504, post 3239.342-3243.908.
+
+### Wire throughput result
+
+Measurement used 4 IO + 2 executor threads on CPUs 248-253, load on 254-255, simultaneous plain
+and TLS listeners in one server, memtier 2x16 clients, pipeline 32, 64-byte values, 5 seconds, and
+three repeats. TLS used memtier's OpenSSL transport against the dedicated TLS port; the server
+reported non-zero plaintext and ciphertext counters and freed all 192 measured TLS connections.
+
+| Cell | plain median ops/s | TLS median ops/s | measured TLS tax |
+|---|---:|---:|---:|
+| GET hit, p32 | 2,617,532.78 | 427,121.05 | **-83.68%** |
+| SET, p32 | 2,288,108.78 | 327,715.25 | **-85.68%** |
+
+This is substantially worse than the audit's -25% to -45% hypothesis. It is an informational v1
+result, not rewritten to fit the hypothesis; correctness and plaintext parity remain separate
+gates.
+
+### Validation receipt
+
+- Required quick gate on `GATE_PORT=7953 GATE_CORES=248-255`: **75 ok, 0 FAIL**; TLS slots
+  **28/28 freed**, TLS application send errors zero, borrow suppressions 20 (both producers).
+- Full TLS battery passed under ASAN+UBSAN, including client-auth `yes`, `optional`, and `no`, bad
+  certificates/transports, 8 MiB pipelining, RESET/RST cleanup, mixed plain+TLS clients, the torn
+  record arm, and both borrow producers.
+- Plaintext oracle differ, both atomic settings: string 4033 ops / 0 differences, xshard 4276 / 0,
+  cgaps 3310 / 0.
+- The available Redis 7.4 oracle was built without TLS (`Missing implement of connection type tls`),
+  so a cross-server TLS differ was unavailable; the tomokv-only byte-comparison battery was used.

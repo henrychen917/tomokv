@@ -18,8 +18,9 @@ else
 endif
 CXXFLAGS ?= -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread
 LDLIBS   ?= -luring -pthread
-SRC      := src/main.cc src/cmd/commands.cc src/cmd/xshard.cc src/cmd/acl.cc src/cmd/hll.cc src/cmd/t_server.cc src/cmd/t_string.cc src/cmd/t_string_notify.cc src/cmd/t_hash.cc \
+SRC      := src/main.cc src/net/tls.cc src/cmd/commands.cc src/cmd/xshard.cc src/cmd/acl.cc src/cmd/hll.cc src/cmd/t_server.cc src/cmd/t_string.cc src/cmd/t_string_notify.cc src/cmd/t_hash.cc \
             src/cmd/t_list.cc src/cmd/t_set.cc src/cmd/t_zset.cc src/cmd/t_stream.cc src/cmd/scripting.cc src/snapshot/snapshot.cc src/persist/aof.cc
+LDLIBS   += -lssl -lcrypto
 BIN      := build/tomokv
 OBJ      := $(SRC:%.cc=build/%.o)
 
@@ -29,9 +30,9 @@ $(BIN): $(OBJ)
 	$(CXX) $(CXXFLAGS) $(OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 
 # The clean string family intentionally excludes the armed instantiations, but its parsed template
-# bodies still move GCC just past the default large-unit threshold. 10400 restores the same inlining
-# decisions as the base-b5 translation unit; the objdump gate locks store_string/cmd_set to base.
-build/src/cmd/t_string.o: CXXFLAGS += --param large-unit-insns=10400
+# bodies still move GCC just past the default large-unit threshold. 10600 restores the same inlining
+# decisions as the base-420b4d492 translation unit; the objdump gate locks cmd_get/cmd_set to base.
+build/src/cmd/t_string.o: CXXFLAGS += --param large-unit-insns=10600
 
 build/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) $(wildcard third_party/lua/*) Makefile
 	@mkdir -p $(dir $@)
@@ -46,7 +47,7 @@ asan:
 tsan:
 	@mkdir -p build
 	$(CXX) -std=c++20 -O1 -g -Wall -Wextra -pthread -fsanitize=thread \
-	  -I. $(SRC) -o build/tomokv-tsan -luring -pthread -lm
+	  -I. $(SRC) -o build/tomokv-tsan $(LDLIBS) -lm
 
 clean:
 	rm -rf build

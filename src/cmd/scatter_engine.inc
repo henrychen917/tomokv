@@ -431,7 +431,9 @@ ScatterTaskResult execute_atomic_direct_rename(const Task& task, Shard& shard, O
 void finish_pfcount(ScatterState& state);
 bool finish_phase1(ScatterState& state, Op& op);
 void finish_phase2(ScatterState& state);
-void assemble_final(Client& client, Op& op, ScatterState& state);
+void assemble_final(Client& client, Op& op, ScatterState& state, void* release_ctx,
+                    void (*release_fn)(void*, int32_t, const char*),
+                    void (*suppressed_fn)(void*));
 
 bool first_error(const ScatterState& state, WorkError& error) {
     for (uint32_t gi = 0; gi < state.nsub; gi++) {
@@ -2096,12 +2098,13 @@ MultiChildFinish xshard_multi_child_complete(ScatterState& state, Op& op,
 
 void xshard_retire(Server& server, ThreadCtx& self, Ring& ring, Client& client, Op& op,
                    ScatterArenaPool& pool, uint32_t owner_io,
-                   void* release_ctx, void (*release_fn)(void*, int32_t, const char*)) {
+                   void* release_ctx, void (*release_fn)(void*, int32_t, const char*),
+                   void (*suppressed_fn)(void*)) {
     (void)self;
     (void)ring;
     ScatterState* state = op.scatter_state();
     if (!state) return;
-    assemble_final(client, op, *state);
+    assemble_final(client, op, *state, release_ctx, release_fn, suppressed_fn);
     // A terminal error can bypass normal MGET assembly. Return any already-gathered borrows through
     // the same IO->owner channel used by send completion and teardown.
     if (state->kind == Kind::Mget && state->values) {

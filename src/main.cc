@@ -94,11 +94,20 @@ int main(int argc, char** argv) {
         if (rc != kConfigParsed) return rc == kConfigHelp ? 0 : 1;
     }
     if (validate_config(cfg) != kConfigParsed) return 1;
+    std::unique_ptr<TlsContext> tls_context;
+    if (cfg.tls_port) {
+        std::string tls_error;
+        tls_context = TlsContext::create(cfg, tls_error);
+        if (!tls_context) {
+            std::fprintf(stderr, "TLS configuration failed: %s\n", tls_error.c_str());
+            return 1;
+        }
+    }
     if (cfg.load_path && !*cfg.load_path) {
         std::fprintf(stderr, "--load requires a non-empty path\n");
         return 1;
     }
-    if (!command_registry_init()) {
+    if (!command_registry_init(cfg.tls_port != 0)) {
         std::fprintf(stderr, "command registry init failed\n");
         return 1;
     }
@@ -284,11 +293,22 @@ int main(int argc, char** argv) {
     }
 
     // Probe only after boot load. Each io thread then opens its own SO_REUSEPORT listener.
-    {
+    if (cfg.port) {
         const int probe = IoLoop::make_reuseport_listener(
             cfg.bind_addr, cfg.port, srv.cfg().tcp_backlog);
         if (probe < 0) {
             std::perror("bind");
+            for (uint32_t i = 0; i < nthreads; i++) srv.thread(i).stop_flag().store(true);
+            for (auto& thread : pool) thread.join();
+            return 1;
+        }
+        ::close(probe);
+    }
+    if (cfg.tls_port) {
+        const int probe = IoLoop::make_reuseport_listener(
+            cfg.bind_addr, cfg.tls_port, srv.cfg().tcp_backlog, true);
+        if (probe < 0) {
+            std::perror("bind tls-port");
             for (uint32_t i = 0; i < nthreads; i++) srv.thread(i).stop_flag().store(true);
             for (auto& thread : pool) thread.join();
             return 1;
@@ -303,11 +323,13 @@ int main(int argc, char** argv) {
             ThreadCtx& self = srv.thread(tid);
             self.latch_placement(srv.topo());
             const int unix_fd = tid == unix_owner ? unix_listener : -1;
-            if (!ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, unix_fd)) return;
+            if (!ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, unix_fd,
+                               tls_context.get())) return;
             ios[tid].run();
         });
 
-    std::printf("listening on %s:%u\n", cfg.bind_addr, cfg.port);
+    if (cfg.port) std::printf("listening on %s:%u\n", cfg.bind_addr, cfg.port);
+    if (cfg.tls_port) std::printf("listening with TLS on %s:%u\n", cfg.bind_addr, cfg.tls_port);
     if (unix_listener >= 0) std::printf("listening on unix:%s\n", cfg.unixsocket);
     std::fflush(stdout);
 
@@ -360,10 +382,33 @@ int main(int argc, char** argv) {
         w.direct          += x.direct;
         w.zc_sends        += x.zc_sends;        w.zc_bytes        += x.zc_bytes;
         w.zc_releases     += x.zc_releases;
+        w.zc_suppressed_tls += x.zc_suppressed_tls;
+        w.tls_plaintext_bytes += x.tls_plaintext_bytes;
+        w.tls_ciphertext_bytes += x.tls_ciphertext_bytes;
+        w.tls_want_read += x.tls_want_read; w.tls_want_write += x.tls_want_write;
         w.serves          += x.serves;          w.serves_empty    += x.serves_empty;
     };
     for (uint32_t i = 0; i < srv.nthreads(); i++) {
         addw(ios[i].engine().stats()); addw(exs[i].engine().stats());
+    }
+    uint64_t tls_accepts = 0, tls_started = 0, tls_completed = 0, tls_failed = 0,
+             tls_freed = 0, tls_want_read = 0, tls_want_write = 0,
+             tls_cipher_in = 0, tls_plain_in = 0, tls_cipher_out = 0,
+             tls_plain_out = 0, tls_zc_suppressed = 0;
+    for (uint32_t i = 0; i < srv.nthreads(); i++) {
+        const LoopSignals& s = srv.thread(i).sig();
+        tls_accepts += s.tls_accepts;
+        tls_started += s.tls_handshakes_started;
+        tls_completed += s.tls_handshakes_completed;
+        tls_failed += s.tls_handshakes_failed;
+        tls_freed += s.tls_connections_freed;
+        tls_want_read += s.tls_want_read;
+        tls_want_write += s.tls_want_write;
+        tls_cipher_in += s.tls_ciphertext_input_bytes;
+        tls_plain_in += s.tls_plaintext_input_bytes;
+        tls_cipher_out += s.tls_ciphertext_output_bytes;
+        tls_plain_out += s.tls_plaintext_output_bytes;
+        tls_zc_suppressed += s.tls_zc_suppressed;
     }
     // And the smoking gun: connections still holding work at shutdown, by WHICH kind.
     uint64_t stuck_rob = 0, stuck_wr = 0, live = 0;
@@ -411,6 +456,15 @@ int main(int argc, char** argv) {
                 (unsigned long long)w.zc_sends, (unsigned long long)w.zc_bytes,
                 (unsigned long long)w.zc_releases,
                 (unsigned long long)w.serves, (unsigned long long)w.serves_empty);
+    std::printf("tls: accepts=%llu handshakes=%llu/%llu failed=%llu freed=%llu"
+                " want_read=%llu want_write=%llu cipher_in=%llu plain_in=%llu"
+                " cipher_out=%llu plain_out=%llu zc_suppressed=%llu\n",
+                (unsigned long long)tls_accepts, (unsigned long long)tls_completed,
+                (unsigned long long)tls_started, (unsigned long long)tls_failed,
+                (unsigned long long)tls_freed, (unsigned long long)tls_want_read,
+                (unsigned long long)tls_want_write, (unsigned long long)tls_cipher_in,
+                (unsigned long long)tls_plain_in, (unsigned long long)tls_cipher_out,
+                (unsigned long long)tls_plain_out, (unsigned long long)tls_zc_suppressed);
     std::printf("stuck: live_conns=%llu rob_not_quiesced=%llu unsent_bytes_pending=%llu"
                 " | slots done=%llu issued=%llu free=%llu flag_set=%llu\n",
                 (unsigned long long)live, (unsigned long long)stuck_rob, (unsigned long long)stuck_wr,

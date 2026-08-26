@@ -65,7 +65,8 @@ private:
                                           uint64_t, ScatterDispatch&, bool, Client*);
     friend void xshard_destroy(ScatterState*, ScatterArenaPool&, uint32_t);
     friend void xshard_retire(Server&, ThreadCtx&, Ring&, Client&, Op&, ScatterArenaPool&,
-                              uint32_t, void*, void (*)(void*, int32_t, const char*));
+                              uint32_t, void*, void (*)(void*, int32_t, const char*),
+                              void (*)(void*));
     static constexpr uint32_t kCached = 64;
     static constexpr size_t kCommonBytes = 16384;  // holds MGET-8 layouts at the 1KB inline slot
     void* acquire(size_t bytes, bool& pooled);
@@ -112,7 +113,8 @@ void xshard_destroy(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_
 // then returns the arena to this IO thread's pool.
 void xshard_retire(Server& server, ThreadCtx& self, Ring& ring, Client& client, Op& op,
                    ScatterArenaPool& pool, uint32_t owner_io,
-                   void* release_ctx, void (*release_fn)(void*, int32_t, const char*));
+                   void* release_ctx, void (*release_fn)(void*, int32_t, const char*),
+                   void (*suppressed_fn)(void*));
 
 // Same-owner commands are ordinary tasks (Task::scatter == nullptr).  The marker and gate cursor
 // reuse otherwise-idle zero-copy descriptor fields, preserving sizeof(Op).

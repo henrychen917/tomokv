@@ -326,7 +326,7 @@ void reply_string_bulk(Op& op, const KvObj* o) {
 
 // GET alone may borrow FlatStore bytes. GETEX/GETDEL/SET GET copy before mutation; extending the
 // borrow protocol to mutation replies would turn a string-only fast path into collection policy.
-template <bool kNotify>
+template <bool kNotify, bool kAllowBorrow = true>
 void cmd_get(Shard& sh, Op& op) {
     KvObj* o = sh.store_find<kNotify>(op.hash, op.key());
     if (!o) { sh.stats().misses++; reply_nil(op.sink()); return; }
@@ -335,14 +335,21 @@ void cmd_get(Shard& sh, Op& op) {
     if (!obj_type_check(o, Type::String, sink)) return;
     if (o->is_int()) { reply_string_bulk(op, o); return; }
     const Slice value = o->str_value();
-    const uint32_t zc_min = sh.zc_min();
-    if (zc_min && value.n >= zc_min) {
-        reply_bulk_header(op.sink(), value.n);
-        op.zc_ptr = value.p;
-        op.zc_len = value.n;
-        op.zc_shard = sh.id();
-        sh.store().borrow(value.p);
-        return;
+    if constexpr (kAllowBorrow) {
+        const uint32_t zc_min = sh.zc_min();
+        if (zc_min && value.n >= zc_min) {
+            reply_bulk_header(op.sink(), value.n);
+            op.zc_ptr = value.p;
+            op.zc_len = value.n;
+            op.zc_shard = sh.id();
+            sh.store().borrow(value.p);
+            return;
+        }
+    } else {
+        // The TLS-only handler variant copies the value. Stamp the operation when the plaintext
+        // handler would have borrowed so the IO boundary can prove this producer gate fired.
+        const uint32_t zc_min = sh.zc_min();
+        if (zc_min && value.n >= zc_min) op.mark_no_borrow();
     }
     reply_bulk(op.sink(), value);
 }
@@ -1395,11 +1402,15 @@ static const CommandSpec kTable[] = {
 }  // namespace
 
 #ifdef TOMO_STRING_NOTIFY_TU
+void cmd_get_tls_notify(Shard& shard, Op& op) {
+    notify_execute_handler(shard, op, cmd_get<true, false>);
+}
 #define TOMO_DEFINE_STRING_NOTIFY(fn) \
     void fn##_notify(Shard& shard, Op& op) { notify_execute_handler(shard, op, fn<true>); }
 TOMO_STRING_NOTIFY_HANDLERS(TOMO_DEFINE_STRING_NOTIFY)
 #undef TOMO_DEFINE_STRING_NOTIFY
 #else
+void cmd_get_tls(Shard& shard, Op& op) { cmd_get<false, false>(shard, op); }
 namespace {
 
 SnapshotHookStatus string_snapshot_begin(const KvObj& object, SnapshotSaveCursor& cursor,

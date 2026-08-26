@@ -139,6 +139,7 @@ inline std::string cfg_client_output_buffer_limit_string(const ClientOutputBuffe
 
 enum class DebugCommandMode : uint8_t { No = 0, Yes = 1, Local = 2 };
 enum class AppendFsyncPolicy : uint8_t { Always = 0, Everysec = 1, No = 2 };
+enum class TlsAuthClients : uint8_t { Yes = 0, No = 1, Optional = 2 };
 
 struct Config {
     // ---- placement (boot-only) -------------------------------------------------------------
@@ -222,6 +223,19 @@ struct Config {
     // Cold feature tail: never shift a pre-existing Config field because several boot-latched
     // values are loaded directly in executor code. Empty flag string = notifications off.
     uint32_t notify_events = 0;
+
+    // TLS is a separate listener.  All fields are boot-only in v1; tls-port=0 constructs no
+    // SSL_CTX, no BIO registry, and selects the compile-time-clean plaintext IO loop.
+    uint16_t tls_port = 0;
+    const char* tls_cert_file = nullptr;
+    const char* tls_key_file = nullptr;
+    const char* tls_ca_cert_file = nullptr;
+    const char* tls_ca_cert_dir = nullptr;
+    TlsAuthClients tls_auth_clients = TlsAuthClients::Yes;
+    const char* tls_protocols = nullptr;
+    const char* tls_ciphers = nullptr;
+    const char* tls_ciphersuites = nullptr;
+    bool tls_prefer_server_ciphers = false;
 };
 
 // ---- tiny local parsers (const char* flavors; the Slice flavors in the .cc files are separate) --
@@ -269,7 +283,49 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
     for (int i = 0; i < argc; i++) {
         auto next = [&](const char* d) { return (i + 1 < argc) ? args[++i] : d; };
         const char* a = args[i];
-        if      (!std::strcmp(a, "--port"))       cfg.port = static_cast<uint16_t>(std::atoi(next("6379")));
+        if      (!std::strcmp(a, "--port")) {
+            uint32_t value = 0;
+            if (!cfg_parse_u32(next(nullptr), value) || value > UINT16_MAX) {
+                std::fprintf(stderr, "--port must be between 0 and %u\n", UINT16_MAX);
+                return kConfigError;
+            }
+            cfg.port = static_cast<uint16_t>(value);
+        }
+        else if (!std::strcmp(a, "--tls-port")) {
+            uint32_t value = 0;
+            if (!cfg_parse_u32(next(nullptr), value) || value > UINT16_MAX) {
+                std::fprintf(stderr, "--tls-port must be between 0 and %u\n", UINT16_MAX);
+                return kConfigError;
+            }
+            cfg.tls_port = static_cast<uint16_t>(value);
+        }
+        else if (!std::strcmp(a, "--tls-cert-file")) cfg.tls_cert_file = next("");
+        else if (!std::strcmp(a, "--tls-key-file")) cfg.tls_key_file = next("");
+        else if (!std::strcmp(a, "--tls-ca-cert-file")) cfg.tls_ca_cert_file = next("");
+        else if (!std::strcmp(a, "--tls-ca-cert-dir")) cfg.tls_ca_cert_dir = next("");
+        else if (!std::strcmp(a, "--tls-auth-clients")) {
+            const char* value = next(nullptr);
+            if (cfg_eq_icase(value, "yes")) cfg.tls_auth_clients = TlsAuthClients::Yes;
+            else if (cfg_eq_icase(value, "no")) cfg.tls_auth_clients = TlsAuthClients::No;
+            else if (cfg_eq_icase(value, "optional"))
+                cfg.tls_auth_clients = TlsAuthClients::Optional;
+            else {
+                std::fprintf(stderr, "--tls-auth-clients wants yes, no or optional\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--tls-protocols")) cfg.tls_protocols = next("");
+        else if (!std::strcmp(a, "--tls-ciphers")) cfg.tls_ciphers = next("");
+        else if (!std::strcmp(a, "--tls-ciphersuites")) cfg.tls_ciphersuites = next("");
+        else if (!std::strcmp(a, "--tls-prefer-server-ciphers")) {
+            const char* value = next(nullptr);
+            if (cfg_eq_icase(value, "yes")) cfg.tls_prefer_server_ciphers = true;
+            else if (cfg_eq_icase(value, "no")) cfg.tls_prefer_server_ciphers = false;
+            else {
+                std::fprintf(stderr, "--tls-prefer-server-ciphers wants yes or no\n");
+                return kConfigError;
+            }
+        }
         else if (!std::strcmp(a, "--bind"))       cfg.bind_addr = next("127.0.0.1");
         else if (!std::strcmp(a, "--unixsocket")) cfg.unixsocket = next("");
         else if (!std::strcmp(a, "--maxclients")) {
@@ -582,6 +638,11 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "         --maxmemory-samples N (1..64, default 5)\n"
                         "  limits: --maxclients N --timeout SECONDS --tcp-keepalive SECONDS\n"
                         "          --tcp-backlog N --client-output-buffer-limit CLASS HARD SOFT SECONDS ...\n"
+                        "  TLS: --tls-port N --tls-cert-file PATH --tls-key-file PATH\n"
+                        "       --tls-ca-cert-file PATH --tls-ca-cert-dir PATH\n"
+                        "       --tls-auth-clients yes|no|optional --tls-protocols LIST\n"
+                        "       --tls-ciphers LIST --tls-ciphersuites LIST\n"
+                        "       --tls-prefer-server-ciphers yes|no\n"
                         "  notifications: --notify-keyspace-events FLAGS (default empty/off)\n"
                         "  persistence: --dir PATH --dbfilename NAME --load PATH\n"
                         "    --appendonly yes|no --appendfsync always|everysec|no\n"
@@ -610,6 +671,27 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
 
 // Post-parse validation shared by every source combination. Call once, after all token streams.
 inline int validate_config(const Config& cfg) {
+    if (cfg.port && cfg.tls_port && cfg.port == cfg.tls_port) {
+        std::fprintf(stderr, "port and tls-port must be different listeners\n");
+        return kConfigError;
+    }
+    if (cfg.tls_port) {
+        if (!cfg.tls_cert_file || !*cfg.tls_cert_file) {
+            std::fprintf(stderr, "tls-port requires tls-cert-file\n");
+            return kConfigError;
+        }
+        if (!cfg.tls_key_file || !*cfg.tls_key_file) {
+            std::fprintf(stderr, "tls-port requires tls-key-file\n");
+            return kConfigError;
+        }
+        if (cfg.tls_auth_clients != TlsAuthClients::No &&
+            (!cfg.tls_ca_cert_file || !*cfg.tls_ca_cert_file) &&
+            (!cfg.tls_ca_cert_dir || !*cfg.tls_ca_cert_dir)) {
+            std::fprintf(stderr,
+                         "tls-auth-clients yes or optional requires tls-ca-cert-file or tls-ca-cert-dir\n");
+            return kConfigError;
+        }
+    }
     if (cfg.aclfile && *cfg.aclfile && !cfg.acl_users.empty()) {
         std::fprintf(stderr, "Configuring Redis with users defined in redis.conf and at the same setting an ACL file path is invalid. This setup is very likely to lead to configuration errors and security holes, please define either an ACL file or declare users directly in your redis.conf, but not both.\n");
         return kConfigError;

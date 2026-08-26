@@ -31,6 +31,9 @@ enum class UrKind : uint8_t {
     UnixAccept = 6,
     SnapshotStart = 7,  // epoch barrier request; pointer is SnapshotManager
     AofFsync = 8,       // asynchronous AOF data-sync; pointer is AofManager
+    TlsAccept = 9,
+    TlsRecv = 10,
+    TlsSend = 11,
 };
 
 inline uint64_t ur_tag(UrKind k, void* p) {

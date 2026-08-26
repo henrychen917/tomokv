@@ -120,6 +120,8 @@ public:
     // before SmallBuf; Op's signed 336-byte footprint is unchanged.
     void mark_atomic_hazard() { route_flags_ |= kAtomicHazard; }
     bool atomic_hazard() const { return route_flags_ & kAtomicHazard; }
+    void mark_no_borrow() { route_flags_ |= kNoBorrow; }
+    bool no_borrow() const { return route_flags_ & kNoBorrow; }
     uint8_t route_flags_ = 0;
 
     SmallBuf<kInlineReply> reply;           // worker writes RESP here (the spill/general sink)
@@ -243,6 +245,7 @@ public:
 
 private:
     static constexpr uint8_t kAtomicHazard = 1u << 0;
+    static constexpr uint8_t kNoBorrow = 1u << 1;
     Slice    argv_inline_[kInlineArgv];
     Slice*   argv_heap_ = nullptr;
     uint32_t argv_cap_  = 0;

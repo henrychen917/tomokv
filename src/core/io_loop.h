@@ -24,6 +24,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <new>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -34,6 +35,7 @@
 #include "../net/resp.h"
 #include "../net/uring.h"
 #include "../net/wb.h"
+#include "../net/tls.h"
 #include "../cmd/command.h"
 #include "../cmd/blocking.h"
 #include "../cmd/auth.h"
@@ -73,10 +75,18 @@ public:
     // process; two SERVER PROCESSES sharing a port is the failure mode that once faked data loss,
     // so a boot must still verify nothing else holds the port.
     bool init(Server* srv, ThreadCtx* self, const char* addr, uint16_t port,
-              int unix_listen_fd = -1) {
+              int unix_listen_fd = -1, const TlsContext* tls_context = nullptr) {
         srv_ = srv; self_ = self;
-        listen_fd_ = make_reuseport_listener(addr, port, srv_->cfg().tcp_backlog);
-        if (listen_fd_ < 0) return false;
+        if (port) {
+            listen_fd_ = make_reuseport_listener(addr, port, srv_->cfg().tcp_backlog);
+            if (listen_fd_ < 0) return false;
+        }
+        tls_context_ = tls_context;
+        if (tls_context_) {
+            tls_listen_fd_ = make_reuseport_listener(addr, srv_->cfg().tls_port,
+                                                      srv_->cfg().tcp_backlog, true);
+            if (tls_listen_fd_ < 0) return false;
+        }
         unix_listen_fd_ = unix_listen_fd;
         if (!ring_.init(4096)) return false;
         self_->set_ring(&ring_);
@@ -98,6 +108,8 @@ public:
                     loop->scatter_pool_, loop->self_->id(), loop,
                     [](void* release_ctx, int32_t shard, const char* ptr) {
                         static_cast<IoLoop*>(release_ctx)->queue_borrow_release(shard, ptr);
+                    }, [](void* release_ctx) {
+                        static_cast<IoLoop*>(release_ctx)->wb_.note_zc_suppressed_tls();
                     });
             } else if (op.has_blocking_state()) {
                 notifications = notify_take_batch(op);
@@ -112,13 +124,14 @@ public:
                 notify_retire_batch_entry(*loop, notifications);
         }, srv_->client_obuf_armed_ptr(), this, [](void* ctx, Client& client) {
             return static_cast<IoLoop*>(ctx)->client_obuf_check(&client, true);
-        }, &cached_now_s_);
+        }, &cached_now_s_, &self_->sig());
         return true;
     }
 
     ~IoLoop() {
         if (self_) pubsub_shutdown_events();
         if (listen_fd_ >= 0) ::close(listen_fd_);
+        if (tls_listen_fd_ >= 0) ::close(tls_listen_fd_);
         if (unix_listen_fd_ >= 0) ::close(unix_listen_fd_);
         for (Client* c : pending_handoffs_) {
             ::close(c->fd());
@@ -128,12 +141,14 @@ public:
         multi_shutdown_entry(*this);
     }
 
-    static int make_reuseport_listener(const char* addr, uint16_t port, uint32_t backlog = 511) {
+    static int make_reuseport_listener(const char* addr, uint16_t port, uint32_t backlog = 511,
+                                       bool defer_accept = false) {
         int fd = ::socket(AF_INET, SOCK_STREAM, 0);
         if (fd < 0) return -1;
         int one = 1;
         setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
         setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &one, sizeof(one));
+        if (defer_accept) setsockopt(fd, IPPROTO_TCP, TCP_DEFER_ACCEPT, &one, sizeof(one));
         sockaddr_in sa{};
         sa.sin_family = AF_INET;
         sa.sin_port   = htons(port);
@@ -163,10 +178,15 @@ public:
     Ring& ring() { return ring_; }
 
     void run() {
-        if (unix_listen_fd_ >= 0 || (srv_->cfg().unixsocket && *srv_->cfg().unixsocket))
-            run_loop<true>();
-        else
-            run_loop<false>();
+        const bool has_unix = unix_listen_fd_ >= 0 ||
+                              (srv_->cfg().unixsocket && *srv_->cfg().unixsocket);
+        if (tls_context_) {
+            if (has_unix) run_loop<true, true>();
+            else run_loop<false, true>();
+        } else {
+            if (has_unix) run_loop<true, false>();
+            else run_loop<false, false>();
+        }
     }
 
 private:
@@ -186,10 +206,11 @@ private:
     friend void notify_retire_entry(IoLoop&, Op&);
 #include "pubsub.inc"
 
-    template <bool HasUnix>
+    template <bool HasUnix, bool HasTls>
     void run_loop() {
-        arm_accept(false);
-        if constexpr (HasUnix) if (unix_listen_fd_ >= 0) arm_accept(true);
+        if (listen_fd_ >= 0) arm_accept(UrKind::Accept);
+        if constexpr (HasTls) arm_accept(UrKind::TlsAccept);
+        if constexpr (HasUnix) if (unix_listen_fd_ >= 0) arm_accept(UrKind::UnixAccept);
         LoopSignals& sig = self_->sig();
         while (!self_->stop_flag().load(std::memory_order_relaxed)) {
             refresh_notify_config();
@@ -217,9 +238,11 @@ private:
                 Span busy(sig.busy_ns);
                 // A dropped accept re-arm means the server stops taking connections entirely, so it
                 // is retried every pass until it lands.
-                if (accept_pending_) arm_accept(false);
-                if constexpr (HasUnix) if (unix_accept_pending_) arm_accept(true);
-                did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
+                if (accept_pending_) arm_accept(UrKind::Accept);
+                if constexpr (HasTls) if (tls_accept_pending_) arm_accept(UrKind::TlsAccept);
+                if constexpr (HasUnix)
+                    if (unix_accept_pending_) arm_accept(UrKind::UnixAccept);
+                did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe<HasTls>(cqe); });
                 did += scatter_pool_.refresh_snapshot_floor(*srv_, self_->id());
                 if constexpr (HasUnix) did += flush_handoffs();
                 did += multi_owner_pass_entry(*this);
@@ -229,7 +252,7 @@ private:
                     did += srv_->snapshot().writer_pass(*self_, ring_);
                 did += flush_borrow_releases();
                 did += collect_retire_work<HasUnix>();
-                did += flush_ready();
+                did += flush_ready<HasTls>();
                 if (__builtin_expect(cron_armed && cached_now_ms_ >= client_cron_beat_ms_, false)) {
                     did += client_cron_pass();
                     client_cron_beat_ms_ = cached_now_ms_ + 100;
@@ -248,7 +271,7 @@ private:
             // Mask-independent sweep before parking. The mask is a hint for the hot path; it must
             // not be the only thing that can find queued work, or one lost bit wedges a connection
             // forever. Runs only when this thread has already concluded it has nothing to do.
-            if (sweep<HasUnix>()) { ring_.submit_and_reap(); continue; }
+            if (sweep<HasUnix, HasTls>()) { ring_.submit_and_reap(); continue; }
 
             Span idle(sig.idle_ns);
             self_->arm_blocked();
@@ -258,23 +281,37 @@ private:
         }
         if (srv_->aof().writer_is(self_->id()))
             srv_->aof().writer_shutdown(*self_, ring_);
+        // The normal loop deliberately keeps a dead Client for two prologues so stale channel
+        // entries cannot race its delete. At process shutdown all producers have observed the
+        // shared stop flag and this IO owner is quiescent; finish those two deterministic grace
+        // steps so TlsConn/SSL/BIO ownership is released before shutdown accounting is printed.
+        reap_dead();
+        reap_dead();
     }
 
     // ---- submission -----------------------------------------------------------------------------
-    void arm_accept(bool unix_socket) {
+    void arm_accept(UrKind kind) {
+        const bool unix_socket = kind == UrKind::UnixAccept;
+        const bool tls_socket = kind == UrKind::TlsAccept;
         io_uring_sqe* s = ring_.sqe();
         // sqe() can still return null when the submission queue is saturated. Writing through it
         // corrupts memory, and losing the accept re-arm silently stops the server taking
         // connections at all — so this is checked, counted, and retried on the next pass.
         if (!s) {
             self_->sig().sqe_starved++;
-            (unix_socket ? unix_accept_pending_ : accept_pending_) = true;
+            if (unix_socket) unix_accept_pending_ = true;
+            else if (tls_socket) tls_accept_pending_ = true;
+            else accept_pending_ = true;
             return;
         }
-        io_uring_prep_multishot_accept(s, unix_socket ? unix_listen_fd_ : listen_fd_, nullptr, nullptr, 0);
-        s->user_data = ur_tag(unix_socket ? UrKind::UnixAccept : UrKind::Accept, nullptr);
+        const int listener = unix_socket ? unix_listen_fd_ :
+                             tls_socket ? tls_listen_fd_ : listen_fd_;
+        io_uring_prep_multishot_accept(s, listener, nullptr, nullptr, 0);
+        s->user_data = ur_tag(kind, nullptr);
         ring_.note_pending();
-        (unix_socket ? unix_accept_pending_ : accept_pending_) = false;
+        if (unix_socket) unix_accept_pending_ = false;
+        else if (tls_socket) tls_accept_pending_ = false;
+        else accept_pending_ = false;
     }
 
     // ONE recv in flight per connection. While it is armed the kernel holds a raw pointer into the
@@ -294,75 +331,148 @@ private:
         c->set_recv_armed(true);
     }
 
+    void arm_tls_recv(Client* c) {
+        if (c->recv_armed() || c->closing()) return;
+        TlsConn* tls = tls_conn(c);
+        if (!tls) return;
+        // Any engine output is submitted before another socket read. This is the memory-BIO
+        // flush-before-read rule that prevents WANT_READ from hiding a required write.
+        if (tls->output_pending()) {
+            (void)wb_.pump_tls(*c, *tls);
+            if (tls->output_pending()) return;
+        }
+        // Ciphertext or decrypted plaintext already inside the engine must be drained before a
+        // new zero-copy BIO reservation is pinned. Otherwise a ROB-full pipeline can arm an empty
+        // socket recv while its next complete command is already waiting in OpenSSL, deadlocking
+        // a request/response client until it happens to send unrelated bytes.
+        if (tls->input_pending()) return;
+        char* dst = nullptr;
+        const int avail = tls->reserve_input(dst, kRecvChunk);
+        if (avail <= 0) return;
+        io_uring_sqe* s = ring_.sqe();
+        if (!s) {
+            tls->abandon_input();
+            self_->sig().sqe_starved++;
+            return;
+        }
+        io_uring_prep_recv(s, c->fd(), dst, static_cast<unsigned>(avail), 0);
+        s->user_data = ur_tag(UrKind::TlsRecv, c);
+        ring_.note_pending();
+        c->set_recv_armed(true);
+    }
+
     // ---- completions ----------------------------------------------------------------------------
+    void on_plain_send_cqe(io_uring_cqe* cqe) {
+        Client* c = ur_ptr<Client>(cqe->user_data);
+        if (c->dead()) {
+            // sendmsg's msghdr/iovecs and borrowed payload remain live through this CQE.
+            wb_.on_dead_send_complete(*c, cqe->res);
+            return;
+        }
+        if (!wb_.on_send_complete(*c, cqe->res)) close_client(c);
+    }
+
+    void on_tls_send_cqe(io_uring_cqe* cqe) {
+        Client* c = ur_ptr<Client>(cqe->user_data);
+        TlsConn* tls = tls_conn(c);
+        if (!tls) { close_client(c); return; }
+        if (c->dead()) {
+            wb_.on_dead_tls_send_complete(*c, *tls, cqe->res);
+            return;
+        }
+        if (!wb_.on_tls_send_complete(*c, *tls, cqe->res)) close_client(c);
+        else mark_active(c);
+    }
+
+    template <bool HasTls>
     void on_cqe(io_uring_cqe* cqe) {
-        switch (ur_kind(cqe->user_data)) {
-            case UrKind::Accept: on_accept(cqe, false); break;
-            case UrKind::UnixAccept: on_accept(cqe, true); break;
-            case UrKind::Recv:   on_recv(ur_ptr<Client>(cqe->user_data), cqe->res); break;
-            case UrKind::Send: {
-                Client* c = ur_ptr<Client>(cqe->user_data);
-                if (c->dead()) {
-                    // sendmsg's msghdr/iovecs and borrowed payload remain live through this CQE.
-                    wb_.on_dead_send_complete(*c, cqe->res);
-                    break;
-                }
-                if (!wb_.on_send_complete(*c, cqe->res)) close_client(c);
-                break;
+        if constexpr (!HasTls) {
+            // Keep the tls-port=0 completion dispatch byte-for-byte shaped like the base switch.
+            switch (ur_kind(cqe->user_data)) {
+                case UrKind::Accept: on_accept(cqe, UrKind::Accept); break;
+                case UrKind::UnixAccept: on_accept(cqe, UrKind::UnixAccept); break;
+                case UrKind::Recv: on_recv(ur_ptr<Client>(cqe->user_data), cqe->res); break;
+                case UrKind::Send: on_plain_send_cqe(cqe); break;
+                case UrKind::Wake: self_->sig().wakes_recv++; break;
+                case UrKind::SnapshotStart: break;
+                case UrKind::AofFsync:
+                    srv_->aof().on_fsync_complete(*self_, ring_, cqe->res); break;
+                case UrKind::Close: break;
+                default: break;
             }
-            case UrKind::Wake:  self_->sig().wakes_recv++; break;
-            case UrKind::SnapshotStart: break;  // epoch broadcasts target executor rings only
-            case UrKind::AofFsync:
-                srv_->aof().on_fsync_complete(*self_, ring_, cqe->res);
-                break;
-            case UrKind::Close: break;
+        } else {
+            switch (ur_kind(cqe->user_data)) {
+                case UrKind::Accept: on_accept(cqe, UrKind::Accept); break;
+                case UrKind::TlsAccept: on_accept(cqe, UrKind::TlsAccept); break;
+                case UrKind::UnixAccept: on_accept(cqe, UrKind::UnixAccept); break;
+                case UrKind::Recv: on_recv(ur_ptr<Client>(cqe->user_data), cqe->res); break;
+                case UrKind::TlsRecv: on_tls_recv(ur_ptr<Client>(cqe->user_data), cqe->res); break;
+                case UrKind::Send: on_plain_send_cqe(cqe); break;
+                case UrKind::TlsSend: on_tls_send_cqe(cqe); break;
+                case UrKind::Wake: self_->sig().wakes_recv++; break;
+                case UrKind::SnapshotStart: break;
+                case UrKind::AofFsync:
+                    srv_->aof().on_fsync_complete(*self_, ring_, cqe->res); break;
+                case UrKind::Close: break;
+            }
         }
     }
 
-    void on_accept(io_uring_cqe* cqe, bool unix_socket) {
+    void rearm_accept(io_uring_cqe* cqe, UrKind kind) {
+        if (!(cqe->flags & IORING_CQE_F_MORE)) {
+            self_->sig().accept_rearm++;
+            arm_accept(kind);
+        }
+    }
+
+    void on_accept(io_uring_cqe* cqe, UrKind kind) {
+        const bool unix_socket = kind == UrKind::UnixAccept;
+        const bool tls_socket = kind == UrKind::TlsAccept;
         if (cqe->res < 0) {
             // Do not swallow this silently: a failing accept with no trace is indistinguishable from
             // a hung server, which is exactly how the 1024-connection failure presented.
             self_->sig().accept_err++;
-            arm_accept(unix_socket);
+            arm_accept(kind);
             return;
         }
         self_->sig().accepts++;
+        if (tls_socket) self_->sig().tls_accepts++;
+        else self_->sig().plain_accepts++;
         int fd = cqe->res;
         if (srv_->live_clients() >= srv_->maxclients()) {
             static constexpr char kErr[] = "-ERR max number of clients reached\r\n";
-            (void)::send(fd, kErr, sizeof(kErr) - 1, MSG_NOSIGNAL | MSG_DONTWAIT);
+            if (!tls_socket)
+                (void)::send(fd, kErr, sizeof(kErr) - 1, MSG_NOSIGNAL | MSG_DONTWAIT);
             ::close(fd);
             srv_->note_rejected_conn();
             self_->sig().accept_rejected++;
-            if (!(cqe->flags & IORING_CQE_F_MORE)) {
-                self_->sig().accept_rearm++;
-                arm_accept(unix_socket);
-            }
+            rearm_accept(cqe, kind);
             return;
         }
         if (__builtin_expect(srv_->protected_mode() && !srv_->requirepass_enabled() &&
                              !peer_is_local(fd, unix_socket), false)) {
             static constexpr char kDenied[] =
                 "-DENIED Redis is running in protected mode because protected mode is enabled and no password is set for the default user. In this mode connections are only accepted from the loopback interface. If you want to connect from external computers to Redis you may adopt one of the following solutions: 1) Just disable protected mode sending the command 'CONFIG SET protected-mode no' from the loopback interface by connecting to Redis from the same host the server is running, however MAKE SURE Redis is not publicly accessible from internet if you do so. Use CONFIG REWRITE to make this change permanent. 2) Alternatively you can just disable the protected mode by editing the Redis configuration file, and setting the protected mode option to 'no', and then restarting the server. 3) If you started the server manually just for testing, restart it with the '--protected-mode no' option. 4) Set up an authentication password for the default user. NOTE: You only need to do one of the above things in order for the server to start accepting connections from the outside.\r\n";
-            (void)::send(fd, kDenied, sizeof(kDenied) - 1, MSG_NOSIGNAL | MSG_DONTWAIT);
+            if (!tls_socket)
+                (void)::send(fd, kDenied, sizeof(kDenied) - 1, MSG_NOSIGNAL | MSG_DONTWAIT);
             ::close(fd);
             srv_->note_rejected_connection();
             self_->sig().accept_rejected++;
-            if (!(cqe->flags & IORING_CQE_F_MORE)) {
-                self_->sig().accept_rearm++;
-                arm_accept(unix_socket);
-            }
+            rearm_accept(cqe, kind);
             return;
         }
         auto* c = new (std::nothrow) Client(fd);
         if (!c) {
             ::close(fd);
             self_->sig().accept_err++;
-            if (!(cqe->flags & IORING_CQE_F_MORE)) {
-                self_->sig().accept_rearm++;
-                arm_accept(unix_socket);
-            }
+            rearm_accept(cqe, kind);
+            return;
+        }
+        if (tls_socket && !attach_tls(c)) {
+            delete c;
+            ::close(fd);
+            self_->sig().accept_err++;
+            rearm_accept(cqe, kind);
             return;
         }
         srv_->client_accepted();
@@ -378,12 +488,9 @@ private:
                 pending_handoffs_.push_back(c);
         } else {
             c->set_ifid_thread(self_->id());
-            adopt_client(c, false);
+            adopt_client(c, false, tls_socket);
         }
-        if (!(cqe->flags & IORING_CQE_F_MORE)) {               // multishot dropped: re-arm
-            self_->sig().accept_rearm++;
-            arm_accept(unix_socket);
-        }
+        rearm_accept(cqe, kind);
     }
 
     std::string peer_address(int fd, bool unix_socket) const {
@@ -406,7 +513,47 @@ private:
         return (ntohl(peer.sin_addr.s_addr) & 0xff000000u) == 0x7f000000u;
     }
 
-    void adopt_client(Client* c, bool unix_socket) {
+    TlsConn* tls_conn(const Client* c) {
+        if (!c || !c->is_tls() || c->tls_slot() >= tls_slots_.size()) return nullptr;
+        return tls_slots_[c->tls_slot()].get();
+    }
+
+    bool attach_tls(Client* c) {
+        try {
+            auto conn = std::make_unique<TlsConn>();
+            std::string error;
+            if (!conn->init(*tls_context_, srv_->cfg().tls_auth_clients, error)) {
+                std::fprintf(stderr, "TLS connection init failed: %s\n", error.c_str());
+                return false;
+            }
+            uint32_t slot;
+            if (!tls_free_slots_.empty()) {
+                slot = tls_free_slots_.back();
+                tls_free_slots_.pop_back();
+                tls_slots_[slot] = std::move(conn);
+            } else {
+                slot = static_cast<uint32_t>(tls_slots_.size());
+                tls_slots_.push_back(std::move(conn));
+            }
+            c->set_tls_slot(slot);
+            self_->sig().tls_handshakes_started++;
+            return true;
+        } catch (const std::bad_alloc&) {
+            return false;
+        }
+    }
+
+    void release_tls(Client* c) {
+        if (!c->is_tls()) return;
+        const uint32_t slot = c->tls_slot();
+        if (slot >= tls_slots_.size() || !tls_slots_[slot]) std::abort();
+        tls_slots_[slot].reset();
+        tls_free_slots_.push_back(slot);
+        c->set_tls_slot(Client::kNoTlsSlot);
+        self_->sig().tls_connections_freed++;
+    }
+
+    void adopt_client(Client* c, bool unix_socket, bool tls_socket = false) {
         if (!unix_socket) {
             int one = 1;
             setsockopt(c->fd(), IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
@@ -429,7 +576,8 @@ private:
         self_->clients().push_back(c);
         const std::string addr = peer_address(c->fd(), unix_socket);
         command_client_connected(c, addr.c_str());
-        arm_recv(c);
+        if (tls_socket) arm_tls_recv(c);
+        else arm_recv(c);
         // Reachability, not optimism: if that arm starved for an SQE, nothing else names this
         // conn -- it would sit accepted and silent forever (audit finding). The active set's
         // phase-1 re-arms it until the recv lands; one wasted visit if the arm succeeded.
@@ -457,13 +605,101 @@ private:
         if (res <= 0) { close_client(c); return; }
         c->commit_read(static_cast<size_t>(res));
         c->set_last_interaction_s(cached_now_s_);
-        parse_and_dispatch(c);
+        parse_and_dispatch<false>(c);
         // Deliberately NOT re-armed here. flush_ready() re-arms AFTER it may have reset the read
         // buffer; arming first would leave the kernel holding a pointer that the reset then moves.
         mark_active(c);
     }
 
+    bool drive_tls(Client* c) {
+        TlsConn* tls = tls_conn(c);
+        if (!tls) return false;
+        if (tls->output_pending() || c->send_inflight()) {
+            (void)wb_.pump_tls(*c, *tls);
+            return !tls->failed();
+        }
+
+        if (tls->handshaking()) {
+            const TlsOp result = tls->handshake();
+            if (result == TlsOp::WantRead) self_->sig().tls_want_read++;
+            else if (result == TlsOp::WantWrite) self_->sig().tls_want_write++;
+            else if (result == TlsOp::Progress) self_->sig().tls_handshakes_completed++;
+            (void)wb_.pump_tls(*c, *tls);  // alerts and handshake flights are flushed first
+            if (result == TlsOp::Error || result == TlsOp::GracefulEof) {
+                self_->sig().tls_handshakes_failed++;
+                if (!tls->last_error().empty())
+                    std::fprintf(stderr, "TLS client %llu: %s\n",
+                                 static_cast<unsigned long long>(c->id()),
+                                 tls->last_error().c_str());
+                close_client(c, tls->output_pending() || c->send_inflight());
+                return false;
+            }
+            if (!tls->connected() || tls->output_pending() || c->send_inflight()) return true;
+        }
+
+        bool decrypted = false;
+        while (tls->connected()) {
+            size_t avail = 0;
+            char* dst = c->read_space(kRecvChunk, avail, c->rob().quiesced());
+            if (!dst) break;
+            const TlsIoResult result = tls->read_plain(dst, avail);
+            if (result.op == TlsOp::Progress) {
+                // Only decrypted bytes enter the RESP buffer. Ciphertext counts are committed to
+                // the BIO in on_tls_recv and can never reach this cursor.
+                c->commit_read(result.bytes);
+                self_->sig().tls_plaintext_input_bytes += result.bytes;
+                decrypted = true;
+                if (tls->output_pending()) { (void)wb_.pump_tls(*c, *tls); break; }
+                continue;
+            }
+            if (result.op == TlsOp::WantRead) self_->sig().tls_want_read++;
+            else if (result.op == TlsOp::WantWrite) {
+                self_->sig().tls_want_write++;
+                (void)wb_.pump_tls(*c, *tls);
+            } else if (result.op == TlsOp::GracefulEof) {
+                (void)tls->shutdown();
+                (void)wb_.pump_tls(*c, *tls);
+                close_client(c, tls->output_pending() || c->send_inflight());
+                return false;
+            } else {
+                if (!tls->last_error().empty())
+                    std::fprintf(stderr, "TLS client %llu: %s\n",
+                                 static_cast<unsigned long long>(c->id()),
+                                 tls->last_error().c_str());
+                (void)wb_.pump_tls(*c, *tls);
+                close_client(c, tls->output_pending() || c->send_inflight());
+                return false;
+            }
+            break;
+        }
+        if (decrypted || c->rpos() < c->rlen()) parse_and_dispatch<true>(c);
+        return !tls->failed();
+    }
+
+    void on_tls_recv(Client* c, int res) {
+        c->set_recv_armed(false);
+        TlsConn* tls = tls_conn(c);
+        if (!tls) { close_client(c); return; }
+        if (c->dead()) { tls->abandon_input(); return; }
+        if (res <= 0) {
+            tls->abandon_input();
+            close_client(c);
+            return;
+        }
+        if (!tls->commit_input(static_cast<size_t>(res))) {
+            std::fprintf(stderr, "TLS client %llu: ciphertext BIO commit rejected %d bytes\n",
+                         static_cast<unsigned long long>(c->id()), res);
+            close_client(c);
+            return;
+        }
+        self_->sig().tls_ciphertext_input_bytes += static_cast<uint64_t>(res);
+        c->set_last_interaction_s(cached_now_s_);
+        (void)drive_tls(c);
+        mark_active(c);
+    }
+
     // ---- parse -> route -> publish -----------------------------------------------------------------
+    template <bool NoBorrow>
     void parse_and_dispatch(Client* c) {
         Client& conn = *c;
         Rob<kRobWindow>& rob = c->rob();
@@ -478,7 +714,6 @@ private:
             if (c->scatter_barrier() || c->atomic_backpressure()) break;
             Op* op = rob.acquire();
             if (!op) break;                    // window full: backpressure; let replies drain first
-
             uint32_t pos = conn.rpos();
             const char* err = nullptr;
             op->rbuf_off = pos;
@@ -525,6 +760,7 @@ private:
             // executor receives a spec whose handler pointer is already the clean or armed
             // specialization; no notification mask load reaches its execute path.
             if (__builtin_expect(notify_armed, false)) spec = command_notify_variant(spec);
+            if constexpr (NoBorrow) spec = command_tls_variant(spec);
             op->spec = spec;
             if (__builtin_expect(security_check, false) &&
                 acl_dispatch_entry(*this, conn, *op, consumed, security_flags)) continue;
@@ -909,11 +1145,12 @@ nonblocking_dispatch:
     // ---- inbound: workers telling us a client has completed ops -----------------------------------
     // Inbound from workers: "ops are Done" -- the claimed-post fallback for a conn with no
     // ready-mask slot. Either way the answer is the same: put the client back in the active set.
-    template <bool HasUnix>
+    template <bool HasUnix, bool HasTls>
     uint32_t sweep() {
         uint32_t work = 0;
         if constexpr (HasUnix) work += flush_handoffs();
-        work += flush_borrow_releases() + collect_retire_work<HasUnix>(true) + flush_ready();
+        work += flush_borrow_releases() + collect_retire_work<HasUnix>(true) +
+                flush_ready<HasTls>();
         if (srv_->snapshot().writer_is(self_->id()))
             work += srv_->snapshot().writer_pass(*self_, ring_, true);
         if (srv_->aof().writer_is(self_->id()))
@@ -980,6 +1217,7 @@ nonblocking_dispatch:
     // The io thread's own work per active client. In 2-stage it also owns the reply side and calls
     // serve() here; in ex-wb and 3-stage the sender does that on its own thread and io only keeps
     // the READ side moving — reclaim the buffer once nothing points into it, and re-arm.
+    template <bool HasTls>
     uint32_t flush_ready() {
         uint32_t work = 0;
         backstop_pass_ = (++flush_tick_ >= kFlushBackstopEvery);
@@ -994,7 +1232,20 @@ nonblocking_dispatch:
         for (auto it = active_.begin(); it != active_.end();) {
             Client* c = *it;
             Client& conn = *c;
+            TlsConn* tls = nullptr;
+            if constexpr (HasTls) tls = tls_conn(c);
             if (backstop_pass_ && !c->serve_pending()) enqueue_serve(c);
+
+            if constexpr (HasTls) {
+                if (tls) {
+                    // BIO_nwrite0 pins the input-ring frontier until the recv CQE commits it.
+                    // SSL_write and opposite-direction BIO reads are proven safe while pinned,
+                    // but SSL_read/SSL_accept consume the same direction and can move that
+                    // frontier. Only the recv completion may drive inbound TLS while armed.
+                    if (!c->closing() && !c->recv_armed()) (void)drive_tls(c);
+                    else (void)wb_.pump_tls(*c, *tls);
+                }
+            }
 
             // Reset only when the ROB is quiescent AND no recv is outstanding — see conn.h. Then
             // re-arm, in that order.
@@ -1017,11 +1268,21 @@ nonblocking_dispatch:
             // which is what makes the rest parseable.
             if (!c->closing() && conn.rpos() < conn.rlen() && !c->scatter_barrier() &&
                 !c->atomic_backpressure()) {
-                parse_and_dispatch(c);
+                if constexpr (HasTls) {
+                    if (tls) parse_and_dispatch<true>(c);
+                    else parse_and_dispatch<false>(c);
+                } else {
+                    parse_and_dispatch<false>(c);
+                }
                 work++;
             }
 
-            arm_recv(c);
+            if constexpr (HasTls) {
+                if (tls) arm_tls_recv(c);
+                else arm_recv(c);
+            } else {
+                arm_recv(c);
+            }
 
             // Progress marker: a full window with unparsed bytes (or an unarmed recv) means this
             // conn must stay active so later passes retry once retiring frees slots. We are our own
@@ -1030,10 +1291,11 @@ nonblocking_dispatch:
                                (!conn.recv_armed() && !c->closing());
 
             const bool more_input = conn.rpos() < conn.rlen();
-            const bool done = c->rob().quiesced() && !more_input && !stuck && !c->serve_pending() &&
-                              c->nothing_to_write();
+            const bool tls_output = tls && (tls->output_pending() || c->send_inflight());
+            const bool done = c->rob().quiesced() && !more_input && !stuck &&
+                              !c->serve_pending() && c->nothing_to_write() && !tls_output;
             if (done && !c->closing()) { c->set_in_active(false); it = active_.erase(it); }
-            else if (c->closing() && c->safe_to_release()) {
+            else if (c->closing() && !tls_output && c->safe_to_release()) {
                 // Pub/sub teardown is asynchronous. Keep the client in place while home IOs
                 // acknowledge removal; erase+reinsert would invalidate this vector iterator and
                 // can turn one closing subscriber into a same-pass spin.
@@ -1067,7 +1329,16 @@ nonblocking_dispatch:
             // close_client finish. Only corpses (freed-pending) are skippable.
             if (c->dead()) continue;
             served++;
-            if (wb_.serve(*c)) work++;
+            if constexpr (HasTls) {
+                if (TlsConn* tls = tls_conn(c)) {
+                    if (wb_.serve_tls(*c, *tls)) work++;
+                    if (tls->failed()) close_client(c, tls->output_pending() || c->send_inflight());
+                } else if (wb_.serve(*c)) {
+                    work++;
+                }
+            } else if (wb_.serve(*c)) {
+                work++;
+            }
         }
         work += served;
         return work;
@@ -1148,7 +1419,7 @@ nonblocking_dispatch:
         notify_config_version_ = snapshot.version;
     }
 
-    void close_client(Client* c) {
+    void close_client(Client* c, bool drain_tls_output = false) {
         // IDEMPOTENT, and that is load-bearing: an abrupt disconnect can close a conn twice --
         // once when the recv fails and again when the in-flight reply's send CQE comes back
         // failed. The second call found the client already parked on the deferred-free list and
@@ -1159,12 +1430,24 @@ nonblocking_dispatch:
             c->mark_closing();
             if (c->blocked() && blocking_cancel_client(*srv_, *self_, ring_, *c))
                 enqueue_serve(c);
+            TlsConn* tls = tls_conn(c);
+            if (tls && tls->connected() && !tls->shutdown_started()) {
+                (void)tls->shutdown();
+                (void)wb_.pump_tls(*c, *tls);
+            }
             // Break any in-flight recv/send NOW: safe_to_release refuses to free while the kernel
             // holds a buffer pointer (recv_armed / send_inflight), and those only clear when their
             // CQEs come back -- which a half-open peer might never trigger on its own.
-            ::shutdown(c->fd(), SHUT_RDWR);
+            const bool pending_tls_output = tls && (tls->output_pending() || c->send_inflight());
+            if (!(drain_tls_output && pending_tls_output)) ::shutdown(c->fd(), SHUT_RDWR);
         }
         multi_close_entry(*this, *c);
+        if (TlsConn* tls = tls_conn(c)) {
+            if (drain_tls_output && (tls->output_pending() || c->send_inflight())) {
+                mark_active(c);
+                return;
+            }
+        }
         // Release only at the quiescence fence: a worker may still hold a Task that resolves through
         // this ROB. Anything else is a use-after-free under pipelining. (The retryable wait paths,
         // with their mark_active leak guard, are below.)
@@ -1211,6 +1494,7 @@ nonblocking_dispatch:
                 continue;
             }
             wb_.teardown(*c);
+            release_tls(c);
             delete c;
         }
         dead_ready_.resize(keep);
@@ -1244,10 +1528,12 @@ nonblocking_dispatch:
     std::vector<Client*> dead_next_;   // corpses parked this iteration
     std::vector<Client*> dead_ready_;  // corpses freed at the next prologue
     int        listen_fd_ = -1;
+    int        tls_listen_fd_ = -1;
     int        unix_listen_fd_ = -1;
     Ring       ring_;
     WbEngine   wb_;
     bool       accept_pending_ = false;
+    bool       tls_accept_pending_ = false;
     bool       unix_accept_pending_ = false;
     uint64_t   unix_rr_ = 0;
     uint64_t   random_state_ = 0x9e3779b97f4a7c15ULL;
@@ -1277,6 +1563,11 @@ nonblocking_dispatch:
     // Notification publications are sequenced through one coordinator IO. Keep this v2-only
     // carriage at the true cold tail so the entire pre-notification IoLoop layout remains fixed.
     std::deque<std::shared_ptr<PubSubNotificationChain>> pubsub_notification_chains_;
+    // Allocated only when tls-port is non-zero. Slots are released at the same deferred-free fence
+    // as Client because in-flight recv/send CQEs point into the BIO pair owned by TlsConn.
+    const TlsContext* tls_context_ = nullptr;
+    std::vector<std::unique_ptr<TlsConn>> tls_slots_;
+    std::vector<uint32_t> tls_free_slots_;
 };
 
 }  // namespace tomo

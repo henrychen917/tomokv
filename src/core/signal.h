@@ -84,6 +84,22 @@ struct LoopSignals {
     uint64_t acl_access_denied_channel = 0;
     uint64_t acl_access_denied_auth = 0;
 
+    // TLS counters are written only by the owning IO thread. With tls-port=0 the clean loop
+    // specialization contains no increments or per-operation TLS tests.
+    uint64_t plain_accepts = 0;
+    uint64_t tls_accepts = 0;
+    uint64_t tls_handshakes_started = 0;
+    uint64_t tls_handshakes_completed = 0;
+    uint64_t tls_handshakes_failed = 0;
+    uint64_t tls_connections_freed = 0;
+    uint64_t tls_want_read = 0;
+    uint64_t tls_want_write = 0;
+    uint64_t tls_ciphertext_input_bytes = 0;
+    uint64_t tls_plaintext_input_bytes = 0;
+    uint64_t tls_ciphertext_output_bytes = 0;
+    uint64_t tls_plaintext_output_bytes = 0;
+    uint64_t tls_zc_suppressed = 0;
+
     // Derived, computed on read so the hot path never divides.
     double utilisation() const {
         const uint64_t t = busy_ns + idle_ns;

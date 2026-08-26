@@ -545,6 +545,16 @@ public:
     uint32_t wb_slot() const { return wb_slot_.load(std::memory_order_relaxed); }
     void set_wb_slot(uint32_t s) { wb_slot_.store(s, std::memory_order_release); }
 
+    // TLS state is owned by the connection's IO thread and lives out-of-line.  The slot consumes
+    // the four-byte tail hole re-derived after the limits + ACL merges (offset 1980), preserving the
+    // signed Client footprint.  It is deliberately not at the stale audit offset 12: timeout owns
+    // that io-hot word now.
+    static constexpr uint32_t kNoTlsSlot = UINT32_MAX;
+    bool is_tls() const { return tls_slot_ != kNoTlsSlot; }
+    uint32_t tls_slot() const { return tls_slot_; }
+    void set_tls_slot(uint32_t slot) { tls_slot_ = slot; }
+    static constexpr size_t tls_slot_offset();
+
 #ifdef TOMO_WEDGE_FORENSICS
     // FORENSICS for the stranded-reply class: claims (worker won the CAS), defers (lost it),
     // serves (io actually served). serves < claims on a stranded client names the dropped link.
@@ -607,10 +617,14 @@ private:
     bool obuf_tracking_ = false;        // enabled once per serve/cron arm, not per reply append
     bool authenticated_ = false;        // requirepass state; shares the documented cold-tail hole
     uint32_t acl_user_idx_ = 0;          // ACL user handle; occupies the final 4-byte aligned hole
+    uint32_t tls_slot_ = kNoTlsSlot;     // out-of-line TlsConn handle; occupies tail padding
 };
 
 constexpr size_t Client::acl_user_idx_offset() { return offsetof(Client, acl_user_idx_); }
 static_assert(Client::acl_user_idx_offset() + sizeof(uint32_t) <= sizeof(Client));
+constexpr size_t Client::tls_slot_offset() { return offsetof(Client, tls_slot_); }
+static_assert(Client::tls_slot_offset() == 1980,
+              "TLS slot moved: re-run the declaration-order Client mirror probe");
 
 // Same footprint law as Op: Client is per-connection resident memory and its io-hot head is
 // layout-tuned. Growing it is allowed -- knowingly. 1984 = 1408 + the zero-copy send state

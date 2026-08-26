@@ -28,7 +28,8 @@ bad(){ say "$1" "FAIL${2:+ ($2)}"; FAIL=$((FAIL+1)); }
 make -j >/dev/null 2>&1 && ok "release build (+footprint locks)" || bad "release build"
 ASAN=/tmp/tomokv-gate-asan
 g++ -std=c++20 -O1 -g -fsanitize=address -march=native -pthread -I. \
-    src/main.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc -o $ASAN -luring -pthread 2>/dev/null \
+    src/main.cc src/net/tls.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc \
+    -o $ASAN -luring -pthread -lssl -lcrypto 2>/dev/null \
     && ok "ASAN build" || bad "ASAN build"
 g++ -std=c++20 -O2 -I. tests/config_parser_test.cc -o /tmp/tomokv-config-parser-test \
     && /tmp/tomokv-config-parser-test \
@@ -306,6 +307,85 @@ AOF_OFF_SIZE=$(redis-cli -h 127.0.0.1 -p $PORT DBSIZE 2>/dev/null | tr -d '\r')
 [ "$AOF_OFF_SIZE" = 0 ] && [ ! -e "$AOF_OFF_DIR/appendonlydir" ] \
     && ok "AOF-off negative control lost data" || bad "AOF-off negative control"
 stop
+
+# ---- TLS memory-BIO transport: independent listener, auth matrix, parser/teardown fences -------
+TLS_PORT=$((PORT+1))
+TLS_DIR=$(mktemp -d /tmp/gate-tls.XXXXXX)
+python3 tests/tls.py --generate "$TLS_DIR" >/tmp/gate-tls-generate.txt 2>&1 \
+    && ok "TLS ephemeral CA/server/client certificates" \
+    || bad "TLS certificate generation" "see /tmp/gate-tls-generate.txt"
+
+./build/tomokv --port 0 --tls-port "$TLS_PORT" --tls-key-file "$TLS_DIR/server.key" \
+    --tls-auth-clients no 2>&1 | grep -q "tls-port requires tls-cert-file" \
+    && ok "reject TLS listener without certificate" || bad "reject missing TLS certificate"
+./build/tomokv --port 0 --tls-port "$TLS_PORT" --tls-cert-file "$TLS_DIR/server.crt" \
+    --tls-key-file "$TLS_DIR/server.key" --tls-auth-clients no --tls-protocols SSLv3 \
+    2>&1 | grep -q "Invalid tls-protocols" \
+    && ok "reject invalid tls-protocols" || bad "reject invalid tls-protocols"
+./build/tomokv --port 0 --tls-port "$TLS_PORT" --tls-cert-file "$TLS_DIR/server.crt" \
+    --tls-key-file "$TLS_DIR/server.key" --tls-auth-clients no --tls-ciphers NOT-A-CIPHER \
+    2>&1 | grep -q "Failed to configure tls-ciphers" \
+    && ok "reject invalid tls-ciphers" || bad "reject invalid tls-ciphers"
+
+tlsboot(){ # auth-mode [extra TLS knobs]
+  local auth=$1; shift
+  (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null \
+      && { say "TLS plain port $PORT pre-boot guard" "FAIL (already accepting)"; return 1; }
+  (exec 3<>/dev/tcp/127.0.0.1/$TLS_PORT) 2>/dev/null \
+      && { say "TLS port $TLS_PORT pre-boot guard" "FAIL (already accepting)"; return 1; }
+  SRVLOG=$(mktemp /tmp/gate-tls-srv.XXXXXX)
+  taskset -c $CORES ./build/tomokv --port "$PORT" --tls-port "$TLS_PORT" \
+      --bind 127.0.0.1 --shards 16 --ratio "$GATE_RATIO" --protected-mode no \
+      --tls-cert-file "$TLS_DIR/server.crt" --tls-key-file "$TLS_DIR/server.key" \
+      --tls-ca-cert-file "$TLS_DIR/ca.crt" --tls-auth-clients "$auth" "$@" \
+      >"$SRVLOG" 2>&1 &
+  SRV=$!
+  for _ in $(seq 50); do
+    if ! kill -0 "$SRV" 2>/dev/null; then wait "$SRV" 2>/dev/null; return 1; fi
+    if (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null && \
+       (exec 4<>/dev/tcp/127.0.0.1/$TLS_PORT) 2>/dev/null; then return 0; fi
+    sleep 0.2
+  done
+  return 1
+}
+
+tlsboot yes || bad "TLS client-auth yes purpose boot"
+python3 tests/tls.py 127.0.0.1 "$TLS_PORT" "$TLS_DIR" yes --plain-port "$PORT" \
+    >/tmp/gate-tls-yes.txt 2>&1 \
+    && ok "TLS client-auth yes matrix" || bad "TLS client-auth yes matrix" "see /tmp/gate-tls-yes.txt"
+stop
+grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
+    && ok "TLS yes shutdown invariants" || bad "TLS yes shutdown invariants"
+
+tlsboot optional || bad "TLS client-auth optional purpose boot"
+python3 tests/tls.py 127.0.0.1 "$TLS_PORT" "$TLS_DIR" optional --plain-port "$PORT" \
+    >/tmp/gate-tls-optional.txt 2>&1 \
+    && ok "TLS client-auth optional matrix" \
+    || bad "TLS client-auth optional matrix" "see /tmp/gate-tls-optional.txt"
+stop
+grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
+    && ok "TLS optional shutdown invariants" || bad "TLS optional shutdown invariants"
+
+tlsboot no --tls-protocols "TLSv1.2 TLSv1.3" --tls-ciphers DEFAULT \
+    --tls-ciphersuites TLS_AES_256_GCM_SHA384 --tls-prefer-server-ciphers yes \
+    || bad "TLS coexistence purpose boot"
+python3 tests/tls.py 127.0.0.1 "$TLS_PORT" "$TLS_DIR" no --plain-port "$PORT" --full \
+    >/tmp/gate-tls-full.txt 2>&1 \
+    && ok "TLS pipeline/torn-record/coexistence battery" \
+    || bad "TLS correctness battery" "see /tmp/gate-tls-full.txt"
+stop
+grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
+    && ok "TLS shutdown invariants" || bad "TLS shutdown invariants"
+grep -qE "wb: .* err=0 " "$SRVLOG" \
+    && ok "TLS application send path error-free" || bad "TLS send errors"
+TLS_ACCEPTS=$(sed -n 's/^tls: accepts=\([0-9][0-9]*\).*/\1/p' "$SRVLOG")
+TLS_FREED=$(sed -n 's/^tls: .* freed=\([0-9][0-9]*\).*/\1/p' "$SRVLOG")
+TLS_ZC=$(sed -n 's/^tls: .* zc_suppressed=\([0-9][0-9]*\).*/\1/p' "$SRVLOG")
+[ -n "$TLS_ACCEPTS" ] && [ "$TLS_ACCEPTS" -gt 0 ] && [ "$TLS_ACCEPTS" = "$TLS_FREED" ] \
+    && ok "TLS connection slots all freed ($TLS_FREED/$TLS_ACCEPTS)" \
+    || bad "TLS connection-slot cleanup" "$TLS_FREED/$TLS_ACCEPTS"
+[ -n "$TLS_ZC" ] && [ "$TLS_ZC" -gt 0 ] \
+    && ok "TLS zc borrow gates fired (suppressed=$TLS_ZC)" || bad "TLS zc borrow gates fired"
 
 if [ "$TIER" = quick ]; then
   echo; echo "GATE(quick): $PASS ok, $FAIL FAIL"; [ $FAIL -eq 0 ] || exit 1; exit 0

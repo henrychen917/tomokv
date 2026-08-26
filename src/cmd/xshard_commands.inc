@@ -1100,7 +1100,24 @@ void finish_phase2(ScatterState& state) {
     }
 }
 
-void assemble_mget(Client& client, Op& op, ScatterState& state) {
+void assemble_mget(Client& client, Op& op, ScatterState& state, void* release_ctx,
+                   void (*release_fn)(void*, int32_t, const char*),
+                   void (*suppressed_fn)(void*)) {
+    // MULTI assembles child replies on an executor, where no IO->owner release callback is
+    // available. Copy a TLS child into its Op and leave the borrow descriptors in ScatterState;
+    // multi_retire_entry returns them from the owning IO before destroying the state.
+    if (client.is_tls() && !release_fn) {
+        reply_array_header(op.sink(), state.key_count);
+        for (uint32_t i = 0; i < state.key_count; i++) {
+            const ValueSlot& slot = state.values[i];
+            if (slot.kind == ValueKind::Nil) reply_nil(op.sink());
+            else if (slot.kind == ValueKind::Inline)
+                reply_bulk(op.sink(), Slice(slot.small, slot.len));
+            else
+                reply_bulk(op.sink(), Slice(slot.ptr, slot.len));
+        }
+        return;
+    }
     bool borrowed = false;
     for (uint32_t i = 0; i < state.key_count; i++)
         borrowed |= state.values[i].kind == ValueKind::Borrow;
@@ -1128,7 +1145,13 @@ void assemble_mget(Client& client, Op& op, ScatterState& state) {
         else {
             reply_bulk_header(op.sink(), slot.len);
             flush_bytes();
-            client.append_borrow_segment(slot.ptr, slot.len, slot.shard);
+            if (client.is_tls()) {
+                client.append_buf_segment(slot.ptr, slot.len);
+                if (release_fn) release_fn(release_ctx, slot.shard, slot.ptr);
+                if (suppressed_fn) suppressed_fn(release_ctx);
+            } else {
+                client.append_borrow_segment(slot.ptr, slot.len, slot.shard);
+            }
             static constexpr char crlf[2] = {'\r', '\n'};
             client.append_static_segment(crlf, sizeof(crlf));
             // Ownership moved to the connection queue. Arena teardown must not return it again.
@@ -1137,7 +1160,9 @@ void assemble_mget(Client& client, Op& op, ScatterState& state) {
     }
 }
 
-void assemble_final(Client& client, Op& op, ScatterState& state) {
+void assemble_final(Client& client, Op& op, ScatterState& state, void* release_ctx,
+                    void (*release_fn)(void*, int32_t, const char*),
+                    void (*suppressed_fn)(void*)) {
     if (state.final_reply != FinalReply::None) {
         switch (state.final_reply) {
             case FinalReply::Ok: reply_ok(op.sink()); break;
@@ -1196,8 +1221,12 @@ void assemble_final(Client& client, Op& op, ScatterState& state) {
         case Kind::DbsizeExact:
             reply_int(op.sink(), static_cast<long long>(state.exact_sum.load(std::memory_order_relaxed)));
             break;
-        case Kind::Mget: assemble_mget(client, op, state); break;
+        case Kind::Mget:
+            assemble_mget(client, op, state, release_ctx, release_fn, suppressed_fn);
+            break;
         case Kind::Xread: {
+            // Stream payloads are copied images, never zc borrows, so the TLS release plumbing
+            // that Mget threads through does not apply here.
             uint32_t ready = 0;
             for (uint32_t i = 0; i < state.key_count; i++) ready += state.images[i].present;
             if (!ready) { reply_null_array(op.sink()); break; }

@@ -252,6 +252,26 @@ void init_config(const Config& cfg) {
     add_config("timeout", ConfigKind::Unsigned, cfg.timeout);
     add_config("tcp-keepalive", ConfigKind::Unsigned, cfg.tcp_keepalive);
     add_config("tcp-backlog", ConfigKind::Unsigned, cfg.tcp_backlog);
+    g_config.push_back({"tls-port", ConfigKind::Unsigned, std::to_string(cfg.tls_port), true});
+    g_config.push_back({"tls-cert-file", ConfigKind::String,
+                        cfg.tls_cert_file ? cfg.tls_cert_file : "", true});
+    g_config.push_back({"tls-key-file", ConfigKind::String,
+                        cfg.tls_key_file ? cfg.tls_key_file : "", true});
+    g_config.push_back({"tls-ca-cert-file", ConfigKind::String,
+                        cfg.tls_ca_cert_file ? cfg.tls_ca_cert_file : "", true});
+    g_config.push_back({"tls-ca-cert-dir", ConfigKind::String,
+                        cfg.tls_ca_cert_dir ? cfg.tls_ca_cert_dir : "", true});
+    const char* tls_auth = cfg.tls_auth_clients == TlsAuthClients::No ? "no" :
+                           cfg.tls_auth_clients == TlsAuthClients::Optional ? "optional" : "yes";
+    g_config.push_back({"tls-auth-clients", ConfigKind::Enum, tls_auth, true});
+    g_config.push_back({"tls-protocols", ConfigKind::String,
+                        cfg.tls_protocols ? cfg.tls_protocols : "", true});
+    g_config.push_back({"tls-ciphers", ConfigKind::String,
+                        cfg.tls_ciphers ? cfg.tls_ciphers : "", true});
+    g_config.push_back({"tls-ciphersuites", ConfigKind::String,
+                        cfg.tls_ciphersuites ? cfg.tls_ciphersuites : "", true});
+    g_config.push_back({"tls-prefer-server-ciphers", ConfigKind::Bool,
+                        cfg.tls_prefer_server_ciphers ? "yes" : "no", true});
     g_client_obuf_limits = cfg.client_output_buffer_limits;
     g_config.push_back({"client-output-buffer-limit", ConfigKind::ClientOutputBufferLimit,
                         cfg_client_output_buffer_limit_string(g_client_obuf_limits)});
@@ -1051,6 +1071,12 @@ void cmd_info(Shard&, Op& op) {
              atomic_entries = 0, atomic_pending_entries = 0,
              atomic_cleanup_fast = 0, atomic_cleanup_slow = 0,
              atomic_localfast = 0, blocking_waiters = 0;
+    uint64_t plain_accepts = 0, tls_accepts = 0, tls_handshakes_started = 0,
+             tls_handshakes_completed = 0, tls_handshakes_failed = 0,
+             tls_connections_freed = 0, tls_want_read = 0, tls_want_write = 0,
+             tls_ciphertext_input = 0, tls_plaintext_input = 0,
+             tls_ciphertext_output = 0, tls_plaintext_output = 0,
+             tls_zc_suppressed = 0;
     if (g_server) {
         for (uint32_t i = 0; i < g_server->nshards(); i++) {
             const Shard& sh = g_server->shard(static_cast<int32_t>(i));
@@ -1077,6 +1103,20 @@ void cmd_info(Shard&, Op& op) {
             acl_denied_key += g_server->thread(t).sig().acl_access_denied_key;
             acl_denied_channel += g_server->thread(t).sig().acl_access_denied_channel;
             acl_denied_auth += g_server->thread(t).sig().acl_access_denied_auth;
+            const LoopSignals& sig = g_server->thread(t).sig();
+            plain_accepts += sig.plain_accepts;
+            tls_accepts += sig.tls_accepts;
+            tls_handshakes_started += sig.tls_handshakes_started;
+            tls_handshakes_completed += sig.tls_handshakes_completed;
+            tls_handshakes_failed += sig.tls_handshakes_failed;
+            tls_connections_freed += sig.tls_connections_freed;
+            tls_want_read += sig.tls_want_read;
+            tls_want_write += sig.tls_want_write;
+            tls_ciphertext_input += sig.tls_ciphertext_input_bytes;
+            tls_plaintext_input += sig.tls_plaintext_input_bytes;
+            tls_ciphertext_output += sig.tls_ciphertext_output_bytes;
+            tls_plaintext_output += sig.tls_plaintext_output_bytes;
+            tls_zc_suppressed += sig.tls_zc_suppressed;
         }
         // Redis counts BOTH accept-time reject classes in rejected_connections: maxclients
         // (networking.c:1355) and protected-mode denials (networking.c:1306).
@@ -1180,6 +1220,13 @@ void cmd_info(Shard&, Op& op) {
                       "pubsub_inflight:%llu\r\npubsub_pending_commands:%llu\r\n"
                       "client_output_buffer_limit_disconnections:%llu\r\n"
                       "notify_events_fired:%llu\r\nnotify_events_dropped:%llu\r\n"
+                      "plain_connections_received:%llu\r\ntls_connections_received:%llu\r\n"
+                      "tls_current_connections:%llu\r\ntls_handshakes_started:%llu\r\n"
+                      "tls_handshakes_completed:%llu\r\ntls_handshakes_failed:%llu\r\n"
+                      "tls_want_read:%llu\r\ntls_want_write:%llu\r\n"
+                      "tls_ciphertext_input_bytes:%llu\r\ntls_plaintext_input_bytes:%llu\r\n"
+                      "tls_ciphertext_output_bytes:%llu\r\ntls_plaintext_output_bytes:%llu\r\n"
+                      "tls_zc_suppressed:%llu\r\n"
                       "blocking_waiters:%llu\r\n",
                 static_cast<unsigned long long>(connections), static_cast<unsigned long long>(rejected),
                 static_cast<unsigned long long>(total_ops), static_cast<unsigned long long>(hits),
@@ -1220,6 +1267,19 @@ void cmd_info(Shard&, Op& op) {
                     g_server ? g_server->client_output_buffer_limit_disconnections() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->notify_events_fired() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->notify_events_dropped() : 0),
+                static_cast<unsigned long long>(plain_accepts),
+                static_cast<unsigned long long>(tls_accepts),
+                static_cast<unsigned long long>(tls_accepts - tls_connections_freed),
+                static_cast<unsigned long long>(tls_handshakes_started),
+                static_cast<unsigned long long>(tls_handshakes_completed),
+                static_cast<unsigned long long>(tls_handshakes_failed),
+                static_cast<unsigned long long>(tls_want_read),
+                static_cast<unsigned long long>(tls_want_write),
+                static_cast<unsigned long long>(tls_ciphertext_input),
+                static_cast<unsigned long long>(tls_plaintext_input),
+                static_cast<unsigned long long>(tls_ciphertext_output),
+                static_cast<unsigned long long>(tls_plaintext_output),
+                static_cast<unsigned long long>(tls_zc_suppressed),
                 static_cast<unsigned long long>(blocking_waiters));
     }
     if (info_section(op, "COMMANDSTATS")) {

@@ -116,13 +116,20 @@ CommandTable scripting_command_table();
 
 // Built once before threads start. Lookup hashes the uppercase-normalized bytes into an open-
 // addressed table; the load factor is capped at 1/2 so ordinary command names land in one probe.
-bool command_registry_init();
+bool command_registry_init(bool tls_enabled);
 const CommandSpec* command_lookup(Slice name);
 bool command_arity_ok(const CommandSpec& spec, uint32_t argc);
 uint32_t command_registry_size();
 const CommandSpec* command_registry_at(uint32_t id);
 uint64_t command_acl_category_mask(const CommandSpec& spec);
 const CommandSpec* command_notify_variant(const CommandSpec* spec);
+const CommandSpec* command_tls_variant(const CommandSpec* spec);
+
+// GET is the only ordinary executor handler that can create a FlatStore borrow. TLS selects these
+// copy-only variants on the IO parse specialization, so the plaintext handler has no transport
+// load or branch at all.
+void cmd_get_tls(Shard&, Op&);
+void cmd_get_tls_notify(Shard&, Op&);
 
 class Server;
 class Client;
