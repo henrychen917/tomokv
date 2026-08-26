@@ -46,6 +46,7 @@ inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"ACL", 0x0000000000008000ULL}, // slow
     {"APPEND", 0x0000000000004084ULL}, // write string fast
     {"AUTH", 0x0000000000044000ULL}, // fast connection
+    {"BGREWRITEAOF", 0x000000000002a000ULL}, // admin slow dangerous
     {"BGSAVE", 0x000000000002a000ULL}, // admin slow dangerous
     {"BITCOUNT", 0x0000000000008102ULL}, // read bitmap slow
     {"BITOP", 0x0000000000008104ULL}, // write bitmap slow
