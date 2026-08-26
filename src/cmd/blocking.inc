@@ -28,6 +28,9 @@ struct BlockingKey {
     bool cursor_latest = false;
     bool cursor_resolved = true;
     bool wake_bounded = false;
+    // Redis serves a waiter woken by XADD before a following pipelined XDEL. The executor-side
+    // readiness observation freezes both the upper ID and its encoded reply for the async rerun.
+    std::vector<uint8_t> wake_payload;
 };
 
 struct BlockingGroup {
@@ -358,6 +361,11 @@ BlockingProbe blocking_probe_key(Shard& shard, const BlockingState& state,
         // for the first publication rather than widening that already-claimed reply.
         if (!stream_object_last_id(object, key.wake_upper)) return BlockingProbe::WrongType;
         key.wake_bounded = true;
+        key.wake_payload.clear();
+        const StreamReadResult captured = stream_xread_gather(
+            shard, blocking_key_slice(key), key.hash, key.cursor, false, state.count,
+            key.wake_payload, &key.wake_upper);
+        if (captured != StreamReadResult::Ready) key.wake_payload.clear();
         return BlockingProbe::Ready;
     }
     return CollectionRef(object).entries() ? BlockingProbe::Ready : BlockingProbe::Empty;
@@ -1160,6 +1168,13 @@ bool blocking_stream_bounds(const BlockingState* state, uint32_t key_index, Stre
     upper = state->keys[key_index].wake_upper;
     bounded = state->keys[key_index].wake_bounded;
     return true;
+}
+
+const std::vector<uint8_t>* blocking_stream_captured_payload(
+    const BlockingState* state, uint32_t key_index) {
+    if (!state || state->kind != BlockingKind::Xread || key_index >= state->keys.size() ||
+        state->keys[key_index].wake_payload.empty()) return nullptr;
+    return &state->keys[key_index].wake_payload;
 }
 
 bool blocking_wants_dispatch(const Op& op) {

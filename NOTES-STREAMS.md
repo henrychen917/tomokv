@@ -40,7 +40,7 @@ The median delta is -39.335 instructions/op, satisfying the `<= +1` no-regressio
 
 - `tests/differ.py ... stream`: 4,031 operations, 0 differences under atomic 0 and atomic 1.
 - `tests/differ.py ... notify`: 331 operations / 454 events, 0 differences under both atomic modes.
-- `tests/stream.py`: 29 directed properties, including blocking/disconnect/reset, indexed seeks,
+- `tests/stream.py`: 30 directed properties, including blocking/disconnect/reset, indexed seeks,
   the 128-byte one-entry floor, and the sustained-trim plateau; the million-op soak passed.
 - `GATE_PORT=7955 GATE_CORES=224-231 tests/gate.sh quick`: 65 checks, 0 failures.
 - Compile-time footprint locks remain `sizeof(Op) == 336` and `sizeof(Client) == 1984`.

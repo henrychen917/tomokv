@@ -1602,6 +1602,18 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     continue;
                 }
                 ObjectImage& image = state.images[pos];
+                if (state.blocking_origin) {
+                    if (const std::vector<uint8_t>* captured =
+                            blocking_stream_captured_payload(state.blocking_origin, pos)) {
+                        try { image.payload = *captured; }
+                        catch (const std::bad_alloc&) {
+                            state.status[pos] = static_cast<uint8_t>(WorkError::Oom);
+                            continue;
+                        }
+                        image.present = true;
+                        continue;
+                    }
+                }
                 const StreamReadResult read = stream_xread_gather(
                     shard, op.arg(key.arg), key.hash, cursor, latest, state.xread_count,
                     image.payload, bounded ? &upper : nullptr);

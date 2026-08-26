@@ -201,6 +201,20 @@ note("blocking '$' freezes the first publication",
      "reply=%r" % dollar_result)
 dollar_client.close()
 
+# Redis freezes the publication before processing a following pipelined delete. The asynchronous
+# scatter rerun must therefore not turn a valid wake into nil merely because the entry is gone.
+race_client, race_thread, race_result, race_errors = start_wait(
+    "XREAD", "BLOCK", "2000", "STREAMS", "stream:delete-race", "$")
+wait_value(admin, "CLIENTS", "blocked_clients", 1)
+admin.sock.sendall(frame("XADD", "stream:delete-race", "1-0", "f", "published") +
+                   frame("XDEL", "stream:delete-race", "1-0"))
+race_mutations = [admin.read(), admin.read()]
+race_thread.join(2)
+note("blocking XREAD freezes publication across following XDEL",
+     race_mutations == [b"1-0", 1] and not race_thread.is_alive() and not race_errors and
+     race_result == [[[b"stream:delete-race", [xentry("1-0", "f", "published")]]]])
+race_client.close()
+
 # COUNT is honored again on the wake/re-entry path, not only by immediate XREAD.
 count_client, count_thread, count_result, count_errors = start_wait(
     "XREAD", "COUNT", "1", "BLOCK", "2000", "STREAMS", "stream:count-wake", "$")

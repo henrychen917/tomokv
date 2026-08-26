@@ -6,6 +6,7 @@
 #pragma once
 
 #include <cstdint>
+#include <vector>
 #include "../store/typeval.h"
 
 namespace tomo {
@@ -68,6 +69,8 @@ void blocking_retire(Server& server, Client& client, Op& op, ThreadCtx& thread);
 void blocking_scatter_retire(Server& server, Client& client, ScatterState& state);
 bool blocking_stream_bounds(const BlockingState* state, uint32_t key_index, StreamID& cursor,
                             StreamID& upper, bool& bounded);
+const std::vector<uint8_t>* blocking_stream_captured_payload(
+    const BlockingState* state, uint32_t key_index);
 bool blocking_wants_dispatch(const Op& op);
 
 }  // namespace tomo
