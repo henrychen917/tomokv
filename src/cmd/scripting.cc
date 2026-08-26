@@ -303,12 +303,29 @@ struct ScriptContext {
     bool timed_out = false;
 };
 
+// Persistent per-thread engine. Building luaL_newstate + the sandbox + recompiling the source on
+// EVERY call measured 53.8k EVALSHA/s at p50 18.9 ms against vanilla redis's 550k/s (~18 µs of
+// per-call construction). Scripts execute on shard-owner executors, so one state per thread needs
+// no locks: sandbox and compiled chunks are built once; a call rebinds only the context slot and
+// the KEYS/ARGV tables. The sandbox closures capture a pointer to `current` (stable for the life
+// of the state), never a per-call context address.
+struct LuaEngine {
+    lua_State* state = nullptr;
+    ScriptContext* current = nullptr;   // per-call slot; closures and the hook read through this
+    uint64_t flush_generation = 0;      // mirrors g_script_flushes when the state was (re)built
+    ~LuaEngine() {
+        if (state) lua_close(state);
+    }
+};
+thread_local LuaEngine t_lua_engine;
+std::atomic<uint64_t> g_script_flushes{0};
+
 ScriptContext* lua_context(lua_State* state) {
     lua_pushlightuserdata(state, &g_hook_context_key);
     lua_gettable(state, LUA_REGISTRYINDEX);
-    auto* context = static_cast<ScriptContext*>(lua_touserdata(state, -1));
+    auto* slot = static_cast<ScriptContext**>(lua_touserdata(state, -1));
     lua_pop(state, 1);
-    return context;
+    return slot ? *slot : nullptr;
 }
 
 void instruction_hook(lua_State* state, lua_Debug*) {
@@ -442,7 +459,8 @@ bool push_resp_value(lua_State* state, const char* data, size_t size, size_t& po
 }
 
 int redis_dispatch(lua_State* state, bool protected_call) {
-    auto* context = static_cast<ScriptContext*>(lua_touserdata(state, lua_upvalueindex(1)));
+    auto* slot = static_cast<ScriptContext**>(lua_touserdata(state, lua_upvalueindex(1)));
+    ScriptContext* context = slot ? *slot : nullptr;
     char deferred_error[2100] = {};
     bool failed = false;
     {
@@ -551,13 +569,40 @@ void remove_global(lua_State* state, const char* name) {
     lua_setglobal(state, name);
 }
 
+// State reuse must not let one script's globals leak into the next call, so undeclared global
+// writes and reads are errors (redis semantics; redis rejects both on its own reused
+// interpreter). rawset can still bypass this, exactly as it can in redis — scripts are an
+// admin-trust surface.
+int protected_global_newindex(lua_State* state) {
+    return luaL_error(state, "Script attempted to create global variable '%s'",
+                      lua_tostring(state, 2));
+}
+
+int protected_global_index(lua_State* state) {
+    return luaL_error(state, "Script attempted to access nonexistent global variable '%s'",
+                      lua_tostring(state, 2));
+}
+
+// Installs `name` into the globals table bypassing the protection metatable; the value to
+// install must be on top of the stack.
+void set_global_raw(lua_State* state, const char* name) {
+    lua_pushvalue(state, LUA_GLOBALSINDEX);
+    lua_insert(state, -2);
+    lua_pushstring(state, name);
+    lua_insert(state, -2);
+    lua_rawset(state, -3);
+    lua_pop(state, 1);
+}
+
 void open_library(lua_State* state, lua_CFunction open, const char* name) {
     lua_pushcfunction(state, open);
     lua_pushstring(state, name);
     lua_call(state, 1, 0);
 }
 
-void create_sandbox(lua_State* state, ScriptContext& context) {
+// Built ONCE per thread state: libraries, strips, the redis table (closures over the stable
+// per-state context slot), the hook registry entry, and — last — the globals protection.
+void create_sandbox_static(lua_State* state, ScriptContext** slot) {
     open_library(state, luaopen_base, "");
     open_library(state, luaopen_table, LUA_TABLIBNAME);
     open_library(state, luaopen_string, LUA_STRLIBNAME);
@@ -579,21 +624,39 @@ void create_sandbox(lua_State* state, ScriptContext& context) {
     lua_pop(state, 1);
 
     lua_createtable(state, 0, 2);
-    lua_pushlightuserdata(state, &context);
+    lua_pushlightuserdata(state, slot);
     lua_pushcclosure(state, redis_call, 1);
     lua_setfield(state, -2, "call");
-    lua_pushlightuserdata(state, &context);
+    lua_pushlightuserdata(state, slot);
     lua_pushcclosure(state, redis_pcall, 1);
     lua_setfield(state, -2, "pcall");
     lua_setglobal(state, "redis");
 
+    lua_pushlightuserdata(state, &g_hook_context_key);
+    lua_pushlightuserdata(state, slot);
+    lua_settable(state, LUA_REGISTRYINDEX);
+
+    // Globals protection LAST, so the setup writes above bypass nothing. KEYS/ARGV are installed
+    // per call via set_global_raw.
+    lua_pushvalue(state, LUA_GLOBALSINDEX);
+    lua_createtable(state, 0, 2);
+    lua_pushcfunction(state, protected_global_newindex);
+    lua_setfield(state, -2, "__newindex");
+    lua_pushcfunction(state, protected_global_index);
+    lua_setfield(state, -2, "__index");
+    lua_setmetatable(state, -2);
+    lua_pop(state, 1);
+}
+
+// Rebuilt per call: only the tables whose contents depend on the op.
+void bind_call_tables(lua_State* state, ScriptContext& context) {
     lua_createtable(state, static_cast<int>(context.key_count), 0);
     for (uint32_t i = 0; i < context.key_count; i++) {
         const Slice key = context.parent->arg(context.key_first + i);
         lua_pushlstring(state, key.p, key.n);
         lua_rawseti(state, -2, static_cast<int>(i + 1));
     }
-    lua_setglobal(state, "KEYS");
+    set_global_raw(state, "KEYS");
 
     const uint32_t argv_first = context.key_first + context.key_count;
     const uint32_t argv_count = context.parent->argc() - argv_first;
@@ -603,11 +666,7 @@ void create_sandbox(lua_State* state, ScriptContext& context) {
         lua_pushlstring(state, value.p, value.n);
         lua_rawseti(state, -2, static_cast<int>(i + 1));
     }
-    lua_setglobal(state, "ARGV");
-
-    lua_pushlightuserdata(state, &g_hook_context_key);
-    lua_pushlightuserdata(state, &context);
-    lua_settable(state, LUA_REGISTRYINDEX);
+    set_global_raw(state, "ARGV");
 }
 
 bool append_lua_result(lua_State* state, int index, SmallBuf<kInlineReply>& output,
@@ -678,7 +737,7 @@ bool append_lua_result(lua_State* state, int index, SmallBuf<kInlineReply>& outp
     return true;
 }
 
-void run_eval(Shard& shard, Op& op, Slice source, bool cache_source) {
+void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_hint) {
     if (source.n > kScriptMaxBytes) {
         reply_text_error(op, "ERR", "script exceeds the 1 MiB limit");
         return;
@@ -692,23 +751,60 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source) {
         reply_text_error(op, "ERR", "invalid script key declaration");
         return;
     }
-    lua_State* state = luaL_newstate();
-    if (!state) { reply_text_error(op, "ERR", "out of memory"); return; }
-    ScriptContext context{&shard, &op, key_first, key_count};
-    create_sandbox(state, context);
-    const int compiled = luaL_loadbuffer(state, source.p, source.n, "user_script");
-    if (compiled != 0) {
-        size_t length = 0;
-        const char* text = lua_tolstring(state, -1, &length);
-        const std::string error = clean_error(text ? text : "compile error", text ? length : 13);
-        lua_close(state);
-        reply_text_error(op, "ERR", std::string("Error compiling script: ") + error);
-        return;
+
+    LuaEngine& engine = t_lua_engine;
+    if (engine.state &&
+        engine.flush_generation != g_script_flushes.load(std::memory_order_acquire)) {
+        // SCRIPT FLUSH invalidates every thread's compiled-chunk cache; rebuilding the whole
+        // state is the simple correct form and FLUSH is admin-cold.
+        lua_close(engine.state);
+        engine.state = nullptr;
     }
+    if (!engine.state) {
+        engine.state = luaL_newstate();
+        if (!engine.state) { reply_text_error(op, "ERR", "out of memory"); return; }
+        engine.flush_generation = g_script_flushes.load(std::memory_order_acquire);
+        create_sandbox_static(engine.state, &engine.current);
+        lua_newtable(engine.state);
+        lua_setfield(engine.state, LUA_REGISTRYINDEX, "tomo_chunks");
+    }
+    lua_State* state = engine.state;
+    ScriptContext context{&shard, &op, key_first, key_count};
+    engine.current = &context;
+
+    // Fetch the compiled chunk by sha, compiling at most once per thread per script.
+    std::string sha_storage;
+    Slice sha = sha_hint;
+    if (!sha.n) {
+        sha_storage = sha1_hex(source);
+        sha = Slice(sha_storage.data(), static_cast<uint32_t>(sha_storage.size()));
+    }
+    lua_getfield(state, LUA_REGISTRYINDEX, "tomo_chunks");
+    lua_pushlstring(state, sha.p, sha.n);
+    lua_rawget(state, -2);
+    if (lua_isnil(state, -1)) {
+        lua_pop(state, 1);
+        const int compiled = luaL_loadbuffer(state, source.p, source.n, "user_script");
+        if (compiled != 0) {
+            size_t length = 0;
+            const char* text = lua_tolstring(state, -1, &length);
+            const std::string error =
+                clean_error(text ? text : "compile error", text ? length : 13);
+            lua_settop(state, 0);
+            engine.current = nullptr;
+            reply_text_error(op, "ERR", std::string("Error compiling script: ") + error);
+            return;
+        }
+        lua_pushlstring(state, sha.p, sha.n);
+        lua_pushvalue(state, -2);
+        lua_rawset(state, -4);
+    }
+    lua_remove(state, -2);   // drop the chunk table, leaving the function on top
     if (cache_source) {
         std::string ignored;
         if (!g_scripts.store(source, ignored)) {
-            lua_close(state);
+            lua_settop(state, 0);
+            engine.current = nullptr;
             reply_text_error(op, "ERR", "out of memory caching script");
             return;
         }
@@ -717,19 +813,23 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source) {
     ScriptUndo undo;
     const bool atomic = g_script_server && g_script_server->atomic_enabled();
     if (atomic && !undo.capture(shard, op, key_first, key_count)) {
-        lua_close(state);
+        lua_settop(state, 0);
+        engine.current = nullptr;
         reply_text_error(op, "ERR", "out of memory preparing atomic script");
         return;
     }
     ScriptEvictionGuard eviction_guard(shard, atomic);
 
+    bind_call_tables(state, context);
     lua_sethook(state, instruction_hook, LUA_MASKCOUNT, kHookInterval);
     const int status = lua_pcall(state, 0, 1, 0);
+    lua_sethook(state, nullptr, 0, 0);
     if (status != 0) {
         size_t length = 0;
         const char* text = lua_tolstring(state, -1, &length);
         const std::string error = clean_error(text ? text : "runtime error", text ? length : 13);
-        lua_close(state);
+        lua_settop(state, 0);
+        engine.current = nullptr;
         const bool restored = !atomic || undo.rollback(shard);
         if (!restored) reply_text_error(op, "ERR", "atomic script rollback failed");
         else if (context.timed_out)
@@ -743,7 +843,8 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source) {
     uint32_t elements = 0;
     const bool converted = append_lua_result(
         state, -1, result, 0, elements, conversion_error);
-    lua_close(state);
+    lua_settop(state, 0);
+    engine.current = nullptr;
     if (!converted) {
         const bool restored = !atomic || undo.rollback(shard);
         reply_text_error(op, "ERR", restored
@@ -756,7 +857,7 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source) {
 
 void cmd_eval(Shard& shard, Op& op) {
     if (op.cmd_name().eq_icase("eval")) {
-        run_eval(shard, op, op.arg(1), true);
+        run_eval(shard, op, op.arg(1), true, Slice());
         return;
     }
     std::string source;
@@ -764,7 +865,8 @@ void cmd_eval(Shard& shard, Op& op) {
         reply_text_error(op, "NOSCRIPT", "No matching script. Please use EVAL.");
         return;
     }
-    run_eval(shard, op, Slice(source.data(), static_cast<uint32_t>(source.size())), false);
+    run_eval(shard, op, Slice(source.data(), static_cast<uint32_t>(source.size())), false,
+             op.arg(1));
 }
 
 void cmd_script(Shard&, Op& op) {
@@ -803,6 +905,7 @@ void cmd_script(Shard&, Op& op) {
             return;
         }
         g_scripts.flush();
+        g_script_flushes.fetch_add(1, std::memory_order_release);
         reply_ok(op.sink());
         return;
     }
