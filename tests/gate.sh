@@ -145,7 +145,9 @@ if [ -f "$SPD/niclib.sh" ] && [ -f tests/gate_refs.txt ]; then
     CPP=$(pwd)/build/tomokv; KMAX=2000000
     run_cell(){ # name cores ratio shards pipe lg t conns ratio_rw
       nic_kill_srv $NIC_PORT
-      NIC_SRV_CORES=$2 nic_boot "gate_$1" "$CPP" --port $NIC_PORT --bind $NIC_SRV_IP --ratio $3 --shards $4 || return 1
+      # --protected-mode no: protected mode (vanilla-compat: no bind check) denies non-local
+      # peers when no password is set — which is every NIC cell.
+      NIC_SRV_CORES=$2 nic_boot "gate_$1" "$CPP" --port $NIC_PORT --bind $NIC_SRV_IP --ratio $3 --shards $4 --protected-mode no || return 1
       NIC_TO=1200 NIC_LG_CORES=$6 nic_memtier -t 16 -c 4 --pipeline=32 --ratio=1:0 --key-pattern=P:P \
           --key-minimum=1 --key-maximum=$KMAX -n allkeys -d 64 >/dev/null 2>&1
       local f=$BL_LOGDIR/g_$1.log
