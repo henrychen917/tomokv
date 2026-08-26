@@ -970,6 +970,171 @@ def run_spubsub_differ(rng):
           (checks, diffs, "PASS" if diffs == 0 else "FAIL"))
     return 1 if diffs else 0
 
+def run_fanout_differ(rng):
+    # FANOUT differential: every delivered frame is byte-compared against Redis, in order, for a
+    # mixed population of RESP2/RESP3, exact/pattern/shard subscribers.  This is the suite that
+    # covers the encode-once blob (one encoding serving '*' and '>' headers), the `pmessage` tail
+    # reuse, the per-owner delivery batch, and the two ordering contracts the design promises:
+    #   (1) a pipelined burst on ONE channel arrives in publish order (its single home orders it);
+    #   (2) one-at-a-time publishes across MANY channels arrive in publish order (a home queues its
+    #       deliveries before it releases the reply, so the next publish cannot overtake them).
+    # Frame counts come from a Python-side model, not from select(): a lost, extra or reordered
+    # frame therefore misaligns the byte comparison immediately instead of being timed out.
+    diffs = 0
+    checks = 0
+
+    def compare(label, target, oracle):
+        nonlocal diffs, checks
+        checks += 1
+        if target != oracle:
+            diffs += 1
+            if diffs <= 12:
+                print("  DIFF %s\n    target: %r\n    oracle: %r" %
+                      (label, target[:200], oracle[:200]))
+
+    def open_pair(resp3):
+        pair = []
+        for host, port in ((TH, TP), (OH, OP)):
+            s = socket.create_connection((host, port), timeout=20)
+            s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            f = s.makefile("rb")
+            if resp3:
+                s.sendall(enc(["HELLO", "3"]))
+                hello = read_reply(f)
+                if not hello.startswith(b"%7\r\n"):
+                    raise RuntimeError("HELLO 3 failed on %s:%d" % (host, port))
+            pair.append((s, f))
+        return pair
+
+    CHANNELS = ["fan:d:%02d" % i for i in range(8)]
+    SHARDS = ["fan:s:%02d" % i for i in range(4)]
+    # Disjoint by construction: no channel matches two patterns, because the relative order of two
+    # pmessage frames for one publish is dictionary order on both servers and is not a contract.
+    PREFIXES = ["fan:d:0", "fan:d:1"]
+    PATTERNS = [p + "*" for p in PREFIXES]
+
+    publisher = open_pair(False)
+    subs = []
+    NSUB = 9
+    for index in range(NSUB):
+        (ts, tf), (os_, of) = open_pair(index % 3 == 2)
+        state = {"t": ts, "tf": tf, "o": os_, "of": of, "resp3": index % 3 == 2,
+                 "exact": set(), "patterns": set(), "shard": set()}
+        exact = rng.sample(CHANNELS, rng.randrange(1, 4))
+        for channel in exact:
+            for sock in (ts, os_): sock.sendall(enc(["SUBSCRIBE", channel]))
+            compare("SUBSCRIBE ack %d" % index, read_reply(tf), read_reply(of))
+            state["exact"].add(channel)
+        if index % 2 == 0:
+            pattern = rng.choice(PATTERNS)
+            for sock in (ts, os_): sock.sendall(enc(["PSUBSCRIBE", pattern]))
+            compare("PSUBSCRIBE ack %d" % index, read_reply(tf), read_reply(of))
+            state["patterns"].add(pattern)
+        if index % 3 != 1:
+            shard = rng.choice(SHARDS)
+            for sock in (ts, os_): sock.sendall(enc(["SSUBSCRIBE", shard]))
+            compare("SSUBSCRIBE ack %d" % index, read_reply(tf), read_reply(of))
+            state["shard"].add(shard)
+        subs.append(state)
+
+    def frames_for(state, channel, shard):
+        # Redis walks the exact index first and the pattern list second, and so do we.
+        n = 0
+        if shard:
+            return 1 if channel in state["shard"] else 0
+        if channel in state["exact"]: n += 1
+        for pattern in state["patterns"]:
+            if channel.startswith(pattern[:-1]): n += 1
+        return n
+
+    def drain(published):
+        # `published` is the publish order: [(channel, shard), ...].
+        for index, state in enumerate(subs):
+            expected = sum(frames_for(state, channel, shard) for channel, shard in published)
+            for frame in range(expected):
+                compare("sub%d frame %d" % (index, frame),
+                        read_reply(state["tf"]), read_reply(state["of"]))
+
+    ROUNDS = 220
+    for round_index in range(ROUNDS):
+        mode = rng.randrange(10)
+        published = []
+        if mode < 5:
+            # (1) pipelined burst on ONE channel -- ordering owned by that channel's single home.
+            shard = rng.randrange(4) == 0
+            channel = rng.choice(SHARDS if shard else CHANNELS)
+            verb = "SPUBLISH" if shard else "PUBLISH"
+            burst = rng.randrange(3, 26)
+            payload = [enc([verb, channel, "r%d:%d" % (round_index, i)]) for i in range(burst)]
+            blob = b"".join(payload)
+            publisher[0][0].sendall(blob); publisher[1][0].sendall(blob)
+            for i in range(burst):
+                compare("%s burst %d/%d" % (verb, round_index, i),
+                        read_reply(publisher[0][1]), read_reply(publisher[1][1]))
+                published.append((channel, shard))
+        elif mode < 9:
+            # (2) one at a time across MANY channels -- ordering owned by the delivery fence.
+            for step in range(rng.randrange(2, 8)):
+                shard = rng.randrange(4) == 0
+                channel = rng.choice(SHARDS if shard else CHANNELS)
+                verb = "SPUBLISH" if shard else "PUBLISH"
+                command = enc([verb, channel, "s%d:%d" % (round_index, step)])
+                publisher[0][0].sendall(command); publisher[1][0].sendall(command)
+                compare("%s seq %d/%d" % (verb, round_index, step),
+                        read_reply(publisher[0][1]), read_reply(publisher[1][1]))
+                published.append((channel, shard))
+        else:
+            # Subscription churn plus the full introspection surface.
+            state = subs[rng.randrange(NSUB)]
+            channel = rng.choice(CHANNELS)
+            if channel in state["exact"]:
+                for sock in (state["t"], state["o"]): sock.sendall(enc(["UNSUBSCRIBE", channel]))
+                compare("UNSUBSCRIBE churn %d" % round_index,
+                        read_reply(state["tf"]), read_reply(state["of"]))
+                state["exact"].discard(channel)
+            else:
+                for sock in (state["t"], state["o"]): sock.sendall(enc(["SUBSCRIBE", channel]))
+                compare("SUBSCRIBE churn %d" % round_index,
+                        read_reply(state["tf"]), read_reply(state["of"]))
+                state["exact"].add(channel)
+            for command, unordered in (
+                    (["PUBSUB", "NUMSUB"] + rng.sample(CHANNELS, 3), False),
+                    (["PUBSUB", "NUMPAT"], False),
+                    (["PUBSUB", "SHARDNUMSUB"] + rng.sample(SHARDS, 2), False),
+                    (["PUBSUB", "CHANNELS", "fan:d:*"], True),
+                    (["PUBSUB", "SHARDCHANNELS", "fan:s:*"], True)):
+                publisher[0][0].sendall(enc(command)); publisher[1][0].sendall(enc(command))
+                target = read_reply(publisher[0][1]); oracle = read_reply(publisher[1][1])
+                if unordered:
+                    target = normalize("SMEMBERS", target)
+                    oracle = normalize("SMEMBERS", oracle)
+                compare(" ".join(command[:3]), target, oracle)
+        drain(published)
+
+    # Sentinel sweep: every subscriber's NEXT frame must be this publish. Any frame either server
+    # leaked earlier and we did not account for would sit ahead of it and show up right here.
+    sentinel = CHANNELS[0]
+    command = enc(["PUBLISH", sentinel, "sentinel-final"])
+    publisher[0][0].sendall(command); publisher[1][0].sendall(command)
+    compare("sentinel PUBLISH", read_reply(publisher[0][1]), read_reply(publisher[1][1]))
+    for index, state in enumerate(subs):
+        for frame in range(frames_for(state, sentinel, False)):
+            target = read_reply(state["tf"]); oracle = read_reply(state["of"])
+            compare("sentinel sub%d frame %d" % (index, frame), target, oracle)
+            if b"sentinel-final" not in target:
+                diffs += 1
+                print("  DIFF sentinel sub%d saw a stale frame: %r" % (index, target[:120]))
+
+    for state in subs:
+        state["t"].close(); state["o"].close()
+    publisher[0][0].close(); publisher[1][0].close()
+    print("DIFFER fanout: %d checks, %d diffs -> %s" %
+          (checks, diffs, "PASS" if diffs == 0 else "FAIL"))
+    return 1 if diffs else 0
+
+
+if SUITE == "fanout":
+    sys.exit(run_fanout_differ(rng))
 if SUITE == "spubsub":
     sys.exit(run_spubsub_differ(rng))
 # Notification differential is structurally different from command/reply suites: each side needs

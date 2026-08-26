@@ -1426,6 +1426,12 @@ nonblocking_dispatch:
             } else ++it;
         }
 
+        // PUB/SUB PASS BOUNDARY -- between parsing and serving, on purpose. Everything this pass
+        // parsed is resolved and appended to its subscribers' buffers HERE, so PHASE 2 sends one
+        // coalesced write per subscriber instead of one per message. Off/unarmed servers pay one
+        // predicted branch on a bool; all the machinery is out-of-line and cold.
+        if (__builtin_expect(pubsub_pass_pending_, false)) work += pubsub_pass_flush();
+
         // PHASE 2 -- serve AT MOST kServeBudget conns from the FIFO. Bounding the pass is the
         // fourth application of the same law (per-pass work scales with what the pass does, not
         // with connection count): the leftovers stay queued, did > 0 keeps the loop from parking,

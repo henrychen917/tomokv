@@ -5,6 +5,7 @@
 // process-unique id and owning IO; no cross-thread Client pointer is retained.
 #pragma once
 
+#include <atomic>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -19,9 +20,7 @@ enum class PubSubEventKind : uint8_t {
     NotificationEnqueue,
     NotificationRequest,
     NotificationContinue,
-    PublishResult,
-    Delivery,
-    DeliveryReply,
+    DeliveryBatch,
     ChannelsRequest,
     ChannelsResult,
     NumsubRequest,
@@ -65,6 +64,36 @@ struct PubSubEventItem {
     std::string value;
 };
 
+// One publish, encoded ONCE at the channel home and shared by every owning IO thread that has a
+// subscriber for it.  Refcounted because the owners retire independently: the last one frees it.
+//
+// `frame` holds the RESP2 delivery exactly as it goes on the wire.  The RESP3 push frame is
+// byte-identical except for the leading '*' -> '>' (both element counts are single digits), so one
+// encoding serves both protocols.  `body_off` is the offset of the `$<len>\r\n<channel>...` tail,
+// which `pmessage` reuses verbatim behind its own 4-element header.
+struct PubSubBlob {
+    std::atomic<uint32_t> refs{0};
+    bool shard = false;
+    uint32_t body_off = 0;
+    std::string frame;
+};
+
+// One (blob, destination connection) pair queued for an owning IO thread.  Connections are named
+// by process-unique id, never by a cross-thread Client*.  A non-empty `pattern` selects the
+// `pmessage` shape.  Each item holds ONE reference on `blob`.
+struct PubSubDelivery {
+    PubSubBlob* blob = nullptr;
+    uint64_t conn = 0;
+    std::string pattern;
+};
+
+// A finished PUBLISH/SPUBLISH, batched back to the publisher's own IO thread.
+struct PubSubResult {
+    uint64_t conn_id = 0;
+    uint64_t op_id = 0;
+    uint64_t count = 0;
+};
+
 struct PubSubNotificationItem {
     std::string channel;
     std::string message;
@@ -77,7 +106,7 @@ struct PubSubNotificationChain {
 };
 
 struct PubSubEvent {
-    PubSubEventKind kind = PubSubEventKind::Delivery;
+    PubSubEventKind kind = PubSubEventKind::DeliveryBatch;
     uint32_t origin_io = 0;
     uint32_t target_io = 0;
     uint64_t conn_id = 0;
@@ -102,6 +131,10 @@ struct PubSubEvent {
     std::string message;
     std::string pattern_text;
     std::vector<PubSubEventItem> items;
+    // DeliveryBatch payload: every publish this home resolved for ONE destination IO in one pass,
+    // plus every publish reply owed to that same IO.  Both stay in publish order.
+    std::vector<PubSubDelivery> deliveries;
+    std::vector<PubSubResult> results;
     std::shared_ptr<PubSubNotificationChain> notification;
 };
 

@@ -6,8 +6,14 @@
 
     enum class PubSubPendingKind : uint8_t { Modify, Publish, Channels, Numsub, Numpat, Reset };
     enum class PubSubStartResult : uint8_t { Async, Sync };
-    static constexpr uint32_t kPubSubPublishBatch = 10;
-    static constexpr uint32_t kPubSubShardPublishBatch = 11;
+
+    // Per destination IO thread, everything this home resolved during ONE pass.  Filled by
+    // pubsub_home_publish, emptied once per pass by pubsub_pass_flush.  Coalescing here is what
+    // turns a 64-deep pipelined publisher from 64 posts (and 64 sends per subscriber) into one.
+    struct PubSubOutbox {
+        std::vector<PubSubDelivery> deliveries;
+        std::vector<PubSubResult> results;
+    };
 
     struct PubSubRef {
         uint32_t io = 0;
@@ -60,13 +66,40 @@
     }
 
     void pubsub_delete_event(PubSubEvent* event) {
+        // A batch that never reached its destination (shutdown) still owns one blob reference per
+        // undelivered item.  Releasing here is what keeps the blob gauge honest on every path.
+        for (PubSubDelivery& item : event->deliveries) pubsub_blob_unref(item.blob);
         delete event;
         srv_->pubsub_event_retired();
+    }
+
+    // ---- encode-once delivery blobs --------------------------------------------------------------
+    PubSubBlob* pubsub_blob_new(const std::string& channel, const std::string& message, bool shard) {
+        PubSubBlob* blob = new PubSubBlob;
+        blob->refs.store(1, std::memory_order_relaxed);   // the builder's own reference
+        blob->shard = shard;
+        SmallBuf<256> frame;
+        reply_array_header(frame, 3);
+        if (shard) reply_bulk(frame, Slice("smessage", 8));
+        else reply_bulk(frame, Slice("message", 7));
+        blob->body_off = static_cast<uint32_t>(frame.size());
+        reply_bulk(frame, Slice(channel.data(), channel.size()));
+        reply_bulk(frame, Slice(message.data(), message.size()));
+        blob->frame.assign(frame.data(), frame.size());
+        srv_->pubsub_blob_created();
+        return blob;
+    }
+
+    void pubsub_blob_unref(PubSubBlob* blob) {
+        if (blob->refs.fetch_sub(1, std::memory_order_acq_rel) != 1) return;
+        delete blob;
+        srv_->pubsub_blob_retired();
     }
 
     void pubsub_post(uint32_t target_io, PubSubEvent* event) {
         if (target_io == self_->id()) {
             pubsub_local_events_.push_back(event);
+            pubsub_pass_pending_ = true;
             return;
         }
         ThreadCtx& target = srv_->thread(target_io);
@@ -172,160 +205,173 @@
         pubsub_patterns_.resize(out);
     }
 
-    std::string pubsub_delivery_frame(const PubSubEvent& event,
-                                      const std::string* pattern, bool resp3) {
-        SmallBuf<128> frame;
-        if (pattern) {
-            if (resp3) reply_push_header(frame, 4);
-            else reply_array_header(frame, 4);
-            reply_bulk(frame, Slice("pmessage", 8));
-            reply_bulk(frame, Slice(pattern->data(), pattern->size()));
-        } else {
-            if (resp3) reply_push_header(frame, 3);
-            else reply_array_header(frame, 3);
-            if (event.shard) reply_bulk(frame, Slice("smessage", 8));
-            else reply_bulk(frame, Slice("message", 7));
+    // Appends one already-encoded frame to a subscriber.  RESP3 subscribers get the same bytes
+    // with the leading array byte swapped for the push byte, appended as two pieces so the payload
+    // is never copied a second time.
+    void pubsub_emit(Client* client, const char* p, size_t n, bool resp3) {
+        static constexpr char kPush = '>';
+        auto pending_it = pubsub_pending_.empty() ? pubsub_pending_.end()
+                                                  : pubsub_pending_.find(client->id());
+        if (pending_it != pubsub_pending_.end()) {
+            // A subscription control is mid-flight on this connection: park the push behind it so
+            // the acknowledgement it is waiting for still lands in the Redis-mandated order.
+            std::string& deferred = pending_it->second.deferred;
+            if (resp3) { deferred.push_back(kPush); deferred.append(p + 1, n - 1); }
+            else deferred.append(p, n);
+            return;
         }
-        reply_bulk(frame, Slice(event.channel.data(), event.channel.size()));
-        reply_bulk(frame, Slice(event.message.data(), event.message.size()));
-        return std::string(frame.data(), frame.size());
-    }
-
-    void pubsub_append_wire(Client* client, const std::string& frame) {
-        if (client->has_pending_segments())
-            client->append_buf_segment(frame.data(), frame.size());
-        else
-            client->append_fill(frame.data(), frame.size());
+        Rob<kRobWindow>& rob = client->rob();
+        if (!rob.quiesced()) {
+            // RESP2 subscribed-mode commands are IO-local. Appending to the newest live Op keeps
+            // every command already parsed ahead of this push without Client state.
+            Op& tail = rob.at(rob.dispatch_id() - 1);
+            if (resp3) { tail.reply.append(&kPush, 1); tail.reply.append(p + 1, n - 1); }
+            else tail.reply.append(p, n);
+        } else if (client->has_pending_segments()) {
+            if (resp3) client->append_buf_segment(&kPush, 1, p + 1, n - 1);
+            else client->append_buf_segment(p, n);
+        } else {
+            if (resp3) { client->append_fill(&kPush, 1); client->append_fill(p + 1, n - 1); }
+            else client->append_fill(p, n);
+        }
         enqueue_serve(client);
         mark_active(client);
     }
 
-    void pubsub_deliver(PubSubEvent& event) {
-        std::string regular_resp2;
-        std::string regular_resp3;
-        auto deliver = [&](uint64_t conn_id, const std::string* pattern) {
-            auto local_it = pubsub_local_.find(conn_id);
-            if (local_it == pubsub_local_.end()) return;
-            Client* client = local_it->second.client;
-            if (!client || client->closing() || client->dead()) return;
-            const bool resp3 = client->resp3();
-            std::string pattern_frame;
-            const std::string* frame = nullptr;
-            if (pattern) {
-                pattern_frame = pubsub_delivery_frame(event, pattern, resp3);
-                frame = &pattern_frame;
-            } else {
-                std::string& cached = resp3 ? regular_resp3 : regular_resp2;
-                if (cached.empty()) cached = pubsub_delivery_frame(event, nullptr, resp3);
-                frame = &cached;
-            }
-            auto pending_it = pubsub_pending_.find(conn_id);
-            if (pending_it != pubsub_pending_.end()) {
-                pending_it->second.deferred.append(*frame);
-                return;
-            }
-
-            Rob<kRobWindow>& rob = client->rob();
-            if (!rob.quiesced()) {
-                // RESP2 subscribed-mode commands are IO-local. Appending to the newest live Op
-                // keeps every command already parsed ahead of this push without Client state.
-                Op& tail = rob.at(rob.dispatch_id() - 1);
-                tail.reply.append(frame->data(), frame->size());
-                enqueue_serve(client);
-                mark_active(client);
-                return;
-            }
-            pubsub_append_wire(client, *frame);
-        };
-
-        if (!event.items.empty()) {
-            for (const PubSubEventItem& target : event.items) {
-                if (target.changed) deliver(target.count, &target.value);
-                else deliver(target.count, nullptr);
-            }
+    void pubsub_deliver_one(const PubSubDelivery& item) {
+        auto local_it = pubsub_local_.find(item.conn);
+        if (local_it == pubsub_local_.end()) return;
+        Client* client = local_it->second.client;
+        if (!client || client->closing() || client->dead()) return;
+        const bool resp3 = client->resp3();
+        const PubSubBlob& blob = *item.blob;
+        if (item.pattern.empty()) {
+            pubsub_emit(client, blob.frame.data(), blob.frame.size(), resp3);
+            return;
         }
-        if (event.kind == PubSubEventKind::DeliveryReply) {
-            PubSubEvent* result = pubsub_new_event(PubSubEventKind::PublishResult);
-            result->conn_id = event.conn_id;
-            result->op_id = event.op_id;
-            result->count = event.count;
-            pubsub_post(event.origin_io, result);
+        // `pmessage` reuses the blob's channel+payload tail verbatim behind its own header.
+        SmallBuf<128> head;
+        if (resp3) reply_push_header(head, 4);
+        else reply_array_header(head, 4);
+        reply_bulk(head, Slice("pmessage", 8));
+        reply_bulk(head, Slice(item.pattern.data(), item.pattern.size()));
+        head.append(blob.frame.data() + blob.body_off, blob.frame.size() - blob.body_off);
+        pubsub_emit(client, head.data(), head.size(), false);
+    }
+
+    void pubsub_deliver_batch(std::vector<PubSubDelivery>& items) {
+        for (PubSubDelivery& item : items) {
+            pubsub_deliver_one(item);
+            pubsub_blob_unref(item.blob);
         }
+        srv_->pubsub_deliveries_added(items.size());
+        items.clear();
+    }
+
+    PubSubOutbox& pubsub_outbox_for(uint32_t io) {
+        if (pubsub_outbox_.empty()) pubsub_outbox_.resize(kMaxThreads);   // first pub/sub use only
+        PubSubOutbox& box = pubsub_outbox_[io];
+        if (box.deliveries.empty() && box.results.empty()) pubsub_outbox_dirty_.push_back(io);
+        pubsub_pass_pending_ = true;
+        return box;
+    }
+
+    void pubsub_queue_delivery(const PubSubRef& ref, PubSubBlob* blob,
+                               const std::string* pattern) {
+        blob->refs.fetch_add(1, std::memory_order_relaxed);
+        PubSubOutbox& box = pubsub_outbox_for(ref.io);
+        if (pattern) box.deliveries.push_back(PubSubDelivery{blob, ref.conn, *pattern});
+        else box.deliveries.push_back(PubSubDelivery{blob, ref.conn, std::string()});
+    }
+
+    void pubsub_queue_result(uint32_t io, uint64_t conn_id, uint64_t op_id, uint64_t count) {
+        pubsub_outbox_for(io).results.push_back(PubSubResult{conn_id, op_id, count});
     }
 
     void pubsub_home_publish(PubSubEvent& request, bool reply_to_publisher = true) {
-        uint64_t receivers = 0;
         auto& index = request.shard ? pubsub_shard_channels_ : pubsub_channels_;
         auto exact = index.find(request.channel);
-        const size_t exact_count = exact == index.end() ? 0 : exact->second.size();
-        const auto& ios = srv_->placement().ifid_threads();
-        const size_t exact_reserve = (exact_count + ios.size() - 1) / ios.size();
-        PubSubEvent* deliveries[kMaxThreads];
-        for (uint32_t io : ios) deliveries[io] = nullptr;
-        auto append_delivery = [&](const PubSubRef& ref, const std::string* pattern) {
-            PubSubEvent*& delivery = deliveries[ref.io];
-            if (!delivery) {
-                delivery = pubsub_new_event(PubSubEventKind::Delivery);
-                delivery->target_io = ref.io;
-                delivery->shard = request.shard;
-                delivery->channel = request.channel;
-                delivery->message = request.message;
-                delivery->items.reserve(exact_reserve);
-            }
-            if (pattern)
-                delivery->items.push_back(PubSubEventItem{0, true, ref.conn, *pattern});
-            else
-                delivery->items.push_back(PubSubEventItem{0, false, ref.conn, {}});
-            receivers++;
-        };
-        if (exact != index.end()) {
-            for (const PubSubRef& ref : exact->second) append_delivery(ref, nullptr);
-        }
+        const bool has_exact = exact != index.end();
         // Shard pub/sub is an exact-only namespace. Redis returns before its pattern walk too.
-        if (!request.shard) {
+        const bool walk_patterns = !request.shard && !pubsub_patterns_.empty();
+        if (!has_exact && !walk_patterns) {
+            if (reply_to_publisher)
+                pubsub_queue_result(request.origin_io, request.conn_id, request.op_id, 0);
+            return;
+        }
+
+        uint64_t receivers = 0;
+        PubSubBlob* blob = pubsub_blob_new(request.channel, request.message, request.shard);
+        if (has_exact) {
+            for (const PubSubRef& ref : exact->second) {
+                pubsub_queue_delivery(ref, blob, nullptr);
+                receivers++;
+            }
+        }
+        if (walk_patterns) {
             const Slice channel(request.channel.data(), request.channel.size());
             for (const PubSubPatternRef& entry : pubsub_patterns_) {
                 if (!command_glob_match(Slice(entry.pattern.data(), entry.pattern.size()), channel))
                     continue;
-                append_delivery(entry.ref, &entry.pattern);
+                pubsub_queue_delivery(entry.ref, blob, &entry.pattern);
+                receivers++;
             }
         }
-        if (reply_to_publisher && receivers) {
-            // Complete through the largest remote delivery batch. Besides making the reply a
-            // delivery-order fence on that IO, this keeps a pipelined publisher from outrunning
-            // the subscriber owner. With no remote subscriber, local delivery itself is the
-            // fence. The channel home remains the only producer of every destination FIFO.
-            PubSubEvent* fence = nullptr;
-            for (uint32_t io : ios) {
-                PubSubEvent* candidate = deliveries[io];
-                if (!candidate) continue;
-                if (!fence || (io != self_->id() && fence->target_io == self_->id()) ||
-                    ((io != self_->id()) == (fence->target_io != self_->id()) &&
-                     candidate->items.size() > fence->items.size()))
-                    fence = candidate;
-            }
-            fence->kind = PubSubEventKind::DeliveryReply;
-            fence->origin_io = request.origin_io;
-            fence->conn_id = request.conn_id;
-            fence->op_id = request.op_id;
-            fence->count = receivers;
+        pubsub_blob_unref(blob);   // drop the builder reference; zero receivers frees it right here
+        if (reply_to_publisher)
+            pubsub_queue_result(request.origin_io, request.conn_id, request.op_id, receivers);
+    }
+
+    // One pass' worth of resolved fanout, posted as ONE event per destination IO.  The publisher
+    // cost is now O(#IO owners touched) per pass, not O(#subscribers) per publish, and each owner
+    // appends a whole burst into its clients' buffers before it arms a single send.
+    uint32_t pubsub_flush_outboxes() {
+        uint32_t work = 0;
+        std::vector<uint32_t> dirty;
+        dirty.swap(pubsub_outbox_dirty_);
+
+        // PASS A -- deliveries, before any reply leaves this home. This is the ordering fence that
+        // replaced the old per-publish DeliveryReply: a publisher that waits for its reply before
+        // publishing again cannot have a later message overtake an earlier one at a shared
+        // subscriber, even when the two channels live on different homes. An owner's inbox is one
+        // totally ordered queue, so POSTED is sufficient here -- it need not be processed yet.
+        // (A pipelined publisher spanning several homes has no cross-channel order, in this design
+        // and in the one before it; a single channel is ordered by its single home either way.)
+        for (uint32_t io : dirty) {
+            PubSubOutbox& box = pubsub_outbox_[io];
+            if (box.deliveries.empty()) continue;
+            work++;
+            if (io == self_->id()) { pubsub_deliver_batch(box.deliveries); continue; }
+            PubSubEvent* event = pubsub_new_event(PubSubEventKind::DeliveryBatch);
+            event->origin_io = self_->id();
+            event->target_io = io;
+            event->deliveries.swap(box.deliveries);
+            srv_->pubsub_delivery_batch_posted();
+            pubsub_post(io, event);
         }
-        for (uint32_t io : ios) {
-            if (!deliveries[io]) continue;
+
+        // PASS B -- publish replies, strictly after every delivery above is queued.
+        for (uint32_t io : dirty) {
+            PubSubOutbox& box = pubsub_outbox_[io];
+            if (box.results.empty()) continue;
+            work++;
             if (io == self_->id()) {
-                pubsub_deliver(*deliveries[io]);
-                pubsub_delete_event(deliveries[io]);
-            } else {
-                pubsub_post(io, deliveries[io]);
+                for (const PubSubResult& result : box.results) pubsub_finish_publish(result);
+                box.results.clear();
+                continue;
             }
+            PubSubEvent* event = pubsub_new_event(PubSubEventKind::DeliveryBatch);
+            event->origin_io = self_->id();
+            event->target_io = io;
+            event->results.swap(box.results);
+            pubsub_post(io, event);
         }
-        if (reply_to_publisher && !receivers) {
-            PubSubEvent* result = pubsub_new_event(PubSubEventKind::PublishResult);
-            result->conn_id = request.conn_id;
-            result->op_id = request.op_id;
-            result->count = receivers;
-            pubsub_post(request.origin_io, result);
-        }
+        return work;
+    }
+
+    void pubsub_handle_delivery_batch(PubSubEvent& event) {
+        pubsub_deliver_batch(event.deliveries);
+        for (const PubSubResult& result : event.results) pubsub_finish_publish(result);
     }
 
     void pubsub_notification_send(const std::shared_ptr<PubSubNotificationChain>& chain) {
@@ -388,6 +434,11 @@
                 break;
             case PubSubEventKind::NotificationRequest:
                 pubsub_home_publish(event, false);
+                // Keyspace notifications are a serialized chain across homes: this home's
+                // deliveries must reach their owners BEFORE the coordinator is allowed to send the
+                // next link, or two homes could race the same subscriber out of order. Flushing
+                // here costs nothing extra -- the chain is one event deep by construction.
+                pubsub_flush_outboxes();
                 {
                     PubSubEvent* continuation =
                         pubsub_new_event(PubSubEventKind::NotificationContinue);
@@ -428,7 +479,15 @@
                 PubSubEvent* result = pubsub_new_event(PubSubEventKind::NumpatResult);
                 result->conn_id = event.conn_id;
                 result->op_id = event.op_id;
-                result->count = pubsub_patterns_.size();
+                // Redis counts DISTINCT patterns that have at least one subscriber, not pattern
+                // subscriptions: two clients on "news.*" are one pattern. Patterns are replicated
+                // to every home, so one home's list holds them all. (Probed against redis 7.4;
+                // this used to report pubsub_patterns_.size() and over-counted shared patterns.)
+                std::unordered_set<std::string> distinct;
+                distinct.reserve(pubsub_patterns_.size());
+                for (const PubSubPatternRef& entry : pubsub_patterns_)
+                    distinct.insert(entry.pattern);
+                result->count = distinct.size();
                 pubsub_post(event.origin_io, result);
                 break;
             }
@@ -584,15 +643,15 @@
             pubsub_local_.erase(local_it);
     }
 
-    void pubsub_finish_publish(PubSubEvent& event) {
-        auto local_it = pubsub_local_.find(event.conn_id);
+    void pubsub_finish_publish(const PubSubResult& result) {
+        auto local_it = pubsub_local_.find(result.conn_id);
         if (local_it == pubsub_local_.end()) return;
         PubSubLocalConn& local = local_it->second;
         Client* client = local.client;
         if (!client || !local.pending) return;
 
-        Op& op = client->rob().at(event.op_id);
-        reply_int(op.sink(), static_cast<long long>(event.count));
+        Op& op = client->rob().at(result.op_id);
+        reply_int(op.sink(), static_cast<long long>(result.count));
         op.state.store(OpState::Done, std::memory_order_release);
         enqueue_serve(client);
         mark_active(client);
@@ -604,10 +663,6 @@
     }
 
     void pubsub_handle_result(PubSubEvent& event) {
-        if (event.kind == PubSubEventKind::PublishResult) {
-            pubsub_finish_publish(event);
-            return;
-        }
         auto pending_it = pubsub_pending_.find(event.conn_id);
         if (pending_it == pubsub_pending_.end() || pending_it->second.op_id != event.op_id) return;
         PubSubPending& pending = pending_it->second;
@@ -738,9 +793,8 @@
             case PubSubEventKind::AclUserDeleted:
                 pubsub_handle_acl_event(event);
                 break;
-            case PubSubEventKind::Delivery:
-            case PubSubEventKind::DeliveryReply:
-                pubsub_deliver(event);
+            case PubSubEventKind::DeliveryBatch:
+                pubsub_handle_delivery_batch(event);
                 break;
             case PubSubEventKind::CleanupResult:
                 pubsub_handle_cleanup_result(event);
@@ -767,6 +821,22 @@
             events.swap(pubsub_local_events_);
         }
         return count;
+    }
+
+    // THE pass boundary for pub/sub, called once per IO loop pass from flush_ready behind a single
+    // predicted branch. Everything a pass parsed, resolved and owes is settled here in one go:
+    // that batching window is what a pipelined publisher's coalescing is made of. Out-of-line and
+    // cold, so a server with no subscribers pays one bool test per pass and nothing else.
+    __attribute__((noinline)) uint32_t pubsub_pass_flush() {
+        uint32_t work = 0;
+        for (int guard = 0; guard < 8; guard++) {
+            if (!pubsub_local_events_.empty()) work += pubsub_drain_events();
+            if (pubsub_outbox_dirty_.empty()) break;
+            work += pubsub_flush_outboxes();
+            if (pubsub_local_events_.empty()) break;
+        }
+        pubsub_pass_pending_ = !pubsub_local_events_.empty() || !pubsub_outbox_dirty_.empty();
+        return work;
     }
 
     PubSubLocalConn& pubsub_track(Client* client) {
@@ -891,19 +961,38 @@
         // therefore need no per-connection scatter barrier: results can complete arbitrary ROB
         // slots while the channel home remains the sole delivery-order authority.
         client->rob().publish();
-        // A bounded group keeps publisher parsing and subscriber socket service fair without
-        // returning to one-round-trip-per-message serialization. The ordinary active-loop barrier
-        // resumes parsing as soon as this published group retires.
-        const uint32_t batch = shard ? kPubSubShardPublishBatch : kPubSubPublishBatch;
-        if (local.pending >= batch) client->set_scatter_barrier(true);
+        // No extra in-flight cap, and no inline drain. The ROB window is already the per-connection
+        // in-flight bound, and `client-output-buffer-limit pubsub` is already the subscriber-side
+        // bound -- Redis's own two mechanisms. The cap that used to sit here (10 regular / 11 shard)
+        // forced a home round trip every ten messages, which starved output coalescing: each
+        // subscriber got a send per ~10 frames where Redis gets one per pipeline. Deferring the
+        // drain to the pass boundary is the other half: a 64-deep pipeline now resolves as ONE
+        // batch per destination.
         pubsub_post(event->target_io, event);
-        if (home == self_->id()) pubsub_drain_events();
         return PubSubStartResult::Async;
+    }
+
+    // Redis reports arity failures on a PUBSUB arm through the subcommand-syntax reply, echoing
+    // the subcommand token exactly as the client spelled it. Probed against redis 7.4.
+    void pubsub_reply_bad_subcommand(Op& op, bool unknown) {
+        const Slice name = op.arg(1);
+        std::string message = unknown ? "ERR unknown subcommand '"
+                                      : "ERR unknown subcommand or wrong number of arguments for '";
+        message.append(name.p, name.n);
+        message += "'. Try PUBSUB HELP.";
+        reply_err(op.sink(), message.c_str());
+    }
+
+    void pubsub_reply_bad_arity(Op& op, const char* arm) {
+        std::string message = "ERR wrong number of arguments for 'pubsub|";
+        message += arm;
+        message += "' command";
+        reply_err(op.sink(), message.c_str());
     }
 
     PubSubStartResult pubsub_start_channels(Client* client, Op& op, bool shard = false) {
         if (op.argc() > 3) {
-            reply_syntax(op.sink());
+            pubsub_reply_bad_subcommand(op, false);
             return PubSubStartResult::Sync;
         }
         PubSubPending pending;
@@ -950,7 +1039,7 @@
 
     PubSubStartResult pubsub_start_numpat(Client* client, Op& op) {
         if (op.argc() != 2) {
-            reply_syntax(op.sink());
+            pubsub_reply_bad_arity(op, "numpat");
             return PubSubStartResult::Sync;
         }
         PubSubPending pending;
@@ -1037,14 +1126,19 @@
             reply_err(op.sink(), "ERR internal pubsub command error");
             return PubSubStartResult::Sync;
         }
-        if (op.arg(1).eq_icase("help") && op.argc() == 2) return pubsub_start_help(op);
+        if (op.arg(1).eq_icase("help")) {
+            if (op.argc() != 2) {
+                pubsub_reply_bad_arity(op, "help");
+                return PubSubStartResult::Sync;
+            }
+            return pubsub_start_help(op);
+        }
         if (op.arg(1).eq_icase("channels")) return pubsub_start_channels(client, op);
         if (op.arg(1).eq_icase("numsub")) return pubsub_start_numsub(client, op);
         if (op.arg(1).eq_icase("numpat")) return pubsub_start_numpat(client, op);
         if (op.arg(1).eq_icase("shardchannels")) return pubsub_start_channels(client, op, true);
         if (op.arg(1).eq_icase("shardnumsub")) return pubsub_start_numsub(client, op, true);
-        reply_err(op.sink(),
-            "ERR Unknown subcommand or wrong number of arguments for 'PUBSUB'. Try PUBSUB HELP.");
+        pubsub_reply_bad_subcommand(op, true);
         return PubSubStartResult::Sync;
     }
 
@@ -1098,6 +1192,15 @@
         events.insert(events.end(), pubsub_local_events_.begin(), pubsub_local_events_.end());
         pubsub_local_events_.clear();
         for (PubSubEvent* event : events) pubsub_delete_event(event);
+        // Un-flushed outbox items still hold one blob reference each; the gauge must reach zero.
+        for (uint32_t io : pubsub_outbox_dirty_) {
+            PubSubOutbox& box = pubsub_outbox_[io];
+            for (PubSubDelivery& item : box.deliveries) pubsub_blob_unref(item.blob);
+            box.deliveries.clear();
+            box.results.clear();
+        }
+        pubsub_outbox_dirty_.clear();
+        pubsub_pass_pending_ = false;
         pubsub_notification_chains_.clear();
     }
 
@@ -1107,3 +1210,6 @@
     std::unordered_map<uint64_t, PubSubLocalConn> pubsub_local_;
     std::unordered_map<uint64_t, PubSubPending> pubsub_pending_;
     std::deque<PubSubEvent*> pubsub_local_events_;
+    std::vector<PubSubOutbox> pubsub_outbox_;      // sized on first pub/sub use, never before
+    std::vector<uint32_t> pubsub_outbox_dirty_;
+    bool pubsub_pass_pending_ = false;             // the one hot-path bit flush_ready tests

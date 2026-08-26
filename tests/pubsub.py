@@ -57,11 +57,17 @@ class Conn:
             payload = self.file.read(size)
             assert self.file.read(2) == b"\r\n"
             return payload
-        if prefix == b"*":
+        if prefix in (b"*", b"~", b">"):
             size = int(value)
             if size == -1:
                 return None
             return [self.read() for _ in range(size)]
+        if prefix == b"%":                      # RESP3 map, flattened to a key/value list
+            return [self.read() for _ in range(int(value) * 2)]
+        if prefix == b"_":
+            return None
+        if prefix in (b",", b"#", b"("):
+            return value
         raise AssertionError(f"unknown RESP prefix: {prefix!r}")
 
     def close(self, reset=False):
@@ -274,9 +280,15 @@ def main():
            [shard_intro_a.encode(), 1, shard_intro_b.encode(), 1, missing_shard.encode(), 0],
            "PUBSUB SHARDNUMSUB")
     expect(admin.command("PUBSUB", "SHARDNUMSUB"), [], "PUBSUB SHARDNUMSUB empty")
+    # Redis has no SHARDNUMPAT, and its rejection echoes the subcommand token verbatim.
     shardnumpat = admin.command("PUBSUB", "SHARDNUMPAT")
-    if not isinstance(shardnumpat, RespError) or "Unknown subcommand" not in str(shardnumpat):
-        raise AssertionError(f"PUBSUB SHARDNUMPAT unexpectedly exists: {shardnumpat!r}")
+    expect(str(shardnumpat), "ERR unknown subcommand 'SHARDNUMPAT'. Try PUBSUB HELP.",
+           "PUBSUB SHARDNUMPAT rejection")
+    expect(str(admin.command("PUBSUB", "NUMPAT", "extra")),
+           "ERR wrong number of arguments for 'pubsub|numpat' command", "PUBSUB NUMPAT arity")
+    expect(str(admin.command("PUBSUB", "CHANNELS", "a", "b")),
+           "ERR unknown subcommand or wrong number of arguments for 'CHANNELS'. Try PUBSUB HELP.",
+           "PUBSUB CHANNELS arity")
     help_reply = admin.command("PUBSUB", "HELP")
     if b"SHARDCHANNELS [<pattern>]" not in help_reply or b"SHARDNUMSUB [<shardchannel> ...]" not in help_reply:
         raise AssertionError(f"PUBSUB HELP omitted shard subcommands: {help_reply!r}")
@@ -420,12 +432,217 @@ def main():
     if errors:
         raise errors[0]
 
+    # ---- fanout redesign: batching, encode-once framing, ordering, mid-fanout teardown ----------
+    # Every arm below asserts its mechanism FIRED, not merely that nothing broke: exact per-frame
+    # equality, exact counter deltas, and a batching ratio that a per-delivery design cannot reach.
+
+    # A. Concurrent publishers, one channel. Per PUBLISHER, each subscriber must see a strictly
+    #    increasing sequence with no loss, no duplicate and no reordering; publishers may interleave
+    #    with each other. Publish order on ONE channel is owned by that channel's single home.
+    fan_channel = f"{token}:fan"
+    npub, nsub, per_pub = 4, 12, 150
+    fan_subs = []
+    for index in range(nsub):
+        conn = Conn(host, port, timeout=30)
+        expect(conn.command("SUBSCRIBE", fan_channel),
+               [b"subscribe", fan_channel.encode(), 1], f"fan subscribe {index}")
+        fan_subs.append(conn)
+    before = info_stats(admin)
+    fan_errors = []
+    fan_start = threading.Event()
+
+    def fan_publish(pid):
+        conn = Conn(host, port, timeout=30)
+        try:
+            fan_start.wait()
+            batch = b"".join(encode("PUBLISH", fan_channel, f"{pid}:{seq}")
+                             for seq in range(per_pub))
+            conn.sock.sendall(batch)          # pipelined: the batching window this design creates
+            for seq in range(per_pub):
+                got = conn.read()
+                if got != nsub:
+                    raise AssertionError(f"publisher {pid} seq {seq} receivers {got!r}")
+        except Exception as exc:
+            fan_errors.append(exc)
+        finally:
+            conn.close()
+
+    pubs = [threading.Thread(target=fan_publish, args=(pid,)) for pid in range(npub)]
+    for thread in pubs:
+        thread.start()
+    fan_start.set()
+    for thread in pubs:
+        thread.join()
+    if fan_errors:
+        raise fan_errors[0]
+    for index, conn in enumerate(fan_subs):
+        seen = {pid: -1 for pid in range(npub)}
+        for frame in range(npub * per_pub):
+            got = conn.read()
+            if not (isinstance(got, list) and len(got) == 3 and got[0] == b"message"
+                    and got[1] == fan_channel.encode()):
+                raise AssertionError(f"fan subscriber {index} frame {frame}: {got!r}")
+            pid, seq = (int(part) for part in got[2].split(b":"))
+            if seq != seen[pid] + 1:
+                raise AssertionError(
+                    f"fan subscriber {index}: publisher {pid} jumped {seen[pid]} -> {seq}")
+            seen[pid] = seq
+        for pid in range(npub):
+            expect(seen[pid], per_pub - 1, f"fan subscriber {index} publisher {pid} tail")
+    expect_no_frame(fan_subs[0], "fan subscriber 0 extra frame")
+
+    # B. The batching itself. Deliveries must be counted exactly, and the whole point of the design
+    #    is that far fewer batch events were posted than publishes -- a per-delivery scatter cannot
+    #    produce this ratio. (Deliveries owned by the publishing IO need no event at all, so the
+    #    batch count is a ceiling, not an equality.)
+    after = info_stats(admin)
+    delivered = int(after["pubsub_deliveries"]) - int(before["pubsub_deliveries"])
+    batches = int(after["pubsub_delivery_batches"]) - int(before["pubsub_delivery_batches"])
+    expect(delivered, npub * per_pub * nsub, "pubsub_deliveries delta")
+    if batches >= npub * per_pub:
+        raise AssertionError(
+            f"fanout did not batch: {batches} posted events for {npub * per_pub} publishes")
+    expect(after["pubsub_blobs"], "0", "pubsub_blobs drained after fanout")
+
+    # C. RESP2 and RESP3 subscribers on ONE publish. The encode-once blob serves both protocols by
+    #    swapping the leading header byte, so this arm is what proves the swap is correct.
+    resp2_sub, resp3_sub = Conn(host, port), Conn(host, port)
+    hello = resp3_sub.command("HELLO", "3")
+    if isinstance(hello, RespError):
+        raise AssertionError(f"HELLO 3: {hello!r}")
+    mixed = f"{token}:mixed"
+    expect(resp2_sub.command("SUBSCRIBE", mixed), [b"subscribe", mixed.encode(), 1], "mixed resp2")
+    expect(resp3_sub.command("SUBSCRIBE", mixed), [b"subscribe", mixed.encode(), 1], "mixed resp3")
+    expect(publisher.command("PUBLISH", mixed, "both"), 2, "mixed receivers")
+    raw2 = resp2_sub.file.read(1)
+    expect(raw2, b"*", "RESP2 subscriber gets an array frame")
+    expect(resp2_sub.file.readline(), b"3\r\n", "RESP2 frame arity")
+    raw3 = resp3_sub.file.read(1)
+    expect(raw3, b">", "RESP3 subscriber gets a push frame")
+    expect(resp3_sub.file.readline(), b"3\r\n", "RESP3 frame arity")
+    for conn in (resp2_sub, resp3_sub):
+        expect([conn.read() for _ in range(3)], [b"message", mixed.encode(), b"both"],
+               "mixed frame body")
+    # Pattern delivery to a RESP3 client reuses the same blob tail behind a push header.
+    expect(resp3_sub.command("PSUBSCRIBE", f"{token}:mix*"),
+           [b"psubscribe", f"{token}:mix*".encode(), 2], "mixed resp3 pattern")
+    expect(publisher.command("PUBLISH", mixed, "again"), 3, "mixed pattern receivers")
+    expect(resp2_sub.read(), [b"message", mixed.encode(), b"again"], "resp2 second frame")
+    expect(resp3_sub.file.read(1), b">", "RESP3 exact push")
+    expect(resp3_sub.file.readline(), b"3\r\n", "RESP3 exact arity")
+    expect([resp3_sub.read() for _ in range(3)], [b"message", mixed.encode(), b"again"],
+           "resp3 exact body")
+    expect(resp3_sub.file.read(1), b">", "RESP3 pmessage push")
+    expect(resp3_sub.file.readline(), b"4\r\n", "RESP3 pmessage arity")
+    expect([resp3_sub.read() for _ in range(4)],
+           [b"pmessage", f"{token}:mix*".encode(), mixed.encode(), b"again"], "resp3 pmessage body")
+    resp2_sub.close()
+    resp3_sub.close()
+
+    # D. Subscriber disconnect mid-fanout. Half the subscribers are reset while a pipelined burst
+    #    is in flight, so batches already queued name connections that no longer exist. The survivors
+    #    must still receive every frame, in order, and the blob gauge must return to zero (ASAN).
+    tear_channel = f"{token}:teardown"
+    victims, keepers = [], []
+    for index in range(16):
+        conn = Conn(host, port, timeout=30)
+        expect(conn.command("SUBSCRIBE", tear_channel),
+               [b"subscribe", tear_channel.encode(), 1], f"teardown subscribe {index}")
+        (victims if index % 2 else keepers).append(conn)
+    tear_pub = Conn(host, port, timeout=30)
+    tear_pub.sock.sendall(b"".join(encode("PUBLISH", tear_channel, f"t{seq}")
+                                   for seq in range(400)))
+    for conn in victims:
+        conn.close(reset=True)               # RST mid-burst, while deliveries are queued for them
+    for seq in range(400):
+        got = tear_pub.read()
+        if not isinstance(got, int):
+            raise AssertionError(f"teardown PUBLISH {seq}: {got!r}")
+    for index, conn in enumerate(keepers):
+        for seq in range(400):
+            expect(conn.read(), [b"message", tear_channel.encode(), f"t{seq}".encode()],
+                   f"teardown keeper {index} frame {seq}")
+        conn.close()
+    tear_pub.close()
+
+    # E. Subscriber-side backpressure. Removing the old fixed publish in-flight cap (10 messages)
+    #    made `client-output-buffer-limit pubsub` -- Redis's own mechanism, with Redis's grammar --
+    #    the only thing standing between a fast publisher and an unbounded subscriber buffer. So it
+    #    has to be proven to fire, not assumed. A subscriber that never reads is filled past a
+    #    1 MiB hard limit and must be disconnected, with the counter moving.
+    saved_limits = admin.command("CONFIG", "GET", "client-output-buffer-limit")[1]
+    expect(admin.command("CONFIG", "SET", "client-output-buffer-limit", "pubsub 1048576 0 0"),
+           b"OK", "arm pubsub obuf limit")
+    slow_channel = f"{token}:slow"
+    slow = Conn(host, port, timeout=30)
+    expect(slow.command("SUBSCRIBE", slow_channel),
+           [b"subscribe", slow_channel.encode(), 1], "slow subscribe")
+    disconnects_before = int(info_stats(admin)["client_output_buffer_limit_disconnections"])
+    flood = Conn(host, port, timeout=30)
+    payload = "x" * 4096
+    dropped = False
+    for _ in range(40):                          # ~4 MiB of frames, never read by `slow`
+        flood.sock.sendall(b"".join(encode("PUBLISH", slow_channel, payload)
+                                    for _ in range(100)))
+        for _ in range(100):
+            flood.read()
+        if int(info_stats(admin)["client_output_buffer_limit_disconnections"]) > disconnects_before:
+            dropped = True
+            break
+    if not dropped:
+        raise AssertionError(
+            "client-output-buffer-limit pubsub never fired: the publish path has no "
+            "subscriber-side bound")
+    slow.close(reset=True)
+    flood.close()
+    expect(admin.command("CONFIG", "SET", "client-output-buffer-limit", saved_limits.decode()),
+           b"OK", "restore obuf limits")
+
+    # F. Introspection aggregates against a Python-side model of the same population.
+    model_exact, model_patterns, model_shard = {}, {}, {}
+    model_conns = []
+    for index in range(10):
+        conn = Conn(host, port)
+        channel = f"{token}:model:{index % 4}"
+        expect(conn.command("SUBSCRIBE", channel)[0], b"subscribe", f"model subscribe {index}")
+        model_exact[channel] = model_exact.get(channel, 0) + 1
+        if index % 3 == 0:
+            pattern = f"{token}:model:{index % 2}*"
+            expect(conn.command("PSUBSCRIBE", pattern)[0], b"psubscribe", f"model psub {index}")
+            model_patterns[pattern] = model_patterns.get(pattern, 0) + 1
+        if index % 4 == 1:
+            shard = f"{token}:model:s{index % 3}"
+            expect(conn.command("SSUBSCRIBE", shard)[0], b"ssubscribe", f"model ssub {index}")
+            model_shard[shard] = model_shard.get(shard, 0) + 1
+        model_conns.append(conn)
+    expect(sorted(admin.command("PUBSUB", "CHANNELS", f"{token}:model:*")),
+           sorted(name.encode() for name in model_exact), "model PUBSUB CHANNELS")
+    expect(sorted(admin.command("PUBSUB", "SHARDCHANNELS", f"{token}:model:*")),
+           sorted(name.encode() for name in model_shard), "model PUBSUB SHARDCHANNELS")
+    probe = sorted(model_exact) + [f"{token}:model:absent"]
+    wanted = []
+    for name in probe:
+        wanted.extend((name.encode(), model_exact.get(name, 0)))
+    expect(admin.command("PUBSUB", "NUMSUB", *probe), wanted, "model PUBSUB NUMSUB")
+    shard_probe = sorted(model_shard)
+    shard_wanted = []
+    for name in shard_probe:
+        shard_wanted.extend((name.encode(), model_shard[name]))
+    expect(admin.command("PUBSUB", "SHARDNUMSUB", *shard_probe), shard_wanted,
+           "model PUBSUB SHARDNUMSUB")
+    # NUMPAT counts DISTINCT patterns, not pattern subscriptions -- two clients on one pattern is 1.
+    expect(admin.command("PUBSUB", "NUMPAT"), len(model_patterns), "model PUBSUB NUMPAT")
+    for conn in model_conns:
+        conn.close()
+    for conn in fan_subs:
+        conn.close()
+
     arms.close()
     publisher.close()
     zero_keys = (
         "pubsub_channels", "pubsub_subscriptions", "pubsub_patterns",
         "pubsubshard_channels", "pubsubshard_subscriptions",
-        "pubsub_home_entries", "pubsub_inflight", "pubsub_pending_commands",
+        "pubsub_home_entries", "pubsub_inflight", "pubsub_pending_commands", "pubsub_blobs",
     )
     deadline = time.monotonic() + 10
     while True:
@@ -442,6 +659,7 @@ def main():
            "churn SHARDNUMSUB cleanup")
     admin.close()
     print(f"pubsub: PASS (regular_fanout={nsubs}, shard_fanout={nsubs}, "
+          f"concurrent_pub={npub}x{per_pub}x{nsub}, batches={batches} for {npub * per_pub} publishes, "
           f"ordered_messages={nmessages}, shard_churn=320)")
 
 

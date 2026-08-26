@@ -1276,6 +1276,8 @@ void cmd_info(Shard&, Op& op) {
                       "pubsubshard_channels:%llu\r\npubsubshard_subscriptions:%llu\r\n"
                       "pubsub_patterns:%llu\r\npubsub_home_entries:%llu\r\n"
                       "pubsub_inflight:%llu\r\npubsub_pending_commands:%llu\r\n"
+                      "pubsub_blobs:%llu\r\npubsub_deliveries:%llu\r\n"
+                      "pubsub_delivery_batches:%llu\r\n"
                       "client_output_buffer_limit_disconnections:%llu\r\n"
                       "notify_events_fired:%llu\r\nnotify_events_dropped:%llu\r\n"
                       "client_scatter_requests:%llu\r\nclient_scatter_io_responses:%llu\r\n"
@@ -1323,6 +1325,9 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_home_entries() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_inflight() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_pending() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->pubsub_blobs() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->pubsub_deliveries() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->pubsub_delivery_batches() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->client_output_buffer_limit_disconnections() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->notify_events_fired() : 0),

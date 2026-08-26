@@ -635,6 +635,26 @@ public:
     void pubsub_event_retired() {
         if (pubsub_inflight_.fetch_sub(1, std::memory_order_relaxed) == 0) std::abort();
     }
+    // Fanout reporting. `blobs` is a lifetime gauge that must drain to zero (the refcount proof);
+    // `deliveries / delivery_batches` is the batching proof -- a ratio of 1.0 means the scatter
+    // machinery is posting one event per delivery again, which is the thing this design removed.
+    void pubsub_blob_created() { pubsub_blobs_.fetch_add(1, std::memory_order_relaxed); }
+    void pubsub_blob_retired() {
+        if (pubsub_blobs_.fetch_sub(1, std::memory_order_relaxed) == 0) std::abort();
+    }
+    void pubsub_deliveries_added(uint64_t n) {
+        pubsub_deliveries_.fetch_add(n, std::memory_order_relaxed);
+    }
+    void pubsub_delivery_batch_posted() {
+        pubsub_delivery_batches_.fetch_add(1, std::memory_order_relaxed);
+    }
+    uint64_t pubsub_blobs() const { return pubsub_blobs_.load(std::memory_order_relaxed); }
+    uint64_t pubsub_deliveries() const {
+        return pubsub_deliveries_.load(std::memory_order_relaxed);
+    }
+    uint64_t pubsub_delivery_batches() const {
+        return pubsub_delivery_batches_.load(std::memory_order_relaxed);
+    }
     bool pubsub_notification_reserve(uint64_t count, uint64_t limit) {
         uint64_t current = pubsub_inflight_.load(std::memory_order_relaxed);
         while (count <= limit && current <= limit - count) {
@@ -905,6 +925,9 @@ private:
     std::atomic<uint64_t> atomic_read_floors_[kMaxThreads] = {};
     std::atomic<uint64_t> atomic_snapshot_completions_[kMaxThreads] = {};
     std::atomic<uint64_t> pubsub_inflight_{0};
+    std::atomic<uint64_t> pubsub_blobs_{0};
+    std::atomic<uint64_t> pubsub_deliveries_{0};
+    std::atomic<uint64_t> pubsub_delivery_batches_{0};
     std::atomic<uint64_t> pubsub_pending_{0};
     std::atomic<uint64_t> pubsub_home_entries_{0};
     std::atomic<uint64_t> pubsub_active_channels_{0};

@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """Per-feature throughput cells that redis-benchmark cannot drive:
 MULTI/EXEC transactions, BLPOP producer/consumer serves, pub/sub fanout delivery.
-Usage: benchfeat.py HOST PORT {exec|blpop|fanout|sfanout} [seconds] [nsubs]"""
+Usage: benchfeat.py HOST PORT {exec|blpop|fanout|sfanout} [seconds] [nsubs] [nprocs] [npubs]"""
 import socket, sys, threading, time
 
 HOST, PORT, MODE = sys.argv[1], int(sys.argv[2]), sys.argv[3]
 SECS = float(sys.argv[4]) if len(sys.argv) > 4 else 10.0
 NSUBS = int(sys.argv[5]) if len(sys.argv) > 5 else 10
+NPROCS = int(sys.argv[6]) if len(sys.argv) > 6 else 4
+NPUBS = int(sys.argv[7]) if len(sys.argv) > 7 else 1
 
 
 def enc(*args):
@@ -134,59 +136,138 @@ def run_blpop():
           (sum(served) / dt, sum(pushed) / dt, CONS))
 
 
-def run_fanout(shard):
-    # NSUBS subscribers on one channel; 1 pipelined publisher; measure publish and delivery rates.
-    sub_cmd = "ssubscribe" if shard else "subscribe"
-    pub_cmd = "SPUBLISH" if shard else "PUBLISH"
-    chan = "bf:chan"
-    counts = []
-    ready = threading.Barrier(NSUBS + 1)
-    stop_flag = threading.Event()
+PAYLOAD = b"m" * 64
+CHAN = b"bf:chan"
 
-    def subscriber():
+
+def fanout_frame(shard):
+    # Every delivery on this bench is byte-identical, so a subscriber can count MESSAGES by
+    # counting BYTES.  That is the whole point: the old per-frame readline parser cost ~1.4us of
+    # CPython per delivery, so ten subscribers saturated the load generator at ~750k deliveries/s
+    # and BOTH servers measured the same number.  A harness ceiling reported as a server result is
+    # the wrong-two-quantities trap; byte counting moves the ceiling ~30x out of the way.
+    label = b"smessage" if shard else b"message"
+    return (b"*3\r\n$%d\r\n%s\r\n$%d\r\n%s\r\n$%d\r\n%s\r\n" %
+            (len(label), label, len(CHAN), CHAN, len(PAYLOAD), PAYLOAD))
+
+
+def fanout_sub_proc(shard, nsubs, secs, ready_w, go_r, out_w):
+    # One process, `nsubs` byte-counting subscriber threads.  recv() drops the GIL, so threads
+    # here cost a syscall each and nothing more.
+    import os
+    sub_cmd = "ssubscribe" if shard else "subscribe"
+    frame = fanout_frame(shard)
+    flen = len(frame)
+    totals = [0] * nsubs
+    checked = [b""] * nsubs
+    ready = threading.Barrier(nsubs + 1)
+    socks = []
+
+    def subscriber(i):
         s = conn(); f = s.makefile("rb")
-        s.sendall(enc(sub_cmd, chan))
+        s.sendall(enc(sub_cmd, CHAN))
         f.readline(); f.readline(); f.read(len(sub_cmd) + 2)
-        f.readline(); f.read(len(chan) + 2); f.readline()
+        f.readline(); f.read(len(CHAN) + 2); f.readline()
+        rest = f.raw._sock if hasattr(f, "raw") else s
+        socks.append(s)
         ready.wait()
         n = 0
-        s.settimeout(2.0)
+        first = b""
+        s.settimeout(3.0)
         try:
-            while not stop_flag.is_set():
-                line = f.readline()
-                if not line: break
-                if line[:1] == b"*":
-                    k = int(line[1:])
-                    for _ in range(k):
-                        l2 = f.readline()
-                        if l2[:1] == b"$":
-                            f.read(int(l2[1:]) + 2)
-                    n += 1
+            while True:
+                b = s.recv(1 << 18)
+                if not b: break
+                if len(first) < flen: first += b
+                n += len(b)
         except (socket.timeout, OSError):
             pass
-        counts.append(n)
+        totals[i] = n
+        checked[i] = first[:flen]
+        del rest
 
-    subs = [threading.Thread(target=subscriber) for _ in range(NSUBS)]
-    for t in subs: t.start()
+    ts = [threading.Thread(target=subscriber, args=(i,)) for i in range(nsubs)]
+    for t in ts: t.start()
     ready.wait()
-    s = conn(); f = s.makefile("rb")
-    BATCH = 256
-    batch = b"".join(enc(pub_cmd, chan, "m" * 64) for _ in range(BATCH))
-    published = 0
-    t0 = time.monotonic()
-    stop = t0 + SECS
-    while time.monotonic() < stop:
-        s.sendall(batch)
-        drain_replies(f, BATCH)
-        published += BATCH
-    dt = time.monotonic() - t0
-    time.sleep(1.5)
-    stop_flag.set()
-    for t in subs: t.join(4)
-    delivered = sum(counts)
-    print("%s publish/s: %.0f  delivery/s: %.0f  (subs %d, delivered %.1f%% of ideal)" %
-          (pub_cmd, published / dt, delivered / dt, NSUBS,
-           100.0 * delivered / (published * NSUBS) if published else 0.0))
+    os.write(ready_w, b"r")            # this process's subscribers are all subscribed
+    os.read(go_r, 1)                   # parent says the publish window is over
+    for t in ts: t.join(6)
+    bad = sum(1 for c in checked if c != frame)
+    os.write(out_w, ("%d %d %d\n" % (sum(totals), flen, bad)).encode())
+
+
+def run_fanout(shard):
+    # NSUBS subscribers on one channel, spread over NPROCS processes; NPUBS pipelined publishers.
+    import os
+    pub_cmd = "SPUBLISH" if shard else "PUBLISH"
+    frame = fanout_frame(shard)
+    flen = len(frame)
+    nprocs = min(NPROCS, NSUBS) if NSUBS else 0
+    per = [NSUBS // nprocs + (1 if i < NSUBS % nprocs else 0) for i in range(nprocs)] if nprocs else []
+
+    kids = []
+    for cnt in per:
+        rr, rw = os.pipe(); gr, gw = os.pipe(); orr, orw = os.pipe()
+        pid = os.fork()
+        if pid == 0:
+            os.close(rr); os.close(gw); os.close(orr)
+            try: fanout_sub_proc(shard, cnt, SECS, rw, gr, orw)
+            finally: os._exit(0)
+        os.close(rw); os.close(gr); os.close(orw)
+        kids.append((pid, rr, gw, orr))
+    for _, rr, _, _ in kids:
+        os.read(rr, 1)                 # every child fully subscribed before a byte is published
+
+    published = [0] * NPUBS
+    barrier = threading.Barrier(NPUBS)
+    t0 = [0.0] * NPUBS
+    dt = [0.0] * NPUBS
+
+    def publisher(i):
+        s = conn(); f = s.makefile("rb")
+        BATCH = 256
+        batch = b"".join(enc(pub_cmd, CHAN, PAYLOAD) for _ in range(BATCH))
+        n = 0
+        barrier.wait()
+        a = time.monotonic()
+        stop = a + SECS
+        while time.monotonic() < stop:
+            s.sendall(batch)
+            drain_replies(f, BATCH)
+            n += BATCH
+        dt[i] = time.monotonic() - a
+        published[i] = n
+        s.close()
+
+    pts = [threading.Thread(target=publisher, args=(i,)) for i in range(NPUBS)]
+    for t in pts: t.start()
+    for t in pts: t.join()
+    span = max(dt) if dt else 1.0
+    total_pub = sum(published)
+
+    time.sleep(1.5)                    # let the delivery backlog drain before we stop counting
+    delivered = 0
+    bad = 0
+    for pid, rr, gw, orr in kids:
+        os.write(gw, b"g")
+    for pid, rr, gw, orr in kids:
+        buf = b""
+        while not buf.endswith(b"\n"):
+            chunk = os.read(orr, 64)
+            if not chunk: break
+            buf += chunk
+        os.waitpid(pid, 0)
+        if buf:
+            nbytes, fl, nbad = buf.split()
+            delivered += int(nbytes) // int(fl)
+            bad += int(nbad)
+        os.close(rr); os.close(gw); os.close(orr)
+
+    ideal = total_pub * NSUBS
+    print("%s subs=%-3d publish/s: %-10.0f delivery/s: %-11.0f delivered %.1f%% of ideal%s"
+          % (pub_cmd, NSUBS, total_pub / span, delivered / span,
+             100.0 * delivered / ideal if ideal else 0.0,
+             "" if bad == 0 else "  FRAME-MISMATCH=%d" % bad))
 
 
 if MODE == "exec": run_exec()
