@@ -48,6 +48,8 @@
 
 #include "scatter_engine.inc"
 #include "xshard_commands.inc"
+#include "bitfield.inc"
+#include "dumprestore.inc"
 #include "atomics_glue.inc"
 #include "blocking.inc"
 #include "multi.inc"

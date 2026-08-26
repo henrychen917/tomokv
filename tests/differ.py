@@ -570,6 +570,79 @@ def gen_bitmap(rng):
     ]
     return ops
 
+def gen_bitfield(rng):
+    keys = ["bf:%02d:%s" % (i, "".join(rng.choice("abcdef0123456789") for _ in range(24)))
+            for i in range(20)]
+    types = ["u1", "u2", "u7", "u8", "u16", "u31", "u32", "u63",
+             "i1", "i2", "i7", "i8", "i16", "i31", "i32", "i63", "i64"]
+    values = ["-9223372036854775808", "-65537", "-257", "-129", "-1", "0", "1",
+              "127", "255", "256", "65535", "9223372036854775807"]
+    ops = []
+    def K(): return rng.choice(keys)
+    def T(): return rng.choice(types)
+    def O(t):
+        bits = int(t[1:])
+        return ("#%d" % rng.randrange(0, 48)) if rng.randrange(3) == 0 \
+            else str(rng.randrange(0, 48 * bits + 24))
+
+    for _ in range(3200):
+        choice = rng.randrange(18)
+        key = K()
+        type_name = T()
+        offset = O(type_name)
+        if choice < 4:
+            ops.append(["BITFIELD", key, "GET", type_name, offset])
+        elif choice < 8:
+            ops.append(["BITFIELD", key, "SET", type_name, offset, rng.choice(values)])
+        elif choice < 12:
+            ops.append(["BITFIELD", key, "OVERFLOW", rng.choice(["WRAP", "SAT", "FAIL"]),
+                        "INCRBY", type_name, offset, rng.choice(values)])
+        elif choice == 12:
+            second = T()
+            ops.append(["BITFIELD", key,
+                        "GET", type_name, offset,
+                        "OVERFLOW", rng.choice(["WRAP", "SAT", "FAIL"]),
+                        "INCRBY", second, O(second), rng.choice(values),
+                        "GET", second, O(second)])
+        elif choice == 13:
+            ops.append(["BITFIELD_RO", key, "GET", type_name, offset])
+        elif choice == 14:
+            ops.append(["SETBIT", key, str(rng.randrange(0, 512)), str(rng.randrange(2))])
+        elif choice == 15:
+            ops.append(["GETBIT", key, str(rng.randrange(0, 768))])
+        elif choice == 16:
+            ops.append([rng.choice(["SET", "APPEND"]), key,
+                        rng.choice([b"", b"12345", b"hello", b"\x00\xff\x80"])])
+        else:
+            ops.append([rng.choice(["GET", "STRLEN", "DEL"]), key])
+
+    a, b, c, d = keys[:4]
+    ops += [
+        ["DEL", a, b, c, d],
+        ["BITFIELD", a], ["BITFIELD", a, "OVERFLOW", "SAT"],
+        ["BITFIELD", a, "GET", "u8", "0"], ["EXISTS", a],
+        ["BITFIELD", a, "SET", "u8", "0", "255", "GET", "u8", "0",
+         "INCRBY", "u8", "0", "1", "GET", "u8", "0"],
+        ["BITFIELD", a, "OVERFLOW", "SAT", "INCRBY", "u8", "0", "-1",
+         "OVERFLOW", "WRAP", "INCRBY", "u8", "0", "-999"],
+        ["BITFIELD", b, "SET", "i8", "0", "127", "OVERFLOW", "WRAP",
+         "INCRBY", "i8", "0", "1", "OVERFLOW", "SAT", "INCRBY", "i8", "0", "-1"],
+        ["BITFIELD", b, "OVERFLOW", "FAIL", "SET", "i8", "0", "999",
+         "GET", "i8", "0"],
+        ["BITFIELD", c, "SET", "u4", "#2", "10", "GET", "u4", "#2"],
+        ["STRLEN", c], ["GET", c],
+        ["SET", d, "12345"], ["BITFIELD", d, "GET", "u8", "0"],
+        ["SET", d, "v", "PX", "600000"], ["BITFIELD", d, "SET", "u8", "#4", "9"],
+        ["PTTL", d],
+        ["BITFIELD_RO", a, "GET", "u8", "0"],
+        ["BITFIELD_RO", a, "GET", "u8", "0", "SET", "u8", "0", "1"],
+        ["BITFIELD", a, "GET", "u64", "0"], ["BITFIELD", a, "GET", "i65", "0"],
+        ["BITFIELD", a, "GET", "i8", "#1152921504606846976"],
+        ["BITFIELD", a, "OVERFLOW", "NOPE"], ["BITFIELD", a, "GET", "u8"],
+        ["SADD", "bf:wrongtype", "x"], ["BITFIELD", "bf:wrongtype"],
+    ]
+    return ops
+
 def gen_hll(rng):
     keys = ["hll:%02d:%s" % (i, "".join(rng.choice("abcdef0123456789") for _ in range(30)))
             for i in range(18)]
@@ -993,7 +1066,7 @@ if SUITE == "notify":
 
 gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset,
         "hash": gen_hash, "xshard": gen_xshard, "bitmap": gen_bitmap, "hll": gen_hll,
-        "cgaps": gen_cgaps, "stream": gen_stream}
+        "bitfield": gen_bitfield, "cgaps": gen_cgaps, "stream": gen_stream}
 ops = gens[SUITE](rng)
 
 ts, tf = conn(TH, TP)

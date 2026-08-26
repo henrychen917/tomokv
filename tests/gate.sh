@@ -107,7 +107,7 @@ grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG
 # asserts its own mechanisms fired; the boot covers multi/blocking/pubsub+sharded/lua/limits.
 for AT in 0 1; do
   boot ./build/tomokv --atomic $AT || bad "feature battery boot (atomic $AT)"
-  for t in multi_exec blocking stream pubsub lua_scripting limits resp3; do
+  for t in multi_exec blocking stream pubsub lua_scripting limits resp3 bitfield dumprestore; do
     python3 tests/$t.py 127.0.0.1 $PORT >/tmp/gate-$t-$AT.txt 2>&1 \
         && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see /tmp/gate-$t-$AT.txt"
   done
@@ -115,6 +115,27 @@ for AT in 0 1; do
   grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
       && ok "feature shutdown invariants (atomic $AT)" || bad "feature shutdown invariants (atomic $AT)"
 done
+
+# ---- self-format DUMP/RESTORE survives the native snapshot/restart boundary ------------------
+DUMPRESTORE_DIR=$(mktemp -d /tmp/gate-dumprestore.XXXXXX)
+boot ./build/tomokv --atomic 1 --dir "$DUMPRESTORE_DIR" --dbfilename dumprestore.tomo \
+    || bad "DUMP/RESTORE restart preparation boot"
+python3 tests/dumprestore.py 127.0.0.1 $PORT prepare_restart \
+    >/tmp/gate-dumprestore-restart.txt 2>&1 \
+    && ok "DUMP/RESTORE prepare + native SAVE" \
+    || bad "DUMP/RESTORE restart preparation" "see /tmp/gate-dumprestore-restart.txt"
+stop
+boot ./build/tomokv --atomic 1 --dir "$DUMPRESTORE_DIR" \
+    --load "$DUMPRESTORE_DIR/dumprestore.tomo" \
+    || bad "DUMP/RESTORE snapshot reload boot"
+python3 tests/dumprestore.py 127.0.0.1 $PORT verify_restart \
+    >>/tmp/gate-dumprestore-restart.txt 2>&1 \
+    && ok "DUMP/RESTORE cross-restart round-trip" \
+    || bad "DUMP/RESTORE cross-restart round-trip" "see /tmp/gate-dumprestore-restart.txt"
+stop
+grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
+    && ok "DUMP/RESTORE restart shutdown invariants" \
+    || bad "DUMP/RESTORE restart shutdown invariants"
 
 # ---- auth + audit DEBUG (purpose-booted; each test asserts its gate actually opened) -----------
 ./build/tomokv --protected-mode maybe 2>&1 | grep -q "protected-mode wants" \

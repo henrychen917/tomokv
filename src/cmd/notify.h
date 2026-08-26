@@ -90,7 +90,7 @@ inline std::string serialize_notify_flags(uint32_t flags) {
 }
 
 enum class NotifyEventId : uint8_t {
-    Set, Expire, Del, Persist, RenameFrom, RenameTo, CopyTo,
+    Set, Expire, Del, Persist, RenameFrom, RenameTo, CopyTo, Restore,
     Setrange, Append, Incrby, Incrbyfloat, Setbit, Pfadd,
     Lpush, Rpush, Lpop, Rpop, Linsert, Lset, Lrem, Ltrim, Sortstore,
     Sadd, Srem, Spop, Sinterstore, Sunionstore, Sdiffstore,

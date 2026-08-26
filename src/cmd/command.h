@@ -131,6 +131,17 @@ const CommandSpec* command_tls_variant(const CommandSpec* spec);
 void cmd_get_tls(Shard&, Op&);
 void cmd_get_tls_notify(Shard&, Op&);
 
+// Larger single-key string/keyspace commands live with the shared owner helpers instead of the
+// latency-sensitive string translation unit. Their registry rows remain in the string family.
+void cmd_bitfield(Shard&, Op&);
+void cmd_bitfield_notify(Shard&, Op&);
+void cmd_bitfield_ro(Shard&, Op&);
+void cmd_bitfield_ro_notify(Shard&, Op&);
+void cmd_dump(Shard&, Op&);
+void cmd_dump_notify(Shard&, Op&);
+void cmd_restore(Shard&, Op&);
+void cmd_restore_notify(Shard&, Op&);
+
 class Server;
 class Client;
 class ThreadCtx;

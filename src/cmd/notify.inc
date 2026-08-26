@@ -37,6 +37,7 @@ const char* notify_event_name(NotifyEventId event) {
         case NotifyEventId::RenameFrom: return "rename_from";
         case NotifyEventId::RenameTo: return "rename_to";
         case NotifyEventId::CopyTo: return "copy_to";
+        case NotifyEventId::Restore: return "restore";
         case NotifyEventId::Setrange: return "setrange";
         case NotifyEventId::Append: return "append";
         case NotifyEventId::Incrby: return "incrby";
@@ -125,7 +126,8 @@ uint32_t notify_event_priority(NotifyEventId event) {
         case NotifyEventId::Xtrim:
         case NotifyEventId::RenameFrom:
         case NotifyEventId::RenameTo:
-        case NotifyEventId::CopyTo: return 4;
+        case NotifyEventId::CopyTo:
+        case NotifyEventId::Restore: return 4;
         case NotifyEventId::Expire:
         case NotifyEventId::Persist: return 6;
         case NotifyEventId::Del: return 8;

@@ -49,6 +49,8 @@ inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"BGREWRITEAOF", 0x000000000002a000ULL}, // admin slow dangerous
     {"BGSAVE", 0x000000000002a000ULL}, // admin slow dangerous
     {"BITCOUNT", 0x0000000000008102ULL}, // read bitmap slow
+    {"BITFIELD", 0x0000000000008104ULL}, // write bitmap slow
+    {"BITFIELD_RO", 0x0000000000004102ULL}, // read bitmap fast
     {"BITOP", 0x0000000000008104ULL}, // write bitmap slow
     {"BITPOS", 0x0000000000008102ULL}, // read bitmap slow
     {"BLMOVE", 0x0000000000018024ULL}, // write list slow blocking
@@ -69,6 +71,7 @@ inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"DECRBY", 0x0000000000004084ULL}, // write string fast
     {"DEL", 0x0000000000008005ULL}, // keyspace write slow
     {"DISCARD", 0x0000000000084000ULL}, // fast transaction
+    {"DUMP", 0x0000000000008003ULL}, // keyspace read slow
     {"ECHO", 0x0000000000044000ULL}, // fast connection
     {"EVAL", 0x0000000000108000ULL}, // slow scripting
     {"EVALSHA", 0x0000000000108000ULL}, // slow scripting
@@ -145,6 +148,7 @@ inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"RENAME", 0x0000000000008005ULL}, // keyspace write slow
     {"RENAMENX", 0x0000000000004005ULL}, // keyspace write fast
     {"RESET", 0x0000000000044000ULL}, // fast connection
+    {"RESTORE", 0x0000000000028005ULL}, // keyspace write slow dangerous
     {"RPOP", 0x0000000000004024ULL}, // write list fast
     {"RPOPLPUSH", 0x0000000000008024ULL}, // write list slow
     {"RPUSH", 0x0000000000004024ULL}, // write list fast

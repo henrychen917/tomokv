@@ -1355,6 +1355,10 @@ static const CommandSpec kTable[] = {
     {"SETRANGE",      4,  4,  CmdFlags::Write | CmdFlags::DenyOom,  TOMO_HANDLER_PAIR(cmd_setrange, 1, 1, 1)},
     {"SETBIT",        4,  4,  CmdFlags::Write | CmdFlags::DenyOom,  TOMO_HANDLER_PAIR(cmd_setbit, 1, 1, 1)},
     {"GETBIT",        3,  3,  CmdFlags::Readonly,                    TOMO_HANDLER_PAIR(cmd_getbit, 1, 1, 1)},
+    {"BITFIELD",      2, -1,  CmdFlags::Write | CmdFlags::DenyOom,
+                                             cmd_bitfield, 1, 1, 1, cmd_bitfield_notify},
+    {"BITFIELD_RO",   2, -1,  CmdFlags::Readonly,
+                                          cmd_bitfield_ro, 1, 1, 1, cmd_bitfield_ro_notify},
     {"BITCOUNT",      2,  5,  CmdFlags::Readonly,                    TOMO_HANDLER_PAIR(cmd_bitcount, 1, 1, 1)},
     {"BITPOS",        3,  6,  CmdFlags::Readonly,                    TOMO_HANDLER_PAIR(cmd_bitpos, 1, 1, 1)},
     {"BITOP",         4, -1,  CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,
@@ -1394,6 +1398,10 @@ static const CommandSpec kTable[] = {
     {"PEXPIRETIME",   2,  2,  CmdFlags::Readonly,                    TOMO_HANDLER_PAIR(cmd_pexpiretime, 1, 1, 1)},
     {"TYPE",          2,  2,  CmdFlags::Readonly,                    TOMO_HANDLER_PAIR(cmd_type, 1, 1, 1)},
     {"OBJECT",        3,  3,  CmdFlags::Readonly | CmdFlags::Admin,  TOMO_HANDLER_PAIR(cmd_object, 2, 2, 1)},
+    {"DUMP",          2,  2,  CmdFlags::Readonly,
+                                                  cmd_dump, 1, 1, 1, cmd_dump_notify},
+    {"RESTORE",       4, -1,  CmdFlags::Write | CmdFlags::DenyOom,
+                                            cmd_restore, 1, 1, 1, cmd_restore_notify},
 };
 
 #undef TOMO_HANDLER_PAIR
