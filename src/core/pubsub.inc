@@ -6,6 +6,8 @@
 
     enum class PubSubPendingKind : uint8_t { Modify, Publish, Channels, Numsub, Numpat, Reset };
     enum class PubSubStartResult : uint8_t { Async, Sync };
+    static constexpr uint32_t kPubSubPublishBatch = 10;
+    static constexpr uint32_t kPubSubShardPublishBatch = 11;
 
     struct PubSubRef {
         uint32_t io = 0;
@@ -170,12 +172,13 @@
         pubsub_patterns_.resize(out);
     }
 
-    std::string pubsub_delivery_frame(const PubSubEvent& event) {
+    std::string pubsub_delivery_frame(const PubSubEvent& event,
+                                      const std::string* pattern) {
         SmallBuf<128> frame;
-        if (event.pattern) {
+        if (pattern) {
             reply_array_header(frame, 4);
             reply_bulk(frame, Slice("pmessage", 8));
-            reply_bulk(frame, Slice(event.pattern_text.data(), event.pattern_text.size()));
+            reply_bulk(frame, Slice(pattern->data(), pattern->size()));
         } else {
             reply_array_header(frame, 3);
             if (event.shard) reply_bulk(frame, Slice("smessage", 8));
@@ -196,45 +199,77 @@
     }
 
     void pubsub_deliver(PubSubEvent& event) {
-        auto local_it = pubsub_local_.find(event.conn_id);
-        if (local_it == pubsub_local_.end()) return;
-        Client* client = local_it->second.client;
-        if (!client || client->closing() || client->dead()) return;
+        auto deliver = [&](uint64_t conn_id, const std::string& frame) {
+            auto local_it = pubsub_local_.find(conn_id);
+            if (local_it == pubsub_local_.end()) return;
+            Client* client = local_it->second.client;
+            if (!client || client->closing() || client->dead()) return;
+            auto pending_it = pubsub_pending_.find(conn_id);
+            if (pending_it != pubsub_pending_.end()) {
+                pending_it->second.deferred.append(frame);
+                return;
+            }
 
-        std::string frame = pubsub_delivery_frame(event);
-        auto pending_it = pubsub_pending_.find(event.conn_id);
-        if (pending_it != pubsub_pending_.end()) {
-            pending_it->second.deferred.append(frame);
-            return;
-        }
+            Rob<kRobWindow>& rob = client->rob();
+            if (!rob.quiesced()) {
+                // RESP2 subscribed-mode commands are IO-local. Appending to the newest live Op
+                // keeps every command already parsed ahead of this push without Client state.
+                Op& tail = rob.at(rob.dispatch_id() - 1);
+                tail.reply.append(frame.data(), frame.size());
+                enqueue_serve(client);
+                mark_active(client);
+                return;
+            }
+            pubsub_append_wire(client, frame);
+        };
 
-        Rob<kRobWindow>& rob = client->rob();
-        if (!rob.quiesced()) {
-            // RESP2 subscribed-mode commands are IO-local. Appending to the newest live Op keeps
-            // every command already parsed ahead of this push without adding state to Client.
-            Op& tail = rob.at(rob.dispatch_id() - 1);
-            tail.reply.append(frame.data(), frame.size());
-            enqueue_serve(client);
-            mark_active(client);
-            return;
+        if (!event.items.empty()) {
+            const std::string frame = pubsub_delivery_frame(event, nullptr);
+            for (const PubSubEventItem& target : event.items) {
+                if (target.changed) {
+                    const std::string pattern_frame = pubsub_delivery_frame(event, &target.value);
+                    deliver(target.count, pattern_frame);
+                } else {
+                    deliver(target.count, frame);
+                }
+            }
         }
-        pubsub_append_wire(client, frame);
+        if (event.kind == PubSubEventKind::DeliveryReply) {
+            PubSubEvent* result = pubsub_new_event(PubSubEventKind::PublishResult);
+            result->conn_id = event.conn_id;
+            result->op_id = event.op_id;
+            result->count = event.count;
+            pubsub_post(event.origin_io, result);
+        }
     }
 
     void pubsub_home_publish(PubSubEvent& request, bool reply_to_publisher = true) {
         uint64_t receivers = 0;
         auto& index = request.shard ? pubsub_shard_channels_ : pubsub_channels_;
         auto exact = index.find(request.channel);
-        if (exact != index.end()) {
-            for (const PubSubRef& ref : exact->second) {
-                PubSubEvent* delivery = pubsub_new_event(PubSubEventKind::Delivery);
-                delivery->conn_id = ref.conn;
+        const size_t exact_count = exact == index.end() ? 0 : exact->second.size();
+        const auto& ios = srv_->placement().ifid_threads();
+        const size_t exact_reserve = (exact_count + ios.size() - 1) / ios.size();
+        PubSubEvent* deliveries[kMaxThreads];
+        for (uint32_t io : ios) deliveries[io] = nullptr;
+        auto append_delivery = [&](const PubSubRef& ref, const std::string* pattern) {
+            PubSubEvent*& delivery = deliveries[ref.io];
+            if (!delivery) {
+                delivery = pubsub_new_event(PubSubEventKind::Delivery);
+                delivery->target_io = ref.io;
                 delivery->shard = request.shard;
                 delivery->channel = request.channel;
                 delivery->message = request.message;
-                pubsub_post(ref.io, delivery);
-                receivers++;
+                delivery->items.reserve(exact_reserve);
             }
+            if (pattern)
+                delivery->items.push_back(PubSubEventItem{0, true, ref.conn, *pattern});
+            else
+                delivery->items.push_back(PubSubEventItem{0, false, ref.conn, {}});
+            receivers++;
+        };
+        if (exact != index.end()) {
+            for (const PubSubRef& ref : exact->second) append_delivery(ref, nullptr);
         }
         // Shard pub/sub is an exact-only namespace. Redis returns before its pattern walk too.
         if (!request.shard) {
@@ -242,17 +277,39 @@
             for (const PubSubPatternRef& entry : pubsub_patterns_) {
                 if (!command_glob_match(Slice(entry.pattern.data(), entry.pattern.size()), channel))
                     continue;
-                PubSubEvent* delivery = pubsub_new_event(PubSubEventKind::Delivery);
-                delivery->conn_id = entry.ref.conn;
-                delivery->pattern = true;
-                delivery->pattern_text = entry.pattern;
-                delivery->channel = request.channel;
-                delivery->message = request.message;
-                pubsub_post(entry.ref.io, delivery);
-                receivers++;
+                append_delivery(entry.ref, &entry.pattern);
             }
         }
-        if (reply_to_publisher) {
+        if (reply_to_publisher && receivers) {
+            // Complete through the largest remote delivery batch. Besides making the reply a
+            // delivery-order fence on that IO, this keeps a pipelined publisher from outrunning
+            // the subscriber owner. With no remote subscriber, local delivery itself is the
+            // fence. The channel home remains the only producer of every destination FIFO.
+            PubSubEvent* fence = nullptr;
+            for (uint32_t io : ios) {
+                PubSubEvent* candidate = deliveries[io];
+                if (!candidate) continue;
+                if (!fence || (io != self_->id() && fence->target_io == self_->id()) ||
+                    ((io != self_->id()) == (fence->target_io != self_->id()) &&
+                     candidate->items.size() > fence->items.size()))
+                    fence = candidate;
+            }
+            fence->kind = PubSubEventKind::DeliveryReply;
+            fence->origin_io = request.origin_io;
+            fence->conn_id = request.conn_id;
+            fence->op_id = request.op_id;
+            fence->count = receivers;
+        }
+        for (uint32_t io : ios) {
+            if (!deliveries[io]) continue;
+            if (io == self_->id()) {
+                pubsub_deliver(*deliveries[io]);
+                pubsub_delete_event(deliveries[io]);
+            } else {
+                pubsub_post(io, deliveries[io]);
+            }
+        }
+        if (reply_to_publisher && !receivers) {
             PubSubEvent* result = pubsub_new_event(PubSubEventKind::PublishResult);
             result->conn_id = request.conn_id;
             result->op_id = request.op_id;
@@ -514,7 +571,30 @@
             pubsub_local_.erase(local_it);
     }
 
+    void pubsub_finish_publish(PubSubEvent& event) {
+        auto local_it = pubsub_local_.find(event.conn_id);
+        if (local_it == pubsub_local_.end()) return;
+        PubSubLocalConn& local = local_it->second;
+        Client* client = local.client;
+        if (!client || !local.pending) return;
+
+        Op& op = client->rob().at(event.op_id);
+        reply_int(op.sink(), static_cast<long long>(event.count));
+        op.state.store(OpState::Done, std::memory_order_release);
+        enqueue_serve(client);
+        mark_active(client);
+        local.pending--;
+        srv_->pubsub_pending_finished();
+        if (!client->closing() && !local.pending && local.channels.empty() &&
+            local.patterns.empty() && local.shard_channels.empty() && !local.cleanup_started)
+            pubsub_local_.erase(local_it);
+    }
+
     void pubsub_handle_result(PubSubEvent& event) {
+        if (event.kind == PubSubEventKind::PublishResult) {
+            pubsub_finish_publish(event);
+            return;
+        }
         auto pending_it = pubsub_pending_.find(event.conn_id);
         if (pending_it == pubsub_pending_.end() || pending_it->second.op_id != event.op_id) return;
         PubSubPending& pending = pending_it->second;
@@ -523,9 +603,6 @@
                 for (const PubSubEventItem& item : event.items)
                     if (item.index < pending.changes.size() && pending.changes[item.index] < 0)
                         pending.changes[item.index] = item.changed ? 1 : 0;
-                break;
-            case PubSubEventKind::PublishResult:
-                pending.count = event.count;
                 break;
             case PubSubEventKind::ChannelsResult:
                 for (const PubSubEventItem& item : event.items)
@@ -648,6 +725,7 @@
                 pubsub_handle_acl_event(event);
                 break;
             case PubSubEventKind::Delivery:
+            case PubSubEventKind::DeliveryReply:
                 pubsub_deliver(event);
                 break;
             case PubSubEventKind::CleanupResult:
@@ -683,8 +761,8 @@
         return it->second;
     }
 
-    PubSubStartResult pubsub_begin_pending(Client* client, PubSubPending&& pending,
-                                           std::vector<PubSubEvent*>& events) {
+    __attribute__((noinline)) PubSubStartResult pubsub_begin_pending(
+            Client* client, PubSubPending&& pending, std::vector<PubSubEvent*>& events) {
         if (events.empty()) std::abort();
         const uint64_t conn_id = client->id();
         PubSubLocalConn& local = pubsub_track(client);
@@ -773,16 +851,40 @@
     }
 
     PubSubStartResult pubsub_start_publish(Client* client, Op& op, bool shard = false) {
-        PubSubPending pending;
-        pending.kind = PubSubPendingKind::Publish;
-        pending.op_id = client->rob().dispatch_id();
+        const bool subscribers = shard ? srv_->pubsub_any_shard_subscribers()
+                                       : srv_->pubsub_any_subscribers();
+        if (!subscribers) {
+            reply_int(op.sink(), 0);
+            return PubSubStartResult::Sync;
+        }
+        std::string channel = pubsub_string(op.arg(1));
+        std::string message = pubsub_string(op.arg(2));
+        const uint32_t home = pubsub_home_for(channel);
+
         PubSubEvent* event = pubsub_new_event(PubSubEventKind::PublishRequest);
+        event->origin_io = self_->id();
+        event->conn_id = client->id();
+        event->op_id = client->rob().dispatch_id();
         event->shard = shard;
-        event->channel = pubsub_string(op.arg(1));
-        event->message = pubsub_string(op.arg(2));
-        event->target_io = pubsub_home_for(event->channel);
-        std::vector<PubSubEvent*> events{event};
-        return pubsub_begin_pending(client, std::move(pending), events);
+        event->channel = std::move(channel);
+        event->message = std::move(message);
+        event->target_io = home;
+
+        PubSubLocalConn& local = pubsub_track(client);
+        local.pending++;
+        srv_->pubsub_pending_started();
+        // Publish requests from one producer enter each channel home's FIFO in parse order. They
+        // therefore need no per-connection scatter barrier: results can complete arbitrary ROB
+        // slots while the channel home remains the sole delivery-order authority.
+        client->rob().publish();
+        // A bounded group keeps publisher parsing and subscriber socket service fair without
+        // returning to one-round-trip-per-message serialization. The ordinary active-loop barrier
+        // resumes parsing as soon as this published group retires.
+        const uint32_t batch = shard ? kPubSubShardPublishBatch : kPubSubPublishBatch;
+        if (local.pending >= batch) client->set_scatter_barrier(true);
+        pubsub_post(event->target_io, event);
+        if (home == self_->id()) pubsub_drain_events();
+        return PubSubStartResult::Async;
     }
 
     PubSubStartResult pubsub_start_channels(Client* client, Op& op, bool shard = false) {
@@ -882,7 +984,8 @@
         return PubSubStartResult::Sync;
     }
 
-    PubSubStartResult pubsub_start_command(Client* client, Op& op) {
+    __attribute__((noinline, noipa)) PubSubStartResult pubsub_start_command(Client* client,
+                                                                            Op& op) {
         if (op.cmd_name().eq_icase("subscribe")) {
             if (srv_->acl_active() && !acl_pubsub_channel_entry(*client, op, false, *self_))
                 return PubSubStartResult::Sync;

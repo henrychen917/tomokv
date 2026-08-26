@@ -573,7 +573,8 @@ private:
                 if (result == PubSubStartResult::Async) {
                     sig.ops++;
                     mark_active(c);
-                    break;
+                    if (__builtin_expect(c->scatter_barrier(), false)) break;
+                    continue;
                 }
                 finish_prebuilt(c, *op);
                 continue;

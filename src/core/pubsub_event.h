@@ -21,6 +21,7 @@ enum class PubSubEventKind : uint8_t {
     NotificationContinue,
     PublishResult,
     Delivery,
+    DeliveryReply,
     ChannelsRequest,
     ChannelsResult,
     NumsubRequest,

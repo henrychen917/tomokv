@@ -602,6 +602,9 @@ public:
         return pubsub_active_channels_.load(std::memory_order_relaxed) != 0 ||
                pubsub_pattern_subscriptions_.load(std::memory_order_relaxed) != 0;
     }
+    bool pubsub_any_shard_subscribers() const {
+        return pubsub_shard_channels_.load(std::memory_order_relaxed) != 0;
+    }
     void notify_event_fired() { notify_events_fired_.fetch_add(1, std::memory_order_relaxed); }
     void notify_event_dropped(uint64_t count = 1) {
         notify_events_dropped_.fetch_add(count, std::memory_order_relaxed);
