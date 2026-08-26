@@ -4,6 +4,7 @@
 // IO-thread call. Client metadata lives in a cold, locked catalog here rather than enlarging the
 // 1984-byte Client. Store handlers still receive only (Shard&, Op&) and never touch a socket.
 #include "command.h"
+#include "acl.h"
 #include "auth.h"
 #include "debug.h"
 #include "../base/alloc.h"
@@ -1128,6 +1129,7 @@ void cmd_transaction_control(Shard&, Op& op) {
 static const CommandSpec kTable[] = {
     // name       min max flags                                                    handler        first last step
     {"PING",       1,  2, CmdFlags::ConnLocal,                                    cmd_ping,       0,  0, 0},
+    {"ACL",        2, -1, CmdFlags::ConnLocal,                                    cmd_acl,        0,  0, 0},
     {"SAVE",       1,  1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_save,       0,  0, 0},
     {"BGSAVE",     1,  2, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_bgsave,     0,  0, 0},
     {"LASTSAVE",   1,  1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_lastsave,   0,  0, 0},

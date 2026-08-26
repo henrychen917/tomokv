@@ -3,6 +3,7 @@
 // Command ownership stays in t_*.cc. This file knows only how to validate and index rows, so the
 // type lanes and server-compat lane can add commands without a central handler switch.
 #include "command.h"
+#include "acl_categories_generated.h"
 
 #include <cstdio>
 #include <cstring>
@@ -36,6 +37,18 @@ uint64_t command_hash(const char* p, size_t n) {
     h *= 0xff51afd7ed558ccdULL;
     h ^= h >> 33;
     return h;
+}
+
+const AclCommandCategoryDefinition* command_acl_categories(const char* name) {
+    size_t lo = 0, hi = kAclCommandCategoryCount;
+    while (lo < hi) {
+        const size_t mid = lo + (hi - lo) / 2;
+        const int order = std::strcmp(kAclCommandCategories[mid].name, name);
+        if (order < 0) lo = mid + 1;
+        else hi = mid;
+    }
+    return lo < kAclCommandCategoryCount && !std::strcmp(kAclCommandCategories[lo].name, name)
+        ? &kAclCommandCategories[lo] : nullptr;
 }
 
 bool command_equal(Slice input, const char* canonical) {
@@ -72,12 +85,24 @@ bool command_registry_init() {
         for (const CommandTable& family : families)
             for (size_t i = 0; i < family.size; i++) {
                 CommandSpec copy = family.specs[i];
+                const AclCommandCategoryDefinition* categories =
+                    command_acl_categories(copy.name);
+                if (!categories) {
+                    std::fprintf(stderr, "missing generated ACL categories for '%s'\n", copy.name);
+                    return false;
+                }
                 copy.id = static_cast<uint16_t>(g_registry.entries.size());
+                copy.acl_categories = categories->categories;
                 g_registry.entries.push_back(copy);
             }
     } catch (const std::bad_alloc&) {
         g_registry.entries.clear();
         g_registry.slots.clear();
+        return false;
+    }
+    if (g_registry.entries.size() != kAclCommandCategoryCount) {
+        std::fprintf(stderr, "generated ACL category table has %zu rows for %zu commands\n",
+                     kAclCommandCategoryCount, g_registry.entries.size());
         return false;
     }
 

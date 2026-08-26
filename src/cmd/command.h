@@ -67,7 +67,13 @@ struct CommandSpec {
     // Dense boot-assigned id. Family tables leave this zero; commands.cc copies their rows into
     // registry-owned storage and assigns the final value before any server thread starts.
     uint16_t    id = 0;
+
+    // Generated from vanilla Redis 7.4 commands.def, including its implicit categories. Category
+    // rules compile eagerly into command bits, so this is read only on ACL admin/check paths.
+    uint64_t    acl_categories = 0;
 };
+
+static_assert(sizeof(CommandSpec) == 48);
 
 struct CommandTable {
     const CommandSpec* specs;

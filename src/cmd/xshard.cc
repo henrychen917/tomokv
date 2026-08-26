@@ -19,6 +19,8 @@
 #include <vector>
 
 #include "command.h"
+#include "acl.h"
+#include "acl_categories_generated.h"
 #include "auth.h"
 #include "blocking.h"
 #include "debug.h"
@@ -41,3 +43,4 @@
 #include "blocking.inc"
 #include "multi.inc"
 #include "auth.inc"
+#include "acl.inc"

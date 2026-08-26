@@ -33,6 +33,9 @@ g++ -std=c++20 -O1 -g -fsanitize=address -march=native -pthread -I. \
 g++ -std=c++20 -O2 -I. tests/config_parser_test.cc -o /tmp/tomokv-config-parser-test \
     && /tmp/tomokv-config-parser-test \
     && ok "Redis config quoting + mid-value #" || bad "Redis config quoting + mid-value #"
+python3 tools/gen_acl_categories.py --redis-root "${REDIS74_ROOT:-/tmp/claude-1000/redis74}" \
+    --check src/cmd/acl_categories_generated.h \
+    && ok "generated Redis 7.4 ACL categories" || bad "generated Redis 7.4 ACL categories"
 
 # ---- 2. boot matrix: deleted flags stay dead; live grammar boots ------------------------------
 ./build/tomokv --mode 3s      2>&1 | grep -q "unknown" && ok "reject --mode (flag deleted)" || bad "reject --mode (flag deleted)"
@@ -45,6 +48,8 @@ printf 'florb 1\n' > /tmp/gate-bad.conf
 
 boot(){ # binary -> pid ; server log to $SRVLOG
   local bin=$1; shift
+  (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null \
+      && { say "port $PORT pre-boot guard" "FAIL (already accepting)"; return 1; }
   SRVLOG=$(mktemp /tmp/gate-srv.XXXXXX)
   timeout 900 taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --shards 16 --ratio $GATE_RATIO "$@" \
       > "$SRVLOG" 2>&1 &
@@ -53,7 +58,7 @@ boot(){ # binary -> pid ; server log to $SRVLOG
     (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null && return 0; sleep 0.2; done
   return 1
 }
-stop(){ kill -TERM $SRV 2>/dev/null; wait $SRV 2>/dev/null; }
+stop(){ kill -TERM $SRV 2>/dev/null; wait $SRV 2>/dev/null; sleep 5; }
 
 # ---- 3. correctness: smoke + torture + RYOW on the release build ------------------------------
 boot ./build/tomokv || bad "release boot"
@@ -61,6 +66,8 @@ python3 tests/../tests/torture.py 127.0.0.1 $PORT >/tmp/gate-tort.txt 2>&1 \
     && ok "torture battery" || bad "torture battery" "see /tmp/gate-tort.txt"
 python3 tests/ryow.py 127.0.0.1 $PORT >/tmp/gate-ryow.txt 2>&1 \
     && ok "RYOW battery" || bad "RYOW battery" "see /tmp/gate-ryow.txt"
+python3 tests/acl_categories.py 127.0.0.1 $PORT >/tmp/gate-acl-categories.txt 2>&1 \
+    && ok "ACL category runtime table" || bad "ACL category runtime table" "see /tmp/gate-acl-categories.txt"
 # idle-CPU ceiling: after the batteries, an idle server must not burn cores
 C0=$(awk '{print $14+$15}' /proc/$SRV/stat 2>/dev/null || echo 0); sleep 5
 C1=$(awk '{print $14+$15}' /proc/$SRV/stat 2>/dev/null || echo 0)
@@ -136,6 +143,8 @@ grep -q "ERROR: AddressSanitizer" "$SRVLOG" && bad "ASAN clean" || ok "ASAN clea
 
 # ---- 4b. full tier: zero-copy borrow lifetime (release+ASAN) ----------------------------------
 zcboot(){ SRVLOG=$(mktemp /tmp/gate-srv.XXXXXX)
+  (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null \
+      && { say "port $PORT pre-boot guard" "FAIL (already accepting)"; return 1; }
   timeout 900 taskset -c $CORES "$1" --port $PORT --bind 127.0.0.1 --shards 16 --ratio $GATE_RATIO       --zc-min 16384 > "$SRVLOG" 2>&1 &
   SRV=$!
   for _ in $(seq 50); do (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null && return 0; sleep 0.2; done
