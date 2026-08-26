@@ -9,7 +9,7 @@
 namespace tomo {
 namespace {
 enum class Kind : uint8_t {
-    AllShards, DebugReload, DebugLoadAof, DbsizeExact, Mget, Mset, Del, Unlink, Exists, Touch, Keys, Pfcount, Xread, Xreadgroup, Msetnx,
+    AllShards, DebugReload, DebugLoadAof, DbsizeExact, Mget, Mset, Del, Unlink, Exists, Touch, Keys, Pfcount, Xread, Xreadgroup, Lcs, Msetnx,
     Rename, Renamenx, Copy, Smove, Lmove, Rpoplpush,
     Sinter, Sunion, Sdiff, Sintercard, Sinterstore, Sunionstore, Sdiffstore,
     Zunion, Zinter, Zdiff, Zintercard, Zunionstore, Zinterstore, Zdiffstore,
@@ -26,7 +26,7 @@ enum class WorkError : uint8_t {
 };
 enum class FinalReply : uint8_t {
     None, Ok, Integer, Nil, NullArray, Bulk, Array, Lmpop, Zmpop, SortConversion,
-    Work, NoSuchKey, SameObject, QueueFull, Internal
+    Work, NoSuchKey, SameObject, QueueFull, Internal, Lcs, LcsError
 };
 enum class ValueKind : uint8_t { Nil, Inline, Borrow };
 
@@ -90,6 +90,9 @@ struct ResultHeap {
     std::string bulk;
     std::vector<std::string> members;
     std::vector<double> scores;
+    // LCS's answer. The heap sidecar already exists for computed results, and growing it costs
+    // the arena nothing -- it is allocated only by commands that reach ensure_result().
+    LcsResult lcs;
 };
 
 struct RouteKey {
@@ -344,6 +347,7 @@ struct ScatterState {
     uint32_t snapshot_slot = std::numeric_limits<uint32_t>::max(); // owning IO's unresolved set
     uint64_t sinter_limit = 0;
     uint64_t zset_limit = 0;
+    LcsOptions lcs_options;
     uint64_t pop_count = 1;
     uint64_t xread_count = 0;
     uint64_t snapshot = UINT64_MAX;
@@ -449,6 +453,7 @@ bool parse_sort_options(Op& op, SortOptions& options);
 bool parse_zset_operation(Op& op, Kind kind, uint32_t& count,
                           std::vector<double>& weights, ZAggregate& aggregate,
                           bool& withscores, uint64_t& limit);
+void finish_lcs(ScatterState& state);
 void set_oom(Op& op);
 bool classify(const Op& op, Kind& kind);
 bool bitop_operation(Slice name, BitOperation& operation);
@@ -471,7 +476,7 @@ bool first_error(const ScatterState& state, WorkError& error) {
         const ShardGroup& group = state.groups[gi];
         if (group.error != WorkError::None) { error = group.error; return true; }
         if (!state.status || !(state.kind == Kind::Mset || state.kind == Kind::Pfcount ||
-                               state.kind == Kind::Xread ||
+                               state.kind == Kind::Xread || state.kind == Kind::Lcs ||
                                is_two_hop(state.kind))) continue;
         for (uint32_t i = 0; i < group.count; i++) {
             const WorkError value = static_cast<WorkError>(state.status[state.key_order[group.begin + i]]);
@@ -495,6 +500,7 @@ uint32_t key_count_for(Kind kind, const Op& op, uint32_t sinter_count,
     if (is_geo_kind(kind)) return geo_store ? 2 : 1;
     if (kind == Kind::Lmpop || kind == Kind::Zmpop) return mpop_count;
     if (kind == Kind::Zrangestore) return 2;
+    if (kind == Kind::Lcs) return 2;
     if (kind == Kind::Sort) return sort_store ? 2 : 1;
     if (kind == Kind::Xread || kind == Kind::Xreadgroup) return xread_count;
     return op.argc() - 1;
@@ -523,10 +529,10 @@ bool has_status(Kind kind, bool atomic_write) {
     if (atomic_write && (kind == Kind::Mset || kind == Kind::Msetnx)) return false;
     return kind == Kind::Mset || kind == Kind::Del || kind == Kind::Unlink ||
            kind == Kind::Exists || kind == Kind::Touch || kind == Kind::Pfcount ||
-           kind == Kind::Xread || is_two_hop(kind);
+           kind == Kind::Xread || kind == Kind::Lcs || is_two_hop(kind);
 }
 bool has_images(Kind kind) {
-    return kind == Kind::Pfcount || kind == Kind::Xread ||
+    return kind == Kind::Pfcount || kind == Kind::Xread || kind == Kind::Lcs ||
            (is_two_hop(kind) && kind != Kind::Msetnx);
 }
 
@@ -963,7 +969,12 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     }
 
     uint64_t sinter_limit = 0;
+    LcsOptions lcs_options;
     uint32_t sinter_count = 0;
+    // LCS parses its trailing option words on IO, exactly like SINTERCARD: the owners receive a
+    // fully validated request and the parsed scalars ride in the arena header.
+    if (kind == Kind::Lcs && !lcs_parse_options(op, lcs_options))
+        return ScatterPrepare::Error;
     if (kind == Kind::Sintercard) {
         uint64_t parsed = 0;
         if (!parse_u64(op.arg(1), parsed)) {
@@ -1201,6 +1212,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     state->geo_store_distance = geo_route.store_distance;
     state->geo_source_arg = geo_route.source_arg;
     state->geo_destination_arg = geo_route.destination_arg;
+    state->lcs_options = lcs_options;
     state->range_options = range_options;
     state->range_spec = range_spec;
     state->sort_options = sort_options;
@@ -2102,6 +2114,10 @@ ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
     }
     if (state.kind == Kind::Pfcount) {
         finish_pfcount(state);
+        return final();
+    }
+    if (state.kind == Kind::Lcs) {
+        finish_lcs(state);
         return final();
     }
     if (!state.two_hop) return final();

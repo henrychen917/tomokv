@@ -34,7 +34,7 @@ void reply_maxmemory_oom(Op& op);  // defined below with tomo:: linkage; familie
     X(cmd_del) X(cmd_exists) X(cmd_incr) X(cmd_decr) X(cmd_incrby) X(cmd_decrby) \
     X(cmd_incrbyfloat) X(cmd_pfadd) X(cmd_pfcount) X(cmd_expire) X(cmd_pexpire) \
     X(cmd_expireat) X(cmd_pexpireat) X(cmd_ttl) X(cmd_pttl) X(cmd_persist) \
-    X(cmd_expiretime) X(cmd_pexpiretime) X(cmd_type) X(cmd_object)
+    X(cmd_expiretime) X(cmd_pexpiretime) X(cmd_type)
 
 #ifndef TOMO_STRING_NOTIFY_TU
 #define TOMO_DECLARE_STRING_NOTIFY(fn) void fn##_notify(Shard&, Op&);
@@ -1319,28 +1319,6 @@ void cmd_type(Shard& sh, Op& op) {
     reply_simple(op.sink(), type_name(sh.store_find<kNotify>(op.hash, op.key())));
 }
 
-const char* collection_encoding(const KvObj* o) {
-    if (static_cast<Type>(o->type) == Type::String) return o->is_int() ? "int" : "raw";
-    const CollectionEncoding encoding = CollectionRef(const_cast<KvObj*>(o)).encoding();
-    if (static_cast<Type>(o->type) == Type::Stream &&
-        encoding != CollectionEncoding::Compact) return "stream";
-    switch (encoding) {
-        case CollectionEncoding::Compact:   return "compact";
-        case CollectionEncoding::Hashtable: return "hashtable";
-        case CollectionEncoding::Deque:     return "deque";
-        case CollectionEncoding::Btree:     return "btree";
-    }
-    return "unknown";
-}
-
-template <bool kNotify>
-void cmd_object(Shard& sh, Op& op) {
-    if (!eq_icase(op.arg(1), "ENCODING")) { reply_syntax(op.sink()); return; }
-    KvObj* o = sh.store_find<kNotify>(op.hash, op.arg(2));
-    if (!o) { reply_null(op.sink(), op.resp3()); return; }
-    const char* name = collection_encoding(o);
-    reply_bulk(op.sink(), Slice(name, static_cast<uint32_t>(std::strlen(name))));
-}
 
 #ifndef TOMO_STRING_NOTIFY_TU
 #define TOMO_HANDLER_PAIR(fn, first, last, step) \
@@ -1353,6 +1331,7 @@ static const CommandSpec kTable[] = {
     {"APPEND",        3,  3,  CmdFlags::Write | CmdFlags::DenyOom,  TOMO_HANDLER_PAIR(cmd_append, 1, 1, 1)},
     {"STRLEN",        2,  2,  CmdFlags::Readonly,                    TOMO_HANDLER_PAIR(cmd_strlen, 1, 1, 1)},
     {"GETRANGE",      4,  4,  CmdFlags::Readonly,                    TOMO_HANDLER_PAIR(cmd_getrange, 1, 1, 1)},
+    {"SUBSTR",        4,  4,  CmdFlags::Readonly,                    TOMO_HANDLER_PAIR(cmd_getrange, 1, 1, 1)},
     {"SETRANGE",      4,  4,  CmdFlags::Write | CmdFlags::DenyOom,  TOMO_HANDLER_PAIR(cmd_setrange, 1, 1, 1)},
     {"SETBIT",        4,  4,  CmdFlags::Write | CmdFlags::DenyOom,  TOMO_HANDLER_PAIR(cmd_setbit, 1, 1, 1)},
     {"GETBIT",        3,  3,  CmdFlags::Readonly,                    TOMO_HANDLER_PAIR(cmd_getbit, 1, 1, 1)},
@@ -1398,7 +1377,6 @@ static const CommandSpec kTable[] = {
     {"EXPIRETIME",    2,  2,  CmdFlags::Readonly,                    TOMO_HANDLER_PAIR(cmd_expiretime, 1, 1, 1)},
     {"PEXPIRETIME",   2,  2,  CmdFlags::Readonly,                    TOMO_HANDLER_PAIR(cmd_pexpiretime, 1, 1, 1)},
     {"TYPE",          2,  2,  CmdFlags::Readonly,                    TOMO_HANDLER_PAIR(cmd_type, 1, 1, 1)},
-    {"OBJECT",        3,  3,  CmdFlags::Readonly | CmdFlags::Admin,  TOMO_HANDLER_PAIR(cmd_object, 2, 2, 1)},
     {"DUMP",          2,  2,  CmdFlags::Readonly,
                                                   cmd_dump, 1, 1, 1, cmd_dump_notify},
     {"RESTORE",       4, -1,  CmdFlags::Write | CmdFlags::DenyOom,

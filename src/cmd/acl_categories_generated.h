@@ -82,6 +82,7 @@ inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"EXPIRE", 0x0000000000004005ULL}, // keyspace write fast
     {"EXPIREAT", 0x0000000000004005ULL}, // keyspace write fast
     {"EXPIRETIME", 0x0000000000004003ULL}, // keyspace read fast
+    {"FAILOVER", 0x000000000002a000ULL}, // admin slow dangerous
     {"FCALL", 0x0000000000108000ULL}, // slow scripting
     {"FCALL_RO", 0x0000000000108000ULL}, // slow scripting
     {"FLUSHALL", 0x0000000000028005ULL}, // keyspace write slow dangerous
@@ -135,11 +136,14 @@ inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"INFO", 0x0000000000028000ULL}, // slow dangerous
     {"KEYS", 0x0000000000028003ULL}, // keyspace read slow dangerous
     {"LASTSAVE", 0x0000000000026000ULL}, // admin fast dangerous
+    {"LATENCY", 0x0000000000008000ULL}, // slow
+    {"LCS", 0x0000000000008082ULL}, // read string slow
     {"LINDEX", 0x0000000000008022ULL}, // read list slow
     {"LINSERT", 0x0000000000008024ULL}, // write list slow
     {"LLEN", 0x0000000000004022ULL}, // read list fast
     {"LMOVE", 0x0000000000008024ULL}, // write list slow
     {"LMPOP", 0x0000000000008024ULL}, // write list slow
+    {"LOLWUT", 0x0000000000004002ULL}, // read fast
     {"LPOP", 0x0000000000004024ULL}, // write list fast
     {"LPOS", 0x0000000000008022ULL}, // read list slow
     {"LPUSH", 0x0000000000004024ULL}, // write list fast
@@ -148,6 +152,7 @@ inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"LREM", 0x0000000000008024ULL}, // write list slow
     {"LSET", 0x0000000000008024ULL}, // write list slow
     {"LTRIM", 0x0000000000008024ULL}, // write list slow
+    {"MEMORY", 0x0000000000008000ULL}, // slow
     {"MGET", 0x0000000000004082ULL}, // read string fast
     {"MONITOR", 0x000000000002a000ULL}, // admin slow dangerous
     {"MSET", 0x0000000000008084ULL}, // write string slow
@@ -161,6 +166,7 @@ inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"PFADD", 0x0000000000004204ULL}, // write hyperloglog fast
     {"PFCOUNT", 0x0000000000008202ULL}, // read hyperloglog slow
     {"PFMERGE", 0x0000000000008204ULL}, // write hyperloglog slow
+    {"PFSELFTEST", 0x000000000002a200ULL}, // hyperloglog admin slow dangerous
     {"PING", 0x0000000000044000ULL}, // fast connection
     {"PSETEX", 0x0000000000008084ULL}, // write string slow
     {"PSUBSCRIBE", 0x0000000000009000ULL}, // pubsub slow
@@ -172,8 +178,10 @@ inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"RANDOMKEY", 0x0000000000008003ULL}, // keyspace read slow
     {"RENAME", 0x0000000000008005ULL}, // keyspace write slow
     {"RENAMENX", 0x0000000000004005ULL}, // keyspace write fast
+    {"REPLICAOF", 0x000000000002a000ULL}, // admin slow dangerous
     {"RESET", 0x0000000000044000ULL}, // fast connection
     {"RESTORE", 0x0000000000028005ULL}, // keyspace write slow dangerous
+    {"ROLE", 0x0000000000026000ULL}, // admin fast dangerous
     {"RPOP", 0x0000000000004024ULL}, // write list fast
     {"RPOPLPUSH", 0x0000000000008024ULL}, // write list slow
     {"RPUSH", 0x0000000000004024ULL}, // write list fast
@@ -191,14 +199,18 @@ inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"SETEX", 0x0000000000008084ULL}, // write string slow
     {"SETNX", 0x0000000000004084ULL}, // write string fast
     {"SETRANGE", 0x0000000000008084ULL}, // write string slow
+    {"SHUTDOWN", 0x000000000002a000ULL}, // admin slow dangerous
     {"SINTER", 0x000000000000800aULL}, // read set slow
     {"SINTERCARD", 0x000000000000800aULL}, // read set slow
     {"SINTERSTORE", 0x000000000000800cULL}, // write set slow
     {"SISMEMBER", 0x000000000000400aULL}, // read set fast
+    {"SLAVEOF", 0x000000000002a000ULL}, // admin slow dangerous
+    {"SLOWLOG", 0x0000000000008000ULL}, // slow
     {"SMEMBERS", 0x000000000000800aULL}, // read set slow
     {"SMISMEMBER", 0x000000000000400aULL}, // read set fast
     {"SMOVE", 0x000000000000400cULL}, // write set fast
     {"SORT", 0x000000000002803cULL}, // write set sortedset list slow dangerous
+    {"SORT_RO", 0x000000000002803aULL}, // read set sortedset list slow dangerous
     {"SPOP", 0x000000000000400cULL}, // write set fast
     {"SPUBLISH", 0x0000000000005000ULL}, // pubsub fast
     {"SRANDMEMBER", 0x000000000000800aULL}, // read set slow
@@ -207,15 +219,19 @@ inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"SSUBSCRIBE", 0x0000000000009000ULL}, // pubsub slow
     {"STRLEN", 0x0000000000004082ULL}, // read string fast
     {"SUBSCRIBE", 0x0000000000009000ULL}, // pubsub slow
+    {"SUBSTR", 0x0000000000008082ULL}, // read string slow
     {"SUNION", 0x000000000000800aULL}, // read set slow
     {"SUNIONSTORE", 0x000000000000800cULL}, // write set slow
     {"SUNSUBSCRIBE", 0x0000000000009000ULL}, // pubsub slow
+    {"TIME", 0x0000000000004000ULL}, // fast
     {"TOUCH", 0x0000000000004003ULL}, // keyspace read fast
     {"TTL", 0x0000000000004003ULL}, // keyspace read fast
     {"TYPE", 0x0000000000004003ULL}, // keyspace read fast
     {"UNLINK", 0x0000000000004005ULL}, // keyspace write fast
     {"UNSUBSCRIBE", 0x0000000000009000ULL}, // pubsub slow
     {"UNWATCH", 0x0000000000084000ULL}, // fast transaction
+    {"WAIT", 0x0000000000058000ULL}, // slow blocking connection
+    {"WAITAOF", 0x0000000000058000ULL}, // slow blocking connection
     {"WATCH", 0x0000000000084000ULL}, // fast transaction
     {"XACK", 0x0000000000004804ULL}, // write stream fast
     {"XADD", 0x0000000000004804ULL}, // write stream fast

@@ -42,6 +42,10 @@ struct LiveConfigSnapshot {
     // use.  It rides the existing live-config snapshot so ExLoop's per-pass shard mask refresh
     // stays one load, and so a shard never reads a second armed word per operation.
     bool     tracking_armed;
+    // Appended at the tail: executors latch these once per pass through the same seqlock, so the
+    // slow-log arming decision costs the pass nothing beyond the version compare it already made.
+    int64_t  slowlog_log_slower_than;
+    uint32_t latency_monitor_threshold;
 };
 
 struct ClientLimitsConfigSnapshot {
@@ -87,6 +91,8 @@ public:
                               std::memory_order_relaxed);
         protected_mode_.store(cfg.protected_mode != 0, std::memory_order_relaxed);
         live_notify_events_.store(cfg.notify_events, std::memory_order_relaxed);
+        live_slowlog_us_.store(cfg.slowlog_log_slower_than, std::memory_order_relaxed);
+        live_latency_ms_.store(cfg.latency_monitor_threshold, std::memory_order_relaxed);
         atomic_activity_.store(cfg.atomic ? kAtomicEnabledBit : 0,
                                std::memory_order_relaxed);
         // AUTO resolves against the shard count: the measured three-point optimum (see config.h).
@@ -710,6 +716,10 @@ public:
             snapshot.notify_events = live_notify_events_.load(std::memory_order_relaxed);
             snapshot.tracking_armed =
                 (climon_armed_.load(std::memory_order_relaxed) & kClimonTracking) != 0;
+            snapshot.slowlog_log_slower_than =
+                live_slowlog_us_.load(std::memory_order_relaxed);
+            snapshot.latency_monitor_threshold =
+                live_latency_ms_.load(std::memory_order_relaxed);
             if (live_config_version_.load(std::memory_order_acquire) == snapshot.version)
                 return snapshot;
         }
@@ -746,6 +756,18 @@ public:
         const uint64_t write_version = begin_live_config_update();
         live_notify_events_.store(value, std::memory_order_relaxed);
         end_live_config_update(write_version);
+    }
+    void set_slowlog_config(int64_t slowlog_us, uint32_t latency_ms) {
+        const uint64_t write_version = begin_live_config_update();
+        live_slowlog_us_.store(slowlog_us, std::memory_order_relaxed);
+        live_latency_ms_.store(latency_ms, std::memory_order_relaxed);
+        end_live_config_update(write_version);
+    }
+    int64_t slowlog_log_slower_than() const {
+        return live_slowlog_us_.load(std::memory_order_relaxed);
+    }
+    uint32_t latency_monitor_threshold() const {
+        return live_latency_ms_.load(std::memory_order_relaxed);
     }
 
     bool pubsub_any_subscribers() const {
@@ -1127,6 +1149,10 @@ private:
     // Cold observability for proving CLIENT catalog work reached every IO owner.
     std::atomic<uint64_t> client_scatter_requests_{0};
     std::atomic<uint64_t> client_scatter_io_responses_{0};
+    // Slow-log arming, published through the same seqlock as the eviction/notify knobs and read
+    // once per executor pass. Appended at the true tail so no pre-existing offset moves.
+    std::atomic<int64_t>  live_slowlog_us_{10000};
+    std::atomic<uint32_t> live_latency_ms_{0};
 };
 
 }  // namespace tomo

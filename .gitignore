@@ -1,3 +1,4 @@
 build/
 *.o
 compile_commands.json
+servertail-testdata/

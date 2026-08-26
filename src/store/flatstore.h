@@ -647,6 +647,16 @@ public:
     // Owner-thread scratch: the current task's CLIENT NO-TOUCH answer. Written only when
     // maxmemory is enabled, so it costs nothing in the default configuration.
     void set_no_touch(bool value) { no_touch_ = value; }
+
+    // OBJECT IDLETIME/FREQ report the same five-bit eviction metadata the victim chooser reads, so
+    // they need the policy, the arming flag and the clock that gives the bits their meaning. All
+    // three are owner-thread reads of owner-thread state; nothing here is on the lookup path.
+    MaxmemoryPolicy maxmemory_policy() const { return maxmemory_policy_; }
+    bool maxmemory_enabled() const { return maxmemory_enabled_; }
+    uint8_t published_lru_clock() const { return cached_lru_clock_; }
+    // OBJECT must not count as an access: reporting idle time through find() would reset the very
+    // metadata being reported. Redis solves the same problem with LOOKUP_NOTOUCH.
+    KvObj* find_no_touch(uint64_t h, Slice key) { return find_without_touch(h, key); }
     void bind_expired_counter(uint64_t* counter) { expired_counter_ = counter; }
     void bind_evicted_counter(uint64_t* counter) { evicted_counter_ = counter; }
     void configure_maxmemory(bool enabled, uint64_t shard_limit, MaxmemoryPolicy policy,

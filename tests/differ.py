@@ -94,6 +94,29 @@ def sort_nested(value):
     if out and all(isinstance(item, list) for item in out):
         out.sort(key=repr)
     return out
+def normalize_introspection(cmdname, argv, r):
+    """MEMORY USAGE and COMMAND INFO are compared for MEANING, not bytes.
+
+    MEMORY USAGE: the number is our accounting, not redis's, so only hit-vs-miss is comparable.
+    COMMAND INFO: the flag names, ACL category list and key-spec map are redis-internal; the name,
+    arity and legacy key range are the parts the router and every client actually consume.
+    """
+    if cmdname == "MEMORY" and len(argv) > 1 and argv[1].upper() == "USAGE":
+        return b"USAGE:nil" if r.startswith((b"$-1", b"_")) else b"USAGE:present"
+    if cmdname == "COMMAND" and len(argv) > 1 and argv[1].upper() == "INFO":
+        rows = parse_reply(r)
+        if not isinstance(rows, list):
+            return r
+        out = []
+        for row in rows:
+            if row is None:
+                out.append(b"<nil>")
+            elif isinstance(row, list) and len(row) >= 6:
+                out.append(b"%s/%s/%s/%s/%s" % (row[0], row[1], row[3], row[4], row[5]))
+            else:
+                out.append(b"<shape?>")
+        return b"CMDINFO:" + b";".join(out)
+    return r
 
 def normalize(cmdname, r):
     if cmdname == "FUNCTION" and r[:1] in (b"*", b"%"):
@@ -857,6 +880,142 @@ def gen_xshard(rng):
         ["KEYS", "xs:*"], ["KEYS", "xs:0?:*"], ["KEYS", "does-not-match-*"],
     ]
     return ops
+
+def gen_servertail(rng):
+    """LCS-heavy, plus the introspection replies that are genuinely byte-comparable.
+
+    Threshold alignment is done in the suite preamble below, NOT here: the two servers spell their
+    encoding knobs differently, so the same intent needs two different CONFIG SET commands and they
+    cannot travel in the diffed op stream.
+
+    Deliberately EXCLUDED, with reasons:
+      - OBJECT ENCODING on strings of 45..192 bytes. Our embstr/raw boundary is kEmbedThreshold
+        (192); redis's is 44. The names mean the same thing at different sizes.
+      - OBJECT REFCOUNT. Redis reports INT_MAX for its shared small integers; we have no shared
+        object table and always report 1.
+      - MEMORY USAGE values, and COMMAND INFO flag/acl/key-spec arrays. Normalized in normalize().
+    """
+    alphabet = "abcdef"
+    ops = []
+
+    def rand_string(lo, hi):
+        return "".join(rng.choice(alphabet) for _ in range(rng.randrange(lo, hi)))
+
+    # Long, unrelated key names so the pair lands on different shards most of the time; the
+    # repeated-key form exercises the same-shard local fast path.
+    pairs = []
+    for i in range(24):
+        pairs.append(("st:a:%02d:%s" % (i, "q" * 34), "st:b:%02d:%s" % (i, "w" * 34)))
+    for key_a, key_b in pairs:
+        ops.append(["SET", key_a, rand_string(0, 40)])
+        ops.append(["SET", key_b, rand_string(0, 40)])
+
+    for _ in range(3600):
+        c = rng.randrange(10)
+        key_a, key_b = rng.choice(pairs)
+        if c == 0:
+            ops.append(["SET", key_a, rand_string(0, 45)])
+        elif c == 1:
+            ops.append(["SET", key_b, rand_string(0, 45)])
+        elif c == 2:
+            ops.append(["LCS", key_a, key_b])
+        elif c == 3:
+            ops.append(["LCS", key_a, key_b, "LEN"])
+        elif c == 4:
+            ops.append(["LCS", key_a, key_b, "IDX"])
+        elif c == 5:
+            ops.append(["LCS", key_a, key_b, "IDX", "WITHMATCHLEN"])
+        elif c == 6:
+            ops.append(["LCS", key_a, key_b, "IDX", "MINMATCHLEN",
+                        str(rng.randrange(-2, 6)), "WITHMATCHLEN"])
+        elif c == 7:
+            ops.append(["LCS", key_a, key_a])           # same-shard local path
+        elif c == 8:
+            ops.append(rng.choice([["LCS", key_a, key_b, "LEN", "IDX"],
+                                   ["LCS", key_a, key_b, "BOGUS"],
+                                   ["LCS", key_a, key_b, "MINMATCHLEN"],
+                                   ["LCS", key_a, key_b, "MINMATCHLEN", "abc"],
+                                   ["LCS", key_a, "st:absent:%d" % rng.randrange(9)]]))
+        else:
+            ops.append(["SUBSTR", key_a, str(rng.randrange(-8, 8)), str(rng.randrange(-8, 8))])
+
+    # OBJECT ENCODING across type mutations, restricted to shapes both servers agree on.
+    ops.append(["SET", "st:enc:int", "42"])
+    ops.append(["SET", "st:enc:short", "a" * 20])
+    ops.append(["SET", "st:enc:long", "a" * 300])
+    for name in ("st:enc:int", "st:enc:short", "st:enc:long"):
+        ops.append(["OBJECT", "ENCODING", name])
+    # APPEND leaves redis in `raw` regardless of the resulting length, because redis over-allocates
+    # an appended string for future growth. We have no such growth reservation, so a 3-byte result
+    # stays embstr. The TYPE is still comparable; the encoding is not, for the same embstr/raw
+    # reason listed in the docstring.
+    ops.append(["APPEND", "st:enc:int", "x"])
+    ops.append(["TYPE", "st:enc:int"])
+    ops.append(["OBJECT", "ENCODING", "st:enc:absent"])
+    ops.append(["OBJECT", "HELP"])
+
+    for key, add, small, big in (("st:enc:hash", "HSET", 3, 700),
+                                 ("st:enc:set", "SADD", 3, 300),
+                                 ("st:enc:zset", "ZADD", 3, 300),
+                                 ("st:enc:list", "RPUSH", 3, 300)):
+        ops.append(["DEL", key])
+        for i in range(small):
+            if add == "HSET": ops.append([add, key, "f%d" % i, "v%d" % i])
+            elif add == "ZADD": ops.append([add, key, str(i), "m%d" % i])
+            else: ops.append([add, key, "m%d" % i])
+        ops.append(["OBJECT", "ENCODING", key])
+        for i in range(small, big):
+            if add == "HSET": ops.append([add, key, "f%d" % i, "v%d" % i])
+            elif add == "ZADD": ops.append([add, key, str(i), "m%d" % i])
+            else: ops.append([add, key, "m%d" % i])
+        ops.append(["OBJECT", "ENCODING", key])
+        ops.append(["TYPE", key])
+
+    ops.append(["DEL", "st:enc:intset"])
+    for i in range(20):
+        ops.append(["SADD", "st:enc:intset", str(i)])
+    ops.append(["OBJECT", "ENCODING", "st:enc:intset"])
+    ops.append(["SADD", "st:enc:intset", "notanint"])
+    ops.append(["OBJECT", "ENCODING", "st:enc:intset"])
+
+    ops.append(["XADD", "st:enc:stream", "1-1", "f", "v"])
+    ops.append(["OBJECT", "ENCODING", "st:enc:stream"])
+
+    # Presence, not value (normalized): MEMORY USAGE must agree on hit vs miss.
+    for name in ("st:enc:short", "st:enc:absent", "st:enc:hash", "st:enc:stream"):
+        ops.append(["MEMORY", "USAGE", name])
+
+    # COMMAND INFO shapes for a fixed list (normalized to name/arity/key-range).
+    # `object` and `memory` are deliberately absent: redis reports a 0/0/0 key range on the
+    # container and hangs the real key spec off its subcommands, while our registry row carries the
+    # truthful argv[2] range because ACL, MULTI and the router all consume it. Ours is the more
+    # informative answer and it is not going to be made wrong to match a byte.
+    for name in ("get", "set", "mset", "del", "lcs", "substr", "ping", "subscribe",
+                 "sort_ro", "getrange", "zadd", "hset", "sinterstore", "xadd"):
+        ops.append(["COMMAND", "INFO", name])
+    ops.append(["COMMAND", "GETKEYS", "MSET", "a", "1", "b", "2"])
+    ops.append(["COMMAND", "GETKEYS", "GET", "k"])
+    ops.append(["COMMAND", "GETKEYS", "LCS", "k1", "k2"])
+    ops.append(["COMMAND", "GETKEYS", "PING"])
+    ops.append(["COMMAND", "GETKEYS", "NOSUCHCOMMAND", "k"])
+
+    # Scope A parity replies that are byte-identical by construction.
+    ops.append(["ROLE"])
+    ops.append(["WAIT", "0", "0"])
+    ops.append(["WAIT", "0", "-1"])
+    ops.append(["FAILOVER", "ABORT"])
+    ops.append(["PFSELFTEST"])
+    ops.append(["DEL", "st:sort"])
+    for value in ("3", "1", "2", "10"):
+        ops.append(["RPUSH", "st:sort", value])
+    ops.append(["SORT_RO", "st:sort"])
+    ops.append(["SORT_RO", "st:sort", "DESC"])
+    ops.append(["SORT_RO", "st:sort", "LIMIT", "1", "2"])
+    ops.append(["SORT_RO", "st:sort", "ALPHA"])
+    ops.append(["SORT_RO", "st:sort", "STORE", "st:sortdst"])
+    ops.append(["SORT_RO", "st:absent:sort"])
+    return ops
+
 
 def gen_bitmap(rng):
     # Long, unrelated key names make random BITOPs exercise both localfast and cross-shard paths.
@@ -2046,7 +2205,8 @@ gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset
         "hll": gen_hll, "bitfield": gen_bitfield, "cgaps": gen_cgaps, "stream": gen_stream,
         "script": gen_script,
         "streamgrp": gen_streamgrp,
-        "zsetops": gen_zsetops, "geo": gen_geo}
+        "zsetops": gen_zsetops, "geo": gen_geo,
+        "servertail": gen_servertail}
 ops = gens[SUITE](rng)
 
 ts, tf = conn(TH, TP)
@@ -2059,6 +2219,33 @@ os_, of = conn(OH, OP)
 for cs, cf in ((ts, tf), (os_, of)):
     cs.sendall(enc(["FLUSHALL"]))
     if read_reply(cf)[:1] != b"+": raise RuntimeError("FLUSHALL failed on clean-slate")
+# OBJECT ENCODING is only comparable once both servers promote at the same sizes, and the two
+# spell those knobs differently, so the alignment cannot ride in the diffed op stream. Replies are
+# drained, NOT diffed -- the knob NAMES differ by design.
+if SUITE == "servertail":
+    alignment = {
+        0: [["CONFIG", "SET", "hash-max-compact-entries", "128"],
+            ["CONFIG", "SET", "hash-max-compact-value", "64"],
+            ["CONFIG", "SET", "set-max-compact-entries", "128"],
+            ["CONFIG", "SET", "set-max-compact-value", "64"],
+            ["CONFIG", "SET", "zset-max-compact-entries", "128"],
+            ["CONFIG", "SET", "zset-max-compact-value", "64"],
+            ["CONFIG", "SET", "list-max-compact-entries", "128"],
+            ["CONFIG", "SET", "list-max-compact-value", "64"]],
+        1: [["CONFIG", "SET", "hash-max-listpack-entries", "128"],
+            ["CONFIG", "SET", "hash-max-listpack-value", "64"],
+            ["CONFIG", "SET", "set-max-listpack-entries", "128"],
+            ["CONFIG", "SET", "set-max-listpack-value", "64"],
+            ["CONFIG", "SET", "set-max-intset-entries", "128"],
+            ["CONFIG", "SET", "zset-max-listpack-entries", "128"],
+            ["CONFIG", "SET", "zset-max-listpack-value", "64"],
+            ["CONFIG", "SET", "list-max-listpack-size", "128"]],
+    }
+    for side, (cs, cf) in enumerate(((ts, tf), (os_, of))):
+        for command in alignment[side]:
+            cs.sendall(enc(command))
+            if read_reply(cf)[:1] != b"+":
+                raise RuntimeError("encoding alignment failed: %r" % command)
 diffs = 0
 # HLL's directed promotion stream uses many-argument PFADDs and byte-sized GET oracles, and the
 # cgaps suite carries wide numkeys forms; keep their pipeline chunks below the target's fixed
@@ -2079,6 +2266,8 @@ for i in range(0, len(ops), BATCH):
         except TimeoutError:
             print("  TIMEOUT oracle op %d: %r" % (i + j, o[:8]), flush=True)
             raise
+        a = normalize_introspection(o[0].upper(), o, a)
+        b = normalize_introspection(o[0].upper(), o, b)
         if a != b:
             diffs += 1
             if diffs <= 12:

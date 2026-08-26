@@ -8,6 +8,8 @@
 #include "auth.h"
 #include "debug.h"
 #include "scripting.h"
+#include "server_tail.h"
+#include "slowlog.h"
 #include "../base/alloc.h"
 #include "../core/server.h"
 #include "../core/lbsignals.h"
@@ -76,6 +78,26 @@ bool parse_u64(Slice s, uint64_t& out) {
         value = value * 10 + digit;
     }
     out = value;
+    return true;
+}
+
+bool parse_i64_slice(Slice s, int64_t& out) {
+    if (!s.n || s.n > 20) return false;
+    uint32_t i = 0;
+    bool negative = false;
+    if (s.p[0] == '-' || s.p[0] == '+') { negative = s.p[0] == '-'; i = 1; }
+    if (i >= s.n) return false;
+    uint64_t value = 0;
+    for (; i < s.n; i++) {
+        const char ch = s.p[i];
+        if (ch < '0' || ch > '9') return false;
+        const uint64_t digit = static_cast<uint64_t>(ch - '0');
+        if (value > (std::numeric_limits<uint64_t>::max() - digit) / 10) return false;
+        value = value * 10 + digit;
+    }
+    const uint64_t limit = negative ? (uint64_t{1} << 63) : (uint64_t{1} << 63) - 1;
+    if (value > limit) return false;
+    out = negative ? -static_cast<int64_t>(value) : static_cast<int64_t>(value);
     return true;
 }
 
@@ -280,7 +302,10 @@ std::string client_info_line_impl(const Client& client, const ClientMeta& meta, 
 }
 
 enum class ConfigKind : uint8_t {
-    String, Bool, Unsigned, Bytes, Enum, Policy, ClientOutputBufferLimit, NotifyFlags
+    String, Bool, Unsigned, Bytes, Enum, Policy, ClientOutputBufferLimit, NotifyFlags,
+    // slowlog-log-slower-than is the tree's first genuinely signed knob: redis's grammar accepts
+    // and reports -1, so the unsigned sentinel that --atomic-window uses would not round-trip.
+    Signed
 };
 struct ConfigValue {
     const char* name;
@@ -384,6 +409,11 @@ void init_config(const Config& cfg) {
     g_config.push_back({"acl-pubsub-default", ConfigKind::String,
                         cfg.acl_pubsub_allchannels ? "allchannels" : "resetchannels"});
     add_config("acllog-max-len", ConfigKind::Unsigned, cfg.acllog_max_len);
+    g_config.push_back({"slowlog-log-slower-than", ConfigKind::Signed,
+                        std::to_string(cfg.slowlog_log_slower_than)});
+    add_config("slowlog-max-len", ConfigKind::Unsigned, cfg.slowlog_max_len);
+    add_config("latency-monitor-threshold", ConfigKind::Unsigned,
+               cfg.latency_monitor_threshold);
     const char* debug_mode = cfg.enable_debug_command == DebugCommandMode::Yes ? "yes" :
                              cfg.enable_debug_command == DebugCommandMode::Local ? "local" : "no";
     g_config.push_back({"enable-debug-command", ConfigKind::String, debug_mode, true});
@@ -519,6 +549,13 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out) {
             uint32_t flags = 0;
             if (!parse_notify_flags(input, flags)) return false;
             out = serialize_notify_flags(flags);
+            return true;
+        }
+        case ConfigKind::Signed: {
+            int64_t value = 0;
+            if (!parse_i64_slice(input, value)) return false;
+            if (!std::strcmp(entry.name, "slowlog-log-slower-than") && value < -1) return false;
+            out = std::to_string(value);
             return true;
         }
     }
@@ -983,6 +1020,8 @@ void cmd_command(Shard&, Op& op) {
         }
         return;
     }
+    // LIST / GETKEYS / GETKEYSANDFLAGS / HELP live in the server-tail feature file.
+    if (server_tail_command_subcommand(op)) return;
     reply_err(sink, "ERR unknown subcommand or wrong number of arguments for 'command'. Try COMMAND HELP.");
 }
 
@@ -1118,6 +1157,29 @@ void cmd_config(Shard& sh, Op& op) {
                     g_server->set_tcp_keepalive(static_cast<uint32_t>(value));
                 else if (!std::strcmp(update.first->name, "acllog-max-len"))
                     acl_set_log_max_len(value);
+                else if (!std::strcmp(update.first->name, "slowlog-max-len"))
+                    slowlog_set_max_len(value);
+            }
+            // Slow-log arming is published through the live seqlock so executors pick it up on
+            // their next pass without any per-op load. Both knobs travel together because the
+            // recorder is armed by either one.
+            {
+                int64_t slowlog_us = g_server->slowlog_log_slower_than();
+                uint32_t latency_ms = g_server->latency_monitor_threshold();
+                bool changed = false;
+                for (const auto& update : updates) {
+                    if (!std::strcmp(update.first->name, "slowlog-log-slower-than")) {
+                        parse_i64_slice(Slice(update.second.data(), update.second.size()),
+                                        slowlog_us);
+                        changed = true;
+                    } else if (!std::strcmp(update.first->name, "latency-monitor-threshold")) {
+                        uint64_t parsed = 0;
+                        if (parse_u64(Slice(update.second.data(), update.second.size()), parsed))
+                            latency_ms = static_cast<uint32_t>(parsed);
+                        changed = true;
+                    }
+                }
+                if (changed) g_server->set_slowlog_config(slowlog_us, latency_ms);
             }
             if (set_auto_rewrite)
                 g_server->aof().set_auto_rewrite_config(auto_percentage, auto_min_size);
@@ -1155,7 +1217,60 @@ void cmd_config(Shard& sh, Op& op) {
         sh.set_stream_limits(stream_limits);
         return;
     }
+    // REWRITE / RESETSTAT / HELP live in the server-tail feature file. They are IO-local, like GET.
+    if (server_tail_config_subcommand(op)) return;
     reply_syntax(op.sink());
+}
+
+// CONFIG RESETSTAT baseline. Every counter INFO reports here is a single-writer value owned by a
+// shard owner or an IO loop; zeroing them from the calling thread would be a write race on the hot
+// path. Instead RESETSTAT snapshots the aggregate and INFO subtracts it -- the reads are exactly
+// the cross-thread reads INFO already performs, so nothing new is shared.
+struct StatBaseline {
+    uint64_t total_ops = 0;
+    uint64_t connections = 0;
+    uint64_t hits = 0, misses = 0, expired = 0, evicted = 0;
+    uint64_t rejected = 0, auth_failures = 0;
+    uint64_t acl_denied_cmd = 0, acl_denied_key = 0, acl_denied_channel = 0, acl_denied_auth = 0;
+    std::vector<uint64_t> command_calls;
+};
+
+std::mutex g_stat_baseline_mu;
+StatBaseline g_stat_baseline;
+
+void collect_stat_totals(StatBaseline& out) {
+    out = StatBaseline{};
+    if (!g_server) return;
+    for (uint32_t i = 0; i < g_server->nshards(); i++) {
+        const Shard& sh = g_server->shard(static_cast<int32_t>(i));
+        out.hits += sh.stats().hits;
+        out.misses += sh.stats().misses;
+        out.expired += sh.stats().expired;
+        out.evicted += sh.published_evicted();
+    }
+    out.command_calls.assign(command_registry_size(), 0);
+    for (uint32_t t = 0; t < g_server->nthreads(); t++) {
+        ThreadCtx& thread = g_server->thread(t);
+        for (uint32_t id = 0; id < command_registry_size(); id++) {
+            const uint64_t calls = thread.command_calls(id);
+            out.command_calls[id] += calls;
+            out.total_ops += calls;
+        }
+        const LoopSignals& sig = thread.sig();
+        out.connections += sig.accepts;
+        out.acl_denied_cmd += sig.acl_access_denied_cmd;
+        out.acl_denied_key += sig.acl_access_denied_key;
+        out.acl_denied_channel += sig.acl_access_denied_channel;
+        out.acl_denied_auth += sig.acl_access_denied_auth;
+    }
+    out.rejected = g_server->rejected_conns() + g_server->rejected_connections();
+    out.auth_failures = g_server->auth_failures();
+}
+
+// Saturating: a baseline can only ever be <= the live counter, but a counter that wrapped or a
+// shard that was added after the reset must not underflow into a nonsense INFO value.
+inline uint64_t minus_baseline(uint64_t live, uint64_t base) {
+    return live >= base ? live - base : 0;
 }
 
 bool info_section(Op& op, const char* wanted) {
@@ -1231,6 +1346,23 @@ void cmd_info(Shard&, Op& op) {
         // (networking.c:1355) and protected-mode denials (networking.c:1306).
         rejected = g_server->rejected_conns() + g_server->rejected_connections();
     }
+    // Apply the CONFIG RESETSTAT baseline to exactly the counters redis's RESETSTAT zeroes.
+    StatBaseline baseline;
+    {
+        std::lock_guard<std::mutex> lock(g_stat_baseline_mu);
+        baseline = g_stat_baseline;
+    }
+    total_ops = minus_baseline(total_ops, baseline.total_ops);
+    connections = minus_baseline(connections, baseline.connections);
+    hits = minus_baseline(hits, baseline.hits);
+    misses = minus_baseline(misses, baseline.misses);
+    expired = minus_baseline(expired, baseline.expired);
+    evicted = minus_baseline(evicted, baseline.evicted);
+    rejected = minus_baseline(rejected, baseline.rejected);
+    acl_denied_cmd = minus_baseline(acl_denied_cmd, baseline.acl_denied_cmd);
+    acl_denied_key = minus_baseline(acl_denied_key, baseline.acl_denied_key);
+    acl_denied_channel = minus_baseline(acl_denied_channel, baseline.acl_denied_channel);
+    acl_denied_auth = minus_baseline(acl_denied_auth, baseline.acl_denied_auth);
     const uint64_t connected = g_server ? g_server->live_clients() : 0;
 
     if (info_section(op, "SERVER")) {
@@ -1358,7 +1490,9 @@ void cmd_info(Shard&, Op& op) {
                       "monitor_feed_lines:%llu\r\nclient_pause_holds:%llu\r\n"
                       "client_no_touch_ops:%llu\r\n"
                       "tracking_total_keys:%llu\r\ntracking_total_items:%llu\r\n"
-                      "tracking_total_prefixes:%llu\r\ntracking_invalidations:%llu\r\n",
+                      "tracking_total_prefixes:%llu\r\ntracking_invalidations:%llu\r\n"
+                      "slowlog_batches_timed:%llu\r\nslowlog_escalations:%llu\r\n"
+                      "slowlog_entries_recorded:%llu\r\nlatency_events_recorded:%llu\r\n",
                 static_cast<unsigned long long>(connections), static_cast<unsigned long long>(rejected),
                 static_cast<unsigned long long>(total_ops), static_cast<unsigned long long>(hits),
                 static_cast<unsigned long long>(misses), static_cast<unsigned long long>(expired),
@@ -1440,7 +1574,12 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(g_server ? g_server->climon_tracking_keys() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->climon_tracking_items() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->climon_tracking_prefixes() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->climon_invalidations() : 0));
+                static_cast<unsigned long long>(g_server ? g_server->climon_invalidations() : 0),
+                // Mechanism counters: a slowlog test that cannot see these move proves nothing.
+                static_cast<unsigned long long>(slowlog_batches_timed()),
+                static_cast<unsigned long long>(slowlog_escalations()),
+                static_cast<unsigned long long>(slowlog_entries_recorded()),
+                static_cast<unsigned long long>(latency_events_recorded()));
     }
     if (info_section(op, "COMMANDSTATS")) {
         body += "# Commandstats\r\n";
@@ -1448,6 +1587,8 @@ void cmd_info(Shard&, Op& op) {
             uint64_t calls = 0;
             for (uint32_t t = 0; g_server && t < g_server->nthreads(); t++)
                 calls += g_server->thread(t).command_calls(id);
+            if (id < baseline.command_calls.size())
+                calls = minus_baseline(calls, baseline.command_calls[id]);
             if (!calls) continue;
             const std::string name = lower_name(command_registry_at(id)->name);
             appendf(body, "cmdstat_%s:calls=%llu,usec=0,usec_per_call=0.00,rejected_calls=0,failed_calls=0\r\n",
@@ -1650,11 +1791,31 @@ bool command_glob_match(Slice pattern, Slice text) {
     return glob_match(pattern, text);
 }
 
+Server* command_server() { return g_server; }
+ThreadCtx* command_local_thread() { return g_thread; }
+
+void command_config_snapshot(std::vector<std::pair<std::string, std::string>>& out) {
+    std::lock_guard<std::mutex> lock(g_config_mu);
+    out.clear();
+    out.reserve(g_config.size());
+    for (const ConfigValue& item : g_config) out.emplace_back(item.name, item.value);
+}
+
+void command_config_resetstat() {
+    // Capture the CURRENT aggregate rather than writing zeros into per-shard/per-thread counters
+    // that only their owner may write. INFO subtracts this baseline. The reads here are the same
+    // cross-thread reads INFO already performs on every call, so no new sharing is introduced.
+    StatBaseline baseline;
+    collect_stat_totals(baseline);
+    std::lock_guard<std::mutex> lock(g_stat_baseline_mu);
+    g_stat_baseline = baseline;
+}
+
 void command_bind_server(Server* server) {
     g_server = server;
     scripting_bind_server(server);
     g_started_monotonic_ns = now_ns();
-    if (server) init_config(server->cfg());
+    if (server) { init_config(server->cfg()); slowlog_configure(server->cfg()); }
 }
 
 void command_set_local_context(Client* client, ThreadCtx* thread) {
@@ -1670,11 +1831,17 @@ void command_client_connected(Client* client, const char* addr, const char* ladd
     meta.laddr = laddr ? laddr : "unknown:0";
     meta.unix_socket = unix_socket;
     meta.created_ms = now_ms;
+    // SLOWLOG entries are built by a shard owner, which cannot read this thread_local catalog, and
+    // are read back by whichever IO thread runs SLOWLOG GET. The recorder keeps its own sharded
+    // id -> (addr, name) directory; connection lifecycle is the only writer.
+    slowlog_note_client(client->id(), meta.addr.c_str());
     g_client_meta[client->id()] = std::move(meta);
 }
 
 void command_client_disconnected(Client* client) {
-    if (client) g_client_meta.erase(client->id());
+    if (!client) return;
+    slowlog_forget_client(client->id());
+    g_client_meta.erase(client->id());
 }
 
 // Cold process-wide directory. CLIENT UNBLOCK and CLIENT TRACKING REDIRECT need to name a
@@ -1758,6 +1925,7 @@ bool command_client_set_name(Client* client, Slice name) {
     ClientMeta* meta = client_meta(client);
     if (!meta) return false;
     meta->name.assign(name.p, name.n);
+    slowlog_note_client_name(client->id(), name.p, name.n);
     return true;
 }
 
@@ -1817,9 +1985,12 @@ void command_client_reset_meta(Client* client) {
     meta->tracking = false;
     meta->tracking_bcast = false;
     meta->tracking_redirect = -1;
+    slowlog_note_client_name(client->id(), "", 0);
 }
 
 bool command_prepare_scan_route(Server& server, Op& op) {
+    if (op.spec->flags & CmdFlags::SubcmdRoute)
+        return command_prepare_subcmd_route(server, op);
     if (op.spec->flags & CmdFlags::ScriptRoute)
         return command_prepare_script_route(server, op);
     if (op.spec->flags & CmdFlags::StreamRoute) {

@@ -245,6 +245,9 @@ bool parse_sort_options(Op& op, SortOptions& options) {
             }
             i += 2;
         } else if (op.arg(i).eq_icase("store") && i + 1 < op.argc()) {
+            // SORT_RO is the read-only alias: it shares every option EXCEPT STORE, which would
+            // make it a write. Redis reports the rejection as a plain syntax error.
+            if (name_is(op, "SORT_RO")) { reply_syntax(op.sink()); return false; }
             options.store = true;
             options.store_arg = ++i;
         } else {
@@ -281,6 +284,7 @@ bool classify(const Op& op, Kind& kind) {
         {"GEORADIUS", Kind::Georadius}, {"GEORADIUS_RO", Kind::Georadius},
         {"GEORADIUSBYMEMBER", Kind::Georadiusbymember},
         {"GEORADIUSBYMEMBER_RO", Kind::Georadiusbymember},
+        {"SORT_RO", Kind::Sort}, {"LCS", Kind::Lcs},
         {"XREAD", Kind::Xread}, {"XREADGROUP", Kind::Xreadgroup},
     };
     for (const Entry& entry : entries)
@@ -974,6 +978,43 @@ void finish_pfcount(ScatterState& state) {
     state.final_integer = static_cast<long long>(hll::count_registers(maximum));
 }
 
+// Runs on the executor that closed the group, with acquire-ordered visibility of both images.
+// Non-trivial CPU here follows the established precedent (SORT sorts, BITOP walks every byte,
+// PFCOUNT merges 16384 registers); the reply itself is still emitted on IO.
+void finish_lcs(ScatterState& state) {
+    WorkError error;
+    if (first_error(state, error)) {
+        state.final_reply = FinalReply::Work;
+        state.final_error = error;
+        return;
+    }
+    ResultHeap* result = ensure_result(state);
+    if (!result) { state.final_reply = FinalReply::Work; state.final_error = WorkError::Oom; return; }
+
+    // A non-string key is not a WRONGTYPE here: redis has a dedicated message for LCS.
+    for (uint32_t i = 0; i < 2; i++)
+        if (state.images[i].present && state.images[i].type != Type::String) {
+            result->bulk = "ERR The specified keys must contain string values";
+            state.final_reply = FinalReply::LcsError;
+            return;
+        }
+
+    std::string a, b;
+    if (!decode_string_image(state.images[0], a, error) ||
+        !decode_string_image(state.images[1], b, error)) {
+        state.final_reply = FinalReply::Work;
+        state.final_error = error;
+        return;
+    }
+    const char* message = nullptr;
+    if (!lcs_compute(a, b, state.lcs_options, result->lcs, message)) {
+        result->bulk = message ? message : "ERR LCS failed";
+        state.final_reply = FinalReply::LcsError;
+        return;
+    }
+    state.final_reply = FinalReply::Lcs;
+}
+
 bool compute_pfmerge(ScatterState& state) {
     std::array<uint8_t, hll::kRegisters> maximum{};
     bool any_dense = false;
@@ -1493,6 +1534,8 @@ void assemble_final(Client& client, Op& op, ScatterState& state, void* release_c
     if (state.final_reply != FinalReply::None) {
         switch (state.final_reply) {
             case FinalReply::Ok: reply_ok(op.sink()); break;
+            case FinalReply::Lcs: lcs_reply(op, state.lcs_options, state.result->lcs); break;
+            case FinalReply::LcsError: reply_err(op.sink(), state.result->bulk.c_str()); break;
             case FinalReply::Integer: reply_int(op.sink(), state.final_integer); break;
             case FinalReply::Nil: reply_null(op.sink(), op.resp3()); break;
             case FinalReply::NullArray: reply_null_array(op.sink(), op.resp3()); break;
@@ -1844,6 +1887,41 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
                               output.empty() ? NotifyEventId::Del : NotifyEventId::Sortstore, key);
             reply_int(op.sink(), static_cast<long long>(output.size()));
         }
+        return;
+    }
+
+    // LCS's own local arm. It must precede the generic gather, which is bounded by argc and would
+    // otherwise serialize the trailing option words as if they were keys. Same DP, same reply
+    // builder as the cross-shard path -- one implementation, so the two cannot diverge.
+    if (kind == Kind::Lcs) {
+        LcsOptions options;
+        if (!lcs_parse_options(op, options)) return;
+        std::string values[2];
+        for (uint32_t i = 0; i < 2; i++) {
+            const Slice key = op.arg(1 + i);
+            KvObj* object = shard.store_find<kNotify>(
+                i == 0 ? op.hash : FlatStore::hash_key(key), key);
+            if (!object) continue;
+            if (static_cast<Type>(object->type) != Type::String) {
+                reply_err(op.sink(), "ERR The specified keys must contain string values");
+                return;
+            }
+            if (object->is_int()) {
+                char integer[24];
+                values[i].assign(integer, i64_to_dec(integer, object->int_value()));
+            } else {
+                const Slice value = object->str_value();
+                try { values[i].assign(value.p, value.n); }
+                catch (const std::bad_alloc&) { set_oom(op); return; }
+            }
+        }
+        LcsResult result;
+        const char* message = nullptr;
+        if (!lcs_compute(values[0], values[1], options, result, message)) {
+            reply_err(op.sink(), message ? message : "ERR LCS failed");
+            return;
+        }
+        lcs_reply(op, options, result);
         return;
     }
 

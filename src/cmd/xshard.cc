@@ -1,5 +1,6 @@
 // xshard.cc -- arena-backed, owner-only cross-shard execution.
 #include "xshard.h"
+#include "lcs.h"
 
 #include <algorithm>
 #include <array>

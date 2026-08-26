@@ -75,6 +75,8 @@ bool command_registry_init(bool tls_enabled) {
         geo_command_table(), stream_command_table(),
         stream_group_command_table(), server_command_table(),
         scripting_command_table(), functions_command_table(),
+        server_tail_command_table(), slowlog_command_table(),
+        lcs_command_table(),
     };
     size_t total = 0;
     for (const CommandTable& family : families) total += family.size;

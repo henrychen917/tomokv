@@ -38,6 +38,7 @@
 #include "../net/wb.h"
 #include "../net/tls.h"
 #include "../cmd/command.h"
+#include "../cmd/slowlog.h"
 #include "../cmd/blocking.h"
 #include "../cmd/auth.h"
 #include "../cmd/acl.h"
@@ -990,10 +991,20 @@ subscriber_checks_done:
                 command_set_local_context(c, self_);
                 snapshot_bind_io(self_, &ring_);
                 const bool acl_command = __builtin_expect(op->cmd_name().eq_icase("acl"), false);
+                const uint64_t slow_started =
+                    __builtin_expect(slowlog_armed_, false) ? now_ns() : 0;
                 if (acl_command)
                     acl_command_entry(*this, conn, *op);
                 else
                     spec->handler(srv_->shard(0), *op);
+                if (__builtin_expect(slowlog_armed_, false)) {
+                    timespec wall{};
+                    ::clock_gettime(CLOCK_REALTIME, &wall);
+                    slowlog_record(self_->id(), c->id(), *op, now_ns() - slow_started,
+                                   static_cast<int64_t>(wall.tv_sec) * 1000 +
+                                       wall.tv_nsec / 1000000,
+                                   slowlog_arm_, true);
+                }
                 snapshot_bind_io(nullptr, nullptr);
                 command_set_local_context(nullptr, nullptr);
                 op->state.store(OpState::Done, std::memory_order_release);
@@ -1624,6 +1635,11 @@ nonblocking_dispatch:
         if (!srv_->live_config_snapshot_if_changed(notify_config_version_, snapshot)) return;
         notify_config_armed_ = snapshot.notify_events != 0;
         notify_armed_ = notify_config_armed_ || climon_armed_cached_ != 0;
+        // Connection-local commands never reach an executor, so the IO thread owns their timing.
+        // Same snapshot, same pass, no extra load.
+        slowlog_arm_.slowlog_us = snapshot.slowlog_log_slower_than;
+        slowlog_arm_.latency_ms = snapshot.latency_monitor_threshold;
+        slowlog_armed_ = slowlog_arm_.armed();
         notify_config_version_ = snapshot.version;
     }
 
@@ -1777,6 +1793,10 @@ nonblocking_dispatch:
     uint64_t notify_config_version_ = 0;
     bool notify_armed_ = false;
     bool notify_config_armed_ = false;   // keyspace-notification half of notify_armed_
+    // Slow-log arm for connection-local commands. Appended here rather than earlier so no
+    // pre-existing IoLoop member offset moves.
+    bool slowlog_armed_ = false;
+    SlowlogArm slowlog_arm_{};
     // Notification publications are sequenced through one coordinator IO. Keep this v2-only
     // carriage at the true cold tail so the entire pre-notification IoLoop layout remains fixed.
     std::deque<std::shared_ptr<PubSubNotificationChain>> pubsub_notification_chains_;

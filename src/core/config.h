@@ -257,6 +257,23 @@ struct Config {
     const char* tls_ciphersuites = nullptr;
     bool tls_prefer_server_ciphers = false;
     bool tls_ktls = true;                 // tomo-only: try kernel TLS, silently fall back
+
+    // SLOWLOG + LATENCY. Redis knob names, grammar and semantics exactly:
+    //   slowlog-log-slower-than  microseconds; -1 disables the log entirely, 0 logs everything
+    //   slowlog-max-len          ring capacity; 0 keeps no entries
+    //   latency-monitor-threshold milliseconds; 0 disables the latency monitor
+    // -1 is a real negative here rather than an unsigned sentinel because redis's grammar accepts
+    // and reports -1, and the knob-compat rule says shared features adopt the reference server's
+    // grammar exactly.
+    int64_t  slowlog_log_slower_than = 10000;
+    uint64_t slowlog_max_len = 128;
+    uint32_t latency_monitor_threshold = 0;
+
+    // The conf file this process booted from, retained purely so CONFIG REWRITE has a destination.
+    // It is set by the argv pre-scan in main, NOT by parse_config_args -- `--conf` is consumed
+    // before the parser runs. Null means "started without a config file", which is exactly the
+    // condition CONFIG REWRITE reports as an error.
+    const char* conf_path = nullptr;
 };
 
 // ---- tiny local parsers (const char* flavors; the Slice flavors in the .cc files are separate) --
@@ -283,6 +300,26 @@ inline bool cfg_parse_u64(const char* s, uint64_t& out) {
         v = v * 10 + digit;
     }
     out = v;
+    return true;
+}
+
+// Signed flavor. The tree had no signed scalar parser until slowlog-log-slower-than, whose redis
+// grammar accepts a real -1 rather than the unsigned sentinel --atomic-window uses.
+inline bool cfg_parse_i64(const char* s, int64_t& out) {
+    if (!s || !*s) return false;
+    const bool negative = *s == '-';
+    const char* p = (negative || *s == '+') ? s + 1 : s;
+    if (!*p) return false;
+    uint64_t v = 0;
+    for (; *p; p++) {
+        if (*p < '0' || *p > '9') return false;
+        const uint32_t digit = static_cast<uint32_t>(*p - '0');
+        if (v > (UINT64_MAX - digit) / 10) return false;
+        v = v * 10 + digit;
+    }
+    const uint64_t limit = negative ? (uint64_t{1} << 63) : (uint64_t{1} << 63) - 1;
+    if (v > limit) return false;
+    out = negative ? -static_cast<int64_t>(v) : static_cast<int64_t>(v);
     return true;
 }
 
@@ -441,6 +478,27 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         else if (!std::strcmp(a, "--acllog-max-len")) {
             if (!cfg_parse_u64(next(nullptr), cfg.acllog_max_len)) {
                 std::fprintf(stderr, "--acllog-max-len wants an unsigned integer\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--slowlog-log-slower-than")) {
+            if (!cfg_parse_i64(next(nullptr), cfg.slowlog_log_slower_than) ||
+                cfg.slowlog_log_slower_than < -1) {
+                std::fprintf(stderr,
+                             "--slowlog-log-slower-than wants microseconds, -1 to disable\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--slowlog-max-len")) {
+            if (!cfg_parse_u64(next(nullptr), cfg.slowlog_max_len)) {
+                std::fprintf(stderr, "--slowlog-max-len wants an unsigned integer\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--latency-monitor-threshold")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.latency_monitor_threshold)) {
+                std::fprintf(stderr,
+                             "--latency-monitor-threshold wants milliseconds, 0 to disable\n");
                 return kConfigError;
             }
         }
@@ -707,6 +765,9 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "            --enable-debug-command no|yes|local --aclfile PATH\n"
                         "            --user NAME RULE... --acl-pubsub-default allchannels|resetchannels\n"
                         "            --acllog-max-len N\n"
+                        "  observability: --slowlog-log-slower-than US (default 10000; -1 off)\n"
+                        "            --slowlog-max-len N (default 128)\n"
+                        "            --latency-monitor-threshold MS (default 0 = off)\n"
                         "  atomics: --atomic 0|1 --atomic-window N (default 256; 0=unlimited)\n"
                         "  scripting: --script-instruction-limit N (default 100000; 0=unlimited)\n"
                         "  compact encodings: --{hash,list,set,zset}-max-compact-{entries,value} N\n"

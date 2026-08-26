@@ -79,6 +79,7 @@ int main(int argc, char** argv) {
             cli_tokens.push_back(argv[i]);
         }
     }
+    cfg.conf_path = conf_path;   // retained for CONFIG REWRITE; points into argv, which outlives us
     if (conf_path) {
         if (!load_conf_file(conf_path, token_store)) return 1;
         for (const std::string& t : token_store) conf_tokens.push_back(t.c_str());

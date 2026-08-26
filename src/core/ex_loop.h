@@ -28,6 +28,7 @@
 #include "../cmd/blocking.h"
 #include "../cmd/multi.h"
 #include "../cmd/notify.h"
+#include "../cmd/slowlog.h"
 #include "../cmd/xshard.h"
 #include "../persist/aof.h"
 
@@ -142,6 +143,9 @@ private:
                                 (snapshot.tracking_armed ? (NOTIFY_ALL | NOTIFY_TRACKING) : 0u));
         }
         maxmemory_enabled_ = enabled;
+        slowlog_arm_.slowlog_us = snapshot.slowlog_log_slower_than;
+        slowlog_arm_.latency_ms = snapshot.latency_monitor_threshold;
+        slowlog_armed_ = slowlog_arm_.armed();
         live_config_version_ = snapshot.version;
     }
 
@@ -496,6 +500,73 @@ private:
         return n + service_snapshot_backlogs(kExecBatch + n);
     }
 
+    // The armed slow-log arm. Out of line and cold-marked so its register pressure and its clock
+    // calls never reach the disabled batch loop above.
+    //
+    // TWO MODES. Normal mode brackets the whole batch with two now_ns() reads. A batch of ONE op
+    // gives that op's exact duration, which is every command on an unpipelined connection. A batch
+    // of many that overruns cannot be attributed retroactively -- the ops already ran -- so it
+    // arms per-op timing for the next kSlowlogEscalateBatches batches instead, and the recurrence
+    // is timed exactly. This is the documented divergence from redis, which times every command.
+    //
+    __attribute__((noinline, cold))
+    void exec_batch_timed(const Task* batch, uint32_t n) {
+        const SlowlogArm arm = slowlog_arm_;
+        const int64_t now_ms = cached_now_ms_;
+        slowlog_note_batch_timed();
+
+        if (slowlog_state_.escalate_batches || n == 1) {
+            if (slowlog_state_.escalate_batches) slowlog_state_.escalate_batches--;
+            for (uint32_t i = 0; i < n; i++) {
+                // Snapshot argv BEFORE execution. execute() publishes Done, after which the owning
+                // IO thread may retire the op and compact the read buffer the Slices point into.
+                Client* client = batch[i].client;
+                if (client)
+                    slowlog_capture(client->rob().at(batch[i].op_id), slowlog_state_.capture);
+                const uint64_t started = now_ns();
+                const bool ok = execute(batch[i]);
+                const uint64_t elapsed = now_ns() - started;
+                // ONE ENTRY PER COMMAND, not per participating shard. A cross-shard op is handed
+                // to every owner it touches; all but the last return with the op still Issued.
+                // Recording only the owner that published Done means a scatter is attributed to
+                // the slice that actually computed the answer -- documented in NOTES-SERVERTAIL.md.
+                if (client &&
+                    client->rob().at(batch[i].op_id).state.load(std::memory_order_relaxed) ==
+                        OpState::Done)
+                    slowlog_record_captured(self_->id(), client->id(), slowlog_state_.capture,
+                                            elapsed, now_ms, arm);
+                if (ok) continue;
+                xshard_retries_.push_back(batch[i]);
+                for (uint32_t j = i + 1; j < n; j++) ordered_deferred_.push_back(batch[j]);
+                return;
+            }
+            return;
+        }
+
+        const uint64_t started = now_ns();
+        uint32_t executed = n;
+        for (uint32_t i = 0; i < n; i++) {
+            if (execute(batch[i])) continue;
+            xshard_retries_.push_back(batch[i]);
+            for (uint32_t j = i + 1; j < n; j++) ordered_deferred_.push_back(batch[j]);
+            executed = i;
+            break;
+        }
+        const uint64_t elapsed = now_ns() - started;
+        // The screen is per-op-average, not whole-batch: a full batch of ordinary commands must
+        // not look like one slow command just because there were 32 of them.
+        const uint64_t threshold_ns = arm.slowlog_us >= 0
+            ? static_cast<uint64_t>(arm.slowlog_us) * 1000
+            : UINT64_MAX;
+        const uint64_t latency_ns = arm.latency_ms
+            ? static_cast<uint64_t>(arm.latency_ms) * 1000000 : UINT64_MAX;
+        const uint64_t bar = std::min(threshold_ns, latency_ns);
+        if (executed && bar != UINT64_MAX && elapsed / executed >= bar) {
+            slowlog_state_.escalate_batches = kSlowlogEscalateBatches;
+            slowlog_note_escalation();
+        }
+    }
+
     // Prefetch the whole batch's slots, THEN execute. Issuing the loads up front lets their DRAM
     // round trips overlap instead of each op stalling on its own miss in turn.
     void exec_batch(const Task* batch, uint32_t n) {
@@ -511,11 +582,18 @@ private:
                 !(op.spec->flags & (CmdFlags::CursorShard | CmdFlags::RandomShard)))
                 srv_->shard(shard).store().prefetch(op.hash);
         }
-        for (uint32_t i = 0; i < n; i++) {
-            if (execute(batch[i])) continue;
-            xshard_retries_.push_back(batch[i]);
-            for (uint32_t j = i + 1; j < n; j++) ordered_deferred_.push_back(batch[j]);
-            break;
+        // THE ENTIRE DISABLED-FEATURE COST OF SLOWLOG/LATENCY: one predicted-false branch here,
+        // once per batch of up to kExecBatch ops. No clock is read and the recorder is not linked
+        // into this loop at all. The armed body is out of line in exec_batch_timed().
+        if (__builtin_expect(slowlog_armed_, false)) {
+            exec_batch_timed(batch, n);
+        } else {
+            for (uint32_t i = 0; i < n; i++) {
+                if (execute(batch[i])) continue;
+                xshard_retries_.push_back(batch[i]);
+                for (uint32_t j = i + 1; j < n; j++) ordered_deferred_.push_back(batch[j]);
+                break;
+            }
         }
         // One publish per batch, covering every shard this batch touched. Cheaper than tracking
         // which ones changed, and this thread owns all of them.
@@ -799,6 +877,11 @@ private:
     std::deque<Task> xshard_retries_;
     std::deque<Task> ordered_deferred_;
     bool       notify_keyless_pending_ = false;
+    // Slow-log state at the true cold tail: nothing above it moves. `slowlog_armed_` is the single
+    // predicted-false branch exec_batch pays when the feature is off.
+    bool         slowlog_armed_ = false;
+    SlowlogArm   slowlog_arm_{};
+    SlowlogExState slowlog_state_{};
 };
 
 }  // namespace tomo

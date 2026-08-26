@@ -28,6 +28,9 @@ COMMAND_SOURCES = [
     "src/cmd/t_server.cc",
     "src/cmd/scripting.cc",
     "src/cmd/functions.cc",
+    "src/cmd/server_tail.cc",
+    "src/cmd/slowlog.cc",
+    "src/cmd/lcs.cc",
 ]
 
 

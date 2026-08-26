@@ -245,6 +245,11 @@ MultiCommandKind classify_multi_command(MultiCommand& command) {
         Slice(command.queued.argv[1].data(),
               static_cast<uint32_t>(command.queued.argv[1].size())).eq_icase("get"))
         return MultiCommandKind::IoLocal;
+    // OBJECT/MEMORY ride CursorShard only to reach the IO special-route hook; they are not
+    // cursor commands. Their keyed forms have a truthful key range and fall through to Local;
+    // their keyless subcommands answer on the IO thread like DBSIZE and CONFIG GET.
+    if (command.queued.spec->flags & CmdFlags::SubcmdRoute)
+        return command.key_args.empty() ? MultiCommandKind::IoLocal : MultiCommandKind::Local;
     if ((command.queued.spec->flags & CmdFlags::CursorShard) &&
         !(command.queued.spec->flags & CmdFlags::StreamRoute)) return MultiCommandKind::Scan;
     if (command.key_args.empty()) return MultiCommandKind::Unsupported;

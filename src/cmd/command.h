@@ -12,6 +12,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <utility>
+#include <vector>
 #include "../base/slice.h"
 
 namespace tomo {
@@ -68,6 +70,13 @@ struct CmdFlags {
     // ConnLocal path with a flag test on a word the dispatcher already holds. (Landed alongside
     // OrderedLocal, which claimed bit 18 first — merge trains assign flag bits, not lanes.)
     static constexpr uint32_t Climon = 1u << 19;
+    // Container commands whose FIRST ARGUMENT decides whether a key is present at all: OBJECT
+    // ENCODING <key> routes by argv[2], OBJECT HELP has no key. The row keeps the truthful
+    // first_key so ACL/MULTI still gate the keyed forms (both bound their walk by argc), and rides
+    // CursorShard so the existing IO special-route hook resolves the shard before dispatch. No new
+    // branch reaches the GET/SET path: the hook is the one SCAN/EVAL/XREAD already pay for.
+    // (Third lane to claim bit 18 this wave — reassigned to 20 at the train.)
+    static constexpr uint32_t SubcmdRoute = 1u << 20;
 };
 
 using CmdHandler = void (*)(Shard&, Op&);
@@ -132,6 +141,9 @@ CommandTable stream_group_command_table();
 CommandTable server_command_table();
 CommandTable scripting_command_table();
 CommandTable functions_command_table();
+CommandTable server_tail_command_table();
+CommandTable slowlog_command_table();
+CommandTable lcs_command_table();
 
 // Built once before threads start. Lookup hashes the uppercase-normalized bytes into an open-
 // addressed table; the load factor is capped at 1/2 so ordinary command names land in one probe.
@@ -204,6 +216,20 @@ bool command_glob_match(Slice pattern, Slice text);
 
 // Special routing helpers. Validation writes a complete error reply into op on failure.
 bool command_prepare_scan_route(Server& server, Op& op);
+// SubcmdRoute resolution for the container commands (OBJECT/MEMORY). Returns false after writing a
+// complete reply into op — the IO caller then retires it without dispatching.
+bool command_prepare_subcmd_route(Server& server, Op& op);
+// Lets the server-tail translation unit reach the bound Server without duplicating the binding.
+Server* command_server();
+// The IO thread currently running a ConnLocal handler, for the few commands that must talk to
+// the loop itself (SHUTDOWN's ring pokes). Null outside a ConnLocal call.
+ThreadCtx* command_local_thread();
+// Live CONFIG table as (name, value) pairs, for CONFIG REWRITE.
+void command_config_snapshot(std::vector<std::pair<std::string, std::string>>& out);
+// CONFIG RESETSTAT. The resettable INFO counters are per-shard and per-thread single-writer
+// values, so they are not zeroed in place: INFO subtracts a baseline this call captures. That
+// keeps every counter's single-writer property intact and adds no cross-thread write.
+void command_config_resetstat();
 bool command_validate_all_shards(Op& op);
 bool command_config_routes_all_shards(Op& op);
 bool command_validate_config_set(Op& op);
