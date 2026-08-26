@@ -405,6 +405,7 @@ public:
         return atomic_mode_state() != 0;
     }
     bool atomic_can_admit(uint32_t owner_io, bool force = false) const {
+        if (snapshot_atomic_barrier_.load(std::memory_order_acquire)) return false;
         if (!force && !(atomic_mode_state() & kAtomicEnabledBit)) return true;
         const uint64_t generation = atomic_credit_generation_.load(std::memory_order_acquire);
         if (generation & 1) return false;
@@ -417,6 +418,7 @@ public:
     bool atomic_try_admit(uint32_t owner_io, uint64_t& admitted_generation,
                           bool force = false) {
         admitted_generation = 0;
+        if (snapshot_atomic_barrier_.load(std::memory_order_acquire)) return false;
         if (!force && !(atomic_mode_state() & kAtomicEnabledBit)) return false;
         AtomicAdmissionLease& lease = thread(owner_io).atomic_admission_lease();
         const uint64_t generation = atomic_credit_generation_.load(std::memory_order_acquire);
@@ -454,7 +456,8 @@ public:
         const bool first = lease.active++ == 0;
         lease.published_active.store(lease.active, std::memory_order_release);
         if (first) atomic_activity_.fetch_add(1, std::memory_order_release);
-        if (atomic_credit_generation_.load(std::memory_order_acquire) != generation ||
+        if (snapshot_atomic_barrier_.load(std::memory_order_acquire) ||
+            atomic_credit_generation_.load(std::memory_order_acquire) != generation ||
             (!force && !(atomic_mode_state() & kAtomicEnabledBit))) {
             lease.active--;
             lease.published_active.store(lease.active, std::memory_order_release);
@@ -465,6 +468,9 @@ public:
         thread(owner_io).note_atomic_group();
         admitted_generation = generation;
         return true;
+    }
+    void set_snapshot_atomic_barrier(bool enabled) {
+        snapshot_atomic_barrier_.store(enabled, std::memory_order_release);
     }
     void atomic_retire_group(uint32_t owner_io, uint64_t admitted_generation) {
         AtomicAdmissionLease& lease = thread(owner_io).atomic_admission_lease();
@@ -836,8 +842,9 @@ private:
     Router    router_;
     std::vector<std::unique_ptr<Shard>>     shards_;
     std::vector<std::unique_ptr<ThreadCtx>> threads_;
-    SnapshotManager snapshot_;
     AofManager aof_;
+    // Declared after AOF so its destructor runs first and can detach an active rewrite callback.
+    SnapshotManager snapshot_;
 
     std::atomic<uint32_t> shard_owner_[256] = {};
     uint8_t executor_slots_[kMaxThreads] = {};
@@ -870,6 +877,7 @@ private:
     std::atomic<uint32_t> live_notify_events_{0};
     std::atomic<uint32_t> live_atomic_window_{256};
     std::atomic<uint64_t> commit_seq_{0};
+    std::atomic<bool> snapshot_atomic_barrier_{false};
     std::atomic<uint64_t> atomic_window_stalls_{0};
     std::atomic<uint64_t> atomic_credit_generation_{2};
     std::atomic<uint32_t> atomic_credit_pool_{0};

@@ -342,7 +342,8 @@ struct ScatterState {
     OwnerRecordRefs* owner_record_refs = nullptr;
     ResultHeap* result = nullptr;
     std::unique_ptr<SnapshotLoadPlan> reload_plan;
-    std::unique_ptr<AofReplayPlan> aof_reload_plan;
+    std::unique_ptr<SnapshotLoadPlan> aof_reload_base;
+    std::vector<std::unique_ptr<AofReplayPlan>> aof_reload_increments;
     std::shared_ptr<AofGroupDecision> aof_group;
     // Non-null only after a parked BLMOVE/BRPOPLPUSH is resumed by its owning IO. The blocking
     // context remains independently refcounted while this ordinary scatter owns the Op marker.
@@ -825,7 +826,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     if (kind == Kind::Pfcount && op.argc() == 2) return ScatterPrepare::NotScatter;
 
     std::unique_ptr<SnapshotLoadPlan> reload_plan;
-    std::unique_ptr<AofReplayPlan> aof_reload_plan;
+    std::unique_ptr<SnapshotLoadPlan> aof_reload_base;
+    std::vector<std::unique_ptr<AofReplayPlan>> aof_reload_increments;
     if (all_shards) {
         if (kind == Kind::DebugReload) {
             if (!debug_command_allowed(server, origin_client)) {
@@ -879,16 +881,14 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                 reply_err(op.sink(), "ERR timed out flushing AOF before reload");
                 return ScatterPrepare::Error;
             }
-            bool exists = false;
             std::string warning;
             std::string error;
-            auto plan = aof_read_plan(server.aof().file_path().c_str(), server.nshards(),
-                                      false, exists, warning, error);
-            if (!plan || !exists) {
+            if (!aof_read_recovery(server.cfg(), server.nshards(), aof_reload_base,
+                                   aof_reload_increments, warning, error) ||
+                (!aof_reload_base && aof_reload_increments.empty())) {
                 reply_err(op.sink(), "ERR Error trying to load the AOF, check server logs.");
                 return ScatterPrepare::Error;
             }
-            aof_reload_plan = std::move(plan);
         } else {
             const bool valid = (op.spec->flags & CmdFlags::ConfigRoute)
                 ? command_validate_config_set(op) : command_validate_all_shards(op);
@@ -1113,7 +1113,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     state->range_spec = range_spec;
     state->sort_options = sort_options;
     state->reload_plan = std::move(reload_plan);
-    state->aof_reload_plan = std::move(aof_reload_plan);
+    state->aof_reload_base = std::move(aof_reload_base);
+    state->aof_reload_increments = std::move(aof_reload_increments);
     // MSET is a blind replacement. Registering a read cut for it only pins predecessors across a
     // deep pipeline; MSETNX and delete still need their one dispatch snapshot for existence.
     if (needs_snapshot)
@@ -1685,10 +1686,20 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 if (!shard.store().atomic_tombstone_all()) return ScatterTaskResult::Retry;
                 shard.store().clear();
                 std::string error;
-                if (!state.aof_reload_plan ||
-                    !aof_load_shard(*state.aof_reload_plan, *state.server, shard, error)) {
+                if (state.aof_reload_base &&
+                    !snapshot_load_shard(*state.aof_reload_base, *state.server, shard, error)) {
+                    std::fprintf(stderr, "DEBUG LOADAOF base failed on shard %d: %s\n",
+                                 shard.id(), error.c_str());
                     group.error = WorkError::Corrupt;
                     return ScatterTaskResult::Complete;
+                }
+                for (const auto& increment : state.aof_reload_increments) {
+                    if (!aof_load_shard(*increment, *state.server, shard, error)) {
+                        std::fprintf(stderr, "DEBUG LOADAOF increment failed on shard %d: %s\n",
+                                     shard.id(), error.c_str());
+                        group.error = WorkError::Corrupt;
+                        return ScatterTaskResult::Complete;
+                    }
                 }
                 return ScatterTaskResult::Complete;
             }

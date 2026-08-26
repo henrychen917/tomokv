@@ -495,6 +495,17 @@ void snapshot_command(Op& op, bool blocking) {
 
 void cmd_save(Shard&, Op& op) { snapshot_command(op, true); }
 void cmd_bgsave(Shard&, Op& op) { snapshot_command(op, false); }
+void cmd_bgrewriteaof(Shard&, Op& op) {
+    if (!g_server || !g_server->aof().recording()) {
+        reply_err(op.sink(), "ERR Background append only file rewriting not scheduled");
+        return;
+    }
+    if (!g_server->aof().request_rewrite()) {
+        reply_err(op.sink(), "ERR Background append only file rewriting already in progress");
+        return;
+    }
+    reply_simple(op.sink(), "Background append only file rewriting started");
+}
 void cmd_lastsave(Shard&, Op& op) {
     reply_int(op.sink(), g_server ? static_cast<long long>(g_server->snapshot().last_save_time()) : 0);
 }
@@ -667,6 +678,25 @@ void cmd_debug_impl(Shard&, Op& op) {
             return;
         }
         g_server->aof().debug_stop_after_group_fragments(count);
+        reply_ok(op.sink());
+        return;
+    }
+    if (eq_icase(subcommand, "aof-rewrite-pause") && op.argc() == 3) {
+        AofRewriteDebugStage stage = AofRewriteDebugStage::None;
+        if (eq_icase(op.arg(2), "before-mark")) stage = AofRewriteDebugStage::BeforeMark;
+        else if (eq_icase(op.arg(2), "before-manifest"))
+            stage = AofRewriteDebugStage::BeforeManifest;
+        else if (eq_icase(op.arg(2), "after-manifest"))
+            stage = AofRewriteDebugStage::AfterManifest;
+        else if (!eq_icase(op.arg(2), "off")) {
+            reply_syntax(op.sink());
+            return;
+        }
+        if (!g_server || !g_server->aof().recording()) {
+            reply_err(op.sink(), "ERR appendonly is disabled");
+            return;
+        }
+        g_server->aof().debug_rewrite_pause(stage);
         reply_ok(op.sink());
         return;
     }
@@ -1280,6 +1310,7 @@ static const CommandSpec kTable[] = {
     {"ACL",        2, -1, CmdFlags::ConnLocal,                                    cmd_acl,        0,  0, 0},
     {"SAVE",       1,  1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_save,       0,  0, 0},
     {"BGSAVE",     1,  2, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_bgsave,     0,  0, 0},
+    {"BGREWRITEAOF",1, 1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_bgrewriteaof,0, 0, 0},
     {"LASTSAVE",   1,  1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_lastsave,   0,  0, 0},
     {"ECHO",       2,  2, CmdFlags::ConnLocal,                                    cmd_echo,       0,  0, 0},
     {"AUTH",       2,  3, CmdFlags::ConnLocal | CmdFlags::AclExempt,              cmd_auth,       0,  0, 0},

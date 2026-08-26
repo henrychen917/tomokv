@@ -103,31 +103,31 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    std::unique_ptr<AofReplayPlan> aof_plan;
+    std::unique_ptr<SnapshotLoadPlan> aof_base_plan;
+    std::vector<std::unique_ptr<AofReplayPlan>> aof_plans;
     if (cfg.appendonly) {
-        bool exists = false;
         std::string warning, error;
-        const std::string path = aof_file_path(cfg);
-        aof_plan = aof_read_plan(path.c_str(), cfg.shards, true, exists, warning, error);
-        if (!error.empty()) {
+        if (!aof_read_recovery(cfg, cfg.shards, aof_base_plan, aof_plans, warning, error)) {
             std::fprintf(stderr, "AOF load plan failed: %s\n", error.c_str());
             return 1;
         }
         if (!warning.empty()) std::fprintf(stderr, "AOF warning: %s\n", warning.c_str());
-        if (exists && !aof_plan) {
-            std::fprintf(stderr, "AOF load plan failed\n");
-            return 1;
-        }
-        if (aof_plan) {
-            g_hash_kind = static_cast<HashKind>(aof_plan->hash_kind);
-            g_hash_seed = aof_plan->hash_seed;
-            g_sip_k0 = aof_plan->sip_k0;
-            g_sip_k1 = aof_plan->sip_k1;
+        if (aof_base_plan) {
+            g_hash_kind = static_cast<HashKind>(aof_base_plan->hash_kind);
+            g_hash_seed = aof_base_plan->hash_seed;
+            g_sip_k0 = aof_base_plan->sip_k0;
+            g_sip_k1 = aof_base_plan->sip_k1;
+        } else if (!aof_plans.empty()) {
+            const AofReplayPlan& plan = *aof_plans.front();
+            g_hash_kind = static_cast<HashKind>(plan.hash_kind);
+            g_hash_seed = plan.hash_seed;
+            g_sip_k0 = plan.sip_k0;
+            g_sip_k1 = plan.sip_k1;
         }
     }
 
     std::unique_ptr<SnapshotLoadPlan> load_plan;
-    if (cfg.load_path && !aof_plan) {
+    if (cfg.load_path && !aof_base_plan && aof_plans.empty()) {
         std::string error;
         load_plan = snapshot_read_plan(cfg.load_path, cfg.shards, error);
         if (!load_plan) {
@@ -151,7 +151,8 @@ int main(int argc, char** argv) {
         return 1;
     }
     Server srv;
-    if (!srv.init(cfg, aof_plan.get())) { std::fprintf(stderr, "server init failed\n"); return 1; }
+    const AofReplayPlan* active_aof_plan = aof_plans.empty() ? nullptr : aof_plans.back().get();
+    if (!srv.init(cfg, active_aof_plan)) { std::fprintf(stderr, "server init failed\n"); return 1; }
     g_srv = &srv;
     command_bind_server(&srv);
     {
@@ -244,8 +245,15 @@ int main(int argc, char** argv) {
             bind_thread_arena();                // per-worker jemalloc arena; no-op without it
             bool ok = exs[tid].init(&srv, &self);
             std::string local_error;
-            if (ok && aof_plan) ok = aof_load_owned(*aof_plan, srv, self, local_error);
-            else if (ok && load_plan) ok = snapshot_load_owned(*load_plan, srv, self, local_error);
+            if (ok && aof_base_plan)
+                ok = snapshot_load_owned(*aof_base_plan, srv, self, local_error);
+            if (ok && !aof_plans.empty()) {
+                for (const auto& plan : aof_plans) {
+                    if (!aof_load_owned(*plan, srv, self, local_error)) { ok = false; break; }
+                }
+            } else if (ok && load_plan) {
+                ok = snapshot_load_owned(*load_plan, srv, self, local_error);
+            }
             {
                 std::lock_guard<std::mutex> lock(load_mu);
                 if (!ok) {

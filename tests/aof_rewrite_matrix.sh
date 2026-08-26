@@ -1,0 +1,166 @@
+#!/bin/bash
+# Complete rewrite/recovery matrix. Every server signal targets the PID captured at boot.
+set -eu
+cd "$(dirname "$0")/.."
+
+PORT=${GATE_PORT:-7955}
+CORES=${GATE_CORES:-224-231}
+NCORES=$(taskset -c "$CORES" nproc)
+if [ "$NCORES" -ge 8 ]; then RATIO=4:4
+else RATIO=$(((NCORES+1)/2)):$((NCORES-(NCORES+1)/2)); fi
+CLI=${REDIS_CLI:-redis-cli}
+ACTIVE_PID=
+refusal_pid=
+
+cleanup() {
+  local stopped=0
+  if [ -n "$ACTIVE_PID" ] && kill -0 "$ACTIVE_PID" 2>/dev/null; then
+    kill -TERM "$ACTIVE_PID" 2>/dev/null || true
+    wait "$ACTIVE_PID" 2>/dev/null || true
+    stopped=1
+  fi
+  if [ -n "$refusal_pid" ] && kill -0 "$refusal_pid" 2>/dev/null; then
+    kill -TERM "$refusal_pid" 2>/dev/null || true
+    wait "$refusal_pid" 2>/dev/null || true
+    stopped=1
+  fi
+  [ "$stopped" = 0 ] || sleep 5
+}
+trap cleanup EXIT
+
+boot_server() {
+  local directory=$1 atomic=$2 debug=$3 log=$4
+  local debug_args=()
+  [ "$debug" = yes ] && debug_args=(--enable-debug-command yes)
+  taskset -c "$CORES" ./build/tomokv --port "$PORT" --bind 127.0.0.1 \
+    --shards 16 --ratio "$RATIO" --protected-mode no --atomic "$atomic" \
+    --appendonly yes --appendfsync everysec --dir "$directory" "${debug_args[@]}" \
+    >"$log" 2>&1 &
+  ACTIVE_PID=$!
+  for _ in $(seq 1 100); do
+    if "$CLI" -h 127.0.0.1 -p "$PORT" ping >/dev/null 2>&1; then return 0; fi
+    if ! kill -0 "$ACTIVE_PID" 2>/dev/null; then wait "$ACTIVE_PID" || true; return 1; fi
+    sleep 0.1
+  done
+  return 1
+}
+
+stop_clean() {
+  kill -TERM "$ACTIVE_PID"
+  wait "$ACTIVE_PID"
+  ACTIVE_PID=
+  sleep 5
+}
+
+stop_now() {
+  kill -KILL "$ACTIVE_PID"
+  wait "$ACTIVE_PID" 2>/dev/null || true
+  ACTIVE_PID=
+  sleep 5
+}
+
+normal_atomic1=
+for atomic in 0 1; do
+  directory=$(mktemp -d "/tmp/gate-aof-rewrite-${atomic}.XXXXXX")
+  state="$directory/state.json"
+  boot_server "$directory" "$atomic" yes "$directory/server-1.log"
+  python3 tests/aof_rewrite.py 127.0.0.1 "$PORT" populate "$state" 512 >/dev/null
+  python3 tests/aof_rewrite.py 127.0.0.1 "$PORT" rewrite "$state" "$directory" >/dev/null
+  python3 tests/aof_rewrite.py 127.0.0.1 "$PORT" manifest "$directory" >/dev/null
+  stop_clean
+  boot_server "$directory" "$atomic" yes "$directory/server-2.log"
+  python3 tests/aof_rewrite.py 127.0.0.1 "$PORT" verify "$state" >/dev/null
+  python3 tests/aof_rewrite.py 127.0.0.1 "$PORT" manifest "$directory" >/dev/null
+  [ "$("$CLI" -h 127.0.0.1 -p "$PORT" DEBUG LOADAOF)" = OK ]
+  python3 tests/aof_rewrite.py 127.0.0.1 "$PORT" verify "$state" >/dev/null
+  if [ "$atomic" = 1 ]; then
+    before=$("$CLI" -h 127.0.0.1 -p "$PORT" info persistence | tr -d '\r' |
+             sed -n 's/^aof_groups_committed://p')
+    args=(MSET)
+    for index in $(seq 0 15); do args+=("gcmt:rewrite:$index" "value-$index"); done
+    "$CLI" -h 127.0.0.1 -p "$PORT" "${args[@]}" >/dev/null
+    after=$before
+    for _ in $(seq 1 300); do
+      after=$("$CLI" -h 127.0.0.1 -p "$PORT" info persistence | tr -d '\r' |
+              sed -n 's/^aof_groups_committed://p')
+      [ "$after" -gt "$before" ] && break
+      sleep 0.01
+    done
+    [ "$after" -gt "$before" ]
+    sleep 2
+    normal_atomic1=$directory
+  fi
+  stop_clean
+done
+
+before_manifest_dir=
+for stage in before-mark before-manifest after-manifest; do
+  directory=$(mktemp -d "/tmp/gate-aof-rewrite-${stage}.XXXXXX")
+  state="$directory/state.json"
+  boot_server "$directory" 1 yes "$directory/server-1.log"
+  python3 tests/aof_rewrite.py 127.0.0.1 "$PORT" populate "$state" 256 >/dev/null
+  python3 tests/aof_rewrite.py 127.0.0.1 "$PORT" pause "$stage" >/dev/null
+  marker="$directory/appendonlydir/debug-aof-rewrite-stage"
+  observed=0
+  for _ in $(seq 1 500); do
+    if [ -f "$marker" ] && grep -q "$stage" "$marker"; then observed=1; break; fi
+    sleep 0.02
+  done
+  [ "$observed" = 1 ]
+  stop_now
+  boot_server "$directory" 1 yes "$directory/server-2.log"
+  python3 tests/aof_rewrite.py 127.0.0.1 "$PORT" verify "$state" >/dev/null
+  if [ "$stage" = after-manifest ]; then
+    python3 tests/aof_rewrite.py 127.0.0.1 "$PORT" manifest "$directory" >/dev/null
+  fi
+  [ "$stage" = before-manifest ] && before_manifest_dir=$directory
+  stop_clean
+done
+
+for kind in manifest base record-length group-vector; do
+  directory=$(mktemp -d "/tmp/gate-aof-rewrite-corrupt-${kind}.XXXXXX")
+  cp -a "$normal_atomic1"/. "$directory"/
+  python3 tests/aof_rewrite.py 127.0.0.1 "$PORT" corrupt "$directory" "$kind" >/dev/null
+  taskset -c "$CORES" ./build/tomokv --port "$PORT" --bind 127.0.0.1 \
+    --shards 16 --ratio "$RATIO" --protected-mode no --appendonly yes \
+    --appendfsync everysec --dir "$directory" >"$directory/refusal.log" 2>&1 &
+  refusal_pid=$!
+  for _ in $(seq 1 50); do
+    if ! kill -0 "$refusal_pid" 2>/dev/null; then break; fi
+    sleep 0.1
+  done
+  if kill -0 "$refusal_pid" 2>/dev/null; then
+    kill -TERM "$refusal_pid"; wait "$refusal_pid" || true
+    exit 1
+  fi
+  if wait "$refusal_pid"; then exit 1; fi
+  refusal_pid=
+  grep -q "AOF load plan failed" "$directory/refusal.log"
+  sleep 5
+done
+
+interior=$(mktemp -d /tmp/gate-aof-rewrite-corrupt-interior.XXXXXX)
+cp -a "$before_manifest_dir"/. "$interior"/
+manifest="$interior/appendonlydir/appendonly.aof.manifest"
+first_incr=$(sed -n 's/^file \([^ ]*\).*type i.*/\1/p' "$manifest" | head -1)
+first_path="$interior/appendonlydir/$first_incr"
+first_size=$(stat -c %s "$first_path")
+truncate -s $((first_size-7)) "$first_path"
+taskset -c "$CORES" ./build/tomokv --port "$PORT" --bind 127.0.0.1 \
+  --shards 16 --ratio "$RATIO" --protected-mode no --appendonly yes \
+  --appendfsync everysec --dir "$interior" >"$interior/refusal.log" 2>&1 &
+refusal_pid=$!
+for _ in $(seq 1 50); do
+  if ! kill -0 "$refusal_pid" 2>/dev/null; then break; fi
+  sleep 0.1
+done
+if kill -0 "$refusal_pid" 2>/dev/null; then
+  kill -TERM "$refusal_pid"; wait "$refusal_pid" || true
+  exit 1
+fi
+if wait "$refusal_pid"; then exit 1; fi
+refusal_pid=
+grep -q "truncated AOF tail" "$interior/refusal.log"
+sleep 5
+
+echo "AOF REWRITE MATRIX PASS: atomic=0/1 stages=3 corruptions=5"

@@ -59,6 +59,7 @@ boot(){ # binary -> pid ; server log to $SRVLOG
       > "$SRVLOG" 2>&1 &
   SRV=$!
   for _ in $(seq 50); do ./build/tomokv --help >/dev/null 2>&1
+    if ! kill -0 "$SRV" 2>/dev/null; then wait "$SRV" 2>/dev/null; return 1; fi
     (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null && return 0; sleep 0.2; done
   return 1
 }
@@ -275,6 +276,11 @@ python3 tests/aof_fsync.py 127.0.0.1 $PORT populate "$AOF_NO_DIR/state.json" no 
     || bad "AOF no-sync bypass" "see /tmp/gate-aof-no-sync.txt"
 stop
 sleep 5
+
+GATE_PORT=$PORT GATE_CORES=$CORES tests/aof_rewrite_matrix.sh \
+    >/tmp/gate-aof-rewrite.txt 2>&1 \
+    && ok "AOF rewrite atomic/stage/corruption matrix" \
+    || bad "AOF rewrite matrix" "see /tmp/gate-aof-rewrite.txt"
 
 AOF_OFF_DIR=$(mktemp -d /tmp/gate-aof-off.XXXXXX)
 boot ./build/tomokv --protected-mode no --appendonly no --dir "$AOF_OFF_DIR" \

@@ -85,3 +85,34 @@ taskset -c 224-231 ./src/redis-server --port 7955 --bind 127.0.0.1 \
 ```
 
 This remains a parity note only under the amended floor.
+
+## Step 4 validation
+
+The rewrite engine uses the existing fork-free snapshot Freeze/Mark cut. At Mark it drains every
+pre-cut producer buffer, syncs the old increment, opens and syncs the next increment, and publishes
+a transitional manifest. Snapshot capture then writes the BASE while new mutations remain in that
+increment. Completion publishes a one-BASE/one-INCR manifest with temp-write, file sync, rename,
+and directory sync before unlinking history. Each manifest increment carries the starting sequence
+of every shard, so recovery checks continuity across transitional multi-INCR layouts. Only the
+final increment may recover a short tail.
+
+The rewrite matrix ran on `GATE_PORT=7955 GATE_CORES=224-231` and proved:
+
+- normal rewrite plus restart under `atomic 0` and `atomic 1`, preserving 1,280 modeled values in
+  each arm;
+- manifest-aware in-process `DEBUG LOADAOF` after rewrite in both atomic modes;
+- recovery at `before-mark`, `before-manifest`, and `after-manifest`, with exact PID-scoped process
+  termination and five-second port-reuse gaps;
+- explicit boot refusal for malformed manifest input, BASE header/checksum damage, invalid record
+  lengths, an invalid GCMT participant vector, and a short interior increment;
+- exactly one referenced BASE and one INCR after completion/recovery, with history files actually
+  removed and a post-cut GCMT present for the group-vector arm.
+
+The expanded quick gate completed 36/36 checks. Focused ASAN/UBSAN rewrite, clean-stop, restart,
+and exact-state checks also passed under both atomic modes.
+
+High-rate post-cut writes exposed and fixed a snapshot interaction in `FlatStore`: an ordinary SET
+lookup could advance an in-progress rehash while the frozen table was being captured, moving an
+untouched object past the snapshot cursor and omitting it from the BASE. Rehash advancement is now
+suppressed for that lookup during capture; a 2,816-value directed rewrite/restart run then preserved
+the full model.

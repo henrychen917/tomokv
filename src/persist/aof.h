@@ -11,6 +11,7 @@
 #include <memory>
 #include <string>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "../core/signal.h"
@@ -25,6 +26,7 @@ class Op;
 class Ring;
 class Server;
 class Shard;
+class SnapshotLoadPlan;
 class ThreadCtx;
 
 inline constexpr uint32_t kAofChunkBytes = 64 * 1024;
@@ -42,6 +44,13 @@ enum class AofRecordKind : uint8_t {
     GroupPut = 5,
     GroupDel = 6,
     GroupCommit = 7,
+};
+
+enum class AofRewriteDebugStage : uint8_t {
+    None = 0,
+    BeforeMark = 1,
+    BeforeManifest = 2,
+    AfterManifest = 3,
 };
 
 struct AofGroupDependency {
@@ -76,6 +85,7 @@ struct AofChunk {
 
 class AofReplayPlan {
 public:
+    uint64_t file_sequence = 1;
     uint32_t shard_count = 0;
     uint32_t hash_kind = 0;
     uint64_t hash_seed = 0;
@@ -175,6 +185,11 @@ public:
     void on_fsync_complete(ThreadCtx& writer, Ring& ring, int result);
     bool post_chunk(uint32_t producer, std::unique_ptr<AofChunk>& chunk,
                     Ring& producer_ring, LoopSignals& signals);
+    bool request_rewrite();
+    bool rewrite_mark(ThreadCtx& writer, Ring& ring, uint64_t snapshot_epoch,
+                      int64_t cut_ms, std::string& error);
+    bool rewrite_complete(const std::string& base_path, uint64_t snapshot_epoch);
+    void rewrite_abort();
 
     bool configured() const { return configured_; }
     bool recording() const { return recording_.load(std::memory_order_acquire); }
@@ -207,9 +222,26 @@ public:
     uint64_t send_gate_waits() const {
         return send_gate_waits_.load(std::memory_order_relaxed);
     }
+    bool rewrite_in_progress() const {
+        return rewrite_in_progress_.load(std::memory_order_acquire);
+    }
+    bool rewrite_scheduled() const {
+        return rewrite_requested_.load(std::memory_order_acquire);
+    }
+    bool last_rewrite_ok() const { return last_rewrite_ok_.load(std::memory_order_relaxed); }
+    uint64_t base_size() const { return base_size_.load(std::memory_order_relaxed); }
+    uint64_t rewrite_completions() const {
+        return rewrite_completions_.load(std::memory_order_relaxed);
+    }
+    uint64_t history_unlinks() const {
+        return history_unlinks_.load(std::memory_order_relaxed);
+    }
     const std::string& last_error() const { return last_error_; }
     void debug_stop_after_group_fragments(uint64_t count) {
         debug_stop_after_fragments_.store(count, std::memory_order_release);
+    }
+    void debug_rewrite_pause(AofRewriteDebugStage stage) {
+        debug_rewrite_pause_.store(stage, std::memory_order_release);
     }
 
     void fail(const char* message);
@@ -228,6 +260,15 @@ private:
     uint32_t drain_pending_commits(uint32_t& budget);
     bool drain_producer(uint32_t producer, uint32_t& budget, uint32_t& consumed);
     void discard_chunks();
+    bool persist_manifest(const std::string& base_name, uint64_t base_sequence,
+                          uint64_t base_epoch, uint64_t base_commit,
+                          uint64_t persisted_base_size,
+                          const std::vector<std::pair<uint64_t, std::string>>& increments,
+                          const std::vector<std::vector<uint32_t>>& increment_starts,
+                          std::string& error);
+    void maybe_start_rewrite(ThreadCtx& writer, Ring& ring);
+    void maybe_pause_rewrite(AofRewriteDebugStage stage);
+    void cleanup_unreferenced_files();
 
     bool configured_ = false;
     Server* server_ = nullptr;
@@ -251,10 +292,19 @@ private:
     std::atomic<uint64_t> current_size_{0};
     std::atomic<uint64_t> fsyncs_{0};
     std::atomic<uint64_t> send_gate_waits_{0};
+    std::atomic<bool> rewrite_requested_{false};
+    std::atomic<bool> rewrite_in_progress_{false};
+    std::atomic<bool> last_rewrite_ok_{true};
+    std::atomic<uint64_t> base_size_{0};
+    std::atomic<uint64_t> rewrite_completions_{0};
+    std::atomic<uint64_t> history_unlinks_{0};
     std::atomic<bool> timestamp_enabled_{false};
     std::atomic<AppendFsyncPolicy> fsync_policy_;
     std::atomic<uint64_t> debug_stop_after_fragments_{0};
+    std::atomic<AofRewriteDebugStage> debug_rewrite_pause_{AofRewriteDebugStage::None};
     std::string directory_path_;
+    std::string appendfilename_;
+    std::string manifest_path_;
     std::string file_path_;
     std::string last_error_;
     int fd_ = -1;
@@ -270,17 +320,32 @@ private:
     std::unordered_set<uint64_t> written_out_of_order_;
     NotifyMask gate_waiters_;
     std::vector<std::unique_ptr<AofChunk>> pending_commits_;
+    std::string base_name_;
+    uint64_t base_sequence_ = 0;
+    uint64_t base_epoch_ = 0;
+    uint64_t base_commit_ = 0;
+    uint64_t active_incr_sequence_ = 1;
+    uint64_t rewrite_target_sequence_ = 0;
+    std::string rewrite_base_name_;
+    std::vector<std::pair<uint64_t, std::string>> increments_;
+    std::vector<std::vector<uint32_t>> increment_starts_;
+    std::vector<std::string> rewrite_history_;
 };
 
 std::string aof_directory_path(const Config& config);
 std::string aof_file_path(const Config& config);
 std::unique_ptr<AofReplayPlan> aof_read_plan(const char* path, uint32_t expected_shards,
                                              bool truncate_tail, bool& exists,
-                                             std::string& warning, std::string& error);
+                                             std::string& warning, std::string& error,
+                                             const std::vector<uint32_t>* initial_sequences = nullptr);
 bool aof_load_owned(const AofReplayPlan& plan, Server& server, ThreadCtx& owner,
                     std::string& error);
 bool aof_load_shard(const AofReplayPlan& plan, Server& server, Shard& shard,
                     std::string& error);
+bool aof_read_recovery(const Config& config, uint32_t expected_shards,
+                       std::unique_ptr<SnapshotLoadPlan>& base,
+                       std::vector<std::unique_ptr<AofReplayPlan>>& increments,
+                       std::string& warning, std::string& error);
 
 bool aof_record_local_op(Shard& shard, Op& op, AofOwnerContext& context);
 

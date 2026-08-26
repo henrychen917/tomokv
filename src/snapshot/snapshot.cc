@@ -14,6 +14,7 @@
 #include "../core/server.h"
 #include "../core/thread.h"
 #include "../net/uring.h"
+#include "../persist/aof.h"
 #include "../store/flatstore.h"
 
 namespace tomo {
@@ -128,13 +129,16 @@ void SnapshotManager::set_error(const char* text) {
 
 SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& writer,
                                                      Ring& writer_ring, bool is_blocking,
-                                                     std::string& error) {
+                                                     std::string& error, AofManager* rewrite,
+                                                     const char* target_dir,
+                                                     const char* target_filename) {
     Phase expected = Phase::Idle;
     if (!phase_.compare_exchange_strong(expected, Phase::Preparing,
                                         std::memory_order_acq_rel)) {
         error = "Background save already in progress";
         return StartResult::Busy;
     }
+    if (rewrite) server.set_snapshot_atomic_barrier(true);
 
     const uint64_t next_epoch = epoch_.fetch_add(1, std::memory_order_relaxed) + 1;
     epoch_.store(next_epoch, std::memory_order_release);
@@ -148,6 +152,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
     writer_tid_.store(writer.id(), std::memory_order_relaxed);
     writer_ring_.store(&writer_ring, std::memory_order_release);
     server_ = &server;
+    rewrite_ = rewrite;
     writer_failed_.store(false, std::memory_order_relaxed);
     frame_count_ = 0;
     ended_shards_ = 0;
@@ -160,6 +165,10 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         error_.clear();
     }
 
+    active_dir_ = target_dir && *target_dir ? target_dir : dir_;
+    const char* active_name = target_filename && *target_filename
+        ? target_filename : dbfilename_.c_str();
+    final_path_ = active_dir_ + "/" + active_name;
     char suffix[96];
     std::snprintf(suffix, sizeof(suffix), ".tmp.%ld.%llu", static_cast<long>(::getpid()),
                   static_cast<unsigned long long>(next_epoch));
@@ -167,6 +176,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
     fd_ = ::open(temp_path_.c_str(), O_CREAT | O_EXCL | O_WRONLY | O_CLOEXEC, 0600);
     if (fd_ < 0) {
         error = "could not create snapshot temporary file";
+        server.set_snapshot_atomic_barrier(false);
         phase_.store(Phase::Idle, std::memory_order_release);
         writer_tid_.store(UINT32_MAX, std::memory_order_relaxed);
         return StartResult::Failed;
@@ -191,6 +201,11 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
            ready_owners_.load(std::memory_order_acquire) != executor_count_)
         std::this_thread::yield();
     if (phase() == Phase::Preparing) {
+        if (rewrite) {
+            while (server.atomic_inflight() != 0 &&
+                   !server.shutting_down().load(std::memory_order_relaxed))
+                std::this_thread::yield();
+        }
         phase_.store(Phase::Freeze, std::memory_order_release);
         for (uint32_t tid : server.placement().ex_threads())
             if (Ring* target = server.thread(tid).ring())
@@ -212,11 +227,17 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
            marked_owners_.load(std::memory_order_acquire) != executor_count_)
         std::this_thread::yield();
 
+    if (phase() == Phase::Mark && rewrite_ &&
+        !rewrite_->rewrite_mark(writer, writer_ring, next_epoch, cut_ms(), error)) {
+        fail(next_epoch, error.empty() ? "could not rotate AOF at snapshot mark" : error.c_str());
+    }
+
     if (phase() != Phase::Mark) {
         while (cancelled_owners_.load(std::memory_order_acquire) +
                    finished_owners_.load(std::memory_order_acquire) != executor_count_)
             std::this_thread::yield();
         abort_file();
+        server.set_snapshot_atomic_barrier(false);
         phase_.store(Phase::Idle, std::memory_order_release);
         std::lock_guard<std::mutex> lock(error_mu_);
         error = error_.empty() ? "snapshot start failed" : error_;
@@ -227,6 +248,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
     // channels, but this command's IO thread is still the sole writer and writes the header before
     // its loop can drain a frame.
     phase_.store(Phase::Capture, std::memory_order_release);
+    server.set_snapshot_atomic_barrier(false);
     for (uint32_t tid : server.placement().ex_threads())
         if (Ring* target = server.thread(tid).ring())
             writer_ring.msg_to(*target, ur_tag(UrKind::Wake, nullptr));
@@ -238,6 +260,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
             std::this_thread::yield();
         discard_chunks();
         abort_file();
+        server.set_snapshot_atomic_barrier(false);
         phase_.store(Phase::Idle, std::memory_order_release);
         std::lock_guard<std::mutex> lock(error_mu_);
         error = error_.empty() ? "snapshot start failed" : error_;
@@ -369,15 +392,17 @@ bool SnapshotManager::finish_file() {
     if (::close(fd_) != 0) { fd_ = -1; return false; }
     fd_ = -1;
     if (::rename(temp_path_.c_str(), final_path_.c_str()) != 0) return false;
-    const int dfd = ::open(dir_.c_str(), O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+    const int dfd = ::open(active_dir_.c_str(), O_RDONLY | O_DIRECTORY | O_CLOEXEC);
     if (dfd < 0) return false;
     const bool dir_synced = ::fsync(dfd) == 0;
     const bool dir_closed = ::close(dfd) == 0;
     if (!dir_synced || !dir_closed) return false;
+    if (rewrite_ && !rewrite_->rewrite_complete(final_path_, epoch())) return false;
     last_save_time_.store(realtime_ms() / 1000, std::memory_order_relaxed);
     writer_tid_.store(UINT32_MAX, std::memory_order_relaxed);
     writer_ring_.store(nullptr, std::memory_order_release);
     server_ = nullptr;
+    rewrite_ = nullptr;
     phase_.store(Phase::Idle, std::memory_order_release);
     return true;
 }
@@ -385,8 +410,11 @@ bool SnapshotManager::finish_file() {
 void SnapshotManager::abort_file() {
     if (fd_ >= 0) { ::close(fd_); fd_ = -1; }
     if (!temp_path_.empty()) (void)::unlink(temp_path_.c_str());
+    if (server_) server_->set_snapshot_atomic_barrier(false);
     writer_tid_.store(UINT32_MAX, std::memory_order_relaxed);
     writer_ring_.store(nullptr, std::memory_order_release);
+    if (rewrite_) rewrite_->rewrite_abort();
+    rewrite_ = nullptr;
     server_ = nullptr;
 }
 

@@ -309,6 +309,9 @@ private:
 
         if (snapshot_owner_state_ == SnapshotOwnerState::Prepared &&
             phase == SnapshotManager::Phase::Freeze) {
+            // The Mark-time AOF segment switch is positional. Publish every pre-cut owner buffer
+            // before acknowledging Freeze so the writer can drain a complete old segment.
+            aof_flush_pass();
             snapshot_owner_state_ = SnapshotOwnerState::Frozen;
             snapshot_manager_->owner_frozen(snapshot_epoch_);
             return 1;

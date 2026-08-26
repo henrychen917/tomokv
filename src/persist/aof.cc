@@ -5,9 +5,12 @@
 #include <chrono>
 #include <csignal>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
+#include <dirent.h>
 #include <fcntl.h>
 #include <new>
+#include <sstream>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/uio.h>
@@ -22,6 +25,7 @@
 #include "../exec/op.h"
 #include "../net/resp.h"
 #include "../net/uring.h"
+#include "../snapshot/snapshot.h"
 #include "../store/flatstore.h"
 
 namespace tomo {
@@ -35,6 +39,42 @@ constexpr uint32_t kFrameTag = 0x4d524641;       // "AFRM"
 constexpr uint32_t kRecordHeaderBytes = 40;
 constexpr uint32_t kRecordTag = 0x43524f41;      // "AORC"
 constexpr uint32_t kWriterFramesPerPass = 16;
+
+struct AofManifestData {
+    std::string base_name;
+    uint64_t base_sequence = 0;
+    uint64_t base_epoch = 0;
+    uint64_t base_commit = 0;
+    uint64_t base_size = 0;
+    std::vector<std::pair<uint64_t, std::string>> increments;
+    std::vector<std::vector<uint32_t>> increment_starts;
+};
+
+bool parse_sequence_starts(const std::string& text, std::vector<uint32_t>& starts) {
+    size_t begin = 0;
+    while (begin < text.size()) {
+        const size_t end = text.find(',', begin);
+        const std::string field = text.substr(begin, end == std::string::npos
+                                                       ? std::string::npos : end - begin);
+        if (field.empty()) return false;
+        char* tail = nullptr;
+        errno = 0;
+        const unsigned long value = std::strtoul(field.c_str(), &tail, 10);
+        if (errno || !tail || *tail || value > UINT32_MAX) return false;
+        starts.push_back(static_cast<uint32_t>(value));
+        if (end == std::string::npos) break;
+        begin = end + 1;
+    }
+    return !starts.empty();
+}
+
+std::string aof_segment_name(const std::string& basename, uint64_t sequence) {
+    return basename + "." + std::to_string(sequence) + ".incr.tomo";
+}
+
+std::string aof_base_name(const std::string& basename, uint64_t sequence) {
+    return basename + "." + std::to_string(sequence) + ".base.tomo";
+}
 
 int64_t realtime_ms() {
     timespec ts{};
@@ -121,6 +161,110 @@ bool read_file(int fd, std::vector<uint8_t>& out, std::string& error) {
     return true;
 }
 
+bool read_manifest(const std::string& path, bool& exists, AofManifestData& manifest,
+                   std::string& error) {
+    exists = false;
+    const int fd = ::open(path.c_str(), O_RDONLY | O_CLOEXEC);
+    if (fd < 0) {
+        if (errno == ENOENT) return true;
+        error = "could not open AOF manifest";
+        return false;
+    }
+    exists = true;
+    std::vector<uint8_t> bytes;
+    if (!read_file(fd, bytes, error)) { ::close(fd); return false; }
+    ::close(fd);
+    std::string text(bytes.begin(), bytes.end());
+    std::istringstream input(text);
+    std::string line;
+    if (!std::getline(input, line) || line != "TOMOAOF-MANIFEST 1") {
+        error = "invalid AOF manifest header";
+        return false;
+    }
+    bool saw_base = false;
+    bool saw_rewrite_size = false;
+    while (std::getline(input, line)) {
+        if (line.empty()) continue;
+        std::istringstream fields(line);
+        std::string word, name, seq_word, type_word, type, extra;
+        if (!(fields >> word)) continue;
+        if (word == "file") {
+            uint64_t sequence = 0;
+            if (!(fields >> name >> seq_word >> sequence >> type_word >> type) ||
+                seq_word != "seq" || type_word != "type" || !plain_name(name.c_str())) {
+                error = "invalid AOF manifest file entry";
+                return false;
+            }
+            if (type == "b") {
+                std::string epoch_word, commit_word, size_word;
+                uint64_t epoch = 0, commit = 0, size = 0;
+                if (saw_base || sequence == 0 ||
+                    !(fields >> epoch_word >> epoch >> commit_word >> commit
+                                          >> size_word >> size) ||
+                    epoch_word != "epoch" || commit_word != "commit" || size_word != "size" ||
+                    (fields >> extra)) {
+                    error = "invalid AOF manifest base entry";
+                    return false;
+                }
+                saw_base = true;
+                manifest.base_name = name;
+                manifest.base_sequence = sequence;
+                manifest.base_epoch = epoch;
+                manifest.base_commit = commit;
+                manifest.base_size = size;
+            } else if (type == "i") {
+                std::string start_word, starts_text;
+                std::vector<uint32_t> starts;
+                if (!(fields >> start_word >> starts_text) || start_word != "start" ||
+                    !parse_sequence_starts(starts_text, starts) || (fields >> extra) ||
+                    sequence == 0) {
+                    error = "invalid AOF manifest increment entry";
+                    return false;
+                }
+                manifest.increments.emplace_back(sequence, name);
+                manifest.increment_starts.push_back(std::move(starts));
+            } else {
+                error = "invalid AOF manifest file type";
+                return false;
+            }
+        } else if (word == "rewrite-base-size") {
+            uint64_t size = 0;
+            if (saw_rewrite_size || !(fields >> size) || (fields >> extra)) {
+                error = "invalid AOF manifest rewrite size";
+                return false;
+            }
+            saw_rewrite_size = true;
+            manifest.base_size = size;
+        } else {
+            error = "unknown AOF manifest entry";
+            return false;
+        }
+    }
+    if (!saw_rewrite_size) {
+        error = "AOF manifest has no rewrite base size";
+        return false;
+    }
+    if (manifest.increments.empty()) {
+        error = "AOF manifest has no increment file";
+        return false;
+    }
+    std::unordered_set<std::string> names;
+    if (!manifest.base_name.empty()) names.insert(manifest.base_name);
+    for (const auto& increment : manifest.increments) {
+        if (!names.insert(increment.second).second) {
+            error = "AOF manifest repeats a file name";
+            return false;
+        }
+    }
+    for (size_t i = 1; i < manifest.increments.size(); i++) {
+        if (manifest.increments[i].first != manifest.increments[i - 1].first + 1) {
+            error = "AOF manifest increment sequences are not contiguous";
+            return false;
+        }
+    }
+    return true;
+}
+
 const char* hook_error(SnapshotHookStatus status) {
     switch (status) {
         case SnapshotHookStatus::Unsupported: return "AOF contains an unsupported value type";
@@ -171,7 +315,7 @@ std::string aof_directory_path(const Config& config) {
 
 std::string aof_file_path(const Config& config) {
     const char* filename = plain_name(config.appendfilename) ? config.appendfilename : "appendonly.aof";
-    return aof_directory_path(config) + "/" + filename + ".1.incr.tomo";
+    return aof_directory_path(config) + "/" + aof_segment_name(filename, 1);
 }
 
 void AofProducer::init(AofManager* manager, int32_t sid, uint32_t next_sequence) {
@@ -664,7 +808,32 @@ void AofManager::init(Server& server, const Config& config, uint32_t nthreads, u
     nshards_ = nshards;
     writer_tid_ = writer_tid;
     directory_path_ = aof_directory_path(config);
-    file_path_ = aof_file_path(config);
+    appendfilename_ = plain_name(config.appendfilename) ? config.appendfilename : "appendonly.aof";
+    manifest_path_ = directory_path_ + "/" + appendfilename_ + ".manifest";
+    AofManifestData manifest;
+    bool manifest_exists = false;
+    std::string manifest_error;
+    if (!read_manifest(manifest_path_, manifest_exists, manifest, manifest_error)) {
+        fail(manifest_error.c_str());
+        return;
+    }
+    if (manifest_exists) {
+        base_name_ = manifest.base_name;
+        base_sequence_ = manifest.base_sequence;
+        base_epoch_ = manifest.base_epoch;
+        base_commit_ = manifest.base_commit;
+        base_size_.store(manifest.base_size, std::memory_order_relaxed);
+        increments_ = manifest.increments;
+        increment_starts_ = manifest.increment_starts;
+        active_incr_sequence_ = increments_.back().first;
+        file_path_ = directory_path_ + "/" + increments_.back().second;
+    } else {
+        active_incr_sequence_ = 1;
+        increments_.emplace_back(active_incr_sequence_,
+                                 aof_segment_name(appendfilename_, active_incr_sequence_));
+        increment_starts_.push_back(std::vector<uint32_t>(nshards_, 0));
+        file_path_ = directory_path_ + "/" + increments_.back().second;
+    }
     timestamp_enabled_.store(config.aof_timestamp_enabled, std::memory_order_relaxed);
     chunk_in_ = std::make_unique<ChunkChan[]>(nthreads_);
     next_sequence_.assign(nshards_, 0);
@@ -769,6 +938,7 @@ bool AofManager::bind_writer(ThreadCtx& writer, Ring& ring, std::string& error) 
         fail(error.c_str());
         return false;
     }
+    cleanup_unreferenced_files();
     fd_ = ::open(file_path_.c_str(), O_CREAT | O_RDWR | O_APPEND | O_CLOEXEC, 0600);
     if (fd_ < 0) {
         error = "could not open AOF file";
@@ -788,11 +958,266 @@ bool AofManager::bind_writer(ThreadCtx& writer, Ring& ring, std::string& error) 
         return false;
     }
     last_good_offset_ = file_offset_;
-    current_size_.store(file_offset_, std::memory_order_relaxed);
+    current_size_.store(base_size() + file_offset_, std::memory_order_relaxed);
     writer_ring_.store(&ring, std::memory_order_release);
     recording_.store(true, std::memory_order_release);
     writer_ready_.store(true, std::memory_order_release);
     return true;
+}
+
+void AofManager::cleanup_unreferenced_files() {
+    DIR* directory = ::opendir(directory_path_.c_str());
+    if (!directory) return;
+    std::unordered_set<std::string> keep;
+    if (!base_name_.empty()) keep.insert(base_name_);
+    for (const auto& increment : increments_) keep.insert(increment.second);
+    uint64_t removed = 0;
+    while (dirent* entry = ::readdir(directory)) {
+        const std::string name(entry->d_name);
+        if (keep.count(name) || name.rfind(appendfilename_ + ".", 0) != 0) continue;
+        const bool segment = name.find(".base.tomo") != std::string::npos ||
+                             name.find(".incr.tomo") != std::string::npos;
+        if (!segment) continue;
+        if (::unlink((directory_path_ + "/" + name).c_str()) == 0) removed++;
+    }
+    (void)::closedir(directory);
+    if (removed) {
+        history_unlinks_.fetch_add(removed, std::memory_order_relaxed);
+        const int directory_fd = ::open(directory_path_.c_str(),
+                                        O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+        if (directory_fd >= 0) {
+            (void)::fsync(directory_fd);
+            (void)::close(directory_fd);
+        }
+    }
+}
+
+bool AofManager::persist_manifest(
+        const std::string& base_name, uint64_t base_sequence, uint64_t base_epoch,
+        uint64_t base_commit, uint64_t persisted_base_size,
+        const std::vector<std::pair<uint64_t, std::string>>& increments,
+        const std::vector<std::vector<uint32_t>>& increment_starts,
+        std::string& error) {
+    if (increments.size() != increment_starts.size()) {
+        error = "AOF manifest increment metadata is incomplete";
+        return false;
+    }
+    std::string contents = "TOMOAOF-MANIFEST 1\n";
+    if (!base_name.empty()) {
+        contents += "file " + base_name + " seq " + std::to_string(base_sequence) +
+                    " type b epoch " + std::to_string(base_epoch) + " commit " +
+                    std::to_string(base_commit) + " size " +
+                    std::to_string(persisted_base_size) + "\n";
+    }
+    for (size_t index = 0; index < increments.size(); index++) {
+        const auto& increment = increments[index];
+        contents += "file " + increment.second + " seq " +
+                    std::to_string(increment.first) + " type i start ";
+        for (size_t sid = 0; sid < increment_starts[index].size(); sid++) {
+            if (sid) contents.push_back(',');
+            contents += std::to_string(increment_starts[index][sid]);
+        }
+        contents.push_back('\n');
+    }
+    contents += "rewrite-base-size " + std::to_string(persisted_base_size) + "\n";
+
+    const std::string temp = manifest_path_ + ".tmp." + std::to_string(::getpid()) + "." +
+                             std::to_string(rewrite_target_sequence_);
+    const int manifest_fd = ::open(temp.c_str(), O_CREAT | O_TRUNC | O_WRONLY | O_CLOEXEC, 0600);
+    if (manifest_fd < 0) { error = "could not create AOF manifest temporary file"; return false; }
+    uint64_t offset = 0;
+    bool ok = write_counted(manifest_fd,
+                            reinterpret_cast<const uint8_t*>(contents.data()),
+                            contents.size(), offset) && ::fsync(manifest_fd) == 0;
+    if (::close(manifest_fd) != 0) ok = false;
+    if (ok) ok = ::rename(temp.c_str(), manifest_path_.c_str()) == 0;
+    if (ok) {
+        const int directory_fd = ::open(directory_path_.c_str(),
+                                        O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+        if (directory_fd < 0) ok = false;
+        else {
+            ok = ::fsync(directory_fd) == 0;
+            if (::close(directory_fd) != 0) ok = false;
+        }
+    }
+    if (!ok) {
+        (void)::unlink(temp.c_str());
+        error = "could not persist AOF manifest";
+    }
+    return ok;
+}
+
+bool AofManager::request_rewrite() {
+    if (!recording() || failed() || rewrite_in_progress()) return false;
+    bool expected = false;
+    return rewrite_requested_.compare_exchange_strong(expected, true,
+                                                       std::memory_order_acq_rel);
+}
+
+void AofManager::maybe_pause_rewrite(AofRewriteDebugStage stage) {
+    if (debug_rewrite_pause_.load(std::memory_order_acquire) != stage) return;
+    const std::string marker = directory_path_ + "/debug-aof-rewrite-stage";
+    const int marker_fd = ::open(marker.c_str(), O_CREAT | O_TRUNC | O_WRONLY | O_CLOEXEC, 0600);
+    if (marker_fd >= 0) {
+        const char* text = stage == AofRewriteDebugStage::BeforeMark ? "before-mark\n" :
+                           stage == AofRewriteDebugStage::BeforeManifest ? "before-manifest\n" :
+                           "after-manifest\n";
+        uint64_t offset = 0;
+        (void)write_counted(marker_fd, reinterpret_cast<const uint8_t*>(text),
+                            std::strlen(text), offset);
+        (void)::fsync(marker_fd);
+        (void)::close(marker_fd);
+    }
+    while (debug_rewrite_pause_.load(std::memory_order_acquire) == stage && server_ &&
+           !server_->shutting_down().load(std::memory_order_relaxed))
+        std::this_thread::yield();
+    (void)::unlink(marker.c_str());
+}
+
+void AofManager::maybe_start_rewrite(ThreadCtx& writer, Ring& ring) {
+    if (!rewrite_requested_.load(std::memory_order_acquire) || rewrite_in_progress() ||
+        !server_ || server_->snapshot().in_progress() || server_->atomic_inflight() != 0) return;
+    bool expected = false;
+    if (!rewrite_in_progress_.compare_exchange_strong(expected, true,
+                                                       std::memory_order_acq_rel)) return;
+    rewrite_requested_.store(false, std::memory_order_release);
+    rewrite_target_sequence_ = active_incr_sequence_ + 1;
+    rewrite_base_name_ = aof_base_name(appendfilename_, rewrite_target_sequence_);
+    last_rewrite_ok_.store(false, std::memory_order_relaxed);
+    maybe_pause_rewrite(AofRewriteDebugStage::BeforeMark);
+    std::string error;
+    const SnapshotManager::StartResult result = server_->snapshot().start(
+        *server_, writer, ring, false, error, this, directory_path_.c_str(),
+        rewrite_base_name_.c_str());
+    if (result != SnapshotManager::StartResult::Started) {
+        rewrite_abort();
+        if (!error.empty()) std::fprintf(stderr, "AOF rewrite error: %s\n", error.c_str());
+    }
+}
+
+bool AofManager::rewrite_mark(ThreadCtx& writer, Ring& ring, uint64_t snapshot_epoch,
+                              int64_t, std::string& error) {
+    if (!rewrite_in_progress() || writer.id() != writer_tid_ || fd_ < 0 || !server_) {
+        error = "invalid AOF rewrite mark owner";
+        return false;
+    }
+    for (uint32_t pass = 0; pending_chunks() && pass < 100000; pass++) {
+        const uint32_t work = writer_pass(writer, ring, true);
+        if (!work) std::this_thread::yield();
+    }
+    if (pending_chunks()) { error = "timed out draining AOF at rewrite mark"; return false; }
+    if (::fdatasync(fd_) != 0) { error = "could not sync old AOF increment"; return false; }
+
+    const uint64_t new_sequence = rewrite_target_sequence_;
+    const std::string new_name = aof_segment_name(appendfilename_, new_sequence);
+    const std::string new_path = directory_path_ + "/" + new_name;
+    const int new_fd = ::open(new_path.c_str(), O_CREAT | O_EXCL | O_RDWR | O_APPEND | O_CLOEXEC,
+                              0600);
+    if (new_fd < 0) { error = "could not create new AOF increment"; return false; }
+
+    const int old_fd = fd_;
+    const uint64_t old_offset = file_offset_;
+    const uint64_t old_last_good = last_good_offset_;
+    fd_ = new_fd;
+    file_offset_ = 0;
+    last_good_offset_ = 0;
+    bool new_ok = write_header() && ::fdatasync(new_fd) == 0;
+    const uint64_t new_offset = file_offset_;
+    fd_ = old_fd;
+    file_offset_ = old_offset;
+    last_good_offset_ = old_last_good;
+    if (!new_ok) {
+        (void)::close(new_fd);
+        (void)::unlink(new_path.c_str());
+        error = "could not initialize new AOF increment";
+        return false;
+    }
+
+    std::vector<std::pair<uint64_t, std::string>> staged = increments_;
+    std::vector<std::vector<uint32_t>> staged_starts = increment_starts_;
+    staged.emplace_back(new_sequence, new_name);
+    staged_starts.push_back(next_sequence_);
+    if (!persist_manifest(base_name_, base_sequence_, base_epoch_, base_commit_, base_size(),
+                          staged, staged_starts, error)) {
+        (void)::close(new_fd);
+        (void)::unlink(new_path.c_str());
+        return false;
+    }
+
+    rewrite_history_.clear();
+    if (!base_name_.empty()) rewrite_history_.push_back(base_name_);
+    for (const auto& increment : increments_) rewrite_history_.push_back(increment.second);
+    increments_ = std::move(staged);
+    increment_starts_ = std::move(staged_starts);
+    (void)::close(old_fd);
+    fd_ = new_fd;
+    file_path_ = new_path;
+    active_incr_sequence_ = new_sequence;
+    file_offset_ = new_offset;
+    last_good_offset_ = new_offset;
+    large_record_offset_ = 0;
+    locked_producer_ = UINT32_MAX;
+    durable_sequence_.store(written_sequence_.load(std::memory_order_acquire),
+                            std::memory_order_release);
+    current_size_.store(base_size() + new_offset, std::memory_order_relaxed);
+    last_fsync_ms_ = monotonic_ms();
+    base_epoch_ = snapshot_epoch;
+    base_commit_ = server_->atomic_snapshot();
+    return true;
+}
+
+bool AofManager::rewrite_complete(const std::string& base_path, uint64_t snapshot_epoch) {
+    if (!rewrite_in_progress() || snapshot_epoch != base_epoch_) return false;
+    struct stat base_stat{};
+    if (::stat(base_path.c_str(), &base_stat) != 0 || base_stat.st_size < 0) {
+        std::fprintf(stderr, "AOF rewrite error: could not stat new base\n");
+        return false;
+    }
+    const uint64_t size = static_cast<uint64_t>(base_stat.st_size);
+    std::vector<std::pair<uint64_t, std::string>> active{
+        {active_incr_sequence_, increments_.back().second}};
+    std::vector<std::vector<uint32_t>> active_starts{increment_starts_.back()};
+    std::string error;
+    maybe_pause_rewrite(AofRewriteDebugStage::BeforeManifest);
+    if (!persist_manifest(rewrite_base_name_, rewrite_target_sequence_, snapshot_epoch,
+                          base_commit_, size, active, active_starts, error)) {
+        std::fprintf(stderr, "AOF rewrite error: %s\n", error.c_str());
+        return false;
+    }
+    maybe_pause_rewrite(AofRewriteDebugStage::AfterManifest);
+
+    uint64_t removed = 0;
+    for (const std::string& name : rewrite_history_) {
+        if (name == rewrite_base_name_ || name == active.front().second) continue;
+        const std::string path = directory_path_ + "/" + name;
+        if (::unlink(path.c_str()) == 0 || errno == ENOENT) removed++;
+    }
+    const int directory_fd = ::open(directory_path_.c_str(), O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+    if (directory_fd >= 0) {
+        (void)::fsync(directory_fd);
+        (void)::close(directory_fd);
+    }
+    base_name_ = rewrite_base_name_;
+    base_sequence_ = rewrite_target_sequence_;
+    base_size_.store(size, std::memory_order_relaxed);
+    increments_ = std::move(active);
+    increment_starts_ = std::move(active_starts);
+    rewrite_history_.clear();
+    history_unlinks_.fetch_add(removed, std::memory_order_relaxed);
+    rewrite_completions_.fetch_add(1, std::memory_order_relaxed);
+    last_rewrite_ok_.store(true, std::memory_order_relaxed);
+    rewrite_in_progress_.store(false, std::memory_order_release);
+    struct stat increment_stat{};
+    const uint64_t increment_size = ::fstat(fd_, &increment_stat) == 0 && increment_stat.st_size >= 0
+        ? static_cast<uint64_t>(increment_stat.st_size) : file_offset_;
+    current_size_.store(size + increment_size, std::memory_order_relaxed);
+    return true;
+}
+
+void AofManager::rewrite_abort() {
+    if (!rewrite_in_progress_.exchange(false, std::memory_order_acq_rel)) return;
+    last_rewrite_ok_.store(false, std::memory_order_relaxed);
+    rewrite_history_.clear();
 }
 
 bool AofManager::post_chunk(uint32_t producer, std::unique_ptr<AofChunk>& chunk,
@@ -914,7 +1339,7 @@ bool AofManager::write_frame(const AofChunk& chunk) {
     if (chunk.flags & AofFrameLargeEnd) last_good_offset_ = file_offset_;
     else if (locked_producer_ == UINT32_MAX) last_good_offset_ = file_offset_;
     records_written_.fetch_add(chunk.records, std::memory_order_relaxed);
-    current_size_.store(file_offset_, std::memory_order_relaxed);
+    current_size_.store(base_size() + file_offset_, std::memory_order_relaxed);
     return true;
 }
 
@@ -985,7 +1410,7 @@ bool AofManager::write_group_commit(AofChunk& chunk) {
         return false;
     }
     last_good_offset_ = file_offset_;
-    current_size_.store(file_offset_, std::memory_order_relaxed);
+    current_size_.store(base_size() + file_offset_, std::memory_order_relaxed);
     records_written_.fetch_add(1, std::memory_order_relaxed);
     groups_committed_.fetch_add(1, std::memory_order_relaxed);
     return true;
@@ -1057,6 +1482,7 @@ bool AofManager::drain_producer(uint32_t producer, uint32_t& budget, uint32_t& c
 
 uint32_t AofManager::writer_pass(ThreadCtx& writer, Ring& ring, bool drain_all) {
     if (!configured_ || writer.id() != writer_tid_ || fd_ < 0 || failed()) return 0;
+    maybe_start_rewrite(writer, ring);
     const uint64_t written_before = written_sequence_.load(std::memory_order_relaxed);
     uint32_t budget = drain_all ? 256 : kWriterFramesPerPass;
     uint32_t consumed = 0;
@@ -1136,7 +1562,8 @@ void AofManager::discard_chunks() {
 
 std::unique_ptr<AofReplayPlan> aof_read_plan(const char* path, uint32_t expected_shards,
                                              bool truncate_tail, bool& exists,
-                                             std::string& warning, std::string& error) {
+                                             std::string& warning, std::string& error,
+                                             const std::vector<uint32_t>* initial_sequences) {
     exists = false;
     warning.clear();
     error.clear();
@@ -1175,7 +1602,10 @@ std::unique_ptr<AofReplayPlan> aof_read_plan(const char* path, uint32_t expected
     plan->sip_k0 = snapshot_get_u64(file.data() + 40);
     plan->sip_k1 = snapshot_get_u64(file.data() + 48);
     plan->sections.resize(plan->shard_count);
-    plan->next_sequence.assign(plan->shard_count, 0);
+    if (initial_sequences && initial_sequences->size() == plan->shard_count)
+        plan->next_sequence = *initial_sequences;
+    else
+        plan->next_sequence.assign(plan->shard_count, 0);
 
     size_t pos = kFileHeaderBytes;
     size_t valid = kFileHeaderBytes;
@@ -1349,6 +1779,94 @@ std::unique_ptr<AofReplayPlan> aof_read_plan(const char* path, uint32_t expected
         }
     }
     return plan;
+}
+
+bool aof_read_recovery(const Config& config, uint32_t expected_shards,
+                       std::unique_ptr<SnapshotLoadPlan>& base,
+                       std::vector<std::unique_ptr<AofReplayPlan>>& increments,
+                       std::string& warning, std::string& error) {
+    base.reset();
+    increments.clear();
+    warning.clear();
+    error.clear();
+    const std::string directory = aof_directory_path(config);
+    const std::string basename = plain_name(config.appendfilename)
+        ? config.appendfilename : "appendonly.aof";
+    const std::string manifest_path = directory + "/" + basename + ".manifest";
+    AofManifestData manifest;
+    bool manifest_exists = false;
+    if (!read_manifest(manifest_path, manifest_exists, manifest, error)) return false;
+    if (!manifest_exists) {
+        bool exists = false;
+        std::string local_warning;
+        auto plan = aof_read_plan(aof_file_path(config).c_str(), expected_shards, true,
+                                  exists, local_warning, error);
+        if (!error.empty()) return false;
+        if (!local_warning.empty()) warning = local_warning;
+        if (plan) increments.push_back(std::move(plan));
+        return true;
+    }
+
+    if (!manifest.base_name.empty()) {
+        const std::string base_path = directory + "/" + manifest.base_name;
+        base = snapshot_read_plan(base_path.c_str(), expected_shards, error);
+        if (!base) {
+            if (error.empty()) error = "could not read AOF base snapshot";
+            return false;
+        }
+        struct stat base_stat{};
+        if (base->epoch != manifest.base_epoch || ::stat(base_path.c_str(), &base_stat) != 0 ||
+            base_stat.st_size < 0 ||
+            static_cast<uint64_t>(base_stat.st_size) != manifest.base_size) {
+            error = "AOF base metadata does not match the manifest";
+            return false;
+        }
+    }
+
+    uint64_t replayed = 0;
+    uint64_t skipped = 0;
+    for (size_t index = 0; index < manifest.increments.size(); index++) {
+        const auto& entry = manifest.increments[index];
+        if (index >= manifest.increment_starts.size() ||
+            manifest.increment_starts[index].size() != expected_shards) {
+            error = "AOF manifest increment start vector has the wrong shard count";
+            return false;
+        }
+        bool exists = false;
+        std::string local_warning;
+        const bool last = index + 1 == manifest.increments.size();
+        const std::vector<uint32_t>* initial = &manifest.increment_starts[index];
+        auto plan = aof_read_plan((directory + "/" + entry.second).c_str(), expected_shards,
+                                  last, exists, local_warning, error, initial);
+        if (!plan || !exists) {
+            if (error.empty()) error = "AOF manifest increment file is missing";
+            return false;
+        }
+        plan->file_sequence = entry.first;
+        if (base && (plan->hash_kind != base->hash_kind || plan->hash_seed != base->hash_seed ||
+                     plan->sip_k0 != base->sip_k0 || plan->sip_k1 != base->sip_k1)) {
+            error = "AOF base and increment hash metadata differ";
+            return false;
+        }
+        if (!increments.empty()) {
+            const AofReplayPlan& first = *increments.front();
+            if (plan->hash_kind != first.hash_kind || plan->hash_seed != first.hash_seed ||
+                plan->sip_k0 != first.sip_k0 || plan->sip_k1 != first.sip_k1) {
+                error = "AOF increment hash metadata differ";
+                return false;
+            }
+        }
+        replayed += plan->replayed_records;
+        skipped += plan->groups_skipped;
+        if (!local_warning.empty()) {
+            if (!warning.empty()) warning += "; ";
+            warning += entry.second + ": " + local_warning;
+        }
+        increments.push_back(std::move(plan));
+    }
+    increments.back()->replayed_records = replayed;
+    increments.back()->groups_skipped = skipped;
+    return true;
 }
 
 bool aof_load_shard(const AofReplayPlan& plan, Server& server, Shard& shard,

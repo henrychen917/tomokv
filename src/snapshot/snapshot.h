@@ -13,6 +13,7 @@
 namespace tomo {
 
 class Op;
+class AofManager;
 class Ring;
 class Server;
 class Shard;
@@ -51,7 +52,8 @@ public:
               const char* dir, const char* dbfilename);
 
     StartResult start(Server& server, ThreadCtx& writer, Ring& writer_ring, bool blocking,
-                      std::string& error);
+                      std::string& error, AofManager* rewrite = nullptr,
+                      const char* target_dir = nullptr, const char* target_filename = nullptr);
     uint32_t writer_pass(ThreadCtx& writer, Ring& writer_ring, bool drain_all = false);
 
     Phase phase() const { return phase_.load(std::memory_order_acquire); }
@@ -113,6 +115,7 @@ private:
 
     std::string dir_;
     std::string dbfilename_;
+    std::string active_dir_;
     std::string final_path_;
     std::string temp_path_;
     std::string error_;
@@ -124,6 +127,7 @@ private:
     std::vector<uint32_t> next_sequence_; // designated writer thread only
     std::vector<uint8_t> saw_begin_;
     std::vector<uint8_t> saw_end_;
+    AofManager* rewrite_ = nullptr;
 };
 
 struct SnapshotIoContext {

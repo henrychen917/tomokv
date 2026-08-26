@@ -1104,7 +1104,9 @@ private:
     uint32_t slot_start(int t, uint64_t h) const { return static_cast<uint32_t>(mix64(h)) & mask_[t]; }
 
     KvObj* find_without_touch(uint64_t h, Slice key) {
-        if (rehashing()) rehash_step();
+        // During capture tab_[1] is the positional frozen image. Moving even an unrelated entry
+        // here can carry it past the snapshot cursor and omit it from the BASE.
+        if (rehashing() && !snapshot_active_) rehash_step();
         if (KvObj* o = find_in(0, h, key)) return live_or_expire(0, h, key, o);
         if (rehashing())
             if (KvObj* o = find_in(1, h, key)) return live_or_expire(1, h, key, o);
