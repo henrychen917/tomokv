@@ -204,6 +204,16 @@ public:
     void set_timestamp_enabled(bool enabled) {
         timestamp_enabled_.store(enabled, std::memory_order_relaxed);
     }
+    void set_auto_rewrite_config(uint32_t percentage, uint64_t min_size) {
+        auto_rewrite_min_size_.store(min_size, std::memory_order_relaxed);
+        auto_rewrite_percentage_.store(percentage, std::memory_order_release);
+    }
+    uint32_t auto_rewrite_percentage() const {
+        return auto_rewrite_percentage_.load(std::memory_order_acquire);
+    }
+    uint64_t auto_rewrite_min_size() const {
+        return auto_rewrite_min_size_.load(std::memory_order_relaxed);
+    }
     bool failed() const { return failed_.load(std::memory_order_acquire); }
     const std::string& file_path() const { return file_path_; }
     const std::string& directory_path() const { return directory_path_; }
@@ -230,11 +240,29 @@ public:
     }
     bool last_rewrite_ok() const { return last_rewrite_ok_.load(std::memory_order_relaxed); }
     uint64_t base_size() const { return base_size_.load(std::memory_order_relaxed); }
+    uint64_t rewrite_base_size() const {
+        return rewrite_base_size_.load(std::memory_order_relaxed);
+    }
+    uint64_t rewrite_requests() const {
+        return rewrite_requests_.load(std::memory_order_relaxed);
+    }
     uint64_t rewrite_completions() const {
         return rewrite_completions_.load(std::memory_order_relaxed);
     }
     uint64_t history_unlinks() const {
         return history_unlinks_.load(std::memory_order_relaxed);
+    }
+    uint64_t auto_rewrite_triggers() const {
+        return auto_rewrite_triggers_.load(std::memory_order_relaxed);
+    }
+    uint64_t rewrite_failures() const {
+        return rewrite_failures_.load(std::memory_order_relaxed);
+    }
+    uint32_t consecutive_rewrite_failures() const {
+        return consecutive_rewrite_failures_.load(std::memory_order_relaxed);
+    }
+    uint64_t auto_rewrite_backoff_skips() const {
+        return auto_rewrite_backoff_skips_.load(std::memory_order_relaxed);
     }
     const std::string& last_error() const { return last_error_; }
     void debug_stop_after_group_fragments(uint64_t count) {
@@ -262,13 +290,15 @@ private:
     void discard_chunks();
     bool persist_manifest(const std::string& base_name, uint64_t base_sequence,
                           uint64_t base_epoch, uint64_t base_commit,
-                          uint64_t persisted_base_size,
+                          uint64_t persisted_base_size, uint64_t persisted_rewrite_base_size,
                           const std::vector<std::pair<uint64_t, std::string>>& increments,
                           const std::vector<std::vector<uint32_t>>& increment_starts,
                           std::string& error);
     void maybe_start_rewrite(ThreadCtx& writer, Ring& ring);
+    void maybe_schedule_auto_rewrite();
     void maybe_pause_rewrite(AofRewriteDebugStage stage);
     void cleanup_unreferenced_files();
+    bool schedule_rewrite(bool automatic);
 
     bool configured_ = false;
     Server* server_ = nullptr;
@@ -296,8 +326,17 @@ private:
     std::atomic<bool> rewrite_in_progress_{false};
     std::atomic<bool> last_rewrite_ok_{true};
     std::atomic<uint64_t> base_size_{0};
+    std::atomic<uint64_t> rewrite_base_size_{0};
+    std::atomic<uint64_t> rewrite_requests_{0};
     std::atomic<uint64_t> rewrite_completions_{0};
     std::atomic<uint64_t> history_unlinks_{0};
+    std::atomic<uint64_t> auto_rewrite_triggers_{0};
+    std::atomic<uint64_t> rewrite_failures_{0};
+    std::atomic<uint32_t> consecutive_rewrite_failures_{0};
+    std::atomic<uint64_t> auto_rewrite_backoff_skips_{0};
+    std::atomic<int64_t> next_rewrite_retry_ms_{0};
+    std::atomic<uint32_t> auto_rewrite_percentage_{100};
+    std::atomic<uint64_t> auto_rewrite_min_size_{64ull * 1024 * 1024};
     std::atomic<bool> timestamp_enabled_{false};
     std::atomic<AppendFsyncPolicy> fsync_policy_;
     std::atomic<uint64_t> debug_stop_after_fragments_{0};
@@ -330,6 +369,7 @@ private:
     std::vector<std::pair<uint64_t, std::string>> increments_;
     std::vector<std::vector<uint32_t>> increment_starts_;
     std::vector<std::string> rewrite_history_;
+    bool backoff_reported_ = false;
 };
 
 std::string aof_directory_path(const Config& config);

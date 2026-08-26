@@ -46,6 +46,7 @@ struct AofManifestData {
     uint64_t base_epoch = 0;
     uint64_t base_commit = 0;
     uint64_t base_size = 0;
+    uint64_t rewrite_base_size = 0;
     std::vector<std::pair<uint64_t, std::string>> increments;
     std::vector<std::vector<uint32_t>> increment_starts;
 };
@@ -234,7 +235,7 @@ bool read_manifest(const std::string& path, bool& exists, AofManifestData& manif
                 return false;
             }
             saw_rewrite_size = true;
-            manifest.base_size = size;
+            manifest.rewrite_base_size = size;
         } else {
             error = "unknown AOF manifest entry";
             return false;
@@ -803,6 +804,10 @@ void AofManager::init(Server& server, const Config& config, uint32_t nthreads, u
     server_ = &server;
     configured_ = config.appendonly;
     fsync_policy_.store(config.appendfsync, std::memory_order_relaxed);
+    auto_rewrite_percentage_.store(config.auto_aof_rewrite_percentage,
+                                   std::memory_order_relaxed);
+    auto_rewrite_min_size_.store(config.auto_aof_rewrite_min_size,
+                                 std::memory_order_relaxed);
     if (!configured_) return;
     nthreads_ = nthreads;
     nshards_ = nshards;
@@ -823,6 +828,7 @@ void AofManager::init(Server& server, const Config& config, uint32_t nthreads, u
         base_epoch_ = manifest.base_epoch;
         base_commit_ = manifest.base_commit;
         base_size_.store(manifest.base_size, std::memory_order_relaxed);
+        rewrite_base_size_.store(manifest.rewrite_base_size, std::memory_order_relaxed);
         increments_ = manifest.increments;
         increment_starts_ = manifest.increment_starts;
         active_incr_sequence_ = increments_.back().first;
@@ -958,7 +964,10 @@ bool AofManager::bind_writer(ThreadCtx& writer, Ring& ring, std::string& error) 
         return false;
     }
     last_good_offset_ = file_offset_;
-    current_size_.store(base_size() + file_offset_, std::memory_order_relaxed);
+    const uint64_t current = base_size() + file_offset_;
+    current_size_.store(current, std::memory_order_relaxed);
+    if (rewrite_base_size() == 0)
+        rewrite_base_size_.store(current, std::memory_order_relaxed);
     writer_ring_.store(&ring, std::memory_order_release);
     recording_.store(true, std::memory_order_release);
     writer_ready_.store(true, std::memory_order_release);
@@ -995,6 +1004,7 @@ void AofManager::cleanup_unreferenced_files() {
 bool AofManager::persist_manifest(
         const std::string& base_name, uint64_t base_sequence, uint64_t base_epoch,
         uint64_t base_commit, uint64_t persisted_base_size,
+        uint64_t persisted_rewrite_base_size,
         const std::vector<std::pair<uint64_t, std::string>>& increments,
         const std::vector<std::vector<uint32_t>>& increment_starts,
         std::string& error) {
@@ -1019,7 +1029,7 @@ bool AofManager::persist_manifest(
         }
         contents.push_back('\n');
     }
-    contents += "rewrite-base-size " + std::to_string(persisted_base_size) + "\n";
+    contents += "rewrite-base-size " + std::to_string(persisted_rewrite_base_size) + "\n";
 
     const std::string temp = manifest_path_ + ".tmp." + std::to_string(::getpid()) + "." +
                              std::to_string(rewrite_target_sequence_);
@@ -1047,11 +1057,46 @@ bool AofManager::persist_manifest(
     return ok;
 }
 
-bool AofManager::request_rewrite() {
+bool AofManager::schedule_rewrite(bool automatic) {
     if (!recording() || failed() || rewrite_in_progress()) return false;
     bool expected = false;
-    return rewrite_requested_.compare_exchange_strong(expected, true,
-                                                       std::memory_order_acq_rel);
+    if (!rewrite_requested_.compare_exchange_strong(expected, true,
+                                                     std::memory_order_acq_rel)) return false;
+    rewrite_requests_.fetch_add(1, std::memory_order_relaxed);
+    if (automatic) auto_rewrite_triggers_.fetch_add(1, std::memory_order_relaxed);
+    return true;
+}
+
+bool AofManager::request_rewrite() {
+    return schedule_rewrite(false);
+}
+
+void AofManager::maybe_schedule_auto_rewrite() {
+    const uint32_t percentage = auto_rewrite_percentage();
+    // This branch is deliberately before every size load/arithmetic operation: zero is the exact
+    // no-auto-work setting promised by the Redis-compatible knob.
+    if (percentage == 0) return;
+    if (failed() || rewrite_in_progress() || rewrite_scheduled()) return;
+    const int64_t now = monotonic_ms();
+    if (consecutive_rewrite_failures() >= 3 &&
+        now < next_rewrite_retry_ms_.load(std::memory_order_relaxed)) {
+        if (!backoff_reported_) {
+            auto_rewrite_backoff_skips_.fetch_add(1, std::memory_order_relaxed);
+            backoff_reported_ = true;
+        }
+        return;
+    }
+    backoff_reported_ = false;
+    const uint64_t current = current_size();
+    if (current <= auto_rewrite_min_size()) return;
+    const uint64_t baseline = rewrite_base_size();
+    if (current <= baseline) return;
+    const unsigned __int128 growth =
+        static_cast<unsigned __int128>(current - baseline) * 100;
+    const unsigned __int128 required =
+        static_cast<unsigned __int128>(baseline) * percentage;
+    if (growth < required) return;
+    (void)schedule_rewrite(true);
 }
 
 void AofManager::maybe_pause_rewrite(AofRewriteDebugStage stage) {
@@ -1069,8 +1114,13 @@ void AofManager::maybe_pause_rewrite(AofRewriteDebugStage stage) {
         (void)::close(marker_fd);
     }
     while (debug_rewrite_pause_.load(std::memory_order_acquire) == stage && server_ &&
-           !server_->shutting_down().load(std::memory_order_relaxed))
+           !server_->shutting_down().load(std::memory_order_relaxed)) {
+        if (::access(marker.c_str(), F_OK) != 0) {
+            debug_rewrite_pause_.store(AofRewriteDebugStage::None, std::memory_order_release);
+            break;
+        }
         std::this_thread::yield();
+    }
     (void)::unlink(marker.c_str());
 }
 
@@ -1083,7 +1133,6 @@ void AofManager::maybe_start_rewrite(ThreadCtx& writer, Ring& ring) {
     rewrite_requested_.store(false, std::memory_order_release);
     rewrite_target_sequence_ = active_incr_sequence_ + 1;
     rewrite_base_name_ = aof_base_name(appendfilename_, rewrite_target_sequence_);
-    last_rewrite_ok_.store(false, std::memory_order_relaxed);
     maybe_pause_rewrite(AofRewriteDebugStage::BeforeMark);
     std::string error;
     const SnapshotManager::StartResult result = server_->snapshot().start(
@@ -1138,7 +1187,7 @@ bool AofManager::rewrite_mark(ThreadCtx& writer, Ring& ring, uint64_t snapshot_e
     staged.emplace_back(new_sequence, new_name);
     staged_starts.push_back(next_sequence_);
     if (!persist_manifest(base_name_, base_sequence_, base_epoch_, base_commit_, base_size(),
-                          staged, staged_starts, error)) {
+                          rewrite_base_size(), staged, staged_starts, error)) {
         (void)::close(new_fd);
         (void)::unlink(new_path.c_str());
         return false;
@@ -1174,13 +1223,15 @@ bool AofManager::rewrite_complete(const std::string& base_path, uint64_t snapsho
         return false;
     }
     const uint64_t size = static_cast<uint64_t>(base_stat.st_size);
+    const uint64_t rewrite_baseline = size + file_offset_;
     std::vector<std::pair<uint64_t, std::string>> active{
         {active_incr_sequence_, increments_.back().second}};
     std::vector<std::vector<uint32_t>> active_starts{increment_starts_.back()};
     std::string error;
     maybe_pause_rewrite(AofRewriteDebugStage::BeforeManifest);
     if (!persist_manifest(rewrite_base_name_, rewrite_target_sequence_, snapshot_epoch,
-                          base_commit_, size, active, active_starts, error)) {
+                          base_commit_, size, rewrite_baseline,
+                          active, active_starts, error)) {
         std::fprintf(stderr, "AOF rewrite error: %s\n", error.c_str());
         return false;
     }
@@ -1200,11 +1251,15 @@ bool AofManager::rewrite_complete(const std::string& base_path, uint64_t snapsho
     base_name_ = rewrite_base_name_;
     base_sequence_ = rewrite_target_sequence_;
     base_size_.store(size, std::memory_order_relaxed);
+    rewrite_base_size_.store(rewrite_baseline, std::memory_order_relaxed);
     increments_ = std::move(active);
     increment_starts_ = std::move(active_starts);
     rewrite_history_.clear();
     history_unlinks_.fetch_add(removed, std::memory_order_relaxed);
     rewrite_completions_.fetch_add(1, std::memory_order_relaxed);
+    consecutive_rewrite_failures_.store(0, std::memory_order_relaxed);
+    next_rewrite_retry_ms_.store(0, std::memory_order_relaxed);
+    backoff_reported_ = false;
     last_rewrite_ok_.store(true, std::memory_order_relaxed);
     rewrite_in_progress_.store(false, std::memory_order_release);
     struct stat increment_stat{};
@@ -1217,6 +1272,16 @@ bool AofManager::rewrite_complete(const std::string& base_path, uint64_t snapsho
 void AofManager::rewrite_abort() {
     if (!rewrite_in_progress_.exchange(false, std::memory_order_acq_rel)) return;
     last_rewrite_ok_.store(false, std::memory_order_relaxed);
+    rewrite_failures_.fetch_add(1, std::memory_order_relaxed);
+    const uint32_t failures =
+        consecutive_rewrite_failures_.fetch_add(1, std::memory_order_relaxed) + 1;
+    if (failures >= 3) {
+        const uint32_t shift = std::min<uint32_t>(failures - 3, 6);
+        const uint32_t minutes = std::min<uint32_t>(1u << shift, 60u);
+        next_rewrite_retry_ms_.store(monotonic_ms() + static_cast<int64_t>(minutes) * 60000,
+                                     std::memory_order_relaxed);
+        backoff_reported_ = false;
+    }
     rewrite_history_.clear();
 }
 
@@ -1482,6 +1547,7 @@ bool AofManager::drain_producer(uint32_t producer, uint32_t& budget, uint32_t& c
 
 uint32_t AofManager::writer_pass(ThreadCtx& writer, Ring& ring, bool drain_all) {
     if (!configured_ || writer.id() != writer_tid_ || fd_ < 0 || failed()) return 0;
+    maybe_schedule_auto_rewrite();
     maybe_start_rewrite(writer, ring);
     const uint64_t written_before = written_sequence_.load(std::memory_order_relaxed);
     uint32_t budget = drain_all ? 256 : kWriterFramesPerPass;

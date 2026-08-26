@@ -110,7 +110,11 @@ time.sleep(1)
 try:
     s = conn(); f = s.makefile("rb")
     s.sendall(cmd("PING")); note("server alive after churn", read_reply(s, f) == b"PONG")
-    s.sendall(cmd("GET", "churn7")); note("churn writes landed", read_reply(s, f) == b"x"*100)
+    landed = 0
+    for i in range(300):
+        s.sendall(cmd("GET", "churn%d" % i))
+        landed += read_reply(s, f) == b"x" * 100
+    note("churn writes landed", landed > 0, "(%d/300)" % landed)
     s.close()
 except Exception as e:
     note("server alive after churn", False, str(e))

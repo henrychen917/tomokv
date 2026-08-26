@@ -116,3 +116,37 @@ lookup could advance an in-progress rehash while the frozen table was being capt
 untouched object past the snapshot cursor and omitting it from the BASE. Rehash advancement is now
 suppressed for that lookup during capture; a 2,816-value directed rewrite/restart run then preserved
 the full model.
+
+## Step 5 validation
+
+The automatic rewrite policy now follows Redis's percentage-growth and minimum-size trigger shape.
+Both knobs are live through byte-exact `CONFIG SET`/`GET` grammar; percentage zero returns before
+any size arithmetic. The manifest persists the size at the last successful rewrite separately from
+the physical BASE size, so a restart preserves the growth baseline. Three consecutive failures arm
+an exponential 1, 2, 4, ... 60 minute limiter for automatic attempts. A manual `BGREWRITEAOF`
+bypasses that limiter, and any successful rewrite clears it.
+
+`INFO PERSISTENCE` reports the live in-progress/scheduled/status/size state plus fired counters for
+requests, completions, automatic triggers, history unlinks, failures, consecutive failures, and
+limiter skips. The directed trigger matrix ran under both `atomic 0` and `atomic 1`; each arm
+observed an in-progress manual rewrite, three induced create failures, one blocked automatic retry,
+a successful manual recovery attempt, and a later automatic rewrite. Each arm ended with six
+requests, three completions, one automatic trigger, three failures, one limiter skip, and all 1,248
+modeled keys present after restart. Focused ASAN/UBSAN runs passed in both atomic modes.
+
+The final differential matrix booted vanilla Redis 7.4.2 on `127.0.0.2` and ran `string`, `xshard`,
+`cgaps`, and `spubsub` with `appendonly yes` and `appendonly no`, each under both atomic settings.
+All 49,680 replies/checks matched, with zero differences in all 16 cells.
+
+The binding amended floor was repeated against the completed step-5 binary with the prescribed
+64 connections, pipeline 32, one-million-key rotation, 32-byte values, server CPUs 224-231, and
+load CPUs 232-239:
+
+| implementation | SET/s runs | SET/s median | GET/s runs | GET/s median |
+| --- | --- | ---: | --- | ---: |
+| step 5 | 759,301 / 709,220 / 649,773 | 709,220 | 1,644,737 / 1,564,945 / 1,412,429 | 1,564,945 |
+| vanilla 7.4.2 | 606,796 / 658,762 / 615,006 | 615,006 | 1,090,512 / 1,000,000 / 966,184 | 1,000,000 |
+
+Step 5 is 15.3% above vanilla on SET and 56.5% above it on GET. The completed quick gate on
+`GATE_PORT=7955 GATE_CORES=224-231` passed 37/37 checks, including both atomic modes for all AOF
+feature batteries.

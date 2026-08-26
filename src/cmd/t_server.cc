@@ -239,10 +239,8 @@ void init_config(const Config& cfg) {
     g_config.push_back({"appenddirname", ConfigKind::String, cfg.appenddirname, true});
     add_config("auto-aof-rewrite-percentage", ConfigKind::Unsigned,
                cfg.auto_aof_rewrite_percentage);
-    g_config.back().immutable = true;
     add_config("auto-aof-rewrite-min-size", ConfigKind::Bytes,
                cfg.auto_aof_rewrite_min_size);
-    g_config.back().immutable = true;
     g_config.push_back({"aof-use-rdb-preamble", ConfigKind::String, "yes"});
     g_config.push_back({"aof-timestamp-enabled", ConfigKind::Bool,
                         cfg.aof_timestamp_enabled ? "yes" : "no"});
@@ -379,6 +377,8 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out) {
                 return false;
             if (!std::strcmp(entry.name, "atomic") && value > 1) return false;
             if (!std::strcmp(entry.name, "atomic-window") && value > UINT32_MAX) return false;
+            if (!std::strcmp(entry.name, "auto-aof-rewrite-percentage") &&
+                value > UINT32_MAX) return false;
             if (!std::strcmp(entry.name, "maxclients") && (value == 0 || value > UINT32_MAX))
                 return false;
             if ((!std::strcmp(entry.name, "timeout") ||
@@ -934,6 +934,9 @@ void cmd_config(Shard& sh, Op& op) {
             if (set_memory || set_policy || set_samples)
                 g_server->set_maxmemory_config(desired.maxmemory, desired.policy, desired.samples,
                                                set_memory, set_policy, set_samples);
+            uint32_t auto_percentage = g_server->aof().auto_rewrite_percentage();
+            uint64_t auto_min_size = g_server->aof().auto_rewrite_min_size();
+            bool set_auto_rewrite = false;
             for (const auto& update : updates) {
                 if (std::strcmp(update.first->name, "notify-keyspace-events")) continue;
                 uint32_t flags = 0;
@@ -969,7 +972,13 @@ void cmd_config(Shard& sh, Op& op) {
                     continue;
                 }
                 if (!parse_u64(Slice(update.second.data(), update.second.size()), value)) continue;
-                if (!std::strcmp(update.first->name, "atomic"))
+                if (!std::strcmp(update.first->name, "auto-aof-rewrite-percentage")) {
+                    auto_percentage = static_cast<uint32_t>(value);
+                    set_auto_rewrite = true;
+                } else if (!std::strcmp(update.first->name, "auto-aof-rewrite-min-size")) {
+                    auto_min_size = value;
+                    set_auto_rewrite = true;
+                } else if (!std::strcmp(update.first->name, "atomic"))
                     g_server->set_atomic_enabled(value != 0);
                 else if (!std::strcmp(update.first->name, "atomic-window"))
                     g_server->set_atomic_window(static_cast<uint32_t>(value));
@@ -982,6 +991,8 @@ void cmd_config(Shard& sh, Op& op) {
                 else if (!std::strcmp(update.first->name, "acllog-max-len"))
                     acl_set_log_max_len(value);
             }
+            if (set_auto_rewrite)
+                g_server->aof().set_auto_rewrite_config(auto_percentage, auto_min_size);
             for (const auto& update : updates) {
                 if (std::strcmp(update.first->name, "client-output-buffer-limit")) continue;
                 ClientOutputBufferLimits parsed;
@@ -1101,26 +1112,43 @@ void cmd_info(Shard&, Op& op) {
         appendf(body,
                 "# Persistence\r\nrdb_bgsave_in_progress:%u\r\nrdb_last_save_time:%lld\r\n"
                 "snapshot_preimages:%llu\r\n"
-                "aof_enabled:%u\r\naof_rewrite_in_progress:0\r\n"
-                "aof_rewrite_scheduled:0\r\naof_last_bgrewrite_status:ok\r\n"
-                "aof_last_write_status:%s\r\naof_base_size:0\r\n"
-                "aof_current_size:%llu\r\naof_pending_rewrite:0\r\n"
+                "aof_enabled:%u\r\naof_rewrite_in_progress:%u\r\n"
+                "aof_rewrite_scheduled:%u\r\naof_last_bgrewrite_status:%s\r\n"
+                "aof_last_write_status:%s\r\naof_base_size:%llu\r\n"
+                "aof_current_size:%llu\r\naof_pending_rewrite:%u\r\n"
                 "aof_delayed_fsync:0\r\naof_records_written:%llu\r\n"
                 "aof_replayed_records:%llu\r\naof_groups_committed:%llu\r\n"
                 "aof_groups_skipped_on_replay:%llu\r\naof_fsyncs:%llu\r\n"
-                "aof_send_gate_waits:%llu\r\n",
+                "aof_send_gate_waits:%llu\r\naof_rewrite_base_size:%llu\r\n"
+                "aof_rewrite_requests:%llu\r\naof_rewrite_completions:%llu\r\n"
+                "aof_auto_rewrite_triggers:%llu\r\naof_history_unlinks:%llu\r\n"
+                "aof_rewrite_failures:%llu\r\naof_rewrite_consecutive_failures:%u\r\n"
+                "aof_auto_rewrite_backoff_skips:%llu\r\n",
                 g_server && g_server->snapshot().in_progress() ? 1u : 0u,
                 static_cast<long long>(g_server ? g_server->snapshot().last_save_time() : 0),
                 static_cast<unsigned long long>(preimages),
                 g_server && g_server->aof().configured() ? 1u : 0u,
+                g_server && g_server->aof().rewrite_in_progress() ? 1u : 0u,
+                g_server && g_server->aof().rewrite_scheduled() ? 1u : 0u,
+                g_server && g_server->aof().last_rewrite_ok() ? "ok" : "err",
                 g_server && g_server->aof().failed() ? "err" : "ok",
+                static_cast<unsigned long long>(g_server ? g_server->aof().base_size() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().current_size() : 0),
+                g_server && g_server->aof().rewrite_scheduled() ? 1u : 0u,
                 static_cast<unsigned long long>(g_server ? g_server->aof().records_written() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().replayed_records() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().groups_committed() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().groups_skipped() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().fsyncs() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->aof().send_gate_waits() : 0));
+                static_cast<unsigned long long>(g_server ? g_server->aof().send_gate_waits() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_base_size() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_requests() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_completions() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->aof().auto_rewrite_triggers() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->aof().history_unlinks() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_failures() : 0),
+                g_server ? g_server->aof().consecutive_rewrite_failures() : 0,
+                static_cast<unsigned long long>(g_server ? g_server->aof().auto_rewrite_backoff_skips() : 0));
     }
     if (info_section(op, "STATS")) {
         appendf(body, "# Stats\r\ntotal_connections_received:%llu\r\nrejected_connections:%llu\r\n"

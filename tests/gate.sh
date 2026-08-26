@@ -282,6 +282,11 @@ GATE_PORT=$PORT GATE_CORES=$CORES tests/aof_rewrite_matrix.sh \
     && ok "AOF rewrite atomic/stage/corruption matrix" \
     || bad "AOF rewrite matrix" "see /tmp/gate-aof-rewrite.txt"
 
+GATE_PORT=$PORT GATE_CORES=$CORES tests/aof_rewrite_trigger_matrix.sh \
+    >/tmp/gate-aof-rewrite-trigger.txt 2>&1 \
+    && ok "AOF rewrite triggers + observability matrix" \
+    || bad "AOF rewrite triggers" "see /tmp/gate-aof-rewrite-trigger.txt"
+
 AOF_OFF_DIR=$(mktemp -d /tmp/gate-aof-off.XXXXXX)
 boot ./build/tomokv --protected-mode no --appendonly no --dir "$AOF_OFF_DIR" \
     || bad "AOF-off negative-control boot"
