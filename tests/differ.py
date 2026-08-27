@@ -2501,6 +2501,380 @@ if SUITE == "climon":
     sys.exit(1 if run_climon_suite(rng) else 0)
 
 
+# ---- Lane t-compatintro: routing/introspection/ACL/notification differential -----------------
+# Identity-bearing CLIENT rows and asynchronous notification frames make this a custom driver.
+# Deterministic replies are byte-compared; COMMAND inventory/metadata and CLIENT counters are
+# compared at their documented semantic boundary, with the raw known differences recorded in
+# NOTES-COMPATINTRO.md.
+def run_compatintro_suite(rng):
+    import select as _select
+
+    diffs = 0
+    checks = 0
+    fired = {"getkeys": 0, "config_multi": 0, "client_rows": 0,
+             "acl_mutations": 0, "notify_events": 0, "silence_controls": 0}
+    ts, tf = conn(TH, TP); os_, of = conn(OH, OP)
+
+    def mismatch(label, target, oracle):
+        nonlocal diffs
+        diffs += 1
+        if diffs <= 18:
+            print("  DIFF %s\n    target: %r\n    oracle: %r" %
+                  (label, target[:280] if isinstance(target, bytes) else target,
+                   oracle[:280] if isinstance(oracle, bytes) else oracle))
+
+    def raw_command(sock, file, argv):
+        sock.sendall(enc(argv))
+        return read_reply(file)
+
+    def both(argv, label=None):
+        nonlocal checks
+        target = raw_command(ts, tf, argv)
+        oracle = raw_command(os_, of, argv)
+        checks += 1
+        if target != oracle:
+            mismatch(label or " ".join(argv[:3]), target, oracle)
+        return target, oracle
+
+    def semantic(label, target, oracle):
+        nonlocal checks
+        checks += 1
+        if target != oracle: mismatch(label, target, oracle)
+
+    # Clean only state this suite owns. The servers may be long-lived across seeds.
+    for sock, file in ((ts, tf), (os_, of)):
+        raw_command(sock, file, ["CONFIG", "SET", "notify-keyspace-events", ""])
+        raw_command(sock, file, ["FLUSHALL"])
+        raw_command(sock, file, ["ACL", "DELUSER", "ci:diff", "ci:bad"])
+
+    # COMMAND: randomized exact GETKEYS coverage, especially movable-key forms. ----------------
+    def keys(n): return ["ci:k:%d" % rng.randrange(64) for _ in range(n)]
+
+    def getkeys_case():
+        choice = rng.randrange(25)
+        n = rng.randrange(1, 5)
+        ks = keys(n)
+        if choice == 0: cmd = ["GET", ks[0]]
+        elif choice == 1: cmd = ["MGET"] + ks
+        elif choice == 2: cmd = ["ZADD", ks[0], "NX", "1", "m1", "2", "m2"]
+        elif choice == 3: cmd = ["EVAL", "return 1", str(n)] + ks + ["arg"]
+        elif choice == 4: cmd = ["EVALSHA", "0" * 40, str(n)] + ks + ["arg"]
+        elif choice == 5: cmd = ["FCALL", "ci_fn", str(n)] + ks + ["arg"]
+        elif choice == 6: cmd = ["XREAD", "COUNT", "2", "STREAMS"] + ks + ["0"] * n
+        elif choice == 7:
+            cmd = ["XREADGROUP", "GROUP", "g", "c", "COUNT", "2", "STREAMS"] + ks + [">"] * n
+        elif choice == 8: cmd = ["LMPOP", str(n)] + ks + ["LEFT", "COUNT", "2"]
+        elif choice == 9: cmd = ["BLMPOP", "0", str(n)] + ks + ["RIGHT", "COUNT", "2"]
+        elif choice == 10: cmd = ["ZMPOP", str(n)] + ks + ["MIN", "COUNT", "2"]
+        elif choice == 11: cmd = ["BZMPOP", "0", str(n)] + ks + ["MAX", "COUNT", "2"]
+        elif choice == 12: cmd = ["SINTERCARD", str(n)] + ks + ["LIMIT", "1"]
+        elif choice == 13: cmd = ["ZINTERCARD", str(n)] + ks + ["LIMIT", "1"]
+        elif choice in (14, 15, 16):
+            cmd = [rng.choice(["ZUNION", "ZINTER", "ZDIFF"]), str(n)] + ks
+            if cmd[0] != "ZDIFF": cmd += ["WEIGHTS"] + ["1"] * n
+        elif choice == 17:
+            cmd = [rng.choice(["ZUNIONSTORE", "ZINTERSTORE", "ZDIFFSTORE"]),
+                   "ci:dest", str(n)] + ks
+        elif choice == 18:
+            cmd = ["GEORADIUS", ks[0], "0", "0", "1", "km", "STORE", "ci:dest"]
+        elif choice == 19:
+            cmd = ["GEORADIUSBYMEMBER", ks[0], "m", "1", "km", "STOREDIST", "ci:dest"]
+        elif choice == 20:
+            cmd = ["SORT", ks[0], "BY", "weight:*", "GET", "object:*", "STORE", "ci:dest"]
+        elif choice == 21: cmd = ["MEMORY", "USAGE", ks[0], "SAMPLES", "3"]
+        elif choice == 22: cmd = ["BITOP", "AND", "ci:dest"] + ks
+        elif choice == 23:
+            cmd = ["MSET"] + sum(([key, "v"] for key in ks), [])
+        else: cmd = ["RENAME", ks[0], "ci:dest"]
+        return ["COMMAND", "GETKEYS"] + cmd
+
+    for iteration in range(1550):
+        argv = getkeys_case()
+        both(argv, "GETKEYS randomized %d %s" % (iteration, argv[2]))
+        fired["getkeys"] += 1
+
+    directed_getkeys = [
+        ["COMMAND", "GETKEYS", "EVAL", "return 1", "0", "not-a-key"],
+        ["COMMAND", "GETKEYS", "EVAL", "return 1", "-1"],
+        ["COMMAND", "GETKEYS", "LMPOP", "0", "k", "LEFT"],
+        ["COMMAND", "GETKEYS", "ZMPOP", "garbage", "k", "MIN"],
+        ["COMMAND", "GETKEYS", "GET"],
+        ["COMMAND", "GETKEYS", "PING"],
+    ]
+    for iteration in range(150):
+        both(rng.choice(directed_getkeys), "GETKEYS validation %d" % iteration)
+    for iteration in range(180):
+        ks = keys(rng.randrange(1, 5))
+        both(["COMMAND", "GETKEYSANDFLAGS", "MGET"] + ks,
+             "GETKEYSANDFLAGS readonly %d" % iteration)
+
+    # Inventory order is dictionary/registry order. Compare the returned set and prove it fired.
+    for args, label in ((["COMMAND", "LIST", "FILTERBY", "PATTERN", "*POP"], "LIST PATTERN"),
+                        (["COMMAND", "LIST", "FILTERBY", "ACLCAT", "STRING"], "LIST ACLCAT")):
+        target = parse_reply(raw_command(ts, tf, args))
+        oracle = parse_reply(raw_command(os_, of, args))
+        target_set = sorted(target) if isinstance(target, list) else target
+        oracle_set = sorted(oracle) if isinstance(oracle, list) else oracle
+        if not target_set or not oracle_set:
+            mismatch(label + " non-vacuity", repr(target_set).encode(), repr(oracle_set).encode())
+        semantic(label + " members", repr(target_set).encode(), repr(oracle_set).encode())
+    both(["COMMAND", "LIST", "FILTERBY", "MODULE", "no-such-module"], "LIST MODULE empty")
+
+    # COMMAND INFO's name/arity/legacy key range is the declared compatibility boundary.
+    info = ["COMMAND", "INFO", "GET", "MGET", "ZADD", "not-a-command"]
+    target = normalize_introspection("COMMAND", info, raw_command(ts, tf, info))
+    oracle = normalize_introspection("COMMAND", info, raw_command(os_, of, info))
+    semantic("COMMAND INFO routing fields", target, oracle)
+    for sock, file, side in ((ts, tf, "target"), (os_, of, "oracle")):
+        count = parse_reply(raw_command(sock, file, ["COMMAND", "COUNT"]))
+        value = int(count[1:]) if isinstance(count, bytes) and count[:1] == b":" else 0
+        if value < 200: mismatch("COMMAND COUNT %s positive" % side, str(value).encode(), b">=200")
+    checks += 1
+
+    # CONFIG: maps are order-independent, but every name and rendered value remains byte-exact. --
+    config_names = ["save", "appendonly", "appendfsync", "maxmemory", "maxmemory-policy",
+                    "maxmemory-samples", "maxclients", "timeout", "tcp-keepalive",
+                    "client-output-buffer-limit", "notify-keyspace-events"]
+
+    def normalized_config(reply):
+        value = parse_reply(reply)
+        if not isinstance(value, list) or len(value) % 2: return reply
+        pairs = sorted((value[i], value[i + 1]) for i in range(0, len(value), 2))
+        return repr(pairs).encode()
+
+    def config_get(patterns, label):
+        argv = ["CONFIG", "GET"] + patterns
+        target = normalized_config(raw_command(ts, tf, argv))
+        oracle = normalized_config(raw_command(os_, of, argv))
+        semantic(label, target, oracle)
+        if len(patterns) > 1: fired["config_multi"] += 1
+
+    for iteration in range(1050):
+        choice = rng.randrange(10)
+        if choice < 6:
+            count = rng.randrange(1, 4)
+            names = rng.sample(config_names, count)
+            config_get(names, "CONFIG GET %d" % iteration)
+        elif choice < 8:
+            timeout = str(rng.choice([0, 30, 60, 300]))
+            keepalive = str(rng.choice([0, 60, 300]))
+            both(["CONFIG", "SET", "timeout", timeout, "tcp-keepalive", keepalive],
+                 "CONFIG SET multi %d" % iteration)
+            config_get(["timeout", "tcp-keepalive"], "CONFIG SET verify %d" % iteration)
+        elif choice == 8:
+            # Negative control for all-or-nothing validation: the valid first pair must not apply.
+            config_get(["timeout"], "CONFIG invalid before %d" % iteration)
+            both(["CONFIG", "SET", "timeout", "17", "ci-no-such-knob", "x"],
+                 "CONFIG invalid multi %d" % iteration)
+            config_get(["timeout"], "CONFIG invalid after %d" % iteration)
+        else:
+            both(["CONFIG", "RESETSTAT"], "CONFIG RESETSTAT %d" % iteration)
+    both(["CONFIG", "SET", "timeout", "0", "tcp-keepalive", "300"], "CONFIG restore")
+    config_get(["no-such-config-*", "still-no-such-*"], "CONFIG unknown multi")
+
+    # CLIENT: exact grammar plus normalized INFO/LIST field names and stable state values. --------
+    client_fields_seen = None
+    expected_name = ""
+    no_evict = no_touch = False
+    lib_name = lib_ver = ""
+
+    def client_info_fields(raw):
+        body = parse_reply(raw)
+        if not isinstance(body, bytes): return [], {}
+        if body.startswith(b"txt:"): body = body[4:]
+        words = body.strip().split()
+        pairs = [(word.split(b"=", 1)[0], word.split(b"=", 1)[1])
+                 for word in words if b"=" in word]
+        return [key for key, _ in pairs], dict(pairs)
+
+    def verify_client_info(label):
+        nonlocal client_fields_seen
+        target_raw = raw_command(ts, tf, ["CLIENT", "INFO"])
+        oracle_raw = raw_command(os_, of, ["CLIENT", "INFO"])
+        tnames, tmap = client_info_fields(target_raw)
+        onames, omap = client_info_fields(oracle_raw)
+        semantic(label + " field order", repr(tnames).encode(), repr(onames).encode())
+        stable = (b"name", b"flags", b"db", b"sub", b"psub", b"ssub", b"multi", b"watch",
+                  b"events", b"user", b"redir", b"resp", b"lib-name", b"lib-ver")
+        semantic(label + " stable values", repr([(key, tmap.get(key)) for key in stable]).encode(),
+                 repr([(key, omap.get(key)) for key in stable]).encode())
+        if len(tnames) < 31: mismatch(label + " non-vacuity", repr(tnames).encode(), b">=31 fields")
+        client_fields_seen = tnames
+        fired["client_rows"] += 1
+
+    for iteration in range(950):
+        choice = rng.randrange(12)
+        if choice == 0:
+            expected_name = "ci_%d" % rng.randrange(100000)
+            both(["CLIENT", "SETNAME", expected_name], "CLIENT SETNAME %d" % iteration)
+        elif choice == 1:
+            target, oracle = both(["CLIENT", "GETNAME"], "CLIENT GETNAME %d" % iteration)
+            wanted = b"$-1\r\n" if not expected_name else \
+                     b"$%d\r\n%s\r\n" % (len(expected_name), expected_name.encode())
+            if target != wanted or oracle != wanted: mismatch("CLIENT GETNAME model", target, wanted)
+        elif choice == 2:
+            no_evict = bool(rng.randrange(2))
+            both(["CLIENT", "NO-EVICT", "ON" if no_evict else "OFF"],
+                 "CLIENT NO-EVICT %d" % iteration)
+        elif choice == 3:
+            no_touch = bool(rng.randrange(2))
+            both(["CLIENT", "NO-TOUCH", "ON" if no_touch else "OFF"],
+                 "CLIENT NO-TOUCH %d" % iteration)
+        elif choice == 4:
+            both(["CLIENT", "UNPAUSE"], "CLIENT UNPAUSE %d" % iteration)
+        elif choice == 5:
+            if rng.randrange(5) == 0:
+                # Redis strings are binary-safe: NUL is accepted even though line/control
+                # delimiters are rejected. This row caught TomoKV's former ch <= ' ' check.
+                expected_name = "bad\x00name"
+                both(["CLIENT", "SETNAME", expected_name], "CLIENT binary name %d" % iteration)
+            else:
+                bad = rng.choice(["bad name", "bad\nname", "bad\rname", "bad\tname", "bad\x7fname"])
+                both(["CLIENT", "SETNAME", bad], "CLIENT invalid name %d" % iteration)
+        elif choice == 6:
+            lib_name = "lib%d" % rng.randrange(100)
+            both(["CLIENT", "SETINFO", "LIB-NAME", lib_name], "CLIENT SETINFO name")
+        elif choice == 7:
+            lib_ver = "%d.%d" % (rng.randrange(10), rng.randrange(10))
+            both(["CLIENT", "SETINFO", "LIB-VER", lib_ver], "CLIENT SETINFO version")
+        elif choice in (8, 9):
+            verify_client_info("CLIENT INFO %d" % iteration)
+        elif choice == 10:
+            tids = parse_reply(raw_command(ts, tf, ["CLIENT", "ID"]))
+            oids = parse_reply(raw_command(os_, of, ["CLIENT", "ID"]))
+            tid = int(tids[1:]) if isinstance(tids, bytes) and tids[:1] == b":" else 0
+            oid = int(oids[1:]) if isinstance(oids, bytes) and oids[:1] == b":" else 0
+            checks += 1
+            if tid <= 0 or oid <= 0: mismatch("CLIENT ID positive", str(tid).encode(), str(oid).encode())
+        else:
+            # LIST is issued with each side's own id; compare one-row schema and stable state.
+            tid_raw = parse_reply(raw_command(ts, tf, ["CLIENT", "ID"]))
+            oid_raw = parse_reply(raw_command(os_, of, ["CLIENT", "ID"]))
+            tid, oid = int(tid_raw[1:]), int(oid_raw[1:])
+            traw = raw_command(ts, tf, ["CLIENT", "LIST", "ID", str(tid)])
+            oraw = raw_command(os_, of, ["CLIENT", "LIST", "ID", str(oid)])
+            tnames, tmap = client_info_fields(traw)
+            onames, omap = client_info_fields(oraw)
+            semantic("CLIENT LIST field order", repr(tnames).encode(), repr(onames).encode())
+            stable = (b"name", b"flags", b"db", b"sub", b"psub", b"ssub", b"multi",
+                      b"watch", b"user", b"redir", b"resp", b"lib-name", b"lib-ver")
+            semantic("CLIENT LIST stable values",
+                     repr([(key, tmap.get(key)) for key in stable]).encode(),
+                     repr([(key, omap.get(key)) for key in stable]).encode())
+            fired["client_rows"] += 1
+    verify_client_info("CLIENT INFO final")
+    if not client_fields_seen: mismatch("CLIENT INFO fired", b"none", b"fields")
+
+    # ACL: exact user serialization, patterns, categories, and malformed-rule errors. ------------
+    rules = [
+        ["reset", "on", "nopass", "~ci:*", "&chan:*", "+get", "+set"],
+        ["reset", "off", ">secret", "~*", "&*", "+@all"],
+        ["reset", "on", "nopass", "resetkeys", "~a:*", "~b:*", "resetchannels",
+         "&c:*", "+get", "+subscribe"],
+    ]
+    malformed = [["+nosuchcommand"], [">"], ["&"], ["~"], ["reset", "+@nosuchcategory"]]
+    both(["ACL", "CAT"], "ACL CAT")
+    both(["ACL", "WHOAMI"], "ACL WHOAMI")
+    for iteration in range(1000):
+        choice = rng.randrange(10)
+        if choice < 3:
+            both(["ACL", "SETUSER", "ci:diff"] + rng.choice(rules),
+                 "ACL SETUSER %d" % iteration)
+            fired["acl_mutations"] += 1
+        elif choice == 3: both(["ACL", "GETUSER", "ci:diff"], "ACL GETUSER %d" % iteration)
+        elif choice == 4: both(["ACL", "LIST"], "ACL LIST %d" % iteration)
+        elif choice == 5: both(["ACL", "USERS"], "ACL USERS %d" % iteration)
+        elif choice == 6:
+            category = rng.choice(["string", "list", "set", "sortedset", "hash", "bitmap", "geo"])
+            target = parse_reply(raw_command(ts, tf, ["ACL", "CAT", category]))
+            oracle = parse_reply(raw_command(os_, of, ["ACL", "CAT", category]))
+            semantic("ACL CAT %s" % category, repr(sorted(target)).encode(),
+                     repr(sorted(oracle)).encode())
+        elif choice == 7:
+            both(["ACL", "SETUSER", "ci:bad"] + rng.choice(malformed),
+                 "ACL malformed %d" % iteration)
+        elif choice == 8:
+            both(["ACL", "DELUSER", "ci:diff"], "ACL DELUSER %d" % iteration)
+            fired["acl_mutations"] += 1
+        else: both(["ACL", "GETUSER", "no-such-user"], "ACL missing user %d" % iteration)
+    both(["ACL", "DELUSER", "ci:diff", "ci:bad"], "ACL cleanup")
+
+    # Notification flags, routes, event names/order, and no-change controls. --------------------
+    tks, tksf = conn(TH, TP); oks, oksf = conn(OH, OP)
+    tke, tkef = conn(TH, TP); oke, okef = conn(OH, OP)
+    subscribers = ((tks, tksf, "__keyspace@0__:ci:n:*"),
+                   (oks, oksf, "__keyspace@0__:ci:n:*"),
+                   (tke, tkef, "__keyevent@0__:*"),
+                   (oke, okef, "__keyevent@0__:*"))
+    for sock, file, pattern in subscribers:
+        raw_command(sock, file, ["PSUBSCRIBE", pattern])
+
+    def set_notify(flags):
+        both(["CONFIG", "SET", "notify-keyspace-events", flags], "notify flags " + flags)
+
+    def quiet(sock): return not _select.select([sock], [], [], 0.08)[0]
+
+    def assert_silence(label, target_sock, oracle_sock):
+        target_quiet = quiet(target_sock)
+        oracle_quiet = quiet(oracle_sock)
+        semantic(label, str(target_quiet).encode(), str(oracle_quiet).encode())
+        if not target_quiet or not oracle_quiet:
+            mismatch(label + " expected zero", str(target_quiet).encode(), b"True/True")
+        fired["silence_controls"] += 1
+
+    def notify_op(argv, keyspace_events, keyevent_events, label):
+        both(argv, label + " reply")
+        for index in range(keyspace_events):
+            target = read_reply(tksf); oracle = read_reply(oksf)
+            semantic(label + " keyspace event %d" % index, target, oracle)
+            fired["notify_events"] += 1
+        for index in range(keyevent_events):
+            target = read_reply(tkef); oracle = read_reply(okef)
+            semantic(label + " keyevent event %d" % index, target, oracle)
+            fired["notify_events"] += 1
+
+    set_notify("K$"); notify_op(["SET", "ci:n:string-k", "v"], 1, 0, "K string")
+    assert_silence("K string keyevent silence", tke, oke)
+    set_notify("E$"); notify_op(["SET", "ci:n:string-e", "v"], 0, 1, "E string")
+    assert_silence("E string keyspace silence", tks, oks)
+    set_notify("Eh"); notify_op(["HSET", "ci:n:hash", "f", "v"], 0, 1, "hash class")
+    set_notify("El"); notify_op(["LPUSH", "ci:n:list", "v"], 0, 1, "list class")
+    set_notify(""); notify_op(["SET", "ci:n:generic", "v"], 0, 0, "generic setup")
+    set_notify("Eg"); notify_op(["DEL", "ci:n:generic"], 0, 1, "generic class")
+    set_notify("Es"); notify_op(["SADD", "ci:n:set", "m"], 0, 1, "set class")
+    notify_op(["SADD", "ci:n:set", "m"], 0, 0, "set no change")
+    assert_silence("set no-change keyevent silence", tke, oke)
+    set_notify("Ez"); notify_op(["ZADD", "ci:n:zset", "1", "m"], 0, 1, "zset class")
+    set_notify("Et"); notify_op(["XADD", "ci:n:stream", "1-0", "f", "v"], 0, 1, "stream class")
+    set_notify("Ex"); notify_op(["SET", "ci:n:expired", "v", "PX", "1"], 0, 0, "expired setup")
+    time.sleep(0.02)
+    notify_op(["GET", "ci:n:expired"], 0, 1, "expired class")
+    set_notify("Em"); notify_op(["GET", "ci:n:missing"], 0, 1, "keymiss class")
+    set_notify("En"); notify_op(["SET", "ci:n:new", "v"], 0, 1, "new class")
+    set_notify("KEA")
+    notify_op(["SET", "ci:n:ordered", "v", "EX", "1000"], 2, 2, "set-expire ordering")
+    set_notify(""); notify_op(["SET", "ci:n:disabled", "v"], 0, 0, "disabled control")
+    assert_silence("disabled keyspace silence", tks, oks)
+    assert_silence("disabled keyevent silence", tke, oke)
+
+    for sock in (tks, oks, tke, oke): sock.close()
+    for sock in (ts, os_): sock.close()
+
+    minimums = {"getkeys": 1500, "config_multi": 100, "client_rows": 50,
+                "acl_mutations": 100, "notify_events": 10, "silence_controls": 5}
+    for name, minimum in minimums.items():
+        if fired[name] < minimum:
+            mismatch("non-vacuity " + name, str(fired[name]).encode(), str(minimum).encode())
+    print("DIFFER compatintro: %d checks, %d diffs -> %s (%s)" %
+          (checks, diffs, "PASS" if diffs == 0 else "FAIL",
+           ", ".join("%s=%d" % item for item in fired.items())))
+    return diffs
+
+
+if SUITE == "compatintro":
+    sys.exit(1 if run_compatintro_suite(rng) else 0)
+
+
 def run_s6fix_suite(rng):
     """A4-A7 differential properties plus 4,000 byte-compared mixed operations.
 
@@ -2674,7 +3048,8 @@ gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset
         "scan": gen_scan, "multi": gen_multi,
         "servertail": gen_servertail}
 if LIST_GENERATORS:
-    print("\n".join(gens))
+    print("\n".join(list(gens) + ["fanout", "spubsub", "notify", "wiredump", "climon",
+                                   "compatintro", "s6fix"]))
     sys.exit(0)
 ops = gens[SUITE](rng)
 

@@ -727,10 +727,10 @@ const char* const kCommandHelp[] = {
     "    Print this help.",
 };
 
-// Key extraction from registry metadata, which is the same range ACL, MULTI and the scatter
-// lowering consume -- so GETKEYS cannot disagree with what the router actually treats as a key.
-bool collect_command_keys(const CommandSpec& spec, Op& op, uint32_t first_arg,
-                          std::vector<uint32_t>& out) {
+// Static key extraction uses the same registry range ACL, MULTI and scatter lowering consume.
+// Commands whose key count/position is argument-driven are decoded separately below.
+bool collect_static_command_keys(const CommandSpec& spec, Op& op, uint32_t first_arg,
+                                 std::vector<uint32_t>& out) {
     const uint32_t argc = op.argc() - first_arg;
     if (spec.first_key <= 0 || spec.key_step <= 0) return false;
     const uint32_t last = spec.last_key < 0
@@ -740,6 +740,97 @@ bool collect_command_keys(const CommandSpec& spec, Op& op, uint32_t first_arg,
          arg += static_cast<uint32_t>(spec.key_step))
         out.push_back(first_arg + arg);
     return !out.empty();
+}
+
+enum class MovableKeysResult : uint8_t { NotMovable, Success, Invalid };
+
+void append_command_key_range(std::vector<uint32_t>& out, uint32_t first, uint64_t count) {
+    for (uint64_t i = 0; i < count; i++) out.push_back(first + static_cast<uint32_t>(i));
+}
+
+// COMMAND GETKEYS is a routing API, so movable-key commands must be decoded from their actual
+// grammar rather than from the registry's conservative legacy range. This remains entirely on the
+// connection-local COMMAND path; executor routing and the single-owner store path are untouched.
+MovableKeysResult collect_movable_command_keys(Op& op, uint32_t command_arg,
+                                               std::vector<uint32_t>& out) {
+    const Slice name = op.arg(command_arg);
+
+    const bool script = eq_icase(name, "EVAL") || eq_icase(name, "EVALSHA") ||
+                        eq_icase(name, "EVAL_RO") || eq_icase(name, "EVALSHA_RO") ||
+                        eq_icase(name, "FCALL") || eq_icase(name, "FCALL_RO");
+    if (script) {
+        uint64_t count = 0;
+        const uint32_t count_arg = command_arg + 2;
+        // Redis's key-spec extractor returns an empty list (rather than a validation error) when
+        // the numkeys field cannot describe a complete range.
+        if (count_arg >= op.argc() || !parse_u64(op.arg(count_arg), count) ||
+            count > op.argc() - (count_arg + 1)) return MovableKeysResult::Success;
+        append_command_key_range(out, count_arg + 1, count);
+        return MovableKeysResult::Success;
+    }
+
+    const bool xread = eq_icase(name, "XREAD") || eq_icase(name, "XREADGROUP");
+    if (xread) {
+        uint32_t streams = op.argc();
+        for (uint32_t i = command_arg + 1; i < op.argc(); i++) {
+            if (eq_icase(op.arg(i), "STREAMS")) { streams = i; break; }
+        }
+        if (streams == op.argc()) return MovableKeysResult::Success;
+        const uint32_t remaining = op.argc() - streams - 1;
+        append_command_key_range(out, streams + 1, remaining / 2);
+        return MovableKeysResult::Success;
+    }
+
+    const bool blocking_mpop = eq_icase(name, "BLMPOP") || eq_icase(name, "BZMPOP");
+    const bool mpop = blocking_mpop || eq_icase(name, "LMPOP") || eq_icase(name, "ZMPOP");
+    if (mpop) {
+        const uint32_t count_arg = command_arg + (blocking_mpop ? 2 : 1);
+        int64_t count = 0;
+        if (count_arg >= op.argc() || !parse_i64(op.arg(count_arg), count) || count <= 0 ||
+            static_cast<uint64_t>(count) > op.argc() - (count_arg + 1))
+            return MovableKeysResult::Invalid;
+        append_command_key_range(out, count_arg + 1, static_cast<uint64_t>(count));
+        return MovableKeysResult::Success;
+    }
+
+    const bool card = eq_icase(name, "SINTERCARD") || eq_icase(name, "ZINTERCARD");
+    const bool zread = eq_icase(name, "ZUNION") || eq_icase(name, "ZINTER") ||
+                       eq_icase(name, "ZDIFF");
+    const bool zstore = eq_icase(name, "ZUNIONSTORE") || eq_icase(name, "ZINTERSTORE") ||
+                        eq_icase(name, "ZDIFFSTORE");
+    if (card || zread || zstore) {
+        const uint32_t count_arg = command_arg + (zstore ? 2 : 1);
+        int64_t count = 0;
+        if (count_arg >= op.argc() || !parse_i64(op.arg(count_arg), count) || count <= 0 ||
+            static_cast<uint64_t>(count) > op.argc() - (count_arg + 1))
+            return MovableKeysResult::Invalid;
+        if (zstore) out.push_back(command_arg + 1);
+        append_command_key_range(out, count_arg + 1, static_cast<uint64_t>(count));
+        return MovableKeysResult::Success;
+    }
+
+    const bool georadius = eq_icase(name, "GEORADIUS") ||
+                           eq_icase(name, "GEORADIUSBYMEMBER");
+    if (georadius) {
+        out.push_back(command_arg + 1);
+        const uint32_t options = command_arg + (eq_icase(name, "GEORADIUS") ? 6 : 5);
+        for (uint32_t i = options; i + 1 < op.argc(); i++) {
+            if (eq_icase(op.arg(i), "STORE") || eq_icase(op.arg(i), "STOREDIST")) {
+                out.push_back(i + 1);
+                i++;
+            }
+        }
+        return MovableKeysResult::Success;
+    }
+
+    if (eq_icase(name, "SORT")) {
+        out.push_back(command_arg + 1);
+        for (uint32_t i = command_arg + 2; i + 1 < op.argc(); i++) {
+            if (eq_icase(op.arg(i), "STORE")) { out.push_back(i + 1); break; }
+        }
+        return MovableKeysResult::Success;
+    }
+    return MovableKeysResult::NotMovable;
 }
 
 // DOCUMENTED APPROXIMATION. Redis carries a hand-written per-key-spec flag set; our registry
@@ -770,7 +861,13 @@ bool command_getkeys(Op& op, bool with_flags) {
         return true;
     }
     std::vector<uint32_t> keys;
-    if (!collect_command_keys(*spec, op, 2, keys)) {
+    const MovableKeysResult movable = collect_movable_command_keys(op, 2, keys);
+    if (movable == MovableKeysResult::Invalid) {
+        reply_err(op.sink(), "ERR Invalid arguments specified for command");
+        return true;
+    }
+    if (movable == MovableKeysResult::NotMovable &&
+        !collect_static_command_keys(*spec, op, 2, keys)) {
         reply_err(op.sink(), "ERR The command has no key arguments");
         return true;
     }
