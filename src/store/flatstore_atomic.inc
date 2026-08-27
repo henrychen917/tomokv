@@ -736,9 +736,9 @@ private:
         if (outstanding_borrows_ == 0) { kvobj_free(object); return; }
         const char* ptr = (static_cast<Type>(object->type) == Type::String && !object->is_int())
                               ? object->str_value().p : nullptr;
-        for (Borrow& borrow : borrows_) {
-            if (borrow.ptr != ptr) continue;
-            borrow.retired = object;
+        const uint32_t at = ptr ? borrow_find(ptr) : kNoBorrow;
+        if (at != kNoBorrow) {
+            borrows_[at].retired = object;
             pending_bytes_ += kvobj_size(object);
             return;
         }

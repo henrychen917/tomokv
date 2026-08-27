@@ -1158,19 +1158,28 @@ nonblocking_dispatch:
                 // bundle arrays for MGET added work without helping its already-cheap individual
                 // queue stores. Atomic writes take the bundled arm below, where fan-out dominates.
                 if (!scatter_dispatch.atomic_write) {
-                    uint32_t needed[kMaxThreads] = {};
+                    // The demand array is a zero-on-entry member and the participant list is
+                    // uninitialised stack, so neither the 512-byte zero-init nor the walk over
+                    // every configured thread happens here. A 2-key cross-shard read touches two
+                    // owners whether the server runs 4 threads or 128.
+                    uint32_t* const needed = dispatch_needed_;
+                    uint32_t participants[kMaxThreads];
+                    uint32_t nparticipants = 0;
                     for (uint32_t i = 0; i < scatter_dispatch.nshards; i++) {
                         const int32_t sid = xshard_dispatch_shard(scatter_dispatch, i);
-                        needed[srv_->worker_of_shard(sid)]++;
+                        const uint32_t tid = srv_->worker_of_shard(sid);
+                        if (needed[tid]++ == 0) participants[nparticipants++] = tid;
                     }
                     bool room = true;
-                    for (uint32_t tid = 0; tid < srv_->nthreads(); tid++) {
-                        if (needed[tid] &&
-                            srv_->thread(tid).task_free_slots(self_->id()) < needed[tid]) {
+                    for (uint32_t p = 0; p < nparticipants; p++) {
+                        const uint32_t tid = participants[p];
+                        if (srv_->thread(tid).task_free_slots(self_->id()) < needed[tid]) {
                             room = false;
                             break;
                         }
                     }
+                    // Restore the zero-on-entry invariant before EVERY exit from this arm.
+                    for (uint32_t p = 0; p < nparticipants; p++) needed[participants[p]] = 0;
                     if (!room) {
                         xshard_destroy(scatter_dispatch.state, scatter_pool_, self_->id());
                         break;
@@ -1810,6 +1819,11 @@ nonblocking_dispatch:
     bool touched_[kMaxThreads] = {};      // dedupe flags for the current parse pass
     uint32_t touched_list_[kMaxThreads] = {}; // the workers actually fed, dense
     uint32_t ntouched_ = 0;
+    // Per-owner task demand for the plain scatter dispatch. INVARIANT: every entry is zero on
+    // entry to and on exit from the dispatch arm, so the arm never zeroes the whole array and
+    // never walks it. Cost becomes proportional to the shards this op actually touches instead
+    // of to the configured thread count.
+    uint32_t dispatch_needed_[kMaxThreads] = {};
     std::vector<Client*> dead_next_;   // corpses parked this iteration
     std::vector<Client*> dead_ready_;  // corpses freed at the next prologue
     int        listen_fd_ = -1;
