@@ -119,7 +119,7 @@ done
 # ---- debug-surface batteries: these drive DEBUG subcommands, hence their own armed boot -------
 for AT in 0 1; do
   boot ./build/tomokv --atomic $AT --enable-debug-command yes || bad "debug-surface boot (atomic $AT)"
-  for t in lbsignals slowlog; do
+  for t in lbsignals slowlog atomfix; do
     python3 tests/$t.py 127.0.0.1 $PORT >/tmp/gate-$t-$AT.txt 2>&1 \
         && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see /tmp/gate-$t-$AT.txt"
   done
