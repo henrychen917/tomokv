@@ -286,6 +286,22 @@ WorkError store_xstring_selected(bool notify, Shard& shard, Slice key, uint64_t 
                   : store_xstring<false>(shard, key, hash, value, expire_at_ms, integer_encode);
 }
 
+bool is_element_mover(Kind kind) {
+    return kind == Kind::Smove || kind == Kind::Lmove || kind == Kind::Rpoplpush;
+}
+
+WorkError element_work_error(XshardElementResult result) {
+    switch (result) {
+        case XshardElementResult::Ok:
+        case XshardElementResult::Missing: return WorkError::None;
+        case XshardElementResult::WrongType: return WorkError::WrongType;
+        case XshardElementResult::Oom: return WorkError::Oom;
+        case XshardElementResult::Maxmemory: return WorkError::Maxmemory;
+        case XshardElementResult::InsertFailed: return WorkError::InsertFailed;
+    }
+    return WorkError::InsertFailed;
+}
+
 }  // namespace
 
 struct alignas(64) OwnerRecordRefs {
@@ -1835,6 +1851,46 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
             return ScatterTaskResult::Complete;
         }
 
+        // Atomic apply still needs complete candidates for MVCC. The default lane carries only
+        // source type/emptiness plus the selected element; destination hop one is a type probe.
+        // Hop two below mutates each live owner instead of replaying stale collection images.
+        if (state.phase != 2 && !state.atomic_apply && is_element_mover(state.kind)) {
+            for (uint32_t i = 0; i < group.count; i++) {
+                const uint32_t pos = state.key_order[group.begin + i];
+                const KeyRef& key = state.keys[pos];
+                KvObj* object = find_value(key.hash, op.arg(key.arg));
+                ObjectImage& image = state.images[pos];
+                if (object) {
+                    image.present = true;
+                    image.type = static_cast<Type>(object->type);
+                    if (image.type == Type::List || image.type == Type::Set)
+                        image.entries = CollectionRef(object).entries();
+                }
+                if (pos != 0) continue;
+
+                if (state.kind == Kind::Smove) {
+                    bool contains = false;
+                    const XshardElementResult probed =
+                        xshard_set_contains(object, op.arg(3), contains);
+                    if (probed == XshardElementResult::Oom)
+                        state.status[pos] = static_cast<uint8_t>(WorkError::Oom);
+                    state.final_integer = contains ? 1 : 0;
+                    continue;
+                }
+                if (!object || image.type != Type::List || !image.entries) continue;
+                ResultHeap* result = ensure_result(state);
+                if (!result) {
+                    state.status[pos] = static_cast<uint8_t>(WorkError::Oom);
+                    continue;
+                }
+                const XshardElementResult probed =
+                    xshard_peek_list(object, state.from_left, result->bulk);
+                if (probed == XshardElementResult::Oom)
+                    state.status[pos] = static_cast<uint8_t>(WorkError::Oom);
+            }
+            return ScatterTaskResult::Complete;
+        }
+
         if (state.phase == 2) {
             if (state.kind == Kind::Lmpop || state.kind == Kind::Zmpop) {
                 const uint32_t pos = state.key_order[group.begin];
@@ -1886,7 +1942,25 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     plain_active = true;
                 }
                 WorkError result;
-                if (state.kind == Kind::Msetnx) {
+                if (!state.atomic_apply && is_element_mover(state.kind)) {
+                    XshardElementResult moved = XshardElementResult::InsertFailed;
+                    if (state.kind == Kind::Smove) {
+                        moved = pos == 0
+                            ? xshard_remove_set_element(
+                                  shard, op.arg(key.arg), key.hash, op.arg(3))
+                            : xshard_insert_set_element(
+                                  shard, op.arg(key.arg), key.hash, op.arg(3));
+                    } else {
+                        const std::string& element = state.result->bulk;
+                        const Slice value(element.data(), static_cast<uint32_t>(element.size()));
+                        moved = pos == 0
+                            ? xshard_remove_list_element(
+                                  shard, op.arg(key.arg), key.hash, state.from_left, value)
+                            : xshard_push_list_element(
+                                  shard, op.arg(key.arg), key.hash, state.to_left, value);
+                    }
+                    result = element_work_error(moved);
+                } else if (state.kind == Kind::Msetnx) {
                     result = store_xstring_selected(
                         notify, shard, op.arg(key.arg), key.hash, op.arg(key.arg + 1));
                 } else if (state.kind == Kind::Bitop) {

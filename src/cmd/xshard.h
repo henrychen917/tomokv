@@ -47,6 +47,25 @@ XshardPopResult xshard_pop_zset(Shard& shard, Slice key, uint64_t hash, bool max
                                 uint64_t count, std::vector<std::string>& members,
                                 std::vector<double>& scores);
 
+// Element movers probe only the selected source element in hop one, then ask each live owner to
+// perform its half of the mutation in hop two.  Unlike ObjectImage replay, these helpers preserve
+// unrelated writes that landed between the hops.  The list removal's expected value makes the
+// ordinary edge case O(1); if a concurrent same-edge push displaced it, the owner removes the
+// closest matching value from that edge instead of deleting the concurrent element.
+enum class XshardElementResult : uint8_t {
+    Ok, Missing, WrongType, Oom, Maxmemory, InsertFailed
+};
+XshardElementResult xshard_peek_list(KvObj* object, bool left, std::string& element);
+XshardElementResult xshard_remove_list_element(Shard& shard, Slice key, uint64_t hash,
+                                               bool left, Slice expected);
+XshardElementResult xshard_push_list_element(Shard& shard, Slice key, uint64_t hash,
+                                             bool left, Slice element);
+XshardElementResult xshard_set_contains(KvObj* object, Slice member, bool& contains);
+XshardElementResult xshard_remove_set_element(Shard& shard, Slice key, uint64_t hash,
+                                              Slice member);
+XshardElementResult xshard_insert_set_element(Shard& shard, Slice key, uint64_t hash,
+                                              Slice member);
+
 enum class ScatterPrepare : uint8_t { NotScatter, Ready, Backpressure, Error };
 enum class ScatterTaskResult : uint8_t { Complete, Retry };
 enum class ScatterFinish : uint8_t { Waiting, Final };

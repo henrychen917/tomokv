@@ -298,6 +298,7 @@ bool decode_elements(const ObjectImage& image, std::vector<std::string>& out) {
     const uint8_t* p = image.payload.data();
     size_t left = image.payload.size();
     try {
+        out.reserve(image.entries);
         while (left) {
             if (left < 4) return false;
             const uint32_t len = snapshot_get_u32(p);
@@ -1158,6 +1159,22 @@ bool finish_phase1(ScatterState& state, Op& op) {
             if (!image_type(source, Type::Set) || !image_type(dest, Type::Set)) {
                 state.final_reply = FinalReply::Work; state.final_error = WorkError::WrongType; return true;
             }
+            if (!state.atomic_apply) {
+                if (state.final_integer == 0) {
+                    state.final_reply = FinalReply::Integer;
+                    return true;
+                }
+                if (same_key(op)) {
+                    state.final_reply = FinalReply::Integer;
+                    state.final_integer = 1;
+                    return true;
+                }
+                state.final_integer = 1;
+                state.hop2[0] = 0;
+                state.hop2[1] = 1;
+                state.hop2_count = 2;
+                return false;
+            }
             std::vector<std::string> src, dst;
             if (!decode_elements(source, src) || (dest.present && !decode_elements(dest, dst))) {
                 state.final_reply = FinalReply::Work; state.final_error = WorkError::Oom; return true;
@@ -1189,6 +1206,18 @@ bool finish_phase1(ScatterState& state, Op& op) {
             if (!source.present) { state.final_reply = FinalReply::Nil; return true; }
             if (!image_type(source, Type::List) || !image_type(dest, Type::List)) {
                 state.final_reply = FinalReply::Work; state.final_error = WorkError::WrongType; return true;
+            }
+            if (!state.atomic_apply) {
+                if (!source.entries) { state.final_reply = FinalReply::Nil; return true; }
+                if (!state.result) {
+                    state.final_reply = FinalReply::Work;
+                    state.final_error = WorkError::Oom;
+                    return true;
+                }
+                state.hop2[0] = 0;
+                state.hop2[1] = 1;
+                state.hop2_count = 2;
+                return false;
             }
             std::vector<std::string> src, dst;
             if (!decode_elements(source, src) || (dest.present && !decode_elements(dest, dst))) {

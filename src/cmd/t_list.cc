@@ -992,6 +992,236 @@ XshardPopResult xshard_pop_list(Shard& shard, Slice key, uint64_t hash, bool lef
     return XshardPopResult::Popped;
 }
 
+XshardElementResult xshard_peek_list(KvObj* object, bool left, std::string& element) {
+    element.clear();
+    if (!object) return XshardElementResult::Missing;
+    if (static_cast<Type>(object->type) != Type::List) return XshardElementResult::WrongType;
+    CollectionRef list = list_value(object);
+    if (!list.entries()) return XshardElementResult::Missing;
+    Compact::Entry edge;
+    const bool found = list.encoding() == CollectionEncoding::Compact
+        ? (left ? list.compact().first(edge) : list.compact().last(edge))
+        : expanded_edge(*list.external_as<ListVal>(), left, edge);
+    if (!found) return XshardElementResult::Missing;
+    try {
+        element.assign(edge.value.p, edge.value.n);
+    } catch (const std::bad_alloc&) {
+        return XshardElementResult::Oom;
+    }
+    return XshardElementResult::Ok;
+}
+
+namespace {
+
+template <bool kNotify>
+XshardElementResult xshard_externalize_list(Shard& shard, Slice key, uint64_t hash,
+                                            KvObj*& object) {
+    CollectionRef source(object);
+    if (!source.is_embedded()) return XshardElementResult::Ok;
+    auto* value = new (std::nothrow) ListVal;
+    if (!value) return XshardElementResult::Oom;
+    for (const Compact::Entry entry : source.compact()) {
+        if (!value->append(entry.value)) {
+            delete value;
+            return XshardElementResult::Oom;
+        }
+    }
+    KvObj* replacement = kvobj_new_list(key, value, object->expire_at_ms());
+    if (!replacement) {
+        delete value;
+        return XshardElementResult::Oom;
+    }
+    replacement->set_eviction_meta(object->eviction_meta());
+    const FlatStore::InsertResult inserted = shard.store_insert<kNotify>(hash, replacement);
+    if (inserted != FlatStore::InsertResult::Inserted) {
+        kvobj_free(replacement);
+        return inserted == FlatStore::InsertResult::MaxmemoryOom
+            ? XshardElementResult::Maxmemory : XshardElementResult::InsertFailed;
+    }
+    object = replacement;
+    return XshardElementResult::Ok;
+}
+
+template <bool kNotify>
+XshardElementResult xshard_remove_list_element_impl(Shard& shard, Slice key, uint64_t hash,
+                                                    bool left, Slice expected) {
+    KvObj* object = shard.store_find<kNotify>(hash, key);
+    if (!object) return XshardElementResult::Missing;
+    if (static_cast<Type>(object->type) != Type::List) return XshardElementResult::WrongType;
+    CollectionRef list = list_value(object);
+    if (!list.entries()) return XshardElementResult::Missing;
+
+    Compact::Entry edge;
+    const bool found_edge = list.encoding() == CollectionEncoding::Compact
+        ? (left ? list.compact().first(edge) : list.compact().last(edge))
+        : expanded_edge(*list.external_as<ListVal>(), left, edge);
+    if (!found_edge) return XshardElementResult::Missing;
+
+    if (edge.value == expected) {
+        ObjectSizeTracker size_tracker(shard.store(), object);
+        uint32_t payload = 0;
+        if (list.encoding() == CollectionEncoding::Compact) {
+            if (left) list.pop_front(&payload);
+            else list.pop_back(&payload);
+        } else {
+            ListVal* expanded = list.external_as<ListVal>();
+            expanded_pop(*expanded, left, payload);
+            expanded->note_expanded_delete(payload, expanded->node_allocation_bytes);
+        }
+        if (!list.entries()) {
+            size_tracker.finish();
+            shard.store_erase<kNotify>(hash, key);
+        }
+        return XshardElementResult::Ok;
+    }
+
+    // A write to the selected edge landed between hops. Preserve it and remove the closest
+    // occurrence of the element hop one actually selected. This slow fallback is concurrency-only;
+    // the uncontended mover remains one edge read and one edge pop.
+    uint32_t matches = 0;
+    if (!left) {
+        for (ListCursor cur = ListCursor::edge(list, false); cur.valid(); cur.next()) {
+            Compact::Entry entry;
+            if (!cur.get(entry)) return XshardElementResult::Oom;
+            matches += entry.value == expected;
+        }
+        if (!matches) return XshardElementResult::Missing;
+    }
+    uint32_t seen = 0;
+    uint32_t removed_payload = 0;
+    bool removed = false;
+    Compact compact;
+    ListVal staging;
+    for (ListCursor cur = ListCursor::edge(list, false); cur.valid(); cur.next()) {
+        Compact::Entry entry;
+        if (!cur.get(entry)) return XshardElementResult::Oom;
+        bool take = false;
+        if (entry.value == expected) {
+            seen++;
+            take = left ? !removed : seen == matches;
+        }
+        if (take) {
+            removed = true;
+            removed_payload = entry.value.n;
+            continue;
+        }
+        const bool ok = list.encoding() == CollectionEncoding::Compact
+            ? compact.append(entry.value) : expanded_push(staging, entry.value, false);
+        if (!ok) return XshardElementResult::Oom;
+    }
+    if (!removed) return XshardElementResult::Missing;
+
+    ObjectSizeTracker size_tracker(shard.store(), object);
+    if (list.encoding() == CollectionEncoding::Compact) {
+        if (!list.replace_compact(std::move(compact))) return XshardElementResult::Oom;
+    } else {
+        ListVal* expanded = list.external_as<ListVal>();
+        adopt_nodes(*expanded, staging);
+        expanded->note_expanded_delete(removed_payload, expanded->node_allocation_bytes);
+    }
+    if (!list.entries()) {
+        size_tracker.finish();
+        shard.store_erase<kNotify>(hash, key);
+    }
+    return XshardElementResult::Ok;
+}
+
+template <bool kNotify>
+XshardElementResult xshard_push_list_element_impl(Shard& shard, Slice key, uint64_t hash,
+                                                  bool left, Slice element) {
+    KvObj* object = shard.store_find<kNotify>(hash, key);
+    if (object && static_cast<Type>(object->type) != Type::List)
+        return XshardElementResult::WrongType;
+
+    if (!object) {
+        auto* list = new (std::nothrow) ListVal;
+        if (!list) return XshardElementResult::Oom;
+        if (list->list_fits(shard.type_limits().list, 1, element.n)) {
+            if (!list->append(element)) {
+                delete list;
+                return XshardElementResult::Oom;
+            }
+        } else {
+            if (!expanded_push(*list, element, left)) {
+                delete list;
+                return XshardElementResult::Oom;
+            }
+            const uint64_t allocation = list->node_allocation_bytes;
+            list->promote(CollectionEncoding::Deque, allocation);
+            list->note_expanded_insert(element.n, allocation);
+        }
+        KvObj* fresh = kvobj_adopt_list(key, list);
+        if (!fresh) {
+            delete list;
+            return XshardElementResult::Oom;
+        }
+        const FlatStore::InsertResult inserted = shard.store_insert<kNotify>(hash, fresh);
+        if (inserted != FlatStore::InsertResult::Inserted) {
+            kvobj_free(fresh);
+            return inserted == FlatStore::InsertResult::MaxmemoryOom
+                ? XshardElementResult::Maxmemory : XshardElementResult::InsertFailed;
+        }
+        if (shard.has_blocking_waiters()) blocking_publish_key(shard, hash, key.p, key.n);
+        return XshardElementResult::Ok;
+    }
+
+    CollectionRef before = list_value(object);
+    const uint64_t resulting_encoded =
+        before.compact().encoded_bytes() + Compact::entry_encoded_size(element.n);
+    if (before.is_embedded() &&
+        (!before.embedded_bytes_fit(resulting_encoded) ||
+         !before.list_fits(shard.type_limits().list, before.entries() + 1,
+                           before.payload_bytes() + element.n))) {
+        const XshardElementResult converted =
+            xshard_externalize_list<kNotify>(shard, key, hash, object);
+        if (converted != XshardElementResult::Ok) return converted;
+    }
+
+    CollectionRef list = list_value(object);
+    if (list.entries() == std::numeric_limits<uint32_t>::max())
+        return XshardElementResult::Oom;
+    ObjectSizeTracker size_tracker(shard.store(), object);
+    if (list.encoding() == CollectionEncoding::Compact) {
+        const uint32_t resulting_entries = list.entries() + 1;
+        const uint64_t resulting_payload = list.payload_bytes() + element.n;
+        if (list.list_fits(shard.type_limits().list, resulting_entries, resulting_payload)) {
+            if (!(left ? list.prepend(element) : list.append(element)))
+                return XshardElementResult::Oom;
+        } else {
+            ListVal staging;
+            if (!append_all_expanded(list, staging) || !expanded_push(staging, element, left))
+                return XshardElementResult::Oom;
+            ListVal* expanded = list.external_as<ListVal>();
+            adopt_nodes(*expanded, staging);
+            const uint64_t allocation = expanded->node_allocation_bytes;
+            expanded->promote(CollectionEncoding::Deque, allocation);
+            expanded->note_expanded_insert(element.n, allocation);
+        }
+    } else {
+        ListVal* expanded = list.external_as<ListVal>();
+        if (!expanded_push(*expanded, element, left)) return XshardElementResult::Oom;
+        expanded->note_expanded_insert(element.n, expanded->node_allocation_bytes);
+    }
+    if (shard.has_blocking_waiters()) blocking_publish_key(shard, hash, key.p, key.n);
+    return XshardElementResult::Ok;
+}
+
+}  // namespace
+
+XshardElementResult xshard_remove_list_element(Shard& shard, Slice key, uint64_t hash,
+                                               bool left, Slice expected) {
+    return shard.notify_carrier()
+        ? xshard_remove_list_element_impl<true>(shard, key, hash, left, expected)
+        : xshard_remove_list_element_impl<false>(shard, key, hash, left, expected);
+}
+
+XshardElementResult xshard_push_list_element(Shard& shard, Slice key, uint64_t hash,
+                                             bool left, Slice element) {
+    return shard.notify_carrier()
+        ? xshard_push_list_element_impl<true>(shard, key, hash, left, element)
+        : xshard_push_list_element_impl<false>(shard, key, hash, left, element);
+}
+
 
 namespace {
 
