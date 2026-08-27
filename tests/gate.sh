@@ -34,8 +34,8 @@ SRV=0; SRVLOG=/dev/null
 # Still NOT wired, deliberately: tests/expireindex.py, tests/borrow_registry.py and
 # tests/xshard_dispatch_scale.sh each need their own boot geometry.
 EXPECT_QUICK=189
-EXPECT_FULL=198                 # full without the optional NIC row; = quick + 9, unconfirmed
-                                # until the next full-tier run on the rig
+EXPECT_FULL=199                 # full without the optional NIC row. CONFIRMED by the
+                                # 2026-08-28 full-tier run (200 with the NIC row attempted).
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ok(){ say "$1" "ok"; PASS=$((PASS+1)); }
 bad(){ say "$1" "FAIL${2:+ ($2)}"; FAIL=$((FAIL+1)); }

@@ -163,7 +163,7 @@ mkdir -p "$OUT/oracle"
 ORACLE_LOG="$OUT/oracle.log"
 boot_owned "vanilla Redis oracle" "$ORACLE_PORT" "$ORACLE_CORES" "$ORACLE_LOG" \
     "$ORACLE_BIN" --port "$ORACLE_PORT" --bind 127.0.0.1 \
-    --dir "$OUT/oracle" --dbfilename dump.rdb --appendonly no || exit 1
+    --dir "$OUT/oracle" --dbfilename dump.rdb --appendonly no --save '' || exit 1
 ORACLE_PID=$BOOT_PID
 
 ORACLE_INFO=$(
@@ -186,7 +186,7 @@ for ATOMIC in 0 1; do
   TARGET_LOG="$OUT/target-atomic-$ATOMIC.log"
   if ! boot_owned "target atomic=$ATOMIC" "$TARGET_PORT" "$TARGET_CORES" "$TARGET_LOG" \
       "$TARGET_BIN" --port "$TARGET_PORT" --bind 127.0.0.1 --shards 16 \
-      --ratio "$TARGET_RATIO" --atomic "$ATOMIC"; then
+      --ratio "$TARGET_RATIO" --atomic "$ATOMIC" --enable-debug-command yes; then
     FAIL=$((FAIL+1))
     break
   fi

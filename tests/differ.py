@@ -125,7 +125,7 @@ def sort_nested(value):
         out.sort(key=repr)
     return out
 def normalize_introspection(cmdname, argv, r):
-    """MEMORY USAGE and COMMAND INFO are compared for MEANING, not bytes.
+    """MEMORY USAGE, ROLE and COMMAND INFO are compared for MEANING, not bytes.
 
     MEMORY USAGE: the number is our accounting, not redis's, so only hit-vs-miss is comparable.
     COMMAND INFO: the flag names, ACL category list and key-spec map are redis-internal; the name,
@@ -133,6 +133,14 @@ def normalize_introspection(cmdname, argv, r):
     """
     if cmdname == "MEMORY" and len(argv) > 1 and argv[1].upper() == "USAGE":
         return b"USAGE:nil" if r.startswith((b"$-1", b"_")) else b"USAGE:present"
+    if cmdname == "ROLE":
+        parsed = parse_reply(r)
+        if isinstance(parsed, list) and len(parsed) >= 3:
+            # element 1 is the master replication offset: redis advances it against a replication
+            # backlog it keeps and we do not, so it is not a comparable quantity. The role name and
+            # the replica list are.
+            return b"ROLE:%s/%s" % (parsed[0], repr(parsed[2]).encode())
+        return r
     if cmdname == "COMMAND" and len(argv) > 1 and argv[1].upper() == "INFO":
         rows = parse_reply(r)
         if not isinstance(rows, list):
