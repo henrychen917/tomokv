@@ -126,6 +126,21 @@ def pipeline_sets(client, prefix, count, width, expected):
                 raise AssertionError("SET pipeline failed")
 
 
+def pipeline_script_sets(client, prefix, count, width, expected):
+    source = "return redis.call('SET', KEYS[1], ARGV[1])"
+    for begin in range(0, count, width):
+        commands = []
+        for index in range(begin, min(begin + width, count)):
+            key = "%s:%06d" % (prefix, index)
+            value = ("value-%06d:" % index).encode() + bytes([65 + index % 26]) * 180
+            expected[key] = value.decode("ascii")
+            commands.append(("EVAL", source, "1", key, value))
+        client.sock.sendall(b"".join(encode(command) for command in commands))
+        for _ in commands:
+            if client.read() != b"OK":
+                raise AssertionError("EVAL SET pipeline failed")
+
+
 def wait_marker(marker, timeout=15):
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
@@ -261,11 +276,11 @@ recovery_after = wait_info(
 if recovery_after.get("aof_rewrite_consecutive_failures") != 0:
     raise AssertionError("successful rewrite did not clear the limiter")
 
-# Accumulate growth with auto work exactly disabled, then enable both knobs live and observe the
-# automatic rewrite at a held completion boundary.
+# Accumulate growth exclusively through script post-images with auto work exactly disabled, then
+# enable both knobs live and observe the automatic rewrite at a held completion boundary.
 controller.close()
 controller = Resp()
-pipeline_sets(controller, "trigger:auto", 384, 48, expected)
+pipeline_script_sets(controller, "trigger:auto-script", 384, 48, expected)
 grown = wait_info(lambda values:
                   values.get("aof_current_size", 0) >
                   recovery_after.get("aof_rewrite_base_size", 0) * 6 // 5)
@@ -303,7 +318,8 @@ with open(STATE_PATH + ".tmp", "w", encoding="utf-8") as target:
 os.replace(STATE_PATH + ".tmp", STATE_PATH)
 verify_values(expected)
 time.sleep(2)
-print("AOF TRIGGER PASS: atomic=%d requests=%d completions=%d auto=%d failures=%d backoff=%d" % (
+print("AOF TRIGGER PASS: atomic=%d script_growth=384 requests=%d completions=%d "
+      "auto=%d failures=%d backoff=%d" % (
     ATOMIC, auto_after["aof_rewrite_requests"], auto_after["aof_rewrite_completions"],
     auto_after["aof_auto_rewrite_triggers"], auto_after["aof_rewrite_failures"],
     auto_after["aof_auto_rewrite_backoff_skips"]))

@@ -90,6 +90,23 @@ def assert_surface(client):
         raise AssertionError("debug test was not purpose-booted")
 
 
+def same_shard_keys(client, prefix, count):
+    keys = []
+    target = None
+    for candidate in range(8192):
+        key = "%s:%d" % (prefix, candidate)
+        shard = client.cmd("DEBUG", "SHARD", key)
+        if not isinstance(shard, int):
+            raise AssertionError("DEBUG SHARD failed for %s" % key)
+        if target is None:
+            target = shard
+        if shard == target:
+            keys.append(key)
+            if len(keys) == count:
+                return keys
+    raise AssertionError("could not select %d same-shard script keys" % count)
+
+
 def find_group_path(client, name, operation):
     for candidate in range(256):
         state = operation(candidate)
@@ -172,16 +189,18 @@ def prepare():
     state["lmpop"] = find_group_path(client, "LMPOP", lmpop)
 
     state["committed_before_interruption"] = info(client).get("aof_groups_committed", 0)
-    state["torn_keys"] = ["gcmt:torn:%d" % index for index in range(16)]
+    state["torn_keys"] = same_shard_keys(client, "gcmt:script:torn", 16)
     with open(PATH, "w", encoding="utf-8") as stream:
         json.dump(state, stream, sort_keys=True)
         stream.write("\n")
 
     reply = client.cmd("DEBUG", "AOF-STOP-AFTER-GROUP-FRAGMENTS", "1")
     if reply != b"OK": raise AssertionError("interruption toggle reply=%r" % (reply,))
-    args = ["MSET"]
-    for index, key in enumerate(state["torn_keys"]):
-        args += [key, ("torn-%d:" % index).encode() + b"x" * 70000]
+    source = ("for i=1,#KEYS do redis.call('SET',KEYS[i],ARGV[i]) end; "
+              "return #KEYS")
+    values = [("torn-%d:" % index).encode() + b"x" * 1024
+              for index in range(len(state["torn_keys"]))]
+    args = ["EVAL", source, str(len(state["torn_keys"]))] + state["torn_keys"] + values
     try:
         client.cmd(*args)
     except (EOFError, ConnectionError, OSError):
@@ -193,7 +212,7 @@ def prepare():
             probe.close()
             time.sleep(0.02)
         except OSError:
-            print("AOF DIRECTED GROUP TEAR FIRED: committed=%d" %
+            print("AOF DIRECTED SCRIPT GROUP STOP FIRED: committed=%d" %
                   state["committed_before_interruption"])
             return
     raise AssertionError("directed writer stop did not terminate the server")
@@ -232,7 +251,7 @@ def verify():
         raise AssertionError("group skip counter did not fire: %r" % stats)
     if stats.get("aof_groups_committed", 0) < state["committed_before_interruption"]:
         raise AssertionError("committed group counter regressed: %r" % stats)
-    print("AOF TORN GROUP PASS: present=0/%d committed=%d skipped=%d" % (
+    print("AOF INCOMPLETE GROUP RECOVERY PASS: present=0/%d committed=%d skipped=%d" % (
         len(torn), stats["aof_groups_committed"], stats["aof_groups_skipped_on_replay"]))
 
 

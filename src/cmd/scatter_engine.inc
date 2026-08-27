@@ -1427,6 +1427,48 @@ void xshard_aof_emit(const Task& task, Shard& shard, Op& op, AofOwnerContext& co
 }
 
 void xshard_aof_emit_local(Shard& shard, Op& op, AofOwnerContext& context) {
+    // Script commands take the local-xshard route but are deliberately absent from classify().
+    // Their declared KEYS range is the closed touched set enforced by the Lua bridge. Preserve one
+    // script activation as one AOF group so recovery can never apply only part of a multi-key
+    // effect. The *_RO rows are Readonly and must not produce post images.
+    if (op.spec->flags & CmdFlags::ScriptRoute) {
+        if (!(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) return;
+        uint32_t first = 0, count = 0;
+        if (!command_script_key_range(op, first, count) || count == 0) return;
+        Server* server = shard.server();
+        if (!server || !server->aof().recording()) return;
+
+        std::vector<uint32_t> participants;
+        try { participants.push_back(static_cast<uint32_t>(shard.id())); }
+        catch (const std::bad_alloc&) {
+            server->aof().fail("out of memory collecting script AOF group participant");
+            return;
+        }
+        std::shared_ptr<AofGroupDecision> group =
+            aof_create_group(server->aof(), participants);
+        if (!group) return;
+
+        AofProducer& producer = shard.store().aof();
+        if (!producer.begin_group(group)) {
+            aof_abort_group(group);
+            return;
+        }
+        bool ok = true;
+        for (uint32_t i = 0; i < count; i++) {
+            const Slice key = op.arg(first + i);
+            ok &= producer.record_group_post_image(
+                shard.store(), FlatStore::hash_key(key), key);
+        }
+        ok &= producer.finish_group();
+        if (!ok) {
+            aof_abort_group(group);
+            return;
+        }
+        const uint64_t ticket = server->atomic_commit();
+        (void)aof_commit_group(server->aof(), group, ticket, context);
+        return;
+    }
+
     Kind kind;
     if (!classify(op, kind)) return;
     auto emit = [&](uint32_t arg) {

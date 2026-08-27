@@ -272,11 +272,13 @@ grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG
 
 # ---- AOF boot/replay + non-vacuous DEBUG LOADAOF ---------------------------------------------
 for PERSIST_IO in normal uring; do
-AOF_DIR=$(mktemp -d "/tmp/gate-aof-${PERSIST_IO}.XXXXXX")
+for AOF_ATOMIC in 0 1; do
+AOF_DIR=$(mktemp -d "/tmp/gate-aof-${PERSIST_IO}-atomic${AOF_ATOMIC}.XXXXXX")
 AOF_STATE=$AOF_DIR/state.json
-boot ./build/tomokv --protected-mode no --appendonly yes --appendfsync no \
+boot ./build/tomokv --protected-mode no --atomic "$AOF_ATOMIC" \
+    --appendonly yes --appendfsync no \
     --persist-io "$PERSIST_IO" --enable-debug-command yes --dir "$AOF_DIR" \
-    || bad "AOF purpose boot ($PERSIST_IO)"
+    || bad "AOF purpose boot ($PERSIST_IO, atomic $AOF_ATOMIC)"
 PERSIST_GET=$(redis-cli -h 127.0.0.1 -p $PORT --raw CONFIG GET persist-io 2>/dev/null |
     tail -1)
 PERSIST_SET=$(redis-cli -h 127.0.0.1 -p $PORT CONFIG SET persist-io "$PERSIST_IO" 2>&1)
@@ -285,8 +287,9 @@ PERSIST_SET=$(redis-cli -h 127.0.0.1 -p $PORT CONFIG SET persist-io "$PERSIST_IO
     || bad "persist-io surface + immutable ($PERSIST_IO)"
 python3 tests/aof.py 127.0.0.1 $PORT populate "$AOF_STATE" >/tmp/gate-aof.txt 2>&1 \
     && python3 tests/aof.py 127.0.0.1 $PORT loadaof "$AOF_STATE" >>/tmp/gate-aof.txt 2>&1 \
-    && ok "AOF byte-exact + DEBUG LOADAOF ($PERSIST_IO)" \
-    || bad "AOF byte-exact + DEBUG LOADAOF ($PERSIST_IO)" "see /tmp/gate-aof.txt"
+    && ok "AOF byte-exact + script groups + DEBUG LOADAOF ($PERSIST_IO, atomic $AOF_ATOMIC)" \
+    || bad "AOF byte-exact + script groups + DEBUG LOADAOF ($PERSIST_IO, atomic $AOF_ATOMIC)" \
+           "see /tmp/gate-aof.txt"
 AOF_PRE_MODEL=$(python3 tests/aof.py 127.0.0.1 $PORT snapshot "$AOF_DIR/dump.tomo" 2>>/tmp/gate-aof.txt)
 AOF_WRITTEN=$(redis-cli -h 127.0.0.1 -p $PORT INFO Persistence 2>/dev/null \
     | tr -d '\r' | sed -n 's/^aof_records_written://p')
@@ -296,10 +299,13 @@ kill -KILL $SRV 2>/dev/null
 wait $SRV 2>/dev/null
 sleep 5
 boot ./build/tomokv --protected-mode no --appendonly yes --appendfsync no \
-    --persist-io "$PERSIST_IO" --enable-debug-command yes --dir "$AOF_DIR" \
-    || bad "AOF replay boot ($PERSIST_IO)"
+    --atomic "$AOF_ATOMIC" --persist-io "$PERSIST_IO" \
+    --enable-debug-command yes --dir "$AOF_DIR" \
+    || bad "AOF replay boot ($PERSIST_IO, atomic $AOF_ATOMIC)"
 python3 tests/aof.py 127.0.0.1 $PORT verify "$AOF_STATE" >>/tmp/gate-aof.txt 2>&1 \
-    && ok "AOF process-restart replay" || bad "AOF process-restart replay" "see /tmp/gate-aof.txt"
+    && ok "AOF process-restart script replay ($PERSIST_IO, atomic $AOF_ATOMIC)" \
+    || bad "AOF process-restart script replay ($PERSIST_IO, atomic $AOF_ATOMIC)" \
+           "see /tmp/gate-aof.txt"
 AOF_POST_MODEL=$(python3 tests/aof.py 127.0.0.1 $PORT snapshot "$AOF_DIR/dump.tomo" 2>>/tmp/gate-aof.txt)
 [ -n "$AOF_PRE_MODEL" ] && [ "$AOF_PRE_MODEL" = "$AOF_POST_MODEL" ] \
     && ok "AOF native snapshot streams byte-exact" || bad "AOF native snapshot streams byte-exact"
@@ -311,6 +317,7 @@ AOF_SKIPPED=$(redis-cli -h 127.0.0.1 -p $PORT INFO Persistence 2>/dev/null \
     && ok "AOF replay fired (records=$AOF_REPLAYED skipped=$AOF_SKIPPED)" || bad "AOF replay fired"
 stop
 sleep 5
+done
 
 # ---- AOF atomic-group bracketing + directed interrupted-process recovery ---------------------
 AOF_GROUP_DIR=$(mktemp -d "/tmp/gate-aof-group-${PERSIST_IO}.XXXXXX")
