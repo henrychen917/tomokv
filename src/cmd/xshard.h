@@ -1,8 +1,10 @@
 // xshard.h -- arena-backed scatter/gather lowering for multi-key commands.
 #pragma once
 
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <string>
 #include <vector>
 #include "../store/flatstore.h"
@@ -49,6 +51,20 @@ enum class ScatterPrepare : uint8_t { NotScatter, Ready, Backpressure, Error };
 enum class ScatterTaskResult : uint8_t { Complete, Retry };
 enum class ScatterFinish : uint8_t { Waiting, Final };
 
+// ONE PUBLISHED READ CUT, whoever holds it.  A read that resolves its fragments on several owners
+// needs the versions its cut names to survive until the last fragment has answered, and the only
+// thing that keeps cleanup off them is the floor its owning IO thread publishes.  The floor slot is
+// per IO THREAD (Server::atomic_read_floors_), so exactly one object per thread may write it: that
+// thread's ScatterArenaPool.  Factoring the four bookkeeping fields out of ScatterState lets a
+// transaction (MultiExecState) hold a cut through the same pool and the same exact-minimum
+// arithmetic, instead of being locked out of the machinery because it carries a pool of its own.
+struct SnapshotCut {
+    uint64_t snapshot = UINT64_MAX;
+    uint32_t snapshot_slot = std::numeric_limits<uint32_t>::max();  // owning IO's unresolved set
+    bool snapshot_registered = false;
+    std::atomic<bool> snapshot_complete{false};
+};
+
 // The common arena size is deliberately a size class, not a maximum command size.  The owning IO
 // thread recycles these blocks after ROB retirement; larger shapes use exact-size heap blocks.
 // Keeping the freelist here (rather than in ScatterState) makes cross-thread frees impossible by
@@ -71,20 +87,25 @@ private:
     static constexpr size_t kCommonBytes = 16384;  // holds MGET-8 layouts at the 1KB inline slot
     void* acquire(size_t bytes, bool& pooled);
     void release(void* ptr, bool pooled);
-    bool register_snapshot(Server& server, ScatterState* state);
-    void unregister_snapshot(Server& server, ScatterState* state);
     void defer_destroy(ScatterState* state);
 public:
     uint32_t reap_deferred();
     uint32_t refresh_snapshot_floor(Server& server, uint32_t owner_io);
     bool can_register_snapshot() const;
+    // CALLER CONTRACT: both run on the IO thread that owns this pool, `owner_io` is that thread's
+    // id, and the bracket must enclose every fragment that resolves under the cut -- register
+    // before the tasks are posted, unregister only after the last one has answered.  register may
+    // advance cut->snapshot to a confirmed newer sequence (the hazard-pointer handshake), so read
+    // it back rather than reusing the value you asked for.
+    bool register_snapshot(Server& server, SnapshotCut* cut, uint32_t owner_io);
+    void unregister_snapshot(Server& server, SnapshotCut* cut, uint32_t owner_io);
 private:
     void* cached_[kCached] = {};
     uint32_t count_ = 0;
     // Only unresolved cuts participate in the floor. Atomic work bounds this set at eight; in a
     // read-only interval it is ROB-bounded instead, so the cached minimum/count below make insert
     // and arbitrary removal O(1) without weakening the exact published floor.
-    std::vector<ScatterState*> unresolved_snapshots_;
+    std::vector<SnapshotCut*> unresolved_snapshots_;
     std::vector<ScatterState*> deferred_destroy_;
     uint64_t observed_snapshot_completions_ = 0;
     uint64_t unresolved_snapshot_floor_ = UINT64_MAX;

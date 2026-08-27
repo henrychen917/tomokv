@@ -358,9 +358,9 @@ struct SnapshotFloor {
     uint32_t refs = 0;
 };
 
-SnapshotFloor active_snapshot_floor(const std::vector<ScatterState*>& unresolved_snapshots) {
+SnapshotFloor active_snapshot_floor(const std::vector<SnapshotCut*>& unresolved_snapshots) {
     SnapshotFloor result;
-    for (ScatterState* active : unresolved_snapshots) {
+    for (SnapshotCut* active : unresolved_snapshots) {
         const uint64_t cut = snapshot_exclusive_floor(active->snapshot);
         if (cut < result.floor) {
             result.floor = cut;
@@ -374,7 +374,7 @@ SnapshotFloor active_snapshot_floor(const std::vector<ScatterState*>& unresolved
 
 }  // namespace
 
-bool ScatterArenaPool::register_snapshot(Server& server, ScatterState* state) {
+bool ScatterArenaPool::register_snapshot(Server& server, SnapshotCut* state, uint32_t owner_io) {
     try { unresolved_snapshots_.push_back(state); }
     catch (const std::bad_alloc&) { return false; }
     state->snapshot_slot = static_cast<uint32_t>(unresolved_snapshots_.size() - 1);
@@ -388,7 +388,7 @@ bool ScatterArenaPool::register_snapshot(Server& server, ScatterState* state) {
     }
     if (unresolved_snapshot_floor_ != published_snapshot_floor_) {
         published_snapshot_floor_ = unresolved_snapshot_floor_;
-        server.publish_atomic_read_floor(state->owner_io, unresolved_snapshot_floor_);
+        server.publish_atomic_read_floor(owner_io, unresolved_snapshot_floor_);
     }
 
     // Publish the successor of each inclusive read cut. A version visible at the oldest snapshot
@@ -420,13 +420,13 @@ bool ScatterArenaPool::register_snapshot(Server& server, ScatterState* state) {
         }
         if (unresolved_snapshot_floor_ != published_snapshot_floor_) {
             published_snapshot_floor_ = unresolved_snapshot_floor_;
-            server.publish_atomic_read_floor(state->owner_io, unresolved_snapshot_floor_);
+            server.publish_atomic_read_floor(owner_io, unresolved_snapshot_floor_);
         }
     }
     return true;
 }
 
-void ScatterArenaPool::unregister_snapshot(Server& server, ScatterState* state) {
+void ScatterArenaPool::unregister_snapshot(Server& server, SnapshotCut* state, uint32_t owner_io) {
     if (!state->snapshot_registered) return;
     const uint32_t slot = state->snapshot_slot;
     if (slot != UINT32_MAX) {
@@ -437,7 +437,7 @@ void ScatterArenaPool::unregister_snapshot(Server& server, ScatterState* state) 
             if (!unresolved_floor_refs_) std::abort();
             unresolved_floor_refs_--;
         }
-        ScatterState* moved = unresolved_snapshots_.back();
+        SnapshotCut* moved = unresolved_snapshots_.back();
         unresolved_snapshots_[slot] = moved;
         moved->snapshot_slot = slot;
         unresolved_snapshots_.pop_back();
@@ -451,7 +451,7 @@ void ScatterArenaPool::unregister_snapshot(Server& server, ScatterState* state) 
     }
     if (unresolved_snapshot_floor_ != published_snapshot_floor_) {
         published_snapshot_floor_ = unresolved_snapshot_floor_;
-        server.publish_atomic_read_floor(state->owner_io, unresolved_snapshot_floor_);
+        server.publish_atomic_read_floor(owner_io, unresolved_snapshot_floor_);
     }
 }
 
@@ -460,7 +460,7 @@ uint32_t ScatterArenaPool::refresh_snapshot_floor(Server& server, uint32_t owner
     if (completed == observed_snapshot_completions_) return 0;
     observed_snapshot_completions_ = completed;
     for (size_t i = 0; i < unresolved_snapshots_.size();) {
-        ScatterState* state = unresolved_snapshots_[i];
+        SnapshotCut* state = unresolved_snapshots_[i];
         if (!state->snapshot_complete.load(std::memory_order_acquire)) {
             i++;
             continue;
@@ -470,7 +470,7 @@ uint32_t ScatterArenaPool::refresh_snapshot_floor(Server& server, uint32_t owner
             if (!unresolved_floor_refs_) std::abort();
             unresolved_floor_refs_--;
         }
-        ScatterState* moved = unresolved_snapshots_.back();
+        SnapshotCut* moved = unresolved_snapshots_.back();
         unresolved_snapshots_[i] = moved;
         moved->snapshot_slot = static_cast<uint32_t>(i);
         unresolved_snapshots_.pop_back();

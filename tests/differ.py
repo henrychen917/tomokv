@@ -951,6 +951,113 @@ def gen_scan(rng):
     ]
     return ops
 
+
+def gen_multi(rng):
+    # MULTI/EXEC against vanilla, over a key set spread across the whole router.  The bodies mix
+    # MULTI-OWNER reads (MGET/EXISTS/TOUCH over many keys) with blind writes, because that is the
+    # pair the in-EXEC read-cut lane (t-execiso) changed: a read inside EXEC now resolves at the
+    # transaction's cut instead of at each fragment's own moment, and the transaction's own writes
+    # must stay visible through the origin-conn overlay.  DISCARD, EXECABORT and empty-transaction
+    # shapes are generated too.  Everything here has a deterministically ORDERED reply -- an EXEC
+    # reply is compared byte-for-byte and normalize() cannot reach inside it to sort a set reply.
+    #
+    # RUN THIS AT --atomic 0.  At --atomic 1 the suite is red on UNFIXED HEAD as well as on any
+    # later tree, for a pre-existing defect in the MVCC resolver that is not what this suite is
+    # for: a transaction's own still-private candidate carries epoch 0, and the winner comparison
+    # in atomic_resolve_internal ranks by epoch, so that candidate loses to any older COMMITTED
+    # version of the same key.  A read after an EXEC write on the same key then answers from
+    # before the transaction.  Root cause, evidence and reproducers: NOTES-EXECISO.md.
+    #
+    # Three families are deliberately NOT generated, each because of a separate pre-existing
+    # divergence that is present on unfixed HEAD and is outside the lane that wrote this suite.
+    # Each is listed with the scratchpad/execiso/narrow.py line that re-opens it:
+    #   lists       RPUSH of a large element inside MULTI is lost   (dropped: lists absent below)
+    #   string RMW  INCRBY/APPEND clone from a stale base           narrow.py P T S incrby,append
+    #   same key twice in one transaction / one command             the `used` set + rng.sample
+    keys = ["mx:%02d:%s" % (i, "".join(rng.choice("abcdef0123456789") for _ in range(38)))
+            for i in range(24)]
+    strkeys = keys
+    values = ["", "v", "hello", "42", "-7", "value-" + "y" * 90]
+    ops = []
+
+    # Distinct keys within one command: a duplicated key inside a single DEL/MSET/MGET is its own
+    # (pre-existing, mode-independent) divergence family in this tree and is not what a MULTI suite
+    # is for -- tests/differ.py's `xshard` suite already generates duplicate-bearing forms for the
+    # bare lane. See NOTES-EXECISO.md.
+    def ks(n, pool=None): return rng.sample(pool or strkeys, min(n, len(pool or strkeys)))
+
+    def pairs(n):
+        out = []
+        for key in ks(n): out += [key, rng.choice(values)]
+        return out
+
+    for key in strkeys: ops.append(["SET", key, rng.choice(values)])
+
+    def make():
+        c = rng.randrange(14)
+        if c == 0: return ["MGET"] + ks(rng.randrange(2, 8))
+        if c == 1: return ["MSET"] + pairs(rng.randrange(2, 6))
+        if c == 2: return ["EXISTS"] + ks(rng.randrange(2, 8))
+        if c == 3: return ["TOUCH"] + ks(rng.randrange(2, 8))
+        if c == 4: return ["DEL"] + ks(rng.randrange(2, 6))
+        if c == 5: return ["SET", rng.choice(strkeys), rng.choice(values)]
+        if c == 6: return ["GET", rng.choice(strkeys)]
+        if c == 7: return ["GETDEL", rng.choice(strkeys)]
+        if c == 8: return ["SETNX", rng.choice(strkeys), rng.choice(values)]
+        if c == 9: return ["STRLEN", rng.choice(strkeys)]
+        if c == 10: return ["MSETNX"] + pairs(rng.randrange(2, 5))
+        if c == 11: return ["GETSET", rng.choice(strkeys), rng.choice(values)]
+        if c == 12: return ["TYPE", rng.choice(strkeys)]
+        return ["GETRANGE", rng.choice(strkeys), "0", str(rng.randrange(0, 5))]
+
+    def named(op):
+        # Every generated form here is first_key=1 with step 1, except the MSET family (step 2)
+        # and the option-free tails of GETRANGE/INCRBY/APPEND/LRANGE, which name exactly one key.
+        head = op[0]
+        if head in ("MSET", "MSETNX"): return set(op[1::2])
+        if head in ("MGET", "EXISTS", "TOUCH", "DEL"): return set(op[1:])
+        return {op[1]}
+
+    def body(n, used):
+        # NO KEY IS TOUCHED TWICE INSIDE ONE TRANSACTION.  Not a stylistic choice: a pre-existing
+        # --atomic 1 defect in the MVCC resolver makes a transaction's own still-private candidate
+        # (epoch 0) lose the winner comparison to any older COMMITTED version of the same key, so a
+        # second touch of one key inside one EXEC answers from before the first.  It is present on
+        # unfixed HEAD, it is in write-visibility code this lane deliberately does not change, and
+        # it is written up with reproducers in NOTES-EXECISO.md.  Generating the overlap here would
+        # make this suite permanently red for a defect that is not the one it exists to cover.
+        # tests/execiso.py still locks read-your-own-in-transaction-write directly, on keys with no
+        # prior MVCC entry, which is the arm this restriction would otherwise drop.
+        out = []
+        while len(out) < n:
+            op = make()
+            keys_named = named(op)
+            if keys_named & used: continue
+            used |= keys_named
+            out.append(op)
+        return out
+
+    for _ in range(700):
+        mode = rng.randrange(10)
+        used = set()
+        if mode == 0:
+            # DISCARD must drop the queue and leave the keyspace untouched.
+            ops.append(["MULTI"]); ops += body(rng.randrange(1, 5), used); ops.append(["DISCARD"])
+        elif mode == 1:
+            # A queue-time rejection must turn EXEC into EXECABORT on both servers.
+            ops.append(["MULTI"]); ops += body(rng.randrange(0, 3), used)
+            ops.append(["GET"])                       # wrong arity: rejected while queueing
+            ops += body(rng.randrange(0, 3), used); ops.append(["EXEC"])
+        elif mode == 2:
+            ops.append(["MULTI"]); ops.append(["EXEC"])            # empty transaction
+        else:
+            ops.append(["MULTI"]); ops += body(rng.randrange(1, 7), used); ops.append(["EXEC"])
+        # Bare traffic between transactions: read-after-write ACROSS transactions is covered here,
+        # where the earlier write is committed and the resolver defect above cannot bite.
+        ops += body(1, set())
+    return ops
+
+
 def gen_servertail(rng):
     """LCS-heavy, plus the introspection replies that are genuinely byte-comparable.
 
@@ -2312,7 +2419,7 @@ gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset
         "script": gen_script,
         "streamgrp": gen_streamgrp,
         "zsetops": gen_zsetops, "geo": gen_geo,
-        "scan": gen_scan,
+        "scan": gen_scan, "multi": gen_multi,
         "servertail": gen_servertail}
 if LIST_GENERATORS:
     print("\n".join(gens))

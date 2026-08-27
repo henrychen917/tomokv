@@ -1534,6 +1534,7 @@ void cmd_info(Shard&, Op& op) {
                       "atomic_scan_order_holds:%llu\r\n"
                       "atomic_commit_windows:%llu\r\natomic_commit_holds:%llu\r\n"
                       "atomic_read_cuts_held:%llu\r\natomic_fanout_cuts:%llu\r\n"
+                      "atomic_exec_read_cuts:%llu\r\n"
                       "atomic_credit_pool:%u\r\natomic_credit_debt:%u\r\n"
                       "pubsub_channels:%llu\r\npubsub_subscriptions:%llu\r\n"
                       "pubsubshard_channels:%llu\r\npubsubshard_subscriptions:%llu\r\n"
@@ -1604,6 +1605,8 @@ void cmd_info(Shard&, Op& op) {
                     g_server ? g_server->atomic_read_cuts_held() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->atomic_fanout_cuts() : 0),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->atomic_exec_read_cuts() : 0),
                 g_server ? g_server->atomic_credit_pool() : 0,
                 g_server ? g_server->atomic_credit_debt() : 0,
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_active_channels() : 0),
