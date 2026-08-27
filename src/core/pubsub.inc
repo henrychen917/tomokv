@@ -1154,6 +1154,27 @@
         std::string command(op.cmd_name().p, op.cmd_name().n);
         for (char& ch : command)
             if (ch >= 'A' && ch <= 'Z') ch = static_cast<char>(ch + ('a' - 'A'));
+        if (op.cmd_name().eq_icase("pubsub")) {
+            const bool known = op.arg(1).eq_icase("help") || op.arg(1).eq_icase("channels") ||
+                               op.arg(1).eq_icase("numsub") || op.arg(1).eq_icase("numpat") ||
+                               op.arg(1).eq_icase("shardchannels") ||
+                               op.arg(1).eq_icase("shardnumsub");
+            if (!known) {
+                pubsub_reply_bad_subcommand(op, true);
+                return;
+            }
+            if ((op.arg(1).eq_icase("help") || op.arg(1).eq_icase("numpat")) &&
+                op.argc() != 2) {
+                pubsub_reply_bad_arity(op, op.arg(1).eq_icase("help") ? "help" : "numpat");
+                return;
+            }
+            command += '|';
+            const size_t subcommand = command.size();
+            command.append(op.arg(1).p, op.arg(1).n);
+            for (size_t index = subcommand; index < command.size(); index++)
+                if (command[index] >= 'A' && command[index] <= 'Z')
+                    command[index] = static_cast<char>(command[index] + ('a' - 'A'));
+        }
         std::string message = "ERR Can't execute '";
         message += command;
         message += "': only (P|S)SUBSCRIBE / (P|S)UNSUBSCRIBE / PING / QUIT / RESET are allowed in this context";
