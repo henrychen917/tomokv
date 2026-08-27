@@ -327,26 +327,25 @@ resident = info_value(admin, "MEMORY", "used_memory_dataset")
 per_stream = max(0, resident - baseline) / sample
 note("one-entry memory floor tracks ~140B design (well below 4.4KiB)", per_stream < 512,
      "measured=%.1fB/key audit-kvobj~=140B" % per_stream)
-# OBJECT ENCODING now reports redis names ('stream' for both internal forms — the server-tail
-# lane's compat mapping), so the compact->full migration is observed through MEMORY USAGE
-# instead: the full structure costs kilobytes where the compact form costs ~140B, and the jump
-# must happen exactly once as entries accumulate.
+# The one-big-flip migration assert is RETIRED with the implementation it described: under the
+# consumer-groups lane's budget-driven macro nodes (stream-node-max-entries/-bytes, redis
+# defaults), the embedded form grows into node-at-a-time structure with no 4.4KiB cliff, and
+# OBJECT ENCODING reports the redis name for both forms. What the current design promises —
+# and what this protects — is the compact floor (asserted above) plus amortized-LINEAR growth:
+# per-entry cost through the embedded->macro boundary must stay bounded, or a structure
+# regression re-introduced the old blowup.
 admin.cmd("DEL", "stream:migrate")
-# The rollover budget is live config (xgroups adopted redis's stream-node-max-entries, default
-# 100); pin it low so the compact->full flip lands inside this short loop deterministically.
 admin.cmd("CONFIG", "SET", "stream-node-max-entries", "8")
 admin.cmd("XADD", "stream:migrate", "1-0", "f", "v")
 note("stream reports the redis encoding name",
      admin.cmd("OBJECT", "ENCODING", "stream:migrate") == b"stream")
-usages = [admin.cmd("MEMORY", "USAGE", "stream:migrate")]
-for ident in range(2, 20):
+for ident in range(2, 129):
     admin.cmd("XADD", "stream:migrate", "%d-0" % ident, "f", "v")
-    usages.append(admin.cmd("MEMORY", "USAGE", "stream:migrate"))
+final_usage = admin.cmd("MEMORY", "USAGE", "stream:migrate")
 admin.cmd("CONFIG", "SET", "stream-node-max-entries", "100")
-jumps = sum(1 for i in range(1, len(usages)) if usages[i] - usages[i - 1] > 2048)
-note("compact-to-stream migration flips exactly once",
-     usages[0] < 1024 and usages[-1] > 2048 and jumps == 1,
-     "first=%r last=%r jumps=%d" % (usages[0], usages[-1], jumps))
+note("growth across the embedded->macro boundary stays amortized-linear",
+     isinstance(final_usage, int) and final_usage < 128 * 200,
+     "usage=%r for 128 entries (bound 200B/entry)" % final_usage)
 
 note("stream waiter gauges end at zero",
      info_value(admin, "CLIENTS", "blocked_clients") == 0 and
