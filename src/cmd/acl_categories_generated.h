@@ -149,6 +149,7 @@ inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"LSET", 0x0000000000008024ULL}, // write list slow
     {"LTRIM", 0x0000000000008024ULL}, // write list slow
     {"MGET", 0x0000000000004082ULL}, // read string fast
+    {"MONITOR", 0x000000000002a000ULL}, // admin slow dangerous
     {"MSET", 0x0000000000008084ULL}, // write string slow
     {"MSETNX", 0x0000000000008084ULL}, // write string slow
     {"MULTI", 0x0000000000084000ULL}, // fast transaction

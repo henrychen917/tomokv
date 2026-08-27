@@ -131,7 +131,15 @@ private:
         const uint64_t shard_limit = snapshot.maxmemory / srv_->nshards();
         for (Shard* sh : self_->shards()) {
             sh->configure_maxmemory(enabled, shard_limit, snapshot.policy, snapshot.samples);
-            sh->set_notify_mask(snapshot.notify_events);
+            // CLIENT TRACKING needs the same per-write key observation keyspace notifications
+            // use, so it rides the shard mask as a synthetic class rather than a second armed
+            // load inside notify_record. Real notification classes stay exactly as configured;
+            // NOTIFY_TRACKING alone never produces a pub/sub publication.
+            // NOTIFY_ALL already covers expired/evicted. NOTIFY_NEW and NOTIFY_KEY_MISS are
+            // deliberately NOT armed: `new` would make every first write on a key produce a
+            // second, duplicate invalidation, and a key miss is not a value change.
+            sh->set_notify_mask(snapshot.notify_events |
+                                (snapshot.tracking_armed ? (NOTIFY_ALL | NOTIFY_TRACKING) : 0u));
         }
         maxmemory_enabled_ = enabled;
         live_config_version_ = snapshot.version;
@@ -523,6 +531,13 @@ private:
         if (multi_task_tagged(t)) {
             Shard& shard = srv_->shard(t.shard);
             shard.set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
+            // The no-touch answer is PER TASK; a MULTI body inherits the transaction owner's.
+            if (__builtin_expect(maxmemory_enabled_, false)) {
+                const Op& carrier = t.client->rob().at(t.op_id);
+                const bool no_touch = carrier.no_touch();
+                shard.set_no_touch(no_touch);
+                if (no_touch) srv_->climon_note_no_touch();
+            }
             AofOwnerContext aof_context{self_->id(), &ring_, &self_->sig()};
             const MultiTaskResult result =
                 multi_execute_task(*srv_, t, shard, self_->id(), self_->domain(),
@@ -542,6 +557,9 @@ private:
         if (!t.client) {
             Shard& cleanup = srv_->shard(t.shard);
             cleanup.set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
+            // An ownerless cleanup pass belongs to no connection: clear the per-task no-touch
+            // answer so a NO-TOUCH client cannot leave it armed for whatever runs next.
+            if (__builtin_expect(maxmemory_enabled_, false)) cleanup.set_no_touch(false);
             xshard_cleanup_shard(*srv_, cleanup, 32);
             cleanup.publish_size();
             return true;
@@ -550,6 +568,14 @@ private:
         const int32_t shard_id = t.shard >= 0 ? t.shard : op.shard;
         Shard& sh = srv_->shard(shard_id);
         sh.set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
+        // CLIENT NO-TOUCH. maxmemory_enabled_ is this loop's own per-pass value, so with the
+        // default (maxmemory off) this is one predicted-not-taken test on a register -- and the
+        // read path in FlatStore never loads the byte at all, because its && short-circuits.
+        if (__builtin_expect(maxmemory_enabled_, false)) {
+            const bool no_touch = op.no_touch();
+            sh.set_no_touch(no_touch);
+            if (no_touch) srv_->climon_note_no_touch();
+        }
         if (op.has_blocking_state()) {
             sh.note_execution(self_->domain());
             return blocking_execute(*srv_, *self_, ring_, t, sh, op);

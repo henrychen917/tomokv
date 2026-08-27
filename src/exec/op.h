@@ -124,6 +124,15 @@ public:
     bool no_borrow() const { return route_flags_ & kNoBorrow; }
     void mark_resp3() { route_flags_ |= kResp3; }
     bool resp3() const { return route_flags_ & kResp3; }
+    // CLIENT REPLY OFF/SKIP. Marked by the io thread's armed gate, honoured by the cold
+    // suppressing serve variant. Bit 3 is free in BOTH this word and Client::connection_flags_,
+    // whose byte is copied in wholesale by reset(), so no existing capture changes meaning.
+    void mark_reply_skip() { route_flags_ |= kReplySkip; }
+    void clear_reply_skip() { route_flags_ &= static_cast<uint8_t>(~kReplySkip); }
+    bool reply_skip() const { return route_flags_ & kReplySkip; }
+    // CLIENT NO-TOUCH, captured from the connection flag byte by reset(). Read only by ExLoop,
+    // and only when maxmemory is enabled.
+    bool no_touch() const { return route_flags_ & kNoTouch; }
     uint8_t route_flags_ = 0;
 
     SmallBuf<kInlineReply> reply;           // worker writes RESP here (the spill/general sink)
@@ -249,6 +258,8 @@ private:
     static constexpr uint8_t kAtomicHazard = 1u << 0;
     static constexpr uint8_t kNoBorrow = 1u << 1;
     static constexpr uint8_t kResp3 = 1u << 2;
+    static constexpr uint8_t kReplySkip = 1u << 3;
+    static constexpr uint8_t kNoTouch = 1u << 4;
     Slice    argv_inline_[kInlineArgv];
     Slice*   argv_heap_ = nullptr;
     uint32_t argv_cap_  = 0;

@@ -6,7 +6,9 @@ namespace tomo {
 struct NotifyRecordImpl {
     uint32_t order = 0;
     uint32_t sequence = 0;
-    uint8_t routes = 0;
+    // Widened from uint8_t for NOTIFY_TRACKING (bit 20). The record is heap batch state, not Op
+    // storage; no footprint lock covers it.
+    uint32_t routes = 0;
     NotifyEventId event = NotifyEventId::Set;
     Slice key;
 };
@@ -316,7 +318,10 @@ bool notify_record_slow(Shard& shard, Op& source, uint32_t mask, uint32_t cls,
                         NotifyEventId event, Slice key) {
     (void)cls;
     Server* server = shard.server();
-    if (!server || !server->pubsub_any_subscribers()) return false;
+    if (!server) return false;
+    // Tracking invalidation has no pub/sub subscriber to require. When only the pub/sub routes
+    // are armed the original early-out is unchanged.
+    if (!server->pubsub_any_subscribers() && !(mask & NOTIFY_TRACKING)) return false;
     Op* carrier = shard.notify_carrier();
     if (!carrier) carrier = &source;
     NotifyBatch* batch = notify_get_or_create_batch(*carrier);
@@ -351,7 +356,9 @@ bool notify_record_slow(Shard& shard, Op& source, uint32_t mask, uint32_t cls,
     NotifyRecordImpl record;
     record.order = notify_key_arg_order(shard, source, key) + notify_event_priority(event);
     record.sequence = batch->next_sequence++;
-    record.routes = static_cast<uint8_t>(mask & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT));
+    record.routes = mask & NOTIFY_ROUTES;
+    if (!server->pubsub_any_subscribers())
+        record.routes &= ~(NOTIFY_KEYSPACE | NOTIFY_KEYEVENT);
     record.event = event;
     record.key = stable;
     try {
@@ -370,7 +377,8 @@ bool notify_record_keyless_slow(Shard& shard, uint32_t mask, uint32_t cls,
                                 NotifyEventId event, Slice key) {
     (void)cls;
     Server* server = shard.server();
-    if (!server || !server->pubsub_any_subscribers()) return false;
+    if (!server) return false;
+    if (!server->pubsub_any_subscribers() && !(mask & NOTIFY_TRACKING)) return false;
     auto& slot = shard.notify_state_slot();
     if (!slot) {
         slot.reset(new (std::nothrow) NotifyShardState);
@@ -382,7 +390,9 @@ bool notify_record_keyless_slow(Shard& shard, uint32_t mask, uint32_t cls,
     }
     try {
         NotifyOut out;
-        out.routes = mask & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT);
+        out.routes = mask & NOTIFY_ROUTES;
+        if (!server->pubsub_any_subscribers())
+            out.routes &= ~(NOTIFY_KEYSPACE | NOTIFY_KEYEVENT);
         out.event = event;
         out.key.assign(key.p, key.n);
         slot->keyless.push_back(std::move(out));
@@ -397,15 +407,17 @@ bool notify_record_keyless_slow(Shard& shard, uint32_t mask, uint32_t cls,
 
 bool notify_flat_enabled(void* context, uint32_t cls) {
     auto& shard = *static_cast<Shard*>(context);
-    if (!(shard.notify_mask() & cls) ||
-        !(shard.notify_mask() & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT))) return false;
+    const uint32_t mask = shard.notify_mask();
+    if (!(mask & cls) || !(mask & NOTIFY_ROUTES)) return false;
     if (cls == NOTIFY_KEY_MISS) {
         const Op* source = shard.notify_source();
         if (!source || !(source->spec->flags & CmdFlags::Readonly) ||
             (source->spec->flags & CmdFlags::Write)) return false;
     }
     Server* server = shard.server();
-    return server && server->pubsub_any_subscribers();
+    if (!server) return false;
+    // Tracking invalidation needs the expiry/eviction observers even with nobody subscribed.
+    return server->pubsub_any_subscribers() || (mask & NOTIFY_TRACKING) != 0;
 }
 
 void notify_flat_emit(void* context, uint32_t cls, NotifyEventId event, Slice key) {
@@ -430,6 +442,27 @@ uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer,
     uint32_t work = 0;
     while (work < kNotifyKeylessPass && !slot->keyless.empty()) {
         NotifyOut& out = slot->keyless.front();
+        // Lane F: an expired or evicted key is an invalidation. Post it to every io owner that
+        // holds tracking connections; each filters against its own table. The executor never
+        // touches a Client here -- only the same io-to-io transport pub/sub already uses.
+        if (__builtin_expect((out.routes & NOTIFY_TRACKING) != 0, 0)) {
+            const uint64_t io_mask = server.climon_tracking_io_mask();
+            for (uint32_t io : server.placement().ifid_threads()) {
+                if (!((io_mask >> (io & 63)) & 1)) continue;
+                auto* invalidate = new (std::nothrow) PubSubEvent;
+                if (!invalidate) break;
+                invalidate->kind = PubSubEventKind::TrackingInvalidate;
+                invalidate->target_io = io;
+                invalidate->caller_id = 0;
+                invalidate->items.push_back(PubSubEventItem{0, false, 0, out.key});
+                server.pubsub_event_created();
+                if (!server.thread(io).post_pubsub_event_nonblocking(
+                        producer, invalidate, ring, signals)) {
+                    server.pubsub_event_retired();
+                    delete invalidate;
+                }
+            }
+        }
         std::unique_ptr<PubSubNotificationChain> building;
         try {
             building = std::make_unique<PubSubNotificationChain>();
@@ -455,7 +488,9 @@ uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer,
             return work;
         }
         if (!chain) {
-            server.notify_event_dropped();
+            // A tracking-only record has no pub/sub publication to make; its invalidation was
+            // already posted above, so retiring it here is completion, not a drop.
+            if (out.routes & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT)) server.notify_event_dropped();
             slot->keyless.pop_front();
             work++;
             continue;
@@ -510,7 +545,7 @@ NotifyBatch* notify_take_batch(Op& op) {
     return batch;
 }
 
-void notify_retire_batch_entry(IoLoop& loop, NotifyBatch* batch) {
+void notify_retire_batch_entry(IoLoop& loop, NotifyBatch* batch, uint64_t writer_id) {
     if (!batch) return;
     std::vector<NotifyRecordImpl> records;
     try {
@@ -521,6 +556,20 @@ void notify_retire_batch_entry(IoLoop& loop, NotifyBatch* batch) {
         std::stable_sort(records.begin(), records.end(), [](const auto& lhs, const auto& rhs) {
             return lhs.order < rhs.order || (lhs.order == rhs.order && lhs.sequence < rhs.sequence);
         });
+        // Lane F: CLIENT TRACKING rides the SAME observation. A record only carries the tracking
+        // route while some connection has tracking on, so with the feature off this loop does not
+        // exist at runtime -- records.empty() is the ordinary case and the routes test fails.
+        if (__builtin_expect(loop.srv_->climon_armed() & Server::kClimonTracking, 0)) {
+            std::vector<std::string> changed;
+            for (const NotifyRecordImpl& record : records) {
+                if (!(record.routes & NOTIFY_TRACKING)) continue;
+                // A key MISS is not a value change; everything else that reaches a notification
+                // fire point mutated or removed the key.
+                if (record.event == NotifyEventId::Keymiss) continue;
+                changed.emplace_back(record.key.p, record.key.n);
+            }
+            loop.tracking_broadcast_keys(changed, writer_id);
+        }
         auto building = std::make_unique<PubSubNotificationChain>();
         building->items.reserve(records.size() * 2);
         for (const NotifyRecordImpl& record : records) {
@@ -548,7 +597,7 @@ void notify_retire_batch_entry(IoLoop& loop, NotifyBatch* batch) {
 }
 
 void notify_retire_entry(IoLoop& loop, Op& op) {
-    notify_retire_batch_entry(loop, notify_take_batch(op));
+    notify_retire_batch_entry(loop, notify_take_batch(op), 0);
 }
 
 void notify_discard_batch(NotifyBatch* batch) { delete batch; }

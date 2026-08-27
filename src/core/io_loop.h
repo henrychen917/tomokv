@@ -122,7 +122,7 @@ public:
                 notifications = notify_take_batch(op);
             }
             if (__builtin_expect(notifications != nullptr, false))
-                notify_retire_batch_entry(*loop, notifications);
+                notify_retire_batch_entry(*loop, notifications, client.id());
         }, srv_->client_obuf_armed_ptr(), this, [](void* ctx, Client& client) {
             return static_cast<IoLoop*>(ctx)->client_obuf_check(&client, true);
         }, &cached_now_s_, &self_->sig());
@@ -203,7 +203,7 @@ private:
     friend uint32_t multi_owner_reap_entry(IoLoop&);
     friend void multi_close_entry(IoLoop&, Client&);
     friend void multi_shutdown_entry(IoLoop&);
-    friend void notify_retire_batch_entry(IoLoop&, NotifyBatch*);
+    friend void notify_retire_batch_entry(IoLoop&, NotifyBatch*, uint64_t);
     friend void notify_retire_entry(IoLoop&, Op&);
 #include "pubsub.inc"
 
@@ -215,6 +215,17 @@ private:
         LoopSignals& sig = self_->sig();
         while (!self_->stop_flag().load(std::memory_order_relaxed)) {
             refresh_notify_config();
+            // ONE relaxed load per io batch. Per-batch checks are free; this is what buys the
+            // per-operation hooks their zero-cost-when-off property.
+            if (__builtin_expect(srv_->climon_armed() != climon_armed_cached_, false))
+                climon_refresh_armed();
+            // A live CLIENT PAUSE is the only lane feature that needs a clock of its own; the
+            // deadline is checked once per batch, never per operation.
+            if (__builtin_expect(climon_pause_armed(), false)) {
+                cached_now_ms_ = now_ns() / 1000000ull;
+                cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
+                if (cached_now_ms_ >= climon_pause_deadline_ms_) climon_release_pause();
+            }
             const bool cron_armed = srv_->client_cron_armed();
             if (__builtin_expect(cron_armed, false)) {
                 cached_now_ms_ = now_ns() / 1000000ull;
@@ -624,6 +635,7 @@ private:
         const std::string laddr = socket_address(c->fd(), unix_socket, false);
         const uint64_t accepted_ms = cached_now_ms_ ? cached_now_ms_ : now_ns() / 1000000ull;
         command_client_connected(c, addr.c_str(), laddr.c_str(), unix_socket, accepted_ms);
+        climon_track_client(c);
         if (tls_socket) {
             TlsConn* tls = tls_slot_conn(c);
             if (tls && tls->fd_handshake()) {
@@ -870,12 +882,24 @@ private:
                               "ERR wrong number of arguments for '%s' command", command);
                 finish_locally(c, *op, message); continue;
             }
-            // The sole disabled-state notification decision on an ordinary operation. The
-            // executor receives a spec whose handler pointer is already the clean or armed
-            // specialization; no notification mask load reaches its execute path.
-            if (__builtin_expect(notify_armed, false)) spec = command_notify_variant(spec);
-            if constexpr (NoBorrow) spec = command_tls_variant(spec);
-            op->spec = spec;
+            // THE SOLE DISABLED-STATE FEATURE DECISION on an ordinary operation. The executor
+            // receives a spec whose handler pointer is already the clean or armed specialization;
+            // no notification mask load reaches its execute path.
+            //
+            // Lane F rides this ONE branch rather than adding its own. notify_armed_ is the union
+            // of "keyspace notifications configured" and "some CLIENT/MONITOR/TRACKING feature is
+            // armed" (see climon_refresh_armed), so with everything off the emitted code is
+            // byte-for-byte the pre-lane sequence: one predicted-not-taken test, then the tls
+            // variant select and the spec store. The armed side pays a cold out-of-line call.
+            if (__builtin_expect(notify_armed, false)) {
+                spec = command_notify_variant(spec);
+                if constexpr (NoBorrow) spec = command_tls_variant(spec);
+                op->spec = spec;
+                if (__builtin_expect(climon_armed_gate(c, *op), false)) break;
+            } else {
+                if constexpr (NoBorrow) spec = command_tls_variant(spec);
+                op->spec = spec;
+            }
             if (__builtin_expect(security_check, false) &&
                 acl_dispatch_entry(*this, conn, *op, consumed, security_flags)) continue;
             if (__builtin_expect((spec->flags & CmdFlags::Transaction) != 0, false) ||
@@ -892,6 +916,7 @@ private:
                 if (op->cmd_name().eq_icase("reset")) {
                     conn.advance_parse(consumed);
                     self_->note_command(spec->id);
+                    climon_reset_client(c);
                     pubsub_start_reset(c, *op);
                     sig.ops++;
                     mark_active(c);
@@ -932,6 +957,14 @@ subscriber_checks_done:
                     continue;
                 }
                 finish_prebuilt(c, *op);
+                // A CLIENT subcommand may have just armed or disarmed this lane, invalidating
+                // the pass-local armed cache above. Ending the pass is the cheapest correct
+                // answer: the next one re-reads it. One predicted-false test on a branch GET and
+                // SET never enter.
+                if (__builtin_expect(climon_armed_dirty_, false)) {
+                    climon_armed_dirty_ = false;
+                    break;
+                }
                 continue;
             }
 
@@ -942,9 +975,16 @@ subscriber_checks_done:
                 // SCRIPT/FUNCTION read and mutate state that in-flight EVAL/EVALSHA/FCALL
                 // activations produce or consume, so they observe same-connection program order
                 // through the ROB-head barrier the blocking lowering already uses. Everything
-                // else keeps the parse-time answer.
+                // else keeps the parse-time answer. The barrier break runs FIRST so a barred op
+                // retries from scratch before any lane hook fires.
                 if (__builtin_expect((spec->flags & CmdFlags::OrderedLocal) != 0, false) &&
                     rob.in_flight() != 0) break;
+                // RESET clears this lane's connection state (monitor mode, tracking registration,
+                // CLIENT REPLY mode) before the ordinary handler writes +RESET. One predicted-
+                // false flag test on a word the dispatcher already holds, on an already-cold
+                // command class -- no name comparison, and nothing on the ordinary path.
+                if (__builtin_expect((spec->flags & CmdFlags::Climon) != 0, false))
+                    climon_reset_client(c);
                 conn.advance_parse(consumed);
                 self_->note_command(spec->id);
                 command_set_local_context(c, self_);
@@ -961,6 +1001,10 @@ subscriber_checks_done:
                 enqueue_serve(c);
                 mark_active(c);
                 if (c->closing() || acl_command) break;
+                if (__builtin_expect(climon_armed_dirty_, false)) {
+                    climon_armed_dirty_ = false;
+                    break;
+                }
                 continue;
             }
 
@@ -1396,13 +1440,30 @@ nonblocking_dispatch:
             // which is what makes the rest parseable.
             if (!c->closing() && conn.rpos() < conn.rlen() && !c->scatter_barrier() &&
                 !c->atomic_backpressure()) {
-                if constexpr (HasTls) {
-                    if (c->is_tls()) parse_and_dispatch<true>(c);
-                    else parse_and_dispatch<false>(c);
+                // A CLIENT PAUSE hold deliberately leaves the parsed frame at rpos. Counting that
+                // as work would spin the ring at 100% until the deadline instead of parking it,
+                // so while a pause is live the pass reports progress only if the cursor moved.
+                // With no pause armed the accounting is byte-for-byte the pre-lane behaviour --
+                // one predicted-false test per active connection per pass. The dispatch variant
+                // stays keyed on c->is_tls() (the kTLS handoff's contract), not the slot pointer.
+                if (__builtin_expect(climon_pause_armed(), false)) {
+                    const uint32_t rpos_before = conn.rpos();
+                    if constexpr (HasTls) {
+                        if (c->is_tls()) parse_and_dispatch<true>(c);
+                        else parse_and_dispatch<false>(c);
+                    } else {
+                        parse_and_dispatch<false>(c);
+                    }
+                    if (conn.rpos() != rpos_before) work++;
                 } else {
-                    parse_and_dispatch<false>(c);
+                    if constexpr (HasTls) {
+                        if (c->is_tls()) parse_and_dispatch<true>(c);
+                        else parse_and_dispatch<false>(c);
+                    } else {
+                        parse_and_dispatch<false>(c);
+                    }
+                    work++;
                 }
-                work++;
             }
 
             if constexpr (HasTls) {
@@ -1463,6 +1524,14 @@ nonblocking_dispatch:
             // close_client finish. Only corpses (freed-pending) are skippable.
             if (c->dead()) continue;
             served++;
+            // CLIENT REPLY OFF/SKIP. ONE predicted-false test per SERVED CONNECTION -- not per
+            // operation: a p32 batch amortises it over 32 replies. The suppressed drain lives in
+            // the cold object and discards bytes instead of staging them.
+            if (__builtin_expect((climon_armed_cached_ & Server::kClimonReply) != 0, false) &&
+                climon_reply_suppressed(c)) {
+                work += climon_serve_suppressed(c);
+                continue;
+            }
             if constexpr (HasTls) {
                 if (TlsConn* tls = tls_engine(c)) {
                     if (wb_.serve_tls(*c, *tls)) work++;
@@ -1553,7 +1622,8 @@ nonblocking_dispatch:
     void refresh_notify_config() {
         LiveConfigSnapshot snapshot;
         if (!srv_->live_config_snapshot_if_changed(notify_config_version_, snapshot)) return;
-        notify_armed_ = snapshot.notify_events != 0;
+        notify_config_armed_ = snapshot.notify_events != 0;
+        notify_armed_ = notify_config_armed_ || climon_armed_cached_ != 0;
         notify_config_version_ = snapshot.version;
     }
 
@@ -1607,6 +1677,7 @@ nonblocking_dispatch:
         // doing so leaked the entire client (~137KB) per disconnect once. Only a quiesced,
         // claim-free conn may release its slot and die.
         if (!c->safe_to_release()) { mark_active(c); return; }
+        climon_untrack_client(c);
         command_client_disconnected(c);
         self_->release_wb_slot(c->wb_slot());
         c->set_wb_slot(Client::kNoWbSlot);
@@ -1705,6 +1776,7 @@ nonblocking_dispatch:
     // Cold live-config cache. Appended so every pre-existing IoLoop field retains its offset.
     uint64_t notify_config_version_ = 0;
     bool notify_armed_ = false;
+    bool notify_config_armed_ = false;   // keyspace-notification half of notify_armed_
     // Notification publications are sequenced through one coordinator IO. Keep this v2-only
     // carriage at the true cold tail so the entire pre-notification IoLoop layout remains fixed.
     std::deque<std::shared_ptr<PubSubNotificationChain>> pubsub_notification_chains_;
@@ -1714,8 +1786,6 @@ nonblocking_dispatch:
     std::vector<std::unique_ptr<TlsConn>> tls_slots_;
     std::vector<uint32_t> tls_free_slots_;
 #include "../cmd/climon.inc"
-    // CLIENT is IO-owned. Pending requests retain only the origin IO's own Client pointer.
-    std::unordered_map<uint64_t, ClimonPending> climon_pending_;
 };
 
 }  // namespace tomo

@@ -37,6 +37,13 @@ enum class PubSubEventKind : uint8_t {
     ClientListResult,
     ClientKillRequest,
     ClientKillResult,
+    // Lane F. All four are produced only while the CLIENT/MONITOR armed word is non-zero.
+    MonitorFeed,          // one pre-formatted feed line, encoded once and shared by every owner
+    TrackingInvalidate,   // keys whose value changed; each owner filters against its own table
+    TrackingFlush,        // FLUSHALL/FLUSHDB: deliver the null invalidation to every tracker
+    TrackingDeliver,      // redirect hop: owner of the redirect target emits the frame
+    ClientUnblockRequest,
+    ClientUnblockResult,
 };
 
 enum ClientFilterMask : uint32_t {
@@ -136,6 +143,9 @@ struct PubSubEvent {
     std::vector<PubSubDelivery> deliveries;
     std::vector<PubSubResult> results;
     std::shared_ptr<PubSubNotificationChain> notification;
+    // Encode-once payload shared by every receiving owner (MONITOR feed line). Null on every
+    // pre-Lane-F event kind, so no existing path pays for it beyond the empty shared_ptr.
+    std::shared_ptr<const std::string> blob;
 };
 
 }  // namespace tomo

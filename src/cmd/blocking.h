@@ -65,6 +65,8 @@ void blocking_scatter_mutation_published(const Task& task, Shard& shard, Op& op)
 bool blocking_resume_move(Server& server, ThreadCtx& self, Ring& ring, Client& client,
                           ScatterArenaPool& pool);
 bool blocking_cancel_client(Server& server, ThreadCtx& self, Ring& ring, Client& client);
+// CLIENT UNBLOCK: arm the reply shape the cancel is about to need. Owner-io only.
+bool blocking_request_unblock(Client& client, bool error_flavor);
 void blocking_retire(Server& server, Client& client, Op& op, ThreadCtx& thread);
 void blocking_scatter_retire(Server& server, Client& client, ScatterState& state);
 bool blocking_stream_bounds(const BlockingState* state, uint32_t key_index, StreamID& cursor,

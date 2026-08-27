@@ -42,6 +42,12 @@ inline constexpr uint32_t NOTIFY_KEY_MISS = 1u << 11;
 inline constexpr uint32_t NOTIFY_MODULE = 1u << 13;
 inline constexpr uint32_t NOTIFY_NEW = 1u << 14;
 inline constexpr uint32_t NOTIFY_ALL = 0x000027fcu;
+// Lane F synthetic class. It is NEVER produced by parse_notify_flags and never serialized, so
+// CONFIG GET notify-keyspace-events keeps reporting exactly what the operator configured. Its
+// only job is to let CLIENT TRACKING arm the same executor-side key observer without adding a
+// second armed load to notify_record.
+inline constexpr uint32_t NOTIFY_TRACKING = 1u << 20;
+inline constexpr uint32_t NOTIFY_ROUTES = NOTIFY_KEYSPACE | NOTIFY_KEYEVENT | NOTIFY_TRACKING;
 
 inline bool parse_notify_flags(Slice input, uint32_t& flags) {
     uint32_t parsed = 0;
@@ -151,7 +157,7 @@ inline bool notify_record(ShardLike& shard, Op& source, uint32_t cls,
                           NotifyEventId event, Slice key) {
     const uint32_t mask = shard.notify_mask();
     if (__builtin_expect((mask & cls) == 0, true)) return false;
-    if (!(mask & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT))) return false;
+    if (!(mask & NOTIFY_ROUTES)) return false;
     return notify_record_slow(shard, source, mask, cls, event, key);
 }
 
@@ -160,7 +166,7 @@ inline bool notify_record_keyless(ShardLike& shard, uint32_t cls,
                                   NotifyEventId event, Slice key) {
     const uint32_t mask = shard.notify_mask();
     if (__builtin_expect((mask & cls) == 0, true)) return false;
-    if (!(mask & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT))) return false;
+    if (!(mask & NOTIFY_ROUTES)) return false;
     return notify_record_keyless_slow(shard, mask, cls, event, key);
 }
 bool notify_flat_enabled(void* shard, uint32_t cls);
@@ -182,7 +188,7 @@ uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer,
 
 // IO retirement.  Special states surrender their batch before their existing destructor runs.
 NotifyBatch* notify_take_batch(Op& op);
-void notify_retire_batch_entry(IoLoop& loop, NotifyBatch* batch);
+void notify_retire_batch_entry(IoLoop& loop, NotifyBatch* batch, uint64_t writer_id = 0);
 void notify_retire_entry(IoLoop& loop, Op& op);
 void notify_discard_batch(NotifyBatch* batch);
 void notify_abort_op(Op& op);

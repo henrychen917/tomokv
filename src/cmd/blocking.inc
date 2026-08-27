@@ -47,6 +47,11 @@ struct BlockingState {
     std::atomic<BlockingPhase> phase{BlockingPhase::Probe};
     std::atomic<bool> counted{false};
     std::atomic<bool> cancel_requested{false};
+    // CLIENT UNBLOCK (Lane F). 0 = nothing requested, 1 = TIMEOUT shape, 2 = the UNBLOCKED error.
+    // The cancel path deliberately produces no bytes (it exists for connection teardown), so the
+    // requested shape is written at retire, on the connection's own io thread, where no executor
+    // can be writing the same op.
+    std::atomic<uint8_t> unblock_reply{0};
     Server* server = nullptr;
     Client* client = nullptr;
     uint64_t op_id = 0;
@@ -1240,9 +1245,28 @@ bool blocking_cancel_client(Server& server, ThreadCtx& self, Ring& ring, Client&
     return finished_here;
 }
 
+bool blocking_request_unblock(Client& client, bool error_flavor) {
+    if (!client.blocked()) return false;
+    bool any = false;
+    for (uint64_t id = client.rob().flush_id(), end = client.rob().dispatch_id(); id != end; id++) {
+        BlockingState* state = client.rob().at(id).blocking_state();
+        if (!state) continue;
+        state->unblock_reply.store(error_flavor ? 2 : 1, std::memory_order_release);
+        any = true;
+    }
+    return any;
+}
+
 void blocking_retire(Server& server, Client& client, Op& op, ThreadCtx& thread) {
     BlockingState* state = op.blocking_state();
     if (!state) return;
+    // One predicted-false relaxed load on an already-cold path. A command that completed with
+    // real data keeps its reply; only the byte-less cancel shape is filled in here.
+    const uint8_t unblock = state->unblock_reply.load(std::memory_order_acquire);
+    if (__builtin_expect(unblock != 0, false) && op.reply.empty() && op.direct_len == 0) {
+        if (unblock == 2) reply_err(op.sink(), "UNBLOCKED client unblocked via CLIENT UNBLOCK");
+        else blocking_reply_timeout(op, state->kind);
+    }
     acl_recheck_blocking(client, op, thread);
     client.set_blocked(false);
     client.set_scatter_barrier(false);

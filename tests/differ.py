@@ -1861,6 +1861,186 @@ def run_wiredump_suite(rng):
 if SUITE == "wiredump":
     sys.exit(1 if run_wiredump_suite(rng) else 0)
 
+# ---- Lane F: CLIENT connection-control + TRACKING differential ---------------------------------
+# Structurally different from the command/reply suites: replies depend on connection identity, and
+# invalidation arrives as an out-of-band push. So the suite drives a fixed pair of connections per
+# side, byte-compares every reply of an identity-independent grammar stream, and then compares the
+# invalidation frames a tracking connection receives for an identical write script.
+def run_climon_suite(rng):
+    import select as _select
+    diffs = 0
+    checks = 0
+    ts, tf = conn(TH, TP); os_, of = conn(OH, OP)
+    for cs, cf in ((ts, tf), (os_, of)):
+        cs.sendall(enc(["FLUSHALL"])); read_reply(cf)
+
+    def both(args, label=None):
+        nonlocal diffs, checks
+        payload = enc(args)
+        ts.sendall(payload); os_.sendall(payload)
+        a = read_reply(tf); b = read_reply(of)
+        checks += 1
+        if a != b:
+            diffs += 1
+            if diffs <= 15:
+                print("  DIFF %s %r\n    target: %r\n    oracle: %r" %
+                      (label or "", args[:14], a[:160], b[:160]))
+        return a
+
+    # ---- grammar stream. Every command below has an identity-independent reply. --------------
+    on_off = ["ON", "OFF", "on", "off", "garbage", ""]
+    modes = ["WRITE", "ALL", "write", "GARBAGE"]
+    prefixes = ["a", "ab", "abc", "b", "user:", "user:1", ""]
+    grammar = []
+    for _ in range(4200):
+        c = rng.randrange(16)
+        if c == 0:   grammar.append(["CLIENT", "NO-TOUCH", rng.choice(on_off)])
+        elif c == 1: grammar.append(["CLIENT", "NO-EVICT", rng.choice(on_off)])
+        elif c == 2: grammar.append(["CLIENT", "GETREDIR"])
+        elif c == 3: grammar.append(["CLIENT", "TRACKINGINFO"])
+        elif c == 4: grammar.append(["CLIENT", "TRACKING", rng.choice(["on", "off", "garbage"])])
+        elif c == 5:
+            args = ["CLIENT", "TRACKING", rng.choice(["on", "off"])]
+            if rng.randrange(2): args.append("BCAST")
+            for _ in range(rng.randrange(3)):
+                args += ["PREFIX", rng.choice(prefixes)]
+            if rng.randrange(3) == 0: args.append(rng.choice(["OPTIN", "OPTOUT", "NOLOOP"]))
+            grammar.append(args)
+        elif c == 6: grammar.append(["CLIENT", "CACHING", rng.choice(["yes", "no", "maybe"])])
+        elif c == 7:
+            grammar.append(["CLIENT", "TRACKING", "on", "REDIRECT",
+                            rng.choice(["999999", "0", "abc", "-1"])])
+        elif c == 8: grammar.append(["CLIENT", "UNBLOCK", rng.choice(["999999", "0", "notanint", "-5"])])
+        elif c == 9:
+            grammar.append(["CLIENT", "UNBLOCK", "999999",
+                            rng.choice(["TIMEOUT", "ERROR", "GARBAGE"])])
+        elif c == 10: grammar.append(["CLIENT", "PAUSE", rng.choice(["0", "abc", "-1", "99999999999999999999"])])
+        elif c == 11: grammar.append(["CLIENT", "PAUSE", "0", rng.choice(modes)])
+        elif c == 12: grammar.append(["CLIENT", "UNPAUSE"])
+        elif c == 13: grammar.append(["CLIENT", "REPLY", rng.choice(["ON", "on", "garbage"])])
+        elif c == 14:
+            # arity errors: the per-subcommand wrong-number-of-arguments strings
+            grammar.append(rng.choice([
+                ["CLIENT", "NO-TOUCH"], ["CLIENT", "REPLY"], ["CLIENT", "UNPAUSE", "X"],
+                ["CLIENT", "PAUSE"], ["CLIENT", "UNBLOCK"], ["CLIENT", "CACHING"],
+                ["CLIENT", "GETREDIR", "X"], ["CLIENT", "TRACKINGINFO", "X"],
+                ["CLIENT", "TRACKING"], ["CLIENT", "NO-EVICT"],
+            ]))
+        else: grammar.append(["CLIENT", "TRACKING", "off"])
+    grammar.append(["CLIENT", "TRACKING", "off"])
+    grammar.append(["CLIENT", "UNPAUSE"])
+    for op in grammar:
+        both(op, "grammar")
+
+    # ---- invalidation stream. RESP3 tracking client + a writer, per side. --------------------
+    tt, ttf = conn(TH, TP); ot, otf = conn(OH, OP)
+    for cs, cf in ((tt, ttf), (ot, otf)):
+        cs.sendall(enc(["HELLO", "3"])); read_reply(cf)
+    tw, twf = conn(TH, TP); ow, owf = conn(OH, OP)
+
+    # Out-of-band pushes can arrive interleaved with a command reply, and the two servers place
+    # them at different points relative to it (redis emits the reply first; this server can emit
+    # the push first when the connection was idle). So a reply read PARKS any push it runs into
+    # and the round-level comparison consumes the parked frames -- the assertion is on the set of
+    # invalidations produced by a round, which is the actual contract.
+    parked = {"t": b"", "o": b""}
+
+    def read_command_reply(file, side):
+        while True:
+            frame = read_reply(file)
+            if frame[:1] == b">":
+                parked[side] += frame
+                continue
+            return frame
+
+    def track(args, label):
+        nonlocal diffs, checks
+        payload = enc(args)
+        tt.sendall(payload); ot.sendall(payload)
+        a = read_command_reply(ttf, "t"); b = read_command_reply(otf, "o")
+        checks += 1
+        if a != b:
+            diffs += 1
+            print("  DIFF track %s %r\n    target: %r\n    oracle: %r" % (label, args[:5], a, b))
+
+    def write_both(args):
+        payload = enc(args)
+        tw.sendall(payload); ow.sendall(payload)
+        read_reply(twf); read_reply(owf)
+
+    def compare_pushes(label, wait=1.2):
+        nonlocal diffs, checks
+        checks += 1
+        def collect(sock):
+            deadline = time.time() + wait
+            out = b""
+            while True:
+                left = deadline - time.time()
+                if left <= 0: break
+                if not _select.select([sock], [], [], left)[0]: break
+                chunk = sock.recv(65536)
+                if not chunk: break
+                out += chunk
+                deadline = time.time() + 0.2
+            return out
+        a = parked["t"] + collect(tt); b = parked["o"] + collect(ot)
+        parked["t"] = parked["o"] = b""
+        if a != b:
+            diffs += 1
+            print("  DIFF invalidation %s\n    target: %r\n    oracle: %r" % (label, a, b))
+
+    track(["CLIENT", "TRACKING", "on"], "on")
+    keys = ["ck:%d" % i for i in range(12)]
+    for round_ in range(40):
+        k = rng.choice(keys)
+        mode = rng.randrange(5)
+        if mode == 0:
+            write_both(["SET", k, "v%d" % round_])
+            track(["GET", k], "read")
+            write_both(["SET", k, "w%d" % round_])
+        elif mode == 1:
+            write_both(["SET", k, "v"])
+            track(["GET", k], "read")
+            write_both(["DEL", k])
+        elif mode == 2:
+            track(["GET", k], "read-miss")
+            write_both(["SET", k, "created"])
+        elif mode == 3:
+            track(["GET", k], "read")
+            write_both(["GET", k])            # a read must never invalidate
+        else:
+            track(["GET", k], "read")
+            write_both(["APPEND", k, "z"])
+        compare_pushes("round %d mode %d" % (round_, mode))
+    track(["CLIENT", "TRACKING", "off"], "off")
+
+    # NOLOOP + BCAST behaviours, byte-compared
+    track(["CLIENT", "TRACKING", "on", "NOLOOP"], "noloop on")
+    track(["SET", "ck:loop", "1"], "self set")
+    track(["GET", "ck:loop"], "self read")
+    track(["SET", "ck:loop", "2"], "self set again")
+    compare_pushes("noloop self-write")
+    track(["GET", "ck:loop"], "self read 2")
+    write_both(["SET", "ck:loop", "3"])
+    compare_pushes("noloop other-write")
+    track(["CLIENT", "TRACKING", "off"], "noloop off")
+
+    track(["CLIENT", "TRACKING", "on", "BCAST", "PREFIX", "bx:"], "bcast on")
+    for i in range(12):
+        write_both(["SET", "bx:%d" % i, "v"])
+        compare_pushes("bcast hit %d" % i)
+        write_both(["SET", "zz:%d" % i, "v"])
+        compare_pushes("bcast miss %d" % i)
+    track(["CLIENT", "TRACKING", "off"], "bcast off")
+
+    for sock in (ts, os_, tt, ot, tw, ow): sock.close()
+    print("DIFFER climon: %d ops, %d diffs -> %s" %
+          (checks, diffs, "PASS" if diffs == 0 else "FAIL"))
+    return diffs
+
+if SUITE == "climon":
+    sys.exit(1 if run_climon_suite(rng) else 0)
+
 gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset,
         "hash": gen_hash, "hexpire": gen_hexpire, "xshard": gen_xshard, "bitmap": gen_bitmap,
         "hll": gen_hll, "bitfield": gen_bitfield, "cgaps": gen_cgaps, "stream": gen_stream,

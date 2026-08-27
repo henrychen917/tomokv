@@ -114,6 +114,62 @@ public:
         return serve_tls_impl<false>(c, tls);
     }
 
+    // CLIENT REPLY OFF/SKIP (Lane F). Cold: reached only from the climon object when the reply
+    // armed bit is set, never from serve(), so the send engine's hot template pair is untouched.
+    //
+    // PER-OP, and that is the point. Suppression cannot be decided per connection: a pipelined
+    // `CLIENT REPLY SKIP; PING; PING` retires all three in ONE drain, and a per-connection
+    // decision would swallow both PONGs. The mark is made by the io thread's armed gate before
+    // dispatch, so each op carries its own answer here.
+    //
+    // Special command state MUST still be surrendered through retire_fn_ even when the bytes are
+    // dropped, or scatter/blocking/MULTI/notification state leaks and cross-shard groups never
+    // complete. A borrowed value that survives retire_fn_ is returned to its owning shard instead
+    // of being sent. Direct-reply bytes live in the fill buffer's spare capacity and are simply
+    // never committed.
+    __attribute__((noinline, cold))
+    bool serve_suppressing(Client& c) {
+        stats_.serves++;
+        Client& conn = c;
+        conn.start_obuf_tracking();
+        const uint32_t retired = c.rob().drain([&](Op& op) {
+            if (op.zc_ptr) {
+                if (retire_fn_) retire_fn_(retire_ctx_, conn, op);
+            }
+            if (op.reply_skip()) {
+                if (op.zc_ptr && op.zc_shard >= 0 && release_fn_)
+                    release_fn_(release_ctx_, op.zc_shard, op.zc_ptr);
+                return;
+            }
+            if (op.zc_ptr) {
+                conn.seal_fill_segment();
+                conn.append_buf_segment(op.direct, op.direct_len,
+                                        op.reply.data(), op.reply.size());
+                conn.append_borrow_segment(op.zc_ptr, op.zc_len, op.zc_shard);
+                conn.append_static_segment(kCrlf, sizeof(kCrlf));
+                return;
+            }
+            // A suppressed op ahead of this one may have left uncommitted direct bytes at the
+            // fill frontier; this op's direct region was handed out at the same offset only if
+            // nothing was staged, so committing here stays correct.
+            if (conn.has_pending_segments()) {
+                conn.append_buf_segment(op.direct, op.direct_len,
+                                        op.reply.data(), op.reply.size());
+            } else {
+                if (op.direct_len) conn.commit_fill(op.direct_len);
+                if (!op.reply.empty()) conn.append_fill(op.reply.data(), op.reply.size());
+            }
+        });
+        bool did = retired != 0;
+        if (limit_fn_ && limit_fn_(limit_ctx_, c)) {
+            stats_.retired += retired;
+            return true;
+        }
+        if (!conn.nothing_to_write()) did |= pump(c);
+        stats_.retired += retired;
+        return did;
+    }
+
     // Try to push whatever this client has buffered. Safe to call spuriously: if nothing is pending
     // or a send is already outstanding it does nothing. Returns true if a send was submitted.
     bool pump(Client& c) {

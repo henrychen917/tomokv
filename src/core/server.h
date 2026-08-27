@@ -38,6 +38,10 @@ struct LiveConfigSnapshot {
     MaxmemoryPolicy policy;
     uint32_t samples;
     uint32_t notify_events;
+    // Lane F: CLIENT TRACKING arms the same executor-side write observer keyspace notifications
+    // use.  It rides the existing live-config snapshot so ExLoop's per-pass shard mask refresh
+    // stays one load, and so a shard never reads a second armed word per operation.
+    bool     tracking_armed;
 };
 
 struct ClientLimitsConfigSnapshot {
@@ -277,6 +281,149 @@ public:
         refresh_client_cron_armed();
         end_live_config_update(version);
     }
+    // ---- Lane F: the single CLIENT/MONITOR/TRACKING armed word ---------------------------------
+    // Every feature this lane adds is OFF by default and must cost nothing while off.  Instead of
+    // giving each one its own hot-path test, they share ONE word that the IO loop caches per
+    // batch and folds into the notification-armed decision parse_and_dispatch already makes.  A
+    // zero word means the io side takes byte-for-byte the pre-lane path.
+    static constexpr uint32_t kClimonMonitor  = 1u << 0;  // >=1 MONITOR client exists
+    static constexpr uint32_t kClimonTracking = 1u << 1;  // >=1 CLIENT TRACKING client exists
+    static constexpr uint32_t kClimonPause    = 1u << 2;  // a CLIENT PAUSE deadline is live
+    static constexpr uint32_t kClimonReply    = 1u << 3;  // >=1 CLIENT REPLY OFF/SKIP client
+
+    uint32_t climon_armed() const { return climon_armed_.load(std::memory_order_relaxed); }
+
+    void climon_monitor_added() {
+        climon_monitors_.fetch_add(1, std::memory_order_relaxed);
+        refresh_climon_armed();
+    }
+    void climon_monitor_removed() {
+        if (climon_monitors_.fetch_sub(1, std::memory_order_relaxed) == 0) std::abort();
+        refresh_climon_armed();
+    }
+    uint64_t climon_monitors() const { return climon_monitors_.load(std::memory_order_relaxed); }
+
+    // Tracking arms shard-side write observation, so it must publish through the live-config
+    // seqlock the executors already poll (one version compare per pass when nothing changed).
+    void climon_tracking_added() {
+        const uint64_t version = begin_live_config_update();
+        climon_tracking_.fetch_add(1, std::memory_order_relaxed);
+        refresh_climon_armed();
+        end_live_config_update(version);
+    }
+    void climon_tracking_removed() {
+        const uint64_t version = begin_live_config_update();
+        if (climon_tracking_.fetch_sub(1, std::memory_order_relaxed) == 0) std::abort();
+        refresh_climon_armed();
+        end_live_config_update(version);
+    }
+    uint64_t climon_tracking_clients() const {
+        return climon_tracking_.load(std::memory_order_relaxed);
+    }
+
+    void climon_reply_added() {
+        climon_reply_.fetch_add(1, std::memory_order_relaxed);
+        refresh_climon_armed();
+    }
+    void climon_reply_removed() {
+        if (climon_reply_.fetch_sub(1, std::memory_order_relaxed) == 0) std::abort();
+        refresh_climon_armed();
+    }
+
+    // CLIENT PAUSE: one global deadline, checked per batch by every io owner.
+    static constexpr uint8_t kPauseAll = 0;
+    static constexpr uint8_t kPauseWrite = 1;
+    void climon_set_pause(uint64_t end_ms, uint8_t mode) {
+        climon_pause_mode_.store(mode, std::memory_order_relaxed);
+        climon_pause_end_ms_.store(end_ms, std::memory_order_relaxed);
+        refresh_climon_armed();
+    }
+    void climon_clear_pause() {
+        climon_pause_end_ms_.store(0, std::memory_order_relaxed);
+        refresh_climon_armed();
+    }
+    uint64_t climon_pause_end_ms() const {
+        return climon_pause_end_ms_.load(std::memory_order_relaxed);
+    }
+    uint8_t climon_pause_mode() const {
+        return climon_pause_mode_.load(std::memory_order_relaxed);
+    }
+    // Called by an io owner that observed the deadline pass; disarming is idempotent and racy-safe
+    // because every consumer also compares the deadline against its own clock.
+    void climon_expire_pause(uint64_t now_ms) {
+        uint64_t end = climon_pause_end_ms_.load(std::memory_order_relaxed);
+        if (!end || now_ms < end) return;
+        if (climon_pause_end_ms_.compare_exchange_strong(end, 0, std::memory_order_relaxed))
+            refresh_climon_armed();
+    }
+
+    // Which io threads own at least one MONITOR client, and which own at least one tracking
+    // client.  Feeds and invalidations post ONLY to the owners in the mask, so a single monitor
+    // does not cost one cross-thread message per io thread per command.
+    uint64_t climon_monitor_io_mask() const {
+        return climon_monitor_io_mask_.load(std::memory_order_relaxed);
+    }
+    void climon_set_monitor_io(uint32_t io, bool present) {
+        const uint64_t bit = 1ull << (io & 63);
+        if (present) climon_monitor_io_mask_.fetch_or(bit, std::memory_order_relaxed);
+        else climon_monitor_io_mask_.fetch_and(~bit, std::memory_order_relaxed);
+    }
+    uint64_t climon_tracking_io_mask() const {
+        return climon_tracking_io_mask_.load(std::memory_order_relaxed);
+    }
+    void climon_set_tracking_io(uint32_t io, bool present) {
+        const uint64_t bit = 1ull << (io & 63);
+        if (present) climon_tracking_io_mask_.fetch_or(bit, std::memory_order_relaxed);
+        else climon_tracking_io_mask_.fetch_and(~bit, std::memory_order_relaxed);
+    }
+
+    void climon_note_monitor_line() {
+        climon_monitor_lines_.fetch_add(1, std::memory_order_relaxed);
+    }
+    uint64_t climon_monitor_lines() const {
+        return climon_monitor_lines_.load(std::memory_order_relaxed);
+    }
+    void climon_note_invalidation(uint64_t n = 1) {
+        climon_invalidations_.fetch_add(n, std::memory_order_relaxed);
+    }
+    uint64_t climon_invalidations() const {
+        return climon_invalidations_.load(std::memory_order_relaxed);
+    }
+    // Proof-of-mechanism counter for CLIENT NO-TOUCH: operations that reached an executor with
+    // the suppression bit set while maxmemory was enabled. Incremented only inside the
+    // maxmemory-enabled arm, so it costs nothing in the default configuration.
+    void climon_note_no_touch() {
+        climon_no_touch_ops_.fetch_add(1, std::memory_order_relaxed);
+    }
+    uint64_t climon_no_touch_ops() const {
+        return climon_no_touch_ops_.load(std::memory_order_relaxed);
+    }
+    void climon_note_pause_hold() {
+        climon_pause_holds_.fetch_add(1, std::memory_order_relaxed);
+    }
+    uint64_t climon_pause_holds() const {
+        return climon_pause_holds_.load(std::memory_order_relaxed);
+    }
+    void climon_note_tracking_key_delta(int64_t delta) {
+        climon_tracking_keys_.fetch_add(static_cast<uint64_t>(delta), std::memory_order_relaxed);
+    }
+    uint64_t climon_tracking_keys() const {
+        return climon_tracking_keys_.load(std::memory_order_relaxed);
+    }
+    void climon_note_tracking_item_delta(int64_t delta) {
+        climon_tracking_items_.fetch_add(static_cast<uint64_t>(delta), std::memory_order_relaxed);
+    }
+    uint64_t climon_tracking_items() const {
+        return climon_tracking_items_.load(std::memory_order_relaxed);
+    }
+    void climon_note_tracking_prefix_delta(int64_t delta) {
+        climon_tracking_prefixes_.fetch_add(static_cast<uint64_t>(delta),
+                                            std::memory_order_relaxed);
+    }
+    uint64_t climon_tracking_prefixes() const {
+        return climon_tracking_prefixes_.load(std::memory_order_relaxed);
+    }
+
     void note_client_output_buffer_limit_disconnect() {
         client_output_buffer_limit_disconnections_.fetch_add(1, std::memory_order_relaxed);
     }
@@ -561,6 +708,8 @@ public:
                 live_maxmemory_policy_.load(std::memory_order_relaxed));
             snapshot.samples = live_maxmemory_samples_.load(std::memory_order_relaxed);
             snapshot.notify_events = live_notify_events_.load(std::memory_order_relaxed);
+            snapshot.tracking_armed =
+                (climon_armed_.load(std::memory_order_relaxed) & kClimonTracking) != 0;
             if (live_config_version_.load(std::memory_order_acquire) == snapshot.version)
                 return snapshot;
         }
@@ -777,6 +926,15 @@ private:
         live_obuf_pubsub_seconds_.store(limits.pubsub.soft_seconds, std::memory_order_relaxed);
     }
 
+    void refresh_climon_armed() {
+        uint32_t armed = 0;
+        if (climon_monitors_.load(std::memory_order_relaxed)) armed |= kClimonMonitor;
+        if (climon_tracking_.load(std::memory_order_relaxed)) armed |= kClimonTracking;
+        if (climon_pause_end_ms_.load(std::memory_order_relaxed)) armed |= kClimonPause;
+        if (climon_reply_.load(std::memory_order_relaxed)) armed |= kClimonReply;
+        climon_armed_.store(armed, std::memory_order_release);
+    }
+
     void refresh_client_cron_armed() {
         const bool normal = live_obuf_normal_hard_.load(std::memory_order_relaxed) != 0 ||
                             live_obuf_normal_soft_.load(std::memory_order_relaxed) != 0;
@@ -911,6 +1069,23 @@ private:
     std::atomic<uint64_t> live_obuf_pubsub_soft_{8ull * 1024 * 1024};
     std::atomic<uint32_t> live_obuf_pubsub_seconds_{60};
     std::atomic<uint32_t> live_notify_events_{0};
+    // Lane F cold tail. Every field here is read once per io batch (or never, while the armed
+    // word is zero); none of them is on a per-operation path.
+    std::atomic<uint32_t> climon_armed_{0};
+    std::atomic<uint64_t> climon_monitors_{0};
+    std::atomic<uint64_t> climon_tracking_{0};
+    std::atomic<uint64_t> climon_reply_{0};
+    std::atomic<uint64_t> climon_pause_end_ms_{0};
+    std::atomic<uint8_t>  climon_pause_mode_{kPauseAll};
+    std::atomic<uint64_t> climon_monitor_io_mask_{0};
+    std::atomic<uint64_t> climon_tracking_io_mask_{0};
+    std::atomic<uint64_t> climon_monitor_lines_{0};
+    std::atomic<uint64_t> climon_invalidations_{0};
+    std::atomic<uint64_t> climon_pause_holds_{0};
+    std::atomic<uint64_t> climon_no_touch_ops_{0};
+    std::atomic<uint64_t> climon_tracking_keys_{0};
+    std::atomic<uint64_t> climon_tracking_items_{0};
+    std::atomic<uint64_t> climon_tracking_prefixes_{0};
     std::atomic<uint32_t> live_atomic_window_{256};
     std::atomic<uint64_t> commit_seq_{0};
     std::atomic<bool> snapshot_atomic_barrier_{false};

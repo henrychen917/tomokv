@@ -238,6 +238,12 @@ struct Config {
     // values are loaded directly in executor code. Empty flag string = notifications off.
     uint32_t notify_events = 0;
 
+    // CLIENT TRACKING's bounded per-key remembering table (redis knob name and semantics:
+    // tracking-table-max-keys, default 1000000, 0 = unlimited). The bound is applied per io
+    // owner, because that is where this server keeps the table -- see tracking.cc. Nothing is
+    // allocated until a connection actually enables tracking.
+    uint64_t tracking_table_max_keys = 1000000;
+
     // TLS is a separate listener.  All fields are boot-only in v1; tls-port=0 constructs no
     // SSL_CTX, no BIO registry, and selects the compile-time-clean plaintext IO loop.
     uint16_t tls_port = 0;
@@ -517,6 +523,12 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             }
             cfg.notify_events = parsed;
         }
+        else if (!std::strcmp(a, "--tracking-table-max-keys")) {
+            if (!cfg_parse_u64(next(nullptr), cfg.tracking_table_max_keys)) {
+                std::fprintf(stderr, "--tracking-table-max-keys wants an unsigned key count\n");
+                return kConfigError;
+            }
+        }
         else if (!std::strcmp(a, "--dir"))        cfg.dir = next(".");
         else if (!std::strcmp(a, "--dbfilename")) cfg.dbfilename = next("dump.tomo");
         else if (!std::strcmp(a, "--load"))       cfg.load_path = next("");
@@ -683,6 +695,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "       --tls-ciphers LIST --tls-ciphersuites LIST\n"
                         "       --tls-prefer-server-ciphers yes|no --tls-ktls yes|no\n"
                         "  notifications: --notify-keyspace-events FLAGS (default empty/off)\n"
+                        "  client-side caching: --tracking-table-max-keys N "
+                        "(default 1000000, 0=unlimited)\n"
                         "  persistence: --dir PATH --dbfilename NAME --load PATH\n"
                         "    --persist-io normal|uring (boot-only; default uring; AOF + snapshot)\n"
                         "    --appendonly yes|no --appendfsync always|everysec|no\n"

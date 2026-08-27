@@ -493,6 +493,14 @@ public:
         if (value) connection_flags_ |= kResp3;
         else connection_flags_ &= static_cast<uint8_t>(~kResp3);
     }
+    // CLIENT NO-TOUCH. Bit 4 was free in this byte AND is ignored by Op::route_flags_, so the
+    // connection's answer reaches every operation through the store op_route_flags() already
+    // makes -- no new field, no new load, no growth of the footprint-locked Client.
+    bool no_touch() const { return connection_flags_ & kNoTouch; }
+    void set_no_touch(bool value) {
+        if (value) connection_flags_ |= kNoTouch;
+        else connection_flags_ &= static_cast<uint8_t>(~kNoTouch);
+    }
     // Bit 2 deliberately matches Op::route_flags_'s Resp3 assignment. Passing the byte through
     // Op::reset folds protocol capture into the ROB's existing flags store: RESP2 pays one load,
     // no mask and no branch. kBlocked occupies an Op-ignored high bit.
@@ -605,6 +613,7 @@ private:
     // already-full 48..55 bool run and moving id_ (which would grow the 64-byte-aligned Client).
     static constexpr uint8_t kBlocked = 1u << 7;
     static constexpr uint8_t kResp3 = 1u << 2;
+    static constexpr uint8_t kNoTouch = 1u << 4;
     uint8_t   connection_flags_ = 0;
 
     // --- cold io state --------------------------------------------------------------------------

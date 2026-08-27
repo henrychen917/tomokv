@@ -1089,7 +1089,7 @@
 
     __attribute__((noinline, noipa)) PubSubStartResult pubsub_start_command(Client* client,
                                                                             Op& op) {
-        if (op.cmd_name().eq_icase("client")) {
+        if (op.cmd_name().eq_icase("client") || op.cmd_name().eq_icase("monitor")) {
             const ClimonStartResult scatter = climon_start_client_command(client, op);
             return scatter == ClimonStartResult::Async
                 ? PubSubStartResult::Async : PubSubStartResult::Sync;

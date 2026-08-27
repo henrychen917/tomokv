@@ -183,6 +183,12 @@ struct ClientMeta {
     uint32_t shard_subscriptions = 0;
     bool unix_socket = false;
     bool no_evict = false;
+    bool no_touch = false;
+    // Mirrored from the io loop's tracking state purely so CLIENT INFO/LIST can report the
+    // redis field names. Nothing reads these except the info-line formatter.
+    bool tracking = false;
+    bool tracking_bcast = false;
+    int64_t tracking_redirect = -1;
 };
 
 // One catalog per IO thread. It contains no cross-thread Client pointer and is keyed by the
@@ -216,6 +222,7 @@ std::string client_info_line_impl(const Client& client, const ClientMeta& meta, 
     if (client.closing()) *flag++ = 'c';
     if (meta.unix_socket) *flag++ = 'U';
     if (meta.no_evict) *flag++ = 'e';
+    if (meta.no_touch) *flag++ = 'T';
     if (flag == flags) *flag++ = 'N';
     *flag = '\0';
 
@@ -254,7 +261,7 @@ std::string client_info_line_impl(const Client& client, const ClientMeta& meta, 
         "id=%llu addr=%s laddr=%s fd=%d name=%s age=%llu idle=%llu flags=%s db=%u "
         "sub=%u psub=%u ssub=%u multi=%lld watch=%u qbuf=%llu qbuf-free=%llu "
         "argv-mem=0 multi-mem=%llu rbs=%llu rbp=%llu obl=0 oll=%u omem=%llu "
-        "tot-mem=%llu events=%s cmd=%s user=%s redir=-1 resp=%u lib-name=%s lib-ver=%s\n",
+        "tot-mem=%llu events=%s cmd=%s user=%s redir=%lld resp=%u lib-name=%s lib-ver=%s\n",
         static_cast<unsigned long long>(client.id()), meta.addr.c_str(), meta.laddr.c_str(),
         client.fd(), meta.name.c_str(), static_cast<unsigned long long>(age),
         static_cast<unsigned long long>(idle), flags, client.session().db_index,
@@ -265,7 +272,9 @@ std::string client_info_line_impl(const Client& client, const ClientMeta& meta, 
         static_cast<unsigned long long>(client.rcap()),
         static_cast<unsigned long long>(client.rcap()), client.output_list_length(),
         static_cast<unsigned long long>(omem), static_cast<unsigned long long>(total_mem),
-        events, last_cmd.c_str(), username, client.resp3() ? 3u : 2u,
+        events, last_cmd.c_str(), username,
+        static_cast<long long>(meta.tracking ? meta.tracking_redirect : -1),
+        client.resp3() ? 3u : 2u,
         meta.lib_name.c_str(), meta.lib_ver.c_str());
     return out;
 }
@@ -346,6 +355,10 @@ void init_config(const Config& cfg) {
                         cfg_client_output_buffer_limit_string(g_client_obuf_limits)});
     g_config.push_back({"notify-keyspace-events", ConfigKind::NotifyFlags,
                         serialize_notify_flags(cfg.notify_events)});
+    // Boot-latched: the io owners read the bound directly out of Config, so it is reported but
+    // not live-settable (redis allows CONFIG SET; see NOTES-CLIMON2.md).
+    g_config.push_back({"tracking-table-max-keys", ConfigKind::Unsigned,
+                        std::to_string(cfg.tracking_table_max_keys), true});
     add_config("databases", ConfigKind::Unsigned, 1);
     add_config("proto-max-bulk-len", ConfigKind::Bytes, 512ull * 1024 * 1024);
     add_config("zc-min", ConfigKind::Unsigned, cfg.zc_min);
@@ -800,8 +813,31 @@ void cmd_pubsub_only(Shard&, Op& op) {
     reply_err(op.sink(), "ERR internal pubsub routing error");
 }
 
+// MONITOR never reaches a shard: the io dispatcher routes it into climon_start_client_command.
+// This row exists so registry validation, ACL categories and COMMAND DOCS see a real handler.
+void cmd_monitor(Shard&, Op& op) {
+    reply_err(op.sink(), "ERR MONITOR is unavailable in this execution context");
+}
+
 void cmd_client(Shard&, Op& op) {
     const Slice sub = op.arg(1);
+    // Redis answers a wrong-arity subcommand with a per-subcommand message, and an unrecognised
+    // one with the CLIENT HELP pointer -- never with a bare syntax error.
+    static constexpr struct { const char* name; const char* lower; int32_t min; int32_t max; }
+        kArity[] = {
+            {"ID", "id", 2, 2}, {"GETNAME", "getname", 2, 2}, {"SETNAME", "setname", 3, 3},
+            {"SETINFO", "setinfo", 4, 4}, {"INFO", "info", 2, 2},
+            {"NO-EVICT", "no-evict", 3, 3},
+        };
+    for (const auto& entry : kArity) {
+        if (!eq_icase(sub, entry.name)) continue;
+        if (static_cast<int32_t>(op.argc()) < entry.min ||
+            static_cast<int32_t>(op.argc()) > entry.max) {
+            climon_wrong_args(op, entry.lower);
+            return;
+        }
+        break;
+    }
     if (eq_icase(sub, "ID") && op.argc() == 2) {
         reply_int(op.sink(), g_client ? static_cast<long long>(g_client->id()) : 0);
     } else if (eq_icase(sub, "SETNAME") && op.argc() == 3) {
@@ -845,8 +881,13 @@ void cmd_client(Shard&, Op& op) {
                (eq_icase(op.arg(2), "ON") || eq_icase(op.arg(2), "OFF"))) {
         command_client_set_no_evict(g_client, eq_icase(op.arg(2), "ON"));
         reply_ok(op.sink());
-    } else {
+    } else if (eq_icase(sub, "NO-EVICT")) {
         reply_syntax(op.sink());
+    } else {
+        std::string error = "ERR Unknown subcommand or wrong number of arguments for '";
+        error.append(op.arg(1).p, op.arg(1).n);
+        error += "'. Try CLIENT HELP.";
+        reply_err(op.sink(), error.c_str());
     }
 }
 
@@ -993,7 +1034,11 @@ void cmd_config(Shard& sh, Op& op) {
             if (!parse_notify_flags(
                     Slice(update.second.data(), static_cast<uint32_t>(update.second.size())),
                     flags)) std::abort();
-            sh.set_notify_mask(flags);
+            // Preserve the tracking arm across a notify-config barrier: the CONFIG task publishes
+            // the configured classes, the tracking bit is owned by CLIENT TRACKING.
+            const bool tracking =
+                g_server && (g_server->climon_armed() & Server::kClimonTracking) != 0;
+            sh.set_notify_mask(flags | (tracking ? (NOTIFY_ALL | NOTIFY_TRACKING) : 0u));
         }
 
         // Eviction config is process-global (odd/even snapshot read by owners each pass); publish
@@ -1196,9 +1241,13 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(uptime));
     }
     if (info_section(op, "CLIENTS")) {
-        appendf(body, "# Clients\r\nconnected_clients:%llu\r\nblocked_clients:%llu\r\ntracking_clients:0\r\n",
+        appendf(body, "# Clients\r\nconnected_clients:%llu\r\nblocked_clients:%llu\r\n"
+                      "tracking_clients:%llu\r\nmonitor_clients:%llu\r\n",
                 static_cast<unsigned long long>(connected),
-                static_cast<unsigned long long>(g_server ? g_server->blocked_clients() : 0));
+                static_cast<unsigned long long>(g_server ? g_server->blocked_clients() : 0),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->climon_tracking_clients() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->climon_monitors() : 0));
     }
     if (info_section(op, "MEMORY")) {
         size_t allocated = 0, resident = 0;
@@ -1305,7 +1354,11 @@ void cmd_info(Shard&, Op& op) {
                       "script_chunk_cache_hits:%llu\r\nscript_chunk_cache_misses:%llu\r\n"
                       "script_readonly_rejections:%llu\r\n"
                       "function_generation:%llu\r\nfunction_calls:%llu\r\n"
-                      "function_thread_rebuilds:%llu\r\nfunction_readonly_rejections:%llu\r\n",
+                      "function_thread_rebuilds:%llu\r\nfunction_readonly_rejections:%llu\r\n"
+                      "monitor_feed_lines:%llu\r\nclient_pause_holds:%llu\r\n"
+                      "client_no_touch_ops:%llu\r\n"
+                      "tracking_total_keys:%llu\r\ntracking_total_items:%llu\r\n"
+                      "tracking_total_prefixes:%llu\r\ntracking_invalidations:%llu\r\n",
                 static_cast<unsigned long long>(connections), static_cast<unsigned long long>(rejected),
                 static_cast<unsigned long long>(total_ops), static_cast<unsigned long long>(hits),
                 static_cast<unsigned long long>(misses), static_cast<unsigned long long>(expired),
@@ -1380,7 +1433,14 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(functions.generation),
                 static_cast<unsigned long long>(functions.calls),
                 static_cast<unsigned long long>(functions.thread_rebuilds),
-                static_cast<unsigned long long>(functions.ro_rejections));
+                static_cast<unsigned long long>(functions.ro_rejections),
+                static_cast<unsigned long long>(g_server ? g_server->climon_monitor_lines() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->climon_pause_holds() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->climon_no_touch_ops() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->climon_tracking_keys() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->climon_tracking_items() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->climon_tracking_prefixes() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->climon_invalidations() : 0));
     }
     if (info_section(op, "COMMANDSTATS")) {
         body += "# Commandstats\r\n";
@@ -1513,7 +1573,8 @@ static const CommandSpec kTable[] = {
     {"ECHO",       2,  2, CmdFlags::ConnLocal,                                    cmd_echo,       0,  0, 0},
     {"AUTH",       2,  3, CmdFlags::ConnLocal | CmdFlags::AclExempt,              cmd_auth,       0,  0, 0},
     {"HELLO",       1, -1, CmdFlags::ConnLocal | CmdFlags::AclExempt,              cmd_hello,      0,  0, 0},
-    {"RESET",      1,  1, CmdFlags::ConnLocal | CmdFlags::AclExempt,              cmd_reset,      0,  0, 0},
+    {"RESET",      1,  1, CmdFlags::ConnLocal | CmdFlags::AclExempt |
+                          CmdFlags::Climon,                                       cmd_reset,      0,  0, 0},
     {"QUIT",       1,  1, CmdFlags::ConnLocal | CmdFlags::AclExempt,              cmd_quit,       0,  0, 0},
     {"SUBSCRIBE",   2, -1, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
     {"UNSUBSCRIBE", 1, -1, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
@@ -1524,7 +1585,12 @@ static const CommandSpec kTable[] = {
     {"PUBLISH",     3,  3, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
     {"SPUBLISH",    3,  3, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
     {"PUBSUB",      2, -1, CmdFlags::ConnLocal | CmdFlags::PubSub | CmdFlags::Admin,cmd_pubsub_only,0,0,0},
-    {"CLIENT",     2, -1, CmdFlags::ConnLocal | CmdFlags::PubSub | CmdFlags::Admin,cmd_client,    0,  0, 0},
+    {"CLIENT",     2, -1, CmdFlags::ConnLocal | CmdFlags::PubSub | CmdFlags::Admin |
+                          CmdFlags::Climon,                                       cmd_client,    0,  0, 0},
+    // MONITOR is answered entirely on the io side by the climon object; the PubSub flag is the
+    // established "io-owned async command" routing, not a pub/sub semantic.
+    {"MONITOR",    1,  1, CmdFlags::ConnLocal | CmdFlags::PubSub | CmdFlags::Admin |
+                          CmdFlags::Climon,                                       cmd_monitor,    0,  0, 0},
     {"COMMAND",    1, -1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_command,    0,  0, 0},
     {"CONFIG",     2, -1, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_config,     0,  0, 0},
     {"DEBUG",      2, -1, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_debug,      0,  0, 0},
@@ -1611,6 +1677,30 @@ void command_client_disconnected(Client* client) {
     if (client) g_client_meta.erase(client->id());
 }
 
+// Cold process-wide directory. CLIENT UNBLOCK and CLIENT TRACKING REDIRECT need to name a
+// connection owned by ANOTHER io thread; the per-owner catalog above deliberately cannot. The
+// mutex is taken at accept, at close, and by those two cold commands -- never on a reply path.
+std::mutex g_client_dir_mu;
+std::unordered_map<uint64_t, uint32_t> g_client_dir;
+
+void command_client_directory_add(uint64_t id, uint32_t io) {
+    std::lock_guard<std::mutex> lock(g_client_dir_mu);
+    g_client_dir[id] = io;
+}
+
+void command_client_directory_remove(uint64_t id) {
+    std::lock_guard<std::mutex> lock(g_client_dir_mu);
+    g_client_dir.erase(id);
+}
+
+bool command_client_directory_find(uint64_t id, uint32_t& io) {
+    std::lock_guard<std::mutex> lock(g_client_dir_mu);
+    auto found = g_client_dir.find(id);
+    if (found == g_client_dir.end()) return false;
+    io = found->second;
+    return true;
+}
+
 void command_client_set_subscriptions(Client* client, uint32_t channels, uint32_t patterns,
                                       uint32_t shard_channels) {
     ClientMeta* meta = client_meta(client);
@@ -1694,6 +1784,28 @@ bool command_client_no_evict(const Client* client) {
     return meta && meta->no_evict;
 }
 
+void command_client_set_no_touch(Client* client, bool enabled) {
+    if (ClientMeta* meta = client_meta(client)) meta->no_touch = enabled;
+}
+
+bool command_client_no_touch(const Client* client) {
+    const ClientMeta* meta = client_meta(client);
+    return meta && meta->no_touch;
+}
+
+std::string command_client_addr(const Client* client) {
+    const ClientMeta* meta = client_meta(client);
+    return meta ? meta->addr : std::string("unknown:0");
+}
+
+void command_client_set_tracking_view(Client* client, bool on, int64_t redirect, bool bcast) {
+    ClientMeta* meta = client_meta(client);
+    if (!meta) return;
+    meta->tracking = on;
+    meta->tracking_redirect = redirect;
+    meta->tracking_bcast = bcast;
+}
+
 void command_client_reset_meta(Client* client) {
     ClientMeta* meta = client_meta(client);
     if (!meta) return;
@@ -1701,6 +1813,10 @@ void command_client_reset_meta(Client* client) {
     meta->lib_name.clear();
     meta->lib_ver.clear();
     meta->no_evict = false;
+    meta->no_touch = false;
+    meta->tracking = false;
+    meta->tracking_bcast = false;
+    meta->tracking_redirect = -1;
 }
 
 bool command_prepare_scan_route(Server& server, Op& op) {

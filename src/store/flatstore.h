@@ -548,7 +548,9 @@ public:
             }
         }
         // The entire disabled-feature read tax: one predicted branch, no metadata write.
-        if (__builtin_expect(maxmemory_enabled_, false) && found) touch(found);
+        // CLIENT NO-TOUCH rides INSIDE that branch -- with maxmemory off (the default) the
+        // no-touch byte is never even loaded, because && short-circuits.
+        if (__builtin_expect(maxmemory_enabled_ && !no_touch_, false) && found) touch(found);
         return found;
     }
 
@@ -642,6 +644,9 @@ public:
 
     void set_cached_now_ms(int64_t now_ms) { cached_now_ms_ = now_ms; }
     void set_cached_lru_clock(uint8_t clock) { cached_lru_clock_ = clock; }
+    // Owner-thread scratch: the current task's CLIENT NO-TOUCH answer. Written only when
+    // maxmemory is enabled, so it costs nothing in the default configuration.
+    void set_no_touch(bool value) { no_touch_ = value; }
     void bind_expired_counter(uint64_t* counter) { expired_counter_ = counter; }
     void bind_evicted_counter(uint64_t* counter) { evicted_counter_ = counter; }
     void configure_maxmemory(bool enabled, uint64_t shard_limit, MaxmemoryPolicy policy,
@@ -1620,6 +1625,7 @@ private:
     ExpireIndex expires_;
     int64_t     cached_now_ms_ = 0;
     uint8_t     cached_lru_clock_ = 0;
+    bool        no_touch_ = false;      // per-task, owner-written; see set_no_touch
     uint64_t*   expired_counter_ = nullptr;
     uint64_t*   evicted_counter_ = nullptr;
     bool        maxmemory_enabled_ = false;
