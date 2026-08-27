@@ -606,7 +606,10 @@ void cmd_memory(Shard& shard, Op& op) {
                 return;
             }
         }
-        KvObj* object = shard.store().find_no_touch(op.hash, op.arg(2));
+        // Resident, not readable: redis reads USAGE straight out of the dictionary with no expire
+        // check, so a key that is past its deadline but not yet reaped still reports the bytes it
+        // is still holding. Every other introspection form (OBJECT, TYPE, TTL) hides it.
+        KvObj* object = shard.store().find_resident(op.hash, op.arg(2));
         if (!object) { reply_null(op.sink(), op.resp3()); return; }
         reply_int(op.sink(), static_cast<long long>(kvobj_size(object) +
                                                    FlatStore::kSlotOverheadPerKey));

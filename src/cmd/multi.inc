@@ -1647,7 +1647,8 @@ bool Shard::watch_add(Slice key, Client* client, uint64_t generation) {
     auto& entries = watchers_[owned];
     for (const WatchEntry& entry : entries)
         if (entry.client == client && entry.generation == generation) return true;
-    try { entries.push_back(WatchEntry{client, generation}); }
+    const int64_t deadline = store_.watch_deadline(FlatStore::hash_key(key), key);
+    try { entries.push_back(WatchEntry{client, generation, deadline}); }
     catch (const std::bad_alloc&) {
         if (entries.empty()) watchers_.erase(owned);
         return false;
@@ -1681,6 +1682,19 @@ bool Shard::watch_validate_and_reserve(Slice key, Client* client, uint64_t gener
         return true;
     }
     if (!watch_finalize_reservation(owned)) return false;
+    // A key that was alive when this client armed the WATCH and whose deadline has since elapsed is
+    // a change, even when nothing has reaped it yet: redis aborts EXEC in that case whether the
+    // removal came from its active cycle or is still pending. No command wrote the key, so the
+    // reservation path never hears about it -- the armed deadline is the whole record.
+    if (const auto watched = watchers_.find(owned); watched != watchers_.end()) {
+        const int64_t now = now_ms_;
+        for (const WatchEntry& entry : watched->second)
+            if (entry.client == client && entry.generation == generation &&
+                entry.expire_at_ms >= 0 && entry.expire_at_ms <= now) {
+                client->set_watch_dirty();
+                break;
+            }
+    }
     if (client->watch_generation() != generation || client->watch_dirty()) return true;
     try {
         watch_reservations_[owned] = WatchReservation{

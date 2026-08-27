@@ -292,6 +292,22 @@ Slice xshard_atomic_key_slice(const ScatterState* state, uint32_t ordered_index)
 
 namespace {
 
+// THE KEY THIS OP WAS ROUTED ON, which is not always argv[1].  Op::key() is argv[1] by
+// construction; the registry has carried the real key position since OBJECT ENCODING arrived, and
+// the IO router already hashes arg(spec->first_key) into op.hash.  The program-order and MVCC
+// bookkeeping below must name the SAME key the router hashed.  Pairing op.hash with argv[1] made a
+// container subcommand record its hazard under the literal "ENCODING"/"USAGE": no record ever
+// matched, so a younger OBJECT ENCODING overtook an older cross-shard group of its own connection
+// and answered from before it -- nil for a key its own MSET had already created, and the old
+// encoding for a key its own DEL had already removed.  For every ordinary single-key row
+// (first_key == 1) this is argv[1] and nothing changes.
+inline Slice op_routed_key(const Op& op) {
+    const int16_t first = op.spec->first_key;
+    if (first >= 1 && static_cast<uint32_t>(first) < op.argc())
+        return op.arg(static_cast<uint32_t>(first));
+    return op.key();
+}
+
 template <typename Fn>
 void for_each_touched_key(Op& op, Fn&& fn) {
     if (op.spec->flags & CmdFlags::ScriptRoute) {
@@ -305,7 +321,7 @@ void for_each_touched_key(Op& op, Fn&& fn) {
     }
     Kind kind;
     if (!classify(op, kind)) {
-        if (op.argc() > 1) fn(op.hash, op.key());
+        if (op.argc() > 1) fn(op.hash, op_routed_key(op));
         return;
     }
     uint32_t sinter_count = 0;
@@ -684,7 +700,7 @@ bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op
         own_undecided |= store.atomic_has_own_undecided(hash, key, origin_conn_id);
     };
     if (op.local_xshard()) for_each_touched_key(op, check_own);
-    else check_own(op.hash, op.key());
+    else check_own(op.hash, op_routed_key(op));
     if (own_undecided) return true;
 
     // Committed entries never park a localfast write. xshard_plain_prepare() materializes one
@@ -729,7 +745,7 @@ bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
     if (op.local_xshard()) {
         for_each_touched_key(op, std::forward<Fn>(fn));
     } else {
-        fn(op.hash, op.key());
+        fn(op.hash, op_routed_key(op));
     }
     return false;
 }
@@ -880,8 +896,9 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
                 item.key.hash, item.key.key, item.entry, item.clone, ticket);
         return true;
     }
-    store.atomic_promote_key(op.hash, op.key(), floor, cleanup_cutoff);
-    if (!store.atomic_has_record(op.hash, op.key())) return true;
+    const Slice routed = op_routed_key(op);
+    store.atomic_promote_key(op.hash, routed, floor, cleanup_cutoff);
+    if (!store.atomic_has_record(op.hash, routed)) return true;
     if (!(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
         store.atomic_set_read_context(
             plain_read_cut(server, op, cleanup_cutoff), origin_conn_id);
@@ -889,7 +906,7 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
     }
     const uint64_t snapshot = server.atomic_snapshot();
     const WorkError result = begin_plain_version(
-        server, shard, op.key(), op.hash, snapshot, origin_conn_id);
+        server, shard, routed, op.hash, snapshot, origin_conn_id);
     if (result == WorkError::None) return true;
     reply_work_error(op, result);
     return false;

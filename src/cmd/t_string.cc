@@ -247,6 +247,16 @@ void reply_invalid_expire(Op& op, const char* command) {
     reply_err(op.sink(), msg);
 }
 
+// Redis separates the two ways an expire argument can be refused: a token that is not a number at
+// all is "value is not an integer or out of range", and a number whose deadline cannot be
+// represented is "invalid expire time in '<cmd>' command". Reporting the latter for both made
+// EXPIRE/SET/GETEX/SETEX answer a wrong-but-plausible error for every non-numeric argument.
+void reply_not_integer(Op& op) {
+    reply_err(op.sink(), "ERR value is not an integer or out of range");
+}
+
+enum class ExpireArg : uint8_t { Ok, NotInteger, OutOfRange };
+
 void clear_reply(Op& op) {
     op.direct_len = 0;
     op.reply.clear();
@@ -366,21 +376,32 @@ struct SetOptions {
     int64_t expire_at_ms = -1;
 };
 
-bool expiry_at(Shard& sh, Slice arg, ExpireKind kind, int64_t& out) {
+ExpireArg expiry_at(Shard& sh, Slice arg, ExpireKind kind, int64_t& out) {
     int64_t value = 0;
-    if (!parse_i64(arg, value) || value <= 0) return false;
+    if (!parse_i64(arg, value)) return ExpireArg::NotInteger;
+    if (value <= 0) return ExpireArg::OutOfRange;
     const bool seconds = kind == ExpireKind::Ex || kind == ExpireKind::Exat;
     if (seconds) {
-        if (value > INT64_MAX / 1000) return false;
+        if (value > INT64_MAX / 1000) return ExpireArg::OutOfRange;
         value *= 1000;
     }
     if (kind == ExpireKind::Ex || kind == ExpireKind::Px) {
-        if (value > INT64_MAX - sh.now_ms()) return false;
+        if (value > INT64_MAX - sh.now_ms()) return ExpireArg::OutOfRange;
         value += sh.now_ms();
     }
-    if (value <= 0) return false;
+    if (value <= 0) return ExpireArg::OutOfRange;
     out = value;
-    return true;
+    return ExpireArg::Ok;
+}
+
+// Shared tail for every command that takes one EX/PX/EXAT/PXAT argument.
+bool apply_expiry_arg(Shard& sh, Op& op, Slice arg, ExpireKind kind, int64_t& out,
+                      const char* command) {
+    const ExpireArg parsed = expiry_at(sh, arg, kind, out);
+    if (parsed == ExpireArg::Ok) return true;
+    if (parsed == ExpireArg::NotInteger) reply_not_integer(op);
+    else reply_invalid_expire(op, command);
+    return false;
 }
 
 bool parse_set_options(Shard& sh, Op& op, SetOptions& options) {
@@ -411,10 +432,8 @@ bool parse_set_options(Shard& sh, Op& op, SetOptions& options) {
         }
     }
     if (options.expire_kind != ExpireKind::None &&
-        !expiry_at(sh, expire_arg, options.expire_kind, options.expire_at_ms)) {
-        reply_invalid_expire(op, "set");
+        !apply_expiry_arg(sh, op, expire_arg, options.expire_kind, options.expire_at_ms, "set"))
         return false;
-    }
     return true;
 }
 
@@ -508,19 +527,32 @@ void cmd_set<false>(Shard& sh, Op& op) {
 }
 #endif
 
+// Same grammar shape as parse_set_options: the option list is a loop, repeating ONE form is legal
+// and the last value wins, mixing two different forms is a syntax error, and the value itself is
+// parsed once after the loop. Redis's GETEX shares SET's extended-argument parser, so `GETEX k EX 1
+// EX 2` sets 2 and `GETEX k PERSIST PERSIST` is accepted -- the old fixed-arity form answered
+// "wrong number of arguments" for both.
 bool parse_getex_options(Op& op, ExpireKind& kind, Slice& expire_arg, bool& persist) {
-    if (op.argc() == 2) return true;
-    if (op.argc() == 3 && eq_icase(op.arg(2), "PERSIST")) {
-        persist = true;
-        return true;
+    for (uint32_t i = 2; i < op.argc(); i++) {
+        const Slice arg = op.arg(i);
+        if (eq_icase(arg, "PERSIST")) {
+            if (kind != ExpireKind::None) { reply_syntax(op.sink()); return false; }
+            persist = true;
+            continue;
+        }
+        ExpireKind form = ExpireKind::None;
+        if (eq_icase(arg, "EX")) form = ExpireKind::Ex;
+        else if (eq_icase(arg, "PX")) form = ExpireKind::Px;
+        else if (eq_icase(arg, "EXAT")) form = ExpireKind::Exat;
+        else if (eq_icase(arg, "PXAT")) form = ExpireKind::Pxat;
+        if (form == ExpireKind::None || persist || i + 1 >= op.argc() ||
+            (kind != ExpireKind::None && kind != form)) {
+            reply_syntax(op.sink());
+            return false;
+        }
+        kind = form;
+        expire_arg = op.arg(++i);
     }
-    if (op.argc() != 4) { reply_syntax(op.sink()); return false; }
-    if (eq_icase(op.arg(2), "EX")) kind = ExpireKind::Ex;
-    else if (eq_icase(op.arg(2), "PX")) kind = ExpireKind::Px;
-    else if (eq_icase(op.arg(2), "EXAT")) kind = ExpireKind::Exat;
-    else if (eq_icase(op.arg(2), "PXAT")) kind = ExpireKind::Pxat;
-    else { reply_syntax(op.sink()); return false; }
-    expire_arg = op.arg(3);
     return true;
 }
 
@@ -537,10 +569,8 @@ void cmd_getex(Shard& sh, Op& op) {
     if (!obj_type_check(o, Type::String, sink)) return;
 
     int64_t at = -1;
-    if (kind != ExpireKind::None && !expiry_at(sh, expire_arg, kind, at)) {
-        reply_invalid_expire(op, "getex");
+    if (kind != ExpireKind::None && !apply_expiry_arg(sh, op, expire_arg, kind, at, "getex"))
         return;
-    }
     reply_string_bulk(op, o);
 
     FlatStore::TtlResult result = FlatStore::TtlResult::NoChange;
@@ -988,10 +1018,7 @@ void cmd_setnx(Shard& sh, Op& op) {
 template <bool kNotify>
 void setex_generic(Shard& sh, Op& op, ExpireKind kind, const char* command) {
     int64_t expire = -1;
-    if (!expiry_at(sh, op.arg(2), kind, expire)) {
-        reply_invalid_expire(op, command);
-        return;
-    }
+    if (!apply_expiry_arg(sh, op, op.arg(2), kind, expire, command)) return;
     const StoreResult result =
         store_string_for<kNotify>(sh, op.key(), op.hash, op.arg(3), expire, true);
     if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
@@ -1200,24 +1227,55 @@ void cmd_pfcount(Shard& sh, Op& op) {
     reply_int(op.sink(), static_cast<long long>(cardinality));
 }
 
-enum class ExpireCondition : uint8_t { Always, Nx, Xx, Gt, Lt };
+// EXPIRE's option list is variadic in redis: every NX/XX/GT/LT token is folded into a flag set, so
+// repeating one is legal and XX may be combined with GT or LT. Only the two documented
+// combinations are refused, and only AFTER the whole list scans clean -- an unknown token is
+// reported first, before either compatibility rule and before the deadline is parsed.
+struct ExpireConditions {
+    bool nx = false;
+    bool xx = false;
+    bool gt = false;
+    bool lt = false;
+};
 
-bool parse_expire_condition(Op& op, ExpireCondition& condition) {
-    if (op.argc() == 3) return true;
-    if (eq_icase(op.arg(3), "NX")) condition = ExpireCondition::Nx;
-    else if (eq_icase(op.arg(3), "XX")) condition = ExpireCondition::Xx;
-    else if (eq_icase(op.arg(3), "GT")) condition = ExpireCondition::Gt;
-    else if (eq_icase(op.arg(3), "LT")) condition = ExpireCondition::Lt;
-    else { reply_syntax(op.sink()); return false; }
+// The rejected token is echoed the way redis echoes it: as a C string (so it stops at the first
+// NUL) with CR and LF folded to spaces, which is what keeps a hostile option out of the reply
+// framing.
+void reply_unsupported_expire_option(Op& op, Slice option) {
+    std::string message = "ERR Unsupported option ";
+    for (uint32_t i = 0; i < option.n; i++) {
+        const char ch = option.p[i];
+        if (ch == '\0') break;
+        message.push_back(ch == '\r' || ch == '\n' ? ' ' : ch);
+    }
+    reply_err(op.sink(), message.c_str());
+}
+
+bool parse_expire_conditions(Op& op, ExpireConditions& conditions) {
+    for (uint32_t i = 3; i < op.argc(); i++) {
+        if (eq_icase(op.arg(i), "NX")) conditions.nx = true;
+        else if (eq_icase(op.arg(i), "XX")) conditions.xx = true;
+        else if (eq_icase(op.arg(i), "GT")) conditions.gt = true;
+        else if (eq_icase(op.arg(i), "LT")) conditions.lt = true;
+        else { reply_unsupported_expire_option(op, op.arg(i)); return false; }
+    }
+    if (conditions.nx && (conditions.xx || conditions.gt || conditions.lt)) {
+        reply_err(op.sink(), "ERR NX and XX, GT or LT options at the same time are not compatible");
+        return false;
+    }
+    if (conditions.gt && conditions.lt) {
+        reply_err(op.sink(), "ERR GT and LT options at the same time are not compatible");
+        return false;
+    }
     return true;
 }
 
 template <bool kNotify>
 void expire_generic(Shard& sh, Op& op, bool absolute, bool seconds, const char* name) {
-    ExpireCondition condition = ExpireCondition::Always;
-    if (!parse_expire_condition(op, condition)) return;
+    ExpireConditions conditions;
+    if (!parse_expire_conditions(op, conditions)) return;
     int64_t when = 0;
-    if (!parse_i64(op.arg(2), when)) { reply_invalid_expire(op, name); return; }
+    if (!parse_i64(op.arg(2), when)) { reply_not_integer(op); return; }
     if (seconds) {
         if (when > INT64_MAX / 1000 || when < INT64_MIN / 1000) {
             reply_invalid_expire(op, name); return;
@@ -1232,10 +1290,10 @@ void expire_generic(Shard& sh, Op& op, bool absolute, bool seconds, const char* 
     KvObj* o = sh.store_find<kNotify>(op.hash, op.key());
     if (!o) { reply_int(op.sink(), 0); return; }
     const int64_t current = o->expire_at_ms();
-    if ((condition == ExpireCondition::Nx && current != -1) ||
-        (condition == ExpireCondition::Xx && current == -1) ||
-        (condition == ExpireCondition::Gt && (current == -1 || when <= current)) ||
-        (condition == ExpireCondition::Lt && current != -1 && when >= current)) {
+    if ((conditions.nx && current != -1) ||
+        (conditions.xx && current == -1) ||
+        (conditions.gt && (current == -1 || when <= current)) ||
+        (conditions.lt && current != -1 && when >= current)) {
         reply_int(op.sink(), 0);
         return;
     }
@@ -1347,7 +1405,7 @@ static const CommandSpec kTable[] = {
     {"SETNX",         3,  3,  CmdFlags::Write | CmdFlags::DenyOom,  TOMO_HANDLER_PAIR(cmd_setnx, 1, 1, 1)},
     {"SETEX",         4,  4,  CmdFlags::Write | CmdFlags::DenyOom,  TOMO_HANDLER_PAIR(cmd_setex, 1, 1, 1)},
     {"PSETEX",        4,  4,  CmdFlags::Write | CmdFlags::DenyOom,  TOMO_HANDLER_PAIR(cmd_psetex, 1, 1, 1)},
-    {"GETEX",         2,  4,  CmdFlags::Write,                       TOMO_HANDLER_PAIR(cmd_getex, 1, 1, 1)},
+    {"GETEX",         2, -1,  CmdFlags::Write,                       TOMO_HANDLER_PAIR(cmd_getex, 1, 1, 1)},
     {"GETDEL",        2,  2,  CmdFlags::Write,                       TOMO_HANDLER_PAIR(cmd_getdel, 1, 1, 1)},
     {"DEL",           2, -1,  CmdFlags::Write | CmdFlags::MultiShard,TOMO_HANDLER_PAIR(cmd_del, 1, -1, 1)},
     {"UNLINK",        2, -1,  CmdFlags::Write | CmdFlags::MultiShard,TOMO_HANDLER_PAIR(cmd_del, 1, -1, 1)},
@@ -1367,10 +1425,10 @@ static const CommandSpec kTable[] = {
     {"PFADD",         3, -1,  CmdFlags::Write | CmdFlags::DenyOom,  TOMO_HANDLER_PAIR(cmd_pfadd, 1, 1, 1)},
     {"PFCOUNT",       2, -1,  CmdFlags::Readonly | CmdFlags::SnapshotWrite | CmdFlags::MultiShard,TOMO_HANDLER_PAIR(cmd_pfcount,1,-1,1)},
     {"PFMERGE",       2, -1,  CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard, cmd_xshard_only, 1, -1,  1},
-    {"EXPIRE",        3,  4,  CmdFlags::Write,                       TOMO_HANDLER_PAIR(cmd_expire, 1, 1, 1)},
-    {"PEXPIRE",       3,  4,  CmdFlags::Write,                       TOMO_HANDLER_PAIR(cmd_pexpire, 1, 1, 1)},
-    {"EXPIREAT",      3,  4,  CmdFlags::Write,                       TOMO_HANDLER_PAIR(cmd_expireat, 1, 1, 1)},
-    {"PEXPIREAT",     3,  4,  CmdFlags::Write,                       TOMO_HANDLER_PAIR(cmd_pexpireat, 1, 1, 1)},
+    {"EXPIRE",        3, -1,  CmdFlags::Write,                       TOMO_HANDLER_PAIR(cmd_expire, 1, 1, 1)},
+    {"PEXPIRE",       3, -1,  CmdFlags::Write,                       TOMO_HANDLER_PAIR(cmd_pexpire, 1, 1, 1)},
+    {"EXPIREAT",      3, -1,  CmdFlags::Write,                       TOMO_HANDLER_PAIR(cmd_expireat, 1, 1, 1)},
+    {"PEXPIREAT",     3, -1,  CmdFlags::Write,                       TOMO_HANDLER_PAIR(cmd_pexpireat, 1, 1, 1)},
     {"TTL",           2,  2,  CmdFlags::Readonly,                    TOMO_HANDLER_PAIR(cmd_ttl, 1, 1, 1)},
     {"PTTL",          2,  2,  CmdFlags::Readonly,                    TOMO_HANDLER_PAIR(cmd_pttl, 1, 1, 1)},
     {"PERSIST",       2,  2,  CmdFlags::Write,                       TOMO_HANDLER_PAIR(cmd_persist, 1, 1, 1)},

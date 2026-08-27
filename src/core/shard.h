@@ -180,7 +180,14 @@ public:
 
     // WATCH state is touched only by this shard's executor.  The maps remain empty until the first
     // WATCH, so ordinary reads and writes allocate nothing and never enter registry code.
-    struct WatchEntry { Client* client = nullptr; uint64_t generation = 0; };
+    struct WatchEntry {
+        Client* client = nullptr;
+        uint64_t generation = 0;
+        // Captured while WATCH is armed, and only then. Expiry is an owner-side mutation with no
+        // command behind it, so nothing calls watch_write_committed() for it; recognising that one
+        // transition needs the deadline the key carried when the client armed the WATCH.
+        int64_t expire_at_ms = -1;
+    };
     struct WatchReservation {
         const void* token = nullptr;
         std::atomic<uint64_t>* epoch = nullptr;
