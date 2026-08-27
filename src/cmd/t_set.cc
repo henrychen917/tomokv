@@ -6,6 +6,7 @@
 // needed on a shard-owned value.
 #include "command.h"
 #include "notify.h"
+#include "xshard.h"
 #include "../core/shard.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
@@ -1223,6 +1224,141 @@ static const CommandSpec kTable[] = {
 #undef TOMO_HANDLER_PAIR
 
 }  // namespace
+
+XshardElementResult xshard_set_contains(KvObj* object, Slice member, bool& contains) {
+    contains = false;
+    if (!object) return XshardElementResult::Missing;
+    if (static_cast<Type>(object->type) != Type::Set) return XshardElementResult::WrongType;
+    contains = contains_member(as_set(object), member);
+    return XshardElementResult::Ok;
+}
+
+namespace {
+
+template <bool kNotify>
+XshardElementResult xshard_externalize_set(Shard& shard, Slice key, uint64_t hash,
+                                           KvObj*& object) {
+    CollectionRef source(object);
+    if (!source.is_embedded()) return XshardElementResult::Ok;
+    auto* value = new (std::nothrow) SetVal;
+    if (!value) return XshardElementResult::Oom;
+    for (const Compact::Entry entry : source.compact()) {
+        if (!value->append(entry.value)) {
+            delete value;
+            return XshardElementResult::Oom;
+        }
+    }
+    value->small_encoding = set_small_encoding(source);
+    value->int_width = set_int_width(source);
+    value->max_member_bytes = set_max_member_bytes(source);
+    KvObj* replacement = kvobj_new_set(key, value, object->expire_at_ms());
+    if (!replacement) {
+        delete value;
+        return XshardElementResult::Oom;
+    }
+    replacement->set_eviction_meta(object->eviction_meta());
+    const FlatStore::InsertResult inserted = shard.store_insert<kNotify>(hash, replacement);
+    if (inserted != FlatStore::InsertResult::Inserted) {
+        kvobj_free(replacement);
+        return inserted == FlatStore::InsertResult::MaxmemoryOom
+            ? XshardElementResult::Maxmemory : XshardElementResult::InsertFailed;
+    }
+    object = replacement;
+    return XshardElementResult::Ok;
+}
+
+template <bool kNotify>
+XshardElementResult xshard_remove_set_element_impl(Shard& shard, Slice key, uint64_t hash,
+                                                   Slice member) {
+    KvObj* object = shard.store_find<kNotify>(hash, key);
+    if (!object) return XshardElementResult::Missing;
+    if (static_cast<Type>(object->type) != Type::Set) return XshardElementResult::WrongType;
+    CollectionRef set = as_set(object);
+    ObjectSizeTracker size_tracker(shard.store(), object);
+    if (!remove_member(set, member)) return XshardElementResult::Missing;
+    size_tracker.finish();
+    if (!set.entries()) shard.store_erase<kNotify>(hash, key);
+    return XshardElementResult::Ok;
+}
+
+template <bool kNotify>
+XshardElementResult xshard_insert_set_element_impl(Shard& shard, Slice key, uint64_t hash,
+                                                   Slice member) {
+    KvObj* object = shard.store_find<kNotify>(hash, key);
+    if (object && static_cast<Type>(object->type) != Type::Set)
+        return XshardElementResult::WrongType;
+    if (object && contains_member(as_set(object), member)) return XshardElementResult::Ok;
+
+    // Embedded sets have fixed backing capacity. Externalize before an insertion so add_member()
+    // can retain its ordinary strong OOM guarantee without reconstructing the whole set in the
+    // scatter engine. The copy is bounded by the compact threshold; large sets are already O(1)
+    // hashtables and never enter this arm.
+    if (object && as_set(object).is_embedded()) {
+        const XshardElementResult converted =
+            xshard_externalize_set<kNotify>(shard, key, hash, object);
+        if (converted != XshardElementResult::Ok) return converted;
+    }
+
+    SetVal* owned = object ? nullptr : new (std::nothrow) SetVal;
+    if (!object && !owned) return XshardElementResult::Oom;
+    CollectionRef set = object ? as_set(object) : CollectionRef(owned);
+    ObjectSizeTracker size_tracker(shard.store(), object);
+    const CompactLimit& limit = shard.type_limits().set;
+    if (!object) {
+        int64_t integer = 0;
+        if (!parse_i64_strict(member, integer)) {
+            owned->small_encoding = SetSmallEncoding::Generic;
+            if (limit.max_entries == 0 || member.n > limit.max_value) {
+                if (!owned->table.reserve(1)) {
+                    delete owned;
+                    return XshardElementResult::Oom;
+                }
+                owned->finish_table_promotion(0);
+            }
+        } else if (limit.max_entries == 0) {
+            if (!owned->table.reserve(1)) {
+                delete owned;
+                return XshardElementResult::Oom;
+            }
+            owned->finish_table_promotion(0);
+        }
+    }
+
+    if (add_member(set, member, limit) == AddResult::Oom) {
+        if (!object) delete owned;
+        return XshardElementResult::Oom;
+    }
+    if (!object) {
+        KvObj* fresh = kvobj_adopt_set(key, owned);
+        if (!fresh) {
+            delete owned;
+            return XshardElementResult::Oom;
+        }
+        const FlatStore::InsertResult inserted = shard.store_insert<kNotify>(hash, fresh);
+        if (inserted != FlatStore::InsertResult::Inserted) {
+            kvobj_free(fresh);
+            return inserted == FlatStore::InsertResult::MaxmemoryOom
+                ? XshardElementResult::Maxmemory : XshardElementResult::InsertFailed;
+        }
+    }
+    return XshardElementResult::Ok;
+}
+
+}  // namespace
+
+XshardElementResult xshard_remove_set_element(Shard& shard, Slice key, uint64_t hash,
+                                              Slice member) {
+    return shard.notify_carrier()
+        ? xshard_remove_set_element_impl<true>(shard, key, hash, member)
+        : xshard_remove_set_element_impl<false>(shard, key, hash, member);
+}
+
+XshardElementResult xshard_insert_set_element(Shard& shard, Slice key, uint64_t hash,
+                                              Slice member) {
+    return shard.notify_carrier()
+        ? xshard_insert_set_element_impl<true>(shard, key, hash, member)
+        : xshard_insert_set_element_impl<false>(shard, key, hash, member);
+}
 
 
 namespace {

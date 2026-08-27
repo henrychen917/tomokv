@@ -881,6 +881,91 @@ def gen_xshard(rng):
     ]
     return ops
 
+
+def gen_xmove(rng):
+    """Element-mover-heavy stream: cross-key, same-key, empty, and WRONGTYPE transitions."""
+    listkeys = ["xm:list:%02d:%s" % (i, "l" * (31 + i % 5)) for i in range(14)]
+    setkeys = ["xm:set:%02d:%s" % (i, "s" * (33 + i % 7)) for i in range(14)]
+    wrongkeys = ["xm:wrong:%02d:%s" % (i, "w" * 37) for i in range(6)]
+    values = ["", "a", "bb", "value-7", "nul\x00value", "x" * 90]
+    members = ["m%d" % i for i in range(24)] + ["", "nul\x00member", "y" * 85]
+    ops = []
+
+    for key in listkeys:
+        ops.append(["RPUSH", key] + [rng.choice(values) for _ in range(rng.randrange(1, 7))])
+    for key in setkeys:
+        ops.append(["SADD", key] + rng.sample(members, rng.randrange(1, 7)))
+    for key in wrongkeys:
+        ops.append(["SET", key, rng.choice(values)])
+
+    for _ in range(4200):
+        choice = rng.randrange(24)
+        if choice < 6:
+            source = rng.choice(listkeys)
+            destination = source if rng.randrange(8) == 0 else rng.choice(listkeys)
+            ops.append(["LMOVE", source, destination, rng.choice(["LEFT", "RIGHT"]),
+                        rng.choice(["LEFT", "RIGHT"])])
+        elif choice < 9:
+            source = rng.choice(listkeys)
+            destination = source if rng.randrange(8) == 0 else rng.choice(listkeys)
+            ops.append(["RPOPLPUSH", source, destination])
+        elif choice == 9:
+            ops.append([rng.choice(["LPUSH", "RPUSH"]), rng.choice(listkeys),
+                        rng.choice(values)])
+        elif choice == 10:
+            ops.append([rng.choice(["LPOP", "RPOP"]), rng.choice(listkeys)])
+        elif choice == 11:
+            ops.append(["LRANGE", rng.choice(listkeys), "0", "-1"])
+        elif choice < 17:
+            source = rng.choice(setkeys)
+            destination = source if rng.randrange(8) == 0 else rng.choice(setkeys)
+            ops.append(["SMOVE", source, destination, rng.choice(members)])
+        elif choice == 17:
+            ops.append(["SADD", rng.choice(setkeys), rng.choice(members)])
+        elif choice == 18:
+            ops.append(["SREM", rng.choice(setkeys), rng.choice(members)])
+        elif choice == 19:
+            ops.append(["SMEMBERS", rng.choice(setkeys)])
+        elif choice == 20:
+            ops.append(["DEL", rng.choice(listkeys + setkeys)])
+        elif choice == 21:
+            ops.append(["LMOVE", rng.choice(listkeys), rng.choice(wrongkeys),
+                        rng.choice(["LEFT", "RIGHT"]), rng.choice(["LEFT", "RIGHT"])])
+        elif choice == 22:
+            ops.append(["SMOVE", rng.choice(setkeys), rng.choice(wrongkeys),
+                        rng.choice(members)])
+        else:
+            ops.append([rng.choice(["LLEN", "SCARD", "TYPE"]),
+                        rng.choice(listkeys + setkeys)])
+
+    same_list, same_set = listkeys[0], setkeys[0]
+    source_list, destination_list = listkeys[1], listkeys[-1]
+    source_set, destination_set = setkeys[1], setkeys[-1]
+    ops += [
+        ["DEL", same_list], ["RPUSH", same_list, "a", "b", "c"],
+        ["LMOVE", same_list, same_list, "LEFT", "RIGHT"],
+        ["RPOPLPUSH", same_list, same_list], ["LRANGE", same_list, "0", "-1"],
+        ["DEL", same_set], ["SADD", same_set, "member"],
+        ["SMOVE", same_set, same_set, "member"],
+        ["SMOVE", same_set, same_set, "missing"], ["SMEMBERS", same_set],
+        ["DEL", source_list, destination_list],
+        ["LMOVE", source_list, destination_list, "LEFT", "RIGHT"],
+        ["RPUSH", source_list, "only"],
+        ["RPOPLPUSH", source_list, destination_list],
+        ["EXISTS", source_list], ["LRANGE", destination_list, "0", "-1"],
+        ["DEL", source_set, destination_set],
+        ["SMOVE", source_set, destination_set, "member"],
+        ["SADD", source_set, "member"], ["SMOVE", source_set, destination_set, "member"],
+        ["EXISTS", source_set], ["SMEMBERS", destination_set],
+        ["SET", wrongkeys[0], "wrong"],
+        ["RPUSH", source_list, "kept"],
+        ["LMOVE", source_list, wrongkeys[0], "LEFT", "RIGHT"],
+        ["LRANGE", source_list, "0", "-1"],
+        ["SADD", source_set, "kept"],
+        ["SMOVE", source_set, wrongkeys[0], "kept"], ["SMEMBERS", source_set],
+    ]
+    return ops
+
 def gen_servertail(rng):
     """LCS-heavy, plus the introspection replies that are genuinely byte-comparable.
 
@@ -2237,7 +2322,8 @@ if SUITE == "climon":
     sys.exit(1 if run_climon_suite(rng) else 0)
 
 gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset,
-        "hash": gen_hash, "hexpire": gen_hexpire, "xshard": gen_xshard, "bitmap": gen_bitmap,
+        "hash": gen_hash, "hexpire": gen_hexpire, "xshard": gen_xshard,
+        "xmove": gen_xmove, "bitmap": gen_bitmap,
         "hll": gen_hll, "bitfield": gen_bitfield, "cgaps": gen_cgaps, "stream": gen_stream,
         "script": gen_script,
         "streamgrp": gen_streamgrp,
