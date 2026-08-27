@@ -19,7 +19,7 @@
                            std::atomic<uint64_t>* activity,
                            uint64_t* predecessor_reads, uint64_t* chain_max,
                            uint64_t* promotions, uint64_t* records_freed,
-                           uint64_t* entries) {
+                           uint64_t* entries, uint64_t* gauge_underflows) {
         atomic_ticket_fn_ = ticket_fn;
         atomic_ticket_ctx_ = ticket_ctx;
         atomic_activity_ = activity;
@@ -28,6 +28,7 @@
         atomic_promotions_ = promotions;
         atomic_records_freed_ = records_freed;
         atomic_entries_ = entries;
+        atomic_gauge_underflows_ = gauge_underflows;
     }
 
     bool atomic_has_records() const { return atomic_pending_ && atomic_pending_->live != 0; }
@@ -161,8 +162,24 @@
         // is physical, only the displaced predecessors remain version bytes. Fold the owner-local
         // gauge change into one write instead of mutating it twice for every installed key.
         atomic_version_bytes_ += parked_bytes;
-        if (atomic_version_bytes_ < installed_bytes) std::abort();
-        atomic_version_bytes_ -= installed_bytes;
+        atomic_gauge_sub(installed_bytes);
+    }
+
+    // THE ONE PLACE THE VERSION-BYTES GAUGE SHRINKS.  It used to be `-=` at eleven sites plus one
+    // std::abort() guard at the group-install site, which meant an over-decrement anywhere wrapped
+    // the gauge and the process died in whichever unrelated group pass next noticed the wrap.  The
+    // over-decrement it was catching was real (a read-modify-write mutated an already-parked
+    // predecessor in place, so collapse returned more bytes than install had charged), but that is
+    // a resolver defect, fixed in atomic_resolve_internal; killing the server over a memory
+    // ACCOUNTING number is a strictly worse failure than carrying a mis-sized one.  Clamp, count,
+    // and let a test assert the count is zero.  atomic_gauge_underflows is in INFO stats.
+    void atomic_gauge_sub(size_t bytes) {
+        if (__builtin_expect(bytes > atomic_version_bytes_, false)) {
+            if (atomic_gauge_underflows_) (*atomic_gauge_underflows_)++;
+            atomic_version_bytes_ = 0;
+            return;
+        }
+        atomic_version_bytes_ -= bytes;
     }
 
     void atomic_publish_group(void* opaque) {
@@ -248,7 +265,7 @@
     }
 
     void atomic_unadmit(const KvObj* incoming) {
-        if (incoming) atomic_version_bytes_ -= kvobj_size(incoming);
+        if (incoming) atomic_gauge_sub(kvobj_size(incoming));
     }
 
     void* atomic_acquire_value_block(size_t allocation) {
@@ -323,7 +340,7 @@
         entry->count = 1;
         entry->membership = atomic_membership_bit(hash);
         if (old) atomic_version_bytes_ += kvobj_size(old);
-        if (value) atomic_version_bytes_ -= kvobj_size(value);
+        if (value) atomic_gauge_sub(kvobj_size(value));
         value = nullptr;
         atomic_link_entry(*entry);
         atomic_read_epoch_ = epoch;
@@ -338,7 +355,7 @@
         entry->parked()[0] = old;
         entry->count = 1;
         if (old) atomic_version_bytes_ += kvobj_size(old);
-        if (value) atomic_version_bytes_ -= kvobj_size(value);
+        if (value) atomic_gauge_sub(kvobj_size(value));
         value = nullptr;
         atomic_link_entry(*entry);
         return old;
@@ -572,6 +589,7 @@ private:
         uint64_t winner_epoch = 0;
         bool winner_set = false;
         bool winner_physical = false;
+        bool winner_private = false;
         bool matched = false;
         auto consider = [&](AtomicEntry& owner, KvObj* candidate, bool is_physical) {
             if (owner.group_epoch && owner.group_aborted &&
@@ -584,13 +602,23 @@ private:
             // defer on their own undecided predecessor before reaching this resolver.
             if (owner.group_epoch && epoch == 0 && !own_committed) return;
             if (!(epoch <= snapshot || own_committed)) return;
-            // Equal epochs are multiple physical installs inside one command; the later occurrence
-            // is the command's final value. Distinct groups never share a ticket.
-            if (!winner_set || epoch >= winner_epoch) {
+            // RANK, NOT EPOCH.  An own still-private candidate carries epoch 0 because its ticket is
+            // not drawn yet -- it is the NEWEST value this connection has, not the oldest.  Ranking
+            // it by its epoch made it lose to any older but committed version of the same key, so
+            // the second touch of a key inside one transaction answered from before the first, and
+            // an in-place read-modify-write (RPUSH/APPEND/INCRBY) then mutated the parked
+            // predecessor -- a write that replies normally and is discarded at collapse.  A private
+            // candidate therefore outranks every committed one; among private candidates, and among
+            // committed ones, the later occurrence still wins (equal epochs are several physical
+            // installs inside one command, whose last occurrence is that command's final value).
+            const bool own_private = owner.group_epoch && epoch == 0;
+            if (!winner_set ||
+                (own_private ? true : (!winner_private && epoch >= winner_epoch))) {
                 winner = candidate;
                 winner_epoch = epoch;
                 winner_set = true;
                 winner_physical = is_physical;
+                winner_private = own_private;
             }
         };
         for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
@@ -788,7 +816,7 @@ private:
                 AtomicEntry* next = entry->next;
                 for (uint32_t i = 0; i < entry->count; i++) {
                     if (KvObj* parked = entry->parked()[i]) {
-                        atomic_version_bytes_ -= kvobj_size(parked);
+                        atomic_gauge_sub(kvobj_size(parked));
                         retire_detached_obj(parked);
                         entry->parked()[i] = nullptr;
                     }
@@ -872,11 +900,11 @@ private:
                         }
                         if (boundary) {
                             KvObj* loser = boundary->parked()[boundary_index];
-                            if (loser) atomic_version_bytes_ -= kvobj_size(loser);
+                            if (loser) atomic_gauge_sub(kvobj_size(loser));
                             if (loser != replacement) retire_detached_obj(loser);
                             boundary->parked()[boundary_index] = replacement;
                             if (parked && parked != replacement) {
-                                atomic_version_bytes_ -= kvobj_size(parked);
+                                atomic_gauge_sub(kvobj_size(parked));
                                 retire_detached_obj(parked);
                             }
                         } else {
@@ -887,12 +915,12 @@ private:
                                 retire_detached_obj(loser);
                             }
                             if (parked) {
-                                atomic_version_bytes_ -= kvobj_size(parked);
+                                atomic_gauge_sub(kvobj_size(parked));
                                 if (parked != replacement) retire_detached_obj(parked);
                             }
                         }
                     } else if (parked) {
-                        atomic_version_bytes_ -= kvobj_size(parked);
+                        atomic_gauge_sub(kvobj_size(parked));
                         retire_detached_obj(parked);
                     }
                     entry->parked()[i] = nullptr;
@@ -999,7 +1027,7 @@ private:
                 KvObj*& slot = key.boundary->parked()[key.boundary_index];
                 if (slot != key.winner) {
                     if (slot) {
-                        atomic_version_bytes_ -= kvobj_size(slot);
+                        atomic_gauge_sub(kvobj_size(slot));
                         atomic_collapse_retire_.push_back(slot);
                     }
                     slot = key.winner;
@@ -1017,7 +1045,7 @@ private:
                 AtomicCollapseKey& key = atomic_collapse_keys_[key_index(
                     atomic_entry_hash(*entry, i), atomic_entry_key(*entry, i), nullptr)];
                 if (!(key.boundary && parked == key.winner))
-                            atomic_version_bytes_ -= kvobj_size(parked);
+                            atomic_gauge_sub(kvobj_size(parked));
                 if (parked != key.winner) atomic_collapse_retire_.push_back(parked);
                 entry->parked()[i] = nullptr;
             }
@@ -1080,5 +1108,7 @@ private:
     uint64_t* atomic_promotions_ = nullptr;
     uint64_t* atomic_records_freed_ = nullptr;
     uint64_t* atomic_entries_ = nullptr;
+    // Cold: written only on the clamped path in atomic_gauge_sub, read only by INFO.
+    uint64_t* atomic_gauge_underflows_ = nullptr;
 
 public:

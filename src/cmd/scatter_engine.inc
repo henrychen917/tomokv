@@ -2297,6 +2297,16 @@ MultiChildFinish xshard_multi_child_complete(ScatterState& state, Op& op,
         finish_pfcount(state);
         return MultiChildFinish::Final;
     }
+    // Gather kinds must reduce their fragments into a final_reply HERE, exactly as xshard_finish
+    // does for the same command run bare. LCS was missing: its child reached assemble_final with
+    // final_reply still None, fell through that function's `default:` and answered
+    // "ERR internal cross-shard completion error" for two keys on different shards, while the
+    // identical bare LCS answered correctly. Kinds that reduce in a finish_* hook belong in this
+    // list; single-fragment and two-hop kinds are handled below.
+    if (state.kind == Kind::Lcs) {
+        finish_lcs(state);
+        return MultiChildFinish::Final;
+    }
     if (!state.two_hop) return MultiChildFinish::Final;
     if (finish_phase1(state, op)) return MultiChildFinish::Final;
 

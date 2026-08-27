@@ -100,7 +100,8 @@ public:
                                  &stats_.atomic_chain_max,
                                  &stats_.atomic_promotions,
                                  &stats_.atomic_records_freed,
-                                 &stats_.atomic_entries);
+                                 &stats_.atomic_entries,
+                                 &stats_.atomic_gauge_underflows);
     }
     uint32_t active_expire(uint32_t budget) { return store_.active_expire(budget); }
 
@@ -272,6 +273,11 @@ public:
         uint64_t atomic_promotions = 0;
         uint64_t atomic_records_freed = 0;
         uint64_t atomic_entries = 0;
+        // Version-bytes gauge decrements that would have taken the owner-local gauge below zero.
+        // It replaced a std::abort(): an over-decrement means the store returned more version bytes
+        // than it charged, which is a real accounting fault worth a test assertion but not worth
+        // killing the process for. Must read 0; tests/execfix.py asserts it in both atomic modes.
+        uint64_t atomic_gauge_underflows = 0;
         // Cold tail, deliberately last: keyspace table rebuilds started by this shard, reported as
         // INFO keyspace_rehashes so a scan-under-resize test can assert the hazard it guards
         // actually fired. Written once per resize and read only by INFO, so it must not push any

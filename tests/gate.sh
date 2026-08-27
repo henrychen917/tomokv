@@ -132,7 +132,13 @@ for AT in 0 1; do
   # in-EXEC read on demand. It flips `atomic` itself, so either boot covers both modes. Its armed
   # arms all assert atomic_exec_read_cuts advanced, so the row cannot print PASS on a run where the
   # transaction never entered the read-cut machinery.
-  for t in lbsignals slowlog atomfix scriptatomic execatomic execiso session_monotonic; do
+  # execfix needs the armed boot for DEBUG SHARD: without it a "two-owner transaction" arm could
+  # silently be a same-owner arm, and every write-loss row below would pass for the wrong reason.
+  # It flips `atomic` itself, so either boot covers both modes. Its rows assert counters as well as
+  # data -- atomic_predecessor_reads must stay 0 (the resolver never answered from a parked
+  # predecessor) and atomic_gauge_underflows must stay 0 (the store returned exactly the version
+  # bytes it charged) -- and a build that cannot report either counter FAILS rather than passing.
+  for t in lbsignals slowlog atomfix scriptatomic execatomic execiso execfix session_monotonic; do
     python3 tests/$t.py 127.0.0.1 $PORT >/tmp/gate-$t-$AT.txt 2>&1 \
         && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see /tmp/gate-$t-$AT.txt"
   done
