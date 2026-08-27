@@ -1720,7 +1720,7 @@ void cmd_flush(Shard& sh, Op&) {
 }
 
 void cmd_randomkey(Shard& sh, Op& op) {
-    KvObj* obj = sh.store().random_live(op.hash);
+    KvObj* obj = sh.store().random_live();
     if (!obj) reply_null(op.sink(), op.resp3());
     else reply_bulk(op.sink(), obj->key());
 }
@@ -1757,6 +1757,10 @@ void cmd_scan(Shard& sh, Op& op) {
             // Two different errors, as Redis and as HSCAN/SSCAN/ZSCAN here already spell them:
             // an unparseable COUNT is an integer error, a parseable one below 1 is a syntax
             // error. SCAN was the one member of the family answering "syntax error" to both.
+            // Verified against the 7.4 oracle: COUNT -1 and COUNT 0 are BOTH syntax errors (so the
+            // parse must be signed), and COUNT 4294967296 is ACCEPTED, so a large value clamps
+            // rather than being rejected. The sibling lane's unsigned parse got both of those
+            // backwards; this side is the one that matches.
             int64_t parsed = 0;
             if (!parse_i64_slice(op.arg(i + 1), parsed)) {
                 reply_err(op.sink(), "ERR value is not an integer or out of range"); return;
@@ -1769,11 +1773,9 @@ void cmd_scan(Shard& sh, Op& op) {
             i += 2;
         } else if (eq_icase(op.arg(i), "TYPE") && i + 1 < op.argc()) {
             type = op.arg(i + 1);
-            if (!(eq_icase(type, "STRING") || eq_icase(type, "HASH") || eq_icase(type, "LIST") ||
-                  eq_icase(type, "SET") || eq_icase(type, "ZSET") || eq_icase(type, "NONE"))) {
-                reply_syntax(op.sink()); return;
-            }
             i += 2;
+        } else if (eq_icase(op.arg(i), "NOVALUES")) {
+            reply_err(op.sink(), "ERR NOVALUES option can only be used in HSCAN"); return;
         } else { reply_syntax(op.sink()); return; }
     }
 

@@ -161,6 +161,8 @@ SnapshotManager::~SnapshotManager() {
 void SnapshotManager::init(uint32_t nthreads, uint32_t nshards, uint32_t executor_count,
                            const char* dir, const char* dbfilename,
                            PersistIoEngine engine) {
+    // Redis defines LASTSAVE before the first successful save as the server start time.
+    last_save_time_.store(realtime_ms() / 1000, std::memory_order_relaxed);
     nthreads_ = nthreads;
     nshards_ = nshards;
     executor_count_ = executor_count;

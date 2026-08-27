@@ -990,12 +990,17 @@ public:
         field_ttl_gate_ = 0;
     }
 
-    // RANDOMKEY starts at a pseudo-random physical slot and wraps at most once through both
-    // tables. Lazy expiry is performed on the owner before a key is exposed.
-    KvObj* random_live(uint64_t random) {
+    // RANDOMKEY starts from an owner-private draw, independent of the IO-side draw that selected
+    // this shard. Reusing that routing draw correlates its low bits with the shard id and leaves
+    // physical-slot residue classes unreachable when table capacities are powers of two. Reservoir
+    // selection across the one wrapped walk keeps adjacent live slots from inheriting a tiny share
+    // of a sparse table's probability. Lazy expiry is performed before a key becomes a candidate.
+    KvObj* random_live() {
         const uint64_t total = static_cast<uint64_t>(cap_[0]) + cap_[1];
         if (!total || size() == 0) return nullptr;
-        const uint64_t start_pos = random % total;
+        const uint64_t start_pos = next_random() % total;
+        KvObj* chosen = nullptr;
+        uint64_t live_seen = 0;
         for (uint64_t step = 0; step < total; step++) {
             uint64_t pos = start_pos + step;
             if (pos >= total) pos -= total;
@@ -1003,14 +1008,17 @@ public:
             const uint32_t slot = static_cast<uint32_t>(pos - (t ? cap_[0] : 0));
             KvObj* o = ptr_of(tab_[t][slot]);
             if (!o) continue;
-            if (!(o->flags & KvObjFlags::HasTtl) || o->expire_at_ms() > cached_now_ms_) return o;
+            if (!(o->flags & KvObjFlags::HasTtl) || o->expire_at_ms() > cached_now_ms_) {
+                if (next_random() % ++live_seen == 0) chosen = o;
+                continue;
+            }
             const uint64_t h = hash_key(o->key());
             notify_flat_store_emit(this, NOTIFY_EXPIRED, NotifyEventId::Expired, o->key());
             (void)aof_.record_delete(o->key());
             erase_in(t, h, o->key());
             if (expired_counter_) (*expired_counter_)++;
         }
-        return nullptr;
+        return chosen;
     }
 
     // The cursor is a bit-reversed HOME index (see scan_cursor_next above), not a physical slot and
@@ -1253,7 +1261,7 @@ private:
     }
 
     uint64_t next_random() {
-        // xorshift64*: shard-owner-only state, used only while maxmemory is enabled.
+        // xorshift64*: shard-owner-only state used by cold random sampling paths.
         uint64_t x = random_state_;
         x ^= x >> 12; x ^= x << 25; x ^= x >> 27;
         random_state_ = x;
