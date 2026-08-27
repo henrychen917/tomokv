@@ -14,6 +14,11 @@
 //   ./benchtxn fanout HOST PORT SECS SUBS PUBS THREADS PIPE [s] — SUBS subscribers on one channel,
 //                                                                 PUBS pipelined publishers;
 //                                                                 trailing 's' = sharded variant
+//   ./benchtxn mcmd  HOST PORT SECS CONNS THREADS PIPE MODE NKEYS KEYSPACE [rate_cap]
+//                    MODE = mset | mget | mix.  Multi-key cells: redis-benchmark ceilings near
+//                    600k multi-key cmd/s, so the comparison matrix drives them from here.
+//                    rate_cap (ops/s, 0 = uncapped) exists because instructions/op counts idle
+//                    spin on this architecture and is only comparable at a MATCHED achieved rate.
 //
 // Output: one machine-parseable line,  <mode> ops <n> secs <s> rate <ops/s> [deliv <n> drate <d/s>]
 // where ops = EXECs completed / pops completed / publishes acked, and deliv = message frames
@@ -475,7 +480,7 @@ static void run_mcmd(const char* host, int port, int secs, int conns, int nthrea
 
 int main(int argc, char** argv) {
     if (argc < 3) {
-        fprintf(stderr, "usage: benchtxn exec|blpop|fanout HOST PORT ... (see header)\n");
+        fprintf(stderr, "usage: benchtxn exec|blpop|fanout|mcmd HOST PORT ... (see header)\n");
         return 1;
     }
     const std::string mode = argv[1];
