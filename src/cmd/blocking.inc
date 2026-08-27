@@ -345,9 +345,11 @@ void blocking_count_parked(BlockingState& state) {
         state.server->blocking_client_parked();
 }
 
-void blocking_reply_timeout(Op& op, BlockingKind kind) {
-    if (blocking_is_move(kind)) reply_null(op.sink(), op.resp3());
-    else reply_null_array(op.sink(), op.resp3());
+void blocking_reply_timeout(Op& op, BlockingKind) {
+    // Redis 7.4 uses the blocking-command null shape for every member of this family, including
+    // BLMOVE and the legacy BRPOPLPUSH.  Under RESP2 that is a null array (`*-1`), not the null
+    // bulk string their non-blocking move counterparts return; RESP3 collapses both to `_`.
+    reply_null_array(op.sink(), op.resp3());
 }
 
 void blocking_finish_cancelled(BlockingState& state, ThreadCtx* self, Ring* ring) {

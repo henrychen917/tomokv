@@ -41,10 +41,10 @@ atomic records defer their waiter publication hook until `xshard_plain_finish` m
 visible.
 
 Executor owners sweep registries on the existing coarse beat. A finite deadline returns a null
-array for blocking pop families and a nil bulk for blocking moves. Cancellation is an atomic request;
-the owner removes aliases and completes the ROB slot, so an IO thread never frees a client beneath
-an owner callback. `INFO CLIENTS` reports `blocked_clients`, while `INFO STATS` reports registry
-alias count as `blocking_waiters`.
+array for every blocking collection command, including BLMOVE and BRPOPLPUSH. Cancellation is an
+atomic request; the owner removes aliases and completes the ROB slot, so an IO thread never frees a
+client beneath an owner callback. `INFO CLIENTS` reports `blocked_clients`, while `INFO STATS`
+reports registry alias count as `blocking_waiters`.
 
 Blocking probes also participate in snapshot pre-image preparation before an immediate owner pop.
 

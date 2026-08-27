@@ -6,7 +6,7 @@
 # Exit 0 iff zero diffs. Suites include the ordinary byte-comparison generators plus property
 # suites (e.g. s6fix, scan) for commands whose successful replies are intentionally
 # nondeterministic and must be compared as sets rather than byte streams.
-import socket, sys, random, re, time, hashlib
+import socket, sys, random, re, time, hashlib, select
 
 LIST_GENERATORS = sys.argv[1:] == ["--list-generators"]
 if LIST_GENERATORS:
@@ -21,16 +21,18 @@ else:
 RESP3 = "-3" in EXTRA
 SEED = int(next((arg for arg in EXTRA if arg != "-3"), "7"))
 
-def conn(h, p):
+def conn_mode(h, p, resp3):
     s = socket.create_connection((h, p), timeout=30)
     s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
     f = s.makefile("rb")
-    if RESP3:
+    if resp3:
         s.sendall(enc(["HELLO", "3"]))
         hello = read_reply(f)
         if not hello.startswith(b"%7\r\n"):
             raise RuntimeError("HELLO 3 failed for %s:%d: %r" % (h, p, hello[:96]))
     return s, f
+def conn(h, p):
+    return conn_mode(h, p, RESP3)
 def enc(args):
     o = b"*%d\r\n" % len(args)
     for a in args:
@@ -1822,6 +1824,310 @@ def gen_script(rng):
     ops.append(["SCRIPT", "FLUSH"])
     return ops
 
+# Blocking commands need several independently ordered clients and out-of-band writers, so they
+# cannot use the ordinary one-request/one-reply pipeline below.  The randomized body remains a
+# byte differ; the directed tail adds the wait/timeout/disconnect properties a linear stream cannot
+# express.  Two pre-existing, documented gaps are observed explicitly and counted separately from
+# unexpected differences: WAIT has no deferred standalone wait, and most blocking pops are excluded
+# from the transaction executor (NOTES-MULTI.md).
+def run_blocking_differ(rng):
+    ts, tf = conn_mode(TH, TP, False)
+    os_, of = conn_mode(OH, OP, False)
+    diffs = 0
+    checks = 0
+    logical_ops = 0
+    documented = 0
+    multi_ready_cases = 0
+
+    def mismatch(label, target, oracle):
+        nonlocal diffs
+        diffs += 1
+        if diffs <= 16:
+            print("  DIFF %s\n    target: %r\n    oracle: %r" %
+                  (label, target, oracle), flush=True)
+
+    def compare(label, target, oracle, unordered=False):
+        nonlocal checks
+        checks += 1
+        if unordered:
+            target = normalize("SMEMBERS", target)
+            oracle = normalize("SMEMBERS", oracle)
+        if target != oracle:
+            mismatch(label, target[:256], oracle[:256])
+        return target, oracle
+
+    def both(argv, label=None):
+        nonlocal logical_ops
+        payload = enc(argv)
+        ts.sendall(payload); os_.sendall(payload)
+        logical_ops += 1
+        return compare(label or " ".join(argv[:4]), read_reply(tf), read_reply(of))
+
+    def property_check(label, target, oracle):
+        nonlocal checks
+        checks += 1
+        if target != oracle:
+            mismatch(label, repr(target).encode(), repr(oracle).encode())
+        return target == oracle
+
+    def info_blocked(sock, file):
+        sock.sendall(enc(["INFO", "CLIENTS"]))
+        body = parse_reply(read_reply(file))
+        if not isinstance(body, bytes):
+            raise RuntimeError("INFO CLIENTS returned an unexpected shape: %r" % (body,))
+        match = re.search(br"(?:^|\r\n)blocked_clients:([0-9]+)(?:\r\n|$)", body)
+        if not match:
+            raise RuntimeError("INFO CLIENTS omitted blocked_clients")
+        return int(match.group(1))
+
+    def await_blocked(sock, file, wanted, timeout=3.0):
+        deadline = time.monotonic() + timeout
+        value = -1
+        while time.monotonic() < deadline:
+            value = info_blocked(sock, file)
+            if value == wanted:
+                return value
+            time.sleep(0.01)
+        return value
+
+    for sock, file in ((ts, tf), (os_, of)):
+        sock.sendall(enc(["FLUSHALL"]))
+        if read_reply(file)[:1] != b"+":
+            raise RuntimeError("FLUSHALL failed on blocking clean-slate")
+
+    # >=4k deterministic command/reply comparisons.  Every blocking command is made ready before
+    # dispatch, so this section explores parsing, key priority, edge selection and reply framing
+    # without introducing timing as a false differential signal.
+    timeouts = ["0", ".5", "0.25", "1e-3", "2"]
+    directions = ["LEFT", "RIGHT"]
+    for iteration in range(1600):
+        stem = "cbd:%d:%02d" % (SEED, iteration % 37)
+        a, b, dst = stem + ":a", stem + ":b", stem + ":dst"
+        choice = rng.randrange(8)
+        timeout = rng.choice(timeouts)
+        both(["DEL", a, b, dst], "random %d DEL" % iteration)
+        if choice == 0:
+            both(["RPUSH", a, "a%d" % iteration])
+            if rng.randrange(2):
+                both(["RPUSH", b, "b%d" % iteration])
+                multi_ready_cases += 1
+            both(["BLPOP", a, b, timeout], "random %d BLPOP" % iteration)
+        elif choice == 1:
+            both(["LPUSH", a, "a%d" % iteration])
+            if rng.randrange(2):
+                both(["LPUSH", b, "b%d" % iteration])
+                multi_ready_cases += 1
+            both(["BRPOP", a, b, timeout], "random %d BRPOP" % iteration)
+        elif choice == 2:
+            values = ["m%d:%d" % (iteration, index) for index in range(1 + rng.randrange(3))]
+            both(["RPUSH", a] + values)
+            both(["BLMOVE", a, dst, rng.choice(directions), rng.choice(directions), timeout],
+                 "random %d BLMOVE" % iteration)
+        elif choice == 3:
+            both(["RPUSH", a, "a0", "a1", "a2"])
+            if rng.randrange(2):
+                both(["RPUSH", b, "b0", "b1"])
+                multi_ready_cases += 1
+            both(["BLMPOP", timeout, "2", a, b, rng.choice(directions), "COUNT",
+                  str(1 + rng.randrange(3))], "random %d BLMPOP" % iteration)
+        elif choice == 4:
+            both(["ZADD", a, "2", "a2", "1", "a1"])
+            if rng.randrange(2):
+                both(["ZADD", b, "3", "b3"])
+                multi_ready_cases += 1
+            both(["BZPOPMIN", a, b, timeout], "random %d BZPOPMIN" % iteration)
+        elif choice == 5:
+            both(["ZADD", a, "2", "a2", "1", "a1"])
+            if rng.randrange(2):
+                both(["ZADD", b, "3", "b3"])
+                multi_ready_cases += 1
+            both(["BZPOPMAX", a, b, timeout], "random %d BZPOPMAX" % iteration)
+        elif choice == 6:
+            both(["ZADD", a, "2", "a2", "1", "a1", "3", "a3"])
+            if rng.randrange(2):
+                both(["ZADD", b, "4", "b4"])
+                multi_ready_cases += 1
+            both(["BZMPOP", timeout, "2", a, b, rng.choice(["MIN", "MAX"]), "COUNT",
+                  str(1 + rng.randrange(3))], "random %d BZMPOP" % iteration)
+        else:
+            both(["WAIT", "0", str(rng.randrange(4))], "random %d WAIT" % iteration)
+
+    # Fractional expiration on every collection family.  Both requests are sent before either
+    # reply is read, so the oracle and target wait concurrently; only their exact timeout frames
+    # are compared.
+    timeout_commands = [
+        ["BLPOP", "cbd:timeout:l", ".01"],
+        ["BRPOP", "cbd:timeout:l", "1e-2"],
+        ["BLMOVE", "cbd:timeout:src", "cbd:timeout:dst", "LEFT", "RIGHT", ".01"],
+        ["BRPOPLPUSH", "cbd:timeout:src", "cbd:timeout:dst", ".01"],
+        ["BLMPOP", ".01", "1", "cbd:timeout:l", "LEFT", "COUNT", "2"],
+        ["BZPOPMIN", "cbd:timeout:z", ".01"],
+        ["BZPOPMAX", "cbd:timeout:z", "1e-2"],
+        ["BZMPOP", ".01", "1", "cbd:timeout:z", "MIN", "COUNT", "2"],
+    ]
+    for command in timeout_commands:
+        both(command, "fractional timeout " + command[0])
+
+    # Timeout zero means forever for every blocking collection command.  Silence before the push
+    # is the negative control; the subsequent exact reply proves the waiter actually armed and
+    # then fired instead of merely being slow.
+    forever_arms = [
+        (["BLPOP", "cbd:forever:blpop", "0"],
+         ["RPUSH", "cbd:forever:blpop", "v"]),
+        (["BRPOP", "cbd:forever:brpop", "0"],
+         ["LPUSH", "cbd:forever:brpop", "v"]),
+        (["BLMOVE", "cbd:forever:blmove", "cbd:forever:dst", "RIGHT", "LEFT", "0"],
+         ["RPUSH", "cbd:forever:blmove", "v"]),
+        (["BRPOPLPUSH", "cbd:forever:brpoplpush", "cbd:forever:legacy-dst", "0"],
+         ["RPUSH", "cbd:forever:brpoplpush", "v"]),
+        (["BLMPOP", "0", "1", "cbd:forever:blmpop", "LEFT", "COUNT", "2"],
+         ["RPUSH", "cbd:forever:blmpop", "v"]),
+        (["BZPOPMIN", "cbd:forever:bzmin", "0"],
+         ["ZADD", "cbd:forever:bzmin", "1", "v"]),
+        (["BZPOPMAX", "cbd:forever:bzmax", "0"],
+         ["ZADD", "cbd:forever:bzmax", "1", "v"]),
+        (["BZMPOP", "0", "1", "cbd:forever:bzmpop", "MAX", "COUNT", "2"],
+         ["ZADD", "cbd:forever:bzmpop", "1", "v"]),
+    ]
+    for command, wake in forever_arms:
+        tbase, obase = info_blocked(ts, tf), info_blocked(os_, of)
+        tw, twf = conn_mode(TH, TP, False); ow, owf = conn_mode(OH, OP, False)
+        tw.sendall(enc(command)); ow.sendall(enc(command)); logical_ops += 1
+        tarmed = await_blocked(ts, tf, tbase + 1)
+        oarmed = await_blocked(os_, of, obase + 1)
+        property_check("%s timeout-zero armed" % command[0], tarmed == tbase + 1,
+                       oarmed == obase + 1)
+        tready = bool(select.select([tw], [], [], 0.05)[0])
+        oready = bool(select.select([ow], [], [], 0.05)[0])
+        property_check("%s timeout-zero silence" % command[0], tready, oready)
+        if tready or oready:
+            mismatch("%s timeout-zero negative control" % command[0],
+                     b"ready" if tready else b"silent", b"ready" if oready else b"silent")
+        both(wake, "%s wake write" % command[0])
+        compare("%s wake reply" % command[0], read_reply(twf), read_reply(owf))
+        tw.close(); ow.close(); twf.close(); owf.close()
+
+    # Redis serves clients blocked on one key in arrival order.  Register each client fully before
+    # creating the next so accept-thread placement cannot turn registration order into a race.
+    both(["DEL", "cbd:fifo"])
+    tbase, obase = info_blocked(ts, tf), info_blocked(os_, of)
+    waiters = []
+    for index in range(6):
+        tw, twf = conn_mode(TH, TP, False); ow, owf = conn_mode(OH, OP, False)
+        command = ["BLPOP", "cbd:fifo", "0"]
+        tw.sendall(enc(command)); ow.sendall(enc(command)); logical_ops += 1
+        tarmed = await_blocked(ts, tf, tbase + index + 1)
+        oarmed = await_blocked(os_, of, obase + index + 1)
+        property_check("FIFO waiter %d armed" % index, tarmed - tbase, oarmed - obase)
+        waiters.append((tw, twf, ow, owf))
+    both(["RPUSH", "cbd:fifo"] + ["v%d" % i for i in range(len(waiters))], "FIFO wake")
+    for index, (tw, twf, ow, owf) in enumerate(waiters):
+        target = read_reply(twf); oracle = read_reply(owf)
+        compare("FIFO waiter %d reply" % index, target, oracle)
+        expected = [b"cbd:fifo", ("v%d" % index).encode()]
+        property_check("FIFO waiter %d value" % index, parse_reply(target), expected)
+        property_check("FIFO oracle waiter %d value" % index, parse_reply(oracle), expected)
+        tw.close(); ow.close(); twf.close(); owf.close()
+
+    # A disconnect must cancel its registry entry.  The value pushed afterward is the positive
+    # control: a leaked waiter would consume it and make the immediate BLPOP return null.
+    both(["DEL", "cbd:disconnect"])
+    tbase, obase = info_blocked(ts, tf), info_blocked(os_, of)
+    tw, twf = conn_mode(TH, TP, False); ow, owf = conn_mode(OH, OP, False)
+    tw.sendall(enc(["BLPOP", "cbd:disconnect", "0"]))
+    ow.sendall(enc(["BLPOP", "cbd:disconnect", "0"])); logical_ops += 1
+    await_blocked(ts, tf, tbase + 1); await_blocked(os_, of, obase + 1)
+    tw.close(); ow.close(); twf.close(); owf.close()
+    tdrained = await_blocked(ts, tf, tbase)
+    odrained = await_blocked(os_, of, obase)
+    property_check("disconnect drains blocked client", tdrained - tbase, odrained - obase)
+    both(["RPUSH", "cbd:disconnect", "survives"], "disconnect control push")
+    target, oracle = both(["BLPOP", "cbd:disconnect", ".1"], "disconnect control pop")
+    expected = [b"cbd:disconnect", b"survives"]
+    property_check("disconnect target did not consume value", parse_reply(target), expected)
+    property_check("disconnect oracle did not consume value", parse_reply(oracle), expected)
+
+    # BLMOVE and WAIT already execute non-blockingly inside MULTI on both servers.
+    for command in (["BLMOVE", "cbd:multi:src", "cbd:multi:dst", "LEFT", "RIGHT", "0"],
+                    ["WAIT", "1", "0"]):
+        both(["MULTI"], "MULTI before " + command[0])
+        both(command, command[0] + " QUEUED")
+        both(["EXEC"], command[0] + " EXEC")
+
+    # The remaining collection pops are an existing transaction-engine exclusion.  Preserve the
+    # exact live reproducer here but do not call it an unexpected regression in this lane.
+    multi_gaps = [
+        ["BLPOP", "cbd:multi:l", "0"],
+        ["BRPOP", "cbd:multi:l", "0"],
+        ["BLMPOP", "0", "1", "cbd:multi:l", "LEFT"],
+        ["BZPOPMIN", "cbd:multi:z", "0"],
+        ["BZPOPMAX", "cbd:multi:z", "0"],
+        ["BZMPOP", "0", "1", "cbd:multi:z", "MIN"],
+    ]
+    expected_oracle = b"*1\r\n*-1\r\n"
+    for command in multi_gaps:
+        both(["MULTI"], "documented MULTI before " + command[0])
+        both(command, "documented " + command[0] + " QUEUED")
+        payload = enc(["EXEC"]); ts.sendall(payload); os_.sendall(payload); logical_ops += 1
+        target, oracle = read_reply(tf), read_reply(of)
+        checks += 1
+        if target.startswith(b"*1\r\n-ERR ") and oracle == expected_oracle:
+            documented += 1
+            print("  DOCUMENTED %s in MULTI\n    target: %r\n    oracle: %r" %
+                  (command[0], target, oracle), flush=True)
+        elif target == oracle:
+            print("  RESOLVED documented MULTI gap %s: %r" % (command[0], target), flush=True)
+        else:
+            mismatch("documented MULTI gap changed: " + command[0], target, oracle)
+
+    # WAIT needs an IO-owned deferred reply to match Redis's deadline semantics.  At the observation
+    # point the wire itself differs (target ':0', oracle silence); finite WAIT eventually has the
+    # same final integer reply.  Close the timeout-zero oracle socket after the deadline so the
+    # harness cannot hang.
+    for timeout in ("200", "0"):
+        tw, twf = conn_mode(TH, TP, False); ow, owf = conn_mode(OH, OP, False)
+        command = ["WAIT", "1", timeout]
+        tw.sendall(enc(command)); ow.sendall(enc(command)); logical_ops += 1
+        time.sleep(0.05)
+        tready = bool(select.select([tw], [], [], 0)[0])
+        oready = bool(select.select([ow], [], [], 0)[0])
+        checks += 1
+        if tready and not oready:
+            documented += 1
+            target = read_reply(twf)
+            print("  DOCUMENTED WAIT 1 %s at 50ms\n    target: %r\n    oracle: %r" %
+                  (timeout, target, b"<silent>"), flush=True)
+            if timeout != "0":
+                compare("WAIT finite final reply", target, read_reply(owf))
+        elif not tready and not oready:
+            print("  RESOLVED documented WAIT 1 %s early-reply gap" % timeout, flush=True)
+            if timeout != "0": compare("WAIT finite final reply", read_reply(twf), read_reply(owf))
+        else:
+            mismatch("WAIT 1 %s observation" % timeout,
+                     b"ready" if tready else b"silent", b"ready" if oready else b"silent")
+            if tready: read_reply(twf)
+            if oready: read_reply(owf)
+        tw.close(); ow.close(); twf.close(); owf.close()
+
+    final_t, final_o = info_blocked(ts, tf), info_blocked(os_, of)
+    property_check("blocking gauges drain", final_t, final_o)
+    property_check("target blocking gauge zero control", final_t, 0)
+    property_check("oracle blocking gauge zero control", final_o, 0)
+    if multi_ready_cases == 0:
+        mismatch("multiple-ready-key coverage did not fire", b"0", b">0")
+    ts.close(); os_.close(); tf.close(); of.close()
+    print("  coverage: multi_ready_cases=%d timeout_zero_arms=%d fifo_waiters=%d" %
+          (multi_ready_cases, len(forever_arms), len(waiters)))
+    print("DIFFER blocking: %d logical ops, %d checks, %d unexpected diffs, "
+          "%d documented differences -> %s" %
+          (logical_ops, checks, diffs, documented, "PASS" if diffs == 0 else "FAIL"))
+    return 1 if diffs else 0
+
+
+if SUITE == "blocking":
+    sys.exit(run_blocking_differ(rng))
+
+
 # Sharded pub/sub is stateful and has spontaneous delivery frames, so it cannot use the ordinary
 # one-request/one-reply pipeline below. Keep its whole differential driver in one mergeable block.
 def run_spubsub_differ(rng):
@@ -1948,6 +2254,363 @@ def run_spubsub_differ(rng):
     print("DIFFER spubsub: %d checks, %d diffs -> %s" %
           (checks, diffs, "PASS" if diffs == 0 else "FAIL"))
     return 1 if diffs else 0
+
+
+def run_pubsub_differ(rng):
+    # Full pub/sub differential.  Subscription acknowledgements and spontaneous deliveries share
+    # one connection, so every expected frame comes from a Python-side membership model.  select()
+    # is used only for negative controls; it never decides how many delivery frames to consume.
+    diffs = 0
+    checks = 0
+    logical_ops = 0
+
+    def mismatch(label, target, oracle):
+        nonlocal diffs
+        diffs += 1
+        if diffs <= 16:
+            print("  DIFF %s\n    target: %r\n    oracle: %r" %
+                  (label, target[:320] if isinstance(target, bytes) else target,
+                   oracle[:320] if isinstance(oracle, bytes) else oracle), flush=True)
+
+    def compare(label, target, oracle, unordered=False):
+        nonlocal checks
+        checks += 1
+        if unordered:
+            target = normalize("SMEMBERS", target)
+            oracle = normalize("SMEMBERS", oracle)
+        if target != oracle:
+            mismatch(label, target, oracle)
+        return target, oracle
+
+    def property_check(label, target, oracle):
+        nonlocal checks
+        checks += 1
+        if target != oracle:
+            mismatch(label, repr(target).encode(), repr(oracle).encode())
+
+    def open_pair(resp3=False):
+        t, tf = conn_mode(TH, TP, resp3)
+        o, of = conn_mode(OH, OP, resp3)
+        return t, tf, o, of
+
+    def close_pair(pair):
+        t, tf, o, of = pair
+        t.close(); o.close(); tf.close(); of.close()
+
+    def command_pair(pair, argv, label=None, unordered=False):
+        nonlocal logical_ops
+        t, tf, o, of = pair
+        payload = enc(argv)
+        t.sendall(payload); o.sendall(payload)
+        logical_ops += 1
+        return compare(label or " ".join(argv[:4]), read_reply(tf), read_reply(of), unordered)
+
+    def raw_int(reply):
+        try:
+            return int(reply[1:-2]) if reply[:1] == b":" else None
+        except ValueError:
+            return None
+
+    def parsed_count(reply):
+        parsed = parse_reply(reply)
+        if not isinstance(parsed, list) or len(parsed) != 3 or not isinstance(parsed[2], bytes):
+            return None
+        try:
+            return int(parsed[2][1:]) if parsed[2][:1] == b":" else None
+        except ValueError:
+            return None
+
+    def canonical_frames(frames):
+        return repr(sorted((parse_reply(frame) for frame in frames), key=repr)).encode()
+
+    def canonical_unsubscribe(frames):
+        parsed = [parse_reply(frame) for frame in frames]
+        labels = sorted(frame[0] for frame in parsed)
+        names = sorted(frame[1] if frame[1] is not None else b"<nil>" for frame in parsed)
+        counts = sorted(frame[2] for frame in parsed)
+        return repr((labels, names, counts)).encode()
+
+    # Unsubscribing from nothing has a real confirmation frame (including a null channel), under
+    # both RESP2 array and RESP3 push framing.  The parsed shape assertion is the non-vacuous arm.
+    for resp3 in (False, True):
+        pair = open_pair(resp3)
+        for verb in ("UNSUBSCRIBE", "PUNSUBSCRIBE", "SUNSUBSCRIBE"):
+            target, oracle = command_pair(pair, [verb], "%s empty RESP%d" %
+                                          (verb, 3 if resp3 else 2))
+            expected = [verb.lower().encode(), None, b":0"]
+            property_check("%s target empty shape" % verb, parse_reply(target), expected)
+            property_check("%s oracle empty shape" % verb, parse_reply(oracle), expected)
+        close_pair(pair)
+
+    token = "psd:%d" % SEED
+    admin = open_pair(False)
+
+    # Confirmation counts combine regular channels + patterns, while shard counts remain a
+    # separate namespace.  No-argument unsubscribe order is unspecified, so compare the frame
+    # multiset and the complete descending count set rather than dictionary iteration order.
+    mixed = open_pair(False)
+    regular = [token + ":count:r0", token + ":count:r1"]
+    patterns = [token + ":count:p0:*", token + ":count:p1:*"]
+    shards = [token + ":count:s0", token + ":count:s1"]
+    for verb, names, wanted in (("SUBSCRIBE", regular, [1, 2]),
+                                ("PSUBSCRIBE", patterns, [3, 4]),
+                                ("SSUBSCRIBE", shards, [1, 2])):
+        t, tf, o, of = mixed
+        payload = enc([verb] + names); t.sendall(payload); o.sendall(payload); logical_ops += 1
+        for index, count in enumerate(wanted):
+            target, oracle = compare("%s count %d" % (verb, index),
+                                     read_reply(tf), read_reply(of))
+            property_check("%s target count %d" % (verb, index), parsed_count(target), count)
+            property_check("%s oracle count %d" % (verb, index), parsed_count(oracle), count)
+
+    for verb, missing, count in (("UNSUBSCRIBE", token + ":count:missing", 4),
+                                 ("PUNSUBSCRIBE", token + ":count:missing:*", 4),
+                                 ("SUNSUBSCRIBE", token + ":count:missing-shard", 2)):
+        target, oracle = command_pair(mixed, [verb, missing], verb + " missing")
+        property_check(verb + " target missing count", parsed_count(target), count)
+        property_check(verb + " oracle missing count", parsed_count(oracle), count)
+
+    def unsubscribe_all(pair, verb, count, remaining=0):
+        nonlocal logical_ops
+        t, tf, o, of = pair
+        payload = enc([verb]); t.sendall(payload); o.sendall(payload); logical_ops += 1
+        target = [read_reply(tf) for _ in range(count)]
+        oracle = [read_reply(of) for _ in range(count)]
+        compare(verb + " all", canonical_unsubscribe(target), canonical_unsubscribe(oracle))
+        tcounts = sorted(parsed_count(frame) for frame in target)
+        ocounts = sorted(parsed_count(frame) for frame in oracle)
+        wanted = list(range(remaining, remaining + count))
+        property_check(verb + " target all counts", tcounts, wanted)
+        property_check(verb + " oracle all counts", ocounts, wanted)
+
+    unsubscribe_all(mixed, "UNSUBSCRIBE", len(regular), len(patterns))
+    unsubscribe_all(mixed, "PUNSUBSCRIBE", len(patterns))
+    unsubscribe_all(mixed, "SUNSUBSCRIBE", len(shards))
+    close_pair(mixed)
+
+    # One exact arm and two overlapping patterns must produce three frames.  Pattern iteration order
+    # is not contractual, so compare a multiset here; the ordered arm below uses exact delivery.
+    overlap = open_pair(False)
+    channel = token + ":overlap:news:42"
+    overlap_patterns = [token + ":overlap:news:*", token + ":overlap:*:42"]
+    command_pair(overlap, ["SUBSCRIBE", channel], "overlap exact ack")
+    t, tf, o, of = overlap
+    payload = enc(["PSUBSCRIBE"] + overlap_patterns)
+    t.sendall(payload); o.sendall(payload); logical_ops += 1
+    for index in range(2):
+        compare("overlap pattern ack %d" % index, read_reply(tf), read_reply(of))
+    target_pub, oracle_pub = command_pair(admin, ["PUBLISH", channel, "payload"],
+                                          "overlap PUBLISH")
+    property_check("overlap target arm count", raw_int(target_pub), 3)
+    property_check("overlap oracle arm count", raw_int(oracle_pub), 3)
+    target_frames = [read_reply(tf) for _ in range(3)]
+    oracle_frames = [read_reply(of) for _ in range(3)]
+    compare("overlapping exact/pattern deliveries", canonical_frames(target_frames),
+            canonical_frames(oracle_frames))
+    target_kinds = sorted(parse_reply(frame)[0] for frame in target_frames)
+    oracle_kinds = sorted(parse_reply(frame)[0] for frame in oracle_frames)
+    wanted_kinds = [b"message", b"pmessage", b"pmessage"]
+    property_check("overlap target fired all arms", target_kinds, wanted_kinds)
+    property_check("overlap oracle fired all arms", oracle_kinds, wanted_kinds)
+    command_pair(overlap, ["RESET"], "overlap RESET")
+    close_pair(overlap)
+
+    # RESP2 restricts ordinary commands in subscriber mode; RESP3 permits them.  The exact error,
+    # PING framing and ordinary RESP3 replies are all byte-compared.
+    for resp3 in (False, True):
+        mode = open_pair(resp3)
+        mode_channel = token + ":mode:%d" % (3 if resp3 else 2)
+        command_pair(mode, ["SUBSCRIBE", mode_channel], "mode RESP%d subscribe" %
+                     (3 if resp3 else 2))
+        ping, _ = command_pair(mode, ["PING", "hello"], "mode RESP%d PING" %
+                               (3 if resp3 else 2))
+        set_reply, _ = command_pair(mode, ["SET", token + ":mode:key", "value"],
+                                    "mode RESP%d SET" % (3 if resp3 else 2))
+        pubsub_reply, _ = command_pair(mode, ["PUBSUB", "NUMSUB", mode_channel],
+                                       "mode RESP%d PUBSUB" % (3 if resp3 else 2))
+        for invalid in (["PUBSUB", "BOGUS"], ["PUBSUB", "NUMPAT", "extra"],
+                        ["PUBSUB", "HELP", "extra"],
+                        ["PUBSUB", "CHANNELS", "a", "b"]):
+            command_pair(mode, invalid, "mode RESP%d %s" %
+                         (3 if resp3 else 2, " ".join(invalid[:2])))
+        publish_reply, _ = command_pair(mode, ["PUBLISH", token + ":mode:other", "x"],
+                                        "mode RESP%d PUBLISH" % (3 if resp3 else 2))
+        if resp3:
+            property_check("RESP3 subscriber PING is ordinary bulk reply", ping[:1], b"$")
+            property_check("RESP3 subscriber SET permitted", set_reply, b"+OK\r\n")
+            property_check("RESP3 subscriber PUBSUB permitted", pubsub_reply[:1], b"*")
+            property_check("RESP3 subscriber PUBLISH permitted", publish_reply[:1], b":")
+        else:
+            property_check("RESP2 subscriber PING uses array", ping[:1], b"*")
+            property_check("RESP2 subscriber SET restricted", set_reply[:1], b"-")
+            property_check("RESP2 subscriber PUBSUB restricted", pubsub_reply[:1], b"-")
+            property_check("RESP2 subscriber PUBLISH restricted", publish_reply[:1], b"-")
+        command_pair(mode, ["RESET"], "mode RESP%d RESET" % (3 if resp3 else 2))
+        close_pair(mode)
+
+    # Ordered stream to one exact subscriber.  Publishers are pipelined, but every subscriber frame
+    # is compared and its payload is checked against the sequence number, so loss and reorder fire.
+    ordered = open_pair(False)
+    ordered_channel = token + ":ordered"
+    command_pair(ordered, ["SUBSCRIBE", ordered_channel], "ordered subscribe")
+    count = 128
+    burst = b"".join(enc(["PUBLISH", ordered_channel, str(i)]) for i in range(count))
+    admin[0].sendall(burst); admin[2].sendall(burst); logical_ops += count
+    for index in range(count):
+        compare("ordered publish reply %d" % index, read_reply(admin[1]), read_reply(admin[3]))
+    for index in range(count):
+        target, oracle = compare("ordered delivery %d" % index,
+                                 read_reply(ordered[1]), read_reply(ordered[3]))
+        expected = [b"message", ordered_channel.encode(), str(index).encode()]
+        property_check("ordered target payload %d" % index, parse_reply(target), expected)
+        property_check("ordered oracle payload %d" % index, parse_reply(oracle), expected)
+    command_pair(ordered, ["RESET"], "ordered RESET")
+    close_pair(ordered)
+
+    # Randomized stateful stream.  Every regular channel matches at most one of these patterns, so
+    # exact-before-pattern delivery order is byte-comparable while exact+pattern overlap still fires.
+    channels = [token + ":d:%d:%d" % (group, index)
+                for group in range(3) for index in range(4)]
+    shard_channels = [token + ":s:%d" % index for index in range(6)]
+    model_patterns = [token + ":d:%d:*" % group for group in range(3)]
+
+    def pattern_matches(pattern, name):
+        return pattern.endswith("*") and name.startswith(pattern[:-1])
+
+    subscribers = []
+    for index in range(6):
+        pair = open_pair(index % 2 == 1)
+        state = {"pair": pair, "exact": set(), "patterns": set(), "shard": set()}
+        for name in rng.sample(channels, 2):
+            command_pair(pair, ["SUBSCRIBE", name], "random initial SUBSCRIBE")
+            state["exact"].add(name)
+        if index % 3 != 2:
+            pattern = model_patterns[index % len(model_patterns)]
+            command_pair(pair, ["PSUBSCRIBE", pattern], "random initial PSUBSCRIBE")
+            state["patterns"].add(pattern)
+        shard = shard_channels[index % len(shard_channels)]
+        command_pair(pair, ["SSUBSCRIBE", shard], "random initial SSUBSCRIBE")
+        state["shard"].add(shard)
+        subscribers.append(state)
+
+    def expected_frames(state, name, shard):
+        if shard:
+            return 1 if name in state["shard"] else 0
+        return ((1 if name in state["exact"] else 0) +
+                sum(1 for pattern in state["patterns"] if pattern_matches(pattern, name)))
+
+    def assert_ack_count(label, state, target, oracle, shard):
+        wanted = len(state["shard"] if shard else state["exact"] | state["patterns"])
+        property_check(label + " target model count", parsed_count(target), wanted)
+        property_check(label + " oracle model count", parsed_count(oracle), wanted)
+
+    for iteration in range(4000):
+        choice = rng.randrange(100)
+        if choice < 58:
+            name = rng.choice(channels)
+            message = "r%d:%d" % (iteration, rng.randrange(1000000))
+            target, oracle = command_pair(admin, ["PUBLISH", name, message],
+                                          "random PUBLISH %d" % iteration)
+            wanted = sum(expected_frames(state, name, False) for state in subscribers)
+            property_check("random PUBLISH target count %d" % iteration, raw_int(target), wanted)
+            property_check("random PUBLISH oracle count %d" % iteration, raw_int(oracle), wanted)
+            for sub_index, state in enumerate(subscribers):
+                for frame_index in range(expected_frames(state, name, False)):
+                    pair = state["pair"]
+                    compare("random message %d sub%d frame%d" %
+                            (iteration, sub_index, frame_index),
+                            read_reply(pair[1]), read_reply(pair[3]))
+        elif choice < 68:
+            name = rng.choice(shard_channels)
+            message = "s%d:%d" % (iteration, rng.randrange(1000000))
+            target, oracle = command_pair(admin, ["SPUBLISH", name, message],
+                                          "random SPUBLISH %d" % iteration)
+            wanted = sum(expected_frames(state, name, True) for state in subscribers)
+            property_check("random SPUBLISH target count %d" % iteration, raw_int(target), wanted)
+            property_check("random SPUBLISH oracle count %d" % iteration, raw_int(oracle), wanted)
+            for sub_index, state in enumerate(subscribers):
+                if expected_frames(state, name, True):
+                    pair = state["pair"]
+                    compare("random smessage %d sub%d" % (iteration, sub_index),
+                            read_reply(pair[1]), read_reply(pair[3]))
+        elif choice < 76:
+            state = rng.choice(subscribers); name = rng.choice(channels)
+            subscribe = rng.randrange(2) == 0
+            verb = "SUBSCRIBE" if subscribe else "UNSUBSCRIBE"
+            target, oracle = command_pair(state["pair"], [verb, name],
+                                          "random %s %d" % (verb, iteration))
+            if subscribe: state["exact"].add(name)
+            else: state["exact"].discard(name)
+            assert_ack_count("random %s %d" % (verb, iteration), state, target, oracle, False)
+        elif choice < 84:
+            state = rng.choice(subscribers); pattern = rng.choice(model_patterns)
+            subscribe = rng.randrange(2) == 0
+            verb = "PSUBSCRIBE" if subscribe else "PUNSUBSCRIBE"
+            target, oracle = command_pair(state["pair"], [verb, pattern],
+                                          "random %s %d" % (verb, iteration))
+            if subscribe: state["patterns"].add(pattern)
+            else: state["patterns"].discard(pattern)
+            assert_ack_count("random %s %d" % (verb, iteration), state, target, oracle, False)
+        elif choice < 90:
+            state = rng.choice(subscribers); name = rng.choice(shard_channels)
+            subscribe = rng.randrange(2) == 0
+            verb = "SSUBSCRIBE" if subscribe else "SUNSUBSCRIBE"
+            target, oracle = command_pair(state["pair"], [verb, name],
+                                          "random %s %d" % (verb, iteration))
+            if subscribe: state["shard"].add(name)
+            else: state["shard"].discard(name)
+            assert_ack_count("random %s %d" % (verb, iteration), state, target, oracle, True)
+        else:
+            introspection = rng.randrange(5)
+            if introspection == 0:
+                command_pair(admin, ["PUBSUB", "CHANNELS", token + ":d:*"],
+                             "random PUBSUB CHANNELS", True)
+            elif introspection == 1:
+                command_pair(admin, ["PUBSUB", "SHARDCHANNELS", token + ":s:*"],
+                             "random PUBSUB SHARDCHANNELS", True)
+            elif introspection == 2:
+                command_pair(admin, ["PUBSUB", "NUMSUB"] + rng.sample(channels, 3),
+                             "random PUBSUB NUMSUB")
+            elif introspection == 3:
+                command_pair(admin, ["PUBSUB", "SHARDNUMSUB"] +
+                             rng.sample(shard_channels, 3), "random PUBSUB SHARDNUMSUB")
+            else:
+                target, oracle = command_pair(admin, ["PUBSUB", "NUMPAT"],
+                                              "random PUBSUB NUMPAT")
+                wanted = len(set().union(*(state["patterns"] for state in subscribers)))
+                property_check("random NUMPAT target model", raw_int(target), wanted)
+                property_check("random NUMPAT oracle model", raw_int(oracle), wanted)
+
+    # Sentinel: the next exact delivery must be the sentinel, proving the model did not under-read
+    # an earlier publish.  The explicit receiver count is the zero-vacuity control.
+    sentinel = channels[0]
+    target, oracle = command_pair(admin, ["PUBLISH", sentinel, "sentinel-final"],
+                                  "random sentinel PUBLISH")
+    wanted = sum(expected_frames(state, sentinel, False) for state in subscribers)
+    property_check("sentinel target receiver count", raw_int(target), wanted)
+    property_check("sentinel oracle receiver count", raw_int(oracle), wanted)
+    if wanted == 0:
+        mismatch("sentinel receiver control", b"0", b">0")
+    for sub_index, state in enumerate(subscribers):
+        for frame_index in range(expected_frames(state, sentinel, False)):
+            pair = state["pair"]
+            target_frame, oracle_frame = compare("sentinel sub%d frame%d" %
+                                                 (sub_index, frame_index),
+                                                 read_reply(pair[1]), read_reply(pair[3]))
+            property_check("sentinel target payload", b"sentinel-final" in target_frame, True)
+            property_check("sentinel oracle payload", b"sentinel-final" in oracle_frame, True)
+
+    for state in subscribers:
+        command_pair(state["pair"], ["RESET"], "random subscriber RESET")
+        close_pair(state["pair"])
+    close_pair(admin)
+    print("DIFFER pubsub: %d logical ops, %d checks, %d diffs -> %s" %
+          (logical_ops, checks, diffs, "PASS" if diffs == 0 else "FAIL"))
+    return 1 if diffs else 0
+
+
+if SUITE == "pubsub":
+    sys.exit(run_pubsub_differ(rng))
 
 def run_fanout_differ(rng):
     # FANOUT differential: every delivered frame is byte-compared against Redis, in order, for a
@@ -2674,7 +3337,7 @@ gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset
         "scan": gen_scan, "multi": gen_multi,
         "servertail": gen_servertail}
 if LIST_GENERATORS:
-    print("\n".join(gens))
+    print("\n".join(list(gens) + ["blocking", "pubsub"]))
     sys.exit(0)
 ops = gens[SUITE](rng)
 
