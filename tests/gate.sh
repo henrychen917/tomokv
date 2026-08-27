@@ -126,7 +126,7 @@ for AT in 0 1; do
   # than one owner, and ATOMIC-FANOUT-DEFER parks all but the lead fragment of a cross-shard read
   # so a whole transaction can commit inside the fan-out on demand. It flips `atomic` itself, so
   # either boot covers both modes.
-  for t in lbsignals slowlog atomfix scriptatomic execatomic; do
+  for t in lbsignals slowlog atomfix scriptatomic execatomic session_monotonic; do
     python3 tests/$t.py 127.0.0.1 $PORT >/tmp/gate-$t-$AT.txt 2>&1 \
         && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see /tmp/gate-$t-$AT.txt"
   done
