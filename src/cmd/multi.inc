@@ -65,6 +65,20 @@ struct MultiWriteKey {
     int32_t shard = -1;
 };
 
+struct MultiWriteKeyHash {
+    size_t operator()(const MultiWriteKey& key) const {
+        return static_cast<size_t>(key.hash ^
+            (static_cast<uint64_t>(static_cast<uint32_t>(key.shard)) *
+             0x9e3779b97f4a7c15ULL));
+    }
+};
+
+struct MultiWriteKeyEqual {
+    bool operator()(const MultiWriteKey& left, const MultiWriteKey& right) const {
+        return left.shard == right.shard && left.key == right.key;
+    }
+};
+
 struct MultiSession {
     bool active = false;
     bool queue_error = false;
@@ -91,6 +105,7 @@ struct alignas(8) MultiExecState {
     std::vector<std::unique_ptr<MultiCommand>> commands;
     std::vector<MultiWatchedKey> watched;
     std::vector<MultiWriteKey> write_keys;
+    std::unordered_set<MultiWriteKey, MultiWriteKeyHash, MultiWriteKeyEqual> write_key_set;
     std::vector<int32_t> shards;
     // IO builds these in transaction order. Each cursor has exactly one shard-owner writer.
     std::vector<std::vector<uint32_t>> shard_commands;
@@ -279,10 +294,10 @@ void add_write_key(MultiExecState& state, const MultiCommand& command, uint32_t 
     const uint32_t arg = command.key_args[index];
     const std::string& key = command.queued.argv[arg];
     const int32_t shard = command.key_shards[index];
-    for (const MultiWriteKey& existing : state.write_keys)
-        if (existing.shard == shard && existing.key == key) return;
-    state.write_keys.push_back(MultiWriteKey{
-        key, FlatStore::hash_key(Slice(key.data(), static_cast<uint32_t>(key.size()))), shard});
+    MultiWriteKey candidate{
+        key, FlatStore::hash_key(Slice(key.data(), static_cast<uint32_t>(key.size()))), shard};
+    if (!state.write_key_set.emplace(candidate).second) return;
+    state.write_keys.push_back(std::move(candidate));
 }
 
 bool command_has_owner_work(const MultiCommand& command);
@@ -291,6 +306,7 @@ bool prepare_commands(Server& server, MultiExecState& state,
                       std::vector<MultiQueuedCommand>& queue, uint8_t db) {
     try {
         state.commands.reserve(queue.size());
+        state.write_key_set.reserve(queue.size());
         for (MultiQueuedCommand& queued : queue) {
             auto command = std::make_unique<MultiCommand>();
             command->notify_order_base =
