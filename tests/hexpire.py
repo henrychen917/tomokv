@@ -442,7 +442,7 @@ def test_representations(c):
 
     # an embedded (one-allocation) hash is externalized by its first field deadline
     c.cmd("HSET", "small", "f", "v")
-    check("small hash starts compact", c.cmd("OBJECT", "ENCODING", "small"), b"compact")
+    check("small hash starts listpack (redis encoding name)", c.cmd("OBJECT", "ENCODING", "small"), b"listpack")
     check("first deadline on a small hash", c.cmd("HEXPIRE", "small", "100", "FIELDS", "1", "f"),
           [1])
     check("value survives externalization", c.cmd("HGET", "small", "f"), b"v")

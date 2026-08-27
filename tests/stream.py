@@ -332,6 +332,9 @@ note("one-entry memory floor tracks ~140B design (well below 4.4KiB)", per_strea
 # instead: the full structure costs kilobytes where the compact form costs ~140B, and the jump
 # must happen exactly once as entries accumulate.
 admin.cmd("DEL", "stream:migrate")
+# The rollover budget is live config (xgroups adopted redis's stream-node-max-entries, default
+# 100); pin it low so the compact->full flip lands inside this short loop deterministically.
+admin.cmd("CONFIG", "SET", "stream-node-max-entries", "8")
 admin.cmd("XADD", "stream:migrate", "1-0", "f", "v")
 note("stream reports the redis encoding name",
      admin.cmd("OBJECT", "ENCODING", "stream:migrate") == b"stream")
@@ -339,6 +342,7 @@ usages = [admin.cmd("MEMORY", "USAGE", "stream:migrate")]
 for ident in range(2, 20):
     admin.cmd("XADD", "stream:migrate", "%d-0" % ident, "f", "v")
     usages.append(admin.cmd("MEMORY", "USAGE", "stream:migrate"))
+admin.cmd("CONFIG", "SET", "stream-node-max-entries", "100")
 jumps = sum(1 for i in range(1, len(usages)) if usages[i] - usages[i - 1] > 2048)
 note("compact-to-stream migration flips exactly once",
      usages[0] < 1024 and usages[-1] > 2048 and jumps == 1,
