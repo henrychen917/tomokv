@@ -198,6 +198,10 @@ void cmd_waitaof(Shard&, Op& op) {
         reply_err(op.sink(), "ERR value is out of range, value must between 0 and 1");
         return;
     }
+    if (numreplicas < 0) {
+        reply_err(op.sink(), "ERR value is out of range, must be positive");
+        return;
+    }
     if (timeout < 0) { reply_err(op.sink(), "ERR timeout is negative"); return; }
 
     Server* server = command_server();

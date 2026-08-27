@@ -2,7 +2,8 @@
 # DIFFERENTIAL battery: run one deterministic command stream against the TARGET (tomokv-cpp) and
 # the ORACLE (the optimized Redis fork -- byte-exact redis semantics) and diff every reply.
 #   python3 tests/differ.py <target_host> <target_port> <oracle_host> <oracle_port> <suite> [seed] [-3]
-# Exit 0 iff zero diffs. Suites: string (more added per type lane).
+# Exit 0 iff zero diffs. Suites include the ordinary byte-comparison generators plus property
+# suites such as s6fix for commands whose successful replies are intentionally nondeterministic.
 import socket, sys, random, re, time, hashlib
 
 TH, TP, OH, OP = sys.argv[1], int(sys.argv[2]), sys.argv[3], int(sys.argv[4])
@@ -2235,6 +2236,170 @@ def run_climon_suite(rng):
 
 if SUITE == "climon":
     sys.exit(1 if run_climon_suite(rng) else 0)
+
+
+def run_s6fix_suite(rng):
+    """A4-A7 differential properties plus 4,000 byte-compared mixed operations.
+
+    RANDOMKEY values and LASTSAVE seconds cannot be compared pairwise, and TomoKV's outer SCAN
+    cursor deliberately carries a shard id. Compare their observable properties instead; retain
+    byte comparison for every deterministic validation reply and for the randomized command mix.
+    Both servers must be purpose-booted with appendonly disabled so WAITAOF's [0,0] control is
+    meaningful.
+    """
+    ts, tf = conn(TH, TP)
+    os_, of = conn(OH, OP)
+    diffs = 0
+    logical_ops = 0
+
+    def command(sock, file, argv):
+        nonlocal logical_ops
+        sock.sendall(enc(argv))
+        logical_ops += 1
+        return read_reply(file)
+
+    def mismatch(label, target, oracle):
+        nonlocal diffs
+        diffs += 1
+        if diffs <= 12:
+            print("  DIFF %s\n    target: %r\n    oracle: %r" % (label, target, oracle))
+
+    def compare(argv, label=None):
+        target = command(ts, tf, argv)
+        oracle = command(os_, of, argv)
+        if target != oracle:
+            mismatch(label or " ".join(argv[:4]), target, oracle)
+        return target, oracle
+
+    for sock, file in ((ts, tf), (os_, of)):
+        if command(sock, file, ["FLUSHALL"])[:1] != b"+":
+            raise RuntimeError("FLUSHALL failed on s6fix clean-slate")
+        configured = parse_reply(command(sock, file, ["CONFIG", "GET", "appendonly"]))
+        if configured != [b"appendonly", b"no"]:
+            raise RuntimeError("s6fix differ must be purpose-booted with appendonly no")
+
+    # A4: values are random, so compare reachability and the zero-valued controls on each side.
+    expected = {("s6d:rk:%03d" % i).encode() for i in range(200)}
+    for key in sorted(expected):
+        compare(["SET", key.decode(), "v"], "A4 setup %s" % key.decode())
+    counts = []
+    for sock, file in ((ts, tf), (os_, of)):
+        seen = {}
+        for base in range(0, 20000, 64):
+            width = min(64, 20000 - base)
+            sock.sendall(enc(["RANDOMKEY"]) * width)
+            logical_ops += width
+            for _ in range(width):
+                value = parse_reply(read_reply(file))
+                seen[value] = seen.get(value, 0) + 1
+        counts.append(seen)
+    for side, seen in zip(("target", "oracle"), counts):
+        missing = sorted(expected - set(seen))
+        unexpected = sorted(set(seen) - expected - {None}, key=repr)
+        nulls = seen.get(None, 0)
+        if missing:
+            mismatch("A4 %s missing" % side, missing, [])
+        if unexpected:
+            mismatch("A4 %s unexpected-key control" % side, unexpected, [])
+        if nulls:
+            mismatch("A4 %s null control" % side, nulls, 0)
+        print("  A4 %s distinct=%d missing=%d unexpected=%d nulls=%d" %
+              (side, len(set(seen) & expected), len(missing), len(unexpected), nulls))
+
+    # A5: independently exhaust each server's cursor, then compare the complete key sets.
+    for sock, file in ((ts, tf), (os_, of)):
+        command(sock, file, ["FLUSHALL"])
+        command(sock, file, ["XADD", "s6d:stream", "1-0", "f", "v"])
+        command(sock, file, ["SET", "s6d:string", "v"])
+
+    def scan_type(sock, file, type_name):
+        cursor = b"0"
+        keys = []
+        calls = 0
+        while True:
+            raw = command(sock, file,
+                          ["SCAN", cursor.decode(), "COUNT", "10000", "TYPE", type_name])
+            calls += 1
+            if raw[:1] == b"-":
+                return raw, keys, calls
+            parsed = parse_reply(raw)
+            if not isinstance(parsed, list) or len(parsed) != 2:
+                return b"invalid reply shape", keys, calls
+            cursor, page = parsed
+            keys.extend(page)
+            if cursor == b"0":
+                return None, keys, calls
+            if calls > 300:
+                return b"cursor did not terminate", keys, calls
+
+    stream_results = [scan_type(sock, file, "stream") for sock, file in ((ts, tf), (os_, of))]
+    unknown_results = [scan_type(sock, file, "not-a-real-type")
+                       for sock, file in ((ts, tf), (os_, of))]
+    for label, results, want in (("A5 stream", stream_results, [b"s6d:stream"]),
+                                 ("A5 unknown control", unknown_results, [])):
+        for side, (error, keys, calls) in zip(("target", "oracle"), results):
+            if error is not None:
+                mismatch("%s %s error" % (label, side), error, None)
+            if sorted(keys) != want:
+                mismatch("%s %s keys" % (label, side), sorted(keys), want)
+            print("  %s %s calls=%d keys=%r" % (label, side, calls, sorted(keys)))
+
+    # A6: exact seconds differ because the processes start separately; positivity and no-future
+    # are the oracle properties, and LASTSAVE=0 on the old target fails them.
+    now = int(time.time())
+    for side, sock, file in (("target", ts, tf), ("oracle", os_, of)):
+        raw = command(sock, file, ["LASTSAVE"])
+        try:
+            value = int(raw[1:-2]) if raw[:1] == b":" else -1
+        except ValueError:
+            value = -1
+        if value <= 0:
+            mismatch("A6 %s positive" % side, value, "> 0")
+        future_control = int(value > now + 1)
+        if future_control:
+            mismatch("A6 %s future control" % side, future_control, 0)
+        print("  A6 %s lastsave=%d future_control=%d" % (side, value, future_control))
+
+    # A7 and the two cheap SCAN cosmetic errors are byte-comparable.
+    compare(["WAITAOF", "0", "0", "0"], "A7 AOF-off zero control")
+    compare(["WAITAOF", "0", "-1", "0"], "A7 negative numreplicas")
+    compare(["WAITAOF", "0", "0", "-1"], "A7 negative-timeout control")
+    compare(["SCAN", "0", "COUNT", "abc"], "SCAN COUNT abc")
+    compare(["SCAN", "0", "NOVALUES"], "SCAN NOVALUES")
+
+    # Stable randomized byte comparisons keep this a real >=4k differ, not a handful of directed
+    # probes wearing a suite name. Validation rows recur throughout the mix.
+    keys = ["s6d:mix:%02d" % i for i in range(32)]
+    for iteration in range(4000):
+        key = rng.choice(keys)
+        choice = rng.randrange(8)
+        if choice == 0:
+            argv = ["SET", key, "v%d" % rng.randrange(1000)]
+        elif choice == 1:
+            argv = ["GET", key]
+        elif choice == 2:
+            argv = ["DEL", key]
+        elif choice == 3:
+            argv = ["EXISTS", key]
+        elif choice == 4:
+            argv = ["TYPE", key]
+        elif choice == 5:
+            argv = ["WAITAOF", "0", "-1", str(rng.randrange(3))]
+        elif choice == 6:
+            argv = ["SCAN", "0", "COUNT", "abc"]
+        else:
+            argv = ["SCAN", "0", "NOVALUES"]
+        compare(argv, "mixed op %d %s" % (iteration, argv[0]))
+
+    ts.close()
+    os_.close()
+    print("DIFFER s6fix: %d logical ops, %d diffs -> %s" %
+          (logical_ops, diffs, "PASS" if diffs == 0 else "FAIL"))
+    return diffs
+
+
+if SUITE == "s6fix":
+    sys.exit(1 if run_s6fix_suite(rng) else 0)
 
 gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset,
         "hash": gen_hash, "hexpire": gen_hexpire, "xshard": gen_xshard, "bitmap": gen_bitmap,

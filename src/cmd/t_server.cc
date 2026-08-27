@@ -1714,7 +1714,7 @@ void cmd_flush(Shard& sh, Op&) {
 }
 
 void cmd_randomkey(Shard& sh, Op& op) {
-    KvObj* obj = sh.store().random_live(op.hash);
+    KvObj* obj = sh.store().random_live();
     if (!obj) reply_null(op.sink(), op.resp3());
     else reply_bulk(op.sink(), obj->key());
 }
@@ -1749,17 +1749,18 @@ void cmd_scan(Shard& sh, Op& op) {
             match = op.arg(i + 1); i += 2;
         } else if (eq_icase(op.arg(i), "COUNT") && i + 1 < op.argc()) {
             uint64_t parsed = 0;
-            if (!parse_u64(op.arg(i + 1), parsed) || parsed == 0 || parsed > UINT32_MAX) {
+            if (!parse_u64(op.arg(i + 1), parsed)) {
+                reply_err(op.sink(), "ERR value is not an integer or out of range"); return;
+            }
+            if (parsed == 0 || parsed > UINT32_MAX) {
                 reply_syntax(op.sink()); return;
             }
             count = static_cast<uint32_t>(parsed); i += 2;
         } else if (eq_icase(op.arg(i), "TYPE") && i + 1 < op.argc()) {
             type = op.arg(i + 1);
-            if (!(eq_icase(type, "STRING") || eq_icase(type, "HASH") || eq_icase(type, "LIST") ||
-                  eq_icase(type, "SET") || eq_icase(type, "ZSET") || eq_icase(type, "NONE"))) {
-                reply_syntax(op.sink()); return;
-            }
             i += 2;
+        } else if (eq_icase(op.arg(i), "NOVALUES")) {
+            reply_err(op.sink(), "ERR NOVALUES option can only be used in HSCAN"); return;
         } else { reply_syntax(op.sink()); return; }
     }
 

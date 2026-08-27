@@ -24,8 +24,10 @@ Semantics came from the documented RESP protocol plus byte-probing a vanilla red
 `COMMAND COUNT / INFO / DOCS` and `OBJECT ENCODING` already existed; COUNT/INFO/DOCS were left
 alone and `OBJECT` was rewritten (see §5). `RESET` was skipped — it belongs to the climon2 lane.
 
-¹ `WAITAOF` ships its grammar, validation and every `numlocal == 0` reply exactly. The
-`numlocal == 1` durability wait is **SHELVED** and returns an explicit error. See §8.
+¹ `WAITAOF` ships its grammar and validation exactly. Its `numlocal == 0` replica count is exact,
+but the first array element remains a conservative `0`: Redis reports whether its per-connection
+write offset is locally fsynced, and TomoKV does not yet retain such an offset. The `numlocal == 1`
+durability wait is **SHELVED** and returns an explicit error. See §8.
 
 Registry rows went from 181 to 197, well inside the 255-row ACL command-bit ceiling.
 
@@ -224,20 +226,25 @@ every byte, PFCOUNT merges 16384 registers); the reply itself is still emitted o
 
 ## 8. SHELVED: `WAITAOF numlocal 1`
 
-**What ships:** the full grammar, all validation, and every reply for `numlocal == 0` — byte-exact
-against the oracle for the standalone, no-replica case, including
+**What ships:** the full grammar and all validation, byte-exact against the oracle for the
+standalone, no-replica case, including
 `ERR WAITAOF cannot be used when numlocal is set but appendonly is disabled.`,
-`ERR value is out of range, value must between 0 and 1`, and `ERR timeout is negative`.
+`ERR value is out of range, value must between 0 and 1`,
+`ERR value is out of range, must be positive`, and `ERR timeout is negative`.
 
-**What does not:** the `numlocal == 1` local-fsync wait. It returns an explicit error naming the
-gap rather than a plausible number.
+**What does not:** the `numlocal == 1` local-fsync wait, or Redis's per-connection fsynced-local
+count in the first element of a `numlocal == 0` reply. The former returns an explicit error naming
+the gap; the latter remains the conservative `0` rather than a plausible server-global number.
 
 **Why.** A connection-local handler runs at PARSE time, before the ops ahead of it on the same
 connection have executed, so the AOF sequence it could sample does not yet cover the caller's own
 writes. Waiting synchronously cannot fix that: retiring those older ops requires this very IO
 thread, so the wait would deadlock against them. A conservative "check once and report 0" would
 never claim durability we lack, but it would silently under-report, and the shelve rule prefers a
-loud gap to a quiet one.
+loud gap to a quiet one. The same ordering issue prevents an exact `numlocal == 0` first element:
+Redis tracks the calling connection's last write offset. A server-global posted/durable comparison
+would under-report a reader when another connection has an unsynced write, while a global fsync
+counter would over-report a writer whose newest write is not covered.
 
 **The design it needs**, for whoever picks it up:
 1. Register `WAITAOF` as `ConnLocal | PubSub` and dispatch it by name in `pubsub_start_command`,
