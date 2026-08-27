@@ -88,57 +88,93 @@ inline uint64_t mix64(uint64_t h);
 // index. State is a byte sidecar so all 64-bit hash values remain representable while occupied
 // slots themselves stay densely packed. Sampling advances a persistent cursor and examines at most
 // its caller's budget, including empty slots; no pass can accidentally turn into a keyspace walk.
+//
+// GROWTH AND SHRINK ARE BOTH BOUNDED PER OPERATION, for the same reason the main table's are:
+//   - Growth moves at most kMigrateSlotsPerOp old slots per operation into a second table, exactly
+//     the two-table shape FlatStore::rehash_step() already uses. A single-pass move of a million
+//     deadlines stalled its owning executor -- and therefore its whole shard -- for tens of
+//     milliseconds inside one ordinary SET.
+//   - Reaching zero live deadlines RELEASES the sidecar instead of clearing every state byte. The
+//     old clear was O(capacity) on a transition a workload can hit on every key, and capacity was
+//     monotone in the all-time-high volatile population, so one historical burst taxed every later
+//     live->0 forever. Releasing is O(1) and makes the footprint follow the CURRENT population.
+// A table at or below the minimum keeps its buffer and clears the 16 state bytes, so the ordinary
+// "a few volatile keys come and go" case stays allocation-free.
 class ExpireIndex {
 public:
-    uint32_t size() const { return live_; }
+    ExpireIndex() = default;
+    ~ExpireIndex() { std::free(hashes_[0]); std::free(states_[0]);
+                     std::free(hashes_[1]); std::free(states_[1]); }
+    ExpireIndex(const ExpireIndex&) = delete;
+    ExpireIndex& operator=(const ExpireIndex&) = delete;
+
+    uint32_t size() const { return live_[0] + live_[1]; }
+    // A move in flight is PENDING WORK for the owner, not a quiet background state: half the
+    // index is parked in the old table, and an owner that sleeps on a barren sampling pass stops
+    // expiring until the next command wakes it.
+    bool migrating() const { return cap_[1] != 0; }
     size_t memory_bytes() const {
-        return hashes_.capacity() * sizeof(uint64_t) + states_.capacity() * sizeof(uint8_t);
+        return (cap_[0] + cap_[1]) * (sizeof(uint64_t) + sizeof(uint8_t));
     }
     void clear() {
-        hashes_.clear();
-        states_.clear();
-        live_ = tombs_ = 0;
+        release(0);
+        release(1);
         cursor_ = 0;
+        migrate_ = 0;
     }
 
     bool insert(uint64_t hash) {
-        if (hashes_.empty() && !allocate(16)) return false;
-        if ((live_ + tombs_ + 1) * 100 >= hashes_.size() * 70) {
-            const size_t cap = live_ * 2 >= hashes_.size() ? hashes_.size() * 2 : hashes_.size();
-            if (!rehash(cap)) return false;
+        if (rehashing()) {
+            migrate(kMigrateSlotsPerOp);
+            // Backstop only. At the shipped step rate the new table is at most ~41% loaded when the
+            // move ends, so this cannot fire; finishing the move is still cheaper than letting an
+            // insert run out of slots.
+            if (rehashing() && (live_[1] + tombs_[1] + 1) * 100 >= cap_[1] * 70)
+                finish_migration();
         }
-        return insert_raw(hash);
+        if (!cap_[0] && !allocate(0, kMinCap)) return false;
+        if (!rehashing() && (live_[0] + tombs_[0] + 1) * 100 >= cap_[0] * 70) {
+            const size_t cap = live_[0] * 2 >= cap_[0] ? cap_[0] * 2 : cap_[0];
+            if (!begin_rehash(cap)) return false;
+            migrate(kMigrateSlotsPerOp);
+        }
+        // A deadline re-registered while the move is in flight must leave the old table, or live_
+        // double-counts it until the migration catches up.
+        if (rehashing()) (void)erase_in(0, hash);
+        return insert_raw(rehashing() ? 1 : 0, hash);
     }
 
     bool erase(uint64_t hash) {
-        if (hashes_.empty()) return false;
-        size_t pos = start(hash);
-        for (size_t probes = 0; probes < hashes_.size(); probes++) {
-            if (states_[pos] == kEmpty) return false;
-            if (states_[pos] == kLive && hashes_[pos] == hash) {
-                states_[pos] = kTomb;
-                live_--; tombs_++;
-                if (live_ == 0) {
-                    std::memset(states_.data(), 0, states_.size());
-                    tombs_ = 0;
-                    cursor_ = 0;
-                }
-                return true;
-            }
-            pos = (pos + 1) & (hashes_.size() - 1);
-        }
-        return false;
+        bool removed = erase_in(1, hash);
+        if (!removed) removed = erase_in(0, hash);
+        if (removed && size() == 0) collapse_empty();
+        return removed;
     }
 
     template <typename Fn>
     uint32_t sample(uint32_t budget, Fn&& fn) {
-        if (hashes_.empty() || live_ == 0) return 0;
+        // Sampling is the pass that still runs when writes have stopped, so it is also what
+        // guarantees a migration finishes rather than sitting half-done forever.
+        if (rehashing()) migrate(kMigrateSlotsPerOp);
         uint32_t checked = 0;
-        while (checked < budget && !hashes_.empty() && live_) {
-            if (cursor_ >= hashes_.size()) cursor_ = 0;
+        // Capacities are re-read every iteration: fn() may erase the last live deadline, and that
+        // releases the tables underneath this loop.
+        while (checked < budget) {
+            // Slots below migrate_ have already been moved out; sampling them would spend the
+            // budget on a region that cannot hold a deadline, and a barren pass is exactly what
+            // makes an idle owner park instead of expiring.
+            const size_t old_left = cap_[0] - migrate_;
+            const size_t total = old_left + cap_[1];
+            if (!total || size() == 0) break;
+            if (cursor_ >= total) cursor_ = 0;
             const size_t pos = cursor_++;
             checked++;
-            if (states_[pos] == kLive) fn(hashes_[pos]);
+            if (pos < old_left) {
+                const size_t slot = migrate_ + pos;
+                if (states_[0][slot] == kLive) fn(hashes_[0][slot]);
+            } else if (states_[1][pos - old_left] == kLive) {
+                fn(hashes_[1][pos - old_left]);
+            }
         }
         return checked;
     }
@@ -146,83 +182,180 @@ public:
     // Best-effort random live hash selection. Both the random probes and sparse-table cursor
     // fallback are bounded; callers count a miss as part of their sampling budget.
     bool random_hash(uint64_t random, uint32_t attempts, uint64_t& out) {
-        if (hashes_.empty() || live_ == 0) return false;
+        if (size() == 0) return false;
+        for (uint32_t i = 0; i < attempts; i++)
+            for (int t = 0; t < 2; t++) {
+                if (!cap_[t] || !live_[t]) continue;
+                const size_t pos = static_cast<size_t>(mix64(random + i * 2 + t)) & (cap_[t] - 1);
+                if (states_[t][pos] == kLive) { out = hashes_[t][pos]; return true; }
+            }
         for (uint32_t i = 0; i < attempts; i++) {
-            const size_t pos = static_cast<size_t>(mix64(random + i)) & (hashes_.size() - 1);
-            if (states_[pos] == kLive) { out = hashes_[pos]; return true; }
-        }
-        for (uint32_t i = 0; i < attempts; i++) {
-            if (cursor_ >= hashes_.size()) cursor_ = 0;
+            const size_t old_left = cap_[0] - migrate_;
+            const size_t total = old_left + cap_[1];
+            if (!total) return false;
+            if (cursor_ >= total) cursor_ = 0;
             const size_t pos = cursor_++;
-            if (states_[pos] == kLive) { out = hashes_[pos]; return true; }
+            if (pos < old_left) {
+                const size_t slot = migrate_ + pos;
+                if (states_[0][slot] == kLive) { out = hashes_[0][slot]; return true; }
+            } else if (states_[1][pos - old_left] == kLive) {
+                out = hashes_[1][pos - old_left];
+                return true;
+            }
         }
         return false;
     }
 
 private:
-    static constexpr uint8_t kEmpty = 0;
-    static constexpr uint8_t kLive  = 1;
-    static constexpr uint8_t kTomb  = 2;
+    static constexpr uint8_t  kEmpty = 0;
+    static constexpr uint8_t  kLive  = 1;
+    static constexpr uint8_t  kTomb  = 2;
+    static constexpr size_t   kMinCap = 16;
+    // Old slots moved per operation. Same reasoning (and same number) as
+    // FlatStore::kRehashSlotsPerOp: large enough that the move finishes long before the new table
+    // needs one of its own, small enough that no single operation visibly stalls.
+    static constexpr uint32_t kMigrateSlotsPerOp = 8;
 
-    bool allocate(size_t cap) {
-        try {
-            hashes_.assign(cap, 0);
-            states_.assign(cap, kEmpty);
-        } catch (const std::bad_alloc&) {
-            hashes_.clear(); states_.clear();
-            return false;
-        }
+    bool rehashing() const { return cap_[1] != 0; }
+
+    void release(int t) {
+        std::free(hashes_[t]);
+        std::free(states_[t]);
+        hashes_[t] = nullptr;
+        states_[t] = nullptr;
+        cap_[t] = 0;
+        live_[t] = tombs_[t] = 0;
+    }
+
+    // calloc, exactly as FlatStore::alloc_table does, and for the same reason: a large table must
+    // arrive as demand-zero pages. Writing the zeroes here would put the whole new sidecar back on
+    // one operation's critical path -- which is the stall this change exists to remove.
+    bool allocate(int t, size_t cap) {
+        auto* hashes = static_cast<uint64_t*>(std::calloc(cap, sizeof(uint64_t)));
+        auto* states = static_cast<uint8_t*>(std::calloc(cap, sizeof(uint8_t)));  // kEmpty == 0
+        if (!hashes || !states) { std::free(hashes); std::free(states); return false; }
+        std::free(hashes_[t]);
+        std::free(states_[t]);
+        hashes_[t] = hashes;
+        states_[t] = states;
+        cap_[t] = cap;
+        live_[t] = tombs_[t] = 0;
         return true;
     }
 
-    size_t start(uint64_t hash) const { return static_cast<size_t>(mix64(hash)) & (hashes_.size() - 1); }
+    __attribute__((noinline, cold))
+    void collapse_empty() {
+        if (!rehashing() && cap_[0] <= kMinCap) {
+            std::memset(states_[0], kEmpty, cap_[0]);
+            tombs_[0] = 0;
+            cursor_ = 0;
+            return;
+        }
+        release(0);
+        release(1);
+        cursor_ = 0;
+        migrate_ = 0;
+    }
 
-    bool insert_raw(uint64_t hash) {
-        size_t pos = start(hash);
-        size_t first_tomb = hashes_.size();
-        for (size_t probes = 0; probes < hashes_.size(); probes++) {
-            if (states_[pos] == kEmpty) {
-                if (first_tomb != hashes_.size()) { pos = first_tomb; tombs_--; }
-                hashes_[pos] = hash;
-                states_[pos] = kLive;
-                live_++;
+    bool begin_rehash(size_t cap) {
+        if (!allocate(1, cap)) return false;
+        migrate_ = 0;
+        return true;
+    }
+
+    // A moved slot becomes a TOMBSTONE, never kEmpty: the old table is still being probed by
+    // erase_in() while the move runs, and kEmpty terminates a probe run. Punching holes made a
+    // still-present deadline unfindable, which showed up as INFO `expires` over-reporting after
+    // PERSIST.
+    void migrate(uint32_t slots) {
+        while (slots && migrate_ < cap_[0]) {
+            const size_t pos = migrate_++;
+            slots--;
+            if (states_[0][pos] != kLive) continue;
+            states_[0][pos] = kTomb;
+            live_[0]--;
+            tombs_[0]++;
+            // Cannot fail: the destination was sized for every live entry plus headroom.
+            (void)insert_raw(1, hashes_[0][pos]);
+        }
+        if (migrate_ >= cap_[0]) finish_migration();
+    }
+
+    void finish_migration() {
+        while (migrate_ < cap_[0]) {
+            const size_t pos = migrate_++;
+            if (states_[0][pos] != kLive) continue;
+            states_[0][pos] = kTomb;
+            live_[0]--;
+            tombs_[0]++;
+            (void)insert_raw(1, hashes_[0][pos]);
+        }
+        std::free(hashes_[0]);
+        std::free(states_[0]);
+        hashes_[0] = hashes_[1];
+        states_[0] = states_[1];
+        cap_[0] = cap_[1];
+        live_[0] = live_[1];
+        tombs_[0] = tombs_[1];
+        hashes_[1] = nullptr;
+        states_[1] = nullptr;
+        cap_[1] = 0;
+        live_[1] = tombs_[1] = 0;
+        migrate_ = 0;
+        cursor_ = 0;
+    }
+
+    size_t start(int t, uint64_t hash) const {
+        return static_cast<size_t>(mix64(hash)) & (cap_[t] - 1);
+    }
+
+    bool insert_raw(int t, uint64_t hash) {
+        const size_t cap = cap_[t];
+        if (!cap) return false;
+        size_t pos = start(t, hash);
+        size_t first_tomb = cap;
+        for (size_t probes = 0; probes < cap; probes++) {
+            if (states_[t][pos] == kEmpty) {
+                if (first_tomb != cap) { pos = first_tomb; tombs_[t]--; }
+                hashes_[t][pos] = hash;
+                states_[t][pos] = kLive;
+                live_[t]++;
                 return true;
             }
-            if (states_[pos] == kTomb) {
-                if (first_tomb == hashes_.size()) first_tomb = pos;
-            } else if (hashes_[pos] == hash) {
+            if (states_[t][pos] == kTomb) {
+                if (first_tomb == cap) first_tomb = pos;
+            } else if (hashes_[t][pos] == hash) {
                 return true;
             }
-            pos = (pos + 1) & (hashes_.size() - 1);
+            pos = (pos + 1) & (cap - 1);
         }
         return false;
     }
 
-    bool rehash(size_t cap) {
-        std::vector<uint64_t> old_hashes;
-        std::vector<uint8_t> old_states;
-        try {
-            old_hashes = std::move(hashes_);
-            old_states = std::move(states_);
-            hashes_.assign(cap, 0);
-            states_.assign(cap, kEmpty);
-        } catch (const std::bad_alloc&) {
-            hashes_ = std::move(old_hashes);
-            states_ = std::move(old_states);
-            return false;
+    bool erase_in(int t, uint64_t hash) {
+        const size_t cap = cap_[t];
+        if (!cap) return false;
+        size_t pos = start(t, hash);
+        for (size_t probes = 0; probes < cap; probes++) {
+            if (states_[t][pos] == kEmpty) return false;
+            if (states_[t][pos] == kLive && hashes_[t][pos] == hash) {
+                states_[t][pos] = kTomb;
+                live_[t]--;
+                tombs_[t]++;
+                return true;
+            }
+            pos = (pos + 1) & (cap - 1);
         }
-        live_ = tombs_ = 0;
-        cursor_ = 0;
-        for (size_t i = 0; i < old_hashes.size(); i++)
-            if (old_states[i] == kLive) insert_raw(old_hashes[i]);
-        return true;
+        return false;
     }
 
-    std::vector<uint64_t> hashes_;
-    std::vector<uint8_t>  states_;
-    uint32_t live_ = 0;
-    uint32_t tombs_ = 0;
-    size_t   cursor_ = 0;
+    uint64_t* hashes_[2] = {nullptr, nullptr};
+    uint8_t*  states_[2] = {nullptr, nullptr};
+    size_t    cap_[2]    = {0, 0};
+    uint32_t  live_[2]   = {0, 0};
+    uint32_t  tombs_[2]  = {0, 0};
+    size_t    cursor_ = 0;    // sampling cursor over the concatenation of both tables
+    size_t    migrate_ = 0;   // next old-table slot to move while a migration is in flight
 };
 
 // 64-bit finalizer (murmur3 fmix64). Cheap, and it decorrelates the index bits from the router's.
@@ -612,32 +745,39 @@ public:
     // Called by GET on the shard owner before publishing the Op. Pointer identity is sufficient:
     // an allocation cannot be reused while it is either table-owned or retained as `retired`.
     void borrow(const char* ptr) {
-        for (Borrow& b : borrows_)
-            if (b.ptr == ptr) { b.refs++; outstanding_borrows_++; return; }
+        const uint32_t at = borrow_find(ptr);
+        if (at != kNoBorrow) { borrows_[at].refs++; outstanding_borrows_++; return; }
         borrows_.push_back(Borrow{ptr, 1, nullptr});
         // Publish the count only after push_back succeeds. A failed registry growth must not leave
         // an unreturnable phantom borrow behind (cross-shard MGET can recover as an OOM reply).
+        borrow_index_added(ptr, static_cast<uint32_t>(borrows_.size() - 1));
         outstanding_borrows_++;
     }
 
     // Called only by the shard owner after an io-thread release crosses back through its channel.
     // The last reference is also the point at which a logically removed object may be destroyed.
     void unborrow(const char* ptr) {
-        for (size_t i = 0; i < borrows_.size(); i++) {
-            Borrow& b = borrows_[i];
-            if (b.ptr != ptr) continue;
-            if (b.refs == 0 || outstanding_borrows_ == 0) return;
-            b.refs--;
-            outstanding_borrows_--;
-            if (b.refs) return;
-            if (b.retired) {
-                pending_bytes_ -= kvobj_size(b.retired);
-                kvobj_free(b.retired);
-            }
-            b = borrows_.back();
-            borrows_.pop_back();
-            return;
+        const uint32_t at = borrow_find(ptr);
+        if (at == kNoBorrow) return;
+        Borrow& b = borrows_[at];
+        if (b.refs == 0 || outstanding_borrows_ == 0) return;
+        b.refs--;
+        outstanding_borrows_--;
+        if (b.refs) return;
+        if (b.retired) {
+            pending_bytes_ -= kvobj_size(b.retired);
+            kvobj_free(b.retired);
         }
+        borrow_index_dropped(ptr);
+        const uint32_t last = static_cast<uint32_t>(borrows_.size() - 1);
+        if (at != last) {
+            borrows_[at] = borrows_[last];
+            // The moved entry keeps its identity but changes slot; relabel BEFORE pop_back, while
+            // borrows_[last] is still readable for the pointer comparison inside the index.
+            borrow_index_put(borrows_[at].ptr, at);
+        }
+        borrows_.pop_back();
+        if (borrows_.empty()) borrow_index_release();
     }
 
     uint32_t outstanding_borrows() const { return outstanding_borrows_; }
@@ -717,9 +857,12 @@ public:
         return rewrite_expire(h, old, -1);
     }
 
-    // Returns expired keys removed, while `budget` bounds examined expire-index slots. Finding an
-    // object from its full hash follows only that hash's FlatStore probe run; it never scans the
-    // table or keyspace.
+    // Returns a WORK count, while `budget` bounds examined expire-index slots. The count is the
+    // number of expired keys removed, plus one while a sidecar move is still in flight: half the
+    // index is then parked in the old table, and an owner that treats a barren sampling pass as
+    // "nothing to do" parks with those deadlines unsampled until the next command wakes it.
+    // Finding an object from its full hash follows only that hash's FlatStore probe run; it never
+    // scans the table or keyspace.
     uint32_t active_expire(uint32_t budget) {
         // Expiry after the cut is a post-cut deletion.  Leaving the object physically present lets
         // traversal serialize its absolute deadline; find() still reports it logically absent.
@@ -745,6 +888,7 @@ public:
         });
         if (__builtin_expect(field_expires_.size() != 0, false))
             removed += active_expire_fields(budget);
+        if (__builtin_expect(expires_.migrating() || field_expires_.migrating(), false)) removed++;
         return removed;
     }
 
@@ -1186,6 +1330,114 @@ private:
         KvObj*      retired;
     };
 
+    // BORROW REGISTRY LOOKUP.
+    // borrows_ is the registry; every borrow, release, in-place-overwrite check and retirement has
+    // to find one entry by pointer identity in it. That was a linear scan, so one MGET whose values
+    // all take the borrow path registered K pointers with a scan each -- quadratic in K -- and a
+    // shard holding B concurrent borrows paid O(B) on every further borrowed read. Measured: a
+    // borrowed GET went 2903 -> 3185 ns/op as B went 0 -> ~1100 while the identical non-borrowed
+    // GET stayed flat at ~1100 ns.
+    //
+    // borrow_idx_ is an OPTIONAL open-addressed pointer -> slot index over the same vector. It is
+    // never the source of truth: correctness only ever depends on borrows_, and every failure path
+    // simply releases the index and falls back to the scan. Below kBorrowIndexMin entries the scan
+    // is faster than hashing, so an ordinary connection with a handful of borrows never builds one.
+    static constexpr uint32_t kNoBorrow  = 0xffffffffu;   // also the empty-slot sentinel
+    static constexpr uint32_t kBorrowTomb = 0xfffffffeu;
+    static constexpr uint32_t kBorrowIndexMin = 32;
+
+    static size_t borrow_hash(const char* ptr) {
+        return static_cast<size_t>(mix64(static_cast<uint64_t>(reinterpret_cast<uintptr_t>(ptr))));
+    }
+
+    uint32_t borrow_find(const char* ptr) const {
+        if (borrow_idx_.empty()) {
+            for (uint32_t i = 0; i < borrows_.size(); i++)
+                if (borrows_[i].ptr == ptr) return i;
+            return kNoBorrow;
+        }
+        const size_t mask = borrow_idx_.size() - 1;
+        size_t pos = borrow_hash(ptr) & mask;
+        for (size_t probes = 0; probes <= mask; probes++) {
+            const uint32_t v = borrow_idx_[pos];
+            if (v == kNoBorrow) return kNoBorrow;
+            if (v != kBorrowTomb && borrows_[v].ptr == ptr) return v;
+            pos = (pos + 1) & mask;
+        }
+        return kNoBorrow;
+    }
+
+    void borrow_index_release() {
+        std::vector<uint32_t>().swap(borrow_idx_);
+        borrow_tombs_ = 0;
+    }
+
+    void borrow_index_put(const char* ptr, uint32_t at) {
+        if (borrow_idx_.empty()) return;
+        const size_t cap = borrow_idx_.size();
+        const size_t mask = cap - 1;
+        size_t pos = borrow_hash(ptr) & mask;
+        size_t first_tomb = cap;
+        for (size_t probes = 0; probes < cap; probes++) {
+            const uint32_t v = borrow_idx_[pos];
+            if (v == kNoBorrow) {
+                if (first_tomb != cap) { pos = first_tomb; borrow_tombs_--; }
+                borrow_idx_[pos] = at;
+                return;
+            }
+            if (v == kBorrowTomb) {
+                if (first_tomb == cap) first_tomb = pos;
+            } else if (borrows_[v].ptr == ptr) {
+                borrow_idx_[pos] = at;
+                return;
+            }
+            pos = (pos + 1) & mask;
+        }
+        borrow_index_release();   // full: cannot happen at the 70% rebuild trigger
+    }
+
+    void borrow_index_dropped(const char* ptr) {
+        if (borrow_idx_.empty()) return;
+        const size_t mask = borrow_idx_.size() - 1;
+        size_t pos = borrow_hash(ptr) & mask;
+        for (size_t probes = 0; probes <= mask; probes++) {
+            const uint32_t v = borrow_idx_[pos];
+            if (v == kNoBorrow) return;
+            if (v != kBorrowTomb && borrows_[v].ptr == ptr) {
+                borrow_idx_[pos] = kBorrowTomb;
+                borrow_tombs_++;
+                return;
+            }
+            pos = (pos + 1) & mask;
+        }
+    }
+
+    void borrow_index_rebuild() {
+        size_t cap = 64;
+        while (cap * 70 < borrows_.size() * 200) cap <<= 1;   // land near 35% loaded
+        try {
+            borrow_idx_.assign(cap, kNoBorrow);
+        } catch (const std::bad_alloc&) {
+            borrow_index_release();       // scan mode; correctness never depended on the index
+            return;
+        }
+        borrow_tombs_ = 0;
+        for (uint32_t i = 0; i < borrows_.size(); i++) borrow_index_put(borrows_[i].ptr, i);
+    }
+
+    void borrow_index_added(const char* ptr, uint32_t at) {
+        if (borrow_idx_.empty()) {
+            if (borrows_.size() < kBorrowIndexMin) return;    // short scan beats a hash
+            borrow_index_rebuild();
+            return;
+        }
+        if ((borrows_.size() + borrow_tombs_) * 100 >= borrow_idx_.size() * 70) {
+            borrow_index_rebuild();
+            return;
+        }
+        borrow_index_put(ptr, at);
+    }
+
     static uint32_t round_pow2(uint32_t v) { uint32_t p = kMinCap; while (p < v) p <<= 1; return p; }
     static uint16_t tag_of(uint64_t h)      { return static_cast<uint16_t>((h >> 49) & 0x7fff); }
     static uint16_t tag_of_word(uint64_t w) { return static_cast<uint16_t>((w >> 49) & 0x7fff); }
@@ -1536,11 +1788,7 @@ private:
         return TtlResult::Updated;
     }
 
-    bool is_borrowed(const char* ptr) const {
-        for (const Borrow& b : borrows_)
-            if (b.ptr == ptr) return true;
-        return false;
-    }
+    bool is_borrowed(const char* ptr) const { return borrow_find(ptr) != kNoBorrow; }
 
     // Logical removal updates the live-store footprint immediately. Physical destruction is the
     // common case and pays one branch; registry work exists only while some wire borrow is live.
@@ -1550,9 +1798,9 @@ private:
         if (outstanding_borrows_ == 0) { kvobj_free(o); return; }
         const char* ptr = (static_cast<Type>(o->type) == Type::String && !o->is_int())
                               ? o->str_value().p : nullptr;
-        for (Borrow& b : borrows_) {
-            if (b.ptr != ptr) continue;
-            b.retired = o;
+        const uint32_t at = ptr ? borrow_find(ptr) : kNoBorrow;
+        if (at != kNoBorrow) {
+            borrows_[at].retired = o;
             pending_bytes_ += bytes;
             return;
         }
@@ -1632,6 +1880,8 @@ private:
     size_t    pending_bytes_ = 0;
     uint32_t  outstanding_borrows_ = 0;
     std::vector<Borrow> borrows_;
+    std::vector<uint32_t> borrow_idx_;   // empty == scan mode; see kBorrowIndexMin
+    uint32_t  borrow_tombs_ = 0;
     ExpireIndex expires_;
     int64_t     cached_now_ms_ = 0;
     uint8_t     cached_lru_clock_ = 0;
