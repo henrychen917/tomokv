@@ -1,13 +1,21 @@
 #!/usr/bin/env python3
 # DIFFERENTIAL battery: run one deterministic command stream against the TARGET (tomokv-cpp) and
-# the ORACLE (the optimized Redis fork -- byte-exact redis semantics) and diff every reply.
+# the ORACLE (vanilla Redis 7.4.2 -- byte-exact redis semantics) and diff every reply.
 #   python3 tests/differ.py <target_host> <target_port> <oracle_host> <oracle_port> <suite> [seed] [-3]
+#   python3 tests/differ.py --list-generators
 # Exit 0 iff zero diffs. Suites: string (more added per type lane).
 import socket, sys, random, re, time, hashlib
 
-TH, TP, OH, OP = sys.argv[1], int(sys.argv[2]), sys.argv[3], int(sys.argv[4])
-SUITE = sys.argv[5]
-EXTRA = sys.argv[6:]
+LIST_GENERATORS = sys.argv[1:] == ["--list-generators"]
+if LIST_GENERATORS:
+    TH = OH = ""
+    TP = OP = 0
+    SUITE = ""
+    EXTRA = []
+else:
+    TH, TP, OH, OP = sys.argv[1], int(sys.argv[2]), sys.argv[3], int(sys.argv[4])
+    SUITE = sys.argv[5]
+    EXTRA = sys.argv[6:]
 RESP3 = "-3" in EXTRA
 SEED = int(next((arg for arg in EXTRA if arg != "-3"), "7"))
 
@@ -2243,6 +2251,9 @@ gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset
         "streamgrp": gen_streamgrp,
         "zsetops": gen_zsetops, "geo": gen_geo,
         "servertail": gen_servertail}
+if LIST_GENERATORS:
+    print("\n".join(gens))
+    sys.exit(0)
 ops = gens[SUITE](rng)
 
 ts, tf = conn(TH, TP)
