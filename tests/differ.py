@@ -809,6 +809,210 @@ def gen_hexpire(rng):
     ]
     return ops
 
+def gen_edgetime(rng):
+    """Expiry where it meets cross-shard commands, introspection and hash-field deadlines.
+
+    Two rules make expiry byte-comparable across two servers that execute the same pipeline a few
+    milliseconds apart:
+
+    * ACTIVE EXPIRY IS OFF for the whole suite (`DEBUG SET-ACTIVE-EXPIRE 0`, which both servers
+      spell the same way). Every removal is then driven by a command in this stream, so both sides
+      reap the same keys at the same point in the stream instead of racing their background cycles.
+    * DEADLINES ARE ABSOLUTE. `future_ms` is a month out and `past_ms` is 1, so "elapsed" and
+      "live" are properties of the deadline rather than of when a server got round to the op.
+
+    Deliberately not in the stream: DBSIZE and INFO (batch-published on TomoKV by design,
+    NOTES-COMPAT.md), SCAN (COUNT is a slot-work hint here, so the two servers reap different
+    entries per call and the states drift apart), OBJECT ENCODING (comparable only with the
+    encoding-knob alignment the servertail suite performs), and RANDOMKEY (its shard-choice
+    divergence is a separate shelved finding, written up in NOTES-EDGETIME.md).
+    """
+    stamp = int(time.time() * 1000)
+    future_ms = stamp + 30 * 24 * 60 * 60 * 1000
+    future_s = future_ms // 1000
+    past_ms = 1
+
+    strings = ["et:s:%02d:%s" %
+               (i, "".join(rng.choice("abcdef0123456789") for _ in range(34)))
+               for i in range(36)]
+    sets = ["et:set:%02d:%s" %
+            (i, "".join(rng.choice("abcdef0123456789") for _ in range(30)))
+            for i in range(12)]
+    hashes = ["et:h:%02d:%s" %
+              (i, "".join(rng.choice("abcdef0123456789") for _ in range(30)))
+              for i in range(10)]
+    values = ["", "v", "hello", "42", "value-" + "x" * 90]
+    members = ["m%d" % i for i in range(12)]
+    fields = ["f%d" % i for i in range(8)]
+    # Redis folds repeated flags and accepts XX with GT or LT; only NX+{XX,GT,LT} and GT+LT are
+    # refused, and an unknown token outranks both refusals.
+    conditions = [[], ["NX"], ["XX"], ["GT"], ["LT"],
+                  ["NX", "NX"], ["XX", "XX"], ["GT", "GT"], ["LT", "LT"],
+                  ["XX", "GT"], ["XX", "LT"], ["xx", "gt"], ["Nx"]]
+    ops = [["DEBUG", "SET-ACTIVE-EXPIRE", "0"]]
+
+    def sk(): return rng.choice(strings)
+    def setk(): return rng.choice(sets)
+    def hk(): return rng.choice(hashes)
+    def sample(pool, low, high): return rng.sample(pool, rng.randrange(low, high))
+    def pairs(n):
+        out = []
+        for key in rng.sample(strings, n):
+            out += [key, rng.choice(values)]
+        return out
+
+    for key in strings:
+        ops.append(["SET", key, rng.choice(values)])
+    for key in sets:
+        ops.append(["SADD", key] + rng.sample(members, 4))
+    for key in hashes:
+        ops.append(["HSET", key, "f0", "v0", "f1", "v1", "f2", "v2"])
+
+    for _ in range(4200):
+        choice = rng.randrange(36)
+        if choice == 0:
+            ops.append(["SET", sk(), rng.choice(values)])
+        elif choice == 1:
+            ops.append(["SET", sk(), rng.choice(values), "KEEPTTL"])
+        elif choice == 2:
+            ops.append(["PEXPIREAT", sk(), str(future_ms)] + rng.choice(conditions))
+        elif choice == 3:
+            ops.append(["PEXPIREAT", sk(), str(past_ms)] + rng.choice(conditions))
+        elif choice == 4:
+            ops.append(["EXPIREAT", sk(), str(future_s)] + rng.choice(conditions))
+        elif choice == 5:
+            ops.append(["PERSIST", sk()])
+        elif choice == 6:
+            ops.append([rng.choice(["TTL", "PTTL", "EXPIRETIME", "PEXPIRETIME"]), sk()])
+        elif choice == 7:
+            ops.append(["GETEX", sk(), "PXAT", str(future_ms)])
+        elif choice == 8:
+            ops.append(["GETEX", sk(), "PXAT", str(past_ms)])
+        elif choice == 9:
+            ops.append(["GETEX", sk(), "PERSIST"])
+        elif choice == 10:
+            ops.append(["GET", sk()])
+        elif choice == 11:
+            ops.append(["MGET"] + sample(strings, 2, 8))
+        elif choice == 12:
+            ops.append(["MSET"] + pairs(rng.randrange(2, 7)))
+        elif choice == 13:
+            ops.append(["DEL"] + sample(strings, 2, 7))
+        elif choice == 14:
+            source, destination = rng.sample(strings, 2)
+            ops.append(["RENAME", source, destination])
+        elif choice == 15:
+            ops.append(["EXISTS"] + sample(strings, 2, 8))
+        elif choice == 16:
+            ops.append(["TYPE", sk()])
+        elif choice == 17:
+            # Normalized to hit-vs-miss by normalize_introspection(): an expired-but-unreaped key
+            # is still resident, so redis (and now TomoKV) still report its footprint.
+            ops.append(["MEMORY", "USAGE", sk()])
+        elif choice == 18:
+            ops.append(["KEYS", "et:s:*"])
+        elif choice == 19:
+            # DUMP is deliberately excluded: its payload encoding is an intentional divergence
+            # (see the wiredump suite below), so it can only be compared for presence.
+            ops.append(["STRLEN", sk()] if rng.randrange(2) else ["TOUCH"] + sample(strings, 2, 6))
+        elif choice == 20:
+            ops.append(["SADD", setk(), rng.choice(members), rng.choice(members)])
+        elif choice == 21:
+            ops.append(["PEXPIREAT", setk(), str(rng.choice([future_ms, past_ms]))])
+        elif choice == 22:
+            destination = rng.choice(strings + sets)
+            ops.append(["SINTERSTORE", destination] + sample(sets, 2, 5))
+        elif choice == 23:
+            ops.append(["SMEMBERS", setk()])
+        elif choice == 24:
+            ops.append(["HSET", hk(), rng.choice(fields), rng.choice(values)])
+        elif choice == 25:
+            ops.append(["HPEXPIREAT", hk(), str(future_ms), "FIELDS", "1", rng.choice(fields)])
+        elif choice == 26:
+            ops.append(["HPEXPIREAT", hk(), str(past_ms), "FIELDS", "1", rng.choice(fields)])
+        elif choice == 27:
+            ops.append(["PEXPIREAT", hk(), str(rng.choice([future_ms, past_ms]))])
+        elif choice == 28:
+            ops.append(["HGETALL", hk()])
+        elif choice == 29:
+            ops.append(["HPEXPIRETIME", hk(), "FIELDS", "2",
+                        rng.choice(fields), rng.choice(fields)])
+        elif choice == 30:
+            ops.append(["HPERSIST", hk(), "FIELDS", "1", rng.choice(fields)])
+        elif choice == 31:
+            ops.append(["HLEN", hk()])
+        elif choice == 32:
+            ops.append(["PERSIST", setk()])
+        elif choice == 33:
+            ops.append(["COPY", sk(), sk()] + rng.choice([[], ["REPLACE"]]))
+        elif choice == 34:
+            ops.append(["MEMORY", "USAGE", hk()])
+        else:
+            ops.append(["PERSIST", hk()])
+
+    # Reset before each conditional arm so its result never depends on the arm before it.
+    edge = "et:edge"
+    for options, ttl_setup in (
+            (["NX", "NX"], False), (["XX", "XX"], True),
+            (["GT", "GT"], True), (["LT", "LT"], True),
+            (["XX", "GT"], True), (["XX", "LT"], True), (["NX", "NX", "NX"], True)):
+        ops.append(["SET", edge, "v"])
+        if ttl_setup:
+            ops.append(["PEXPIREAT", edge, str(future_ms)])
+        ops.append(["PEXPIREAT", edge, str(future_ms + 1000)] + options)
+        ops.append(["PEXPIRETIME", edge])
+    for options in (["NX", "XX"], ["NX", "GT"], ["NX", "LT"], ["GT", "LT"],
+                    ["NX", "NX", "XX"], ["GT", "GT", "LT"], ["XX", "GT", "LT"],
+                    ["BOGUS"], ["NX", "BOGUS"], ["NX", "XX", "BOGUS"], [""], ["bOgUs"]):
+        ops.append(["SET", edge, "v"])
+        ops.append(["PEXPIREAT", edge, str(future_ms)] + options)
+    # A non-numeric deadline is "not an integer"; an unrepresentable one is "invalid expire time".
+    for command, deadline in (("EXPIRE", "abc"), ("PEXPIRE", "abc"), ("EXPIREAT", "abc"),
+                              ("PEXPIREAT", "abc"), ("EXPIRE", "9223372036854775807"),
+                              ("EXPIRE", "-9223372036854775808")):
+        ops.append(["SET", edge, "v"])
+        ops.append([command, edge, deadline])
+        ops.append([command, edge, deadline, "NX"])
+        ops.append(["PEXPIRETIME", edge])
+    for options in (["EX", "abc"], ["EXAT", "abc"], ["PX", "abc"], ["PXAT", "abc"],
+                    ["EX", "0"], ["EX", "-1"], ["EXAT", "0"]):
+        ops.append(["SET", edge, "v"] + options)
+        ops.append(["GETEX", edge] + options)
+        ops.append(["SETEX", edge, options[-1], "v"])
+        ops.append(["PSETEX", edge, options[-1], "v"])
+    # GETEX shares SET's extended-argument grammar: one form may repeat, two may not.
+    for options in (["EX", "600", "EX", "1200"], ["PERSIST", "PERSIST"], ["EX", "600", "PERSIST"],
+                    ["PERSIST", "EX", "600"], ["EX", "600", "PX", "600000"], ["FOO"], ["EX"],
+                    ["PXAT", str(future_ms), "PXAT", str(future_ms + 7000)]):
+        ops.append(["SET", edge, "v"])
+        ops.append(["GETEX", edge] + options)
+        ops.append(["TTL", edge])
+        ops.append(["PEXPIRETIME", edge])
+    ops += [
+        ["SET", edge, "v"], ["PEXPIRE", edge, "0"], ["EXISTS", edge],
+        ["SET", edge, "v"], ["PEXPIRE", edge, "-9223372036854775808"], ["EXISTS", edge],
+        ["SET", edge, "v"], ["PEXPIREAT", edge, "9223372036854775807"], ["PEXPIRETIME", edge],
+        ["PERSIST", edge], ["PERSIST", edge],
+        ["SET", edge, "old", "PXAT", str(future_ms)],
+        ["SET", edge, "new", "KEEPTTL"], ["PEXPIRETIME", edge],
+        ["GETEX", edge, "PXAT", "1"], ["GET", edge], ["MEMORY", "USAGE", edge],
+        # Whole-key expiry dominates field deadlines; PERSIST leaves the field deadline intact.
+        ["HSET", "et:hwhole", "a", "1", "b", "2"],
+        ["HPEXPIREAT", "et:hwhole", str(future_ms), "FIELDS", "1", "a"],
+        ["PEXPIREAT", "et:hwhole", str(future_ms + 5000)],
+        ["PERSIST", "et:hwhole"],
+        ["HPEXPIRETIME", "et:hwhole", "FIELDS", "2", "a", "b"],
+        ["PTTL", "et:hwhole"],
+        ["PEXPIREAT", "et:hwhole", "1"], ["EXISTS", "et:hwhole"], ["TYPE", "et:hwhole"],
+        # Last surviving field goes: the hash goes with it.
+        ["HSET", "et:hlast", "only", "v"],
+        ["HPEXPIREAT", "et:hlast", "1", "FIELDS", "1", "only"],
+        ["EXISTS", "et:hlast"], ["TYPE", "et:hlast"], ["HLEN", "et:hlast"],
+        ["DEBUG", "SET-ACTIVE-EXPIRE", "1"],
+    ]
+    return ops
+
+
 def gen_xshard(rng):
     # Long, unrelated names spread across the full router instead of clustering in a small prefix.
     keys = ["xs:%02d:%s" % (i, "".join(rng.choice("abcdef0123456789") for _ in range(38)))
@@ -2900,8 +3104,8 @@ if SUITE == "s6fix":
     sys.exit(1 if run_s6fix_suite(rng) else 0)
 
 gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset,
-        "hash": gen_hash, "hexpire": gen_hexpire, "xshard": gen_xshard,
-        "xmove": gen_xmove, "bitmap": gen_bitmap,
+        "hash": gen_hash, "hexpire": gen_hexpire, "edgetime": gen_edgetime,
+        "xshard": gen_xshard, "xmove": gen_xmove, "bitmap": gen_bitmap,
         "hll": gen_hll, "bitfield": gen_bitfield, "cgaps": gen_cgaps, "stream": gen_stream,
         "script": gen_script,
         "streamgrp": gen_streamgrp,

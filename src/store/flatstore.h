@@ -689,6 +689,23 @@ public:
     // OBJECT must not count as an access: reporting idle time through find() would reset the very
     // metadata being reported. Redis solves the same problem with LOOKUP_NOTOUCH.
     KvObj* find_no_touch(uint64_t h, Slice key) { return find_without_touch(h, key); }
+    // MEMORY USAGE asks what an entry costs, not whether it is readable. Redis answers it from a
+    // raw dictionary lookup with no expire check, so an elapsed-but-unreaped key still reports its
+    // footprint -- which is the honest answer, since those bytes are still resident.
+    KvObj* find_resident(uint64_t h, Slice key) const {
+        if (KvObj* object = find_in(0, h, key)) return object;
+        return rehashing() ? find_in(1, h, key) : nullptr;
+    }
+    // The deadline WATCH pins on an armed key. Redis probes the key with LOOKUP_NOTOUCH and does
+    // not reap it, so an elapsed-but-unreaped key must stay physically counted here too. A key that
+    // is ALREADY past its deadline when WATCH runs is redis's `wk->expired`: its later removal is
+    // not a change the transaction should see, so it captures -1 exactly like a TTL-free key.
+    int64_t watch_deadline(uint64_t h, Slice key) const {
+        const KvObj* object = find_resident(h, key);
+        if (!object) return -1;
+        const int64_t at = object->expire_at_ms();
+        return at > cached_now_ms_ ? at : -1;
+    }
     void bind_expired_counter(uint64_t* counter) { expired_counter_ = counter; }
     void bind_evicted_counter(uint64_t* counter) { evicted_counter_ = counter; }
     // Table rebuilds started. Cold (once per resize, never on the hot path) and it exists so a
