@@ -220,7 +220,9 @@ thread_local std::unordered_map<uint64_t, ClientMeta> g_client_meta;
 bool valid_client_text(Slice value) {
     for (uint32_t i = 0; i < value.n; i++) {
         const unsigned char ch = static_cast<unsigned char>(value.p[i]);
-        if (ch <= ' ' || ch == 127) return false;
+        // Redis strings are length-delimited, so an embedded NUL is data rather than a line/text
+        // delimiter. Other ASCII controls, space, and DEL are rejected by CLIENT SETNAME/SETINFO.
+        if ((ch != 0 && ch <= ' ') || ch == 127) return false;
     }
     return true;
 }
@@ -1093,13 +1095,16 @@ void cmd_command(Shard&, Op& op) {
 }
 
 void cmd_config(Shard& sh, Op& op) {
-    if (eq_icase(op.arg(1), "GET") && op.argc() == 3) {
+    if (eq_icase(op.arg(1), "GET") && op.argc() >= 3) {
         std::vector<std::pair<std::string, std::string>> matches;
         {
             std::lock_guard<std::mutex> lock(g_config_mu);
             for (const ConfigValue& item : g_config) {
                 Slice name(item.name, std::strlen(item.name));
-                if (glob_match(op.arg(2), name, true)) matches.emplace_back(item.name, item.value);
+                bool matched = false;
+                for (uint32_t i = 2; i < op.argc() && !matched; i++)
+                    matched = glob_match(op.arg(i), name, true);
+                if (matched) matches.emplace_back(item.name, item.value);
             }
         }
         auto sink = op.sink();
@@ -1897,7 +1902,7 @@ void cmd_debug(Shard& shard, Op& op) {
 }
 
 bool command_glob_match(Slice pattern, Slice text) {
-    return glob_match(pattern, text);
+    return glob_match(pattern, text, true);
 }
 
 Server* command_server() { return g_server; }
