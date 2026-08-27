@@ -348,6 +348,12 @@ struct ScatterState {
     // direct-RENAME path. Touched only by the destination task's owner. Zero in production.
     uint32_t debug_direct_defer = 0;
     uint32_t snapshot_slot = std::numeric_limits<uint32_t>::max(); // owning IO's unresolved set
+    // TEST HOOK deadline copied from Server::debug_atomic_fanout_defer() when this state is a
+    // cross-shard READ. Written once at prepare, before the tasks are posted; read by the owners
+    // through the task handoff's release/acquire pair. Zero in production, and the field lives in
+    // the arena, not in Op or Client.
+    uint64_t debug_fanout_deadline = 0;
+    int32_t debug_fanout_lead = -1;               // the one shard that is never parked
     uint64_t sinter_limit = 0;
     uint64_t zset_limit = 0;
     LcsOptions lcs_options;
@@ -1142,7 +1148,23 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
             group_cap += first;
         }
     }
-    const bool needs_snapshot = !force_atomic && tracking &&
+    // A CROSS-SHARD READ CARRIES A CUT WHETHER OR NOT A GROUP HAPPENS TO BE IN FLIGHT RIGHT NOW.
+    // `tracking` is a sample of atomic_activity_, and EXEC is what writes that word: EXEC
+    // force-admits (multi.inc:948) even at --atomic 0, so the word reads zero in every gap between
+    // transactions. A read prepared in such a gap left state->snapshot at UINT64_MAX, which makes
+    // ReadEpochGuard (below) leave the owner unbound, and every fragment then answers "newest
+    // committed at the instant this fragment runs". A transaction publishing its one ticket
+    // (multi.inc:1352) while the fan-out is in flight is therefore seen by the fragments that
+    // execute after it and missed by those that executed before -- one MGET, two transactions.
+    // Contention does not cause that; it only widens the fan-out from microseconds to milliseconds,
+    // which is why a quiet gate never caught it.
+    // Scoped exactly to the commands that can straddle: a read whose fragments run on more than one
+    // owner. A single-owner scatter resolves in one task and cannot straddle anything, and a write
+    // group keeps the old gate because at --atomic 0 it is not a group and promises concurrent
+    // readers nothing that a cut would buy.
+    const bool read_fanout = group_cap > 1 &&
+        !(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite));
+    const bool needs_snapshot = !force_atomic && (tracking || read_fanout) &&
         (key_count || kind == Kind::Keys || kind == Kind::DbsizeExact) &&
         !(atomic_write && kind == Kind::Mset);
     if (needs_snapshot && (atomic_mode & ~Server::kAtomicEnabledBit) &&
@@ -1231,6 +1253,9 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     if (needs_snapshot) {
         state->snapshot = op.has_read_cut() ? op.read_cut(server.atomic_snapshot())
                                             : server.atomic_snapshot();
+        // Vacuous-validation guard: this counts exactly the reads the old `tracking` gate sent out
+        // cut-less. A regression for the fan-out defect that never moves it never armed the window.
+        if (!tracking) server.note_atomic_fanout_cut();
         // Instrumentation, once per multi-key command and never on the GET/SET path: the visible
         // watermark trailing the drawn sequence is the publication guard actively excluding an
         // undecided ticket from this read's cut. A battery that never sees this counter move never
@@ -1290,6 +1315,17 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         }
     } else {
         build_initial_groups(*state);
+    }
+    // TEST HOOK arming, after the groups exist so a lead shard can be named. Only cross-shard READS
+    // arm it: they are the commands whose fragments each answer at their own moment.
+    if (__builtin_expect(state->nsub > 1, false) &&
+        !(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
+        const uint32_t fanout_defer = server.debug_atomic_fanout_defer();
+        if (__builtin_expect(fanout_defer != 0, false)) {
+            state->debug_fanout_lead = state->groups[0].shard;
+            state->debug_fanout_deadline =
+                now_ns() + static_cast<uint64_t>(fanout_defer) * 1000ull;
+        }
     }
     state->pending.store(initialize_owner_completion(*state), std::memory_order_relaxed);
     if (state->atomic_group && !force_atomic &&

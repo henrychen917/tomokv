@@ -839,6 +839,22 @@ void cmd_debug_impl(Shard&, Op& op) {
         reply_ok(op.sink());
         return;
     }
+    // Window widener for the EXEC fan-out regression. Parks every fragment of a cross-shard READ
+    // except the one on its lead shard for N microseconds, so a transaction can commit strictly
+    // between the lead fragment's answer and the rest. That straddle is the shape of the defect:
+    // a reader with no pinned cut reports one key from after the transaction and the others from
+    // before it. Production 0.
+    if (eq_icase(subcommand, "atomic-fanout-defer") && op.argc() == 3) {
+        uint64_t microseconds = 0;
+        if (!parse_u64(op.arg(2), microseconds) || microseconds > 10000000) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        g_server->set_debug_atomic_fanout_defer(static_cast<uint32_t>(microseconds));
+        reply_ok(op.sink());
+        return;
+    }
     if (eq_icase(subcommand, "set-active-expire") && op.argc() == 3) {
         if (!(op.arg(2) == Slice("0", 1) || op.arg(2) == Slice("1", 1))) {
             reply_err(op.sink(), "ERR value is not an integer or out of range");
@@ -1515,7 +1531,7 @@ void cmd_info(Shard&, Op& op) {
                       "atomic_pending_entries:%llu\r\natomic_localfast:%llu\r\n"
                       "atomic_scan_order_holds:%llu\r\n"
                       "atomic_commit_windows:%llu\r\natomic_commit_holds:%llu\r\n"
-                      "atomic_read_cuts_held:%llu\r\n"
+                      "atomic_read_cuts_held:%llu\r\natomic_fanout_cuts:%llu\r\n"
                       "atomic_credit_pool:%u\r\natomic_credit_debt:%u\r\n"
                       "pubsub_channels:%llu\r\npubsub_subscriptions:%llu\r\n"
                       "pubsubshard_channels:%llu\r\npubsubshard_subscriptions:%llu\r\n"
@@ -1583,6 +1599,8 @@ void cmd_info(Shard&, Op& op) {
                     g_server ? g_server->atomic_commit_holds() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->atomic_read_cuts_held() : 0),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->atomic_fanout_cuts() : 0),
                 g_server ? g_server->atomic_credit_pool() : 0,
                 g_server ? g_server->atomic_credit_debt() : 0,
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_active_channels() : 0),

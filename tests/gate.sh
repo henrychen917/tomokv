@@ -122,7 +122,11 @@ for AT in 0 1; do
   # scriptatomic needs the armed boot for its cross-shard section (DEBUG SHARD proves the group
   # really spans owners; ATOMIC-COMMIT-DELAY / ATOMIC-READ-DELAY widen the window). It flips
   # `atomic` itself as well, so it covers both modes from either boot.
-  for t in lbsignals slowlog atomfix scriptatomic; do
+  # execatomic needs the armed boot too: DEBUG SHARD proves its reads really fan out over more
+  # than one owner, and ATOMIC-FANOUT-DEFER parks all but the lead fragment of a cross-shard read
+  # so a whole transaction can commit inside the fan-out on demand. It flips `atomic` itself, so
+  # either boot covers both modes.
+  for t in lbsignals slowlog atomfix scriptatomic execatomic; do
     python3 tests/$t.py 127.0.0.1 $PORT >/tmp/gate-$t-$AT.txt 2>&1 \
         && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see /tmp/gate-$t-$AT.txt"
   done

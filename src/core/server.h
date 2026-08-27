@@ -781,6 +781,20 @@ public:
     uint32_t debug_atomic_commit_delay() const {
         return debug_atomic_commit_delay_.load(std::memory_order_relaxed);
     }
+    // TEST HOOK (DEBUG ATOMIC-FANOUT-DEFER). Microseconds every fragment of a cross-shard READ
+    // except the one on its lead shard is PARKED -- re-queued, not spun -- after the command is
+    // dispatched. That park is the fan-out window: the lead fragment answers from the world before
+    // a transaction, the parked ones answer after its one ticket lands, and a reader with no pinned
+    // cut then returns two generations in one reply. Parking rather than stalling is deliberate:
+    // the executor stays free, so the transaction the test is racing can actually run and commit
+    // inside the window. Zero in production; read once per cross-shard read at prepare time on the
+    // already-cold scatter path, never on GET/SET.
+    void set_debug_atomic_fanout_defer(uint32_t microseconds) {
+        debug_atomic_fanout_defer_.store(microseconds, std::memory_order_relaxed);
+    }
+    uint32_t debug_atomic_fanout_defer() const {
+        return debug_atomic_fanout_defer_.load(std::memory_order_relaxed);
+    }
     // TEST HOOK (DEBUG ATOMIC-READ-DELAY). Microseconds a plain read is held on its owner before
     // it resolves, widening the gap between the IO-side dispatch of a pipelined read and its
     // execution. That gap is the session-monotonicity window: foreign commits landing inside it
@@ -801,6 +815,17 @@ public:
     }
     uint64_t atomic_commit_windows() const {
         return atomic_commit_windows_.load(std::memory_order_relaxed);
+    }
+    // The guarded path of the EXEC fan-out fix: a cross-shard READ that pinned a cut although the
+    // tracking word read zero at prepare time. Before the fix that exact sample sent the read out
+    // with no cut at all, so every fragment answered "newest committed right now" and a transaction
+    // committing inside the fan-out was seen by some fragments and missed by others. A regression
+    // that never moves this counter never entered the window it claims to close.
+    void note_atomic_fanout_cut() {
+        atomic_fanout_cuts_.fetch_add(1, std::memory_order_relaxed);
+    }
+    uint64_t atomic_fanout_cuts() const {
+        return atomic_fanout_cuts_.load(std::memory_order_relaxed);
     }
     void note_atomic_read_cut_held() {
         atomic_read_cuts_held_.fetch_add(1, std::memory_order_relaxed);
@@ -1237,9 +1262,11 @@ private:
     std::atomic<uint32_t> debug_atomic_direct_defer_{0};
     std::atomic<uint32_t> debug_atomic_commit_delay_{0};
     std::atomic<uint32_t> debug_atomic_read_delay_{0};
+    std::atomic<uint32_t> debug_atomic_fanout_defer_{0};
     std::atomic<uint64_t> atomic_commit_windows_{0};
     std::atomic<uint64_t> atomic_commit_holds_{0};
     std::atomic<uint64_t> atomic_read_cuts_held_{0};
+    std::atomic<uint64_t> atomic_fanout_cuts_{0};
     std::atomic<uint64_t> atomic_credit_generation_{2};
     std::atomic<uint32_t> atomic_credit_pool_{0};
     std::atomic<uint32_t> atomic_credit_debt_{0};

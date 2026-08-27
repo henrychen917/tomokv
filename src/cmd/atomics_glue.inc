@@ -635,6 +635,14 @@ bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op
     if (!task.client) return false;
     if (task.scatter) {
         ScatterState& state = *task.scatter;
+        // TEST HOOK (DEBUG ATOMIC-FANOUT-DEFER): park every fragment but the lead one until the
+        // deadline. A park, not a stall -- the owner returns to its queue, so the transaction this
+        // widened window exists to race is free to execute and publish its ticket in the middle of
+        // the read. Off, this is one load of an arena word the task already touched.
+        if (__builtin_expect(state.debug_fanout_deadline != 0, false) &&
+            shard.id() != state.debug_fanout_lead &&
+            now_ns() < state.debug_fanout_deadline)
+            return true;
         if (state.atomic_direct &&
             (state.direct_ready.load(std::memory_order_acquire) == 0 ||
              __builtin_expect(state.debug_direct_defer != 0, false))) {

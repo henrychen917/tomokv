@@ -247,8 +247,29 @@ def heterogeneous_ryow():
         c.close()
 
 
+def info_field(field):
+    client = Resp()
+    try:
+        text = client.cmd("INFO", "stats")
+        if not isinstance(text, (bytes, bytearray)):
+            return None
+        for line in text.decode(errors="replace").split("\r\n"):
+            if line.startswith(field + ":"):
+                return int(line.split(":", 1)[1])
+        return None
+    finally:
+        client.close()
+
+
 def torn_arm(seconds=2.0):
+    # NOT VACUOUS. This arm is a stress arm: on a quiet box its readers finish their fan-out in
+    # microseconds and never straddle anything, which is exactly how a partial EXEC survived here
+    # for so long (0/18 quiet, 15/20 with eight spinners). torn == 0 therefore proves nothing on
+    # its own, so the arm also demands atomic_fanout_cuts advance: every cross-shard read really
+    # did pin a cut while the atomic-activity word read zero -- the guarded path. The deterministic
+    # version of this window lives in tests/execatomic.py (DEBUG ATOMIC-FANOUT-DEFER).
     keys = ["multi:torn:%d" % i for i in range(8)]
+    before_cuts = info_field("atomic_fanout_cuts")
     init = Resp()
     for key in keys:
         init.cmd("SET", key, "0")
@@ -312,10 +333,11 @@ def torn_arm(seconds=2.0):
     for thread in threads:
         thread.join(35)
     alive = [thread.name for thread in threads if thread.is_alive()]
+    cuts = (info_field("atomic_fanout_cuts") or 0) - (before_cuts or 0)
     note("EXEC one-ticket torn-read arm",
-         not errors and not alive and torn == 0 and reads > 100 and commits > 10,
-         "reads=%d commits=%d torn=%d errors=%r alive=%r" %
-         (reads, commits, torn, errors[:2], alive))
+         not errors and not alive and torn == 0 and reads > 100 and commits > 10 and cuts > 0,
+         "reads=%d commits=%d torn=%d fanout_cuts=+%d errors=%r alive=%r" %
+         (reads, commits, torn, cuts, errors[:2], alive))
 
 
 def watch_race(rounds=100):
