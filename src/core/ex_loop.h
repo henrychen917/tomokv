@@ -658,7 +658,7 @@ private:
             sh.note_execution(self_->domain());
             return blocking_execute(*srv_, *self_, ring_, t, sh, op);
         }
-        if (has_atomic_deferred_predecessor(t, op, shard_id) ||
+        if (has_parked_predecessor(t, op, shard_id) ||
             xshard_task_should_defer(*srv_, sh, t, op)) {
             atomic_deferred_.push_back(t);
             return true;
@@ -762,7 +762,7 @@ private:
         const int32_t shard_id = task.shard >= 0 ? task.shard : op.shard;
         Shard& shard = srv_->shard(shard_id);
         shard.set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
-        if (has_atomic_deferred_predecessor(task, op, shard_id) ||
+        if (has_parked_predecessor(task, op, shard_id) ||
             xshard_task_should_defer(*srv_, shard, task, op)) {
             atomic_deferred_.push_back(task);
             // Keep polling the decision without preventing normal inbox drains. At low traffic this
@@ -775,11 +775,33 @@ private:
         return 1;
     }
 
-    bool has_atomic_deferred_predecessor(const Task& task, Op& op, int32_t shard_id) {
-        for (const Task& older : atomic_deferred_) {
+    // PROGRAM ORDER AGAINST EVERY PARKED PREDECESSOR, NOT JUST THE DEFERRED ONES.
+    // Both queues hold tasks that have been taken off the inbox but have not finished, and both are
+    // serviced ahead of a fresh drain, so a younger task from the same connection can reach a shard
+    // before an older one that is sitting in either. xshard_retries_ matters as much as
+    // atomic_deferred_ because a bounded KEYS walk lives there between passes: service_atomic_
+    // deferred() runs first in the loop, so a younger write parked earlier could install a key
+    // behind the walker's cursor and be reported by a listing that must not see it yet.
+    // Both deques are empty on any path with no cross-shard atomic window open.
+    bool has_parked_predecessor(const Task& task, Op& op, int32_t shard_id) {
+        if (__builtin_expect(atomic_deferred_.empty() && xshard_retries_.empty(), true))
+            return false;
+        return parked_predecessor_in(atomic_deferred_, task, op, shard_id) ||
+               parked_predecessor_in(xshard_retries_, task, op, shard_id);
+    }
+
+    __attribute__((noinline)) bool parked_predecessor_in(const std::deque<Task>& parked,
+                                                         const Task& task, Op& op,
+                                                         int32_t shard_id) {
+        for (const Task& older : parked) {
             if (older.client != task.client || older.op_id >= task.op_id) continue;
             Op& older_op = older.client->rob().at(older.op_id);
-            if (xshard_tasks_share_key(older, older_op, task, op, shard_id)) return true;
+            if (!xshard_tasks_share_key(older, older_op, task, op, shard_id)) continue;
+            // Either direction is the scan-ordering hold: a walker held behind an older
+            // write, or a younger write held behind a walk that is already in flight.
+            if (xshard_task_is_whole_owner(older) || xshard_task_is_whole_owner(task))
+                self_->note_atomic_scan_hold();
+            return true;
         }
         return false;
     }

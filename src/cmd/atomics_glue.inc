@@ -635,12 +635,19 @@ bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op
     if (!task.client) return false;
     if (task.scatter) {
         ScatterState& state = *task.scatter;
-        if (state.atomic_direct && state.direct_ready.load(std::memory_order_acquire) == 0) {
+        if (state.atomic_direct &&
+            (state.direct_ready.load(std::memory_order_acquire) == 0 ||
+             __builtin_expect(state.debug_direct_defer != 0, false))) {
             ShardGroup* group = group_for(state, shard.id());
             bool source_group = false;
             for (uint32_t i = 0; group && i < group->count; i++)
                 source_group |= state.key_order[group->begin + i] == 0;
-            if (!source_group) return true;
+            if (!source_group) {
+                // The hook only lengthens an existing park; it never invents one, and it never
+                // touches the source hop, so the group still completes on its own.
+                if (state.debug_direct_defer) state.debug_direct_defer--;
+                return true;
+            }
         }
     }
     if (!op.atomic_hazard()) return false;
@@ -684,8 +691,26 @@ template <typename Fn>
 bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
     if (task.scatter) {
         ScatterState& state = *task.scatter;
+        // WHOLE-OWNER COMMANDS NAME NO KEYS, AND THAT IS THE POINT. KEYS, exact DBSIZE and
+        // FLUSHDB/FLUSHALL carry a zero-key ShardGroup for EVERY shard, so group_for() succeeds
+        // and the old `!group` test below never produced the whole-owner answer for them. They
+        // therefore reported "touches nothing", xshard_tasks_share_key() found no overlap, and
+        // has_atomic_deferred_predecessor() let a younger walker run past an older
+        // same-connection group still parked in atomic_deferred_ (a direct RENAME's destination
+        // task waiting on direct_ready is the common case). The walker's bounded cursor then
+        // swept the destination slot before the install landed and the key was silently absent
+        // from a listing whose own RENAME had already answered +OK. A zero-key group logically
+        // touches every key this owner holds, so it overlaps every other task on this shard.
+        //
+        // Scoped to THIS task's own shard on purpose. A whole-owner command carries a group for
+        // every shard, so answering "touches everything" for a shard the parked task is not
+        // executing on would make one parked walker hold every younger task on every other shard
+        // its executor owns -- which livelocked the xshard differ at ~1/20 (a walker parked on an
+        // undecided entry stalled the very groups whose completion would decide it).
+        if (state.key_count == 0)
+            return (task.shard >= 0 ? task.shard : op.shard) == shard_id;
         ShardGroup* group = group_for(state, shard_id);
-        if (!group) return state.key_count == 0;  // all-shards command
+        if (!group) return false;
         for (uint32_t i = 0; i < group->count; i++) {
             const uint32_t pos = state.key_order[group->begin + i];
             const KeyRef& key = state.keys[pos];
@@ -702,6 +727,10 @@ bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
 }
 
 }  // namespace
+
+bool xshard_task_is_whole_owner(const Task& task) {
+    return task.scatter != nullptr && task.scatter->key_count == 0;
+}
 
 bool xshard_tasks_share_key(const Task& older, Op& older_op,
                             const Task& younger, Op& younger_op, int32_t shard_id) {

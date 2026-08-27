@@ -133,6 +133,11 @@ public:
     uint64_t atomic_groups() const { return atomic_groups_; }
     void note_atomic_localfast() { atomic_localfast_++; }
     uint64_t atomic_localfast() const { return atomic_localfast_; }
+    // Owner-local: counts how often a whole-owner walker (KEYS / exact DBSIZE / FLUSH) was held
+    // behind an older same-connection task parked on this shard.  It is the fired-mechanism proof
+    // for the scan-ordering fix, so it must be observable rather than merely believed.
+    void note_atomic_scan_hold() { atomic_scan_holds_++; }
+    uint64_t atomic_scan_holds() const { return atomic_scan_holds_; }
     AtomicAdmissionLease& atomic_admission_lease() { return atomic_admission_lease_; }
     const AtomicAdmissionLease& atomic_admission_lease() const { return atomic_admission_lease_; }
 
@@ -405,6 +410,7 @@ private:
     uint32_t command_count_size_ = 0;
     uint64_t atomic_groups_ = 0;
     uint64_t atomic_localfast_ = 0;
+    uint64_t atomic_scan_holds_ = 0;
     AtomicAdmissionLease atomic_admission_lease_;
     ReadyMask  ready_;                     // as a sender: which of my clients completed work
     std::vector<Client*>  slots_;          // slot -> client, sender-owned

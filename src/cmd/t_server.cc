@@ -788,6 +788,20 @@ void cmd_debug_impl(Shard&, Op& op) {
         reply_ok(op.sink());
         return;
     }
+    // Window widener for the cross-shard scan-ordering regression test. Holds a direct RENAME's
+    // destination task for N extra owner passes AFTER its source hop is ready, which is exactly
+    // the park a younger whole-owner walker used to run past. Production default is 0.
+    if (eq_icase(subcommand, "atomic-direct-defer") && op.argc() == 3) {
+        uint64_t passes = 0;
+        if (!parse_u64(op.arg(2), passes) || passes > 1000000) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        g_server->set_debug_atomic_direct_defer(static_cast<uint32_t>(passes));
+        reply_ok(op.sink());
+        return;
+    }
     if (eq_icase(subcommand, "set-active-expire") && op.argc() == 3) {
         if (!(op.arg(2) == Slice("0", 1) || op.arg(2) == Slice("1", 1))) {
             reply_err(op.sink(), "ERR value is not an integer or out of range");
@@ -1289,7 +1303,7 @@ void cmd_info(Shard&, Op& op) {
              atomic_promotions = 0, atomic_records_freed = 0,
              atomic_entries = 0, atomic_pending_entries = 0,
              atomic_cleanup_fast = 0, atomic_cleanup_slow = 0,
-             atomic_localfast = 0, blocking_waiters = 0;
+             atomic_localfast = 0, atomic_scan_holds = 0, blocking_waiters = 0;
     uint64_t hash_field_expires = 0, expired_hash_fields = 0;
     uint64_t plain_accepts = 0, tls_accepts = 0, tls_handshakes_started = 0,
              tls_handshakes_completed = 0, tls_handshakes_failed = 0,
@@ -1321,6 +1335,7 @@ void cmd_info(Shard&, Op& op) {
                 total_ops += g_server->thread(t).command_calls(id);
             connections += g_server->thread(t).sig().accepts;
             atomic_localfast += g_server->thread(t).atomic_localfast();
+            atomic_scan_holds += g_server->thread(t).atomic_scan_holds();
             acl_denied_cmd += g_server->thread(t).sig().acl_access_denied_cmd;
             acl_denied_key += g_server->thread(t).sig().acl_access_denied_key;
             acl_denied_channel += g_server->thread(t).sig().acl_access_denied_channel;
@@ -1461,6 +1476,7 @@ void cmd_info(Shard&, Op& op) {
                       "atomic_promotions:%llu\r\natomic_window_stalls:%llu\r\n"
                       "atomic_records_freed:%llu\r\natomic_entries:%llu\r\n"
                       "atomic_pending_entries:%llu\r\natomic_localfast:%llu\r\n"
+                      "atomic_scan_order_holds:%llu\r\n"
                       "atomic_credit_pool:%u\r\natomic_credit_debt:%u\r\n"
                       "pubsub_channels:%llu\r\npubsub_subscriptions:%llu\r\n"
                       "pubsubshard_channels:%llu\r\npubsubshard_subscriptions:%llu\r\n"
@@ -1520,6 +1536,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(atomic_entries),
                 static_cast<unsigned long long>(atomic_pending_entries),
                 static_cast<unsigned long long>(atomic_localfast),
+                static_cast<unsigned long long>(atomic_scan_holds),
                 g_server ? g_server->atomic_credit_pool() : 0,
                 g_server ? g_server->atomic_credit_debt() : 0,
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_active_channels() : 0),

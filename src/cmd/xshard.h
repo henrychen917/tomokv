@@ -135,6 +135,11 @@ void xshard_watch_finish(const Task& task, Shard& shard, Op& op,
 bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op& op);
 bool xshard_tasks_share_key(const Task& older, Op& older_op,
                             const Task& younger, Op& younger_op, int32_t shard_id);
+// True for a scatter task whose group names no keys (KEYS, exact DBSIZE, FLUSHDB/FLUSHALL): it
+// reads or clears the owner's whole keyspace, so its program-order dependency is per-owner rather
+// than per-key.  Used only to attribute the ordering hold that keeps such a walker behind an
+// older same-connection task on the same shard.
+bool xshard_task_is_whole_owner(const Task& task);
 
 // Counts a completed owner and, for the last owner, either serializes the final reply or publishes
 // a fully-preflighted second hop.  Final means the caller must publish OpState::Done and notify IO.

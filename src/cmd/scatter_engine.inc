@@ -344,6 +344,9 @@ struct ScatterState {
     uint32_t hop2_count = 0;
     uint32_t selected = std::numeric_limits<uint32_t>::max();
     uint32_t pop_retries = 0;
+    // TEST HOOK budget copied from Server::debug_atomic_direct_defer() when this group takes the
+    // direct-RENAME path. Touched only by the destination task's owner. Zero in production.
+    uint32_t debug_direct_defer = 0;
     uint32_t snapshot_slot = std::numeric_limits<uint32_t>::max(); // owning IO's unresolved set
     uint64_t sinter_limit = 0;
     uint64_t zset_limit = 0;
@@ -1180,6 +1183,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     state->atomic_pop = atomic_pop;
     state->atomic_group = atomic_group;
     state->atomic_direct = atomic_direct;
+    if (__builtin_expect(atomic_direct, false))
+        state->debug_direct_defer = server.debug_atomic_direct_defer();
     state->phase = atomic_direct ? 2 : 1;
     state->two_hop = is_two_hop(kind) && !atomic_write && !atomic_direct;
     state->barrier = state->two_hop || all_shards;

@@ -695,6 +695,17 @@ public:
     uint64_t atomic_window_stalls() const {
         return atomic_window_stalls_.load(std::memory_order_relaxed);
     }
+    // TEST HOOK (DEBUG ATOMIC-DIRECT-DEFER). Number of extra owner passes a cross-shard RENAME's
+    // destination task is held after its source hop is ready. Zero in production; its only reader
+    // is xshard_prepare()'s already-cold direct-RENAME arm, so the disabled cost is nothing on any
+    // other command. It widens -- deterministically -- the window in which a younger whole-owner
+    // walker could overtake an older same-connection group on the destination shard.
+    uint32_t debug_atomic_direct_defer() const {
+        return debug_atomic_direct_defer_.load(std::memory_order_relaxed);
+    }
+    void set_debug_atomic_direct_defer(uint32_t passes) {
+        debug_atomic_direct_defer_.store(passes, std::memory_order_relaxed);
+    }
     uint32_t atomic_credit_pool() const {
         return atomic_credit_pool_.load(std::memory_order_acquire);
     }
@@ -1112,6 +1123,7 @@ private:
     std::atomic<uint64_t> commit_seq_{0};
     std::atomic<bool> snapshot_atomic_barrier_{false};
     std::atomic<uint64_t> atomic_window_stalls_{0};
+    std::atomic<uint32_t> debug_atomic_direct_defer_{0};
     std::atomic<uint64_t> atomic_credit_generation_{2};
     std::atomic<uint32_t> atomic_credit_pool_{0};
     std::atomic<uint32_t> atomic_credit_debt_{0};
