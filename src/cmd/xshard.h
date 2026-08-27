@@ -47,7 +47,7 @@ XshardPopResult xshard_pop_zset(Shard& shard, Slice key, uint64_t hash, bool max
 
 enum class ScatterPrepare : uint8_t { NotScatter, Ready, Backpressure, Error };
 enum class ScatterTaskResult : uint8_t { Complete, Retry };
-enum class ScatterFinish : uint8_t { Waiting, Final };
+enum class ScatterFinish : uint8_t { Waiting, Retry, Final };
 
 // The common arena size is deliberately a size class, not a maximum command size.  The owning IO
 // thread recycles these blocks after ROB retirement; larger shapes use exact-size heap blocks.
@@ -77,7 +77,7 @@ private:
 public:
     uint32_t reap_deferred();
     uint32_t refresh_snapshot_floor(Server& server, uint32_t owner_io);
-    bool can_register_snapshot() const;
+    bool can_register_snapshot(uint32_t limit = 8) const;
 private:
     void* cached_[kCached] = {};
     uint32_t count_ = 0;

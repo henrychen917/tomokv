@@ -286,6 +286,9 @@ bool classify(const Op& op, Kind& kind) {
         {"GEORADIUSBYMEMBER_RO", Kind::Georadiusbymember},
         {"SORT_RO", Kind::Sort}, {"LCS", Kind::Lcs},
         {"XREAD", Kind::Xread}, {"XREADGROUP", Kind::Xreadgroup},
+        {"EVAL", Kind::Script}, {"EVALSHA", Kind::Script},
+        {"EVAL_RO", Kind::Script}, {"EVALSHA_RO", Kind::Script},
+        {"FCALL", Kind::Script}, {"FCALL_RO", Kind::Script},
     };
     for (const Entry& entry : entries)
         if (name_is(op, entry.name)) { kind = entry.kind; return true; }
@@ -1555,6 +1558,10 @@ void assemble_mget(Client& client, Op& op, ScatterState& state, void* release_ct
 void assemble_final(Client& client, Op& op, ScatterState& state, void* release_ctx,
                     void (*release_fn)(void*, int32_t, const char*),
                     void (*suppressed_fn)(void*)) {
+    // The coordinator ran the original EVAL/FCALL handler, so its RESP (including a runtime error
+    // after retained effects) is already complete. Engine refusals replace that buffer before
+    // reaching retirement. Generic status bytes are the script read/write set, not WorkError.
+    if (state.kind == Kind::Script) return;
     if (state.final_reply != FinalReply::None) {
         switch (state.final_reply) {
             case FinalReply::Ok: reply_ok(op.sink()); break;

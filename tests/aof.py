@@ -156,22 +156,22 @@ def assert_surface():
            b"*2\r\n$20\r\nenable-debug-command\r\n$3\r\nyes\r\n")
 
 
-def find_same_shard_keys(prefix, count):
+def find_distinct_shard_keys(prefix, count):
     keys = []
-    target = None
+    owners = set()
     for candidate in range(4096):
         key = "%s:%d" % (prefix, candidate)
         reply = c.command("DEBUG", "SHARD", key)
         if reply[:1] != b":":
             raise AssertionError("DEBUG SHARD failed: %r" % reply)
         shard = int(reply[1:-2])
-        if target is None:
-            target = shard
-        if shard == target:
-            keys.append(key)
-            if len(keys) == count:
-                return keys
-    raise AssertionError("could not find %d keys on one shard" % count)
+        if shard in owners:
+            continue
+        owners.add(shard)
+        keys.append(key)
+        if len(keys) == count:
+            return keys
+    raise AssertionError("could not find %d distinct script owners" % count)
 
 
 def populate_script_writes():
@@ -201,13 +201,24 @@ def populate_script_writes():
     expect(("FCALL", "aofset", "1", "aof:script:fcall", values["aof:script:fcall"]),
            b"+OK\r\n")
 
-    multi_keys = find_same_shard_keys("aof:script:multi", 2)
+    multi_keys = find_distinct_shard_keys("aof:script:multi", 2)
     values[multi_keys[0]] = "multi-left"
     values[multi_keys[1]] = "multi-right"
     multi_source = ("redis.call('SET', KEYS[1], ARGV[1]); "
                     "redis.call('SET', KEYS[2], ARGV[2]); return 2")
     expect(("EVAL", multi_source, "2", multi_keys[0], multi_keys[1],
             values[multi_keys[0]], values[multi_keys[1]]), b":2\r\n")
+
+    failed_pair = find_distinct_shard_keys("aof:script:failed-prefix", 2)
+    values[failed_pair[0]] = "retained-left"
+    values[failed_pair[1]] = "retained-right"
+    failed = c.command(
+        "EVAL", "redis.call('SET',KEYS[1],ARGV[1]); "
+                "redis.call('SET',KEYS[2],ARGV[2]); error('after write')",
+        "2", failed_pair[0], failed_pair[1],
+        values[failed_pair[0]], values[failed_pair[1]])
+    if not (failed.startswith(b"-ERR ") and b"after write script:" in failed):
+        raise AssertionError("failed script did not return the expected runtime error: %r" % failed)
 
     readonly_keys = ["aof:script:ro:eval", "aof:script:ro:evalsha",
                      "aof:script:ro:fcall"]
@@ -218,8 +229,8 @@ def populate_script_writes():
     expect(("EVALSHA_RO", ro_sha, "1", readonly_keys[1]), b"$-1\r\n")
     expect(("FCALL_RO", "aofget", "1", readonly_keys[2]), b"$-1\r\n")
 
-    return {"values": values, "multi_keys": multi_keys,
-            "readonly_keys": readonly_keys, "expected_groups": 4}
+    return {"values": values, "multi_keys": multi_keys, "failed_keys": failed_pair,
+            "readonly_keys": readonly_keys, "expected_groups": 5}
 
 
 def populate():
@@ -407,6 +418,9 @@ def assert_script_aof(script_state):
     multi = script_state["multi_keys"]
     if tickets[multi[0]] != tickets[multi[1]]:
         raise AssertionError("multi-key EVAL post-images do not share one group ticket")
+    failed = script_state["failed_keys"]
+    if tickets[failed[0]] != tickets[failed[1]]:
+        raise AssertionError("failed script prefix post-images do not share one group ticket")
     if len(set(tickets.values())) != script_state["expected_groups"]:
         raise AssertionError("script writes used %d groups, wanted %d" %
                              (len(set(tickets.values())), script_state["expected_groups"]))

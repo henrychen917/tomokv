@@ -230,6 +230,13 @@ struct Config {
     // wall-clock BUSY-reply threshold for a script that keeps running, which is a different
     // mechanism, so borrowing the name would borrow the wrong semantics.
     uint64_t script_instruction_limit = 100000;
+    // Cross-owner script sidecars. -1 selects the boot-time auto value, 0 disables the facility
+    // and allocates no workbench/intent state. These are TomoKV-specific because Redis has no
+    // equivalent scatter engine knobs.
+    int64_t script_crossshard_max_bytes = -1;
+    int64_t script_crossshard_workbench_bytes = -1;
+    int64_t script_crossshard_conflict_retries = -1;
+    int64_t script_crossshard_cut_slots = -1;
 
     TypeLimits type_limits;              // 8 compact-encoding limits, all live via CONFIG SET
     StreamLimits stream_limits;          // macro-node roll-over budgets, live via CONFIG SET
@@ -705,6 +712,34 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 return kConfigError;
             }
         }
+        else if (!std::strcmp(a, "--script-crossshard-max-bytes")) {
+            if (!cfg_parse_i64(next(nullptr), cfg.script_crossshard_max_bytes) ||
+                cfg.script_crossshard_max_bytes < -1) {
+                std::fprintf(stderr, "--script-crossshard-max-bytes wants -1, 0, or a positive byte count\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--script-crossshard-workbench-bytes")) {
+            if (!cfg_parse_i64(next(nullptr), cfg.script_crossshard_workbench_bytes) ||
+                cfg.script_crossshard_workbench_bytes < -1) {
+                std::fprintf(stderr, "--script-crossshard-workbench-bytes wants -1, 0, or a positive byte count\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--script-crossshard-conflict-retries")) {
+            if (!cfg_parse_i64(next(nullptr), cfg.script_crossshard_conflict_retries) ||
+                cfg.script_crossshard_conflict_retries < -1) {
+                std::fprintf(stderr, "--script-crossshard-conflict-retries wants -1, 0, or a positive count\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--script-crossshard-cut-slots")) {
+            if (!cfg_parse_i64(next(nullptr), cfg.script_crossshard_cut_slots) ||
+                cfg.script_crossshard_cut_slots < -1) {
+                std::fprintf(stderr, "--script-crossshard-cut-slots wants -1, 0, or a positive count\n");
+                return kConfigError;
+            }
+        }
         else if (!std::strcmp(a, "--shard-home")) cfg.shard_home = next("");
         else if (!std::strcmp(a, "--no-pin"))     cfg.pin_threads = false;
         else if (!std::strcmp(a, "--hash")) {
@@ -770,6 +805,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "            --latency-monitor-threshold MS (default 0 = off)\n"
                         "  atomics: --atomic 0|1 --atomic-window N (default 256; 0=unlimited)\n"
                         "  scripting: --script-instruction-limit N (default 100000; 0=unlimited)\n"
+                        "    --script-crossshard-max-bytes N --script-crossshard-workbench-bytes N\n"
+                        "    --script-crossshard-conflict-retries N --script-crossshard-cut-slots N\n"
                         "  compact encodings: --{hash,list,set,zset}-max-compact-{entries,value} N\n"
                         "  streams: --stream-node-max-bytes N --stream-node-max-entries N\n"
                         "  misc: --hash mix64|siphash\n"

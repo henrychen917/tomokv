@@ -488,9 +488,8 @@ uint32_t ScatterArenaPool::refresh_snapshot_floor(Server& server, uint32_t owner
     return 1;
 }
 
-bool ScatterArenaPool::can_register_snapshot() const {
-    static constexpr uint32_t kSnapshotWindow = 8;
-    return unresolved_snapshots_.size() < kSnapshotWindow;
+bool ScatterArenaPool::can_register_snapshot(uint32_t limit) const {
+    return limit != 0 && unresolved_snapshots_.size() < limit;
 }
 
 void ScatterArenaPool::defer_destroy(ScatterState* state) {
@@ -783,7 +782,8 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
         for_each_touched_key(op, [&](uint64_t hash, Slice key) {
             if (allocation_failed) return;
             store.atomic_promote_key(hash, key, floor, cleanup_cutoff);
-            if (!store.atomic_has_record(hash, key)) return;
+            if (!store.atomic_has_record(hash, key) &&
+                !store.atomic_has_script_intent(hash, key)) return;
             for (const RecordedKey& prior : recorded)
                 if (prior.hash == hash && prior.key == key) return;
             try { recorded.push_back(RecordedKey{hash, key}); }
@@ -881,7 +881,8 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
         return true;
     }
     store.atomic_promote_key(op.hash, op.key(), floor, cleanup_cutoff);
-    if (!store.atomic_has_record(op.hash, op.key())) return true;
+    if (!store.atomic_has_record(op.hash, op.key()) &&
+        !store.atomic_has_script_intent(op.hash, op.key())) return true;
     if (!(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
         store.atomic_set_read_context(
             plain_read_cut(server, op, cleanup_cutoff), origin_conn_id);

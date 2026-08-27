@@ -44,6 +44,20 @@ struct AtomicEntry {
     }
     bool plain() const { return group == nullptr; }
 };
+
+// Owner-local protection installed while a cross-owner script is staged.  It deliberately lives
+// beside the cold MVCC list rather than in KvObj: ordinary databases that never execute a cross
+// script allocate none, and a key's hot representation remains byte-identical.  The trailing key
+// bytes make the intent independent of the IO-owned request buffer.
+struct AtomicScriptIntent {
+    AtomicScriptIntent* next = nullptr;
+    uint64_t hash = 0;
+    uint32_t refs = 0;
+    uint32_t key_len = 0;
+    char* key_data() { return reinterpret_cast<char*>(this + 1); }
+    const char* key_data() const { return reinterpret_cast<const char*>(this + 1); }
+};
+
 struct AtomicPendingState {
     struct FreeValue {
         FreeValue* next;
@@ -61,6 +75,8 @@ struct AtomicPendingState {
     uint64_t cleanup_slow = 0;
     size_t cached_entry_bytes = 0;
     size_t cached_value_bytes = 0;
+    AtomicScriptIntent* script_intents = nullptr;
+    uint32_t script_intent_count = 0;
 };
 
 struct AtomicResolved {

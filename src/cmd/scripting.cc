@@ -291,6 +291,8 @@ struct ScriptContext {
     // Filled by the pcall message handler: the first Lua frame's line at the point of the error.
     // Redis reports it in the " ... on @user_script:<line>." tail.
     int error_line = 0;
+    uint8_t* cross_access = nullptr;
+    uint32_t cross_access_count = 0;
 };
 
 // Persistent per-thread engine. Building luaL_newstate + the sandbox + recompiling the source on
@@ -308,6 +310,12 @@ struct LuaEngine {
     }
 };
 thread_local LuaEngine t_lua_engine;
+struct ScriptCrossBinding {
+    Op* op = nullptr;
+    uint8_t* access = nullptr;
+    uint32_t count = 0;
+};
+thread_local ScriptCrossBinding t_script_cross;
 std::atomic<uint64_t> g_script_flushes{0};
 
 ScriptContext* lua_context(lua_State* state) {
@@ -385,10 +393,15 @@ bool script_command_allowed(const CommandSpec& spec, uint32_t argc) {
     return true;
 }
 
-bool key_declared(const ScriptContext& context, Slice key) {
-    for (uint32_t i = 0; i < context.key_count; i++)
-        if (context.parent->arg(context.key_first + i) == key) return true;
-    return false;
+bool mark_declared(ScriptContext& context, Slice key, uint8_t bits) {
+    bool declared = false;
+    for (uint32_t i = 0; i < context.key_count; i++) {
+        if (context.parent->arg(context.key_first + i) != key) continue;
+        declared = true;
+        if (context.cross_access && i < context.cross_access_count)
+            context.cross_access[i] |= bits;
+    }
+    return declared;
 }
 
 bool parse_decimal_line(const char* data, size_t size, size_t& pos, int64_t& value) {
@@ -597,7 +610,7 @@ int redis_dispatch(lua_State* state, bool protected_call) {
         if (!failed) {
             const uint32_t key_arg = static_cast<uint32_t>(spec->first_key);
             const Slice key = nested.arg(key_arg);
-            if (!key_declared(*context, key)) {
+            if (!mark_declared(*context, key, 1)) {
                 std::snprintf(deferred_error, sizeof(deferred_error),
                               "ERR Script attempted to access an undeclared key");
                 failed = true;
@@ -626,6 +639,7 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                     const bool errored = !nested.zc_ptr && nested.reply.size() &&
                                          nested.reply.data()[0] == '-';
                     if (!errored) {
+                        mark_declared(*context, key, 2);
                         context->effect_writes++;
                         g_effect_writes.fetch_add(1, std::memory_order_relaxed);
                     }
@@ -1049,6 +1063,10 @@ void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
     LuaEngine& engine = t_lua_engine;
     lua_State* state = engine.state;
     ScriptContext context{&shard, &op, call.key_first, call.key_count};
+    if (t_script_cross.op == &op) {
+        context.cross_access = t_script_cross.access;
+        context.cross_access_count = t_script_cross.count;
+    }
     context.notify = call.notify;
     context.readonly = call.readonly;
     engine.current = &context;
@@ -1100,6 +1118,15 @@ void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
         return;
     }
     op.sink().append(result.data(), result.size());
+}
+
+void script_cross_access_begin(Op& op, uint8_t* access, uint32_t count) {
+    if (t_script_cross.op) std::abort();
+    t_script_cross = ScriptCrossBinding{&op, access, count};
+}
+
+void script_cross_access_end() {
+    t_script_cross = ScriptCrossBinding{};
 }
 
 namespace {
@@ -1287,19 +1314,23 @@ void cmd_script(Shard&, Op& op) {
 
 static const CommandSpec kTable[] = {
     // name       min max flags                                      handler     first last step
-    {"EVAL",       3, -1, CmdFlags::Write | CmdFlags::CursorShard | CmdFlags::ScriptRoute,
+    {"EVAL",       3, -1, CmdFlags::Write | CmdFlags::CursorShard | CmdFlags::ScriptRoute |
+                              CmdFlags::MultiShard,
                 cmd_eval<false, false, false>, 3, -1, 1,
                 notify_handler<cmd_eval<true, false, false>>},
-    {"EVALSHA",    3, -1, CmdFlags::Write | CmdFlags::CursorShard | CmdFlags::ScriptRoute,
+    {"EVALSHA",    3, -1, CmdFlags::Write | CmdFlags::CursorShard | CmdFlags::ScriptRoute |
+                              CmdFlags::MultiShard,
                 cmd_eval<false, true, false>, 3, -1, 1,
                 notify_handler<cmd_eval<true, true, false>>},
     // The _RO forms are Readonly, exactly as Redis flags them: no AOF post-image pass and no
     // WATCH invalidation for an activation that cannot mutate. The atomic MVCC promotion still
     // runs — it is keyed on the declared range, not on write-ness, which is what RYOW needs.
-    {"EVAL_RO",    3, -1, CmdFlags::Readonly | CmdFlags::CursorShard | CmdFlags::ScriptRoute,
+    {"EVAL_RO",    3, -1, CmdFlags::Readonly | CmdFlags::CursorShard | CmdFlags::ScriptRoute |
+                              CmdFlags::MultiShard,
                 cmd_eval<false, false, true>, 3, -1, 1,
                 notify_handler<cmd_eval<true, false, true>>},
-    {"EVALSHA_RO", 3, -1, CmdFlags::Readonly | CmdFlags::CursorShard | CmdFlags::ScriptRoute,
+    {"EVALSHA_RO", 3, -1, CmdFlags::Readonly | CmdFlags::CursorShard | CmdFlags::ScriptRoute |
+                              CmdFlags::MultiShard,
                 cmd_eval<false, true, true>, 3, -1, 1,
                 notify_handler<cmd_eval<true, true, true>>},
     {"SCRIPT",     2, -1, CmdFlags::ConnLocal | CmdFlags::OrderedLocal | CmdFlags::Admin,
@@ -1379,8 +1410,9 @@ static bool script_route_store(Op& op) {
     return true;
 }
 
-bool command_prepare_script_route(Server& server, Op& op) {
-    uint32_t first = 0, count = 0;
+bool command_validate_script_route(Op& op, uint32_t& first, uint32_t& count) {
+    first = 0;
+    count = 0;
     bool negative = false;
     if (!parse_nonnegative(op.arg(2), count, negative)) {
         // Same grammar, two Redis messages: EVAL reports the generic integer error, FCALL its own.
@@ -1399,7 +1431,12 @@ bool command_prepare_script_route(Server& server, Op& op) {
     }
     // After the numkeys grammar, before routing: Redis reports a bad key count ahead of a compile
     // error, and this keeps that precedence.
-    if (!script_route_store(op)) return false;
+    return script_route_store(op);
+}
+
+bool command_prepare_script_route(Server& server, Op& op) {
+    uint32_t first = 0, count = 0;
+    if (!command_validate_script_route(op, first, count)) return false;
     if (!count) {
         op.hash = 0;
         op.shard = 0;

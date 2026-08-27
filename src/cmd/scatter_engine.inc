@@ -16,7 +16,10 @@ enum class Kind : uint8_t {
     Bitop, Pfmerge,
     Lmpop, Zmpop, Zrangestore, Sort,
     Geosearchstore, Georadius, Georadiusbymember,
+    Script,
 };
+
+enum class ScriptPhase : uint8_t { None, Pin, Read, Run, Validate, Apply, Unpin };
 
 enum class BitOperation : uint8_t { And, Or, Xor, Not };
 enum class ZAggregate : uint8_t { Sum, Min, Max };
@@ -309,12 +312,22 @@ struct ScatterState {
     std::atomic<uint32_t> watch_refs{0};
     std::atomic<bool> aborted{false};
     std::atomic<bool> conditional_failed{false};
+    std::atomic<bool> script_conflict{false};
     std::atomic<uint8_t> direct_ready{0};     // 0=source pending, 1=image ready, 2=terminal
     std::atomic<uint64_t> exact_sum{0};
     Kind kind = Kind::AllShards;
     FinalReply final_reply = FinalReply::None;
     WorkError final_error = WorkError::None;
     uint8_t phase = 1;
+    ScriptPhase script_phase = ScriptPhase::None;
+    bool script_publish_pending = false;
+    bool script_pins_live = false;
+    bool script_ticket_live = false;
+    bool script_apply_after_unpin = false;
+    bool script_commit_after_unpin = false;
+    bool script_has_writes = false;
+    bool script_stage_limit = false;
+    bool script_certifier = false;
     bool barrier = false;
     bool pooled = false;
     bool copy_replace = false;
@@ -353,6 +366,8 @@ struct ScatterState {
     uint32_t hop2_count = 0;
     uint32_t selected = std::numeric_limits<uint32_t>::max();
     uint32_t pop_retries = 0;
+    uint32_t script_retries = 0;
+    int32_t script_coordinator_shard = -1;
     // TEST HOOK budget copied from Server::debug_atomic_direct_defer() when this group takes the
     // direct-RENAME path. Touched only by the destination task's owner. Zero in production.
     uint32_t debug_direct_defer = 0;
@@ -369,6 +384,10 @@ struct ScatterState {
     uint64_t pop_count = 1;
     uint64_t xread_count = 0;
     uint64_t snapshot = UINT64_MAX;
+    uint64_t script_cut = UINT64_MAX;
+    uint64_t script_ticket = 0;
+    std::atomic<uint64_t> script_staged_bytes{0};
+    int64_t script_now_ms = 0;
     uint64_t pop_retry_snapshot = UINT64_MAX;
     long long final_integer = 0;
     ImageRangeOptions range_options;
@@ -388,6 +407,7 @@ struct ScatterState {
     uint32_t* key_order = nullptr;
     ValueSlot* values = nullptr;
     uint8_t* status = nullptr;
+    uint8_t* script_pinned = nullptr;
     ObjectImage* images = nullptr;
     ObjectImage* apply = nullptr;
     uint32_t* hop2 = nullptr;
@@ -473,6 +493,7 @@ bool parse_zset_operation(Op& op, Kind kind, uint32_t& count,
                           bool& withscores, uint64_t& limit);
 void finish_lcs(ScatterState& state);
 void set_oom(Op& op);
+void reply_work_error(Op& op, WorkError error);
 bool classify(const Op& op, Kind& kind);
 bool bitop_operation(Slice name, BitOperation& operation);
 bool glob_match(const char* pattern, size_t pn, const char* text, size_t tn);
@@ -521,6 +542,10 @@ uint32_t key_count_for(Kind kind, const Op& op, uint32_t sinter_count,
     if (kind == Kind::Lcs) return 2;
     if (kind == Kind::Sort) return sort_store ? 2 : 1;
     if (kind == Kind::Xread || kind == Kind::Xreadgroup) return xread_count;
+    if (kind == Kind::Script) {
+        uint32_t first = 0, count = 0;
+        return command_script_key_range(op, first, count) ? count : 0;
+    }
     return op.argc() - 1;
 }
 
@@ -537,6 +562,7 @@ uint32_t key_arg_for(Kind kind, uint32_t key, uint32_t, uint32_t sort_store_arg,
     if (kind == Kind::Lmpop || kind == Kind::Zmpop) return 2 + key;
     if (kind == Kind::Sort && sort_store_arg) return key == 0 ? sort_store_arg : 1;
     if (kind == Kind::Xread || kind == Kind::Xreadgroup) return xread_first_key + key;
+    if (kind == Kind::Script) return 3 + key;
     return 1 + key;
 }
 
@@ -564,6 +590,7 @@ size_t arena_layout_bytes(Kind kind, uint32_t key_count, uint32_t group_cap,
     carve_size<uint32_t>(off, key_count);             // key_order
     if (has_values(kind, atomic_write)) carve_size<ValueSlot>(off, key_count);
     if (has_status(kind, atomic_write)) carve_size<uint8_t>(off, key_count);
+    if (kind == Kind::Script) carve_size<uint8_t>(off, key_count);
     if (has_images(kind)) {
         carve_size<ObjectImage>(off, key_count);
         carve_size<ObjectImage>(off, key_count);
@@ -596,6 +623,8 @@ void init_arena_arrays(ScatterState& state) {
         state.values = carve_at<ValueSlot>(base, off, state.key_count);
     if (has_status(state.kind, state.atomic_write))
         state.status = carve_at<uint8_t>(base, off, state.key_count);
+    if (state.kind == Kind::Script)
+        state.script_pinned = carve_at<uint8_t>(base, off, state.key_count);
     if (has_images(state.kind)) {
         state.images = carve_at<ObjectImage>(base, off, state.key_count);
         state.apply = carve_at<ObjectImage>(base, off, state.key_count);
@@ -612,6 +641,7 @@ void init_arena_arrays(ScatterState& state) {
     if (state.key_order) std::memset(state.key_order, 0, sizeof(uint32_t) * state.key_count);
     for (uint32_t i = 0; state.values && i < state.key_count; i++) new (&state.values[i]) ValueSlot;
     if (state.status) std::memset(state.status, 0, state.key_count);
+    if (state.script_pinned) std::memset(state.script_pinned, 0, state.key_count);
     if (state.hop2) std::memset(state.hop2, 0, sizeof(uint32_t) * state.key_count);
     if (state.shard_groups)
         std::fill_n(state.shard_groups, state.shard_slots, UINT16_MAX);
@@ -888,10 +918,23 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     else if (!(op.spec->flags & CmdFlags::MultiShard) || !classify(op, kind))
         return ScatterPrepare::NotScatter;
 
+    uint32_t script_first = 0, script_count = 0;
+    if (kind == Kind::Script) {
+        if (!command_validate_script_route(op, script_first, script_count))
+            return ScatterPrepare::Error;
+        // Zero/one-key and feature-off activations retain the established local route. The later
+        // ScriptRoute pass owns the exact CROSSSLOT refusal when a disabled boot sees >1 owner.
+        if (script_count <= 1 || server.script_crossshard_max_bytes() == 0 ||
+            server.script_crossshard_workbench_bytes() == 0 ||
+            server.script_crossshard_cut_slots() == 0)
+            return ScatterPrepare::NotScatter;
+    }
+
     const uint64_t atomic_mode = server.atomic_mode_state();
     const bool tracking = atomic_mode != 0;
     const bool atomic_enabled = force_atomic || (atomic_mode & Server::kAtomicEnabledBit);
-    const bool atomic_write = atomic_enabled && is_atomic_write_kind(kind);
+    const bool script_guard = server.script_intents_active();
+    const bool atomic_write = (atomic_enabled || script_guard) && is_atomic_write_kind(kind);
 
     // The ordinary handlers are already the optimal one-key path.
     if ((kind == Kind::Del || kind == Kind::Unlink || kind == Kind::Exists ||
@@ -1059,9 +1102,9 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         xread_options.key_count = 1;
         xread_options.block = xreadgroup_options.block && xreadgroup_options.new_entries;
     }
-    const bool atomic_apply = atomic_enabled &&
-        is_atomic_apply_kind(kind, sort_options.store, geo_route.store);
-    const bool atomic_pop = atomic_enabled && is_atomic_pop_kind(kind);
+    const bool atomic_apply = kind == Kind::Script || ((atomic_enabled || script_guard) &&
+        is_atomic_apply_kind(kind, sort_options.store, geo_route.store));
+    const bool atomic_pop = (atomic_enabled || script_guard) && is_atomic_pop_kind(kind);
     const bool atomic_group = atomic_write || atomic_apply || atomic_pop;
     const bool atomic_direct = atomic_apply && kind == Kind::Rename;
 
@@ -1173,9 +1216,16 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     // readers nothing that a cut would buy.
     const bool read_fanout = group_cap > 1 &&
         !(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite));
-    const bool needs_snapshot = !force_atomic && (tracking || read_fanout) &&
+    const bool needs_snapshot = kind == Kind::Script || (!force_atomic && (tracking || read_fanout) &&
         (key_count || kind == Kind::Keys || kind == Kind::DbsizeExact) &&
-        !(atomic_write && kind == Kind::Mset);
+        !(atomic_write && kind == Kind::Mset));
+    if (kind == Kind::Script &&
+        !pool.can_register_snapshot(server.script_crossshard_cut_slots())) {
+        if (routes != route_stack) delete[] routes;
+        server.note_script_window_refusal();
+        reply_err(op.sink(), "BUSY Cross-shard script snapshot window is full");
+        return ScatterPrepare::Error;
+    }
     if (needs_snapshot && (atomic_mode & ~Server::kAtomicEnabledBit) &&
         !pool.can_register_snapshot()) {
         if (routes != route_stack) delete[] routes;
@@ -1184,7 +1234,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     bool admitted = false;
     uint64_t admission_generation = 0;
     if (atomic_group && !force_atomic) {
-        if (!server.atomic_try_admit(owner_io, admission_generation)) {
+        if (!server.atomic_try_admit(owner_io, admission_generation,
+                                     kind == Kind::Script || script_guard)) {
             if (routes != route_stack) delete[] routes;
             return ScatterPrepare::Backpressure;
         }
@@ -1217,6 +1268,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     if (__builtin_expect(atomic_direct, false))
         state->debug_direct_defer = server.debug_atomic_direct_defer();
     state->phase = atomic_direct ? 2 : 1;
+    state->script_phase = kind == Kind::Script ? ScriptPhase::Pin : ScriptPhase::None;
     state->two_hop = is_two_hop(kind) && !atomic_write && !atomic_direct;
     state->barrier = state->two_hop || all_shards;
     state->admitted = admitted;
@@ -1226,6 +1278,10 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     state->owner_slots = static_cast<uint32_t>(server.placement().ex_threads().size());
     state->admission_generation = admission_generation;
     state->origin_conn_id = origin_conn_id;
+    state->script_coordinator_shard = kind == Kind::Script && key_count
+        ? routes[0].shard : -1;
+    state->script_now_ms = kind == Kind::Script
+        ? static_cast<int64_t>(now_ns() / 1000000ull) : 0;
     state->arena_bytes = static_cast<uint32_t>(bytes);
     state->key_count = key_count;
     state->group_cap = group_cap;
@@ -1364,6 +1420,10 @@ void xshard_destroy(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_
     if (state->admitted && state->server) {
         state->server->atomic_retire_group(state->owner_io, state->admission_generation);
         state->admitted = false;
+    }
+    if (state->script_certifier && state->server) {
+        state->server->script_finish_certification();
+        state->script_certifier = false;
     }
     if (state->aof_group && state->aof_group->ticket.load(std::memory_order_acquire) == 0)
         aof_abort_scatter_group(*state);
@@ -1541,7 +1601,277 @@ void xshard_aof_emit_local(Shard& shard, Op& op, AofOwnerContext& context) {
 
 namespace {
 
+enum class ScriptPostResult : uint8_t { Posted, Empty, Full };
+
+bool script_group_error(const ScatterState& state, WorkError& error) {
+    for (uint32_t i = 0; i < state.nsub; i++) {
+        if (state.groups[i].error == WorkError::None) continue;
+        error = state.groups[i].error;
+        return true;
+    }
+    return false;
+}
+
+void script_clear_attempt(ScatterState& state, Op& op) {
+    op.reply.clear();
+    op.direct_len = 0;
+    if (state.status) std::memset(state.status, 0, state.key_count);
+    for (uint32_t i = 0; i < state.key_count; i++) {
+        state.images[i] = ObjectImage{};
+        state.apply[i] = ObjectImage{};
+        state.keys[i].stable_object = nullptr;
+        if (state.keys[i].key_anchor) {
+            kvobj_free(state.keys[i].key_anchor);
+            state.keys[i].key_anchor = nullptr;
+        }
+    }
+    state.script_staged_bytes.store(0, std::memory_order_relaxed);
+    state.script_conflict.store(false, std::memory_order_relaxed);
+    notify_discard_batch(state.notify.exchange(nullptr));
+}
+
+uint32_t script_select_positions(ScatterState& state, ScriptPhase phase) {
+    uint32_t count = 0;
+    for (uint32_t i = 0; i < state.key_count; i++) {
+        bool selected = phase == ScriptPhase::Read || phase == ScriptPhase::Unpin;
+        if (phase == ScriptPhase::Validate) selected = (state.status[i] & 1u) != 0;
+        if (phase == ScriptPhase::Apply) selected = (state.status[i] & 2u) != 0;
+        if (selected) state.hop2[count++] = i;
+    }
+    return count;
+}
+
+ScriptPostResult script_post_phase(Server& server, ThreadCtx& self, Ring& ring,
+                                   const Task& source, ScatterState& state,
+                                   ScriptPhase phase) {
+    state.script_phase = phase;
+    state.phase = phase == ScriptPhase::Apply ? 2 : 1;
+    state.script_publish_pending = true;
+
+    int32_t one_shard = -1;
+    if (phase == ScriptPhase::Run) {
+        one_shard = state.script_coordinator_shard;
+    } else {
+        const uint32_t count = script_select_positions(state, phase);
+        reset_groups(state);
+        build_groups(state, state.hop2, count);
+        if (!state.nsub) {
+            state.script_publish_pending = false;
+            return ScriptPostResult::Empty;
+        }
+    }
+
+    uint32_t needed[kMaxThreads] = {};
+    uint32_t participants[kMaxThreads];
+    uint32_t nparticipants = 0;
+    if (phase == ScriptPhase::Run) {
+        const uint32_t tid = server.worker_of_shard(one_shard);
+        participants[nparticipants++] = tid;
+        needed[tid] = 1;
+    } else {
+        for (uint32_t i = 0; i < state.nsub; i++) {
+            const uint32_t tid = server.worker_of_shard(state.groups[i].shard);
+            if (needed[tid]++ == 0) participants[nparticipants++] = tid;
+        }
+    }
+    for (uint32_t p = 0; p < nparticipants; p++) {
+        const uint32_t tid = participants[p];
+        if (server.thread(tid).task_free_slots(self.id()) < needed[tid])
+            return ScriptPostResult::Full;
+    }
+    if (phase == ScriptPhase::Apply && !state.aof_group &&
+        !aof_prepare_scatter_group(state)) {
+        state.final_error = WorkError::Oom;
+        state.aborted.store(true, std::memory_order_release);
+        state.script_publish_pending = false;
+        return ScriptPostResult::Empty;
+    }
+
+    state.pending.store(phase == ScriptPhase::Run ? 1u : state.nsub,
+                        std::memory_order_release);
+    if (phase == ScriptPhase::Run) {
+        ThreadCtx& owner = server.thread(participants[0]);
+        const Task post{source.client, source.op_id, one_shard, &state};
+        if (!owner.post_task_quiet(self.id(), post, self.sig())) std::abort();
+        owner.flush_task_notify(self.id(), ring, self.sig());
+        state.script_publish_pending = false;
+        return ScriptPostResult::Posted;
+    }
+
+    Task posts[256];
+    uint16_t begin[kMaxThreads];
+    uint32_t cursor = 0;
+    for (uint32_t p = 0; p < nparticipants; p++) {
+        begin[p] = static_cast<uint16_t>(cursor);
+        cursor += needed[participants[p]];
+        needed[participants[p]] = begin[p];
+    }
+    for (uint32_t i = 0; i < state.nsub; i++) {
+        const uint32_t tid = server.worker_of_shard(state.groups[i].shard);
+        posts[needed[tid]++] = Task{source.client, source.op_id, state.groups[i].shard, &state};
+    }
+    for (uint32_t p = 0; p < nparticipants; p++) {
+        const uint32_t tid = participants[p];
+        const uint32_t end = p + 1 < nparticipants ? begin[p + 1] : cursor;
+        ThreadCtx& owner = server.thread(tid);
+        if (!owner.post_tasks_quiet(self.id(), posts + begin[p], end - begin[p], self.sig()))
+            std::abort();
+        owner.flush_task_notify(self.id(), ring, self.sig());
+    }
+    state.script_publish_pending = false;
+    return ScriptPostResult::Posted;
+}
+
+struct ScriptWorkbench {
+    std::unique_ptr<Shard> shard;
+    Server* server = nullptr;
+};
+thread_local ScriptWorkbench t_script_workbench;
+
+Shard* script_workbench(Server& server, int32_t coordinator) {
+    if (!t_script_workbench.shard) {
+        auto shard = std::make_unique<Shard>();
+        shard->init_private(&server, coordinator, server.cfg().type_limits,
+                            server.cfg().stream_limits);
+        t_script_workbench.server = &server;
+        t_script_workbench.shard = std::move(shard);
+    }
+    if (t_script_workbench.server != &server) std::abort();
+    return t_script_workbench.shard.get();
+}
+
+struct ScriptAccessScope {
+    explicit ScriptAccessScope(Op& op, uint8_t* access, uint32_t count) {
+        script_cross_access_begin(op, access, count);
+    }
+    ~ScriptAccessScope() { script_cross_access_end(); }
+};
+
+ScatterTaskResult execute_script_phase(const Task& task, Shard& shard, Op& op) {
+    ScatterState& state = *task.scatter;
+    ShardGroup* group = group_for(state, shard.id());
+    if (state.script_publish_pending) return ScatterTaskResult::Complete;
+    if (!group && state.script_phase != ScriptPhase::Run) std::abort();
+
+    switch (state.script_phase) {
+        case ScriptPhase::Pin: {
+            for (uint32_t i = 0; i < group->count; i++) {
+                const uint32_t pos = state.key_order[group->begin + i];
+                const KeyRef& key = state.keys[pos];
+                if (state.aborted.load(std::memory_order_acquire)) break;
+                if (!shard.store().atomic_script_pin(key.hash, op.arg(key.arg))) {
+                    group->error = WorkError::Oom;
+                    state.aborted.store(true, std::memory_order_release);
+                    break;
+                }
+                state.script_pinned[pos] = 1;
+            }
+            return ScatterTaskResult::Complete;
+        }
+        case ScriptPhase::Read: {
+            if (state.aborted.load(std::memory_order_acquire))
+                return ScatterTaskResult::Complete;
+            shard.set_cached_now_ms(state.script_now_ms);
+            shard.store().atomic_set_read_context(state.script_cut, state.origin_conn_id);
+            uint64_t local_bytes = 0;
+            for (uint32_t i = 0; i < group->count; i++) {
+                const uint32_t pos = state.key_order[group->begin + i];
+                const KeyRef& key = state.keys[pos];
+                KvObj* value = shard.store().find(key.hash, op.arg(key.arg));
+                if (!serialize_object(value, state.images[pos])) {
+                    group->error = WorkError::Oom;
+                    state.aborted.store(true, std::memory_order_release);
+                    break;
+                }
+                local_bytes += sizeof(ObjectImage) + op.arg(key.arg).n +
+                               state.images[pos].payload.size();
+            }
+            shard.store().atomic_clear_read_epoch();
+            const uint64_t total = state.script_staged_bytes.fetch_add(
+                local_bytes, std::memory_order_relaxed) + local_bytes;
+            state.server->note_script_stage_owner(local_bytes);
+            if (total > state.server->script_crossshard_max_bytes()) {
+                state.script_stage_limit = true;
+                group->error = WorkError::Oom;
+                state.aborted.store(true, std::memory_order_release);
+            }
+            return ScatterTaskResult::Complete;
+        }
+        case ScriptPhase::Run: {
+            state.server->note_script_run();
+            Shard* work = script_workbench(*state.server, state.script_coordinator_shard);
+            work->store().clear();
+            work->set_cached_now_ms(state.script_now_ms);
+            for (uint32_t pos = 0; pos < state.key_count; pos++) {
+                const KeyRef& key = state.keys[pos];
+                const WorkError loaded = apply_image<false>(
+                    *work, op.arg(key.arg), key.hash, state.images[pos], true);
+                if (loaded != WorkError::None) {
+                    state.final_error = loaded;
+                    state.aborted.store(true, std::memory_order_release);
+                    return ScatterTaskResult::Complete;
+                }
+            }
+            if (work->store().object_bytes() >
+                state.server->script_crossshard_workbench_bytes()) {
+                state.final_error = WorkError::Maxmemory;
+                state.aborted.store(true, std::memory_order_release);
+                return ScatterTaskResult::Complete;
+            }
+            op.reply.clear();
+            op.direct_len = 0;
+            {
+                ScriptAccessScope access(op, state.status, state.key_count);
+                op.spec->handler(*work, op);
+            }
+            if (work->store().object_bytes() >
+                state.server->script_crossshard_workbench_bytes()) {
+                state.final_error = WorkError::Maxmemory;
+                state.aborted.store(true, std::memory_order_release);
+                return ScatterTaskResult::Complete;
+            }
+            for (uint32_t pos = 0; pos < state.key_count; pos++) {
+                if (!(state.status[pos] & 2u)) continue;
+                const KeyRef& key = state.keys[pos];
+                KvObj* value = work->store().find(key.hash, op.arg(key.arg));
+                if (!serialize_object(value, state.apply[pos])) {
+                    state.final_error = WorkError::Oom;
+                    state.aborted.store(true, std::memory_order_release);
+                    break;
+                }
+            }
+            return ScatterTaskResult::Complete;
+        }
+        case ScriptPhase::Validate:
+            state.server->note_script_validate_owner();
+            for (uint32_t i = 0; i < group->count; i++) {
+                const uint32_t pos = state.key_order[group->begin + i];
+                const KeyRef& key = state.keys[pos];
+                if (shard.store().atomic_script_changed(
+                        key.hash, op.arg(key.arg), state.script_cut, state.script_ticket)) {
+                    state.script_conflict.store(true, std::memory_order_release);
+                    break;
+                }
+            }
+            return ScatterTaskResult::Complete;
+        case ScriptPhase::Unpin:
+            for (uint32_t i = 0; i < group->count; i++) {
+                const uint32_t pos = state.key_order[group->begin + i];
+                if (!state.script_pinned[pos]) continue;
+                const KeyRef& key = state.keys[pos];
+                shard.store().atomic_script_unpin(key.hash, op.arg(key.arg));
+                state.script_pinned[pos] = 0;
+            }
+            return ScatterTaskResult::Complete;
+        case ScriptPhase::Apply:
+        case ScriptPhase::None:
+            break;
+    }
+    return ScatterTaskResult::Complete;
+}
+
 bool xshard_owner_mutation_phase(const ScatterState& state, const Op& op) {
+    if (state.kind == Kind::Script && state.script_publish_pending) return false;
     if (!(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) return false;
     if (state.atomic_write) return true;
     if (state.atomic_apply || state.atomic_pop || state.two_hop) return state.phase == 2;
@@ -1555,6 +1885,9 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
     const bool notify = (op.spec->flags & CmdFlags::NotifySelected) != 0;
     NotifyExecutionScope notify_scope(shard, op, notify, shard.notify_order_base());
     ScatterState& state = *task.scatter;
+    if (state.kind == Kind::Script &&
+        (state.script_phase != ScriptPhase::Apply || state.script_publish_pending))
+        return execute_script_phase(task, shard, op);
     ShardGroup& group = *group_for(state, shard.id());
     if (xshard_owner_mutation_phase(state, op) && shard.has_watches()) {
         const void* token = state.atomic_group ? static_cast<const void*>(&state) : nullptr;
@@ -1606,8 +1939,10 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
     try {
         if (state.atomic_direct)
             return execute_atomic_direct_rename(task, shard, op, owner_thread_id);
-        if (state.atomic_apply && state.phase == 2)
+        if (state.atomic_apply && state.phase == 2) {
+            if (state.kind == Kind::Script) state.server->note_script_apply_owner();
             return execute_atomic_apply(task, shard, op, owner_thread_id);
+        }
         if (state.atomic_write) {
             // One owner pass preflights the table, allocates one shard entry, and performs ordinary
             // physical replacements. Per key, the entry records only the displaced pointer.
@@ -1988,7 +2323,8 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     const uint32_t pos = state.key_order[group.begin + i];
                     const KeyRef& key = state.keys[pos];
                     bool plain_active = false;
-                    if (shard.store().atomic_has_record(key.hash, op.arg(key.arg))) {
+                    if (shard.store().atomic_has_record(key.hash, op.arg(key.arg)) ||
+                        shard.store().atomic_has_script_intent(key.hash, op.arg(key.arg))) {
                         const WorkError prepared = begin_plain_version(
                             *state.server, shard, op.arg(key.arg), key.hash, state.snapshot,
                             state.origin_conn_id);
@@ -2009,7 +2345,8 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     const uint32_t pos = state.key_order[group.begin + i];
                     const KeyRef& key = state.keys[pos];
                     bool plain_active = false;
-                    if (shard.store().atomic_has_record(key.hash, op.arg(key.arg))) {
+                    if (shard.store().atomic_has_record(key.hash, op.arg(key.arg)) ||
+                        shard.store().atomic_has_script_intent(key.hash, op.arg(key.arg))) {
                         const WorkError prepared = begin_plain_version(
                             *state.server, shard, op.arg(key.arg), key.hash, state.snapshot,
                             state.origin_conn_id);
@@ -2136,9 +2473,219 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
     }
 }
 
+void script_snapshot_done(Server& server, ScatterState& state) {
+    if (state.snapshot_registered &&
+        !state.snapshot_complete.exchange(true, std::memory_order_acq_rel))
+        server.note_atomic_snapshot_complete(state.owner_io);
+}
+
+void script_engine_error_reply(Op& op, ScatterState& state, WorkError error) {
+    op.reply.clear();
+    op.direct_len = 0;
+    if (state.script_stage_limit) {
+        reply_err(op.sink(), "ERR cross-shard script staging limit exceeded");
+    } else if (error == WorkError::Maxmemory) {
+        reply_maxmemory_oom(op);
+    } else {
+        reply_work_error(op, error == WorkError::None ? WorkError::Oom : error);
+    }
+}
+
+ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring,
+                                     const Task& task, Op& op, ScatterState& state) {
+    bool synthetic_completion = false;
+    if (state.script_publish_pending) {
+        const ScriptPostResult resumed = script_post_phase(
+            server, self, ring, task, state, state.script_phase);
+        if (resumed == ScriptPostResult::Full) return ScatterFinish::Retry;
+        if (resumed == ScriptPostResult::Posted) return ScatterFinish::Waiting;
+        synthetic_completion = true;
+    }
+    if (!synthetic_completion &&
+        state.pending.fetch_sub(1, std::memory_order_acq_rel) != 1)
+        return ScatterFinish::Waiting;
+
+    auto post = [&](ScriptPhase next) -> ScatterFinish {
+        const ScriptPostResult result = script_post_phase(server, self, ring, task, state, next);
+        if (result == ScriptPostResult::Posted) return ScatterFinish::Waiting;
+        if (result == ScriptPostResult::Full) return ScatterFinish::Retry;
+        // Empty VALIDATE/APPLY phases are completed synchronously below. No owner task exists to
+        // return through this function, so loop by recursion with the publication bit clear.
+        state.pending.store(1, std::memory_order_relaxed);
+        return xshard_complete_script(server, self, ring, task, op, state);
+    };
+
+    switch (state.script_phase) {
+        case ScriptPhase::Pin: {
+            WorkError error = WorkError::None;
+            if (script_group_error(state, error) ||
+                state.aborted.load(std::memory_order_acquire)) {
+                server.note_script_abort_oom();
+                script_engine_error_reply(op, state, error);
+                state.script_apply_after_unpin = false;
+                state.script_commit_after_unpin = false;
+                return post(ScriptPhase::Unpin);
+            }
+            state.script_pins_live = true;
+            // All intents now exist. A write before this point is part of the new cut; every write
+            // after it is forced through MVCC and can be validated.
+            state.script_cut = server.atomic_snapshot();
+            state.script_staged_bytes.store(0, std::memory_order_relaxed);
+            return post(ScriptPhase::Read);
+        }
+        case ScriptPhase::Read: {
+            WorkError error = WorkError::None;
+            if (script_group_error(state, error) ||
+                state.aborted.load(std::memory_order_acquire)) {
+                server.note_script_abort_oom();
+                script_engine_error_reply(op, state, error);
+                state.script_apply_after_unpin = false;
+                state.script_commit_after_unpin = false;
+                return post(ScriptPhase::Unpin);
+            }
+            return post(ScriptPhase::Run);
+        }
+        case ScriptPhase::Run:
+            if (state.aborted.load(std::memory_order_acquire)) {
+                server.note_script_abort_oom();
+                script_engine_error_reply(op, state, state.final_error);
+                notify_discard_batch(state.notify.exchange(nullptr));
+                state.script_apply_after_unpin = false;
+                state.script_commit_after_unpin = false;
+                return post(ScriptPhase::Unpin);
+            }
+            state.script_has_writes = false;
+            for (uint32_t i = 0; i < state.key_count; i++)
+                state.script_has_writes |= (state.status[i] & 2u) != 0;
+            // A read-only activation already has a legal serialization point at script_cut: PIN
+            // forced every later writer to preserve the predecessor read by STAGE. It therefore
+            // needs neither an OCC validation wave nor a commit ticket.
+            if (!state.script_has_writes) {
+                server.note_script_activation();
+                state.script_apply_after_unpin = false;
+                state.script_commit_after_unpin = false;
+                return post(ScriptPhase::Unpin);
+            }
+            // Certification through APPLY is deliberately exclusive. Two activations can STAGE
+            // and RUN concurrently, but without this seam both can validate the same predecessor
+            // before either has installed a candidate, producing a classic lost update. A loser
+            // restages instead of parking an executor; plain writers remain fully concurrent and
+            // are caught by the ordinary read-set validation below.
+            if (!server.script_try_certification()) {
+                if (state.script_retries++ < server.script_crossshard_conflict_retries()) {
+                    server.note_script_retry();
+                    script_clear_attempt(state, op);
+                    state.script_cut = server.atomic_snapshot();
+                    return post(ScriptPhase::Read);
+                }
+                server.note_script_giveup();
+                op.reply.clear();
+                op.direct_len = 0;
+                reply_err(op.sink(), "TRYAGAIN Cross-shard script conflicted, retry");
+                notify_discard_batch(state.notify.exchange(nullptr));
+                state.script_apply_after_unpin = false;
+                state.script_commit_after_unpin = false;
+                return post(ScriptPhase::Unpin);
+            }
+            state.script_certifier = true;
+            state.script_ticket = server.atomic_commit_reserve();
+            state.script_ticket_live = true;
+            state.script_conflict.store(false, std::memory_order_relaxed);
+            return post(ScriptPhase::Validate);
+
+        case ScriptPhase::Validate:
+            if (state.script_conflict.load(std::memory_order_acquire)) {
+                if (!state.script_ticket_live) std::abort();
+                server.atomic_commit_publish();       // publish the unused reservation
+                state.script_ticket_live = false;
+                if (!state.script_certifier) std::abort();
+                server.script_finish_certification();
+                state.script_certifier = false;
+                if (state.script_retries++ < server.script_crossshard_conflict_retries()) {
+                    server.note_script_retry();
+                    script_clear_attempt(state, op);
+                    state.script_cut = server.atomic_snapshot();
+                    return post(ScriptPhase::Read);
+                }
+                server.note_script_giveup();
+                op.reply.clear();
+                op.direct_len = 0;
+                reply_err(op.sink(), "TRYAGAIN Cross-shard script conflicted, retry");
+                notify_discard_batch(state.notify.exchange(nullptr));
+                state.script_apply_after_unpin = false;
+                state.script_commit_after_unpin = false;
+                return post(ScriptPhase::Unpin);
+            }
+            // Drop the read intents in a separate all-owner wave before installing candidates.
+            // The reserved ticket orders every later writer after this activation, and no MVCC
+            // record yet points at the group arrays that UNPIN is about to rebuild.
+            state.script_apply_after_unpin = true;
+            state.script_commit_after_unpin = false;
+            return post(ScriptPhase::Unpin);
+
+        case ScriptPhase::Unpin:
+            state.script_pins_live = false;
+            if (state.script_apply_after_unpin) {
+                state.script_apply_after_unpin = false;
+                return post(ScriptPhase::Apply);
+            }
+            if (state.script_commit_after_unpin) {
+                state.script_commit_after_unpin = false;
+                if (!state.script_ticket_live) std::abort();
+                server.atomic_commit_publish();
+                state.script_ticket_live = false;
+                server.note_script_activation();
+            }
+            script_snapshot_done(server, state);
+            return ScatterFinish::Final;
+
+        case ScriptPhase::Apply: {
+            WorkError error = state.final_error;
+            const bool failed = script_group_error(state, error) ||
+                                state.aborted.load(std::memory_order_acquire);
+            if (failed) {
+                server.note_script_abort_oom();
+                state.aborted.store(true, std::memory_order_release);
+                aof_abort_scatter_group(state);
+                notify_discard_batch(state.notify.exchange(nullptr));
+                if (state.script_ticket_live) {
+                    server.atomic_commit_publish();
+                    state.script_ticket_live = false;
+                }
+                if (state.script_certifier) {
+                    server.script_finish_certification();
+                    state.script_certifier = false;
+                }
+                script_engine_error_reply(op, state, error);
+                script_snapshot_done(server, state);
+                return ScatterFinish::Final;
+            }
+            if (!state.script_ticket_live) std::abort();
+            state.epoch.store(state.script_ticket, std::memory_order_release);
+            server.atomic_commit_publish();
+            state.script_ticket_live = false;
+            if (!state.script_certifier) std::abort();
+            server.script_finish_certification();
+            state.script_certifier = false;
+            aof_commit_scatter_group(state, self, ring, state.script_ticket);
+            server.note_script_activation();
+            server.note_script_group_commit();
+            if (__builtin_expect(server.blocking_waiters() != 0, false))
+                blocking_atomic_published(server, self, ring, state);
+            script_snapshot_done(server, state);
+            return ScatterFinish::Final;
+        }
+        case ScriptPhase::None:
+            std::abort();
+    }
+    std::abort();
+}
+
 ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
                               const Task& task, Op& op) {
     ScatterState& state = *task.scatter;
+    if (state.kind == Kind::Script)
+        return xshard_complete_script(server, self, ring, task, op, state);
     auto final = [&]() {
         if (op.spec->flags & CmdFlags::NotifySelected)
             notify_xshard_finished(server.shard(task.shard), op, state);

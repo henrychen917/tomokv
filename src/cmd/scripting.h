@@ -89,4 +89,11 @@ FunctionStats function_stats();
 // Redis reports a different message for a malformed count.
 bool function_is_fcall(const Op& op);
 
+// Cold bridge used by the cross-owner scatter coordinator. Each declared-key byte receives bit 0
+// when a nested command reads it and bit 1 when a nested write completes without an error. The
+// binding is thread-local and scoped to one outer Op, so ordinary single-owner activations do not
+// test or allocate cross-script state.
+void script_cross_access_begin(Op& op, uint8_t* access, uint32_t count);
+void script_cross_access_end();
+
 }  // namespace tomo

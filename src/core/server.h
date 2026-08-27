@@ -102,6 +102,18 @@ public:
         cfg_.atomic_window = resolved_window;
         live_atomic_window_.store(resolved_window, std::memory_order_relaxed);
         atomic_credit_pool_.store(resolved_window, std::memory_order_relaxed);
+        const uint64_t auto_stage = cfg.maxmemory
+            ? std::max<uint64_t>(4ull * 1024 * 1024,
+                  std::min<uint64_t>(cfg.maxmemory / cfg.shards / 16, 64ull * 1024 * 1024))
+            : 4ull * 1024 * 1024;
+        if (cfg_.script_crossshard_max_bytes == -1)
+            cfg_.script_crossshard_max_bytes = static_cast<int64_t>(auto_stage);
+        if (cfg_.script_crossshard_workbench_bytes == -1)
+            cfg_.script_crossshard_workbench_bytes = static_cast<int64_t>(auto_stage * 2);
+        if (cfg_.script_crossshard_conflict_retries == -1)
+            cfg_.script_crossshard_conflict_retries = 8;
+        if (cfg_.script_crossshard_cut_slots == -1)
+            cfg_.script_crossshard_cut_slots = 4;
         live_config_version_.store(2, std::memory_order_release);  // even versions are stable
         // Declared topology is a legacy lowering input and therefore cannot accompany --place.
         // A declaration that fails to parse or names cpus outside the affinity mask fails the BOOT,
@@ -154,7 +166,7 @@ public:
                              cfg.stream_limits);
             shards_[i]->bind_atomic_state(
                 [](void* ctx) { return static_cast<Server*>(ctx)->atomic_commit(); }, this,
-                &atomic_activity_);
+                &atomic_activity_, &script_intent_owners_);
         }
         router_.build_uniform(static_cast<int32_t>(cfg.shards));
 
@@ -713,6 +725,68 @@ public:
     }
     uint64_t atomic_snapshot() const {
         return atomic_commit_safe_.load(std::memory_order_seq_cst);
+    }
+    uint64_t script_crossshard_max_bytes() const {
+        return static_cast<uint64_t>(cfg_.script_crossshard_max_bytes);
+    }
+    uint64_t script_crossshard_workbench_bytes() const {
+        return static_cast<uint64_t>(cfg_.script_crossshard_workbench_bytes);
+    }
+    uint32_t script_crossshard_conflict_retries() const {
+        return static_cast<uint32_t>(cfg_.script_crossshard_conflict_retries);
+    }
+    uint32_t script_crossshard_cut_slots() const {
+        return static_cast<uint32_t>(cfg_.script_crossshard_cut_slots);
+    }
+    void note_script_stage_owner(uint64_t bytes) {
+        script_stage_owner_tasks_.fetch_add(1, std::memory_order_relaxed);
+        script_staged_bytes_total_.fetch_add(bytes, std::memory_order_relaxed);
+    }
+    void note_script_run() { script_run_attempts_.fetch_add(1, std::memory_order_relaxed); }
+    void note_script_validate_owner() {
+        script_validate_owner_tasks_.fetch_add(1, std::memory_order_relaxed);
+    }
+    void note_script_apply_owner() {
+        script_apply_owner_tasks_.fetch_add(1, std::memory_order_relaxed);
+    }
+    void note_script_activation() {
+        script_crossshard_activations_.fetch_add(1, std::memory_order_relaxed);
+    }
+    void note_script_group_commit() {
+        script_group_commits_.fetch_add(1, std::memory_order_relaxed);
+    }
+    void note_script_retry() { script_group_occ_retries_.fetch_add(1, std::memory_order_relaxed); }
+    void note_script_giveup() { script_group_occ_giveups_.fetch_add(1, std::memory_order_relaxed); }
+    void note_script_window_refusal() {
+        script_crossshard_window_refusals_.fetch_add(1, std::memory_order_relaxed);
+    }
+    void note_script_abort_oom() {
+        script_group_aborts_oom_.fetch_add(1, std::memory_order_relaxed);
+    }
+    uint64_t script_stage_owner_tasks() const { return script_stage_owner_tasks_.load(); }
+    uint64_t script_run_attempts() const { return script_run_attempts_.load(); }
+    uint64_t script_validate_owner_tasks() const { return script_validate_owner_tasks_.load(); }
+    uint64_t script_apply_owner_tasks() const { return script_apply_owner_tasks_.load(); }
+    uint64_t script_crossshard_activations() const { return script_crossshard_activations_.load(); }
+    uint64_t script_group_commits() const { return script_group_commits_.load(); }
+    uint64_t script_group_occ_retries() const { return script_group_occ_retries_.load(); }
+    uint64_t script_group_occ_giveups() const { return script_group_occ_giveups_.load(); }
+    uint64_t script_staged_bytes_total() const { return script_staged_bytes_total_.load(); }
+    uint64_t script_crossshard_window_refusals() const {
+        return script_crossshard_window_refusals_.load();
+    }
+    uint64_t script_group_aborts_oom() const { return script_group_aborts_oom_.load(); }
+    bool script_intents_active() const {
+        return script_intent_owners_.load(std::memory_order_acquire) != 0;
+    }
+    bool script_try_certification() {
+        bool expected = false;
+        return script_certification_active_.compare_exchange_strong(
+            expected, true, std::memory_order_acq_rel, std::memory_order_relaxed);
+    }
+    void script_finish_certification() {
+        if (!script_certification_active_.exchange(false, std::memory_order_release))
+            std::abort();
     }
     // The raw drawn sequence. NOT a read cut: it may already name a group whose epoch word still
     // reads zero. Only the instrumentation compares the two.
@@ -1276,6 +1350,21 @@ private:
     std::atomic<uint64_t> atomic_activity_{0};
     std::atomic<uint64_t> atomic_read_floors_[kMaxThreads] = {};
     std::atomic<uint64_t> atomic_snapshot_completions_[kMaxThreads] = {};
+    // Cross-script instrumentation is a cold Server tail. It is touched only by the staged engine;
+    // ordinary command dispatch reads none of these cache lines.
+    std::atomic<uint64_t> script_stage_owner_tasks_{0};
+    std::atomic<uint64_t> script_run_attempts_{0};
+    std::atomic<uint64_t> script_validate_owner_tasks_{0};
+    std::atomic<uint64_t> script_apply_owner_tasks_{0};
+    std::atomic<uint64_t> script_crossshard_activations_{0};
+    std::atomic<uint64_t> script_group_commits_{0};
+    std::atomic<uint64_t> script_group_occ_retries_{0};
+    std::atomic<uint64_t> script_group_occ_giveups_{0};
+    std::atomic<uint64_t> script_staged_bytes_total_{0};
+    std::atomic<uint64_t> script_crossshard_window_refusals_{0};
+    std::atomic<uint64_t> script_group_aborts_oom_{0};
+    std::atomic<uint64_t> script_intent_owners_{0};
+    std::atomic<bool> script_certification_active_{false};
     std::atomic<uint64_t> pubsub_inflight_{0};
     std::atomic<uint64_t> pubsub_blobs_{0};
     std::atomic<uint64_t> pubsub_deliveries_{0};

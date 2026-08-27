@@ -45,6 +45,24 @@ def read_reply(f):
         return line + b"".join(read_reply(f) for _ in range(n * 2))
     raise ValueError(repr(line[:24]))
 
+def target_stats():
+    """Target-only mechanism counters; DEBUG/INFO is never sent to the Redis oracle."""
+    sock, file = conn(TH, TP)
+    try:
+        sock.sendall(enc(["INFO", "STATS"]))
+        parsed = parse_reply(read_reply(file))
+        if not isinstance(parsed, bytes):
+            raise RuntimeError("target INFO STATS did not return a bulk string")
+        out = {}
+        for line in parsed.split(b"\r\n"):
+            if b":" not in line: continue
+            name, value = line.split(b":", 1)
+            try: out[name.decode()] = int(value)
+            except ValueError: pass
+        return out
+    finally:
+        sock.close()
+
 def parse_reply(r):
     # Decode serialized RESP2/RESP3 into a Python structure for unordered normalization.
     def one(pos):
@@ -1540,15 +1558,12 @@ def gen_script(rng):
             ops.append(["SECOND", "SET", key, rng.choice(values)])
             src = rng.choice(scripts)
             ops.append(keyed("EVAL", src, declared, rng.choice(values)))
-    # PHASE 2 -- SCRIPTS AGAINST A LIVE CROSS-SHARD ENGINE.
+    # PHASE 2 -- CROSS SCRIPTS ADJACENT TO OTHER MULTI-KEY GROUPS.
     #
-    # Phase 1 above is entirely single-key, so on TomoKV it ran with `atomic_groups:0`: the epoch
-    # MVCC engine never engaged and the leg proved nothing about scripts meeting it. The multi-key
-    # commands below DO form real cross-shard groups over the very keys the scripts declare, and
-    # they sit next to those scripts in the same pipeline chunk, so an activation's effects have to
-    # survive alongside an in-flight group and be visible to the multi-key read that follows.
-    # Appended rather than woven into the loop above on purpose: the phase-1 stream (and therefore
-    # every recorded per-seed diff count) stays exactly what it was.
+    # Phase 1 now proves the staged engine directly with 2--8 declared keys. This tail adds a
+    # distinct interaction: ordinary MSET/MGET/DEL groups over that same key space sit beside
+    # cross-owner activations in one pipeline chunk, so script effects must compose with a live
+    # non-script scatter group and remain visible to the following multi-key read.
     #
     # Every command here is ordinary Redis, byte-comparable against the oracle; the sharding is the
     # target's private business.
@@ -2273,9 +2288,48 @@ gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset
         "servertail": gen_servertail}
 ops = gens[SUITE](rng)
 
+script_multi_declared = 0
+if SUITE == "script":
+    for command in ops:
+        if command[0].upper() not in ("EVAL", "EVALSHA", "EVAL_RO", "EVALSHA_RO",
+                                      "FCALL", "FCALL_RO"):
+            continue
+        try: script_multi_declared += int(command[2]) >= 2
+        except (ValueError, IndexError): pass
+    if script_multi_declared == 0:
+        raise RuntimeError("script generator emitted zero multi-key activations")
+
 ts, tf = conn(TH, TP)
 os_, of = conn(OH, OP)
 secondary = (conn(TH, TP), conn(OH, OP)) if SUITE == "script" else None
+script_cross_generated = 0
+if SUITE == "script":
+    # Resolve geometry from the target on every boot: its hash seed is randomized. DEBUG is never
+    # sent to Redis, and a declared-key count alone is not proof that an activation crossed an
+    # owner boundary.
+    routed = {}
+    activations = []
+    for command in ops:
+        if command[0].upper() not in ("EVAL", "EVALSHA", "EVAL_RO", "EVALSHA_RO",
+                                      "FCALL", "FCALL_RO"):
+            continue
+        try: count = int(command[2])
+        except (ValueError, IndexError): continue
+        declared = command[3:3 + count]
+        activations.append(declared)
+        for key in declared:
+            if key in routed: continue
+            ts.sendall(enc(["DEBUG", "SHARD", key]))
+            geometry_reply = read_reply(tf)
+            if not geometry_reply.startswith(b":"):
+                raise RuntimeError("script differ requires target DEBUG SHARD, got %r" %
+                                   (geometry_reply,))
+            owner = int(geometry_reply[1:-2])
+            routed[key] = owner
+    script_cross_generated = sum(
+        len({routed[key] for key in declared}) >= 2 for declared in activations)
+    if script_cross_generated == 0:
+        raise RuntimeError("script generator emitted zero proven cross-owner activations")
 # clean slates on BOTH sides: the oracle is long-lived across runs; residue there while the
 # target boots fresh makes every op diff from op 0 (bit us on zset 2026-08-24). FLUSHALL (the
 # target grew one with i-compat) rather than a DEL preamble: DEL-by-harvested-arg-1 missed any
@@ -2284,6 +2338,7 @@ secondary = (conn(TH, TP), conn(OH, OP)) if SUITE == "script" else None
 for cs, cf in ((ts, tf), (os_, of)):
     cs.sendall(enc(["FLUSHALL"]))
     if read_reply(cf)[:1] != b"+": raise RuntimeError("FLUSHALL failed on clean-slate")
+script_stats_before = target_stats() if SUITE == "script" else None
 # OBJECT ENCODING is only comparable once both servers promote at the same sizes, and the two
 # spell those knobs differently, so the alignment cannot ride in the diffed op stream. Replies are
 # drained, NOT diffed -- the knob NAMES differ by design.
@@ -2425,5 +2480,24 @@ if SUITE == "stream":
 ts.close(); os_.close()
 if secondary:
     secondary[0][0].close(); secondary[1][0].close()
+if SUITE == "script":
+    after = target_stats()
+    required = ("script_stage_owner_tasks", "script_run_attempts",
+                "script_validate_owner_tasks", "script_apply_owner_tasks",
+                "script_crossshard_activations", "script_group_commits",
+                "script_staged_bytes_total")
+    deltas = {name: after.get(name, 0) - script_stats_before.get(name, 0)
+              for name in required}
+    if any(value <= 0 for value in deltas.values()):
+        diffs += 1
+        print("  MECHANISM FAIL generated_cross=%d deltas=%r" %
+              (script_cross_generated, deltas))
+    elif after.get("script_group_occ_giveups", 0) != \
+            script_stats_before.get("script_group_occ_giveups", 0):
+        diffs += 1
+        print("  MECHANISM FAIL unexpected OCC giveup")
+    else:
+        print("  script mechanism generated_cross=%d deltas=%r" %
+              (script_cross_generated, deltas))
 print("DIFFER %s: %d ops, %d diffs -> %s" % (SUITE, len(ops), diffs, "PASS" if diffs == 0 else "FAIL"))
 sys.exit(1 if diffs else 0)
