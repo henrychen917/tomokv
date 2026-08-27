@@ -347,6 +347,10 @@ struct ScatterState : SnapshotCut {
     bool atomic_direct = false;
     bool pop_missed = false;
     bool admitted = false;
+    // True between admission and the moment this group's records are installed on every owner.
+    // See Server::atomic_apply_inflight() for why the snapshot cut waits on this and not on the
+    // admission lease.
+    std::atomic<bool> apply_open{false};
     // A MULTI child retains its own routing/result lifetime but publishes through its parent's one
     // ticket and abort word. Null is the ordinary one-command group path.
     std::atomic<uint64_t>* external_epoch = nullptr;
@@ -1236,6 +1240,10 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     state->barrier = state->two_hop || all_shards;
     state->admitted = admitted;
     state->server = &server;
+    // Opened only once state->server is set, so "apply_open is true" always implies xshard_destroy
+    // can close it. The two failure arms above return before any ScatterState exists at all, so
+    // the window can never be opened on a group with nothing to close it.
+    if (__builtin_expect(admitted, false)) server.atomic_apply_open(state->apply_open);
     state->pooled = pooled;
     state->owner_io = owner_io;
     state->owner_slots = static_cast<uint32_t>(server.placement().ex_threads().size());
@@ -1376,6 +1384,9 @@ void xshard_destroy(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_
     if (state->owner_io != owner_io) std::abort();
     if (state->snapshot_registered && state->server)
         pool.unregister_snapshot(*state->server, state, state->owner_io);
+    // Ordinary completions closed this on the owner that installed the last record; this arm is the
+    // one that matters for a group torn down BEFORE dispatch (no owner ever sees it).
+    if (state->server) state->server->atomic_apply_close(state->apply_open);
     if (state->admitted && state->server) {
         state->server->atomic_retire_group(state->owner_io, state->admission_generation);
         state->admitted = false;
@@ -2215,6 +2226,11 @@ ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
     auto final = [&]() {
         if (op.spec->flags & CmdFlags::NotifySelected)
             notify_xshard_finished(server.shard(task.shard), op, state);
+        // Every participating owner has installed its share of this group -- this is the last
+        // owner, running on an EX thread. That is the instant the group stops being able to
+        // straddle a snapshot cut, and it is much earlier than reply retirement, which happens on
+        // the admitting IO thread (the very thread a blocking SAVE occupies).
+        server.atomic_apply_close(state.apply_open);
         return ScatterFinish::Final;
     };
     if (state.atomic_write || (state.atomic_apply && state.phase == 2)) {

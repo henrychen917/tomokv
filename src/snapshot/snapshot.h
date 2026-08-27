@@ -71,6 +71,12 @@ public:
     bool in_progress() const { return phase() != Phase::Idle; }
     int64_t last_save_time() const { return last_save_time_.load(std::memory_order_relaxed); }
 
+    // Cut/atomic-barrier instrumentation. cuts_waited() is the FIRED proof for the group drain:
+    // a drain that never blocks looks exactly like a missing one from the outside.
+    uint64_t cuts_armed() const { return cuts_armed_.load(std::memory_order_relaxed); }
+    uint64_t cuts_waited() const { return cuts_waited_.load(std::memory_order_relaxed); }
+    uint64_t drained_groups() const { return drained_groups_.load(std::memory_order_relaxed); }
+
     void owner_ready(uint64_t epoch);
     void owner_frozen(uint64_t epoch);
     void owner_marked(uint64_t epoch);
@@ -97,6 +103,7 @@ private:
     bool finish_file_metadata(Ring* ring);
     bool complete_file_success();
     uint32_t pump_io_completions(ThreadCtx& writer, Ring& ring);
+    void drain_atomic_groups(Server& server);
     void abort_file();
     void discard_chunks();
     void set_error(const char* text);
@@ -120,6 +127,9 @@ private:
     std::atomic<uint32_t> save_current_shard_{0};
     std::atomic<int64_t> last_save_time_{0};
     std::atomic<bool> writer_failed_{false};
+    std::atomic<uint64_t> cuts_armed_{0};
+    std::atomic<uint64_t> cuts_waited_{0};
+    std::atomic<uint64_t> drained_groups_{0};
     std::atomic<Ring*> writer_ring_{nullptr};
     Server* server_ = nullptr;  // snapshot command lifetime; process-wide Server is stable
 

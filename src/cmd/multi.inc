@@ -140,6 +140,10 @@ struct alignas(8) MultiExecState : SnapshotCut {
     std::atomic<uint32_t> lists_pending{0};
     std::atomic<bool> finalizer_claimed{false};
     std::atomic<bool> finalized{false};
+    // Open between admission and the finalizer that decides this transaction on every owner. EXEC
+    // force-admits a group at BOTH atomic settings, so this is the arm that keeps a plain-default
+    // server's transactions out of a half-applied snapshot.
+    std::atomic<bool> apply_open{false};
     std::atomic<uint32_t> tasks_pending{0};
     std::atomic<NotifyBatch*> notify{nullptr};
     std::shared_ptr<AofGroupDecision> aof_group;
@@ -159,6 +163,7 @@ MultiSession* ensure_multi_session(Client& client) {
 }
 
 void release_admission(MultiExecState& state) {
+    if (state.server) state.server->atomic_apply_close(state.apply_open);
     if (!state.admitted) return;
     state.server->atomic_retire_group(state.owner_io, state.admission_generation);
     state.admitted = false;
@@ -1023,6 +1028,7 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
             return MultiIoAction::LocalDone;
         }
         state->admitted = true;
+        server.atomic_apply_open(state->apply_open);
         state->admission_generation = generation;
         state->reset_watch = true;
         state->watched = std::move(session->watched);
@@ -1492,6 +1498,10 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                     aof_abort_group(state.aof_group);
                 }
                 state.finalized.store(true, std::memory_order_release);
+                // Every owner has joined and the one commit decision is made: nothing this
+                // transaction writes can land on a shard after this point, so it can no longer
+                // straddle a snapshot cut. Closed here, on an OWNER, not at reply retirement.
+                server.atomic_apply_close(state.apply_open);
             }
         }
     }
