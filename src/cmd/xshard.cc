@@ -36,6 +36,7 @@
 #include "geo.h"
 #include "multi.h"
 #include "notify.h"
+#include "scripting.h"
 #include "t_stream.h"
 #include "../core/io_loop.h"
 #include "../core/server.h"

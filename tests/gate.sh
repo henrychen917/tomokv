@@ -172,10 +172,33 @@ for AT in 0 1; do
   # data -- atomic_predecessor_reads must stay 0 (the resolver never answered from a parked
   # predecessor) and atomic_gauge_underflows must stay 0 (the store returned exactly the version
   # bytes it charged) -- and a build that cannot report either counter FAILS rather than passing.
-  for t in lbsignals slowlog atomfix scriptatomic execatomic execiso execfix session_monotonic xacct; do
+  # xscript needs the armed boot for the same reason plus one of its own: SCRIPT-STAGE-DEFER parks
+  # every cross-owner gather except the coordinator's AFTER the reservation sub-wave has armed each
+  # declared key and the cut is chosen, which is the only way to land a plain write inside that
+  # window on demand. Its counters (script_keys_armed / script_write_tickets_forced /
+  # script_group_occ_retries) are what make the reservation falsifiable rather than merely present.
+  for t in lbsignals slowlog atomfix scriptatomic execatomic execiso execfix session_monotonic xacct xscript; do
     python3 tests/$t.py 127.0.0.1 $PORT >/tmp/gate-$t-$AT.txt 2>&1 \
         && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see /tmp/gate-$t-$AT.txt"
   done
+  stop
+done
+
+# ---- cross-owner script control boots: each needs its own knob value, hence its own server ----
+# off:    script-crossshard-max-bytes 0 must reproduce today's CROSSSLOT byte-for-byte and leave
+#         every cross counter at zero (the feature is off ⇒ nothing is allocated).
+# limit:  a tiny staging budget must refuse before RUN and leave the declared values untouched.
+# window: one cut slot per IO thread must refuse the overflow with -BUSY, counted exactly, with
+#         the same activations issued one at a time as the zero control.
+for XS in "off:--script-crossshard-max-bytes 0" \
+          "limit:--script-crossshard-max-bytes 300" \
+          "window:--script-crossshard-cut-slots 1"; do
+  XS_MODE=${XS%%:*}; XS_ARGS=${XS#*:}
+  boot ./build/tomokv --atomic 1 --enable-debug-command yes $XS_ARGS \
+      || bad "xscript $XS_MODE control boot"
+  python3 tests/xscript.py 127.0.0.1 $PORT "$XS_MODE" >/tmp/gate-xscript-$XS_MODE.txt 2>&1 \
+      && ok "xscript $XS_MODE control" || bad "xscript $XS_MODE control" \
+             "see /tmp/gate-xscript-$XS_MODE.txt"
   stop
 done
 

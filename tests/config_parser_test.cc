@@ -105,6 +105,27 @@ int main() {
         !rejects({"--persist-io", "hybrid"}))
         fail("persist-io boot grammar differs");
 
+    tomo::Config xscript;
+    tomo::ConfigParseState xscript_state;
+    const std::vector<const char*> xscript_args = {
+        "--script-crossshard-max-bytes", "0",
+        "--script-crossshard-workbench-bytes", "1048576",
+        "--script-crossshard-conflict-retries", "-1",
+        "--script-crossshard-cut-slots", "7",
+    };
+    if (tomo::parse_config_args(xscript_args, xscript, xscript_state, 2, "test") !=
+            tomo::kConfigParsed ||
+        xscript.script_crossshard_max_bytes != 0 ||
+        xscript.script_crossshard_workbench_bytes != 1048576 ||
+        xscript.script_crossshard_conflict_retries != -1 ||
+        xscript.script_crossshard_cut_slots != 7)
+        fail("cross-script knob grammar or values differ");
+    if (!rejects({"--script-crossshard-max-bytes", "-2"}) ||
+        !rejects({"--script-crossshard-workbench-bytes", "wat"}) ||
+        !rejects({"--script-crossshard-conflict-retries", "9223372036854775808"}) ||
+        !rejects({"--script-crossshard-cut-slots", "-9"}))
+        fail("invalid cross-script knob grammar was accepted");
+
     tomo::Config missing_ca;
     tomo::ConfigParseState missing_ca_state;
     const std::vector<const char*> missing_ca_args = {

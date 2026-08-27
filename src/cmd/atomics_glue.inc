@@ -12,10 +12,17 @@ WorkError begin_plain_version(Server& server, Shard& shard, Slice key, uint64_t 
     FlatStore& store = shard.store();
     const uint64_t cleanup_cutoff = server.atomic_snapshot();
     store.atomic_promote_key(hash, key, server.atomic_read_floor(), cleanup_cutoff);
-    if (!store.atomic_has_record(hash, key)) {
+    const bool had_record = store.atomic_has_record(hash, key);
+    // A key reserved by a staged cross-owner script carries no MVCC record of its own, so the
+    // record test alone sent this write down the untracked physical path -- it mutated the value
+    // in place, drew no ticket, and left the script's APPLY-side validation nothing to detect.
+    // The reservation is exactly a demand that this branch be taken.
+    const bool script_forced = !had_record && store.atomic_has_script_intent(hash, key);
+    if (!had_record && !script_forced) {
         if (snapshot != UINT64_MAX) store.atomic_set_read_context(snapshot, origin_conn_id);
         return WorkError::None;
     }
+    if (script_forced) server.note_script_forced_write();
 
     if (snapshot == UINT64_MAX) snapshot = server.atomic_snapshot();
     store.atomic_set_read_context(snapshot, origin_conn_id);
@@ -504,9 +511,8 @@ uint32_t ScatterArenaPool::refresh_snapshot_floor(Server& server, uint32_t owner
     return 1;
 }
 
-bool ScatterArenaPool::can_register_snapshot() const {
-    static constexpr uint32_t kSnapshotWindow = 8;
-    return unresolved_snapshots_.size() < kSnapshotWindow;
+bool ScatterArenaPool::can_register_snapshot(uint32_t limit) const {
+    return limit != 0 && unresolved_snapshots_.size() < limit;
 }
 
 void ScatterArenaPool::defer_destroy(ScatterState* state) {
@@ -659,6 +665,14 @@ bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op
             shard.id() != state.debug_fanout_lead &&
             now_ns() < state.debug_fanout_deadline)
             return true;
+        // TEST HOOK (DEBUG SCRIPT-STAGE-DEFER): same shape for the cross-owner script GATHER wave.
+        // The coordinator's own shard reads immediately; every other declared key's owner is parked
+        // until the deadline, which is the interval a competing plain write has to land in.
+        if (__builtin_expect(state.debug_script_defer_deadline != 0, false) &&
+            state.script_phase == ScriptPhase::Read &&
+            shard.id() != state.script_coordinator_shard &&
+            now_ns() < state.debug_script_defer_deadline)
+            return true;
         if (state.atomic_direct &&
             (state.direct_ready.load(std::memory_order_acquire) == 0 ||
              __builtin_expect(state.debug_direct_defer != 0, false))) {
@@ -799,7 +813,10 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
         for_each_touched_key(op, [&](uint64_t hash, Slice key) {
             if (allocation_failed) return;
             store.atomic_promote_key(hash, key, floor, cleanup_cutoff);
-            if (!store.atomic_has_record(hash, key)) return;
+            if (!store.atomic_needs_version(hash, key)) return;
+            if (!store.atomic_has_record(hash, key) &&
+                (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)))
+                server.note_script_forced_write();
             for (const RecordedKey& prior : recorded)
                 if (prior.hash == hash && prior.key == key) return;
             try { recorded.push_back(RecordedKey{hash, key}); }
@@ -896,9 +913,13 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
                 item.key.hash, item.key.key, item.entry, item.clone, ticket);
         return true;
     }
+    // Two fixes meet here and both are needed: the routed key (MEMORY/OBJECT do not route by
+    // argv[1]) and atomic_needs_version as the single decision point (a key reserved by a script
+    // carries no record yet, so has_record would bail out and the write would take the untracked
+    // physical path).
     const Slice routed = op_routed_key(op);
     store.atomic_promote_key(op.hash, routed, floor, cleanup_cutoff);
-    if (!store.atomic_has_record(op.hash, routed)) return true;
+    if (!store.atomic_needs_version(op.hash, routed)) return true;
     if (!(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
         store.atomic_set_read_context(
             plain_read_cut(server, op, cleanup_cutoff), origin_conn_id);

@@ -947,9 +947,11 @@ void cmd_function(Shard&, Op& op) {
 
 static const CommandSpec kTable[] = {
     // name       min max flags                                       handler      first last step
-    {"FCALL",      3, -1, CmdFlags::Write | CmdFlags::CursorShard | CmdFlags::ScriptRoute,
+    {"FCALL",      3, -1, CmdFlags::Write | CmdFlags::CursorShard | CmdFlags::ScriptRoute |
+                              CmdFlags::MultiShard,
                 cmd_fcall<false, false>, 3, -1, 1, notify_handler<cmd_fcall<true, false>>},
-    {"FCALL_RO",   3, -1, CmdFlags::Readonly | CmdFlags::CursorShard | CmdFlags::ScriptRoute,
+    {"FCALL_RO",   3, -1, CmdFlags::Readonly | CmdFlags::CursorShard | CmdFlags::ScriptRoute |
+                              CmdFlags::MultiShard,
                 cmd_fcall<false, true>, 3, -1, 1, notify_handler<cmd_fcall<true, true>>},
     {"FUNCTION",   2, -1, CmdFlags::ConnLocal | CmdFlags::OrderedLocal | CmdFlags::Admin,
                 cmd_function,  0,  0, 0},

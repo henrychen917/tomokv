@@ -569,7 +569,7 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
         return true;
     }
     bool plain_active = false;
-    if (shard.store().atomic_has_record(key.hash, key_slice)) {
+    if (shard.store().atomic_needs_version(key.hash, key_slice)) {
         const WorkError prepared = begin_plain_version(
             *state.server, shard, key_slice, key.hash, state.server->atomic_snapshot(),
             state.client->id());

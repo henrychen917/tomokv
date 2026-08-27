@@ -17,12 +17,14 @@
     using AtomicTicketFn = uint64_t (*)(void*);
     void bind_atomic_state(AtomicTicketFn ticket_fn, void* ticket_ctx,
                            std::atomic<uint64_t>* activity,
+                           std::atomic<uint64_t>* script_intents,
                            uint64_t* predecessor_reads, uint64_t* chain_max,
                            uint64_t* promotions, uint64_t* records_freed,
                            uint64_t* entries, uint64_t* gauge_underflows) {
         atomic_ticket_fn_ = ticket_fn;
         atomic_ticket_ctx_ = ticket_ctx;
         atomic_activity_ = activity;
+        atomic_script_intents_ = script_intents;
         atomic_predecessor_reads_ = predecessor_reads;
         atomic_chain_max_ = chain_max;
         atomic_promotions_ = promotions;
@@ -31,7 +33,10 @@
         atomic_gauge_underflows_ = gauge_underflows;
     }
 
-    bool atomic_has_records() const { return atomic_pending_ && atomic_pending_->live != 0; }
+    bool atomic_has_records() const {
+        return atomic_pending_ &&
+               (atomic_pending_->live != 0 || atomic_pending_->script_intent_count != 0);
+    }
     uint32_t atomic_pending_entries() const {
         return atomic_pending_ ? atomic_pending_->live : 0;
     }
@@ -43,6 +48,114 @@
     }
     bool atomic_has_record(uint64_t hash, Slice key) const {
         return atomic_key_pending(hash, key);
+    }
+    bool atomic_has_script_intent(uint64_t hash, Slice key) const {
+        if (!atomic_pending_ || !atomic_pending_->script_intent_count) return false;
+        for (AtomicScriptIntent* intent = atomic_pending_->script_intents; intent;
+             intent = intent->next) {
+            if (intent->hash == hash && intent->key_len == key.n &&
+                (!key.n || std::memcmp(intent->key_data(), key.p, key.n) == 0)) return true;
+        }
+        return false;
+    }
+    // THE SINGLE DECISION POINT FOR "THIS WRITE MUST GO THROUGH MVCC".
+    //
+    // A cross-owner script's reservation is worth nothing unless every write that lands on a
+    // declared key afterwards leaves an epoch behind: that epoch is the only thing APPLY-side
+    // validation can see, and the whole reservation sub-wave exists to create it. Testing only
+    // atomic_has_record() here is what made the reservation inert -- an ordinary key carries no
+    // record, so the competing write took the untracked physical path and validation had nothing
+    // to find. Every caller that decides whether to materialize a plain version asks THIS, so
+    // the answer cannot drift between call sites again.
+    bool atomic_needs_version(uint64_t hash, Slice key) const {
+        return atomic_has_record(hash, key) || atomic_has_script_intent(hash, key);
+    }
+
+    // PIN/UNPIN run only on the key's owning executor. The first intent contributes one unit to
+    // atomic_activity_, exactly like the first pending version, so writers reach the already-cold
+    // preparation path even when --atomic=0. Duplicate declared keys and overlapping activations
+    // share one copied key record through refs.
+    bool atomic_script_pin(uint64_t hash, Slice key) {
+        if (!atomic_ensure_pending()) return false;
+        for (AtomicScriptIntent* intent = atomic_pending_->script_intents; intent;
+             intent = intent->next) {
+            if (intent->hash != hash || intent->key_len != key.n ||
+                (key.n && std::memcmp(intent->key_data(), key.p, key.n) != 0)) continue;
+            intent->refs++;
+            return true;
+        }
+        const size_t bytes = sizeof(AtomicScriptIntent) + key.n;
+        void* memory = std::malloc(bytes);
+        if (!memory) return false;
+        auto* intent = new (memory) AtomicScriptIntent;
+        intent->hash = hash;
+        intent->refs = 1;
+        intent->key_len = key.n;
+        if (key.n) std::memcpy(intent->key_data(), key.p, key.n);
+        const bool first_activity = atomic_pending_->live == 0 &&
+                                    atomic_pending_->script_intent_count == 0;
+        intent->next = atomic_pending_->script_intents;
+        atomic_pending_->script_intents = intent;
+        atomic_pending_->script_intent_count++;
+        if (atomic_pending_->script_intent_count == 1 && atomic_script_intents_)
+            atomic_script_intents_->fetch_add(1, std::memory_order_release);
+        if (first_activity && atomic_activity_)
+            atomic_activity_->fetch_add(1, std::memory_order_release);
+        return true;
+    }
+
+    void atomic_script_unpin(uint64_t hash, Slice key) {
+        if (!atomic_pending_) std::abort();
+        AtomicScriptIntent** link = &atomic_pending_->script_intents;
+        while (*link) {
+            AtomicScriptIntent* intent = *link;
+            if (intent->hash != hash || intent->key_len != key.n ||
+                (key.n && std::memcmp(intent->key_data(), key.p, key.n) != 0)) {
+                link = &intent->next;
+                continue;
+            }
+            if (!intent->refs) std::abort();
+            if (--intent->refs) return;
+            *link = intent->next;
+            std::free(intent);
+            if (!atomic_pending_->script_intent_count) std::abort();
+            atomic_pending_->script_intent_count--;
+            if (!atomic_pending_->script_intent_count && atomic_script_intents_)
+                atomic_script_intents_->fetch_sub(1, std::memory_order_release);
+            if (!atomic_pending_->script_intent_count && !atomic_pending_->live &&
+                atomic_activity_)
+                atomic_activity_->fetch_sub(1, std::memory_order_release);
+            return;
+        }
+        std::abort();
+    }
+
+    // True when ANY version changed this key after cut. A matching undecided group is
+    // conservatively a conflict too: it may already have reserved an earlier ticket but not yet
+    // published its epoch. Completing this validation wave and restarting the activation lets that
+    // group make progress without ever parking an owner.
+    //
+    // The test used to also require `epoch < reserved_ticket`, on the reasoning that a newer ticket
+    // legally serializes after the script. It does not: a writer whose ticket is newer still READ
+    // the pre-activation value (the script has installed nothing yet at validation time), so
+    // ordering it after the activation is only sound for a blind write and silently loses a plain
+    // read-modify-write. Restarting is unobservable and the fresh cut clears the conflict, so the
+    // conservative test costs at most one retry and cannot livelock.
+    bool atomic_script_changed(uint64_t hash, Slice key, uint64_t cut) const {
+        if (!atomic_pending_ || !atomic_pending_->live) return false;
+        const uint64_t bit = atomic_membership_bit(hash);
+        for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
+            if (!(entry->membership & bit)) continue;
+            if (entry->group_epoch && entry->group_aborted &&
+                entry->group_aborted->load(std::memory_order_acquire)) continue;
+            for (uint32_t i = 0; i < entry->count; i++) {
+                if (atomic_entry_hash(*entry, i) != hash ||
+                    atomic_entry_key(*entry, i) != key) continue;
+                const uint64_t epoch = atomic_epoch(*entry);
+                if (!epoch || epoch > cut) return true;
+            }
+        }
+        return false;
     }
     // Same-connection program order is the only ordering dependency between pipelined commands.
     // Foreign undecided nodes never block: resolution simply skips them.
@@ -253,7 +366,9 @@
             if (!victim) return false;
             const uint64_t hash = hash_key(victim->key());
             const Slice key = victim->key();
-            if (atomic_has_record(hash, key)) continue;
+            // A key an in-flight group or a staged cross-owner script depends on is not a legal
+            // victim: evicting it would destroy the predecessor those readers resolve against.
+            if (atomic_needs_version(hash, key)) continue;
             const uint32_t before = size();
             const bool live = erase(hash, key);
             if (size() == before) return false;
@@ -501,7 +616,7 @@ private:
 
     void atomic_destroy_pending() {
         if (!atomic_pending_) return;
-        if (atomic_pending_->live) std::abort();
+        if (atomic_pending_->live || atomic_pending_->script_intent_count) std::abort();
         for (uint32_t cls = 0; cls < AtomicPendingState::kPoolClasses; cls++) {
             while (atomic_pending_->free_values[cls]) {
                 auto* block = atomic_pending_->free_values[cls];
@@ -543,7 +658,8 @@ private:
 
     void atomic_link_entry(AtomicEntry& entry) {
         if (entry.linked) std::abort();
-        const bool first = atomic_pending_->live == 0;
+        const bool first = atomic_pending_->live == 0 &&
+                           atomic_pending_->script_intent_count == 0;
         entry.prev = atomic_pending_->tail;
         if (atomic_pending_->tail) atomic_pending_->tail->next = &entry;
         else atomic_pending_->head = &entry;
@@ -832,7 +948,8 @@ private:
             atomic_pending_->head = first_unselected;
             if (first_unselected) first_unselected->prev = nullptr;
             else atomic_pending_->tail = nullptr;
-            if (!atomic_pending_->live && atomic_activity_)
+            if (!atomic_pending_->live && !atomic_pending_->script_intent_count &&
+                atomic_activity_)
                 atomic_activity_->fetch_sub(1, std::memory_order_release);
             if (atomic_promotions_) *atomic_promotions_ += occurrences;
             return true;
@@ -937,7 +1054,8 @@ private:
             atomic_pending_->head = first_unselected;
             if (first_unselected) first_unselected->prev = nullptr;
             else atomic_pending_->tail = nullptr;
-            if (!atomic_pending_->live && atomic_activity_)
+            if (!atomic_pending_->live && !atomic_pending_->script_intent_count &&
+                atomic_activity_)
                 atomic_activity_->fetch_sub(1, std::memory_order_release);
             if (atomic_promotions_) *atomic_promotions_ += promoted;
             return true;
@@ -1074,7 +1192,7 @@ private:
         if (first_unselected) first_unselected->prev = nullptr;
         else atomic_pending_->tail = nullptr;
         atomic_pending_->live -= freed_entries;
-        if (!atomic_pending_->live && atomic_activity_)
+        if (!atomic_pending_->live && !atomic_pending_->script_intent_count && atomic_activity_)
             atomic_activity_->fetch_sub(1, std::memory_order_release);
         if (atomic_promotions_) *atomic_promotions_ += occurrences;
         return true;
@@ -1103,6 +1221,7 @@ private:
     AtomicTicketFn atomic_ticket_fn_ = nullptr;
     void* atomic_ticket_ctx_ = nullptr;
     std::atomic<uint64_t>* atomic_activity_ = nullptr;
+    std::atomic<uint64_t>* atomic_script_intents_ = nullptr;
     uint64_t* atomic_predecessor_reads_ = nullptr;
     uint64_t* atomic_chain_max_ = nullptr;
     uint64_t* atomic_promotions_ = nullptr;

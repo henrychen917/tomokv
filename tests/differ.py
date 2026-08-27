@@ -57,6 +57,24 @@ def read_reply(f):
         return line + b"".join(read_reply(f) for _ in range(n * 2))
     raise ValueError(repr(line[:24]))
 
+def target_stats():
+    """Target-only mechanism counters; DEBUG/INFO is never sent to the Redis oracle."""
+    sock, file = conn(TH, TP)
+    try:
+        sock.sendall(enc(["INFO", "STATS"]))
+        parsed = parse_reply(read_reply(file))
+        if not isinstance(parsed, bytes):
+            raise RuntimeError("target INFO STATS did not return a bulk string")
+        out = {}
+        for line in parsed.split(b"\r\n"):
+            if b":" not in line: continue
+            name, value = line.split(b":", 1)
+            try: out[name.decode()] = int(value)
+            except ValueError: pass
+        return out
+    finally:
+        sock.close()
+
 def parse_reply(r):
     # Decode serialized RESP2/RESP3 into a Python structure for unordered normalization.
     def one(pos):
@@ -2072,12 +2090,11 @@ def gen_script(rng):
     # Scripting surface: EVAL / EVALSHA / EVAL_RO / EVALSHA_RO / SCRIPT LOAD|EXISTS|FLUSH and the
     # FUNCTION library (FCALL / FCALL_RO / LIST / STATS).
     #
-    # TWO STRUCTURAL LIMITS, both properties of TomoKV rather than of the suite:
-    #   * numkeys is 0 or 1. A script declaring two keys is routed to ONE owner here, so a pair
-    #     landing on different shards is a CROSSSLOT that vanilla Redis does not produce. The
-    #     single-owner law is the design, not a gap the differ should paper over.
-    #   * every redis.call names KEYS[i]. TomoKV enforces the declared range (Redis 7 only warns),
-    #     because routing happened before execution.
+    # Every keyed activation declares 2--8 distinct keys.  This is deliberately wider than the
+    # old single-key stream: the cross-owner lowering is the mechanism under test, and a suite
+    # that never gives the router more than one owner can report a vacuous zero-diff result.
+    # Every redis.call still names KEYS[i]. TomoKV enforces the declared range (Redis 7 only warns),
+    # because routing happened before execution.
     # Everything else — reply conversion, the error text including the " script: <sha>, on
     # @user_script:<line>." tail, the read-only gate, the function metadata — is byte-compared.
     keys = ["sc:%d" % i for i in range(24)]
@@ -2085,6 +2102,12 @@ def gen_script(rng):
 
     def K():
         return rng.choice(keys)
+
+    def KS():
+        return rng.sample(keys, rng.randrange(2, 9))
+
+    def keyed(command, source, declared, *arguments):
+        return [command, source, str(len(declared))] + declared + list(arguments)
 
     scripts = [
         "return 1",
@@ -2114,6 +2137,11 @@ def gen_script(rng):
         "return redis.call('ZSCORE', KEYS[1], ARGV[1])",
         "return redis.call('SADD', KEYS[1], ARGV[1])",
         "return redis.call('SCARD', KEYS[1])",
+        ("local v = redis.call('GET', KEYS[1]); "
+         "redis.call('SET', KEYS[2], v or ARGV[1]); "
+         "return redis.call('GET', KEYS[2])"),
+        ("redis.call('SET', KEYS[2], ARGV[1]); "
+         "return {redis.call('GET', KEYS[1]), redis.call('GET', KEYS[2])}"),
         "local a = 0 for i = 1, 20 do a = a + i end return a",
     ]
     keyless = ["return 1", "return 'plain'", "return {1,2,3,'x'}", "return {ok='fine'}",
@@ -2160,7 +2188,8 @@ def gen_script(rng):
         pick = rng.randrange(100)
         if pick < 20:
             src = rng.choice(scripts)
-            ops.append(["EVAL", src, "1", K(), rng.choice(values)])
+            declared = KS()
+            ops.append(keyed("EVAL", src, declared, rng.choice(values)))
         elif pick < 26:
             src = rng.choice(keyless)
             ops.append(["EVAL", src, "0", rng.choice(values)])
@@ -2170,27 +2199,35 @@ def gen_script(rng):
             ops.append(["SCRIPT", "LOAD", src])
         elif pick < 44:
             src = rng.choice(loaded) if loaded else scripts[0]
-            ops.append(["EVALSHA", sha(src), "1", K(), rng.choice(values)])
+            declared = KS()
+            ops.append(keyed("EVALSHA", sha(src), declared, rng.choice(values)))
         elif pick < 50:
             wanted = [sha(rng.choice(scripts)) for _ in range(rng.randrange(1, 4))]
             ops.append(["SCRIPT", "EXISTS"] + wanted)
         elif pick < 58:
-            ops.append(["EVAL_RO", rng.choice(scripts), "1", K(), rng.choice(values)])
+            declared = KS()
+            ops.append(keyed("EVAL_RO", rng.choice(scripts), declared, rng.choice(values)))
         elif pick < 62:
-            ops.append(["EVAL_RO", rng.choice(ro_writes), "1", K()])
+            declared = KS()
+            ops.append(keyed("EVAL_RO", rng.choice(ro_writes), declared))
         elif pick < 66:
             src = rng.choice(loaded) if loaded else scripts[0]
-            ops.append(["EVALSHA_RO", sha(src), "1", K(), rng.choice(values)])
+            declared = KS()
+            ops.append(keyed("EVALSHA_RO", sha(src), declared, rng.choice(values)))
         elif pick < 72:
-            ops.append(["EVAL", rng.choice(broken), "1", K()])
+            declared = KS()
+            ops.append(keyed("EVAL", rng.choice(broken), declared))
         elif pick < 82:
             name = rng.choice(functions)
-            ops.append(["FCALL", name, "1", K(), rng.choice(values)])
+            declared = KS()
+            ops.append(["FCALL", name, str(len(declared))] + declared + [rng.choice(values)])
         elif pick < 88:
             name = rng.choice(functions)
-            ops.append(["FCALL_RO", name, "1", K(), rng.choice(values)])
+            declared = KS()
+            ops.append(["FCALL_RO", name, str(len(declared))] + declared + [rng.choice(values)])
         elif pick < 90:
-            ops.append(["FCALL", "not_a_function", "1", K()])
+            declared = KS()
+            ops.append(["FCALL", "not_a_function", str(len(declared))] + declared)
         elif pick < 92:
             ops.append(["FUNCTION", "LIST"])
         elif pick < 94:
@@ -2204,18 +2241,21 @@ def gen_script(rng):
             loaded = []
             ops.append(["SCRIPT", "FLUSH", rng.choice(["SYNC", "ASYNC"])])
         else:
-            key = K()
-            ops.append(rng.choice([["GET", key], ["SET", key, rng.choice(values)],
-                                   ["DEL", key], ["TYPE", key], ["STRLEN", key]]))
-    # PHASE 2 -- SCRIPTS AGAINST A LIVE CROSS-SHARD ENGINE.
+            declared = KS()
+            # SECOND is interpreted by the runner as a command on a distinct connection on each
+            # server. The key is selected from the immediately following activation's declared
+            # set, so this leg proves that script cuts compose with plain writes from another
+            # client instead of merely exercising a second idle socket.
+            key = rng.choice(declared)
+            ops.append(["SECOND", "SET", key, rng.choice(values)])
+            src = rng.choice(scripts)
+            ops.append(keyed("EVAL", src, declared, rng.choice(values)))
+    # PHASE 2 -- CROSS SCRIPTS ADJACENT TO OTHER MULTI-KEY GROUPS.
     #
-    # Phase 1 above is entirely single-key, so on TomoKV it ran with `atomic_groups:0`: the epoch
-    # MVCC engine never engaged and the leg proved nothing about scripts meeting it. The multi-key
-    # commands below DO form real cross-shard groups over the very keys the scripts declare, and
-    # they sit next to those scripts in the same pipeline chunk, so an activation's effects have to
-    # survive alongside an in-flight group and be visible to the multi-key read that follows.
-    # Appended rather than woven into the loop above on purpose: the phase-1 stream (and therefore
-    # every recorded per-seed diff count) stays exactly what it was.
+    # Phase 1 now proves the staged engine directly with 2--8 declared keys. This tail adds a
+    # distinct interaction: ordinary MSET/MGET/DEL groups over that same key space sit beside
+    # cross-owner activations in one pipeline chunk, so script effects must compose with a live
+    # non-script scatter group and remain visible to the following multi-key read.
     #
     # Every command here is ordinary Redis, byte-comparable against the oracle; the sharding is the
     # target's private business.
@@ -2231,14 +2271,17 @@ def gen_script(rng):
         if pick == 0:
             ops.append(["MSET", a, rng.choice(values), b, rng.choice(values)])
         elif pick == 1:
-            ops.append(["EVAL", rng.choice(write_fail), "1", a, rng.choice(values)])
+            declared = [a, b] if a != b else KS()
+            ops.append(keyed("EVAL", rng.choice(write_fail), declared, rng.choice(values)))
         elif pick == 2:
             ops.append(["MGET", a, b, c])
         elif pick == 3:
             ops.append(rng.choice([["DEL", a, b], ["UNLINK", a, c],
                                    ["EXISTS", a, b, c], ["TOUCH", a, b]]))
         elif pick == 4:
-            ops.append(["FCALL", rng.choice(["dset", "dget"]), "1", a, rng.choice(values)])
+            declared = [a, b] if a != b else KS()
+            ops.append(["FCALL", rng.choice(["dset", "dget"]), str(len(declared))] +
+                       declared + [rng.choice(values)])
         else:
             ops.append(rng.choice([["GET", a], ["STRLEN", a], ["TYPE", a],
                                    ["SET", a, rng.choice(values)]]))
@@ -4395,8 +4438,53 @@ if LIST_GENERATORS:
     sys.exit(0)
 ops = gens[SUITE](rng)
 
+script_multi_declared = 0
+if SUITE == "script":
+    for command in ops:
+        if command[0].upper() not in ("EVAL", "EVALSHA", "EVAL_RO", "EVALSHA_RO",
+                                      "FCALL", "FCALL_RO"):
+            continue
+        try: script_multi_declared += int(command[2]) >= 2
+        except (ValueError, IndexError): pass
+    if script_multi_declared == 0:
+        raise RuntimeError("script generator emitted zero multi-key activations")
+
 ts, tf = conn(TH, TP)
 os_, of = conn(OH, OP)
+secondary = (conn(TH, TP), conn(OH, OP)) if SUITE == "script" else None
+script_cross_generated = 0
+if SUITE == "script":
+    # Resolve geometry from the target on every boot: its hash seed is randomized. DEBUG is never
+    # sent to Redis, and a declared-key count alone is not proof that an activation crossed an
+    # owner boundary.
+    routed = {}
+    activations = []
+    for command in ops:
+        if command[0].upper() not in ("EVAL", "EVALSHA", "EVAL_RO", "EVALSHA_RO",
+                                      "FCALL", "FCALL_RO"):
+            continue
+        try: count = int(command[2])
+        except (ValueError, IndexError): continue
+        declared = command[3:3 + count]
+        activations.append(declared)
+        for key in declared:
+            if key in routed: continue
+            ts.sendall(enc(["DEBUG", "SHARD", key]))
+            geometry_reply = read_reply(tf)
+            if not geometry_reply.startswith(b":"):
+                raise RuntimeError("script differ requires target DEBUG SHARD, got %r" %
+                                   (geometry_reply,))
+            owner = int(geometry_reply[1:-2])
+            routed[key] = owner
+    script_cross_generated = sum(
+        len({routed[key] for key in declared}) >= 2 for declared in activations)
+    # A single-owner boot is the CONTROL leg, not a failure: the identical stream must still be
+    # byte-exact against redis while driving none of the cross-owner engine. Anything else that
+    # produces zero proven cross-owner activations is a blind generator, and a gate built on it
+    # would pass while testing nothing.
+    script_single_owner = len(set(routed.values())) <= 1
+    if script_cross_generated == 0 and not script_single_owner:
+        raise RuntimeError("script generator emitted zero proven cross-owner activations")
 # clean slates on BOTH sides: the oracle is long-lived across runs; residue there while the
 # target boots fresh makes every op diff from op 0 (bit us on zset 2026-08-24). FLUSHALL (the
 # target grew one with i-compat) rather than a DEL preamble: DEL-by-harvested-arg-1 missed any
@@ -4405,6 +4493,7 @@ os_, of = conn(OH, OP)
 for cs, cf in ((ts, tf), (os_, of)):
     cs.sendall(enc(["FLUSHALL"]))
     if read_reply(cf)[:1] != b"+": raise RuntimeError("FLUSHALL failed on clean-slate")
+script_stats_before = target_stats() if SUITE == "script" else None
 # OBJECT ENCODING is only comparable once both servers promote at the same sizes, and the two
 # spell those knobs differently, so the alignment cannot ride in the diffed op stream. Replies are
 # drained, NOT diffed -- the knob NAMES differ by design.
@@ -4436,9 +4525,21 @@ diffs = 0
 # HLL's directed promotion stream uses many-argument PFADDs and byte-sized GET oracles, and the
 # cgaps suite carries wide numkeys forms; keep their pipeline chunks below the target's fixed
 # read-buffer rollover so the suites test semantics, not an unrelated transport boundary.
-BATCH = 16 if SUITE in ("hll", "cgaps") else 64
+BATCH = 1 if SUITE == "script" else (16 if SUITE in ("hll", "cgaps") else 64)
 for i in range(0, len(ops), BATCH):
     chunk = ops[i:i + BATCH]
+    if chunk[0][0] == "SECOND":
+        command = chunk[0][1:]
+        (tss, tsf), (oss, osf) = secondary
+        tss.sendall(enc(command)); oss.sendall(enc(command))
+        a = normalize(command[0], read_reply(tsf))
+        b = normalize(command[0], read_reply(osf))
+        if a != b:
+            diffs += 1
+            if diffs <= 12:
+                print("  DIFF op %d secondary %r\n    target: %r\n    oracle: %r" %
+                      (i, command[:4], a[:256], b[:256]))
+        continue
     payload = b"".join(enc(o) for o in chunk)
     ts.sendall(payload); os_.sendall(payload)
     for j, o in enumerate(chunk):
@@ -4586,5 +4687,44 @@ if SUITE == "scan":
                       "vacuous" % (label, count))
 
 ts.close(); os_.close()
+if secondary:
+    secondary[0][0].close(); secondary[1][0].close()
+if SUITE == "script":
+    after = target_stats()
+    required = ("script_stage_owner_tasks", "script_run_attempts",
+                "script_validate_owner_tasks", "script_apply_owner_tasks",
+                "script_crossshard_activations", "script_group_commits",
+                "script_staged_bytes_total", "script_keys_armed")
+    deltas = {name: after.get(name, 0) - script_stats_before.get(name, 0)
+              for name in required}
+    released = after.get("script_keys_released", 0) - \
+        script_stats_before.get("script_keys_released", 0)
+    live = after.get("script_intents_live", -1)
+    if script_single_owner:
+        # CONTROL LEG. Same stream, one owner: every counter above must stay at zero, so a build
+        # that silently routed single-owner scripts through the staged engine fails here.
+        if any(value != 0 for value in deltas.values()):
+            diffs += 1
+            print("  MECHANISM FAIL single-owner control drove the cross engine deltas=%r" %
+                  (deltas,))
+        else:
+            print("  script mechanism SINGLE-OWNER CONTROL: cross engine idle, deltas all zero")
+    elif any(value <= 0 for value in deltas.values()):
+        diffs += 1
+        print("  MECHANISM FAIL generated_cross=%d deltas=%r" %
+              (script_cross_generated, deltas))
+    elif after.get("script_group_occ_giveups", 0) != \
+            script_stats_before.get("script_group_occ_giveups", 0):
+        diffs += 1
+        print("  MECHANISM FAIL unexpected OCC giveup")
+    elif deltas["script_keys_armed"] != released or live != 0:
+        # Reservations must balance: an armed key that was never released would arm every later
+        # write to it for the life of the process.
+        diffs += 1
+        print("  MECHANISM FAIL reservations leaked armed=%d released=%d live=%d" %
+              (deltas["script_keys_armed"], released, live))
+    else:
+        print("  script mechanism generated_cross=%d deltas=%r live=%d" %
+              (script_cross_generated, deltas, live))
 print("DIFFER %s: %d ops, %d diffs -> %s" % (SUITE, len(ops), diffs, "PASS" if diffs == 0 else "FAIL"))
 sys.exit(1 if diffs else 0)

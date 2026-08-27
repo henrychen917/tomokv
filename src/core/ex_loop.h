@@ -683,7 +683,9 @@ private:
                 xshard_aof_emit(t, sh, op, context);
             }
             sh.publish_size();
-            if (xshard_complete(*srv_, *self_, ring_, t, op) == ScatterFinish::Waiting) return true;
+            const ScatterFinish finished = xshard_complete(*srv_, *self_, ring_, t, op);
+            if (finished == ScatterFinish::Waiting) return true;
+            if (finished == ScatterFinish::Retry) return false;
         } else if (__builtin_expect(op.spec->flags & CmdFlags::DenyOom, false) &&
                    !sh.store().budget_admit(op.arg(static_cast<uint32_t>(op.spec->first_key)))) {
             // Growth gate (wrinkle fix 2026-08-25): collection growth mutates behind a stable

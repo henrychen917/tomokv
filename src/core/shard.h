@@ -71,6 +71,26 @@ public:
         notify_bind_flat_store(&store_, &flat_notify_sink_);
     }
 
+    // A cross-owner script executes against a private, executor-thread-local workbench. It owns
+    // every routing bucket logically, borrows nothing, and deliberately does not join the global
+    // notification binding list or bind AOF/MVCC/maxmemory state. Nested notify-aware handlers pass
+    // this sink explicitly, so the normal event builder still sees their exact command sequence.
+    void init_private(Server* server, int32_t id, const TypeLimits& type_limits,
+                      const StreamLimits& stream_limits) {
+        server_ = server;
+        id_ = id;
+        bucket_begin_ = 0;
+        bucket_end_ = kNumBuckets;
+        zc_min_ = UINT32_MAX;
+        type_limits_ = type_limits;
+        stream_limits_ = stream_limits;
+        store_.bind_expired_counter(&stats_.expired);
+        store_.bind_evicted_counter(&stats_.evicted);
+        flat_notify_sink_.context = this;
+        flat_notify_sink_.enabled = notify_flat_enabled;
+        flat_notify_sink_.emit = notify_flat_emit;
+    }
+
     int32_t  id() const { return id_; }
     bool     owns(uint32_t bucket) const { return bucket >= bucket_begin_ && bucket < bucket_end_; }
     uint32_t bucket_begin() const { return bucket_begin_; }
@@ -94,8 +114,9 @@ public:
         store_.configure_maxmemory(enabled, shard_limit, policy, samples);
     }
     void bind_atomic_state(FlatStore::AtomicTicketFn ticket_fn, void* ticket_ctx,
-                           std::atomic<uint64_t>* activity) {
-        store_.bind_atomic_state(ticket_fn, ticket_ctx, activity,
+                           std::atomic<uint64_t>* activity,
+                           std::atomic<uint64_t>* script_intents) {
+        store_.bind_atomic_state(ticket_fn, ticket_ctx, activity, script_intents,
                                  &stats_.atomic_predecessor_reads,
                                  &stats_.atomic_chain_max,
                                  &stats_.atomic_promotions,

@@ -409,20 +409,12 @@ try:
         keys["same_owner"] = find_pair(conn, want_same=True)
         debug_ok = True
     except RespError:
-        # Without DEBUG SHARD, fall back to the CROSSSLOT probe: routing rejects a declared pair
-        # that spans owners, so an accepted pair is a same-owner pair by construction.
+        # Cross-owner scripts are accepted now, so acceptance no longer reveals placement. The
+        # debug-armed gate below owns the same-owner and proven-cross geometry checks; an ordinary
+        # boot can still cover the two-declared-key effect semantics with a fixed distinct pair.
         debug_ok = False
         anchor = f"{TAG}:pair:anchor"
-        found = None
-        for index in range(4096):
-            candidate = f"{TAG}:pair:{index}"
-            reply = conn.cmd("EVAL", "return 1", 2, anchor, candidate)
-            if not isinstance(reply, RespError):
-                found = (anchor, candidate)
-                break
-        if not found:
-            raise AssertionError("no same-owner declared pair found in 4096 tries")
-        keys["same_owner"] = found
+        keys["same_owner"] = (anchor, f"{TAG}:pair:argument")
 
     results = {}
     groups_seen = {}

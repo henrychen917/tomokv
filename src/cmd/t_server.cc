@@ -387,6 +387,14 @@ void init_config(const Config& cfg) {
     add_config("maxmemory-samples", ConfigKind::Unsigned, cfg.maxmemory_samples);
     g_config.push_back({"script-instruction-limit", ConfigKind::Unsigned,
                         std::to_string(cfg.script_instruction_limit), true});
+    g_config.push_back({"script-crossshard-max-bytes", ConfigKind::Signed,
+                        std::to_string(cfg.script_crossshard_max_bytes), true});
+    g_config.push_back({"script-crossshard-workbench-bytes", ConfigKind::Signed,
+                        std::to_string(cfg.script_crossshard_workbench_bytes), true});
+    g_config.push_back({"script-crossshard-conflict-retries", ConfigKind::Signed,
+                        std::to_string(cfg.script_crossshard_conflict_retries), true});
+    g_config.push_back({"script-crossshard-cut-slots", ConfigKind::Signed,
+                        std::to_string(cfg.script_crossshard_cut_slots), true});
     add_config("maxclients", ConfigKind::Unsigned, cfg.maxclients);
     add_config("timeout", ConfigKind::Unsigned, cfg.timeout);
     add_config("tcp-keepalive", ConfigKind::Unsigned, cfg.tcp_keepalive);
@@ -889,6 +897,22 @@ void cmd_debug_impl(Shard&, Op& op) {
         }
         if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
         g_server->set_debug_atomic_fanout_defer(static_cast<uint32_t>(microseconds));
+        reply_ok(op.sink());
+        return;
+    }
+    // Window widener for the cross-owner script reservation regression. Parks every declared key's
+    // GATHER task except the coordinator's own for N microseconds AFTER the reservation sub-wave
+    // has armed every key and the cut has been chosen. A plain write landing in that park must be
+    // forced through MVCC by the reservation; if it is not, the activation reads one key from
+    // before the write and another from after it and never notices. Production 0.
+    if (eq_icase(subcommand, "script-stage-defer") && op.argc() == 3) {
+        uint64_t microseconds = 0;
+        if (!parse_u64(op.arg(2), microseconds) || microseconds > 10000000) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        g_server->set_debug_script_stage_defer(static_cast<uint32_t>(microseconds));
         reply_ok(op.sink());
         return;
     }
@@ -1585,6 +1609,14 @@ void cmd_info(Shard&, Op& op) {
                       "atomic_read_cuts_held:%llu\r\natomic_fanout_cuts:%llu\r\n"
                       "atomic_exec_read_cuts:%llu\r\n"
                       "atomic_credit_pool:%u\r\natomic_credit_debt:%u\r\n"
+                      "script_stage_owner_tasks:%llu\r\nscript_run_attempts:%llu\r\n"
+                      "script_validate_owner_tasks:%llu\r\nscript_apply_owner_tasks:%llu\r\n"
+                      "script_crossshard_activations:%llu\r\nscript_group_commits:%llu\r\n"
+                      "script_group_occ_retries:%llu\r\nscript_group_occ_giveups:%llu\r\n"
+                      "script_staged_bytes_total:%llu\r\nscript_crossshard_window_refusals:%llu\r\n"
+                      "script_group_aborts_oom:%llu\r\n"
+                      "script_keys_armed:%llu\r\nscript_keys_released:%llu\r\n"
+                      "script_intents_live:%llu\r\nscript_write_tickets_forced:%llu\r\n"
                       "pubsub_channels:%llu\r\npubsub_subscriptions:%llu\r\n"
                       "pubsubshard_channels:%llu\r\npubsubshard_subscriptions:%llu\r\n"
                       "pubsub_patterns:%llu\r\npubsub_home_entries:%llu\r\n"
@@ -1659,6 +1691,22 @@ void cmd_info(Shard&, Op& op) {
                     g_server ? g_server->atomic_exec_read_cuts() : 0),
                 g_server ? g_server->atomic_credit_pool() : 0,
                 g_server ? g_server->atomic_credit_debt() : 0,
+                static_cast<unsigned long long>(g_server ? g_server->script_stage_owner_tasks() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->script_run_attempts() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->script_validate_owner_tasks() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->script_apply_owner_tasks() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->script_crossshard_activations() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->script_group_commits() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->script_group_occ_retries() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->script_group_occ_giveups() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->script_staged_bytes_total() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->script_crossshard_window_refusals() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->script_group_aborts_oom() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->script_keys_armed() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->script_keys_released() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->script_intents_live() : 0),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->script_write_tickets_forced() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_active_channels() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_subscriptions() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_shard_channels() : 0),

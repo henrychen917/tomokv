@@ -68,7 +68,7 @@ XshardElementResult xshard_insert_set_element(Shard& shard, Slice key, uint64_t 
 
 enum class ScatterPrepare : uint8_t { NotScatter, Ready, Backpressure, Error };
 enum class ScatterTaskResult : uint8_t { Complete, Retry };
-enum class ScatterFinish : uint8_t { Waiting, Final };
+enum class ScatterFinish : uint8_t { Waiting, Retry, Final };
 
 // ONE PUBLISHED READ CUT, whoever holds it.  A read that resolves its fragments on several owners
 // needs the versions its cut names to survive until the last fragment has answered, and the only
@@ -110,7 +110,8 @@ private:
 public:
     uint32_t reap_deferred();
     uint32_t refresh_snapshot_floor(Server& server, uint32_t owner_io);
-    bool can_register_snapshot() const;
+    // `limit` is the per-IO-thread snapshot window; the script engine passes its own.
+    bool can_register_snapshot(uint32_t limit = 8) const;
     // CALLER CONTRACT: both run on the IO thread that owns this pool, `owner_io` is that thread's
     // id, and the bracket must enclose every fragment that resolves under the cut -- register
     // before the tasks are posted, unregister only after the last one has answered.  register may
