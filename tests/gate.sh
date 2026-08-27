@@ -22,8 +22,14 @@ if [ "$NCORES" -ge 8 ]; then GATE_RATIO=6:$((NCORES-6))
 else GATE_RATIO=$(((NCORES+1)/2)):$((NCORES-(NCORES+1)/2)); fi
 PASS=0; FAIL=0
 SRV=0; SRVLOG=/dev/null
-EXPECT_QUICK=152
-EXPECT_FULL=161                 # full without the optional NIC row
+# Expected check counts. These are the whole point of the ledger row: a battery that silently
+# stops running drops the count and turns the gate red instead of quietly shrinking coverage.
+# Bump them DELIBERATELY when rows are added, and say which rows in the commit message.
+# 152 -> 172 on the 2026-08-27 merge train: the s6 oracle battery, concur, execiso and xacct each
+# run under both atomic modes, plus this lane's own new rows.
+EXPECT_QUICK=172
+EXPECT_FULL=181                 # full without the optional NIC row; = quick + 9, unconfirmed
+                                # until the next full-tier run on the rig
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ok(){ say "$1" "ok"; PASS=$((PASS+1)); }
 bad(){ say "$1" "FAIL${2:+ ($2)}"; FAIL=$((FAIL+1)); }
