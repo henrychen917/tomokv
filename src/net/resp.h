@@ -161,7 +161,12 @@ template <typename Buf> inline void reply_syntax(Buf&& b) {
     b.append("-ERR syntax error\r\n", 19);
 }
 template <typename Buf> inline void reply_outofrange(Buf&& b) {
-    b.append("-ERR value is out of range\r\n", 28);
+    // Redis's getRangeLongFromObject names the bounds it enforces; every caller of this helper
+    // (SRANDMEMBER / ZRANDMEMBER / HRANDFIELD counts) is one of those sites.
+    static constexpr char kMsg[] =
+        "-ERR value is out of range, value must between "
+        "-9223372036854775807 and 9223372036854775807\r\n";
+    b.append(kMsg, sizeof(kMsg) - 1);
 }
 
 template <typename Buf> inline void reply_err(Buf&& b, const char* msg) {

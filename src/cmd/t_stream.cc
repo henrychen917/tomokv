@@ -61,6 +61,36 @@ bool parse_u64_exact(Slice input, uint64_t& value) {
     return result.ec == std::errc{} && result.ptr == end;
 }
 
+// Stream IDs are parsed with string2ull semantics on redis too, so "0005-1" really is 5-1 and
+// parse_u64_exact above must stay permissive. Numeric OPTIONS (COUNT, MAXLEN, LIMIT, BLOCK) go
+// through string2ll instead, which accepts only the canonical spelling.
+bool parse_i64_option(Slice input, int64_t& value) {
+    if (!input.n || input.n > 20) return false;
+    uint32_t i = 0;
+    bool negative = false;
+    if (input.p[0] == '-') { negative = true; i = 1; }
+    if (i >= input.n) return false;
+    if (input.p[i] == '0') {
+        if (negative || i + 1 != input.n) return false;
+        value = 0;
+        return true;
+    }
+    if (input.p[i] < '1' || input.p[i] > '9') return false;
+    uint64_t magnitude = 0;
+    const uint64_t limit = negative ? (uint64_t{1} << 63) : uint64_t{INT64_MAX};
+    for (; i < input.n; i++) {
+        const char ch = input.p[i];
+        if (ch < '0' || ch > '9') return false;
+        const uint32_t digit = static_cast<uint32_t>(ch - '0');
+        if (magnitude > (limit - digit) / 10) return false;
+        magnitude = magnitude * 10 + digit;
+    }
+    value = negative ? (magnitude == (uint64_t{1} << 63) ? INT64_MIN
+                                                         : -static_cast<int64_t>(magnitude))
+                     : static_cast<int64_t>(magnitude);
+    return true;
+}
+
 bool parse_id_numeric(Slice input, StreamID& id, uint64_t missing_seq,
                       bool allow_sentinels) {
     if (!input.n || input.n > kMaxIdText) return false;
@@ -711,9 +741,16 @@ bool parse_trim_threshold(Op& op, uint32_t& pos, TrimSpec& trim) {
     }
     if (pos >= op.argc()) { reply_syntax(op.sink()); return false; }
     if (trim.kind == TrimKind::MaxLen) {
-        if (!parse_u64_exact(op.arg(pos++), trim.maxlen)) {
+        // Redis parses the threshold as a signed canonical integer and reports the two failures
+        // apart: an unparseable one is an integer error, a well-formed negative one names MAXLEN.
+        int64_t parsed = 0;
+        if (!parse_i64_option(op.arg(pos++), parsed)) {
             reply_err(op.sink(), "ERR value is not an integer or out of range"); return false;
         }
+        if (parsed < 0) {
+            reply_err(op.sink(), "ERR The MAXLEN argument must be >= 0."); return false;
+        }
+        trim.maxlen = static_cast<uint64_t>(parsed);
     } else if (!parse_id_numeric(op.arg(pos++), trim.minid, 0, false)) {
         reply_invalid_stream_id(op); return false;
     }
@@ -722,9 +759,14 @@ bool parse_trim_threshold(Op& op, uint32_t& pos, TrimSpec& trim) {
             reply_err(op.sink(), "ERR syntax error, LIMIT cannot be used without the special ~ option");
             return false;
         }
-        if (pos + 1 >= op.argc() || !parse_u64_exact(op.arg(pos + 1), trim.limit)) {
+        int64_t parsed = 0;
+        if (pos + 1 >= op.argc() || !parse_i64_option(op.arg(pos + 1), parsed)) {
             reply_syntax(op.sink()); return false;
         }
+        if (parsed < 0) {
+            reply_err(op.sink(), "ERR The LIMIT argument must be >= 0."); return false;
+        }
+        trim.limit = static_cast<uint64_t>(parsed);
         pos += 2;
     }
     return true;
@@ -989,13 +1031,17 @@ void range_generic(Shard& shard, Op& op, bool reverse) {
     uint64_t count = 0;
     if (op.argc() != 4 && op.argc() != 6) { reply_syntax(op.sink()); return; }
     if (op.argc() == 6) {
-        if (!op.arg(4).eq_icase("count") || !parse_u64_exact(op.arg(5), count)) {
+        int64_t parsed = 0;
+        if (!op.arg(4).eq_icase("count") || !parse_i64_option(op.arg(5), parsed)) {
             if (op.arg(4).eq_icase("count"))
                 reply_err(op.sink(), "ERR value is not an integer or out of range");
             else reply_syntax(op.sink());
             return;
         }
-        if (count == 0) { reply_null_array(op.sink(), op.resp3()); return; }
+        // A COUNT that asks for nothing -- zero or negative -- is a null array on redis, not an
+        // error and not an empty array.
+        if (parsed <= 0) { reply_null_array(op.sink(), op.resp3()); return; }
+        count = static_cast<uint64_t>(parsed);
     }
     StreamID start, end;
     if (!reverse) {
@@ -1444,7 +1490,9 @@ bool stream_parse_xread(Op& op, StreamXreadArgs& parsed) {
     parsed.first_key = ++pos;
     const uint32_t remaining = op.argc() - pos;
     if (!remaining || (remaining & 1u)) {
-        reply_err(op.sink(), "ERR Unbalanced XREAD list of streams: for each stream key an ID or '$' must be specified");
+        // Redis quotes the command name in lower case and ends the sentence with a period.
+        reply_err(op.sink(), "ERR Unbalanced 'xread' list of streams: for each stream key an ID "
+                             "or '$' must be specified.");
         return false;
     }
     parsed.key_count = remaining / 2;

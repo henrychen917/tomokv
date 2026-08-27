@@ -30,6 +30,7 @@
 #include <cstdio>
 #include <cstring>
 #include <ctime>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -71,8 +72,16 @@ bool parse_i64(Slice s, int64_t& out) {
     if (!s.n || s.n > 20) return false;
     uint32_t i = 0;
     bool negative = false;
-    if (s.p[0] == '-' || s.p[0] == '+') { negative = s.p[0] == '-'; i = 1; }
+    if (s.p[0] == '-') { negative = true; i = 1; }
     if (i >= s.n) return false;
+    // Canonical decimal, as redis's string2ll: no leading '+', no leading zeroes, no negative
+    // zero. "WAIT +5 1" and "WAIT 0 05" were accepted before this.
+    if (s.p[i] == '0') {
+        if (negative || i + 1 != s.n) return false;
+        out = 0;
+        return true;
+    }
+    if (s.p[i] < '1' || s.p[i] > '9') return false;
     uint64_t value = 0;
     for (; i < s.n; i++) {
         const char ch = s.p[i];
@@ -83,7 +92,11 @@ bool parse_i64(Slice s, int64_t& out) {
     }
     const uint64_t limit = negative ? (uint64_t{1} << 63) : (uint64_t{1} << 63) - 1;
     if (value > limit) return false;
-    out = negative ? -static_cast<int64_t>(value) : static_cast<int64_t>(value);
+    // INT64_MIN has no positive counterpart, so negating the cast of 2^63 is undefined (UBSAN
+    // catches it on "WAIT -9223372036854775808 0"). Name the value instead of computing it.
+    out = negative ? (value == (uint64_t{1} << 63) ? std::numeric_limits<int64_t>::min()
+                                                   : -static_cast<int64_t>(value))
+                   : static_cast<int64_t>(value);
     return true;
 }
 
@@ -163,11 +176,23 @@ void cmd_role(Shard&, Op& op) {
 // The timeout is still validated so a malformed WAIT is rejected exactly as redis rejects it.
 void cmd_wait(Shard&, Op& op) {
     int64_t replicas = 0, timeout = 0;
-    if (!parse_i64(op.arg(1), replicas) || !parse_i64(op.arg(2), timeout)) {
-        reply_invalid_integer(op);
+    if (!parse_i64(op.arg(1), replicas)) { reply_invalid_integer(op); return; }
+    // The timeout goes through getTimeoutFromObjectOrReply on redis, which names the argument.
+    if (!parse_i64(op.arg(2), timeout)) {
+        reply_err(op.sink(), "ERR timeout is not an integer or out of range");
         return;
     }
     if (timeout < 0) { reply_err(op.sink(), "ERR timeout is negative"); return; }
+    // Redis computes the deadline as mstime() + timeout in a signed 64-bit value and rejects the
+    // argument when that would overflow. Probed against 7.4: the largest accepted timeout is
+    // exactly LLONG_MAX - mstime().
+    timespec now{};
+    ::clock_gettime(CLOCK_REALTIME, &now);
+    const int64_t now_ms = static_cast<int64_t>(now.tv_sec) * 1000 + now.tv_nsec / 1000000;
+    if (timeout > INT64_MAX - now_ms) {
+        reply_err(op.sink(), "ERR timeout is out of range");
+        return;
+    }
     reply_int(op.sink(), 0);
 }
 

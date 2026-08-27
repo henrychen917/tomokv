@@ -31,6 +31,14 @@ bool parse_i64(Slice s, int64_t& out) {
         negative = true;
         if (++pos == s.n) return false;
     }
+    // Canonical decimal, as redis's string2ll: no leading '+', no leading zeroes, no negative
+    // zero. "SINTERCARD 05 key" and "ZINTERCARD 1 key LIMIT 05" were accepted before this.
+    if (s.p[pos] == '0') {
+        if (negative || pos + 1 != s.n) return false;
+        out = 0;
+        return true;
+    }
+    if (s.p[pos] < '1' || s.p[pos] > '9') return false;
     uint64_t value = 0;
     const uint64_t limit = negative ? (uint64_t{1} << 63)
                                     : static_cast<uint64_t>(std::numeric_limits<int64_t>::max());

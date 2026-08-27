@@ -366,21 +366,35 @@ struct SetOptions {
     int64_t expire_at_ms = -1;
 };
 
-bool expiry_at(Shard& sh, Slice arg, ExpireKind kind, int64_t& out) {
+// Redis validates the expire argument in two stages and reports them apart: string2ll first
+// ("value is not an integer or out of range"), then the range/overflow test ("invalid expire time
+// in '<cmd>' command"). Folding both into one answer told a client with a typo that its TTL was
+// out of range.
+enum class ExpiryParse : uint8_t { Ok, NotInteger, BadExpire };
+
+ExpiryParse expiry_at(Shard& sh, Slice arg, ExpireKind kind, int64_t& out) {
     int64_t value = 0;
-    if (!parse_i64(arg, value) || value <= 0) return false;
+    if (!parse_i64(arg, value)) return ExpiryParse::NotInteger;
+    if (value <= 0) return ExpiryParse::BadExpire;
     const bool seconds = kind == ExpireKind::Ex || kind == ExpireKind::Exat;
     if (seconds) {
-        if (value > INT64_MAX / 1000) return false;
+        if (value > INT64_MAX / 1000) return ExpiryParse::BadExpire;
         value *= 1000;
     }
     if (kind == ExpireKind::Ex || kind == ExpireKind::Px) {
-        if (value > INT64_MAX - sh.now_ms()) return false;
+        if (value > INT64_MAX - sh.now_ms()) return ExpiryParse::BadExpire;
         value += sh.now_ms();
     }
-    if (value <= 0) return false;
+    if (value <= 0) return ExpiryParse::BadExpire;
     out = value;
-    return true;
+    return ExpiryParse::Ok;
+}
+
+void reply_expiry_error(Op& op, ExpiryParse parsed, const char* command) {
+    if (parsed == ExpiryParse::NotInteger)
+        reply_err(op.sink(), "ERR value is not an integer or out of range");
+    else
+        reply_invalid_expire(op, command);
 }
 
 bool parse_set_options(Shard& sh, Op& op, SetOptions& options) {
@@ -410,10 +424,10 @@ bool parse_set_options(Shard& sh, Op& op, SetOptions& options) {
             expire_arg = op.arg(++i);
         }
     }
-    if (options.expire_kind != ExpireKind::None &&
-        !expiry_at(sh, expire_arg, options.expire_kind, options.expire_at_ms)) {
-        reply_invalid_expire(op, "set");
-        return false;
+    if (options.expire_kind != ExpireKind::None) {
+        const ExpiryParse parsed =
+            expiry_at(sh, expire_arg, options.expire_kind, options.expire_at_ms);
+        if (parsed != ExpiryParse::Ok) { reply_expiry_error(op, parsed, "set"); return false; }
     }
     return true;
 }
@@ -537,9 +551,9 @@ void cmd_getex(Shard& sh, Op& op) {
     if (!obj_type_check(o, Type::String, sink)) return;
 
     int64_t at = -1;
-    if (kind != ExpireKind::None && !expiry_at(sh, expire_arg, kind, at)) {
-        reply_invalid_expire(op, "getex");
-        return;
+    if (kind != ExpireKind::None) {
+        const ExpiryParse parsed = expiry_at(sh, expire_arg, kind, at);
+        if (parsed != ExpiryParse::Ok) { reply_expiry_error(op, parsed, "getex"); return; }
     }
     reply_string_bulk(op, o);
 
@@ -988,10 +1002,8 @@ void cmd_setnx(Shard& sh, Op& op) {
 template <bool kNotify>
 void setex_generic(Shard& sh, Op& op, ExpireKind kind, const char* command) {
     int64_t expire = -1;
-    if (!expiry_at(sh, op.arg(2), kind, expire)) {
-        reply_invalid_expire(op, command);
-        return;
-    }
+    const ExpiryParse parsed = expiry_at(sh, op.arg(2), kind, expire);
+    if (parsed != ExpiryParse::Ok) { reply_expiry_error(op, parsed, command); return; }
     const StoreResult result =
         store_string_for<kNotify>(sh, op.key(), op.hash, op.arg(3), expire, true);
     if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
@@ -1200,24 +1212,52 @@ void cmd_pfcount(Shard& sh, Op& op) {
     reply_int(op.sink(), static_cast<long long>(cardinality));
 }
 
-enum class ExpireCondition : uint8_t { Always, Nx, Xx, Gt, Lt };
+// The flags COMPOSE: XX+GT and XX+LT are both legal, and XX is not implied by LT (LT alone sets a
+// TTL on a key that has none, XX+LT must not). A single enum could not say that, and collapsing
+// XX+LT to LT let "EXPIREAT key <past> XX LT" delete a key with no TTL at all.
+struct ExpireConditions {
+    bool nx = false, xx = false, gt = false, lt = false;
+};
 
-bool parse_expire_condition(Op& op, ExpireCondition& condition) {
-    if (op.argc() == 3) return true;
-    if (eq_icase(op.arg(3), "NX")) condition = ExpireCondition::Nx;
-    else if (eq_icase(op.arg(3), "XX")) condition = ExpireCondition::Xx;
-    else if (eq_icase(op.arg(3), "GT")) condition = ExpireCondition::Gt;
-    else if (eq_icase(op.arg(3), "LT")) condition = ExpireCondition::Lt;
-    else { reply_syntax(op.sink()); return false; }
+// Redis accepts a LIST of conditions here, not one: XX may be combined with GT or with LT, and it
+// names each illegal combination and each unknown word. Only NX-with-anything and GT-with-LT are
+// refused. Capping the arity at one flag rejected "EXPIRE key ttl XX GT", which is legal.
+bool parse_expire_condition(Op& op, ExpireConditions& condition) {
+    for (uint32_t i = 3; i < op.argc(); i++) {
+        const Slice arg = op.arg(i);
+        if (eq_icase(arg, "NX")) condition.nx = true;
+        else if (eq_icase(arg, "XX")) condition.xx = true;
+        else if (eq_icase(arg, "GT")) condition.gt = true;
+        else if (eq_icase(arg, "LT")) condition.lt = true;
+        else {
+            char message[96];
+            std::snprintf(message, sizeof(message), "ERR Unsupported option %.*s",
+                          static_cast<int>(std::min<uint32_t>(arg.n, 48)), arg.p);
+            reply_err(op.sink(), message);
+            return false;
+        }
+    }
+    if (condition.gt && condition.lt) {
+        reply_err(op.sink(), "ERR GT and LT options at the same time are not compatible");
+        return false;
+    }
+    if (condition.nx && (condition.xx || condition.gt || condition.lt)) {
+        reply_err(op.sink(),
+                  "ERR NX and XX, GT or LT options at the same time are not compatible");
+        return false;
+    }
     return true;
 }
 
 template <bool kNotify>
 void expire_generic(Shard& sh, Op& op, bool absolute, bool seconds, const char* name) {
-    ExpireCondition condition = ExpireCondition::Always;
+    ExpireConditions condition;
     if (!parse_expire_condition(op, condition)) return;
     int64_t when = 0;
-    if (!parse_i64(op.arg(2), when)) { reply_invalid_expire(op, name); return; }
+    if (!parse_i64(op.arg(2), when)) {
+        reply_err(op.sink(), "ERR value is not an integer or out of range");
+        return;
+    }
     if (seconds) {
         if (when > INT64_MAX / 1000 || when < INT64_MIN / 1000) {
             reply_invalid_expire(op, name); return;
@@ -1232,10 +1272,11 @@ void expire_generic(Shard& sh, Op& op, bool absolute, bool seconds, const char* 
     KvObj* o = sh.store_find<kNotify>(op.hash, op.key());
     if (!o) { reply_int(op.sink(), 0); return; }
     const int64_t current = o->expire_at_ms();
-    if ((condition == ExpireCondition::Nx && current != -1) ||
-        (condition == ExpireCondition::Xx && current == -1) ||
-        (condition == ExpireCondition::Gt && (current == -1 || when <= current)) ||
-        (condition == ExpireCondition::Lt && current != -1 && when >= current)) {
+    // A key with no TTL counts as an infinite one: GT can never beat it, LT always can.
+    if ((condition.nx && current != -1) ||
+        (condition.xx && current == -1) ||
+        (condition.gt && (current == -1 || when <= current)) ||
+        (condition.lt && current != -1 && when >= current)) {
         reply_int(op.sink(), 0);
         return;
     }

@@ -50,6 +50,35 @@ bool parse_i64_exact(Slice input, int64_t& value) {
     return parsed.ec == std::errc{} && parsed.ptr == end;
 }
 
+// Stream IDs keep string2ull semantics (see t_stream.cc), so "0005-1" is 5-1 on both servers.
+// Numeric OPTIONS take string2ll's canonical spelling: no '+', no leading zeroes, no "-0".
+bool parse_i64_option(Slice input, int64_t& value) {
+    if (!input.n || input.n > 20) return false;
+    uint32_t i = 0;
+    bool negative = false;
+    if (input.p[0] == '-') { negative = true; i = 1; }
+    if (i >= input.n) return false;
+    if (input.p[i] == '0') {
+        if (negative || i + 1 != input.n) return false;
+        value = 0;
+        return true;
+    }
+    if (input.p[i] < '1' || input.p[i] > '9') return false;
+    uint64_t magnitude = 0;
+    const uint64_t limit = negative ? (uint64_t{1} << 63) : uint64_t{INT64_MAX};
+    for (; i < input.n; i++) {
+        const char ch = input.p[i];
+        if (ch < '0' || ch > '9') return false;
+        const uint32_t digit = static_cast<uint32_t>(ch - '0');
+        if (magnitude > (limit - digit) / 10) return false;
+        magnitude = magnitude * 10 + digit;
+    }
+    value = negative ? (magnitude == (uint64_t{1} << 63) ? INT64_MIN
+                                                         : -static_cast<int64_t>(magnitude))
+                     : static_cast<int64_t>(magnitude);
+    return true;
+}
+
 bool parse_id(Slice input, StreamID& id, uint64_t missing_seq = 0,
               bool sentinels = false) {
     if (!input.n || input.n > kMaxIdText) return false;
@@ -637,8 +666,14 @@ template <bool kNotify>
 void cmd_xautoclaim(Shard& shard, Op& op) {
     uint64_t min_idle = 0;
     StreamID start{};
-    if (!parse_u64_exact(op.arg(4), min_idle)) {
-        reply_err(op.sink(), "ERR Invalid min-idle-time argument for XAUTOCLAIM"); return;
+    {
+        // Redis takes min-idle-time as a signed canonical integer and clamps a negative one to 0,
+        // so "XAUTOCLAIM key g c -1 0" reaches the group lookup while "... 05 0" does not.
+        int64_t parsed = 0;
+        if (!parse_i64_option(op.arg(4), parsed)) {
+            reply_err(op.sink(), "ERR Invalid min-idle-time argument for XAUTOCLAIM"); return;
+        }
+        min_idle = parsed < 0 ? 0 : static_cast<uint64_t>(parsed);
     }
     if (!parse_id(op.arg(5), start)) { invalid_id(op); return; }
     uint64_t count = 100; bool justid = false;
@@ -714,9 +749,14 @@ void cmd_xsetid(Shard& shard, Op& op) {
     StreamID max_deleted{};
     for (uint32_t pos = 3; pos < op.argc();) {
         if (op.arg(pos).eq_icase("entriesadded") && !entries_set && pos + 1 < op.argc()) {
-            if (!parse_u64_exact(op.arg(pos + 1), entries_added)) {
+            int64_t parsed = 0;
+            if (!parse_i64_option(op.arg(pos + 1), parsed)) {
                 reply_err(op.sink(), "ERR value is not an integer or out of range"); return;
             }
+            if (parsed < 0) {
+                reply_err(op.sink(), "ERR entries_added must be positive"); return;
+            }
+            entries_added = static_cast<uint64_t>(parsed);
             entries_set = true; pos += 2;
         } else if (op.arg(pos).eq_icase("maxdeletedid") && !deleted_set && pos + 1 < op.argc()) {
             if (!parse_id(op.arg(pos + 1), max_deleted)) { invalid_id(op); return; }
@@ -994,7 +1034,8 @@ bool stream_parse_xreadgroup(Op& op, StreamXreadGroupArgs& parsed) {
         } else { reply_syntax(op.sink()); return false; }
     }
     if (pos >= op.argc() || op.argc() - pos != 3) {
-        reply_err(op.sink(), "ERR Unbalanced XREADGROUP list of streams: for each stream key an ID or '>' must be specified");
+        reply_err(op.sink(), "ERR Unbalanced 'xreadgroup' list of streams: for each stream key "
+                             "an ID or '>' must be specified.");
         return false;
     }
     parsed.key_arg = pos + 1;

@@ -1942,11 +1942,8 @@ template <bool kNotify>
 void cmd_zpop_generic(Shard& shard, Op& op, bool maximum) {
     int64_t requested = 1;
     if (op.argc() == 3) {
-        if (!parse_i64(op.arg(2), requested)) {
-            reply_invalid_integer(op);
-            return;
-        }
-        if (requested < 0) {
+        // One message for both failures, as redis's getRangeLongFromObject(0, LONG_MAX, msg).
+        if (!parse_i64(op.arg(2), requested) || requested < 0) {
             reply_err(op.sink(), "ERR value is out of range, must be positive");
             return;
         }

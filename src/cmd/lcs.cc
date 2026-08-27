@@ -23,22 +23,31 @@ namespace {
 
 bool parse_u64(Slice s, uint64_t& out) {
     if (!s.n) return false;
+    // Canonical decimal, as redis's string2ll: a leading zero is only legal as the whole number,
+    // so "MINMATCHLEN 05" is an integer error rather than a filter of 5.
+    if (s.p[0] == '0' && s.n != 1) return false;
     uint64_t value = 0;
     for (uint32_t i = 0; i < s.n; i++) {
         const char ch = s.p[i];
         if (ch < '0' || ch > '9') return false;
         const uint64_t digit = static_cast<uint64_t>(ch - '0');
-        if (value > (UINT64_MAX - digit) / 10) return false;
+        // Bound at INT64_MAX, not UINT64_MAX: redis parses this argument as a signed long long.
+        if (value > (static_cast<uint64_t>(INT64_MAX) - digit) / 10) return false;
         value = value * 10 + digit;
     }
     out = value;
     return true;
 }
 
-// MINMATCHLEN accepts a negative value and treats it as no filter, exactly as redis does.
+// MINMATCHLEN accepts a negative value and treats it as no filter, exactly as redis does. The
+// magnitude still has to be a canonical decimal, and "-0" is not one.
 bool parse_minmatchlen(Slice s, uint64_t& out) {
+    // The magnitude is a signed 64-bit integer on redis, so anything past INT64_MAX is an integer
+    // error rather than a very large filter.
+    if (s.n > 19) return false;
     if (s.n && s.p[0] == '-') {
         uint64_t ignored = 0;
+        if (s.n == 2 && s.p[1] == '0') return false;
         if (!parse_u64(Slice(s.p + 1, s.n - 1), ignored)) return false;
         out = 0;
         return true;
