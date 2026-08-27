@@ -5,3 +5,9 @@ servertail-testdata/
 
 # compiled test/bench drivers (sources are tracked, binaries are not)
 tools/benchtxn
+
+# stray comparison-run snapshot artifacts (dragonfly writes these into cwd)
+dump-*.dfs
+dump-*.rdb
+dump-*.tomo
+dump.tomo
