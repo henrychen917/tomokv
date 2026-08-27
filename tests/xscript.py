@@ -670,7 +670,8 @@ def feature_off_control():
         after = stats(client)
         counters = ("script_stage_owner_tasks", "script_run_attempts",
                     "script_validate_owner_tasks", "script_apply_owner_tasks",
-                    "script_crossshard_activations")
+                    "script_crossshard_activations", "script_keys_armed",
+                    "script_write_tickets_forced")
         deltas = {name: after.get(name, 0) - before.get(name, 0) for name in counters}
         note("feature-off cross-owner refusal is byte-exact",
              isinstance(refused, RespError) and

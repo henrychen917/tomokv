@@ -2328,7 +2328,12 @@ if SUITE == "script":
             routed[key] = owner
     script_cross_generated = sum(
         len({routed[key] for key in declared}) >= 2 for declared in activations)
-    if script_cross_generated == 0:
+    # A single-owner boot is the CONTROL leg, not a failure: the identical stream must still be
+    # byte-exact against redis while driving none of the cross-owner engine. Anything else that
+    # produces zero proven cross-owner activations is a blind generator, and a gate built on it
+    # would pass while testing nothing.
+    script_single_owner = len(set(routed.values())) <= 1
+    if script_cross_generated == 0 and not script_single_owner:
         raise RuntimeError("script generator emitted zero proven cross-owner activations")
 # clean slates on BOTH sides: the oracle is long-lived across runs; residue there while the
 # target boots fresh makes every op diff from op 0 (bit us on zset 2026-08-24). FLUSHALL (the
@@ -2485,10 +2490,22 @@ if SUITE == "script":
     required = ("script_stage_owner_tasks", "script_run_attempts",
                 "script_validate_owner_tasks", "script_apply_owner_tasks",
                 "script_crossshard_activations", "script_group_commits",
-                "script_staged_bytes_total")
+                "script_staged_bytes_total", "script_keys_armed")
     deltas = {name: after.get(name, 0) - script_stats_before.get(name, 0)
               for name in required}
-    if any(value <= 0 for value in deltas.values()):
+    released = after.get("script_keys_released", 0) - \
+        script_stats_before.get("script_keys_released", 0)
+    live = after.get("script_intents_live", -1)
+    if script_single_owner:
+        # CONTROL LEG. Same stream, one owner: every counter above must stay at zero, so a build
+        # that silently routed single-owner scripts through the staged engine fails here.
+        if any(value != 0 for value in deltas.values()):
+            diffs += 1
+            print("  MECHANISM FAIL single-owner control drove the cross engine deltas=%r" %
+                  (deltas,))
+        else:
+            print("  script mechanism SINGLE-OWNER CONTROL: cross engine idle, deltas all zero")
+    elif any(value <= 0 for value in deltas.values()):
         diffs += 1
         print("  MECHANISM FAIL generated_cross=%d deltas=%r" %
               (script_cross_generated, deltas))
@@ -2496,8 +2513,14 @@ if SUITE == "script":
             script_stats_before.get("script_group_occ_giveups", 0):
         diffs += 1
         print("  MECHANISM FAIL unexpected OCC giveup")
+    elif deltas["script_keys_armed"] != released or live != 0:
+        # Reservations must balance: an armed key that was never released would arm every later
+        # write to it for the life of the process.
+        diffs += 1
+        print("  MECHANISM FAIL reservations leaked armed=%d released=%d live=%d" %
+              (deltas["script_keys_armed"], released, live))
     else:
-        print("  script mechanism generated_cross=%d deltas=%r" %
-              (script_cross_generated, deltas))
+        print("  script mechanism generated_cross=%d deltas=%r live=%d" %
+              (script_cross_generated, deltas, live))
 print("DIFFER %s: %d ops, %d diffs -> %s" % (SUITE, len(ops), diffs, "PASS" if diffs == 0 else "FAIL"))
 sys.exit(1 if diffs else 0)
