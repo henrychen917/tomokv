@@ -64,6 +64,7 @@ public:
         stream_limits_ = stream_limits;
         store_.bind_expired_counter(&stats_.expired);
         store_.bind_evicted_counter(&stats_.evicted);
+        store_.bind_rehash_counter(&stats_.rehashes);
         flat_notify_sink_.context = this;
         flat_notify_sink_.enabled = notify_flat_enabled;
         flat_notify_sink_.emit = notify_flat_emit;
@@ -271,6 +272,11 @@ public:
         uint64_t atomic_promotions = 0;
         uint64_t atomic_records_freed = 0;
         uint64_t atomic_entries = 0;
+        // Cold tail, deliberately last: keyspace table rebuilds started by this shard, reported as
+        // INFO keyspace_rehashes so a scan-under-resize test can assert the hazard it guards
+        // actually fired. Written once per resize and read only by INFO, so it must not push any
+        // field the per-op path touches onto a different cache line.
+        uint64_t rehashes      = 0;
     };
     Stats& stats() { return stats_; }
     const Stats& stats() const { return stats_; }

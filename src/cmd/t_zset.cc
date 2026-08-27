@@ -323,20 +323,42 @@ public:
         }
     }
 
+    // Reverse-binary HOME cursor, the same contract FlatStore::scan and HashFieldMap::scan carry:
+    // a member present for the whole iteration is emitted at least once however many times the
+    // member table was rebuilt underneath it. A raw physical position cannot promise that, because
+    // a rebuild relocates a node from ahead of the position to behind it. See the derivation next
+    // to scan_cursor_next() in src/store/flatstore.h.
     template <typename Fn>
     uint64_t scan(uint64_t cursor, uint64_t work, Fn&& fn) const {
-        const uint64_t total = static_cast<uint64_t>(table_[0].cap) + table_[1].cap;
-        if (!total) return 0;
-        uint64_t pos = cursor < total ? cursor : 0;
-        const uint64_t end = std::min<uint64_t>(total, pos + std::min(work, total - pos));
-        while (pos < end) {
-            const Table& table = pos < table_[0].cap ? table_[0] : table_[1];
-            const uint64_t base = pos < table_[0].cap ? 0 : table_[0].cap;
-            ZsetNode* node = table.slots[pos - base];
-            if (node && node != tombstone()) fn(node);
-            pos++;
-        }
-        return pos == total ? 0 : pos;
+        if (!table_[0].slots) return 0;
+        const uint64_t slot_budget = work * 10;   // see FlatStore::scan for the two budgets
+        uint64_t homes = 0, slots = 0;
+        do {
+            if (!table_[1].slots) {
+                slots += scan_home(table_[0], static_cast<uint32_t>(cursor) & table_[0].mask, fn);
+                homes++;
+                cursor = scan_cursor_next(cursor, table_[0].mask);
+            } else if (table_[0].mask == table_[1].mask) {
+                const uint32_t home = static_cast<uint32_t>(cursor) & table_[0].mask;
+                slots += scan_home(table_[0], home, fn);   // separate statements: both visits
+                slots += scan_home(table_[1], home, fn);   // emit, so their order must be fixed
+                homes += 2;
+                cursor = scan_cursor_next(cursor, table_[0].mask);
+            } else {
+                const Table& small = table_[0].cap < table_[1].cap ? table_[0] : table_[1];
+                const Table& large = table_[0].cap < table_[1].cap ? table_[1] : table_[0];
+                const uint64_t small_mask = small.mask;
+                const uint64_t large_mask = large.mask;
+                slots += scan_home(small, static_cast<uint32_t>(cursor & small_mask), fn);
+                homes++;
+                do {
+                    slots += scan_home(large, static_cast<uint32_t>(cursor & large_mask), fn);
+                    homes++;
+                    cursor = scan_cursor_next(cursor, large_mask);
+                } while (cursor & (small_mask ^ large_mask));
+            }
+        } while (cursor && homes < work && slots < slot_budget);
+        return cursor;
     }
 
 private:
@@ -349,6 +371,26 @@ private:
     };
 
     static ZsetNode* tombstone() { return reinterpret_cast<ZsetNode*>(static_cast<uintptr_t>(1)); }
+
+    // Every node whose HOME slot is `home`, wherever linear probing placed it. They all lie in the
+    // run of occupied slots starting at `home`, because an insert stops at the first null and
+    // nothing writes a null back over an occupied slot (erase leaves a tombstone). Returns slots
+    // examined, never zero, so a sparse table cannot walk itself out inside one call.
+    template <typename Fn>
+    static uint64_t scan_home(const Table& table, uint32_t home, Fn& fn) {
+        uint64_t examined = 0;
+        uint32_t slot = home;
+        for (uint32_t probes = 0; probes <= table.cap; probes++) {
+            ZsetNode* node = table.slots[slot];
+            if (!node) break;                                 // free slot — end of the run
+            examined++;
+            if (node != tombstone() &&
+                (static_cast<uint32_t>(member_hash(node_member(node))) & table.mask) == home)
+                fn(node);
+            slot = (slot + 1) & table.mask;
+        }
+        return examined ? examined : 1;
+    }
 
     static bool allocate(Table& table, uint32_t cap) {
         auto** slots = static_cast<ZsetNode**>(std::calloc(cap, sizeof(ZsetNode*)));

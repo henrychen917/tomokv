@@ -211,10 +211,7 @@ public:
         scan_home(small, static_cast<uint32_t>(cursor & small_mask), fn);
         do {
             scan_home(large, static_cast<uint32_t>(cursor & large_mask), fn);
-            cursor |= ~large_mask;
-            cursor = reverse_bits(cursor);
-            cursor++;
-            cursor = reverse_bits(cursor);
+            cursor = scan_cursor_next(cursor, large_mask);
         } while (cursor & (small_mask ^ large_mask));
         return cursor;
     }
@@ -428,25 +425,10 @@ private:
         }
     }
 
-    static uint64_t reverse_bits(uint64_t value) {
-        value = ((value & 0x5555555555555555ULL) << 1) |
-                ((value >> 1) & 0x5555555555555555ULL);
-        value = ((value & 0x3333333333333333ULL) << 2) |
-                ((value >> 2) & 0x3333333333333333ULL);
-        value = ((value & 0x0f0f0f0f0f0f0f0fULL) << 4) |
-                ((value >> 4) & 0x0f0f0f0f0f0f0f0fULL);
-        value = ((value & 0x00ff00ff00ff00ffULL) << 8) |
-                ((value >> 8) & 0x00ff00ff00ff00ffULL);
-        value = ((value & 0x0000ffff0000ffffULL) << 16) |
-                ((value >> 16) & 0x0000ffff0000ffffULL);
-        return (value << 32) | (value >> 32);
-    }
-
+    // The reverse-binary counter itself lives beside its derivation in src/store/flatstore.h; the
+    // keyspace table and the zset member table walk their cursors with the same two lines.
     static uint64_t advance_cursor(uint64_t cursor, uint64_t mask) {
-        cursor |= ~mask;
-        cursor = reverse_bits(cursor);
-        cursor++;
-        return reverse_bits(cursor);
+        return scan_cursor_next(cursor, mask);
     }
 
     template <typename Fn>

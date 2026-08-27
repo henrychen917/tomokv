@@ -276,6 +276,38 @@ inline uint64_t mix64(uint64_t h) {
     return h;
 }
 
+// ---- reverse-binary SCAN cursors ---------------------------------------------------------------
+// THE guarantee every SCAN family member owes: an element present for the WHOLE iteration is
+// returned at least once, no matter how many times the table was resized underneath it. A cursor
+// that is a raw slot number cannot keep that promise -- doubling the table moves a key from a slot
+// AHEAD of the cursor to one BEHIND it, and the key is silently never emitted.
+//
+// The fix is Redis's dictScan trick, and it needs exactly one property our tables already have:
+// the home index is `hash & (2^k - 1)`, so a key's home in the small table is its home in the big
+// table with the extra high bits masked off. Count the cursor in BIT-REVERSED order and the high
+// bits therefore move FASTEST, which makes every family of homes that share the small table's low
+// bits a contiguous block of the visiting order. A resize can then only move a key between homes
+// that are on the same side of the cursor -- both already visited, or both still to come.
+//
+// The counter is: set every bit ABOVE the mask, reverse, add one, reverse back. The carry runs
+// downward through the high bits and the result is again inside the mask, so any cursor a client
+// hands back is self-correcting, and the walk ends at exactly 0 after one full cycle.
+inline uint64_t scan_cursor_reverse_bits(uint64_t v) {
+    v = ((v & 0x5555555555555555ULL) << 1)  | ((v >> 1)  & 0x5555555555555555ULL);
+    v = ((v & 0x3333333333333333ULL) << 2)  | ((v >> 2)  & 0x3333333333333333ULL);
+    v = ((v & 0x0f0f0f0f0f0f0f0fULL) << 4)  | ((v >> 4)  & 0x0f0f0f0f0f0f0f0fULL);
+    v = ((v & 0x00ff00ff00ff00ffULL) << 8)  | ((v >> 8)  & 0x00ff00ff00ff00ffULL);
+    v = ((v & 0x0000ffff0000ffffULL) << 16) | ((v >> 16) & 0x0000ffff0000ffffULL);
+    return (v << 32) | (v >> 32);
+}
+
+inline uint64_t scan_cursor_next(uint64_t cursor, uint64_t mask) {
+    cursor |= ~mask;
+    cursor = scan_cursor_reverse_bits(cursor);
+    cursor++;
+    return scan_cursor_reverse_bits(cursor);
+}
+
 class FlatStore;
 
 // Hash-field TTLs, defined in src/cmd/t_hash_ttl.cc. The store owns the ATTENTION (which keys carry
@@ -659,6 +691,11 @@ public:
     KvObj* find_no_touch(uint64_t h, Slice key) { return find_without_touch(h, key); }
     void bind_expired_counter(uint64_t* counter) { expired_counter_ = counter; }
     void bind_evicted_counter(uint64_t* counter) { evicted_counter_ = counter; }
+    // Table rebuilds started. Cold (once per resize, never on the hot path) and it exists so a
+    // SCAN-correctness test can PROVE the hazard it guards actually occurred: a run in which this
+    // does not move has not exercised resize-during-iteration at all, and its "0 keys missed"
+    // would be vacuous.
+    void bind_rehash_counter(uint64_t* counter) { rehash_counter_ = counter; }
     void configure_maxmemory(bool enabled, uint64_t shard_limit, MaxmemoryPolicy policy,
                              uint32_t samples) {
         maxmemory_enabled_ = enabled;
@@ -976,39 +1013,49 @@ public:
         return nullptr;
     }
 
-    // Cursor layout inside one shard: bit 32 selects the rehash table and bits 31..0 hold the next
-    // physical slot. COUNT is a slot-work hint, so one call never hides an unbounded sparse-table
-    // walk. A stable keyspace is covered completely; mutation may duplicate or omit entries, like
-    // Redis's SCAN family.
+    // The cursor is a bit-reversed HOME index (see scan_cursor_next above), not a physical slot and
+    // not a table selector -- there is nothing left in it that a resize can invalidate. One step
+    // covers a whole logical home bucket, which under linear probing is the run of non-EMPTY slots
+    // starting at that home, so a key's probe displacement no longer decides whether it is seen.
+    // While a rehash is draining, the step covers the smaller table's home AND every home in the
+    // larger table that expands from it before the cursor moves, exactly as Redis does.
+    // COUNT keeps its Redis meaning -- HOMES visited per call, so a call still yields about COUNT
+    // entries at our load factor and a full walk costs the same number of round trips it always
+    // did. A second, looser budget of 10*COUNT examined SLOTS is what keeps one call bounded when
+    // tombstones stretch the probe runs; it is the same pair of budgets SSCAN documents.
     template <typename Fn>
     uint64_t scan(uint64_t cursor, uint32_t count, Fn&& fn) {
-        uint32_t t = static_cast<uint32_t>((cursor >> 32) & 1u);
-        uint32_t pos = static_cast<uint32_t>(cursor);
-        uint32_t checked = 0;
-        while (t < 2 && checked < count) {
-            if (!tab_[t] || pos >= cap_[t]) { t++; pos = 0; continue; }
-            KvObj* o = ptr_of(tab_[t][pos++]);
-            checked++;
-            if (!o) continue;
-            if ((o->flags & KvObjFlags::HasTtl) && o->expire_at_ms() <= cached_now_ms_) {
-                const uint64_t h = hash_key(o->key());
-                // An epoch record, not this physical candidate, owns logical expiry and pointer
-                // lifetime. The walker callback resolves it at its registered cut.
-                if (atomic_has_record(h, o->key())) { fn(o); continue; }
-                // During capture the frozen table is the cut, not a normal mutable scan source.
-                // Report the key logically absent but leave its slot for snapshot traversal, just
-                // like find()/active_expire().  KEYS uses this bounded scan while capture runs.
-                if (snapshot_active_ && t == 1) continue;
-                notify_flat_store_emit(this, NOTIFY_EXPIRED, NotifyEventId::Expired, o->key());
-                (void)aof_.record_delete(o->key());
-                erase_in(static_cast<int>(t), h, o->key());
-                if (expired_counter_) (*expired_counter_)++;
-                continue;
+        if (!tab_[0]) return 0;
+        const uint64_t slot_budget = static_cast<uint64_t>(count) * 10;
+        uint32_t homes = 0;
+        uint64_t slots = 0;
+        do {
+            if (!rehashing()) {
+                slots += scan_home(0, static_cast<uint32_t>(cursor) & mask_[0], fn);
+                homes++;
+                cursor = scan_cursor_next(cursor, mask_[0]);
+            } else if (mask_[0] == mask_[1]) {
+                // Same-size rebuild (tombstone reclaim): identical homes, so one visit each.
+                const uint32_t home = static_cast<uint32_t>(cursor) & mask_[0];
+                slots += scan_home(0, home, fn);        // separate statements: both visits emit,
+                slots += scan_home(1, home, fn);        // so their order must not be unspecified
+                homes += 2;
+                cursor = scan_cursor_next(cursor, mask_[0]);
+            } else {
+                const int small = cap_[0] < cap_[1] ? 0 : 1;   // grow puts the old table in 1,
+                const int large = small ^ 1;                   // shrink puts it in 0
+                const uint64_t small_mask = mask_[small];
+                const uint64_t large_mask = mask_[large];
+                slots += scan_home(small, static_cast<uint32_t>(cursor & small_mask), fn);
+                homes++;
+                do {
+                    slots += scan_home(large, static_cast<uint32_t>(cursor & large_mask), fn);
+                    homes++;
+                    cursor = scan_cursor_next(cursor, large_mask);
+                } while (cursor & (small_mask ^ large_mask));
             }
-            fn(o);
-        }
-        while (t < 2 && (!tab_[t] || pos >= cap_[t])) { t++; pos = 0; }
-        return t >= 2 ? 0 : (static_cast<uint64_t>(t) << 32) | pos;
+        } while (cursor && homes < count && slots < slot_budget);
+        return cursor;
     }
 
     // Warm the slots this key will probe, for a whole batch before any of it executes, so the DRAM
@@ -1372,6 +1419,50 @@ private:
         tombs_[t] = 0;
     }
 
+    // Emit every key whose HOME slot is `home`, wherever linear probing actually put it. Those keys
+    // all sit in the run of non-EMPTY words starting at `home`: an insert probes forward from the
+    // home and stops at the first EMPTY, and nothing ever writes EMPTY back over an occupied word
+    // (erase, rehash and flush all leave a TOMBSTONE), so no gap can open between a key and its
+    // home. Returns slots examined, charged against COUNT, and never zero -- an empty home must
+    // still cost the caller one unit or a sparse table would walk itself out in a single call.
+    template <typename Fn>
+    uint32_t scan_home(int t, uint32_t home, Fn& fn) {
+        uint32_t examined = 0;
+        uint32_t i = home;
+        for (uint32_t probes = 0; probes <= cap_[t]; probes++) {
+            const uint64_t w = tab_[t][i];
+            if (w == 0) break;                              // EMPTY — the only stop
+            examined++;
+            KvObj* o = ptr_of(w);
+            if (o) {
+                const uint64_t h = hash_key(o->key());
+                if (slot_start(t, h) == home) scan_visit(t, h, o, fn);
+            }
+            i = (i + 1) & mask_[t];
+        }
+        return examined ? examined : 1;
+    }
+
+    // The per-key half of a scan step, unchanged from the physical walk it replaces.
+    template <typename Fn>
+    void scan_visit(int t, uint64_t h, KvObj* o, Fn& fn) {
+        if ((o->flags & KvObjFlags::HasTtl) && o->expire_at_ms() <= cached_now_ms_) {
+            // An epoch record, not this physical candidate, owns logical expiry and pointer
+            // lifetime. The walker callback resolves it at its registered cut.
+            if (atomic_has_record(h, o->key())) { fn(o); return; }
+            // During capture the frozen table is the cut, not a normal mutable scan source.
+            // Report the key logically absent but leave its slot for snapshot traversal, just
+            // like find()/active_expire().  KEYS uses this bounded scan while capture runs.
+            if (snapshot_active_ && t == 1) return;
+            notify_flat_store_emit(this, NOTIFY_EXPIRED, NotifyEventId::Expired, o->key());
+            (void)aof_.record_delete(o->key());
+            erase_in(t, h, o->key());
+            if (expired_counter_) (*expired_counter_)++;
+            return;
+        }
+        fn(o);
+    }
+
     KvObj* find_in(int t, uint64_t h, Slice key) const {
         if (!tab_[t]) return nullptr;
         const uint16_t tag = tag_of(h);
@@ -1586,6 +1677,7 @@ private:
     void start_rehash(uint32_t newcap) {
         if (rehashing()) return;                            // one at a time; finish before starting
         if (newcap < kMinCap) newcap = kMinCap;
+        if (rehash_counter_) (*rehash_counter_)++;
         tab_[1]  = tab_[0];  cap_[1] = cap_[0];  mask_[1] = mask_[0];
         live_[1] = live_[0]; tombs_[1] = tombs_[0];
         alloc_table(0, newcap);
@@ -1638,6 +1730,7 @@ private:
     bool        no_touch_ = false;      // per-task, owner-written; see set_no_touch
     uint64_t*   expired_counter_ = nullptr;
     uint64_t*   evicted_counter_ = nullptr;
+    uint64_t*   rehash_counter_ = nullptr;
     bool        maxmemory_enabled_ = false;
     uint64_t    maxmemory_limit_ = 0;
     MaxmemoryPolicy maxmemory_policy_ = MaxmemoryPolicy::NoEviction;
