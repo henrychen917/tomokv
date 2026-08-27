@@ -1226,8 +1226,18 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     state->aof_reload_increments = std::move(aof_reload_increments);
     // MSET is a blind replacement. Registering a read cut for it only pins predecessors across a
     // deep pipeline; MSETNX and delete still need their one dispatch snapshot for existence.
-    if (needs_snapshot)
-        state->snapshot = server.atomic_snapshot();
+    // A read that IO already stamped reuses that exact cut, so a plain read and a multi-key read
+    // prepared back to back on one connection cannot disagree about which of them is older.
+    if (needs_snapshot) {
+        state->snapshot = op.has_read_cut() ? op.read_cut(server.atomic_snapshot())
+                                            : server.atomic_snapshot();
+        // Instrumentation, once per multi-key command and never on the GET/SET path: the visible
+        // watermark trailing the drawn sequence is the publication guard actively excluding an
+        // undecided ticket from this read's cut. A battery that never sees this counter move never
+        // entered the window it claims to close.
+        if (__builtin_expect(server.atomic_snapshot() < server.atomic_commit_drawn(), false))
+            server.note_atomic_commit_hold();
+    }
     if (kind == Kind::Sintercard) { state->set_first = 0; state->set_count = sinter_count; }
     else if (is_store_setop(kind)) { state->set_first = 1; state->set_count = key_count - 1; }
     else if (is_plain_setop(kind)) { state->set_first = 0; state->set_count = key_count; }
@@ -2088,8 +2098,7 @@ ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
             return final();
         }
         if (!state.external_epoch) {
-            const uint64_t ticket = server.atomic_commit();
-            state.epoch.store(ticket, std::memory_order_release);
+            const uint64_t ticket = server.atomic_commit_group(state.epoch);
             aof_commit_scatter_group(state, self, ring, ticket);
         }
         if (state.kind == Kind::Msetnx) {
@@ -2105,8 +2114,7 @@ ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
             if (!ticket && state.atomic_pop &&
                 (state.final_reply == FinalReply::Lmpop ||
                  state.final_reply == FinalReply::Zmpop)) {
-                ticket = server.atomic_commit();
-                state.epoch.store(ticket, std::memory_order_release);
+                ticket = server.atomic_commit_group(state.epoch);
             }
             if (ticket && !state.aborted.load(std::memory_order_acquire))
                 aof_commit_scatter_group(state, self, ring, ticket);

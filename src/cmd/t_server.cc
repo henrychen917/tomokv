@@ -802,6 +802,43 @@ void cmd_debug_impl(Shard&, Op& op) {
         reply_ok(op.sink());
         return;
     }
+    // Which owner a key routes to. The hash seed is drawn from the kernel at every boot, so a test
+    // cannot know from the key name alone whether a two-key command is one owner's work or a real
+    // cross-shard group -- and a cross-shard battery that silently ran same-owner proves nothing.
+    // This is the geometry oracle those batteries gate on.
+    if (eq_icase(subcommand, "shard") && op.argc() == 3) {
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        reply_int(op.sink(), g_server->router().shard_of(FlatStore::hash_key(op.arg(2))));
+        return;
+    }
+    // Window widener for the torn-read regression. Holds a cross-shard group between drawing its
+    // commit ticket and storing that ticket into its shared epoch word -- the hole in which the
+    // sequence already named a commit whose records still answered "undecided". Production 0.
+    if (eq_icase(subcommand, "atomic-commit-delay") && op.argc() == 3) {
+        uint64_t microseconds = 0;
+        if (!parse_u64(op.arg(2), microseconds) || microseconds > 1000000) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        g_server->set_debug_atomic_commit_delay(static_cast<uint32_t>(microseconds));
+        reply_ok(op.sink());
+        return;
+    }
+    // Window widener for the session-monotonicity regression. Holds a plain read on its owner
+    // before it resolves, so foreign commits have time to land between the IO-side dispatch of a
+    // pipelined read and its execution. Production 0.
+    if (eq_icase(subcommand, "atomic-read-delay") && op.argc() == 3) {
+        uint64_t microseconds = 0;
+        if (!parse_u64(op.arg(2), microseconds) || microseconds > 1000000) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        g_server->set_debug_atomic_read_delay(static_cast<uint32_t>(microseconds));
+        reply_ok(op.sink());
+        return;
+    }
     if (eq_icase(subcommand, "set-active-expire") && op.argc() == 3) {
         if (!(op.arg(2) == Slice("0", 1) || op.arg(2) == Slice("1", 1))) {
             reply_err(op.sink(), "ERR value is not an integer or out of range");
@@ -1477,6 +1514,8 @@ void cmd_info(Shard&, Op& op) {
                       "atomic_records_freed:%llu\r\natomic_entries:%llu\r\n"
                       "atomic_pending_entries:%llu\r\natomic_localfast:%llu\r\n"
                       "atomic_scan_order_holds:%llu\r\n"
+                      "atomic_commit_windows:%llu\r\natomic_commit_holds:%llu\r\n"
+                      "atomic_read_cuts_held:%llu\r\n"
                       "atomic_credit_pool:%u\r\natomic_credit_debt:%u\r\n"
                       "pubsub_channels:%llu\r\npubsub_subscriptions:%llu\r\n"
                       "pubsubshard_channels:%llu\r\npubsubshard_subscriptions:%llu\r\n"
@@ -1537,6 +1576,12 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(atomic_pending_entries),
                 static_cast<unsigned long long>(atomic_localfast),
                 static_cast<unsigned long long>(atomic_scan_holds),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->atomic_commit_windows() : 0),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->atomic_commit_holds() : 0),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->atomic_read_cuts_held() : 0),
                 g_server ? g_server->atomic_credit_pool() : 0,
                 g_server ? g_server->atomic_credit_debt() : 0,
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_active_channels() : 0),

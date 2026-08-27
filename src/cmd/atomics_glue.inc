@@ -748,9 +748,24 @@ bool xshard_tasks_share_key(const Task& older, Op& older_op,
     return overlap || older_all;
 }
 
+// The cut this command reads at. IO pinned it in the connection's program order (Op::read_cut_lo);
+// `now` is a sequence value this owner has already loaded, which is all the widening needs. An
+// unstamped op -- a write, or any op parsed while the engine had no atomic tracking at all -- keeps
+// the newest world, exactly as before.
+uint64_t plain_read_cut(Server& server, const Op& op, uint64_t now) {
+    if (!op.has_read_cut()) return now;
+    const uint64_t cut = op.read_cut(now);
+    if (cut != now) server.note_atomic_read_cut_held();
+    return cut;
+}
+
 bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_conn_id) {
     FlatStore& store = shard.store();
     if (!store.atomic_has_records()) return true;
+    const uint32_t read_stall = server.debug_atomic_read_delay();
+    if (__builtin_expect(read_stall != 0, false) &&
+        !(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)))
+        Server::debug_stall_us(read_stall);
     const uint64_t cleanup_cutoff = server.atomic_snapshot();
     const uint64_t floor = server.atomic_read_floor();
     if (op.local_xshard()) {
@@ -769,11 +784,12 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
         if (allocation_failed) { set_oom(op); return false; }
         if (recorded.empty()) return true;
 
-        const uint64_t snapshot = server.atomic_snapshot();
         if (!(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
-            store.atomic_set_read_context(snapshot, origin_conn_id);
+            store.atomic_set_read_context(
+                plain_read_cut(server, op, cleanup_cutoff), origin_conn_id);
             return true;
         }
+        const uint64_t snapshot = server.atomic_snapshot();
 
         struct PreparedLocal {
             RecordedKey key;
@@ -858,11 +874,12 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
     }
     store.atomic_promote_key(op.hash, op.key(), floor, cleanup_cutoff);
     if (!store.atomic_has_record(op.hash, op.key())) return true;
-    const uint64_t snapshot = server.atomic_snapshot();
     if (!(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
-        store.atomic_set_read_context(snapshot, origin_conn_id);
+        store.atomic_set_read_context(
+            plain_read_cut(server, op, cleanup_cutoff), origin_conn_id);
         return true;
     }
+    const uint64_t snapshot = server.atomic_snapshot();
     const WorkError result = begin_plain_version(
         server, shard, op.key(), op.hash, snapshot, origin_conn_id);
     if (result == WorkError::None) return true;

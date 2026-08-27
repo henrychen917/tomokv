@@ -11,12 +11,17 @@
     // Epoch-MVCC is a shard-local pending-entry list so KvObj remains byte-identical. These
     // bindings are installed once at boot; the null tracker pointer below is the complete
     // disabled-feature tax on store accesses.
-    void bind_atomic_state(std::atomic<uint64_t>* commit_seq,
+    // FLUSH's logical clear is the store's only ticket draw. It goes through the server's
+    // reserve/publish bracket rather than touching commit_seq_ directly, so the visible read
+    // watermark can never be left behind a ticket this store already installed.
+    using AtomicTicketFn = uint64_t (*)(void*);
+    void bind_atomic_state(AtomicTicketFn ticket_fn, void* ticket_ctx,
                            std::atomic<uint64_t>* activity,
                            uint64_t* predecessor_reads, uint64_t* chain_max,
                            uint64_t* promotions, uint64_t* records_freed,
                            uint64_t* entries) {
-        atomic_commit_seq_ = commit_seq;
+        atomic_ticket_fn_ = ticket_fn;
+        atomic_ticket_ctx_ = ticket_ctx;
         atomic_activity_ = activity;
         atomic_predecessor_reads_ = predecessor_reads;
         atomic_chain_max_ = chain_max;
@@ -422,7 +427,7 @@
             return false;
         }
 
-        const uint64_t ticket = atomic_commit_seq_->fetch_add(1, std::memory_order_seq_cst) + 1;
+        const uint64_t ticket = atomic_ticket_fn_(atomic_ticket_ctx_);
         for (PreparedClear& item : prepared) {
             Slice key(item.key.data(), static_cast<uint32_t>(item.key.size()));
             void* opaque = item.entry;
@@ -1067,7 +1072,8 @@ private:
     std::vector<AtomicSeenKey> atomic_seen_keys_;
     uint64_t atomic_read_epoch_ = UINT64_MAX;
     uint64_t atomic_read_origin_conn_id_ = 0;
-    std::atomic<uint64_t>* atomic_commit_seq_ = nullptr;
+    AtomicTicketFn atomic_ticket_fn_ = nullptr;
+    void* atomic_ticket_ctx_ = nullptr;
     std::atomic<uint64_t>* atomic_activity_ = nullptr;
     uint64_t* atomic_predecessor_reads_ = nullptr;
     uint64_t* atomic_chain_max_ = nullptr;

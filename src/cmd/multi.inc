@@ -1349,8 +1349,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                 if (!state.aborted.load(std::memory_order_acquire) &&
                     state.final_reply == MultiFinalReply::Exec) {
                     assemble_ownerless_replies(state);
-                    const uint64_t ticket = server.atomic_commit();
-                    state.epoch.store(ticket, std::memory_order_release);
+                    const uint64_t ticket = server.atomic_commit_group(state.epoch);
                     if (aof_context)
                         (void)aof_commit_group(server.aof(), state.aof_group, ticket,
                                                *aof_context);

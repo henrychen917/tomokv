@@ -836,6 +836,16 @@ private:
         const bool auth_required = (security_flags & Server::kSecurityAuth) != 0;
         const bool acl_active = (security_flags & Server::kSecurityAcl) != 0;
         const bool notify_armed = notify_armed_;
+        // ONE epoch for the whole parse pass, not one per op. Monotonicity needs the stamps to be
+        // non-decreasing along the connection, not distinct: every op this pass parses may share
+        // the pass's cut, and the next pass's cut is >= this one because the sequence only moves
+        // forward. The freshness floor survives the fold -- the pass starts after the bytes it
+        // parses arrived, so no read is ever older than its own arrival, which is what keeps the
+        // disjoint-window case (a writer's reply fully precedes the reader's send) correct.
+        // With --atomic 0 the tracking word is never written by anyone, so this is one L1 hit on a
+        // shared-clean line, the sequence load never happens, and the per-op test is never taken.
+        const bool atomic_tracking = srv_->atomic_tracking_active();
+        const uint64_t pass_read_cut = atomic_tracking ? srv_->atomic_snapshot() : 0;
 
         for (;;) {
             if (c->scatter_barrier() || c->atomic_backpressure()) break;
@@ -1024,6 +1034,22 @@ subscriber_checks_done:
             // cross-shard atomic group was already in flight. Set the immutable bit before the
             // current group increments the count, so a group never treats itself as a predecessor.
             if (c->has_atomic_group_io()) op->mark_atomic_hazard();
+            // PIN THE READ CUT IN PROGRAM ORDER. Same-connection ops are prepared here, in the
+            // order the client sent them, so a cut taken no later than here is monotone along the
+            // connection for free -- which is exactly the property "a later reply may not be older
+            // than an earlier one" needs and that sampling at EXECUTION cannot give. Writes are
+            // excluded on purpose (see Op::read_cut_lo). Off, this is one predicted-not-taken
+            // test; on, it is one store into a line reset() already dirtied.
+            // Blocking commands are excluded as well, and not for cost: a parked one is
+            // re-prepared by blocking_resume_move() long after its arrival, so a cut pinned at
+            // first dispatch would make the resumed read answer from before the write that woke
+            // it. They need no cut anyway -- a blocking command is a whole-connection barrier
+            // (it waits to be ROB head and stops the parse pass), so nothing younger on this
+            // connection is even prepared until it has finished.
+            if (__builtin_expect(atomic_tracking, false) &&
+                !(spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite |
+                                 CmdFlags::Blocking)))
+                op->set_read_cut(pass_read_cut);
 
             if (spec->flags & CmdFlags::Blocking) {
                 // XREAD is registered as blocking so the ordinary GET/SET branch remains

@@ -152,7 +152,9 @@ public:
             shards_[i] = std::make_unique<Shard>();
             shards_[i]->init(this, static_cast<int32_t>(i), b0, b1, cfg.zc_min, cfg.type_limits,
                              cfg.stream_limits);
-            shards_[i]->bind_atomic_state(&commit_seq_, &atomic_activity_);
+            shards_[i]->bind_atomic_state(
+                [](void* ctx) { return static_cast<Server*>(ctx)->atomic_commit(); }, this,
+                &atomic_activity_);
         }
         router_.build_uniform(static_cast<int32_t>(cfg.shards));
 
@@ -651,10 +653,72 @@ public:
             }
         }
     }
-    uint64_t atomic_commit() {
+    // GROUP COMMIT IS TWO STEPS AND A READER MUST NEVER SEE THE FIRST WITHOUT THE SECOND.
+    // A cross-shard group installs its versions on every owner while the shared epoch word still
+    // reads zero (undecided ⇒ invisible), and only the last owner turns it into a ticket. That
+    // ticket used to be drawn straight out of commit_seq_, so between the draw and the
+    // `epoch.store(ticket)` two instructions later the sequence already named a commit whose
+    // records still answered "undecided". A reader whose cut landed in that hole saw the group
+    // for the fragments it read AFTER the store and missed it for the fragments it read BEFORE --
+    // one MGET, two generations. The hole is nanoseconds wide and a preemption between the two
+    // instructions makes it milliseconds wide; it produced exactly one torn MGET per ~1.1M
+    // pipelined batches on the session-monotonicity hammer.
+    //
+    // So the visible read watermark is no longer the drawn sequence. Committers bracket
+    // [draw, publish] in atomic_commit_inflight_, and whoever takes the count to zero republishes
+    // the drawn sequence it read BEFORE its own decrement into atomic_commit_safe_: at that
+    // instant every ticket at or below that value has already stored its epoch, because a
+    // committer that had not would still be holding the count up. Readers load one word exactly
+    // as before -- the cost is on the commit side, and it is two RMWs on a line commits already
+    // own.
+    uint64_t atomic_commit_reserve() {
+        atomic_commit_inflight_.fetch_add(1, std::memory_order_seq_cst);
         return commit_seq_.fetch_add(1, std::memory_order_seq_cst) + 1;
     }
-    uint64_t atomic_snapshot() const { return commit_seq_.load(std::memory_order_seq_cst); }
+    void atomic_commit_publish() {
+        // Loaded BEFORE the decrement on purpose: it is the value whose publication the count
+        // still proves. Reading it after would let a ticket drawn by a newcomer ride in.
+        const uint64_t drawn = commit_seq_.load(std::memory_order_seq_cst);
+        if (atomic_commit_inflight_.fetch_sub(1, std::memory_order_acq_rel) != 1) {
+            // Another committer is still between its draw and its store, so the watermark stays
+            // where it is and every reader's cut stays below that undecided ticket. Counting it is
+            // how the regression battery proves the guarded window actually opened.
+            atomic_commit_windows_.fetch_add(1, std::memory_order_relaxed);
+            return;
+        }
+        uint64_t safe = atomic_commit_safe_.load(std::memory_order_relaxed);
+        while (safe < drawn &&
+               !atomic_commit_safe_.compare_exchange_weak(
+                   safe, drawn, std::memory_order_release, std::memory_order_relaxed)) {}
+    }
+    // The whole two-step for a group whose epoch word is `epoch`. The stall between the two is a
+    // TEST HOOK (DEBUG ATOMIC-COMMIT-DELAY) that widens the closed window on demand; it is zero
+    // in production and the load is on an already-cold once-per-group path.
+    uint64_t atomic_commit_group(std::atomic<uint64_t>& epoch) {
+        const uint64_t ticket = atomic_commit_reserve();
+        const uint32_t stall = debug_atomic_commit_delay_.load(std::memory_order_relaxed);
+        if (__builtin_expect(stall != 0, false)) debug_stall_us(stall);
+        epoch.store(ticket, std::memory_order_release);
+        atomic_commit_publish();
+        return ticket;
+    }
+    // Same-owner tickets (a localfast plain version, FLUSH's logical clear) have no window: the
+    // shard that draws them installs their records before it yields, and no other task may touch
+    // that shard in between. They still travel through the bracket so the watermark can never
+    // regress behind them.
+    uint64_t atomic_commit() {
+        const uint64_t ticket = atomic_commit_reserve();
+        atomic_commit_publish();
+        return ticket;
+    }
+    uint64_t atomic_snapshot() const {
+        return atomic_commit_safe_.load(std::memory_order_seq_cst);
+    }
+    // The raw drawn sequence. NOT a read cut: it may already name a group whose epoch word still
+    // reads zero. Only the instrumentation compares the two.
+    uint64_t atomic_commit_drawn() const {
+        return commit_seq_.load(std::memory_order_seq_cst);
+    }
     void publish_atomic_read_floor(uint32_t thread, uint64_t floor) {
         atomic_read_floors_[thread].store(floor, std::memory_order_seq_cst);
     }
@@ -705,6 +769,48 @@ public:
     }
     void set_debug_atomic_direct_defer(uint32_t passes) {
         debug_atomic_direct_defer_.store(passes, std::memory_order_relaxed);
+    }
+    // TEST HOOK (DEBUG ATOMIC-COMMIT-DELAY). Microseconds a group commit is held between drawing
+    // its ticket and storing that ticket into the shared epoch word. Zero in production; read only
+    // by atomic_commit_group(), a once-per-group cold path. It turns the reserve/publish hole into
+    // a window wide enough for a reader to straddle, which is how the torn MGET is reproduced on
+    // demand instead of once per 1.1M batches.
+    void set_debug_atomic_commit_delay(uint32_t microseconds) {
+        debug_atomic_commit_delay_.store(microseconds, std::memory_order_relaxed);
+    }
+    uint32_t debug_atomic_commit_delay() const {
+        return debug_atomic_commit_delay_.load(std::memory_order_relaxed);
+    }
+    // TEST HOOK (DEBUG ATOMIC-READ-DELAY). Microseconds a plain read is held on its owner before
+    // it resolves, widening the gap between the IO-side dispatch of a pipelined read and its
+    // execution. That gap is the session-monotonicity window: foreign commits landing inside it
+    // used to make the earlier command answer with a newer world than the later one.
+    void set_debug_atomic_read_delay(uint32_t microseconds) {
+        debug_atomic_read_delay_.store(microseconds, std::memory_order_relaxed);
+    }
+    uint32_t debug_atomic_read_delay() const {
+        return debug_atomic_read_delay_.load(std::memory_order_relaxed);
+    }
+    // Counters that keep the regression battery from passing vacuously: they prove the guarded
+    // windows actually opened during the run rather than merely that nothing broke.
+    void note_atomic_commit_hold() {
+        atomic_commit_holds_.fetch_add(1, std::memory_order_relaxed);
+    }
+    uint64_t atomic_commit_holds() const {
+        return atomic_commit_holds_.load(std::memory_order_relaxed);
+    }
+    uint64_t atomic_commit_windows() const {
+        return atomic_commit_windows_.load(std::memory_order_relaxed);
+    }
+    void note_atomic_read_cut_held() {
+        atomic_read_cuts_held_.fetch_add(1, std::memory_order_relaxed);
+    }
+    uint64_t atomic_read_cuts_held() const {
+        return atomic_read_cuts_held_.load(std::memory_order_relaxed);
+    }
+    __attribute__((noinline, cold)) static void debug_stall_us(uint32_t microseconds) {
+        const uint64_t deadline = now_ns() + static_cast<uint64_t>(microseconds) * 1000ull;
+        while (now_ns() < deadline) __builtin_ia32_pause();
     }
     uint32_t atomic_credit_pool() const {
         return atomic_credit_pool_.load(std::memory_order_acquire);
@@ -1120,10 +1226,20 @@ private:
     std::atomic<uint64_t> climon_tracking_items_{0};
     std::atomic<uint64_t> climon_tracking_prefixes_{0};
     std::atomic<uint32_t> live_atomic_window_{256};
+    // The drawn sequence and the visible read watermark share a line on purpose: readers used to
+    // load commit_seq_ itself, so keeping the watermark beside it leaves reader traffic exactly
+    // where it was, and a committer touches all three in one go.
     std::atomic<uint64_t> commit_seq_{0};
+    std::atomic<uint64_t> atomic_commit_inflight_{0};
+    std::atomic<uint64_t> atomic_commit_safe_{0};
     std::atomic<bool> snapshot_atomic_barrier_{false};
     std::atomic<uint64_t> atomic_window_stalls_{0};
     std::atomic<uint32_t> debug_atomic_direct_defer_{0};
+    std::atomic<uint32_t> debug_atomic_commit_delay_{0};
+    std::atomic<uint32_t> debug_atomic_read_delay_{0};
+    std::atomic<uint64_t> atomic_commit_windows_{0};
+    std::atomic<uint64_t> atomic_commit_holds_{0};
+    std::atomic<uint64_t> atomic_read_cuts_held_{0};
     std::atomic<uint64_t> atomic_credit_generation_{2};
     std::atomic<uint32_t> atomic_credit_pool_{0};
     std::atomic<uint32_t> atomic_credit_debt_{0};

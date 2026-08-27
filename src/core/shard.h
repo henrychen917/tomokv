@@ -92,9 +92,9 @@ public:
                              uint32_t samples) {
         store_.configure_maxmemory(enabled, shard_limit, policy, samples);
     }
-    void bind_atomic_state(std::atomic<uint64_t>* commit_seq,
+    void bind_atomic_state(FlatStore::AtomicTicketFn ticket_fn, void* ticket_ctx,
                            std::atomic<uint64_t>* activity) {
-        store_.bind_atomic_state(commit_seq, activity,
+        store_.bind_atomic_state(ticket_fn, ticket_ctx, activity,
                                  &stats_.atomic_predecessor_reads,
                                  &stats_.atomic_chain_max,
                                  &stats_.atomic_promotions,

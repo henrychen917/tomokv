@@ -61,6 +61,7 @@ public:
         argc_ = 0;
         spec  = nullptr;
         shard = -1;
+        read_cut_lo = 0;
         route_flags_ = route_flags;
         reply.clear();
         direct = nullptr;
@@ -105,6 +106,22 @@ public:
     // ---- fields --------------------------------------------------------------------------------
     const CommandSpec* spec  = nullptr;
     int32_t            shard = -1;          // resolved by the router before publishing
+
+    // THE READ CUT, PINNED IN PROGRAM ORDER. A multi-key read pins its epoch on IO at prepare and
+    // resolves against it later; a plain read used to sample the sequence at EXECUTION and answer
+    // with the newest committed world. On one connection that inverts time: `GET a` posted just
+    // before `MGET a b` executes after the MGET's pin, so a foreign atomic commit landing in
+    // between made the EARLIER reply newer than the LATER one. IO therefore stamps every
+    // read-only op with the sequence as of its own prepare, which is the connection's program
+    // order, and the owner resolves against that instead of "now". Writes deliberately keep
+    // "newest": a write's read is the base of its own update and staleness there is a lost update.
+    //
+    // Only the low 32 bits are kept -- Op's 336-byte footprint has exactly this 4-byte hole and no
+    // more, and the owner widens the value against the live sequence. The reconstruction is exact
+    // while fewer than 2^31 commits separate dispatch from execution; the highest commit rate this
+    // engine has produced would need ~40 seconds of queueing to reach that, and the widening
+    // saturates to a stale-but-safe (older) cut rather than a newer one if it ever did.
+    uint32_t           read_cut_lo = 0;
     uint64_t           hash  = 0;           // computed once by IO, reused by the worker
 
     // Offset into the connection's read buffer where this op's arguments begin. Because the ROB
@@ -133,6 +150,22 @@ public:
     // CLIENT NO-TOUCH, captured from the connection flag byte by reset(). Read only by ExLoop,
     // and only when maxmemory is enabled.
     bool no_touch() const { return route_flags_ & kNoTouch; }
+    // Bit 5 is free in BOTH this word and Client::connection_flags_, whose byte reset() copies in
+    // wholesale, so an unstamped op always reads "no cut" and takes the newest world exactly as
+    // before.
+    void set_read_cut(uint64_t cut) {
+        read_cut_lo = static_cast<uint32_t>(cut);
+        route_flags_ |= kReadCut;
+    }
+    bool has_read_cut() const { return route_flags_ & kReadCut; }
+    // `now` must be a sequence value observed no earlier than the stamp, which every caller has
+    // because commit sequences only move forward and the stamp happened on this connection's IO
+    // thread before dispatch.
+    uint64_t read_cut(uint64_t now) const {
+        uint64_t cut = (now & ~uint64_t{0xFFFFFFFF}) | read_cut_lo;
+        if (cut > now) cut -= uint64_t{1} << 32;
+        return cut;
+    }
     uint8_t route_flags_ = 0;
 
     SmallBuf<kInlineReply> reply;           // worker writes RESP here (the spill/general sink)
@@ -260,6 +293,7 @@ private:
     static constexpr uint8_t kResp3 = 1u << 2;
     static constexpr uint8_t kReplySkip = 1u << 3;
     static constexpr uint8_t kNoTouch = 1u << 4;
+    static constexpr uint8_t kReadCut = 1u << 5;
     Slice    argv_inline_[kInlineArgv];
     Slice*   argv_heap_ = nullptr;
     uint32_t argv_cap_  = 0;
