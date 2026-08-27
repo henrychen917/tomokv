@@ -2,3 +2,6 @@ build/
 *.o
 compile_commands.json
 servertail-testdata/
+
+# compiled test/bench drivers (sources are tracked, binaries are not)
+tools/benchtxn
