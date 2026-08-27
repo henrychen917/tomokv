@@ -68,6 +68,11 @@ struct AtomicPendingState {
     AtomicEntry* tail = nullptr;
     AtomicEntry* conn_heads[64] = {};
     uint32_t live = 0;
+    // Deliberately adjacent to `live`. atomic_has_records() is the ONE branch on the plain
+    // GET/SET owner path that reads this struct at all, and it now tests both words; keeping
+    // them on one cache line means the reservation facility adds no second line touch there.
+    uint32_t script_intent_count = 0;
+    AtomicScriptIntent* script_intents = nullptr;
     AtomicEntry* free_entries[kPoolClasses] = {};
     FreeValue* free_values[kPoolClasses] = {};
     uint32_t cached_entries = 0;
@@ -75,8 +80,6 @@ struct AtomicPendingState {
     uint64_t cleanup_slow = 0;
     size_t cached_entry_bytes = 0;
     size_t cached_value_bytes = 0;
-    AtomicScriptIntent* script_intents = nullptr;
-    uint32_t script_intent_count = 0;
 };
 
 struct AtomicResolved {
