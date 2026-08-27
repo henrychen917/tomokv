@@ -379,7 +379,13 @@ lane did not touch Lua. Pre-existing, reported here rather than filtered away.
    certification, which is Stage 1.5 work and wants the contention bench first.
 3. **A15** — a group wholly on one side of the BGSAVE cut — remains the inherited open issue,
    explicitly not widened.
-4. **`script_cut_held_us_p99/max`** from the proposal's §6 counter list were not added; the cut-slot
+4. **A live reservation promotes every cross-shard group server-wide.**
+   `script_intents_active()` is a global flag, so while any activation holds intents, an MSET or
+   DEL on shards the script never named is still routed as an atomic group. Correct (it can only
+   add ordering, never remove it) and it is what makes the plain-MSET-vs-script arm of the battery
+   hold on an `--atomic 0` boot, but it is broader than it needs to be. Per-owner scoping is the
+   obvious narrowing and wants the interference cell before it is worth doing.
+5. **`script_cut_held_us_p99/max`** from the proposal's §6 counter list were not added; the cut-slot
    refusal counter and its directed test cover the starvation hazard those were for.
 
 ## 11. What was not done, and why
