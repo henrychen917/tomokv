@@ -221,6 +221,13 @@ public:
     };
     Sink sink() { return Sink(*this); }
 
+    // "Has a handler already written a reply?" BOTH regions have to be consulted. A short reply
+    // lands in the direct region and leaves `reply` empty, so `reply.empty()` alone reads as
+    // "nothing written yet" and a caller that then emits its own fallback error puts TWO replies
+    // on the wire, permanently shifting every later reply on that connection. XTRIM's option
+    // errors did exactly that on an unpipelined connection.
+    bool replied() const { return !reply.empty() || direct_len != 0; }
+
     bool has_scatter_state() const {
         return zc_ptr != nullptr && zc_shard == kScatterStateMarker;
     }

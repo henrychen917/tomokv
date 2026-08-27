@@ -1288,7 +1288,7 @@ template <bool kNotify>
 void cmd_xtrim(Shard& shard, Op& op) {
     TrimSpec trim; uint32_t pos = 2;
     if (!parse_trim_threshold(op, pos, trim) || pos != op.argc()) {
-        if (op.reply.empty()) reply_syntax(op.sink());
+        if (!op.replied()) reply_syntax(op.sink());
         return;
     }
     KvObj* object = shard.store_find<kNotify>(op.hash, op.key());

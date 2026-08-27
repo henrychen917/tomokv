@@ -226,7 +226,7 @@ bool blocking_validate(Op& op, BlockingState& state, uint32_t& first_key,
             if (tail != op.argc()) {
                 if (tail + 2 != op.argc() || !op.arg(tail).eq_icase("count") ||
                     !blocking_parse_positive_count(op, op.arg(tail + 1), state.count)) {
-                    if (op.reply.empty()) reply_syntax(op.sink());
+                    if (!op.replied()) reply_syntax(op.sink());
                     return false;
                 }
             }
@@ -260,7 +260,8 @@ bool blocking_validate(Op& op, BlockingState& state, uint32_t& first_key,
         case BlockingKind::Xreadgroup: {
             StreamXreadGroupArgs parsed;
             if (!stream_parse_xreadgroup(op, parsed) || !parsed.block || !parsed.new_entries) {
-                if (op.reply.empty()) reply_err(op.sink(), "ERR internal blocking routing error");
+                if (!op.replied())
+                    reply_err(op.sink(), "ERR internal blocking routing error");
                 return false;
             }
             first_key = parsed.key_arg;
