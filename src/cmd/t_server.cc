@@ -1540,6 +1540,7 @@ void cmd_info(Shard&, Op& op) {
                       "script_flush_generation:%llu\r\nscript_interpreter_builds:%llu\r\n"
                       "script_chunk_cache_hits:%llu\r\nscript_chunk_cache_misses:%llu\r\n"
                       "script_readonly_rejections:%llu\r\n"
+                      "script_effect_writes:%llu\r\nscript_failed_after_effects:%llu\r\n"
                       "function_generation:%llu\r\nfunction_calls:%llu\r\n"
                       "function_thread_rebuilds:%llu\r\nfunction_readonly_rejections:%llu\r\n"
                       "monitor_feed_lines:%llu\r\nclient_pause_holds:%llu\r\n"
@@ -1626,6 +1627,8 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(scripting.compile_hits),
                 static_cast<unsigned long long>(scripting.compile_misses),
                 static_cast<unsigned long long>(scripting.ro_rejections),
+                static_cast<unsigned long long>(scripting.effect_writes),
+                static_cast<unsigned long long>(scripting.failed_after_effects),
                 static_cast<unsigned long long>(functions.generation),
                 static_cast<unsigned long long>(functions.calls),
                 static_cast<unsigned long long>(functions.thread_rebuilds),

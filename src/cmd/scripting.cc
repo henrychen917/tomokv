@@ -28,8 +28,6 @@
 #include "../core/shard.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
-#include "../snapshot/format.h"
-#include "../store/kvobj.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
@@ -61,6 +59,13 @@ std::atomic<uint64_t> g_compile_hits{0};
 std::atomic<uint64_t> g_compile_misses{0};
 std::atomic<uint64_t> g_state_rebuilds{0};
 std::atomic<uint64_t> g_ro_rejections{0};
+// The two counters that make the no-undo contract testable rather than assumed. `g_effect_writes`
+// counts nested Write-flagged commands that answered without an error, i.e. keyspace effects a
+// script has already applied. `g_failed_after_effects` counts activations that then FAILED with at
+// least one such effect standing — precisely the interleave the deleted undo log used to reverse.
+// A regression that never advances the second counter has not exercised the fix at all.
+std::atomic<uint64_t> g_effect_writes{0};
+std::atomic<uint64_t> g_failed_after_effects{0};
 
 uint32_t rotl32(uint32_t value, uint32_t bits) {
     return (value << bits) | (value >> (32 - bits));
@@ -232,90 +237,31 @@ bool validate_source(Slice source, std::string& error) {
     return status == 0;
 }
 
-struct UndoEntry {
-    std::string key;
-    uint64_t hash = 0;
-    KvObj* original = nullptr;
-};
-
-class ScriptUndo {
-public:
-    ~ScriptUndo() {
-        for (UndoEntry& entry : entries_) if (entry.original) kvobj_free(entry.original);
-    }
-
-    bool capture(Shard& shard, const Op& op, uint32_t first, uint32_t count) {
-        try { entries_.reserve(count); }
-        catch (const std::bad_alloc&) { return false; }
-        for (uint32_t i = 0; i < count; i++) {
-            const Slice key = op.arg(first + i);
-            bool duplicate = false;
-            for (const UndoEntry& prior : entries_)
-                duplicate |= Slice(prior.key.data(), static_cast<uint32_t>(prior.key.size())) == key;
-            if (duplicate) continue;
-            UndoEntry entry;
-            try { entry.key.assign(key.p, key.n); }
-            catch (const std::bad_alloc&) { return false; }
-            entry.hash = FlatStore::hash_key(key);
-            KvObj* current = shard.store().find(entry.hash, key);
-            if (current && !clone_object(shard, *current, key, entry.original)) return false;
-            try { entries_.push_back(std::move(entry)); }
-            catch (const std::bad_alloc&) {
-                if (entry.original) kvobj_free(entry.original);
-                return false;
-            }
-        }
-        return true;
-    }
-
-    bool rollback(Shard& shard) {
-        for (UndoEntry& entry : entries_) {
-            const Slice key(entry.key.data(), static_cast<uint32_t>(entry.key.size()));
-            shard.store().erase(entry.hash, key);
-        }
-        for (UndoEntry& entry : entries_) {
-            if (!entry.original) continue;
-            if (shard.store().insert(entry.hash, entry.original) != FlatStore::InsertResult::Inserted)
-                return false;
-            shard.store().note_loaded_object(entry.hash, entry.original);
-            entry.original = nullptr;
-        }
-        return true;
-    }
-
-private:
-    static bool clone_object(Shard& shard, KvObj& object, Slice key, KvObj*& result) {
-        const Type type = static_cast<Type>(object.type);
-        const SnapshotTypeHooks& hooks = snapshot_type_hooks(type);
-        SnapshotSaveCursor cursor;
-        uint8_t encoding = 0;
-        if (!hooks.begin_save || !hooks.read_save || !hooks.load ||
-            hooks.begin_save(object, cursor, encoding) != SnapshotHookStatus::Ok ||
-            cursor.total > UINT32_MAX) return false;
-        std::vector<uint8_t> payload;
-        try { payload.resize(static_cast<size_t>(cursor.total)); }
-        catch (const std::bad_alloc&) { return false; }
-        while (cursor.offset < cursor.total) {
-            size_t written = 0;
-            if (hooks.read_save(cursor, payload.data() + cursor.offset,
-                                payload.size() - static_cast<size_t>(cursor.offset), written) !=
-                    SnapshotHookStatus::Ok || !written) return false;
-        }
-        const Slice bytes(reinterpret_cast<const char*>(payload.data()),
-                          static_cast<uint32_t>(payload.size()));
-        return hooks.load(key, encoding, object.expire_at_ms(), bytes,
-                          shard.type_limits(), result) == SnapshotHookStatus::Ok && result;
-    }
-
-    std::vector<UndoEntry> entries_;
-};
-
+// THERE IS NO UNDO LOG, IN EITHER ATOMIC MODE — AND THAT IS THE SEMANTICS, NOT A GAP.
+//
+// v1 kept a deep pre-image of every declared key while `--atomic 1` was on and restored it when the
+// activation failed (see NOTES-SCRIPTATOMIC.md). Redis has never undone a script's partial effects,
+// so an activation that wrote and then raised diverged from the oracle the moment atomics were
+// enabled, and the divergence was a LOST WRITE: the restore republished a superseded value over a
+// committed one, or erased the key outright when the script had just created it. It also could not
+// be made correct in place -- `capture()` read through FlatStore::find(), which resolves at the
+// current MVCC read cut, while `rollback()` wrote through the raw erase/insert pair, which does not.
+// A read-only activation reads at its pinned program-order cut, so the "original" it captured could
+// already be a superseded version — restoring it published a stale value over a newer committed one
+// and left any live pending record naming an object the restore had freed.
+//
+// A script is still externally indivisible: it is one task on one owner, and the single-owner law
+// keeps every other task out for its whole duration. Isolation never needed the undo log; only
+// failure-atomicity did, and Redis does not offer failure-atomicity.
 class ScriptEvictionGuard {
 public:
-    ScriptEvictionGuard(Shard& shard, bool active) : store_(active ? &shard.store() : nullptr) {
-        if (store_) previous_ = store_->script_suspend_eviction();
+    // Unconditional, so the two atomic modes cannot disagree about what a script observes. Redis
+    // does not evict inside an activation either: the OOM decision is taken once, when the script
+    // starts. Two plain stores on a cold path; the GET/SET path never reaches here.
+    explicit ScriptEvictionGuard(Shard& shard) : store_(&shard.store()) {
+        previous_ = store_->script_suspend_eviction();
     }
-    ~ScriptEvictionGuard() { if (store_) store_->script_restore_eviction(previous_); }
+    ~ScriptEvictionGuard() { store_->script_restore_eviction(previous_); }
     ScriptEvictionGuard(const ScriptEvictionGuard&) = delete;
     ScriptEvictionGuard& operator=(const ScriptEvictionGuard&) = delete;
 private:
@@ -339,6 +285,9 @@ struct ScriptContext {
     // EVAL_RO / EVALSHA_RO / FCALL_RO, and any function carrying the no-writes flag. Checked at
     // the redis.call dispatch site against the command row's Write bit.
     bool readonly = false;
+    // Nested Write-flagged commands that answered without an error: the keyspace effects this
+    // activation has already applied and which a failure must NOT reverse.
+    uint32_t effect_writes = 0;
     // Filled by the pcall message handler: the first Lua frame's line at the point of the error.
     // Redis reports it in the " ... on @user_script:<line>." tail.
     int error_line = 0;
@@ -670,6 +619,17 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                 }
                 if (context->notify)
                     notify_execute_source(*context->shard, *context->parent, 0);
+                // A Write row that answered without an error has already changed the keyspace.
+                // Nothing later in this activation may reverse it, so record it here: this is the
+                // quantity a regression asserts on, not "no exception was thrown".
+                if (spec->flags & CmdFlags::Write) {
+                    const bool errored = !nested.zc_ptr && nested.reply.size() &&
+                                         nested.reply.data()[0] == '-';
+                    if (!errored) {
+                        context->effect_writes++;
+                        g_effect_writes.fetch_add(1, std::memory_order_relaxed);
+                    }
+                }
                 if (nested.zc_ptr) {
                     try {
                         std::string borrowed(nested.zc_ptr, nested.zc_len);
@@ -1013,6 +973,10 @@ bool append_lua_result(lua_State* state, int index, SmallBuf<kInlineReply>& outp
     return true;
 }
 
+void script_note_failure(uint32_t effect_writes) {
+    if (effect_writes) g_failed_after_effects.fetch_add(1, std::memory_order_relaxed);
+}
+
 // Builds the wire error for a failed activation, matching Redis 7 byte for byte:
 //   <message> script: <tag>, on @<chunk>:<line>.
 // A raised table with an `err` field contributes its string unchanged (that is how redis.call and
@@ -1089,15 +1053,7 @@ void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
     context.readonly = call.readonly;
     engine.current = &context;
 
-    ScriptUndo undo;
-    const bool atomic = g_script_server && g_script_server->atomic_enabled();
-    if (atomic && !undo.capture(shard, op, call.key_first, call.key_count)) {
-        lua_settop(state, 0);
-        engine.current = nullptr;
-        reply_text_error(op, "ERR", "out of memory preparing atomic script");
-        return;
-    }
-    ScriptEvictionGuard eviction_guard(shard, atomic);
+    ScriptEvictionGuard eviction_guard(shard);
 
     // The message handler must sit BELOW the callable for lua_pcall; the callable arrived on top.
     lua_pushcfunction(state, script_error_handler);
@@ -1118,10 +1074,11 @@ void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
         const std::string error = script_runtime_error(state, context, call);
         lua_settop(state, 0);
         engine.current = nullptr;
-        const bool restored = !atomic || undo.rollback(shard);
-        if (call.notify && atomic && restored) notify_abort_op(op);
-        if (!restored) reply_text_error(op, "ERR", "atomic script rollback failed");
-        else if (context.timed_out) {
+        // Effects already applied STAND, and the notifications they fired stand with them. Both
+        // atomic modes take this same arm, which is what makes the two modes byte-identical to the
+        // oracle for a failing activation.
+        script_note_failure(context.effect_writes);
+        if (context.timed_out) {
             char busy[96];
             std::snprintf(busy, sizeof(busy), "script exceeded the %llu instruction limit",
                           static_cast<unsigned long long>(g_instruction_limit));
@@ -1138,11 +1095,8 @@ void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
     lua_settop(state, 0);
     engine.current = nullptr;
     if (!converted) {
-        const bool restored = !atomic || undo.rollback(shard);
-        if (call.notify && atomic && restored) notify_abort_op(op);
-        reply_text_error(op, "ERR", restored
-            ? std::string("Error running script: ") + conversion_error
-            : "atomic script rollback failed");
+        script_note_failure(context.effect_writes);
+        reply_text_error(op, "ERR", std::string("Error running script: ") + conversion_error);
         return;
     }
     op.sink().append(result.data(), result.size());
@@ -1368,6 +1322,8 @@ ScriptStats script_stats() {
     stats.flush_generation = g_script_flushes.load(std::memory_order_relaxed);
     stats.state_rebuilds = g_state_rebuilds.load(std::memory_order_relaxed);
     stats.ro_rejections = g_ro_rejections.load(std::memory_order_relaxed);
+    stats.effect_writes = g_effect_writes.load(std::memory_order_relaxed);
+    stats.failed_after_effects = g_failed_after_effects.load(std::memory_order_relaxed);
     return stats;
 }
 

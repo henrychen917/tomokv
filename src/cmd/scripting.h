@@ -66,6 +66,12 @@ struct ScriptStats {
     uint64_t flush_generation  = 0;   // SCRIPT FLUSH count; per-thread states rebuild on change
     uint64_t state_rebuilds    = 0;   // interpreter states constructed (boot + post-FLUSH)
     uint64_t ro_rejections     = 0;   // write commands refused inside a read-only activation
+    // Keyspace effects applied from inside activations (nested Write rows that answered without an
+    // error), and activations that FAILED with at least one such effect standing. The second is the
+    // interleave the removed atomic undo log used to reverse; a test that leaves it at zero has not
+    // touched the guarded path.
+    uint64_t effect_writes        = 0;
+    uint64_t failed_after_effects = 0;
 };
 ScriptStats script_stats();
 

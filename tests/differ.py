@@ -1515,6 +1515,42 @@ def gen_script(rng):
             key = K()
             ops.append(rng.choice([["GET", key], ["SET", key, rng.choice(values)],
                                    ["DEL", key], ["TYPE", key], ["STRLEN", key]]))
+    # PHASE 2 -- SCRIPTS AGAINST A LIVE CROSS-SHARD ENGINE.
+    #
+    # Phase 1 above is entirely single-key, so on TomoKV it ran with `atomic_groups:0`: the epoch
+    # MVCC engine never engaged and the leg proved nothing about scripts meeting it. The multi-key
+    # commands below DO form real cross-shard groups over the very keys the scripts declare, and
+    # they sit next to those scripts in the same pipeline chunk, so an activation's effects have to
+    # survive alongside an in-flight group and be visible to the multi-key read that follows.
+    # Appended rather than woven into the loop above on purpose: the phase-1 stream (and therefore
+    # every recorded per-seed diff count) stays exactly what it was.
+    #
+    # Every command here is ordinary Redis, byte-comparable against the oracle; the sharding is the
+    # target's private business.
+    write_fail = ["redis.call('INCR', KEYS[1]) error('boom')",
+                  "redis.call('SET', KEYS[1], 'made') error('boom')",
+                  "redis.call('APPEND', KEYS[1], 'XY') return nosuchglobal",
+                  "redis.call('DEL', KEYS[1]) error('boom')",
+                  "redis.call('INCR', KEYS[1]) return redis.call('LPUSH', KEYS[1], 'x')",
+                  "redis.call('SET', KEYS[1], ARGV[1]) return redis.call('GET', KEYS[1])"]
+    for _ in range(700):
+        a, b, c = K(), K(), K()
+        pick = rng.randrange(6)
+        if pick == 0:
+            ops.append(["MSET", a, rng.choice(values), b, rng.choice(values)])
+        elif pick == 1:
+            ops.append(["EVAL", rng.choice(write_fail), "1", a, rng.choice(values)])
+        elif pick == 2:
+            ops.append(["MGET", a, b, c])
+        elif pick == 3:
+            ops.append(rng.choice([["DEL", a, b], ["UNLINK", a, c],
+                                   ["EXISTS", a, b, c], ["TOUCH", a, b]]))
+        elif pick == 4:
+            ops.append(["FCALL", rng.choice(["dset", "dget"]), "1", a, rng.choice(values)])
+        else:
+            ops.append(rng.choice([["GET", a], ["STRLEN", a], ["TYPE", a],
+                                   ["SET", a, rng.choice(values)]]))
+
     ops.append(["FUNCTION", "DELETE", "difflib2"])
     ops.append(["FUNCTION", "LIST"])
     ops.append(["FUNCTION", "FLUSH"])

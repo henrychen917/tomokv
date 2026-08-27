@@ -124,26 +124,29 @@ try:
     note("redis.call errors propagate", "WRONGTYPE" in propagated, propagated)
     note("redis.call rejects undeclared keys", "undeclared key" in undeclared, undeclared)
 
-    c.cmd("CONFIG", "SET", "atomic", "0")
-    c.cmd("SET", keys[4], "before")
-    partial = error_of(c, "EVAL",
-                       "redis.call('SET',KEYS[1],'partial'); error('boom')", 1, keys[4])
-    partial_value = c.cmd("GET", keys[4])
-    note("atomic OFF retains pre-7 partial effects",
-         "boom" in partial and partial_value == b"partial", "%r %r" % (partial, partial_value))
+    # A FAILED ACTIVATION KEEPS ITS EFFECTS, IN BOTH ATOMIC MODES.
+    #
+    # This used to assert the opposite for `atomic 1`: an undo log restored the declared keys, and
+    # that restore was the lost-write P0 (it republished a superseded value, or erased a key the
+    # script had just created). Redis has never undone partial script effects, so the atomic mode
+    # may not change what a failed activation leaves behind. tests/scriptatomic.py owns the full
+    # arm set and the counter proof; these two lines keep the claim in the lane's own battery.
+    for mode in ("0", "1"):
+        c.cmd("CONFIG", "SET", "atomic", mode)
+        c.cmd("SET", keys[4], "before")
+        partial = error_of(c, "EVAL",
+                           "redis.call('SET',KEYS[1],'partial'); error('boom')", 1, keys[4])
+        partial_value = c.cmd("GET", keys[4])
+        note("atomic %s retains partial effects (redis semantics)" % mode,
+             "boom" in partial and partial_value == b"partial", "%r %r" % (partial, partial_value))
 
-    c.cmd("SET", keys[4], "before")
-    c.cmd("CONFIG", "SET", "atomic", "1")
-    rolled = error_of(c, "EVAL",
-                      "redis.call('SET',KEYS[1],'after'); error('boom')", 1, keys[4])
-    rolled_value = c.cmd("GET", keys[4])
-    killed = error_of(c, "EVAL",
-                      "redis.call('SET',KEYS[1],'after'); while true do end", 1, keys[4])
-    killed_value = c.cmd("GET", keys[4])
-    note("atomic ON rolls back redis.call error arm",
-         "boom" in rolled and rolled_value == b"before", "%r %r" % (rolled, rolled_value))
-    note("atomic ON rolls back killed script arm",
-         killed.startswith("BUSY ") and killed_value == b"before", "%r %r" % (killed, killed_value))
+        c.cmd("SET", keys[4], "before")
+        killed = error_of(c, "EVAL",
+                          "redis.call('SET',KEYS[1],'after'); while true do end", 1, keys[4])
+        killed_value = c.cmd("GET", keys[4])
+        note("atomic %s retains effects of a killed script" % mode,
+             killed.startswith("BUSY ") and killed_value == b"after",
+             "%r %r" % (killed, killed_value))
 
     c.cmd("SCRIPT", "FLUSH")
     flushed = c.cmd("SCRIPT", "EXISTS", sha, loaded_sha)

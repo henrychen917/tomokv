@@ -66,19 +66,26 @@ against `sha1sum`; no `std::hash` or placement hash is reused.
 
 ## Error and atomic behavior
 
-With atomics off, a runtime error or instruction-limit abort preserves effects already performed by
-earlier `redis.call`s. This matches Redis pre-7 scripting behavior and is intentionally documented
-as partial-effect semantics.
+A runtime error, a result-conversion error and an instruction-limit abort all preserve the effects
+already performed by earlier `redis.call`s, **in both atomic modes**. This is Redis scripting
+semantics: an activation that writes and then raises keeps what it wrote.
 
-With `--atomic 1`, the owner captures deep rollback images for the unique declared keys before Lua
-runs. No other task can enter that owner while the script is executing. On a runtime error, result
-conversion error, or instruction-limit abort, the owner removes the script versions and restores
-the captured objects before publishing the error reply. A successful script drops the images.
-Thus the whole single-owner task is all-or-nothing and externally indivisible. All nested effects
-still go through their ordinary command handlers; the images are only the failure undo arm.
-While the undo arm is live, maxmemory admission remains enabled but its eviction policy is
-temporarily treated as `noeviction` on that owner. This prevents a failed script from evicting an
-undeclared bystander that the declared-key undo log could not restore.
+Isolation is separate from that and is unconditional: a script is one task on one owner, and the
+single-owner law keeps every other task out for its whole duration, so no connection can observe a
+half-finished activation.
+
+**Superseded design (removed — see NOTES-SCRIPTATOMIC.md).** V1 armed a deep undo log over the
+declared keys whenever `--atomic 1` was set and restored it on failure. That was a divergence from
+the oracle in itself, and the restore was a lost write: `capture()` read through `FlatStore::find()`
+(which resolves at the owner's MVCC read cut) while `rollback()` wrote through the raw erase/insert
+pair (which does not), so a read-only activation could republish a superseded version over a
+committed one, and a script that had just created a key had that key erased. The undo log is gone;
+`script_effect_writes` / `script_failed_after_effects` in `INFO STATS` count the effects that now
+stand, and `tests/scriptatomic.py` is the regression.
+
+Eviction stays suspended for the duration of an activation, now unconditionally rather than only
+under `--atomic 1`, so the two modes cannot disagree about what a script observes. Redis takes its
+OOM decision once at script start too.
 
 V1 intentionally does not offer cross-owner scripts, external `SCRIPT KILL`, replication/AOF
 effects, Lua debugger/package facilities, or Redis Functions.
@@ -93,4 +100,6 @@ taskset -c 240-247 python3 tests/lua_scripting.py 127.0.0.1 7954
 
 The battery covers status/integer/bulk/array/nil conversion, both cache-arm paths, flush/exists,
 cross-owner rejection, instruction abort and liveness, nested error propagation, undeclared-key
-rejection, atomics-off partial effects, and atomics-on rollback for both errors and killed scripts.
+rejection, and partial-effect retention in BOTH atomic modes for the error and killed-script arms.
+`tests/scriptatomic.py` carries the full effect-durability arm set, the counter proof and the
+cross-shard section.
