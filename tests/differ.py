@@ -1751,6 +1751,38 @@ for i in range(0, len(ops), BATCH):
                 shown_b = b if o[0].upper() == "KEYS" else b[:256]
                 print("  DIFF op %d %r\n    target: %r\n    oracle: %r" %
                       (i + j, o[:4], shown_a, shown_b))
+                # Scan-vs-point discriminator: when a KEYS listing disagrees, immediately probe
+                # every disputed key with EXISTS and re-run KEYS on the target. A key that EXISTS
+                # but was absent from the listing is a scan-visibility race; EXISTS==0 is loss;
+                # a clean second KEYS marks the divergence transient.
+                if o[0].upper() == "KEYS" and b":" in a and b":" in b:
+                    seta = set(a.split(b"SORTED:")[-1].split(b","))
+                    setb = set(b.split(b"SORTED:")[-1].split(b","))
+                    # FRESH-connection probes only: probing on the differ's own pipelined
+                    # connection desynchronizes the reply stream and self-inflicts a cascade
+                    # (learned the hard way). A fresh conn also discriminates the mechanism:
+                    # same-client RYOW-gate miss vs global publish-ordering gap.
+                    try:
+                        ps, pf = conn(TH, TP)
+                        for miss in sorted((seta ^ setb))[:4]:
+                            side = "target-missing" if miss in setb else "oracle-missing"
+                            ps.sendall(enc(["EXISTS", miss.decode()]))
+                            print("    PROBE(freshconn) %s %s EXISTS=%r" %
+                                  (side, miss.decode()[:24], read_reply(pf)), flush=True)
+                        ps.sendall(enc(["KEYS", "xs:*"]))
+                        rekeys = normalize("KEYS", read_reply(pf))
+                        print("    PROBE(freshconn) re-KEYS match-oracle=%r" % (rekeys == b),
+                              flush=True)
+                        ps.sendall(enc(["INFO", "STATS"]))
+                        stats = read_reply(pf)
+                        for want in (b"atomic_entries", b"atomic_pending_entries",
+                                     b"atomic_promotions"):
+                            row = [l for l in stats.split(b"\r\n") if l.startswith(want)]
+                            if row:
+                                print("    PROBE stat %s" % row[0].decode(), flush=True)
+                        ps.close()
+                    except Exception as probe_err:
+                        print("    PROBE error: %r" % (probe_err,), flush=True)
 
 if SUITE == "stream":
     # Auto IDs are clock-derived, and TomoKV intentionally refreshes its owner clock more
