@@ -60,7 +60,7 @@ for atomic in 0 1; do
   python3 tests/aof_rewrite_triggers.py 127.0.0.1 "$PORT" verify \
     "$state" "$directory" "$atomic" >>"$directory/trigger.log" 2>&1
   stop_server
-  if rg -q "AOF rewrite error" "$directory/server-2.log"; then exit 1; fi
+  if grep -q "AOF rewrite error" "$directory/server-2.log"; then exit 1; fi
 done
 
 echo "AOF REWRITE TRIGGER MATRIX PASS: atomic=0/1 live-config info auto backoff restart"
