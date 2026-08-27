@@ -28,8 +28,11 @@ SRV=0; SRVLOG=/dev/null
 # 152 -> 172: the s6 oracle battery, concur, execiso and xacct, each under both atomic modes.
 # 172 -> 178: snapcut added two cross-shard snapshot-cut rows per persist-io engine, and execfix
 # added its battery under both atomic modes.
-EXPECT_QUICK=178
-EXPECT_FULL=187                 # full without the optional NIC row; = quick + 9, unconfirmed
+# 178 -> 184: edgeproto, edgeenc and edgetime batteries joined the feature loop (both modes each).
+# Still NOT wired, deliberately: tests/expireindex.py, tests/borrow_registry.py and
+# tests/xshard_dispatch_scale.sh each need their own boot geometry.
+EXPECT_QUICK=184
+EXPECT_FULL=193                 # full without the optional NIC row; = quick + 9, unconfirmed
                                 # until the next full-tier run on the rig
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ok(){ say "$1" "ok"; PASS=$((PASS+1)); }
@@ -138,7 +141,7 @@ grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG
 for AT in 0 1; do
   boot ./build/tomokv --atomic $AT --enable-debug-command yes \
       || bad "feature battery boot (atomic $AT)"
-  for t in s6 multi_exec blocking stream streamgroups pubsub lua_scripting scriptsurf limits resp3 bitfield dumprestore zsetops geo climon climon2 tracking hexpire servertail lcs concur; do
+  for t in s6 multi_exec blocking stream streamgroups pubsub lua_scripting scriptsurf limits resp3 bitfield dumprestore zsetops geo climon climon2 tracking hexpire servertail lcs concur edgeproto edgeenc edgetime; do
     python3 tests/$t.py 127.0.0.1 $PORT >/tmp/gate-$t-$AT.txt 2>&1 \
         && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see /tmp/gate-$t-$AT.txt"
   done
