@@ -1735,6 +1735,256 @@ def gen_script(rng):
     ops.append(["SCRIPT", "FLUSH"])
     return ops
 
+def gen_edgeproto(rng):
+    """Protocol / argument-surface campaign: error TEXT, arity, option grammar, null shapes.
+
+    Everything here answers DETERMINISTICALLY on both servers, which is what makes byte-comparing
+    an error stream meaningful. That rules three families out on purpose:
+      * random-member replies (SPOP/SRANDMEMBER/ZRANDMEMBER/HRANDFIELD with a count, SCAN listing
+        order, RANDOMKEY) -- unordered by contract;
+      * wall-clock replies (auto stream IDs, TTL seconds, TIME, OBJECT IDLETIME);
+      * the divergences NOTES-EDGEPROTO.md records as deliberate or shelved (SCAN's lax cursor,
+        COPY DB on a one-database server, redis's bare-strtod score ranges, SORT BY/GET, the
+        grisu2-vs-shortest last digit). A suite that carried those could never reach zero.
+    The tail is a random resample of the ERROR-only cases, which are idempotent, so a longer run
+    is a longer run and not a different test.
+    """
+    setup = [
+        ["SET", "ep:s", "hello world"], ["SET", "ep:s2", "hello there"], ["SET", "ep:n", "12345"],
+        ["HSET", "ep:h", "f", "1", "g", "2"],
+        ["RPUSH", "ep:l", "a", "b", "c", "a"],
+        ["SADD", "ep:set", "a", "b", "c"], ["SADD", "ep:set2", "b", "c", "d"],
+        ["ZADD", "ep:z", "1", "a", "2", "b", "3", "c"],
+        ["XADD", "ep:x", "1-1", "f", "v"], ["XADD", "ep:x", "2-1", "f", "v"],
+        ["GEOADD", "ep:g", "13.361389", "38.115556", "P"],
+        ["GEOADD", "ep:g", "15.087269", "37.502669", "C"],
+        ["PFADD", "ep:hll", "a", "b", "c"],
+    ]
+    errors = []
+
+    # 1. Canonical decimal. Redis's string2ll takes ONE spelling of a number; every other one is
+    #    an integer error, and which error depends on the argument's name.
+    for bad in ("05", "+5", " 5", "5 ", "-0", "\t5", "1e3", "0x10", "3.", "+0", "", "abc",
+                "9223372036854775808", "-9223372036854775809", "--1", ".5", "5\n"):
+        errors += [
+            ["LPOP", "ep:l", bad], ["RPOP", "ep:l", bad], ["LINDEX", "ep:l", bad],
+            ["LRANGE", "ep:l", bad, "-1"], ["LRANGE", "ep:l", "0", bad],
+            ["LSET", "ep:l", bad, "z"], ["LREM", "ep:l", bad, "a"],
+            ["LTRIM", "ep:l", bad, "-1"], ["LINSERT", "ep:l", "BEFORE", "a", bad],
+            ["LPOS", "ep:l", "a", "RANK", bad], ["LPOS", "ep:l", "a", "COUNT", bad],
+            ["LPOS", "ep:l", "a", "MAXLEN", bad],
+            ["SINTERCARD", bad, "ep:set"], ["SINTERCARD", "1", "ep:set", "LIMIT", bad],
+            ["ZINTERCARD", "1", "ep:z", "LIMIT", bad], ["ZUNIONSTORE", "ep:d", bad, "ep:z"],
+            ["ZREMRANGEBYRANK", "ep:z", bad, "-1"], ["ZRANGE", "ep:z", bad, "-1"],
+            ["ZRANGESTORE", "ep:d", "ep:z", "(1", "+inf", "BYSCORE", "LIMIT", "0", bad],
+            ["XRANGE", "ep:x", "-", "+", "COUNT", bad],
+            ["XREVRANGE", "ep:x", "+", "-", "COUNT", bad],
+            ["XTRIM", "ep:x", "MAXLEN", bad], ["XAUTOCLAIM", "ep:x", "g", "c", bad, "0"],
+            ["SETRANGE", "ep:s", bad, "x"], ["GETRANGE", "ep:s", bad, "-1"],
+            ["SETBIT", "ep:bit", bad, "1"], ["GETBIT", "ep:s", bad],
+            ["BITCOUNT", "ep:s", bad, "-1"], ["BITPOS", "ep:s", bad],
+            ["INCRBY", "ep:n", bad], ["DECRBY", "ep:n", bad], ["HINCRBY", "ep:h", "f", bad],
+            ["SETEX", "ep:e", bad, "v"], ["PSETEX", "ep:e", bad, "v"],
+            ["SET", "ep:e", "v", "EX", bad], ["SET", "ep:e", "v", "PX", bad],
+            ["SET", "ep:e", "v", "EXAT", bad], ["GETEX", "ep:s", "EX", bad],
+            ["EXPIRE", "ep:s", bad], ["PEXPIRE", "ep:s", bad],
+            ["EXPIREAT", "ep:s", bad], ["PEXPIREAT", "ep:s", bad],
+            ["WAIT", bad, "1"], ["WAIT", "0", bad], ["SLOWLOG", "GET", bad],
+            ["LCS", "ep:s", "ep:s2", "MINMATCHLEN", bad],
+            ["HRANDFIELD", "ep:h", bad], ["SRANDMEMBER", "ep:set", bad],
+            ["ZRANDMEMBER", "ep:z", bad], ["SPOP", "ep:set", bad],
+            ["ZPOPMIN", "ep:z", bad], ["ZPOPMAX", "ep:z", bad],
+            ["RESTORE", "ep:r", bad, "payload"], ["COPY", "ep:s", "ep:cp", "DB", bad],
+            ["SCAN", "0", "COUNT", bad], ["HSCAN", "ep:h", "0", "COUNT", bad],
+            ["SSCAN", "ep:set", "0", "COUNT", bad], ["ZSCAN", "ep:z", "0", "COUNT", bad],
+            ["BITFIELD", "ep:bf", "GET", "u8", bad], ["BITFIELD", "ep:bf", "SET", "u8", "0", bad],
+        ]
+    # The out-of-range ends of the same arguments, where redis names the bounds it enforces.
+    errors += [
+        ["SRANDMEMBER", "ep:set", "-9223372036854775808"],
+        ["ZRANDMEMBER", "ep:z", "-9223372036854775808"],
+        ["HRANDFIELD", "ep:h", "-9223372036854775808"],
+        ["LPOS", "ep:l", "a", "RANK", "-9223372036854775808"],
+        ["LPOP", "ep:l", "-1"], ["SPOP", "ep:set", "-1"], ["ZPOPMIN", "ep:z", "-1"],
+        ["SINTERCARD", "0", "ep:set"], ["SINTERCARD", "-1", "ep:set"],
+        ["SINTERCARD", "9", "ep:set"], ["SINTERCARD", "1", "ep:set", "LIMIT", "-1"],
+        ["ZINTERCARD", "1", "ep:z", "LIMIT", "-1"],
+        ["XTRIM", "ep:x", "MAXLEN", "-1"], ["XTRIM", "ep:x", "MAXLEN", "~", "1", "LIMIT", "-1"],
+        ["XSETID", "ep:x", "5-1", "ENTRIESADDED", "-1"],
+        ["SETEX", "ep:e", "0", "v"], ["SETEX", "ep:e", "-1", "v"], ["PSETEX", "ep:e", "0", "v"],
+        ["SET", "ep:e", "v", "EX", "0"], ["GETEX", "ep:s", "EX", "0"],
+        ["WAIT", "0", "9223372036854775807"],
+        ["LCS", "ep:s", "ep:s2", "MINMATCHLEN", "9223372036854775808"],
+        ["COPY", "ep:s", "ep:cp", "DB", "2147483648"],
+    ]
+
+    # 2. Arity, at the container and at the subcommand.
+    errors += [
+        ["GET"], ["GET", "a", "b"], ["SET", "k"], ["HSET", "ep:h", "f", "1", "g"],
+        ["HMSET", "ep:h", "f", "1", "g"], ["HSETNX", "ep:h", "f", "1", "2"],
+        ["MSET", "a", "1", "b"], ["MSETNX", "a", "1", "b"], ["ZADD", "ep:z", "1", "a", "2"],
+        ["PFADD"], ["GEOPOS"], ["GEOHASH"], ["EXISTS"], ["DEL"], ["MGET"],
+        ["XGROUP", "CREATE", "ep:x", "g"], ["XGROUP", "DESTROY", "ep:x", "g", "extra"],
+        ["XGROUP", "CREATECONSUMER", "ep:x", "g"],
+        ["XGROUP", "CREATECONSUMER", "ep:x", "g", "c", "extra"],
+        ["XGROUP", "DELCONSUMER", "ep:x", "g"], ["XGROUP", "SETID", "ep:x", "g"],
+        ["XINFO", "CONSUMERS", "ep:x"], ["XINFO", "CONSUMERS", "ep:x", "g", "extra"],
+        ["XINFO", "GROUPS", "ep:x", "extra"], ["OBJECT", "ENCODING"],
+        ["BITCOUNT", "ep:s", "0"], ["BITCOUNT", "ep:s", "0", "1", "BYTE", "extra"],
+        ["SETRANGE", "ep:s", "0", "x", "extra"], ["TYPE", "ep:s", "extra"],
+        ["NOSUCHCOMMAND"], ["NOSUCHCOMMAND", "a", "b"], ["nosuchcommand", "x"],
+        ["", "a"],
+    ]
+
+    # 3. Option grammar: unknown words, repeats, exclusions, case, missing operands.
+    errors += [
+        ["SET", "ep:o", "v", "NX", "XX"], ["SET", "ep:o", "v", "EX", "1", "PX", "1"],
+        ["SET", "ep:o", "v", "UNKNOWN"], ["SET", "ep:o", "v", "EX"],
+        ["GETEX", "ep:s", "EX"], ["GETEX", "ep:s", "NOPE"],
+        ["EXPIRE", "ep:s", "100", "NX", "XX"], ["EXPIRE", "ep:s", "100", "GT", "LT"],
+        ["EXPIRE", "ep:s", "100", "NX", "GT"], ["EXPIRE", "ep:s", "100", "NOPE"],
+        ["EXPIRE", "ep:s", "100", "XX", "GT"], ["EXPIREAT", "ep:s", "1", "XX", "LT"],
+        ["BITCOUNT", "ep:s", "0", "1", "wat"], ["BITPOS", "ep:s", "2"],
+        ["BITFIELD", "ep:bf", "OVERFLOW"], ["BITFIELD", "ep:bf", "GET", "i0", "0"],
+        ["BITFIELD", "ep:bf", "GET", "i65", "0"], ["BITFIELD_RO", "ep:bf", "SET", "u8", "0", "1"],
+        ["BITOP", "NOPE", "ep:d", "ep:s"], ["BITOP", "NOT", "ep:d", "ep:s", "ep:s2"],
+        ["LPOS", "ep:l", "a", "RANK", "0"], ["LPOS", "ep:l", "a", "NOPE", "1"],
+        ["LINSERT", "ep:l", "MIDDLE", "a", "b"], ["LMPOP", "1", "ep:l", "MIDDLE"],
+        ["LMPOP", "2", "ep:l", "LEFT"], ["LMOVE", "ep:l", "ep:l2", "LEFT", "MIDDLE"],
+        ["ZADD", "ep:z", "NX", "XX", "1", "m"], ["ZADD", "ep:z", "GT", "NX", "1", "m"],
+        ["ZADD", "ep:z", "INCR", "1", "a", "2", "b"], ["ZADD", "ep:z", "NOPE", "1", "a"],
+        ["ZRANGE", "ep:z", "0", "-1", "LIMIT", "1", "2"],
+        ["ZRANGE", "ep:z", "0", "-1", "LIMIT", "0", "-1"],
+        ["ZRANGE", "ep:z", "0", "-1", "LIMIT", "5", "-1"],
+        ["ZRANGESTORE", "ep:zd", "ep:z", "0", "-1", "LIMIT", "0", "-1"],
+        ["ZRANGESTORE", "ep:zd", "ep:z", "0", "-1", "LIMIT", "1", "2"],
+        ["ZRANGE", "ep:z", "-", "+", "BYLEX", "WITHSCORES"],
+        ["ZRANGE", "ep:z", "-inf", "+inf", "BYSCORE", "LIMIT", "0"],
+        ["ZRANGE", "ep:z", "0", "-1", "NOPE"], ["ZRANGEBYLEX", "ep:z", "a", "+"],
+        ["ZUNIONSTORE", "ep:zd", "1", "ep:z", "AGGREGATE", "BOGUS"],
+        ["ZUNIONSTORE", "ep:zd", "1", "ep:z", "WEIGHTS"],
+        ["ZDIFF", "2", "ep:z", "ep:z", "WEIGHTS", "1", "1"],
+        ["ZMPOP", "1", "ep:z", "MIN", "MAX"], ["ZADD", "ep:z", "INCR", "nan", "a"],
+        ["ZINCRBY", "ep:z", "nan", "a"], ["ZADD", "ep:z", "notanumber", "m"],
+        ["HRANDFIELD", "ep:h", "1", "WITHVALUES", "extra"], ["HSCAN", "ep:h", "0", "MATCH"],
+        ["HSCAN", "ep:h", "0", "NOPE", "x"], ["SSCAN", "ep:set", "0", "NOVALUES"],
+        ["SCAN", "0", "TYPE"], ["SCAN", "0", "NOPE", "x"], ["ZSCAN", "ep:z", "0", "MATCH"],
+        ["GEOADD", "ep:g", "NX", "XX", "0", "0", "m"], ["GEOADD", "ep:g", "NOPE", "0", "0", "m"],
+        ["GEODIST", "ep:g", "P", "C", "furlong"],
+        ["GEOSEARCH", "ep:g", "FROMMEMBER", "P", "FROMLONLAT", "0", "0", "BYRADIUS", "1", "m"],
+        ["GEOSEARCH", "ep:g", "FROMLONLAT", "0", "0", "BYRADIUS", "abc", "m"],
+        ["GEOSEARCH", "ep:g", "FROMLONLAT", "0", "0", "BYBOX", "abc", "1", "m"],
+        ["GEOSEARCH", "ep:g", "FROMLONLAT", "0", "0", "BYBOX", "1", "abc", "m"],
+        ["GEOSEARCH", "ep:g", "FROMLONLAT", "0", "0", "BYRADIUS", "-1", "m"],
+        ["GEOADD", "ep:ga", "1e100", "0", "m"], ["GEOADD", "ep:ga", "0", "1e100", "m"],
+        ["GEOADD", "ep:ga", "181", "0", "m"], ["GEOADD", "ep:ga", "0", "86", "m"],
+        ["GEORADIUS", "ep:g", "0", "0", "abc", "m"],
+        ["GEORADIUSBYMEMBER", "ep:g", "P", "abc", "m"],
+        ["XADD", "ep:x", "1-1", "f"], ["XADD", "ep:x", "NOPE", "3-1", "f", "v"],
+        ["XTRIM", "ep:x", "NOPE", "1"], ["XTRIM", "ep:x", "MINID", "notanid"],
+        ["XTRIM", "ep:x", "BOGUS", "1"], ["XRANGE", "ep:x", "(", "+"],
+        ["XRANGE", "ep:x", "1-1-1", "+"], ["XSETID", "ep:x", "1-1", "NOPE", "1"],
+        ["XREAD", "STREAMS", "ep:x", "ep:x", "0-0"], ["XREAD", "STREAMS", "ep:x"],
+        ["XREAD", "NOPE", "STREAMS", "ep:x", "0-0"],
+        ["SORT", "ep:l", "ASC", "DESC"], ["SORT", "ep:l", "LIMIT", "0"],
+        ["SORT_RO", "ep:l", "STORE", "ep:sd"], ["SORT", "ep:l", "NOPE"],
+        ["LCS", "ep:s", "ep:s2", "LEN", "IDX"], ["LCS", "ep:s", "ep:s2", "NOPE"],
+        ["COPY", "ep:s", "ep:s"], ["RESTORE", "ep:rr", "0", "bad", "NOPE"],
+        ["PFCOUNT", "ep:s"], ["PFMERGE", "ep:hd", "ep:hll", "ep:s"], ["PFADD", "ep:s", "x"],
+    ]
+
+    # 4. Wrong type against every family, and the order in which the two complaints come out.
+    errors += [
+        ["LPOP", "ep:s", "abc"], ["LINDEX", "ep:s", "abc"], ["LRANGE", "ep:s", "abc", "abc"],
+        ["SPOP", "ep:s", "abc"], ["ZRANGE", "ep:s", "abc", "abc"], ["HINCRBY", "ep:s", "f", "abc"],
+        ["HINCRBYFLOAT", "ep:s", "f", "abc"], ["XRANGE", "ep:s", "bad", "bad"],
+        ["XADD", "ep:s", "MAXLEN", "abc", "*", "f", "v"], ["SETRANGE", "ep:l", "abc", "x"],
+        ["SETBIT", "ep:l", "abc", "1"], ["GETEX", "ep:l", "EX", "abc"], ["EXPIRE", "ep:l", "abc"],
+        ["SETEX", "ep:l", "abc", "v"], ["INCRBY", "ep:l", "abc"], ["APPEND", "ep:l", "x"],
+        ["LPUSH", "ep:s", "x"], ["SADD", "ep:s", "x"], ["ZADD", "ep:s", "1", "x"],
+        ["XADD", "ep:s", "1-1", "f", "v"], ["GETSET", "ep:l", "x"], ["SMOVE", "ep:s", "ep:set", "a"],
+        ["SMOVE", "ep:set", "ep:s", "a"], ["RENAME", "ep:nokey", "ep:s"],
+        ["ZRANGESTORE", "ep:d", "ep:nokey", "abc", "abc"], ["GEOPOS", "ep:s", "m"],
+        ["PFCOUNT", "ep:s", "ep:hll"], ["INCR", "ep:s"], ["INCRBYFLOAT", "ep:s", "1"],
+    ]
+
+    # 5. Null and empty shapes. RESP2 tells a null ARRAY from a null BULK; RESP3 spells both "_".
+    shapes = [
+        ["GET", "ep:miss"], ["GETDEL", "ep:miss"], ["GETEX", "ep:miss"], ["DUMP", "ep:miss"],
+        ["HGET", "ep:h", "nope"], ["HMGET", "ep:miss", "a", "b"], ["HGETALL", "ep:miss"],
+        ["LPOP", "ep:miss"], ["LPOP", "ep:miss", "2"], ["LINDEX", "ep:l", "99"],
+        ["LPOS", "ep:l", "nope"], ["LPOS", "ep:l", "nope", "COUNT", "0"],
+        ["RPOPLPUSH", "ep:miss", "ep:dst"], ["LMOVE", "ep:miss", "ep:dst", "LEFT", "RIGHT"],
+        ["LMPOP", "1", "ep:miss", "LEFT"], ["BLPOP", "ep:miss", "0.01"],
+        ["BRPOPLPUSH", "ep:miss", "ep:dst", "0.01"],
+        ["BLMOVE", "ep:miss", "ep:dst", "LEFT", "RIGHT", "0.01"],
+        ["BLMPOP", "0.01", "1", "ep:miss", "LEFT"], ["BZPOPMIN", "ep:miss", "0.01"],
+        ["BZMPOP", "0.01", "1", "ep:miss", "MIN"],
+        ["ZSCORE", "ep:z", "nope"], ["ZMSCORE", "ep:z", "a", "nope"], ["ZRANK", "ep:z", "nope"],
+        ["ZRANK", "ep:z", "nope", "WITHSCORE"], ["ZRANK", "ep:z", "a", "WITHSCORE"],
+        ["ZREVRANK", "ep:z", "nope", "WITHSCORE"], ["ZADD", "ep:z", "XX", "INCR", "1", "nope"],
+        ["ZPOPMIN", "ep:miss"], ["ZPOPMIN", "ep:miss", "2"], ["ZMPOP", "1", "ep:miss", "MIN"],
+        ["ZRANGE", "ep:miss", "0", "-1"], ["ZRANGE", "ep:miss", "0", "-1", "WITHSCORES"],
+        ["SMEMBERS", "ep:miss"], ["SINTER", "ep:miss"], ["SINTERCARD", "1", "ep:miss"],
+        ["XRANGE", "ep:miss", "-", "+"], ["XRANGE", "ep:x", "-", "+", "COUNT", "-1"],
+        ["XREVRANGE", "ep:x", "+", "-", "COUNT", "-1"], ["XRANGE", "ep:x", "-", "+", "COUNT", "0"],
+        ["XREAD", "COUNT", "1", "STREAMS", "ep:miss", "0"],
+        ["GEOPOS", "ep:g", "nope"], ["GEODIST", "ep:g", "P", "nope"], ["GEOHASH", "ep:g", "nope"],
+        ["GEOPOS", "ep:g"], ["GEOHASH", "ep:g"],
+        ["MGET", "ep:miss", "ep:s"], ["LRANGE", "ep:miss", "0", "-1"], ["TYPE", "ep:miss"],
+        ["GETRANGE", "ep:miss", "0", "-1"], ["SUBSTR", "ep:miss", "0", "-1"],
+        ["ZRANGEBYSCORE", "ep:miss", "-inf", "+inf"], ["ZRANGEBYLEX", "ep:miss", "-", "+"],
+        ["LCS", "ep:s", "ep:miss"], ["LCS", "ep:s", "ep:miss", "IDX"],
+    ]
+
+    # 6. Empty and binary-unsafe names and values through every write/read path.
+    binary_key = b"ep:\x00key\r\n with space\xff"
+    binary_value = b"\x00value\r\n\xfftail"
+    binary = [
+        ["SET", b"", b""], ["GET", b""], ["STRLEN", b""], ["APPEND", b"", b"x"], ["GET", b""],
+        ["SET", binary_key, binary_value], ["GET", binary_key], ["STRLEN", binary_key],
+        ["APPEND", binary_key, b"\x00\r\n"], ["GETRANGE", binary_key, "0", "-1"],
+        ["SETRANGE", binary_key, "2", b"\x01\x02"], ["GET", binary_key], ["TYPE", binary_key],
+        ["COPY", binary_key, b"ep:copy\x00"], ["GET", b"ep:copy\x00"],
+        ["HSET", binary_key, b"\x00f\r\n", binary_value], ["HGET", binary_key, b"\x00f\r\n"],
+        ["HSET", binary_key, b"", b""], ["HGET", binary_key, b""], ["HSTRLEN", binary_key, b""],
+        ["RPUSH", b"ep:bl", binary_value, b""], ["LRANGE", b"ep:bl", "0", "-1"],
+        ["LPOS", b"ep:bl", b""], ["LINSERT", b"ep:bl", "BEFORE", b"", b"\xfe"],
+        ["SADD", b"ep:bs", binary_value, b""], ["SISMEMBER", b"ep:bs", binary_value],
+        ["SCARD", b"ep:bs"], ["ZADD", b"ep:bz", "1", binary_value, "2", b""],
+        ["ZSCORE", b"ep:bz", binary_value], ["ZRANK", b"ep:bz", b""],
+        ["ZRANGEBYLEX", b"ep:bz", "-", "+"],
+        ["XADD", b"ep:bx", "1-1", b"\x00f", binary_value], ["XRANGE", b"ep:bx", "-", "+"],
+        ["SET", b"ep:" + b"k" * 8000, binary_value], ["GET", b"ep:" + b"k" * 8000],
+        ["SET", b"ep:nul", b"a\x00b"], ["INCR", b"ep:nul"], ["STRLEN", b"ep:nul"],
+        ["SET", b"ep:sp", b" 1"], ["INCR", b"ep:sp"], ["SET", b"ep:lz", b"01"], ["INCR", b"ep:lz"],
+        ["SET", b"ep:pl", b"+1"], ["INCR", b"ep:pl"], ["SET", b"ep:nz", b"-0"], ["INCR", b"ep:nz"],
+        ["ECHO", binary_value], ["ECHO", b""],
+        ["SETRANGE", b"ep:huge", "536870911", "x"], ["SETBIT", b"ep:hb", "4294967296", "1"],
+        ["GETRANGE", binary_key, "-9223372036854775808", "9223372036854775807"],
+    ]
+
+    # 7. Doubles whose text the two servers agree on: the integral fast path, the fixed/scientific
+    #    boundary, and the signed zero. (The last-digit cases where redis's grisu2 and a shortest
+    #    round-trip disagree are recorded in NOTES-EDGEPROTO.md, not tested here.)
+    doubles = []
+    for value in ("0", "-0", "1.5", "0.1", "3", "1e15", "1e16", "1e17", "1e18", "4e18",
+                  "4611686018427387904", "5e18", "9.5e18", "1e19", "1e20", "1e22",
+                  "9223372036854775808", "-9223372036854775809", "9007199254740993",
+                  "1e-5", "1e-6", "1e-7", "1.2345e-8", "0.0001", "5e-324",
+                  "1.7976931348623157e308", "123456789012345678", "0.015", "-0.015",
+                  "inf", "-inf", "+inf"):
+        doubles += [["DEL", "ep:dz"], ["ZADD", "ep:dz", "INCR", value, "m"],
+                    ["ZSCORE", "ep:dz", "m"], ["ZRANGE", "ep:dz", "0", "-1", "WITHSCORES"],
+                    ["ZINCRBY", "ep:dz", "0", "m"]]
+
+    ops = list(setup) + errors + shapes + binary + doubles
+    # The tail is drawn from the ERROR cases only: they leave no state behind, so resampling them
+    # lengthens the run without making it a different (or an order-dependent) test.
+    while len(ops) < 5200:
+        ops.append(rng.choice(errors))
+    return ops
+
 # Sharded pub/sub is stateful and has spontaneous delivery frames, so it cannot use the ordinary
 # one-request/one-reply pipeline below. Keep its whole differential driver in one mergeable block.
 def run_spubsub_differ(rng):
@@ -2420,7 +2670,7 @@ gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset
         "streamgrp": gen_streamgrp,
         "zsetops": gen_zsetops, "geo": gen_geo,
         "scan": gen_scan, "multi": gen_multi,
-        "servertail": gen_servertail}
+        "servertail": gen_servertail, "edgeproto": gen_edgeproto}
 if LIST_GENERATORS:
     print("\n".join(gens))
     sys.exit(0)
