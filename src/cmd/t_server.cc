@@ -1348,7 +1348,7 @@ bool info_section(Op& op, const char* wanted) {
 void cmd_info(Shard&, Op& op) {
     std::string body;
     uint64_t keys = 0, expires = 0, obj_bytes = 0, hits = 0, misses = 0, expired = 0,
-             evicted = 0;
+             evicted = 0, keyspace_rehashes = 0;
     uint64_t total_ops = 0, connections = 0, rejected = 0;
     uint64_t acl_denied_cmd = 0, acl_denied_key = 0, acl_denied_channel = 0,
              acl_denied_auth = 0;
@@ -1373,6 +1373,7 @@ void cmd_info(Shard&, Op& op) {
             obj_bytes += sh.published_obj_bytes();
             hits += sh.stats().hits; misses += sh.stats().misses; expired += sh.stats().expired;
             evicted += sh.published_evicted();
+            keyspace_rehashes += sh.stats().rehashes;
             atomic_predecessor_reads += sh.stats().atomic_predecessor_reads;
             atomic_chain_max = std::max(atomic_chain_max, sh.stats().atomic_chain_max);
             atomic_promotions += sh.stats().atomic_promotions;
@@ -1518,6 +1519,7 @@ void cmd_info(Shard&, Op& op) {
                       "total_commands_processed:%llu\r\nkeyspace_hits:%llu\r\nkeyspace_misses:%llu\r\n"
                       "expired_keys:%llu\r\nevicted_keys:%llu\r\ninstantaneous_ops_per_sec:0\r\n"
                       "expired_hash_fields:%llu\r\nhash_field_expires:%llu\r\n"
+                      "keyspace_rehashes:%llu\r\n"
                       "total_net_input_bytes:0\r\ntotal_net_output_bytes:0\r\n"
                       "auth_failures:%llu\r\n"
                       "acl_access_denied_auth:%llu\r\nacl_access_denied_cmd:%llu\r\n"
@@ -1571,6 +1573,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(evicted),
                 static_cast<unsigned long long>(expired_hash_fields),
                 static_cast<unsigned long long>(hash_field_expires),
+                static_cast<unsigned long long>(keyspace_rehashes),
                 static_cast<unsigned long long>(g_server ? g_server->auth_failures() : 0),
                 static_cast<unsigned long long>(acl_denied_auth),
                 static_cast<unsigned long long>(acl_denied_cmd),
@@ -1748,11 +1751,19 @@ void cmd_scan(Shard& sh, Op& op) {
         if (eq_icase(op.arg(i), "MATCH") && i + 1 < op.argc()) {
             match = op.arg(i + 1); i += 2;
         } else if (eq_icase(op.arg(i), "COUNT") && i + 1 < op.argc()) {
-            uint64_t parsed = 0;
-            if (!parse_u64(op.arg(i + 1), parsed) || parsed == 0 || parsed > UINT32_MAX) {
-                reply_syntax(op.sink()); return;
+            // Two different errors, as Redis and as HSCAN/SSCAN/ZSCAN here already spell them:
+            // an unparseable COUNT is an integer error, a parseable one below 1 is a syntax
+            // error. SCAN was the one member of the family answering "syntax error" to both.
+            int64_t parsed = 0;
+            if (!parse_i64_slice(op.arg(i + 1), parsed)) {
+                reply_err(op.sink(), "ERR value is not an integer or out of range"); return;
             }
-            count = static_cast<uint32_t>(parsed); i += 2;
+            if (parsed < 1) { reply_syntax(op.sink()); return; }
+            // A COUNT past the slot-work hint's range is clamped, not rejected: it is a hint, and
+            // one call is bounded by the table anyway.
+            count = parsed > static_cast<int64_t>(UINT32_MAX) ? UINT32_MAX
+                                                              : static_cast<uint32_t>(parsed);
+            i += 2;
         } else if (eq_icase(op.arg(i), "TYPE") && i + 1 < op.argc()) {
             type = op.arg(i + 1);
             if (!(eq_icase(type, "STRING") || eq_icase(type, "HASH") || eq_icase(type, "LIST") ||

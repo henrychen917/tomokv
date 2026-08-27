@@ -889,6 +889,68 @@ def gen_xshard(rng):
     ]
     return ops
 
+def gen_scan(rng):
+    """SCAN family. The diffed stream is the OPTION SURFACE plus the mutations that shape the
+    tables; the completeness property itself cannot be byte-compared (cursor values and emission
+    order are implementation-defined) and is checked in the `scan` property block below, which
+    walks each cursor to completion on both servers and compares the resulting SETS.
+
+    `SCAN 0 TYPE <unknown>` is deliberately absent: TomoKV rejects an unknown type name and Redis
+    accepts it and returns an empty batch. That divergence is real but it belongs to the compat
+    surface, not to cursor completeness, and folding it in here would only hide this suite's
+    verdict behind an unrelated failure.
+    """
+    ops = []
+    for i in range(400):
+        ops.append(["SET", "s:str:%03d" % i, "v%d" % i])
+    for i in range(60):
+        ops.append(["HSET", "s:hash", "f%03d" % i, "v"])
+        ops.append(["SADD", "s:set", "m%03d" % i])
+        ops.append(["ZADD", "s:zset", str(i), "m%03d" % i])
+        ops.append(["LPUSH", "s:list", "e%03d" % i])
+    # Enough members to force every collection past its compact encoding into a real table, which
+    # is the only encoding a cursor exists in.
+    for i in range(400):
+        ops.append(["HSET", "s:hbig", "f%04d" % i, "v" * (i % 70)])
+        ops.append(["SADD", "s:sbig", "m%04d" % i])
+        ops.append(["ZADD", "s:zbig", str(i * 1.5), "m%04d" % i])
+    # Random churn so the two servers see identical tables with identical tombstone histories.
+    for _ in range(2200):
+        c = rng.randrange(10)
+        n = rng.randrange(400)
+        if   c < 3: ops.append(["SET", "s:str:%03d" % n, "r%d" % rng.randrange(1000)])
+        elif c == 3: ops.append(["DEL", "s:str:%03d" % n])
+        elif c == 4: ops.append(["HSET", "s:hbig", "f%04d" % n, "r"])
+        elif c == 5: ops.append(["HDEL", "s:hbig", "f%04d" % n])
+        elif c == 6: ops.append(["SADD", "s:sbig", "m%04d" % n])
+        elif c == 7: ops.append(["SREM", "s:sbig", "m%04d" % n])
+        elif c == 8: ops.append(["ZADD", "s:zbig", str(n), "m%04d" % n])
+        else: ops.append(["ZREM", "s:zbig", "m%04d" % n])
+    # Option surface: every reply here IS byte-comparable.
+    ops += [
+        ["SCAN", "abc"], ["SCAN", "-1"], ["SCAN", "0", "COUNT", "0"], ["SCAN", "0", "COUNT", "-1"],
+        ["SCAN", "0", "COUNT", "abc"], ["SCAN", "0", "BADOPT"], ["SCAN", "0", "MATCH"],
+        ["SCAN", "0", "COUNT"], ["SCAN", "0", "TYPE"],
+        ["HSCAN", "s:hbig", "abc"], ["HSCAN", "s:hbig", "0", "COUNT", "0"],
+        ["HSCAN", "s:hbig", "0", "BADOPT"], ["HSCAN", "s:missing", "0"],
+        ["HSCAN", "s:missing", "0", "NOVALUES"], ["HSCAN", "s:hbig", "0", "NOVALUES", "BADOPT"],
+        ["SSCAN", "s:sbig", "abc"], ["SSCAN", "s:sbig", "0", "COUNT", "0"],
+        ["SSCAN", "s:missing", "0"], ["SSCAN", "s:sbig", "0", "MATCH"],
+        ["ZSCAN", "s:zbig", "abc"], ["ZSCAN", "s:zbig", "0", "COUNT", "0"],
+        ["ZSCAN", "s:missing", "0"], ["ZSCAN", "s:zbig", "0", "BADOPT"],
+        # WRONGTYPE is a reply shape, and it must not depend on which encoding the key holds.
+        ["HSCAN", "s:sbig", "0"], ["SSCAN", "s:zbig", "0"], ["ZSCAN", "s:hbig", "0"],
+        ["SSCAN", "s:list", "0"], ["HSCAN", "s:str:001", "0"],
+        # A small collection answers in one call with cursor 0 on both servers.
+        ["DEL", "s:tiny"], ["SADD", "s:tiny", "a", "b", "c"], ["SSCAN", "s:tiny", "0"],
+        ["SSCAN", "s:tiny", "0", "COUNT", "1"], ["SSCAN", "s:tiny", "0", "MATCH", "a*"],
+        ["DEL", "s:htiny"], ["HSET", "s:htiny", "a", "1", "b", "2"], ["HSCAN", "s:htiny", "0"],
+        ["HSCAN", "s:htiny", "0", "NOVALUES"],
+        ["DEL", "s:ztiny"], ["ZADD", "s:ztiny", "1", "a", "2", "b"], ["ZSCAN", "s:ztiny", "0"],
+        ["ZSCAN", "s:ztiny", "0", "MATCH", "b"],
+    ]
+    return ops
+
 def gen_servertail(rng):
     """LCS-heavy, plus the introspection replies that are genuinely byte-comparable.
 
@@ -2250,6 +2312,7 @@ gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset
         "script": gen_script,
         "streamgrp": gen_streamgrp,
         "zsetops": gen_zsetops, "geo": gen_geo,
+        "scan": gen_scan,
         "servertail": gen_servertail}
 if LIST_GENERATORS:
     print("\n".join(gens))
@@ -2392,6 +2455,60 @@ if SUITE == "stream":
         if length < 25:
             diffs += 1
             print("  APPROX-TRIM PROPERTY FAIL reply=%r" % length_reply)
+if SUITE == "scan":
+    # Cursor VALUES and emission ORDER are implementation-defined, so the walk cannot be byte
+    # diffed. What is contractual, and what this checks, is the SET a completed walk yields: with
+    # identical keyspaces on both servers it must be identical, at every COUNT. A COUNT small
+    # enough to force many calls is the interesting one -- it is the number of resumptions, not
+    # the number of keys, that exposes a cursor that cannot survive its own table.
+    def read_value(file):
+        line = file.readline()
+        if not line: raise EOFError
+        kind, body = line[:1], line[1:-2]
+        if kind in b"+-:,#(_": return body
+        if kind in b"$=!":
+            n = int(body)
+            return None if n == -1 else file.read(n + 2)[:-2]
+        if kind in b"*~>":
+            n = int(body)
+            return None if n == -1 else [read_value(file) for _ in range(n)]
+        if kind == b"%":
+            return [read_value(file) for _ in range(int(body) * 2)]
+        raise RuntimeError("scan property: unexpected reply %r" % line)
+
+    def walk_to_end(sock, file, args, count, step):
+        cursor, out, calls = b"0", [], 0
+        while True:
+            sock.sendall(enc(args + [cursor, "COUNT", str(count)]))
+            reply = read_value(file)
+            calls += 1
+            cursor, batch = reply[0], reply[1]
+            out.extend(batch[i] for i in range(0, len(batch), step))
+            if cursor == b"0": break
+            if calls > 200000:
+                raise RuntimeError("%s cursor never returned to 0" % args[0])
+        return sorted(set(out)), calls, len(out)
+
+    for label, args, step in (("SCAN", ["SCAN"], 1),
+                              ("HSCAN", ["HSCAN", "s:hbig"], 2),
+                              ("SSCAN", ["SSCAN", "s:sbig"], 1),
+                              ("ZSCAN", ["ZSCAN", "s:zbig"], 2)):
+        for count in (7, 50, 400):
+            tset, tcalls, temitted = walk_to_end(ts, tf, args, count, step)
+            oset, ocalls, oemitted = walk_to_end(os_, of, args, count, step)
+            if tset != oset:
+                diffs += 1
+                missing = [x for x in oset if x not in set(tset)]
+                extra = [x for x in tset if x not in set(oset)]
+                print("  SCAN-COMPLETENESS FAIL %s COUNT=%d: target %d unique in %d calls "
+                      "(%d emitted), oracle %d unique in %d calls; MISSING from target %r; "
+                      "EXTRA %r" % (label, count, len(tset), tcalls, temitted, len(oset), ocalls,
+                                    missing[:6], extra[:6]))
+            elif not tset:
+                diffs += 1
+                print("  SCAN-COMPLETENESS FAIL %s COUNT=%d: both sides empty, the check is "
+                      "vacuous" % (label, count))
+
 ts.close(); os_.close()
 print("DIFFER %s: %d ops, %d diffs -> %s" % (SUITE, len(ops), diffs, "PASS" if diffs == 0 else "FAIL"))
 sys.exit(1 if diffs else 0)
