@@ -81,7 +81,10 @@ boot(){ # binary -> pid ; server log to $SRVLOG
   taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --shards 16 --ratio $GATE_RATIO "$@" \
       > "$SRVLOG" 2>&1 &
   SRV=$!
-  for _ in $(seq 50); do ./build/tomokv --help >/dev/null 2>&1
+  # 30s, not 10s: the AOF replay boot replays its file BEFORE it listens, and on a box shared
+  # with other lanes that overran a 10s deadline and turned six AOF rows red with no defect behind
+  # them. A generous deadline costs nothing when the server is quick — the loop exits on connect.
+  for _ in $(seq 150); do ./build/tomokv --help >/dev/null 2>&1
     if ! kill -0 "$SRV" 2>/dev/null; then wait "$SRV" 2>/dev/null; return 1; fi
     (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null && return 0; sleep 0.2; done
   return 1
