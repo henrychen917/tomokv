@@ -74,7 +74,11 @@ struct MultiSession {
     MultiExecState* pending = nullptr;       // prepared, but not yet published to owner queues
 };
 
-struct alignas(8) MultiExecState {
+// EXEC MUST NEVER BE WEAKER THAN THE SAME COMMANDS RUN BARE.  A bare cross-shard read pins a read
+// cut, so a transaction that carries one has to pin a cut too; SnapshotCut is the shared header
+// that lets it do so through the connection-owning IO thread's ScatterArenaPool, which is the one
+// object allowed to write that thread's published cleanup floor (see xshard.h).
+struct alignas(8) MultiExecState : SnapshotCut {
     ~MultiExecState() { notify_discard_batch(notify.exchange(nullptr)); }
     MultiStateKind kind = MultiStateKind::Execute;
     MultiFinalReply final_reply = MultiFinalReply::Exec;
@@ -88,6 +92,15 @@ struct alignas(8) MultiExecState {
     bool reset_watch = false;
     bool published = false;
     bool retired = false;
+    // Set at prepare time when the transaction carries at least one READ whose fragments land on
+    // more than one owner -- the only shape that can straddle a foreign ticket, and therefore the
+    // only shape that pays for a cut.  A write-only or single-owner transaction registers nothing.
+    bool exec_read_fanout = false;
+    // TEST HOOK (DEBUG ATOMIC-FANOUT-DEFER), the MULTI half.  Deadline and lead shard are written
+    // once on the owning IO thread before the tasks are posted and read by the owners through the
+    // task handoff's release/acquire pair.  Zero in production.
+    uint64_t debug_fanout_deadline = 0;
+    int32_t debug_fanout_lead = -1;
     std::vector<std::unique_ptr<MultiCommand>> commands;
     std::vector<MultiWatchedKey> watched;
     std::vector<MultiWriteKey> write_keys;
@@ -156,6 +169,11 @@ void destroy_multi_children(MultiExecState& state) {
 void destroy_multi_state(MultiExecState* state) {
     if (!state) return;
     if (!multi_records_done(*state)) std::abort();
+    // The cut bracket is register-at-dispatch / unregister-at-retire, both on the connection's own
+    // IO thread. Reaching destruction still holding it would mean this thread's published cleanup
+    // floor is pinned to a dead transaction, so cleanup would stop advancing server-wide. That is
+    // an engine invariant, not an input condition; make it loud rather than silently degrading.
+    if (state->snapshot_registered) std::abort();
     destroy_multi_children(*state);
     release_admission(*state);
     delete state;
@@ -391,6 +409,20 @@ bool prepare_commands(Server& server, MultiExecState& state,
                 if (command->participants.empty()) add_shard(command->participants, 0);
             }
             command->shard_done.assign(server.nshards(), 0);
+            // SCOPE: multi-owner READ fragments, nothing else.  Mget/Exists are reached only when
+            // classify_multi_command already found the key set spanning more than one shard, and an
+            // Xshard child carries its own participant count.  A single-owner read resolves inside
+            // one owner task and cannot straddle anything (the same-owner control reads zero torn),
+            // and a write must keep cloning from the newest committed value, so widening this test
+            // would buy no isolation and cost the transaction a floor registration.
+            if (!(command->queued.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
+                if (command->kind == MultiCommandKind::Mget ||
+                    command->kind == MultiCommandKind::Exists)
+                    state.exec_read_fanout = true;
+                else if (command->kind == MultiCommandKind::Xshard && command->scatter &&
+                         command->scatter->nsub > 1)
+                    state.exec_read_fanout = true;
+            }
             if (command->kind == MultiCommandKind::Mget)
                 command->values.resize(command->key_args.size());
             command->pending.store(static_cast<uint32_t>(command->participants.size()),
@@ -599,6 +631,15 @@ bool prepare_local_write_keys(Server& server, MultiExecState& state, MultiComman
     return true;
 }
 
+// The cut a multi-owner READ fragment of this transaction resolves at.  UINT64_MAX means "newest
+// committed at the instant this fragment runs", which is what every MULTI child used before this
+// lane; that is exactly the behaviour that let one MGET's eight fragments straddle a foreign
+// transaction's single ticket.  A transaction that registered no cut (write-only, single-owner, or
+// the cut was never drawn) keeps the old value, so nothing else in the file changes shape.
+uint64_t multi_read_cut(const MultiExecState& state) {
+    return state.snapshot_registered ? state.snapshot : UINT64_MAX;
+}
+
 bool execute_local_command(Server& server, MultiExecState& state, MultiCommand& command,
                            Shard& shard, uint32_t owner_thread_id) {
     if (!prepare_local_write_keys(server, state, command, shard, owner_thread_id)) return false;
@@ -617,7 +658,15 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
     const bool notify = (op.spec->flags & CmdFlags::NotifySelected) != 0;
     if (notify)
         notify_execute_source(shard, op, command.notify_order_base);
-    shard.store().atomic_set_read_context(UINT64_MAX, state.origin_conn_id);
+    // MGET/EXISTS/TOUCH are the read kinds here and reach this function only with a key set that
+    // spans more than one shard, i.e. exactly the fan-out that could straddle. They resolve at the
+    // transaction's cut. MSET/MSETNX/DEL keep UINT64_MAX on purpose: their clone base must stay
+    // the newest committed value, or a read-modify-write inside EXEC would overwrite a concurrent
+    // commit from a stale image. Write visibility is deliberately untouched by this lane.
+    const bool read_kind = command.kind == MultiCommandKind::Mget ||
+                           command.kind == MultiCommandKind::Exists;
+    shard.store().atomic_set_read_context(
+        read_kind ? multi_read_cut(state) : UINT64_MAX, state.origin_conn_id);
     if (command.kind == MultiCommandKind::Mget) {
         for (size_t i = 0; i < command.key_args.size(); i++) {
             if (command.key_shards[i] != shard.id()) continue;
@@ -1078,6 +1127,55 @@ bool multi_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consume
         }
     }
 
+    // PIN THE TRANSACTION'S READ CUT, BEFORE ANY FRAGMENT IS POSTED.
+    // Drawn here rather than at execution for the same reason a bare cross-shard read draws it at
+    // prepare: this is the connection's program order, and register_snapshot publishes the cleanup
+    // floor synchronously, so no owner can resolve under a cut whose predecessors cleanup has
+    // already been free to collapse. `op` reuses the parse pass's cut when IO stamped one, which
+    // keeps a plain read and a transaction prepared back to back on one connection from disagreeing
+    // about which of them is older. Untaken -- and therefore free -- for any transaction that
+    // carries no multi-owner read.
+    if (__builtin_expect(dispatch->exec_read_fanout, false)) {
+        if (!loop.scatter_pool_.can_register_snapshot()) {
+            // The unresolved-cut window is full on this IO thread. Falling through without a cut
+            // would silently restore the defect, so this is backpressure: the state stays in
+            // session->pending and the same EXEC is re-dispatched on a later pass.
+            client.set_atomic_backpressure(true);
+            return true;
+        }
+        dispatch->snapshot = op.has_read_cut() ? op.read_cut(loop.srv_->atomic_snapshot())
+                                               : loop.srv_->atomic_snapshot();
+        if (!loop.scatter_pool_.register_snapshot(*loop.srv_, dispatch, loop.self_->id())) {
+            dispatch->snapshot = UINT64_MAX;
+            client.set_atomic_backpressure(true);
+            return true;
+        }
+        // Vacuous-validation guard: one per transaction that really entered the machinery. A gate
+        // row for this defect that never moves this counter never armed the window it claims to
+        // close. register_snapshot may have adopted a confirmed newer cut, so the children are
+        // stamped from dispatch->snapshot afterwards, never from the value asked for.
+        loop.srv_->note_atomic_exec_read_cut();
+        for (const auto& command : dispatch->commands) {
+            if (command->kind != MultiCommandKind::Xshard || !command->scatter) continue;
+            if (command->queued.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) continue;
+            if (command->scatter->nsub <= 1) continue;
+            // The child never registers on its own: it lives in the transaction's private
+            // ScatterArenaPool, which does not own this thread's floor slot. It only borrows the
+            // cut the transaction published, and xshard_destroy skips unregistering it because
+            // snapshot_registered stays false.
+            command->scatter->snapshot = dispatch->snapshot;
+        }
+        // TEST HOOK arming, after the participant set exists so a lead shard can be named. Only a
+        // transaction carrying a multi-owner read arms it -- the writer transaction the battery
+        // races must stay free to run and publish its ticket inside the window.
+        const uint32_t fanout_defer = loop.srv_->debug_atomic_fanout_defer();
+        if (__builtin_expect(fanout_defer != 0, false) && dispatch->shards.size() > 1) {
+            dispatch->debug_fanout_lead = dispatch->shards[0];
+            dispatch->debug_fanout_deadline =
+                now_ns() + static_cast<uint64_t>(fanout_defer) * 1000ull;
+        }
+    }
+
     Rob<kRobWindow>& rob = client.rob();
     op.attach_multi_state(dispatch);
     client.atomic_group_started();
@@ -1120,6 +1218,14 @@ void multi_retire_entry(IoLoop& loop, Client& client, Op& op) {
                     slot.kind = ValueKind::Nil;
                 }
             }
+    }
+    // RELEASE THE CUT ONLY AFTER THE LAST FRAGMENT HAS ANSWERED. Retirement is that moment: the
+    // final reply is assembled once every participating owner has reported, and this is the one
+    // retire path a published transaction takes (io_loop.h routes op.has_multi_state() here). The
+    // state object is still alive -- multi_retire below is what releases or defers it.
+    if (auto* cut = static_cast<MultiExecState*>(op.multi_state())) {
+        if (__builtin_expect(cut->snapshot_registered, false))
+            loop.scatter_pool_.unregister_snapshot(*loop.srv_, cut, loop.self_->id());
     }
     multi_retire(client, op, loop.multi_deferred_);
     snapshot_bind_io(nullptr, nullptr);
@@ -1245,6 +1351,19 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
         if (!execute_watch_phase(state, shard)) return MultiTaskResult::Retry;
         if (!state.watch_phase_done.load(std::memory_order_acquire)) return MultiTaskResult::Retry;
     }
+
+    // TEST HOOK (DEBUG ATOMIC-FANOUT-DEFER), the MULTI half. Park every fragment of this
+    // transaction except the one on its lead shard until the deadline, so the foreign transaction
+    // the battery races really does commit BETWEEN two fragments of one in-EXEC read. It sits
+    // AFTER the watch phase deliberately: that phase is an all-participants barrier, so parking
+    // ahead of it would hold the lead back too and no fragment would run early. A park, not a
+    // stall -- Retry re-queues the task on multi_retries_ and the owner returns to its queue, so
+    // the writer is free to execute and publish its ticket inside the window. Off, this is one
+    // load of a word the task has already touched.
+    if (__builtin_expect(state.debug_fanout_deadline != 0, false) &&
+        shard.id() != state.debug_fanout_lead &&
+        now_ns() < state.debug_fanout_deadline)
+        return MultiTaskResult::Retry;
 
     const uint32_t shard_id = static_cast<uint32_t>(shard.id());
     std::vector<uint32_t>& command_list = state.shard_commands[shard_id];

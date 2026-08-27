@@ -126,7 +126,13 @@ for AT in 0 1; do
   # than one owner, and ATOMIC-FANOUT-DEFER parks all but the lead fragment of a cross-shard read
   # so a whole transaction can commit inside the fan-out on demand. It flips `atomic` itself, so
   # either boot covers both modes.
-  for t in lbsignals slowlog atomfix scriptatomic execatomic session_monotonic; do
+  # execiso is the in-EXEC half of the same story and needs the same armed boot: DEBUG SHARD proves
+  # its reads fan out over more than one owner, and ATOMIC-FANOUT-DEFER now parks MULTI-child
+  # fragments too, so a foreign transaction can be made to commit BETWEEN two fragments of one
+  # in-EXEC read on demand. It flips `atomic` itself, so either boot covers both modes. Its armed
+  # arms all assert atomic_exec_read_cuts advanced, so the row cannot print PASS on a run where the
+  # transaction never entered the read-cut machinery.
+  for t in lbsignals slowlog atomfix scriptatomic execatomic execiso session_monotonic; do
     python3 tests/$t.py 127.0.0.1 $PORT >/tmp/gate-$t-$AT.txt 2>&1 \
         && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see /tmp/gate-$t-$AT.txt"
   done

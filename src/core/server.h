@@ -827,6 +827,20 @@ public:
     uint64_t atomic_fanout_cuts() const {
         return atomic_fanout_cuts_.load(std::memory_order_relaxed);
     }
+    // The EXEC half of the same story, counted separately so a gate row cannot be satisfied by
+    // ordinary bare traffic moving atomic_fanout_cuts underneath it. One per transaction that
+    // published a read cut because it carries a read whose fragments span more than one owner.
+    // Before this lane a MULTI child ran with `!force_atomic`, never reached the read-cut
+    // machinery, and its fragments each answered "newest committed right now": a transaction
+    // committing inside the fan-out was seen by some and missed by others, so MULTI/EXEC gave a
+    // cross-shard read LESS isolation than the same command run bare.
+    void note_atomic_exec_read_cut() {
+        atomic_exec_read_cuts_.fetch_add(1, std::memory_order_relaxed);
+        atomic_fanout_cuts_.fetch_add(1, std::memory_order_relaxed);
+    }
+    uint64_t atomic_exec_read_cuts() const {
+        return atomic_exec_read_cuts_.load(std::memory_order_relaxed);
+    }
     void note_atomic_read_cut_held() {
         atomic_read_cuts_held_.fetch_add(1, std::memory_order_relaxed);
     }
@@ -1267,6 +1281,7 @@ private:
     std::atomic<uint64_t> atomic_commit_holds_{0};
     std::atomic<uint64_t> atomic_read_cuts_held_{0};
     std::atomic<uint64_t> atomic_fanout_cuts_{0};
+    std::atomic<uint64_t> atomic_exec_read_cuts_{0};
     std::atomic<uint64_t> atomic_credit_generation_{2};
     std::atomic<uint32_t> atomic_credit_pool_{0};
     std::atomic<uint32_t> atomic_credit_debt_{0};

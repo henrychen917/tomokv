@@ -296,7 +296,10 @@ struct alignas(64) OwnerRecordRefs {
     uint32_t group_count = 0;
 };
 
-struct ScatterState {
+// The read cut lives in the shared SnapshotCut base so a transaction can hold one through the
+// same per-IO-thread floor arithmetic (see xshard.h).  Member names are unchanged, so every
+// state->snapshot / state->snapshot_registered reference below still resolves.
+struct ScatterState : SnapshotCut {
     ~ScatterState() { notify_discard_batch(notify.exchange(nullptr)); }
     std::atomic<uint32_t> pending{0};
     // Zero means installs are still private. The last owner draws and release-publishes the ticket;
@@ -328,8 +331,6 @@ struct ScatterState {
     bool atomic_direct = false;
     bool pop_missed = false;
     bool admitted = false;
-    bool snapshot_registered = false;
-    std::atomic<bool> snapshot_complete{false};
     // A MULTI child retains its own routing/result lifetime but publishes through its parent's one
     // ticket and abort word. Null is the ordinary one-command group path.
     std::atomic<uint64_t>* external_epoch = nullptr;
@@ -356,7 +357,6 @@ struct ScatterState {
     // TEST HOOK budget copied from Server::debug_atomic_direct_defer() when this group takes the
     // direct-RENAME path. Touched only by the destination task's owner. Zero in production.
     uint32_t debug_direct_defer = 0;
-    uint32_t snapshot_slot = std::numeric_limits<uint32_t>::max(); // owning IO's unresolved set
     // TEST HOOK deadline copied from Server::debug_atomic_fanout_defer() when this state is a
     // cross-shard READ. Written once at prepare, before the tasks are posted; read by the owners
     // through the task handoff's release/acquire pair. Zero in production, and the field lives in
@@ -368,7 +368,6 @@ struct ScatterState {
     LcsOptions lcs_options;
     uint64_t pop_count = 1;
     uint64_t xread_count = 0;
-    uint64_t snapshot = UINT64_MAX;
     uint64_t pop_retry_snapshot = UINT64_MAX;
     long long final_integer = 0;
     ImageRangeOptions range_options;
@@ -1308,7 +1307,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         }
     }
 
-    if (state->snapshot != UINT64_MAX && !pool.register_snapshot(server, state)) {
+    if (state->snapshot != UINT64_MAX && !pool.register_snapshot(server, state, owner_io)) {
         set_oom(op);
         xshard_destroy(state, pool, owner_io);
         return ScatterPrepare::Error;
@@ -1360,7 +1359,7 @@ void xshard_destroy(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_
     if (!state) return;
     if (state->owner_io != owner_io) std::abort();
     if (state->snapshot_registered && state->server)
-        pool.unregister_snapshot(*state->server, state);
+        pool.unregister_snapshot(*state->server, state, state->owner_io);
     if (state->admitted && state->server) {
         state->server->atomic_retire_group(state->owner_io, state->admission_generation);
         state->admitted = false;
@@ -2296,7 +2295,7 @@ void xshard_retire(Server& server, ThreadCtx& self, Ring& ring, Client& client, 
         // each owner on later passes; retirement posts no per-group cleanup fan-out.
         free_state_contents(*state);
         if (state->snapshot_registered)
-            pool.unregister_snapshot(server, state);
+            pool.unregister_snapshot(server, state, owner_io);
         client.atomic_group_finished();
     }
     if (state->blocking_origin) blocking_scatter_retire(server, client, *state);
