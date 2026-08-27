@@ -344,6 +344,10 @@ the old `atomic_has_record` when no intent exists.
 `tests/config_parser_test.cc` passes, including the four new knobs' grammar and their four rejection
 cases.
 
+Neighbouring differ suites, same boot and oracle, all **0 diffs** — `xshard` (4276 ops) is the one
+that most directly exercises the `begin_plain_version` change: `string` 4033, `list` 3521, `set`
+3524, `hash` 3545, `zset` 3531, `cgaps` 3310, `xshard` 4276. `tests/debug.py` passes.
+
 ### ASAN + UBSAN
 
 `make asan` (`-fsanitize=address,undefined`), 8-shard `--atomic 1` boot on the lane cores:
