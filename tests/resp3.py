@@ -169,7 +169,12 @@ def shape_matrix():
     expect(client.command("SISMEMBER", "resp3:s1", "a").kind == b":", "SISMEMBER stays integer")
     expect(client.command("EXISTS", "resp3:s1").kind == b":", "EXISTS stays integer")
 
-    score_cases = [("zero", "0", b"0"), ("negzero", "-0", b"-0"),
+    # resp3:z is small, so it is a COMPACT (listpack) zset -- and a score entering compact storage
+    # loses the sign of a zero, exactly as the oracle's listpack does. This row read b"-0" until
+    # the zsetfix lane probed redis 7.4.2: `ZADD k -0 m; ZSCORE k m` answers "0" on a listpack and
+    # "-0" on a skiplist, so the old expectation pinned a divergence. The skiplist arm is asserted
+    # right below so this stays a two-sided test of the rule rather than a one-armed constant.
+    score_cases = [("zero", "0", b"0"), ("negzero", "-0", b"0"),
                    ("small", "0.015", b"0.015"), ("negsmall", "-0.015", b"-0.015"),
                    ("huge", "1e308", b"1e+308"), ("posinf", "inf", b"inf"),
                    ("neginf", "-inf", b"-inf")]
@@ -178,6 +183,17 @@ def shape_matrix():
         actual = client.command("ZSCORE", "resp3:z", member)
         expect(actual.kind == b"," and actual.value == expected,
                "ZSCORE shortest double %s" % member, actual)
+    encoding = client.command("OBJECT", "ENCODING", "resp3:z")
+    expect(encoding.value == b"listpack", "score cases really ran on a compact zset", encoding)
+    client.command("DEL", "resp3:zbig")
+    client.command("ZADD", "resp3:zbig",
+                   *[part for i in range(200) for part in (str(10000 + i), "pad%d" % i)])
+    client.command("ZADD", "resp3:zbig", "-0", "negzero")
+    encoding = client.command("OBJECT", "ENCODING", "resp3:zbig")
+    expect(encoding.value == b"skiplist", "expanded arm really is expanded", encoding)
+    actual = client.command("ZSCORE", "resp3:zbig", "negzero")
+    expect(actual.kind == b"," and actual.value == b"-0",
+           "ZSCORE keeps -0 on an expanded zset", actual)
     zmscore = client.command("ZMSCORE", "resp3:z", "small", "absent")
     expect([item.kind for item in zmscore.value] == [b",", b"_"], "ZMSCORE types", zmscore)
     expect(client.command("ZINCRBY", "resp3:z", "1", "small").kind == b",", "ZINCRBY double")

@@ -560,8 +560,11 @@ bool encode_zset_image(const std::vector<ZImageItem>& items, ObjectImage& image)
     return true;
 }
 
+// `expanded` is the SOURCE key's encoding (skiplist vs listpack): it selects how a negative LIMIT
+// offset resolves, exactly as on the single-shard range path.
 bool select_zrange(const std::vector<ZImageItem>& input, const ImageRangeOptions& options,
-                   const ImageRangeSpec& range, std::vector<ZImageItem>& selected) {
+                   const ImageRangeSpec& range, bool expanded,
+                   std::vector<ZImageItem>& selected) {
     selected.clear();
     try {
         if (options.kind == ImageRangeKind::Rank) {
@@ -582,7 +585,7 @@ bool select_zrange(const std::vector<ZImageItem>& input, const ImageRangeOptions
             return true;
         }
 
-        if (options.offset < 0 || options.limit == 0) return true;
+        if (options.limit == 0) return true;
         std::vector<size_t> matches;
         matches.reserve(input.size());
         bool started = false;
@@ -606,8 +609,9 @@ bool select_zrange(const std::vector<ZImageItem>& input, const ImageRangeOptions
             started = true;
             matches.push_back(i);
         }
-        const uint64_t offset = static_cast<uint64_t>(options.offset);
-        if (offset >= matches.size()) return true;
+        uint64_t offset = 0;
+        if (!zset_resolve_limit_offset(options.offset, matches.size(), expanded, offset))
+            return true;
         const uint64_t available = matches.size() - offset;
         const uint64_t take = options.limit < 0
             ? available : std::min<uint64_t>(available, static_cast<uint64_t>(options.limit));
@@ -865,12 +869,32 @@ bool compute_zsetop(ScatterState& state) {
         }
     }
 
+    // ACCUMULATION ORDER. The oracle folds the sources smallest-cardinality-first (a stable
+    // reorder, so equal cardinalities keep argument order), not in argument order. That is
+    // invisible for a commutative aggregate over ordinary values, but it decides two results we
+    // compare byte-for-byte:
+    //   * which operand is the incumbent when MIN/MAX tie, which is what prints -0 vs 0;
+    //   * the rounding of a SUM, because float addition is not associative -- with cardinalities
+    //     ONE=1, NEG=3, BIG=8, `ZUNION 3 NEG BIG ONE AGGREGATE SUM` is 0 on the oracle (it folds
+    //     1 + -1e16 + 1e16) and 1 in argument order (-1e16 + 1e16 + 1).
+    // Only the fold order moves: every membership test below still keys on the ORIGINAL argument
+    // index, so ZDIFF's "source 0 only" rule and ZINTER's seen-count are untouched.
+    std::vector<uint32_t> fold_rank(inputs.size());
+    {
+        std::vector<uint32_t> order(inputs.size());
+        for (uint32_t i = 0; i < order.size(); i++) order[i] = i;
+        std::stable_sort(order.begin(), order.end(), [&](uint32_t a, uint32_t b) {
+            return inputs[a].size() < inputs[b].size();
+        });
+        for (uint32_t i = 0; i < order.size(); i++) fold_rank[order[i]] = i;
+    }
+
     struct Cursor { uint32_t source; uint32_t index; };
     auto later = [&](const Cursor& a, const Cursor& b) {
         const std::string& am = inputs[a.source][a.index].member;
         const std::string& bm = inputs[b.source][b.index].member;
         if (am != bm) return am > bm;
-        return a.source > b.source;
+        return fold_rank[a.source] > fold_rank[b.source];
     };
     std::priority_queue<Cursor, std::vector<Cursor>, decltype(later)> heap(later);
     try {
@@ -897,14 +921,16 @@ bool compute_zsetop(ScatterState& state) {
                 if (!have_score) {
                     score = weighted;
                     have_score = true;
+                // MIN/MAX are STRICT comparisons against the running accumulator, so a tie keeps
+                // the incumbent -- the value contributed by the EARLIER source. That is the whole
+                // rule for signed zeroes here, because -0 == +0: MIN(+0 then -0) is +0 and
+                // MAX(-0 then +0) is -0 on the oracle, purely by argument order. An earlier
+                // canonicalizing tie-break here (MIN prefers -0, MAX prefers +0) inverted the sign
+                // on exactly those orders; the oracle does not canonicalize.
                 } else if (state.zset_aggregate == ZAggregate::Min) {
-                    if (weighted < score ||
-                        (weighted == score && weighted == 0 && std::signbit(weighted)))
-                        score = weighted;
+                    if (weighted < score) score = weighted;
                 } else if (state.zset_aggregate == ZAggregate::Max) {
-                    if (weighted > score ||
-                        (weighted == score && weighted == 0 && !std::signbit(weighted)))
-                        score = weighted;
+                    if (weighted > score) score = weighted;
                 } else {
                     score += weighted;
                     if (std::isnan(score)) score = 0;
@@ -1243,7 +1269,8 @@ bool finish_phase1(ScatterState& state, Op& op) {
                 state.final_error = WorkError::Oom;
                 return true;
             }
-            if (!select_zrange(input, state.range_options, state.range_spec, selected)) {
+            if (!select_zrange(input, state.range_options, state.range_spec, source.expanded,
+                               selected)) {
                 state.final_reply = FinalReply::Work;
                 state.final_error = WorkError::Oom;
                 return true;
@@ -1828,7 +1855,10 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         if (object && !serialize_object(object, source)) { set_oom(op); return; }
         std::vector<ZImageItem> input, selected;
         if (source.present && !decode_zset_image(source, input)) { set_oom(op); return; }
-        if (!select_zrange(input, options, range, selected)) { set_oom(op); return; }
+        if (!select_zrange(input, options, range, source.expanded, selected)) {
+            set_oom(op);
+            return;
+        }
         ObjectImage destination;
         if (!selected.empty() && !encode_zset_image(selected, destination)) { set_oom(op); return; }
         WorkError error = apply_image<kNotify>(
@@ -1847,7 +1877,10 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         SortOptions options;
         if (!parse_sort_options(op, options)) return;
         ObjectImage source;
-        KvObj* object = shard.store_find<kNotify>(FlatStore::hash_key(op.arg(1)), op.arg(1));
+        const uint64_t source_hash = FlatStore::hash_key(op.arg(1));
+        // Before the pointer is taken: promoting replaces an embedded zset object.
+        zset_sort_promote(shard, source_hash, op.arg(1), kNotify);
+        KvObj* object = shard.store_find<kNotify>(source_hash, op.arg(1));
         if (object && static_cast<Type>(object->type) != Type::List &&
             static_cast<Type>(object->type) != Type::Set &&
             static_cast<Type>(object->type) != Type::Zset) {

@@ -851,7 +851,21 @@ bool compact_decode(const Compact::Entry& entry, double& score, Slice& member) {
     return true;
 }
 
+// Redis's listpack zset holds each score as decimal TEXT, and the text it prints for a zero
+// carries no sign: a -0 written into a listpack reads back as +0, while the skiplist keeps the
+// raw double and preserves the sign bit. Probed on the 7.4.2 oracle:
+//     ZADD k -0 m ; ZSCORE k m  ->  "0"  when k is listpack,  "-0"  when k is skiplist
+// and the sign survives a later listpack->skiplist promotion only if it was never in a listpack.
+// The compact form IS our listpack, so the sign is dropped HERE -- the single point at which a
+// score enters compact storage (both the insert and the update call sites) -- and nowhere else.
+// It is deliberately not done in reply_double: the oracle prints "-0" for a genuine -0, so the
+// sign is data, not formatting. A 4000-value fuzz of the oracle's listpack round-trip found zero
+// other lossy doubles, so -0 is the only value this touches.
+//
+// -0 and +0 compare equal, so the ordered-insert scan and the "score == old_score" no-op test are
+// unaffected by normalizing after they run.
 bool make_compact_tuple(double score, Slice member, std::string& tuple) {
+    if (score == 0) score = 0.0;
     try {
         tuple.resize(kCompactScoreBytes + member.n);
     } catch (const std::bad_alloc&) {
@@ -1664,7 +1678,9 @@ void emit_rank_range(Op& op, const CollectionRef& value, int64_t start, int64_t 
 
 void emit_score_range(Op& op, const CollectionRef& value, const ScoreRange& range,
                       const RangeOptions& options) {
-    if (score_range_empty(range) || options.offset < 0 || options.limit == 0) {
+    // A negative LIMIT offset is NOT rejected here: it counts back from the end of the matched
+    // range on the expanded encoding. See zset_resolve_limit_offset in t_zset.h.
+    if (score_range_empty(range) || options.limit == 0) {
         reply_array_header(op.sink(), 0);
         return;
     }
@@ -1692,9 +1708,9 @@ void emit_score_range(Op& op, const CollectionRef& value, const ScoreRange& rang
             reply_array_header(op.sink(), 0);
             return;
         }
-        const uint64_t offset = static_cast<uint64_t>(options.offset);
         const uint64_t available = last_rank - first_rank + 1;
-        if (offset >= available) {
+        uint64_t offset = 0;
+        if (!zset_resolve_limit_offset(options.offset, available, false, offset)) {
             reply_array_header(op.sink(), 0);
             return;
         }
@@ -1718,9 +1734,9 @@ void emit_score_range(Op& op, const CollectionRef& value, const ScoreRange& rang
         reply_array_header(op.sink(), 0);
         return;
     }
-    const uint64_t offset = static_cast<uint64_t>(options.offset);
     const uint64_t available = last_rank - first_rank + 1;
-    if (offset >= available) {
+    uint64_t offset = 0;
+    if (!zset_resolve_limit_offset(options.offset, available, true, offset)) {
         reply_array_header(op.sink(), 0);
         return;
     }
@@ -1736,7 +1752,8 @@ void emit_score_range(Op& op, const CollectionRef& value, const ScoreRange& rang
 
 void emit_lex_range(Op& op, const CollectionRef& value, const LexRange& range,
                     const RangeOptions& options) {
-    if (lex_range_empty(range) || options.offset < 0 || options.limit == 0) {
+    // As in emit_score_range: a negative LIMIT offset is resolved per encoding, not rejected.
+    if (lex_range_empty(range) || options.limit == 0) {
         reply_array_header(op.sink(), 0);
         return;
     }
@@ -1765,9 +1782,9 @@ void emit_lex_range(Op& op, const CollectionRef& value, const LexRange& range,
             reply_array_header(op.sink(), 0);
             return;
         }
-        const uint64_t offset = static_cast<uint64_t>(options.offset);
         const uint64_t available = last_rank - first_rank + 1;
-        if (offset >= available) {
+        uint64_t offset = 0;
+        if (!zset_resolve_limit_offset(options.offset, available, false, offset)) {
             reply_array_header(op.sink(), 0);
             return;
         }
@@ -1790,9 +1807,9 @@ void emit_lex_range(Op& op, const CollectionRef& value, const LexRange& range,
         reply_array_header(op.sink(), 0);
         return;
     }
-    const uint64_t offset = static_cast<uint64_t>(options.offset);
     const uint64_t available = last_rank - first_rank + 1;
-    if (offset >= available) {
+    uint64_t offset = 0;
+    if (!zset_resolve_limit_offset(options.offset, available, true, offset)) {
         reply_array_header(op.sink(), 0);
         return;
     }
@@ -2479,6 +2496,42 @@ SnapshotHookStatus zset_snapshot_load(Slice key, uint8_t encoding, int64_t expir
 }
 
 }  // namespace
+
+namespace {
+
+// The expanded zset hangs off an external ZsetVal, so an embedded (in-KvObj) compact zset has to
+// be moved out before it can be promoted -- the same two steps ZADD takes when a key outgrows the
+// compact limits (externalize_zset + promote_zset), minus the reply plumbing.
+template <bool kNotify>
+bool zset_sort_promote_one(Shard& shard, uint64_t hash, Slice key) {
+    KvObj* object = kNotify ? shard.store_find<true>(hash, key) : shard.store().find(hash, key);
+    if (!object || static_cast<Type>(object->type) != Type::Zset) return true;
+    if (CollectionRef(object).encoding() != CollectionEncoding::Compact) return true;
+    if (CollectionRef(object).is_embedded()) {
+        auto* moved = new (std::nothrow) ZsetVal;
+        if (!moved) return false;
+        for (const Compact::Entry entry : CollectionRef(object).compact())
+            if (!moved->append(entry.value)) { delete moved; return false; }
+        KvObj* replacement = kvobj_new_zset(object->key(), moved, object->expire_at_ms());
+        if (!replacement) { delete moved; return false; }
+        replacement->set_eviction_meta(object->eviction_meta());
+        if (shard.store_insert<kNotify>(hash, replacement) != FlatStore::InsertResult::Inserted) {
+            kvobj_free(replacement);
+            return false;
+        }
+        object = replacement;
+    }
+    CollectionRef value(object);
+    ObjectSizeTracker size_tracker(shard.store(), object);
+    return promote_zset(value);
+}
+
+}  // namespace
+
+void zset_sort_promote(Shard& shard, uint64_t hash, Slice key, bool notify) {
+    if (notify) zset_sort_promote_one<true>(shard, hash, key);
+    else zset_sort_promote_one<false>(shard, hash, key);
+}
 
 ZsetOwnerResult zset_owner_read(Shard& shard, Slice key, uint64_t hash, bool notify,
                                 std::vector<ZsetEntry>& entries, int64_t& expire_at_ms) {

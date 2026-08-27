@@ -32,6 +32,11 @@ enum class ValueKind : uint8_t { Nil, Inline, Borrow };
 
 struct ObjectImage {
     bool present = false;
+    // Collections only: the source key was in the EXPANDED (skiplist/hashtable/deque) encoding
+    // rather than the compact one. Carried because ZRANGESTORE's negative-LIMIT-offset rule is
+    // encoding-selected on the oracle (see zset_resolve_limit_offset in t_zset.h) and the payload
+    // itself is encoding-free. `encoding` below is the SNAPSHOT type byte, which is 0 for zsets.
+    bool expanded = false;
     Type type = Type::String;
     uint8_t encoding = 0;
     uint32_t entries = 0;
@@ -202,7 +207,11 @@ bool serialize_object(KvObj* object, ObjectImage& image) {
     if (!object) return true;
     image.present = true;
     image.type = static_cast<Type>(object->type);
-    if (image.type != Type::String) image.entries = CollectionRef(object).entries();
+    if (image.type != Type::String) {
+        const CollectionRef ref(object);
+        image.entries = ref.entries();
+        image.expanded = ref.encoding() != CollectionEncoding::Compact;
+    }
     image.expire_at_ms = object->expire_at_ms();
     const SnapshotTypeHooks& hooks = snapshot_type_hooks(image.type);
     SnapshotSaveCursor cursor;
@@ -2064,6 +2073,13 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 for (uint32_t i = 0; i < group.count; i++) {
                     const uint32_t pos = state.key_order[group.begin + i];
                     const KeyRef& key = state.keys[pos];
+                    // SORT expands a zset source in place before reading it (see
+                    // zset_sort_promote). This runs on the OWNER of that key, the only thread
+                    // allowed to mutate it, and BEFORE find_value so the image is taken from the
+                    // promoted object: the source sits at key 1 when STORE moved the destination
+                    // into key 0, and at key 0 otherwise.
+                    if (state.kind == Kind::Sort && pos == (state.sort_options.store ? 1u : 0u))
+                        zset_sort_promote(shard, key.hash, op.arg(key.arg), notify);
                     KvObj* object = find_value(key.hash, op.arg(key.arg));
                     if (!serialize_object(object, state.images[pos])) {
                         state.status[pos] = static_cast<uint8_t>(WorkError::Oom);
