@@ -674,11 +674,12 @@ void cmd_geosearch_armed(Shard& shard, Op& op) { cmd_geosearch<true>(shard, op);
 static const CommandSpec kTable[] = {
     {"GEOADD", 5, -1, CmdFlags::Write | CmdFlags::DenyOom,
      cmd_geoadd_clean, 1, 1, 1, notify_handler<cmd_geoadd_armed>},
-    {"GEOPOS", 3, -1, CmdFlags::Readonly,
+    // Minimum 2 for the member-list readers: redis answers "GEOPOS key" with an empty array.
+    {"GEOPOS", 2, -1, CmdFlags::Readonly,
      cmd_geopos_clean, 1, 1, 1, notify_handler<cmd_geopos_armed>},
     {"GEODIST", 4, 5, CmdFlags::Readonly,
      cmd_geodist_clean, 1, 1, 1, notify_handler<cmd_geodist_armed>},
-    {"GEOHASH", 3, -1, CmdFlags::Readonly,
+    {"GEOHASH", 2, -1, CmdFlags::Readonly,
      cmd_geohash_clean, 1, 1, 1, notify_handler<cmd_geohash_armed>},
     {"GEOSEARCH", 7, -1, CmdFlags::Readonly,
      cmd_geosearch_clean, 1, 1, 1, notify_handler<cmd_geosearch_armed>},

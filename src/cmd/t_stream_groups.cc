@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <charconv>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <limits>
 #include <map>
@@ -295,8 +296,54 @@ bool object_last_physical(KvObj* object, StreamID& id) {
     return true;
 }
 
+// Redis registers every container subcommand as a command of its own, with an arity of its own.
+// A wrong count therefore names the ARM -- "wrong number of arguments for 'xgroup|create' command"
+// -- and it answers BEFORE the key is looked up. The container row in the registry cannot express
+// that, so the arm table lives here and is consulted first. Arms this tree does not implement are
+// left to the handler below, which spells its own error.
+struct SubArity { const char* name; int min; int max; };   // max < 0 == variadic
+
+// Returns false having ALREADY replied. Both answers have to come out before the key is looked
+// up: an unknown arm is not a missing key, and "XINFO NOPE somekey" answered "no such key".
+bool subcommand_ok(Op& op, const char* container, const SubArity* table, size_t count) {
+    const Slice sub = op.arg(1);
+    for (size_t i = 0; i < count; i++) {
+        if (!sub.eq_icase(table[i].name)) continue;
+        const int argc = static_cast<int>(op.argc());
+        if (argc >= table[i].min && (table[i].max < 0 || argc <= table[i].max)) return true;
+        char message[96];
+        std::snprintf(message, sizeof(message),
+                      "ERR wrong number of arguments for '%s|%s' command",
+                      container, table[i].name);
+        reply_err(op.sink(), message);
+        return false;
+    }
+    char message[128];
+    char upper[16];
+    size_t upper_len = 0;
+    for (; container[upper_len] && upper_len + 1 < sizeof(upper); upper_len++) {
+        const char ch = container[upper_len];
+        upper[upper_len] = (ch >= 'a' && ch <= 'z') ? static_cast<char>(ch - ('a' - 'A')) : ch;
+    }
+    upper[upper_len] = '\0';
+    std::snprintf(message, sizeof(message), "ERR unknown subcommand '%.*s'. Try %s HELP.",
+                  static_cast<int>(std::min<uint32_t>(sub.n, 48)), sub.p, upper);
+    reply_err(op.sink(), message);
+    return false;
+}
+
+constexpr SubArity kXgroupArity[] = {
+    {"create", 5, -1}, {"createconsumer", 5, 5}, {"delconsumer", 5, 5},
+    {"destroy", 4, 4}, {"setid", 5, -1},
+};
+constexpr SubArity kXinfoArity[] = {
+    {"consumers", 4, 4}, {"groups", 3, 3}, {"stream", 3, -1},
+};
+
 template <bool kNotify>
 void cmd_xgroup(Shard& shard, Op& op) {
+    if (!subcommand_ok(op, "xgroup", kXgroupArity,
+                       sizeof(kXgroupArity) / sizeof(kXgroupArity[0]))) return;
     const Slice sub = op.arg(1);
     const Slice key = op.arg(2);
     KvObj* object = shard.store_find<kNotify>(op.hash, key);
@@ -860,6 +907,8 @@ void reply_group_info(Op& op, KvObj* object, const StreamHeader& header,
 
 template <bool kNotify>
 void cmd_xinfo(Shard& shard, Op& op) {
+    if (!subcommand_ok(op, "xinfo", kXinfoArity,
+                       sizeof(kXinfoArity) / sizeof(kXinfoArity[0]))) return;
     const Slice sub = op.arg(1);
     KvObj* object = shard.store_find<kNotify>(op.hash, op.arg(2));
     if (!object) { reply_err(op.sink(), "ERR no such key"); return; }
