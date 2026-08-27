@@ -6,7 +6,8 @@
 #                         shutdown invariants, counter-fired assertions, idle-CPU ceiling. Runs on
 #                         any machine.
 #   tests/gate.sh full    quick + torture-under-ASAN + the Redis 7.4 differential matrix + NIC
-#                         regression cells (the NIC cells need the 25GbE rig and scratchpad niclib).
+#                         regression cells vs tests/gate_refs.txt (the NIC cells need the 25GbE
+#                         netns rig and its scratchpad binaries/procsafe helper).
 #
 # The vacuous-validation rule is load-bearing here: every section proves its mechanism FIRED
 # (counters, accepts, direct>0), not merely that nothing crashed. A gate that can pass while
@@ -20,12 +21,26 @@ NCORES=$(taskset -c "$CORES" nproc)
 if [ "$NCORES" -ge 8 ]; then GATE_RATIO=6:$((NCORES-6))
 else GATE_RATIO=$(((NCORES+1)/2)):$((NCORES-(NCORES+1)/2)); fi
 PASS=0; FAIL=0
+SRV=0; SRVLOG=/dev/null
+EXPECT_QUICK=152
+EXPECT_FULL=161                 # full without the optional NIC row
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ok(){ say "$1" "ok"; PASS=$((PASS+1)); }
 bad(){ say "$1" "FAIL${2:+ ($2)}"; FAIL=$((FAIL+1)); }
+program_state(){
+  local expect=$1 actual=$((PASS+FAIL))
+  [ "$actual" -eq "$expect" ] \
+      && say "PROGRAM-STATE ledger ($actual/$expect checks)" "ok" \
+      || bad "PROGRAM-STATE ledger" "$actual/$expect checks"
+}
+redis_cli_expect_ok(){
+  local reply
+  reply=$(redis-cli -h 127.0.0.1 -p "$PORT" "$@" 2>&1 | tr -d '\r')
+  [ "$reply" = OK ] || { printf 'unexpected redis-cli reply to %s: %s\n' "$*" "$reply" >&2; return 1; }
+}
 
 # ---- 1. builds (the static_asserts on sizeof(Op)/sizeof(Client) gate here) -------------------
-make -j >/dev/null 2>&1 && ok "release build (+footprint locks)" || bad "release build"
+make -j12 >/dev/null 2>&1 && ok "release build (+footprint locks)" || bad "release build"
 ASAN=/tmp/tomokv-gate-asan
 g++ -std=c++20 -O1 -g -fsanitize=address -march=native -pthread -I. \
     src/main.cc src/net/tls.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc \
@@ -53,8 +68,9 @@ printf 'aclfile /tmp/gate-users.acl\nuser alice on nopass ~* &* +@all\n' > /tmp/
 
 boot(){ # binary -> pid ; server log to $SRVLOG
   local bin=$1; shift
+  SRV=0; SRVLOG=/dev/null
   (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null \
-      && { say "port $PORT pre-boot guard" "FAIL (already accepting)"; return 1; }
+      && { say "port $PORT pre-boot guard" "FAIL (already accepting)"; exit 1; }
   SRVLOG=$(mktemp /tmp/gate-srv.XXXXXX)
   taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --shards 16 --ratio $GATE_RATIO "$@" \
       > "$SRVLOG" 2>&1 &
@@ -77,10 +93,14 @@ python3 tests/acl_categories.py 127.0.0.1 $PORT >/tmp/gate-acl-categories.txt 2>
 python3 tests/acl.py 127.0.0.1 $PORT - >/tmp/gate-acl-nofile.txt 2>&1 \
     && ok "ACL LOAD/SAVE no-file errors" || bad "ACL LOAD/SAVE no-file errors" "see /tmp/gate-acl-nofile.txt"
 # idle-CPU ceiling: after the batteries, an idle server must not burn cores
-C0=$(awk '{print $14+$15}' /proc/$SRV/stat 2>/dev/null || echo 0); sleep 5
-C1=$(awk '{print $14+$15}' /proc/$SRV/stat 2>/dev/null || echo 0)
-J=$((C1-C0))   # jiffies over 5s across all threads; 8 threads @ 50ms-timeout heartbeat ~= tens
-[ "$J" -lt 200 ] && ok "idle CPU ceiling ($J jiffies/5s)" || bad "idle CPU ceiling" "$J jiffies/5s"
+C0=$(awk '{print $14+$15}' /proc/$SRV/stat 2>/dev/null); sleep 5
+C1=$(awk '{print $14+$15}' /proc/$SRV/stat 2>/dev/null)
+J=
+[ -n "$C0" ] && [ -n "$C1" ] && J=$((C1-C0))
+# J must exist: a missing process sample is not a zero-jiffy measurement.
+[ -n "$J" ] && [ "$J" -lt 200 ] \
+    && ok "idle CPU ceiling ($J jiffies/5s)" \
+    || bad "idle CPU ceiling" "${J:-measurement missing} jiffies/5s"
 stop
 # shutdown invariants + fired counters, from the TERM dump
 grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
@@ -106,7 +126,8 @@ grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG
 # The gate accumulates a section per landed feature (owner rule). Each test is directed and
 # asserts its own mechanisms fired; the boot covers multi/blocking/pubsub+sharded/lua/limits.
 for AT in 0 1; do
-  boot ./build/tomokv --atomic $AT || bad "feature battery boot (atomic $AT)"
+  boot ./build/tomokv --atomic $AT --enable-debug-command yes \
+      || bad "feature battery boot (atomic $AT)"
   for t in s6 multi_exec blocking stream streamgroups pubsub lua_scripting scriptsurf limits resp3 bitfield dumprestore zsetops geo climon climon2 tracking hexpire servertail lcs concur; do
     python3 tests/$t.py 127.0.0.1 $PORT >/tmp/gate-$t-$AT.txt 2>&1 \
         && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see /tmp/gate-$t-$AT.txt"
@@ -187,10 +208,11 @@ boot ./build/tomokv --enable-debug-command local --dir "$DEBUG_DIR" --dbfilename
     || bad "DEBUG purpose boot"
 python3 tests/debug.py 127.0.0.1 $PORT >/tmp/gate-debug.txt 2>&1 \
     && ok "DEBUG toggle/reload battery" || bad "DEBUG toggle/reload battery" "see /tmp/gate-debug.txt"
-redis-cli -h 127.0.0.1 -p $PORT FLUSHALL >/dev/null 2>&1
-python3 tests/snap_typed_roundtrip.py $PORT build_save >/tmp/gate-snap-typed.txt 2>&1 \
-    && redis-cli -h 127.0.0.1 -p $PORT DEBUG RELOAD >/dev/null 2>&1 \
-    && python3 tests/snap_typed_roundtrip.py $PORT verify >>/tmp/gate-snap-typed.txt 2>&1 \
+{ redis_cli_expect_ok FLUSHALL \
+    && python3 tests/snap_typed_roundtrip.py $PORT build_save \
+    && redis_cli_expect_ok DEBUG RELOAD \
+    && python3 tests/snap_typed_roundtrip.py $PORT verify; } \
+    >/tmp/gate-snap-typed.txt 2>&1 \
     && ok "typed snapshot round-trip incl stream" \
     || bad "typed snapshot round-trip incl stream" "see /tmp/gate-snap-typed.txt"
 stop
@@ -430,7 +452,12 @@ AOF_OFF_DIR=$(mktemp -d "/tmp/gate-aof-off-${PERSIST_IO}.XXXXXX")
 boot ./build/tomokv --protected-mode no --persist-io "$PERSIST_IO" \
     --appendonly no --dir "$AOF_OFF_DIR" \
     || bad "AOF-off negative-control boot"
-redis-cli -h 127.0.0.1 -p $PORT SET aof-negative-control must-disappear >/dev/null 2>&1
+AOF_OFF_SEED=$(redis-cli -h 127.0.0.1 -p $PORT SET aof-negative-control must-disappear 2>&1 |
+    tr -d '\r')
+AOF_OFF_PRE_SIZE=$(redis-cli -h 127.0.0.1 -p $PORT DBSIZE 2>/dev/null | tr -d '\r')
+[ "$AOF_OFF_SEED" = OK ] && [ "$AOF_OFF_PRE_SIZE" = 1 ] \
+    && ok "AOF-off negative-control seed landed" \
+    || bad "AOF-off negative-control seed" "SET=$AOF_OFF_SEED DBSIZE=$AOF_OFF_PRE_SIZE"
 kill -KILL $SRV 2>/dev/null
 wait $SRV 2>/dev/null
 sleep 5
@@ -464,10 +491,11 @@ python3 tests/tls.py --generate "$TLS_DIR" >/tmp/gate-tls-generate.txt 2>&1 \
 
 tlsboot(){ # auth-mode [extra TLS knobs]
   local auth=$1; shift
+  SRV=0; SRVLOG=/dev/null
   (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null \
-      && { say "TLS plain port $PORT pre-boot guard" "FAIL (already accepting)"; return 1; }
+      && { say "TLS plain port $PORT pre-boot guard" "FAIL (already accepting)"; exit 1; }
   (exec 3<>/dev/tcp/127.0.0.1/$TLS_PORT) 2>/dev/null \
-      && { say "TLS port $TLS_PORT pre-boot guard" "FAIL (already accepting)"; return 1; }
+      && { say "TLS port $TLS_PORT pre-boot guard" "FAIL (already accepting)"; exit 1; }
   SRVLOG=$(mktemp /tmp/gate-tls-srv.XXXXXX)
   taskset -c $CORES ./build/tomokv --port "$PORT" --tls-port "$TLS_PORT" \
       --bind 127.0.0.1 --shards 16 --ratio "$GATE_RATIO" --protected-mode no \
@@ -543,6 +571,7 @@ TLS_ZC=$(sed -n 's/^tls: .* zc_suppressed=\([0-9][0-9]*\).*/\1/p' "$SRVLOG")
     && ok "TLS zc borrow gates fired (suppressed=$TLS_ZC)" || bad "TLS zc borrow gates fired"
 
 if [ "$TIER" = quick ]; then
+  program_state "$EXPECT_QUICK"
   echo; echo "GATE(quick): $PASS ok, $FAIL FAIL"; [ $FAIL -eq 0 ] || exit 1; exit 0
 fi
 
@@ -560,9 +589,11 @@ stop
 grep -q "ERROR: AddressSanitizer" "$SRVLOG" && bad "ASAN clean" || ok "ASAN clean"
 
 # ---- 4b. full tier: zero-copy borrow lifetime (release+ASAN) ----------------------------------
-zcboot(){ SRVLOG=$(mktemp /tmp/gate-srv.XXXXXX)
+zcboot(){
+  SRV=0; SRVLOG=/dev/null
   (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null \
-      && { say "port $PORT pre-boot guard" "FAIL (already accepting)"; return 1; }
+      && { say "port $PORT pre-boot guard" "FAIL (already accepting)"; exit 1; }
+  SRVLOG=$(mktemp /tmp/gate-srv.XXXXXX)
   timeout 900 taskset -c $CORES "$1" --port $PORT --bind 127.0.0.1 --shards 16 --ratio $GATE_RATIO       --zc-min 16384 > "$SRVLOG" 2>&1 &
   SRV=$!
   for _ in $(seq 50); do (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null && return 0; sleep 0.2; done
@@ -591,15 +622,16 @@ fi
 
 # ---- 5. full tier: NIC regression cells vs pinned refs ----------------------------------------
 SPD=${GATE_SCRATCH:-/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad}
-if [ -f "$SPD/niclib.sh" ] && [ -f tests/gate_refs.txt ]; then
+NIC_CHECKED=0
+if [ -f tests/niclib.sh ] && [ -f "$SPD/procsafe.sh" ] && [ -f tests/gate_refs.txt ]; then
   ( set -u
-    . "$SPD/niclib.sh"; . "$SPD/procsafe.sh"
+    . tests/niclib.sh; . "$SPD/procsafe.sh"
     NIC_PORT=6380; NIC_CLI_BIN=$SPD/bins/cli; BL_LOGDIR=$(mktemp -d)
     nic_assert_link || exit 9
     nic_tune >/dev/null 2>&1 || true
     CPP=$(pwd)/build/tomokv; KMAX=2000000
     run_cell(){ # name cores ratio shards pipe lg t conns ratio_rw
-      nic_kill_srv $NIC_PORT
+      nic_kill_srv $NIC_PORT || return 1
       # --protected-mode no: protected mode (vanilla-compat: no bind check) denies non-local
       # peers when no password is set — which is every NIC cell.
       NIC_SRV_CORES=$2 nic_boot "gate_$1" "$CPP" --port $NIC_PORT --bind $NIC_SRV_IP --ratio $3 --shards $4 --protected-mode no || return 1
@@ -614,7 +646,11 @@ if [ -f "$SPD/niclib.sh" ] && [ -f tests/gate_refs.txt ]; then
     RC=0
     while read -r name cores ratio shards pipe lg t conns rw ref; do
       case "$name" in \#*|"") continue;; esac
-      got=$(run_cell "$name" "$cores" "$ratio" "$shards" "$pipe" "$lg" "$t" "$conns" "$rw")
+      if ! got=$(run_cell "$name" "$cores" "$ratio" "$shards" "$pipe" "$lg" "$t" "$conns" "$rw"); then
+        printf '  regression %-28s teardown/boot/cell FAIL\n' "$name"
+        RC=1
+        continue
+      fi
       python3 - "$name" "$got" "$ref" <<'PY' || RC=1
 import sys
 name, got, ref = sys.argv[1], float(sys.argv[2] or 0), float(sys.argv[3])
@@ -624,17 +660,21 @@ print(f"  regression {name:<28} {got/1e6:.2f}M vs ref {ref/1e6:.2f}M ({d:+.1f}%)
 sys.exit(0 if d >= -3.0 else 1)
 PY
     done < tests/gate_refs.txt
-    nic_kill_srv $NIC_PORT
+    nic_kill_srv $NIC_PORT || RC=1
     exit $RC
   )
   case $? in
-    0) ok "NIC regression cells (all within -3%)";;
+    0) NIC_CHECKED=1; ok "NIC regression cells (all within -3%)";;
     9) say "NIC regression cells" "SKIPPED (no rig)";;
-    *) bad "NIC regression cells";;
+    *) NIC_CHECKED=1; bad "NIC regression cells";;
   esac
 else
   say "NIC regression cells" "SKIPPED (no rig/refs)"
 fi
 
-echo; echo "GATE(full): $PASS ok, $FAIL FAIL"
+program_state "$((EXPECT_FULL+NIC_CHECKED))"
+echo
+[ "$NIC_CHECKED" -eq 1 ] \
+    && echo "GATE(full): $PASS ok, $FAIL FAIL" \
+    || echo "GATE(full, no perf tier): $PASS ok, $FAIL FAIL"
 [ $FAIL -eq 0 ] || exit 1
