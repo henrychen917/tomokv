@@ -320,7 +320,10 @@ struct ScatterState {
     WorkError final_error = WorkError::None;
     uint8_t phase = 1;
     ScriptPhase script_phase = ScriptPhase::None;
-    bool script_publish_pending = false;
+    // Set when a wave could not find task slots and the poster is holding its own `pending`
+    // reference across the requeue. While it is set no owner task may execute a phase body: the
+    // phase word already names the wave that is still being published.
+    bool script_resume_post = false;
     bool script_pins_live = false;
     bool script_ticket_live = false;
     bool script_apply_after_unpin = false;
@@ -1658,7 +1661,6 @@ ScriptPostResult script_post_phase(Server& server, ThreadCtx& self, Ring& ring,
                                    ScriptPhase phase) {
     state.script_phase = phase;
     state.phase = phase == ScriptPhase::Apply ? 2 : 1;
-    state.script_publish_pending = true;
 
     int32_t one_shard = -1;
     if (phase == ScriptPhase::Run) {
@@ -1667,10 +1669,7 @@ ScriptPostResult script_post_phase(Server& server, ThreadCtx& self, Ring& ring,
         const uint32_t count = script_select_positions(state, phase);
         reset_groups(state);
         build_groups(state, state.hop2, count);
-        if (!state.nsub) {
-            state.script_publish_pending = false;
-            return ScriptPostResult::Empty;
-        }
+        if (!state.nsub) return ScriptPostResult::Empty;
     }
 
     uint32_t needed[kMaxThreads] = {};
@@ -1695,18 +1694,22 @@ ScriptPostResult script_post_phase(Server& server, ThreadCtx& self, Ring& ring,
         !aof_prepare_scatter_group(state)) {
         state.final_error = WorkError::Oom;
         state.aborted.store(true, std::memory_order_release);
-        state.script_publish_pending = false;
         return ScriptPostResult::Empty;
     }
 
-    state.pending.store(phase == ScriptPhase::Run ? 1u : state.nsub,
+    // THE +1 IS THE POSTER'S OWN REFERENCE and it is load-bearing. Owner tasks become visible one
+    // participant at a time, so without it the LAST task could finish and try to advance the wave
+    // while this thread was still inside the publishing loop -- and the next wave's build_groups()
+    // would then rewrite state.groups under a thread already reading it. Two executors inside
+    // build_groups() on one arena is exactly how the differ's script leg segfaulted. The poster
+    // releases this reference in xshard_complete_script() once publication is complete.
+    state.pending.store((phase == ScriptPhase::Run ? 1u : state.nsub) + 1u,
                         std::memory_order_release);
     if (phase == ScriptPhase::Run) {
         ThreadCtx& owner = server.thread(participants[0]);
         const Task post{source.client, source.op_id, one_shard, &state};
         if (!owner.post_task_quiet(self.id(), post, self.sig())) std::abort();
         owner.flush_task_notify(self.id(), ring, self.sig());
-        state.script_publish_pending = false;
         return ScriptPostResult::Posted;
     }
 
@@ -1730,7 +1733,6 @@ ScriptPostResult script_post_phase(Server& server, ThreadCtx& self, Ring& ring,
             std::abort();
         owner.flush_task_notify(self.id(), ring, self.sig());
     }
-    state.script_publish_pending = false;
     return ScriptPostResult::Posted;
 }
 
@@ -1762,7 +1764,7 @@ struct ScriptAccessScope {
 ScatterTaskResult execute_script_phase(const Task& task, Shard& shard, Op& op) {
     ScatterState& state = *task.scatter;
     ShardGroup* group = group_for(state, shard.id());
-    if (state.script_publish_pending) return ScatterTaskResult::Complete;
+    if (state.script_resume_post) return ScatterTaskResult::Complete;
     if (!group && state.script_phase != ScriptPhase::Run) std::abort();
 
     switch (state.script_phase) {
@@ -1891,7 +1893,7 @@ ScatterTaskResult execute_script_phase(const Task& task, Shard& shard, Op& op) {
 }
 
 bool xshard_owner_mutation_phase(const ScatterState& state, const Op& op) {
-    if (state.kind == Kind::Script && state.script_publish_pending) return false;
+    if (state.kind == Kind::Script && state.script_resume_post) return false;
     if (!(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) return false;
     if (state.atomic_write) return true;
     if (state.atomic_apply || state.atomic_pop || state.two_hop) return state.phase == 2;
@@ -1906,7 +1908,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
     NotifyExecutionScope notify_scope(shard, op, notify, shard.notify_order_base());
     ScatterState& state = *task.scatter;
     if (state.kind == Kind::Script &&
-        (state.script_phase != ScriptPhase::Apply || state.script_publish_pending))
+        (state.script_phase != ScriptPhase::Apply || state.script_resume_post))
         return execute_script_phase(task, shard, op);
     ShardGroup& group = *group_for(state, shard.id());
     if (xshard_owner_mutation_phase(state, op) && shard.has_watches()) {
@@ -2509,29 +2511,42 @@ void script_engine_error_reply(Op& op, ScatterState& state, WorkError error) {
     }
 }
 
+// Drives one activation from wave to wave. Exactly ONE thread is inside the switch below at any
+// moment: the one that took `pending` to zero, which cannot happen until the poster has released
+// its own reference. An empty wave, or a wave whose tasks all finished before the poster let go,
+// is driven onward by this thread in the loop rather than by recursion -- an OCC retry storm would
+// otherwise recurse once per restart.
 ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring,
                                      const Task& task, Op& op, ScatterState& state) {
-    bool synthetic_completion = false;
-    if (state.script_publish_pending) {
-        const ScriptPostResult resumed = script_post_phase(
-            server, self, ring, task, state, state.script_phase);
-        if (resumed == ScriptPostResult::Full) return ScatterFinish::Retry;
-        if (resumed == ScriptPostResult::Posted) return ScatterFinish::Waiting;
-        synthetic_completion = true;
-    }
-    if (!synthetic_completion &&
-        state.pending.fetch_sub(1, std::memory_order_acq_rel) != 1)
-        return ScatterFinish::Waiting;
+    ScatterFinish outcome = ScatterFinish::Waiting;
+    bool driving = false;
 
-    auto post = [&](ScriptPhase next) -> ScatterFinish {
+    // Publishes `next`; returns true when THIS thread still owns the activation afterwards.
+    auto launch = [&](ScriptPhase next) -> bool {
         const ScriptPostResult result = script_post_phase(server, self, ring, task, state, next);
-        if (result == ScriptPostResult::Posted) return ScatterFinish::Waiting;
-        if (result == ScriptPostResult::Full) return ScatterFinish::Retry;
-        // Empty VALIDATE/APPLY phases are completed synchronously below. No owner task exists to
-        // return through this function, so loop by recursion with the publication bit clear.
-        state.pending.store(1, std::memory_order_relaxed);
-        return xshard_complete_script(server, self, ring, task, op, state);
+        if (result == ScriptPostResult::Full) {
+            // No task slots anywhere. Nothing else references the activation, so the poster's
+            // reference simply survives the requeue and the retry resumes this same publication.
+            state.script_resume_post = true;
+            outcome = ScatterFinish::Retry;
+            return false;
+        }
+        state.script_resume_post = false;
+        if (result == ScriptPostResult::Empty) return true;   // nothing posted; keep driving
+        if (state.pending.fetch_sub(1, std::memory_order_acq_rel) == 1) return true;
+        outcome = ScatterFinish::Waiting;
+        return false;
     };
+
+    for (;;) {
+    if (!driving) {
+        if (state.script_resume_post) {
+            if (!launch(state.script_phase)) return outcome;
+        } else if (state.pending.fetch_sub(1, std::memory_order_acq_rel) != 1) {
+            return ScatterFinish::Waiting;
+        }
+    }
+    driving = false;
 
     switch (state.script_phase) {
         case ScriptPhase::Pin: {
@@ -2542,7 +2557,9 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                 script_engine_error_reply(op, state, error);
                 state.script_apply_after_unpin = false;
                 state.script_commit_after_unpin = false;
-                return post(ScriptPhase::Unpin);
+                if (!launch(ScriptPhase::Unpin)) return outcome;
+                driving = true;
+                continue;
             }
             state.script_pins_live = true;
             // All intents now exist. A write before this point is part of the new cut; every write
@@ -2556,7 +2573,9 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                 state.debug_script_defer_deadline == 0)
                 state.debug_script_defer_deadline =
                     now_ns() + static_cast<uint64_t>(state.debug_script_defer_us) * 1000ull;
-            return post(ScriptPhase::Read);
+            if (!launch(ScriptPhase::Read)) return outcome;
+            driving = true;
+            continue;
         }
         case ScriptPhase::Read: {
             WorkError error = WorkError::None;
@@ -2566,9 +2585,13 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                 script_engine_error_reply(op, state, error);
                 state.script_apply_after_unpin = false;
                 state.script_commit_after_unpin = false;
-                return post(ScriptPhase::Unpin);
+                if (!launch(ScriptPhase::Unpin)) return outcome;
+                driving = true;
+                continue;
             }
-            return post(ScriptPhase::Run);
+            if (!launch(ScriptPhase::Run)) return outcome;
+            driving = true;
+            continue;
         }
         case ScriptPhase::Run:
             if (state.aborted.load(std::memory_order_acquire)) {
@@ -2577,7 +2600,9 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                 notify_discard_batch(state.notify.exchange(nullptr));
                 state.script_apply_after_unpin = false;
                 state.script_commit_after_unpin = false;
-                return post(ScriptPhase::Unpin);
+                if (!launch(ScriptPhase::Unpin)) return outcome;
+                driving = true;
+                continue;
             }
             state.script_has_writes = false;
             for (uint32_t i = 0; i < state.key_count; i++)
@@ -2589,7 +2614,9 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                 server.note_script_activation();
                 state.script_apply_after_unpin = false;
                 state.script_commit_after_unpin = false;
-                return post(ScriptPhase::Unpin);
+                if (!launch(ScriptPhase::Unpin)) return outcome;
+                driving = true;
+                continue;
             }
             // Certification through APPLY is deliberately exclusive. Two activations can STAGE
             // and RUN concurrently, but without this seam both can validate the same predecessor
@@ -2601,7 +2628,9 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                     server.note_script_retry();
                     script_clear_attempt(state, op);
                     state.script_cut = server.atomic_snapshot();
-                    return post(ScriptPhase::Read);
+                    if (!launch(ScriptPhase::Read)) return outcome;
+                    driving = true;
+                    continue;
                 }
                 server.note_script_giveup();
                 op.reply.clear();
@@ -2610,13 +2639,17 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                 notify_discard_batch(state.notify.exchange(nullptr));
                 state.script_apply_after_unpin = false;
                 state.script_commit_after_unpin = false;
-                return post(ScriptPhase::Unpin);
+                if (!launch(ScriptPhase::Unpin)) return outcome;
+                driving = true;
+                continue;
             }
             state.script_certifier = true;
             state.script_ticket = server.atomic_commit_reserve();
             state.script_ticket_live = true;
             state.script_conflict.store(false, std::memory_order_relaxed);
-            return post(ScriptPhase::Validate);
+            if (!launch(ScriptPhase::Validate)) return outcome;
+            driving = true;
+            continue;
 
         case ScriptPhase::Validate:
             if (state.script_conflict.load(std::memory_order_acquire)) {
@@ -2630,7 +2663,9 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                     server.note_script_retry();
                     script_clear_attempt(state, op);
                     state.script_cut = server.atomic_snapshot();
-                    return post(ScriptPhase::Read);
+                    if (!launch(ScriptPhase::Read)) return outcome;
+                    driving = true;
+                    continue;
                 }
                 server.note_script_giveup();
                 op.reply.clear();
@@ -2639,20 +2674,26 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                 notify_discard_batch(state.notify.exchange(nullptr));
                 state.script_apply_after_unpin = false;
                 state.script_commit_after_unpin = false;
-                return post(ScriptPhase::Unpin);
+                if (!launch(ScriptPhase::Unpin)) return outcome;
+                driving = true;
+                continue;
             }
             // Drop the read intents in a separate all-owner wave before installing candidates.
             // The reserved ticket orders every later writer after this activation, and no MVCC
             // record yet points at the group arrays that UNPIN is about to rebuild.
             state.script_apply_after_unpin = true;
             state.script_commit_after_unpin = false;
-            return post(ScriptPhase::Unpin);
+            if (!launch(ScriptPhase::Unpin)) return outcome;
+            driving = true;
+            continue;
 
         case ScriptPhase::Unpin:
             state.script_pins_live = false;
             if (state.script_apply_after_unpin) {
                 state.script_apply_after_unpin = false;
-                return post(ScriptPhase::Apply);
+                if (!launch(ScriptPhase::Apply)) return outcome;
+                driving = true;
+                continue;
             }
             if (state.script_commit_after_unpin) {
                 state.script_commit_after_unpin = false;
@@ -2704,6 +2745,7 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
             std::abort();
     }
     std::abort();
+    }
 }
 
 ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
