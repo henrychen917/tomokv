@@ -339,6 +339,67 @@ def reservation_release_paths():
         admin.close()
 
 
+# The cut-slot reservation exists so scripts cannot starve MGET/MSET/EXEC of snapshot registrations
+# on an IO thread. Boot with --script-crossshard-cut-slots 1 and hold activations open: any IO
+# thread that ends up carrying two at once must refuse the second with -BUSY rather than stopping
+# the parse pass. Many connections are used because the IO thread a connection lands on is not
+# selectable from here; the refusal counter is the proof the arm actually fired.
+def cut_window_refusal():
+    admin = Resp()
+    clients = [Resp() for _ in range(24)]
+    try:
+        distinct, _ = geometry(admin)
+        pair = distinct[:2]
+        admin.cmd("MSET", pair[0], "w", pair[1], "w")
+        source_ro = "return {redis.call('GET',KEYS[1]),redis.call('GET',KEYS[2])}"
+
+        # ZERO CONTROL, same boot and same 24 connections, issued ONE AT A TIME so at most one cut
+        # is registered at any moment. None of these may be refused; a refusal counter that also
+        # fires here would be measuring load, not the window.
+        control_before = stats(admin)
+        control = [client.cmd("EVAL", source_ro, "2", *pair) for client in clients]
+        control_after = stats(admin)
+        note("zero control: unheld activations are never window-refused",
+             all(r == [b"w", b"w"] for r in control) and
+             control_after.get("script_crossshard_window_refusals", 0) ==
+             control_before.get("script_crossshard_window_refusals", 0),
+             "refusals=+%d bad=%r" % (
+                 control_after.get("script_crossshard_window_refusals", 0) -
+                 control_before.get("script_crossshard_window_refusals", 0),
+                 [r for r in control if r != [b"w", b"w"]][:2]))
+
+        before = stats(admin)
+        admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "500000")
+        for client in clients:
+            client.sock.sendall(frame("EVAL", source_ro, "2", *pair))
+        replies = [client.read() for client in clients]
+        admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "0")
+        after = stats(admin)
+        busy = [r for r in replies if isinstance(r, RespError) and r.message.startswith("BUSY ")]
+        good = [r for r in replies if r == [b"w", b"w"]]
+        other = [r for r in replies
+                 if not (r in ([b"w", b"w"],) or
+                         (isinstance(r, RespError) and r.message.startswith("BUSY ")))]
+        note("cut-slot window refusal fires and is counted",
+             len(busy) >= 1 and
+             after.get("script_crossshard_window_refusals", 0) -
+             before.get("script_crossshard_window_refusals", 0) == len(busy),
+             "busy=%d counted=+%d" % (
+                 len(busy), after.get("script_crossshard_window_refusals", 0) -
+                 before.get("script_crossshard_window_refusals", 0)))
+        note("refusal is a reply, not a stalled connection or a wrong answer",
+             not other and len(good) + len(busy) == len(clients),
+             "ok=%d busy=%d other=%r" % (len(good), len(busy), other[:2]))
+        note("a refused activation reserves nothing and leaks nothing", settle(admin) == 0,
+             "armed=%d released=%d" % (after.get("script_keys_armed", 0),
+                                       after.get("script_keys_released", 0)))
+    finally:
+        admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "0")
+        for client in clients:
+            client.close()
+        admin.close()
+
+
 def watch_declared_keys_only():
     watcher, writer = Resp(), Resp()
     try:
@@ -712,7 +773,7 @@ def staging_limit_control():
         client.close()
 
 
-if MODE not in ("stage0", "all", "off", "limit", "reserve"):
+if MODE not in ("stage0", "all", "off", "limit", "reserve", "window"):
     raise SystemExit("unknown xscript battery mode %r" % MODE)
 
 if MODE != "reserve":
@@ -730,6 +791,8 @@ elif MODE == "off":
     feature_off_control()
 elif MODE == "limit":
     staging_limit_control()
+elif MODE == "window":
+    cut_window_refusal()
 if FAIL:
     raise SystemExit("%d xscript checks failed" % FAIL)
 print("XSCRIPT %s directed battery passed" % MODE, flush=True)

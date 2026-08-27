@@ -1751,7 +1751,16 @@ Shard* script_workbench(Server& server, int32_t coordinator) {
         t_script_workbench.shard = std::move(shard);
     }
     if (t_script_workbench.server != &server) std::abort();
-    return t_script_workbench.shard.get();
+    Shard* workbench = t_script_workbench.shard.get();
+    // One executor can coordinate activations for different KEYS[1] owners, so re-stamp the
+    // identity when it changes. Nothing in the whitelisted handler set consults shard.id() today
+    // except the zero-copy borrow, which zc_min == UINT32_MAX already makes unreachable here --
+    // but a stale id is the kind of thing the next handler quietly inherits. Re-stamping also
+    // picks up live CONFIG SET changes to the type/stream limits.
+    if (workbench->id() != coordinator)
+        workbench->init_private(&server, coordinator, server.cfg().type_limits,
+                                server.cfg().stream_limits);
+    return workbench;
 }
 
 struct ScriptAccessScope {
