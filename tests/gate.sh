@@ -211,6 +211,35 @@ for PERSIST_IO in normal uring; do
              "see /tmp/gate-snapshot-cut-${PERSIST_IO}.txt"
   stop
 
+  # The cut battery above writes only single keys, so it passes on a tree whose snapshot tears
+  # every cross-shard atomic group. These two arms are the ones that can tell the difference:
+  # generation-tagged groups, a live MGET reader that must stay clean throughout, and the
+  # cuts_waited counter that separates a real group drain from a vacuous one. Both arms were
+  # confirmed to FAIL on the pre-fix tree (44-53 and 10-13 torn groups per cut respectively).
+  GROUP_DIR=$(mktemp -d "/tmp/gate-snapshot-groups-${PERSIST_IO}.XXXXXX")
+  boot ./build/tomokv --protected-mode no --persist-io "$PERSIST_IO" --atomic 1 \
+      --enable-debug-command yes --dir "$GROUP_DIR" --dbfilename groups.tomo \
+      || bad "atomic group cut boot ($PERSIST_IO, atomic 1)"
+  python3 tests/snap_cut_battery.py "$PORT" atomic_groups "$GROUP_DIR/groups.tomo" mset 5 \
+      >"/tmp/gate-snapshot-groups-mset-${PERSIST_IO}.txt" 2>&1 \
+      && grep -q "ATOMIC_GROUP_CUT PASS" "/tmp/gate-snapshot-groups-mset-${PERSIST_IO}.txt" \
+      && ok "snapshot never tears a cross-shard MSET group ($PERSIST_IO, atomic 1)" \
+      || bad "snapshot never tears a cross-shard MSET group ($PERSIST_IO, atomic 1)" \
+             "see /tmp/gate-snapshot-groups-mset-${PERSIST_IO}.txt"
+  stop
+  # CONTROL ARM: the DEFAULT --atomic 0. EXEC force-admits a group at either setting, so a
+  # transaction is atomic to readers here too and the file must agree with them.
+  boot ./build/tomokv --protected-mode no --persist-io "$PERSIST_IO" --atomic 0 \
+      --enable-debug-command yes --dir "$GROUP_DIR" --dbfilename groups.tomo \
+      || bad "atomic group cut boot ($PERSIST_IO, atomic 0)"
+  python3 tests/snap_cut_battery.py "$PORT" atomic_groups "$GROUP_DIR/groups.tomo" exec 3 \
+      >"/tmp/gate-snapshot-groups-exec-${PERSIST_IO}.txt" 2>&1 \
+      && grep -q "ATOMIC_GROUP_CUT PASS" "/tmp/gate-snapshot-groups-exec-${PERSIST_IO}.txt" \
+      && ok "snapshot never tears a MULTI/EXEC group ($PERSIST_IO, default atomic 0)" \
+      || bad "snapshot never tears a MULTI/EXEC group ($PERSIST_IO, default atomic 0)" \
+             "see /tmp/gate-snapshot-groups-exec-${PERSIST_IO}.txt"
+  stop
+
   TYPED_DIR=$(mktemp -d "/tmp/gate-snapshot-typed-${PERSIST_IO}.XXXXXX")
   boot ./build/tomokv --protected-mode no --persist-io "$PERSIST_IO" \
       --dir "$TYPED_DIR" --dbfilename typed.tomo \

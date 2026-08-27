@@ -1473,6 +1473,8 @@ void cmd_info(Shard&, Op& op) {
         appendf(body,
                 "# Persistence\r\nrdb_bgsave_in_progress:%u\r\nrdb_last_save_time:%lld\r\n"
                 "snapshot_preimages:%llu\r\n"
+                "snapshot_cuts_armed:%llu\r\nsnapshot_cuts_waited:%llu\r\n"
+                "snapshot_groups_drained:%llu\r\n"
                 "aof_enabled:%u\r\naof_rewrite_in_progress:%u\r\n"
                 "aof_rewrite_scheduled:%u\r\naof_last_bgrewrite_status:%s\r\n"
                 "aof_last_write_status:%s\r\naof_base_size:%llu\r\n"
@@ -1488,6 +1490,10 @@ void cmd_info(Shard&, Op& op) {
                 g_server && g_server->snapshot().in_progress() ? 1u : 0u,
                 static_cast<long long>(g_server ? g_server->snapshot().last_save_time() : 0),
                 static_cast<unsigned long long>(preimages),
+                static_cast<unsigned long long>(g_server ? g_server->snapshot().cuts_armed() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->snapshot().cuts_waited() : 0),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->snapshot().drained_groups() : 0),
                 g_server && g_server->aof().configured() ? 1u : 0u,
                 g_server && g_server->aof().rewrite_in_progress() ? 1u : 0u,
                 g_server && g_server->aof().rewrite_scheduled() ? 1u : 0u,

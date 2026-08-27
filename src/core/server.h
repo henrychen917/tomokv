@@ -756,6 +756,29 @@ public:
                 std::memory_order_acquire);
         return inflight;
     }
+    // GROUPS WHOSE RECORDS ARE ONLY PARTLY INSTALLED -- the quantity a snapshot cut must wait on.
+    // It is NOT atomic_inflight(). A group leaves atomic_inflight() only when its REPLY retires on
+    // the IO thread that admitted it, and that retire runs in the very loop a blocking SAVE is
+    // sitting inside: waiting for atomic_inflight()==0 from a SAVE wedges the server (measured --
+    // rdb_bgsave_in_progress stuck at 1 with 13 leases held). Records, by contrast, are dispatched
+    // to every participating owner in ONE indivisible IO step (io_loop.h checks free slots on all
+    // participants and only then posts, aborting on a failed post), and they finish on the OWNER
+    // threads, which keep running while a SAVE blocks. So this window opens at admission and closes
+    // either at the owner-side completion or at the synchronous pre-dispatch teardown -- never on a
+    // thread a snapshot can be occupying.
+    uint64_t atomic_apply_inflight() const {
+        return atomic_apply_inflight_.load(std::memory_order_acquire);
+    }
+    void atomic_apply_open(std::atomic<bool>& flag) {
+        flag.store(true, std::memory_order_release);
+        atomic_apply_inflight_.fetch_add(1, std::memory_order_acq_rel);
+    }
+    // Idempotent by construction: whichever of the two ends reaches the group first closes it.
+    void atomic_apply_close(std::atomic<bool>& flag) {
+        if (__builtin_expect(!flag.load(std::memory_order_acquire), true)) return;
+        if (flag.exchange(false, std::memory_order_acq_rel))
+            atomic_apply_inflight_.fetch_sub(1, std::memory_order_acq_rel);
+    }
     uint64_t atomic_window_stalls() const {
         return atomic_window_stalls_.load(std::memory_order_relaxed);
     }
@@ -1258,6 +1281,7 @@ private:
     std::atomic<uint64_t> atomic_commit_inflight_{0};
     std::atomic<uint64_t> atomic_commit_safe_{0};
     std::atomic<bool> snapshot_atomic_barrier_{false};
+    std::atomic<uint64_t> atomic_apply_inflight_{0};
     std::atomic<uint64_t> atomic_window_stalls_{0};
     std::atomic<uint32_t> debug_atomic_direct_defer_{0};
     std::atomic<uint32_t> debug_atomic_commit_delay_{0};

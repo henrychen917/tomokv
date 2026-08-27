@@ -190,7 +190,14 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         error = "Background save already in progress";
         return StartResult::Busy;
     }
-    if (rewrite) server.set_snapshot_atomic_barrier(true);
+    // EVERY snapshot path arms the barrier, not just the AOF-rewrite one. The cut is taken per
+    // owner between Freeze and Mark; a cross-shard atomic group whose records are installed on some
+    // owners and still queued on others straddles it and lands in the file half applied. Arming
+    // stops new groups from being admitted, and the drain below waits out the ones already
+    // dispatched. Measured on the unfixed tree: 36-51 of 100 generation-tagged cross-shard MSET
+    // groups torn per SAVE at --atomic 1, and 8-11 per SAVE for MULTI/EXEC at the default
+    // --atomic 0, while a live MGET reader on the same server never saw a single torn group.
+    server.set_snapshot_atomic_barrier(true);
 
     const uint64_t next_epoch = epoch_.fetch_add(1, std::memory_order_relaxed) + 1;
     epoch_.store(next_epoch, std::memory_order_release);
@@ -258,11 +265,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
            ready_owners_.load(std::memory_order_acquire) != executor_count_)
         std::this_thread::yield();
     if (phase() == Phase::Preparing) {
-        if (rewrite) {
-            while (server.atomic_inflight() != 0 &&
-                   !server.shutting_down().load(std::memory_order_relaxed))
-                std::this_thread::yield();
-        }
+        drain_atomic_groups(server);
         phase_.store(Phase::Freeze, std::memory_order_release);
         for (uint32_t tid : server.placement().ex_threads())
             if (Ring* target = server.thread(tid).ring())
@@ -356,6 +359,29 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         return StartResult::Failed;
     }
     return StartResult::Started;
+}
+
+// Waits out every cross-shard atomic group whose records are only partly installed, so the cut that
+// follows cannot land inside one. The barrier is already armed, so the count is monotonically
+// non-increasing here and this terminates.
+//
+// It waits on atomic_apply_inflight(), NOT on atomic_inflight(). The latter also counts groups
+// whose records are all installed but whose reply has not yet retired, and that retirement runs on
+// the admitting IO thread -- the thread a blocking SAVE is sitting inside. Waiting on it deadlocks:
+// probed on this tree, a SAVE under a 24-connection MSET storm hung with rdb_bgsave_in_progress:1
+// and atomic_inflight:13 forever. Owner-side completion has no such dependency.
+//
+// cuts_waited_ is the non-vacuous part: a drain that never blocks is indistinguishable from a
+// missing one, so the battery asserts this counter advanced.
+void SnapshotManager::drain_atomic_groups(Server& server) {
+    cuts_armed_.fetch_add(1, std::memory_order_relaxed);
+    const uint64_t queued = server.atomic_apply_inflight();
+    if (!queued) return;
+    cuts_waited_.fetch_add(1, std::memory_order_relaxed);
+    drained_groups_.fetch_add(queued, std::memory_order_relaxed);
+    while (server.atomic_apply_inflight() != 0 &&
+           !server.shutting_down().load(std::memory_order_relaxed))
+        std::this_thread::yield();
 }
 
 void SnapshotManager::owner_ready(uint64_t value) {
