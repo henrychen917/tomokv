@@ -763,6 +763,31 @@ public:
     void note_script_abort_oom() {
         script_group_aborts_oom_.fetch_add(1, std::memory_order_relaxed);
     }
+    // THE THREE COUNTERS THAT MAKE THE RESERVATION SUB-WAVE FALSIFIABLE.
+    //
+    // AMENDMENT 1 requires proof that reservation ARMED, not proof that the phases ran: an
+    // activation whose PIN wave silently armed nothing looks identical from the outside -- same
+    // replies, same phase counters, same commit -- right up until a competing write is missed.
+    //   script_keys_armed          one per declared key, per owner PIN task
+    //   script_keys_released       one per UNPIN; armed - released must be 0 at rest
+    //   script_write_tickets_forced a plain write that would have taken the untracked physical
+    //                              path and instead materialized an MVCC version BECAUSE the key
+    //                              was reserved. This is the counter that proves the arming is
+    //                              load-bearing rather than merely present.
+    void note_script_key_armed() { script_keys_armed_.fetch_add(1, std::memory_order_relaxed); }
+    void note_script_key_released() {
+        script_keys_released_.fetch_add(1, std::memory_order_relaxed);
+    }
+    void note_script_forced_write() {
+        script_write_tickets_forced_.fetch_add(1, std::memory_order_relaxed);
+    }
+    uint64_t script_keys_armed() const { return script_keys_armed_.load(); }
+    uint64_t script_keys_released() const { return script_keys_released_.load(); }
+    uint64_t script_intents_live() const {
+        const uint64_t armed = script_keys_armed_.load(std::memory_order_acquire);
+        return armed - script_keys_released_.load(std::memory_order_acquire);
+    }
+    uint64_t script_write_tickets_forced() const { return script_write_tickets_forced_.load(); }
     uint64_t script_stage_owner_tasks() const { return script_stage_owner_tasks_.load(); }
     uint64_t script_run_attempts() const { return script_run_attempts_.load(); }
     uint64_t script_validate_owner_tasks() const { return script_validate_owner_tasks_.load(); }
@@ -868,6 +893,20 @@ public:
     }
     uint32_t debug_atomic_fanout_defer() const {
         return debug_atomic_fanout_defer_.load(std::memory_order_relaxed);
+    }
+    // TEST HOOK (DEBUG SCRIPT-STAGE-DEFER). Microseconds every cross-owner script GATHER task
+    // except the one on the coordinator's own shard is PARKED -- re-queued, not spun -- after the
+    // activation has reserved all of its declared keys and pinned its cut. That park IS the window
+    // AMENDMENT 1 is about: the coordinator's own key is read from the world before a competing
+    // plain write, the parked ones read after it, and an activation whose reservation did not
+    // actually arm those keys therefore composes two generations into one reply and never notices.
+    // Parking rather than stalling keeps the executor free so the racing write can really run.
+    // Zero in production; read once per activation at prepare time on the cold scatter path.
+    void set_debug_script_stage_defer(uint32_t microseconds) {
+        debug_script_stage_defer_.store(microseconds, std::memory_order_relaxed);
+    }
+    uint32_t debug_script_stage_defer() const {
+        return debug_script_stage_defer_.load(std::memory_order_relaxed);
     }
     // TEST HOOK (DEBUG ATOMIC-READ-DELAY). Microseconds a plain read is held on its owner before
     // it resolves, widening the gap between the IO-side dispatch of a pipelined read and its
@@ -1337,6 +1376,7 @@ private:
     std::atomic<uint32_t> debug_atomic_commit_delay_{0};
     std::atomic<uint32_t> debug_atomic_read_delay_{0};
     std::atomic<uint32_t> debug_atomic_fanout_defer_{0};
+    std::atomic<uint32_t> debug_script_stage_defer_{0};
     std::atomic<uint64_t> atomic_commit_windows_{0};
     std::atomic<uint64_t> atomic_commit_holds_{0};
     std::atomic<uint64_t> atomic_read_cuts_held_{0};
@@ -1363,6 +1403,9 @@ private:
     std::atomic<uint64_t> script_staged_bytes_total_{0};
     std::atomic<uint64_t> script_crossshard_window_refusals_{0};
     std::atomic<uint64_t> script_group_aborts_oom_{0};
+    std::atomic<uint64_t> script_keys_armed_{0};
+    std::atomic<uint64_t> script_keys_released_{0};
+    std::atomic<uint64_t> script_write_tickets_forced_{0};
     std::atomic<uint64_t> script_intent_owners_{0};
     std::atomic<bool> script_certification_active_{false};
     std::atomic<uint64_t> pubsub_inflight_{0};

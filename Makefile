@@ -52,6 +52,14 @@ tsan:
 	$(CXX) -std=c++20 -O1 -g -Wall -Wextra -pthread -fsanitize=thread \
 	  -I. $(SRC) -o build/tomokv-tsan $(LDLIBS) -lm
 
+# NEGATIVE-CONTROL BUILD for the cross-owner script reservation sub-wave. Identical to the release
+# build except that ScriptPhase::Pin arms nothing, so tests/xscript.py counterexample MUST fail
+# against it. A detector that cannot report failure proves nothing about the runs that pass.
+noreserve:
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_XSCRIPT_NO_RESERVE -I. $(SRC) \
+	  -o build/tomokv-noreserve $(JELIBS) $(LDLIBS) -lm
+
 clean:
 	rm -rf build
-.PHONY: all asan tsan clean
+.PHONY: all asan tsan noreserve clean

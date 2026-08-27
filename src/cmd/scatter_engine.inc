@@ -378,6 +378,11 @@ struct ScatterState {
     // the arena, not in Op or Client.
     uint64_t debug_fanout_deadline = 0;
     int32_t debug_fanout_lead = -1;               // the one shard that is never parked
+    // TEST HOOK for the cross-owner script GATHER window (DEBUG SCRIPT-STAGE-DEFER). The budget is
+    // copied at prepare; the deadline is stamped when the cut is chosen, so the park covers exactly
+    // the interval between reservation and gather. Both zero in production.
+    uint32_t debug_script_defer_us = 0;
+    uint64_t debug_script_defer_deadline = 0;
     uint64_t sinter_limit = 0;
     uint64_t zset_limit = 0;
     LcsOptions lcs_options;
@@ -1392,6 +1397,13 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                 now_ns() + static_cast<uint64_t>(fanout_defer) * 1000ull;
         }
     }
+    // TEST HOOK arming for the cross-owner script GATHER wave. A script is a Write row, so it can
+    // never reach the read-only arm above; it gets its own deadline, consumed in the Read phase.
+    if (__builtin_expect(kind == Kind::Script, false)) {
+        const uint32_t stage_defer = server.debug_script_stage_defer();
+        if (__builtin_expect(stage_defer != 0, false))
+            state->debug_script_defer_us = stage_defer;
+    }
     state->pending.store(initialize_owner_completion(*state), std::memory_order_relaxed);
     if (state->atomic_group && !force_atomic &&
         (state->atomic_write || state->atomic_direct) &&
@@ -1759,11 +1771,18 @@ ScatterTaskResult execute_script_phase(const Task& task, Shard& shard, Op& op) {
                 const uint32_t pos = state.key_order[group->begin + i];
                 const KeyRef& key = state.keys[pos];
                 if (state.aborted.load(std::memory_order_acquire)) break;
+#ifdef TOMO_XSCRIPT_NO_RESERVE
+                // NEGATIVE-CONTROL BUILD ONLY (make noreserve). Everything else about the
+                // activation is unchanged -- same waves, same cut, same validation -- so a battery
+                // that passes here is a battery that was never testing the reservation.
+                continue;
+#endif
                 if (!shard.store().atomic_script_pin(key.hash, op.arg(key.arg))) {
                     group->error = WorkError::Oom;
                     state.aborted.store(true, std::memory_order_release);
                     break;
                 }
+                state.server->note_script_key_armed();
                 state.script_pinned[pos] = 1;
             }
             return ScatterTaskResult::Complete;
@@ -1848,7 +1867,7 @@ ScatterTaskResult execute_script_phase(const Task& task, Shard& shard, Op& op) {
                 const uint32_t pos = state.key_order[group->begin + i];
                 const KeyRef& key = state.keys[pos];
                 if (shard.store().atomic_script_changed(
-                        key.hash, op.arg(key.arg), state.script_cut, state.script_ticket)) {
+                        key.hash, op.arg(key.arg), state.script_cut)) {
                     state.script_conflict.store(true, std::memory_order_release);
                     break;
                 }
@@ -1860,6 +1879,7 @@ ScatterTaskResult execute_script_phase(const Task& task, Shard& shard, Op& op) {
                 if (!state.script_pinned[pos]) continue;
                 const KeyRef& key = state.keys[pos];
                 shard.store().atomic_script_unpin(key.hash, op.arg(key.arg));
+                state.server->note_script_key_released();
                 state.script_pinned[pos] = 0;
             }
             return ScatterTaskResult::Complete;
@@ -2177,7 +2197,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 const KeyRef& key = state.keys[pos];
                 bool plain_active = false;
                 if (!state.external_epoch &&
-                    shard.store().atomic_has_record(key.hash, op.arg(key.arg))) {
+                    shard.store().atomic_needs_version(key.hash, op.arg(key.arg))) {
                     const WorkError prepared = begin_plain_version(
                         *state.server, shard, op.arg(key.arg), key.hash,
                         state.atomic_pop ? UINT64_MAX : state.snapshot, state.origin_conn_id);
@@ -2211,7 +2231,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 const uint32_t pos = state.key_order[group.begin + i];
                 const KeyRef& key = state.keys[pos];
                 bool plain_active = false;
-                if (shard.store().atomic_has_record(key.hash, op.arg(key.arg))) {
+                if (shard.store().atomic_needs_version(key.hash, op.arg(key.arg))) {
                     const WorkError prepared = begin_plain_version(
                         *state.server, shard, op.arg(key.arg), key.hash, state.snapshot,
                         state.origin_conn_id);
@@ -2323,8 +2343,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     const uint32_t pos = state.key_order[group.begin + i];
                     const KeyRef& key = state.keys[pos];
                     bool plain_active = false;
-                    if (shard.store().atomic_has_record(key.hash, op.arg(key.arg)) ||
-                        shard.store().atomic_has_script_intent(key.hash, op.arg(key.arg))) {
+                    if (shard.store().atomic_needs_version(key.hash, op.arg(key.arg))) {
                         const WorkError prepared = begin_plain_version(
                             *state.server, shard, op.arg(key.arg), key.hash, state.snapshot,
                             state.origin_conn_id);
@@ -2345,8 +2364,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     const uint32_t pos = state.key_order[group.begin + i];
                     const KeyRef& key = state.keys[pos];
                     bool plain_active = false;
-                    if (shard.store().atomic_has_record(key.hash, op.arg(key.arg)) ||
-                        shard.store().atomic_has_script_intent(key.hash, op.arg(key.arg))) {
+                    if (shard.store().atomic_needs_version(key.hash, op.arg(key.arg))) {
                         const WorkError prepared = begin_plain_version(
                             *state.server, shard, op.arg(key.arg), key.hash, state.snapshot,
                             state.origin_conn_id);
@@ -2531,6 +2549,13 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
             // after it is forced through MVCC and can be validated.
             state.script_cut = server.atomic_snapshot();
             state.script_staged_bytes.store(0, std::memory_order_relaxed);
+            // TEST HOOK: the park window opens HERE, not at prepare -- the point of the hook is to
+            // expose the interval between "every declared key is reserved and the cut is chosen"
+            // and "the owners actually read", which is the interval AMENDMENT 1 is about.
+            if (__builtin_expect(state.debug_script_defer_us != 0, false) &&
+                state.debug_script_defer_deadline == 0)
+                state.debug_script_defer_deadline =
+                    now_ns() + static_cast<uint64_t>(state.debug_script_defer_us) * 1000ull;
             return post(ScriptPhase::Read);
         }
         case ScriptPhase::Read: {

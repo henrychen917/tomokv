@@ -2,6 +2,7 @@
 """Directed cross-owner scripting battery. Usage: xscript.py HOST PORT [stage0]."""
 
 import socket
+import struct
 import sys
 import threading
 import time
@@ -130,6 +131,212 @@ def cross_script(client, keys, values):
               "redis.call('SET',KEYS[i],ARGV[i]); r[i]=redis.call('GET',KEYS[i]) "
               "end return r")
     return client.cmd("EVAL", source, str(len(keys)), *keys, *values)
+
+
+def wait_for(client, counter, target, seconds=20.0):
+    """Poll a mechanism counter instead of sleeping on a guess."""
+    deadline = time.time() + seconds
+    while time.time() < deadline:
+        value = stats(client).get(counter, 0)
+        if value >= target:
+            return value
+        time.sleep(0.002)
+    return stats(client).get(counter, 0)
+
+
+def settle(client, seconds=10.0):
+    """Wait until no reservation is outstanding, then return the live count."""
+    deadline = time.time() + seconds
+    live = None
+    while time.time() < deadline:
+        live = stats(client).get("script_intents_live", -1)
+        if live == 0:
+            return 0
+        time.sleep(0.005)
+    return live
+
+
+# THE COUNTEREXAMPLE FROM AMENDMENT 1, AS A DIRECTED TEST.
+#
+# The refuted assumption was that staging alone leaves a tripwire on an ordinary declared key. It
+# does not, so a plain write landing between admission and an owner's gather was invisible: that
+# owner read a value that never existed at the advertised cut, while the coordinator's own key had
+# already been read from before the write. The reservation sub-wave exists to force that write
+# through MVCC.
+#
+# The park is placed exactly in that interval and the racing write is issued only after the
+# coordinator's own gather has provably completed (counter-polled, not slept), so the two declared
+# keys are read on opposite sides of the write. Three independent things then have to be true, and
+# each of them is zero on `make noreserve`:
+#   * the pair the activation observed is a CUT, never one key from before and one from after;
+#   * script_write_tickets_forced rose  -- the write was actually forced through MVCC;
+#   * script_group_occ_retries rose     -- validation actually detected it.
+def reservation_counterexample():
+    admin, runner, writer = Resp(), Resp(), Resp()
+    try:
+        distinct, _ = geometry(admin)
+        coordinator, other = distinct[0], distinct[1]
+        source = ("local a = redis.call('GET', KEYS[1]) "
+                  "local b = redis.call('GET', KEYS[2]) "
+                  "redis.call('SET', KEYS[1], a .. '/' .. b) "
+                  "return {a, b}")
+
+        # ZERO CONTROL. Same script, same keys, no racing write and no park: the detectors below
+        # must all report nothing, or they are not detectors.
+        admin.cmd("MSET", coordinator, "pre", other, "pre")
+        before = stats(admin)
+        quiet = runner.cmd("EVAL", source, "2", coordinator, other)
+        after = stats(admin)
+        note("zero control: uncontended activation reserves both keys and retries nothing",
+             quiet == [b"pre", b"pre"] and
+             after.get("script_keys_armed", 0) - before.get("script_keys_armed", 0) == 2 and
+             after.get("script_write_tickets_forced", 0) ==
+             before.get("script_write_tickets_forced", 0) and
+             after.get("script_group_occ_retries", 0) ==
+             before.get("script_group_occ_retries", 0) and
+             settle(admin) == 0,
+             "reply=%r armed=+%d forced=+%d retries=+%d live=%d" % (
+                 quiet,
+                 after.get("script_keys_armed", 0) - before.get("script_keys_armed", 0),
+                 after.get("script_write_tickets_forced", 0) -
+                 before.get("script_write_tickets_forced", 0),
+                 after.get("script_group_occ_retries", 0) -
+                 before.get("script_group_occ_retries", 0),
+                 settle(admin)))
+
+        admin.cmd("MSET", coordinator, "pre", other, "pre")
+        armed = admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "400000") == b"OK"
+        before = stats(admin)
+        observed = []
+
+        def activation():
+            observed.append(runner.cmd("EVAL", source, "2", coordinator, other))
+
+        thread = threading.Thread(target=activation)
+        thread.start()
+        # The coordinator's own gather is never parked, so this counter reaching +1 means KEYS[1]
+        # has already been read while KEYS[2]'s owner is still held in the window.
+        gathered = wait_for(admin, "script_stage_owner_tasks",
+                            before.get("script_stage_owner_tasks", 0) + 1)
+        raced = [writer.cmd("SET", coordinator, "post"), writer.cmd("SET", other, "post")]
+        thread.join(60)
+        alive = thread.is_alive()
+        admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "0")
+        after = stats(admin)
+        reply = observed[0] if observed else None
+        final = admin.cmd("MGET", coordinator, other)
+
+        note("counterexample harness ran (park armed, racing writes accepted)",
+             armed and not alive and raced == [b"OK", b"OK"] and
+             gathered >= before.get("script_stage_owner_tasks", 0) + 1,
+             "armed=%r alive=%r raced=%r gathered=%d" % (armed, alive, raced, gathered))
+        note("plain write into the reservation window is forced through MVCC",
+             after.get("script_write_tickets_forced", 0) -
+             before.get("script_write_tickets_forced", 0) >= 1,
+             "forced=+%d" % (after.get("script_write_tickets_forced", 0) -
+                             before.get("script_write_tickets_forced", 0)))
+        note("that write is DETECTED by read-set validation",
+             after.get("script_group_occ_retries", 0) -
+             before.get("script_group_occ_retries", 0) >= 1,
+             "retries=+%d giveups=+%d" % (
+                 after.get("script_group_occ_retries", 0) -
+                 before.get("script_group_occ_retries", 0),
+                 after.get("script_group_occ_giveups", 0) -
+                 before.get("script_group_occ_giveups", 0)))
+        note("the activation observed a cut, not one key from each side of the write",
+             reply in ([b"pre", b"pre"], [b"post", b"post"]), repr(reply))
+        note("the racing writes survive and the activation composes on top of them",
+             final == [b"post/post", b"post"] or final == [b"pre/pre", b"post"],
+             repr(final))
+        note("every reservation was released", settle(admin) == 0,
+             "armed=%d released=%d" % (after.get("script_keys_armed", 0),
+                                       after.get("script_keys_released", 0)))
+    finally:
+        admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "0")
+        admin.close()
+        runner.close()
+        writer.close()
+
+
+# An armed key whose activation died would arm every later write to it forever. Each arm below is
+# a different way to die; all of them must land back on zero outstanding reservations, and the
+# proof that the check is not vacuous is the counter rising in the first place.
+def reservation_release_paths():
+    admin = Resp()
+    try:
+        distinct, _ = geometry(admin)
+        pair = distinct[:2]
+        checks = []
+
+        def arm(label, fired, armed_before, want_armed):
+            checks.append((label, fired, settle(admin),
+                           stats(admin).get("script_keys_armed", 0) - armed_before,
+                           want_armed))
+
+        admin.cmd("MSET", pair[0], "a", pair[1], "b")
+        before = stats(admin)
+
+        mark = stats(admin).get("script_keys_armed", 0)
+        failed = admin.cmd(
+            "EVAL", "redis.call('SET',KEYS[1],'kept'); error('boom')", "2", *pair)
+        arm("script raised a runtime error",
+            isinstance(failed, RespError) and "boom" in failed.message, mark, 2)
+
+        mark = stats(admin).get("script_keys_armed", 0)
+        runaway = admin.cmd(
+            "EVAL", "redis.call('GET',KEYS[1]); while true do end", "2", *pair)
+        arm("script hit the instruction limit",
+            isinstance(runaway, RespError) and runaway.message.startswith("BUSY "), mark, 2)
+
+        mark = stats(admin).get("script_keys_armed", 0)
+        undeclared = admin.cmd(
+            "EVAL", "return redis.call('GET','xscript:release:undeclared')", "2", *pair)
+        arm("script touched an undeclared key",
+            isinstance(undeclared, RespError) and "undeclared key" in undeclared.message,
+            mark, 2)
+
+        # A source that will not compile is refused at route time, before the group is admitted, so
+        # it must reserve NOTHING. Stated as an exact expectation rather than a loose floor: an arm
+        # that quietly stopped reserving is the failure this whole function exists to catch.
+        mark = stats(admin).get("script_keys_armed", 0)
+        compile_error = admin.cmd("EVAL", "this is not lua", "2", *pair)
+        arm("script failed to compile (refused before dispatch)",
+            isinstance(compile_error, RespError), mark, 0)
+
+        # CONNECTION DROP. The park holds the activation open across the abort so the socket really
+        # closes while declared keys are reserved on their owners.
+        admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "400000")
+        dropper = Resp()
+        mark = stats(admin).get("script_keys_armed", 0)
+        stage_before = stats(admin).get("script_stage_owner_tasks", 0)
+        dropper.sock.sendall(frame("EVAL", "return redis.call('GET',KEYS[2])", "2", *pair))
+        wait_for(admin, "script_stage_owner_tasks", stage_before + 1)
+        dropper.sock.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER,
+                                struct.pack("ii", 1, 0))
+        dropper.close()
+        admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "0")
+        arm("client vanished mid-activation", True, mark, 2)
+
+        after = stats(admin)
+        for label, fired, live, armed, want in checks:
+            note("reservation released after: %s" % label,
+                 fired and live == 0 and armed == want,
+                 "fired=%r live=%r armed=+%d (want +%d)" % (fired, live, armed, want))
+        note("armed == released across every exit path",
+             after.get("script_keys_armed", 0) == after.get("script_keys_released", 0),
+             "armed=%d released=%d" % (after.get("script_keys_armed", 0),
+                                       after.get("script_keys_released", 0)))
+        # A reserved key that was never released would keep forcing every later write through MVCC.
+        forced_before = stats(admin).get("script_write_tickets_forced", 0)
+        for index in range(20):
+            admin.cmd("SET", pair[index % 2], "after-%d" % index)
+        note("a released key stops arming later plain writes",
+             stats(admin).get("script_write_tickets_forced", 0) == forced_before,
+             "forced=+%d" % (stats(admin).get("script_write_tickets_forced", 0) -
+                             forced_before))
+    finally:
+        admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "0")
+        admin.close()
 
 
 def watch_declared_keys_only():
@@ -504,14 +711,20 @@ def staging_limit_control():
         client.close()
 
 
-watch_declared_keys_only()
-
-if MODE not in ("stage0", "all", "off", "limit"):
+if MODE not in ("stage0", "all", "off", "limit", "reserve"):
     raise SystemExit("unknown xscript battery mode %r" % MODE)
+
+if MODE != "reserve":
+    watch_declared_keys_only()
 if MODE == "all":
+    reservation_counterexample()
+    reservation_release_paths()
     core_semantics()
     contention_and_deadlock()
     maxmemory_pressure()
+elif MODE == "reserve":
+    reservation_counterexample()
+    reservation_release_paths()
 elif MODE == "off":
     feature_off_control()
 elif MODE == "limit":

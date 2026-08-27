@@ -49,13 +49,25 @@
         return atomic_key_pending(hash, key);
     }
     bool atomic_has_script_intent(uint64_t hash, Slice key) const {
-        if (!atomic_pending_) return false;
+        if (!atomic_pending_ || !atomic_pending_->script_intent_count) return false;
         for (AtomicScriptIntent* intent = atomic_pending_->script_intents; intent;
              intent = intent->next) {
             if (intent->hash == hash && intent->key_len == key.n &&
                 (!key.n || std::memcmp(intent->key_data(), key.p, key.n) == 0)) return true;
         }
         return false;
+    }
+    // THE SINGLE DECISION POINT FOR "THIS WRITE MUST GO THROUGH MVCC".
+    //
+    // A cross-owner script's reservation is worth nothing unless every write that lands on a
+    // declared key afterwards leaves an epoch behind: that epoch is the only thing APPLY-side
+    // validation can see, and the whole reservation sub-wave exists to create it. Testing only
+    // atomic_has_record() here is what made the reservation inert -- an ordinary key carries no
+    // record, so the competing write took the untracked physical path and validation had nothing
+    // to find. Every caller that decides whether to materialize a plain version asks THIS, so
+    // the answer cannot drift between call sites again.
+    bool atomic_needs_version(uint64_t hash, Slice key) const {
+        return atomic_has_record(hash, key) || atomic_has_script_intent(hash, key);
     }
 
     // PIN/UNPIN run only on the key's owning executor. The first intent contributes one unit to
@@ -117,13 +129,18 @@
         std::abort();
     }
 
-    // True when a version that may have to serialize before reserved_ticket changed this key
-    // after cut. A matching undecided group is conservatively a conflict: it may already have
-    // reserved an earlier ticket but not yet published its epoch. Completing this validation wave
-    // and restarting the activation lets that group make progress without ever parking an owner.
-    // A decided ticket newer than the reservation legally serializes after the script.
-    bool atomic_script_changed(uint64_t hash, Slice key, uint64_t cut,
-                               uint64_t reserved_ticket) const {
+    // True when ANY version changed this key after cut. A matching undecided group is
+    // conservatively a conflict too: it may already have reserved an earlier ticket but not yet
+    // published its epoch. Completing this validation wave and restarting the activation lets that
+    // group make progress without ever parking an owner.
+    //
+    // The test used to also require `epoch < reserved_ticket`, on the reasoning that a newer ticket
+    // legally serializes after the script. It does not: a writer whose ticket is newer still READ
+    // the pre-activation value (the script has installed nothing yet at validation time), so
+    // ordering it after the activation is only sound for a blind write and silently loses a plain
+    // read-modify-write. Restarting is unobservable and the fresh cut clears the conflict, so the
+    // conservative test costs at most one retry and cannot livelock.
+    bool atomic_script_changed(uint64_t hash, Slice key, uint64_t cut) const {
         if (!atomic_pending_ || !atomic_pending_->live) return false;
         const uint64_t bit = atomic_membership_bit(hash);
         for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
@@ -134,7 +151,7 @@
                 if (atomic_entry_hash(*entry, i) != hash ||
                     atomic_entry_key(*entry, i) != key) continue;
                 const uint64_t epoch = atomic_epoch(*entry);
-                if (!epoch || (epoch > cut && epoch < reserved_ticket)) return true;
+                if (!epoch || epoch > cut) return true;
             }
         }
         return false;
@@ -332,7 +349,9 @@
             if (!victim) return false;
             const uint64_t hash = hash_key(victim->key());
             const Slice key = victim->key();
-            if (atomic_has_record(hash, key)) continue;
+            // A key an in-flight group or a staged cross-owner script depends on is not a legal
+            // victim: evicting it would destroy the predecessor those readers resolve against.
+            if (atomic_needs_version(hash, key)) continue;
             const uint32_t before = size();
             const bool live = erase(hash, key);
             if (size() == before) return false;
