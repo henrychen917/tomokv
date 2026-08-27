@@ -1145,6 +1145,241 @@ def gen_xmove(rng):
     return ops
 
 
+def gen_edgeenc(rng):
+    """ENCODING and SIZE boundaries (lane t-edgeenc).
+
+    Value lengths are drawn from a boundary-heavy LADDER rather than uniformly, because the
+    interesting lengths in this tree are not spread out -- they are the compact/expanded promotion
+    limits (aligned to the oracle's listpack limits by the suite preamble), the 192-byte KvObj
+    embed line, the varint width step at 128, and the allocator size classes the embedded capacity
+    is cut from. KEY LENGTH is a second ladder: a small collection lives in its key's own
+    allocation and its in-place capacity is good_size() slack there, so two keys of different
+    lengths holding identical contents leave the tail form at different points.
+
+    What is deliberately NOT generated, each with the reason:
+      * OBJECT ENCODING on STRINGS and LISTS. The embstr/raw line is 192 here and 44 in redis, an
+        APPENDed short string stays embstr here, and the list knob is an aggregate byte budget
+        here against an entry count there -- three documented deviations (NOTES-SERVERTAIL.md 5,
+        src/store/typeval.h). OBJECT ENCODING on hash/set/zset IS generated: those align exactly.
+      * SORT ... ALPHA. Redis sorts it with strcoll() under the collation locale, so an oracle
+        started under en_US.UTF-8 orders "-5" after "42" while this tree uses byte order. That is
+        an oracle-environment difference, not a target defect: LC_ALL=C on the oracle makes the
+        two agree. Nothing here should depend on which locale the oracle happened to inherit.
+      * XINFO STREAM. radix-tree-keys/radix-tree-nodes are counters of a structure this tree does
+        not have and answers with a fixed stub.
+      * A key touched twice inside one MULTI, and any list op inside MULTI. Both re-open the
+        pre-existing epoch-0 MVCC resolver defect written up in NOTES-EXECISO.md section 10 (a)
+        and (c); NOTES-EDGEENC.md carries the size-independent reproducer for it. Generating them
+        here would make this suite permanently red for a defect it does not exist to cover.
+    """
+    # 192 = kEmbedThreshold; 64 = the aligned per-value compact limit; 128 = the varint step.
+    LADDER = [0, 1, 2, 7, 8, 15, 16, 31, 32, 39, 40, 47, 48, 55, 56, 63, 64, 65, 79, 80, 95, 96,
+              97, 111, 112, 126, 127, 128, 129, 159, 160, 175, 176, 190, 191, 192, 193, 194, 200,
+              255, 256, 257, 300]
+    # key names of many lengths: the tail capacity is slack in the key's own block
+    KLENS = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144]
+
+    def size():
+        return rng.choice(LADDER)
+
+    def val(tag=None):
+        n = size()
+        ch = tag or rng.choice("abcdefghij")
+        return (ch * n)[:n]
+
+    def keyset(prefix, count):
+        out = []
+        for i in range(count):
+            klen = KLENS[i % len(KLENS)]
+            body = ("%s%d" % (prefix, i)) + "K" * klen
+            out.append(body[:max(len(prefix) + 1, klen)])
+        return out
+
+    skeys = keyset("s", 10)
+    hkeys = keyset("h", 8)
+    setkeys = keyset("t", 8)
+    zkeys = keyset("z", 8)
+    lkeys = keyset("l", 8)
+    ops = []
+
+    def S(): return rng.choice(skeys)
+    def H(): return rng.choice(hkeys)
+    def T(): return rng.choice(setkeys)
+    def Z(): return rng.choice(zkeys)
+    def L(): return rng.choice(lkeys)
+
+    for _ in range(3200):
+        c = rng.randrange(40)
+        if c == 0: ops.append(["SET", S(), val()])
+        elif c == 1: ops.append(["GET", S()])
+        elif c == 2: ops.append(["APPEND", S(), val()])
+        elif c == 3: ops.append(["SETRANGE", S(), str(rng.choice([0, 1, 63, 64, 96, 191, 192, 193])), val()])
+        elif c == 4: ops.append(["GETRANGE", S(), str(rng.randrange(-8, 200)), str(rng.randrange(-8, 260))])
+        elif c == 5: ops.append(["STRLEN", S()])
+        elif c == 6: ops.append(["GETDEL", S()])
+        elif c == 7: ops.append(["GETSET", S(), val()])
+        elif c == 8: ops.append(["COPY", S(), S(), "REPLACE"])
+        elif c == 9: ops.append(["HSET", H(), val("f") or "e", val("v")])
+        elif c == 10: ops.append(["HGET", H(), val("f") or "e"])
+        elif c == 11: ops.append(["HDEL", H(), val("f") or "e"])
+        elif c == 12: ops.append(["HGETALL", H()])
+        elif c == 13: ops.append(["HLEN", H()])
+        elif c == 14: ops.append(["HSTRLEN", H(), val("f") or "e"])
+        elif c == 15: ops.append(["OBJECT", "ENCODING", H()])
+        elif c == 16: ops.append(["SADD", T(), val("m")])
+        elif c == 17: ops.append(["SREM", T(), val("m")])
+        elif c == 18: ops.append(["SMEMBERS", T()])
+        elif c == 19: ops.append(["SCARD", T()])
+        elif c == 20: ops.append(["SISMEMBER", T(), val("m")])
+        elif c == 21: ops.append(["OBJECT", "ENCODING", T()])
+        elif c == 22: ops.append(["SADD", T(), str(rng.choice([0, 1, -1, 32767, 32768, -32768,
+                                                               2147483647, 2147483648,
+                                                               9223372036854775807,
+                                                               -9223372036854775808]))])
+        elif c == 23: ops.append(["ZADD", Z(), str(rng.randrange(-5, 6)), val("m")])
+        elif c == 24: ops.append(["ZREM", Z(), val("m")])
+        elif c == 25: ops.append(["ZRANGE", Z(), "0", "-1", "WITHSCORES"])
+        elif c == 26: ops.append(["ZCARD", Z()])
+        elif c == 27: ops.append(["ZSCORE", Z(), val("m")])
+        elif c == 28: ops.append(["ZREMRANGEBYRANK", Z(), str(rng.randrange(-3, 3)), str(rng.randrange(-3, 3))])
+        elif c == 29: ops.append(["OBJECT", "ENCODING", Z()])
+        elif c == 30: ops.append(["RPUSH", L(), val("e")])
+        elif c == 31: ops.append(["LPUSH", L(), val("e")])
+        elif c == 32: ops.append(["LRANGE", L(), "0", "-1"])
+        elif c == 33: ops.append(["LSET", L(), str(rng.randrange(-3, 3)), val("e")])
+        elif c == 34: ops.append(["LINSERT", L(), rng.choice(["BEFORE", "AFTER"]), val("e"), val("e")])
+        elif c == 35: ops.append(["LREM", L(), str(rng.randrange(-2, 3)), val("e")])
+        elif c == 36: ops.append(["LPOP", L()])
+        elif c == 37: ops.append(["LLEN", L()])
+        elif c == 38: ops.append(["DEL", rng.choice(skeys + hkeys + setkeys + zkeys + lkeys)])
+        else: ops.append(["MGET"] + rng.sample(skeys, 4))
+
+    # ---- directed tail: the exact thresholds, in both directions -----------------------------
+    E = 192
+    for n in (E - 1, E, E + 1):
+        k = "edge:str:%d" % n
+        body = ("q" * n)[:n]
+        ops += [["SET", k, body], ["GET", k], ["STRLEN", k],
+                ["APPEND", k, "Z"], ["GET", k], ["STRLEN", k],
+                ["SETRANGE", k, str(n), "TT"], ["GET", k], ["STRLEN", k],
+                ["SET", k, body, "EX", "1000"], ["APPEND", k, "Y"], ["GET", k],
+                ["PERSIST", k], ["GET", k],
+                ["COPY", k, k + "c"], ["GET", k + "c"],
+                ["RENAME", k + "c", k + "r"], ["GET", k + "r"],
+                ["DEL", k, k + "r"]]
+
+    # promotion and the one-way rule, at the aligned limits (128 entries / 64 bytes)
+    for limit_kind, entries in (("entries", 129), ("value", 3)):
+        for kind in ("hash", "set", "zset"):
+            k = "edge:%s:%s" % (kind, limit_kind)
+            ops.append(["DEL", k])
+            for i in range(entries):
+                payload = ("p" * (65 if limit_kind == "value" and i == entries - 1 else 4))
+                if kind == "hash":
+                    ops.append(["HSET", k, "f%04d" % i, payload])
+                elif kind == "set":
+                    ops.append(["SADD", k, "m%04d%s" % (i, payload)])
+                else:
+                    ops.append(["ZADD", k, str(i), "m%04d%s" % (i, payload)])
+                if i in (0, entries - 2, entries - 1):
+                    ops.append(["OBJECT", "ENCODING", k])
+            # shrink back below the threshold: promotion is one-way on BOTH servers
+            for i in range(entries - 1):
+                payload = "p" * 4
+                if kind == "hash":
+                    ops.append(["HDEL", k, "f%04d" % i])
+                elif kind == "set":
+                    ops.append(["SREM", k, "m%04d%s" % (i, payload)])
+                else:
+                    ops.append(["ZREM", k, "m%04d%s" % (i, payload)])
+            ops += [["OBJECT", "ENCODING", k], ["DEL", k]]
+
+    # the tail-embed line swept over key length, all four types, contents read back every step
+    for klen in KLENS:
+        k = ("E" * klen)[:klen]
+        ops.append(["DEL", k])
+        for i in range(10):
+            ops += [["RPUSH", k, ("%02d" % i) + "e" * 30], ["LRANGE", k, "0", "-1"]]
+        ops += [["LSET", k, "0", "L" + "l" * 120], ["LRANGE", k, "0", "-1"],
+                ["LINSERT", k, "AFTER", "L" + "l" * 120, "MID"], ["LRANGE", k, "0", "-1"],
+                ["LREM", k, "0", "MID"], ["LRANGE", k, "0", "-1"], ["DEL", k]]
+        for i in range(8):
+            ops += [["HSET", k, "f%d" % i, "h" * 30], ["HGETALL", k]]
+        ops += [["HSET", k, "f0", "H" * 150], ["HGETALL", k], ["OBJECT", "ENCODING", k],
+                ["DEL", k]]
+        for i in range(8):
+            ops += [["ZADD", k, str(i), "m%d%s" % (i, "z" * 28)], ["ZRANGE", k, "0", "-1"]]
+        ops += [["ZADD", k, "99", "m0" + "z" * 28], ["ZRANGE", k, "0", "-1", "WITHSCORES"],
+                ["OBJECT", "ENCODING", k], ["DEL", k]]
+        for i in range(8):
+            ops += [["SADD", k, "m%d%s" % (i, "s" * 28)], ["SMEMBERS", k]]
+        ops += [["SADD", k, "S" * 200], ["SMEMBERS", k], ["OBJECT", "ENCODING", k], ["DEL", k]]
+
+    # the reply-path cutovers: zero-copy borrow (16384) and the multi-key gather slot (1024)
+    for n in (1020, 1023, 1024, 1025, 1030, 16380, 16383, 16384, 16385, 16390):
+        k = "edge:zc:%d" % n
+        body = ("Q" * n)[:n]
+        ops += [["SET", k, body], ["GET", k], ["STRLEN", k],
+                ["GETRANGE", k, "0", "7"], ["GETRANGE", k, str(n - 8), "-1"],
+                ["PING"], ["ECHO", "after-big"], ["GET", k],
+                ["APPEND", k, "ZZ"], ["STRLEN", k], ["GETRANGE", k, str(n - 2), "-1"],
+                ["DEL", k]]
+    gathered = ["edge:g%d" % i for i in range(6)]
+    for n in (1023, 1024, 1025, 2048):
+        pairs = []
+        for i, k in enumerate(gathered):
+            pairs += [k, (chr(97 + i) * n)[:n]]
+        ops += [["MSET"] + pairs, ["MGET"] + gathered,
+                ["MGET", gathered[0], "edge:absent", gathered[1]],
+                ["EXISTS"] + gathered, ["DEL"] + gathered]
+
+    # integer encoding and the INT64 edges, including the collection-member spellings
+    INTS = ["0", "1", "-1", "+1", "-0", "00", "007", "1.0", "1e3", "2147483647", "2147483648",
+            "-2147483648", "9223372036854775807", "-9223372036854775808",
+            "9223372036854775808", "-9223372036854775809", "18446744073709551615", "0x10", ""]
+    for i, text in enumerate(INTS):
+        k = "edge:int:%d" % i
+        ops += [["SET", k, text], ["GET", k], ["STRLEN", k],
+                ["INCR", k], ["GET", k], ["DECRBY", k, "3"], ["GET", k],
+                ["SET", k, text], ["APPEND", k, "9"], ["GET", k],
+                ["SET", k, text], ["SETRANGE", k, "0", "5"], ["GET", k],
+                ["SET", k, text], ["GETRANGE", k, "0", "0"], ["GETRANGE", k, "-1", "-1"],
+                ["DEL", k],
+                ["SADD", "edge:iset", text], ["SCARD", "edge:iset"],
+                ["OBJECT", "ENCODING", "edge:iset"], ["SISMEMBER", "edge:iset", text]]
+    ops += [["SMEMBERS", "edge:iset"], ["DEL", "edge:iset"]]
+
+    # value-copying commands at each boundary size
+    for n in (1, 63, 64, 65, 95, 96, 97, 191, 192, 193, 1024, 16384):
+        s, d = "edge:cp:%d" % n, "edge:cp:%d:d" % n
+        body = ("c" * n)[:n]
+        ops += [["DEL", s, d], ["SET", s, body], ["COPY", s, d], ["GET", d],
+                ["COPY", s, d], ["COPY", s, d, "REPLACE"], ["GET", d],
+                ["RENAME", s, d], ["GET", d], ["EXISTS", s], ["DEL", d]]
+        la, lb = "edge:lm:%d:a" % n, "edge:lm:%d:b" % n
+        ops += [["DEL", la, lb], ["RPUSH", la, body, body + "2"],
+                ["LMOVE", la, lb, "LEFT", "RIGHT"], ["LRANGE", la, "0", "-1"],
+                ["LRANGE", lb, "0", "-1"], ["RPOPLPUSH", la, lb], ["LRANGE", lb, "0", "-1"],
+                ["DEL", la, lb]]
+        sa, sb = "edge:sm:%d:a" % n, "edge:sm:%d:b" % n
+        ops += [["DEL", sa, sb], ["SADD", sa, body, body + "2"], ["SMOVE", sa, sb, body],
+                ["SMEMBERS", sa], ["SMEMBERS", sb],
+                ["SUNIONSTORE", sa + "u", sa, sb], ["SMEMBERS", sa + "u"],
+                ["DEL", sa, sb, sa + "u"]]
+
+    # cross-shard writes at boundary sizes (bare, not inside MULTI -- see the docstring)
+    xkeys = ["edge:x%d" % i for i in range(5)]
+    for n in (1, 64, 96, 192, 193, 1024, 16384):
+        pairs = []
+        for i, k in enumerate(xkeys):
+            pairs += [k, (chr(97 + i) * n)[:n]]
+        ops += [["DEL"] + xkeys, ["MSET"] + pairs, ["MGET"] + xkeys,
+                ["MSETNX"] + pairs, ["MGET"] + xkeys, ["EXISTS"] + xkeys,
+                ["UNLINK"] + xkeys[:2], ["MGET"] + xkeys,
+                ["MSETNX"] + pairs, ["MGET"] + xkeys, ["DEL"] + xkeys]
+    return ops
+
+
 def gen_servertail(rng):
     """LCS-heavy, plus the introspection replies that are genuinely byte-comparable.
 
@@ -2672,6 +2907,7 @@ gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset
         "streamgrp": gen_streamgrp,
         "zsetops": gen_zsetops, "geo": gen_geo,
         "scan": gen_scan, "multi": gen_multi,
+        "edgeenc": gen_edgeenc,
         "servertail": gen_servertail}
 if LIST_GENERATORS:
     print("\n".join(gens))
@@ -2691,7 +2927,7 @@ for cs, cf in ((ts, tf), (os_, of)):
 # OBJECT ENCODING is only comparable once both servers promote at the same sizes, and the two
 # spell those knobs differently, so the alignment cannot ride in the diffed op stream. Replies are
 # drained, NOT diffed -- the knob NAMES differ by design.
-if SUITE == "servertail":
+if SUITE in ("servertail", "edgeenc"):
     alignment = {
         0: [["CONFIG", "SET", "hash-max-compact-entries", "128"],
             ["CONFIG", "SET", "hash-max-compact-value", "64"],
