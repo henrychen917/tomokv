@@ -107,7 +107,7 @@ grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG
 # asserts its own mechanisms fired; the boot covers multi/blocking/pubsub+sharded/lua/limits.
 for AT in 0 1; do
   boot ./build/tomokv --atomic $AT || bad "feature battery boot (atomic $AT)"
-  for t in multi_exec blocking stream streamgroups pubsub lua_scripting scriptsurf limits resp3 bitfield dumprestore zsetops geo climon; do
+  for t in multi_exec blocking stream streamgroups pubsub lua_scripting scriptsurf limits resp3 bitfield dumprestore zsetops geo climon climon2 tracking hexpire servertail lcs; do
     python3 tests/$t.py 127.0.0.1 $PORT >/tmp/gate-$t-$AT.txt 2>&1 \
         && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see /tmp/gate-$t-$AT.txt"
   done
@@ -116,11 +116,13 @@ for AT in 0 1; do
       && ok "feature shutdown invariants (atomic $AT)" || bad "feature shutdown invariants (atomic $AT)"
 done
 
-# ---- LB signals: read-side battery needs the debug surface, hence its own boot ----------------
+# ---- debug-surface batteries: these drive DEBUG subcommands, hence their own armed boot -------
 for AT in 0 1; do
-  boot ./build/tomokv --atomic $AT --enable-debug-command yes || bad "lbsignals boot (atomic $AT)"
-  python3 tests/lbsignals.py 127.0.0.1 $PORT >/tmp/gate-lbsignals-$AT.txt 2>&1 \
-      && ok "lbsignals battery (atomic $AT)" || bad "lbsignals battery (atomic $AT)" "see /tmp/gate-lbsignals-$AT.txt"
+  boot ./build/tomokv --atomic $AT --enable-debug-command yes || bad "debug-surface boot (atomic $AT)"
+  for t in lbsignals slowlog; do
+    python3 tests/$t.py 127.0.0.1 $PORT >/tmp/gate-$t-$AT.txt 2>&1 \
+        && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see /tmp/gate-$t-$AT.txt"
+  done
   stop
 done
 

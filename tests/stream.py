@@ -327,17 +327,22 @@ resident = info_value(admin, "MEMORY", "used_memory_dataset")
 per_stream = max(0, resident - baseline) / sample
 note("one-entry memory floor tracks ~140B design (well below 4.4KiB)", per_stream < 512,
      "measured=%.1fB/key audit-kvobj~=140B" % per_stream)
+# OBJECT ENCODING now reports redis names ('stream' for both internal forms — the server-tail
+# lane's compat mapping), so the compact->full migration is observed through MEMORY USAGE
+# instead: the full structure costs kilobytes where the compact form costs ~140B, and the jump
+# must happen exactly once as entries accumulate.
 admin.cmd("DEL", "stream:migrate")
 admin.cmd("XADD", "stream:migrate", "1-0", "f", "v")
-first_encoding = admin.cmd("OBJECT", "ENCODING", "stream:migrate")
-encodings = [first_encoding]
+note("stream reports the redis encoding name",
+     admin.cmd("OBJECT", "ENCODING", "stream:migrate") == b"stream")
+usages = [admin.cmd("MEMORY", "USAGE", "stream:migrate")]
 for ident in range(2, 20):
     admin.cmd("XADD", "stream:migrate", "%d-0" % ident, "f", "v")
-    encodings.append(admin.cmd("OBJECT", "ENCODING", "stream:migrate"))
-transitions = sum(encodings[i] != encodings[i - 1] for i in range(1, len(encodings)))
+    usages.append(admin.cmd("MEMORY", "USAGE", "stream:migrate"))
+jumps = sum(1 for i in range(1, len(usages)) if usages[i] - usages[i - 1] > 2048)
 note("compact-to-stream migration flips exactly once",
-     first_encoding == b"compact" and encodings[-1] == b"stream" and transitions == 1,
-     "encodings=%r" % sorted(set(encodings)))
+     usages[0] < 1024 and usages[-1] > 2048 and jumps == 1,
+     "first=%r last=%r jumps=%d" % (usages[0], usages[-1], jumps))
 
 note("stream waiter gauges end at zero",
      info_value(admin, "CLIENTS", "blocked_clients") == 0 and
