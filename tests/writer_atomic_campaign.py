@@ -30,9 +30,26 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SERVER_CPUS = "32-47"
-LOAD_CPUS = "96-119"
-SPINNER_CPUS = list(range(32, 48))
+def _cpu_env(name: str, default: str) -> str:
+    return os.environ.get(name, default)
+
+
+def _expand(spec: str) -> list[int]:
+    out: list[int] = []
+    for part in spec.split(","):
+        if "-" in part:
+            lo, hi = part.split("-", 1)
+            out.extend(range(int(lo), int(hi) + 1))
+        else:
+            out.append(int(part))
+    return out
+
+
+# Overridable so the campaign can be placed on a free slice; several lanes share this machine and
+# a hardcoded range silently lands on somebody else's cores.
+SERVER_CPUS = _cpu_env("WA_SERVER_CPUS", "32-47")
+LOAD_CPUS = _cpu_env("WA_LOAD_CPUS", "96-119")
+SPINNER_CPUS = _expand(_cpu_env("WA_SPINNER_CPUS", "32-47"))
 
 
 @dataclasses.dataclass(frozen=True)
@@ -128,7 +145,10 @@ class ServerProcess:
             return prefix + [str(binary), f"--bind=127.0.0.1", f"--port={self.arm.port}",
                              "--proactor_threads=16", f"--dir={self.data_dir}"]
         binary = Path(self.args.redis_binary).resolve()
-        return ["taskset", "-c", "32", str(binary), "--bind", "127.0.0.1",
+        # Redis is single-threaded, so it gets one core deliberately — but take it from the
+        # configured server range rather than a hardcoded number, or this arm lands on whatever
+        # lane happens to own core 32.
+        return ["taskset", "-c", str(_expand(SERVER_CPUS)[0]), str(binary), "--bind", "127.0.0.1",
                 "--port", str(self.arm.port), "--save", "", "--appendonly", "no",
                 "--dir", str(self.data_dir), "--dbfilename", "writer-atomic.rdb"]
 
