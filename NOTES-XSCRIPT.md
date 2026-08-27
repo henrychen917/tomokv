@@ -344,10 +344,21 @@ the old `atomic_has_record` when no intent exists.
 `tests/config_parser_test.cc` passes, including the four new knobs' grammar and their four rejection
 cases.
 
-### ASAN
+### ASAN + UBSAN
 
-`make asan`, same 8-shard `--atomic 1` boot, `tests/xscript.py all` + the script differ leg.
-Result recorded in section 12.
+`make asan` (`-fsanitize=address,undefined`), 8-shard `--atomic 1` boot on the lane cores:
+`tests/xscript.py all` passed (with 172 OCC restarts forced by the contention arm — ASAN's slowdown
+widens every window this feature has), then two differ legs, 5061 and 5053 ops, **0 diffs**.
+
+```
+hard ASAN errors: 0
+  1 runtime error: load of misaligned address 0xADDR for type 'const uint32_t', which requires 4 byte alignment
+      third_party/lua/lstring.c:87 murmur32  <- luaS_newlstr <- lua_pushlstring <- push_call_tables
+```
+
+The single UBSan report is the vendored Lua 5.1 string hash reading unaligned words. It fires on any
+EVAL at all, single-owner included, and `git diff dbef14d43..HEAD -- third_party/` is empty — this
+lane did not touch Lua. Pre-existing, reported here rather than filtered away.
 
 ---
 
