@@ -107,7 +107,7 @@ grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG
 # asserts its own mechanisms fired; the boot covers multi/blocking/pubsub+sharded/lua/limits.
 for AT in 0 1; do
   boot ./build/tomokv --atomic $AT || bad "feature battery boot (atomic $AT)"
-  for t in multi_exec blocking stream pubsub lua_scripting limits resp3 bitfield dumprestore climon; do
+  for t in multi_exec blocking stream streamgroups pubsub lua_scripting scriptsurf limits resp3 bitfield dumprestore zsetops geo climon; do
     python3 tests/$t.py 127.0.0.1 $PORT >/tmp/gate-$t-$AT.txt 2>&1 \
         && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see /tmp/gate-$t-$AT.txt"
   done
@@ -469,6 +469,9 @@ python3 tests/tls.py 127.0.0.1 "$TLS_PORT" "$TLS_DIR" yes --plain-port "$PORT" \
 stop
 grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
     && ok "TLS yes shutdown invariants" || bad "TLS yes shutdown invariants"
+# Default boot runs tls-ktls yes: the kernel-TLS arm must actually engage on this kernel.
+grep -qE "ktls_active=[1-9]" "$SRVLOG" \
+    && ok "kTLS engaged on default boot" || bad "kTLS engaged on default boot"
 
 tlsboot optional || bad "TLS client-auth optional purpose boot"
 python3 tests/tls.py 127.0.0.1 "$TLS_PORT" "$TLS_DIR" optional --plain-port "$PORT" \
@@ -479,11 +482,13 @@ stop
 grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
     && ok "TLS optional shutdown invariants" || bad "TLS optional shutdown invariants"
 
-tlsboot no --tls-protocols "TLSv1.2 TLSv1.3" --tls-ciphers DEFAULT \
+# The full battery runs FORCED-FALLBACK so the userspace arm's mechanisms (zc suppression, memory
+# BIO paths) keep their non-vacuous proofs; the default-ktls arm is proven separately below.
+tlsboot no --tls-ktls no --tls-protocols "TLSv1.2 TLSv1.3" --tls-ciphers DEFAULT \
     --tls-ciphersuites TLS_AES_256_GCM_SHA384 --tls-prefer-server-ciphers yes \
     || bad "TLS coexistence purpose boot"
 python3 tests/tls.py 127.0.0.1 "$TLS_PORT" "$TLS_DIR" no --plain-port "$PORT" --full \
-    >/tmp/gate-tls-full.txt 2>&1 \
+    --expect-ktls no >/tmp/gate-tls-full.txt 2>&1 \
     && ok "TLS pipeline/torn-record/coexistence battery" \
     || bad "TLS correctness battery" "see /tmp/gate-tls-full.txt"
 stop

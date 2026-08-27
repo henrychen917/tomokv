@@ -21,7 +21,9 @@ def assert_notification_delivery_not_acl_checked():
     source_path = os.path.join(os.path.dirname(__file__), "..", "src", "core", "pubsub.inc")
     with open(source_path, "r", encoding="utf-8") as source_file:
         source = source_file.read()
-    start = source.index("    void pubsub_deliver(")
+    # The fanout redesign split delivery into deliver_one/deliver_batch; the span still ends at
+    # home_publish, so the whole delivery path stays inside the checked region.
+    start = source.index("    void pubsub_deliver_one(")
     end = source.index("\n    void pubsub_home_publish(", start)
     if "acl_" in source[start:end]:
         raise AssertionError("pubsub delivery must not apply ACL channel rules")

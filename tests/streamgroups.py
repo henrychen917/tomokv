@@ -266,18 +266,19 @@ note("XINFO STREAM FULL exposes entries, group PEL and consumers",
      full[b"length"] == 1 and len(full[b"entries"]) == 1 and len(full[b"groups"]) == 1 and
      pairs(full[b"groups"][0])[b"pel-count"] == 1)
 
-# DUMP/RESTORE exercises the stream snapshot hook used by recovery and post-image operations.
-dump = admin.cmd("DUMP", "block:g")
-note("group-bearing DUMP produces an image", isinstance(dump, bytes) and len(dump) > 32)
-restored = admin.cmd("RESTORE", "block:g:copy", "0", dump, "REPLACE")
-copy_groups = admin.cmd("XINFO", "GROUPS", "block:g:copy")
-note("stream recovery image preserves group cursor and PEL",
-     restored == b"OK" and len(copy_groups) == 1 and
-     pairs(copy_groups[0])[b"pending"] == 1 and
-     pairs(copy_groups[0])[b"last-delivered-id"] == b"1-0")
+# Stream DUMP is a documented cut under the redis-wire codec (streams have no wire payload yet);
+# lock the cut visibly so a silent behavior change fails here. Group persistence itself is proven
+# by the native snapshot leg above, not by DUMP.
+dump_err = None
+try:
+    admin.cmd("DUMP", "block:g")
+except RuntimeError as e:
+    dump_err = str(e)
+note("group-bearing DUMP reports the documented wire-codec cut",
+     dump_err is not None and "could not be serialized" in dump_err)
 note("XGROUP DESTROY removes group state but keeps the stream",
-     admin.cmd("XGROUP", "DESTROY", "block:g:copy", "g") == 1 and
-     admin.cmd("EXISTS", "block:g:copy") == 1)
+     admin.cmd("XGROUP", "DESTROY", "block:g", "g") == 1 and
+     admin.cmd("EXISTS", "block:g") == 1)
 
 note("stream-group waiter gauges finish at zero",
      wait_blocked(admin, 0) and info_value(admin, "STATS", "blocking_waiters") == 0)

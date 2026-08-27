@@ -67,7 +67,9 @@ for name, bit_text in category_rows:
     expected = sorted(command_name.lower().encode()
                       for command_name, mask in command_rows
                       if int(mask, 16) & (1 << bit))
-    actual = command(sock, "ACL", "CAT", name.upper())
+    # The server replies in registry order, which shifts whenever a family table is added or the
+    # merge order changes; the MEMBERSHIP is the contract, so compare sorted.
+    actual = sorted(command(sock, "ACL", "CAT", name.upper()))
     if actual != expected:
         raise AssertionError(f"ACL CAT {name}: got {actual!r}, wanted {expected!r}")
 
