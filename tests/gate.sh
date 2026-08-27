@@ -288,7 +288,10 @@ for PERSIST_IO in normal uring; do
 done
 
 # ---- notify lane: integrated owner/retire seams plus both live atomic settings -----------------
-boot ./build/tomokv --notify-keyspace-events KEAmn || bad "feature battery boot + notify CLI knob"
+boot ./build/tomokv --notify-keyspace-events KEAmn --enable-debug-command yes \
+    || bad "feature battery boot + notify CLI knob"   # armed: multi_exec.py needs DEBUG SHARD
+                                                       # to locate a same-owner key pair, and it
+                                                       # FAILS rather than skips without it
 python3 tests/multi_exec.py 127.0.0.1 $PORT >/tmp/gate-multi.txt 2>&1 \
     && ok "MULTI feature battery" || bad "MULTI feature battery" "see /tmp/gate-multi.txt"
 python3 tests/blocking.py 127.0.0.1 $PORT >/tmp/gate-blocking.txt 2>&1 \
