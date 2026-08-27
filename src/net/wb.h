@@ -36,6 +36,7 @@
 // ============================================================================================
 #pragma once
 #include <atomic>
+#include <cerrno>
 #include <cstdint>
 #include "conn.h"
 #include "tls.h"
@@ -305,6 +306,15 @@ public:
 
             if (res < 0) {
                 if (res == -EAGAIN || res == -EINTR) { resubmit = true; }
+                else if (res == -ECONNRESET || res == -EPIPE || res == -ECONNABORTED ||
+                         c.closing()) {
+                    // The peer tore the connection down mid-send (abrupt-disconnect batteries,
+                    // CLIENT KILL, kTLS conns on this plain path). No application reply is being
+                    // lost that the peer could still read; counting these as data-path send
+                    // errors made err=0 a timing lottery. Same carve-out the memory-BIO arm has.
+                    stats_.peer_aborts++;
+                    return false;
+                }
                 else { stats_.send_errors++; return false; }
             } else {
                 Client& conn = c;
@@ -351,6 +361,9 @@ public:
                 while ((bytes = tls.peek_output(pending)) > 0)
                     if (!tls.consume_output(static_cast<uint32_t>(bytes))) break;
                 return true;
+            } else if (res == -ECONNRESET || res == -EPIPE || res == -ECONNABORTED) {
+                stats_.peer_aborts++;
+                return false;
             } else { stats_.send_errors++; return false; }
         } else if (res == 0) {
             if (c.closing()) {
@@ -421,6 +434,7 @@ public:
         uint64_t sends_completed = 0;
         uint64_t short_writes    = 0;
         uint64_t send_errors     = 0;
+        uint64_t peer_aborts     = 0;   // peer closed mid-send; expected under kill/disconnect
         uint64_t sqe_starved     = 0;   // pump could not get an SQE; bytes stay staged
         uint64_t serves          = 0;
         uint64_t serves_empty    = 0;   // serve() retired nothing: a wake with no head-ready

@@ -379,6 +379,7 @@ int main(int argc, char** argv) {
     auto addw = [&](const WbEngine::Stats& x) {
         w.sends_submitted += x.sends_submitted; w.sends_completed += x.sends_completed;
         w.short_writes    += x.short_writes;    w.send_errors     += x.send_errors;
+        w.peer_aborts     += x.peer_aborts;
         w.bytes_sent      += x.bytes_sent;      w.retired         += x.retired;
         w.direct          += x.direct;
         w.zc_sends        += x.zc_sends;        w.zc_bytes        += x.zc_bytes;
@@ -452,11 +453,13 @@ int main(int argc, char** argv) {
                 }
             }
             if (!c->nothing_to_write()) stuck_wr++;        }
-    std::printf("wb: retired=%llu direct=%llu sends=%llu/%llu short=%llu err=%llu bytes=%llu"
+    std::printf("wb: retired=%llu direct=%llu sends=%llu/%llu short=%llu err=%llu"
+                " peer_aborts=%llu bytes=%llu"
                 " zc_sends=%llu zc_bytes=%llu zc_releases=%llu serves=%llu empty=%llu\n",
                 (unsigned long long)w.retired, (unsigned long long)w.direct, (unsigned long long)w.sends_completed,
                 (unsigned long long)w.sends_submitted, (unsigned long long)w.short_writes,
-                (unsigned long long)w.send_errors, (unsigned long long)w.bytes_sent,
+                (unsigned long long)w.send_errors, (unsigned long long)w.peer_aborts,
+                (unsigned long long)w.bytes_sent,
                 (unsigned long long)w.zc_sends, (unsigned long long)w.zc_bytes,
                 (unsigned long long)w.zc_releases,
                 (unsigned long long)w.serves, (unsigned long long)w.serves_empty);
