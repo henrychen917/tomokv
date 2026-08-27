@@ -2548,212 +2548,214 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
     };
 
     for (;;) {
-    if (!driving) {
-        if (state.script_resume_post) {
-            if (!launch(state.script_phase)) return outcome;
-        } else if (state.pending.fetch_sub(1, std::memory_order_acq_rel) != 1) {
-            return ScatterFinish::Waiting;
+        if (!driving) {
+            if (state.script_resume_post) {
+                if (!launch(state.script_phase)) return outcome;
+            } else if (state.pending.fetch_sub(1, std::memory_order_acq_rel) != 1) {
+                return ScatterFinish::Waiting;
+            }
         }
-    }
-    driving = false;
+        driving = false;
 
-    switch (state.script_phase) {
-        case ScriptPhase::Pin: {
-            WorkError error = WorkError::None;
-            if (script_group_error(state, error) ||
-                state.aborted.load(std::memory_order_acquire)) {
-                server.note_script_abort_oom();
-                script_engine_error_reply(op, state, error);
-                state.script_apply_after_unpin = false;
-                state.script_commit_after_unpin = false;
-                if (!launch(ScriptPhase::Unpin)) return outcome;
-                driving = true;
-                continue;
-            }
-            state.script_pins_live = true;
-            // All intents now exist. A write before this point is part of the new cut; every write
-            // after it is forced through MVCC and can be validated.
-            state.script_cut = server.atomic_snapshot();
-            state.script_staged_bytes.store(0, std::memory_order_relaxed);
-            // TEST HOOK: the park window opens HERE, not at prepare -- the point of the hook is to
-            // expose the interval between "every declared key is reserved and the cut is chosen"
-            // and "the owners actually read", which is the interval AMENDMENT 1 is about.
-            if (__builtin_expect(state.debug_script_defer_us != 0, false) &&
-                state.debug_script_defer_deadline == 0)
-                state.debug_script_defer_deadline =
-                    now_ns() + static_cast<uint64_t>(state.debug_script_defer_us) * 1000ull;
-            if (!launch(ScriptPhase::Read)) return outcome;
-            driving = true;
-            continue;
-        }
-        case ScriptPhase::Read: {
-            WorkError error = WorkError::None;
-            if (script_group_error(state, error) ||
-                state.aborted.load(std::memory_order_acquire)) {
-                server.note_script_abort_oom();
-                script_engine_error_reply(op, state, error);
-                state.script_apply_after_unpin = false;
-                state.script_commit_after_unpin = false;
-                if (!launch(ScriptPhase::Unpin)) return outcome;
-                driving = true;
-                continue;
-            }
-            if (!launch(ScriptPhase::Run)) return outcome;
-            driving = true;
-            continue;
-        }
-        case ScriptPhase::Run:
-            if (state.aborted.load(std::memory_order_acquire)) {
-                server.note_script_abort_oom();
-                script_engine_error_reply(op, state, state.final_error);
-                notify_discard_batch(state.notify.exchange(nullptr));
-                state.script_apply_after_unpin = false;
-                state.script_commit_after_unpin = false;
-                if (!launch(ScriptPhase::Unpin)) return outcome;
-                driving = true;
-                continue;
-            }
-            state.script_has_writes = false;
-            for (uint32_t i = 0; i < state.key_count; i++)
-                state.script_has_writes |= (state.status[i] & 2u) != 0;
-            // A read-only activation already has a legal serialization point at script_cut: PIN
-            // forced every later writer to preserve the predecessor read by STAGE. It therefore
-            // needs neither an OCC validation wave nor a commit ticket.
-            if (!state.script_has_writes) {
-                server.note_script_activation();
-                state.script_apply_after_unpin = false;
-                state.script_commit_after_unpin = false;
-                if (!launch(ScriptPhase::Unpin)) return outcome;
-                driving = true;
-                continue;
-            }
-            // Certification through APPLY is deliberately exclusive. Two activations can STAGE
-            // and RUN concurrently, but without this seam both can validate the same predecessor
-            // before either has installed a candidate, producing a classic lost update. A loser
-            // restages instead of parking an executor; plain writers remain fully concurrent and
-            // are caught by the ordinary read-set validation below.
-            if (!server.script_try_certification()) {
-                if (state.script_retries++ < server.script_crossshard_conflict_retries()) {
-                    server.note_script_retry();
-                    script_clear_attempt(state, op);
-                    state.script_cut = server.atomic_snapshot();
-                    if (!launch(ScriptPhase::Read)) return outcome;
+        switch (state.script_phase) {
+            case ScriptPhase::Pin: {
+                WorkError error = WorkError::None;
+                if (script_group_error(state, error) ||
+                    state.aborted.load(std::memory_order_acquire)) {
+                    server.note_script_abort_oom();
+                    script_engine_error_reply(op, state, error);
+                    state.script_apply_after_unpin = false;
+                    state.script_commit_after_unpin = false;
+                    if (!launch(ScriptPhase::Unpin)) return outcome;
                     driving = true;
                     continue;
                 }
-                server.note_script_giveup();
-                op.reply.clear();
-                op.direct_len = 0;
-                reply_err(op.sink(), "TRYAGAIN Cross-shard script conflicted, retry");
-                notify_discard_batch(state.notify.exchange(nullptr));
-                state.script_apply_after_unpin = false;
+                state.script_pins_live = true;
+                // All intents now exist. A write before this point is part of the new
+                // cut; every write after it is forced through MVCC and can be validated.
+                state.script_cut = server.atomic_snapshot();
+                state.script_staged_bytes.store(0, std::memory_order_relaxed);
+                // TEST HOOK: the park window opens HERE, not at prepare. The point of the
+                // hook is to expose the interval between "every declared key is reserved
+                // and the cut is chosen" and "the owners actually read", which is the
+                // interval AMENDMENT 1 is about.
+                if (__builtin_expect(state.debug_script_defer_us != 0, false) &&
+                    state.debug_script_defer_deadline == 0)
+                    state.debug_script_defer_deadline =
+                        now_ns() + static_cast<uint64_t>(state.debug_script_defer_us) * 1000ull;
+                if (!launch(ScriptPhase::Read)) return outcome;
+                driving = true;
+                continue;
+            }
+            case ScriptPhase::Read: {
+                WorkError error = WorkError::None;
+                if (script_group_error(state, error) ||
+                    state.aborted.load(std::memory_order_acquire)) {
+                    server.note_script_abort_oom();
+                    script_engine_error_reply(op, state, error);
+                    state.script_apply_after_unpin = false;
+                    state.script_commit_after_unpin = false;
+                    if (!launch(ScriptPhase::Unpin)) return outcome;
+                    driving = true;
+                    continue;
+                }
+                if (!launch(ScriptPhase::Run)) return outcome;
+                driving = true;
+                continue;
+            }
+            case ScriptPhase::Run:
+                if (state.aborted.load(std::memory_order_acquire)) {
+                    server.note_script_abort_oom();
+                    script_engine_error_reply(op, state, state.final_error);
+                    notify_discard_batch(state.notify.exchange(nullptr));
+                    state.script_apply_after_unpin = false;
+                    state.script_commit_after_unpin = false;
+                    if (!launch(ScriptPhase::Unpin)) return outcome;
+                    driving = true;
+                    continue;
+                }
+                state.script_has_writes = false;
+                for (uint32_t i = 0; i < state.key_count; i++)
+                    state.script_has_writes |= (state.status[i] & 2u) != 0;
+                // A read-only activation already has a legal serialization point at script_cut: PIN
+                // forced every later writer to preserve the predecessor read by STAGE. It therefore
+                // needs neither an OCC validation wave nor a commit ticket.
+                if (!state.script_has_writes) {
+                    server.note_script_activation();
+                    state.script_apply_after_unpin = false;
+                    state.script_commit_after_unpin = false;
+                    if (!launch(ScriptPhase::Unpin)) return outcome;
+                    driving = true;
+                    continue;
+                }
+                // Certification through APPLY is deliberately exclusive. Two activations
+                // can STAGE and RUN concurrently, but without this seam both can validate
+                // the same predecessor before either has installed a candidate, producing a
+                // classic lost update. A loser restages instead of parking an executor;
+                // plain writers remain fully concurrent and are caught by the ordinary
+                // read-set validation below.
+                if (!server.script_try_certification()) {
+                    if (state.script_retries++ < server.script_crossshard_conflict_retries()) {
+                        server.note_script_retry();
+                        script_clear_attempt(state, op);
+                        state.script_cut = server.atomic_snapshot();
+                        if (!launch(ScriptPhase::Read)) return outcome;
+                        driving = true;
+                        continue;
+                    }
+                    server.note_script_giveup();
+                    op.reply.clear();
+                    op.direct_len = 0;
+                    reply_err(op.sink(), "TRYAGAIN Cross-shard script conflicted, retry");
+                    notify_discard_batch(state.notify.exchange(nullptr));
+                    state.script_apply_after_unpin = false;
+                    state.script_commit_after_unpin = false;
+                    if (!launch(ScriptPhase::Unpin)) return outcome;
+                    driving = true;
+                    continue;
+                }
+                state.script_certifier = true;
+                state.script_ticket = server.atomic_commit_reserve();
+                state.script_ticket_live = true;
+                state.script_conflict.store(false, std::memory_order_relaxed);
+                if (!launch(ScriptPhase::Validate)) return outcome;
+                driving = true;
+                continue;
+
+            case ScriptPhase::Validate:
+                if (state.script_conflict.load(std::memory_order_acquire)) {
+                    if (!state.script_ticket_live) std::abort();
+                    server.atomic_commit_publish();       // publish the unused reservation
+                    state.script_ticket_live = false;
+                    if (!state.script_certifier) std::abort();
+                    server.script_finish_certification();
+                    state.script_certifier = false;
+                    if (state.script_retries++ < server.script_crossshard_conflict_retries()) {
+                        server.note_script_retry();
+                        script_clear_attempt(state, op);
+                        state.script_cut = server.atomic_snapshot();
+                        if (!launch(ScriptPhase::Read)) return outcome;
+                        driving = true;
+                        continue;
+                    }
+                    server.note_script_giveup();
+                    op.reply.clear();
+                    op.direct_len = 0;
+                    reply_err(op.sink(), "TRYAGAIN Cross-shard script conflicted, retry");
+                    notify_discard_batch(state.notify.exchange(nullptr));
+                    state.script_apply_after_unpin = false;
+                    state.script_commit_after_unpin = false;
+                    if (!launch(ScriptPhase::Unpin)) return outcome;
+                    driving = true;
+                    continue;
+                }
+                // Drop the read intents in a separate all-owner wave before installing candidates.
+                // The reserved ticket orders every later writer after this activation, and no MVCC
+                // record yet points at the group arrays that UNPIN is about to rebuild.
+                state.script_apply_after_unpin = true;
                 state.script_commit_after_unpin = false;
                 if (!launch(ScriptPhase::Unpin)) return outcome;
                 driving = true;
                 continue;
-            }
-            state.script_certifier = true;
-            state.script_ticket = server.atomic_commit_reserve();
-            state.script_ticket_live = true;
-            state.script_conflict.store(false, std::memory_order_relaxed);
-            if (!launch(ScriptPhase::Validate)) return outcome;
-            driving = true;
-            continue;
 
-        case ScriptPhase::Validate:
-            if (state.script_conflict.load(std::memory_order_acquire)) {
+            case ScriptPhase::Unpin:
+                state.script_pins_live = false;
+                if (state.script_apply_after_unpin) {
+                    state.script_apply_after_unpin = false;
+                    if (!launch(ScriptPhase::Apply)) return outcome;
+                    driving = true;
+                    continue;
+                }
+                if (state.script_commit_after_unpin) {
+                    state.script_commit_after_unpin = false;
+                    if (!state.script_ticket_live) std::abort();
+                    server.atomic_commit_publish();
+                    state.script_ticket_live = false;
+                    server.note_script_activation();
+                }
+                script_snapshot_done(server, state);
+                return ScatterFinish::Final;
+
+            case ScriptPhase::Apply: {
+                WorkError error = state.final_error;
+                const bool failed = script_group_error(state, error) ||
+                                    state.aborted.load(std::memory_order_acquire);
+                if (failed) {
+                    server.note_script_abort_oom();
+                    state.aborted.store(true, std::memory_order_release);
+                    aof_abort_scatter_group(state);
+                    notify_discard_batch(state.notify.exchange(nullptr));
+                    if (state.script_ticket_live) {
+                        server.atomic_commit_publish();
+                        state.script_ticket_live = false;
+                    }
+                    if (state.script_certifier) {
+                        server.script_finish_certification();
+                        state.script_certifier = false;
+                    }
+                    script_engine_error_reply(op, state, error);
+                    script_snapshot_done(server, state);
+                    return ScatterFinish::Final;
+                }
                 if (!state.script_ticket_live) std::abort();
-                server.atomic_commit_publish();       // publish the unused reservation
+                state.epoch.store(state.script_ticket, std::memory_order_release);
+                server.atomic_commit_publish();
                 state.script_ticket_live = false;
                 if (!state.script_certifier) std::abort();
                 server.script_finish_certification();
                 state.script_certifier = false;
-                if (state.script_retries++ < server.script_crossshard_conflict_retries()) {
-                    server.note_script_retry();
-                    script_clear_attempt(state, op);
-                    state.script_cut = server.atomic_snapshot();
-                    if (!launch(ScriptPhase::Read)) return outcome;
-                    driving = true;
-                    continue;
-                }
-                server.note_script_giveup();
-                op.reply.clear();
-                op.direct_len = 0;
-                reply_err(op.sink(), "TRYAGAIN Cross-shard script conflicted, retry");
-                notify_discard_batch(state.notify.exchange(nullptr));
-                state.script_apply_after_unpin = false;
-                state.script_commit_after_unpin = false;
-                if (!launch(ScriptPhase::Unpin)) return outcome;
-                driving = true;
-                continue;
-            }
-            // Drop the read intents in a separate all-owner wave before installing candidates.
-            // The reserved ticket orders every later writer after this activation, and no MVCC
-            // record yet points at the group arrays that UNPIN is about to rebuild.
-            state.script_apply_after_unpin = true;
-            state.script_commit_after_unpin = false;
-            if (!launch(ScriptPhase::Unpin)) return outcome;
-            driving = true;
-            continue;
-
-        case ScriptPhase::Unpin:
-            state.script_pins_live = false;
-            if (state.script_apply_after_unpin) {
-                state.script_apply_after_unpin = false;
-                if (!launch(ScriptPhase::Apply)) return outcome;
-                driving = true;
-                continue;
-            }
-            if (state.script_commit_after_unpin) {
-                state.script_commit_after_unpin = false;
-                if (!state.script_ticket_live) std::abort();
-                server.atomic_commit_publish();
-                state.script_ticket_live = false;
+                aof_commit_scatter_group(state, self, ring, state.script_ticket);
                 server.note_script_activation();
-            }
-            script_snapshot_done(server, state);
-            return ScatterFinish::Final;
-
-        case ScriptPhase::Apply: {
-            WorkError error = state.final_error;
-            const bool failed = script_group_error(state, error) ||
-                                state.aborted.load(std::memory_order_acquire);
-            if (failed) {
-                server.note_script_abort_oom();
-                state.aborted.store(true, std::memory_order_release);
-                aof_abort_scatter_group(state);
-                notify_discard_batch(state.notify.exchange(nullptr));
-                if (state.script_ticket_live) {
-                    server.atomic_commit_publish();
-                    state.script_ticket_live = false;
-                }
-                if (state.script_certifier) {
-                    server.script_finish_certification();
-                    state.script_certifier = false;
-                }
-                script_engine_error_reply(op, state, error);
+                server.note_script_group_commit();
+                if (__builtin_expect(server.blocking_waiters() != 0, false))
+                    blocking_atomic_published(server, self, ring, state);
                 script_snapshot_done(server, state);
                 return ScatterFinish::Final;
             }
-            if (!state.script_ticket_live) std::abort();
-            state.epoch.store(state.script_ticket, std::memory_order_release);
-            server.atomic_commit_publish();
-            state.script_ticket_live = false;
-            if (!state.script_certifier) std::abort();
-            server.script_finish_certification();
-            state.script_certifier = false;
-            aof_commit_scatter_group(state, self, ring, state.script_ticket);
-            server.note_script_activation();
-            server.note_script_group_commit();
-            if (__builtin_expect(server.blocking_waiters() != 0, false))
-                blocking_atomic_published(server, self, ring, state);
-            script_snapshot_done(server, state);
-            return ScatterFinish::Final;
+            case ScriptPhase::None:
+                std::abort();
         }
-        case ScriptPhase::None:
-            std::abort();
-    }
-    std::abort();
+        std::abort();
     }
 }
 
