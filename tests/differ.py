@@ -1380,12 +1380,11 @@ def gen_script(rng):
     # Scripting surface: EVAL / EVALSHA / EVAL_RO / EVALSHA_RO / SCRIPT LOAD|EXISTS|FLUSH and the
     # FUNCTION library (FCALL / FCALL_RO / LIST / STATS).
     #
-    # TWO STRUCTURAL LIMITS, both properties of TomoKV rather than of the suite:
-    #   * numkeys is 0 or 1. A script declaring two keys is routed to ONE owner here, so a pair
-    #     landing on different shards is a CROSSSLOT that vanilla Redis does not produce. The
-    #     single-owner law is the design, not a gap the differ should paper over.
-    #   * every redis.call names KEYS[i]. TomoKV enforces the declared range (Redis 7 only warns),
-    #     because routing happened before execution.
+    # Every keyed activation declares 2--8 distinct keys.  This is deliberately wider than the
+    # old single-key stream: the cross-owner lowering is the mechanism under test, and a suite
+    # that never gives the router more than one owner can report a vacuous zero-diff result.
+    # Every redis.call still names KEYS[i]. TomoKV enforces the declared range (Redis 7 only warns),
+    # because routing happened before execution.
     # Everything else — reply conversion, the error text including the " script: <sha>, on
     # @user_script:<line>." tail, the read-only gate, the function metadata — is byte-compared.
     keys = ["sc:%d" % i for i in range(24)]
@@ -1393,6 +1392,12 @@ def gen_script(rng):
 
     def K():
         return rng.choice(keys)
+
+    def KS():
+        return rng.sample(keys, rng.randrange(2, 9))
+
+    def keyed(command, source, declared, *arguments):
+        return [command, source, str(len(declared))] + declared + list(arguments)
 
     scripts = [
         "return 1",
@@ -1422,6 +1427,11 @@ def gen_script(rng):
         "return redis.call('ZSCORE', KEYS[1], ARGV[1])",
         "return redis.call('SADD', KEYS[1], ARGV[1])",
         "return redis.call('SCARD', KEYS[1])",
+        ("local v = redis.call('GET', KEYS[1]); "
+         "redis.call('SET', KEYS[2], v or ARGV[1]); "
+         "return redis.call('GET', KEYS[2])"),
+        ("redis.call('SET', KEYS[2], ARGV[1]); "
+         "return {redis.call('GET', KEYS[1]), redis.call('GET', KEYS[2])}"),
         "local a = 0 for i = 1, 20 do a = a + i end return a",
     ]
     keyless = ["return 1", "return 'plain'", "return {1,2,3,'x'}", "return {ok='fine'}",
@@ -1468,7 +1478,8 @@ def gen_script(rng):
         pick = rng.randrange(100)
         if pick < 20:
             src = rng.choice(scripts)
-            ops.append(["EVAL", src, "1", K(), rng.choice(values)])
+            declared = KS()
+            ops.append(keyed("EVAL", src, declared, rng.choice(values)))
         elif pick < 26:
             src = rng.choice(keyless)
             ops.append(["EVAL", src, "0", rng.choice(values)])
@@ -1478,27 +1489,35 @@ def gen_script(rng):
             ops.append(["SCRIPT", "LOAD", src])
         elif pick < 44:
             src = rng.choice(loaded) if loaded else scripts[0]
-            ops.append(["EVALSHA", sha(src), "1", K(), rng.choice(values)])
+            declared = KS()
+            ops.append(keyed("EVALSHA", sha(src), declared, rng.choice(values)))
         elif pick < 50:
             wanted = [sha(rng.choice(scripts)) for _ in range(rng.randrange(1, 4))]
             ops.append(["SCRIPT", "EXISTS"] + wanted)
         elif pick < 58:
-            ops.append(["EVAL_RO", rng.choice(scripts), "1", K(), rng.choice(values)])
+            declared = KS()
+            ops.append(keyed("EVAL_RO", rng.choice(scripts), declared, rng.choice(values)))
         elif pick < 62:
-            ops.append(["EVAL_RO", rng.choice(ro_writes), "1", K()])
+            declared = KS()
+            ops.append(keyed("EVAL_RO", rng.choice(ro_writes), declared))
         elif pick < 66:
             src = rng.choice(loaded) if loaded else scripts[0]
-            ops.append(["EVALSHA_RO", sha(src), "1", K(), rng.choice(values)])
+            declared = KS()
+            ops.append(keyed("EVALSHA_RO", sha(src), declared, rng.choice(values)))
         elif pick < 72:
-            ops.append(["EVAL", rng.choice(broken), "1", K()])
+            declared = KS()
+            ops.append(keyed("EVAL", rng.choice(broken), declared))
         elif pick < 82:
             name = rng.choice(functions)
-            ops.append(["FCALL", name, "1", K(), rng.choice(values)])
+            declared = KS()
+            ops.append(["FCALL", name, str(len(declared))] + declared + [rng.choice(values)])
         elif pick < 88:
             name = rng.choice(functions)
-            ops.append(["FCALL_RO", name, "1", K(), rng.choice(values)])
+            declared = KS()
+            ops.append(["FCALL_RO", name, str(len(declared))] + declared + [rng.choice(values)])
         elif pick < 90:
-            ops.append(["FCALL", "not_a_function", "1", K()])
+            declared = KS()
+            ops.append(["FCALL", "not_a_function", str(len(declared))] + declared)
         elif pick < 92:
             ops.append(["FUNCTION", "LIST"])
         elif pick < 94:
@@ -1512,9 +1531,15 @@ def gen_script(rng):
             loaded = []
             ops.append(["SCRIPT", "FLUSH", rng.choice(["SYNC", "ASYNC"])])
         else:
-            key = K()
-            ops.append(rng.choice([["GET", key], ["SET", key, rng.choice(values)],
-                                   ["DEL", key], ["TYPE", key], ["STRLEN", key]]))
+            declared = KS()
+            # SECOND is interpreted by the runner as a command on a distinct connection on each
+            # server. The key is selected from the immediately following activation's declared
+            # set, so this leg proves that script cuts compose with plain writes from another
+            # client instead of merely exercising a second idle socket.
+            key = rng.choice(declared)
+            ops.append(["SECOND", "SET", key, rng.choice(values)])
+            src = rng.choice(scripts)
+            ops.append(keyed("EVAL", src, declared, rng.choice(values)))
     # PHASE 2 -- SCRIPTS AGAINST A LIVE CROSS-SHARD ENGINE.
     #
     # Phase 1 above is entirely single-key, so on TomoKV it ran with `atomic_groups:0`: the epoch
@@ -1539,14 +1564,17 @@ def gen_script(rng):
         if pick == 0:
             ops.append(["MSET", a, rng.choice(values), b, rng.choice(values)])
         elif pick == 1:
-            ops.append(["EVAL", rng.choice(write_fail), "1", a, rng.choice(values)])
+            declared = [a, b] if a != b else KS()
+            ops.append(keyed("EVAL", rng.choice(write_fail), declared, rng.choice(values)))
         elif pick == 2:
             ops.append(["MGET", a, b, c])
         elif pick == 3:
             ops.append(rng.choice([["DEL", a, b], ["UNLINK", a, c],
                                    ["EXISTS", a, b, c], ["TOUCH", a, b]]))
         elif pick == 4:
-            ops.append(["FCALL", rng.choice(["dset", "dget"]), "1", a, rng.choice(values)])
+            declared = [a, b] if a != b else KS()
+            ops.append(["FCALL", rng.choice(["dset", "dget"]), str(len(declared))] +
+                       declared + [rng.choice(values)])
         else:
             ops.append(rng.choice([["GET", a], ["STRLEN", a], ["TYPE", a],
                                    ["SET", a, rng.choice(values)]]))
@@ -2247,6 +2275,7 @@ ops = gens[SUITE](rng)
 
 ts, tf = conn(TH, TP)
 os_, of = conn(OH, OP)
+secondary = (conn(TH, TP), conn(OH, OP)) if SUITE == "script" else None
 # clean slates on BOTH sides: the oracle is long-lived across runs; residue there while the
 # target boots fresh makes every op diff from op 0 (bit us on zset 2026-08-24). FLUSHALL (the
 # target grew one with i-compat) rather than a DEL preamble: DEL-by-harvested-arg-1 missed any
@@ -2286,9 +2315,21 @@ diffs = 0
 # HLL's directed promotion stream uses many-argument PFADDs and byte-sized GET oracles, and the
 # cgaps suite carries wide numkeys forms; keep their pipeline chunks below the target's fixed
 # read-buffer rollover so the suites test semantics, not an unrelated transport boundary.
-BATCH = 16 if SUITE in ("hll", "cgaps") else 64
+BATCH = 1 if SUITE == "script" else (16 if SUITE in ("hll", "cgaps") else 64)
 for i in range(0, len(ops), BATCH):
     chunk = ops[i:i + BATCH]
+    if chunk[0][0] == "SECOND":
+        command = chunk[0][1:]
+        (tss, tsf), (oss, osf) = secondary
+        tss.sendall(enc(command)); oss.sendall(enc(command))
+        a = normalize(command[0], read_reply(tsf))
+        b = normalize(command[0], read_reply(osf))
+        if a != b:
+            diffs += 1
+            if diffs <= 12:
+                print("  DIFF op %d secondary %r\n    target: %r\n    oracle: %r" %
+                      (i, command[:4], a[:256], b[:256]))
+        continue
     payload = b"".join(enc(o) for o in chunk)
     ts.sendall(payload); os_.sendall(payload)
     for j, o in enumerate(chunk):
@@ -2382,5 +2423,7 @@ if SUITE == "stream":
             diffs += 1
             print("  APPROX-TRIM PROPERTY FAIL reply=%r" % length_reply)
 ts.close(); os_.close()
+if secondary:
+    secondary[0][0].close(); secondary[1][0].close()
 print("DIFFER %s: %d ops, %d diffs -> %s" % (SUITE, len(ops), diffs, "PASS" if diffs == 0 else "FAIL"))
 sys.exit(1 if diffs else 0)
