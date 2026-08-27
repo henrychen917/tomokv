@@ -1607,6 +1607,16 @@ std::string watch_key_string(Slice key) { return std::string(key.p, key.n); }
 
 template <typename Fn>
 void for_each_spec_key(Op& op, Fn&& fn) {
+    // EVAL/FCALL's legacy registry range extends through ARGV so generic command metadata can
+    // express a variable key count.  The numkeys field is the authoritative touched range: treating
+    // trailing arguments as keys spuriously dirties an unrelated WATCH when a script command runs
+    // between WATCH and EXEC.
+    if (op.spec && (op.spec->flags & CmdFlags::ScriptRoute)) {
+        uint32_t first = 0, count = 0;
+        if (!command_script_key_range(op, first, count)) return;
+        for (uint32_t i = 0; i < count; i++) fn(op.arg(first + i));
+        return;
+    }
     if (!op.spec || op.spec->first_key <= 0 || op.spec->key_step <= 0) return;
     const uint32_t last = op.spec->last_key < 0
         ? op.argc() - 1
