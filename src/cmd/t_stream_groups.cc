@@ -114,7 +114,45 @@ struct StreamGroup {
 
 struct StreamGroups {
     std::map<std::string, StreamGroup, std::less<>> groups;
+    uint64_t bytes_ = sizeof(StreamGroups);
+
+    void note_insert(uint64_t bytes) { bytes_ += bytes; }
+    void note_delete(uint64_t bytes) { bytes_ -= bytes; }
+    void note_capacity_change(uint64_t before, uint64_t after) {
+        if (after >= before) bytes_ += after - before;
+        else bytes_ -= before - after;
+    }
 };
+
+constexpr uint64_t kStreamGroupMapNodeBytes = 64;
+
+uint64_t consumer_allocation_bytes(const std::string& name) {
+    return sizeof(StreamConsumer) + name.capacity() + kStreamGroupMapNodeBytes;
+}
+
+uint64_t pending_allocation_bytes(const StreamPending& pending) {
+    return sizeof(StreamPending) + pending.consumer.capacity() + kStreamGroupMapNodeBytes;
+}
+
+uint64_t group_allocation_bytes(const std::string& name, const StreamGroup& group) {
+    uint64_t bytes = sizeof(StreamGroup) + name.capacity() + kStreamGroupMapNodeBytes;
+    for (const auto& [consumer_name, consumer] : group.consumers) {
+        (void)consumer;
+        bytes += consumer_allocation_bytes(consumer_name);
+    }
+    for (const auto& [id, pending] : group.pending) {
+        (void)id;
+        bytes += pending_allocation_bytes(pending);
+    }
+    return bytes;
+}
+
+uint64_t recompute_groups_allocation_bytes(const StreamGroups& groups) {
+    uint64_t bytes = sizeof(StreamGroups);
+    for (const auto& [name, group] : groups.groups)
+        bytes += group_allocation_bytes(name, group);
+    return bytes;
+}
 
 StreamVal* stream_value(KvObj* object) {
     if (!object || static_cast<Type>(object->type) != Type::Stream ||
@@ -199,7 +237,7 @@ void reply_stream_entries(Op& op, Slice key, const std::vector<StreamOwnedEntry>
     for (const StreamOwnedEntry& entry : entries) reply_entry(op, entry, tombstone_null);
 }
 
-bool create_consumer(StreamGroup& group, Slice name, int64_t now,
+bool create_consumer(StreamGroups& groups, StreamGroup& group, Slice name, int64_t now,
                      StreamConsumer*& consumer, bool& created) {
     created = false;
     try {
@@ -207,6 +245,7 @@ bool create_consumer(StreamGroup& group, Slice name, int64_t now,
         consumer = &it->second;
         if (inserted) {
             consumer->seen_time = now;
+            groups.note_insert(consumer_allocation_bytes(it->first));
             created = true;
         }
         return true;
@@ -214,6 +253,29 @@ bool create_consumer(StreamGroup& group, Slice name, int64_t now,
         consumer = nullptr;
         return false;
     }
+}
+
+void erase_pending(StreamGroups& groups, StreamGroup& group,
+                   std::map<StreamID, StreamPending, IdLess>::iterator pending) {
+    groups.note_delete(pending_allocation_bytes(pending->second));
+    group.pending.erase(pending);
+}
+
+void assign_pending_consumer(StreamGroups& groups, StreamPending& pending, Slice consumer) {
+    const uint64_t old_capacity = pending.consumer.capacity();
+    pending.consumer.assign(consumer.p, consumer.n);
+    groups.note_capacity_change(old_capacity, pending.consumer.capacity());
+}
+
+void upsert_pending(StreamGroups& groups, StreamGroup& group, const StreamID& id,
+                    StreamPending&& replacement) {
+    const auto old = group.pending.find(id);
+    const uint64_t old_bytes = old == group.pending.end()
+        ? 0 : pending_allocation_bytes(old->second);
+    const auto [it, inserted] = group.pending.insert_or_assign(id, std::move(replacement));
+    const uint64_t new_bytes = pending_allocation_bytes(it->second);
+    if (inserted) groups.note_insert(new_bytes);
+    else groups.note_capacity_change(old_bytes, new_bytes);
 }
 
 uint64_t pending_for(const StreamGroup& group, const std::string& consumer) {
@@ -319,10 +381,10 @@ void cmd_xgroup(Shard& shard, Op& op) {
             group.entries_read = entries_read;
             const auto [it, inserted] = groups->groups.emplace(
                 std::string(op.arg(3).p, op.arg(3).n), std::move(group));
-            (void)it;
             if (!inserted) {
                 reply_err(op.sink(), "BUSYGROUP Consumer Group name already exists"); return;
             }
+            groups->note_insert(group_allocation_bytes(it->first, it->second));
         } catch (const std::bad_alloc&) {
             maybe_release_groups(*value);
             reply_err(op.sink(), "ERR out of memory"); return;
@@ -345,7 +407,9 @@ void cmd_xgroup(Shard& shard, Op& op) {
         StreamGroups* groups = groups_of(object);
         if (!groups || !group) { reply_int(op.sink(), 0); return; }
         ObjectSizeTracker tracker(shard.store(), object);
-        groups->groups.erase(groups->groups.find(std::string_view(op.arg(3).p, op.arg(3).n)));
+        const auto found = groups->groups.find(std::string_view(op.arg(3).p, op.arg(3).n));
+        groups->note_delete(group_allocation_bytes(found->first, found->second));
+        groups->groups.erase(found);
         maybe_release_groups(*stream_value(object));
         reply_int(op.sink(), 1);
         return;
@@ -355,8 +419,9 @@ void cmd_xgroup(Shard& shard, Op& op) {
     if (sub.eq_icase("createconsumer")) {
         if (op.argc() != 5) { reply_syntax(op.sink()); return; }
         ObjectSizeTracker tracker(shard.store(), object);
+        StreamGroups* groups = groups_of(object);
         StreamConsumer* consumer = nullptr; bool created = false;
-        if (!create_consumer(*group, op.arg(4), shard.now_ms(), consumer, created)) {
+        if (!create_consumer(*groups, *group, op.arg(4), shard.now_ms(), consumer, created)) {
             reply_err(op.sink(), "ERR out of memory"); return;
         }
         reply_int(op.sink(), created ? 1 : 0);
@@ -368,11 +433,17 @@ void cmd_xgroup(Shard& shard, Op& op) {
         auto consumer = group->consumers.find(name);
         if (consumer == group->consumers.end()) { reply_int(op.sink(), 0); return; }
         ObjectSizeTracker tracker(shard.store(), object);
+        StreamGroups* groups = groups_of(object);
         uint64_t removed = 0;
         for (auto it = group->pending.begin(); it != group->pending.end();) {
-            if (it->second.consumer == name) { it = group->pending.erase(it); removed++; }
+            if (it->second.consumer == name) {
+                auto victim = it++;
+                erase_pending(*groups, *group, victim);
+                removed++;
+            }
             else ++it;
         }
+        groups->note_delete(consumer_allocation_bytes(consumer->first));
         group->consumers.erase(consumer);
         reply_int(op.sink(), static_cast<long long>(removed));
         return;
@@ -419,11 +490,17 @@ void cmd_xack(Shard& shard, Op& op) {
     KvObj* object = shard.store_find<kNotify>(op.hash, op.arg(1));
     if (!object) { reply_int(op.sink(), 0); return; }
     if (!obj_type_check(object, Type::Stream, op.sink())) return;
+    StreamGroups* groups = groups_of(object);
     StreamGroup* group = find_group(object, op.arg(2));
     if (!group) { reply_int(op.sink(), 0); return; }
     ObjectSizeTracker tracker(shard.store(), object);
     uint64_t removed = 0;
-    for (const StreamID& id : ids) removed += group->pending.erase(id);
+    for (const StreamID& id : ids) {
+        const auto pending = group->pending.find(id);
+        if (pending == group->pending.end()) continue;
+        erase_pending(*groups, *group, pending);
+        removed++;
+    }
     reply_int(op.sink(), static_cast<long long>(removed));
 }
 
@@ -573,12 +650,13 @@ void cmd_xclaim(Shard& shard, Op& op) {
     KvObj* object = shard.store_find<kNotify>(op.hash, op.arg(1));
     if (!object) { reply_nogroup(op, op.arg(1), op.arg(2)); return; }
     if (!obj_type_check(object, Type::Stream, op.sink())) return;
+    StreamGroups* groups = groups_of(object);
     StreamGroup* group = find_group(object, op.arg(2));
     if (!group) { reply_nogroup(op, op.arg(1), op.arg(2)); return; }
     ObjectSizeTracker tracker(shard.store(), object);
     const int64_t now = shard.now_ms();
     StreamConsumer* consumer = nullptr; bool created = false;
-    if (!create_consumer(*group, op.arg(3), now, consumer, created)) {
+    if (!create_consumer(*groups, *group, op.arg(3), now, consumer, created)) {
         reply_err(op.sink(), "ERR out of memory"); return;
     }
     consumer->seen_time = now;
@@ -592,7 +670,7 @@ void cmd_xclaim(Shard& shard, Op& op) {
             reply_err(op.sink(), "ERR corrupt stream encoding"); return;
         }
         if (!found || entry.deleted) {
-            if (pending != group->pending.end()) group->pending.erase(pending);
+            if (pending != group->pending.end()) erase_pending(*groups, *group, pending);
             continue;
         }
         if (pending == group->pending.end()) {
@@ -602,7 +680,11 @@ void cmd_xclaim(Shard& shard, Op& op) {
                 fresh.consumer.assign(op.arg(3).p, op.arg(3).n);
                 fresh.delivery_time = now;
                 fresh.delivery_count = options.retry_set ? options.retry : (options.justid ? 1 : 2);
-                pending = group->pending.emplace(id, std::move(fresh)).first;
+                const auto [inserted_pending, inserted] =
+                    group->pending.emplace(id, std::move(fresh));
+                pending = inserted_pending;
+                if (inserted)
+                    groups->note_insert(pending_allocation_bytes(pending->second));
             } catch (const std::bad_alloc&) {
                 reply_err(op.sink(), "ERR out of memory"); return;
             }
@@ -610,7 +692,7 @@ void cmd_xclaim(Shard& shard, Op& op) {
             const uint64_t idle = now > pending->second.delivery_time
                 ? static_cast<uint64_t>(now - pending->second.delivery_time) : 0;
             if (idle < options.min_idle) continue;
-            pending->second.consumer.assign(op.arg(3).p, op.arg(3).n);
+            assign_pending_consumer(*groups, pending->second, op.arg(3));
             if (options.retry_set) pending->second.delivery_count = options.retry;
             else if (!options.justid) pending->second.delivery_count++;
         }
@@ -655,12 +737,13 @@ void cmd_xautoclaim(Shard& shard, Op& op) {
     KvObj* object = shard.store_find<kNotify>(op.hash, op.arg(1));
     if (!object) { reply_nogroup(op, op.arg(1), op.arg(2)); return; }
     if (!obj_type_check(object, Type::Stream, op.sink())) return;
+    StreamGroups* groups = groups_of(object);
     StreamGroup* group = find_group(object, op.arg(2));
     if (!group) { reply_nogroup(op, op.arg(1), op.arg(2)); return; }
     ObjectSizeTracker tracker(shard.store(), object);
     const int64_t now = shard.now_ms();
     StreamConsumer* consumer = nullptr; bool created = false;
-    if (!create_consumer(*group, op.arg(3), now, consumer, created)) {
+    if (!create_consumer(*groups, *group, op.arg(3), now, consumer, created)) {
         reply_err(op.sink(), "ERR out of memory"); return;
     }
     consumer->seen_time = now;
@@ -681,13 +764,13 @@ void cmd_xautoclaim(Shard& shard, Op& op) {
         }
         if (!found || entry.deleted) {
             deleted.push_back(current->first);
-            group->pending.erase(current);
+            erase_pending(*groups, *group, current);
             continue;
         }
         const uint64_t idle = now > current->second.delivery_time
             ? static_cast<uint64_t>(now - current->second.delivery_time) : 0;
         if (idle < min_idle) continue;
-        current->second.consumer.assign(op.arg(3).p, op.arg(3).n);
+        assign_pending_consumer(*groups, current->second, op.arg(3));
         current->second.delivery_time = now;
         if (!justid) current->second.delivery_count++;
         consumer->active_time = now;
@@ -954,20 +1037,7 @@ void stream_groups_destroy(void* groups) { delete static_cast<StreamGroups*>(gro
 
 uint64_t stream_groups_allocation_bytes(const void* opaque) {
     const auto* groups = static_cast<const StreamGroups*>(opaque);
-    if (!groups) return 0;
-    uint64_t bytes = sizeof(StreamGroups);
-    for (const auto& [name, group] : groups->groups) {
-        bytes += sizeof(group) + name.capacity() + 64;
-        for (const auto& [consumer_name, consumer] : group.consumers) {
-            (void)consumer;
-            bytes += sizeof(consumer) + consumer_name.capacity() + 64;
-        }
-        for (const auto& [id, pending] : group.pending) {
-            (void)id;
-            bytes += sizeof(pending) + pending.consumer.capacity() + 64;
-        }
-    }
-    return bytes;
+    return groups ? groups->bytes_ : 0;
 }
 
 bool stream_parse_xreadgroup(Op& op, StreamXreadGroupArgs& parsed) {
@@ -1022,11 +1092,12 @@ StreamGroupProbe stream_group_prepare_waiter(Shard& shard, Slice key, uint64_t h
                                            : shard.store().find(hash, key);
     if (!object) return StreamGroupProbe::MissingGroup;
     if (static_cast<Type>(object->type) != Type::Stream) return StreamGroupProbe::WrongType;
+    StreamGroups* groups = groups_of(object);
     StreamGroup* group = find_group(object, group_name);
     if (!group) return StreamGroupProbe::MissingGroup;
     ObjectSizeTracker tracker(shard.store(), object);
     StreamConsumer* consumer = nullptr; bool created = false;
-    if (!create_consumer(*group, consumer_name, shard.now_ms(), consumer, created))
+    if (!create_consumer(*groups, *group, consumer_name, shard.now_ms(), consumer, created))
         return StreamGroupProbe::Oom;
     consumer->seen_time = shard.now_ms();
     return stream_object_has_live_after(object, group->last_delivered)
@@ -1048,12 +1119,13 @@ bool stream_xreadgroup_execute(Shard& shard, Op& op) {
         ? shard.store_find<true>(hash, key) : shard.store().find(hash, key);
     if (!object) { reply_nogroup(op, key, op.arg(parsed.group_arg), true); return true; }
     if (!obj_type_check(object, Type::Stream, op.sink())) return true;
+    StreamGroups* groups = groups_of(object);
     StreamGroup* group = find_group(object, op.arg(parsed.group_arg));
     if (!group) { reply_nogroup(op, key, op.arg(parsed.group_arg), true); return true; }
     ObjectSizeTracker tracker(shard.store(), object);
     const int64_t now = shard.now_ms();
     StreamConsumer* consumer = nullptr; bool created = false;
-    if (!create_consumer(*group, op.arg(parsed.consumer_arg), now, consumer, created)) {
+    if (!create_consumer(*groups, *group, op.arg(parsed.consumer_arg), now, consumer, created)) {
         reply_err(op.sink(), "ERR out of memory"); return true;
     }
     consumer->seen_time = now;
@@ -1080,7 +1152,7 @@ bool stream_xreadgroup_execute(Shard& shard, Op& op) {
                     pending.consumer = consumer_name;
                     pending.delivery_time = now;
                     pending.delivery_count = 1;
-                    group->pending[entry.id] = std::move(pending);
+                    upsert_pending(*groups, *group, entry.id, std::move(pending));
                 }
             } catch (const std::bad_alloc&) {
                 reply_err(op.sink(), "ERR out of memory"); return true;
@@ -1217,15 +1289,23 @@ bool stream_groups_snapshot_load(StreamVal& stream, Slice payload) {
             if (!read_string(p, left, name) || !read_u64(p, left, ms) ||
                 !read_u64(p, left, seq) || !read_u64(p, left, entries_read) ||
                 !read_u32(p, left, consumer_count)) { delete groups; return false; }
-            StreamGroup group;
-            group.last_delivered = {ms, seq};
-            group.entries_read = static_cast<int64_t>(entries_read);
+            StreamGroup fresh_group;
+            fresh_group.last_delivered = {ms, seq};
+            fresh_group.entries_read = static_cast<int64_t>(entries_read);
+            const auto [group_position, group_inserted] =
+                groups->groups.emplace(std::move(name), std::move(fresh_group));
+            if (!group_inserted) { delete groups; return false; }
+            StreamGroup& group = group_position->second;
+            groups->note_insert(group_allocation_bytes(group_position->first, group));
             for (uint32_t c = 0; c < consumer_count; c++) {
                 std::string consumer_name; uint64_t seen = 0, active = 0;
                 if (!read_string(p, left, consumer_name) || !read_u64(p, left, seen) ||
                     !read_u64(p, left, active)) { delete groups; return false; }
-                group.consumers.emplace(std::move(consumer_name),
+                const auto [consumer_position, consumer_inserted] = group.consumers.emplace(
+                    std::move(consumer_name),
                     StreamConsumer{static_cast<int64_t>(seen), static_cast<int64_t>(active)});
+                if (!consumer_inserted) { delete groups; return false; }
+                groups->note_insert(consumer_allocation_bytes(consumer_position->first));
             }
             if (!read_u32(p, left, pending_count)) { delete groups; return false; }
             for (uint32_t n = 0; n < pending_count; n++) {
@@ -1233,13 +1313,17 @@ bool stream_groups_snapshot_load(StreamVal& stream, Slice payload) {
                 if (!read_u64(p, left, id.ms) || !read_u64(p, left, id.seq) ||
                     !read_string(p, left, consumer) || !read_u64(p, left, delivery) ||
                     !read_u64(p, left, deliveries)) { delete groups; return false; }
-                group.pending.emplace(id, StreamPending{std::move(consumer),
-                    static_cast<int64_t>(delivery), deliveries});
+                const auto [pending_position, pending_inserted] = group.pending.emplace(
+                    id, StreamPending{std::move(consumer),
+                                      static_cast<int64_t>(delivery), deliveries});
+                if (!pending_inserted) { delete groups; return false; }
+                groups->note_insert(pending_allocation_bytes(pending_position->second));
             }
-            groups->groups.emplace(std::move(name), std::move(group));
         }
     } catch (const std::bad_alloc&) { delete groups; return false; }
-    if (left) { delete groups; return false; }
+    if (left || groups->bytes_ != recompute_groups_allocation_bytes(*groups)) {
+        delete groups; return false;
+    }
     stream.groups = groups;
     return true;
 }

@@ -132,7 +132,7 @@ for AT in 0 1; do
   # in-EXEC read on demand. It flips `atomic` itself, so either boot covers both modes. Its armed
   # arms all assert atomic_exec_read_cuts advanced, so the row cannot print PASS on a run where the
   # transaction never entered the read-cut machinery.
-  for t in lbsignals slowlog atomfix scriptatomic execatomic execiso session_monotonic; do
+  for t in lbsignals slowlog atomfix scriptatomic execatomic execiso session_monotonic xacct; do
     python3 tests/$t.py 127.0.0.1 $PORT >/tmp/gate-$t-$AT.txt 2>&1 \
         && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see /tmp/gate-$t-$AT.txt"
   done
