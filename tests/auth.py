@@ -114,7 +114,11 @@ expect(nopass_latched.command("PING"), b"PONG", "pre-existing nopass auth is lat
 
 unauth = Conn()
 expect(unauth.command("PING"), "NOAUTH Authentication required.", "new connection gate")
-expect(unauth.command("NOSUCHCOMMAND"), "ERR unknown command", "unknown precedes NOAUTH")
+# The unknown-command reply carries the command name and the first arguments (t-edgeproto made it
+# byte-exact against redis 7.4); what this row is about is that it comes out AHEAD of NOAUTH.
+expect(unauth.command("NOSUCHCOMMAND"),
+       "ERR unknown command 'NOSUCHCOMMAND', with args beginning with: ",
+       "unknown precedes NOAUTH")
 expect(unauth.command("GET"),
        "ERR wrong number of arguments for 'get' command", "arity precedes NOAUTH")
 expect(unauth.command("AUTH", "a", "b", "c"),

@@ -1357,11 +1357,14 @@ bool multi_aof_emit_fragment(MultiExecState& state, Shard& shard) {
 MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shard,
                                    uint32_t owner_thread_id, uint32_t owner_domain,
                                    AofOwnerContext* aof_context) {
+    // A carrier-less fragment is not an error: multi_close_entry posts the watch-release fragment
+    // of a vanished connection with client=nullptr and op_id=UINT64_MAX, and this function's own
+    // tail already destroys the state on that path. Only the notify scope wanted an Op, and a
+    // fragment with no client raises no notifications, so it takes the pointer form.
     Op* carrier = task.client && task.op_id != UINT64_MAX
         ? &task.client->rob().at(task.op_id) : nullptr;
-    if (!carrier) std::abort();
     const bool notify = carrier && (carrier->spec->flags & CmdFlags::NotifySelected);
-    NotifyExecutionScope notify_scope(shard, *carrier, notify);
+    NotifyExecutionScope notify_scope(shard, carrier, notify);
     const uintptr_t tagged = reinterpret_cast<uintptr_t>(task.scatter);
     auto& state = *reinterpret_cast<MultiExecState*>(tagged & ~kMultiTaskTag);
     uint8_t& noted = state.execution_noted[static_cast<uint32_t>(shard.id())];

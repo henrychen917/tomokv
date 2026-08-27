@@ -129,7 +129,12 @@ struct NotifyShardState {
 
 class NotifyExecutionScope {
 public:
-    NotifyExecutionScope(Shard& shard, Op& op, bool active, uint32_t order_base = 0);
+    // Pointer form: an internal fragment with no client carries no Op at all (the connection-close
+    // watch release posts exactly that). Such a fragment is always disarmed, and a disarmed scope
+    // never reads its Op, so it must not be forced to invent a reference.
+    NotifyExecutionScope(Shard& shard, Op* op, bool active, uint32_t order_base = 0);
+    NotifyExecutionScope(Shard& shard, Op& op, bool active, uint32_t order_base = 0)
+        : NotifyExecutionScope(shard, &op, active, order_base) {}
     ~NotifyExecutionScope();
     NotifyExecutionScope(const NotifyExecutionScope&) = delete;
     NotifyExecutionScope& operator=(const NotifyExecutionScope&) = delete;

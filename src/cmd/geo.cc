@@ -111,9 +111,15 @@ bool valid_coordinates(double longitude, double latitude) {
 }
 
 void reply_invalid_coordinates(Op& op, double longitude, double latitude) {
-    char lon[64], lat[64];
+    // 64 bytes could not hold a large magnitude in FIXED notation (DBL_MAX is 309 integer digits
+    // plus '.' plus 6). to_chars then returns value_too_large with ptr == last and leaves the
+    // buffer UNSPECIFIED, and appending [begin, ptr) shipped 64 bytes of raw stack to the client:
+    // "GEOADD k 1e100 0 m" answered with binary. 344 covers the widest double this can format.
+    char lon[344], lat[344];
     auto lon_out = std::to_chars(lon, lon + sizeof(lon), longitude, std::chars_format::fixed, 6);
     auto lat_out = std::to_chars(lat, lat + sizeof(lat), latitude, std::chars_format::fixed, 6);
+    if (lon_out.ec != std::errc{}) lon_out.ptr = lon;
+    if (lat_out.ec != std::errc{}) lat_out.ptr = lat;
     std::string error = "ERR invalid longitude,latitude pair ";
     error.append(lon, lon_out.ptr);
     error.push_back(',');
@@ -261,7 +267,7 @@ bool parse_search(Op& op, GeoSearchOptions& options) {
         if (op.arg(arg).eq_icase("byradius") && arg + 2 < op.argc()) {
             options.shape = GeoShape::Radius;
             if (!parse_double(op.arg(arg + 1), options.radius_m)) {
-                reply_err(op.sink(), "ERR value is not a valid float"); return false;
+                reply_err(op.sink(), "ERR need numeric radius"); return false;
             }
             if (options.radius_m < 0) { reply_err(op.sink(), "ERR radius cannot be negative"); return false; }
             if (!parse_unit(op.arg(arg + 2), options.unit_m)) { reply_bad_unit(op); return false; }
@@ -269,9 +275,11 @@ bool parse_search(Op& op, GeoSearchOptions& options) {
             arg += 3;
         } else if (op.arg(arg).eq_icase("bybox") && arg + 3 < op.argc()) {
             options.shape = GeoShape::Box;
-            if (!parse_double(op.arg(arg + 1), options.width_m) ||
-                !parse_double(op.arg(arg + 2), options.height_m)) {
-                reply_err(op.sink(), "ERR value is not a valid float"); return false;
+            if (!parse_double(op.arg(arg + 1), options.width_m)) {
+                reply_err(op.sink(), "ERR need numeric width"); return false;
+            }
+            if (!parse_double(op.arg(arg + 2), options.height_m)) {
+                reply_err(op.sink(), "ERR need numeric height"); return false;
             }
             if (options.width_m < 0 || options.height_m < 0) {
                 reply_err(op.sink(), "ERR height or width cannot be negative"); return false;
@@ -287,16 +295,18 @@ bool parse_search(Op& op, GeoSearchOptions& options) {
             options.from_member = true;
             options.member = op.arg(2);
             if (!parse_double(op.arg(3), options.radius_m)) {
-                reply_err(op.sink(), "ERR value is not a valid float"); return false;
+                reply_err(op.sink(), "ERR need numeric radius"); return false;
             }
             if (options.radius_m < 0) { reply_err(op.sink(), "ERR radius cannot be negative"); return false; }
             if (!parse_unit(op.arg(4), options.unit_m)) { reply_bad_unit(op); return false; }
             arg = 5;
         } else {
             if (!parse_double(op.arg(2), options.longitude) ||
-                !parse_double(op.arg(3), options.latitude) ||
-                !parse_double(op.arg(4), options.radius_m)) {
+                !parse_double(op.arg(3), options.latitude)) {
                 reply_err(op.sink(), "ERR value is not a valid float"); return false;
+            }
+            if (!parse_double(op.arg(4), options.radius_m)) {
+                reply_err(op.sink(), "ERR need numeric radius"); return false;
             }
             if (!valid_coordinates(options.longitude, options.latitude)) {
                 reply_invalid_coordinates(op, options.longitude, options.latitude); return false;
@@ -664,11 +674,12 @@ void cmd_geosearch_armed(Shard& shard, Op& op) { cmd_geosearch<true>(shard, op);
 static const CommandSpec kTable[] = {
     {"GEOADD", 5, -1, CmdFlags::Write | CmdFlags::DenyOom,
      cmd_geoadd_clean, 1, 1, 1, notify_handler<cmd_geoadd_armed>},
-    {"GEOPOS", 3, -1, CmdFlags::Readonly,
+    // Minimum 2 for the member-list readers: redis answers "GEOPOS key" with an empty array.
+    {"GEOPOS", 2, -1, CmdFlags::Readonly,
      cmd_geopos_clean, 1, 1, 1, notify_handler<cmd_geopos_armed>},
     {"GEODIST", 4, 5, CmdFlags::Readonly,
      cmd_geodist_clean, 1, 1, 1, notify_handler<cmd_geodist_armed>},
-    {"GEOHASH", 3, -1, CmdFlags::Readonly,
+    {"GEOHASH", 2, -1, CmdFlags::Readonly,
      cmd_geohash_clean, 1, 1, 1, notify_handler<cmd_geohash_armed>},
     {"GEOSEARCH", 7, -1, CmdFlags::Readonly,
      cmd_geosearch_clean, 1, 1, 1, notify_handler<cmd_geosearch_armed>},

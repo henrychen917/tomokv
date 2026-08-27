@@ -270,15 +270,15 @@ void notify_execute_leave(Shard& shard) {
     shard.set_notify_context(nullptr, nullptr, 0);
 }
 
-NotifyExecutionScope::NotifyExecutionScope(Shard& shard, Op& op, bool active,
+NotifyExecutionScope::NotifyExecutionScope(Shard& shard, Op* op, bool active,
                                            uint32_t order_base) {
-    if (!active) return;
+    if (!active || !op) return;
     shard_ = &shard;
     carrier_ = shard.notify_carrier();
     source_ = shard.notify_source();
     order_base_ = shard.notify_order_base();
-    if (carrier_) notify_execute_source(shard, op, order_base);
-    else notify_execute_enter(shard, op, op, order_base);
+    if (carrier_) notify_execute_source(shard, *op, order_base);
+    else notify_execute_enter(shard, *op, *op, order_base);
 }
 
 NotifyExecutionScope::~NotifyExecutionScope() {

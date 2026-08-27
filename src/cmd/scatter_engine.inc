@@ -483,6 +483,7 @@ void aof_commit_scatter_group(ScatterState& state, ThreadCtx& owner, Ring& ring,
 // These internal declarations preserve the original signatures and anonymous-namespace linkage.
 bool name_is(const Op& op, const char* name);
 bool parse_u64(Slice s, uint64_t& value);
+bool parse_i64(Slice s, int64_t& out);
 bool parse_mpop(Op& op, Kind kind, uint32_t& numkeys, bool& edge, uint64_t& count);
 bool parse_zrangestore_options(Op& op, ImageRangeOptions& options);
 bool parse_zrangestore_range(Op& op, const ImageRangeOptions& options, ImageRangeSpec& range);
@@ -1013,27 +1014,31 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     if (kind == Kind::Lcs && !lcs_parse_options(op, lcs_options))
         return ScatterPrepare::Error;
     if (kind == Kind::Sintercard) {
-        uint64_t parsed = 0;
-        if (!parse_u64(op.arg(1), parsed)) {
-            reply_err(op.sink(), "ERR value is not an integer or out of range");
-            return ScatterPrepare::Error;
-        }
-        if (parsed == 0) {
+        // Both scalars come from getRangeLongFromObject with a message of their own, so an
+        // unparseable numkeys and a numkeys of 0 answer alike, and likewise for LIMIT. Only the
+        // "more keys than arguments" case has its own text.
+        int64_t parsed = 0;
+        if (!parse_i64(op.arg(1), parsed) || parsed < 1) {
             reply_err(op.sink(), "ERR numkeys should be greater than 0");
             return ScatterPrepare::Error;
         }
-        if (parsed > op.argc() - 2) {
+        if (static_cast<uint64_t>(parsed) > op.argc() - 2) {
             reply_err(op.sink(), "ERR Number of keys can't be greater than number of args");
             return ScatterPrepare::Error;
         }
         sinter_count = static_cast<uint32_t>(parsed);
         const uint32_t tail = 2 + sinter_count;
         if (tail < op.argc()) {
-            if (tail + 2 != op.argc() || !op.arg(tail).eq_icase("limit") ||
-                !parse_u64(op.arg(tail + 1), sinter_limit)) {
+            int64_t parsed_limit = 0;
+            if (tail + 2 != op.argc() || !op.arg(tail).eq_icase("limit")) {
                 reply_syntax(op.sink());
                 return ScatterPrepare::Error;
             }
+            if (!parse_i64(op.arg(tail + 1), parsed_limit) || parsed_limit < 0) {
+                reply_err(op.sink(), "ERR LIMIT can't be negative");
+                return ScatterPrepare::Error;
+            }
+            sinter_limit = static_cast<uint64_t>(parsed_limit);
         }
     }
 
@@ -1089,8 +1094,21 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         for (uint32_t i = 3; i < op.argc();) {
             if (op.arg(i).eq_icase("replace")) { copy_replace = true; i++; }
             else if (op.arg(i).eq_icase("db") && i + 1 < op.argc()) {
-                uint64_t db = 0;
-                if (!parse_u64(op.arg(i + 1), db) || db != 0) {
+                // Three answers, in redis's order: not an integer, outside the int range it
+                // parses into, and only then "out of range" for the database itself. This server
+                // has exactly one database, so every index but 0 lands on the last one -- but a
+                // typo must still be reported as a typo.
+                int64_t db = 0;
+                if (!parse_i64(op.arg(i + 1), db)) {
+                    reply_err(op.sink(), "ERR value is not an integer or out of range");
+                    return ScatterPrepare::Error;
+                }
+                if (db < INT32_MIN || db > INT32_MAX) {
+                    reply_err(op.sink(), "ERR value is out of range, value must between "
+                                         "-2147483648 and 2147483647");
+                    return ScatterPrepare::Error;
+                }
+                if (db != 0) {
                     reply_err(op.sink(), "ERR DB index is out of range");
                     return ScatterPrepare::Error;
                 }

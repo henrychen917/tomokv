@@ -877,7 +877,34 @@ private:
             const CommandSpec* spec = command_lookup(op->cmd_name());
             if (!spec) {
                 conn.advance_parse(consumed);
-                finish_locally(c, *op, "ERR unknown command"); continue;
+                // Redis names the command and echoes the first arguments; client libraries and
+                // humans both read this line to tell a typo from an unsupported command. The
+                // shape is exact: each argument is quoted and followed by one space, the argument
+                // list stops once it reaches 128 bytes, and the argument that crosses that line
+                // is truncated to the remaining budget (so the trailing space is always there,
+                // even with no arguments at all).
+                char message[512];
+                const Slice name = op->cmd_name();
+                int used = std::snprintf(message, sizeof(message),
+                                         "ERR unknown command '%.*s', with args beginning with: ",
+                                         static_cast<int>(name.n), name.p);
+                if (used < 0 || static_cast<size_t>(used) >= sizeof(message))
+                    used = static_cast<int>(sizeof(message)) - 1;
+                const int args_begin = used;
+                for (uint32_t i = 1; i < op->argc(); i++) {
+                    const int args_len = used - args_begin;
+                    if (args_len >= 128) break;
+                    const int budget = 128 - args_len;
+                    const int room = static_cast<int>(sizeof(message)) - used;
+                    const int wrote = std::snprintf(
+                        message + used, static_cast<size_t>(room), "'%.*s' ",
+                        static_cast<int>(std::min<uint32_t>(op->arg(i).n,
+                                                            static_cast<uint32_t>(budget))),
+                        op->arg(i).p);
+                    if (wrote < 0 || wrote >= room) { used = static_cast<int>(sizeof(message)) - 1; break; }
+                    used += wrote;
+                }
+                finish_locally(c, *op, message); continue;
             }
             if (!command_arity_ok(*spec, op->argc())) {
                 conn.advance_parse(consumed);

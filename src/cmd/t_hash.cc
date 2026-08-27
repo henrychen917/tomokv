@@ -777,7 +777,19 @@ bool ensure_hash_write_capacity(Shard& shard, Op& op, KvObj*& object,
 }
 
 void reply_wrong_arity(Op& op) {
-    reply_err(op.sink(), "ERR wrong number of arguments");
+    // Redis names the command in EVERY arity error, including the odd-field-pair one that only
+    // the handler can detect. Spelled here the same way the dispatcher spells it (lower case).
+    char message[96];
+    char command[32];
+    const size_t name_len = std::min(std::strlen(op.spec->name), sizeof(command) - 1);
+    for (size_t i = 0; i < name_len; i++) {
+        const char ch = op.spec->name[i];
+        command[i] = (ch >= 'A' && ch <= 'Z') ? static_cast<char>(ch + ('a' - 'A')) : ch;
+    }
+    command[name_len] = '\0';
+    std::snprintf(message, sizeof(message),
+                  "ERR wrong number of arguments for '%s' command", command);
+    reply_err(op.sink(), message);
 }
 
 const HashFieldTtl* hash_ttls_of(const KvObj* object) {

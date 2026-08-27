@@ -51,19 +51,10 @@ template <typename Buf> inline void reply_push_header(Buf&& b, uint64_t n) {
     b.advance(static_cast<size_t>(q - p));
 }
 
+// Redis renders the RESP3 "," double from the SAME d2string as the RESP2 bulk score, so this is
+// one formatter, not two (see redis_double_text in resp.h).
 inline uint32_t resp_double_text(char* text, size_t cap, double value) {
-    if (std::isnan(value)) { std::memcpy(text, "nan", 3); return 3; }
-    if (std::isinf(value)) {
-        if (value < 0) { std::memcpy(text, "-inf", 4); return 4; }
-        std::memcpy(text, "inf", 3); return 3;
-    }
-    // std::to_chars is the same shortest-round-trip family as Redis fpconv_dtoa. The fallback is
-    // intentionally %.17g: it is round-trip safe on a library without floating to_chars support.
-    const auto converted = std::to_chars(text, text + cap, value);
-    if (converted.ec == std::errc{})
-        return static_cast<uint32_t>(converted.ptr - text);
-    const int length = std::snprintf(text, cap, "%.17g", value);
-    return length > 0 && static_cast<size_t>(length) < cap ? static_cast<uint32_t>(length) : 0;
+    return redis_double_text(text, cap, value);
 }
 
 template <typename Buf> inline void reply_double(Buf&& b, double value, bool resp3) {

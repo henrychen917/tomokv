@@ -47,6 +47,15 @@ bool parse_i64(Slice s, int64_t& out) {
         negative = true;
         if (++pos == s.n) return false;
     }
+    // Canonical decimal, as redis's string2ll: the only accepted spelling of a number is the one
+    // that formatting it produces again. No leading '+', no leading zeroes, no negative zero.
+    // Without this "LPOP key 05" popped five elements where redis rejects the argument outright.
+    if (s.p[pos] == '0') {
+        if (negative || pos + 1 != s.n) return false;
+        out = 0;
+        return true;
+    }
+    if (s.p[pos] < '1' || s.p[pos] > '9') return false;
     uint64_t value = 0;
     const uint64_t limit = negative ? (uint64_t{1} << 63)
                                     : static_cast<uint64_t>(std::numeric_limits<int64_t>::max());
@@ -433,8 +442,9 @@ void pop_generic(Shard& shard, Op& op, bool left) {
     const bool has_count = op.argc() == 3;
     int64_t requested = 1;
     if (has_count) {
-        if (!parse_i64(op.arg(2), requested)) { reply_integer_error(op); return; }
-        if (requested < 0) {
+        // getRangeLongFromObject(0, LONG_MAX, msg): redis answers BOTH failures -- an unparseable
+        // count and a well-formed negative one -- with the range message, never the generic one.
+        if (!parse_i64(op.arg(2), requested) || requested < 0) {
             reply_err(op.sink(), "ERR value is out of range, must be positive");
             return;
         }
@@ -833,7 +843,15 @@ bool parse_lpos_options(Op& op, LposOptions& options) {
         }
         if (i + 1 >= op.argc()) { reply_syntax(op.sink()); return false; }
         int64_t value = 0;
-        if (!parse_i64(op.arg(++i), value)) { reply_integer_error(op); return false; }
+        const bool parsed = parse_i64(op.arg(++i), value);
+        if (!parsed) {
+            // COUNT and MAXLEN name themselves for every failure (redis passes their message to
+            // getRangeLongFromObject); RANK has no message and falls back to the generic one.
+            if (is_count) { reply_err(op.sink(), "ERR COUNT can't be negative"); return false; }
+            if (is_maxlen) { reply_err(op.sink(), "ERR MAXLEN can't be negative"); return false; }
+            reply_integer_error(op);
+            return false;
+        }
         if (is_rank) {
             if (value == std::numeric_limits<int64_t>::min()) {
                 reply_non_min_i64(op);

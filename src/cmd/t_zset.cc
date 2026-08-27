@@ -1659,7 +1659,11 @@ bool parse_range_options(Op& op, RangeOptions& options) {
         }
     }
     if (options.kind == RangeKind::Auto) options.kind = RangeKind::Rank;
-    if (options.limit_seen && options.kind == RangeKind::Rank) {
+    // Redis rejects LIMIT on an index range only when the COUNT actually bounds the answer: its
+    // guard tests the parsed count against the -1 default and ignores the offset entirely, so
+    // "ZRANGE k 0 -1 LIMIT 0 -1" (and any offset with count -1) is accepted and the LIMIT is a
+    // no-op. Client libraries that always emit LIMIT depend on that.
+    if (options.limit_seen && options.limit != -1 && options.kind == RangeKind::Rank) {
         reply_err(op.sink(),
                   "ERR syntax error, LIMIT is only supported in combination with either BYSCORE or BYLEX");
         return false;
@@ -1942,11 +1946,8 @@ template <bool kNotify>
 void cmd_zpop_generic(Shard& shard, Op& op, bool maximum) {
     int64_t requested = 1;
     if (op.argc() == 3) {
-        if (!parse_i64(op.arg(2), requested)) {
-            reply_invalid_integer(op);
-            return;
-        }
-        if (requested < 0) {
+        // One message for both failures, as redis's getRangeLongFromObject(0, LONG_MAX, msg).
+        if (!parse_i64(op.arg(2), requested) || requested < 0) {
             reply_err(op.sink(), "ERR value is out of range, must be positive");
             return;
         }

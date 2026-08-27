@@ -128,6 +128,14 @@ bool IoLoop::climon_parse_i64(Slice value, int64_t& out) {
     uint32_t pos = 0;
     bool negative = false;
     if (value.p[pos] == '-') { negative = true; if (++pos == value.n) return false; }
+    // Canonical decimal, as redis's string2ll: no leading '+', no leading zeroes, no negative
+    // zero. "CLIENT UNBLOCK 05" and "CLIENT KILL ID 05" were accepted before this.
+    if (value.p[pos] == '0') {
+        if (negative || pos + 1 != value.n) return false;
+        out = 0;
+        return true;
+    }
+    if (value.p[pos] < '1' || value.p[pos] > '9') return false;
     uint64_t magnitude = 0;
     const uint64_t limit = negative ? uint64_t{INT64_MAX} + 1 : uint64_t{INT64_MAX};
     for (; pos < value.n; pos++) {

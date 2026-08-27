@@ -1397,7 +1397,7 @@ static const CommandSpec kTable[] = {
                                              cmd_bitfield, 1, 1, 1, cmd_bitfield_notify},
     {"BITFIELD_RO",   2, -1,  CmdFlags::Readonly,
                                           cmd_bitfield_ro, 1, 1, 1, cmd_bitfield_ro_notify},
-    {"BITCOUNT",      2,  5,  CmdFlags::Readonly,                    TOMO_HANDLER_PAIR(cmd_bitcount, 1, 1, 1)},
+    {"BITCOUNT",      2, -1,  CmdFlags::Readonly,                    TOMO_HANDLER_PAIR(cmd_bitcount, 1, 1, 1)},
     {"BITPOS",        3,  6,  CmdFlags::Readonly,                    TOMO_HANDLER_PAIR(cmd_bitpos, 1, 1, 1)},
     {"BITOP",         4, -1,  CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,
                                                                                cmd_xshard_only, 2, -1, 1},
@@ -1422,7 +1422,8 @@ static const CommandSpec kTable[] = {
     {"INCRBY",        3,  3,  CmdFlags::Write | CmdFlags::DenyOom,  TOMO_HANDLER_PAIR(cmd_incrby, 1, 1, 1)},
     {"DECRBY",        3,  3,  CmdFlags::Write | CmdFlags::DenyOom,  TOMO_HANDLER_PAIR(cmd_decrby, 1, 1, 1)},
     {"INCRBYFLOAT",   3,  3,  CmdFlags::Write | CmdFlags::DenyOom,  TOMO_HANDLER_PAIR(cmd_incrbyfloat, 1, 1, 1)},
-    {"PFADD",         3, -1,  CmdFlags::Write | CmdFlags::DenyOom,  TOMO_HANDLER_PAIR(cmd_pfadd, 1, 1, 1)},
+    // Minimum 2, not 3: redis accepts "PFADD key" with no elements and creates the HLL.
+    {"PFADD",         2, -1,  CmdFlags::Write | CmdFlags::DenyOom,  TOMO_HANDLER_PAIR(cmd_pfadd, 1, 1, 1)},
     {"PFCOUNT",       2, -1,  CmdFlags::Readonly | CmdFlags::SnapshotWrite | CmdFlags::MultiShard,TOMO_HANDLER_PAIR(cmd_pfcount,1,-1,1)},
     {"PFMERGE",       2, -1,  CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard, cmd_xshard_only, 1, -1,  1},
     {"EXPIRE",        3, -1,  CmdFlags::Write,                       TOMO_HANDLER_PAIR(cmd_expire, 1, 1, 1)},

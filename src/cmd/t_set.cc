@@ -956,11 +956,8 @@ void cmd_spop(Shard& shard, Op& op) {
     const bool with_count = op.argc() == 3;
     int64_t signed_count = 1;
     if (with_count) {
-        if (!parse_i64_strict(op.arg(2), signed_count)) {
-            reply_not_integer(op);
-            return;
-        }
-        if (signed_count < 0) {
+        // One message for both failures, as redis's getRangeLongFromObject(0, LONG_MAX, msg).
+        if (!parse_i64_strict(op.arg(2), signed_count) || signed_count < 0) {
             reply_err(op.sink(), "ERR value is out of range, must be positive");
             return;
         }
@@ -1123,6 +1120,11 @@ bool parse_scan_options(Op& op, ScanOptions& options) {
             options.pattern = op.arg(i + 1);
             options.use_pattern = !(options.pattern.n == 1 && options.pattern.p[0] == '*');
             i += 2;
+        } else if (op.arg(i).eq_icase("novalues")) {
+            // NOVALUES is a real option that this command does not have; redis says so rather
+            // than answering the generic syntax error it gives an unknown word.
+            reply_err(op.sink(), "ERR NOVALUES option can only be used in HSCAN");
+            return false;
         } else {
             reply_syntax(op.sink());
             return false;

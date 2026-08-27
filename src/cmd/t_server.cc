@@ -97,7 +97,42 @@ bool parse_i64_slice(Slice s, int64_t& out) {
     }
     const uint64_t limit = negative ? (uint64_t{1} << 63) : (uint64_t{1} << 63) - 1;
     if (value > limit) return false;
-    out = negative ? -static_cast<int64_t>(value) : static_cast<int64_t>(value);
+    // INT64_MIN has no positive counterpart, so negating the cast of 2^63 is undefined (UBSAN
+    // catches it on "WAIT -9223372036854775808 0"). Name the value instead of computing it.
+    out = negative ? (value == (uint64_t{1} << 63) ? std::numeric_limits<int64_t>::min()
+                                                   : -static_cast<int64_t>(value))
+                   : static_cast<int64_t>(value);
+    return true;
+}
+
+// Canonical decimal, as redis's string2ll: no leading '+', no leading zeroes, no negative zero.
+// This is the COMMAND-argument spelling; the lax parse_i64_slice above stays for config values,
+// where a conf file writing "+10" or "010" has always been accepted.
+bool parse_i64_canonical(Slice s, int64_t& out) {
+    if (!s.n || s.n > 20) return false;
+    uint32_t i = 0;
+    bool negative = false;
+    if (s.p[0] == '-') { negative = true; i = 1; }
+    if (i >= s.n) return false;
+    if (s.p[i] == '0') {
+        if (negative || i + 1 != s.n) return false;
+        out = 0;
+        return true;
+    }
+    if (s.p[i] < '1' || s.p[i] > '9') return false;
+    uint64_t value = 0;
+    for (; i < s.n; i++) {
+        const char ch = s.p[i];
+        if (ch < '0' || ch > '9') return false;
+        const uint64_t digit = static_cast<uint64_t>(ch - '0');
+        if (value > (std::numeric_limits<uint64_t>::max() - digit) / 10) return false;
+        value = value * 10 + digit;
+    }
+    const uint64_t limit = negative ? (uint64_t{1} << 63) : (uint64_t{1} << 63) - 1;
+    if (value > limit) return false;
+    out = negative ? (value == (uint64_t{1} << 63) ? std::numeric_limits<int64_t>::min()
+                                                   : -static_cast<int64_t>(value))
+                   : static_cast<int64_t>(value);
     return true;
 }
 
@@ -1777,7 +1812,7 @@ void cmd_scan(Shard& sh, Op& op) {
             // rather than being rejected. The sibling lane's unsigned parse got both of those
             // backwards; this side is the one that matches.
             int64_t parsed = 0;
-            if (!parse_i64_slice(op.arg(i + 1), parsed)) {
+            if (!parse_i64_canonical(op.arg(i + 1), parsed)) {
                 reply_err(op.sink(), "ERR value is not an integer or out of range"); return;
             }
             if (parsed < 1) { reply_syntax(op.sink()); return; }
