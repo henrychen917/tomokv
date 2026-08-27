@@ -13,11 +13,14 @@ because wall-clock time must advance.
 """
 
 import base64
+import glob
 import hashlib
 import json
+import os
 import random
 import socket
 import sys
+import time
 
 
 if len(sys.argv) != 5 or sys.argv[3] not in ("populate", "loadaof", "verify", "snapshot"):
@@ -120,6 +123,30 @@ def ok(*args):
     return got
 
 
+def bulk_payload(reply):
+    if reply[:1] != b"$":
+        raise AssertionError("wanted bulk reply, got %r" % reply[:80])
+    eol = reply.index(b"\r\n")
+    size = int(reply[1:eol])
+    if size < 0:
+        return None
+    payload = reply[eol + 2:eol + 2 + size]
+    if len(payload) != size:
+        raise AssertionError("truncated bulk reply")
+    return payload
+
+
+def persistence_info():
+    payload = bulk_payload(c.command("INFO", "Persistence"))
+    values = {}
+    for line in payload.decode().splitlines():
+        if not line.startswith("aof_") or ":" not in line:
+            continue
+        name, value = line.split(":", 1)
+        values[name] = int(value) if value.isdigit() else value
+    return values
+
+
 def assert_surface():
     expect(("CONFIG", "GET", "appendonly"),
            b"*2\r\n$10\r\nappendonly\r\n$3\r\nyes\r\n")
@@ -127,6 +154,72 @@ def assert_surface():
     # whose debug command surface was never enabled.
     expect(("CONFIG", "GET", "enable-debug-command"),
            b"*2\r\n$20\r\nenable-debug-command\r\n$3\r\nyes\r\n")
+
+
+def find_same_shard_keys(prefix, count):
+    keys = []
+    target = None
+    for candidate in range(4096):
+        key = "%s:%d" % (prefix, candidate)
+        reply = c.command("DEBUG", "SHARD", key)
+        if reply[:1] != b":":
+            raise AssertionError("DEBUG SHARD failed: %r" % reply)
+        shard = int(reply[1:-2])
+        if target is None:
+            target = shard
+        if shard == target:
+            keys.append(key)
+            if len(keys) == count:
+                return keys
+    raise AssertionError("could not find %d keys on one shard" % count)
+
+
+def populate_script_writes():
+    values = {
+        "aof:script:eval": "eval-value",
+        "aof:script:evalsha": "evalsha-value",
+        "aof:script:fcall": "fcall-value",
+    }
+    eval_source = "return redis.call('SET', KEYS[1], ARGV[1])"
+    expect(("EVAL", eval_source, "1", "aof:script:eval", values["aof:script:eval"]),
+           b"+OK\r\n")
+
+    evalsha_source = "redis.call('SET', KEYS[1], ARGV[1]); return 42"
+    evalsha = hashlib.sha1(evalsha_source.encode()).hexdigest()
+    ok("SCRIPT", "LOAD", evalsha_source)
+    expect(("EVALSHA", evalsha, "1", "aof:script:evalsha",
+            values["aof:script:evalsha"]), b":42\r\n")
+
+    library = ("#!lua name=aofscript\n"
+               "redis.register_function{function_name='aofset', "
+               "callback=function(keys,args) "
+               "return redis.call('SET',keys[1],args[1]) end}\n"
+               "redis.register_function{function_name='aofget', "
+               "callback=function(keys,args) return redis.call('GET',keys[1]) end, "
+               "flags={'no-writes'}}\n")
+    ok("FUNCTION", "LOAD", "REPLACE", library)
+    expect(("FCALL", "aofset", "1", "aof:script:fcall", values["aof:script:fcall"]),
+           b"+OK\r\n")
+
+    multi_keys = find_same_shard_keys("aof:script:multi", 2)
+    values[multi_keys[0]] = "multi-left"
+    values[multi_keys[1]] = "multi-right"
+    multi_source = ("redis.call('SET', KEYS[1], ARGV[1]); "
+                    "redis.call('SET', KEYS[2], ARGV[2]); return 2")
+    expect(("EVAL", multi_source, "2", multi_keys[0], multi_keys[1],
+            values[multi_keys[0]], values[multi_keys[1]]), b":2\r\n")
+
+    readonly_keys = ["aof:script:ro:eval", "aof:script:ro:evalsha",
+                     "aof:script:ro:fcall"]
+    ro_source = "return redis.call('GET', KEYS[1])"
+    expect(("EVAL_RO", ro_source, "1", readonly_keys[0]), b"$-1\r\n")
+    ro_sha = hashlib.sha1(ro_source.encode()).hexdigest()
+    ok("SCRIPT", "LOAD", ro_source)
+    expect(("EVALSHA_RO", ro_sha, "1", readonly_keys[1]), b"$-1\r\n")
+    expect(("FCALL_RO", "aofget", "1", readonly_keys[2]), b"$-1\r\n")
+
+    return {"values": values, "multi_keys": multi_keys,
+            "readonly_keys": readonly_keys, "expected_groups": 4}
 
 
 def populate():
@@ -181,6 +274,7 @@ def populate():
            "value-%03d-" % i + "Q" * 256)
     ok("XDEL", "x:expanded", "90-0")
     ok("XTRIM", "x:expanded", "MINID", "=", "51-0")
+    return populate_script_writes()
 
 
 PROBES = [
@@ -234,6 +328,128 @@ def load_state():
         return json.load(stream)
 
 
+def increment_files():
+    appenddir = os.path.join(os.path.dirname(os.path.abspath(STATE_PATH)), "appendonlydir")
+    paths = sorted(glob.glob(os.path.join(appenddir, "*.incr.tomo")))
+    if not paths:
+        raise AssertionError("no AOF increment file found in %s" % appenddir)
+    return paths
+
+
+def committed_group_tickets(data):
+    if len(data) < 80 or data[:8] != b"TOMOAOF\0":
+        raise AssertionError("invalid AOF increment header")
+    tickets = set()
+    pos = 80
+    while pos < len(data):
+        if len(data) - pos < 40 or data[pos:pos + 4] != b"AFRM":
+            raise AssertionError("invalid AOF frame while scanning script records")
+        sid = int.from_bytes(data[pos + 4:pos + 8], "little")
+        length = int.from_bytes(data[pos + 16:pos + 20], "little")
+        payload = pos + 40
+        end = payload + length
+        if end > len(data):
+            raise AssertionError("truncated AOF frame while scanning script records")
+        if sid == 0xFFFFFFFF:
+            record = payload
+            while record < end:
+                if end - record < 40 or data[record:record + 4] != b"AORC":
+                    raise AssertionError("invalid AOF control record")
+                kind = data[record + 4]
+                key_len = int.from_bytes(data[record + 8:record + 12], "little")
+                payload_len = int.from_bytes(data[record + 16:record + 24], "little")
+                ticket = int.from_bytes(data[record + 32:record + 40], "little")
+                if kind != 7 or key_len != 0 or ticket == 0:
+                    raise AssertionError("invalid AOF group commit record")
+                tickets.add(ticket)
+                record += 40 + payload_len
+            if record != end:
+                raise AssertionError("AOF control record crosses its frame")
+        pos = end
+    return tickets
+
+
+def group_ticket_for_key(data, key):
+    marker = key.encode()
+    matches = []
+    start = 0
+    while True:
+        found = data.find(marker, start)
+        if found < 0:
+            break
+        header = found - 40
+        if (header >= 0 and data[header:header + 4] == b"AORC" and
+                data[header + 4] == 5 and
+                int.from_bytes(data[header + 8:header + 12], "little") == len(marker)):
+            matches.append(int.from_bytes(data[header + 32:header + 40], "little"))
+        start = found + len(marker)
+    if len(matches) != 1 or matches[0] == 0:
+        raise AssertionError("%s has %d grouped AOF post-images" % (key, len(matches)))
+    return matches[0]
+
+
+def assert_script_aof(script_state):
+    blobs = []
+    commits = set()
+    for path in increment_files():
+        with open(path, "rb") as stream:
+            data = stream.read()
+        blobs.append(data)
+        commits.update(committed_group_tickets(data))
+    tickets = {}
+    for key in script_state["values"]:
+        matches = [group_ticket_for_key(data, key) for data in blobs if key.encode() in data]
+        if len(matches) != 1:
+            raise AssertionError("%s appears in %d AOF increments" % (key, len(matches)))
+        tickets[key] = matches[0]
+        if matches[0] not in commits:
+            raise AssertionError("%s group ticket has no GCMT" % key)
+    multi = script_state["multi_keys"]
+    if tickets[multi[0]] != tickets[multi[1]]:
+        raise AssertionError("multi-key EVAL post-images do not share one group ticket")
+    if len(set(tickets.values())) != script_state["expected_groups"]:
+        raise AssertionError("script writes used %d groups, wanted %d" %
+                             (len(set(tickets.values())), script_state["expected_groups"]))
+    joined = b"".join(blobs)
+    leaked = [key for key in script_state["readonly_keys"] if key.encode() in joined]
+    if leaked:
+        raise AssertionError("read-only script keys were emitted to AOF: %r" % leaked)
+    print("AOF SCRIPT BYTES PASS: write_keys=%d groups=%d readonly_absent=%d" %
+          (len(tickets), len(set(tickets.values())), len(script_state["readonly_keys"])))
+
+
+def wait_for_script_aof(script_state):
+    deadline = time.monotonic() + 10
+    stable = 0
+    previous = None
+    while time.monotonic() < deadline:
+        stats = persistence_info()
+        current = (stats.get("aof_records_written", 0), stats.get("aof_current_size", 0),
+                   stats.get("aof_groups_committed", 0))
+        if current[2] >= script_state["expected_groups"]:
+            stable = stable + 1 if current == previous else 1
+            if stable >= 5:
+                assert_script_aof(script_state)
+                return
+        else:
+            stable = 0
+        previous = current
+        time.sleep(0.02)
+    raise AssertionError("script AOF records did not settle: %r" % (previous,))
+
+
+def verify_script_state(script_state):
+    for key, value in script_state["values"].items():
+        reply = c.command("GET", key)
+        if bulk_payload(reply) != value.encode():
+            raise AssertionError("script-written key did not recover: %s" % key)
+    for key in script_state["readonly_keys"]:
+        if c.command("GET", key) != b"$-1\r\n":
+            raise AssertionError("read-only script key exists after recovery: %s" % key)
+    print("AOF SCRIPT RECOVERY PASS: values=%d readonly_absent=%d" %
+          (len(script_state["values"]), len(script_state["readonly_keys"])))
+
+
 def verify(expect_state):
     got = capture()
     failures = []
@@ -246,6 +462,7 @@ def verify(expect_state):
         for probe, want, actual in failures[:8]:
             print("MISMATCH %r\n  expected %r\n  actual   %r" % (probe, want, actual))
         raise AssertionError("%d/%d AOF state probes differed" % (len(failures), len(PROBES) + 1))
+    verify_script_state(expect_state["script"])
     print("AOF BYTE-EXACT PASS: %d static replies + live monotonic PTTL" % len(PROBES))
 
 
@@ -283,8 +500,10 @@ def snapshot_model():
 
 assert_surface()
 if MODE == "populate":
-    populate()
+    script_state = populate()
+    wait_for_script_aof(script_state)
     state = capture()
+    state["script"] = script_state
     save_state(state)
     print("AOF DATASET CAPTURED: %d static replies, PTTL=%d ms" %
           (len(PROBES), state["pttl_ms"]))
