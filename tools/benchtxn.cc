@@ -375,7 +375,8 @@ static void run_fanout(const char* host, int port, int secs, int subs, int pubs,
 // is a memcpy and the server is the thing being measured again.
 //   ./benchtxn mcmd HOST PORT SECS CONNS THREADS PIPE mget|mset [NKEYS] [KEYSPACE]
 static void run_mcmd(const char* host, int port, int secs, int conns, int nthreads,
-                     int pipe_depth, bool is_set, int nkeys, int keyspace) {
+                     int pipe_depth, bool is_set, int nkeys, int keyspace, bool mix = false,
+                     double rate_cap = 0.0) {
     std::atomic<uint64_t> total{0};
     std::atomic<bool> stop{false};
     std::vector<std::thread> ts;
@@ -383,14 +384,18 @@ static void run_mcmd(const char* host, int port, int secs, int conns, int nthrea
     for (int t = 0; t < nthreads; t++)
         ts.emplace_back([&, t] {
             unsigned seed = 0x9e3779b9u * static_cast<unsigned>(t + 1);
-            auto rnd = [&] { seed = seed * 1664525u + 1013904223u; return seed; };
+            auto rnd = [&] { seed = seed * 1664525u + 1013904223u; return (seed >> 8) ^ (seed >> 20); };
+            // mix mode alternates MSET/MGET inside the pipeline so both classes contend in one
+            // run (the "interleaved" cell); solo modes keep a single class per connection.
+            int mix_counter = 0;
             auto one_cmd = [&] {
+                const bool this_set = mix ? ((mix_counter++ & 1) == 0) : is_set;
                 std::vector<std::string> parts;
-                parts.push_back(is_set ? "MSET" : "MGET");
+                parts.push_back(this_set ? "MSET" : "MGET");
                 for (int k = 0; k < nkeys; k++) {
                     parts.push_back("m" + std::to_string(k) + ":" +
                                     std::to_string(rnd() % static_cast<unsigned>(keyspace)));
-                    if (is_set) parts.push_back("v0123456789abcdef");
+                    if (this_set) parts.push_back("v0123456789abcdef");
                 }
                 std::string out = "*" + std::to_string(parts.size()) + "\r\n";
                 for (const auto& p : parts) out += bulk(p);
@@ -398,7 +403,7 @@ static void run_mcmd(const char* host, int port, int secs, int conns, int nthrea
             };
             // 64 distinct pre-rendered pipeline blobs per connection; rotation keeps the key
             // stream varied without any per-request formatting on the hot loop.
-            const int kPool = 64;
+            const int kPool = 256;
             std::vector<int> fds;
             std::vector<RespCounter> cnt(static_cast<size_t>(per));
             std::vector<std::vector<std::string>> pools(static_cast<size_t>(per));
@@ -420,7 +425,17 @@ static void run_mcmd(const char* host, int port, int secs, int conns, int nthrea
             char buf[1 << 16];
             std::vector<uint64_t> credits(static_cast<size_t>(per), 0);
             std::vector<uint64_t> seen(static_cast<size_t>(per), 0);
+            const double per_thread_cap = rate_cap > 0 ? rate_cap / nthreads : 0.0;
+            const uint64_t t_start = now_us();
+            uint64_t issued = 0;
             while (!stop.load(std::memory_order_relaxed)) {
+                if (per_thread_cap > 0) {
+                    const double elapsed = (now_us() - t_start) / 1e6;
+                    if (issued > per_thread_cap * elapsed) {
+                        std::this_thread::sleep_for(std::chrono::microseconds(50));
+                        continue;
+                    }
+                }
                 for (int c = 0; c < per; c++) {
                     ssize_t r = recv(fds[static_cast<size_t>(c)], buf, sizeof buf, MSG_DONTWAIT);
                     if (r <= 0) continue;
@@ -430,6 +445,7 @@ static void run_mcmd(const char* host, int port, int secs, int conns, int nthrea
                     seen[static_cast<size_t>(c)] = rc.done;
                     if (done) {
                         total.fetch_add(done, std::memory_order_relaxed);
+                        issued += done;
                         credits[static_cast<size_t>(c)] += done;
                         if (credits[static_cast<size_t>(c)] >= static_cast<uint64_t>(pipe_depth)) {
                             credits[static_cast<size_t>(c)] -= static_cast<uint64_t>(pipe_depth);
@@ -451,7 +467,8 @@ static void run_mcmd(const char* host, int port, int secs, int conns, int nthrea
     const uint64_t ops = total.load() - warm;
     stop.store(true);
     for (auto& th : ts) th.join();
-    printf("mcmd %s ops %llu secs %.3f rate %.0f keyrate %.0f\n", is_set ? "mset" : "mget",
+    printf("mcmd %s ops %llu secs %.3f rate %.0f keyrate %.0f\n",
+           mix ? "mix" : (is_set ? "mset" : "mget"),
            static_cast<unsigned long long>(ops), (t2 - t1) / 1e6, ops / ((t2 - t1) / 1e6),
            ops * static_cast<double>(nkeys) / ((t2 - t1) / 1e6));
 }
@@ -475,7 +492,9 @@ int main(int argc, char** argv) {
     else if (mode == "mcmd" && argc >= 9)
         run_mcmd(host, port, atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
                  std::string(argv[8]) == "mset", argc >= 10 ? atoi(argv[9]) : 5,
-                 argc >= 11 ? atoi(argv[10]) : 2000000);
+                 argc >= 11 ? atoi(argv[10]) : 2000000,
+                 std::string(argv[8]) == "mix",
+                 argc >= 12 ? atof(argv[11]) : 0.0);
     else {
         fprintf(stderr, "bad args for mode %s\n", mode.c_str());
         return 1;
