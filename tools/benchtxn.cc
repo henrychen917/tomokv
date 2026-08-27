@@ -367,6 +367,95 @@ static void run_fanout(const char* host, int port, int secs, int subs, int pubs,
            static_cast<unsigned long long>(d), d / ((t2 - t1) / 1e6));
 }
 
+// ---- mcmd mode ----------------------------------------------------------------------------------
+// Pipelined multi-key GET/SET cells (MGET5/MSET5). redis-benchmark tops out near 600k cmd/s
+// generating these (per-request argv substitution), which reads as "MGET == MSET" — a driver
+// ceiling, not a server measurement. Here each connection pre-renders a pool of distinct
+// command blobs over a random keyspace at startup and rotates them, so steady-state send cost
+// is a memcpy and the server is the thing being measured again.
+//   ./benchtxn mcmd HOST PORT SECS CONNS THREADS PIPE mget|mset [NKEYS] [KEYSPACE]
+static void run_mcmd(const char* host, int port, int secs, int conns, int nthreads,
+                     int pipe_depth, bool is_set, int nkeys, int keyspace) {
+    std::atomic<uint64_t> total{0};
+    std::atomic<bool> stop{false};
+    std::vector<std::thread> ts;
+    const int per = conns / nthreads > 0 ? conns / nthreads : 1;
+    for (int t = 0; t < nthreads; t++)
+        ts.emplace_back([&, t] {
+            unsigned seed = 0x9e3779b9u * static_cast<unsigned>(t + 1);
+            auto rnd = [&] { seed = seed * 1664525u + 1013904223u; return seed; };
+            auto one_cmd = [&] {
+                std::vector<std::string> parts;
+                parts.push_back(is_set ? "MSET" : "MGET");
+                for (int k = 0; k < nkeys; k++) {
+                    parts.push_back("m" + std::to_string(k) + ":" +
+                                    std::to_string(rnd() % static_cast<unsigned>(keyspace)));
+                    if (is_set) parts.push_back("v0123456789abcdef");
+                }
+                std::string out = "*" + std::to_string(parts.size()) + "\r\n";
+                for (const auto& p : parts) out += bulk(p);
+                return out;
+            };
+            // 64 distinct pre-rendered pipeline blobs per connection; rotation keeps the key
+            // stream varied without any per-request formatting on the hot loop.
+            const int kPool = 64;
+            std::vector<int> fds;
+            std::vector<RespCounter> cnt(static_cast<size_t>(per));
+            std::vector<std::vector<std::string>> pools(static_cast<size_t>(per));
+            std::vector<uint32_t> next(static_cast<size_t>(per), 0);
+            for (int c = 0; c < per; c++) {
+                int fd = dial(host, port);
+                if (fd < 0) { fprintf(stderr, "dial failed\n"); exit(2); }
+                fds.push_back(fd);
+                auto& pool = pools[static_cast<size_t>(c)];
+                pool.reserve(kPool);
+                for (int b = 0; b < kPool; b++) {
+                    std::string blob;
+                    for (int p = 0; p < pipe_depth; p++) blob += one_cmd();
+                    pool.push_back(std::move(blob));
+                }
+                send_all(fd, pool[0].data(), pool[0].size());
+                next[static_cast<size_t>(c)] = 1;
+            }
+            char buf[1 << 16];
+            std::vector<uint64_t> credits(static_cast<size_t>(per), 0);
+            std::vector<uint64_t> seen(static_cast<size_t>(per), 0);
+            while (!stop.load(std::memory_order_relaxed)) {
+                for (int c = 0; c < per; c++) {
+                    ssize_t r = recv(fds[static_cast<size_t>(c)], buf, sizeof buf, MSG_DONTWAIT);
+                    if (r <= 0) continue;
+                    RespCounter& rc = cnt[static_cast<size_t>(c)];
+                    rc.feed(buf, static_cast<size_t>(r));
+                    const uint64_t done = rc.done - seen[static_cast<size_t>(c)];
+                    seen[static_cast<size_t>(c)] = rc.done;
+                    if (done) {
+                        total.fetch_add(done, std::memory_order_relaxed);
+                        credits[static_cast<size_t>(c)] += done;
+                        if (credits[static_cast<size_t>(c)] >= static_cast<uint64_t>(pipe_depth)) {
+                            credits[static_cast<size_t>(c)] -= static_cast<uint64_t>(pipe_depth);
+                            auto& pool = pools[static_cast<size_t>(c)];
+                            const std::string& blob =
+                                pool[next[static_cast<size_t>(c)]++ % pool.size()];
+                            send_all(fds[static_cast<size_t>(c)], blob.data(), blob.size());
+                        }
+                    }
+                }
+            }
+            for (int fd : fds) close(fd);
+        });
+    std::this_thread::sleep_for(std::chrono::milliseconds(secs * 200));
+    const uint64_t warm = total.load();
+    const uint64_t t1 = now_us();
+    std::this_thread::sleep_for(std::chrono::milliseconds(secs * 800));
+    const uint64_t t2 = now_us();
+    const uint64_t ops = total.load() - warm;
+    stop.store(true);
+    for (auto& th : ts) th.join();
+    printf("mcmd %s ops %llu secs %.3f rate %.0f keyrate %.0f\n", is_set ? "mset" : "mget",
+           static_cast<unsigned long long>(ops), (t2 - t1) / 1e6, ops / ((t2 - t1) / 1e6),
+           ops * static_cast<double>(nkeys) / ((t2 - t1) / 1e6));
+}
+
 int main(int argc, char** argv) {
     if (argc < 3) {
         fprintf(stderr, "usage: benchtxn exec|blpop|fanout HOST PORT ... (see header)\n");
@@ -383,6 +472,10 @@ int main(int argc, char** argv) {
     else if (mode == "fanout" && argc >= 8)
         run_fanout(host, port, atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
                    argc >= 9 ? atoi(argv[8]) : 16, argc >= 10 && argv[9][0] == 's');
+    else if (mode == "mcmd" && argc >= 9)
+        run_mcmd(host, port, atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
+                 std::string(argv[8]) == "mset", argc >= 10 ? atoi(argv[9]) : 5,
+                 argc >= 11 ? atoi(argv[10]) : 2000000);
     else {
         fprintf(stderr, "bad args for mode %s\n", mode.c_str());
         return 1;
