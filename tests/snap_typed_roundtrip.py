@@ -78,10 +78,12 @@ def statefile():
     return [norm(op, c.cmd(*op)) for op in KEYS_CHECK]
 if MODE=="build_save":
     build()
-    import json
     state = statefile()
     open("/tmp/claude-1000/snap_state_a.txt","w").write(repr(state))
-    print("SAVE:", c.cmd("SAVE"))
+    save_reply = c.cmd("SAVE")
+    if save_reply != b"+OK":
+        raise RuntimeError("SAVE failed: %r" % (save_reply,))
+    print("SAVE:", save_reply)
     print("state captured: %d checks" % len(state))
 elif MODE=="verify":
     state = statefile()

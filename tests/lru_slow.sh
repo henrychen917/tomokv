@@ -1,12 +1,32 @@
 #!/bin/bash
 # Time-dilated LRU discrimination: hot set touched AFTER a >=1-tick (256s) dwell must outlive
 # untouched same-age cold keys under pressure.
-cd /home/user/Projects/tomokv-cpp-evict
-taskset -c 4-5 build/tomokv --port 7897 --bind 127.0.0.1 --shards 16 --ratio 1:1 >/dev/null 2>&1 &
-TS=$!; sleep 1.5
-python3 - <<'PYEOF'
-import socket, time
-s = socket.create_connection(("127.0.0.1", 7897), timeout=20); f = s.makefile("rb")
+set -u
+ROOT=$(cd "$(dirname "$0")/.." && pwd)
+PORT=${GATE_PORT:-7897}
+CORES=${GATE_CORES:-4-5}
+BINARY=${TOMOKV_BIN:-$ROOT/build/tomokv}
+
+(exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null \
+    && { echo "LRU-SLOW BOOT-FAIL: port $PORT already accepting"; exit 1; }
+taskset -c "$CORES" "$BINARY" --port "$PORT" --bind 127.0.0.1 --shards 16 --ratio 1:1 \
+    >/dev/null 2>&1 &
+for _ in $(seq 50); do
+    (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null && break
+    sleep 0.2
+done
+SRV_PID=$(ss -lntpH "sport = :$PORT" 2>/dev/null | grep -oE 'pid=[0-9]+' | cut -d= -f2 | sort -u)
+[ -n "$SRV_PID" ] && [ "$(printf '%s\n' "$SRV_PID" | wc -l)" -eq 1 ] \
+    || { echo "LRU-SLOW BOOT-FAIL: listener identity missing/split"; exit 1; }
+SRV_EXE=$(readlink -f "/proc/$SRV_PID/exe" 2>/dev/null)
+[ "$SRV_EXE" = "$(readlink -f "$BINARY")" ] \
+    || { echo "LRU-SLOW IDENTITY-FAIL: pid=$SRV_PID exe=${SRV_EXE:-none}"; exit 1; }
+
+RC=0
+python3 - "$PORT" <<'PYEOF' || RC=$?
+import socket, sys, time
+port = int(sys.argv[1])
+s = socket.create_connection(("127.0.0.1", port), timeout=20); f = s.makefile("rb")
 def enc(a):
     o=b"*%d\r\n"%len(a)
     for x in a:
@@ -34,5 +54,13 @@ hot  = sum(1 for i in range(50) if cmd("EXISTS","hot:%d"%i)==b":1")
 cold = sum(1 for i in range(0,4000,80) if cmd("EXISTS","cold:%d"%i)==b":1")
 verdict = "PASS" if hot > cold else "FAIL"
 print("LRU-SLOW %s: hot=%d/50 cold=%d/50 (dwell 300s > 256s tick)" % (verdict, hot, cold))
+sys.exit(0 if verdict == "PASS" else 1)
 PYEOF
-kill -TERM $TS 2>/dev/null
+kill -TERM "$SRV_PID" 2>/dev/null || RC=1
+for _ in $(seq 100); do
+    ss -lntpH "sport = :$PORT" 2>/dev/null | grep -q 'pid=' || break
+    sleep 0.1
+done
+ss -lntpH "sport = :$PORT" 2>/dev/null | grep -q 'pid=' && RC=1
+wait "$SRV_PID" 2>/dev/null || true
+exit "$RC"

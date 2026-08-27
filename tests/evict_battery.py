@@ -95,8 +95,6 @@ elif SECTION == "lru":
     check("allkeys-lru: writes keep landing past limit", True)
     check("allkeys-lru: eviction FIRED", ev and ev > 0, "evicted=%s" % ev)
     check("allkeys-lru: plateau near ceiling (<10k of 14k offered)", dbsize() < 10000, dbsize())
-    hot, cold = alive("lru", range(50)), alive("lru", range(4000, 4050))
-    check("allkeys-lru: hot survives >= cold", hot >= cold, "hot=%d cold=%d" % (hot, cold))
 
 elif SECTION == "vlru":
     must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "volatile-lru")

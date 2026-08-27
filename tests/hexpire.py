@@ -23,6 +23,7 @@ MODE = sys.argv[3] if len(sys.argv) > 3 else "all"
 
 FAILURES = []
 CHECKS = [0]
+EXPECT_DEFAULT = 206
 
 
 def encode(*args):
@@ -515,7 +516,7 @@ def test_value_transport(c):
 
     reload_reply = c.cmd("DEBUG", "RELOAD")
     if isinstance(reload_reply, RuntimeError):
-        print("  (skipped DEBUG RELOAD: %s)" % reload_reply)
+        FAILURES.append("DEBUG RELOAD required for snapshot round-trip: %s" % reload_reply)
         return
     check("snapshot round-trip keeps the deadline",
           c.cmd("HPEXPIRETIME", "ren", "FIELDS", "2", "a", "b"), [far, -1])
@@ -596,12 +597,19 @@ def main():
             print("  %-20s %s" % (name, "ok" if len(FAILURES) == start else "FAIL"))
         c.cmd("FLUSHALL")
 
+    floor = EXPECT_DEFAULT if MODE == "all" else 0
+    if CHECKS[0] < floor:
+        FAILURES.append("executed-check floor: got %d, require >= %d" % (CHECKS[0], floor))
+
+    count_text = "%d checks" % CHECKS[0]
+    if floor:
+        count_text += " (floor %d)" % floor
     if FAILURES:
-        print("hexpire: %d checks, %d FAILURES" % (CHECKS[0], len(FAILURES)))
+        print("hexpire: %s, %d FAILURES" % (count_text, len(FAILURES)))
         for failure in FAILURES:
             print("  " + failure)
         sys.exit(1)
-    print("hexpire: %d checks, 0 failures -> PASS" % CHECKS[0])
+    print("hexpire: %s, 0 failures -> PASS" % count_text)
 
 
 main()
