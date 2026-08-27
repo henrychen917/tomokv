@@ -276,6 +276,14 @@ inline uint64_t mix64(uint64_t h) {
     return h;
 }
 
+class FlatStore;
+
+// Hash-field TTLs, defined in src/cmd/t_hash_ttl.cc. The store owns the ATTENTION (which keys carry
+// field deadlines, and the bounded cycle that revisits them); the hash lane owns the reap itself,
+// because only it knows the two hash representations. Returns true when no live field is left and
+// the caller must delete the key; `reaped` counts fields removed.
+bool hash_ttl_active_reap(FlatStore& store, KvObj* object, int64_t now_ms, uint32_t& reaped);
+
 class FlatStore {
 
 public:
@@ -325,6 +333,26 @@ public:
     size_t   object_bytes() const { return obj_bytes_ + atomic_version_bytes_; }
     size_t   obj_bytes() const { return obj_bytes_ + atomic_version_bytes_; }
     uint32_t expire_count() const { return expires_.size(); }
+    // Hashes in this shard carrying at least one field deadline. THE gate for the whole hash-field
+    // TTL feature: a shard that has never seen HEXPIRE reads zero here and every hash command pays
+    // one predicted-false test, with all field-TTL machinery out of line behind it.
+    uint32_t field_expire_count() const { return field_ttl_gate_; }
+    // Registration is idempotent and keyed by key hash only, exactly like expires_. A stale entry
+    // (key replaced, deleted, or persisted) is harmless: the cycle drops it on its next visit.
+    void note_field_ttl(uint64_t h) {
+        (void)field_expires_.insert(h);
+        field_ttl_gate_ = field_expires_.size();
+    }
+    // FIRED-proof for the lazy reap: >0 means a hash field really was collected on an access path,
+    // not merely filtered out of a reply. INFO reports it as expired_hash_fields.
+    void note_field_expired(uint32_t n) { field_expired_ += n; }
+    // Re-arms type-specific attention for an object that arrived from a snapshot, an AOF replay or
+    // RESTORE rather than from a command. Load-only, so it costs the hot path nothing.
+    void note_loaded_object(uint64_t h, const KvObj* o) {
+        if (static_cast<Type>(o->type) != Type::Hash) return;
+        if (static_cast<Enc>(o->enc) == Enc::Compact) return;
+        if (static_cast<const HashVal*>(o->external_ptr())->ttls) note_field_ttl(h);
+    }
     void bind_aof(AofManager* manager, int32_t sid, uint32_t next_sequence) {
         aof_.init(manager, sid, next_sequence);
     }
@@ -495,7 +523,7 @@ public:
     size_t resident_estimate() const {
         return static_cast<size_t>(cap_[0] + cap_[1]) * 8 + obj_bytes_ +
                atomic_version_bytes_ + pending_bytes_ +
-               expires_.memory_bytes();
+               expires_.memory_bytes() + field_expires_.memory_bytes();
     }
 
     // Collection values grow and shrink behind a stable KvObj header. The shard owner brackets
@@ -700,8 +728,53 @@ public:
                 if (expired_counter_) (*expired_counter_)++;
             }
         });
+        if (__builtin_expect(field_expires_.size() != 0, false))
+            removed += active_expire_fields(budget);
         return removed;
     }
+
+    // Hash-field deadlines ride the SAME attention mechanism as key deadlines: a per-shard index of
+    // key hashes, a persistent cursor, and a slot budget that counts empty slots so a pass can never
+    // degenerate into a keyspace walk. Reaping is the ex thread touching its own shard, so it is
+    // legal here for exactly the reason active_expire() is.
+    uint32_t active_expire_fields(uint32_t budget) {
+        if (snapshot_active_) return 0;
+        uint32_t removed = 0;
+        field_expires_.sample(budget, [&](uint64_t h) {
+            KvObj* o = find_any_hash_in(0, h);
+            if (!o && rehashing()) o = find_any_hash_in(1, h);
+            if (!o || static_cast<Type>(o->type) != Type::Hash ||
+                static_cast<Enc>(o->enc) == Enc::Compact ||
+                !static_cast<const HashVal*>(o->external_ptr())->ttls) {
+                // Key gone, replaced, re-typed, or every field TTL removed. Self-healing here is
+                // what lets registration stay a cheap unconditional insert on the write path.
+                field_expires_.erase(h);
+                field_ttl_gate_ = field_expires_.size();
+                return;
+            }
+            if (atomic_has_record(h, o->key())) return;
+            uint32_t reaped = 0;
+            const size_t before = kvobj_size(o);
+            const bool empty = hash_ttl_active_reap(*this, o, cached_now_ms_, reaped);
+            if (!reaped && !empty) return;
+            const Slice key = o->key();
+            notify_flat_store_emit(this, NOTIFY_HASH, NotifyEventId::Hexpired, key);
+            field_expired_ += reaped;
+            if (!empty) {
+                note_object_size_change(before, kvobj_size(o));
+                (void)aof_.record_post_image_buffered(*this, h, key);
+                removed += reaped;
+                return;
+            }
+            (void)aof_.record_delete(key);
+            notify_flat_store_emit(this, NOTIFY_GENERIC, NotifyEventId::Del, key);
+            if (erase_in(0, h, key) || (rehashing() && erase_in(1, h, key))) removed += reaped;
+            field_expires_.erase(h);
+            field_ttl_gate_ = field_expires_.size();
+        });
+        return removed;
+    }
+    uint64_t field_expired() const { return field_expired_; }
 
     // Pre-execution budget gate for growth commands (CmdFlags::DenyOom), redis-style: over-budget
     // shards evict (policy permitting) until under, else the command is refused. The mutation is
@@ -839,6 +912,8 @@ public:
             cap_[t] = mask_[t] = live_[t] = tombs_[t] = 0;
         }
         expires_.clear();
+        field_expires_.clear();
+        field_ttl_gate_ = 0;
         rehash_pos_ = 0;
         alloc_table(0, 1024);
     }
@@ -859,6 +934,8 @@ public:
             }
         }
         expires_.clear();
+        field_expires_.clear();
+        field_ttl_gate_ = 0;
     }
 
     // RANDOMKEY starts at a pseudo-random physical slot and wraps at most once through both
@@ -1323,6 +1400,23 @@ private:
         return nullptr;
     }
 
+    // Same probe as find_hash_in, minus its key-TTL filter. The field-TTL index tracks hashes that
+    // usually carry NO key-level deadline, so reusing find_hash_in there silently found nothing and
+    // the cycle deregistered every hash it visited (caught by hash_field_expires falling to 0).
+    KvObj* find_any_hash_in(int t, uint64_t h) const {
+        if (!tab_[t]) return nullptr;
+        const uint16_t tag = tag_of(h);
+        uint32_t i = slot_start(t, h);
+        for (uint32_t probes = 0; probes <= cap_[t]; probes++) {
+            const uint64_t w = tab_[t][i];
+            if (w == 0) return nullptr;
+            KvObj* o = ptr_of(w);
+            if (o && tag_of_word(w) == tag && hash_key(o->key()) == h) return o;
+            i = (i + 1) & mask_[t];
+        }
+        return nullptr;
+    }
+
     KvObj* live_or_expire(int t, uint64_t h, Slice key, KvObj* o) {
         // This is the non-expiring-key tax: one flags branch after the ordinary lookup. No clock
         // read occurs here; the executor refreshed cached_now_ms_ once for its loop pass.
@@ -1515,6 +1609,10 @@ private:
     uint32_t  live_[2]  = {0, 0};
     uint32_t  tombs_[2] = {0, 0};
     uint32_t  rehash_pos_ = 0;
+    // THE hash-field-TTL gate, deliberately placed in the 4-byte hole the surrounding fields
+    // already leave: it is read by every hash command, so it must share the first cache line that
+    // find() touches rather than sit next to its own (cold) index 200 bytes further down.
+    uint32_t  field_ttl_gate_ = 0;
     size_t    obj_bytes_  = 0;
     size_t    pending_bytes_ = 0;
     uint32_t  outstanding_borrows_ = 0;
@@ -1552,6 +1650,12 @@ private:
     std::unique_ptr<SnapshotChunk> snapshot_build_;
     std::unique_ptr<SnapshotChunk> snapshot_ready_;
     AofProducer aof_;
+    // COLD TAIL. The hash-field-TTL index and its counter go last on purpose: only the 4-byte gate
+    // above is on a hot path, and placing these mid-struct pushed cached_now_ms_ / maxmemory_ /
+    // snapshot_ 96 bytes further out, which showed up as a measurable instr/op regression on a
+    // workload that never uses the feature. Allocates nothing until the first HEXPIRE in the shard.
+    ExpireIndex field_expires_;
+    uint64_t    field_expired_ = 0;
 };
 
 

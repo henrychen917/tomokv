@@ -109,6 +109,21 @@ def normalize(cmdname, r):
         it = parse_reply(r)
         if isinstance(it, list):
             return b"SORTED:" + b",".join(sorted(x if x is not None else b"<nil>" for x in it))
+    # HTTL/HPTTL are remaining-time answers computed from each server's own clock, so a
+    # far-future deadline lands a few ms apart. Bucket to 10 s; the ABSOLUTE forms
+    # (HEXPIRETIME/HPEXPIRETIME) stay byte-exact and are what actually pins the deadline.
+    if cmdname in ("HTTL", "HPTTL") and r[:1] == b"*":
+        it = parse_reply(r)
+        if isinstance(it, list):
+            out = []
+            for x in it:
+                v = int(x[1:]) if isinstance(x, bytes) and x[:1] == b":" else None
+                if v is None: out.append(b"?")
+                elif v < 0: out.append(b"%d" % v)
+                else:
+                    ms = v * 1000 if cmdname == "HTTL" else v
+                    out.append(b"~%d" % (ms // 10000))
+            return b"HTTLB:" + b",".join(out)
     # TTL/PTTL race by wall time between servers: bucket to second granularity.
     if cmdname in ("TTL", "PTTL", "EXPIRETIME", "PEXPIRETIME") and r[:1] == b":":
         try:
@@ -618,6 +633,146 @@ def gen_hash(rng):
         ["HINCRBY", "hof", "f", "9223372036854775807"], ["HINCRBY", "hof", "f", "1"],
         ["HSET", "hif", "f", "5"], ["HINCRBYFLOAT", "hif", "f", "0.1"], ["HGET", "hif", "f"],
         ["HMGET", "missingh2", "a", "b", "c"],
+    ]
+    return ops
+
+def gen_hexpire(rng):
+    # Hash-field TTLs.  Every deadline is ABSOLUTE and either far in the future or definitively in
+    # the past, so the whole stream is deterministic on both servers: no sleep, no clock race, and
+    # the "already past" deadlines exercise the immediate-delete return code (2) reproducibly.
+    keys = ["hx%d" % i for i in range(10)]
+    fields = ["f%d" % i for i in range(14)] + ["", "bin\x00fld", "L" * 70]
+    vals = ["", "v", "hello world", "12345", "-7", "w" * 130, "\x00\x01\xff"]
+    base = 1900000000000                      # ~2030, comfortably inside the 46-bit ceiling
+    future_ms = [base, base + 1, base + 7777, base + 3600000, base + 86400000]
+    past_ms = [1, 2, 1000, 1500000000000 - 1000000000]
+    conds = [[], ["NX"], ["XX"], ["GT"], ["LT"]]
+    setters = ["HEXPIREAT", "HPEXPIREAT"]
+    readers = ["HTTL", "HPTTL", "HEXPIRETIME", "HPEXPIRETIME"]
+    ops = []
+    def K(): return rng.choice(keys)
+    def F(): return rng.choice(fields)
+    def flist(n): return [F() for _ in range(n)]
+
+    # seed every key so the interesting branches are reachable from op 0
+    for k in keys:
+        pairs = []
+        for i in range(6):
+            pairs += ["f%d" % i, "v%d" % i]
+        ops.append(["HSET", k] + pairs)
+
+    for _ in range(4200):
+        c = rng.randrange(22)
+        if c in (0, 1, 2, 3, 4):
+            cmd = rng.choice(setters)
+            at = rng.choice(future_ms if rng.randrange(5) else past_ms)
+            if cmd == "HEXPIREAT":
+                at //= 1000
+            n = rng.randrange(1, 4)
+            fs = flist(n)
+            ops.append([cmd, K(), str(at)] + rng.choice(conds) + ["FIELDS", str(n)] + fs)
+        elif c in (5, 6, 7):
+            n = rng.randrange(1, 4)
+            ops.append([rng.choice(readers), K(), "FIELDS", str(n)] + flist(n))
+        elif c == 8:
+            n = rng.randrange(1, 3)
+            ops.append(["HPERSIST", K(), "FIELDS", str(n)] + flist(n))
+        elif c in (9, 10):
+            pairs = []
+            for _ in range(rng.randrange(1, 3)):
+                pairs += [F(), rng.choice(vals)]
+            ops.append(["HSET", K()] + pairs)
+        elif c == 11:
+            ops.append(["HDEL", K()] + flist(rng.randrange(1, 3)))
+        elif c == 12:
+            ops.append(["HGET", K(), F()])
+        elif c == 13:
+            ops.append(["HMGET", K()] + flist(rng.randrange(1, 4)))
+        elif c == 14:
+            ops.append(["HGETALL", K()])
+        elif c == 15:
+            ops.append([rng.choice(["HLEN", "EXISTS", "TYPE"]), K()])
+        elif c == 16:
+            ops.append(["HEXISTS", K(), F()])
+        elif c == 17:
+            ops.append(["HSTRLEN", K(), F()])
+        elif c == 18:
+            ops.append(["HSETNX", K(), F(), rng.choice(vals)])
+        elif c == 19:
+            ops.append(["HINCRBY", K(), rng.choice(fields[:4]), rng.choice(["1", "-2"])])
+        elif c == 20:
+            ops.append(["DEL", K()])
+        else:
+            ops.append(["HSET", K(), F(), rng.choice(vals)])
+
+    # directed tail: the error surface, the ceiling, and the representation transitions
+    far = str(base + 500)
+    ops += [
+        ["DEL", "hxe"], ["SET", "hxstr", "v"],
+        ["HEXPIRE", "hxstr", "100", "FIELDS", "1", "a"],
+        ["HTTL", "hxstr", "FIELDS", "1", "a"],
+        ["HPERSIST", "hxstr", "FIELDS", "1", "a"],
+        ["HEXPIREAT", "hxmissing", "99999999", "FIELDS", "2", "a", "b"],
+        ["HTTL", "hxmissing", "FIELDS", "3", "a", "b", "c"],
+        ["HPEXPIREAT", "hxe", "abc", "FIELDS", "1", "a"],
+        ["HPEXPIREAT", "hxe", "-1", "FIELDS", "1", "a"],
+        ["HPEXPIREAT", "hxe", "70368744177664", "FIELDS", "1", "a"],
+        ["HEXPIREAT", "hxe", "70368744178", "FIELDS", "1", "a"],
+        ["HEXPIRE", "hxe", "1000000000000", "FIELDS", "1", "a"],
+        ["HPEXPIRE", "hxe", "70368744177664", "FIELDS", "1", "a"],
+        ["HEXPIREAT", "hxe", "100", "FIELDS", "2", "a"],
+        ["HEXPIREAT", "hxe", "100", "FIELDS", "1", "a", "b"],
+        ["HEXPIREAT", "hxe", "100", "FIELDS", "0", "a"],
+        ["HEXPIREAT", "hxe", "100", "FIELDS", "-3", "a"],
+        ["HEXPIREAT", "hxe", "100", "FIELDS", "zz", "a"],
+        ["HTTL", "hxe", "FIELDS", "zz", "a"], ["HTTL", "hxe", "FIELDS", "0", "a"],
+        ["HEXPIREAT", "hxe", "100", "NX", "XX", "FIELDS", "1", "a"],
+        ["HEXPIREAT", "hxe", "100", "GT", "LT", "FIELDS", "1", "a"],
+        ["HEXPIREAT", "hxe", "100", "NOPE", "1", "a"],
+        ["HPERSIST", "hxe", "NOPE", "1", "a"],
+        # one-field hash: the first deadline changes its internal representation
+        ["DEL", "hxsmall"], ["HSET", "hxsmall", "solo", "sv"],
+        ["HPEXPIREAT", "hxsmall", far, "FIELDS", "1", "solo"],
+        ["HGET", "hxsmall", "solo"], ["HPEXPIRETIME", "hxsmall", "FIELDS", "1", "solo"],
+        ["HPERSIST", "hxsmall", "FIELDS", "1", "solo"],
+        ["HPEXPIRETIME", "hxsmall", "FIELDS", "1", "solo"],
+        # last field expires immediately -> the key must disappear
+        ["DEL", "hxlast"], ["HSET", "hxlast", "a", "1", "b", "2"],
+        ["HEXPIREAT", "hxlast", "1", "FIELDS", "1", "a"],
+        ["HLEN", "hxlast"], ["EXISTS", "hxlast"],
+        ["HEXPIREAT", "hxlast", "1", "FIELDS", "1", "b"],
+        ["HLEN", "hxlast"], ["EXISTS", "hxlast"], ["TYPE", "hxlast"],
+        # value writes clear the deadline, counter writes keep it
+        ["DEL", "hxw"], ["HSET", "hxw", "a", "1", "n", "5"],
+        ["HPEXPIREAT", "hxw", far, "FIELDS", "2", "a", "n"],
+        ["HSET", "hxw", "a", "2"], ["HPEXPIRETIME", "hxw", "FIELDS", "2", "a", "n"],
+        ["HINCRBY", "hxw", "n", "1"], ["HPEXPIRETIME", "hxw", "FIELDS", "1", "n"],
+        ["HSETNX", "hxw", "n", "9"], ["HPEXPIRETIME", "hxw", "FIELDS", "1", "n"],
+        ["HDEL", "hxw", "n"], ["HSET", "hxw", "n", "5"],
+        ["HPEXPIRETIME", "hxw", "FIELDS", "1", "n"],
+        # deadlines travel with the value
+        ["DEL", "hxc"], ["DEL", "hxc2"], ["HSET", "hxc", "a", "1", "b", "2"],
+        ["HPEXPIREAT", "hxc", far, "FIELDS", "1", "a"],
+        ["COPY", "hxc", "hxc2"], ["HPEXPIRETIME", "hxc2", "FIELDS", "2", "a", "b"],
+        ["HPERSIST", "hxc2", "FIELDS", "1", "a"],
+        ["HPEXPIRETIME", "hxc", "FIELDS", "1", "a"],
+        ["RENAME", "hxc", "hxc3"], ["HPEXPIRETIME", "hxc3", "FIELDS", "2", "a", "b"],
+        # a promoted hash carrying deadlines on a subset
+        ["DEL", "hxbig"],
+        ["HSET", "hxbig"] + sum(([("g%d" % i), ("gv%d" % i)] for i in range(200)), []),
+        ["HPEXPIREAT", "hxbig", far, "FIELDS", "3", "g0", "g100", "g199"],
+        ["HPEXPIRETIME", "hxbig", "FIELDS", "4", "g0", "g100", "g199", "g5"],
+        ["HLEN", "hxbig"], ["HGET", "hxbig", "g100"],
+        ["HEXPIREAT", "hxbig", "1", "FIELDS", "2", "g0", "g5"],
+        ["HLEN", "hxbig"], ["HGET", "hxbig", "g0"],
+        # binary and empty field names
+        ["DEL", "hxbin"], ["HSET", "hxbin", "a\x00b", "1", "", "2"],
+        ["HPEXPIREAT", "hxbin", far, "FIELDS", "2", "a\x00b", ""],
+        ["HPEXPIRETIME", "hxbin", "FIELDS", "2", "a\x00b", ""],
+        ["HGETALL", "hxbin"],
+        # case-insensitive tokens
+        ["hpexpireat", "hxbin", far, "nx", "fields", "1", "a\x00b"],
+        ["httl", "hxbin", "fields", "1", "a\x00b"],
     ]
     return ops
 
@@ -1707,8 +1862,8 @@ if SUITE == "wiredump":
     sys.exit(1 if run_wiredump_suite(rng) else 0)
 
 gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset,
-        "hash": gen_hash, "xshard": gen_xshard, "bitmap": gen_bitmap, "hll": gen_hll,
-        "bitfield": gen_bitfield, "cgaps": gen_cgaps, "stream": gen_stream,
+        "hash": gen_hash, "hexpire": gen_hexpire, "xshard": gen_xshard, "bitmap": gen_bitmap,
+        "hll": gen_hll, "bitfield": gen_bitfield, "cgaps": gen_cgaps, "stream": gen_stream,
         "script": gen_script,
         "streamgrp": gen_streamgrp,
         "zsetops": gen_zsetops, "geo": gen_geo}

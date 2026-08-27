@@ -662,6 +662,7 @@ private:
 // Separate concrete types make the outer destructor switch exhaustive and give each follow-up lane
 // a stable place to add its expanded backing structure without changing KvObj or Op.
 class HashFieldMap;
+class HashFieldTtl;
 
 struct HashVal : CompactValue {
     explicit HashVal(uint64_t seed = 0);
@@ -672,11 +673,21 @@ struct HashVal : CompactValue {
     uint32_t field_count() const { return entries(); }
     uint64_t random_bounded(uint64_t bound);
 
+    // kvobj_size() dispatches statically on HashVal*, so hiding the base accessor here is enough to
+    // fold the field-TTL side table into the store's byte accounting. `ttl_bytes` is a cached total
+    // maintained by the TTL lane: a call into HashFieldTtl here would put an out-of-line call on
+    // every hash footprint sample, and a TTL-free hash must not pay for one.
+    uint64_t allocation_bytes() const { return CompactValue::allocation_bytes() + ttl_bytes; }
+
     // Exact field+value bytes for the packed-pair representation. Compact::payload_bytes() also
     // includes each pair's inner field-length prefix, so it cannot serve as the hash logical total.
     uint64_t compact_payload_bytes = 0;
     uint64_t random_state = 0;
     HashFieldMap* fields = nullptr;
+    // Field TTLs. Null for every hash that has never seen HEXPIRE, and null again once the last
+    // field TTL is removed — the off state costs one pointer in a side allocation and nothing else.
+    HashFieldTtl* ttls = nullptr;
+    uint64_t ttl_bytes = 0;
 };
 struct ListNode {
     ListNode* prev = nullptr;

@@ -5,6 +5,7 @@
 // incrementally; no store-path lock, atomic, or whole-hash resize walk is introduced here.
 #include "command.h"
 #include "notify.h"
+#include "t_hash_ttl.h"
 #include "../core/shard.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
@@ -476,7 +477,10 @@ HashVal::HashVal(uint64_t seed) {
     if (!random_state) random_state = 0x9e3779b97f4a7c15ULL;
 }
 
-HashVal::~HashVal() { delete fields; }
+HashVal::~HashVal() {
+    delete fields;
+    delete ttls;
+}
 
 uint64_t HashVal::random_bounded(uint64_t bound) {
     if (!bound) return 0;
@@ -794,6 +798,29 @@ void reply_wrong_arity(Op& op) {
     reply_err(op.sink(), "ERR wrong number of arguments");
 }
 
+const HashFieldTtl* hash_ttls_of(const KvObj* object) {
+    // An embedded hash lives in the KvObj tail and has no HashVal to hang a table off; the first
+    // HEXPIRE on one externalizes it (see hash_ttl_externalize), so "embedded" implies "no TTLs".
+    if (static_cast<Enc>(object->enc) == Enc::Compact) return nullptr;
+    return static_cast<const HashVal*>(object->external_ptr())->ttls;
+}
+
+// Every hash command's single entry point: find, type-check, and — only when this shard actually
+// holds a hash with field deadlines — reap anything already past before the handler reads it.
+//
+// THE ZERO-COST CLAIM LIVES ON THIS LINE. field_expire_count() is a plain uint32_t in the store; a
+// shard that has never seen HEXPIRE pays one load and one predicted-false test per hash command and
+// reaches no field-TTL code at all. Reaping (rather than filtering at each read site) is also what
+// keeps every handler below unchanged: after this returns, all remaining fields are live.
+template <bool kNotify>
+inline bool hash_lookup(Shard& shard, Op& op, KvObj*& object) {
+    object = shard.store_find<kNotify>(op.hash, op.key());
+    if (!obj_type_check(object, Type::Hash, op.sink())) return false;
+    if (__builtin_expect(shard.store().field_expire_count() != 0, false) && object)
+        object = hash_ttl_on_access(shard, op, object, kNotify);
+    return true;
+}
+
 bool preconvert_hset(CollectionRef& hash, const CompactLimit& limit, const Op& op) {
     if (hash.encoding() != CollectionEncoding::Compact) return true;
     const uint32_t incoming_fields = (op.argc() - 2) / 2;
@@ -886,8 +913,8 @@ void cmd_hset(Shard& shard, Op& op) {
         reply_wrong_arity(op);
         return;
     }
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
-    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+    KvObj* object = nullptr;
+    if (!hash_lookup<kNotify>(shard, op, object)) return;
 
     uint64_t additional_encoded = 0;
     uint32_t incoming_max = 0;
@@ -923,6 +950,9 @@ void cmd_hset(Shard& shard, Op& op) {
         }
         created += result == HashSetKind::Inserted;
     }
+    // Redis 7.4: writing a field's VALUE discards that field's TTL (HINCRBY* deliberately do not).
+    if (__builtin_expect(object != nullptr && shard.store().field_expire_count() != 0, false))
+        for (uint32_t i = 2; i < op.argc(); i += 2) hash_ttl_clear_field(shard, object, op.arg(i));
     if (!object && !attach_new_hash<kNotify>(shard, op, owned)) return;
     if constexpr (kNotify)
         notify_record(shard, op, NOTIFY_HASH, NotifyEventId::Hset, op.key());
@@ -932,8 +962,8 @@ void cmd_hset(Shard& shard, Op& op) {
 
 template <bool kNotify>
 void cmd_hsetnx(Shard& shard, Op& op) {
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
-    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+    KvObj* object = nullptr;
+    if (!hash_lookup<kNotify>(shard, op, object)) return;
     if (object) {
         Slice ignored;
         if (hash_get(as_hash(object), op.arg(2), ignored)) {
@@ -966,8 +996,8 @@ void cmd_hsetnx(Shard& shard, Op& op) {
 
 template <bool kNotify>
 void cmd_hget(Shard& shard, Op& op) {
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
-    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+    KvObj* object = nullptr;
+    if (!hash_lookup<kNotify>(shard, op, object)) return;
     Slice value;
     if (!object || !hash_get(as_hash(object), op.arg(2), value))
         reply_null(op.sink(), op.resp3());
@@ -976,8 +1006,8 @@ void cmd_hget(Shard& shard, Op& op) {
 
 template <bool kNotify>
 void cmd_hmget(Shard& shard, Op& op) {
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
-    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+    KvObj* object = nullptr;
+    if (!hash_lookup<kNotify>(shard, op, object)) return;
     reply_array_header(op.sink(), op.argc() - 2);
     for (uint32_t i = 2; i < op.argc(); i++) {
         Slice value;
@@ -989,8 +1019,8 @@ void cmd_hmget(Shard& shard, Op& op) {
 
 template <bool kNotify>
 void cmd_hdel(Shard& shard, Op& op) {
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
-    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+    KvObj* object = nullptr;
+    if (!hash_lookup<kNotify>(shard, op, object)) return;
     if (!object) {
         reply_int(op.sink(), 0);
         return;
@@ -1001,6 +1031,8 @@ void cmd_hdel(Shard& shard, Op& op) {
     bool notified = false;
     for (uint32_t i = 2; i < op.argc(); i++) {
         if (!hash_erase(hash, op.arg(i))) continue;
+        if (__builtin_expect(shard.store().field_expire_count() != 0, false))
+            hash_ttl_clear_field(shard, object, op.arg(i));
         deleted++;
         if (hash.entries() == 0) {
             if constexpr (kNotify) {
@@ -1019,23 +1051,23 @@ void cmd_hdel(Shard& shard, Op& op) {
 
 template <bool kNotify>
 void cmd_hlen(Shard& shard, Op& op) {
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
-    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+    KvObj* object = nullptr;
+    if (!hash_lookup<kNotify>(shard, op, object)) return;
     reply_int(op.sink(), object ? as_hash(object).entries() : 0);
 }
 
 template <bool kNotify>
 void cmd_hexists(Shard& shard, Op& op) {
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
-    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+    KvObj* object = nullptr;
+    if (!hash_lookup<kNotify>(shard, op, object)) return;
     Slice value;
     reply_int(op.sink(), object && hash_get(as_hash(object), op.arg(2), value) ? 1 : 0);
 }
 
 template <bool kNotify>
 void cmd_hstrlen(Shard& shard, Op& op) {
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
-    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+    KvObj* object = nullptr;
+    if (!hash_lookup<kNotify>(shard, op, object)) return;
     Slice value;
     reply_int(op.sink(), object && hash_get(as_hash(object), op.arg(2), value) ? value.n : 0);
 }
@@ -1047,8 +1079,8 @@ void cmd_hincrby(Shard& shard, Op& op) {
         reply_err(op.sink(), "ERR value is not an integer or out of range");
         return;
     }
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
-    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+    KvObj* object = nullptr;
+    if (!hash_lookup<kNotify>(shard, op, object)) return;
 
     int64_t old_value = 0;
     Slice old_text;
@@ -1100,8 +1132,8 @@ void cmd_hincrbyfloat(Shard& shard, Op& op) {
         reply_err(op.sink(), "ERR value is NaN or Infinity");
         return;
     }
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
-    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+    KvObj* object = nullptr;
+    if (!hash_lookup<kNotify>(shard, op, object)) return;
 
     long double old_value = 0;
     Slice old_text;
@@ -1149,8 +1181,8 @@ enum class GetAllMode : uint8_t { Fields, Values, Both };
 
 template <bool kNotify>
 void generic_getall(Shard& shard, Op& op, GetAllMode mode) {
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
-    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+    KvObj* object = nullptr;
+    if (!hash_lookup<kNotify>(shard, op, object)) return;
     if (!object) {
         if (mode == GetAllMode::Both) reply_map_header(op.sink(), 0, op.resp3());
         else reply_array_header(op.sink(), 0);
@@ -1342,8 +1374,8 @@ void cmd_hscan(Shard& shard, Op& op) {
         reply_err(op.sink(), "ERR invalid cursor");
         return;
     }
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
-    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+    KvObj* object = nullptr;
+    if (!hash_lookup<kNotify>(shard, op, object)) return;
     if (!object) {
         // Redis returns the empty scan reply before parsing trailing options for a missing key.
         reply_scan(op, 0, {}, false);
@@ -1469,8 +1501,8 @@ void cmd_hrandfield(Shard& shard, Op& op) {
         }
     }
 
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
-    if (!obj_type_check(object, Type::Hash, op.sink())) return;
+    KvObj* object = nullptr;
+    if (!hash_lookup<kNotify>(shard, op, object)) return;
     if (!object) {
         if (op.argc() == 2) reply_null(op.sink(), op.resp3());
         else reply_array_header(op.sink(), 0);
@@ -1581,8 +1613,17 @@ static const CommandSpec kTable[] = {
 
 namespace {
 
-// Logical hash payload: per pair [u32 flen][field][u32 vlen][value], encoding byte 0.  The walk is
-// representation-agnostic; load rebuilds through hash_set so encoding follows the CURRENT limits.
+int64_t snapshot_now_ms() {
+    // Only reached for records that actually carry field deadlines (encoding 1); TTL-free hashes
+    // never call it, so a bulk load of ordinary hashes reads no clock at all.
+    timespec ts{};
+    ::clock_gettime(CLOCK_REALTIME, &ts);
+    return static_cast<int64_t>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000;
+}
+
+// Logical hash payload: per pair [u32 flen][field][u32 vlen][value], encoding byte 0.  Encoding 1
+// appends [i64 expire_ms] (-1 = none) to each pair.  The walk is representation-agnostic; load
+// rebuilds through hash_set so encoding follows the CURRENT limits.
 template <typename Fn>
 void hash_walk(const CollectionRef& hash, Fn&& fn) {
     if (hash.encoding() == CollectionEncoding::Compact) {
@@ -1595,15 +1636,24 @@ void hash_walk(const CollectionRef& hash, Fn&& fn) {
     }
 }
 
+// Field deadlines ride the ordinary value payload, selected by the record's existing per-type
+// `encoding` byte: 0 is the untouched TTL-free form, 1 appends an absolute i64 deadline (-1 = none)
+// to every pair. That single decision buys snapshot, AOF base, AOF increments and DUMP/RESTORE at
+// once, because all four already funnel through these three hooks — no command-rewrite path exists
+// in this tree and none had to be invented. Deadlines are absolute, so replay is deterministic and
+// anything already past is dropped on load rather than resurrected.
 SnapshotHookStatus hash_snapshot_begin(const KvObj& object, SnapshotSaveCursor& cursor,
                                        uint8_t& encoding) {
     if (static_cast<Type>(object.type) != Type::Hash) return SnapshotHookStatus::Corrupt;
     cursor = {};
     cursor.object = &object;
-    encoding = 0;
+    const bool with_ttl = hash_ttls_of(&object) != nullptr;
+    encoding = with_ttl ? 1 : 0;
+    cursor.lane[2] = with_ttl ? 1 : 0;
+    const uint64_t per_pair = with_ttl ? 16ull : 8ull;
     uint64_t total = 0;
     hash_walk(as_hash(const_cast<KvObj*>(&object)),
-              [&](Slice f, Slice v) { total += 8ull + f.n + v.n; });
+              [&](Slice f, Slice v) { total += per_pair + f.n + v.n; });
     cursor.total = total;
     return SnapshotHookStatus::Ok;
 }
@@ -1613,6 +1663,10 @@ SnapshotHookStatus hash_snapshot_read(SnapshotSaveCursor& cursor, uint8_t* desti
     written = 0;
     if (!cursor.object) return SnapshotHookStatus::Corrupt;
     CollectionRef hash = as_hash(const_cast<KvObj*>(cursor.object));
+    // begin_save fixed the per-pair width; re-deriving `with_ttl` from the object could disagree
+    // with cursor.total if the table were dropped mid-stream, so the decision is carried, not redone.
+    const bool with_ttl = cursor.lane[2] != 0;
+    const HashFieldTtl* ttls = with_ttl ? hash_ttls_of(cursor.object) : nullptr;
     SnapshotElementEmitter e{destination, capacity};
     uint64_t idx = 0;
     bool stopped = false;
@@ -1621,7 +1675,9 @@ SnapshotHookStatus hash_snapshot_read(SnapshotSaveCursor& cursor, uint8_t* desti
         if (idx < cursor.lane[0]) { idx++; return; }
         e.pos = 0;
         e.resume = idx == cursor.lane[0] ? cursor.lane[1] : 0;
-        const bool ok = e.put_u32(f.n) && e.put(f.p, f.n) && e.put_u32(v.n) && e.put(v.p, v.n);
+        const bool ok = e.put_u32(f.n) && e.put(f.p, f.n) && e.put_u32(v.n) && e.put(v.p, v.n) &&
+                        (!with_ttl ||
+                         e.put_u64(static_cast<uint64_t>(ttls ? ttls->get(f) : HashFieldTtl::kNone)));
         if (!ok) {
             cursor.lane[0] = idx;
             cursor.lane[1] = e.pos;
@@ -1638,7 +1694,9 @@ SnapshotHookStatus hash_snapshot_read(SnapshotSaveCursor& cursor, uint8_t* desti
 SnapshotHookStatus hash_snapshot_load(Slice key, uint8_t encoding, int64_t expire_at_ms,
                                       Slice payload, const TypeLimits& limits, KvObj*& result) {
     result = nullptr;
-    if (encoding != 0) return SnapshotHookStatus::Corrupt;
+    if (encoding > 1) return SnapshotHookStatus::Corrupt;
+    const bool with_ttl = encoding == 1;
+    const int64_t now_ms = snapshot_now_ms();
     uint64_t seed = 0xcbf29ce484222325ull;
     for (uint32_t i = 0; i < key.n; i++)
         seed = (seed ^ static_cast<uint8_t>(key.p[i])) * 0x100000001b3ull;
@@ -1647,6 +1705,7 @@ SnapshotHookStatus hash_snapshot_load(Slice key, uint8_t encoding, int64_t expir
     CollectionRef hash_ref(hash);
     const uint8_t* p = reinterpret_cast<const uint8_t*>(payload.p);
     uint64_t left = payload.n;
+    uint32_t skipped = 0;
     while (left) {
         if (left < 4) { delete hash; return SnapshotHookStatus::Corrupt; }
         const uint32_t flen = snapshot_get_u32(p);
@@ -1659,17 +1718,83 @@ SnapshotHookStatus hash_snapshot_load(Slice key, uint8_t encoding, int64_t expir
         if (left < vlen) { delete hash; return SnapshotHookStatus::Corrupt; }
         const Slice value(reinterpret_cast<const char*>(p), vlen);
         p += vlen; left -= vlen;
+        int64_t field_expire = HashFieldTtl::kNone;
+        if (with_ttl) {
+            if (left < 8) { delete hash; return SnapshotHookStatus::Corrupt; }
+            field_expire = static_cast<int64_t>(snapshot_get_u64(p));
+            p += 8; left -= 8;
+            // Absolute deadlines make this the whole of "recovery honours field TTLs": a field that
+            // already lapsed is simply not loaded, exactly as a lapsed key is not.
+            if (field_expire >= 0 && field_expire <= now_ms) { skipped++; continue; }
+        }
         if (hash_set(hash_ref, limits.hash, field, value) == HashSetKind::Oom) {
             delete hash;
             return SnapshotHookStatus::Oom;
         }
+        if (field_expire >= 0) {
+            if (!hash->ttls) {
+                hash->ttls = new (std::nothrow) HashFieldTtl;
+                if (!hash->ttls) { delete hash; return SnapshotHookStatus::Oom; }
+            }
+            if (!hash->ttls->set(field, field_expire)) { delete hash; return SnapshotHookStatus::Oom; }
+        }
     }
-    result = kvobj_adopt_hash(key, hash, expire_at_ms);
+    if (hash->ttls) hash->ttl_bytes = hash->ttls->allocation_bytes();
+    int64_t key_expire = expire_at_ms;
+    if (skipped && !hash->entries()) {
+        // Every field lapsed. A zero-field hash is not a value Redis can represent and the loaders
+        // require a non-null object, so hand back one whose KEY deadline is already past: find()
+        // hides it and the ordinary expire cycle collects it, with no new code path anywhere.
+        key_expire = 1;
+    }
+    // kvobj_adopt_hash prefers the one-allocation embedded form for a small hash -- and that form
+    // DELETES the HashVal, taking the field-TTL table with it (a silent TTL loss through COPY,
+    // RENAME and RESTORE until it was caught). A hash carrying deadlines is external by definition.
+    if (hash->ttls) {
+        result = kvobj_new_hash(key, hash, key_expire);
+        if (!result) { delete hash; return SnapshotHookStatus::Oom; }
+        return SnapshotHookStatus::Ok;
+    }
+    result = kvobj_adopt_hash(key, hash, key_expire);
     if (!result) { delete hash; return SnapshotHookStatus::Oom; }
     return SnapshotHookStatus::Ok;
 }
 
 }  // namespace
+
+// ---- the field-TTL seam (see t_hash_ttl.h) ----------------------------------------------------
+// The field-TTL lane needs exactly these five things from the hash lane, and nothing else; keeping
+// the surface this small is what lets the two representations stay private to this file.
+
+HashFieldTtl** hash_ttl_slot(KvObj* object) {
+    if (static_cast<Enc>(object->enc) == Enc::Compact) return nullptr;   // embedded: no HashVal
+    return &static_cast<HashVal*>(object->external_ptr())->ttls;
+}
+
+void hash_ttl_note_bytes(KvObj* object) {
+    if (static_cast<Enc>(object->enc) == Enc::Compact) return;
+    HashVal* value = static_cast<HashVal*>(object->external_ptr());
+    value->ttl_bytes = value->ttls ? value->ttls->allocation_bytes() : 0;
+}
+
+bool hash_ttl_field_exists(const KvObj* object, Slice field) {
+    Slice ignored;
+    return hash_get(as_hash(const_cast<KvObj*>(object)), field, ignored);
+}
+
+bool hash_ttl_field_erase(KvObj* object, Slice field) {
+    CollectionRef hash = as_hash(object);
+    return hash_erase(hash, field);
+}
+
+uint32_t hash_ttl_field_count(const KvObj* object) {
+    return as_hash(const_cast<KvObj*>(object)).entries();
+}
+
+bool hash_ttl_externalize(Shard& shard, Op& op, KvObj*& object, bool notify) {
+    return notify ? externalize_hash<true>(shard, op, object)
+                  : externalize_hash<false>(shard, op, object);
+}
 
 SnapshotTypeHooks hash_snapshot_hooks() {
     return {hash_snapshot_begin, hash_snapshot_read, hash_snapshot_load};

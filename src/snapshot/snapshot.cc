@@ -892,6 +892,7 @@ bool snapshot_load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& sh
             error = "could not insert loaded key";
             return false;
         }
+        shard.store().note_loaded_object(hash, object);
     }
     shard.publish_size();
     return true;

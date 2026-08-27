@@ -94,7 +94,7 @@ enum class NotifyEventId : uint8_t {
     Setrange, Append, Incrby, Incrbyfloat, Setbit, Pfadd,
     Lpush, Rpush, Lpop, Rpop, Linsert, Lset, Lrem, Ltrim, Sortstore,
     Sadd, Srem, Spop, Sinterstore, Sunionstore, Sdiffstore,
-    Hset, Hincrby, Hincrbyfloat, Hdel,
+    Hset, Hincrby, Hincrbyfloat, Hdel, Hexpire, Hpersist, Hexpired,
     Zadd, Zincr, Zrem, Zremrangebyrank, Zremrangebyscore, Zremrangebylex,
     Zpopmin, Zpopmax, Zrangestore, Zunionstore, Zinterstore, Zdiffstore,
     Geosearchstore, Georadiusstore,

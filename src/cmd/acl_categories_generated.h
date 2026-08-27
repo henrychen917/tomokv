@@ -106,6 +106,9 @@ inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"HDEL", 0x0000000000004044ULL}, // write hash fast
     {"HELLO", 0x0000000000044000ULL}, // fast connection
     {"HEXISTS", 0x0000000000004042ULL}, // read hash fast
+    {"HEXPIRE", 0x0000000000004044ULL}, // write hash fast
+    {"HEXPIREAT", 0x0000000000004044ULL}, // write hash fast
+    {"HEXPIRETIME", 0x0000000000004042ULL}, // read hash fast
     {"HGET", 0x0000000000004042ULL}, // read hash fast
     {"HGETALL", 0x0000000000008042ULL}, // read hash slow
     {"HINCRBY", 0x0000000000004044ULL}, // write hash fast
@@ -114,11 +117,17 @@ inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"HLEN", 0x0000000000004042ULL}, // read hash fast
     {"HMGET", 0x0000000000004042ULL}, // read hash fast
     {"HMSET", 0x0000000000004044ULL}, // write hash fast
+    {"HPERSIST", 0x0000000000004044ULL}, // write hash fast
+    {"HPEXPIRE", 0x0000000000004044ULL}, // write hash fast
+    {"HPEXPIREAT", 0x0000000000004044ULL}, // write hash fast
+    {"HPEXPIRETIME", 0x0000000000004042ULL}, // read hash fast
+    {"HPTTL", 0x0000000000004042ULL}, // read hash fast
     {"HRANDFIELD", 0x0000000000008042ULL}, // read hash slow
     {"HSCAN", 0x0000000000008042ULL}, // read hash slow
     {"HSET", 0x0000000000004044ULL}, // write hash fast
     {"HSETNX", 0x0000000000004044ULL}, // write hash fast
     {"HSTRLEN", 0x0000000000004042ULL}, // read hash fast
+    {"HTTL", 0x0000000000004042ULL}, // read hash fast
     {"HVALS", 0x0000000000008042ULL}, // read hash slow
     {"INCR", 0x0000000000004084ULL}, // write string fast
     {"INCRBY", 0x0000000000004084ULL}, // write string fast

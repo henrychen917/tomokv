@@ -277,6 +277,7 @@ public:
             if (!entry.original) continue;
             if (shard.store().insert(entry.hash, entry.original) != FlatStore::InsertResult::Inserted)
                 return false;
+            shard.store().note_loaded_object(entry.hash, entry.original);
             entry.original = nullptr;
         }
         return true;

@@ -63,6 +63,9 @@ const char* notify_event_name(NotifyEventId event) {
         case NotifyEventId::Hincrby: return "hincrby";
         case NotifyEventId::Hincrbyfloat: return "hincrbyfloat";
         case NotifyEventId::Hdel: return "hdel";
+        case NotifyEventId::Hexpire: return "hexpire";
+        case NotifyEventId::Hpersist: return "hpersist";
+        case NotifyEventId::Hexpired: return "hexpired";
         case NotifyEventId::Zadd: return "zadd";
         case NotifyEventId::Zincr: return "zincr";
         case NotifyEventId::Zrem: return "zrem";
@@ -138,8 +141,11 @@ uint32_t notify_event_priority(NotifyEventId event) {
         case NotifyEventId::RenameTo:
         case NotifyEventId::CopyTo:
         case NotifyEventId::Restore: return 4;
+        case NotifyEventId::Hexpired: return 3;   // strictly before the del it may trigger
         case NotifyEventId::Expire:
-        case NotifyEventId::Persist: return 6;
+        case NotifyEventId::Persist:
+        case NotifyEventId::Hexpire:
+        case NotifyEventId::Hpersist: return 6;
         case NotifyEventId::Del: return 8;
         case NotifyEventId::Expired:
         case NotifyEventId::Evicted:
@@ -404,7 +410,11 @@ bool notify_flat_enabled(void* context, uint32_t cls) {
 
 void notify_flat_emit(void* context, uint32_t cls, NotifyEventId event, Slice key) {
     auto& shard = *static_cast<Shard*>(context);
-    if (event == NotifyEventId::Expired || event == NotifyEventId::Evicted) {
+    // Hexpired/Del raised by the active field-expire cycle have no originating command either, so
+    // they take the same keyless route as key expiry rather than being dropped for want of a source.
+    if (event == NotifyEventId::Expired || event == NotifyEventId::Evicted ||
+        event == NotifyEventId::Hexpired ||
+        (event == NotifyEventId::Del && !shard.notify_source())) {
         notify_record_keyless(shard, cls, event, key);
         return;
     }

@@ -469,15 +469,30 @@ python3 tests/tls.py 127.0.0.1 "$TLS_PORT" "$TLS_DIR" yes --plain-port "$PORT" \
 stop
 grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
     && ok "TLS yes shutdown invariants" || bad "TLS yes shutdown invariants"
-# Default boot runs tls-ktls yes: the kernel-TLS arm must actually engage on this kernel.
-grep -qE "ktls_active=[1-9]" "$SRVLOG" \
-    && ok "kTLS engaged on default boot" || bad "kTLS engaged on default boot"
+# (tls_ktls_active is a GAUGE — 0 at clean shutdown by design — so kTLS engagement is asserted
+# live below, on the optional-mode boot, not from this shutdown dump.)
 
 tlsboot optional || bad "TLS client-auth optional purpose boot"
 python3 tests/tls.py 127.0.0.1 "$TLS_PORT" "$TLS_DIR" optional --plain-port "$PORT" \
     >/tmp/gate-tls-optional.txt 2>&1 \
     && ok "TLS client-auth optional matrix" \
     || bad "TLS client-auth optional matrix" "see /tmp/gate-tls-optional.txt"
+# Live kTLS engagement proof on the default (tls-ktls yes) boot: a plain TLS client connects and
+# must see itself counted in the active gauge. Client-auth 'optional' permits a cert-less client.
+python3 - "$TLS_PORT" "$TLS_DIR" <<'PYEOF' >/tmp/gate-ktls-live.txt 2>&1 \
+    && ok "kTLS engaged live (default boot)" || bad "kTLS engaged live" "see /tmp/gate-ktls-live.txt"
+import socket, ssl, sys, time
+port, certdir = int(sys.argv[1]), sys.argv[2]
+ctx = ssl.create_default_context(cafile=f"{certdir}/ca.crt")
+ctx.check_hostname = False
+s = ctx.wrap_socket(socket.create_connection(("127.0.0.1", port), timeout=5))
+s.sendall(b"INFO STATS\r\n"); time.sleep(0.4)
+d = s.recv(1 << 20).decode(errors="replace")
+line = [l for l in d.split("\r\n") if l.startswith("tls_ktls_active:")]
+assert line, "no tls_ktls_active in INFO STATS: " + d[:200]
+assert int(line[0].split(":")[1]) >= 1, "kTLS did not engage: " + line[0]
+print("KTLS_LIVE_OK", line[0])
+PYEOF
 stop
 grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
     && ok "TLS optional shutdown invariants" || bad "TLS optional shutdown invariants"

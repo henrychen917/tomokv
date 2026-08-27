@@ -17,6 +17,7 @@ EXPECTED_CATEGORIES = [
 COMMAND_SOURCES = [
     "src/cmd/t_string.cc",
     "src/cmd/t_hash.cc",
+    "src/cmd/t_hash_ttl.cc",
     "src/cmd/t_list.cc",
     "src/cmd/t_set.cc",
     "src/cmd/t_zset.cc",

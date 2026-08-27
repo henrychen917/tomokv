@@ -2478,6 +2478,7 @@ bool aof_load_shard(const AofReplayPlan& plan, Server& server, Shard& shard,
             error = "could not insert AOF value";
             return false;
         }
+        shard.store().note_loaded_object(hash, object);
     }
     shard.publish_size();
     return true;

@@ -116,6 +116,7 @@ struct CommandTable {
 // Every family owns its table; the registry calls every type table plus the server/admin table.
 CommandTable string_command_table();
 CommandTable hash_command_table();
+CommandTable hash_ttl_command_table();
 CommandTable list_command_table();
 CommandTable set_command_table();
 CommandTable zset_command_table();

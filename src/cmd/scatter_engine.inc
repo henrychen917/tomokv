@@ -238,7 +238,10 @@ WorkError apply_image(Shard& shard, Slice key, uint64_t hash, const ObjectImage&
     if (loaded == SnapshotHookStatus::Oom) return WorkError::Oom;
     if (loaded != SnapshotHookStatus::Ok || !object) return WorkError::Corrupt;
     const FlatStore::InsertResult result = shard.store_insert<kNotify>(hash, object);
-    if (result == FlatStore::InsertResult::Inserted) return WorkError::None;
+    if (result == FlatStore::InsertResult::Inserted) {
+        shard.store().note_loaded_object(hash, object);
+        return WorkError::None;
+    }
     kvobj_free(object);
     return result == FlatStore::InsertResult::MaxmemoryOom ? WorkError::Maxmemory
                                                            : WorkError::InsertFailed;

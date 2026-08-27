@@ -1130,6 +1130,7 @@ void cmd_info(Shard&, Op& op) {
              atomic_entries = 0, atomic_pending_entries = 0,
              atomic_cleanup_fast = 0, atomic_cleanup_slow = 0,
              atomic_localfast = 0, blocking_waiters = 0;
+    uint64_t hash_field_expires = 0, expired_hash_fields = 0;
     uint64_t plain_accepts = 0, tls_accepts = 0, tls_handshakes_started = 0,
              tls_handshakes_completed = 0, tls_handshakes_failed = 0,
              tls_connections_freed = 0, tls_want_read = 0, tls_want_write = 0,
@@ -1140,6 +1141,8 @@ void cmd_info(Shard&, Op& op) {
         for (uint32_t i = 0; i < g_server->nshards(); i++) {
             const Shard& sh = g_server->shard(static_cast<int32_t>(i));
             keys += sh.published_size(); expires += sh.published_expires();
+            hash_field_expires += sh.store().field_expire_count();
+            expired_hash_fields += sh.store().field_expired();
             obj_bytes += sh.published_obj_bytes();
             hits += sh.stats().hits; misses += sh.stats().misses; expired += sh.stats().expired;
             evicted += sh.published_evicted();
@@ -1265,6 +1268,7 @@ void cmd_info(Shard&, Op& op) {
         appendf(body, "# Stats\r\ntotal_connections_received:%llu\r\nrejected_connections:%llu\r\n"
                       "total_commands_processed:%llu\r\nkeyspace_hits:%llu\r\nkeyspace_misses:%llu\r\n"
                       "expired_keys:%llu\r\nevicted_keys:%llu\r\ninstantaneous_ops_per_sec:0\r\n"
+                      "expired_hash_fields:%llu\r\nhash_field_expires:%llu\r\n"
                       "total_net_input_bytes:0\r\ntotal_net_output_bytes:0\r\n"
                       "auth_failures:%llu\r\n"
                       "acl_access_denied_auth:%llu\r\nacl_access_denied_cmd:%llu\r\n"
@@ -1306,6 +1310,8 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(total_ops), static_cast<unsigned long long>(hits),
                 static_cast<unsigned long long>(misses), static_cast<unsigned long long>(expired),
                 static_cast<unsigned long long>(evicted),
+                static_cast<unsigned long long>(expired_hash_fields),
+                static_cast<unsigned long long>(hash_field_expires),
                 static_cast<unsigned long long>(g_server ? g_server->auth_failures() : 0),
                 static_cast<unsigned long long>(acl_denied_auth),
                 static_cast<unsigned long long>(acl_denied_cmd),
