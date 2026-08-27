@@ -5,8 +5,8 @@
 #                         matrix, smoke, torture, RYOW, atomic torn/mixed-write/window gates,
 #                         shutdown invariants, counter-fired assertions, idle-CPU ceiling. Runs on
 #                         any machine.
-#   tests/gate.sh full    quick + torture-under-ASAN + NIC regression cells vs tests/gate_refs.txt
-#                         (needs the 25GbE netns rig and the scratchpad niclib).
+#   tests/gate.sh full    quick + torture-under-ASAN + the Redis 7.4 differential matrix + NIC
+#                         regression cells (the NIC cells need the 25GbE rig and scratchpad niclib).
 #
 # The vacuous-validation rule is load-bearing here: every section proves its mechanism FIRED
 # (counters, accepts, direct>0), not merely that nothing crashed. A gate that can pass while
@@ -571,6 +571,17 @@ zcboot $ASAN || bad "zc ASAN boot"
 python3 tests/zc.py 127.0.0.1 $PORT >/tmp/gate-zc-asan.txt 2>&1     && ok "zc borrow battery under ASAN" || bad "zc borrow battery under ASAN"
 stop
 grep -q "ERROR: AddressSanitizer" "$SRVLOG" && bad "zc ASAN clean" || ok "zc ASAN clean"
+
+# ---- 4c. full tier: byte-exact differential matrix against pinned vanilla Redis 7.4 ----------
+# The helper discovers the ordinary suites from differ.py's gens registry, adds the two special
+# early-exit suites, and runs serially because this gate owns only one target/oracle port pair.
+DIFFER_ORACLE_PORT=${GATE_DIFFER_ORACLE_PORT:-$((PORT+1))}
+if GATE_DIFFER_ORACLE_CORES=${GATE_DIFFER_ORACLE_CORES:-$CORES} \
+    tests/differ_gate.sh ./build/tomokv "$PORT" "$DIFFER_ORACLE_PORT" "$CORES" "$GATE_RATIO"; then
+  ok "Redis 7.4 differential matrix"
+else
+  bad "Redis 7.4 differential matrix"
+fi
 
 # ---- 5. full tier: NIC regression cells vs pinned refs ----------------------------------------
 SPD=${GATE_SCRATCH:-/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad}
