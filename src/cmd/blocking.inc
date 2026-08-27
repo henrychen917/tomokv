@@ -346,9 +346,11 @@ void blocking_count_parked(BlockingState& state) {
         state.server->blocking_client_parked();
 }
 
-void blocking_reply_timeout(Op& op, BlockingKind kind) {
-    if (blocking_is_move(kind)) reply_null(op.sink(), op.resp3());
-    else reply_null_array(op.sink(), op.resp3());
+void blocking_reply_timeout(Op& op, BlockingKind) {
+    // Every blocking timeout is a null ARRAY on redis -- addReplyNullArray -- including the two
+    // move forms whose success reply is a bulk string. In RESP2 that is "*-1", not "$-1"; RESP3
+    // renders both as "_" so the divergence was invisible there.
+    reply_null_array(op.sink(), op.resp3());
 }
 
 void blocking_finish_cancelled(BlockingState& state, ThreadCtx* self, Ring* ring) {

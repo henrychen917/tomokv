@@ -818,7 +818,9 @@ bool verify_dump_payload(Op& op, Slice envelope, Slice& encoded) {
 template <bool kNotify>
 void cmd_dump_impl(Shard& shard, Op& op) {
     KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
-    if (!object) { reply_nil(op.sink()); return; }
+    // Protocol-selected null: reply_nil is the RESP2-only spelling and left DUMP answering "$-1"
+    // on a RESP3 connection where every other miss answers "_".
+    if (!object) { reply_null(op.sink(), op.resp3()); return; }
     if (static_cast<Type>(object->type) == Type::Stream) {
         reply_err(op.sink(), "ERR object could not be serialized");
         return;

@@ -1659,7 +1659,11 @@ bool parse_range_options(Op& op, RangeOptions& options) {
         }
     }
     if (options.kind == RangeKind::Auto) options.kind = RangeKind::Rank;
-    if (options.limit_seen && options.kind == RangeKind::Rank) {
+    // Redis rejects LIMIT on an index range only when the COUNT actually bounds the answer: its
+    // guard tests the parsed count against the -1 default and ignores the offset entirely, so
+    // "ZRANGE k 0 -1 LIMIT 0 -1" (and any offset with count -1) is accepted and the LIMIT is a
+    // no-op. Client libraries that always emit LIMIT depend on that.
+    if (options.limit_seen && options.limit != -1 && options.kind == RangeKind::Rank) {
         reply_err(op.sink(),
                   "ERR syntax error, LIMIT is only supported in combination with either BYSCORE or BYLEX");
         return false;
