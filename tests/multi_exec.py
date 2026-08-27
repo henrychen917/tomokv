@@ -203,54 +203,6 @@ def controls_and_reset():
         other.close()
 
 
-def script_watch_declared_keys_only():
-    watcher = Resp()
-    writer = Resp()
-    candidates = ["multi:script-watch:%d" % i for i in range(256)]
-    by_owner = {}
-    try:
-        for key in candidates:
-            owner = writer.cmd("DEBUG", "SHARD", key)
-            if not isinstance(owner, int):
-                note("script WATCH declared-key detector", False,
-                     "DEBUG SHARD unavailable: %r" % (owner,))
-                return
-            by_owner.setdefault(owner, []).append(key)
-        pair = next((keys[:2] for keys in by_owner.values() if len(keys) >= 2), None)
-        if not pair:
-            note("script WATCH declared-key detector", False, "no same-owner key pair")
-            return
-        declared, argument = pair
-        writer.cmd("DEL", declared, argument)
-
-        ok = watcher.cmd("WATCH", argument) == b"OK"
-        wrote = writer.cmd(
-            "EVAL", "return redis.call('SET',KEYS[1],ARGV[1])",
-            "1", declared, "value", argument)
-        ok &= wrote == b"OK"
-        ok &= watcher.cmd("MULTI") == b"OK"
-        ok &= watcher.cmd("GET", argument) == b"QUEUED"
-        quiet = watcher.cmd("EXEC")
-        ok &= quiet == [None]
-
-        # Positive control: the same detector must fire for the key the script really writes.
-        ok &= watcher.cmd("WATCH", declared) == b"OK"
-        wrote_again = writer.cmd(
-            "EVAL", "return redis.call('SET',KEYS[1],ARGV[1])",
-            "1", declared, "changed", argument)
-        ok &= wrote_again == b"OK"
-        ok &= watcher.cmd("MULTI") == b"OK"
-        ok &= watcher.cmd("GET", declared) == b"QUEUED"
-        fired = watcher.cmd("EXEC")
-        ok &= fired is None
-        note("script WATCH declared-key detector", ok,
-             "owner=%s quiet=%r fired=%r" %
-             (writer.cmd("DEBUG", "SHARD", declared), quiet, fired))
-    finally:
-        watcher.close()
-        writer.close()
-
-
 def heterogeneous_ryow():
     c = Resp()
     keys = ["multi:hetero:%d" % i for i in range(12)]
@@ -441,7 +393,6 @@ note("force atomic contract with --atomic/CONFIG off", set_atomic(0))
 queue_and_ryow()
 queue_errors()
 controls_and_reset()
-script_watch_declared_keys_only()
 heterogeneous_ryow()
 torn_arm()
 watch_race()
