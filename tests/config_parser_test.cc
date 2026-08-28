@@ -105,6 +105,21 @@ int main() {
         !rejects({"--persist-io", "hybrid"}))
         fail("persist-io boot grammar differs");
 
+    // --net-io mirrors --persist-io exactly: named enum, case insensitive, boot-only, and a
+    // NEGATIVE CONTROL so "it parsed" cannot pass for a parser that accepts anything.
+    tomo::Config network;
+    tomo::ConfigParseState network_state;
+    const std::vector<const char*> network_args = {"--net-io", "EpOlL"};
+    if (tomo::parse_config_args(network_args, network, network_state, 2, "test") !=
+            tomo::kConfigParsed ||
+        network.net_io != tomo::NetIoEngine::Epoll ||
+        !rejects({"--net-io", "kqueue"}) ||
+        !rejects({"--net-io", ""}))
+        fail("net-io boot grammar differs");
+    tomo::Config network_default;
+    if (network_default.net_io != tomo::NetIoEngine::Uring)
+        fail("net-io default is not uring");
+
     tomo::Config xscript;
     tomo::ConfigParseState xscript_state;
     const std::vector<const char*> xscript_args = {

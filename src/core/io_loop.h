@@ -356,6 +356,15 @@ private:
             }
             self_->clear_blocked();
         }
+        // A close requested by the last pass's read/send path has no later flush_ready to drain it,
+        // and an undrained entry would show up as a live connection in the shutdown accounting.
+        if constexpr (kEp) {
+            while (!epoll_closes_.empty()) {
+                Client* victim = epoll_closes_.back();
+                epoll_closes_.pop_back();
+                epoll_close_now(victim);
+            }
+        }
         if (srv_->aof().writer_is(self_->id()))
             srv_->aof().writer_shutdown(*self_, ring_);
         // The normal loop deliberately keeps a dead Client for two prologues so stale channel
@@ -549,8 +558,19 @@ private:
                 case UrKind::Wake:
                     // The doorbell. Draining it here rather than at the park keeps the level-
                     // triggered registration from re-reporting the same wake every pass.
+                    //
+                    // work++ IS LOAD-BEARING, and it is not accounting. The bell and its payload
+                    // are separate: a peer pushes its tag into the mailbox and THEN writes the
+                    // eventfd, and the mailbox is drained by ring_.for_each_cqe() one step earlier
+                    // in this pass. A peer that lands in the window between those two steps leaves
+                    // us holding a rung bell with its payload still queued -- and if this pass then
+                    // reported no work, the loop would park and the payload would wait out the
+                    // whole 50 ms ceiling. Counting the bell as work sends the loop round again,
+                    // where for_each_cqe picks the tag up immediately. Exactly the shape of the
+                    // ~3.9 ms-per-operation reading DEFER_TASKRUN once produced on the other engine.
                     ring_.drain_wake_fd();
                     self_->sig().wakes_recv++;
+                    work++;
                     break;
                 case UrKind::Recv: {
                     Client* c = ur_ptr<Client>(ev.data.u64);
@@ -561,6 +581,20 @@ private:
                     if (ev.events & (EPOLLIN | EPOLLERR | EPOLLHUP | EPOLLRDHUP))
                         c->set_recv_armed(false);
                     if (ev.events & (EPOLLOUT | EPOLLERR | EPOLLHUP)) enqueue_serve(c);
+                    // A TLS connection parked on WANT_READ/WANT_WRITE recorded that want on its
+                    // TlsConn (arm_tls_socket_poll has nothing to submit under this engine, since
+                    // both directions are already armed). This edge is the answer to whichever want
+                    // is outstanding, so retire BOTH and let drive_tls re-record what it still
+                    // needs -- the same converge-by-retry the poll CQE gives the uring engine. A
+                    // want left recorded would make arm_tls_socket_poll a no-op forever and park
+                    // the handshake.
+                    if constexpr (HasTls) {
+                        if (TlsConn* tls = tls_slot_conn(c)) {
+                            tls->set_poll_armed(TlsOp::WantRead, false);
+                            tls->set_poll_armed(TlsOp::WantWrite, false);
+                            c->set_recv_armed(false);
+                        }
+                    }
                     mark_active(c);
                     work++;
                     break;
@@ -1652,6 +1686,16 @@ nonblocking_dispatch:
         epoll_closes_.push_back(c);
     }
 
+    // Tear down NOW, then discard any send failure the teardown itself produced. That second half
+    // is load-bearing: close_client flushes a TLS alert / close_notify through the same engine, and
+    // a failure latched there would be picked up by the NEXT connection's take_send_failure() and
+    // close a perfectly healthy client. The latch is a one-slot channel, so every close must leave
+    // it empty.
+    void epoll_close_now(Client* c, bool drain_tls_output = false) {
+        close_client(c, drain_tls_output);
+        (void)wb_.take_send_failure();
+    }
+
     void mark_active(Client* c) {
         if (c->dead()) return;               // a corpse from the deferred-free list: entry consumed, nothing to do
         if (c->in_active()) return;          // one load, not a scan of the whole set
@@ -1895,7 +1939,7 @@ nonblocking_dispatch:
             while (!epoll_closes_.empty()) {
                 Client* victim = epoll_closes_.back();
                 epoll_closes_.pop_back();
-                close_client(victim);
+                epoll_close_now(victim);
             }
         }
 
@@ -1936,7 +1980,7 @@ nonblocking_dispatch:
             if (__builtin_expect((climon_armed_cached_ & Server::kClimonReply) != 0, false) &&
                 climon_reply_suppressed(c)) {
                 work += climon_serve_suppressed(c);
-                if constexpr (kEp) if (wb_.take_send_failure()) close_client(c);
+                if constexpr (kEp) if (wb_.take_send_failure()) epoll_close_now(c);
                 continue;
             }
             if constexpr (HasTls) {
@@ -1956,7 +2000,7 @@ nonblocking_dispatch:
             // A synchronous send has no CQE to report a fatal errno through, so the engine latches
             // it and the decision to tear the connection down is taken here instead. Consuming it
             // per served connection is deliberate: a bit left set would close the NEXT one.
-            if constexpr (kEp) if (wb_.take_send_failure()) close_client(c);
+            if constexpr (kEp) if (wb_.take_send_failure()) epoll_close_now(c);
         }
         work += served;
         return work;

@@ -372,6 +372,10 @@ void init_config(const Config& cfg) {
     g_config.push_back({"appendfsync", ConfigKind::Enum, appendfsync});
     g_config.push_back({"persist-io", ConfigKind::Enum,
                         cfg.persist_io == PersistIoEngine::Normal ? "normal" : "uring", true});
+    // Boot-only, like persist-io: reported so an operator can confirm which engine a running
+    // server actually chose, and refused by CONFIG SET rather than silently accepted.
+    g_config.push_back({"net-io", ConfigKind::Enum,
+                        cfg.net_io == NetIoEngine::Epoll ? "epoll" : "uring", true});
     g_config.push_back({"appendfilename", ConfigKind::String, cfg.appendfilename, true});
     g_config.push_back({"appenddirname", ConfigKind::String, cfg.appenddirname, true});
     add_config("auto-aof-rewrite-percentage", ConfigKind::Unsigned,
@@ -1443,6 +1447,10 @@ void cmd_info(Shard&, Op& op) {
              tls_ciphertext_input = 0, tls_plaintext_input = 0,
              tls_ciphertext_output = 0, tls_plaintext_output = 0,
              tls_zc_suppressed = 0, tls_ktls_active = 0, tls_ktls_fallback = 0;
+    // --net-io epoll only. Both stay zero on the io_uring engine, which is what makes them usable
+    // as a live FIRED-MECHANISM proof: a test that claims to be running on epoll and sees
+    // net_io_epoll_events at 0 is not running on epoll, and its other assertions prove nothing.
+    uint64_t epoll_events = 0, epoll_recvs = 0;
     if (g_server) {
         for (uint32_t i = 0; i < g_server->nshards(); i++) {
             const Shard& sh = g_server->shard(static_cast<int32_t>(i));
@@ -1491,6 +1499,8 @@ void cmd_info(Shard&, Op& op) {
             tls_zc_suppressed += sig.tls_zc_suppressed;
             tls_ktls_active += sig.tls_ktls_active;
             tls_ktls_fallback += sig.tls_ktls_fallback;
+            epoll_events += sig.epoll_events;
+            epoll_recvs += sig.epoll_recvs;
         }
         // Redis counts BOTH accept-time reject classes in rejected_connections: maxclients
         // (networking.c:1355) and protected-mode denials (networking.c:1306).
@@ -1665,7 +1675,8 @@ void cmd_info(Shard&, Op& op) {
                       "tracking_total_keys:%llu\r\ntracking_total_items:%llu\r\n"
                       "tracking_total_prefixes:%llu\r\ntracking_invalidations:%llu\r\n"
                       "slowlog_batches_timed:%llu\r\nslowlog_escalations:%llu\r\n"
-                      "slowlog_entries_recorded:%llu\r\nlatency_events_recorded:%llu\r\n",
+                      "slowlog_entries_recorded:%llu\r\nlatency_events_recorded:%llu\r\n"
+                      "net_io_epoll_events:%llu\r\nnet_io_epoll_recvs:%llu\r\n",
                 static_cast<unsigned long long>(connections), static_cast<unsigned long long>(rejected),
                 static_cast<unsigned long long>(total_ops), static_cast<unsigned long long>(hits),
                 static_cast<unsigned long long>(misses), static_cast<unsigned long long>(expired),
@@ -1784,7 +1795,9 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(slowlog_batches_timed()),
                 static_cast<unsigned long long>(slowlog_escalations()),
                 static_cast<unsigned long long>(slowlog_entries_recorded()),
-                static_cast<unsigned long long>(latency_events_recorded()));
+                static_cast<unsigned long long>(latency_events_recorded()),
+                static_cast<unsigned long long>(epoll_events),
+                static_cast<unsigned long long>(epoll_recvs));
     }
     if (info_section(op, "COMMANDSTATS")) {
         body += "# Commandstats\r\n";
