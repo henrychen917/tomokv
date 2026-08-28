@@ -1721,6 +1721,7 @@ void assemble_final(Client& client, Op& op, ScatterState& state, void* release_c
         case Kind::AllShards:
         case Kind::DebugReload:
         case Kind::DebugLoadAof: reply_ok(op.sink()); break;
+        case Kind::DebugBorrowCount:
         case Kind::DbsizeExact:
             reply_int(op.sink(), static_cast<long long>(state.exact_sum.load(std::memory_order_relaxed)));
             break;

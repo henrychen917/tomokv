@@ -9,7 +9,7 @@
 namespace tomo {
 namespace {
 enum class Kind : uint8_t {
-    AllShards, DebugReload, DebugLoadAof, DbsizeExact, Mget, Mset, Del, Unlink, Exists, Touch, Keys, Pfcount, Xread, Xreadgroup, Lcs, Msetnx,
+    AllShards, DebugReload, DebugLoadAof, DebugBorrowCount, DbsizeExact, Mget, Mset, Del, Unlink, Exists, Touch, Keys, Pfcount, Xread, Xreadgroup, Lcs, Msetnx,
     Rename, Renamenx, Copy, Smove, Lmove, Rpoplpush,
     Sinter, Sunion, Sdiff, Sintercard, Sinterstore, Sunionstore, Sdiffstore,
     Zunion, Zinter, Zdiff, Zintercard, Zunionstore, Zinterstore, Zdiffstore,
@@ -593,7 +593,7 @@ uint32_t key_count_for(Kind kind, const Op& op, uint32_t sinter_count,
                        uint32_t mpop_count, bool sort_store, uint32_t xread_count = 0,
                        uint32_t zset_count = 0, bool geo_store = false) {
     if (kind == Kind::AllShards || kind == Kind::DebugReload || kind == Kind::DebugLoadAof ||
-        kind == Kind::DbsizeExact || kind == Kind::Keys) return 0;
+        kind == Kind::DebugBorrowCount || kind == Kind::DbsizeExact || kind == Kind::Keys) return 0;
     if (kind == Kind::Mset || kind == Kind::Msetnx) return (op.argc() - 1) / 2;
     if (kind == Kind::Bitop) return op.argc() - 2;
     if (kind == Kind::Rename || kind == Kind::Renamenx || kind == Kind::Copy ||
@@ -976,6 +976,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     Kind kind;
     if (all_shards)
         kind = op.cmd_name().eq_icase("dbsize") ? Kind::DbsizeExact :
+               op.cmd_name().eq_icase("debug") && op.arg(1).eq_icase("borrowcount")
+                   ? Kind::DebugBorrowCount :
                op.cmd_name().eq_icase("debug") && op.arg(1).eq_icase("loadaof")
                    ? Kind::DebugLoadAof :
                op.cmd_name().eq_icase("debug") ? Kind::DebugReload : Kind::AllShards;
@@ -1009,7 +1011,12 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     std::unique_ptr<SnapshotLoadPlan> aof_reload_base;
     std::vector<std::unique_ptr<AofReplayPlan>> aof_reload_increments;
     if (all_shards) {
-        if (kind == Kind::DebugReload) {
+        if (kind == Kind::DebugBorrowCount) {
+            if (!debug_command_allowed(server, origin_client)) {
+                reply_debug_command_denied(op);
+                return ScatterPrepare::Error;
+            }
+        } else if (kind == Kind::DebugReload) {
             if (!debug_command_allowed(server, origin_client)) {
                 reply_debug_command_denied(op);
                 return ScatterPrepare::Error;
@@ -1273,7 +1280,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                              (kind == Kind::Sort && sort_options.store)) ? 1u : 0u;
     uint32_t group_cap = 0;
     if (kind == Kind::AllShards || kind == Kind::DebugReload || kind == Kind::DebugLoadAof ||
-        kind == Kind::DbsizeExact || kind == Kind::Keys) {
+        kind == Kind::DebugBorrowCount || kind == Kind::DbsizeExact || kind == Kind::Keys) {
         group_cap = server.nshards();
     } else if (atomic_write) {
         bool seen[256] = {};
@@ -1471,7 +1478,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     }
 
     if (kind == Kind::AllShards || kind == Kind::DebugReload || kind == Kind::DebugLoadAof ||
-        kind == Kind::DbsizeExact || kind == Kind::Keys) {
+        kind == Kind::DebugBorrowCount || kind == Kind::DbsizeExact || kind == Kind::Keys) {
         state->nsub = server.nshards();
         for (uint32_t sid = 0; sid < state->nsub; sid++) {
             state->groups[sid].shard = sid;
@@ -1584,7 +1591,7 @@ void xshard_aof_emit(const Task& task, Shard& shard, Op& op, AofOwnerContext& co
         return;
     }
     if (state.kind == Kind::DebugReload || state.kind == Kind::DebugLoadAof ||
-        state.kind == Kind::DbsizeExact ||
+        state.kind == Kind::DebugBorrowCount || state.kind == Kind::DbsizeExact ||
         state.kind == Kind::Keys) return;
     ShardGroup* group = group_for(state, shard.id());
     if (!group) return;
@@ -2507,6 +2514,12 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 }
                 return ScatterTaskResult::Complete;
             }
+            case Kind::DebugBorrowCount:
+                // Cold, owner-thread inspection of the registry's existing exact reference count.
+                // No publication counter or ordinary borrow/reply-path work is needed.
+                state.exact_sum.fetch_add(
+                    shard.store().outstanding_borrows(), std::memory_order_relaxed);
+                return ScatterTaskResult::Complete;
             case Kind::DbsizeExact:
                 state.exact_sum.fetch_add(
                     shard.store().atomic_resolved_size(state.snapshot), std::memory_order_relaxed);
