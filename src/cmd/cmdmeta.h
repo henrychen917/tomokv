@@ -39,7 +39,6 @@ uint32_t command_metadata_size();
 const CommandMetadata* command_metadata_at(uint32_t index);
 
 Slice command_metadata_name(const CommandMetadata& metadata);
-int16_t command_metadata_arity(const CommandMetadata& metadata);
 int16_t command_metadata_first_key(const CommandMetadata& metadata);
 uint64_t command_metadata_categories(const CommandMetadata& metadata);
 bool command_metadata_is_subcommand(const CommandMetadata& metadata);

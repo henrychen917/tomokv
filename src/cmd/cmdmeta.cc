@@ -290,7 +290,6 @@ Slice command_metadata_name(const CommandMetadata& metadata) {
     return Slice(metadata.name, static_cast<uint32_t>(std::strlen(metadata.name)));
 }
 
-int16_t command_metadata_arity(const CommandMetadata& metadata) { return metadata.arity; }
 int16_t command_metadata_first_key(const CommandMetadata& metadata) {
     return metadata.first_key;
 }
