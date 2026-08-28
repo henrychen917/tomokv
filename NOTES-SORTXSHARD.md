@@ -203,3 +203,38 @@ argv rather than four entries.
 
 No server code changed. Per the lane prohibition, this conclusion and the harness edits were
 checked statically only: no build, server, test, or load script was run.
+
+## 2026-08-28: round-3 MULTI RYOW phase-publication repair
+
+The all-shard EXEC participation added for dereferencing SORT established the necessary local
+program order, but the implementation did not safely publish the dynamic gather phase. A
+barrier-only transaction fragment called `group_for()` against the live `ScatterState::groups`
+table. The last source fragment concurrently reset that table, rebuilt it with the derived-key
+groups, reset `pending`, and only then release-stored the new `MultiCommand::stage`.
+
+That left no happens-before edge around the membership lookup. A fragment could see a new group
+while it was only partly built and execute it as the old stage. Missing a derived request has exactly
+the observed replies: a missing BY is a NULL/zero weight (one element moves), and a missing GET is a
+null projection. Pre-existing values make the owner run promotion/resolution before the lookup,
+widening the race; this accounts for the absent-key control being much harder to trigger without
+changing the semantic diagnosis.
+
+The repair gives each child stage an immutable 256-shard membership mask:
+
+- Stage zero's mask is captured during EXEC preparation, before any owner task is posted.
+- On `PhaseAdvanced`, the last old-stage participant first finishes rebuilding `groups`, captures
+  the next mask, then release-stores the next stage number.
+- A transaction fragment acquire-loads the stage and consults only that stage's mask. A nonmember
+  waits without touching `groups`; a member may enter `xshard_execute`, where `group_for()` is now
+  protected by the stage publication and the child `pending` join.
+
+At the instant a gather fragment issues, its shard's transaction task has necessarily walked the
+earlier commands in its per-shard list. Thus an earlier MSET candidate for the concrete derived key
+is already installed, and `ReadEpochGuard(state.snapshot, state.origin_conn_id)` resolves the pinned
+cut plus the transaction's own private overlay. The pinned cut is unchanged. The same mask rule also
+closes the equivalent live-group race for generic two-hop children inside EXEC.
+
+Per the lane prohibition this repair was reviewed statically only. It was not built, and no server,
+test script, or load generator was run. Validation remains `tests/sort.py` at
+`--shards 16 --ratio 6:2` in both atomic modes, with cross-owner geometry proven by `DEBUG SHARD` and
+absence treated as a hard failure.

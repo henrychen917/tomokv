@@ -446,9 +446,12 @@ def phase_multi_ryow(c):
     REGRESSION PIN, and the battery's sharpest detector. EXEC does not serialise commands globally:
     each shard walks only the commands it PARTICIPATES in, so commands over disjoint shards proceed
     independently. A dereferencing SORT breaks that premise -- its participant set cannot name the
-    shards its patterns will read, because those are only known after the source has been read. Left
-    as an ordinary one-key Local child it ran before an earlier MSET had been applied on the weight
-    keys' shards and sorted by the PREVIOUS weights.
+    shards its patterns will read, because those are only known after the source has been read. It
+    therefore participates in every shard, and each gather fragment must remain behind that shard's
+    earlier MSET. The child also rebuilds its live group table between source and gather: a
+    barrier-only fragment must use the membership mask published with the child stage, never inspect
+    that table while the source owner is rebuilding it. Existing stale values exercise the tracked
+    promote/resolve path and make that publication race reliably visible as one missing BY/GET.
     """
     print("-- dereference inside MULTI/EXEC --")
     elements = [str(i) for i in range(10)]

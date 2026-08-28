@@ -359,7 +359,7 @@ void add_shard(std::vector<int32_t>& shards, int32_t shard) {
 }
 
 bool multi_xshard_stage_has_group(const MultiCommand& command, uint32_t stage, int32_t shard) {
-    if (stage >= MultiCommand::kXshardStages || shard < 0 || shard >= 256) return false;
+    if (stage >= MultiCommand::kXshardStages || shard < 0 || shard >= 256) std::abort();
     const uint32_t sid = static_cast<uint32_t>(shard);
     return command.xshard_stage_groups[stage][sid >> 6] & (1ull << (sid & 63));
 }
