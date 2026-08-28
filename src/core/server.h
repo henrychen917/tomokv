@@ -59,11 +59,6 @@ struct ClientLimitsConfigSnapshot {
     ClientBufferLimit pubsub{};
 };
 
-struct AuthConfigSnapshot {
-    bool required;
-    std::array<uint64_t, 4> password_hash;
-};
-
 class Server {
 public:
     static constexpr uint64_t kAtomicEnabledBit = uint64_t{1} << 63;
@@ -578,23 +573,8 @@ public:
     uint8_t security_flags() const { return security_flags_.load(std::memory_order_acquire); }
     bool requirepass_enabled() const { return (security_flags() & kSecurityAuth) != 0; }
     bool acl_active() const { return (security_flags() & kSecurityAcl) != 0; }
-    AuthConfigSnapshot auth_config_snapshot() const {
-        for (;;) {
-            const uint64_t version = live_config_version_.load(std::memory_order_acquire);
-            if (version & 1) continue;
-            AuthConfigSnapshot snapshot;
-            snapshot.required = (security_flags_.load(std::memory_order_relaxed) &
-                                 kSecurityAuth) != 0;
-            for (uint32_t i = 0; i < snapshot.password_hash.size(); i++)
-                snapshot.password_hash[i] = live_requirepass_hash_[i].load(
-                    std::memory_order_relaxed);
-            if (live_config_version_.load(std::memory_order_acquire) == version) return snapshot;
-        }
-    }
-    void set_auth_config(bool required, const std::array<uint64_t, 4>& password_hash) {
+    void set_auth_config(bool required) {
         const uint64_t write_version = begin_live_config_update();
-        for (uint32_t i = 0; i < password_hash.size(); i++)
-            live_requirepass_hash_[i].store(password_hash[i], std::memory_order_relaxed);
         uint8_t flags = security_flags_.load(std::memory_order_relaxed);
         flags = required ? static_cast<uint8_t>(flags | kSecurityAuth)
                          : static_cast<uint8_t>(flags & ~kSecurityAuth);
@@ -1643,7 +1623,6 @@ private:
     std::atomic<uint8_t> security_flags_{0};
     std::atomic<uint32_t> acl_kill_broadcasts_{0};
     std::atomic<bool> acl_active_desired_{false};
-    std::atomic<uint64_t> live_requirepass_hash_[4] = {};
     std::atomic<bool> protected_mode_{true};
     std::atomic<bool> active_expire_enabled_{true};
     std::atomic<uint64_t> auth_failures_{0};

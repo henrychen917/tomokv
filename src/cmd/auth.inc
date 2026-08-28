@@ -135,20 +135,8 @@ void auth_publish_requirepass(Server& server, Slice password) {
     }();
     if (!kSha256Verified) std::abort();
     const bool required = !password.empty();
-    server.set_auth_config(required, required ? sha256_password(password)
-                                              : std::array<uint64_t, 4>{});
+    server.set_auth_config(required);
     acl_update_default_requirepass(server, password);
-}
-
-bool auth_password_matches(const Server& server, Slice password, bool* auth_required) {
-    const AuthConfigSnapshot snapshot = server.auth_config_snapshot();
-    if (auth_required) *auth_required = snapshot.required;
-    if (!snapshot.required) return true;
-    const std::array<uint64_t, 4> candidate = sha256_password(password);
-    uint64_t difference = 0;
-    for (uint32_t i = 0; i < candidate.size(); i++)
-        difference |= candidate[i] ^ snapshot.password_hash[i];
-    return difference == 0;
 }
 
 }  // namespace tomo

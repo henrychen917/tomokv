@@ -484,12 +484,10 @@ void acl_refresh_security_locked() {
     if (!g_acl_server) return;
     AclUser* user = acl_slot(kAclDefaultUser);
     bool required = true;
-    std::array<uint64_t, 4> hash{};
     if (user) {
         required = !(user->flags & AclUserEnabled) || !(user->flags & AclUserNoPass);
-        if (!user->passwords.empty()) hash = user->passwords.front();
     }
-    g_acl_server->set_auth_config(required, hash);
+    g_acl_server->set_auth_config(required);
     g_acl_server->set_acl_active(g_acl_live_users > 1 ||
                                  !acl_default_permission_unrestricted_locked());
 }
