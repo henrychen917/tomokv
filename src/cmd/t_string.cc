@@ -58,7 +58,6 @@ bool eq_icase(Slice s, const char* lit) {
 }
 
 inline constexpr uint64_t kProtoMaxBulkLen = 512ull * 1024 * 1024;
-inline constexpr size_t kLongDoubleChars = 5 * 1024;
 
 bool parse_i64(Slice s, int64_t& out) {
     // Redis's string2ll accepts only the representation that formatting the resulting integer
@@ -93,22 +92,11 @@ bool parse_i64(Slice s, int64_t& out) {
     return true;
 }
 
+// INCRBYFLOAT reads and writes long doubles through redis's string2ld grammar, which lives with
+// the other float grammars in src/base/numeric.h. This is the one place a hexadecimal float was
+// already accepted before this lane; the score and coordinate parsers now agree with it.
 bool parse_long_double(Slice s, long double& out) {
-    if (s.n == 0 || s.n >= kLongDoubleChars) return false;
-    char text[kLongDoubleChars];
-    std::memcpy(text, s.p, s.n);
-    text[s.n] = '\0';
-
-    errno = 0;
-    char* end = nullptr;
-    const long double value = std::strtold(text, &end);
-    if (std::isspace(static_cast<unsigned char>(text[0])) || end != text + s.n ||
-        (errno == ERANGE && (std::isinf(value) || std::fpclassify(value) == FP_ZERO)) ||
-        errno == EINVAL || std::isnan(value)) {
-        return false;
-    }
-    out = value;
-    return true;
+    return parse_long_double_strict(s, out);
 }
 
 uint32_t format_long_double(char* text, size_t capacity, long double value) {

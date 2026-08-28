@@ -868,22 +868,9 @@ bool parse_cursor(Slice text, uint64_t& value) {
     return true;
 }
 
+// HINCRBYFLOAT shares INCRBYFLOAT's string2ld grammar; see src/base/numeric.h.
 bool parse_long_double(Slice text, long double& value) {
-    constexpr size_t kFloatBuffer = 5 * 1024;
-    if (text.n == 0 || text.n >= kFloatBuffer ||
-        std::isspace(static_cast<unsigned char>(text.p[0])))
-        return false;
-    char buffer[kFloatBuffer];
-    std::memcpy(buffer, text.p, text.n);
-    buffer[text.n] = '\0';
-    errno = 0;
-    char* end = nullptr;
-    const long double parsed = std::strtold(buffer, &end);
-    if (end != buffer + text.n || errno == EINVAL || std::isnan(parsed) ||
-        (errno == ERANGE && (std::isinf(parsed) || std::fpclassify(parsed) == FP_ZERO)))
-        return false;
-    value = parsed;
-    return true;
+    return parse_long_double_strict(text, value);
 }
 
 uint32_t format_long_double(char* buffer, size_t capacity, long double value) {

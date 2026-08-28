@@ -58,17 +58,10 @@ bool parse_i64(Slice s, int64_t& out) {
 
 void reply_invalid_integer(Op& op);
 
+// A WEIGHTS operand is a double VALUE, so it takes the getDoubleFromObject grammar: "0x10" is a
+// weight of 16 and "1e309" is an error. See src/base/numeric.h.
 bool parse_weight(Slice s, double& out) {
-    if (!s.n) return false;
-    Slice value = s;
-    if (value.p[0] == '+') {
-        value.p++;
-        value.n--;
-        if (!value.n) return false;
-    }
-    const char* end = value.p + value.n;
-    auto parsed = std::from_chars(value.p, end, out, std::chars_format::general);
-    return parsed.ec == std::errc{} && parsed.ptr == end && !std::isnan(out);
+    return parse_double_strict(s, out);
 }
 
 bool parse_zset_operation(Op& op, Kind kind, uint32_t& count,
@@ -394,32 +387,12 @@ int binary_compare(Slice a, Slice b) {
     return a.n < b.n ? -1 : 1;
 }
 
-bool parse_double_value(Slice input, double& out) {
-    if (!input.n) return false;
-    bool negative = false;
-    Slice word = input;
-    if (word.p[0] == '+' || word.p[0] == '-') {
-        negative = word.p[0] == '-';
-        word.p++;
-        word.n--;
-    }
-    if (word.eq_icase("inf") || word.eq_icase("infinity")) {
-        out = negative ? -std::numeric_limits<double>::infinity()
-                       : std::numeric_limits<double>::infinity();
-        return true;
-    }
-    const char* begin = input.p + (input.p[0] == '+');
-    const char* end = input.p + input.n;
-    if (begin == end) return false;
-    auto result = std::from_chars(begin, end, out, std::chars_format::general);
-    return result.ec == std::errc{} && result.ptr == end && !std::isnan(out);
-}
 
-
+// The cross-shard twin of parse_score_range in t_zset.cc: a BOUND, so the bare-strtod grammar.
 bool parse_image_score_range(Slice min, Slice max, ImageScoreRange& range) {
     if (min.n && min.p[0] == '(') { range.min_exclusive = true; min.p++; min.n--; }
     if (max.n && max.p[0] == '(') { range.max_exclusive = true; max.p++; max.n--; }
-    return parse_double_value(min, range.min) && parse_double_value(max, range.max);
+    return parse_double_lenient(min, range.min) && parse_double_lenient(max, range.max);
 }
 
 
@@ -641,9 +614,10 @@ bool select_zrange(const std::vector<ZImageItem>& input, const ImageRangeOptions
     return true;
 }
 
+// Numeric SORT is the bare strtod again, but with sortCommand's extra ERANGE test, so "" sorts as
+// zero and " 5" as five while a subnormal is refused. See src/base/numeric.h.
 bool sort_number(const std::string& text, double& number) {
-    if (text.empty() || std::isspace(static_cast<unsigned char>(text[0]))) return false;
-    return parse_double_value(Slice(text.data(), static_cast<uint32_t>(text.size())), number);
+    return parse_double_sortable(Slice(text.data(), static_cast<uint32_t>(text.size())), number);
 }
 
 WorkError sort_image(const ObjectImage& image, const SortOptions& options,

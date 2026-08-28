@@ -65,17 +65,11 @@ struct GeoResult {
     double distance_m = 0;
 };
 
+// Longitudes, latitudes, radii and box sides all reach redis through getDoubleFromObjectOrReply,
+// so they take the same VALUE grammar as a score: "0x10" is 16 degrees, "1e309" is an error, and
+// "inf" is a legal radius that simply matches everything. See src/base/numeric.h.
 bool parse_double(Slice input, double& value) {
-    if (!input.n) return false;
-    Slice text = input;
-    if (text.p[0] == '+') {
-        text.p++;
-        text.n--;
-        if (!text.n) return false;
-    }
-    const char* end = text.p + text.n;
-    auto parsed = std::from_chars(text.p, end, value, std::chars_format::general);
-    return parsed.ec == std::errc{} && parsed.ptr == end && !std::isnan(value);
+    return parse_double_strict(input, value);
 }
 
 bool parse_positive_count(Slice input, uint64_t& value) {

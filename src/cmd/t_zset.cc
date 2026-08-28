@@ -146,29 +146,12 @@ bool ascii_equal(Slice s, std::string_view text) {
     return s.eq_icase(text);
 }
 
-bool parse_double_value(Slice s, double& out) {
-    if (!s.n) return false;
-    bool negative = false;
-    Slice word = s;
-    if (word.p[0] == '+' || word.p[0] == '-') {
-        negative = word.p[0] == '-';
-        word.p++;
-        word.n--;
-    }
-    if (ascii_equal(word, "inf") || ascii_equal(word, "infinity")) {
-        out = negative ? -std::numeric_limits<double>::infinity()
-                       : std::numeric_limits<double>::infinity();
-        return true;
-    }
-    const char* begin = (s.p[0] == '+') ? s.p + 1 : s.p;
-    const char* end = s.p + s.n;
-    if (begin == end) return false;
-    auto result = std::from_chars(begin, end, out, std::chars_format::general);
-    return result.ec == std::errc{} && result.ptr == end;
-}
-
+// A score VALUE and a score RANGE BOUND are not the same grammar on redis, and treating them as
+// one was the whole of this tree's numeric-acceptance divergence. A value goes through
+// getDoubleFromObject, which refuses "" and " 5" and an out-of-range magnitude; a bound goes
+// through zslParseRange, which is a bare strtod and accepts all three. See src/base/numeric.h.
 bool parse_score_arg(Slice s, double& out) {
-    return parse_double_value(s, out) && !std::isnan(out);
+    return parse_double_strict(s, out);
 }
 
 bool parse_score_range(Slice min, Slice max, ScoreRange& out) {
@@ -183,7 +166,7 @@ bool parse_score_range(Slice min, Slice max, ScoreRange& out) {
         max.p++;
         max.n--;
     }
-    return parse_score_arg(min, out.min) && parse_score_arg(max, out.max);
+    return parse_double_lenient(min, out.min) && parse_double_lenient(max, out.max);
 }
 
 bool parse_lex_bound(Slice input, bool is_min, LexBound& out) {

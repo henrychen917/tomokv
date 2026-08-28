@@ -28,8 +28,9 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <string>
 
-#include "src/base/slice.h"
+#include "slice.h"
 
 namespace tomo {
 namespace dtoa {
@@ -339,19 +340,43 @@ inline uint32_t redis_double_text(char* out, size_t cap, double value) {
 
 // ------------------------------------------------------------------ parsing
 
-// The redis getDoubleFromObject grammar, used wherever a double is a VALUE: ZADD/ZINCRBY scores,
-// ZUNIONSTORE weights, GEO coordinates and distances. Redis calls strtod and then refuses the
-// empty string, a leading space, trailing text, a magnitude strtod flagged as out of range, and
-// NaN. It does NOT refuse what strtod itself accepts, so "0x10" is 16 and "+5" is 5.
+// A NUL-terminated copy of one argument. strtod needs a terminator and a command argument is a
+// Slice into the connection's read buffer, which has none. The stack arm covers every argument a
+// client actually sends; the heap arm exists because redis really does parse a 5000-character
+// number, and an argument this tree refused for being long would be a difference of its own.
+// std::string is empty here, so the common path allocates nothing.
+class Terminated {
+ public:
+    explicit Terminated(Slice s) {
+        if (s.n < sizeof(stack_)) {
+            if (s.n) std::memcpy(stack_, s.p, s.n);
+            stack_[s.n] = '\0';
+            text_ = stack_;
+        } else {
+            heap_.assign(s.p, s.n);
+            text_ = heap_.c_str();
+        }
+    }
+    const char* get() const { return text_; }
+
+ private:
+    char stack_[256];
+    std::string heap_;
+    const char* text_;
+};
+
+// The redis getDoubleFromObject grammar (string2d), used wherever a double is a VALUE: ZADD and
+// ZINCRBY scores, ZUNIONSTORE weights, GEO coordinates, radii and box sides. Redis calls strtod
+// and then refuses the empty string, a leading space, trailing text, a magnitude strtod flagged
+// as out of range, and NaN. It does NOT refuse what strtod itself accepts, so "0x10" is 16,
+// "0x1p-2" is 0.25 and "+5" is 5.
 //
-// The slice is copied because strtod needs a terminator; an embedded NUL therefore leaves trailing
-// text behind and is refused, which is the same answer redis gives (it compares the consumed
-// length against the whole argument length).
+// An embedded NUL is refused because the consumed length is compared against the WHOLE argument
+// length, which is what redis compares: `ZADD z 5\0 5 m` is an error on both.
 inline bool parse_double_strict(Slice s, double& out) {
-    char text[512];
-    if (s.n == 0 || s.n >= sizeof(text)) return false;
-    std::memcpy(text, s.p, s.n);
-    text[s.n] = '\0';
+    if (s.n == 0) return false;
+    const Terminated arg(s);
+    const char* text = arg.get();
     if (std::isspace(static_cast<unsigned char>(text[0]))) return false;
 
     errno = 0;
@@ -364,29 +389,85 @@ inline bool parse_double_strict(Slice s, double& out) {
     return true;
 }
 
-// The bare strtod redis uses for score RANGES (zslParseRange) and for numeric SORT. Everything the
-// strict grammar refuses is accepted here except NaN and trailing text:
+// The bare strtod redis uses for score RANGES (zslParseRange). Everything the strict grammar
+// refuses is accepted here except NaN and trailing text:
 //
 //   ""       -> 0      (strtod consumed nothing, and the terminator is where it stopped)
-//   " 5"     -> 5      (strtod skips leading whitespace)
+//   " 5"     -> 5      (strtod skips leading whitespace, of any kind)
 //   "0x10"   -> 16
 //   "1e309"  -> +inf   (ERANGE is not consulted)
 //   "5\0 5"  -> 5      (the C string ends at the NUL, so nothing trails it)
 //
 // The NUL case is not an oversight to be corrected: redis stops at the same byte and answers 5,
 // and a range that answered an error where the reference answers a result would silently change
-// which members a client sees.
+// which members a client sees. The exclusive "(" prefix is the caller's business -- redis strips
+// it and then parses the REST with this same call, so "(" alone is an exclusive zero.
 inline bool parse_double_lenient(Slice s, double& out) {
-    char text[512];
-    if (s.n >= sizeof(text)) return false;
-    std::memcpy(text, s.p, s.n);
-    text[s.n] = '\0';
-
+    const Terminated arg(s);
+    const char* text = arg.get();
     char* end = nullptr;
     const double value = std::strtod(text, &end);
     if (*end != '\0' || std::isnan(value)) return false;
     out = value;
     return true;
+}
+
+// Numeric SORT: the same bare strtod, plus the ERANGE test sortCommand adds. That test is what
+// makes SORT refuse a subnormal -- "5e-324" is a perfectly good score but not a sortable element,
+// because glibc raises ERANGE for gradual underflow and redis does not distinguish that from an
+// overflow. Redis does not clear errno first, so a stale ERANGE can leak in from earlier work;
+// that part is not reproduced, because a leak is not a behaviour a client can rely on.
+inline bool parse_double_sortable(Slice s, double& out) {
+    const Terminated arg(s);
+    const char* text = arg.get();
+    errno = 0;
+    char* end = nullptr;
+    const double value = std::strtod(text, &end);
+    if (*end != '\0' || errno == ERANGE || std::isnan(value)) return false;
+    out = value;
+    return true;
+}
+
+// The redis string2ld grammar: INCRBYFLOAT, HINCRBYFLOAT and every blocking timeout. Same shape as
+// the strict double grammar one width up, and redis's own length cap (MAX_LONG_DOUBLE_CHARS) is
+// part of it -- an argument at or over 5120 bytes is refused before strtold sees it.
+inline constexpr size_t kLongDoubleChars = 5 * 1024;
+
+inline bool parse_long_double_strict(Slice s, long double& out) {
+    if (s.n == 0 || s.n >= kLongDoubleChars) return false;
+    const Terminated arg(s);
+    const char* text = arg.get();
+    if (std::isspace(static_cast<unsigned char>(text[0]))) return false;
+
+    errno = 0;
+    char* end = nullptr;
+    const long double value = std::strtold(text, &end);
+    if (end != text + s.n) return false;
+    if (errno == ERANGE && (std::isinf(value) || std::fpclassify(value) == FP_ZERO)) return false;
+    if (errno == EINVAL || std::isnan(value)) return false;
+    out = value;
+    return true;
+}
+
+// getTimeoutFromObjectOrReply for UNIT_SECONDS, which is three decisions, not one, and the order
+// matters: the grammar first, then the POSITIVE overflow, then the sign -- and the sign is tested
+// on the MILLISECONDS, not on the seconds. That last detail is visible from outside:
+// `BLPOP k -0.0004` is -0.4 ms, truncates to 0, and blocks forever instead of answering
+// "timeout is negative".
+enum class TimeoutStatus { Ok, NotAFloat, OutOfRange, Negative };
+
+inline TimeoutStatus parse_timeout_ms(Slice s, int64_t& milliseconds) {
+    long double seconds = 0;
+    if (!parse_long_double_strict(s, seconds)) return TimeoutStatus::NotAFloat;
+    const long double scaled = seconds * 1000.0L;
+    if (scaled > static_cast<long double>(INT64_MAX)) return TimeoutStatus::OutOfRange;
+    // Below INT64_MIN the cast itself is undefined, so the floor is taken before it, not after.
+    const int64_t value = scaled < static_cast<long double>(INT64_MIN)
+                              ? INT64_MIN
+                              : static_cast<int64_t>(scaled);
+    if (value < 0) return TimeoutStatus::Negative;
+    milliseconds = value;
+    return TimeoutStatus::Ok;
 }
 
 }  // namespace tomo

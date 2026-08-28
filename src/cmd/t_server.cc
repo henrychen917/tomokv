@@ -822,12 +822,13 @@ void cmd_debug_impl(Shard&, Op& op) {
         return;
     }
     if (eq_icase(subcommand, "sleep") && op.argc() == 3) {
-        std::string text(op.arg(2).p, op.arg(2).n);
-        char* end = nullptr;
-        errno = 0;
-        const double seconds = std::strtod(text.c_str(), &end);
-        if (errno || end != text.c_str() + text.size() || !std::isfinite(seconds) || seconds < 0.0 ||
-            seconds > 86400.0) {
+        // DEBUG SLEEP is redis's one unguarded strtod: it validates nothing, so a word sleeps
+        // for zero seconds and answers OK. The upper bound is ours -- redis will happily sleep a
+        // year, and this server is not going to.
+        double seconds = 0;
+        if (!parse_double_lenient(op.arg(2), seconds)) seconds = 0;
+        if (!std::isfinite(seconds) || seconds < 0.0) seconds = 0;
+        if (seconds > 86400.0) {
             reply_err(op.sink(), "ERR value is not a valid float");
             return;
         }

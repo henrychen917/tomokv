@@ -313,25 +313,14 @@ bool validate_multi_blocking_timeout(Op& op, MultiBlockingPop kind) {
     const uint32_t timeout_arg = (kind == MultiBlockingPop::Blmpop ||
                                   kind == MultiBlockingPop::Bzmpop)
         ? 1 : op.argc() - 1;
-    double seconds = 0;
-    if (!blocking_parse_timeout(op.arg(timeout_arg), seconds)) {
-        reply_err(op.sink(), "ERR timeout is not a float or out of range");
+    int64_t timeout_ms = 0;
+    if (blocking_reply_timeout_error(op, parse_timeout_ms(op.arg(timeout_arg), timeout_ms)))
         return false;
-    }
-    if (seconds < 0) {
-        reply_err(op.sink(), "ERR timeout is negative");
-        return false;
-    }
-    if (seconds > static_cast<double>(INT64_MAX) / 1000.0) {
-        reply_err(op.sink(), "ERR timeout is out of range");
-        return false;
-    }
-    if (seconds != 0) {
+    if (timeout_ms != 0) {
         timespec now{};
         ::clock_gettime(CLOCK_REALTIME, &now);
         const int64_t now_ms = static_cast<int64_t>(now.tv_sec) * 1000 + now.tv_nsec / 1000000;
-        const int64_t delay = static_cast<int64_t>(std::ceil(seconds * 1000.0));
-        if (delay > INT64_MAX - now_ms) {
+        if (timeout_ms > INT64_MAX - now_ms) {
             reply_err(op.sink(), "ERR timeout is out of range");
             return false;
         }

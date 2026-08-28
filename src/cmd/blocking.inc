@@ -120,11 +120,22 @@ bool blocking_is_move(BlockingKind kind) {
     return kind == BlockingKind::Blmove || kind == BlockingKind::Brpoplpush;
 }
 
-bool blocking_parse_timeout(Slice input, double& seconds) {
-    if (!input.n) return false;
-    const char* end = input.p + input.n;
-    const auto parsed = std::from_chars(input.p, end, seconds, std::chars_format::general);
-    return parsed.ec == std::errc{} && parsed.ptr == end && std::isfinite(seconds);
+// One place for the three timeout errors, so the two callers (here and the transaction executor
+// in multi.inc) cannot drift apart. Redis parses the timeout with string2ld -- a long double, so
+// "0x10", "+5" and "1e-400" are all legal -- then rejects a POSITIVE overflow before it looks at
+// the sign, and looks at the sign of the MILLISECONDS. See parse_timeout_ms in src/base/numeric.h.
+bool blocking_reply_timeout_error(Op& op, TimeoutStatus status) {
+    switch (status) {
+        case TimeoutStatus::NotAFloat:
+            reply_err(op.sink(), "ERR timeout is not a float or out of range"); return true;
+        case TimeoutStatus::OutOfRange:
+            reply_err(op.sink(), "ERR timeout is out of range"); return true;
+        case TimeoutStatus::Negative:
+            reply_err(op.sink(), "ERR timeout is negative"); return true;
+        case TimeoutStatus::Ok:
+            return false;
+    }
+    return false;
 }
 
 bool blocking_parse_positive_count(Op& op, Slice input, uint64_t& count) {
@@ -293,29 +304,21 @@ bool blocking_validate(Op& op, BlockingState& state, uint32_t& first_key,
         return false;
     }
     if (state.kind == BlockingKind::Xread || state.kind == BlockingKind::Xreadgroup) return true;
-    double seconds = 0;
-    if (!blocking_parse_timeout(op.arg(timeout_arg), seconds)) {
-        reply_err(op.sink(), "ERR timeout is not a float or out of range");
+    int64_t timeout_ms = 0;
+    if (blocking_reply_timeout_error(op, parse_timeout_ms(op.arg(timeout_arg), timeout_ms)))
         return false;
-    }
-    if (seconds < 0) {
-        reply_err(op.sink(), "ERR timeout is negative");
-        return false;
-    }
-    if (seconds > static_cast<double>(INT64_MAX) / 1000.0) {
-        reply_err(op.sink(), "ERR timeout is out of range");
-        return false;
-    }
-    if (seconds != 0) {
+    // Truncated, not rounded up: redis casts the millisecond count to an integer, so 0.0005 s is
+    // zero milliseconds and zero means "wait forever". Rounding up turned that into a near-instant
+    // timeout, which a client can see.
+    if (timeout_ms != 0) {
         timespec now{};
         ::clock_gettime(CLOCK_REALTIME, &now);
         const int64_t now_ms = static_cast<int64_t>(now.tv_sec) * 1000 + now.tv_nsec / 1000000;
-        const int64_t delay = static_cast<int64_t>(std::ceil(seconds * 1000.0));
-        if (delay > INT64_MAX - now_ms) {
+        if (timeout_ms > INT64_MAX - now_ms) {
             reply_err(op.sink(), "ERR timeout is out of range");
             return false;
         }
-        state.deadline_ms = now_ms + delay;
+        state.deadline_ms = now_ms + timeout_ms;
     }
     return true;
 }
