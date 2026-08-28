@@ -18,10 +18,6 @@ namespace tomo {
 static inline uint64_t rd(const uint64_t& f) {
     return __atomic_load_n(&f, __ATOMIC_RELAXED);
 }
-static inline uint32_t rd32(const uint32_t& f) {
-    return __atomic_load_n(&f, __ATOMIC_RELAXED);
-}
-
 LbSnapshot lbsignals_capture(Server& srv) {
     LbSnapshot snap;
     snap.stamp_ns = now_ns();

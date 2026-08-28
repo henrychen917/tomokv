@@ -15,7 +15,6 @@
 #include <limits>
 #include <new>
 #include <string>
-#include <string_view>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -140,10 +139,6 @@ bool parse_u64(Slice s, uint64_t& out) {
     const char* end = s.p + s.n;
     auto result = std::from_chars(s.p, end, out, 10);
     return result.ec == std::errc{} && result.ptr == end;
-}
-
-bool ascii_equal(Slice s, std::string_view text) {
-    return s.eq_icase(text);
 }
 
 // A score VALUE and a score RANGE BOUND are not the same grammar on redis, and treating them as
