@@ -152,3 +152,54 @@ paths without hiding any gather error.
 
 Per the lane prohibition, this audit is static only. No compilation, make target, server, load
 generator, or test script was run.
+
+## 2026-08-28: round-2 residual is the oracle's collation locale
+
+The 93 residual rows are not bad derived values. They are the already-documented `ALPHA` locale
+axis, exposed by a logging truncation and by the differential gate failing to enforce its own boot
+requirement.
+
+The seed-7 generator establishes the state without any post-run inference:
+
+- Ops 137 through 236 issue exactly one `SET so:a_<m> <word><m>` for every `m` from 0 through 99.
+  Nothing later writes or deletes an `so:a_*` key. `rebuild()` mutates only the selected source and
+  its `so:w_*`, `so:h_*`, and `so:d_*` companions.
+- Choosing `BY so:a_*` sets `alpha = True`, and the generator unconditionally appends `ALPHA`.
+  These values are deliberately non-numeric and never enter numeric score conversion.
+- The ordinary diff reporter printed only `o[:4]`. Thus evidence such as
+  `['SORT', 'so:z1', 'BY', 'so:a_*']` hid `ALPHA`, LIMIT, GET, and STORE options.
+
+Ops 268 and 279 use `so:l0 = [19, 50, 83, 6, 9, 68]`. Their weights are respectively
+`delta019`, `char-lie050`, `delta083`, `golf006`, `Bravo009`, and `Echo!068`. C/byte collation is
+therefore `[9, 68, 50, 19, 83, 6]`, byte-for-byte the target order at op 279. The oracle returned
+`[9, 50, 19, 83, 68, 6]`: `Echo!068` moved from the uppercase byte-order block to its locale word
+position. Op 268 is the same two element orders projected through `GET so:h_*->g`.
+
+Op 280 is not a one-element source disagreement. Its full command is:
+
+```
+SORT so:z1 BY so:a_* ALPHA LIMIT 2 2
+```
+
+At that point `so:z1` has exactly `[13, 95, 43]` in zset score order, with weights
+`fox_trot013`, `HOTEL095`, and `delta043`. C/byte collation orders the members `[95, 43, 13]`, so
+offset 2 returns the target's sole `13`. The oracle locale puts `HOTEL095` last, so the same LIMIT
+returns its sole `95`. No source divergence or reply/argv mismatch is needed; the abbreviated argv
+was the entire mystery.
+
+The gather path also matches the former source-owner lookup mechanically: both expand the same
+parsed prefix/element/suffix, hash with `FlatStore::hash_key`, route through `router().shard_of`,
+accept only strings for the plain form, preserve integer text, and use the same read/time cut. Hash
+field lookup likewise retains the old type, field-presence, and field-expiry checks. More directly,
+the target's exact C ordering above could not be produced without gathering those exact distinct
+`so:a_*` values.
+
+The harness defect was in `tests/differ_gate.sh`: `gen_sort` and `NOTES-SORT.md` required
+`LC_ALL=C`, but the shared pinned Redis boot inherited the caller's locale. The gate now starts the
+oracle through `env LC_ALL=C`. The sort differ also runs a two-value mixed-case/punctuation
+collation preflight on both sides and fails immediately with a precise boot diagnostic instead of
+emitting a page of false gather diffs. Finally, SORT/SORT_RO diff diagnostics now print the full
+argv rather than four entries.
+
+No server code changed. Per the lane prohibition, this conclusion and the harness edits were
+checked statically only: no build, server, test, or load script was run.
