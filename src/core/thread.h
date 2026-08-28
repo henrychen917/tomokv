@@ -105,7 +105,6 @@ public:
 
     uint32_t id()   const { return id_; }
     Role     role() const { return role_.load(std::memory_order_acquire); }
-    uint32_t nchan() const { return nchan_; }
 
     // Where this thread actually runs. Latched once the thread is pinned and running, because
     // sched_getcpu() before that answers about the wrong cpu. A worker passes domain() to
@@ -115,12 +114,7 @@ public:
         cpu_    = sched_getcpu();
         domain_ = topo.domain_of(cpu_);
     }
-    int      cpu()    const { return cpu_; }
     uint32_t domain() const { return domain_; }
-
-    TaskChan&   task_in(uint32_t producer)   { return task_in_[producer]; }
-    ClientChan& client_in(uint32_t producer) { return client_in_[producer]; }
-    ReleaseChan& release_in(uint32_t producer) { return release_in_[producer]; }
 
     // The producer is the only writer. INFO's exceptional aggregation reads these cold arrays;
     // ordinary command execution performs one non-atomic increment in thread-private memory.

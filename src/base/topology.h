@@ -108,11 +108,6 @@ public:
     }
     const std::vector<int>& cpus_in(uint32_t d) const { return domains_[d]; }
 
-    uint32_t domain_of_current_thread() const {
-        int cpu = sched_getcpu();
-        return cpu < 0 ? kNoDomain : domain_of(cpu);
-    }
-
     void dump(FILE* f) const {
         std::fprintf(f, "topology: %u L3 domain(s)\n", ndomains());
         for (uint32_t d = 0; d < ndomains(); d++) {
