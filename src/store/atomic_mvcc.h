@@ -100,6 +100,13 @@ struct AtomicCollapseKey {
     uint32_t boundary_index = 0;
     uint64_t winner_epoch = 0;
     bool winner_set = false;
+    // Program-order repair state for this key, carried along the collapse walk. `prev_epoch` is
+    // the EFFECTIVE epoch assigned to the previous record for the key and `prev_conn_id` is the
+    // connection that owned it; a following record from the same connection may never rank below
+    // it, because one connection's records reach an owner in the order the client sent them.
+    uint64_t prev_conn_id = 0;
+    uint64_t prev_epoch = 0;
+    bool prev_set = false;
 };
 
 struct AtomicCollapseSlot {

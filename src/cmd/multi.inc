@@ -561,6 +561,21 @@ MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard
                                     std::atomic<uint32_t>* watch_refs = nullptr) {
     if (!watch_token) watch_token = &state;
     if (!watch_refs) watch_refs = &state.watch_refs;
+    // OBSERVABILITY ONLY -- deliberately not a gate. This counts the hazard window: an EXEC
+    // write installing its candidate for `key` while an OLDER cross-shard group from the SAME
+    // connection is still undecided on this owner. It is the discriminator that isolated the
+    // write loss NOTES-MULTIRES.md describes, and every test of that defect asserts it moved,
+    // so a green run cannot be a vacuous one. &state.epoch excludes THIS transaction's own
+    // records; that exclusion must be by the epoch word rather than the group pointer, because
+    // a cross-shard child command inside this same EXEC installs through the scatter path and
+    // carries a NON-null group pointer.
+    // Holding the transaction here instead of counting was tried and is WRONG: it deadlocks
+    // (NOTES-MULTIRES.md, "two fixes that were wrong and why"). The install order this counter
+    // observes is already correct -- the group is present, which is why the counter can see it.
+    if (__builtin_expect(shard.store().atomic_has_records(), false) &&
+        shard.store().atomic_has_own_undecided(hash, key, state.origin_conn_id, nullptr,
+                                               &state.epoch))
+        shard.stats().atomic_exec_order_holds++;
     if (!shard.watch_write_ready(key, watch_token)) return MultiPrepareWrite::Retry;
     shard.watch_reserve_write(key, state.client, state.watch_generation, watch_token,
                               &state.epoch, &state.aborted, watch_refs);
