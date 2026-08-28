@@ -496,7 +496,6 @@ public:
     uint32_t size() const { return live_[0] + live_[1]; }
     uint32_t capacity() const { return cap_[0] + cap_[1]; }
     size_t   object_bytes() const { return obj_bytes_ + atomic_version_bytes_; }
-    size_t   obj_bytes() const { return obj_bytes_ + atomic_version_bytes_; }
     uint32_t expire_count() const { return expires_.size(); }
     // Hashes in this shard carrying at least one field deadline. THE gate for the whole hash-field
     // TTL feature: a shard that has never seen HEXPIRE reads zero here and every hash command pays
@@ -594,7 +593,6 @@ public:
 
     bool snapshot_active() const { return snapshot_active_; }
     bool snapshot_failed() const { return snapshot_failed_; }
-    bool snapshot_finished() const { return snapshot_finished_; }
 
     // Called by the owner before a Write command.  A slot behind the traversal cursor was already
     // dumped.  A slot ahead of it is serialized incrementally and marked with kTombBit; traversal
