@@ -173,7 +173,12 @@ void IoLoop::tracking_forget_client(uint64_t id, ClimonConn& state) {
 
 // ---- delivery ------------------------------------------------------------------------------
 
-void IoLoop::tracking_emit_invalidation(Client* target, bool resp3_push, Slice key, bool flush) {
+void IoLoop::tracking_emit_invalidation(Client* target, bool redirected, Slice key, bool flush) {
+    // Redis decides after resolving REDIRECT. RESP3 always has a push channel; RESP2 only has a
+    // valid carriage when another connection is the target and that connection is in pub/sub mode.
+    const bool resp3_push = target->resp3();
+    if (!resp3_push && (!redirected || !target->subscriber_mode())) return;
+
     SmallBuf<128> frame;
     if (resp3_push) {
         reply_push_header(frame, 2);
@@ -203,7 +208,7 @@ void IoLoop::tracking_deliver_frame(ClimonConn& state, uint64_t owner_id, Slice 
     if (!state.redirect) {
         Client* target = state.client;
         if (!target || target->dead() || target->closing()) return;
-        tracking_emit_invalidation(target, target->resp3(), key, flush);
+        tracking_emit_invalidation(target, false, key, flush);
         return;
     }
     // REDIRECT: the target may be owned by another io thread.
@@ -233,7 +238,7 @@ void IoLoop::tracking_deliver_frame(ClimonConn& state, uint64_t owner_id, Slice 
                 if (c && c->id() == state.redirect) { target = c; break; }
         }
         if (!target || target->dead() || target->closing()) return;
-        tracking_emit_invalidation(target, false, key, flush);
+        tracking_emit_invalidation(target, true, key, flush);
         return;
     }
     PubSubEvent* event = pubsub_new_event(PubSubEventKind::TrackingDeliver);
@@ -363,7 +368,7 @@ void IoLoop::tracking_handle_event(PubSubEvent& event) {
                 if (c && c->id() == event.client_id) { target = c; break; }
             if (!target || target->dead() || target->closing()) break;
             tracking_emit_invalidation(
-                target, false,
+                target, true,
                 Slice(event.channel.data(), static_cast<uint32_t>(event.channel.size())),
                 event.count != 0);
             break;

@@ -112,7 +112,7 @@
     void tracking_broadcast_keys(const std::vector<std::string>& keys, uint64_t writer_id);
     void tracking_broadcast_flush();
     void tracking_deliver_frame(ClimonConn& state, uint64_t owner_id, Slice key, bool flush);
-    void tracking_emit_invalidation(Client* target, bool resp3_push, Slice key, bool flush);
+    void tracking_emit_invalidation(Client* target, bool redirected, Slice key, bool flush);
     void tracking_note_prefix_registered(const std::string& prefix, bool added);
 
     // ---- lane state (true cold tail of IoLoop) --------------------------------------------------
