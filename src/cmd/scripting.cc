@@ -617,7 +617,6 @@ int redis_dispatch(lua_State* state, bool protected_call) {
             } else {
                 if (context->notify) spec = command_notify_variant(spec);
                 nested.spec = spec;
-                nested.db = context->parent->db;
                 nested.hash = FlatStore::hash_key(key);
                 nested.shard = context->shard->id();
                 if (context->script_resp == 3) nested.mark_resp3();

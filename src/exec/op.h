@@ -129,7 +129,6 @@ public:
     // every byte is dead — that is how the read buffer gets compacted without refcounting the
     // Slices that point into it. See Rob::pinned_rbuf_off().
     uint32_t rbuf_off = 0;
-    uint8_t  db       = 0;              // session snapshot at parse -- handlers never see Session
 
     // IO knows whether this command was issued behind an unfinished cross-shard atomic group on
     // the same connection. Capture that fact before publish so executors can skip the owner-local

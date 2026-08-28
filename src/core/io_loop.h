@@ -1399,7 +1399,6 @@ subscriber_checks_done:
                 continue;
             }
 
-            op->db    = static_cast<uint8_t>(c->session().db_index);
             // This command only needs an owner-local same-connection pending lookup when an older
             // cross-shard atomic group was already in flight. Set the immutable bit before the
             // current group increments the count, so a group never treats itself as a predecessor.
