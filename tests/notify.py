@@ -110,8 +110,8 @@ def config_get(name="notify-keyspace-events"):
     return reply[1].decode()
 
 
-def info_stats():
-    raw = admin.command("INFO", "STATS")
+def info_stats(section="STATS"):
+    raw = admin.command("INFO", section)
     result = {}
     for line in raw.decode().splitlines():
         if ":" not in line or line.startswith("#"):
@@ -234,11 +234,15 @@ try:
     for save_value, save_label in (("", "save disabled"),
                                    ("18446744073709551615 1", "save enabled")):
         expect(admin.command("CONFIG", "SET", "save", save_value), b"OK", save_label)
+        changes_before = info_stats("PERSISTENCE")["rdb_changes_since_last_save"]
         expect_none("KE$", ("LPUSH", f"route:list:{save_label}", "v"),
                     f"string class rejects list ({save_label})")
         expect_e("l", ("LPUSH", f"route:list2:{save_label}", "v"),
                  [("lpush", f"route:list2:{save_label}")],
                  f"list class ({save_label})")
+        changes_after = info_stats("PERSISTENCE")["rdb_changes_since_last_save"]
+        expect(changes_after - changes_before, 2 if save_value else 0,
+               f"save observer mutation count ({save_label})")
     expect(admin.command("CONFIG", "SET", "save", boot_save), b"OK", "restore save")
 
     # String and generic command rows, including multi-event source ordering.
