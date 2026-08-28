@@ -1,4 +1,26 @@
-// uring.h — one io_uring per thread. This is the only network backend for now; epoll comes later.
+// uring.h — one io_uring per thread. The native network backend, and the default.
+//
+// SECOND ENGINE (--net-io epoll, see net/epoll.h). When epoll is selected this class becomes a
+// pure CROSS-THREAD DOORBELL and issues no io_uring syscall at all -- not even io_uring_setup. That
+// is the whole point of the mode: the server has to boot where io_uring is unavailable.
+//
+// Why the doorbell lives HERE rather than in a new abstraction. Every cross-thread wake in the tree
+// is spelled `my_ring.msg_to(peer_ring, tag)` -- Channel::wake, ThreadCtx::wake_if_parked, the
+// snapshot epoch barrier. Those call sites belong to the EX side and to the channel mesh, which the
+// engine change is not allowed to touch. So the ENGINE-DEPENDENT PART IS HIDDEN BEHIND THE SAME
+// FOUR METHODS instead: in epoll mode msg_to() posts the tag into the target's mailbox and rings its
+// eventfd, and for_each_cqe() hands those tags back shaped exactly like CQEs. Both loops' on_cqe
+// switches therefore see the identical tag stream in either engine, and ex_loop.h, thread.h and
+// signal.h are unmodified.
+//
+// THE TAG MUST SURVIVE, not just the wake. The snapshot epoch barrier posts UrKind::SnapshotStart
+// carrying a SnapshotManager*, and the executor that receives it calls begin_snapshot() on that
+// pointer. A doorbell that only said "wake up" would silently break BGSAVE under epoll -- the
+// executors would never enter the barrier and the snapshot would hang. Hence a mailbox of tags, not
+// a bare eventfd counter.
+//
+// Cost when NOT selected: one predicted-not-taken test on wake_fd_ per outer-loop step (submit,
+// wait, drain) and per park-wake. Nothing per operation, nothing per event.
 //
 // RING PER THREAD, NEVER SHARED. A shared ring needs locking around the submission queue and
 // serialises every thread through one completion path. Per-thread rings with SINGLE_ISSUER let the
@@ -16,12 +38,22 @@
 // top 16 bits carry the kind — same trick as the FlatStore slot.
 #pragma once
 #include <liburing.h>
+#include <poll.h>
+#include <sys/eventfd.h>
+#include <unistd.h>
+#include <cerrno>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <mutex>
 #include <vector>
 
 namespace tomo {
+
+// BOOT-LATCHED, WRITTEN ONCE, before any thread that reads it exists (main.cc, before the pool is
+// spawned). Not a knob that can be flipped: every Ring in the process must agree, because a uring
+// ring cannot receive an eventfd doorbell and an eventfd doorbell cannot receive a msg_ring.
+inline bool g_ring_epoll_mode = false;
 
 enum class UrKind : uint8_t {
     Accept = 1,
@@ -50,11 +82,20 @@ inline T* ur_ptr(uint64_t tag) { return reinterpret_cast<T*>(tag & ((1ULL << 48)
 class Ring {
 public:
     Ring() = default;
-    ~Ring() { if (inited_) io_uring_queue_exit(&r_); }
+    ~Ring() {
+        if (inited_) io_uring_queue_exit(&r_);
+        if (wake_fd_ >= 0) ::close(wake_fd_);
+    }
     Ring(const Ring&) = delete;
     Ring& operator=(const Ring&) = delete;
 
     bool init(unsigned entries) {
+        if (g_ring_epoll_mode) {
+            // EFD_NONBLOCK so a spurious drain of an already-empty counter cannot park the loop.
+            wake_fd_ = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
+            if (wake_fd_ < 0) { std::perror("eventfd"); return false; }
+            return true;
+        }
         io_uring_params p{};
         // SINGLE_ISSUER: promises only one thread submits, letting the kernel drop internal locking.
         // DEFER_TASKRUN: completions are processed when we wait, not via IPI on the submitting cpu.
@@ -80,9 +121,26 @@ public:
     io_uring* raw() { return &r_; }
     bool deferred() const { return deferred_; }
 
-    // Never returns nullptr: a full SQ ring is flushed rather than reported, because every caller
-    // would otherwise have to invent the same retry and one of them would get it wrong.
+    // >= 0 exactly in epoll mode. The io loop registers it in its epoll set; that is what turns a
+    // peer's msg_to() into a return from epoll_wait.
+    int wake_fd() const { return wake_fd_; }
+
+    // Drain the doorbell counter. Level-triggered registration plus this read is deliberate: an
+    // edge-triggered eventfd that we forgot to read would go quiet forever, and the price of
+    // getting it wrong is a permanently parked io thread.
+    void drain_wake_fd() {
+        uint64_t counter = 0;
+        while (::read(wake_fd_, &counter, sizeof(counter)) == static_cast<ssize_t>(sizeof(counter)))
+            ;
+    }
+
+    // Never returns nullptr in uring mode: a full SQ ring is flushed rather than reported, because
+    // every caller would otherwise have to invent the same retry and one of them would get it
+    // wrong. In epoll mode there is no submission queue and this returns nullptr -- every caller
+    // already handles that (it is the sqe-starved path), and no caller reaches it: network
+    // submission is engine-selected in IoLoop, and persistence is forced to --persist-io normal.
     io_uring_sqe* sqe() {
+        if (__builtin_expect(wake_fd_ >= 0, false)) return nullptr;
         io_uring_sqe* s = io_uring_get_sqe(&r_);
         if (!s) { submit(); s = io_uring_get_sqe(&r_); }
         return s;
@@ -90,10 +148,15 @@ public:
 
     // A linked pair must not be split by sqe()'s full-ring flush between its two entries.
     void ensure_sq_space(unsigned needed) {
+        if (__builtin_expect(wake_fd_ >= 0, false)) return;
         if (io_uring_sq_space_left(&r_) < needed) submit();
     }
 
-    int submit() { pending_ = 0; return io_uring_submit(&r_); }
+    int submit() {
+        pending_ = 0;
+        if (__builtin_expect(wake_fd_ >= 0, false)) return 0;
+        return io_uring_submit(&r_);
+    }
 
     // Submit AND run pending completion work.
     //
@@ -106,7 +169,11 @@ public:
     //
     // Measured cost of getting this wrong: a uniform ~3.9 ms per operation at p1, matching p99
     // exactly, i.e. paid by every request rather than a tail.
-    int submit_and_reap() { pending_ = 0; return io_uring_submit_and_get_events(&r_); }
+    int submit_and_reap() {
+        pending_ = 0;
+        if (__builtin_expect(wake_fd_ >= 0, false)) return 0;
+        return io_uring_submit_and_get_events(&r_);
+    }
 
     // Submit whatever is queued and block until a completion arrives OR the timeout expires.
     // The timeout is not decoration: without it a thread parked here never re-reads its stop flag,
@@ -114,6 +181,14 @@ public:
     // missed wake — the loop recovers on the next tick instead of sleeping forever.
     int submit_and_wait(unsigned want = 1, unsigned timeout_ms = 50) {
         pending_ = 0;
+        if (__builtin_expect(wake_fd_ >= 0, false)) {
+            // The ex loop's park. Same contract as the uring path: block until a peer rings the
+            // doorbell OR the timeout expires, so the stop flag is re-read on every tick.
+            pollfd p{wake_fd_, POLLIN, 0};
+            const int n = ::poll(&p, 1, static_cast<int>(timeout_ms));
+            if (n > 0) drain_wake_fd();
+            return n < 0 ? 0 : n;
+        }
         __kernel_timespec ts{};
         ts.tv_sec  = timeout_ms / 1000;
         ts.tv_nsec = static_cast<long long>(timeout_ms % 1000) * 1000000LL;
@@ -129,6 +204,7 @@ public:
     template <typename Fn>
     unsigned for_each_cqe(Fn&& fn) {
         unsigned n = 0;
+        if (__builtin_expect(wake_fd_ >= 0, false)) return for_each_mail(fn);
         if (!deferred_cqes_.empty()) {
             std::vector<io_uring_cqe> deferred;
             deferred.swap(deferred_cqes_);
@@ -158,6 +234,10 @@ public:
     // rest for the loop's next ordinary for_each_cqe pass.
     template <typename Fn>
     unsigned for_each_cqe_filtered(Fn&& fn) {
+        // Nothing to filter in epoll mode: persistence is forced onto the syscall engine there, so
+        // no AofIo/SnapshotIo completion can exist. Returning zero is not a stub -- the callers
+        // (SAVE, the AOF rewrite mark) all loop on their own pending counters, which stay zero.
+        if (__builtin_expect(wake_fd_ >= 0, false)) return 0;
         // A blocking SAVE can enter here from inside the recv CQE callback that invoked it. Retire
         // that already-processed prefix before looking at the CQ and tell the outer batch to stop;
         // otherwise the current recv CQE is copied into deferred_cqes_ and delivered a second time.
@@ -191,6 +271,7 @@ public:
     // Post a completion into ANOTHER thread's ring. This is how an IO thread tells a WB thread that
     // a client has replies to send, without a shared queue or an eventfd round trip.
     bool msg_to(Ring& target, uint64_t tag) {
+        if (__builtin_expect(target.wake_fd_ >= 0, false)) return target.post_mail(tag);
         io_uring_sqe* s = sqe();
         if (!s) return false;
         io_uring_prep_msg_ring(s, target.r_.ring_fd, 0, tag, 0);
@@ -200,6 +281,37 @@ public:
     }
 
 private:
+    // The epoll-mode doorbell. PAYLOAD FIRST, THEN THE BELL -- the same push-then-flag order the
+    // channel mesh uses, and for the same reason: a consumer woken by the bell must be able to see
+    // everything the bell was rung for. The mutex is only ever contended by a peer that found this
+    // thread parked, which is by construction a thread that had nothing to do.
+    bool post_mail(uint64_t tag) {
+        {
+            std::lock_guard<std::mutex> lock(mail_mu_);
+            mail_.push_back(tag);
+        }
+        const uint64_t one = 1;
+        return ::write(wake_fd_, &one, sizeof(one)) == static_cast<ssize_t>(sizeof(one));
+    }
+
+    // Hand the mailbox back shaped as CQEs so both loops' on_cqe switches are engine-blind. res and
+    // flags are zero, which is what a msg_ring completion carries anyway.
+    template <typename Fn>
+    unsigned for_each_mail(Fn&& fn) {
+        std::vector<uint64_t> taken;
+        {
+            std::lock_guard<std::mutex> lock(mail_mu_);
+            if (mail_.empty()) return 0;
+            taken.swap(mail_);
+        }
+        for (uint64_t tag : taken) {
+            io_uring_cqe cqe{};
+            cqe.user_data = tag;
+            fn(&cqe);
+        }
+        return static_cast<unsigned>(taken.size());
+    }
+
     io_uring r_{};
     bool     inited_   = false;
     bool     deferred_ = true;
@@ -208,6 +320,11 @@ private:
     bool raw_callback_active_ = false;
     bool raw_callback_taken_ = false;
     unsigned raw_callback_index_ = 0;
+    // Epoll-mode doorbell state. -1 in uring mode, which is the single test every method above
+    // branches on; the vector and mutex are never constructed into use there.
+    int wake_fd_ = -1;
+    std::mutex mail_mu_;
+    std::vector<uint64_t> mail_;
 };
 
 }  // namespace tomo

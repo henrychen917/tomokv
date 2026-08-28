@@ -34,11 +34,33 @@
 // destructor. Re-derivation is impossible, so the entire bug class is gone by construction rather
 // than by discipline.
 // ============================================================================================
+//
+// TWO ENGINES, ONE REPLY STRUCTURE (--net-io, 2026-08-28). Under io_uring a send is SUBMITTED and
+// its result arrives later as a CQE; under epoll the io thread issues the syscall itself and the
+// result is in hand immediately. Everything else -- what gets staged, in what order, which borrow
+// is released when, the one-send-per-socket rule -- is identical, and deliberately so: the reply
+// path's shape is not the engine's business.
+//
+// The split is a TEMPLATE PARAMETER, not a field. serve/pump/submit take <bool kEp> and the io loop
+// passes the value its own boot-resolved instantiation carries, so the uring build emits exactly the
+// instruction sequence it emitted before this lane and the epoll build never tests a mode bit. The
+// two cold entry points that cannot be templated (serve_suppressing, reached only from the CLIENT
+// REPLY object; the TLS drain inside close_client) dispatch on epoll_ instead -- both are already
+// out-of-line and neither is on a hot path.
+//
+// WHY EPOLL DOES NOT REUSE on_send_complete. That handler ends in "resubmit -> pump", which under
+// io_uring means "queue another SQE and return". Called synchronously it would mean "syscall again,
+// right now, from inside the accounting for the previous syscall" -- and on EAGAIN, which is the
+// normal steady state of a backed-up socket, it would recurse until the stack ran out. The epoll
+// pump is therefore an explicit loop with EAGAIN as its exit, and it stops leaving the connection
+// staged; the EPOLLOUT edge (armed once at accept, never re-armed) is what resumes it.
 #pragma once
 #include <atomic>
 #include <cerrno>
 #include <cstdint>
+#include <sys/socket.h>
 #include "conn.h"
+#include "epoll.h"
 #include "tls.h"
 #include "uring.h"
 #include "../core/signal.h"
@@ -62,6 +84,7 @@ public:
               const std::atomic<bool>* limit_armed = nullptr,
               void* limit_ctx = nullptr, LimitFn limit_fn = nullptr,
               const uint32_t* cached_now_s = nullptr, LoopSignals* tls_signals = nullptr) {
+        epoll_ = g_ring_epoll_mode;
         ring_ = ring;
         release_ctx_ = release_ctx;
         release_fn_ = release_fn;
@@ -90,29 +113,44 @@ public:
     // Retire completed ops IN ORDER, stage their bytes, and write. Owned and run only by the
     // connection's io thread. Returns true if it did anything, so a caller can tell progress from
     // an empty poll.
+    template <bool kEp = false>
     bool serve(Client& c) {
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_impl<true, false>(c);
-        return serve_impl<false, false>(c);
+            return serve_impl<true, false, kEp>(c);
+        return serve_impl<false, false, kEp>(c);
     }
 
     // kTLS uses the ordinary plaintext staging and send path. This separate instantiation only
     // enforces/counts the pre-existing TLS no-borrow contract; plaintext clients pay no mode test.
+    template <bool kEp = false>
     bool serve_ktls(Client& c) {
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_impl<true, true>(c);
-        return serve_impl<false, true>(c);
+            return serve_impl<true, true, kEp>(c);
+        return serve_impl<false, true, kEp>(c);
     }
 
     // TLS is a separate write-back variant selected by the IO owner. Plain serve()/pump() above
     // remain untouched and are the only instantiated path when tls-port is zero.
+    template <bool kEp = false>
     bool serve_tls(Client& c, TlsConn& tls) {
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_tls_impl<true>(c, tls);
-        return serve_tls_impl<false>(c, tls);
+            return serve_tls_impl<true, kEp>(c, tls);
+        return serve_tls_impl<false, kEp>(c, tls);
+    }
+
+    // THE ENGINE'S ONE ESCALATION CHANNEL. Under io_uring a fatal send error is reported by
+    // on_send_complete returning false and the io loop closing the connection right there. A
+    // synchronous send has no such return path to ride -- it happens several frames inside
+    // serve()/drive_tls() -- so it latches here and the io loop consumes it immediately after each
+    // epoll-instantiated serve/pump site. Consuming clears it: a stale bit would close the NEXT
+    // connection served, which is exactly the class of bug this must not introduce.
+    bool take_send_failure() {
+        const bool failed = send_failed_;
+        send_failed_ = false;
+        return failed;
     }
 
     // CLIENT REPLY OFF/SKIP (Lane F). Cold: reached only from the climon object when the reply
@@ -166,14 +204,17 @@ public:
             stats_.retired += retired;
             return true;
         }
-        if (!conn.nothing_to_write()) did |= pump(c);
+        if (!conn.nothing_to_write()) did |= epoll_ ? pump<true>(c) : pump<false>(c);
         stats_.retired += retired;
         return did;
     }
 
     // Try to push whatever this client has buffered. Safe to call spuriously: if nothing is pending
     // or a send is already outstanding it does nothing. Returns true if a send was submitted.
+    template <bool kEp = false>
     bool pump(Client& c) {
+      if constexpr (kEp) { return pump_epoll(c); }
+      else {
         if (c.send_inflight()) return false;               // preserve one-send-per-socket ordering
 
         Client& conn = c;
@@ -182,7 +223,7 @@ public:
         const size_t legacy_total = conn.send_buf().size();
         const size_t legacy_sent  = conn.wsent();
         if (legacy_sent < legacy_total)
-            return submit_legacy(c, legacy_total, legacy_sent);
+            return submit_legacy<kEp>(c, legacy_total, legacy_sent);
 
         if (conn.has_pending_segments()) {
             bool has_borrow = false;
@@ -211,9 +252,68 @@ public:
 
         const size_t total = conn.send_buf().size();
         const size_t sent  = conn.wsent();
-        return sent < total ? submit_legacy(c, total, sent) : false;
+        return sent < total ? submit_legacy<kEp>(c, total, sent) : false;
+      }
     }
 
+    // The epoll send loop. Same three sources in the same order as the uring pump -- legacy
+    // remainder, then the segment queue (which is where a BORROWed value rides, so zero-copy is
+    // unchanged: the borrow is still handed to the kernel by pointer through an iovec and released
+    // only for the bytes the kernel reports accepted), then a promoted fill buffer -- but each
+    // write is issued here and accounted here.
+    //
+    // THREE EXITS, and only the first one is "done": nothing left to write; EAGAIN (the socket is
+    // full, so stop staged and let the EPOLLOUT edge call us back); or a fatal errno, which latches
+    // send_failed_ for the io loop to turn into a close. A short write is not an exit -- it loops,
+    // exactly as the uring path resubmits from the (head index, byte offset) frontier.
+    bool pump_epoll(Client& c) {
+        Client& conn = c;
+        bool did = false;
+        for (;;) {
+            const size_t legacy_total = conn.send_buf().size();
+            const size_t legacy_sent  = conn.wsent();
+            if (legacy_sent < legacy_total) {
+                if (!write_legacy_epoll(c, legacy_total, legacy_sent, did)) return did;
+                continue;
+            }
+            if (conn.has_pending_segments()) {
+                bool has_borrow = false;
+                uint32_t total = 0;
+                const uint32_t niov = conn.build_segment_iov(has_borrow, total);
+                if (!niov) return did;
+                conn.set_segmented_send(true);
+                conn.set_send_requested(total);
+                stats_.sends_submitted++;
+                if (has_borrow) stats_.zc_sends++;
+                const ssize_t n = ::sendmsg(conn.fd(), conn.send_msg(),
+                                            MSG_NOSIGNAL | MSG_DONTWAIT);
+                if (n <= 0) return did | note_send_stop(c, n);
+                stats_.zc_bytes += conn.consume_segments(static_cast<uint32_t>(n),
+                    [&](int32_t shard, const char* ptr) { release(shard, ptr); });
+                stats_.bytes_sent += static_cast<uint64_t>(n);
+                if (static_cast<uint32_t>(n) < total) stats_.short_writes++;
+                else stats_.sends_completed++;
+                if (cached_now_s_) c.set_last_interaction_s(*cached_now_s_);
+                did = true;
+                continue;
+            }
+            if (conn.write_drained() && conn.has_pending_fill()) {
+                conn.swap_buffers();
+                continue;
+            }
+            return did;
+        }
+    }
+
+    // Non-templated wrapper for the two cold sites that cannot carry the engine in their type:
+    // close_client's TLS alert/close_notify drain, and the CLIENT REPLY suppressed serve.
+    bool pump_tls_any(Client& c, TlsConn& tls) {
+        return epoll_ ? pump_tls<true>(c, tls) : pump_tls<false>(c, tls);
+    }
+
+    // Engine independent except for its one ciphertext write, which submit_tls_cipher<kEp> owns.
+    // The plaintext -> OpenSSL half is identical in both engines.
+    template <bool kEp = false>
     bool pump_tls(Client& c, TlsConn& tls) {
         if (c.send_inflight()) return false;
 
@@ -222,7 +322,7 @@ public:
         const char* cipher = nullptr;
         const int cipher_bytes = tls.peek_output(cipher);
         if (cipher_bytes > 0)
-            return submit_tls_cipher(c, cipher, static_cast<uint32_t>(cipher_bytes));
+            return submit_tls_cipher<kEp>(c, tls, cipher, static_cast<uint32_t>(cipher_bytes));
         if (!tls.connected()) return false;
 
         Client& conn = c;
@@ -293,7 +393,7 @@ public:
 
         cipher = nullptr;
         const int ready = tls.peek_output(cipher);
-        if (ready > 0) return submit_tls_cipher(c, cipher, static_cast<uint32_t>(ready));
+        if (ready > 0) return submit_tls_cipher<kEp>(c, tls, cipher, static_cast<uint32_t>(ready));
         return encrypted.op == TlsOp::Progress;
     }
 
@@ -342,7 +442,7 @@ public:
                 }
             }
         }
-        if (resubmit) pump(c);
+        if (resubmit) pump<false>(c);
         return true;
     }
 
@@ -389,7 +489,7 @@ public:
             else stats_.sends_completed++;
             resubmit = true;
         }
-        if (resubmit) pump_tls(c, tls);
+        if (resubmit) pump_tls<false>(c, tls);
         return !tls.failed();
     }
 
@@ -458,7 +558,7 @@ public:
     }
 
 private:
-    template <bool TrackOutput, bool TlsNoBorrow>
+    template <bool TrackOutput, bool TlsNoBorrow, bool kEp>
     bool serve_impl(Client& c) {
         TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed));
         stats_.serves++;
@@ -523,7 +623,7 @@ private:
                 return true;
             }
         }
-        if (!conn.nothing_to_write()) did |= pump(c);
+        if (!conn.nothing_to_write()) did |= pump<kEp>(c);
         stats_.retired += retired;
         // A serve that retires nothing: the POLLING paths (flush_ready, the backstop) finding
         // nothing, which is expected and cheap.
@@ -531,7 +631,7 @@ private:
         return did;
     }
 
-    template <bool TrackOutput>
+    template <bool TrackOutput, bool kEp>
     bool serve_tls_impl(Client& c, TlsConn& tls) {
         TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed));
         stats_.serves++;
@@ -575,12 +675,15 @@ private:
                 return true;
             }
         }
-        if (!conn.nothing_to_write() || tls.output_pending()) did |= pump_tls(c, tls);
+        if (!conn.nothing_to_write() || tls.output_pending()) did |= pump_tls<kEp>(c, tls);
         stats_.retired += retired;
         if (!retired) stats_.serves_empty++;
         return did;
     }
+    template <bool kEp>
     bool submit_legacy(Client& c, size_t total, size_t sent) {
+      if constexpr (kEp) { bool did = false; (void)write_legacy_epoll(c, total, sent, did); return did; }
+      else {
         static constexpr size_t kMaxSendBytes = 0x7ffff000u;
         const size_t request = std::min(total - sent, kMaxSendBytes);
         io_uring_sqe* s = ring_->sqe();
@@ -594,9 +697,75 @@ private:
         c.set_send_inflight(true);
         stats_.sends_submitted++;
         return true;
+      }
     }
 
-    bool submit_tls_cipher(Client& c, const char* cipher, uint32_t bytes) {
+    // One legacy-buffer write. `did` is only raised when bytes actually moved; the bool return says
+    // "keep going" so the caller's loop can distinguish a short write (retry) from a stop.
+    bool write_legacy_epoll(Client& c, size_t total, size_t sent, bool& did) {
+        static constexpr size_t kMaxSendBytes = 0x7ffff000u;
+        const size_t request = std::min(total - sent, kMaxSendBytes);
+        c.set_segmented_send(false);
+        c.set_send_requested(static_cast<uint32_t>(request));
+        stats_.sends_submitted++;
+        const ssize_t n = ::send(c.fd(), c.send_buf().data() + sent, request,
+                                 MSG_NOSIGNAL | MSG_DONTWAIT);
+        if (n <= 0) { did |= note_send_stop(c, n); return false; }
+        c.commit_write(static_cast<uint32_t>(n));
+        stats_.bytes_sent += static_cast<uint64_t>(n);
+        if (static_cast<size_t>(n) < request) stats_.short_writes++;
+        else if (c.write_drained()) stats_.sends_completed++;
+        if (cached_now_s_) c.set_last_interaction_s(*cached_now_s_);
+        did = true;
+        return true;
+    }
+
+    // Classify a non-positive synchronous send. EAGAIN and EINTR are ordinary flow control and must
+    // NOT be counted as data-path errors; the peer-abort family is the same carve-out the CQE path
+    // makes, so err=0 does not become a timing lottery under connection churn. Anything else is
+    // fatal for this connection and latches send_failed_.
+    bool note_send_stop(Client& c, ssize_t n) {
+        if (n == 0) return false;                        // wrote nothing; treat as would-block
+        const int err = errno;
+        if (err == EAGAIN || err == EWOULDBLOCK || err == EINTR) return false;
+        if (err == ECONNRESET || err == EPIPE || err == ECONNABORTED || c.closing())
+            stats_.peer_aborts++;
+        else
+            stats_.send_errors++;
+        send_failed_ = true;
+        return false;
+    }
+
+    template <bool kEp>
+    bool submit_tls_cipher(Client& c, TlsConn& tls, const char* cipher, uint32_t bytes) {
+      if constexpr (kEp) {
+        // Drain every record OpenSSL has already produced in one call. Recursing back through
+        // pump_tls would re-enter the plaintext half and could hand SSL_write a moved frontier.
+        bool did = false;
+        const char* pending = cipher;
+        uint32_t remaining = bytes;
+        while (remaining) {
+            c.set_send_requested(remaining);
+            stats_.sends_submitted++;
+            const ssize_t n = ::send(c.fd(), pending, remaining, MSG_NOSIGNAL | MSG_DONTWAIT);
+            if (n <= 0) { (void)note_send_stop(c, n); return did; }
+            const uint32_t sent = static_cast<uint32_t>(n);
+            if (!tls.consume_output(sent)) { send_failed_ = true; return did; }
+            stats_.bytes_sent += sent;
+            stats_.tls_ciphertext_bytes += sent;
+            if (tls_signals_) tls_signals_->tls_ciphertext_output_bytes += sent;
+            if (cached_now_s_) c.set_last_interaction_s(*cached_now_s_);
+            did = true;
+            if (sent < remaining) stats_.short_writes++;
+            else stats_.sends_completed++;
+            // consume_output moved the BIO frontier, so re-peek rather than advancing `pending`
+            // ourselves: the next record may live in a different block of the memory BIO.
+            pending = nullptr;
+            const int ready = tls.peek_output(pending);
+            remaining = ready > 0 ? static_cast<uint32_t>(ready) : 0;
+        }
+        return did;
+      } else {
         io_uring_sqe* s = ring_->sqe();
         if (!s) { stats_.sqe_starved++; return false; }
         io_uring_prep_send(s, c.fd(), cipher, bytes, MSG_NOSIGNAL);
@@ -606,6 +775,7 @@ private:
         c.set_send_inflight(true);
         stats_.sends_submitted++;
         return true;
+      }
     }
 
     void release(int32_t shard, const char* ptr) {
@@ -624,6 +794,9 @@ private:
     LimitFn limit_fn_ = nullptr;
     const uint32_t* cached_now_s_ = nullptr;
     LoopSignals* tls_signals_ = nullptr;
+    // Engine, for the cold non-templated entry points only. The hot send path never reads it.
+    bool   epoll_ = false;
+    bool   send_failed_ = false;
     Stats  stats_;
 };
 

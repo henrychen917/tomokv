@@ -102,6 +102,12 @@ struct LoopSignals {
     uint64_t tls_ktls_active = 0;       // current bidirectionally-offloaded connections
     uint64_t tls_ktls_fallback = 0;     // successful userspace-mode handshakes
 
+    // --net-io epoll only. Both stay zero under io_uring, which is what makes them a usable
+    // FIRED-MECHANISM proof: a run claiming to be on the epoll engine and reporting
+    // epoll_events=0 was not on the epoll engine.
+    uint64_t epoll_events = 0;          // readiness events returned by epoll_wait
+    uint64_t epoll_recvs = 0;           // recv syscalls that returned bytes
+
     // Derived, computed on read so the hot path never divides.
     double utilisation() const {
         const uint64_t t = busy_ns + idle_ns;
