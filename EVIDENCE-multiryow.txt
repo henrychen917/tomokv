@@ -1,0 +1,26 @@
+  geometry: source shard 14 -> BY shard 15 (1 -> s:xby:0000:1)
+  geometry: source shard 14 -> GET shard 5 (2 -> s:xget:0000:2)
+  geometry: source shard 14 -> STORE shard 11 (s:xstore:0004)
+sort battery: 127.0.0.1:7935, --shards 16 --ratio 6:2
+-- forms that dereference nothing --
+-- full BY/GET surface across owners --
+-- DEBUG SHARD-proven cross-owner BY/GET/STORE --
+-- set/STORE determinism rule --
+-- cross-shard arm --
+  cross-shard arm ran 12 times
+-- read-your-own-writes through BY/GET --
+-- dereference inside MULTI/EXEC --
+  FAIL multi ryow 1 order                                   got=['2', '3', '9', '4', '5', '0', '6', '1', '7', '8'] want=['3', '9', '4', '5', '0', '6', '1', '7', '2', '8']
+  FAIL multi ryow 4 stored                                  got=['2', '0', '6', '1', '7', '8', '3', '9', '4', '5'] want=['0', '6', '1', '7', '2', '8', '3', '9', '4', '5']
+  FAIL multi ryow 6 stored                                  got=['3', '0', '6', '1', '7', '2', '8', '9', '4', '5'] want=['0', '6', '1', '7', '2', '8', '3', '9', '4', '5']
+  FAIL multi ryow 11 projection                             got=['new2', 'new8', None, 'new9', 'new4', 'new5', 'new0', 'new6', 'new1', 'new7'] want=['new2', 'new8', 'new3', 'new9', 'new4', 'new5', 'new0', 'new6', 'new1', 'new7']
+  FAIL multi ryow 18 projection                             got=['new4', 'new5', 'new0', 'new6', 'new1', 'new7', 'new2', 'new8', None, 'new9'] want=['new4', 'new5', 'new0', 'new6', 'new1', 'new7', 'new2', 'new8', 'new3', 'new9']
+-- randomised model comparison --
+  counters: {'sort_deref_lookups': 4171, 'sort_deref_refusals': 0, 'sort_scatter_general': 372, 'sort_deref_escapes': 0}
+
+sort: 402 checks, 5 failures -> FAIL
+  multi ryow 1 order: got ['2', '3', '9', '4', '5', '0', '6', '1', '7', '8'] want ['3', '9', '4', '5', '0', '6', '1', '7', '2', '8']
+  multi ryow 4 stored: got ['2', '0', '6', '1', '7', '8', '3', '9', '4', '5'] want ['0', '6', '1', '7', '2', '8', '3', '9', '4', '5']
+  multi ryow 6 stored: got ['3', '0', '6', '1', '7', '2', '8', '9', '4', '5'] want ['0', '6', '1', '7', '2', '8', '3', '9', '4', '5']
+  multi ryow 11 projection: got ['new2', 'new8', None, 'new9', 'new4', 'new5', 'new0', 'new6', 'new1', 'new7'] want ['new2', 'new8', 'new3', 'new9', 'new4', 'new5', 'new0', 'new6', 'new1', 'new7']
+  multi ryow 18 projection: got ['new4', 'new5', 'new0', 'new6', 'new1', 'new7', 'new2', 'new8', None, 'new9'] want ['new4', 'new5', 'new0', 'new6', 'new1', 'new7', 'new2', 'new8', 'new3', 'new9']
