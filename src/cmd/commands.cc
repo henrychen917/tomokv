@@ -242,6 +242,13 @@ void reply_unknown_or_wrong_subcommand(Op& op, const char* container) {
     reply_err(op.sink(), message.c_str());
 }
 
+void reply_metadata_subcommand_wrong_args(Op& op, const CommandSpec& spec,
+                                          const CommandMetadata& metadata) {
+    const char* separator = std::strchr(command_metadata_name(metadata).p, '|');
+    command_reply_subcommand_wrong_args(op, spec.name,
+                                        separator ? separator + 1 : spec.name);
+}
+
 }  // namespace
 
 void command_reply_subcommand_wrong_args(Op& op, const char* container,
@@ -284,12 +291,18 @@ bool command_validate_container_subcommand(Op& op, const CommandSpec& spec,
         return false;
     }
     if (!command_metadata_arity_ok(*metadata, op.argc())) {
-        const char* separator = std::strchr(command_metadata_name(*metadata).p, '|');
-        command_reply_subcommand_wrong_args(op, spec.name,
-                                            separator ? separator + 1 : spec.name);
+        reply_metadata_subcommand_wrong_args(op, spec, *metadata);
         return false;
     }
     first_key = command_metadata_first_key(*metadata);
+    return true;
+}
+
+bool command_reply_container_subcommand_arity(Op& op, const CommandSpec& spec) {
+    const CommandMetadata* metadata = command_metadata_resolve(op, 0);
+    if (!metadata || !command_metadata_is_subcommand(*metadata) ||
+        command_metadata_arity_ok(*metadata, op.argc())) return false;
+    reply_metadata_subcommand_wrong_args(op, spec, *metadata);
     return true;
 }
 

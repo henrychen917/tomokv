@@ -121,6 +121,13 @@ expect(unauth.command("NOSUCHCOMMAND"),
        "unknown precedes NOAUTH")
 expect(unauth.command("GET"),
        "ERR wrong number of arguments for 'get' command", "arity precedes NOAUTH")
+# XGROUP advertises -2, so this two-argument unknown arm is arity-valid at the outer container.
+# It must reach authentication before subcommand resolution, exactly like Redis processCommand.
+expect(unauth.command("XGROUP", "x"),
+       "NOAUTH Authentication required.", "XGROUP advertised minimum reaches NOAUTH")
+expect(unauth.command("XGROUP", "CREATE", "key", "group"),
+       "ERR wrong number of arguments for 'xgroup|create' command",
+       "known XGROUP child arity precedes NOAUTH")
 expect(unauth.command("AUTH", "a", "b", "c"),
        "ERR wrong number of arguments for 'auth' command", "AUTH arity")
 expect(unauth.command("AUTH", b"s3cr\x00eX"),

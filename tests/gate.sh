@@ -36,8 +36,10 @@ SRV=0; SRVLOG=/dev/null
 # 194 -> 207: arity, blockmulti, cmdgap, multires and xmove were shipped but not invoked; aclsel,
 # cmdmeta and expwide joined the feature loop; cmdmeta coverage is a new static row. Each feature
 # battery runs under both atomic modes, so one battery is two rows.
-EXPECT_QUICK=207
-EXPECT_FULL=217                 # full without the optional NIC row.
+# 207 -> 209: contarity exercises XGROUP/XINFO under the feature boot's 16-shard, >=2-executor
+# geometry in both atomic modes and refuses a same-executor routing sample.
+EXPECT_QUICK=209
+EXPECT_FULL=219                 # full without the optional NIC row.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ok(){ say "$1" "ok"; PASS=$((PASS+1)); }
 bad(){ say "$1" "FAIL${2:+ ($2)}"; FAIL=$((FAIL+1)); }
@@ -152,7 +154,7 @@ grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG
 for AT in 0 1; do
   boot ./build/tomokv --atomic $AT --enable-debug-command yes \
       || bad "feature battery boot (atomic $AT)"
-  for t in s6 multi_exec blocking blockmulti stream streamgroups pubsub lua_scripting scriptsurf limits resp3 bitfield dumprestore zsetops geo climon climon2 tracking hexpire servertail lcs concur edgeproto edgeenc edgetime arity cmdgap aclsel expwide; do
+  for t in s6 multi_exec blocking blockmulti stream streamgroups pubsub lua_scripting scriptsurf limits resp3 bitfield dumprestore zsetops geo climon climon2 tracking hexpire servertail lcs concur edgeproto edgeenc edgetime arity contarity cmdgap aclsel expwide; do
     python3 tests/$t.py 127.0.0.1 $PORT >/tmp/gate-$t-$AT.txt 2>&1 \
         && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see /tmp/gate-$t-$AT.txt"
   done

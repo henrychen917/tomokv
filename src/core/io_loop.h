@@ -1190,6 +1190,15 @@ private:
                               "ERR wrong number of arguments for '%s' command", command);
                 finish_locally(c, *op, message); continue;
             }
+            if ((spec->flags & CmdFlags::SubcmdRoute) &&
+                command_reply_container_subcommand_arity(*op, *spec)) {
+                // A known child has its own generated arity and Redis checks that before ACL and
+                // MULTI. Unknown children deliberately continue: on an unauthenticated connection
+                // XGROUP x is parent-arity-valid and must reach NOAUTH.
+                conn.advance_parse(consumed);
+                finish_prebuilt(c, *op);
+                continue;
+            }
             // THE SOLE DISABLED-STATE FEATURE DECISION on an ordinary operation. The executor
             // receives a spec whose handler pointer is already the clean or armed specialization;
             // no notification mask load reaches its execute path.

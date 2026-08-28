@@ -12,10 +12,11 @@ and the ordinary route hashes `first_key` before dispatch. A two-argument `HELP`
 The registry validator therefore correctly rejects a lowered row unless it also uses an existing
 special-routing class.
 
-The ordering at `src/core/io_loop.h` is intentionally unchanged: the outer registry arity check
-runs before ACL authentication. Consequently bare `XGROUP` remains an arity error, while
-`XGROUP x` passes the advertised `-2` bound and reaches the `NOAUTH` gate. Subcommand resolution
-and shard selection happen later on authenticated traffic.
+The ordering at `src/core/io_loop.h` is intentionally unchanged: arity checks run before ACL
+authentication. Consequently bare `XGROUP` remains an outer arity error. A known child with a bad
+generated arity is also rejected there, before ACL/MULTI, but an unknown `XGROUP x` passes the
+advertised `-2` parent bound and reaches the `NOAUTH` gate. Unknown-arm handling and shard
+selection happen later on authenticated traffic.
 
 ## Construction
 
@@ -32,6 +33,12 @@ This makes the route data-driven for all four containers. It also removes the OB
 choice from the outer-arity error hook; the hook uses the same metadata resolver. A generated
 variadic child that crosses a finite top-level maximum remains a handler-grammar syntax error,
 which preserves `MEMORY USAGE`'s existing upper-bound behavior.
+
+The arity gate asks the same resolver one narrower question before authentication: if argv[1]
+names a generated child and that child's arity is wrong, it emits the pipe-qualified arity error.
+An unknown child is not rejected by this check, preserving `XGROUP x` -> `NOAUTH` ordering. This
+also prevents a malformed known child from entering a MULTI queue merely because the parent now
+accepts two arguments.
 
 `XGROUP` remains `Write`; only its HELP child is keyless. CREATE, SETID, DESTROY,
 CREATECONSUMER, and DELCONSUMER all carry generated `first_key = 2`, so none can fall onto the
@@ -62,4 +69,3 @@ Required checks:
 - `XINFO STREAM <missing-key>` returning `ERR no such key`;
 - `COMMAND INFO xgroup` and `COMMAND INFO xinfo` retaining arity `-2`;
 - the unauthenticated registry-minimum probe continuing to reach `NOAUTH` for `XGROUP x`.
-
