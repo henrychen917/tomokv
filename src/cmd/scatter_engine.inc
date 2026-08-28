@@ -614,6 +614,11 @@ bool first_error(const ScatterState& state, WorkError& error) {
     for (uint32_t gi = 0; gi < state.nsub; gi++) {
         const ShardGroup& group = state.groups[gi];
         if (group.error != WorkError::None) { error = group.error; return true; }
+        // The gather wave's ranges index SortDerefState::key_order, not the fixed argv-key order.
+        // Gather tasks report allocation failures in group.error above and have no per-key status,
+        // so a terminal OOM/queue-full path must not scan state.key_order before source groups are
+        // restored.
+        if (state.sort_deref && state.sort_deref->wave == SortDerefWave::Gather) continue;
         if (!state.status || !(state.kind == Kind::Mset || state.kind == Kind::Pfcount ||
                                state.kind == Kind::Xread || state.kind == Kind::Lcs ||
                                is_two_hop(state.kind))) continue;
