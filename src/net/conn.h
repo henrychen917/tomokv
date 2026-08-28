@@ -399,6 +399,46 @@ public:
     }
     bool has_pending_segments() const { return !segments_.empty(); }
     uint32_t segments_size() const { return segments_.size(); }
+
+    // ---- OUT-OF-BAND FRAMES ---------------------------------------------------------------
+    // Pub/sub deliveries, tracking invalidations and MONITOR feed lines are WHOLE frames produced
+    // by something other than this connection's op stream. Two rules govern where they may land,
+    // and both were learned the hard way:
+    //
+    // 1. NEVER INSIDE ANOTHER REPLY'S BYTE RANGE. The predecessor of this routine parked the frame
+    //    on the newest live op -- `rob.at(rob.dispatch_id()-1).reply.append(frame)`. `op.reply` is
+    //    the frame's TAIL for a copying reply, which is what that trick was designed against, but
+    //    it is the frame's HEAD for a BORROWING one: serve emits [direct+reply][borrow][CRLF], and
+    //    a borrowed GET puts only `$<len>\r\n` in the sink. So a push landed between a bulk header
+    //    and its body and desynchronised the connection by exactly the push length -- silently, on
+    //    plaintext and TLS alike. It also raced a worker appending to that same SmallBuf, where
+    //    grow() frees the block the other side is writing into.
+    //
+    // 2. NEVER OVER A LIVE DIRECT-REPLY REGION. `Op::direct` is a raw pointer into fill_buf()'s
+    //    SPARE CAPACITY, handed out only when the ROB is idle and the fill buffer is empty. An
+    //    append_fill while it is live overwrites the bytes a worker is formatting, can grow (free)
+    //    the block underneath it, and leaves retire's commit_fill publishing the wrong offset.
+    //
+    // Both are satisfied by one test: while ANYTHING is in flight, route through the SEGMENT queue,
+    // which owns its own block and never touches fill_buf. seal_fill_segment() first, because pump
+    // drains the whole segment queue strictly BEFORE it promotes the fill buffer -- so older staged
+    // bytes must move into the queue's tail or the frame would jump ahead of them. A quiesced
+    // connection with an empty queue (the idle subscriber, which is the hot pub/sub case) keeps the
+    // plain fill append and is unchanged.
+    //
+    // The op stream and this channel then interleave only at frame boundaries: retire stages each
+    // op's bytes in one uninterrupted run, and a frame appended here sits entirely before the next
+    // one. Frames produced from INSIDE a retire drain are the exception and are parked by the send
+    // engine until the drain ends -- see WbEngine::draining().
+    void append_oob(const char* a, size_t an, const char* b = nullptr, size_t bn = 0) {
+        if (segments_.empty() && rob_.quiesced()) {
+            append_fill(a, an);
+            if (bn) append_fill(b, bn);
+            return;
+        }
+        seal_fill_segment();
+        append_buf_segment(a, an, b, bn);
+    }
     uint32_t build_segment_iov(bool& has_borrow, uint32_t& bytes) {
         const uint32_t n = segments_.build_iov(send_iov_, kMaxSendIov, kMaxSendBytes,
                                                has_borrow, bytes);

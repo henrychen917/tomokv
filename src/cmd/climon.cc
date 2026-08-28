@@ -310,18 +310,17 @@ bool IoLoop::climon_armed_gate(Client* client, Op& op) {
     return false;
 }
 
-// Mirrors pubsub_append_wire's ordering rule: while the ROB has live ops, an out-of-band frame
-// is appended to the NEWEST op's reply so it lands behind every command already parsed ahead of
-// it. Only the connection's own io thread ever runs this.
+// Mirrors pubsub_emit's ordering rule, and shares its machinery: an out-of-band frame is a WHOLE
+// frame that must land on a frame boundary, never inside another reply's byte range. Client picks
+// the output channel (see Client::append_oob); a frame raised from inside this connection's own
+// retire drain -- which is where the tracking invalidation and MONITOR hooks fire, with the
+// connection's newest reply only partially staged -- parks on the send engine and is flushed the
+// instant that drain ends. Only the connection's own io thread ever runs this.
 void IoLoop::climon_push_wire(Client* client, const std::string& frame) {
-    Rob<kRobWindow>& rob = client->rob();
-    if (!rob.quiesced()) {
-        rob.at(rob.dispatch_id() - 1).reply.append(frame.data(), frame.size());
-    } else if (client->has_pending_segments()) {
-        client->append_buf_segment(frame.data(), frame.size());
-    } else {
-        client->append_fill(frame.data(), frame.size());
-    }
+    if (__builtin_expect(wb_.draining(*client), false))
+        wb_.defer_oob(frame.data(), frame.size());
+    else
+        client->append_oob(frame.data(), frame.size());
     enqueue_serve(client);
     mark_active(client);
 }
