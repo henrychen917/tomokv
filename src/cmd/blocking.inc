@@ -1274,7 +1274,21 @@ void blocking_retire(Server& server, Client& client, Op& op, ThreadCtx& thread) 
     }
     acl_recheck_blocking(client, op, thread);
     client.set_blocked(false);
-    client.set_scatter_barrier(false);
+    // RELEASE ONLY WHAT THIS COMMAND ACQUIRED.
+    //
+    // This used to be an unconditional set_scatter_barrier(false), which released whatever owner
+    // happened to be holding the connection's parse barrier -- and the barrier has six owners
+    // (see BarrierOwner in net/conn.h). It was correct only by an invariant enforced in another
+    // translation unit: io_loop.h:1391 refuses to even PREPARE a blocking command while
+    // rob.in_flight() != 0, and the barrier this dispatch then takes stops the parse pass, so a
+    // blocking op is provably ALONE in its ROB and no second owner can exist here. Nothing near
+    // this line said so, and a relaxed guard or a seventh owner would have made it a live
+    // ordering defect of exactly the class t-storeorder fixed. NOTES-BARRIER.md has the audit.
+    //
+    // Note the alternative -- clear only at ROB quiescence -- cannot be spelled here: Rob::drain
+    // hands each op to this callback while flush_ is still at that op and stores the advanced
+    // cursor once per BATCH, so rob().quiesced() is false inside every retire callback, always.
+    if (!client.barrier_release(BarrierOwner::Blocking)) server.note_barrier_release_held();
     if (state->counted.exchange(false, std::memory_order_acq_rel))
         server.blocking_client_unparked();
     op.detach_blocking_state();
@@ -1285,7 +1299,11 @@ void blocking_scatter_retire(Server& server, Client& client, ScatterState& state
     BlockingState* block = state.blocking_origin;
     if (!block) return;
     client.set_blocked(false);
-    client.set_scatter_barrier(false);
+    // The OTHER exit of the same parked lifetime: blocking_resume_move() converted this op from a
+    // blocking state to a move scatter IN PLACE, reusing the ROB slot and inheriting the Blocking
+    // claim rather than taking a Scatter one. So the release is Blocking here too -- one acquire
+    // at dispatch, one release through whichever of the two retire paths runs.
+    if (!client.barrier_release(BarrierOwner::Blocking)) server.note_barrier_release_held();
     if (block->counted.exchange(false, std::memory_order_acq_rel))
         server.blocking_client_unparked();
     state.blocking_origin = nullptr;

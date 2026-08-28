@@ -993,6 +993,55 @@ public:
     uint32_t debug_atomic_read_delay() const {
         return debug_atomic_read_delay_.load(std::memory_order_relaxed);
     }
+    // TEST HOOK (DEBUG BARRIER-HOLD). While armed, every blocking dispatch pins a SECOND owner
+    // (BarrierOwner::Debug) on its connection's parse barrier; flush_ready drops that bit again as
+    // soon as the latch is cleared. Zero in production, and read at exactly two already-cold
+    // places: the blocking dispatch arm, and the arm of flush_ready that only runs when a barrier
+    // is already set. Nothing on GET/SET touches it.
+    //
+    // Why a hook is needed at all: the barrier's six owners cannot overlap on any reachable
+    // sequence (NOTES-BARRIER.md section 2), so the state the owner-scoped release exists to
+    // survive -- a release that must NOT drop the barrier -- has to be injected. It is held past
+    // ROB quiescence on purpose; barrier_release_quiesced() exempts this one bit for that reason.
+    //
+    // A LATCH, NOT A DEADLINE, and that is not a style choice. A barred connection's io thread has
+    // nothing left to do and parks on submit_and_wait(1) -- unbounded under io_uring. A hold that
+    // expired on a clock would therefore never be noticed, and the connection would hang instead
+    // of resuming. The releasing edge has to be an EVENT. The test clears this latch from a second
+    // connection and then wakes every io thread through an existing fan-out (CLIENT LIST), which
+    // is what makes the resume observable rather than theoretical.
+    void set_debug_barrier_hold(uint32_t armed) {
+        debug_barrier_hold_.store(armed, std::memory_order_relaxed);
+    }
+    uint32_t debug_barrier_hold() const {
+        return debug_barrier_hold_.load(std::memory_order_relaxed);
+    }
+    bool debug_barrier_hold_armed() const {
+        return debug_barrier_hold_.load(std::memory_order_relaxed) != 0;
+    }
+    // An overlap: some owner took the parse barrier while another owner already held it. With
+    // DEBUG BARRIER-HOLD off this must read ZERO -- it is the live form of the reachability verdict
+    // in NOTES-BARRIER.md, and if it ever moves on production traffic the latent case just went
+    // live and the owner-scoped release in blocking_retire() became load-bearing rather than
+    // defensive. With the latch ON it advances once per blocking dispatch, which is the counter's
+    // own positive control: a "must be zero" reading proves nothing until something has been shown
+    // able to make it non-zero.
+    void note_barrier_overlap() {
+        barrier_owner_overlaps_.fetch_add(1, std::memory_order_relaxed);
+    }
+    uint64_t barrier_owner_overlaps() const {
+        return barrier_owner_overlaps_.load(std::memory_order_relaxed);
+    }
+    // A blocking retirement released its own claim and the barrier STAYED UP because another owner
+    // still held it. This is the instruction the old unconditional clear got wrong, so a validation
+    // run that never moves this counter never reached the geometry it claims to cover -- it must
+    // FAIL LOUDLY rather than report a pass.
+    void note_barrier_release_held() {
+        barrier_releases_held_.fetch_add(1, std::memory_order_relaxed);
+    }
+    uint64_t barrier_releases_held() const {
+        return barrier_releases_held_.load(std::memory_order_relaxed);
+    }
     // Counters that keep the regression battery from passing vacuously: they prove the guarded
     // windows actually opened during the run rather than merely that nothing broke.
     void note_atomic_commit_hold() {
@@ -1469,6 +1518,9 @@ private:
     std::atomic<uint32_t> debug_atomic_read_delay_{0};
     std::atomic<uint32_t> debug_atomic_fanout_defer_{0};
     std::atomic<uint32_t> debug_script_stage_defer_{0};
+    std::atomic<uint32_t> debug_barrier_hold_{0};
+    std::atomic<uint64_t> barrier_owner_overlaps_{0};
+    std::atomic<uint64_t> barrier_releases_held_{0};
     std::atomic<uint64_t> atomic_commit_windows_{0};
     std::atomic<uint64_t> atomic_commit_holds_{0};
     std::atomic<uint64_t> atomic_read_cuts_held_{0};

@@ -78,6 +78,32 @@ struct Session {
     uint32_t db_index = 0;
 };
 
+// WHO IS HOLDING THE PARSE BARRIER. Six independent mechanisms park a connection's parse pass, and
+// they used to share ONE bool -- so any one of them could clear a barrier another one still needed.
+// No reachable interleaving overlapped two owners (see NOTES-BARRIER.md section 2: a blocking op is
+// provably alone in its ROB, and every other owner ends the parse pass on the spot), which is
+// exactly why the bool survived: the hazard is one relaxed guard away, not present. Owner bits make
+// the release symmetric with the acquire -- whoever set it is the one whose release can drop it --
+// and cost nothing: the byte was already there, and "is any owner holding" is still one byte test.
+//
+// Adding an owner? Add a bit here and acquire it at the site that parks the connection. Do NOT
+// reuse another owner's bit to save one; that is the shared flag this enum exists to retire.
+enum class BarrierOwner : uint8_t {
+    Scatter  = 1u << 0,  // two-hop store / all-shards fan-out; io_loop.h nonblocking_dispatch
+    Blocking = 1u << 1,  // BLPOP-family, and the move scatter blocking_resume_move converts it into
+    Wait     = 1u << 2,  // deferred WAIT parked on its own deadline
+    Exec     = 1u << 3,  // EXEC fan-out; multi.inc
+    PubSub   = 1u << 4,  // (P|S)(UN)SUBSCRIBE transition awaiting its channel homes
+    Climon   = 1u << 5,  // CLIENT UNBLOCK (remote owner), CLIENT LIST / CLIENT KILL fan-out
+    // 1u << 6 is the one spare production bit. Client is footprint-locked, so a SEVENTH owner
+    // takes it; an eighth needs a real layout decision, not a wider field.
+    //
+    // Test-only, and deliberately NOT released by the quiescence backstop -- it exists to hold the
+    // barrier PAST ROB quiescence, which is the state no production sequence can currently produce
+    // and the one the owner-scoped release must survive. Armed only by DEBUG BARRIER-HOLD.
+    Debug    = 1u << 7,
+};
+
 enum class SegmentKind : uint8_t { Buf = 0, Borrow = 1, Static = 2 };
 
 struct ReplySegment {
@@ -517,8 +543,30 @@ public:
     // pipelined FLUSHALL;DBSIZE answers the PRE-flush count). Set only on successful publish;
     // cleared at ROB quiescence — the scatter is necessarily the newest op, since nothing parses
     // behind it. Same-client read-your-own-writes hazard: a sanctioned stall.
-    bool scatter_barrier() const { return scatter_barrier_; }
-    void set_scatter_barrier(bool v) { scatter_barrier_ = v; }
+    //
+    // The gate the parse loop asks is unchanged and stays one byte test against zero: the owner
+    // set is a MASK in the byte the bool already occupied (see BarrierOwner), not a new field.
+    bool scatter_barrier() const { return barrier_owners_ != 0; }
+    bool barrier_held_by(BarrierOwner who) const {
+        return (barrier_owners_ & static_cast<uint8_t>(who)) != 0;
+    }
+    void barrier_acquire(BarrierOwner who) {
+        barrier_owners_ = static_cast<uint8_t>(barrier_owners_ | static_cast<uint8_t>(who));
+    }
+    // Drops one owner's claim. Returns TRUE when this release was the last one — i.e. when the
+    // connection is actually released. A false return is the event the old unconditional clear got
+    // wrong; its callers count it, which is what makes a validation run able to fail.
+    bool barrier_release(BarrierOwner who) {
+        barrier_owners_ = static_cast<uint8_t>(barrier_owners_ & ~static_cast<uint8_t>(who));
+        return barrier_owners_ == 0;
+    }
+    // The backstop, at ROB quiescence: with nothing in flight every PRODUCTION owner has completed
+    // by definition, so quiescence releases them all in one store. Only the injected test owner is
+    // exempt, and only because holding past quiescence is the whole point of it.
+    void barrier_release_quiesced() {
+        barrier_owners_ =
+            static_cast<uint8_t>(barrier_owners_ & static_cast<uint8_t>(BarrierOwner::Debug));
+    }
     // Resource backpressure is deliberately distinct from the semantic scatter barrier. It keeps
     // this connection's unconsumed frame parked only while the global memory valve is full; as
     // soon as any group retires, parsing may resume without waiting for this connection's ROB.
@@ -649,7 +697,12 @@ private:
     bool      in_active_     = false;
     bool      closing_       = false;
     bool      dead_          = false;
-    bool      scatter_barrier_ = false;  // pads out the existing bool run; sizeof unchanged
+    // BarrierOwner mask, not a bool. Same byte, same offset, same alignment: it occupies the slot
+    // the bool held inside the FULL 48..55 bool run (connection_flags_ is static_asserted at 55
+    // below), so the io-hot head does not move and sizeof(Client) is unchanged. Widening it past
+    // uint8_t would displace connection_flags_ and grow the 64-byte-aligned Client -- a seventh
+    // owner takes the one spare bit (1u << 6), it does not grow the field.
+    uint8_t   barrier_owners_ = 0;
     bool      atomic_backpressure_ = false;
     bool      subscriber_mode_ = false;  // IO-owned; consumes existing alignment padding
     // The former blocked_ bool is a one-byte flag cell. RESP3 shares it instead of extending the

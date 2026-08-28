@@ -858,6 +858,33 @@ void cmd_debug_impl(Shard&, Op& op) {
         reply_ok(op.sink());
         return;
     }
+    // GEOMETRY INJECTOR for the parse-barrier ownership regression. While armed, every blocking
+    // dispatch pins a SECOND owner on its connection's parse barrier, so the blocking command's
+    // retirement releases a barrier it does not solely own. That two-owner state is unreachable on
+    // any production sequence (NOTES-BARRIER.md section 2) -- which is why it must be injected
+    // rather than provoked, and why a battery that only replays real command sequences proves
+    // nothing about this code. Production default is 0.
+    //
+    // Observable while armed: a frame pipelined BEHIND a blocking command stays unparsed after the
+    // blocking reply retires, instead of being answered in the same flush pass. Clearing the latch
+    // resumes it. Assert on barrier_releases_held in INFO STATS too -- if that did not move, the
+    // hold never overlapped a retirement and the timing arm measured nothing.
+    //
+    // A LATCH, NOT A DURATION: a barred connection's io thread parks unbounded under io_uring, so
+    // nothing would ever notice a clock expiring. Clear it from ANOTHER connection (the barred one
+    // cannot be parsed, by construction) and then wake the io threads -- CLIENT LIST fans out to
+    // every one of them and is the cheapest existing way to do it.
+    if (eq_icase(subcommand, "barrier-hold") && op.argc() == 3) {
+        uint64_t armed = 0;
+        if (!parse_u64(op.arg(2), armed) || armed > 1) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        g_server->set_debug_barrier_hold(static_cast<uint32_t>(armed));
+        reply_ok(op.sink());
+        return;
+    }
     // Which owner a key routes to. The hash seed is drawn from the kernel at every boot, so a test
     // cannot know from the key name alone whether a two-key command is one owner's work or a real
     // cross-shard group -- and a cross-shard battery that silently ran same-owner proves nothing.
@@ -1708,7 +1735,8 @@ void cmd_info(Shard&, Op& op) {
                       "slowlog_batches_timed:%llu\r\nslowlog_escalations:%llu\r\n"
                       "slowlog_entries_recorded:%llu\r\nlatency_events_recorded:%llu\r\n"
                       "net_io_epoll_events:%llu\r\nnet_io_epoll_recvs:%llu\r\n"
-                      "oob_frames_segmented:%llu\r\noob_frames_deferred:%llu\r\n",
+                      "oob_frames_segmented:%llu\r\noob_frames_deferred:%llu\r\n"
+                      "barrier_owner_overlaps:%llu\r\nbarrier_releases_held:%llu\r\n",
                 static_cast<unsigned long long>(connections), static_cast<unsigned long long>(rejected),
                 static_cast<unsigned long long>(total_ops), static_cast<unsigned long long>(hits),
                 static_cast<unsigned long long>(misses), static_cast<unsigned long long>(expired),
@@ -1850,7 +1878,15 @@ void cmd_info(Shard&, Op& op) {
                 // Out-of-band frame channel: a push battery that cannot see these move never
                 // reached the non-quiesced / mid-drain geometry it is there to cover.
                 static_cast<unsigned long long>(g_server ? g_server->oob_frames_segmented() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->oob_frames_deferred() : 0));
+                static_cast<unsigned long long>(g_server ? g_server->oob_frames_deferred() : 0),
+                // barrier_owner_overlaps must read 0 on any production run: it is the live
+                // assertion behind NOTES-BARRIER.md's reachability verdict. barrier_releases_held
+                // is the fired-mechanism proof for DEBUG BARRIER-HOLD -- a barrier-ownership test
+                // that leaves it at 0 never reached its geometry and must fail, not pass.
+                static_cast<unsigned long long>(
+                    g_server ? g_server->barrier_owner_overlaps() : 0),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->barrier_releases_held() : 0));
     }
     if (info_section(op, "COMMANDSTATS")) {
         body += "# Commandstats\r\n";
