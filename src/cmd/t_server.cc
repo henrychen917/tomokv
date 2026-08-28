@@ -8,6 +8,7 @@
 #include "auth.h"
 #include "cmdmeta.h"
 #include "debug.h"
+#include "info_stats.h"
 #include "scripting.h"
 #include "server_tail.h"
 #include "slowlog.h"
@@ -972,6 +973,10 @@ void cmd_debug_impl(Shard&, Op& op) {
         reply_err(op.sink(), "ERR internal DEBUG LOADAOF routing error");
         return;
     }
+    if (eq_icase(subcommand, "borrowcount") && op.argc() == 2) {
+        reply_err(op.sink(), "ERR internal DEBUG BORROWCOUNT routing error");
+        return;
+    }
     if (eq_icase(subcommand, "reload") && op.argc() == 2) {
         reply_err(op.sink(), "ERR internal DEBUG RELOAD routing error");
         return;
@@ -1355,9 +1360,12 @@ void cmd_config(Shard& sh, Op& op) {
 // the cross-thread reads INFO already performs, so nothing new is shared.
 struct StatBaseline {
     uint64_t total_ops = 0;
+    uint64_t sampled_ops = 0;
     uint64_t connections = 0;
     uint64_t hits = 0, misses = 0, expired = 0, evicted = 0;
     uint64_t rejected = 0, auth_failures = 0;
+    uint64_t net_input_bytes = 0, net_output_bytes = 0;
+    uint64_t object_bytes = 0;
     uint64_t acl_denied_cmd = 0, acl_denied_key = 0, acl_denied_channel = 0, acl_denied_auth = 0;
     std::vector<uint64_t> command_calls;
 };
@@ -1374,6 +1382,7 @@ void collect_stat_totals(StatBaseline& out) {
         out.misses += sh.stats().misses;
         out.expired += sh.stats().expired;
         out.evicted += sh.published_evicted();
+        out.object_bytes += sh.published_obj_bytes();
     }
     out.command_calls.assign(command_registry_size(), 0);
     for (uint32_t t = 0; t < g_server->nthreads(); t++) {
@@ -1382,6 +1391,7 @@ void collect_stat_totals(StatBaseline& out) {
             const uint64_t calls = thread.command_calls(id);
             out.command_calls[id] += calls;
             out.total_ops += calls;
+            if (std::strcmp(command_registry_at(id)->name, "INFO")) out.sampled_ops += calls;
         }
         const LoopSignals& sig = thread.sig();
         out.connections += sig.accepts;
@@ -1389,6 +1399,8 @@ void collect_stat_totals(StatBaseline& out) {
         out.acl_denied_key += sig.acl_access_denied_key;
         out.acl_denied_channel += sig.acl_access_denied_channel;
         out.acl_denied_auth += sig.acl_access_denied_auth;
+        out.net_input_bytes += sig.net_input_bytes;
+        out.net_output_bytes += sig.net_output_bytes;
     }
     out.rejected = g_server->rejected_conns() + g_server->rejected_connections();
     out.auth_failures = g_server->auth_failures();
@@ -1401,15 +1413,19 @@ inline uint64_t minus_baseline(uint64_t live, uint64_t base) {
 }
 
 bool info_section(Op& op, const char* wanted) {
+    // EVERYTHING is the reference's alias for ALL plus module-generated sections. We load no
+    // modules, so the two are identical here -- but omitting it made `INFO everything` match no
+    // section at all and return an EMPTY reply, where the reference returns every section.
     return op.argc() == 1 || eq_icase(op.arg(1), "ALL") || eq_icase(op.arg(1), "DEFAULT") ||
-           eq_icase(op.arg(1), wanted);
+           eq_icase(op.arg(1), "EVERYTHING") || eq_icase(op.arg(1), wanted);
 }
 
 void cmd_info(Shard&, Op& op) {
     std::string body;
     uint64_t keys = 0, expires = 0, obj_bytes = 0, hits = 0, misses = 0, expired = 0,
              evicted = 0, keyspace_rehashes = 0;
-    uint64_t total_ops = 0, connections = 0, rejected = 0;
+    uint64_t total_ops = 0, sampled_ops = 0, connections = 0, rejected = 0;
+    uint64_t net_input_bytes = 0, net_output_bytes = 0, auth_failures = 0;
     uint64_t acl_denied_cmd = 0, acl_denied_key = 0, acl_denied_channel = 0,
              acl_denied_auth = 0;
     uint64_t atomic_predecessor_reads = 0, atomic_chain_max = 0,
@@ -1458,8 +1474,11 @@ void cmd_info(Shard&, Op& op) {
             blocking_waiters += sh.blocking_waiters();
         }
         for (uint32_t t = 0; t < g_server->nthreads(); t++) {
-            for (uint32_t id = 0; id < command_registry_size(); id++)
-                total_ops += g_server->thread(t).command_calls(id);
+            for (uint32_t id = 0; id < command_registry_size(); id++) {
+                const uint64_t calls = g_server->thread(t).command_calls(id);
+                total_ops += calls;
+                if (!op.spec || id != op.spec->id) sampled_ops += calls;
+            }
             connections += g_server->thread(t).sig().accepts;
             atomic_localfast += g_server->thread(t).atomic_localfast();
             atomic_scan_holds += g_server->thread(t).atomic_scan_holds();
@@ -1485,10 +1504,13 @@ void cmd_info(Shard&, Op& op) {
             tls_ktls_fallback += sig.tls_ktls_fallback;
             epoll_events += sig.epoll_events;
             epoll_recvs += sig.epoll_recvs;
+            net_input_bytes += sig.net_input_bytes;
+            net_output_bytes += sig.net_output_bytes;
         }
         // Redis counts BOTH accept-time reject classes in rejected_connections: maxclients
         // (networking.c:1355) and protected-mode denials (networking.c:1306).
         rejected = g_server->rejected_conns() + g_server->rejected_connections();
+        auth_failures = g_server->auth_failures();
     }
     // Apply the CONFIG RESETSTAT baseline to exactly the counters redis's RESETSTAT zeroes.
     StatBaseline baseline;
@@ -1503,6 +1525,9 @@ void cmd_info(Shard&, Op& op) {
     expired = minus_baseline(expired, baseline.expired);
     evicted = minus_baseline(evicted, baseline.evicted);
     rejected = minus_baseline(rejected, baseline.rejected);
+    net_input_bytes = minus_baseline(net_input_bytes, baseline.net_input_bytes);
+    net_output_bytes = minus_baseline(net_output_bytes, baseline.net_output_bytes);
+    auth_failures = minus_baseline(auth_failures, baseline.auth_failures);
     acl_denied_cmd = minus_baseline(acl_denied_cmd, baseline.acl_denied_cmd);
     acl_denied_key = minus_baseline(acl_denied_key, baseline.acl_denied_key);
     acl_denied_channel = minus_baseline(acl_denied_channel, baseline.acl_denied_channel);
@@ -1526,6 +1551,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(g_server ? g_server->climon_monitors() : 0));
     }
     if (info_section(op, "MEMORY")) {
+        const uint64_t object_peak = info_stats_observe_memory(obj_bytes);
         size_t allocated = 0, resident = 0;
 #if defined(TOMO_JEMALLOC)
         uint64_t epoch = 1; size_t epoch_size = sizeof(epoch);
@@ -1537,7 +1563,7 @@ void cmd_info(Shard&, Op& op) {
                       "used_memory_rss:%llu\r\nused_memory_peak:%llu\r\n"
                       "mem_allocator:%s\r\nallocator_allocated:%llu\r\nallocator_resident:%llu\r\n",
                 static_cast<unsigned long long>(obj_bytes), static_cast<unsigned long long>(obj_bytes),
-                static_cast<unsigned long long>(resident), static_cast<unsigned long long>(obj_bytes),
+                static_cast<unsigned long long>(resident), static_cast<unsigned long long>(object_peak),
                 alloc_backend(), static_cast<unsigned long long>(allocated),
                 static_cast<unsigned long long>(resident));
     }
@@ -1555,7 +1581,7 @@ void cmd_info(Shard&, Op& op) {
                 "aof_rewrite_scheduled:%u\r\naof_last_bgrewrite_status:%s\r\n"
                 "aof_last_write_status:%s\r\naof_base_size:%llu\r\n"
                 "aof_current_size:%llu\r\naof_pending_rewrite:%u\r\n"
-                "aof_delayed_fsync:0\r\naof_records_written:%llu\r\n"
+                "aof_records_written:%llu\r\n"
                 "aof_replayed_records:%llu\r\naof_groups_committed:%llu\r\n"
                 "aof_groups_skipped_on_replay:%llu\r\naof_fsyncs:%llu\r\n"
                 "aof_send_gate_waits:%llu\r\naof_control_frames_deferred:%llu\r\n"
@@ -1598,12 +1624,13 @@ void cmd_info(Shard&, Op& op) {
     if (info_section(op, "STATS")) {
         const ScriptStats scripting = script_stats();
         const FunctionStats functions = function_stats();
+        const uint64_t sampled_rate = info_stats_sample_ops(sampled_ops);
         appendf(body, "# Stats\r\ntotal_connections_received:%llu\r\nrejected_connections:%llu\r\n"
                       "total_commands_processed:%llu\r\nkeyspace_hits:%llu\r\nkeyspace_misses:%llu\r\n"
-                      "expired_keys:%llu\r\nevicted_keys:%llu\r\ninstantaneous_ops_per_sec:0\r\n"
+                      "expired_keys:%llu\r\nevicted_keys:%llu\r\ninstantaneous_ops_per_sec:%llu\r\n"
                       "expired_hash_fields:%llu\r\nhash_field_expires:%llu\r\n"
                       "keyspace_rehashes:%llu\r\n"
-                      "total_net_input_bytes:0\r\ntotal_net_output_bytes:0\r\n"
+                      "total_net_input_bytes:%llu\r\ntotal_net_output_bytes:%llu\r\n"
                       "auth_failures:%llu\r\n"
                       "acl_access_denied_auth:%llu\r\nacl_access_denied_cmd:%llu\r\n"
                       "acl_access_denied_key:%llu\r\nacl_access_denied_channel:%llu\r\n"
@@ -1665,15 +1692,19 @@ void cmd_info(Shard&, Op& op) {
                       "tracking_total_prefixes:%llu\r\ntracking_invalidations:%llu\r\n"
                       "slowlog_batches_timed:%llu\r\nslowlog_escalations:%llu\r\n"
                       "slowlog_entries_recorded:%llu\r\nlatency_events_recorded:%llu\r\n"
-                      "net_io_epoll_events:%llu\r\nnet_io_epoll_recvs:%llu\r\n",
+                      "net_io_epoll_events:%llu\r\nnet_io_epoll_recvs:%llu\r\n"
+                      "oob_frames_segmented:%llu\r\noob_frames_deferred:%llu\r\n",
                 static_cast<unsigned long long>(connections), static_cast<unsigned long long>(rejected),
                 static_cast<unsigned long long>(total_ops), static_cast<unsigned long long>(hits),
                 static_cast<unsigned long long>(misses), static_cast<unsigned long long>(expired),
                 static_cast<unsigned long long>(evicted),
+                static_cast<unsigned long long>(sampled_rate),
                 static_cast<unsigned long long>(expired_hash_fields),
                 static_cast<unsigned long long>(hash_field_expires),
                 static_cast<unsigned long long>(keyspace_rehashes),
-                static_cast<unsigned long long>(g_server ? g_server->auth_failures() : 0),
+                static_cast<unsigned long long>(net_input_bytes),
+                static_cast<unsigned long long>(net_output_bytes),
+                static_cast<unsigned long long>(auth_failures),
                 static_cast<unsigned long long>(acl_denied_auth),
                 static_cast<unsigned long long>(acl_denied_cmd),
                 static_cast<unsigned long long>(acl_denied_key),
@@ -1793,7 +1824,11 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(slowlog_entries_recorded()),
                 static_cast<unsigned long long>(latency_events_recorded()),
                 static_cast<unsigned long long>(epoll_events),
-                static_cast<unsigned long long>(epoll_recvs));
+                static_cast<unsigned long long>(epoll_recvs),
+                // Out-of-band frame channel: a push battery that cannot see these move never
+                // reached the non-quiesced / mid-drain geometry it is there to cover.
+                static_cast<unsigned long long>(g_server ? g_server->oob_frames_segmented() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->oob_frames_deferred() : 0));
     }
     if (info_section(op, "COMMANDSTATS")) {
         body += "# Commandstats\r\n";
@@ -1805,13 +1840,13 @@ void cmd_info(Shard&, Op& op) {
                 calls = minus_baseline(calls, baseline.command_calls[id]);
             if (!calls) continue;
             const std::string name = lower_name(command_registry_at(id)->name);
-            appendf(body, "cmdstat_%s:calls=%llu,usec=0,usec_per_call=0.00,rejected_calls=0,failed_calls=0\r\n",
+            appendf(body, "cmdstat_%s:calls=%llu\r\n",
                     name.c_str(), static_cast<unsigned long long>(calls));
         }
     }
     if (info_section(op, "KEYSPACE")) {
         body += "# Keyspace\r\n";
-        appendf(body, "db0:keys=%llu,expires=%llu,avg_ttl=0\r\n",
+        appendf(body, "db0:keys=%llu,expires=%llu\r\n",
                 static_cast<unsigned long long>(keys), static_cast<unsigned long long>(expires));
     }
     if (g_server && info_section(op, "LB")) lbsignals_info_section(*g_server, body);
@@ -2031,6 +2066,7 @@ void command_config_resetstat() {
     // cross-thread reads INFO already performs on every call, so no new sharing is introduced.
     StatBaseline baseline;
     collect_stat_totals(baseline);
+    info_stats_reset(baseline.sampled_ops, baseline.object_bytes);
     std::lock_guard<std::mutex> lock(g_stat_baseline_mu);
     g_stat_baseline = baseline;
 }
@@ -2039,6 +2075,7 @@ void command_bind_server(Server* server) {
     g_server = server;
     scripting_bind_server(server);
     g_started_monotonic_ns = now_ns();
+    info_stats_reset(0, 0);
     if (server) { init_config(server->cfg()); slowlog_configure(server->cfg()); }
 }
 
@@ -2248,7 +2285,8 @@ bool command_config_routes_all_shards(Op& op) {
     if (op.cmd_name().eq_icase("dbsize")) return op.argc() == 2 && eq_icase(op.arg(1), "NOW");
     if (op.cmd_name().eq_icase("debug"))
         return op.argc() == 2 &&
-               (eq_icase(op.arg(1), "reload") || eq_icase(op.arg(1), "loadaof"));
+               (eq_icase(op.arg(1), "reload") || eq_icase(op.arg(1), "loadaof") ||
+                eq_icase(op.arg(1), "borrowcount"));
     return op.argc() >= 2 && eq_icase(op.arg(1), "SET");
 }
 

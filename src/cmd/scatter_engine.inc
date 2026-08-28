@@ -9,7 +9,7 @@
 namespace tomo {
 namespace {
 enum class Kind : uint8_t {
-    AllShards, DebugReload, DebugLoadAof, DbsizeExact, Mget, Mset, Del, Unlink, Exists, Touch, Keys, Pfcount, Xread, Xreadgroup, Lcs, Msetnx,
+    AllShards, DebugReload, DebugLoadAof, DebugBorrowCount, DbsizeExact, Mget, Mset, Del, Unlink, Exists, Touch, Keys, Pfcount, Xread, Xreadgroup, Lcs, Msetnx,
     Rename, Renamenx, Copy, Smove, Lmove, Rpoplpush,
     Sinter, Sunion, Sdiff, Sintercard, Sinterstore, Sunionstore, Sdiffstore,
     Zunion, Zinter, Zdiff, Zintercard, Zunionstore, Zinterstore, Zdiffstore,
@@ -394,6 +394,9 @@ struct ScatterState : SnapshotCut {
     bool script_has_writes = false;
     bool script_stage_limit = false;
     bool script_certifier = false;
+    // Set for a child lowered inside EXEC. The child keeps its own decision words, but the parent
+    // publishes their common ticket and owns the outer transaction decision.
+    bool multi_child = false;
     bool barrier = false;
     bool pooled = false;
     bool copy_replace = false;
@@ -417,10 +420,10 @@ struct ScatterState : SnapshotCut {
     // See Server::atomic_apply_inflight() for why the snapshot cut waits on this and not on the
     // admission lease.
     std::atomic<bool> apply_open{false};
-    // A MULTI child retains its own routing/result lifetime but publishes through its parent's one
-    // ticket and abort word. Null is the ordinary one-command group path.
-    std::atomic<uint64_t>* external_epoch = nullptr;
-    std::atomic<bool>* external_aborted = nullptr;
+    // A MULTI child's records deliberately point at the CHILD epoch/abort words: a runtime error
+    // cancels that one queued command without turning the whole EXEC into EXECABORT. The parent
+    // finalizer installs one common ticket into every successful decision word before advancing
+    // the safe watermark.
     bool contents_freed = false;
     bool retired = false;
     bool two_hop = false;
@@ -527,11 +530,11 @@ ShardGroup* group_for(ScatterState& state, int32_t shard) {
 }
 
 std::atomic<uint64_t>* publish_epoch(ScatterState& state) {
-    return state.external_epoch ? state.external_epoch : &state.epoch;
+    return &state.epoch;
 }
 
 std::atomic<bool>* publish_aborted(ScatterState& state) {
-    return state.external_aborted ? state.external_aborted : &state.aborted;
+    return &state.aborted;
 }
 
 ResultHeap* ensure_result(ScatterState& state) {
@@ -634,7 +637,7 @@ uint32_t key_count_for(Kind kind, const Op& op, uint32_t sinter_count,
                        uint32_t mpop_count, bool sort_store, uint32_t xread_count = 0,
                        uint32_t zset_count = 0, bool geo_store = false) {
     if (kind == Kind::AllShards || kind == Kind::DebugReload || kind == Kind::DebugLoadAof ||
-        kind == Kind::DbsizeExact || kind == Kind::Keys) return 0;
+        kind == Kind::DebugBorrowCount || kind == Kind::DbsizeExact || kind == Kind::Keys) return 0;
     if (kind == Kind::Mset || kind == Kind::Msetnx) return (op.argc() - 1) / 2;
     if (kind == Kind::Bitop) return op.argc() - 2;
     if (kind == Kind::Rename || kind == Kind::Renamenx || kind == Kind::Copy ||
@@ -1056,7 +1059,7 @@ bool publish_phase2(Server& server, ThreadCtx& self, Ring& ring, const Task& tas
         }
     }
     state.phase = 2;
-    if (!state.external_epoch && !aof_prepare_scatter_group(state)) {
+    if (!state.multi_child && !aof_prepare_scatter_group(state)) {
         state.aborted.store(true, std::memory_order_release);
         state.final_reply = FinalReply::Work;
         state.final_error = WorkError::Oom;
@@ -1200,6 +1203,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     Kind kind;
     if (all_shards)
         kind = op.cmd_name().eq_icase("dbsize") ? Kind::DbsizeExact :
+               op.cmd_name().eq_icase("debug") && op.arg(1).eq_icase("borrowcount")
+                   ? Kind::DebugBorrowCount :
                op.cmd_name().eq_icase("debug") && op.arg(1).eq_icase("loadaof")
                    ? Kind::DebugLoadAof :
                op.cmd_name().eq_icase("debug") ? Kind::DebugReload : Kind::AllShards;
@@ -1233,7 +1238,12 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     std::unique_ptr<SnapshotLoadPlan> aof_reload_base;
     std::vector<std::unique_ptr<AofReplayPlan>> aof_reload_increments;
     if (all_shards) {
-        if (kind == Kind::DebugReload) {
+        if (kind == Kind::DebugBorrowCount) {
+            if (!debug_command_allowed(server, origin_client)) {
+                reply_debug_command_denied(op);
+                return ScatterPrepare::Error;
+            }
+        } else if (kind == Kind::DebugReload) {
             if (!debug_command_allowed(server, origin_client)) {
                 reply_debug_command_denied(op);
                 return ScatterPrepare::Error;
@@ -1493,7 +1503,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                              (kind == Kind::Sort && sort_options.store)) ? 1u : 0u;
     uint32_t group_cap = 0;
     if (kind == Kind::AllShards || kind == Kind::DebugReload || kind == Kind::DebugLoadAof ||
-        kind == Kind::DbsizeExact || kind == Kind::Keys) {
+        kind == Kind::DebugBorrowCount || kind == Kind::DbsizeExact || kind == Kind::Keys) {
         group_cap = server.nshards();
     } else if (atomic_write) {
         bool seen[256] = {};
@@ -1700,7 +1710,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     }
 
     if (kind == Kind::AllShards || kind == Kind::DebugReload || kind == Kind::DebugLoadAof ||
-        kind == Kind::DbsizeExact || kind == Kind::Keys) {
+        kind == Kind::DebugBorrowCount || kind == Kind::DbsizeExact || kind == Kind::Keys) {
         state->nsub = server.nshards();
         for (uint32_t sid = 0; sid < state->nsub; sid++) {
             state->groups[sid].shard = sid;
@@ -1813,7 +1823,7 @@ void xshard_aof_emit(const Task& task, Shard& shard, Op& op, AofOwnerContext& co
         return;
     }
     if (state.kind == Kind::DebugReload || state.kind == Kind::DebugLoadAof ||
-        state.kind == Kind::DbsizeExact ||
+        state.kind == Kind::DebugBorrowCount || state.kind == Kind::DbsizeExact ||
         state.kind == Kind::Keys) return;
     ShardGroup* group = group_for(state, shard.id());
     if (!group) return;
@@ -2626,7 +2636,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 const uint32_t pos = state.key_order[group.begin];
                 const KeyRef& key = state.keys[pos];
                 bool plain_active = false;
-                if (!state.external_epoch &&
+                if (!state.multi_child &&
                     shard.store().atomic_needs_version(key.hash, op.arg(key.arg))) {
                     const WorkError prepared = begin_plain_version(
                         *state.server, shard, op.arg(key.arg), key.hash,
@@ -2780,6 +2790,12 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 }
                 return ScatterTaskResult::Complete;
             }
+            case Kind::DebugBorrowCount:
+                // Cold, owner-thread inspection of the registry's existing exact reference count.
+                // No publication counter or ordinary borrow/reply-path work is needed.
+                state.exact_sum.fetch_add(
+                    shard.store().outstanding_borrows(), std::memory_order_relaxed);
+                return ScatterTaskResult::Complete;
             case Kind::DbsizeExact:
                 state.exact_sum.fetch_add(
                     shard.store().atomic_resolved_size(state.snapshot), std::memory_order_relaxed);
@@ -3317,7 +3333,7 @@ ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
             }
             return final();
         }
-        if (!state.external_epoch) {
+        if (!state.multi_child) {
             const uint64_t ticket = server.atomic_commit_group(state.epoch);
             aof_commit_scatter_group(state, self, ring, ticket);
         }
@@ -3363,10 +3379,8 @@ ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
 
 enum class MultiChildFinish : uint8_t { Waiting, PhaseAdvanced, Final };
 
-void xshard_multi_child_bind(ScatterState& state, std::atomic<uint64_t>* epoch,
-                             std::atomic<bool>* aborted) {
-    state.external_epoch = epoch;
-    state.external_aborted = aborted;
+void xshard_multi_child_bind(ScatterState& state) {
+    state.multi_child = true;
 }
 
 void xshard_multi_child_capture_groups(ScatterState& state,

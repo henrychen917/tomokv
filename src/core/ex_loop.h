@@ -422,6 +422,19 @@ private:
         return true;
     }
 
+    FlatStore::SnapshotWriteResult snapshot_prepare_plain_write(Op& op, Shard& shard) {
+        if (!(op.spec->flags & CmdFlags::SubcmdRoute))
+            return shard.store().snapshot_prepare_write(op.hash, op.key());
+
+        // A routed container's key position belongs to its selected child, not argv[1].  The
+        // registered position is still the common keyed-child position; a short keyless child
+        // such as XGROUP HELP has no pre-image to capture.
+        const int16_t first_key = op.spec->first_key;
+        if (first_key <= 0 || static_cast<uint32_t>(first_key) >= op.argc())
+            return FlatStore::SnapshotWriteResult::Ready;
+        return shard.store().snapshot_prepare_write(op.hash, op.arg(first_key));
+    }
+
     bool execute_snapshot_task(const Task& task, bool capture_writes) {
         // MULTI's tagged task owns its command images outside the public ROB and performs the
         // snapshot pre-image gate per installed transaction key.  Never decode it as a normal op.
@@ -449,7 +462,7 @@ private:
                 ? xshard_snapshot_prepare(task, shard)
                 : xshard_is_local(op)
                     ? xshard_local_snapshot_prepare(op, shard)
-                    : shard.store().snapshot_prepare_write(op.hash, op.key());
+                    : snapshot_prepare_plain_write(op, shard);
             if (result == FlatStore::SnapshotWriteResult::Pending) return false;
             if (result == FlatStore::SnapshotWriteResult::Error) {
                 snapshot_manager_->fail(snapshot_epoch_, "snapshot pre-image serialization failed");

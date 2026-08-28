@@ -5438,6 +5438,32 @@ def run_s6fix_suite(rng):
 if SUITE == "s6fix":
     sys.exit(1 if run_s6fix_suite(rng) else 0)
 
+
+def gen_infofix(rng):
+    """Stable byte stream surrounding INFO's non-byte-comparable telemetry properties."""
+    keys = ["ifxd:%02d" % index for index in range(32)]
+    ops = []
+    for iteration in range(4200):
+        key = rng.choice(keys)
+        choice = rng.randrange(9)
+        if choice < 2:
+            ops.append(["SET", key, "v:%d:%d" % (iteration, rng.randrange(100000))])
+        elif choice == 2:
+            ops.append(["GET", key])
+        elif choice == 3:
+            ops.append(["DEL", key])
+        elif choice == 4:
+            ops.append(["EXISTS", key])
+        elif choice == 5:
+            ops.append(["TYPE", key])
+        elif choice == 6:
+            ops.append(["APPEND", key, "x%d" % rng.randrange(100)])
+        elif choice == 7:
+            ops.append(["STRLEN", key])
+        else:
+            ops.append(["PING"])
+    return ops
+
 gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset,
         "hash": gen_hash, "hexpire": gen_hexpire, "edgetime": gen_edgetime,
         "xshard": gen_xshard, "xmove": gen_xmove, "bitmap": gen_bitmap,
@@ -5450,7 +5476,7 @@ gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset
         "cmdgap2": gen_cmdgap2,
         "sort": gen_sort,
         "servertail": gen_servertail, "arity": gen_arity,
-        "storeorder": gen_storeorder}
+        "storeorder": gen_storeorder, "infofix": gen_infofix}
 if LIST_GENERATORS:
     # This is the single suite inventory. Property suites live outside `gens` because their
     # replies are not byte-comparable, but the gate discovers them from this same list.
@@ -5838,6 +5864,112 @@ if SUITE == "scan":
                 diffs += 1
                 print("  SCAN-COMPLETENESS FAIL %s COUNT=%d: both sides empty, the check is "
                       "vacuous" % (label, count))
+
+if SUITE == "infofix":
+    # INFO is telemetry, so its values cannot be byte-compared across two implementations. Keep
+    # the 4200-command state stream byte-exact above, then validate the same invariants on each side.
+    def issue(sock, file, argv):
+        sock.sendall(enc(argv))
+        return read_reply(file)
+
+    def fields(sock, file, section):
+        parsed = parse_reply(issue(sock, file, ["INFO", section]))
+        if not isinstance(parsed, bytes): return {}
+        out = {}
+        for line in parsed.split(b"\r\n"):
+            if b":" in line:
+                name, value = line.split(b":", 1)
+                out[name.decode()] = value.decode(errors="replace")
+        return out
+
+    def property_fail(label, detail):
+        global diffs
+        diffs += 1
+        print("  INFOFIX PROPERTY FAIL %s: %s" % (label, detail))
+
+    # RESETSTAT byte baselines: before the INFO reply itself is sent, the only post-reset output is
+    # +OK and the only input is this exact INFO request. This is the zero-delta control for both
+    # byte detectors.
+    info_request_bytes = len(enc(["INFO", "STATS"]))
+    for side, (sock, file) in (("target", (ts, tf)), ("oracle", (os_, of))):
+        reset = issue(sock, file, ["CONFIG", "RESETSTAT"])
+        stats = fields(sock, file, "stats")
+        got = (int(stats.get("total_net_input_bytes", "-1")),
+               int(stats.get("total_net_output_bytes", "-1")))
+        want = (info_request_bytes, len(reset))
+        if got != want: property_fail(side + " byte control", "got=%r want=%r" % (got, want))
+    print("  infofix byte controls: target+oracle exact")
+
+    # Commandstats deliberately exposes only the one member TomoKV measures.
+    issue(ts, tf, ["PING"])
+    commandstats = fields(ts, tf, "commandstats")
+    members = dict(item.split("=", 1)
+                   for item in commandstats.get("cmdstat_ping", "").split(",") if "=" in item)
+    if int(members.get("calls", "0")) < 1 or set(members) != {"calls"}:
+        property_fail("commandstats members", repr(members))
+
+    # Unsupported telemetry is absent, while the useful sampled and byte counters stay present.
+    persistence = fields(ts, tf, "persistence")
+    issue(ts, tf, ["SET", "ifxd:ttl", "v", "PX", "60000"])
+    keyspace = fields(ts, tf, "keyspace")
+    stats = fields(ts, tf, "stats")
+    if "aof_delayed_fsync" in persistence:
+        property_fail("delayed fsync omission", "row present")
+    if "avg_ttl=" in keyspace.get("db0", ""):
+        property_fail("avg_ttl omission", keyspace.get("db0", ""))
+    for required in ("instantaneous_ops_per_sec", "total_net_input_bytes",
+                     "total_net_output_bytes"):
+        if required not in stats: property_fail("required metric", required + " absent")
+
+    # Both implementations must retain a peak after current memory falls. TomoKV additionally
+    # follows this lane's explicit RESETSTAT re-base requirement.
+    memory_points = {}
+    for side, (sock, file) in (("target", (ts, tf)), ("oracle", (os_, of))):
+        issue(sock, file, ["FLUSHALL"])
+        issue(sock, file, ["CONFIG", "RESETSTAT"])
+        base = fields(sock, file, "memory")
+        issue(sock, file, ["SET", "ifxd:peak", "x" * 512000])
+        high = fields(sock, file, "memory")
+        issue(sock, file, ["DEL", "ifxd:peak"])
+        low = fields(sock, file, "memory")
+        point = tuple(int(rows[name]) for rows in (base, high, low)
+                      for name in ("used_memory", "used_memory_peak"))
+        memory_points[side] = point
+        base_used, _, high_used, high_peak, low_used, low_peak = point
+        if not (high_used > base_used and low_used < high_used and
+                high_peak >= high_used and low_peak >= high_peak):
+            property_fail(side + " memory peak", repr(point))
+    issue(ts, tf, ["CONFIG", "RESETSTAT"])
+    reset_memory = fields(ts, tf, "memory")
+    if reset_memory.get("used_memory_peak") != reset_memory.get("used_memory"):
+        property_fail("target peak reset", repr(reset_memory))
+    print("  infofix peak points: %r" % memory_points)
+
+    # Sampled-rate controls: RESETSTAT+idle is zero, a byte-compared PING burst is positive, and a
+    # second RESETSTAT returns the detector to zero.
+    for sock, file in ((ts, tf), (os_, of)):
+        issue(sock, file, ["CONFIG", "RESETSTAT"])
+    time.sleep(.15)
+    target_control = int(fields(ts, tf, "stats").get("instantaneous_ops_per_sec", "-1"))
+    if target_control != 0: property_fail("target rate control", str(target_control))
+    payload = enc(["PING"]) * 1000
+    ts.sendall(payload); os_.sendall(payload)
+    for iteration in range(1000):
+        target_reply, oracle_reply = read_reply(tf), read_reply(of)
+        if target_reply != oracle_reply:
+            property_fail("rate burst byte compare", "iteration=%d" % iteration)
+            break
+    time.sleep(.12)
+    target_rate = int(fields(ts, tf, "stats").get("instantaneous_ops_per_sec", "0"))
+    oracle_rate = int(fields(os_, of, "stats").get("instantaneous_ops_per_sec", "0"))
+    if target_rate <= 0: property_fail("target rate fired", str(target_rate))
+    if oracle_rate <= 0: property_fail("oracle rate fired", str(oracle_rate))
+    issue(ts, tf, ["CONFIG", "RESETSTAT"])
+    time.sleep(.15)
+    reset_rate = int(fields(ts, tf, "stats").get("instantaneous_ops_per_sec", "-1"))
+    if reset_rate != 0: property_fail("target rate reset", str(reset_rate))
+    print("  infofix sampled rates: control=%d target=%d oracle=%d reset=%d" %
+          (target_control, target_rate, oracle_rate, reset_rate))
 
 ts.close(); os_.close()
 if secondary:

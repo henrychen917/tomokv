@@ -13,8 +13,9 @@
 # went 0 -> ~1100, while the identical NON-borrowed GET stayed flat.
 #
 # Non-vacuous by construction:
-#   - the borrow path is PROVEN live, not assumed: holders park replies as output segments and the
-#     battery asserts CLIENT LIST `oll` actually grew, which only happens on the borrow path;
+#   - the borrow path is PROVEN live, not assumed: DEBUG BORROWCOUNT reads the exact owner-side
+#     FlatStore counters and the battery requires zero without holders, non-zero while parked, and
+#     zero again after holder teardown;
 #   - the plain-GET arm is a NEGATIVE CONTROL measured in the same loop on the same connection. It
 #     never enters the registry, so it is what "no growth" reads like on this machine;
 #   - the assertion is a RATIO of two per-op costs measured seconds apart, never an absolute time.
@@ -24,8 +25,11 @@ import time
 
 HOST, PORT = sys.argv[1], int(sys.argv[2])
 
-HOLD_BYTES = 8192          # big enough that a holder's socket cannot swallow its whole pipeline
-PER_HOLDER = 400
+HOLD_BYTES = 8192
+# One unread connection gets ~75 MiB of replies.  Unlike its receive-window setting, that volume
+# is deliberately larger than a normal per-socket kernel send queue, so some distinct values must
+# remain borrowed by the application.  DEBUG BORROWCOUNT below is the authority on whether it did.
+PER_HOLDER = 9600
 TARGET_BORROWS = 2000
 PROBE_BYTES = 128          # >= zc-min, so it borrows
 PLAIN_BYTES = 32           # <  zc-min, so it never borrows: the control
@@ -120,14 +124,17 @@ class C:
         body = self.cmd("DEBUG", "LBSIGNALS")
         return sum(1 for line in body.decode().splitlines() if line.split()[:1] == ["shard"])
 
-    def output_segments(self):
-        body = self.cmd("CLIENT", "LIST")
-        total = 0
-        for line in body.splitlines():
-            for f in line.split():
-                if f.startswith(b"oll="):
-                    total += int(f[4:])
-        return total
+    def live_borrows(self):
+        return self.cmd("DEBUG", "BORROWCOUNT")
+
+
+def wait_borrows(admin, predicate, timeout=5.0):
+    deadline = time.monotonic() + timeout
+    count = admin.live_borrows()
+    while not predicate(count) and time.monotonic() < deadline:
+        time.sleep(0.05)
+        count = admin.live_borrows()
+    return count
 
 
 def main():
@@ -150,7 +157,7 @@ def main():
 
     admin.cmd("FLUSHALL")
     hold = b"h" * HOLD_BYTES
-    nkeys = PER_HOLDER * 24
+    nkeys = PER_HOLDER
     for i in range(0, nkeys, 32):
         take = min(32, nkeys - i)
         admin.s.sendall(b"".join(enc("SET", "br:%d" % (i + j), hold) for j in range(take)))
@@ -172,30 +179,36 @@ def main():
         p = max(probe.rate(fp, rp, OPS, DEPTH) for _ in range(ROUNDS))
         return 1e9 / b, 1e9 / p
 
-    idle_segments = admin.output_segments()
     borrow_idle, plain_idle = measure()
+    idle_borrows = wait_borrows(admin, lambda count: count == 0)
+    check("borrow registry idle without holders", idle_borrows == 0,
+          "live-borrows=%d" % idle_borrows)
 
-    # Slow readers: each pipelines PER_HOLDER GETs of distinct large keys with a clamped receive
-    # window, so the replies are staged as output segments the socket cannot absorb and their
-    # borrows stay registered on the shard.
+    # A small client receive window alone does not prove application-side backpressure: the peer's
+    # kernel send queue can accept bytes the client has not read.  Put far more than that queue's
+    # normal capacity on one unread connection, then ask the shard registry itself what remains.
     holders = []
     issued = 0
-    while admin.output_segments() // 3 < TARGET_BORROWS and issued + PER_HOLDER <= nkeys:
+    live_borrows = idle_borrows
+    while live_borrows < TARGET_BORROWS and issued + PER_HOLDER <= nkeys:
         h = C(rcvbuf=2048)
         h.s.sendall(b"".join(enc("GET", "br:%d" % (issued + j)) for j in range(PER_HOLDER)))
         holders.append(h)
         issued += PER_HOLDER
-        time.sleep(0.2)
-    time.sleep(0.5)
-    live_segments = admin.output_segments()
-    live_borrows = (live_segments - idle_segments) // 3
-    check("holders really parked borrows on the shard", live_borrows >= TARGET_BORROWS // 2,
-          "segments %d -> %d  (~%d live borrows)" % (idle_segments, live_segments, live_borrows))
+        live_borrows = wait_borrows(admin, lambda count: count >= TARGET_BORROWS)
 
     borrow_busy, plain_busy = measure()
+    live_borrows_after = admin.live_borrows()
+    check("holders really parked borrows on the shard",
+          min(live_borrows, live_borrows_after) >= TARGET_BORROWS // 2,
+          "live-borrows %d -> %d (after measure %d)"
+          % (idle_borrows, live_borrows, live_borrows_after))
     for h in holders:
         h.close()
     probe.close()
+    drained_borrows = wait_borrows(admin, lambda count: count == 0)
+    check("borrow registry drained after holders", drained_borrows == 0,
+          "live-borrows=%d" % drained_borrows)
 
     growth = borrow_busy / borrow_idle
     control = plain_busy / plain_idle

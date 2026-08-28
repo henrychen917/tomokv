@@ -147,6 +147,26 @@ def owner_keys(conn, prefix, count=8):
     return [by_shard[s] for s in sorted(by_shard)], sorted(by_shard)
 
 
+def key_on_other_owner(conn, prefix, source):
+    """Find a destination that DEBUG SHARD proves is not owned with `source`.
+
+    Redis has one keyspace and no DEBUG SHARD route, so its oracle leg uses an arbitrary distinct
+    name. A TomoKV leg is not allowed that fallback: if the live hash seed cannot produce a split
+    pair, the cross-shard regression has tested nothing and must fail loudly.
+    """
+    if not sharded(conn):
+        return "%s:oracle" % prefix, None
+    source_owner = conn.cmd("DEBUG", "SHARD", source)
+    if not isinstance(source_owner, int):
+        raise AssertionError("DEBUG SHARD failed for source %r: %r" % (source, source_owner))
+    for index in range(8000):
+        candidate = "%s:%04d" % (prefix, index)
+        owner = conn.cmd("DEBUG", "SHARD", candidate)
+        if isinstance(owner, int) and owner != source_owner:
+            return candidate, (source_owner, owner)
+    raise AssertionError("DEBUG SHARD found no cross-owner destination for %r" % source)
+
+
 def set_active(conn, enabled):
     conn.cmd("DEBUG", "SET-ACTIVE-EXPIRE", str(enabled))
 
@@ -304,6 +324,10 @@ def test_transaction_family(conn):
     conn.cmd("FLUSHALL")
     keys, owners = owner_keys(conn, "expwide:fam")
     dst, _ = owner_keys(conn, "expwide:dst", 2)
+    move_dst, move_owners = key_on_other_owner(conn, "expwide:move-dst", keys[0])
+    if move_owners is not None:
+        check_true("S2 two-hop geometry uses different owners",
+                   move_owners[0] != move_owners[1], "owners=%r" % (move_owners,))
     stretch, reps, unit = build_stretcher(conn, owners)
     NOTES.append("S2/S3 window: %d rounds x BITCOUNT(32MB) on each of %d owners, %.2fms a round"
                  % (reps, len(stretch), unit))
@@ -346,19 +370,17 @@ def test_transaction_family(conn):
     replies = conn.pipeline(body)
     check("S2 MSET then MGET inside one transaction", replies[-1][-1], [b"z"] * 8)
 
-    # RENAME reads the SOURCE's liveness on one owner and writes on another.  The elapsed control
-    # is checked by OUTCOME rather than by error shape: a cross-shard RENAME whose source is gone
-    # answers `ERR no such key` on the oracle but aborts the whole transaction on TomoKV, and that
-    # divergence predates this lane (confirmed against the pre-fix binary).  What both servers must
-    # agree on is that the rename did not happen, which is the part expiry decides.
+    # RENAME reads the SOURCE's liveness on one owner and writes on another. Its elapsed control is
+    # an execution-time `ERR no such key` element, followed by a successful GET element that proves
+    # EXEC ran instead of discarding the transaction.
     def rename_round(offset):
         armed_at, _ = arm(conn, [keys[0]], offset)   # source carries the shared deadline
-        conn.cmd("SET", dst[0], "d")                 # destination is plain and distinguishable
+        conn.cmd("SET", move_dst, "d")               # destination is plain and distinguishable
         # RENAME transfers the source's deadline to the destination, so the destination is read
         # INSIDE the transaction: under one cut the renamed value is there, and reading it after
         # EXEC would only re-measure the deadline that has since passed.
         return run_block(conn, stretch, reps,
-                         [("RENAME", keys[0], dst[0]), ("GET", dst[0])], armed_at, offset)
+                         [("RENAME", keys[0], move_dst), ("GET", move_dst)], armed_at, offset)
 
     for offset, tag in ((DEADLINE_IN, "across a deadline inside the transaction"),
                         (FAR, "control, deadline an hour out")):
@@ -370,34 +392,50 @@ def test_transaction_family(conn):
         check("S2 RENAME %s" % tag, reply, b"OK")
         check("S2 RENAME %s moved the value" % tag, moved, b"v")
     (reply, moved), _, _ = rename_round(ELAPSED)
-    check_true("S2 RENAME control, elapsed source refuses the rename",
-               isinstance(reply, RespError), "got %r" % (reply,))
+    check("S2 RENAME control returns its runtime error inside EXEC",
+          reply, RespError("ERR no such key"))
+    check("S2 RENAME runtime error does not stop the following EXEC element", moved, b"d")
     check("S2 RENAME control, elapsed source left the destination untouched",
-          conn.cmd("GET", dst[0]), b"d")
-    NOTES.append("S2 cross-shard RENAME in MULTI with an elapsed source: %r "
-                 "(oracle answers ERR no such key inside EXEC; pre-existing)" % (reply,))
+          conn.cmd("GET", move_dst), b"d")
 
     # RENAMENX and COPY read the DESTINATION's liveness, which sits on a different owner from the
-    # source's -- the sharpest two-hop straddle in the family.  TomoKV cannot host them here: a
-    # CROSS-SHARD RENAMENX or COPY inside MULTI is refused at dispatch with EXECABORT.  That gap
-    # predates this lane (confirmed against the pre-fix binary) and belongs to the MULTI lowering,
-    # not to expiry, so it is recorded rather than asserted, and the two commands are covered bare
-    # below instead.  If the lowering ever grows the two-hop write, add them to `family` above.
-    conn.pipeline([("DEL", keys[0]), ("SET", keys[0], "v"),
-                   ("DEL", dst[0]), ("SET", dst[0], "d")])
-    lowered = conn.pipeline([("MULTI",), ("COPY", keys[0], dst[0]), ("EXEC",)])[-1]
-    NOTES.append("S2 cross-shard COPY inside MULTI: %r (pre-existing lowering gap if EXECABORT)"
-                 % (lowered,))
+    # source's -- the sharpest two-hop straddle in the family. They are ordinary runtime
+    # conditionals inside EXEC: a live destination returns 0, while one already absent at the
+    # transaction's cut permits the write and returns 1.
+    family("RENAMENX", ("RENAMENX", keys[0], move_dst), 0, 1,
+           [move_dst], [keys[0]])
+    family("COPY", ("COPY", keys[0], move_dst), 0, 1,
+           [move_dst], [keys[0]])
 
-    # Bare parity for the two commands the transaction section cannot host: an elapsed destination
-    # must read as absent and a live one as present, which is the property the pinned cut must not
-    # have disturbed.
-    for name, command, live_dst, dead_dst in (("RENAMENX", ("RENAMENX", keys[0], dst[0]), 0, 1),
-                                              ("COPY", ("COPY", keys[0], dst[0]), 0, 1)):
-        arm(conn, [dst[0]], FAR, [keys[0]])
+    # A physically missing source exercises the same RENAME outcome without expiry. Commands on
+    # both sides prove this is an EXEC array element, not EXECABORT: the transaction really ran.
+    before = "expwide:rename-before"
+    after = "expwide:rename-after"
+    conn.pipeline([("DEL", keys[0]), ("SET", move_dst, "d"),
+                   ("DEL", before), ("DEL", after)])
+    missing_exec = conn.pipeline([
+        ("MULTI",), ("SET", before, "1"), ("RENAME", keys[0], move_dst),
+        ("SET", after, "2"), ("EXEC",)])[-1]
+    check("S2 missing-source RENAME is one error element and EXEC continues",
+          missing_exec, [b"OK", RespError("ERR no such key"), b"OK"])
+    check("S2 command before missing-source RENAME committed", conn.cmd("GET", before), b"1")
+    check("S2 command after missing-source RENAME committed", conn.cmd("GET", after), b"2")
+    check("S2 missing-source RENAME left destination untouched", conn.cmd("GET", move_dst), b"d")
+
+    # Bare parity: the lowering change is MULTI-only. Conditional zero/success and RENAME's runtime
+    # error must retain their existing outside-transaction answers on the same proven split pair.
+    for name, command, live_dst, dead_dst in (
+            ("RENAMENX", ("RENAMENX", keys[0], move_dst), 0, 1),
+            ("COPY", ("COPY", keys[0], move_dst), 0, 1)):
+        arm(conn, [move_dst], FAR, [keys[0]])
         check("S2 bare %s sees a live destination" % name, conn.cmd(*command), live_dst)
-        arm(conn, [dst[0]], ELAPSED, [keys[0]])
+        arm(conn, [move_dst], ELAPSED, [keys[0]])
         check("S2 bare %s sees an elapsed destination" % name, conn.cmd(*command), dead_dst)
+    conn.pipeline([("DEL", keys[0]), ("SET", move_dst, "d")])
+    check("S2 bare RENAME missing source", conn.cmd("RENAME", keys[0], move_dst),
+          RespError("ERR no such key"))
+    check("S2 bare RENAME missing source left destination untouched",
+          conn.cmd("GET", move_dst), b"d")
 
     # The *STORE family folds several sources on several owners into one cardinality.
     sadd = lambda key: [("SADD", key, "m")]

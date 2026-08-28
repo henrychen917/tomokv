@@ -409,6 +409,30 @@ public:
     uint64_t climon_invalidations() const {
         return climon_invalidations_.load(std::memory_order_relaxed);
     }
+    // PROOF-OF-MECHANISM for the out-of-band frame channel, and the reason it exists is the
+    // vacuous-validation trap: the geometry that used to splice a push into a borrowed reply is
+    // "an out-of-band frame arrives while ops are still in flight", and a battery that never
+    // reaches that state passes without testing anything. These two counters name the two hard
+    // states, so a check can assert the gate OPENED before it believes its own clean result.
+    //
+    //   segmented -- frame appended while the ROB was NOT quiesced, so it had to leave the fill
+    //                buffer and take the segment channel. This is the Done-but-unretired / Issued
+    //                geometry: exactly the cell that tore.
+    //   deferred  -- frame raised from INSIDE a retire drain (the notification and tracking hooks
+    //                fire there), parked by the send engine until the drain reached a frame
+    //                boundary. This is the cross-shard-MGET / self-invalidation geometry.
+    void note_oob_frame_segmented() {
+        oob_frames_segmented_.fetch_add(1, std::memory_order_relaxed);
+    }
+    uint64_t oob_frames_segmented() const {
+        return oob_frames_segmented_.load(std::memory_order_relaxed);
+    }
+    void note_oob_frame_deferred() {
+        oob_frames_deferred_.fetch_add(1, std::memory_order_relaxed);
+    }
+    uint64_t oob_frames_deferred() const {
+        return oob_frames_deferred_.load(std::memory_order_relaxed);
+    }
     // Proof-of-mechanism counter for CLIENT NO-TOUCH: operations that reached an executor with
     // the suppression bit set while maxmemory was enabled. Incremented only inside the
     // maxmemory-enabled arm, so it costs nothing in the default configuration.
@@ -705,14 +729,22 @@ public:
     }
     // The whole two-step for a group whose epoch word is `epoch`. The stall between the two is a
     // TEST HOOK (DEBUG ATOMIC-COMMIT-DELAY) that widens the closed window on demand; it is zero
-    // in production and the load is on an already-cold once-per-group path.
-    uint64_t atomic_commit_group(std::atomic<uint64_t>& epoch) {
+    // in production and the load is on an already-cold once-per-group path. `publish_members`
+    // lets a composite group install the SAME ticket into additional decision words before the
+    // safe watermark moves. Readers therefore still see either all of the ticket or none of it.
+    template <typename PublishMembers>
+    uint64_t atomic_commit_group(std::atomic<uint64_t>& epoch,
+                                 PublishMembers&& publish_members) {
         const uint64_t ticket = atomic_commit_reserve();
         const uint32_t stall = debug_atomic_commit_delay_.load(std::memory_order_relaxed);
         if (__builtin_expect(stall != 0, false)) debug_stall_us(stall);
         epoch.store(ticket, std::memory_order_release);
+        publish_members(ticket);
         atomic_commit_publish();
         return ticket;
+    }
+    uint64_t atomic_commit_group(std::atomic<uint64_t>& epoch) {
+        return atomic_commit_group(epoch, [](uint64_t) {});
     }
     // Same-owner tickets (a localfast plain version, FLUSH's logical clear) have no window: the
     // shard that draws them installs their records before it yields, and no other task may touch
@@ -1416,6 +1448,8 @@ private:
     std::atomic<uint64_t> climon_tracking_io_mask_{0};
     std::atomic<uint64_t> climon_monitor_lines_{0};
     std::atomic<uint64_t> climon_invalidations_{0};
+    std::atomic<uint64_t> oob_frames_segmented_{0};
+    std::atomic<uint64_t> oob_frames_deferred_{0};
     std::atomic<uint64_t> climon_pause_holds_{0};
     std::atomic<uint64_t> climon_no_touch_ops_{0};
     std::atomic<uint64_t> climon_tracking_keys_{0};

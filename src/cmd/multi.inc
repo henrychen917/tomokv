@@ -448,8 +448,8 @@ MultiCommandKind classify_multi_command(MultiCommand& command) {
         Slice(command.queued.argv[1].data(),
               static_cast<uint32_t>(command.queued.argv[1].size())).eq_icase("get"))
         return MultiCommandKind::IoLocal;
-    // OBJECT/MEMORY ride CursorShard only to reach the IO special-route hook; they are not
-    // cursor commands. Their keyed forms have a truthful key range and fall through to Local;
+    // SubcmdRoute containers ride CursorShard only to reach the IO special-route hook; they are
+    // not cursor commands. Their keyed forms have a truthful key range and fall through to Local;
     // their keyless subcommands answer on the IO thread like DBSIZE and CONFIG GET.
     if (command.queued.spec->flags & CmdFlags::SubcmdRoute)
         return command.key_args.empty() ? MultiCommandKind::IoLocal : MultiCommandKind::Local;
@@ -578,7 +578,7 @@ bool prepare_commands(Server& server, MultiExecState& state,
                 if (prepared == ScatterPrepare::Ready) {
                     command->kind = MultiCommandKind::Xshard;
                     command->scatter = child_dispatch.state;
-                    xshard_multi_child_bind(*command->scatter, &state.epoch, &state.aborted);
+                    xshard_multi_child_bind(*command->scatter);
                     xshard_multi_child_capture_groups(
                         *command->scatter, command->xshard_stage_groups[0]);
                     for (uint32_t i = 0; i < child_dispatch.nshards; i++)
@@ -1113,6 +1113,23 @@ void assemble_ownerless_replies(MultiExecState& state) {
     }
 }
 
+// A transaction is one commit ticket but not one runtime-error bit. Each xshard child keeps its
+// own abort word so a normal command failure can hide that child's partially installed candidates
+// while the other queued commands still commit, as Redis EXEC semantics require. The Server helper
+// calls the commit arm before its safe watermark publication, so no reader can observe only a
+// subset of these epoch stores.
+void publish_multi_child_epochs(MultiExecState& state, uint64_t ticket) {
+    for (const auto& command : state.commands)
+        if (command->scatter)
+            command->scatter->epoch.store(ticket, std::memory_order_release);
+}
+
+void abort_multi_children(MultiExecState& state) {
+    for (const auto& command : state.commands)
+        if (command->scatter)
+            command->scatter->aborted.store(true, std::memory_order_release);
+}
+
 }  // namespace
 
 bool multi_queueing(const Client& client) {
@@ -1581,12 +1598,18 @@ bool multi_aof_emit_fragment(MultiExecState& state, Shard& shard) {
     if (!count) { done = 1; return true; }
     AofProducer& producer = shard.store().aof();
     if (!producer.begin_group(state.aof_group)) return false;
+    // Runtime-error children keep any already-installed candidates private under their own abort
+    // word. The physical table head may therefore be a rejected RENAMENX source tombstone. Resolve
+    // the transaction's own overlay and record its LOGICAL final image, which skips that child but
+    // still sees successful private candidates from the same connection.
+    shard.store().atomic_set_read_context(UINT64_MAX, state.origin_conn_id);
     bool ok = true;
     for (const MultiWriteKey& write : state.write_keys) {
         if (write.shard != shard.id()) continue;
         const Slice key(write.key.data(), static_cast<uint32_t>(write.key.size()));
-        ok &= producer.record_group_post_image(shard.store(), write.hash, key);
+        ok &= producer.record_group_visible_post_image(shard.store(), write.hash, key);
     }
+    shard.store().atomic_clear_read_epoch();
     ok &= producer.finish_group();
     done = 1;
     return ok;
@@ -1699,8 +1722,6 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                     *command.scatter, command.xshard_stage_groups[next_stage]);
                 command.stage.store(next_stage, std::memory_order_release);
             } else if (finished == MultiChildFinish::Final) {
-                if (command.scatter->aborted.load(std::memory_order_acquire))
-                    state.aborted.store(true, std::memory_order_release);
                 if (notify)
                     notify_xshard_finished(shard, *command.op, *command.scatter);
                 assemble_final(*state.client, *command.op, *command.scatter,
@@ -1746,11 +1767,17 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                 if (!state.aborted.load(std::memory_order_acquire) &&
                     state.final_reply == MultiFinalReply::Exec) {
                     assemble_ownerless_replies(state);
-                    const uint64_t ticket = server.atomic_commit_group(state.epoch);
+                    const uint64_t ticket = server.atomic_commit_group(
+                        state.epoch,
+                        [&](uint64_t shared) { publish_multi_child_epochs(state, shared); });
                     if (aof_context)
                         (void)aof_commit_group(server.aof(), state.aof_group, ticket,
                                                *aof_context);
                 } else {
+                    // Child entries no longer point at the parent's abort word, because doing so
+                    // made a normal child error abort every other command. A genuine transaction
+                    // abort still has to decide all of them before reservations are finalized.
+                    abort_multi_children(state);
                     aof_abort_group(state.aof_group);
                 }
                 state.finalized.store(true, std::memory_order_release);

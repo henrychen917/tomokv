@@ -1,9 +1,9 @@
 // server_tail.cc — the remaining non-clustered server surface.
 //
-// Everything here is cold. OBJECT and MEMORY are the only rows that reach a shard owner, and they
-// do it through the SubcmdRoute hook rather than by putting an argument-shape test anywhere near
-// the dispatch path: their first argument decides whether a key exists at all, which is a routing
-// question, not a handler question.
+// Everything here is cold. OBJECT and MEMORY reach a shard owner through the shared SubcmdRoute
+// hook rather than by putting an argument-shape test anywhere near the dispatch path: their first
+// argument decides whether a key exists at all, which is a routing question, not a handler
+// question.
 //
 // Semantics were taken from the documented protocol and from byte-probing a vanilla redis 7.4
 // binary. No redis source was read or copied.
@@ -352,19 +352,10 @@ const char* const kObjectHelp[] = {
     "    Print this help.",
 };
 
-constexpr SubcommandArity kObjectSubcommands[] = {
-    {"encoding", 3, 3},
-    {"refcount", 3, 3},
-    {"idletime", 3, 3},
-    {"freq",     3, 3},
-    {"help",     2, 2},
-};
-
 template <bool kNotify>
 void cmd_object_impl(Shard& shard, Op& op) {
-    if (!command_validate_subcommand(op, "OBJECT", kObjectSubcommands,
-                                     sizeof(kObjectSubcommands) /
-                                         sizeof(kObjectSubcommands[0]))) return;
+    int16_t first_key = 0;
+    if (!command_validate_container_subcommand(op, *op.spec, first_key)) return;
     const Slice sub = op.arg(1);
     if (eq_icase(sub, "HELP")) {
         reply_help(op, kObjectHelp, sizeof(kObjectHelp) / sizeof(kObjectHelp[0]));
@@ -442,17 +433,6 @@ const char* const kMemoryHelp[] = {
     "    so SAMPLES is accepted and ignored.",
     "HELP",
     "    Print this help.",
-};
-
-constexpr SubcommandArity kMemorySubcommands[] = {
-    // USAGE's tail has its own SAMPLES grammar. Only the missing key is an arity error; malformed
-    // or surplus tail arguments are syntax errors in Redis.
-    {"usage",        3,  5, SubcommandArityError::Syntax},
-    {"stats",        2,  2},
-    {"doctor",       2,  2},
-    {"purge",        2,  2},
-    {"malloc-stats", 2,  2},
-    {"help",         2,  2},
 };
 
 struct JeStats {
@@ -602,9 +582,8 @@ void reply_memory_purge(Op& op) {
 }
 
 void cmd_memory(Shard& shard, Op& op) {
-    if (!command_validate_subcommand(op, "MEMORY", kMemorySubcommands,
-                                     sizeof(kMemorySubcommands) /
-                                         sizeof(kMemorySubcommands[0]))) return;
+    int16_t first_key = 0;
+    if (!command_validate_container_subcommand(op, *op.spec, first_key)) return;
     const Slice sub = op.arg(1);
     if (eq_icase(sub, "USAGE")) {
         if (op.argc() < 3) {
@@ -831,16 +810,6 @@ bool command_list(Op& op) {
 
 }  // namespace
 
-bool server_tail_validate_container_subcommand(Op& op, bool memory) {
-    if (memory)
-        return command_validate_subcommand(op, "MEMORY", kMemorySubcommands,
-                                           sizeof(kMemorySubcommands) /
-                                               sizeof(kMemorySubcommands[0]));
-    return command_validate_subcommand(op, "OBJECT", kObjectSubcommands,
-                                       sizeof(kObjectSubcommands) /
-                                           sizeof(kObjectSubcommands[0]));
-}
-
 WaitCommandResult server_tail_prepare_wait(Op& op, uint64_t& timeout_ms) {
     int64_t replicas = 0, timeout = 0;
     if (!parse_i64(op.arg(1), replicas)) {
@@ -914,27 +883,16 @@ bool server_tail_command_subcommand(Op& op) {
 // SubcmdRoute resolution. Runs on the IO thread inside the existing special-route hook.
 // -------------------------------------------------------------------------------------------
 bool command_prepare_subcmd_route(Server& server, Op& op) {
-    const bool memory = op.cmd_name().eq_icase("memory");
-    const Slice sub = op.arg(1);
-    const bool keyed = memory ? eq_icase(sub, "USAGE")
-                              : (eq_icase(sub, "ENCODING") || eq_icase(sub, "REFCOUNT") ||
-                                 eq_icase(sub, "IDLETIME") || eq_icase(sub, "FREQ"));
-    if (keyed) {
-        if (op.argc() < 3) {
-            command_reply_subcommand_wrong_args(op, memory ? "MEMORY" : "OBJECT",
-                                                memory ? "usage" :
-                                                    (eq_icase(sub, "ENCODING") ? "encoding" :
-                                                     eq_icase(sub, "REFCOUNT") ? "refcount" :
-                                                     eq_icase(sub, "IDLETIME") ? "idletime" :
-                                                                                 "freq"));
-            return false;
-        }
-        op.hash = FlatStore::hash_key(op.arg(2));
+    int16_t first_key = 0;
+    if (!command_validate_container_subcommand(op, *op.spec, first_key)) return false;
+    if (first_key > 0) {
+        op.hash = FlatStore::hash_key(op.arg(static_cast<uint32_t>(first_key)));
         op.shard = server.router().shard_of(op.hash);
         return true;
     }
-    // Keyless subcommands are thread-agnostic: they read published per-shard atomics and the
-    // allocator. Pin them to shard 0 so they travel the ordinary owner path with no special case.
+    // Keyless subcommands are thread-agnostic. Pin them to shard 0 so they travel the ordinary
+    // owner path with no special case; keyed children never reach this arm because their generated
+    // metadata carries the exact key position.
     op.hash = 0;
     op.shard = 0;
     return true;
