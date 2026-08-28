@@ -718,7 +718,6 @@ struct StreamNode {
     StreamID base_id{};
     StreamID last_id{};
     uint32_t physical_entries = 0;
-    uint32_t live_entries = 0;
 };
 
 struct StreamNodeIndex {

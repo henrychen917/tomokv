@@ -531,7 +531,6 @@ bool start_node(StreamVal& value, const OwnedRecord& record) {
     StreamNode node;
     node.base_id = node.last_id = record.id;
     node.physical_entries = 1;
-    node.live_entries = record.deleted ? 0 : 1;
     StreamHeader local = value.header;
     local.base_id = local.last_id = record.id;
     local.entries_added = 1;
@@ -567,7 +566,6 @@ bool append_owned_external(StreamVal& value, const OwnedRecord& record,
     if (!tail.log.append(Slice(encoded.data(), encoded.size()))) return false;
     tail.last_id = record.id;
     tail.physical_entries++;
-    tail.live_entries += !record.deleted;
     value.tail_fields = record.fields;
     return write_node_header(tail, value.header);
 }
@@ -663,7 +661,7 @@ bool append_op_external(StreamVal& value, const StreamID& id, Op& op, uint32_t f
         return start_node(value, owned);
     }
     if (!tail.log.append(Slice(encoded.data(), encoded.size()))) return false;
-    tail.last_id = id; tail.physical_entries++; tail.live_entries++;
+    tail.last_id = id; tail.physical_entries++;
     update_tail_fields_from_op(value, op, first_field);
     return write_node_header(tail, value.header);
 }
@@ -868,7 +866,6 @@ bool trim_stream(KvObj* object, const TrimSpec& trim, uint64_t& removed) {
         for (size_t i = 0; i < cut.physical; i++)
             if (!node.log.pop_front()) return false;
         node.physical_entries -= static_cast<uint32_t>(cut.physical);
-        node.live_entries -= static_cast<uint32_t>(cut.live);
         local.base_id = node.base_id;
         local.last_id = node.last_id;
         local.entries_added = node.physical_entries;
@@ -1287,7 +1284,6 @@ bool delete_one(KvObj* object, const StreamID& wanted) {
             std::string replacement(raw.value.p, raw.value.n);
             replacement[record.flags_offset] = static_cast<char>(record.flags | kDeleted);
             if (!node.log.replace(raw, Slice(replacement.data(), replacement.size()))) return false;
-            node.live_entries--;
             value->note_expanded_delete(0, value->node_allocation_bytes);
             return true;
         }
