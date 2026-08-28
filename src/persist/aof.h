@@ -89,7 +89,6 @@ struct AofChunk {
 
 class AofReplayPlan {
 public:
-    uint64_t file_sequence = 1;
     uint32_t shard_count = 0;
     uint32_t hash_kind = 0;
     uint64_t hash_seed = 0;
@@ -97,7 +96,6 @@ public:
     uint64_t sip_k1 = 0;
     uint64_t replayed_records = 0;
     uint64_t groups_skipped = 0;
-    uint64_t valid_file_bytes = 0;
     std::vector<uint32_t> next_sequence;
     std::vector<std::vector<uint8_t>> sections;
     std::vector<uint8_t> control_section;
