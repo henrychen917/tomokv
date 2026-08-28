@@ -42,6 +42,8 @@ enum : uint8_t {
     kRdbZset = 3,
     kRdbHash = 4,
     kRdbZset2 = 5,
+    // Decode-only Redis encodings: RESTORE must accept real Redis DUMP payloads even though this
+    // encoder deliberately emits only the plain collection forms above. Do not remove as unused.
     kRdbSetIntset = 11,
     kRdbHashListpack = 16,
     kRdbZsetListpack = 17,
@@ -55,6 +57,7 @@ enum : uint8_t {
 };
 
 enum : uint8_t {
+    // Decode-only Redis string encodings used by RESTORE; the encoder need not produce them.
     kRdbEncInt8 = 0,
     kRdbEncInt16 = 1,
     kRdbEncInt32 = 2,
