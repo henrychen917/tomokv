@@ -449,17 +449,24 @@ inline bool parse_long_double_strict(Slice s, long double& out) {
     return true;
 }
 
-// getTimeoutFromObjectOrReply for UNIT_SECONDS, which is three decisions, not one, and the order
-// matters: the grammar first, then the POSITIVE overflow, then the sign -- and the sign is tested
-// on the MILLISECONDS, not on the seconds. That last detail is visible from outside:
-// `BLPOP k -0.0004` is -0.4 ms, truncates to 0, and blocks forever instead of answering
-// "timeout is negative".
+// getTimeoutFromObjectOrReply for UNIT_SECONDS: three decisions, not one, and the order matters --
+// the grammar first, then the POSITIVE overflow, then the sign.
+//
+// The two details that are visible from outside, and were both measured on the 7.4 binary rather
+// than assumed:
+//
+//   * the seconds are scaled to milliseconds and rounded UP, so any positive timeout however small
+//     is at least one millisecond. `BLPOP k 1e-9` answers a null after a tick; it does not wait
+//     forever. A truncating conversion gets this wrong in the direction that hangs a client.
+//   * the sign is then tested on the MILLISECONDS. `BLPOP k -0.0004` is -0.4 ms, and ceil(-0.4) is
+//     -0, so it is not "timeout is negative" -- it is a zero timeout, which means no deadline at
+//     all. `BLPOP k -0.5` is -500 ms and IS negative.
 enum class TimeoutStatus { Ok, NotAFloat, OutOfRange, Negative };
 
 inline TimeoutStatus parse_timeout_ms(Slice s, int64_t& milliseconds) {
     long double seconds = 0;
     if (!parse_long_double_strict(s, seconds)) return TimeoutStatus::NotAFloat;
-    const long double scaled = seconds * 1000.0L;
+    const long double scaled = std::ceil(seconds * 1000.0L);
     if (scaled > static_cast<long double>(INT64_MAX)) return TimeoutStatus::OutOfRange;
     // Below INT64_MIN the cast itself is undefined, so the floor is taken before it, not after.
     const int64_t value = scaled < static_cast<long double>(INT64_MIN)

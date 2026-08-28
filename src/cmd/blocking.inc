@@ -307,9 +307,8 @@ bool blocking_validate(Op& op, BlockingState& state, uint32_t& first_key,
     int64_t timeout_ms = 0;
     if (blocking_reply_timeout_error(op, parse_timeout_ms(op.arg(timeout_arg), timeout_ms)))
         return false;
-    // Truncated, not rounded up: redis casts the millisecond count to an integer, so 0.0005 s is
-    // zero milliseconds and zero means "wait forever". Rounding up turned that into a near-instant
-    // timeout, which a client can see.
+    // Zero means no deadline. Reachable two ways: an explicit 0, and a NEGATIVE timeout smaller
+    // than a millisecond, which rounds up to -0 rather than to a negative count.
     if (timeout_ms != 0) {
         timespec now{};
         ::clock_gettime(CLOCK_REALTIME, &now);
