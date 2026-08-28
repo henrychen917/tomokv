@@ -91,4 +91,7 @@ void slowlog_note_client(uint64_t client_id, const char* addr);
 void slowlog_note_client_name(uint64_t client_id, const char* name, uint32_t name_len);
 void slowlog_forget_client(uint64_t client_id);
 
+// Shared by the cold outer-arity error path; writes the complete SLOWLOG/LATENCY reply.
+bool slowlog_validate_container_subcommand(Op& op, bool slowlog);
+
 }  // namespace tomo

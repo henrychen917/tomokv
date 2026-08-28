@@ -1735,6 +1735,51 @@ def gen_servertail(rng):
     return ops
 
 
+def gen_arity(rng):
+    """Container-subcommand arity/name rows observed byte-different before lane t-arity.
+
+    Successful control forms live in tests/arity.py. This differ generator intentionally contains
+    only reproduced differences, then varies subcommand case and harmless filler arguments over a
+    4200-op stream so every reply remains byte-comparable.
+    """
+    directed = [
+        ["ACL", "CAT", "keyspace", "x"], ["ACL", "DELUSER"],
+        ["ACL", "GENPASS", "8", "x"], ["ACL", "GETUSER"],
+        ["ACL", "GETUSER", "default", "x"], ["ACL", "LIST", "x"],
+        ["ACL", "LOAD", "x"], ["ACL", "SAVE", "x"],
+        ["ACL", "LOG", "1", "x"], ["ACL", "SETUSER"],
+        ["ACL", "USERS", "x"], ["ACL", "WHOAMI", "x"],
+        ["ACL", "HELP", "x"], ["ACL", "BOGUS"],
+        ["CONFIG", "GET"], ["CONFIG", "SET", "maxmemory"],
+        ["CONFIG", "REWRITE", "x"], ["CONFIG", "RESETSTAT", "x"],
+        ["CONFIG", "HELP", "x"], ["CONFIG", "BOGUS"],
+        ["OBJECT", "ENCODING", "arity:key", "x"],
+        ["OBJECT", "REFCOUNT", "arity:key", "x"],
+        ["OBJECT", "IDLETIME", "arity:key", "x"],
+        ["OBJECT", "FREQ", "arity:key", "x"], ["OBJECT", "HELP", "x"],
+        ["MEMORY", "USAGE", "arity:key", "SAMPLES", "1", "x"],
+        ["MEMORY", "STATS", "x"], ["MEMORY", "DOCTOR", "x"],
+        ["MEMORY", "PURGE", "x"], ["MEMORY", "MALLOC-STATS", "x"],
+        ["MEMORY", "HELP", "x"],
+        ["LATENCY", "HISTORY"], ["LATENCY", "HISTORY", "command", "x"],
+        ["LATENCY", "GRAPH"], ["LATENCY", "GRAPH", "command", "x"],
+        ["LATENCY", "DOCTOR", "x"], ["LATENCY", "LATEST", "x"],
+        ["LATENCY", "HELP", "x"],
+        ["SLOWLOG", "GET", "1", "x"], ["SLOWLOG", "LEN", "x"],
+        ["SLOWLOG", "RESET", "x"], ["SLOWLOG", "HELP", "x"],
+    ]
+
+    def mixed_case(text):
+        return "".join(ch.upper() if rng.randrange(2) else ch.lower() for ch in text)
+
+    ops = [list(argv) for argv in directed]
+    while len(ops) < 4200:
+        argv = list(rng.choice(directed))
+        argv[1] = mixed_case(argv[1])
+        ops.append(argv)
+    return ops
+
+
 def gen_bitmap(rng):
     # Long, unrelated key names make random BITOPs exercise both localfast and cross-shard paths.
     keys = ["bm:%02d:%s" % (i, "".join(rng.choice("abcdef0123456789") for _ in range(30)))
@@ -4437,7 +4482,7 @@ gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset
         "zsetops": gen_zsetops, "geo": gen_geo,
         "scan": gen_scan, "multi": gen_multi,
         "edgeenc": gen_edgeenc, "edgeproto": gen_edgeproto,
-        "servertail": gen_servertail}
+        "servertail": gen_servertail, "arity": gen_arity}
 if LIST_GENERATORS:
     # Property suites live outside the `gens` dict (their replies are not byte-comparable), so
     # they are appended by name.  Two lanes added this list independently; keep the union.
