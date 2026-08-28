@@ -405,8 +405,9 @@ def run_production(admin, geometry, stem, held, keys_used):
     want("production latch clear", admin.command("DEBUG", "BARRIER-HOLD", "0"), b"OK")
     before = barrier_stats(admin)
     errors = []
-    ordinary, waiter, subscriber = Conn(), Conn(), Conn()
+    ordinary = waiter = subscriber = None
     try:
+        ordinary, waiter, subscriber = Conn(), Conn(), Conn()
         source, destination = geometry["source"], geometry["destination"]
         keys_used.update((source, destination))
 
@@ -452,9 +453,9 @@ def run_production(admin, geometry, stem, held, keys_used):
     except Exception as exc:
         errors.append(str(exc))
     finally:
-        ordinary.close()
-        waiter.close()
-        subscriber.close()
+        for conn in (ordinary, waiter, subscriber):
+            if conn is not None:
+                conn.close()
 
     after = barrier_stats(admin)
     delta = (after[0] - before[0], after[1] - before[1])
@@ -510,24 +511,29 @@ def main():
     finally:
         # Never strand a process-global debug latch or an owned connection, even on a failing
         # positive-control build. CLIENT LIST is the cross-I/O wake required by the latch design.
-        recovery = admin
-        made_recovery = False
-        if recovery is None or recovery.closed:
+        recovered = False
+        if admin is not None and not admin.closed:
+            try:
+                admin.command("DEBUG", "BARRIER-HOLD", "0")
+                admin.command("CLIENT", "LIST")
+                if keys_used:
+                    admin.command("DEL", *sorted(keys_used))
+                recovered = True
+            except Exception:
+                pass
+        if not recovered:
+            recovery = None
             try:
                 recovery = Conn()
-                made_recovery = True
-            except OSError:
-                recovery = None
-        if recovery is not None:
-            try:
                 recovery.command("DEBUG", "BARRIER-HOLD", "0")
                 recovery.command("CLIENT", "LIST")
                 if keys_used:
                     recovery.command("DEL", *sorted(keys_used))
             except Exception:
                 pass
-            if made_recovery:
-                recovery.close()
+            finally:
+                if recovery is not None:
+                    recovery.close()
         for record in held:
             record["conn"].close()
         if admin is not None:
