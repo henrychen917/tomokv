@@ -31,10 +31,9 @@ SRV=0; SRVLOG=/dev/null
 # 178 -> 184: edgeproto, edgeenc and edgetime batteries joined the feature loop (both modes each).
 # 184 -> 189: cross-owner scripts add their battery under both atomic modes plus three control
 # boots (off / byte-limit / window), each needing its own knob value and so its own server.
-# Still NOT wired, deliberately: tests/expireindex.py, tests/borrow_registry.py and
-# tests/xshard_dispatch_scale.sh each need their own boot geometry.
-EXPECT_QUICK=189
-EXPECT_FULL=199                 # full without the optional NIC row. CONFIRMED by the
+# 189 -> 192: the three efficiency guards, each on its own boot geometry.
+EXPECT_QUICK=192
+EXPECT_FULL=202                 # full without the optional NIC row. CONFIRMED by the
                                 # 2026-08-28 full-tier run (200 with the NIC row attempted).
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ok(){ say "$1" "ok"; PASS=$((PASS+1)); }
@@ -203,6 +202,30 @@ for XS in "off:--script-crossshard-max-bytes 0" \
              "see /tmp/gate-xscript-$XS_MODE.txt"
   stop
 done
+
+# ---- efficiency guards: each needs a boot geometry of its own, so each gets its own server ----
+# These assert a RATIO or a growth bound, never an absolute time, and each was verified to FAIL on
+# the binary from before its fix (see NOTES-XPERF2.md). They shipped unwired, which is the same
+# coverage-that-does-not-exist problem the gate lane fixed elsewhere.
+# --shards 1 for the same reason as the borrow guard: the sidecar under test is per shard, and the
+# battery asserts that precondition rather than quietly measuring a diluted one.
+boot ./build/tomokv --shards 1 --enable-debug-command yes || bad "expire-index guard boot"
+python3 tests/expireindex.py 127.0.0.1 $PORT >/tmp/gate-expireindex.txt 2>&1 \
+    && ok "expire-index growth bound" || bad "expire-index growth bound" "see /tmp/gate-expireindex.txt"
+stop
+
+# one shard so every borrow lands in ONE registry (the quantity under test), and a small zc-min so
+# an ordinary-sized value still takes the borrow path and pays registry cost.
+boot ./build/tomokv --shards 1 --zc-min 64 --client-output-buffer-limit "normal 0 0 0" \
+    --enable-debug-command yes || bad "borrow-registry guard boot"
+python3 tests/borrow_registry.py 127.0.0.1 $PORT >/tmp/gate-borrow.txt 2>&1 \
+    && ok "borrow-registry growth bound" || bad "borrow-registry growth bound" "see /tmp/gate-borrow.txt"
+stop
+
+# this one boots its own arms at two thread counts, so it takes the port/cores rather than a server
+XDS_PORT=$PORT XDS_CPUS=$CORES XDS_BIN=./build/tomokv bash tests/xshard_dispatch_scale.sh \
+    >/tmp/gate-xds.txt 2>&1 \
+    && ok "cross-shard dispatch scaling" || bad "cross-shard dispatch scaling" "see /tmp/gate-xds.txt"
 
 # ---- Redis-wire DUMP/RESTORE survives the native snapshot/restart boundary -------------------
 DUMPRESTORE_DIR=$(mktemp -d /tmp/gate-dumprestore.XXXXXX)
@@ -389,12 +412,12 @@ PERSIST_SET=$(redis-cli -h 127.0.0.1 -p $PORT CONFIG SET persist-io "$PERSIST_IO
 [ "$PERSIST_GET" = "$PERSIST_IO" ] && printf '%s' "$PERSIST_SET" | grep -q immutable \
     && ok "persist-io surface + immutable ($PERSIST_IO)" \
     || bad "persist-io surface + immutable ($PERSIST_IO)"
-python3 tests/aof.py 127.0.0.1 $PORT populate "$AOF_STATE" >/tmp/gate-aof.txt 2>&1 \
-    && python3 tests/aof.py 127.0.0.1 $PORT loadaof "$AOF_STATE" >>/tmp/gate-aof.txt 2>&1 \
+python3 tests/aof.py 127.0.0.1 $PORT populate "$AOF_STATE" >/tmp/gate-aof-$PERSIST_IO-$AOF_ATOMIC.txt 2>&1 \
+    && python3 tests/aof.py 127.0.0.1 $PORT loadaof "$AOF_STATE" >>/tmp/gate-aof-$PERSIST_IO-$AOF_ATOMIC.txt 2>&1 \
     && ok "AOF byte-exact + script groups + DEBUG LOADAOF ($PERSIST_IO, atomic $AOF_ATOMIC)" \
     || bad "AOF byte-exact + script groups + DEBUG LOADAOF ($PERSIST_IO, atomic $AOF_ATOMIC)" \
-           "see /tmp/gate-aof.txt"
-AOF_PRE_MODEL=$(python3 tests/aof.py 127.0.0.1 $PORT snapshot "$AOF_DIR/dump.tomo" 2>>/tmp/gate-aof.txt)
+           "see /tmp/gate-aof-$PERSIST_IO-$AOF_ATOMIC.txt"
+AOF_PRE_MODEL=$(python3 tests/aof.py 127.0.0.1 $PORT snapshot "$AOF_DIR/dump.tomo" 2>>/tmp/gate-aof-$PERSIST_IO-$AOF_ATOMIC.txt)
 AOF_WRITTEN=$(redis-cli -h 127.0.0.1 -p $PORT INFO Persistence 2>/dev/null \
     | tr -d '\r' | sed -n 's/^aof_records_written://p')
 [ -n "$AOF_WRITTEN" ] && [ "$AOF_WRITTEN" -gt 0 ] \
@@ -406,11 +429,11 @@ boot ./build/tomokv --protected-mode no --appendonly yes --appendfsync no \
     --atomic "$AOF_ATOMIC" --persist-io "$PERSIST_IO" \
     --enable-debug-command yes --dir "$AOF_DIR" \
     || bad "AOF replay boot ($PERSIST_IO, atomic $AOF_ATOMIC)"
-python3 tests/aof.py 127.0.0.1 $PORT verify "$AOF_STATE" >>/tmp/gate-aof.txt 2>&1 \
+python3 tests/aof.py 127.0.0.1 $PORT verify "$AOF_STATE" >>/tmp/gate-aof-$PERSIST_IO-$AOF_ATOMIC.txt 2>&1 \
     && ok "AOF process-restart script replay ($PERSIST_IO, atomic $AOF_ATOMIC)" \
     || bad "AOF process-restart script replay ($PERSIST_IO, atomic $AOF_ATOMIC)" \
-           "see /tmp/gate-aof.txt"
-AOF_POST_MODEL=$(python3 tests/aof.py 127.0.0.1 $PORT snapshot "$AOF_DIR/dump.tomo" 2>>/tmp/gate-aof.txt)
+           "see /tmp/gate-aof-$PERSIST_IO-$AOF_ATOMIC.txt"
+AOF_POST_MODEL=$(python3 tests/aof.py 127.0.0.1 $PORT snapshot "$AOF_DIR/dump.tomo" 2>>/tmp/gate-aof-$PERSIST_IO-$AOF_ATOMIC.txt)
 [ -n "$AOF_PRE_MODEL" ] && [ "$AOF_PRE_MODEL" = "$AOF_POST_MODEL" ] \
     && ok "AOF native snapshot streams byte-exact" || bad "AOF native snapshot streams byte-exact"
 AOF_REPLAYED=$(redis-cli -h 127.0.0.1 -p $PORT INFO Persistence 2>/dev/null \
