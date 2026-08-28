@@ -218,6 +218,20 @@ public:
         Client* writer = nullptr;
         uint64_t writer_generation = 0;
         bool mutates = false;
+        // Does this reservation make another unit WAIT?
+        //
+        // A reservation from the EXEC validate path carries an ORDERING claim: the transaction has
+        // validated its WATCH on this key, so no foreign write may commit ahead of its decision.
+        // A writer therefore has to wait for it, and that wait is bounded because the transaction
+        // is already fanned out and decides on its own.
+        //
+        // A reservation from the atomic-group WRITE path carries no such claim. It exists only to
+        // defer THIS group's watcher-dirtying to its own commit decision. Making it exclusive --
+        // one slot per key, everybody else waits -- turned it into a cross-shard lock taken in
+        // arbitrary order, and two groups that each hold a key the other needs is a wait-for cycle
+        // with no timeout and no detector: tests/watchlive.py wedged 6/6 on it. Group reservations
+        // now coexist on a key (the map holds a list) and block nobody.
+        bool blocking = false;
     };
     bool has_watches() const { return !watchers_.empty() || !watch_reservations_.empty(); }
     bool watch_add(Slice key, Client* client, uint64_t generation);
@@ -235,6 +249,7 @@ public:
     bool watch_all_write_ready();
     void watch_all_write_committed();
     bool watch_finalize_reservation(const std::string& key);
+    bool watch_append_reservation(const std::string& key, const WatchReservation& reservation);
     void watch_prune_stale(const std::string& key);
 
     // ---- locality --------------------------------------------------------------------------------
@@ -320,6 +335,17 @@ public:
         // tests/watchlive.py asserts it advanced before believing a clean run. Reached only from
         // the reservation registry, which stays empty until the first WATCH: no WATCH, no cost.
         uint64_t watch_reservation_waits = 0;
+        // Times an atomic-group write recorded its reservation on a key that ALREADY carried a
+        // foreign undecided one. That is exactly the configuration that used to answer "not ready"
+        // and re-queue the writer, and two of them crossed over two shards is the wait-for cycle
+        // tests/watchlive.py locks. It must be able to read zero (no WATCH, or no overlap), so a
+        // non-zero reading is proof the cycle's precondition really occurred and was survived --
+        // which is why the gate refuses to pass an armed row that never moved it.
+        uint64_t watch_reservation_coexist = 0;
+        // Times a transaction's WATCH validation took the serialization in which a foreign
+        // atomic-group write to that watched key lands FIRST, and therefore aborted instead of
+        // waiting for that group's decision. Counting it keeps the semantic choice visible.
+        uint64_t watch_reservation_precommit_aborts = 0;
         // Cold tail, deliberately last: keyspace table rebuilds started by this shard, reported as
         // INFO keyspace_rehashes so a scan-under-resize test can assert the hazard it guards
         // actually fired. Written once per resize and read only by INFO, so it must not push any
@@ -352,7 +378,8 @@ private:
     std::atomic<uint64_t> blocking_waiters_{0};
     std::atomic<bool> blocking_dirty_{false};
     std::unordered_map<std::string, std::vector<WatchEntry>> watchers_;
-    std::unordered_map<std::string, WatchReservation> watch_reservations_;
+    // One key can carry several undecided reservations at once -- see WatchReservation::blocking.
+    std::unordered_map<std::string, std::vector<WatchReservation>> watch_reservations_;
     // Notification state is deliberately appended after every pre-existing field. In particular,
     // server_ must never return to offset 8: doing so shifted the entire hot shard header in v1.
     Server* server_ = nullptr;

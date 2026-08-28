@@ -18,10 +18,10 @@
 # The control is a hard requirement, not a decoration: a detector that cannot report zero says
 # nothing about the runs that report non-zero.
 #
-# NOT VACUOUS.  Every armed row also asserts the mechanism was ENTERED, by reading INFO's
-# watch_reservation_waits before deciding the row passed: a run in which no unit ever met an
-# undecided reservation has not tested anything.  A row that is clean AND never entered the path
-# fails with "path never entered".
+# NOT VACUOUS.  Every armed row also asserts the mechanism was ENTERED, by reading
+# watch_reservation_waits + watch_reservation_coexist from INFO before deciding the row passed.
+# A run in which no unit ever met a foreign undecided reservation has not tested anything, and a
+# row that is clean AND moved neither counter fails with "never entered".
 
 set -u
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -70,6 +70,11 @@ boot() {   # boot <extra server args...>
     return 0
 }
 
+# Evidence that the run entered the machinery at all: blocking waits on an EXEC validate claim
+# PLUS atomic-group reservations that had to coexist with a foreign undecided one. The second term
+# is the defect's own precondition, and it is the one that moves when --atomic 1 makes cross-shard
+# writes into groups; the first is what moves with --atomic 0. A row that is clean and moved
+# NEITHER has not tested anything, so the gate fails it.
 waits_counter() {
     python3 - "$PORT" <<'PY' 2>/dev/null || echo 0
 import socket, sys
@@ -78,17 +83,18 @@ s.settimeout(5)
 s.sendall(b"*2\r\n$4\r\nINFO\r\n$5\r\nstats\r\n")
 buf = b""
 try:
-    while b"watch_reservation_waits" not in buf:
+    while b"watch_reservation_coexist" not in buf:
         d = s.recv(65536)
         if not d: break
         buf += d
 except Exception:
     pass
+total = 0
 for line in buf.split(b"\r\n"):
-    if line.startswith(b"watch_reservation_waits:"):
-        print(int(line.split(b":")[1])); break
-else:
-    print(0)
+    for field in (b"watch_reservation_waits:", b"watch_reservation_coexist:"):
+        if line.startswith(field):
+            total += int(line.split(b":")[1])
+print(total)
 PY
 }
 
@@ -107,15 +113,15 @@ row() {  # row <label> <conns> <watchflag> <boot args...>
         [ "$rate" = "1/1" ] && wedged=$((wedged+1))
     done
     if [ "$wedged" -ne 0 ]; then
-        echo "  FAIL $label  wedged $wedged/$ran  (reservation waits $entered)"
+        echo "  FAIL $label  wedged $wedged/$ran  (reservation contention $entered)"
         FAIL=$((FAIL+1))
     elif [ -n "$wflag" ]; then
         echo "  ok   $label  wedged $wedged/$ran  (control; reservation waits $entered)"
     elif [ "$entered" -eq 0 ]; then
-        echo "  FAIL $label  wedged 0/$ran but the reservation path was NEVER ENTERED"
+        echo "  FAIL $label  wedged 0/$ran but the reservation machinery was NEVER ENTERED (waits+coexist = 0)"
         FAIL=$((FAIL+1))
     else
-        echo "  ok   $label  wedged $wedged/$ran  (reservation waits $entered)"
+        echo "  ok   $label  wedged $wedged/$ran  (reservation contention $entered)"
     fi
 }
 

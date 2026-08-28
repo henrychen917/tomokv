@@ -297,6 +297,79 @@ def arm(host, port, nconn, watch, reps, deadline, quiet=False):
     return counts, details
 
 
+# ----------------------------------------------------------------------------------------------
+# SEMANTICS.  The liveness fix chose a serialization instead of waiting for one, so the WATCH
+# contract itself is asserted here in both directions, deterministically (each foreign write is
+# acknowledged before the transaction runs, so no race decides the answer).  Without these a
+# server could pass the liveness rows by aborting every transaction it is ever handed.
+# ----------------------------------------------------------------------------------------------
+
+def semantics(host, port):
+    """Returns (failures, log-lines)."""
+    fails, log = 0, []
+
+    def check(name, ok, extra=""):
+        nonlocal fails
+        log.append(("  ok   " if ok else "  FAIL ") + name + (" " + extra if extra else ""))
+        if not ok:
+            fails += 1
+
+    a = Resp(host, port, timeout=20)
+    b = Resp(host, port, timeout=20)
+    tag = "wls:%d" % (int(time.time() * 1000) % 1000000)
+    keys = [b"%s:%d" % (tag.encode(), i) for i in range(16)]
+
+    # ARM: a foreign wide cross-shard write lands on a watched key BEFORE the transaction runs.
+    # The transaction must be told its watch broke -- EXEC answers a null array, not results.
+    a.cmd("MSET", *[x for k in keys for x in (k, b"base")])
+    a.cmd("WATCH", *keys[:8])
+    mset = ["MSET"]
+    for k in keys[:8]:
+        mset += [k, b"foreign"]
+    check("foreign wide MSET acknowledged", b.cmd(*mset) == b"OK")
+    a.cmd("MULTI")
+    a.cmd("SET", keys[0], b"txn")
+    reply = a.cmd("EXEC")
+    check("EXEC aborts after a foreign write to a watched key", reply is None, repr(reply)[:60])
+    check("the aborted transaction wrote nothing", a.cmd("GET", keys[0]) == b"foreign",
+          repr(a.cmd("GET", keys[0]))[:40])
+
+    # NEGATIVE CONTROL 1: nothing foreign touches the watched keys -- EXEC must COMMIT.  This is
+    # the row a fix that merely aborts everything would fail.
+    a.cmd("WATCH", *keys[:8])
+    a.cmd("MULTI")
+    a.cmd("SET", keys[0], b"committed")
+    reply = a.cmd("EXEC")
+    check("EXEC commits with no foreign write", isinstance(reply, list) and len(reply) == 1,
+          repr(reply)[:60])
+    check("the committed transaction's write is visible",
+          a.cmd("GET", keys[0]) == b"committed", repr(a.cmd("GET", keys[0]))[:40])
+
+    # NEGATIVE CONTROL 2: a foreign wide write that misses every watched key must NOT abort.
+    a.cmd("WATCH", *keys[:4])
+    mset = ["MSET"]
+    for k in keys[8:]:
+        mset += [k, b"elsewhere"]
+    check("foreign write to unwatched keys acknowledged", b.cmd(*mset) == b"OK")
+    a.cmd("MULTI")
+    a.cmd("SET", keys[0], b"still-committed")
+    reply = a.cmd("EXEC")
+    check("EXEC commits when the foreign write missed the watched keys",
+          isinstance(reply, list) and len(reply) == 1, repr(reply)[:60])
+
+    # A foreign cross-shard DEL of a watched key is a modification too.
+    a.cmd("WATCH", *keys[:8])
+    check("foreign wide DEL acknowledged", isinstance(b.cmd("DEL", *keys[:8]), int))
+    a.cmd("MULTI")
+    a.cmd("SET", keys[0], b"after-del")
+    reply = a.cmd("EXEC")
+    check("EXEC aborts after a foreign DEL of a watched key", reply is None, repr(reply)[:60])
+
+    a.close()
+    b.close()
+    return fails, log
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("host")
@@ -309,7 +382,18 @@ def main():
     ap.add_argument("--rate-only", action="store_true",
                     help="print only 'wedged/reps' and exit 0 (driver mode)")
     ap.add_argument("--quiet", action="store_true")
+    ap.add_argument("--semantics-only", action="store_true",
+                    help="run only the deterministic WATCH-contract checks and exit non-zero on "
+                         "any failure (this part IS a pass/fail battery)")
     args = ap.parse_args()
+
+    if args.semantics_only:
+        fails, log = semantics(args.host, args.port)
+        print("watchlive semantics", flush=True)
+        for line in log:
+            print(line, flush=True)
+        print("  semantics: %d failure(s)" % fails, flush=True)
+        return 1 if fails else 0
 
     watch = not args.no_watch
     label = "WATCH" if watch else "NO-WATCH(control)"
@@ -326,9 +410,14 @@ def main():
              counts["stalled"], counts["error"]), flush=True)
     for d in details:
         print("    " + d, flush=True)
-    # As a standalone invocation this is a REPORTER, not a pass/fail gate: the gate row lives in
-    # watchlive_gate.sh, which owns the fresh-server-per-arm discipline the rate depends on.
-    return 0
+    fails, log = semantics(args.host, args.port)
+    for line in log:
+        print(line, flush=True)
+    print("  semantics: %d failure(s)" % fails, flush=True)
+    # The LIVENESS half is a REPORTER, not a pass/fail gate -- the rate it reports is only
+    # meaningful with the fresh-server-per-repetition discipline that watchlive_gate.sh owns.
+    # The SEMANTICS half is deterministic, so it decides the exit status.
+    return 1 if fails else 0
 
 
 if __name__ == "__main__":
