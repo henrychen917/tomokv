@@ -1235,8 +1235,8 @@ void cmd_config(Shard& sh, Op& op) {
                 g_server && (g_server->climon_armed() & Server::kClimonTracking) != 0;
             const bool save_armed = g_server && g_server->save_schedule_armed();
             sh.set_notify_mask(flags |
-                               (tracking ? (NOTIFY_ALL | NOTIFY_TRACKING) : 0u) |
-                               (save_armed ? (NOTIFY_ALL | NOTIFY_SAVE) : 0u));
+                               (tracking ? NOTIFY_TRACKING : 0u) |
+                               (save_armed ? NOTIFY_SAVE : 0u));
         }
 
         // Eviction config is process-global (odd/even snapshot read by owners each pass); publish

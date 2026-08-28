@@ -132,16 +132,15 @@ private:
         const uint64_t shard_limit = snapshot.maxmemory / srv_->nshards();
         for (Shard* sh : self_->shards()) {
             sh->configure_maxmemory(enabled, shard_limit, snapshot.policy, snapshot.samples);
-            // CLIENT TRACKING needs the same per-write key observation keyspace notifications
-            // use, so it rides the shard mask as a synthetic class rather than a second armed
-            // load inside notify_record. Real notification classes stay exactly as configured;
-            // NOTIFY_TRACKING alone never produces a pub/sub publication.
-            // NOTIFY_ALL already covers expired/evicted. NOTIFY_NEW and NOTIFY_KEY_MISS are
-            // deliberately NOT armed: `new` would make every first write on a key produce a
-            // second, duplicate invalidation, and a key miss is not a value change.
+            // CLIENT TRACKING and periodic SAVE need the same per-write observation points as
+            // keyspace notifications, so they ride the shard mask as synthetic observer bits.
+            // notify_record expands those observers over NOTIFY_ALL without adding those class
+            // bits here: the operator's configured pub/sub classes therefore remain independent.
+            // NOTIFY_NEW and NOTIFY_KEY_MISS stay outside the observer surface: `new` would count
+            // or invalidate a mutation twice, and a key miss is not a value change.
             sh->set_notify_mask(snapshot.notify_events |
-                                (snapshot.tracking_armed ? (NOTIFY_ALL | NOTIFY_TRACKING) : 0u) |
-                                (snapshot.save_armed ? (NOTIFY_ALL | NOTIFY_SAVE) : 0u));
+                                (snapshot.tracking_armed ? NOTIFY_TRACKING : 0u) |
+                                (snapshot.save_armed ? NOTIFY_SAVE : 0u));
         }
         maxmemory_enabled_ = enabled;
         slowlog_arm_.slowlog_us = snapshot.slowlog_log_slower_than;
