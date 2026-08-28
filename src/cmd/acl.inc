@@ -70,10 +70,6 @@ std::string acl_lower(Slice value) {
     return result;
 }
 
-std::string acl_lower_command_name(const char* name) {
-    return acl_lower(Slice(name, static_cast<uint32_t>(std::strlen(name))));
-}
-
 const AclCategoryDefinition* acl_category(Slice name) {
     for (const AclCategoryDefinition& category : kAclCategories)
         if (acl_equal_icase(name, category.name)) return &category;
@@ -868,20 +864,22 @@ void acl_reply_category(Op& op) {
         reply_err(op.sink(), message.c_str());
         return;
     }
-    std::vector<const CommandSpec*> commands;
-    for (uint32_t id = 0; id < command_registry_size(); id++) {
-        const CommandSpec* spec = command_registry_at(id);
-        if (command_acl_category_mask(*spec) & category->bit) commands.push_back(spec);
+    std::vector<const CommandMetadata*> commands;
+    for (uint32_t id = 0; id < command_metadata_size(); id++) {
+        const CommandMetadata* spec = command_metadata_at(id);
+        if (command_metadata_categories(*spec) & category->bit) commands.push_back(spec);
     }
-    std::sort(commands.begin(), commands.end(), [](const CommandSpec* left,
-                                                    const CommandSpec* right) {
-        return std::strcmp(left->name, right->name) < 0;
+    std::sort(commands.begin(), commands.end(), [](const CommandMetadata* left,
+                                                    const CommandMetadata* right) {
+        const Slice left_name = command_metadata_name(*left);
+        const Slice right_name = command_metadata_name(*right);
+        const size_t common = std::min(left_name.n, right_name.n);
+        const int order = std::memcmp(left_name.p, right_name.p, common);
+        return order ? order < 0 : left_name.n < right_name.n;
     });
     reply_array_header(op.sink(), commands.size());
-    for (const CommandSpec* spec : commands) {
-        const std::string name = acl_lower_command_name(spec->name);
-        reply_bulk(op.sink(), Slice(name.data(), name.size()));
-    }
+    for (const CommandMetadata* spec : commands)
+        reply_bulk(op.sink(), command_metadata_name(*spec));
 }
 
 const char* kAclNoFileError =

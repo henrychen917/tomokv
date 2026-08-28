@@ -8,6 +8,7 @@
 // Semantics were taken from the documented protocol and from byte-probing a vanilla redis 7.4
 // binary. No redis source was read or copied.
 #include "server_tail.h"
+#include "cmdmeta.h"
 
 #include "command.h"
 #include "acl.h"
@@ -102,13 +103,6 @@ bool parse_i64(Slice s, int64_t& out) {
 
 void reply_invalid_integer(Op& op) {
     reply_err(op.sink(), "ERR value is not an integer or out of range");
-}
-
-std::string lower_name(const char* name) {
-    std::string out(name);
-    for (char& ch : out)
-        if (ch >= 'A' && ch <= 'Z') ch = static_cast<char>(ch + ('a' - 'A'));
-    return out;
 }
 
 // Redis answers container HELP with an array of simple strings. Keeping the text in one table per
@@ -746,157 +740,38 @@ const char* const kCommandHelp[] = {
     "    Print this help.",
 };
 
-// Static key extraction uses the same registry range ACL, MULTI and scatter lowering consume.
-// Commands whose key count/position is argument-driven are decoded separately below.
-bool collect_static_command_keys(const CommandSpec& spec, Op& op, uint32_t first_arg,
-                                 std::vector<uint32_t>& out) {
-    const uint32_t argc = op.argc() - first_arg;
-    if (spec.first_key <= 0 || spec.key_step <= 0) return false;
-    const uint32_t last = spec.last_key < 0
-        ? argc - 1
-        : std::min<uint32_t>(static_cast<uint32_t>(spec.last_key), argc - 1);
-    for (uint32_t arg = static_cast<uint32_t>(spec.first_key); arg <= last;
-         arg += static_cast<uint32_t>(spec.key_step))
-        out.push_back(first_arg + arg);
-    return !out.empty();
-}
-
-enum class MovableKeysResult : uint8_t { NotMovable, Success, Invalid };
-
-void append_command_key_range(std::vector<uint32_t>& out, uint32_t first, uint64_t count) {
-    for (uint64_t i = 0; i < count; i++) out.push_back(first + static_cast<uint32_t>(i));
-}
-
-// COMMAND GETKEYS is a routing API, so movable-key commands must be decoded from their actual
-// grammar rather than from the registry's conservative legacy range. This remains entirely on the
-// connection-local COMMAND path; executor routing and the single-owner store path are untouched.
-MovableKeysResult collect_movable_command_keys(Op& op, uint32_t command_arg,
-                                               std::vector<uint32_t>& out) {
-    const Slice name = op.arg(command_arg);
-
-    const bool script = eq_icase(name, "EVAL") || eq_icase(name, "EVALSHA") ||
-                        eq_icase(name, "EVAL_RO") || eq_icase(name, "EVALSHA_RO") ||
-                        eq_icase(name, "FCALL") || eq_icase(name, "FCALL_RO");
-    if (script) {
-        uint64_t count = 0;
-        const uint32_t count_arg = command_arg + 2;
-        // Redis's key-spec extractor returns an empty list (rather than a validation error) when
-        // the numkeys field cannot describe a complete range.
-        if (count_arg >= op.argc() || !parse_u64(op.arg(count_arg), count) ||
-            count > op.argc() - (count_arg + 1)) return MovableKeysResult::Success;
-        append_command_key_range(out, count_arg + 1, count);
-        return MovableKeysResult::Success;
-    }
-
-    const bool xread = eq_icase(name, "XREAD") || eq_icase(name, "XREADGROUP");
-    if (xread) {
-        uint32_t streams = op.argc();
-        for (uint32_t i = command_arg + 1; i < op.argc(); i++) {
-            if (eq_icase(op.arg(i), "STREAMS")) { streams = i; break; }
-        }
-        if (streams == op.argc()) return MovableKeysResult::Success;
-        const uint32_t remaining = op.argc() - streams - 1;
-        append_command_key_range(out, streams + 1, remaining / 2);
-        return MovableKeysResult::Success;
-    }
-
-    const bool blocking_mpop = eq_icase(name, "BLMPOP") || eq_icase(name, "BZMPOP");
-    const bool mpop = blocking_mpop || eq_icase(name, "LMPOP") || eq_icase(name, "ZMPOP");
-    if (mpop) {
-        const uint32_t count_arg = command_arg + (blocking_mpop ? 2 : 1);
-        int64_t count = 0;
-        if (count_arg >= op.argc() || !parse_i64(op.arg(count_arg), count) || count <= 0 ||
-            static_cast<uint64_t>(count) > op.argc() - (count_arg + 1))
-            return MovableKeysResult::Invalid;
-        append_command_key_range(out, count_arg + 1, static_cast<uint64_t>(count));
-        return MovableKeysResult::Success;
-    }
-
-    const bool card = eq_icase(name, "SINTERCARD") || eq_icase(name, "ZINTERCARD");
-    const bool zread = eq_icase(name, "ZUNION") || eq_icase(name, "ZINTER") ||
-                       eq_icase(name, "ZDIFF");
-    const bool zstore = eq_icase(name, "ZUNIONSTORE") || eq_icase(name, "ZINTERSTORE") ||
-                        eq_icase(name, "ZDIFFSTORE");
-    if (card || zread || zstore) {
-        const uint32_t count_arg = command_arg + (zstore ? 2 : 1);
-        int64_t count = 0;
-        if (count_arg >= op.argc() || !parse_i64(op.arg(count_arg), count) || count <= 0 ||
-            static_cast<uint64_t>(count) > op.argc() - (count_arg + 1))
-            return MovableKeysResult::Invalid;
-        if (zstore) out.push_back(command_arg + 1);
-        append_command_key_range(out, count_arg + 1, static_cast<uint64_t>(count));
-        return MovableKeysResult::Success;
-    }
-
-    const bool georadius = eq_icase(name, "GEORADIUS") ||
-                           eq_icase(name, "GEORADIUSBYMEMBER");
-    if (georadius) {
-        out.push_back(command_arg + 1);
-        const uint32_t options = command_arg + (eq_icase(name, "GEORADIUS") ? 6 : 5);
-        for (uint32_t i = options; i + 1 < op.argc(); i++) {
-            if (eq_icase(op.arg(i), "STORE") || eq_icase(op.arg(i), "STOREDIST")) {
-                out.push_back(i + 1);
-                i++;
-            }
-        }
-        return MovableKeysResult::Success;
-    }
-
-    if (eq_icase(name, "SORT")) {
-        out.push_back(command_arg + 1);
-        for (uint32_t i = command_arg + 2; i + 1 < op.argc(); i++) {
-            if (eq_icase(op.arg(i), "STORE")) { out.push_back(i + 1); break; }
-        }
-        return MovableKeysResult::Success;
-    }
-    return MovableKeysResult::NotMovable;
-}
-
-// DOCUMENTED APPROXIMATION. Redis carries a hand-written per-key-spec flag set; our registry
-// records the key RANGE, not per-key intent, so the flags are derived from the command's own
-// read/write classification. The key list itself is exact; the flags are indicative.
-void reply_key_flags(Op::Sink& sink, const CommandSpec& spec) {
-    if (spec.flags & CmdFlags::Write) {
-        reply_array_header(sink, 3);
-        reply_simple(sink, "RW");
-        reply_simple(sink, "access");
-        reply_simple(sink, "update");
-        return;
-    }
-    reply_array_header(sink, 2);
-    reply_simple(sink, "RO");
-    reply_simple(sink, "access");
-}
-
 bool command_getkeys(Op& op, bool with_flags) {
     if (op.argc() < 3) {
         reply_err(op.sink(), "ERR Unknown subcommand or wrong number of arguments for 'GETKEYS'. Try COMMAND HELP.");
         return true;
     }
-    const CommandSpec* spec = command_lookup(op.arg(2));
-    if (!spec) { reply_err(op.sink(), "ERR Invalid command specified"); return true; }
-    if (!command_arity_ok(*spec, op.argc() - 2)) {
+    const CommandMetadata* metadata = command_metadata_resolve(op, 2);
+    if (!metadata) { reply_err(op.sink(), "ERR Invalid command specified"); return true; }
+    if (!command_metadata_arity_ok(*metadata, op.argc() - 2)) {
         reply_err(op.sink(), "ERR Invalid number of arguments specified for command");
         return true;
     }
-    std::vector<uint32_t> keys;
-    const MovableKeysResult movable = collect_movable_command_keys(op, 2, keys);
-    if (movable == MovableKeysResult::Invalid) {
+    std::vector<CommandKeyMetadata> keys;
+    const CommandMetadataKeysResult result =
+        command_metadata_collect_keys(op, 2, *metadata, keys);
+    if (result == CommandMetadataKeysResult::InvalidArguments) {
         reply_err(op.sink(), "ERR Invalid arguments specified for command");
         return true;
     }
-    if (movable == MovableKeysResult::NotMovable &&
-        !collect_static_command_keys(*spec, op, 2, keys)) {
+    if (result == CommandMetadataKeysResult::NoKeyArguments) {
         reply_err(op.sink(), "ERR The command has no key arguments");
         return true;
     }
     auto sink = op.sink();
     reply_array_header(sink, keys.size());
-    for (uint32_t arg : keys) {
-        if (!with_flags) { reply_bulk(sink, op.arg(arg)); continue; }
+    for (const CommandKeyMetadata& key : keys) {
+        if (!with_flags) { reply_bulk(sink, op.arg(key.argument)); continue; }
         reply_array_header(sink, 2);
-        reply_bulk(sink, op.arg(arg));
-        reply_key_flags(sink, *spec);
+        reply_bulk(sink, op.arg(key.argument));
+        reply_set_header(sink, static_cast<uint64_t>(__builtin_popcount(key.flags)), op.resp3());
+        for (uint32_t index = 0; index < command_metadata_key_flag_count(); index++)
+            if (key.flags & (uint16_t{1} << index))
+                reply_simple(sink, command_metadata_key_flag_name(index));
     }
     return true;
 }
@@ -936,14 +811,15 @@ bool command_list(Op& op) {
     }
 
     std::vector<std::string> names;
-    for (uint32_t i = 0; i < command_registry_size(); i++) {
-        const CommandSpec* spec = command_registry_at(i);
+    for (uint32_t i = 0; i < command_metadata_size(); i++) {
+        const CommandMetadata* spec = command_metadata_at(i);
         if (filter_module) continue;                  // no module system: the answer is always none
-        std::string name = lower_name(spec->name);
+        const Slice metadata_name = command_metadata_name(*spec);
+        std::string name(metadata_name.p, metadata_name.n);
         if (filter_pattern &&
             !command_glob_match(argument, Slice(name.data(),
                                                 static_cast<uint32_t>(name.size())))) continue;
-        if (filter_aclcat && !(command_acl_category_mask(*spec) & category_bit)) continue;
+        if (filter_aclcat && !(command_metadata_categories(*spec) & category_bit)) continue;
         names.push_back(std::move(name));
     }
     auto sink = op.sink();

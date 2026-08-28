@@ -4623,6 +4623,154 @@ if SUITE == "compatintro":
 
 
 # ---- Lane t-aclsel: ACL selector grammar/reporting/enforcement differential -------------------
+def run_cmdmeta_suite(rng):
+    """Cold command metadata: 4,200 byte comparisons plus inventory/category properties."""
+    subcommands = """
+acl|cat acl|deluser acl|dryrun acl|genpass acl|getuser acl|help acl|list acl|load acl|log
+acl|save acl|setuser acl|users acl|whoami client|caching client|getname client|getredir
+client|help client|id client|info client|kill client|list client|no-evict client|no-touch
+client|pause client|reply client|setinfo client|setname client|tracking client|trackinginfo
+client|unblock client|unpause cluster|addslots cluster|addslotsrange cluster|bumpepoch
+cluster|count-failure-reports cluster|countkeysinslot cluster|delslots cluster|delslotsrange
+cluster|failover cluster|flushslots cluster|forget cluster|getkeysinslot cluster|help cluster|info
+cluster|keyslot cluster|links cluster|meet cluster|myid cluster|myshardid cluster|nodes
+cluster|replicas cluster|replicate cluster|reset cluster|saveconfig cluster|set-config-epoch
+cluster|setslot cluster|shards cluster|slaves cluster|slots command|count command|docs
+command|getkeys command|getkeysandflags command|help command|info command|list config|get
+config|help config|resetstat config|rewrite config|set function|delete function|dump
+function|flush function|help function|kill function|list function|load function|restore
+function|stats latency|doctor latency|graph latency|help latency|histogram latency|history
+latency|latest latency|reset memory|doctor memory|help memory|malloc-stats memory|purge
+memory|stats memory|usage module|help module|list module|load module|loadex module|unload
+object|encoding object|freq object|help object|idletime object|refcount pubsub|channels
+pubsub|help pubsub|numpat pubsub|numsub pubsub|shardchannels pubsub|shardnumsub script|debug
+script|exists script|flush script|help script|kill script|load slowlog|get slowlog|help
+slowlog|len slowlog|reset xgroup|create xgroup|createconsumer xgroup|delconsumer
+xgroup|destroy xgroup|help xgroup|setid xinfo|consumers xinfo|groups xinfo|help xinfo|stream
+""".split()
+    key_cases = [
+        ["GET", "k"], ["MGET", "a", "b"], ["EXISTS", "a", "b"], ["DEL", "a", "b"],
+        ["SET", "k", "v"], ["SET", "k", "v", "GET"], ["SETNX", "k", "v"],
+        ["MSET", "a", "1", "b", "2"], ["MSETNX", "a", "1", "b", "2"],
+        ["GETDEL", "k"], ["GETEX", "k", "PERSIST"], ["APPEND", "k", "x"],
+        ["EXPIRE", "k", "1"], ["ZADD", "z", "1", "m"], ["ZREM", "z", "m"],
+        ["SREM", "s", "m"], ["LPUSH", "l", "v"], ["HSET", "h", "f", "v"],
+        ["XADD", "x", "*", "f", "v"], ["XDEL", "x", "1-0"],
+        ["RENAME", "a", "b"], ["RENAMENX", "a", "b"], ["COPY", "a", "b"],
+        ["SMOVE", "a", "b", "m"], ["LMOVE", "a", "b", "LEFT", "RIGHT"],
+        ["BRPOP", "a", "b", "0"], ["LMPOP", "2", "a", "b", "LEFT"],
+        ["BLMPOP", "0", "2", "a", "b", "LEFT"], ["ZUNION", "2", "a", "b"],
+        ["ZUNIONSTORE", "d", "2", "a", "b"], ["SINTERSTORE", "d", "a", "b"],
+        ["PFCOUNT", "a", "b"], ["PFMERGE", "d", "a", "b"],
+        ["BITOP", "AND", "d", "a", "b"], ["BITFIELD", "k", "GET", "u8", "0"],
+        ["BITFIELD", "k", "SET", "u8", "0", "1"], ["LCS", "a", "b"],
+        ["EVAL", "return 1", "2", "a", "b"], ["EVAL_RO", "return 1", "2", "a", "b"],
+        ["XREAD", "STREAMS", "a", "b", "0", "0"],
+        ["XREADGROUP", "GROUP", "g", "c", "STREAMS", "a", "b", ">", ">"],
+        ["GEORADIUS", "g", "0", "0", "1", "km", "STORE", "d"],
+        ["SORT", "s", "BY", "w:*", "STORE", "d"], ["SORT_RO", "s", "BY", "w:*"],
+        ["OBJECT", "ENCODING", "k"], ["MEMORY", "USAGE", "k"],
+        ["XGROUP", "CREATE", "x", "g", "$"], ["XINFO", "STREAM", "x"],
+        ["ZUNION", "+1", "a", "b"], ["LMPOP", "01", "a", "b", "LEFT"],
+        ["SORT", "s", "STORE", "d", "STORE", "e"], ["OBJECT", "BOGUS", "k"],
+    ]
+    ts, tf = conn(TH, TP)
+    os_, of = conn(OH, OP)
+    diffs = 0
+    compared = 0
+    fired = {"info": 0, "intent": 0, "pipes": 0, "categories": 0,
+             "docs_boundary": 0, "zero_controls": 0}
+
+    def command(sock, file, argv):
+        sock.sendall(enc(argv))
+        return read_reply(file)
+
+    def mismatch(label, target, oracle):
+        nonlocal diffs
+        diffs += 1
+        if diffs <= 12:
+            print("  DIFF %s\n    target: %r\n    oracle: %r" %
+                  (label, target[:500], oracle[:500]))
+
+    def compare(argv, label):
+        nonlocal compared
+        target = command(ts, tf, argv)
+        oracle = command(os_, of, argv)
+        compared += 1
+        if target != oracle:
+            mismatch(label, target, oracle)
+
+    # Compare the pipe-qualified inventory as a set: raw order is explicitly unordered.
+    lists = []
+    for sock, file in ((ts, tf), (os_, of)):
+        value = parse_reply(command(sock, file, ["COMMAND", "LIST"]))
+        lists.append({item for item in value if b"|" in item} if isinstance(value, list) else set())
+    expected = {name.encode() for name in subcommands}
+    if lists[0] != expected or lists[1] != expected:
+        mismatch("129 pipe-qualified LIST rows", repr(sorted(lists[0])).encode(),
+                 repr(sorted(lists[1])).encode())
+    fired["pipes"] = len(lists[0])
+
+    for category in ("stream", "pubsub", "admin", "connection"):
+        values = []
+        for sock, file in ((ts, tf), (os_, of)):
+            parsed = parse_reply(command(sock, file, ["ACL", "CAT", category]))
+            values.append(sorted(item for item in parsed if b"|" in item))
+        if values[0] != values[1]:
+            mismatch("ACL CAT %s pipe rows" % category,
+                     repr(values[0]).encode(), repr(values[1]).encode())
+        fired["categories"] += len(values[0])
+
+    # COUNT excludes subcommands on both servers. The unrelated nine top-level command gaps are
+    # outside this lane, so compare each side against its own non-pipe LIST cardinality.
+    for side, sock, file in (("target", ts, tf), ("oracle", os_, of)):
+        listing = parse_reply(command(sock, file, ["COMMAND", "LIST"]))
+        count = parse_reply(command(sock, file, ["COMMAND", "COUNT"]))
+        value = int(count[1:]) if isinstance(count, bytes) and count[:1] == b":" else -1
+        top = sum(b"|" not in name for name in listing)
+        if value != top:
+            mismatch("COUNT top-level property " + side, str(value).encode(), str(top).encode())
+
+    # The prose corpus is intentionally not embedded. Prove the boundary actually differs and
+    # that both sides returned documentation rather than letting a vacuous omission pass.
+    target_docs = command(ts, tf, ["COMMAND", "DOCS", "config|get"])
+    oracle_docs = command(os_, of, ["COMMAND", "DOCS", "config|get"])
+    if target_docs == oracle_docs or b"tomokv compatible config|get command" not in target_docs or \
+            b"Returns the effective values" not in oracle_docs:
+        mismatch("DOCS explicit minimal-prose boundary", target_docs, oracle_docs)
+    else:
+        fired["docs_boundary"] = 1
+
+    # Every direct subcommand row is deterministic; container child order is intentionally not.
+    # Mix these with 48 key-spec shapes for 4,200 raw byte comparisons.
+    for iteration in range(4200):
+        if rng.randrange(2):
+            name = rng.choice(subcommands)
+            # Vary request case without changing the canonical lower-case reply.
+            requested = "".join(ch.upper() if rng.randrange(2) else ch for ch in name)
+            compare(["COMMAND", "INFO", requested], "INFO %d %s" % (iteration, requested))
+            fired["info"] += 1
+        else:
+            case = list(rng.choice(key_cases))
+            case[0] = "".join(ch.lower() if rng.randrange(2) else ch for ch in case[0])
+            compare(["COMMAND", "GETKEYSANDFLAGS"] + case,
+                    "intent %d %s" % (iteration, case[0]))
+            fired["intent"] += 1
+
+    compare(["COMMAND", "INFO", "nope|nope"], "unknown INFO zero control")
+    compare(["COMMAND", "GETKEYSANDFLAGS", "GET", "k"], "RO/access zero control")
+    fired["zero_controls"] = 2
+    ts.close()
+    os_.close()
+    if fired["pipes"] != 129 or fired["info"] < 1900 or fired["intent"] < 1900 or \
+            fired["categories"] < 40 or fired["docs_boundary"] != 1:
+        mismatch("cmdmeta non-vacuity", repr(fired).encode(), b"required counters")
+    print("DIFFER cmdmeta: %d ops, %d diffs -> %s (%s)" %
+          (compared, diffs, "PASS" if diffs == 0 else "FAIL",
+           ", ".join("%s=%d" % item for item in fired.items())))
+    return diffs
+
+
 def run_aclsel_suite(rng):
     """Byte-compare selector control-plane replies and commands admitted through selectors."""
     diffs = 0
@@ -4780,6 +4928,8 @@ def run_aclsel_suite(rng):
 
 if SUITE == "aclsel":
     sys.exit(1 if run_aclsel_suite(rng) else 0)
+if SUITE == "cmdmeta":
+    sys.exit(1 if run_cmdmeta_suite(rng) else 0)
 
 
 def run_s6fix_suite(rng):
@@ -4960,7 +5110,7 @@ if LIST_GENERATORS:
     # This is the single suite inventory. Property suites live outside `gens` because their
     # replies are not byte-comparable, but the gate discovers them from this same list.
     print("\n".join(list(gens) + ["blocking", "pubsub", "fanout", "spubsub", "notify",
-                                   "wiredump", "climon", "compatintro", "aclsel", "s6fix"]))
+                                   "wiredump", "climon", "compatintro", "aclsel", "cmdmeta", "s6fix"]))
     sys.exit(0)
 ops = gens[SUITE](rng)
 
