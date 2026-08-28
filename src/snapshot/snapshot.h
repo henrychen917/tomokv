@@ -143,7 +143,6 @@ private:
     int fd_ = -1;                         // designated writer thread only
     uint64_t frame_count_ = 0;
     uint32_t ended_shards_ = 0;
-    uint32_t writer_cursor_ = 0;
     std::vector<uint32_t> next_sequence_; // designated writer thread only
     std::vector<uint8_t> saw_begin_;
     std::vector<uint8_t> saw_end_;

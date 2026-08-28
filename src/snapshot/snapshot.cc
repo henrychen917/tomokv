@@ -218,7 +218,6 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
     writer_failed_.store(false, std::memory_order_relaxed);
     frame_count_ = 0;
     ended_shards_ = 0;
-    writer_cursor_ = 0;
     file_offset_ = 0;
     io_inflight_ = 0;
     header_complete_ = false;

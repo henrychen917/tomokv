@@ -582,7 +582,6 @@ public:
         snapshot_cut_ms_ = cut_ms;
         snapshot_pos_ = 0;
         snapshot_sequence_ = 0;
-        snapshot_records_ = 0;
         snapshot_failed_ = false;
         snapshot_finished_ = false;
         snapshot_build_ = make_snapshot_chunk(SnapshotFrameBegin);
@@ -1381,7 +1380,6 @@ private:
         const bool preimage = state.preimage;
         const uint32_t slot = state.slot;
         snapshot_record_ = {};
-        snapshot_records_++;
         if (preimage) tab_[1][slot] |= kTombBit;
         else          snapshot_pos_++;
     }
@@ -2027,7 +2025,6 @@ private:
     uint32_t snapshot_pos_ = 0;
     uint64_t snapshot_preimages_ = 0;   // pre-images emitted ahead of the cursor (write-gate fired)
     uint32_t snapshot_sequence_ = 0;
-    uint64_t snapshot_records_ = 0;
     SnapshotRecordState snapshot_record_;
     std::unique_ptr<SnapshotChunk> snapshot_build_;
     std::unique_ptr<SnapshotChunk> snapshot_ready_;
