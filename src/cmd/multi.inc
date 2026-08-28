@@ -43,6 +43,9 @@ struct MultiValue {
 };
 
 struct MultiCommand {
+    static constexpr uint32_t kXshardStages = 4;
+    static constexpr uint32_t kShardMaskWords = 4;
+
     MultiQueuedCommand queued;
     std::unique_ptr<Op> op;
     MultiCommandKind kind = MultiCommandKind::Unsupported;
@@ -63,6 +66,12 @@ struct MultiCommand {
     std::atomic<bool> condition_failed{false};
     std::atomic<bool> finished{false};
     ScatterState* scatter = nullptr;
+    // ScatterState::groups is rebuilt between an xshard child's waves.  A barrier-only shard must
+    // decide whether it belongs to the PUBLISHED wave without consulting that mutable table: the
+    // last task from the prior wave is allowed to rewrite it before publishing command.stage.
+    // Four 64-bit words cover the server's 256-shard maximum.  Four stages cover the longest child
+    // today (SORT source -> dynamic gather -> STORE apply) with one spare stage for a future retry.
+    std::array<std::array<uint64_t, kShardMaskWords>, kXshardStages> xshard_stage_groups{};
     uint32_t notify_order_base = 0;
 };
 
@@ -349,6 +358,12 @@ void add_shard(std::vector<int32_t>& shards, int32_t shard) {
     if (!contains_shard(shards, shard)) shards.push_back(shard);
 }
 
+bool multi_xshard_stage_has_group(const MultiCommand& command, uint32_t stage, int32_t shard) {
+    if (stage >= MultiCommand::kXshardStages || shard < 0 || shard >= 256) return false;
+    const uint32_t sid = static_cast<uint32_t>(shard);
+    return command.xshard_stage_groups[stage][sid >> 6] & (1ull << (sid & 63));
+}
+
 bool make_child_op(MultiCommand& command, uint8_t db) {
     command.op = std::make_unique<Op>();
     command.op->reset();
@@ -564,6 +579,8 @@ bool prepare_commands(Server& server, MultiExecState& state,
                     command->kind = MultiCommandKind::Xshard;
                     command->scatter = child_dispatch.state;
                     xshard_multi_child_bind(*command->scatter, &state.epoch, &state.aborted);
+                    xshard_multi_child_capture_groups(
+                        *command->scatter, command->xshard_stage_groups[0]);
                     for (uint32_t i = 0; i < child_dispatch.nshards; i++)
                         add_shard(command->participants,
                                   xshard_dispatch_shard(child_dispatch, i));
@@ -1633,7 +1650,11 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
         const uint32_t stage = command.stage.load(std::memory_order_acquire);
         uint8_t& done = command.shard_done[shard_id];
         if (command.kind == MultiCommandKind::Xshard) {
-            if (!xshard_multi_child_has_group(*command.scatter, shard.id())) {
+            // Membership is published with `stage`, not discovered from ScatterState::groups.
+            // The latter is a reusable table: source/gather/apply transitions rewrite it on the
+            // last owner of the old stage.  Reading it from a barrier-only task before the release
+            // store below races that rewrite and can execute a partially built SORT gather group.
+            if (!multi_xshard_stage_has_group(command, stage, shard.id())) {
                 if (command.finished.load(std::memory_order_acquire)) continue;
                 return MultiTaskResult::Retry;
             }
@@ -1669,7 +1690,14 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
             const MultiChildFinish finished = xshard_multi_child_complete(
                 *command.scatter, *command.op, owner_thread_id);
             if (finished == MultiChildFinish::PhaseAdvanced) {
-                command.stage.store(stage + 1, std::memory_order_release);
+                const uint32_t next_stage = stage + 1;
+                if (next_stage >= MultiCommand::kXshardStages) std::abort();
+                // xshard_multi_child_complete has finished rebuilding groups.  Snapshot their
+                // membership first; the release store then publishes both the group contents and
+                // this immutable routing decision to every retrying transaction fragment.
+                xshard_multi_child_capture_groups(
+                    *command.scatter, command.xshard_stage_groups[next_stage]);
+                command.stage.store(next_stage, std::memory_order_release);
             } else if (finished == MultiChildFinish::Final) {
                 if (command.scatter->aborted.load(std::memory_order_acquire))
                     state.aborted.store(true, std::memory_order_release);

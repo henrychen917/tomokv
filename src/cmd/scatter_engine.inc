@@ -3369,8 +3369,15 @@ void xshard_multi_child_bind(ScatterState& state, std::atomic<uint64_t>* epoch,
     state.external_aborted = aborted;
 }
 
-bool xshard_multi_child_has_group(ScatterState& state, int32_t shard) {
-    return group_for(state, shard) != nullptr;
+void xshard_multi_child_capture_groups(ScatterState& state,
+                                       std::array<uint64_t, 4>& mask) {
+    mask.fill(0);
+    for (uint32_t i = 0; i < state.nsub; i++) {
+        const int32_t shard = state.groups[i].shard;
+        if (shard < 0 || shard >= 256) std::abort();
+        const uint32_t sid = static_cast<uint32_t>(shard);
+        mask[sid >> 6] |= 1ull << (sid & 63);
+    }
 }
 
 bool xshard_multi_child_records_done(const ScatterState& state) {
