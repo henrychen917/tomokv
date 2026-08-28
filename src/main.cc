@@ -95,6 +95,21 @@ int main(int argc, char** argv) {
         if (rc != kConfigParsed) return rc == kConfigHelp ? 0 : 1;
     }
     if (validate_config(cfg) != kConfigParsed) return 1;
+    // THE ENGINE IS LATCHED HERE, once, before anything that reads it exists. Every Ring in the
+    // process must agree (a uring ring cannot receive an eventfd doorbell and vice versa), and no
+    // thread has been spawned yet, so this store needs no synchronisation.
+    if (cfg.net_io == NetIoEngine::Epoll) {
+        g_ring_epoll_mode = true;
+        // --persist-io uring submits its writes and fsyncs as SQEs on the writer io thread's ring,
+        // and under this engine that ring does not exist. Rather than half-support it, the network
+        // choice implies the persistence one: same kernel interface, one decision. Announced, not
+        // silent -- a run whose durability path changed under it must say so.
+        if (cfg.persist_io != PersistIoEngine::Normal) {
+            cfg.persist_io = PersistIoEngine::Normal;
+            std::fprintf(stderr, "--net-io epoll: persist-io forced to normal "
+                                 "(the uring persistence engine needs a ring)\n");
+        }
+    }
     std::unique_ptr<TlsContext> tls_context;
     if (cfg.tls_port) {
         std::string tls_error;
@@ -216,9 +231,10 @@ int main(int argc, char** argv) {
     srv.topo().dump(stdout);
     const char* mname = "2s (io sends)";
     std::printf("tomokv-cpp: %u threads (%zu io + %zu ex), %u shard(s), %s,"
-                " io_uring, alloc=%s\n", srv.nthreads(),
+                " %s, alloc=%s\n", srv.nthreads(),
                 srv.placement().ifid_threads().size(), srv.placement().ex_threads().size(),
-                cfg.shards, mname, alloc_backend());
+                cfg.shards, mname,
+                cfg.net_io == NetIoEngine::Epoll ? "epoll" : "io_uring", alloc_backend());
     for (const ThreadPlacement& p : srv.placement().threads()) {
         const char* role = p.role == Role::Ifid ? "ifid" : p.role == Role::Ex ? "ex" : "wb";
         std::printf("  thread t%u: role=%s cpu=%d L3=%u shards=%zu send=", p.id, role, p.cpu,
@@ -479,6 +495,15 @@ int main(int argc, char** argv) {
                 (unsigned long long)live, (unsigned long long)stuck_rob, (unsigned long long)stuck_wr,
                 (unsigned long long)st_done, (unsigned long long)st_issued, (unsigned long long)st_free,
                 (unsigned long long)st_flag);
+    if (cfg.net_io == NetIoEngine::Epoll) {
+        uint64_t epoll_events = 0, epoll_recvs = 0;
+        for (uint32_t i = 0; i < srv.nthreads(); i++) {
+            epoll_events += srv.thread(i).sig().epoll_events;
+            epoll_recvs += srv.thread(i).sig().epoll_recvs;
+        }
+        std::printf("epoll: events=%llu recvs=%llu\n",
+                    (unsigned long long)epoll_events, (unsigned long long)epoll_recvs);
+    }
     std::printf("shutdown: dispatched=%llu executed=%llu accepts=%llu accept_err=%llu "
                 "rearm=%llu sqe_starved=%llu notify_drop=%llu\n",
                 static_cast<unsigned long long>(disp), static_cast<unsigned long long>(ops),

@@ -35,6 +35,7 @@
 #include "../net/conn.h"
 #include "../net/resp.h"
 #include "../net/uring.h"
+#include "../net/epoll.h"
 #include "../net/wb.h"
 #include "../net/tls.h"
 #include "../cmd/command.h"
@@ -91,8 +92,10 @@ public:
             if (tls_listen_fd_ < 0) return false;
         }
         unix_listen_fd_ = unix_listen_fd;
+        epoll_ = srv_->cfg().net_io == NetIoEngine::Epoll;
         if (!ring_.init(4096)) return false;
         self_->set_ring(&ring_);
+        if (epoll_ && !init_epoll()) return false;
         if (srv_->aof().configured()) {
             std::string error;
             if (!srv_->aof().bind_writer(*self_, ring_, error)) {
@@ -180,15 +183,56 @@ public:
 
     Ring& ring() { return ring_; }
 
+    // ---- epoll engine: registration -----------------------------------------------------------
+    // Everything that will ever be waited on is registered ONCE here. Listeners are
+    // level-triggered on purpose: a listener that we stop accepting from (maxclients reached, a
+    // failed Client allocation) must keep telling us there is a backlog, and an edge we consumed
+    // and could not act on would be gone. Connections are edge-triggered for the opposite reason --
+    // see net/epoll.h. The doorbell eventfd is level-triggered and drained explicitly.
+    bool init_epoll() {
+        if (!ep_.init()) return false;
+        auto add_listener = [&](int fd, UrKind kind) {
+            if (fd < 0) return true;
+            if (!set_nonblocking(fd)) return false;
+            return ep_.add(fd, EPOLLIN, ur_tag(kind, nullptr));
+        };
+        if (!add_listener(listen_fd_, UrKind::Accept)) return false;
+        if (!add_listener(tls_listen_fd_, UrKind::TlsAccept)) return false;
+        if (!add_listener(unix_listen_fd_, UrKind::UnixAccept)) return false;
+        // The cross-thread doorbell. Without this in the set, an executor that completes work while
+        // this thread is parked in epoll_wait cannot reach it, and the reply waits out the timeout.
+        if (ring_.wake_fd() < 0) return false;
+        return ep_.add(ring_.wake_fd(), EPOLLIN, ur_tag(UrKind::Wake, nullptr));
+    }
+
+    // THE ENGINE DECISION, MADE ONCE, HERE. It joins the two shape decisions this loop already
+    // resolved by instantiation (has a unix listener / has a TLS listener) rather than adding a
+    // third kind of runtime state. Everything below is `if constexpr` on kEp, so the uring build
+    // contains no epoll code and no test for it, and the epoll build contains no ring code and no
+    // test for it. This is the same compile-or-boot-time-variant pattern the registry uses for
+    // keyspace notifications (handler_notify in cmd/command.h: two instantiations of the handler,
+    // one pointer chosen off a per-batch flag, zero per-operation branching) applied at the loop
+    // level instead of the handler level -- the engine is a property of the whole loop, so the
+    // choice belongs at its outermost frame.
     void run() {
         const bool has_unix = unix_listen_fd_ >= 0 ||
                               (srv_->cfg().unixsocket && *srv_->cfg().unixsocket);
+        if (epoll_) {
+            if (tls_context_) {
+                if (has_unix) run_loop<true, true, true>();
+                else run_loop<false, true, true>();
+            } else {
+                if (has_unix) run_loop<true, false, true>();
+                else run_loop<false, false, true>();
+            }
+            return;
+        }
         if (tls_context_) {
-            if (has_unix) run_loop<true, true>();
-            else run_loop<false, true>();
+            if (has_unix) run_loop<true, true, false>();
+            else run_loop<false, true, false>();
         } else {
-            if (has_unix) run_loop<true, false>();
-            else run_loop<false, false>();
+            if (has_unix) run_loop<true, false, false>();
+            else run_loop<false, false, false>();
         }
     }
 
@@ -209,11 +253,13 @@ private:
     friend void notify_retire_entry(IoLoop&, Op&);
 #include "pubsub.inc"
 
-    template <bool HasUnix, bool HasTls>
+    template <bool HasUnix, bool HasTls, bool kEp>
     void run_loop() {
-        if (listen_fd_ >= 0) arm_accept(UrKind::Accept);
-        if constexpr (HasTls) arm_accept(UrKind::TlsAccept);
-        if constexpr (HasUnix) if (unix_listen_fd_ >= 0) arm_accept(UrKind::UnixAccept);
+        if constexpr (!kEp) {
+            if (listen_fd_ >= 0) arm_accept(UrKind::Accept);
+            if constexpr (HasTls) arm_accept(UrKind::TlsAccept);
+            if constexpr (HasUnix) if (unix_listen_fd_ >= 0) arm_accept(UrKind::UnixAccept);
+        }
         LoopSignals& sig = self_->sig();
         while (!self_->stop_flag().load(std::memory_order_relaxed)) {
             refresh_notify_config();
@@ -252,11 +298,16 @@ private:
                 Span busy(sig.busy_ns);
                 // A dropped accept re-arm means the server stops taking connections entirely, so it
                 // is retried every pass until it lands.
-                if (accept_pending_) arm_accept(UrKind::Accept);
-                if constexpr (HasTls) if (tls_accept_pending_) arm_accept(UrKind::TlsAccept);
-                if constexpr (HasUnix)
-                    if (unix_accept_pending_) arm_accept(UrKind::UnixAccept);
-                did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe<HasTls>(cqe); });
+                if constexpr (!kEp) {
+                    if (accept_pending_) arm_accept(UrKind::Accept);
+                    if constexpr (HasTls) if (tls_accept_pending_) arm_accept(UrKind::TlsAccept);
+                    if constexpr (HasUnix)
+                        if (unix_accept_pending_) arm_accept(UrKind::UnixAccept);
+                }
+                // In epoll mode this drains the doorbell mailbox instead of a CQ ring; the tag
+                // stream, and therefore this switch, is identical. See uring.h.
+                did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe<HasTls, kEp>(cqe); });
+                if constexpr (kEp) did += epoll_pass<HasUnix, HasTls>(0);
                 did += scatter_pool_.refresh_snapshot_floor(*srv_, self_->id());
                 if constexpr (HasUnix) did += flush_handoffs();
                 did += multi_owner_pass_entry(*this);
@@ -270,8 +321,8 @@ private:
                     did += deferred_wait_pass(cached_now_ms_);
                 }
                 did += flush_borrow_releases();
-                did += collect_retire_work<HasUnix>();
-                did += flush_ready<HasTls>();
+                did += collect_retire_work<HasUnix, kEp>();
+                did += flush_ready<HasTls, kEp>();
                 if (__builtin_expect(cron_armed && cached_now_ms_ >= client_cron_beat_ms_, false)) {
                     did += client_cron_pass();
                     client_cron_beat_ms_ = cached_now_ms_ + 100;
@@ -290,13 +341,29 @@ private:
             // Mask-independent sweep before parking. The mask is a hint for the hot path; it must
             // not be the only thing that can find queued work, or one lost bit wedges a connection
             // forever. Runs only when this thread has already concluded it has nothing to do.
-            if (sweep<HasUnix, HasTls>()) { ring_.submit_and_reap(); continue; }
+            if (sweep<HasUnix, HasTls, kEp>()) { ring_.submit_and_reap(); continue; }
 
             Span idle(sig.idle_ns);
             self_->arm_blocked();
-            if (!self_->any_io_inbound()) ring_.submit_and_wait(1);
-            else                       ring_.submit_and_reap();
+            if constexpr (kEp) {
+                // The park. Same 50ms ceiling as the ring wait, and for the same reason: the stop
+                // flag is only re-read at the top of the loop, so an unbounded block would make
+                // shutdown depend on a connection arriving.
+                if (!self_->any_io_inbound()) epoll_pass<HasUnix, HasTls>(50);
+            } else {
+                if (!self_->any_io_inbound()) ring_.submit_and_wait(1);
+                else                       ring_.submit_and_reap();
+            }
             self_->clear_blocked();
+        }
+        // A close requested by the last pass's read/send path has no later flush_ready to drain it,
+        // and an undrained entry would show up as a live connection in the shutdown accounting.
+        if constexpr (kEp) {
+            while (!epoll_closes_.empty()) {
+                Client* victim = epoll_closes_.back();
+                epoll_closes_.pop_back();
+                epoll_close_now(victim);
+            }
         }
         if (srv_->aof().writer_is(self_->id()))
             srv_->aof().writer_shutdown(*self_, ring_);
@@ -335,8 +402,17 @@ private:
 
     // ONE recv in flight per connection. While it is armed the kernel holds a raw pointer into the
     // read buffer, so nothing may move or realloc that buffer until the completion arrives.
+    //
+    // EPOLL READS THE SOCKET HERE INSTEAD. There is no submission to make, so the same call site
+    // that "arms" a uring recv performs the recv itself, and recv_armed_ changes meaning to
+    // "we reached EAGAIN, an edge is owed" (see net/epoll.h). Its two consumers keep working
+    // unchanged: `stuck` in flush_ready keeps a connection in the active set while it is false, so
+    // a read that stopped for lack of buffer space is retried; and safe_to_release refuses to free
+    // a connection while it is true.
+    template <bool kEp>
     void arm_recv(Client* c) {
         if (c->recv_armed() || c->closing()) return;
+        if constexpr (kEp) { epoll_recv(c); return; }
         size_t avail = 0;
         // may_grow ONLY at quiescence: realloc moves the buffer that every in-flight argv Slice
         // points into. See Conn::read_space.
@@ -350,6 +426,34 @@ private:
         c->set_recv_armed(true);
     }
 
+    // Read until the socket is drained, the buffer will not take more, or the connection ends.
+    // Draining fully is the edge-triggered obligation; stopping early WITHOUT setting recv_armed_
+    // is how we remember that no further edge is coming and that we owe ourselves a retry.
+    // Bytes are committed but NOT parsed here: this runs inside flush_ready's walk over the active
+    // set, and parse_and_dispatch can close connections (CLIENT KILL) whose removal from that set
+    // would invalidate the walk's iterator. The pass's existing re-parse step consumes them.
+    void epoll_recv(Client* c) {
+        for (;;) {
+            size_t avail = 0;
+            char* dst = c->read_space(kRecvChunk, avail, c->rob().quiesced());
+            if (!dst) return;              // no usable space: stay un-armed so a later pass retries
+            const ssize_t n = ::recv(c->fd(), dst, avail, MSG_DONTWAIT);
+            if (n > 0) {
+                self_->sig().epoll_recvs++;
+                c->commit_read(static_cast<size_t>(n));
+                c->set_last_interaction_s(cached_now_s_);
+                if (static_cast<size_t>(n) < avail) { c->set_recv_armed(true); return; }
+                continue;                  // filled the offer: there may be more behind it
+            }
+            if (n == 0) { epoll_request_close(c); return; }   // orderly peer close
+            if (errno == EINTR) continue;
+            if (errno == EAGAIN || errno == EWOULDBLOCK) { c->set_recv_armed(true); return; }
+            epoll_request_close(c);
+            return;
+        }
+    }
+
+    template <bool kEp>
     void arm_tls_recv(Client* c) {
         if (c->recv_armed() || c->closing()) return;
         TlsConn* tls = tls_engine(c);
@@ -357,7 +461,7 @@ private:
         // Any engine output is submitted before another socket read. This is the memory-BIO
         // flush-before-read rule that prevents WANT_READ from hiding a required write.
         if (tls->output_pending()) {
-            (void)wb_.pump_tls(*c, *tls);
+            (void)wb_.pump_tls<kEp>(*c, *tls);
             if (tls->output_pending()) return;
         }
         // Ciphertext or decrypted plaintext already inside the engine must be drained before a
@@ -368,36 +472,141 @@ private:
         char* dst = nullptr;
         const int avail = tls->reserve_input(dst, kRecvChunk);
         if (avail <= 0) return;
-        io_uring_sqe* s = ring_.sqe();
-        if (!s) {
+        if constexpr (kEp) {
+            const ssize_t n = ::recv(c->fd(), dst, static_cast<size_t>(avail), MSG_DONTWAIT);
+            if (n > 0) {
+                self_->sig().epoll_recvs++;
+                on_tls_recv<kEp>(c, static_cast<int>(n));
+                return;
+            }
             tls->abandon_input();
-            self_->sig().sqe_starved++;
+            if (n == 0) { epoll_request_close(c); return; }
+            if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) {
+                c->set_recv_armed(true);
+                return;
+            }
+            epoll_request_close(c);
             return;
+        } else {
+            io_uring_sqe* s = ring_.sqe();
+            if (!s) {
+                tls->abandon_input();
+                self_->sig().sqe_starved++;
+                return;
+            }
+            io_uring_prep_recv(s, c->fd(), dst, static_cast<unsigned>(avail), 0);
+            s->user_data = ur_tag(UrKind::TlsRecv, c);
+            ring_.note_pending();
+            c->set_recv_armed(true);
         }
-        io_uring_prep_recv(s, c->fd(), dst, static_cast<unsigned>(avail), 0);
-        s->user_data = ur_tag(UrKind::TlsRecv, c);
-        ring_.note_pending();
-        c->set_recv_armed(true);
     }
 
+    // Under epoll the readiness interest for a connection is armed once at accept and covers BOTH
+    // directions permanently, so there is nothing to submit: recording the want on the TlsConn is
+    // the whole operation, and the edge that satisfies it is already on its way. recv_armed_ is
+    // still set for the same reason as the uring path -- it is what keeps the connection parked
+    // instead of spinning drive_tls until the peer moves.
+    template <bool kEp>
     void arm_tls_socket_poll(Client* c, TlsOp wanted) {
         if (c->closing()) return;
         TlsConn* tls = tls_engine(c);
         if (!tls || tls->poll_armed(wanted)) return;
-        io_uring_sqe* s = ring_.sqe();
-        if (!s) { self_->sig().sqe_starved++; return; }
-        const unsigned mask = (wanted == TlsOp::WantWrite ? POLLOUT : POLLIN) |
-                              POLLERR | POLLHUP | POLLRDHUP;
-        io_uring_prep_poll_add(s, c->fd(), mask);
-        s->user_data = ur_tag(wanted == TlsOp::WantWrite
-                                  ? UrKind::TlsWritePoll : UrKind::TlsReadPoll, c);
-        ring_.note_pending();
-        // Reuse the existing kernel-reference fence: a poll CQE names Client just like recv.
-        tls->set_poll_armed(wanted, true);
-        c->set_recv_armed(true);
+        if constexpr (kEp) {
+            tls->set_poll_armed(wanted, true);
+            c->set_recv_armed(true);
+            return;
+        } else {
+            io_uring_sqe* s = ring_.sqe();
+            if (!s) { self_->sig().sqe_starved++; return; }
+            const unsigned mask = (wanted == TlsOp::WantWrite ? POLLOUT : POLLIN) |
+                                  POLLERR | POLLHUP | POLLRDHUP;
+            io_uring_prep_poll_add(s, c->fd(), mask);
+            s->user_data = ur_tag(wanted == TlsOp::WantWrite
+                                      ? UrKind::TlsWritePoll : UrKind::TlsReadPoll, c);
+            ring_.note_pending();
+            // Reuse the existing kernel-reference fence: a poll CQE names Client just like recv.
+            tls->set_poll_armed(wanted, true);
+            c->set_recv_armed(true);
+        }
+    }
+
+    // ---- epoll engine: the readiness pass -------------------------------------------------------
+    //
+    // What this does NOT do is as important as what it does: for a connection it records readiness
+    // and puts the connection back in the active set, and nothing else. The actual recv, parse,
+    // retire and send all happen in flush_ready, one frame up, exactly as they do under io_uring.
+    // Two reasons. First, parse_and_dispatch can close OTHER connections (CLIENT KILL) and running
+    // it from here, mid-event-array, would mean a Client is freed while a later epoll_event in the
+    // same batch still names it. Second, keeping every state transition in one place is what makes
+    // "epoll changes only how the thread waits" true rather than aspirational.
+    template <bool HasUnix, bool HasTls>
+    uint32_t epoll_pass(int timeout_ms) {
+        const int n = ep_.wait(timeout_ms);
+        if (n <= 0) return 0;
+        self_->sig().epoll_events += static_cast<uint64_t>(n);
+        uint32_t work = 0;
+        for (int i = 0; i < n; i++) {
+            const epoll_event& ev = ep_.event(i);
+            switch (ur_kind(ev.data.u64)) {
+                case UrKind::Accept: work += epoll_accept<true>(UrKind::Accept); break;
+                case UrKind::TlsAccept:
+                    if constexpr (HasTls) work += epoll_accept<true>(UrKind::TlsAccept);
+                    break;
+                case UrKind::UnixAccept:
+                    if constexpr (HasUnix) work += epoll_accept<true>(UrKind::UnixAccept);
+                    break;
+                case UrKind::Wake:
+                    // The doorbell. Draining it here rather than at the park keeps the level-
+                    // triggered registration from re-reporting the same wake every pass.
+                    //
+                    // work++ IS LOAD-BEARING, and it is not accounting. The bell and its payload
+                    // are separate: a peer pushes its tag into the mailbox and THEN writes the
+                    // eventfd, and the mailbox is drained by ring_.for_each_cqe() one step earlier
+                    // in this pass. A peer that lands in the window between those two steps leaves
+                    // us holding a rung bell with its payload still queued -- and if this pass then
+                    // reported no work, the loop would park and the payload would wait out the
+                    // whole 50 ms ceiling. Counting the bell as work sends the loop round again,
+                    // where for_each_cqe picks the tag up immediately. Exactly the shape of the
+                    // ~3.9 ms-per-operation reading DEFER_TASKRUN once produced on the other engine.
+                    ring_.drain_wake_fd();
+                    self_->sig().wakes_recv++;
+                    work++;
+                    break;
+                case UrKind::Recv: {
+                    Client* c = ur_ptr<Client>(ev.data.u64);
+                    if (!c || c->dead()) break;
+                    // EPOLLERR/EPOLLHUP are folded into the read side on purpose: the recv that
+                    // follows returns 0 or the real errno, and close_client is then reached through
+                    // the one path that already knows how to tear a connection down.
+                    if (ev.events & (EPOLLIN | EPOLLERR | EPOLLHUP | EPOLLRDHUP))
+                        c->set_recv_armed(false);
+                    if (ev.events & (EPOLLOUT | EPOLLERR | EPOLLHUP)) enqueue_serve(c);
+                    // A TLS connection parked on WANT_READ/WANT_WRITE recorded that want on its
+                    // TlsConn (arm_tls_socket_poll has nothing to submit under this engine, since
+                    // both directions are already armed). This edge is the answer to whichever want
+                    // is outstanding, so retire BOTH and let drive_tls re-record what it still
+                    // needs -- the same converge-by-retry the poll CQE gives the uring engine. A
+                    // want left recorded would make arm_tls_socket_poll a no-op forever and park
+                    // the handshake.
+                    if constexpr (HasTls) {
+                        if (TlsConn* tls = tls_slot_conn(c)) {
+                            tls->set_poll_armed(TlsOp::WantRead, false);
+                            tls->set_poll_armed(TlsOp::WantWrite, false);
+                            c->set_recv_armed(false);
+                        }
+                    }
+                    mark_active(c);
+                    work++;
+                    break;
+                }
+                default: break;
+            }
+        }
+        return work;
     }
 
     // ---- completions ----------------------------------------------------------------------------
+    template <bool kEp>
     void on_plain_send_cqe(io_uring_cqe* cqe) {
         Client* c = ur_ptr<Client>(cqe->user_data);
         if (c->dead()) {
@@ -408,6 +617,7 @@ private:
         if (!wb_.on_send_complete(*c, cqe->res)) close_client(c);
     }
 
+    template <bool kEp>
     void on_tls_send_cqe(io_uring_cqe* cqe) {
         Client* c = ur_ptr<Client>(cqe->user_data);
         TlsConn* tls = tls_engine(c);
@@ -420,15 +630,15 @@ private:
         else mark_active(c);
     }
 
-    template <bool HasTls>
+    template <bool HasTls, bool kEp>
     void on_cqe(io_uring_cqe* cqe) {
         if constexpr (!HasTls) {
             // Keep the tls-port=0 completion dispatch byte-for-byte shaped like the base switch.
             switch (ur_kind(cqe->user_data)) {
-                case UrKind::Accept: on_accept(cqe, UrKind::Accept); break;
-                case UrKind::UnixAccept: on_accept(cqe, UrKind::UnixAccept); break;
-                case UrKind::Recv: on_recv<false>(ur_ptr<Client>(cqe->user_data), cqe->res); break;
-                case UrKind::Send: on_plain_send_cqe(cqe); break;
+                case UrKind::Accept: on_accept<kEp>(cqe, UrKind::Accept); break;
+                case UrKind::UnixAccept: on_accept<kEp>(cqe, UrKind::UnixAccept); break;
+                case UrKind::Recv: on_recv<false, kEp>(ur_ptr<Client>(cqe->user_data), cqe->res); break;
+                case UrKind::Send: on_plain_send_cqe<kEp>(cqe); break;
                 case UrKind::Wake: self_->sig().wakes_recv++; break;
                 case UrKind::SnapshotStart: break;
                 case UrKind::AofIo:
@@ -444,18 +654,18 @@ private:
             }
         } else {
             switch (ur_kind(cqe->user_data)) {
-                case UrKind::Accept: on_accept(cqe, UrKind::Accept); break;
-                case UrKind::TlsAccept: on_accept(cqe, UrKind::TlsAccept); break;
-                case UrKind::UnixAccept: on_accept(cqe, UrKind::UnixAccept); break;
-                case UrKind::Recv: on_recv<true>(ur_ptr<Client>(cqe->user_data), cqe->res); break;
-                case UrKind::TlsRecv: on_tls_recv(ur_ptr<Client>(cqe->user_data), cqe->res); break;
-                case UrKind::Send: on_plain_send_cqe(cqe); break;
-                case UrKind::TlsSend: on_tls_send_cqe(cqe); break;
+                case UrKind::Accept: on_accept<kEp>(cqe, UrKind::Accept); break;
+                case UrKind::TlsAccept: on_accept<kEp>(cqe, UrKind::TlsAccept); break;
+                case UrKind::UnixAccept: on_accept<kEp>(cqe, UrKind::UnixAccept); break;
+                case UrKind::Recv: on_recv<true, kEp>(ur_ptr<Client>(cqe->user_data), cqe->res); break;
+                case UrKind::TlsRecv: on_tls_recv<kEp>(ur_ptr<Client>(cqe->user_data), cqe->res); break;
+                case UrKind::Send: on_plain_send_cqe<kEp>(cqe); break;
+                case UrKind::TlsSend: on_tls_send_cqe<kEp>(cqe); break;
                 case UrKind::TlsReadPoll:
-                    on_tls_socket_poll(ur_ptr<Client>(cqe->user_data), cqe->res,
+                    on_tls_socket_poll<kEp>(ur_ptr<Client>(cqe->user_data), cqe->res,
                                        TlsOp::WantRead); break;
                 case UrKind::TlsWritePoll:
-                    on_tls_socket_poll(ur_ptr<Client>(cqe->user_data), cqe->res,
+                    on_tls_socket_poll<kEp>(ur_ptr<Client>(cqe->user_data), cqe->res,
                                        TlsOp::WantWrite); break;
                 case UrKind::Wake: self_->sig().wakes_recv++; break;
                 case UrKind::SnapshotStart: break;
@@ -477,9 +687,8 @@ private:
         }
     }
 
+    template <bool kEp>
     void on_accept(io_uring_cqe* cqe, UrKind kind) {
-        const bool unix_socket = kind == UrKind::UnixAccept;
-        const bool tls_socket = kind == UrKind::TlsAccept;
         if (cqe->res < 0) {
             // Do not swallow this silently: a failing accept with no trace is indistinguishable from
             // a hung server, which is exactly how the 1024-connection failure presented.
@@ -487,10 +696,41 @@ private:
             arm_accept(kind);
             return;
         }
+        admit_fd<kEp>(cqe->res, kind);
+        rearm_accept(cqe, kind);
+    }
+
+    // Epoll's accept: the listener only told us there is a backlog, so drain it. Level-triggered
+    // registration means an unfinished drain is re-reported rather than lost, but draining to
+    // EAGAIN here keeps one epoll_wait per burst instead of one per connection.
+    template <bool kEp>
+    uint32_t epoll_accept(UrKind kind) {
+        const int listener = kind == UrKind::UnixAccept ? unix_listen_fd_ :
+                             kind == UrKind::TlsAccept ? tls_listen_fd_ : listen_fd_;
+        if (listener < 0) return 0;
+        uint32_t taken = 0;
+        for (;;) {
+            const int fd = ::accept4(listener, nullptr, nullptr, SOCK_NONBLOCK | SOCK_CLOEXEC);
+            if (fd < 0) {
+                if (errno == EINTR) continue;
+                if (errno != EAGAIN && errno != EWOULDBLOCK) self_->sig().accept_err++;
+                return taken;
+            }
+            taken++;
+            admit_fd<kEp>(fd, kind);
+        }
+    }
+
+    // Everything an accepted fd goes through before it becomes a served connection. Shared by both
+    // engines verbatim: maxclients, protected mode, Client allocation, TLS attachment, unix
+    // round-robin handoff. Only the way the fd ARRIVED differs, which is the whole engine boundary.
+    template <bool kEp>
+    void admit_fd(int fd, UrKind kind) {
+        const bool unix_socket = kind == UrKind::UnixAccept;
+        const bool tls_socket = kind == UrKind::TlsAccept;
         self_->sig().accepts++;
         if (tls_socket) self_->sig().tls_accepts++;
         else self_->sig().plain_accepts++;
-        int fd = cqe->res;
         if (srv_->live_clients() >= srv_->maxclients()) {
             static constexpr char kErr[] = "-ERR max number of clients reached\r\n";
             if (!tls_socket)
@@ -498,7 +738,6 @@ private:
             ::close(fd);
             srv_->note_rejected_conn();
             self_->sig().accept_rejected++;
-            rearm_accept(cqe, kind);
             return;
         }
         if (__builtin_expect(srv_->protected_mode() && !srv_->requirepass_enabled() &&
@@ -510,21 +749,18 @@ private:
             ::close(fd);
             srv_->note_rejected_connection();
             self_->sig().accept_rejected++;
-            rearm_accept(cqe, kind);
             return;
         }
         auto* c = new (std::nothrow) Client(fd);
         if (!c) {
             ::close(fd);
             self_->sig().accept_err++;
-            rearm_accept(cqe, kind);
             return;
         }
         if (tls_socket && !attach_tls(c)) {
             delete c;
             ::close(fd);
             self_->sig().accept_err++;
-            rearm_accept(cqe, kind);
             return;
         }
         srv_->client_accepted();
@@ -535,14 +771,13 @@ private:
             const auto& ios = srv_->placement().ifid_threads();
             const uint32_t target = ios[unix_rr_++ % ios.size()];
             c->set_ifid_thread(target);
-            if (target == self_->id()) adopt_client(c, true);
+            if (target == self_->id()) adopt_client<kEp>(c, true);
             else if (!srv_->thread(target).post_client(self_->id(), c, ring_, self_->sig()))
                 pending_handoffs_.push_back(c);
         } else {
             c->set_ifid_thread(self_->id());
-            adopt_client(c, false, tls_socket);
+            adopt_client<kEp>(c, false, tls_socket);
         }
-        rearm_accept(cqe, kind);
     }
 
     std::string socket_address(int fd, bool unix_socket, bool remote) const {
@@ -617,7 +852,25 @@ private:
         self_->sig().tls_connections_freed++;
     }
 
+    template <bool kEp>
     void adopt_client(Client* c, bool unix_socket, bool tls_socket = false) {
+        // ARMED ONCE, HERE, FOR LIFE, IN THE OWNING THREAD'S SET. Both directions, edge triggered;
+        // ::close() is the only deregistration. Registration belongs here rather than at accept
+        // because an AF_UNIX connection is accepted by one io thread and OWNED by another -- the
+        // round-robin handoff below -- and an fd sitting in the accepting thread's epoll set would
+        // deliver every one of its events to a thread that must not touch it.
+        if constexpr (kEp) {
+            if (!set_nonblocking(c->fd()) ||
+                !ep_.add(c->fd(), EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLET,
+                         ur_tag(UrKind::Recv, c))) {
+                std::fprintf(stderr, "epoll registration failed for client fd %d\n", c->fd());
+                self_->sig().accept_err++;
+                self_->clients().push_back(c);
+                c->set_wb_slot(self_->assign_wb_slot(c));
+                close_client(c);
+                return;
+            }
+        }
         if (!unix_socket) {
             int one = 1;
             setsockopt(c->fd(), IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
@@ -646,13 +899,13 @@ private:
         if (tls_socket) {
             TlsConn* tls = tls_slot_conn(c);
             if (tls && tls->fd_handshake()) {
-                (void)drive_tls(c);
-                if (!c->closing() && tls->ktls()) arm_recv(c);
-                else if (!c->closing() && tls->memory_userspace()) arm_tls_recv(c);
+                (void)drive_tls<kEp>(c);
+                if (!c->closing() && tls->ktls()) arm_recv<kEp>(c);
+                else if (!c->closing() && tls->memory_userspace()) arm_tls_recv<kEp>(c);
             } else {
-                arm_tls_recv(c);
+                arm_tls_recv<kEp>(c);
             }
-        } else arm_recv(c);
+        } else arm_recv<kEp>(c);
         // Reachability, not optimism: if that arm starved for an SQE, nothing else names this
         // conn -- it would sit accepted and silent forever (audit finding). The active set's
         // phase-1 re-arms it until the recv lands; one wasted visit if the arm succeeded.
@@ -671,7 +924,7 @@ private:
         return sent;
     }
 
-    template <bool HasTls>
+    template <bool HasTls, bool kEp>
     void on_recv(Client* c, int res) {
         c->set_recv_armed(false);       // the kernel has released its pointer
         // A send error can close the fd while this recv is still owned by io_uring. The Client stays
@@ -692,6 +945,7 @@ private:
         mark_active(c);
     }
 
+    template <bool kEp>
     bool drive_tls(Client* c) {
         TlsConn* tls = tls_slot_conn(c);
         if (!tls) return false;
@@ -702,7 +956,7 @@ private:
             if (result == TlsOp::WantRead || result == TlsOp::WantWrite) {
                 if (result == TlsOp::WantRead) self_->sig().tls_want_read++;
                 else self_->sig().tls_want_write++;
-                arm_tls_socket_poll(c, result);
+                arm_tls_socket_poll<kEp>(c, result);
                 return true;
             }
             if (result == TlsOp::Progress) {
@@ -722,15 +976,15 @@ private:
         }
 
         if (tls->socket_userspace() && tls->has_pinned_plain()) {
-            (void)wb_.pump_tls(*c, *tls);
+            (void)wb_.pump_tls<kEp>(*c, *tls);
             if (tls->has_pinned_plain()) {
-                arm_tls_socket_poll(c, tls->wanted());
+                arm_tls_socket_poll<kEp>(c, tls->wanted());
                 return true;
             }
         }
 
         if (tls->output_pending() || c->send_inflight()) {
-            (void)wb_.pump_tls(*c, *tls);
+            (void)wb_.pump_tls<kEp>(*c, *tls);
             return !tls->failed();
         }
 
@@ -742,7 +996,7 @@ private:
                 self_->sig().tls_handshakes_completed++;
                 self_->sig().tls_ktls_fallback++;
             }
-            (void)wb_.pump_tls(*c, *tls);  // alerts and handshake flights are flushed first
+            (void)wb_.pump_tls<kEp>(*c, *tls);  // alerts and handshake flights are flushed first
             if (result == TlsOp::Error || result == TlsOp::GracefulEof) {
                 self_->sig().tls_handshakes_failed++;
                 if (!tls->last_error().empty())
@@ -767,20 +1021,20 @@ private:
                 c->commit_read(result.bytes);
                 self_->sig().tls_plaintext_input_bytes += result.bytes;
                 decrypted = true;
-                if (tls->output_pending()) { (void)wb_.pump_tls(*c, *tls); break; }
+                if (tls->output_pending()) { (void)wb_.pump_tls<kEp>(*c, *tls); break; }
                 continue;
             }
             if (result.op == TlsOp::WantRead) {
                 self_->sig().tls_want_read++;
-                if (tls->socket_userspace()) arm_tls_socket_poll(c, result.op);
+                if (tls->socket_userspace()) arm_tls_socket_poll<kEp>(c, result.op);
             }
             else if (result.op == TlsOp::WantWrite) {
                 self_->sig().tls_want_write++;
-                if (tls->socket_userspace()) arm_tls_socket_poll(c, result.op);
-                else (void)wb_.pump_tls(*c, *tls);
+                if (tls->socket_userspace()) arm_tls_socket_poll<kEp>(c, result.op);
+                else (void)wb_.pump_tls<kEp>(*c, *tls);
             } else if (result.op == TlsOp::GracefulEof) {
                 (void)tls->shutdown();
-                (void)wb_.pump_tls(*c, *tls);
+                (void)wb_.pump_tls<kEp>(*c, *tls);
                 close_client(c, tls->output_pending() || c->send_inflight());
                 return false;
             } else {
@@ -788,7 +1042,7 @@ private:
                     std::fprintf(stderr, "TLS client %llu: %s\n",
                                  static_cast<unsigned long long>(c->id()),
                                  tls->last_error().c_str());
-                (void)wb_.pump_tls(*c, *tls);
+                (void)wb_.pump_tls<kEp>(*c, *tls);
                 close_client(c, tls->output_pending() || c->send_inflight());
                 return false;
             }
@@ -798,6 +1052,7 @@ private:
         return !tls->failed();
     }
 
+    template <bool kEp>
     void on_tls_socket_poll(Client* c, int res, TlsOp wanted) {
         TlsConn* tls = tls_slot_conn(c);
         if (!tls) { close_client(c); return; }
@@ -805,10 +1060,11 @@ private:
         c->set_recv_armed(tls->any_poll_armed());
         if (c->dead()) return;
         if (c->closing() || res < 0) { close_client(c); return; }
-        (void)drive_tls(c);
+        (void)drive_tls<kEp>(c);
         mark_active(c);
     }
 
+    template <bool kEp>
     void on_tls_recv(Client* c, int res) {
         c->set_recv_armed(false);
         TlsConn* tls = tls_engine(c);
@@ -827,7 +1083,7 @@ private:
         }
         self_->sig().tls_ciphertext_input_bytes += static_cast<uint64_t>(res);
         c->set_last_interaction_s(cached_now_s_);
-        (void)drive_tls(c);
+        (void)drive_tls<kEp>(c);
         mark_active(c);
     }
 
@@ -1420,6 +1676,26 @@ nonblocking_dispatch:
         return random_state_;
     }
 
+    // Queue a teardown instead of performing it. Used only by the epoll engine's synchronous
+    // read/send paths, which run inside flush_ready's walk over the active set. Deliberately does
+    // NOT pre-mark the client closing: close_client's first block (deferred-WAIT cancel, blocking
+    // cancel, TLS shutdown, ::shutdown of the socket) is guarded by !closing() and would be skipped.
+    void epoll_request_close(Client* c) {
+        if (c->dead()) return;
+        for (Client* queued : epoll_closes_) if (queued == c) return;
+        epoll_closes_.push_back(c);
+    }
+
+    // Tear down NOW, then discard any send failure the teardown itself produced. That second half
+    // is load-bearing: close_client flushes a TLS alert / close_notify through the same engine, and
+    // a failure latched there would be picked up by the NEXT connection's take_send_failure() and
+    // close a perfectly healthy client. The latch is a one-slot channel, so every close must leave
+    // it empty.
+    void epoll_close_now(Client* c, bool drain_tls_output = false) {
+        close_client(c, drain_tls_output);
+        (void)wb_.take_send_failure();
+    }
+
     void mark_active(Client* c) {
         if (c->dead()) return;               // a corpse from the deferred-free list: entry consumed, nothing to do
         if (c->in_active()) return;          // one load, not a scan of the whole set
@@ -1430,12 +1706,12 @@ nonblocking_dispatch:
     // ---- inbound: workers telling us a client has completed ops -----------------------------------
     // Inbound from workers: "ops are Done" -- the claimed-post fallback for a conn with no
     // ready-mask slot. Either way the answer is the same: put the client back in the active set.
-    template <bool HasUnix, bool HasTls>
+    template <bool HasUnix, bool HasTls, bool kEp>
     uint32_t sweep() {
         uint32_t work = 0;
         if constexpr (HasUnix) work += flush_handoffs();
-        work += flush_borrow_releases() + collect_retire_work<HasUnix>(true) +
-                flush_ready<HasTls>();
+        work += flush_borrow_releases() + collect_retire_work<HasUnix, kEp>(true) +
+                flush_ready<HasTls, kEp>();
         if (srv_->snapshot().writer_is(self_->id()))
             work += srv_->snapshot().writer_pass(*self_, ring_, true);
         if (srv_->aof().writer_is(self_->id()))
@@ -1460,7 +1736,7 @@ nonblocking_dispatch:
         return n;
     }
 
-    template <bool HasUnix>
+    template <bool HasUnix, bool kEp>
     uint32_t collect_retire_work(bool unmasked = false) {
         uint32_t pubsub_work = 0;
         auto take = [&](Client* c) {
@@ -1473,7 +1749,7 @@ nonblocking_dispatch:
             // distinguishes the two meanings without adding a Client field or a catalog lock here.
             if constexpr (HasUnix)
                 if (!c->retire_queued().load(std::memory_order_acquire)) {
-                    adopt_client(c, true);
+                    adopt_client<kEp>(c, true);
                     return;
                 }
             c->retire_queued().store(false, std::memory_order_release);
@@ -1502,7 +1778,7 @@ nonblocking_dispatch:
     // The io thread's own work per active client. In 2-stage it also owns the reply side and calls
     // serve() here; in ex-wb and 3-stage the sender does that on its own thread and io only keeps
     // the READ side moving — reclaim the buffer once nothing points into it, and re-arm.
-    template <bool HasTls>
+    template <bool HasTls, bool kEp>
     uint32_t flush_ready() {
         uint32_t work = 0;
         backstop_pass_ = (++flush_tick_ >= kFlushBackstopEvery);
@@ -1514,8 +1790,8 @@ nonblocking_dispatch:
         // bursty (113k park/wake round-trips where 22k belonged). Arming first keeps the arrival
         // stream flowing no matter how deep the reply backlog is -- which is exactly the property
         // that made 3s hold flat (-3.7%) at the conn count where 2s lost 21%.
-        for (auto it = active_.begin(); it != active_.end();) {
-            Client* c = *it;
+        for (size_t idx = 0; idx < active_.size();) {
+            Client* c = active_.at(idx);
             Client& conn = *c;
             TlsConn* tls = nullptr;
             if constexpr (HasTls) tls = tls_engine(c);
@@ -1527,14 +1803,15 @@ nonblocking_dispatch:
                     // SSL_write and opposite-direction BIO reads are proven safe while pinned,
                     // but SSL_read/SSL_accept consume the same direction and can move that
                     // frontier. Only the recv completion may drive inbound TLS while armed.
-                    if (!c->closing() && !c->recv_armed()) (void)drive_tls(c);
+                    if (!c->closing() && !c->recv_armed()) (void)drive_tls<kEp>(c);
                     else if (tls->userspace()) {
-                        (void)wb_.pump_tls(*c, *tls);
+                        (void)wb_.pump_tls<kEp>(*c, *tls);
                         if (tls->socket_userspace() && tls->has_pinned_plain())
-                            arm_tls_socket_poll(c, tls->wanted());
+                            arm_tls_socket_poll<kEp>(c, tls->wanted());
                     }
                     // A successful fd handshake can switch transport under drive_tls().
                     tls = tls_engine(c);
+                    if constexpr (kEp) if (wb_.take_send_failure()) epoll_request_close(c);
                 }
             }
 
@@ -1551,7 +1828,41 @@ nonblocking_dispatch:
             if (c->atomic_backpressure() && srv_->atomic_can_admit(self_->id()) &&
                 scatter_pool_.can_register_snapshot())
                 c->set_atomic_backpressure(false);
-            if (c->rob().quiesced() && !conn.recv_armed()) conn.reset_rbuf_at_quiescence();
+            // Under epoll the second half of this guard is vacuous and would be actively
+            // harmful: recv_armed_ means "an edge is owed", not "the kernel holds a pointer into
+            // this buffer" (nothing ever does under this engine), so testing it would make the
+            // steady state -- armed and quiet -- the one state in which the append-only read
+            // buffer never resets, and a long-lived connection would grow to the soft cap and
+            // stall there. Quiescence alone is the real precondition, and it still holds.
+            if (c->rob().quiesced() && (kEp || !conn.recv_armed()))
+                conn.reset_rbuf_at_quiescence();
+            // Fill from the socket BEFORE the re-parse below, so bytes that arrived while the ROB
+            // window was full are parsed in the same pass that freed the slots.
+            if constexpr (kEp) {
+                // A CLOSING CONNECTION OWES NO EDGE. Under io_uring this is automatic: arm_recv
+                // refuses to re-arm a closing connection, so recv_armed_ falls to false as soon as
+                // the outstanding recv completes and safe_to_release() opens. Under epoll nothing
+                // completes -- the flag says "an edge is owed", and for a socket being torn down
+                // that is simply false. Leaving it set makes safe_to_release() refuse forever, and
+                // the connection is never released.
+                //
+                // The path that exposed this is CLIENT KILL on SELF, which reaches its victim
+                // through mark_closing() rather than close_client() (the reply has to go out
+                // first), so nothing else would ever clear the flag: the reply was delivered and
+                // the socket then stayed open indefinitely. tests/climon.py's
+                // "KILL self close-after-reply" is the regression cover.
+                if (c->closing()) c->set_recv_armed(false);
+                if (!c->closing()) {
+                    if constexpr (HasTls) {
+                        if (tls) arm_tls_recv<kEp>(c);
+                        else arm_recv<kEp>(c);
+                    } else {
+                        arm_recv<kEp>(c);
+                    }
+                    if constexpr (HasTls) if (tls) { (void)drive_tls<kEp>(c); tls = tls_engine(c); }
+                    if (wb_.take_send_failure()) epoll_request_close(c);
+                }
+            }
 
             // Re-parse the buffered remainder. parse_and_dispatch stops when the ROB window fills
             // and is otherwise only driven by recv completions, so a client that sent a whole
@@ -1585,11 +1896,13 @@ nonblocking_dispatch:
                 }
             }
 
-            if constexpr (HasTls) {
-                if (tls && tls->memory_bio()) arm_tls_recv(c);
-                else if (!tls) arm_recv(c);
-            } else {
-                arm_recv(c);
+            if constexpr (!kEp) {
+                if constexpr (HasTls) {
+                    if (tls && tls->memory_bio()) arm_tls_recv<kEp>(c);
+                    else if (!tls) arm_recv<kEp>(c);
+                } else {
+                    arm_recv<kEp>(c);
+                }
             }
 
             // Progress marker: a full window with unparsed bytes (or an unarmed recv) means this
@@ -1602,14 +1915,32 @@ nonblocking_dispatch:
             const bool tls_output = tls && (tls->output_pending() || c->send_inflight());
             const bool done = c->rob().quiesced() && !more_input && !stuck &&
                               !c->serve_pending() && c->nothing_to_write() && !tls_output;
-            if (done && !c->closing()) { c->set_in_active(false); it = active_.erase(it); }
+            // A close reached from inside the body (drive_tls, and under epoll the read/send
+            // paths) may already have removed this client from the set and swapped an unvisited
+            // one into its slot. Re-check identity before deciding, and do not advance past a slot
+            // whose occupant changed -- the loop bound shrinks with every removal, so this
+            // terminates.
+            if (idx >= active_.size() || active_.at(idx) != c) continue;
+            if (done && !c->closing()) { c->set_in_active(false); active_.erase_at(idx); }
             else if (c->closing() && !tls_output && c->safe_to_release()) {
                 // Pub/sub teardown is asynchronous. Keep the client in place while home IOs
-                // acknowledge removal; erase+reinsert would invalidate this vector iterator and
-                // can turn one closing subscriber into a same-pass spin.
-                if (!pubsub_disconnect_ready(c)) { ++it; }
-                else { c->set_in_active(false); it = active_.erase(it); close_client(c); }
-            } else ++it;
+                // acknowledge removal; erase+reinsert would turn one closing subscriber into a
+                // same-pass spin.
+                if (!pubsub_disconnect_ready(c)) { idx++; }
+                else { c->set_in_active(false); active_.erase_at(idx); close_client(c); }
+            } else idx++;
+        }
+        // The epoll engine's deferred closes. A synchronous recv/send discovers a dead peer several
+        // frames inside the walk above; closing it THERE would mutate the set under the walk, so
+        // the sites queue instead and the teardown happens here, between phases, where nothing is
+        // iterating. Duplicates are harmless -- close_client is idempotent on an already-dead
+        // client and simply retries one whose quiescence fence has not opened yet.
+        if constexpr (kEp) {
+            while (!epoll_closes_.empty()) {
+                Client* victim = epoll_closes_.back();
+                epoll_closes_.pop_back();
+                epoll_close_now(victim);
+            }
         }
 
         // PUB/SUB PASS BOUNDARY -- between parsing and serving, on purpose. Everything this pass
@@ -1649,22 +1980,27 @@ nonblocking_dispatch:
             if (__builtin_expect((climon_armed_cached_ & Server::kClimonReply) != 0, false) &&
                 climon_reply_suppressed(c)) {
                 work += climon_serve_suppressed(c);
+                if constexpr (kEp) if (wb_.take_send_failure()) epoll_close_now(c);
                 continue;
             }
             if constexpr (HasTls) {
                 if (TlsConn* tls = tls_engine(c)) {
-                    if (wb_.serve_tls(*c, *tls)) work++;
+                    if (wb_.serve_tls<kEp>(*c, *tls)) work++;
                     if (tls->socket_userspace() && tls->has_pinned_plain())
-                        arm_tls_socket_poll(c, tls->wanted());
+                        arm_tls_socket_poll<kEp>(c, tls->wanted());
                     if (tls->failed()) close_client(c, tls->output_pending() || c->send_inflight());
                 } else if (TlsConn* slot = tls_slot_conn(c); slot && slot->ktls()) {
-                    if (wb_.serve_ktls(*c)) work++;
-                } else if (wb_.serve(*c)) {
+                    if (wb_.serve_ktls<kEp>(*c)) work++;
+                } else if (wb_.serve<kEp>(*c)) {
                     work++;
                 }
-            } else if (wb_.serve(*c)) {
+            } else if (wb_.serve<kEp>(*c)) {
                 work++;
             }
+            // A synchronous send has no CQE to report a fatal errno through, so the engine latches
+            // it and the decision to tear the connection down is taken here instead. Consuming it
+            // per served connection is deliberate: a bit left set would close the NEXT one.
+            if constexpr (kEp) if (wb_.take_send_failure()) epoll_close_now(c);
         }
         work += served;
         return work;
@@ -1825,8 +2161,14 @@ nonblocking_dispatch:
             TlsConn* tls = tls_engine(c);
             if (tls && tls->memory_userspace() && !tls->shutdown_started()) {
                 (void)tls->shutdown();
-                (void)wb_.pump_tls(*c, *tls);
+                (void)wb_.pump_tls_any(*c, *tls);
             }
+            // Under epoll recv_armed_ records an owed EDGE, not a kernel-held buffer pointer, and
+            // a torn-down socket owes nothing. Leaving it set would make safe_to_release() refuse
+            // forever and leak the whole Client -- the same ~137KB-per-disconnect shape the retry
+            // note below describes, reached by a different route.
+            if (epoll_) { c->set_recv_armed(false); c->set_send_inflight(false); }
+            (void)wb_.take_send_failure();
             // Break any in-flight recv/send NOW: safe_to_release refuses to free while the kernel
             // holds a buffer pointer (recv_armed / send_inflight), and those only clear when their
             // CQEs come back -- which a half-open peer might never trigger on its own.
@@ -1935,6 +2277,13 @@ nonblocking_dispatch:
     int        tls_listen_fd_ = -1;
     int        unix_listen_fd_ = -1;
     Ring       ring_;
+    // The second engine's state. `epoll_` is boot-latched and read only by run() (to pick the
+    // instantiation) and by the two cold non-templated members that cannot carry it in their type
+    // (close_client, and adopt_client's failure path). The set itself is never created in uring
+    // mode -- its fd stays -1 and nothing else in it is touched.
+    bool       epoll_ = false;
+    EpollSet   ep_;
+    std::vector<Client*> epoll_closes_;   // teardowns deferred out of the active-set walk
     WbEngine   wb_;
     bool       accept_pending_ = false;
     bool       tls_accept_pending_ = false;
@@ -1945,15 +2294,20 @@ nonblocking_dispatch:
 
     // Clients with work outstanding. Populated by dispatch and by the retire channel, never by
     // scanning every client: at 10k+ connections that scan dominates the loop.
+    // INDEXED, NOT ITERATED, and that is a correctness property rather than a style choice. The
+    // phase-1 walk below can reach close_client (a TLS handshake failure, a peer that hung up, a
+    // synchronous send that failed), and close_client's retry paths call mark_active, which
+    // push_back()s -- reallocating the vector and invalidating any iterator the walk was holding.
+    // ASAN caught exactly that as a heap-buffer-overflow in erase() the first time a connection
+    // closed under the epoll engine. An index survives reallocation; an iterator does not.
     struct PtrSet {
-        using It = std::vector<Client*>::iterator;
         std::vector<Client*> v;
         void insert(Client* c) { v.push_back(c); }
-        It   begin() { return v.begin(); }
-        It   end()   { return v.end(); }
+        size_t size() const { return v.size(); }
+        Client* at(size_t i) { return v[i]; }
         // Swap-with-back rather than vector::erase: order in the active set carries no meaning, and
         // erase() shifts every element after the removed one.
-        It   erase(It it) { *it = v.back(); v.pop_back(); return it; }
+        void erase_at(size_t i) { v[i] = v.back(); v.pop_back(); }
         void erase(Client* c) {
             for (size_t i = 0; i < v.size(); i++)
                 if (v[i] == c) { v[i] = v.back(); v.pop_back(); return; }

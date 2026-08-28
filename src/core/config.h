@@ -142,6 +142,11 @@ enum class AppendFsyncPolicy : uint8_t { Always = 0, Everysec = 1, No = 2 };
 // One boot-latched persistence engine governs both AOF and snapshot file data/sync operations.
 // Uring is the native default; normal exists as the syscall-path control and compatibility lane.
 enum class PersistIoEngine : uint8_t { Normal = 0, Uring = 1 };
+// One boot-latched NETWORK event engine for every io thread. Uring is the native default and the
+// only path with measured numbers behind it; epoll exists so the same binary runs where io_uring is
+// unavailable or unwanted. Deliberately spelled like --persist-io: same shape of decision (which
+// kernel interface carries our IO), same boot-only latching, same enum grammar.
+enum class NetIoEngine : uint8_t { Uring = 0, Epoll = 1 };
 enum class TlsAuthClients : uint8_t { Yes = 0, No = 1, Optional = 2 };
 
 struct Config {
@@ -169,6 +174,7 @@ struct Config {
     uint32_t timeout        = 0;         // live; idle seconds, 0 = disabled
     uint32_t tcp_keepalive  = 300;       // live for newly accepted TCP clients, 0 = off
     uint32_t tcp_backlog    = 511;       // boot-only, passed directly to listen(2)
+    NetIoEngine net_io      = NetIoEngine::Uring;  // boot-only: which network event engine io runs
     ClientOutputBufferLimits client_output_buffer_limits;
 
     // ---- security / test commands ----------------------------------------------------------
@@ -629,6 +635,15 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 return kConfigError;
             }
         }
+        else if (!std::strcmp(a, "--net-io")) {
+            const char* value = next(nullptr);
+            if (cfg_eq_icase(value, "uring")) cfg.net_io = NetIoEngine::Uring;
+            else if (cfg_eq_icase(value, "epoll")) cfg.net_io = NetIoEngine::Epoll;
+            else {
+                std::fprintf(stderr, "--net-io wants uring or epoll\n");
+                return kConfigError;
+            }
+        }
         else if (!std::strcmp(a, "--appendfilename")) cfg.appendfilename = next("appendonly.aof");
         else if (!std::strcmp(a, "--appenddirname")) cfg.appenddirname = next("appendonlydir");
         else if (!std::strcmp(a, "--auto-aof-rewrite-percentage")) {
@@ -786,6 +801,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "         --maxmemory-samples N (1..64, default 5)\n"
                         "  limits: --maxclients N --timeout SECONDS --tcp-keepalive SECONDS\n"
                         "          --tcp-backlog N --client-output-buffer-limit CLASS HARD SOFT SECONDS ...\n"
+                        "  network engine: --net-io uring|epoll (boot-only; default uring;\n"
+                        "          epoll implies --persist-io normal)\n"
                         "  TLS: --tls-port N --tls-cert-file PATH --tls-key-file PATH\n"
                         "       --tls-ca-cert-file PATH --tls-ca-cert-dir PATH\n"
                         "       --tls-auth-clients yes|no|optional --tls-protocols LIST\n"
