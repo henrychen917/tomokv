@@ -84,6 +84,11 @@ struct LoopSignals {
     uint64_t acl_access_denied_channel = 0;
     uint64_t acl_access_denied_auth = 0;
 
+    // Socket bytes are owned by the connection's IO thread and summed only by INFO. Keeping these
+    // plain avoids a shared atomic RMW on every recv/send completion.
+    uint64_t net_input_bytes = 0;
+    uint64_t net_output_bytes = 0;
+
     // TLS counters are written only by the owning IO thread. With tls-port=0 the clean loop
     // specialization contains no increments or per-operation TLS tests.
     uint64_t plain_accepts = 0;
