@@ -82,6 +82,7 @@ bool command_registry_init(bool tls_enabled) {
         server_tail_command_table(), slowlog_command_table(),
         lcs_command_table(),
         cmdgap_command_table(),
+        pfdebug_command_table(),
     };
     size_t total = 0;
     for (const CommandTable& family : families) total += family.size;

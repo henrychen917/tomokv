@@ -20,6 +20,12 @@ inline constexpr uint32_t kDenseSize = kHeaderBytes + kDenseBytes;
 bool header_valid(Slice image);
 bool is_dense(Slice image);
 
+// PFDEBUG's owner-local views. Conversion validates that a sparse opcode stream covers exactly all
+// registers; DECODE deliberately formats the opcodes that are physically present, matching the
+// diagnostic command even when a later GETREG/TODENSE rejects an incomplete stream.
+bool make_dense(std::string& image);
+bool decode_sparse(Slice image, std::string& decoded);
+
 std::string create_sparse();
 void invalidate_cache(std::string& image);
 bool cache_valid(Slice image);

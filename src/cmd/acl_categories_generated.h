@@ -166,6 +166,7 @@ inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"PEXPIRETIME", 0x0000000000004003ULL}, // keyspace read fast
     {"PFADD", 0x0000000000004204ULL}, // write hyperloglog fast
     {"PFCOUNT", 0x0000000000008202ULL}, // read hyperloglog slow
+    {"PFDEBUG", 0x000000000002a204ULL}, // write hyperloglog admin slow dangerous
     {"PFMERGE", 0x0000000000008204ULL}, // write hyperloglog slow
     {"PFSELFTEST", 0x000000000002a200ULL}, // hyperloglog admin slow dangerous
     {"PING", 0x0000000000044000ULL}, // fast connection

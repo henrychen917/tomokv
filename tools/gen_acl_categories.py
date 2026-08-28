@@ -32,6 +32,7 @@ COMMAND_SOURCES = [
     "src/cmd/slowlog.cc",
     "src/cmd/lcs.cc",
     "src/cmd/cmdgap.cc",
+    "src/cmd/pfdebug.cc",
 ]
 
 
