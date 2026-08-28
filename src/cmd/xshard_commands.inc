@@ -2017,11 +2017,17 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         bool conversion_error = false;
         // The dereference runs HERE, on the owning executor, and only after xshard_prepare has
         // admitted it -- see t_sort.h for why that admission exists.
-        // A dereferencing SORT never reaches this arm: xshard_prepare keeps it off localfast so it
-        // arrives with the cross-shard read context. Everything here resolves no derived key, so the
-        // context arguments are the neutral "latest, no connection".
+        // READ CONTEXT FOR THE DEREFERENCE. Outside a transaction a dereferencing SORT never
+        // reaches this arm -- xshard_prepare keeps it off localfast precisely so it arrives with
+        // the cross-shard context. Inside EXEC it does: MULTI classifies a one-key command as
+        // Local from the registry key range and never consults xshard_prepare. execute_local_command
+        // has already bound this shard to the transaction's cut and originating connection, so
+        // inherit exactly that: re-deriving it would answer from before the transaction's own
+        // uncommitted writes, and the weights would read as absent.
         const WorkError sorted = sort_image(source, op, options, &shard, kNotify,
-                                            UINT64_MAX, 0, values, present, conversion_error);
+                                            shard.store().atomic_read_epoch(),
+                                            shard.store().atomic_read_origin_conn_id(),
+                                            values, present, conversion_error);
         if (sorted != WorkError::None) { reply_work_error(op, sorted); return; }
         if (conversion_error) {
             reply_err(op.sink(), "ERR One or more scores can't be converted into double");

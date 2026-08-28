@@ -2635,6 +2635,22 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                         state.kind == Kind::Sort && pos == (state.sort_options.store ? 1u : 0u);
                     if (sort_source)
                         zset_sort_promote(shard, key.hash, op.arg(key.arg), notify);
+                    // A dereferencing SORT reads keys nothing else in this command named, so the
+                    // surrounding machinery has bound no read context for them -- and inside a
+                    // transaction it has not necessarily bound one for the SOURCE either, because
+                    // this shard need not be a participant of any earlier command. Bind the
+                    // command's own context around the whole computation and put back what was
+                    // there; sort_lookup() does the same for each derived key's store.
+                    const bool sort_deref = sort_source && state.sort_options.deref;
+                    const uint64_t saved_epoch = shard.store().atomic_read_epoch();
+                    const uint64_t saved_conn = shard.store().atomic_read_origin_conn_id();
+                    if (sort_deref)
+                        shard.store().atomic_set_read_context(
+                            read_latest ? UINT64_MAX : read_snapshot, state.origin_conn_id);
+                    struct SortCtxRestore {
+                        FlatStore* store; uint64_t epoch; uint64_t conn;
+                        ~SortCtxRestore() { if (store) store->atomic_set_read_context(epoch, conn); }
+                    } sort_ctx{sort_deref ? &shard.store() : nullptr, saved_epoch, saved_conn};
                     KvObj* object = find_value(key.hash, op.arg(key.arg));
                     if (!serialize_object(object, state.images[pos])) {
                         state.status[pos] = static_cast<uint8_t>(WorkError::Oom);

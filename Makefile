@@ -57,7 +57,7 @@ asan:
 sortnoctx:
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SORT_NO_READCTX -I. $(SRC) \
-	  -o build/tomokv-sortnoctx $(LDLIBS) -lm
+	  -o build/tomokv-sortnoctx $(JELIBS) $(LDLIBS) -lm
 
 tsan:
 	@mkdir -p build

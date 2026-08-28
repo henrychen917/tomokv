@@ -288,6 +288,49 @@ void command_key_args(const MultiQueuedCommand& queued, std::vector<uint32_t>& a
     for (uint32_t arg = static_cast<uint32_t>(spec.first_key); arg <= last;
          arg += static_cast<uint32_t>(spec.key_step))
         args.push_back(arg);
+    // SORT'S STORE DESTINATION IS AN OPTION WORD, NOT PART OF ITS REGISTRY KEY RANGE (1..1), so the
+    // loop above misses it. A queued `SORT src STORE dst` therefore looked like a ONE-key command:
+    // classify_multi_command() saw a single shard, called it Local, and EXEC ran the same-owner arm
+    // on the SOURCE's shard -- which installed `dst` in the source's table. The key was then
+    // invisible to every routed lookup (EXISTS/TYPE/LRANGE answer on dst's real owner) while KEYS
+    // and DBSIZE still counted it, and a snapshot would have persisted it under the wrong shard.
+    // Naming the destination here restores the ordinary lowering: same shard stays Local and is
+    // correct; different shards fall through to xshard_prepare's two-hop apply. It also puts the
+    // destination into add_write_key(), so WATCH on it now sees the write.
+    // SORT_RO is excluded by name: STORE is a syntax error there, so it names no destination.
+    if (has_name(queued, "sort")) {
+        uint32_t store_arg = 0;
+        for (uint32_t i = 2; i < queued.argv.size(); i++) {
+            const Slice word(queued.argv[i].data(),
+                             static_cast<uint32_t>(queued.argv[i].size()));
+            // Mirror parse_sort_options' grammar exactly, because a BY or GET pattern may itself
+            // be the word STORE and must not be mistaken for the option.
+            if (word.eq_icase("limit") && i + 2 < queued.argv.size()) i += 2;
+            else if ((word.eq_icase("by") || word.eq_icase("get")) && i + 1 < queued.argv.size()) i++;
+            else if (word.eq_icase("store") && i + 1 < queued.argv.size()) store_arg = ++i;
+        }
+        if (store_arg) args.push_back(store_arg);   // last STORE wins, as the parser records it
+    }
+}
+
+// True when a queued SORT will READ keys derived from its elements. Such a command touches shards
+// that no key of the transaction names, so it cannot be executed as an ordinary one-key Local child:
+// see the participation note in prepare_commands().
+bool multi_sort_dereferences(const MultiQueuedCommand& queued) {
+    if (!has_name(queued, "sort") && !has_name(queued, "sort_ro")) return false;
+    const uint32_t argc = static_cast<uint32_t>(queued.argv.size());
+    for (uint32_t i = 2; i < argc; i++) {
+        const Slice word(queued.argv[i].data(), static_cast<uint32_t>(queued.argv[i].size()));
+        // Mirror parse_sort_options' grammar so an option word appearing INSIDE a pattern is not
+        // mistaken for the option itself.
+        if (word.eq_icase("limit") && i + 2 < argc) { i += 2; continue; }
+        if (!(word.eq_icase("by") || word.eq_icase("get")) || i + 1 >= argc) continue;
+        const std::string& pattern = queued.argv[++i];
+        // `#` is the element and a pattern with no '*' is a constant nil: neither reads a key.
+        const bool self = word.eq_icase("get") && pattern.size() == 1 && pattern[0] == '#';
+        if (!self && pattern.find('*') != std::string::npos) return true;
+    }
+    return false;
 }
 
 bool contains_shard(const std::vector<int32_t>& shards, int32_t shard) {
@@ -405,6 +448,14 @@ MultiCommandKind classify_multi_command(MultiCommand& command) {
     // transaction, which Redis never does.
     if (command.blocking_pop != MultiBlockingPop::None) return MultiCommandKind::Unsupported;
     if (command.key_args.empty()) return MultiCommandKind::Unsupported;
+    // A DEREFERENCING SORT IS NEVER LOCAL, however few keys it names. Its BY/GET patterns read keys
+    // derived from the source's ELEMENTS, on shards this transaction never declared, and a Local
+    // child is ordered only against the commands that share its one shard -- so an earlier MSET
+    // still pending on a weight key's shard would be invisible to it. As an Xshard child it can
+    // declare every shard as a participant and take the transaction's ordinary stage barrier.
+#ifndef TOMO_SORT_NO_READCTX
+    if (multi_sort_dereferences(command.queued)) return MultiCommandKind::Unsupported;
+#endif
     bool same = true;
     for (size_t i = 1; i < command.key_shards.size(); i++)
         same &= command.key_shards[i] == command.key_shards[0];
@@ -526,6 +577,17 @@ bool prepare_commands(Server& server, MultiExecState& state,
                     // ZMPOP and option-bearing commands intentionally spans non-key arguments.
                     for (uint32_t i = 0; i < command->scatter->key_count; i++)
                         add_shard(command->participants, command->scatter->keys[i].shard);
+                    // A dereferencing SORT reads shards no key of this transaction names, and which
+                    // are not knowable until the source has been read. It therefore participates in
+                    // EVERY shard: shards outside its scatter group hold the barrier only (the
+                    // Xshard arm below waits on `finished` for a shard with no group of its own),
+                    // which is what orders the dereference after every earlier command everywhere
+                    // and before every later one.
+#ifndef TOMO_SORT_NO_READCTX
+                    if (multi_sort_dereferences(command->queued))
+                        for (uint32_t sid = 0; sid < server.nshards(); sid++)
+                            add_shard(command->participants, static_cast<int32_t>(sid));
+#endif
                 } else if (prepared == ScatterPrepare::Error) {
                     // Validation errors are execution-time array elements, just as they are when
                     // the same syntactically valid command is run outside MULTI.

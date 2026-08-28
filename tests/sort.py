@@ -206,8 +206,16 @@ def phase_refused(c):
         ("GET refused after an admitted BY", ("SORT", "s:L", "BY", "nosort", "GET", "s:d_*")),
     ]:
         check_err(label, c.cmd(*args), "ERR " + DENY_GET)
+    # Inside a transaction the refusal is an execution-time array element, exactly as it is for any
+    # other runtime error in EXEC, and the rest of the transaction still runs.
+    check("MULTI opens", c.cmd("MULTI"), "OK")
+    check("refused command queues", c.cmd("SORT", "s:L", "BY", "s:w_*"), "QUEUED")
+    check("admitted command queues", c.cmd("SORT", "s:L", "BY", "nosort"), "QUEUED")
+    replies = c.cmd("EXEC")
+    check_err("refusal inside EXEC", replies[0], "ERR " + DENY_BY)
+    check("EXEC continues past the refusal", replies[1], ["3", "1", "2"])
     after = stats(c)
-    check("refusals counted", after["sort_deref_refusals"] - before["sort_deref_refusals"], 10)
+    check("refusals counted", after["sort_deref_refusals"] - before["sort_deref_refusals"], 11)
     # MECHANISM CONTROL: a refusal must happen BEFORE any key is read.
     check("refusal phase performed no lookups",
           after["sort_deref_lookups"] - before["sort_deref_lookups"], 0)
@@ -383,6 +391,48 @@ def phase_ryow(c, one_executor):
         c.cmd("DEL", *[p for i, p in enumerate(pairs) if i % 2 == 0])
 
 
+def phase_multi_ryow(c, one_executor):
+    """The dereference inside a transaction.
+
+    REGRESSION PIN, and the battery's sharpest detector. EXEC does not serialise commands globally:
+    each shard walks only the commands it PARTICIPATES in, so commands over disjoint shards proceed
+    independently. A dereferencing SORT breaks that premise -- its participant set cannot name the
+    shards its patterns will read, because those are only known after the source has been read. Left
+    as an ordinary one-key Local child it ran before an earlier MSET had been applied on the weight
+    keys' shards and sorted by the PREVIOUS weights. `make sortnoctx` builds the binary in which the
+    fix is compiled out; every check below must fail against it.
+    """
+    print("-- dereference inside MULTI/EXEC --")
+    if not one_executor:
+        print("  (skipped: dereference is not admitted in this configuration)")
+        return
+    elements = [str(i) for i in range(10)]
+    for round_index in range(20):
+        c.cmd("DEL", "s:mr")
+        c.cmd("RPUSH", "s:mr", *elements)
+        weights = {e: (round_index * 53 + int(e) * 17) % 101 for e in elements}
+        setup = []
+        for e in elements:
+            setup += ["s:mrw_%s" % e, str((weights[e] + 500))]      # a stale value first
+            setup += ["s:mrd_%s" % e, "old%s" % e]
+        c.cmd("MSET", *setup)
+        pairs = []
+        for e in elements:
+            pairs += ["s:mrw_%s" % e, str(weights[e])]
+            pairs += ["s:mrd_%s" % e, "new%s" % e]
+        want = sorted(elements, key=lambda e: (weights[e], e.encode("latin1")))
+        check("multi ryow %d queue MSET" % round_index, c.cmd("MULTI"), "OK")
+        check("multi ryow %d queued" % round_index, c.cmd("MSET", *pairs), "QUEUED")
+        c.cmd("SORT", "s:mr", "BY", "s:mrw_*")
+        c.cmd("SORT", "s:mr", "BY", "s:mrw_*", "GET", "s:mrd_*")
+        c.cmd("SORT", "s:mr", "BY", "s:mrw_*", "STORE", "s:mrdst")
+        replies = c.cmd("EXEC")
+        check("multi ryow %d order" % round_index, replies[1], want)
+        check("multi ryow %d projection" % round_index, replies[2],
+              ["new%s" % e for e in want])
+        check("multi ryow %d stored" % round_index, c.cmd("LRANGE", "s:mrdst", "0", "-1"), want)
+
+
 def phase_random(c, one_executor, rng):
     """Random weight sets checked against a Python model of the reference's rules."""
     print("-- randomised model comparison --")
@@ -444,6 +494,7 @@ def main():
     phase_set_determinism(c)
     phase_scatter_arm(c, one_executor)
     phase_ryow(c, one_executor)
+    phase_multi_ryow(c, one_executor)
     phase_random(c, one_executor, rng)
 
     # THE INVARIANT THAT MUST READ ZERO IN EVERY CONFIGURATION: no dereference ever reached a shard

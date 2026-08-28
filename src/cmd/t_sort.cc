@@ -107,9 +107,9 @@ bool sort_deref_local(Server& server) {
 
 namespace {
 
-// Borrows the command's read cut and originating connection onto a second store for the length of
-// one lookup, then restores exactly what was there. A null `target` is the same-shard case and does
-// nothing at all.
+// Installs the command's read cut and originating connection on one store for the length of a
+// single lookup, then restores exactly what was there. A null `target` disables it entirely, which
+// is what the negative-control build passes.
 struct ForeignReadContext {
     FlatStore* target = nullptr;
     uint64_t epoch = 0;
@@ -151,18 +151,21 @@ bool sort_lookup(Shard* owner, bool notify, const SortSpec& spec, const SortPatt
     }
     server->note_sort_deref_lookup();
     const bool foreign = &target != owner;
-    // THE READ CUT IS PER-STORE. Binding it is the owning task's job and it binds only the shard it
-    // was posted for, so a derived key on a SECOND shard would otherwise be resolved at "latest,
-    // no originating connection" -- which loses read-your-own-writes and answers from before this
-    // connection's own last committed group. That is not theoretical: it produced NULL weights for
-    // keys an immediately preceding MSET had written, on whichever boot placed them off the source's
-    // shard. Carry the source shard's context across for the lookup and put back what was there.
+    // BIND EVERY DEREFERENCED READ, INCLUDING ONE THAT LANDS BACK ON THE SOURCE'S OWN SHARD.
+    // The read cut and the originating connection are per-STORE state, and the surrounding
+    // machinery binds them only on the shards it knows the command touches -- which for a
+    // dereference is none of them, not even the source's when nothing else in the transaction
+    // named it. Reading unbound means "latest, no connection", and atomic_resolve_internal hides a
+    // group's still-private candidate from every reader but its own connection: outside a
+    // transaction that lost a weight key the immediately preceding MSET had written, and inside one
+    // it lost every weight the transaction had written. Restore exactly what was there afterwards.
 #ifdef TOMO_SORT_NO_READCTX
-    ForeignReadContext context(nullptr, spec.read_snapshot, spec.origin_conn_id);
+    ForeignReadContext context(nullptr, 0, 0);           // negative control; see `make sortnoctx`
 #else
-    ForeignReadContext context(foreign ? &target.store() : nullptr,
-                               spec.read_snapshot, spec.origin_conn_id);
+    ForeignReadContext context(&target.store(), spec.read_snapshot, spec.origin_conn_id);
 #endif
+    // Notifications (lazy-expire / keymiss) are raised only for a derived key that lives on the
+    // shard whose NotifyExecutionScope is open, i.e. the source's; see NOTES-SORT.md §8.
     KvObj* object = (!foreign && notify) ? target.store_find<true>(hash, key_slice)
                                          : target.store().find(hash, key_slice);
     if (!object) return false;

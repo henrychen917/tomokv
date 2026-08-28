@@ -7,8 +7,8 @@ Branch `t-sort`. Feature file `src/cmd/t_sort.cc` / `src/cmd/t_sort.h`.
 | **Before** | every `BY` and every `GET` was `ERR syntax error`. 17 of 17 probed forms diverged from the reference. |
 | **After** | the whole `BY`/`GET` surface is implemented and byte-exact against vanilla 7.4 when **one executor owns every shard**; when it does not, a `*`-bearing `BY`/`GET` is **refused** with a named error and everything that dereferences nothing works in every placement. |
 | **Refusal** | the dereferenced key set is not knowable before the source is read, so it cannot be routed. Executing it across executors would either break the single-owner law or require a distributed transaction with a dynamically discovered read set — which this tree's script engine already refuses by design. |
-| **Evidence** | `tests/sort.py` 216 checks / 0 failures (deref config), 72 / 0 (refusal config), both at `--atomic 0` and `--atomic 1`; `tests/differ.py … sort` 4.4–4.5k ops × 5 seeds + RESP3, 0 diffs; 8 pre-existing suites unchanged. |
-| **Bug found and fixed by the differ** | a dereference read other shards at "latest, no originating connection" and so could not see this connection's own uncommitted group — a weight key written by the immediately preceding `MSET` read back as absent, on whichever boot placed it off the source's shard. §6. |
+| **Evidence** | `tests/sort.py` 396 checks / 0 failures (deref config) and 77 / 0 (refusal config) across 6 placements and both atomic modes; `tests/differ.py … sort` ~4.5k ops × 6 seeds + RESP3, 0 diffs; 15 pre-existing suites and 5 transaction batteries unchanged; ASAN/UBSAN clean. `make sortnoctx` is the negative control and the battery fails against it. |
+| **Three defects the differ found** | one in this lane's own read context, one pre-existing **data-placement** defect in `MULTI; SORT … STORE; EXEC`, and one ordering hole this feature opened inside EXEC. All three fixed, all three pinned by a test. §6. |
 
 ---
 
@@ -164,9 +164,10 @@ Implemented behaviour, byte-exact against vanilla 7.4 (see §7):
   is defined). Alphabetic `BY` ties are left in input order via `std::stable_sort`; the reference
   leaves them wherever its sort algorithm put them and promises nothing.
 * **Collation.** `ALPHA` without `STORE` uses `strcoll`, with `STORE` a byte comparison — the split
-  the tree already had, now shared by the `BY` path. Verified that a `BY` pattern and a plain
-  `ALPHA` show the *same* punctuation divergence from the oracle, i.e. the pre-existing locale issue
-  recorded as N3 in NOTES-EDGEENC, not a new one.
+  the tree already had, now shared by the `BY` path. Because this server never calls `setlocale`,
+  its `strcoll` IS the byte order; the reference's is not. See §9 — that is a standing compatibility
+  question, not something this lane introduced, and a `BY` pattern shows exactly the same divergence
+  a plain `ALPHA` does.
 * **`BY <no '*'>` suppresses ordering.** `DESC` and `LIMIT` are still honoured for a list (insertion
   order) and a zset (score order); `DESC` is ignored for a set, whose order is its own.
 * **The determinism rule.** Ordering-suppressed + set + `STORE` is forced back to an alphabetic sort,
@@ -199,23 +200,27 @@ admits the second), because neither reads a key — so the reply is byte-identic
 | `src/cmd/xshard_commands.inc` | `parse_sort_options` gains `BY`/`GET` and the admission check; `sort_image` becomes a thin image-decode wrapper over `sort_run`; `sort_encode_store` / `sort_reply_rows`; the local arm and the cross-shard completion arm rewired. |
 | `src/cmd/scatter_engine.inc` | `SortOptions` gains `by_arg` / `get_args` / `deref`; `ResultHeap` gains `present`; `ScatterState` gains `sort_general_done` / `sort_conversion_error`; the phase-1 owner task computes a dereferencing SORT where a `Shard` exists; a dereferencing SORT is kept **off** the same-owner fast path (§6). |
 | `src/cmd/t_hash.cc`, `t_hash_ttl.cc` | two read-only exports: a hash-field read and a lapsed-field test that do **not** reap, erase, or emit — the reaping path is written for the key the command was routed on and would act under the wrong name. |
+| `src/cmd/multi.inc` | two fixes, both §6: `command_key_args` now names SORT's `STORE` destination (a pre-existing data-placement defect), and a dereferencing SORT is never a `Local` child and participates in every shard so EXEC's stage barrier orders its derived reads. |
 | `src/store/flatstore_atomic.inc` | read-back accessors for the per-store read cut and originating connection. |
 | `src/core/server.h`, `src/cmd/t_server.cc` | four INFO counters (§7). |
 | `tomokv.conf` | documents that the dereference is placement-dependent and has no knob of its own. |
-| `Makefile` | `src/cmd/t_sort.cc`. |
+| `Makefile` | `src/cmd/t_sort.cc`, plus the `sortnoctx` negative-control target. |
 
 **Knobs: none.** The reference has no knob for this (it is cluster-mode-implicit), and the
 knob-compat rule says a shared feature adopts the reference's grammar. The behaviour derives from
 the placement, which is already configured.
 
-**Where the dereference runs.** Always inside the phase-one **owner task**, the only context that
-holds a `Shard&`. It never runs on an IO thread (which owns connections and must not do
-`O(n log n)` work on behalf of one of them) and never at cross-shard completion (which has no
-`Shard`). `sort_lookup()` additionally re-checks `sort_deref_local` before touching a shard other
+**Where the dereference runs.** Always on an executor holding a `Shard&` — the phase-one owner task
+outside a transaction, the same-owner arm inside one (EXEC classifies from the registry key range
+and never consults `xshard_prepare`, so both arms exist; §6c makes the second one correctly
+ordered). It never runs on an IO thread, which owns connections and must not do `O(n log n)` work on
+behalf of one of them, and never at cross-shard completion, which holds no `Shard`. `sort_lookup()` additionally re-checks `sort_deref_local` before touching a shard other
 than the executing one and counts `sort_deref_escapes` if it ever had to — a detector whose control
 is that it reads zero in every run.
 
-## 6. The bug the differ found
+## 6. Three defects the differ found
+
+### 6a. This lane's: a dereference read other shards with no read context
 
 The first differ runs passed, then failed **once in ~25** with a deterministic op stream — the
 signature of a per-boot hash seed changing where keys land, not of a flaky test. Reproduced by
@@ -247,7 +252,54 @@ source's shard were affected.
 
 **Regression pin.** `tests/sort.py::phase_ryow` writes the weights and sorts by them on one
 connection 40 times with names spread across shards, in both atomic modes. Post-fix: 40 boots × 4
-placements × (battery + 2 differ seeds) with zero failures.
+placements × (battery + 2 differ seeds) with zero failures. `make sortnoctx` builds the
+negative-control binary in which the fix is compiled out; that phase MUST fail against it.
+
+### 6b. Pre-existing: `MULTI; SORT src STORE dst; EXEC` wrote `dst` into the WRONG SHARD
+
+Reproduced on the **base binary** (`perthread-locality`, built clean in a detached worktree), so it
+predates this lane:
+
+```
+MULTI ; SORT src STORE dst ; EXEC            -> :3        (looks fine)
+LRANGE dst 0 -1                              -> (empty)
+EXISTS dst / TYPE dst                        -> 0 / none
+KEYS *                                       -> src, dst  (it IS in the keyspace)
+24 destination names, 16 shards              -> 24/24 lost
+```
+
+`SORT`'s registry key range is `1..1`; its `STORE` destination is an option word. `command_key_args`
+in `multi.inc` enumerated only the registry range, so a queued `SORT src STORE dst` looked like a
+ONE-key command: `classify_multi_command` saw a single shard, called it `Local`, and EXEC ran the
+same-owner arm on the SOURCE's shard — which installed `dst` in the source's table. The key was
+then invisible to every routed lookup while `KEYS` and `DBSIZE` still counted it, and a snapshot
+would have persisted it under the wrong shard. Outside `MULTI` the same command is correct, because
+there `xshard_prepare` uses the lowering's own key enumeration.
+
+**Fix.** `command_key_args` now names the `STORE` destination, parsing the option words with exactly
+`parse_sort_options`' grammar (a `BY`/`GET` pattern may itself be the word `STORE`). Same shard stays
+`Local` and is correct; different shards fall through to the ordinary two-hop apply. The destination
+also reaches `add_write_key`, so `WATCH` on it now sees the write. `SORT_RO` is excluded by name.
+Post-fix: 24/24 lost → **0/24**, contents byte-correct, with and without `BY`/`GET`.
+
+### 6c. A dereferencing SORT inside EXEC was not ordered against the shards it dereferences
+
+EXEC does not serialise commands globally: each shard walks only the commands it *participates in*,
+so commands over disjoint shards proceed independently. A dereferencing SORT breaks that premise —
+its participant set does not name the shards its patterns will read, and those shards are not
+knowable until the source has been read. Result, verified against the oracle:
+
+```
+MULTI ; MSET w_1 40 w_2 20 w_3 60 ; SORT src BY w_* ; EXEC
+oracle: 2 1 3        target (before): 3 2 1   -- the SORT ran before the MSET on those shards
+```
+
+**Fix.** A queued SORT whose `BY`/`GET` patterns contain a `*` is never a `Local` child: it is
+classified as a cross-shard child and declares **every** shard as a participant. Shards outside its
+scatter group hold the barrier only — the existing Xshard arm already waits on `finished` for a
+shard with no group of its own — which orders the dereference after every earlier command on every
+shard and before every later one. Scoped by `multi_sort_dereferences()`, so `BY nosort` / `GET #`
+and every other command keep their existing route.
 
 ## 7. Test evidence
 
@@ -270,21 +322,24 @@ sort battery: 127.0.0.1:7560, 1 executor(s) -> dereference ADMITTED
 -- cross-shard arm --
   cross-shard arm ran 12 times
 -- read-your-own-writes through BY/GET --
+-- dereference inside MULTI/EXEC --
 -- randomised model comparison --
   counters: {'sort_deref_lookups': ..., 'sort_deref_refusals': 0,
              'sort_scatter_general': ..., 'sort_deref_escapes': 0}
 
-sort: 296 checks, 0 failures -> PASS
+sort: 396 checks, 0 failures -> PASS
 ```
 
 ```
 sort battery: 127.0.0.1:7560, 4 executor(s) -> dereference REFUSED
-  counters: {'sort_deref_lookups': 0, 'sort_deref_refusals': 10,
+  counters: {'sort_deref_lookups': 0, 'sort_deref_refusals': 11,
              'sort_scatter_general': ..., 'sort_deref_escapes': 0}
-sort: 72 checks, 0 failures -> PASS
+sort: 77 checks, 0 failures -> PASS
 ```
 
-Both configurations pass under `--atomic 0` and `--atomic 1`.
+Both configurations pass under `--atomic 0` and `--atomic 1`, and across six placements:
+`--ratio 3:1 --shards 16`, `--ratio 3:1 --shards 1`, `--ratio 5:1 --shards 32` (deref admitted) and
+`--shards 16` / `--shards 8` with four executors (deref refused).
 
 ### Differ — `tests/differ.py … sort <seed>`
 
@@ -292,17 +347,36 @@ New suite `gen_sort`. Run the target with one executor; with more, every `BY`/`G
 against the standalone oracle *by design*, which is the intended signal.
 
 ```
-DIFFER sort: 4470 ops, 0 diffs -> PASS     (seed 11)
-DIFFER sort: 4469 ops, 0 diffs -> PASS     (seed 3)
-DIFFER sort: 4473 ops, 0 diffs -> PASS     (seed 29)
-DIFFER sort: 4469 ops, 0 diffs -> PASS     (seed 101)
-DIFFER sort: 4486 ops, 0 diffs -> PASS     (seed 7, RESP3)
+DIFFER sort: 4496 ops, 0 diffs -> PASS     (seed 11)      DIFFER sort: 4495 / 0 (seed 3)
+DIFFER sort: 4499 ops, 0 diffs -> PASS     (seed 29)      DIFFER sort: 4495 / 0 (seed 101)
+DIFFER sort: 4499 ops, 0 diffs -> PASS     (seed 5)       DIFFER sort: 4503 / 0 (seed 13)
+DIFFER sort: 4512 ops, 0 diffs -> PASS     (seed 7, RESP3)
+DIFFER sort: 4496 ops, 0 diffs -> PASS     (seed 11, --atomic 0)
 ```
 
-Two reply shapes are deliberately excluded, because the reference does not define them: a set with
-ordering suppressed and no `STORE` (its own iteration order), and `ALPHA` over weights that are not
-pure lowercase ASCII (the oracle's collation locale — NOTES-EDGEENC N3, reproduced here identically
-with and without a `BY` pattern, so it is not this lane's).
+**Boot the oracle under `LC_ALL=C`** (§9). One reply shape is deliberately excluded because the
+reference does not define it: a set with ordering suppressed and no `STORE`, which is the set's own
+iteration order. Alphabetic ties are excluded for the same reason — every generated weight is
+distinct.
+
+### Sanitizers
+
+`make asan` (ASAN + UBSAN, `ldd`-verified to be the sanitizer binary), one executor and four:
+battery 396 / 0 and 72 / 0, `differ … sort` 4496 / 0, **zero** sanitizer reports from any SORT path.
+The one UBSAN note in the whole run is `third_party/lua/lstring.c:87` misaligned `uint32_t` load,
+raised by the script rows of `tests/multi_exec.py` — third-party, pre-existing, untouched here.
+
+### The detector can report failure
+
+`make sortnoctx` builds the release server with §6a's read context and §6c's participation compiled
+out. Against it:
+
+```
+tests/sort.py   -> FAIL: multi ryow 0..19 order / projection / stored
+tests/differ.py -> DIFFER sort: 4496 ops, 4 diffs -> FAIL
+```
+
+Against the shipping binary both pass. A green run is therefore not a vacuous one.
 
 ### No regression in the shared sort core
 
@@ -310,10 +384,15 @@ with and without a `BY` pattern, so it is not this lane's).
 `SORT` were re-run at the default placement:
 
 ```
-cgaps 3310 / 0   zsetops 4200 / 0   servertail 5339 / 0   list 3521 / 0
-set   3524 / 0   zset    3531 / 0   edgeenc   5989 / 0   arity 4200 / 0
-edgeproto 5200 / 0   compatintro 5630 / 0
+multi 4260 / 0   cgaps  3310 / 0   zsetops   4200 / 0   servertail 5339 / 0
+list  3521 / 0   set    3524 / 0   zset      3531 / 0   hash       3545 / 0
+string 4033 / 0  edgeenc 5989 / 0  arity     4200 / 0   edgeproto  5200 / 0
+xshard 4276 / 0  xmove  4263 / 0   compatintro 5630 / 0
 ```
+
+`multi.inc` changed (§6b, §6c), so the transaction batteries were re-run too:
+`multi_exec`, `multires`, `execatomic`, `execiso`, `execfix`, `atomfix` — all PASS, on the release
+binary and under ASAN.
 
 ## 8. Shelved, with why
 
@@ -338,3 +417,26 @@ a larger change than this gap is worth. Notifications are off by default.
 reading them; derived keys are not promoted, so a derived key that had no MVCC record at cut time is
 read at its newest value rather than reconstructed at the cut — the same exposure `MGET` has for
 non-recorded keys, and strictly narrower than the pre-existing `--atomic 0` behaviour.
+
+## 9. Standing compatibility question: should `ALPHA` collate by LOCALE?
+
+Handed over from the `t-doubles2` lane and confirmed here. Redis calls `setlocale(LC_COLLATE, "")`
+at startup and compares `ALPHA` weights with `strcoll()`. TomoKV never calls `setlocale`, so its
+`strcoll` is the C locale, i.e. the byte order. Under `en_US.UTF-8` the reference orders `1` before
+`-3`; a byte comparison puts `-3` first.
+
+* **Pre-existing, not this lane's.** Reproduced on the base binary with a plain `SORT k ALPHA`, and
+  a `BY` pattern shows the identical divergence — same code path, same cause.
+* **Controlled for in the tests.** The oracle is booted `LC_ALL=C` (`start_oracle` in the lane's
+  server script, and the `gen_sort` docstring says so), which makes redis's `strcoll` the byte order
+  and the two sides compare the same relation. Without it every punctuation-bearing `ALPHA` row diffs
+  for a reason that has nothing to do with SORT.
+* **Recommendation: do NOT adopt locale collation, and say so.** A server whose *reply ordering*
+  depends on the environment variables of the process is hostile to anything replicated or
+  containerised: two nodes of the same deployment can order the same `SORT` differently, a `SORT …
+  STORE` then persists one of those orders, and the reference itself already contradicts its own
+  choice by using a byte comparison for the `STORE` form. Byte order is deterministic, reproducible
+  across hosts, and matches what `STORE` does. What is missing is not the behaviour but the
+  statement of it — this note, plus the `LC_ALL=C` requirement written into the differ suite, is
+  that statement. If it is ever revisited, the change is one call in `main` and it should be a knob
+  with a default of "byte", not an unconditional switch.

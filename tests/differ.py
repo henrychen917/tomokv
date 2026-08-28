@@ -2905,14 +2905,19 @@ def gen_sort(rng):
       * `SORT <set> BY <globless>` WITHOUT STORE -- the reference dumps the set's own iteration
         order, which is an encoding artefact. Only the STORE form is generated, where the reference
         forces an alphabetic sort precisely to make it defined.
-      * ALPHA over weights that are not pure lowercase ASCII -- the oracle orders those with
-        strcoll() under its collation locale (see gen_edgeenc's note), which is a property of the
-        oracle's environment rather than of SORT. Lowercase-only alphabets make strcoll and the
-        byte order agree.
-    Weights are kept distinct so no ALPHA tie is generated: the reference leaves equal alphabetic
-    weights in whatever order its sort algorithm produced, and neither server promises stability.
+      * an alphabetic tie -- the reference leaves equal ALPHA weights wherever its sort algorithm
+        put them and neither server promises stability, so every weight generated here is distinct.
+
+    BOOT THE ORACLE UNDER ``LC_ALL=C``. Redis calls ``setlocale(LC_COLLATE, "")`` and then
+    ``strcoll()`` for ALPHA comparisons; this server never calls setlocale, so its strcoll is byte
+    order. Under en_US.UTF-8 the oracle orders ``1`` before ``-3`` where a byte comparison puts
+    ``-3`` first, and every punctuation-bearing ALPHA row diffs for that reason alone. In the C
+    locale strcoll IS the byte order and the two sides are comparing the same relation. (Whether
+    this server SHOULD collate by locale is a separate compatibility question -- see NOTES-SORT.md.)
     """
-    words = ["alpha", "bravo", "charlie", "delta", "echo", "foxtrot", "golf", "hotel"]
+    # Deliberately mixed case and punctuation: with the oracle in the C locale this exercises the
+    # ALPHA comparison itself, which is where a locale difference would show up first.
+    words = ["alpha", "Bravo", "char-lie", "delta", "Echo!", "fox_trot", "golf", "HOTEL"]
     ops = [["FLUSHALL"]]
     sources = ["so:l%d" % i for i in range(4)] + ["so:s%d" % i for i in range(3)] + \
               ["so:z%d" % i for i in range(3)]
@@ -3085,6 +3090,16 @@ def gen_sort(rng):
         ["SORT", "so:t", "BY"], ["SORT", "so:t", "GET"],
         ["SORT", "so:t", "BADTOKEN", "BY", "so:tw_*"],
         ["SORT", "so:t", "BY", "so:tw_*", "GET", "#", "BY", "so:tn_*"],
+        # ALPHA collation: punctuation and case, with and without STORE (the reference uses a byte
+        # comparison for STORE and strcoll otherwise; in the C locale the two agree).
+        ["DEL", "so:tc"], ["RPUSH", "so:tc", "a-b", "ab", "aB", "A", "_z", "z_"],
+        ["SORT", "so:tc", "ALPHA"], ["SORT", "so:tc", "ALPHA", "DESC"],
+        ["SORT", "so:tc", "ALPHA", "STORE", "so:tcd"], ["LRANGE", "so:tcd", "0", "-1"],
+        ["MSET", "so:tca_1", "a-b", "so:tca_2", "aB", "so:tca_3", "_z"],
+        ["SORT", "so:t", "BY", "so:tca_*", "ALPHA"],
+        ["SORT", "so:t", "BY", "so:tca_*", "ALPHA", "DESC"],
+        ["SORT", "so:t", "BY", "so:tca_*", "ALPHA", "STORE", "so:tcad"],
+        ["LRANGE", "so:tcad", "0", "-1"],
         ["COMMAND", "GETKEYS", "SORT", "so:t", "BY", "so:tw_*", "GET", "so:td_*",
          "STORE", "so:tdst"],
     ]
