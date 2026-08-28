@@ -29,8 +29,9 @@ only way to reach it.
 The battery will use `DEBUG BORROWCOUNT` for both sides of a non-vacuity check:
 
 - with no holders, wait for releases to settle and require exactly zero;
-- pipeline enough distinct 8 KiB values onto an unread connection to exceed a per-socket kernel
-  send buffer, then require a substantial non-zero count while that holder remains parked;
+- pipeline 9,600 distinct 8 KiB values (about 75 MiB of replies) onto one unread connection to
+  exceed a per-socket kernel send buffer, then require a substantial non-zero count both before
+  and after the busy measurement while that holder remains parked;
 - after closing holders, wait for teardown releases and require exactly zero again.
 
 Distinct keys remain important.  Repeating one value raises reference count but does not grow the
