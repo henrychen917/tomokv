@@ -600,10 +600,6 @@ void notify_retire_batch_entry(IoLoop& loop, NotifyBatch* batch, uint64_t writer
     delete batch;
 }
 
-void notify_retire_entry(IoLoop& loop, Op& op) {
-    notify_retire_batch_entry(loop, notify_take_batch(op), 0);
-}
-
 void notify_discard_batch(NotifyBatch* batch) { delete batch; }
 
 void notify_abort_op(Op& op) {

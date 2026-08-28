@@ -251,7 +251,6 @@ private:
     friend void multi_close_entry(IoLoop&, Client&);
     friend void multi_shutdown_entry(IoLoop&);
     friend void notify_retire_batch_entry(IoLoop&, NotifyBatch*, uint64_t);
-    friend void notify_retire_entry(IoLoop&, Op&);
 #include "pubsub.inc"
 
     template <bool HasUnix, bool HasTls, bool kEp>
