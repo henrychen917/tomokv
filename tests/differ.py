@@ -2349,16 +2349,14 @@ def gen_script(rng):
 # Blocking commands need several independently ordered clients and out-of-band writers, so they
 # cannot use the ordinary one-request/one-reply pipeline below.  The randomized body remains a
 # byte differ; the directed tail adds the wait/timeout/disconnect properties a linear stream cannot
-# express.  Two pre-existing, documented gaps are observed explicitly and counted separately from
-# unexpected differences: WAIT has no deferred standalone wait, and most blocking pops are excluded
-# from the transaction executor (NOTES-MULTI.md).
+# express. The directed tail covers transaction lowering and WAIT deadlines in the selected RESP
+# mode; every result is now an ordinary byte comparison rather than a documented exception.
 def run_blocking_differ(rng):
-    ts, tf = conn_mode(TH, TP, False)
-    os_, of = conn_mode(OH, OP, False)
+    ts, tf = conn_mode(TH, TP, RESP3)
+    os_, of = conn_mode(OH, OP, RESP3)
     diffs = 0
     checks = 0
     logical_ops = 0
-    documented = 0
     multi_ready_cases = 0
 
     def mismatch(label, target, oracle):
@@ -2513,7 +2511,7 @@ def run_blocking_differ(rng):
     ]
     for command, wake in forever_arms:
         tbase, obase = info_blocked(ts, tf), info_blocked(os_, of)
-        tw, twf = conn_mode(TH, TP, False); ow, owf = conn_mode(OH, OP, False)
+        tw, twf = conn_mode(TH, TP, RESP3); ow, owf = conn_mode(OH, OP, RESP3)
         tw.sendall(enc(command)); ow.sendall(enc(command)); logical_ops += 1
         tarmed = await_blocked(ts, tf, tbase + 1)
         oarmed = await_blocked(os_, of, obase + 1)
@@ -2535,7 +2533,7 @@ def run_blocking_differ(rng):
     tbase, obase = info_blocked(ts, tf), info_blocked(os_, of)
     waiters = []
     for index in range(6):
-        tw, twf = conn_mode(TH, TP, False); ow, owf = conn_mode(OH, OP, False)
+        tw, twf = conn_mode(TH, TP, RESP3); ow, owf = conn_mode(OH, OP, RESP3)
         command = ["BLPOP", "cbd:fifo", "0"]
         tw.sendall(enc(command)); ow.sendall(enc(command)); logical_ops += 1
         tarmed = await_blocked(ts, tf, tbase + index + 1)
@@ -2555,7 +2553,7 @@ def run_blocking_differ(rng):
     # control: a leaked waiter would consume it and make the immediate BLPOP return null.
     both(["DEL", "cbd:disconnect"])
     tbase, obase = info_blocked(ts, tf), info_blocked(os_, of)
-    tw, twf = conn_mode(TH, TP, False); ow, owf = conn_mode(OH, OP, False)
+    tw, twf = conn_mode(TH, TP, RESP3); ow, owf = conn_mode(OH, OP, RESP3)
     tw.sendall(enc(["BLPOP", "cbd:disconnect", "0"]))
     ow.sendall(enc(["BLPOP", "cbd:disconnect", "0"])); logical_ops += 1
     await_blocked(ts, tf, tbase + 1); await_blocked(os_, of, obase + 1)
@@ -2576,9 +2574,10 @@ def run_blocking_differ(rng):
         both(command, command[0] + " QUEUED")
         both(["EXEC"], command[0] + " EXEC")
 
-    # The remaining collection pops are an existing transaction-engine exclusion.  Preserve the
-    # exact live reproducer here but do not call it an unexpected regression in this lane.
-    multi_gaps = [
+    # Every blocking collection command becomes its nonblocking counterpart inside EXEC. Missing
+    # data therefore produces a null element; ready data proves the lowering also performs the
+    # mutation and preserves each command's legacy reply shape.
+    multi_commands = [
         ["BLPOP", "cbd:multi:l", "0"],
         ["BRPOP", "cbd:multi:l", "0"],
         ["BLMPOP", "0", "1", "cbd:multi:l", "LEFT"],
@@ -2586,49 +2585,44 @@ def run_blocking_differ(rng):
         ["BZPOPMAX", "cbd:multi:z", "0"],
         ["BZMPOP", "0", "1", "cbd:multi:z", "MIN"],
     ]
-    expected_oracle = b"*1\r\n*-1\r\n"
-    for command in multi_gaps:
-        both(["MULTI"], "documented MULTI before " + command[0])
-        both(command, "documented " + command[0] + " QUEUED")
-        payload = enc(["EXEC"]); ts.sendall(payload); os_.sendall(payload); logical_ops += 1
-        target, oracle = read_reply(tf), read_reply(of)
-        checks += 1
-        if target.startswith(b"*1\r\n-ERR ") and oracle == expected_oracle:
-            documented += 1
-            print("  DOCUMENTED %s in MULTI\n    target: %r\n    oracle: %r" %
-                  (command[0], target, oracle), flush=True)
-        elif target == oracle:
-            print("  RESOLVED documented MULTI gap %s: %r" % (command[0], target), flush=True)
-        else:
-            mismatch("documented MULTI gap changed: " + command[0], target, oracle)
+    for command in multi_commands:
+        both(["DEL", "cbd:multi:l", "cbd:multi:z"], "MULTI missing cleanup")
+        both(["MULTI"], "MULTI before missing " + command[0])
+        both(command, "missing " + command[0] + " QUEUED")
+        both(["EXEC"], "missing " + command[0] + " EXEC")
 
-    # WAIT needs an IO-owned deferred reply to match Redis's deadline semantics.  At the observation
-    # point the wire itself differs (target ':0', oracle silence); finite WAIT eventually has the
-    # same final integer reply.  Close the timeout-zero oracle socket after the deadline so the
-    # harness cannot hang.
+    ready_setup = [
+        (["RPUSH", "cbd:multi:l", "v"], multi_commands[0]),
+        (["RPUSH", "cbd:multi:l", "v"], multi_commands[1]),
+        (["RPUSH", "cbd:multi:l", "v"], multi_commands[2]),
+        (["ZADD", "cbd:multi:z", "1", "m"], multi_commands[3]),
+        (["ZADD", "cbd:multi:z", "1", "m"], multi_commands[4]),
+        (["ZADD", "cbd:multi:z", "1", "m"], multi_commands[5]),
+    ]
+    for setup, command in ready_setup:
+        both(["DEL", "cbd:multi:l", "cbd:multi:z"], "MULTI ready cleanup")
+        both(setup, "MULTI ready setup " + command[0])
+        both(["MULTI"], "MULTI before ready " + command[0])
+        both(command, "ready " + command[0] + " QUEUED")
+        both(["EXEC"], "ready " + command[0] + " EXEC")
+
+    # An unsatisfied standalone WAIT must leave both wires silent until the deadline. Timeout zero
+    # means forever, so the harness closes both sockets after proving silence and never performs a
+    # blocking read on that case.
     for timeout in ("200", "0"):
-        tw, twf = conn_mode(TH, TP, False); ow, owf = conn_mode(OH, OP, False)
+        tw, twf = conn_mode(TH, TP, RESP3); ow, owf = conn_mode(OH, OP, RESP3)
         command = ["WAIT", "1", timeout]
+        started = time.monotonic()
         tw.sendall(enc(command)); ow.sendall(enc(command)); logical_ops += 1
         time.sleep(0.05)
         tready = bool(select.select([tw], [], [], 0)[0])
         oready = bool(select.select([ow], [], [], 0)[0])
-        checks += 1
-        if tready and not oready:
-            documented += 1
-            target = read_reply(twf)
-            print("  DOCUMENTED WAIT 1 %s at 50ms\n    target: %r\n    oracle: %r" %
-                  (timeout, target, b"<silent>"), flush=True)
-            if timeout != "0":
-                compare("WAIT finite final reply", target, read_reply(owf))
-        elif not tready and not oready:
-            print("  RESOLVED documented WAIT 1 %s early-reply gap" % timeout, flush=True)
-            if timeout != "0": compare("WAIT finite final reply", read_reply(twf), read_reply(owf))
-        else:
-            mismatch("WAIT 1 %s observation" % timeout,
-                     b"ready" if tready else b"silent", b"ready" if oready else b"silent")
-            if tready: read_reply(twf)
-            if oready: read_reply(owf)
+        property_check("WAIT 1 %s readiness parity" % timeout, tready, oready)
+        property_check("target WAIT 1 %s silence control" % timeout, tready, False)
+        property_check("oracle WAIT 1 %s silence control" % timeout, oready, False)
+        if timeout != "0":
+            compare("WAIT finite final reply", read_reply(twf), read_reply(owf))
+            property_check("WAIT finite deadline fired", time.monotonic() - started >= 0.15, True)
         tw.close(); ow.close(); twf.close(); owf.close()
 
     final_t, final_o = info_blocked(ts, tf), info_blocked(os_, of)
@@ -2640,9 +2634,8 @@ def run_blocking_differ(rng):
     ts.close(); os_.close(); tf.close(); of.close()
     print("  coverage: multi_ready_cases=%d timeout_zero_arms=%d fifo_waiters=%d" %
           (multi_ready_cases, len(forever_arms), len(waiters)))
-    print("DIFFER blocking: %d logical ops, %d checks, %d unexpected diffs, "
-          "%d documented differences -> %s" %
-          (logical_ops, checks, diffs, documented, "PASS" if diffs == 0 else "FAIL"))
+    print("DIFFER blocking: %d logical ops, %d checks, %d diffs -> %s" %
+          (logical_ops, checks, diffs, "PASS" if diffs == 0 else "FAIL"))
     return 1 if diffs else 0
 
 

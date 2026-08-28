@@ -157,11 +157,7 @@ void reply_invalid_integer(Op& op) {
 
 bool parse_mpop(Op& op, Kind kind, uint32_t& numkeys, bool& edge, uint64_t& count) {
     int64_t parsed_numkeys = 0;
-    if (!parse_i64(op.arg(1), parsed_numkeys)) {
-        reply_invalid_integer(op);
-        return false;
-    }
-    if (parsed_numkeys < 1) {
+    if (!parse_i64(op.arg(1), parsed_numkeys) || parsed_numkeys < 1) {
         reply_err(op.sink(), "ERR numkeys should be greater than 0");
         return false;
     }
@@ -1635,16 +1631,24 @@ void assemble_final(Client& client, Op& op, ScatterState& state, void* release_c
             case FinalReply::Lmpop:
                 reply_array_header(op.sink(), 2);
                 reply_bulk(op.sink(), op.arg(state.keys[state.selected].arg));
-                reply_array_header(op.sink(), state.result->members.size());
-                for (const std::string& member : state.result->members)
+                if (state.pop_reply_shape == PopReplyShape::ListPair) {
+                    const std::string& member = state.result->members.front();
                     reply_bulk(op.sink(), Slice(member.data(), static_cast<uint32_t>(member.size())));
+                } else {
+                    reply_array_header(op.sink(), state.result->members.size());
+                    for (const std::string& member : state.result->members)
+                        reply_bulk(op.sink(), Slice(member.data(), static_cast<uint32_t>(member.size())));
+                }
                 break;
             case FinalReply::Zmpop:
-                reply_array_header(op.sink(), 2);
+                reply_array_header(op.sink(),
+                    state.pop_reply_shape == PopReplyShape::ZsetTriple ? 3 : 2);
                 reply_bulk(op.sink(), op.arg(state.keys[state.selected].arg));
-                reply_array_header(op.sink(), state.result->members.size());
+                if (state.pop_reply_shape != PopReplyShape::ZsetTriple)
+                    reply_array_header(op.sink(), state.result->members.size());
                 for (size_t i = 0; i < state.result->members.size(); i++) {
-                    reply_array_header(op.sink(), 2);
+                    if (state.pop_reply_shape != PopReplyShape::ZsetTriple)
+                        reply_array_header(op.sink(), 2);
                     const std::string& member = state.result->members[i];
                     reply_bulk(op.sink(), Slice(member.data(), static_cast<uint32_t>(member.size())));
                     reply_double(op.sink(), state.result->scores[i], op.resp3());

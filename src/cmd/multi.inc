@@ -33,6 +33,10 @@ enum class MultiCommandKind : uint8_t {
     Unsupported,
 };
 
+enum class MultiBlockingPop : uint8_t {
+    None, Blpop, Brpop, Blmpop, Bzpopmin, Bzpopmax, Bzmpop
+};
+
 struct MultiValue {
     bool present = false;
     std::string value;
@@ -47,6 +51,12 @@ struct MultiCommand {
     std::vector<int32_t> participants;
     std::vector<uint8_t> shard_done;
     std::vector<MultiValue> values;
+    // Blocking collection commands are executed inside EXEC through a nonblocking LMPOP/ZMPOP
+    // child. The normalized argv owns the slices installed in `op`; it allocates only for these
+    // transaction-only slow-path commands.
+    std::vector<std::string> exec_argv;
+    MultiBlockingPop blocking_pop = MultiBlockingPop::None;
+    uint8_t pop_reply_shape = static_cast<uint8_t>(PopReplyShape::Mpop);
     std::atomic<uint32_t> pending{0};
     std::atomic<uint32_t> stage{0};
     std::atomic<long long> integer{0};
@@ -227,6 +237,21 @@ bool queued_copy(const Op& op, MultiQueuedCommand& out) {
     return true;
 }
 
+bool has_name(const MultiQueuedCommand& queued, const char* lower) {
+    return Slice(queued.argv[0].data(), static_cast<uint32_t>(queued.argv[0].size()))
+        .eq_icase(lower);
+}
+
+MultiBlockingPop multi_blocking_pop(const MultiQueuedCommand& queued) {
+    if (has_name(queued, "blpop")) return MultiBlockingPop::Blpop;
+    if (has_name(queued, "brpop")) return MultiBlockingPop::Brpop;
+    if (has_name(queued, "blmpop")) return MultiBlockingPop::Blmpop;
+    if (has_name(queued, "bzpopmin")) return MultiBlockingPop::Bzpopmin;
+    if (has_name(queued, "bzpopmax")) return MultiBlockingPop::Bzpopmax;
+    if (has_name(queued, "bzmpop")) return MultiBlockingPop::Bzmpop;
+    return MultiBlockingPop::None;
+}
+
 void command_key_args(const MultiQueuedCommand& queued, std::vector<uint32_t>& args) {
     const CommandSpec& spec = *queued.spec;
     if (spec.flags & CmdFlags::StreamRoute) {
@@ -239,6 +264,22 @@ void command_key_args(const MultiQueuedCommand& queued, std::vector<uint32_t>& a
         for (uint32_t arg = streams + 1; arg < streams + 1 + count; arg++) args.push_back(arg);
         return;
     }
+    const MultiBlockingPop blocking = multi_blocking_pop(queued);
+    if (blocking == MultiBlockingPop::Blpop || blocking == MultiBlockingPop::Brpop ||
+        blocking == MultiBlockingPop::Bzpopmin || blocking == MultiBlockingPop::Bzpopmax) {
+        for (uint32_t arg = 1; arg + 1 < queued.argv.size(); arg++) args.push_back(arg);
+        return;
+    }
+    if (blocking == MultiBlockingPop::Blmpop || blocking == MultiBlockingPop::Bzmpop) {
+        int64_t parsed = 0;
+        const Slice count(queued.argv[2].data(), static_cast<uint32_t>(queued.argv[2].size()));
+        if (!parse_i64(count, parsed) || parsed < 1 ||
+            static_cast<uint64_t>(parsed) > UINT32_MAX ||
+            3 + static_cast<uint64_t>(parsed) >= queued.argv.size()) return;
+        for (uint32_t arg = 3; arg < 3 + static_cast<uint32_t>(parsed); arg++)
+            args.push_back(arg);
+        return;
+    }
     if (spec.first_key <= 0 || spec.key_step <= 0) return;
     const uint32_t last = spec.last_key < 0
         ? static_cast<uint32_t>(queued.argv.size() - 1)
@@ -247,11 +288,6 @@ void command_key_args(const MultiQueuedCommand& queued, std::vector<uint32_t>& a
     for (uint32_t arg = static_cast<uint32_t>(spec.first_key); arg <= last;
          arg += static_cast<uint32_t>(spec.key_step))
         args.push_back(arg);
-}
-
-bool has_name(const MultiQueuedCommand& queued, const char* lower) {
-    return Slice(queued.argv[0].data(), static_cast<uint32_t>(queued.argv[0].size()))
-        .eq_icase(lower);
 }
 
 bool contains_shard(const std::vector<int32_t>& shards, int32_t shard) {
@@ -268,6 +304,80 @@ bool make_child_op(MultiCommand& command, uint8_t db) {
     command.op->spec = command.queued.spec;
     command.op->db = db;
     for (const std::string& arg : command.queued.argv)
+        if (!command.op->push_arg(Slice(arg.data(), static_cast<uint32_t>(arg.size()))))
+            return false;
+    return true;
+}
+
+bool validate_multi_blocking_timeout(Op& op, MultiBlockingPop kind) {
+    const uint32_t timeout_arg = (kind == MultiBlockingPop::Blmpop ||
+                                  kind == MultiBlockingPop::Bzmpop)
+        ? 1 : op.argc() - 1;
+    double seconds = 0;
+    if (!blocking_parse_timeout(op.arg(timeout_arg), seconds)) {
+        reply_err(op.sink(), "ERR timeout is not a float or out of range");
+        return false;
+    }
+    if (seconds < 0) {
+        reply_err(op.sink(), "ERR timeout is negative");
+        return false;
+    }
+    if (seconds > static_cast<double>(INT64_MAX) / 1000.0) {
+        reply_err(op.sink(), "ERR timeout is out of range");
+        return false;
+    }
+    if (seconds != 0) {
+        timespec now{};
+        ::clock_gettime(CLOCK_REALTIME, &now);
+        const int64_t now_ms = static_cast<int64_t>(now.tv_sec) * 1000 + now.tv_nsec / 1000000;
+        const int64_t delay = static_cast<int64_t>(std::ceil(seconds * 1000.0));
+        if (delay > INT64_MAX - now_ms) {
+            reply_err(op.sink(), "ERR timeout is out of range");
+            return false;
+        }
+    }
+    return true;
+}
+
+bool normalize_multi_blocking_pop(MultiCommand& command, uint8_t db) {
+    const MultiBlockingPop kind = command.blocking_pop;
+    const bool list = kind == MultiBlockingPop::Blpop || kind == MultiBlockingPop::Brpop ||
+                      kind == MultiBlockingPop::Blmpop;
+    const bool single = kind == MultiBlockingPop::Blpop || kind == MultiBlockingPop::Brpop ||
+                        kind == MultiBlockingPop::Bzpopmin || kind == MultiBlockingPop::Bzpopmax;
+    const char* alias = list ? "LMPOP" : "ZMPOP";
+    const CommandSpec* spec = command_lookup(Slice(alias, 5));
+    if (!spec) return false;
+    if (command.queued.spec->flags & CmdFlags::NotifySelected)
+        spec = command_notify_variant(spec);
+
+    command.exec_argv.clear();
+    if (single) {
+        command.exec_argv.reserve(command.queued.argv.size() + 3);
+        command.exec_argv.emplace_back(alias);
+        command.exec_argv.push_back(std::to_string(command.queued.argv.size() - 2));
+        for (uint32_t i = 1; i + 1 < command.queued.argv.size(); i++)
+            command.exec_argv.push_back(command.queued.argv[i]);
+        const bool right_or_max = kind == MultiBlockingPop::Brpop ||
+                                  kind == MultiBlockingPop::Bzpopmax;
+        command.exec_argv.emplace_back(list ? (right_or_max ? "RIGHT" : "LEFT")
+                                            : (right_or_max ? "MAX" : "MIN"));
+        command.exec_argv.emplace_back("COUNT");
+        command.exec_argv.emplace_back("1");
+        command.pop_reply_shape = static_cast<uint8_t>(
+            list ? PopReplyShape::ListPair : PopReplyShape::ZsetTriple);
+    } else {
+        command.exec_argv.reserve(command.queued.argv.size() - 1);
+        command.exec_argv.emplace_back(alias);
+        for (uint32_t i = 2; i < command.queued.argv.size(); i++)
+            command.exec_argv.push_back(command.queued.argv[i]);
+        command.pop_reply_shape = static_cast<uint8_t>(PopReplyShape::Mpop);
+    }
+
+    command.op->reset();
+    command.op->spec = spec;
+    command.op->db = db;
+    for (const std::string& arg : command.exec_argv)
         if (!command.op->push_arg(Slice(arg.data(), static_cast<uint32_t>(arg.size()))))
             return false;
     return true;
@@ -290,6 +400,10 @@ MultiCommandKind classify_multi_command(MultiCommand& command) {
         return command.key_args.empty() ? MultiCommandKind::IoLocal : MultiCommandKind::Local;
     if ((command.queued.spec->flags & CmdFlags::CursorShard) &&
         !(command.queued.spec->flags & CmdFlags::StreamRoute)) return MultiCommandKind::Scan;
+    // These six execute through a normalized nonblocking xshard child even when all keys happen
+    // to share one owner. Calling their ordinary Blocking handler from EXEC would park the whole
+    // transaction, which Redis never does.
+    if (command.blocking_pop != MultiBlockingPop::None) return MultiCommandKind::Unsupported;
     if (command.key_args.empty()) return MultiCommandKind::Unsupported;
     bool same = true;
     for (size_t i = 1; i < command.key_shards.size(); i++)
@@ -335,6 +449,7 @@ bool prepare_commands(Server& server, MultiExecState& state,
             command->notify_order_base =
                 static_cast<uint32_t>(state.commands.size()) * 0x10000u;
             command->queued = std::move(queued);
+            command->blocking_pop = multi_blocking_pop(command->queued);
             command_key_args(command->queued, command->key_args);
             command->key_shards.reserve(command->key_args.size());
             for (uint32_t arg : command->key_args) {
@@ -345,7 +460,6 @@ bool prepare_commands(Server& server, MultiExecState& state,
             }
             command->kind = classify_multi_command(*command);
             if (!make_child_op(*command, db)) return false;
-            if (state.client->resp3()) command->op->mark_resp3();
             uint32_t acl_denied_arg = UINT32_MAX;
             const AclDeniedReason acl_denied = acl_check_queued(
                 state.client->acl_user_idx(), *command->queued.spec,
@@ -379,6 +493,17 @@ bool prepare_commands(Server& server, MultiExecState& state,
                     Slice(object.data(), static_cast<uint32_t>(object.size())),
                     Slice(username, static_cast<uint32_t>(std::strlen(username))));
             }
+            if (command->kind != MultiCommandKind::Prebuilt &&
+                command->blocking_pop != MultiBlockingPop::None) {
+                if (!validate_multi_blocking_timeout(*command->op, command->blocking_pop)) {
+                    command->kind = MultiCommandKind::Prebuilt;
+                    command->key_args.clear();
+                    command->key_shards.clear();
+                } else if (!normalize_multi_blocking_pop(*command, db)) {
+                    return false;
+                }
+            }
+            if (state.client->resp3()) command->op->mark_resp3();
             if (command->kind == MultiCommandKind::Scan &&
                 !command_prepare_scan_route(server, *command->op))
                 command->kind = MultiCommandKind::Prebuilt;
@@ -405,6 +530,8 @@ bool prepare_commands(Server& server, MultiExecState& state,
                     // Validation errors are execution-time array elements, just as they are when
                     // the same syntactically valid command is run outside MULTI.
                     command->kind = MultiCommandKind::Prebuilt;
+                    command->key_args.clear();
+                    command->key_shards.clear();
                 }
             }
             if (command->kind == MultiCommandKind::Local) {
@@ -418,6 +545,8 @@ bool prepare_commands(Server& server, MultiExecState& state,
                 add_shard(command->participants, command->op->shard);
             } else if (command->kind == MultiCommandKind::Xshard) {
                 // xshard_prepare supplied the exact phase-one participant set above.
+                command->scatter->pop_reply_shape =
+                    static_cast<PopReplyShape>(command->pop_reply_shape);
             } else if (command->kind == MultiCommandKind::Ping ||
                        command->kind == MultiCommandKind::Echo ||
                        command->kind == MultiCommandKind::UnwatchReply ||

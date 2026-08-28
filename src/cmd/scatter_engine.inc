@@ -31,6 +31,7 @@ enum class FinalReply : uint8_t {
     None, Ok, Integer, Nil, NullArray, Bulk, Array, Lmpop, Zmpop, SortConversion,
     Work, NoSuchKey, SameObject, QueueFull, Internal, Lcs, LcsError
 };
+enum class PopReplyShape : uint8_t { Mpop, ListPair, ZsetTriple };
 enum class ValueKind : uint8_t { Nil, Inline, Borrow };
 
 struct ObjectImage {
@@ -356,6 +357,7 @@ struct ScatterState : SnapshotCut {
     bool from_left = false;
     bool to_left = false;
     bool pop_edge = false;                 // RIGHT for LMPOP, MAX for ZMPOP
+    PopReplyShape pop_reply_shape = PopReplyShape::Mpop;
     bool atomic_write = false;
     bool atomic_apply = false;
     bool atomic_pop = false;
@@ -1207,7 +1209,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         // keys, the owner resolves it through the short pending-entry list and clones only writes.
         const bool xread_kind = kind == Kind::Xread || kind == Kind::Xreadgroup;
         const bool xread_local = xread_kind && key_count == 1 && !xread_options.block;
-        if (same_owner && kind != Kind::Pfcount && kind != Kind::Pfmerge &&
+        if (same_owner && !force_atomic && kind != Kind::Pfcount && kind != Kind::Pfmerge &&
             (!(op.spec->flags & CmdFlags::Blocking) || xread_local) &&
             (!xread_kind || xread_local)) {
             op.shard = routes[0].shard;
