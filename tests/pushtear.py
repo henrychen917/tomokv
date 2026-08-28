@@ -30,8 +30,8 @@ EVERY CELL PROVES ITS OWN GEOMETRY
 "No tear" is worthless unless the run actually reached the non-quiesced state.
 The server exports two proof-of-mechanism counters in INFO:
 
-    oob_frames_segmented   a frame appended while the ROB was NOT quiesced
-    oob_frames_deferred    a frame raised from INSIDE a retire drain
+    oob_frames_segmented   a frame sent immediately through the segment queue
+    oob_frames_deferred    a frame parked behind an earlier-issued reply or retire drain
 
 A cell that finishes clean but moved neither counter FAILS with
 "geometry never constructed" rather than passing quietly. Sections that need a
@@ -486,8 +486,8 @@ def cell_monitor(zc_min, size, resp3):
         write aims the PING's feed line straight at the borrowing GET.
       * FOREIGN traffic -- a second connection generates commands continuously while this one
         holds a borrowed GET, which walks the whole ROB-state axis by arrival timing rather than
-        by construction. Repetition plus the counters is what makes that honest: if
-        oob_frames_segmented never moved, the cell FAILS instead of reporting a clean run."""
+        by construction. Repetition plus the counters is what makes that honest: if neither OOB
+        route moved, the cell FAILS instead of reporting a clean run."""
     tag = "monitor/%s/%dB" % ("resp3" if resp3 else "resp2", size)
     value = bytes((i * 23 + 11) % 251 + 1 for i in range(size))
     before = admin_info()
@@ -528,10 +528,11 @@ def cell_monitor(zc_min, size, resp3):
         return
     if not geometry_gate(tag, before, after, ["oob_frames_segmented", "oob_frames_deferred"]):
         return
-    ok(tag, "%d probes, feed+%d seg+%d" % (
+    ok(tag, "%d probes, feed+%d seg+%d def+%d" % (
         ITERS,
         after.get("monitor_feed_lines", 0) - before.get("monitor_feed_lines", 0),
-        after.get("oob_frames_segmented", 0) - before.get("oob_frames_segmented", 0)))
+        after.get("oob_frames_segmented", 0) - before.get("oob_frames_segmented", 0),
+        after.get("oob_frames_deferred", 0) - before.get("oob_frames_deferred", 0)))
 
 
 def cell_xshard_mget(zc_min, size):

@@ -58,8 +58,10 @@
 #include <atomic>
 #include <cerrno>
 #include <cstdint>
+#include <deque>
 #include <string>
 #include <sys/socket.h>
+#include <unordered_map>
 #include "conn.h"
 #include "epoll.h"
 #include "tls.h"
@@ -75,6 +77,12 @@ namespace tomo {
 
 // Per-thread send engine. Every loop that sends owns one and calls the same two methods.
 class WbEngine {
+    struct DeferredOob {
+        uint64_t after = 0;             // exclusive ROB issue frontier preceding these frames
+        std::string bytes;
+    };
+    using DeferredOobQueue = std::deque<DeferredOob>;
+
 public:
     using ReleaseFn = void (*)(void*, int32_t, const char*);
     using RetireFn = void (*)(void*, Client&, Op&);
@@ -100,7 +108,7 @@ public:
 
     Ring&  ring()       { return *ring_; }
 
-    // ---- OUT-OF-BAND FRAMES PRODUCED *DURING* A RETIRE DRAIN -----------------------------------
+    // ---- OUT-OF-BAND FRAMES WAITING FOR EARLIER-ISSUED REPLIES ----------------------------------
     //
     // A retire callback calls back into the loop: cross-shard assembly (assemble_mget stages
     // [array header][borrow][...] into the segment queue and leaves the reply's TAIL in the Op),
@@ -109,20 +117,34 @@ public:
     // connection's newest reply is only PARTIALLY staged, so Client::append_oob's frame-boundary
     // argument does not hold and appending would splice the frame into the middle of it.
     //
-    // So a producer asks first. While the engine is inside this connection's drain the bytes park
-    // here and are flushed the instant the drain ends -- a frame boundary by construction, and the
-    // same relative position the old `op.reply` parking produced (behind every reply retired in
-    // this pass), so nothing that reads correctly today reorders.
+    // The same parking is also required before a drain when this connection's ROB is busy. Putting
+    // the frame straight into the segment queue is a safe frame boundary, but that queue precedes
+    // replies which have not retired yet: an SSUBSCRIBE delivery can then overtake its own ack.
+    // Each parked frame therefore records the current dispatch frontier and flushes only after a
+    // drain has staged replies through that frontier. Frames from different connections, and from
+    // different frontiers on one connection, cannot share the old single string.
     //
-    // ONE BUFFER IS ENOUGH, and that is a property of the architecture rather than luck: exactly
-    // one drain runs at a time on an io thread, every out-of-band producer has already hopped to
-    // the target's owning io thread, and frames for any OTHER connection are by definition not
-    // mid-frame and take the direct path. clear() keeps the capacity, so a connection that is fed
-    // continuously pays one grow and no steady-state allocation.
-    bool draining(const Client& c) const { return draining_ == &c; }
-    void defer_oob(const char* a, size_t an, const char* b = nullptr, size_t bn = 0) {
-        oob_defer_.append(a, an);
-        if (bn) oob_defer_.append(b, bn);
+    // A genuinely parked blocking command is the bounded exception. It is the sole ROB entry (the
+    // blocking dispatch is a whole-connection barrier), and while it remains Issued it has no reply
+    // bytes to preserve, so a push may take the segment route immediately instead of waiting behind
+    // a 30-second BLPOP. Once it is Done, its reply is in flight and ordinary deferral applies.
+    // Inside this connection's drain deferral is unconditional because reply staging may be partial.
+    bool defer_oob(Client& c, const char* a, size_t an,
+                   const char* b = nullptr, size_t bn = 0) {
+        if (draining_ != &c) {
+            Rob<kRobWindow>& rob = c.rob();
+            if (rob.quiesced()) return false;
+            if (c.blocked() &&
+                rob.at(rob.flush_id()).state.load(std::memory_order_acquire) != OpState::Done)
+                return false;
+        }
+        const uint64_t after = c.rob().dispatch_id();
+        DeferredOobQueue& queue = oob_defer_[&c];
+        if (queue.empty() || queue.back().after != after)
+            queue.push_back(DeferredOob{after, std::string{}});
+        queue.back().bytes.append(a, an);
+        if (bn) queue.back().bytes.append(b, bn);
+        return true;
     }
 
     // THE WHOLE REPLY SIDE, in one call, run by whichever stage owns sending for this client.
@@ -228,7 +250,7 @@ public:
         });
         draining_ = nullptr;
         bool did = retired != 0;
-        did |= flush_deferred_oob(conn);
+        did |= flush_deferred_oob(conn, c.rob().flush_id());
         if (limit_fn_ && limit_fn_(limit_ctx_, c)) {
             stats_.retired += retired;
             return true;
@@ -529,6 +551,7 @@ public:
     // A closed connection cannot send remaining segments. If a sendmsg is still in flight its
     // iovecs remain pinned until the CQE; otherwise every BORROW is returned immediately.
     void teardown(Client& c) {
+        oob_defer_.erase(&c);
         if (c.send_inflight()) return;
         c.release_all_segments([&](int32_t shard, const char* ptr) { release(shard, ptr); });
     }
@@ -596,14 +619,22 @@ public:
     }
 
 private:
-    // Empty on every serve of every connection that has no subscription, no tracking and no
-    // monitor -- one predicted-true test on a hot member, no branch taken. Runs at a frame
-    // boundary: the drain has finished staging, pump has not started.
-    bool flush_deferred_oob(Client& conn) {
+    // Empty on every serve of every connection that has no subscription, tracking or monitor:
+    // one predicted-true test per serve, as before. The drain has finished staging and published
+    // its new flush frontier, so every append below is on a frame boundary.
+    bool flush_deferred_oob(Client& conn, uint64_t retired_through) {
         if (__builtin_expect(oob_defer_.empty(), true)) return false;
-        conn.append_oob(oob_defer_.data(), oob_defer_.size());
-        oob_defer_.clear();
-        return true;
+        auto found = oob_defer_.find(&conn);
+        if (found == oob_defer_.end()) return false;
+        DeferredOobQueue& queue = found->second;
+        bool flushed = false;
+        while (!queue.empty() && queue.front().after <= retired_through) {
+            conn.append_oob(queue.front().bytes.data(), queue.front().bytes.size());
+            queue.pop_front();
+            flushed = true;
+        }
+        if (queue.empty()) oob_defer_.erase(found);
+        return flushed;
     }
 
     template <bool TrackOutput, bool TlsNoBorrow, bool kEp>
@@ -666,7 +697,7 @@ private:
         });
         draining_ = nullptr;
         bool did = retired != 0;
-        did |= flush_deferred_oob(conn);
+        did |= flush_deferred_oob(conn, c.rob().flush_id());
         if constexpr (TrackOutput) {
             if (limit_fn_ && limit_fn_(limit_ctx_, c)) {
                 stats_.retired += retired;
@@ -721,7 +752,7 @@ private:
         });
         draining_ = nullptr;
         bool did = retired != 0;
-        did |= flush_deferred_oob(conn);
+        did |= flush_deferred_oob(conn, c.rob().flush_id());
         if constexpr (TrackOutput) {
             if (limit_fn_ && limit_fn_(limit_ctx_, c)) {
                 stats_.retired += retired;
@@ -851,10 +882,10 @@ private:
     // Engine, for the cold non-templated entry points only. The hot send path never reads it.
     bool   epoll_ = false;
     bool   send_failed_ = false;
-    // The connection whose retire drain is running right now, or null. Out-of-band producers test
-    // it to decide whether they may append to that connection at all; see draining() above.
+    // The connection whose retire drain is running right now, or null. defer_oob() uses it to make
+    // parking unconditional across the partial-reply staging window.
     const Client* draining_ = nullptr;
-    std::string   oob_defer_;
+    std::unordered_map<Client*, DeferredOobQueue> oob_defer_;
     Stats  stats_;
 };
 

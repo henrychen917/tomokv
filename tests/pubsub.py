@@ -395,6 +395,7 @@ def main():
     churn_channel = f"{token}:churn"
     errors = []
     start = threading.Event()
+    churn_deferred_before = int(info_stats(admin)["oob_frames_deferred"])
 
     def publish_loop():
         conn = Conn(host, port)
@@ -431,6 +432,10 @@ def main():
         thread.join()
     if errors:
         raise errors[0]
+    churn_deferred_after = int(info_stats(admin)["oob_frames_deferred"])
+    if churn_deferred_after <= churn_deferred_before:
+        raise AssertionError(
+            "churn never parked a delivery behind an earlier SSUBSCRIBE ack: geometry missing")
 
     # ---- fanout redesign: batching, encode-once framing, ordering, mid-fanout teardown ----------
     # Every arm below asserts its mechanism FIRED, not merely that nothing broke: exact per-frame

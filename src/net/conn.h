@@ -419,21 +419,19 @@ public:
     //    append_fill while it is live overwrites the bytes a worker is formatting, can grow (free)
     //    the block underneath it, and leaves retire's commit_fill publishing the wrong offset.
     //
-    // Both are satisfied by one test: while ANYTHING is in flight, route through the SEGMENT queue,
-    // which owns its own block and never touches fill_buf. seal_fill_segment() first, because pump
-    // drains the whole segment queue strictly BEFORE it promotes the fill buffer -- so older staged
-    // bytes must move into the queue's tail or the frame would jump ahead of them. A quiesced
-    // connection with an empty queue (the idle subscriber, which is the hot pub/sub case) keeps the
-    // plain fill append and is unchanged.
+    // Both are satisfied by one test at the point the send engine releases a frame: while younger
+    // ops are still in flight, route through the SEGMENT queue, which owns its own block and never
+    // touches fill_buf. seal_fill_segment() first, because pump drains the whole segment queue
+    // strictly BEFORE it promotes the fill buffer -- so older staged bytes must move into the
+    // queue's tail or the frame would jump ahead of them. A quiesced connection with an empty queue
+    // (the idle subscriber, which is the hot pub/sub case) keeps the plain fill append unchanged.
     //
     // The op stream and this channel then interleave only at frame boundaries: retire stages each
     // op's bytes in one uninterrupted run, and a frame appended here sits entirely before the next
-    // one. Frames produced from INSIDE a retire drain are the exception and are parked by the send
-    // engine until the drain ends -- see WbEngine::draining().
-    // Returns TRUE when the frame had to take the segment channel -- that is, when ops were still
-    // in flight and this is the very geometry that used to splice the frame into a borrowed reply.
-    // The callers turn it into a proof-of-mechanism counter, because a battery that never observes
-    // this state never constructed the case it claims to be testing.
+    // one. WbEngine::defer_oob parks a newly produced frame until every earlier-issued reply has
+    // been staged; a parked blocking command is the deliberate latency-bounded exception.
+    // Returns TRUE when this append had to take the segment channel. The callers count only direct
+    // production-time appends here; frames parked by WbEngine have their own disjoint counter.
     bool append_oob(const char* a, size_t an, const char* b = nullptr, size_t bn = 0) {
         if (segments_.empty() && rob_.quiesced()) {
             append_fill(a, an);

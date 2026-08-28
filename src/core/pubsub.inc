@@ -224,12 +224,12 @@
         // `reply`, which is the reply's tail when it is copied and its HEAD when it is borrowed --
         // so a push landed between a bulk header and its zero-copy body. Client::append_oob picks
         // the output channel that can neither reorder the frame nor overwrite a live direct-reply
-        // region; a delivery raised from inside this connection's own retire drain (a self
-        // notification, an invalidation riding the same hook) parks on the send engine instead and
-        // goes out the moment that drain finishes staging.
-        if (__builtin_expect(wb_.draining(*client), false)) {
-            if (resp3) wb_.defer_oob(&kPush, 1, p + 1, n - 1);
-            else wb_.defer_oob(p, n);
+        // region. The send engine also parks a frame behind the dispatch frontier it observes, so
+        // a delivery cannot overtake an earlier-issued reply such as its own SSUBSCRIBE ack. A
+        // genuinely parked blocking head is the latency-bounded exception.
+        const bool deferred = resp3 ? wb_.defer_oob(*client, &kPush, 1, p + 1, n - 1)
+                                    : wb_.defer_oob(*client, p, n);
+        if (__builtin_expect(deferred, false)) {
             srv_->note_oob_frame_deferred();
         } else {
             const bool segmented = resp3 ? client->append_oob(&kPush, 1, p + 1, n - 1)

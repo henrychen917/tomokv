@@ -412,15 +412,14 @@ public:
     // PROOF-OF-MECHANISM for the out-of-band frame channel, and the reason it exists is the
     // vacuous-validation trap: the geometry that used to splice a push into a borrowed reply is
     // "an out-of-band frame arrives while ops are still in flight", and a battery that never
-    // reaches that state passes without testing anything. These two counters name the two hard
-    // states, so a check can assert the gate OPENED before it believes its own clean result.
+    // reaches that state passes without testing anything. These two counters name the two output
+    // routes, so a check can assert the gate OPENED before it believes its own clean result.
     //
-    //   segmented -- frame appended while the ROB was NOT quiesced, so it had to leave the fill
-    //                buffer and take the segment channel. This is the Done-but-unretired / Issued
-    //                geometry: exactly the cell that tore.
-    //   deferred  -- frame raised from INSIDE a retire drain (the notification and tracking hooks
-    //                fire there), parked by the send engine until the drain reached a frame
-    //                boundary. This is the cross-shard-MGET / self-invalidation geometry.
+    //   segmented -- frame took the segment channel immediately. The important busy-ROB case is a
+    //                genuinely parked blocking head, which must not hold a delivery for its whole
+    //                timeout; an already-existing segment queue can also select this route.
+    //   deferred  -- frame parked behind the replies of commands issued before it, including both
+    //                Done-but-unretired replies and the partial staging window inside a drain.
     void note_oob_frame_segmented() {
         oob_frames_segmented_.fetch_add(1, std::memory_order_relaxed);
     }

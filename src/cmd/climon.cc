@@ -314,11 +314,11 @@ bool IoLoop::climon_armed_gate(Client* client, Op& op) {
 // frame that must land on a frame boundary, never inside another reply's byte range. Client picks
 // the output channel (see Client::append_oob); a frame raised from inside this connection's own
 // retire drain -- which is where the tracking invalidation and MONITOR hooks fire, with the
-// connection's newest reply only partially staged -- parks on the send engine and is flushed the
-// instant that drain ends. Only the connection's own io thread ever runs this.
+// connection's newest reply only partially staged -- or behind an earlier-issued, unretired reply
+// parks on the send engine until a drain stages that frontier. Only the connection's own io thread
+// ever runs this.
 void IoLoop::climon_push_wire(Client* client, const std::string& frame) {
-    if (__builtin_expect(wb_.draining(*client), false)) {
-        wb_.defer_oob(frame.data(), frame.size());
+    if (__builtin_expect(wb_.defer_oob(*client, frame.data(), frame.size()), false)) {
         srv_->note_oob_frame_deferred();
     } else if (__builtin_expect(client->append_oob(frame.data(), frame.size()), false)) {
         srv_->note_oob_frame_segmented();
