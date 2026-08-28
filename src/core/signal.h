@@ -125,10 +125,6 @@ struct LoopSignals {
     uint64_t epoll_recvs = 0;           // recv syscalls that returned bytes
 
     // Derived, computed on read so the hot path never divides.
-    double utilisation() const {
-        const uint64_t t = busy_ns + idle_ns;
-        return t ? static_cast<double>(busy_ns) / static_cast<double>(t) : 0.0;
-    }
     double avg_depth() const {
         return depth_samples ? static_cast<double>(depth_sum) / static_cast<double>(depth_samples) : 0.0;
     }
