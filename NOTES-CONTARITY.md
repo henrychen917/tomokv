@@ -45,6 +45,12 @@ CREATECONSUMER, and DELCONSUMER all carry generated `first_key = 2`, so none can
 shard-0 pin. `XINFO` follows the same split: HELP is keyless and STREAM/GROUPS/CONSUMERS route by
 argv[2]. The registry continues to publish `-2` through the existing generated command metadata.
 
+The ordinary snapshot write gate historically captured `op.key()`, which is argv[1]. For the now
+keyless XGROUP HELP arm that is not a key, and for every keyed XGROUP arm the actual key remains
+argv[2]. Snapshot preparation therefore applies the container's declared key position when it is
+present and skips capture for a keyless child. Transaction snapshot preparation already walks the
+metadata-derived key argument list and needs no corresponding change.
+
 The stream handlers keep their option-grammar checks, but their coarse private arity tables are
 replaced by the shared generated-data validation. Exact Redis 7.4.2 HELP arrays are emitted before
 any key access.
