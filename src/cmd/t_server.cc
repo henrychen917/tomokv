@@ -1621,6 +1621,8 @@ void cmd_info(Shard&, Op& op) {
                       "script_group_aborts_oom:%llu\r\n"
                       "script_keys_armed:%llu\r\nscript_keys_released:%llu\r\n"
                       "script_intents_live:%llu\r\nscript_write_tickets_forced:%llu\r\n"
+                      "sort_deref_lookups:%llu\r\nsort_deref_refusals:%llu\r\n"
+                      "sort_scatter_general:%llu\r\nsort_deref_escapes:%llu\r\n"
                       "pubsub_channels:%llu\r\npubsub_subscriptions:%llu\r\n"
                       "pubsubshard_channels:%llu\r\npubsubshard_subscriptions:%llu\r\n"
                       "pubsub_patterns:%llu\r\npubsub_home_entries:%llu\r\n"
@@ -1715,6 +1717,10 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(g_server ? g_server->script_intents_live() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->script_write_tickets_forced() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->sort_deref_lookups() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->sort_deref_refusals() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->sort_scatter_general() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->sort_deref_escapes() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_active_channels() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_subscriptions() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_shard_channels() : 0),

@@ -1785,4 +1785,14 @@ CommandTable hash_command_table() {
     return {kTable, sizeof(kTable) / sizeof(kTable[0])};
 }
 
+// SORT's `BY h_*->f` / `GET h_*->f` read a field on a key the command was NOT routed on, so it may
+// not go through hash_lookup(): that path reaps lapsed fields and, when the last one goes, erases
+// and records the deletion under op.key() -- which here names the sorted key, not the hash. This
+// is the same field read HGET performs with every write-side effect removed; the caller filters
+// lapsed fields with hash_ttl_field_lapsed() instead of reaping them.
+bool hash_field_value_ro(const KvObj* object, Slice field, Slice& value) {
+    if (!object || !object->is_type(Type::Hash)) return false;
+    return hash_get(CollectionRef(const_cast<KvObj*>(object)), field, value);
+}
+
 }  // namespace tomo

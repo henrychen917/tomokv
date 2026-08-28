@@ -230,7 +230,14 @@ bool parse_zrangestore_options(Op& op, ImageRangeOptions& options) {
     return true;
 }
 
-bool parse_sort_options(Op& op, SortOptions& options) {
+// `admit` is non-null only where the reply is authoritative (xshard_prepare, once per command).
+// The other call sites -- routing's key walk and the snapshot-write gate -- re-parse the same argv
+// purely to find the STORE destination and must not decide policy or write a reply twice.
+//
+// PRECEDENCE.  The single-owner refusal fires the instant the offending option is PARSED, which is
+// where the reference's cluster-mode refusal fires too: `SORT k BY w_* NONSENSE` is a BY refusal
+// and `SORT k NONSENSE BY w_*` is a syntax error, in both servers.
+bool parse_sort_options(Op& op, SortOptions& options, Server* admit) {
     for (uint32_t i = 2; i < op.argc(); i++) {
         if (op.arg(i).eq_icase("alpha")) {
             options.alpha = true;
@@ -245,6 +252,41 @@ bool parse_sort_options(Op& op, SortOptions& options) {
                 return false;
             }
             i += 2;
+        } else if (op.arg(i).eq_icase("by") && i + 1 < op.argc()) {
+            options.by_arg = ++i;
+            // A BY pattern with no '*' dereferences nothing -- it only suppresses ordering -- so it
+            // is admitted in every configuration.
+            if (std::memchr(op.arg(options.by_arg).p, '*', op.arg(options.by_arg).n)) {
+                options.deref = true;
+                if (admit && !sort_deref_local(*admit)) {
+                    admit->note_sort_deref_refusal();
+                    reply_err(op.sink(), kSortByDenied);
+                    return false;
+                }
+            }
+        } else if (op.arg(i).eq_icase("get") && i + 1 < op.argc()) {
+            const uint32_t arg = ++i;
+            // `#` is the element itself and a pattern with no '*' is a constant nil, so neither
+            // reads a key.  Only a '*'-bearing pattern needs the admission rule -- the reference's
+            // cluster check is coarser here and refuses every GET that is not `#`; matching the
+            // standalone reply byte-for-byte is worth the deliberate divergence.
+            const Slice pattern = op.arg(arg);
+            const bool reads_a_key = !(pattern.n == 1 && pattern.p[0] == '#') &&
+                                     std::memchr(pattern.p, '*', pattern.n) != nullptr;
+            if (reads_a_key) {
+                options.deref = true;
+                if (admit && !sort_deref_local(*admit)) {
+                    admit->note_sort_deref_refusal();
+                    reply_err(op.sink(), kSortGetDenied);
+                    return false;
+                }
+            }
+            try {
+                options.get_args.push_back(arg);
+            } catch (const std::bad_alloc&) {
+                set_oom(op);
+                return false;
+            }
         } else if (op.arg(i).eq_icase("store") && i + 1 < op.argc()) {
             // SORT_RO is the read-only alias: it shares every option EXCEPT STORE, which would
             // make it a write. Redis reports the rejection as a plain syntax error.
@@ -252,7 +294,6 @@ bool parse_sort_options(Op& op, SortOptions& options) {
             options.store = true;
             options.store_arg = ++i;
         } else {
-            // BY/GET patterns are deliberately outside this command slice and are syntax errors.
             reply_syntax(op.sink());
             return false;
         }
@@ -388,7 +429,7 @@ int binary_compare(Slice a, Slice b) {
 }
 
 
-// The cross-shard twin of parse_score_range in t_zset.cc: a BOUND, so the bare-strtod grammar.
+
 bool parse_image_score_range(Slice min, Slice max, ImageScoreRange& range) {
     if (min.n && min.p[0] == '(') { range.min_exclusive = true; min.p++; min.n--; }
     if (max.n && max.p[0] == '(') { range.max_exclusive = true; max.p++; max.n--; }
@@ -614,71 +655,91 @@ bool select_zrange(const std::vector<ZImageItem>& input, const ImageRangeOptions
     return true;
 }
 
-// Numeric SORT is the bare strtod again, but with sortCommand's extra ERANGE test, so "" sorts as
-// zero and " 5" as five while a subnormal is refused. See src/base/numeric.h.
-bool sort_number(const std::string& text, double& number) {
-    return parse_double_sortable(Slice(text.data(), static_cast<uint32_t>(text.size())), number);
-}
-
-WorkError sort_image(const ObjectImage& image, const SortOptions& options,
-                     std::vector<std::string>& output, bool& conversion_error) {
+// ONE ordering implementation for every SORT form: `sort_run` in src/cmd/t_sort.cc. This wrapper
+// only turns the source's snapshot image into the natural-order element list -- list insertion
+// order, set iteration order, sorted-set score order -- and translates the status.
+//
+// `owner` is null on the cross-shard completion path, which never dereferences: a SORT that names
+// BY/GET patterns is computed inside its phase-one owner task, where a Shard is in hand.
+WorkError sort_image(const ObjectImage& image, const Op& op, const SortOptions& options,
+                     Shard* owner, bool notify, uint64_t read_snapshot, uint64_t origin_conn_id,
+                     std::vector<std::string>& values, std::vector<uint8_t>& present,
+                     bool& conversion_error) {
     conversion_error = false;
-    output.clear();
+    values.clear();
+    present.clear();
     if (!image.present) return WorkError::None;
     if (image.type != Type::List && image.type != Type::Set && image.type != Type::Zset)
         return WorkError::WrongType;
+    std::vector<std::string> elements;
     try {
         if (image.type == Type::Zset) {
             std::vector<ZImageItem> zitems;
             if (!decode_zset_image(image, zitems)) return WorkError::Corrupt;
-            output.reserve(zitems.size());
-            for (ZImageItem& item : zitems) output.push_back(std::move(item.member));
-        } else if (!decode_elements(image, output)) {
+            elements.reserve(zitems.size());
+            for (ZImageItem& item : zitems) elements.push_back(std::move(item.member));
+        } else if (!decode_elements(image, elements)) {
             return WorkError::Corrupt;
         }
-
-        struct SortItem {
-            std::string value;
-            double score = 0;
-        };
-        std::vector<SortItem> items;
-        items.reserve(output.size());
-        for (std::string& value : output) {
-            SortItem item{std::move(value), 0};
-            if (!options.alpha && !sort_number(item.value, item.score)) conversion_error = true;
-            items.push_back(std::move(item));
+        SortSpec spec;
+        spec.alpha = options.alpha;
+        spec.descending = options.descending;
+        spec.store = options.store;
+        spec.offset = options.offset;
+        spec.count = options.count;
+        spec.source_is_set = image.type == Type::Set;
+        spec.source_is_list = image.type == Type::List;
+        spec.read_snapshot = read_snapshot;
+        spec.origin_conn_id = origin_conn_id;
+        spec.by_given = options.by_arg != 0;
+        if (spec.by_given) {
+            sort_pattern_parse(op.arg(options.by_arg), spec.by);
+            spec.dontsort = !spec.by.has_star;
         }
-        output.clear();
-        if (conversion_error) return WorkError::None;
-
-        auto compare = [&](const SortItem& a, const SortItem& b) {
-            int cmp = 0;
-            if (!options.alpha) {
-                if (a.score < b.score) cmp = -1;
-                else if (a.score > b.score) cmp = 1;
-                else cmp = binary_compare(
-                    Slice(a.value.data(), static_cast<uint32_t>(a.value.size())),
-                    Slice(b.value.data(), static_cast<uint32_t>(b.value.size())));
-            } else if (options.store) {
-                cmp = binary_compare(Slice(a.value.data(), static_cast<uint32_t>(a.value.size())),
-                                     Slice(b.value.data(), static_cast<uint32_t>(b.value.size())));
-            } else {
-                cmp = std::strcoll(a.value.c_str(), b.value.c_str());
-            }
-            return options.descending ? cmp > 0 : cmp < 0;
-        };
-        std::sort(items.begin(), items.end(), compare);
-
-        const int64_t size = static_cast<int64_t>(items.size());
-        const int64_t start = std::min<int64_t>(std::max<int64_t>(options.offset, 0), size);
-        const int64_t wanted = std::min<int64_t>(std::max<int64_t>(options.count, -1), size);
-        const int64_t end = wanted < 0 ? size : std::min<int64_t>(size, start + wanted);
-        output.reserve(static_cast<size_t>(std::max<int64_t>(end - start, 0)));
-        for (int64_t i = start; i < end; i++) output.push_back(std::move(items[i].value));
+        spec.gets.reserve(options.get_args.size());
+        for (uint32_t arg : options.get_args) {
+            SortPattern pattern;
+            sort_pattern_parse(op.arg(arg), pattern);
+            spec.gets.push_back(pattern);
+        }
+        switch (sort_run(owner, notify, spec, elements, values, present)) {
+            case SortStatus::Ok: return WorkError::None;
+            case SortStatus::ConversionError:
+                conversion_error = true;
+                values.clear();
+                present.clear();
+                return WorkError::None;
+            case SortStatus::Oom: return WorkError::Oom;
+        }
         return WorkError::None;
     } catch (const std::bad_alloc&) {
-        output.clear();
+        values.clear();
+        present.clear();
         return WorkError::Oom;
+    }
+}
+
+// A stored SORT result is always a list of plain strings: an absent GET becomes an empty element,
+// which is what the reference stores too.
+bool sort_encode_store(const std::vector<std::string>& values,
+                       const std::vector<uint8_t>& present, ObjectImage& image) {
+    std::vector<std::string> flat;
+    try {
+        flat.reserve(values.size());
+        for (size_t i = 0; i < values.size(); i++)
+            flat.push_back(i < present.size() && !present[i] ? std::string() : values[i]);
+    } catch (const std::bad_alloc&) {
+        return false;
+    }
+    return encode_elements(flat, image, Type::List, -1);
+}
+
+void sort_reply_rows(Op& op, const std::vector<std::string>& values,
+                     const std::vector<uint8_t>& present) {
+    reply_array_header(op.sink(), values.size());
+    for (size_t i = 0; i < values.size(); i++) {
+        if (i < present.size() && !present[i]) { reply_null(op.sink(), op.resp3()); continue; }
+        reply_bulk(op.sink(), Slice(values[i].data(), static_cast<uint32_t>(values[i].size())));
     }
 }
 
@@ -1355,42 +1416,47 @@ bool finish_phase1(ScatterState& state, Op& op) {
             return false;
         }
         case Kind::Sort: {
-            std::vector<std::string> output;
-            bool conversion_error = false;
-            // Non-store SORT has ONE key at index 0; only the STORE form puts the destination at
-            // 0 and the source at 1. This arm historically ran only for STORE (localfast covered
-            // every single-key group), so the store-shaped indexing and the unconditional hop-2
-            // below sat unexercised until atomic tracking started routing same-owner groups here.
-            const ObjectImage& source = state.images[state.sort_options.store ? 1 : 0];
-            const WorkError error = sort_image(source, state.sort_options,
-                                               output, conversion_error);
-            if (error != WorkError::None) {
+            ResultHeap* result = ensure_result(state);
+            if (!result) {
                 state.final_reply = FinalReply::Work;
-                state.final_error = error;
+                state.final_error = WorkError::Oom;
                 return true;
+            }
+            bool conversion_error = state.sort_conversion_error;
+            if (!state.sort_general_done) {
+                // Non-store SORT has ONE key at index 0; only the STORE form puts the destination
+                // at 0 and the source at 1. This arm historically ran only for STORE (localfast
+                // covered every single-key group), so the store-shaped indexing and the
+                // unconditional hop-2 below sat unexercised until atomic tracking started routing
+                // same-owner groups here.
+                //
+                // A BY/GET form never lands here: it was computed inside the phase-one owner task,
+                // which is the only place a Shard -- and therefore a legal dereference -- exists.
+                const ObjectImage& source = state.images[state.sort_options.store ? 1 : 0];
+                const WorkError error = sort_image(source, op, state.sort_options, nullptr, false,
+                                                   UINT64_MAX, 0, result->members,
+                                                   result->present, conversion_error);
+                if (error != WorkError::None) {
+                    state.final_reply = FinalReply::Work;
+                    state.final_error = error;
+                    return true;
+                }
             }
             if (conversion_error) {
                 state.final_reply = FinalReply::SortConversion;
                 return true;
             }
             if (!state.sort_options.store) {
-                ResultHeap* result = ensure_result(state);
-                if (!result) {
-                    state.final_reply = FinalReply::Work;
-                    state.final_error = WorkError::Oom;
-                    return true;
-                }
-                result->members = std::move(output);
                 state.final_reply = FinalReply::Array;
                 return true;
             }
-            if (output.empty()) state.apply[0] = ObjectImage{};
-            else if (!encode_elements(output, state.apply[0], Type::List, -1)) {
+            if (result->members.empty()) state.apply[0] = ObjectImage{};
+            else if (!sort_encode_store(result->members, result->present, state.apply[0])) {
                 state.final_reply = FinalReply::Work;
                 state.final_error = WorkError::Oom;
                 return true;
             }
-            state.final_integer = static_cast<long long>(output.size());
+            state.final_integer = static_cast<long long>(result->members.size());
             state.hop2[0] = 0;
             state.hop2_count = 1;
             return false;
@@ -1586,6 +1652,11 @@ void assemble_final(Client& client, Op& op, ScatterState& state, void* release_c
                                             static_cast<uint32_t>(state.result->bulk.size())));
                 break;
             case FinalReply::Array:
+                // SORT's GET projection is the one Array result whose rows can be RESP nulls.
+                if (state.kind == Kind::Sort) {
+                    sort_reply_rows(op, state.result->members, state.result->present);
+                    break;
+                }
                 if (is_plain_setop(state.kind))
                     reply_set_header(op.sink(), state.result->members.size(), op.resp3());
                 else if (is_plain_zsetop(state.kind))
@@ -1901,7 +1972,7 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
     }
     if (kind == Kind::Sort) {
         SortOptions options;
-        if (!parse_sort_options(op, options)) return;
+        if (!parse_sort_options(op, options, nullptr)) return;
         ObjectImage source;
         const uint64_t source_hash = FlatStore::hash_key(op.arg(1));
         // Before the pointer is taken: promoting replaces an embedded zset object.
@@ -1914,22 +1985,33 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
             return;
         }
         if (object && !serialize_object(object, source)) { set_oom(op); return; }
-        std::vector<std::string> output;
+        std::vector<std::string> values;
+        std::vector<uint8_t> present;
         bool conversion_error = false;
-        const WorkError sorted = sort_image(source, options, output, conversion_error);
+        // The dereference runs HERE, on the owning executor, and only after xshard_prepare has
+        // admitted it -- see t_sort.h for why that admission exists.
+        // READ CONTEXT FOR THE DEREFERENCE. Outside a transaction a dereferencing SORT never
+        // reaches this arm -- xshard_prepare keeps it off localfast precisely so it arrives with
+        // the cross-shard context. Inside EXEC it does: MULTI classifies a one-key command as
+        // Local from the registry key range and never consults xshard_prepare. execute_local_command
+        // has already bound this shard to the transaction's cut and originating connection, so
+        // inherit exactly that: re-deriving it would answer from before the transaction's own
+        // uncommitted writes, and the weights would read as absent.
+        const WorkError sorted = sort_image(source, op, options, &shard, kNotify,
+                                            shard.store().atomic_read_epoch(),
+                                            shard.store().atomic_read_origin_conn_id(),
+                                            values, present, conversion_error);
         if (sorted != WorkError::None) { reply_work_error(op, sorted); return; }
         if (conversion_error) {
             reply_err(op.sink(), "ERR One or more scores can't be converted into double");
             return;
         }
         if (!options.store) {
-            reply_array_header(op.sink(), output.size());
-            for (const std::string& value : output)
-                reply_bulk(op.sink(), Slice(value.data(), static_cast<uint32_t>(value.size())));
+            sort_reply_rows(op, values, present);
             return;
         }
         ObjectImage destination;
-        if (!output.empty() && !encode_elements(output, destination, Type::List, -1)) {
+        if (!values.empty() && !sort_encode_store(values, present, destination)) {
             set_oom(op);
             return;
         }
@@ -1939,9 +2021,9 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         if (stored != WorkError::None) reply_work_error(op, stored);
         else {
             if constexpr (kNotify)
-                notify_record(shard, op, output.empty() ? NOTIFY_GENERIC : NOTIFY_LIST,
-                              output.empty() ? NotifyEventId::Del : NotifyEventId::Sortstore, key);
-            reply_int(op.sink(), static_cast<long long>(output.size()));
+                notify_record(shard, op, values.empty() ? NOTIFY_GENERIC : NOTIFY_LIST,
+                              values.empty() ? NotifyEventId::Del : NotifyEventId::Sortstore, key);
+            reply_int(op.sink(), static_cast<long long>(values.size()));
         }
         return;
     }

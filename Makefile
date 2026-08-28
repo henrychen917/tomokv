@@ -26,6 +26,7 @@ SRC      += src/cmd/lbsignals.cc
 SRC      += src/cmd/cmdgap.cc
 SRC      += src/cmd/pfdebug.cc
 SRC      += src/cmd/cmdmeta.cc
+SRC      += src/cmd/t_sort.cc
 LDLIBS   += -lssl -lcrypto
 BIN      := build/tomokv
 OBJ      := $(SRC:%.cc=build/%.o)
@@ -49,6 +50,16 @@ asan: BIN := build/tomokv-asan
 asan:
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -I. $(SRC) -o build/tomokv-asan $(LDLIBS) -lm
+
+# NEGATIVE-CONTROL BUILD for SORT's BY/GET read context. Identical to the release build except that
+# a dereferencing SORT keeps the same-owner fast path and never carries the command's read cut and
+# originating connection onto a derived key's shard -- the defect the differ found. tests/sort.py's
+# read-your-own-writes phase MUST fail against this binary; a detector that cannot report failure
+# proves nothing about the runs that pass.
+sortnoctx:
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SORT_NO_READCTX -I. $(SRC) \
+	  -o build/tomokv-sortnoctx $(JELIBS) $(LDLIBS) -lm
 
 tsan:
 	@mkdir -p build

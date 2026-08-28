@@ -757,6 +757,23 @@ public:
     }
     void note_script_retry() { script_group_occ_retries_.fetch_add(1, std::memory_order_relaxed); }
     void note_script_giveup() { script_group_occ_giveups_.fetch_add(1, std::memory_order_relaxed); }
+    // THE TWO COUNTERS THAT MAKE SORT's BY/GET DEREFERENCE FALSIFIABLE.  A battery that only
+    // compares replies cannot tell a dereference that RAN from one whose patterns happened to
+    // resolve to nothing, and cannot tell a refusal that FIRED from a command that failed earlier
+    // for an unrelated reason.  lookups counts one per derived key actually read; refusals counts
+    // one per BY/GET rejected by the single-owner admission rule.  Each is the other's control.
+    void note_sort_deref_lookup() { sort_deref_lookups_.fetch_add(1, std::memory_order_relaxed); }
+    void note_sort_deref_refusal() { sort_deref_refusals_.fetch_add(1, std::memory_order_relaxed); }
+    // One per BY/GET SORT finished inside a phase-one owner task, i.e. one per general SORT that
+    // took the cross-shard engine rather than localfast. Without it a green battery cannot tell
+    // which of the two arms it actually exercised.
+    void note_sort_scatter_general() {
+        sort_scatter_general_.fetch_add(1, std::memory_order_relaxed);
+    }
+    // MUST STAY ZERO. One per dereference that would have read a shard this executor does not own
+    // -- structurally unreachable, because the parse-time admission rule refuses those patterns.
+    // A non-zero reading means the admission rule and the executor map disagree.
+    void note_sort_deref_escape() { sort_deref_escapes_.fetch_add(1, std::memory_order_relaxed); }
     void note_script_window_refusal() {
         script_crossshard_window_refusals_.fetch_add(1, std::memory_order_relaxed);
     }
@@ -801,6 +818,10 @@ public:
         return script_crossshard_window_refusals_.load();
     }
     uint64_t script_group_aborts_oom() const { return script_group_aborts_oom_.load(); }
+    uint64_t sort_deref_lookups() const { return sort_deref_lookups_.load(); }
+    uint64_t sort_deref_refusals() const { return sort_deref_refusals_.load(); }
+    uint64_t sort_scatter_general() const { return sort_scatter_general_.load(); }
+    uint64_t sort_deref_escapes() const { return sort_deref_escapes_.load(); }
     bool script_intents_active() const {
         return script_intent_owners_.load(std::memory_order_acquire) != 0;
     }
@@ -1441,6 +1462,10 @@ private:
     std::atomic<uint64_t> script_group_occ_giveups_{0};
     std::atomic<uint64_t> script_staged_bytes_total_{0};
     std::atomic<uint64_t> script_crossshard_window_refusals_{0};
+    std::atomic<uint64_t> sort_deref_lookups_{0};
+    std::atomic<uint64_t> sort_deref_refusals_{0};
+    std::atomic<uint64_t> sort_scatter_general_{0};
+    std::atomic<uint64_t> sort_deref_escapes_{0};
     std::atomic<uint64_t> script_group_aborts_oom_{0};
     std::atomic<uint64_t> script_keys_armed_{0};
     std::atomic<uint64_t> script_keys_released_{0};

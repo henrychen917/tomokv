@@ -99,6 +99,9 @@ struct ResultHeap {
     std::string bulk;
     std::vector<std::string> members;
     std::vector<double> scores;
+    // SORT's GET projection: one flag per row in `members`, 0 = the pattern resolved to nothing and
+    // the row is a RESP null (an empty element under STORE). Empty for every other command.
+    std::vector<uint8_t> present;
     // LCS's answer. The heap sidecar already exists for computed results, and growing it costs
     // the arena nothing -- it is allocated only by commands that reach ensure_result().
     LcsResult lcs;
@@ -129,6 +132,18 @@ struct SortOptions {
     uint32_t store_arg = 0;
     int64_t offset = 0;
     int64_t count = -1;
+    // BY/GET dereference (src/cmd/t_sort.cc).  by_arg == 0 means no BY was given; get_args holds
+    // the argv index of each GET pattern in order.  Both stay empty for every SORT that does not
+    // use them, so the ordinary form allocates nothing extra.
+    uint32_t by_arg = 0;
+    std::vector<uint32_t> get_args;
+    // True once a pattern will actually READ a derived key: a '*'-bearing BY, or a GET that is
+    // neither `#` nor globless. Only these forms need the cross-shard engine's read context, and
+    // only these are subject to the single-owner admission rule.
+    bool deref = false;
+    // True once the command needs the general path: any BY (including a `BY nosort`, which
+    // suppresses ordering) or any GET (including `GET #`, which changes the reply shape).
+    bool general() const { return by_arg != 0 || !get_args.empty(); }
 };
 
 struct ImageScoreRange {
@@ -364,6 +379,11 @@ struct ScatterState : SnapshotCut {
     bool atomic_group = false;
     bool atomic_direct = false;
     bool pop_missed = false;
+    // SORT's BY/GET form is computed inside its phase-one owner task -- the only context that holds
+    // a Shard, and therefore the only one that may legally dereference. These two say the result is
+    // already in state.result and must not be recomputed at completion.
+    bool sort_general_done = false;
+    bool sort_conversion_error = false;
     bool admitted = false;
     // True between admission and the moment this group's records are installed on every owner.
     // See Server::atomic_apply_inflight() for why the snapshot cut waits on this and not on the
@@ -517,7 +537,15 @@ bool parse_i64(Slice s, int64_t& out);
 bool parse_mpop(Op& op, Kind kind, uint32_t& numkeys, bool& edge, uint64_t& count);
 bool parse_zrangestore_options(Op& op, ImageRangeOptions& options);
 bool parse_zrangestore_range(Op& op, const ImageRangeOptions& options, ImageRangeSpec& range);
-bool parse_sort_options(Op& op, SortOptions& options);
+bool parse_sort_options(Op& op, SortOptions& options, Server* admit);
+WorkError sort_image(const ObjectImage& image, const Op& op, const SortOptions& options,
+                     Shard* owner, bool notify, uint64_t read_snapshot, uint64_t origin_conn_id,
+                     std::vector<std::string>& values, std::vector<uint8_t>& present,
+                     bool& conversion_error);
+bool sort_encode_store(const std::vector<std::string>& values,
+                       const std::vector<uint8_t>& present, ObjectImage& image);
+void sort_reply_rows(Op& op, const std::vector<std::string>& values,
+                     const std::vector<uint8_t>& present);
 bool parse_zset_operation(Op& op, Kind kind, uint32_t& count,
                           std::vector<double>& weights, ZAggregate& aggregate,
                           bool& withscores, uint64_t& limit);
@@ -1124,7 +1152,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         return ScatterPrepare::Error;
 
     SortOptions sort_options;
-    if (kind == Kind::Sort && !parse_sort_options(op, sort_options))
+    if (kind == Kind::Sort && !parse_sort_options(op, sort_options, &server))
         return ScatterPrepare::Error;
     StreamXreadArgs xread_options;
     if (kind == Kind::Xread && !stream_parse_xread(op, xread_options))
@@ -1209,7 +1237,19 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         // keys, the owner resolves it through the short pending-entry list and clones only writes.
         const bool xread_kind = kind == Kind::Xread || kind == Kind::Xreadgroup;
         const bool xread_local = xread_kind && key_count == 1 && !xread_options.block;
-        if (same_owner && !force_atomic && kind != Kind::Pfcount && kind != Kind::Pfmerge &&
+        // A SORT that dereferences BY/GET patterns must NOT take localfast. Its derived keys are
+        // read on shards the routed group never named, and the read cut and originating connection
+        // are per-store: only the scatter path carries both (state.snapshot / state.origin_conn_id)
+        // to bind on those shards. Without them a weight key written by this very connection reads
+        // as absent -- which is what the differ caught, on whichever boot placed the weight keys
+        // off the source's shard.
+#ifdef TOMO_SORT_NO_READCTX
+        const bool sort_deref_group = false;   // negative-control build; see the `sortnoctx` target
+#else
+        const bool sort_deref_group = kind == Kind::Sort && sort_options.deref;
+#endif
+        if (same_owner && !force_atomic && !sort_deref_group &&
+            kind != Kind::Pfcount && kind != Kind::Pfmerge &&
             (!(op.spec->flags & CmdFlags::Blocking) || xread_local) &&
             (!xread_kind || xread_local)) {
             op.shard = routes[0].shard;
@@ -1644,7 +1684,8 @@ void xshard_aof_emit_local(Shard& shard, Op& op, AofOwnerContext& context) {
         }
         case Kind::Sort: {
             SortOptions options;
-            if (parse_sort_options(op, options) && options.store) emit(options.store_arg);
+            if (parse_sort_options(op, options, nullptr) && options.store)
+                emit(options.store_arg);
             break;
         }
         case Kind::Geosearchstore:
@@ -2590,13 +2631,55 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     // allowed to mutate it, and BEFORE find_value so the image is taken from the
                     // promoted object: the source sits at key 1 when STORE moved the destination
                     // into key 0, and at key 0 otherwise.
-                    if (state.kind == Kind::Sort && pos == (state.sort_options.store ? 1u : 0u))
+                    const bool sort_source =
+                        state.kind == Kind::Sort && pos == (state.sort_options.store ? 1u : 0u);
+                    if (sort_source)
                         zset_sort_promote(shard, key.hash, op.arg(key.arg), notify);
+                    // A dereferencing SORT reads keys nothing else in this command named, so the
+                    // surrounding machinery has bound no read context for them -- and inside a
+                    // transaction it has not necessarily bound one for the SOURCE either, because
+                    // this shard need not be a participant of any earlier command. Bind the
+                    // command's own context around the whole computation and put back what was
+                    // there; sort_lookup() does the same for each derived key's store.
+                    const bool sort_deref = sort_source && state.sort_options.deref;
+                    const uint64_t saved_epoch = shard.store().atomic_read_epoch();
+                    const uint64_t saved_conn = shard.store().atomic_read_origin_conn_id();
+                    if (sort_deref)
+                        shard.store().atomic_set_read_context(
+                            read_latest ? UINT64_MAX : read_snapshot, state.origin_conn_id);
+                    struct SortCtxRestore {
+                        FlatStore* store; uint64_t epoch; uint64_t conn;
+                        ~SortCtxRestore() { if (store) store->atomic_set_read_context(epoch, conn); }
+                    } sort_ctx{sort_deref ? &shard.store() : nullptr, saved_epoch, saved_conn};
                     KvObj* object = find_value(key.hash, op.arg(key.arg));
                     if (!serialize_object(object, state.images[pos])) {
                         state.status[pos] = static_cast<uint8_t>(WorkError::Oom);
                         break;
                     }
+                    // A BY/GET SORT is finished HERE rather than at completion: this is the source
+                    // key's owner, the one context in which reading a derived key is legal (see
+                    // t_sort.h). Completion consumes the rows and, for STORE, still routes hop two
+                    // to the destination's owner.
+                    if (!sort_source || !state.sort_options.general()) continue;
+                    ResultHeap* result = ensure_result(state);
+                    if (!result) {
+                        state.status[pos] = static_cast<uint8_t>(WorkError::Oom);
+                        break;
+                    }
+                    bool conversion_error = false;
+                    // Same cut and same originating connection the ReadEpochGuard above bound on
+                    // THIS shard, carried down so the derived keys' shards resolve identically.
+                    const WorkError sorted = sort_image(
+                        state.images[pos], op, state.sort_options, &shard, notify,
+                        read_latest ? UINT64_MAX : read_snapshot, state.origin_conn_id,
+                        result->members, result->present, conversion_error);
+                    if (sorted != WorkError::None) {
+                        state.status[pos] = static_cast<uint8_t>(sorted);
+                        break;
+                    }
+                    state.sort_conversion_error = conversion_error;
+                    state.sort_general_done = true;
+                    state.server->note_sort_scatter_general();
                 }
                 return ScatterTaskResult::Complete;
         }
