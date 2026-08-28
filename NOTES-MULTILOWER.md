@@ -5,8 +5,9 @@
 - The failing shape is a two-key write whose keys resolve to different shard owners.  The fix must
   stay inside the existing MULTI + scatter lowering: phase-one reads and phase-two installs execute
   only on each key's owner.
-- The transaction's MVCC epoch, abort decision, and `now_cut_ms` expiry cut remain transaction-wide.
-  Runtime command outcomes must not be confused with the transaction abort word.
+- The transaction's MVCC commit ticket, parent abort decision, and `now_cut_ms` expiry cut remain
+  transaction-wide.  A child-local abort is only a private cancellation for that command's MVCC
+  candidates; runtime command outcomes must not be confused with the parent transaction abort word.
 - Validation has to use `--shards 16 --ratio 6:2` in both atomic modes and discover, with
   `DEBUG SHARD`, rather than assume, a pair of names with different owners.  Failure to discover a
   pair is a test failure.
