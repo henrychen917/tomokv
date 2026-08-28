@@ -195,11 +195,10 @@ bool acl_apply_command_rule(AclSelector& perm, Slice rule, std::string& error,
     return true;
 }
 
-bool acl_add_unique(std::vector<std::string>& patterns, Slice value) {
+void acl_add_unique(std::vector<std::string>& patterns, Slice value) {
     for (const std::string& old : patterns)
-        if (old.size() == value.n && !std::memcmp(old.data(), value.p, value.n)) return true;
+        if (old.size() == value.n && !std::memcmp(old.data(), value.p, value.n)) return;
     patterns.emplace_back(value.p, value.n);
-    return true;
 }
 
 bool acl_valid_username(Slice name) {
