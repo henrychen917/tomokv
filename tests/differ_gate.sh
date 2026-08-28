@@ -143,19 +143,16 @@ if [ ! -x "$REDIS_CLI" ]; then
   exit 2
 fi
 
-GENERATORS=$(python3 tests/differ.py --list-generators) || {
-  echo "failed to discover differ generators" >&2
+DISCOVERED_SUITES=$(python3 tests/differ.py --list-generators) || {
+  echo "failed to discover differ suites" >&2
   exit 2
 }
-readarray -t SUITES <<<"$GENERATORS"
+readarray -t SUITES <<<"$DISCOVERED_SUITES"
 if [ "${#SUITES[@]}" -eq 0 ]; then
-  echo "differ generator discovery returned no suites" >&2
+  echo "differ suite discovery returned no suites" >&2
   exit 2
 fi
-GENERATOR_COUNT=${#SUITES[@]}
-SUITES+=(wiredump climon)
-printf 'DIFFER suites (%d generators + 2 special): %s\n' \
-    "$GENERATOR_COUNT" "${SUITES[*]}"
+printf 'DIFFER suites (%d): %s\n' "${#SUITES[@]}" "${SUITES[*]}"
 printf 'DIFFER matrix: atomic={0,1} seeds={%s,%s} legs=%d logs=%s\n' \
     "${SEEDS[0]}" "${SEEDS[1]}" "$((2 * ${#SEEDS[@]} * ${#SUITES[@]}))" "$OUT"
 

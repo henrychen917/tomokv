@@ -6,9 +6,9 @@
 ## Scope and switch
 
 `--zc-min N` enables borrowed GET replies for string values whose length is at least `N` bytes.
-`0` is the default and disables the feature. `16384` is the suggested starting point when enabling
-it. The disabled GET path is one cold `zc_min != 0` branch. Integer-encoded values and values below
-the gate use the original contiguous reply path.
+`16384` is the default. `0` disables the feature. The disabled GET path is one cold
+`zc_min != 0` branch. Integer-encoded values and values below the gate use the original contiguous
+reply path.
 
 "Zero-copy" here means no application-level copy of the value bytes. The executor formats only the
 RESP bulk header, and the io thread gives `sendmsg` an iovec pointing directly at FlatStore value
@@ -129,11 +129,11 @@ so a borrow popped by completion cannot be released again and a partial head can
 
 ## Files touched
 
-- `src/main.cc`: strict `--zc-min` parsing, help text, stats aggregation, and the `wb:` counters.
+- `src/core/config.h`: strict `--zc-min` parsing, default, and help text.
 - `src/core/server.h`: configuration storage and propagation of the gate to shards.
 - `src/core/shard.h`: immutable per-shard zero-copy threshold.
 - `src/exec/op.h`: borrow descriptor and reset behavior.
-- `src/cmd/commands.cc`: gated GET header-only formatting and borrow registration.
+- `src/cmd/t_string.cc`: gated GET header-only formatting and borrow registration.
 - `src/net/resp.h`: bulk-header-only formatter.
 - `src/store/flatstore.h`: borrow registry, mutation retention, pending-free reclamation, and
   resident-byte accounting.
