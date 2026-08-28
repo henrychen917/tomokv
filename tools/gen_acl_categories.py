@@ -31,6 +31,7 @@ COMMAND_SOURCES = [
     "src/cmd/server_tail.cc",
     "src/cmd/slowlog.cc",
     "src/cmd/lcs.cc",
+    "src/cmd/cmdgap.cc",
 ]
 
 
@@ -162,7 +163,7 @@ def tomo_commands(repo_root: pathlib.Path) -> list[str]:
         match = re.search(r"static const CommandSpec kTable\[\] = \{(.*?)\n\};", source, re.DOTALL)
         if not match:
             raise ValueError(f"cannot find CommandSpec table in {relative}")
-        result.extend(re.findall(r'^\s*\{"([A-Z][A-Z0-9_]*)"\s*,', match.group(1), re.MULTILINE))
+        result.extend(re.findall(r'^\s*\{"([A-Z][A-Z0-9_-]*)"\s*,', match.group(1), re.MULTILINE))
     duplicates = sorted({name for name in result if result.count(name) > 1})
     if duplicates:
         raise ValueError(f"duplicate TomoKV commands: {', '.join(duplicates)}")

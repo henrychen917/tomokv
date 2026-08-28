@@ -23,6 +23,7 @@ SRC      := src/main.cc src/net/tls.cc src/cmd/commands.cc src/cmd/xshard.cc src
 SRC      += src/cmd/climon.cc src/cmd/tracking.cc
 SRC      += src/cmd/server_tail.cc src/cmd/slowlog.cc src/cmd/lcs.cc
 SRC      += src/cmd/lbsignals.cc
+SRC      += src/cmd/cmdgap.cc
 LDLIBS   += -lssl -lcrypto
 BIN      := build/tomokv
 OBJ      := $(SRC:%.cc=build/%.o)

@@ -2900,6 +2900,63 @@ def gen_edgeproto(rng):
         ops.append(rng.choice(errors))
     return ops
 
+
+def gen_cmdgap(rng):
+    """Small local additions found by the live COMMAND LIST inventory.
+
+    The payload is a Redis 7.4 runtime-observed DUMP of the binary string
+    ``cmdgap-value\\x00binary``. A valid payload makes RESTORE-ASKING coverage non-vacuous: the
+    following GET byte-compares the installed value, while invalid payload/TTL/option rows pin the
+    shared RESTORE validation surface. The three cluster-mode connection commands must produce
+    Redis's standalone error, not merely become registered names.
+    """
+    payload = bytes.fromhex("0013636d646761702d76616c75650062696e6172790c003a0bba99e588262a")
+    keys = ["cmdgap:restore:%02d" % index for index in range(12)]
+    ops = []
+    for _ in range(4200):
+        key = rng.choice(keys)
+        choice = rng.randrange(12)
+        if choice == 0:
+            ops.append(["ASKING"])
+        elif choice == 1:
+            ops.append(["READONLY"])
+        elif choice == 2:
+            ops.append(["READWRITE"])
+        elif choice == 3:
+            command = rng.choice(["ASKING", "READONLY", "READWRITE"])
+            ops.append([command, "extra"])
+        elif choice == 4:
+            ops.append(["RESTORE-ASKING", key, "0", payload, "REPLACE"])
+        elif choice == 5:
+            ops.append(["GET", key])
+        elif choice == 6:
+            ops.append(["RESTORE-ASKING", key, "0", payload])
+        elif choice == 7:
+            ops.append(["DEL", key])
+        elif choice == 8:
+            ops.append(["RESTORE-ASKING", key, rng.choice(["-1", "abc"]), payload])
+        elif choice == 9:
+            ops.append(["RESTORE-ASKING", key, "0", b"bad-payload", "REPLACE"])
+        elif choice == 10:
+            ops.append(["RESTORE-ASKING", key, "0", payload, "BOGUS"])
+        else:
+            ops.append(["CMDGAP-NOSUCH", key])
+
+    # Directed tail proves every new handler fired and leaves a successful restore immediately
+    # followed by its value oracle. The unknown command is the detector's zero/control leg.
+    ops += [
+        ["ASKING"], ["READONLY"], ["READWRITE"],
+        ["ASKING", "extra"], ["READONLY", "extra"], ["READWRITE", "extra"],
+        ["DEL", "cmdgap:directed"],
+        ["RESTORE-ASKING", "cmdgap:directed", "0", payload],
+        ["GET", "cmdgap:directed"],
+        ["RESTORE-ASKING", "cmdgap:directed", "0", payload],
+        ["RESTORE-ASKING", "cmdgap:directed", "0", payload, "REPLACE"],
+        ["GET", "cmdgap:directed"],
+        ["CMDGAP-NOSUCH"],
+    ]
+    return ops
+
 # Sharded pub/sub is stateful and has spontaneous delivery frames, so it cannot use the ordinary
 # one-request/one-reply pipeline below. Keep its whole differential driver in one mergeable block.
 def run_spubsub_differ(rng):
@@ -4481,7 +4538,7 @@ gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset
         "streamgrp": gen_streamgrp,
         "zsetops": gen_zsetops, "geo": gen_geo,
         "scan": gen_scan, "multi": gen_multi,
-        "edgeenc": gen_edgeenc, "edgeproto": gen_edgeproto,
+        "edgeenc": gen_edgeenc, "edgeproto": gen_edgeproto, "cmdgap": gen_cmdgap,
         "servertail": gen_servertail, "arity": gen_arity}
 if LIST_GENERATORS:
     # Property suites live outside the `gens` dict (their replies are not byte-comparable), so

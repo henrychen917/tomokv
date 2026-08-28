@@ -45,6 +45,7 @@ struct AclCommandCategoryDefinition {
 inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"ACL", 0x0000000000008000ULL}, // slow
     {"APPEND", 0x0000000000004084ULL}, // write string fast
+    {"ASKING", 0x0000000000044000ULL}, // fast connection
     {"AUTH", 0x0000000000044000ULL}, // fast connection
     {"BGREWRITEAOF", 0x000000000002a000ULL}, // admin slow dangerous
     {"BGSAVE", 0x000000000002a000ULL}, // admin slow dangerous
@@ -176,11 +177,14 @@ inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"PUNSUBSCRIBE", 0x0000000000009000ULL}, // pubsub slow
     {"QUIT", 0x0000000000044000ULL}, // fast connection
     {"RANDOMKEY", 0x0000000000008003ULL}, // keyspace read slow
+    {"READONLY", 0x0000000000044000ULL}, // fast connection
+    {"READWRITE", 0x0000000000044000ULL}, // fast connection
     {"RENAME", 0x0000000000008005ULL}, // keyspace write slow
     {"RENAMENX", 0x0000000000004005ULL}, // keyspace write fast
     {"REPLICAOF", 0x000000000002a000ULL}, // admin slow dangerous
     {"RESET", 0x0000000000044000ULL}, // fast connection
     {"RESTORE", 0x0000000000028005ULL}, // keyspace write slow dangerous
+    {"RESTORE-ASKING", 0x0000000000028005ULL}, // keyspace write slow dangerous
     {"ROLE", 0x0000000000026000ULL}, // admin fast dangerous
     {"RPOP", 0x0000000000004024ULL}, // write list fast
     {"RPOPLPUSH", 0x0000000000008024ULL}, // write list slow

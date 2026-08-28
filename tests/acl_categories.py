@@ -52,7 +52,7 @@ def command(sock, *args):
 
 
 category_rows = re.findall(r'\{"([a-z]+)", uint64_t\{1\} << (\d+)\}', GENERATED)
-command_rows = re.findall(r'\{"([A-Z0-9_]+)", 0x([0-9a-f]{16})ULL\}', GENERATED)
+command_rows = re.findall(r'\{"([A-Z0-9_-]+)", 0x([0-9a-f]{16})ULL\}', GENERATED)
 if len(category_rows) != 21 or not command_rows:
     raise AssertionError("could not read generated category table")
 
