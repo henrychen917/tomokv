@@ -32,8 +32,9 @@ SRV=0; SRVLOG=/dev/null
 # 184 -> 189: cross-owner scripts add their battery under both atomic modes plus three control
 # boots (off / byte-limit / window), each needing its own knob value and so its own server.
 # 189 -> 192: the three efficiency guards, each on its own boot geometry.
-EXPECT_QUICK=192
-EXPECT_FULL=202                 # full without the optional NIC row. CONFIRMED by the
+# 192 -> 194: the AOF frame-order battery, on persist-io normal under both atomic modes.
+EXPECT_QUICK=194
+EXPECT_FULL=204                 # full without the optional NIC row. CONFIRMED by the
                                 # 2026-08-28 full-tier run (200 with the NIC row attempted).
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ok(){ say "$1" "ok"; PASS=$((PASS+1)); }
@@ -566,6 +567,28 @@ boot ./build/tomokv --protected-mode no --persist-io "$PERSIST_IO" \
 AOF_OFF_SIZE=$(redis-cli -h 127.0.0.1 -p $PORT DBSIZE 2>/dev/null | tr -d '\r')
 [ "$AOF_OFF_SIZE" = 0 ] && [ ! -e "$AOF_OFF_DIR/appendonlydir" ] \
     && ok "AOF-off negative control lost data" || bad "AOF-off negative control"
+stop
+done
+
+# ---- AOF physical framing: a control frame must never land inside a large record --------------
+# A gate run's AOF replay boot exited with "AOF control record interleaves a large record": the
+# writer flushed a ready GCMT at the top of a writer pass without checking that a large record
+# still held the physical stream. Recovery truncates the file from that large record's first byte,
+# so a control frame inside it is discardable -- and the loader refuses to start on the whole file.
+# persist-io normal only: that is where the defect was demonstrated (11 of 114 runs of the AOF
+# battery, 0 of 117 on uring) and where the window is entered reliably enough for the row to prove
+# its mechanism fired. The battery FAILS on a build with the guard removed (6 of 6).
+for AOF_FRAME_ATOMIC in 0 1; do
+AOF_FRAME_DIR=$(mktemp -d "/tmp/gate-aof-frameorder-atomic${AOF_FRAME_ATOMIC}.XXXXXX")
+boot ./build/tomokv --protected-mode no --atomic "$AOF_FRAME_ATOMIC" --appendonly yes \
+    --appendfsync no --persist-io normal --auto-aof-rewrite-percentage 0 \
+    --enable-debug-command yes --dir "$AOF_FRAME_DIR" \
+    || bad "AOF frame-order purpose boot (atomic $AOF_FRAME_ATOMIC)"
+python3 tests/aof_frame_order.py 127.0.0.1 $PORT "$AOF_FRAME_DIR/appendonlydir" \
+    >/tmp/gate-aof-frameorder-$AOF_FRAME_ATOMIC.txt 2>&1 \
+    && ok "AOF control frame never inside a large record (atomic $AOF_FRAME_ATOMIC)" \
+    || bad "AOF control frame never inside a large record (atomic $AOF_FRAME_ATOMIC)" \
+           "see /tmp/gate-aof-frameorder-$AOF_FRAME_ATOMIC.txt"
 stop
 done
 

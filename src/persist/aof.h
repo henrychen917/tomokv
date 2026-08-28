@@ -236,6 +236,11 @@ public:
     uint64_t send_gate_waits() const {
         return send_gate_waits_.load(std::memory_order_relaxed);
     }
+    // Writer passes that had a ready GCMT in hand and held it back because a large record was open
+    // on the physical stream. Non-zero proves the interleave window was entered and closed.
+    uint64_t control_defers() const {
+        return control_defers_.load(std::memory_order_relaxed);
+    }
     bool rewrite_in_progress() const {
         return rewrite_in_progress_.load(std::memory_order_acquire);
     }
@@ -339,6 +344,7 @@ private:
     std::atomic<uint64_t> current_size_{0};
     std::atomic<uint64_t> fsyncs_{0};
     std::atomic<uint64_t> send_gate_waits_{0};
+    std::atomic<uint64_t> control_defers_{0};
     std::atomic<bool> rewrite_requested_{false};
     std::atomic<bool> rewrite_in_progress_{false};
     std::atomic<bool> last_rewrite_ok_{true};

@@ -1564,7 +1564,8 @@ void cmd_info(Shard&, Op& op) {
                 "aof_delayed_fsync:0\r\naof_records_written:%llu\r\n"
                 "aof_replayed_records:%llu\r\naof_groups_committed:%llu\r\n"
                 "aof_groups_skipped_on_replay:%llu\r\naof_fsyncs:%llu\r\n"
-                "aof_send_gate_waits:%llu\r\naof_rewrite_base_size:%llu\r\n"
+                "aof_send_gate_waits:%llu\r\naof_control_frames_deferred:%llu\r\n"
+                "aof_rewrite_base_size:%llu\r\n"
                 "aof_rewrite_requests:%llu\r\naof_rewrite_completions:%llu\r\n"
                 "aof_auto_rewrite_triggers:%llu\r\naof_history_unlinks:%llu\r\n"
                 "aof_rewrite_failures:%llu\r\naof_rewrite_consecutive_failures:%u\r\n"
@@ -1590,6 +1591,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(g_server ? g_server->aof().groups_skipped() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().fsyncs() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().send_gate_waits() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->aof().control_defers() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_base_size() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_requests() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_completions() : 0),
