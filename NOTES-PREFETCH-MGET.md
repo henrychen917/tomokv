@@ -45,6 +45,9 @@ executes them (`src/core/ex_loop.h:584-611`). Its eligibility test explicitly re
 
 Historical context was checked before adding another prefetch path:
 
+At lane start there was no `NOTES-PREFETCH*.md` in this worktree, elsewhere under `/home/user`, or
+among reachable Git object names. The available record was the commits and prefetch review below.
+
 - `610d90cbb` records the narrow batched storage-slot prefetch as worth +2-3% when DRAM-bound.
 - `4bab6353f` records the broader EX prefetch experiment as a wash despite 180-355M issued hints:
   the measured worker was fixed-work-bound, and a 21x dataset increase cost only 3.5% throughput.
