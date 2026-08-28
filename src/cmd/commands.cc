@@ -4,6 +4,7 @@
 // type lanes and server-compat lane can add commands without a central handler switch.
 #include "command.h"
 #include "acl_categories_generated.h"
+#include "cmdmeta.h"
 #include "server_tail.h"
 #include "slowlog.h"
 #include "../exec/op.h"
@@ -157,6 +158,10 @@ bool command_registry_init(bool tls_enabled) {
     if (g_registry.entries.size() != kAclCommandCategoryCount) {
         std::fprintf(stderr, "generated ACL category table has %zu rows for %zu commands\n",
                      kAclCommandCategoryCount, g_registry.entries.size());
+        return false;
+    }
+    if (!command_metadata_init(g_registry.entries.data(), g_registry.entries.size())) {
+        std::fprintf(stderr, "failed to build cold command metadata index\n");
         return false;
     }
 

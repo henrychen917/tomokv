@@ -26,6 +26,7 @@
 #include "acl_categories_generated.h"
 #include "auth.h"
 #include "command.h"
+#include "cmdmeta.h"
 #include "multi.h"
 #include "../core/config.h"
 #include "../core/io_loop.h"

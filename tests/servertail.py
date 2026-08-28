@@ -163,7 +163,8 @@ def scope_b(c):
     count = c.cmd("COMMAND", "COUNT")
     listing = c.cmd("COMMAND", "LIST")
     check("COMMAND COUNT positive", count, lambda v: isinstance(v, int) and v > 100)
-    check("COMMAND LIST matches COUNT", len(listing), count)
+    check("COMMAND COUNT is top-level LIST cardinality",
+          sum("|" not in name for name in listing), count)
     check("COMMAND LIST is lowercase", listing, lambda v: all(n == n.lower() for n in v))
     check("COMMAND LIST has the new rows", set(listing),
           lambda v: {"time", "lolwut", "role", "wait", "lcs", "slowlog", "latency",
@@ -197,7 +198,8 @@ def scope_b(c):
     check("GETKEYS unknown command", c.cmd("COMMAND", "GETKEYS", "NOSUCHCMD", "a"),
           err("ERR Invalid command specified"))
     flags = c.cmd("COMMAND", "GETKEYSANDFLAGS", "SET", "foo", "bar")
-    check("GETKEYSANDFLAGS shape", flags, lambda v: v[0][0] == "foo" and "RW" in v[0][1])
+    check("GETKEYSANDFLAGS shape", flags,
+          lambda v: v == [["foo", ["OW", "update"]]])
     ro = c.cmd("COMMAND", "GETKEYSANDFLAGS", "GET", "foo")
     check("GETKEYSANDFLAGS readonly", ro, lambda v: v[0][1] == ["RO", "access"])
 

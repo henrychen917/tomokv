@@ -6,6 +6,7 @@
 #include "command.h"
 #include "acl.h"
 #include "auth.h"
+#include "cmdmeta.h"
 #include "debug.h"
 #include "scripting.h"
 #include "server_tail.h"
@@ -1060,51 +1061,26 @@ void cmd_client(Shard&, Op& op) {
     }
 }
 
-void reply_command_flags(Op::Sink& sink, const CommandSpec& spec) {
-    uint32_t count = 0;
-    if (spec.flags & CmdFlags::Write) count++;
-    if (spec.flags & CmdFlags::Readonly) count++;
-    if (spec.flags & CmdFlags::Admin) count++;
-    if (spec.flags & CmdFlags::ConnLocal) count++;
-    reply_array_header(sink, count);
-    if (spec.flags & CmdFlags::Write) reply_bulk(sink, Slice("write", 5));
-    if (spec.flags & CmdFlags::Readonly) reply_bulk(sink, Slice("readonly", 8));
-    if (spec.flags & CmdFlags::Admin) reply_bulk(sink, Slice("admin", 5));
-    if (spec.flags & CmdFlags::ConnLocal) reply_bulk(sink, Slice("fast", 4));
-}
-
-void reply_command_info(Op::Sink& sink, const CommandSpec* spec, bool resp3) {
-    if (!spec) { reply_null(sink, resp3); return; }
-    reply_array_header(sink, 10);
-    const std::string name = lower_name(spec->name);
-    reply_bulk(sink, Slice(name.data(), name.size()));
-    const int64_t arity = spec->max_arity == spec->min_arity ? spec->min_arity : -spec->min_arity;
-    reply_int(sink, arity);
-    reply_command_flags(sink, *spec);
-    reply_int(sink, spec->first_key);
-    reply_int(sink, spec->last_key);
-    reply_int(sink, spec->key_step);
-    reply_array_header(sink, 0); // ACL categories
-    reply_array_header(sink, 0); // tips
-    reply_array_header(sink, 0); // key specs (legacy key positions above are authoritative here)
-    reply_array_header(sink, 0); // subcommands
-}
-
-const char* command_group(const CommandSpec& spec) {
-    if (spec.flags & CmdFlags::Admin) return "server";
-    if (spec.flags & CmdFlags::ConnLocal) return "connection";
+const char* command_group(const CommandMetadata& metadata) {
+    const uint64_t categories = command_metadata_categories(metadata);
+    if (categories & (uint64_t{1} << 13)) return "server";
+    if (categories & (uint64_t{1} << 18)) return "connection";
     return "generic";
 }
 
-void reply_command_docs(Op::Sink& sink, const CommandSpec& spec, bool resp3) {
+void reply_command_docs(Op::Sink& sink, const CommandMetadata& metadata, bool resp3) {
     // A RESP2 map is a flat array. These four fields are enough for redis-cli's live help parser.
     reply_map_header(sink, 4, resp3);
     reply_bulk(sink, Slice("summary", 7));
-    std::string summary = std::string("tomokv compatible ") + lower_name(spec.name) + " command";
+    const Slice name = command_metadata_name(metadata);
+    std::string summary = "tomokv compatible ";
+    summary.append(name.p, name.n);
+    summary += " command";
     reply_bulk(sink, Slice(summary.data(), summary.size()));
     reply_bulk(sink, Slice("since", 5)); reply_bulk(sink, Slice("0.1.0", 5));
     reply_bulk(sink, Slice("group", 5));
-    const char* group = command_group(spec); reply_bulk(sink, Slice(group, std::strlen(group)));
+    const char* group = command_group(metadata);
+    reply_bulk(sink, Slice(group, std::strlen(group)));
     reply_bulk(sink, Slice("complexity", 10));
     const char* complexity = "O(1) or proportional to returned work";
     reply_bulk(sink, Slice(complexity, std::strlen(complexity)));
@@ -1116,7 +1092,7 @@ void cmd_command(Shard&, Op& op) {
         const uint32_t count = command_registry_size();
         reply_array_header(sink, count);
         for (uint32_t i = 0; i < count; i++)
-            reply_command_info(sink, command_registry_at(i), op.resp3());
+            command_metadata_reply_info(op, command_metadata_for(*command_registry_at(i)));
         return;
     }
     if (eq_icase(op.arg(1), "COUNT") && op.argc() == 2) {
@@ -1128,26 +1104,27 @@ void cmd_command(Shard&, Op& op) {
             const uint32_t count = command_registry_size();
             reply_array_header(sink, count);
             for (uint32_t i = 0; i < count; i++)
-                reply_command_info(sink, command_registry_at(i), op.resp3());
+                command_metadata_reply_info(op, command_metadata_for(*command_registry_at(i)));
             return;
         }
         reply_array_header(sink, op.argc() - 2);
         for (uint32_t i = 2; i < op.argc(); i++)
-            reply_command_info(sink, command_lookup(op.arg(i)), op.resp3());
+            command_metadata_reply_info(op, command_metadata_lookup(op.arg(i)));
         return;
     }
     if (eq_icase(op.arg(1), "DOCS")) {
-        std::vector<const CommandSpec*> specs;
+        std::vector<const CommandMetadata*> specs;
         if (op.argc() == 2) {
-            for (uint32_t i = 0; i < command_registry_size(); i++) specs.push_back(command_registry_at(i));
+            for (uint32_t i = 0; i < command_registry_size(); i++)
+                specs.push_back(command_metadata_for(*command_registry_at(i)));
         } else {
             for (uint32_t i = 2; i < op.argc(); i++)
-                if (const CommandSpec* spec = command_lookup(op.arg(i))) specs.push_back(spec);
+                if (const CommandMetadata* spec = command_metadata_lookup(op.arg(i)))
+                    specs.push_back(spec);
         }
         reply_map_header(sink, specs.size(), op.resp3());
-        for (const CommandSpec* spec : specs) {
-            const std::string name = lower_name(spec->name);
-            reply_bulk(sink, Slice(name.data(), name.size()));
+        for (const CommandMetadata* spec : specs) {
+            reply_bulk(sink, command_metadata_name(*spec));
             reply_command_docs(sink, *spec, op.resp3());
         }
         return;

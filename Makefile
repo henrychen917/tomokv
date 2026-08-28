@@ -24,6 +24,7 @@ SRC      += src/cmd/climon.cc src/cmd/tracking.cc
 SRC      += src/cmd/server_tail.cc src/cmd/slowlog.cc src/cmd/lcs.cc
 SRC      += src/cmd/lbsignals.cc
 SRC      += src/cmd/cmdgap.cc
+SRC      += src/cmd/cmdmeta.cc
 LDLIBS   += -lssl -lcrypto
 BIN      := build/tomokv
 OBJ      := $(SRC:%.cc=build/%.o)
