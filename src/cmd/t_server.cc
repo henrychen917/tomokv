@@ -1426,6 +1426,8 @@ void cmd_info(Shard&, Op& op) {
              evicted = 0, keyspace_rehashes = 0;
     uint64_t total_ops = 0, sampled_ops = 0, connections = 0, rejected = 0;
     uint64_t net_input_bytes = 0, net_output_bytes = 0, auth_failures = 0;
+    uint64_t sends_submitted = 0, short_writes = 0, bytes_sent = 0,
+             peer_aborts = 0, send_errors = 0, zc_sends = 0, zc_releases = 0;
     uint64_t acl_denied_cmd = 0, acl_denied_key = 0, acl_denied_channel = 0,
              acl_denied_auth = 0;
     uint64_t atomic_predecessor_reads = 0, atomic_chain_max = 0,
@@ -1506,6 +1508,16 @@ void cmd_info(Shard&, Op& op) {
             epoll_recvs += sig.epoll_recvs;
             net_input_bytes += sig.net_input_bytes;
             net_output_bytes += sig.net_output_bytes;
+            if (const WbEngine* wb = g_server->thread(t).wb_engine()) {
+                const WbEngine::Stats& stats = wb->stats();
+                sends_submitted += stats.sends_submitted;
+                short_writes += stats.short_writes;
+                bytes_sent += stats.bytes_sent;
+                peer_aborts += stats.peer_aborts;
+                send_errors += stats.send_errors;
+                zc_sends += stats.zc_sends;
+                zc_releases += stats.zc_releases;
+            }
         }
         // Redis counts BOTH accept-time reject classes in rejected_connections: maxclients
         // (networking.c:1355) and protected-mode denials (networking.c:1306).
@@ -1631,6 +1643,9 @@ void cmd_info(Shard&, Op& op) {
                       "expired_hash_fields:%llu\r\nhash_field_expires:%llu\r\n"
                       "keyspace_rehashes:%llu\r\n"
                       "total_net_input_bytes:%llu\r\ntotal_net_output_bytes:%llu\r\n"
+                      "sends_submitted:%llu\r\nshort_writes:%llu\r\nbytes_sent:%llu\r\n"
+                      "peer_aborts:%llu\r\nsend_errors:%llu\r\n"
+                      "zc_sends:%llu\r\nzc_releases:%llu\r\n"
                       "auth_failures:%llu\r\n"
                       "acl_access_denied_auth:%llu\r\nacl_access_denied_cmd:%llu\r\n"
                       "acl_access_denied_key:%llu\r\nacl_access_denied_channel:%llu\r\n"
@@ -1704,6 +1719,13 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(keyspace_rehashes),
                 static_cast<unsigned long long>(net_input_bytes),
                 static_cast<unsigned long long>(net_output_bytes),
+                static_cast<unsigned long long>(sends_submitted),
+                static_cast<unsigned long long>(short_writes),
+                static_cast<unsigned long long>(bytes_sent),
+                static_cast<unsigned long long>(peer_aborts),
+                static_cast<unsigned long long>(send_errors),
+                static_cast<unsigned long long>(zc_sends),
+                static_cast<unsigned long long>(zc_releases),
                 static_cast<unsigned long long>(auth_failures),
                 static_cast<unsigned long long>(acl_denied_auth),
                 static_cast<unsigned long long>(acl_denied_cmd),

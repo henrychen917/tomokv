@@ -39,6 +39,10 @@ SRV=0; SRVLOG=/dev/null
 # 207 -> 211: contarity exercises XGROUP/XINFO under the feature boot's 16-shard, >=2-executor
 # geometry and infofix checks measured INFO telemetry; each runs in both atomic modes.
 # 211 -> 213: cross-owner SORT has its required 16-shard, 6:2 geometry under both atomic modes.
+# geometry, while infofix proves INFO rows are measured rather than placeholders; both run in
+# both atomic modes. Their sibling lanes each claimed 207 -> 209, so the merged ledger owes four.
+# 211 -> 213: pushtear proves out-of-band frames cannot splice borrowed replies and requires the
+# segmented/deferred and zero-copy counters to fire, under both atomic modes.
 EXPECT_QUICK=213
 EXPECT_FULL=223                 # full without the optional NIC row.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
@@ -155,7 +159,7 @@ grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG
 for AT in 0 1; do
   boot ./build/tomokv --atomic $AT --enable-debug-command yes \
       || bad "feature battery boot (atomic $AT)"
-  for t in s6 multi_exec blocking blockmulti stream streamgroups pubsub lua_scripting scriptsurf limits resp3 bitfield dumprestore zsetops geo climon climon2 tracking hexpire servertail lcs concur edgeproto edgeenc edgetime arity contarity cmdgap aclsel expwide infofix; do
+  for t in s6 multi_exec blocking blockmulti stream streamgroups pubsub lua_scripting scriptsurf limits resp3 bitfield dumprestore zsetops geo climon climon2 tracking hexpire servertail lcs concur edgeproto edgeenc edgetime arity contarity cmdgap aclsel expwide infofix pushtear; do
     python3 tests/$t.py 127.0.0.1 $PORT >/tmp/gate-$t-$AT.txt 2>&1 \
         && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see /tmp/gate-$t-$AT.txt"
   done

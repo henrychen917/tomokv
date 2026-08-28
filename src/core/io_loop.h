@@ -81,6 +81,7 @@ public:
     bool init(Server* srv, ThreadCtx* self, const char* addr, uint16_t port,
               int unix_listen_fd = -1, const TlsContext* tls_context = nullptr) {
         srv_ = srv; self_ = self;
+        self_->set_wb_engine(&wb_);
         if (port) {
             listen_fd_ = make_reuseport_listener(addr, port, srv_->cfg().tcp_backlog);
             if (listen_fd_ < 0) return false;
