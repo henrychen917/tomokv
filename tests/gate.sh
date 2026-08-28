@@ -33,9 +33,10 @@ SRV=0; SRVLOG=/dev/null
 # boots (off / byte-limit / window), each needing its own knob value and so its own server.
 # 189 -> 192: the three efficiency guards, each on its own boot geometry.
 # 192 -> 194: the AOF frame-order battery, on persist-io normal under both atomic modes.
-EXPECT_QUICK=194
-EXPECT_FULL=204                 # full without the optional NIC row. CONFIRMED by the
-                                # 2026-08-28 full-tier run (200 with the NIC row attempted).
+# 194 -> 204: arity, blockmulti, cmdgap, multires and xmove were shipped but not invoked; each now
+# runs under both atomic modes.
+EXPECT_QUICK=204
+EXPECT_FULL=214
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ok(){ say "$1" "ok"; PASS=$((PASS+1)); }
 bad(){ say "$1" "FAIL${2:+ ($2)}"; FAIL=$((FAIL+1)); }
@@ -143,7 +144,7 @@ grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG
 for AT in 0 1; do
   boot ./build/tomokv --atomic $AT --enable-debug-command yes \
       || bad "feature battery boot (atomic $AT)"
-  for t in s6 multi_exec blocking stream streamgroups pubsub lua_scripting scriptsurf limits resp3 bitfield dumprestore zsetops geo climon climon2 tracking hexpire servertail lcs concur edgeproto edgeenc edgetime; do
+  for t in s6 multi_exec blocking blockmulti stream streamgroups pubsub lua_scripting scriptsurf limits resp3 bitfield dumprestore zsetops geo climon climon2 tracking hexpire servertail lcs concur edgeproto edgeenc edgetime arity cmdgap; do
     python3 tests/$t.py 127.0.0.1 $PORT >/tmp/gate-$t-$AT.txt 2>&1 \
         && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see /tmp/gate-$t-$AT.txt"
   done
@@ -179,7 +180,7 @@ for AT in 0 1; do
   # declared key and the cut is chosen, which is the only way to land a plain write inside that
   # window on demand. Its counters (script_keys_armed / script_write_tickets_forced /
   # script_group_occ_retries) are what make the reservation falsifiable rather than merely present.
-  for t in lbsignals slowlog atomfix scriptatomic execatomic execiso execfix session_monotonic xacct xscript; do
+  for t in lbsignals slowlog atomfix scriptatomic execatomic execiso execfix multires session_monotonic xacct xmove xscript; do
     python3 tests/$t.py 127.0.0.1 $PORT >/tmp/gate-$t-$AT.txt 2>&1 \
         && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see /tmp/gate-$t-$AT.txt"
   done

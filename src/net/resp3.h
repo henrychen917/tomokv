@@ -1,8 +1,7 @@
 // resp3.h -- reply-only RESP3 framing selected from Op::kResp3.
 //
 // Request parsing is deliberately absent: Redis accepts the same RESP2 request grammar after
-// HELLO 3. Core commands do not emit attributes; tracking invalidation pushes are a separate
-// feature because CLIENT TRACKING is not implemented.
+// HELLO 3. Core commands do not emit attributes; CLIENT TRACKING invalidations use push frames.
 #pragma once
 
 namespace tomo {

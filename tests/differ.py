@@ -4699,8 +4699,8 @@ gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset
         "edgeenc": gen_edgeenc, "edgeproto": gen_edgeproto, "cmdgap": gen_cmdgap,
         "servertail": gen_servertail, "arity": gen_arity}
 if LIST_GENERATORS:
-    # Property suites live outside the `gens` dict (their replies are not byte-comparable), so
-    # they are appended by name.  Two lanes added this list independently; keep the union.
+    # This is the single suite inventory. Property suites live outside `gens` because their
+    # replies are not byte-comparable, but the gate discovers them from this same list.
     print("\n".join(list(gens) + ["blocking", "pubsub", "fanout", "spubsub", "notify",
                                    "wiredump", "climon", "compatintro", "s6fix"]))
     sys.exit(0)

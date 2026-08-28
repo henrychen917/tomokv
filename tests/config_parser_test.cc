@@ -121,6 +121,7 @@ int main() {
         xscript.script_crossshard_cut_slots != 7)
         fail("cross-script knob grammar or values differ");
     if (!rejects({"--script-crossshard-max-bytes", "-2"}) ||
+        !rejects({"--script-crossshard-max-bytes", "-9223372036854775808"}) ||
         !rejects({"--script-crossshard-workbench-bytes", "wat"}) ||
         !rejects({"--script-crossshard-conflict-retries", "9223372036854775808"}) ||
         !rejects({"--script-crossshard-cut-slots", "-9"}))

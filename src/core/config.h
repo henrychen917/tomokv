@@ -180,7 +180,7 @@ struct Config {
     uint64_t acllog_max_len = 128;        // live in L4; per-io-thread bound
     std::vector<std::vector<std::string>> acl_users; // repeatable `user name rules...` lines
 
-    // ---- persistence (dir/dbfilename also live via CONFIG SET) ------------------------------
+    // ---- persistence (dir/dbfilename are boot-only) ----------------------------------------
     const char* dir         = ".";
     const char* dbfilename  = "dump.tomo";
     const char* load_path   = nullptr;   // boot-only: load a dump before serving
@@ -326,7 +326,11 @@ inline bool cfg_parse_i64(const char* s, int64_t& out) {
     }
     const uint64_t limit = negative ? (uint64_t{1} << 63) : (uint64_t{1} << 63) - 1;
     if (v > limit) return false;
-    out = negative ? -static_cast<int64_t>(v) : static_cast<int64_t>(v);
+    // INT64_MIN has no positive counterpart. Avoid negating it: even rejected values such as
+    // `--script-crossshard-max-bytes -9223372036854775808` must not execute undefined behavior.
+    out = negative ? (v == (uint64_t{1} << 63) ? std::numeric_limits<int64_t>::min()
+                                                : -static_cast<int64_t>(v))
+                   : static_cast<int64_t>(v);
     return true;
 }
 
