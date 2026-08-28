@@ -52,14 +52,14 @@ template <typename Buf> inline void reply_push_header(Buf&& b, uint64_t n) {
 }
 
 // Redis renders the RESP3 "," double from the SAME d2string as the RESP2 bulk score, so this is
-// one formatter, not two (see redis_double_text in resp.h).
+// one formatter, not two (see redis_double_text in src/base/numeric.h).
 inline uint32_t resp_double_text(char* text, size_t cap, double value) {
     return redis_double_text(text, cap, value);
 }
 
 template <typename Buf> inline void reply_double(Buf&& b, double value, bool resp3) {
     if (!resp3) { reply_double(b, value); return; }
-    char text[64];
+    char text[kDoubleTextMax];
     const uint32_t length = resp_double_text(text, sizeof(text), value);
     char* p = b.reserve(static_cast<size_t>(length) + 3);
     *p = ',';

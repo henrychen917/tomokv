@@ -12,6 +12,7 @@
 #include <cstring>
 #include <charconv>
 #include <cmath>
+#include "../base/numeric.h"
 #include "../base/slice.h"
 #include "../exec/op.h"
 
@@ -216,116 +217,13 @@ template <typename Buf> inline void reply_bulk(Buf&& b, Slice s) {
     b.advance(static_cast<size_t>(q - p));
 }
 
-// THE canonical double text, for RESP2 bulk scores and the RESP3 "," form alike (redis renders
-// both from one d2string). Derived from the 7.4 binary's OBSERVED output, not from its source:
-//
-//   * nan / inf / -inf and a signed zero are spelled out;
-//   * an INTEGRAL value with |v| <= 4611686018427387904 (redis's LLONG_MAX/2 bound, inclusive)
-//     prints as a plain integer -- so 1e18 is "1000000000000000000", not "1e+18";
-//   * everything else is the SHORTEST round-trip digit string D with v = D x 10^K, rendered
-//     fixed when K is small and scientific otherwise, with an unpadded signed exponent.
-//
-// std::to_chars(value) alone is NOT this: asked for the shortest STRING it prints 2^63 exactly,
-// as "9223372036854775808", where redis prints the shortest DIGITS padded with zeroes,
-// "9223372036854776000". Both round-trip; only one matches the wire.
-inline uint32_t redis_double_text(char* out, size_t cap, double value) {
-    if (std::isnan(value)) { std::memcpy(out, "nan", 3); return 3; }
-    if (std::isinf(value)) {
-        if (value < 0) { std::memcpy(out, "-inf", 4); return 4; }
-        std::memcpy(out, "inf", 3); return 3;
-    }
-    if (value == 0) {
-        if (std::signbit(value)) { std::memcpy(out, "-0", 2); return 2; }
-        out[0] = '0';
-        return 1;
-    }
-    // The integral fast path. The bound is redis's (double)(LLONG_MAX/2), which rounds to 2^62.
-    constexpr double kIntegralBound = 4611686018427387904.0;
-    if (value >= -kIntegralBound && value <= kIntegralBound) {
-        const long long integral = static_cast<long long>(value);
-        if (static_cast<double>(integral) == value) {
-            char* q = out;
-            unsigned long long magnitude;
-            if (integral < 0) {
-                *q++ = '-';
-                magnitude = 0ULL - static_cast<unsigned long long>(integral);
-            } else {
-                magnitude = static_cast<unsigned long long>(integral);
-            }
-            q += u64_to_dec(q, magnitude);
-            return static_cast<uint32_t>(q - out);
-        }
-    }
-    // Shortest round-trip digits, taken from the scientific form so the digit string and the
-    // decimal exponent are both available: "-d.ddde[+-]dd".
-    char scientific[48];
-    const auto converted = std::to_chars(scientific, scientific + sizeof(scientific), value,
-                                         std::chars_format::scientific);
-    if (converted.ec != std::errc{}) {
-        const int fallback = std::snprintf(out, cap, "%.17g", value);
-        return fallback > 0 && static_cast<size_t>(fallback) < cap
-            ? static_cast<uint32_t>(fallback) : 0;
-    }
-    const char* cursor = scientific;
-    const bool negative = *cursor == '-';
-    if (negative) cursor++;
-    char digits[24];
-    int ndigits = 0;
-    digits[ndigits++] = *cursor++;
-    if (*cursor == '.') {
-        cursor++;
-        while (*cursor != 'e' && ndigits < static_cast<int>(sizeof(digits))) digits[ndigits++] = *cursor++;
-    }
-    while (*cursor != 'e') cursor++;
-    cursor++;
-    const bool exponent_negative = *cursor == '-';
-    if (*cursor == '-' || *cursor == '+') cursor++;
-    int decimal_exponent = 0;
-    while (cursor < converted.ptr) decimal_exponent = decimal_exponent * 10 + (*cursor++ - '0');
-    if (exponent_negative) decimal_exponent = -decimal_exponent;
-
-    const int k = decimal_exponent - (ndigits - 1);   // value == digits x 10^k
-    const int magnitude = decimal_exponent < 0 ? -decimal_exponent : decimal_exponent;
-    char* q = out;
-    if (negative) *q++ = '-';
-    if (k >= 0 && magnitude < ndigits + 7) {          // plain integer, zero padded
-        std::memcpy(q, digits, static_cast<size_t>(ndigits));
-        q += ndigits;
-        std::memset(q, '0', static_cast<size_t>(k));
-        q += k;
-    } else if (k < 0 && (k > -7 || magnitude < 4)) {  // fixed point
-        const int offset = ndigits + k;
-        if (offset <= 0) {
-            *q++ = '0';
-            *q++ = '.';
-            std::memset(q, '0', static_cast<size_t>(-offset));
-            q += -offset;
-            std::memcpy(q, digits, static_cast<size_t>(ndigits));
-            q += ndigits;
-        } else {
-            std::memcpy(q, digits, static_cast<size_t>(offset));
-            q += offset;
-            *q++ = '.';
-            std::memcpy(q, digits + offset, static_cast<size_t>(ndigits - offset));
-            q += ndigits - offset;
-        }
-    } else {                                          // scientific, exponent not zero padded
-        *q++ = digits[0];
-        if (ndigits > 1) {
-            *q++ = '.';
-            std::memcpy(q, digits + 1, static_cast<size_t>(ndigits - 1));
-            q += ndigits - 1;
-        }
-        *q++ = 'e';
-        *q++ = decimal_exponent < 0 ? '-' : '+';
-        q += u64_to_dec(q, static_cast<uint64_t>(magnitude));
-    }
-    return static_cast<uint32_t>(q - out);
-}
+// THE canonical double text lives in src/base/numeric.h: redis renders the RESP2 bulk score and
+// the RESP3 "," from one d2string, and the parsers that must accept exactly what it can produce
+// belong beside it. This header keeps only the RESP framing.
 
 // RESP2 has no native double: redis sends this same text as a bulk string.
 template <typename Buf> inline void reply_double(Buf&& b, double value) {
-    char text[64];
+    char text[kDoubleTextMax];
     const uint32_t length = redis_double_text(text, sizeof(text), value);
     reply_bulk(b, Slice(text, length));
 }
