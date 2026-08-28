@@ -230,9 +230,11 @@
         if (__builtin_expect(wb_.draining(*client), false)) {
             if (resp3) wb_.defer_oob(&kPush, 1, p + 1, n - 1);
             else wb_.defer_oob(p, n);
+            srv_->note_oob_frame_deferred();
         } else {
-            if (resp3) client->append_oob(&kPush, 1, p + 1, n - 1);
-            else client->append_oob(p, n);
+            const bool segmented = resp3 ? client->append_oob(&kPush, 1, p + 1, n - 1)
+                                         : client->append_oob(p, n);
+            if (__builtin_expect(segmented, false)) srv_->note_oob_frame_segmented();
         }
         enqueue_serve(client);
         mark_active(client);

@@ -430,14 +430,19 @@ public:
     // op's bytes in one uninterrupted run, and a frame appended here sits entirely before the next
     // one. Frames produced from INSIDE a retire drain are the exception and are parked by the send
     // engine until the drain ends -- see WbEngine::draining().
-    void append_oob(const char* a, size_t an, const char* b = nullptr, size_t bn = 0) {
+    // Returns TRUE when the frame had to take the segment channel -- that is, when ops were still
+    // in flight and this is the very geometry that used to splice the frame into a borrowed reply.
+    // The callers turn it into a proof-of-mechanism counter, because a battery that never observes
+    // this state never constructed the case it claims to be testing.
+    bool append_oob(const char* a, size_t an, const char* b = nullptr, size_t bn = 0) {
         if (segments_.empty() && rob_.quiesced()) {
             append_fill(a, an);
             if (bn) append_fill(b, bn);
-            return;
+            return false;
         }
         seal_fill_segment();
         append_buf_segment(a, an, b, bn);
+        return true;
     }
     uint32_t build_segment_iov(bool& has_borrow, uint32_t& bytes) {
         const uint32_t n = segments_.build_iov(send_iov_, kMaxSendIov, kMaxSendBytes,

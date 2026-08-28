@@ -317,10 +317,12 @@ bool IoLoop::climon_armed_gate(Client* client, Op& op) {
 // connection's newest reply only partially staged -- parks on the send engine and is flushed the
 // instant that drain ends. Only the connection's own io thread ever runs this.
 void IoLoop::climon_push_wire(Client* client, const std::string& frame) {
-    if (__builtin_expect(wb_.draining(*client), false))
+    if (__builtin_expect(wb_.draining(*client), false)) {
         wb_.defer_oob(frame.data(), frame.size());
-    else
-        client->append_oob(frame.data(), frame.size());
+        srv_->note_oob_frame_deferred();
+    } else if (__builtin_expect(client->append_oob(frame.data(), frame.size()), false)) {
+        srv_->note_oob_frame_segmented();
+    }
     enqueue_serve(client);
     mark_active(client);
 }
