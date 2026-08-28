@@ -632,6 +632,7 @@ def cell_blocking_reply_survives():
     This cell fails LOUDLY on the timeout path: no null reply within the window is a FAIL, not a
     slow pass."""
     tag = "blocking/push-then-timeout"
+    before = admin_info()
     b = Conn(timeout=12)
     p = Conn()
     try:
@@ -658,7 +659,13 @@ def cell_blocking_reply_survives():
             bad(tag, "SWALLOWED: BLPOP timeout reply missing after a push landed on it: %r"
                 % raw[:160])
             return
-        ok(tag, "push delivered and BLPOP timeout still emitted")
+        after = admin_info()
+        segmented = (after.get("oob_frames_segmented", 0) -
+                     before.get("oob_frames_segmented", 0))
+        if segmented == 0:
+            bad(tag, "delivery did not take the immediate segment route while BLPOP was parked")
+            return
+        ok(tag, "push delivered immediately (seg+%d) and BLPOP timeout still emitted" % segmented)
     finally:
         b.close()
         p.close()
