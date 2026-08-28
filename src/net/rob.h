@@ -103,13 +103,6 @@ public:
         return n;
     }
 
-    // The oldest live op's offset into the read buffer; everything before it is dead. UINT32_MAX
-    // when quiesced, meaning the whole buffer is reclaimable.
-    uint32_t pinned_rbuf_off() const {
-        if (quiesced()) return UINT32_MAX;
-        return slot(static_cast<uint32_t>(flush_id()) & kMask, false)->rbuf_off;
-    }
-
     // Slot access for the worker side, which addresses ops by id rather than by pointer so a stale
     // pointer can never outlive a recycle.
     Op& at(uint64_t id) { return *slot(static_cast<uint32_t>(id) & kMask, false); }
