@@ -1,19 +1,11 @@
-// t_sort.cc -- SORT's ordering core and its BY/GET dereference.  See t_sort.h for the admission
-// rule and NOTES-SORT.md for the design that produced it.
+// t_sort.cc -- SORT's ordering core. The scatter engine owns BY/GET key dereference; see t_sort.h.
 #include "t_sort.h"
 
 #include <algorithm>
-#include <cctype>
-#include <charconv>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include <limits>
 #include <new>
 
-#include "../core/server.h"
-#include "../core/shard.h"
-#include "../store/kvobj.h"
 #include "../base/numeric.h"
 
 namespace tomo {
@@ -45,16 +37,6 @@ struct SortItem {
     bool weight_present = false;
 };
 
-// Builds the key a pattern names for one element.  Returns false when the pattern has no '*',
-// which the reference treats as "no lookup at all" rather than "look up this literal".
-bool sort_build_key(const SortPattern& pattern, Slice element, std::string& key) {
-    if (!pattern.has_star) return false;
-    key.assign(pattern.prefix.p, pattern.prefix.n);
-    key.append(element.p, element.n);
-    key.append(pattern.suffix.p, pattern.suffix.n);
-    return true;
-}
-
 }  // namespace
 
 void sort_pattern_parse(Slice pattern, SortPattern& out) {
@@ -82,99 +64,15 @@ void sort_pattern_parse(Slice pattern, SortPattern& out) {
     }
 }
 
-bool sort_deref_local(Server& server) {
-    return server.placement().ex_threads().size() == 1;
-}
-
-namespace {
-
-// Installs the command's read cut and originating connection on one store for the length of a
-// single lookup, then restores exactly what was there. A null `target` disables it entirely, which
-// is what the negative-control build passes.
-struct ForeignReadContext {
-    FlatStore* target = nullptr;
-    uint64_t epoch = 0;
-    uint64_t conn = 0;
-    ForeignReadContext(FlatStore* target_, uint64_t snapshot, uint64_t origin_conn_id)
-        : target(target_) {
-        if (!target) return;
-        epoch = target->atomic_read_epoch();
-        conn = target->atomic_read_origin_conn_id();
-        target->atomic_set_read_context(snapshot, origin_conn_id);
-    }
-    ~ForeignReadContext() { if (target) target->atomic_set_read_context(epoch, conn); }
-    ForeignReadContext(const ForeignReadContext&) = delete;
-    ForeignReadContext& operator=(const ForeignReadContext&) = delete;
-};
-
-// Resolves one pattern for one element on whichever shard owns the derived key.  LEGALITY: the
-// caller has already been admitted by sort_deref_local, so `owner`'s executor owns every shard and
-// `target` below is one of its own.  The equality test is not a fast path -- it selects the
-// notifying read only for the shard whose NotifyExecutionScope is actually open.
-bool sort_lookup(Shard* owner, bool notify, const SortSpec& spec, const SortPattern& pattern,
-                 Slice element, std::string& out) {
-    std::string key;
-    if (!owner || !sort_build_key(pattern, element, key)) return false;
-    Server* server = owner->server();
-    if (!server) return false;
-    const Slice key_slice(key.data(), static_cast<uint32_t>(key.size()));
-    const uint64_t hash = FlatStore::hash_key(key_slice);
-    const int32_t shard_id = server->router().shard_of(hash);
-    if (shard_id < 0 || static_cast<uint32_t>(shard_id) >= server->nshards()) return false;
-    Shard& target = server->shard(shard_id);
-    if (&target != owner && !sort_deref_local(*server)) {
-        // THE LAW, ENFORCED RATHER THAN ARGUED. Structurally unreachable: a '*'-bearing pattern is
-        // refused at parse unless one executor owns every shard, and without a '*' this function
-        // has already returned. Kept so a future routing change cannot quietly turn an admission
-        // bug into a foreign-shard read. INFO's sort_deref_escapes is its control and reads zero.
-        server->note_sort_deref_escape();
-        return false;
-    }
-    server->note_sort_deref_lookup();
-    const bool foreign = &target != owner;
-    // BIND EVERY DEREFERENCED READ, INCLUDING ONE THAT LANDS BACK ON THE SOURCE'S OWN SHARD.
-    // The read cut and the originating connection are per-STORE state, and the surrounding
-    // machinery binds them only on the shards it knows the command touches -- which for a
-    // dereference is none of them, not even the source's when nothing else in the transaction
-    // named it. Reading unbound means "latest, no connection", and atomic_resolve_internal hides a
-    // group's still-private candidate from every reader but its own connection: outside a
-    // transaction that lost a weight key the immediately preceding MSET had written, and inside one
-    // it lost every weight the transaction had written. Restore exactly what was there afterwards.
-#ifdef TOMO_SORT_NO_READCTX
-    ForeignReadContext context(nullptr, 0, 0);           // negative control; see `make sortnoctx`
-#else
-    ForeignReadContext context(&target.store(), spec.read_snapshot, spec.origin_conn_id);
-#endif
-    // Notifications (lazy-expire / keymiss) are raised only for a derived key that lives on the
-    // shard whose NotifyExecutionScope is open, i.e. the source's; see NOTES-SORT.md §8.
-    KvObj* object = (!foreign && notify) ? target.store_find<true>(hash, key_slice)
-                                         : target.store().find(hash, key_slice);
-    if (!object) return false;
-    if (pattern.field.n) {
-        if (!object->is_type(Type::Hash)) return false;
-        Slice value;
-        if (!hash_field_value_ro(object, pattern.field, value)) return false;
-        if (target.store().field_expire_count() &&
-            hash_ttl_field_lapsed(object, pattern.field, target.now_ms())) return false;
-        out.assign(value.p, value.n);
-        return true;
-    }
-    if (!object->is_type(Type::String)) return false;
-    if (object->is_int()) {
-        char digits[24];
-        const long long value = static_cast<long long>(object->int_value());
-        const auto result = std::to_chars(digits, digits + sizeof(digits), value);
-        out.assign(digits, static_cast<size_t>(result.ptr - digits));
-        return true;
-    }
-    const Slice value = object->str_value();
-    out.assign(value.p, value.n);
+bool sort_pattern_key(const SortPattern& pattern, Slice element, std::string& key) {
+    if (!pattern.has_star) return false;
+    key.assign(pattern.prefix.p, pattern.prefix.n);
+    key.append(element.p, element.n);
+    key.append(pattern.suffix.p, pattern.suffix.n);
     return true;
 }
 
-}  // namespace
-
-SortStatus sort_run(Shard* owner, bool notify, const SortSpec& spec,
+SortStatus sort_run(const SortSpec& spec, const SortResolved* resolved,
                     std::vector<std::string>& elements,
                     std::vector<std::string>& values,
                     std::vector<uint8_t>& present) {
@@ -201,10 +99,12 @@ SortStatus sort_run(Shard* owner, bool notify, const SortSpec& spec,
             item.index = i;
             if (!dontsort) {
                 if (by_lookup) {
-                    item.weight_present = sort_lookup(
-                        owner, notify, spec, spec.by,
-                        Slice(elements[i].data(), static_cast<uint32_t>(elements[i].size())),
-                        item.weight);
+                    item.weight_present = resolved && resolved->by_values &&
+                                          resolved->by_present &&
+                                          i < resolved->by_values->size() &&
+                                          i < resolved->by_present->size() &&
+                                          (*resolved->by_present)[i];
+                    if (item.weight_present) item.weight = (*resolved->by_values)[i];
                 } else {
                     item.weight = elements[i];
                     item.weight_present = true;
@@ -268,15 +168,20 @@ SortStatus sort_run(Shard* owner, bool notify, const SortSpec& spec,
                 present.push_back(1);
                 continue;
             }
-            const Slice slice(element.data(), static_cast<uint32_t>(element.size()));
-            for (const SortPattern& pattern : spec.gets) {
+            for (size_t get = 0; get < spec.gets.size(); get++) {
+                const SortPattern& pattern = spec.gets[get];
                 if (pattern.self) {
                     values.push_back(element);
                     present.push_back(1);
                     continue;
                 }
                 std::string value;
-                const bool found = sort_lookup(owner, notify, spec, pattern, slice, value);
+                const size_t flat = static_cast<size_t>(items[i].index) * spec.gets.size() + get;
+                const bool found = pattern.has_star && resolved && resolved->get_values &&
+                                   resolved->get_present && flat < resolved->get_values->size() &&
+                                   flat < resolved->get_present->size() &&
+                                   (*resolved->get_present)[flat];
+                if (found) value = (*resolved->get_values)[flat];
                 values.push_back(std::move(value));
                 present.push_back(found ? 1 : 0);
             }

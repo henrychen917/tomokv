@@ -1,5 +1,8 @@
 # NOTES-SORT — `SORT ... BY pattern [GET pattern ...]`
 
+> Historical note for the original single-executor implementation. Cross-owner admission and its
+> source/gather design supersede the refusal described below; see `NOTES-SORTXSHARD.md`.
+
 Branch `t-sort`. Feature file `src/cmd/t_sort.cc` / `src/cmd/t_sort.h`.
 
 | | |

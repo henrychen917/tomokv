@@ -36,10 +36,11 @@ SRV=0; SRVLOG=/dev/null
 # 194 -> 207: arity, blockmulti, cmdgap, multires and xmove were shipped but not invoked; aclsel,
 # cmdmeta and expwide joined the feature loop; cmdmeta coverage is a new static row. Each feature
 # battery runs under both atomic modes, so one battery is two rows.
-# 207 -> 209: contarity exercises XGROUP/XINFO under the feature boot's 16-shard, >=2-executor
-# geometry in both atomic modes and refuses a same-executor routing sample.
-EXPECT_QUICK=209
-EXPECT_FULL=219                 # full without the optional NIC row.
+# 207 -> 211: contarity exercises XGROUP/XINFO under the feature boot's 16-shard, >=2-executor
+# geometry and infofix checks measured INFO telemetry; each runs in both atomic modes.
+# 211 -> 213: cross-owner SORT has its required 16-shard, 6:2 geometry under both atomic modes.
+EXPECT_QUICK=213
+EXPECT_FULL=223                 # full without the optional NIC row.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ok(){ say "$1" "ok"; PASS=$((PASS+1)); }
 bad(){ say "$1" "FAIL${2:+ ($2)}"; FAIL=$((FAIL+1)); }
@@ -161,6 +162,19 @@ for AT in 0 1; do
   stop
   grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
       && ok "feature shutdown invariants (atomic $AT)" || bad "feature shutdown invariants (atomic $AT)"
+done
+
+# ---- SORT's dynamic keys: exact production gate geometry, both atomic modes -------------------
+# tests/sort.py rejects any boot other than 16 shards at 6:2, buckets candidate names with
+# DEBUG SHARD, and requires concrete BY and GET keys plus STORE destination on the executor slot
+# opposite the source. No same-owner or one-executor run can satisfy this row.
+for AT in 0 1; do
+  boot ./build/tomokv --ratio 6:2 --atomic "$AT" --enable-debug-command yes \
+      || bad "cross-owner SORT boot (atomic $AT)"
+  python3 tests/sort.py 127.0.0.1 "$PORT" >/tmp/gate-sort-$AT.txt 2>&1 \
+      && ok "cross-owner SORT battery (atomic $AT)" \
+      || bad "cross-owner SORT battery (atomic $AT)" "see /tmp/gate-sort-$AT.txt"
+  stop
 done
 
 # ---- debug-surface batteries: these drive DEBUG subcommands, hence their own armed boot -------

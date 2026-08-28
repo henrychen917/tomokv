@@ -138,12 +138,40 @@ struct SortOptions {
     uint32_t by_arg = 0;
     std::vector<uint32_t> get_args;
     // True once a pattern will actually READ a derived key: a '*'-bearing BY, or a GET that is
-    // neither `#` nor globless. Only these forms need the cross-shard engine's read context, and
-    // only these are subject to the single-owner admission rule.
+    // neither `#` nor globless. These forms take a source wave followed by an owner-grouped gather
+    // wave and therefore always carry the cross-shard engine's read/time cuts.
     bool deref = false;
     // True once the command needs the general path: any BY (including a `BY nosort`, which
     // suppresses ordering) or any GET (including `GET #`, which changes the reply shape).
     bool general() const { return by_arg != 0 || !get_args.empty(); }
+};
+
+enum class SortDerefWave : uint8_t { Source, Gather, Resolved };
+
+struct SortDerefRequest {
+    std::string key;
+    std::string field;
+    std::string value;
+    uint64_t hash = 0;
+    size_t output = 0;
+    int32_t shard = -1;
+    bool by = false;
+    bool present = false;
+};
+
+// Cold SORT-only state. The object itself is placement-constructed in the scatter arena; its
+// vectors own the dynamic plan whose size cannot be known until the source image has been decoded.
+struct SortDerefState {
+    SortSpec spec;
+    SortResolved resolved;
+    std::vector<std::string> elements;
+    std::vector<SortDerefRequest> requests;
+    std::vector<uint32_t> key_order;
+    std::vector<std::string> by_values;
+    std::vector<uint8_t> by_present;
+    std::vector<std::string> get_values;
+    std::vector<uint8_t> get_present;
+    SortDerefWave wave = SortDerefWave::Source;
 };
 
 struct ImageScoreRange {
@@ -382,9 +410,9 @@ struct ScatterState : SnapshotCut {
     bool atomic_group = false;
     bool atomic_direct = false;
     bool pop_missed = false;
-    // SORT's BY/GET form is computed inside its phase-one owner task -- the only context that holds
-    // a Shard, and therefore the only one that may legally dereference. These two say the result is
-    // already in state.result and must not be recomputed at completion.
+    // SORT's general form is computed on an executor. Dereferencing forms set this only after the
+    // last owner-grouped gather task has returned; non-dereferencing forms may set it in the source
+    // task. Completion consumes the one result in either case.
     bool sort_general_done = false;
     bool sort_conversion_error = false;
     bool admitted = false;
@@ -480,6 +508,8 @@ struct ScatterState : SnapshotCut {
     // context remains independently refcounted while this ordinary scatter owns the Op marker.
     BlockingState* blocking_origin = nullptr;
     std::atomic<NotifyBatch*> notify{nullptr};
+    // COLD TAIL: only a SORT with an actual `*` dereference carves and constructs this arena object.
+    SortDerefState* sort_deref = nullptr;
 };
 
 static_assert(sizeof(ScatterState) + 8 * (sizeof(ShardGroup) + sizeof(KeyRef) +
@@ -546,11 +576,17 @@ bool parse_i64(Slice s, int64_t& out);
 bool parse_mpop(Op& op, Kind kind, uint32_t& numkeys, bool& edge, uint64_t& count);
 bool parse_zrangestore_options(Op& op, ImageRangeOptions& options);
 bool parse_zrangestore_range(Op& op, const ImageRangeOptions& options, ImageRangeSpec& range);
-bool parse_sort_options(Op& op, SortOptions& options, Server* admit);
+bool parse_sort_options(Op& op, SortOptions& options);
 WorkError sort_image(const ObjectImage& image, const Op& op, const SortOptions& options,
-                     Shard* owner, bool notify, uint64_t read_snapshot, uint64_t origin_conn_id,
+                     const SortResolved* resolved,
                      std::vector<std::string>& values, std::vector<uint8_t>& present,
                      bool& conversion_error);
+WorkError sort_image_prepare(const ObjectImage& image, const Op& op, const SortOptions& options,
+                             SortSpec& spec, std::vector<std::string>& elements);
+WorkError sort_image_finish(const SortSpec& spec, const SortResolved* resolved,
+                            std::vector<std::string>& elements,
+                            std::vector<std::string>& values, std::vector<uint8_t>& present,
+                            bool& conversion_error);
 bool sort_encode_store(const std::vector<std::string>& values,
                        const std::vector<uint8_t>& present, ObjectImage& image);
 void sort_reply_rows(Op& op, const std::vector<std::string>& values,
@@ -581,6 +617,11 @@ bool first_error(const ScatterState& state, WorkError& error) {
     for (uint32_t gi = 0; gi < state.nsub; gi++) {
         const ShardGroup& group = state.groups[gi];
         if (group.error != WorkError::None) { error = group.error; return true; }
+        // The gather wave's ranges index SortDerefState::key_order, not the fixed argv-key order.
+        // Gather tasks report allocation failures in group.error above and have no per-key status,
+        // so a terminal OOM/queue-full path must not scan state.key_order before source groups are
+        // restored.
+        if (state.sort_deref && state.sort_deref->wave == SortDerefWave::Gather) continue;
         if (!state.status || !(state.kind == Kind::Mset || state.kind == Kind::Pfcount ||
                                state.kind == Kind::Xread || state.kind == Kind::Lcs ||
                                is_two_hop(state.kind))) continue;
@@ -649,7 +690,7 @@ bool has_images(Kind kind) {
 
 size_t arena_layout_bytes(Kind kind, uint32_t key_count, uint32_t group_cap,
                           uint32_t shard_slots, bool atomic_write, bool atomic_apply,
-                          uint32_t owner_slots) {
+                          uint32_t owner_slots, bool sort_deref) {
     const bool atomic_install = atomic_write || atomic_apply;
     size_t off = sizeof(ScatterState);
     carve_size<ShardGroup>(off, group_cap);
@@ -667,6 +708,7 @@ size_t arena_layout_bytes(Kind kind, uint32_t key_count, uint32_t group_cap,
     if (atomic_install)
         carve_size<uint16_t>(off, shard_slots); // direct shard -> dense group lookup
     if (atomic_install) carve_size<OwnerRecordRefs>(off, owner_slots);
+    if (sort_deref) carve_size<SortDerefState>(off, 1);
     return off;
 }
 
@@ -701,6 +743,8 @@ void init_arena_arrays(ScatterState& state) {
         state.shard_groups = carve_at<uint16_t>(base, off, state.shard_slots);
     if (state.atomic_write || state.atomic_apply)
         state.owner_record_refs = carve_at<OwnerRecordRefs>(base, off, state.owner_slots);
+    if (state.kind == Kind::Sort && state.sort_options.deref)
+        state.sort_deref = carve_at<SortDerefState>(base, off, 1);
 
     for (uint32_t i = 0; state.groups && i < state.group_cap; i++)
         new (&state.groups[i]) ShardGroup;
@@ -714,6 +758,7 @@ void init_arena_arrays(ScatterState& state) {
         std::fill_n(state.shard_groups, state.shard_slots, UINT16_MAX);
     for (uint32_t i = 0; state.owner_record_refs && i < state.owner_slots; i++)
         new (&state.owner_record_refs[i]) OwnerRecordRefs;
+    if (state.sort_deref) new (state.sort_deref) SortDerefState;
     for (uint32_t i = 0; state.images && i < state.key_count; i++) new (&state.images[i]) ObjectImage;
     for (uint32_t i = 0; state.apply && i < state.key_count; i++) new (&state.apply[i]) ObjectImage;
 }
@@ -798,6 +843,140 @@ void build_initial_groups(ScatterState& state) {
     }
 }
 
+bool sort_deref_gathering(const ScatterState& state) {
+    return state.sort_deref && state.sort_deref->wave == SortDerefWave::Gather;
+}
+
+Slice sort_deref_key(const SortDerefRequest& request) {
+    return Slice(request.key.data(), static_cast<uint32_t>(request.key.size()));
+}
+
+// Replace the explicit-key source groups with the dynamically discovered request groups. The
+// generic ShardGroup table remains the dispatch index; only its begin/count ranges point into the
+// SORT sidecar's key_order during this wave.
+void build_sort_deref_groups(ScatterState& state) {
+    SortDerefState& sort = *state.sort_deref;
+    reset_groups(state);
+    uint32_t counts[256] = {};
+    for (const SortDerefRequest& request : sort.requests)
+        counts[static_cast<uint32_t>(request.shard)]++;
+    uint32_t cursor = 0;
+    for (uint32_t sid = 0; sid < 256; sid++) {
+        if (!counts[sid]) continue;
+        ShardGroup& group = state.groups[state.nsub++];
+        group.shard = static_cast<int32_t>(sid);
+        group.begin = cursor;
+        group.count = counts[sid];
+        if (state.shard_groups)
+            state.shard_groups[sid] = static_cast<uint16_t>(state.nsub - 1);
+        cursor += counts[sid];
+    }
+    uint32_t fill[256] = {};
+    for (uint32_t pos = 0; pos < sort.requests.size(); pos++) {
+        const SortDerefRequest& request = sort.requests[pos];
+        ShardGroup* group = group_for(state, request.shard);
+        group->membership |= atomic_membership_bit(request.hash);
+        sort.key_order[group->begin + fill[static_cast<uint32_t>(request.shard)]++] = pos;
+    }
+}
+
+void restore_sort_source_groups(ScatterState& state) {
+    reset_groups(state);
+    build_initial_groups(state);
+}
+
+WorkError prepare_sort_deref(ScatterState& state, Op& op) {
+    SortDerefState& sort = *state.sort_deref;
+    const uint32_t source_pos = state.sort_options.store ? 1u : 0u;
+    WorkError prepared = sort_image_prepare(
+        state.images[source_pos], op, state.sort_options, sort.spec, sort.elements);
+    if (prepared != WorkError::None) return prepared;
+
+    try {
+        const size_t elements = sort.elements.size();
+        const size_t gets = sort.spec.gets.size();
+        if (gets && elements > std::numeric_limits<size_t>::max() / gets)
+            return WorkError::Oom;
+        const size_t get_slots = elements * gets;
+        sort.by_values.resize(elements);
+        sort.by_present.assign(elements, 0);
+        sort.get_values.resize(get_slots);
+        sort.get_present.assign(get_slots, 0);
+        sort.resolved.by_values = &sort.by_values;
+        sort.resolved.by_present = &sort.by_present;
+        sort.resolved.get_values = &sort.get_values;
+        sort.resolved.get_present = &sort.get_present;
+
+        uint64_t request_count = sort.spec.by_given && sort.spec.by.has_star ? elements : 0;
+        for (const SortPattern& pattern : sort.spec.gets)
+            if (!pattern.self && pattern.has_star) request_count += elements;
+        if (request_count > UINT32_MAX) return WorkError::Oom;
+        sort.requests.reserve(static_cast<size_t>(request_count));
+
+        auto add_request = [&](const SortPattern& pattern, Slice element, bool by, size_t output) {
+            SortDerefRequest request;
+            if (!sort_pattern_key(pattern, element, request.key)) return;
+            if (pattern.field.n) request.field.assign(pattern.field.p, pattern.field.n);
+            const Slice key(request.key.data(), static_cast<uint32_t>(request.key.size()));
+            request.hash = FlatStore::hash_key(key);
+            request.shard = state.server->router().shard_of(request.hash);
+            request.output = output;
+            request.by = by;
+            sort.requests.push_back(std::move(request));
+        };
+        for (size_t element_index = 0; element_index < elements; element_index++) {
+            const std::string& value = sort.elements[element_index];
+            const Slice element(value.data(), static_cast<uint32_t>(value.size()));
+            if (sort.spec.by_given && sort.spec.by.has_star)
+                add_request(sort.spec.by, element, true, element_index);
+            for (size_t get = 0; get < gets; get++) {
+                const SortPattern& pattern = sort.spec.gets[get];
+                if (!pattern.self && pattern.has_star)
+                    add_request(pattern, element, false, element_index * gets + get);
+            }
+        }
+        sort.key_order.resize(sort.requests.size());
+    } catch (const std::bad_alloc&) {
+        return WorkError::Oom;
+    }
+
+    if (sort.requests.empty()) {
+        sort.wave = SortDerefWave::Resolved;
+        return WorkError::None;
+    }
+    sort.wave = SortDerefWave::Gather;
+    build_sort_deref_groups(state);
+    return WorkError::None;
+}
+
+WorkError finish_sort_deref(ScatterState& state) {
+    SortDerefState& sort = *state.sort_deref;
+    for (uint32_t i = 0; i < state.nsub; i++)
+        if (state.groups[i].error != WorkError::None) return state.groups[i].error;
+    for (SortDerefRequest& request : sort.requests) {
+        if (!request.present) continue;
+        if (request.by) {
+            sort.by_values[request.output] = std::move(request.value);
+            sort.by_present[request.output] = 1;
+        } else {
+            sort.get_values[request.output] = std::move(request.value);
+            sort.get_present[request.output] = 1;
+        }
+    }
+    ResultHeap* result = ensure_result(state);
+    if (!result) return WorkError::Oom;
+    bool conversion_error = false;
+    const WorkError finished = sort_image_finish(
+        sort.spec, &sort.resolved, sort.elements, result->members, result->present,
+        conversion_error);
+    if (finished != WorkError::None) return finished;
+    state.sort_conversion_error = conversion_error;
+    state.sort_general_done = true;
+    sort.wave = SortDerefWave::Resolved;
+    state.server->note_sort_scatter_general();
+    return WorkError::None;
+}
+
 uint32_t initialize_owner_completion(ScatterState& state) {
     if (!state.atomic_write && !(state.atomic_apply && state.phase == 2)) return state.nsub;
     uint32_t owners = 0;
@@ -813,6 +992,50 @@ uint32_t initialize_owner_completion(ScatterState& state) {
             state.owner_record_refs[slot].remaining =
                 state.owner_record_refs[slot].group_count;
     return owners;
+}
+
+bool publish_sort_deref(Server& server, ThreadCtx& self, Ring& ring, const Task& task,
+                        ScatterState& state) {
+    uint32_t needed[kMaxThreads] = {};
+    uint32_t participants[kMaxThreads];
+    uint16_t routed_owner[256];
+    uint32_t nparticipants = 0;
+    for (uint32_t i = 0; i < state.nsub; i++) {
+        const uint32_t tid = server.worker_of_shard(state.groups[i].shard);
+        routed_owner[i] = static_cast<uint16_t>(tid);
+        if (needed[tid]++ == 0) participants[nparticipants++] = tid;
+    }
+    for (uint32_t p = 0; p < nparticipants; p++) {
+        const uint32_t tid = participants[p];
+        if (server.thread(tid).task_free_slots(self.id()) < needed[tid]) {
+            state.final_reply = FinalReply::QueueFull;
+            return false;
+        }
+    }
+    state.pending.store(state.nsub, std::memory_order_release);
+    Task posts[256];
+    uint16_t participant_begin[kMaxThreads];
+    uint32_t cursor = 0;
+    for (uint32_t p = 0; p < nparticipants; p++) {
+        const uint32_t tid = participants[p];
+        participant_begin[p] = static_cast<uint16_t>(cursor);
+        cursor += needed[tid];
+        needed[tid] = participant_begin[p];
+    }
+    for (uint32_t i = 0; i < state.nsub; i++)
+        posts[needed[routed_owner[i]]++] = Task{
+            task.client, task.op_id, state.groups[i].shard, &state};
+    if (cursor != state.nsub) std::abort();
+    for (uint32_t p = 0; p < nparticipants; p++) {
+        const uint32_t tid = participants[p];
+        const uint32_t begin = participant_begin[p];
+        const uint32_t end = p + 1 < nparticipants ? participant_begin[p + 1] : state.nsub;
+        ThreadCtx& owner = server.thread(tid);
+        if (!owner.post_tasks_quiet(self.id(), posts + begin, end - begin, self.sig()))
+            std::abort();
+        owner.flush_task_notify(self.id(), ring, self.sig());
+    }
+    return true;
 }
 
 bool publish_phase2(Server& server, ThreadCtx& self, Ring& ring, const Task& task,
@@ -935,6 +1158,7 @@ void free_state_contents(ScatterState& state) {
     for (uint32_t i = 0; state.images && i < state.key_count; i++) state.images[i].~ObjectImage();
     for (uint32_t i = 0; state.apply && i < state.key_count; i++) state.apply[i].~ObjectImage();
     delete state.result;
+    if (state.sort_deref) state.sort_deref->~SortDerefState();
     state.contents_freed = true;
 }
 
@@ -1168,7 +1392,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         return ScatterPrepare::Error;
 
     SortOptions sort_options;
-    if (kind == Kind::Sort && !parse_sort_options(op, sort_options, &server))
+    if (kind == Kind::Sort && !parse_sort_options(op, sort_options))
         return ScatterPrepare::Error;
     StreamXreadArgs xread_options;
     if (kind == Kind::Xread && !stream_parse_xread(op, xread_options))
@@ -1259,11 +1483,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         // to bind on those shards. Without them a weight key written by this very connection reads
         // as absent -- which is what the differ caught, on whichever boot placed the weight keys
         // off the source's shard.
-#ifdef TOMO_SORT_NO_READCTX
-        const bool sort_deref_group = false;   // negative-control build; see the `sortnoctx` target
-#else
         const bool sort_deref_group = kind == Kind::Sort && sort_options.deref;
-#endif
         if (same_owner && !force_atomic && !sort_deref_group &&
             kind != Kind::Pfcount && kind != Kind::Pfmerge &&
             (!(op.spec->flags & CmdFlags::Blocking) || xread_local) &&
@@ -1303,6 +1523,10 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
             group_cap += first;
         }
     }
+    // The source wave names only one explicit key, but a derived-key gather can touch every shard.
+    // Reserve the dense group table now; the request/order vectors themselves are built later in
+    // the SORT-only arena sidecar once the source elements are known.
+    if (kind == Kind::Sort && sort_options.deref) group_cap = server.nshards();
     // A CROSS-SHARD READ CARRIES A CUT WHETHER OR NOT A GROUP HAPPENS TO BE IN FLIGHT RIGHT NOW.
     // `tracking` is a sample of atomic_activity_, and EXEC is what writes that word: EXEC
     // force-admits (multi.inc:948) even at --atomic 0, so the word reads zero in every gap between
@@ -1319,9 +1543,14 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     // readers nothing that a cut would buy.
     const bool read_fanout = group_cap > 1 &&
         !(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite));
-    const bool needs_snapshot = kind == Kind::Script || (!force_atomic && (tracking || read_fanout) &&
-        (key_count || kind == Kind::Keys || kind == Kind::DbsizeExact) &&
-        !(atomic_write && kind == Kind::Mset));
+    // A dereferencing SORT is a fan-out READ even when STORE also makes the command a write. It must
+    // carry one cut at atomic mode 0 as well. A forced child inside EXEC borrows the transaction's
+    // registered cut later and therefore must not register its private scatter pool here.
+    const bool sort_deref_snapshot = !force_atomic && kind == Kind::Sort && sort_options.deref;
+    const bool needs_snapshot = kind == Kind::Script || sort_deref_snapshot ||
+        (!force_atomic && (tracking || read_fanout) &&
+         (key_count || kind == Kind::Keys || kind == Kind::DbsizeExact) &&
+         !(atomic_write && kind == Kind::Mset));
     if (kind == Kind::Script &&
         !pool.can_register_snapshot(server.script_crossshard_cut_slots())) {
         if (routes != route_stack) delete[] routes;
@@ -1346,7 +1575,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     }
     const size_t bytes = arena_layout_bytes(
         kind, key_count, group_cap, server.nshards(), atomic_write, atomic_apply,
-        static_cast<uint32_t>(server.placement().ex_threads().size()));
+        static_cast<uint32_t>(server.placement().ex_threads().size()), sort_options.deref);
     if (bytes == std::numeric_limits<size_t>::max() || bytes > UINT32_MAX) {
         if (admitted) server.atomic_retire_group(owner_io, admission_generation);
         if (routes != route_stack) delete[] routes;
@@ -1703,7 +1932,7 @@ void xshard_aof_emit_local(Shard& shard, Op& op, AofOwnerContext& context) {
         }
         case Kind::Sort: {
             SortOptions options;
-            if (parse_sort_options(op, options, nullptr) && options.store)
+            if (parse_sort_options(op, options) && options.store)
                 emit(options.store_arg);
             break;
         }
@@ -2061,11 +2290,20 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
     if (!state.atomic_write && shard.store().atomic_has_records()) {
         const uint64_t cleanup_cutoff = state.server->atomic_snapshot();
         const uint64_t floor = state.server->atomic_read_floor();
-        for (uint32_t i = 0; i < group.count; i++) {
-            const uint32_t pos = state.key_order[group.begin + i];
-            const KeyRef& key = state.keys[pos];
-            shard.store().atomic_promote_key(
-                key.hash, op.arg(key.arg), floor, cleanup_cutoff);
+        if (sort_deref_gathering(state)) {
+            SortDerefState& sort = *state.sort_deref;
+            for (uint32_t i = 0; i < group.count; i++) {
+                const SortDerefRequest& request = sort.requests[sort.key_order[group.begin + i]];
+                shard.store().atomic_promote_key(
+                    request.hash, sort_deref_key(request), floor, cleanup_cutoff);
+            }
+        } else {
+            for (uint32_t i = 0; i < group.count; i++) {
+                const uint32_t pos = state.key_order[group.begin + i];
+                const KeyRef& key = state.keys[pos];
+                shard.store().atomic_promote_key(
+                    key.hash, op.arg(key.arg), floor, cleanup_cutoff);
+            }
         }
     }
     struct ReadEpochGuard {
@@ -2230,6 +2468,41 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                                  : (notify ? shard.store_find<true>(hash, key)
                                            : shard.store().find(hash, key));
         };
+
+        // SORT's second read wave has concrete keys but no argv positions. Each request is executed
+        // only by its routed owner, under the ReadEpochGuard and PinnedNowMs installed above.
+        if (sort_deref_gathering(state)) {
+            SortDerefState& sort = *state.sort_deref;
+            for (uint32_t i = 0; i < group.count; i++) {
+                SortDerefRequest& request = sort.requests[sort.key_order[group.begin + i]];
+                const Slice key = sort_deref_key(request);
+                state.server->note_sort_deref_lookup();
+                KvObj* object = find_value(request.hash, key);
+                if (!object) continue;
+                if (!request.field.empty()) {
+                    if (!object->is_type(Type::Hash)) continue;
+                    const Slice field(request.field.data(),
+                                      static_cast<uint32_t>(request.field.size()));
+                    Slice value;
+                    if (!hash_field_value_ro(object, field, value)) continue;
+                    if (shard.store().field_expire_count() &&
+                        hash_ttl_field_lapsed(object, field, shard.now_ms())) continue;
+                    request.value.assign(value.p, value.n);
+                    request.present = true;
+                    continue;
+                }
+                if (!object->is_type(Type::String)) continue;
+                if (object->is_int()) {
+                    char integer[24];
+                    request.value.assign(integer, i64_to_dec(integer, object->int_value()));
+                } else {
+                    const Slice value = object->str_value();
+                    request.value.assign(value.p, value.n);
+                }
+                request.present = true;
+            }
+            return ScatterTaskResult::Complete;
+        }
 
         // MGET is the read-heavy matrix cell. Specialize its loop once per owner task so the
         // no-pending arm is byte-for-byte the ordinary FlatStore lookup, with no per-key selector.
@@ -2670,43 +2943,24 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                         state.kind == Kind::Sort && pos == (state.sort_options.store ? 1u : 0u);
                     if (sort_source)
                         zset_sort_promote(shard, key.hash, op.arg(key.arg), notify);
-                    // A dereferencing SORT reads keys nothing else in this command named, so the
-                    // surrounding machinery has bound no read context for them -- and inside a
-                    // transaction it has not necessarily bound one for the SOURCE either, because
-                    // this shard need not be a participant of any earlier command. Bind the
-                    // command's own context around the whole computation and put back what was
-                    // there; sort_lookup() does the same for each derived key's store.
-                    const bool sort_deref = sort_source && state.sort_options.deref;
-                    const uint64_t saved_epoch = shard.store().atomic_read_epoch();
-                    const uint64_t saved_conn = shard.store().atomic_read_origin_conn_id();
-                    if (sort_deref)
-                        shard.store().atomic_set_read_context(
-                            read_latest ? UINT64_MAX : read_snapshot, state.origin_conn_id);
-                    struct SortCtxRestore {
-                        FlatStore* store; uint64_t epoch; uint64_t conn;
-                        ~SortCtxRestore() { if (store) store->atomic_set_read_context(epoch, conn); }
-                    } sort_ctx{sort_deref ? &shard.store() : nullptr, saved_epoch, saved_conn};
                     KvObj* object = find_value(key.hash, op.arg(key.arg));
                     if (!serialize_object(object, state.images[pos])) {
                         state.status[pos] = static_cast<uint8_t>(WorkError::Oom);
                         break;
                     }
-                    // A BY/GET SORT is finished HERE rather than at completion: this is the source
-                    // key's owner, the one context in which reading a derived key is legal (see
-                    // t_sort.h). Completion consumes the rows and, for STORE, still routes hop two
-                    // to the destination's owner.
-                    if (!sort_source || !state.sort_options.general()) continue;
+                    // General forms that read no derived key can finish immediately on this
+                    // executor. Actual dereferences are expanded only after this source wave and
+                    // reduced after their owner-grouped gather completes.
+                    if (!sort_source || !state.sort_options.general() ||
+                        state.sort_options.deref) continue;
                     ResultHeap* result = ensure_result(state);
                     if (!result) {
                         state.status[pos] = static_cast<uint8_t>(WorkError::Oom);
                         break;
                     }
                     bool conversion_error = false;
-                    // Same cut and same originating connection the ReadEpochGuard above bound on
-                    // THIS shard, carried down so the derived keys' shards resolve identically.
                     const WorkError sorted = sort_image(
-                        state.images[pos], op, state.sort_options, &shard, notify,
-                        read_latest ? UINT64_MAX : read_snapshot, state.origin_conn_id,
+                        state.images[pos], op, state.sort_options, nullptr,
                         result->members, result->present, conversion_error);
                     if (sorted != WorkError::None) {
                         state.status[pos] = static_cast<uint8_t>(sorted);
@@ -3016,6 +3270,42 @@ ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
         state.final_reply = FinalReply::NullArray;
         return final();
     }
+    if (state.kind == Kind::Sort && state.sort_options.deref && state.phase == 1) {
+        if (state.sort_deref->wave == SortDerefWave::Source) {
+            WorkError source_error;
+            if (first_error(state, source_error)) {
+                state.final_reply = FinalReply::Work;
+                state.final_error = source_error;
+                return final();
+            }
+            const WorkError prepared = prepare_sort_deref(state, op);
+            if (prepared != WorkError::None) {
+                state.final_reply = FinalReply::Work;
+                state.final_error = prepared;
+                return final();
+            }
+            if (sort_deref_gathering(state)) {
+                if (publish_sort_deref(server, self, ring, task, state))
+                    return ScatterFinish::Waiting;
+                return final();
+            }
+            const WorkError finished = finish_sort_deref(state);
+            if (finished != WorkError::None) {
+                state.final_reply = FinalReply::Work;
+                state.final_error = finished;
+                return final();
+            }
+            restore_sort_source_groups(state);
+        } else if (sort_deref_gathering(state)) {
+            const WorkError finished = finish_sort_deref(state);
+            if (finished != WorkError::None) {
+                state.final_reply = FinalReply::Work;
+                state.final_error = finished;
+                return final();
+            }
+            restore_sort_source_groups(state);
+        }
+    }
     // Once the last owner has materialized its result, this read cut protects no future
     // dereference. Value borrows have their own store lifetime pins. Tell the owning IO to advance
     // its floor even if ordered reply retirement is still behind a deep pipeline.
@@ -3093,8 +3383,15 @@ void xshard_multi_child_bind(ScatterState& state) {
     state.multi_child = true;
 }
 
-bool xshard_multi_child_has_group(ScatterState& state, int32_t shard) {
-    return group_for(state, shard) != nullptr;
+void xshard_multi_child_capture_groups(ScatterState& state,
+                                       std::array<uint64_t, 4>& mask) {
+    mask.fill(0);
+    for (uint32_t i = 0; i < state.nsub; i++) {
+        const int32_t shard = state.groups[i].shard;
+        if (shard < 0 || shard >= 256) std::abort();
+        const uint32_t sid = static_cast<uint32_t>(shard);
+        mask[sid >> 6] |= 1ull << (sid & 63);
+    }
 }
 
 bool xshard_multi_child_records_done(const ScatterState& state) {
@@ -3116,6 +3413,41 @@ MultiChildFinish xshard_multi_child_complete(ScatterState& state, Op& op,
     if (state.atomic_pop && state.phase == 2 && state.pop_missed) {
         state.final_reply = FinalReply::NullArray;
         return MultiChildFinish::Final;
+    }
+    if (state.kind == Kind::Sort && state.sort_options.deref && state.phase == 1) {
+        if (state.sort_deref->wave == SortDerefWave::Source) {
+            WorkError source_error;
+            if (first_error(state, source_error)) {
+                state.final_reply = FinalReply::Work;
+                state.final_error = source_error;
+                return MultiChildFinish::Final;
+            }
+            const WorkError prepared = prepare_sort_deref(state, op);
+            if (prepared != WorkError::None) {
+                state.final_reply = FinalReply::Work;
+                state.final_error = prepared;
+                return MultiChildFinish::Final;
+            }
+            if (sort_deref_gathering(state)) {
+                state.pending.store(state.nsub, std::memory_order_release);
+                return MultiChildFinish::PhaseAdvanced;
+            }
+            const WorkError finished = finish_sort_deref(state);
+            if (finished != WorkError::None) {
+                state.final_reply = FinalReply::Work;
+                state.final_error = finished;
+                return MultiChildFinish::Final;
+            }
+            restore_sort_source_groups(state);
+        } else if (sort_deref_gathering(state)) {
+            const WorkError finished = finish_sort_deref(state);
+            if (finished != WorkError::None) {
+                state.final_reply = FinalReply::Work;
+                state.final_error = finished;
+                return MultiChildFinish::Final;
+            }
+            restore_sort_source_groups(state);
+        }
     }
     if (state.atomic_write) {
         WorkError error;
