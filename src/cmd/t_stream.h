@@ -42,6 +42,18 @@ struct StreamOwnedEntry {
     std::vector<std::string> values;
 };
 
+// Valid only for the duration of a StreamMergeVisit callback.
+struct StreamBorrowedEntry {
+    StreamID id{};
+    bool deleted = false;
+    const std::vector<Slice>* fields = nullptr;
+    const std::vector<Slice>* values = nullptr;
+};
+
+using StreamMergeNext = bool (*)(void* context, StreamID& target);
+using StreamMergeVisit = void (*)(void* context, const StreamID& target,
+                                  const StreamBorrowedEntry* entry);
+
 enum class StreamReadResult : uint8_t { Empty, Ready, Missing, WrongType, Oom, Corrupt };
 
 bool stream_parse_xread(Op& op, StreamXreadArgs& parsed);
@@ -61,6 +73,10 @@ bool stream_object_collect(KvObj* object, const StreamID& start, bool exclusive,
                            std::vector<StreamOwnedEntry>& entries);
 bool stream_object_find(KvObj* object, const StreamID& id, StreamOwnedEntry& entry,
                         bool& found);
+// Merge strictly increasing IDs supplied by next with the ordered physical stream. visit receives
+// nullptr when a target has no physical record; tombstones are returned as deleted entries.
+bool stream_object_merge_scan(KvObj* object, void* context, StreamMergeNext next,
+                              StreamMergeVisit visit);
 bool stream_force_external(Shard& shard, Op& op, KvObj*& object, bool notify);
 bool stream_create_empty_external(Shard& shard, Op& op, bool notify, KvObj*& object);
 

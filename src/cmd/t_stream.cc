@@ -1433,6 +1433,77 @@ bool stream_object_find(KvObj* object, const StreamID& id, StreamOwnedEntry& ent
     return true;
 }
 
+bool stream_object_merge_scan(KvObj* object, void* context, StreamMergeNext next,
+                              StreamMergeVisit visit) {
+    if (!object) return false;
+    StreamID target;
+    bool have_target = next(context, target);
+    if (!have_target) return true;
+
+    auto advance_target = [&](const RecordView* record) {
+        if (record) {
+            StreamBorrowedEntry entry;
+            entry.id = record->id;
+            entry.deleted = (record->flags & kDeleted) != 0;
+            entry.fields = &record->fields;
+            entry.values = &record->values;
+            visit(context, target, &entry);
+        } else {
+            visit(context, target, nullptr);
+        }
+        have_target = next(context, target);
+    };
+    auto merge_record = [&](const RecordView& record) {
+        while (have_target && id_compare(target, record.id) < 0) advance_target(nullptr);
+        if (!have_target) return false;
+        if (id_equal(target, record.id)) advance_target(&record);
+        return have_target;
+    };
+
+    CollectionRef stream(object);
+    if (stream.encoding() == CollectionEncoding::Compact) {
+        StreamHeader header;
+        if (!compact_header(stream.compact(), header) ||
+            !scan_compact(stream.compact(), header.base_id,
+                          [&](const Compact::Entry&, const RecordView& record) {
+                              return merge_record(record);
+                          })) return false;
+    } else {
+        StreamVal* value = stream.external_as<StreamVal>();
+        if (value->index.empty()) {
+            if (!value->nodes.empty()) return false;
+        } else {
+            auto position = std::upper_bound(value->index.begin(), value->index.end(), target,
+                [](const StreamID& id, const StreamNodeIndex& index) {
+                    return id_compare(id, index.base_id) < 0;
+                });
+            uint32_t node_index = 0;
+            if (position != value->index.begin()) node_index = (--position)->node;
+            while (have_target && node_index < value->nodes.size()) {
+                StreamNode& node = value->nodes[node_index];
+                if (id_compare(target, node.last_id) > 0) {
+                    const auto begin = value->index.begin() + node_index + 1;
+                    position = std::upper_bound(begin, value->index.end(), target,
+                        [](const StreamID& id, const StreamNodeIndex& index) {
+                            return id_compare(id, index.base_id) < 0;
+                        });
+                    node_index = position == begin ? node_index + 1 : (--position)->node;
+                    continue;
+                }
+                if (!scan_compact(CompactView(&node.log), node.base_id,
+                                  [&](const Compact::Entry&, const RecordView& record) {
+                                      return merge_record(record) &&
+                                             id_compare(target, node.last_id) <= 0;
+                                  }, node_index == 0 && !value->head_fields.empty()
+                                         ? &value->head_fields : nullptr)) return false;
+                node_index++;
+            }
+        }
+    }
+    while (have_target) advance_target(nullptr);
+    return true;
+}
+
 bool stream_force_external(Shard& shard, Op& op, KvObj*& object, bool notify) {
     return notify ? externalize_stream<true>(shard, op, object)
                   : externalize_stream<false>(shard, op, object);

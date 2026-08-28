@@ -134,11 +134,13 @@ struct StreamPending {
     uint64_t delivery_count = 0;
 };
 
+using PendingMap = std::map<StreamID, StreamPending, IdLess>;
+
 struct StreamGroup {
     StreamID last_delivered{};
     int64_t entries_read = -1;
     std::map<std::string, StreamConsumer, std::less<>> consumers;
-    std::map<StreamID, StreamPending, IdLess> pending;
+    PendingMap pending;
 };
 
 struct StreamGroups {
@@ -285,7 +287,7 @@ bool create_consumer(StreamGroups& groups, StreamGroup& group, Slice name, int64
 }
 
 void erase_pending(StreamGroups& groups, StreamGroup& group,
-                   std::map<StreamID, StreamPending, IdLess>::iterator pending) {
+                   PendingMap::iterator pending) {
     groups.note_delete(pending_allocation_bytes(pending->second));
     group.pending.erase(pending);
 }
@@ -675,6 +677,21 @@ struct ClaimOptions {
     StreamID lastid{};
 };
 
+bool own_borrowed_entry(const StreamBorrowedEntry& source, StreamOwnedEntry& destination) {
+    try {
+        destination = StreamOwnedEntry{};
+        destination.id = source.id;
+        destination.deleted = source.deleted;
+        destination.fields.reserve(source.fields->size());
+        destination.values.reserve(source.values->size());
+        for (Slice field : *source.fields) destination.fields.emplace_back(field.p, field.n);
+        for (Slice value : *source.values) destination.values.emplace_back(value.p, value.n);
+    } catch (const std::bad_alloc&) {
+        return false;
+    }
+    return true;
+}
+
 template <bool kNotify>
 void cmd_xclaim(Shard& shard, Op& op) {
     ClaimOptions options;
@@ -829,32 +846,68 @@ void cmd_xautoclaim(Shard& shard, Op& op) {
     std::vector<StreamID> deleted;
     try { claimed.reserve(count); deleted.reserve(count); }
     catch (const std::bad_alloc&) { reply_err(op.sink(), "ERR out of memory"); return; }
-    auto it = group->pending.lower_bound(start);
     const uint64_t max_scan = count > UINT64_MAX / 10 ? UINT64_MAX : count * 10;
-    uint64_t scanned = 0;
-    while (it != group->pending.end() && scanned < max_scan &&
-           claimed.size() + deleted.size() < count) {
-        auto current = it++;
-        scanned++;
-        StreamOwnedEntry entry; bool found = false;
-        if (!stream_object_find(object, current->first, entry, found)) {
-            reply_err(op.sink(), "ERR corrupt stream encoding"); return;
+    struct AutoClaimScan {
+        StreamGroups* groups;
+        StreamGroup* group;
+        StreamConsumer* consumer;
+        PendingMap::iterator pending;
+        Slice consumer_name;
+        int64_t now;
+        uint64_t min_idle;
+        uint64_t count;
+        uint64_t max_scan;
+        uint64_t scanned = 0;
+        bool justid;
+        bool copy_failed = false;
+        bool assign_failed = false;
+        std::vector<StreamOwnedEntry>* claimed;
+        std::vector<StreamID>* deleted;
+    } scan{groups, group, consumer, group->pending.lower_bound(start), op.arg(3), now,
+           min_idle, count, max_scan, 0, justid, false, false, &claimed, &deleted};
+    const auto next_pending = [](void* context, StreamID& target) {
+        auto& scan = *static_cast<AutoClaimScan*>(context);
+        if (scan.copy_failed || scan.assign_failed || scan.pending == scan.group->pending.end() ||
+            scan.scanned >= scan.max_scan ||
+            scan.claimed->size() + scan.deleted->size() >= scan.count) return false;
+        target = scan.pending->first;
+        return true;
+    };
+    const auto visit_pending = [](void* context, const StreamID& target,
+                                  const StreamBorrowedEntry* source) {
+        auto& scan = *static_cast<AutoClaimScan*>(context);
+        auto current = scan.pending++;
+        scan.scanned++;
+        if (!source || source->deleted) {
+            scan.deleted->push_back(target);
+            erase_pending(*scan.groups, *scan.group, current);
+            return;
         }
-        if (!found || entry.deleted) {
-            deleted.push_back(current->first);
-            erase_pending(*groups, *group, current);
-            continue;
+        const uint64_t idle = scan.now > current->second.delivery_time
+            ? static_cast<uint64_t>(scan.now - current->second.delivery_time) : 0;
+        if (idle < scan.min_idle) return;
+        StreamOwnedEntry entry;
+        if (scan.justid) entry.id = target;
+        else if (!own_borrowed_entry(*source, entry)) {
+            scan.copy_failed = true;
+            return;
         }
-        const uint64_t idle = now > current->second.delivery_time
-            ? static_cast<uint64_t>(now - current->second.delivery_time) : 0;
-        if (idle < min_idle) continue;
-        assign_pending_consumer(*groups, current->second, op.arg(3));
-        current->second.delivery_time = now;
-        if (!justid) current->second.delivery_count++;
-        consumer->active_time = now;
-        claimed.push_back(std::move(entry));
+        try {
+            assign_pending_consumer(*scan.groups, current->second, scan.consumer_name);
+        } catch (const std::bad_alloc&) {
+            scan.assign_failed = true;
+            return;
+        }
+        current->second.delivery_time = scan.now;
+        if (!scan.justid) current->second.delivery_count++;
+        scan.consumer->active_time = scan.now;
+        scan.claimed->push_back(std::move(entry));
+    };
+    if (!stream_object_merge_scan(object, &scan, next_pending, visit_pending) || scan.copy_failed) {
+        reply_err(op.sink(), "ERR corrupt stream encoding"); return;
     }
-    const StreamID cursor = it == group->pending.end() ? StreamID{} : it->first;
+    if (scan.assign_failed) { reply_err(op.sink(), "ERR out of memory"); return; }
+    const StreamID cursor = scan.pending == group->pending.end() ? StreamID{} : scan.pending->first;
     reply_array_header(op.sink(), 3);
     reply_id(op, cursor);
     reply_array_header(op.sink(), claimed.size());
