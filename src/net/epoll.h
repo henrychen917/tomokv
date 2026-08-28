@@ -59,25 +59,12 @@ public:
         if (fd_ < 0) { std::perror("epoll_create1"); return false; }
         return true;
     }
-    bool inited() const { return fd_ >= 0; }
-    int  fd() const { return fd_; }
-
     bool add(int target, uint32_t events, uint64_t tag) {
         epoll_event ev{};
         ev.events = events;
         ev.data.u64 = tag;
         return ::epoll_ctl(fd_, EPOLL_CTL_ADD, target, &ev) == 0;
     }
-    bool mod(int target, uint32_t events, uint64_t tag) {
-        epoll_event ev{};
-        ev.events = events;
-        ev.data.u64 = tag;
-        return ::epoll_ctl(fd_, EPOLL_CTL_MOD, target, &ev) == 0;
-    }
-    // Not called on the ordinary teardown path: ::close(fd) drops the registration by itself, and
-    // doing both would race a recycled fd number belonging to a connection accepted since.
-    bool del(int target) { return ::epoll_ctl(fd_, EPOLL_CTL_DEL, target, nullptr) == 0; }
-
     // Blocking (or, with timeout_ms == 0, polling) wait. EINTR is reported as zero events rather
     // than as an error: the loop's next pass re-reads its stop flag, which is how shutdown lands.
     int wait(int timeout_ms) {
@@ -85,7 +72,6 @@ public:
         n_ = n > 0 ? n : 0;
         return n_;
     }
-    int nevents() const { return n_; }
     const epoll_event& event(int i) const { return events_[i]; }
 
 private:
