@@ -14,3 +14,8 @@ dump.tomo
 
 # python bytecode from the in-tree test helpers (tests/aof_frame_order.py imports aof_frames)
 __pycache__/
+
+# agent lane artifacts -- never commit these
+codex*.log
+BRIEF*.md
+LANE_RULES.md
