@@ -1302,7 +1302,12 @@ subscriber_checks_done:
                             self_->note_command(spec->id);
                             rob.publish();
                             c->set_blocked(true);
-                            c->set_scatter_barrier(true);
+                            // Released by the quiescence backstop, not here: a parked WAIT's own
+                            // completion (deferred_wait_pass) fires before its op retires, and
+                            // dropping the barrier there would let younger frames parse ahead of
+                            // the WAIT reply's staging. Owner bit named so the release is
+                            // attributable; the release site is deliberately unchanged.
+                            barrier_arm(c, BarrierOwner::Wait);
                             mark_active(c);
                             break;
                         }
@@ -1434,7 +1439,20 @@ subscriber_checks_done:
                 conn.advance_parse(consumed);
                 sig.ops++;
                 c->set_blocked(true);
-                c->set_scatter_barrier(true);
+                // The Blocking owner spans the WHOLE parked lifetime, including the move scatter
+                // blocking_resume_move() converts this op into: that conversion reuses the ROB
+                // slot and inherits this claim rather than taking a second one, so exactly one
+                // acquire is matched by exactly one release in blocking_retire() OR
+                // blocking_scatter_retire(), whichever of the two exits runs.
+                barrier_arm(c, BarrierOwner::Blocking);
+                // TEST HOOK (DEBUG BARRIER-HOLD): pin a SECOND owner on this connection so the
+                // blocking release has something to fail to drop. The geometry it manufactures is
+                // unreachable in production -- which is exactly why it has to be injected.
+                // Acquired RAW, not through barrier_arm: barrier_owner_overlaps must stay a clean
+                // reading of PRODUCTION overlap (it is the live form of the reachability verdict),
+                // so an injected overlap may not be allowed to forge it.
+                if (__builtin_expect(srv_->debug_barrier_hold_armed(), false))
+                    c->barrier_acquire(BarrierOwner::Debug);
                 mark_active(c);
                 break;
             }
@@ -1527,7 +1545,7 @@ nonblocking_dispatch:
                     conn.advance_parse(consumed);
                     sig.ops++;
                     head_candidate = false;
-                    if (scatter_dispatch.barrier) c->set_scatter_barrier(true);
+                    if (scatter_dispatch.barrier) barrier_arm(c, BarrierOwner::Scatter);
                     mark_active(c);
                     continue;
                 }
@@ -1590,7 +1608,7 @@ nonblocking_dispatch:
                 conn.advance_parse(consumed);
                 sig.ops++;
                 head_candidate = false;
-                if (scatter_dispatch.barrier) c->set_scatter_barrier(true);
+                if (scatter_dispatch.barrier) barrier_arm(c, BarrierOwner::Scatter);
                 mark_active(c);
                 continue;
             }
@@ -1678,6 +1696,18 @@ nonblocking_dispatch:
             srv_->thread(wkr).flush_task_notify(self_->id(), ring_, sig);
         }
         ntouched_ = 0;
+    }
+
+    // THE ONE DOOR ONTO THE PARSE BARRIER. Every owner parks a connection through here so the
+    // overlap -- two owners holding the barrier at once -- is COUNTED rather than assumed absent.
+    // NOTES-BARRIER.md section 2 argues from the source that no production sequence produces one
+    // today; barrier_owner_overlaps is that argument's live assertion, and a validation run that
+    // wants the two-owner geometry gates on it rather than trusting the prose. Cold by
+    // construction: the six owners are EXEC, a subscribe, a blocking command, a deferred WAIT, a
+    // barriered scatter and a CLIENT fan-out. GET and SET never reach it.
+    void barrier_arm(Client* c, BarrierOwner who) {
+        if (__builtin_expect(c->scatter_barrier(), false)) srv_->note_barrier_overlap();
+        c->barrier_acquire(who);
     }
 
     void finish_locally(Client* c, Op& op, const char* err) {
@@ -1846,7 +1876,17 @@ nonblocking_dispatch:
                     enqueue_serve(c);
                     work++;
                 }
-                if (c->rob().quiesced()) c->set_scatter_barrier(false);
+                // TEST HOOK (DEBUG BARRIER-HOLD) release, BEFORE the quiescence backstop so a
+                // cleared latch and the backstop can both land in the same pass. Guarded on the
+                // connection's own bit first, so production pays one byte test inside an arm that
+                // already only runs when a barrier is set -- the server-wide load never happens.
+                if (__builtin_expect(c->barrier_held_by(BarrierOwner::Debug), false) &&
+                    !srv_->debug_barrier_hold_armed())
+                    c->barrier_release(BarrierOwner::Debug);
+                // With nothing in flight every production owner has completed by definition, so
+                // this releases all of them at once. It is the backstop for the four owners
+                // (WAIT, EXEC, pub/sub, CLIENT fan-out) that have no owner-scoped release site.
+                if (c->rob().quiesced()) c->barrier_release_quiesced();
             }
             if (c->atomic_backpressure() && srv_->atomic_can_admit(self_->id()) &&
                 scatter_pool_.can_register_snapshot())

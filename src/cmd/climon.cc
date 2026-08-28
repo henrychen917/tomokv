@@ -521,7 +521,10 @@ IoLoop::ClimonStartResult IoLoop::climon_start_client_unblock(Client* client, Op
 
     srv_->client_scatter_started();
     client->rob().publish();
-    client->set_scatter_barrier(true);
+    // Released by the quiescence backstop in flush_ready when the remote owner's reply retires
+    // this slot. Note this is CLIENT UNBLOCK, not CLIENT PAUSE -- PAUSE parks a connection through
+    // climon_pause_holds() and never touches the barrier at all.
+    barrier_arm(client, BarrierOwner::Climon);
     PubSubEvent* event = pubsub_new_event(PubSubEventKind::ClientUnblockRequest);
     event->target_io = owner;
     event->origin_io = self_->id();
@@ -677,7 +680,9 @@ IoLoop::ClimonStartResult IoLoop::climon_begin_client_scatter(
 
     srv_->client_scatter_started();
     client->rob().publish();
-    client->set_scatter_barrier(true);
+    // CLIENT LIST / CLIENT KILL fan-out. Released by the quiescence backstop in flush_ready once
+    // every io thread has answered and this slot retires.
+    barrier_arm(client, BarrierOwner::Climon);
     for (PubSubEvent* event : events) {
         event->origin_io = self_->id();
         event->conn_id = client->id();

@@ -847,7 +847,9 @@
         // Publish the ROB slot before any home can answer it. The response event may race all the
         // way back to this IO, but it can never complete an operation absent from dispatch_.
         client->rob().publish();
-        client->set_scatter_barrier(true);
+        // Released by the quiescence backstop in flush_ready: the transition's parked lifetime is
+        // its ROB slot, which retires only once every channel home has answered.
+        barrier_arm(client, BarrierOwner::PubSub);
         for (PubSubEvent* event : events) {
             event->origin_io = self_->id();
             event->conn_id = conn_id;

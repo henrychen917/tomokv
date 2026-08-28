@@ -1431,7 +1431,11 @@ bool multi_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consume
     loop.self_->note_command(op.spec->id);
     client.advance_parse(consumed);
     sig.ops++;
-    client.set_scatter_barrier(true);
+    // Released by the quiescence backstop in flush_ready: EXEC's parked lifetime IS its ROB slot,
+    // so "nothing in flight" and "this transaction is done" are the same instant. Unlike a blocking
+    // command, EXEC takes the barrier WITHOUT requiring an empty ROB -- older ops of this
+    // connection may still be in flight when it does.
+    loop.barrier_arm(&client, BarrierOwner::Exec);
     loop.mark_active(&client);
     return true;
 }
