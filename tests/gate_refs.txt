@@ -1,6 +1,22 @@
 # name        cores  ratio  shards pipe lg      t   conns rw   ref_ops
 # The gate's ONLY performance content (owner rule): a p1 regression cell and the p128 pair.
-# refs pinned 2026-08-24 (pre-reboot kernel; re-pin after the mitigations=off reboot)
-p1_8c         0-7    7:1    16     1    64-79   16  512   0:1  890000
-p128_32c_get  0-31   18:14  64     128  64-127  64  512   0:1  25190000
-p128_32c_set  0-31   18:14  64     128  64-127  64  512   1:0  24180000
+#
+# refs RE-PINNED 2026-08-29 from the FIRST REAL NIC MEASUREMENT.
+#
+# The previous refs (890000 / 25190000 / 24180000) were pinned 2026-08-24 from the LOOPBACK ship
+# and had never been validated on the NIC rig, because every NIC cell failed to start: nic_boot
+# identifies the server it booted by reading `process_id` from INFO, and we did not emit that field
+# until 6a939bb3c. So the cells compared a NIC measurement against a loopback reference and read
+# -11.8%, which is not a regression -- it is the cost of a real 25GbE path.
+#
+# Verified by measuring the p128_32c_get geometry BOTH ways on the same tree, same hour:
+#     loopback 25,333,941 ops/s  (+0.57% vs the old loopback ref -- no regression from the 92-commit
+#                                 merge wave)
+#     NIC      22,210,000 ops/s  (-12.3% vs loopback: the NIC tax at p128/32c)
+#
+# These refs are therefore NIC-measured and must only ever be compared against NIC runs. If the rig
+# changes (coalescing, IRQ affinity, MTU) they need re-pinning again -- and the header must say so,
+# because a loopback/NIC mix-up is invisible in the output.
+p1_8c         0-7    7:1    16     1    64-79   16  512   0:1  850000
+p128_32c_get  0-31   18:14  64     128  64-127  64  512   0:1  22210000
+p128_32c_set  0-31   18:14  64     128  64-127  64  512   1:0  21300000
