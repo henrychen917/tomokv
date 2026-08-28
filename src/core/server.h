@@ -344,7 +344,6 @@ public:
     bool client_cron_armed() const {
         return client_cron_armed_.load(std::memory_order_relaxed);
     }
-    const std::atomic<bool>* client_cron_armed_ptr() const { return &client_cron_armed_; }
     const std::atomic<bool>* client_obuf_armed_ptr() const {
         return &client_obuf_armed_;
     }
@@ -1030,9 +1029,6 @@ public:
     void set_debug_atomic_commit_delay(uint32_t microseconds) {
         debug_atomic_commit_delay_.store(microseconds, std::memory_order_relaxed);
     }
-    uint32_t debug_atomic_commit_delay() const {
-        return debug_atomic_commit_delay_.load(std::memory_order_relaxed);
-    }
     // TEST HOOK (DEBUG ATOMIC-FANOUT-DEFER). Microseconds every fragment of a cross-shard READ
     // except the one on its lead shard is PARKED -- re-queued, not spun -- after the command is
     // dispatched. That park is the fan-out window: the lead fragment answers from the world before
@@ -1206,15 +1202,6 @@ public:
         if (version == known_version) return false;
         snapshot = live_config_snapshot();
         return snapshot.version != known_version;
-    }
-    void set_maxmemory(uint64_t value) {
-        set_maxmemory_config(value, MaxmemoryPolicy::NoEviction, 0, true, false, false);
-    }
-    void set_maxmemory_policy(MaxmemoryPolicy value) {
-        set_maxmemory_config(0, value, 0, false, true, false);
-    }
-    void set_maxmemory_samples(uint32_t value) {
-        set_maxmemory_config(0, MaxmemoryPolicy::NoEviction, value, false, false, true);
     }
     void set_maxmemory_config(uint64_t memory, MaxmemoryPolicy policy, uint32_t samples,
                               bool set_memory = true, bool set_policy = true,
