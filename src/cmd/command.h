@@ -144,6 +144,7 @@ CommandTable functions_command_table();
 CommandTable server_tail_command_table();
 CommandTable slowlog_command_table();
 CommandTable lcs_command_table();
+CommandTable cmdgap_command_table();
 
 // Built once before threads start. Lookup hashes the uppercase-normalized bytes into an open-
 // addressed table; the load factor is capped at 1/2 so ordinary command names land in one probe.
