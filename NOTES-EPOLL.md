@@ -31,10 +31,20 @@ Selecting `epoll` implies one other thing, announced on stderr at boot rather th
 this engine no ring exists. Forcing rather than erroring keeps `--net-io epoll` usable with any
 existing config file.
 
-The boot banner names the engine, so a log tells you which one ran:
+The boot banner names the engine, so a log tells you which one ran. Booting from a conf file that
+asks for both `net-io epoll` and `persist-io uring`:
 
 ```
+$ cat netio.conf
+port 7580 / bind 127.0.0.1 / shards 16 / ratio 4:2 / net-io epoll / persist-io uring
+
+--net-io epoll: persist-io forced to normal (the uring persistence engine needs a ring)
 tomokv-cpp: 6 threads (4 io + 2 ex), 16 shard(s), 2s (io sends), epoll, alloc=jemalloc
+
+CONFIG GET net-io     -> net-io epoll
+CONFIG GET persist-io -> persist-io normal
+CONFIG SET net-io     -> ERR parameter is immutable at runtime
+INFO STATS            -> net_io_epoll_events:12 net_io_epoll_recvs:4
 ```
 
 ---
@@ -226,9 +236,11 @@ two things that are genuinely out of scope.
 
 ---
 
-## 4. Two defects found while bringing it up
+## 4. Defects found while bringing it up
 
-Both were found by running, not by reading, and both are covered by existing tests.
+Two were found by RUNNING, and both are covered by existing tests. Three more were found by reading
+the finished engine back and are listed after them; those never fired, so they are stated as hazards
+closed rather than as bugs fixed.
 
 ### (a) An iterator held across `close_client` (ASAN heap-buffer-overflow)
 
@@ -269,6 +281,27 @@ ever clear the flag. Minimal reproduction, A/B:
 
 `tests/climon.py`'s "KILL self close-after-reply" is the regression cover, and it failed before the
 fix and passes after.
+
+### (c) Three hazards closed on review, before any of them fired
+
+Stated separately from (a) and (b) on purpose: no test caught these, so calling them "fixed defects"
+would overclaim. Each is a place where the epoll engine's shape differs from io_uring's in a way that
+would have produced a rare, hard-to-attribute symptom.
+
+1. **A rung doorbell whose payload arrived after the mailbox drain.** The mailbox is drained by
+   `ring_.for_each_cqe()` and the eventfd is drained by `epoll_pass` one step later. A peer landing
+   between them leaves a consumed bell with its tag still queued; if that pass then reported no work,
+   the loop would park and the tag would wait out the whole 50 ms ceiling. Counting the bell as work
+   sends the loop round again. Symptom would have been an occasional 50 ms reply, i.e. exactly the
+   shape DEFER_TASKRUN once produced on the other engine.
+2. **The send-failure latch leaking across connections.** `close_client` flushes a TLS alert through
+   the same engine; a failure latched there would be picked up by the *next* connection's
+   `take_send_failure()` and close a healthy client. `epoll_close_now` drains the latch after every
+   teardown.
+3. **A TLS want left recorded forever.** `arm_tls_socket_poll` has nothing to submit under epoll, so
+   it only records the want; nothing retired it, which would have made the next call a permanent
+   no-op and parked the handshake. The answering edge now retires both wants and lets `drive_tls`
+   re-record what it still needs.
 
 ---
 
@@ -355,12 +388,18 @@ reproduced since, and every control points away from the engine:
 MULTI SOAK (net-io=epoll, atomic=1, one long-lived server): rounds=24 pass=24 fail=0
 ```
 
-I am recording this rather than dropping it. What the evidence supports is: a rare, non-deterministic
-divergence in the atomic MULTI path that needs a long-lived server, seen once in 288 epoll legs and
-never in 144 uring legs or 24 dedicated soak rounds. What it does **not** support is attributing it to
-this lane — the engine changes recv/send/wait, and the observed symptom is a transaction's own
-delete-then-read overlay, which is engine-blind code this lane does not touch. The honest statement is
-that it is unattributed and unreproduced, and that the dense probe designed to catch it did not.
+I am recording this rather than dropping it, and I am not claiming to have explained it. What the
+evidence supports is a rare non-deterministic divergence in the atomic MULTI path that needs a
+long-lived server: seen once in 288 epoll legs, never in 144 uring legs, never in 24 dedicated soak
+rounds, and never on the pre-lane binary running the same leg. What it does not support is
+attributing it to this lane — every replies-matched-but-state-diverged shape lives in code the engine
+does not touch, and the engine's own arm and the pre-lane arm are equally clean.
+
+Reading the diff, the *shape* is a transaction whose earlier delete of a key was not visible to its
+own later `INCRBY` on that key (the delete's reply matched, the read's did not) — which is the family
+NOTES-EXECFIX describes. That is an inference from five reply pairs, not a diagnosis, and I did not
+reproduce it well enough to make one. Flagged here for whoever owns that machinery; if it recurs, the
+soak driver is `multi_soak.sh` in this lane's scratch directory and the recipe is in this section.
 
 ### 5.3 The engine's own directed battery: `tests/netio.py`
 
@@ -461,11 +500,77 @@ ASAN build:    0 warnings, 0 errors
 tests/config_parser_test.cc: PASS      (includes the new --net-io grammar + negative controls)
 ```
 
+### 5.9 The default engine, on the final binary
+
+The uring differ matrix in §5.2 (144/144) ran before the last three engine-boundary changes, so the
+default path was re-smoked on the final binary — including `servertail`, which walks the INFO surface
+this lane added two fields to:
+
+```
+ENGINE=uring ATOMIC=0 PASS=7 FAIL=0
+  torture ok   ryow ok   s6 ok   multi_exec ok   servertail ok   concur ok   limits ok
+  shutdown invariants ok
+```
+
+Plus `netio(uring)` 37/37 with both epoll counters reading exactly 0 (§5.3), and the throughput A/B
+against the pre-lane binary in §6.
+
 ---
 
 ## 6. Indicative numbers
 
-*(filled in below)*
+**INDICATIVE, NOT A VERDICT.** The box is shared with other lanes, so the absolute figures are not
+comparable with anything outside this file, and this is loopback — no wire, no NIC rig (reserved).
+The run answers two narrow questions and nothing else: did the lane regress the default engine, and
+is epoll catastrophically slower.
+
+Setup: server `taskset -c 112-119` (8 cores, `--ratio 6:2 --shards 16`), memtier `taskset -c 120-127`
+(8 threads x 25 clients), `-d 32`, `--key-pattern=R:R --key-maximum=200000` with a SET-only warmup
+first so GET is not measuring misses (`dbsize=199902` on every arm). 15 s per cell, 3 repeats, arms
+**interleaved** (base, uring, epoll, base, uring, epoll, …) so box drift shows up as spread between
+repeats of the same arm rather than as an engine difference.
+
+Three arms: `base` = the pre-lane binary at `329fa10ec` on io_uring; `uring` = this lane's binary on
+`--net-io uring`; `epoll` = this lane's binary on `--net-io epoll`.
+
+### PRE vs POST — median of 3, ops/sec
+
+| arm | p32 SET | p32 GET | p1 SET | p1 GET |
+|---|---:|---:|---:|---:|
+| base (pre-lane, io_uring) | 7,803,279 | 8,152,636 | 562,276 | 566,615 |
+| lane, `--net-io uring` | 7,783,177 | 8,056,685 | 563,721 | 564,297 |
+| lane, `--net-io epoll` | 7,912,983 | 8,793,771 | 570,729 | 574,813 |
+
+| comparison | p32 SET | p32 GET | p1 SET | p1 GET |
+|---|---:|---:|---:|---:|
+| **lane-uring vs base** (no-regression check) | −0.3% | −1.2% | +0.3% | −0.4% |
+| **lane-epoll vs base** | +1.4% | +7.9% | +1.5% | +1.4% |
+
+| run-to-run spread (max−min / median) | p32 SET | p32 GET | p1 SET | p1 GET |
+|---|---:|---:|---:|---:|
+| base | 1.8% | 1.5% | 2.3% | 0.4% |
+| uring | 2.4% | 1.9% | 1.1% | 1.5% |
+| epoll | 0.9% | 1.4% | 0.5% | 0.3% |
+
+### Reading them
+
+**The default engine did not regress.** Every lane-uring cell is inside that cell's own run-to-run
+spread, in both directions. That is what the design predicted: the uring instantiation contains no
+epoll code (§2a) and gained only outer-loop tests (§2c).
+
+**epoll is not catastrophically slower — in these cells it is ahead**, and the p32 GET margin (+7.9%)
+is outside the spread and reproduced in all three repeats (8.69M / 8.81M / 8.79M against base's
+8.04M / 8.15M / 8.16M). I am reporting that, not celebrating it. It is consistent with what
+`net/uring.h` already says — *"naively swapped in, io_uring is roughly net-neutral, and the large
+gains come from exploiting it deliberately"* — and this is the cell where the syscall path is
+cheapest: loopback, 32-byte values, 8 server cores, no wire, and no `zc-min` borrow traffic (`-d 32`
+is far below the 16384 threshold).
+
+**It does not make epoll the better engine, and nothing here should be read as arguing for changing
+the default.** The architecture this tree is built on rests on wire, core-count and geometry
+measurements that this lane did not run and is not permitted to run (the 25GbE rig is reserved). One
+narrow loopback shape is not evidence about any of them. What these numbers license is exactly the
+claim in the brief: epoll works, and it is not catastrophically slower.
 
 ---
 
