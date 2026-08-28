@@ -19,7 +19,7 @@ COMMAND_SOURCES = [
     "src/cmd/t_zset_ops.cc", "src/cmd/geo.cc", "src/cmd/t_stream.cc",
     "src/cmd/t_stream_groups.cc", "src/cmd/t_server.cc", "src/cmd/scripting.cc",
     "src/cmd/functions.cc", "src/cmd/server_tail.cc", "src/cmd/slowlog.cc",
-    "src/cmd/lcs.cc", "src/cmd/cmdgap.cc",
+    "src/cmd/lcs.cc", "src/cmd/cmdgap.cc", "src/cmd/pfdebug.cc",
 ]
 
 ACL_CATEGORIES = [

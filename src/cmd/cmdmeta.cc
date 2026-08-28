@@ -1,4 +1,5 @@
 // cmdmeta.cc -- cold command/subcommand metadata and COMMAND key-intent extraction.
+#include <cstdio>
 #include "cmdmeta.h"
 
 #include "acl_categories_generated.h"
@@ -237,7 +238,14 @@ bool command_metadata_init(const CommandSpec* specs, size_t count) {
     for (size_t index = 0; index < count; index++) {
         const CommandMetadata* metadata = command_metadata_lookup(
             Slice(specs[index].name, static_cast<uint32_t>(std::strlen(specs[index].name))));
-        if (!metadata || command_metadata_is_subcommand(*metadata)) return false;
+        if (!metadata || command_metadata_is_subcommand(*metadata)) {
+            // Name the offender: a command registered with no generated row (or one that resolved to
+            // a subcommand) is a table that fell behind the registry, and the operator needs to know
+            // WHICH command to add rather than only that boot failed.
+            std::fprintf(stderr, "command metadata missing for \"%s\"%s\n", specs[index].name,
+                         metadata ? " (resolved to a subcommand)" : "");
+            return false;
+        }
         g_metadata_by_id[specs[index].id] = metadata;
     }
     return true;

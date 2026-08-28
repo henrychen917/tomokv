@@ -35,8 +35,8 @@ SRV=0; SRVLOG=/dev/null
 # 192 -> 194: the AOF frame-order battery, on persist-io normal under both atomic modes.
 # 194 -> 204: arity, blockmulti, cmdgap, multires and xmove were shipped but not invoked; each now
 # runs under both atomic modes.
-EXPECT_QUICK=204
-EXPECT_FULL=214
+EXPECT_QUICK=205
+EXPECT_FULL=215
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ok(){ say "$1" "ok"; PASS=$((PASS+1)); }
 bad(){ say "$1" "FAIL${2:+ ($2)}"; FAIL=$((FAIL+1)); }
@@ -97,6 +97,13 @@ boot(){ # binary -> pid ; server log to $SRVLOG
   return 1
 }
 stop(){ kill -TERM $SRV 2>/dev/null; wait $SRV 2>/dev/null; sleep 5; }
+
+# A registered command with no generated metadata row makes command_metadata_init fail, and the
+# server then refuses to boot at all -- every row below goes red at once with no indication which
+# command is at fault. Static, so it fires before any server starts.
+python3 tests/cmdmeta_coverage.py >/tmp/gate-cmdmeta-coverage.txt 2>&1 \
+    && ok "cmdmeta covers every registered command" \
+    || bad "cmdmeta covers every registered command" "see /tmp/gate-cmdmeta-coverage.txt"
 
 # ---- 3. correctness: smoke + torture + RYOW on the release build ------------------------------
 boot ./build/tomokv || bad "release boot"
