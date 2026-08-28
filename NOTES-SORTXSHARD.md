@@ -67,12 +67,12 @@ This lane must never be validated with one executor.  The gate geometry is exact
 --shards 16 --ratio 6:2 --enable-debug-command yes
 ```
 
-The SORT battery will fail unless INFO reports 6 I/O and 2 executor threads and CONFIG reports 16
-shards.  Because the default placement assigns shard `sid` to executor slot `sid % 2`, it will walk
-candidate pattern prefixes, query `DEBUG SHARD` for the source and every concrete derived key, and
-require at least one derived key whose shard maps to the other executor slot.  It will print the
-source/derived shard pair and fail loudly if none is found.  STORE destinations will be selected by
-the same geometry search rather than assumed from a key spelling.
+The SORT battery will fail unless INFO reports 6 I/O and 2 executor threads and a wide `DEBUG SHARD`
+candidate walk observes exactly shards 0 through 15. Because the default placement assigns shard
+`sid` to executor slot `sid % 2`, it walks candidate pattern prefixes, queries `DEBUG SHARD` for the
+source and every concrete derived key, and requires at least one derived key whose shard maps to the
+other executor slot. It prints the source/derived shard pair and fails loudly if none is found.
+STORE destinations are selected by the same geometry search rather than assumed from a key spelling.
 
 Per lane rules, I have not built anything, run any test/load script, or started a server.
 
@@ -99,5 +99,18 @@ Implemented the planned owner-only waves:
   No resolver/version/publication code was changed.
 - The multi-executor option refusals, `sort_deref_local`, and both denial constants were removed.
 
-Static inspection still pending: validation battery rewrite, stale negative-control cleanup,
-whole-tree symbol sweep, and final diff audit. No build or runtime check has been performed.
+## 2026-08-28: validation and cleanup checkpoint
+
+- `tests/sort.py` now rejects any geometry other than 16 observed shards at a 6:2 I/O:executor
+  ratio. It buckets candidate names with `DEBUG SHARD`, derives the default owner slot from
+  `shard % 2`, and fails loudly unless the source has concrete BY and GET keys plus a STORE
+  destination on the other executor. The proven command asserts both its exact result and exact
+  derived-lookup/reduction counter deltas.
+- `tests/gate.sh` gives SORT its own two-executor boot in both atomic modes. The old one-executor
+  negative-control target and refusal assertions were removed; the semantic, RYOW, MULTI/EXEC,
+  STORE, and randomized phases now all run under the cross-owner geometry.
+- Operator documentation no longer describes BY/GET as placement-dependent. The original
+  `NOTES-SORT.md` is explicitly marked historical.
+
+Per lane rules these are static test definitions only: no build, server, test, or load process was
+started in this lane.

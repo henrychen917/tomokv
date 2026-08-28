@@ -3193,9 +3193,9 @@ def gen_edgeproto(rng):
 def gen_sort(rng):
     """SORT with BY / GET dereference patterns.
 
-    RUN THE TARGET WITH ONE EXECUTOR (e.g. --ratio 3:1). The dereference is admitted only when one
-    executor owns every shard; with more executors the target refuses these patterns by design and
-    every BY/GET row diffs against the standalone oracle, which is the intended signal, not a bug.
+    The full differential gate runs the target at --shards 16 --ratio 6:2. The directed sort.py
+    battery on the same geometry is the non-vacuous routing guard: it walks DEBUG SHARD candidates
+    and fails unless concrete BY and GET keys live on an executor other than the source's.
 
     TWO REPLY SHAPES ARE DELIBERATELY EXCLUDED because the reference itself does not define them:
       * `SORT <set> BY <globless>` WITHOUT STORE -- the reference dumps the set's own iteration

@@ -1,23 +1,21 @@
 #!/usr/bin/env python3
-"""SORT BY/GET battery.
+"""Cross-owner SORT BY/GET battery.
 
 Usage: tests/sort.py HOST PORT [SEED]
 
-Two configurations must both be exercised, and the script detects which one it is talking to:
+Required server geometry (the gate boot):
 
-  * ONE EXECUTOR  -- the BY/GET dereference is admitted, because that executor owns every shard and
-    a derived key can never belong to another thread.  The battery then checks the whole reference
-    surface: substitution, hash-field patterns, NULL weights, the conversion error, the collation
-    split, dontsort per type, the set/STORE determinism rule, GET projection and STORE.
-  * MORE THAN ONE -- every '*'-bearing BY/GET must be refused with the single-owner error, and every
-    form that dereferences nothing must still work.
+  --shards 16 --ratio 6:2 --enable-debug-command yes
 
-VACUOUS-VALIDATION GUARD.  Replies alone cannot tell a dereference that ran from patterns that
-resolved to nothing, nor a refusal from an unrelated failure, nor which of the two execution arms
-(localfast / cross-shard engine) served the command.  Every phase below therefore asserts on INFO's
-sort_deref_lookups, sort_deref_refusals, sort_scatter_general and sort_deref_escapes, and each is
-another phase's negative control: the refusal phase must report zero lookups, the deref phase must
-report zero refusals, and sort_deref_escapes must be zero everywhere.
+The battery fails on any other geometry. The default shard-home map assigns shard `sid` to executor
+slot `sid % 2`; the test walks candidate names and asks DEBUG SHARD for every source/derived key. It
+will not run the semantic checks until it has proved that at least one concrete BY key and one
+concrete GET key live on the executor opposite the source. STORE uses a destination found by the
+same search. A hash seed or placement that collapses the geometry is a loud failure, never a skip.
+
+VACUOUS-VALIDATION GUARD. Replies alone cannot tell a dereference that ran from patterns that
+resolved to nothing. The explicit DEBUG SHARD geometry plus INFO's sort_deref_lookups and
+sort_scatter_general counters prove that the owner-grouped mechanism ran.
 """
 
 import random
@@ -110,12 +108,87 @@ def stats(c):
     return out
 
 
-def executors(c):
-    """Number of ex threads, read from the server's own placement report."""
+def placement(c):
+    """I/O and executor thread counts from the server's own placement report."""
+    found = {}
     for line in str(c.cmd("INFO", "LB")).split("\r\n"):
-        if line.startswith("lb_ex_threads:"):
-            return int(line.split(":", 1)[1])
-    raise AssertionError("INFO LB did not report lb_ex_threads")
+        if line.startswith("lb_io_threads:") or line.startswith("lb_ex_threads:"):
+            key, value = line.split(":", 1)
+            found[key] = int(value)
+    if "lb_io_threads" not in found or "lb_ex_threads" not in found:
+        raise AssertionError("INFO LB did not report I/O and executor thread counts")
+    return found["lb_io_threads"], found["lb_ex_threads"]
+
+
+def shard_of(c, key):
+    shard = c.cmd("DEBUG", "SHARD", key)
+    if not isinstance(shard, int):
+        raise AssertionError("DEBUG SHARD is required, got %r for %s" % (shard, key))
+    return shard
+
+
+def observed_shards(c):
+    """Bucket a wide candidate set; the required 16-shard boot must expose exactly 0..15."""
+    found = set()
+    for candidate in range(2048):
+        found.add(shard_of(c, "s:geometry:shards:%04d" % candidate))
+    return found
+
+
+def find_cross_owner_pattern(c, source, stem, elements, executors):
+    """Find a pattern with a concrete key on an executor other than `source`'s."""
+    source_shard = shard_of(c, source)
+    source_owner = source_shard % executors
+    by_shard = {}
+    for candidate in range(4096):
+        prefix = "%s:%04d:" % (stem, candidate)
+        routed = []
+        for element in elements:
+            key = prefix + element
+            shard = shard_of(c, key)
+            by_shard.setdefault(shard, []).append(key)
+            routed.append((element, key, shard))
+        for element, key, shard in routed:
+            if shard % executors != source_owner:
+                return prefix + "*", element, key, source_shard, shard, by_shard
+    raise AssertionError(
+        "DEBUG SHARD found no cross-owner %s pattern after 4096 candidates; source shard=%d, "
+        "observed shards=%r" % (stem, source_shard, sorted(by_shard)))
+
+
+def find_cross_owner_key(c, source, stem, executors):
+    source_shard = shard_of(c, source)
+    source_owner = source_shard % executors
+    by_shard = {}
+    for candidate in range(4096):
+        key = "%s:%04d" % (stem, candidate)
+        shard = shard_of(c, key)
+        by_shard.setdefault(shard, key)
+        if shard % executors != source_owner:
+            return key, source_shard, shard, by_shard
+    raise AssertionError(
+        "DEBUG SHARD found no cross-owner %s key after 4096 candidates; source shard=%d, "
+        "observed shards=%r" % (stem, source_shard, sorted(by_shard)))
+
+
+def required_geometry(c):
+    io_threads, ex_threads = placement(c)
+    shards = observed_shards(c)
+    if (io_threads, ex_threads) != (6, 2) or shards != set(range(16)):
+        raise AssertionError(
+            "sort battery requires --shards 16 --ratio 6:2; got observed shards=%r ratio=%d:%d"
+            % (sorted(shards), io_threads, ex_threads))
+    elements = ["3", "1", "2"]
+    by = find_cross_owner_pattern(c, "s:L", "s:xby", elements, ex_threads)
+    get = find_cross_owner_pattern(c, "s:L", "s:xget", elements, ex_threads)
+    store = find_cross_owner_key(c, "s:L", "s:xstore", ex_threads)
+    print("  geometry: source shard %d -> BY shard %d (%s -> %s)"
+          % (by[3], by[4], by[1], by[2]))
+    print("  geometry: source shard %d -> GET shard %d (%s -> %s)"
+          % (get[3], get[4], get[1], get[2]))
+    print("  geometry: source shard %d -> STORE shard %d (%s)"
+          % (store[1], store[2], store[0]))
+    return {"by_pattern": by[0], "get_pattern": get[0], "store": store[0]}
 
 
 def fixture(c):
@@ -134,10 +207,6 @@ def fixture(c):
     c.cmd("MSET", "s:w\\1x", "100", "s:w\\2x", "50", "s:w\\3x", "25")
     c.cmd("MSET", "s:x->f1", "5", "s:x->f2", "1", "s:x->f3", "3")
     c.cmd("SET", "s:h_1->", "V1")
-
-
-DENY_BY = "BY option of SORT denied"
-DENY_GET = "GET option of SORT denied"
 
 
 def phase_no_deref(c):
@@ -187,42 +256,8 @@ def phase_no_deref(c):
           after["sort_deref_lookups"] - before["sort_deref_lookups"], 0)
 
 
-def phase_refused(c):
-    print("-- multi-executor: every '*'-bearing BY/GET is refused --")
-    before = stats(c)
-    for label, args in [
-        ("BY string pattern", ("SORT", "s:L", "BY", "s:w_*")),
-        ("BY hash-field pattern", ("SORT", "s:L", "BY", "s:h_*->f")),
-        ("BY on SORT_RO", ("SORT_RO", "s:L", "BY", "s:w_*")),
-        ("BY refused before a later syntax error", ("SORT", "s:L", "BY", "s:w_*", "BADTOKEN")),
-        ("BY refused with STORE", ("SORT", "s:L", "BY", "s:w_*", "STORE", "s:d")),
-        ("BY refused on a missing source", ("SORT", "s:none", "BY", "s:w_*")),
-    ]:
-        check_err(label, c.cmd(*args), "ERR " + DENY_BY)
-    for label, args in [
-        ("GET string pattern", ("SORT", "s:L", "GET", "s:d_*")),
-        ("GET hash-field pattern", ("SORT", "s:L", "GET", "s:h_*->g")),
-        ("GET on SORT_RO", ("SORT_RO", "s:L", "GET", "s:d_*")),
-        ("GET refused after an admitted BY", ("SORT", "s:L", "BY", "nosort", "GET", "s:d_*")),
-    ]:
-        check_err(label, c.cmd(*args), "ERR " + DENY_GET)
-    # Inside a transaction the refusal is an execution-time array element, exactly as it is for any
-    # other runtime error in EXEC, and the rest of the transaction still runs.
-    check("MULTI opens", c.cmd("MULTI"), "OK")
-    check("refused command queues", c.cmd("SORT", "s:L", "BY", "s:w_*"), "QUEUED")
-    check("admitted command queues", c.cmd("SORT", "s:L", "BY", "nosort"), "QUEUED")
-    replies = c.cmd("EXEC")
-    check_err("refusal inside EXEC", replies[0], "ERR " + DENY_BY)
-    check("EXEC continues past the refusal", replies[1], ["3", "1", "2"])
-    after = stats(c)
-    check("refusals counted", after["sort_deref_refusals"] - before["sort_deref_refusals"], 11)
-    # MECHANISM CONTROL: a refusal must happen BEFORE any key is read.
-    check("refusal phase performed no lookups",
-          after["sort_deref_lookups"] - before["sort_deref_lookups"], 0)
-
-
 def phase_deref(c):
-    print("-- single executor: the full BY/GET surface --")
+    print("-- full BY/GET surface across owners --")
     before = stats(c)
 
     # substitution is the FIRST '*' only, and a backslash escapes nothing.
@@ -295,12 +330,35 @@ def phase_deref(c):
               "ERR One or more scores can't be converted into double")
 
     after = stats(c)
-    # MECHANISM CONTROL: this phase must have read derived keys, and refused nothing.
-    if after["sort_deref_lookups"] - before["sort_deref_lookups"] <= 0:
-        failures.append("deref phase performed no lookups at all")
-        print("  FAIL deref phase performed no lookups at all")
-    check("deref phase refused nothing",
-          after["sort_deref_refusals"] - before["sort_deref_refusals"], 0)
+    # MECHANISM CONTROL: this phase must have read derived keys.
+    check("deref phase performed lookups",
+          after["sort_deref_lookups"] - before["sort_deref_lookups"] > 0, True)
+
+
+def phase_proven_cross_owner(c, geometry):
+    """One command whose BY, GET, and STORE routes were proved before execution."""
+    print("-- DEBUG SHARD-proven cross-owner BY/GET/STORE --")
+    by_prefix = geometry["by_pattern"][:-1]
+    get_prefix = geometry["get_pattern"][:-1]
+    c.cmd("MSET",
+          by_prefix + "1", "10", by_prefix + "2", "5", by_prefix + "3", "1",
+          get_prefix + "1", "x-one", get_prefix + "2", "x-two",
+          get_prefix + "3", "x-three")
+    before = stats(c)
+    args = ("SORT", "s:L", "BY", geometry["by_pattern"],
+            "GET", geometry["get_pattern"])
+    check("proven cross-owner BY/GET", c.cmd(*args), ["x-three", "x-two", "x-one"])
+    check("proven cross-owner STORE",
+          c.cmd(*(args + ("STORE", geometry["store"]))), 3)
+    check("proven cross-owner STORE contents",
+          c.cmd("LRANGE", geometry["store"], "0", "-1"),
+          ["x-three", "x-two", "x-one"])
+    after = stats(c)
+    # Two commands x (three BY + three GET requests), counted at the concrete key owners.
+    check("proven cross-owner lookup count",
+          after["sort_deref_lookups"] - before["sort_deref_lookups"], 12)
+    check("proven cross-owner reduction count",
+          after["sort_scatter_general"] - before["sort_scatter_general"], 2)
 
 
 def phase_set_determinism(c):
@@ -329,22 +387,16 @@ def phase_set_determinism(c):
           sorted(c.cmd("SORT", "s:HS", "BY", "nosort", "DESC")), sorted(members))
 
 
-def phase_scatter_arm(c, one_executor):
+def phase_scatter_arm(c):
     """The cross-shard engine arm: a STORE whose destination lands on another shard."""
     print("-- cross-shard arm --")
     before = stats(c)
     names = ["s:sc%d" % i for i in range(12)]
     for name in names:
-        if one_executor:
-            got = c.cmd("SORT", "s:L", "BY", "s:w_*", "GET", "s:d_*", "STORE", name)
-            check("scatter STORE %s" % name, got, 3)
-            check("scatter STORE %s contents" % name, c.cmd("LRANGE", name, "0", "-1"),
-                  ["three", "two", "one"])
-        else:
-            got = c.cmd("SORT", "s:L", "BY", "nosort", "GET", "#", "STORE", name)
-            check("scatter STORE %s" % name, got, 3)
-            check("scatter STORE %s contents" % name, c.cmd("LRANGE", name, "0", "-1"),
-                  ["3", "1", "2"])
+        got = c.cmd("SORT", "s:L", "BY", "s:w_*", "GET", "s:d_*", "STORE", name)
+        check("scatter STORE %s" % name, got, 3)
+        check("scatter STORE %s contents" % name, c.cmd("LRANGE", name, "0", "-1"),
+              ["three", "two", "one"])
     after = stats(c)
     fired = after["sort_scatter_general"] - before["sort_scatter_general"]
     if fired <= 0:
@@ -356,7 +408,7 @@ def phase_scatter_arm(c, one_executor):
     checks += 1
 
 
-def phase_ryow(c, one_executor):
+def phase_ryow(c):
     """Read-your-own-writes across the dereference.
 
     REGRESSION PIN. The read cut and the originating connection are per-shard state that the owning
@@ -368,9 +420,6 @@ def phase_ryow(c, one_executor):
     land on another shard in any multi-shard placement.
     """
     print("-- read-your-own-writes through BY/GET --")
-    if not one_executor:
-        print("  (skipped: dereference is not admitted in this configuration)")
-        return
     elements = [str(i) for i in range(12)]
     c.cmd("DEL", "s:ry")
     c.cmd("RPUSH", "s:ry", *elements)
@@ -391,7 +440,7 @@ def phase_ryow(c, one_executor):
         c.cmd("DEL", *[p for i, p in enumerate(pairs) if i % 2 == 0])
 
 
-def phase_multi_ryow(c, one_executor):
+def phase_multi_ryow(c):
     """The dereference inside a transaction.
 
     REGRESSION PIN, and the battery's sharpest detector. EXEC does not serialise commands globally:
@@ -399,13 +448,9 @@ def phase_multi_ryow(c, one_executor):
     independently. A dereferencing SORT breaks that premise -- its participant set cannot name the
     shards its patterns will read, because those are only known after the source has been read. Left
     as an ordinary one-key Local child it ran before an earlier MSET had been applied on the weight
-    keys' shards and sorted by the PREVIOUS weights. `make sortnoctx` builds the binary in which the
-    fix is compiled out; every check below must fail against it.
+    keys' shards and sorted by the PREVIOUS weights.
     """
     print("-- dereference inside MULTI/EXEC --")
-    if not one_executor:
-        print("  (skipped: dereference is not admitted in this configuration)")
-        return
     elements = [str(i) for i in range(10)]
     for round_index in range(20):
         c.cmd("DEL", "s:mr")
@@ -433,12 +478,9 @@ def phase_multi_ryow(c, one_executor):
         check("multi ryow %d stored" % round_index, c.cmd("LRANGE", "s:mrdst", "0", "-1"), want)
 
 
-def phase_random(c, one_executor, rng):
+def phase_random(c, rng):
     """Random weight sets checked against a Python model of the reference's rules."""
     print("-- randomised model comparison --")
-    if not one_executor:
-        print("  (skipped: dereference is not admitted in this configuration)")
-        return
     for trial in range(60):
         n = rng.randint(1, 12)
         elements = [str(rng.randint(0, 40)) for _ in range(n)]
@@ -481,26 +523,21 @@ def phase_random(c, one_executor, rng):
 def main():
     rng = random.Random(SEED)
     c = Conn()
-    n_ex = executors(c)
-    one_executor = n_ex == 1
-    print("sort battery: %s:%d, %d executor(s) -> dereference %s"
-          % (HOST, PORT, n_ex, "ADMITTED" if one_executor else "REFUSED"))
+    geometry = required_geometry(c)
+    print("sort battery: %s:%d, --shards 16 --ratio 6:2" % (HOST, PORT))
     fixture(c)
     phase_no_deref(c)
-    if one_executor:
-        phase_deref(c)
-    else:
-        phase_refused(c)
+    phase_deref(c)
+    phase_proven_cross_owner(c, geometry)
     phase_set_determinism(c)
-    phase_scatter_arm(c, one_executor)
-    phase_ryow(c, one_executor)
-    phase_multi_ryow(c, one_executor)
-    phase_random(c, one_executor, rng)
+    phase_scatter_arm(c)
+    phase_ryow(c)
+    phase_multi_ryow(c)
+    phase_random(c, rng)
 
-    # THE INVARIANT THAT MUST READ ZERO IN EVERY CONFIGURATION: no dereference ever reached a shard
-    # this executor does not own.
     final = stats(c)
-    check("no foreign-shard dereference", final.get("sort_deref_escapes", -1), 0)
+    check("legacy refusal counter remains zero", final.get("sort_deref_refusals", -1), 0)
+    check("legacy escape counter remains zero", final.get("sort_deref_escapes", -1), 0)
     print("  counters: %s" % final)
 
     c.cmd("FLUSHALL")
