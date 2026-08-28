@@ -1381,9 +1381,6 @@ private:
         live_obuf_normal_hard_.store(limits.normal.hard_bytes, std::memory_order_relaxed);
         live_obuf_normal_soft_.store(limits.normal.soft_bytes, std::memory_order_relaxed);
         live_obuf_normal_seconds_.store(limits.normal.soft_seconds, std::memory_order_relaxed);
-        live_obuf_replica_hard_.store(limits.replica.hard_bytes, std::memory_order_relaxed);
-        live_obuf_replica_soft_.store(limits.replica.soft_bytes, std::memory_order_relaxed);
-        live_obuf_replica_seconds_.store(limits.replica.soft_seconds, std::memory_order_relaxed);
         live_obuf_pubsub_hard_.store(limits.pubsub.hard_bytes, std::memory_order_relaxed);
         live_obuf_pubsub_soft_.store(limits.pubsub.soft_bytes, std::memory_order_relaxed);
         live_obuf_pubsub_seconds_.store(limits.pubsub.soft_seconds, std::memory_order_relaxed);
@@ -1525,9 +1522,6 @@ private:
     std::atomic<uint64_t> live_obuf_normal_hard_{0};
     std::atomic<uint64_t> live_obuf_normal_soft_{0};
     std::atomic<uint32_t> live_obuf_normal_seconds_{0};
-    std::atomic<uint64_t> live_obuf_replica_hard_{256ull * 1024 * 1024};
-    std::atomic<uint64_t> live_obuf_replica_soft_{64ull * 1024 * 1024};
-    std::atomic<uint32_t> live_obuf_replica_seconds_{60};
     std::atomic<uint64_t> live_obuf_pubsub_hard_{32ull * 1024 * 1024};
     std::atomic<uint64_t> live_obuf_pubsub_soft_{8ull * 1024 * 1024};
     std::atomic<uint32_t> live_obuf_pubsub_seconds_{60};
