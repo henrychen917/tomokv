@@ -118,7 +118,7 @@ out of line behind it. A shard that has never seen `HEXPIRE` reads zero and reac
 **Active expiry** rides the *same* attention mechanism as key TTLs: a second `ExpireIndex` of key
 hashes with a persistent cursor and a slot budget that counts empty slots, sampled from
 `FlatStore::active_expire()` (so it inherits the ex loop's existing cycle, its budget and its
-`DEBUG SET-ACTIVE-EXPIRE` kill switch). Registration is an unconditional insert on the write path
+`DEBUG SET-ACTIVE-EXPIRE` disable switch). Registration is an unconditional insert on the write path
 and self-heals on visit: a sampled entry whose key is gone, re-typed, or no longer carries deadlines
 is dropped. As in this tree's key-level cycle, the pass is skipped while a snapshot capture is
 active.
@@ -297,8 +297,9 @@ No ASAN or UBSAN report was produced (`ASAN_OPTIONS=detect_leaks=1:log_path=...`
 | `src/store/typeval.h` | `HashVal::ttls` + `ttl_bytes` + the `allocation_bytes()` override |
 | `src/store/flatstore.h` | hot-line gate, cold-tail `field_expires_` index, `active_expire_fields()`, `find_any_hash_in()`, `note_loaded_object()` |
 | `src/cmd/notify.h/.inc` | `hexpire` / `hpersist` / `hexpired` events |
-| `src/cmd/scatter_engine.inc`, `scripting.cc`, `snapshot.cc`, `aof.cc`, `dumprestore.inc` | re-arm the reaper for objects that arrive from a load rather than a command |
+| `src/cmd/scatter_engine.inc`, `snapshot.cc`, `aof.cc` | re-arm the reaper for objects that arrive from a load rather than a command |
+| `src/cmd/serialize.cc` | live DUMP/RESTORE codec; the hash-field-TTL round-trip gap is recorded in `NOTES-HYGIENE.md` |
 | `src/cmd/t_server.cc` | `expired_hash_fields`, `hash_field_expires` in `INFO stats` |
 | `tests/hexpire.py` | the 204-check battery |
-| `tests/hexpire_persist.sh` | snapshot + AOF restart driver |
+| `tests/hexpire_persist.sh` | snapshot + AOF recovery driver |
 | `tests/differ.py` | the `hexpire` suite and `HTTL`/`HPTTL` normalization |
