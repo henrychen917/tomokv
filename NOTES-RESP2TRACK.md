@@ -113,3 +113,26 @@ one IO/one executor/one shard for deterministic local delivery, then at least tw
 executors/two shards for the transport path. The check must also assert that the
 `tracking_invalidations` counter advances in positive cells and does not advance for suppressed
 delivery, so a producer that never fired cannot masquerade as success.
+
+## Implemented result
+
+`tracking_emit_invalidation` now receives whether the already-resolved delivery is redirected and
+applies the reference gate before constructing a frame (`src/cmd/tracking.cc:176-180`). It derives
+the encoding from the resolved target: RESP3 continues through the unchanged push encoder; RESP2
+continues only for a redirect target whose IO-owned `subscriber_mode()` is set. That bit is derived
+from a non-zero real subscription count when pub/sub modification completes
+(`src/core/pubsub.inc:579-603`; accessor at `src/net/conn.h:529-530`).
+
+No-redirect delivery explicitly passes `redirected=false` (`tracking.cc:205-212`). Both redirect
+routes pass `redirected=true`: the local target at `tracking.cc:233-242`, and the target owner after
+a `TrackingDeliver` hop at `tracking.cc:365-374`. Frames that pass the gate still end at
+`climon_push_wire` (`tracking.cc:201`), so none enter `Op::reply` and the PUSHTEAR reply-boundary fix
+remains intact. Suppressed cells do not encode, enqueue, or increment `tracking_invalidations`.
+
+`tests/tracking.py` now uses one mutation of a key registered by both RESP2 and RESP3 no-redirect
+clients: the RESP3 push is the positive control for the RESP2 empty socket, followed by an exact
+`PONG` synchronization check. It also tests a RESP2 redirect target before and after a confirmed
+subscription, a RESP3 redirect target before and after subscription, and RESP2/RESP3 flush delivery.
+`tests/pushtear.py` no longer expects the invalid RESP2/no-redirect tracking frame; its RESP2
+out-of-band coverage remains in the protocol-agnostic MONITOR cells. These checks were described
+and edited only. Per `LANE_RULES.md`, none were run, and no build or server was started.

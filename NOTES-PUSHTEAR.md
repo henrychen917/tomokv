@@ -114,7 +114,7 @@ then blocked for 30s was *stuck for 30s*.
 |---|------|--------|
 | 1 | Pushes destroyed by worker-side `op.reply.clear()` (`t_string.cc:248`, `bitfield.inc:49`, `acl.inc:1265`, `scatter_engine.inc` ×5, `xshard_commands.inc:1610`) | **Made impossible.** No out-of-band frame ever enters `op.reply`. Also fixes the `serve_suppressing` variant, which drops `op.reply` outright for a `CLIENT REPLY SKIP`/`OFF` op — redis delivers pushes regardless of REPLY mode (`prepareClientToWrite` exempts `CLIENT_PUSHING`), and this server was losing them. |
 | 2 | `blocking_retire` swallowing BLPOP timeout/UNBLOCKED (`blocking.inc:1271`) | **Made impossible.** `op.reply.empty() && op.direct_len == 0` means "the handler wrote nothing" again. No code change; `tests/pushtear.py` carries a regression cell. |
-| 3 | `CLIENT TRACKING on` accepted on RESP2 with no REDIRECT | **Premise is wrong — nothing changed.** See §7. |
+| 3 | `CLIENT TRACKING on` accepted on RESP2 with no REDIRECT | **Premise is wrong — nothing changed in this lane.** The distinct invalid-delivery finding was fixed later by the RESP2TRACK lane; see §7. |
 
 ---
 
@@ -167,7 +167,7 @@ and rejects every torn one. It never opens a socket during that check.
 | cell | geometry it constructs | fails loudly when it cannot |
 |------|------------------------|------------------------------|
 | `pubsub/resp3/<n>B` | The audit's deterministic head-holder: `PUBLISH ch x` + `GET big` in ONE write. PUBLISH holds ROB slot k un-Done across a cross-thread round trip; GET at k+1 finishes in µs and sits **Done-but-unretired** with its header written; PASS A (deliveries) runs strictly before PASS B (results), so the delivery is *guaranteed* to land in the window. | `SUBSCRIBE` unacknowledged → FAIL. `oob_frames_*` unmoved → "geometry NEVER constructed". `zc_sends` unmoved while size ≥ zc-min → "no borrow was tested". |
-| `tracking/self/{resp3,resp2}/<n>B` | Mid-drain, no head-holder and no AOF: `SET big v2` + `GET big` in ONE write take adjacent slots on the same shard (same key ⇒ same worker ⇒ in-order completion), so the self-invalidation fires from inside the SET's retire hook while slot k+1 is the borrowing GET, Done and unretired. | `tracking_invalidations` unmoved → "the producer never fired". `oob_frames_deferred`/`segmented` unmoved → "geometry NEVER constructed". |
+| `tracking/self/resp3/<n>B` | Mid-drain, no head-holder and no AOF: `SET big v2` + `GET big` in ONE write take adjacent slots on the same shard (same key ⇒ same worker ⇒ in-order completion), so the self-invalidation fires from inside the SET's retire hook while slot k+1 is the borrowing GET, Done and unretired. RESP2/no-redirect correctly has no invalidation channel; MONITOR retains the RESP2 out-of-band geometry. | `tracking_invalidations` unmoved → "the producer never fired". `oob_frames_deferred`/`segmented` unmoved → "geometry NEVER constructed". |
 | `monitor/{resp3,resp2}/<n>B` | `climon_armed_gate` runs at **parse** time, before the current op is published, so the feed line for command N targets op N−1. `GET big` + `PING` in one write aims PING's feed line at the borrowing GET. A second connection adds foreign feed traffic, walking the ROB-state axis by arrival timing; repetition plus the counter is what makes that honest. | `monitor_feed_lines` unmoved → FAIL. `oob_frames_*` unmoved → FAIL. Missing `+PONG` → "reply stream shifted". |
 | `xshard-mget/<n>B` | `assemble_mget`'s N splice points: keys on ≥2 shards, several values ≥ zc-min, plus a tracking invalidation raised in the same retire drain that is assembling the gather. | Key set is **found** by bucketing with `DEBUG SHARD`, never assumed; <2 buckets → FAIL. `DEBUG` disabled → FAIL naming `--enable-debug-command yes`. |
 | `tracking/no-loss/<n>B` (item 1) | A reader pipelining borrowing GETs while a writer invalidates every tracked key, so frames land on ops in **every** ROB state. | Oracle-free: `tracking_invalidations` delta (produced) vs. push frames received. Received < produced → "LOST: N produced, M reached the client". Zero produced → FAIL. |
@@ -210,7 +210,7 @@ no barrier and the parse loop `continue`s after an Async pub/sub start.
 
 ---
 
-## 7. Found, not fixed
+## 7. Found, not fixed in this lane
 
 **(a) AUDIT item (c) is wrong: redis 7.4 does NOT reject `CLIENT TRACKING on` in RESP2.**
 `/home/user/Projects/redis/src/networking.c:3374-3497` (REDIS_VERSION 7.4.10) parses the options and
@@ -230,13 +230,13 @@ connection."* This server (`src/cmd/tracking.cc:203-206`) instead calls
 REDIRECT receives a bare `*3 message __redis__:invalidate …` array on a connection that never
 subscribed to anything — which a RESP2 client library reads as the reply to its next command.
 Two further sub-divergences on the same path: `tracking.cc:236` hardcodes the RESP2 form for a
-local redirect target even when that target is RESP3, and nothing checks that the target is
-subscribed to `__redis__:invalidate`.
+local redirect target even when that target is RESP3, and nothing checks that a RESP2 target is in
+pub/sub mode.
 
-This is a behaviour change needing a differ case and owner sign-off, and it is not what this lane
-was opened for, so it is reported rather than shipped. Note the tear fix does not depend on it: the
-RESP2 geometry stays reachable through MONITOR (protocol-agnostic) either way, and
-`tests/pushtear.py` covers the RESP2 tracking shape *as this server currently emits it*.
+This was reported rather than shipped by the PUSHTEAR lane. The follow-up RESP2TRACK lane applies
+the reference delivery rule, adds the differential geometry, and removes the invalid RESP2 tracking
+cell from `tests/pushtear.py`. The tear fix remains covered in RESP2 through MONITOR and in RESP3
+through tracking.
 
 **(b) `assemble_mget` still returns with its reply tail unflushed** (`xshard_commands.inc:1607`),
 so the MGET frame is incomplete between `xshard_retire` returning and `serve_impl` staging
