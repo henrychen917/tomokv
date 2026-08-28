@@ -120,6 +120,14 @@ struct alignas(8) MultiExecState : SnapshotCut {
     // more than one owner -- the only shape that can straddle a foreign ticket, and therefore the
     // only shape that pays for a cut.  A write-only or single-owner transaction registers nothing.
     bool exec_read_fanout = false;
+    // THE TRANSACTION'S EXPIRY CUT, the time-axis twin of the read cut above.  Absolute
+    // CLOCK_REALTIME milliseconds, stamped once before any fragment is posted and installed on
+    // every owner that runs part of this transaction.  Redis reaches the same place from the other
+    // direction: EXEC is the top-level call, the queued commands run nested inside it, and
+    // server.mstime is only refreshed at nesting depth zero -- so a key cannot expire part-way
+    // through a transaction.  Unconditional: a single-owner transaction spans several tasks too,
+    // and its clock moved between them just as readily.
+    int64_t now_cut_ms = 0;
     // TEST HOOK (DEBUG ATOMIC-FANOUT-DEFER), the MULTI half.  Deadline and lead shard are written
     // once on the owning IO thread before the tasks are posted and read by the owners through the
     // task handoff's release/acquire pair.  Zero in production.
@@ -1393,6 +1401,16 @@ bool multi_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consume
         }
     }
 
+    // PIN THE TRANSACTION'S TIME CUT, BEFORE ANY FRAGMENT IS POSTED.
+    // Same argument as the read cut above, for the other axis a fan-out can straddle. Unlike the
+    // read cut this one is unconditional and free of any registry: a deadline is not a ticket
+    // anybody has to wait on, so pinning one costs a single clock read per EXEC and nothing else.
+    // The cross-shard children inherit it rather than stamping their own, so a transaction is one
+    // instant end to end and not one instant per lowered command.
+    dispatch->now_cut_ms = now_realtime_ms();
+    for (const auto& command : dispatch->commands)
+        if (command->scatter) command->scatter->now_cut_ms = dispatch->now_cut_ms;
+
     Rob<kRobWindow>& rob = client.rob();
     op.attach_multi_state(dispatch);
     client.atomic_group_started();
@@ -1562,6 +1580,10 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
     NotifyExecutionScope notify_scope(shard, carrier, notify);
     const uintptr_t tagged = reinterpret_cast<uintptr_t>(task.scatter);
     auto& state = *reinterpret_cast<MultiExecState*>(tagged & ~kMultiTaskTag);
+    // ONE EXPIRY CUT FOR THE WHOLE TRANSACTION, on every owner and for every fragment including the
+    // WATCH phase below -- redis validates watches inside EXEC's own call, under EXEC's snapshot.
+    // Without this, two identical reads in one EXEC could disagree about the same key.
+    PinnedNowMs now_cut(shard, state.now_cut_ms);
     uint8_t& noted = state.execution_noted[static_cast<uint32_t>(shard.id())];
     if (!noted) {
         shard.note_execution(owner_domain);

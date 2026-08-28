@@ -436,7 +436,13 @@ struct ScatterState : SnapshotCut {
     uint64_t script_cut = UINT64_MAX;
     uint64_t script_ticket = 0;
     std::atomic<uint64_t> script_staged_bytes{0};
-    int64_t script_now_ms = 0;
+    // THE OPERATION'S EXPIRY CUT. A cross-shard command pins a commit cut so it cannot straddle a
+    // foreign write; without this it could still straddle a DEADLINE, because expiry is time-driven
+    // and each owner otherwise answers against its own executor's per-pass clock. Absolute
+    // CLOCK_REALTIME milliseconds, stamped once at prepare in the connection's program order and
+    // installed on every participating owner by xshard_execute. Zero means "no cut stamped", which
+    // is a safety net only: a zero cut would read as 1970 and hide the whole keyspace.
+    int64_t now_cut_ms = 0;
     uint64_t pop_retry_snapshot = UINT64_MAX;
     long long final_integer = 0;
     ImageRangeOptions range_options;
@@ -1371,8 +1377,11 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     state->origin_conn_id = origin_conn_id;
     state->script_coordinator_shard = kind == Kind::Script && key_count
         ? routes[0].shard : -1;
-    state->script_now_ms = kind == Kind::Script
-        ? static_cast<int64_t>(now_ns() / 1000000ull) : 0;
+    // One wall-clock read per cross-shard group, taken here because this is the point the
+    // connection's program order already uses for the commit cut a few lines below. Every owner of
+    // this group then answers deadlines against this one instant, which is what the reference does
+    // for a multi-key read (redis pins server.mstime for the whole command).
+    state->now_cut_ms = now_realtime_ms();
     state->arena_bytes = static_cast<uint32_t>(bytes);
     state->key_count = key_count;
     state->group_cap = group_cap;
@@ -1888,7 +1897,9 @@ ScatterTaskResult execute_script_phase(const Task& task, Shard& shard, Op& op) {
         case ScriptPhase::Read: {
             if (state.aborted.load(std::memory_order_acquire))
                 return ScatterTaskResult::Complete;
-            shard.set_cached_now_ms(state.script_now_ms);
+            // The owner's expiry cut is already state.now_cut_ms: xshard_execute installed it
+            // before dispatching this phase, and it is the same instant every other owner of this
+            // script is reading against.
             shard.store().atomic_set_read_context(state.script_cut, state.origin_conn_id);
             uint64_t local_bytes = 0;
             for (uint32_t i = 0; i < group->count; i++) {
@@ -1918,7 +1929,9 @@ ScatterTaskResult execute_script_phase(const Task& task, Shard& shard, Op& op) {
             state.server->note_script_run();
             Shard* work = script_workbench(*state.server, state.script_coordinator_shard);
             work->store().clear();
-            work->set_cached_now_ms(state.script_now_ms);
+            // The workbench is a shard object of its own, so xshard_execute's cut does not reach
+            // it; give it the same instant explicitly.
+            work->pin_now_ms(state.now_cut_ms);
             for (uint32_t pos = 0; pos < state.key_count; pos++) {
                 const KeyRef& key = state.keys[pos];
                 const WorkError loaded = apply_image<false>(
@@ -2003,6 +2016,12 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
     const bool notify = (op.spec->flags & CmdFlags::NotifySelected) != 0;
     NotifyExecutionScope notify_scope(shard, op, notify, shard.notify_order_base());
     ScatterState& state = *task.scatter;
+    // ONE EXPIRY CUT FOR THE WHOLE FAN-OUT. Before this, each fragment compared deadlines against
+    // its own executor's per-pass clock, so an eight-owner MGET could report a key alive on one
+    // owner and elapsed on another -- a keyspace that existed at no instant. Cheap enough to be
+    // unconditional on the cross-shard path: two stores in, two out, and single-shard commands
+    // never reach this function at all.
+    PinnedNowMs now_cut(shard, state.now_cut_ms);
     if (state.kind == Kind::Script &&
         (state.script_phase != ScriptPhase::Apply || state.script_resume_post))
         return execute_script_phase(task, shard, op);

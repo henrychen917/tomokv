@@ -41,6 +41,17 @@ inline uint64_t now_ns() {
     return static_cast<uint64_t>(ts.tv_sec) * 1000000000ull + static_cast<uint64_t>(ts.tv_nsec);
 }
 
+// Wall clock in milliseconds. Key deadlines are absolute CLOCK_REALTIME milliseconds, so ANYTHING
+// that will be compared against a deadline must come from here and never from now_ns() above --
+// that one is CLOCK_MONOTONIC, so its "milliseconds" are milliseconds since boot and sit roughly
+// five orders of magnitude below any real deadline. A monotonic value used as an expiry cut does
+// not skew the answer, it disables expiry outright; see NOTES-EXPWIDE.md defect W3.
+inline int64_t now_realtime_ms() {
+    timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    return static_cast<int64_t>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000;
+}
+
 // Thread CPU time. Needed because DEFER_TASKRUN defers completion work to the point where the thread
 // waits on the ring, so wall-clock "time spent in the work section" understates how busy the thread
 // really is. A controller that reads only wall time under DEFER_TASKRUN is measuring the wrong thing

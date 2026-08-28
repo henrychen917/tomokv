@@ -108,6 +108,14 @@ public:
         store_.set_cached_now_ms(now_ms);
         store_.set_cached_lru_clock(lru_clock);
     }
+    // Install an OPERATION-WIDE expiry cut for the duration of one fan-out fragment, leaving the
+    // LRU clock exactly as the executor published it for this pass. Separate from
+    // set_cached_now_ms because that one's lru_clock parameter defaults to 0, and a fragment that
+    // reset the LRU clock to zero would corrupt eviction sampling on every cross-shard command.
+    void pin_now_ms(int64_t now_ms) {
+        now_ms_ = now_ms;
+        store_.set_cached_now_ms(now_ms);
+    }
     void set_no_touch(bool value) { store_.set_no_touch(value); }
     void configure_maxmemory(bool enabled, uint64_t shard_limit, MaxmemoryPolicy policy,
                              uint32_t samples) {
@@ -390,6 +398,27 @@ private:
     Op* notify_source_ = nullptr;
     bool* notify_pending_ = nullptr;
     std::unique_ptr<NotifyShardState> notify_state_;
+};
+
+// Installs one logical operation's expiry cut on an owner for the length of ONE fragment, and puts
+// the executor's own per-pass clock back afterwards. Every exit restores -- Complete, Retry, or an
+// exception -- so nothing that runs later on this owner inherits another operation's instant.
+// A zero cut disarms the guard rather than pinning: an unstamped state must not be read as 1970,
+// which would hide the entire keyspace.
+class PinnedNowMs {
+public:
+    PinnedNowMs(Shard& shard, int64_t cut_ms)
+        : shard_(shard), saved_(shard.now_ms()), armed_(cut_ms != 0) {
+        if (__builtin_expect(armed_, true)) shard_.pin_now_ms(cut_ms);
+    }
+    ~PinnedNowMs() { if (__builtin_expect(armed_, true)) shard_.pin_now_ms(saved_); }
+    PinnedNowMs(const PinnedNowMs&) = delete;
+    PinnedNowMs& operator=(const PinnedNowMs&) = delete;
+
+private:
+    Shard& shard_;
+    const int64_t saved_;
+    const bool armed_;
 };
 
 // Maps bucket -> shard id. A plain array: one indexed load on the hot path, and reassigning
