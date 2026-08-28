@@ -77,6 +77,11 @@ struct CmdFlags {
     // branch reaches the GET/SET path: the hook is the one SCAN/EVAL/XREAD already pay for.
     // (Third lane to claim bit 18 this wave — reassigned to 20 at the train.)
     static constexpr uint32_t SubcmdRoute = 1u << 20;
+    // WAIT on an unsatisfied replica count owns a reply deadline on the connection's IO thread.
+    // It remains ConnLocal -- no shard is involved -- but the IO dispatcher publishes its ROB
+    // slot unfinished and completes it from a cold deadline list.  Commands without this bit do
+    // not enter that machinery; the test lives inside the already-cold ConnLocal branch.
+    static constexpr uint32_t DeferredLocal = 1u << 21;
 };
 
 using CmdHandler = void (*)(Shard&, Op&);

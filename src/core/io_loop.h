@@ -44,6 +44,7 @@
 #include "../cmd/acl.h"
 #include "../cmd/multi.h"
 #include "../cmd/notify.h"
+#include "../cmd/server_tail.h"
 #include "../cmd/xshard.h"
 #include "../snapshot/snapshot.h"
 #include "../persist/aof.h"
@@ -263,6 +264,11 @@ private:
                     did += srv_->aof().writer_pass(*self_, ring_);
                 if (srv_->snapshot().writer_is(self_->id()))
                     did += srv_->snapshot().writer_pass(*self_, ring_);
+                if (__builtin_expect(!deferred_waits_.empty(), false)) {
+                    cached_now_ms_ = now_ns() / 1000000ull;
+                    cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
+                    did += deferred_wait_pass(cached_now_ms_);
+                }
                 did += flush_borrow_releases();
                 did += collect_retire_work<HasUnix>();
                 did += flush_ready<HasTls>();
@@ -1017,6 +1023,38 @@ subscriber_checks_done:
                 // retries from scratch before any lane hook fires.
                 if (__builtin_expect((spec->flags & CmdFlags::OrderedLocal) != 0, false) &&
                     rob.in_flight() != 0) break;
+                // An unsatisfied WAIT has no shard work, but Redis keeps the connection parked
+                // until its deadline (zero means forever). Publish an unfinished ROB slot and let
+                // this connection's IO owner complete it. MULTI does not enter this branch: its
+                // IoLocal child calls cmd_wait at retirement and receives :0 immediately.
+                if (__builtin_expect((spec->flags & CmdFlags::DeferredLocal) != 0, false)) {
+                    uint64_t timeout_ms = 0;
+                    const WaitCommandResult wait = server_tail_prepare_wait(*op, timeout_ms);
+                    if (wait == WaitCommandResult::Unsatisfied) {
+                        if (!deferred_wait_start(c, rob.dispatch_id(), timeout_ms)) {
+                            reply_err(op->sink(), "ERR out of memory");
+                        } else {
+                            conn.advance_parse(consumed);
+                            self_->note_command(spec->id);
+                            rob.publish();
+                            c->set_blocked(true);
+                            c->set_scatter_barrier(true);
+                            mark_active(c);
+                            break;
+                        }
+                    } else if (wait == WaitCommandResult::Immediate) {
+                        reply_int(op->sink(), 0);
+                    }
+                    // Error already carries its exact validation reply. Immediate already carries
+                    // :0. Both retire through the ordinary local completion path below.
+                    conn.advance_parse(consumed);
+                    self_->note_command(spec->id);
+                    op->state.store(OpState::Done, std::memory_order_release);
+                    rob.publish();
+                    enqueue_serve(c);
+                    mark_active(c);
+                    continue;
+                }
                 // RESET clears this lane's connection state (monitor mode, tracking registration,
                 // CLIENT REPLY mode) before the ordinary handler writes +RESET. One predicted-
                 // false flag test on a word the dispatcher already holds, on an already-cold
@@ -1630,6 +1668,58 @@ nonblocking_dispatch:
         pending_serve_.push_back(c);
     }
 
+    bool deferred_wait_start(Client* client, uint64_t op_id, uint64_t timeout_ms) {
+        const uint64_t deadline_ms = timeout_ms
+            ? now_ns() / 1000000ull + timeout_ms
+            : 0;
+        try { deferred_waits_.push_back(DeferredWait{client, op_id, deadline_ms}); }
+        catch (const std::bad_alloc&) { return false; }
+        srv_->blocking_client_parked();
+        return true;
+    }
+
+    uint32_t deferred_wait_pass(uint64_t now_ms) {
+        uint32_t completed = 0;
+        for (size_t i = 0; i < deferred_waits_.size();) {
+            const DeferredWait wait = deferred_waits_[i];
+            if (!wait.deadline_ms || now_ms < wait.deadline_ms) {
+                i++;
+                continue;
+            }
+            Client* client = wait.client;
+            Op& op = client->rob().at(wait.op_id);
+            reply_int(op.sink(), 0);
+            op.state.store(OpState::Done, std::memory_order_release);
+            client->set_blocked(false);
+            srv_->blocking_client_unparked();
+            deferred_waits_[i] = deferred_waits_.back();
+            deferred_waits_.pop_back();
+            enqueue_serve(client);
+            mark_active(client);
+            completed++;
+        }
+        return completed;
+    }
+
+    bool deferred_wait_cancel(Client* client) {
+        bool cancelled = false;
+        for (size_t i = 0; i < deferred_waits_.size();) {
+            const DeferredWait wait = deferred_waits_[i];
+            if (wait.client != client) {
+                i++;
+                continue;
+            }
+            Op& op = client->rob().at(wait.op_id);
+            op.state.store(OpState::Done, std::memory_order_release);
+            srv_->blocking_client_unparked();
+            deferred_waits_[i] = deferred_waits_.back();
+            deferred_waits_.pop_back();
+            cancelled = true;
+        }
+        if (cancelled) client->set_blocked(false);
+        return cancelled;
+    }
+
     bool client_obuf_check(Client* c, bool async) {
         if (c->closing() || c->dead()) return false;
         if (!srv_->client_obuf_armed()) {
@@ -1714,6 +1804,7 @@ nonblocking_dispatch:
         if (c->dead()) return;
         if (!c->closing()) {
             c->mark_closing();
+            if (deferred_wait_cancel(c)) enqueue_serve(c);
             if (c->blocked() && blocking_cancel_client(*srv_, *self_, ring_, *c))
                 enqueue_serve(c);
             TlsConn* slot_tls = tls_slot_conn(c);
@@ -1806,6 +1897,12 @@ nonblocking_dispatch:
     std::deque<Client*> pending_serve_;
     std::deque<BorrowRelease> pending_releases_;
     std::deque<Client*> pending_handoffs_;
+    struct DeferredWait {
+        Client* client = nullptr;
+        uint64_t op_id = 0;
+        uint64_t deadline_ms = 0;  // zero is Redis's wait-forever spelling
+    };
+    std::vector<DeferredWait> deferred_waits_;  // allocates only after an unsatisfied WAIT
     ScatterArenaPool scatter_pool_;          // touched only by this connection-owning IO thread
     uint32_t flush_tick_ = 0;
     bool     backstop_pass_ = false;

@@ -172,27 +172,11 @@ void cmd_role(Shard&, Op& op) {
     reply_array_header(sink, 0);
 }
 
-// A standalone server has no replicas, so the number of replicas that acknowledged is always 0.
-// The timeout is still validated so a malformed WAIT is rejected exactly as redis rejects it.
+// MULTI executes WAIT without blocking. Standalone dispatch handles an Unsatisfied result before
+// calling this handler and completes the published ROB slot from the IO-owned deadline list.
 void cmd_wait(Shard&, Op& op) {
-    int64_t replicas = 0, timeout = 0;
-    if (!parse_i64(op.arg(1), replicas)) { reply_invalid_integer(op); return; }
-    // The timeout goes through getTimeoutFromObjectOrReply on redis, which names the argument.
-    if (!parse_i64(op.arg(2), timeout)) {
-        reply_err(op.sink(), "ERR timeout is not an integer or out of range");
-        return;
-    }
-    if (timeout < 0) { reply_err(op.sink(), "ERR timeout is negative"); return; }
-    // Redis computes the deadline as mstime() + timeout in a signed 64-bit value and rejects the
-    // argument when that would overflow. Probed against 7.4: the largest accepted timeout is
-    // exactly LLONG_MAX - mstime().
-    timespec now{};
-    ::clock_gettime(CLOCK_REALTIME, &now);
-    const int64_t now_ms = static_cast<int64_t>(now.tv_sec) * 1000 + now.tv_nsec / 1000000;
-    if (timeout > INT64_MAX - now_ms) {
-        reply_err(op.sink(), "ERR timeout is out of range");
-        return;
-    }
+    uint64_t timeout_ms = 0;
+    if (server_tail_prepare_wait(op, timeout_ms) == WaitCommandResult::Error) return;
     reply_int(op.sink(), 0);
 }
 
@@ -964,6 +948,33 @@ bool command_list(Op& op) {
 
 }  // namespace
 
+WaitCommandResult server_tail_prepare_wait(Op& op, uint64_t& timeout_ms) {
+    int64_t replicas = 0, timeout = 0;
+    if (!parse_i64(op.arg(1), replicas)) {
+        reply_invalid_integer(op);
+        return WaitCommandResult::Error;
+    }
+    // The timeout has a positional error string rather than WAIT's generic integer spelling.
+    if (!parse_i64(op.arg(2), timeout)) {
+        reply_err(op.sink(), "ERR timeout is not an integer or out of range");
+        return WaitCommandResult::Error;
+    }
+    if (timeout < 0) {
+        reply_err(op.sink(), "ERR timeout is negative");
+        return WaitCommandResult::Error;
+    }
+    // Redis rejects a timeout whose wall-clock deadline would overflow signed milliseconds.
+    timespec now{};
+    ::clock_gettime(CLOCK_REALTIME, &now);
+    const int64_t now_ms = static_cast<int64_t>(now.tv_sec) * 1000 + now.tv_nsec / 1000000;
+    if (timeout > INT64_MAX - now_ms) {
+        reply_err(op.sink(), "ERR timeout is out of range");
+        return WaitCommandResult::Error;
+    }
+    timeout_ms = static_cast<uint64_t>(timeout);
+    return replicas > 0 ? WaitCommandResult::Unsatisfied : WaitCommandResult::Immediate;
+}
+
 bool server_tail_config_subcommand(Op& op) {
     if (eq_icase(op.arg(1), "HELP") && op.argc() == 2) {
         reply_help(op, kConfigHelpText, sizeof(kConfigHelpText) / sizeof(kConfigHelpText[0]));
@@ -1048,7 +1059,8 @@ static const CommandSpec kTable[] = {
     {"TIME",        1,  1, CmdFlags::ConnLocal,                                  cmd_time,       0,  0, 0},
     {"LOLWUT",      1, -1, CmdFlags::ConnLocal,                                  cmd_lolwut,     0,  0, 0},
     {"ROLE",        1,  1, CmdFlags::ConnLocal,                                  cmd_role,       0,  0, 0},
-    {"WAIT",        3,  3, CmdFlags::ConnLocal,                                  cmd_wait,       0,  0, 0},
+    {"WAIT",        3,  3, CmdFlags::ConnLocal | CmdFlags::OrderedLocal |
+                                CmdFlags::DeferredLocal,                           cmd_wait,       0,  0, 0},
     {"WAITAOF",     4,  4, CmdFlags::ConnLocal,                                  cmd_waitaof,    0,  0, 0},
     {"FAILOVER",    1,  2, CmdFlags::ConnLocal | CmdFlags::Admin,                cmd_failover,   0,  0, 0},
     {"REPLICAOF",   3,  3, CmdFlags::ConnLocal | CmdFlags::Admin,                cmd_replicaof,  0,  0, 0},
