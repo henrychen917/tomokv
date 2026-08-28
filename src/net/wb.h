@@ -338,7 +338,7 @@ public:
                 if (has_borrow) stats_.zc_sends++;
                 const ssize_t n = ::sendmsg(conn.fd(), conn.send_msg(),
                                             MSG_NOSIGNAL | MSG_DONTWAIT);
-                if (n <= 0) return did | note_send_stop(c, n);
+                if (n <= 0) { note_send_stop(c, n); return did; }
                 stats_.zc_bytes += conn.consume_segments(static_cast<uint32_t>(n),
                     [&](int32_t shard, const char* ptr) { release(shard, ptr); });
                 stats_.bytes_sent += static_cast<uint64_t>(n);
@@ -782,7 +782,7 @@ private:
         stats_.sends_submitted++;
         const ssize_t n = ::send(c.fd(), c.send_buf().data() + sent, request,
                                  MSG_NOSIGNAL | MSG_DONTWAIT);
-        if (n <= 0) { did |= note_send_stop(c, n); return false; }
+        if (n <= 0) { note_send_stop(c, n); return false; }
         c.commit_write(static_cast<uint32_t>(n));
         stats_.bytes_sent += static_cast<uint64_t>(n);
         if (static_cast<size_t>(n) < request) stats_.short_writes++;
@@ -796,16 +796,15 @@ private:
     // NOT be counted as data-path errors; the peer-abort family is the same carve-out the CQE path
     // makes, so err=0 does not become a timing lottery under connection churn. Anything else is
     // fatal for this connection and latches send_failed_.
-    bool note_send_stop(Client& c, ssize_t n) {
-        if (n == 0) return false;                        // wrote nothing; treat as would-block
+    void note_send_stop(Client& c, ssize_t n) {
+        if (n == 0) return;                              // wrote nothing; treat as would-block
         const int err = errno;
-        if (err == EAGAIN || err == EWOULDBLOCK || err == EINTR) return false;
+        if (err == EAGAIN || err == EWOULDBLOCK || err == EINTR) return;
         if (err == ECONNRESET || err == EPIPE || err == ECONNABORTED || c.closing())
             stats_.peer_aborts++;
         else
             stats_.send_errors++;
         send_failed_ = true;
-        return false;
     }
 
     template <bool kEp>
@@ -820,7 +819,7 @@ private:
             c.set_send_requested(remaining);
             stats_.sends_submitted++;
             const ssize_t n = ::send(c.fd(), pending, remaining, MSG_NOSIGNAL | MSG_DONTWAIT);
-            if (n <= 0) { (void)note_send_stop(c, n); return did; }
+            if (n <= 0) { note_send_stop(c, n); return did; }
             const uint32_t sent = static_cast<uint32_t>(n);
             if (!tls.consume_output(sent)) { send_failed_ = true; return did; }
             stats_.bytes_sent += sent;
