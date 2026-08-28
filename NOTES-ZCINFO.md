@@ -3,10 +3,10 @@
 ## Premise and measurement surface
 
 The premise is true on the as-found tree. `WbEngine::Stats` contains live, IO-thread-owned
-measurements, including `zc_sends` and `zc_releases` (`src/net/wb.h`). The submission paths advance
-`zc_sends` only when `build_segment_iov` reports a borrowed iovec, and `WbEngine::release` advances
-`zc_releases` when a borrowed segment is returned. Before this lane, shutdown accounting summed the
-structs, but `INFO stats` did not.
+measurements at `src/net/wb.h:569`. The submission paths at `src/net/wb.h:273` and `:316` advance
+`zc_sends` only when `build_segment_iov` reports a borrowed iovec, and `WbEngine::release` at
+`src/net/wb.h:834-836` advances `zc_releases` when a borrowed segment is returned. Before this lane,
+shutdown accounting summed the structs in `src/main.cc:394-410`, but `INFO stats` did not.
 
 The INFO surface added here is:
 
@@ -16,17 +16,20 @@ The INFO surface added here is:
   sibling candidates have real increment sites in `src/net/wb.h`, so they are exported too. No
   placeholder or derived-zero rows were added.
 
-Each `IoLoop` publishes its existing `WbEngine` at initialization through a cold-tail pointer on
-its `ThreadCtx`. `cmd_info` walks the server's threads and sums the actual engine structs, beside the
-existing `LoopSignals` summation for `net_input_bytes` / `net_output_bytes`. The pointer publication
-is atomic; the counters remain plain, single-writer values and receive no new hot-path increments.
-Executor threads publish no engine because their retained `WbEngine` never sends.
+Each `IoLoop` publishes its existing `WbEngine` at initialization (`src/core/io_loop.h:84`) through
+a cold-tail pointer on its `ThreadCtx` (`src/core/thread.h:283-291,443`). `cmd_info` walks the server's
+threads and sums the actual engine structs at `src/cmd/t_server.cc:1511-1520`, beside the existing
+`LoopSignals` summation for `net_input_bytes` / `net_output_bytes`. The INFO rows are emitted at
+`src/cmd/t_server.cc:1646-1648`. The pointer publication is atomic; the counters remain plain,
+single-writer values and receive no new hot-path increments. Executor threads publish no engine
+because their retained `WbEngine` never sends.
 
 ## Commands and measurement scope
 
 The only server command whose behavior or output changes is `INFO` (`INFO stats`, plus aliases that
 include Stats). GET, SET, MGET, and MSET execution and reply paths are unchanged. The gate-only
-change adds the already-landed `tests/pushtear.py` battery under both atomic feature boots.
+change at `tests/gate.sh:160` adds the already-landed `tests/pushtear.py` battery under both atomic
+feature boots.
 
 For the main-session A/B, the code change can touch only INFO latency/bytes and startup-size cold
 state; it adds no send-path branch or counter write. Headline GET/SET/MGET/MSET measurements should
