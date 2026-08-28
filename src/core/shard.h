@@ -314,6 +314,12 @@ public:
         // read zero -- a transaction with no such predecessor never touches it -- so a non-zero
         // reading is proof the window opened rather than proof the test ran.
         uint64_t atomic_exec_order_holds = 0;
+        // Times watch_finalize_reservation() answered "not ready" because the reservation's epoch
+        // was still 0, i.e. a unit was turned into a Retry by an undecided WATCH reservation. It
+        // is the ONLY direct evidence that the WATCH-liveness path was entered at all, so
+        // tests/watchlive.py asserts it advanced before believing a clean run. Reached only from
+        // the reservation registry, which stays empty until the first WATCH: no WATCH, no cost.
+        uint64_t watch_reservation_waits = 0;
         // Cold tail, deliberately last: keyspace table rebuilds started by this shard, reported as
         // INFO keyspace_rehashes so a scan-under-resize test can assert the hazard it guards
         // actually fired. Written once per resize and read only by INFO, so it must not push any

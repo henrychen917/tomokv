@@ -1793,7 +1793,10 @@ bool Shard::watch_finalize_reservation(const std::string& key) {
         reservation.aborted->load(std::memory_order_acquire);
     const uint64_t epoch = reservation.epoch
         ? reservation.epoch->load(std::memory_order_acquire) : 1;
-    if (!aborted && epoch == 0) return false;
+    if (!aborted && epoch == 0) {
+        stats_.watch_reservation_waits++;
+        return false;
+    }
     if (!aborted && reservation.mutates) {
         auto watchers = watchers_.find(key);
         if (watchers != watchers_.end()) {
