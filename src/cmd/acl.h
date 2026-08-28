@@ -38,12 +38,16 @@ enum AclUserFlags : uint32_t {
     AclUserSkipSanitize = 1u << 4,
 };
 
-struct AclPerm {
+struct AclSelector {
     uint64_t allowed_commands[kAclCommandWords] = {};
     uint32_t flags = 0;
     std::vector<std::string> key_patterns;
     std::vector<std::string> channel_patterns;
     std::vector<std::string> command_rules;
+};
+
+struct AclPerm : AclSelector {
+    std::vector<AclSelector> selectors;
 };
 
 struct AclUser {
@@ -80,6 +84,7 @@ void acl_broadcast_user_change(IoLoop& loop, uint32_t user_index,
                                const AclPerm* permissions, bool deleted);
 
 bool acl_pubsub_channel_entry(Client& client, Op& op, bool pattern, ThreadCtx& thread);
+bool acl_channel_allowed_any(const AclPerm& permissions, Slice channel, bool literal_pattern);
 AclDeniedReason acl_check_queued(uint32_t user_index, const CommandSpec& spec,
                                  const std::vector<std::string>& argv,
                                  uint32_t* denied_arg = nullptr);
