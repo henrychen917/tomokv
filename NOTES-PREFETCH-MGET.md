@@ -8,20 +8,20 @@ load generator, or benchmark was run.
 ### Current gather shape
 
 - Scatter preparation hashes every explicit key once and records both the full hash and routed shard
-  in `RouteKey` (`src/cmd/scatter_engine.inc:1455-1470`). The arena then carries that hash in
-  `KeyRef` (`src/cmd/scatter_engine.inc:1678-1681`), so an owner does not need to reread or rehash key
+  in `RouteKey` (`src/cmd/scatter_engine.inc:1475-1490`). The arena then carries that hash in
+  `KeyRef` (`src/cmd/scatter_engine.inc:1698-1701`), so an owner does not need to reread or rehash key
   bytes to know the bucket address.
 - `build_initial_groups` counts keys by routed shard and gives every `ShardGroup` one dense range in
   `state.key_order` (`src/cmd/scatter_engine.inc:801-843`). A task therefore already has exactly the
   hash batch belonging to the shard it is executing.
 - The MGET gather walks that owner range in a single loop. For each key it calls the selected lookup
   and immediately tests the object, reads/converts the value, and copies or borrows it before moving
-  to the next key (`src/cmd/scatter_engine.inc:2507-2545`). Thus lookup/dereference chains are issued
+  to the next key (`src/cmd/scatter_engine.inc:2533-2571`). Thus lookup/dereference chains are issued
   serially today.
 - Generic multi-key arms have the same shape: MSET mutates one key at a time
-  (`src/cmd/scatter_engine.inc:2805-2824`), DEL/UNLINK probes and erases one key at a time
-  (`src/cmd/scatter_engine.inc:2825-2846`), and the default image gather looks up and serializes one
-  object before advancing (`src/cmd/scatter_engine.inc:2933-2973`). The latter is the source gather
+  (`src/cmd/scatter_engine.inc:2831-2850`), DEL/UNLINK probes and erases one key at a time
+  (`src/cmd/scatter_engine.inc:2851-2872`), and the default image gather looks up and serializes one
+  object before advancing (`src/cmd/scatter_engine.inc:2959-2999`). The latter is the source gather
   used by set-operation families such as SINTERSTORE.
 - MGET result order is independent of owner execution order. Each owner writes the slot indexed by
   the original key position, and `assemble_mget` emits `state.values[0..key_count)` in original argv
@@ -76,14 +76,17 @@ For blind atomic writes, capacity preparation can change table geometry. Their p
 `atomic_prepare_capacity`, not before it. Non-atomic/read gathers must issue their prepass before the
 per-key MVCC promotion loop, because promotion is itself a serial storage touch.
 
-## Intended change
+## Implemented change
 
-Add one owner-group helper which does nothing for fewer than two local keys and otherwise calls
+The owner-group helper does nothing for fewer than two local keys and otherwise calls
 `shard.store().prefetch(hash)` for the complete owner range. It understands both the normal
-`state.key_order` range and SORT's derived-key gather range. Call it:
+`state.key_order` range and SORT's derived-key gather range
+(`src/cmd/scatter_engine.inc:854-872`). It is called:
 
-1. before MVCC promotion and ordinary non-atomic gather work; and
-2. after capacity preparation, before any atomic-write existence/install pass.
+1. before MVCC promotion and ordinary non-atomic gather work
+   (`src/cmd/scatter_engine.inc:2310-2333`); and
+2. after capacity preparation, before any atomic-write existence/install pass
+   (`src/cmd/scatter_engine.inc:2356-2388`).
 
 The command loops, result indices, and assembly stay unchanged.
 
@@ -112,3 +115,7 @@ Use enough load generators to saturate the server: one memtier thread per load-g
 memtier's default eight. No cell can be called a win in this lane until the main session records a
 throughput, latency, or memory improvement without a throughput loss, and confirms zero loss for
 GET, SET, MGET, and MSET.
+
+**Winning cells established in this lane: none.** Measurement is forbidden here. The code is a
+candidate only; the main session must fill in the cells above and deprecate it if either acceptance
+gate fails.
