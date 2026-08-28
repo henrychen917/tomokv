@@ -89,7 +89,8 @@ def run():
         name_set = set(names) if isinstance(names, list) else set()
         added = {b"asking", b"readonly", b"readwrite", b"restore-asking"}
         expect("all four inventory rows listed", added <= name_set, True)
-        expect("COMMAND COUNT moved by four", c.cmd("COMMAND", "COUNT"), 241)
+        # The first lane contributed four rows; the follow-on PFDEBUG lane contributes one more.
+        expect("COMMAND COUNT includes both inventory lanes", c.cmd("COMMAND", "COUNT"), 242)
         info = c.cmd("COMMAND", "INFO", "ASKING", "READONLY", "READWRITE",
                      "RESTORE-ASKING")
         routing = [(row[0], row[1], row[3], row[4], row[5]) for row in info]
@@ -100,8 +101,8 @@ def run():
                 (b"restore-asking", -4, 1, 1, 1)])
         # These are intentionally handed on or out of scope. This control catches a test that
         # accidentally treats every formerly absent command as part of this small implementation.
-        shelved = {b"cluster", b"migrate", b"module", b"move", b"pfdebug", b"psync",
-                   b"replconf", b"swapdb", b"sync"}
+        shelved = {b"cluster", b"migrate", b"module", b"move", b"psync", b"replconf",
+                   b"swapdb", b"sync"}
         expect("shelved inventory control", name_set.isdisjoint(shelved), True)
 
         disabled = RespError(b"ERR This instance has cluster support disabled")

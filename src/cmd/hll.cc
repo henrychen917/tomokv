@@ -8,6 +8,7 @@
 #include "hll.h"
 
 #include <algorithm>
+#include <charconv>
 #include <cmath>
 #include <cstring>
 #include <limits>
@@ -369,6 +370,44 @@ bool header_valid(Slice image) {
 }
 
 bool is_dense(Slice image) { return header_valid(image) && bytes(image)[4] == kDense; }
+
+bool make_dense(std::string& image) { return sparse_to_dense(image); }
+
+bool decode_sparse(Slice image, std::string& decoded) {
+    if (!header_valid(image) || bytes(image)[4] != kSparse) return false;
+    decoded.clear();
+    const uint8_t* source = bytes(image);
+    size_t pos = kHeaderBytes;
+    auto append_number = [&](uint32_t value) {
+        char text[16];
+        const auto result = std::to_chars(text, text + sizeof(text), value);
+        decoded.append(text, static_cast<size_t>(result.ptr - text));
+    };
+    while (pos < image.n) {
+        if (!decoded.empty()) decoded.push_back(' ');
+        const uint8_t opcode = source[pos];
+        if (sparse_zero(opcode)) {
+            decoded += "z:";
+            append_number(zero_len(opcode));
+            pos++;
+        } else if (sparse_xzero(opcode)) {
+            // The diagnostic decoder reports physical opcodes rather than validating the stream.
+            // A running Redis reads the string image's guaranteed trailing NUL as the missing low
+            // XZERO byte, so reproduce that observed result without reading beyond the Slice.
+            const uint8_t encoded[2] = {opcode, pos + 1 < image.n ? source[pos + 1] : uint8_t{0}};
+            decoded += "Z:";
+            append_number(xzero_len(encoded));
+            pos += 2;
+        } else {
+            decoded += "v:";
+            append_number(val_value(opcode));
+            decoded.push_back(',');
+            append_number(val_len(opcode));
+            pos++;
+        }
+    }
+    return true;
+}
 
 std::string create_sparse() {
     std::string image(kHeaderBytes + 2, '\0');

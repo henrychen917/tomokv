@@ -2950,6 +2950,103 @@ def gen_cmdgap(rng):
     ]
     return ops
 
+
+def gen_cmdgap2(rng):
+    """Byte-differ the one self-contained command from the second live inventory lane.
+
+    The ordinary HLL generator already pins Redis-compatible HYLL bytes. This stream exercises the
+    debugging views of those bytes, including sparse opcode text, the 16,384-integer register
+    array, and TODENSE's owner-local rewrite. Invalid and non-HLL strings distinguish header checks
+    from corrupt sparse-stream checks; repeated GETs prove that TODENSE changed real stored bytes.
+    """
+    keys = ["cmdgap2:hll:%02d" % index for index in range(12)]
+    elements = ["e:%04d" % index for index in range(256)] + ["", "nul\x00byte", "\xffbinary"]
+    wrong = "cmdgap2:wrong"
+    bad = "cmdgap2:bad"
+    corrupt_key = "cmdgap2:corrupt"
+    truncated_key = "cmdgap2:truncated-xzero"
+    stable = "cmdgap2:stable"
+    corrupt = b"HYLL\x01\x00\x00\x00" + b"\x00" * 7 + b"\x80" + b"\x00"
+    truncated_xzero = b"HYLL\x01" + b"\x00" * 10 + b"\x80\x40"
+    # Valid sparse stream: ZERO(1), XZERO(16383). It pins lowercase z vs uppercase Z decoding.
+    sparse_zero = b"HYLL\x01" + b"\x00" * 10 + b"\x80" + b"\x00\x7f\xfe"
+
+    ops = [
+        ["SET", wrong, "ordinary-string"],
+        ["SET", bad, "not-a-hyperloglog"],
+        ["SET", corrupt_key, corrupt],
+        ["SET", truncated_key, truncated_xzero],
+        ["SET", stable, sparse_zero],
+    ]
+    for _ in range(4200):
+        key = rng.choice(keys)
+        choice = rng.randrange(30)
+        if choice < 7:
+            chosen = [rng.choice(elements) for _ in range(rng.randrange(1, 5))]
+            ops.append(["PFADD", key] + chosen)
+        elif choice < 11:
+            ops.append(["PFDEBUG", "ENCODING", key])
+        elif choice < 14:
+            ops.append(["PFDEBUG", "DECODE", key])
+        elif choice < 17:
+            ops.append(["PFDEBUG", "TODENSE", key])
+        elif choice == 17:
+            ops.append(["PFDEBUG", "GETREG", key])
+        elif choice < 20:
+            ops.append(["GET", key])
+        elif choice == 20:
+            ops.append(["DEL", key])
+        elif choice == 21:
+            ops.append(["PFCOUNT", key])
+        elif choice == 22:
+            ops.append(["PFDEBUG", "ENCODING", "cmdgap2:missing"])
+        elif choice == 23:
+            ops.append(["PFDEBUG", "ENCODING", wrong])
+        elif choice == 24:
+            ops.append(["PFDEBUG", "ENCODING", bad])
+        elif choice == 25:
+            ops.append(["PFDEBUG", rng.choice(["ENCODING", "DECODE", "GETREG", "TODENSE"]),
+                        rng.choice([corrupt_key, truncated_key])])
+        elif choice == 26:
+            ops.append(["PFDEBUG", "NOPE", stable])
+        elif choice == 27:
+            ops.append(["PFDEBUG", "ENCODING"])
+        elif choice == 28:
+            ops.append(["PFDEBUG", "ENCODING", stable, "extra"])
+        else:
+            ops.append(["PFDEBUG", rng.choice(["ENCODING", "DECODE", "GETREG"]), stable])
+
+    # Directed tail proves every handler branch fired. The successful sparse-to-dense operation is
+    # bracketed by ENCODING and GET, so returning :0 without storing the converted image cannot pass.
+    direct = "cmdgap2:directed"
+    direct_getreg = "cmdgap2:directed:getreg"
+    ops += [
+        ["DEL", direct], ["PFADD", direct, "a", "b", "c"],
+        ["PFDEBUG", "ENCODING", direct], ["PFDEBUG", "DECODE", direct],
+        ["GET", direct],
+        ["PFDEBUG", "TODENSE", direct], ["PFDEBUG", "ENCODING", direct],
+        ["GET", direct], ["PFDEBUG", "GETREG", direct],
+        ["PFDEBUG", "DECODE", direct], ["PFDEBUG", "TODENSE", direct],
+        ["DEL", direct_getreg], ["PFADD", direct_getreg, "a", "b", "c"],
+        ["PFDEBUG", "ENCODING", direct_getreg],
+        ["PFDEBUG", "GETREG", direct_getreg],
+        ["PFDEBUG", "ENCODING", direct_getreg], ["GET", direct_getreg],
+        ["PFDEBUG", "NOPE", direct],
+        ["PFDEBUG", "ENCODING", "cmdgap2:missing"],
+        ["PFDEBUG", "ENCODING", wrong], ["PFDEBUG", "ENCODING", bad],
+        ["PFDEBUG", "ENCODING", corrupt_key], ["PFDEBUG", "DECODE", corrupt_key],
+        ["PFDEBUG", "GETREG", corrupt_key], ["PFDEBUG", "TODENSE", corrupt_key],
+        ["PFDEBUG", "ENCODING", truncated_key], ["PFDEBUG", "DECODE", truncated_key],
+        ["PFDEBUG", "GETREG", truncated_key], ["PFDEBUG", "TODENSE", truncated_key],
+        ["SET", "cmdgap2:decode-zero", sparse_zero],
+        ["PFDEBUG", "DECODE", "cmdgap2:decode-zero"],
+        ["PFDEBUG", "GETREG", "cmdgap2:decode-zero"],
+        ["PFDEBUG", "ENCODING", "cmdgap2:decode-zero"],
+        ["PFDEBUG", "ENCODING"], ["PFDEBUG", "ENCODING", stable, "extra"],
+        ["CMDGAP2-NOSUCH"],
+    ]
+    return ops
+
 # Sharded pub/sub is stateful and has spontaneous delivery frames, so it cannot use the ordinary
 # one-request/one-reply pipeline below. Keep its whole differential driver in one mergeable block.
 def run_spubsub_differ(rng):
@@ -4532,6 +4629,7 @@ gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset
         "zsetops": gen_zsetops, "geo": gen_geo,
         "scan": gen_scan, "multi": gen_multi,
         "edgeenc": gen_edgeenc, "edgeproto": gen_edgeproto, "cmdgap": gen_cmdgap,
+        "cmdgap2": gen_cmdgap2,
         "servertail": gen_servertail, "arity": gen_arity}
 if LIST_GENERATORS:
     # Property suites live outside the `gens` dict (their replies are not byte-comparable), so
@@ -4628,7 +4726,7 @@ diffs = 0
 # HLL's directed promotion stream uses many-argument PFADDs and byte-sized GET oracles, and the
 # cgaps suite carries wide numkeys forms; keep their pipeline chunks below the target's fixed
 # read-buffer rollover so the suites test semantics, not an unrelated transport boundary.
-BATCH = 1 if SUITE == "script" else (16 if SUITE in ("hll", "cgaps") else 64)
+BATCH = 1 if SUITE == "script" else (16 if SUITE in ("hll", "cgaps", "cmdgap2") else 64)
 for i in range(0, len(ops), BATCH):
     chunk = ops[i:i + BATCH]
     if chunk[0][0] == "SECOND":
