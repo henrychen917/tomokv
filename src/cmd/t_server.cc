@@ -247,7 +247,6 @@ struct ClientMeta {
     // Mirrored from the io loop's tracking state purely so CLIENT INFO/LIST can report the
     // redis field names. Nothing reads these except the info-line formatter.
     bool tracking = false;
-    bool tracking_bcast = false;
     int64_t tracking_redirect = -1;
 };
 
@@ -2304,12 +2303,11 @@ std::string command_client_addr(const Client* client) {
     return meta ? meta->addr : std::string("unknown:0");
 }
 
-void command_client_set_tracking_view(Client* client, bool on, int64_t redirect, bool bcast) {
+void command_client_set_tracking_view(Client* client, bool on, int64_t redirect) {
     ClientMeta* meta = client_meta(client);
     if (!meta) return;
     meta->tracking = on;
     meta->tracking_redirect = redirect;
-    meta->tracking_bcast = bcast;
 }
 
 void command_client_reset_meta(Client* client) {
@@ -2321,7 +2319,6 @@ void command_client_reset_meta(Client* client) {
     meta->no_evict = false;
     meta->no_touch = false;
     meta->tracking = false;
-    meta->tracking_bcast = false;
     meta->tracking_redirect = -1;
     slowlog_note_client_name(client->id(), "", 0);
 }

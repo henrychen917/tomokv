@@ -167,7 +167,7 @@ void IoLoop::tracking_forget_client(uint64_t id, ClimonConn& state) {
         if (climon_local_trackers_) climon_local_trackers_--;
         if (!climon_local_trackers_) srv_->climon_set_tracking_io(self_->id(), false);
         srv_->climon_tracking_removed();
-        if (state.client) command_client_set_tracking_view(state.client, false, -1, false);
+        if (state.client) command_client_set_tracking_view(state.client, false, -1);
     }
 }
 
@@ -622,7 +622,7 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
         state.prefixes.push_back(std::move(prefix));
     }
     std::sort(state.prefixes.begin(), state.prefixes.end());   // redis reports them sorted
-    command_client_set_tracking_view(client, true, static_cast<int64_t>(redirect), bcast);
+    command_client_set_tracking_view(client, true, static_cast<int64_t>(redirect));
     climon_refresh_armed();
     reply_ok(op.sink());
     return ClimonStartResult::Sync;
