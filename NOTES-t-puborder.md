@@ -22,10 +22,11 @@ UNBLOCKED reply.
 
 An OOB frame records the connection's `rob.dispatch_id()` when it is produced. That exclusive
 frontier names every command issued before the frame. The write-back engine may append the frame
-only after retirement has completely staged replies through that frontier, and before staging a
-younger reply. Multiple connections and multiple frontiers require per-connection queues; the
-existing one-string drain buffer cannot safely represent them once deferral extends outside the
-one currently draining connection.
+only after retirement has completely staged replies through that frontier. It flushes at the end
+of a drain, so a younger reply which is already ready in the same batch may also precede the frame;
+that is safe, while a younger reply which stops the drain cannot hold it. Multiple connections and
+multiple frontiers require per-connection queues; the existing one-string drain buffer cannot
+safely represent them once deferral extends outside the one currently draining connection.
 
 The latency bound is explicit: when a connection is marked blocked and its ROB head is still
 `Issued`, the frame takes `Client::append_oob` immediately. A blocking command is a whole-connection
