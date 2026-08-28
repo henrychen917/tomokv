@@ -13,7 +13,6 @@
 #include <algorithm>
 #include <charconv>
 #include <cstdint>
-#include <cstdio>
 #include <cstring>
 #include <limits>
 #include <map>
@@ -358,55 +357,52 @@ bool object_last_physical(KvObj* object, StreamID& id) {
     return true;
 }
 
-// Redis registers every container subcommand as a command of its own, with an arity of its own.
-// A wrong count therefore names the ARM -- "wrong number of arguments for 'xgroup|create' command"
-// -- and it answers BEFORE the key is looked up. The container row in the registry cannot express
-// that, so the arm table lives here and is consulted first. Arms this tree does not implement are
-// left to the handler below, which spells its own error.
-struct SubArity { const char* name; int min; int max; };   // max < 0 == variadic
+const char* const kXgroupHelp[] = {
+    "XGROUP <subcommand> [<arg> [value] [opt] ...]. Subcommands are:",
+    "CREATE <key> <groupname> <id|$> [option]",
+    "    Create a new consumer group. Options are:",
+    "    * MKSTREAM",
+    "      Create the empty stream if it does not exist.",
+    "    * ENTRIESREAD entries_read",
+    "      Set the group's entries_read counter (internal use).",
+    "CREATECONSUMER <key> <groupname> <consumer>",
+    "    Create a new consumer in the specified group.",
+    "DELCONSUMER <key> <groupname> <consumer>",
+    "    Remove the specified consumer.",
+    "DESTROY <key> <groupname>",
+    "    Remove the specified group.",
+    "SETID <key> <groupname> <id|$> [ENTRIESREAD entries_read]",
+    "    Set the current group ID and entries_read counter.",
+    "HELP",
+    "    Print this help.",
+};
 
-// Returns false having ALREADY replied. Both answers have to come out before the key is looked
-// up: an unknown arm is not a missing key, and "XINFO NOPE somekey" answered "no such key".
-bool subcommand_ok(Op& op, const char* container, const SubArity* table, size_t count) {
-    const Slice sub = op.arg(1);
-    for (size_t i = 0; i < count; i++) {
-        if (!sub.eq_icase(table[i].name)) continue;
-        const int argc = static_cast<int>(op.argc());
-        if (argc >= table[i].min && (table[i].max < 0 || argc <= table[i].max)) return true;
-        char message[96];
-        std::snprintf(message, sizeof(message),
-                      "ERR wrong number of arguments for '%s|%s' command",
-                      container, table[i].name);
-        reply_err(op.sink(), message);
-        return false;
-    }
-    char message[128];
-    char upper[16];
-    size_t upper_len = 0;
-    for (; container[upper_len] && upper_len + 1 < sizeof(upper); upper_len++) {
-        const char ch = container[upper_len];
-        upper[upper_len] = (ch >= 'a' && ch <= 'z') ? static_cast<char>(ch - ('a' - 'A')) : ch;
-    }
-    upper[upper_len] = '\0';
-    std::snprintf(message, sizeof(message), "ERR unknown subcommand '%.*s'. Try %s HELP.",
-                  static_cast<int>(std::min<uint32_t>(sub.n, 48)), sub.p, upper);
-    reply_err(op.sink(), message);
-    return false;
+const char* const kXinfoHelp[] = {
+    "XINFO <subcommand> [<arg> [value] [opt] ...]. Subcommands are:",
+    "CONSUMERS <key> <groupname>",
+    "    Show consumers of <groupname>.",
+    "GROUPS <key>",
+    "    Show the stream consumer groups.",
+    "STREAM <key> [FULL [COUNT <count>]",
+    "    Show information about the stream.",
+    "HELP",
+    "    Print this help.",
+};
+
+void reply_help(Op& op, const char* const* lines, size_t count) {
+    reply_array_header(op.sink(), count);
+    for (size_t i = 0; i < count; i++) reply_simple(op.sink(), lines[i]);
 }
-
-constexpr SubArity kXgroupArity[] = {
-    {"create", 5, -1}, {"createconsumer", 5, 5}, {"delconsumer", 5, 5},
-    {"destroy", 4, 4}, {"setid", 5, -1},
-};
-constexpr SubArity kXinfoArity[] = {
-    {"consumers", 4, 4}, {"groups", 3, 3}, {"stream", 3, -1},
-};
 
 template <bool kNotify>
 void cmd_xgroup(Shard& shard, Op& op) {
-    if (!subcommand_ok(op, "xgroup", kXgroupArity,
-                       sizeof(kXgroupArity) / sizeof(kXgroupArity[0]))) return;
+    int16_t first_key = 0;
+    if (!command_validate_container_subcommand(op, *op.spec, first_key)) return;
     const Slice sub = op.arg(1);
+    if (sub.eq_icase("help")) {
+        reply_help(op, kXgroupHelp, sizeof(kXgroupHelp) / sizeof(kXgroupHelp[0]));
+        return;
+    }
     const Slice key = op.arg(2);
     KvObj* object = shard.store_find<kNotify>(op.hash, key);
 
@@ -990,9 +986,13 @@ void reply_group_info(Op& op, KvObj* object, const StreamHeader& header,
 
 template <bool kNotify>
 void cmd_xinfo(Shard& shard, Op& op) {
-    if (!subcommand_ok(op, "xinfo", kXinfoArity,
-                       sizeof(kXinfoArity) / sizeof(kXinfoArity[0]))) return;
+    int16_t first_key = 0;
+    if (!command_validate_container_subcommand(op, *op.spec, first_key)) return;
     const Slice sub = op.arg(1);
+    if (sub.eq_icase("help")) {
+        reply_help(op, kXinfoHelp, sizeof(kXinfoHelp) / sizeof(kXinfoHelp[0]));
+        return;
+    }
     KvObj* object = shard.store_find<kNotify>(op.hash, op.arg(2));
     if (!object) { reply_err(op.sink(), "ERR no such key"); return; }
     if (!obj_type_check(object, Type::Stream, op.sink())) return;
@@ -1099,7 +1099,7 @@ void cmd_xinfo(Shard& shard, Op& op) {
 }
 
 static const CommandSpec kTable[] = {
-    {"XGROUP",      4, -1, CmdFlags::Write,
+    {"XGROUP",      2, -1, CmdFlags::Write | CmdFlags::CursorShard | CmdFlags::SubcmdRoute,
                               cmd_xgroup<false>, 2, 2, 1, cmd_xgroup<true>},
     {"XREADGROUP",  7, -1, CmdFlags::Write | CmdFlags::Blocking | CmdFlags::MultiShard |
                               CmdFlags::CursorShard | CmdFlags::StreamRoute,
@@ -1114,7 +1114,7 @@ static const CommandSpec kTable[] = {
                               cmd_xautoclaim<false>, 1, 1, 1, cmd_xautoclaim<true>},
     {"XSETID",      3,  7, CmdFlags::Write,
                               cmd_xsetid<false>, 1, 1, 1, cmd_xsetid<true>},
-    {"XINFO",       3,  6, CmdFlags::Readonly,
+    {"XINFO",       2,  6, CmdFlags::Readonly | CmdFlags::CursorShard | CmdFlags::SubcmdRoute,
                               cmd_xinfo<false>, 2, 2, 1, cmd_xinfo<true>},
 };
 

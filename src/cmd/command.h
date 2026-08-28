@@ -71,10 +71,11 @@ struct CmdFlags {
     // OrderedLocal, which claimed bit 18 first — merge trains assign flag bits, not lanes.)
     static constexpr uint32_t Climon = 1u << 19;
     // Container commands whose FIRST ARGUMENT decides whether a key is present at all: OBJECT
-    // ENCODING <key> routes by argv[2], OBJECT HELP has no key. The row keeps the truthful
-    // first_key so ACL/MULTI still gate the keyed forms (both bound their walk by argc), and rides
-    // CursorShard so the existing IO special-route hook resolves the shard before dispatch. No new
-    // branch reaches the GET/SET path: the hook is the one SCAN/EVAL/XREAD already pay for.
+    // ENCODING <key> and XGROUP CREATE <key> ... route by argv[2], while their HELP arms have no
+    // key. The row keeps the truthful first_key so ACL/MULTI still gate the keyed forms (both
+    // bound their walk by argc), and rides CursorShard so the existing IO special-route hook
+    // resolves the shard before dispatch. No new branch reaches the GET/SET path: the hook is the
+    // one SCAN/EVAL/XREAD already pay for.
     // (Third lane to claim bit 18 this wave — reassigned to 20 at the train.)
     static constexpr uint32_t SubcmdRoute = 1u << 20;
     // WAIT on an unsatisfied replica count owns a reply deadline on the connection's IO thread.
@@ -150,6 +151,11 @@ struct SubcommandArity {
 
 bool command_validate_subcommand(Op& op, const char* container,
                                  const SubcommandArity* table, size_t count);
+// Resolve argv[0]|argv[1] in the generated Redis metadata, validate that child's advertised
+// arity, and return its first-key argument (zero for a keyless arm). Returns false after writing
+// the complete unknown-subcommand or child-arity reply.
+bool command_validate_container_subcommand(Op& op, const CommandSpec& spec,
+                                           int16_t& first_key);
 void command_reply_subcommand_wrong_args(Op& op, const char* container,
                                          const char* subcommand);
 // The outer registry still owns each container's broad bound so malformed requests fail before
@@ -247,8 +253,9 @@ bool command_glob_match(Slice pattern, Slice text);
 
 // Special routing helpers. Validation writes a complete error reply into op on failure.
 bool command_prepare_scan_route(Server& server, Op& op);
-// SubcmdRoute resolution for the container commands (OBJECT/MEMORY). Returns false after writing a
-// complete reply into op — the IO caller then retires it without dispatching.
+// SubcmdRoute resolution for containers whose generated child row decides whether a key exists.
+// Returns false after writing a complete reply into op — the IO caller then retires it without
+// dispatching.
 bool command_prepare_subcmd_route(Server& server, Op& op);
 // Lets the server-tail translation unit reach the bound Server without duplicating the binding.
 Server* command_server();

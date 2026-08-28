@@ -291,6 +291,9 @@ Slice command_metadata_name(const CommandMetadata& metadata) {
 }
 
 int16_t command_metadata_arity(const CommandMetadata& metadata) { return metadata.arity; }
+int16_t command_metadata_first_key(const CommandMetadata& metadata) {
+    return metadata.first_key;
+}
 uint64_t command_metadata_categories(const CommandMetadata& metadata) {
     return metadata.categories;
 }

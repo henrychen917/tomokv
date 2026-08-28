@@ -1169,9 +1169,9 @@ private:
                 finish_locally(c, *op, message); continue;
             }
             if (!command_arity_ok(*spec, op->argc())) {
-                // OBJECT/MEMORY/SLOWLOG keep a broad container bound in the registry so malformed
-                // requests are rejected before ACL and MULTI. On this already-taken cold error
-                // path, recover Redis's more specific subcommand name/grammar.
+                // Routed containers and SLOWLOG keep a broad container bound in the registry so
+                // malformed requests are rejected before ACL and MULTI. On this already-taken
+                // cold error path, recover Redis's more specific subcommand name/grammar.
                 const bool container_reply = command_reply_container_outer_arity(*op, *spec);
                 conn.advance_parse(consumed);
                 if (container_reply) {
@@ -1595,8 +1595,8 @@ nonblocking_dispatch:
                 continue;
             }
 
-            // The key position is registry metadata. OBJECT ENCODING is the first command whose
-            // route key is not argv[1], and future multi-key lowering consumes the same range.
+            // The ordinary key position is registry metadata. Container children and the other
+            // special routes refine it in the existing CursorShard hook below.
             if (spec->flags & CmdFlags::CursorShard) {
                 if (!command_prepare_scan_route(*srv_, *op)) {
                     conn.advance_parse(consumed);

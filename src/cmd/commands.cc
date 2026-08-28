@@ -276,11 +276,33 @@ bool command_validate_subcommand(Op& op, const char* container,
     return false;
 }
 
+bool command_validate_container_subcommand(Op& op, const CommandSpec& spec,
+                                           int16_t& first_key) {
+    const CommandMetadata* metadata = command_metadata_resolve(op, 0);
+    if (!metadata || !command_metadata_is_subcommand(*metadata)) {
+        reply_unknown_subcommand(op, spec.name);
+        return false;
+    }
+    if (!command_metadata_arity_ok(*metadata, op.argc())) {
+        const char* separator = std::strchr(command_metadata_name(*metadata).p, '|');
+        command_reply_subcommand_wrong_args(op, spec.name,
+                                            separator ? separator + 1 : spec.name);
+        return false;
+    }
+    first_key = command_metadata_first_key(*metadata);
+    return true;
+}
+
 bool command_reply_container_outer_arity(Op& op, const CommandSpec& spec) {
     if (op.argc() < 2) return false;
     if (spec.flags & CmdFlags::SubcmdRoute) {
-        (void)server_tail_validate_container_subcommand(op,
-                                                        !std::strcmp(spec.name, "MEMORY"));
+        int16_t first_key = 0;
+        // Reaching this hook means the broad top-level row rejected the request. Usually the
+        // generated child rejects it too and supplies the precise child name. The one remaining
+        // shape is a variadic child crossing a finite container maximum (MEMORY USAGE and XINFO
+        // STREAM); those tails are handler grammar, for which Redis reports syntax error.
+        if (command_validate_container_subcommand(op, spec, first_key))
+            reply_syntax(op.sink());
         return true;
     }
     if (!std::strcmp(spec.name, "SLOWLOG")) {
