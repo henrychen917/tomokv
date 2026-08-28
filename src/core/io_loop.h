@@ -1200,6 +1200,29 @@ nonblocking_dispatch:
                 break;
             }
             if (scatter_prepared == ScatterPrepare::Ready) {
+                // SAME-CONNECTION PROGRAM ORDER ACROSS A SECOND WAVE OF TASKS.
+                //
+                // A barriered scatter is exactly the set of commands that publish a SECOND wave of
+                // owner tasks from an EX thread rather than from here: a two-hop store's phase-2
+                // destination install (publish_phase2), an LMPOP/ZMPOP retry, the cross-owner
+                // script apply wave. Those tasks enter the destination owner through the EX
+                // producer's inbox channel, while this connection's ordinary ops entered through
+                // THIS io thread's channel -- and ThreadCtx::drain_tasks visits channels in
+                // producer-id order, so nothing orders the two. A phase-2 install could therefore
+                // execute BEFORE an older op of the same connection that was still sitting in our
+                // channel, and that older op then answered from after a store it precedes.
+                // Measured: `ZDIFFSTORE d 2 a b` answering :1 with the very next `ZCARD d`
+                // answering :2, and a `DEL` of a destination landing after a younger store.
+                //
+                // The barrier the dispatch sets below already keeps YOUNGER ops out; this keeps
+                // older ones from still being in. Same lowering the blocking path uses: wait for
+                // the ROB head, leave the frame unconsumed, and re-parse once the connection
+                // quiesces. Read-only and single-wave scatters (MGET, MSET/DEL groups, a direct
+                // RENAME) are not barriered and do not pay it -- they post every task from here.
+                if (scatter_dispatch.barrier && rob.in_flight() != 0) {
+                    xshard_destroy(scatter_dispatch.state, scatter_pool_, self_->id());
+                    break;
+                }
                 // Read-only/plain scatters keep the compact V3 dispatch arm. Constructing route and
                 // bundle arrays for MGET added work without helping its already-cheap individual
                 // queue stores. Atomic writes take the bundled arm below, where fan-out dominates.

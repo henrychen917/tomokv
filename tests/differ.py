@@ -1123,6 +1123,137 @@ def gen_xshard(rng):
     ]
     return ops
 
+def gen_storeorder(rng):
+    """Cross-shard STORE destinations, READ BACK and DELETED on the same pipelined connection.
+
+    Every other cross-shard suite deliberately keeps store destinations unread (a store's own reply
+    is its evidence), which leaves one thing unmeasured: whether the destination the store just
+    acknowledged is visible to the NEXT command the same connection sent.  That gap is what this
+    suite closes.  Each cycle is `<mutate a source> ; <STORE dst ...> ; <read dst> ; DEL dst`, the
+    destinations are drawn from a small reused pool so a late install shows up as a shifted
+    timeline rather than as a one-off, and the whole family is covered -- including RENAME/RENAMENX
+    and MSETNX, which are the members that do NOT take the two-hop connection barrier.
+
+    Everything diffed here is byte-deterministic on both servers:
+      * scores are integers, so nothing depends on float rendering,
+      * set destinations are read with SCARD/SMISMEMBER rather than SMEMBERS, whose order is
+        implementation-defined on both sides,
+      * SORT is numeric over integer lists (never ALPHA, whose order is locale-collated on redis),
+      * PFMERGE destinations are probed with EXISTS, not PFCOUNT.
+    The suite runs with a deep pipeline chunk (see BATCH below): a short chunk makes the client
+    wait for replies, and a destination install can only be late while it does not.
+    """
+    zs = ["so:z%d" % i for i in range(4)]
+    ss = ["so:s%d" % i for i in range(4)]
+    ls = ["so:l%d" % i for i in range(3)]
+    bs = ["so:b%d" % i for i in range(3)]
+    hs = ["so:h%d" % i for i in range(2)]
+    geo = "so:g0"
+    dests = ["so:d%d" % i for i in range(8)]
+    members = ["m%d" % i for i in range(12)]
+
+    ops = [["DEL"] + zs + ss + ls + bs + hs + dests + [geo]]
+    for i, k in enumerate(zs):
+        ops.append(["ZADD", k, "1", "a", "2", "b", "3", "c", str(10 + i), "d"])
+    for i, k in enumerate(ss):
+        ops.append(["SADD", k, "a", "b", "c", "e%d" % i])
+    for k in ls:
+        ops.append(["RPUSH", k, "3", "1", "2", "10"])
+    for i, k in enumerate(bs):
+        ops.append(["SET", k, "abcdefgh"[: 3 + i]])
+    for k in hs:
+        ops.append(["PFADD", k, "a", "b", "c"])
+    ops.append(["GEOADD", geo, "13.361389", "38.115556", "palermo",
+                "15.087269", "37.502669", "catania"])
+
+    tick = [0]
+
+    def bump():
+        """Move a source so consecutive stores into one destination differ."""
+        tick[0] += 1
+        n = tick[0]
+        which = rng.randrange(5)
+        if which == 0: return [["ZADD", rng.choice(zs), str(n % 40), "n%d" % (n % 9)]]
+        if which == 1: return [["SADD", rng.choice(ss), "n%d" % (n % 9)]]
+        if which == 2: return [["RPUSH", rng.choice(ls), str(n % 40)],
+                               ["LTRIM", rng.choice(ls), "0", "9"]]
+        if which == 3: return [["SET", rng.choice(bs), "v" * (1 + n % 7)]]
+        return [["PFADD", rng.choice(hs), "n%d" % (n % 40)]]
+
+    def store_cycle(dst):
+        c = rng.randrange(18)
+        if c == 0:
+            return [["ZRANGESTORE", dst, rng.choice(zs), "0", "-1"],
+                    ["ZRANGE", dst, "0", "-1", "WITHSCORES"]]
+        if c == 1:
+            return [["ZRANGESTORE", dst, rng.choice(zs), "(1", "+inf", "BYSCORE"],
+                    ["ZRANGE", dst, "0", "-1", "WITHSCORES"]]
+        if c == 2:
+            return [["ZUNIONSTORE", dst, "2", rng.choice(zs), rng.choice(zs),
+                     "AGGREGATE", rng.choice(["SUM", "MIN", "MAX"])],
+                    ["ZRANGE", dst, "0", "-1", "WITHSCORES"]]
+        if c == 3:
+            return [["ZINTERSTORE", dst, "2", rng.choice(zs), rng.choice(zs)],
+                    ["ZRANGE", dst, "0", "-1", "WITHSCORES"]]
+        if c == 4:
+            return [["ZDIFFSTORE", dst, "2", rng.choice(zs), rng.choice(zs)],
+                    ["ZRANGE", dst, "0", "-1", "WITHSCORES"]]
+        if c == 5:
+            return [["SUNIONSTORE", dst, rng.choice(ss), rng.choice(ss)],
+                    ["SCARD", dst], ["SMISMEMBER", dst] + members[:4]]
+        if c == 6:
+            return [["SINTERSTORE", dst, rng.choice(ss), rng.choice(ss)],
+                    ["SCARD", dst], ["SMISMEMBER", dst] + members[:4]]
+        if c == 7:
+            return [["SDIFFSTORE", dst, rng.choice(ss), rng.choice(ss)],
+                    ["SCARD", dst], ["SMISMEMBER", dst] + members[:4]]
+        if c == 8:
+            return [["SORT", rng.choice(ls), "STORE", dst], ["LRANGE", dst, "0", "-1"]]
+        if c == 9:
+            return [["GEOSEARCHSTORE", dst, geo, "FROMLONLAT", "13", "38",
+                     "BYRADIUS", rng.choice(["50", "500", "5000"]), "km", "ASC"],
+                    ["ZCARD", dst], ["ZRANGE", dst, "0", "-1"]]
+        if c == 10:
+            return [["COPY", rng.choice(zs + bs), dst, "REPLACE"], ["TYPE", dst], ["EXISTS", dst]]
+        if c == 11:
+            return [["BITOP", rng.choice(["AND", "OR", "XOR"]), dst,
+                     rng.choice(bs), rng.choice(bs)], ["GET", dst]]
+        if c == 12:
+            return [["PFMERGE", dst, rng.choice(hs), rng.choice(hs)], ["EXISTS", dst]]
+        if c == 13:
+            src = rng.choice(ss)
+            return [["SMOVE", src, dst, rng.choice(members[:6] + ["a", "b", "c"])],
+                    ["SCARD", dst], ["SCARD", src]]
+        if c == 14:
+            src = rng.choice(ls)
+            return [["LMOVE", src, dst, rng.choice(["LEFT", "RIGHT"]),
+                     rng.choice(["LEFT", "RIGHT"])], ["LRANGE", dst, "0", "-1"]]
+        if c == 15:
+            src = rng.choice(ls)
+            return [["RPOPLPUSH", src, dst], ["LRANGE", dst, "0", "-1"]]
+        if c == 16:
+            # RENAME/RENAMENX are the members that drop the two-hop barrier at --atomic 1.
+            src = rng.choice(bs)
+            return [["SET", src, "r%d" % tick[0]],
+                    [rng.choice(["RENAME", "RENAMENX"]), src, dst],
+                    ["GET", dst], ["EXISTS", src]]
+        if c == 17:
+            return [["MSETNX", dst, "m%d" % tick[0], rng.choice(bs) + ":x", "y"],
+                    ["GET", dst]]
+        raise AssertionError(c)
+
+    while len(ops) < 4600:
+        dst = rng.choice(dests)
+        ops += bump()
+        ops += store_cycle(dst)
+        if rng.randrange(3) == 0:
+            ops.append(["EXISTS", dst])
+        # The DEL is the second half of the shape: a destination install that arrives after it
+        # survives into the NEXT cycle's read, which is exactly how the anomaly presents.
+        ops.append(["DEL", dst])
+        ops.append(["EXISTS", dst])
+    return ops[:4600]
+
 def gen_scan(rng):
     """SCAN family. The diffed stream is the OPTION SURFACE plus the mutations that shape the
     tables; the completeness property itself cannot be byte-compared (cursor values and emission
@@ -4532,7 +4663,8 @@ gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset
         "zsetops": gen_zsetops, "geo": gen_geo,
         "scan": gen_scan, "multi": gen_multi,
         "edgeenc": gen_edgeenc, "edgeproto": gen_edgeproto, "cmdgap": gen_cmdgap,
-        "servertail": gen_servertail, "arity": gen_arity}
+        "servertail": gen_servertail, "arity": gen_arity,
+        "storeorder": gen_storeorder}
 if LIST_GENERATORS:
     # Property suites live outside the `gens` dict (their replies are not byte-comparable), so
     # they are appended by name.  Two lanes added this list independently; keep the union.
@@ -4628,7 +4760,12 @@ diffs = 0
 # HLL's directed promotion stream uses many-argument PFADDs and byte-sized GET oracles, and the
 # cgaps suite carries wide numkeys forms; keep their pipeline chunks below the target's fixed
 # read-buffer rollover so the suites test semantics, not an unrelated transport boundary.
-BATCH = 1 if SUITE == "script" else (16 if SUITE in ("hll", "cgaps") else 64)
+# storeorder needs a DEEP chunk on purpose: the destination install and the connection's later
+# operations only overlap while the client is not waiting for replies, so a 64-op chunk would
+# hide the very window the suite exists to cover.
+BATCH = (1 if SUITE == "script" else
+         16 if SUITE in ("hll", "cgaps") else
+         512 if SUITE == "storeorder" else 64)
 for i in range(0, len(ops), BATCH):
     chunk = ops[i:i + BATCH]
     if chunk[0][0] == "SECOND":
