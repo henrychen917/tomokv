@@ -1936,6 +1936,26 @@ bool AofManager::submit_frame_uring(std::unique_ptr<AofChunk> chunk, bool group_
 
 uint32_t AofManager::drain_pending_commits(uint32_t& budget, Ring& ring,
                                            io_uring_sqe*& last_write) {
+    // A control frame must never land between the begin and end frames of a large record. Every
+    // recovery path -- the writer's own short-write rollback to last_good_offset_, the shutdown
+    // ftruncate to large_record_offset_, and the loader's rewind to the large record's first frame
+    // -- discards the file from the large record's first byte onward. Anything written inside that
+    // byte range is discarded with it, and a GCMT is exactly the record that must not be
+    // discardable: it is what makes an already-durable, already-acknowledged group visible on
+    // replay. So the lock a large record takes on the physical stream covers control frames too.
+    // The deferral is bounded: the writer keeps draining the locked producer, which is the only
+    // producer that can close the record.
+    if (locked_producer_ != UINT32_MAX) {
+        if (!pending_commits_.empty()) {
+            for (const std::unique_ptr<AofChunk>& held : pending_commits_) {
+                if (held->group && group_dependencies_ready(*held->group)) {
+                    control_defers_.fetch_add(1, std::memory_order_relaxed);
+                    break;
+                }
+            }
+        }
+        return 0;
+    }
     uint32_t written = 0;
     for (size_t index = 0; index < pending_commits_.size() && budget;) {
         AofChunk& chunk = *pending_commits_[index];
