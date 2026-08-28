@@ -128,3 +128,27 @@ notification finalization before that restore and index the wrong order array. `
 checks gather `group.error` values but deliberately skips the fixed per-key status scan during that
 wave; gather requests have no per-key `status` entries. This covers both bare and EXEC terminal
 paths without hiding any gather error.
+
+## 2026-08-28: final static audit
+
+- A tracked-source symbol sweep finds no `sort_deref_local`, `kSortByDenied`,
+  `kSortGetDenied`, or `TOMO_SORT_NO_READCTX`. ACL's distinct permission-denial messages remain.
+- `src/cmd/t_sort.cc` contains no `Server`, `Shard`, `FlatStore`, `KvObj`, or store access. The only
+  keyspace reads in the new wave are through the `Shard&` passed to `xshard_execute`, after routing
+  the concrete key with `router().shard_of` and posting its shard to `worker_of_shard`.
+- Source and gather both pass through the same `PinnedNowMs(state.now_cut_ms)` and
+  `ReadEpochGuard(state.snapshot, state.origin_conn_id)`. Bare dereferencing SORT registers that
+  cut even at atomic mode 0 and with STORE; an EXEC child borrows its parent's registered cut and
+  transaction-wide time cut.
+- STORE reduction restores the fixed source groups and enters the pre-existing phase-two plan;
+  `apply_image_selected` still runs only in the destination shard task.
+- No file under `src/store/`, including `atomic_mvcc.h` and `flatstore_atomic.inc`, changed. The
+  `atomics_glue.inc` edits only teach task hazard/key enumeration about the sidecar's dynamic key
+  order; resolver, version selection, publication, and apply machinery are unchanged.
+- Neither `Op` nor `Client` was edited. Their existing 336/1984-byte static assertions remain; the
+  sole `ScatterState` addition is the `SortDerefState*` at the cold tail, and its object is carved
+  and destroyed with the scatter arena.
+- `git diff --check` is clean across the complete lane diff.
+
+Per the lane prohibition, this audit is static only. No compilation, make target, server, load
+generator, or test script was run.
