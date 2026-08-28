@@ -238,3 +238,76 @@ Per the lane prohibition this repair was reviewed statically only. It was not bu
 test script, or load generator was run. Validation remains `tests/sort.py` at
 `--shards 16 --ratio 6:2` in both atomic modes, with cross-owner geometry proven by `DEBUG SHARD` and
 absence treated as a hard failure.
+
+## 2026-08-28: integration onto t-merge14
+
+Merged `t-merge14` at `953ca0774` into this lane. The integration commit is `dcb896835`; because it
+has `t-merge14` as its second parent, `t-sortxshard` is now a descendant of mainline and can be
+fast-forwarded into it.
+
+### `multi_child` resolution
+
+The integrated design keeps mainline's `ScatterState::multi_child` flag and child-local decision
+words. `xshard_multi_child_bind` now takes one argument and sets `multi_child = true`; preparation
+then captures the SORT lane's immutable stage-zero group mask. The flag remains load-bearing at all
+four gates plus its declaration:
+
+- `src/cmd/xshard_commands.inc:1535` prevents a child phase-two apply from drawing its own ticket.
+- `src/cmd/scatter_engine.inc:1062` prevents a child from creating a second AOF scatter group.
+- `src/cmd/scatter_engine.inc:2639` keeps a MULTI pop inside the parent's prepared-write path.
+- `src/cmd/scatter_engine.inc:3336` prevents an atomic-write child from committing independently.
+- `src/cmd/scatter_engine.inc:399` is the flag itself, set by the bind at line 3382.
+
+The brief's assertion that `external_epoch` and `external_aborted` must be restored is superseded by
+mainline commit `d1a4d3650` (`multilower: isolate xshard child runtime failures`). Restoring those
+pointers with their old parent targets would silently revert that shipped fix: an ordinary runtime
+error in one queued xshard command would set the parent's abort word and cancel otherwise successful
+EXEC elements. They are therefore deliberately not restored.
+
+Instead, records created by each xshard child point at that child's existing `epoch` and `aborted`
+words. A normal child error aborts only that child. At the parent finalizer,
+`publish_multi_child_epochs` release-stores the one shared ticket into every child epoch inside the
+`Server::atomic_commit_group` callback, before the safe watermark publication. A genuine WATCH,
+connection, preparation, or transaction-wide abort calls `abort_multi_children` before reservation
+finalization. This preserves both requirements: successful children become visible at one EXEC
+ticket, while per-command runtime errors retain Redis EXEC isolation.
+
+The SORT lane's MULTI publication repair remains orthogonal to those decision words. Each child
+stage has an immutable 256-shard mask. The last participant rebuilds `ScatterState::groups`, captures
+the next mask, and only then release-stores `command.stage`; retrying fragments acquire-load the
+stage and never consult a group table while it is being rewritten. This keeps the validated dynamic
+SORT gather ordering without weakening mainline's commit, abort, or AOF ownership.
+
+### Mainline preservation audit
+
+The pre-merge feature side remained the evolved side of `scatter_engine.inc`; the merge applied
+mainline's 52-line delta onto it. A static comparison from the old feature tip to the integrated tree
+shows the same 37-path mainline surface as `c0d7f27fd..t-merge14`. The overlapping paths were read
+individually:
+
+- `scatter_engine.inc` retains the complete dynamic SORT gather and stage capture, plus mainline's
+  `DebugBorrowCount` route and all child-local `multi_child` gates.
+- `multi.inc` retains the stage masks and all-shard SORT participation, plus mainline's logical AOF
+  post-image resolution, per-child runtime-error isolation, common-ticket epoch publication, and
+  transaction-wide child-abort propagation.
+- `xshard_commands.inc` retains SORT's gather/reduction changes plus mainline's `multi_child` commit
+  gate and `DebugBorrowCount` reply.
+- The P0 push fix is intact: `Client::append_oob` seals older fill bytes and uses owned segments for
+  a non-quiescent ROB; `WbEngine::draining`, `defer_oob`, and each drain arm flush only after a reply
+  boundary; pub/sub and climon use that path; `assemble_mget` still stages its header/borrow/tail
+  segments inside the protected retire drain. The segmented/deferred mechanism counters and their
+  measured INFO reporting remain present.
+- Mainline's container routing, MULTI lowering tests/notes, borrow-registry instrumentation,
+  info-reporting changes, P0 repro/battery, and `INFO everything` fix are unchanged on their
+  non-overlapping paths. The gate conflict retains both `contarity`/`infofix` and cross-owner SORT;
+  its ledger is 213 quick / 223 full, accounting for all six added both-mode rows relative to the
+  207/217 common-base ledger.
+
+Measurement surface for the integrated lane is SORT/SORT_RO (including STORE and derived BY/GET),
+EXEC containing lowered xshard children, atomic/AOF commit of those children, and mainline's
+out-of-band pub/sub/tracking/MONITOR interaction with borrowed replies including MGET. The owner
+should retain the lane's requested SORT differential and 16-shard 6:2 MULTI race geometries, then
+run the full gate so GET, SET, MGET and MSET remain covered.
+
+Per the binding lane rule, this integration was verified by source/history comparison only. No
+build, `make`, server, test script, load generator, or benchmark was run.
