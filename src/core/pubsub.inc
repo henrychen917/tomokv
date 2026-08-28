@@ -718,30 +718,18 @@
             if (found != pubsub_local_.end()) {
                 const PubSubLocalConn& local = found->second;
                 subscribed = pubsub_total_subscription_count(local) != 0;
-                if (!kill_all && permissions && !(permissions->flags & AclAllChannels)) {
+                if (!kill_all && permissions) {
                     for (const std::string& pattern : local.patterns) {
-                        bool allowed = false;
-                        for (const std::string& acl_pattern : permissions->channel_patterns)
-                            allowed |= acl_pattern == pattern;
-                        violating |= !allowed;
+                        const Slice value(pattern.data(), static_cast<uint32_t>(pattern.size()));
+                        violating |= !acl_channel_allowed_any(*permissions, value, true);
                     }
                     for (const std::string& channel : local.channels) {
                         const Slice value(channel.data(), static_cast<uint32_t>(channel.size()));
-                        bool allowed = false;
-                        for (const std::string& acl_pattern : permissions->channel_patterns)
-                            allowed |= command_glob_match(
-                                Slice(acl_pattern.data(), static_cast<uint32_t>(acl_pattern.size())),
-                                value);
-                        violating |= !allowed;
+                        violating |= !acl_channel_allowed_any(*permissions, value, false);
                     }
                     for (const std::string& channel : local.shard_channels) {
                         const Slice value(channel.data(), static_cast<uint32_t>(channel.size()));
-                        bool allowed = false;
-                        for (const std::string& acl_pattern : permissions->channel_patterns)
-                            allowed |= command_glob_match(
-                                Slice(acl_pattern.data(), static_cast<uint32_t>(acl_pattern.size())),
-                                value);
-                        violating |= !allowed;
+                        violating |= !acl_channel_allowed_any(*permissions, value, false);
                     }
                 }
             }

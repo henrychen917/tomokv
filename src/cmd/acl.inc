@@ -117,30 +117,30 @@ std::string acl_hex_hash(const std::array<uint64_t, 4>& digest) {
     return result;
 }
 
-bool acl_command_bit(const AclPerm& perm, uint32_t id) {
+bool acl_command_bit(const AclSelector& perm, uint32_t id) {
     return perm.allowed_commands[id >> 6] & (uint64_t{1} << (id & 63));
 }
 
-void acl_set_command_bit(AclPerm& perm, uint32_t id, bool value) {
+void acl_set_command_bit(AclSelector& perm, uint32_t id, bool value) {
     if (id >= kAclFutureCommandBit) return;
     const uint64_t bit = uint64_t{1} << (id & 63);
     if (value) perm.allowed_commands[id >> 6] |= bit;
     else perm.allowed_commands[id >> 6] &= ~bit;
 }
 
-bool acl_future_commands(const AclPerm& perm) {
+bool acl_future_commands(const AclSelector& perm) {
     return (perm.allowed_commands[kAclFutureCommandBit >> 6] &
             (uint64_t{1} << (kAclFutureCommandBit & 63))) != 0;
 }
 
-void acl_reset_commands(AclPerm& perm, bool all) {
+void acl_reset_commands(AclSelector& perm, bool all) {
     for (uint64_t& word : perm.allowed_commands) word = all ? UINT64_MAX : 0;
     if (all) perm.flags |= AclAllCommands;
     else perm.flags &= ~AclAllCommands;
     perm.command_rules.clear();
 }
 
-void acl_update_command_rule(AclPerm& perm, const std::string& rule) {
+void acl_update_command_rule(AclSelector& perm, const std::string& rule) {
     const std::string target = acl_lower(
         Slice(rule.data() + 1, static_cast<uint32_t>(rule.size() - 1)));
     for (size_t i = 0; i < perm.command_rules.size();) {
@@ -157,7 +157,7 @@ void acl_update_command_rule(AclPerm& perm, const std::string& rule) {
     perm.command_rules.push_back(std::move(normalized));
 }
 
-bool acl_apply_command_rule(AclPerm& perm, Slice rule, std::string& error,
+bool acl_apply_command_rule(AclSelector& perm, Slice rule, std::string& error,
                             bool remember = true) {
     if (rule.n < 2 || (rule.p[0] != '+' && rule.p[0] != '-')) {
         error = "Syntax error";
@@ -222,6 +222,44 @@ AclUserImage acl_new_image(const std::string& name) {
     return image;
 }
 
+bool acl_apply_permission_rule(AclSelector& perm, Slice rule, std::string& error) {
+    if (acl_equal_icase(rule, "allkeys") || acl_equal_icase(rule, "~*")) {
+        perm.flags |= AclAllKeys;
+        perm.key_patterns.clear();
+    } else if (acl_equal_icase(rule, "resetkeys")) {
+        perm.flags &= ~AclAllKeys;
+        perm.key_patterns.clear();
+    } else if (acl_equal_icase(rule, "allchannels") || acl_equal_icase(rule, "&*")) {
+        perm.flags |= AclAllChannels;
+        perm.channel_patterns.clear();
+    } else if (acl_equal_icase(rule, "resetchannels")) {
+        perm.flags &= ~AclAllChannels;
+        perm.channel_patterns.clear();
+    } else if (acl_equal_icase(rule, "allcommands")) {
+        acl_reset_commands(perm, true);
+    } else if (acl_equal_icase(rule, "nocommands")) {
+        acl_reset_commands(perm, false);
+    } else if (rule.p[0] == '%') {
+        error = "Read/write key patterns are not supported until command key specifications are available";
+        return false;
+    } else if (rule.p[0] == '~') {
+        if (perm.flags & AclAllKeys) {
+            error = "Adding a pattern after the * pattern (or the 'allkeys' flag) is not valid and does not have any effect. Try 'resetkeys' to start with an empty list of patterns";
+            return false;
+        }
+        acl_add_unique(perm.key_patterns, Slice(rule.p + 1, rule.n - 1));
+    } else if (rule.p[0] == '&') {
+        if (perm.flags & AclAllChannels) {
+            error = "Adding a pattern after the * pattern (or the 'allchannels' flag) is not valid and does not have any effect. Try 'resetchannels' to start with an empty list of channels";
+            return false;
+        }
+        acl_add_unique(perm.channel_patterns, Slice(rule.p + 1, rule.n - 1));
+    } else if (!acl_apply_command_rule(perm, rule, error)) {
+        return false;
+    }
+    return true;
+}
+
 AclUserImage acl_image(const AclUser& user) {
     AclUserImage image;
     image.name = user.name;
@@ -252,27 +290,13 @@ bool acl_apply_rule(AclUserImage& image, Slice rule, std::string& error) {
     } else if (acl_equal_icase(rule, "resetpass")) {
         image.flags &= ~AclUserNoPass;
         image.passwords.clear();
-    } else if (acl_equal_icase(rule, "allkeys") || acl_equal_icase(rule, "~*")) {
-        image.perm.flags |= AclAllKeys;
-        image.perm.key_patterns.clear();
-    } else if (acl_equal_icase(rule, "resetkeys")) {
-        image.perm.flags &= ~AclAllKeys;
-        image.perm.key_patterns.clear();
-    } else if (acl_equal_icase(rule, "allchannels") || acl_equal_icase(rule, "&*")) {
-        image.perm.flags |= AclAllChannels;
-        image.perm.channel_patterns.clear();
-    } else if (acl_equal_icase(rule, "resetchannels")) {
-        image.perm.flags &= ~AclAllChannels;
-        image.perm.channel_patterns.clear();
-    } else if (acl_equal_icase(rule, "allcommands")) {
-        acl_reset_commands(image.perm, true);
-    } else if (acl_equal_icase(rule, "nocommands")) {
-        acl_reset_commands(image.perm, false);
     } else if (acl_equal_icase(rule, "reset")) {
         image.passwords.clear();
         image.flags = AclUserDisabled | AclUserSanitize;
         image.perm = AclPerm{};
         if (g_acl_pubsub_default_all) image.perm.flags |= AclAllChannels;
+    } else if (acl_equal_icase(rule, "clearselectors")) {
+        image.perm.selectors.clear();
     } else if (rule.p[0] == '>' || rule.p[0] == '#') {
         std::array<uint64_t, 4> digest;
         if (rule.p[0] == '>') digest = auth_password_digest(Slice(rule.p + 1, rule.n - 1));
@@ -298,34 +322,64 @@ bool acl_apply_rule(AclUserImage& image, Slice rule, std::string& error) {
             return false;
         }
         image.passwords.erase(found);
-    } else if (rule.p[0] == '%') {
-        error = "Read/write key patterns are not supported until command key specifications are available";
+    } else if (rule.p[0] == '(' || rule.p[rule.n - 1] == ')') {
+        error = "Syntax error";
         return false;
-    } else if (rule.p[0] == '(' || rule.p[rule.n - 1] == ')' ||
-               acl_equal_icase(rule, "clearselectors")) {
-        error = "ACL selectors are not supported";
-        return false;
-    } else if (rule.p[0] == '~') {
-        if (image.perm.flags & AclAllKeys) {
-            error = "Adding a pattern after the * pattern (or the 'allkeys' flag) is not valid and does not have any effect. Try 'resetkeys' to start with an empty list of patterns";
-            return false;
-        }
-        acl_add_unique(image.perm.key_patterns, Slice(rule.p + 1, rule.n - 1));
-    } else if (rule.p[0] == '&') {
-        if (image.perm.flags & AclAllChannels) {
-            error = "Adding a pattern after the * pattern (or the 'allchannels' flag) is not valid and does not have any effect. Try 'resetchannels' to start with an empty list of channels";
-            return false;
-        }
-        acl_add_unique(image.perm.channel_patterns, Slice(rule.p + 1, rule.n - 1));
-    } else if (!acl_apply_command_rule(image.perm, rule, error)) {
+    } else if (!acl_apply_permission_rule(image.perm, rule, error)) {
         return false;
     }
+    return true;
+}
+
+bool acl_apply_selector(AclUserImage& image, const std::string& expression,
+                        std::string& error) {
+    AclSelector selector;
+    if (g_acl_pubsub_default_all) selector.flags |= AclAllChannels;
+    const char* text = expression.data() + 1;
+    const char* const end = expression.data() + expression.size() - 1;
+    while (text < end) {
+        while (text < end && std::isspace(static_cast<unsigned char>(*text))) text++;
+        const char* token = text;
+        while (text < end && !std::isspace(static_cast<unsigned char>(*text))) text++;
+        if (token == text) break;
+        const Slice rule(token, static_cast<uint32_t>(text - token));
+        if (!acl_apply_permission_rule(selector, rule, error)) return false;
+    }
+    if (!(selector.flags & AclAllCommands)) {
+        for (uint32_t id = 0; id < command_registry_size(); id++) {
+            const CommandSpec* spec = command_registry_at(id);
+            if ((spec->flags & CmdFlags::ScriptRoute) && acl_command_bit(selector, id)) {
+                error = "Script commands in ACL selectors require allcommands";
+                return false;
+            }
+        }
+    }
+    image.perm.selectors.push_back(std::move(selector));
     return true;
 }
 
 bool acl_apply_rules(AclUserImage& image, const std::vector<std::string>& rules,
                      size_t begin, std::string& error, std::string* failed = nullptr) {
     for (size_t i = begin; i < rules.size(); i++) {
+        if (!rules[i].empty() && rules[i][0] == '(') {
+            std::string expression = rules[i];
+            const std::string selector_start = expression;
+            while (expression.empty() || expression.back() != ')') {
+                if (++i == rules.size()) {
+                    error = "Unmatched parenthesis in acl selector starting at '" +
+                            selector_start + "'.";
+                    if (failed) *failed = expression;
+                    return false;
+                }
+                expression.push_back(' ');
+                expression += rules[i];
+            }
+            if (!acl_apply_selector(image, expression, error)) {
+                if (failed) *failed = expression;
+                return false;
+            }
+            continue;
+        }
         const Slice rule(rules[i].data(), static_cast<uint32_t>(rules[i].size()));
         if (!acl_apply_rule(image, rule, error)) {
             if (failed) *failed = rules[i];
@@ -335,8 +389,8 @@ bool acl_apply_rules(AclUserImage& image, const std::vector<std::string>& rules,
     return true;
 }
 
-void acl_verify_command_description(const AclPerm& perm) {
-    AclPerm predicted;
+void acl_verify_command_description(const AclSelector& perm) {
+    AclSelector predicted;
     acl_reset_commands(predicted, acl_future_commands(perm));
     for (const std::string& rule : perm.command_rules) {
         std::string error;
@@ -347,7 +401,7 @@ void acl_verify_command_description(const AclPerm& perm) {
                     sizeof(perm.allowed_commands))) std::abort();
 }
 
-std::string acl_describe_commands(const AclPerm& perm) {
+std::string acl_describe_commands(const AclSelector& perm) {
     acl_verify_command_description(perm);
     std::string result = acl_future_commands(perm) ? "+@all" : "-@all";
     for (const std::string& rule : perm.command_rules) {
@@ -357,7 +411,7 @@ std::string acl_describe_commands(const AclPerm& perm) {
     return result;
 }
 
-std::string acl_join_patterns(const AclPerm& perm, bool channel) {
+std::string acl_join_patterns(const AclSelector& perm, bool channel) {
     std::string result;
     if (channel) {
         if (perm.flags & AclAllChannels) return "&*";
@@ -377,7 +431,7 @@ std::string acl_join_patterns(const AclPerm& perm, bool channel) {
     return result;
 }
 
-std::string acl_getuser_channels(const AclPerm& perm) {
+std::string acl_getuser_channels(const AclSelector& perm) {
     if (perm.flags & AclAllChannels) return "&*";
     std::string result;
     for (const std::string& pattern : perm.channel_patterns) {
@@ -404,6 +458,16 @@ std::string acl_describe_image(const AclUserImage& image) {
     if (!keys.empty()) flag(keys.c_str());
     flag(acl_join_patterns(image.perm, true).c_str());
     flag(acl_describe_commands(image.perm).c_str());
+    for (const AclSelector& selector : image.perm.selectors) {
+        std::string description = "(";
+        const std::string keys = acl_join_patterns(selector, false);
+        if (!keys.empty()) description += keys + " ";
+        description += acl_join_patterns(selector, true);
+        description.push_back(' ');
+        description += acl_describe_commands(selector);
+        description.push_back(')');
+        flag(description.c_str());
+    }
     return result;
 }
 
@@ -477,14 +541,14 @@ AclUser* acl_create_locked(AclUserImage&& image, uint32_t requested_index = UINT
     return user;
 }
 
-bool acl_pattern_allowed(const AclPerm& perm, Slice value) {
+bool acl_pattern_allowed(const AclSelector& perm, Slice value) {
     for (const std::string& pattern : perm.key_patterns)
         if (command_glob_match(Slice(pattern.data(), static_cast<uint32_t>(pattern.size())), value))
             return true;
     return false;
 }
 
-bool acl_channel_allowed(const AclPerm& perm, Slice value, bool literal_pattern) {
+bool acl_channel_allowed(const AclSelector& perm, Slice value, bool literal_pattern) {
     for (const std::string& pattern : perm.channel_patterns) {
         const Slice allowed(pattern.data(), static_cast<uint32_t>(pattern.size()));
         if (literal_pattern ? (allowed.n == value.n && !std::memcmp(allowed.p, value.p, value.n))
@@ -493,21 +557,17 @@ bool acl_channel_allowed(const AclPerm& perm, Slice value, bool literal_pattern)
     return false;
 }
 
-template <typename GetArg>
-__attribute__((noinline)) AclDeniedReason acl_check_permission(
-        uint32_t user_index, const CommandSpec& spec, uint32_t argc,
-        GetArg&& get_arg, uint32_t* denied_arg = nullptr) {
-    if (spec.flags & CmdFlags::AclExempt) return AclDeniedReason::None;
-    AclUser* user = g_acl_slots[user_index].load(std::memory_order_acquire);
-    if (!user) return AclDeniedReason::Command;
-    const AclPerm* perm = user->perm.load(std::memory_order_acquire);
-    if (!perm) return AclDeniedReason::Command;
-    if (!(perm->flags & AclAllCommands) && !acl_command_bit(*perm, spec.id))
-        return AclDeniedReason::Command;
-    if ((spec.flags & CmdFlags::ScriptRoute) && !(perm->flags & AclAllCommands))
-        return AclDeniedReason::Command;
-    if (perm->flags & AclAllKeys) return AclDeniedReason::None;
+bool acl_command_allowed(const AclSelector& perm, const CommandSpec& spec) {
+    if (!(perm.flags & AclAllCommands) && !acl_command_bit(perm, spec.id)) return false;
+    // The current script engine can only prove nested-command admission for an unrestricted
+    // command set. Keep that existing safety boundary independently for root and each selector.
+    return !(spec.flags & CmdFlags::ScriptRoute) || (perm.flags & AclAllCommands);
+}
 
+template <typename GetArg>
+AclDeniedReason acl_check_keys(const AclSelector& perm, const CommandSpec& spec, uint32_t argc,
+                               GetArg&& get_arg, uint32_t* denied_arg) {
+    if (perm.flags & AclAllKeys) return AclDeniedReason::None;
     const Slice command(spec.name, static_cast<uint32_t>(std::strlen(spec.name)));
     if (command.eq_icase("sort")) {
         for (uint32_t arg = 2; arg < argc; arg++) {
@@ -516,7 +576,7 @@ __attribute__((noinline)) AclDeniedReason acl_check_permission(
                 return AclDeniedReason::Key;
             }
             if (get_arg(arg).eq_icase("store") && arg + 1 < argc &&
-                !acl_pattern_allowed(*perm, get_arg(arg + 1))) {
+                !acl_pattern_allowed(perm, get_arg(arg + 1))) {
                 if (denied_arg) *denied_arg = arg + 1;
                 return AclDeniedReason::Key;
             }
@@ -532,7 +592,7 @@ __attribute__((noinline)) AclDeniedReason acl_check_permission(
             count = count * 10 + static_cast<uint64_t>(text.p[i] - '0');
         }
         for (uint32_t arg = 3; arg < argc && arg < 3 + count; arg++)
-            if (!acl_pattern_allowed(*perm, get_arg(arg))) {
+            if (!acl_pattern_allowed(perm, get_arg(arg))) {
                 if (denied_arg) *denied_arg = arg;
                 return AclDeniedReason::Key;
             }
@@ -544,7 +604,7 @@ __attribute__((noinline)) AclDeniedReason acl_check_permission(
         if (streams == argc || ((argc - streams - 1) & 1u)) return AclDeniedReason::None;
         const uint32_t count = (argc - streams - 1) / 2;
         for (uint32_t arg = streams + 1; arg < streams + 1 + count; arg++)
-            if (!acl_pattern_allowed(*perm, get_arg(arg))) {
+            if (!acl_pattern_allowed(perm, get_arg(arg))) {
                 if (denied_arg) *denied_arg = arg;
                 return AclDeniedReason::Key;
             }
@@ -556,11 +616,41 @@ __attribute__((noinline)) AclDeniedReason acl_check_permission(
         std::min<uint32_t>(static_cast<uint32_t>(spec.last_key), argc - 1);
     for (uint32_t arg = static_cast<uint32_t>(spec.first_key); arg <= last;
          arg += static_cast<uint32_t>(spec.key_step))
-        if (!acl_pattern_allowed(*perm, get_arg(arg))) {
+        if (!acl_pattern_allowed(perm, get_arg(arg))) {
             if (denied_arg) *denied_arg = arg;
             return AclDeniedReason::Key;
         }
     return AclDeniedReason::None;
+}
+
+template <typename GetArg>
+__attribute__((noinline)) AclDeniedReason acl_check_permission(
+        uint32_t user_index, const CommandSpec& spec, uint32_t argc,
+        GetArg&& get_arg, uint32_t* denied_arg = nullptr) {
+    if (spec.flags & CmdFlags::AclExempt) return AclDeniedReason::None;
+    AclUser* user = g_acl_slots[user_index].load(std::memory_order_acquire);
+    if (!user) return AclDeniedReason::Command;
+    const AclPerm* permissions = user->perm.load(std::memory_order_acquire);
+    if (!permissions) return AclDeniedReason::Command;
+
+    bool command_allowed = false;
+    uint32_t first_denied_arg = UINT32_MAX;
+    auto check = [&](const AclSelector& selector) {
+        if (!acl_command_allowed(selector, spec)) return false;
+        command_allowed = true;
+        uint32_t candidate = UINT32_MAX;
+        const AclDeniedReason denied = acl_check_keys(
+            selector, spec, argc, get_arg, &candidate);
+        if (denied == AclDeniedReason::None) return true;
+        if (first_denied_arg == UINT32_MAX) first_denied_arg = candidate;
+        return false;
+    };
+    if (check(*permissions)) return AclDeniedReason::None;
+    for (const AclSelector& selector : permissions->selectors)
+        if (check(selector)) return AclDeniedReason::None;
+    if (!command_allowed) return AclDeniedReason::Command;
+    if (denied_arg) *denied_arg = first_denied_arg;
+    return AclDeniedReason::Key;
 }
 
 void acl_reply_denied(Client& client, Op& op, uint32_t user_index, AclDeniedReason reason,
@@ -1088,6 +1178,18 @@ void acl_set_pubsub_default(bool allchannels) {
     g_acl_pubsub_default_all = allchannels;
 }
 
+bool acl_channel_allowed_any(const AclPerm& permissions, Slice channel,
+                             bool literal_pattern) {
+    auto allowed = [&](const AclSelector& selector) {
+        return (selector.flags & AclAllChannels) ||
+               acl_channel_allowed(selector, channel, literal_pattern);
+    };
+    if (allowed(permissions)) return true;
+    for (const AclSelector& selector : permissions.selectors)
+        if (allowed(selector)) return true;
+    return false;
+}
+
 __attribute__((cold, noinline)) bool acl_finish_dispatch_denial(
         IoLoop& loop, Client& client, Op& op, uint32_t consumed,
         AclDeniedReason denied, uint32_t denied_arg) {
@@ -1109,22 +1211,12 @@ bool acl_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consumed,
     }
     if (!acl_active) return false;
 
-    uint32_t denied_arg = UINT32_MAX;
-    AclDeniedReason denied = AclDeniedReason::None;
     const CommandSpec& spec = *op.spec;
     if (spec.flags & CmdFlags::AclExempt) return false;
-    AclUser* user = g_acl_slots[client.acl_user_idx()].load(std::memory_order_acquire);
-    const AclPerm* perm = user ? user->perm.load(std::memory_order_acquire) : nullptr;
-    if (!perm || (!(perm->flags & AclAllCommands) && !acl_command_bit(*perm, spec.id)) ||
-        ((spec.flags & CmdFlags::ScriptRoute) && !(perm->flags & AclAllCommands))) {
-        denied = AclDeniedReason::Command;
-    } else if (perm->flags & AclAllKeys) {
-        return false;
-    } else {
-        denied = acl_check_permission(
-            client.acl_user_idx(), spec, op.argc(),
-            [&](uint32_t arg) { return op.arg(arg); }, &denied_arg);
-    }
+    uint32_t denied_arg = UINT32_MAX;
+    const AclDeniedReason denied = acl_check_permission(
+        client.acl_user_idx(), spec, op.argc(),
+        [&](uint32_t arg) { return op.arg(arg); }, &denied_arg);
     if (denied == AclDeniedReason::None) return false;
     return acl_finish_dispatch_denial(loop, client, op, consumed, denied, denied_arg);
 }
@@ -1146,19 +1238,23 @@ bool acl_pubsub_channel_entry(Client& client, Op& op, bool pattern, ThreadCtx& t
         acl_reply_denied(client, op, client.acl_user_idx(), AclDeniedReason::Channel, 1, thread);
         return false;
     }
-    if (perm->flags & AclAllChannels) return true;
     const uint32_t first = (op.cmd_name().eq_icase("publish") ||
                             op.cmd_name().eq_icase("spublish")) ? 1 : 1;
     const uint32_t last = (op.cmd_name().eq_icase("publish") ||
                            op.cmd_name().eq_icase("spublish")) ? 2 : op.argc();
-    for (uint32_t arg = first; arg < last; arg++) {
-        if (!acl_channel_allowed(*perm, op.arg(arg), pattern)) {
-            acl_reply_denied(client, op, client.acl_user_idx(),
-                             AclDeniedReason::Channel, arg, thread);
-            return false;
-        }
-    }
-    return true;
+    auto allowed = [&](const AclSelector& selector) {
+        if (!acl_command_allowed(selector, *op.spec)) return false;
+        if (selector.flags & AclAllChannels) return true;
+        for (uint32_t arg = first; arg < last; arg++)
+            if (!acl_channel_allowed(selector, op.arg(arg), pattern)) return false;
+        return true;
+    };
+    if (allowed(*perm)) return true;
+    for (const AclSelector& selector : perm->selectors)
+        if (allowed(selector)) return true;
+    acl_reply_denied(client, op, client.acl_user_idx(),
+                     AclDeniedReason::Channel, first, thread);
+    return false;
 }
 
 void acl_recheck_blocking(Client& client, Op& op, ThreadCtx& thread) {
@@ -1205,15 +1301,19 @@ void acl_command_entry(IoLoop& loop, Client& client, Op& op) {
         auto found = g_acl_names.find(name);
         AclUser* user = found == g_acl_names.end() ? nullptr : acl_slot(found->second);
         AclUserImage image = user ? acl_image(*user) : acl_new_image(name);
-        std::string error;
+        std::vector<std::string> rules;
+        rules.reserve(op.argc() - 3);
         for (uint32_t arg = 3; arg < op.argc(); arg++) {
-            if (!acl_apply_rule(image, op.arg(arg), error)) {
-                std::string message = "ERR Error in ACL SETUSER modifier '";
-                message.append(op.arg(arg).p, op.arg(arg).n);
-                message += "': " + error;
-                reply_err(op.sink(), message.c_str());
-                return;
-            }
+            const Slice rule = op.arg(arg);
+            rules.emplace_back(rule.p, rule.n);
+        }
+        std::string error, failed;
+        if (!acl_apply_rules(image, rules, 0, error, &failed)) {
+            std::string message = "ERR ";
+            if (error.rfind("Unmatched parenthesis", 0) == 0) message += error;
+            else message += "Error in ACL SETUSER modifier '" + failed + "': " + error;
+            reply_err(op.sink(), message.c_str());
+            return;
         }
         if (user ? !acl_publish_image_locked(user, std::move(image))
                  : !acl_create_locked(std::move(image))) {
@@ -1261,7 +1361,19 @@ void acl_command_entry(IoLoop& loop, Client& client, Op& op) {
         const std::string channels = acl_getuser_channels(image.perm);
         reply_bulk(sink, Slice(channels.data(), channels.size()));
         reply_bulk(sink, Slice("selectors", 9));
-        reply_array_header(sink, 0);
+        reply_array_header(sink, image.perm.selectors.size());
+        for (const AclSelector& selector : image.perm.selectors) {
+            reply_array_header(sink, 6);
+            reply_bulk(sink, Slice("commands", 8));
+            const std::string selector_commands = acl_describe_commands(selector);
+            reply_bulk(sink, Slice(selector_commands.data(), selector_commands.size()));
+            reply_bulk(sink, Slice("keys", 4));
+            const std::string selector_keys = acl_join_patterns(selector, false);
+            reply_bulk(sink, Slice(selector_keys.data(), selector_keys.size()));
+            reply_bulk(sink, Slice("channels", 8));
+            const std::string selector_channels = acl_getuser_channels(selector);
+            reply_bulk(sink, Slice(selector_channels.data(), selector_channels.size()));
+        }
         return;
     }
     if ((sub.eq_icase("users") || sub.eq_icase("list")) && op.argc() == 2) {

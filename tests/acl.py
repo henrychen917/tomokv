@@ -188,9 +188,9 @@ expect(admin.command("ACL", "USERS"), [b"alice", b"default"], "USERS ordering")
 expect(admin.command("ACL", "SETUSER", "bad-rw", "%R~cache:*"),
        "ERR Error in ACL SETUSER modifier '%R~cache:*': Read/write key patterns are not supported until command key specifications are available",
        "%R rule rejected")
-expect(admin.command("ACL", "SETUSER", "bad-selector", "(~*", "+get", ")"),
-       "ERR Error in ACL SETUSER modifier '(~*': ACL selectors are not supported",
-       "selector rejected")
+expect(admin.command("ACL", "SETUSER", "bad-selector", "(on +get)"),
+       "ERR Error in ACL SETUSER modifier '(on +get)': Syntax error",
+       "invalid selector rejected")
 expect(admin.command("ACL", "SETUSER", "bad-firstarg", "+select|0"),
        "ERR Error in ACL SETUSER modifier '+select|0': Allowing first-arg of a subcommand is not supported",
        "first-arg rule rejected")
@@ -329,6 +329,11 @@ expect(admin.command("ACL", "LOG"), [], "acllog-max-len zero allocates no entrie
 expect(admin.command("CONFIG", "SET", "acllog-max-len", 128), b"OK", "restore ACL LOG")
 
 # SAVE is the LIST serializer plus one LF per sorted user, using temp+fsync+rename.
+expect(admin.command("ACL", "SETUSER", "alice", "(~persist:* +get)"), b"OK",
+       "add selector before ACL SAVE")
+saved_selectors = fields(admin.command("ACL", "GETUSER", "alice"))[b"selectors"]
+if not saved_selectors:
+    raise AssertionError("selector persistence setup did not fire")
 expect(admin.command("ACL", "SAVE"), b"OK", "ACL SAVE")
 with open(ACLFILE, "rb") as handle:
     saved = handle.read()
@@ -352,6 +357,8 @@ with open(ACLFILE, "wb") as handle:
     handle.write(b"# comments are deliberately not preserved\n" + saved)
 expect(admin.command("ACL", "LOAD"), b"OK", "LOAD saved grammar")
 expect(admin.command("ACL", "LIST"), before_bad_load, "SETUSER->LIST->SAVE->LOAD round trip")
+expect(fields(admin.command("ACL", "GETUSER", "alice"))[b"selectors"], saved_selectors,
+       "selector SAVE/LOAD round trip")
 
 # Removing a user through LOAD closes all of that user's connections, subscribed or otherwise.
 deleted_user = Conn(); expect(deleted_user.command("AUTH", "alice", password), b"OK", "LOAD delete AUTH")

@@ -4622,6 +4622,166 @@ if SUITE == "compatintro":
     sys.exit(1 if run_compatintro_suite(rng) else 0)
 
 
+# ---- Lane t-aclsel: ACL selector grammar/reporting/enforcement differential -------------------
+def run_aclsel_suite(rng):
+    """Byte-compare selector control-plane replies and commands admitted through selectors."""
+    diffs = 0
+    checks = 0
+    fired = {"profiles": 0, "reporting": 0, "syntax": 0, "grants": 0,
+             "command_denials": 0, "key_denials": 0, "channel_denials": 0}
+    ts, tf = conn(TH, TP); os_, of = conn(OH, OP)
+
+    def mismatch(label, target, oracle):
+        nonlocal diffs
+        diffs += 1
+        if diffs <= 18:
+            print("  DIFF %s\n    target: %r\n    oracle: %r" %
+                  (label, target[:280], oracle[:280]))
+
+    def raw(sock, file, argv):
+        sock.sendall(enc(argv))
+        return read_reply(file)
+
+    def both(argv, label):
+        nonlocal checks
+        target = raw(ts, tf, argv)
+        oracle = raw(os_, of, argv)
+        checks += 1
+        if target != oracle: mismatch(label, target, oracle)
+        return target
+
+    def user_both(target_pair, oracle_pair, argv, label):
+        nonlocal checks
+        target = raw(target_pair[0], target_pair[1], argv)
+        oracle = raw(oracle_pair[0], oracle_pair[1], argv)
+        checks += 1
+        if target != oracle: mismatch(label, target, oracle)
+        if target.startswith(b"-NOPERM"):
+            if b"has no permissions to run" in target: fired["command_denials"] += 1
+            elif b"access a key" in target: fired["key_denials"] += 1
+            elif b"access a channel" in target: fired["channel_denials"] += 1
+        elif not target.startswith(b"-"):
+            fired["grants"] += 1
+        return target
+
+    # Only cleanup suite-owned state; neither cleanup reply is part of the differential stream.
+    for sock, file in ((ts, tf), (os_, of)):
+        raw(sock, file, ["ACL", "DELUSER", "aclsel:diff", "aclsel:bad"])
+        raw(sock, file, ["FLUSHALL"])
+    for key, value in (("as:a:1", "A"), ("as:b:1", "B"),
+                       ("as:root:1", "R"), ("as:cat:1", "CAT")):
+        both(["SET", key, value], "seed " + key)
+    stats_before = target_stats()
+
+    profiles = [
+        {
+            "rules": ["reset", "on", "nopass", "-@all", "resetkeys", "resetchannels",
+                      "(~as:a:* +get +strlen +mget)", "(~as:b:* +set)",
+                      "(&as:news:* +publish)"],
+            "ops": [["GET", "as:a:1"], ["SET", "as:b:w", "v"],
+                    ["GET", "as:b:1"], ["DEL", "as:a:1"],
+                    ["PUBLISH", "as:news:x", "v"], ["PUBLISH", "as:other", "v"]],
+        },
+        {
+            "rules": ["reset", "on", "nopass", "-@all", "resetkeys", "~as:root:*",
+                      "+get", "allchannels", "(~as:a:* +set)",
+                      "(&as:news:* +publish)"],
+            "ops": [["GET", "as:root:1"], ["SET", "as:a:w", "v"],
+                    ["GET", "as:a:1"], ["SET", "as:root:w", "v"],
+                    ["PUBLISH", "as:news:x", "v"], ["PUBLISH", "as:other", "v"]],
+        },
+        {
+            "rules": ["reset", "on", "nopass", "-@all", "resetkeys", "resetchannels",
+                      "(~as:cat:* +@string -set)"],
+            "ops": [["GET", "as:cat:1"], ["STRLEN", "as:cat:1"],
+                    ["SET", "as:cat:w", "v"], ["GET", "as:a:1"],
+                    ["PUBLISH", "as:news:x", "v"]],
+        },
+        {
+            # Two selectors arrive fragmented across RESP arguments. A multi-key request must
+            # be authorized by one whole selector, not by combining their key patterns.
+            "rules": ["reset", "on", "nopass", "-@all", "resetkeys", "resetchannels",
+                      "(", "~as:a:*", "+mget", ")", "(~as:b:* +mget)"],
+            "ops": [["MGET", "as:a:1"], ["MGET", "as:b:1"],
+                    ["MGET", "as:a:1", "as:b:1"], ["GET", "as:a:1"]],
+        },
+    ]
+
+    # Establish an authenticated connection pair once; immutable ACL images update underneath it.
+    both(["ACL", "SETUSER", "aclsel:diff"] + profiles[0]["rules"], "initial profile")
+    fired["profiles"] += 1
+    tus, tuf = conn(TH, TP); ous, ouf = conn(OH, OP)
+    user_both((tus, tuf), (ous, ouf), ["AUTH", "aclsel:diff", "unused"], "AUTH")
+
+    # Directed pass guarantees every profile and every denial family fires for every seed.
+    for profile_index, profile in enumerate(profiles):
+        both(["ACL", "SETUSER", "aclsel:diff"] + profile["rules"],
+             "directed profile %d" % profile_index)
+        fired["profiles"] += 1
+        both(["ACL", "GETUSER", "aclsel:diff"], "directed GETUSER %d" % profile_index)
+        fired["reporting"] += 1
+        for operation in profile["ops"]:
+            user_both((tus, tuf), (ous, ouf), operation,
+                      "directed profile %d %s" % (profile_index, operation[0]))
+
+    invalid = [
+        ["ACL", "SETUSER", "aclsel:bad", "reset", "(on +get)"],
+        ["ACL", "SETUSER", "aclsel:bad", "reset", "(>pw +get)"],
+        ["ACL", "SETUSER", "aclsel:bad", "reset", "((~x:* +get))"],
+        ["ACL", "SETUSER", "aclsel:bad", "reset", "(~x:*", "+get"],
+        ["ACL", "SETUSER", "aclsel:bad", "reset", "~x:* +get)"],
+    ]
+
+    current = 0
+    for iteration in range(4200):
+        choice = rng.randrange(15)
+        if choice < 2:
+            current = rng.randrange(len(profiles))
+            both(["ACL", "SETUSER", "aclsel:diff"] + profiles[current]["rules"],
+                 "random profile %d" % iteration)
+            fired["profiles"] += 1
+        elif choice == 2:
+            both(["ACL", "GETUSER", "aclsel:diff"], "random GETUSER %d" % iteration)
+            fired["reporting"] += 1
+        elif choice == 3:
+            both(rng.choice(invalid), "random invalid selector %d" % iteration)
+            fired["syntax"] += 1
+        elif choice == 4:
+            both(["ACL", "GETUSER", "aclsel:bad"], "invalid atomicity %d" % iteration)
+            fired["syntax"] += 1
+        else:
+            operation = rng.choice(profiles[current]["ops"])
+            user_both((tus, tuf), (ous, ouf), operation,
+                      "random profile %d %s" % (current, operation[0]))
+
+    after = target_stats()
+    counter_minimums = {"acl_access_denied_cmd": 50,
+                        "acl_access_denied_key": 50,
+                        "acl_access_denied_channel": 50}
+    for name, minimum in counter_minimums.items():
+        delta = after.get(name, 0) - stats_before.get(name, 0)
+        if delta < minimum:
+            mismatch("target counter delta " + name, str(delta).encode(),
+                     (">=%d" % minimum).encode())
+    minimums = {"profiles": 100, "reporting": 100, "syntax": 200, "grants": 300,
+                "command_denials": 100, "key_denials": 100, "channel_denials": 50}
+    for name, minimum in minimums.items():
+        if fired[name] < minimum:
+            mismatch("non-vacuity " + name, str(fired[name]).encode(), str(minimum).encode())
+
+    for sock, file in ((ts, tf), (os_, of)):
+        raw(sock, file, ["ACL", "DELUSER", "aclsel:diff", "aclsel:bad"])
+    for sock in (tus, ous, ts, os_): sock.close()
+    print("DIFFER aclsel: %d checks, %d diffs -> %s (%s)" %
+          (checks, diffs, "PASS" if diffs == 0 else "FAIL",
+           ", ".join("%s=%d" % item for item in fired.items())))
+    return diffs
+
+
+if SUITE == "aclsel":
+    sys.exit(1 if run_aclsel_suite(rng) else 0)
+
+
 def run_s6fix_suite(rng):
     """A4-A7 differential properties plus 4,000 byte-compared mixed operations.
 
@@ -4800,7 +4960,7 @@ if LIST_GENERATORS:
     # This is the single suite inventory. Property suites live outside `gens` because their
     # replies are not byte-comparable, but the gate discovers them from this same list.
     print("\n".join(list(gens) + ["blocking", "pubsub", "fanout", "spubsub", "notify",
-                                   "wiredump", "climon", "compatintro", "s6fix"]))
+                                   "wiredump", "climon", "compatintro", "aclsel", "s6fix"]))
     sys.exit(0)
 ops = gens[SUITE](rng)
 
