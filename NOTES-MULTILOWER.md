@@ -56,3 +56,20 @@ physical table head.  A rejected `RENAMENX` can leave an aborted source tombston
 MVCC cleanup.  The fragment now resolves with the transaction connection's read context, so it
 skips the failed child's candidate while retaining successful private candidates, then records
 that visible post-image under the parent's existing AOF group decision.
+
+## Directed coverage and required run geometry
+
+`tests/expwide.py` now converts both former live notes into assertions.  On TomoKV it walks up to
+8,000 destination candidates and buckets each with `DEBUG SHARD`; the selected destination must
+have a different result from the source or the battery raises instead of passing vacuously.  The
+covered split pair is reused for:
+
+- `RENAMENX` and `COPY` inside MULTI with a live destination (integer 0), plus the existing
+  deadline-straddle and elapsed controls;
+- `RENAME` inside MULTI with a physically missing source, bracketed by successful SETs, expecting
+  `[OK, ERR no such key, OK]` and both SET effects;
+- bare `RENAMENX`, `COPY`, and missing-source `RENAME`, including destination postconditions.
+
+Per the lane contract, the main session must run this battery against servers booted exactly with
+`--shards 16 --ratio 6:2 --enable-debug-command yes`, once with `--atomic 0` and once with
+`--atomic 1`.  This lane did not build, boot a server, or run the battery.
