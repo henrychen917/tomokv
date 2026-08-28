@@ -500,13 +500,15 @@ def test_value_transport(c):
                                           c.cmd("HPEXPIRETIME", "ren", "FIELDS", "2", "a", "b")],
           ["OK", [far, -1]])
 
-    # The redis-wire DUMP codec does not carry hash-field deadlines yet (redis 7.4's
-    # RDB hash-TTL types are the queued breadth item), so a TTL-bearing hash must REFUSE
-    # to serialize rather than silently drop deadlines. Snapshot transport is the proven
-    # path (hexpire_persist.sh); this locks the cut visibly until the codec lands.
+    # Redis-wire value transport keeps the same absolute field deadlines as COPY/RENAME and the
+    # native snapshot path. A persistent field remains persistent alongside them.
     blob = c.cmd("DUMP", "ren")
-    check("DUMP of a TTL-bearing hash reports the codec cut",
-          isinstance(blob, RuntimeError) and "could not be serialized" in str(blob), True)
+    check("DUMP of a TTL-bearing hash serializes",
+          isinstance(blob, bytes) and len(blob) > 10, True)
+    check("RESTORE keeps field deadlines",
+          [c.cmd("RESTORE", "restttl", "0", blob),
+           c.cmd("HPEXPIRETIME", "restttl", "FIELDS", "2", "a", "b")],
+          ["OK", [far, -1]])
     plain_blob = c.cmd("DUMP", "cp")  # cp's field TTL was HPERSISTed above: plain hash again
     check("DUMP of a TTL-free hash still serializes",
           isinstance(plain_blob, bytes) and len(plain_blob) > 10, True)

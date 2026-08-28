@@ -47,6 +47,11 @@ enum : uint8_t {
     kRdbZsetListpack = 17,
     kRdbListQuicklist2 = 18,
     kRdbSetListpack = 20,
+    // Redis 7.4 hash-field-expiry value types, established from live DUMP payloads. Metadata hashes
+    // carry an expiry delta before each ordinary field/value pair; listpackex hashes carry
+    // field/value/absolute-expiry triplets inside the listpack.
+    kRdbHashMetadata = 24,
+    kRdbHashListpackEx = 25,
 };
 
 enum : uint8_t {
@@ -378,6 +383,44 @@ bool encode_rdb_value(const KvObj& object, std::vector<uint8_t>& out) {
     }
 
     const uint64_t entries = CollectionRef(const_cast<KvObj*>(&object)).entries();
+
+    if (type == Type::Hash && native_encoding == 1) {
+        // Native hash encoding 1 appends one absolute i64 deadline (-1 for persistent) to every
+        // field/value pair. Redis's metadata RDB type stores the minimum absolute deadline once and
+        // a per-entry unsigned delta: zero means persistent, otherwise expire-minimum+1.
+        Reader scan(native_payload.data(), native_payload.size());
+        int64_t minimum = std::numeric_limits<int64_t>::max();
+        for (uint64_t i = 0; i < entries; i++) {
+            Slice field, value;
+            uint64_t bits = 0;
+            int64_t expire = -1;
+            if (!native_string(scan, field) || !native_string(scan, value) || !scan.le64(bits))
+                return false;
+            std::memcpy(&expire, &bits, sizeof(expire));
+            if (expire < -1) return false;
+            if (expire >= 0) minimum = std::min(minimum, expire);
+        }
+        if (!scan.empty() || minimum == std::numeric_limits<int64_t>::max()) return false;
+
+        out.push_back(kRdbHashMetadata);
+        append_u64(out, static_cast<uint64_t>(minimum));
+        append_rdb_length(out, entries);
+        for (uint64_t i = 0; i < entries; i++) {
+            Slice field, value;
+            uint64_t bits = 0;
+            int64_t expire = -1;
+            if (!native_string(native, field) || !native_string(native, value) ||
+                !native.le64(bits)) return false;
+            std::memcpy(&expire, &bits, sizeof(expire));
+            const uint64_t delta = expire < 0 ? 0
+                : static_cast<uint64_t>(expire - minimum) + 1;
+            if (!append_rdb_length(out, delta) || !append_rdb_string(out, field) ||
+                !append_rdb_string(out, value)) return false;
+        }
+        return native.empty();
+    }
+    if (type == Type::Hash && native_encoding != 0) return false;
+
     out.push_back(type == Type::List ? kRdbList :
                   type == Type::Hash ? kRdbHash :
                   type == Type::Set ? kRdbSet : kRdbZset2);
@@ -500,6 +543,63 @@ bool append_native_string(std::vector<uint8_t>& out, const std::string& value) {
     if (value.size() > UINT32_MAX) return false;
     append_u32(out, static_cast<uint32_t>(value.size()));
     return append_bytes(out, reinterpret_cast<const uint8_t*>(value.data()), value.size());
+}
+
+bool append_native_hash_entry(std::vector<uint8_t>& out, const std::string& field,
+                              const std::string& value, int64_t expire_ms) {
+    if (!append_native_string(out, field) || !append_native_string(out, value)) return false;
+    append_u64(out, static_cast<uint64_t>(expire_ms));
+    return true;
+}
+
+bool decode_hash_metadata(Reader& body, std::vector<uint8_t>& out) {
+    uint64_t minimum = 0, count = 0;
+    if (!body.le64(minimum) || minimum > static_cast<uint64_t>(INT64_MAX) ||
+        !read_plain_length(body, count) || count == 0 || count > UINT32_MAX)
+        return false;
+    for (uint64_t i = 0; i < count; i++) {
+        uint64_t delta = 0;
+        std::string field, value;
+        if (!read_plain_length(body, delta) || !read_rdb_string(body, field) ||
+            !read_rdb_string(body, value)) return false;
+        int64_t expire_ms = -1;
+        if (delta != 0) {
+            const uint64_t offset = delta - 1;
+            if (offset > static_cast<uint64_t>(INT64_MAX) - minimum) return false;
+            expire_ms = static_cast<int64_t>(minimum + offset);
+        }
+        if (!append_native_hash_entry(out, field, value, expire_ms)) return false;
+    }
+    return body.empty();
+}
+
+bool parse_decimal_u64(const std::string& input, uint64_t& value) {
+    if (input.empty()) return false;
+    const auto parsed = std::from_chars(input.data(), input.data() + input.size(), value);
+    return parsed.ec == std::errc{} && parsed.ptr == input.data() + input.size();
+}
+
+bool decode_hash_listpack_ex(Reader& body, std::vector<uint8_t>& out) {
+    uint64_t minimum = 0;
+    std::string blob;
+    std::vector<std::string> values;
+    if (!body.le64(minimum) || minimum > static_cast<uint64_t>(INT64_MAX) ||
+        !read_rdb_string(body, blob) || !body.empty() || !decode_listpack(blob, values) ||
+        values.empty() || values.size() % 3 != 0)
+        return false;
+    uint64_t observed_minimum = UINT64_MAX;
+    for (size_t i = 0; i < values.size(); i += 3) {
+        uint64_t encoded_expire = 0;
+        if (!parse_decimal_u64(values[i + 2], encoded_expire) ||
+            encoded_expire > static_cast<uint64_t>(INT64_MAX)) return false;
+        const int64_t expire_ms = encoded_expire == 0 ? -1
+                                                       : static_cast<int64_t>(encoded_expire);
+        if (encoded_expire != 0) observed_minimum = std::min(observed_minimum, encoded_expire);
+        if (!append_native_hash_entry(out, values[i], values[i + 1], expire_ms)) return false;
+    }
+    // The prefix is the expiry index's minimum. Requiring an exact match rejects a payload whose
+    // attention metadata could disagree with its field triplets.
+    return observed_minimum != UINT64_MAX && observed_minimum == minimum;
 }
 
 bool parse_score(const std::string& input, double& score) {
@@ -662,6 +762,16 @@ bool decode_rdb_value(Slice encoded, DecodedValue& decoded) {
         decoded.encoding = static_cast<uint8_t>(Enc::Raw);
         decoded.payload.assign(value.begin(), value.end());
         return true;
+    }
+    if (rdb_type == kRdbHashMetadata) {
+        decoded.type = Type::Hash;
+        decoded.encoding = 1;
+        return decode_hash_metadata(body, decoded.payload);
+    }
+    if (rdb_type == kRdbHashListpackEx) {
+        decoded.type = Type::Hash;
+        decoded.encoding = 1;
+        return decode_hash_listpack_ex(body, decoded.payload);
     }
 
     uint64_t count = 0;
@@ -914,6 +1024,7 @@ void cmd_restore_impl(Shard& shard, Op& op) {
             else reply_err(op.sink(), "ERR keyspace insert failed");
             return;
         }
+        shard.store().note_loaded_object(op.hash, restored);
         if constexpr (kNotify)
             notify_record(shard, op, NOTIFY_GENERIC, NotifyEventId::Restore, op.key());
         reply_ok(op.sink());
