@@ -22,8 +22,8 @@ The discriminating geometry is a CROSS that no existing battery makes:
                             Done-but-unretired = the deterministic tear;
                             Issued = the racy heap-corruption variant)
   x producer               (pub/sub, tracking invalidation, MONITOR)
-  x protocol               (RESP3 AND RESP2 -- only the pub/sub cell needs RESP3;
-                            tracking and MONITOR tear in RESP2 too)
+  x protocol               (RESP3 for pub/sub and tracking pushes; RESP3 AND RESP2
+                            for protocol-agnostic MONITOR delivery)
 
 EVERY CELL PROVES ITS OWN GEOMETRY
 ----------------------------------
@@ -354,8 +354,8 @@ def cell_pubsub_headholder(zc_min, size, tls=False):
         after.get("oob_frames_deferred", 0) - before.get("oob_frames_deferred", 0)))
 
 
-def cell_tracking_self(zc_min, size, resp3, tls=False):
-    """TRACKING x (RESP3 | RESP2) x self-write pipeline x value >= zc-min.
+def cell_tracking_self(zc_min, size, tls=False):
+    """TRACKING x RESP3 x self-write pipeline x value >= zc-min.
 
     No head-holder needed, and no AOF: the geometry is built out of the retire path itself.
     `SET big <v2>` and `GET big` go out in ONE write, so they take adjacent ROB slots k and k+1
@@ -363,21 +363,16 @@ def cell_tracking_self(zc_min, size, resp3, tls=False):
     so SET retires first, and the invalidation for `big` fires from INSIDE that retire's
     notification hook -- at which point slot k+1 is the borrowing GET, Done, header written,
     unretired. That is the mid-drain cell, and it is why the send engine has a deferral buffer:
-    the connection's newest reply is only partially staged when the frame is produced.
-
-    RESP2 is a real cell here, not a formality: this server delivers the invalidation as a
-    `*3 message __redis__:invalidate ...` array on a RESP2 tracking connection. (Redis 7.4 sends
-    NOTHING there -- tracking.c sendTrackingMessage -- which is a separate compat finding, but it
-    means the RESP2 tear geometry exists on this server and must be covered.)"""
-    tag = "tracking/self/%s/%dB%s" % ("resp3" if resp3 else "resp2", size, "/tls" if tls else "")
+    the connection's newest reply is only partially staged when the frame is produced. RESP2 with
+    no REDIRECT correctly has no invalidation channel; the MONITOR cells retain RESP2 coverage."""
+    tag = "tracking/self/resp3/%dB%s" % (size, "/tls" if tls else "")
     v1 = bytes((i * 17 + 3) % 251 + 1 for i in range(size))
     v2 = bytes((i * 41 + 9) % 251 + 1 for i in range(size))
     before = admin_info()
     failures = []
     conn = Conn(tls=tls)
     try:
-        if resp3:
-            conn.command("HELLO", "3", wait=0.5)
+        conn.command("HELLO", "3", wait=0.5)
         reply = conn.command("CLIENT", "TRACKING", "on", wait=0.6)
         if not reply.startswith(b"+OK"):
             bad(tag, "CLIENT TRACKING on refused: %r" % reply[:80])
@@ -751,8 +746,7 @@ def main():
         borrows = knob != 0 and size >= knob
         print("-- zc-min=%d (%s), value=%dB, borrowing=%s" % (knob, label, size, borrows))
         cell_pubsub_headholder(knob, size)
-        cell_tracking_self(knob, size, resp3=True)
-        cell_tracking_self(knob, size, resp3=False)
+        cell_tracking_self(knob, size)
         cell_monitor(knob, size, resp3=True)
         cell_monitor(knob, size, resp3=False)
         if borrows:
@@ -768,7 +762,7 @@ def main():
         # kernel, but the concatenation order is identical -- [direct+reply][value][CRLF] -- so the
         # same splice reaches the same place.
         cell_pubsub_headholder(zc_min, max(zc_min or 16384, 16384), tls=True)
-        cell_tracking_self(zc_min, max(zc_min or 16384, 16384), resp3=True, tls=True)
+        cell_tracking_self(zc_min, max(zc_min or 16384, 16384), tls=True)
 
     print()
     print("CELL MAP (a pattern, not an aggregate -- the pattern IS the diagnosis):")

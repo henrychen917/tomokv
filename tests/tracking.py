@@ -343,14 +343,41 @@ try:
     o.drain(0.2)
     checks += 8
 
-    # ---- 6. REDIRECT to a RESP2 pubsub connection --------------------------------------------
+    # ---- 6. protocol x no-redirect: RESP2 silence with a RESP3 positive control ---------------
+    # Register the SAME key on both connections and mutate it once. The RESP3 push proves the
+    # producer fired, so RESP2 silence cannot pass merely because invalidation is broken globally.
+    plain2 = new()
+    plain3 = new(resp3=True)
+    writer.command("SET", "proto:plain", "1")
+    expect(plain2.command("CLIENT", "TRACKING", "on"), b"OK", "RESP2 TRACKING on")
+    expect(plain3.command("CLIENT", "TRACKING", "on"), b"OK", "RESP3 TRACKING on")
+    expect(plain2.command("GET", "proto:plain"), b"1", "RESP2 registers the shared probe")
+    expect(plain3.command("GET", "proto:plain"), b"1", "RESP3 registers the shared probe")
+    writer.command("SET", "proto:plain", "2")
+    expect(plain3.drain(), push(b"proto:plain"), "RESP3 positive control sees invalidation")
+    expect(plain2.drain(0.4), b"", "RESP2 without REDIRECT gets no frame")
+    expect(plain2.command("PING"), b"PONG", "RESP2 reply stream remains synchronized")
+    plain2.command("CLIENT", "TRACKING", "off")
+    plain3.command("CLIENT", "TRACKING", "off")
+    checks += 7
+
+    # ---- 7. REDIRECT to a RESP2 pubsub connection --------------------------------------------
     target = new()
     tid = target.command("CLIENT", "ID")
-    target.command("SUBSCRIBE", "__redis__:invalidate")
-    target.drain(0.2)
     rc = new()
     expect(rc.command("CLIENT", "TRACKING", "on", "REDIRECT", str(tid)), b"OK", "REDIRECT on")
     expect(rc.command("CLIENT", "GETREDIR"), tid, "GETREDIR reports the target")
+
+    # REDIRECT alone does not make RESP2 a push channel: the target must really be subscribed.
+    writer.command("SET", "rd:quiet", "1")
+    expect(rc.command("GET", "rd:quiet"), b"1", "register before unsubscribed redirect probe")
+    writer.command("SET", "rd:quiet", "2")
+    expect(target.drain(0.4), b"", "unsubscribed RESP2 redirect target gets no frame")
+    expect(target.command("PING"), b"PONG", "unsubscribed redirect reply stream stays synchronized")
+
+    expect(target.command("SUBSCRIBE", "__redis__:invalidate"),
+           [b"subscribe", b"__redis__:invalidate", 1], "redirect target subscribes")
+    target.drain(0.2)
     writer.command("SET", "rd:1", "1")
     rc.command("GET", "rd:1")
     rc.drain(0.2)
@@ -359,7 +386,7 @@ try:
            b"*3\r\n$7\r\nmessage\r\n$20\r\n__redis__:invalidate\r\n*1\r\n$4\r\nrd:1\r\n",
            "RESP2 redirect delivery")
     expect(rc.drain(0.3), b"", "the tracking client itself gets nothing under REDIRECT")
-    checks += 4
+    checks += 8
 
     # redirect target disappears -> broken_redirect, tracking stays on (oracle-matched)
     rc.command("GET", "rd:1")
@@ -376,19 +403,40 @@ try:
            [b"flags", [b"off"], b"redirect", -1, b"prefixes", []], "cleared")
     checks += 3
 
-    # ---- 7. FLUSHALL -> null invalidation ----------------------------------------------------
-    f = new(resp3=True)
-    f.command("CLIENT", "TRACKING", "on")
-    writer.command("SET", "fl:1", "1")
-    f.command("GET", "fl:1")
-    f.drain(0.2)
-    writer.command("FLUSHALL")
-    expect(f.drain(), FLUSH_PUSH, "FLUSHALL null invalidation")
-    f.command("CLIENT", "TRACKING", "off")
-    f.drain(0.2)
-    checks += 1
+    # A RESP3 redirect target gets a real push whether or not it is subscribed.
+    target3 = new(resp3=True)
+    tid3 = target3.command("CLIENT", "ID")
+    rc3 = new()
+    expect(rc3.command("CLIENT", "TRACKING", "on", "REDIRECT", str(tid3)),
+           b"OK", "RESP3 REDIRECT on")
+    writer.command("SET", "rd3:plain", "1")
+    expect(rc3.command("GET", "rd3:plain"), b"1", "register RESP3 redirect probe")
+    writer.command("SET", "rd3:plain", "2")
+    expect(target3.drain(), push(b"rd3:plain"), "unsubscribed RESP3 redirect gets a push")
+    expect(target3.command("SUBSCRIBE", "__redis__:invalidate"),
+           [b"subscribe", b"__redis__:invalidate", 1], "RESP3 redirect target subscribes")
+    target3.drain(0.2)
+    writer.command("SET", "rd3:sub", "1")
+    expect(rc3.command("GET", "rd3:sub"), b"1", "register subscribed RESP3 redirect probe")
+    writer.command("SET", "rd3:sub", "2")
+    expect(target3.drain(), push(b"rd3:sub"), "subscribed RESP3 redirect still gets a push")
+    rc3.command("CLIENT", "TRACKING", "off")
+    checks += 7
 
-    # ---- 8. counters + full disarm ------------------------------------------------------------
+    # ---- 8. FLUSHALL -> null invalidation, with the same protocol control ---------------------
+    f2 = new()
+    f3 = new(resp3=True)
+    f2.command("CLIENT", "TRACKING", "on")
+    f3.command("CLIENT", "TRACKING", "on")
+    writer.command("FLUSHALL")
+    expect(f3.drain(), FLUSH_PUSH, "RESP3 FLUSHALL null invalidation positive control")
+    expect(f2.drain(0.4), b"", "RESP2 FLUSHALL without REDIRECT gets no frame")
+    expect(f2.command("PING"), b"PONG", "RESP2 stream remains synchronized after FLUSHALL")
+    f2.command("CLIENT", "TRACKING", "off")
+    f3.command("CLIENT", "TRACKING", "off")
+    checks += 3
+
+    # ---- 9. counters + full disarm ------------------------------------------------------------
     invalidations_after = stats()["tracking_invalidations"]
     assert invalidations_after > invalidations_before, \
         "tracking_invalidations never moved -- the battery proved nothing"
