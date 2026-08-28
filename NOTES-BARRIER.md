@@ -14,14 +14,15 @@ the change is a **behaviour-preserving refactor** whose only effect is that the 
 identical the moment a seventh owner, or a relaxed guard, makes overlap reachable.
 
 **No build, no server, no bench was run in this lane** (main session holds the box). Everything
-below is static reading. §6 describes the check and its geometry rather than reporting it.
+below is static reading. §5 describes the check and its geometry rather than reporting it.
 
 ---
 
 ## 1. The set / clear table
 
 Grep basis: `grep -rn scatter_barrier src/`, whole tree, plus every caller of the accessors.
-Line numbers are this branch at `c0d7f27fd`. §9's numbers are off by 2–69 lines: they were taken
+Line numbers are the tree **as found**, at `c0d7f27fd` — i.e. before this lane's diff, so the
+table reads against the code the audit was made on. §9's numbers are off by 2–69 lines: they were taken
 before the `t-merge14` merge train (`blocking.inc:1275/:1286` → `1277/1288`,
 `multi.inc:1365` → `1434`).
 
