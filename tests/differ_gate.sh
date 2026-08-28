@@ -159,7 +159,7 @@ printf 'DIFFER matrix: atomic={0,1} seeds={%s,%s} legs=%d logs=%s\n' \
 mkdir -p "$OUT/oracle"
 ORACLE_LOG="$OUT/oracle.log"
 boot_owned "vanilla Redis oracle" "$ORACLE_PORT" "$ORACLE_CORES" "$ORACLE_LOG" \
-    "$ORACLE_BIN" --port "$ORACLE_PORT" --bind 127.0.0.1 \
+    env LC_ALL=C "$ORACLE_BIN" --port "$ORACLE_PORT" --bind 127.0.0.1 \
     --dir "$OUT/oracle" --dbfilename dump.rdb --appendonly no --save '' \
     --enable-debug-command yes || exit 1
 ORACLE_PID=$BOOT_PID
