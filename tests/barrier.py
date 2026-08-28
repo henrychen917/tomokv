@@ -19,6 +19,7 @@ DEBUG SHARD.  No key name is assumed to imply an owner.
 import os
 import select
 import socket
+import subprocess
 import sys
 import time
 
@@ -29,6 +30,8 @@ if len(sys.argv) != 3:
 HOST, PORT = sys.argv[1], int(sys.argv[2])
 HOLD_WINDOW = 0.500
 IO_TIMEOUT = 5.0
+TEST_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.dirname(TEST_DIR)
 
 
 class RespError:
@@ -401,61 +404,27 @@ def run_resume(admin, held):
     return "2/2 held probes resumed after latch clear + CLIENT LIST wake"
 
 
-def run_production(admin, geometry, stem, held, keys_used):
+def run_production(admin):
     want("production latch clear", admin.command("DEBUG", "BARRIER-HOLD", "0"), b"OK")
     before = barrier_stats(admin)
     errors = []
-    ordinary = waiter = subscriber = None
-    try:
-        ordinary, waiter, subscriber = Conn(), Conn(), Conn()
-        source, destination = geometry["source"], geometry["destination"]
-        keys_used.update((source, destination))
-
-        # Scatter owner: a proven cross-owner two-hop destination write.
-        ordinary.command("DEL", source, destination)
-        want("production LMOVE setup", ordinary.command("RPUSH", source, "scatter"), 1)
-        want("production cross-owner LMOVE",
-             ordinary.command("LMOVE", source, destination, "RIGHT", "LEFT"), b"scatter")
-
-        # Blocking owner: ordinary latch-off retirement with a younger same-write probe.
-        record = blocking_probe(admin, geometry, "BLPOP", False, stem + ":production",
-                                False, held, keys_used)
-        if not record["probe_seen"] or record["probe_reply"] != record["probe"]:
-            errors.append("production BLPOP probe did not retire normally")
-
-        # Deferred WAIT owner: an unattainable replica count makes the standalone boot park until
-        # its deadline. The blocked gauge proves this did not collapse into the immediate arm.
-        base_blocked = blocked_clients(admin)
-        waiter.send("WAIT", "1000000", "500")
-        wait_blocked(admin, base_blocked + 1)
-        wait_reply = waiter.read()
-        if not isinstance(wait_reply, int):
-            errors.append("deferred WAIT returned %r" % (wait_reply,))
-
-        # EXEC owner: two keys on different owners force the fan-out parent path.
-        ordinary.command("DEL", source, destination)
-        want("production MULTI", ordinary.command("MULTI"), b"OK")
-        want("production EXEC source queue", ordinary.command("SET", source, "exec-a"), b"QUEUED")
-        want("production EXEC destination queue",
-             ordinary.command("SET", destination, "exec-b"), b"QUEUED")
-        want("production EXEC", ordinary.command("EXEC"), [b"OK", b"OK"])
-
-        # Pub/sub transition owner, then the CLIENT fan-out owner that also supplies the resume
-        # event in cell 3.
-        channel = (stem + ":production:channel").encode()
-        want("production SUBSCRIBE", subscriber.command("SUBSCRIBE", channel),
-             [b"subscribe", channel, 1])
-        want("production UNSUBSCRIBE", subscriber.command("UNSUBSCRIBE", channel),
-             [b"unsubscribe", channel, 0])
-        listing = admin.command("CLIENT", "LIST")
-        if not isinstance(listing, bytes):
-            errors.append("production CLIENT LIST returned %r" % (listing,))
-    except Exception as exc:
-        errors.append(str(exc))
-    finally:
-        for conn in (ordinary, waiter, subscriber):
-            if conn is not None:
-                conn.close()
+    batteries = ("blocking", "blockmulti", "multi_exec", "climon", "pubsub", "storeorder")
+    completed = 0
+    for battery in batteries:
+        command = [sys.executable, os.path.join(TEST_DIR, battery + ".py"), HOST, str(PORT)]
+        try:
+            result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                    cwd=REPO_ROOT, timeout=300, check=False)
+        except subprocess.TimeoutExpired:
+            errors.append("%s timed out after 300s" % battery)
+            continue
+        except OSError as exc:
+            errors.append("%s could not start: %s" % (battery, exc))
+            continue
+        completed += 1
+        if result.returncode != 0:
+            tail = b" ".join(result.stdout.split())[-600:].decode("utf-8", "replace")
+            errors.append("%s exited %d: %s" % (battery, result.returncode, tail))
 
     after = barrier_stats(admin)
     delta = (after[0] - before[0], after[1] - before[1])
@@ -463,9 +432,11 @@ def run_production(admin, geometry, stem, held, keys_used):
         errors.append("ordinary traffic created %+d barrier owner overlaps (wanted 0)" % delta[0])
     if delta[1] != 0:
         errors.append("ordinary traffic created %+d held releases (wanted 0)" % delta[1])
+    if completed != len(batteries):
+        errors.append("ordinary suite completed %d/%d batteries" % (completed, len(batteries)))
     if errors:
         raise AssertionError("; ".join(errors))
-    return ("six production owner classes; overlaps +0, releases-held +0 "
+    return ("6/6 ordinary batteries; overlaps +0, releases-held +0 "
             "(cumulative overlaps=%d)" % after[0])
 
 
@@ -506,8 +477,7 @@ def main():
             run_cell(results, "armed",
                      lambda: run_armed(admin, geometry, stem, held, keys_used))
             run_cell(results, "resume", lambda: run_resume(admin, held))
-            run_cell(results, "production overlap",
-                     lambda: run_production(admin, geometry, stem, held, keys_used))
+            run_cell(results, "production overlap", lambda: run_production(admin))
     finally:
         # Never strand a process-global debug latch or an owned connection, even on a failing
         # positive-control build. CLIENT LIST is the cross-I/O wake required by the latch design.

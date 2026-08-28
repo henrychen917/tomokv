@@ -65,21 +65,24 @@ The script emits exactly one result line for each cell, followed by
 3. **resume** — Clears the latch from the admin connection, executes one `CLIENT LIST` fan-out, and
    requires both held ECHOs to answer. An ECHO that escaped in cell 1 is recorded and cannot be
    recycled into a false resume pass.
-4. **production overlap** — With the latch off, drives all six production owner classes: a
-   cross-owner `LMOVE`, a blocking `BLPOP`, a genuinely deferred `WAIT` (the blocked-client gauge
-   must move), a cross-owner `EXEC`, subscribe/unsubscribe transitions, and `CLIENT LIST`. The
-   per-cell deltas for both counters must be zero. The overlap counter is cumulative and was
-   deliberately moved by cell 1 on the same boot, so the live production assertion is its delta,
-   not an impossible absolute zero after the positive-control arm.
+4. **production overlap** — With the latch off, runs the exact ordinary-traffic suite named by
+   `NOTES-BARRIER.md` section 5: `blocking.py`, `blockmulti.py`, `multi_exec.py`, `climon.py`,
+   `pubsub.py`, and `storeorder.py`. Their output is captured so this battery still emits one line
+   for the cell; a nonzero child exit or a 300-second child timeout fails it. Collectively they
+   drive all six production owner classes and their own non-vacuity controls. The per-cell deltas
+   for both barrier counters must be zero. The overlap counter is cumulative and was deliberately
+   moved by cell 1 on the same boot, so the live production assertion is its delta, not an
+   impossible absolute zero after the positive-control arm.
 
 The printed order is the order above. Internally, the negative control executes before the armed
 cell. `DEBUG BARRIER-HOLD` is process-global: executing the negative cell second would require
 clearing the latch and could release cell 1 before cell 3 had a chance to prove the explicit
 `CLIENT LIST` wake. Results are retained and printed in the requested conceptual order.
 
-All created keys carry a PID/time suffix and are deleted in the final cleanup. Cleanup also clears
-the global latch and runs `CLIENT LIST`, even after a failing control build, so the battery does not
-leave its own clients or debug state stranded.
+All keys created directly by the armed/control probes carry a PID/time suffix and are deleted in
+the final cleanup. Cleanup also clears the global latch and runs `CLIENT LIST`, even after a failing
+control build, so the battery does not leave its own clients or debug state stranded. The ordinary
+batteries retain their existing cleanup behavior.
 
 ---
 
