@@ -127,6 +127,30 @@ struct CommandTable {
     size_t             size;
 };
 
+// Redis registers container subcommands as commands in their own right. TomoKV keeps one registry
+// row per public container, so cold handlers use these tables to recover the same per-subcommand
+// arity names without growing CommandSpec or adding work to ordinary GET/SET dispatch.
+enum class SubcommandArityError : uint8_t {
+    WrongArgs,
+    UnknownOrWrong,
+    Syntax,
+};
+
+struct SubcommandArity {
+    const char*          name;
+    int16_t              min_arity;
+    int16_t              max_arity;
+    SubcommandArityError error = SubcommandArityError::WrongArgs;
+};
+
+bool command_validate_subcommand(Op& op, const char* container,
+                                 const SubcommandArity* table, size_t count);
+void command_reply_subcommand_wrong_args(Op& op, const char* container,
+                                         const char* subcommand);
+// The outer registry still owns each container's broad bound so malformed requests fail before
+// ACL/MULTI handling. This rare-path hook replaces only that already-taken generic error.
+bool command_reply_container_outer_arity(Op& op, const CommandSpec& spec);
+
 // Every family owns its table; the registry calls every type table plus the server/admin table.
 CommandTable string_command_table();
 CommandTable hash_command_table();

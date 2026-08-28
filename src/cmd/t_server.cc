@@ -609,7 +609,11 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out) {
 
 bool collect_config_updates(Op& op,
                             std::vector<std::pair<ConfigValue*, std::string>>& updates) {
-    if (op.argc() < 4 || (op.argc() & 1u) != 0) { reply_syntax(op.sink()); return false; }
+    if (op.argc() < 4) {
+        command_reply_subcommand_wrong_args(op, "CONFIG", "set");
+        return false;
+    }
+    if ((op.argc() & 1u) != 0) { reply_syntax(op.sink()); return false; }
     ClientOutputBufferLimits obuf_scratch = g_client_obuf_limits;
     for (uint32_t i = 2; i < op.argc(); i += 2) {
         ConfigValue* item = find_config(op.arg(i));
@@ -1153,7 +1157,18 @@ void cmd_command(Shard&, Op& op) {
     reply_err(sink, "ERR unknown subcommand or wrong number of arguments for 'command'. Try COMMAND HELP.");
 }
 
+static constexpr SubcommandArity kConfigSubcommands[] = {
+    {"get",       3, -1},
+    {"set",       4, -1},
+    {"rewrite",   2,  2},
+    {"resetstat", 2,  2},
+    {"help",      2,  2},
+};
+
 void cmd_config(Shard& sh, Op& op) {
+    if (!command_validate_subcommand(op, "CONFIG", kConfigSubcommands,
+                                     sizeof(kConfigSubcommands) /
+                                         sizeof(kConfigSubcommands[0]))) return;
     if (eq_icase(op.arg(1), "GET") && op.argc() >= 3) {
         std::vector<std::pair<std::string, std::string>> matches;
         {
@@ -1350,7 +1365,6 @@ void cmd_config(Shard& sh, Op& op) {
     }
     // REWRITE / RESETSTAT / HELP live in the server-tail feature file. They are IO-local, like GET.
     if (server_tail_config_subcommand(op)) return;
-    reply_syntax(op.sink());
 }
 
 // CONFIG RESETSTAT baseline. Every counter INFO reports here is a single-writer value owned by a

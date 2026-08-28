@@ -1172,7 +1172,24 @@ void acl_recheck_blocking(Client& client, Op& op, ThreadCtx& thread) {
     acl_reply_denied(client, op, client.acl_user_idx(), denied, denied_arg, thread);
 }
 
+static constexpr SubcommandArity kAclSubcommands[] = {
+    {"cat",      2,  3, SubcommandArityError::UnknownOrWrong},
+    {"deluser",  3, -1},
+    {"genpass",  2,  3, SubcommandArityError::UnknownOrWrong},
+    {"getuser",  3,  3},
+    {"list",     2,  2},
+    {"load",     2,  2},
+    {"log",      2,  3, SubcommandArityError::UnknownOrWrong},
+    {"save",     2,  2},
+    {"setuser",  3, -1},
+    {"users",    2,  2},
+    {"whoami",   2,  2},
+    {"help",     2,  2},
+};
+
 void acl_command_entry(IoLoop& loop, Client& client, Op& op) {
+    if (!command_validate_subcommand(op, "ACL", kAclSubcommands,
+                                     sizeof(kAclSubcommands) / sizeof(kAclSubcommands[0]))) return;
     const Slice sub = op.arg(1);
     if (sub.eq_icase("cat") && (op.argc() == 2 || op.argc() == 3)) {
         acl_reply_category(op);

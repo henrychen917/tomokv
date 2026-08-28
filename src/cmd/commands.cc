@@ -4,6 +4,10 @@
 // type lanes and server-compat lane can add commands without a central handler switch.
 #include "command.h"
 #include "acl_categories_generated.h"
+#include "server_tail.h"
+#include "slowlog.h"
+#include "../exec/op.h"
+#include "../net/resp.h"
 
 #include <cstdio>
 #include <cstring>
@@ -199,6 +203,84 @@ const CommandSpec* command_lookup(Slice name) {
 bool command_arity_ok(const CommandSpec& spec, uint32_t argc) {
     return argc >= static_cast<uint32_t>(spec.min_arity) &&
            (spec.max_arity < 0 || argc <= static_cast<uint32_t>(spec.max_arity));
+}
+
+namespace {
+
+void append_ascii_lower(std::string& out, const char* text) {
+    for (; *text; text++) {
+        char ch = *text;
+        if (ch >= 'A' && ch <= 'Z') ch = static_cast<char>(ch + ('a' - 'A'));
+        out.push_back(ch);
+    }
+}
+
+void reply_unknown_subcommand(Op& op, const char* container) {
+    const Slice subcommand = op.arg(1);
+    std::string message = "ERR unknown subcommand '";
+    message.append(subcommand.p, subcommand.n);
+    message += "'. Try ";
+    message += container;
+    message += " HELP.";
+    reply_err(op.sink(), message.c_str());
+}
+
+void reply_unknown_or_wrong_subcommand(Op& op, const char* container) {
+    const Slice subcommand = op.arg(1);
+    std::string message = "ERR unknown subcommand or wrong number of arguments for '";
+    message.append(subcommand.p, subcommand.n);
+    message += "'. Try ";
+    message += container;
+    message += " HELP.";
+    reply_err(op.sink(), message.c_str());
+}
+
+}  // namespace
+
+void command_reply_subcommand_wrong_args(Op& op, const char* container,
+                                         const char* subcommand) {
+    std::string message = "ERR wrong number of arguments for '";
+    append_ascii_lower(message, container);
+    message.push_back('|');
+    append_ascii_lower(message, subcommand);
+    message += "' command";
+    reply_err(op.sink(), message.c_str());
+}
+
+bool command_validate_subcommand(Op& op, const char* container,
+                                 const SubcommandArity* table, size_t count) {
+    const Slice subcommand = op.arg(1);
+    for (size_t i = 0; i < count; i++) {
+        const SubcommandArity& entry = table[i];
+        if (!command_equal(subcommand, entry.name)) continue;
+        const bool valid = op.argc() >= static_cast<uint32_t>(entry.min_arity) &&
+                           (entry.max_arity < 0 ||
+                            op.argc() <= static_cast<uint32_t>(entry.max_arity));
+        if (valid) return true;
+        if (entry.error == SubcommandArityError::UnknownOrWrong)
+            reply_unknown_or_wrong_subcommand(op, container);
+        else if (entry.error == SubcommandArityError::Syntax)
+            reply_syntax(op.sink());
+        else
+            command_reply_subcommand_wrong_args(op, container, entry.name);
+        return false;
+    }
+    reply_unknown_subcommand(op, container);
+    return false;
+}
+
+bool command_reply_container_outer_arity(Op& op, const CommandSpec& spec) {
+    if (op.argc() < 2) return false;
+    if (spec.flags & CmdFlags::SubcmdRoute) {
+        (void)server_tail_validate_container_subcommand(op,
+                                                        !std::strcmp(spec.name, "MEMORY"));
+        return true;
+    }
+    if (!std::strcmp(spec.name, "SLOWLOG")) {
+        (void)slowlog_validate_container_subcommand(op, true);
+        return true;
+    }
+    return false;
 }
 
 uint32_t command_registry_size() {

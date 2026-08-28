@@ -19,6 +19,9 @@ bool server_tail_config_subcommand(Op& op);
 // COMMAND subcommands owned by this file: LIST / GETKEYS / GETKEYSANDFLAGS / HELP.
 bool server_tail_command_subcommand(Op& op);
 
+// Shared by the cold outer-arity error path; writes the complete OBJECT/MEMORY subcommand reply.
+bool server_tail_validate_container_subcommand(Op& op, bool memory);
+
 // Shared with t_server.cc's CONFIG SET fan-out decision.
 bool server_tail_config_routes_all_shards(Op& op);
 // Executed on every shard owner for CONFIG RESETSTAT.

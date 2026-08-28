@@ -119,15 +119,6 @@ void reply_help(Op& op, const char* const* lines, size_t count) {
     for (size_t i = 0; i < count; i++) reply_simple(sink, lines[i]);
 }
 
-void reply_unknown_subcommand(Op& op, Slice sub, const char* container) {
-    std::string message = "ERR unknown subcommand '";
-    message.append(sub.p, sub.n);
-    message += "'. Try ";
-    message += container;
-    message += " HELP.";
-    reply_err(op.sink(), message.c_str());
-}
-
 // ---------------------------------------------------------------------------------------------
 // Scope A — parity surface.
 // ---------------------------------------------------------------------------------------------
@@ -383,25 +374,28 @@ const char* const kObjectHelp[] = {
     "    Print this help.",
 };
 
+constexpr SubcommandArity kObjectSubcommands[] = {
+    {"encoding", 3, 3},
+    {"refcount", 3, 3},
+    {"idletime", 3, 3},
+    {"freq",     3, 3},
+    {"help",     2, 2},
+};
+
 template <bool kNotify>
 void cmd_object_impl(Shard& shard, Op& op) {
+    if (!command_validate_subcommand(op, "OBJECT", kObjectSubcommands,
+                                     sizeof(kObjectSubcommands) /
+                                         sizeof(kObjectSubcommands[0]))) return;
     const Slice sub = op.arg(1);
-    if (op.argc() == 2) {
-        if (eq_icase(sub, "HELP")) {
-            reply_help(op, kObjectHelp, sizeof(kObjectHelp) / sizeof(kObjectHelp[0]));
-            return;
-        }
-        reply_unknown_subcommand(op, sub, "OBJECT");
+    if (eq_icase(sub, "HELP")) {
+        reply_help(op, kObjectHelp, sizeof(kObjectHelp) / sizeof(kObjectHelp[0]));
         return;
     }
     const bool encoding = eq_icase(sub, "ENCODING");
     const bool refcount = eq_icase(sub, "REFCOUNT");
     const bool idletime = eq_icase(sub, "IDLETIME");
     const bool freq     = eq_icase(sub, "FREQ");
-    if (!encoding && !refcount && !idletime && !freq) {
-        reply_unknown_subcommand(op, sub, "OBJECT");
-        return;
-    }
 
     const MaxmemoryPolicy policy = shard.store().maxmemory_policy();
     const bool lfu = maxmemory_policy_is_lfu(policy);
@@ -470,6 +464,17 @@ const char* const kMemoryHelp[] = {
     "    so SAMPLES is accepted and ignored.",
     "HELP",
     "    Print this help.",
+};
+
+constexpr SubcommandArity kMemorySubcommands[] = {
+    // USAGE's tail has its own SAMPLES grammar. Only the missing key is an arity error; malformed
+    // or surplus tail arguments are syntax errors in Redis.
+    {"usage",        3,  5, SubcommandArityError::Syntax},
+    {"stats",        2,  2},
+    {"doctor",       2,  2},
+    {"purge",        2,  2},
+    {"malloc-stats", 2,  2},
+    {"help",         2,  2},
 };
 
 struct JeStats {
@@ -619,6 +624,9 @@ void reply_memory_purge(Op& op) {
 }
 
 void cmd_memory(Shard& shard, Op& op) {
+    if (!command_validate_subcommand(op, "MEMORY", kMemorySubcommands,
+                                     sizeof(kMemorySubcommands) /
+                                         sizeof(kMemorySubcommands[0]))) return;
     const Slice sub = op.arg(1);
     if (eq_icase(sub, "USAGE")) {
         if (op.argc() < 3) {
@@ -652,7 +660,6 @@ void cmd_memory(Shard& shard, Op& op) {
         reply_help(op, kMemoryHelp, sizeof(kMemoryHelp) / sizeof(kMemoryHelp[0]));
         return;
     }
-    reply_unknown_subcommand(op, sub, "MEMORY");
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -964,6 +971,16 @@ bool command_list(Op& op) {
 
 }  // namespace
 
+bool server_tail_validate_container_subcommand(Op& op, bool memory) {
+    if (memory)
+        return command_validate_subcommand(op, "MEMORY", kMemorySubcommands,
+                                           sizeof(kMemorySubcommands) /
+                                               sizeof(kMemorySubcommands[0]));
+    return command_validate_subcommand(op, "OBJECT", kObjectSubcommands,
+                                       sizeof(kObjectSubcommands) /
+                                           sizeof(kObjectSubcommands[0]));
+}
+
 bool server_tail_config_subcommand(Op& op) {
     if (eq_icase(op.arg(1), "HELP") && op.argc() == 2) {
         reply_help(op, kConfigHelpText, sizeof(kConfigHelpText) / sizeof(kConfigHelpText[0]));
@@ -1017,15 +1034,12 @@ bool command_prepare_subcmd_route(Server& server, Op& op) {
                                  eq_icase(sub, "IDLETIME") || eq_icase(sub, "FREQ"));
     if (keyed) {
         if (op.argc() < 3) {
-            std::string message = "ERR wrong number of arguments for '";
-            message += memory ? "memory|" : "object|";
-            for (uint32_t i = 0; i < sub.n; i++) {
-                char ch = sub.p[i];
-                if (ch >= 'A' && ch <= 'Z') ch = static_cast<char>(ch + ('a' - 'A'));
-                message.push_back(ch);
-            }
-            message += "' command";
-            reply_err(op.sink(), message.c_str());
+            command_reply_subcommand_wrong_args(op, memory ? "MEMORY" : "OBJECT",
+                                                memory ? "usage" :
+                                                    (eq_icase(sub, "ENCODING") ? "encoding" :
+                                                     eq_icase(sub, "REFCOUNT") ? "refcount" :
+                                                     eq_icase(sub, "IDLETIME") ? "idletime" :
+                                                                                 "freq"));
             return false;
         }
         op.hash = FlatStore::hash_key(op.arg(2));

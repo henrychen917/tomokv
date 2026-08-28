@@ -178,15 +178,6 @@ void reply_help_lines(Op& op, const char* const* lines, size_t count) {
     for (size_t i = 0; i < count; i++) reply_simple(sink, lines[i]);
 }
 
-void reply_unknown_subcommand(Op& op, Slice sub, const char* container) {
-    std::string message = "ERR unknown subcommand '";
-    message.append(sub.p, sub.n);
-    message += "'. Try ";
-    message += container;
-    message += " HELP.";
-    reply_err(op.sink(), message.c_str());
-}
-
 // Materializes the redis-shaped argv from a capture: at most 32 arguments, each at most 128 bytes,
 // with the overflow named by a synthetic trailing argument.
 bool build_argv(const SlowlogCapture& capture, std::vector<std::string>& out) {
@@ -261,7 +252,17 @@ const char* const kSlowlogHelp[] = {
     "    Print this help.",
 };
 
+constexpr SubcommandArity kSlowlogSubcommands[] = {
+    {"get",   2, 3, SubcommandArityError::UnknownOrWrong},
+    {"len",   2, 2},
+    {"reset", 2, 2},
+    {"help",  2, 2},
+};
+
 void cmd_slowlog(Shard&, Op& op) {
+    if (!command_validate_subcommand(op, "SLOWLOG", kSlowlogSubcommands,
+                                     sizeof(kSlowlogSubcommands) /
+                                         sizeof(kSlowlogSubcommands[0]))) return;
     const Slice sub = op.arg(1);
     if (eq_icase(sub, "LEN") && op.argc() == 2) {
         size_t total = 0;
@@ -309,7 +310,6 @@ void cmd_slowlog(Shard&, Op& op) {
         }
         return;
     }
-    reply_unknown_subcommand(op, sub, "SLOWLOG");
 }
 
 const char* const kLatencyHelp[] = {
@@ -329,7 +329,19 @@ const char* const kLatencyHelp[] = {
     "    Print this help.",
 };
 
+constexpr SubcommandArity kLatencySubcommands[] = {
+    {"doctor",  2,  2},
+    {"graph",   3,  3},
+    {"history", 3,  3},
+    {"latest",  2,  2},
+    {"reset",   2, -1},
+    {"help",    2,  2},
+};
+
 void cmd_latency(Shard&, Op& op) {
+    if (!command_validate_subcommand(op, "LATENCY", kLatencySubcommands,
+                                     sizeof(kLatencySubcommands) /
+                                         sizeof(kLatencySubcommands[0]))) return;
     const Slice sub = op.arg(1);
     if (eq_icase(sub, "HELP") && op.argc() == 2) {
         reply_help_lines(op, kLatencyHelp, sizeof(kLatencyHelp) / sizeof(kLatencyHelp[0]));
@@ -440,7 +452,6 @@ void cmd_latency(Shard&, Op& op) {
                        op.resp3());
         return;
     }
-    reply_unknown_subcommand(op, sub, "LATENCY");
 }
 
 static const CommandSpec kTable[] = {
@@ -450,6 +461,16 @@ static const CommandSpec kTable[] = {
 };
 
 }  // namespace
+
+bool slowlog_validate_container_subcommand(Op& op, bool slowlog) {
+    if (slowlog)
+        return command_validate_subcommand(op, "SLOWLOG", kSlowlogSubcommands,
+                                           sizeof(kSlowlogSubcommands) /
+                                               sizeof(kSlowlogSubcommands[0]));
+    return command_validate_subcommand(op, "LATENCY", kLatencySubcommands,
+                                       sizeof(kLatencySubcommands) /
+                                           sizeof(kLatencySubcommands[0]));
+}
 
 // -------------------------------------------------------------------------------------------
 // The two recorders. Both funnel into slowlog_finish() so their semantics cannot drift.

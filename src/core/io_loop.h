@@ -907,7 +907,15 @@ private:
                 finish_locally(c, *op, message); continue;
             }
             if (!command_arity_ok(*spec, op->argc())) {
+                // OBJECT/MEMORY/SLOWLOG keep a broad container bound in the registry so malformed
+                // requests are rejected before ACL and MULTI. On this already-taken cold error
+                // path, recover Redis's more specific subcommand name/grammar.
+                const bool container_reply = command_reply_container_outer_arity(*op, *spec);
                 conn.advance_parse(consumed);
+                if (container_reply) {
+                    finish_prebuilt(c, *op);
+                    continue;
+                }
                 char message[128];
                 char command[64];
                 const size_t name_len = std::min(std::strlen(spec->name), sizeof(command) - 1);
