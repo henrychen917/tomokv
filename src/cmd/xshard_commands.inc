@@ -1537,7 +1537,7 @@ void finish_phase2(ScatterState& state) {
             state.final_reply = FinalReply::Internal;
             return;
         }
-        if (!state.external_epoch) state.server->atomic_commit_group(state.epoch);
+        if (!state.multi_child) state.server->atomic_commit_group(state.epoch);
     }
     switch (state.kind) {
         case Kind::Msetnx: state.final_reply = FinalReply::Integer; state.final_integer = 1; break;

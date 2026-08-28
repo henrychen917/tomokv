@@ -366,6 +366,9 @@ struct ScatterState : SnapshotCut {
     bool script_has_writes = false;
     bool script_stage_limit = false;
     bool script_certifier = false;
+    // Set for a child lowered inside EXEC. The child keeps its own decision words, but the parent
+    // publishes their common ticket and owns the outer transaction decision.
+    bool multi_child = false;
     bool barrier = false;
     bool pooled = false;
     bool copy_replace = false;
@@ -389,10 +392,10 @@ struct ScatterState : SnapshotCut {
     // See Server::atomic_apply_inflight() for why the snapshot cut waits on this and not on the
     // admission lease.
     std::atomic<bool> apply_open{false};
-    // A MULTI child retains its own routing/result lifetime but publishes through its parent's one
-    // ticket and abort word. Null is the ordinary one-command group path.
-    std::atomic<uint64_t>* external_epoch = nullptr;
-    std::atomic<bool>* external_aborted = nullptr;
+    // A MULTI child's records deliberately point at the CHILD epoch/abort words: a runtime error
+    // cancels that one queued command without turning the whole EXEC into EXECABORT. The parent
+    // finalizer installs one common ticket into every successful decision word before advancing
+    // the safe watermark.
     bool contents_freed = false;
     bool retired = false;
     bool two_hop = false;
@@ -497,11 +500,11 @@ ShardGroup* group_for(ScatterState& state, int32_t shard) {
 }
 
 std::atomic<uint64_t>* publish_epoch(ScatterState& state) {
-    return state.external_epoch ? state.external_epoch : &state.epoch;
+    return &state.epoch;
 }
 
 std::atomic<bool>* publish_aborted(ScatterState& state) {
-    return state.external_aborted ? state.external_aborted : &state.aborted;
+    return &state.aborted;
 }
 
 ResultHeap* ensure_result(ScatterState& state) {
@@ -833,7 +836,7 @@ bool publish_phase2(Server& server, ThreadCtx& self, Ring& ring, const Task& tas
         }
     }
     state.phase = 2;
-    if (!state.external_epoch && !aof_prepare_scatter_group(state)) {
+    if (!state.multi_child && !aof_prepare_scatter_group(state)) {
         state.aborted.store(true, std::memory_order_release);
         state.final_reply = FinalReply::Work;
         state.final_error = WorkError::Oom;
@@ -2353,7 +2356,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 const uint32_t pos = state.key_order[group.begin];
                 const KeyRef& key = state.keys[pos];
                 bool plain_active = false;
-                if (!state.external_epoch &&
+                if (!state.multi_child &&
                     shard.store().atomic_needs_version(key.hash, op.arg(key.arg))) {
                     const WorkError prepared = begin_plain_version(
                         *state.server, shard, op.arg(key.arg), key.hash,
@@ -3027,7 +3030,7 @@ ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
             }
             return final();
         }
-        if (!state.external_epoch) {
+        if (!state.multi_child) {
             const uint64_t ticket = server.atomic_commit_group(state.epoch);
             aof_commit_scatter_group(state, self, ring, ticket);
         }
@@ -3073,10 +3076,8 @@ ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
 
 enum class MultiChildFinish : uint8_t { Waiting, PhaseAdvanced, Final };
 
-void xshard_multi_child_bind(ScatterState& state, std::atomic<uint64_t>* epoch,
-                             std::atomic<bool>* aborted) {
-    state.external_epoch = epoch;
-    state.external_aborted = aborted;
+void xshard_multi_child_bind(ScatterState& state) {
+    state.multi_child = true;
 }
 
 bool xshard_multi_child_has_group(ScatterState& state, int32_t shard) {

@@ -45,5 +45,14 @@ child `ScatterState::aborted` bit to `MultiExecState::aborted`.
 
 The child abort bit cannot simply be ignored: for `RENAMENX`, phase-two source and destination work
 can run on distinct owners, so a source tombstone installed before the destination rejects NX must
-remain invisible.  The implementation needs a child-local cancellation decision that can hide
-that child's candidates without aborting candidates belonging to other queued commands.
+remain invisible.  The implementation therefore keeps child MVCC records on the child's own
+epoch/abort words.  The EXEC finalizer publishes the parent epoch and every child epoch with one
+identical reserved ticket before advancing the safe read watermark.  A failed child keeps its
+private candidates hidden through its own abort word; a genuine transaction abort marks every
+child aborted.  The MVCC resolver and single-owner execution path are unchanged.
+
+The MULTI AOF fragment must likewise describe the logical transaction overlay rather than the raw
+physical table head.  A rejected `RENAMENX` can leave an aborted source tombstone at that head until
+MVCC cleanup.  The fragment now resolves with the transaction connection's read context, so it
+skips the failed child's candidate while retaining successful private candidates, then records
+that visible post-image under the parent's existing AOF group decision.

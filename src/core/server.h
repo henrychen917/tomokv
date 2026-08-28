@@ -705,14 +705,22 @@ public:
     }
     // The whole two-step for a group whose epoch word is `epoch`. The stall between the two is a
     // TEST HOOK (DEBUG ATOMIC-COMMIT-DELAY) that widens the closed window on demand; it is zero
-    // in production and the load is on an already-cold once-per-group path.
-    uint64_t atomic_commit_group(std::atomic<uint64_t>& epoch) {
+    // in production and the load is on an already-cold once-per-group path. `publish_members`
+    // lets a composite group install the SAME ticket into additional decision words before the
+    // safe watermark moves. Readers therefore still see either all of the ticket or none of it.
+    template <typename PublishMembers>
+    uint64_t atomic_commit_group(std::atomic<uint64_t>& epoch,
+                                 PublishMembers&& publish_members) {
         const uint64_t ticket = atomic_commit_reserve();
         const uint32_t stall = debug_atomic_commit_delay_.load(std::memory_order_relaxed);
         if (__builtin_expect(stall != 0, false)) debug_stall_us(stall);
         epoch.store(ticket, std::memory_order_release);
+        publish_members(ticket);
         atomic_commit_publish();
         return ticket;
+    }
+    uint64_t atomic_commit_group(std::atomic<uint64_t>& epoch) {
+        return atomic_commit_group(epoch, [](uint64_t) {});
     }
     // Same-owner tickets (a localfast plain version, FLUSH's logical clear) have no window: the
     // shard that draws them installs their records before it yields, and no other task may touch
