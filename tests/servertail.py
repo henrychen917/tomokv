@@ -399,7 +399,11 @@ def scope_rewrite(workdir):
     body = open(conf).read()
     check("rewritten file carries the mutation", body, lambda v: "maxmemory 67108864" in v)
     check("rewritten file omits non-boot names", body,
-          lambda v: not any(line.startswith("save ") for line in v.splitlines()))
+          lambda v: not any(line.startswith("aof-use-rdb-preamble ")
+                            for line in v.splitlines()))
+    save_lines = [line for line in body.splitlines() if line.startswith("save ")]
+    check("rewritten file preserves repeatable save clauses", save_lines,
+          ["save 3600 1", "save 300 100", "save 60 10000"])
 
     proc = boot(SPARE_PORT, ["--dir", workdir], conf=conf)
     if not check("server reboots from the rewritten file", proc is not None, True):
@@ -409,6 +413,8 @@ def scope_rewrite(workdir):
           ["maxmemory", "67108864"])
     check("slowlog knob survived", c.cmd("CONFIG", "GET", "slowlog-max-len"),
           ["slowlog-max-len", "77"])
+    check("repeated save clauses reboot as one CONFIG value", c.cmd("CONFIG", "GET", "save"),
+          ["save", "3600 1 300 100 60 10000"])
     c.close()
     proc.terminate()
     proc.wait(timeout=8)
