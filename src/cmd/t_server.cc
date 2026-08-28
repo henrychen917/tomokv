@@ -2295,18 +2295,8 @@ void command_client_set_no_evict(Client* client, bool enabled) {
     if (ClientMeta* meta = client_meta(client)) meta->no_evict = enabled;
 }
 
-bool command_client_no_evict(const Client* client) {
-    const ClientMeta* meta = client_meta(client);
-    return meta && meta->no_evict;
-}
-
 void command_client_set_no_touch(Client* client, bool enabled) {
     if (ClientMeta* meta = client_meta(client)) meta->no_touch = enabled;
-}
-
-bool command_client_no_touch(const Client* client) {
-    const ClientMeta* meta = client_meta(client);
-    return meta && meta->no_touch;
 }
 
 std::string command_client_addr(const Client* client) {
