@@ -3872,25 +3872,43 @@ def run_wiredump_suite(rng):
         value = parse_reply(reply)
         return value if isinstance(value, bytes) else None
 
-    def full_read(sock, file, kind, key):
+    def full_read(sock, file, kind, key, ttl_fields=()):
         if kind == "string": op = ["GET", key]
         elif kind == "list": op = ["LRANGE", key, "0", "-1"]
         elif kind == "hash": op = ["HGETALL", key]
         elif kind == "set": op = ["SMEMBERS", key]
         else: op = ["ZRANGE", key, "0", "-1", "WITHSCORES"]
-        return normalize(op[0], command(sock, file, op))
+        value = normalize(op[0], command(sock, file, op))
+        if ttl_fields:
+            ttl = command(sock, file,
+                          ["HPEXPIRETIME", key, "FIELDS", str(len(ttl_fields))] + ttl_fields)
+            return value + b"\x00field-ttl\x00" + ttl
+        return value
 
+    far = str(int(time.time() * 1000) + 24 * 60 * 60 * 1000)
+    farther = str(int(far) + 70000)
     definitions = [
-        ("wd:string", "string", [["SET", "wd:string", "wire\x00value"]]),
-        ("wd:string-lzf", "string", [["SET", "wd:string-lzf", "repeat-" * 800]]),
-        ("wd:list", "list", [["RPUSH", "wd:list", "a", "2", "x" * 500]]),
-        ("wd:list-large", "list", [["RPUSH", "wd:list-large", "q" * 10000]]),
-        ("wd:hash", "hash", [["HSET", "wd:hash", "a", "1", "b", "value"]]),
-        ("wd:hash-large", "hash", [["HSET", "wd:hash-large", "field", "x" * 1000]]),
-        ("wd:set-int", "set", [["SADD", "wd:set-int", "-2", "1", "70000"]]),
-        ("wd:set", "set", [["SADD", "wd:set", "a", "bb", "m" * 100]]),
-        ("wd:zset", "zset", [["ZADD", "wd:zset", "-2", "lo", "1.5", "mid"]]),
-        ("wd:zset-large", "zset", [["ZADD", "wd:zset-large", "3.25", "z" * 100]]),
+        ("wd:string", "string", [["SET", "wd:string", "wire\x00value"]], ()),
+        ("wd:string-lzf", "string", [["SET", "wd:string-lzf", "repeat-" * 800]], ()),
+        ("wd:list", "list", [["RPUSH", "wd:list", "a", "2", "x" * 500]], ()),
+        ("wd:list-large", "list", [["RPUSH", "wd:list-large", "q" * 10000]], ()),
+        ("wd:hash", "hash", [["HSET", "wd:hash", "a", "1", "b", "value"]],
+         ["a", "b"]),
+        ("wd:hash-large", "hash", [["HSET", "wd:hash-large", "field", "x" * 1000]],
+         ["field"]),
+        ("wd:hash-ttl-some", "hash",
+         [["HSET", "wd:hash-ttl-some", "a", "1", "b", "2", "c", "3"],
+          ["HPEXPIREAT", "wd:hash-ttl-some", far, "FIELDS", "1", "a"],
+          ["HPEXPIREAT", "wd:hash-ttl-some", farther, "FIELDS", "1", "c"]],
+         ["a", "b", "c"]),
+        ("wd:hash-ttl-all", "hash",
+         [["HSET", "wd:hash-ttl-all", "a", "1", "b", "x" * 100],
+          ["HPEXPIREAT", "wd:hash-ttl-all", far, "FIELDS", "2", "a", "b"]],
+         ["a", "b"]),
+        ("wd:set-int", "set", [["SADD", "wd:set-int", "-2", "1", "70000"]], ()),
+        ("wd:set", "set", [["SADD", "wd:set", "a", "bb", "m" * 100]], ()),
+        ("wd:zset", "zset", [["ZADD", "wd:zset", "-2", "lo", "1.5", "mid"]], ()),
+        ("wd:zset-large", "zset", [["ZADD", "wd:zset-large", "3.25", "z" * 100]], ()),
     ]
     pairs = ((ts, tf), (os_, of))
     for sock, file in pairs:
@@ -3899,22 +3917,22 @@ def run_wiredump_suite(rng):
     diffs = 0
     checks = 0
 
-    for _, _, setup in definitions:
+    for _, _, setup, _ in definitions:
         for operation in setup:
             replies = [command(sock, file, operation) for sock, file in pairs]
             if replies[0] != replies[1]:
                 diffs += 1
 
     cached = []
-    for key, kind, _ in definitions:
+    for key, kind, _, ttl_fields in definitions:
         target_dump = payload(command(ts, tf, ["DUMP", key]))
         oracle_dump = payload(command(os_, of, ["DUMP", key]))
         if target_dump is None or oracle_dump is None:
             raise RuntimeError("wiredump seed DUMP failed for %s" % key)
-        cached.append((key, kind, target_dump, oracle_dump))
+        cached.append((key, kind, target_dump, oracle_dump, ttl_fields))
 
     for iteration in range(4200):
-        key, kind, target_seed, oracle_seed = rng.choice(cached)
+        key, kind, target_seed, oracle_seed, ttl_fields = rng.choice(cached)
         action = rng.randrange(5)
         if action == 0:
             # Cross the freshly produced payloads. The restored values have the same TTL and full
@@ -3928,8 +3946,8 @@ def run_wiredump_suite(rng):
                                              oracle_dump, "REPLACE"])
             oracle_reply = command(os_, of, ["RESTORE", "wd:cross", "600000",
                                               target_dump, "REPLACE"])
-            if target_reply != oracle_reply or full_read(ts, tf, kind, "wd:cross") != \
-                    full_read(os_, of, kind, "wd:cross"):
+            if target_reply != oracle_reply or full_read(ts, tf, kind, "wd:cross", ttl_fields) != \
+                    full_read(os_, of, kind, "wd:cross", ttl_fields):
                 diffs += 1
         elif action == 1:
             # Feed exactly the same randomly selected producer payload to both RESTORE parsers.
@@ -3941,8 +3959,8 @@ def run_wiredump_suite(rng):
                 options.append("ABSTTL")
             target_reply = command(ts, tf, ["RESTORE", "wd:restore", ttl, wire] + options)
             oracle_reply = command(os_, of, ["RESTORE", "wd:restore", ttl, wire] + options)
-            if target_reply != oracle_reply or full_read(ts, tf, kind, "wd:restore") != \
-                    full_read(os_, of, kind, "wd:restore"):
+            if target_reply != oracle_reply or full_read(ts, tf, kind, "wd:restore", ttl_fields) != \
+                    full_read(os_, of, kind, "wd:restore", ttl_fields):
                 diffs += 1
         elif action == 2:
             target_reply = command(ts, tf, ["EXISTS", key])
@@ -3950,7 +3968,8 @@ def run_wiredump_suite(rng):
             if target_reply != oracle_reply:
                 diffs += 1
         elif action == 3:
-            if full_read(ts, tf, kind, key) != full_read(os_, of, kind, key):
+            if full_read(ts, tf, kind, key, ttl_fields) != \
+                    full_read(os_, of, kind, key, ttl_fields):
                 diffs += 1
         else:
             # This arm is a negative control until the first restore and a live-TTL check after it.
