@@ -33,8 +33,11 @@ SRV=0; SRVLOG=/dev/null
 # boots (off / byte-limit / window), each needing its own knob value and so its own server.
 # 189 -> 192: the three efficiency guards, each on its own boot geometry.
 # 192 -> 194: the AOF frame-order battery, on persist-io normal under both atomic modes.
-EXPECT_QUICK=194
-EXPECT_FULL=204                 # full without the optional NIC row. CONFIRMED by the
+# 194 -> 196: the expwide battery (one expiry cut per logical operation) joined the feature loop,
+# one row per atomic mode.  It needs nothing the loop's boot does not already give it -- DEBUG
+# SHARD, DEBUG SET-ACTIVE-EXPIRE and DEBUG ATOMIC-FANOUT-DEFER -- and takes ~47s per mode.
+EXPECT_QUICK=196
+EXPECT_FULL=206                 # full without the optional NIC row. CONFIRMED by the
                                 # 2026-08-28 full-tier run (200 with the NIC row attempted).
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ok(){ say "$1" "ok"; PASS=$((PASS+1)); }
@@ -143,7 +146,7 @@ grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG
 for AT in 0 1; do
   boot ./build/tomokv --atomic $AT --enable-debug-command yes \
       || bad "feature battery boot (atomic $AT)"
-  for t in s6 multi_exec blocking stream streamgroups pubsub lua_scripting scriptsurf limits resp3 bitfield dumprestore zsetops geo climon climon2 tracking hexpire servertail lcs concur edgeproto edgeenc edgetime; do
+  for t in s6 multi_exec blocking stream streamgroups pubsub lua_scripting scriptsurf limits resp3 bitfield dumprestore zsetops geo climon climon2 tracking hexpire servertail lcs concur edgeproto edgeenc edgetime expwide; do
     python3 tests/$t.py 127.0.0.1 $PORT >/tmp/gate-$t-$AT.txt 2>&1 \
         && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see /tmp/gate-$t-$AT.txt"
   done
