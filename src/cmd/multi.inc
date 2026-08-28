@@ -450,9 +450,7 @@ MultiCommandKind classify_multi_command(MultiCommand& command) {
     // child is ordered only against the commands that share its one shard -- so an earlier MSET
     // still pending on a weight key's shard would be invisible to it. As an Xshard child it can
     // declare every shard as a participant and take the transaction's ordinary stage barrier.
-#ifndef TOMO_SORT_NO_READCTX
     if (multi_sort_dereferences(command.queued)) return MultiCommandKind::Unsupported;
-#endif
     bool same = true;
     for (size_t i = 1; i < command.key_shards.size(); i++)
         same &= command.key_shards[i] == command.key_shards[0];
@@ -580,11 +578,9 @@ bool prepare_commands(Server& server, MultiExecState& state,
                     // Xshard arm below waits on `finished` for a shard with no group of its own),
                     // which is what orders the dereference after every earlier command everywhere
                     // and before every later one.
-#ifndef TOMO_SORT_NO_READCTX
                     if (multi_sort_dereferences(command->queued))
                         for (uint32_t sid = 0; sid < server.nshards(); sid++)
                             add_shard(command->participants, static_cast<int32_t>(sid));
-#endif
                 } else if (prepared == ScatterPrepare::Error) {
                     // Validation errors are execution-time array elements, just as they are when
                     // the same syntactically valid command is run outside MULTI.
@@ -624,7 +620,15 @@ bool prepare_commands(Server& server, MultiExecState& state,
             // one owner task and cannot straddle anything (the same-owner control reads zero torn),
             // and a write must keep cloning from the newest committed value, so widening this test
             // would buy no isolation and cost the transaction a floor registration.
-            if (!(command->queued.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
+            const bool sort_deref_read = command->kind == MultiCommandKind::Xshard &&
+                command->scatter && command->scatter->kind == Kind::Sort &&
+                command->scatter->sort_options.deref;
+            if (sort_deref_read) {
+                // STORE makes SORT a write command, but its dynamic BY/GET wave is still a
+                // multi-owner read and must borrow the transaction's one registered cut.
+                state.exec_read_fanout = true;
+            } else if (!(command->queued.spec->flags &
+                         (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
                 if (command->kind == MultiCommandKind::Mget ||
                     command->kind == MultiCommandKind::Exists)
                     state.exec_read_fanout = true;
@@ -1382,8 +1386,12 @@ bool multi_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consume
         loop.srv_->note_atomic_exec_read_cut();
         for (const auto& command : dispatch->commands) {
             if (command->kind != MultiCommandKind::Xshard || !command->scatter) continue;
-            if (command->queued.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) continue;
-            if (command->scatter->nsub <= 1) continue;
+            const bool sort_deref_read = command->scatter->kind == Kind::Sort &&
+                                         command->scatter->sort_options.deref;
+            if (!sort_deref_read &&
+                (command->queued.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)))
+                continue;
+            if (!sort_deref_read && command->scatter->nsub <= 1) continue;
             // The child never registers on its own: it lives in the transaction's private
             // ScatterArenaPool, which does not own this thread's floor slot. It only borrows the
             // cut the transaction published, and xshard_destroy skips unregistering it because

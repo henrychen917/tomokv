@@ -75,3 +75,29 @@ source/derived shard pair and fail loudly if none is found.  STORE destinations 
 the same geometry search rather than assumed from a key spelling.
 
 Per lane rules, I have not built anything, run any test/load script, or started a server.
+
+## 2026-08-28: implementation checkpoint
+
+Implemented the planned owner-only waves:
+
+- `sort_run` no longer includes or reaches `Server`, `Shard`, `FlatStore`, or `KvObj`. It consumes
+  optional parallel resolved BY/GET arrays, so it remains the only ordering/LIMIT/projection core.
+- A `SortDerefState` object is carved after the ordinary scatter arrays. The only new
+  `ScatterState` member is its pointer at the cold tail. Concrete keys, fields, values, presence
+  bits, and dynamic key order live in that arena-owned object's vectors.
+- Source completion decodes the natural elements, expands concrete requests, and rebuilds the dense
+  shard groups. Each gather task promotes/resolves only keys in its own `Shard&`, under the existing
+  `ReadEpochGuard(state.snapshot, origin_conn_id)` and `PinnedNowMs(state.now_cut_ms)`.
+- The last gather task reduces into `ResultHeap`, restores the explicit source groups before generic
+  error/status scanning, and either finishes the reply or enters the unchanged STORE hop.
+- Bare SORT has a derived-wave publisher. EXEC uses the already-declared all-shard participant
+  barrier and advances the child stage twice (source to gather, then gather to STORE when present).
+- Dynamic request keys were added to task hazard/dependency enumeration; no generic explicit-key
+  index is used during the gather wave.
+- Dereferencing SORT now pins a snapshot even for STORE and atomic mode 0. In EXEC it causes the
+  parent transaction to register a cut and borrows that exact cut, including for STORE children.
+  No resolver/version/publication code was changed.
+- The multi-executor option refusals, `sort_deref_local`, and both denial constants were removed.
+
+Static inspection still pending: validation battery rewrite, stale negative-control cleanup,
+whole-tree symbol sweep, and final diff audit. No build or runtime check has been performed.

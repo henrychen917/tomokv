@@ -347,7 +347,7 @@ void for_each_touched_key(Op& op, Fn&& fn) {
             mpop_count = static_cast<uint32_t>(parsed);
     } else if (kind == Kind::Sort) {
         SortOptions options;
-        if (parse_sort_options(op, options, nullptr)) {
+        if (parse_sort_options(op, options)) {
             sort_store = options.store;
             sort_store_arg = options.store_arg;
         }
@@ -567,7 +567,7 @@ FlatStore::SnapshotWriteResult xshard_local_snapshot_prepare(Op& op, Shard& shar
             return FlatStore::SnapshotWriteResult::Error;
     }
     if (kind == Kind::Sort) {
-        if (!parse_sort_options(op, sort_options, nullptr))
+        if (!parse_sort_options(op, sort_options))
             return FlatStore::SnapshotWriteResult::Error;
         if (!sort_options.store) return FlatStore::SnapshotWriteResult::Ready;
     }
@@ -696,6 +696,16 @@ bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op
         FlatStore& store = shard.store();
         if (!store.atomic_has_records()) return false;
         ShardGroup* group = group_for(state, shard.id());
+        if (sort_deref_gathering(state)) {
+            if (!group) return false;
+            SortDerefState& sort = *state.sort_deref;
+            return store.atomic_group_has_own_undecided(
+                &state, group->count, origin_conn_id, group->membership, [&](uint32_t i) {
+                    const SortDerefRequest& request =
+                        sort.requests[sort.key_order[group->begin + i]];
+                    return std::pair<uint64_t, Slice>{request.hash, sort_deref_key(request)};
+                });
+        }
         // KEYS/DBSIZE/all-shards commands have a zero-key group for every shard: logically they
         // touch the whole owner, so any own undecided node is their precise program-order hazard.
         if (!group || state.key_count == 0)
@@ -750,6 +760,15 @@ bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
             return (task.shard >= 0 ? task.shard : op.shard) == shard_id;
         ShardGroup* group = group_for(state, shard_id);
         if (!group) return false;
+        if (sort_deref_gathering(state)) {
+            SortDerefState& sort = *state.sort_deref;
+            for (uint32_t i = 0; i < group->count; i++) {
+                const SortDerefRequest& request =
+                    sort.requests[sort.key_order[group->begin + i]];
+                fn(request.hash, sort_deref_key(request));
+            }
+            return false;
+        }
         for (uint32_t i = 0; i < group->count; i++) {
             const uint32_t pos = state.key_order[group->begin + i];
             const KeyRef& key = state.keys[pos];
