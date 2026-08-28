@@ -260,8 +260,9 @@ void cmd_shutdown(Shard&, Op& op) {
     Server* server = command_server();
     if (!server) { reply_err(op.sink(), "ERR server is not bound"); return; }
 
-    // There are no redis `save` clauses in this tree, so an explicit SAVE is the only thing that
-    // asks for a snapshot; the default and NOSAVE both stop without one. Documented deviation.
+    // Periodic `save` clauses are handled by the designated IO cron owner. SHUTDOWN retains its
+    // explicit SAVE/NOSAVE choice here; an in-progress periodic snapshot is completed by the
+    // ordinary snapshot writer before thread teardown.
     if (save) {
         const SnapshotIoContext context = snapshot_io_context();
         if (context.thread && context.ring) {
@@ -640,12 +641,11 @@ const char* const kConfigHelpText[] = {
 // CONFIG REWRITE writes a COMPLETE file of the knobs we own, not a patch of the original. Two
 // consequences, both deliberate and both documented: comments and unknown-to-us directives in the
 // booted file are not preserved, and only names the boot parser actually accepts are emitted --
-// `save`, `databases`, `proto-max-bulk-len` and `aof-use-rdb-preamble` exist in the CONFIG table
-// for client compatibility but are not CLI flags, so writing them would produce a file the server
-// then refuses to boot from.
+// Every compatibility knob except aof-use-rdb-preamble is boot-parsed. The latter remains a fixed
+// declaration of the snapshot-based AOF format and is omitted from generated files.
 bool config_name_is_rewritable(const std::string& name) {
     static const char* const kNotBootParsed[] = {
-        "save", "databases", "proto-max-bulk-len", "aof-use-rdb-preamble",
+        "aof-use-rdb-preamble",
     };
     for (const char* skip : kNotBootParsed)
         if (name == skip) return false;
@@ -667,6 +667,18 @@ bool config_rewrite(std::string& error) {
         "# that was originally loaded are not carried over.\n";
     for (const auto& item : items) {
         if (!config_name_is_rewritable(item.first)) continue;
+        if (item.first == "save") {
+            std::vector<SaveClause> clauses;
+            if (!cfg_parse_save_schedule(item.second.data(), item.second.size(), clauses)) {
+                error = "invalid save schedule in runtime table";
+                return false;
+            }
+            if (clauses.empty()) body += "save \"\"\n";
+            else for (const SaveClause& clause : clauses)
+                body += "save " + std::to_string(clause.seconds) + " " +
+                        std::to_string(clause.changes) + "\n";
+            continue;
+        }
         body += item.first;
         body.push_back(' ');
         // An empty value must still round-trip through the `name value` grammar.

@@ -140,7 +140,8 @@ private:
             // deliberately NOT armed: `new` would make every first write on a key produce a
             // second, duplicate invalidation, and a key miss is not a value change.
             sh->set_notify_mask(snapshot.notify_events |
-                                (snapshot.tracking_armed ? (NOTIFY_ALL | NOTIFY_TRACKING) : 0u));
+                                (snapshot.tracking_armed ? (NOTIFY_ALL | NOTIFY_TRACKING) : 0u) |
+                                (snapshot.save_armed ? (NOTIFY_ALL | NOTIFY_SAVE) : 0u));
         }
         maxmemory_enabled_ = enabled;
         slowlog_arm_.slowlog_us = snapshot.slowlog_log_slower_than;
@@ -895,7 +896,7 @@ private:
     int64_t    blocking_beat_ms_ = 0;
     size_t     expire_shard_cursor_ = 0;
     size_t     atomic_cleanup_cursor_ = 0;
-    uint64_t   live_config_version_ = 0;
+    uint64_t   live_config_version_ = UINT64_MAX;
     AofManager* aof_manager_ = nullptr;
     bool       maxmemory_enabled_ = false;
     uint8_t    cached_lru_clock_ = 0;

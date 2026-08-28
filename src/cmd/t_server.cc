@@ -341,7 +341,7 @@ std::string client_info_line_impl(const Client& client, const ClientMeta& meta, 
 }
 
 enum class ConfigKind : uint8_t {
-    String, Bool, Unsigned, Bytes, Enum, Policy, ClientOutputBufferLimit, NotifyFlags,
+    String, Bool, Unsigned, Bytes, Enum, Policy, ClientOutputBufferLimit, NotifyFlags, Save,
     // slowlog-log-slower-than is the tree's first genuinely signed knob: redis's grammar accepts
     // and reports -1, so the unsigned sentinel that --atomic-window uses would not round-trip.
     Signed
@@ -364,7 +364,7 @@ void add_config(const char* name, ConfigKind kind, uint64_t value) {
 void init_config(const Config& cfg) {
     std::lock_guard<std::mutex> lock(g_config_mu);
     g_config.clear();
-    g_config.push_back({"save", ConfigKind::String, ""});
+    g_config.push_back({"save", ConfigKind::Save, cfg_save_schedule_string(cfg.save)});
     g_config.push_back({"dir", ConfigKind::String, (cfg.dir && *cfg.dir) ? cfg.dir : "."});
     g_config.push_back({"dbfilename", ConfigKind::String,
                         (cfg.dbfilename && *cfg.dbfilename) ? cfg.dbfilename : "dump.tomo"});
@@ -435,8 +435,8 @@ void init_config(const Config& cfg) {
     // not live-settable (redis allows CONFIG SET; see NOTES-CLIMON2.md).
     g_config.push_back({"tracking-table-max-keys", ConfigKind::Unsigned,
                         std::to_string(cfg.tracking_table_max_keys), true});
-    add_config("databases", ConfigKind::Unsigned, 1);
-    add_config("proto-max-bulk-len", ConfigKind::Bytes, 512ull * 1024 * 1024);
+    add_config("databases", ConfigKind::Unsigned, cfg.databases);
+    add_config("proto-max-bulk-len", ConfigKind::Bytes, cfg.proto_max_bulk_len);
     add_config("zc-min", ConfigKind::Unsigned, cfg.zc_min);
     add_config("atomic", ConfigKind::Unsigned, cfg.atomic);
     add_config("atomic-window", ConfigKind::Unsigned, cfg.atomic_window);
@@ -495,21 +495,7 @@ void note_acl_auth_denial(Op& op, Slice username) {
 }
 
 bool parse_bytes(Slice input, uint64_t& value) {
-    uint32_t digits = 0;
-    while (digits < input.n && input.p[digits] >= '0' && input.p[digits] <= '9') digits++;
-    if (!digits) return false;
-    if (!parse_u64(Slice(input.p, digits), value)) return false;
-    uint64_t factor = 1;
-    Slice suffix(input.p + digits, input.n - digits);
-    if (suffix.n) {
-        if (eq_icase(suffix, "K") || eq_icase(suffix, "KB")) factor = 1024;
-        else if (eq_icase(suffix, "M") || eq_icase(suffix, "MB")) factor = 1024ull * 1024;
-        else if (eq_icase(suffix, "G") || eq_icase(suffix, "GB")) factor = 1024ull * 1024 * 1024;
-        else return false;
-    }
-    if (value > std::numeric_limits<uint64_t>::max() / factor) return false;
-    value *= factor;
-    return true;
+    return cfg_parse_memory(input.p, input.n, value);
 }
 
 bool parse_client_output_buffer_limit_slice(Slice input,
@@ -559,6 +545,7 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out) {
                 return false;
             if (!std::strcmp(entry.name, "atomic") && value > 1) return false;
             if (!std::strcmp(entry.name, "atomic-window") && value > UINT32_MAX) return false;
+            if (!std::strcmp(entry.name, "databases") && value != 1) return false;
             if (!std::strcmp(entry.name, "auto-aof-rewrite-percentage") &&
                 value > UINT32_MAX) return false;
             if (!std::strcmp(entry.name, "maxclients") && (value == 0 || value > UINT32_MAX))
@@ -573,6 +560,8 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out) {
         case ConfigKind::Bytes: {
             uint64_t value = 0;
             if (!parse_bytes(input, value)) return false;
+            if (!std::strcmp(entry.name, "proto-max-bulk-len") &&
+                (value < kProtoMinBulkLen || value > kProtoMaxBulkLenSupported)) return false;
             out = std::to_string(value);
             return true;
         }
@@ -607,6 +596,12 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out) {
             if (!parse_i64_slice(input, value)) return false;
             if (!std::strcmp(entry.name, "slowlog-log-slower-than") && value < -1) return false;
             out = std::to_string(value);
+            return true;
+        }
+        case ConfigKind::Save: {
+            std::vector<SaveClause> clauses;
+            if (!cfg_parse_save_schedule(input.p, input.n, clauses)) return false;
+            out = cfg_save_schedule_string(clauses);
             return true;
         }
     }
@@ -1237,12 +1232,28 @@ void cmd_config(Shard& sh, Op& op) {
             // the configured classes, the tracking bit is owned by CLIENT TRACKING.
             const bool tracking =
                 g_server && (g_server->climon_armed() & Server::kClimonTracking) != 0;
-            sh.set_notify_mask(flags | (tracking ? (NOTIFY_ALL | NOTIFY_TRACKING) : 0u));
+            const bool save_armed = g_server && g_server->save_schedule_armed();
+            sh.set_notify_mask(flags |
+                               (tracking ? (NOTIFY_ALL | NOTIFY_TRACKING) : 0u) |
+                               (save_armed ? (NOTIFY_ALL | NOTIFY_SAVE) : 0u));
         }
 
         // Eviction config is process-global (odd/even snapshot read by owners each pass); publish
         // it once from shard 0's task rather than per shard.
         if (sh.id() == 0 && g_server) {
+            for (const auto& update : updates) {
+                if (!std::strcmp(update.first->name, "save")) {
+                    std::vector<SaveClause> clauses;
+                    if (!cfg_parse_save_schedule(update.second.data(), update.second.size(),
+                                                 clauses)) std::abort();
+                    g_server->set_save_schedule(clauses);
+                } else if (!std::strcmp(update.first->name, "proto-max-bulk-len")) {
+                    uint64_t value = 0;
+                    if (!parse_u64(Slice(update.second.data(), update.second.size()), value))
+                        std::abort();
+                    g_server->set_proto_max_bulk_len(value);
+                }
+            }
             LiveConfigSnapshot desired = g_server->live_config_snapshot();
             bool set_memory = false, set_policy = false, set_samples = false;
             for (const auto& update : updates) {
@@ -1613,6 +1624,8 @@ void cmd_info(Shard&, Op& op) {
                 preimages += g_server->shard(static_cast<int32_t>(i)).store().snapshot_preimages();
         appendf(body,
                 "# Persistence\r\nrdb_bgsave_in_progress:%u\r\nrdb_last_save_time:%lld\r\n"
+                "rdb_changes_since_last_save:%llu\r\nrdb_scheduled_saves:%llu\r\n"
+                "rdb_save_cron_checks:%llu\r\n"
                 "snapshot_preimages:%llu\r\n"
                 "snapshot_cuts_armed:%llu\r\nsnapshot_cuts_waited:%llu\r\n"
                 "snapshot_groups_drained:%llu\r\n"
@@ -1631,6 +1644,11 @@ void cmd_info(Shard&, Op& op) {
                 "aof_auto_rewrite_backoff_skips:%llu\r\n",
                 g_server && g_server->snapshot().in_progress() ? 1u : 0u,
                 static_cast<long long>(g_server ? g_server->snapshot().last_save_time() : 0),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->save_changes_since_last_save() : 0),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->scheduled_save_triggers() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->save_cron_checks() : 0),
                 static_cast<unsigned long long>(preimages),
                 static_cast<unsigned long long>(g_server ? g_server->snapshot().cuts_armed() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->snapshot().cuts_waited() : 0),
@@ -1925,6 +1943,7 @@ void cmd_dbsize(Shard&, Op& op) {
 // publish_size after clear: publications otherwise happen only at executor batch boundaries, so an
 // idle shard would advertise its pre-flush count forever (DBSIZE stuck at stale totals).
 void cmd_flush(Shard& sh, Op&) {
+    const bool changed = sh.store().size() != 0;
     if (sh.store().snapshot_active()) {
         // The scatter snapshot gate has serialized every frozen pre-image before this handler is
         // reached.  Keep the frozen table allocation/cursor alive for the capture walker: clear()
@@ -1934,6 +1953,7 @@ void cmd_flush(Shard& sh, Op&) {
     } else {
         sh.store().clear();
     }
+    if (changed && (sh.notify_mask() & NOTIFY_SAVE)) sh.note_save_change();
     sh.publish_size();
 }
 

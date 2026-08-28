@@ -192,7 +192,8 @@ void IoLoop::climon_refresh_armed() {
     // the very pass it is running in -- a pipelined `CLIENT REPLY OFF; PING` would otherwise
     // answer the PING. Flag it; the cold dispatch branches end the pass so the next one re-reads.
     if (climon_armed_cached_ != before) climon_armed_dirty_ = true;
-    notify_armed_ = notify_config_armed_ || climon_armed_cached_ != 0;
+    notify_armed_ = notify_config_armed_ || save_config_armed_ ||
+                    climon_armed_cached_ != 0;
     climon_pause_deadline_ms_ = srv_->climon_pause_end_ms();
     // A held connection parked with unparsed bytes, nothing to write and a quiesced ROB -- which
     // is exactly the shape flush_ready drops from the active set. Whoever ends the pause (the

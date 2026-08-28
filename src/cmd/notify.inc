@@ -408,7 +408,9 @@ bool notify_record_keyless_slow(Shard& shard, uint32_t mask, uint32_t cls,
 bool notify_flat_enabled(void* context, uint32_t cls) {
     auto& shard = *static_cast<Shard*>(context);
     const uint32_t mask = shard.notify_mask();
-    if (!(mask & cls) || !(mask & NOTIFY_ROUTES)) return false;
+    if (!(mask & cls)) return false;
+    if (mask & NOTIFY_SAVE) return true;
+    if (!(mask & NOTIFY_ROUTES)) return false;
     if (cls == NOTIFY_KEY_MISS) {
         const Op* source = shard.notify_source();
         if (!source || !(source->spec->flags & CmdFlags::Readonly) ||

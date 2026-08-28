@@ -64,7 +64,8 @@ inline constexpr size_t   kRbufSoftCap  = 1 * 1024 * 1024;  // stop BUFFERING BA
 // error, found by the perfected-checkpoint audit. The soft cap bounds BACKLOG (many buffered
 // commands); one oversized in-flight command may grow to the protocol bound. Memory tracks bytes
 // actually received, and reset_rbuf_at_quiescence sheds the growth after the command completes.
-inline constexpr size_t   kRbufHardCap  = 512ull * 1024 * 1024 + 64 * 1024;  // parser bound + slack
+inline constexpr size_t   kRbufFrameSlack = 64 * 1024;
+inline constexpr size_t   kRbufHardCap  = 512ull * 1024 * 1024 + kRbufFrameSlack;
 // Item 4: 512B inline, heap beyond. Two 16KB inline buffers made every connection carry 32KB of
 // worst-case staging whether it ever pipelined or not; SmallBuf grows on demand and clear() keeps
 // the allocation, so a busy connection pays ONE grow to its working size and idles at 1KB + that.
@@ -293,12 +294,14 @@ public:
     // resumes. That is backpressure, not a stall.
     static constexpr size_t kMinRecv = 2048;
 
-    char* read_space(size_t want, size_t& out_avail, bool may_grow) {
+    char* read_space(size_t want, size_t& out_avail, bool may_grow,
+                     uint64_t proto_max_bulk_len = 512ull * 1024 * 1024) {
         size_t avail = rcap_ - rlen_;
         // Past the soft cap, growth continues ONLY while the entire buffer is one incomplete
         // command (rpos_ == 0 after the quiescence reset: nothing parsed, nothing in flight --
         // which is also what makes may_grow true). Backlog never grows past the soft cap.
-        const size_t cap = (rpos_ == 0) ? kRbufHardCap : kRbufSoftCap;
+        const size_t hard_cap = static_cast<size_t>(proto_max_bulk_len) + kRbufFrameSlack;
+        const size_t cap = (rpos_ == 0) ? hard_cap : kRbufSoftCap;
         if (avail < want && may_grow && rcap_ < cap) {
             size_t ncap = rcap_ * 2;
             while (ncap < rlen_ + want && ncap < cap) ncap *= 2;

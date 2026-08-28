@@ -140,6 +140,10 @@ public:
         notify_mask_ = mask;
     }
     uint32_t notify_mask() const { return notify_mask_; }
+    void note_save_change(uint64_t count = 1) {
+        save_changes_.fetch_add(count, std::memory_order_relaxed);
+    }
+    uint64_t save_changes() const { return save_changes_.load(std::memory_order_relaxed); }
     void set_notify_context(Op* carrier, Op* source, uint32_t order_base) {
         notify_carrier_ = carrier;
         notify_source_ = source;
@@ -398,6 +402,9 @@ private:
     Op* notify_source_ = nullptr;
     bool* notify_pending_ = nullptr;
     std::unique_ptr<NotifyShardState> notify_state_;
+    // Cold save-policy tail. Only this shard's owner increments it; the designated IO cron owner
+    // samples it once per second. Atomicity makes that cross-thread sample data-race-free.
+    std::atomic<uint64_t> save_changes_{0};
 };
 
 // Installs one logical operation's expiry cut on an owner for the length of ONE fragment, and puts

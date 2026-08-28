@@ -16,7 +16,9 @@
 #include <atomic>
 #include <cstdint>
 #include <climits>
+#include <ctime>
 #include <memory>
+#include <mutex>
 #include <sys/resource.h>
 #include <vector>
 #include "shard.h"
@@ -46,6 +48,8 @@ struct LiveConfigSnapshot {
     // slow-log arming decision costs the pass nothing beyond the version compare it already made.
     int64_t  slowlog_log_slower_than;
     uint32_t latency_monitor_threshold;
+    bool     save_armed;
+    uint64_t proto_max_bulk_len;
 };
 
 struct ClientLimitsConfigSnapshot {
@@ -93,6 +97,9 @@ public:
         live_notify_events_.store(cfg.notify_events, std::memory_order_relaxed);
         live_slowlog_us_.store(cfg.slowlog_log_slower_than, std::memory_order_relaxed);
         live_latency_ms_.store(cfg.latency_monitor_threshold, std::memory_order_relaxed);
+        live_save_armed_.store(!cfg.save.empty(), std::memory_order_relaxed);
+        live_proto_max_bulk_len_.store(cfg.proto_max_bulk_len, std::memory_order_relaxed);
+        save_clauses_ = cfg.save;
         atomic_activity_.store(cfg.atomic ? kAtomicEnabledBit : 0,
                                std::memory_order_relaxed);
         // AUTO resolves against the shard count: the measured three-point optimum (see config.h).
@@ -229,6 +236,77 @@ public:
     AofManager& aof() { return aof_; }
     const AofManager& aof() const { return aof_; }
     const ThreadCtx& thread(uint32_t i) const { return *threads_[i]; }
+
+    bool save_schedule_armed() const {
+        return live_save_armed_.load(std::memory_order_relaxed);
+    }
+    bool save_cron_writer(uint32_t tid) const {
+        return save_schedule_armed() && !placement_.ifid_threads().empty() &&
+               placement_.ifid_threads().front() == tid;
+    }
+    uint64_t save_change_total() const {
+        uint64_t total = 0;
+        for (const auto& shard : shards_) total += shard->save_changes();
+        return total;
+    }
+    uint64_t save_changes_since_last_save() const {
+        const uint64_t total = save_change_total();
+        const uint64_t baseline = save_change_baseline_.load(std::memory_order_relaxed);
+        return total >= baseline ? total - baseline : 0;
+    }
+    void snapshot_save_succeeded(uint64_t change_cut) {
+        save_change_baseline_.store(change_cut, std::memory_order_relaxed);
+    }
+    uint64_t scheduled_save_triggers() const {
+        return scheduled_save_triggers_.load(std::memory_order_relaxed);
+    }
+    uint64_t save_cron_checks() const {
+        return save_cron_checks_.load(std::memory_order_relaxed);
+    }
+    void set_save_schedule(const std::vector<SaveClause>& clauses) {
+        const bool was_armed = save_schedule_armed();
+        {
+            std::lock_guard<std::mutex> lock(save_mu_);
+            save_clauses_ = clauses;
+        }
+        if (!was_armed && !clauses.empty())
+            save_change_baseline_.store(save_change_total(), std::memory_order_relaxed);
+        const uint64_t version = begin_live_config_update();
+        live_save_armed_.store(!clauses.empty(), std::memory_order_relaxed);
+        end_live_config_update(version);
+    }
+    void set_proto_max_bulk_len(uint64_t value) {
+        const uint64_t version = begin_live_config_update();
+        live_proto_max_bulk_len_.store(value, std::memory_order_relaxed);
+        end_live_config_update(version);
+    }
+    uint32_t save_cron_pass(ThreadCtx& writer, Ring& ring) {
+        if (!save_cron_writer(writer.id()) || snapshot_.in_progress()) return 0;
+        save_cron_checks_.fetch_add(1, std::memory_order_relaxed);
+        const uint64_t changes = save_changes_since_last_save();
+        const std::time_t now_time = std::time(nullptr);
+        const uint64_t now_s = now_time > 0 ? static_cast<uint64_t>(now_time) : 0;
+        const int64_t last_signed = snapshot_.last_save_time();
+        const uint64_t last_s = last_signed > 0 ? static_cast<uint64_t>(last_signed) : 0;
+        bool eligible = false;
+        {
+            std::lock_guard<std::mutex> lock(save_mu_);
+            for (const SaveClause& clause : save_clauses_) {
+                if (changes >= clause.changes && now_s >= last_s &&
+                    now_s - last_s > clause.seconds) {
+                    eligible = true;
+                    break;
+                }
+            }
+        }
+        if (!eligible) return 0;
+        std::string error;
+        const SnapshotManager::StartResult result =
+            snapshot_.start(*this, writer, ring, false, error);
+        if (result != SnapshotManager::StartResult::Started) return 0;
+        scheduled_save_triggers_.fetch_add(1, std::memory_order_relaxed);
+        return 1;
+    }
 
     // One atomic load on the dispatch path; one atomic store is how an LB moves work.
     uint32_t worker_of_shard(int32_t shard_id) const {
@@ -1113,6 +1191,9 @@ public:
                 live_slowlog_us_.load(std::memory_order_relaxed);
             snapshot.latency_monitor_threshold =
                 live_latency_ms_.load(std::memory_order_relaxed);
+            snapshot.save_armed = live_save_armed_.load(std::memory_order_relaxed);
+            snapshot.proto_max_bulk_len =
+                live_proto_max_bulk_len_.load(std::memory_order_relaxed);
             if (live_config_version_.load(std::memory_order_acquire) == snapshot.version)
                 return snapshot;
         }
@@ -1484,6 +1565,8 @@ private:
     std::atomic<uint64_t> live_obuf_pubsub_soft_{8ull * 1024 * 1024};
     std::atomic<uint32_t> live_obuf_pubsub_seconds_{60};
     std::atomic<uint32_t> live_notify_events_{0};
+    std::atomic<bool> live_save_armed_{true};
+    std::atomic<uint64_t> live_proto_max_bulk_len_{512ull * 1024 * 1024};
     // Lane F cold tail. Every field here is read once per io batch (or never, while the armed
     // word is zero); none of them is on a per-operation path.
     std::atomic<uint32_t> climon_armed_{0};
@@ -1589,6 +1672,13 @@ private:
     // once per executor pass. Appended at the true tail so no pre-existing offset moves.
     std::atomic<int64_t>  live_slowlog_us_{10000};
     std::atomic<uint32_t> live_latency_ms_{0};
+    // Periodic snapshot policy is cold: one designated IO owner locks it once per second. Mutation
+    // accounting remains per shard, so armed writes never contend on a process-global cache line.
+    mutable std::mutex save_mu_;
+    std::vector<SaveClause> save_clauses_;
+    std::atomic<uint64_t> save_change_baseline_{0};
+    std::atomic<uint64_t> scheduled_save_triggers_{0};
+    std::atomic<uint64_t> save_cron_checks_{0};
 };
 
 }  // namespace tomo

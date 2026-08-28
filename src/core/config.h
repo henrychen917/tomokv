@@ -35,6 +35,7 @@
 namespace tomo {
 
 inline bool cfg_parse_u32(const char* s, uint32_t& out);
+inline bool cfg_parse_u64(const char* s, uint64_t& out);
 
 struct ClientBufferLimit {
     uint64_t hard_bytes = 0;
@@ -60,17 +61,31 @@ inline bool cfg_eq_icase(const char* a, const char* b) {
     return *a == *b;
 }
 
-// Redis memtoull grammar: bare bytes (or B), decimal K/M/G, binary KB/MB/GB.
-inline bool cfg_parse_memory(const char* input, uint64_t& out) {
-    if (!input || !*input || *input == '-') return false;
-    const char* suffix = input;
-    while (*suffix >= '0' && *suffix <= '9') suffix++;
-    if (suffix == input) return false;
-    if (static_cast<size_t>(suffix - input) >= 128) return false; // Redis memtoull buffer bound
+// Redis memtoull grammar: bare bytes (or B), decimal K/M/G, binary KB/MB/GB.  Both boot
+// parsing and CONFIG SET call this length-aware implementation, so a RESP bulk does not need a
+// temporary NUL-terminated copy and the two surfaces cannot drift again.
+inline bool cfg_memory_suffix(const char* input, size_t length, const char* expected) {
+    const size_t expected_length = std::strlen(expected);
+    if (length != expected_length) return false;
+    for (size_t i = 0; i < length; i++) {
+        unsigned char actual = static_cast<unsigned char>(input[i]);
+        unsigned char wanted = static_cast<unsigned char>(expected[i]);
+        if (actual >= 'A' && actual <= 'Z') actual += static_cast<unsigned char>('a' - 'A');
+        if (wanted >= 'A' && wanted <= 'Z') wanted += static_cast<unsigned char>('a' - 'A');
+        if (actual != wanted) return false;
+    }
+    return true;
+}
+
+inline bool cfg_parse_memory(const char* input, size_t length, uint64_t& out) {
+    if (!input || !length || *input == '-') return false;
+    size_t digits = 0;
+    while (digits < length && input[digits] >= '0' && input[digits] <= '9') digits++;
+    if (!digits || digits >= 128) return false; // Redis memtoull numeric buffer bound
     uint64_t value = 0;
     bool saturated = false;
-    for (const char* p = input; p != suffix; p++) {
-        const uint32_t digit = static_cast<uint32_t>(*p - '0');
+    for (size_t i = 0; i < digits; i++) {
+        const uint32_t digit = static_cast<uint32_t>(input[i] - '0');
         if (!saturated) {
             if (value > (UINT64_MAX - digit) / 10) {
                 value = UINT64_MAX;
@@ -80,17 +95,72 @@ inline bool cfg_parse_memory(const char* input, uint64_t& out) {
             }
         }
     }
+    const char* suffix = input + digits;
+    const size_t suffix_length = length - digits;
     uint64_t mul = 1;
-    if (!*suffix || cfg_eq_icase(suffix, "b")) mul = 1;
-    else if (cfg_eq_icase(suffix, "k"))  mul = 1000;
-    else if (cfg_eq_icase(suffix, "kb")) mul = 1024;
-    else if (cfg_eq_icase(suffix, "m"))  mul = 1000ull * 1000;
-    else if (cfg_eq_icase(suffix, "mb")) mul = 1024ull * 1024;
-    else if (cfg_eq_icase(suffix, "g"))  mul = 1000ull * 1000 * 1000;
-    else if (cfg_eq_icase(suffix, "gb")) mul = 1024ull * 1024 * 1024;
+    if (!suffix_length || cfg_memory_suffix(suffix, suffix_length, "b")) mul = 1;
+    else if (cfg_memory_suffix(suffix, suffix_length, "k"))  mul = 1000;
+    else if (cfg_memory_suffix(suffix, suffix_length, "kb")) mul = 1024;
+    else if (cfg_memory_suffix(suffix, suffix_length, "m"))  mul = 1000ull * 1000;
+    else if (cfg_memory_suffix(suffix, suffix_length, "mb")) mul = 1024ull * 1024;
+    else if (cfg_memory_suffix(suffix, suffix_length, "g"))  mul = 1000ull * 1000 * 1000;
+    else if (cfg_memory_suffix(suffix, suffix_length, "gb")) mul = 1024ull * 1024 * 1024;
     else return false;
-    out = saturated || value > UINT64_MAX / mul ? UINT64_MAX : value * mul;
+    // Redis preserves strtoull's ULLONG_MAX saturation and then performs the unsigned multiply.
+    // The wrap for an overflowing suffixed value is odd but observable CONFIG behavior.
+    out = value * mul;
     return true;
+}
+
+inline bool cfg_parse_memory(const char* input, uint64_t& out) {
+    return input && cfg_parse_memory(input, std::strlen(input), out);
+}
+
+struct SaveClause {
+    uint64_t seconds = 0;
+    uint64_t changes = 0;
+};
+
+inline constexpr uint64_t kProtoMinBulkLen = 1024ull * 1024;
+// Op argv Slices and the connection receive cursor are uint32_t. Reserve framing slack so a
+// maximum-size bulk plus its RESP envelope remains representable without growing either hot type.
+inline constexpr uint64_t kProtoMaxBulkLenSupported = UINT32_MAX - 64ull * 1024;
+
+inline bool cfg_parse_save_schedule(const char* input, size_t length,
+                                    std::vector<SaveClause>& out) {
+    out.clear();
+    if (!length) return true;
+    if (!input || std::isspace(static_cast<unsigned char>(input[0])) ||
+        std::isspace(static_cast<unsigned char>(input[length - 1]))) return false;
+    std::vector<uint64_t> values;
+    size_t pos = 0;
+    while (pos < length) {
+        const size_t begin = pos;
+        while (pos < length && !std::isspace(static_cast<unsigned char>(input[pos]))) pos++;
+        uint64_t value = 0;
+        if (begin == pos || !cfg_parse_u64(std::string(input + begin, pos - begin).c_str(), value))
+            return false;
+        values.push_back(value);
+        while (pos < length && std::isspace(static_cast<unsigned char>(input[pos]))) pos++;
+    }
+    if (values.empty() || (values.size() & 1u)) return false;
+    out.reserve(values.size() / 2);
+    for (size_t i = 0; i < values.size(); i += 2) {
+        if (values[i] == 0) return false;
+        out.push_back(SaveClause{values[i], values[i + 1]});
+    }
+    return true;
+}
+
+inline std::string cfg_save_schedule_string(const std::vector<SaveClause>& clauses) {
+    std::string out;
+    for (const SaveClause& clause : clauses) {
+        if (!out.empty()) out.push_back(' ');
+        out += std::to_string(clause.seconds);
+        out.push_back(' ');
+        out += std::to_string(clause.changes);
+    }
+    return out;
 }
 
 inline bool cfg_parse_client_output_buffer_limit(const char* const* args, size_t count,
@@ -190,6 +260,9 @@ struct Config {
     const char* dir         = ".";
     const char* dbfilename  = "dump.tomo";
     const char* load_path   = nullptr;   // boot-only: load a dump before serving
+    // Redis's default periodic snapshot policy. An empty vector is `save ""` and arms no
+    // mutation observers or cron work.
+    std::vector<SaveClause> save{{3600, 1}, {300, 100}, {60, 10000}};
     bool appendonly = false;
     AppendFsyncPolicy appendfsync = AppendFsyncPolicy::Everysec;
     PersistIoEngine persist_io = PersistIoEngine::Uring;
@@ -198,6 +271,12 @@ struct Config {
     uint32_t auto_aof_rewrite_percentage = 100;
     uint64_t auto_aof_rewrite_min_size = 64ull * 1024 * 1024;
     bool aof_timestamp_enabled = false;
+
+    // TomoKV intentionally owns one keyspace. The compatibility knob is still parsed and exposed,
+    // but only the honest value 1 is accepted. The protocol bound is live and applies to request
+    // bulk lengths; the 32-bit Slice ABI sets the supported ceiling checked by the parser below.
+    uint32_t databases = 1;
+    uint64_t proto_max_bulk_len = 512ull * 1024 * 1024;
 
     // ---- data path (live via CONFIG SET) ----------------------------------------------------
     uint32_t zc_min         = 16384;     // zero-copy GET replies at >= this value length.
@@ -346,6 +425,7 @@ inline bool cfg_parse_i64(const char* s, int64_t& out) {
 struct ConfigParseState {
     int ratio_source = 0;   // 0 = unset, 1 = conf, 2 = cli
     int place_source = 0;
+    int save_source = 0;
 };
 
 enum : int { kConfigParsed = 0, kConfigError = 1, kConfigHelp = 2 };
@@ -569,8 +649,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             cfg.lru_clock_shift = static_cast<uint32_t>(shift);
         }
         else if (!std::strcmp(a, "--maxmemory")) {
-            if (!cfg_parse_u64(next(nullptr), cfg.maxmemory)) {
-                std::fprintf(stderr, "--maxmemory wants a uint64 byte count (0 disables)\n");
+            if (!cfg_parse_memory(next(nullptr), cfg.maxmemory)) {
+                std::fprintf(stderr, "--maxmemory wants a Redis memory value (0 disables)\n");
                 return kConfigError;
             }
         }
@@ -603,6 +683,54 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 std::fprintf(stderr, "--tracking-table-max-keys wants an unsigned key count\n");
                 return kConfigError;
             }
+        }
+        else if (!std::strcmp(a, "--save")) {
+            const int begin = i + 1;
+            int end = begin;
+            while (end < argc && std::strncmp(args[end], "--", 2) != 0) end++;
+            if (begin == end) {
+                std::fprintf(stderr, "--save wants an empty value or seconds/changes pairs\n");
+                return kConfigError;
+            }
+            std::string flat;
+            for (int arg = begin; arg < end; arg++) {
+                if (!flat.empty()) flat.push_back(' ');
+                flat += args[arg];
+            }
+            std::vector<SaveClause> parsed;
+            if (!cfg_parse_save_schedule(flat.data(), flat.size(), parsed)) {
+                std::fprintf(stderr, "--save wants positive seconds and unsigned changes pairs\n");
+                return kConfigError;
+            }
+            if (st.save_source != source) {
+                cfg.save.clear();
+                st.save_source = source;
+            }
+            // An explicit empty value resets the accumulated schedule. Non-empty repeated clauses
+            // append within one source, matching repeated redis.conf `save` directives.
+            if (flat.empty()) cfg.save.clear();
+            else cfg.save.insert(cfg.save.end(), parsed.begin(), parsed.end());
+            i = end - 1;
+        }
+        else if (!std::strcmp(a, "--databases")) {
+            uint32_t value = 0;
+            if (!cfg_parse_u32(next(nullptr), value) || value != 1) {
+                std::fprintf(stderr, "--databases must be 1: this server owns one keyspace\n");
+                return kConfigError;
+            }
+            cfg.databases = value;
+        }
+        else if (!std::strcmp(a, "--proto-max-bulk-len")) {
+            uint64_t value = 0;
+            if (!cfg_parse_memory(next(nullptr), value) || value < kProtoMinBulkLen ||
+                value > kProtoMaxBulkLenSupported) {
+                std::fprintf(stderr,
+                    "--proto-max-bulk-len must be between %llu and %llu bytes\n",
+                    static_cast<unsigned long long>(kProtoMinBulkLen),
+                    static_cast<unsigned long long>(kProtoMaxBulkLenSupported));
+                return kConfigError;
+            }
+            cfg.proto_max_bulk_len = value;
         }
         else if (!std::strcmp(a, "--dir"))        cfg.dir = next(".");
         else if (!std::strcmp(a, "--dbfilename")) cfg.dbfilename = next("dump.tomo");
@@ -812,11 +940,13 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  client-side caching: --tracking-table-max-keys N "
                         "(default 1000000, 0=unlimited)\n"
                         "  persistence: --dir PATH --dbfilename NAME --load PATH\n"
+                        "    --save SECONDS CHANGES (repeatable; --save \"\" disables)\n"
                         "    --persist-io normal|uring (boot-only; default uring; AOF + snapshot)\n"
                         "    --appendonly yes|no --appendfsync always|everysec|no\n"
                         "    --appendfilename NAME --appenddirname NAME\n"
                         "    --auto-aof-rewrite-percentage N --auto-aof-rewrite-min-size BYTES\n"
                         "    --aof-use-rdb-preamble yes --aof-timestamp-enabled yes|no\n"
+                        "  compatibility: --databases 1 --proto-max-bulk-len BYTES\n"
                         "  security: --requirepass PASSWORD --protected-mode 0|1|yes|no\n"
                         "            --enable-debug-command no|yes|local --aclfile PATH\n"
                         "            --user NAME RULE... --acl-pubsub-default allchannels|resetchannels\n"
@@ -845,6 +975,15 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
 
 // Post-parse validation shared by every source combination. Call once, after all token streams.
 inline int validate_config(const Config& cfg) {
+    if (cfg.databases != 1) {
+        std::fprintf(stderr, "databases must be 1: this server owns one keyspace\n");
+        return kConfigError;
+    }
+    if (cfg.proto_max_bulk_len < kProtoMinBulkLen ||
+        cfg.proto_max_bulk_len > kProtoMaxBulkLenSupported) {
+        std::fprintf(stderr, "proto-max-bulk-len is outside the supported range\n");
+        return kConfigError;
+    }
     if (cfg.port && cfg.tls_port && cfg.port == cfg.tls_port) {
         std::fprintf(stderr, "port and tls-port must be different listeners\n");
         return kConfigError;

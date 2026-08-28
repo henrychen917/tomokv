@@ -275,20 +275,22 @@ private:
                 cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
                 if (cached_now_ms_ >= climon_pause_deadline_ms_) climon_release_pause();
             }
-            const bool cron_armed = srv_->client_cron_armed();
-            if (__builtin_expect(cron_armed, false)) {
+            const bool client_cron_armed = srv_->client_cron_armed();
+            const bool save_cron_armed = srv_->save_cron_writer(self_->id());
+            if (__builtin_expect(client_cron_armed || save_cron_armed, false)) {
                 cached_now_ms_ = now_ns() / 1000000ull;
                 cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
-                if (!client_cron_was_armed_) {
+                if (client_cron_armed && !client_cron_was_armed_) {
                     for (Client* c : self_->clients()) c->set_last_interaction_s(cached_now_s_);
                     client_cron_beat_ms_ = cached_now_ms_;
                 }
-            } else if (__builtin_expect(client_cron_was_armed_, false)) {
+            }
+            if (!client_cron_armed && __builtin_expect(client_cron_was_armed_, false)) {
                 // Turning the last client cron consumer off also retires output accounting once.
                 // The disabled write-back specialization then has no per-serve cleanup branch.
                 for (Client* c : self_->clients()) c->stop_obuf_tracking();
             }
-            client_cron_was_armed_ = cron_armed;
+            client_cron_was_armed_ = client_cron_armed;
             sig.iterations++;
             self_->sample_depth();
             reap_dead();               // free clients dead for a full iteration -- see close_client
@@ -324,9 +326,15 @@ private:
                 did += flush_borrow_releases();
                 did += collect_retire_work<HasUnix, kEp>();
                 did += flush_ready<HasTls, kEp>();
-                if (__builtin_expect(cron_armed && cached_now_ms_ >= client_cron_beat_ms_, false)) {
+                if (__builtin_expect(client_cron_armed &&
+                                     cached_now_ms_ >= client_cron_beat_ms_, false)) {
                     did += client_cron_pass();
                     client_cron_beat_ms_ = cached_now_ms_ + 100;
+                }
+                if (__builtin_expect(save_cron_armed &&
+                                     cached_now_ms_ >= save_cron_beat_ms_, false)) {
+                    did += srv_->save_cron_pass(*self_, ring_);
+                    save_cron_beat_ms_ = cached_now_ms_ + 1000;
                 }
             }
             sig.cpu_ns = thread_cpu_ns();
@@ -417,7 +425,8 @@ private:
         size_t avail = 0;
         // may_grow ONLY at quiescence: realloc moves the buffer that every in-flight argv Slice
         // points into. See Conn::read_space.
-        char* dst = c->read_space(kRecvChunk, avail, c->rob().quiesced());
+        char* dst = c->read_space(
+            kRecvChunk, avail, c->rob().quiesced(), proto_max_bulk_len_);
         if (!dst) return;                      // no usable space yet: let the ROB drain first
         io_uring_sqe* s = ring_.sqe();
         if (!s) { self_->sig().sqe_starved++; return; }   // retried from flush_ready next pass
@@ -1020,7 +1029,8 @@ private:
         bool decrypted = false;
         while (tls->connected()) {
             size_t avail = 0;
-            char* dst = c->read_space(kRecvChunk, avail, c->rob().quiesced());
+            char* dst = c->read_space(
+                kRecvChunk, avail, c->rob().quiesced(), proto_max_bulk_len_);
             if (!dst) break;
             const TlsIoResult result = tls->read_plain(dst, avail);
             if (result.op == TlsOp::Progress) {
@@ -1129,9 +1139,17 @@ private:
             // connections (predicted false) pay real limit arguments. See resp.h for the
             // +83 instr/op lesson behind this split.
             bool security_check = auth_required && !conn.authenticated();
-            ParseResult pr = __builtin_expect(security_check, false)
-                ? resp_parse_limited(conn.rbuf(), conn.rlen(), pos, *op, &err, 10, 16384)
-                : resp_parse(conn.rbuf(), conn.rlen(), pos, *op, &err);
+            ParseResult pr;
+            if (__builtin_expect(security_check, false)) {
+                pr = resp_parse_limited(
+                    conn.rbuf(), conn.rlen(), pos, *op, &err, 10, 16384);
+            } else if (__builtin_expect(
+                           proto_max_bulk_len_ == 512ull * 1024 * 1024, true)) {
+                pr = resp_parse(conn.rbuf(), conn.rlen(), pos, *op, &err);
+            } else {
+                pr = resp_parse_limited(conn.rbuf(), conn.rlen(), pos, *op, &err,
+                                        1024 * 1024, proto_max_bulk_len_);
+            }
             security_check |= acl_active;
 
             if (pr == ParseResult::Incomplete) break;
@@ -2214,7 +2232,10 @@ nonblocking_dispatch:
         LiveConfigSnapshot snapshot;
         if (!srv_->live_config_snapshot_if_changed(notify_config_version_, snapshot)) return;
         notify_config_armed_ = snapshot.notify_events != 0;
-        notify_armed_ = notify_config_armed_ || climon_armed_cached_ != 0;
+        save_config_armed_ = snapshot.save_armed;
+        notify_armed_ = notify_config_armed_ || save_config_armed_ ||
+                        climon_armed_cached_ != 0;
+        proto_max_bulk_len_ = snapshot.proto_max_bulk_len;
         // Connection-local commands never reach an executor, so the IO thread owns their timing.
         // Same snapshot, same pass, no extra load.
         slowlog_arm_.slowlog_us = snapshot.slowlog_log_slower_than;
@@ -2343,6 +2364,7 @@ nonblocking_dispatch:
     static constexpr uint32_t kClientCronBeatsPerSecond = 10;
     static constexpr uint32_t kClientCronMinVisits = 5;
     uint64_t client_cron_beat_ms_ = 0;
+    uint64_t save_cron_beat_ms_ = 0;
     size_t   client_cron_cursor_ = 0;
     uint64_t cached_now_ms_ = 0;
     uint32_t cached_now_s_ = 0;
@@ -2400,9 +2422,11 @@ nonblocking_dispatch:
     std::vector<MultiExecState*> multi_deferred_;
     std::deque<MultiExecState*> pending_multi_cleanups_;
     // Cold live-config cache. Appended so every pre-existing IoLoop field retains its offset.
-    uint64_t notify_config_version_ = 0;
+    uint64_t notify_config_version_ = UINT64_MAX;
     bool notify_armed_ = false;
     bool notify_config_armed_ = false;   // keyspace-notification half of notify_armed_
+    bool save_config_armed_ = false;
+    uint64_t proto_max_bulk_len_ = 512ull * 1024 * 1024;
     // Slow-log arm for connection-local commands. Appended here rather than earlier so no
     // pre-existing IoLoop member offset moves.
     bool slowlog_armed_ = false;

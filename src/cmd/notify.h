@@ -47,6 +47,10 @@ inline constexpr uint32_t NOTIFY_ALL = 0x000027fcu;
 // only job is to let CLIENT TRACKING arm the same executor-side key observer without adding a
 // second armed load to notify_record.
 inline constexpr uint32_t NOTIFY_TRACKING = 1u << 20;
+// Periodic SAVE reuses the exact successful-mutation fire points of the armed handlers. It never
+// becomes a pub/sub route and never allocates a NotifyBatch; it only increments the owner-local
+// shard counter before the ordinary route gate below.
+inline constexpr uint32_t NOTIFY_SAVE = 1u << 21;
 inline constexpr uint32_t NOTIFY_ROUTES = NOTIFY_KEYSPACE | NOTIFY_KEYEVENT | NOTIFY_TRACKING;
 
 inline bool parse_notify_flags(Slice input, uint32_t& flags) {
@@ -162,7 +166,8 @@ inline bool notify_record(ShardLike& shard, Op& source, uint32_t cls,
                           NotifyEventId event, Slice key) {
     const uint32_t mask = shard.notify_mask();
     if (__builtin_expect((mask & cls) == 0, true)) return false;
-    if (!(mask & NOTIFY_ROUTES)) return false;
+    if (mask & NOTIFY_SAVE) shard.note_save_change();
+    if (!(mask & NOTIFY_ROUTES)) return true;
     return notify_record_slow(shard, source, mask, cls, event, key);
 }
 
@@ -171,7 +176,8 @@ inline bool notify_record_keyless(ShardLike& shard, uint32_t cls,
                                   NotifyEventId event, Slice key) {
     const uint32_t mask = shard.notify_mask();
     if (__builtin_expect((mask & cls) == 0, true)) return false;
-    if (!(mask & NOTIFY_ROUTES)) return false;
+    if (mask & NOTIFY_SAVE) shard.note_save_change();
+    if (!(mask & NOTIFY_ROUTES)) return true;
     return notify_record_keyless_slow(shard, mask, cls, event, key);
 }
 bool notify_flat_enabled(void* shard, uint32_t cls);

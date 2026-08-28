@@ -214,6 +214,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
     writer_ring_.store(&writer_ring, std::memory_order_release);
     server_ = &server;
     rewrite_ = rewrite;
+    save_change_cut_ = rewrite ? 0 : server.save_change_total();
     writer_failed_.store(false, std::memory_order_relaxed);
     frame_count_ = 0;
     ended_shards_ = 0;
@@ -604,6 +605,7 @@ bool SnapshotManager::finish_file_metadata(Ring* ring) {
 
 bool SnapshotManager::complete_file_success() {
     if (rewrite_ && !rewrite_->rewrite_complete(final_path_, epoch())) return false;
+    if (!rewrite_ && server_) server_->snapshot_save_succeeded(save_change_cut_);
     last_save_time_.store(realtime_ms() / 1000, std::memory_order_relaxed);
     writer_tid_.store(UINT32_MAX, std::memory_order_relaxed);
     writer_ring_.store(nullptr, std::memory_order_release);

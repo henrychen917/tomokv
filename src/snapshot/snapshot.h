@@ -148,6 +148,7 @@ private:
     std::vector<uint8_t> saw_begin_;
     std::vector<uint8_t> saw_end_;
     AofManager* rewrite_ = nullptr;
+    uint64_t save_change_cut_ = 0;
     PersistIoEngine engine_;
     uint64_t file_offset_ = 0;
     uint32_t io_inflight_ = 0;
