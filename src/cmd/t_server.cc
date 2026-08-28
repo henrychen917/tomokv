@@ -1405,8 +1405,11 @@ inline uint64_t minus_baseline(uint64_t live, uint64_t base) {
 }
 
 bool info_section(Op& op, const char* wanted) {
+    // EVERYTHING is the reference's alias for ALL plus module-generated sections. We load no
+    // modules, so the two are identical here -- but omitting it made `INFO everything` match no
+    // section at all and return an EMPTY reply, where the reference returns every section.
     return op.argc() == 1 || eq_icase(op.arg(1), "ALL") || eq_icase(op.arg(1), "DEFAULT") ||
-           eq_icase(op.arg(1), wanted);
+           eq_icase(op.arg(1), "EVERYTHING") || eq_icase(op.arg(1), wanted);
 }
 
 void cmd_info(Shard&, Op& op) {
