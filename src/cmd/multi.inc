@@ -1774,16 +1774,40 @@ void for_each_spec_key(Op& op, Fn&& fn) {
 
 }  // namespace
 
+// Retires every reservation on `key` whose unit has DECIDED, applying its effect, and answers
+// whether anything still blocks a foreign unit on this key.
+//
+// "Decided" is epoch != 0 (the unit published a commit ticket) or aborted. An undecided
+// reservation is kept. Only an undecided BLOCKING reservation -- the EXEC validate claim --
+// makes this return false; an undecided atomic-group write reservation is left in place and
+// answers "ready", because nothing may wait on it (Shard::WatchReservation::blocking).
 bool Shard::watch_finalize_reservation(const std::string& key) {
     auto found = watch_reservations_.find(key);
     if (found == watch_reservations_.end()) return true;
-    WatchReservation& reservation = found->second;
-    const bool aborted = reservation.aborted &&
-        reservation.aborted->load(std::memory_order_acquire);
-    const uint64_t epoch = reservation.epoch
-        ? reservation.epoch->load(std::memory_order_acquire) : 1;
-    if (!aborted && epoch == 0) return false;
-    if (!aborted && reservation.mutates) {
+    std::vector<WatchReservation>& list = found->second;
+    bool blocked = false;
+    bool dirty = false;
+    size_t keep = 0;
+    for (size_t i = 0; i < list.size(); i++) {
+        WatchReservation& reservation = list[i];
+        const bool aborted = reservation.aborted &&
+            reservation.aborted->load(std::memory_order_acquire);
+        const uint64_t epoch = reservation.epoch
+            ? reservation.epoch->load(std::memory_order_acquire) : 1;
+        if (!aborted && epoch == 0) {
+            if (reservation.blocking) {
+                stats_.watch_reservation_waits++;
+                blocked = true;
+            }
+            if (keep != i) list[keep] = reservation;
+            keep++;
+            continue;
+        }
+        if (!aborted && reservation.mutates) dirty = true;
+        if (reservation.refs) reservation.refs->fetch_sub(1, std::memory_order_release);
+    }
+    list.resize(keep);
+    if (dirty) {
         auto watchers = watchers_.find(key);
         if (watchers != watchers_.end()) {
             for (const WatchEntry& entry : watchers->second)
@@ -1791,9 +1815,8 @@ bool Shard::watch_finalize_reservation(const std::string& key) {
                     entry.client->set_watch_dirty();
         }
     }
-    if (reservation.refs) reservation.refs->fetch_sub(1, std::memory_order_release);
-    watch_reservations_.erase(found);
-    return true;
+    if (list.empty()) watch_reservations_.erase(found);
+    return !blocked;
 }
 
 void Shard::watch_prune_stale(const std::string& key) {
@@ -1848,12 +1871,27 @@ bool Shard::watch_validate_and_reserve(Slice key, Client* client, uint64_t gener
                                        std::atomic<bool>* aborted,
                                        std::atomic<uint32_t>* refs, bool mutates) {
     const std::string owned = watch_key_string(key);
-    auto existing = watch_reservations_.find(owned);
-    if (existing != watch_reservations_.end() && existing->second.token == token) {
-        existing->second.mutates |= mutates;
-        return true;
-    }
+    if (auto existing = watch_reservations_.find(owned); existing != watch_reservations_.end())
+        for (WatchReservation& reservation : existing->second)
+            if (reservation.token == token) {
+                reservation.mutates |= mutates;
+                return true;
+            }
     if (!watch_finalize_reservation(owned)) return false;
+    // Everything still on this key is now an UNDECIDED atomic-group write, and this transaction no
+    // longer waits for it. Waiting was one half of the wait-for cycle, and it buys nothing that is
+    // not already available here: a group holding a reservation on this key is a write to a key
+    // this client watched, and "the group lands first" is a realizable serialization. Take it, and
+    // this transaction must abort -- which is exactly what WATCH promises. The alternative reading
+    // (the group lands after) is only reachable by waiting for a decision that may itself be
+    // waiting on this transaction.
+    if (auto pending = watch_reservations_.find(owned); pending != watch_reservations_.end())
+        for (const WatchReservation& reservation : pending->second)
+            if (reservation.token != token && reservation.mutates) {
+                client->set_watch_dirty();
+                stats_.watch_reservation_precommit_aborts++;
+                break;
+            }
     // A key that was alive when this client armed the WATCH and whose deadline has since elapsed is
     // a change, even when nothing has reaped it yet: redis aborts EXEC in that case whether the
     // removal came from its active cycle or is still pending. No command wrote the key, so the
@@ -1868,21 +1906,18 @@ bool Shard::watch_validate_and_reserve(Slice key, Client* client, uint64_t gener
             }
     }
     if (client->watch_generation() != generation || client->watch_dirty()) return true;
-    try {
-        watch_reservations_[owned] = WatchReservation{
-            token, epoch, aborted, refs, client, generation, mutates};
-        if (refs) refs->fetch_add(1, std::memory_order_release);
-    } catch (const std::bad_alloc&) {
+    if (!watch_append_reservation(owned, WatchReservation{
+            token, epoch, aborted, refs, client, generation, mutates, /*blocking=*/true}))
         aborted->store(true, std::memory_order_release);
-    }
     return true;
 }
 
 bool Shard::watch_write_ready(Slice key, const void* token) {
     if (!has_watches()) return true;
     const std::string owned = watch_key_string(key);
-    auto existing = watch_reservations_.find(owned);
-    if (existing != watch_reservations_.end() && existing->second.token == token) return true;
+    if (auto existing = watch_reservations_.find(owned); existing != watch_reservations_.end())
+        for (const WatchReservation& reservation : existing->second)
+            if (reservation.token == token) return true;
     return watch_finalize_reservation(owned);
 }
 
@@ -1892,19 +1927,37 @@ void Shard::watch_reserve_write(Slice key, Client* writer, uint64_t writer_gener
                                 std::atomic<uint32_t>* refs) {
     if (!has_watches()) return;
     const std::string owned = watch_key_string(key);
-    auto existing = watch_reservations_.find(owned);
-    if (existing != watch_reservations_.end() && existing->second.token == token) {
-        existing->second.mutates = true;
-        return;
-    }
+    if (auto existing = watch_reservations_.find(owned); existing != watch_reservations_.end())
+        for (WatchReservation& reservation : existing->second)
+            if (reservation.token == token) {
+                reservation.mutates = true;
+                return;
+            }
     if (watchers_.find(owned) == watchers_.end()) return;
-    try {
-        watch_reservations_[owned] = WatchReservation{
-            token, epoch, aborted, refs, writer, writer_generation, true};
-        if (refs) refs->fetch_add(1, std::memory_order_release);
-    } catch (const std::bad_alloc&) {
+    // Never exclusive, never a wait: this group's reservation sits alongside whatever else is
+    // undecided on the key, and each one dirties the key's watchers at its OWN decision.
+    if (auto found = watch_reservations_.find(owned);
+        found != watch_reservations_.end() && !found->second.empty())
+        stats_.watch_reservation_coexist++;
+    if (!watch_append_reservation(owned, WatchReservation{
+            token, epoch, aborted, refs, writer, writer_generation, true, /*blocking=*/false}))
         aborted->store(true, std::memory_order_release);
+}
+
+// Appends one reservation, leaving the map unchanged on allocation failure. Returns false when the
+// caller must abort its unit rather than proceed with an unrecorded reservation.
+bool Shard::watch_append_reservation(const std::string& key, const WatchReservation& reservation) {
+    try {
+        std::vector<WatchReservation>& list = watch_reservations_[key];
+        list.push_back(reservation);
+        if (reservation.refs) reservation.refs->fetch_add(1, std::memory_order_release);
+    } catch (const std::bad_alloc&) {
+        auto found = watch_reservations_.find(key);
+        if (found != watch_reservations_.end() && found->second.empty())
+            watch_reservations_.erase(found);
+        return false;
     }
+    return true;
 }
 
 void Shard::watch_write_committed(Slice key, Client*, uint64_t) {
