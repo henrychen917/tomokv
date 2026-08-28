@@ -17,26 +17,44 @@ cleanup() {
   if [ -n "$ACTIVE_PID" ] && kill -0 "$ACTIVE_PID" 2>/dev/null; then
     kill -TERM "$ACTIVE_PID" 2>/dev/null || true
     wait "$ACTIVE_PID" 2>/dev/null || true
-    sleep 5
+    wait_for_release || true
   fi
 }
 trap cleanup EXIT
 
+listener_pid() {
+  ss -lntpH 2>/dev/null | sed -n "/:$PORT /s/.*pid=\\([0-9][0-9]*\\).*/\\1/p" | sort -u
+}
+
+wait_for_release() {
+  for _ in $(seq 1 200); do
+    [ -z "$(listener_pid)" ] && return 0
+    sleep 0.05
+  done
+  return 1
+}
+
 boot_server() {
   local directory=$1 atomic=$2 log=$3
+  local boot_pid socket_pid
   taskset -c "$CORES" "$BIN" --port "$PORT" --bind 127.0.0.1 \
     --shards 16 --ratio "$RATIO" --protected-mode no --atomic "$atomic" \
     --persist-io "$PERSIST_IO" --appendonly yes --appendfsync everysec \
     --auto-aof-rewrite-percentage 0 \
     --enable-debug-command yes --dir "$directory" >"$log" 2>&1 &
-  ACTIVE_PID=$!
+  boot_pid=$!
   for _ in $(seq 1 100); do
-    if ! kill -0 "$ACTIVE_PID" 2>/dev/null; then
-      wait "$ACTIVE_PID" 2>/dev/null || true
+    if ! kill -0 "$boot_pid" 2>/dev/null; then
+      wait "$boot_pid" 2>/dev/null || true
       ACTIVE_PID=
       return 1
     fi
-    if "$CLI" -h 127.0.0.1 -p "$PORT" ping >/dev/null 2>&1; then return 0; fi
+    if "$CLI" -h 127.0.0.1 -p "$PORT" ping >/dev/null 2>&1; then
+      socket_pid=$(listener_pid)
+      [ "$(printf '%s\n' "$socket_pid" | sed '/^$/d' | wc -l)" -eq 1 ] || return 1
+      ACTIVE_PID=$socket_pid
+      return 0
+    fi
     sleep 0.1
   done
   return 1
@@ -45,8 +63,8 @@ boot_server() {
 stop_server() {
   kill -TERM "$ACTIVE_PID"
   wait "$ACTIVE_PID"
+  wait_for_release
   ACTIVE_PID=
-  sleep 5
 }
 
 for atomic in 0 1; do

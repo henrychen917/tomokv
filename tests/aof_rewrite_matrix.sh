@@ -1,5 +1,5 @@
 #!/bin/bash
-# Complete rewrite/recovery matrix. Every server signal targets the PID captured at boot.
+# Complete rewrite/recovery matrix. Every running-server signal targets the unique listening PID.
 set -eu
 cd "$(dirname "$0")/.."
 
@@ -11,26 +11,34 @@ else RATIO=$(((NCORES+1)/2)):$((NCORES-(NCORES+1)/2)); fi
 CLI=${REDIS_CLI:-redis-cli}
 PERSIST_IO=${PERSIST_IO:-uring}
 ACTIVE_PID=
-refusal_pid=
 
 cleanup() {
   local stopped=0
   if [ -n "$ACTIVE_PID" ] && kill -0 "$ACTIVE_PID" 2>/dev/null; then
     kill -TERM "$ACTIVE_PID" 2>/dev/null || true
     wait "$ACTIVE_PID" 2>/dev/null || true
-    stopped=1
-  fi
-  if [ -n "$refusal_pid" ] && kill -0 "$refusal_pid" 2>/dev/null; then
-    kill -TERM "$refusal_pid" 2>/dev/null || true
-    wait "$refusal_pid" 2>/dev/null || true
+    wait_for_release || true
     stopped=1
   fi
   [ "$stopped" = 0 ] || sleep 5
 }
 trap cleanup EXIT
 
+listener_pid() {
+  ss -lntpH 2>/dev/null | sed -n "/:$PORT /s/.*pid=\\([0-9][0-9]*\\).*/\\1/p" | sort -u
+}
+
+wait_for_release() {
+  for _ in $(seq 1 200); do
+    [ -z "$(listener_pid)" ] && return 0
+    sleep 0.05
+  done
+  return 1
+}
+
 boot_server() {
   local directory=$1 atomic=$2 debug=$3 log=$4
+  local boot_pid socket_pid
   local debug_args=()
   [ "$debug" = yes ] && debug_args=(--enable-debug-command yes)
   taskset -c "$CORES" ./build/tomokv --port "$PORT" --bind 127.0.0.1 \
@@ -38,10 +46,15 @@ boot_server() {
     --persist-io "$PERSIST_IO" --appendonly yes --appendfsync everysec \
     --dir "$directory" "${debug_args[@]}" \
     >"$log" 2>&1 &
-  ACTIVE_PID=$!
+  boot_pid=$!
   for _ in $(seq 1 100); do
-    if "$CLI" -h 127.0.0.1 -p "$PORT" ping >/dev/null 2>&1; then return 0; fi
-    if ! kill -0 "$ACTIVE_PID" 2>/dev/null; then wait "$ACTIVE_PID" || true; return 1; fi
+    if "$CLI" -h 127.0.0.1 -p "$PORT" ping >/dev/null 2>&1; then
+      socket_pid=$(listener_pid)
+      [ "$(printf '%s\n' "$socket_pid" | sed '/^$/d' | wc -l)" -eq 1 ] || return 1
+      ACTIVE_PID=$socket_pid
+      return 0
+    fi
+    if ! kill -0 "$boot_pid" 2>/dev/null; then wait "$boot_pid" || true; return 1; fi
     sleep 0.1
   done
   return 1
@@ -50,15 +63,15 @@ boot_server() {
 stop_clean() {
   kill -TERM "$ACTIVE_PID"
   wait "$ACTIVE_PID"
+  wait_for_release
   ACTIVE_PID=
-  sleep 5
 }
 
 stop_now() {
   kill -KILL "$ACTIVE_PID"
   wait "$ACTIVE_PID" 2>/dev/null || true
+  wait_for_release
   ACTIVE_PID=
-  sleep 5
 }
 
 normal_atomic1=
@@ -123,23 +136,13 @@ for kind in manifest base record-length group-vector; do
   directory=$(mktemp -d "/tmp/gate-aof-rewrite-corrupt-${kind}.XXXXXX")
   cp -a "$normal_atomic1"/. "$directory"/
   python3 tests/aof_rewrite.py 127.0.0.1 "$PORT" corrupt "$directory" "$kind" >/dev/null
-  taskset -c "$CORES" ./build/tomokv --port "$PORT" --bind 127.0.0.1 \
-    --shards 16 --ratio "$RATIO" --protected-mode no --appendonly yes \
-    --persist-io "$PERSIST_IO" --appendfsync everysec \
-    --dir "$directory" >"$directory/refusal.log" 2>&1 &
-  refusal_pid=$!
-  for _ in $(seq 1 50); do
-    if ! kill -0 "$refusal_pid" 2>/dev/null; then break; fi
-    sleep 0.1
-  done
-  if kill -0 "$refusal_pid" 2>/dev/null; then
-    kill -TERM "$refusal_pid"; wait "$refusal_pid" || true
+  if taskset -c "$CORES" ./build/tomokv --port "$PORT" --bind 127.0.0.1 \
+      --shards 16 --ratio "$RATIO" --protected-mode no --appendonly yes \
+      --persist-io "$PERSIST_IO" --appendfsync everysec \
+      --dir "$directory" >"$directory/refusal.log" 2>&1; then
     exit 1
   fi
-  if wait "$refusal_pid"; then exit 1; fi
-  refusal_pid=
   grep -q "AOF load plan failed" "$directory/refusal.log"
-  sleep 5
 done
 
 interior=$(mktemp -d /tmp/gate-aof-rewrite-corrupt-interior.XXXXXX)
@@ -149,22 +152,12 @@ first_incr=$(sed -n 's/^file \([^ ]*\).*type i.*/\1/p' "$manifest" | head -1)
 first_path="$interior/appendonlydir/$first_incr"
 first_size=$(stat -c %s "$first_path")
 truncate -s $((first_size-7)) "$first_path"
-taskset -c "$CORES" ./build/tomokv --port "$PORT" --bind 127.0.0.1 \
-  --shards 16 --ratio "$RATIO" --protected-mode no --appendonly yes \
-  --persist-io "$PERSIST_IO" --appendfsync everysec \
-  --dir "$interior" >"$interior/refusal.log" 2>&1 &
-refusal_pid=$!
-for _ in $(seq 1 50); do
-  if ! kill -0 "$refusal_pid" 2>/dev/null; then break; fi
-  sleep 0.1
-done
-if kill -0 "$refusal_pid" 2>/dev/null; then
-  kill -TERM "$refusal_pid"; wait "$refusal_pid" || true
+if taskset -c "$CORES" ./build/tomokv --port "$PORT" --bind 127.0.0.1 \
+    --shards 16 --ratio "$RATIO" --protected-mode no --appendonly yes \
+    --persist-io "$PERSIST_IO" --appendfsync everysec \
+    --dir "$interior" >"$interior/refusal.log" 2>&1; then
   exit 1
 fi
-if wait "$refusal_pid"; then exit 1; fi
-refusal_pid=
 grep -q "truncated AOF tail" "$interior/refusal.log"
-sleep 5
 
 echo "AOF REWRITE MATRIX PASS: atomic=0/1 stages=3 corruptions=5"
