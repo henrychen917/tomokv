@@ -182,9 +182,12 @@ say "oracle identity" "ok (vanilla redis_version=$REDIS_VERSION)"
 START_SECONDS=$SECONDS
 for ATOMIC in 0 1; do
   TARGET_LOG="$OUT/target-atomic-$ATOMIC.log"
+  # The oracle is persistence-silent above; give the target the same explicit save value so CONFIG
+  # remains part of the differential surface instead of diverging by harness construction.
   if ! boot_owned "target atomic=$ATOMIC" "$TARGET_PORT" "$TARGET_CORES" "$TARGET_LOG" \
       "$TARGET_BIN" --port "$TARGET_PORT" --bind 127.0.0.1 --shards 16 \
-      --ratio "$TARGET_RATIO" --atomic "$ATOMIC" --enable-debug-command yes; then
+      --ratio "$TARGET_RATIO" --atomic "$ATOMIC" --save '' \
+      --enable-debug-command yes; then
     FAIL=$((FAIL+1))
     break
   fi
