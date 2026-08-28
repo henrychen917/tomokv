@@ -1008,7 +1008,6 @@ bool reply_range_payload(Op& op, const std::vector<uint8_t>& payload) {
     return true;
 }
 
-struct RangeSpec { StreamID start{}, end{}; bool empty = false; };
 bool parse_range_bound(Op& op, Slice input, bool start, StreamID& id) {
     bool exclusive = input.n && input.p[0] == '(';
     if (exclusive) { input.p++; input.n--; }

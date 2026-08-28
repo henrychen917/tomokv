@@ -32,7 +32,6 @@ namespace {
 
 constexpr uint8_t kZslMaxLevel = 32;
 constexpr uint32_t kCompactScoreBytes = sizeof(double);
-constexpr uint32_t kUnlimited = std::numeric_limits<uint32_t>::max();
 
 struct ScoreRange {
     double min = 0;
