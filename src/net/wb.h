@@ -589,6 +589,7 @@ public:
         uint64_t tls_want_write = 0;
     };
     Stats& stats() { return stats_; }
+    const Stats& stats() const { return stats_; }
     void note_zc_suppressed_tls() {
         stats_.zc_suppressed_tls++;
         if (tls_signals_) tls_signals_->tls_zc_suppressed++;

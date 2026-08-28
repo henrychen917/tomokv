@@ -40,6 +40,7 @@ namespace tomo {
 
 class Client;
 class Ring;
+class WbEngine;
 
 // Heap-side multi-shard state is deliberately opaque here.  Its vectors, result slots and phase
 // bookkeeping live in cmd/xshard so neither Task nor the footprint-locked Op grows.
@@ -279,6 +280,16 @@ public:
     // fork was comparing two quantities that were not the same kind of thing.
     LoopSignals& sig() { return sig_; }
 
+    // IO-only INFO surface. Published once when the owning IoLoop binds its send engine; INFO then
+    // sums the engine's single-writer counters with the same exceptional cross-thread read shape
+    // used for sig(). Executor threads leave this null because their WbEngine never sends.
+    void set_wb_engine(WbEngine* engine) {
+        wb_engine_.store(engine, std::memory_order_release);
+    }
+    WbEngine* wb_engine() const {
+        return wb_engine_.load(std::memory_order_acquire);
+    }
+
     // Sample inbound pressure. Called once per loop iteration so depth_sum/depth_samples form a
     // time-average rather than a spot reading, which is too noisy to control on.
     void sample_depth() {
@@ -430,6 +441,8 @@ private:
     std::vector<Shard*>  shards_;
     std::vector<Client*> clients_;
     LoopSignals          sig_;
+    // Cold publication only: keep every pre-existing ThreadCtx member at its current offset.
+    std::atomic<WbEngine*> wb_engine_{nullptr};
 };
 
 }  // namespace tomo
