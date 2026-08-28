@@ -750,7 +750,6 @@ private:
             }
             ::close(fd);
             srv_->note_rejected_conn();
-            self_->sig().accept_rejected++;
             return;
         }
         if (__builtin_expect(srv_->protected_mode() && !srv_->requirepass_enabled() &&
@@ -764,7 +763,6 @@ private:
             }
             ::close(fd);
             srv_->note_rejected_connection();
-            self_->sig().accept_rejected++;
             return;
         }
         auto* c = new (std::nothrow) Client(fd);

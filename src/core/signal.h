@@ -86,7 +86,6 @@ struct LoopSignals {
     // ---- accept / submission health ------------------------------------------------------------
     uint64_t accepts     = 0;   // connections taken
     uint64_t accept_err  = 0;   // accept completions with a negative result
-    uint64_t accept_rejected = 0; // accepted fd rejected before Client allocation
     uint64_t accept_rearm= 0;   // multishot dropped and had to be re-armed
     uint64_t sqe_starved = 0;
     uint64_t notify_drop = 0;   // post to the sender was refused; the claim had to be released   // get_sqe returned null even after a submit — the ring is saturated
