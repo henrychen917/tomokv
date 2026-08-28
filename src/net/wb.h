@@ -425,6 +425,7 @@ public:
                     conn.commit_write(static_cast<uint32_t>(res));
                 }
                 stats_.bytes_sent += static_cast<uint64_t>(res);
+                if (tls_signals_) tls_signals_->net_output_bytes += static_cast<uint64_t>(res);
                 if (cached_now_s_) c.set_last_interaction_s(*cached_now_s_);
                 if (static_cast<uint32_t>(res) < conn.send_requested()) stats_.short_writes++;
                 const bool drained = conn.segmented_send()
@@ -483,7 +484,10 @@ public:
             }
             stats_.bytes_sent += cipher_sent;
             stats_.tls_ciphertext_bytes += cipher_sent;
-            if (tls_signals_) tls_signals_->tls_ciphertext_output_bytes += cipher_sent;
+            if (tls_signals_) {
+                tls_signals_->net_output_bytes += cipher_sent;
+                tls_signals_->tls_ciphertext_output_bytes += cipher_sent;
+            }
             if (cached_now_s_) c.set_last_interaction_s(*cached_now_s_);
             if (cipher_sent < c.send_requested()) stats_.short_writes++;
             else stats_.sends_completed++;
@@ -512,6 +516,7 @@ public:
                 c.commit_write(static_cast<uint32_t>(res));
             }
             stats_.bytes_sent += static_cast<uint64_t>(res);
+            if (tls_signals_) tls_signals_->net_output_bytes += static_cast<uint64_t>(res);
         }
         teardown(c);
     }
@@ -523,7 +528,10 @@ public:
             if (tls.consume_output(cipher_sent)) {
                 stats_.bytes_sent += cipher_sent;
                 stats_.tls_ciphertext_bytes += cipher_sent;
-                if (tls_signals_) tls_signals_->tls_ciphertext_output_bytes += cipher_sent;
+                if (tls_signals_) {
+                    tls_signals_->net_output_bytes += cipher_sent;
+                    tls_signals_->tls_ciphertext_output_bytes += cipher_sent;
+                }
             }
         }
         teardown(c);

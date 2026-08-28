@@ -733,8 +733,11 @@ private:
         else self_->sig().plain_accepts++;
         if (srv_->live_clients() >= srv_->maxclients()) {
             static constexpr char kErr[] = "-ERR max number of clients reached\r\n";
-            if (!tls_socket)
-                (void)::send(fd, kErr, sizeof(kErr) - 1, MSG_NOSIGNAL | MSG_DONTWAIT);
+            if (!tls_socket) {
+                const ssize_t sent = ::send(fd, kErr, sizeof(kErr) - 1,
+                                            MSG_NOSIGNAL | MSG_DONTWAIT);
+                if (sent > 0) self_->sig().net_output_bytes += static_cast<uint64_t>(sent);
+            }
             ::close(fd);
             srv_->note_rejected_conn();
             self_->sig().accept_rejected++;
@@ -744,8 +747,11 @@ private:
                              !peer_is_local(fd, unix_socket), false)) {
             static constexpr char kDenied[] =
                 "-DENIED Redis is running in protected mode because protected mode is enabled and no password is set for the default user. In this mode connections are only accepted from the loopback interface. If you want to connect from external computers to Redis you may adopt one of the following solutions: 1) Just disable protected mode sending the command 'CONFIG SET protected-mode no' from the loopback interface by connecting to Redis from the same host the server is running, however MAKE SURE Redis is not publicly accessible from internet if you do so. Use CONFIG REWRITE to make this change permanent. 2) Alternatively you can just disable the protected mode by editing the Redis configuration file, and setting the protected mode option to 'no', and then restarting the server. 3) If you started the server manually just for testing, restart it with the '--protected-mode no' option. 4) Set up an authentication password for the default user. NOTE: You only need to do one of the above things in order for the server to start accepting connections from the outside.\r\n";
-            if (!tls_socket)
-                (void)::send(fd, kDenied, sizeof(kDenied) - 1, MSG_NOSIGNAL | MSG_DONTWAIT);
+            if (!tls_socket) {
+                const ssize_t sent = ::send(fd, kDenied, sizeof(kDenied) - 1,
+                                            MSG_NOSIGNAL | MSG_DONTWAIT);
+                if (sent > 0) self_->sig().net_output_bytes += static_cast<uint64_t>(sent);
+            }
             ::close(fd);
             srv_->note_rejected_connection();
             self_->sig().accept_rejected++;
@@ -927,6 +933,7 @@ private:
     template <bool HasTls, bool kEp>
     void on_recv(Client* c, int res) {
         c->set_recv_armed(false);       // the kernel has released its pointer
+        if (res > 0) self_->sig().net_input_bytes += static_cast<uint64_t>(res);
         // A send error can close the fd while this recv is still owned by io_uring. The Client stays
         // alive until this CQE arrives, but it is a corpse: positive bytes must not resurrect it by
         // parsing and dispatching new Tasks after the teardown quiescence fence.
@@ -1067,6 +1074,7 @@ private:
     template <bool kEp>
     void on_tls_recv(Client* c, int res) {
         c->set_recv_armed(false);
+        if (res > 0) self_->sig().net_input_bytes += static_cast<uint64_t>(res);
         TlsConn* tls = tls_engine(c);
         if (!tls) { close_client(c); return; }
         if (c->dead()) { tls->abandon_input(); return; }
