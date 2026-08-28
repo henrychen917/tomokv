@@ -347,7 +347,7 @@ void for_each_touched_key(Op& op, Fn&& fn) {
             mpop_count = static_cast<uint32_t>(parsed);
     } else if (kind == Kind::Sort) {
         SortOptions options;
-        if (parse_sort_options(op, options)) {
+        if (parse_sort_options(op, options, nullptr)) {
             sort_store = options.store;
             sort_store_arg = options.store_arg;
         }
@@ -567,7 +567,8 @@ FlatStore::SnapshotWriteResult xshard_local_snapshot_prepare(Op& op, Shard& shar
             return FlatStore::SnapshotWriteResult::Error;
     }
     if (kind == Kind::Sort) {
-        if (!parse_sort_options(op, sort_options)) return FlatStore::SnapshotWriteResult::Error;
+        if (!parse_sort_options(op, sort_options, nullptr))
+            return FlatStore::SnapshotWriteResult::Error;
         if (!sort_options.store) return FlatStore::SnapshotWriteResult::Ready;
     }
     if (is_geo_kind(kind)) {

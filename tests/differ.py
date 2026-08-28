@@ -2894,6 +2894,203 @@ def gen_edgeproto(rng):
     return ops
 
 
+def gen_sort(rng):
+    """SORT with BY / GET dereference patterns.
+
+    RUN THE TARGET WITH ONE EXECUTOR (e.g. --ratio 3:1). The dereference is admitted only when one
+    executor owns every shard; with more executors the target refuses these patterns by design and
+    every BY/GET row diffs against the standalone oracle, which is the intended signal, not a bug.
+
+    TWO REPLY SHAPES ARE DELIBERATELY EXCLUDED because the reference itself does not define them:
+      * `SORT <set> BY <globless>` WITHOUT STORE -- the reference dumps the set's own iteration
+        order, which is an encoding artefact. Only the STORE form is generated, where the reference
+        forces an alphabetic sort precisely to make it defined.
+      * ALPHA over weights that are not pure lowercase ASCII -- the oracle orders those with
+        strcoll() under its collation locale (see gen_edgeenc's note), which is a property of the
+        oracle's environment rather than of SORT. Lowercase-only alphabets make strcoll and the
+        byte order agree.
+    Weights are kept distinct so no ALPHA tie is generated: the reference leaves equal alphabetic
+    weights in whatever order its sort algorithm produced, and neither server promises stability.
+    """
+    words = ["alpha", "bravo", "charlie", "delta", "echo", "foxtrot", "golf", "hotel"]
+    ops = [["FLUSHALL"]]
+    sources = ["so:l%d" % i for i in range(4)] + ["so:s%d" % i for i in range(3)] + \
+              ["so:z%d" % i for i in range(3)]
+    dests = ["so:dst%d" % i for i in range(6)]
+
+    def rebuild(key):
+        out = [["DEL", key]]
+        members = rng.sample(range(100), rng.randint(1, 9))
+        if key.startswith("so:l"):
+            out.append(["RPUSH", key] + [str(m) for m in members])
+        elif key.startswith("so:s"):
+            out.append(["SADD", key] + [str(m) for m in members])
+        else:
+            out.append(["ZADD", key] + sum([[str(i * 7 + 1), str(m)]
+                                            for i, m in enumerate(members)], []))
+        # Weight keys: one per possible member, some absent, some a hash, some non-numeric.
+        for m in members:
+            roll = rng.randrange(10)
+            if roll < 5:
+                out.append(["SET", "so:w_%d" % m, str(rng.randint(-999, 999))])
+            elif roll < 6:
+                out.append(["DEL", "so:w_%d" % m])
+            elif roll < 7:
+                out.append(["SET", "so:w_%d" % m, rng.choice(words)])
+            else:
+                out.append(["DEL", "so:w_%d" % m])
+                out.append(["HSET", "so:h_%d" % m, "f", str(rng.randint(-999, 999)),
+                            "g", rng.choice(words)])
+            if rng.random() < 0.7:
+                out.append(["SET", "so:d_%d" % m, "v%d" % m])
+            else:
+                out.append(["DEL", "so:d_%d" % m])
+        return out
+
+    for key in sources:
+        ops += rebuild(key)
+
+    # Distinct alphabetic weights: one word per member id, so no ALPHA tie is ever produced.
+    for m in range(100):
+        ops.append(["SET", "so:a_%d" % m, "%s%03d" % (words[m % len(words)], m)])
+
+    limits = [[], ["LIMIT", "0", "3"], ["LIMIT", "2", "2"], ["LIMIT", "-1", "-1"],
+              ["LIMIT", "1", "100"]]
+    gets = [[], ["GET", "#"], ["GET", "so:d_*"], ["GET", "#", "GET", "so:d_*"],
+            ["GET", "so:h_*->g"], ["GET", "so:d_*", "GET", "so:h_*->f", "GET", "#"],
+            ["GET", "so:absent_*"], ["GET", "literal"], ["GET", "##"]]
+
+    while len(ops) < 4400:
+        roll = rng.randrange(24)
+        if roll == 0:
+            ops += rebuild(rng.choice(sources))
+            continue
+        key = rng.choice(sources)
+        is_set = key.startswith("so:s")
+        cmd = ["SORT_RO" if rng.random() < 0.2 else "SORT", key]
+        by = rng.randrange(8)
+        alpha = False
+        if by == 0:
+            pass                                          # no BY: sort the elements themselves
+        elif by == 1:
+            cmd += ["BY", "so:w_*"]
+        elif by == 2:
+            cmd += ["BY", "so:h_*->f"]
+        elif by == 3:
+            cmd += ["BY", "so:absent_*"]
+        elif by == 4:
+            cmd += ["BY", "so:a_*"]
+            alpha = True
+        elif by == 5:
+            cmd += ["BY", "so:h_*"]                       # a hash with no field: NULL weight
+        elif by == 6:
+            cmd += ["BY", rng.choice(["nosort", "constant", "?_x", "[ab]_x"])]
+        else:
+            cmd += ["BY", "so:w*_x"]                      # substituted key that never exists
+        dontsort = by == 6
+        if alpha or (rng.random() < 0.35 and by in (0, 4)):
+            cmd.append("ALPHA")
+            alpha = True
+        if rng.random() < 0.4:
+            cmd.append(rng.choice(["ASC", "DESC"]))
+        cmd += rng.choice(limits)
+        cmd += rng.choice(gets)
+        store = rng.random() < 0.3 and cmd[0] == "SORT"
+        # A set with ordering suppressed is only defined through STORE (see the docstring).
+        if dontsort and is_set and not store:
+            store = True
+        if store:
+            cmd += ["STORE", rng.choice(dests)]
+        ops.append(cmd)
+        if store:
+            ops.append(["LRANGE", cmd[-1], "0", "-1"])
+            ops.append(["TYPE", cmd[-1]])
+
+    # Directed tail: every rule this lane implements, pinned in one place.
+    ops += [
+        ["DEL", "so:t"], ["RPUSH", "so:t", "3", "1", "2"],
+        ["MSET", "so:tw_1", "10", "so:tw_2", "5", "so:tw_3", "1"],
+        ["MSET", "so:td_1", "one", "so:td_2", "two", "so:td_3", "three"],
+        ["HSET", "so:th_1", "f", "100", "g", "aaa"],
+        ["HSET", "so:th_2", "f", "50", "g", "bbb"],
+        ["HSET", "so:th_3", "f", "25", "g", "ccc"],
+        ["MSET", "so:tn_1", "notanumber", "so:tn_2", "2", "so:tn_3", "3"],
+        ["SET", "so:tp_2", "5"],
+        ["MSET", "so:tx->f1", "5", "so:tx->f2", "1", "so:tx->f3", "3"],
+        ["SET", "so:th_1->", "vv"],
+        ["MSET", "so:tw\\1x", "100", "so:tw\\2x", "50", "so:tw\\3x", "25"],
+        ["MSET", "so:tw3x", "1", "so:tw1x", "2", "so:tw2x", "3"],
+        ["SORT", "so:t", "BY", "so:tw_*"],
+        ["SORT", "so:t", "BY", "so:tw_*", "DESC"],
+        ["SORT", "so:t", "BY", "so:tw_*", "GET", "#"],
+        ["SORT", "so:t", "BY", "so:tw_*", "GET", "so:td_*"],
+        ["SORT", "so:t", "BY", "so:tw_*", "GET", "#", "GET", "so:td_*", "GET", "so:th_*->g"],
+        ["SORT", "so:t", "BY", "so:th_*->f"],
+        ["SORT", "so:t", "BY", "so:th_*->"],
+        ["SORT", "so:t", "BY", "so:tx->f*"],
+        ["SORT", "so:t", "BY", "so:tw\\*x"],
+        ["SORT", "so:t", "BY", "so:tw*x"],
+        ["SORT", "so:t", "BY", "so:tn_*"],
+        ["SORT", "so:t", "BY", "so:tn_*", "LIMIT", "0", "1"],
+        ["SORT", "so:t", "BY", "so:tp_*"],
+        ["SORT", "so:t", "BY", "so:th_*"],
+        ["SORT", "so:t", "BY", "so:tmissing_*"],
+        ["SORT", "so:t", "BY", "nosort"],
+        ["SORT", "so:t", "BY", "nosort", "DESC"],
+        ["SORT", "so:t", "BY", "nosort", "LIMIT", "1", "1"],
+        ["SORT", "so:t", "BY", "nosort", "GET", "#", "GET", "so:td_*"],
+        ["SORT", "so:t", "GET", "#"], ["SORT", "so:t", "GET", "so:tmissing_*"],
+        ["SORT", "so:t", "GET", "literal"], ["SORT", "so:t", "GET", "##"],
+        ["SORT_RO", "so:t", "BY", "so:tw_*", "GET", "so:td_*"],
+        ["SORT_RO", "so:t", "BY", "so:tw_*", "STORE", "so:tno"],
+        ["SORT", "so:t", "BY", "so:tw_*", "GET", "so:td_*", "STORE", "so:tdst"],
+        ["LRANGE", "so:tdst", "0", "-1"], ["TYPE", "so:tdst"],
+        ["SORT", "so:t", "GET", "so:tmissing_*", "STORE", "so:tdst2"],
+        ["LRANGE", "so:tdst2", "0", "-1"],
+        ["SET", "so:tkeep", "v"],
+        ["SORT", "so:tabsent", "BY", "so:tw_*", "STORE", "so:tkeep"],
+        ["EXISTS", "so:tkeep"],
+        ["SORT", "so:tabsent", "BY", "so:tw_*", "GET", "so:td_*"],
+        ["SORT", "so:tabsent", "BY", "nosort"],
+        ["DEL", "so:tset"], ["SADD", "so:tset", "ddd", "aaa", "ccc", "bbb"],
+        ["SORT", "so:tset", "BY", "nosort", "STORE", "so:tsd"],
+        ["LRANGE", "so:tsd", "0", "-1"],
+        ["SORT", "so:tset", "BY", "nosort", "ALPHA", "STORE", "so:tsd2"],
+        ["LRANGE", "so:tsd2", "0", "-1"],
+        ["SORT", "so:tset", "ALPHA"],
+        ["DEL", "so:tz"], ["ZADD", "so:tz", "30", "aaa", "10", "bbb", "20", "ccc"],
+        ["SORT", "so:tz", "BY", "nosort"],
+        ["SORT", "so:tz", "BY", "nosort", "DESC"],
+        ["SORT", "so:tz", "BY", "nosort", "STORE", "so:tzd"],
+        ["LRANGE", "so:tzd", "0", "-1"],
+        ["SORT", "so:tz", "ALPHA"],
+        ["SORT", "so:tz"],
+        ["SORT", "so:th_1", "BY", "nosort"],
+        ["SORT", "so:th_1", "BY", "so:tw_*"],
+        ["SORT", "so:th_1", "GET", "so:td_*"],
+        ["SET", "so:tstr", "x"], ["SORT", "so:tstr", "BY", "so:tw_*", "GET", "#"],
+        # Inside a transaction the dereference runs under the group's own read context.
+        ["MULTI"],
+        ["MSET", "so:tw_1", "40", "so:tw_2", "20", "so:tw_3", "60"],
+        ["SORT", "so:t", "BY", "so:tw_*", "GET", "#", "GET", "so:td_*"],
+        ["SORT", "so:t", "BY", "so:tw_*", "STORE", "so:tmdst"],
+        ["EXEC"],
+        ["LRANGE", "so:tmdst", "0", "-1"],
+        ["SORT", "so:t", "BY", "so:tw_*"],
+        # Read-your-own-writes: the weights are written by the command immediately before.
+        ["MSET", "so:tw_1", "7", "so:tw_2", "9", "so:tw_3", "8"],
+        ["SORT", "so:t", "BY", "so:tw_*", "GET", "#", "GET", "so:tw_*"],
+        ["MSET", "so:tw_1", "9", "so:tw_2", "8", "so:tw_3", "7"],
+        ["SORT", "so:t", "BY", "so:tw_*", "GET", "so:tw_*"],
+        ["SORT", "so:t", "BY"], ["SORT", "so:t", "GET"],
+        ["SORT", "so:t", "BADTOKEN", "BY", "so:tw_*"],
+        ["SORT", "so:t", "BY", "so:tw_*", "GET", "#", "BY", "so:tn_*"],
+        ["COMMAND", "GETKEYS", "SORT", "so:t", "BY", "so:tw_*", "GET", "so:td_*",
+         "STORE", "so:tdst"],
+    ]
+    return ops
+
+
 def gen_cmdgap(rng):
     """Small local additions found by the live COMMAND LIST inventory.
 
@@ -4532,6 +4729,7 @@ gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset
         "zsetops": gen_zsetops, "geo": gen_geo,
         "scan": gen_scan, "multi": gen_multi,
         "edgeenc": gen_edgeenc, "edgeproto": gen_edgeproto, "cmdgap": gen_cmdgap,
+        "sort": gen_sort,
         "servertail": gen_servertail, "arity": gen_arity}
 if LIST_GENERATORS:
     # Property suites live outside the `gens` dict (their replies are not byte-comparable), so

@@ -436,4 +436,16 @@ CommandTable hash_ttl_command_table() {
     return {kTable, sizeof(kTable) / sizeof(kTable[0])};
 }
 
+// The read-only half of hash_ttl_on_access(), for SORT's BY/GET dereference: report whether ONE
+// field has already lapsed, without reaping it, without touching the object's size accounting, and
+// without emitting or erasing under a key name that is not the one the command was routed on.
+bool hash_ttl_field_lapsed(const KvObj* object, Slice field, int64_t now_ms) {
+    HashFieldTtl** slot = hash_ttl_slot(const_cast<KvObj*>(object));
+    if (!slot || !*slot) return false;
+    const HashFieldTtl* ttls = *slot;
+    if (ttls->min_expire_ms() > now_ms) return false;
+    const int64_t at = ttls->get(field);
+    return at != HashFieldTtl::kNone && at <= now_ms;
+}
+
 }  // namespace tomo

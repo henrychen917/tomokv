@@ -236,6 +236,13 @@
         atomic_read_epoch_ = UINT64_MAX;
         atomic_read_origin_conn_id_ = 0;
     }
+    // READ THE CONTEXT BACK. The read cut and the originating connection are per-STORE, so a
+    // command that has to resolve a key on a second shard of the same executor (SORT's BY/GET
+    // dereference is the only one) must carry its own context across rather than read the second
+    // shard at "latest, no connection" -- which loses read-your-own-writes and answers from before
+    // this connection's last committed group.
+    uint64_t atomic_read_epoch() const { return atomic_read_epoch_; }
+    uint64_t atomic_read_origin_conn_id() const { return atomic_read_origin_conn_id_; }
 
     // Allocate one owner-local entry for this group's whole shard span. The trailing array is the
     // only per-key bookkeeping: each install writes its displaced physical pointer once.
