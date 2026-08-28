@@ -314,14 +314,14 @@ void notify_flat_store_emit(const FlatStore* store, uint32_t cls,
     }
 }
 
-bool notify_record_slow(Shard& shard, Op& source, uint32_t mask, uint32_t cls,
+bool notify_record_slow(Shard& shard, Op& source, uint32_t routes, uint32_t cls,
                         NotifyEventId event, Slice key) {
     (void)cls;
     Server* server = shard.server();
     if (!server) return false;
     // Tracking invalidation has no pub/sub subscriber to require. When only the pub/sub routes
     // are armed the original early-out is unchanged.
-    if (!server->pubsub_any_subscribers() && !(mask & NOTIFY_TRACKING)) return false;
+    if (!server->pubsub_any_subscribers() && !(routes & NOTIFY_TRACKING)) return false;
     Op* carrier = shard.notify_carrier();
     if (!carrier) carrier = &source;
     NotifyBatch* batch = notify_get_or_create_batch(*carrier);
@@ -356,7 +356,7 @@ bool notify_record_slow(Shard& shard, Op& source, uint32_t mask, uint32_t cls,
     NotifyRecordImpl record;
     record.order = notify_key_arg_order(shard, source, key) + notify_event_priority(event);
     record.sequence = batch->next_sequence++;
-    record.routes = mask & NOTIFY_ROUTES;
+    record.routes = routes;
     if (!server->pubsub_any_subscribers())
         record.routes &= ~(NOTIFY_KEYSPACE | NOTIFY_KEYEVENT);
     record.event = event;
@@ -373,12 +373,12 @@ bool notify_record_slow(Shard& shard, Op& source, uint32_t mask, uint32_t cls,
     return true;
 }
 
-bool notify_record_keyless_slow(Shard& shard, uint32_t mask, uint32_t cls,
+bool notify_record_keyless_slow(Shard& shard, uint32_t routes, uint32_t cls,
                                 NotifyEventId event, Slice key) {
     (void)cls;
     Server* server = shard.server();
     if (!server) return false;
-    if (!server->pubsub_any_subscribers() && !(mask & NOTIFY_TRACKING)) return false;
+    if (!server->pubsub_any_subscribers() && !(routes & NOTIFY_TRACKING)) return false;
     auto& slot = shard.notify_state_slot();
     if (!slot) {
         slot.reset(new (std::nothrow) NotifyShardState);
@@ -390,7 +390,7 @@ bool notify_record_keyless_slow(Shard& shard, uint32_t mask, uint32_t cls,
     }
     try {
         NotifyOut out;
-        out.routes = mask & NOTIFY_ROUTES;
+        out.routes = routes;
         if (!server->pubsub_any_subscribers())
             out.routes &= ~(NOTIFY_KEYSPACE | NOTIFY_KEYEVENT);
         out.event = event;
@@ -408,9 +408,11 @@ bool notify_record_keyless_slow(Shard& shard, uint32_t mask, uint32_t cls,
 bool notify_flat_enabled(void* context, uint32_t cls) {
     auto& shard = *static_cast<Shard*>(context);
     const uint32_t mask = shard.notify_mask();
-    if (!(mask & cls)) return false;
-    if (mask & NOTIFY_SAVE) return true;
-    if (!(mask & NOTIFY_ROUTES)) return false;
+    const bool observed = (mask & NOTIFY_OBSERVERS) && (NOTIFY_ALL & cls);
+    if (!(mask & cls) && !observed) return false;
+    if (observed && (mask & NOTIFY_SAVE)) return true;
+    const uint32_t routes = notify_routes_for_class(mask, cls);
+    if (!routes) return false;
     if (cls == NOTIFY_KEY_MISS) {
         const Op* source = shard.notify_source();
         if (!source || !(source->spec->flags & CmdFlags::Readonly) ||
@@ -419,7 +421,7 @@ bool notify_flat_enabled(void* context, uint32_t cls) {
     Server* server = shard.server();
     if (!server) return false;
     // Tracking invalidation needs the expiry/eviction observers even with nobody subscribed.
-    return server->pubsub_any_subscribers() || (mask & NOTIFY_TRACKING) != 0;
+    return server->pubsub_any_subscribers() || (routes & NOTIFY_TRACKING) != 0;
 }
 
 void notify_flat_emit(void* context, uint32_t cls, NotifyEventId event, Slice key) {

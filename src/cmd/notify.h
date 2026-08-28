@@ -52,6 +52,16 @@ inline constexpr uint32_t NOTIFY_TRACKING = 1u << 20;
 // shard counter before the ordinary route gate below.
 inline constexpr uint32_t NOTIFY_SAVE = 1u << 21;
 inline constexpr uint32_t NOTIFY_ROUTES = NOTIFY_KEYSPACE | NOTIFY_KEYEVENT | NOTIFY_TRACKING;
+inline constexpr uint32_t NOTIFY_OBSERVERS = NOTIFY_TRACKING | NOTIFY_SAVE;
+
+// Synthetic observers need every ordinary mutation class, but those classes must not become
+// operator-visible pub/sub classes. Derive the routes for this event separately: K/E require the
+// configured class itself, while tracking observes the same A-class mutation surface as before.
+inline uint32_t notify_routes_for_class(uint32_t mask, uint32_t cls) {
+    uint32_t routes = (mask & cls) ? mask & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT) : 0u;
+    if ((mask & NOTIFY_TRACKING) && (NOTIFY_ALL & cls)) routes |= NOTIFY_TRACKING;
+    return routes;
+}
 
 inline bool parse_notify_flags(Slice input, uint32_t& flags) {
     uint32_t parsed = 0;
@@ -165,20 +175,26 @@ template <typename ShardLike>
 inline bool notify_record(ShardLike& shard, Op& source, uint32_t cls,
                           NotifyEventId event, Slice key) {
     const uint32_t mask = shard.notify_mask();
-    if (__builtin_expect((mask & cls) == 0, true)) return false;
-    if (mask & NOTIFY_SAVE) shard.note_save_change();
-    if (!(mask & NOTIFY_ROUTES)) return true;
-    return notify_record_slow(shard, source, mask, cls, event, key);
+    const bool observed = (mask & NOTIFY_OBSERVERS) && (NOTIFY_ALL & cls);
+    if (__builtin_expect((mask & cls) == 0 && !observed, true)) return false;
+    const bool save_observed = observed && (mask & NOTIFY_SAVE);
+    if (save_observed) shard.note_save_change();
+    const uint32_t routes = notify_routes_for_class(mask, cls);
+    if (!routes) return save_observed;
+    return notify_record_slow(shard, source, routes, cls, event, key);
 }
 
 template <typename ShardLike>
 inline bool notify_record_keyless(ShardLike& shard, uint32_t cls,
                                   NotifyEventId event, Slice key) {
     const uint32_t mask = shard.notify_mask();
-    if (__builtin_expect((mask & cls) == 0, true)) return false;
-    if (mask & NOTIFY_SAVE) shard.note_save_change();
-    if (!(mask & NOTIFY_ROUTES)) return true;
-    return notify_record_keyless_slow(shard, mask, cls, event, key);
+    const bool observed = (mask & NOTIFY_OBSERVERS) && (NOTIFY_ALL & cls);
+    if (__builtin_expect((mask & cls) == 0 && !observed, true)) return false;
+    const bool save_observed = observed && (mask & NOTIFY_SAVE);
+    if (save_observed) shard.note_save_change();
+    const uint32_t routes = notify_routes_for_class(mask, cls);
+    if (!routes) return save_observed;
+    return notify_record_keyless_slow(shard, routes, cls, event, key);
 }
 bool notify_flat_enabled(void* shard, uint32_t cls);
 void notify_flat_emit(void* shard, uint32_t cls, NotifyEventId event, Slice key);
