@@ -32,6 +32,7 @@
 #include <cmath>
 #include <cstdarg>
 #include <cstdio>
+#include <unistd.h>
 #include <cstdlib>
 #include <cstring>
 #include <limits>
@@ -1586,10 +1587,18 @@ void cmd_info(Shard&, Op& op) {
 
     if (info_section(op, "SERVER")) {
         const uint64_t uptime = g_started_monotonic_ns ? (now_ns() - g_started_monotonic_ns) / 1000000000ull : 0;
+        // process_id and tcp_port are plain facts about this process, not telemetry that could be
+        // stale -- and tooling depends on them. The NIC bench harness identifies the server it just
+        // booted by reading process_id out of INFO, so its absence made every NIC cell fail with an
+        // opaque "boot/cell FAIL" long before any measurement was taken.
         appendf(body, "# Server\r\nredis_version:%s\r\ntomokv_version:%s\r\nredis_mode:standalone\r\n"
-                      "arch_bits:%zu\r\nmultiplexing_api:io_uring\r\nuptime_in_seconds:%llu\r\n",
+                      "arch_bits:%zu\r\nmultiplexing_api:io_uring\r\nprocess_id:%lld\r\n"
+                      "tcp_port:%u\r\nuptime_in_seconds:%llu\r\nuptime_in_days:%llu\r\n",
                 kVersion, kVersion, sizeof(void*) * 8,
-                static_cast<unsigned long long>(uptime));
+                static_cast<long long>(::getpid()),
+                static_cast<unsigned>(g_server ? g_server->cfg().port : 0),
+                static_cast<unsigned long long>(uptime),
+                static_cast<unsigned long long>(uptime / 86400));
     }
     if (info_section(op, "CLIENTS")) {
         appendf(body, "# Clients\r\nconnected_clients:%llu\r\nblocked_clients:%llu\r\n"
