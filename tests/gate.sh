@@ -43,8 +43,8 @@ SRV=0; SRVLOG=/dev/null
 # both atomic modes. Their sibling lanes each claimed 207 -> 209, so the merged ledger owes four.
 # 211 -> 213: pushtear proves out-of-band frames cannot splice borrowed replies and requires the
 # segmented/deferred and zero-copy counters to fire, under both atomic modes.
-EXPECT_QUICK=218
-EXPECT_FULL=228                 # full without the optional NIC row.
+EXPECT_QUICK=219
+EXPECT_FULL=229                 # full without the optional NIC row.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ok(){ say "$1" "ok"; PASS=$((PASS+1)); }
 bad(){ say "$1" "FAIL${2:+ ($2)}"; FAIL=$((FAIL+1)); }
