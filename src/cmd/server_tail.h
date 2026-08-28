@@ -10,7 +10,6 @@
 namespace tomo {
 
 class Op;
-class Shard;
 struct CommandSpec;
 
 enum class WaitCommandResult : uint8_t { Error, Immediate, Unsatisfied };
@@ -26,13 +25,5 @@ bool server_tail_config_subcommand(Op& op);
 
 // COMMAND subcommands owned by this file: LIST / GETKEYS / GETKEYSANDFLAGS / HELP.
 bool server_tail_command_subcommand(Op& op);
-
-// Shared with t_server.cc's CONFIG SET fan-out decision.
-bool server_tail_config_routes_all_shards(Op& op);
-// Executed on every shard owner for CONFIG RESETSTAT.
-void server_tail_config_resetstat_owner(Shard& shard);
-
-// The redis-name encoding of one stored object, e.g. "listpack" / "intset" / "embstr".
-const char* server_tail_encoding_name(const void* object);
 
 }  // namespace tomo
