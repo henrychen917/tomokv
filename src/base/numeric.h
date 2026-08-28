@@ -13,12 +13,14 @@
 //     grisu2_digits() below is that algorithm, written from the published description and from the
 //     7.4 binary's observed output; no reference source was read.
 //
-//   * PARSE. Redis does not have one float grammar, it has three, and which one applies depends on
-//     the argument. parse_double_strict() is the getDoubleFromObject grammar (ZADD score, weights,
-//     GEO coordinates); parse_double_lenient() is the bare strtod that zslParseRange uses for score
-//     RANGES and that sortCommand uses for numeric SORT. They differ on inputs clients really send:
-//     "" is a range error to one and 0.0 to the other. Both accept the hexadecimal spellings strtod
-//     accepts, because strtod is what redis calls.
+//   * PARSE. Redis does not have one float grammar, and which one applies depends on the argument:
+//       parse_double_strict()      getDoubleFromObject -- ZADD/ZINCRBY scores, WEIGHTS, GEO
+//       parse_double_lenient()     zslParseRange's bare strtod -- every score RANGE bound
+//       parse_double_sortable()    that same strtod plus sortCommand's ERANGE test -- numeric SORT
+//       parse_long_double_strict() string2ld -- INCRBYFLOAT, HINCRBYFLOAT, blocking timeouts
+//     They differ on inputs clients really send: "" is an error to the first and 0.0 to the second,
+//     and a subnormal is a fine score but not a sortable element. All of them accept the
+//     hexadecimal spellings strtod accepts, because strtod is what redis calls.
 //
 // Everything here is header-only and out of the GET/SET path; the hot dispatch never calls it.
 
