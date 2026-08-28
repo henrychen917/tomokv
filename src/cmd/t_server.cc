@@ -972,6 +972,10 @@ void cmd_debug_impl(Shard&, Op& op) {
         reply_err(op.sink(), "ERR internal DEBUG LOADAOF routing error");
         return;
     }
+    if (eq_icase(subcommand, "borrowcount") && op.argc() == 2) {
+        reply_err(op.sink(), "ERR internal DEBUG BORROWCOUNT routing error");
+        return;
+    }
     if (eq_icase(subcommand, "reload") && op.argc() == 2) {
         reply_err(op.sink(), "ERR internal DEBUG RELOAD routing error");
         return;
@@ -2248,7 +2252,8 @@ bool command_config_routes_all_shards(Op& op) {
     if (op.cmd_name().eq_icase("dbsize")) return op.argc() == 2 && eq_icase(op.arg(1), "NOW");
     if (op.cmd_name().eq_icase("debug"))
         return op.argc() == 2 &&
-               (eq_icase(op.arg(1), "reload") || eq_icase(op.arg(1), "loadaof"));
+               (eq_icase(op.arg(1), "reload") || eq_icase(op.arg(1), "loadaof") ||
+                eq_icase(op.arg(1), "borrowcount"));
     return op.argc() >= 2 && eq_icase(op.arg(1), "SET");
 }
 
