@@ -159,15 +159,23 @@
     }
     // Same-connection program order is the only ordering dependency between pipelined commands.
     // Foreign undecided nodes never block: resolution simply skips them.
+    // `ignore_epoch` excludes every record belonging to the caller's OWN logical unit, which the
+    // group pointer cannot do for a transaction: an EXEC's plain per-key installs carry a null
+    // group pointer, while a cross-shard child command inside that same EXEC installs through the
+    // scatter path and carries a non-null one. Both publish through the transaction's single
+    // epoch word, so that word -- not the group pointer -- is what identifies "mine". Callers that
+    // pass nothing keep the previous behaviour exactly.
     bool atomic_has_own_undecided(uint64_t hash, Slice key, uint64_t origin_conn_id,
-                                  const ScatterState* ignore_group = nullptr) const {
+                                  const ScatterState* ignore_group = nullptr,
+                                  const std::atomic<uint64_t>* ignore_epoch = nullptr) const {
         if (!atomic_pending_) return false;
         const uint64_t bit = atomic_membership_bit(hash);
         const uint32_t bucket = static_cast<uint32_t>(mix64(origin_conn_id)) & 63;
         for (AtomicEntry* entry = atomic_pending_->conn_heads[bucket]; entry;
              entry = entry->conn_next) {
             if (!(entry->membership & bit) || !entry->group_epoch ||
-                entry->origin_conn_id != origin_conn_id || entry->group == ignore_group)
+                entry->origin_conn_id != origin_conn_id || entry->group == ignore_group ||
+                entry->group_epoch == ignore_epoch)
                 continue;
             if (entry->group_epoch->load(std::memory_order_acquire) != 0) continue;
             if (entry->group_aborted && entry->group_aborted->load(std::memory_order_acquire))
@@ -707,10 +715,34 @@ private:
         bool winner_physical = false;
         bool winner_private = false;
         bool matched = false;
+        // THE SAME PROGRAM-ORDER REPAIR atomic_collapse() APPLIES, AND IT IS LOAD-BEARING HERE.
+        // A read reaches this chain whenever it beats the owner's post-batch cleanup to the pair,
+        // and it must then rank a connection's records the way that connection sent them, not by
+        // their commit tickets -- otherwise it answers from the older cross-shard group after the
+        // younger transaction's write, which is the stale-read half of the defect.
+        // This was measured, deleted, and restored: with the target on 16 cores the cleanup pass
+        // always won the race, so removing this scored an identical 0 on the stale-read probe and
+        // looked free. With the target correctly pinned to 8 cores the read wins often enough that
+        // collapse-alone failed tests/multires.py in 3 of 8 runs while this restores 0 of 8. The
+        // cost is real (~2% on the atomic-path A/B) and is bought deliberately.
+        uint64_t prev_conn_id = 0;
+        uint64_t prev_epoch = 0;
         auto consider = [&](AtomicEntry& owner, KvObj* candidate, bool is_physical) {
             if (owner.group_epoch && owner.group_aborted &&
                 owner.group_aborted->load(std::memory_order_acquire)) return;
-            const uint64_t epoch = atomic_epoch(owner);
+            uint64_t epoch = atomic_epoch(owner);
+            // Applied BEFORE the visibility tests below: a snapshot excluding a connection's
+            // earlier record must exclude its later one too, which is what lifting the epoch
+            // does. Epoch 0 is an own still-private candidate -- it carries no ticket, so it
+            // neither repairs nor becomes the floor, and prev_epoch==0 doubles as "none yet".
+            if (__builtin_expect(prev_epoch != 0, false)) {
+                if (epoch && epoch < prev_epoch && owner.origin_conn_id == prev_conn_id)
+                    epoch = prev_epoch;
+            }
+            if (epoch) {
+                prev_conn_id = owner.origin_conn_id;
+                prev_epoch = epoch;
+            }
             const bool own_committed = atomic_read_origin_conn_id_ != 0 &&
                 owner.origin_conn_id == atomic_read_origin_conn_id_;
             // A transaction's own still-private installs are its RYOW overlay.  Foreign epoch-zero
@@ -1096,7 +1128,26 @@ private:
             const bool aborted = owner.group_epoch && owner.group_aborted &&
                 owner.group_aborted->load(std::memory_order_acquire);
             if (aborted) return;
-            const uint64_t epoch = atomic_epoch(owner);
+            uint64_t epoch = atomic_epoch(owner);
+            // PROGRAM ORDER BEATS TICKET ORDER WITHIN ONE CONNECTION.
+            // This walk visits a key's records in list order, and for records from the SAME
+            // connection that order IS the client's program order: owner tasks are posted to a
+            // shard in arrival order and drained in order, so a connection's later command
+            // cannot install ahead of its earlier one on the same owner.
+            // Their commit TICKETS may still invert, because a cross-shard unit draws its ticket
+            // only when its LAST fragment has installed: a wide MSET/DEL group that is still
+            // waiting on other shards can be overtaken at the ticket counter by a MULTI/EXEC the
+            // same connection sent afterwards. Ranking those two by raw ticket then re-installed
+            // the OLDER group's value over the newer transaction's, destroying a write EXEC had
+            // already acknowledged -- reproduced at 246/1120 (NOTES-MULTIRES.md).
+            // Repairing the epoch to be monotone per connection removes the inversion without
+            // reordering anything across connections, where the ticket remains the only truth.
+            if (key.prev_set && owner.origin_conn_id == key.prev_conn_id &&
+                epoch < key.prev_epoch)
+                epoch = key.prev_epoch;
+            key.prev_conn_id = owner.origin_conn_id;
+            key.prev_epoch = epoch;
+            key.prev_set = true;
             if (!key.winner_set || epoch >= key.winner_epoch) {
                 key.winner = candidate;
                 key.winner_epoch = epoch;

@@ -1421,7 +1421,7 @@ void cmd_info(Shard&, Op& op) {
              atomic_entries = 0, atomic_pending_entries = 0,
              atomic_cleanup_fast = 0, atomic_cleanup_slow = 0,
              atomic_localfast = 0, atomic_scan_holds = 0, blocking_waiters = 0,
-             atomic_gauge_underflows = 0;
+             atomic_gauge_underflows = 0, atomic_exec_order_holds = 0;
     uint64_t hash_field_expires = 0, expired_hash_fields = 0;
     uint64_t plain_accepts = 0, tls_accepts = 0, tls_handshakes_started = 0,
              tls_handshakes_completed = 0, tls_handshakes_failed = 0,
@@ -1445,6 +1445,7 @@ void cmd_info(Shard&, Op& op) {
             atomic_records_freed += sh.stats().atomic_records_freed;
             atomic_entries += sh.stats().atomic_entries;
             atomic_gauge_underflows += sh.stats().atomic_gauge_underflows;
+            atomic_exec_order_holds += sh.stats().atomic_exec_order_holds;
             atomic_pending_entries += sh.store().atomic_pending_entries();
             atomic_cleanup_fast += sh.store().atomic_cleanup_fast();
             atomic_cleanup_slow += sh.store().atomic_cleanup_slow();
@@ -1604,7 +1605,7 @@ void cmd_info(Shard&, Op& op) {
                       "atomic_records_freed:%llu\r\natomic_entries:%llu\r\n"
                       "atomic_gauge_underflows:%llu\r\n"
                       "atomic_pending_entries:%llu\r\natomic_localfast:%llu\r\n"
-                      "atomic_scan_order_holds:%llu\r\n"
+                      "atomic_scan_order_holds:%llu\r\natomic_exec_order_holds:%llu\r\n"
                       "atomic_commit_windows:%llu\r\natomic_commit_holds:%llu\r\n"
                       "atomic_read_cuts_held:%llu\r\natomic_fanout_cuts:%llu\r\n"
                       "atomic_exec_read_cuts:%llu\r\n"
@@ -1679,6 +1680,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(atomic_pending_entries),
                 static_cast<unsigned long long>(atomic_localfast),
                 static_cast<unsigned long long>(atomic_scan_holds),
+                static_cast<unsigned long long>(atomic_exec_order_holds),
                 static_cast<unsigned long long>(
                     g_server ? g_server->atomic_commit_windows() : 0),
                 static_cast<unsigned long long>(

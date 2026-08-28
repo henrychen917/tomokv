@@ -306,6 +306,14 @@ public:
         // than it charged, which is a real accounting fault worth a test assertion but not worth
         // killing the process for. Must read 0; tests/execfix.py asserts it in both atomic modes.
         uint64_t atomic_gauge_underflows = 0;
+        // Times an EXEC write installed its candidate for a key while an OLDER cross-shard group
+        // from the SAME connection was still undecided on this owner -- the window in which those
+        // two units' commit tickets can invert. It OBSERVES that window; nothing waits on it (a
+        // hold there deadlocks, NOTES-MULTIRES.md). Cold: written only from the transaction
+        // write-prepare path, which already walks the owner's pending list. It must be able to
+        // read zero -- a transaction with no such predecessor never touches it -- so a non-zero
+        // reading is proof the window opened rather than proof the test ran.
+        uint64_t atomic_exec_order_holds = 0;
         // Cold tail, deliberately last: keyspace table rebuilds started by this shard, reported as
         // INFO keyspace_rehashes so a scan-under-resize test can assert the hazard it guards
         // actually fired. Written once per resize and read only by INFO, so it must not push any
