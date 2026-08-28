@@ -33,6 +33,9 @@ ordinary `SET` invalidations.
 
 ## TomoKV emission paths before this change
 
+Line references in this pre-change subsection name parent commit `953ca0774`; current post-change
+delivery references are recorded under “Implemented result” below.
+
 Every path that can ultimately emit an invalidation is:
 
 1. Tracking-table pressure evicts an entry and calls `tracking_deliver_frame`
