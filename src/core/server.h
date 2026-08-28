@@ -988,10 +988,13 @@ public:
     bool debug_barrier_hold_armed() const {
         return debug_barrier_hold_.load(std::memory_order_relaxed) != 0;
     }
-    // A production overlap: some owner took the parse barrier while another owner already held it.
-    // This must read ZERO. It is the live form of the reachability verdict in NOTES-BARRIER.md --
-    // if it ever moves without DEBUG BARRIER-HOLD armed, the latent case just went live and the
-    // owner-scoped release in blocking_retire() became load-bearing rather than defensive.
+    // An overlap: some owner took the parse barrier while another owner already held it. With
+    // DEBUG BARRIER-HOLD off this must read ZERO -- it is the live form of the reachability verdict
+    // in NOTES-BARRIER.md, and if it ever moves on production traffic the latent case just went
+    // live and the owner-scoped release in blocking_retire() became load-bearing rather than
+    // defensive. With the latch ON it advances once per blocking dispatch, which is the counter's
+    // own positive control: a "must be zero" reading proves nothing until something has been shown
+    // able to make it non-zero.
     void note_barrier_overlap() {
         barrier_owner_overlaps_.fetch_add(1, std::memory_order_relaxed);
     }

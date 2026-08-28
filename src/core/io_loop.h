@@ -1448,11 +1448,14 @@ subscriber_checks_done:
                 // TEST HOOK (DEBUG BARRIER-HOLD): pin a SECOND owner on this connection so the
                 // blocking release has something to fail to drop. The geometry it manufactures is
                 // unreachable in production -- which is exactly why it has to be injected.
-                // Acquired RAW, not through barrier_arm: barrier_owner_overlaps must stay a clean
-                // reading of PRODUCTION overlap (it is the live form of the reachability verdict),
-                // so an injected overlap may not be allowed to forge it.
+                //
+                // Armed THROUGH barrier_arm on purpose, so this is the positive control for
+                // barrier_owner_overlaps as well: with the latch on, every blocking dispatch adds
+                // exactly one overlap, which is what proves the counter can count. The production
+                // assertion (overlaps == 0) is then read from a phase where the latch is off, and
+                // means something, instead of being a number nothing was ever able to move.
                 if (__builtin_expect(srv_->debug_barrier_hold_armed(), false))
-                    c->barrier_acquire(BarrierOwner::Debug);
+                    barrier_arm(c, BarrierOwner::Debug);
                 mark_active(c);
                 break;
             }
