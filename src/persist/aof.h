@@ -219,8 +219,6 @@ public:
         return auto_rewrite_min_size_.load(std::memory_order_relaxed);
     }
     bool failed() const { return failed_.load(std::memory_order_acquire); }
-    const std::string& file_path() const { return file_path_; }
-    const std::string& directory_path() const { return directory_path_; }
     uint64_t records_written() const { return records_written_.load(std::memory_order_relaxed); }
     uint64_t replayed_records() const { return replayed_records_.load(std::memory_order_relaxed); }
     uint64_t groups_committed() const { return groups_committed_.load(std::memory_order_relaxed); }
@@ -273,7 +271,6 @@ public:
     uint64_t auto_rewrite_backoff_skips() const {
         return auto_rewrite_backoff_skips_.load(std::memory_order_relaxed);
     }
-    const std::string& last_error() const { return last_error_; }
     void debug_stop_after_group_fragments(uint64_t count) {
         debug_stop_after_fragments_.store(count, std::memory_order_release);
     }
