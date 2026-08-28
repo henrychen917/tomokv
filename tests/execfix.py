@@ -478,11 +478,12 @@ def arm_breadth(conn, mode):
     check(not bad, f"every cross-shard multi-key command answers in MULTI as it does bare "
                    f"(atomic {mode})", f"{bad!r}")
 
-    # SHELVED, and asserted so it cannot drift silently: a FAILING NX condition (RENAMENX/COPY
-    # without REPLACE, destination present) inside MULTI answers EXECABORT instead of 0.  The
-    # keyspace is left correct; only the reply differs.  See NOTES-EXECFIX.md section (e) for why
-    # this is not a one-line fix: the child's abort flag IS the transaction's abort flag, so making
-    # the condition non-aborting would let the source hop's delete become visible.
+    # WAS SHELVED, NOW FIXED by t-multilower: a FAILING NX condition (RENAMENX/COPY without
+    # REPLACE, destination present) inside MULTI used to answer EXECABORT.  It now answers 0 inside
+    # the EXEC array, which is what the reference does -- EXECABORT means "the transaction never
+    # ran", and a failing NX is a runtime outcome, not a queue-time error.  This assertion was
+    # deliberately written as a shelved-guard that would fail the moment the behaviour changed;
+    # it did, so it is now a positive assertion in the direction of the reference.
     for body in (("RENAMENX", a, b), ("COPY", a, b)):
         conn.command("FLUSHALL")
         conn.command("SET", a, "1")
@@ -490,14 +491,12 @@ def arm_breadth(conn, mode):
         conn.command("MULTI")
         conn.command(*body)
         wrapped = conn.command("EXEC")
-        aborted = isinstance(wrapped, RespError) and "EXECABORT" in str(wrapped)
-        check(aborted,
-              f"SHELVED and unchanged: failing {body[0]} NX in MULTI still EXECABORTs "
-              f"(atomic {mode})",
-              f"got {wrapped!r}; if this now answers 0 the shelved item was fixed -- update "
-              f"NOTES-EXECFIX.md and turn this into a positive assertion")
+        check(wrapped == [0],
+              f"failing {body[0]} NX in MULTI answers 0, not EXECABORT (atomic {mode})",
+              f"got {wrapped!r}, wanted [0] -- the reference runs the transaction and reports the "
+              f"failed condition as a per-command result")
         check(conn.command("GET", a) == b"1" and conn.command("GET", b) == b"2",
-              f"SHELVED {body[0]}: the keyspace is still left correct (atomic {mode})")
+              f"{body[0]}: the keyspace is left correct (atomic {mode})")
 
 
 def main():
