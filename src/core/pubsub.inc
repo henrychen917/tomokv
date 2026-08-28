@@ -220,19 +220,21 @@
             else deferred.append(p, n);
             return;
         }
-        Rob<kRobWindow>& rob = client->rob();
-        if (!rob.quiesced()) {
-            // RESP2 subscribed-mode commands are IO-local. Appending to the newest live Op keeps
-            // every command already parsed ahead of this push without Client state.
-            Op& tail = rob.at(rob.dispatch_id() - 1);
-            if (resp3) { tail.reply.append(&kPush, 1); tail.reply.append(p + 1, n - 1); }
-            else tail.reply.append(p, n);
-        } else if (client->has_pending_segments()) {
-            if (resp3) client->append_buf_segment(&kPush, 1, p + 1, n - 1);
-            else client->append_buf_segment(p, n);
+        // A WHOLE FRAME, ON A FRAME BOUNDARY. This used to park the push on the newest live Op's
+        // `reply`, which is the reply's tail when it is copied and its HEAD when it is borrowed --
+        // so a push landed between a bulk header and its zero-copy body. Client::append_oob picks
+        // the output channel that can neither reorder the frame nor overwrite a live direct-reply
+        // region; a delivery raised from inside this connection's own retire drain (a self
+        // notification, an invalidation riding the same hook) parks on the send engine instead and
+        // goes out the moment that drain finishes staging.
+        if (__builtin_expect(wb_.draining(*client), false)) {
+            if (resp3) wb_.defer_oob(&kPush, 1, p + 1, n - 1);
+            else wb_.defer_oob(p, n);
+            srv_->note_oob_frame_deferred();
         } else {
-            if (resp3) { client->append_fill(&kPush, 1); client->append_fill(p + 1, n - 1); }
-            else client->append_fill(p, n);
+            const bool segmented = resp3 ? client->append_oob(&kPush, 1, p + 1, n - 1)
+                                         : client->append_oob(p, n);
+            if (__builtin_expect(segmented, false)) srv_->note_oob_frame_segmented();
         }
         enqueue_serve(client);
         mark_active(client);

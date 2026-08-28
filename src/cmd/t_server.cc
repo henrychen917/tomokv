@@ -1413,8 +1413,11 @@ inline uint64_t minus_baseline(uint64_t live, uint64_t base) {
 }
 
 bool info_section(Op& op, const char* wanted) {
+    // EVERYTHING is the reference's alias for ALL plus module-generated sections. We load no
+    // modules, so the two are identical here -- but omitting it made `INFO everything` match no
+    // section at all and return an EMPTY reply, where the reference returns every section.
     return op.argc() == 1 || eq_icase(op.arg(1), "ALL") || eq_icase(op.arg(1), "DEFAULT") ||
-           eq_icase(op.arg(1), wanted);
+           eq_icase(op.arg(1), "EVERYTHING") || eq_icase(op.arg(1), wanted);
 }
 
 void cmd_info(Shard&, Op& op) {
@@ -1689,7 +1692,8 @@ void cmd_info(Shard&, Op& op) {
                       "tracking_total_prefixes:%llu\r\ntracking_invalidations:%llu\r\n"
                       "slowlog_batches_timed:%llu\r\nslowlog_escalations:%llu\r\n"
                       "slowlog_entries_recorded:%llu\r\nlatency_events_recorded:%llu\r\n"
-                      "net_io_epoll_events:%llu\r\nnet_io_epoll_recvs:%llu\r\n",
+                      "net_io_epoll_events:%llu\r\nnet_io_epoll_recvs:%llu\r\n"
+                      "oob_frames_segmented:%llu\r\noob_frames_deferred:%llu\r\n",
                 static_cast<unsigned long long>(connections), static_cast<unsigned long long>(rejected),
                 static_cast<unsigned long long>(total_ops), static_cast<unsigned long long>(hits),
                 static_cast<unsigned long long>(misses), static_cast<unsigned long long>(expired),
@@ -1820,7 +1824,11 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(slowlog_entries_recorded()),
                 static_cast<unsigned long long>(latency_events_recorded()),
                 static_cast<unsigned long long>(epoll_events),
-                static_cast<unsigned long long>(epoll_recvs));
+                static_cast<unsigned long long>(epoll_recvs),
+                // Out-of-band frame channel: a push battery that cannot see these move never
+                // reached the non-quiesced / mid-drain geometry it is there to cover.
+                static_cast<unsigned long long>(g_server ? g_server->oob_frames_segmented() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->oob_frames_deferred() : 0));
     }
     if (info_section(op, "COMMANDSTATS")) {
         body += "# Commandstats\r\n";

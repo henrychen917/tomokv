@@ -58,6 +58,7 @@
 #include <atomic>
 #include <cerrno>
 #include <cstdint>
+#include <string>
 #include <sys/socket.h>
 #include "conn.h"
 #include "epoll.h"
@@ -98,6 +99,31 @@ public:
     }
 
     Ring&  ring()       { return *ring_; }
+
+    // ---- OUT-OF-BAND FRAMES PRODUCED *DURING* A RETIRE DRAIN -----------------------------------
+    //
+    // A retire callback calls back into the loop: cross-shard assembly (assemble_mget stages
+    // [array header][borrow][...] into the segment queue and leaves the reply's TAIL in the Op),
+    // then the notification/tracking hook, which can synthesise a pub/sub delivery, a tracking
+    // invalidation or a MONITOR line for the very connection being drained. At that instant the
+    // connection's newest reply is only PARTIALLY staged, so Client::append_oob's frame-boundary
+    // argument does not hold and appending would splice the frame into the middle of it.
+    //
+    // So a producer asks first. While the engine is inside this connection's drain the bytes park
+    // here and are flushed the instant the drain ends -- a frame boundary by construction, and the
+    // same relative position the old `op.reply` parking produced (behind every reply retired in
+    // this pass), so nothing that reads correctly today reorders.
+    //
+    // ONE BUFFER IS ENOUGH, and that is a property of the architecture rather than luck: exactly
+    // one drain runs at a time on an io thread, every out-of-band producer has already hopped to
+    // the target's owning io thread, and frames for any OTHER connection are by definition not
+    // mid-frame and take the direct path. clear() keeps the capacity, so a connection that is fed
+    // continuously pays one grow and no steady-state allocation.
+    bool draining(const Client& c) const { return draining_ == &c; }
+    void defer_oob(const char* a, size_t an, const char* b = nullptr, size_t bn = 0) {
+        oob_defer_.append(a, an);
+        if (bn) oob_defer_.append(b, bn);
+    }
 
     // THE WHOLE REPLY SIDE, in one call, run by whichever stage owns sending for this client.
     //
@@ -171,6 +197,7 @@ public:
         stats_.serves++;
         Client& conn = c;
         conn.start_obuf_tracking();
+        draining_ = &c;
         const uint32_t retired = c.rob().drain([&](Op& op) {
             if (op.zc_ptr) {
                 if (retire_fn_) retire_fn_(retire_ctx_, conn, op);
@@ -199,7 +226,9 @@ public:
                 if (!op.reply.empty()) conn.append_fill(op.reply.data(), op.reply.size());
             }
         });
+        draining_ = nullptr;
         bool did = retired != 0;
+        did |= flush_deferred_oob(conn);
         if (limit_fn_ && limit_fn_(limit_ctx_, c)) {
             stats_.retired += retired;
             return true;
@@ -566,12 +595,23 @@ public:
     }
 
 private:
+    // Empty on every serve of every connection that has no subscription, no tracking and no
+    // monitor -- one predicted-true test on a hot member, no branch taken. Runs at a frame
+    // boundary: the drain has finished staging, pump has not started.
+    bool flush_deferred_oob(Client& conn) {
+        if (__builtin_expect(oob_defer_.empty(), true)) return false;
+        conn.append_oob(oob_defer_.data(), oob_defer_.size());
+        oob_defer_.clear();
+        return true;
+    }
+
     template <bool TrackOutput, bool TlsNoBorrow, bool kEp>
     bool serve_impl(Client& c) {
         TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed));
         stats_.serves++;
         Client& conn = c;
         if constexpr (TrackOutput) conn.start_obuf_tracking();
+        draining_ = &c;
         const uint32_t retired = c.rob().drain([&](Op& op) {
             if constexpr (TlsNoBorrow) {
                 if (op.no_borrow()) note_zc_suppressed_tls();
@@ -623,7 +663,9 @@ private:
                 }
             }
         });
+        draining_ = nullptr;
         bool did = retired != 0;
+        did |= flush_deferred_oob(conn);
         if constexpr (TrackOutput) {
             if (limit_fn_ && limit_fn_(limit_ctx_, c)) {
                 stats_.retired += retired;
@@ -645,6 +687,7 @@ private:
         stats_.serves++;
         Client& conn = c;
         if constexpr (TrackOutput) conn.start_obuf_tracking();
+        draining_ = &c;
         const uint32_t retired = c.rob().drain([&](Op& op) {
             if (op.no_borrow()) note_zc_suppressed_tls();
             if (op.zc_ptr && retire_fn_) retire_fn_(retire_ctx_, conn, op);
@@ -675,7 +718,9 @@ private:
                 }
             }
         });
+        draining_ = nullptr;
         bool did = retired != 0;
+        did |= flush_deferred_oob(conn);
         if constexpr (TrackOutput) {
             if (limit_fn_ && limit_fn_(limit_ctx_, c)) {
                 stats_.retired += retired;
@@ -805,6 +850,10 @@ private:
     // Engine, for the cold non-templated entry points only. The hot send path never reads it.
     bool   epoll_ = false;
     bool   send_failed_ = false;
+    // The connection whose retire drain is running right now, or null. Out-of-band producers test
+    // it to decide whether they may append to that connection at all; see draining() above.
+    const Client* draining_ = nullptr;
+    std::string   oob_defer_;
     Stats  stats_;
 };
 
