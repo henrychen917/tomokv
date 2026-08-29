@@ -1891,9 +1891,12 @@ void cmd_info(Shard&, Op& op) {
                     g_server ? g_server->barrier_releases_held() : 0));
         appendf(body,
                 "flip_completed:%llu\r\nflip_refused:%llu\r\n"
+                "flip_clients_transferred:%llu\r\n"
                 "flip_conservation_checks:%llu\r\nflip_conservation_violations:%llu\r\n",
                 static_cast<unsigned long long>(g_server ? g_server->flip_completed() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->flip_refused() : 0),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->flip_clients_transferred() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->flip_conservation_checks() : 0),
                 static_cast<unsigned long long>(

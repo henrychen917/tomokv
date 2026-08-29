@@ -170,6 +170,17 @@ public:
 
     Ring& ring() { return ring_; }
 
+    // Epoll can allocate kernel registration state. Reserve the actual destination registration
+    // while the source still owns the connection; destination readiness events are owner-checked
+    // and ignored until commit. io_uring has no per-fd destination registration to reserve.
+    bool prepare_client_registration(Client* client) {
+        return !epoll_ || ep_.add(client->fd(), EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLET,
+                                  ur_tag(UrKind::Recv, client));
+    }
+    void cancel_client_registration(Client* client) {
+        if (epoll_ && !ep_.del(client->fd())) std::abort();
+    }
+
     bool activate() {
         if (!initialized_) return false;
         if (active_role_) {
@@ -256,6 +267,12 @@ public:
             error = "connection is not live on the source IO thread";
             return false;
         }
+        uint32_t directory_owner = UINT32_MAX;
+        if (!command_client_directory_find(client->id(), directory_owner) ||
+            directory_owner != self_->id()) {
+            error = "connection directory is not owned by the source IO thread";
+            return false;
+        }
         if (client->is_tls()) {
             error = "TLS connection has owner-local engine state";
             return false;
@@ -278,6 +295,7 @@ public:
     bool prepare_client_transfer_capacity(uint32_t incoming) {
         try {
             self_->clients().reserve(self_->clients().size() + incoming);
+            active_.v.reserve(active_.v.size() + incoming);
         } catch (const std::bad_alloc&) {
             return false;
         }
@@ -383,6 +401,8 @@ private:
         bool cancel_submitted = false;
         bool hold_for_commit = false;
         bool prepared = false;
+        bool destination_registered = false;
+        int source_backup_fd = -1;
         void* catalog = nullptr;
     };
 
@@ -742,7 +762,11 @@ private:
                     break;
                 case UrKind::Recv: {
                     Client* c = ur_ptr<Client>(ev.data.u64);
-                    if (!c || c->dead()) break;
+                    // During FLIP preflight the fd may already be registered here while source
+                    // ownership is still live. Do not touch even a flag until the owner edge.
+                    if (!c || c->ifid_thread() != self_->id() || c->dead() ||
+                        c->wb_slot() == Client::kWbMigrationInstalling ||
+                        find_client_migration(c)) break;
                     // EPOLLERR/EPOLLHUP are folded into the read side on purpose: the recv that
                     // follows returns 0 or the real errno, and close_client is then reached through
                     // the one path that already knows how to tear a connection down.
@@ -1115,13 +1139,19 @@ private:
     void cancel_client_transfer(Client* client) {
         ClientMigration* migration = find_client_migration(client);
         if (!migration) std::abort();
+        if constexpr (kEp) {
+            if (migration->destination_registered) {
+                srv_->thread(migration->destination).cancel_client_registration(client);
+                migration->destination_registered = false;
+            }
+            if (migration->source_backup_fd < 0) std::abort();
+            const int original = client->replace_fd(migration->source_backup_fd);
+            migration->source_backup_fd = -1;
+            ::close(original); // destination registration was removed above
+        }
         if (migration->catalog) {
             if (!command_client_migration_install(migration->catalog)) std::abort();
             migration->catalog = nullptr;
-        }
-        if constexpr (kEp) {
-            if (!ep_.add(client->fd(), EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLET,
-                         ur_tag(UrKind::Recv, client))) std::abort();
         }
         erase_client_migration(client);
         client_transfer_failures_++;
@@ -1147,7 +1177,8 @@ private:
         }
         try {
             client_migrations_.push_back(
-                ClientMigration{client, destination, false, hold_for_commit, false, nullptr});
+                ClientMigration{client, destination, false, hold_for_commit,
+                                false, false, -1, nullptr});
         } catch (const std::bad_alloc&) {
             error = "could not allocate connection-transfer state";
             return false;
@@ -1158,12 +1189,36 @@ private:
             active_.erase(client);
         }
         if constexpr (kEp) {
-            // Called between epoll batches. No stack frame in the source loop retains this pointer,
-            // and DEL prevents a later source batch from acquiring one.
-            if (!ep_.del(client->fd())) {
+            // Reserve BOTH possible outcomes before removing the original source interest. The
+            // duplicate is already registered on source: rollback adopts that fd without ADD.
+            ClientMigration* migration = find_client_migration(client);
+            const int backup = ::fcntl(client->fd(), F_DUPFD_CLOEXEC, 0);
+            if (backup < 0 ||
+                !ep_.add(backup, EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLET,
+                         ur_tag(UrKind::Recv, client))) {
+                if (backup >= 0) ::close(backup);
                 erase_client_migration(client);
                 mark_active(client);
-                error = "could not detach connection from source epoll set";
+                error = "could not reserve source epoll rollback registration";
+                return false;
+            }
+            migration->source_backup_fd = backup;
+            if (!srv_->thread(destination).prepare_client_registration(client)) {
+                if (!ep_.del(backup)) std::abort();
+                ::close(backup);
+                erase_client_migration(client);
+                mark_active(client);
+                error = "could not reserve destination epoll registration";
+                return false;
+            }
+            migration->destination_registered = true;
+            if (!ep_.del(client->fd())) {
+                srv_->thread(destination).cancel_client_registration(client);
+                if (!ep_.del(backup)) std::abort();
+                ::close(backup);
+                erase_client_migration(client);
+                mark_active(client);
+                error = "could not detach original source epoll registration";
                 return false;
             }
             client->set_recv_armed(false); // epoll held no buffer pointer; the old edge is discarded
@@ -1206,6 +1261,12 @@ private:
         const uint32_t destination = migration->destination;
         ThreadCtx& target = srv_->thread(destination);
         if (!target.client_transfer_free_slots(self_->id())) std::abort();
+        if constexpr (kEp) {
+            if (!migration->destination_registered || migration->source_backup_fd < 0)
+                std::abort();
+            ::close(migration->source_backup_fd); // removes the reserved source registration
+            migration->source_backup_fd = -1;
+        }
         void* const catalog = migration->catalog;
 
         // Everything below was reserved or validated above. The owner store is deliberately last
@@ -1213,7 +1274,9 @@ private:
         // failure: attempting rollback would make ownership ambiguous.
         const uint64_t client_id = client->id();
         self_->release_wb_slot(client->wb_slot());
-        client->set_wb_slot(Client::kNoWbSlot);
+        // Destination epoll readiness may arrive as soon as the owner store publishes. This
+        // sentinel keeps those events inert until the pre-reserved client/catalog/WB install.
+        client->set_wb_slot(Client::kWbMigrationInstalling);
         auto& clients = self_->clients();
         auto found = std::find(clients.begin(), clients.end(), client);
         if (found == clients.end()) std::abort();
@@ -1224,6 +1287,7 @@ private:
         client->set_ifid_thread(destination); // THE single connection ownership edge
         command_client_directory_add(client_id, destination);
         if (!target.post_client_transfer(self_->id(), transfer, ring_, self_->sig())) std::abort();
+        srv_->flip_note_client_transferred();
         erase_client_migration(client);       // pointer comparison only; source never dereferences
         return true;
     }
@@ -1284,10 +1348,8 @@ private:
                 std::abort();
             }
             client->set_wb_slot(self_->assign_wb_slot(client));
-            if constexpr (kEp) {
-                if (!ep_.add(client->fd(), EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLET,
-                             ur_tag(UrKind::Recv, client))) std::abort();
-            }
+            // Epoll's actual registration was installed during reversible preflight. io_uring
+            // needs no registration; arm_recv below retries harmless SQ starvation.
             mark_active(client);
             arm_recv<kEp>(client);
         };
@@ -1450,8 +1512,14 @@ private:
                 }
             }
             if (!converting_to_ex ||
-                (client_transfers_prepared() && accepts_quiesced()))
+                (client_transfers_prepared() &&
+                 client_migrations_.size() == srv_->flip_source_clients(self_->id()) &&
+                 accepts_quiesced()))
                 srv_->flip_ack(self_->id(), stage);
+            else if (converting_to_ex && client_transfers_prepared() &&
+                     client_migrations_.size() != srv_->flip_source_clients(self_->id()))
+                srv_->flip_note_failure(
+                    "ERR FLIP source connection set changed during reversible preflight");
         } else if (stage == FlipStage::ClientCommit &&
                    !srv_->flip_acked(self_->id(), stage)) {
             if (srv_->flip_candidate_target(self_->id()) == Role::Ex)
@@ -1566,7 +1634,8 @@ private:
     template <bool kEp>
     void adopt_client(Client* c, bool unix_socket, bool tls_socket = false) {
         // ARMED ONCE FOR THIS OWNERSHIP TENURE. Both directions are edge triggered. Normal teardown
-        // still lets ::close() deregister; migration alone uses explicit DEL/ADD between owners.
+        // still lets ::close() deregister; migration alone pre-registers destination + rollback
+        // interests and removes the old tenure's original registration around the owner edge.
         // Registration belongs here rather than at accept because an AF_UNIX connection can be
         // accepted by one IO thread and owned by another.
         if constexpr (kEp) {

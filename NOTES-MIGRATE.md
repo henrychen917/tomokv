@@ -80,6 +80,10 @@ descriptor `(begin, end, source, destination, phase)`.
    operation, scatter group, atomic group/commit ticket, snapshot control step,
    or epoch-pinned read can touch the range.  Refusal or timeout here leaves the
    source owner unchanged.
+   FLIP also scans the complete shard-pointer partition and every router bucket:
+   each physical `Shard*` must occur exactly once, only on its live EX owner, and
+   each bucket must name that same shard and owner. Destination capacity for the
+   worst-case plan is reserved before publication.
 4. **PUBLISHING** — publish the descriptor in `PREPARING`.  Routing through the
    descriptor still returns `source` while every `owner_[bucket]` entry is
    written to `destination`.  Readers therefore cannot observe a half-written
@@ -143,16 +147,18 @@ buffer is drained rather than moved while it contains work.
    outstanding zero-copy value borrow.  Refusal/timeout here leaves source owner
    and resumes it unchanged.
 4. **PREPARE DESTINATION** — reserve destination client/WB/catalog and enqueue
-   capacity before detaching anything.  Connections with owner-local state that
-   cannot be transferred are refused during preflight.
+   capacity before detaching anything. Epoll also reserves both the destination
+   registration and a duplicated source rollback fd. Connections with owner-local
+   state that cannot be transferred are refused during preflight.
 5. **DETACH ENGINE (REVERSIBLE)** — still under source ownership:
    * io_uring cancels the fd's receive/poll request and waits for the original CQE
      to acknowledge cancellation.  A cancellation CQE never transfers ownership.
-   * epoll performs `EPOLL_CTL_DEL` at an event-loop boundary, after the current
-     returned event batch is consumed.  Thus no source stack frame retains the
-     `Client*`.
+   * epoll duplicates and pre-registers a rollback fd on the source and
+     pre-registers the original fd on the destination, then removes the original
+     source entry at an event-loop boundary after the current event batch. Backup
+     and early destination events are owner/migration checked before client use.
    The source also extracts, but retains, the allocation-owning CLIENT catalog
-   node.  A pre-commit refusal re-adds epoll/recv and reinstalls that exact node;
+   node.  A pre-commit refusal restores epoll/recv and reinstalls that exact node;
    no connection authority changed.
 6. **HANDOFF** — remove source-local membership and release-store
    `ifid_thread = destination`.  This one store is the connection ownership edge.
@@ -162,9 +168,15 @@ buffer is drained rather than moved while it contains work.
 7. **DESTINATION INSTALL** — destination acquire-loads ownership, installs its WB
    slot and directory entry, then:
    * io_uring arms a receive on the destination ring;
-   * epoll performs `EPOLL_CTL_ADD` on the destination epoll set.
+   * epoll activates the destination registration prepared before handoff.
 8. **DESTINATION ACTIVE** — destination resumes parsing and retirement using the
    unchanged, empty ROB and any buffered input bytes.
+
+FLIP records the exact number of clients planned from each converting source and
+will not acknowledge CLIENT PREPARE unless that many reversible migration records
+exist. A cancellation/error therefore cannot silently shrink the plan into a
+successful partial FLIP. `flip_clients_transferred` counts owner edges as a live
+mechanism witness.
 
 ### In-flight cases
 
@@ -174,7 +186,7 @@ buffer is drained rather than moved while it contains work.
 | Bytes received but not parsed | Kept in `Client` and parsed only after target activation. |
 | io_uring recv/poll points at `Client` | Explicit asynchronous cancellation; wait for the original CQE before handoff. |
 | io_uring send CQE pending | Drain it before handoff. |
-| epoll event already returned to source | Transfer is performed only after that event batch completes; then `DEL`. |
+| epoll event already returned to source | Preparation runs only after that event batch; the original source interest is removed before handoff. |
 | Kernel zero-copy send borrows a value | Segment/send drain waits for release; migration is refused on timeout. |
 | Reply partly retired or buffered | Flush completely before transfer, preserving protocol order. |
 | Deferred push/OOB frame | `WbEngine` finishes its drain; migration cannot strand or discard the deferred frame. |
@@ -186,13 +198,26 @@ buffer is drained rather than moved while it contains work.
 This deliberately extends the invariant documented in `src/net/epoll.h`.
 Registrations are no longer "armed once for the lifetime of the fd"; they are
 **armed once per IO-ownership tenure**.  Normal operation still never rearms an
-edge-triggered fd.  Migration alone uses explicit `EPOLL_CTL_DEL` on the old set
-and `EPOLL_CTL_ADD` on the new set.  Teardown continues to rely on `close(fd)`
-when no migration is occurring.
+edge-triggered fd. Migration pre-registers both the destination and a duplicated
+source rollback fd before removing the original source entry. Commit closes the
+backup. Rollback deletes the destination entry, adopts the already-registered
+duplicate as the connection fd, and closes the original, so it never depends on
+a fallible fresh registration. Teardown continues to rely on `close(fd)` when no
+migration is occurring.
 
 There is no intentionally unsafe client move.  Refusing non-self-contained
 client modes is preferable to copying hidden loop-local state or violating the
 ROB/borrow contract.
+
+The refusal-only cases are explicit. TLS, blocked WAIT, pub/sub, tracking,
+MONITOR, CLIENT REPLY state, MULTI, and WATCH are refused when their owner would
+convert. So are insufficient client/catalog/channel/vector capacity, failure to
+duplicate or pre-register an epoll fd, a recv cancellation which cannot reach its
+pointer fence, a non-quiescent ROB/reply/borrow/OOB state, or an invalid shard
+partition. All occur before the first owner store. An actual peer disconnect or
+kernel socket error is external connection failure rather than a FLIP mechanism;
+if it races reversible preparation the FLIP is refused, but the server cannot
+resurrect a socket the peer has already destroyed.
 
 ## 3. Manual FLIP
 
@@ -242,7 +267,7 @@ admin-command convention and does not invent a new configuration knob or gate.
    acknowledged it performs no expiry, cleanup, waiter, or shard walk until EX
    INSTALL.  Mask-independent inbox drains prevent a missing hint from faking
    quiescence.
-5. **CLIENT PREPARE** — selected IO sources detach epoll or cancel io_uring recv
+5. **CLIENT PREPARE** — selected IO sources pre-register both epoll outcomes or cancel io_uring recv
    and wait for the original CQE, but retain connection ownership.  An IO -> EX
    source also stops accepting: epoll keeps its tenure registration dormant,
    while io_uring cancels each multishot accept without closing the listener and
@@ -278,6 +303,14 @@ such a rollback would itself create ambiguous ownership.  Unexpected failures
 after that edge terminate via an invariant assertion instead of publishing a
 partial, apparently healthy split.
 
+No fallible allocation or registration remains after that edge. Shard transfer
+moves an existing `Shard*` between pre-reserved vectors and rewrites only owner
+bits; the `FlatStore`, keys, values, expiry, and MVCC records never move. Client
+transfer moves the unchanged `Client*`, drained ROB, buffered input, and extracted
+catalog node through pre-reserved storage. Both epoll outcomes already have live
+registrations; io_uring receive arming uses the destination's pre-existing ring
+and retries SQ starvation without closing the socket.
+
 ### In-flight cases
 
 | In-flight state | Resolution |
@@ -300,11 +333,13 @@ partial, apparently healthy split.
 
 ### Observability and tests
 
-`INFO` exposes live IO/EX counts, completed flips, refused flips, successful
-conservation checks, and conservation violations.  The report form exposes both
-live and target counts so a refusal or transition is visible directly.  A test
-must cover both conversion directions, invalid totals, report/live agreement,
-counter changes, data survival, connection order across an IO handoff, and the
-fact that conservation checks increase without a violation.
+`INFO` exposes live IO/EX counts, completed/refused flips, transferred clients,
+successful conservation checks, and conservation violations. The report form
+exposes live/target counts plus SMT mode and unit width so a conservation refusal
+and a pair-granularity refusal are distinguishable. The directed battery writes
+and re-reads every value, proves both live-shape and completed-counter changes,
+keeps 96 sockets with identifiable unread pipelines across a real moving FLIP,
+requires a non-zero client-transfer witness, and repeats key/client checks after
+a refused negative control.
 
 No automatic controller, timer, target search, or background hill-climb exists.

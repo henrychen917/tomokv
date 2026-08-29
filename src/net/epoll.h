@@ -25,8 +25,11 @@
 // EDGE TRIGGERED, ARMED ONCE PER OWNERSHIP TENURE, NEVER HOT-PATH RE-ARMED. A connection is added
 // when an IO thread acquires ownership and normally remains registered until ::close(). Runtime
 // migration deliberately extends the old lifetime arm-once contract: at an event-loop boundary the
-// old owner uses EPOLL_CTL_DEL, publishes the one connection-owner edge, and the new owner uses
-// EPOLL_CTL_ADD. EPOLLONESHOT is still forbidden -- it would cost one epoll_ctl syscall per event.
+// destination pre-registers the fd while the old owner registers a duplicated descriptor for the
+// same socket, then removes its original entry before the connection-owner edge. Destination and
+// backup events are ignored during preparation. Commit closes the backup; rollback makes that
+// already-registered duplicate the Client's fd and closes the original. Thus every ADD/dup is a
+// reversible preflight operation, never a post-commit or rollback connection-loss point.
 // Edge triggering retains the standard obligation: read/write until EAGAIN, and if we stop early
 // (no read space, ROB full) remember that ourselves rather than expecting another edge. Client's
 // recv_armed_ carries exactly that memory under this engine -- true means "we reached EAGAIN, an

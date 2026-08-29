@@ -461,6 +461,10 @@ public:
     int32_t shard_of(uint64_t hash) const {
         return unpack_shard(owner_[bucket_of(hash)].load(std::memory_order_relaxed));
     }
+    int32_t shard_of_bucket(uint32_t bucket) const {
+        return bucket < kNumBuckets
+            ? unpack_shard(owner_[bucket].load(std::memory_order_acquire)) : -1;
+    }
 
     uint32_t owner_of(uint64_t hash) const { return owner_of_bucket(bucket_of(hash)); }
     uint32_t owner_of_bucket(uint32_t bucket) const {

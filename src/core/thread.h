@@ -95,6 +95,8 @@ class ThreadCtx {
 public:
     using RolePrepareFn = bool (*)(void*);
     using RoleCancelFn = void (*)(void*);
+    using ClientRegistrationPrepareFn = bool (*)(void*, Client*);
+    using ClientRegistrationCancelFn = void (*)(void*, Client*);
     ThreadCtx() = default;
     ThreadCtx(const ThreadCtx&) = delete;
     ThreadCtx& operator=(const ThreadCtx&) = delete;
@@ -131,11 +133,24 @@ public:
         io_role_prepare_ = prepare;
         io_role_cancel_ = cancel;
     }
+    void bind_client_registration_hooks(ClientRegistrationPrepareFn prepare,
+                                        ClientRegistrationCancelFn cancel) {
+        client_registration_prepare_ = prepare;
+        client_registration_cancel_ = cancel;
+    }
     bool prepare_io_role() {
         return io_role_prepare_ && io_role_prepare_(io_role_context_);
     }
     void cancel_prepared_io_role() {
         if (io_role_cancel_) io_role_cancel_(io_role_context_);
+    }
+    bool prepare_client_registration(Client* client) {
+        return client_registration_prepare_ &&
+               client_registration_prepare_(io_role_context_, client);
+    }
+    void cancel_client_registration(Client* client) {
+        if (!client_registration_cancel_) std::abort();
+        client_registration_cancel_(io_role_context_, client);
     }
 
     // Where this thread actually runs. Latched once the thread is pinned and running, because
@@ -330,6 +345,7 @@ public:
     Ring* ring() const      { return ring_.load(std::memory_order_acquire); }
 
     std::vector<Shard*>&  shards()  { return shards_; }    // Ex role
+    const std::vector<Shard*>& shards() const { return shards_; }
     std::vector<Client*>& clients() { return clients_; }   // Ifid role
 
     // The single reporting surface. Every loop fills the same fields in the same units, so a
@@ -509,6 +525,8 @@ private:
     void* io_role_context_ = nullptr;
     RolePrepareFn io_role_prepare_ = nullptr;
     RoleCancelFn io_role_cancel_ = nullptr;
+    ClientRegistrationPrepareFn client_registration_prepare_ = nullptr;
+    ClientRegistrationCancelFn client_registration_cancel_ = nullptr;
 
     int      cpu_    = -1;
     uint32_t domain_ = kNoDomain;

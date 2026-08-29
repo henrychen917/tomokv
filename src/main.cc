@@ -292,6 +292,14 @@ int main(int argc, char** argv) {
                     &ios[tid],
                     [](void* p) { return static_cast<IoLoop*>(p)->prepare_activation(); },
                     [](void* p) { static_cast<IoLoop*>(p)->cancel_prepared_activation(); });
+            if (ok)
+                self.bind_client_registration_hooks(
+                    [](void* p, Client* client) {
+                        return static_cast<IoLoop*>(p)->prepare_client_registration(client);
+                    },
+                    [](void* p, Client* client) {
+                        static_cast<IoLoop*>(p)->cancel_client_registration(client);
+                    });
             {
                 std::lock_guard<std::mutex> lock(load_mu);
                 if (!ok) {
@@ -379,6 +387,13 @@ int main(int argc, char** argv) {
                 &ios[tid],
                 [](void* p) { return static_cast<IoLoop*>(p)->prepare_activation(); },
                 [](void* p) { static_cast<IoLoop*>(p)->cancel_prepared_activation(); });
+            self.bind_client_registration_hooks(
+                [](void* p, Client* client) {
+                    return static_cast<IoLoop*>(p)->prepare_client_registration(client);
+                },
+                [](void* p, Client* client) {
+                    static_cast<IoLoop*>(p)->cancel_client_registration(client);
+                });
             for (;;) {
                 if (self.stop_flag().load(std::memory_order_relaxed)) break;
                 const Role role = self.role();

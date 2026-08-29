@@ -273,6 +273,11 @@ public:
     Client& operator=(const Client&) = delete;
 
     int  fd() const { return fd_; }
+    int replace_fd(int replacement) {
+        const int previous = fd_;
+        fd_ = replacement;
+        return previous;
+    }
 
     // ---- read side -----------------------------------------------------------------------------
     char*    rbuf()      { return rbuf_; }
@@ -677,6 +682,7 @@ public:
     // kNoWbSlot at close), read by every worker deciding how to signal completion. A stale read
     // falls back to the channel path, which is always correct -- so relaxed is enough.
     static constexpr uint32_t kNoWbSlot = UINT32_MAX;
+    static constexpr uint32_t kWbMigrationInstalling = UINT32_MAX - 1;
     uint32_t wb_slot() const { return wb_slot_.load(std::memory_order_relaxed); }
     void set_wb_slot(uint32_t s) { wb_slot_.store(s, std::memory_order_release); }
 

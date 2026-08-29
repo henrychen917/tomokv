@@ -303,6 +303,12 @@ public:
     uint32_t flip_target_ex() const { return flip_target_ex_.load(std::memory_order_acquire); }
     uint64_t flip_completed() const { return flip_completed_.load(std::memory_order_relaxed); }
     uint64_t flip_refused() const { return flip_refused_.load(std::memory_order_relaxed); }
+    uint64_t flip_clients_transferred() const {
+        return flip_clients_transferred_.load(std::memory_order_relaxed);
+    }
+    void flip_note_client_transferred() {
+        flip_clients_transferred_.fetch_add(1, std::memory_order_relaxed);
+    }
     void flip_note_refused() { flip_refused_.fetch_add(1, std::memory_order_relaxed); }
     uint64_t flip_conservation_checks() const {
         return flip_conservation_checks_.load(std::memory_order_relaxed);
@@ -356,9 +362,18 @@ public:
             if (per_target[target])
                 flip_incoming_clients_[target].fetch_add(
                     per_target[target], std::memory_order_release);
+        flip_source_clients_[source].store(count, std::memory_order_release);
         return true;
     }
+    uint32_t flip_source_clients(uint32_t source) const {
+        return source < nthreads()
+            ? flip_source_clients_[source].load(std::memory_order_acquire) : 0;
+    }
     bool flip_reserve_shard_plan(std::string& error) {
+        if (!flip_shard_ownership_conserved()) {
+            error = "ERR FLIP shard ownership is not a complete one-owner partition";
+            return false;
+        }
         for (uint32_t tid = 0; tid < nthreads(); tid++) {
             const Role final_role = flip_convert_[tid] == Role::Idle
                 ? thread(tid).role() : flip_convert_[tid];
@@ -425,6 +440,7 @@ public:
         for (uint32_t tid = 0; tid < kMaxThreads; tid++) {
             flip_convert_[tid] = Role::Idle;
             flip_incoming_clients_[tid].store(0, std::memory_order_relaxed);
+            flip_source_clients_[tid].store(0, std::memory_order_relaxed);
             flip_ack_[tid].store(0, std::memory_order_relaxed);
         }
         const uint32_t conversions = live_io > target_io ? live_io - target_io
@@ -564,6 +580,7 @@ public:
     void flip_complete_active() {
         flip_conservation_check();
         flip_conservation_check(true);
+        if (!flip_shard_ownership_conserved()) std::abort();
         if (role_count(Role::Ifid, true) != flip_target_io() ||
             role_count(Role::Ex, true) != flip_target_ex()) {
             flip_conservation_violations_.fetch_add(1, std::memory_order_relaxed);
@@ -611,6 +628,27 @@ private:
                 ? thread(peer).role() : flip_convert_[peer];
             if (role != peer_role) return false;
         }
+        return true;
+    }
+
+    bool flip_shard_ownership_conserved() const {
+        if (nshards() > 256 || router_.transfer_phase() != Router::TransferPhase::Idle)
+            return false;
+        uint8_t seen[256] = {};
+        for (uint32_t tid = 0; tid < nthreads(); tid++) {
+            const auto& owned = thread(tid).shards();
+            if (thread(tid).role() != Role::Ex && !owned.empty()) return false;
+            for (Shard* shard : owned) {
+                if (!shard || shard->id() < 0 ||
+                    static_cast<uint32_t>(shard->id()) >= nshards() ||
+                    shard != shards_[static_cast<uint32_t>(shard->id())].get() ||
+                    seen[static_cast<uint32_t>(shard->id())]++) return false;
+                for (uint32_t bucket = shard->bucket_begin(); bucket < shard->bucket_end(); bucket++)
+                    if (router_.shard_of_bucket(bucket) != shard->id() ||
+                        router_.owner_of_bucket(bucket) != tid) return false;
+            }
+        }
+        for (uint32_t sid = 0; sid < nshards(); sid++) if (seen[sid] != 1) return false;
         return true;
     }
 
@@ -1993,6 +2031,7 @@ private:
     uint32_t flip_surviving_io_[kMaxThreads] = {};
     uint32_t flip_surviving_io_count_ = 0;
     std::atomic<uint32_t> flip_incoming_clients_[kMaxThreads] = {};
+    std::atomic<uint32_t> flip_source_clients_[kMaxThreads] = {};
     uint32_t flip_coordinator_ = UINT32_MAX;
     uint32_t unix_owner_tid_ = UINT32_MAX;
     std::atomic<bool> flip_failed_{false};
@@ -2000,6 +2039,7 @@ private:
     std::string flip_error_;
     std::atomic<uint64_t> flip_completed_{0};
     std::atomic<uint64_t> flip_refused_{0};
+    std::atomic<uint64_t> flip_clients_transferred_{0};
     std::atomic<uint64_t> flip_conservation_checks_{0};
     std::atomic<uint64_t> flip_conservation_violations_{0};
     std::atomic<uint32_t> loading_{0};
