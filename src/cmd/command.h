@@ -235,6 +235,8 @@ bool command_client_filter_match(const Client& client, const PubSubEvent& event,
 bool command_client_set_name(Client* client, Slice name);
 std::string command_client_name(const Client* client);
 bool command_client_set_info(Client* client, Slice option, Slice value);
+// Compatibility metadata only: reported by CLIENT INFO/LIST, not enforced. Redis applies this to
+// client output-buffer eviction, a mechanism TomoKV does not implement.
 void command_client_set_no_evict(Client* client, bool enabled);
 void command_client_set_no_touch(Client* client, bool enabled);
 // MONITOR feed lines and CLIENT INFO share the owner-catalog peer address.

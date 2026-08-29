@@ -1014,6 +1014,10 @@ void cmd_client(Shard&, Op& op) {
         reply_err(op.sink(), "ERR CLIENT scatter is unavailable in this execution context");
     } else if (eq_icase(sub, "NO-EVICT") && op.argc() == 3 &&
                (eq_icase(op.arg(2), "ON") || eq_icase(op.arg(2), "OFF"))) {
+        // Compatibility facade: Redis uses this bit to exempt a connection from
+        // maxmemory-clients output-buffer eviction. TomoKV has neither maxmemory-clients nor a
+        // client-output-buffer eviction path, so retain/report the bit but deliberately do not
+        // present it as protection from FlatStore's key eviction.
         command_client_set_no_evict(g_client, eq_icase(op.arg(2), "ON"));
         reply_ok(op.sink());
     } else if (eq_icase(sub, "NO-EVICT")) {
@@ -2258,6 +2262,9 @@ bool command_client_set_info(Client* client, Slice option, Slice value) {
 }
 
 void command_client_set_no_evict(Client* client, bool enabled) {
+    // Metadata only. There is no consumer by design: Redis's NO-EVICT gates client output-buffer
+    // eviction, while TomoKV implements only key eviction. Keeping the bit lets CLIENT INFO/LIST
+    // round-trip the accepted Redis surface without falsely coupling it to FlatStore eviction.
     if (ClientMeta* meta = client_meta(client)) meta->no_evict = enabled;
 }
 
